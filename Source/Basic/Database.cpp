@@ -70,7 +70,7 @@ bool DB::exist(String tableName) const {
 
 int DB::exec(String sql) {
 	try {
-		return exec(_database.get(), sql);
+		return execUnsafe(_database.get(), sql);
 	} catch (std::exception& e) {
 		Warn("failed to execute DB SQL: {}", e.what());
 		return false;
@@ -79,7 +79,7 @@ int DB::exec(String sql) {
 
 int DB::exec(String sql, const std::vector<Own<Value>>& args) {
 	try {
-		return exec(_database.get(), sql, args);
+		return execUnsafe(_database.get(), sql, args);
 	} catch (std::exception& e) {
 		Warn("failed to execute DB SQL: {}", e.what());
 		return false;
@@ -89,14 +89,14 @@ int DB::exec(String sql, const std::vector<Own<Value>>& args) {
 int DB::exec(String sql, const std::deque<std::vector<Own<Value>>>& rows) {
 	int result = 0;
 	transaction([&](SQLite::Database* db) {
-		result = exec(db, sql, rows);
+		result = execUnsafe(db, sql, rows);
 	});
 	return result;
 }
 
 bool DB::insert(String tableName, const std::deque<std::vector<Own<Value>>>& rows) {
 	return transaction([&](SQLite::Database* db) {
-		insert(db, tableName, rows);
+		insertUnsafe(db, tableName, rows);
 	});
 }
 
@@ -163,7 +163,7 @@ std::deque<std::vector<Own<Value>>> DB::query(String sql, const std::vector<Own<
 	return result;
 }
 
-void DB::insert(SQLite::Database* db, String tableName, const std::deque<std::vector<Own<Value>>>& rows) {
+void DB::insertUnsafe(SQLite::Database* db, String tableName, const std::deque<std::vector<Own<Value>>>& rows) {
 	if (rows.empty() || rows.front().empty()) return;
 	std::string valueHolder;
 	for (size_t i = 0; i < rows.front().size(); i++) {
@@ -178,18 +178,18 @@ void DB::insert(SQLite::Database* db, String tableName, const std::deque<std::ve
 	}
 }
 
-int DB::exec(SQLite::Database* db, String sql) {
+int DB::execUnsafe(SQLite::Database* db, String sql) {
 	SQLite::Statement query(*db, sql);
 	return query.exec();
 }
 
-int DB::exec(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args) {
+int DB::execUnsafe(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args) {
 	SQLite::Statement query(*db, sql);
 	bindValues(query, args);
 	return query.exec();
 }
 
-int DB::exec(SQLite::Database* db, String sql, const std::deque<std::vector<Own<Value>>>& rows) {
+int DB::execUnsafe(SQLite::Database* db, String sql, const std::deque<std::vector<Own<Value>>>& rows) {
 	SQLite::Statement query(*db, sql);
 	if (rows.empty()) {
 		return query.exec();
@@ -229,7 +229,7 @@ void DB::insertAsync(String tableName, std::deque<std::vector<Own<Value>>>&& row
 	SharedAsyncThread.run(
 		[tableStr, rowsPtr]() {
 			bool result = SharedDB.transaction([&](SQLite::Database* db) {
-				DB::insert(db, tableStr, *rowsPtr);
+				DB::insertUnsafe(db, tableStr, *rowsPtr);
 			});
 			return Values::alloc(result);
 		},
@@ -254,7 +254,7 @@ void DB::execAsync(String sql, std::deque<std::vector<Own<Value>>>&& rows, const
 		[sqlStr, rowsPtr]() {
 			int result = 0;
 			SharedDB.transaction([&](SQLite::Database* db) {
-				result += DB::exec(db, sqlStr, *rowsPtr);
+				result += DB::execUnsafe(db, sqlStr, *rowsPtr);
 			});
 			return Values::alloc(result);
 		},

@@ -2054,7 +2054,15 @@ int DB_transaction(lua_State* L) {
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'DB_transaction'", nullptr);
 #endif
-		std::vector<std::pair<std::string, std::deque<std::vector<Own<Value>>>>> sqls;
+		struct SQLData {
+			SQLData() { }
+			SQLData(SQLData&& other)
+				: sql(std::move(other.sql))
+				, rows(std::move(other.rows)) { }
+			std::string sql;
+			std::deque<std::vector<Own<Value>>> rows;
+		};
+		std::vector<SQLData> sqls;
 		int itemCount = s_cast<int>(lua_rawlen(L, 2));
 		sqls.resize(itemCount);
 		for (int i = 0; i < itemCount; i++) {
@@ -2077,9 +2085,9 @@ int DB_transaction(lua_State* L) {
 					goto tolua_lerror;
 				}
 #endif
-				sql.first = tolua_toslice(L, strLoc, 0);
+				sql.sql = tolua_toslice(L, strLoc, 0);
 				int argListSize = s_cast<int>(lua_rawlen(L, tableLoc));
-				sql.second.resize(argListSize);
+				sql.rows.resize(argListSize);
 				for (int j = 0; j < argListSize; j++) {
 					lua_rawgeti(L, tableLoc, j + 1);
 #ifndef TOLUA_RELEASE
@@ -2087,7 +2095,7 @@ int DB_transaction(lua_State* L) {
 						goto tolua_lerror;
 					}
 #endif
-					auto& args = sql.second[j];
+					auto& args = sql.rows[j];
 					int argSize = s_cast<int>(lua_rawlen(L, -1));
 					args.resize(argSize);
 					for (int k = 0; k < argSize; k++) {
@@ -2099,16 +2107,16 @@ int DB_transaction(lua_State* L) {
 				}
 				lua_pop(L, 2);
 			} else {
-				sql.first = tolua_toslice(L, -1, 0);
+				sql.sql = tolua_toslice(L, -1, 0);
 			}
 			lua_pop(L, 1);
 		}
 		bool result = self->transaction([&](SQLite::Database* db) {
 			for (const auto& sql : sqls) {
-				if (sql.second.empty()) {
-					DB::exec(db, sql.first);
+				if (sql.rows.empty()) {
+					DB::execUnsafe(db, sql.sql);
 				} else {
-					DB::exec(db, sql.first, sql.second);
+					DB::execUnsafe(db, sql.sql, sql.rows);
 				}
 			}
 		});
@@ -2221,7 +2229,7 @@ int DB_insert(lua_State* L) {
 			lua_pop(L, 1);
 		}
 		bool result = SharedDB.transaction([&](SQLite::Database* db) {
-			DB::insert(db, tableName, rows);
+			DB::insertUnsafe(db, tableName, rows);
 		});
 		lua_pushboolean(L, result ? 1 : 0);
 		return 1;
@@ -2273,7 +2281,7 @@ int DB_exec(lua_State* L) {
 				return 1;
 			}
 			lua_pop(L, 1);
-#ifndef TOLUA_REALEASE
+#ifndef TOLUA_RELEASE
 			if (!tolua_istablearray(L, 3, rowCount, 0, &tolua_err)) {
 				goto tolua_lerror;
 			}
@@ -2293,7 +2301,7 @@ int DB_exec(lua_State* L) {
 		}
 		int rowChanged = 0;
 		SharedDB.transaction([&](SQLite::Database* db) {
-			rowChanged = DB::exec(db, sql, rows);
+			rowChanged = DB::execUnsafe(db, sql, rows);
 		});
 		lua_pushinteger(L, rowChanged);
 		return 1;
