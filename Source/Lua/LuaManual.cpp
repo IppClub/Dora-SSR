@@ -2571,7 +2571,7 @@ int DB_execAsync(lua_State* L) {
 					}
 				} else {
 					lua_pop(L, 1);
-#ifndef TOLUA_REALEASE
+#ifndef TOLUA_RELEASE
 					if (!tolua_istablearray(L, 3, rowCount, 0, &tolua_err)) {
 						goto tolua_lerror;
 					}
