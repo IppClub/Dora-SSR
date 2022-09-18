@@ -11,7 +11,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 /** @brief Used with Composition Relationship. */
-#define Own std::unique_ptr
+template <class Item, class Del = std::default_delete<Item>>
+using Own = std::unique_ptr<Item, Del>;
 
 template <class Item>
 using OwnArray = std::unique_ptr<Item, std::default_delete<Item[]>>;
