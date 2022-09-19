@@ -2021,11 +2021,9 @@ static Own<Value> Dora_getDBValue(lua_State* L, int loc) {
 		} else if (lua_isnumber(L, loc)) {
 			return Value::alloc(s_cast<double>(lua_tonumber(L, loc)));
 		} else if (lua_isboolean(L, loc)) {
-#ifndef TOLUA_RELEASE
-			if (lua_toboolean(L, loc) != 0) {
+			if (lua_toboolean(L, loc) > 0) {
 				tolua_error(L, "DB only accepts value of boolean false as NULL value.", nullptr);
 			}
-#endif // TOLUA_RELEASE
 			return Value::alloc(false);
 		} else if (lua_isstring(L, loc)) {
 			return Value::alloc(tolua_toslice(L, loc, nullptr).toString());

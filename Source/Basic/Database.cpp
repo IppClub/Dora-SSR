@@ -34,7 +34,7 @@ DB::DB() {
 	auto dbFile = Path::concat({SharedContent.getWritablePath(), "dora.db"_slice});
 	try {
 		_database = New<SQLite::Database>(dbFile,
-			SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE | SQLite::OPEN_NOMUTEX);
+			SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE | SQLite::OPEN_FULLMUTEX);
 	} catch (std::exception&) {
 		if (SharedContent.exist(dbFile)) {
 			SharedContent.remove(dbFile);
