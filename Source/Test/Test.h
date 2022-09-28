@@ -24,7 +24,7 @@ public:
 	static bool runTest(String name);
 #if DORA_TEST
 private:
-	static std::unordered_map<std::string, TestEntry*> tests;
+	static std::unordered_map<std::string, TestEntry*>& getTests();
 	friend class TestEntry;
 #endif // DORA_TEST
 };

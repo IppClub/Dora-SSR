@@ -259,6 +259,7 @@ allNames = [Path "Game", game, "init" for game in *games]
 for example in *examples do table.insert allNames, Path "Example", example
 for test in *tests do table.insert allNames, Path "Test", test
 cppTests = App.testNames
+allNames[] = name for name in *cppTests
 cppTestSet = Set cppTests
 
 productionEntries = {}
