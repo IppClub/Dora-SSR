@@ -14,22 +14,25 @@ NS_DOROTHY_BEGIN
 #if DORA_TEST
 
 TestEntry::TestEntry(String name) {
-	Test::tests[name] = this;
+	Test::getTests()[name] = this;
 }
-
-std::unordered_map<std::string, TestEntry*> Test::tests;
 
 std::list<std::string> Test::getNames() {
 	std::list<std::string> names;
-	for (const auto& test : Test::tests) {
+	for (const auto& test : Test::getTests()) {
 		names.push_back(test.first);
 	}
 	return names;
 }
 
+std::unordered_map<std::string, TestEntry*>& Test::getTests() {
+	static std::unordered_map<std::string, TestEntry*> tests;
+	return tests;
+}
+
 bool Test::runTest(String name) {
 	try {
-		if (auto it = tests.find(name); it != tests.end()) {
+		if (auto it = getTests().find(name); it != getTests().end()) {
 			return it->second->run();
 		} else {
 			return false;
