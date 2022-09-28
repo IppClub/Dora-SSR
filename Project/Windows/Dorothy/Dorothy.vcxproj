@@ -1323,6 +1323,8 @@
     <ClCompile Include="..\..\..\Source\Support\Dictionary.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Geometry.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Value.cpp" />
+    <ClCompile Include="..\..\..\Source\Test\HelloWorldCpp.cpp" />
+    <ClCompile Include="..\..\..\Source\Test\Test.cpp" />
     <ClCompile Include="..\..\..\Source\Wasm\WasmRuntime.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -1835,6 +1837,7 @@
     <ClInclude Include="..\..\..\Source\Support\Dictionary.h" />
     <ClInclude Include="..\..\..\Source\Support\Geometry.h" />
     <ClInclude Include="..\..\..\Source\Support\Value.h" />
+    <ClInclude Include="..\..\..\Source\Test\Test.h" />
     <ClInclude Include="..\..\..\Source\Wasm\WasmRuntime.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

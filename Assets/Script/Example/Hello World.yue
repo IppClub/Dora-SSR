@@ -30,4 +30,4 @@ Director.entry\addChild with Node!
 		Begin "Hello World", windowFlags, ->
 			Text "Hello World"
 			Separator!
-			TextWrapped "Basic Dorothy schedule and signal function usage. View outputs in log window!"
+			TextWrapped "Basic Dorothy schedule and signal function usage. Written in Yuescript. View outputs in log window!"

@@ -456,6 +456,13 @@ LuaEngine::LuaEngine()
 	// add manual binding
 	tolua_beginmodule(L, nullptr); // stack: package.loaded
 	{
+		tolua_beginmodule(L, "Application");
+		{
+			tolua_variable(L, "testNames", Test_getNames, nullptr);
+			tolua_function(L, "runTest", Test_runTest);
+		}
+		tolua_endmodule(L);
+
 		tolua_beginmodule(L, "Path");
 		{
 			tolua_call(L, MT_CALL, Path_create);

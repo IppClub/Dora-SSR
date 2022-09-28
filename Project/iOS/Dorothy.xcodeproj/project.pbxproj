@@ -425,6 +425,10 @@
 		3C6E804E272A40B400E9F115 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C6E804B272A40B400E9F115 /* sqlite3.c */; };
 		3C73E45B21B02625004E5731 /* Sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C73E45921B02624004E5731 /* Sound.cpp */; };
 		3C814F5D259C75CF0009DEC9 /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C814F5C259C75CF0009DEC9 /* Value.cpp */; };
+		3C853F8A28E3ED8A0012C0D0 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C853F8728E3ED8A0012C0D0 /* Test.cpp */; };
+		3C853F8B28E3ED8A0012C0D0 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C853F8728E3ED8A0012C0D0 /* Test.cpp */; };
+		3C853F8C28E3ED8A0012C0D0 /* HelloWorldCpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C853F8828E3ED8A0012C0D0 /* HelloWorldCpp.cpp */; };
+		3C853F8D28E3ED8A0012C0D0 /* HelloWorldCpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C853F8828E3ED8A0012C0D0 /* HelloWorldCpp.cpp */; };
 		3C88056F1E5ED13800B52D4B /* font_manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C88056D1E5ED13800B52D4B /* font_manager.cpp */; };
 		3C8805721E5ED18F00B52D4B /* atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8805701E5ED18F00B52D4B /* atlas.cpp */; };
 		3C883B1321E338F500BFD758 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883AFD21E338F200BFD758 /* Object.cpp */; };
@@ -1430,6 +1434,9 @@
 		3C73E45921B02624004E5731 /* Sound.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound.cpp; path = ../../../Source/Audio/Sound.cpp; sourceTree = "<group>"; };
 		3C73E45A21B02625004E5731 /* Sound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound.h; path = ../../../Source/Audio/Sound.h; sourceTree = "<group>"; };
 		3C814F5C259C75CF0009DEC9 /* Value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Value.cpp; path = ../../../Source/Support/Value.cpp; sourceTree = "<group>"; };
+		3C853F8728E3ED8A0012C0D0 /* Test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Test.cpp; path = ../../../Source/Test/Test.cpp; sourceTree = "<group>"; };
+		3C853F8828E3ED8A0012C0D0 /* HelloWorldCpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HelloWorldCpp.cpp; path = ../../../Source/Test/HelloWorldCpp.cpp; sourceTree = "<group>"; };
+		3C853F8928E3ED8A0012C0D0 /* Test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Test.h; path = ../../../Source/Test/Test.h; sourceTree = "<group>"; };
 		3C88056D1E5ED13800B52D4B /* font_manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = font_manager.cpp; path = ../../../Source/3rdParty/font/font_manager.cpp; sourceTree = "<group>"; };
 		3C88056E1E5ED13800B52D4B /* font_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = font_manager.h; path = ../../../Source/3rdParty/font/font_manager.h; sourceTree = "<group>"; };
 		3C8805701E5ED18F00B52D4B /* atlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = atlas.cpp; path = ../../../Source/3rdParty/Other/atlas.cpp; sourceTree = "<group>"; };
@@ -2885,6 +2892,16 @@
 			name = ToLua;
 			sourceTree = "<group>";
 		};
+		3C853F8628E3ED760012C0D0 /* Test */ = {
+			isa = PBXGroup;
+			children = (
+				3C853F8828E3ED8A0012C0D0 /* HelloWorldCpp.cpp */,
+				3C853F8728E3ED8A0012C0D0 /* Test.cpp */,
+				3C853F8928E3ED8A0012C0D0 /* Test.h */,
+			);
+			name = Test;
+			sourceTree = "<group>";
+		};
 		3C88055F1E5ED0F900B52D4B /* fmt */ = {
 			isa = PBXGroup;
 			children = (
@@ -3147,6 +3164,7 @@
 				3C131FDB21011B910087154A /* Platformer */,
 				3CE9509E20F33DB6002FFC18 /* Shader */,
 				3C4BC6541E17F15C00292200 /* Support */,
+				3C853F8628E3ED760012C0D0 /* Test */,
 			);
 			path = Dorothy;
 			sourceTree = "<group>";
@@ -3681,6 +3699,7 @@
 				3C1A3BE3272A8820003A2829 /* lopcodes.c in Sources */,
 				3C3B9A0B26FDB25D00BD9F3E /* World.cpp in Sources */,
 				3C1A3BDB272A8820003A2829 /* lobject.c in Sources */,
+				3C853F8D28E3ED8A0012C0D0 /* HelloWorldCpp.cpp in Sources */,
 				3C3B9A0C26FDB25D00BD9F3E /* WorldBody.cpp in Sources */,
 				3CFEA178285B87B8002D106F /* WasmRuntime.cpp in Sources */,
 				3CF10FE12874C81C00940268 /* VertexAttachment.cpp in Sources */,
@@ -3980,6 +3999,7 @@
 				3CBE0E6926087F7B003F4F45 /* AI.cpp in Sources */,
 				3CBE0E6A26087F7B003F4F45 /* tinyxml2.cpp in Sources */,
 				3CBE0E6B26087F7B003F4F45 /* LuaFromXml.cpp in Sources */,
+				3C853F8B28E3ED8A0012C0D0 /* Test.cpp in Sources */,
 				3CBE0E6C26087F7B003F4F45 /* TextureCache.cpp in Sources */,
 				3C1A3BF5272A8820003A2829 /* lapi.c in Sources */,
 				3CBE0E7026087F7B003F4F45 /* BodyDef.cpp in Sources */,
@@ -4089,6 +4109,7 @@
 				3C6E803F272A404A00E9F115 /* soloud_core_faderops.cpp in Sources */,
 				3C59730A1E7F74E900BFD00F /* FrameCache.cpp in Sources */,
 				3CFEBDC3269309C7006D9974 /* BaseTimelineState.cpp in Sources */,
+				3C853F8C28E3ED8A0012C0D0 /* HelloWorldCpp.cpp in Sources */,
 				3C13200121011BB60087154A /* Face.cpp in Sources */,
 				3C030CAC24CAC2160074786E /* ML.cpp in Sources */,
 				3CF10FE02874C81C00940268 /* VertexAttachment.cpp in Sources */,
@@ -4388,6 +4409,7 @@
 				3C883B1B21E338F500BFD758 /* Renderer.cpp in Sources */,
 				3C3B99F926FDB08000BD9F3E /* DistanceProxy.cpp in Sources */,
 				3C1A3BCE272A8820003A2829 /* lundump.c in Sources */,
+				3C853F8A28E3ED8A0012C0D0 /* Test.cpp in Sources */,
 				3C6E804D272A40B400E9F115 /* sqlite3.c in Sources */,
 				3CAA2D1A26155DB3004443A6 /* Statement.cpp in Sources */,
 				3C3B99AD26FDB05000BD9F3E /* UnitVec.cpp in Sources */,

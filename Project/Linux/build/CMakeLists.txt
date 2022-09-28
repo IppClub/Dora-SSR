@@ -153,6 +153,8 @@ add_executable(dorothy-ssr
 	../../../Source/Lua/ToLua/tolua_fix.cpp
 	../../../Source/Lua/ToLua/tolua_to.cpp
 	../../../Source/Lua/ToLua/tolua_is.cpp
+	../../../Source/Test/Test.cpp
+	../../../Source/Test/HelloWorldCpp.cpp
 	../../../Source/3rdParty/yuescript/yue_compiler.cpp
 	../../../Source/3rdParty/yuescript/ast.cpp
 	../../../Source/3rdParty/yuescript/yue_parser.cpp

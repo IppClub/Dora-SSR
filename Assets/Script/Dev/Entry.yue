@@ -258,6 +258,8 @@ table.sort tests
 allNames = [Path "Game", game, "init" for game in *games]
 for example in *examples do table.insert allNames, Path "Example", example
 for test in *tests do table.insert allNames, Path "Test", test
+cppTests = App.testNames
+cppTestSet = Set cppTests
 
 productionEntries = {}
 productionTests = nil
@@ -298,6 +300,9 @@ unless locateProduction Content.writablePath
 enterDemoEntry = (name)->
 	isInEntry = false
 	currentEntryName = name
+	if cppTestSet[name]
+		App\runTest name
+		return
 	<- thread
 	try
 		result = require name
@@ -493,6 +498,10 @@ entryWindow = threadLoop ->
 			for test in *tests
 				if Button test, Vec2 -1, 40
 					enterDemoEntry Path "Test", test
+				NextColumn!
+			for test in *cppTests
+				if Button test, Vec2 -1, 40
+					enterDemoEntry test
 				NextColumn!
 			if #productionEntries > 0
 				Columns 1, false

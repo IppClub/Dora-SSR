@@ -21,6 +21,8 @@ local record App
 	const rand: integer
 	const debugging: boolean
 	seed: integer
+	const testNames: {string}
+	runTest: function(self: App, name: string): boolean
 	shutdown: function(self: App)
 end
 print(App.bufferSize)
