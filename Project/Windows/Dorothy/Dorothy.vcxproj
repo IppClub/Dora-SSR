@@ -1323,7 +1323,10 @@
     <ClCompile Include="..\..\..\Source\Support\Dictionary.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Geometry.cpp" />
     <ClCompile Include="..\..\..\Source\Support\Value.cpp" />
-    <ClCompile Include="..\..\..\Source\Test\HelloWorldCpp.cpp" />
+    <ClCompile Include="..\..\..\Source\Test\HelloWorldCpp.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\Test\Test.cpp" />
     <ClCompile Include="..\..\..\Source\Wasm\WasmRuntime.cpp" />
   </ItemGroup>
