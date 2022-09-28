@@ -217,6 +217,9 @@
     <Filter Include="Wasm">
       <UniqueIdentifier>{4bf58821-88b6-45c6-8ccd-f032ecc82259}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Test">
+      <UniqueIdentifier>{d37fc4ac-819c-47a6-a063-cafb8e00f8e6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
@@ -1421,6 +1424,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Cache\Cache.cpp">
       <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Test\HelloWorldCpp.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Test\Test.cpp">
+      <Filter>Test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2954,6 +2963,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Cache\Cache.h">
       <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Test\Test.h">
+      <Filter>Test</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

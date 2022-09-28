@@ -39,6 +39,13 @@ void LogPrint(const char* format, const Args&... args) noexcept {
 inline void LogPrint(const Slice& str) {
 	LogPrintInThread(str);
 }
+template <typename... Args>
+void println(const char* format, const Args&... args) noexcept {
+	LogPrintInThread(LogFormat(format, args...) + '\n');
+}
+inline void println(const Slice& str) {
+	LogPrintInThread(str.toString() + '\n');
+}
 
 bool IsInLua();
 

@@ -45,7 +45,7 @@ ui:schedule(function(): boolean
 	ImGui.Begin("Hello World", windowFlags, function()
 		ImGui.Text("Hello World")
 		ImGui.Separator()
-		ImGui.TextWrapped("Basic Dorothy schedule and signal function usage. View outputs in log window!")
+		ImGui.TextWrapped("Basic Dorothy schedule and signal function usage. Written in Teal. View outputs in log window!")
 	end)
 end)
 Director.entry:addChild(ui)

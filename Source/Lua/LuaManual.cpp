@@ -2602,6 +2602,26 @@ tolua_lerror:
 #endif
 }
 
+/* Test */
+
+int Test_getNames(lua_State* L) {
+	auto names = Test::getNames();
+	lua_createtable(L, names.size(), 0);
+	int i = 1;
+	for (const auto& name : names) {
+		tolua_pushslice(L, name);
+		lua_rawseti(L, -2, i);
+		i++;
+	}
+	return 1;
+}
+
+int Test_runTest(lua_State* L) {
+	size_t len = 0;
+	const char* name = luaL_checklstring(L, 2, &len);
+	return Test::runTest({name, len});
+}
+
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN

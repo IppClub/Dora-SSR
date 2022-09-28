@@ -261,6 +261,10 @@ inline Pass* Effect_get(Effect* self, size_t index) { return self->get(index - 1
 /* Wasm */
 inline WasmRuntime* WasmRuntime_shared() { return &SharedWasmRuntime; }
 
+/* Test */
+int Test_getNames(lua_State* L);
+int Test_runTest(lua_State* L);
+
 NS_DOROTHY_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
