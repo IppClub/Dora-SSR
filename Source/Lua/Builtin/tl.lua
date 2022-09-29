@@ -1278,6 +1278,7 @@ local is_attribute <const> = {
 
 
 
+
 local function is_array_type(t)
 	return t.typename == "array" or t.typename == "arrayrecord"
 end
@@ -5982,10 +5983,19 @@ tl.type_check = function(ast, opts)
 
 	local function redeclaration_warning(node, old_var)
 		if node.tk:sub(1, 1) == "_" then return end
+
+		local var_kind = "variable"
+		local var_name = node.tk
+		if node.kind == "local_function" then
+			var_kind = "function"
+			var_name = node.name.tk
+		end
+
+		local short_error = "redeclaration of " .. var_kind .. " '%s'"
 		if old_var.declared_at then
-			node_warning("redeclaration", node, "redeclaration of variable '%s' (originally declared at %d:%d)", node.tk, old_var.declared_at.y, old_var.declared_at.x)
+			node_warning("redeclaration", node, short_error .. " (originally declared at %d:%d)", var_name, old_var.declared_at.y, old_var.declared_at.x)
 		else
-			node_warning("redeclaration", node, "redeclaration of variable '%s'", node.tk)
+			node_warning("redeclaration", node, short_error, var_name)
 		end
 	end
 
@@ -9204,8 +9214,17 @@ node.exps[3] and node.exps[3].type, }
 		["global_function"] = {
 			before = function(node)
 				begin_scope(node)
-				if (not lax) and node.implicit_global_function then
-					node_error(node, "functions need an explicit 'local' or 'global' annotation")
+				if node.implicit_global_function then
+					local typ = find_var_type(node.name.tk)
+					if typ then
+						if typ.typename == "function" then
+							node.is_predeclared_local_function = true
+						elseif not lax then
+							node_error(node, "cannot declare function: type of " .. node.name.tk .. " is %s", typ)
+						end
+					elseif not lax then
+						node_error(node, "functions need an explicit 'local' or 'global' annotation")
+					end
 				end
 			end,
 			before_statements = function(node)
@@ -9214,6 +9233,9 @@ node.exps[3] and node.exps[3].type, }
 			end,
 			after = function(node, children)
 				end_function_scope(node)
+				if node.is_predeclared_local_function then
+					return node.type
+				end
 				add_global(node, node.name.tk, a_type({
 					y = node.y,
 					x = node.x,
