@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "ml/DecisionTree.h"
 
 NS_DOROTHY_BEGIN
-namespace ML {
+NS_BEGIN(ML)
 
 void BuildDecisionTreeAsync(String data, int maxDepth,
 	const std::function<void(double, String, String, String)>& handleTree) {
@@ -137,5 +137,5 @@ double QLearner::getMaxQ(QState state) const {
 	return q;
 }
 
-} // namespace ML
+NS_END(ML)
 NS_DOROTHY_END
