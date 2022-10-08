@@ -59,7 +59,7 @@ LintYueGlobals = (yueCodes, globals, file)->
 						break
 				if not findModule
 					countLine = 1
-					code = nil
+					code = ""
 					codes = Content\load file
 					for lineCode in codes\gmatch "[^\n]*\n"
 						if countLine == line
