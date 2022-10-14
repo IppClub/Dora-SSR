@@ -439,7 +439,6 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/PlayRho/Collision/Shapes/Compositor.cpp
 	../../../Source/3rdParty/soloud/backend/sdl/soloud_sdl2.cpp
 	../../../Source/3rdParty/soloud/backend/sdl/soloud_sdl2_dll.c
-	../../../Source/3rdParty/soloud/backend/sdl2_static/soloud_sdl2_static.cpp
 	../../../Source/3rdParty/soloud/audiosource/vic/soloud_vic.cpp
 	../../../Source/3rdParty/soloud/audiosource/wav/stb_vorbis.c
 	../../../Source/3rdParty/soloud/audiosource/wav/soloud_wavstream.cpp

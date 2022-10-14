@@ -434,7 +434,6 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/PlayRho/Collision/Shapes/Compositor.cpp
 	src/main/cpp/3rdParty/soloud/backend/sdl/soloud_sdl2.cpp
 	src/main/cpp/3rdParty/soloud/backend/sdl/soloud_sdl2_dll.c
-	src/main/cpp/3rdParty/soloud/backend/sdl2_static/soloud_sdl2_static.cpp
 	src/main/cpp/3rdParty/soloud/audiosource/vic/soloud_vic.cpp
 	src/main/cpp/3rdParty/soloud/audiosource/wav/stb_vorbis.c
 	src/main/cpp/3rdParty/soloud/audiosource/wav/soloud_wavstream.cpp
