@@ -31,7 +31,6 @@ jobs:
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Script && cd ..)
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Spine && cd ..)
           (cd Project\Windows\build\Release && 7z a ..\..\..\..\dorothy-ssr-windows-x86.7z Dorothy.exe && cd ..\..\..\..)
-          (cd Project\Windows\build\Release && 7z a ..\..\..\..\dorothy-ssr-windows-x86.7z SDL2.dll && cd ..\..\..\..)
       - name: release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
