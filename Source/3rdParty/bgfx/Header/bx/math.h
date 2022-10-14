@@ -6,34 +6,16 @@
 #ifndef BX_MATH_H_HEADER_GUARD
 #define BX_MATH_H_HEADER_GUARD
 
-#include <cmath>
-
 #include "bx.h"
 #include "uint32_t.h"
 
 namespace bx
 {
-	constexpr float kPi         = 3.1415926535897932384626433832795f;
-	constexpr float kPi2        = 6.2831853071795864769252867665590f;
-	constexpr float kInvPi      = 1.0f/kPi;
-	constexpr float kPiHalf     = 1.5707963267948966192313216916398f;
-	constexpr float kPiQuarter  = 0.7853981633974483096156608458199f;
-	constexpr float kSqrt2      = 1.4142135623730950488016887242097f;
-	constexpr float kLogNat10   = 2.3025850929940456840179914546844f;
-	constexpr float kInvLogNat2 = 1.4426950408889634073599246810019f;
-	constexpr float kLogNat2Hi  = 0.6931471805599453094172321214582f;
-	constexpr float kLogNat2Lo  = 1.90821492927058770002e-10f;
-	constexpr float kE          = 2.7182818284590452353602874713527f;
-	constexpr float kNearZero   = 1.0f/float(1 << 28);
-	constexpr float kFloatMin   = 1.175494e-38f;
-	constexpr float kFloatMax   = 3.402823e+38f;
-	extern const float kInfinity;
-
 	///
 	typedef float (*LerpFn)(float _a, float _b, float _t);
 
 	///
-	struct Handness
+	struct Handedness
 	{
 		enum Enum
 		{
@@ -57,18 +39,18 @@ namespace bx
 	{
 		/// Fields are left uninitialized.
 		///
-		struct NoneType {};
-		constexpr NoneType None;
+		struct    NoneTag {};
+		constexpr NoneTag None;
 
 		/// Fields are initialized to zero.
 		///
-		struct ZeroType {};
-		constexpr ZeroType Zero;
+		struct    ZeroTag {};
+		constexpr ZeroTag Zero;
 
 		/// Fields are initialized to identity value.
 		///
-		struct IdentityType {};
-		constexpr IdentityType Identity;
+		struct    IdentityTag {};
+		constexpr IdentityTag Identity;
 	}
 
 	///
@@ -77,13 +59,13 @@ namespace bx
 		Vec3() = delete;
 
 		///
-		Vec3(init::NoneType);
+		Vec3(init::NoneTag);
 
 		///
-		constexpr Vec3(init::ZeroType);
+		constexpr Vec3(init::ZeroTag);
 
 		///
-		constexpr Vec3(init::IdentityType);
+		constexpr Vec3(init::IdentityTag);
 
 		///
 		explicit constexpr Vec3(float _v);
@@ -100,13 +82,13 @@ namespace bx
 		Plane() = delete;
 
 		///
-		Plane(init::NoneType);
+		Plane(init::NoneTag);
 
 		///
-		constexpr Plane(init::ZeroType);
+		constexpr Plane(init::ZeroTag);
 
 		///
-		constexpr Plane(init::IdentityType);
+		constexpr Plane(init::IdentityTag);
 
 		///
 		constexpr Plane(Vec3 _normal, float _dist);
@@ -121,13 +103,13 @@ namespace bx
 		Quaternion() = delete;
 
 		///
-		Quaternion(init::NoneType);
+		Quaternion(init::NoneTag);
 
 		///
-		constexpr Quaternion(init::ZeroType);
+		constexpr Quaternion(init::ZeroTag);
 
 		///
-		constexpr Quaternion(init::IdentityType);
+		constexpr Quaternion(init::IdentityTag);
 
 		///
 		constexpr Quaternion(float _x, float _y, float _z, float _w);
@@ -165,27 +147,27 @@ namespace bx
 
 	/// Returns true if _f is a number that is NaN.
 	///
-	inline bool isNan(float _f) { return std::isnan(_f); }
+	BX_CONST_FUNC bool isNan(float _f);
 
 	/// Returns true if _f is a number that is NaN.
 	///
-	inline bool isNan(double _f) { return std::isnan(_f); }
+	BX_CONST_FUNC bool isNan(double _f);
 
 	/// Returns true if _f is not infinite and is not a NaN.
 	///
-	inline bool isFinite(float _f) { return std::isfinite(_f); }
+	BX_CONST_FUNC bool isFinite(float _f);
 
 	/// Returns true if _f is not infinite and is not a NaN.
 	///
-	inline bool isFinite(double _f) { return std::isfinite(_f); }
+	BX_CONST_FUNC bool isFinite(double _f);
 
 	/// Returns true if _f is infinite and is not a NaN.
 	///
-	inline bool isInfinite(float _f) { return std::isinf(_f); }
+	BX_CONST_FUNC bool isInfinite(float _f);
 
 	/// Returns true if _f is infinite and is not a NaN.
 	///
-	inline bool isInfinite(double _f) { return std::isinf(_f); }
+	BX_CONST_FUNC bool isInfinite(double _f);
 
 	/// Returns the largest integer value not greater than _f.
 	///
@@ -207,7 +189,11 @@ namespace bx
 	///
 	BX_CONSTEXPR_FUNC float invLerp(float _a, float _b, float _value);
 
-	/// Returns the sign of _a.
+	/// Extracts the sign of value `_a`.
+	///
+	/// @param[in] _a Value.
+	///
+	/// @returns -1 if `_a` less than zero, 0 if `_a` is equal to 0, or +1 if `_a` is greater than zero.
 	///
 	BX_CONSTEXPR_FUNC float sign(float _a);
 
@@ -221,7 +207,7 @@ namespace bx
 
 	/// Returns the cosine of the argument _a.
 	///
-	inline float sin(float _a) { return std::sin(_a); }
+	BX_CONST_FUNC float sin(float _a);
 
 	/// Returns hyperbolic sine of the argument _a.
 	///
@@ -233,7 +219,7 @@ namespace bx
 
 	/// Returns the cosine of the argument _a.
 	///
-	inline float cos(float _a) { return std::cos(_a); }
+	BX_CONST_FUNC float cos(float _a);
 
 	/// Returns hyperbolic cosine of the argument _a.
 	///
@@ -241,7 +227,7 @@ namespace bx
 
 	/// Returns radian angle between 0 and pi whose cosine is _a.
 	///
-	inline float acos(float _a) { return std::acos(_a); }
+	BX_CONST_FUNC float acos(float _a);
 
 	/// Returns the circular tangent of the radian argument _a.
 	///
@@ -257,7 +243,7 @@ namespace bx
 
 	/// Returns the inverse tangent of _y/_x.
 	///
-	inline float atan2(float _y, float _x) { return std::atan2(_y, _x); }
+	BX_CONST_FUNC float atan2(float _y, float _x);
 
 	/// Computes _a raised to the _b power.
 	///
@@ -265,16 +251,16 @@ namespace bx
 
 	/// Returns the result of multiplying _a by 2 raised to the power of the exponent.
 	///
-	inline float ldexp(float _a, int32_t _b) { return std::ldexp(_a, _b); }
+	BX_CONST_FUNC float ldexp(float _a, int32_t _b);
 
 	/// Returns decomposed given floating point value _a into a normalized fraction and
 	/// an integral power of two.
 	///
-	inline float frexp(float _a, int32_t* _outExp) { return std::frexp(_a, _outExp); }
+	float frexp(float _a, int32_t* _outExp);
 
 	/// Returns e (2.71828...) raised to the _a power.
 	///
-	inline float exp(float _a) { return std::exp(_a); }
+	BX_CONST_FUNC float exp(float _a);
 
 	/// Returns 2 raised to the _a power.
 	///
@@ -282,7 +268,7 @@ namespace bx
 
 	/// Returns the base e (2.71828...) logarithm of _a.
 	///
-	inline float log(float _a) { return std::log(_a); }
+	BX_CONST_FUNC float log(float _a);
 
 	/// Returns the base 2 logarithm of _a.
 	///
@@ -576,7 +562,7 @@ namespace bx
 		, const Vec3& _eye
 		, const Vec3& _at
 		, const Vec3& _up = { 0.0f, 1.0f, 0.0f }
-		, Handness::Enum _handness = Handness::Left
+		, Handedness::Enum _handedness = Handedness::Left
 		);
 
 	///
@@ -589,7 +575,7 @@ namespace bx
 		, float _near
 		, float _far
 		, bool _homogeneousNdc
-		, Handness::Enum _handness = Handness::Left
+		, Handedness::Enum _handedness = Handedness::Left
 		);
 
 	///
@@ -599,7 +585,7 @@ namespace bx
 		, float _near
 		, float _far
 		, bool _homogeneousNdc
-		, Handness::Enum _handness = Handness::Left
+		, Handedness::Enum _handedness = Handedness::Left
 		);
 
 	///
@@ -610,7 +596,7 @@ namespace bx
 		, float _near
 		, float _far
 		, bool _homogeneousNdc
-		, Handness::Enum _handness = Handness::Left
+		, Handedness::Enum _handedness = Handedness::Left
 		);
 
 	///
@@ -619,7 +605,7 @@ namespace bx
 		, const float _fov[4]
 		, float _near
 		, bool _homogeneousNdc
-		, Handness::Enum _handness = Handness::Left
+		, Handedness::Enum _handedness = Handedness::Left
 		, NearFar::Enum _nearFar = NearFar::Default
 		);
 
@@ -632,7 +618,7 @@ namespace bx
 		, float _rt
 		, float _near
 		, bool _homogeneousNdc
-		, Handness::Enum _handness = Handness::Left
+		, Handedness::Enum _handedness = Handedness::Left
 		, NearFar::Enum _nearFar = NearFar::Default
 		);
 
@@ -643,7 +629,7 @@ namespace bx
 		, float _aspect
 		, float _near
 		, bool _homogeneousNdc
-		, Handness::Enum _handness = Handness::Left
+		, Handedness::Enum _handedness = Handedness::Left
 		, NearFar::Enum _nearFar = NearFar::Default
 		);
 
@@ -658,7 +644,7 @@ namespace bx
 		, float _far
 		, float _offset
 		, bool _homogeneousNdc
-		, Handness::Enum _handness = Handness::Left
+		, Handedness::Enum _handedness = Handedness::Left
 		);
 
 	///
