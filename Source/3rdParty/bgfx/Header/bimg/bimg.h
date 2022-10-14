@@ -1,6 +1,6 @@
 /*
- * Copyright 2011-2018 Branimir Karadzic. All rights reserved.
- * License: https://github.com/bkaradzic/bimg#license-bsd-2-clause
+ * Copyright 2011-2022 Branimir Karadzic. All rights reserved.
+ * License: https://github.com/bkaradzic/bimg/blob/master/LICENSE
  */
 
 #ifndef BIMG_IMAGE_H_HEADER_GUARD
@@ -121,8 +121,11 @@ namespace bimg
 			RGBA32I,
 			RGBA32U,
 			RGBA32F,
+			B5G6R5,
 			R5G6B5,
+			BGRA4,
 			RGBA4,
+			BGR5A1,
 			RGB5A1,
 			RGB10A2,
 			RG11B10F,
@@ -195,6 +198,7 @@ namespace bimg
 		bool     m_cubeMap;
 		bool     m_ktx;
 		bool     m_ktxLE;
+		bool     m_pvr3;
 		bool     m_srgb;
 	};
 
@@ -315,6 +319,9 @@ namespace bimg
 		);
 
 	///
+	void imageRgba32fToLinear(ImageContainer* _imageContainer);
+
+	///
 	void imageRgba32fToGamma(
 		  void* _dst
 		, uint32_t _width
@@ -323,6 +330,9 @@ namespace bimg
 		, uint32_t _srcPitch
 		, const void* _src
 		);
+
+	///
+	void imageRgba32fToGamma(ImageContainer* _imageContainer);
 
 	///
 	void imageRgba32fLinearDownsample2x2(
@@ -419,6 +429,7 @@ namespace bimg
 		, uint32_t _height
 		, uint32_t _depth
 		, uint32_t _srcPitch
+		, uint32_t _dstPitch
 		);
 
 	///
@@ -534,6 +545,7 @@ namespace bimg
 		, uint32_t _depth
 		, uint8_t _numMips
 		, uint32_t _numLayers
+		, bool _srgb
 		, const void* _src
 		, bx::Error* _err = NULL
 		);

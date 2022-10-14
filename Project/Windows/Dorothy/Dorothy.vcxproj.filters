@@ -175,9 +175,6 @@
     <Filter Include="3rdParty\soloud\filter">
       <UniqueIdentifier>{da4f2b1c-b868-41aa-8335-f31182b5be8a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3rdParty\soloud\backend\sdl">
-      <UniqueIdentifier>{bfac9d3c-7064-4134-9bee-f8c3de3a7dc8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3rdParty\soloud\audiosource\ay">
       <UniqueIdentifier>{49baa19a-74d4-43a4-b369-f2bcbeb0403a}</UniqueIdentifier>
     </Filter>
@@ -219,6 +216,9 @@
     </Filter>
     <Filter Include="Test">
       <UniqueIdentifier>{d37fc4ac-819c-47a6-a063-cafb8e00f8e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\backend\sdl2_static">
+      <UniqueIdentifier>{606816b5-3b1e-49ec-96d2-040ba1a57aa1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1185,12 +1185,6 @@
     <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_thread.cpp">
       <Filter>3rdParty\soloud\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\backend\sdl\soloud_sdl2.cpp">
-      <Filter>3rdParty\soloud\backend\sdl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\backend\sdl\soloud_sdl2_dll.c">
-      <Filter>3rdParty\soloud\backend\sdl</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\chipplayer.cpp">
       <Filter>3rdParty\soloud\audiosource\ay</Filter>
     </ClCompile>
@@ -1430,6 +1424,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Test\Test.cpp">
       <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\backend\sdl2_static\soloud_sdl2_static.cpp">
+      <Filter>3rdParty\soloud\backend\sdl2_static</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

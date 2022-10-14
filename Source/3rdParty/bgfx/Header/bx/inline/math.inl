@@ -60,17 +60,50 @@ namespace bx
 		return result;
 	}
 
+	inline BX_CONST_FUNC bool isNan(float _f)
+	{
+		const uint32_t tmp = floatToBits(_f) & INT32_MAX;
+		return tmp > UINT32_C(0x7f800000);
+	}
+
+	inline BX_CONST_FUNC bool isNan(double _f)
+	{
+		const uint64_t tmp = doubleToBits(_f) & INT64_MAX;
+		return tmp > UINT64_C(0x7ff0000000000000);
+	}
+
+	inline BX_CONST_FUNC bool isFinite(float _f)
+	{
+		const uint32_t tmp = floatToBits(_f) & INT32_MAX;
+		return tmp < UINT32_C(0x7f800000);
+	}
+
+	inline BX_CONST_FUNC bool isFinite(double _f)
+	{
+		const uint64_t tmp = doubleToBits(_f) & INT64_MAX;
+		return tmp < UINT64_C(0x7ff0000000000000);
+	}
+
+	inline BX_CONST_FUNC bool isInfinite(float _f)
+	{
+		const uint32_t tmp = floatToBits(_f) & INT32_MAX;
+		return tmp == UINT32_C(0x7f800000);
+	}
+
+	inline BX_CONST_FUNC bool isInfinite(double _f)
+	{
+		const uint64_t tmp = doubleToBits(_f) & INT64_MAX;
+		return tmp == UINT64_C(0x7ff0000000000000);
+	}
+
 	inline BX_CONSTEXPR_FUNC float floor(float _a)
 	{
 		if (_a < 0.0f)
 		{
 			const float fr = fract(-_a);
-			const float result = -_a - fr;
+			const float tr = trunc(-_a);
 
-			return -(0.0f != fr
-				? result + 1.0f
-				: result)
-				;
+			return -tr - float(0.0f != fr);
 		}
 
 		return _a - fract(_a);
@@ -102,7 +135,7 @@ namespace bx
 
 	inline BX_CONSTEXPR_FUNC float sign(float _a)
 	{
-		return _a < 0.0f ? -1.0f : 1.0f;
+		return float( (0.0f < _a) - (0.0f > _a) );
 	}
 
 	inline BX_CONSTEXPR_FUNC float abs(float _a)
@@ -113,6 +146,11 @@ namespace bx
 	inline BX_CONSTEXPR_FUNC float square(float _a)
 	{
 		return _a * _a;
+	}
+
+	inline BX_CONST_FUNC float sin(float _a)
+	{
+		return cos(_a - kPiHalf);
 	}
 
 	inline BX_CONST_FUNC float sinh(float _a)
@@ -368,18 +406,18 @@ namespace bx
 		memCopy(_ptr, &_a, sizeof(Ty) );
 	}
 
-	inline Vec3::Vec3(init::NoneType)
+	inline Vec3::Vec3(init::NoneTag)
 	{
 	}
 
-	constexpr Vec3::Vec3(init::ZeroType)
+	constexpr Vec3::Vec3(init::ZeroTag)
 		: x(0.0f)
 		, y(0.0f)
 		, z(0.0f)
 	{
 	}
 
-	constexpr Vec3::Vec3(init::IdentityType)
+	constexpr Vec3::Vec3(init::IdentityTag)
 		: x(0.0f)
 		, y(0.0f)
 		, z(0.0f)
@@ -400,18 +438,18 @@ namespace bx
 	{
 	}
 
-	inline Plane::Plane(init::NoneType)
+	inline Plane::Plane(init::NoneTag)
 		: normal(init::None)
 	{
 	}
 
-	constexpr Plane::Plane(init::ZeroType)
+	constexpr Plane::Plane(init::ZeroTag)
 		: normal(init::Zero)
 		, dist(0.0f)
 	{
 	}
 
-	constexpr Plane::Plane(init::IdentityType)
+	constexpr Plane::Plane(init::IdentityTag)
 		: normal(0.0f, 1.0f, 0.0f)
 		, dist(0.0f)
 	{
@@ -423,11 +461,11 @@ namespace bx
 	{
 	}
 
-	inline Quaternion::Quaternion(init::NoneType)
+	inline Quaternion::Quaternion(init::NoneTag)
 	{
 	}
 
-	constexpr Quaternion::Quaternion(init::ZeroType)
+	constexpr Quaternion::Quaternion(init::ZeroTag)
 		: x(0.0f)
 		, y(0.0f)
 		, z(0.0f)
@@ -435,7 +473,7 @@ namespace bx
 	{
 	}
 
-	constexpr Quaternion::Quaternion(init::IdentityType)
+	constexpr Quaternion::Quaternion(init::IdentityTag)
 		: x(0.0f)
 		, y(0.0f)
 		, z(0.0f)
