@@ -16,4 +16,4 @@ jobs:
       - name: macOS build
         run: |
           Tools/tolua++/build.sh
-          xcodebuild -project Project/macOS/Dorothy.xcodeproj -target Dorothy -destination 'platform=OS X,arch=x86_64'
+          xcodebuild ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO -project Project/macOS/Dorothy.xcodeproj -target Dorothy
