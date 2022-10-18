@@ -320,7 +320,7 @@ int Content_loadExcelAsync(lua_State* L) {
 		SharedContent.loadAsyncData(filename, [filename, sheets = std::move(sheets), handler](OwnArray<uint8_t>&& data, size_t size) {
 			auto excelData = std::make_shared<OwnArray<uint8_t>>(std::move(data));
 			SharedAsyncThread.run(
-				[filename, sheets, excelData, size]() {
+				[filename, sheets, excelData = std::move(excelData), size]() {
 					auto workbook = New<xlsxtext::workbook>(std::make_pair(std::move(*excelData), size));
 					if (workbook->read()) {
 						for (auto& worksheet : *workbook) {
@@ -2463,7 +2463,7 @@ int DB_insertAsync01(lua_State* L) {
 		SharedContent.loadAsyncData(excelFile, [excelFile, names, startRow, handler](OwnArray<uint8_t>&& data, size_t size) {
 			auto excelData = std::make_shared<OwnArray<uint8_t>>(std::move(data));
 			SharedAsyncThread.run(
-				[excelFile, names, startRow, excelData, size]() {
+				[excelFile, names, startRow, excelData = std::move(excelData), size]() {
 					auto workbook = New<xlsxtext::workbook>(std::make_pair(std::move(*excelData), size));
 					if (workbook->read()) {
 						bool result = SharedDB.transaction([&](SQLite::Database* db) {
@@ -2581,7 +2581,7 @@ int DB_execAsync(lua_State* L) {
 						row.resize(size);
 						for (int j = 0; j < size; j++) {
 							lua_rawgeti(L, -1, j + 1);
-							row[i] = Dora_getDBValue(L, -1);
+							row[j] = Dora_getDBValue(L, -1);
 							lua_pop(L, 1);
 						}
 						lua_pop(L, 1);

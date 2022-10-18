@@ -207,7 +207,7 @@ void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns
 	std::string sqlStr(sql);
 	auto argsPtr = std::make_shared<std::vector<Own<Value>>>(std::move(args));
 	SharedAsyncThread.run(
-		[sqlStr, argsPtr, withColumns]() {
+		[sqlStr, argsPtr = std::move(argsPtr), withColumns]() {
 			try {
 				auto result = SharedDB.query(sqlStr, *argsPtr, withColumns);
 				return Values::alloc(std::move(result));
@@ -227,7 +227,7 @@ void DB::insertAsync(String tableName, std::deque<std::vector<Own<Value>>>&& row
 	std::string tableStr(tableName);
 	auto rowsPtr = std::make_shared<std::deque<std::vector<Own<Value>>>>(std::move(rows));
 	SharedAsyncThread.run(
-		[tableStr, rowsPtr]() {
+		[tableStr, rowsPtr = std::move(rowsPtr)]() {
 			bool result = SharedDB.transaction([&](SQLite::Database* db) {
 				DB::insertUnsafe(db, tableStr, *rowsPtr);
 			});
@@ -251,7 +251,7 @@ void DB::execAsync(String sql, std::deque<std::vector<Own<Value>>>&& rows, const
 	std::string sqlStr(sql);
 	auto rowsPtr = std::make_shared<std::deque<std::vector<Own<Value>>>>(std::move(rows));
 	SharedAsyncThread.run(
-		[sqlStr, rowsPtr]() {
+		[sqlStr, rowsPtr = std::move(rowsPtr)]() {
 			int result = 0;
 			SharedDB.transaction([&](SQLite::Database* db) {
 				result += DB::execUnsafe(db, sqlStr, *rowsPtr);
