@@ -257,7 +257,11 @@ static int dora_file_exist(lua_State* L) {
 static int dora_read_file(lua_State* L) {
 	size_t size = 0;
 	auto fileStr = luaL_checklstring(L, 1, &size);
-	auto data = SharedContent.load({fileStr, size});
+	Slice codes{fileStr, size};
+	if (codes.left(3) == "\xEF\xBB\xBF"_slice) {
+		codes.skip(3);
+	}
+	auto data = SharedContent.load(codes);
 	lua_pushlstring(L, r_cast<char*>(data.first.get()), data.second);
 	return 1;
 }
