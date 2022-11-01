@@ -182,7 +182,7 @@ const Matrix& Director::getViewProjection() const {
 static void registerTouchHandler(Node* target) {
 	target->traverseVisible([](Node* node) {
 		if (node->isTouchEnabled()) {
-			SharedTouchDispatcher.add(node->getTouchHandler());
+			SharedTouchDispatcher.add(node->getTouchHandler()->ref());
 		}
 		return false;
 	});
@@ -240,7 +240,7 @@ void Director::doLogic() {
 		SharedKeyboard.clearChanges();
 
 		/* handle ImGui touch */
-		SharedTouchDispatcher.add(SharedImGui.getTarget());
+		SharedTouchDispatcher.add(SharedImGui.getTarget()->getTouchHandler()->ref());
 		SharedTouchDispatcher.dispatch();
 
 		/* handle ui3D touch */

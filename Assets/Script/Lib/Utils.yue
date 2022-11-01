@@ -161,6 +161,8 @@ StructHelper = {
 			__newindex: (key, value)=>
 				index = tupleDef[key]
 				if index
+					oldValue = rawget @, index
+					return if oldValue == value
 					rawset @, index, value
 					notify = rawget @, "__notify"
 					if notify

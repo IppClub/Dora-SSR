@@ -315,7 +315,7 @@ protected:
 	Ref<Grabber> _grabber;
 	Own<Signal> _signal;
 	std::string _tag;
-	Own<NodeTouchHandler> _touchHandler;
+	std::shared_ptr<NodeTouchHandler> _touchHandler;
 	std::function<bool(double)> _scheduleFunc;
 	enum {
 		Visible = 1,
