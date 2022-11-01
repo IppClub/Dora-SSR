@@ -604,7 +604,7 @@ bool Node::isScheduled() const {
 
 void Node::setTouchEnabled(bool var) {
 	if (!_touchHandler) {
-		_touchHandler = New<NodeTouchHandler>(this);
+		_touchHandler = std::make_shared<NodeTouchHandler>(this);
 		_touchHandler->setSwallowTouches(_flags.isOn(Node::SwallowTouches));
 	}
 	_flags.set(Node::TouchEnabled, var);
