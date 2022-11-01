@@ -15,11 +15,14 @@ union SDL_Event;
 
 NS_DOROTHY_BEGIN
 
-class TouchHandler {
+class TouchHandler : public std::enable_shared_from_this<TouchHandler> {
 public:
 	PROPERTY_BOOL(SwallowTouches);
 	PROPERTY_BOOL(SwallowMouseWheel);
 	TouchHandler();
+	inline std::weak_ptr<TouchHandler> ref() {
+		return shared_from_this();
+	}
 	virtual ~TouchHandler();
 	virtual bool handle(const SDL_Event& event) = 0;
 
@@ -121,7 +124,7 @@ private:
 class TouchDispatcher {
 public:
 	void add(const SDL_Event& event);
-	void add(TouchHandler* handler);
+	void add(const std::weak_ptr<TouchHandler>& handler);
 	void dispatch();
 	void clearHandlers();
 	void clearEvents();
@@ -130,7 +133,7 @@ protected:
 	TouchDispatcher() { }
 
 private:
-	std::vector<TouchHandler*> _handlers;
+	std::vector<std::weak_ptr<TouchHandler>> _handlers;
 	std::list<std::any> _events;
 	SINGLETON_REF(TouchDispatcher, Director);
 };

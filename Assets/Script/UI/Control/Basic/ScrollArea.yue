@@ -167,6 +167,8 @@ export default Class ScrollArea,
 			@emit "ScrollTouchBegan"
 
 		@slot "TapEnded", ->
+			if not @dragging
+				@emit "NoneScrollTapped"
 			@dragging = false
 			if isReseting!
 				startReset!

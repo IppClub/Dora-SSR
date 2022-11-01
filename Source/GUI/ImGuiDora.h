@@ -21,7 +21,7 @@ class Texture2D;
 class Pass;
 class ConsolePanel;
 
-class ImGuiDora : public TouchHandler {
+class ImGuiDora {
 public:
 	virtual ~ImGuiDora();
 	bool init();
@@ -33,7 +33,18 @@ public:
 	void showConsole();
 	void handleEvent(const SDL_Event& event);
 	void updateTexture(uint8_t* data, int width, int height);
-	virtual bool handle(const SDL_Event& event) override;
+
+	class ImGuiTouchHandler : public TouchHandler {
+	public:
+		ImGuiTouchHandler(ImGuiDora* owner)
+			: _owner(owner) { }
+		virtual ~ImGuiTouchHandler() { }
+		virtual bool handle(const SDL_Event& event) override;
+
+	protected:
+		ImGuiDora* _owner;
+	};
+	PROPERTY_READONLY(ImGuiTouchHandler*, TouchHandler);
 
 public:
 	static void setImePositionHint(int x, int y);
@@ -79,7 +90,6 @@ private:
 	bool _rejectAllEvents;
 	Vec2 _mouseWheel;
 	int _lastCursor;
-	UITouchHandler* _touchHandler;
 	Ref<Texture2D> _fontTexture;
 	bgfx::UniformHandle _sampler;
 	Ref<Pass> _defaultPass;
@@ -92,6 +102,7 @@ private:
 	Own<ConsolePanel> _console;
 	Own<ImFontAtlas> _defaultFonts;
 	Own<ImFontAtlas> _fonts;
+	std::shared_ptr<ImGuiTouchHandler> _touchHandler;
 	std::unordered_map<std::string, double> _timeCosts;
 	std::unordered_map<std::string, double> _updateCosts;
 	struct LoaderCost {

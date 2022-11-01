@@ -345,11 +345,14 @@ DB.queryAsync = function(self, ...)
 	}
 	table_insert(args, 1, function(data)
 		result = data
+		print("result")
 	end)
 	DB_queryAsync(self, unpack(args))
 	wait(function()
-		return result
+		print("check", result ~= nil)
+		return result ~= nil
 	end)
+	print("pass\n\n\n")
 	return result
 end
 

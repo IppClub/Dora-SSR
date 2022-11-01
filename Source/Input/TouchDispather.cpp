@@ -498,17 +498,17 @@ void TouchDispatcher::add(const SDL_Event& event) {
 	_events.push_back(event);
 }
 
-void TouchDispatcher::add(TouchHandler* handler) {
+void TouchDispatcher::add(const std::weak_ptr<TouchHandler>& handler) {
 	_handlers.push_back(handler);
 }
 
 void TouchDispatcher::dispatch() {
 	if (!_events.empty() && !_handlers.empty()) {
 		for (auto it = _handlers.rbegin(); it != _handlers.rend(); ++it) {
-			TouchHandler* handler = *it;
+			auto handler = it->lock();
 			for (auto eit = _events.begin(); eit != _events.end();) {
 				auto e = std::any_cast<SDL_Event>(&(*eit));
-				if (handler->handle(*e)) {
+				if (handler && handler->handle(*e)) {
 					eit = _events.erase(eit);
 				} else {
 					++eit;

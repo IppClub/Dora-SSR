@@ -346,8 +346,7 @@ int ImGuiDora::_lastIMEPosX;
 int ImGuiDora::_lastIMEPosY;
 
 ImGuiDora::ImGuiDora()
-	: _touchHandler(nullptr)
-	, _rejectAllEvents(false)
+	: _rejectAllEvents(false)
 	, _textInputing(false)
 	, _mouseVisible(true)
 	, _lastCursor(0)
@@ -379,6 +378,7 @@ ImGuiDora::ImGuiDora()
 	, _maxDelta(0)
 	, _yLimit(0)
 	, _sampler(BGFX_INVALID_HANDLE) {
+	_touchHandler = std::make_shared<ImGuiTouchHandler>(this);
 	_vertexLayout
 		.begin()
 		.add(bgfx::Attrib::Position, 2, bgfx::AttribType::Float)
@@ -405,6 +405,10 @@ ImGuiDora::ImGuiDora()
 			}
 		}
 	});
+}
+
+ImGuiDora::ImGuiTouchHandler* ImGuiDora::getTouchHandler() const {
+	return _touchHandler.get();
 }
 
 ImGuiDora::~ImGuiDora() {
@@ -1347,7 +1351,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event) {
 	}
 }
 
-bool ImGuiDora::handle(const SDL_Event& event) {
+bool ImGuiDora::ImGuiTouchHandler::handle(const SDL_Event& event) {
 	switch (event.type) {
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_FINGERDOWN:
@@ -1355,12 +1359,12 @@ bool ImGuiDora::handle(const SDL_Event& event) {
 				|| ImGui::IsAnyItemActive()
 				|| ImGui::IsAnyItemFocused()
 				|| ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel)) {
-				_rejectAllEvents = true;
+				_owner->_rejectAllEvents = true;
 			}
 			break;
 		case SDL_MOUSEBUTTONUP:
-			if (_rejectAllEvents) {
-				_rejectAllEvents = false;
+			if (_owner->_rejectAllEvents) {
+				_owner->_rejectAllEvents = false;
 			}
 			break;
 		default:
@@ -1370,7 +1374,7 @@ bool ImGuiDora::handle(const SDL_Event& event) {
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_FINGERDOWN:
 		case SDL_MULTIGESTURE:
-			return _rejectAllEvents;
+			return _owner->_rejectAllEvents;
 		case SDL_MOUSEWHEEL:
 			return ImGui::IsAnyItemHovered()
 				|| ImGui::IsAnyItemActive()
