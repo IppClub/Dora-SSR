@@ -943,6 +943,7 @@ singleton class DB
 	bool exist(string tableName);
 	int exec(string sql);
 	outside bool db_do_transaction @ transaction(DBQuery query);
+	outside void db_do_transaction_async @ transactionAsync(DBQuery query, function<void(bool result)> callback);
 	outside DBRecord db_do_query @ query(string sql, bool withColumns);
 	outside DBRecord db_do_query_with_params @ queryWithParams(string sql, Array* param, bool withColumns);
 	outside void db_do_insert @ insert(string tableName, DBRecord record);

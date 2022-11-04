@@ -583,6 +583,7 @@ LuaEngine::LuaEngine()
 		tolua_beginmodule(L, "DB");
 		{
 			tolua_function(L, "transaction", DB_transaction);
+			tolua_function(L, "transactionAsync", DB_transactionAsync);
 			tolua_function(L, "query", DB_query);
 			tolua_function(L, "insert", DB_insert);
 			tolua_function(L, "exec", DB_exec);

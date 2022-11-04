@@ -7,6 +7,17 @@ static int32_t db_exec(int64_t sql) {
 static int32_t db_transaction(int64_t query) {
 	return db_do_transaction(*r_cast<DBQuery*>(query)) ? 1 : 0;
 }
+static void db_transaction_async(int64_t query, int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	db_do_transaction_async(*r_cast<DBQuery*>(query), [func, args, deref](bool result) {
+		args->clear();
+		args->push(result);
+		SharedWasmRuntime.invoke(func);
+	});
+}
 static int64_t db_query(int64_t sql, int32_t with_columns) {
 	return r_cast<int64_t>(new DBRecord{db_do_query(*str_from(sql), with_columns != 0)});
 }
@@ -56,6 +67,7 @@ static void linkDB(wasm3::module& mod) {
 	mod.link_optional("*", "db_exist", db_exist);
 	mod.link_optional("*", "db_exec", db_exec);
 	mod.link_optional("*", "db_transaction", db_transaction);
+	mod.link_optional("*", "db_transaction_async", db_transaction_async);
 	mod.link_optional("*", "db_query", db_query);
 	mod.link_optional("*", "db_query_with_params", db_query_with_params);
 	mod.link_optional("*", "db_insert", db_insert);

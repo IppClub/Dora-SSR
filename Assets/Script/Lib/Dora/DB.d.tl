@@ -5,6 +5,7 @@ local record DB
 	type SQL = string | {string, {Row}}
 	exist: function(self: DB, tableName: string): boolean
 	transaction: function(self: DB, sqls: {SQL}): boolean
+	transactionAsync: function(self: DB, sqls: {SQL}): boolean
 	query: function(
 		self: DB,
 		sql: string,
