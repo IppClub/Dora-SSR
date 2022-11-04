@@ -2037,20 +2037,29 @@ static Own<Value> Dora_getDBValue(lua_State* L, int loc) {
 	return Value::alloc(false);
 }
 
-int DB_transaction(lua_State* L) {
+static int DB_transactionInner(lua_State* L, bool async) {
 	/* 1 self, 2 table */
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
-	if (!tolua_isusertype(L, 1, "DB"_slice, 0, &tolua_err)
-		|| !tolua_istable(L, 2, 0, &tolua_err)
-		|| !tolua_isnoobj(L, 3, &tolua_err)) {
-		goto tolua_lerror;
+	if (async) {
+		if (!tolua_isusertype(L, 1, "DB"_slice, 0, &tolua_err)
+			|| !tolua_istable(L, 2, 0, &tolua_err)
+			|| !tolua_isfunction(L, 3, &tolua_err)
+			|| !tolua_isnoobj(L, 4, &tolua_err)) {
+			goto tolua_lerror;
+		}
+	} else {
+		if (!tolua_isusertype(L, 1, "DB"_slice, 0, &tolua_err)
+			|| !tolua_istable(L, 2, 0, &tolua_err)
+			|| !tolua_isnoobj(L, 3, &tolua_err)) {
+			goto tolua_lerror;
+		}
 	}
 #endif
 	{
 		DB* self = r_cast<DB*>(tolua_tousertype(L, 1, 0));
 #ifndef TOLUA_RELEASE
-		if (!self) tolua_error(L, "invalid 'self' in function 'DB_transaction'", nullptr);
+		if (!self) tolua_error(L, "invalid 'self' in function 'DB_transactionInner'", nullptr);
 #endif
 		struct SQLData {
 			SQLData() { }
@@ -2060,9 +2069,9 @@ int DB_transaction(lua_State* L) {
 			std::string sql;
 			std::deque<std::vector<Own<Value>>> rows;
 		};
-		std::vector<SQLData> sqls;
+		auto sqls = std::make_shared<std::vector<SQLData>>();
 		int itemCount = s_cast<int>(lua_rawlen(L, 2));
-		sqls.resize(itemCount);
+		sqls->resize(itemCount);
 		for (int i = 0; i < itemCount; i++) {
 			lua_rawgeti(L, 2, i + 1);
 #ifndef TOLUA_RELEASE
@@ -2071,7 +2080,7 @@ int DB_transaction(lua_State* L) {
 				goto tolua_lerror;
 			}
 #endif
-			auto& sql = sqls[i];
+			auto& sql = (*sqls)[i];
 			if (lua_istable(L, -1) != 0) {
 				const int strLoc = -1;
 				const int tableLoc = -2;
@@ -2109,23 +2118,45 @@ int DB_transaction(lua_State* L) {
 			}
 			lua_pop(L, 1);
 		}
-		bool result = self->transaction([&](SQLite::Database* db) {
-			for (const auto& sql : sqls) {
-				if (sql.rows.empty()) {
-					DB::execUnsafe(db, sql.sql);
-				} else {
-					DB::execUnsafe(db, sql.sql, sql.rows);
+		if (async) {
+			LuaFunction<void> callback(tolua_ref_function(L, 3));
+			self->transactionAsync([sqls = std::move(sqls)](SQLite::Database* db) {
+				for (const auto& sql : *sqls) {
+					if (sql.rows.empty()) {
+						DB::execUnsafe(db, sql.sql);
+					} else {
+						DB::execUnsafe(db, sql.sql, sql.rows);
+					}
 				}
-			}
-		});
-		lua_pushboolean(L, result ? 1 : 0);
-		return 1;
+			}, callback);
+			return 0;
+		} else {
+			bool result = self->transaction([&sqls](SQLite::Database* db) {
+				for (const auto& sql : *sqls) {
+					if (sql.rows.empty()) {
+						DB::execUnsafe(db, sql.sql);
+					} else {
+						DB::execUnsafe(db, sql.sql, sql.rows);
+					}
+				}
+			});
+			lua_pushboolean(L, result ? 1 : 0);
+			return 1;
+		}
 	}
 #ifndef TOLUA_RELEASE
 tolua_lerror:
-	tolua_error(L, "#ferror in function 'DB_transaction'.", &tolua_err);
+	tolua_error(L, "#ferror in function 'DB_transactionInner'.", &tolua_err);
 	return 0;
 #endif
+}
+
+int DB_transaction(lua_State* L) {
+	return DB_transactionInner(L, false);
+}
+
+int DB_transactionAsync(lua_State* L) {
+	return DB_transactionInner(L, true);
 }
 
 int DB_query(lua_State* L) {
@@ -2493,6 +2524,7 @@ int DB_insertAsync01(lua_State* L) {
 											rowIndex++;
 											continue;
 										}
+										query.clearBindings();
 										for (const auto& cell : row) {
 											if (cell.value.empty() && cell.string_id >= 0) {
 												query.bind(cell.refer.col, strs[cell.string_id]);

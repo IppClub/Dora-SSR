@@ -338,6 +338,14 @@ thread ->
 	showEntry = true
 	Director.clearColor = Color 0xff1a1a1a
 
+enterProduct = ->
+	return if currentEntryName
+	for i = #productionEntries, 1, -1
+		entry = productionEntries[i]
+		if Content\exist entry
+			enterDemoEntry Path\replaceExt entry, ""
+			break
+
 showStats = true
 showConsole = true
 showFooter = false
@@ -364,6 +372,8 @@ footerWindow = threadLoop ->
 			showConsole = not showConsole
 		if ctrl and Keyboard\isKeyDown "/"
 			showFooter = not showFooter
+		if ctrl and Keyboard\isKeyDown "R"
+			enterProduct!
 		left = ctrl and Keyboard\isKeyDown "Left"
 		right = ctrl and Keyboard\isKeyDown "Right"
 		currentIndex = nil
@@ -383,9 +393,12 @@ footerWindow = threadLoop ->
 	return unless showEntry
 	:width, :height = App.visualSize
 	SetNextWindowSize Vec2 200, 50
-	SetNextWindowPos Vec2 width - 200, height - 50
-	if width >= 600
-		PushStyleColor "WindowBg", Color(0x0), -> Begin "Show", windowFlags, ->
+	SetNextWindowPos if width >= 600
+		Vec2 width - 200, height - 50
+	else
+		Vec2 width, height
+	PushStyleColor "WindowBg", Color(0x0), -> Begin "Show", windowFlags, ->
+		if width >= 600
 			Columns 2, false
 			if showFooter
 				changed, scaleContent = Checkbox string.format("%.1fx", screenScale), scaleContent
@@ -508,12 +521,7 @@ entryWindow = threadLoop ->
 				Columns 1, false
 				TextColored cyan, "Product"
 				Columns math.max(math.floor(width / 200), 1), false
-				if Button "Enter", Vec2 -1, 40
-					for i = #productionEntries, 1, -1
-						entry = productionEntries[i]
-						if Content\exist entry
-							enterDemoEntry Path\replaceExt entry, ""
-							break
+				enterProduct! if Button "Enter", Vec2 -1, 40
 				NextColumn!
 				if productionTests and #productionTests > 0
 					Columns 1, false

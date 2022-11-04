@@ -34,6 +34,7 @@ public:
 
 public:
 	bool transaction(const std::function<void(SQLite::Database*)>& func);
+	void transactionAsync(const std::function<void(SQLite::Database*)>& func, const std::function<void(bool)>& callback);
 	static void insertUnsafe(SQLite::Database* db, String tableName, const std::deque<std::vector<Own<Value>>>& values);
 	static int execUnsafe(SQLite::Database* db, String sql);
 	static int execUnsafe(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args);

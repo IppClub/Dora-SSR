@@ -2,6 +2,7 @@ extern "C" {
 	fn db_exist(table_name: i64) -> i32;
 	fn db_exec(sql: i64) -> i32;
 	fn db_transaction(query: i64) -> i32;
+	fn db_transaction_async(query: i64, func: i32, stack: i64);
 	fn db_query(sql: i64, with_columns: i32) -> i64;
 	fn db_query_with_params(sql: i64, param: i64, with_columns: i32) -> i64;
 	fn db_insert(table_name: i64, record: i64);
@@ -21,6 +22,14 @@ impl DB {
 	}
 	pub fn transaction(query: crate::dora::DBQuery) -> bool {
 		unsafe { return db_transaction(query.raw()) != 0; }
+	}
+	pub fn transaction_async(query: crate::dora::DBQuery, mut callback: Box<dyn FnMut(bool)>) {
+		let mut stack = crate::dora::CallStack::new();
+		let stack_raw = stack.raw();
+		let func_id = crate::dora::push_function(Box::new(move || {
+			callback(stack.pop_bool().unwrap())
+		}));
+		unsafe { db_transaction_async(query.raw(), func_id, stack_raw); }
 	}
 	pub fn query(sql: &str, with_columns: bool) -> crate::dora::DBRecord {
 		unsafe { return crate::dora::DBRecord::from(db_query(crate::dora::from_string(sql), if with_columns { 1 } else { 0 })); }
