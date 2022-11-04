@@ -1028,6 +1028,17 @@ static bool db_do_transaction(DBQuery& query) {
 		}
 	});
 }
+static void db_do_transaction_async(DBQuery& query, const std::function<void(bool result)>& callback) {
+	SharedDB.transactionAsync([&](SQLite::Database* db) {
+		for (const auto& sql : query.queries) {
+			if (sql.second.empty()) {
+				DB::execUnsafe(db, sql.first);
+			} else {
+				DB::execUnsafe(db, sql.first, sql.second);
+			}
+		}
+	}, callback);
+}
 static DBRecord db_do_query(String sql, bool withColumns) {
 	std::vector<Own<Value>> args;
 	auto result = SharedDB.query(sql, args, withColumns);

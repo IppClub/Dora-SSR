@@ -112,6 +112,26 @@ bool DB::transaction(const std::function<void(SQLite::Database*)>& sqls) {
 	}
 }
 
+void DB::transactionAsync(const std::function<void(SQLite::Database*)>& sqls, const std::function<void(bool)>& callback) {
+	SharedAsyncThread.run(
+		[sqls, this]() {
+			try {
+				SQLite::Transaction transaction(*_database);
+				sqls(_database.get());
+				transaction.commit();
+				return Values::alloc(true);
+			} catch (std::exception& e) {
+				Warn("failed to execute DB transaction: {}", e.what());
+				return Values::alloc(false);
+			}
+		},
+		[callback](Own<Values> values) {
+			bool result = false;
+			values->get(result);
+			callback(result);
+		});
+}
+
 static void bindValues(SQLite::Statement& query, const std::vector<Own<Value>>& args) {
 	int argCount = 0;
 	for (auto& arg : args) {
@@ -172,6 +192,7 @@ void DB::insertUnsafe(SQLite::Database* db, String tableName, const std::deque<s
 	}
 	SQLite::Statement query(*db, fmt::format("INSERT INTO {} VALUES ({})", tableName.toString(), valueHolder));
 	for (const auto& row : rows) {
+		query.clearBindings();
 		bindValues(query, row);
 		query.exec();
 		query.reset();
@@ -196,6 +217,7 @@ int DB::execUnsafe(SQLite::Database* db, String sql, const std::deque<std::vecto
 	}
 	int rowChanged = 0;
 	for (const auto& row : rows) {
+		query.clearBindings();
 		bindValues(query, row);
 		rowChanged += query.exec();
 		query.reset();

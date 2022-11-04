@@ -389,6 +389,24 @@ DB.execAsync = function(self, ...)
 	return result
 end
 
+local DB_transactionAsync = DB.transactionAsync
+DB.transactionAsync = function(self, ...)
+	local _, mainThread = coroutine.running()
+	assert(not mainThread, "DB.transactionAsync should be run in a thread")
+	local result
+	local args = {
+		...
+	}
+	table_insert(args, function(data)
+		result = data
+	end)
+	DB_transactionAsync(self, unpack(args))
+	wait(function()
+		return result ~= nil
+	end)
+	return result
+end
+
 local Wasm_executeMainFileAsync = Wasm.executeMainFileAsync
 Wasm.executeMainFileAsync = function(self, filename)
 	local _, mainThread = coroutine.running()

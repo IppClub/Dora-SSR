@@ -247,6 +247,7 @@ int QLearner_getMatrix(lua_State* L);
 /* DB */
 inline DB* DB_shared() { return &SharedDB; }
 int DB_transaction(lua_State* L);
+int DB_transactionAsync(lua_State* L);
 int DB_query(lua_State* L);
 int DB_insert(lua_State* L);
 int DB_exec(lua_State* L);
