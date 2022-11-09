@@ -71,6 +71,11 @@ YueParser::YueParser() {
 	Cut = false_();
 	Seperator = true_();
 
+	empty_block_error = pl::user(true_(), [](const item_t& item) {
+		throw ParserError("must be followed by a statement or an indented block", *item.begin, *item.end);
+		return false;
+	});
+
 	#define sym(str) (Space >> str)
 	#define symx(str) expr(str)
 	#define ensure(patt, finally) ((patt) >> (finally) | (finally) >> Cut)
@@ -79,12 +84,13 @@ YueParser::YueParser() {
 	#define disable_chain(patt) (DisableChain >> ((patt) >> EnableChain | EnableChain >> Cut))
 	#define disable_do_chain_arg_table_block(patt) (DisableDoChainArgTableBlock >> ((patt) >> EnableDoChainArgTableBlock | EnableDoChainArgTableBlock >> Cut))
 	#define disable_arg_table_block(patt) (DisableArgTableBlock >> ((patt) >> EnableArgTableBlock | EnableArgTableBlock >> Cut))
-	#define plain_body_with(str) (-(Space >> key(str)) >> InBlock | Space >> key(str) >> Space >> Statement)
-	#define plain_body (InBlock | Space >> Statement)
+	#define body_with(str) (Space >> (key(str) >> Space >> (InBlock | Statement) | InBlock | empty_block_error))
+	#define opt_body_with(str) (Space >> (key(str) >> Space >> (InBlock | Statement) | InBlock))
+	#define body (Space >> (InBlock | Statement | empty_block_error))
 
 	Variable = pl::user(Name, [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
-		for (auto it = item.begin; it != item.end; ++it) st->buffer += static_cast<char>(*it);
+		for (auto it = item.begin->m_it; it != item.end->m_it; ++it) st->buffer += static_cast<char>(*it);
 		auto isValid = Keywords.find(st->buffer) == Keywords.end();
 		if (isValid) {
 			if (st->buffer == st->moduleName) {
@@ -98,7 +104,7 @@ YueParser::YueParser() {
 
 	LabelName = pl::user(Name, [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
-		for (auto it = item.begin; it != item.end; ++it) st->buffer += static_cast<char>(*it);
+		for (auto it = item.begin->m_it; it != item.end->m_it; ++it) st->buffer += static_cast<char>(*it);
 		auto isValid = LuaKeywords.find(st->buffer) == LuaKeywords.end();
 		st->buffer.clear();
 		return isValid;
@@ -106,7 +112,7 @@ YueParser::YueParser() {
 
 	LuaKeyword = pl::user(Name, [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
-		for (auto it = item.begin; it != item.end; ++it) st->buffer += static_cast<char>(*it);
+		for (auto it = item.begin->m_it; it != item.end->m_it; ++it) st->buffer += static_cast<char>(*it);
 		auto it = LuaKeywords.find(st->buffer);
 		st->buffer.clear();
 		return it != LuaKeywords.end();
@@ -123,7 +129,7 @@ YueParser::YueParser() {
 
 	check_indent = pl::user(Indent, [](const item_t& item) {
 		int indent = 0;
-		for (input_it i = item.begin; i != item.end; ++i) {
+		for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
 			switch (*i) {
 				case ' ': indent++; break;
 				case '\t': indent += 4; break;
@@ -136,7 +142,7 @@ YueParser::YueParser() {
 
 	advance = pl::user(Indent, [](const item_t& item) {
 		int indent = 0;
-		for (input_it i = item.begin; i != item.end; ++i) {
+		for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
 			switch (*i) {
 				case ' ': indent++; break;
 				case '\t': indent += 4; break;
@@ -154,7 +160,7 @@ YueParser::YueParser() {
 
 	push_indent = pl::user(Indent, [](const item_t& item) {
 		int indent = 0;
-		for (input_it i = item.begin; i != item.end; ++i) {
+		for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
 			switch (*i) {
 				case ' ': indent++; break;
 				case '\t': indent += 4; break;
@@ -232,9 +238,9 @@ YueParser::YueParser() {
 
 	WithExp = ExpList >> -Assign;
 
-	With = Space >> key("with") >> -existential_op >> disable_do_chain_arg_table_block(WithExp) >> plain_body_with("do");
-	SwitchCase = Space >> key("when") >> disable_chain(disable_arg_table_block(SwitchList)) >> plain_body_with("then");
-	SwitchElse = Space >> key("else") >> plain_body;
+	With = Space >> key("with") >> -existential_op >> disable_do_chain_arg_table_block(WithExp) >> body_with("do");
+	SwitchCase = Space >> key("when") >> disable_chain(disable_arg_table_block(SwitchList)) >> body_with("then");
+	SwitchElse = Space >> key("else") >> body;
 
 	SwitchBlock = *EmptyLine >>
 		Advance >> Seperator >>
@@ -251,24 +257,24 @@ YueParser::YueParser() {
 
 	assignment = ExpList >> Assign;
 	IfCond = disable_chain(disable_arg_table_block(assignment | Exp));
-	IfElseIf = -(Break >> *EmptyLine >> CheckIndent) >> Space >> key("elseif") >> IfCond >> plain_body_with("then");
-	IfElse = -(Break >> *EmptyLine >> CheckIndent) >> Space >> key("else") >> plain_body;
+	IfElseIf = -(Break >> *EmptyLine >> CheckIndent) >> Space >> key("elseif") >> IfCond >> body_with("then");
+	IfElse = -(Break >> *EmptyLine >> CheckIndent) >> Space >> key("else") >> body;
 	IfType = (expr("if") | expr("unless")) >> not_(AlphaNum);
-	If = Space >> IfType >> IfCond >> plain_body_with("then") >> *IfElseIf >> -IfElse;
+	If = Space >> IfType >> IfCond >> opt_body_with("then") >> *IfElseIf >> -IfElse;
 
 	WhileType = (expr("while") | expr("until")) >> not_(AlphaNum);
-	While = WhileType >> disable_do_chain_arg_table_block(Exp) >> plain_body_with("do");
+	While = WhileType >> disable_do_chain_arg_table_block(Exp) >> opt_body_with("do");
 	Repeat = key("repeat") >> Body >> Break >> *EmptyLine >> CheckIndent >> Space >> key("until") >> Exp;
 
 	for_step_value = sym(',') >> Exp;
 	for_args = Space >> Variable >> sym('=') >> Exp >> sym(',') >> Exp >> -for_step_value;
 
-	For = key("for") >> disable_do_chain_arg_table_block(for_args) >> plain_body_with("do");
+	For = key("for") >> disable_do_chain_arg_table_block(for_args) >> opt_body_with("do");
 
 	for_in = star_exp | ExpList;
 
 	ForEach = key("for") >> AssignableNameList >> Space >> key("in") >>
-		disable_do_chain_arg_table_block(for_in) >> plain_body_with("do");
+		disable_do_chain_arg_table_block(for_in) >> opt_body_with("do");
 
 	Do = pl::user(Space >> key("do"), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
@@ -413,14 +419,14 @@ YueParser::YueParser() {
 	lua_string_close = ']' >> *expr('=') >> ']';
 
 	LuaStringOpen = pl::user(lua_string_open, [](const item_t& item) {
-		size_t count = std::distance(item.begin, item.end);
+		size_t count = std::distance(item.begin->m_it, item.end->m_it);
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->stringOpen = count;
 		return true;
 	});
 
 	LuaStringClose = pl::user(lua_string_close, [](const item_t& item) {
-		size_t count = std::distance(item.begin, item.end);
+		size_t count = std::distance(item.begin->m_it, item.end->m_it);
 		State* st = reinterpret_cast<State*>(item.user_data);
 		return st->stringOpen == count;
 	});
@@ -526,17 +532,21 @@ YueParser::YueParser() {
 		return true;
 	}) >> (pl::user(Space >> export_default >> Exp, [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
-		bool isValid = !st->exportDefault && st->exportCount == 1;
+		if (st->exportDefault) {
+			throw ParserError("export default has already been declared", *item.begin, *item.end);
+		}
+		if (st->exportCount > 1) {
+			throw ParserError("there are items already been exported", *item.begin, *item.end);
+		}
 		st->exportDefault = true;
-		return isValid;
+		return true;
 	})
 	| (not_(Space >> export_default) >> pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		if (st->exportDefault && st->exportCount > 1) {
-			return false;
-		} else {
-			return true;
+			throw ParserError("can not export more items when export default has been declared", *item.begin, *item.end);
 		}
+		return true;
 	}) >> ExpList >> -Assign)
 	| Space >> pl::user(Macro, [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
@@ -624,11 +634,17 @@ YueParser::YueParser() {
 			SpaceBreak >> Advance >> ArgBlock >> -arg_table_block
 		) | arg_table_block;
 
+	leading_spaces_error = pl::user(+space_one >> expr('(') >> Exp >> +(sym(',') >> Exp) >> sym(')'), [](const item_t& item) {
+		throw ParserError("write invoke arguments in parentheses without leading spaces or just leading spaces without parentheses", *item.begin, *item.end);
+		return false;
+	});
+
 	InvokeArgs =
 		not_(set("-~")) >> Seperator >>
 		(
 			(Exp >> *(sym(',') >> Exp) >> -invoke_args_with_table) |
-			arg_table_block
+			arg_table_block |
+			leading_spaces_error
 		);
 
 	const_value = (expr("nil") | expr("true") | expr("false")) >> not_(AlphaNum);
@@ -638,7 +654,7 @@ YueParser::YueParser() {
 		unary_value | TblComprehension | TableLit | Comprehension |
 		FunLit | Num);
 
-	ExpListAssign = ExpList >> -(Update | Assign);
+	ExpListAssign = ExpList >> -(Update | Assign) >> not_(Space >> expr('='));
 
 	if_line = Space >> IfType >> IfCond;
 	while_line = Space >> WhileType >> Exp;
@@ -649,13 +665,16 @@ YueParser::YueParser() {
 	yue_multiline_comment = multi_line_open >> YueMultilineComment >> multi_line_close;
 	yue_comment = check_indent >> (yue_multiline_comment >> *(set(" \t") | yue_multiline_comment) >> -yue_line_comment | yue_line_comment) >> and_(Break);
 
+	ChainAssign = Seperator >> Exp >> +(sym('=') >> Exp >> Space >> and_('=')) >> Assign;
+
 	statement_appendix = (if_line | while_line | CompInner) >> Space;
 	statement_sep = and_(*SpaceBreak >> CheckIndent >> Space >> (set("($'\"") | expr("[[") | expr("[=")));
 	Statement = Seperator >> -(yue_comment >> *(Break >> yue_comment) >> Break >> CheckIndent) >> Space >> (
 		Import | While | Repeat | For | ForEach |
 		Return | Local | Global | Export | Macro |
 		MacroInPlace | BreakLoop | Label | Goto | ShortTabAppending |
-		LocalAttrib | Backcall | PipeBody | ExpListAssign
+		LocalAttrib | Backcall | PipeBody | ExpListAssign | ChainAssign |
+		statement_appendix >> empty_block_error
 	) >> Space >>
 	-statement_appendix >> -statement_sep;
 
@@ -666,10 +685,15 @@ YueParser::YueParser() {
 		advance >> ensure(MultiLineComment >> Space | Comment, PopIndent) |
 		plain_space) >> and_(Break);
 
+	indentation_error = pl::user(not_(PipeOperator | eof()), [](const item_t& item) {
+		throw ParserError("unexpected indent", *item.begin, *item.end);
+		return false;
+	});
+
 	Line =
 		CheckIndent >> Statement |
-		Advance >> ensure(Space >> and_(PipeOperator) >> Statement, PopIndent) |
-		empty_line_break;
+		empty_line_break |
+		Advance >> ensure(Space >> (indentation_error | Statement), PopIndent);
 	Block = Seperator >> Line >> *(+Break >> Line);
 
 	Shebang = expr("#!") >> *(not_(Stop) >> Any);
@@ -687,7 +711,7 @@ ParseInfo YueParser::parse(std::string_view codes, rule& r) {
 		res.codes = std::make_unique<input>();
 		*(res.codes) = _converter.from_bytes(&codes.front(), &codes.back() + 1);
 	} catch (const std::range_error&) {
-		res.error = "Invalid text encoding."sv;
+		res.error = "invalid text encoding"sv;
 		return res;
 	}
 	error_list errors;
@@ -699,6 +723,9 @@ ParseInfo YueParser::parse(std::string_view codes, rule& r) {
 			res.exportDefault = state.exportDefault;
 			res.exportMacro = state.exportMacro;
 		}
+	} catch (const ParserError& err) {
+		res.error = res.errorMessage(err.what(), &err.loc);
+		return res;
 	} catch (const std::logic_error& err) {
 		res.error = err.what();
 		return res;

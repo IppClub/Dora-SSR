@@ -35,8 +35,22 @@ struct ParseInfo {
 	std::string errorMessage(std::string_view msg, const input_range* loc) const;
 };
 
+class ParserError : public std::logic_error {
+public:
+	explicit ParserError(const std::string& msg, const pos& begin, const pos& end)
+		: std::logic_error(msg)
+		, loc(begin, end) { }
+
+	explicit ParserError(const char* msg, const pos& begin, const pos& end)
+		: std::logic_error(msg)
+		, loc(begin, end) { }
+	input_range loc;
+};
+
 template <typename T>
-struct identity { typedef T type; };
+struct identity {
+	typedef T type;
+};
 
 #define AST_RULE(type) \
 	rule type; \
@@ -100,6 +114,10 @@ private:
 		assert(false);
 		return Cut;
 	}
+
+	rule empty_block_error;
+	rule leading_spaces_error;
+	rule indentation_error;
 
 	rule num_char;
 	rule num_char_hex;
@@ -343,6 +361,7 @@ private:
 	AST_RULE(Statement)
 	AST_RULE(YueLineComment)
 	AST_RULE(YueMultilineComment)
+	AST_RULE(ChainAssign)
 	AST_RULE(Body)
 	AST_RULE(Block)
 	AST_RULE(BlockEnd)
