@@ -14,7 +14,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <optional>
 
 #include "yuescript/yue_compiler.h"
 #include "yuescript/yue_parser.h"
@@ -60,7 +59,7 @@ namespace yue {
 
 typedef std::list<std::string> str_list;
 
-const std::string_view version = "0.15.7"sv;
+const std::string_view version = "0.15.12"sv;
 const std::string_view extension = "yue"sv;
 
 class YueCompilerImpl {
@@ -1277,6 +1276,7 @@ private:
 				}
 				break;
 			}
+			case id<ChainAssign_t>(): transformChainAssign(static_cast<ChainAssign_t*>(content), out); break;
 			default: YUEE("AST node mismatch", content); break;
 		}
 		if (statement->needSep && !out.empty() && !out.back().empty()) {
@@ -2122,7 +2122,8 @@ private:
 							keyIndex = key;
 						} else if (auto key = np->key.as<String_t>()) {
 							keyIndex = newExp(key, np->key).get();
-						} else throw std::logic_error(_info.errorMessage("unsupported key for destructuring"sv, np));
+						} else
+							throw std::logic_error(_info.errorMessage("unsupported key for destructuring"sv, np));
 					}
 					if (auto exp = np->value.as<Exp_t>()) {
 						if (!isAssignable(exp)) throw std::logic_error(_info.errorMessage("can't do destructure value"sv, exp));
@@ -2211,7 +2212,8 @@ private:
 							chain->items.push_back(newExp(key, dp));
 						} else if (auto key = dp->key.as<Exp_t>()) {
 							chain->items.push_back(key);
-						} else throw std::logic_error(_info.errorMessage("unsupported key for destructuring"sv, dp));
+						} else
+							throw std::logic_error(_info.errorMessage("unsupported key for destructuring"sv, dp));
 					}
 					if (auto exp = dp->value.get()) {
 						if (!isAssignable(exp)) throw std::logic_error(_info.errorMessage("can't destructure value"sv, exp));
@@ -3767,7 +3769,7 @@ private:
 		if (!_enableReturn.top()) {
 			ast_node* target = returnNode->valueList.get();
 			if (!target) target = returnNode;
-			throw std::logic_error(_info.errorMessage("illegal return statement here"sv, target));
+			throw std::logic_error(_info.errorMessage("can not mix use of return and export statements in module scope"sv, target));
 		}
 		if (auto valueList = returnNode->valueList.as<ExpListLow_t>()) {
 			if (valueList->exprs.size() == 1) {
@@ -6520,6 +6522,13 @@ private:
 			_buf << "\t\t"sv << baseVar << '[' << key << "]="sv << val << " if "sv << baseVar << '[' << key << "]==nil and (not "sv << cls << " or not "sv << key << "\\match \"^__\")"sv;
 			transformBlock(toAst<Block_t>(clearBuf(), x), temp, ExpUsage::Common);
 		}
+		if (!parentVar.empty()) {
+			auto key = getUnusedName("_key_"sv);
+			auto val = getUnusedName("_val_"sv);
+			_buf << "for "sv << key << ',' << val << " in pairs "sv << parentVar << ".__base"sv << '\n'
+				 << '\t' << baseVar << '[' << key << "]="sv << val << " if "sv << baseVar << '[' << key << "]==nil and "sv << key << "\\match(\"^__\") and not ("sv << key << "==\"__index\" and "sv << val << "=="sv << parentVar << ".__base)"sv;
+			transformBlock(toAst<Block_t>(clearBuf(), x), temp, ExpUsage::Common);
+		}
 		transformAssignment(toAst<ExpListAssign_t>(baseVar + ".__index ?\?= "s + baseVar, classDecl), temp);
 		str_list tmp;
 		if (usage == ExpUsage::Assignment) {
@@ -7995,6 +8004,43 @@ private:
 		auto assignment = toAst<ExpListAssign_t>(_withVars.top() + "[]=nil"s, tab);
 		assignment->action.set(tab->assign);
 		transformAssignment(assignment, out);
+	}
+
+	void transformChainAssign(ChainAssign_t* chainAssign, str_list& out) {
+		auto x = chainAssign;
+		auto value = chainAssign->assign->values.front();
+		if (chainAssign->assign->values.size() != 1) {
+			throw std::logic_error(_info.errorMessage("only one right value expected"sv, value));
+		}
+		str_list temp;
+		bool constVal = false;
+		if (auto simpleVal = simpleSingleValueFrom(value)) {
+			constVal = ast_is<const_value_t, Num_t>(simpleVal->value);
+		}
+		if (constVal || !singleVariableFrom(value, false).empty()) {
+			for (auto exp : chainAssign->exprs.objects()) {
+				transformAssignment(assignmentFrom(static_cast<Exp_t*>(exp), value, exp), temp);
+			}
+			out.push_back(join(temp));
+			return;
+		}
+		auto valName = getUnusedName("_tmp_");
+		auto newValue = toAst<Exp_t>(valName, value);
+		ast_list<false, ExpListAssign_t> assignments;
+		for (auto exp : chainAssign->exprs.objects()) {
+			auto assignment = assignmentFrom(static_cast<Exp_t*>(exp), newValue, exp);
+			assignments.push_back(assignment.get());
+			temp.push_back(getPreDefineLine(assignment));
+		}
+		assignments.push_front(assignmentFrom(newValue, value, value));
+		temp.push_back(indent() + "do"s + nll(x));
+		pushScope();
+		for (auto item : assignments.objects()) {
+			transformAssignment(static_cast<ExpListAssign_t*>(item), temp);
+		}
+		popScope();
+		temp.push_back(indent() + "end"s + nll(x));
+		out.push_back(join(temp));
 	}
 };
 
