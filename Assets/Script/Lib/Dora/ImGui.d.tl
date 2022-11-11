@@ -452,6 +452,7 @@ local record ImGui
 		border_col?: Color --[[0x0]]
 	)
 	ImageButton: function(
+		str_id: string,
 		clipStr: string,
 		size: Vec2,
 		frame_padding?: integer --[[-1]],
