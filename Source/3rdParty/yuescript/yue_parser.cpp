@@ -406,10 +406,10 @@ YueParser::YueParser() {
 	simple_table = Seperator >> KeyValue >> *(sym(',') >> KeyValue);
 	Value = SimpleValue | simple_table | ChainValue | Space >> String;
 
-	single_string_inner = expr("\\'") | "\\\\" | not_(expr('\'')) >> Any;
+	single_string_inner = expr('\\') >> set("'\\") | not_(expr('\'')) >> Any;
 	SingleString = symx('\'') >> *single_string_inner >> symx('\'');
 	interp = symx("#{") >> Exp >> sym('}');
-	double_string_plain = expr("\\\"") | "\\\\" | not_(expr('"')) >> Any;
+	double_string_plain = expr('\\') >> set("\"\\") | not_(expr('"')) >> Any;
 	double_string_inner = +(not_(interp) >> double_string_plain);
 	double_string_content = double_string_inner | interp;
 	DoubleString = symx('"') >> Seperator >> *double_string_content >> symx('"');
@@ -484,7 +484,13 @@ YueParser::YueParser() {
 
 	SpreadExp = sym("...") >> Exp;
 
-	TableValue = ((KeyValue | SpreadExp | Exp) >> not_(sym('='))) | meta_default_pair | default_pair;
+	TableValue =
+		variable_pair_def |
+		normal_pair_def |
+		meta_variable_pair_def |
+		meta_normal_pair_def |
+		SpreadExp |
+		normal_def;
 
 	table_lit_lines = SpaceBreak >> TableLitLine >> *(-sym(',') >> SpaceBreak >> TableLitLine) >> -sym(',');
 
@@ -536,7 +542,7 @@ YueParser::YueParser() {
 			throw ParserError("export default has already been declared", *item.begin, *item.end);
 		}
 		if (st->exportCount > 1) {
-			throw ParserError("there are items already been exported", *item.begin, *item.end);
+			throw ParserError("there are items already being exported", *item.begin, *item.end);
 		}
 		st->exportDefault = true;
 		return true;
@@ -544,7 +550,7 @@ YueParser::YueParser() {
 	| (not_(Space >> export_default) >> pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		if (st->exportDefault && st->exportCount > 1) {
-			throw ParserError("can not export more items when export default has been declared", *item.begin, *item.end);
+			throw ParserError("can not export any more items when 'export default' is declared", *item.begin, *item.end);
 		}
 		return true;
 	}) >> ExpList >> -Assign)
@@ -564,21 +570,16 @@ YueParser::YueParser() {
 	symx(':') >> not_(':') >>
 	(Exp | TableBlock | +SpaceBreak >> Exp);
 
-	default_pair = (
-		sym(':') >> Variable >> Seperator |
-		KeyName >> symx(':') >> not_(':') >> Seperator >> exp_not_tab |
-		Space >> String >> symx(':') >> not_(':') >> Seperator >> exp_not_tab |
-		exp_not_tab >> Seperator) >> sym('=') >> Exp;
-
 	meta_variable_pair = sym(":<") >> Space >> Variable >> sym('>');
 
 	meta_normal_pair = sym('<') >> Space >> -meta_index >> sym(">:") >>
 		(Exp | TableBlock | +(SpaceBreak) >> Exp);
 
-	meta_default_pair = (
-		sym(":<") >> Space >> Variable >> sym('>') >> Seperator |
-		sym('<') >> Space >> -meta_index >> sym(">:") >> Seperator >> exp_not_tab
-	) >> sym('=') >> Exp;
+	variable_pair_def = variable_pair >> -(sym('=') >> Exp);
+	normal_pair_def = normal_pair >> -(sym('=') >> Exp);
+	meta_variable_pair_def = meta_variable_pair >> -(sym('=') >> Exp);
+	meta_normal_pair_def = meta_normal_pair >> -(sym('=') >> Exp);
+	normal_def = Exp >> Seperator >> -(sym('=') >> Exp);
 
 	KeyValue = variable_pair | normal_pair | meta_variable_pair | meta_normal_pair;
 	KeyValueList = KeyValue >> *(sym(',') >> KeyValue);
