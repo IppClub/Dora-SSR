@@ -174,7 +174,7 @@ std::deque<std::vector<Own<Value>>> DB::query(String sql, const std::vector<Own<
 			} else if (col.isFloat()) {
 				values[i] = Value::alloc(s_cast<double>(col.getDouble()));
 			} else if (col.isText() || col.isBlob()) {
-				values[i] = Value::alloc(col.getString());
+				values[i] = Value::alloc(std::string(col.getText()));
 			} else if (col.isNull()) {
 				values[i] = Value::alloc(false);
 			}

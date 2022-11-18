@@ -1279,6 +1279,10 @@ local is_attribute <const> = {
 
 
 
+
+
+
+
 local function is_array_type(t)
 	return t.typename == "array" or t.typename == "arrayrecord"
 end
@@ -2844,8 +2848,10 @@ end
 local parse_call_or_assignment
 do
 	local function is_lvalue(node)
-		return node.kind == "variable" or
-		(node.kind == "op" and (node.op.op == "@index" or node.op.op == "."))
+		node.is_lvalue = node.kind == "variable" or
+		(node.kind == "op" and
+		(node.op.op == "@index" or node.op.op == "."))
+		return node.is_lvalue
 	end
 
 	local function parse_variable(ps, i)
@@ -4538,7 +4544,7 @@ local function show_type_base(t, short, seen)
 		for _, v in ipairs(t.types) do
 			table.insert(out, show(v))
 		end
-		return table.concat(out, " and ")
+		return "polymorphic function (with types " .. table.concat(out, " and ") .. ")"
 	elseif t.typename == "union" then
 		local out = {}
 		for _, v in ipairs(t.types) do
@@ -4660,6 +4666,9 @@ end
 
 show_type = function(t, short, seen)
 	seen = seen or {}
+	if seen[t] then
+		return seen[t]
+	end
 	local ret = show_type_base(t, short, seen)
 	if t.inferred_at then
 		ret = ret .. inferred_msg(t)
@@ -5557,19 +5566,29 @@ tl.type_check = function(ast, opts)
 
 
 
+
 	local function find_var(name, use)
+
 		for i = #st, 1, -1 do
 			local scope = st[i]
-			if scope[name] then
-				if i == 1 and scope[name].needs_compat then
-					all_needs_compat[name] = true
+			local var = scope[name]
+			if var then
+				if use == "lvalue" and var.is_narrowed then
+					if var.narrowed_from then
+						var.used = true
+						return { t = var.narrowed_from, attribute = var.attribute }, i, var_is_const(var)
+					end
+				else
+					if i == 1 and var.needs_compat then
+						all_needs_compat[name] = true
+					end
+					if use == "use_type" then
+						var.used_as_type = true
+					elseif use ~= "check_only" then
+						var.used = true
+					end
+					return var, i, var_is_const(var)
 				end
-				if (not use) or (use == "use") then
-					scope[name].used = true
-				elseif use == "use_type" then
-					scope[name].used_as_type = true
-				end
-				return scope[name], i, var_is_const(scope[name])
 			end
 		end
 	end
@@ -5602,6 +5621,21 @@ tl.type_check = function(ast, opts)
 		return t, rt
 	end
 
+	local function ensure_fresh_typeargs(t)
+		if not t.typeargs then
+			return t
+		end
+
+		fresh_typevar_ctr = fresh_typevar_ctr + 1
+		for _, ta in ipairs(t.typeargs) do
+			ta.typearg = (ta.typearg:gsub("@.*", "")) .. "@" .. fresh_typevar_ctr
+		end
+		local ok
+		ok, t = resolve_typevars(t, fresh_typevar)
+		assert(ok, "Internal Compiler Error: error creating fresh type variables")
+		return t
+	end
+
 	local function find_var_type(name, use)
 		local var = find_var(name, use)
 		if var then
@@ -5609,15 +5643,7 @@ tl.type_check = function(ast, opts)
 			if t.typename == "unresolved_typearg" then
 				return nil
 			end
-			if t.typeargs then
-				fresh_typevar_ctr = fresh_typevar_ctr + 1
-				for _, ta in ipairs(t.typeargs) do
-					ta.typearg = (ta.typearg:gsub("@.*", "")) .. "@" .. fresh_typevar_ctr
-				end
-				local ok
-				ok, t = resolve_typevars(t, fresh_typevar)
-				assert(ok, "Internal Compiler Error: error creating fresh type variables")
-			end
+			t = ensure_fresh_typeargs(t)
 			return t, var.attribute
 		end
 	end
@@ -5674,6 +5700,7 @@ tl.type_check = function(ast, opts)
 				if typ == nil then
 					return nil
 				end
+				typ = ensure_fresh_typeargs(typ)
 				if typ.found then
 					typ = typ.found
 				end
@@ -5804,6 +5831,7 @@ tl.type_check = function(ast, opts)
 	resolve_typevars = function(typ, fn)
 		local errs
 		local seen = {}
+		local resolved = {}
 
 		fn = fn or default_resolve_typevars_callback
 
@@ -5822,6 +5850,9 @@ tl.type_check = function(ast, opts)
 			if t.typename == "typevar" then
 				local rt
 				t, rt = fn(t)
+				if t then
+					resolved[orig_t.typevar] = true
+				end
 				if rt then
 					seen[orig_t] = rt
 					return rt
@@ -5931,18 +5962,26 @@ tl.type_check = function(ast, opts)
 		if errs then
 			return false, INVALID, errs
 		end
+		if copy.typeargs then
+			for i = #copy.typeargs, 1, -1 do
+				if resolved[copy.typeargs[i].typearg] then
+					table.remove(copy.typeargs, i)
+				end
+			end
+			if not copy.typeargs[1] then
+				copy.typeargs = nil
+			end
+		end
 		return true, copy
 	end
 
-	local function infer_var(emptytable, t, node)
+	local function infer_emptytable(emptytable, fresh_t)
 		local is_global = (emptytable.declared_at and emptytable.declared_at.kind == "global_declaration")
 		local nst = is_global and 1 or #st
 		for i = nst, 1, -1 do
 			local scope = st[i]
 			if scope[emptytable.assigned_to] then
-				scope[emptytable.assigned_to] = { t = t }
-				t.inferred_at = node
-				t.inferred_at_file = filename
+				scope[emptytable.assigned_to] = { t = fresh_t }
 			end
 		end
 	end
@@ -6031,12 +6070,61 @@ tl.type_check = function(ast, opts)
 		end
 	end
 
+	local function add_errs_prefixing(where, src, dst, prefix)
+		if not src then
+			return
+		end
+		for _, err in ipairs(src) do
+			err.msg = prefix .. err.msg
+
+
+			if where and where.y and (
+				(err.filename ~= filename) or
+				(not err.y) or
+				(where.y > err.y or (where.y == err.y and where.x > err.x))) then
+
+				err.y = where.y
+				err.x = where.x
+				err.filename = filename
+			end
+
+			table.insert(dst, err)
+		end
+	end
+
+	local function resolve_typevars_at(where, t)
+		assert(where)
+		local ok, typ, errs = resolve_typevars(t)
+		if not ok then
+			assert(where.y)
+			add_errs_prefixing(where, errs, errors, "")
+		end
+		return typ
+	end
+
 	local function shallow_copy(t)
 		local copy = {}
 		for k, v in pairs(t) do
 			copy[k] = v
 		end
 		return copy
+	end
+
+	local function infer_at(where, t)
+		local ret = resolve_typevars_at(where, t)
+		ret = (ret ~= t) and ret or shallow_copy(t)
+		ret.inferred_at = where
+		ret.inferred_at_file = filename
+		return ret
+	end
+
+	local function drop_constant_value(t)
+		if not t.tk then
+			return t
+		end
+		local ret = shallow_copy(t)
+		ret.tk = nil
+		return ret
 	end
 
 	local function reserve_symbol_list_slot(node)
@@ -6051,8 +6139,7 @@ tl.type_check = function(ast, opts)
 		local scope <const> = st[#st]
 		local old_var <const> = scope[var]
 		if not attribute then
-			valtype = shallow_copy(valtype)
-			valtype.tk = nil
+			valtype = drop_constant_value(valtype)
 		end
 		if old_var and is_narrowing then
 			if not old_var.is_narrowed then
@@ -6130,28 +6217,6 @@ tl.type_check = function(ast, opts)
 		end
 	end
 
-	local function add_errs_prefixing(where, src, dst, prefix)
-		if not src then
-			return
-		end
-		for _, err in ipairs(src) do
-			err.msg = prefix .. err.msg
-
-
-			if where and where.y and (
-				(err.filename ~= filename) or
-				(not err.y) or
-				(where.y > err.y or (where.y == err.y and where.x > err.x))) then
-
-				err.y = where.y
-				err.x = where.x
-				err.filename = filename
-			end
-
-			table.insert(dst, err)
-		end
-	end
-
 	local same_type
 	local is_a
 
@@ -6204,10 +6269,10 @@ tl.type_check = function(ast, opts)
 		return true
 	end
 
-	local function arg_check(where, cmp, a, b, n, errs)
+	local function arg_check(where, cmp, a, b, n, errs, ctx)
 		local matches, match_errs = cmp(a, b)
 		if not matches then
-			add_errs_prefixing(where, match_errs, errs, "argument " .. n .. ": ")
+			add_errs_prefixing(where, match_errs, errs, (ctx or "argument") .. " " .. n .. ": ")
 			return false
 		end
 		return true
@@ -6363,16 +6428,6 @@ tl.type_check = function(ast, opts)
 		end_scope(node)
 		node.type = NONE
 		return node.type
-	end
-
-	local function resolve_typevars_at(where, t)
-		assert(where)
-		local ok, typ, errs = resolve_typevars(t)
-		if not ok then
-			assert(where.y)
-			add_errs_prefixing(where, errs, errors, "")
-		end
-		return typ
 	end
 
 	local function are_disjoint(rec1, rec2)
@@ -7221,14 +7276,14 @@ tl.type_check = function(ast, opts)
 			return true
 		elseif t2.typename == "unresolved_emptytable_value" then
 			if is_number_type(t2.emptytable_type.keys) then
-				infer_var(t2.emptytable_type, a_type({ typename = "array", elements = t1 }), node)
+				infer_emptytable(t2.emptytable_type, infer_at(node, a_type({ typename = "array", elements = t1 })))
 			else
-				infer_var(t2.emptytable_type, a_type({ typename = "map", keys = t2.emptytable_type.keys, values = t1 }), node)
+				infer_emptytable(t2.emptytable_type, infer_at(node, a_type({ typename = "map", keys = t2.emptytable_type.keys, values = t1 })))
 			end
 			return true
 		elseif t2.typename == "emptytable" then
 			if is_lua_table_type(t1) then
-				infer_var(t2, shallow_copy(t1), node)
+				infer_emptytable(t2, infer_at(node, t1))
 			elseif t1.typename ~= "emptytable" then
 				node_error(node, context .. ": " .. (name and (name .. ": ") or "") .. "assigning %s to a variable declared with {}", t1)
 			end
@@ -7296,6 +7351,7 @@ tl.type_check = function(ast, opts)
 	end
 
 	local type_check_function_call
+
 	do
 		local function mark_invalid_typeargs(f)
 			if f.typeargs then
@@ -7307,53 +7363,89 @@ tl.type_check = function(ast, opts)
 			end
 		end
 
-		local function try_match_func_args(where, where_args, f, args, argdelta)
-			local errs = {}
+		local function infer_emptytables(where, wheres, xs, ys, delta)
+			assert(xs.typename == "tuple")
+			assert(ys.typename == "tuple")
 
-			local given = #args
-			local expected = #f.args
-			local va = f.args.is_va
-			local nargs = va and
-			math.max(given, expected) or
-			math.min(given, expected)
+			local n_xs = #xs
+			local n_ys = #ys
 
-			if f.typeargs then
-				for _, t in ipairs(f.typeargs) do
-					add_var(nil, t.typearg, { typename = "unresolved_typearg" })
+			for i = 1, n_xs do
+				local x = xs[i]
+				if x.typename == "emptytable" or x.typename == "unresolved_emptytable_value" then
+					local y = ys[i] or (ys.is_va and ys[n_ys])
+					local w = wheres and wheres[i + delta] or where
+					local inferred_y = infer_at(w, y)
+					infer_emptytable(x, inferred_y)
+					xs[i] = inferred_y
 				end
 			end
-
-			for a = 1, nargs do
-				local argument = args[a]
-				local farg = f.args[a] or (va and f.args[expected])
-				if argument == nil then
-					if va then
-						break
-					end
-				else
-					local where_arg = where_args and where_args[a] or where
-					if not arg_check(where_arg, is_a, argument, farg, (a + argdelta), errs) then
-						return nil, errs
-					end
-				end
-			end
-
-			mark_invalid_typeargs(f)
-
-
-			for a = 1, given do
-				local argument = args[a]
-				if argument.typename == "emptytable" then
-					local farg = f.args[a] or (va and f.args[expected])
-					local where_arg = where_args[a + argdelta] or where_args
-					infer_var(argument, resolve_typevars_at(where_arg, farg), where_arg)
-				end
-			end
-
-			return resolve_typevars_at(where, f.rets)
 		end
 
-		local function revert_typeargs(func)
+		local check_args_rets
+		do
+
+			local function check_func_type_list(where, wheres, xs, ys, delta, mode)
+				assert(xs.typename == "tuple", xs.typename)
+				assert(ys.typename == "tuple", ys.typename)
+
+				local errs = {}
+				local n_xs = #xs
+				local n_ys = #ys
+
+				for i = 1, math.max(n_xs, n_ys) do
+					local pos = i + delta
+					local x = xs[i] or (xs.is_va and xs[n_xs]) or NIL
+					local y = ys[i] or (ys.is_va and ys[n_ys])
+					if y then
+						local w = wheres and wheres[pos] or where
+						if not arg_check(w, is_a, x, y, pos, errs, mode) then
+							return nil, errs
+						end
+					end
+				end
+
+				return true
+			end
+
+			check_args_rets = function(where, where_args, f, args, rets, argdelta)
+				local ok, errs
+
+				ok, errs = check_func_type_list(where, where_args, args, f.args, argdelta, "argument")
+				if not ok then
+					return nil, errs
+				end
+
+				if rets then
+					rets = infer_at(where, rets)
+					infer_emptytables(where, nil, rets, f.rets, 0)
+
+					ok, errs = check_func_type_list(where, nil, f.rets, rets, 0, "return")
+					if not ok then
+						return nil, {}
+					end
+				end
+
+
+
+
+				infer_emptytables(where, where_args, args, f.args, argdelta)
+
+				mark_invalid_typeargs(f)
+
+				return resolve_typevars_at(where, f.rets)
+			end
+		end
+
+		local function push_typeargs(func)
+			if func.typeargs then
+				for _, fnarg in ipairs(func.typeargs) do
+					add_var(nil, fnarg.typearg, { typename = "unresolved_typearg" })
+				end
+			end
+		end
+
+		local function pop_typeargs(func)
 			if func.typeargs then
 				for _, fnarg in ipairs(func.typeargs) do
 					if st[#st][fnarg.typearg] then
@@ -7436,17 +7528,24 @@ tl.type_check = function(ast, opts)
 
 							(pass == 3 and f.args.is_va and given > expected))) then
 
-							local matched, errs = try_match_func_args(where, where_args, f, args, argdelta)
+							push_typeargs(f)
+
+							local matched, errs = check_args_rets(where, where_args, f, args, where.expected, argdelta)
 							if matched then
 
 								return matched, f
 							end
 							first_errs = first_errs or errs
 
+							if where.expected then
+
+								infer_emptytables(where, where_args, f.rets, f.rets, argdelta)
+							end
+
 							if is_poly then
 								tried = tried or {}
 								tried[i] = true
-								revert_typeargs(f)
+								pop_typeargs(f)
 							end
 						end
 					end
@@ -7456,11 +7555,18 @@ tl.type_check = function(ast, opts)
 			return fail_call(where, func, given, first_errs)
 		end
 
-		type_check_function_call = function(where, where_args, func, args, is_method, argdelta)
+		type_check_function_call = function(where, where_args, func, args, e1, is_method, argdelta)
+			if where.expected and where.expected.typename ~= "tuple" then
+				where.expected = a_type({ typename = "tuple", where.expected })
+			end
+
 			begin_scope()
 			local ret, f = check_call(where, where_args, func, args, is_method, argdelta)
 			end_scope()
-			return ret, f
+			if e1 then
+				e1.type = f
+			end
+			return ret
 		end
 	end
 
@@ -7472,11 +7578,11 @@ tl.type_check = function(ast, opts)
 		if a and b then
 			method_name = binop_to_metamethod[op]
 			where_args = { node.e1, node.e2 }
-			args = { a, b }
+			args = { typename = "tuple", a, b }
 		else
 			method_name = unop_to_metamethod[op]
 			where_args = { node.e1 }
-			args = { a }
+			args = { typename = "tuple", a }
 		end
 
 		local metamethod = a.meta_fields and a.meta_fields[method_name or ""]
@@ -7485,7 +7591,7 @@ tl.type_check = function(ast, opts)
 			meta_on_operator = 2
 		end
 		if metamethod then
-			return resolve_tuple_and_nominal((type_check_function_call(node, where_args, metamethod, args, false, 0))), meta_on_operator
+			return resolve_tuple_and_nominal(type_check_function_call(node, where_args, metamethod, args, nil, false, 0)), meta_on_operator
 		elseif lax and ((a and is_unknown(a)) or (b and is_unknown(b))) then
 			return UNKNOWN, nil
 		else
@@ -7644,8 +7750,16 @@ tl.type_check = function(ast, opts)
 
 	local function add_internal_function_variables(node)
 		add_var(nil, "@is_va", node.args.type.is_va and ANY or NIL)
-
 		add_var(nil, "@return", node.rets or a_type({ typename = "tuple" }))
+
+		if node.typeargs then
+			for _, t in ipairs(node.typeargs) do
+				local v = find_var(t.typearg, "check_only")
+				if not v or not v.used_as_type then
+					type_error(t, "type argument '%s' is not used in function signature", t)
+				end
+			end
+		end
 	end
 
 	local function add_function_definition_for_recursion(node)
@@ -8211,9 +8325,10 @@ tl.type_check = function(ast, opts)
 				if f.typ.typename == "invalid" then
 					node_error(where, "cannot resolve a type for " .. v .. " here")
 				end
-				local t = shallow_copy(f.typ)
-				t.inferred_at = f.where and where
-				t.inferred_at_file = filename
+				local t = infer_at(where, f.typ)
+				if not f.where then
+					t.inferred_at = nil
+				end
 				add_var(nil, v, t, "const", true)
 			end
 		end
@@ -8326,7 +8441,7 @@ tl.type_check = function(ast, opts)
 
 		["assert"] = function(node, a, b, argdelta)
 			node.known = FACT_TRUTHY
-			return (type_check_function_call(node, node.e2, a, b, false, argdelta))
+			return type_check_function_call(node, node.e2, a, b, node, false, argdelta)
 		end,
 	}
 
@@ -8336,13 +8451,13 @@ tl.type_check = function(ast, opts)
 			if special then
 				return special(node, a, b, argdelta)
 			else
-				return (type_check_function_call(node, node.e2, a, b, false, argdelta))
+				return type_check_function_call(node, node.e2, a, b, node.e1, false, argdelta)
 			end
 		elseif node.e1.op and node.e1.op.op == ":" then
 			table.insert(b, 1, node.e1.e1.type)
-			return (type_check_function_call(node, node.e2, a, b, true))
+			return type_check_function_call(node, node.e2, a, b, node.e1, true)
 		else
-			return (type_check_function_call(node, node.e2, a, b, false, argdelta))
+			return type_check_function_call(node, node.e2, a, b, node.e1, false, argdelta)
 		end
 	end
 
@@ -8361,7 +8476,6 @@ tl.type_check = function(ast, opts)
 			local resolved = typetype
 			if typetype.def.typevals then
 				typetype.def = resolve_nominal(typetype.def)
-				typetype.def.typeargs = nil
 			else
 				resolved = find_type(names)
 				if (not resolved) or (not is_typetype(resolved)) then
@@ -8398,7 +8512,7 @@ tl.type_check = function(ast, opts)
 					if i == nexps and ndecl > nexps then
 						typ = a_type({ y = node.y, x = node.x, filename = filename, typename = "tuple", types = {} })
 						for a = i, ndecl do
-							table.insert(typ.types, decls[a])
+							table.insert(typ, decls[a])
 						end
 					end
 					node.exps[i].expected = typ
@@ -8583,6 +8697,17 @@ tl.type_check = function(ast, opts)
 		end
 
 		return typ
+	end
+
+	local function infer_negation_of_if_blocks(where, ifnode, n)
+		local f = facts_not(where, ifnode.if_blocks[1].exp.known)
+		for e = 2, n do
+			local b = ifnode.if_blocks[e]
+			if b.exp then
+				f = facts_and(where, f, facts_not(where, b.exp.known))
+			end
+		end
+		apply_facts(where, f)
 	end
 
 	local visit_node = {}
@@ -8792,12 +8917,25 @@ tl.type_check = function(ast, opts)
 						node_error(varnode, "unknown variable")
 					end
 				end
+
 				node.type = NONE
 				return node.type
 			end,
 		},
 		["if"] = {
 			after = function(node, _children)
+				local all_return = true
+				for _, b in ipairs(node.if_blocks) do
+					if not b.block_returns then
+						all_return = false
+						break
+					end
+				end
+				if all_return then
+					node.block_returns = true
+					infer_negation_of_if_blocks(node, node, #node.if_blocks)
+				end
+
 				node.type = NONE
 				return node.type
 			end,
@@ -8806,12 +8944,7 @@ tl.type_check = function(ast, opts)
 			before = function(node)
 				begin_scope(node)
 				if node.if_block_n > 1 then
-					local ifnode = node.if_parent
-					local f = facts_not(node, ifnode.if_blocks[1].exp.known)
-					for e = 2, node.if_block_n - 1 do
-						f = facts_and(node, f, facts_not(node, ifnode.if_blocks[e].exp.known))
-					end
-					apply_facts(node, f)
+					infer_negation_of_if_blocks(node, node.if_parent, node.if_block_n - 1)
 				end
 			end,
 			before_statements = function(node)
@@ -8819,7 +8952,16 @@ tl.type_check = function(ast, opts)
 					apply_facts(node.exp, node.exp.known)
 				end
 			end,
-			after = end_scope_and_none_type,
+			after = function(node, _children)
+				end_scope(node)
+
+				if #node.body > 0 and node.body[#node.body].block_returns then
+					node.block_returns = true
+				end
+
+				node.type = NONE
+				return node.type
+			end,
 		},
 		["while"] = {
 			before = function()
@@ -8876,15 +9018,16 @@ tl.type_check = function(ast, opts)
 			end,
 			before_statements = function(node)
 				local exp1 = node.exps[1]
-				local args = { node.exps[2] and node.exps[2].type,
-node.exps[3] and node.exps[3].type, }
+				local args = {
+					typename = "tuple",
+					node.exps[2] and node.exps[2].type,
+					node.exps[3] and node.exps[3].type,
+				}
 				local exp1type = resolve_for_call(exp1.type, args)
 
 				if exp1type.typename == "poly" then
-					local _, matched = type_check_function_call(exp1, { node.exps[2], node.exps[3] }, exp1type, args, false, 0)
-					if matched then
-						exp1type = matched
-					end
+					type_check_function_call(exp1, { node.exps[2], node.exps[3] }, exp1type, args, exp1, false, 0)
+					exp1type = exp1.type or exp1type
 				end
 
 				if exp1type.typename == "function" then
@@ -8974,12 +9117,11 @@ node.exps[3] and node.exps[3].type, }
 				end
 			end,
 			after = function(node, children)
+				node.block_returns = true
 				local rets = find_var_type("@return")
 				if not rets then
 
-					rets = children[1]
-					rets.inferred_at = node
-					rets.inferred_at_file = filename
+					rets = infer_at(node, children[1])
 					module_type = resolve_tuple_and_nominal(rets)
 					module_type.tk = nil
 					st[2]["@return"] = { t = rets }
@@ -9090,9 +9232,6 @@ node.exps[3] and node.exps[3].type, }
 								break
 							end
 						end
-						if decltype.typename == "union" then
-							node_error(node, "unexpected table literal, expected: %s", decltype)
-						end
 					end
 
 					if not is_lua_table_type(decltype) then
@@ -9200,7 +9339,7 @@ node.exps[3] and node.exps[3].type, }
 				end_function_scope(node)
 				local rets = get_rets(children[3])
 
-				add_var(node, node.name.tk, a_type({
+				add_var(node, node.name.tk, ensure_fresh_typeargs(a_type({
 					y = node.y,
 					x = node.x,
 					typename = "function",
@@ -9208,7 +9347,7 @@ node.exps[3] and node.exps[3].type, }
 					args = children[2],
 					rets = rets,
 					filename = filename,
-				}))
+				})))
 				return node.type
 			end,
 		},
@@ -9237,7 +9376,7 @@ node.exps[3] and node.exps[3].type, }
 				if node.is_predeclared_local_function then
 					return node.type
 				end
-				add_global(node, node.name.tk, a_type({
+				add_global(node, node.name.tk, ensure_fresh_typeargs(a_type({
 					y = node.y,
 					x = node.x,
 					typename = "function",
@@ -9245,7 +9384,7 @@ node.exps[3] and node.exps[3].type, }
 					args = children[2],
 					rets = get_rets(children[3]),
 					filename = filename,
-				}))
+				})))
 				return node.type
 			end,
 		},
@@ -9270,7 +9409,7 @@ node.exps[3] and node.exps[3].type, }
 					rtype.field_order = {}
 				end
 				if is_record_type(rtype) then
-					local fn_type = a_type({
+					local fn_type = ensure_fresh_typeargs(a_type({
 						y = node.y,
 						x = node.x,
 						typename = "function",
@@ -9279,25 +9418,29 @@ node.exps[3] and node.exps[3].type, }
 						args = children[3],
 						rets = get_rets(children[4]),
 						filename = filename,
-					})
+					}))
 
-					local ok = true
-					if rtype.fields[node.name.tk] and is_a(fn_type, rtype.fields[node.name.tk]) then
-						ok = true
-					elseif lax or owner == rtype then
+					local rfieldtype = rtype.fields[node.name.tk]
+					local ok = false
+					local err = nil
+					if rfieldtype then
+						ok, err = is_a(fn_type, rfieldtype)
+					end
+
+					if not ok and (lax or owner == rtype) then
 						rtype.fields[node.name.tk] = fn_type
 						table.insert(rtype.field_order, node.name.tk)
 						ok = true
-					else
-						ok = false
 					end
 
 					if ok then
 						node.name.type = fn_type
 					else
 						local name = tl.pretty_print_ast(node.fn_owner, opts.gen_target, { preserve_indent = true, preserve_newlines = false })
-						if rtype.fields[node.name.tk] then
-							node_error(node, "type signature of '" .. node.name.tk .. "' does not match its declaration in " .. show_type(node.fn_owner.type))
+						if rfieldtype then
+							local shortname = node.fn_owner.type.typename == "nominal" and show_type(node.fn_owner.type) or name
+							local msg = "type signature of '" .. node.name.tk .. "' does not match its declaration in " .. shortname .. ": "
+							add_errs_prefixing(node, err, errors, msg)
 						else
 							node_error(node, "cannot add undeclared function '" .. node.name.tk .. "' outside of the scope where '" .. name .. "' was originally declared")
 						end
@@ -9325,7 +9468,7 @@ node.exps[3] and node.exps[3].type, }
 				end_function_scope(node)
 
 
-				node.type = a_type({
+				node.type = ensure_fresh_typeargs(a_type({
 					y = node.y,
 					x = node.x,
 					typename = "function",
@@ -9333,7 +9476,7 @@ node.exps[3] and node.exps[3].type, }
 					args = children[1],
 					rets = children[2],
 					filename = filename,
-				})
+				}))
 				return node.type
 			end,
 		},
@@ -9381,7 +9524,6 @@ node.exps[3] and node.exps[3].type, }
 							end
 						end
 					end
-					apply_facts(node, facts_not(node, node.e1.known))
 				elseif node.op.op == "@index" then
 					if node.e1.type.typename == "map" then
 						node.e2.expected = node.e1.type.keys
@@ -9603,11 +9745,11 @@ node.exps[3] and node.exps[3].type, }
 						return node_error(node, "cannot use '...' outside a vararg function")
 					end
 				end
-
 				if node.tk == "_G" then
 					node.type, node.attribute = simulate_g()
 				else
-					node.type, node.attribute = find_var_type(node.tk)
+					local use = node.is_lvalue and "lvalue" or "use"
+					node.type, node.attribute = find_var_type(node.tk, use)
 				end
 				if node.type and is_typetype(node.type) then
 					node.type = a_type({
@@ -9678,6 +9820,14 @@ node.exps[3] and node.exps[3].type, }
 		},
 	}
 
+	visit_node.cbs["break"] = {
+		after = function(node, _children)
+			node.type = NONE
+			return node.type
+		end,
+	}
+	visit_node.cbs["do"] = visit_node.cbs["break"]
+
 	local function after_literal(node)
 		node.type = a_type({
 			y = node.y,
@@ -9712,9 +9862,7 @@ node.exps[3] and node.exps[3].type, }
 	}
 	visit_node.cbs["nil"] = visit_node.cbs["boolean"]
 
-	visit_node.cbs["do"] = visit_node.cbs["if"]
 	visit_node.cbs["..."] = visit_node.cbs["variable"]
-	visit_node.cbs["break"] = visit_node.cbs["if"]
 	visit_node.cbs["argument_list"] = visit_node.cbs["variable_list"]
 	visit_node.cbs["expression_list"] = visit_node.cbs["variable_list"]
 
@@ -10179,6 +10327,8 @@ tl.process = function(filename, env)
 	local input = tl.read_file(filename)
 	if not input then
 		return nil, "could not read " .. filename
+	elseif input:sub(1, 3) == "\xEF\xBB\xBF" then
+		input = input:sub(4)
 	end
 
 	local _, extension = filename:match("(.*)%.([a-z]+)$")
@@ -10266,6 +10416,8 @@ local function tl_package_loader(module_name)
 		local input = tl.read_file(found_filename)
 		if not input then
 			return table.concat(tried, "\n\t")
+		elseif input:sub(1, 3) == "\xEF\xBB\xBF" then
+			input = input:sub(4)
 		end
 		local errs = {}
 		local _, program = tl.parse_program(tl.lex(input), errs, module_name)
