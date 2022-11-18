@@ -1806,7 +1806,7 @@ private:
 				case ChainType::EndWithColon:
 				case ChainType::MetaFieldInvocation: {
 					std::string preDefine = getPreDefineLine(assignment);
-					transformChainValue(chainValue, out, ExpUsage::Assignment, expList);
+					transformChainValue(chainValue, out, ExpUsage::Assignment, expList, false, optionalDestruct);
 					out.back().insert(0, preDefine);
 					return;
 				}
@@ -1850,7 +1850,7 @@ private:
 							newChain->items.dup(pair.structure->items);
 						}
 						auto newAssignment = assignmentFrom(pair.target, newExp(newChain, val->item), x);
-						transformAssignment(newAssignment, temp);
+						transformAssignment(newAssignment, temp, optionalDestruct);
 						if (pair.defVal) {
 							bool isNil = false;
 							if (auto v1 = singleValueFrom(pair.defVal)) {
@@ -1898,7 +1898,7 @@ private:
 					chain->items.dup(pair.structure->items);
 					auto valueExp = newExp(chain, pair.target);
 					auto newAssignment = assignmentFrom(pair.target, valueExp, x);
-					transformAssignment(newAssignment, temp);
+					transformAssignment(newAssignment, temp, optionalDestruct);
 					if (!isLocalValue) {
 						popScope();
 						_buf << indent() << "end"sv << nlr(x);
@@ -4098,7 +4098,7 @@ private:
 		return false;
 	}
 
-	bool transformChainWithEOP(const node_container& chainList, str_list& out, ExpUsage usage, ExpList_t* assignList) {
+	bool transformChainWithEOP(const node_container& chainList, str_list& out, ExpUsage usage, ExpList_t* assignList, bool optionalDestruct) {
 		auto opIt = std::find_if(chainList.begin(), chainList.end(), [](ast_node* node) { return ast_is<existential_op_t>(node); });
 		if (opIt != chainList.end()) {
 			auto x = chainList.front();
@@ -4203,7 +4203,15 @@ private:
 				expListAssign->action.set(assign);
 				transformAssignment(expListAssign, temp);
 			}
-			_buf << indent() << "if "sv << objVar << " ~= nil then"sv << nll(x);
+			if (optionalDestruct) {
+				auto typeVar = getUnusedName("_type_"sv);
+				_buf << typeVar << "=type "sv << objVar;
+				auto typeAssign = toAst<ExpListAssign_t>(clearBuf(), partOne);
+				transformAssignment(typeAssign, temp);
+				_buf << indent() << "if \"table\" == " << typeVar << " or \"userdata\" == "sv << typeVar << " then"sv << nll(x);
+			} else {
+				_buf << indent() << "if "sv << objVar << " ~= nil then"sv << nll(x);
+			}
 			temp.push_back(clearBuf());
 			pushScope();
 			auto partTwo = x->new_ptr<ChainValue_t>();
@@ -5018,7 +5026,7 @@ private:
 	}
 #endif // YUE_NO_MACRO
 
-	void transformChainValue(ChainValue_t* chainValue, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr, bool allowBlockMacroReturn = false) {
+	void transformChainValue(ChainValue_t* chainValue, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr, bool allowBlockMacroReturn = false, bool optionalDestruct = false) {
 		if (isMacroChain(chainValue)) {
 #ifndef YUE_NO_MACRO
 			ast_ptr<false, ast_node> node;
@@ -5072,7 +5080,7 @@ private:
 		if (transformChainEndWithEOP(chainList, out, usage, assignList)) {
 			return;
 		}
-		if (transformChainWithEOP(chainList, out, usage, assignList)) {
+		if (transformChainWithEOP(chainList, out, usage, assignList, optionalDestruct)) {
 			return;
 		}
 		if (transformChainWithMetatable(chainList, out, usage, assignList)) {
