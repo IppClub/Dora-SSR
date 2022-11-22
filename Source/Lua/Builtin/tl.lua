@@ -4574,6 +4574,9 @@ local function show_type_base(t, short, seen)
 				table.insert(out, ">")
 			end
 			table.insert(out, " (")
+			if t.is_userdata then
+				table.insert(out, "(userdata)")
+			end
 			if t.elements then
 				table.insert(out, "{" .. show(t.elements) .. "}")
 			end
@@ -5862,6 +5865,7 @@ tl.type_check = function(ast, opts)
 			local copy = {}
 			seen[orig_t] = copy
 
+			copy.is_userdata = t.is_userdata
 			copy.opt = orig_t.opt
 			copy.typename = t.typename
 			copy.filename = t.filename
@@ -6547,6 +6551,10 @@ tl.type_check = function(ast, opts)
 				return INVALID
 			elseif is_typetype(typetype) then
 				if typetype.is_alias then
+					typetype = typetype.def.found
+					assert(is_typetype(typetype))
+				end
+				if typetype.def.typename == "nominal" then
 					typetype = typetype.def.found
 					assert(is_typetype(typetype))
 				end
