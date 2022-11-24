@@ -244,6 +244,7 @@ _       (ReadLEB_u32 (& index, & i_bytes, i_end));                              
             if (func->numNames < d_m3MaxDuplicateFunctionImpl)
             {
                 func->names[func->numNames++] = utf8;
+                func->export_name = utf8;
                 utf8 = NULL; // ownership transferred to M3Function
             }
         }
@@ -341,7 +342,7 @@ _       (ReadLEB_u32 (& size, & i_bytes, i_end));
 
         if (size)
         {
-            //const u8 * ptr = i_bytes;
+            // const u8 * ptr = i_bytes;
             i_bytes += size;
 
             if (i_bytes <= i_end)

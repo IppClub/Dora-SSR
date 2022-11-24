@@ -14,8 +14,6 @@
 
 #if defined(M3_COMPILER_MSVC)
 
-#pragma warning(disable : 4146)
-
 #include <intrin.h>
 
 #define __builtin_popcount    __popcnt
