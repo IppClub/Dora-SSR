@@ -875,6 +875,8 @@
 		3CFEBE4126930B36006D9974 /* DragonBone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEBE3D26930B15006D9974 /* DragonBone.cpp */; };
 		3CFEBE4326930B91006D9974 /* DragonBones in Resources */ = {isa = PBXBuildFile; fileRef = 3CFEBE4226930B91006D9974 /* DragonBones */; };
 		3CFEBE4426930B91006D9974 /* DragonBones in Resources */ = {isa = PBXBuildFile; fileRef = 3CFEBE4226930B91006D9974 /* DragonBones */; };
+		3CFFEC71292F1A7000BC6DA1 /* ImGuiBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFFEC6F292F1A7000BC6DA1 /* ImGuiBinding.cpp */; };
+		3CFFEC72292F1A7000BC6DA1 /* ImGuiBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFFEC6F292F1A7000BC6DA1 /* ImGuiBinding.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -1847,6 +1849,8 @@
 		3CFEBE3D26930B15006D9974 /* DragonBone.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DragonBone.cpp; path = ../../../Source/Node/DragonBone.cpp; sourceTree = "<group>"; };
 		3CFEBE3E26930B15006D9974 /* DragonBone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DragonBone.h; path = ../../../Source/Node/DragonBone.h; sourceTree = "<group>"; };
 		3CFEBE4226930B91006D9974 /* DragonBones */ = {isa = PBXFileReference; lastKnownFileType = folder; name = DragonBones; path = ../../Assets/DragonBones; sourceTree = "<group>"; };
+		3CFFEC6F292F1A7000BC6DA1 /* ImGuiBinding.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImGuiBinding.cpp; path = ../../../Source/GUI/ImGuiBinding.cpp; sourceTree = "<group>"; };
+		3CFFEC70292F1A7000BC6DA1 /* ImGuiBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImGuiBinding.h; path = ../../../Source/GUI/ImGuiBinding.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3188,6 +3192,8 @@
 		3CD328411E4C42E80036906C /* GUI */ = {
 			isa = PBXGroup;
 			children = (
+				3CFFEC6F292F1A7000BC6DA1 /* ImGuiBinding.cpp */,
+				3CFFEC70292F1A7000BC6DA1 /* ImGuiBinding.h */,
 				3CD328431E4C42FF0036906C /* ImGuiDora.cpp */,
 				3CD328441E4C42FF0036906C /* ImGuiDora.h */,
 			);
@@ -3674,6 +3680,7 @@
 				3C0C77552757437E0030BDCD /* miniz.c in Sources */,
 				3C0C77562757437E0030BDCD /* ZipUtils.cpp in Sources */,
 				3C8CD74D27268B2D0045B362 /* RenderTarget.cpp in Sources */,
+				3CFFEC72292F1A7000BC6DA1 /* ImGuiBinding.cpp in Sources */,
 				3C1D40FD2703004300202534 /* TealCompiler.cpp in Sources */,
 				3C3B9A0426FDB25D00BD9F3E /* Body.cpp in Sources */,
 				3CF10FB92874C81C00940268 /* MathUtil.cpp in Sources */,
@@ -4084,6 +4091,7 @@
 				3C030CCF24CAC2BA0074786E /* Sprite.cpp in Sources */,
 				3C3B991326FDAFE700BD9F3E /* PrismaticJointConf.cpp in Sources */,
 				3C6E8035272A404A00E9F115 /* soloud_fft.cpp in Sources */,
+				3CFFEC71292F1A7000BC6DA1 /* ImGuiBinding.cpp in Sources */,
 				3C3B990C26FDAFE700BD9F3E /* LimitState.cpp in Sources */,
 				3CFEA16E285B873B002D106F /* m3_api_wasi.c in Sources */,
 				3CF10FB82874C81C00940268 /* MathUtil.cpp in Sources */,
