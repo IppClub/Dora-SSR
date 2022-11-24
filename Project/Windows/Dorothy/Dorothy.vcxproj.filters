@@ -1428,6 +1428,9 @@
     <ClCompile Include="..\..\..\Source\3rdParty\soloud\backend\sdl2_static\soloud_sdl2_static.cpp">
       <Filter>3rdParty\soloud\backend\sdl2_static</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\GUI\ImGuiBinding.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
@@ -2963,6 +2966,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Test\Test.h">
       <Filter>Test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\GUI\ImGuiBinding.h">
+      <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

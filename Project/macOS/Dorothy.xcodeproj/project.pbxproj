@@ -443,6 +443,7 @@
 		3CFEBD78268DA6E4006D9974 /* TimelineState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEBD72268DA6E4006D9974 /* TimelineState.cpp */; };
 		3CFEBDA2268DB403006D9974 /* DragonBoneCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEBDA1268DB403006D9974 /* DragonBoneCache.cpp */; };
 		3CFEBDAB268EFC62006D9974 /* DragonBones in Resources */ = {isa = PBXBuildFile; fileRef = 3CFEBDAA268EFC62006D9974 /* DragonBones */; };
+		3CFFEC6E292F19EC00BC6DA1 /* ImGuiBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CFFEC6C292F19EC00BC6DA1 /* ImGuiBinding.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -1411,6 +1412,8 @@
 		3CFEBDA0268DB403006D9974 /* DragonBoneCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DragonBoneCache.h; path = ../../../Source/Cache/DragonBoneCache.h; sourceTree = "<group>"; };
 		3CFEBDA1268DB403006D9974 /* DragonBoneCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DragonBoneCache.cpp; path = ../../../Source/Cache/DragonBoneCache.cpp; sourceTree = "<group>"; };
 		3CFEBDAA268EFC62006D9974 /* DragonBones */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DragonBones; sourceTree = "<group>"; };
+		3CFFEC6C292F19EC00BC6DA1 /* ImGuiBinding.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImGuiBinding.cpp; path = ../../../Source/GUI/ImGuiBinding.cpp; sourceTree = "<group>"; };
+		3CFFEC6D292F19EC00BC6DA1 /* ImGuiBinding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ImGuiBinding.h; path = ../../../Source/GUI/ImGuiBinding.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2513,6 +2516,8 @@
 		3CD3282E1E4B0B3C0036906C /* GUI */ = {
 			isa = PBXGroup;
 			children = (
+				3CFFEC6C292F19EC00BC6DA1 /* ImGuiBinding.cpp */,
+				3CFFEC6D292F19EC00BC6DA1 /* ImGuiBinding.h */,
 				3CD3282F1E4B0B530036906C /* ImGuiDora.cpp */,
 				3CD328301E4B0B530036906C /* ImGuiDora.h */,
 			);
@@ -3552,6 +3557,7 @@
 				3C42B0A620FEFEA800186F9C /* UnitAction.cpp in Sources */,
 				3C6E7F40272A30E700E9F115 /* soloud_vizsn.cpp in Sources */,
 				3CFEA126285B857B002D106F /* m3_exec.c in Sources */,
+				3CFFEC6E292F19EC00BC6DA1 /* ImGuiBinding.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
