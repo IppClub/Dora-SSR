@@ -121,6 +121,7 @@ add_executable(dorothy-ssr
 	../../../Source/Support/Dictionary.cpp
 	../../../Source/ML/ML.cpp
 	../../../Source/GUI/ImGuiDora.cpp
+	../../../Source/GUI/ImGuiBinding.cpp
 	../../../Source/Shader/Builtin.cpp
 	../../../Source/Physics/Joint.cpp
 	../../../Source/Physics/BodyDef.cpp

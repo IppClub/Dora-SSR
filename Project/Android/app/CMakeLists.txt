@@ -116,6 +116,7 @@ add_library(main SHARED
 	src/main/cpp/Support/Dictionary.cpp
 	src/main/cpp/ML/ML.cpp
 	src/main/cpp/GUI/ImGuiDora.cpp
+	src/main/cpp/GUI/ImGuiBinding.cpp
 	src/main/cpp/Shader/Builtin.cpp
 	src/main/cpp/Physics/Joint.cpp
 	src/main/cpp/Physics/BodyDef.cpp

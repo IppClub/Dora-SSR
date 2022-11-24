@@ -1325,6 +1325,7 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Test\Test.cpp" />
     <ClCompile Include="..\..\..\Source\Wasm\WasmRuntime.cpp" />
+    <ClCompile Include="..\..\..\Source\GUI\ImGuiBinding.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\animation\Animation.h" />
@@ -1839,6 +1840,7 @@
     <ClInclude Include="..\..\..\Source\Test\Test.h" />
     <ClInclude Include="..\..\..\Source\Wasm\WasmRuntime.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="..\..\..\Source\GUI\ImGuiBinding.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
