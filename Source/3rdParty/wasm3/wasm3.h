@@ -21,7 +21,7 @@
 #include "wasm3_defs.h"
 
 // Constants
-#define M3_BACKTRACE_TRUNCATED      (void*)(SIZE_MAX)
+#define M3_BACKTRACE_TRUNCATED      (IM3BacktraceFrame)(SIZE_MAX)
 
 #if defined(__cplusplus)
 extern "C" {
@@ -110,7 +110,11 @@ M3ImportContext, * IM3ImportContext;
 // -------------------------------------------------------------------------------------------------------------------------------
 
 # if defined(M3_IMPLEMENT_ERROR_STRINGS)
-#   define d_m3ErrorConst(LABEL, STRING)        const M3Result m3Err_##LABEL = { STRING };
+#   if defined(__cplusplus)
+#     define d_m3ErrorConst(LABEL, STRING)      extern const M3Result m3Err_##LABEL = { STRING };
+#   else
+#     define d_m3ErrorConst(LABEL, STRING)      const M3Result m3Err_##LABEL = { STRING };
+#   endif
 # else
 #   define d_m3ErrorConst(LABEL, STRING)        extern const M3Result m3Err_##LABEL;
 # endif
@@ -327,17 +331,19 @@ d_m3ErrorConst  (trapStackOverflow,             "[trap] stack overflow")
 # define m3ApiOffsetToPtr(offset)   (void*)((uint8_t*)_mem + (uint32_t)(offset))
 # define m3ApiPtrToOffset(ptr)      (uint32_t)((uint8_t*)ptr - (uint8_t*)_mem)
 
-# define m3ApiReturnType(TYPE)      TYPE* raw_return = ((TYPE*) (_sp++));
-# define m3ApiGetArg(TYPE, NAME)    TYPE NAME = * ((TYPE *) (_sp++));
-# define m3ApiGetArgMem(TYPE, NAME) TYPE NAME = (TYPE)m3ApiOffsetToPtr(* ((uint32_t *) (_sp++)));
+# define m3ApiReturnType(TYPE)                 TYPE* raw_return = ((TYPE*) (_sp++));
+# define m3ApiMultiValueReturnType(TYPE, NAME) TYPE* NAME = ((TYPE*) (_sp++));
+# define m3ApiGetArg(TYPE, NAME)               TYPE NAME = * ((TYPE *) (_sp++));
+# define m3ApiGetArgMem(TYPE, NAME)            TYPE NAME = (TYPE)m3ApiOffsetToPtr(* ((uint32_t *) (_sp++)));
 
 # define m3ApiIsNullPtr(addr)       ((void*)(addr) <= _mem)
 # define m3ApiCheckMem(addr, len)   { if (M3_UNLIKELY(((void*)(addr) < _mem) || ((uint64_t)(uintptr_t)(addr) + (len)) > ((uint64_t)(uintptr_t)(_mem)+m3_GetMemorySize(runtime)))) m3ApiTrap(m3Err_trapOutOfBoundsMemoryAccess); }
 
 # define m3ApiRawFunction(NAME)     const void * NAME (IM3Runtime runtime, IM3ImportContext _ctx, uint64_t * _sp, void * _mem)
-# define m3ApiReturn(VALUE)         { *raw_return = (VALUE); return m3Err_none; }
-# define m3ApiTrap(VALUE)           { return VALUE; }
-# define m3ApiSuccess()             { return m3Err_none; }
+# define m3ApiReturn(VALUE)                   { *raw_return = (VALUE); return m3Err_none;}
+# define m3ApiMultiValueReturn(NAME, VALUE)   { *NAME = (VALUE); }
+# define m3ApiTrap(VALUE)                     { return VALUE; }
+# define m3ApiSuccess()                       { return m3Err_none; }
 
 # if defined(M3_BIG_ENDIAN)
 #  define m3ApiReadMem8(ptr)         (* (uint8_t *)(ptr))

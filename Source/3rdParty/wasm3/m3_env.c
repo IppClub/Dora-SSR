@@ -424,7 +424,8 @@ M3Result  InitGlobals  (IM3Module io_module)
                 if (g->initExpr)
                 {
                     bytes_t start = g->initExpr;
-                    result = EvaluateExpression (io_module, & g->intValue, g->type, & start, g->initExpr + g->initExprSize);
+
+                    result = EvaluateExpression (io_module, & g->i64Value, g->type, & start, g->initExpr + g->initExprSize);
 
                     if (not result)
                     {
@@ -648,8 +649,8 @@ M3Result  m3_GetGlobal  (IM3Global                 i_global,
     if (not i_global) return m3Err_globalLookupFailed;
 
     switch (i_global->type) {
-    case c_m3Type_i32: o_value->value.i32 = i_global->intValue; break;
-    case c_m3Type_i64: o_value->value.i64 = i_global->intValue; break;
+    case c_m3Type_i32: o_value->value.i32 = i_global->i32Value; break;
+    case c_m3Type_i64: o_value->value.i64 = i_global->i64Value; break;
 # if d_m3HasFloat
     case c_m3Type_f32: o_value->value.f32 = i_global->f32Value; break;
     case c_m3Type_f64: o_value->value.f64 = i_global->f64Value; break;
@@ -670,8 +671,8 @@ M3Result  m3_SetGlobal  (IM3Global                 i_global,
     if (i_global->type != i_value->type) return m3Err_globalTypeMismatch;
 
     switch (i_value->type) {
-    case c_m3Type_i32: i_global->intValue = i_value->value.i32; break;
-    case c_m3Type_i64: i_global->intValue = i_value->value.i64; break;
+    case c_m3Type_i32: i_global->i32Value = i_value->value.i32; break;
+    case c_m3Type_i64: i_global->i64Value = i_value->value.i64; break;
 # if d_m3HasFloat
     case c_m3Type_f32: i_global->f32Value = i_value->value.f32; break;
     case c_m3Type_f64: i_global->f64Value = i_value->value.f64; break;
@@ -690,6 +691,16 @@ M3ValueType  m3_GetGlobalType  (IM3Global          i_global)
 
 void *  v_FindFunction  (IM3Module i_module, const char * const i_name)
 {
+
+    // Prefer exported functions
+    for (u32 i = 0; i < i_module->numFunctions; ++i)
+    {
+        IM3Function f = & i_module->functions [i];
+        if (f->export_name and strcmp (f->export_name, i_name) == 0)
+            return f;
+    }
+
+    // Search internal functions
     for (u32 i = 0; i < i_module->numFunctions; ++i)
     {
         IM3Function f = & i_module->functions [i];
@@ -835,6 +846,7 @@ M3Result  m3_CallVL  (IM3Function i_function, va_list i_args)
     IM3Runtime runtime = i_function->module->runtime;
     IM3FuncType ftype = i_function->funcType;
     M3Result result = m3Err_none;
+    u8* s = NULL;
 
     if (!i_function->compiled) {
         return m3Err_missingCompiledCode;
@@ -844,7 +856,11 @@ M3Result  m3_CallVL  (IM3Function i_function, va_list i_args)
     ClearBacktrace (runtime);
 # endif
 
-    u8* s = GetStackPointerForArgs (i_function);
+    m3StackCheckInit();
+
+_   (checkStartFunction(i_function->module))
+
+    s = GetStackPointerForArgs (i_function);
 
     for (u32 i = 0; i < ftype->numArgs; ++i)
     {
@@ -858,9 +874,6 @@ M3Result  m3_CallVL  (IM3Function i_function, va_list i_args)
         default: return "unknown argument type";
         }
     }
-    m3StackCheckInit();
-
-_   (checkStartFunction(i_function->module))
 
     result = (M3Result) RunCode (i_function->compiled, (m3stack_t)(runtime->stack), runtime->memory.mallocated, d_m3OpDefaultArgs);
     ReportNativeStackUsage ();
@@ -875,6 +888,7 @@ M3Result  m3_Call  (IM3Function i_function, uint32_t i_argc, const void * i_argp
     IM3Runtime runtime = i_function->module->runtime;
     IM3FuncType ftype = i_function->funcType;
     M3Result result = m3Err_none;
+    u8* s = NULL;
 
     if (i_argc != ftype->numArgs) {
         return m3Err_argumentCountMismatch;
@@ -887,7 +901,11 @@ M3Result  m3_Call  (IM3Function i_function, uint32_t i_argc, const void * i_argp
     ClearBacktrace (runtime);
 # endif
 
-    u8* s = GetStackPointerForArgs (i_function);
+    m3StackCheckInit();
+
+_   (checkStartFunction(i_function->module))
+
+    s = GetStackPointerForArgs (i_function);
 
     for (u32 i = 0; i < ftype->numArgs; ++i)
     {
@@ -902,10 +920,6 @@ M3Result  m3_Call  (IM3Function i_function, uint32_t i_argc, const void * i_argp
         }
     }
 
-    m3StackCheckInit();
-
-_   (checkStartFunction(i_function->module))
-
     result = (M3Result) RunCode (i_function->compiled, (m3stack_t)(runtime->stack), runtime->memory.mallocated, d_m3OpDefaultArgs);
     ReportNativeStackUsage ();
 
@@ -919,6 +933,7 @@ M3Result  m3_CallArgv  (IM3Function i_function, uint32_t i_argc, const char * i_
     IM3FuncType ftype = i_function->funcType;
     IM3Runtime runtime = i_function->module->runtime;
     M3Result result = m3Err_none;
+    u8* s = NULL;
 
     if (i_argc != ftype->numArgs) {
         return m3Err_argumentCountMismatch;
@@ -931,7 +946,11 @@ M3Result  m3_CallArgv  (IM3Function i_function, uint32_t i_argc, const char * i_
     ClearBacktrace (runtime);
 # endif
 
-    u8* s = GetStackPointerForArgs (i_function);
+    m3StackCheckInit();
+
+_   (checkStartFunction(i_function->module))
+
+    s = GetStackPointerForArgs (i_function);
 
     for (u32 i = 0; i < ftype->numArgs; ++i)
     {
@@ -945,10 +964,6 @@ M3Result  m3_CallArgv  (IM3Function i_function, uint32_t i_argc, const char * i_
         default: return "unknown argument type";
         }
     }
-
-    m3StackCheckInit();
-
-_   (checkStartFunction(i_function->module))
 
     result = (M3Result) RunCode (i_function->compiled, (m3stack_t)(runtime->stack), runtime->memory.mallocated, d_m3OpDefaultArgs);
     ReportNativeStackUsage ();
