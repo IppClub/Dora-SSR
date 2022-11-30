@@ -93,7 +93,7 @@ int nvg::CreateFont(String name) {
 	auto data = SharedContent.load(fontFile);
 	uint8_t* fontData = r_cast<uint8_t*>(malloc(data.second));
 	bx::memCopy(fontData, data.first.get(), data.second);
-	return nvgCreateFontMem(Context(), name.toString().c_str(), fontData, s_cast<int>(data.second), 1);
+	return nvgCreateFontMem(Context(), name.c_str(), fontData, s_cast<int>(data.second), 1);
 }
 
 float nvg::TextBounds(float x, float y, String text, Dorothy::Rect& bounds) {
@@ -336,7 +336,7 @@ void nvg::Stroke() {
 }
 
 int nvg::FindFont(String name) {
-	return nvgFindFont(Context(), name.toString().c_str());
+	return nvgFindFont(Context(), name.c_str());
 }
 
 int nvg::AddFallbackFontId(int baseFont, int fallbackFont) {
@@ -344,7 +344,7 @@ int nvg::AddFallbackFontId(int baseFont, int fallbackFont) {
 }
 
 int nvg::AddFallbackFont(String baseFont, String fallbackFont) {
-	return nvgAddFallbackFont(Context(), baseFont.toString().c_str(), fallbackFont.toString().c_str());
+	return nvgAddFallbackFont(Context(), baseFont.c_str(), fallbackFont.c_str());
 }
 
 void nvg::FontSize(float size) {
@@ -385,7 +385,7 @@ void nvg::FontFaceId(int font) {
 }
 
 void nvg::FontFace(String font) {
-	nvgFontFace(Context(), font.toString().c_str());
+	nvgFontFace(Context(), font.c_str());
 }
 
 void nvg::BindContext(NVGcontext* context) {

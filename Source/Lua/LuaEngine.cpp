@@ -108,7 +108,7 @@ static int dora_loadfile(lua_State* L, String filename, String moduleName = null
 		case "xml"_hash: {
 			codes = SharedXmlLoader.load(targetFile);
 			if (codes.empty()) {
-				luaL_error(L, "error parsing xml file: %s\n%s", filename.toString().c_str(), SharedXmlLoader.getLastError().c_str());
+				luaL_error(L, "error parsing xml file: %s\n%s", filename.c_str().get(), SharedXmlLoader.getLastError().c_str());
 			} else {
 				codes.insert(0, "-- [xml]: "s + filename + '\n');
 				codeBuffer = codes.c_str();
@@ -153,12 +153,12 @@ static int dora_loadfile(lua_State* L, String filename, String moduleName = null
 		}
 	}
 	if (codeBuffer) {
-		if (luaL_loadbuffer(L, codeBuffer, codeBufferSize, filename.toString().c_str()) != 0) {
+		if (luaL_loadbuffer(L, codeBuffer, codeBufferSize, filename.c_str()) != 0) {
 			luaL_error(L, "error loading module \"%s\" from file \"%s\" :\n\t%s",
-				lua_tostring(L, 1), filename.toString().c_str(), lua_tostring(L, -1));
+				lua_tostring(L, 1), filename.c_str().get(), lua_tostring(L, -1));
 		}
 	} else {
-		luaL_error(L, "can not get data from file \"%s\"", filename.toString().c_str());
+		luaL_error(L, "can not get data from file \"%s\"", filename.c_str().get());
 	}
 	return 1;
 }
@@ -726,7 +726,7 @@ bool LuaEngine::executeScriptFile(String filename) {
 	int top = lua_gettop(L);
 	DEFER(lua_settop(L, top));
 	lua_getglobal(L, "dofile"); // file, dofile
-	lua_pushlstring(L, filename.toString().c_str(), filename.size());
+	lua_pushlstring(L, filename.c_str(), filename.size());
 	int result = LuaEngine::call(L, 1, 0); // dofile(file)
 	return result != 0;
 }
@@ -735,7 +735,7 @@ bool LuaEngine::executeModule(String module) {
 	int top = lua_gettop(L);
 	DEFER(lua_settop(L, top));
 	lua_getglobal(L, "require"); // file, require
-	lua_pushlstring(L, module.toString().c_str(), module.size());
+	lua_pushlstring(L, module.c_str(), module.size());
 	int result = LuaEngine::call(L, 1, 0); // require(module)
 	return result != 0;
 }

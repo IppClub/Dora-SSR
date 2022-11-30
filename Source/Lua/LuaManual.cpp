@@ -866,7 +866,7 @@ static Own<ActionDuration> create(lua_State* L, int location) {
 						return Sequence::alloc(std::move(actions));
 					}
 					default: {
-						luaL_error(L, "action named \"%s\" is not exist.", name.toString().c_str());
+						luaL_error(L, "action named \"%s\" is not exist.", name.c_str().get());
 						return Own<ActionDuration>();
 					}
 				}

@@ -116,6 +116,10 @@ pub mod ml {
 	pub use super::q_learner::QLearner;
 }
 pub mod platformer;
+mod buffer;
+pub use buffer::Buffer;
+mod im_gui;
+pub use im_gui::ImGui;
 
 fn none_type(_: i64) -> Option<Box<dyn IObject>> {
 	panic!("'none_type' should not be called!");
@@ -171,6 +175,7 @@ static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn IObject>>>> = Lazy::new(||
 		platformer::Unit::type_info(),
 		platformer::PlatformCamera::type_info(),
 		platformer::PlatformWorld::type_info(),
+		Buffer::type_info(),
 	];
 	for pair in type_funcs.iter() {
 		let t = pair.0 as usize;
@@ -1262,5 +1267,227 @@ impl platformer::behavior::Blackboard {
 	}
 	pub fn get(&self, key: &str) -> Option<Value> {
 		Value::from(unsafe { blackboard_get(self.raw(), from_string(key)) })
+	}
+}
+
+static mut IMGUI_STACK: Lazy<CallStack> = Lazy::new(|| { CallStack::new() });
+
+impl ImGui {
+	fn push_bool(v: bool) -> &'static mut CallStack {
+		let stack = unsafe { &mut IMGUI_STACK };
+		stack.push_bool(v);
+		stack
+	}
+	fn push_i32(v: i32) -> &'static mut CallStack {
+		let stack = unsafe { &mut IMGUI_STACK };
+		stack.push_i32(v);
+		stack
+	}
+	fn push_i32x2(v1: i32, v2: i32) -> &'static mut CallStack {
+		let stack = unsafe { &mut IMGUI_STACK };
+		stack.push_i32(v1);
+		stack.push_i32(v2);
+		stack
+	}
+	fn push_f32(v: f32) -> &'static mut CallStack {
+		let stack = unsafe { &mut IMGUI_STACK };
+		stack.push_f32(v);
+		stack
+	}
+	fn push_f32x2(v1: f32, v2: f32) -> &'static mut CallStack {
+		let stack = unsafe { &mut IMGUI_STACK };
+		stack.push_f32(v1);
+		stack.push_f32(v2);
+		stack
+	}
+	pub fn begin_ret(name: &str, opened: bool) -> (bool, bool) {
+		let stack = ImGui::push_bool(opened);
+		let changed = ImGui::_begin(name, stack);
+		(changed, stack.pop_bool().unwrap())
+	}
+	pub fn begin_ret_opts(name: &str, opened: bool, windows_flags: &Vec<&str>) -> (bool, bool) {
+		let stack = ImGui::push_bool(opened);
+		let changed = ImGui::_begin_opts(name, stack, windows_flags);
+		(changed, stack.pop_bool().unwrap())
+	}
+	pub fn collapsing_header_ret(label: &str, opened: bool) -> (bool, bool) {
+		let stack = ImGui::push_bool(opened);
+		let changed = ImGui::_collapsing_header(label, stack);
+		(changed, stack.pop_bool().unwrap())
+	}
+	pub fn collapsing_header_ret_opts(label: &str, opened: bool, tree_node_flags: &Vec<&str>) -> (bool, bool) {
+		let stack = ImGui::push_bool(opened);
+		let changed = ImGui::_collapsing_header_opts(label, stack, tree_node_flags);
+		(changed, stack.pop_bool().unwrap())
+	}
+	pub fn selectable_ret(label: &str, selected: bool) -> (bool, bool) {
+		let stack = ImGui::push_bool(selected);
+		let changed = ImGui::_selectable(label, stack);
+		(changed, stack.pop_bool().unwrap())
+	}
+	pub fn selectable_ret_opts(label: &str, selected: bool, size: &crate::dora::Vec2, selectable_flags: &Vec<&str>) -> (bool, bool) {
+		let stack = ImGui::push_bool(selected);
+		let changed = ImGui::_selectable_opts(label, stack, size, selectable_flags);
+		(changed, stack.pop_bool().unwrap())
+	}
+	pub fn begin_popup_modal_ret(name: &str, opened: bool) -> (bool, bool) {
+		let stack = ImGui::push_bool(opened);
+		let changed = ImGui::_begin_popup_modal(name, stack);
+		(changed, stack.pop_bool().unwrap())
+	}
+	pub fn begin_popup_modal_ret_opts(name: &str, opened: bool, windows_flags: &Vec<&str>) -> (bool, bool) {
+		let stack = ImGui::push_bool(opened);
+		let changed = ImGui::_begin_popup_modal_opts(name, stack, windows_flags);
+		(changed, stack.pop_bool().unwrap())
+	}
+	pub fn combo_ret(label: &str, current_item: i32, items: &Vec<&str>) -> (bool, i32) {
+		let stack = ImGui::push_i32(current_item);
+		let changed = ImGui::_combo(label, stack, items);
+		(changed, stack.pop_i32().unwrap())
+	}
+	pub fn combo_ret_opts(label: &str, current_item: i32, items: &Vec<&str>, height_in_items: i32) -> (bool, i32) {
+		let stack = ImGui::push_i32(current_item);
+		let changed = ImGui::_combo_opts(label, stack, items, height_in_items);
+		(changed, stack.pop_i32().unwrap())
+	}
+	pub fn drag_float_ret(label: &str, v: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32) {
+		let stack = ImGui::push_f32(v);
+		let changed = ImGui::_drag_float(label, stack, v_speed, v_min, v_max);
+		(changed, stack.pop_f32().unwrap())
+	}
+	pub fn drag_float_ret_opts(label: &str, v: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: &Vec<&str>) -> (bool, f32) {
+		let stack = ImGui::push_f32(v);
+		let changed = ImGui::_drag_float_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags);
+		(changed, stack.pop_f32().unwrap())
+	}
+	pub fn drag_float2_ret(label: &str, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
+		let stack = ImGui::push_f32x2(v1, v2);
+		let changed = ImGui::_drag_float2(label, stack, v_speed, v_min, v_max);
+		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
+	}
+	pub fn drag_float2_ret_opts(label: &str, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: &Vec<&str>) -> (bool, f32, f32) {
+		let stack = ImGui::push_f32x2(v1, v2);
+		let changed = ImGui::_drag_float2_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags);
+		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
+	}
+	pub fn drag_int2_ret(label: &str, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32) -> (bool, i32, i32) {
+		let stack = ImGui::push_i32x2(v1, v2);
+		let changed = ImGui::_drag_int2(label, stack, v_speed, v_min, v_max);
+		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
+	}
+	pub fn drag_int2_opts(label: &str, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: &str, slider_flags: &Vec<&str>) -> (bool, i32, i32) {
+		let stack = ImGui::push_i32x2(v1, v2);
+		let changed = ImGui::_drag_int2_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags);
+		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
+	}
+	pub fn input_float_ret(label: &str, v: f32) -> (bool, f32) {
+		let stack = ImGui::push_f32(v);
+		let changed = ImGui::_input_float(label, stack);
+		(changed, stack.pop_f32().unwrap())
+	}
+	pub fn input_float_ret_opts(label: &str, v: f32, step: f32, step_fast: f32, display_format: &str, input_text_flags: &Vec<&str>) -> (bool, f32) {
+		let stack = ImGui::push_f32(v);
+		let changed = ImGui::_input_float_opts(label, stack, step, step_fast, display_format, input_text_flags);
+		(changed, stack.pop_f32().unwrap())
+	}
+	pub fn input_float2_ret(label: &str, v1: f32, v2: f32) -> (bool, f32, f32) {
+		let stack = ImGui::push_f32x2(v1, v2);
+		let changed = ImGui::_input_float2(label, stack);
+		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
+	}
+	pub fn input_float2_ret_opts(label: &str, v1: f32, v2: f32, display_format: &str, input_text_flags: &Vec<&str>) -> (bool, f32, f32) {
+		let stack = ImGui::push_f32x2(v1, v2);
+		let changed = ImGui::_input_float2_opts(label, stack, display_format, input_text_flags);
+		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
+	}
+	pub fn input_int_ret(label: &str, v: i32) -> (bool, i32) {
+		let stack = ImGui::push_i32(v);
+		let changed = ImGui::_input_int(label, stack);
+		(changed, stack.pop_i32().unwrap())
+	}
+	pub fn input_int_ret_opts(label: &str, v: i32, step: i32, step_fast: i32, input_text_flags: &Vec<&str>) -> (bool, i32) {
+		let stack = ImGui::push_i32(v);
+		let changed = ImGui::_input_int_opts(label, stack, step, step_fast, input_text_flags);
+		(changed, stack.pop_i32().unwrap())
+	}
+	pub fn input_int2_ret(label: &str, v1: i32, v2: i32) -> (bool, i32, i32) {
+		let stack = ImGui::push_i32x2(v1, v2);
+		let changed = ImGui::_input_int2(label, stack);
+		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
+	}
+	pub fn input_int2_ret_opts(label: &str, v1: i32, v2: i32, input_text_flags: &Vec<&str>) -> (bool, i32, i32) {
+		let stack = ImGui::push_i32x2(v1, v2);
+		let changed = ImGui::_input_int2_opts(label, stack, input_text_flags);
+		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
+	}
+	pub fn slider_float_ret(label: &str, v: f32, v_min: f32, v_max: f32) -> (bool, f32) {
+		let stack = ImGui::push_f32(v);
+		let changed = ImGui::_slider_float(label, stack, v_min, v_max);
+		(changed, stack.pop_f32().unwrap())
+	}
+	pub fn slider_float_ret_opts(label: &str, v: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: &Vec<&str>) -> (bool, f32) {
+		let stack = ImGui::push_f32(v);
+		let changed = ImGui::_slider_float_opts(label, stack, v_min, v_max, display_format, slider_flags);
+		(changed, stack.pop_f32().unwrap())
+	}
+	pub fn slider_float2_ret(label: &str, v1: f32, v2: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
+		let stack = ImGui::push_f32x2(v1, v2);
+		let changed = ImGui::_slider_float2(label, stack, v_min, v_max);
+		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
+	}
+	pub fn slider_float2_ret_opts(label: &str, v1: f32, v2: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: &Vec<&str>) -> (bool, f32, f32) {
+		let stack = ImGui::push_f32x2(v1, v2);
+		let changed = ImGui::_slider_float2_opts(label, stack, v_min, v_max, display_format, slider_flags);
+		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
+	}
+	pub fn drag_float_range2_ret(label: &str, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
+		let stack = ImGui::push_f32x2(v_current_min, v_current_max);
+		let changed = ImGui::_drag_float_range2(label, stack, v_speed, v_min, v_max);
+		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
+	}
+	pub fn drag_float_range2_ret_opts(label: &str, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32, format: &str, format_max: &str, slider_flags: &Vec<&str>) -> (bool, f32, f32) {
+		let stack = ImGui::push_f32x2(v_current_min, v_current_max);
+		let changed = ImGui::_drag_float_range2_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags);
+		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
+	}
+	pub fn drag_int_range2_ret(label: &str, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32) -> (bool, i32, i32) {
+		let stack = ImGui::push_i32x2(v_current_min, v_current_max);
+		let changed = ImGui::_drag_int_range2(label, stack, v_speed, v_min, v_max);
+		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
+	}
+	pub fn drag_int_range2_ret_opts(label: &str, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32, format: &str, format_max: &str, slider_flags: &Vec<&str>) -> (bool, i32, i32) {
+		let stack = ImGui::push_i32x2(v_current_min, v_current_max);
+		let changed = ImGui::_drag_int_range2_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags);
+		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
+	}
+	pub fn v_slider_float_ret(label: &str, size: &crate::dora::Vec2, v: f32, v_min: f32, v_max: f32) -> (bool, f32) {
+		let stack = ImGui::push_f32(v);
+		let changed = ImGui::_v_slider_float(label, size, stack, v_min, v_max);
+		(changed, stack.pop_f32().unwrap())
+	}
+	pub fn v_slider_float_ret_opts(label: &str, size: &crate::dora::Vec2, v: f32, v_min: f32, v_max: f32, format: &str, slider_flags: &Vec<&str>) -> (bool, f32) {
+		let stack = ImGui::push_f32(v);
+		let changed = ImGui::_v_slider_float_opts(label, size, stack, v_min, v_max, format, slider_flags);
+		(changed, stack.pop_f32().unwrap())
+	}
+	pub fn v_slider_int_ret(label: &str, size: &crate::dora::Vec2, v: i32, v_min: i32, v_max: i32) -> (bool, i32) {
+		let stack = ImGui::push_i32(v);
+		let changed = ImGui::_v_slider_int(label, size, stack, v_min, v_max);
+		(changed, stack.pop_i32().unwrap())
+	}
+	pub fn v_slider_int_ret_opts(label: &str, size: &crate::dora::Vec2, v: i32, v_min: i32, v_max: i32, format: &str, slider_flags: &Vec<&str>) -> (bool, i32) {
+		let stack = ImGui::push_i32(v);
+		let changed = ImGui::_v_slider_int_opts(label, size, stack, v_min, v_max, format, slider_flags);
+		(changed, stack.pop_i32().unwrap())
+	}
+	pub fn color_edit3(label: &str, color3: &Color3) -> (bool, Color3) {
+		let stack = ImGui::push_i32(color3.to_rgb() as i32);
+		let changed = ImGui::_color_edit3(label, stack);
+		(changed, Color3::new(stack.pop_i32().unwrap() as u32))
+	}
+	pub fn color_edit4(label: &str, color: &Color, show_alpha: bool) -> (bool, Color) {
+		let stack = ImGui::push_i32(color.to_argb() as i32);
+		let changed = ImGui::_color_edit4(label, stack, show_alpha);
+		(changed, Color::new(stack.pop_i32().unwrap() as u32))
 	}
 }

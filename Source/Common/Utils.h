@@ -361,6 +361,12 @@ private:
 	std::string _msg;
 };
 
+#if DORA_DISABLE_PROFILER
+	#define PROFILE(name, ...)
+#else
+	#define PROFILE(...) Profiler _(__VA_ARGS__)
+#endif
+
 class Path {
 public:
 	static std::string concat(const std::list<Slice>& paths);

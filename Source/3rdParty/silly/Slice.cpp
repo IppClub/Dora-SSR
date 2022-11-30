@@ -29,56 +29,56 @@ namespace slice {
 
 const std::string Slice::Empty;
 
-int Slice::compare(const Slice &rhs) const {
-  if (len_ < rhs.len_)
-    return -1;
-  else if (len_ > rhs.len_)
-    return 1;
-  else {
-    // It's illegal to pass nullptr to memcmp.
-    if (str_ && rhs.str_)
-      return memcmp(str_, rhs.str_, len_);
-    return 0;
-  }
+int Slice::compare(const Slice& rhs) const {
+	if (len_ < rhs.len_)
+		return -1;
+	else if (len_ > rhs.len_)
+		return 1;
+	else {
+		// It's illegal to pass nullptr to memcmp.
+		if (str_ && rhs.str_)
+			return memcmp(str_, rhs.str_, len_);
+		return 0;
+	}
 }
 
 std::string Slice::toLower() const {
-  std::string tmp = toString();
-  for (size_t i = 0; i < tmp.length(); i++) {
-    tmp[i] = (char)tolower(tmp[i]);
-  }
-  return tmp;
+	std::string tmp = toString();
+	for (size_t i = 0; i < tmp.length(); i++) {
+		tmp[i] = (char)tolower(tmp[i]);
+	}
+	return tmp;
 }
 
 std::string Slice::toUpper() const {
-  std::string tmp = toString();
-  for (size_t i = 0; i < tmp.length(); i++) {
-    tmp[i] = (char)toupper(tmp[i]);
-  }
-  return tmp;
+	std::string tmp = toString();
+	for (size_t i = 0; i < tmp.length(); i++) {
+		tmp[i] = (char)toupper(tmp[i]);
+	}
+	return tmp;
 }
 
 std::list<Slice> Slice::split(Slice delims) const {
-  std::string text = toString();
-  std::string delimers = delims.toString();
-  std::list<Slice> tokens;
-  std::size_t start = 0, end = 0;
-  while ((end = text.find(delimers, start)) < text.size()) {
-    tokens.push_back(Slice(str_ + start, end - start).trimSpace());
-    start = end + delimers.size();
-  }
-  if (start < text.size()) {
-    tokens.push_back(Slice(str_ + start, len_ - start).trimSpace());
-  }
-  return tokens;
+	std::string text = toString();
+	std::string delimers = delims.toString();
+	std::list<Slice> tokens;
+	std::size_t start = 0, end = 0;
+	while ((end = text.find(delimers, start)) < text.size()) {
+		tokens.push_back(Slice(str_ + start, end - start).trimSpace());
+		start = end + delimers.size();
+	}
+	if (start < text.size()) {
+		tokens.push_back(Slice(str_ + start, len_ - start).trimSpace());
+	}
+	return tokens;
 }
 
 float Slice::stof(Slice str) {
-  return static_cast<float>(std::atof(str.toString().c_str()));
+	return static_cast<float>(std::atof(str.c_str()));
 }
 
 int Slice::stoi(Slice str, int base) {
-  return std::stoi(str.toString(), 0, base);
+	return std::stoi(str.toString(), 0, base);
 }
 
 } // namespace slice
