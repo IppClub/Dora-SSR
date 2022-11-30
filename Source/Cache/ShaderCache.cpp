@@ -78,7 +78,7 @@ Shader* ShaderCache::load(String filename) {
 			return it->second;
 		}
 		bgfx::RendererType::Enum type = bgfx::getRendererType();
-		bgfx::ShaderHandle handle = bgfx::createEmbeddedShader(DoraShaders, type, items.back().toString().c_str());
+		bgfx::ShaderHandle handle = bgfx::createEmbeddedShader(DoraShaders, type, items.back().c_str());
 		AssertUnless(bgfx::isValid(handle), "failed to load builtin shader named: \"{}\".", items.back());
 		Shader* shader = Shader::create(handle);
 		_shaders[filename] = shader;
