@@ -234,7 +234,7 @@ void PhysicsWorld::setIterations(int velocityIter, int positionIter) {
 
 void PhysicsWorld::doUpdate(double deltaTime) {
 	{
-		Profiler _("Physics"_slice);
+		PROFILE("Physics"_slice);
 		_stepConf.deltaTime = s_cast<pr::Time>(deltaTime);
 		_stepConf.dtRatio = _stepConf.deltaTime * _world.GetInvDeltaTime();
 		_world.Step(_stepConf);

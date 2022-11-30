@@ -474,7 +474,7 @@ AlphaNum = R "az", "AZ", "09", "__"
 
 Indent = R("az", "AZ", "__") * AlphaNum^0
 
-Name = C R("az", "AZ", "__") * AlphaNum^0
+Name = C R("az", "AZ", "__") * (AlphaNum + ":")^0
 
 ClassName = C (Indent * White * P"::" * White)^0 * Indent
 

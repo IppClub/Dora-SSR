@@ -489,7 +489,7 @@ bool Content::isFileExist(String strFilePath) {
 			found = true;
 		}
 	} else {
-		FILE* file = fopen(strFilePath.toString().c_str(), "r");
+		FILE* file = fopen(strFilePath.c_str(), "r");
 		if (file) {
 			found = true;
 			fclose(file);

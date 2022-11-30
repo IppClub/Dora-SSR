@@ -50,7 +50,7 @@ Unit* AI::getSelf() const {
 }
 
 bool AI::runDecisionTree(Unit* unit) {
-	Profiler _("AI"_slice);
+	PROFILE("AI"_slice);
 	if (unit->getBehaviorTree()) {
 		return false;
 	}

@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Wasm/WasmRuntime.h"
 
 #include "Dorothy.h"
+#include "GUI/ImGuiBinding.h"
 
 NS_DOROTHY_BEGIN
 
@@ -1152,6 +1153,8 @@ static void db_do_exec_async(String sql, DBRecord& record, const std::function<v
 #include "Dora/TouchWasm.hpp"
 #include "Dora/VertexColorWasm.hpp"
 #include "Dora/ViewWasm.hpp"
+#include "Dora/BufferWasm.hpp"
+#include "Dora/ImGuiWasm.hpp"
 
 static void linkAutoModule(wasm3::module& mod) {
 	linkArray(mod);
@@ -1225,6 +1228,8 @@ static void linkAutoModule(wasm3::module& mod) {
 	linkPlatformerPlatformCamera(mod);
 	linkPlatformerPlatformWorld(mod);
 	linkPlatformerData(mod);
+	linkBuffer(mod);
+	linkImGui(mod);
 }
 
 static void linkDoraModule(wasm3::module& mod) {
@@ -1341,9 +1346,9 @@ bool WasmRuntime::executeMainFile(String filename) {
 		return false;
 	}
 	try {
-		Profiler _("Loader"_slice, filename);
+		PROFILE("Loader"_slice, filename);
 		{
-			Profiler _("Loader"_slice, filename + " [Load]"s);
+			PROFILE("Loader"_slice, filename + " [Load]"s);
 			_wasm = SharedContent.load(filename);
 			auto mod = _env.parse_module(_wasm.first.get(), _wasm.second);
 			_runtime.load(mod);
@@ -1392,7 +1397,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 			},
 			[file, handler, this](Own<Values> values) {
 				try {
-					Profiler _("Loader"_slice, file);
+					PROFILE("Loader"_slice, file);
 					Own<wasm3::module> mod;
 					Own<wasm3::function> mainFn;
 					values->get(mod, mainFn);
