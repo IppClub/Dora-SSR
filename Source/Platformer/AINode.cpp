@@ -542,6 +542,7 @@ Status RepeatNode::tick(Blackboard* board) {
 	switch (status) {
 		case Status::Success: {
 			auto value = board->get(key)->to<RepeatInfo>();
+			Ref<> ref(value);
 			if (_times > 0) value->count++;
 			if (value->count > _times) {
 				return Status::Success;
