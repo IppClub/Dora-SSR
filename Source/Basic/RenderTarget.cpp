@@ -30,7 +30,6 @@ RenderTarget::RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat:
 	, _format(format)
 	, _frameBufferHandle(BGFX_INVALID_HANDLE)
 	, _dummy(Node::create()) {
-	//_dummy->setPosition({-width/2.0f, -height/2.0f});
 }
 
 RenderTarget::~RenderTarget() {
