@@ -143,6 +143,7 @@ bool Unit::init() {
 		Unit::attachAction(action);
 	}
 	ARRAY_END
+	_decisionTreeName = _unitDef->get(Def::DecisionTree, Slice::Empty);
 	_entity->set("unit"_slice, s_cast<Object*>(this));
 	this->scheduleUpdate();
 	return true;
@@ -151,8 +152,10 @@ bool Unit::init() {
 void Unit::onEnter() {
 	Body::onEnter();
 	if (_decisionTree == nullptr) {
-		auto decisionTree = _unitDef->get(Def::DecisionTree, Slice::Empty);
-		Unit::setDecisionTreeName(decisionTree);
+		if (_decisionTreeName.empty()) {
+			_decisionTreeName = _unitDef->get(Def::DecisionTree, Slice::Empty);
+		}
+		Unit::setDecisionTreeName(_decisionTreeName);
 	}
 }
 
