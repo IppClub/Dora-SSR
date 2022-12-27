@@ -407,6 +407,7 @@ void Unit::setDecisionTreeName(String name) {
 	_decisionTreeName = name;
 	if (const auto& item = SharedData.getStore()->get(name)) {
 		Decision::Leaf* leaf = item->to<Decision::Leaf>();
+		_behaviorTree = nullptr;
 		_decisionTree = leaf;
 		SharedAI.runDecisionTree(this);
 	}
