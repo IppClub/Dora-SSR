@@ -41,8 +41,7 @@ LintYueGlobals = (yueCodes, globals, file)->
 			{importItem, item}
 	else {}
 	importSet = {}
-	for var in *globals
-		{name, line, col} = var
+	for {name, line, col} in *globals
 		if not allowedUseOfGlobals[name]
 			if builtin[name]
 				requireModules[] = "local #{name} = require(\"#{name}\") -- 1"
