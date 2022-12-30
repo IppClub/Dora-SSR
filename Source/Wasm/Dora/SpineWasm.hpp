@@ -13,6 +13,9 @@ static void spine_set_hit_test_enabled(int64_t self, int32_t var) {
 static int32_t spine_is_hit_test_enabled(int64_t self) {
 	return r_cast<Spine*>(self)->isHitTestEnabled() ? 1 : 0;
 }
+static int32_t spine_set_bone_rotation(int64_t self, int64_t name, float rotation) {
+	return r_cast<Spine*>(self)->setBoneRotation(*str_from(name), rotation) ? 1 : 0;
+}
 static int64_t spine_contains_point(int64_t self, float x, float y) {
 	return str_retain(r_cast<Spine*>(self)->containsPoint(x, y));
 }
@@ -37,6 +40,7 @@ static void linkSpine(wasm3::module& mod) {
 	mod.link_optional("*", "spine_is_show_debug", spine_is_show_debug);
 	mod.link_optional("*", "spine_set_hit_test_enabled", spine_set_hit_test_enabled);
 	mod.link_optional("*", "spine_is_hit_test_enabled", spine_is_hit_test_enabled);
+	mod.link_optional("*", "spine_set_bone_rotation", spine_set_bone_rotation);
 	mod.link_optional("*", "spine_contains_point", spine_contains_point);
 	mod.link_optional("*", "spine_intersects_segment", spine_intersects_segment);
 	mod.link_optional("*", "spine_with_files", spine_with_files);

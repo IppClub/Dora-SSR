@@ -652,6 +652,7 @@ class Spine : public Playable
 {
 	tolua_property__bool bool showDebug;
 	tolua_property__bool bool hitTestEnabled;
+	bool setBoneRotation(String name, float rotation);
 	static Spine* create(String skelFile, String atlasFile);
 	static Spine* create(String spineStr);
 	static tolua_outside void Spine_getLookNames @ getLooks(String spineStr);
