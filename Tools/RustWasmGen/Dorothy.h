@@ -514,6 +514,7 @@ object class Spine : public IPlayable
 {
 	boolean bool showDebug;
 	boolean bool hitTestEnabled;
+	bool setBoneRotation(string name, float rotation);
 	string containsPoint(float x, float y);
 	string intersectsSegment(float x1, float y1, float x2, float y2);
 	static Spine* create @ createFiles(string skelFile, string atlasFile);

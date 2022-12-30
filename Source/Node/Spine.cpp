@@ -285,6 +285,16 @@ Node* Spine::getSlot(String name) {
 	return nullptr;
 }
 
+bool Spine::setBoneRotation(String name, float rotation) {
+	if (_skeleton) {
+		if (auto bone = _skeleton->findBone(spine::String{name.begin(), name.size(), false})) {
+			bone->setRotation(rotation);
+			return true;
+		}
+	}
+	return false;
+}
+
 std::string Spine::containsPoint(float x, float y) {
 	if (!_bounds || !isHitTestEnabled()) return Slice::Empty;
 	if (_bounds->aabbcontainsPoint(x, y)) {
