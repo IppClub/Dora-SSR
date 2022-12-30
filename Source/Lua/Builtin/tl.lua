@@ -7457,7 +7457,7 @@ tl.type_check = function(ast, opts)
 
 				infer_emptytables(where, where_args, args, f.args, argdelta)
 
-				if not (ok and rets) then
+				if not rets then
 					mark_invalid_typeargs(f)
 				end
 				return resolve_typevars_at(where, f.rets)
