@@ -7457,8 +7457,9 @@ tl.type_check = function(ast, opts)
 
 				infer_emptytables(where, where_args, args, f.args, argdelta)
 
-				mark_invalid_typeargs(f)
-
+				if not (ok and rets) then
+					mark_invalid_typeargs(f)
+				end
 				return resolve_typevars_at(where, f.rets)
 			end
 		end
@@ -10611,6 +10612,12 @@ tl.tolua = function(input, filename)
 	if res.syntax_errors and #res.syntax_errors > 0 then
 		for i = 1, #res.syntax_errors do
 			local err = res.syntax_errors[i]
+			table.insert(errs, filename .. ":" .. tostring(err.y) .. ":" .. tostring(err.x) .. ": " .. err.msg)
+		end
+	end
+	if res.type_errors and #res.type_errors > 0 then
+		for i = 1, #res.type_errors do
+			local err = res.type_errors[i]
 			table.insert(errs, filename .. ":" .. tostring(err.y) .. ":" .. tostring(err.x) .. ": " .. err.msg)
 		end
 	end

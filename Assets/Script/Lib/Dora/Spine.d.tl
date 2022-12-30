@@ -3,6 +3,7 @@ local record Spine
 	embed Playable
 	showDebug: boolean
 	hitTestEnabled: boolean
+	setBoneRotation: function(self: Spine, name: string, rotation: number): boolean
 	containsPoint: function(self: Spine, x: number, y: number): string | nil
 	intersectsSegment: function(self: Spine, x1: number, y1: number, x2: number, y2: number): string | nil
 end

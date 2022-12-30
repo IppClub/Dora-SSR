@@ -4,6 +4,7 @@ extern "C" {
 	fn spine_is_show_debug(slf: i64) -> i32;
 	fn spine_set_hit_test_enabled(slf: i64, var: i32);
 	fn spine_is_hit_test_enabled(slf: i64) -> i32;
+	fn spine_set_bone_rotation(slf: i64, name: i64, rotation: f32) -> i32;
 	fn spine_contains_point(slf: i64, x: f32, y: f32) -> i64;
 	fn spine_intersects_segment(slf: i64, x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> i64;
 	fn spine_with_files(skel_file: i64, atlas_file: i64) -> i64;
@@ -38,6 +39,9 @@ impl Spine {
 	}
 	pub fn is_hit_test_enabled(&self) -> bool {
 		return unsafe { spine_is_hit_test_enabled(self.raw()) != 0 };
+	}
+	pub fn set_bone_rotation(&mut self, name: &str, rotation: f32) -> bool {
+		unsafe { return spine_set_bone_rotation(self.raw(), crate::dora::from_string(name), rotation) != 0; }
 	}
 	pub fn contains_point(&mut self, x: f32, y: f32) -> String {
 		unsafe { return crate::dora::to_string(spine_contains_point(self.raw(), x, y)); }
