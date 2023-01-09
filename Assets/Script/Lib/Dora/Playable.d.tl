@@ -15,6 +15,8 @@ local record Playable
 		loop?: boolean --[[false]]
 	): number
 	stop: function(self: Playable)
+	setSlot: function(self: Playable, name: string, item: Node)
+	getSlot: function(self: Playable, name: string): Node | nil
 end
 local record __SLOT__
 	-- Playable:play
