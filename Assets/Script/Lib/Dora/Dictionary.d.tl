@@ -1,7 +1,7 @@
 local Object = require("Object").Type
 local Array = require("Array").Type
-local Item = require("ItemBase")
-local ContainerItem = require("ContainerItemBase")
+local Item = require("Array").Item
+local ContainerItem = require("ContainerItemType")
 local record Dictionary
 	embed Object
 	const count: integer

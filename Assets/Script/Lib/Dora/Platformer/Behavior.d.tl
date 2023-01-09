@@ -1,6 +1,6 @@
 local Unit = require("Platformer.Unit").Type
 local Object = require("Object").Type
-local Item = require("ItemBase")
+local Item = require("Array").Item
 local record Behavior
 	record Blackboard
 		const deltaTime: number

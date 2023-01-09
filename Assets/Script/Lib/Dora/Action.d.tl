@@ -1,5 +1,5 @@
-local ActionDef = require("ActionDefBase")
 local Object = require("Object").Type
+local record ActionDef end
 local record Action
 	embed Object
 	const duration: number
@@ -17,6 +17,7 @@ local record Action
 end
 local record ActionClass
 	type Type = Action
+	type Def = ActionDef
 	metamethod __call: function(cls: ActionClass, actionDef: ActionDef): Action
 end
 local actionClass: ActionClass

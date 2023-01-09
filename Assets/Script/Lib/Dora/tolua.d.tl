@@ -1,4 +1,4 @@
-local ContainerItem = require("ContainerItemBase")
+local ContainerItem = require("ContainerItemType")
 local Object = require("Object").Type
 local record tolua
 	type: function(item: any): string

@@ -1,6 +1,6 @@
 local Object = require("Object").Type
-local Item = require("ItemBase")
-local ContainerItem = require("ContainerItemBase")
+local ContainerItem = require("ContainerItemType")
+local type Item = integer | number | boolean | string | thread | ContainerItem
 local record Array
 	embed Object
 	const count: integer

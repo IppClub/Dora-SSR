@@ -1,4 +1,4 @@
-local ContainerItem = require("ContainerItemBase")
+local ContainerItem = require("ContainerItemType")
 local Vec2 = require("Vec2").Type
 local Size = require("Size").Type
 local record Rect
