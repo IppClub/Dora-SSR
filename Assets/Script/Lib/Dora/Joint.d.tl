@@ -4,7 +4,7 @@ local JointDef = require("JointDef").Type
 local Dictionary = require("Dictionary").Type
 local MoveJoint = require("MoveJoint").Type
 local MotorJoint = require("MotorJoint").Type
-local Joint = require("JointBase")
+local Joint = require("JointType")
 local record JointClass
 	type Type = Joint
 	distance: function(cls: JointClass,

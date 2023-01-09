@@ -1,4 +1,4 @@
-local ActionDef = require("ActionDefBase")
+local ActionDef = require("Action").Def
 return function(): ActionDef
 	return {}
 end

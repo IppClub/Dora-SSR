@@ -1,4 +1,4 @@
-local ContainerItem = require("ContainerItemBase")
+local ContainerItem = require("ContainerItemType")
 local record Object
 	embed ContainerItem
 	const id: integer
