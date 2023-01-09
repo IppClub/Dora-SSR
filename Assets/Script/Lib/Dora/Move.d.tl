@@ -1,4 +1,4 @@
-local ActionDef = require("ActionDefBase")
+local ActionDef = require("Action").Def
 local Vec2 = require("Vec2").Type
 local Ease = require("Ease")
 return function(

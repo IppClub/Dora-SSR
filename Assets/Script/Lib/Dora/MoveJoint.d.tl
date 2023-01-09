@@ -1,4 +1,4 @@
-local Joint = require("JointBase")
+local Joint = require("JointType")
 local Vec2 = require("Vec2").Type
 local record MoveJoint
 	embed Joint

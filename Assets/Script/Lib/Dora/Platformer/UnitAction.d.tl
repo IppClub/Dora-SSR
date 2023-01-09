@@ -1,15 +1,6 @@
-local Unit = require("Platformer.Unit").Type
-local UnitActionBase = require("Platformer.UnitActionBase")
 local Routine = require("Routine")
-local record UnitAction
-	embed UnitActionBase
-	reaction: number
-	recovery: number
-	const name: string
-	const doing: boolean
-	const eclapsedTime: number
-	const owner: Unit
-end
+local type UnitAction = require("Platformer.UnitActionType")
+local type Unit = require("Platformer.UnitType")
 local record UnitActionParam
 	priority: integer
 	reaction: number

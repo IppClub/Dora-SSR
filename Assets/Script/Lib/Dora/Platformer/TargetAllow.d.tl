@@ -1,4 +1,4 @@
-local ContainerItem = require("ContainerItemBase")
+local ContainerItem = require("ContainerItemType")
 local Data = require("Platformer.Data")
 local record TargetAllow
 	embed ContainerItem

@@ -1,4 +1,4 @@
-local ActionDef = require("ActionDefBase")
+local ActionDef = require("Action").Def
 local Ease = require("Ease")
 return function(
 		duration: number,

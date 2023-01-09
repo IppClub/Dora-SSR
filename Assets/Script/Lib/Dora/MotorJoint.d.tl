@@ -1,4 +1,4 @@
-local Joint = require("JointBase")
+local Joint = require("JointType")
 local record MotorJoint
 	embed Joint
 	enabled: boolean
