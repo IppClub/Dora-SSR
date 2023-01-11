@@ -6945,7 +6945,7 @@ tl.type_check = function(ast, opts)
 	local expand_type
 	local function arraytype_from_tuple(where, tupletype)
 
-		local element_type = unite(tupletype.types)
+		local element_type = unite(tupletype.types, true)
 		local valid = element_type.typename ~= "union" and true or is_valid_union(element_type)
 		if valid then
 			return a_type({
@@ -7045,19 +7045,27 @@ tl.type_check = function(ast, opts)
 
 
 			if t2.typename == "union" then
+				local used = {}
 				for _, t in ipairs(t1.types) do
 					local ok = false
 					begin_scope()
 					for _, u in ipairs(t2.types) do
-						if is_a(t, u, for_equality) then
-							ok = true
-							break
+						if not used[u] then
+							if is_a(t, u, for_equality) then
+								used[u] = t
+								ok = true
+								break
+							end
 						end
 					end
 					end_scope()
 					if not ok then
 						return false, terr(t1, "got %s, expected %s", t1, t2)
 					end
+				end
+
+				for u, t in pairs(used) do
+					is_a(t, u, for_equality)
 				end
 				return true
 
@@ -7522,9 +7530,8 @@ tl.type_check = function(ast, opts)
 
 				infer_emptytables(where, where_args, args, f.args, argdelta)
 
-				if not rets then
-					mark_invalid_typeargs(f)
-				end
+				mark_invalid_typeargs(f)
+
 				return resolve_typevars_at(where, f.rets)
 			end
 		end
