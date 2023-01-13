@@ -93,19 +93,32 @@ Observer("AddOrChange", { "position", "direction", "sprite" }):watch(
 	end
 end)
 
-Entity {
-	sprite = Sprite("Image/logo.png"),
-	position = Vec2.zero,
-	direction = 45.0,
-	speed = 4.0
-}
+local record EntityDef
+	sprite: Sprite.Type
+	position: Vec2.Type
+	direction: number
+	speed: number
+end
 
-Entity {
-	sprite = Sprite("Image/logo.png"),
-	position = Vec2(-100, 200),
-	direction = 90.0,
-	speed = 10.0
-}
+do
+	local def <total>: EntityDef = {
+		sprite = Sprite("Image/logo.png"),
+		position = Vec2.zero,
+		direction = 45.0,
+		speed = 4.0
+	}
+	Entity(def)
+end
+
+do
+	local def <total>: EntityDef = {
+		sprite = Sprite("Image/logo.png"),
+		position = Vec2(-100, 200),
+		direction = 90.0,
+		speed = 10.0
+	}
+	Entity(def)
+end
 
 Entity { scene = Node() }
 
