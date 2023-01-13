@@ -140,13 +140,15 @@ tl.version = function()
 	return VERSION
 end
 
-tl.warning_kinds = {
+local wk <const> = {
+	["unknown"] = true,
 	["unused"] = true,
 	["redeclaration"] = true,
 	["branch"] = true,
 	["hint"] = true,
 	["debug"] = true,
 }
+tl.warning_kinds = wk
 
 
 
@@ -318,12 +320,12 @@ do
 
 
 
-	local last_token_kind = {
-
-
+	local last_token_kind <const> = {
+		["start"] = nil,
+		["any"] = nil,
 		["identifier"] = "identifier",
 		["got -"] = "op",
-
+		["got --"] = nil,
 		["got ."] = ".",
 		["got .."] = "op",
 		["got ="] = "op",
@@ -334,14 +336,14 @@ do
 		["got >"] = "op",
 		["got /"] = "op",
 		["got :"] = "op",
-
+		["got --["] = nil,
 		["string single"] = "$ERR invalid_string$",
 		["string single got \\"] = "$ERR invalid_string$",
 		["string double"] = "$ERR invalid_string$",
 		["string double got \\"] = "$ERR invalid_string$",
 		["string long"] = "$ERR invalid_string$",
 		["string long got ]"] = "$ERR invalid_string$",
-
+		["comment short"] = nil,
 		["comment long"] = "$ERR unfinished_comment$",
 		["comment long got ]"] = "$ERR unfinished_comment$",
 		["number dec"] = "integer",
@@ -1019,13 +1021,44 @@ end
 
 
 
-local table_types = {
+local table_types <const> = {
 	["array"] = true,
 	["map"] = true,
 	["arrayrecord"] = true,
 	["record"] = true,
 	["emptytable"] = true,
+	["tupletable"] = true,
+
+	["typetype"] = false,
+	["nestedtype"] = false,
+	["typevar"] = false,
+	["typearg"] = false,
+	["function"] = false,
+	["enum"] = false,
+	["boolean"] = false,
+	["string"] = false,
+	["nil"] = false,
+	["thread"] = false,
+	["number"] = false,
+	["integer"] = false,
+	["union"] = false,
+	["nominal"] = false,
+	["bad_nominal"] = false,
+	["table_item"] = false,
+	["unresolved_emptytable_value"] = false,
+	["unresolved_typearg"] = false,
+	["unresolvable_typearg"] = false,
+	["circular_require"] = false,
+	["tuple"] = false,
+	["poly"] = false,
+	["any"] = false,
+	["unknown"] = false,
+	["invalid"] = false,
+	["unresolved"] = false,
+	["none"] = false,
 }
+
+
 
 
 
@@ -1207,10 +1240,13 @@ local Fact = {}
 
 
 
-local is_attribute <const> = {
+
+local attributes <const> = {
 	["const"] = true,
 	["close"] = true,
+	["total"] = true,
 }
+local is_attribute <const> = attributes
 
 
 
@@ -3753,6 +3789,12 @@ function tl.pretty_print_ast(ast, gen_target, mode)
 
 	local visit_node = {}
 
+	local lua_54_attribute <const> = {
+		["const"] = " <const>",
+		["close"] = " <close>",
+		["total"] = " <const>",
+	}
+
 	visit_node.cbs = {
 		["statements"] = {
 			after = function(node, children)
@@ -3785,7 +3827,7 @@ function tl.pretty_print_ast(ast, gen_target, mode)
 						end
 
 						if gen_target == "5.4" then
-							add_string(out, " <" .. var.attribute .. ">")
+							add_string(out, lua_54_attribute[var.attribute])
 						end
 					end
 				end
@@ -4797,10 +4839,6 @@ end
 
 
 
-local function var_is_const(v)
-	return v.attribute ~= nil
-end
-
 local function sorted_keys(m)
 	local keys = {}
 	for k, _ in pairs(m) do
@@ -5643,7 +5681,7 @@ tl.type_check = function(ast, opts)
 				if use == "lvalue" and var.is_narrowed then
 					if var.narrowed_from then
 						var.used = true
-						return { t = var.narrowed_from, attribute = var.attribute }, i, var_is_const(var)
+						return { t = var.narrowed_from, attribute = var.attribute }, i, var.attribute
 					end
 				else
 					if i == 1 and var.needs_compat then
@@ -5654,7 +5692,7 @@ tl.type_check = function(ast, opts)
 					elseif use ~= "check_only" then
 						var.used = true
 					end
-					return var, i, var_is_const(var)
+					return var, i, var.attribute
 				end
 			end
 		end
@@ -7418,6 +7456,7 @@ tl.type_check = function(ast, opts)
 				infer_emptytable(t2, infer_at(node, t1))
 			elseif t1.typename ~= "emptytable" then
 				node_error(node, context .. ": " .. (name and (name .. ": ") or "") .. "assigning %s to a variable declared with {}", t1)
+				return false
 			end
 			return true
 		end
@@ -7829,23 +7868,23 @@ tl.type_check = function(ast, opts)
 			add_unknown(node, var)
 		end
 
-		local existing, scope, existing_is_const = find_var(var)
+		local existing, scope, existing_attr = find_var(var)
 		if existing and scope > 1 then
 			node_error(node, "cannot define a global when a local with the same name is in scope")
 			return nil
 		end
 
-		local is_const = node.attribute == "const"
+		local is_const = node.attribute ~= nil
 
 		if existing then
-			if is_assigning and existing_is_const then
-				node_error(node, "cannot reassign to <const> global: " .. var)
+			if is_assigning and existing_attr then
+				node_error(node, "cannot reassign to <" .. node.attribute .. "> global: " .. var)
 			end
-			if existing_is_const == true and not is_const then
-				node_error(node, "global was previously declared as <const>: " .. var)
+			if existing_attr and not is_const then
+				node_error(node, "global was previously declared as <" .. existing_attr .. ">: " .. var)
 			end
-			if existing_is_const == false and is_const then
-				node_error(node, "global was previously declared as not <const>: " .. var)
+			if (not existing_attr) and is_const then
+				node_error(node, "global was previously declared as not <" .. node.attribute .. ">: " .. var)
 			end
 			if valtype and not same_type(existing.t, valtype) then
 				node_error(node, "cannot redeclare global with a different type: previous type of " .. var .. " is %s", existing.t)
@@ -8868,6 +8907,36 @@ tl.type_check = function(ast, opts)
 			end
 		end
 
+		if var.attribute == "total" then
+			local rd = decltype and resolve_tuple_and_nominal(decltype)
+			if rd and (rd.typename ~= "map" and rd.typename ~= "record") then
+				node_error(var, "attribute <total> only applies to maps and records")
+				ok = false
+			elseif not infertype then
+				node_error(var, "variable declared <total> does not declare an initialization value")
+				ok = false
+			elseif not (node.exps[i] and node.exps[i].attribute == "total") then
+				local ri = resolve_tuple_and_nominal(infertype)
+				if ri.typename ~= "map" and ri.typename ~= "record" then
+					node_error(var, "attribute <total> only applies to maps and records")
+					ok = false
+				elseif not infertype.is_total then
+					local missing = ""
+					if infertype.missing then
+						missing = " (missing: " .. table.concat(infertype.missing, ", ") .. ")"
+					end
+					if ri.typename == "map" then
+						node_error(var, "map variable declared <total> does not declare values for all possible keys" .. missing)
+						ok = false
+					elseif ri.typename == "record" then
+						node_error(var, "record variable declared <total> does not declare values for all fields" .. missing)
+						ok = false
+					end
+				end
+				infertype.is_total = nil
+			end
+		end
+
 		local t = decltype or infertype
 		if t == nil then
 			t = missing_initializer(node, i, name)
@@ -8886,6 +8955,46 @@ tl.type_check = function(ast, opts)
 		else
 			return resolve_nominal_typetype(node.value.newtype)
 		end
+	end
+
+	local function total_check_key(key, seen_keys, is_total, missing)
+		if not seen_keys[key] then
+			missing = missing or {}
+			table.insert(missing, tostring(key))
+			return false, missing
+		end
+		return is_total, missing
+	end
+
+	local function total_record_check(t, seen_keys)
+		if t.meta_field_order then
+			return false
+		end
+
+		local is_total = true
+		local missing
+		for _, key in ipairs(t.field_order) do
+			is_total, missing = total_check_key(key, seen_keys, is_total, missing)
+		end
+		return is_total, missing
+	end
+
+	local function total_map_check(t, seen_keys)
+		local k = resolve_tuple_and_nominal(t.keys)
+		local is_total = true
+		local missing
+		if k.typename == "enum" then
+			for _, key in ipairs(sorted_keys(k.enumset)) do
+				is_total, missing = total_check_key(key, seen_keys, is_total, missing)
+			end
+		elseif k.typename == "boolean" then
+			for _, key in ipairs({ true, false }) do
+				is_total, missing = total_check_key(key, seen_keys, is_total, missing)
+			end
+		else
+			is_total = false
+		end
+		return is_total, missing
 	end
 
 	local visit_node = {}
@@ -9463,6 +9572,21 @@ tl.type_check = function(ast, opts)
 						})
 					else
 						node.type = resolve_typevars_at(node, node.expected)
+						if node.expected == node.type and node.type.typename == "nominal" then
+							node.type = {
+								typeid = node.type.typeid,
+								typename = "nominal",
+								names = node.type.names,
+								found = node.type.found,
+								resolved = node.type.resolved,
+							}
+						end
+					end
+
+					if decltype.typename == "record" then
+						node.type.is_total, node.type.missing = total_record_check(decltype, seen_keys)
+					elseif decltype.typename == "map" then
+						node.type.is_total, node.type.missing = total_map_check(decltype, seen_keys)
 					end
 				else
 					node.type = infer_table_literal(node, children)
@@ -10265,9 +10389,11 @@ end
 
 
 
-local typename_to_typecode = {
+local typename_to_typecode <const> = {
 	["typevar"] = tl.typecodes.TYPE_VARIABLE,
 	["typearg"] = tl.typecodes.TYPE_VARIABLE,
+	["unresolved_typearg"] = tl.typecodes.TYPE_VARIABLE,
+	["unresolvable_typearg"] = tl.typecodes.TYPE_VARIABLE,
 	["function"] = tl.typecodes.FUNCTION,
 	["array"] = tl.typecodes.ARRAY,
 	["map"] = tl.typecodes.MAP,
@@ -10283,13 +10409,30 @@ local typename_to_typecode = {
 	["integer"] = tl.typecodes.INTEGER,
 	["union"] = tl.typecodes.IS_UNION,
 	["nominal"] = tl.typecodes.NOMINAL,
+	["bad_nominal"] = tl.typecodes.NOMINAL,
+	["circular_require"] = tl.typecodes.NOMINAL,
 	["emptytable"] = tl.typecodes.EMPTY_TABLE,
 	["unresolved_emptytable_value"] = tl.typecodes.EMPTY_TABLE,
 	["poly"] = tl.typecodes.IS_POLY,
 	["any"] = tl.typecodes.ANY,
 	["unknown"] = tl.typecodes.UNKNOWN,
 	["invalid"] = tl.typecodes.INVALID,
-	["bad_nominal"] = tl.typecodes.INVALID,
+
+	["none"] = tl.typecodes.UNKNOWN,
+	["tuple"] = tl.typecodes.UNKNOWN,
+	["table_item"] = tl.typecodes.UNKNOWN,
+	["unresolved"] = tl.typecodes.UNKNOWN,
+	["typetype"] = tl.typecodes.UNKNOWN,
+	["nestedtype"] = tl.typecodes.UNKNOWN,
+}
+
+local skip_types = {
+	["none"] = true,
+	["tuple"] = true,
+	["table_item"] = true,
+	["unresolved"] = true,
+	["typetype"] = true,
+	["nestedtype"] = true,
 }
 
 function tl.get_types(result, trenv)
@@ -10406,12 +10549,6 @@ function tl.get_types(result, trenv)
 
 	local visit_node = { allow_missing_cbs = true }
 	local visit_type = { allow_missing_cbs = true }
-
-	local skip_types = {
-		["none"] = true,
-		["tuple"] = true,
-		["table_item"] = true,
-	}
 
 	local ft = {}
 	tr.by_pos[filename] = ft
