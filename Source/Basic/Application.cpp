@@ -1,4 +1,4 @@
-/* Copyright (c) 2022 Jin Li, dragon-fly@qq.com
+/* Copyright (c) 2023 Jin Li, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -63,8 +63,8 @@ Application::Application()
 	, _renderRunning(true)
 	, _logicRunning(true)
 	, _frame(0)
-	, _visualWidth(1280)
-	, _visualHeight(720)
+	, _visualWidth(1280/2)
+	, _visualHeight(720/2)
 	, _winWidth(_visualWidth)
 	, _winHeight(_visualHeight)
 	, _bufferWidth(0)
