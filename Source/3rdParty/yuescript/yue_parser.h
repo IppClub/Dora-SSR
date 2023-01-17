@@ -1,4 +1,4 @@
-/* Copyright (c) 2022 Jin Li, dragon-fly@qq.com
+/* Copyright (c) 2023 Jin Li, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -185,6 +185,7 @@ private:
 	rule lua_string_close;
 	rule FnArgsExpList;
 	rule FnArgs;
+	rule destruct_def;
 	rule macro_args_def;
 	rule chain_call;
 	rule chain_call_list;
