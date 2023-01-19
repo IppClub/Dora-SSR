@@ -33,50 +33,51 @@ std::unordered_set<std::string> Keywords = {
 // clang-format off
 YueParser::YueParser() {
 	plain_space = *set(" \t");
-	Break = nl(-expr('\r') >> '\n');
-	Any = Break | any();
-	Stop = Break | eof();
-	Indent = plain_space;
-	Comment = "--" >> *(not_(set("\r\n")) >> Any) >> and_(Stop);
-	multi_line_open = expr("--[[");
-	multi_line_close = expr("]]");
-	multi_line_content = *(not_(multi_line_close) >> Any);
-	MultiLineComment = multi_line_open >> multi_line_content >> multi_line_close;
-	EscapeNewLine = expr('\\') >> *(set(" \t") | MultiLineComment) >> -Comment >> Break;
-	space_one = set(" \t") | and_(set("-\\")) >> (MultiLineComment | EscapeNewLine);
-	Space = -(and_(set(" \t-\\")) >> *space_one >> -Comment);
-	SpaceBreak = Space >> Break;
-	White = Space >> *(Break >> Space);
-	EmptyLine = SpaceBreak;
-	AlphaNum = sel({range('a', 'z'), range('A', 'Z'), range('0', '9'), expr('_')});
-	Name = sel({range('a', 'z'), range('A', 'Z'), expr('_')}) >> *AlphaNum;
+	line_break = nl(-expr('\r') >> '\n');
+	any_char = line_break | any();
+	stop = line_break | eof();
+	indent = plain_space;
+	comment = "--" >> *(not_(set("\r\n")) >> any_char) >> and_(stop);
+	multi_line_open = "--[[";
+	multi_line_close = "]]";
+	multi_line_content = *(not_(multi_line_close) >> any_char);
+	multi_line_comment = multi_line_open >> multi_line_content >> multi_line_close;
+	escape_new_line = '\\' >> *(set(" \t") | multi_line_comment) >> -comment >> line_break;
+	space_one = set(" \t") | and_(set("-\\")) >> (multi_line_comment | escape_new_line);
+	space = -(and_(set(" \t-\\")) >> *space_one >> -comment);
+	space_break = space >> line_break;
+	white = space >> *(line_break >> space);
+	empty_line = space_break;
+	alpha_num = sel({range('a', 'z'), range('A', 'Z'), range('0', '9'), '_'});
+	not_alpha_num = not_(alpha_num);
+	Name = sel({range('a', 'z'), range('A', 'Z'), '_'}) >> *alpha_num;
 	num_expo = set("eE") >> -set("+-") >> num_char;
 	num_expo_hex = set("pP") >> -set("+-") >> num_char;
 	lj_num = -set("uU") >> set("lL") >> set("lL");
-	num_char = range('0', '9') >> *(range('0', '9') | expr('_') >> and_(range('0', '9')));
+	num_char = range('0', '9') >> *(range('0', '9') | '_' >> and_(range('0', '9')));
 	num_char_hex = sel({range('0', '9'), range('a', 'f'), range('A', 'F')});
-	num_lit = num_char_hex >> *(num_char_hex | expr('_') >> and_(num_char_hex));
+	num_lit = num_char_hex >> *(num_char_hex | '_' >> and_(num_char_hex));
 	Num = sel({
-		expr("0x") >> (
+		"0x" >> (
 			+num_lit >> sel({
-				seq({expr('.'), +num_lit, -num_expo_hex}),
+				seq({'.', +num_lit, -num_expo_hex}),
 				num_expo_hex,
 				lj_num,
 				true_()
 			}) | seq({
-				expr('.'), +num_lit, -num_expo_hex
+				'.', +num_lit, -num_expo_hex
 			})
 		),
 		+num_char >> sel({
-			seq({expr('.'), +num_char, -num_expo}),
+			seq({'.', +num_char, -num_expo}),
 			num_expo,
 			lj_num,
 			true_()
 		}),
-		seq({expr('.'), +num_char, -num_expo})
+		seq({'.', +num_char, -num_expo})
 	});
 
-	Cut = false_();
+	cut = false_();
 	Seperator = true_();
 
 	empty_block_error = pl::user(true_(), [](const item_t& item) {
@@ -84,15 +85,52 @@ YueParser::YueParser() {
 		return false;
 	});
 
-	#define ensure(patt, finally) ((patt) >> (finally) | (finally) >> Cut)
-	#define key(str) (str >> not_(AlphaNum))
-	#define disable_do(patt) (DisableDo >> ((patt) >> EnableDo | EnableDo >> Cut))
-	#define disable_chain(patt) (DisableChain >> ((patt) >> EnableChain | EnableChain >> Cut))
-	#define disable_do_chain_arg_table_block(patt) (DisableDoChainArgTableBlock >> ((patt) >> EnableDoChainArgTableBlock | EnableDoChainArgTableBlock >> Cut))
-	#define disable_arg_table_block(patt) (DisableArgTableBlock >> ((patt) >> EnableArgTableBlock | EnableArgTableBlock >> Cut))
-	#define body_with(str) (Space >> sel({key(str) >> Space >> (InBlock | Statement), InBlock, empty_block_error}))
-	#define opt_body_with(str) (Space >> (key(str) >> Space >> (InBlock | Statement) | InBlock))
-	#define body (Space >> sel({InBlock, Statement, empty_block_error}))
+	#define ensure(patt, finally) ((patt) >> (finally) | (finally) >> cut)
+
+	#define key(str) (str >> not_alpha_num)
+
+	#define disable_do_rule(patt) ( \
+		disable_do >> ( \
+			(patt) >> enable_do | \
+			enable_do >> cut \
+		) \
+	)
+
+	#define disable_chain_rule(patt) ( \
+		disable_chain >> ( \
+			(patt) >> enable_chain | \
+			enable_chain >> cut \
+		) \
+	)
+
+	#define disable_do_chain_arg_table_block_rule(patt) ( \
+		disable_do_chain_arg_table_block >> ( \
+			(patt) >> enable_do_chain_arg_table_block | \
+			enable_do_chain_arg_table_block >> cut \
+		) \
+	)
+
+	#define disable_arg_table_block_rule(patt) ( \
+		disable_arg_table_block >> ( \
+			(patt) >> enable_arg_table_block | \
+			enable_arg_table_block >> cut \
+		) \
+	)
+
+	#define body_with(str) ( \
+		sel({ \
+			key(str) >> space >> (in_block | Statement), \
+			in_block, \
+			empty_block_error \
+		}) \
+	)
+
+	#define opt_body_with(str) ( \
+		key(str) >> space >> (in_block | Statement) | \
+		in_block \
+	)
+
+	#define body (sel({in_block, Statement, empty_block_error}))
 
 	Variable = pl::user(Name, [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
@@ -124,16 +162,16 @@ YueParser::YueParser() {
 		return it != LuaKeywords.end();
 	});
 
-	self = expr('@');
-	self_name = '@' >> Name;
-	self_class = expr("@@");
-	self_class_name = "@@" >> Name;
+	Self = '@';
+	SelfName = '@' >> Name;
+	SelfClass = "@@";
+	SelfClassName = "@@" >> Name;
 
-	SelfName = sel({self_class_name, self_class, self_name, self});
-	KeyName = SelfName | Name;
-	VarArg = expr("...");
+	SelfItem = sel({SelfClassName, SelfClass, SelfName, Self});
+	KeyName = SelfItem | Name;
+	VarArg = "...";
 
-	check_indent = pl::user(Indent, [](const item_t& item) {
+	check_indent = pl::user(indent, [](const item_t& item) {
 		int indent = 0;
 		for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
 			switch (*i) {
@@ -144,9 +182,9 @@ YueParser::YueParser() {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		return st->indents.top() == indent;
 	});
-	CheckIndent = and_(check_indent);
+	check_indent_match = and_(check_indent);
 
-	advance = pl::user(Indent, [](const item_t& item) {
+	advance = pl::user(indent, [](const item_t& item) {
 		int indent = 0;
 		for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
 			switch (*i) {
@@ -162,9 +200,9 @@ YueParser::YueParser() {
 		}
 		return false;
 	});
-	Advance = and_(advance);
+	advance_match = and_(advance);
 
-	push_indent = pl::user(Indent, [](const item_t& item) {
+	push_indent = pl::user(indent, [](const item_t& item) {
 		int indent = 0;
 		for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
 			switch (*i) {
@@ -176,150 +214,152 @@ YueParser::YueParser() {
 		st->indents.push(indent);
 		return true;
 	});
-	PushIndent = and_(push_indent);
+	push_indent_match = and_(push_indent);
 
-	PreventIndent = pl::user(true_(), [](const item_t& item) {
+	prevent_indent = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->indents.push(-1);
 		return true;
 	});
 
-	PopIndent = pl::user(true_(), [](const item_t& item) {
+	pop_indent = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->indents.pop();
 		return true;
 	});
 
-	InBlock = Space >> +(plain_space >> Break) >> Advance >> ensure(Block, PopIndent);
+	in_block = +space_break >> advance_match >> ensure(Block, pop_indent);
 
-	local_flag = expr('*') | expr('^');
-	local_values = NameList >> -(Space >> expr('=') >> (TableBlock | ExpListLow));
-	Local = key("local") >> (Space >> local_flag | local_values);
+	LocalFlag = sel({'*', '^'});
+	LocalValues = NameList >> -(space >> '=' >> space >> (TableBlock | ExpListLow));
+	Local = key("local") >> space >> (LocalFlag | LocalValues);
 
-	const_attrib = key("const");
-	close_attrib = key("close");
-	local_const_item = sel({Space >> Variable, simple_table, TableLit});
+	ConstAttrib = key("const");
+	CloseAttrib = key("close");
+	local_const_item = sel({Variable, SimpleTable, TableLit});
 	LocalAttrib = (
-		const_attrib >> Seperator >> local_const_item >> *(Space >> expr(',') >> local_const_item) |
-		close_attrib >> Seperator >> Space >> Variable >> *(Space >> expr(',') >> Space >> Variable)
-	) >> Assign;
+		ConstAttrib >> Seperator >> space >> local_const_item >> *(space >> ',' >> space >> local_const_item) |
+		CloseAttrib >> Seperator >> space >> Variable >> *(space >> ',' >> space >> Variable)
+	) >> space >> Assign;
 
-	colon_import_name = Space >> expr('\\') >> Space >> Variable;
-	ImportName = colon_import_name | Space >> Variable;
-	ImportNameList = Seperator >> *SpaceBreak >> ImportName >> *((+SpaceBreak | Space >> expr(',') >> *SpaceBreak) >> ImportName);
-	ImportFrom = ImportNameList >> *SpaceBreak >> Space >> key("from") >> Exp;
+	ColonImportName = '\\' >> space >> Variable;
+	import_name = ColonImportName | Variable;
+	import_name_list = Seperator >> *space_break >> space >> import_name >> *((+space_break | space >> ',' >> *space_break) >> space >> import_name);
+	ImportFrom = import_name_list >> *space_break >> space >> key("from") >> space >> Exp;
 
-	import_literal_inner = (range('a', 'z') | range('A', 'Z') | set("_-")) >> *(AlphaNum | '-');
-	import_literal_chain = Seperator >> import_literal_inner >> *(expr('.') >> import_literal_inner);
-	ImportLiteral = Space >> expr('\'') >> import_literal_chain >> expr('\'') | Space >> expr('"') >> import_literal_chain >> expr('"');
+	ImportLiteralInner = sel({range('a', 'z'), range('A', 'Z'), set("_-")}) >> *(alpha_num | '-');
+	import_literal_chain = Seperator >> ImportLiteralInner >> *('.' >> ImportLiteralInner);
+	ImportLiteral = sel({
+		'\'' >> import_literal_chain >> '\'',
+		'"' >> import_literal_chain >> '"'
+	});
 
-	macro_name_pair = Space >> MacroName >> Space >> expr(':') >> Space >> MacroName;
-	import_all_macro = expr('$');
-	ImportTabItem = sel({
-		variable_pair,
-		normal_pair,
-		Space >> expr(':') >> MacroName,
-		macro_name_pair,
-		Space >> import_all_macro,
-		meta_variable_pair,
-		meta_normal_pair,
+	MacroNamePair = MacroName >> ':' >> space >> MacroName;
+	ImportAllMacro = '$';
+	import_tab_item = sel({
+		VariablePair,
+		NormalPair,
+		':' >> MacroName,
+		MacroNamePair,
+		ImportAllMacro,
+		MetaVariablePair,
+		MetaNormalPair,
 		Exp
 	});
-	ImportTabList = ImportTabItem >> *(Space >> expr(',') >> ImportTabItem);
-	ImportTabLine = (
-		PushIndent >> (ImportTabList >> PopIndent | PopIndent)
-	) | Space;
-	import_tab_lines = SpaceBreak >> ImportTabLine >> *(-(Space >> expr(',')) >> SpaceBreak >> ImportTabLine) >> -(Space >> expr(','));
+	import_tab_list = import_tab_item >> *(space >> ',' >> space >> import_tab_item);
+	import_tab_line = (
+		push_indent_match >> (space >> import_tab_list >> pop_indent | pop_indent)
+	) | space;
+	import_tab_lines = space_break >> import_tab_line >> *(-(space >> ',') >> space_break >> import_tab_line) >> -(space >> ',');
 	ImportTabLit = seq({
-		Seperator,
-		Space, expr('{'),
-		-ImportTabList,
-		-(Space >> expr(',')),
+		'{', Seperator,
+		-(space >> import_tab_list),
+		-(space >> ','),
 		-import_tab_lines,
-		White,
-		expr('}')
+		white,
+		'}'
 	}) | seq({
-		Seperator, KeyValue, *(Space >> expr(',') >> KeyValue)
+		Seperator, key_value, *(space >> ',' >> space >> key_value)
 	});
 
-	ImportAs = ImportLiteral >> -(Space >> key("as") >> Space >> (ImportTabLit | Variable | import_all_macro));
+	ImportAs = ImportLiteral >> -(space >> key("as") >> space >> sel({ImportTabLit, Variable, ImportAllMacro}));
 
-	Import = key("import") >> (ImportAs | ImportFrom);
+	Import = key("import") >> space >> (ImportAs | ImportFrom);
 
-	Label = expr("::") >> LabelName >> expr("::");
+	Label = "::" >> LabelName >> "::";
 
-	Goto = key("goto") >> Space >> LabelName;
+	Goto = key("goto") >> space >> LabelName;
 
-	ShortTabAppending = expr("[]") >> Assign;
+	ShortTabAppending = "[]" >> space >> Assign;
 
-	BreakLoop = (expr("break") | expr("continue")) >> not_(AlphaNum);
+	BreakLoop = sel({"break", "continue"}) >> not_alpha_num;
 
-	Return = key("return") >> -(TableBlock | ExpListLow);
+	Return = key("return") >> -(space >> (TableBlock | ExpListLow));
 
-	WithExp = ExpList >> -Assign;
+	with_exp = ExpList >> -(space >> Assign);
 
-	With = Space >> key("with") >> -existential_op >> disable_do_chain_arg_table_block(WithExp) >> body_with("do");
-	SwitchCase = Space >> key("when") >> disable_chain(disable_arg_table_block(SwitchList)) >> body_with("then");
-	SwitchElse = Space >> key("else") >> body;
+	With = key("with") >> -ExistentialOp >> space >> disable_do_chain_arg_table_block_rule(with_exp) >> space >> body_with("do");
+	SwitchCase = key("when") >> disable_chain_rule(disable_arg_table_block_rule(SwitchList)) >> space >> body_with("then");
+	switch_else = key("else") >> space >> body;
 
-	SwitchBlock =
-		*(Break >> *EmptyLine >> CheckIndent >> SwitchCase) >>
-		-(Break >> *EmptyLine >> CheckIndent >> SwitchElse);
+	switch_block =
+		*(line_break >> *empty_line >> check_indent_match >> space >> SwitchCase) >>
+		-(line_break >> *empty_line >> check_indent_match >> space >> switch_else);
 
-	exp_not_tab = not_(simple_table | TableLit) >> Exp;
+	exp_not_tab = not_(SimpleTable | TableLit) >> space >> Exp;
 
 	SwitchList = Seperator >> (
-		and_(simple_table | TableLit) >> Exp |
-		exp_not_tab >> *(Space >> expr(',') >> exp_not_tab)
+		and_(SimpleTable | TableLit) >> space >> Exp |
+		exp_not_tab >> *(space >> ',' >> exp_not_tab)
 	);
-	Switch = Space >> key("switch") >> Exp >>
-		Seperator >> (
-			SwitchCase >> Space >> (
-				Break >> *EmptyLine >> CheckIndent >> SwitchCase >> SwitchBlock |
-				*SwitchCase >> -SwitchElse
+	Switch = key("switch") >> space >> Exp >>
+		space >> Seperator >> (
+			SwitchCase >> space >> (
+				line_break >> *empty_line >> check_indent_match >> space >> SwitchCase >> switch_block |
+				*(space >> SwitchCase) >> -(space >> switch_else)
 			) |
-			SpaceBreak >> *EmptyLine >> Advance >> SwitchCase >> SwitchBlock >> PopIndent
-		) >> SwitchBlock;
+			space_break >> *empty_line >> advance_match >> space >> SwitchCase >> switch_block >> pop_indent
+		) >> switch_block;
 
-	assignment = ExpList >> Assign;
-	IfCond = disable_chain(disable_arg_table_block(assignment | Exp));
-	IfElseIf = -(Break >> *EmptyLine >> CheckIndent) >> Space >> key("elseif") >> IfCond >> body_with("then");
-	IfElse = -(Break >> *EmptyLine >> CheckIndent) >> Space >> key("else") >> body;
-	IfType = (expr("if") | expr("unless")) >> not_(AlphaNum);
-	If = seq({Space, IfType, IfCond, opt_body_with("then"), *IfElseIf, -IfElse});
+	Assignment = ExpList >> space >> Assign;
+	IfCond = disable_chain_rule(disable_arg_table_block_rule(Assignment | Exp));
+	if_else_if = -(line_break >> *empty_line >> check_indent_match) >> space >> key("elseif") >> space >> IfCond >> space >> body_with("then");
+	if_else = -(line_break >> *empty_line >> check_indent_match) >> space >> key("else") >> space >> body;
+	IfType = sel({"if", "unless"}) >> not_alpha_num;
+	If = seq({IfType, space, IfCond, space, opt_body_with("then"), *if_else_if, -if_else});
 
-	WhileType = (expr("while") | expr("until")) >> not_(AlphaNum);
-	While = WhileType >> disable_do_chain_arg_table_block(Exp) >> opt_body_with("do");
-	Repeat = seq({key("repeat"), Body, Break, *EmptyLine, CheckIndent, Space, key("until"), Exp});
+	WhileType = sel({"while", "until"}) >> not_alpha_num;
+	While = WhileType >> space >> disable_do_chain_arg_table_block_rule(Exp) >> space >> opt_body_with("do");
+	Repeat = seq({key("repeat"), space, Body, line_break, *empty_line, check_indent_match, space, key("until"), space, Exp});
 
-	for_step_value = Space >> expr(',') >> Exp;
-	for_args = Space >> Variable >> Space >> expr('=') >> Exp >> Space >> expr(',') >> Exp >> -for_step_value;
+	ForStepValue = ',' >> space >> Exp;
+	for_args = Variable >> space >> '=' >> space >> Exp >> space >> ',' >> space >> Exp >> space >> -ForStepValue;
 
-	For = key("for") >> disable_do_chain_arg_table_block(for_args) >> opt_body_with("do");
+	For = key("for") >> space >> disable_do_chain_arg_table_block_rule(for_args) >> space >> opt_body_with("do");
 
-	for_in = star_exp | ExpList;
+	for_in = StarExp | ExpList;
 
-	ForEach = key("for") >> AssignableNameList >> Space >> key("in") >>
-		disable_do_chain_arg_table_block(for_in) >> opt_body_with("do");
+	ForEach = key("for") >> space >> AssignableNameList >> space >> key("in") >> space >>
+		disable_do_chain_arg_table_block_rule(for_in) >> space >> opt_body_with("do");
 
-	Do = pl::user(Space >> key("do"), [](const item_t& item) {
+	Do = pl::user(key("do"), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		return st->noDoStack.empty() || !st->noDoStack.top();
-	}) >> Body;
+	}) >> space >> Body;
 
-	DisableDo = pl::user(true_(), [](const item_t& item) {
+	disable_do = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->noDoStack.push(true);
 		return true;
 	});
 
-	EnableDo = pl::user(true_(), [](const item_t& item) {
+	enable_do = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->noDoStack.pop();
 		return true;
 	});
 
-	DisableDoChainArgTableBlock = pl::user(true_(), [](const item_t& item) {
+	disable_do_chain_arg_table_block = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->noDoStack.push(true);
 		st->noChainBlockStack.push(true);
@@ -327,7 +367,7 @@ YueParser::YueParser() {
 		return true;
 	});
 
-	EnableDoChainArgTableBlock = pl::user(true_(), [](const item_t& item) {
+	enable_do_chain_arg_table_block = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->noDoStack.pop();
 		st->noChainBlockStack.pop();
@@ -335,123 +375,112 @@ YueParser::YueParser() {
 		return true;
 	});
 
-	DisableArgTableBlock = pl::user(true_(), [](const item_t& item) {
+	disable_arg_table_block = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->noTableBlockStack.push(true);
 		return true;
 	});
 
-	EnableArgTableBlock = pl::user(true_(), [](const item_t& item) {
+	enable_arg_table_block = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->noTableBlockStack.pop();
 		return true;
 	});
 
-	catch_block = Break >> *EmptyLine >> CheckIndent >> Space >> key("catch") >> Space >> Variable >> InBlock;
-	Try = Space >> key("try") >> (InBlock | Exp) >> -catch_block;
+	CatchBlock = line_break >> *empty_line >> check_indent_match >> space >> key("catch") >> space >> Variable >> space >> in_block;
+	Try = key("try") >> space >> (in_block | Exp) >> -CatchBlock;
 
-	Comprehension = Space >> expr('[') >> not_('[') >> Exp >> Space >> CompInner >> Space >> expr(']');
-	comp_value = Space >> expr(',') >> Exp;
-	TblComprehension = Space >> expr('{') >> Exp >> -comp_value >> Space >> CompInner >> Space >> expr('}');
+	Comprehension = '[' >> not_('[') >> space >> Exp >> space >> CompInner >> space >> ']';
+	CompValue = ',' >> space >> Exp;
+	TblComprehension = '{' >> space >> Exp >> space >> -(CompValue >> space) >> CompInner >> space >> '}';
 
-	CompInner = Seperator >> (CompForEach | CompFor) >> *CompClause;
-	star_exp = Space >> expr('*') >> Exp;
-	CompForEach = key("for") >> AssignableNameList >> Space >> key("in") >> (star_exp | Exp);
-	CompFor = key("for") >> Space >> Variable >> Space >> expr('=') >> Exp >> Space >> expr(',') >> Exp >> -for_step_value;
-	CompClause = Space >> sel({CompFor, CompForEach, key("when") >> Exp});
+	CompInner = Seperator >> (CompForEach | CompFor) >> *(space >> comp_clause);
+	StarExp = '*' >> space >> Exp;
+	CompForEach = key("for") >> space >> AssignableNameList >> space >> key("in") >> space >> (StarExp | Exp);
+	CompFor = key("for") >> space >> Variable >> space >> '=' >> space >> Exp >> space >> ',' >> space >> Exp >> -ForStepValue;
+	comp_clause = sel({CompFor, CompForEach, key("when") >> space >> Exp});
 
-	Assign = Space >> expr('=') >> Seperator >> sel({
+	Assign = '=' >> space >> Seperator >> sel({
 		With, If, Switch, TableBlock,
-		Exp >> *(Space >> set(",;") >> Exp)
+		Exp >> *(space >> set(",;") >> space >> Exp)
 	});
 
-	update_op = sel({
-		expr(".."),
-		expr("//"),
-		expr("or"),
-		expr("and"),
-		expr(">>"),
-		expr("<<"),
-		expr("??"),
+	UpdateOp = sel({
+		"..", "//", "or", "and",
+		">>", "<<", "??",
 		set("+-*/%&|")
 	});
 
-	Update = Space >> update_op >> expr("=") >> Exp;
+	Update = UpdateOp >> '=' >> space >> Exp;
 
-	Assignable = Space >> sel({AssignableChain, Variable, SelfName});
+	Assignable = sel({AssignableChain, Variable, SelfItem});
 
-	unary_value = +(unary_operator >> Space) >> Value;
+	UnaryValue = +(UnaryOperator >> space) >> Value;
 
-	ExponentialOperator = expr('^');
-	expo_value = seq({Space, ExponentialOperator, *SpaceBreak, Space, Value});
-	expo_exp = Value >> *expo_value;
+	exponential_operator = '^';
+	expo_value = seq({exponential_operator, *space_break, space, Value});
+	expo_exp = Value >> *(space >> expo_value);
 
-	unary_operator = sel({
-		expr('-') >> not_(set(">=") | space_one),
-		expr('#'),
-		expr('~') >> not_(expr('=') | space_one),
-		expr("not") >> not_(AlphaNum)
+	UnaryOperator = sel({
+		'-' >> not_(set(">=") | space_one),
+		'#',
+		'~' >> not_('=' | space_one),
+		"not" >> not_alpha_num
 	});
-	unary_exp = Space >> *(unary_operator >> Space) >> expo_exp;
+	UnaryExp = *(UnaryOperator >> space) >> expo_exp;
 
-	PipeOperator = expr("|>");
-	pipe_value = seq({Space, PipeOperator, *SpaceBreak, unary_exp});
-	pipe_exp = unary_exp >> *pipe_value;
+	pipe_operator = "|>";
+	pipe_value = seq({pipe_operator, *space_break, space, UnaryExp});
+	pipe_exp = UnaryExp >> *(space >> pipe_value);
 
 	BinaryOperator = sel({
-		(expr("or") >> not_(AlphaNum)),
-		(expr("and") >> not_(AlphaNum)),
-		expr("<="),
-		expr(">="),
-		expr("~="),
-		expr("!="),
-		expr("=="),
-		expr(".."),
-		expr("<<"),
-		expr(">>"),
-		expr("//"),
+		"or" >> not_alpha_num,
+		"and" >> not_alpha_num,
+		"<=", ">=", "~=", "!=", "==",
+		"..", "<<", ">>", "//",
 		set("+-*/%><|&~")
 	});
-	exp_op_value = seq({Space, BinaryOperator, *SpaceBreak, pipe_exp});
-	Exp = seq({Seperator, pipe_exp, *exp_op_value, -(Space >> expr("??") >> Exp)});
+	ExpOpValue = seq({BinaryOperator, *space_break, space, pipe_exp});
+	Exp = seq({Seperator, pipe_exp, *(space >> ExpOpValue), -(space >> "??" >> space >> Exp)});
 
-	DisableChain = pl::user(true_(), [](const item_t& item) {
+	disable_chain = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->noChainBlockStack.push(true);
 		return true;
 	});
 
-	EnableChain = pl::user(true_(), [](const item_t& item) {
+	enable_chain = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->noChainBlockStack.pop();
 		return true;
 	});
 
-	chain_line = seq({CheckIndent, Space, chain_dot_chain | ColonChain, -InvokeArgs});
+	chain_line = seq({check_indent_match, space, chain_dot_chain | colon_chain, -InvokeArgs});
 	chain_block = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		return st->noChainBlockStack.empty() || !st->noChainBlockStack.top();
-	}) >> +SpaceBreak >> Advance >> ensure(
-		chain_line >> *(+SpaceBreak >> chain_line), PopIndent);
+	}) >> +space_break >> advance_match >> ensure(
+		chain_line >> *(+space_break >> chain_line), pop_indent);
 	ChainValue = seq({
 		Seperator,
-		Chain,
-		-existential_op,
+		chain,
+		-ExistentialOp,
 		-(InvokeArgs | chain_block),
-		-table_appending_op
+		-TableAppendingOp
 	});
 
-	simple_table = seq({Seperator, KeyValue, *(Space >> expr(',') >> KeyValue)});
-	Value = sel({SimpleValue, simple_table, ChainValue, String});
+	SimpleTable = seq({Seperator, key_value, *(space >> ',' >> space >> key_value)});
+	Value = sel({SimpleValue, SimpleTable, ChainValue, String});
 
-	single_string_inner = expr('\\') >> set("'\\") | not_(expr('\'')) >> Any;
-	SingleString = expr('\'') >> *single_string_inner >> expr('\'');
-	interp = expr("#{") >> Exp >> Space >> expr('}');
-	double_string_plain = expr('\\') >> set("\"\\") | not_(expr('"')) >> Any;
-	double_string_inner = +(not_(interp) >> double_string_plain);
-	double_string_content = double_string_inner | interp;
-	DoubleString = expr('"') >> Seperator >> *double_string_content >> expr('"');
-	String = DoubleString | SingleString | LuaString;
+	single_string_inner = '\\' >> set("'\\") | not_('\'') >> any_char;
+	SingleString = '\'' >> *single_string_inner >> '\'';
+
+	interp = "#{" >> space >> Exp >> space >> '}';
+	double_string_plain = '\\' >> set("\"\\") | not_('"') >> any_char;
+	DoubleStringInner = +(not_(interp) >> double_string_plain);
+	DoubleStringContent = DoubleStringInner | interp;
+	DoubleString = '"' >> Seperator >> *DoubleStringContent >> '"';
+	String = sel({DoubleString, SingleString, LuaString});
 
 	lua_string_open = '[' >> *expr('=') >> '[';
 	lua_string_close = ']' >> *expr('=') >> ']';
@@ -469,143 +498,143 @@ YueParser::YueParser() {
 		return st->stringOpen == count;
 	});
 
-	LuaStringContent = *(not_(LuaStringClose) >> Any);
+	LuaStringContent = *(not_(LuaStringClose) >> any_char);
 
-	LuaString = LuaStringOpen >> -Break >> LuaStringContent >> LuaStringClose;
+	LuaString = LuaStringOpen >> -line_break >> LuaStringContent >> LuaStringClose;
 
-	Parens = pl::user(seq({expr('('), *SpaceBreak, Exp, *SpaceBreak, Space >> expr(')')}), [](const item_t&) {
-		return true;
+	Parens = seq({'(', *space_break, space, Exp, *space_break, space, ')'});
+	Callable = sel({Variable, SelfItem, MacroName, VarArg, Parens});
+	fn_args_exp_list = space >> Exp >> space >> *seq({line_break | ',', white, Exp});
+
+	fn_args = sel({
+		seq({'(', *space_break, -fn_args_exp_list, *space_break, space, ')'}),
+		seq({space, '!', not_('=')})
 	});
-	Callable = sel({Variable, SelfName, MacroName, VarArg, Parens});
-	FnArgsExpList = Exp >> *seq({Break | Space >> expr(','), White, Exp});
 
-	FnArgs = seq({expr('('), *SpaceBreak, -FnArgsExpList, *SpaceBreak, Space, expr(')')}) |
-		seq({Space, expr('!'), not_(expr('='))});
+	meta_index = sel({Name, index, String});
+	Metatable = '<' >> space >> '>';
+	Metamethod = '<' >> space >> meta_index >> space >> '>';
 
-	meta_index = sel({Name, Index, String});
-	Metatable = expr('<') >> Space >> expr('>');
-	Metamethod = expr('<') >> Space >> meta_index >> Space >> expr('>');
-
-	existential_op = expr('?') >> not_(expr('?'));
-	table_appending_op = expr("[]");
+	ExistentialOp = '?' >> not_('?');
+	TableAppendingOp = "[]";
 	chain_call = seq({
 		Callable,
-		-existential_op,
-		-ChainItems
+		-ExistentialOp,
+		-chain_items
 	}) | seq({
 		String,
-		ChainItems
+		chain_items
 	});
-	chain_index_chain = seq({Index, -existential_op, -ChainItems});
-	chain_dot_chain = seq({DotChainItem, -existential_op, -ChainItems});
+	chain_index_chain = seq({index, -ExistentialOp, -chain_items});
+	chain_dot_chain = seq({DotChainItem, -ExistentialOp, -chain_items});
 
-	Chain = sel({chain_call, chain_dot_chain, ColonChain, chain_index_chain});
+	chain = sel({chain_call, chain_dot_chain, colon_chain, chain_index_chain});
 
 	chain_call_list = seq({
 		Callable,
-		-existential_op,
-		ChainItems
+		-ExistentialOp,
+		chain_items
 	}) | seq({
 		String,
-		ChainItems
+		chain_items
 	});
-	ChainList = sel({chain_call_list, chain_dot_chain, ColonChain, chain_index_chain});
+	chain_list = sel({chain_call_list, chain_dot_chain, colon_chain, chain_index_chain});
 
-	AssignableChain = Seperator >> ChainList;
+	AssignableChain = Seperator >> chain_list;
 
-	chain_with_colon = +ChainItem >> -ColonChain;
-	ChainItems = chain_with_colon | ColonChain;
+	chain_with_colon = +chain_item >> -colon_chain;
+	chain_items = chain_with_colon | colon_chain;
 
-	Index = seq({expr('['), not_('['), Exp, Space, expr(']')});
-	ChainItem = sel({
-		Invoke >> -existential_op,
-		DotChainItem >> -existential_op,
+	index = seq({'[', not_('['), space, Exp, space, ']'});
+	chain_item = sel({
+		Invoke >> -ExistentialOp,
+		DotChainItem >> -ExistentialOp,
 		Slice,
-		Index >> -existential_op
+		index >> -ExistentialOp
 	});
-	DotChainItem = expr('.') >> sel({Name, Metatable, Metamethod});
-	ColonChainItem = (expr('\\') | expr("::")) >> sel({LuaKeyword, Name, Metamethod});
-	invoke_chain = Invoke >> -existential_op >> -ChainItems;
-	ColonChain = ColonChainItem >> -existential_op >> -invoke_chain;
+	DotChainItem = '.' >> sel({Name, Metatable, Metamethod});
+	ColonChainItem = sel({'\\', "::"}) >> sel({LuaKeyword, Name, Metamethod});
+	invoke_chain = Invoke >> -ExistentialOp >> -chain_items;
+	colon_chain = ColonChainItem >> -ExistentialOp >> -invoke_chain;
 
-	default_value = true_();
+	DefaultValue = true_();
 	Slice = seq({
-		expr('['), not_('['),
-		Exp | default_value,
-		Space, expr(','),
-		Exp | default_value,
-		Space >> expr(',') >> Exp | default_value,
-		Space, expr(']')
+		'[', not_('['),
+		space, Exp | DefaultValue,
+		space, ',',
+		space, Exp | DefaultValue,
+		space, ',' >> space >> Exp | DefaultValue,
+		space, ']'
 	});
 
 	Invoke = Seperator >> sel({
-		FnArgs,
+		fn_args,
 		SingleString,
 		DoubleString,
-		and_(expr('[')) >> LuaString,
-		and_(expr('{')) >> TableLit
+		and_('[') >> LuaString,
+		and_('{') >> TableLit
 	});
 
-	SpreadExp = Space >> expr("...") >> Exp;
+	SpreadExp = "..." >> space >> Exp;
 
-	TableValue = sel({
-		variable_pair_def,
-		normal_pair_def,
-		meta_variable_pair_def,
-		meta_normal_pair_def,
+	table_value = sel({
+		VariablePairDef,
+		NormalPairDef,
+		MetaVariablePairDef,
+		MetaNormalPairDef,
 		SpreadExp,
-		normal_def
+		NormalDef
 	});
 
-	table_lit_lines = SpaceBreak >> TableLitLine >> *(-(Space >> expr(',')) >> SpaceBreak >> TableLitLine) >> -(Space >> expr(','));
+	table_lit_lines = space_break >> table_lit_line >> *(-(space >> ',') >> space_break >> table_lit_line) >> -(space >> ',');
 
 	TableLit = seq({
-		Space, expr('{'), Seperator,
-		-TableValueList,
-		-(Space >> expr(',')),
+		space, '{', Seperator,
+		-(space >> table_value_list),
+		-(space >> ','),
 		-table_lit_lines,
-		White, expr('}')
+		white, '}'
 	});
 
-	TableValueList = TableValue >> *(Space >> expr(',') >> TableValue);
+	table_value_list = table_value >> *seq({space, ',', space, table_value});
 
-	TableLitLine = (
-		PushIndent >> (TableValueList >> PopIndent | PopIndent)
+	table_lit_line = (
+		push_indent_match >> (space >> table_value_list >> pop_indent | pop_indent)
 	) | (
-		Space
+		space
 	);
 
-	TableBlockInner = Seperator >> KeyValueLine >> *(+SpaceBreak >> KeyValueLine);
-	TableBlock = +SpaceBreak >> Advance >> ensure(TableBlockInner, PopIndent);
-	TableBlockIndent = Space >> expr('*') >> Seperator >> disable_arg_table_block(
-		KeyValueList >> -(Space >> expr(',')) >>
-		-(+SpaceBreak >> Advance >> ensure(KeyValueList >> -(Space >> expr(',')) >> *(+SpaceBreak >> KeyValueLine), PopIndent)));
+	table_block_inner = Seperator >> key_value_line >> *(+space_break >> key_value_line);
+	TableBlock = +space_break >> advance_match >> ensure(table_block_inner, pop_indent);
+	TableBlockIndent = '*' >> Seperator >> disable_arg_table_block_rule(
+		space >> key_value_list >> -(space >> ',') >>
+		-(+space_break >> advance_match >> space >> ensure(key_value_list >> -(space >> ',') >> *(+space_break >> key_value_line), pop_indent)));
 
-	class_member_list = Seperator >> KeyValue >> *(Space >> expr(',') >> KeyValue);
-	ClassLine = CheckIndent >> (class_member_list | Space >> Statement) >> -(Space >> expr(','));
-	ClassBlock = seq({+SpaceBreak, Advance, Seperator, ClassLine, *(+SpaceBreak >> ClassLine), PopIndent});
+	ClassMemberList = Seperator >> key_value >> *(space >> ',' >> space >> key_value);
+	class_line = check_indent_match >> space >> (ClassMemberList | Statement) >> -(space >> ',');
+	ClassBlock = seq({+space_break, advance_match, Seperator, class_line, *(+space_break >> class_line), pop_indent});
 
 	ClassDecl = seq({
-		Space, key("class"), not_(expr(':')),
-		disable_arg_table_block(seq({
-			-Assignable,
-			-seq({Space, key("extends"), PreventIndent, ensure(Exp, PopIndent)}),
-			-seq({Space, key("using"), PreventIndent, ensure(ExpList, PopIndent)})
+		key("class"), not_(':'),
+		disable_arg_table_block_rule(seq({
+			-(space >> Assignable),
+			-seq({space, key("extends"), prevent_indent, space, ensure(Exp, pop_indent)}),
+			-seq({space, key("using"), prevent_indent, space, ensure(ExpList, pop_indent)})
 		})),
 		-ClassBlock
 	});
 
-	global_values = NameList >> -(Space >> expr('=') >> (TableBlock | ExpListLow));
-	global_op = expr('*') | expr('^');
-	Global = key("global") >> sel({ClassDecl, Space >> global_op, global_values});
+	GlobalValues = NameList >> -(space >> '=' >> space >> (TableBlock | ExpListLow));
+	GlobalOp = sel({'*', '^'});
+	Global = key("global") >> space >> sel({ClassDecl, GlobalOp, GlobalValues});
 
-	export_default = key("default");
+	ExportDefault = key("default");
 
 	Export = pl::user(key("export"), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->exportCount++;
 		return true;
-	}) >> (pl::user(Space >> export_default >> Exp, [](const item_t& item) {
+	}) >> (pl::user(space >> ExportDefault >> space >> Exp, [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		if (st->exportDefault) {
 			throw ParserError("export default has already been declared", *item.begin, *item.end);
@@ -616,99 +645,99 @@ YueParser::YueParser() {
 		st->exportDefault = true;
 		return true;
 	})
-	| (not_(Space >> export_default) >> pl::user(true_(), [](const item_t& item) {
+	| (not_(space >> ExportDefault) >> pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		if (st->exportDefault && st->exportCount > 1) {
 			throw ParserError("can not export any more items when 'export default' is declared", *item.begin, *item.end);
 		}
 		return true;
-	}) >> ExpList >> -Assign)
-	| Space >> pl::user(Macro, [](const item_t& item) {
+	}) >> space >> ExpList >> -(space >> Assign))
+	| space >> pl::user(Macro, [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
 		st->exportMacro = true;
 		return true;
-	})) >> not_(Space >> statement_appendix);
+	})) >> not_(space >> StatementAppendix);
 
-	variable_pair = Space >> expr(':') >> Variable;
+	VariablePair = ':' >> Variable;
 
-	normal_pair = seq({
-		Space,
+	NormalPair = seq({
 		sel({
 			KeyName,
-			seq({expr('['), not_('['), Exp, Space >> expr(']')}),
+			seq({'[', not_('['), space, Exp, space, ']'}),
 			String
 		}),
-		expr(':'), not_(':'),
-		sel({Exp, TableBlock, +SpaceBreak >> Exp})
+		':', not_(':'), space,
+		sel({Exp, TableBlock, +space_break >> space >> Exp})
 	});
 
-	meta_variable_pair = Space >> expr(":<") >> Space >> Variable >> Space >> expr('>');
+	MetaVariablePair = ":<" >> space >> Variable >> space >> '>';
 
-	meta_normal_pair = Space >> expr('<') >> Space >> -meta_index >> Space >> expr(">:") >>
-		sel({Exp, TableBlock, +(SpaceBreak) >> Exp});
+	MetaNormalPair = '<' >> space >> -meta_index >> space >> ">:" >> space >>
+		sel({Exp, TableBlock, +space_break >> space >> Exp});
 
-	destruct_def = -seq({Space, expr('='), Exp});
-	variable_pair_def = variable_pair >> destruct_def;
-	normal_pair_def = normal_pair >> destruct_def;
-	meta_variable_pair_def = meta_variable_pair >> destruct_def;
-	meta_normal_pair_def = meta_normal_pair >> destruct_def;
-	normal_def = Exp >> Seperator >> destruct_def;
+	destruct_def = -seq({space, '=', space, Exp});
+	VariablePairDef = VariablePair >> destruct_def;
+	NormalPairDef = NormalPair >> destruct_def;
+	MetaVariablePairDef = MetaVariablePair >> destruct_def;
+	MetaNormalPairDef = MetaNormalPair >> destruct_def;
+	NormalDef = Exp >> Seperator >> destruct_def;
 
-	KeyValue = sel({
-		variable_pair,
-		normal_pair,
-		meta_variable_pair,
-		meta_normal_pair
+	key_value = sel({
+		VariablePair,
+		NormalPair,
+		MetaVariablePair,
+		MetaNormalPair
 	});
-	KeyValueList = KeyValue >> *(Space >> expr(',') >> KeyValue);
-	KeyValueLine = CheckIndent >> sel({
-		KeyValueList >> -(Space >> expr(',')),
+	key_value_list = key_value >> *(space >> ',' >> space >> key_value);
+	key_value_line = check_indent_match >> space >> sel({
+		key_value_list >> -(space >> ','),
 		TableBlockIndent,
-		Space >> expr('*') >> sel({SpreadExp, Exp, TableBlock})
+		'*' >> space >> sel({SpreadExp, Exp, TableBlock})
 	});
 
-	FnArgDef = (Variable | SelfName >> -existential_op) >> -(Space >> expr('=') >> Space >> Exp);
+	FnArgDef = (Variable | SelfItem >> -ExistentialOp) >> -(space >> '=' >> space >> Exp);
 
-	FnArgDefList = Space >> Seperator >> (
+	FnArgDefList = Seperator >> (
 		seq({
 			FnArgDef,
-			*seq({(Space >> expr(',') | Break), White, FnArgDef}),
-			-seq({(Space >> expr(',') | Break), White, VarArg})
+			*seq({space, ',' | line_break, white, FnArgDef}),
+			-seq({space, ',' | line_break, white, VarArg})
 		}) |
 			VarArg
 	);
 
-	outer_var_shadow = Space >> key("using") >> (NameList | Space >> expr("nil"));
+	OuterVarShadow = key("using") >> space >> (NameList | key("nil"));
 
-	FnArgsDef = seq({Space, expr('('), White, -FnArgDefList, -outer_var_shadow, White, Space, expr(')')});
-	fn_arrow = expr("->") | expr("=>");
-	FunLit = seq({-FnArgsDef, Space, fn_arrow, -Body});
+	FnArgsDef = seq({'(', white, -FnArgDefList, -(space >> OuterVarShadow), white, ')'});
+	FnArrow = sel({"->", "=>"});
+	FunLit = seq({-FnArgsDef, space, FnArrow, -(space >> Body)});
 
-	MacroName = expr('$') >> Name;
-	macro_args_def = Space >> expr('(') >> White >> -FnArgDefList >> White >> Space >> expr(')');
-	MacroLit = -macro_args_def >> Space >> expr("->") >> Body;
-	Macro = key("macro") >> Space >> Name >> Space >> expr('=') >> MacroLit;
-	MacroInPlace = expr('$') >> Space >> expr("->") >> Body;
+	MacroName = '$' >> Name;
+	macro_args_def = '(' >> white >> -FnArgDefList >> white >> ')';
+	MacroLit = -(macro_args_def >> space) >> "->" >> space >> Body;
+	Macro = key("macro") >> space >> Name >> space >> '=' >> space >> MacroLit;
+	MacroInPlace = '$' >> space >> "->" >> space >> Body;
 
-	NameList = Seperator >> Space >> Variable >> *(Space >> expr(',') >> Space >> Variable);
-	NameOrDestructure = Space >> Variable | TableLit;
-	AssignableNameList = Seperator >> NameOrDestructure >> *(Space >> expr(',') >> NameOrDestructure);
+	NameList = Seperator >> Variable >> *(space >> ',' >> space >> Variable);
+	NameOrDestructure = Variable | TableLit;
+	AssignableNameList = Seperator >> NameOrDestructure >> *(space >> ',' >> space >> NameOrDestructure);
 
-	fn_arrow_back = expr('<') >> set("-=");
-	Backcall = seq({-FnArgsDef, Space, fn_arrow_back, Space, ChainValue});
+	FnArrowBack = '<' >> set("-=");
+	Backcall = seq({-(FnArgsDef >> space), FnArrowBack, space, ChainValue});
 
 	PipeBody = seq({
 		Seperator,
-		PipeOperator,
-		unary_exp,
-		*seq({+SpaceBreak, CheckIndent, Space, PipeOperator, unary_exp})
+		pipe_operator,
+		space,
+		UnaryExp,
+		*seq({+space_break, check_indent_match, space, pipe_operator, space, UnaryExp})
 	});
 
-	ExpList = Seperator >> Exp >> *(Space >> expr(',') >> Exp);
-	ExpListLow = Seperator >> Exp >> *(Space >> set(",;") >> Exp);
+	ExpList = Seperator >> Exp >> *(space >> ',' >> space >> Exp);
+	ExpListLow = Seperator >> Exp >> *(space >> set(",;") >> space >> Exp);
 
-	ArgLine = CheckIndent >> Exp >> *(Space >> expr(',') >> Exp);
-	ArgBlock = ArgLine >> *(Space >> expr(',') >> SpaceBreak >> ArgLine) >> PopIndent;
+	arg_line = check_indent_match >> space >> Exp >> *(space >> ',' >> space >> Exp);
+	arg_block = arg_line >> *(space >> ',' >> space_break >> arg_line) >> pop_indent;
 
 	arg_table_block = pl::user(true_(), [](const item_t& item) {
 		State* st = reinterpret_cast<State*>(item.user_data);
@@ -716,99 +745,106 @@ YueParser::YueParser() {
 	}) >> TableBlock;
 
 	invoke_args_with_table =
-		Space >> expr(',') >> (
+		',' >> (
 			TableBlock |
-			SpaceBreak >> Advance >> ArgBlock >> -arg_table_block
+			space_break >> advance_match >> arg_block >> -arg_table_block
 		) | arg_table_block;
 
-	leading_spaces_error = pl::user(+space_one >> expr('(') >> Exp >> +(Space >> expr(',') >> Exp) >> Space >> expr(')'), [](const item_t& item) {
+	leading_spaces_error = pl::user(+space_one >> '(' >> space >> Exp >> +(space >> ',' >> space >> Exp) >> space >> ')', [](const item_t& item) {
 		throw ParserError("write invoke arguments in parentheses without leading spaces or just leading spaces without parentheses", *item.begin, *item.end);
 		return false;
 	});
 
 	InvokeArgs =
-		not_(set("-~")) >> Seperator >>
+		not_(set("-~")) >> space >> Seperator >>
 		sel({
-			Exp >> *(Space >> expr(',') >> Exp) >> -invoke_args_with_table,
+			Exp >> *(space >> ',' >> space >> Exp) >> -(space >> invoke_args_with_table),
 			arg_table_block,
 			leading_spaces_error
 		});
 
-	const_value = sel({expr("nil"), expr("true"), expr("false")}) >> not_(AlphaNum);
+	ConstValue = sel({"nil", "true", "false"}) >> not_alpha_num;
 
 	SimpleValue = sel({
-		TableLit, const_value, If, Switch, Try, With,
+		TableLit, ConstValue, If, Switch, Try, With,
 		ClassDecl, ForEach, For, While, Do,
-		unary_value, TblComprehension, Comprehension,
+		UnaryValue, TblComprehension, Comprehension,
 		FunLit, Num
 	});
 
-	ExpListAssign = ExpList >> -(Update | Assign) >> not_(Space >> expr('='));
+	ExpListAssign = ExpList >> -(space >> (Update | Assign)) >> not_(space >> '=');
 
-	if_line = Space >> IfType >> IfCond;
-	while_line = Space >> WhileType >> Exp;
+	IfLine = IfType >> space >> IfCond;
+	WhileLine = WhileType >> space >> Exp;
 
-	YueLineComment = *(not_(set("\r\n")) >> Any);
-	yue_line_comment = expr("--") >> YueLineComment >> and_(Stop);
+	YueLineComment = *(not_(set("\r\n")) >> any_char);
+	yue_line_comment = "--" >> YueLineComment >> and_(stop);
 	YueMultilineComment = multi_line_content;
 	yue_multiline_comment = multi_line_open >> YueMultilineComment >> multi_line_close;
-	yue_comment = check_indent >> (yue_multiline_comment >> *(set(" \t") | yue_multiline_comment) >> -yue_line_comment | yue_line_comment) >> and_(Break);
+	yue_comment = check_indent >> sel({
+		seq({
+			yue_multiline_comment,
+			*(set(" \t") | yue_multiline_comment),
+			-yue_line_comment
+		}),
+		yue_line_comment
+	}) >> and_(line_break);
 
-	ChainAssign = Seperator >> Exp >> +(Space >> expr('=') >> Exp >> Space >> and_('=')) >> Assign;
+	ChainAssign = Seperator >> Exp >> +(space >> '=' >> space >> Exp >> space >> and_('=')) >> space >> Assign;
 
-	statement_appendix = sel({if_line, while_line, CompInner}) >> Space;
-	statement_sep = and_(seq({
-		*SpaceBreak, CheckIndent, Space,
+	StatementAppendix = sel({IfLine, WhileLine, CompInner}) >> space;
+	StatementSep = and_(seq({
+		*space_break, check_indent_match, space,
 		sel({
 			set("($'\""),
-			expr("[["),
-			expr("[=")
+			"[[",
+			"[="
 		})
 	}));
 	Statement = seq({
 		Seperator,
 		-seq({
 			yue_comment,
-			*(Break >> yue_comment),
-			Break,
-			CheckIndent
+			*(line_break >> yue_comment),
+			line_break,
+			check_indent_match
 		}),
-		Space,
+		space,
 		sel({
 			Import, While, Repeat, For, ForEach,
 			Return, Local, Global, Export, Macro,
 			MacroInPlace, BreakLoop, Label, Goto, ShortTabAppending,
 			LocalAttrib, Backcall, PipeBody, ExpListAssign, ChainAssign,
-			statement_appendix >> empty_block_error
+			StatementAppendix >> empty_block_error
 		}),
-		Space,
-		-statement_appendix,
-		-statement_sep
+		space,
+		-StatementAppendix,
+		-StatementSep
 	});
 
-	Body = InBlock | Space >> Statement;
+	Body = in_block | Statement;
 
 	empty_line_break = sel({
-		check_indent >> (MultiLineComment >> Space | Comment),
-		advance >> ensure(MultiLineComment >> Space | Comment, PopIndent),
+		check_indent >> (multi_line_comment >> space | comment),
+		advance >> ensure(multi_line_comment >> space | comment, pop_indent),
 		plain_space
-	}) >> and_(Break);
+	}) >> and_(line_break);
 
-	indentation_error = pl::user(not_(PipeOperator | eof()), [](const item_t& item) {
+	indentation_error = pl::user(not_(pipe_operator | eof()), [](const item_t& item) {
 		throw ParserError("unexpected indent", *item.begin, *item.end);
 		return false;
 	});
 
-	Line = sel({
-		CheckIndent >> Statement,
+	line = sel({
+		check_indent_match >> Statement,
 		empty_line_break,
-		Advance >> ensure(Space >> (indentation_error | Statement), PopIndent)
+		advance_match >> ensure(space >> (indentation_error | Statement), pop_indent)
 	});
-	Block = seq({Seperator, Line, *(+Break >> Line)});
+	Block = seq({Seperator, line, *(+line_break >> line)});
 
-	Shebang = expr("#!") >> *(not_(Stop) >> Any);
-	BlockEnd = seq({Block, White, Stop});
-	File = seq({-Shebang, -Block, White, Stop});
+	shebang = "#!" >> *(not_(stop) >> any_char);
+	BlockEnd = seq({Block, white, stop});
+	File = seq({-shebang, -Block, white, stop});
 }
 // clang-format on
 
