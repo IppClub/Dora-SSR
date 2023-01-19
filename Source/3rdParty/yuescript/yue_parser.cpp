@@ -47,7 +47,6 @@ YueParser::YueParser() {
 	space = -(and_(set(" \t-\\")) >> *space_one >> -comment);
 	space_break = space >> line_break;
 	white = space >> *(line_break >> space);
-	empty_line = space_break;
 	alpha_num = sel({range('a', 'z'), range('A', 'Z'), range('0', '9'), '_'});
 	not_alpha_num = not_(alpha_num);
 	Name = sel({range('a', 'z'), range('A', 'Z'), '_'}) >> *alpha_num;
@@ -303,8 +302,8 @@ YueParser::YueParser() {
 	switch_else = key("else") >> space >> body;
 
 	switch_block =
-		*(line_break >> *empty_line >> check_indent_match >> space >> SwitchCase) >>
-		-(line_break >> *empty_line >> check_indent_match >> space >> switch_else);
+		*(line_break >> *space_break >> check_indent_match >> space >> SwitchCase) >>
+		-(line_break >> *space_break >> check_indent_match >> space >> switch_else);
 
 	exp_not_tab = not_(SimpleTable | TableLit) >> space >> Exp;
 
@@ -315,22 +314,22 @@ YueParser::YueParser() {
 	Switch = key("switch") >> space >> Exp >>
 		space >> Seperator >> (
 			SwitchCase >> space >> (
-				line_break >> *empty_line >> check_indent_match >> space >> SwitchCase >> switch_block |
+				line_break >> *space_break >> check_indent_match >> space >> SwitchCase >> switch_block |
 				*(space >> SwitchCase) >> -(space >> switch_else)
 			) |
-			space_break >> *empty_line >> advance_match >> space >> SwitchCase >> switch_block >> pop_indent
+			+space_break >> advance_match >> space >> SwitchCase >> switch_block >> pop_indent
 		) >> switch_block;
 
 	Assignment = ExpList >> space >> Assign;
 	IfCond = disable_chain_rule(disable_arg_table_block_rule(Assignment | Exp));
-	if_else_if = -(line_break >> *empty_line >> check_indent_match) >> space >> key("elseif") >> space >> IfCond >> space >> body_with("then");
-	if_else = -(line_break >> *empty_line >> check_indent_match) >> space >> key("else") >> space >> body;
+	if_else_if = -(line_break >> *space_break >> check_indent_match) >> space >> key("elseif") >> space >> IfCond >> space >> body_with("then");
+	if_else = -(line_break >> *space_break >> check_indent_match) >> space >> key("else") >> space >> body;
 	IfType = sel({"if", "unless"}) >> not_alpha_num;
 	If = seq({IfType, space, IfCond, space, opt_body_with("then"), *if_else_if, -if_else});
 
 	WhileType = sel({"while", "until"}) >> not_alpha_num;
 	While = WhileType >> space >> disable_do_chain_arg_table_block_rule(Exp) >> space >> opt_body_with("do");
-	Repeat = seq({key("repeat"), space, Body, line_break, *empty_line, check_indent_match, space, key("until"), space, Exp});
+	Repeat = seq({key("repeat"), space, Body, line_break, *space_break, check_indent_match, space, key("until"), space, Exp});
 
 	ForStepValue = ',' >> space >> Exp;
 	for_args = Variable >> space >> '=' >> space >> Exp >> space >> ',' >> space >> Exp >> space >> -ForStepValue;
@@ -387,7 +386,7 @@ YueParser::YueParser() {
 		return true;
 	});
 
-	CatchBlock = line_break >> *empty_line >> check_indent_match >> space >> key("catch") >> space >> Variable >> space >> in_block;
+	CatchBlock = line_break >> *space_break >> check_indent_match >> space >> key("catch") >> space >> Variable >> space >> in_block;
 	Try = key("try") >> space >> (in_block | Exp) >> -CatchBlock;
 
 	Comprehension = '[' >> not_('[') >> space >> Exp >> space >> CompInner >> space >> ']';
