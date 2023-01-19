@@ -140,7 +140,6 @@ private:
 	rule space_one;
 	rule space;
 	rule space_break;
-	rule empty_line;
 	rule alpha_num;
 	rule not_alpha_num;
 	rule cut;
