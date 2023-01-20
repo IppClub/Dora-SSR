@@ -1393,44 +1393,44 @@ expr operator|(expr&& left, expr&& right) {
 	auto right_expr = _private::get_expr(right);
 	switch (left_expr->get_type()) {
 		case EXPR_TYPE::CHOICE_TWO: {
-			auto l_seq = static_cast<_choice*>(left_expr);
+			auto l_choice = static_cast<_choice*>(left_expr);
 			switch (right_expr->get_type()) {
 				case EXPR_TYPE::CHOICE_TWO: {
-					auto r_seq = static_cast<_choice*>(right_expr);
+					auto r_choice = static_cast<_choice*>(right_expr);
 					auto list = new _choice_list{
-						l_seq->m_left,
-						l_seq->m_right,
-						r_seq->m_left,
-						r_seq->m_right};
-					l_seq->m_left = nullptr;
-					l_seq->m_right = nullptr;
-					r_seq->m_left = nullptr;
-					r_seq->m_right = nullptr;
-					delete l_seq;
-					delete r_seq;
+						l_choice->m_left,
+						l_choice->m_right,
+						r_choice->m_left,
+						r_choice->m_right};
+					l_choice->m_left = nullptr;
+					l_choice->m_right = nullptr;
+					r_choice->m_left = nullptr;
+					r_choice->m_right = nullptr;
+					delete l_choice;
+					delete r_choice;
 					return _private::construct_expr(list);
 				}
 				case EXPR_TYPE::CHOICE_LIST: {
 					auto r_list = static_cast<_choice_list*>(right_expr);
 					auto list = new _choice_list{};
 					list->m_list.reserve(2 + list->m_list.size());
-					list->m_list.insert(list->m_list.end(), {l_seq->m_left, l_seq->m_right});
+					list->m_list.insert(list->m_list.end(), {l_choice->m_left, l_choice->m_right});
 					list->m_list.insert(list->m_list.end(), r_list->m_list.begin(), r_list->m_list.end());
-					l_seq->m_left = nullptr;
-					l_seq->m_right = nullptr;
+					l_choice->m_left = nullptr;
+					l_choice->m_right = nullptr;
 					r_list->m_list.clear();
-					delete l_seq;
+					delete l_choice;
 					delete r_list;
 					return _private::construct_expr(list);
 				}
 				default: {
 					auto list = new _choice_list{
-						l_seq->m_left,
-						l_seq->m_right,
+						l_choice->m_left,
+						l_choice->m_right,
 						right_expr};
-					l_seq->m_left = nullptr;
-					l_seq->m_right = nullptr;
-					delete l_seq;
+					l_choice->m_left = nullptr;
+					l_choice->m_right = nullptr;
+					delete l_choice;
 					return _private::construct_expr(list);
 				}
 			}
@@ -1439,11 +1439,11 @@ expr operator|(expr&& left, expr&& right) {
 			auto l_list = static_cast<_choice_list*>(left_expr);
 			switch (right_expr->get_type()) {
 				case EXPR_TYPE::CHOICE_TWO: {
-					auto r_seq = static_cast<_choice*>(right_expr);
-					l_list->m_list.insert(l_list->m_list.end(), {r_seq->m_left, r_seq->m_right});
-					r_seq->m_left = nullptr;
-					r_seq->m_right = nullptr;
-					delete r_seq;
+					auto r_choice = static_cast<_choice*>(right_expr);
+					l_list->m_list.insert(l_list->m_list.end(), {r_choice->m_left, r_choice->m_right});
+					r_choice->m_left = nullptr;
+					r_choice->m_right = nullptr;
+					delete r_choice;
 					return _private::construct_expr(l_list);
 				}
 				case EXPR_TYPE::CHOICE_LIST: {
