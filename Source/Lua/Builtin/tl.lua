@@ -1,5 +1,5 @@
 
-local VERSION = "0.14.1+dora"
+local VERSION = "0.15.1+dora"
 
 local tl = {TypeCheckOptions = {}, Env = {}, Symbol = {}, Result = {}, Error = {}, TypeInfo = {}, TypeReport = {}, TypeReportEnv = {}, }
 
@@ -284,7 +284,6 @@ end
 
 
 
-
 do
 
 
@@ -528,7 +527,6 @@ do
 			tokens[nt] = {
 				x = tx,
 				y = ty,
-				i = ti,
 				tk = tk,
 				kind = kind,
 			}
@@ -541,7 +539,6 @@ do
 			tokens[nt] = {
 				x = tx,
 				y = ty,
-				i = ti,
 				tk = tk,
 				kind = keywords[tk] and "keyword" or "identifier",
 			}
@@ -554,7 +551,6 @@ do
 			tokens[nt] = {
 				x = tx,
 				y = ty,
-				i = ti,
 				tk = tk,
 				kind = kind,
 			}
@@ -567,7 +563,6 @@ do
 			tokens[nt] = {
 				x = tx,
 				y = ty,
-				i = ti,
 				tk = tk,
 				kind = kind,
 			}
@@ -3257,16 +3252,10 @@ local function recurse_type(ast, visit)
 	local kind = ast.typename
 	local cbs = visit.cbs
 	local cbkind = cbs and cbs[kind]
-	do
-		if cbkind then
-			local cbkind_before = cbkind.before
-			if cbkind_before then
-				cbkind_before(ast)
-			end
-		else
-			if cbs then
-				error("internal compiler error: no visitor for " .. kind)
-			end
+	if cbkind then
+		local cbkind_before = cbkind.before
+		if cbkind_before then
+			cbkind_before(ast)
 		end
 	end
 
@@ -3339,15 +3328,13 @@ local function recurse_type(ast, visit)
 	end
 
 	local ret
-	do
-		local cbkind_after = cbkind and cbkind.after
-		if cbkind_after then
-			ret = cbkind_after(ast, xs)
-		end
-		local visit_after = visit.after
-		if visit_after then
-			ret = visit_after(ast, xs, ret)
-		end
+	local cbkind_after = cbkind and cbkind.after
+	if cbkind_after then
+		ret = cbkind_after(ast, xs)
+	end
+	local visit_after = visit.after
+	if visit_after then
+		ret = visit_after(ast, xs, ret)
 	end
 	return ret
 end
@@ -3570,15 +3557,9 @@ local function recurse_node(root,
 
 		local cbs = visit_node.cbs
 		local cbkind = cbs and cbs[kind]
-		do
-			if cbkind then
-				if cbkind.before then
-					cbkind.before(ast)
-				end
-			else
-				if cbs then
-					error("internal compiler error: no visitor for " .. kind)
-				end
+		if cbkind then
+			if cbkind.before then
+				cbkind.before(ast)
 			end
 		end
 
@@ -3590,14 +3571,12 @@ local function recurse_node(root,
 		end
 
 		local ret
-		do
-			local cbkind_after = cbkind and cbkind.after
-			if cbkind_after then
-				ret = cbkind_after(ast, xs)
-			end
-			if visit_after then
-				ret = visit_after(ast, xs, ret)
-			end
+		local cbkind_after = cbkind and cbkind.after
+		if cbkind_after then
+			ret = cbkind_after(ast, xs)
+		end
+		if visit_after then
+			ret = visit_after(ast, xs, ret)
 		end
 		return ret
 	end
@@ -4825,6 +4804,12 @@ function tl.search_module(module_name, search_dtl)
 	end
 	return nil, tried
 end
+
+
+
+
+
+
 
 
 
@@ -6137,13 +6122,13 @@ tl.type_check = function(ast, opts)
 
 		local var_kind = "variable"
 		local var_name = node.tk
-		if node.kind == "local_function" then
+		if node.kind == "local_function" or node.kind == "record_function" then
 			var_kind = "function"
 			var_name = node.name.tk
 		end
 
 		local short_error = "redeclaration of " .. var_kind .. " '%s'"
-		if old_var.declared_at then
+		if old_var and old_var.declared_at then
 			node_warning("redeclaration", node, short_error .. " (originally declared at %d:%d)", var_name, old_var.declared_at.y, old_var.declared_at.x)
 		else
 			node_warning("redeclaration", node, short_error, var_name)
@@ -6160,7 +6145,7 @@ tl.type_check = function(ast, opts)
 	local function unused_warning(name, var)
 		local prefix <const> = name:sub(1, 1)
 		if var.declared_at and
-			not var.is_narrowed and
+			not (var.is_narrowed == "is") and
 			prefix ~= "_" and
 			prefix ~= "@" then
 
@@ -6246,21 +6231,21 @@ tl.type_check = function(ast, opts)
 
 	local get_unresolved
 
-	local function add_to_scope(node, name, t, attribute, is_narrowing, dont_check_redeclaration)
+	local function add_to_scope(node, name, t, attribute, narrow, dont_check_redeclaration)
 		local scope <const> = st[#st]
 		local var = scope[name]
-		if is_narrowing then
+		if narrow then
 			if var then
 				if var.is_narrowed then
 					var.t = t
 					return var
 				end
 
-				var.is_narrowed = true
+				var.is_narrowed = narrow
 				var.narrowed_from = var.t
 				var.t = t
 			else
-				var = { t = t, attribute = attribute, is_narrowed = true, declared_at = node }
+				var = { t = t, attribute = attribute, is_narrowed = narrow, declared_at = node }
 				scope[name] = var
 			end
 
@@ -6285,21 +6270,21 @@ tl.type_check = function(ast, opts)
 			unused_warning(name, var)
 		end
 
-		var = { t = t, attribute = attribute, is_narrowed = false, declared_at = node }
+		var = { t = t, attribute = attribute, is_narrowed = nil, declared_at = node }
 		scope[name] = var
 
 		return var
 	end
 
-	local function add_var(node, name, t, attribute, is_narrowing, dont_check_redeclaration)
-		if lax and node and is_unknown(t) and (name ~= "self" and name ~= "...") and not is_narrowing then
+	local function add_var(node, name, t, attribute, narrow, dont_check_redeclaration)
+		if lax and node and is_unknown(t) and (name ~= "self" and name ~= "...") and not narrow then
 			add_unknown(node, name)
 		end
 		if not attribute then
 			t = drop_constant_value(t)
 		end
 
-		local var = add_to_scope(node, name, t, attribute, is_narrowing, dont_check_redeclaration)
+		local var = add_to_scope(node, name, t, attribute, narrow, dont_check_redeclaration)
 
 		if node and t.typename ~= "unresolved" and t.typename ~= "none" then
 			node.type = node.type or t
@@ -6406,7 +6391,7 @@ tl.type_check = function(ast, opts)
 	local function arg_check(where, cmp, a, b, n, errs, ctx)
 		local matches, match_errs = cmp(a, b)
 		if not matches then
-			add_errs_prefixing(where, match_errs, errs, (ctx or "argument") .. " " .. n .. ": ")
+			add_errs_prefixing(where, match_errs, errs, ctx .. (n and " " .. n or "") .. ": ")
 			return false
 		end
 		return true
@@ -6667,6 +6652,7 @@ tl.type_check = function(ast, opts)
 				type_error(t, "spurious type arguments")
 				return nil
 			elseif def.typeargs then
+				error("here")
 				type_error(t, "missing type arguments in %s", def)
 				return nil
 			else
@@ -6752,10 +6738,6 @@ tl.type_check = function(ast, opts)
 	end
 
 	local function are_same_nominals(t1, t2)
-		if is_embedded(t1, t2) then
-			return true
-		end
-
 		local same_names
 		if t1.found and t2.found then
 			same_names = t1.found.typeid == t2.found.typeid
@@ -6795,6 +6777,9 @@ tl.type_check = function(ast, opts)
 				end
 			end
 		else
+			if is_embedded(t1, t2) then
+				return true
+			end
 			local t1name = show_type(t1)
 			local t2name = show_type(t2)
 			if t1name == t2name then
@@ -6850,10 +6835,6 @@ tl.type_check = function(ast, opts)
 			return false, terr(t1, "got %s, expected %s", t1, t2)
 		end
 
-		if is_embedded(t1, t2) then
-			return true
-		end
-
 		if t1.typename == "array" then
 			return same_type(t1.elements, t2.elements)
 		elseif t1.typename == "tupletable" then
@@ -6888,18 +6869,19 @@ tl.type_check = function(ast, opts)
 		elseif t1.typename == "record" then
 			return invariant_match_fields_to_record(t1, t2)
 		elseif t1.typename == "function" then
+			local argdelta = t1.is_method and 1 or 0
 			if #t1.args ~= #t2.args then
-				return false, terr(t1, "different number of input arguments: got " .. #t1.args .. ", expected " .. #t2.args)
+				if t1.is_method ~= t2.is_method then
+					return false, terr(t1, "different number of input arguments: method and non-method are not the same type")
+				end
+				return false, terr(t1, "different number of input arguments: got " .. #t1.args - argdelta .. ", expected " .. #t2.args - argdelta)
 			end
 			if #t1.rets ~= #t2.rets then
-				return false, terr(t1, "different number of return values: got " .. #t1.args .. ", expected " .. #t2.args)
-			end
-			if t1.is_method ~= t2.is_method then
-				return false, terr(t1, "method and non-method are not the same type")
+				return false, terr(t1, "different number of return values: got " .. #t1.rets .. ", expected " .. #t2.rets)
 			end
 			local all_errs = {}
 			for i = 1, #t1.args do
-				arg_check(t1, same_type, t1.args[i], t2.args[i], i, all_errs)
+				arg_check(t1, same_type, t1.args[i], t2.args[i], i - argdelta, all_errs, "argument")
 				local t1opt = not not t1.args[i].opt
 				local t2opt = not not t2.args[i].opt
 				if t1opt ~= t2opt then
@@ -6919,6 +6901,10 @@ tl.type_check = function(ast, opts)
 				return ok, errs
 			end
 			return invariant_match_fields_to_record(t1, t2)
+		end
+
+		if is_embedded(t1, t2) then
+			return true
 		end
 		return true
 	end
@@ -7402,7 +7388,7 @@ tl.type_check = function(ast, opts)
 					if not t1aopt and t2aopt then
 						table.insert(all_errs, error_in_type(t1, "argument " .. i .. " is non-optional, but is optional in expected type %s", t2))
 					else
-						arg_check(nil, is_a, t1a, t2a or ANY, i, all_errs)
+						arg_check(nil, is_a, t1a, t2a or ANY, i, all_errs, "argument")
 					end
 				end
 			end
@@ -7559,7 +7545,7 @@ tl.type_check = function(ast, opts)
 		local check_args_rets
 		do
 
-			local function check_func_type_list(where, wheres, xs, ys, delta, mode)
+			local function check_func_type_list(where, wheres, xs, ys, from, delta, mode)
 				assert(xs.typename == "tuple", xs.typename)
 				assert(ys.typename == "tuple", ys.typename)
 
@@ -7567,7 +7553,7 @@ tl.type_check = function(ast, opts)
 				local n_xs = #xs
 				local n_ys = #ys
 
-				for i = 1, math.max(n_xs, n_ys) do
+				for i = from, math.max(n_xs, n_ys) do
 					local pos = i + delta
 					local x = xs[i] or (xs.is_va and xs[n_xs]) or NIL
 					local y = ys[i] or (ys.is_va and ys[n_ys])
@@ -7588,14 +7574,23 @@ tl.type_check = function(ast, opts)
 				local args_ok
 				local args_errs
 
+				local from = 1
+				if argdelta == -1 then
+					from = 2
+					local errs = {}
+					if not arg_check(where, is_a, args[1], f.args[1], nil, errs, "self") then
+						return nil, errs
+					end
+				end
+
 				if rets then
 					rets = infer_at(where, rets)
 					infer_emptytables(where, nil, rets, f.rets, 0)
 
-					rets_ok, rets_errs = check_func_type_list(where, nil, f.rets, rets, 0, "return")
+					rets_ok, rets_errs = check_func_type_list(where, nil, f.rets, rets, 1, 0, "return")
 				end
 
-				args_ok, args_errs = check_func_type_list(where, where_args, args, f.args, argdelta, "argument")
+				args_ok, args_errs = check_func_type_list(where, where_args, args, f.args, 1, argdelta, "argument")
 				if (not args_ok) or (not rets_ok) then
 					return nil, args_errs or {}
 				end
@@ -7828,7 +7823,7 @@ tl.type_check = function(ast, opts)
 			if scope[var].narrowed_from then
 				scope[var].t = scope[var].narrowed_from
 				scope[var].narrowed_from = nil
-				scope[var].is_narrowed = false
+				scope[var].is_narrowed = nil
 			else
 				scope[var] = nil
 			end
@@ -7853,13 +7848,50 @@ tl.type_check = function(ast, opts)
 		return widened
 	end
 
-	local function widen_all_unions()
+	local function assigned_anywhere(name, root)
+		local visit_node = {
+			cbs = {
+				["assignment"] = {
+					after = function(node, _children)
+						for _, v in ipairs(node.vars) do
+							if v.kind == "variable" and v.tk == name then
+								return true
+							end
+						end
+						return false
+					end,
+				},
+			},
+			after = function(_node, children, ret)
+				ret = ret or false
+				for _, c in ipairs(children) do
+					local ca = c
+					if type(ca) == "boolean" then
+						ret = ret or c
+					end
+				end
+				return ret
+			end,
+		}
+
+		local visit_type = {
+			after = function()
+				return false
+			end,
+		}
+
+		return recurse_node(root, visit_node, visit_type)
+	end
+
+	local function widen_all_unions(node)
 		for i = #st, 1, -1 do
 			local scope = st[i]
 			local unr = scope["@unresolved"]
 			if unr and unr.t.narrows then
 				for name, _ in pairs(unr.t.narrows) do
-					widen_in_scope(scope, name)
+					if not node or assigned_anywhere(name, node) then
+						widen_in_scope(scope, name)
+					end
 				end
 			end
 		end
@@ -8185,34 +8217,66 @@ tl.type_check = function(ast, opts)
 	end
 
 	local function find_record_to_extend(exp)
+
+		if exp.kind == "type_identifier" then
+			local v = find_var(exp.tk)
+			if not v then
+				return nil, nil, exp.tk
+			end
+
+			local t = v.t
+			if t.closed then
+				return nil, nil, exp.tk
+			end
+
+			return t.def or t, v, exp.tk
+
+		elseif exp.kind == "op" then
+			local t, v, rname = find_record_to_extend(exp.e1)
+			local fname = exp.e2.tk
+			local dname = rname .. "." .. fname
+			if not t then
+				return nil, nil, dname
+			end
+			t = t and t.fields and t.fields[fname]
+			return t, v, dname
+		end
+	end
+
+	local function get_self_type(exp)
+
 		if exp.kind == "type_identifier" then
 			local t = find_var_type(exp.tk)
 			if not t then
+				return nil
+			end
+
+			if t.typename == "typetype" then
+				return a_type({
+					y = exp.y,
+					x = exp.x,
+					typename = "nominal",
+					names = { exp.tk },
+					found = t,
+				})
+			else
 				return t
 			end
 
-
-			if t.def then
-				if not t.def.closed and not t.closed then
-					return t.def
-				end
-			end
-			if not t.closed then
-				return t
-			end
-		elseif exp.kind == "op" and exp.op.op == "." then
-			local t = find_record_to_extend(exp.e1)
+		elseif exp.kind == "op" then
+			local t = get_self_type(exp.e1)
 			if not t then
 				return nil
 			end
-			while exp.e2.kind == "op" and exp.e2.op.op == "." do
-				t = t.fields and t.fields[exp.e2.e1.tk]
-				if not t then
-					return nil
+
+			if t.typename == "nominal" then
+				if t.found and t.found.def and t.found.def.fields and t.found.def.fields[exp.e2.tk] then
+					table.insert(t.names, exp.e2.tk)
+					t.found = t.found.def.fields[exp.e2.tk]
 				end
-				exp = exp.e2
+			else
+				return t.fields and t.fields[exp.e2.tk]
 			end
-			t = t.fields and t.fields[exp.e2.tk]
 			return t
 		end
 	end
@@ -8455,15 +8519,16 @@ tl.type_check = function(ast, opts)
 				if not typ then
 					return { [f.var] = invalid_from(f) }
 				end
-				if typ.typename ~= "typevar" and is_a(typ, f.typ) then
-					node_warning("branch", f.where, f.var .. " (of type %s) is always a %s", show_type(typ), show_type(f.typ))
-					return { [f.var] = f }
-				elseif typ.typename ~= "typevar" and not is_a(f.typ, typ) then
-					node_error(f.where, f.var .. " (of type %s) can never be a %s", typ, f.typ)
-					return { [f.var] = invalid_from(f) }
-				else
-					return { [f.var] = f }
+				if typ.typename ~= "typevar" then
+					if is_a(typ, f.typ) then
+						node_warning("branch", f.where, f.var .. " (of type %s) is always a %s", show_type(typ), show_type(f.typ))
+						return { [f.var] = f }
+					elseif not is_a(f.typ, typ) then
+						node_error(f.where, f.var .. " (of type %s) can never be a %s", typ, f.typ)
+						return { [f.var] = invalid_from(f) }
+					end
 				end
+				return { [f.var] = f }
 			elseif f.fact == "==" then
 				return { [f.var] = f }
 			elseif f.fact == "not" then
@@ -8496,20 +8561,23 @@ tl.type_check = function(ast, opts)
 				if not f.where then
 					t.inferred_at = nil
 				end
-				add_var(nil, v, t, "const", true)
+				add_var(nil, v, t, "const", "is")
 			end
 		end
 	end
 
 	local function dismiss_unresolved(name)
-		local unresolved = st[#st]["@unresolved"]
-		if unresolved then
-			if unresolved.t.nominals[name] then
-				for _, t in ipairs(unresolved.t.nominals[name]) do
-					resolve_nominal(t)
+		for i = #st, 1, -1 do
+			local unresolved = st[i]["@unresolved"]
+			if unresolved then
+				if unresolved.t.nominals[name] then
+					for _, t in ipairs(unresolved.t.nominals[name]) do
+						resolve_nominal(t)
+					end
+					unresolved.t.nominals[name] = nil
+					return
 				end
 			end
-			unresolved.t.nominals[name] = nil
 		end
 	end
 
@@ -9099,7 +9167,7 @@ tl.type_check = function(ast, opts)
 					end
 
 					assert(var)
-					add_var(var, var.tk, t, var.attribute, is_localizing_a_variable(node, i))
+					add_var(var, var.tk, t, var.attribute, is_localizing_a_variable(node, i) and "declaration")
 
 					if ok and infertypes and infertypes[i] then
 						local where = node.exps[i] or node.exps
@@ -9107,7 +9175,7 @@ tl.type_check = function(ast, opts)
 
 						local rt = resolve_tuple_and_nominal(t)
 						if rt.typename ~= "enum" and not same_type(t, infertype) then
-							apply_facts(where, Fact({ fact = "is", var = var.tk, typ = infertype, where = where }))
+							add_var(where, var.tk, infer_at(where, infertype), "const", "declaration")
 						end
 					end
 
@@ -9157,6 +9225,12 @@ tl.type_check = function(ast, opts)
 						if is_typetype(resolve_tuple_and_nominal(vartype)) then
 							node_error(varnode, "cannot reassign a type")
 						elseif val then
+
+							local rval = resolve_tuple_and_nominal(val)
+							if rval.typename == "function" then
+								widen_all_unions()
+							end
+
 							if varnode.kind == "op" and (varnode.op.op == "." or varnode.op.op == "@index") then
 								local t = resolve_tuple_and_nominal(varnode.e1.type)
 								if t.typename == "record" and t.readonlys then
@@ -9169,7 +9243,7 @@ tl.type_check = function(ast, opts)
 							assert_is_a(varnode, val, vartype, "in assignment")
 							if varnode.kind == "variable" and vartype.typename == "union" then
 
-								add_var(varnode, varnode.tk, val, nil, true)
+								add_var(varnode, varnode.tk, val, nil, "is")
 							end
 						else
 							node_error(varnode, "variable is not being assigned a value")
@@ -9234,9 +9308,9 @@ tl.type_check = function(ast, opts)
 			end,
 		},
 		["while"] = {
-			before = function()
+			before = function(node)
 
-				widen_all_unions()
+				widen_all_unions(node)
 			end,
 			before_statements = function(node)
 				begin_scope(node)
@@ -9275,9 +9349,9 @@ tl.type_check = function(ast, opts)
 			end,
 		},
 		["repeat"] = {
-			before = function()
+			before = function(node)
 
-				widen_all_unions()
+				widen_all_unions(node)
 			end,
 
 			after = end_scope_and_none_type,
@@ -9287,7 +9361,7 @@ tl.type_check = function(ast, opts)
 				begin_scope(node)
 			end,
 			before_statements = function(node)
-				widen_all_unions()
+				widen_all_unions(node)
 				local exp1 = node.exps[1]
 				local args = {
 					typename = "tuple",
@@ -9365,7 +9439,7 @@ tl.type_check = function(ast, opts)
 		},
 		["fornum"] = {
 			before_statements = function(node, children)
-				widen_all_unions()
+				widen_all_unions(node)
 				begin_scope(node)
 				local from_t = resolve_tuple_and_nominal(children[2])
 				local to_t = resolve_tuple_and_nominal(children[3])
@@ -9690,60 +9764,83 @@ tl.type_check = function(ast, opts)
 				add_internal_function_variables(node)
 
 				local rtype = resolve_tuple_and_nominal(resolve_typetype(children[1]))
-				local owner = find_record_to_extend(node.fn_owner)
-
-				if node.is_method then
-					children[3][1] = rtype
-					add_var(nil, "self", rtype)
-				end
-
 				if rtype.typename == "emptytable" then
 					rtype.typename = "record"
 					rtype.fields = {}
 					rtype.field_order = {}
 				end
-				if is_record_type(rtype) then
-					local fn_type = ensure_fresh_typeargs(a_type({
-						y = node.y,
-						x = node.x,
-						typename = "function",
-						is_method = node.is_method,
-						typeargs = node.typeargs,
-						args = children[3],
-						rets = get_rets(children[4]),
-						filename = filename,
-					}))
 
-					local rfieldtype = rtype.fields[node.name.tk]
-					local ok = false
-					local err = nil
-					if rfieldtype then
-						ok, err = is_a(fn_type, rfieldtype)
+				if lax and rtype.typename == "unknown" then
+					return
+				end
+
+				if not is_record_type(rtype) then
+					node_error(node, "not a module: %s", rtype)
+					return
+				end
+
+				if node.is_method then
+					local selftype = get_self_type(node.fn_owner)
+					if not selftype then
+						node_error(node, "could not resolve type of self")
+						return
+					end
+					children[3][1] = selftype
+					add_var(nil, "self", selftype)
+				end
+
+				local fn_type = ensure_fresh_typeargs(a_type({
+					y = node.y,
+					x = node.x,
+					typename = "function",
+					is_method = node.is_method,
+					typeargs = node.typeargs,
+					args = children[3],
+					rets = get_rets(children[4]),
+					filename = filename,
+				}))
+
+				local open_t, open_v, owner_name = find_record_to_extend(node.fn_owner)
+				local open_k = owner_name .. "." .. node.name.tk
+				local rfieldtype = rtype.fields[node.name.tk]
+				if rfieldtype then
+					rfieldtype = resolve_tuple_and_nominal(rfieldtype)
+
+					if open_v and open_v.implemented and open_v.implemented[open_k] then
+						redeclaration_warning(node)
 					end
 
-					if not ok and (lax or owner == rtype) then
-						rtype.fields[node.name.tk] = fn_type
-						table.insert(rtype.field_order, node.name.tk)
-						ok = true
-					end
-
-					if ok then
-						node.name.type = fn_type
-					else
-						local name = tl.pretty_print_ast(node.fn_owner, opts.gen_target, { preserve_indent = true, preserve_newlines = false })
-						if rfieldtype then
-							local shortname = node.fn_owner.type.typename == "nominal" and show_type(node.fn_owner.type) or name
-							local msg = "type signature of '" .. node.name.tk .. "' does not match its declaration in " .. shortname .. ": "
-							add_errs_prefixing(node, err, errors, msg)
-						else
-							node_error(node, "cannot add undeclared function '" .. node.name.tk .. "' outside of the scope where '" .. name .. "' was originally declared")
+					local ok, err = same_type(fn_type, rfieldtype)
+					if not ok then
+						if rfieldtype.typename == "poly" then
+							add_errs_prefixing(node, err, errors, "type signature does not match declaration: field has multiple function definitions (such polymorphic declarations are intended for Lua module interoperability)")
+							return
 						end
+
+						local shortname = node.fn_owner.type.typename == "nominal" and
+						show_type(node.fn_owner.type) or
+						owner_name
+						local msg = "type signature of '" .. node.name.tk .. "' does not match its declaration in " .. shortname .. ": "
+						add_errs_prefixing(node, err, errors, msg)
+						return
 					end
 				else
-					if not (lax and rtype.typename == "unknown") then
-						node_error(node, "not a module: %s", rtype)
+					if lax or rtype == open_t then
+						rtype.fields[node.name.tk] = fn_type
+						table.insert(rtype.field_order, node.name.tk)
+					else
+						node_error(node, "cannot add undeclared function '" .. node.name.tk .. "' outside of the scope where '" .. owner_name .. "' was originally declared")
+						return
 					end
 				end
+
+				if open_v then
+					if not open_v.implemented then
+						open_v.implemented = {}
+					end
+					open_v.implemented[open_k] = true
+				end
+				node.name.type = fn_type
 			end,
 			after = function(node, _children)
 				end_function_scope(node)
@@ -9753,7 +9850,7 @@ tl.type_check = function(ast, opts)
 		},
 		["function"] = {
 			before = function(node)
-				widen_all_unions()
+				widen_all_unions(node)
 				begin_scope(node)
 			end,
 			before_statements = function(node)
