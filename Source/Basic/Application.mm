@@ -19,11 +19,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 void Application::updateWindowSize() {
-	CGRect bounds = [UIScreen mainScreen].bounds;
+	SDL_SysWMinfo wmi;
+	SDL_VERSION(&wmi.version);
+	SDL_GetWindowWMInfo(_sdlWindow, &wmi);
+	CALayer* layer = wmi.info.uikit.window.rootViewController.view.layer;
+	CGRect frame = layer.frame;
+	for(NSUInteger i = 0; i < layer.sublayers.count; i++) {
+		layer.sublayers[i].frame = frame;
+	}
+	[layer layoutSublayers];
+	_winWidth = frame.size.width;
+	_winHeight = frame.size.height;
 	CGFloat scale = [UIScreen mainScreen].scale;
-	_bufferWidth = bounds.size.width * scale;
-	_bufferHeight = bounds.size.height * scale;
-	SDL_GetWindowSize(_sdlWindow, &_winWidth, &_winHeight);
+	_bufferWidth = _winWidth * scale;
+	_bufferHeight = _winHeight * scale;
 	SDL_DisplayMode displayMode{SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
 	SDL_GetWindowDisplayMode(_sdlWindow, &displayMode);
 	if (displayMode.refresh_rate > 0) {
@@ -37,14 +46,10 @@ void Application::setupSdlWindow() {
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
 	SDL_GetWindowWMInfo(_sdlWindow, &wmi);
-
 	CALayer* layer = wmi.info.uikit.window.rootViewController.view.layer;
 	CAMetalLayer* displayLayer = [[CAMetalLayer alloc] init];
-
-	CGRect bounds = [UIScreen mainScreen].bounds;
-	CGFloat scale = [UIScreen mainScreen].scale;
-	displayLayer.contentsScale = scale;
-	displayLayer.frame = bounds;
+	displayLayer.contentsScale = [UIScreen mainScreen].scale;
+	displayLayer.frame = layer.frame;
 	[layer addSublayer:displayLayer];
 	[layer layoutSublayers];
 

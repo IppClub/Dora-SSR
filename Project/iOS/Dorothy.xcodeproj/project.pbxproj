@@ -4540,6 +4540,7 @@
 					"HAVE_GETHOSTUUID=0",
 					"BX_CONFIG_DEBUG=0",
 					d_m3HasWASI,
+					LUA_USE_IOS,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
@@ -4586,6 +4587,7 @@
 					"HAVE_GETHOSTUUID=0",
 					"BX_CONFIG_DEBUG=0",
 					d_m3HasWASI,
+					LUA_USE_IOS,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
@@ -4745,6 +4747,7 @@
 					"HAVE_GETHOSTUUID=0",
 					"BX_CONFIG_DEBUG=0",
 					d_m3HasWASI,
+					LUA_USE_IOS,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
@@ -4791,6 +4794,7 @@
 					"HAVE_GETHOSTUUID=0",
 					"BX_CONFIG_DEBUG=0",
 					d_m3HasWASI,
+					LUA_USE_IOS,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dorothy/Info.plist;
