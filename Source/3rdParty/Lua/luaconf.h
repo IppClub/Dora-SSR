@@ -44,6 +44,11 @@
 /* #define LUA_USE_C89 */
 
 
+#if defined(LUA_USE_WINDOWS)
+#define LUA_DL_DLL	/* enable support for DLL */
+#define LUA_USE_C89	/* broadly, Windows is C89 */
+#else
+
 /*
 ** By default, Lua on Windows use (some) specific Windows features
 */
@@ -51,10 +56,6 @@
 #define LUA_USE_WINDOWS  /* enable goodies for regular Windows */
 #endif
 
-
-#if defined(LUA_USE_WINDOWS)
-#define LUA_DL_DLL	/* enable support for DLL */
-#define LUA_USE_C89	/* broadly, Windows is C89 */
 #endif
 
 
