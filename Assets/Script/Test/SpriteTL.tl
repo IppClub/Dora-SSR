@@ -1,10 +1,10 @@
 local Sprite = require("Sprite")
 local Director = require("Director")
-local Touch = require("Touch")
+local type Touch = require("TouchType")
 
 local sprite = Sprite("Image/logo.png")
 sprite.touchEnabled = true
-sprite:slot("TapMoved", function(touch: Touch.Type)
+sprite:slot("TapMoved", function(touch: Touch)
 	if not touch.first then
 		return
 	end

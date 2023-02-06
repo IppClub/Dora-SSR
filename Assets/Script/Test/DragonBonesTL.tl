@@ -12,7 +12,7 @@ local Event <const> = require("Event")
 local Vec2 <const> = require("Vec2")
 local Director <const> = require("Director")
 local Node <const> = require("Node")
-local Touch <const> = require("Touch")
+local type Touch = require("TouchType")
 
 local boneStr <const> = "DragonBones/NewDragon"
 local animations = DragonBone:getAnimations(boneStr)
@@ -29,7 +29,7 @@ end)
 
 bone.y = -200
 bone.touchEnabled = true
-bone:slot("TapBegan", function(touch: Touch.Type)
+bone:slot("TapBegan", function(touch: Touch)
 	local loc = touch.location
 	local x, y = loc.x, loc.y
 	local name = bone:containsPoint(x, y)

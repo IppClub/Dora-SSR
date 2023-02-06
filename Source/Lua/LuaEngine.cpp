@@ -354,6 +354,7 @@ static int dora_yuecompile(lua_State* L) {
 						yue::CompileInfo result;
 						values->get(result);
 						std::string finalCodes;
+						bool success = false;
 						{
 							lua_State* L = SharedLuaEngine.getState();
 							int top = lua_gettop(L);
@@ -381,9 +382,14 @@ static int dora_yuecompile(lua_State* L) {
 								}
 							} else
 								lua_pushnil(L);
-							SharedLuaEngine.executeReturn(finalCodes, handler->get(), 3);
+							auto mainL = SharedLuaEngine.getState();
+							LuaEngine::invoke(mainL, handler->get(), 3, 1);
+							if (lua_isstring(mainL, -1) != 0) {
+								finalCodes = tolua_toslice(mainL, -1, nullptr);
+								success = true;
+							}
 						}
-						if (finalCodes.empty())
+						if (!success)
 							callback(false);
 						else
 							SharedContent.saveAsync(std::get<1>(*input), finalCodes, [callback]() {
