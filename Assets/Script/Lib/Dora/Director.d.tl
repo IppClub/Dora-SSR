@@ -18,6 +18,7 @@ local record Director
 	popCamera: function(self: Director)
 	removeCamera: function(self: Director, camera: Camera): boolean
 	clearCamera: function(self: Director)
+	cleanup: function(self: Director)
 end
 print(Director.entry)
 print(Director.ui)
