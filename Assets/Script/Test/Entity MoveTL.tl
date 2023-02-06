@@ -10,7 +10,7 @@ local Vec2 <const> = require("Vec2")
 local Node <const> = require("Node")
 local Sequence <const> = require("Sequence")
 local Event <const> = require("Event")
-local Touch <const> = require("Touch")
+local type Touch = require("TouchType")
 local tolua <const> = require("tolua")
 
 local sceneGroup = Group { "scene" }
@@ -25,7 +25,7 @@ end
 
 Observer("Add", { "scene" }):watch(function(_self: Entity.Type, scene: Node.Type)
 	scene.touchEnabled = true
-	scene:slot("TapEnded", function(touch: Touch.Type)
+	scene:slot("TapEnded", function(touch: Touch)
 		local location = touch.location
 		positionGroup:each(function(entity: Entity.Type): boolean
 			entity.target = location

@@ -1,4 +1,5 @@
 local record Routine
+	{Job}
 	record Job
 		metamethod __call: function(...: any): any...
 	end
