@@ -1431,7 +1431,7 @@
     <ClCompile Include="..\..\..\Source\GUI\ImGuiBinding.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="\\Mac\Home\Workspace\Dorothy-SSR\Source\3rdParty\soloud\filter\soloud_duckfilter.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_duckfilter.cpp">
       <Filter>3rdParty\soloud\filter</Filter>
     </ClCompile>
   </ItemGroup>
@@ -2973,7 +2973,7 @@
     <ClInclude Include="..\..\..\Source\GUI\ImGuiBinding.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="\\Mac\Home\Workspace\Dorothy-SSR\Source\3rdParty\soloud\soloud_duckfilter.h">
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_duckfilter.h">
       <Filter>3rdParty\soloud</Filter>
     </ClInclude>
   </ItemGroup>
