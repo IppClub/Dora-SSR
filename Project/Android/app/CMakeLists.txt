@@ -395,6 +395,7 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/soloud/core/soloud_core_getters.cpp
 	src/main/cpp/3rdParty/soloud/core/soloud_core_3d.cpp
 	src/main/cpp/3rdParty/soloud/core/soloud_misc.cpp
+	src/main/cpp/3rdParty/soloud/filter/soloud_duckfilter.cpp
 	src/main/cpp/3rdParty/soloud/filter/soloud_eqfilter.cpp
 	src/main/cpp/3rdParty/soloud/filter/soloud_bassboostfilter.cpp
 	src/main/cpp/3rdParty/soloud/filter/soloud_echofilter.cpp
