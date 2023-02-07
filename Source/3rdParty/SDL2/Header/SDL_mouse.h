@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -388,6 +388,9 @@ extern DECLSPEC SDL_Cursor *SDLCALL SDL_GetCursor(void);
 
 /**
  * Get the default cursor.
+ *
+ * You do not have to call SDL_FreeCursor() on the return value,
+ * but it is safe to do so.
  *
  * \returns the default cursor on success or NULL on failure.
  *
