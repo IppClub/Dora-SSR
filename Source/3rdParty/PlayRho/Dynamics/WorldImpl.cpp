@@ -1141,7 +1141,7 @@ void WorldImpl::AddToIsland(Island& island, BodyStack& stack,
         // Adds appropriate joints of current body and appropriate 'other' bodies of those joint.
         AddJointsToIsland(island, stack, m_bodyJoints[to_underlying(bodyID)]);
 
-        remNumJoints -= size(island.joints) - numJoints;
+        remNumJoints -= static_cast<playrho::JointCounter>(size(island.joints) - numJoints);
     }
 }
 
@@ -1243,8 +1243,8 @@ RegStepStats WorldImpl::SolveReg(const StepConf& conf)
                 AddToIsland(m_island, b, remNumBodies, remNumContacts, remNumJoints);
                 stats.maxIslandBodies = std::max(stats.maxIslandBodies,
                                                  static_cast<BodyCounter>(size(m_island.bodies)));
-                remNumBodies += RemoveUnspeedablesFromIslanded(m_island.bodies, m_bodyBuffer,
-                                                               m_islandedBodies);
+				remNumBodies += static_cast<playrho::BodyCounter>(RemoveUnspeedablesFromIslanded(m_island.bodies, m_bodyBuffer,
+                                                               m_islandedBodies));
 #if defined(DO_THREADED)
                 // Updates bodies' sweep.pos0 to current sweep.pos1 and bodies' sweep.pos1 to new positions
                 futures.push_back(std::async(std::launch::async, &WorldImpl::SolveRegIslandViaGS,
