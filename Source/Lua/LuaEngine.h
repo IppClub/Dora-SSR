@@ -33,6 +33,7 @@ public:
 	PROPERTY_READONLY(int, MemoryCount);
 
 	std::pair<std::string, std::string> tealToLua(const std::string& tlCodes, String moduleName);
+	std::string tealVersion();
 
 	void insertLuaLoader(lua_CFunction func, int index);
 
@@ -183,6 +184,7 @@ public:
 	static bool invoke(lua_State* L, int handler, int numArgs, int numRets); // returns success or failure
 protected:
 	LuaEngine();
+	lua_State* loadTealState();
 	static int _callFromLua;
 	lua_State* L;
 	lua_State* _tlState;

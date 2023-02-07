@@ -599,6 +599,7 @@ int CALLBACK WinMain(
 #include "sqlite3.h"
 #include "wasm3.h"
 #include "yuescript/yue_compiler.h"
+#include "Lua/LuaEngine.h"
 
 std::string Dorothy::Application::getDeps() const {
 	return fmt::format(
@@ -606,20 +607,24 @@ std::string Dorothy::Application::getDeps() const {
 		"- bgfx {}\n"
 		"- Lua {}.{}.{}\n"
 		"- Yuescript {}\n"
+		"- Teal {}\n"
 		"- PlayRho {}.{}.{}\n"
 		"- soloud {}\n"
 		"- DragonBones 5.6.3\n"
 		"- Spine 4.1.4\n"
 		"- imgui {}\n"
 		"- sqlite3 {}\n"
-		"- wasm3 {}",
+		"- wasm3 {}\n"
+		"- fmt {}",
 		SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL,
 		BGFX_API_VERSION,
 		LUA_VERSION_MAJOR, LUA_VERSION_MINOR, LUA_VERSION_RELEASE,
 		yue::version,
+		SharedLuaEngine.tealVersion(),
 		PLAYRHO_VERSION_MAJOR, PLAYRHO_VERSION_MINOR, PLAYRHO_VERSION_PATCH,
 		SOLOUD_VERSION,
 		IMGUI_VERSION_NUM,
 		SQLITE_VERSION,
-		M3_VERSION);
+		M3_VERSION,
+		FMT_VERSION);
 }
