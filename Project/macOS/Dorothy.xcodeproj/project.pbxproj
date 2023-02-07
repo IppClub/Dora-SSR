@@ -259,6 +259,7 @@
 		3C9A7D7A1E55957500205094 /* atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9A7D781E55957500205094 /* atlas.cpp */; };
 		3C9CCD022689BDD00086757D /* os.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9CCCF52689BDD00086757D /* os.cpp */; };
 		3C9CCD042689BDD00086757D /* format.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9CCCF92689BDD00086757D /* format.cpp */; };
+		3CA3164A29923329007879C4 /* soloud_duckfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA3164929923329007879C4 /* soloud_duckfilter.cpp */; };
 		3CA32CE926FEE8440046C13D /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA32CE826FEE8440046C13D /* GameController.framework */; };
 		3CA32CEB26FEE89E0046C13D /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA32CEA26FEE89E0046C13D /* CoreHaptics.framework */; };
 		3CA718A71FCCF11000B6AC80 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA718A61FCCF11000B6AC80 /* lodepng.cpp */; };
@@ -1029,6 +1030,8 @@
 		3C9CCCFF2689BDD00086757D /* ostream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ostream.h; path = ../../../Source/3rdParty/fmt/ostream.h; sourceTree = "<group>"; };
 		3C9CCD002689BDD00086757D /* xchar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xchar.h; path = ../../../Source/3rdParty/fmt/xchar.h; sourceTree = "<group>"; };
 		3C9CCD012689BDD00086757D /* ranges.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ranges.h; path = ../../../Source/3rdParty/fmt/ranges.h; sourceTree = "<group>"; };
+		3CA3164929923329007879C4 /* soloud_duckfilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = soloud_duckfilter.cpp; sourceTree = "<group>"; };
+		3CA3164B2992334D007879C4 /* soloud_duckfilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_duckfilter.h; path = ../../../Source/3rdParty/soloud/soloud_duckfilter.h; sourceTree = "<group>"; };
 		3CA32CE826FEE8440046C13D /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
 		3CA32CEA26FEE89E0046C13D /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
 		3CA718A51FCCF11000B6AC80 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lodepng.h; path = ../../../Source/3rdParty/lodepng/lodepng.h; sourceTree = "<group>"; };
@@ -1815,6 +1818,7 @@
 				3C6E7E99272A30E600E9F115 /* soloud_bus.h */,
 				3C6E7EC4272A30E700E9F115 /* soloud_c.h */,
 				3C6E7EB9272A30E700E9F115 /* soloud_dcremovalfilter.h */,
+				3CA3164B2992334D007879C4 /* soloud_duckfilter.h */,
 				3C6E7F06272A30E700E9F115 /* soloud_echofilter.h */,
 				3C6E7E9D272A30E600E9F115 /* soloud_eqfilter.h */,
 				3C6E7E98272A30E600E9F115 /* soloud_error.h */,
@@ -2002,6 +2006,7 @@
 		3C6E7E89272A30E600E9F115 /* filter */ = {
 			isa = PBXGroup;
 			children = (
+				3CA3164929923329007879C4 /* soloud_duckfilter.cpp */,
 				3C6E7E8A272A30E600E9F115 /* soloud_eqfilter.cpp */,
 				3C6E7E8B272A30E600E9F115 /* soloud_bassboostfilter.cpp */,
 				3C6E7E8C272A30E600E9F115 /* soloud_echofilter.cpp */,
@@ -3190,6 +3195,7 @@
 				3CFEBD65268DA6D5006D9974 /* Bone.cpp in Sources */,
 				3C6E7F11272A30E700E9F115 /* soloud_waveshaperfilter.cpp in Sources */,
 				3C3B98E326FDADDC00BD9F3E /* WorldContact.cpp in Sources */,
+				3CA3164A29923329007879C4 /* soloud_duckfilter.cpp in Sources */,
 				3C65B5B61EC010CA0039DA1D /* Menu.cpp in Sources */,
 				3C41D5F72148AD02003FDDFE /* imgui.cpp in Sources */,
 				3C3B986126FDAD8E00BD9F3E /* ToiConf.cpp in Sources */,

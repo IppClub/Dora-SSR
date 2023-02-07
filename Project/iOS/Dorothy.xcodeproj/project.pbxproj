@@ -452,6 +452,8 @@
 		3CA1B7EF1EC16E9F00BC58FF /* LuaFromXml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7ED1EC16E9F00BC58FF /* LuaFromXml.cpp */; };
 		3CA1B7F51EC16ED300BC58FF /* SAXParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F11EC16ED300BC58FF /* SAXParser.cpp */; };
 		3CA1B7F61EC16ED300BC58FF /* tinyxml2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */; };
+		3CA31651299234DE007879C4 /* soloud_duckfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA31650299234DE007879C4 /* soloud_duckfilter.cpp */; };
+		3CA31652299234DF007879C4 /* soloud_duckfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA31650299234DE007879C4 /* soloud_duckfilter.cpp */; };
 		3CAA2D1526155DB3004443A6 /* Backup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0826155DB3004443A6 /* Backup.cpp */; };
 		3CAA2D1626155DB3004443A6 /* Column.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0B26155DB3004443A6 /* Column.cpp */; };
 		3CAA2D1726155DB3004443A6 /* Transaction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0C26155DB3004443A6 /* Transaction.cpp */; };
@@ -1481,6 +1483,8 @@
 		3CA1B7F21EC16ED300BC58FF /* SAXParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SAXParser.h; path = ../../../Source/3rdParty/tinyxml2/SAXParser.h; sourceTree = "<group>"; };
 		3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tinyxml2.cpp; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.cpp; sourceTree = "<group>"; };
 		3CA1B7F41EC16ED300BC58FF /* tinyxml2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinyxml2.h; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.h; sourceTree = "<group>"; };
+		3CA3164C29923466007879C4 /* soloud_duckfilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_duckfilter.h; path = ../../../Source/3rdParty/soloud/soloud_duckfilter.h; sourceTree = "<group>"; };
+		3CA31650299234DE007879C4 /* soloud_duckfilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = soloud_duckfilter.cpp; sourceTree = "<group>"; };
 		3CAA2D0226155DB2004443A6 /* Statement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Statement.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Statement.h; sourceTree = "<group>"; };
 		3CAA2D0326155DB2004443A6 /* SQLiteCpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SQLiteCpp.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/SQLiteCpp.h; sourceTree = "<group>"; };
 		3CAA2D0426155DB3004443A6 /* Backup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Backup.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Backup.h; sourceTree = "<group>"; };
@@ -2616,6 +2620,7 @@
 				3C6E7FAF272A404900E9F115 /* soloud_bus.h */,
 				3C6E7F4D272A404700E9F115 /* soloud_c.h */,
 				3C6E7FAE272A404900E9F115 /* soloud_dcremovalfilter.h */,
+				3CA3164C29923466007879C4 /* soloud_duckfilter.h */,
 				3C6E7FAD272A404800E9F115 /* soloud_echofilter.h */,
 				3C6E7FAA272A404800E9F115 /* soloud_eqfilter.h */,
 				3C6E7FAC272A404800E9F115 /* soloud_error.h */,
@@ -2695,6 +2700,7 @@
 		3C6E7F59272A404800E9F115 /* filter */ = {
 			isa = PBXGroup;
 			children = (
+				3CA31650299234DE007879C4 /* soloud_duckfilter.cpp */,
 				3C6E7F5A272A404800E9F115 /* soloud_eqfilter.cpp */,
 				3C6E7F5B272A404800E9F115 /* soloud_bassboostfilter.cpp */,
 				3C6E7F5C272A404800E9F115 /* soloud_echofilter.cpp */,
@@ -4041,6 +4047,7 @@
 				3CBE0EA526087F7B003F4F45 /* Camera.cpp in Sources */,
 				3CBE0EA726087F7B003F4F45 /* Content.mm in Sources */,
 				3CBE0EA826087F7B003F4F45 /* Value.cpp in Sources */,
+				3CA31652299234DF007879C4 /* soloud_duckfilter.cpp in Sources */,
 				3CBE0EA926087F7B003F4F45 /* LuaManual.cpp in Sources */,
 				3CBE0EAA26087F7B003F4F45 /* Scheduler.cpp in Sources */,
 				3CBE0EAB26087F7B003F4F45 /* LuaEngine.cpp in Sources */,
@@ -4452,6 +4459,7 @@
 				3C1A3BEC272A8820003A2829 /* lstrlib.c in Sources */,
 				3CFEBE1826930A3A006D9974 /* JSONDataParser.cpp in Sources */,
 				3C3B99F626FDB08000BD9F3E /* Simplex.cpp in Sources */,
+				3CA31651299234DE007879C4 /* soloud_duckfilter.cpp in Sources */,
 				3CFEBDD8269309D5006D9974 /* Armature.cpp in Sources */,
 				3C3B992A26FDAFF600BD9F3E /* VelocityConstraint.cpp in Sources */,
 				3CFEBDDE269309E6006D9974 /* BaseObject.cpp in Sources */,
