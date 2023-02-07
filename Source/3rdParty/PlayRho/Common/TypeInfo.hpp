@@ -24,8 +24,39 @@
 #include "PlayRho/Common/IndexingNamedType.hpp"
 #include "PlayRho/Common/Templates.hpp" // for GetInvalid, IsValid
 
+#include <regex>
+#include <string>
+
 namespace playrho {
 namespace detail {
+
+template <typename T>
+std::string TypeNameAsString()
+{
+    // Ideally return string unique to the type T...
+#if defined(_MSC_VER)
+    // template <typename T> string Name() { return string{__FUNCSIG__}; }
+    // enum class Fruit {APPLE, PEAR};
+    // std::cout << Name<Fruit>() << '\n';
+    // produces:
+    // class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl Name<enum Fruit>(void)
+    return std::regex_replace(__FUNCSIG__, std::regex(".* __cdecl [^<]+<(.*)>\\(void\\)"), "$1");
+#elif defined(__clang__)
+    // template <typename T> string Name() { return string{__PRETTY_FUNCTION__}; }
+    // enum class Fruit {APPLE, PEAR};
+    // std::cout << Name<Fruit>() << '\n';
+    // produces: std::string Name() [T = Fruit]
+    return std::regex_replace(__PRETTY_FUNCTION__, std::regex(".*T = (.*)\\].*"), "$1");
+#elif defined(__GNUC__)
+    // template <typename T> string Name() { return string{__PRETTY_FUNCTION__}; }
+    // enum class Fruit {APPLE, PEAR};
+    // std::cout << Name<Fruit>() << '\n';
+    // produces: std::string Name() [with T = Fruit; std::string = std::__cxx11::basic_string<char>]
+    return std::regex_replace(__PRETTY_FUNCTION__, std::regex(".*T = (.*);.*"), "$1");
+#else
+    return {}; // not unique but maybe still helpful at avoiding compiler issues
+#endif
+}
 
 /// @brief Gets a null-terminated byte string identifying this function.
 /// @note Intended for use by <code>TypeInfo</code> to set the value of its
@@ -34,22 +65,16 @@ namespace detail {
 ///    when whole program is turned on. Such an issue is documented in Issue #370.
 /// @see https://github.com/louis-langholtz/PlayRho/issues/370
 template <typename T>
-static constexpr const char* GetNameForTypeInfo() noexcept
+static const char* GetNameForTypeInfo()
 {
-    // Ideally return string unique to the type T...
-#if defined(_MSC_VER)
-    return __FUNCSIG__;
-#elif defined(__GNUC__)
-    return __PRETTY_FUNCTION__;
-#else
-    return __func__; // not unique but maybe still helpful at avoiding compiler issues
-#endif
+    static const std::string buffer = TypeNameAsString<T>();
+    return buffer.c_str();
 }
 
 } // namespace detail
 
 /// @brief Type information.
-/// @note Users may specialize this for their own types.
+/// @note Users may specialize this to provide an alternative name for a type.
 template <typename T>
 struct TypeInfo
 {
@@ -60,31 +85,7 @@ struct TypeInfo
     ///   template's type <code>T</code> prevents issue #370. Credit for this technique
     ///   goes to Li Jin (github user pigpigyyy).
     /// @see https://github.com/louis-langholtz/PlayRho/issues/370
-    static constexpr const char* name = detail::GetNameForTypeInfo<T>();
-};
-
-/// @brief Type info specialization for <code>float</code>.
-template <>
-struct TypeInfo<float>
-{
-    /// @brief Provides name of the type as a null-terminated string.
-    static constexpr const char* name = "float";
-};
-
-/// @brief Type info specialization for <code>double</code>.
-template <>
-struct TypeInfo<double>
-{
-    /// @brief Provides name of the type as a null-terminated string.
-    static constexpr const char* name = "double";
-};
-
-/// @brief Type info specialization for <code>long double</code>.
-template <>
-struct TypeInfo<long double>
-{
-    /// @brief Provides name of the type as a null-terminated string.
-    static constexpr const char* name = "long double";
+    static inline const char* name = detail::GetNameForTypeInfo<T>();
 };
 
 /// @brief Type identifier.

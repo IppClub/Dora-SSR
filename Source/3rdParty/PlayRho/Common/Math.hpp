@@ -472,27 +472,34 @@ constexpr auto Invert(const Matrix22<IN_TYPE> value) noexcept
 
 /// @brief Solves A * x = b, where b is a column vector.
 /// @note This is more efficient than computing the inverse in one-shot cases.
-constexpr Vec3 Solve33(const Mat33& mat, const Vec3 b) noexcept
+template <typename T>
+constexpr Vector3<T> Solve33(const Mat33& mat, const Vector3<T>& b) noexcept
 {
     const auto dp = Dot(GetX(mat), Cross(GetY(mat), GetZ(mat)));
     const auto det = (dp != 0) ? Real{1} / dp : dp;
-    const auto x = det * Dot(b, Cross(GetY(mat), GetZ(mat)));
-    const auto y = det * Dot(GetX(mat), Cross(b, GetZ(mat)));
-    const auto z = det * Dot(GetX(mat), Cross(GetY(mat), b));
-    return Vec3{x, y, z};
+    return { // line break
+        det * Dot(b, Cross(GetY(mat), GetZ(mat))), // x-component
+        det * Dot(GetX(mat), Cross(b, GetZ(mat))), // y-component
+        det * Dot(GetX(mat), Cross(GetY(mat), b))  // z-component
+    };
 }
 
 /// @brief Solves A * x = b, where b is a column vector.
 /// @note This is more efficient than computing the inverse in one-shot cases.
 /// @note Solves only the upper 2-by-2 matrix equation.
 template <typename T>
-constexpr T Solve22(const Mat33& mat, const T b) noexcept
+constexpr Vector2<T> Solve22(const Mat33& mat, const Vector2<T>& b) noexcept
 {
-    const auto cp = GetX(GetX(mat)) * GetY(GetY(mat)) - GetX(GetY(mat)) * GetY(GetX(mat));
+    const auto matXX = GetX(GetX(mat));
+    const auto matXY = GetX(GetY(mat));
+    const auto matYX = GetY(GetX(mat));
+    const auto matYY = GetY(GetY(mat));
+    const auto cp = matXX * matYY - matXY * matYX;
     const auto det = (cp != 0) ? Real{1} / cp : cp;
-    const auto x = det * (GetY(GetY(mat)) * GetX(b) - GetX(GetY(mat)) * GetY(b));
-    const auto y = det * (GetX(GetX(mat)) * GetY(b) - GetY(GetX(mat)) * GetX(b));
-    return T{x, y};
+    return { // line break
+        det * (matYY * GetX(b) - matXY * GetY(b)), // x-component
+        det * (matXX * GetY(b) - matYX * GetX(b))  // y-component
+    };
 }
 
 /// @brief Gets the inverse of the given matrix as a 2-by-2.

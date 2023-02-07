@@ -181,7 +181,8 @@ public:
     AngularAcceleration GetAngularAcceleration() const noexcept;
 
     /// @brief Gets the inverse total mass of the body.
-    /// @details This is the cached result of dividing 1 by the body's mass.
+    /// @details This is the cached result of dividing 1 by the body's mass or zero for non
+    /// linearly-accelerable bodies.
     /// Often floating division is much slower than multiplication.
     /// As such, it's likely faster to multiply values by this inverse value than to redivide
     /// them all the time by the mass.
@@ -190,7 +191,8 @@ public:
     InvMass GetInvMass() const noexcept;
 
     /// @brief Gets the inverse rotational inertia of the body.
-    /// @details This is the cached result of dividing 1 by the body's rotational inertia.
+    /// @details This is the cached result of dividing 1 by the body's rotational inertia or
+    /// zero for non rotationally-accelerable bodies.
     /// Often floating division is much slower than multiplication.
     /// As such, it's likely faster to multiply values by this inverse value than to redivide
     /// them all the time by the rotational inertia.
@@ -201,7 +203,7 @@ public:
     /// @brief Sets the inverse mass data and clears the mass-data-dirty flag.
     /// @note This calls <code>UnsetMassDataDirty</code>.
     /// @see GetInvMass, GetInvRotInertia, IsMassDataDirty.
-    void SetInvMassData(InvMass invMass, InvRotInertia invRotI) noexcept;
+    void SetInvMassData(NonNegative<InvMass> invMass, NonNegative<InvRotInertia> invRotI) noexcept;
 
     /// @brief Gets the linear damping of the body.
     /// @see SetLinearDamping.
@@ -433,13 +435,12 @@ private:
     AngularAcceleration m_angularAcceleration = AngularAcceleration{0};
 
     /// Inverse mass of the body.
-    /// @details A non-negative value.
-    /// Can only be zero for non-accelerable bodies.
+    /// @details A non-negative value. Zero for non linearly-accelerable bodies.
     /// @note 4-bytes.
     InvMass m_invMass = 0;
 
     /// Inverse rotational inertia about the center of mass.
-    /// @details A non-negative value.
+    /// @details A non-negative value. Zero for non rotationally-accelerable bodies.
     /// @note 4-bytes.
     InvRotInertia m_invRotI = 0;
 
@@ -481,7 +482,8 @@ inline InvRotInertia Body::GetInvRotInertia() const noexcept
     return m_invRotI;
 }
 
-inline void Body::SetInvMassData(InvMass invMass, InvRotInertia invRotI) noexcept
+inline void Body::SetInvMassData(NonNegative<InvMass> invMass,
+                                 NonNegative<InvRotInertia> invRotI) noexcept
 {
     m_invMass = invMass;
     m_invRotI = invRotI;

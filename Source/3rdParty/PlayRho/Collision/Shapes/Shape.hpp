@@ -80,7 +80,7 @@ struct IsValidShapeType<
                 decltype(GetRestitution(std::declval<T>())), //
                 decltype(std::declval<T>() == std::declval<T>()), //
                 decltype(std::declval<DecayedTypeIfNotSame<T, Shape>>()),
-                decltype(std::is_copy_constructible<DecayedTypeIfNotSame<T, Shape>>::value)>>
+                decltype(std::is_constructible_v<DecayedTypeIfNotSame<T, Shape>, T>)>>
     : std::true_type {
 };
 
@@ -428,7 +428,7 @@ public:
     /// @post <code>has_value()</code> returns true.
     /// @throws std::bad_alloc if there's a failure allocating storage.
     template <typename T, typename Tp = DecayedTypeIfNotSame<T, Shape>,
-              typename = std::enable_if_t<std::is_copy_constructible<Tp>::value>>
+              typename = std::enable_if_t<std::is_constructible_v<Tp, T>>>
     explicit Shape(T&& arg) : m_self
     {
 #if SHAPE_USES_UNIQUE_PTR
@@ -464,10 +464,10 @@ public:
     ///   which requirements are not met by the given type.
     /// @post <code>has_value()</code> returns true.
     template <typename T, typename Tp = DecayedTypeIfNotSame<T, Shape>,
-              typename = std::enable_if_t<std::is_copy_constructible<Tp>::value>>
-    Shape& operator=(T&& other)
+              typename = std::enable_if_t<std::is_constructible_v<Tp, T>>>
+    Shape& operator=(T&& arg)
     {
-        Shape(std::forward<T>(other)).swap(*this);
+        Shape(std::forward<T>(arg)).swap(*this);
         return *this;
     }
 
@@ -743,7 +743,12 @@ private:
         using data_type = T;
 
         /// @brief Initializing constructor.
-        Model(T arg) : data{std::move(arg)} {}
+        template <typename U>
+        explicit Model(U&& arg) noexcept(std::is_nothrow_constructible_v<T, U>)
+            : data{std::forward<U>(arg)}
+        {
+            // Intentionally empty.
+        }
 
         std::unique_ptr<Concept> Clone_() const override
         {
@@ -897,7 +902,7 @@ template <typename T>
 inline T TypeCast(const Shape& value)
 {
     using RawType = std::remove_cv_t<std::remove_reference_t<T>>;
-    static_assert(std::is_constructible<T, RawType const&>::value,
+    static_assert(std::is_constructible_v<T, RawType const&>,
                   "T is required to be a const lvalue reference "
                   "or a CopyConstructible type");
     auto tmp = ::playrho::d2::TypeCast<std::add_const_t<RawType>>(&value);
