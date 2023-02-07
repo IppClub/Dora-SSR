@@ -646,7 +646,7 @@ LuaEngine::~LuaEngine() {
 	}
 }
 
-std::pair<std::string, std::string> LuaEngine::tealToLua(const std::string& tlCodes, String moduleName) {
+lua_State* LuaEngine::loadTealState() {
 	if (!_tlState) {
 		_tlState = luaL_newstate();
 		dora_loadbase(_tlState);
@@ -675,15 +675,32 @@ std::pair<std::string, std::string> LuaEngine::tealToLua(const std::string& tlCo
 		lua_setfield(_tlState, -2, "read_file");
 		lua_pop(_tlState, 3);
 	}
+	return _tlState;
+}
+
+std::string LuaEngine::tealVersion() {
+	loadTealState();
+	int top = lua_gettop(_tlState);
+	DEFER(lua_settop(_tlState, top));
+	lua_getglobal(_tlState, "package"); // package
+	lua_getfield(_tlState, -1, "loaded"); // package loaded
+	lua_getfield(_tlState, -1, "tl"); // package loaded tl
+	lua_getfield(_tlState, -1, "version"); // package loaded tl version
+	LuaEngine::call(_tlState, 0, 1); // version(), package loaded tl res err
+	return tolua_toslice(_tlState, -1, nullptr);
+}
+
+std::pair<std::string, std::string> LuaEngine::tealToLua(const std::string& tlCodes, String moduleName) {
+	loadTealState();
 	int top = lua_gettop(_tlState);
 	DEFER(lua_settop(_tlState, top));
 	lua_getglobal(_tlState, "package"); // package
 	lua_getfield(_tlState, -1, "loaded"); // package loaded
 	lua_getfield(_tlState, -1, "tl"); // package loaded tl
 	lua_getfield(_tlState, -1, "tolua"); // package loaded tl tolua
-	lua_pushlstring(_tlState, tlCodes.c_str(), tlCodes.size()); // package loaded tl tolua codes
-	tolua_pushslice(_tlState, moduleName);
-	LuaEngine::call(_tlState, 2, 2); // tolua(codes), package loaded tl res err
+	lua_pushlstring(_tlState, tlCodes.c_str(), tlCodes.size()); // package loaded tl tolua tlCodes
+	tolua_pushslice(_tlState, moduleName); // package loaded tl tolua tlCodes moduleName
+	LuaEngine::call(_tlState, 2, 2); // tolua(tlCodes, moduleName), package loaded tl res err
 	if (lua_isnil(_tlState, -2) != 0) {
 		return {Slice::Empty, tolua_toslice(_tlState, -1, nullptr)};
 	} else {
