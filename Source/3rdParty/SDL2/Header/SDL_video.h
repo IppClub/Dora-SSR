@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -187,7 +187,8 @@ typedef enum
     SDL_DISPLAYEVENT_NONE,          /**< Never used */
     SDL_DISPLAYEVENT_ORIENTATION,   /**< Display orientation has changed to data1 */
     SDL_DISPLAYEVENT_CONNECTED,     /**< Display has been added to the system */
-    SDL_DISPLAYEVENT_DISCONNECTED   /**< Display has been removed from the system */
+    SDL_DISPLAYEVENT_DISCONNECTED,  /**< Display has been removed from the system */
+    SDL_DISPLAYEVENT_MOVED          /**< Display has changed position */
 } SDL_DisplayEventID;
 
 /**
@@ -1059,12 +1060,12 @@ extern DECLSPEC int SDLCALL SDL_GetWindowBordersSize(SDL_Window * window,
  * \param h a pointer to variable for storing the height in pixels, may be
  *          NULL
  *
- * \since This function is available since SDL 2.26.1.
+ * \since This function is available since SDL 2.26.0.
  *
  * \sa SDL_CreateWindow
  * \sa SDL_GetWindowSize
  */
-extern DECLSPEC void SDLCALL SDL_GetWindowSizeInPixels(SDL_Window * window, 
+extern DECLSPEC void SDLCALL SDL_GetWindowSizeInPixels(SDL_Window * window,
                                                        int *w, int *h);
 
 /**
