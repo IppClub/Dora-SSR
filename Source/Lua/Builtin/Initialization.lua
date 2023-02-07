@@ -66,6 +66,10 @@ do
 
 	local require = _G.require
 	_G.require = function(name)
+		local result = package.loaded[name]
+		if result then
+			return result
+		end
 		local lastTime = App.eclapsedTime
 		Profiler.level = Profiler.level + 1
 		local _ <close> = setmetatable({}, {
