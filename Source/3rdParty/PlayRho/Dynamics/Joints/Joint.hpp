@@ -26,6 +26,7 @@
 
 #include "PlayRho/Common/Math.hpp"
 #include "PlayRho/Dynamics/Joints/LimitState.hpp"
+#include "PlayRho/Common/Templates.hpp" // for DecayedTypeIfNotSame
 #include "PlayRho/Dynamics/BodyID.hpp"
 
 #include <memory> // for std::unique_ptr
@@ -142,14 +143,6 @@ bool SolvePosition(const Joint& object, std::vector<BodyConstraint>& bodies,
 /// @see https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Polymorphic_Value_Types
 class Joint
 {
-    /// @brief Decayed type if not same as this class.
-    /// @note This is done separately from other checks to ensure order of compiler's SFINAE
-    ///   processing and to ensure elimination of self class before attempting to process other
-    ///   checks like is_copy_constructible. This prevents a compiler error that started showing
-    ///   up in gcc-9.
-    template <typename Type, typename DecayedType = std::decay_t<Type>>
-    using DecayedTypeIfNotSelf = std::enable_if_t<!std::is_same_v<DecayedType, Joint>, DecayedType>;
-
 public:
     /// @brief Type alias for body constraints mapping.
     using BodyConstraintsMap = std::vector<BodyConstraint>;
@@ -176,6 +169,7 @@ public:
     }
 
     /// @brief Initializing constructor.
+    /// @param arg Value to construct a joint instance for.
     /// @note See the class notes section for an explanation of requirements on a type
     ///   <code>T</code> for its values to be valid candidates for this function.
     /// @note This constructor is marked <code>explicit</code> to prevent implicit conversions and
@@ -209,9 +203,10 @@ public:
     /// f(joint); f(Joint{def}); // but not f(def);
     /// @endcode
     /// @post <code>has_value()</code> returns true.
+    /// @throws std::bad_alloc if there's a failure allocating storage.
     /// @see https://foonathan.net/2015/10/overload-resolution-1/
-    template <typename T, typename Tp = DecayedTypeIfNotSelf<T>,
-              typename = std::enable_if_t<std::is_copy_constructible<Tp>::value>>
+    template <typename T, typename Tp = DecayedTypeIfNotSame<T, Joint>,
+              typename = std::enable_if_t<std::is_constructible_v<Tp, T>>>
     explicit Joint(T&& arg) : m_self{std::make_unique<Model<Tp>>(std::forward<T>(arg))}
     {
         // Intentionally empty.
@@ -238,11 +233,11 @@ public:
     /// @note See the class notes section for an explanation of requirements on a type
     ///   <code>T</code> for its values to be valid candidates for this function.
     /// @post <code>has_value()</code> returns true.
-    template <typename T, typename Tp = DecayedTypeIfNotSelf<T>,
-              typename = std::enable_if_t<std::is_copy_constructible<Tp>::value>>
-    Joint& operator=(T&& other) noexcept
+    template <typename T, typename Tp = DecayedTypeIfNotSame<T, Joint>,
+              typename = std::enable_if_t<std::is_constructible_v<Tp, T>>>
+    Joint& operator=(T&& arg)
     {
-        Joint(std::forward<T>(other)).swap(*this);
+        Joint(std::forward<T>(arg)).swap(*this);
         return *this;
     }
 
@@ -377,14 +372,11 @@ private:
         using data_type = T;
 
         /// @brief Initializing constructor.
-        explicit Model(const T& arg) noexcept(std::is_nothrow_copy_constructible_v<T>) : data{arg}
+        template <typename U>
+        explicit Model(U&& arg) noexcept(std::is_nothrow_constructible_v<T, U>)
+            : data{std::forward<U>(arg)}
         {
-        }
-
-        /// @brief Initializing constructor.
-        explicit Model(T&& arg) noexcept(std::is_nothrow_move_constructible_v<T>)
-            : data{std::move(arg)}
-        {
+            // Intentionally empty.
         }
 
         /// @copydoc Concept::Clone_
