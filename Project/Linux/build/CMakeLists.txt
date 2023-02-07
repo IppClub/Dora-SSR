@@ -402,6 +402,7 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/soloud/core/soloud_misc.cpp
 	../../../Source/3rdParty/soloud/filter/soloud_eqfilter.cpp
 	../../../Source/3rdParty/soloud/filter/soloud_bassboostfilter.cpp
+	../../../Source/3rdParty/soloud/filter/soloud_duckfilter.cpp
 	../../../Source/3rdParty/soloud/filter/soloud_echofilter.cpp
 	../../../Source/3rdParty/soloud/filter/soloud_fftfilter.cpp
 	../../../Source/3rdParty/soloud/filter/soloud_robotizefilter.cpp
