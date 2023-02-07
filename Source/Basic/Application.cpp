@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "bx/timer.h"
 #include <ctime>
 
-#define DORA_VERSION "1.0.12"_slice
+#define DORA_VERSION "1.0.13"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -63,8 +63,8 @@ Application::Application()
 	, _renderRunning(true)
 	, _logicRunning(true)
 	, _frame(0)
-	, _visualWidth(1280/2)
-	, _visualHeight(720/2)
+	, _visualWidth(1280)
+	, _visualHeight(720)
 	, _winWidth(_visualWidth)
 	, _winHeight(_visualHeight)
 	, _bufferWidth(0)
