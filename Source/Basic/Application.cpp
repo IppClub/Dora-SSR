@@ -600,6 +600,7 @@ int CALLBACK WinMain(
 #include "wasm3.h"
 #include "yuescript/yue_compiler.h"
 #include "Lua/LuaEngine.h"
+#include "SQLiteCpp/SQLiteCpp.h"
 
 std::string Dorothy::Application::getDeps() const {
 	return fmt::format(
@@ -614,6 +615,7 @@ std::string Dorothy::Application::getDeps() const {
 		"- Spine 4.1.4\n"
 		"- imgui {}\n"
 		"- sqlite3 {}\n"
+		"- SQLiteCpp {}\n"
 		"- wasm3 {}\n"
 		"- fmt {}",
 		SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL,
@@ -625,6 +627,7 @@ std::string Dorothy::Application::getDeps() const {
 		SOLOUD_VERSION,
 		IMGUI_VERSION_NUM,
 		SQLITE_VERSION,
+		SQLITECPP_VERSION,
 		M3_VERSION,
 		FMT_VERSION);
 }

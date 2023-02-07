@@ -3,7 +3,7 @@
  * @ingroup SQLiteCpp
  * @brief   A prepared SQLite Statement is a compiled SQL query ready to be executed, pointing to a row of result.
  *
- * Copyright (c) 2012-2021 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2022 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -17,7 +17,7 @@
 #include <map>
 #include <memory>
 
-// Forward declarations to avoid inclusion of <sqlite3.h> in a header
+// Forward declarations to avoid inclusion of "sqlite3.h" in a header
 struct sqlite3;
 struct sqlite3_stmt;
 
@@ -74,23 +74,22 @@ public:
         Statement(aDatabase, aQuery.c_str())
     {}
 
-    /**
-     * @brief Move an SQLite statement.
-     *
-     * @param[in] aStatement    Statement to move
-     */
-    Statement(Statement&& aStatement) noexcept;
-    Statement& operator=(Statement&& aStatement) noexcept = default;
-
     // Statement is non-copyable
     Statement(const Statement&) = delete;
     Statement& operator=(const Statement&) = delete;
+
+    // TODO: Change Statement move constructor to default
+    Statement(Statement&& aStatement) noexcept;
+    Statement& operator=(Statement&& aStatement) noexcept = default;
 
     /// Finalize and unregister the SQL query from the SQLite Database Connection.
     /// The finalization will be done by the destructor of the last shared pointer
     ~Statement() = default;
 
-    /// Reset the statement to make it ready for a new execution. Throws an exception on error.
+    /// Reset the statement to make it ready for a new execution by calling sqlite3_reset.
+    /// Throws an exception on error.
+    /// Call this function before any news calls to bind() if the statement was already executed before.
+    /// Calling reset() does not clear the bindings (see clearBindings()).
     void reset();
 
     /// Reset the statement. Returns the sqlite result code instead of throwing an exception on error.
@@ -702,12 +701,12 @@ private:
     std::string             mQuery;                 //!< UTF-8 SQL Query
     sqlite3*                mpSQLite;               //!< Pointer to SQLite Database Connection Handle
     TStatementPtr           mpPreparedStatement;    //!< Shared Pointer to the prepared SQLite Statement Object
-    int                     mColumnCount{0};        //!< Number of columns in the result of the prepared statement
-    bool                    mbHasRow{false};        //!< true when a row has been fetched with executeStep()
-    bool                    mbDone{false};          //!< true when the last executeStep() had no more row to fetch
-    
+    int                     mColumnCount = 0;       //!< Number of columns in the result of the prepared statement
+    bool                    mbHasRow = false;       //!< true when a row has been fetched with executeStep()
+    bool                    mbDone = false;         //!< true when the last executeStep() had no more row to fetch
+
     /// Map of columns index by name (mutable so getColumnIndex can be const)
-    mutable std::map<std::string, int>  mColumnNames{};
+    mutable std::map<std::string, int>  mColumnNames;
 };
 
 

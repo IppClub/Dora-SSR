@@ -20,7 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifdef SQLITECPP_ENABLE_ASSERT_HANDLER
 namespace SQLite {
 
-void assertion_failed(const char* apFile, const long apLine, const char* apFunc, const char* apExpr, const char* apMsg) {
+void assertion_failed(const char* apFile, const int apLine, const char* apFunc, const char* apExpr, const char* apMsg) {
 	auto msg = fmt::format("[Dorothy Error]\n[File] {},\n[Func] {}, [Line] {},\n[Condition] {},\n[Message] {}", apFile, apFunc, apLine, apExpr, apMsg);
 	throw std::runtime_error(msg);
 }

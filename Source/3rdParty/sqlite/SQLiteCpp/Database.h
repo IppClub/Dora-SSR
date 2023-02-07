@@ -3,7 +3,7 @@
  * @ingroup SQLiteCpp
  * @brief   Management of a SQLite Database Connection.
  *
- * Copyright (c) 2012-2021 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2022 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -15,13 +15,17 @@
 // c++17: MinGW GCC version > 8
 // c++17: Visual Studio 2017 version 15.7
 // c++17: macOS unless targetting compatibility with macOS < 10.15
+#ifndef SQLITECPP_HAVE_STD_EXPERIMENTAL_FILESYSTEM
 #if __cplusplus >= 201703L
     #if defined(__MINGW32__) || defined(__MINGW64__)
         #if __GNUC__ > 8 // MinGW requires GCC version > 8 for std::filesystem
             #define SQLITECPP_HAVE_STD_FILESYSTEM
         #endif
     #elif defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED < 101500
-        // macOS clang won't less us touch std::filesystem if we're targetting earlier than 10.15
+        // macOS clang won't let us touch std::filesystem if we're targetting earlier than 10.15
+    #elif defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && defined(__IPHONE_13_0) && \
+__IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_13_0
+        // build for iOS clang won't let us touch std::filesystem if we're targetting earlier than iOS 13
     #else
         #define SQLITECPP_HAVE_STD_FILESYSTEM
     #endif
@@ -29,14 +33,40 @@
     #define SQLITECPP_HAVE_STD_FILESYSTEM
 #endif
 
+// disable the support if the required header is not available
+#ifdef __has_include
+    #if !__has_include(<filesystem>)
+        #undef SQLITECPP_HAVE_STD_FILESYSTEM
+    #endif
+    #if !__has_include(<experimental/filesystem>)
+        #undef SQLITECPP_HAVE_EXPERIMENTAL_FILESYSTEM
+    #endif
+#endif
+
+// C++17 allow to disable std::filesystem support
+#ifdef SQLITECPP_DISABLE_STD_FILESYSTEM
+    #undef SQLITECPP_HAVE_STD_FILESYSTEM
+    #undef SQLITECPP_HAVE_STD_EXPERIMENTAL_FILESYSTEM
+#endif
+
 #ifdef SQLITECPP_HAVE_STD_FILESYSTEM
 #include  <filesystem>
 #endif // c++17 and a suitable compiler
 
+#else // SQLITECPP_HAVE_STD_EXPERIMENTAL_FILESYSTEM
+
+#define SQLITECPP_HAVE_STD_FILESYSTEM
+#include  <experimental/filesystem>
+namespace std {
+namespace filesystem = experimental::filesystem;
+}
+
+#endif // SQLITECPP_HAVE_STD_EXPERIMENTAL_FILESYSTEM
+
 #include <memory>
 #include <string.h>
 
-// Forward declarations to avoid inclusion of <sqlite3.h> in a header
+// Forward declarations to avoid inclusion of "sqlite3.h" in a header
 struct sqlite3;
 struct sqlite3_context;
 
@@ -51,7 +81,7 @@ typedef struct Mem sqlite3_value;
 namespace SQLite
 {
 
-// Those public constants enable most usages of SQLiteCpp without including <sqlite3.h> in the client application.
+// Those public constants enable most usages of SQLiteCpp without including "sqlite3.h" in the client application.
 
 /// The database is opened in read-only mode. If the database does not already exist, an error is returned.
 extern const int OPEN_READONLY;     // SQLITE_OPEN_READONLY
@@ -78,8 +108,8 @@ extern const int OPEN_NOFOLLOW;     // SQLITE_OPEN_NOFOLLOW
 
 extern const int OK;                ///< SQLITE_OK (used by check() bellow)
 
-extern const char*  VERSION;        ///< SQLITE_VERSION string from the sqlite3.h used at compile time
-extern const int    VERSION_NUMBER; ///< SQLITE_VERSION_NUMBER from the sqlite3.h used at compile time
+extern const char* const VERSION;        ///< SQLITE_VERSION string from the sqlite3.h used at compile time
+extern const int         VERSION_NUMBER; ///< SQLITE_VERSION_NUMBER from the sqlite3.h used at compile time
 
 /// Return SQLite version string using runtime call to the compiled library
 const char* getLibVersion() noexcept;
@@ -242,8 +272,8 @@ public:
      * @brief Set a busy handler that sleeps for a specified amount of time when a table is locked.
      *
      *  This is useful in multithreaded program to handle case where a table is locked for writing by a thread.
-     * Any other thread cannot access the table and will receive a SQLITE_BUSY error:
-     * setting a timeout will wait and retry up to the time specified before returning this SQLITE_BUSY error.
+     *  Any other thread cannot access the table and will receive a SQLITE_BUSY error:
+     *  setting a timeout will wait and retry up to the time specified before returning this SQLITE_BUSY error.
      *  Reading the value of timeout for current connection can be done with SQL query "PRAGMA busy_timeout;".
      *  Default busy timeout is 0ms.
      *
@@ -308,7 +338,7 @@ public:
      *
      * @see exec() to execute, returning number of rows modified
      *
-     * @param[in] aQueries  one or multiple UTF-8 encoded, semicolon-separate SQL statements
+     * @param[in] apQueries  one or multiple UTF-8 encoded, semicolon-separate SQL statements
      *
      * @return the sqlite result code.
      */
@@ -328,7 +358,7 @@ public:
      *
      * @return the sqlite result code.
      */
-    int tryExec(const std::string aQueries) noexcept
+    int tryExec(const std::string& aQueries) noexcept
     {
         return tryExec(aQueries.c_str());
     }
@@ -389,7 +419,7 @@ public:
      *
      * @throw SQLite::Exception in case of error
      */
-    bool tableExists(const char* apTableName);
+    bool tableExists(const char* apTableName) const;
 
     /**
      * @brief Shortcut to test if a table exists.
@@ -402,7 +432,7 @@ public:
      *
      * @throw SQLite::Exception in case of error
      */
-    bool tableExists(const std::string& aTableName)
+    bool tableExists(const std::string& aTableName) const
     {
         return tableExists(aTableName.c_str());
     }
@@ -410,12 +440,12 @@ public:
     /**
      * @brief Get the rowid of the most recent successful INSERT into the database from the current connection.
      *
-     *  Each entry in an SQLite table always has a unique 64-bit signed integer key called the rowid.
+     * Each entry in an SQLite table always has a unique 64-bit signed integer key called the rowid.
      * If the table has a column of type INTEGER PRIMARY KEY, then it is an alias for the rowid.
      *
      * @return Rowid of the most recent successful INSERT into the database, or 0 if there was none.
      */
-    long long getLastInsertRowid() const noexcept;
+    int64_t getLastInsertRowid() const noexcept;
 
     /// Get number of rows modified by last INSERT, UPDATE or DELETE statement (not DROP table).
     int getChanges() const noexcept;
@@ -552,7 +582,7 @@ public:
     static Header getHeaderInfo(const std::string& aFilename);
 
     // Parse SQLite header data from a database file.
-    Header getHeaderInfo()
+    Header getHeaderInfo() const
     {
         return getHeaderInfo(mFilename);
     }
