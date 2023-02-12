@@ -11,32 +11,35 @@ package.cpath = App.platform == "Windows" and "?.dll" or "?.so"
 builtin.App = App
 builtin.Application = nil
 
-local Content = builtin.Content()
-builtin.Content = Content
+local Content = builtin.Content
+builtin.Content = Content()
 
-local Director = builtin.Director()
-builtin.Director = Director
+local Director = builtin.Director
+builtin.Director = Director()
 
-local View = builtin.View()
-builtin.View = View
+local View = builtin.View
+builtin.View = View()
 
-local Audio = builtin.Audio()
-builtin.Audio = Audio
+local Audio = builtin.Audio
+builtin.Audio = Audio()
 
-local Keyboard = builtin.Keyboard()
-builtin.Keyboard = Keyboard
+local Keyboard = builtin.Keyboard
+builtin.Keyboard = Keyboard()
 
-local DB = builtin.DB()
-builtin.DB = DB
+local DB = builtin.DB
+builtin.DB = DB()
 
-local AI = builtin.Platformer.Decision.AI()
-builtin.Platformer.Decision.AI = AI
+local Wasm = builtin.Wasm
+builtin.Wasm = Wasm()
 
-local Data = builtin.Platformer.Data()
-builtin.Platformer.Data = Data
+local HttpServer = builtin.HttpServer
+builtin.HttpServer = HttpServer()
 
-local Wasm = builtin.Wasm()
-builtin.Wasm = Wasm
+local AI = builtin.Platformer.Decision.AI
+builtin.Platformer.Decision.AI = AI()
+
+local Data = builtin.Platformer.Data
+builtin.Platformer.Data = Data()
 
 -- setup loader profilers
 
@@ -182,7 +185,7 @@ setmetatable(Routine, {
 	end
 })
 
-Director.postScheduler:schedule(function()
+Director().postScheduler:schedule(function()
 	local i, count = 1, #Routine
 	while i <= count do
 		local routine = Routine[i]
@@ -810,8 +813,8 @@ end
 _G.p = yue.p
 builtin.p = yue.p
 
-local function disallowAssignGlobal(_, name)
-	error("Disallow creating global variable \"" .. name .. "\".")
+local function disallowCreateGlobal(_, name)
+	error("disallow creating global variable \"" .. name .. "\".")
 end
 
 local function Dorothy(...)
@@ -822,14 +825,14 @@ local function Dorothy(...)
 		envs = {
 			__index = function(_, key)
 				for i = 1, #envs do
-					local item = rawget(envs, i)[key]
+					local item = envs[i][key]
 					if item ~= nil then
 						return item
 					end
 				end
 				return nil
 			end,
-			__newindex = disallowAssignGlobal,
+			__newindex = disallowCreateGlobal,
 			builtin,
 			...
 		}
@@ -848,9 +851,9 @@ local globals = {} -- available global value storage
 _G.globals = globals
 builtin.globals = globals
 
-local builtinEnvMeta = { __newindex = disallowAssignGlobal }
-setmetatable(_G, builtinEnvMeta)
-setmetatable(builtin, builtinEnvMeta)
+local builtinMeta = { __newindex = disallowCreateGlobal }
+setmetatable(_G, builtinMeta)
+setmetatable(builtin, builtinMeta)
 
 -- default GC setting
 

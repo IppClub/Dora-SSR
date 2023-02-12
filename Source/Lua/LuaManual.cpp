@@ -17,6 +17,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Other/xlsxtext.hpp"
 #include "SQLiteCpp/SQLiteCpp.h"
 
+extern "C" {
+int colibc_json_load(lua_State *L);
+int colibc_json_dump(lua_State *L);
+}
+
 NS_DOROTHY_BEGIN
 
 /* Event */
@@ -2589,6 +2594,81 @@ int DB_execAsync(lua_State* L) {
 #ifndef TOLUA_RELEASE
 tolua_lerror:
 	tolua_error(L, "#ferror in function 'DB_execAsync'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int HttpServer_post(lua_State* L) {
+	/* 1 self, 2 pattern, 3 handler */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "HttpServer"_slice, 0, &tolua_err)
+		|| !tolua_isslice(L, 2, 0, &tolua_err)
+		|| !tolua_isfunction(L, 3, &tolua_err)) {
+		goto tolua_lerror;
+	}
+#endif
+	{
+		HttpServer* self = r_cast<HttpServer*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'HttpServer_post'", nullptr);
+#endif
+		Slice pattern = tolua_toslice(L, 2, nullptr);
+		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 3)));
+		self->post(pattern, [handler](const HttpServer::Request& req) {
+			auto L = SharedLuaEngine.getState();
+			int top = lua_gettop(L);
+			DEFER(lua_settop(L, top));
+			lua_createtable(L, 0, 0);
+			lua_pushliteral(L, "params");
+			lua_createtable(L, 0, 0);
+			std::string key;
+			bool startPair = true;
+			for (const auto& v : req.params) {
+				if (startPair) {
+					startPair = false;
+					key = v;
+				} else {
+					startPair = true;
+					tolua_pushslice(L, key);
+					tolua_pushslice(L, v);
+					lua_rawset(L, -3);
+				}
+			}
+			lua_rawset(L, -3);
+			lua_pushliteral(L, "body");
+			if (req.contentType == "application/json"_slice) {
+				lua_pushcfunction(L, colibc_json_load);
+				tolua_pushslice(L, req.body);
+				if (!LuaEngine::call(L, 1, 1)) {
+					lua_pushnil(L);
+				}
+			} else {
+				tolua_pushslice(L, req.body);
+			}
+			lua_rawset(L, -3);
+			LuaEngine::invoke(L, handler->get(), 1, 1);
+			HttpServer::Response res;
+			if (lua_istable(L, -1)) {
+				lua_pushcfunction(L, colibc_json_dump);
+				lua_insert(L, -2);
+				if (LuaEngine::call(L, 1, 1)) {
+					res.content = tolua_toslice(L, -1, nullptr);
+					res.contentType = "application/json"_slice;
+				} else {
+					res.status = 500;
+				}
+			} else {
+				res.content = lua_tostring(L, -1);
+				res.contentType = "text/plain"_slice;
+			}
+			return res;
+		});
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'HttpServer_post'.", &tolua_err);
 	return 0;
 #endif
 }

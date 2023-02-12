@@ -20,6 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 int luaopen_yue(lua_State* L);
+int luaopen_colibc_json(lua_State *L);
 }
 
 NS_DOROTHY_BEGIN
@@ -287,6 +288,7 @@ static int dora_loadbase(lua_State* L) {
 static int dora_loadlibs(lua_State* L) {
 	dora_loadbase(L);
 	luaL_requiref(L, "yue", luaopen_yue, 0);
+	luaL_requiref(L, "json", luaopen_colibc_json, 0);
 	lua_pop(L, 1);
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "loaded"); // package loaded
@@ -599,6 +601,12 @@ LuaEngine::LuaEngine()
 		}
 		tolua_endmodule(L);
 
+		tolua_beginmodule(L, "HttpServer");
+		{
+			tolua_function(L, "post", HttpServer_post);
+		}
+		tolua_endmodule(L);
+
 		tolua_beginmodule(L, "ML");
 		{
 			tolua_beginmodule(L, "QLearner");
@@ -611,6 +619,8 @@ LuaEngine::LuaEngine()
 			tolua_endmodule(L);
 		}
 		tolua_endmodule(L);
+
+
 
 		tolua_beginmodule(L, "Platformer");
 		{

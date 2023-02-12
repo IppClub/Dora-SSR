@@ -237,6 +237,10 @@ int DB_insertAsync(lua_State* L);
 int DB_insertAsync01(lua_State* L);
 int DB_execAsync(lua_State* L);
 
+/* HttpServer */
+int HttpServer_post(lua_State* L);
+inline HttpServer* HttpServer_shared() { return &SharedHttpServer; }
+
 /* Effect */
 inline Pass* Effect_get(Effect* self, size_t index) { return self->get(index - 1); }
 
