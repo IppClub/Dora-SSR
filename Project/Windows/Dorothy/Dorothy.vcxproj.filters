@@ -220,6 +220,12 @@
     <Filter Include="3rdParty\soloud\backend\sdl2_static">
       <UniqueIdentifier>{606816b5-3b1e-49ec-96d2-040ba1a57aa1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\colib">
+      <UniqueIdentifier>{73663200-4de5-41ca-9e49-58903b87f819}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Http">
+      <UniqueIdentifier>{410b8208-0230-4981-9971-2b6eff86da7e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
@@ -1433,6 +1439,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_duckfilter.cpp">
       <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\colib\ljson.c">
+      <Filter>3rdParty\colib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Http\HttpServer.cpp">
+      <Filter>Http</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2975,6 +2987,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_duckfilter.h">
       <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Http\HttpServer.h">
+      <Filter>Http</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
