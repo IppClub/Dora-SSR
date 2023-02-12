@@ -106,6 +106,7 @@ add_executable(dorothy-ssr
 	../../../Source/Lua/LuaHandler.cpp
 	../../../Source/Lua/TealCompiler.cpp
 	../../../Source/Lua/LuaEngine.cpp
+	../../../Source/Http/HttpServer.cpp
 	../../../Source/Wasm/WasmRuntime.cpp
 	../../../Source/Const/Header.cpp
 	../../../Source/Common/Utils.cpp
@@ -270,6 +271,7 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/Lua/llex.c
 	../../../Source/3rdParty/Lua/ltm.c
 	../../../Source/3rdParty/Lua/ldo.c
+	../../../Source/3rdParty/colib/ljson.c
 	../../../Source/3rdParty/wasm3/m3_compile.c
 	../../../Source/3rdParty/wasm3/m3_api_libc.c
 	../../../Source/3rdParty/wasm3/m3_env.c

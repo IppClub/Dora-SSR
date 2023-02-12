@@ -45,6 +45,7 @@ private:
 
 class AsyncThread {
 public:
+	Async HttpServer;
 	Async FileIO;
 	AsyncThread();
 	Async& getProcess(int index);

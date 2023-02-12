@@ -179,6 +179,8 @@
 		3C49FFE820EF609700E775D7 /* nanovg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFE120EF609600E775D7 /* nanovg.cpp */; };
 		3C49FFE920EF609700E775D7 /* nanovg_bgfx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFE720EF609700E775D7 /* nanovg_bgfx.cpp */; };
 		3C49FFEF20EF644900E775D7 /* stb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFEE20EF644900E775D7 /* stb.cpp */; };
+		3C5399E82994E97400E9125C /* HttpServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399E62994E97400E9125C /* HttpServer.cpp */; };
+		3C5399EB2998BAF000E9125C /* ljson.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399EA2998BAF000E9125C /* ljson.c */; };
 		3C54F0DA2599CD65003D8F08 /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C54F0D92599CD65003D8F08 /* Value.cpp */; };
 		3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39B1E0A05AD002141DF /* Event.cpp */; };
 		3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39D1E0A05AD002141DF /* EventType.cpp */; };
@@ -858,6 +860,9 @@
 		3C49FFEC20EF63D000E775D7 /* stb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_truetype.h; path = ../../../Source/3rdParty/stb/stb_truetype.h; sourceTree = "<group>"; };
 		3C49FFED20EF63D000E775D7 /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = ../../../Source/3rdParty/stb/stb_rect_pack.h; sourceTree = "<group>"; };
 		3C49FFEE20EF644900E775D7 /* stb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = stb.cpp; path = ../../../Source/3rdParty/stb/stb.cpp; sourceTree = "<group>"; };
+		3C5399E62994E97400E9125C /* HttpServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HttpServer.cpp; path = ../../../Source/Http/HttpServer.cpp; sourceTree = "<group>"; };
+		3C5399E72994E97400E9125C /* HttpServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HttpServer.h; path = ../../../Source/Http/HttpServer.h; sourceTree = "<group>"; };
+		3C5399EA2998BAF000E9125C /* ljson.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ljson.c; path = ../../../Source/3rdParty/colib/ljson.c; sourceTree = "<group>"; };
 		3C54F0D92599CD65003D8F08 /* Value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Value.cpp; path = ../../../Source/Support/Value.cpp; sourceTree = "<group>"; };
 		3C57A39B1E0A05AD002141DF /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Event.cpp; path = ../../../Source/Event/Event.cpp; sourceTree = "<group>"; };
 		3C57A39C1E0A05AD002141DF /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = ../../../Source/Event/Event.h; sourceTree = "<group>"; };
@@ -1771,6 +1776,7 @@
 		3C291D371E0264510098C860 /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3C5399E92998BACF00E9125C /* colib */,
 				3CFEB82E268DA5B6006D9974 /* dragonBones */,
 				3C00F71624CABCF300151CCA /* ml */,
 				3C49FFEA20EF63C000E775D7 /* stb */,
@@ -1935,6 +1941,23 @@
 				3C49FFEE20EF644900E775D7 /* stb.cpp */,
 			);
 			name = stb;
+			sourceTree = "<group>";
+		};
+		3C5399E52994E70B00E9125C /* Http */ = {
+			isa = PBXGroup;
+			children = (
+				3C5399E62994E97400E9125C /* HttpServer.cpp */,
+				3C5399E72994E97400E9125C /* HttpServer.h */,
+			);
+			name = Http;
+			sourceTree = "<group>";
+		};
+		3C5399E92998BACF00E9125C /* colib */ = {
+			isa = PBXGroup;
+			children = (
+				3C5399EA2998BAF000E9125C /* ljson.c */,
+			);
+			name = colib;
 			sourceTree = "<group>";
 		};
 		3C57A39A1E0A059A002141DF /* Event */ = {
@@ -2439,6 +2462,7 @@
 				3C5AE0851FFC735600CB95EB /* Entity */,
 				3C57A39A1E0A059A002141DF /* Event */,
 				3CD3282E1E4B0B3C0036906C /* GUI */,
+				3C5399E52994E70B00E9125C /* Http */,
 				3C05BCA11E35948200CC6986 /* Input */,
 				3CFF5F221E012874004E3CA6 /* Lua */,
 				3CFEA129285B85EE002D106F /* Wasm */,
@@ -3194,6 +3218,7 @@
 				3CFEB860268DA65C006D9974 /* TextureAtlasData.cpp in Sources */,
 				3CFEBD65268DA6D5006D9974 /* Bone.cpp in Sources */,
 				3C6E7F11272A30E700E9F115 /* soloud_waveshaperfilter.cpp in Sources */,
+				3C5399EB2998BAF000E9125C /* ljson.c in Sources */,
 				3C3B98E326FDADDC00BD9F3E /* WorldContact.cpp in Sources */,
 				3CA3164A29923329007879C4 /* soloud_duckfilter.cpp in Sources */,
 				3C65B5B61EC010CA0039DA1D /* Menu.cpp in Sources */,
@@ -3291,6 +3316,7 @@
 				3C6E7F13272A30E700E9F115 /* soloud_fft_lut.cpp in Sources */,
 				3C1A3AF5272A850F003A2829 /* lctype.c in Sources */,
 				3C3B988A26FDADBB00BD9F3E /* WeldJointConf.cpp in Sources */,
+				3C5399E82994E97400E9125C /* HttpServer.cpp in Sources */,
 				3CFEA122285B857B002D106F /* m3_info.c in Sources */,
 				3CFEB857268DA65C006D9974 /* ArmatureData.cpp in Sources */,
 				3CF10EEB2874AE7E00940268 /* IkConstraintTimeline.cpp in Sources */,

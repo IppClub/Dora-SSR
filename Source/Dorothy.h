@@ -43,6 +43,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/EventQueue.h"
 #include "Event/Listener.h"
 #include "GUI/ImGuiDora.h"
+#include "Http/HttpServer.h"
 #include "Input/Keyboard.h"
 #include "Input/TouchDispather.h"
 #include "Lua/LuaEngine.h"

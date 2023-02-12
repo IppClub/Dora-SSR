@@ -1076,6 +1076,14 @@ class DB
 	static tolua_outside DB* DB_shared @ create();
 };
 
+class HttpServer
+{
+	tolua_property__common string wWWPath @ wwwPath;
+	bool start(int port);
+	void stop();
+	static tolua_outside HttpServer* HttpServer_shared @ create();
+};
+
 namespace ML {
 
 class QLearner : public Object
