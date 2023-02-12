@@ -101,6 +101,7 @@ add_library(main SHARED
 	src/main/cpp/Lua/LuaHandler.cpp
 	src/main/cpp/Lua/TealCompiler.cpp
 	src/main/cpp/Lua/LuaEngine.cpp
+	src/main/cpp/Http/HttpServer.cpp
 	src/main/cpp/Wasm/WasmRuntime.cpp
 	src/main/cpp/Const/Header.cpp
 	src/main/cpp/Common/Utils.cpp
@@ -265,6 +266,7 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/Lua/llex.c
 	src/main/cpp/3rdParty/Lua/ltm.c
 	src/main/cpp/3rdParty/Lua/ldo.c
+	src/main/cpp/3rdParty/colib/ljson.c
 	src/main/cpp/3rdParty/wasm3/m3_compile.c
 	src/main/cpp/3rdParty/wasm3/m3_api_libc.c
 	src/main/cpp/3rdParty/wasm3/m3_env.c

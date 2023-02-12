@@ -297,6 +297,10 @@
 		3C4BC6671E17F1B500292200 /* tolua_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6601E17F1B500292200 /* tolua_map.cpp */; };
 		3C4BC6681E17F1B500292200 /* tolua_push.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6611E17F1B500292200 /* tolua_push.cpp */; };
 		3C4BC6691E17F1B500292200 /* tolua_to.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6621E17F1B500292200 /* tolua_to.cpp */; };
+		3C5399F62998DEF800E9125C /* ljson.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399F52998DEF800E9125C /* ljson.c */; };
+		3C5399F72998DEF800E9125C /* ljson.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399F52998DEF800E9125C /* ljson.c */; };
+		3C5399FB2998DF4900E9125C /* HttpServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399F92998DF4900E9125C /* HttpServer.cpp */; };
+		3C5399FC2998DF4900E9125C /* HttpServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399F92998DF4900E9125C /* HttpServer.cpp */; };
 		3C5972FE1E7F74CB00BFD00F /* Animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5972F81E7F74CB00BFD00F /* Animation.cpp */; };
 		3C5973001E7F74CB00BFD00F /* ModelDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5972FC1E7F74CB00BFD00F /* ModelDef.cpp */; };
 		3C5973091E7F74E900BFD00F /* ClipCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5973021E7F74E900BFD00F /* ClipCache.cpp */; };
@@ -1300,6 +1304,9 @@
 		3C4BC6621E17F1B500292200 /* tolua_to.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_to.cpp; path = ../../../Source/Lua/ToLua/tolua_to.cpp; sourceTree = "<group>"; };
 		3C4BC6631E17F1B500292200 /* tolua++.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "tolua++.h"; path = "../../../Source/Lua/ToLua/tolua++.h"; sourceTree = "<group>"; };
 		3C50976D1E65B92F00896971 /* Dorothy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dorothy.h; path = ../../../Source/Dorothy.h; sourceTree = "<group>"; };
+		3C5399F52998DEF800E9125C /* ljson.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ljson.c; path = ../../../Source/3rdParty/colib/ljson.c; sourceTree = "<group>"; };
+		3C5399F92998DF4900E9125C /* HttpServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HttpServer.cpp; path = ../../../Source/Http/HttpServer.cpp; sourceTree = "<group>"; };
+		3C5399FA2998DF4900E9125C /* HttpServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HttpServer.h; path = ../../../Source/Http/HttpServer.h; sourceTree = "<group>"; };
 		3C53C14121C9DCDB00343D85 /* chrono.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = chrono.h; path = ../../../Source/3rdParty/fmt/chrono.h; sourceTree = "<group>"; };
 		3C53C14221C9DCDB00343D85 /* color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = color.h; path = ../../../Source/3rdParty/fmt/color.h; sourceTree = "<group>"; };
 		3C53C14321C9DCDB00343D85 /* locale.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = locale.h; path = ../../../Source/3rdParty/fmt/locale.h; sourceTree = "<group>"; };
@@ -2606,6 +2613,23 @@
 			name = Support;
 			sourceTree = "<group>";
 		};
+		3C5399F22998DECB00E9125C /* colib */ = {
+			isa = PBXGroup;
+			children = (
+				3C5399F52998DEF800E9125C /* ljson.c */,
+			);
+			name = colib;
+			sourceTree = "<group>";
+		};
+		3C5399F82998DF2000E9125C /* Http */ = {
+			isa = PBXGroup;
+			children = (
+				3C5399F92998DF4900E9125C /* HttpServer.cpp */,
+				3C5399FA2998DF4900E9125C /* HttpServer.h */,
+			);
+			name = Http;
+			sourceTree = "<group>";
+		};
 		3C62B46627000F7200294B2D /* soloud */ = {
 			isa = PBXGroup;
 			children = (
@@ -3031,6 +3055,7 @@
 		3CB410221E05B08B00A8804D /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3C5399F22998DECB00E9125C /* colib */,
 				3CFEBDAC269308CB006D9974 /* dragonBones */,
 				3C030CA524CAC1CE0074786E /* ml */,
 				3C62B46627000F7200294B2D /* soloud */,
@@ -3165,6 +3190,7 @@
 				3C92DEC11FFE1CDC003AF655 /* Entity */,
 				3CF2D9601E0BC1D1006B9903 /* Event */,
 				3CD328411E4C42E80036906C /* GUI */,
+				3C5399F82998DF2000E9125C /* Http */,
 				3CD328471E4C43040036906C /* Input */,
 				3CFF5F351E013708004E3CA6 /* Lua */,
 				3CFEA174285B8797002D106F /* Wasm */,
@@ -3741,6 +3767,7 @@
 				3C3B9A1A26FDB25D00BD9F3E /* ContactKey.cpp in Sources */,
 				3CFEA169285B873B002D106F /* m3_api_meta_wasi.c in Sources */,
 				3CFEA15B285B873B002D106F /* m3_api_uvwasi.c in Sources */,
+				3C5399FC2998DF4900E9125C /* HttpServer.cpp in Sources */,
 				3C3B9A1B26FDB25D00BD9F3E /* ContactSolver.cpp in Sources */,
 				3C6E8004272A404900E9F115 /* soloud_sfxr.cpp in Sources */,
 				3C3B9A1C26FDB25D00BD9F3E /* PositionSolverManifold.cpp in Sources */,
@@ -3775,6 +3802,7 @@
 				3C3B9A3126FDB25D00BD9F3E /* Sweep.cpp in Sources */,
 				3C3B9A3226FDB25D00BD9F3E /* UnitVec.cpp in Sources */,
 				3C6E8010272A404A00E9F115 /* darray.cpp in Sources */,
+				3C5399F72998DEF800E9125C /* ljson.c in Sources */,
 				3C3B9A3326FDB25D00BD9F3E /* Velocity.cpp in Sources */,
 				3CF10FC72874C81C00940268 /* PathConstraintData.cpp in Sources */,
 				3C1A3BE9272A8820003A2829 /* lmathlib.c in Sources */,
@@ -4153,6 +4181,7 @@
 				3C883B1321E338F500BFD758 /* Object.cpp in Sources */,
 				3C25B871257A7F8B002DD8E1 /* yue_compiler.cpp in Sources */,
 				3C4BC6691E17F1B500292200 /* tolua_to.cpp in Sources */,
+				3C5399FB2998DF4900E9125C /* HttpServer.cpp in Sources */,
 				3C3B99C226FDB06E00BD9F3E /* ChainShapeConf.cpp in Sources */,
 				3C6E7FFB272A404900E9F115 /* sndbuffer.cpp in Sources */,
 				3CFEBE0726930A26006D9974 /* DisplayData.cpp in Sources */,
@@ -4187,6 +4216,7 @@
 				3C030CCE24CAC2BA0074786E /* Model.cpp in Sources */,
 				3C4BC6641E17F1B500292200 /* tolua_event.cpp in Sources */,
 				3C883B1C21E338F500BFD758 /* Director.cpp in Sources */,
+				3C5399F62998DEF800E9125C /* ljson.c in Sources */,
 				3C4BC6681E17F1B500292200 /* tolua_push.cpp in Sources */,
 				3CF10FC62874C81C00940268 /* PathConstraintData.cpp in Sources */,
 				3CD3284A1E4C431B0036906C /* TouchDispather.cpp in Sources */,
