@@ -42,6 +42,11 @@ void HttpServer::post(String pattern, const PostHandler& handler) {
 bool HttpServer::start(int port) {
 	auto& server = getServer();
 	if (server.is_running()) return false;
+	server.set_default_headers({
+		{"Access-Control-Allow-Origin"s, "*"s},
+		{"Access-Control-Allow-Headers"s, "*"s}
+	});
+	server.Options(".*", [](const httplib::Request& req, httplib::Response& res) { });
 	bool success = server.bind_to_port("localhost", port);
 	if (success) {
 		if (!_wwwPath.empty()) {
