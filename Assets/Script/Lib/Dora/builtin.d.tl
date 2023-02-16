@@ -101,6 +101,7 @@ local VGPaint = require("VGPaint")
 local nvg = require("nvg")
 local ImGui = require("ImGui")
 local Platformer = require("Platformer")
+local HttpServer = require("HttpServer")
 local tealtolua = require("tealtolua")
 local p = require("p")
 --Dorothy
@@ -213,4 +214,5 @@ global builtin = {
 	ImGui = ImGui,
 	Platformer = Platformer,
 	tealtolua = tealtolua,
+	HttpServer = HttpServer,
 }
