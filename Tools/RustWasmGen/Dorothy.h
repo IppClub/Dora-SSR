@@ -105,6 +105,8 @@ singleton class Content
 	bool exist(string filename);
 	bool createFolder @ mkdir(string path);
 	bool isFolder @ isdir(string path);
+	void copy(string src, string dst);
+	bool move(string src, string dst);
 	bool remove(string path);
 	string getFullPath(string filename);
 	void addSearchPath(string path);

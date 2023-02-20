@@ -22,6 +22,12 @@ static int32_t content_mkdir(int64_t path) {
 static int32_t content_isdir(int64_t path) {
 	return SharedContent.isFolder(*str_from(path)) ? 1 : 0;
 }
+static void content_copy(int64_t src, int64_t dst) {
+	SharedContent.copy(*str_from(src), *str_from(dst));
+}
+static int32_t content_move(int64_t src, int64_t dst) {
+	return SharedContent.move(*str_from(src), *str_from(dst)) ? 1 : 0;
+}
 static int32_t content_remove(int64_t path) {
 	return SharedContent.remove(*str_from(path)) ? 1 : 0;
 }
@@ -85,6 +91,8 @@ static void linkContent(wasm3::module& mod) {
 	mod.link_optional("*", "content_exist", content_exist);
 	mod.link_optional("*", "content_mkdir", content_mkdir);
 	mod.link_optional("*", "content_isdir", content_isdir);
+	mod.link_optional("*", "content_copy", content_copy);
+	mod.link_optional("*", "content_move", content_move);
 	mod.link_optional("*", "content_remove", content_remove);
 	mod.link_optional("*", "content_get_full_path", content_get_full_path);
 	mod.link_optional("*", "content_add_search_path", content_add_search_path);

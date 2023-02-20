@@ -24,6 +24,7 @@ public:
 	std::pair<OwnArray<uint8_t>, size_t> load(String filename);
 	const bgfx::Memory* loadBX(String filename);
 	void copy(String src, String dst);
+	bool move(String src, String dst);
 	bool remove(String filename);
 	void save(String filename, String content);
 	void save(String filename, uint8_t* content, int64_t size);
