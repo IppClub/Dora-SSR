@@ -53,6 +53,9 @@ bool IsInLua();
 #define Info(...) DORA_DUMMY
 #define Warn(...) DORA_DUMMY
 #define Error(...) DORA_DUMMY
+#define InfoIf(...) DORA_DUMMY
+#define WarnIf(...) DORA_DUMMY
+#define ErrorIf(...) DORA_DUMMY
 #else
 #define Info(format, ...) \
 	Dorothy::LogPrint("[Dorothy Info] " format "\n", ##__VA_ARGS__)
@@ -60,6 +63,18 @@ bool IsInLua();
 	Dorothy::LogPrint("[Dorothy Warning] " format "\n", ##__VA_ARGS__)
 #define Error(format, ...) \
 	Dorothy::LogPrint("[Dorothy Error] " format "\n", ##__VA_ARGS__)
+#define InfoIf(format, ...) \
+	if (cond) { \
+		Dorothy::LogPrint("[Dorothy Info] " format "\n", ##__VA_ARGS__); \
+	}
+#define WarnIf(cond, format, ...) \
+	if (cond) { \
+		Dorothy::LogPrint("[Dorothy Warning] " format "\n", ##__VA_ARGS__); \
+	}
+#define ErrorIf(cond, format, ...) \
+	if (cond) { \
+		Dorothy::LogPrint("[Dorothy Error] " format "\n", ##__VA_ARGS__); \
+	}
 #endif
 
 #if DORA_DISABLE_ASSERTION
