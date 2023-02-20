@@ -198,6 +198,7 @@ class Content
 	bool exist(String filename);
 	bool createFolder @ mkdir(String path);
 	bool isFolder @ isdir(String path);
+	bool move(String src, String dst);
 	bool remove(String path);
 	string getFullPath(String filename);
 	tolua_outside void Content_insertSearchPath @ insertSearchPath(int index, String path);

@@ -71,6 +71,13 @@ void Content::copy(String src, String dst) {
 	SharedAsyncThread.FileIO.resume();
 }
 
+bool Content::move(String src, String dst) {
+	std::error_code err;
+	fs::rename(src.toString(), dst.toString(), err);
+	WarnIf(err, "failed to move file from \"{}\" to \"{}\" due to \"{}\".", src, dst, err.message());
+	return !err;
+}
+
 void Content::save(String filename, String content) {
 	ofstream stream(Content::getFullPath(filename), std::ios::trunc | std::ios::binary);
 	stream.write(content.rawData(), content.size());
@@ -83,7 +90,10 @@ void Content::save(String filename, uint8_t* content, int64_t size) {
 
 bool Content::remove(String filename) {
 	std::string fullpath = Content::getFullPath(filename);
-	return fs::remove_all(fullpath) > 0;
+	std::error_code err;
+	fs::remove_all(fullpath, err);
+	WarnIf(err, "failed to remove files from \"{}\" due to \"{}\".", filename, err.message());
+	return !err;
 }
 
 bool Content::createFolder(String folder) {
