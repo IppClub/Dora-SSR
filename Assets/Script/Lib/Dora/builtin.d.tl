@@ -102,6 +102,7 @@ local nvg = require("nvg")
 local ImGui = require("ImGui")
 local Platformer = require("Platformer")
 local HttpServer = require("HttpServer")
+local Profiler = require("Profiler")
 local tealtolua = require("tealtolua")
 local p = require("p")
 --Dorothy
@@ -215,4 +216,5 @@ global builtin = {
 	Platformer = Platformer,
 	tealtolua = tealtolua,
 	HttpServer = HttpServer,
+	Profiler = Profiler,
 }
