@@ -10,7 +10,14 @@ package.path = "?.lua"
 
 local yue = require("yue")
 yue.insert_loader(3)
-debug.traceback = yue.traceback
+
+debug.traceback = function(err, level)
+	return yue.traceback(err, (level or 1) + 1)
+end
+
+local function traceback(err)
+	print(yue.traceback(err))
+end
 
 -- prepare singletons
 local App = builtin.Application()
@@ -73,6 +80,13 @@ do
 		end
 	end
 
+	Profiler[2] = function(_, func)
+		local lastTime = App.eclapsedTime
+		xpcall(func, traceback)
+		local deltaTime = App.eclapsedTime - lastTime
+		return deltaTime
+	end
+
 	local require = _G.require
 	_G.require = function(name)
 		local result = package.loaded[name]
@@ -106,10 +120,6 @@ do
 		repeat
 			coroutine_yield(false)
 		until cond()
-	end
-
-	local function traceback(err)
-		print(yue.traceback(err))
 	end
 
 	local function once(work)
@@ -822,10 +832,6 @@ end
 
 -- dora helpers
 do
-	debug.traceback = function(err, level)
-		return yue.traceback(err, (level or 1) + 1)
-	end
-
 	_G.p = yue.p
 	builtin.p = yue.p
 
