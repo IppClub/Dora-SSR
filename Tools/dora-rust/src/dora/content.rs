@@ -8,7 +8,7 @@ extern "C" {
 	fn content_mkdir(path: i64) -> i32;
 	fn content_isdir(path: i64) -> i32;
 	fn content_copy(src: i64, dst: i64);
-	fn content_move(src: i64, dst: i64) -> i32;
+	fn content_move_to(src: i64, dst: i64) -> i32;
 	fn content_remove(path: i64) -> i32;
 	fn content_get_full_path(filename: i64) -> i64;
 	fn content_add_search_path(path: i64);
@@ -51,8 +51,8 @@ impl Content {
 	pub fn copy(src: &str, dst: &str) {
 		unsafe { content_copy(crate::dora::from_string(src), crate::dora::from_string(dst)); }
 	}
-	pub fn move(src: &str, dst: &str) -> bool {
-		unsafe { return content_move(crate::dora::from_string(src), crate::dora::from_string(dst)) != 0; }
+	pub fn move_to(src: &str, dst: &str) -> bool {
+		unsafe { return content_move_to(crate::dora::from_string(src), crate::dora::from_string(dst)) != 0; }
 	}
 	pub fn remove(path: &str) -> bool {
 		unsafe { return content_remove(crate::dora::from_string(path)) != 0; }
