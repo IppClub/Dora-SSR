@@ -5489,7 +5489,7 @@ local function init_globals(lax)
 				["match"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_STRING, OPT_NUMBER }), rets = VARARG({ STRING }) }),
 				["pack"] = a_type({ typename = "function", args = VARARG({ STRING, ANY }), rets = TUPLE({ STRING }) }),
 				["packsize"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ INTEGER }) }),
-				["rep"] = a_type({ typename = "function", args = TUPLE({ STRING, NUMBER }), rets = TUPLE({ STRING }) }),
+				["rep"] = a_type({ typename = "function", args = TUPLE({ STRING, NUMBER, OPT_STRING }), rets = TUPLE({ STRING }) }),
 				["reverse"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ STRING }) }),
 				["sub"] = a_type({ typename = "function", args = TUPLE({ STRING, NUMBER, OPT_NUMBER }), rets = TUPLE({ STRING }) }),
 				["unpack"] = a_type({ typename = "function", args = TUPLE({ STRING, STRING, OPT_NUMBER }), rets = VARARG({ ANY }) }),
