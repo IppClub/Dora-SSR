@@ -2641,6 +2641,7 @@ int HttpServer_post(lua_State* L) {
 				lua_pushcfunction(L, colibc_json_load);
 				tolua_pushslice(L, req.body);
 				if (!LuaEngine::call(L, 1, 1)) {
+					lua_pop(L, 1);
 					lua_pushnil(L);
 				}
 			} else {
@@ -2658,9 +2659,11 @@ int HttpServer_post(lua_State* L) {
 				} else {
 					res.status = 500;
 				}
-			} else {
+			} else if (lua_isstring(L, -1)) {
 				res.content = lua_tostring(L, -1);
 				res.contentType = "text/plain"_slice;
+			} else {
+				res.status = 500;
 			}
 			return res;
 		});
