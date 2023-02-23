@@ -65,10 +65,11 @@ const bgfx::Memory* Content::loadBX(String filename) {
 	return bgfx::makeRef(data, (uint32_t)size, releaseFileData);
 }
 
-void Content::copy(String src, String dst) {
+bool Content::copy(String src, String dst) {
 	SharedAsyncThread.FileIO.pause();
-	Content::copyUnsafe(src, dst);
+	bool result = Content::copyUnsafe(src, dst);
 	SharedAsyncThread.FileIO.resume();
+	return result;
 }
 
 bool Content::move(String src, String dst) {
@@ -78,14 +79,22 @@ bool Content::move(String src, String dst) {
 	return !err;
 }
 
-void Content::save(String filename, String content) {
+bool Content::save(String filename, String content) {
 	ofstream stream(Content::getFullPath(filename), std::ios::trunc | std::ios::binary);
-	stream.write(content.rawData(), content.size());
+	if (!stream) return false;
+	if (stream.write(content.rawData(), content.size())) {
+		return true;
+	}
+	return false;
 }
 
-void Content::save(String filename, uint8_t* content, int64_t size) {
+bool Content::save(String filename, uint8_t* content, int64_t size) {
 	ofstream stream(Content::getFullPath(filename), std::ios::trunc | std::ios::binary);
-	stream.write(r_cast<char*>(content), s_cast<std::streamsize>(size));
+	if (!stream) return false;
+	if (stream.write(r_cast<char*>(content), s_cast<std::streamsize>(size))) {
+		return true;
+	}
+	return false;
 }
 
 bool Content::remove(String filename) {
@@ -264,7 +273,7 @@ const std::vector<std::string>& Content::getSearchPaths() const {
 	return _searchPaths;
 }
 
-void Content::copyUnsafe(String src, String dst) {
+bool Content::copyUnsafe(String src, String dst) {
 	std::string srcPath = Content::getFullPath(src);
 	// Info("copy file from {}", srcPath);
 	// Info("copy file to {}", dst);
@@ -275,30 +284,49 @@ void Content::copyUnsafe(String src, String dst) {
 			std::string dstFolder = (fs::path(dstPath) / folder).string();
 			if (!Content::isFileExist(dstFolder)) {
 				if (!Content::createFolder(dstFolder)) {
-					Error("Create folder failed! {}", dstFolder);
+					Error("failed to create folder \"{}\"", dstFolder);
+					return false;
 				}
 			}
 			std::string srcFolder = (fs::path(srcPath) / folder).string();
-			Content::copyUnsafe(srcFolder, dstFolder);
+			if (!Content::copyUnsafe(srcFolder, dstFolder)) {
+				return false;
+			}
 		}
 		auto files = Content::getDirEntries(src, false);
 		for (const std::string& file : files) {
 			// Info("now copy file {}",file);
 			ofstream stream(fs::path(dstPath) / file, std::ios::out | std::ios::trunc | std::ios::binary);
-			Content::loadByChunks((fs::path(srcPath) / file).string(), [&](uint8_t* buffer, int size) {
+			if (!stream) return false;
+			bool result = Content::loadByChunks((fs::path(srcPath) / file).string(), [&](uint8_t* buffer, int size) {
 				if (!stream.write(r_cast<char*>(buffer), size)) {
-					Error("write file failed! {}", (fs::path(dstPath) / file).string());
+					Error("failed to copy to file \"{}\"", (fs::path(dstPath) / file).string());
+					return true;
 				}
+				return false;
 			});
+			if (!result) {
+				return false;
+			}
 		}
 	} else {
 		ofstream stream(dst, std::ios::out | std::ios::trunc | std::ios::binary);
-		Content::loadByChunks(src, [&](uint8_t* buffer, int size) {
+		if (!stream) {
+			Error("failed to open file: \"{}\"", dst);
+			return false;
+		}
+		bool result = Content::loadByChunks(src, [&](uint8_t* buffer, int size) {
 			if (!stream.write(r_cast<char*>(buffer), size)) {
-				Error("write file failed! {}", dst);
+				Error("failed to copy to file \"{}\"", dst);
+				return true;
 			}
+			return false;
 		});
+		if (!result) {
+			return false;
+		}
 	}
+	return true;
 }
 
 void Content::loadAsyncUnsafe(String filename, const std::function<void(uint8_t*, int64_t)>& callback) {
@@ -618,20 +646,24 @@ uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size) {
 	return buffer;
 }
 
-void Content::loadByChunks(String filename, const std::function<void(uint8_t*, int)>& handler) {
-	if (filename.empty()) return;
+bool Content::loadByChunks(String filename, const std::function<bool(uint8_t*, int)>& handler) {
+	if (filename.empty()) return false;
 	std::string fullPath = Content::getFullPath(filename);
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr) {
-		Error("failed to load file: {}", fullPath);
-		return;
+		Error("failed to load file: \"{}\"", fullPath);
+		return false;
 	}
 	uint8_t buffer[DORA_COPY_BUFFER_SIZE];
 	int size = 0;
 	while ((size = s_cast<int>(SDL_RWread(io, buffer, sizeof(uint8_t), DORA_COPY_BUFFER_SIZE)))) {
-		handler(buffer, size);
+		if (handler(buffer, size)) {
+			SDL_RWclose(io);
+			return false;
+		}
 	}
 	SDL_RWclose(io);
+	return true;
 }
 
 bool Content::isPathFolder(String path) {

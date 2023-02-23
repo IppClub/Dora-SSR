@@ -101,11 +101,11 @@ singleton class Content
 	common VecStr searchPaths;
 	readonly common string assetPath;
 	readonly common string writablePath;
-	void save(string filename, string content);
+	bool save(string filename, string content);
 	bool exist(string filename);
 	bool createFolder @ mkdir(string path);
 	bool isFolder @ isdir(string path);
-	void copy(string src, string dst);
+	bool copy(string src, string dst);
 	bool move @ moveTo(string src, string dst);
 	bool remove(string path);
 	string getFullPath(string filename);

@@ -194,10 +194,11 @@ class Content
 {
 	tolua_readonly tolua_property__common string assetPath;
 	tolua_readonly tolua_property__common string writablePath;
-	void save(String filename, String content);
+	bool save(String filename, String content);
 	bool exist(String filename);
 	bool createFolder @ mkdir(String path);
 	bool isFolder @ isdir(String path);
+	bool copy(String src, String dst);
 	bool move(String src, String dst);
 	bool remove(String path);
 	string getFullPath(String filename);

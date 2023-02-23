@@ -10,8 +10,8 @@ static int64_t content_get_asset_path() {
 static int64_t content_get_writable_path() {
 	return str_retain(SharedContent.getWritablePath());
 }
-static void content_save(int64_t filename, int64_t content) {
-	SharedContent.save(*str_from(filename), *str_from(content));
+static int32_t content_save(int64_t filename, int64_t content) {
+	return SharedContent.save(*str_from(filename), *str_from(content)) ? 1 : 0;
 }
 static int32_t content_exist(int64_t filename) {
 	return SharedContent.exist(*str_from(filename)) ? 1 : 0;
@@ -22,8 +22,8 @@ static int32_t content_mkdir(int64_t path) {
 static int32_t content_isdir(int64_t path) {
 	return SharedContent.isFolder(*str_from(path)) ? 1 : 0;
 }
-static void content_copy(int64_t src, int64_t dst) {
-	SharedContent.copy(*str_from(src), *str_from(dst));
+static int32_t content_copy(int64_t src, int64_t dst) {
+	return SharedContent.copy(*str_from(src), *str_from(dst)) ? 1 : 0;
 }
 static int32_t content_move_to(int64_t src, int64_t dst) {
 	return SharedContent.move(*str_from(src), *str_from(dst)) ? 1 : 0;
