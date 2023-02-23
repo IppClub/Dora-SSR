@@ -1,0 +1,52 @@
+_ENV = Dorothy!
+
+HttpServer\post "/read", (req)->
+	switch req
+		when {body: {:path}}
+			if Content\exist path
+				if content = Content\load path
+					return :content, success: true
+	return content: "", success: false
+
+HttpServer\post "/write", (req)->
+	switch req
+		when {body: {:path, :content}}
+			if Content\save path, content
+				return success: true
+	success: false 
+
+
+HttpServer\post "/assets", ->
+	visitAssets = (path)->
+		children = nil
+		dirs = Content\getDirs path
+		for dir in *dirs
+			continue if dir\match "^%."
+			children = {} unless children
+			children[] = visitAssets Path path, dir
+		files = Content\getFiles path
+		for file in *files
+			continue if file\match "^%."
+			children = {} unless children
+			children[] = {
+				key: Path path, file
+				title: file
+			}
+		title = Path\getFilename path
+		if title == ""
+			children
+		else
+			{
+				key: path,
+				:title
+				:children
+			}
+	visitAssets Content.writablePath
+
+if HttpServer\start 8866
+	print "server started at 8866!"
+else
+	print "port not available!"
+
+Director.entry\addChild with Node!
+	\slot "Cleanup", -> HttpServer\stop!

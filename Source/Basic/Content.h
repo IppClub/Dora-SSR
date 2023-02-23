@@ -23,11 +23,11 @@ public:
 	std::list<std::string> getFullPathsToTry(String filename);
 	std::pair<OwnArray<uint8_t>, size_t> load(String filename);
 	const bgfx::Memory* loadBX(String filename);
-	void copy(String src, String dst);
+	bool copy(String src, String dst);
 	bool move(String src, String dst);
 	bool remove(String filename);
-	void save(String filename, String content);
-	void save(String filename, uint8_t* content, int64_t size);
+	bool save(String filename, String content);
+	bool save(String filename, uint8_t* content, int64_t size);
 	bool createFolder(String path);
 	std::list<std::string> getDirs(String path);
 	std::list<std::string> getFiles(String path);
@@ -51,8 +51,8 @@ public:
 protected:
 	Content();
 	std::string getFullPathForDirectoryAndFilename(String directory, String filename);
-	void copyUnsafe(String srcFile, String dstFile);
-	void loadByChunks(String filename, const std::function<void(uint8_t*, int)>& handler);
+	bool copyUnsafe(String srcFile, String dstFile);
+	bool loadByChunks(String filename, const std::function<bool(uint8_t*, int)>& handler);
 	void saveUnsafe(String filename, String content);
 	void saveUnsafe(String filename, uint8_t* content, int64_t size);
 	bool isFileExist(String filePath);
