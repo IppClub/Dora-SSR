@@ -1,12 +1,39 @@
 _ENV = Dorothy!
 
+HttpServer\post "/new", (req)->
+	switch req
+		when {body: {:path}}
+			if not Content\exist path
+				if "" == Path\getExt path
+					if Content\mkdir path
+						return success: true
+				else if Content\save path, ""
+					return success: true
+	success: false
+
+HttpServer\post "/delete", (req)->
+	switch req
+		when {body: {:path}}
+			if Content\exist path
+				if Content\remove path
+					return success: true
+	success: false
+
+HttpServer\post "/rename", (req)->
+	switch req
+		when {body: {:old, :new}}
+			if Content\exist(old) and not Content\exist new
+				if Content\move old, new
+					return success: true
+	success: false
+
 HttpServer\post "/read", (req)->
 	switch req
 		when {body: {:path}}
 			if Content\exist path
 				if content = Content\load path
 					return :content, success: true
-	return content: "", success: false
+	content: "", success: false
 
 HttpServer\post "/write", (req)->
 	switch req
@@ -30,6 +57,7 @@ HttpServer\post "/assets", ->
 			children = {} unless children
 			children[] = {
 				key: Path path, file
+				dir: false
 				title: file
 			}
 		title = Path\getFilename path
@@ -37,11 +65,17 @@ HttpServer\post "/assets", ->
 			children
 		else
 			{
-				key: path,
+				key: path
+				dir: true
 				:title
 				:children
 			}
-	visitAssets Content.writablePath
+	{
+		key: Content.writablePath,
+		dir: true,
+		title: "Assets",
+		children: visitAssets Content.writablePath
+	}
 
 if HttpServer\start 8866
 	print "server started at 8866!"
