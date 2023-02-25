@@ -9,8 +9,9 @@ import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
 import xmlLogo from './xml.png';
+import { AiFillFolderAdd } from 'react-icons/ai';
 
-export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Dora Xml"
+export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Dora Xml" | "Folder"
 
 interface FileType {
 	icon: React.ReactNode;
@@ -42,6 +43,12 @@ const fileTypes: FileType[] = [
 		icon: <img src={xmlLogo} alt="Xml" width="50px" height="50px"/>,
 		name: "Dora Xml",
 		desc: "write game node trees in Xml format",
+		padding: '20px'
+	},
+	{
+		icon: <AiFillFolderAdd size={50}/>,
+		name: "Folder",
+		desc: "create a file folder",
 		padding: '20px'
 	},
 ];

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import { styled } from '@mui/material/styles';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -11,13 +11,13 @@ import IconButton from '@mui/material/IconButton';
 import Fullscreen from '@mui/icons-material/Fullscreen';
 import FullscreenExit from '@mui/icons-material/FullscreenExit';
 import MonacoEditor from "react-monaco-editor";
-import FileTree, { TreeMenuEvent } from "./FileTree";
+import FileTree, { TreeDataType, TreeMenuEvent } from "./FileTree";
 import FileTabBar, { TabMenuEvent } from './FileTabBar';
 import path from 'path';
 import Post from './Post';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
-import { Button, DialogActions, DialogContent, DialogContentText } from '@mui/material';
+import { Button, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField } from '@mui/material';
 import NewFileDialog, { DoraFileType } from './NewFileDialog';
 
 import logo from './logo.svg';
@@ -128,15 +128,42 @@ interface Modified {
 };
 
 export default function PersistentDrawerLeft() {
-	const [openNewFile, setOpenNewFile] = useState(false);
 	const [drawerOpen, setDrawerOpen] = useState(true);
 	const [tabIndex, setTabIndex] = useState<number | null>(null);
 	const [files, setFiles] = useState<EditingFile[]>([]);
 	const [tabs, setTabs] = useState<EditingTab[]>([]);
 	const [modified, setModified] = useState<Modified | null>(null);
-	const [alertMsg, setAlertMsg] = useState<{title: string, msg: string} | null>(null);
 
-	contentModified = tabs.find((tab) => tab.modified) !== undefined;
+	const [treeData, setTreeData] = useState<TreeDataType[]>([]);
+	const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
+	const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+
+	const [openNewFile, setOpenNewFile] = useState<TreeDataType | null>(null);
+
+	const [alertMsg, setAlertMsg] = useState<
+		{
+			title: string,
+			msg: string,
+			cancelable?: boolean,
+			confirmed?: () => void,
+		} | null>(null);
+
+	const [fileInfo, setFileInfo] = useState<
+		{
+			title: "New File" | "New Folder" | "Rename",
+			node?: TreeDataType,
+			name: string,
+			ext: string,
+		} | null>(null);
+
+	useEffect(() => {
+		Post('/assets').then((res: TreeDataType)=> {
+			setExpandedKeys([res.key]);
+			setTreeData([res]);
+		})
+	}, []);
+
+	contentModified = tabs.find(tab => tab.modified) !== undefined;
 
 	const updateTabs = (targetFiles: EditingFile[]) => {
 		setTabs(targetFiles.map((file) => (
@@ -150,7 +177,7 @@ export default function PersistentDrawerLeft() {
 
 	if (modified !== null) {
 		setModified(null);
-		files.forEach((file) => {
+		files.forEach(file => {
 			if (file.key === modified.key) {
 				file.contentModified = modified.content;
 			}
@@ -166,7 +193,9 @@ export default function PersistentDrawerLeft() {
 		setTabIndex(newValue);
 	};
 
-	const onSelect = (key: string, title: string) => {
+	const onSelect = (nodes: TreeDataType[]) => {
+		setSelectedKeys(nodes.map(n => n.key));
+		const {key, title} = nodes[0];
 		const ext = path.extname(title);
 		switch (ext.toLowerCase()) {
 			case ".lua":
@@ -200,6 +229,10 @@ export default function PersistentDrawerLeft() {
 		}
 	};
 
+	const onExpand = (keys: string[]) => {
+		setExpandedKeys(keys);
+	};
+
 	const saveCurrentTab = () => {
 		if (tabIndex === null) return;
 		const file = files[tabIndex];
@@ -220,7 +253,7 @@ export default function PersistentDrawerLeft() {
 				filesToSave.push(index);
 			}
 		});
-		filesToSave.forEach((index) => {
+		filesToSave.forEach(index => {
 			const file = files[index];
 			if (file.contentModified !== null) {
 				Post("/write", {path: file.key, content: file.contentModified}).then((res: {success: boolean}) => {
@@ -303,6 +336,13 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const handleAlertClose = () => {
+		if (alertMsg?.confirmed !== undefined) {
+			alertMsg.confirmed();
+		}
+		setAlertMsg(null);
+	};
+
+	const handleAlertCancel = () => {
 		setAlertMsg(null);
 	};
 
@@ -331,23 +371,102 @@ export default function PersistentDrawerLeft() {
 		}
 	};
 
-	const onTreeMenuClick = (event: TreeMenuEvent)=> {
+	const onTreeMenuClick = (event: TreeMenuEvent, data?: TreeDataType)=> {
 		switch (event) {
 			case "New": {
-				setOpenNewFile(true);
+				if (data !== undefined) {
+					setOpenNewFile(data);
+				}
 				break;
 			}
 			case "Rename": {
+				if (treeData[0].key === data?.key) {
+					setAlertMsg({
+						title: "Rename",
+						msg: "Can not rename root folder",
+					});
+					break;
+				}
+				if (data !== undefined) {
+					if (tabs.find(tab => tab.key === data.key && tab.modified) !== undefined) {
+						setAlertMsg({
+							title: "Rename",
+							msg: "Please save before renaming",
+						});
+						break;
+					}
+					const ext = path.extname(data.title).toLowerCase();
+					const name = path.basename(data.title, ext);
+					setFileInfo({
+						title: "Rename",
+						node: data,
+						name,
+						ext,
+					});
+				}
 				break;
 			}
 			case "Delete": {
+				if (treeData[0].key === data?.key) {
+					setAlertMsg({
+						title: "Delete",
+						msg: "Can not delete root folder",
+					});
+					break;
+				}
+				if (data !== undefined) {
+					setAlertMsg({
+						title: "Delete",
+						msg: `Deleting ${data.dir ? 'folder' : 'file'} ${data.title}`,
+						cancelable: true,
+						confirmed: () => {
+							Post("/delete", {path: data.key}).then((res: {success: boolean}) => {
+								if (!res.success) return;
+								const visitData = (node: TreeDataType) => {
+									if (node.key === data.key) return "find";
+									if (node.children) {
+										for (let i = 0; i < node.children.length; i++) {
+											const res = visitData(node.children[i]);
+											if (res === "find") {
+												node.children = node.children?.filter(n => n.key !== data.key);
+												return "stop";
+											} else if (res === "stop") {
+												return "stop";
+											}
+										}
+									}
+									return "continue";
+								};
+								for (let i = 0; i < treeData.length; i++) {
+									if (visitData(treeData[i]) === "find") {
+										setTreeData(treeData.filter((_, index) => index !== i));
+										return;
+									}
+								}
+								if (files.find(f => f.key === data.key) !== undefined) {
+									setFiles(files.filter(f => f.key !== data.key));
+									const newTabs = tabs.filter(t => t.key !== data.key);
+									setTabs(newTabs);
+									if (tabIndex !== null && tabIndex >= newTabs.length) {
+										setTabIndex(newTabs.length - 1);
+									}
+								}
+								setTreeData(treeData.map(node => node));
+							}).catch(() => {
+								setAlertMsg({
+									title: "Delete",
+									msg: "failed to delete item",
+								})
+							});;
+						},
+					})
+				}
 				break;
 			}
 		}
 	};
 
 	const onNewFileClose = (item?: DoraFileType) => {
-		setOpenNewFile(false);
 		let ext: string | null = null;
 		switch (item) {
 			case "Lua": {
@@ -366,10 +485,183 @@ export default function PersistentDrawerLeft() {
 				ext = ".xml";
 				break;
 			}
+			case "Folder": {
+				ext = "";
+				break;
+			}
 		}
 		if (ext !== null) {
-			console.log(ext);
+			setFileInfo({
+				title: ext === "" ? "New Folder" : "New File",
+				node: openNewFile !== null ? openNewFile : undefined,
+				name: "",
+				ext
+			});
 		}
+		setOpenNewFile(null);
+	};
+
+	const handleFilenameClose = () => {
+		if (fileInfo && fileInfo.node !== undefined) {
+			const target = fileInfo.node;
+			if (fileInfo.title === "Rename") {
+				const newName = fileInfo.name + fileInfo.ext;
+				if (newName === target.title) {
+					setFileInfo(null);
+					return;
+				}
+				const oldFile = target.key;
+				const newFile = path.join(path.dirname(target.key), newName);
+				Post("/rename", {old: oldFile, new: newFile}).then((res: {success: boolean}) => {
+					if (!res.success) {
+						setAlertMsg({
+							title: "Rename",
+							msg: "failed to rename item",
+						})
+						return;
+					}
+					const visitData = (node: TreeDataType) => {
+						if (node.key === target.key) {
+							node.key = newFile;
+							node.title = newName;
+							return true;
+						}
+						if (node.children) {
+							for (let i = 0; i < node.children.length; i++) {
+								if (visitData(node.children[i])) {
+									return true;
+								}
+							}
+						}
+						return false;
+					};
+					for (let i = 0; i < treeData.length; i++) {
+						if (visitData(treeData[i])) {
+							break;
+						}
+					}
+					setTreeData(treeData.map(n => n));
+					const file = files.find(f => f.key === oldFile);
+					if (file !== undefined) {
+						file.key = newFile;
+						file.title = newName;
+						setFiles(files.map(f => f));
+						const tab = tabs.find(t => t.key === oldFile);
+						if (tab !== undefined) {
+							tab.key = newFile;
+							tab.title = newName;
+							setTabs(tabs.map(t => t));
+						}
+					}
+				}).catch(() => {
+					setAlertMsg({
+						title: "Rename",
+						msg: "failed to rename item",
+					})
+				});
+			} else {
+				const dir = target.dir ?
+					target.key : path.dirname(target.key);
+				const {ext} = fileInfo;
+				const newName = fileInfo.name + fileInfo.ext;
+				const newFile = path.join(dir, newName);
+				Post("/new", {path: newFile}).then((res: {success: boolean}) => {
+					if (!res.success) {
+						setAlertMsg({
+							title: "New Item",
+							msg: "failed to create item",
+						});
+						return;
+					}
+					const visitData = (node: TreeDataType) => {
+						if (node.key === target.key) return "find";
+						if (node.children) {
+							for (let i = 0; i < node.children.length; i++) {
+								const res = visitData(node.children[i]);
+								if (res === "find") {
+									const child = node.children[i];
+									let parent = child;
+									if (child.dir) {
+										if (child.children === undefined) {
+											child.children = [];
+										}
+										child.children.push({
+											key: newFile,
+											title: newName,
+											dir: ext === "",
+										});
+									} else {
+										parent = node;
+										node.children.push({
+											key: newFile,
+											title: newName,
+											dir: ext === "",
+										});
+									}
+									if (expandedKeys.find(k => parent.key === k) === undefined) {
+										expandedKeys.push(parent.key);
+										setExpandedKeys(expandedKeys);
+									}
+									return "stop";
+								} else if (res === "stop") {
+									return "stop";
+								}
+							}
+						}
+						return "continue";
+					};
+					for (let i = 0; i < treeData.length; i++) {
+						if (visitData(treeData[i]) === "find") {
+							const child = treeData[i];
+							if (child.dir) {
+								if (child.children === undefined) {
+									child.children = [];
+								}
+								child.children.push({
+									key: newFile,
+									title: newName,
+									dir: ext === "",
+								});
+								if (expandedKeys.find(k => child.key === k) === undefined) {
+									expandedKeys.push(child.key);
+									setExpandedKeys(expandedKeys);
+								}
+							} else {
+								treeData.push({
+									key: newFile,
+									title: newName,
+									dir: ext === "",
+								});
+							}
+							break;
+						}
+					}
+					setTreeData(treeData.map(n => n));
+					setSelectedKeys([newFile]);
+					files.push({key: newFile, title: newName, content: "", contentModified: null});
+					setFiles(files);
+					updateTabs(files);
+					setTabIndex(files.length - 1);
+				}).catch(() => {
+					setAlertMsg({
+						title: "New Item",
+						msg: "failed to create item",
+					})
+				});;
+			}
+		}
+		setFileInfo(null);
+	};
+
+	const onFilenameChange = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+		if (fileInfo) {
+			fileInfo.name = event.target.value;
+			setFileInfo(fileInfo);
+		}
+	};
+
+	const handleFilenameCancel = () => {
+		setFileInfo(null);
 	};
 
 	return (
@@ -388,12 +680,68 @@ export default function PersistentDrawerLeft() {
 					</DialogContentText>
 				</DialogContent>
 				<DialogActions>
-					<Button onClick={handleAlertClose} autoFocus>
+					<Button
+						onClick={handleAlertClose}
+						autoFocus={alertMsg?.cancelable === undefined}
+					>
+						{alertMsg?.cancelable !== undefined ?
+							"Confirm" : "OK"
+						}
+					</Button>
+					{
+						alertMsg?.cancelable !== undefined ?
+						<Button onClick={handleAlertCancel}>
+							Cancel
+						</Button> : null
+					}
+				</DialogActions>
+			</Dialog>
+			<Dialog
+				open={fileInfo !== null}
+				aria-labelledby="filename-dialog-title"
+				aria-describedby="filename-dialog-description"
+			>
+				<DialogTitle id="filename-dialog-title">
+					{fileInfo?.title}
+				</DialogTitle>
+				<DialogContent>
+					<TextField
+						label={(
+							fileInfo?.title === "New File" ?
+								"Enter a file name" : undefined
+							) ?? (
+							fileInfo?.title === "New Folder" ?
+								"Enter a folder name" : undefined
+							)
+						}
+						defaultValue={fileInfo?.name ?? ""}
+						id="filename-adornment"
+						sx={{
+							m: 1,
+							width: '25ch',
+							"& .MuiOutlinedInput-notchedOutline": {
+								borderColor: '#fffa',
+							}
+						}}
+						InputProps={{
+							endAdornment:
+								<InputAdornment position="end">
+									{fileInfo?.ext}
+								</InputAdornment>,
+						}}
+						onChange={onFilenameChange}
+					/>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={handleFilenameClose}>
 						OK
+					</Button>
+					<Button onClick={handleFilenameCancel}>
+						Cancel
 					</Button>
 				</DialogActions>
 			</Dialog>
-			<NewFileDialog open={openNewFile} onClose={onNewFileClose}/>
+			<NewFileDialog open={openNewFile !== null} onClose={onNewFileClose}/>
 			<Box sx={{display: "flex"}} onKeyDown={onKeyDown}>
 				<CssBaseline/>
 				<AppBar
@@ -443,7 +791,14 @@ export default function PersistentDrawerLeft() {
 						}}
 					/>
 					<Divider/>
-					<FileTree onMenuClick={onTreeMenuClick} onSelect={onSelect}/>
+					<FileTree
+						selectedKeys={selectedKeys}
+						expandedKeys={expandedKeys}
+						treeData={treeData}
+						onMenuClick={onTreeMenuClick}
+						onSelect={onSelect}
+						onExpand={onExpand}
+					/>
 				</Drawer>
 				{
 					files.map((file, index) => {
