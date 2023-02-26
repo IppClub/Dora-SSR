@@ -486,9 +486,9 @@ uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size) {
 	return data;
 }
 
-void Content::loadByChunks(String filename, const std::function<void(uint8_t*, int)>& handler) {
+bool Content::loadByChunks(String filename, const std::function<void(uint8_t*, int)>& handler) {
 	if (filename.empty()) {
-		return;
+		return false;
 	}
 	std::string fullPath = Content::getFullPath(filename);
 	if (fullPath[0] != '/') {
@@ -509,6 +509,7 @@ void Content::loadByChunks(String filename, const std::function<void(uint8_t*, i
 		}
 		BLOCK_END
 	}
+	return true;
 }
 
 bool Content::isFileExist(String strFilePath) {
