@@ -486,13 +486,15 @@ uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size) {
 	return data;
 }
 
-bool Content::loadByChunks(String filename, const std::function<void(uint8_t*, int)>& handler) {
+bool Content::loadByChunks(String filename, const std::function<bool(uint8_t*, int)>& handler) {
 	if (filename.empty()) {
 		return false;
 	}
 	std::string fullPath = Content::getFullPath(filename);
 	if (fullPath[0] != '/') {
-		g_apkFile->getFileDataByChunks(fullPath, handler);
+		if (g_apkFile->getFileDataByChunks(fullPath, handler)) {
+			return true;
+		}
 	} else {
 		BLOCK_START {
 			FILE* file = fopen(fullPath.c_str(), "rb");
@@ -502,14 +504,17 @@ bool Content::loadByChunks(String filename, const std::function<void(uint8_t*, i
 			do {
 				size = s_cast<int>(fread(buffer, sizeof(uint8_t), DORA_COPY_BUFFER_SIZE, file));
 				if (size > 0) {
-					handler(buffer, size);
+					if (handler(buffer, size)) {
+						return false;
+					}
 				}
 			} while (size > 0);
 			fclose(file);
+			return true;
 		}
 		BLOCK_END
 	}
-	return true;
+	return false;
 }
 
 bool Content::isFileExist(String strFilePath) {
