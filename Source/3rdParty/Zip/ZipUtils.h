@@ -83,7 +83,7 @@ public:
 
 	std::pair<Dorothy::OwnArray<uint8_t>, size_t> getFileData(const std::string& filename);
 
-	void getFileDataByChunks(const std::string& fileName, const std::function<void(unsigned char*, int)>& handler);
+	bool getFileDataByChunks(const std::string& fileName, const std::function<bool(unsigned char*, int)>& handler);
 
 	std::list<std::string> getDirEntries(const std::string& path, bool isFolder);
 	std::list<std::string> getAllFiles(const std::string& path);

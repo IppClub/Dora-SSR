@@ -221,7 +221,7 @@ std::pair<Dorothy::OwnArray<uint8_t>, size_t> ZipFile::getFileData(const std::st
 	return {MakeOwnArray(buf), size};
 }
 
-void ZipFile::getFileDataByChunks(const std::string& fileName, const std::function<void(unsigned char*, int)>& handler) {
+bool ZipFile::getFileDataByChunks(const std::string& fileName, const std::function<bool(unsigned char*, int)>& handler) {
 	BLOCK_START {
 		BREAK_IF(!_file);
 		BREAK_IF(fileName.empty());
@@ -235,12 +235,20 @@ void ZipFile::getFileDataByChunks(const std::string& fileName, const std::functi
 		do {
 			nSize = mz_zip_reader_extract_iter_read(zipIter, buf, DORA_COPY_BUFFER_SIZE);
 			if (nSize > 0) {
-				handler(buf, nSize);
+				if (handler(buf, nSize)) {
+					return false;
+				}
 			}
 			total += nSize;
 		} while (nSize != 0);
 		mz_zip_reader_extract_iter_free(zipIter);
-		AssertUnless(total == 0 || total == (int)it->second.size, "ZipUtils: the file size is wrong.");
+		if (total == 0 || total == (int)it->second.size) {
+			return true;
+		} else {
+			Error("ZipUtils: the file size is wrong: \"{}\".", fileName);
+			return false;
+		}
 	}
 	BLOCK_END
+	return false;
 }
