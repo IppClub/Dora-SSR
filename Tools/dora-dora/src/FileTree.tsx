@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyledMenu, StyledMenuItem } from './Menu';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import Refresh from '@mui/icons-material/Refresh';
 import {
 	AiFillCaretRight,
 	AiFillCaretDown,
@@ -20,6 +21,7 @@ import { EventDataNode, Key } from "rc-tree/lib/interface";
 export interface TreeDataType {
 	key: string;
 	dir: boolean;
+	root?: boolean;
 	title: string;
 	children?: TreeDataType[]
 };
@@ -27,6 +29,12 @@ export interface TreeDataType {
 const switcherIcon = (props: TreeNodeProps) => {
 	if (props.data !== undefined) {
 		const data = props.data as TreeDataType;
+		if (data.root) {
+			return <Refresh sx={{
+				width: 14,
+				height: 14,
+			}}/>;
+		}
 		if (!data.dir) {
 			return null;
 		} else if (data.children === undefined) {
