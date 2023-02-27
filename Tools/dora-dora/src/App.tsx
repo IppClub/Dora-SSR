@@ -156,11 +156,29 @@ export default function PersistentDrawerLeft() {
 			ext: string,
 		} | null>(null);
 
-	useEffect(() => {
-		Post('/assets').then((res: TreeDataType)=> {
-			setExpandedKeys([res.key]);
+	const loadAssets = () => {
+		return Post('/assets').then((res: TreeDataType) => {
+			res.root = true;
+			if (res.children !== undefined) {
+				setExpandedKeys([res.key]);
+			} else {
+				res.children = [{
+					key: '...',
+					dir: false,
+					title: '...',
+				}];
+			}
 			setTreeData([res]);
-		})
+		}).catch(() => {
+			setAlertMsg({
+				title: "Assets",
+				msg: "failed to read assets",
+			});
+		});
+	};
+
+	useEffect(() => {
+		loadAssets();
 	}, []);
 
 	contentModified = tabs.find(tab => tab.modified) !== undefined;
@@ -195,6 +213,7 @@ export default function PersistentDrawerLeft() {
 
 	const onSelect = (nodes: TreeDataType[]) => {
 		setSelectedKeys(nodes.map(n => n.key));
+		if (nodes.length === 0) return;
 		const {key, title} = nodes[0];
 		const ext = path.extname(title);
 		switch (ext.toLowerCase()) {
@@ -230,6 +249,36 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const onExpand = (keys: string[]) => {
+		const rootNode = treeData.at(0);
+		if (rootNode === undefined) return;
+		let changedKey: string | undefined = undefined;
+		if (expandedKeys.length > keys.length) {
+			changedKey = expandedKeys.filter(ek => (keys.find(k => k === ek) === undefined)).at(0);
+		} else {
+			changedKey = keys.filter(k => (expandedKeys.find(ek => ek === k) === undefined)).at(0);
+		}
+		if (changedKey === rootNode.key) {
+			if (contentModified) {
+				setAlertMsg({
+					title: "Assets",
+					msg: "please save before reloading assets"
+				});
+				return;
+			}
+			loadAssets().then(() => {
+				setFiles([]);
+				setTabs([]);
+				setTabIndex(null);
+				setAlertMsg({
+					title: "Assets",
+					msg: "assets reloaded"
+				});
+			});
+			return;
+		} else if (rootNode.children?.at(0)?.key === '...') {
+			setExpandedKeys([]);
+			return;
+		}
 		setExpandedKeys(keys);
 	};
 
@@ -271,7 +320,7 @@ export default function PersistentDrawerLeft() {
 			if (files[tabIndex].contentModified !== null) {
 				setAlertMsg({
 					title: "Closing Tab",
-					msg: "Please save before closing"
+					msg: "please save before closing"
 				});
 				return;
 			}
@@ -290,7 +339,7 @@ export default function PersistentDrawerLeft() {
 		if (contentModified) {
 			setAlertMsg({
 				title: "Closing Tabs",
-				msg: "Please save before closing"
+				msg: "please save before closing"
 			});
 			return;
 		}
@@ -304,7 +353,7 @@ export default function PersistentDrawerLeft() {
 		if (otherModified) {
 			setAlertMsg({
 				title: "Closing Tabs",
-				msg: "Please save before closing"
+				msg: "please save before closing"
 			});
 			return;
 		}
@@ -380,10 +429,12 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 			case "Rename": {
-				if (treeData[0].key === data?.key) {
+				const rootNode = treeData.at(0);
+				if (rootNode === undefined) break;
+				if (rootNode.key === data?.key) {
 					setAlertMsg({
 						title: "Rename",
-						msg: "Can not rename root folder",
+						msg: "can not rename root folder",
 					});
 					break;
 				}
@@ -391,7 +442,7 @@ export default function PersistentDrawerLeft() {
 					if (tabs.find(tab => tab.key === data.key && tab.modified) !== undefined) {
 						setAlertMsg({
 							title: "Rename",
-							msg: "Please save before renaming",
+							msg: "please save before renaming",
 						});
 						break;
 					}
@@ -407,17 +458,19 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 			case "Delete": {
-				if (treeData[0].key === data?.key) {
+				const rootNode = treeData.at(0);
+				if (rootNode === undefined) break;
+				if (rootNode.key === data?.key) {
 					setAlertMsg({
 						title: "Delete",
-						msg: "Can not delete root folder",
+						msg: "can not delete root folder",
 					});
 					break;
 				}
 				if (data !== undefined) {
 					setAlertMsg({
 						title: "Delete",
-						msg: `Deleting ${data.dir ? 'folder' : 'file'} ${data.title}`,
+						msg: `deleting ${data.dir ? 'folder' : 'file'} ${data.title}`,
 						cancelable: true,
 						confirmed: () => {
 							Post("/delete", {path: data.key}).then((res: {success: boolean}) => {
@@ -437,11 +490,14 @@ export default function PersistentDrawerLeft() {
 									}
 									return "continue";
 								};
-								for (let i = 0; i < treeData.length; i++) {
-									if (visitData(treeData[i]) === "find") {
-										setTreeData(treeData.filter((_, index) => index !== i));
-										return;
-									}
+								visitData(rootNode);
+								if (rootNode.children && rootNode.children.length === 0) {
+									rootNode.children = [{
+										key: '...',
+										dir: false,
+										title: '...',
+									}];
+									setExpandedKeys([]);
 								}
 								if (files.find(f => f.key === data.key) !== undefined) {
 									setFiles(files.filter(f => f.key !== data.key));
@@ -451,12 +507,12 @@ export default function PersistentDrawerLeft() {
 										setTabIndex(newTabs.length - 1);
 									}
 								}
-								setTreeData(treeData.map(node => node));
+								setTreeData([rootNode]);
 							}).catch(() => {
 								setAlertMsg({
 									title: "Delete",
 									msg: "failed to delete item",
-								})
+								});
 							});;
 						},
 					})
@@ -520,6 +576,8 @@ export default function PersistentDrawerLeft() {
 						})
 						return;
 					}
+					const rootNode = treeData.at(0);
+					if (rootNode === undefined) return;
 					const visitData = (node: TreeDataType) => {
 						if (node.key === target.key) {
 							node.key = newFile;
@@ -535,12 +593,8 @@ export default function PersistentDrawerLeft() {
 						}
 						return false;
 					};
-					for (let i = 0; i < treeData.length; i++) {
-						if (visitData(treeData[i])) {
-							break;
-						}
-					}
-					setTreeData(treeData.map(n => n));
+					visitData(rootNode);
+					setTreeData([rootNode]);
 					const file = files.find(f => f.key === oldFile);
 					if (file !== undefined) {
 						file.key = newFile;
@@ -557,7 +611,7 @@ export default function PersistentDrawerLeft() {
 					setAlertMsg({
 						title: "Rename",
 						msg: "failed to rename item",
-					})
+					});
 				});
 			} else {
 				const dir = target.dir ?
@@ -573,6 +627,8 @@ export default function PersistentDrawerLeft() {
 						});
 						return;
 					}
+					const rootNode = treeData.at(0);
+					if (rootNode === undefined) return;
 					const visitData = (node: TreeDataType) => {
 						if (node.key === target.key) return "find";
 						if (node.children) {
@@ -610,33 +666,25 @@ export default function PersistentDrawerLeft() {
 						}
 						return "continue";
 					};
-					for (let i = 0; i < treeData.length; i++) {
-						if (visitData(treeData[i]) === "find") {
-							const child = treeData[i];
-							if (child.dir) {
-								if (child.children === undefined) {
-									child.children = [];
-								}
-								child.children.push({
-									key: newFile,
-									title: newName,
-									dir: ext === "",
-								});
-								if (expandedKeys.find(k => child.key === k) === undefined) {
-									expandedKeys.push(child.key);
-									setExpandedKeys(expandedKeys);
-								}
-							} else {
-								treeData.push({
-									key: newFile,
-									title: newName,
-									dir: ext === "",
-								});
-							}
-							break;
+					if (visitData(rootNode) === "find") {
+						if (rootNode.children === undefined) {
+							rootNode.children = [];
+						}
+						rootNode.children.push({
+							key: newFile,
+							title: newName,
+							dir: ext === "",
+						});
+						if (expandedKeys.find(k => rootNode.key === k) === undefined) {
+							expandedKeys.push(rootNode.key);
+							setExpandedKeys(expandedKeys);
 						}
 					}
-					setTreeData(treeData.map(n => n));
+					if (rootNode && rootNode.children?.at(0)?.key === '...') {
+						rootNode.children?.splice(0, 1);
+						setExpandedKeys(expandedKeys.map(k => k));
+					}
+					setTreeData([rootNode]);
 					setSelectedKeys([newFile]);
 					files.push({key: newFile, title: newName, content: "", contentModified: null});
 					setFiles(files);
@@ -646,7 +694,7 @@ export default function PersistentDrawerLeft() {
 					setAlertMsg({
 						title: "New Item",
 						msg: "failed to create item",
-					})
+					});
 				});;
 			}
 		}
