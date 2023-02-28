@@ -1,5 +1,33 @@
 _ENV = Dorothy!
 
+HttpServer\post "/list", (req)->
+	switch req
+		when {body: {:path}}
+			if Content\exist path
+				files = {}
+				visitAssets = (path, folder)->
+					dirs = Content\getDirs path
+					for dir in *dirs
+						continue if dir\match "^%."
+						current = if folder == ""
+							dir
+						else
+							Path folder, dir
+						files[] = current
+						visitAssets Path(path, dir), current
+					fs = Content\getFiles path
+					for f in *fs
+						continue if f\match "^%."
+						files[] = if folder == ""
+							f
+						else
+							Path folder, f
+				visitAssets path, ""
+				return success: true, :files
+	success: false
+
+HttpServer\post "/info", -> platform: App.platform
+
 HttpServer\post "/new", (req)->
 	switch req
 		when {body: {:path}}
@@ -40,7 +68,7 @@ HttpServer\post "/write", (req)->
 		when {body: {:path, :content}}
 			if Content\save path, content
 				return success: true
-	success: false 
+	success: false
 
 
 HttpServer\post "/assets", ->

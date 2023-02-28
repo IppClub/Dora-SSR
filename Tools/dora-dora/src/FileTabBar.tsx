@@ -130,6 +130,7 @@ export default function FileTabBar(props: FileTabBarProps) {
 				id="dora-menu"
 				anchorEl={anchorEl}
 				keepMounted
+				autoFocus={false}
 				open={Boolean(anchorEl)}
 				onClose={handleClose}
 			>
