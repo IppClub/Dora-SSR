@@ -12,13 +12,15 @@ import {
 	AiOutlineFileAdd,
 	AiOutlineDelete,
 	AiOutlineEdit,
+	AiOutlineUpload,
 } from 'react-icons/ai';
 import Tree from 'rc-tree';
 import "./rctree.css";
 import { TreeNodeProps } from "rc-tree/lib/TreeNode";
-import { EventDataNode, Key } from "rc-tree/lib/interface";
+import { DataNode, EventDataNode, Key } from "rc-tree/lib/interface";
+import { NodeDragEventParams } from 'rc-tree/lib/contextTypes';
 
-export interface TreeDataType {
+export interface TreeDataType extends DataNode {
 	key: string;
 	dir: boolean;
 	root?: boolean;
@@ -75,12 +77,12 @@ const motion = {
 	motionName: 'rc-node-motion',
 	motionAppear: false,
 	onAppearStart: () => ({ height: 0 }),
-	onAppearActive: (node: HTMLElement) => ({ height: node.scrollHeight }),
+	onAppearActive: (node: HTMLElement) => ({ height: node.scrollHeight - 25 }),
 	onLeaveStart: (node: HTMLElement) => ({ height: node.offsetHeight }),
 	onLeaveActive: () => ({ height: 0 }),
 };
 
-export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Cancel";
+export type TreeMenuEvent = "New" | "Rename" | "Upload" | "Delete" | "Cancel";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
@@ -89,6 +91,7 @@ export interface FileTreeProps {
 	onSelect: (selectedNodes: TreeDataType[]) => void;
 	onMenuClick: (event: TreeMenuEvent, data?: TreeDataType) => void;
 	onExpand: (key: string[]) => void;
+	onDrop: (self: TreeDataType, target: TreeDataType) => void;
 };
 
 export default function FileTree(props: FileTreeProps) {
@@ -115,6 +118,15 @@ export default function FileTree(props: FileTreeProps) {
 		props.onExpand(keys.map(k => k.toString()));
 	};
 
+	const onDrop = (info: NodeDragEventParams<TreeDataType> & {
+		dragNode: EventDataNode<TreeDataType>;
+		dragNodesKeys: Key[];
+		dropPosition: number;
+		dropToGap: boolean;
+	}) => {
+		props.onDrop(info.dragNode, info.node);
+	};
+
 	return (
 		<div
 			style={{
@@ -131,6 +143,7 @@ export default function FileTree(props: FileTreeProps) {
 				id="dora-menu"
 				anchorEl={anchorItem?.target}
 				keepMounted
+				autoFocus={false}
 				open={Boolean(anchorItem?.target)}
 				onClose={() => handleClose("Cancel", anchorItem?.data)}
 			>
@@ -139,6 +152,12 @@ export default function FileTree(props: FileTreeProps) {
 						<AiOutlineFileAdd/>
 					</ListItemIcon>
 					<ListItemText primary="New"/>
+				</StyledMenuItem>
+				<StyledMenuItem onClick={() => handleClose("Upload", anchorItem?.data)}>
+					<ListItemIcon>
+						<AiOutlineUpload/>
+					</ListItemIcon>
+					<ListItemText primary="Upload"/>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose("Rename", anchorItem?.data)}>
 					<ListItemIcon>
@@ -161,11 +180,13 @@ export default function FileTree(props: FileTreeProps) {
 				switcherIcon={switcherIcon}
 				motion={motion}
 				draggable
+				onDrop={onDrop}
 				expandedKeys={expandedKeys}
 				treeData={treeData}
 				onSelect={onSelect}
 				onExpand={onExpand}
 				selectedKeys={selectedKeys}
+				dropIndicatorRender={() => <div/>}
 			/>
 		</div>
 	);

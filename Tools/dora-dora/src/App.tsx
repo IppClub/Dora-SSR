@@ -13,14 +13,16 @@ import FullscreenExit from '@mui/icons-material/FullscreenExit';
 import MonacoEditor from "react-monaco-editor";
 import FileTree, { TreeDataType, TreeMenuEvent } from "./FileTree";
 import FileTabBar, { TabMenuEvent } from './FileTabBar';
-import path from 'path';
+import Path from 'path';
 import Post from './Post';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import { Button, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField } from '@mui/material';
 import NewFileDialog, { DoraFileType } from './NewFileDialog';
-
 import logo from './logo.svg';
+import DoraUpload from './Upload';
+
+let path = Path.posix;
 
 document.addEventListener("contextmenu", (event) => {
 	event.preventDefault();
@@ -114,6 +116,7 @@ interface EditingFile {
 	title: string;
 	content: string;
 	contentModified: string | null;
+	uploading: boolean;
 };
 
 interface EditingTab {
@@ -178,7 +181,18 @@ export default function PersistentDrawerLeft() {
 	};
 
 	useEffect(() => {
-		loadAssets();
+		Post("/info").then((res: {platform: "Windows" | "macOS" | "iOS" | "Android" | "Linux"}) => {
+			if (res.platform === "Windows") {
+				path = Path.win32;
+			}
+		}).then(() => {
+			return loadAssets();
+		}).catch(() => {
+			setAlertMsg({
+				title: "Accessing Engine",
+				msg: "failed to get basic info"
+			});
+		});
 	}, []);
 
 	contentModified = tabs.find(tab => tab.modified) !== undefined;
@@ -232,7 +246,13 @@ export default function PersistentDrawerLeft() {
 				if (index === null) {
 					Post('/read', {path: key}).then((res: {content: string, success: boolean}) => {
 						if (res.success) {
-							files.push({key: key, title: title, content: res.content, contentModified: null});
+							files.push({
+								key,
+								title,
+								content: res.content,
+								contentModified: null,
+								uploading: false,
+							});
 							setFiles(files);
 							updateTabs(files);
 							setTabIndex(files.length - 1);
@@ -269,9 +289,15 @@ export default function PersistentDrawerLeft() {
 				setFiles([]);
 				setTabs([]);
 				setTabIndex(null);
+				setSelectedKeys([]);
 				setAlertMsg({
 					title: "Assets",
 					msg: "assets reloaded"
+				});
+			}).catch(() => {
+				setAlertMsg({
+					title: "Assets",
+					msg: "failed to reload assets"
 				});
 			});
 			return;
@@ -423,9 +449,38 @@ export default function PersistentDrawerLeft() {
 	const onTreeMenuClick = (event: TreeMenuEvent, data?: TreeDataType)=> {
 		switch (event) {
 			case "New": {
-				if (data !== undefined) {
-					setOpenNewFile(data);
+				if (data === undefined) break;
+				setOpenNewFile(data);
+				break;
+			}
+			case "Upload": {
+				if (data === undefined) break;
+				const rootNode = treeData.at(0);
+				if (rootNode === undefined) break;
+				let {key, title} = data;
+				if (!data.dir) {
+					key = path.dirname(key);
+					title = path.basename(key);
+					if (path.relative(key, rootNode.key) === "") {
+						title = "Assets";
+					}
 				}
+				const file = files.find(f => path.relative(f.key, key) === "");
+				if (file !== undefined) {
+					const index = files.indexOf(file);
+					setTabIndex(index);
+					break;
+				}
+				files.push({
+					key,
+					title,
+					content: "",
+					contentModified: null,
+					uploading: true,
+				});
+				setFiles(files);
+				updateTabs(files);
+				setTabIndex(files.length - 1);
 				break;
 			}
 			case "Rename": {
@@ -439,13 +494,6 @@ export default function PersistentDrawerLeft() {
 					break;
 				}
 				if (data !== undefined) {
-					if (tabs.find(tab => tab.key === data.key && tab.modified) !== undefined) {
-						setAlertMsg({
-							title: "Rename",
-							msg: "please save before renaming",
-						});
-						break;
-					}
 					const ext = path.extname(data.title).toLowerCase();
 					const name = path.basename(data.title, ext);
 					setFileInfo({
@@ -568,51 +616,68 @@ export default function PersistentDrawerLeft() {
 				}
 				const oldFile = target.key;
 				const newFile = path.join(path.dirname(target.key), newName);
-				Post("/rename", {old: oldFile, new: newFile}).then((res: {success: boolean}) => {
-					if (!res.success) {
+				const doRename = () => {
+					return Post("/rename", {old: oldFile, new: newFile}).then((res: {success: boolean}) => {
+						if (!res.success) {
+							setAlertMsg({
+								title: "Rename",
+								msg: "failed to rename item",
+							})
+							return;
+						}
+						if (target.dir) {
+							return loadAssets();
+						}
+						const file = files.find(f => path.relative(f.key, oldFile) === "");
+						if (file !== undefined) {
+							file.key = newFile;
+							file.title = newName;
+							setFiles(files.map(f => f));
+							const tab = tabs.find(t => path.relative(t.key, oldFile) === "");
+							if (tab !== undefined) {
+								tab.key = newFile;
+								tab.title = newName;
+								setTabs(tabs.map(t => t));
+							}
+						}
+						const rootNode = treeData.at(0);
+						if (rootNode === undefined) return;
+						const visitData = (node: TreeDataType) => {
+							if (node.key === target.key) {
+								node.key = newFile;
+								node.title = newName;
+								return true;
+							}
+							if (node.children) {
+								for (let i = 0; i < node.children.length; i++) {
+									if (visitData(node.children[i])) {
+										return true;
+									}
+								}
+							}
+							return false;
+						};
+						visitData(rootNode);
+						setTreeData([rootNode]);
+					}).catch(() => {
 						setAlertMsg({
 							title: "Rename",
 							msg: "failed to rename item",
-						})
-						return;
-					}
-					const rootNode = treeData.at(0);
-					if (rootNode === undefined) return;
-					const visitData = (node: TreeDataType) => {
-						if (node.key === target.key) {
-							node.key = newFile;
-							node.title = newName;
-							return true;
-						}
-						if (node.children) {
-							for (let i = 0; i < node.children.length; i++) {
-								if (visitData(node.children[i])) {
-									return true;
-								}
-							}
-						}
-						return false;
-					};
-					visitData(rootNode);
-					setTreeData([rootNode]);
-					const file = files.find(f => f.key === oldFile);
-					if (file !== undefined) {
-						file.key = newFile;
-						file.title = newName;
-						setFiles(files.map(f => f));
-						const tab = tabs.find(t => t.key === oldFile);
-						if (tab !== undefined) {
-							tab.key = newFile;
-							tab.title = newName;
-							setTabs(tabs.map(t => t));
-						}
-					}
-				}).catch(() => {
-					setAlertMsg({
-						title: "Rename",
-						msg: "failed to rename item",
+						});
 					});
-				});
+				};
+				if (target.dir) {
+					updateDir(oldFile, newFile).then((res) => {
+						doRename().then(() => {
+							if (res === undefined) return;
+							setFiles(res.newFiles);
+							updateTabs(res.newFiles);
+							setExpandedKeys(res.newExpanded);
+						});
+					});
+				} else {
+					doRename();
+				}
 			} else {
 				const dir = target.dir ?
 					target.key : path.dirname(target.key);
@@ -686,10 +751,18 @@ export default function PersistentDrawerLeft() {
 					}
 					setTreeData([rootNode]);
 					setSelectedKeys([newFile]);
-					files.push({key: newFile, title: newName, content: "", contentModified: null});
-					setFiles(files);
-					updateTabs(files);
-					setTabIndex(files.length - 1);
+					if (ext !== '') {
+						files.push({
+							key: newFile,
+							title: newName,
+							content: "",
+							contentModified: null,
+							uploading: false,
+						});
+						setFiles(files);
+						updateTabs(files);
+						setTabIndex(files.length - 1);
+					}
 				}).catch(() => {
 					setAlertMsg({
 						title: "New Item",
@@ -710,6 +783,93 @@ export default function PersistentDrawerLeft() {
 
 	const handleFilenameCancel = () => {
 		setFileInfo(null);
+	};
+
+	const updateDir = (oldDir: string, newDir: string) => {
+		return Post("/list", {path: oldDir}).then((res: {success: boolean, files: string[]}) => {
+			if (res.success) {
+				const affected = res.files.map(f => [path.join(oldDir, f), path.join(newDir, f)]);
+				affected.push([oldDir, newDir]);
+				const newFiles = files.map(f => {
+					affected.some(x => {
+						if (x[0] === f.key) {
+							f.key = x[1];
+							if (f.uploading) {
+								f.title = path.basename(f.key);
+							}
+							if (f.contentModified !== null) {
+								f.content = f.contentModified;
+							}
+							return true;
+						}
+					});
+					return f;
+				});
+				const newExpanded = expandedKeys.map(k => {
+					const it = affected.find(x => {
+						if (x[0] === k) {
+							return true;
+						}
+					});
+					if (it !== undefined) {
+						return it[1];
+					}
+					return k;
+				});
+				return {newFiles, newExpanded};
+			}
+		});
+	};
+
+	const onDrop = (self: TreeDataType, target: TreeDataType) => {
+		const rootNode = treeData.at(0);
+		if (rootNode === undefined) return;
+		let targetName = target.title;
+		let targetParent = target.key;
+		if (!target.dir) {
+			targetParent = path.dirname(target.key);
+			if (path.relative(targetParent, rootNode.key) === "") {
+				targetName = rootNode.title;
+			} else {
+				targetName = path.basename(targetParent);
+			}
+		}
+		if (path.relative(targetParent, path.dirname(self.key)) === "") {
+			return;
+		}
+		setAlertMsg({
+			title: 'Moving Item',
+			msg: `move "${self.title}" to folder "${targetName}"`,
+			cancelable: true,
+			confirmed: () => {
+				const newFile = path.join(targetParent, path.basename(self.key));
+				const doRename = () => {
+					return Post("/rename", {old: self.key, new: newFile}).then((res: {success: boolean}) => {
+						if (res.success) {
+							return loadAssets();
+						}
+						setAlertMsg({
+							title: "Move Item",
+							msg: `failed to move "${self.title}" to folder "${targetName}"`,
+						});
+					});
+				};
+				if (self.dir) {
+					updateDir(self.key, newFile).then((res) => {
+						if (res === undefined) return;
+						doRename().then(() => {
+							setFiles(res.newFiles);
+							updateTabs(res.newFiles);
+							setExpandedKeys(res.newExpanded);
+						});
+					});
+				} else {
+					doRename().then(() => {
+						setExpandedKeys(expandedKeys.filter(k => k !== self.key));
+					});
+				}
+			}
+		});
 	};
 
 	return (
@@ -736,8 +896,7 @@ export default function PersistentDrawerLeft() {
 							"Confirm" : "OK"
 						}
 					</Button>
-					{
-						alertMsg?.cancelable !== undefined ?
+					{alertMsg?.cancelable !== undefined ?
 						<Button onClick={handleAlertCancel}>
 							Cancel
 						</Button> : null
@@ -846,6 +1005,7 @@ export default function PersistentDrawerLeft() {
 						onMenuClick={onTreeMenuClick}
 						onSelect={onSelect}
 						onExpand={onExpand}
+						onDrop={onDrop}
 					/>
 				</Drawer>
 				{
@@ -902,6 +1062,22 @@ export default function PersistentDrawerLeft() {
 									}}
 								/>
 							</Main>;
+						} else if (file.uploading) {
+							const rootNode = treeData.at(0);
+							if (rootNode === undefined) return null;
+							let target = path.relative(rootNode.key, file.key);
+							target = path.join("Assets", target);
+							return (
+								<div
+									key={file.key}
+									style={{width: '100%', height: '100%'}}
+									hidden={tabIndex !== index}
+								>
+									<DrawerHeader/>
+									<DrawerHeader/>
+									<DoraUpload title={target + path.sep} path={file.key}/>
+								</div>
+							);
 						}
 						return null;
 					})

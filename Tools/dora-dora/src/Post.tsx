@@ -1,8 +1,12 @@
-async function Post(url: string, data: any = {}) {
+export function Addr(url: string) {
 	if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-		url = "http://localhost:8866" + url;
+		return "http://localhost:8866" + url;
 	}
-	const response = await fetch(url, {
+	return url;
+};
+
+async function Post(url: string, data: any = {}) {
+	const response = await fetch(Addr(url), {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
