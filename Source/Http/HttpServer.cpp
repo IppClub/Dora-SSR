@@ -39,6 +39,10 @@ void HttpServer::post(String pattern, const PostHandler& handler) {
 	_posts.push_back({pattern, handler});
 }
 
+void HttpServer::upload(String pattern, const FileAcceptHandler& acceptHandler, const FileDoneHandler& doneHandler) {
+	_files.push_back({pattern, acceptHandler, doneHandler});
+}
+
 bool HttpServer::start(int port) {
 	auto& server = getServer();
 	if (server.is_running()) return false;
@@ -55,25 +59,88 @@ bool HttpServer::start(int port) {
 		server.set_mount_point("/", SharedContent.getWritablePath());
 		for (const auto& post : _posts) {
 			server.Post(post.pattern, [this, &post](const httplib::Request& req, httplib::Response& res) {
-				auto request = std::make_shared<HttpServer::Request>();
+				HttpServer::Request request;
 				for (const auto& param : req.params) {
-					request->params.emplace_back(param.first);
-					request->params.emplace_back(param.second);
+					request.params.emplace_back(param.first);
+					request.params.emplace_back(param.second);
 				}
 				if (auto it = req.headers.find("Content-Type"s);
 					it != req.headers.end()) {
-					request->contentType = it->second;
+					request.contentType = it->second;
 				}
-				request->body = req.body;
+				request.body = req.body;
 				HttpServer::Response response;
 				response.status = res.status;
 				bx::Semaphore waitForResponse;
-				SharedApplication.invokeInLogic([&, request = std::move(request)]() {
-					response = post.handler(*request);
+				SharedApplication.invokeInLogic([&]() {
+					response = post.handler(request);
 					waitForResponse.post();
 				});
 				waitForResponse.wait();
 				res.set_content(response.content, response.contentType);
+			});
+		}
+		for (const auto& postFile : _files) {
+			server.Post(postFile.pattern,
+				[&](const httplib::Request& req, httplib::Response& res, const httplib::ContentReader& content_reader) {
+				if (!req.is_multipart_form_data()) {
+					res.status = 403;
+					return;
+				}
+				HttpServer::Request request;
+				for (const auto& param : req.params) {
+					request.params.emplace_back(param.first);
+					request.params.emplace_back(param.second);
+				}
+				if (auto it = req.headers.find("Content-Type"s);
+					it != req.headers.end()) {
+					request.contentType = it->second;
+				}
+				std::list<std::string> acceptedFiles;
+				std::list<std::ofstream> streams;
+				content_reader(
+					[&](const httplib::MultipartFormData& file) {
+						bool accepted = false;
+						bx::Semaphore waitForResponse;
+						SharedApplication.invokeInLogic([&]() {
+							if (auto newFile = postFile.acceptHandler(request, file.filename)) {
+								auto& stream = streams.emplace_back(newFile.value(),
+									std::ios::out | std::ios::trunc | std::ios::binary);
+								if (stream) {
+									accepted = true;
+									acceptedFiles.emplace_back(newFile.value());
+								}
+							}
+							waitForResponse.post();
+						});
+						waitForResponse.wait();
+						return accepted;
+					},
+					[&](const char* data, size_t data_length) {
+						if (streams.back().write(data, data_length)) {
+							return true;
+						}
+						acceptedFiles.pop_back();
+						return false;
+					}
+				);
+				streams.clear();
+				bool done = true;
+				bx::Semaphore waitForResponse;
+				SharedApplication.invokeInLogic([&]() {
+					for (const auto& file : acceptedFiles) {
+						if (!postFile.doneHandler(request, file)) {
+							SharedContent.remove(file);
+							done = false;
+							break;
+						}
+					}
+					waitForResponse.post();
+				});
+				waitForResponse.wait();
+				if (!done) {
+					res.status = 500;
+				}
 			});
 		}
 		SharedAsyncThread.HttpServer.run([]() {
