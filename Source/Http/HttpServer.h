@@ -24,17 +24,29 @@ public:
 		std::string contentType;
 		int status;
 	};
+
 	using PostHandler = std::function<Response(const Request&)>;
 	struct Post {
 		std::string pattern;
 		PostHandler handler;
 	};
 	void post(String pattern, const PostHandler& handler);
+
+	using FileAcceptHandler = std::function<std::optional<std::string>(const Request&, const std::string&)>;
+	using FileDoneHandler = std::function<bool(const Request&, const std::string&)>;
+	struct File {
+		std::string pattern;
+		FileAcceptHandler acceptHandler;
+		FileDoneHandler doneHandler;
+	};
+
+	void upload(String pattern, const FileAcceptHandler& acceptHandler, const FileDoneHandler& doneHandler);
 	bool start(int port);
 	void stop();
 private:
 	std::string _wwwPath;
 	std::list<Post> _posts;
+	std::list<File> _files;
 	SINGLETON_REF(HttpServer, AsyncThread, Director);
 };
 
