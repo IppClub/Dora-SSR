@@ -604,6 +604,7 @@ LuaEngine::LuaEngine()
 		tolua_beginmodule(L, "HttpServer");
 		{
 			tolua_function(L, "post", HttpServer_post);
+			tolua_function(L, "upload", HttpServer_upload);
 		}
 		tolua_endmodule(L);
 

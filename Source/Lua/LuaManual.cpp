@@ -2604,7 +2604,8 @@ int HttpServer_post(lua_State* L) {
 	tolua_Error tolua_err;
 	if (!tolua_isusertype(L, 1, "HttpServer"_slice, 0, &tolua_err)
 		|| !tolua_isslice(L, 2, 0, &tolua_err)
-		|| !tolua_isfunction(L, 3, &tolua_err)) {
+		|| !tolua_isfunction(L, 3, &tolua_err)
+		|| !tolua_isnoobj(L, 4, &tolua_err)) {
 		goto tolua_lerror;
 	}
 #endif
@@ -2660,7 +2661,7 @@ int HttpServer_post(lua_State* L) {
 					res.status = 500;
 				}
 			} else if (lua_isstring(L, -1)) {
-				res.content = lua_tostring(L, -1);
+				res.content = tolua_toslice(L, -1, nullptr);
 				res.contentType = "text/plain"_slice;
 			} else {
 				res.status = 500;
@@ -2672,6 +2673,90 @@ int HttpServer_post(lua_State* L) {
 #ifndef TOLUA_RELEASE
 tolua_lerror:
 	tolua_error(L, "#ferror in function 'HttpServer_post'.", &tolua_err);
+	return 0;
+#endif
+}
+
+int HttpServer_upload(lua_State* L) {
+	/* 1 self, 2 pattern, 3 handler */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "HttpServer"_slice, 0, &tolua_err)
+		|| !tolua_isslice(L, 2, 0, &tolua_err)
+		|| !tolua_isfunction(L, 3, &tolua_err)
+		|| !tolua_isfunction(L, 4, &tolua_err)
+		|| !tolua_isnoobj(L, 5, &tolua_err)) {
+		goto tolua_lerror;
+	}
+#endif
+	{
+		HttpServer* self = r_cast<HttpServer*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'HttpServer_upload'", nullptr);
+#endif
+		Slice pattern = tolua_toslice(L, 2, nullptr);
+		Ref<LuaHandler> acceptHandler(LuaHandler::create(tolua_ref_function(L, 3)));
+		Ref<LuaHandler> doneHandler(LuaHandler::create(tolua_ref_function(L, 4)));
+		self->upload(pattern, [=](const HttpServer::Request& req, const std::string& filename) -> std::optional<std::string> {
+			auto L = SharedLuaEngine.getState();
+			int top = lua_gettop(L);
+			DEFER(lua_settop(L, top));
+			lua_createtable(L, 0, 0);
+			lua_pushliteral(L, "params");
+			lua_createtable(L, 0, 0);
+			std::string key;
+			bool startPair = true;
+			for (const auto& v : req.params) {
+				if (startPair) {
+					startPair = false;
+					key = v;
+				} else {
+					startPair = true;
+					tolua_pushslice(L, key);
+					tolua_pushslice(L, v);
+					lua_rawset(L, -3);
+				}
+			}
+			lua_rawset(L, -3);
+			tolua_pushslice(L, filename);
+			LuaEngine::invoke(L, acceptHandler->get(), 2, 1);
+			if (lua_isstring(L, -1)) {
+				return tolua_toslice(L, -1, nullptr);
+			}
+			return std::nullopt;
+		}, [=](const HttpServer::Request& req, const std::string& file) {
+			auto L = SharedLuaEngine.getState();
+			int top = lua_gettop(L);
+			DEFER(lua_settop(L, top));
+			lua_createtable(L, 0, 0);
+			lua_pushliteral(L, "params");
+			lua_createtable(L, 0, 0);
+			std::string key;
+			bool startPair = true;
+			for (const auto& v : req.params) {
+				if (startPair) {
+					startPair = false;
+					key = v;
+				} else {
+					startPair = true;
+					tolua_pushslice(L, key);
+					tolua_pushslice(L, v);
+					lua_rawset(L, -3);
+				}
+			}
+			lua_rawset(L, -3);
+			tolua_pushslice(L, file);
+			LuaEngine::invoke(L, doneHandler->get(), 2, 1);
+			if (lua_toboolean(L, -1) != 0) {
+				return true;
+			}
+			return false;
+		});
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'HttpServer_upload'.", &tolua_err);
 	return 0;
 #endif
 }

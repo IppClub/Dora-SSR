@@ -1,37 +1,36 @@
 import { Container } from '@mui/material';
-import { UploadProps } from 'antd';
-import { message, Upload } from 'antd';
+import { ConfigProvider, theme, UploadProps } from 'antd';
+import { Upload } from 'antd';
 import { AiOutlineUpload } from 'react-icons/ai';
+import { Addr } from './Post';
 
 const { Dragger } = Upload;
 
 export interface DoraUploadProp {
 	title: string;
 	path: string;
+	onUploaded: (path: string, file: string) => void;
 };
 
 const DoraUpload = (prop: DoraUploadProp) => {
 	const props: UploadProps = {
 		name: 'file',
 		multiple: true,
-		action: `/upload?path=${prop.path}`,
+		action: Addr(`/upload?path=${prop.path}`),
 		onChange(info) {
 			const { status } = info.file;
-			if (status !== 'uploading') {
-				console.log(info.file, info.fileList);
-			}
 			if (status === 'done') {
-				message.success(`${info.file.name} file uploaded successfully.`);
-			} else if (status === 'error') {
-				message.error(`${info.file.name} file upload failed.`);
+				prop.onUploaded(prop.path, info.file.name);
 			}
-		},
-		onDrop(e) {
-			console.log('Dropped files', e.dataTransfer.files);
 		},
 	};
 	return (
 		<Container maxWidth="sm">
+			<ConfigProvider
+				theme={{
+					algorithm: theme.darkAlgorithm
+				}}
+			>
 			<p className="dora-upload-title" style={{color: '#fff'}}>
 				{prop.title}
 			</p>
@@ -46,6 +45,7 @@ const DoraUpload = (prop: DoraUploadProp) => {
 					Uploading will start automatically.
 				</p>
 			</Dragger>
+			</ConfigProvider>
 		</Container>
 	);
 };

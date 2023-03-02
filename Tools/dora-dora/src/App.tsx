@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import { styled } from '@mui/material/styles';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -17,10 +17,12 @@ import Path from 'path';
 import Post from './Post';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
-import { Button, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField } from '@mui/material';
+import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField } from '@mui/material';
 import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
 import DoraUpload from './Upload';
+import Stack from '@mui/system/Stack';
+import { TransitionGroup } from 'react-transition-group';
 
 let path = Path.posix;
 
@@ -82,6 +84,28 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
 	}),
 }));
 
+const StyledStack = styled(Stack, { shouldForwardProp: (prop) => prop !== 'open' })<{
+	open?: boolean;
+}>(({ theme, open }) => ({
+	width: '350px',
+	bottom: 5,
+	flexGrow: 1,
+	position: 'fixed',
+	padding: theme.spacing(0),
+	transition: theme.transitions.create('left', {
+		easing: theme.transitions.easing.sharp,
+		duration: theme.transitions.duration.leavingScreen,
+	}),
+	left: 5,
+	...(open && {
+		transition: theme.transitions.create('left', {
+			easing: theme.transitions.easing.easeOut,
+			duration: theme.transitions.duration.enteringScreen,
+		}),
+		left: drawerWidth + 5,
+	}),
+}));
+
 interface AppBarProps extends MuiAppBarProps {
 	open?: boolean;
 }
@@ -131,6 +155,11 @@ interface Modified {
 };
 
 export default function PersistentDrawerLeft() {
+	const [alerts, setAlerts] = useState<{
+		msg: string,
+		key: string,
+		type: AlertColor,
+	}[]>([]);
 	const [drawerOpen, setDrawerOpen] = useState(true);
 	const [tabIndex, setTabIndex] = useState<number | null>(null);
 	const [files, setFiles] = useState<EditingFile[]>([]);
@@ -143,7 +172,7 @@ export default function PersistentDrawerLeft() {
 
 	const [openNewFile, setOpenNewFile] = useState<TreeDataType | null>(null);
 
-	const [alertMsg, setAlertMsg] = useState<
+	const [popupInfo, setPopupInfo] = useState<
 		{
 			title: string,
 			msg: string,
@@ -159,12 +188,25 @@ export default function PersistentDrawerLeft() {
 			ext: string,
 		} | null>(null);
 
+	const addAlert = (msg: string, type: AlertColor) => {
+		const key = msg + Date.now().toString();
+		alerts.push({
+			msg,
+			key,
+			type
+		});
+		setAlerts([...alerts]);
+		setTimeout(() => {
+			setAlerts((prevState) => {
+				return prevState.filter(a => a.key !== key);
+			});
+		}, 5000);
+	};
+
 	const loadAssets = () => {
 		return Post('/assets').then((res: TreeDataType) => {
 			res.root = true;
-			if (res.children !== undefined) {
-				setExpandedKeys([res.key]);
-			} else {
+			if (res.children === undefined) {
 				res.children = [{
 					key: '...',
 					dir: false,
@@ -172,11 +214,10 @@ export default function PersistentDrawerLeft() {
 				}];
 			}
 			setTreeData([res]);
+			return res;
 		}).catch(() => {
-			setAlertMsg({
-				title: "Assets",
-				msg: "failed to read assets",
-			});
+			addAlert("failed to read assets", "error");
+			return null;
 		});
 	};
 
@@ -185,14 +226,16 @@ export default function PersistentDrawerLeft() {
 			if (res.platform === "Windows") {
 				path = Path.win32;
 			}
+		}).catch(() => {
+			addAlert("failed to get basic info", "error");
 		}).then(() => {
 			return loadAssets();
-		}).catch(() => {
-			setAlertMsg({
-				title: "Accessing Engine",
-				msg: "failed to get basic info"
-			});
+		}).then((res) => {
+			if (res !== null) {
+				setExpandedKeys([res.key]);
+			}
 		});
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	contentModified = tabs.find(tab => tab.modified) !== undefined;
@@ -279,10 +322,7 @@ export default function PersistentDrawerLeft() {
 		}
 		if (changedKey === rootNode.key) {
 			if (contentModified) {
-				setAlertMsg({
-					title: "Assets",
-					msg: "please save before reloading assets"
-				});
+				addAlert("please save before reloading assets", "warning");
 				return;
 			}
 			loadAssets().then(() => {
@@ -290,15 +330,9 @@ export default function PersistentDrawerLeft() {
 				setTabs([]);
 				setTabIndex(null);
 				setSelectedKeys([]);
-				setAlertMsg({
-					title: "Assets",
-					msg: "assets reloaded"
-				});
+				addAlert("assets reloaded", "success");
 			}).catch(() => {
-				setAlertMsg({
-					title: "Assets",
-					msg: "failed to reload assets"
-				});
+				addAlert("failed to reload assets", "error");
 			});
 			return;
 		} else if (rootNode.children?.at(0)?.key === '...') {
@@ -343,50 +377,65 @@ export default function PersistentDrawerLeft() {
 
 	const closeCurrentTab = () => {
 		if (tabIndex !== null) {
+			const closeTab = () => {
+				const newFiles = files.filter((_, index) => index !== tabIndex);
+				setFiles(newFiles);
+				updateTabs(newFiles);
+				if (newFiles.length === 0) {
+					setTabIndex(null);
+				} else if (tabIndex > 0) {
+					setTabIndex(tabIndex - 1);
+				}
+			};
 			if (files[tabIndex].contentModified !== null) {
-				setAlertMsg({
+				setPopupInfo({
 					title: "Closing Tab",
-					msg: "please save before closing"
+					msg: "close tab without saving",
+					cancelable: true,
+					confirmed: closeTab,
 				});
 				return;
 			}
-			const newFiles = files.filter((_, index) => index !== tabIndex);
-			setFiles(newFiles);
-			updateTabs(newFiles);
-			if (newFiles.length === 0) {
-				setTabIndex(null);
-			} else if (tabIndex > 0) {
-				setTabIndex(tabIndex - 1);
-			}
+			closeTab();
 		}
 	};
 
 	const closeAllTabs = () => {
+		const closeTabs = () => {
+			setFiles([]);
+			updateTabs([]);
+			setTabIndex(null);
+		};
 		if (contentModified) {
-			setAlertMsg({
+			setPopupInfo({
 				title: "Closing Tabs",
-				msg: "please save before closing"
+				msg: "close tabs without saving",
+				cancelable: true,
+				confirmed: closeTabs,
 			});
 			return;
 		}
-		setFiles([]);
-		updateTabs([]);
-		setTabIndex(null);
+		closeTabs();
 	};
 
 	const closeOtherTabs = () => {
+		const closeTabs = () => {
+			const newFiles = files.filter((_, index) => index === tabIndex);
+			setFiles(newFiles);
+			updateTabs(newFiles);
+			setTabIndex(0);
+		};
 		const otherModified = files.filter((_, index) => index !== tabIndex).find((file) => file.contentModified !== null) !== undefined;
 		if (otherModified) {
-			setAlertMsg({
+			setPopupInfo({
 				title: "Closing Tabs",
-				msg: "please save before closing"
+				msg: "close tabs without saving",
+				cancelable: true,
+				confirmed: closeTabs,
 			});
 			return;
 		}
-		const newFiles = files.filter((_, index) => index === tabIndex);
-		setFiles(newFiles);
-		updateTabs(newFiles);
-		setTabIndex(0);
+		closeTabs();
 	};
 
 	const onKeyDown = (event: React.KeyboardEvent) => {
@@ -411,38 +460,23 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const handleAlertClose = () => {
-		if (alertMsg?.confirmed !== undefined) {
-			alertMsg.confirmed();
+		if (popupInfo?.confirmed !== undefined) {
+			popupInfo.confirmed();
 		}
-		setAlertMsg(null);
+		setPopupInfo(null);
 	};
 
 	const handleAlertCancel = () => {
-		setAlertMsg(null);
+		setPopupInfo(null);
 	};
 
 	const onTabMenuClick = (event: TabMenuEvent) => {
 		switch (event) {
-			case "Save": {
-				saveCurrentTab();
-				break;
-			}
-			case "SaveAll": {
-				saveAllTabs();
-				break;
-			}
-			case "Close": {
-				closeCurrentTab();
-				break;
-			}
-			case "CloseAll": {
-				closeAllTabs();
-				break;
-			}
-			case "CloseOther": {
-				closeOtherTabs();
-				break;
-			}
+			case "Save": saveCurrentTab(); break;
+			case "SaveAll": saveAllTabs(); break;
+			case "Close": closeCurrentTab(); break;
+			case "CloseAll": closeAllTabs(); break;
+			case "CloseOther": closeOtherTabs(); break;
 		}
 	};
 
@@ -487,10 +521,7 @@ export default function PersistentDrawerLeft() {
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
 				if (rootNode.key === data?.key) {
-					setAlertMsg({
-						title: "Rename",
-						msg: "can not rename root folder",
-					});
+					addAlert("can not rename root folder", "info");
 					break;
 				}
 				if (data !== undefined) {
@@ -509,14 +540,11 @@ export default function PersistentDrawerLeft() {
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
 				if (rootNode.key === data?.key) {
-					setAlertMsg({
-						title: "Delete",
-						msg: "can not delete root folder",
-					});
+					addAlert("can not delete root folder", "info");
 					break;
 				}
 				if (data !== undefined) {
-					setAlertMsg({
+					setPopupInfo({
 						title: "Delete",
 						msg: `deleting ${data.dir ? 'folder' : 'file'} ${data.title}`,
 						cancelable: true,
@@ -557,11 +585,10 @@ export default function PersistentDrawerLeft() {
 								}
 								setTreeData([rootNode]);
 							}).catch(() => {
-								setAlertMsg({
-									title: "Delete",
-									msg: "failed to delete item",
-								});
-							});;
+								addAlert("failed to delete item", "error");
+							}).then(() => {
+								addAlert(`deleted "${data.title}"`, "success");
+							});
 						},
 					})
 				}
@@ -573,26 +600,11 @@ export default function PersistentDrawerLeft() {
 	const onNewFileClose = (item?: DoraFileType) => {
 		let ext: string | null = null;
 		switch (item) {
-			case "Lua": {
-				ext = ".lua";
-				break;
-			}
-			case "Teal": {
-				ext = ".tl";
-				break;
-			}
-			case "Yuescript": {
-				ext = ".yue";
-				break;
-			}
-			case "Dora Xml": {
-				ext = ".xml";
-				break;
-			}
-			case "Folder": {
-				ext = "";
-				break;
-			}
+			case "Lua": ext = ".lua"; break;
+			case "Teal": ext = ".tl"; break;
+			case "Yuescript": ext = ".yue"; break;
+			case "Dora Xml": ext = ".xml"; break;
+			case "Folder": ext = ""; break;
 		}
 		if (ext !== null) {
 			setFileInfo({
@@ -619,10 +631,7 @@ export default function PersistentDrawerLeft() {
 				const doRename = () => {
 					return Post("/rename", {old: oldFile, new: newFile}).then((res: {success: boolean}) => {
 						if (!res.success) {
-							setAlertMsg({
-								title: "Rename",
-								msg: "failed to rename item",
-							})
+							addAlert("failed to rename item", "error");
 							return;
 						}
 						if (target.dir) {
@@ -632,12 +641,12 @@ export default function PersistentDrawerLeft() {
 						if (file !== undefined) {
 							file.key = newFile;
 							file.title = newName;
-							setFiles(files.map(f => f));
+							setFiles([...files]);
 							const tab = tabs.find(t => path.relative(t.key, oldFile) === "");
 							if (tab !== undefined) {
 								tab.key = newFile;
 								tab.title = newName;
-								setTabs(tabs.map(t => t));
+								setTabs([...tabs]);
 							}
 						}
 						const rootNode = treeData.at(0);
@@ -660,10 +669,9 @@ export default function PersistentDrawerLeft() {
 						visitData(rootNode);
 						setTreeData([rootNode]);
 					}).catch(() => {
-						setAlertMsg({
-							title: "Rename",
-							msg: "failed to rename item",
-						});
+						addAlert("failed to rename item", "error");
+					}).then(() => {
+						addAlert(`renamed "${path.basename(oldFile)}" to "${path.basename(newFile)}"`, "success");
 					});
 				};
 				if (target.dir) {
@@ -686,10 +694,7 @@ export default function PersistentDrawerLeft() {
 				const newFile = path.join(dir, newName);
 				Post("/new", {path: newFile}).then((res: {success: boolean}) => {
 					if (!res.success) {
-						setAlertMsg({
-							title: "New Item",
-							msg: "failed to create item",
-						});
+						addAlert("failed to create item", "error");
 						return;
 					}
 					const rootNode = treeData.at(0);
@@ -747,7 +752,7 @@ export default function PersistentDrawerLeft() {
 					}
 					if (rootNode && rootNode.children?.at(0)?.key === '...') {
 						rootNode.children?.splice(0, 1);
-						setExpandedKeys(expandedKeys.map(k => k));
+						setExpandedKeys([...expandedKeys]);
 					}
 					setTreeData([rootNode]);
 					setSelectedKeys([newFile]);
@@ -764,10 +769,7 @@ export default function PersistentDrawerLeft() {
 						setTabIndex(files.length - 1);
 					}
 				}).catch(() => {
-					setAlertMsg({
-						title: "New Item",
-						msg: "failed to create item",
-					});
+					addAlert("failed to create item", "error");
 				});;
 			}
 		}
@@ -802,6 +804,7 @@ export default function PersistentDrawerLeft() {
 							}
 							return true;
 						}
+						return false;
 					});
 					return f;
 				});
@@ -810,6 +813,7 @@ export default function PersistentDrawerLeft() {
 						if (x[0] === k) {
 							return true;
 						}
+						return false;
 					});
 					if (it !== undefined) {
 						return it[1];
@@ -837,7 +841,7 @@ export default function PersistentDrawerLeft() {
 		if (path.relative(targetParent, path.dirname(self.key)) === "") {
 			return;
 		}
-		setAlertMsg({
+		setPopupInfo({
 			title: 'Moving Item',
 			msg: `move "${self.title}" to folder "${targetName}"`,
 			cancelable: true,
@@ -848,10 +852,7 @@ export default function PersistentDrawerLeft() {
 						if (res.success) {
 							return loadAssets();
 						}
-						setAlertMsg({
-							title: "Move Item",
-							msg: `failed to move "${self.title}" to folder "${targetName}"`,
-						});
+						addAlert(`failed to move "${self.title}" to folder "${targetName}"`, "error");
 					});
 				};
 				if (self.dir) {
@@ -872,31 +873,45 @@ export default function PersistentDrawerLeft() {
 		});
 	};
 
+	const onUploaded = (dir: string, file: string) => {
+		const key = path.join(dir, file);
+		const newFiles = files.filter(f => path.relative(f.key, key) !== "");
+		if (file.length !== newFiles.length) {
+			setFiles(newFiles);
+			updateTabs(newFiles);
+			if (tabIndex && tabIndex > newFiles.length) {
+				const newIndex = newFiles.length > 0 ? newFiles.length - 1 : null;
+				setTabIndex(newIndex);
+			}
+		}
+		loadAssets();
+	};
+
 	return (
 		<ThemeProvider theme={theme}>
 			<Dialog
-				open={alertMsg !== null}
+				open={popupInfo !== null}
 				aria-labelledby="alert-dialog-title"
 				aria-describedby="alert-dialog-description"
 			>
 				<DialogTitle id="alert-dialog-title">
-					{alertMsg?.title}
+					{popupInfo?.title}
 				</DialogTitle>
 				<DialogContent>
 					<DialogContentText id="alert-dialog-description">
-						{alertMsg?.msg}
+						{popupInfo?.msg}
 					</DialogContentText>
 				</DialogContent>
 				<DialogActions>
 					<Button
 						onClick={handleAlertClose}
-						autoFocus={alertMsg?.cancelable === undefined}
+						autoFocus={popupInfo?.cancelable === undefined}
 					>
-						{alertMsg?.cancelable !== undefined ?
+						{popupInfo?.cancelable !== undefined ?
 							"Confirm" : "OK"
 						}
 					</Button>
-					{alertMsg?.cancelable !== undefined ?
+					{popupInfo?.cancelable !== undefined ?
 						<Button onClick={handleAlertCancel}>
 							Cancel
 						</Button> : null
@@ -949,7 +964,7 @@ export default function PersistentDrawerLeft() {
 				</DialogActions>
 			</Dialog>
 			<NewFileDialog open={openNewFile !== null} onClose={onNewFileClose}/>
-			<Box sx={{display: "flex"}} onKeyDown={onKeyDown}>
+			<Box sx={{display: "flex", width: '100%', height: '100%'}} onKeyDown={onKeyDown}>
 				<CssBaseline/>
 				<AppBar
 					position="fixed"
@@ -997,7 +1012,7 @@ export default function PersistentDrawerLeft() {
 							alignItems: "center"
 						}}
 					/>
-					<Divider/>
+					<Divider style={{backgroundColor:'#fff2'}}/>
 					<FileTree
 						selectedKeys={selectedKeys}
 						expandedKeys={expandedKeys}
@@ -1013,75 +1028,76 @@ export default function PersistentDrawerLeft() {
 						const ext = path.extname(file.title);
 						let language = null;
 						switch (ext.toLowerCase()) {
-							case ".lua": {
-								language = "lua";
-								break;
-							}
-							case ".tl": {
-								language = "tl";
-								break;
-							}
-							case ".yue": {
-								language = "yue";
-								break;
-							}
-							case ".xml": {
-								language = "xml";
-								break;
-							}
+							case ".lua": language = "lua"; break;
+							case ".tl": language = "tl"; break;
+							case ".yue": language = "yue"; break;
+							case ".xml": language = "xml"; break;
 						}
-						if (language) {
-							let width = 0;
-							if (tabIndex === index) {
-								width = window.innerWidth - (drawerOpen ? drawerWidth : 0);
-							}
-							return <Main
-									open={drawerOpen}
-									key={file.key}
-									hidden={tabIndex !== index}
-								>
-								<DrawerHeader/>
-								<MonacoEditor
-									width={width}
-									height={window.innerHeight - 64}
-									language={language}
-									theme="vs-dark"
-									value={file.content}
-									onChange={(content: string) => {
-										setModified({key: file.key, content});
-									}}
-									options={{
-										wordWrap: 'on',
-										wordBreak: 'keepAll',
-										selectOnLineNumbers: true,
-										matchBrackets: 'near',
-										fontSize: 18,
-										useTabStops: false,
-										insertSpaces: false,
-										renderWhitespace: 'all',
-									}}
-								/>
-							</Main>;
-						} else if (file.uploading) {
-							const rootNode = treeData.at(0);
-							if (rootNode === undefined) return null;
-							let target = path.relative(rootNode.key, file.key);
-							target = path.join("Assets", target);
-							return (
-								<div
-									key={file.key}
-									style={{width: '100%', height: '100%'}}
-									hidden={tabIndex !== index}
-								>
-									<DrawerHeader/>
-									<DrawerHeader/>
-									<DoraUpload title={target + path.sep} path={file.key}/>
-								</div>
-							);
-						}
-						return null;
+						return <Main
+							open={drawerOpen}
+							key={file.key}
+							hidden={tabIndex !== index}
+						>
+							<DrawerHeader/>
+							{(() => {
+								if (language) {
+									let width = 0;
+									if (tabIndex === index) {
+										width = window.innerWidth - (drawerOpen ? drawerWidth : 0);
+									}
+									return (
+										<MonacoEditor
+											width={width}
+											height={window.innerHeight - 64}
+											language={language}
+											theme="vs-dark"
+											value={file.content}
+											onChange={(content: string) => {
+												setModified({key: file.key, content});
+											}}
+											options={{
+												wordWrap: 'on',
+												wordBreak: 'keepAll',
+												selectOnLineNumbers: true,
+												matchBrackets: 'near',
+												fontSize: 18,
+												useTabStops: false,
+												insertSpaces: false,
+												renderWhitespace: 'all',
+											}}
+										/>
+									);
+								} else if (file.uploading) {
+									const rootNode = treeData.at(0);
+									if (rootNode === undefined) return null;
+									let target = path.relative(rootNode.key, file.key);
+									target = path.join("Assets", target);
+									return (
+										<div style={{width: '100%', height: '100%'}}>
+											<DrawerHeader/>
+											<DoraUpload onUploaded={onUploaded} title={target + path.sep} path={file.key}/>
+										</div>
+									);
+								}
+								return null;
+							})()}
+						</Main>
 					})
 				}
+				<StyledStack open={drawerOpen}>
+					<TransitionGroup>
+						{alerts.map((item) => (
+							<Collapse key={item.key}>
+								<Alert onClose={() => {
+									const newAlerts = alerts.filter(a => a.key !== item.key);
+									setAlerts(newAlerts);
+								}} severity={item.type} color={item.type} style={{margin: 5}}>
+									{item.msg}
+								</Alert>
+							</Collapse>
+						))}
+					</TransitionGroup>
+				</StyledStack>
 			</Box>
 		</ThemeProvider>
 	);

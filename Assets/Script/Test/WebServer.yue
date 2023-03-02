@@ -1,5 +1,22 @@
 _ENV = Dorothy!
 
+HttpServer\upload(
+	"/upload"
+	(req, filename)->
+		switch req when {params: {:path}}
+			uploadPath = Path Content.writablePath, ".upload"
+			if not Content\exist uploadPath
+				Content\mkdir uploadPath
+			return Path uploadPath, filename
+		nil
+	(req, file)->
+		switch req when {params: {:path}}
+			target = Path path, Path\getFilename file
+			if Content\move file, target
+				return true
+		false
+)
+
 HttpServer\post "/list", (req)->
 	switch req
 		when {body: {:path}}
