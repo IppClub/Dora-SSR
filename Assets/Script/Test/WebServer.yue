@@ -1,5 +1,7 @@
 _ENV = Dorothy!
 
+HttpServer.wwwPath = Path Content.writablePath, ".www"
+
 HttpServer\upload(
 	"/upload"
 	(req, filename)->
@@ -18,75 +20,68 @@ HttpServer\upload(
 )
 
 HttpServer\post "/list", (req)->
-	switch req
-		when {body: {:path}}
-			if Content\exist path
-				files = {}
-				visitAssets = (path, folder)->
-					dirs = Content\getDirs path
-					for dir in *dirs
-						continue if dir\match "^%."
-						current = if folder == ""
-							dir
-						else
-							Path folder, dir
-						files[] = current
-						visitAssets Path(path, dir), current
-					fs = Content\getFiles path
-					for f in *fs
-						continue if f\match "^%."
-						files[] = if folder == ""
-							f
-						else
-							Path folder, f
-				visitAssets path, ""
-				return success: true, :files
+	switch req when {body: {:path}}
+		if Content\exist path
+			files = {}
+			visitAssets = (path, folder)->
+				dirs = Content\getDirs path
+				for dir in *dirs
+					continue if dir\match "^%."
+					current = if folder == ""
+						dir
+					else
+						Path folder, dir
+					files[] = current
+					visitAssets Path(path, dir), current
+				fs = Content\getFiles path
+				for f in *fs
+					continue if f\match "^%."
+					files[] = if folder == ""
+						f
+					else
+						Path folder, f
+			visitAssets path, ""
+			return success: true, :files
 	success: false
 
 HttpServer\post "/info", -> platform: App.platform
 
 HttpServer\post "/new", (req)->
-	switch req
-		when {body: {:path}}
-			if not Content\exist path
-				if "" == Path\getExt path
-					if Content\mkdir path
-						return success: true
-				else if Content\save path, ""
+	switch req when {body: {:path}}
+		if not Content\exist path
+			if "" == Path\getExt path
+				if Content\mkdir path
 					return success: true
-	success: false
-
-HttpServer\post "/delete", (req)->
-	switch req
-		when {body: {:path}}
-			if Content\exist path
-				if Content\remove path
-					return success: true
-	success: false
-
-HttpServer\post "/rename", (req)->
-	switch req
-		when {body: {:old, :new}}
-			if Content\exist(old) and not Content\exist new
-				if Content\move old, new
-					return success: true
-	success: false
-
-HttpServer\post "/read", (req)->
-	switch req
-		when {body: {:path}}
-			if Content\exist path
-				if content = Content\load path
-					return :content, success: true
-	content: "", success: false
-
-HttpServer\post "/write", (req)->
-	switch req
-		when {body: {:path, :content}}
-			if Content\save path, content
+			else if Content\save path, ""
 				return success: true
 	success: false
 
+HttpServer\post "/delete", (req)->
+	switch req when {body: {:path}}
+		if Content\exist path
+			if Content\remove path
+				return success: true
+	success: false
+
+HttpServer\post "/rename", (req)->
+	switch req when {body: {:old, :new}}
+		if Content\exist(old) and not Content\exist new
+			if Content\move old, new
+				return success: true
+	success: false
+
+HttpServer\post "/read", (req)->
+	switch req when {body: {:path}}
+		if Content\exist path
+			if content = Content\load path
+				return :content, success: true
+	content: "", success: false
+
+HttpServer\post "/write", (req)->
+	switch req when {body: {:path, :content}}
+		if Content\save path, content
+			return success: true
+	success: false
 
 HttpServer\post "/assets", ->
 	visitAssets = (path)->

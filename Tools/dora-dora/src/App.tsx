@@ -23,6 +23,36 @@ import logo from './logo.svg';
 import DoraUpload from './Upload';
 import Stack from '@mui/system/Stack';
 import { TransitionGroup } from 'react-transition-group';
+import * as monaco from 'monaco-editor';
+import * as yuescript from './languages/yuescript';
+import * as teal from './languages/teal';
+monaco.editor.defineTheme("dora-dark", {
+	base: "vs-dark",
+	inherit: true,
+	rules: [
+		{
+			token: "invalid",
+			foreground: "f44747",
+			fontStyle: 'italic',
+		},
+		{
+			token: "self.call",
+			foreground: "dcdcaa",
+		},
+		{
+			token: "operator",
+			foreground: "cc76d1",
+		}
+	],
+	colors: {},
+})
+monaco.languages.register({ id: 'tl' });
+monaco.languages.setLanguageConfiguration("tl", teal.config);
+monaco.languages.setMonarchTokensProvider("tl", teal.language);
+
+monaco.languages.register({ id: 'yue' });
+monaco.languages.setLanguageConfiguration("yue", yuescript.config);
+monaco.languages.setMonarchTokensProvider("yue", yuescript.language);
 
 let path = Path.posix;
 
@@ -277,7 +307,8 @@ export default function PersistentDrawerLeft() {
 			case ".lua":
 			case ".tl":
 			case ".yue":
-			case ".xml": {
+			case ".xml":
+			case ".md": {
 				let index: number | null = null;
 				files.find((file, i) => {
 					if (file.key === key) {
@@ -1032,6 +1063,7 @@ export default function PersistentDrawerLeft() {
 							case ".tl": language = "tl"; break;
 							case ".yue": language = "yue"; break;
 							case ".xml": language = "xml"; break;
+							case ".md": language = "markdown"; break;
 						}
 						return <Main
 							open={drawerOpen}
@@ -1050,7 +1082,7 @@ export default function PersistentDrawerLeft() {
 											width={width}
 											height={window.innerHeight - 64}
 											language={language}
-											theme="vs-dark"
+											theme="dora-dark"
 											value={file.content}
 											onChange={(content: string) => {
 												setModified({key: file.key, content});
