@@ -87,6 +87,12 @@ static int yuetolua(lua_State* L) {
 			config.reserveLineNumber = lua_toboolean(L, -1) != 0;
 		}
 		lua_pop(L, 1);
+		lua_pushliteral(L, "reserve_comment");
+		lua_gettable(L, -2);
+		if (lua_isboolean(L, -1) != 0) {
+			config.reserveComment = lua_toboolean(L, -1) != 0;
+		}
+		lua_pop(L, 1);
 		lua_pushliteral(L, "space_over_tab");
 		lua_gettable(L, -2);
 		if (lua_isboolean(L, -1) != 0) {
@@ -252,7 +258,7 @@ static int yuetoast(lua_State* L) {
 						}
 						case 1: {
 							if (flattenLevel > 1 || (flattenLevel == 1 && !current.hasSep)) {
-								lua_rawgeti(L, tableIndex, 1);
+								lua_rawgeti(L, tableIndex, lua_objlen(L, tableIndex) + 1);
 								getName(node);
 								lua_rawseti(L, -2, 1);
 								lua_pushinteger(L, node->m_begin.m_line);
