@@ -622,7 +622,7 @@ std::string Dorothy::Application::getDeps() const {
 		BGFX_API_VERSION,
 		LUA_VERSION_MAJOR, LUA_VERSION_MINOR, LUA_VERSION_RELEASE,
 		yue::version,
-		SharedLuaEngine.tealVersion(),
+		SharedLuaEngine.getTealVersion(),
 		PLAYRHO_VERSION_MAJOR, PLAYRHO_VERSION_MINOR, PLAYRHO_VERSION_PATCH,
 		SOLOUD_VERSION,
 		IMGUI_VERSION_NUM,
