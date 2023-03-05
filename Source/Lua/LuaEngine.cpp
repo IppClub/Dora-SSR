@@ -130,7 +130,7 @@ static int dora_loadfile(lua_State* L, String filename, String moduleName = null
 			auto data = SharedContent.load(targetFile);
 			auto str = Slice(r_cast<char*>(data.first.get()), data.second).toString();
 			std::string err;
-			std::tie(codes, err) = SharedLuaEngine.tealToLua(str, moduleName);
+			std::tie(codes, err) = SharedLuaEngine.compileTealToLua(str, moduleName);
 			if (codes.empty()) {
 				luaL_error(L, "%s", err.c_str());
 			} else {
@@ -215,10 +215,8 @@ static int dora_doxml(lua_State* L) {
 		luaL_error(L, "error loading module %s from file %s :\n\t%s",
 			lua_tostring(L, 1), "xml", lua_tostring(L, -1));
 	}
-	int top = lua_gettop(L) - 1;
-	LuaEngine::call(L, 0, LUA_MULTRET);
-	int newTop = lua_gettop(L);
-	return newTop - top;
+	LuaEngine::call(L, 0, 1);
+	return 1;
 }
 
 static int dora_xmltolua(lua_State* L) {
@@ -238,7 +236,7 @@ static int dora_tealtolua(lua_State* L) {
 	std::string codes(luaL_checkstring(L, 1));
 	std::string moduleName(luaL_checkstring(L, 2));
 	std::string res, err;
-	std::tie(res, err) = SharedLuaEngine.tealToLua(codes, moduleName);
+	std::tie(res, err) = SharedLuaEngine.compileTealToLua(codes, moduleName);
 	if (res.empty() && !err.empty()) {
 		lua_pushnil(L);
 		lua_pushlstring(L, err.c_str(), err.size());
@@ -246,6 +244,11 @@ static int dora_tealtolua(lua_State* L) {
 	}
 	lua_pushlstring(L, res.c_str(), res.size());
 	return 1;
+}
+
+static int dora_resetteal(lua_State* L) {
+	SharedLuaEngine.resetTealCompiler();
+	return 0;
 }
 
 static int dora_file_exist(lua_State* L) {
@@ -451,6 +454,7 @@ LuaEngine::LuaEngine()
 		{"doxml", dora_doxml},
 		{"xmltolua", dora_xmltolua},
 		{"tealtolua", dora_tealtolua},
+		{"resetteal", dora_resetteal},
 		{"yuecompile", dora_yuecompile},
 		{"ubox", dora_ubox},
 		{"emit", dora_emit},
@@ -621,8 +625,6 @@ LuaEngine::LuaEngine()
 		}
 		tolua_endmodule(L);
 
-
-
 		tolua_beginmodule(L, "Platformer");
 		{
 			tolua_beginmodule(L, "Behavior");
@@ -689,7 +691,7 @@ lua_State* LuaEngine::loadTealState() {
 	return _tlState;
 }
 
-std::string LuaEngine::tealVersion() {
+std::string LuaEngine::getTealVersion() {
 	loadTealState();
 	int top = lua_gettop(_tlState);
 	DEFER(lua_settop(_tlState, top));
@@ -701,7 +703,7 @@ std::string LuaEngine::tealVersion() {
 	return tolua_toslice(_tlState, -1, nullptr);
 }
 
-std::pair<std::string, std::string> LuaEngine::tealToLua(const std::string& tlCodes, String moduleName) {
+std::pair<std::string, std::string> LuaEngine::compileTealToLua(const std::string& tlCodes, String moduleName) {
 	loadTealState();
 	int top = lua_gettop(_tlState);
 	DEFER(lua_settop(_tlState, top));
@@ -717,6 +719,18 @@ std::pair<std::string, std::string> LuaEngine::tealToLua(const std::string& tlCo
 	} else {
 		return {tolua_toslice(_tlState, -2, nullptr), Slice::Empty};
 	}
+}
+
+void LuaEngine::resetTealCompiler() {
+	if (!_tlState) return;
+	int top = lua_gettop(_tlState);
+	DEFER(lua_settop(_tlState, top));
+	lua_getglobal(_tlState, "package"); // package
+	lua_getfield(_tlState, -1, "loaded"); // package loaded
+	lua_getfield(_tlState, -1, "tl"); // package loaded tl
+	lua_pushliteral(_tlState, "package_loader_env");
+	lua_pushnil(_tlState);
+	lua_rawset(_tlState, -3); // tl["package_loader_env"] = nil
 }
 
 void LuaEngine::insertLuaLoader(lua_CFunction func, int index) {
