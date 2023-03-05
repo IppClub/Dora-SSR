@@ -245,6 +245,7 @@ allClear = ->
 	View.postEffect = nil
 	View.scale = scaleContent and screenScale or 1
 	Director.clearColor = Color 0xff1a1a1a
+	resetteal!
 	collectgarbage!
 	collectgarbage!
 
