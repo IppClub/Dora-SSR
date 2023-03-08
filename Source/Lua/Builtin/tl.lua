@@ -11097,6 +11097,46 @@ tl.dora_check = function(input, filename)
 	end
 end
 
+local function get_resolving_text(codes)
+	local y = 0
+	local x = 1
+	local lastLine = ""
+	for lineCode in codes:gmatch("[^\r\n]*") do
+		y = y + 1
+		x = #lineCode
+		lastLine = lineCode
+	end
+	local lineLen = #lastLine
+	lastLine = lastLine:gsub("%(.-%)", "")
+	while lineLen > #lastLine do
+		lineLen = #lastLine
+		lastLine = lastLine:gsub("%(.-%)", "")
+	end
+	local resolve = lastLine:match("[%w_%.:]+$")
+	if resolve then
+		return resolve, y, x
+	end
+	return nil
+end
+
+local function get_real_type(type_report, id)
+	if not id then return nil end
+	local current_type = type_report.types[id]
+	while current_type and current_type.ref do
+		current_type = type_report.types[current_type.ref]
+	end
+	if current_type.rets then
+		if #current_type.rets == 0 then
+			return nil
+		end
+		current_type = type_report.types[current_type.rets[1][1]]
+		while current_type and current_type.ref do
+			current_type = type_report.types[current_type.ref]
+		end
+	end
+	return current_type
+end
+
 tl.dora_complete = function(codes)
 	if codes:sub(1, 3) == "\xEF\xBB\xBF" then
 		codes = codes:sub(4)
@@ -11114,13 +11154,7 @@ tl.dora_complete = function(codes)
 		if not type_report then
 			return {}
 		end
-		local y = 0
-		local x = 1
-		for lineCode in codes:gmatch("[^\r\n]*") do
-			y = y + 1
-			x = #lineCode
-		end
-		local resolve = codes:match("[%w_%.]+%:?$")
+		local resolve, y, x = get_resolving_text(codes)
 		if not resolve then
 			return {}
 		end
@@ -11162,31 +11196,16 @@ tl.dora_complete = function(codes)
 					if not id then
 						id = type_report.globals[item]
 					end
-					if id then
-						current_type = type_report.types[id]
-						while current_type and current_type.ref do
-							current_type = type_report.types[current_type.ref]
-						end
-					else
-						break
-					end
-				else
-					if current_type == nil then
-						break
-					end
+					current_type = get_real_type(type_report, id)
+				elseif current_type.fields then
 					local id = current_type.fields[item]
-					if id ~= nil then
-						current_type = type_report.types[id]
-						while current_type and current_type.ref do
-							current_type = type_report.types[current_type.ref]
-						end
-					else
-						current_type = nil
-						break
-					end
+					current_type = get_real_type(type_report, id)
+				end
+				if current_type == nil then
+					break
 				end
 			end
-			if current_type then
+			if current_type and current_type.fields then
 				for k, v in pairs(current_type.fields) do
 					local t = type_report.types[v]
 					if t.args == nil and lastChar == ":" then
@@ -11223,16 +11242,7 @@ tl.dora_infer = function(codes)
 		if not type_report then
 			return nil
 		end
-		local y = 0
-		local x = 1
-		for lineCode in codes:gmatch("[^\r\n]*") do
-			y = y + 1
-			x = #lineCode
-		end
-		local resolve = codes:match("[%w_%.%:]+$")
-		if not resolve then
-			return nil
-		end
+		local resolve, y, x = get_resolving_text(codes)
 		local symbols = tl.symbols_in_scope(type_report, y, x)
 		if not symbols then
 			return nil
@@ -11254,31 +11264,24 @@ tl.dora_infer = function(codes)
 					id = type_report.globals[item]
 				end
 				if id then
-					current_type = type_report.types[id]
-					if #chains > 1 then
-						while current_type and current_type.ref do
-							current_type = type_report.types[current_type.ref]
-						end
+					if #chains == 1 then
+						current_type = type_report.types[id]
+					else
+						current_type = get_real_type(type_report, id)
 					end
-				else
-					break
 				end
-			else
-				if current_type == nil then
-					break
-				end
+			elseif current_type.fields then
 				local id = current_type.fields[item]
 				if id then
-					current_type = type_report.types[id]
-					if i < #chains then
-						while current_type and current_type.ref do
-							current_type = type_report.types[current_type.ref]
-						end
+					if i == #chains then
+						current_type = type_report.types[id]
+					else
+						current_type = get_real_type(type_report, id)
 					end
-				else
-					current_type = nil
-					break
 				end
+			end
+			if current_type == nil then
+				break
 			end
 		end
 		if current_type then

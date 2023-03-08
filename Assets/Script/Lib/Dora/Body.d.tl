@@ -23,5 +23,6 @@ end
 local _: Sensor
 print(Body:getSensorByTag(nil))
 print(Body:attachSensor(nil, nil))
+print(Body.world)
 local bodyClass: BodyClass
 return bodyClass

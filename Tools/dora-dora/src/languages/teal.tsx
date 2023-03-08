@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 import { languages } from 'monaco-editor';
 
 export const config: languages.LanguageConfiguration = {
