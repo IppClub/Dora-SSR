@@ -13,7 +13,7 @@ import FullscreenExit from '@mui/icons-material/FullscreenExit';
 import MonacoEditor from "react-monaco-editor";
 import FileTree, { TreeDataType, TreeMenuEvent } from "./FileTree";
 import FileTabBar, { TabMenuEvent } from './FileTabBar';
-import Path, { resolve } from 'path';
+import * as Path from './Path';
 import Post from './Post';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -89,7 +89,7 @@ monaco.languages.registerCompletionItemProvider("tl", {
 monaco.languages.registerHoverProvider("tl", {
 	provideHover: function(model, position) {
 		const word = model.getWordAtPosition(position);
-		if (word == undefined) return {contents:[]};
+		if (word === null) return {contents:[]};
 		const textAtPosition: string = model.getValueInRange({
 			startLineNumber: 1,
 			startColumn: 1,
@@ -98,7 +98,7 @@ monaco.languages.registerHoverProvider("tl", {
 		});
 		return Post("/infer", {lang: "tl", content: textAtPosition}).then(function (res: {success: boolean, infered?: {desc: string, file?: string, row?: number, col?: number}}) {
 			if (!res.success) return {contents:[]};
-			if (res.infered == undefined) return {contents:[]};
+			if (res.infered === undefined) return {contents:[]};
 			const contents = [
 				{
 					value: "```\n" + res.infered.desc + "\n```",
@@ -1019,12 +1019,12 @@ export default function PersistentDrawerLeft() {
 					success: boolean,
 					info?: [TealError, string, number, number, string][]
 				}) => {
-					if (res == undefined) return;
+					if (res === undefined) return;
 					const markers: monaco.editor.IMarkerData[] = [];
 					if (!res.success && res.info !== undefined) {
 						for (let i = 0; i < res.info.length; i++) {
 							const [errType, filename, row, col, msg] = res.info[i];
-							if (key === null || path.relative(filename, key) !== "") continue;
+							if (key === null || !path.isAbsolute(filename) || path.relative(filename, key) !== "") continue;
 							switch (errType) {
 								case "parsing":
 								case "syntax":
