@@ -2,6 +2,29 @@ _ENV = Dorothy!
 
 HttpServer.wwwPath = Path Content.writablePath, ".www"
 
+HttpServer\post "/infer", (req)->
+	switch req when {body: {:lang, :content}}
+		switch lang when "tl"
+			infered = teal.infer content
+			if infered?
+				return success: true, :infered
+	success: false
+
+HttpServer\post "/complete", (req)->
+	switch req when {body: {:lang, :content}}
+		switch lang when "tl"
+			suggestions = teal.complete content
+			if #suggestions > 0
+				return success: true, :suggestions
+	success: false
+
+HttpServer\post "/check", (req)->
+	switch req when {body: {:file, :content}}
+		switch Path\getExt(file) when "tl"
+			success, info = teal.check content, file
+			return :success, :info
+	success: true
+
 HttpServer\upload(
 	"/upload"
 	(req, filename)->

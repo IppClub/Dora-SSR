@@ -1,3 +1,2 @@
-return function(duration: number)
-	print(duration)
-end
+local sleep: function(duration: number)
+return sleep

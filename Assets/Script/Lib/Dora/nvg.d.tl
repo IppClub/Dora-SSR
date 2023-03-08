@@ -133,8 +133,5 @@ local record nvg
 	GetDorothySSRHappy: function(scale?: number --[[1.0]]): Texture2D
 	GetDorothySSRHappyWhite: function(scale?: number --[[1.0]]): Texture2D
 end
-print(nvg.TouchPos)
-print(nvg.TextBoxBounds(nil, nil, nil, nil))
-print(nvg.ImageSize(nil))
 local nvg_: nvg
 return nvg_

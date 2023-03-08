@@ -1,9 +1,8 @@
 local record yue
-	enum LoadMode
-		"b"
-		"t"
-		"bt"
-	end
+	dirsep: string
+	yue_compiled: {string:string}
+	version: string
+
 	record Config
 		lint_global: boolean
 		implicit_return_root: boolean
@@ -12,15 +11,21 @@ local record yue
 		same_module: boolean
 		line_offset: integer
 	end
-	dirsep: string
-	yue_compiled: {string:string}
-	version: string
+
 	to_lua: function(code: string, config: Config): string, string
+
 	file_exist: function(filename: string): boolean
 	read_file: function(filename: string): string
 	insert_loader: function(pos: integer): boolean
 	remove_loader: function(): boolean
 	loader: function(name: string): string, string
+
+	enum LoadMode
+		"b"
+		"t"
+		"bt"
+	end
+
 	loadstring: function(input: string, chunkname: string, mode: LoadMode, ...: {any:any}): function(...: any): (any...), string
 	loadfile: function(filename: string, chunkname: string, mode: LoadMode, ...: {any:any}): function(...: any): (any...), string
 	dofile: function(filename: string, chunkname: string, mode: LoadMode, ...: {any:any}): any...
@@ -30,6 +35,20 @@ local record yue
 	require: function(name: string): any...
 	p: function(...: any)
 	options: {string: string}
+
+	type CompileCodeHandler = function(
+		codes: string,
+		err: string,
+		globals: {{string, integer, integer}}
+	): string | nil
+
+	compile: function(
+		sourceFile: string,
+		targetFile: string,
+		compileCodesHandler: CompileCodeHandler,
+		callback: function(result: boolean)
+	)
+
 	metamethod __call: function(self: yue, module: string): any...
 end
 return yue

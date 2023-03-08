@@ -11,6 +11,5 @@ local record CameraOthoClass
 		name?: string --[[""]]
 	): CameraOtho
 end
-print(CameraOtho.position)
 local cameraOthoClass: CameraOthoClass
 return cameraOthoClass

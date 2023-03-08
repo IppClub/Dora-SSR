@@ -1,3 +1,2 @@
-return function(eventName: string, ...: any)
-	print(eventName, ...)
-end
+local emit: function(eventName: string, ...: any)
+return emit
