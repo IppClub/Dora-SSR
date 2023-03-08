@@ -170,9 +170,10 @@ local record Node
 	end
 
 	grab: function(
+		self: Node,
 		enabled?: boolean --[[true]]
 	): Grabber
-	grab: function(gridX: number, gridY: number): Grabber
+	grab: function(self: Node, gridX: number, gridY: number): Grabber
 end
 local record __SLOT__
 	-- Node:runAction() | Node:perform()
@@ -212,25 +213,5 @@ local record NodeClass
 	type Type = Node
 	metamethod __call: function(cls: NodeClass): Node
 end
-print(Node.position)
-print(Node.anchor)
-print(Node.size)
-print(Node.color)
-print(Node.color3)
-print(Node.transformTarget)
-print(Node.scheduler)
-print(Node.children)
-print(Node.parent)
-print(Node.boundingBox)
-print(Node.data)
-print(Node:addTo(nil))
-print(Node:getChildByTag(nil))
-print(Node:convertToNodeSpace(nil))
-print(Node:convertToWorldSpace(nil))
-print(Node:alignItemsVertically())
-print(Node:alignItemsHorizontally())
-print(Node:alignItems())
-print(Node:slot(nil))
-print(Node:gslot(nil))
 local nodeClass: NodeClass
 return nodeClass

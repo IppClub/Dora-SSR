@@ -25,9 +25,5 @@ local record GridClass
 	metamethod __call: function(cls: GridClass, texture: Texture2D, gridX: integer, gridY: integer): Grid
 	metamethod __call: function(cls: GridClass, clipStr: string, gridX: integer, gridY: integer): Grid
 end
-print(Grid.textureRect)
-print(Grid.blendFunc)
-print(Grid.effect)
-print(Grid.texture)
 local gridClass: GridClass
 return gridClass

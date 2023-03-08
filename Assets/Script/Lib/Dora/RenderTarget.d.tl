@@ -29,7 +29,5 @@ local record RenderTargetClass
 	type Type = RenderTarget
 	metamethod __call: function(cls: RenderTargetClass, width: integer, height: integer): RenderTarget
 end
-print(RenderTarget.camera)
-print(RenderTarget.texture)
 local renderTargetClass: RenderTargetClass
 return renderTargetClass

@@ -1,8 +1,6 @@
 local ActionDef = require("Action").Def
-return function(
+local event: function(
 		name: string,
 		param?: string --[[""]]
 	): ActionDef
-	print(name, param)
-	return {}
-end
+return event

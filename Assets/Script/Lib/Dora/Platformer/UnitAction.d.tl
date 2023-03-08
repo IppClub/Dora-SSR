@@ -22,6 +22,5 @@ local record UnitActionClass
 	)
 	clear: function(cls: UnitActionClass)
 end
-print(UnitAction.owner)
 local unitActionClass: UnitActionClass
 return unitActionClass

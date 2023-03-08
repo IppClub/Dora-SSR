@@ -15,6 +15,5 @@ local record VGNodeClass
 		edgeAA?: integer --[[1]]
 	): VGNode
 end
-print(VGNode.surface)
 local vgNodeClass: VGNodeClass
 return vgNodeClass

@@ -20,13 +20,5 @@ local record Director
 	clearCamera: function(self: Director)
 	cleanup: function(self: Director)
 end
-print(Director.entry)
-print(Director.ui)
-print(Director.clearColor)
-print(Director.scheduler)
-print(Director.postNode)
-print(Director.systemScheduler)
-print(Director.postScheduler)
-print(Director.currentCamera)
 local director: Director
 return director

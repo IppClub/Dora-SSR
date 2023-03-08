@@ -34,9 +34,5 @@ local record RectClass
 	metamethod __call: function(cls: RectClass, origin: Vec2, size: Size): Rect
 	metamethod __call: function(cls: RectClass): Rect
 end
-print(Rect.origin)
-print(Rect.size)
-print(Rect.lowerBound)
-print(Rect.upperBound)
 local rectClass: RectClass
 return rectClass

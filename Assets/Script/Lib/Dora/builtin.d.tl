@@ -1,5 +1,4 @@
 local Camera = require("Camera")
-local yuecompile = require("yuecompile")
 local AnchorY = require("AnchorY")
 local ML = require("ML")
 local Action = require("Action")
@@ -103,7 +102,7 @@ local ImGui = require("ImGui")
 local Platformer = require("Platformer")
 local HttpServer = require("HttpServer")
 local Profiler = require("Profiler")
-local tealtolua = require("tealtolua")
+local teal = require("teal")
 local p = require("p")
 --Dorothy
 --property
@@ -111,7 +110,6 @@ local p = require("p")
 --classmethod
 global builtin = {
 	Camera = Camera,
-	yuecompile = yuecompile,
 	AnchorY = AnchorY,
 	ML = ML,
 	Action = Action,
@@ -214,7 +212,7 @@ global builtin = {
 	nvg = nvg,
 	ImGui = ImGui,
 	Platformer = Platformer,
-	tealtolua = tealtolua,
+	teal = teal,
 	HttpServer = HttpServer,
 	Profiler = Profiler,
 }

@@ -30,6 +30,5 @@ local record ModelClass
 	getAnimations: function(cls: ModelClass, filename: string): {string}
 	metamethod __call: function(cls: ModelClass, filename: string): Model
 end
-print(Model:getNodeByName(nil))
 local modelClass: ModelClass
 return modelClass

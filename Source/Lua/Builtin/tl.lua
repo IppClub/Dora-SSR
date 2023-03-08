@@ -6652,7 +6652,6 @@ tl.type_check = function(ast, opts)
 				type_error(t, "spurious type arguments")
 				return nil
 			elseif def.typeargs then
-				error("here")
 				type_error(t, "missing type arguments in %s", def)
 				return nil
 			else
@@ -6715,7 +6714,7 @@ tl.type_check = function(ast, opts)
 		local embeds = t1.embeds
 		if embeds and #embeds > 0 then
 			for i = 1, #embeds do
-				if is_a(embeds[i], t2) then
+				if same_type(embeds[i], t2) then
 					return true
 				elseif embeds[i].embeds then
 					return is_embedded(embeds[i], t2)
@@ -10602,11 +10601,13 @@ function tl.get_types(result, trenv)
 		typeid_to_num[t.typeid] = n
 		trenv.next_num = trenv.next_num + 1
 
-		if t.found then
-			ti.ref = get_typenum(t.found)
-		end
 		if t.resolved then
 			rt = t
+		end
+		if rt.found then
+			ti.ref = get_typenum(rt.found)
+		elseif rt.is_alias then
+			ti.ref = get_typenum(rt.def)
 		end
 		assert(not is_typetype(rt))
 
@@ -10984,16 +10985,21 @@ tl.load = function(input, chunkname, mode, ...)
 	return load(code, chunkname, mode, ...)
 end
 
-tl.tolua = function(input, filename)
+tl.dora_to_lua = function(input, filename)
 	if not filename then
 		filename = ""
 	else
 		local found = tl.search_module(filename)
 		filename = found or filename
 	end
-	local program, errs = tl.parse(input, found_filename)
-	if #errs > 0 then
-		return nil, filename .. " :" .. errs[1].y .. ":" .. errs[1].x .. ": " .. errs[1].msg
+	local program, errs = tl.parse(input, filename)
+	if errs and #errs > 0 then
+		local info = {}
+		for i = 1, #errs do
+			local err = errs[i]
+			table.insert(info, err.filename .. ":" .. tostring(err.y) .. ":" .. tostring(err.x) .. ": " .. err.msg)
+		end
+		return nil, table.concat(info, "\n")
 	end
 	if not tl.package_loader_env then
 		tl.package_loader_env = tl.init_env(false, false, tl.target_from_lua_version(_VERSION))
@@ -11010,19 +11016,19 @@ tl.tolua = function(input, filename)
 	if res.syntax_errors and #res.syntax_errors > 0 then
 		for i = 1, #res.syntax_errors do
 			local err = res.syntax_errors[i]
-			table.insert(errs, filename .. ":" .. tostring(err.y) .. ":" .. tostring(err.x) .. ": " .. err.msg)
+			table.insert(errs, err.filename .. ":" .. tostring(err.y) .. ":" .. tostring(err.x) .. ": " .. err.msg)
 		end
 	end
 	if res.type_errors and #res.type_errors > 0 then
 		for i = 1, #res.type_errors do
 			local err = res.type_errors[i]
-			table.insert(errs, filename .. ":" .. tostring(err.y) .. ":" .. tostring(err.x) .. ": " .. err.msg)
+			table.insert(errs, err.filename .. ":" .. tostring(err.y) .. ":" .. tostring(err.x) .. ": " .. err.msg)
 		end
 	end
 	if res.warnings and #res.warnings > 0 then
 		for i = 1, #res.warnings do
 			local warning = res.warnings[i]
-			table.insert(errs, filename .. ":" .. tostring(warning.y) .. ":" .. tostring(warning.x) .. ": " .. warning.msg)
+			table.insert(errs, warning.filename .. ":" .. tostring(warning.y) .. ":" .. tostring(warning.x) .. ": " .. warning.msg)
 		end
 	end
 	if #errs > 0 then
@@ -11030,6 +11036,266 @@ tl.tolua = function(input, filename)
 	end
 	local code = tl.pretty_print_ast(program, gen_target, false)
 	return code
+end
+
+tl.dora_check = function(input, filename)
+	if not filename then
+		filename = ""
+	else
+		local found = tl.search_module(filename)
+		filename = found or filename
+	end
+	local current_env = tl.package_loader_env
+	tl.package_loader_env = tl.init_env(false, false, tl.target_from_lua_version(_VERSION))
+	local success, passed, info = pcall(function()
+		local info = {}
+		local program, errs = tl.parse(input, filename)
+		if #errs > 0 then
+			for i = 1, #errs do
+				local err = errs[i]
+				table.insert(info, {"parsing", err.filename, err.y, err.x, err.msg})
+			end
+			return nil, info
+		end
+		local gen_target = tl.package_loader_env.gen_target
+		local res = tl.type_check(program, {
+			lax = false,
+			filename = filename,
+			gen_compat = "off",
+			gen_target = gen_target,
+			env = tl.package_loader_env,
+			run_internal_compiler_checks = false,
+		})
+		if res.syntax_errors and #res.syntax_errors > 0 then
+			for i = 1, #res.syntax_errors do
+				local err = res.syntax_errors[i]
+				table.insert(info, {"syntax", err.filename, err.y, err.x, err.msg})
+			end
+		end
+		if res.type_errors and #res.type_errors > 0 then
+			for i = 1, #res.type_errors do
+				local err = res.type_errors[i]
+				table.insert(info, {"type", err.filename, err.y, err.x, err.msg})
+			end
+		end
+		if res.warnings and #res.warnings > 0 then
+			for i = 1, #res.warnings do
+				local err = res.warnings[i]
+				table.insert(info, {"warning", err.filename, err.y, err.x, err.msg})
+			end
+		end
+		if #info > 0 then
+			return false, info
+		end
+		return true, nil
+	end)
+	tl.package_loader_env = current_env
+	if success then
+		return passed, info
+	else
+		return false, nil
+	end
+end
+
+tl.dora_complete = function(codes)
+	if codes:sub(1, 3) == "\xEF\xBB\xBF" then
+		codes = codes:sub(4)
+	end
+	local current_env = tl.package_loader_env
+	local env = tl.init_env(false, false, tl.target_from_lua_version(_VERSION))
+	env.keep_going = true
+	tl.package_loader_env = env
+	local success, res = pcall(function()
+		local result = tl.process_string(codes, false, env, "", "")
+		if not result or not result.ast then
+			return {}
+		end
+		local type_report = tl.get_types(result)
+		if not type_report then
+			return {}
+		end
+		local y = 0
+		local x = 1
+		for lineCode in codes:gmatch("[^\r\n]*") do
+			y = y + 1
+			x = #lineCode
+		end
+		local resolve = codes:match("[%w_%.]+%:?$")
+		if not resolve then
+			return {}
+		end
+		local symbols = tl.symbols_in_scope(type_report, y, x)
+		if not symbols then
+			return {}
+		end
+		local chains = {}
+		for item in resolve:gmatch("[%w_]+") do
+			chains[#chains + 1] = item
+		end
+		if #chains == 0 then
+			return {}
+		end
+		local lastChar = resolve:sub(-1)
+		if lastChar == "." or lastChar == ":" then
+			chains[#chains + 1] = lastChar
+		end
+		local res = {}
+		chains[#chains] = nil
+		if #chains == 0 then
+			for k, v in pairs(symbols) do
+				local t = type_report.types[v]
+				res[#res + 1] = {k, t.str, t.args ~= nil}
+			end
+			if type_report.globals then
+				for k, v in pairs(type_report.globals) do
+					local t = type_report.types[v]
+					res[#res + 1] = {k, t.str, t.args ~= nil}
+				end
+			end
+		else
+			local first = true
+			local current_type = nil
+			for i, item in ipairs(chains) do
+				if first then
+					first = false
+					local id = symbols[item]
+					if not id then
+						id = type_report.globals[item]
+					end
+					if id then
+						current_type = type_report.types[id]
+						while current_type and current_type.ref do
+							current_type = type_report.types[current_type.ref]
+						end
+					else
+						break
+					end
+				else
+					if current_type == nil then
+						break
+					end
+					local id = current_type.fields[item]
+					if id ~= nil then
+						current_type = type_report.types[id]
+						while current_type and current_type.ref do
+							current_type = type_report.types[current_type.ref]
+						end
+					else
+						current_type = nil
+						break
+					end
+				end
+			end
+			if current_type then
+				for k, v in pairs(current_type.fields) do
+					local t = type_report.types[v]
+					if t.args == nil and lastChar == ":" then
+						goto continue
+					end
+					res[#res + 1] = {k, t.str, t.args ~= nil}
+					::continue::
+				end
+			end
+		end
+		return res
+	end)
+	tl.package_loader_env = current_env
+	if success and res then
+		return res
+	end
+	return {}
+end
+
+tl.dora_infer = function(codes)
+	if codes:sub(1, 3) == "\xEF\xBB\xBF" then
+		codes = codes:sub(4)
+	end
+	local current_env = tl.package_loader_env
+	local env = tl.init_env(false, false, tl.target_from_lua_version(_VERSION))
+	env.keep_going = true
+	tl.package_loader_env = env
+	local success, res = pcall(function()
+		local result = tl.process_string(codes, false, env, "", "")
+		if not result or not result.ast then
+			return nil
+		end
+		local type_report = tl.get_types(result)
+		if not type_report then
+			return nil
+		end
+		local y = 0
+		local x = 1
+		for lineCode in codes:gmatch("[^\r\n]*") do
+			y = y + 1
+			x = #lineCode
+		end
+		local resolve = codes:match("[%w_%.%:]+$")
+		if not resolve then
+			return nil
+		end
+		local symbols = tl.symbols_in_scope(type_report, y, x)
+		if not symbols then
+			return nil
+		end
+		local chains = {}
+		for item in resolve:gmatch("[%w_]+") do
+			chains[#chains + 1] = item
+		end
+		if #chains == 0 then
+			return nil
+		end
+		local first = true
+		local current_type = nil
+		for i, item in ipairs(chains) do
+			if first then
+				first = false
+				local id = symbols[item]
+				if not id then
+					id = type_report.globals[item]
+				end
+				if id then
+					current_type = type_report.types[id]
+					if #chains > 1 then
+						while current_type and current_type.ref do
+							current_type = type_report.types[current_type.ref]
+						end
+					end
+				else
+					break
+				end
+			else
+				if current_type == nil then
+					break
+				end
+				local id = current_type.fields[item]
+				if id then
+					current_type = type_report.types[id]
+					if i < #chains then
+						while current_type and current_type.ref do
+							current_type = type_report.types[current_type.ref]
+						end
+					end
+				else
+					current_type = nil
+					break
+				end
+			end
+		end
+		if current_type then
+			return {
+				str = current_type.str,
+				file = current_type.file,
+				y = current_type.y,
+				x = current_type.x,
+			}
+		end
+		return nil
+	end)
+	tl.package_loader_env = current_env
+	if success and res then
+		return res
+	end
+	return nil
 end
 
 package.loaded["tl"] = tl

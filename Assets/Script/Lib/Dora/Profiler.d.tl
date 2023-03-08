@@ -3,7 +3,5 @@ local record ProfilerClass
 	level: integer
 	metamethod __call: function(cls: ProfilerClass, func: function): number
 end
-
 local profiler: ProfilerClass
-
 return profiler

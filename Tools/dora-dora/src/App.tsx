@@ -13,7 +13,7 @@ import FullscreenExit from '@mui/icons-material/FullscreenExit';
 import MonacoEditor from "react-monaco-editor";
 import FileTree, { TreeDataType, TreeMenuEvent } from "./FileTree";
 import FileTabBar, { TabMenuEvent } from './FileTabBar';
-import Path from 'path';
+import Path, { resolve } from 'path';
 import Post from './Post';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -46,13 +46,89 @@ monaco.editor.defineTheme("dora-dark", {
 	],
 	colors: {},
 })
-monaco.languages.register({ id: 'tl' });
+monaco.languages.register({id: 'tl'});
 monaco.languages.setLanguageConfiguration("tl", teal.config);
 monaco.languages.setMonarchTokensProvider("tl", teal.language);
+monaco.languages.registerCompletionItemProvider("tl", {
+	triggerCharacters: [".", ":"],
+	provideCompletionItems: function(model, position) {
+		const textUntilPosition: string = model.getValueInRange({
+			startLineNumber: 1,
+			startColumn: 1,
+			endLineNumber: position.lineNumber,
+			endColumn: position.column,
+		});
+		const word = model.getWordUntilPosition(position);
+		const range: monaco.IRange = {
+			startLineNumber: position.lineNumber,
+			endLineNumber: position.lineNumber,
+			startColumn: word.startColumn,
+			endColumn: word.endColumn,
+		};
+		return Post("/complete", {lang: "tl", content: textUntilPosition}).then((res: {success: boolean, suggestions?: [string, string, boolean][]}) => {
+			if (!res.success) return {suggestions:[]};
+			if (res.suggestions === undefined) return {suggestions:[]};
+			return {
+				suggestions: res.suggestions.map((item) => {
+					const [name, desc, func] = item;
+					return {
+						label: name,
+						kind: func ?
+							monaco.languages.CompletionItemKind.Function :
+							monaco.languages.CompletionItemKind.Variable,
+						document: desc,
+						detail: desc,
+						insertText: name,
+						range: range,
+					};
+				}),
+			};
+		});
+	},
+});
+monaco.languages.registerHoverProvider("tl", {
+	provideHover: function(model, position) {
+		const word = model.getWordAtPosition(position);
+		if (word == undefined) return {contents:[]};
+		const textAtPosition: string = model.getValueInRange({
+			startLineNumber: 1,
+			startColumn: 1,
+			endLineNumber: position.lineNumber,
+			endColumn: word.endColumn,
+		});
+		return Post("/infer", {lang: "tl", content: textAtPosition}).then(function (res: {success: boolean, infered?: {desc: string, file?: string, row?: number, col?: number}}) {
+			if (!res.success) return {contents:[]};
+			if (res.infered == undefined) return {contents:[]};
+			const contents = [
+				{
+					value: "```\n" + res.infered.desc + "\n```",
+				},
+			];
+			if (res.infered.file !== undefined &&
+				res.infered.row !== undefined &&
+				res.infered.col !== undefined) {
+				contents.push({
+					value: `${res.infered.file}:${res.infered.row}:${res.infered.col}`
+				});
+			}
+			return {
+				range: new monaco.Range(
+					position.lineNumber,
+					word.startColumn,
+					position.lineNumber,
+					word.endColumn
+				),
+				contents,
+			};
+		});
+	},
+});
 
 monaco.languages.register({ id: 'yue' });
 monaco.languages.setLanguageConfiguration("yue", yuescript.config);
 monaco.languages.setMonarchTokensProvider("yue", yuescript.language);
+
+let lastEditorActionTime = Date.now();
 
 let path = Path.posix;
 
@@ -918,6 +994,83 @@ export default function PersistentDrawerLeft() {
 		loadAssets();
 	};
 
+	type TealError = "parsing" | "syntax" | "type" | "warning" | "crash";
+
+	const onEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+		const model = editor.getModel();
+		if (model) {
+			model.onDidChangeContent((e) => {
+				lastEditorActionTime = Date.now();
+				const modified = model.getValue();
+				const lastChange = e.changes.at(-1);
+				let key: string | null = null;
+				if (tabIndex !== null) {
+					key = files[tabIndex].key;
+				}
+				new Promise((resolve) => {
+					setTimeout(resolve, 500);
+				}).then(() => {
+					if (Date.now() - lastEditorActionTime >= 500) {
+						if (key !== null) {
+							return Post("/check", {file: key, content: modified});
+						}
+					}
+				}).then((res?: {
+					success: boolean,
+					info?: [TealError, string, number, number, string][]
+				}) => {
+					if (res == undefined) return;
+					const markers: monaco.editor.IMarkerData[] = [];
+					if (!res.success && res.info !== undefined) {
+						for (let i = 0; i < res.info.length; i++) {
+							const [errType, filename, row, col, msg] = res.info[i];
+							if (key === null || path.relative(filename, key) !== "") continue;
+							switch (errType) {
+								case "parsing":
+								case "syntax":
+								case "type":
+									markers.push({
+										severity: monaco.MarkerSeverity.Error,
+										message: msg,
+										startLineNumber: row,
+										startColumn: col,
+										endLineNumber: row,
+										endColumn: col,
+									});
+									break;
+								case "warning":
+									markers.push({
+										severity: monaco.MarkerSeverity.Warning,
+										message: msg,
+										startLineNumber: row,
+										startColumn: col,
+										endLineNumber: row,
+										endColumn: col,
+									});
+									break;
+								case "crash":
+									if (lastChange !== undefined) {
+										markers.push({
+											severity: monaco.MarkerSeverity.Error,
+											message: "compiler crashes",
+											startLineNumber: lastChange.range.startLineNumber,
+											startColumn: lastChange.range.startColumn,
+											endLineNumber: lastChange.range.endLineNumber,
+											endColumn: lastChange.range.endColumn,
+										});
+									}
+									break;
+								default:
+									break;
+							}
+						}
+					}
+					monaco.editor.setModelMarkers(model, "owner", markers);
+				});
+			});
+		}
+	};
+
 	return (
 		<ThemeProvider theme={theme}>
 			<Dialog
@@ -1084,6 +1237,7 @@ export default function PersistentDrawerLeft() {
 											language={language}
 											theme="dora-dark"
 											value={file.content}
+											editorDidMount={onEditorDidMount}
 											onChange={(content: string) => {
 												setModified({key: file.key, content});
 											}}

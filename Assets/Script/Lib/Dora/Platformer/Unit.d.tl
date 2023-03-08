@@ -17,16 +17,5 @@ local record UnitClass
 		rot?: number --[[0.0]]
 	): Unit
 end
-print(Unit.playable)
-print(Unit.attackRange)
-print(Unit.groundSensor)
-print(Unit.detectSensor)
-print(Unit.attackSensor)
-print(Unit.unitDef)
-print(Unit.currentAction)
-print(Unit.entity)
-print(Unit:attachAction(nil))
-print(Unit:getAction(nil))
-print(UnitClass.Type)
 local unitClass: UnitClass
 return unitClass

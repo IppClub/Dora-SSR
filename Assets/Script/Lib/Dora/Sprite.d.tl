@@ -32,9 +32,5 @@ local record SpriteClass
 	metamethod __call: function(cls: SpriteClass, texture: Texture2D, textureRect?: Rect): Sprite
 	metamethod __call: function(cls: SpriteClass, clipStr: string): Sprite
 end
-print(Sprite.textureRect)
-print(Sprite.blendFunc)
-print(Sprite.effect)
-print(Sprite.texture)
 local spriteClass: SpriteClass
 return spriteClass

@@ -21,10 +21,6 @@ local record BodyClass
 	): Body -- class
 end
 local _: Sensor
-print(Body.world)
-print(Body.bodyDef)
-print(Body.velocity)
-print(Body.owner)
 print(Body:getSensorByTag(nil))
 print(Body:attachSensor(nil, nil))
 local bodyClass: BodyClass
