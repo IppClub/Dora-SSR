@@ -17,6 +17,5 @@ local record DictionaryClass
 	type ContainerItem = ContainerItem
 	metamethod __call: function(cls: DictionaryClass): Dictionary
 end
-print(Dictionary.keys)
 local dictionaryClass: DictionaryClass
 return dictionaryClass

@@ -1,3 +1,2 @@
-return function(xmlCodes: string): string, string
-	print(xmlCodes)
-end
+local xmltolua: function(xmlCodes: string): string, string
+return xmltolua

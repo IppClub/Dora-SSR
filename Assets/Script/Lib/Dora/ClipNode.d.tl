@@ -12,6 +12,5 @@ local record ClipNodeClass
 		stencil?: Node --[[nil]]
 	): ClipNode
 end
-print(ClipNode.stencil)
 local clipNodeClass: ClipNodeClass
 return clipNodeClass

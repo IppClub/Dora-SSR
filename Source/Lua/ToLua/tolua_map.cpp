@@ -267,9 +267,7 @@ void tolua_module(lua_State* L, const char* name, int hasvar) {
 	} else {
 		/* get global table */
 		// lua_pushvalue(L, LUA_GLOBALSINDEX);
-		lua_getglobal(L, "package"); // package
-		lua_getfield(L, -1, "loaded"); // package loaded
-		lua_remove(L, -2); // loaded
+		lua_getglobal(L, "builtin"); // builtin
 	}
 	if (hasvar) {
 		/* check if it already has a module metatable */

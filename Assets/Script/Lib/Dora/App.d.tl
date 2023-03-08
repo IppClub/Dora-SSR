@@ -25,7 +25,5 @@ local record App
 	runTest: function(self: App, name: string): boolean
 	shutdown: function(self: App)
 end
-print(App.bufferSize)
-print(App.visualSize)
 local app: App
 return app

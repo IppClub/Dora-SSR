@@ -1,4 +1,3 @@
 local ActionDef = require("Action").Def
-return function(): ActionDef
-	return {}
-end
+local show: function(): ActionDef
+return show

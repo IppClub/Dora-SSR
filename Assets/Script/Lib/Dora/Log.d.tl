@@ -1,1 +1,2 @@
-return function(msg: string) print(msg) end
+local log: function(msg: string)
+return log

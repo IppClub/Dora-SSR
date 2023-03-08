@@ -11,7 +11,5 @@ local record GroupClass
 	type Type = Group
 	metamethod __call: function(cls: GroupClass, componemts: {string}): Group
 end
-print(Group:find(nil))
-print(Group:watch(nil))
 local groupClass: GroupClass
 return groupClass

@@ -26,6 +26,5 @@ local record PlayableClass
 	type Type = Playable
 	metamethod __call: function(cls: PlayableClass, filename: string): Playable
 end
-print(Playable:getKey(nil))
 local playableClass: PlayableClass
 return playableClass

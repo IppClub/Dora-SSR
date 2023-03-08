@@ -18,9 +18,5 @@ local record PlatformCameraClass
 		name?: string --[[""]]
 	): PlatformCamera
 end
-print(PlatformCamera.position)
-print(PlatformCamera.boundary)
-print(PlatformCamera.followRatio)
-print(PlatformCamera.followTarget)
 local platformCameraClass: PlatformCameraClass
 return platformCameraClass

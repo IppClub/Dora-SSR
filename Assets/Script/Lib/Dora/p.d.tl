@@ -1,1 +1,2 @@
-return function(...: any) print(...) end
+local p: function(...: any)
+return p

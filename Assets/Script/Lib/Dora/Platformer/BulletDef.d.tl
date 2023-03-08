@@ -20,9 +20,5 @@ local record BulletDefClass
 	type Type = BulletDef
 	metamethod __call: function(cls: BulletDefClass): BulletDef
 end
-print(BulletDef.gravity)
-print(BulletDef.face)
-print(BulletDef.bodyDef)
-print(BulletDef.velocity)
 local bulletDefClass: BulletDefClass
 return bulletDefClass

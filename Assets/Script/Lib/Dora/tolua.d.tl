@@ -7,5 +7,5 @@ local record tolua
 	setpeer: function(obj: Object, data: table)
 	getpeer: function(obj: Object): table
 end
-local _tolua: tolua
-return _tolua
+local tolua_: tolua
+return tolua_

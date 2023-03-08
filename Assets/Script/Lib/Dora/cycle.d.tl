@@ -1,3 +1,2 @@
-return function(duration: number, callback: function(time: number))
-	print(duration, callback)
-end
+local cycle: function(duration: number, callback: function(time: number))
+return cycle

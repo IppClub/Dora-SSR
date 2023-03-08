@@ -99,6 +99,7 @@ bool Content::save(String filename, uint8_t* content, int64_t size) {
 
 bool Content::remove(String filename) {
 	std::string fullpath = Content::getFullPath(filename);
+	if (!Content::exist(fullpath)) return false;
 	std::error_code err;
 	fs::remove_all(fullpath, err);
 	WarnIf(err, "failed to remove files from \"{}\" due to \"{}\".", filename, err.message());

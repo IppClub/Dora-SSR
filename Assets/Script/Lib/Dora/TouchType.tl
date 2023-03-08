@@ -10,7 +10,4 @@ local record Touch
 	const location: Vec2
 	const worldLocation: Vec2
 end
-print(Touch.delta)
-print(Touch.location)
-print(Touch.worldLocation)
 return Touch

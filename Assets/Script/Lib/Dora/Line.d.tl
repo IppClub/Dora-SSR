@@ -27,6 +27,5 @@ local record LineClass
 	): Line
 	metamethod __call: function(cls: LineClass): Line
 end
-print(Line.blendFunc)
 local lineClass: LineClass
 return lineClass

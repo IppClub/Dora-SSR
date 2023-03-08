@@ -32,8 +32,29 @@ public:
 	PROPERTY_READONLY_BOOL(InLua);
 	PROPERTY_READONLY(int, MemoryCount);
 
-	std::pair<std::string, std::string> compileTealToLua(const std::string& tlCodes, String moduleName);
+	std::pair<std::string, std::string> compileTealToLua(String tlCodes, String moduleName);
 	std::string getTealVersion();
+	struct TealError {
+		std::string type;
+		std::string filename;
+		int row;
+		int col;
+		std::string msg;
+	};
+	std::optional<std::list<TealError>> checkTeal(String tlCodes, String moduleName);
+	struct TealToken {
+		std::string name;
+		std::string desc;
+		bool isFunction;
+	};
+	std::list<TealToken> completeTeal(String tlCodes);
+	struct TealInference {
+		std::string desc;
+		std::string file;
+		int row;
+		int col;
+	};
+	std::optional<TealInference> inferTeal(String tlCodes);
 	void resetTealCompiler();
 
 	void insertLuaLoader(lua_CFunction func, int index);

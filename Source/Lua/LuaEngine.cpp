@@ -20,7 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 int luaopen_yue(lua_State* L);
-int luaopen_colibc_json(lua_State *L);
+int luaopen_colibc_json(lua_State* L);
 }
 
 NS_DOROTHY_BEGIN
@@ -251,6 +251,73 @@ static int dora_resetteal(lua_State* L) {
 	return 0;
 }
 
+static int dora_tealcheck(lua_State* L) {
+	std::string codes(luaL_checkstring(L, 1));
+	std::string moduleName(luaL_checkstring(L, 2));
+	auto result = SharedLuaEngine.checkTeal(codes, moduleName);
+	if (result) {
+		lua_pushboolean(L, 0);
+		lua_createtable(L, result.value().size(), 0);
+		int index = 0;
+		for (const auto& err : result.value()) {
+			lua_createtable(L, 5, 0);
+			tolua_pushslice(L, err.type);
+			lua_rawseti(L, -2, 1);
+			tolua_pushslice(L, err.filename);
+			lua_rawseti(L, -2, 2);
+			lua_pushinteger(L, err.row);
+			lua_rawseti(L, -2, 3);
+			lua_pushinteger(L, err.col);
+			lua_rawseti(L, -2, 4);
+			tolua_pushslice(L, err.msg);
+			lua_rawseti(L, -2, 5);
+			lua_rawseti(L, -2, ++index);
+		}
+		return 2;
+	}
+	lua_pushboolean(L, 1);
+	return 1;
+}
+
+static int dora_tealcomplete(lua_State* L) {
+	std::string codes(luaL_checkstring(L, 1));
+	auto result = SharedLuaEngine.completeTeal(codes);
+	lua_createtable(L, result.size(), 0);
+	int i = 0;
+	for (const auto& item : result) {
+		lua_createtable(L, 2, 0);
+		tolua_pushslice(L, item.name);
+		lua_rawseti(L, -2, 1);
+		tolua_pushslice(L, item.desc);
+		lua_rawseti(L, -2, 2);
+		lua_pushboolean(L, item.isFunction);
+		lua_rawseti(L, -2, 3);
+		lua_rawseti(L, -2, ++i);
+	}
+	return 1;
+}
+
+static int dora_tealinfer(lua_State* L) {
+	std::string codes(luaL_checkstring(L, 1));
+	auto result = SharedLuaEngine.inferTeal(codes);
+	if (result) {
+		lua_createtable(L, 0, 0);
+		tolua_pushslice(L, result.value().desc);
+		lua_setfield(L, -2, "desc");
+		if (!result.value().file.empty()) {
+			tolua_pushslice(L, result.value().file);
+			lua_setfield(L, -2, "file");
+			lua_pushinteger(L, result.value().row);
+			lua_setfield(L, -2, "row");
+			lua_pushinteger(L, result.value().col);
+			lua_setfield(L, -2, "col");
+		}
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
 static int dora_file_exist(lua_State* L) {
 	size_t size = 0;
 	auto str = luaL_checklstring(L, 1, &size);
@@ -290,17 +357,14 @@ static int dora_loadbase(lua_State* L) {
 
 static int dora_loadlibs(lua_State* L) {
 	dora_loadbase(L);
-	luaL_requiref(L, "yue", luaopen_yue, 0);
 	luaL_requiref(L, "json", luaopen_colibc_json, 0);
 	lua_pop(L, 1);
-	lua_getglobal(L, "package"); // package
-	lua_getfield(L, -1, "loaded"); // package loaded
-	lua_getfield(L, -1, "yue"); // package loaded yue
+	luaL_requiref(L, "yue", luaopen_yue, 0); // yue
 	lua_pushcfunction(L, dora_file_exist);
 	lua_setfield(L, -2, "file_exist");
 	lua_pushcfunction(L, dora_read_file);
 	lua_setfield(L, -2, "read_file");
-	lua_pop(L, 3);
+	lua_pop(L, 1);
 	return 0;
 }
 
@@ -453,8 +517,6 @@ LuaEngine::LuaEngine()
 		{"dofile", dora_dofile},
 		{"doxml", dora_doxml},
 		{"xmltolua", dora_xmltolua},
-		{"tealtolua", dora_tealtolua},
-		{"resetteal", dora_resetteal},
 		{"yuecompile", dora_yuecompile},
 		{"ubox", dora_ubox},
 		{"emit", dora_emit},
@@ -625,6 +687,28 @@ LuaEngine::LuaEngine()
 		}
 		tolua_endmodule(L);
 
+		lua_getglobal(L, "package"); // builtin package
+		lua_getfield(L, -1, "loaded"); // builtin package loaded
+		lua_getfield(L, -1, "yue"); // builtin package loaded yue
+		lua_setfield(L, -4, "yue"); // builtin["yue"] = yue, builtin package loaded
+		lua_pop(L, 2);
+		tolua_beginmodule(L, "yue");
+		{
+			tolua_function(L, "compile", dora_yuecompile);
+		}
+		tolua_endmodule(L);
+
+		tolua_module(L, "teal", 0);
+		tolua_beginmodule(L, "teal");
+		{
+			tolua_function(L, "tolua", dora_tealtolua);
+			tolua_function(L, "reset", dora_resetteal);
+			tolua_function(L, "check", dora_tealcheck);
+			tolua_function(L, "complete", dora_tealcomplete);
+			tolua_function(L, "infer", dora_tealinfer);
+		}
+		tolua_endmodule(L);
+
 		tolua_beginmodule(L, "Platformer");
 		{
 			tolua_beginmodule(L, "Behavior");
@@ -664,12 +748,6 @@ lua_State* LuaEngine::loadTealState() {
 		_tlState = luaL_newstate();
 		dora_loadbase(_tlState);
 		lua_gc(_tlState, LUA_GCGEN, 0, 0);
-		const luaL_Reg global_functions[] = {
-			{"print", dora_print},
-			{NULL, NULL}};
-		lua_pushglobaltable(_tlState);
-		luaL_setfuncs(_tlState, global_functions, 0);
-		lua_pop(_tlState, 1);
 		lua_getglobal(_tlState, "package"); // package
 		lua_getfield(_tlState, -1, "searchers"); // package, searchers
 		lua_pushcfunction(_tlState, dora_loader); // package, searchers, loader
@@ -703,15 +781,15 @@ std::string LuaEngine::getTealVersion() {
 	return tolua_toslice(_tlState, -1, nullptr);
 }
 
-std::pair<std::string, std::string> LuaEngine::compileTealToLua(const std::string& tlCodes, String moduleName) {
+std::pair<std::string, std::string> LuaEngine::compileTealToLua(String tlCodes, String moduleName) {
 	loadTealState();
 	int top = lua_gettop(_tlState);
 	DEFER(lua_settop(_tlState, top));
 	lua_getglobal(_tlState, "package"); // package
 	lua_getfield(_tlState, -1, "loaded"); // package loaded
 	lua_getfield(_tlState, -1, "tl"); // package loaded tl
-	lua_getfield(_tlState, -1, "tolua"); // package loaded tl tolua
-	lua_pushlstring(_tlState, tlCodes.c_str(), tlCodes.size()); // package loaded tl tolua tlCodes
+	lua_getfield(_tlState, -1, "dora_to_lua"); // package loaded tl tolua
+	tolua_pushslice(_tlState, tlCodes); // package loaded tl tolua tlCodes
 	tolua_pushslice(_tlState, moduleName); // package loaded tl tolua tlCodes moduleName
 	LuaEngine::call(_tlState, 2, 2); // tolua(tlCodes, moduleName), package loaded tl res err
 	if (lua_isnil(_tlState, -2) != 0) {
@@ -719,6 +797,107 @@ std::pair<std::string, std::string> LuaEngine::compileTealToLua(const std::strin
 	} else {
 		return {tolua_toslice(_tlState, -2, nullptr), Slice::Empty};
 	}
+}
+
+std::optional<std::list<LuaEngine::TealError>> LuaEngine::checkTeal(String tlCodes, String moduleName) {
+	loadTealState();
+	int top = lua_gettop(_tlState);
+	DEFER(lua_settop(_tlState, top));
+	lua_getglobal(_tlState, "package"); // package
+	lua_getfield(_tlState, -1, "loaded"); // package loaded
+	lua_getfield(_tlState, -1, "tl"); // package loaded tl
+	lua_getfield(_tlState, -1, "dora_check"); // package loaded tl check
+	tolua_pushslice(_tlState, tlCodes); // package loaded tl check tlCodes
+	tolua_pushslice(_tlState, moduleName); // package loaded tl check tlCodes moduleName
+	LuaEngine::call(_tlState, 2, 2); // check(tlCodes, moduleName), package loaded tl res err
+	if (lua_toboolean(_tlState, -2) == 0) {
+		if (lua_istable(_tlState, -1) == 0) {
+			return {{{"crash", moduleName, 0, 0, ""}}};
+		} else {
+			std::list<LuaEngine::TealError> errors;
+			int tabIndex = lua_gettop(_tlState);
+			size_t len = lua_rawlen(_tlState, tabIndex);
+			for (size_t i = 0; i < len; i++) {
+				lua_rawgeti(_tlState, tabIndex, i + 1);
+				lua_rawgeti(_tlState, -1, 1);
+				Slice type = tolua_toslice(_tlState, -1, nullptr);
+				lua_pop(_tlState, 1);
+				lua_rawgeti(_tlState, -1, 2);
+				Slice filename = tolua_toslice(_tlState, -1, nullptr);
+				lua_pop(_tlState, 1);
+				lua_rawgeti(_tlState, -1, 3);
+				int row = static_cast<int>(lua_tonumber(_tlState, -1));
+				lua_pop(_tlState, 1);
+				lua_rawgeti(_tlState, -1, 4);
+				int col = static_cast<int>(lua_tonumber(_tlState, -1));
+				lua_pop(_tlState, 1);
+				lua_rawgeti(_tlState, -1, 5);
+				Slice msg = tolua_toslice(_tlState, -1, nullptr);
+				lua_pop(_tlState, 1);
+				errors.push_back({type, filename, row, col, msg});
+			}
+			return errors;
+		}
+	}
+	return std::nullopt;
+}
+
+std::list<LuaEngine::TealToken> LuaEngine::completeTeal(String tlCodes) {
+	loadTealState();
+	int top = lua_gettop(_tlState);
+	DEFER(lua_settop(_tlState, top));
+	lua_getglobal(_tlState, "package"); // package
+	lua_getfield(_tlState, -1, "loaded"); // package loaded
+	lua_getfield(_tlState, -1, "tl"); // package loaded tl
+	lua_getfield(_tlState, -1, "dora_complete"); // package loaded tl complete
+	tolua_pushslice(_tlState, tlCodes); // package loaded tl complete tlCodes
+	LuaEngine::call(_tlState, 1, 1); // complete(tlCodes), package loaded tl res
+	std::list<LuaEngine::TealToken> res;
+	if (lua_istable(_tlState, -1) != 0) {
+		int len = static_cast<int>(lua_rawlen(_tlState, -1));
+		for (int i = 1; i <= len; i++) {
+			lua_rawgeti(_tlState, -1, i);
+			lua_rawgeti(_tlState, -1, 1);
+			lua_rawgeti(_tlState, -2, 2);
+			lua_rawgeti(_tlState, -3, 3);
+			res.push_back({tolua_toslice(_tlState, -3, nullptr),
+				tolua_toslice(_tlState, -2, nullptr),
+				lua_toboolean(_tlState, -1) != 0});
+			lua_pop(_tlState, 4);
+		}
+	}
+	return res;
+}
+
+std::optional<LuaEngine::TealInference> LuaEngine::inferTeal(String tlCodes) {
+	loadTealState();
+	int top = lua_gettop(_tlState);
+	DEFER(lua_settop(_tlState, top));
+	lua_getglobal(_tlState, "package"); // package
+	lua_getfield(_tlState, -1, "loaded"); // package loaded
+	lua_getfield(_tlState, -1, "tl"); // package loaded tl
+	lua_getfield(_tlState, -1, "dora_infer"); // package loaded tl infer
+	tolua_pushslice(_tlState, tlCodes); // package loaded tl infer tlCodes
+	LuaEngine::call(_tlState, 1, 1); // infer(tlCodes), package loaded tl res
+	if (lua_istable(_tlState, -1) != 0) {
+		lua_getfield(_tlState, -1, "str");
+		lua_getfield(_tlState, -2, "file");
+		lua_getfield(_tlState, -3, "y");
+		lua_getfield(_tlState, -4, "x");
+		LuaEngine::TealInference res{"", "", 0, 0};
+		res.desc = tolua_toslice(_tlState, -4, nullptr);
+		if (lua_isstring(_tlState, -3) != 0) {
+			res.file = tolua_toslice(_tlState, -3, nullptr);
+		}
+		if (lua_isnumber(_tlState, -2) != 0) {
+			res.row = static_cast<int>(lua_tonumber(_tlState, -2));
+		}
+		if (lua_isnumber(_tlState, -1) != 0) {
+			res.col = static_cast<int>(lua_tonumber(_tlState, -1));
+		}
+		return res;
+	}
+	return std::nullopt;
 }
 
 void LuaEngine::resetTealCompiler() {
@@ -730,7 +909,9 @@ void LuaEngine::resetTealCompiler() {
 	lua_getfield(_tlState, -1, "tl"); // package loaded tl
 	lua_pushliteral(_tlState, "package_loader_env");
 	lua_pushnil(_tlState);
-	lua_rawset(_tlState, -3); // tl["package_loader_env"] = nil
+	lua_rawset(_tlState, -3); // tl["package_loader_env"] = nil, package loaded tl
+	lua_pop(_tlState, 3);
+	lua_gc(_tlState, LUA_GCCOLLECT);
 }
 
 void LuaEngine::insertLuaLoader(lua_CFunction func, int index) {

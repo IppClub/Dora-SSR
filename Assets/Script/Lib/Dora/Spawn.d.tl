@@ -1,5 +1,3 @@
 local ActionDef = require("Action").Def
-return function(...: ActionDef): ActionDef
-	print(...)
-	return {}
-end
+local spawn: function(...: ActionDef): ActionDef
+return spawn
