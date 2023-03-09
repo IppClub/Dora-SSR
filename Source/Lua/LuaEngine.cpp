@@ -263,7 +263,7 @@ static int dora_tealcheck(lua_State* L) {
 			lua_createtable(L, 5, 0);
 			tolua_pushslice(L, err.type);
 			lua_rawseti(L, -2, 1);
-			tolua_pushslice(L, err.filename);
+			tolua_pushslice(L, SharedContent.getFullPath(err.filename));
 			lua_rawseti(L, -2, 2);
 			lua_pushinteger(L, err.row);
 			lua_rawseti(L, -2, 3);
@@ -281,7 +281,9 @@ static int dora_tealcheck(lua_State* L) {
 
 static int dora_tealcomplete(lua_State* L) {
 	std::string codes(luaL_checkstring(L, 1));
-	auto result = SharedLuaEngine.completeTeal(codes);
+	std::string line(luaL_checkstring(L, 2));
+	int row = static_cast<int>(luaL_checknumber(L, 3));
+	auto result = SharedLuaEngine.completeTeal(codes, line, row);
 	lua_createtable(L, result.size(), 0);
 	int i = 0;
 	for (const auto& item : result) {
@@ -299,18 +301,22 @@ static int dora_tealcomplete(lua_State* L) {
 
 static int dora_tealinfer(lua_State* L) {
 	std::string codes(luaL_checkstring(L, 1));
-	auto result = SharedLuaEngine.inferTeal(codes);
+	std::string line(luaL_checkstring(L, 2));
+	int row = static_cast<int>(luaL_checknumber(L, 3));
+	auto result = SharedLuaEngine.inferTeal(codes, line, row);
 	if (result) {
 		lua_createtable(L, 0, 0);
 		tolua_pushslice(L, result.value().desc);
 		lua_setfield(L, -2, "desc");
+		tolua_pushslice(L, result.value().file);
+		lua_setfield(L, -2, "file");
+		lua_pushinteger(L, result.value().row);
+		lua_setfield(L, -2, "row");
+		lua_pushinteger(L, result.value().col);
+		lua_setfield(L, -2, "col");
 		if (!result.value().file.empty()) {
-			tolua_pushslice(L, result.value().file);
-			lua_setfield(L, -2, "file");
-			lua_pushinteger(L, result.value().row);
-			lua_setfield(L, -2, "row");
-			lua_pushinteger(L, result.value().col);
-			lua_setfield(L, -2, "col");
+			tolua_pushslice(L, SharedContent.getFullPath(result.value().file));
+			lua_setfield(L, -2, "key");
 		}
 	} else {
 		lua_pushnil(L);
@@ -746,6 +752,8 @@ LuaEngine::~LuaEngine() {
 lua_State* LuaEngine::loadTealState() {
 	if (!_tlState) {
 		_tlState = luaL_newstate();
+		int top = lua_gettop(_tlState);
+		DEFER(lua_settop(_tlState, top));
 		dora_loadbase(_tlState);
 		lua_gc(_tlState, LUA_GCGEN, 0, 0);
 		lua_getglobal(_tlState, "package"); // package
@@ -764,7 +772,8 @@ lua_State* LuaEngine::loadTealState() {
 		lua_setfield(_tlState, -2, "file_exist");
 		lua_pushcfunction(_tlState, dora_read_file);
 		lua_setfield(_tlState, -2, "read_file");
-		lua_pop(_tlState, 3);
+		lua_getfield(_tlState, -1, "dora_init"); // package loaded tl dora_init
+		LuaEngine::call(_tlState, 0, 0);
 	}
 	return _tlState;
 }
@@ -842,7 +851,7 @@ std::optional<std::list<LuaEngine::TealError>> LuaEngine::checkTeal(String tlCod
 	return std::nullopt;
 }
 
-std::list<LuaEngine::TealToken> LuaEngine::completeTeal(String tlCodes) {
+std::list<LuaEngine::TealToken> LuaEngine::completeTeal(String tlCodes, String line, int row) {
 	loadTealState();
 	int top = lua_gettop(_tlState);
 	DEFER(lua_settop(_tlState, top));
@@ -851,7 +860,9 @@ std::list<LuaEngine::TealToken> LuaEngine::completeTeal(String tlCodes) {
 	lua_getfield(_tlState, -1, "tl"); // package loaded tl
 	lua_getfield(_tlState, -1, "dora_complete"); // package loaded tl complete
 	tolua_pushslice(_tlState, tlCodes); // package loaded tl complete tlCodes
-	LuaEngine::call(_tlState, 1, 1); // complete(tlCodes), package loaded tl res
+	tolua_pushslice(_tlState, line); // package loaded tl complete tlCodes line
+	lua_pushnumber(_tlState, row); // package loaded tl complete tlCodes line row
+	LuaEngine::call(_tlState, 3, 1); // complete(tlCodes,line,row), package loaded tl res
 	std::list<LuaEngine::TealToken> res;
 	if (lua_istable(_tlState, -1) != 0) {
 		int len = static_cast<int>(lua_rawlen(_tlState, -1));
@@ -869,7 +880,7 @@ std::list<LuaEngine::TealToken> LuaEngine::completeTeal(String tlCodes) {
 	return res;
 }
 
-std::optional<LuaEngine::TealInference> LuaEngine::inferTeal(String tlCodes) {
+std::optional<LuaEngine::TealInference> LuaEngine::inferTeal(String tlCodes, String line, int row) {
 	loadTealState();
 	int top = lua_gettop(_tlState);
 	DEFER(lua_settop(_tlState, top));
@@ -878,7 +889,9 @@ std::optional<LuaEngine::TealInference> LuaEngine::inferTeal(String tlCodes) {
 	lua_getfield(_tlState, -1, "tl"); // package loaded tl
 	lua_getfield(_tlState, -1, "dora_infer"); // package loaded tl infer
 	tolua_pushslice(_tlState, tlCodes); // package loaded tl infer tlCodes
-	LuaEngine::call(_tlState, 1, 1); // infer(tlCodes), package loaded tl res
+	tolua_pushslice(_tlState, line); // package loaded tl infer tlCodes line
+	lua_pushnumber(_tlState, row); // package loaded tl infer tlCodes line row
+	LuaEngine::call(_tlState, 3, 1); // infer(tlCodes,line,row), package loaded tl res
 	if (lua_istable(_tlState, -1) != 0) {
 		lua_getfield(_tlState, -1, "str");
 		lua_getfield(_tlState, -2, "file");
@@ -907,11 +920,8 @@ void LuaEngine::resetTealCompiler() {
 	lua_getglobal(_tlState, "package"); // package
 	lua_getfield(_tlState, -1, "loaded"); // package loaded
 	lua_getfield(_tlState, -1, "tl"); // package loaded tl
-	lua_pushliteral(_tlState, "package_loader_env");
-	lua_pushnil(_tlState);
-	lua_rawset(_tlState, -3); // tl["package_loader_env"] = nil, package loaded tl
-	lua_pop(_tlState, 3);
-	lua_gc(_tlState, LUA_GCCOLLECT);
+	lua_getfield(_tlState, -1, "dora_clear");
+	LuaEngine::call(_tlState, 0, 0); // clear(), package loaded tl
 }
 
 void LuaEngine::insertLuaLoader(lua_CFunction func, int index) {

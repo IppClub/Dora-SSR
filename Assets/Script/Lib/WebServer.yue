@@ -3,17 +3,17 @@ _ENV = Dorothy!
 HttpServer.wwwPath = Path Content.writablePath, ".www"
 
 HttpServer\post "/infer", (req)->
-	switch req when {body: {:lang, :content}}
+	switch req when {body: {:lang, :content, :line, :row}}
 		switch lang when "tl"
-			infered = teal.infer content
+			infered = teal.infer content, line, row
 			if infered?
 				return success: true, :infered
 	success: false
 
 HttpServer\post "/complete", (req)->
-	switch req when {body: {:lang, :content}}
+	switch req when {body: {:lang, :content, :line, :row}}
 		switch lang when "tl"
-			suggestions = teal.complete content
+			suggestions = teal.complete content, line, row
 			if #suggestions > 0
 				return success: true, :suggestions
 	success: false
@@ -145,5 +145,4 @@ if HttpServer\start 8866
 else
 	print "port not available!"
 
-Director.entry\addChild with Node!
-	\slot "Cleanup", -> HttpServer\stop!
+Director.entry\slot "Cleanup", -> HttpServer\stop!

@@ -26,6 +26,7 @@ import { TransitionGroup } from 'react-transition-group';
 import * as monaco from 'monaco-editor';
 import * as yuescript from './languages/yuescript';
 import * as teal from './languages/teal';
+
 monaco.editor.defineTheme("dora-dark", {
 	base: "vs-dark",
 	inherit: true,
@@ -52,8 +53,8 @@ monaco.languages.setMonarchTokensProvider("tl", teal.language);
 monaco.languages.registerCompletionItemProvider("tl", {
 	triggerCharacters: [".", ":"],
 	provideCompletionItems: function(model, position) {
-		const textUntilPosition: string = model.getValueInRange({
-			startLineNumber: 1,
+		const line: string = model.getValueInRange({
+			startLineNumber: position.lineNumber,
 			startColumn: 1,
 			endLineNumber: position.lineNumber,
 			endColumn: position.column,
@@ -65,7 +66,7 @@ monaco.languages.registerCompletionItemProvider("tl", {
 			startColumn: word.startColumn,
 			endColumn: word.endColumn,
 		};
-		return Post("/complete", {lang: "tl", content: textUntilPosition}).then((res: {success: boolean, suggestions?: [string, string, boolean][]}) => {
+		return Post("/complete", {lang: "tl", line, row: position.lineNumber, content: model.getValue()}).then((res: {success: boolean, suggestions?: [string, string, boolean][]}) => {
 			if (!res.success) return {suggestions:[]};
 			if (res.suggestions === undefined) return {suggestions:[]};
 			return {
@@ -86,17 +87,28 @@ monaco.languages.registerCompletionItemProvider("tl", {
 		});
 	},
 });
+interface TealInfered {
+	desc: string;
+	file: string;
+	row: number;
+	col: number;
+	key?: string;
+};
 monaco.languages.registerHoverProvider("tl", {
 	provideHover: function(model, position) {
 		const word = model.getWordAtPosition(position);
 		if (word === null) return {contents:[]};
-		const textAtPosition: string = model.getValueInRange({
-			startLineNumber: 1,
+		const line: string = model.getValueInRange({
+			startLineNumber: position.lineNumber,
 			startColumn: 1,
 			endLineNumber: position.lineNumber,
 			endColumn: word.endColumn,
 		});
-		return Post("/infer", {lang: "tl", content: textAtPosition}).then(function (res: {success: boolean, infered?: {desc: string, file?: string, row?: number, col?: number}}) {
+		return Post("/infer", {
+			lang: "tl", line,
+			row: position.lineNumber,
+			content: model.getValue()
+		}).then(function (res: {success: boolean, infered?: TealInfered}) {
 			if (!res.success) return {contents:[]};
 			if (res.infered === undefined) return {contents:[]};
 			const contents = [
@@ -104,9 +116,10 @@ monaco.languages.registerHoverProvider("tl", {
 					value: "```\n" + res.infered.desc + "\n```",
 				},
 			];
-			if (res.infered.file !== undefined &&
-				res.infered.row !== undefined &&
-				res.infered.col !== undefined) {
+			if (res.infered.row !== 0 && res.infered.col !== 0) {
+				if (res.infered.file === "") {
+					res.infered.file = "current file";
+				}
 				contents.push({
 					value: `${res.infered.file}:${res.infered.row}:${res.infered.col}`
 				});
@@ -247,6 +260,8 @@ interface EditingFile {
 	content: string;
 	contentModified: string | null;
 	uploading: boolean;
+	editor?: monaco.editor.IStandaloneCodeEditor;
+	position?: monaco.IPosition;
 };
 
 interface EditingTab {
@@ -293,6 +308,13 @@ export default function PersistentDrawerLeft() {
 			name: string,
 			ext: string,
 		} | null>(null);
+
+	const [jumpToFile, setJumpToFile] = useState<{
+		key: string,
+		title: string,
+		row: number,
+		col: number
+	}| null>(null);
 
 	const addAlert = (msg: string, type: AlertColor) => {
 		const key = msg + Date.now().toString();
@@ -374,6 +396,52 @@ export default function PersistentDrawerLeft() {
 		setTabIndex(newValue);
 	};
 
+	const openFileInTab = (key: string, title: string, position?: monaco.IPosition) => {
+		let index: number | null = null;
+		const file = files.find((file, i) => {
+			if (file.key === key) {
+				index = i;
+				return true;
+			}
+			return false;
+		});
+		if (file && file.editor && position) {
+			const editor = file.editor;
+			setTimeout(() => {
+				editor.focus();
+				editor.setPosition(position);
+				editor.revealPositionInCenter(position);
+			}, 100);
+		}
+		if (index === null) {
+			Post('/read', {path: key}).then((res: {content: string, success: boolean}) => {
+				if (res.success) {
+					files.push({
+						key,
+						title,
+						content: res.content,
+						contentModified: null,
+						uploading: false,
+						position,
+					});
+					setFiles(files);
+					updateTabs(files);
+					setTabIndex(files.length - 1);
+				}
+			});
+		} else {
+			setTabIndex(index);
+		}
+	};
+
+	if (jumpToFile !== null) {
+		setJumpToFile(null);
+		openFileInTab(jumpToFile.key, jumpToFile.title, {
+			lineNumber: jumpToFile.row,
+			column: jumpToFile.col
+		});
+	}
+
 	const onSelect = (nodes: TreeDataType[]) => {
 		setSelectedKeys(nodes.map(n => n.key));
 		if (nodes.length === 0) return;
@@ -385,32 +453,7 @@ export default function PersistentDrawerLeft() {
 			case ".yue":
 			case ".xml":
 			case ".md": {
-				let index: number | null = null;
-				files.find((file, i) => {
-					if (file.key === key) {
-						index = i;
-						return true;
-					}
-					return false;
-				});
-				if (index === null) {
-					Post('/read', {path: key}).then((res: {content: string, success: boolean}) => {
-						if (res.success) {
-							files.push({
-								key,
-								title,
-								content: res.content,
-								contentModified: null,
-								uploading: false,
-							});
-							setFiles(files);
-							updateTabs(files);
-							setTabIndex(files.length - 1);
-						}
-					});
-				} else {
-					setTabIndex(index);
-				}
+				openFileInTab(key, title);
 				break;
 			}
 			default:
@@ -996,7 +1039,65 @@ export default function PersistentDrawerLeft() {
 
 	type TealError = "parsing" | "syntax" | "type" | "warning" | "crash";
 
-	const onEditorDidMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+	const onEditorDidMount = (file: EditingFile) => (editor: monaco.editor.IStandaloneCodeEditor) => {
+		file.editor = editor;
+		if (file.position) {
+			const position = file.position;
+			setTimeout(() => {
+				editor.focus();
+				editor.setPosition(position);
+				editor.revealPositionInCenter(position);
+			}, 100);
+			file.position = undefined;
+		}
+		setFiles([...files]);
+		editor.addAction({
+			id: "dora-action-definition",
+			label: "Go to Definition",
+			keybindings: [
+				monaco.KeyCode.F12 | monaco.KeyMod.CtrlCmd,
+				monaco.KeyCode.F12 | monaco.KeyMod.WinCtrl,
+			],
+			contextMenuGroupId: "navigation",
+			contextMenuOrder: 1.5,
+			run: function(ed) {
+				const position = ed.getPosition();
+				if (position === null) return;
+				const model = ed.getModel();
+				if (model === null) return;
+				const word = model.getWordAtPosition(position);
+				if (word === null) return;
+				const line: string = model.getValueInRange({
+					startLineNumber: position.lineNumber,
+					startColumn: 1,
+					endLineNumber: position.lineNumber,
+					endColumn: word.endColumn,
+				});
+				Post("/infer", {
+					lang: "tl", line,
+					row: position.lineNumber,
+					content: model.getValue()
+				}).then(function(res: {success: boolean, infered?: TealInfered}) {
+					if (!res.success) return;
+					if (!res.infered) return;
+					if (res.infered.key !== undefined) {
+						setJumpToFile({
+							key: res.infered.key,
+							title: path.basename(res.infered.file),
+							row: res.infered.row,
+							col: res.infered.col,
+						});
+					} else {
+						const pos = {
+							lineNumber: res.infered.row,
+							column: res.infered.col,
+						};
+						editor.setPosition(pos);
+						editor.revealPositionInCenterIfOutsideViewport(pos);
+					}
+				});
+			},
+		});
 		const model = editor.getModel();
 		if (model) {
 			model.onDidChangeContent((e) => {
@@ -1237,7 +1338,7 @@ export default function PersistentDrawerLeft() {
 											language={language}
 											theme="dora-dark"
 											value={file.content}
-											editorDidMount={onEditorDidMount}
+											editorDidMount={onEditorDidMount(file)}
 											onChange={(content: string) => {
 												setModified({key: file.key, content});
 											}}
