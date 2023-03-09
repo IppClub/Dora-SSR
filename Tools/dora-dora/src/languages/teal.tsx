@@ -58,7 +58,9 @@ export const language: languages.IMonarchLanguage = {
 		'require',
 		'as',
 		'embed',
-		'const',
+	],
+
+	types: [
 		'boolean',
 		'number',
 		'integer',
@@ -112,6 +114,7 @@ export const language: languages.IMonarchLanguage = {
 				{
 					cases: {
 						'@keywords': { token: 'keyword.$0' },
+						'@types': 'type.identifier',
 						'@default': 'identifier'
 					}
 				}
