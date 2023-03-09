@@ -420,13 +420,13 @@ export default function PersistentDrawerLeft() {
 		if (tabIndex !== null) {
 			const closeTab = () => {
 				const newFiles = files.filter((_, index) => index !== tabIndex);
-				setFiles(newFiles);
-				updateTabs(newFiles);
 				if (newFiles.length === 0) {
 					setTabIndex(null);
 				} else if (tabIndex > 0) {
 					setTabIndex(tabIndex - 1);
 				}
+				setFiles(newFiles);
+				updateTabs(newFiles);
 			};
 			if (files[tabIndex].contentModified !== null) {
 				setPopupInfo({
