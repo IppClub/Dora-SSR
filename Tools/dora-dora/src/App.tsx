@@ -428,6 +428,8 @@ export default function PersistentDrawerLeft() {
 					updateTabs(files);
 					setTabIndex(files.length - 1);
 				}
+			}).catch(() => {
+				addAlert(`failed to read ${title}`, "error");
 			});
 		} else {
 			setTabIndex(index);
@@ -501,6 +503,8 @@ export default function PersistentDrawerLeft() {
 					file.contentModified = null;
 					updateTabs(files);
 				}
+			}).catch(() => {
+				addAlert("failed to save current file", "error");
 			});
 		}
 	};
@@ -520,6 +524,8 @@ export default function PersistentDrawerLeft() {
 						file.contentModified = null;
 						updateTabs(files);
 					}
+				}).catch(() => {
+					addAlert(`failed to save ${file.title}`, "error");
 				});
 			}
 		})
@@ -734,10 +740,10 @@ export default function PersistentDrawerLeft() {
 									}
 								}
 								setTreeData([rootNode]);
-							}).catch(() => {
-								addAlert("failed to delete item", "error");
 							}).then(() => {
 								addAlert(`deleted "${data.title}"`, "success");
+							}).catch(() => {
+								addAlert("failed to delete item", "error");
 							});
 						},
 					})
@@ -818,10 +824,10 @@ export default function PersistentDrawerLeft() {
 						};
 						visitData(rootNode);
 						setTreeData([rootNode]);
-					}).catch(() => {
-						addAlert("failed to rename item", "error");
 					}).then(() => {
 						addAlert(`renamed "${path.basename(oldFile)}" to "${path.basename(newFile)}"`, "success");
+					}).catch(() => {
+						addAlert("failed to rename item", "error");
 					});
 				};
 				if (target.dir) {
@@ -920,7 +926,7 @@ export default function PersistentDrawerLeft() {
 					}
 				}).catch(() => {
 					addAlert("failed to create item", "error");
-				});;
+				});
 			}
 		}
 		setFileInfo(null);
@@ -1087,7 +1093,7 @@ export default function PersistentDrawerLeft() {
 							row: res.infered.row,
 							col: res.infered.col,
 						});
-					} else {
+					} else if (res.infered.row > 0 && res.infered.col > 0) {
 						const pos = {
 							lineNumber: res.infered.row,
 							column: res.infered.col,

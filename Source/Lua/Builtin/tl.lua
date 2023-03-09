@@ -11265,8 +11265,12 @@ tl.dora_infer = function(codes, line, row)
 			end
 		end
 		if current_type then
+			local str = current_type.str
+			while current_type and current_type.ref do
+				current_type = type_report.types[current_type.ref]
+			end
 			return {
-				str = current_type.str,
+				str = str,
 				file = current_type.file,
 				y = current_type.y,
 				x = current_type.x,
