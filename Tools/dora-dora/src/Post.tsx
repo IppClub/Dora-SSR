@@ -13,7 +13,8 @@ async function Post(url: string, data: any = {}) {
 		},
 		body: JSON.stringify(data)
 	});
-	return response.json();
+	const json = await response.json();
+	return json;
 };
 
 export default Post;
