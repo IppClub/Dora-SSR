@@ -34,7 +34,7 @@ local record StructHelper
 	type Type = Struct
 	type RecordEvent = Struct.RecordEvent
 	type ArrayEvent = Struct.ArrayEvent
-	metamethod __index: function(self: StructClass, ...: string): function(...: string): StructClass
+	metamethod __index: function(self: StructClass, name: string): function(...: string | {string}): StructClass
 	load: function(cls: StructHelper, input: string): Struct
 	load: function(cls: StructHelper, input: table): Struct
 	load: function(cls: StructHelper, name: string, input: table): Struct

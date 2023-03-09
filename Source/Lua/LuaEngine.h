@@ -47,14 +47,14 @@ public:
 		std::string desc;
 		bool isFunction;
 	};
-	std::list<TealToken> completeTeal(String tlCodes);
+	std::list<TealToken> completeTeal(String tlCodes, String line, int row);
 	struct TealInference {
 		std::string desc;
 		std::string file;
 		int row;
 		int col;
 	};
-	std::optional<TealInference> inferTeal(String tlCodes);
+	std::optional<TealInference> inferTeal(String tlCodes, String line, int row);
 	void resetTealCompiler();
 
 	void insertLuaLoader(lua_CFunction func, int index);
