@@ -10985,12 +10985,13 @@ tl.load = function(input, chunkname, mode, ...)
 	return load(code, chunkname, mode, ...)
 end
 
-tl.dora_to_lua = function(input, filename)
-	if not filename then
-		filename = ""
-	else
-		local found = tl.search_module(filename)
-		filename = found or filename
+tl.dora_to_lua = function(input, module_name)
+	local filename = ""
+	if module_name then
+		local filename, tried = tl.search_module(module_name)
+		if not filename then
+			return nil, table.concat(tried, "\n\t")
+		end
 	end
 	local program, errs = tl.parse(input, filename)
 	if errs and #errs > 0 then
@@ -11000,9 +11001,6 @@ tl.dora_to_lua = function(input, filename)
 			table.insert(info, err.filename .. ":" .. tostring(err.y) .. ":" .. tostring(err.x) .. ": " .. err.msg)
 		end
 		return nil, table.concat(info, "\n")
-	end
-	if not tl.package_loader_env then
-		tl.package_loader_env = tl.init_env(false, false, tl.target_from_lua_version(_VERSION))
 	end
 	local gen_target = tl.package_loader_env.gen_target
 	local res = tl.type_check(program, {
@@ -11039,14 +11037,7 @@ tl.dora_to_lua = function(input, filename)
 end
 
 tl.dora_check = function(input, filename)
-	if not filename then
-		filename = ""
-	else
-		local found = tl.search_module(filename)
-		filename = found or filename
-	end
-	local current_env = tl.package_loader_env
-	tl.package_loader_env = tl.init_env(false, false, tl.target_from_lua_version(_VERSION))
+	filename = filename or ""
 	local success, passed, info = pcall(function()
 		local info = {}
 		local program, errs = tl.parse(input, filename)
@@ -11057,13 +11048,13 @@ tl.dora_check = function(input, filename)
 			end
 			return nil, info
 		end
-		local gen_target = tl.package_loader_env.gen_target
+		local env = tl.dora_new_env()
 		local res = tl.type_check(program, {
 			lax = false,
 			filename = filename,
-			gen_compat = "off",
-			gen_target = gen_target,
-			env = tl.package_loader_env,
+			gen_compat = env.gen_compat,
+			gen_target = env.gen_target,
+			env = env,
 			run_internal_compiler_checks = false,
 		})
 		if res.syntax_errors and #res.syntax_errors > 0 then
@@ -11089,34 +11080,23 @@ tl.dora_check = function(input, filename)
 		end
 		return true, nil
 	end)
-	tl.package_loader_env = current_env
 	if success then
 		return passed, info
 	else
+		print(passed)
 		return false, nil
 	end
 end
 
-local function get_resolving_text(codes)
-	local y = 0
-	local x = 1
-	local lastLine = ""
-	for lineCode in codes:gmatch("[^\r\n]*") do
-		y = y + 1
-		x = #lineCode
-		lastLine = lineCode
+local function get_resolving_text(line)
+	local lineLen = #line
+	line = line:gsub("%(.-%)", "")
+	while lineLen > #line do
+		lineLen = #line
+		line = line:gsub("%(.-%)", "")
 	end
-	local lineLen = #lastLine
-	lastLine = lastLine:gsub("%(.-%)", "")
-	while lineLen > #lastLine do
-		lineLen = #lastLine
-		lastLine = lastLine:gsub("%(.-%)", "")
-	end
-	local resolve = lastLine:match("[%w_%.:]+$")
-	if resolve then
-		return resolve, y, x
-	end
-	return nil
+	local resolve = line:match("[%w_%.:]+$")
+	return resolve
 end
 
 local function get_real_type(type_report, id)
@@ -11137,29 +11117,13 @@ local function get_real_type(type_report, id)
 	return current_type
 end
 
-tl.dora_complete = function(codes)
+tl.dora_complete = function(codes, line, row)
 	if codes:sub(1, 3) == "\xEF\xBB\xBF" then
 		codes = codes:sub(4)
 	end
-	local current_env = tl.package_loader_env
-	local env = tl.init_env(false, false, tl.target_from_lua_version(_VERSION))
-	env.keep_going = true
-	tl.package_loader_env = env
 	local success, res = pcall(function()
-		local result = tl.process_string(codes, false, env, "", "")
-		if not result or not result.ast then
-			return {}
-		end
-		local type_report = tl.get_types(result)
-		if not type_report then
-			return {}
-		end
-		local resolve, y, x = get_resolving_text(codes)
+		local resolve = get_resolving_text(line)
 		if not resolve then
-			return {}
-		end
-		local symbols = tl.symbols_in_scope(type_report, y, x)
-		if not symbols then
 			return {}
 		end
 		local chains = {}
@@ -11169,11 +11133,25 @@ tl.dora_complete = function(codes)
 		if #chains == 0 then
 			return {}
 		end
+		local env = tl.dora_new_env()
+		env.keep_going = true
+		local result = tl.process_string(codes, false, env, "", "")
+		if not result or not result.ast then
+			return {}
+		end
+		local type_report = tl.get_types(result)
+		if not type_report then
+			return {}
+		end
+		local symbols = tl.symbols_in_scope(type_report, row, #line)
+		if not symbols then
+			return {}
+		end
+		local res = {}
 		local lastChar = resolve:sub(-1)
 		if lastChar == "." or lastChar == ":" then
 			chains[#chains + 1] = lastChar
 		end
-		local res = {}
 		chains[#chains] = nil
 		if #chains == 0 then
 			for k, v in pairs(symbols) do
@@ -11218,22 +11196,32 @@ tl.dora_complete = function(codes)
 		end
 		return res
 	end)
-	tl.package_loader_env = current_env
-	if success and res then
+	if success then
 		return res
+	else
+		print(res)
+		return {}
 	end
-	return {}
 end
 
-tl.dora_infer = function(codes)
+tl.dora_infer = function(codes, line, row)
 	if codes:sub(1, 3) == "\xEF\xBB\xBF" then
 		codes = codes:sub(4)
 	end
-	local current_env = tl.package_loader_env
-	local env = tl.init_env(false, false, tl.target_from_lua_version(_VERSION))
-	env.keep_going = true
-	tl.package_loader_env = env
 	local success, res = pcall(function()
+		local resolve = get_resolving_text(line)
+		if not resolve then
+			return nil
+		end
+		local chains = {}
+		for item in resolve:gmatch("[%w_]+") do
+			chains[#chains + 1] = item
+		end
+		if #chains == 0 then
+			return nil
+		end
+		local env = tl.dora_new_env()
+		env.keep_going = true
 		local result = tl.process_string(codes, false, env, "", "")
 		if not result or not result.ast then
 			return nil
@@ -11242,16 +11230,8 @@ tl.dora_infer = function(codes)
 		if not type_report then
 			return nil
 		end
-		local resolve, y, x = get_resolving_text(codes)
-		local symbols = tl.symbols_in_scope(type_report, y, x)
+		local symbols = tl.symbols_in_scope(type_report, row, #line)
 		if not symbols then
-			return nil
-		end
-		local chains = {}
-		for item in resolve:gmatch("[%w_]+") do
-			chains[#chains + 1] = item
-		end
-		if #chains == 0 then
 			return nil
 		end
 		local first = true
@@ -11294,11 +11274,81 @@ tl.dora_infer = function(codes)
 		end
 		return nil
 	end)
-	tl.package_loader_env = current_env
-	if success and res then
+	if success then
 		return res
+	else
+		print(res)
+		return nil
 	end
-	return nil
+end
+
+tl.dora_init = function()
+	local env, err = tl.init_env(
+		false, false,
+		tl.target_from_lua_version(_VERSION)
+	)
+	if env then
+		if require_module("builtin", false, env) == INVALID then
+			print(string.format("Error: could not predefine module 'builtin'"))
+		end
+		local dora_loaded = {}
+		local dora_globals = {}
+		local dora_modules = {}
+		local dora_loaded_order = {}
+		for k, v in pairs(env.loaded) do
+			dora_loaded[k] = v
+		end
+		for k, v in pairs(env.modules) do
+			dora_modules[k] = v
+		end
+		for k, v in pairs(env.globals) do
+			dora_globals[k] = v
+		end
+		for i, v in ipairs(env.loaded_order) do
+			dora_loaded_order[i] = v
+		end
+		tl.dora_globals = dora_globals
+		tl.dora_modules = dora_modules
+		tl.dora_loaded = dora_loaded
+		tl.dora_loaded_order = dora_loaded_order
+		tl.package_loader_env = env
+	else
+		print(err)
+	end
+end
+
+tl.dora_new_env = function()
+	local globals = {}
+	local modules = {}
+	local loaded = {}
+	local loaded_order = {}
+	local env = {
+		gen_compat = tl.package_loader_env.gen_compat,
+		gen_target = tl.package_loader_env.gen_target,
+		keep_going = false,
+	}
+	for k, v in pairs(tl.dora_globals) do
+		globals[k] = v
+	end
+	for k, v in pairs(tl.dora_modules) do
+		modules[k] = v
+	end
+	for k, v in pairs(tl.dora_loaded) do
+		loaded[k] = v
+	end
+	for i, v in ipairs(tl.dora_loaded_order) do
+		loaded_order[i] = v
+	end
+	env.globals = globals
+	env.modules = modules
+	env.loaded = loaded
+	env.loaded_order = loaded_order
+	return env
+end
+
+tl.dora_clear = function()
+	tl.package_loader_env = tl.dora_new_env()
+	collectgarbage()
 end
 
 package.loaded["tl"] = tl

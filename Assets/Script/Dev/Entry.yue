@@ -534,3 +534,5 @@ entryWindow = threadLoop ->
 						NextColumn!
 			Columns 1, false
 			Dummy Vec2 100, 40
+
+require "WebServer"
