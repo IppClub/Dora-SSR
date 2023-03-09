@@ -14,7 +14,6 @@ import MonacoEditor from "react-monaco-editor";
 import FileTree, { TreeDataType, TreeMenuEvent } from "./FileTree";
 import FileTabBar, { TabMenuEvent } from './FileTabBar';
 import * as Path from './Path';
-import Post from './Post';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField } from '@mui/material';
@@ -24,122 +23,8 @@ import DoraUpload from './Upload';
 import Stack from '@mui/system/Stack';
 import { TransitionGroup } from 'react-transition-group';
 import * as monaco from 'monaco-editor';
-import * as yuescript from './languages/yuescript';
-import * as teal from './languages/teal';
-
-monaco.editor.defineTheme("dora-dark", {
-	base: "vs-dark",
-	inherit: true,
-	rules: [
-		{
-			token: "invalid",
-			foreground: "f44747",
-			fontStyle: 'italic',
-		},
-		{
-			token: "self.call",
-			foreground: "dcdcaa",
-		},
-		{
-			token: "operator",
-			foreground: "cc76d1",
-		}
-	],
-	colors: {},
-})
-monaco.languages.register({id: 'tl'});
-monaco.languages.setLanguageConfiguration("tl", teal.config);
-monaco.languages.setMonarchTokensProvider("tl", teal.language);
-monaco.languages.registerCompletionItemProvider("tl", {
-	triggerCharacters: [".", ":"],
-	provideCompletionItems: function(model, position) {
-		const line: string = model.getValueInRange({
-			startLineNumber: position.lineNumber,
-			startColumn: 1,
-			endLineNumber: position.lineNumber,
-			endColumn: position.column,
-		});
-		const word = model.getWordUntilPosition(position);
-		const range: monaco.IRange = {
-			startLineNumber: position.lineNumber,
-			endLineNumber: position.lineNumber,
-			startColumn: word.startColumn,
-			endColumn: word.endColumn,
-		};
-		return Post("/complete", {lang: "tl", line, row: position.lineNumber, content: model.getValue()}).then((res: {success: boolean, suggestions?: [string, string, boolean][]}) => {
-			if (!res.success) return {suggestions:[]};
-			if (res.suggestions === undefined) return {suggestions:[]};
-			return {
-				suggestions: res.suggestions.map((item) => {
-					const [name, desc, func] = item;
-					return {
-						label: name,
-						kind: func ?
-							monaco.languages.CompletionItemKind.Function :
-							monaco.languages.CompletionItemKind.Variable,
-						document: desc,
-						detail: desc,
-						insertText: name,
-						range: range,
-					};
-				}),
-			};
-		});
-	},
-});
-interface TealInfered {
-	desc: string;
-	file: string;
-	row: number;
-	col: number;
-	key?: string;
-};
-monaco.languages.registerHoverProvider("tl", {
-	provideHover: function(model, position) {
-		const word = model.getWordAtPosition(position);
-		if (word === null) return {contents:[]};
-		const line: string = model.getValueInRange({
-			startLineNumber: position.lineNumber,
-			startColumn: 1,
-			endLineNumber: position.lineNumber,
-			endColumn: word.endColumn,
-		});
-		return Post("/infer", {
-			lang: "tl", line,
-			row: position.lineNumber,
-			content: model.getValue()
-		}).then(function (res: {success: boolean, infered?: TealInfered}) {
-			if (!res.success) return {contents:[]};
-			if (res.infered === undefined) return {contents:[]};
-			const contents = [
-				{
-					value: "```\n" + res.infered.desc + "\n```",
-				},
-			];
-			if (res.infered.row !== 0 && res.infered.col !== 0) {
-				if (res.infered.file === "") {
-					res.infered.file = "current file";
-				}
-				contents.push({
-					value: `${res.infered.file}:${res.infered.row}:${res.infered.col}`
-				});
-			}
-			return {
-				range: new monaco.Range(
-					position.lineNumber,
-					word.startColumn,
-					position.lineNumber,
-					word.endColumn
-				),
-				contents,
-			};
-		});
-	},
-});
-
-monaco.languages.register({ id: 'yue' });
-monaco.languages.setLanguageConfiguration("yue", yuescript.config);
-monaco.languages.setMonarchTokensProvider("yue", yuescript.language);
+import * as Service from './Service';
+import './Editor';
 
 let lastEditorActionTime = Date.now();
 
@@ -332,7 +217,7 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const loadAssets = () => {
-		return Post('/assets').then((res: TreeDataType) => {
+		return Service.assets().then((res: TreeDataType) => {
 			res.root = true;
 			if (res.children === undefined) {
 				res.children = [{
@@ -350,7 +235,7 @@ export default function PersistentDrawerLeft() {
 	};
 
 	useEffect(() => {
-		Post("/info").then((res: {platform: "Windows" | "macOS" | "iOS" | "Android" | "Linux"}) => {
+		Service.info().then((res) => {
 			if (res.platform === "Windows") {
 				path = Path.win32;
 			}
@@ -414,8 +299,8 @@ export default function PersistentDrawerLeft() {
 			}, 100);
 		}
 		if (index === null) {
-			Post('/read', {path: key}).then((res: {content: string, success: boolean}) => {
-				if (res.success) {
+			Service.read({path: key}).then((res) => {
+				if (res.success && res.content) {
 					files.push({
 						key,
 						title,
@@ -498,7 +383,7 @@ export default function PersistentDrawerLeft() {
 		if (tabIndex === null) return;
 		const file = files[tabIndex];
 		if (file.contentModified !== null) {
-			Post("/write", {path: file.key, content: file.contentModified}).then((res: {success: boolean}) => {
+			Service.write({path: file.key, content: file.contentModified}).then((res) => {
 				if (res.success) {
 					file.contentModified = null;
 					updateTabs(files);
@@ -519,7 +404,7 @@ export default function PersistentDrawerLeft() {
 		filesToSave.forEach(index => {
 			const file = files[index];
 			if (file.contentModified !== null) {
-				Post("/write", {path: file.key, content: file.contentModified}).then((res: {success: boolean}) => {
+				Service.write({path: file.key, content: file.contentModified}).then((res) => {
 					if (res.success) {
 						file.contentModified = null;
 						updateTabs(files);
@@ -705,7 +590,7 @@ export default function PersistentDrawerLeft() {
 						msg: `deleting ${data.dir ? 'folder' : 'file'} ${data.title}`,
 						cancelable: true,
 						confirmed: () => {
-							Post("/delete", {path: data.key}).then((res: {success: boolean}) => {
+							Service.deleteFile({path: data.key}).then((res) => {
 								if (!res.success) return;
 								const visitData = (node: TreeDataType) => {
 									if (node.key === data.key) return "find";
@@ -785,7 +670,7 @@ export default function PersistentDrawerLeft() {
 				const oldFile = target.key;
 				const newFile = path.join(path.dirname(target.key), newName);
 				const doRename = () => {
-					return Post("/rename", {old: oldFile, new: newFile}).then((res: {success: boolean}) => {
+					return Service.rename({old: oldFile, new: newFile}).then((res) => {
 						if (!res.success) {
 							addAlert("failed to rename item", "error");
 							return;
@@ -848,7 +733,7 @@ export default function PersistentDrawerLeft() {
 				const {ext} = fileInfo;
 				const newName = fileInfo.name + fileInfo.ext;
 				const newFile = path.join(dir, newName);
-				Post("/new", {path: newFile}).then((res: {success: boolean}) => {
+				Service.newFile({path: newFile}).then((res) => {
 					if (!res.success) {
 						addAlert("failed to create item", "error");
 						return;
@@ -944,7 +829,7 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const updateDir = (oldDir: string, newDir: string) => {
-		return Post("/list", {path: oldDir}).then((res: {success: boolean, files: string[]}) => {
+		return Service.list({path: oldDir}).then((res) => {
 			if (res.success) {
 				const affected = res.files.map(f => [path.join(oldDir, f), path.join(newDir, f)]);
 				affected.push([oldDir, newDir]);
@@ -1004,7 +889,7 @@ export default function PersistentDrawerLeft() {
 			confirmed: () => {
 				const newFile = path.join(targetParent, path.basename(self.key));
 				const doRename = () => {
-					return Post("/rename", {old: self.key, new: newFile}).then((res: {success: boolean}) => {
+					return Service.rename({old: self.key, new: newFile}).then((res) => {
 						if (res.success) {
 							return loadAssets();
 						}
@@ -1043,8 +928,6 @@ export default function PersistentDrawerLeft() {
 		loadAssets();
 	};
 
-	type TealError = "parsing" | "syntax" | "type" | "warning" | "crash";
-
 	const onEditorDidMount = (file: EditingFile) => (editor: monaco.editor.IStandaloneCodeEditor) => {
 		file.editor = editor;
 		if (file.position) {
@@ -1079,11 +962,11 @@ export default function PersistentDrawerLeft() {
 					endLineNumber: position.lineNumber,
 					endColumn: word.endColumn,
 				});
-				Post("/infer", {
+				Service.infer({
 					lang: "tl", line,
 					row: position.lineNumber,
 					content: model.getValue()
-				}).then(function(res: {success: boolean, infered?: TealInfered}) {
+				}).then(function(res) {
 					if (!res.success) return;
 					if (!res.infered) return;
 					if (res.infered.key !== undefined) {
@@ -1119,13 +1002,10 @@ export default function PersistentDrawerLeft() {
 				}).then(() => {
 					if (Date.now() - lastEditorActionTime >= 500) {
 						if (key !== null) {
-							return Post("/check", {file: key, content: modified});
+							return Service.check({file: key, content: modified});
 						}
 					}
-				}).then((res?: {
-					success: boolean,
-					info?: [TealError, string, number, number, string][]
-				}) => {
+				}).then((res?) => {
 					if (res === undefined) return;
 					const markers: monaco.editor.IMarkerData[] = [];
 					if (!res.success && res.info !== undefined) {

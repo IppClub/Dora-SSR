@@ -98,7 +98,7 @@ HttpServer\post "/read", (req)->
 		if Content\exist path
 			if content = Content\load path
 				return :content, success: true
-	content: "", success: false
+	success: false
 
 HttpServer\post "/write", (req)->
 	switch req when {body: {:path, :content}}
