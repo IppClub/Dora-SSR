@@ -9,7 +9,5 @@ local record Param
 	fillOrder: integer
 	lineOrder: integer
 end
-return function(param: Param): Node
-	print(param)
-	return nil
-end
+local Rectangle: function(param: Param): Node
+return Rectangle

@@ -5146,6 +5146,7 @@ inline bool Server::is_running() const { return is_running_; }
 
 inline void Server::stop() {
   if (is_running_) {
+    is_running_ = false;
     assert(svr_sock_ != INVALID_SOCKET);
     std::atomic<socket_t> sock(svr_sock_.exchange(INVALID_SOCKET));
     detail::shutdown_socket(sock);
