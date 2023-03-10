@@ -11036,7 +11036,7 @@ tl.dora_to_lua = function(input, module_name)
 	return code
 end
 
-tl.dora_check = function(input, filename)
+tl.dora_check = function(input, filename, lax)
 	filename = filename or ""
 	local success, passed, info = pcall(function()
 		local info = {}
@@ -11050,7 +11050,7 @@ tl.dora_check = function(input, filename)
 		end
 		local env = tl.dora_new_env()
 		local res = tl.type_check(program, {
-			lax = false,
+			lax = lax,
 			filename = filename,
 			gen_compat = env.gen_compat,
 			gen_target = env.gen_target,
@@ -11143,7 +11143,7 @@ tl.dora_complete = function(codes, line, row)
 		if not type_report then
 			return {}
 		end
-		local symbols = tl.symbols_in_scope(type_report, row, #line)
+		local symbols = tl.symbols_in_scope(type_report, row, 1)
 		if not symbols then
 			return {}
 		end
@@ -11230,7 +11230,7 @@ tl.dora_infer = function(codes, line, row)
 		if not type_report then
 			return nil
 		end
-		local symbols = tl.symbols_in_scope(type_report, row, #line)
+		local symbols = tl.symbols_in_scope(type_report, row, 1)
 		if not symbols then
 			return nil
 		end

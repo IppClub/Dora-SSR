@@ -254,7 +254,8 @@ static int dora_resetteal(lua_State* L) {
 static int dora_tealcheck(lua_State* L) {
 	std::string codes(luaL_checkstring(L, 1));
 	std::string moduleName(luaL_checkstring(L, 2));
-	auto result = SharedLuaEngine.checkTeal(codes, moduleName);
+	bool lax = lua_toboolean(L, 3) != 0;
+	auto result = SharedLuaEngine.checkTeal(codes, moduleName, lax);
 	if (result) {
 		lua_pushboolean(L, 0);
 		lua_createtable(L, result.value().size(), 0);
@@ -385,6 +386,51 @@ static void dora_open_compiler(void* state) {
 	lua_pop(L, 1);
 }
 
+static int dora_yuecheck(lua_State* L) {
+	size_t size = 0;
+	auto codes = luaL_checklstring(L, 1, &size);
+	yue::YueConfig config;
+	config.implicitReturnRoot = true;
+	config.reserveLineNumber = true;
+	config.lintGlobalVariable = true;
+	auto result = yue::YueCompiler{nullptr, dora_open_compiler}.compile({codes, size}, config);
+	lua_createtable(L, 0, 0);
+	int i = 0;
+	if (result.error) {
+		const auto& error = result.error.value();
+		lua_createtable(L, 4, 0);
+		tolua_pushslice(L, "error"_slice);
+		lua_rawseti(L, -2, 1);
+		tolua_pushslice(L, error.msg);
+		lua_rawseti(L, -2, 2);
+		tolua_pushinteger(L, error.line);
+		lua_rawseti(L, -2, 3);
+		tolua_pushinteger(L, error.col);
+		lua_rawseti(L, -2, 4);
+		lua_rawseti(L, -2, ++i);
+	}
+	if (result.globals) {
+		for (const auto& global : *result.globals) {
+			lua_createtable(L, 4, 0);
+			tolua_pushslice(L, "global"_slice);
+			lua_rawseti(L, -2, 1);
+			tolua_pushslice(L, global.name);
+			lua_rawseti(L, -2, 2);
+			tolua_pushinteger(L, global.line);
+			lua_rawseti(L, -2, 3);
+			tolua_pushinteger(L, global.col);
+			lua_rawseti(L, -2, 4);
+			lua_rawseti(L, -2, ++i);
+		}
+	}
+	if (result.error) {
+		return 1;
+	} else {
+		tolua_pushslice(L, result.codes);
+		return 2;
+	}
+}
+
 static int dora_yuecompile(lua_State* L) {
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
@@ -434,11 +480,12 @@ static int dora_yuecompile(lua_State* L) {
 							lua_State* L = SharedLuaEngine.getState();
 							int top = lua_gettop(L);
 							DEFER(lua_settop(L, top));
-							if (result.codes.empty() && !result.error.empty()) {
+							if (result.error) {
 								lua_pushnil(L);
-								lua_pushlstring(L, result.error.c_str(), result.error.size());
+								const auto& msg = result.error.value().displayMessage;
+								tolua_pushslice(L, msg);
 							} else {
-								lua_pushlstring(L, result.codes.c_str(), result.codes.size());
+								tolua_pushslice(L, result.codes);
 								lua_pushnil(L);
 							}
 							if (result.globals) {
@@ -521,11 +568,6 @@ LuaEngine::LuaEngine()
 		{"print", dora_print},
 		{"loadfile", dora_loadfile},
 		{"dofile", dora_dofile},
-		{"doxml", dora_doxml},
-		{"xmltolua", dora_xmltolua},
-		{"yuecompile", dora_yuecompile},
-		{"ubox", dora_ubox},
-		{"emit", dora_emit},
 		{NULL, NULL}};
 	lua_pushglobaltable(L);
 	luaL_setfuncs(L, global_functions, 0);
@@ -538,8 +580,13 @@ LuaEngine::LuaEngine()
 	tolua_LuaBinding_open(L);
 
 	// add manual binding
-	tolua_beginmodule(L, nullptr); // stack: package.loaded
+	tolua_beginmodule(L, nullptr); // stack: builtin
 	{
+		tolua_function(L, "doxml", dora_doxml);
+		tolua_function(L, "xmltolua", dora_xmltolua);
+		tolua_function(L, "ubox", dora_ubox);
+		tolua_function(L, "emit", dora_emit);
+
 		tolua_beginmodule(L, "Application");
 		{
 			tolua_variable(L, "testNames", Test_getNames, nullptr);
@@ -701,6 +748,7 @@ LuaEngine::LuaEngine()
 		tolua_beginmodule(L, "yue");
 		{
 			tolua_function(L, "compile", dora_yuecompile);
+			tolua_function(L, "check", dora_yuecheck);
 		}
 		tolua_endmodule(L);
 
@@ -808,7 +856,7 @@ std::pair<std::string, std::string> LuaEngine::compileTealToLua(String tlCodes, 
 	}
 }
 
-std::optional<std::list<LuaEngine::TealError>> LuaEngine::checkTeal(String tlCodes, String moduleName) {
+std::optional<std::list<LuaEngine::TealError>> LuaEngine::checkTeal(String tlCodes, String moduleName, bool lax) {
 	loadTealState();
 	int top = lua_gettop(_tlState);
 	DEFER(lua_settop(_tlState, top));
@@ -818,7 +866,8 @@ std::optional<std::list<LuaEngine::TealError>> LuaEngine::checkTeal(String tlCod
 	lua_getfield(_tlState, -1, "dora_check"); // package loaded tl check
 	tolua_pushslice(_tlState, tlCodes); // package loaded tl check tlCodes
 	tolua_pushslice(_tlState, moduleName); // package loaded tl check tlCodes moduleName
-	LuaEngine::call(_tlState, 2, 2); // check(tlCodes, moduleName), package loaded tl res err
+	lua_pushboolean(_tlState, lax ? 1 : 0); // package loaded tl check tlCodes moduleName lax
+	LuaEngine::call(_tlState, 3, 2); // check(tlCodes, moduleName, lax), package loaded tl res err
 	if (lua_toboolean(_tlState, -2) == 0) {
 		if (lua_istable(_tlState, -1) == 0) {
 			return {{{"crash", moduleName, 0, 0, ""}}};

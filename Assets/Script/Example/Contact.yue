@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dorothy builtin.ImGui
 
 gravity = Vec2 0, -10
 
@@ -47,8 +47,6 @@ disk = with Body diskDef, world, Vec2 100, 200
 Director.entry\addChild world
 
 -- example codes ends here, some test ui below --
-
-_ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	windowFlags =

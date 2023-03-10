@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dorothy builtin.ImGui
 
 const gravity = Vec2 0, -10
 
@@ -46,8 +46,6 @@ Director.entry\addChild with world
 		.angularRate = 90
 
 -- example codes ends here, some test ui below --
-
-_ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	windowFlags =

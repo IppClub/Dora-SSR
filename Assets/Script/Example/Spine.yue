@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dorothy builtin.ImGui
 
 spineStr = "Spine/dragon-ess"
 
@@ -31,8 +31,6 @@ spine = with Spine spineStr
 Director.entry\addChild spine
 
 -- example codes ends here, some test ui below --
-
-_ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	windowFlags =

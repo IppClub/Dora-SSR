@@ -12,7 +12,7 @@ _G.require = require
 builtin.require = require
 
 import "Utils" as :Set, :Struct
-import "yue" as options: {extension: yueext}, compile: yuecompile
+options: {extension: yueext} = yue
 
 print "Dorothy SSR #{App.version}#{App.debugging and ', debugging' or ''}"
 
@@ -22,17 +22,13 @@ allowedUseOfGlobals = Set
 	* "Dorothy"
 	* "builtin"
 	* "require"
+	* "_G"
 
-LintYueGlobals = (yueCodes, globals, file)->
+LintYueGlobals = (luaCodes, globals, file)->
 	errors = {}
 	requireModules = {}
-	withImGui = false
-	withPlatformer = false
-	importCodes = table.concat (
-		for importLine in yueCodes\gmatch "Dorothy%s*%(?([^%)!\r\n]*)%s*[%)!]?"
-			continue if importLine == ""
-			importLine
-	), ","
+	luaCodes = luaCodes\gsub "^local _module_[^\r\n]*[^\r\n]+", ""
+	importCodes = luaCodes\match "^%s*local%s*_ENV%s*=%s*Dorothy%(([^%)]-)%)"
 	importItems = if importCodes
 		for item in importCodes\gmatch "%s*([^,\n\r]+)%s*"
 			getImport = load "return #{item}"
@@ -41,31 +37,42 @@ LintYueGlobals = (yueCodes, globals, file)->
 			{importItem, item}
 	else {}
 	importSet = {}
+	yueCodes = nil
 	for {name, line, col} in *globals
-		if not allowedUseOfGlobals[name]
+		continue if allowedUseOfGlobals[name]
+		if _G[name]
+			requireModules[] = "local #{name} = _G.#{name} -- 1"
+			continue
+		findModule = false
+		if importCodes
 			if builtin[name]
-				requireModules[] = "local #{name} = require(\"#{name}\") -- 1"
+				requireModules[] = "local #{name} = builtin.#{name} -- 1"
+				findModule = true
 			else
-				findModule = false
 				for i, importItem in ipairs importItems
-					if importItem[1][name]?
-						moduleName = "_module_#{i-1}"
-						if not importSet[importItem[1]]
-							importSet[importItem[1]] = true
-							requireModules[] = "local #{moduleName} = #{importItem[2]} -- 1"
+					{mod, modName} = importItem
+					if mod[name]?
+						moduleName = "_module_#{i - 1}"
+						if not importSet[mod]
+							importSet[mod] = true
+							requireModules[] = "local #{moduleName} = #{modName} -- 1"
 						requireModules[] = "local #{name} = #{moduleName}.#{name} -- 1"
 						findModule = true
 						break
-				if not findModule
-					countLine = 1
-					code = ""
-					codes = Content\load file
-					for lineCode in codes\gmatch "[^\r\n]*"
-						if countLine == line
-							code = lineCode
-							break
-						countLine += 1
-					errors[] = "Used invalid global variable \"#{name}\"\nin \"#{file}\", at line #{line}, col #{col}.\n#{code\gsub("\t", " ") .. '\n' .. string.rep(" ", col - 1) .. "^"}"
+		if not findModule
+			if file
+				if not yueCodes
+					yueCodes = Content\load file
+				countLine = 1
+				code = ""
+				for lineCode in yueCodes\gmatch "[^\r\n]*"
+					if countLine == line
+						code = lineCode
+						break
+					countLine += 1
+				errors[] = "invalid global variable \"#{name}\"\nin \"#{file}\", at line #{line}, col #{col}.\n#{code\gsub("\t", " ") .. '\n' .. string.rep(" ", col - 1) .. "^"}"
+			else
+				errors[] = "invalid global variable \"#{name}\""
 	if #errors > 0
 		false, table.concat errors, "\n"
 	else
@@ -134,14 +141,15 @@ doCompile = (minify)->
 	fileCount = 0
 	errors = {}
 	for {file, input, output} in *yueFiles
-		(success) <- yuecompile input, output, (codes, err, globals)->
+		(success) <- yue.compile input, output, (codes, err, globals)->
 			if not codes
 				table.insert errors, "Compile errors in #{file}.\n#{err}"
 				return
 			success, result = LintYueGlobals codes, globals, file
 			if success
+				codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dorothy%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
 				result ..= "\n" unless result == ""
-				"-- [yue]: #{file}\n#{result}" .. codes\gsub "local%s*_ENV%s*=%s*Dorothy%([^%)]*%)[^\r\n]*[\r\n]*",""
+				"-- [yue]: #{file}\n#{result}" .. codes
 			else
 				table.insert errors, result
 				return
@@ -349,7 +357,7 @@ enterProduct = ->
 
 showStats = true
 showConsole = true
-showFooter = false
+showFooter = true
 windowFlags =
 	* "NoTitleBar"
 	* "NoResize"
@@ -432,7 +440,10 @@ footerWindow = threadLoop ->
 				Separator!
 				doClean! if Selectable "Clean"
 			SameLine!
-			if Button "Reload", Vec2 70, 30
+			if Button("Reload", Vec2 70, 30) or (
+					Keyboard\isKeyPressed("LCtrl") and
+					Keyboard\isKeyDown "Z"
+				)
 				doClean!
 				allClear!
 				_G.require = oldRequire

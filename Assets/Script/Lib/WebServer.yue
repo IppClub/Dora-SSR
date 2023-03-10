@@ -4,7 +4,7 @@ HttpServer.wwwPath = Path Content.writablePath, ".www"
 
 HttpServer\post "/infer", (req)->
 	switch req when {body: {:lang, :content, :line, :row}}
-		switch lang when "tl"
+		switch lang when "tl", "lua"
 			infered = teal.infer content, line, row
 			if infered?
 				return success: true, :infered
@@ -12,17 +12,76 @@ HttpServer\post "/infer", (req)->
 
 HttpServer\post "/complete", (req)->
 	switch req when {body: {:lang, :content, :line, :row}}
-		switch lang when "tl"
+		switch lang when "tl", "lua"
 			suggestions = teal.complete content, line, row
 			if #suggestions > 0
 				return success: true, :suggestions
 	success: false
 
+lintYueGlobals = (luaCodes, info, file)->
+	luaCodes = luaCodes\gsub "^local _module_[^\r\n]*[^\r\n]+", ""
+	importCodes = luaCodes\match "^%s*local%s*_ENV%s*=%s*Dorothy%(([^%)]-)%)"
+	importItems = if importCodes
+		for item in importCodes\gmatch "%s*([^,\n\r]+)%s*"
+			getImport = load "return #{item}"
+			importItem = getImport?!
+			continue if not importItem or "table" ~= type importItem
+			importItem
+	else {}
+	importItems[] = _G
+	return for {t, msg, line, col} in *info
+		continue unless t == "global"
+		findModule = false
+		if importCodes
+			if builtin[msg]
+				findModule = true
+			else for i, importItem in ipairs importItems
+				if importItem[msg]?
+					findModule = true
+					break
+		continue if findModule
+		{"syntax", file, line, col, "invalid global variable"}
+
+disabledCheckForLua =
+	* "incompatible number of returns"
+	* "unknown variable"
+	* "cannot index key .* in union"
+	* "module not found"
+
 HttpServer\post "/check", (req)->
 	switch req when {body: {:file, :content}}
-		switch Path\getExt(file) when "tl"
-			success, info = teal.check content, file
+		ext = Path\getExt file
+		switch ext when "tl"
+			success, info = teal.check content, file, false
 			return :success, :info
+		when "lua"
+			res, err = load content, "check"
+			if not res
+				line, msg = err\match ".*:(%d+):%s*(.*)"
+				return success: false, info: {{"syntax", file, tonumber(line), 0, msg}}
+			success, info = teal.check content, file, true
+			if info
+				info = for item in *info
+					useCheck = true
+					for check in *disabledCheckForLua
+						if item[5]\match check
+							useCheck = false
+					continue unless useCheck
+					item
+			return :success, :info
+		when "yue"
+			res, codes = yue.check content
+			info = for {t, msg, line, col} in *res
+				continue unless t == "error"
+				{"syntax", file, line, col, msg}
+			if codes
+				globals = lintYueGlobals codes, res, file
+				for item in *globals
+					info[] = item
+			if #info == 0
+				return success: true
+			else
+				return success: false, :info
 	success: true
 
 HttpServer\upload(
