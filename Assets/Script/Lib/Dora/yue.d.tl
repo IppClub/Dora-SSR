@@ -12,7 +12,7 @@ local record yue
 		line_offset: integer
 	end
 
-	to_lua: function(code: string, config: Config): string, string
+	to_lua: function(code: string, config: Config): --[[codes]] string | nil, --[[error]] string | nil, --[[globals]] {{string, integer, integer}} | nil
 
 	file_exist: function(filename: string): boolean
 	read_file: function(filename: string): string
@@ -48,6 +48,8 @@ local record yue
 		compileCodesHandler: CompileCodeHandler,
 		callback: function(result: boolean)
 	)
+
+	check: function(yueCodes: string): {{--[[type]] string, --[[msg]] string, --[[line]] integer, --[[col]] integer}}, --[[luaCodes]] string | nil
 
 	metamethod __call: function(self: yue, module: string): any...
 end

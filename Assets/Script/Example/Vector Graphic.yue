@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dorothy builtin.ImGui
 
 drawHeart = -> with nvg
 	.BeginPath!
@@ -46,8 +46,6 @@ threadLoop ->
 	stopRendering
 
 -- example codes ends here, some test ui below --
-
-_ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	windowFlags =

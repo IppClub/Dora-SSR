@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dorothy builtin.ImGui
 
 modelFile = "Model/xiaoli.model"
 
@@ -11,8 +11,6 @@ model = with Model modelFile
 Director.entry\addChild model
 
 -- example codes ends here, some test ui below --
-
-_ENV = Dorothy builtin.ImGui
 
 looks = Model\getLooks modelFile
 looks[] = "" if #looks == 0

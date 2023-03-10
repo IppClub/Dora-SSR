@@ -29,7 +29,7 @@ export const config: languages.LanguageConfiguration = {
 
 export const language: languages.IMonarchLanguage = {
 	defaultToken: '',
-	tokenPostfix: '.tl',
+	tokenPostfix: '.lua',
 
 	keywords: [
 		'and',
@@ -54,18 +54,6 @@ export const language: languages.IMonarchLanguage = {
 		'true',
 		'until',
 		'while',
-		'record',
-		'as',
-		'embed',
-	],
-
-	types: [
-		'boolean',
-		'number',
-		'integer',
-		'string',
-		'table',
-		'userdata',
 	],
 
 	brackets: [
@@ -113,7 +101,6 @@ export const language: languages.IMonarchLanguage = {
 				{
 					cases: {
 						'@keywords': { token: 'keyword.$0' },
-						'@types': 'type.identifier',
 						'@default': 'identifier'
 					}
 				}

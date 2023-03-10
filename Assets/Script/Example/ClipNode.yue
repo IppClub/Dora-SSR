@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dorothy builtin.ImGui
 
 StarVertices = (radius, line = false)->
 	a = math.rad 36
@@ -64,8 +64,6 @@ exampleB = with Node!
 	\addTo Director.entry
 
 -- example codes ends here, some test ui below --
-
-_ENV = Dorothy builtin.ImGui
 
 inverted = true
 withAlphaThreshold = true

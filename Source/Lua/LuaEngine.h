@@ -41,7 +41,7 @@ public:
 		int col;
 		std::string msg;
 	};
-	std::optional<std::list<TealError>> checkTeal(String tlCodes, String moduleName);
+	std::optional<std::list<TealError>> checkTeal(String tlCodes, String moduleName, bool lax);
 	struct TealToken {
 		std::string name;
 		std::string desc;

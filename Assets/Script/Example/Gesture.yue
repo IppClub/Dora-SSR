@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dorothy builtin.ImGui
 
 texture = nvg.GetDorothySSRWhite!
 sprite = Sprite texture
@@ -21,8 +21,6 @@ Director.entry\addChild with Node!
 		sprite.scaleY = scaledSize / size
 
 -- example codes ends here, some test ui below --
-
-_ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	windowFlags =

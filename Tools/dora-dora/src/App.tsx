@@ -229,7 +229,7 @@ export default function PersistentDrawerLeft() {
 			setTreeData([res]);
 			return res;
 		}).catch(() => {
-			addAlert("failed to read assets", "error");
+			addAlert("failed to load assets", "error");
 			return null;
 		});
 	};
@@ -362,14 +362,14 @@ export default function PersistentDrawerLeft() {
 				addAlert("please save before reloading assets", "warning");
 				return;
 			}
-			loadAssets().then(() => {
-				setFiles([]);
-				setTabs([]);
-				setTabIndex(null);
-				setSelectedKeys([]);
-				addAlert("assets reloaded", "success");
-			}).catch(() => {
-				addAlert("failed to reload assets", "error");
+			loadAssets().then((res) => {
+				if (res !== null) {
+					setFiles([]);
+					setTabs([]);
+					setTabIndex(null);
+					setSelectedKeys([]);
+					addAlert("assets reloaded", "success");
+				}
 			});
 			return;
 		} else if (rootNode.children?.at(0)?.key === '...') {
@@ -940,70 +940,85 @@ export default function PersistentDrawerLeft() {
 			file.position = undefined;
 		}
 		setFiles([...files]);
-		editor.addAction({
-			id: "dora-action-definition",
-			label: "Go to Definition",
-			keybindings: [
-				monaco.KeyCode.F12 | monaco.KeyMod.CtrlCmd,
-				monaco.KeyCode.F12 | monaco.KeyMod.WinCtrl,
-			],
-			contextMenuGroupId: "navigation",
-			contextMenuOrder: 1.5,
-			run: function(ed) {
-				const position = ed.getPosition();
-				if (position === null) return;
-				const model = ed.getModel();
-				if (model === null) return;
-				const word = model.getWordAtPosition(position);
-				if (word === null) return;
-				const line: string = model.getValueInRange({
-					startLineNumber: position.lineNumber,
-					startColumn: 1,
-					endLineNumber: position.lineNumber,
-					endColumn: word.endColumn,
-				});
-				Service.infer({
-					lang: "tl", line,
-					row: position.lineNumber,
-					content: model.getValue()
-				}).then(function(res) {
-					if (!res.success) return;
-					if (!res.infered) return;
-					if (res.infered.key !== undefined) {
-						setJumpToFile({
-							key: res.infered.key,
-							title: path.basename(res.infered.file),
-							row: res.infered.row,
-							col: res.infered.col,
-						});
-					} else if (res.infered.row > 0 && res.infered.col > 0) {
-						const pos = {
-							lineNumber: res.infered.row,
-							column: res.infered.col,
-						};
-						editor.setPosition(pos);
-						editor.revealPositionInCenterIfOutsideViewport(pos);
-					}
-				});
-			},
-		});
+		let inferLang: "lua" | "tl" | "yue" | null = null;
+		const ext = path.extname(file.key).toLowerCase().substring(1);
+		switch (ext) {
+			case "lua": case "tl": case "yue":
+				inferLang = ext;
+				break;
+			default: return;
+		}
+		if (inferLang !== null) {
+			const lang = inferLang;
+			editor.addAction({
+				id: "dora-action-definition",
+				label: "Go to Definition",
+				keybindings: [
+					monaco.KeyCode.F12 | monaco.KeyMod.CtrlCmd,
+					monaco.KeyCode.F12 | monaco.KeyMod.WinCtrl,
+				],
+				contextMenuGroupId: "navigation",
+				contextMenuOrder: 1.5,
+				run: function(ed) {
+					const position = ed.getPosition();
+					if (position === null) return;
+					const model = ed.getModel();
+					if (model === null) return;
+					const word = model.getWordAtPosition(position);
+					if (word === null) return;
+					const line: string = model.getValueInRange({
+						startLineNumber: position.lineNumber,
+						startColumn: 1,
+						endLineNumber: position.lineNumber,
+						endColumn: word.endColumn,
+					});
+					Service.infer({
+						lang, line,
+						row: position.lineNumber,
+						content: model.getValue()
+					}).then(function(res) {
+						if (!res.success) return;
+						if (!res.infered) return;
+						if (res.infered.key !== undefined) {
+							setJumpToFile({
+								key: res.infered.key,
+								title: path.basename(res.infered.file),
+								row: res.infered.row,
+								col: res.infered.col,
+							});
+						} else if (res.infered.row > 0 && res.infered.col > 0) {
+							const pos = {
+								lineNumber: res.infered.row,
+								column: res.infered.col,
+							};
+							editor.setPosition(pos);
+							editor.revealPositionInCenterIfOutsideViewport(pos);
+						}
+					});
+				},
+			});
+		}
 		const model = editor.getModel();
 		if (model) {
 			model.onDidChangeContent((e) => {
-				lastEditorActionTime = Date.now();
-				const modified = model.getValue();
-				const lastChange = e.changes.at(-1);
 				let key: string | null = null;
 				if (tabIndex !== null) {
 					key = files[tabIndex].key;
 				}
+				if (key === null) return;
+				const file = key;
+				switch (path.extname(file).toLowerCase()) {
+					case ".lua": case ".tl": case ".yue": break;
+					default: return;
+				}
+				lastEditorActionTime = Date.now();
+				const modified = model.getValue();
+				const lastChange = e.changes.at(-1);
 				new Promise((resolve) => {
 					setTimeout(resolve, 500);
 				}).then(() => {
 					if (Date.now() - lastEditorActionTime >= 500) {
-						if (key !== null) {
-							return Service.check({file: key, content: modified});
-						}
+						return Service.check({file, content: modified});
 					}
 				}).then((res?) => {
 					if (res === undefined) return;
@@ -1011,7 +1026,15 @@ export default function PersistentDrawerLeft() {
 					if (!res.success && res.info !== undefined) {
 						for (let i = 0; i < res.info.length; i++) {
 							const [errType, filename, row, col, msg] = res.info[i];
-							if (key === null || !path.isAbsolute(filename) || path.relative(filename, key) !== "") continue;
+							if (!path.isAbsolute(filename) || path.relative(filename, file) !== "") continue;
+							let startLineNumber = row;
+							let startColumn = col;
+							let endLineNumber = row;
+							let endColumn = col;
+							if (col === 0) {
+								startColumn = model.getLineFirstNonWhitespaceColumn(row);
+								endColumn = model.getLineLastNonWhitespaceColumn(row);
+							}
 							switch (errType) {
 								case "parsing":
 								case "syntax":
@@ -1019,20 +1042,20 @@ export default function PersistentDrawerLeft() {
 									markers.push({
 										severity: monaco.MarkerSeverity.Error,
 										message: msg,
-										startLineNumber: row,
-										startColumn: col,
-										endLineNumber: row,
-										endColumn: col,
+										startLineNumber,
+										startColumn,
+										endLineNumber,
+										endColumn,
 									});
 									break;
 								case "warning":
 									markers.push({
 										severity: monaco.MarkerSeverity.Warning,
 										message: msg,
-										startLineNumber: row,
-										startColumn: col,
-										endLineNumber: row,
-										endColumn: col,
+										startLineNumber,
+										startColumn,
+										endLineNumber,
+										endColumn,
 									});
 									break;
 								case "crash":
