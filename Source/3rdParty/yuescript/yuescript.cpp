@@ -126,15 +126,16 @@ static int yuetolua(lua_State* L) {
 	}
 	std::string s(input, size);
 	auto result = yue::YueCompiler(L, nullptr, sameModule).compile(s, config);
-	if (result.codes.empty() && !result.error.empty()) {
+	if (result.error) {
 		lua_pushnil(L);
 	} else {
 		lua_pushlstring(L, result.codes.c_str(), result.codes.size());
 	}
-	if (result.error.empty()) {
-		lua_pushnil(L);
+	if (result.error) {
+		const auto& msg = result.error.value().displayMessage;
+		lua_pushlstring(L, msg.c_str(), msg.size());
 	} else {
-		lua_pushlstring(L, result.error.c_str(), result.error.size());
+		lua_pushnil(L);
 	}
 	if (result.globals) {
 		lua_createtable(L, static_cast<int>(result.globals->size()), 0);
@@ -174,7 +175,7 @@ static int yuetoast(lua_State* L) {
 	}
 	yue::YueParser parser;
 	auto info = parser.parse<yue::File_t>({input, size});
-	if (info.node) {
+	if (!info.error) {
 		lua_createtable(L, 0, 0);
 		int tableIndex = lua_gettop(L);
 		lua_createtable(L, 0, 0);
@@ -300,7 +301,8 @@ static int yuetoast(lua_State* L) {
 		return 1;
 	} else {
 		lua_pushnil(L);
-		lua_pushlstring(L, info.error.c_str(), info.error.length());
+		const auto& msg = info.error.value().msg;
+		lua_pushlstring(L, msg.c_str(), msg.length());
 		return 2;
 	}
 }

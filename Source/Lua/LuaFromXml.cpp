@@ -1736,8 +1736,8 @@ default: {
 		config.reserveLineNumber = true;
 		config.implicitReturnRoot = false;
 		auto result = yue::YueCompiler{}.compile(fmt::format("do{}{}", nl(), codes), config);
-		if (result.codes.empty()) {
-			lastError += fmt::format("failed to compile yue codes started at line {}\n{}", getLineNumber(codes), result.error);
+		if (result.codes.empty() && result.error) {
+			lastError += fmt::format("failed to compile yue codes started at line {}\n{}", getLineNumber(codes), result.error.value().displayMessage);
 		}
 		return std::move(result.codes);
 	}

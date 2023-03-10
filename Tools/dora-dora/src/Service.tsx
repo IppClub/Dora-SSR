@@ -1,10 +1,28 @@
 import { TreeDataType } from "./FileTree";
-import Post from "./Post";
+
+export function addr(url: string) {
+	if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+		return "http://localhost:8866" + url;
+	}
+	return url;
+};
+
+async function post<T>(url: string, data: any = {}) {
+	const response = await fetch(addr(url), {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(data)
+	});
+	const json: T = await response.json();
+	return json;
+};
 
 // Infer
 
 export interface InferRequest {
-	lang: "tl" | "lua";
+	lang: "tl" | "lua" | "yue";
 	line: string;
 	row: number;
 	content: string;
@@ -20,14 +38,13 @@ export interface InferResponse {
 	};
 }
 export const infer = (req: InferRequest) => {
-	return Post("/infer", req)
-		.then((res: InferResponse) => res);
+	return post<InferResponse>("/infer", req);
 };
 
 // Complete
 
 export interface CompleteRequest {
-	lang: "tl" | "lua";
+	lang: "tl" | "lua" | "yue";
 	line: string;
 	row: number;
 	content: string;
@@ -37,8 +54,7 @@ export interface CompleteResponse {
 	suggestions?: [string, string, boolean][];
 }
 export const complete = (req: CompleteRequest) => {
-	return Post("/complete", req)
-		.then((res: CompleteResponse) => res);
+	return post<CompleteResponse>("/complete", req);
 };
 
 // Check
@@ -53,15 +69,13 @@ export interface CheckResponse {
 	info?: [CheckError, string, number, number, string][];
 }
 export const check = (req: CheckRequest) => {
-	return Post("/check", req)
-		.then((res: CheckResponse) => res);
+	return post<CheckResponse>("/check", req);
 };
 
 // Assets
 
 export const assets = () => {
-	return Post('/assets')
-		.then((res: TreeDataType) => res);
+	return post<TreeDataType>('/assets');
 };
 
 // Info
@@ -70,8 +84,7 @@ export interface InfoResponse {
 	platform: "Windows" | "macOS" | "iOS" | "Android" | "Linux";
 }
 export const info = () => {
-	return Post("/info")
-		.then((res: InfoResponse) => res);
+	return post<InfoResponse>("/info");
 };
 
 // Read
@@ -84,8 +97,7 @@ export interface ReadResponse {
 	content?: string;
 }
 export const read = (req: ReadRequest) => {
-	return Post("/read", req)
-		.then((res: ReadResponse) => res);
+	return post<ReadResponse>("/read", req);
 };
 
 // Write
@@ -98,8 +110,7 @@ export interface WriteResponse {
 	success: boolean;
 }
 export const write = (req: WriteRequest) => {
-	return Post("/write", req)
-		.then((res: WriteResponse) => res);
+	return post<WriteResponse>("/write", req);
 };
 
 // Rename
@@ -112,8 +123,7 @@ export interface RenameResponse {
 	success: boolean;
 }
 export const rename = (req: RenameRequest) => {
-	return Post("/rename", req)
-		.then((res: RenameResponse) => res);
+	return post<RenameResponse>("/rename", req);
 };
 
 // Delete
@@ -124,9 +134,8 @@ export interface DeleteRequest {
 export interface DeleteResponse {
 	success: boolean;
 }
-export const deleteFile = (req: DeleteRequest) => {
-	return Post("/delete", req)
-		.then((res: DeleteResponse) => res);
+export const deleteFile = async (req: DeleteRequest) => {
+	return await post<DeleteResponse>("/delete", req);
 };
 
 // New
@@ -138,8 +147,7 @@ export interface NewResponse {
 	success: boolean;
 }
 export const newFile = (req: NewRequest) => {
-	return Post("/new", req)
-		.then((res: NewResponse) => res);
+	return post<NewResponse>("/new", req);
 };
 
 // List
@@ -152,6 +160,5 @@ export interface ListResponse {
 	files: string[];
 }
 export const list = (req: ListRequest) => {
-	return Post("/list", req)
-		.then((res: ListResponse) => res);
+	return post<ListResponse>("/list", req);
 };

@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dorothy builtin.ImGui
 
 sceneGroup = Group {"scene"}
 positionGroup = Group {"position"}
@@ -62,8 +62,6 @@ Entity
 	scene: Node!
 
 -- example codes ends here, some test ui below --
-
-_ENV = Dorothy builtin.ImGui
 
 with Observer "Add", {"scene"}
 	windowFlags =

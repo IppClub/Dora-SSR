@@ -2,7 +2,7 @@ import { Container } from '@mui/material';
 import { ConfigProvider, theme, UploadProps } from 'antd';
 import { Upload } from 'antd';
 import { AiOutlineUpload } from 'react-icons/ai';
-import { Addr } from './Post';
+import { addr } from './Service';
 
 const { Dragger } = Upload;
 
@@ -16,7 +16,7 @@ const DoraUpload = (prop: DoraUploadProp) => {
 	const props: UploadProps = {
 		name: 'file',
 		multiple: true,
-		action: Addr(`/upload?path=${prop.path}`),
+		action: addr(`/upload?path=${prop.path}`),
 		onChange(info) {
 			const { status } = info.file;
 			if (status === 'done') {

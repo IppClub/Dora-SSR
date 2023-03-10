@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dorothy builtin.ImGui
 
 sprite = Sprite "Image/logo.png"
 
@@ -10,8 +10,6 @@ Director.entry\addChild with Node!
 	\addChild sprite
 
 -- example codes ends here, test ui codes below --
-
-_ENV = Dorothy builtin.ImGui
 
 Director.entry\addChild with Node!
 	windowFlags =

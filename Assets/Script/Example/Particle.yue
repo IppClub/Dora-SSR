@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dorothy builtin.ImGui
 
 Data = {
 	Angle: {"B","float",90}
@@ -75,8 +75,6 @@ Director.entry\addChild with Node!
 		particle.position += touch.delta/2
 
 -- example codes ends here, some test ui below --
-
-_ENV = Dorothy builtin.ImGui
 
 DataDirty = false
 

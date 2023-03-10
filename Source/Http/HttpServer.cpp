@@ -144,7 +144,9 @@ bool HttpServer::start(int port) {
 			});
 		}
 		SharedAsyncThread.HttpServer.run([]() {
-			getServer().listen_after_bind();
+			if (!getServer().listen_after_bind()) {
+				LogError("http server failed to start");
+			}
 		});
 	}
 	return success;
