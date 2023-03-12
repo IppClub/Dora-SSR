@@ -103,7 +103,7 @@ local Platformer = require("Platformer")
 local HttpServer = require("HttpServer")
 local Profiler = require("Profiler")
 local teal = require("teal")
-local p = require("p")
+global p = require("p")
 --Dorothy
 --property
 --Class

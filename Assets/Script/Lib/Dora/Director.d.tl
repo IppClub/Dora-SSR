@@ -8,6 +8,7 @@ local record Director
 	clearColor: Color
 	scheduler: Scheduler
 	const ui: Node
+	const ui3D: Node
 	const entry: Node
 	const postNode: Node
 	const systemScheduler: Scheduler

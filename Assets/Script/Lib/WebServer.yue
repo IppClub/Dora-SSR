@@ -18,35 +18,32 @@ HttpServer\post "/complete", (req)->
 				return success: true, :suggestions
 	success: false
 
-lintYueGlobals = (luaCodes, info, file)->
-	luaCodes = luaCodes\gsub "^local _module_[^\r\n]*[^\r\n]+", ""
-	importCodes = luaCodes\match "^%s*local%s*_ENV%s*=%s*Dorothy%(([^%)]-)%)"
-	importItems = if importCodes
-		for item in importCodes\gmatch "%s*([^,\n\r]+)%s*"
-			getImport = load "return #{item}"
-			importItem = getImport?!
-			continue if not importItem or "table" ~= type importItem
-			importItem
-	else {}
-	importItems[] = _G
-	return for {t, msg, line, col} in *info
-		continue unless t == "global"
-		findModule = false
-		if importCodes
-			if builtin[msg]
-				findModule = true
-			else for i, importItem in ipairs importItems
-				if importItem[msg]?
-					findModule = true
-					break
-		continue if findModule
-		{"syntax", file, line, col, "invalid global variable"}
+import "Utils" as :LintYueGlobals
 
 disabledCheckForLua =
 	* "incompatible number of returns"
 	* "unknown variable"
 	* "cannot index key .* in union"
 	* "module not found"
+
+luaCheck = (file, content)->
+	res, err = load content, "check"
+	if not res
+		line, msg = err\match ".*:(%d+):%s*(.*)"
+		return success: false, info: {{"syntax", file, tonumber(line), 0, msg}}
+	success, info = teal.check content, file, true
+	if info
+		info = for item in *info
+			useCheck = true
+			for check in *disabledCheckForLua
+				if item[5]\match check
+					useCheck = false
+			continue unless useCheck
+			item
+		if #info == 0
+			info = nil
+			success = true
+	return :success, :info
 
 HttpServer\post "/check", (req)->
 	switch req when {body: {:file, :content}}
@@ -55,29 +52,39 @@ HttpServer\post "/check", (req)->
 			success, info = teal.check content, file, false
 			return :success, :info
 		when "lua"
-			res, err = load content, "check"
-			if not res
-				line, msg = err\match ".*:(%d+):%s*(.*)"
-				return success: false, info: {{"syntax", file, tonumber(line), 0, msg}}
-			success, info = teal.check content, file, true
-			if info
-				info = for item in *info
-					useCheck = true
-					for check in *disabledCheckForLua
-						if item[5]\match check
-							useCheck = false
-					continue unless useCheck
-					item
-			return :success, :info
+			return luaCheck file, content
 		when "yue"
-			res, codes = yue.check content
-			info = for {t, msg, line, col} in *res
-				continue unless t == "error"
-				{"syntax", file, line, col, msg}
-			if codes
-				globals = lintYueGlobals codes, res, file
-				for item in *globals
-					info[] = item
+			checkResult, luaCodes = yue.check content
+			info = {}
+			globals = {}
+			for {t, msg, line, col} in *checkResult
+				switch t when "error"
+					info[] = {"syntax", file, line, col, msg}
+				when "global"
+					globals[] = {msg, line, col}
+			if luaCodes
+				success, lintResult = LintYueGlobals luaCodes, globals, false
+				if success
+					luaCodes = luaCodes\gsub "%s*local%s*_ENV%s*=%s*Dorothy%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
+					lintResult ..= "\n" unless lintResult == ""
+					luaCodes = "-- [yue]: #{file}\n#{lintResult}" .. luaCodes
+					res = luaCheck file, luaCodes
+					if not res.success
+						current = 1
+						lastLine = 1
+						lineMap = {}
+						for lineCode in luaCodes\gmatch "[^\n\r]*"
+							num = lineCode\match "--%s*(%d+)%s*$"
+							if num
+								lastLine = tonumber num
+							lineMap[current] = lastLine
+							current += 1
+						for item in *res.info
+							item[3] = lineMap[item[3]]
+							item[4] = 0
+							info[] = item
+				else for {name, line, col} in *lintResult
+					info[] = {"syntax", file, line, col, "invalid global variable"}
 			if #info == 0
 				return success: true
 			else

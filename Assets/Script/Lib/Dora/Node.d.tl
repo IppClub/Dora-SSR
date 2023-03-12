@@ -163,7 +163,7 @@ local record Node
 		effect: SpriteEffect
 		blendFunc: BlendFunc
 		clearColor: Color
-		setPos: function(self: Grabber, x: integer, y: integer, pos: Vec2)
+		setPos: function(self: Grabber, x: integer, y: integer, pos: Vec2, z?: number --[[0.0]])
 		getPos: function(self: Grabber, x: integer, y: integer)
 		getColor: function(self: Grabber, x: integer, y: integer): Color
 		setColor: function(self: Grabber, x: integer, y: integer, color: Color)

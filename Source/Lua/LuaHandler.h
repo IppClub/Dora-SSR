@@ -40,7 +40,7 @@ class Event;
 template <class T>
 class LuaFunction {
 public:
-	LuaFunction(int handler)
+	explicit LuaFunction(int handler)
 		: _handler(LuaHandler::create(handler)) { }
 	inline bool operator==(const LuaFunction& other) const {
 		return _handler->equals(other._handler);
