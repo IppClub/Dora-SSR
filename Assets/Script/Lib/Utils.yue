@@ -281,3 +281,51 @@ export Round = (val)->
 		)
 
 export IsValidPath = (filename)-> not filename\match "[\\/|:*?<>\"]"
+
+allowedUseOfGlobals = Set
+	* "Dorothy"
+	* "builtin"
+	* "require"
+	* "_G"
+
+export LintYueGlobals = (luaCodes, globals, globalInLocal = true)->
+	errors = {}
+	requireModules = {}
+	luaCodes = luaCodes\gsub "^local _module_[^\r\n]*[^\r\n]+", ""
+	importCodes = luaCodes\match "^%s*local%s*_ENV%s*=%s*Dorothy%(([^%)]-)%)"
+	importItems = if importCodes
+		for item in importCodes\gmatch "%s*([^,\n\r]+)%s*"
+			getImport = load "return #{item}"
+			importItem = getImport?!
+			continue if not importItem or "table" ~= type importItem
+			{importItem, item}
+	else {}
+	importSet = {}
+	for globalVar in *globals
+		{name, line, col} = globalVar
+		continue if allowedUseOfGlobals[name]
+		if _G[name]
+			if globalInLocal
+				requireModules[] = "local #{name} = _G.#{name} -- 1"
+			continue
+		findModule = false
+		if importCodes
+			if builtin[name]
+				requireModules[] = "local #{name} = builtin.#{name} -- 1"
+				findModule = true
+			else
+				for i, {mod, modName} in ipairs importItems
+					if mod[name]?
+						moduleName = "_module_#{i - 1}"
+						if not importSet[mod]
+							importSet[mod] = true
+							requireModules[] = "local #{moduleName} = #{modName} -- 1"
+						requireModules[] = "local #{name} = #{moduleName}.#{name} -- 1"
+						findModule = true
+						break
+		if not findModule
+			errors[] = globalVar
+	if #errors > 0
+		false, errors
+	else
+		true, table.concat requireModules, "\n"
