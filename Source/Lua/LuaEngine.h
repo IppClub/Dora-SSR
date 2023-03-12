@@ -66,7 +66,6 @@ public:
 	bool executeScriptFile(String filename);
 	bool executeModule(String module);
 	bool executeFunction(int handler, int paramCount = 0);
-	int executeReturnFunction(int handler, int paramCount = 0);
 	Node* executeReturnNode(int handler);
 
 	void pop(int count = 1);

@@ -56,6 +56,8 @@ export const language: languages.IMonarchLanguage = {
 		'while',
 		'record',
 		'as',
+		'is',
+		'type',
 		'embed',
 	],
 
