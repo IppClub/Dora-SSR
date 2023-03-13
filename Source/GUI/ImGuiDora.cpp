@@ -453,7 +453,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 #endif
 
 	int64_t size;
-	uint8_t* fileData = SharedContent.loadUnsafe(ttfFontFile, size);
+	uint8_t* fileData = SharedContent.loadInMainUnsafe(ttfFontFile, size);
 
 	if (!fileData) {
 		Warn("failed to load ttf file for ImGui!");

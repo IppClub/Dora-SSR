@@ -19,8 +19,8 @@ extern "C" {
 	fn content_get_files(path: i64) -> i64;
 	fn content_get_all_files(path: i64) -> i64;
 	fn content_load_async(filename: i64, func: i32, stack: i64);
-	fn content_copy_async(src_file: i64, target_file: i64, func: i32);
-	fn content_save_async(filename: i64, content: i64, func: i32);
+	fn content_copy_async(src_file: i64, target_file: i64, func: i32, stack: i64);
+	fn content_save_async(filename: i64, content: i64, func: i32, stack: i64);
 }
 pub struct Content { }
 impl Content {
@@ -89,16 +89,20 @@ impl Content {
 		}));
 		unsafe { content_load_async(crate::dora::from_string(filename), func_id, stack_raw); }
 	}
-	pub fn copy_async(src_file: &str, target_file: &str, mut callback: Box<dyn FnMut()>) {
+	pub fn copy_async(src_file: &str, target_file: &str, mut callback: Box<dyn FnMut(bool)>) {
+		let mut stack = crate::dora::CallStack::new();
+		let stack_raw = stack.raw();
 		let func_id = crate::dora::push_function(Box::new(move || {
-			callback()
+			callback(stack.pop_bool().unwrap())
 		}));
-		unsafe { content_copy_async(crate::dora::from_string(src_file), crate::dora::from_string(target_file), func_id); }
+		unsafe { content_copy_async(crate::dora::from_string(src_file), crate::dora::from_string(target_file), func_id, stack_raw); }
 	}
-	pub fn save_async(filename: &str, content: &str, mut callback: Box<dyn FnMut()>) {
+	pub fn save_async(filename: &str, content: &str, mut callback: Box<dyn FnMut(bool)>) {
+		let mut stack = crate::dora::CallStack::new();
+		let stack_raw = stack.raw();
 		let func_id = crate::dora::push_function(Box::new(move || {
-			callback()
+			callback(stack.pop_bool().unwrap())
 		}));
-		unsafe { content_save_async(crate::dora::from_string(filename), crate::dora::from_string(content), func_id); }
+		unsafe { content_save_async(crate::dora::from_string(filename), crate::dora::from_string(content), func_id, stack_raw); }
 	}
 }

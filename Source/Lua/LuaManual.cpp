@@ -2677,6 +2677,102 @@ tolua_lerror:
 #endif
 }
 
+int HttpServer_postSchedule(lua_State* L) {
+	/* 1 self, 2 pattern, 3 handler */
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "HttpServer"_slice, 0, &tolua_err)
+		|| !tolua_isslice(L, 2, 0, &tolua_err)
+		|| !tolua_isfunction(L, 3, &tolua_err)
+		|| !tolua_isnoobj(L, 4, &tolua_err)) {
+		goto tolua_lerror;
+	}
+#endif
+	{
+		HttpServer* self = r_cast<HttpServer*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+		if (!self) tolua_error(L, "invalid 'self' in function 'HttpServer_postSchedule'", nullptr);
+#endif
+		Slice pattern = tolua_toslice(L, 2, nullptr);
+		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 3)));
+		self->postSchedule(pattern, [handler](const HttpServer::Request& req) -> HttpServer::PostScheduledFunc {
+			auto L = SharedLuaEngine.getState();
+			int top = lua_gettop(L);
+			DEFER(lua_settop(L, top));
+			lua_createtable(L, 0, 0);
+			lua_pushliteral(L, "params");
+			lua_createtable(L, 0, 0);
+			std::string key;
+			bool startPair = true;
+			for (const auto& v : req.params) {
+				if (startPair) {
+					startPair = false;
+					key = v;
+				} else {
+					startPair = true;
+					tolua_pushslice(L, key);
+					tolua_pushslice(L, v);
+					lua_rawset(L, -3);
+				}
+			}
+			lua_rawset(L, -3);
+			lua_pushliteral(L, "body");
+			if (req.contentType == "application/json"_slice) {
+				lua_pushcfunction(L, colibc_json_load);
+				tolua_pushslice(L, req.body);
+				if (!LuaEngine::call(L, 1, 1)) {
+					lua_pop(L, 1);
+					lua_pushnil(L);
+				}
+			} else {
+				tolua_pushslice(L, req.body);
+			}
+			lua_rawset(L, -3);
+			LuaHandler* func = nullptr;
+			SharedLuaEngine.executeReturn(func, handler->get(), 1);
+			if (!func) {
+				return HttpServer::PostScheduledFunc([]() {
+					return std::optional<HttpServer::Response>(HttpServer::Response(500));
+				});
+			}
+			Ref<LuaHandler> scheduledFunc(func);
+			return HttpServer::PostScheduledFunc([scheduledFunc]() -> std::optional<HttpServer::Response> {
+				auto L = SharedLuaEngine.getState();
+				int top = lua_gettop(L);
+				DEFER(lua_settop(L, top));
+				LuaEngine::invoke(L, scheduledFunc->get(), 0, 1);
+				if (lua_isboolean(L, -1) != 0 && lua_toboolean(L, -1) == 0) {
+					return std::nullopt;
+				} else {
+					HttpServer::Response res;
+					if (lua_istable(L, -1)) {
+						lua_pushcfunction(L, colibc_json_dump);
+						lua_insert(L, -2);
+						if (LuaEngine::call(L, 1, 1)) {
+							res.content = tolua_toslice(L, -1, nullptr);
+							res.contentType = "application/json"_slice;
+						} else {
+							res.status = 500;
+						}
+					} else if (lua_isstring(L, -1)) {
+						res.content = tolua_toslice(L, -1, nullptr);
+						res.contentType = "text/plain"_slice;
+					} else {
+						res.status = 500;
+					}
+					return res;
+				}
+			});
+		});
+		return 0;
+	}
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'HttpServer_postSchedule'.", &tolua_err);
+	return 0;
+#endif
+}
+
 int HttpServer_upload(lua_State* L) {
 	/* 1 self, 2 pattern, 3 handler */
 #ifndef TOLUA_RELEASE

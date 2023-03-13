@@ -292,26 +292,28 @@ do
 	Content.saveAsync = function(self, filename, content)
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "Content.saveAsync should be run in a thread")
-		local saved = false
-		Content_saveAsync(self, filename, content, function()
-			saved = true
+		local result = nil
+		Content_saveAsync(self, filename, content, function(success)
+			result = success
 		end)
 		wait(function()
-			return saved
+			return result ~= nil
 		end)
+		return result
 	end
 
 	local Content_copyAsync = Content.copyAsync
 	Content.copyAsync = function(self, src, dst)
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "Content.copyAsync should be run in a thread")
-		local loaded = false
-		Content_copyAsync(self, src, dst, function()
-			loaded = true
+		local result = nil
+		Content_copyAsync(self, src, dst, function(success)
+			result = success
 		end)
 		wait(function()
-			return loaded
+			return result ~= nil
 		end)
+		return result
 	end
 
 	local Cache = builtin.Cache
@@ -440,6 +442,15 @@ do
 			return result ~= nil
 		end)
 		return result
+	end
+
+	local HttpServer_postSchedule = HttpServer.postSchedule
+	HttpServer.postSchedule = function(self, pattern, scheduleFunc)
+		HttpServer_postSchedule(self, pattern, function(req)
+			return coroutine.wrap(function()
+				return scheduleFunc(req)
+			end)
+		end)
 	end
 end
 

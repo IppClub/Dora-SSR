@@ -66,19 +66,25 @@ static void content_load_async(int64_t filename, int32_t func, int64_t stack) {
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static void content_copy_async(int64_t src_file, int64_t target_file, int32_t func) {
+static void content_copy_async(int64_t src_file, int64_t target_file, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
-	SharedContent.copyAsync(*str_from(src_file), *str_from(target_file), [func, deref]() {
+	auto args = r_cast<CallStack*>(stack);
+	SharedContent.copyAsync(*str_from(src_file), *str_from(target_file), [func, args, deref](bool success) {
+		args->clear();
+		args->push(success);
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static void content_save_async(int64_t filename, int64_t content, int32_t func) {
+static void content_save_async(int64_t filename, int64_t content, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
-	SharedContent.saveAsync(*str_from(filename), *str_from(content), [func, deref]() {
+	auto args = r_cast<CallStack*>(stack);
+	SharedContent.saveAsync(*str_from(filename), *str_from(content), [func, args, deref](bool success) {
+		args->clear();
+		args->push(success);
 		SharedWasmRuntime.invoke(func);
 	});
 }

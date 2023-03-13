@@ -8,7 +8,7 @@ extern "C" {
 	fn rendertarget_render(slf: i64, target: i64);
 	fn rendertarget_render_clear(slf: i64, color: i32, depth: f32, stencil: i32);
 	fn rendertarget_render_clear_with_target(slf: i64, target: i64, color: i32, depth: f32, stencil: i32);
-	fn rendertarget_save_async(slf: i64, filename: i64, func: i32);
+	fn rendertarget_save_async(slf: i64, filename: i64, func: i32, stack: i64);
 	fn rendertarget_new(width: i32, height: i32) -> i64;
 }
 use crate::dora::IObject;
@@ -47,11 +47,13 @@ impl RenderTarget {
 	pub fn render_clear_with_target(&mut self, target: &dyn crate::dora::INode, color: &crate::dora::Color, depth: f32, stencil: i32) {
 		unsafe { rendertarget_render_clear_with_target(self.raw(), target.raw(), color.to_argb() as i32, depth, stencil); }
 	}
-	pub fn save_async(&mut self, filename: &str, mut handler: Box<dyn FnMut()>) {
+	pub fn save_async(&mut self, filename: &str, mut handler: Box<dyn FnMut(bool)>) {
+		let mut stack = crate::dora::CallStack::new();
+		let stack_raw = stack.raw();
 		let func_id = crate::dora::push_function(Box::new(move || {
-			handler()
+			handler(stack.pop_bool().unwrap())
 		}));
-		unsafe { rendertarget_save_async(self.raw(), crate::dora::from_string(filename), func_id); }
+		unsafe { rendertarget_save_async(self.raw(), crate::dora::from_string(filename), func_id, stack_raw); }
 	}
 	pub fn new(width: i32, height: i32) -> RenderTarget {
 		unsafe { return RenderTarget { raw: rendertarget_new(width, height) }; }

@@ -29,24 +29,26 @@ using namespace Dorothy;
 
 struct ZipEntry {
 	std::string name;
+	std::string displayName;
 	uint64_t size;
 };
 
 class ZipFilePrivate {
 public:
+	std::string path;
 	mz_zip_archive archive;
 	std::unordered_map<std::string, ZipEntry> fileList;
 	std::unordered_map<std::string, std::string> folderList;
 };
 
 ZipFile::ZipFile(const std::string& zipFile, const std::string& filter) {
-	_file = new ZipFilePrivate();
+	_file = New<ZipFilePrivate>();
+	_file->path = zipFile;
 	if (mz_zip_reader_init_file(&_file->archive, zipFile.c_str(), 0)) {
 		setFilter(filter);
 	} else {
 		auto err = mz_zip_get_error_string(mz_zip_get_last_error(&_file->archive));
 		mz_zip_reader_end(&_file->archive);
-		delete _file;
 		_file = nullptr;
 		Error("failed to open zip file \"{}\": {}.", zipFile, err);
 	}
@@ -58,13 +60,12 @@ ZipFile::ZipFile(std::pair<OwnArray<uint8_t>, size_t>&& data, const std::string&
 		Error("invalid zip data.");
 		return;
 	}
-	_file = new ZipFilePrivate();
+	_file = New<ZipFilePrivate>();
 	if (mz_zip_reader_init_mem(&_file->archive, _data.first.get(), _data.second, 0)) {
 		setFilter(filter);
 	} else {
 		auto err = mz_zip_get_error_string(mz_zip_get_last_error(&_file->archive));
 		mz_zip_reader_end(&_file->archive);
-		delete _file;
 		_file = nullptr;
 		Error("failed to open zip from data: {}.", err);
 	}
@@ -73,7 +74,6 @@ ZipFile::ZipFile(std::pair<OwnArray<uint8_t>, size_t>&& data, const std::string&
 ZipFile::~ZipFile() {
 	if (_file) {
 		mz_zip_reader_end(&_file->archive);
-		delete _file;
 		_file = nullptr;
 	}
 }
@@ -97,13 +97,16 @@ bool ZipFile::setFilter(const std::string& filter) {
 			Slice filename(file_stat.m_filename);
 			if (!mz_zip_reader_is_file_a_directory(archive, i) && (filter.empty() || filename.left(filter.length()) == filter)) {
 				std::string currentFileName = filename.toString();
-				_file->fileList[filename.toLower()] = {
+				std::string filePath = _file->path + '/' + currentFileName;
+				_file->fileList[Slice(filePath).toLower()] = {
 					currentFileName,
+					filePath,
 					file_stat.m_uncomp_size};
 				size_t pos = currentFileName.rfind('/');
 				while (pos != std::string::npos) {
 					currentFileName = currentFileName.substr(0, pos);
-					_file->folderList[Slice(currentFileName).toLower()] = currentFileName;
+					std::string folderPath = _file->path + '/' + currentFileName;
+					_file->folderList[Slice(folderPath).toLower()] = folderPath;
 					pos = currentFileName.rfind('/');
 				}
 			}
@@ -153,7 +156,7 @@ std::list<std::string> ZipFile::getDirEntries(const std::string& path, bool isFo
 				size_t pos = file.first.find('/', searchName.length() + 1);
 				if (pos == std::string::npos) {
 					if (searchName.length() < file.first.length()) {
-						results.push_back(file.second.name.substr(searchName.length() + 1));
+						results.push_back(file.second.displayName.substr(searchName.length() + 1));
 					}
 				}
 			}
@@ -170,7 +173,7 @@ std::list<std::string> ZipFile::getAllFiles(const std::string& path) {
 		auto left = Slice(file.first).left(searchName.length());
 		if (left == searchName) {
 			if (searchName.length() < file.first.length()) {
-				results.push_back(file.second.name.substr(searchName.length() + 1));
+				results.push_back(file.second.displayName.substr(searchName.length() + 1));
 			}
 		}
 	}

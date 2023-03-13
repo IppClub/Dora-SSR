@@ -52,7 +52,7 @@ Content::~Content() { }
 std::pair<OwnArray<uint8_t>, size_t> Content::load(String filename) {
 	SharedAsyncThread.FileIO.pause();
 	int64_t size = 0;
-	uint8_t* data = Content::_loadFileUnsafe(filename, size);
+	uint8_t* data = Content::loadUnsafe(filename, size);
 	SharedAsyncThread.FileIO.resume();
 	return {OwnArray<uint8_t>(data), s_cast<size_t>(size)};
 }
@@ -60,7 +60,7 @@ std::pair<OwnArray<uint8_t>, size_t> Content::load(String filename) {
 const bgfx::Memory* Content::loadBX(String filename) {
 	SharedAsyncThread.FileIO.pause();
 	int64_t size = 0;
-	uint8_t* data = Content::_loadFileUnsafe(filename, size);
+	uint8_t* data = Content::loadUnsafe(filename, size);
 	SharedAsyncThread.FileIO.resume();
 	return bgfx::makeRef(data, (uint32_t)size, releaseFileData);
 }
@@ -123,7 +123,7 @@ std::list<std::string> Content::getAllFiles(String path) {
 	std::string searchName = path.empty() ? _assetPath : path.toString();
 	std::string fullPath = Content::getFullPath(searchName);
 #if BX_PLATFORM_ANDROID
-	if (fullPath[0] != '/') {
+	if (fullPath.find(_assetPath) == 0) {
 		return g_apkFile->getAllFiles(fullPath);
 	}
 #endif // BX_PLATFORM_ANDROID
@@ -191,27 +191,32 @@ std::string Content::getFullPath(String filename) {
 		targetFile.skipRight(1);
 	}
 
-	auto it = _fullPathCache.find(targetFile);
-	if (it != _fullPathCache.end()) {
-		return it->second;
-	}
+	static std::mutex pathMutex;
+	{
+		std::lock_guard<std::mutex> lock(pathMutex);
 
-	std::string path, file, fullPath;
-	auto fname = fs::path(targetFile.begin(), targetFile.end()).lexically_normal();
-	for (const auto& searchPath : _searchPaths) {
-		std::tie(path, file) = splitDirectoryAndFilename((fs::path(searchPath) / fname).string());
+		auto it = _fullPathCache.find(targetFile);
+		if (it != _fullPathCache.end()) {
+			return it->second;
+		}
+
+		std::string path, file, fullPath;
+		auto fname = fs::path(targetFile.begin(), targetFile.end()).lexically_normal();
+		for (const auto& searchPath : _searchPaths) {
+			std::tie(path, file) = splitDirectoryAndFilename((fs::path(searchPath) / fname).string());
+			fullPath = Content::getFullPathForDirectoryAndFilename(path, file);
+			if (!fullPath.empty()) {
+				_fullPathCache[fname.string()] = fullPath;
+				return fullPath;
+			}
+		}
+
+		std::tie(path, file) = splitDirectoryAndFilename(targetFile);
 		fullPath = Content::getFullPathForDirectoryAndFilename(path, file);
 		if (!fullPath.empty()) {
-			_fullPathCache[fname.string()] = fullPath;
+			_fullPathCache[targetFile] = fullPath;
 			return fullPath;
 		}
-	}
-
-	std::tie(path, file) = splitDirectoryAndFilename(targetFile);
-	fullPath = Content::getFullPathForDirectoryAndFilename(path, file);
-	if (!fullPath.empty()) {
-		_fullPathCache[targetFile] = fullPath;
-		return fullPath;
 	}
 
 	return targetFile;
@@ -335,7 +340,7 @@ void Content::loadAsyncUnsafe(String filename, const std::function<void(uint8_t*
 	SharedAsyncThread.FileIO.run(
 		[fileStr, this]() {
 			int64_t size = 0;
-			uint8_t* buffer = this->_loadFileUnsafe(fileStr, size);
+			uint8_t* buffer = this->loadUnsafe(fileStr, size);
 			return Values::alloc(buffer, size);
 		},
 		[callback](Own<Values> result) {
@@ -365,44 +370,47 @@ void Content::loadAsyncBX(String filename, const std::function<void(const bgfx::
 	});
 }
 
-void Content::copyAsync(String src, String dst, const std::function<void()>& callback) {
+void Content::copyAsync(String src, String dst, const std::function<void(bool)>& callback) {
 	std::string srcFile(src), dstFile(dst);
 	SharedAsyncThread.FileIO.run(
 		[srcFile, dstFile, this]() {
-			Content::copyUnsafe(srcFile, dstFile);
-			return nullptr;
+			bool success = Content::copyUnsafe(srcFile, dstFile);
+			return Values::alloc(success);
 		},
 		[callback](Own<Values> result) {
-			DORA_UNUSED_PARAM(result);
-			callback();
+			bool success = false;
+			result->get(success);
+			callback(success);
 		});
 }
 
-void Content::saveAsync(String filename, String content, const std::function<void()>& callback) {
+void Content::saveAsync(String filename, String content, const std::function<void(bool)>& callback) {
 	std::string file(filename);
 	auto data = std::make_shared<std::string>(content);
 	SharedAsyncThread.FileIO.run(
 		[file, data, this]() {
-			Content::save(file, *data);
-			return nullptr;
+			bool success = Content::save(file, *data);
+			return Values::alloc(success);
 		},
 		[callback](Own<Values> result) {
-			DORA_UNUSED_PARAM(result);
-			callback();
+			bool success = false;
+			result->get(success);
+			callback(success);
 		});
 }
 
-void Content::saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void()>& callback) {
+void Content::saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void(bool)>& callback) {
 	std::string file(filename);
 	auto data = std::make_shared<OwnArray<uint8_t>>(std::move(content));
 	SharedAsyncThread.FileIO.run(
 		[file, data, size, this]() {
-			Content::save(file, Slice(r_cast<char*>((*data).get()), size));
-			return nullptr;
+			bool success = Content::save(file, Slice(r_cast<char*>((*data).get()), size));
+			return Values::alloc(success);
 		},
 		[callback](Own<Values> result) {
-			DORA_UNUSED_PARAM(result);
-			callback();
+			bool success = false;
+			result->get(success);
+			callback(success);
 		});
 }
 
@@ -418,7 +426,7 @@ std::list<std::string> Content::getDirEntries(String path, bool isFolder) {
 	std::string searchName = path.empty() ? _assetPath : path.toString();
 	std::string fullPath = Content::getFullPath(searchName);
 #if BX_PLATFORM_ANDROID
-	if (fullPath[0] != '/') {
+	if (fullPath.find(_assetPath) == 0) {
 		return g_apkFile->getDirEntries(fullPath, isFolder);
 	}
 #endif // BX_PLATFORM_ANDROID
@@ -436,9 +444,9 @@ std::list<std::string> Content::getDirEntries(String path, bool isFolder) {
 	return files;
 }
 
-uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
+uint8_t* Content::loadInMainUnsafe(String filename, int64_t& size) {
 	SharedAsyncThread.FileIO.pause();
-	uint8_t* data = Content::_loadFileUnsafe(filename, size);
+	uint8_t* data = Content::loadUnsafe(filename, size);
 	SharedAsyncThread.FileIO.resume();
 	return data;
 }
@@ -449,21 +457,21 @@ void Content::clearPathCache() {
 
 #if BX_PLATFORM_ANDROID
 Content::Content() {
-	_assetPath = "assets/";
-	g_apkFile = New<ZipFile>(SharedApplication.getAPKPath(), _assetPath);
+	_assetPath = SharedApplication.getAPKPath() + '/' + "assets/"s;
+	g_apkFile = New<ZipFile>(SharedApplication.getAPKPath(), "assets/"s);
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	_writablePath = prefPath;
 	SDL_free(prefPath);
 }
 
-uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size) {
+uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 	uint8_t* data = nullptr;
 	if (filename.empty()) {
 		return data;
 	}
 	std::string fullPath = Content::getFullPath(filename);
-	if (fullPath[0] != '/') {
+	if (fullPath.find(_assetPath) == 0) {
 		data = g_apkFile->getFileDataUnsafe(fullPath, r_cast<size_t*>(&size));
 	} else {
 		BLOCK_START {
@@ -492,7 +500,7 @@ bool Content::loadByChunks(String filename, const std::function<bool(uint8_t*, i
 		return false;
 	}
 	std::string fullPath = Content::getFullPath(filename);
-	if (fullPath[0] != '/') {
+	if (fullPath.find(_assetPath) == 0) {
 		if (g_apkFile->getFileDataByChunks(fullPath, handler)) {
 			return true;
 		}
@@ -522,39 +530,37 @@ bool Content::isFileExist(String strFilePath) {
 	if (strFilePath.empty()) {
 		return false;
 	}
+	std::string strPath = strFilePath;
+	if (!isAbsolutePath(strFilePath)) {
+		strPath.insert(0, _assetPath);
+	}
+	if (g_apkFile->fileExists(strPath)) {
+		return true;
+	}
 	bool found = false;
-	// Check whether file exists in apk.
-	if (strFilePath[0] != '/') {
-		std::string strPath = strFilePath;
-		if (strPath.find(_assetPath) != 0) {
-			// Didn't find "assets/" at the beginning of the path, adding it.
-			strPath.insert(0, _assetPath);
-		}
-		if (g_apkFile->fileExists(strPath)) {
-			found = true;
-		}
-	} else {
-		FILE* file = fopen(strFilePath.c_str(), "r");
-		if (file) {
-			found = true;
-			fclose(file);
-		}
+	FILE* file = fopen(strFilePath.c_str(), "r");
+	if (file) {
+		found = true;
+		fclose(file);
 	}
 	return found;
 }
 
 bool Content::isPathFolder(String path) {
-	return g_apkFile->isFolder(path);
+	std::string strPath = path.toString();
+	if (!isAbsolutePath(strPath)) {
+		strPath.insert(0, _assetPath);
+	}
+	if (g_apkFile->isFolder(strPath)) {
+		return true;
+	}
+	return fs::is_directory(path.toString());
 }
 #endif // BX_PLATFORM_ANDROID
 
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
 bool Content::isAbsolutePath(String strPath) {
-	// On Android, there are two situations for full path.
-	// 1) Files in APK, e.g. assets/path/path/file.png
-	// 2) Files not in APK, e.g. /data/data/org.luvfight.dorothy/cache/path/path/file.png, or /sdcard/path/path/file.png.
-	// So these two situations need to be checked on Android.
-	if (strPath[0] == '/' || std::string(strPath).find(_assetPath) == 0) {
+	if (strPath[0] == '/') {
 		return true;
 	}
 	return false;
@@ -633,7 +639,7 @@ static std::string toUTF8String(const std::string& str) {
 }
 #endif // BX_PLATFORM_WINDOWS
 
-uint8_t* Content::_loadFileUnsafe(String filename, int64_t& size) {
+uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 	if (filename.empty()) return nullptr;
 	std::string fullPath =
 #if BX_PLATFORM_WINDOWS

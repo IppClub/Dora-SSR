@@ -117,8 +117,8 @@ singleton class Content
 	VecStr getFiles(string path);
 	VecStr getAllFiles(string path);
 	void loadAsync(string filename, function<void(string content)> callback);
-	void copyAsync(string srcFile, string targetFile, function<void()> callback);
-	void saveAsync(string filename, string content, function<void()> callback);
+	void copyAsync(string srcFile, string targetFile, function<void(bool success)> callback);
+	void saveAsync(string filename, string content, function<void(bool success)> callback);
 };
 
 object class Scheduler
@@ -426,7 +426,7 @@ object class RenderTarget
 	void render(Node* target);
 	void renderWithClear @ renderClear(Color color, float depth, uint8_t stencil);
 	void renderWithClear @ renderClearWithTarget(Node* target, Color color, float depth, uint8_t stencil);
-	void saveAsync(string filename, function<void()> handler);
+	void saveAsync(string filename, function<void(bool success)> handler);
 	static RenderTarget* create(uint16_t width, uint16_t height);
 };
 
