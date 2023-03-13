@@ -45,10 +45,10 @@ private:
 
 class AsyncThread {
 public:
-	Async HttpServer;
 	Async FileIO;
 	AsyncThread();
 	Async& getProcess(int index);
+	Async* newThread();
 	void run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher);
 #if BX_PLATFORM_WINDOWS
 	inline void* operator new(size_t i) {
@@ -61,6 +61,7 @@ public:
 private:
 	int _nextProcess;
 	OwnVector<Async> _process;
+	OwnVector<Async> _userThreads;
 	SINGLETON_REF(AsyncThread, ObjectBase);
 };
 

@@ -28,7 +28,7 @@ public:
 	void render(Node* target);
 	void renderWithClear(Color color, float depth = 1.0f, uint8_t stencil = 0);
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0);
-	void saveAsync(String filename, const std::function<void()>& callback);
+	void saveAsync(String filename, const std::function<void(bool)>& callback);
 	CREATE_FUNC(RenderTarget);
 
 protected:

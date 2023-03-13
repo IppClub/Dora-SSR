@@ -162,7 +162,7 @@ void RenderTarget::renderWithClear(Node* target, Color color, float depth, uint8
 	renderAfterClear(target, true, color, depth, stencil);
 }
 
-void RenderTarget::saveAsync(String filename, const std::function<void()>& callback) {
+void RenderTarget::saveAsync(String filename, const std::function<void(bool)>& callback) {
 	AssertIf((bgfx::getCaps()->supported & BGFX_CAPS_TEXTURE_READ_BACK) == 0, "texture read back not supported.");
 
 	uint64_t extraFlags = 0;
@@ -214,9 +214,9 @@ void RenderTarget::saveAsync(String filename, const std::function<void()>& callb
 					size_t outSize;
 					values->get(out, outSize);
 					Slice content(r_cast<char*>(out), outSize);
-					SharedContent.saveAsync(file, content, [out, callback]() {
+					SharedContent.saveAsync(file, content, [out, callback](bool success) {
 						::free(out);
-						callback();
+						callback(success);
 					});
 				});
 			return true;

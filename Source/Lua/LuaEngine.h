@@ -16,6 +16,7 @@ NS_DOROTHY_BEGIN
 class Value;
 class Node;
 class LuaHandler;
+class Async;
 
 namespace Platformer {
 class UnitAction;
@@ -203,13 +204,20 @@ public:
 	static bool execute(lua_State* L, int handler, int numArgs); // returns function result
 	static bool execute(lua_State* L, int numArgs); // returns function result
 	static bool invoke(lua_State* L, int handler, int numArgs, int numRets); // returns success or failure
+
+private:
+	struct TealState {
+		lua_State* L;
+		Async* thread;
+	};
+	Own<TealState> _tlState;
+	TealState* loadTealState();
+	Own<yue::YueCompiler> _yueCompiler;
+
 protected:
 	LuaEngine();
-	lua_State* loadTealState();
 	static int _callFromLua;
 	lua_State* L;
-	lua_State* _tlState;
-	Own<yue::YueCompiler> _yueCompiler;
 	SINGLETON_REF(LuaEngine, AsyncThread);
 };
 

@@ -266,6 +266,17 @@ public:
 			}
 		} else {
 			const auto& error = _info.error.value();
+			if (!_info.codes) {
+				return {
+					Empty,
+					CompileInfo::Error{
+						error.msg,
+						error.line, error.col,
+						""},
+					std::move(globals),
+					std::move(options),
+					parseTime, compileTime};
+			}
 			auto displayMessage = _info.errorMessage(error.msg, error.line, error.col);
 			return {
 				Empty,

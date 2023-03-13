@@ -387,6 +387,8 @@ export default function PersistentDrawerLeft() {
 				if (res.success) {
 					file.contentModified = null;
 					updateTabs(files);
+				} else {
+					addAlert("failed to save current file", "error");
 				}
 			}).catch(() => {
 				addAlert("failed to save current file", "error");
@@ -408,6 +410,8 @@ export default function PersistentDrawerLeft() {
 					if (res.success) {
 						file.contentModified = null;
 						updateTabs(files);
+					} else {
+						addAlert(`failed to save ${file.title}`, "error");
 					}
 				}).catch(() => {
 					addAlert(`failed to save ${file.title}`, "error");

@@ -90,7 +90,7 @@ public:
 
 private:
 	/* Internal data like zip file pointer / file list array and so on */
-	ZipFilePrivate* _file;
+	Dorothy::Own<ZipFilePrivate> _file;
 
 	/* In memory zip file data */
 	std::pair<Dorothy::OwnArray<uint8_t>, size_t> _data;

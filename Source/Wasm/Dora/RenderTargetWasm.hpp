@@ -25,11 +25,14 @@ static void rendertarget_render_clear(int64_t self, int32_t color, float depth, 
 static void rendertarget_render_clear_with_target(int64_t self, int64_t target, int32_t color, float depth, int32_t stencil) {
 	r_cast<RenderTarget*>(self)->renderWithClear(r_cast<Node*>(target), Color(s_cast<uint32_t>(color)), depth, s_cast<uint8_t>(stencil));
 }
-static void rendertarget_save_async(int64_t self, int64_t filename, int32_t func) {
+static void rendertarget_save_async(int64_t self, int64_t filename, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
-	r_cast<RenderTarget*>(self)->saveAsync(*str_from(filename), [func, deref]() {
+	auto args = r_cast<CallStack*>(stack);
+	r_cast<RenderTarget*>(self)->saveAsync(*str_from(filename), [func, args, deref](bool success) {
+		args->clear();
+		args->push(success);
 		SharedWasmRuntime.invoke(func);
 	});
 }
