@@ -15,6 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Async.h"
 #include <fstream>
 using std::ofstream;
+#include <mutex>
 
 #if BX_PLATFORM_LINUX
 #include <limits.h>
