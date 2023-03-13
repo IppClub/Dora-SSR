@@ -159,16 +159,16 @@ HttpServer\post "/rename", (req)->
 				return success: true
 	success: false
 
-HttpServer\post "/read", (req)->
+HttpServer\postSchedule "/read", (req)->
 	switch req when {body: {:path}}
 		if Content\exist path
-			if content = Content\load path
+			if content = Content\loadAsync path
 				return :content, success: true
 	success: false
 
-HttpServer\post "/write", (req)->
+HttpServer\postSchedule "/write", (req)->
 	switch req when {body: {:path, :content}}
-		if Content\save path, content
+		if Content\saveAsync path, content
 			return success: true
 	success: false
 

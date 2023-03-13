@@ -108,6 +108,10 @@ const hoverProvider = (lang: DoraLang) => {
 					contents.push({
 						value: `${res.infered.file}:${res.infered.row}:${res.infered.col}`
 					});
+				} else {
+					contents.push({
+						value: "Lua built-in",
+					});
 				}
 				return {
 					range: new monaco.Range(

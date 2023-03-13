@@ -30,7 +30,7 @@ public:
 
 	virtual char* _readFile(const spine::String& path, int* length) {
 		int64_t size = 0;
-		auto data = SharedContent.loadUnsafe({path.buffer(), path.length()}, size);
+		auto data = SharedContent.loadInMainUnsafe({path.buffer(), path.length()}, size);
 		*length = s_cast<int>(size);
 		return r_cast<char*>(data);
 	}

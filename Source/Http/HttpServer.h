@@ -10,6 +10,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+class Async;
+
 class HttpServer {
 public:
 	virtual ~HttpServer();
@@ -20,6 +22,9 @@ public:
 		Slice body;
 	};
 	struct Response {
+		Response(int status = -1): status(status) { }
+		Response(Response&& res);
+		void operator=(Response&& res);
 		std::string content;
 		std::string contentType;
 		int status;
@@ -32,6 +37,14 @@ public:
 	};
 	void post(String pattern, const PostHandler& handler);
 
+	using PostScheduledFunc = std::function<std::optional<Response>()>;
+	using PostScheduledHandler = std::function<PostScheduledFunc(const Request&)>;
+	struct PostScheduled {
+		std::string pattern;
+		PostScheduledHandler handler;
+	};
+	void postSchedule(String pattern, const PostScheduledHandler& handler);
+
 	using FileAcceptHandler = std::function<std::optional<std::string>(const Request&, const std::string&)>;
 	using FileDoneHandler = std::function<bool(const Request&, const std::string&)>;
 	struct File {
@@ -43,10 +56,14 @@ public:
 	void upload(String pattern, const FileAcceptHandler& acceptHandler, const FileDoneHandler& doneHandler);
 	bool start(int port);
 	void stop();
+protected:
+	HttpServer();
 private:
 	std::string _wwwPath;
 	std::list<Post> _posts;
+	std::list<PostScheduled> _postScheduled;
 	std::list<File> _files;
+	Async* _thread;
 	SINGLETON_REF(HttpServer, AsyncThread, Director);
 };
 

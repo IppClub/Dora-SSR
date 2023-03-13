@@ -239,6 +239,7 @@ int DB_execAsync(lua_State* L);
 
 /* HttpServer */
 int HttpServer_post(lua_State* L);
+int HttpServer_postSchedule(lua_State* L);
 int HttpServer_upload(lua_State* L);
 inline HttpServer* HttpServer_shared() { return &SharedHttpServer; }
 

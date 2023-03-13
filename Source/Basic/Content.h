@@ -39,14 +39,14 @@ public:
 	void loadAsync(String filename, const std::function<void(String)>& callback);
 	void loadAsyncBX(String filename, const std::function<void(const bgfx::Memory*)>& callback);
 	void loadAsyncData(String filename, const std::function<void(OwnArray<uint8_t>&&, size_t)>& callback);
-	void copyAsync(String src, String dst, const std::function<void()>& callback);
-	void saveAsync(String filename, String content, const std::function<void()>& callback);
-	void saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void()>& callback);
+	void copyAsync(String src, String dst, const std::function<void(bool)>& callback);
+	void saveAsync(String filename, String content, const std::function<void(bool)>& callback);
+	void saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void(bool)>& callback);
 	void clearPathCache();
 
 public:
 	void loadAsyncUnsafe(String filename, const std::function<void(uint8_t*, int64_t)>& callback);
-	uint8_t* loadUnsafe(String filename, int64_t& size);
+	uint8_t* loadInMainUnsafe(String filename, int64_t& size);
 
 protected:
 	Content();
@@ -60,7 +60,7 @@ protected:
 	std::list<std::string> getDirEntries(String path, bool isFolder);
 
 private:
-	uint8_t* _loadFileUnsafe(String filename, int64_t& size);
+	uint8_t* loadUnsafe(String filename, int64_t& size);
 	std::string _assetPath;
 	std::string _writablePath;
 	std::vector<std::string> _searchPaths;
