@@ -118,8 +118,7 @@ doCompile = (minify)->
 	thread ->
 		for {file, input, output} in *tlFiles
 			sourceCodes = Content\loadAsync input
-			moduleName = file\gsub("%.tl$", "")\gsub "[\\/]", "."
-			codes, err = teal.toluaAsync sourceCodes, moduleName
+			codes, err = teal.toluaAsync sourceCodes, file
 			if not codes
 				table.insert errors, "Compile errors in #{file}.\n#{err}"
 			else

@@ -1,9 +1,6 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
-import { styled } from '@mui/material/styles';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
 import Drawer from '@mui/material/Drawer';
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Divider from '@mui/material/Divider';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -20,11 +17,11 @@ import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, Dial
 import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
 import DoraUpload from './Upload';
-import Stack from '@mui/system/Stack';
 import { TransitionGroup } from 'react-transition-group';
 import * as monaco from 'monaco-editor';
 import * as Service from './Service';
 import './Editor';
+import { AppBar, DrawerHeader, drawerWidth, Entry, Main, StyledStack } from './Frame';
 
 let lastEditorActionTime = Date.now();
 
@@ -42,102 +39,6 @@ window.onbeforeunload = (event: BeforeUnloadEvent) => {
 		return "Please save before leaving!";
 	}
 };
-
-const theme = createTheme({
-	palette: {
-		background: {
-			default: '#3a3a3a',
-			paper: '#2a2a2a',
-		},
-		primary: {
-			main: '#fff',
-		},
-		secondary: {
-			main: '#fffa',
-		},
-		text: {
-			primary: '#fff',
-			secondary: '#fffa',
-		},
-		action: {
-			hover: '#fbc40066',
-			focus: '#fbc40044',
-			active: '#fbc40022',
-		}
-	}
-});
-
-const drawerWidth = 240;
-
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
-	open?: boolean;
-}>(({ theme, open }) => ({
-	flexGrow: 1,
-	padding: theme.spacing(0),
-	transition: theme.transitions.create('margin', {
-		easing: theme.transitions.easing.sharp,
-		duration: theme.transitions.duration.leavingScreen,
-	}),
-	marginLeft: `-${drawerWidth}px`,
-	...(open && {
-		transition: theme.transitions.create('margin', {
-			easing: theme.transitions.easing.easeOut,
-			duration: theme.transitions.duration.enteringScreen,
-		}),
-		marginLeft: 0,
-	}),
-}));
-
-const StyledStack = styled(Stack, { shouldForwardProp: (prop) => prop !== 'open' })<{
-	open?: boolean;
-}>(({ theme, open }) => ({
-	width: '350px',
-	bottom: 5,
-	flexGrow: 1,
-	position: 'fixed',
-	padding: theme.spacing(0),
-	transition: theme.transitions.create('left', {
-		easing: theme.transitions.easing.sharp,
-		duration: theme.transitions.duration.leavingScreen,
-	}),
-	left: 5,
-	...(open && {
-		transition: theme.transitions.create('left', {
-			easing: theme.transitions.easing.easeOut,
-			duration: theme.transitions.duration.enteringScreen,
-		}),
-		left: drawerWidth + 5,
-	}),
-}));
-
-interface AppBarProps extends MuiAppBarProps {
-	open?: boolean;
-}
-
-const AppBar = styled(MuiAppBar, {
-	shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({ theme, open }) => ({
-	transition: theme.transitions.create(['margin', 'width'], {
-		easing: theme.transitions.easing.sharp,
-		duration: theme.transitions.duration.leavingScreen,
-	}),
-	...(open && {
-		width: `calc(100% - ${drawerWidth}px)`,
-		marginLeft: `${drawerWidth}px`,
-		transition: theme.transitions.create(['margin', 'width'], {
-			easing: theme.transitions.easing.easeOut,
-			duration: theme.transitions.duration.enteringScreen,
-		}),
-	}),
-}));
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-	display: 'flex',
-	alignItems: 'center',
-	padding: theme.spacing(0),
-	...theme.mixins.toolbar,
-	justifyContent: 'flex-end',
-}));
 
 interface EditingFile {
 	key: string;
@@ -1086,7 +987,7 @@ export default function PersistentDrawerLeft() {
 	};
 
 	return (
-		<ThemeProvider theme={theme}>
+		<Entry>
 			<Dialog
 				open={popupInfo !== null}
 				aria-labelledby="alert-dialog-title"
@@ -1299,6 +1200,6 @@ export default function PersistentDrawerLeft() {
 					</TransitionGroup>
 				</StyledStack>
 			</Box>
-		</ThemeProvider>
+		</Entry>
 	);
 }

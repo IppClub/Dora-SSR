@@ -33,8 +33,8 @@ public:
 	PROPERTY_READONLY_BOOL(InLua);
 	PROPERTY_READONLY(int, MemoryCount);
 
-	std::pair<std::string, std::string> compileTealToLua(String tlCodes, String moduleName);
-	void compileTealToLuaAsync(String tlCodes, String moduleName, const std::function<void(std::pair<std::string, std::string>)>& callback);
+	std::pair<std::string, std::string> compileTealToLua(String tlCodes, String filename);
+	void compileTealToLuaAsync(String tlCodes, String filename, const std::function<void(std::pair<std::string, std::string>)>& callback);
 	std::string getTealVersion();
 	struct TealError {
 		std::string type;

@@ -86,6 +86,37 @@ public:
 	int col;
 };
 
+CompileInfo::CompileInfo(
+	std::string&& codes,
+	std::optional<Error>&& error,
+	std::unique_ptr<GlobalVars>&& globals,
+	std::unique_ptr<Options>&& options,
+	double parseTime,
+	double compileTime)
+	: codes(std::move(codes))
+	, error(std::move(error))
+	, globals(std::move(globals))
+	, options(std::move(options))
+	, parseTime(parseTime)
+	, compileTime(compileTime) { }
+
+CompileInfo::CompileInfo(CompileInfo&& other)
+	: codes(std::move(other.codes))
+	, error(std::move(other.error))
+	, globals(std::move(other.globals))
+	, options(std::move(other.options))
+	, parseTime(other.parseTime)
+	, compileTime(other.compileTime) { }
+
+void CompileInfo::operator=(CompileInfo&& other) {
+	codes = std::move(other.codes);
+	error = std::move(other.error);
+	globals = std::move(other.globals);
+	options = std::move(other.options);
+	parseTime = other.parseTime;
+	compileTime = other.compileTime;
+}
+
 class YueCompilerImpl {
 public:
 #ifndef YUE_NO_MACRO
@@ -255,7 +286,7 @@ public:
 			} catch (const CompileError& error) {
 				auto displayMessage = _info.errorMessage(error.what(), error.line, error.col);
 				return {
-					Empty,
+					std::string(),
 					CompileInfo::Error{
 						error.what(),
 						error.line, error.col,
@@ -268,7 +299,7 @@ public:
 			const auto& error = _info.error.value();
 			if (!_info.codes) {
 				return {
-					Empty,
+					std::string(),
 					CompileInfo::Error{
 						error.msg,
 						error.line, error.col,
@@ -279,7 +310,7 @@ public:
 			}
 			auto displayMessage = _info.errorMessage(error.msg, error.line, error.col);
 			return {
-				Empty,
+				std::string(),
 				CompileInfo::Error{
 					error.msg,
 					error.line, error.col,

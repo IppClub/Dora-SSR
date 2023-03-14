@@ -54,7 +54,7 @@ HttpServer\postSchedule "/check", (req)->
 		when "lua"
 			return luaCheck file, content
 		when "yue"
-			checkResult, luaCodes = yue.check content
+			checkResult, luaCodes = yue.checkAsync content
 			info = {}
 			globals = {}
 			for {t, msg, line, col} in *checkResult

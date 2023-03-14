@@ -360,7 +360,7 @@ class ValuesEx : public Values {
 public:
 	template <class... Args>
 	ValuesEx(Args&&... args)
-		: values{std::forward<Args>(args)...} { }
+		: values{std::move(std::forward<Args>(args))...} { }
 	std::tuple<Fields...> values;
 	DORA_TYPE_OVERRIDE(ValuesEx<Fields...>);
 };

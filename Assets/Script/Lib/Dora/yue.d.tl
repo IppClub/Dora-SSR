@@ -49,7 +49,7 @@ local record yue
 		callback: function(result: boolean)
 	)
 
-	check: function(yueCodes: string): {{--[[type]] string, --[[msg]] string, --[[line]] integer, --[[col]] integer}}, --[[luaCodes]] string | nil
+	checkAsync: function(yueCodes: string): {{--[[type]] string, --[[msg]] string, --[[line]] integer, --[[col]] integer}}, --[[luaCodes]] string | nil
 
 	metamethod __call: function(self: yue, module: string): any...
 end

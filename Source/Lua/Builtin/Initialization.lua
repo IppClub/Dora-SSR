@@ -471,6 +471,22 @@ do
 		end)
 	end
 
+	local yue_checkAsync = yue.checkAsync
+	yue.checkAsync = function(codes)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "yue.checkAsync should be run in a thread")
+		local result, lcodes
+		local done = false
+		yue_checkAsync(codes, function(info, luaCodes)
+			result, lcodes = info, luaCodes
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		return result, lcodes
+	end
+
 	local teal = builtin.teal
 	local teal_toluaAsync = teal.toluaAsync
 	teal.toluaAsync = function(codes, moduleName)
