@@ -30,11 +30,15 @@ end
 local record StructClass
 	metamethod __call: function(cls: StructClass, values?: table): Struct
 end
+local record StructModule
+	metamethod __index: function(self: StructModule, name: string): StructModule
+	metamethod __call: function(cls: StructClass, ...: string | {string}): StructClass
+end
 local record StructHelper
 	type Type = Struct
 	type RecordEvent = Struct.RecordEvent
 	type ArrayEvent = Struct.ArrayEvent
-	metamethod __index: function(self: StructClass, name: string): function(...: string | {string}): StructClass
+	metamethod __index: function(self: StructHelper, name: string): StructModule
 	load: function(cls: StructHelper, input: string): Struct
 	load: function(cls: StructHelper, input: table): Struct
 	load: function(cls: StructHelper, name: string, input: table): Struct
