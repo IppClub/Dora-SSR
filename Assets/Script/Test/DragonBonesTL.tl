@@ -1,5 +1,4 @@
 local DragonBone <const> = require("DragonBone")
-local p <const> = require("p")
 local Label <const> = require("Label")
 local Color <const> = require("Color")
 local Sequence <const> = require("Sequence")
