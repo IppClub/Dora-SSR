@@ -2,22 +2,6 @@ _ENV = Dorothy!
 
 HttpServer.wwwPath = Path Content.writablePath, ".www"
 
-HttpServer\postSchedule "/infer", (req)->
-	switch req when {body: {:lang, :content, :line, :row}}
-		switch lang when "tl", "lua"
-			infered = teal.inferAsync content, line, row
-			if infered?
-				return success: true, :infered
-	success: false
-
-HttpServer\postSchedule "/complete", (req)->
-	switch req when {body: {:lang, :content, :line, :row}}
-		switch lang when "tl", "lua"
-			suggestions = teal.completeAsync content, line, row
-			if #suggestions > 0
-				return success: true, :suggestions
-	success: false
-
 import "Utils" as :LintYueGlobals
 
 disabledCheckForLua =
@@ -25,6 +9,25 @@ disabledCheckForLua =
 	* "unknown variable"
 	* "cannot index key .* in union"
 	* "module not found"
+
+yueCheck = (file, content)->
+	checkResult, luaCodes = yue.checkAsync content
+	info = {}
+	globals = {}
+	for {t, msg, line, col} in *checkResult
+		switch t when "error"
+			info[] = {"syntax", file, line, col, msg}
+		when "global"
+			globals[] = {msg, line, col}
+	if luaCodes
+		success, lintResult = LintYueGlobals luaCodes, globals, false
+		if success
+			luaCodes = luaCodes\gsub "%s*local%s*_ENV%s*=%s*Dorothy%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
+			lintResult ..= "\n" unless lintResult == ""
+			luaCodes = "-- [yue]: #{file}\n#{lintResult}" .. luaCodes
+		else for {name, line, col} in *lintResult
+			info[] = {"syntax", file, line, col, "invalid global variable"}
+	luaCodes, info
 
 luaCheck = (file, content)->
 	res, err = load content, "check"
@@ -54,42 +57,71 @@ HttpServer\postSchedule "/check", (req)->
 		when "lua"
 			return luaCheck file, content
 		when "yue"
-			checkResult, luaCodes = yue.checkAsync content
-			info = {}
-			globals = {}
-			for {t, msg, line, col} in *checkResult
-				switch t when "error"
-					info[] = {"syntax", file, line, col, msg}
-				when "global"
-					globals[] = {msg, line, col}
+			luaCodes, info = yueCheck file, content
 			if luaCodes
-				success, lintResult = LintYueGlobals luaCodes, globals, false
-				if success
-					luaCodes = luaCodes\gsub "%s*local%s*_ENV%s*=%s*Dorothy%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
-					lintResult ..= "\n" unless lintResult == ""
-					luaCodes = "-- [yue]: #{file}\n#{lintResult}" .. luaCodes
-					res = luaCheck file, luaCodes
-					if not res.success
-						current = 1
-						lastLine = 1
-						lineMap = {}
-						for lineCode in luaCodes\gmatch "[^\n\r]*"
-							num = lineCode\match "--%s*(%d+)%s*$"
-							if num
-								lastLine = tonumber num
-							lineMap[current] = lastLine
-							current += 1
-						for item in *res.info
-							item[3] = lineMap[item[3]]
-							item[4] = 0
-							info[] = item
-				else for {name, line, col} in *lintResult
-					info[] = {"syntax", file, line, col, "invalid global variable"}
+				res = luaCheck file, luaCodes
+				if not res.success
+					current = 1
+					lastLine = 1
+					lineMap = {}
+					for lineCode in luaCodes\gmatch "[^\n\r]*"
+						num = lineCode\match "--%s*(%d+)%s*$"
+						if num
+							lastLine = tonumber num
+						lineMap[current] = lastLine
+						current += 1
+					for item in *res.info
+						item[3] = lineMap[item[3]]
+						item[4] = 0
+						info[] = item
 			if #info == 0
 				return success: true
 			else
 				return success: false, :info
 	success: true
+
+HttpServer\postSchedule "/infer", (req)->
+	switch req when {body: {:lang, :content, :line, :row}}
+		switch lang when "tl", "lua"
+			infered = teal.inferAsync content, line, row
+			if infered?
+				return success: true, :infered
+		when "yue"
+			luaCodes, info = yueCheck "", content
+			return success: false unless luaCodes
+			current = 1
+			lastLine = 1
+			targetLine = nil
+			targetRow = nil
+			lineMap = {}
+			for lineCode in luaCodes\gmatch "[^\n\r]*"
+				num = lineCode\match "--%s*(%d+)%s*$"
+				lastLine = tonumber num if num
+				lineMap[current] = lastLine
+				if row == lastLine and not targetLine
+					targetRow = current
+					targetLine = line\gsub("::", "\\")\gsub(":", "=")\gsub("\\", ":")\match "[%w_%.:]+$"
+					if targetLine and targetLine\match "^[%.:]"
+						targetLine = lineCode\match "[%w_%.:]+[%.:]#{targetLine\sub 2, -1}"
+					break if targetLine
+				current += 1
+			if targetLine and targetRow
+				infered = teal.inferAsync luaCodes, targetLine, targetRow
+				if infered?
+					:file, :row, :col = infered
+					if file == "" and row > 0 and col > 0
+						infered.row = lineMap[row] or 0
+						infered.col = 1
+					return success: true, :infered
+	success: false
+
+HttpServer\postSchedule "/complete", (req)->
+	switch req when {body: {:lang, :content, :line, :row}}
+		switch lang when "tl", "lua"
+			suggestions = teal.completeAsync content, line, row
+			if #suggestions > 0
+				return success: true, :suggestions
+	success: false
 
 HttpServer\upload(
 	"/upload"
