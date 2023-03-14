@@ -43,14 +43,12 @@ public:
 		int col;
 		std::string msg;
 	};
-	std::optional<std::list<TealError>> checkTeal(String tlCodes, String moduleName, bool lax);
 	void checkTealAsync(String tlCodes, String moduleName, bool lax, const std::function<void(std::optional<std::list<TealError>>)>& callback);
 	struct TealToken {
 		std::string name;
 		std::string desc;
-		bool isFunction;
+		std::string type;
 	};
-	std::list<TealToken> completeTeal(String tlCodes, String line, int row);
 	void completeTealAsync(String tlCodes, String line, int row, const std::function<void(std::list<TealToken>)>& callback);
 	struct TealInference {
 		std::string desc;
@@ -58,7 +56,6 @@ public:
 		int row;
 		int col;
 	};
-	std::optional<TealInference> inferTeal(String tlCodes, String line, int row);
 	void inferTealAsync(String tlCodes, String line, int row, const std::function<void(std::optional<TealInference>)>& callback);
 	void resetTealCompiler();
 

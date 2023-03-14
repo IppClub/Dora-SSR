@@ -49,9 +49,10 @@ export interface CompleteRequest {
 	row: number;
 	content: string;
 }
+type CompleteItemType = "function" | "variable" | "field" | "method";
 export interface CompleteResponse {
 	success: boolean;
-	suggestions?: [string, string, boolean][];
+	suggestions?: [string, string, CompleteItemType][];
 }
 export const complete = (req: CompleteRequest) => {
 	return post<CompleteResponse>("/complete", req);
