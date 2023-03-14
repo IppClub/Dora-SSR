@@ -34,6 +34,7 @@ public:
 	PROPERTY_READONLY(int, MemoryCount);
 
 	std::pair<std::string, std::string> compileTealToLua(String tlCodes, String moduleName);
+	void compileTealToLuaAsync(String tlCodes, String moduleName, const std::function<void(std::pair<std::string, std::string>)>& callback);
 	std::string getTealVersion();
 	struct TealError {
 		std::string type;
@@ -43,12 +44,14 @@ public:
 		std::string msg;
 	};
 	std::optional<std::list<TealError>> checkTeal(String tlCodes, String moduleName, bool lax);
+	void checkTealAsync(String tlCodes, String moduleName, bool lax, const std::function<void(std::optional<std::list<TealError>>)>& callback);
 	struct TealToken {
 		std::string name;
 		std::string desc;
 		bool isFunction;
 	};
 	std::list<TealToken> completeTeal(String tlCodes, String line, int row);
+	void completeTealAsync(String tlCodes, String line, int row, const std::function<void(std::list<TealToken>)>& callback);
 	struct TealInference {
 		std::string desc;
 		std::string file;
@@ -56,6 +59,7 @@ public:
 		int col;
 	};
 	std::optional<TealInference> inferTeal(String tlCodes, String line, int row);
+	void inferTealAsync(String tlCodes, String line, int row, const std::function<void(std::optional<TealInference>)>& callback);
 	void resetTealCompiler();
 
 	void insertLuaLoader(lua_CFunction func, int index);

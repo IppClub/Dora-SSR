@@ -1,5 +1,4 @@
 local DB = require("DB")
-local p = require("p")
 local thread = require("thread")
 
 local sqls = {

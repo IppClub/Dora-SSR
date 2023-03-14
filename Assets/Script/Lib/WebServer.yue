@@ -2,18 +2,18 @@ _ENV = Dorothy!
 
 HttpServer.wwwPath = Path Content.writablePath, ".www"
 
-HttpServer\post "/infer", (req)->
+HttpServer\postSchedule "/infer", (req)->
 	switch req when {body: {:lang, :content, :line, :row}}
 		switch lang when "tl", "lua"
-			infered = teal.infer content, line, row
+			infered = teal.inferAsync content, line, row
 			if infered?
 				return success: true, :infered
 	success: false
 
-HttpServer\post "/complete", (req)->
+HttpServer\postSchedule "/complete", (req)->
 	switch req when {body: {:lang, :content, :line, :row}}
 		switch lang when "tl", "lua"
-			suggestions = teal.complete content, line, row
+			suggestions = teal.completeAsync content, line, row
 			if #suggestions > 0
 				return success: true, :suggestions
 	success: false
@@ -31,7 +31,7 @@ luaCheck = (file, content)->
 	if not res
 		line, msg = err\match ".*:(%d+):%s*(.*)"
 		return success: false, info: {{"syntax", file, tonumber(line), 0, msg}}
-	success, info = teal.check content, file, true
+	success, info = teal.checkAsync content, file, true
 	if info
 		info = for item in *info
 			useCheck = true
@@ -45,11 +45,11 @@ luaCheck = (file, content)->
 			success = true
 	return :success, :info
 
-HttpServer\post "/check", (req)->
+HttpServer\postSchedule "/check", (req)->
 	switch req when {body: {:file, :content}}
 		ext = Path\getExt file
 		switch ext when "tl"
-			success, info = teal.check content, file, false
+			success, info = teal.checkAsync content, file, false
 			return :success, :info
 		when "lua"
 			return luaCheck file, content
