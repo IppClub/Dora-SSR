@@ -207,6 +207,8 @@ void HttpServer::stop() {
 	getServer().stop();
 	getServer().clear_posts();
 	_posts.clear();
+	_postScheduled.clear();
+	_files.clear();
 }
 
 NS_DOROTHY_END

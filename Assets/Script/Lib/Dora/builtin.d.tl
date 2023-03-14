@@ -104,11 +104,13 @@ local HttpServer = require("HttpServer")
 local Profiler = require("Profiler")
 local teal = require("teal")
 global p = require("p")
---Dorothy
---property
---Class
---classmethod
+local Class: function(...: any): any
+local classmethod: function(...: any): any
+local property: function(...: any): any
 global builtin = {
+	Class = Class,
+	classmethod = classmethod,
+	property = property,
 	Camera = Camera,
 	AnchorY = AnchorY,
 	ML = ML,
