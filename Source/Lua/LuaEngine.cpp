@@ -441,6 +441,12 @@ static int dora_load_base(lua_State* L) {
 		luaL_requiref(L, lib->name, lib->func, 1);
 		lua_pop(L, 1);
 	}
+	const luaL_Reg global_functions[] = {
+		{"print", dora_print},
+		{NULL, NULL}};
+	lua_pushglobaltable(L);
+	luaL_setfuncs(L, global_functions, 0);
+	lua_pop(L, 1);
 	return 0;
 }
 
@@ -452,12 +458,6 @@ static void dora_open_threaded_compiler(void* state) {
 	lua_setfield(L, -2, "file_exist");
 	lua_pushcfunction(L, dora_threaded_read_file);
 	lua_setfield(L, -2, "read_file");
-	lua_pop(L, 1);
-	const luaL_Reg global_functions[] = {
-		{"print", dora_print},
-		{NULL, NULL}};
-	lua_pushglobaltable(L);
-	luaL_setfuncs(L, global_functions, 0);
 	lua_pop(L, 1);
 }
 
@@ -664,9 +664,7 @@ LuaEngine::LuaEngine()
 
 	tolua_open(L);
 
-	// Register our version of the global "print" function
 	const luaL_Reg global_functions[] = {
-		{"print", dora_print},
 		{"loadfile", dora_load_file},
 		{"dofile", dora_do_file},
 		{NULL, NULL}};
@@ -906,6 +904,7 @@ LuaEngine::TealState* LuaEngine::loadTealState() {
 		lua_State* tl = luaL_newstate();
 		_tlState->L = tl;
 		_tlState->thread = SharedAsyncThread.newThread();
+		_tlState->initialized = false;
 		int top = lua_gettop(tl);
 		DEFER(lua_settop(tl, top));
 		dora_load_base(tl);
@@ -915,21 +914,35 @@ LuaEngine::TealState* LuaEngine::loadTealState() {
 		lua_pushcfunction(tl, dora_loader); // package, searchers, loader
 		lua_rawseti(tl, -2, 1); // searchers[1] = loader, package, searchers
 		lua_pop(tl, 2); // clear
-		tolua_TealCompiler_open(tl);
-		lua_getglobal(tl, "package"); // package
-		lua_pushliteral(tl, "path"); // package "path"
-		lua_pushliteral(tl, "?.lua"); // package "path" "?.lua"
-		lua_rawset(tl, -3); // package.path = "?.lua", package
-		lua_getfield(tl, -1, "loaded"); // package loaded
-		lua_getfield(tl, -1, "tl"); // package loaded tl
-		lua_pushcfunction(tl, dora_file_exist);
-		lua_setfield(tl, -2, "file_exist");
-		lua_pushcfunction(tl, dora_read_file);
-		lua_setfield(tl, -2, "read_file");
-		lua_getfield(tl, -1, "dora_init"); // package loaded tl dora_init
-		LuaEngine::call(tl, 0, 0);
 	}
 	return _tlState.get();
+}
+
+void LuaEngine::initTealState(bool mainThread) {
+	AssertUnless(_tlState, "Teal state not loaded");
+	if (_tlState->initialized) return;
+	auto tl = _tlState->L;
+	int top = lua_gettop(tl);
+	DEFER(lua_settop(tl, top));
+	tolua_TealCompiler_open(tl);
+	lua_getglobal(tl, "package"); // package
+	lua_pushliteral(tl, "path"); // package "path"
+	lua_pushliteral(tl, "?.lua"); // package "path" "?.lua"
+	lua_rawset(tl, -3); // package.path = "?.lua", package
+	lua_getfield(tl, -1, "loaded"); // package loaded
+	lua_getfield(tl, -1, "tl"); // package loaded tl
+	lua_pushcfunction(tl, dora_file_exist);
+	lua_setfield(tl, -2, "file_exist");
+	if (mainThread) {
+		lua_pushcfunction(tl, dora_read_file);
+		lua_setfield(tl, -2, "read_file");
+	} else {
+		lua_pushcfunction(tl, dora_threaded_read_file);
+		lua_setfield(tl, -2, "read_file");
+	}
+	lua_getfield(tl, -1, "dora_init"); // package loaded tl dora_init
+	LuaEngine::call(tl, 0, 0);
+	_tlState->initialized = true;
 }
 
 std::string LuaEngine::getTealVersion() {
@@ -939,6 +952,7 @@ std::string LuaEngine::getTealVersion() {
 	std::string version;
 	thread->pause();
 	{
+		initTealState(true);
 		int top = lua_gettop(tl);
 		DEFER(lua_settop(tl, top));
 		lua_getglobal(tl, "package"); // package
@@ -981,6 +995,7 @@ std::pair<std::string, std::string> LuaEngine::compileTealToLua(String tlCodes, 
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
 	thread->pause();
+	initTealState(true);
 	auto res = compile_teal(tl, tlCodes, filename, false);
 	thread->resume();
 	return res;
@@ -990,7 +1005,8 @@ void LuaEngine::compileTealToLuaAsync(String tlCodes, String filename, const std
 	auto tlState = loadTealState();
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
-	thread->run([tl, codes = tlCodes.toString(), name = filename.toString()]() {
+	thread->run([tl, codes = tlCodes.toString(), name = filename.toString(), this]() {
+		initTealState(false);
 		auto res = compile_teal(tl, codes, name, false);
 		return Values::alloc(std::move(res)); },
 		[callback](Own<Values> values) {
@@ -1049,7 +1065,8 @@ void LuaEngine::checkTealAsync(String tlCodes, String moduleName, bool lax, cons
 	auto tlState = loadTealState();
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
-	thread->run([tl, codes = tlCodes.toString(), name = moduleName.toString(), lax]() {
+	thread->run([tl, codes = tlCodes.toString(), name = moduleName.toString(), lax, this]() {
+		initTealState(false);
 		auto res = check_teal_async(tl, codes, name, lax);
 		return Values::alloc(std::move(res)); },
 		[callback](Own<Values> values) {
@@ -1093,7 +1110,8 @@ void LuaEngine::completeTealAsync(String tlCodes, String line, int row, const st
 	auto tlState = loadTealState();
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
-	thread->run([tl, tlCodes = tlCodes.toString(), line = line.toString(), row]() {
+	thread->run([tl, tlCodes = tlCodes.toString(), line = line.toString(), row, this]() {
+		initTealState(false);
 		auto res = complete_teal_async(tl, tlCodes, line, row);
 		return Values::alloc(std::move(res)); },
 		[callback](Own<Values> values) {
@@ -1142,7 +1160,8 @@ void LuaEngine::inferTealAsync(String tlCodes, String line, int row, const std::
 	auto tlState = loadTealState();
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
-	thread->run([tl, tlCodes = tlCodes.toString(), line = line.toString(), row]() {
+	thread->run([tl, tlCodes = tlCodes.toString(), line = line.toString(), row, this]() {
+		initTealState(false);
 		auto res = infer_teal_async(tl, tlCodes, line, row);
 		return Values::alloc(std::move(res)); },
 		[callback](Own<Values> values) {
