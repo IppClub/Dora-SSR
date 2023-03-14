@@ -490,6 +490,8 @@ do
 
 	local teal_checkAsync = teal.checkAsync
 	teal.checkAsync = function(codes, moduleName, lax)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "teal.checkAsync should be run in a thread")
 		local result, errs
 		local done = false
 		teal_checkAsync(codes, moduleName, lax, function(success, info)
@@ -504,6 +506,8 @@ do
 
 	local teal_completeAsync = teal.completeAsync
 	teal.completeAsync = function(codes, line, row)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "teal.completeAsync should be run in a thread")
 		local result
 		local done = false
 		teal_completeAsync(codes, line, row, function(completeList)
@@ -518,6 +522,8 @@ do
 
 	local teal_inferAsync = teal.inferAsync
 	teal.inferAsync = function(codes, line, row)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "teal.inferAsync should be run in a thread")
 		local result
 		local done = false
 		teal_inferAsync(codes, line, row, function(infered)

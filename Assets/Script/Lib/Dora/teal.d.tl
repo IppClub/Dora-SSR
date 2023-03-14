@@ -1,7 +1,7 @@
 local record teal
-	tolua: function(codes: string, moduleName: string): string, string | nil
-	reset: function()
-	check: function(codes: string, moduleName: string): boolean, {
+	tolua: function(codes: string, moduleName: string): --[[lua codes]] string, --[[error]] string | nil
+	toluaAsync: function(codes: string, moduleName: string): --[[lua codes]] string, --[[error]] string | nil
+	checkAsync: function(codes: string, moduleName: string): --[[passed]] boolean, {
 		{
 			--[[type]] string,
 			--[[filename]] string,
@@ -10,5 +10,29 @@ local record teal
 			--[[msg]] string
 		}
 	} | nil
+	enum CompleteItemType
+		"variable"
+		"function"
+		"method"
+		"field"
+	end
+	record CompleteResult
+		success: boolean
+		suggestions: {{--[[label]] string, --[[desc]] string, CompleteItemType}} | nil
+	end
+	completeAsync: function(codes: string, line: string, row: integer): CompleteResult
+	record InferResult
+		record Info
+			desc: string
+			file: string
+			row: number
+			col: number
+			key: string | nil
+		end
+		success: boolean
+		infered: Info
+	end
+	inferAsync: function(codes: string, line: string, row: integer): InferResult
+	reset: function()
 end
 return teal
