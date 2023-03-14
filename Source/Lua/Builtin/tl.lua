@@ -11121,6 +11121,7 @@ tl.dora_complete = function(codes, line, row)
 	if codes:sub(1, 3) == "\xEF\xBB\xBF" then
 		codes = codes:sub(4)
 	end
+
 	local success, res = pcall(function()
 		local resolve = get_resolving_text(line)
 		if not resolve then
@@ -11156,12 +11157,20 @@ tl.dora_complete = function(codes, line, row)
 		if #chains == 0 then
 			for k, v in pairs(symbols) do
 				local t = type_report.types[v]
-				res[#res + 1] = {k, t.str, t.args ~= nil}
+				local itemType = t.args ~= nil and "function" or "variable"
+				if itemType == "variable" and t.str:match("^polymorphic") then
+					itemType = "function"
+				end
+				res[#res + 1] = {k, t.str, itemType}
 			end
 			if type_report.globals then
 				for k, v in pairs(type_report.globals) do
 					local t = type_report.types[v]
-					res[#res + 1] = {k, t.str, t.args ~= nil}
+					local itemType = t.args ~= nil and "function" or "variable"
+					if itemType == "variable" and t.str:match("^polymorphic") then
+						itemType = "function"
+					end
+					res[#res + 1] = {k, t.str, itemType}
 				end
 			end
 		else
@@ -11189,7 +11198,11 @@ tl.dora_complete = function(codes, line, row)
 					if t.args == nil and lastChar == ":" then
 						goto continue
 					end
-					res[#res + 1] = {k, t.str, t.args ~= nil}
+					local itemType = t.args ~= nil and "method" or "field"
+					if itemType == "field" and t.str:match("^polymorphic") then
+						itemType = "method"
+					end
+					res[#res + 1] = {k, t.str, itemType}
 					::continue::
 				end
 			end

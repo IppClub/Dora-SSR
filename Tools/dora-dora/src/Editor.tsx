@@ -52,15 +52,20 @@ const completionItemProvider = (triggerCharacters: string[], lang: DoraLang) => 
 				if (res.suggestions === undefined) return {suggestions:[]};
 				return {
 					suggestions: res.suggestions.map((item) => {
-						const [name, desc, func] = item;
+						const [label, desc, itemType] = item;
+						let kind = monaco.languages.CompletionItemKind.Variable;
+						switch (itemType) {
+							case "variable": kind = monaco.languages.CompletionItemKind.Variable; break;
+							case "function": kind = monaco.languages.CompletionItemKind.Function; break;
+							case "method": kind = monaco.languages.CompletionItemKind.Method; break;
+							case "field": kind = monaco.languages.CompletionItemKind.Field; break;
+						}
 						return {
-							label: name,
-							kind: func ?
-								monaco.languages.CompletionItemKind.Function :
-								monaco.languages.CompletionItemKind.Variable,
+							label,
+							kind,
 							document: desc,
 							detail: desc,
-							insertText: name,
+							insertText: label,
 							range: range,
 						};
 					}),

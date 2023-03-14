@@ -281,36 +281,6 @@ static int dora_reset_teal(lua_State* L) {
 	return 0;
 }
 
-static int dora_teal_check(lua_State* L) {
-	size_t len = 0;
-	std::string codes(luaL_checklstring(L, 1, &len), len);
-	std::string moduleName(luaL_checklstring(L, 2, &len), len);
-	bool lax = lua_toboolean(L, 3) != 0;
-	auto result = SharedLuaEngine.checkTeal(codes, moduleName, lax);
-	if (result) {
-		lua_pushboolean(L, 0);
-		lua_createtable(L, result.value().size(), 0);
-		int index = 0;
-		for (const auto& err : result.value()) {
-			lua_createtable(L, 5, 0);
-			tolua_pushslice(L, err.type);
-			lua_rawseti(L, -2, 1);
-			tolua_pushslice(L, SharedContent.getFullPath(err.filename));
-			lua_rawseti(L, -2, 2);
-			lua_pushinteger(L, err.row);
-			lua_rawseti(L, -2, 3);
-			lua_pushinteger(L, err.col);
-			lua_rawseti(L, -2, 4);
-			tolua_pushslice(L, err.msg);
-			lua_rawseti(L, -2, 5);
-			lua_rawseti(L, -2, ++index);
-		}
-		return 2;
-	}
-	lua_pushboolean(L, 1);
-	return 1;
-}
-
 static int dora_teal_check_async(lua_State* L) {
 	size_t len = 0;
 	std::string codes(luaL_checklstring(L, 1, &len), len);
@@ -352,27 +322,6 @@ static int dora_teal_check_async(lua_State* L) {
 	return 0;
 }
 
-static int dora_teal_complete(lua_State* L) {
-	size_t len = 0;
-	std::string codes(luaL_checklstring(L, 1, &len), len);
-	std::string line(luaL_checklstring(L, 2, &len), len);
-	int row = static_cast<int>(luaL_checknumber(L, 3));
-	auto result = SharedLuaEngine.completeTeal(codes, line, row);
-	lua_createtable(L, result.size(), 0);
-	int i = 0;
-	for (const auto& item : result) {
-		lua_createtable(L, 2, 0);
-		tolua_pushslice(L, item.name);
-		lua_rawseti(L, -2, 1);
-		tolua_pushslice(L, item.desc);
-		lua_rawseti(L, -2, 2);
-		lua_pushboolean(L, item.isFunction);
-		lua_rawseti(L, -2, 3);
-		lua_rawseti(L, -2, ++i);
-	}
-	return 1;
-}
-
 static int dora_teal_complete_async(lua_State* L) {
 	size_t len = 0;
 	std::string codes(luaL_checklstring(L, 1, &len), len);
@@ -395,39 +344,13 @@ static int dora_teal_complete_async(lua_State* L) {
 			lua_rawseti(L, -2, 1);
 			tolua_pushslice(L, item.desc);
 			lua_rawseti(L, -2, 2);
-			lua_pushboolean(L, item.isFunction);
+			tolua_pushslice(L, item.type);
 			lua_rawseti(L, -2, 3);
 			lua_rawseti(L, -2, ++i);
 		}
 		LuaEngine::invoke(L, handler->get(), 1, 0);
 	});
 	return 0;
-}
-
-static int dora_teal_infer(lua_State* L) {
-	size_t len = 0;
-	std::string codes(luaL_checklstring(L, 1, &len), len);
-	std::string line(luaL_checklstring(L, 2, &len), len);
-	int row = static_cast<int>(luaL_checknumber(L, 3));
-	auto result = SharedLuaEngine.inferTeal(codes, line, row);
-	if (result) {
-		lua_createtable(L, 0, 0);
-		tolua_pushslice(L, result.value().desc);
-		lua_setfield(L, -2, "desc");
-		tolua_pushslice(L, result.value().file);
-		lua_setfield(L, -2, "file");
-		lua_pushinteger(L, result.value().row);
-		lua_setfield(L, -2, "row");
-		lua_pushinteger(L, result.value().col);
-		lua_setfield(L, -2, "col");
-		if (!result.value().file.empty()) {
-			tolua_pushslice(L, SharedContent.getFullPath(result.value().file));
-			lua_setfield(L, -2, "key");
-		}
-	} else {
-		lua_pushnil(L);
-	}
-	return 1;
 }
 
 static int dora_teal_infer_async(lua_State* L) {
@@ -921,11 +844,8 @@ LuaEngine::LuaEngine()
 			tolua_function(L, "tolua", dora_teal_to_lua);
 			tolua_function(L, "toluaAsync", dora_teal_to_lua_async);
 			tolua_function(L, "reset", dora_reset_teal);
-			tolua_function(L, "check", dora_teal_check);
 			tolua_function(L, "checkAsync", dora_teal_check_async);
-			tolua_function(L, "complete", dora_teal_complete);
 			tolua_function(L, "completeAsync", dora_teal_complete_async);
-			tolua_function(L, "infer", dora_teal_infer);
 			tolua_function(L, "inferAsync", dora_teal_infer_async);
 		}
 		tolua_endmodule(L);
@@ -1064,19 +984,14 @@ void LuaEngine::compileTealToLuaAsync(String tlCodes, String moduleName, const s
 		});
 }
 
-static std::optional<std::list<LuaEngine::TealError>> check_teal(lua_State* L, String tlCodes, String moduleName, bool lax, bool mainThread) {
+static std::optional<std::list<LuaEngine::TealError>> check_teal_async(lua_State* L, String tlCodes, String moduleName, bool lax) {
 	int top = lua_gettop(L);
 	DEFER(lua_settop(L, top));
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "loaded"); // package loaded
 	lua_getfield(L, -1, "tl"); // package loaded tl
-	if (mainThread) {
-		lua_pushcfunction(L, dora_read_file);
-		lua_setfield(L, -2, "read_file");
-	} else {
-		lua_pushcfunction(L, dora_teal_threaded_read);
-		lua_setfield(L, -2, "read_file");
-	}
+	lua_pushcfunction(L, dora_teal_threaded_read);
+	lua_setfield(L, -2, "read_file");
 	lua_getfield(L, -1, "dora_check"); // package loaded tl check
 	tolua_pushslice(L, tlCodes); // package loaded tl check tlCodes
 	tolua_pushslice(L, moduleName); // package loaded tl check tlCodes moduleName
@@ -1115,23 +1030,12 @@ static std::optional<std::list<LuaEngine::TealError>> check_teal(lua_State* L, S
 	return std::nullopt;
 }
 
-std::optional<std::list<LuaEngine::TealError>> LuaEngine::checkTeal(String tlCodes, String moduleName, bool lax) {
-	auto tlState = loadTealState();
-	auto tl = tlState->L;
-	auto thread = tlState->thread;
-	std::optional<std::list<LuaEngine::TealError>> result;
-	thread->pause();
-	auto res = check_teal(tl, tlCodes, moduleName, lax, true);
-	thread->resume();
-	return res;
-}
-
 void LuaEngine::checkTealAsync(String tlCodes, String moduleName, bool lax, const std::function<void(std::optional<std::list<LuaEngine::TealError>>)>& callback) {
 	auto tlState = loadTealState();
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
 	thread->run([tl, codes = tlCodes.toString(), name = moduleName.toString(), lax]() {
-		auto res = check_teal(tl, codes, name, lax, false);
+		auto res = check_teal_async(tl, codes, name, lax);
 		return Values::alloc(std::move(res)); },
 		[callback](Own<Values> values) {
 			std::optional<std::list<LuaEngine::TealError>> res;
@@ -1140,19 +1044,14 @@ void LuaEngine::checkTealAsync(String tlCodes, String moduleName, bool lax, cons
 		});
 }
 
-static std::list<LuaEngine::TealToken> complete_teal(lua_State* L, String tlCodes, String line, int row, bool mainThread) {
+static std::list<LuaEngine::TealToken> complete_teal_async(lua_State* L, String tlCodes, String line, int row) {
 	int top = lua_gettop(L);
 	DEFER(lua_settop(L, top));
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "loaded"); // package loaded
 	lua_getfield(L, -1, "tl"); // package loaded tl
-	if (mainThread) {
-		lua_pushcfunction(L, dora_read_file);
-		lua_setfield(L, -2, "read_file");
-	} else {
-		lua_pushcfunction(L, dora_teal_threaded_read);
-		lua_setfield(L, -2, "read_file");
-	}
+	lua_pushcfunction(L, dora_teal_threaded_read);
+	lua_setfield(L, -2, "read_file");
 	lua_getfield(L, -1, "dora_complete"); // package loaded tl complete
 	tolua_pushslice(L, tlCodes); // package loaded tl complete tlCodes
 	tolua_pushslice(L, line); // package loaded tl complete tlCodes line
@@ -1168,20 +1067,10 @@ static std::list<LuaEngine::TealToken> complete_teal(lua_State* L, String tlCode
 			lua_rawgeti(L, -3, 3);
 			res.push_back({tolua_toslice(L, -3, nullptr),
 				tolua_toslice(L, -2, nullptr),
-				lua_toboolean(L, -1) != 0});
+				tolua_toslice(L, -1, nullptr)});
 			lua_pop(L, 4);
 		}
 	}
-	return res;
-}
-
-std::list<LuaEngine::TealToken> LuaEngine::completeTeal(String tlCodes, String line, int row) {
-	auto tlState = loadTealState();
-	auto tl = tlState->L;
-	auto thread = tlState->thread;
-	thread->pause();
-	auto res = complete_teal(tl, tlCodes, line, row, true);
-	thread->resume();
 	return res;
 }
 
@@ -1190,7 +1079,7 @@ void LuaEngine::completeTealAsync(String tlCodes, String line, int row, const st
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
 	thread->run([tl, tlCodes = tlCodes.toString(), line = line.toString(), row]() {
-		auto res = complete_teal(tl, tlCodes, line, row, false);
+		auto res = complete_teal_async(tl, tlCodes, line, row);
 		return Values::alloc(std::move(res)); },
 		[callback](Own<Values> values) {
 			std::list<LuaEngine::TealToken> res;
@@ -1199,12 +1088,14 @@ void LuaEngine::completeTealAsync(String tlCodes, String line, int row, const st
 		});
 }
 
-static std::optional<LuaEngine::TealInference> infer_teal(lua_State* L, String tlCodes, String line, int row, bool mainThread) {
+static std::optional<LuaEngine::TealInference> infer_teal_async(lua_State* L, String tlCodes, String line, int row) {
 	int top = lua_gettop(L);
 	DEFER(lua_settop(L, top));
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "loaded"); // package loaded
 	lua_getfield(L, -1, "tl"); // package loaded tl
+	lua_pushcfunction(L, dora_teal_threaded_read);
+	lua_setfield(L, -2, "read_file");
 	lua_getfield(L, -1, "dora_infer"); // package loaded tl infer
 	tolua_pushslice(L, tlCodes); // package loaded tl infer tlCodes
 	tolua_pushslice(L, line); // package loaded tl infer tlCodes line
@@ -1232,22 +1123,12 @@ static std::optional<LuaEngine::TealInference> infer_teal(lua_State* L, String t
 	return std::nullopt;
 }
 
-std::optional<LuaEngine::TealInference> LuaEngine::inferTeal(String tlCodes, String line, int row) {
-	auto tlState = loadTealState();
-	auto tl = tlState->L;
-	auto thread = tlState->thread;
-	thread->pause();
-	auto res = infer_teal(tl, tlCodes, line, row, true);
-	thread->resume();
-	return res;
-}
-
 void LuaEngine::inferTealAsync(String tlCodes, String line, int row, const std::function<void(std::optional<LuaEngine::TealInference>)>& callback) {
 	auto tlState = loadTealState();
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
 	thread->run([tl, tlCodes = tlCodes.toString(), line = line.toString(), row]() {
-		auto res = infer_teal(tl, tlCodes, line, row, false);
+		auto res = infer_teal_async(tl, tlCodes, line, row);
 		return Values::alloc(std::move(res)); },
 		[callback](Own<Values> values) {
 			std::optional<LuaEngine::TealInference> res;
