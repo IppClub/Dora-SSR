@@ -252,13 +252,13 @@ static int dora_teal_to_lua(lua_State* L) {
 static int dora_teal_to_lua_async(lua_State* L) {
 	size_t len = 0;
 	std::string codes(luaL_checklstring(L, 1, &len), len);
-	std::string moduleName(luaL_checklstring(L, 2, &len), len);
+	std::string filename(luaL_checklstring(L, 2, &len), len);
 	tolua_Error err;
 	if (!tolua_isfunction(L, 3, &err)) {
 		tolua_error(L, "#ferror in function 'teal.toluaAsync'.", &err);
 	}
 	Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 3)));
-	SharedLuaEngine.compileTealToLuaAsync(codes, moduleName, [handler](auto result) {
+	SharedLuaEngine.compileTealToLuaAsync(codes, filename, [handler](auto result) {
 		std::string res, err;
 		std::tie(res, err) = result;
 		auto L = SharedLuaEngine.getState();
@@ -389,7 +389,24 @@ static int dora_teal_infer_async(lua_State* L) {
 	return 0;
 }
 
-static int dora_teal_threaded_read(lua_State* L) {
+static int dora_file_exist(lua_State* L) {
+	size_t size = 0;
+	auto str = luaL_checklstring(L, 1, &size);
+	lua_pushboolean(L, SharedContent.exist({str, size}) ? 1 : 0);
+	return 1;
+}
+
+static int dora_read_file(lua_State* L) {
+	size_t size = 0;
+	auto fileStr = luaL_checklstring(L, 1, &size);
+	Slice filename{fileStr, size};
+	auto data = SharedContent.load(filename);
+	Slice codes{r_cast<char*>(data.first.get()), data.second};
+	tolua_pushslice(L, codes);
+	return 1;
+}
+
+static int dora_threaded_read_file(lua_State* L) {
 	size_t size = 0;
 	auto fileStr = luaL_checklstring(L, 1, &size);
 	Slice filename{fileStr, size};
@@ -405,26 +422,6 @@ static int dora_teal_threaded_read(lua_State* L) {
 	});
 	waitForLoaded.wait();
 	Slice codes{r_cast<char*>(codeData.get()), codeSize};
-	tolua_pushslice(L, codes);
-	return 1;
-}
-
-static int dora_file_exist(lua_State* L) {
-	size_t size = 0;
-	auto str = luaL_checklstring(L, 1, &size);
-	lua_pushboolean(L, SharedContent.exist({str, size}) ? 1 : 0);
-	return 1;
-}
-
-static int dora_read_file(lua_State* L) {
-	size_t size = 0;
-	auto fileStr = luaL_checklstring(L, 1, &size);
-	Slice filename{fileStr, size};
-	auto data = SharedContent.load(filename);
-	Slice codes{r_cast<char*>(data.first.get()), data.second};
-	if (codes.left(3) == "\xEF\xBB\xBF"_slice) {
-		codes.skip(3);
-	}
 	tolua_pushslice(L, codes);
 	return 1;
 }
@@ -447,22 +444,15 @@ static int dora_load_base(lua_State* L) {
 	return 0;
 }
 
-static int dora_load_libs(lua_State* L) {
+static void dora_open_threaded_compiler(void* state) {
+	lua_State* L = s_cast<lua_State*>(state);
 	dora_load_base(L);
-	luaL_requiref(L, "json", luaopen_colibc_json, 0);
-	lua_pop(L, 1);
 	luaL_requiref(L, "yue", luaopen_yue, 0); // yue
 	lua_pushcfunction(L, dora_file_exist);
 	lua_setfield(L, -2, "file_exist");
-	lua_pushcfunction(L, dora_read_file);
+	lua_pushcfunction(L, dora_threaded_read_file);
 	lua_setfield(L, -2, "read_file");
 	lua_pop(L, 1);
-	return 0;
-}
-
-static void dora_open_compiler(void* state) {
-	lua_State* L = s_cast<lua_State*>(state);
-	dora_load_libs(L);
 	const luaL_Reg global_functions[] = {
 		{"print", dora_print},
 		{NULL, NULL}};
@@ -471,49 +461,64 @@ static void dora_open_compiler(void* state) {
 	lua_pop(L, 1);
 }
 
-static int dora_yue_check(lua_State* L) {
-	size_t size = 0;
-	auto codes = luaL_checklstring(L, 1, &size);
-	yue::YueConfig config;
-	config.implicitReturnRoot = true;
-	config.reserveLineNumber = true;
-	config.lintGlobalVariable = true;
-	auto result = yue::YueCompiler{nullptr, dora_open_compiler}.compile({codes, size}, config);
-	lua_createtable(L, 0, 0);
-	int i = 0;
-	if (result.error) {
-		const auto& error = result.error.value();
-		lua_createtable(L, 4, 0);
-		tolua_pushslice(L, "error"_slice);
-		lua_rawseti(L, -2, 1);
-		tolua_pushslice(L, error.msg);
-		lua_rawseti(L, -2, 2);
-		tolua_pushinteger(L, error.line);
-		lua_rawseti(L, -2, 3);
-		tolua_pushinteger(L, error.col);
-		lua_rawseti(L, -2, 4);
-		lua_rawseti(L, -2, ++i);
+static int dora_yue_check_async(lua_State* L) {
+	size_t len = 0;
+	Slice codes{luaL_checklstring(L, 1, &len), len};
+	tolua_Error err;
+	if (!tolua_isfunction(L, 2, &err)) {
+		tolua_error(L, "#ferror in function 'yue.checkAsync'.", &err);
 	}
-	if (result.globals) {
-		for (const auto& global : *result.globals) {
+	Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 2)));
+	SharedAsyncThread.run([codes = codes.toString()]() {
+		yue::YueConfig config;
+		config.implicitReturnRoot = true;
+		config.reserveLineNumber = true;
+		config.lintGlobalVariable = true;
+		auto result = yue::YueCompiler{nullptr, dora_open_threaded_compiler}.compile(codes, config);
+		return Values::alloc(result);
+	}, [handler](Own<Values> values) {
+		yue::CompileInfo result;
+		values->get(result);
+		auto L = SharedLuaEngine.getState();
+		int top = lua_gettop(L);
+		DEFER(lua_settop(L, top));
+		lua_createtable(L, 0, 0);
+		int i = 0;
+		if (result.error) {
+			const auto& error = result.error.value();
 			lua_createtable(L, 4, 0);
-			tolua_pushslice(L, "global"_slice);
+			tolua_pushslice(L, "error"_slice);
 			lua_rawseti(L, -2, 1);
-			tolua_pushslice(L, global.name);
+			tolua_pushslice(L, error.msg);
 			lua_rawseti(L, -2, 2);
-			tolua_pushinteger(L, global.line);
+			tolua_pushinteger(L, error.line);
 			lua_rawseti(L, -2, 3);
-			tolua_pushinteger(L, global.col);
+			tolua_pushinteger(L, error.col);
 			lua_rawseti(L, -2, 4);
 			lua_rawseti(L, -2, ++i);
 		}
-	}
-	if (result.error) {
-		return 1;
-	} else {
-		tolua_pushslice(L, result.codes);
-		return 2;
-	}
+		if (result.globals) {
+			for (const auto& global : *result.globals) {
+				lua_createtable(L, 4, 0);
+				tolua_pushslice(L, "global"_slice);
+				lua_rawseti(L, -2, 1);
+				tolua_pushslice(L, global.name);
+				lua_rawseti(L, -2, 2);
+				tolua_pushinteger(L, global.line);
+				lua_rawseti(L, -2, 3);
+				tolua_pushinteger(L, global.col);
+				lua_rawseti(L, -2, 4);
+				lua_rawseti(L, -2, ++i);
+			}
+		}
+		if (result.error) {
+			LuaEngine::invoke(L, handler->get(), 1, 0);
+		} else {
+			tolua_pushslice(L, result.codes);
+			LuaEngine::invoke(L, handler->get(), 2, 0);
+		}
+	});
+	return 0;
 }
 
 static int dora_yue_compile(lua_State* L) {
@@ -553,7 +558,7 @@ static int dora_yue_compile(lua_State* L) {
 						config.module = src;
 						size_t size = std::get<3>(*input);
 						const auto& codes = std::get<2>(*input);
-						auto result = yue::YueCompiler{nullptr, dora_open_compiler}.compile({r_cast<char*>(codes.get()), size}, config);
+						auto result = yue::YueCompiler{nullptr, dora_open_threaded_compiler}.compile({r_cast<char*>(codes.get()), size}, config);
 						return Values::alloc(std::move(result));
 					},
 					[input, handler, callback](Own<Values> values) {
@@ -645,7 +650,18 @@ int LuaEngine::getMemoryCount() const {
 LuaEngine::LuaEngine()
 	: L(luaL_newstate())
 	, _tlState(nullptr) {
-	dora_load_libs(L);
+
+	dora_load_base(L);
+	luaL_requiref(L, "json", luaopen_colibc_json, 0);
+	lua_pop(L, 1);
+
+	luaL_requiref(L, "yue", luaopen_yue, 0); // yue
+	lua_pushcfunction(L, dora_file_exist);
+	lua_setfield(L, -2, "file_exist");
+	lua_pushcfunction(L, dora_read_file);
+	lua_setfield(L, -2, "read_file");
+	lua_pop(L, 1);
+
 	tolua_open(L);
 
 	// Register our version of the global "print" function
@@ -834,7 +850,7 @@ LuaEngine::LuaEngine()
 		tolua_beginmodule(L, "yue");
 		{
 			tolua_function(L, "compile", dora_yue_compile);
-			tolua_function(L, "check", dora_yue_check);
+			tolua_function(L, "checkAsync", dora_yue_check_async);
 		}
 		tolua_endmodule(L);
 
@@ -936,7 +952,7 @@ std::string LuaEngine::getTealVersion() {
 	return version;
 }
 
-static std::pair<std::string, std::string> compile_teal(lua_State* L, String tlCodes, String moduleName, bool mainThread) {
+static std::pair<std::string, std::string> compile_teal(lua_State* L, String tlCodes, String filename, bool mainThread) {
 	int top = lua_gettop(L);
 	DEFER(lua_settop(L, top));
 	lua_getglobal(L, "package"); // package
@@ -946,12 +962,12 @@ static std::pair<std::string, std::string> compile_teal(lua_State* L, String tlC
 		lua_pushcfunction(L, dora_read_file);
 		lua_setfield(L, -2, "read_file");
 	} else {
-		lua_pushcfunction(L, dora_teal_threaded_read);
+		lua_pushcfunction(L, dora_threaded_read_file);
 		lua_setfield(L, -2, "read_file");
 	}
 	lua_getfield(L, -1, "dora_to_lua"); // package loaded tl tolua
 	tolua_pushslice(L, tlCodes); // package loaded tl tolua tlCodes
-	tolua_pushslice(L, moduleName); // package loaded tl tolua tlCodes moduleName
+	tolua_pushslice(L, filename); // package loaded tl tolua tlCodes filename
 	LuaEngine::call(L, 2, 2); // tolua(tlCodes, moduleName), package loaded tl res err
 	if (lua_isnil(L, -2) != 0) {
 		return {Slice::Empty, tolua_toslice(L, -1, nullptr)};
@@ -960,21 +976,21 @@ static std::pair<std::string, std::string> compile_teal(lua_State* L, String tlC
 	}
 }
 
-std::pair<std::string, std::string> LuaEngine::compileTealToLua(String tlCodes, String moduleName) {
+std::pair<std::string, std::string> LuaEngine::compileTealToLua(String tlCodes, String filename) {
 	auto tlState = loadTealState();
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
 	thread->pause();
-	auto res = compile_teal(tl, tlCodes, moduleName, false);
+	auto res = compile_teal(tl, tlCodes, filename, false);
 	thread->resume();
 	return res;
 }
 
-void LuaEngine::compileTealToLuaAsync(String tlCodes, String moduleName, const std::function<void(std::pair<std::string, std::string>)>& callback) {
+void LuaEngine::compileTealToLuaAsync(String tlCodes, String filename, const std::function<void(std::pair<std::string, std::string>)>& callback) {
 	auto tlState = loadTealState();
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
-	thread->run([tl, codes = tlCodes.toString(), name = moduleName.toString()]() {
+	thread->run([tl, codes = tlCodes.toString(), name = filename.toString()]() {
 		auto res = compile_teal(tl, codes, name, false);
 		return Values::alloc(std::move(res)); },
 		[callback](Own<Values> values) {
@@ -990,7 +1006,7 @@ static std::optional<std::list<LuaEngine::TealError>> check_teal_async(lua_State
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "loaded"); // package loaded
 	lua_getfield(L, -1, "tl"); // package loaded tl
-	lua_pushcfunction(L, dora_teal_threaded_read);
+	lua_pushcfunction(L, dora_threaded_read_file);
 	lua_setfield(L, -2, "read_file");
 	lua_getfield(L, -1, "dora_check"); // package loaded tl check
 	tolua_pushslice(L, tlCodes); // package loaded tl check tlCodes
@@ -1002,7 +1018,6 @@ static std::optional<std::list<LuaEngine::TealError>> check_teal_async(lua_State
 		if (lua_istable(L, -1) == 0) {
 			errors = {{"crash", moduleName, 0, 0, ""}};
 		} else {
-			std::list<LuaEngine::TealError> errors;
 			int tabIndex = lua_gettop(L);
 			size_t len = lua_rawlen(L, tabIndex);
 			for (size_t i = 0; i < len; i++) {
@@ -1050,7 +1065,7 @@ static std::list<LuaEngine::TealToken> complete_teal_async(lua_State* L, String 
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "loaded"); // package loaded
 	lua_getfield(L, -1, "tl"); // package loaded tl
-	lua_pushcfunction(L, dora_teal_threaded_read);
+	lua_pushcfunction(L, dora_threaded_read_file);
 	lua_setfield(L, -2, "read_file");
 	lua_getfield(L, -1, "dora_complete"); // package loaded tl complete
 	tolua_pushslice(L, tlCodes); // package loaded tl complete tlCodes
@@ -1094,7 +1109,7 @@ static std::optional<LuaEngine::TealInference> infer_teal_async(lua_State* L, St
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "loaded"); // package loaded
 	lua_getfield(L, -1, "tl"); // package loaded tl
-	lua_pushcfunction(L, dora_teal_threaded_read);
+	lua_pushcfunction(L, dora_threaded_read_file);
 	lua_setfield(L, -2, "read_file");
 	lua_getfield(L, -1, "dora_infer"); // package loaded tl infer
 	tolua_pushslice(L, tlCodes); // package loaded tl infer tlCodes
