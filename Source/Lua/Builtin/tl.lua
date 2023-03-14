@@ -10985,14 +10985,7 @@ tl.load = function(input, chunkname, mode, ...)
 	return load(code, chunkname, mode, ...)
 end
 
-tl.dora_to_lua = function(input, module_name)
-	local filename = ""
-	if module_name then
-		local filename, tried = tl.search_module(module_name)
-		if not filename then
-			return nil, table.concat(tried, "\n\t")
-		end
-	end
+tl.dora_to_lua = function(input, filename)
 	local program, errs = tl.parse(input, filename)
 	if errs and #errs > 0 then
 		local info = {}

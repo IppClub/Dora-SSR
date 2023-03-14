@@ -48,18 +48,29 @@ struct GlobalVar {
 using GlobalVars = std::vector<GlobalVar>;
 
 struct CompileInfo {
+	std::string codes;
 	struct Error {
 		std::string msg;
 		int line;
 		int col;
 		std::string displayMessage;
 	};
-	std::string codes;
 	std::optional<Error> error;
 	std::unique_ptr<GlobalVars> globals;
 	std::unique_ptr<Options> options;
 	double parseTime;
 	double compileTime;
+
+	CompileInfo() { }
+	CompileInfo(
+		std::string&& codes,
+		std::optional<Error>&& error,
+		std::unique_ptr<GlobalVars>&& globals,
+		std::unique_ptr<Options>&& options,
+		double parseTime,
+		double compileTime);
+	CompileInfo(CompileInfo&& other);
+	void operator=(CompileInfo&& other);
 };
 
 class YueCompilerImpl;
