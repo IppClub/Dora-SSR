@@ -255,11 +255,13 @@ do
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "Content.loadAsync should be run in a thread")
 		local loadedData
+		local done = false
 		Content_loadAsync(self, filename, function(data)
 			loadedData = data
+			done = true
 		end)
 		wait(function()
-			return loadedData
+			return done
 		end)
 		return loadedData
 	end
@@ -269,23 +271,22 @@ do
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "Content.loadExcelAsync should be run in a thread")
 		local loadedData
+		local done = false
 		if sheets then
 			Content_loadExcelAsync(self, filename, sheets, function(data)
 				loadedData = data
+				done = true
 			end)
 		else
 			Content_loadExcelAsync(self, filename, function(data)
 				loadedData = data
+				done = true
 			end)
 		end
 		wait(function()
-			return loadedData ~= nil
+			return done
 		end)
-		if loadedData then
-			return loadedData
-		else
-			return nil
-		end
+		return loadedData
 	end
 
 	local Content_saveAsync = Content.saveAsync
@@ -293,11 +294,13 @@ do
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "Content.saveAsync should be run in a thread")
 		local result = nil
+		local done = false
 		Content_saveAsync(self, filename, content, function(success)
 			result = success
+			done = true
 		end)
 		wait(function()
-			return result ~= nil
+			return done
 		end)
 		return result
 	end
@@ -307,11 +310,13 @@ do
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "Content.copyAsync should be run in a thread")
 		local result = nil
+		local done = false
 		Content_copyAsync(self, src, dst, function(success)
 			result = success
+			done = true
 		end)
 		wait(function()
-			return result ~= nil
+			return done
 		end)
 		return result
 	end
@@ -350,12 +355,15 @@ do
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "RenderTarget.saveAsync should be run in a thread")
 		local saved = false
-		RenderTarget_saveAsync(self, filename, function()
-			saved = true
+		local done = false
+		RenderTarget_saveAsync(self, filename, function(result)
+			saved = result
+			done = true
 		end)
 		wait(function()
-			return saved
+			return done
 		end)
+		return saved
 	end
 
 	local DB_queryAsync = DB.queryAsync
@@ -366,12 +374,14 @@ do
 		local args = {
 			...
 		}
+		local done = false
 		table_insert(args, 1, function(data)
 			result = data
+			done = true
 		end)
 		DB_queryAsync(self, unpack(args))
 		wait(function()
-			return result ~= nil
+			return done
 		end)
 		return result
 	end
@@ -384,12 +394,14 @@ do
 		local args = {
 			...
 		}
+		local done = false
 		table_insert(args, function(res)
 			result = res
+			done = true
 		end)
 		DB_insertAsync(self, unpack(args))
 		wait(function()
-			return result ~= nil
+			return done
 		end)
 		return result
 	end
@@ -402,12 +414,14 @@ do
 		local args = {
 			...
 		}
+		local done = false
 		table_insert(args, function(res)
 			result = res
+			done = true
 		end)
 		DB_execAsync(self, unpack(args))
 		wait(function()
-			return result ~= nil
+			return done
 		end)
 		return result
 	end
@@ -417,15 +431,17 @@ do
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "DB.transactionAsync should be run in a thread")
 		local result
+		local done = false
 		local args = {
 			...
 		}
 		table_insert(args, function(data)
 			result = data
+			done = true
 		end)
 		DB_transactionAsync(self, unpack(args))
 		wait(function()
-			return result ~= nil
+			return done
 		end)
 		return result
 	end
@@ -435,11 +451,13 @@ do
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "Wasm.executeMainFileAsync should be run in a thread")
 		local result
+		local done = false
 		Wasm_executeMainFileAsync(self, filename, function(res)
 			result = res
+			done = true
 		end)
 		wait(function()
-			return result ~= nil
+			return done
 		end)
 		return result
 	end
@@ -451,6 +469,65 @@ do
 				return scheduleFunc(req)
 			end)
 		end)
+	end
+
+	local teal = builtin.teal
+	local teal_toluaAsync = teal.toluaAsync
+	teal.toluaAsync = function(codes, moduleName)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "teal.toluaAsync should be run in a thread")
+		local result, err
+		local done = false
+		teal_toluaAsync(codes, moduleName, function(luaCodes, msg)
+			result, err = luaCodes, msg
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		return result, err
+	end
+
+	local teal_checkAsync = teal.checkAsync
+	teal.checkAsync = function(codes, moduleName, lax)
+		local result, errs
+		local done = false
+		teal_checkAsync(codes, moduleName, lax, function(success, info)
+			result, errs = success, info
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		return result, errs
+	end
+
+	local teal_completeAsync = teal.completeAsync
+	teal.completeAsync = function(codes, line, row)
+		local result
+		local done = false
+		teal_completeAsync(codes, line, row, function(completeList)
+			result = completeList
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		return result
+	end
+
+	local teal_inferAsync = teal.inferAsync
+	teal.inferAsync = function(codes, line, row)
+		local result
+		local done = false
+		teal_inferAsync(codes, line, row, function(infered)
+			result = infered
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		return result
 	end
 end
 
