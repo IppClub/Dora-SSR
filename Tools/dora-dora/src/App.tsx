@@ -7,7 +7,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import IconButton from '@mui/material/IconButton';
 import Fullscreen from '@mui/icons-material/Fullscreen';
 import FullscreenExit from '@mui/icons-material/FullscreenExit';
-import MonacoEditor from "react-monaco-editor";
+import MonacoEditor, { loader } from "@monaco-editor/react";
 import FileTree, { TreeDataType, TreeMenuEvent } from "./FileTree";
 import FileTabBar, { TabMenuEvent } from './FileTabBar';
 import * as Path from './Path';
@@ -22,6 +22,8 @@ import * as monaco from 'monaco-editor';
 import * as Service from './Service';
 import './Editor';
 import { AppBar, DrawerHeader, drawerWidth, Entry, Main, StyledStack } from './Frame';
+
+loader.config({ monaco });
 
 let lastEditorActionTime = Date.now();
 
@@ -1151,9 +1153,10 @@ export default function PersistentDrawerLeft() {
 											height={window.innerHeight - 64}
 											language={language}
 											theme="dora-dark"
-											value={file.content}
-											editorDidMount={onEditorDidMount(file)}
-											onChange={(content: string) => {
+											defaultValue={file.content}
+											onMount={onEditorDidMount(file)}
+											onChange={(content: string | undefined) => {
+												if (content === undefined) return;
 												setModified({key: file.key, content});
 											}}
 											options={{
