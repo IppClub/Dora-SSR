@@ -29,6 +29,7 @@ using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 #include "Other/AcfDelegate.h"
+#include "bx/platform.h"
 #include "bgfx/platform.h"
 #include "fmt/format.h"
 #include "silly/Slice.h"

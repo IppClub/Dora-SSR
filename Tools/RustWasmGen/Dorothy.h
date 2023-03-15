@@ -944,6 +944,7 @@ value struct DBQuery
 singleton class DB
 {
 	bool exist(string tableName);
+	bool exist @ existSchema(string tableName, string schema);
 	int exec(string sql);
 	outside bool db_do_transaction @ transaction(DBQuery query);
 	outside void db_do_transaction_async @ transactionAsync(DBQuery query, function<void(bool result)> callback);

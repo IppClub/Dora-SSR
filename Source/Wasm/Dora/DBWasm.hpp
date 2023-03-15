@@ -1,6 +1,9 @@
 static int32_t db_exist(int64_t table_name) {
 	return SharedDB.exist(*str_from(table_name)) ? 1 : 0;
 }
+static int32_t db_exist_schema(int64_t table_name, int64_t schema) {
+	return SharedDB.exist(*str_from(table_name), *str_from(schema)) ? 1 : 0;
+}
 static int32_t db_exec(int64_t sql) {
 	return s_cast<int32_t>(SharedDB.exec(*str_from(sql)));
 }
@@ -65,6 +68,7 @@ static void db_exec_async(int64_t sql, int64_t record, int32_t func, int64_t sta
 }
 static void linkDB(wasm3::module& mod) {
 	mod.link_optional("*", "db_exist", db_exist);
+	mod.link_optional("*", "db_exist_schema", db_exist_schema);
 	mod.link_optional("*", "db_exec", db_exec);
 	mod.link_optional("*", "db_transaction", db_transaction);
 	mod.link_optional("*", "db_transaction_async", db_transaction_async);

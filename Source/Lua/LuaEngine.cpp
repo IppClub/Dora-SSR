@@ -996,7 +996,7 @@ std::pair<std::string, std::string> LuaEngine::compileTealToLua(String tlCodes, 
 	auto thread = tlState->thread;
 	thread->pause();
 	initTealState(true);
-	auto res = compile_teal(tl, tlCodes, filename, false);
+	auto res = compile_teal(tl, tlCodes, filename, true);
 	thread->resume();
 	return res;
 }
