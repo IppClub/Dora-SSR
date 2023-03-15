@@ -1155,6 +1155,7 @@ export default function PersistentDrawerLeft() {
 											theme="dora-dark"
 											defaultValue={file.content}
 											onMount={onEditorDidMount(file)}
+											loading={<div/>}
 											onChange={(content: string | undefined) => {
 												if (content === undefined) return;
 												setModified({key: file.key, content});

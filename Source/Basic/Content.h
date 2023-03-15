@@ -8,6 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#if BX_PLATFORM_ANDROID
+class ZipFile;
+#endif
+
 NS_DOROTHY_BEGIN
 
 class Content {
@@ -63,6 +67,12 @@ private:
 	uint8_t* loadUnsafe(String filename, int64_t& size);
 	std::string _assetPath;
 	std::string _writablePath;
+#if BX_PLATFORM_ANDROID
+	bool isAndroidAsset(String fullPath) const;
+	String getAndroidAssetName(String fullPath) const;
+	Own<ZipFile> _apkFile;
+	std::string _apkFilter;
+#endif
 	std::vector<std::string> _searchPaths;
 	std::unordered_map<std::string, std::string> _fullPathCache;
 	SINGLETON_REF(Content, Application);
