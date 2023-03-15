@@ -1,5 +1,6 @@
 extern "C" {
 	fn db_exist(table_name: i64) -> i32;
+	fn db_exist_schema(table_name: i64, schema: i64) -> i32;
 	fn db_exec(sql: i64) -> i32;
 	fn db_transaction(query: i64) -> i32;
 	fn db_transaction_async(query: i64, func: i32, stack: i64);
@@ -16,6 +17,9 @@ pub struct DB { }
 impl DB {
 	pub fn exist(table_name: &str) -> bool {
 		unsafe { return db_exist(crate::dora::from_string(table_name)) != 0; }
+	}
+	pub fn exist_schema(table_name: &str, schema: &str) -> bool {
+		unsafe { return db_exist_schema(crate::dora::from_string(table_name), crate::dora::from_string(schema)) != 0; }
 	}
 	pub fn exec(sql: &str) -> i32 {
 		unsafe { return db_exec(crate::dora::from_string(sql)); }

@@ -30,13 +30,12 @@ namespace fs = ghc::filesystem;
 namespace fs = std::filesystem;
 #endif // BX_PLATFORM_LINUX
 
-#include "SDL.h"
-#include "bgfx/bgfx.h"
 
 #if BX_PLATFORM_ANDROID
 #include "ZipUtils.h"
-static Dorothy::Own<ZipFile> g_apkFile;
-#endif // BX_PLATFORM_ANDROID
+#endif
+
+#include "SDL.h"
 
 static void releaseFileData(void* _ptr, void* _userData) {
 	DORA_UNUSED_PARAM(_userData);
@@ -47,6 +46,20 @@ static void releaseFileData(void* _ptr, void* _userData) {
 }
 
 NS_DOROTHY_BEGIN
+
+#if BX_PLATFORM_ANDROID
+
+bool Content::isAndroidAsset(String fullPath) const {
+	return fullPath.left(_assetPath.length()) == _assetPath;
+}
+
+String Content::getAndroidAssetName(String fullPath) const {
+	const auto& apkPath = SharedApplication.getAPKPath();
+	fullPath.skip(apkPath.length() + 1);
+	return fullPath;
+}
+
+#endif // BX_PLATFORM_ANDROID
 
 Content::~Content() { }
 
@@ -99,10 +112,10 @@ bool Content::save(String filename, uint8_t* content, int64_t size) {
 }
 
 bool Content::remove(String filename) {
-	std::string fullpath = Content::getFullPath(filename);
-	if (!Content::exist(fullpath)) return false;
+	std::string fullPath = Content::getFullPath(filename);
+	if (!Content::exist(fullPath)) return false;
 	std::error_code err;
-	fs::remove_all(fullpath, err);
+	fs::remove_all(fullPath, err);
 	WarnIf(err, "failed to remove files from \"{}\" due to \"{}\".", filename, err.message());
 	return !err;
 }
@@ -124,8 +137,8 @@ std::list<std::string> Content::getAllFiles(String path) {
 	std::string searchName = path.empty() ? _assetPath : path.toString();
 	std::string fullPath = Content::getFullPath(searchName);
 #if BX_PLATFORM_ANDROID
-	if (fullPath.find(_assetPath) == 0) {
-		return g_apkFile->getAllFiles(fullPath);
+	if (isAndroidAsset(fullPath)) {
+		return _apkFile->getAllFiles(getAndroidAssetName(fullPath));
 	}
 #endif // BX_PLATFORM_ANDROID
 	std::list<std::string> files;
@@ -427,8 +440,8 @@ std::list<std::string> Content::getDirEntries(String path, bool isFolder) {
 	std::string searchName = path.empty() ? _assetPath : path.toString();
 	std::string fullPath = Content::getFullPath(searchName);
 #if BX_PLATFORM_ANDROID
-	if (fullPath.find(_assetPath) == 0) {
-		return g_apkFile->getDirEntries(fullPath, isFolder);
+	if (isAndroidAsset(fullPath)) {
+		return _apkFile->getDirEntries(getAndroidAssetName(fullPath), isFolder);
 	}
 #endif // BX_PLATFORM_ANDROID
 	std::list<std::string> files;
@@ -458,8 +471,9 @@ void Content::clearPathCache() {
 
 #if BX_PLATFORM_ANDROID
 Content::Content() {
-	_assetPath = SharedApplication.getAPKPath() + '/' + "assets/"s;
-	g_apkFile = New<ZipFile>(SharedApplication.getAPKPath(), "assets/"s);
+	_apkFilter = "assets/"s;
+	_assetPath = SharedApplication.getAPKPath() + '/' + _apkFilter;
+	_apkFile = New<ZipFile>(SharedApplication.getAPKPath(), _apkFilter);
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	_writablePath = prefPath;
@@ -472,8 +486,8 @@ uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 		return data;
 	}
 	std::string fullPath = Content::getFullPath(filename);
-	if (fullPath.find(_assetPath) == 0) {
-		data = g_apkFile->getFileDataUnsafe(fullPath, r_cast<size_t*>(&size));
+	if (isAndroidAsset(fullPath)) {
+		data = _apkFile->getFileDataUnsafe(getAndroidAssetName(fullPath), r_cast<size_t*>(&size));
 	} else {
 		BLOCK_START {
 			FILE* fp = fopen(fullPath.c_str(), "rb");
@@ -501,8 +515,8 @@ bool Content::loadByChunks(String filename, const std::function<bool(uint8_t*, i
 		return false;
 	}
 	std::string fullPath = Content::getFullPath(filename);
-	if (fullPath.find(_assetPath) == 0) {
-		if (g_apkFile->getFileDataByChunks(fullPath, handler)) {
+	if (isAndroidAsset(fullPath)) {
+		if (_apkFile->getFileDataByChunks(getAndroidAssetName(fullPath), handler)) {
 			return true;
 		}
 	} else {
@@ -527,19 +541,19 @@ bool Content::loadByChunks(String filename, const std::function<bool(uint8_t*, i
 	return false;
 }
 
-bool Content::isFileExist(String strFilePath) {
-	if (strFilePath.empty()) {
+bool Content::isFileExist(String filename) {
+	if (filename.empty()) {
 		return false;
 	}
-	std::string strPath = strFilePath;
-	if (!isAbsolutePath(strFilePath)) {
-		strPath.insert(0, _assetPath);
-	}
-	if (g_apkFile->fileExists(strPath)) {
+	if (isAndroidAsset(filename)) {
+		if (_apkFile->fileExists(getAndroidAssetName(filename))) {
+			return true;
+		}
+	} else if (!isAbsolutePath(filename) && _apkFile->fileExists("assets/"s + filename)) {
 		return true;
 	}
 	bool found = false;
-	FILE* file = fopen(strFilePath.c_str(), "r");
+	FILE* file = fopen(filename.c_str(), "r");
 	if (file) {
 		found = true;
 		fclose(file);
@@ -548,11 +562,11 @@ bool Content::isFileExist(String strFilePath) {
 }
 
 bool Content::isPathFolder(String path) {
-	std::string strPath = path.toString();
-	if (!isAbsolutePath(strPath)) {
-		strPath.insert(0, _assetPath);
-	}
-	if (g_apkFile->isFolder(strPath)) {
+	if (isAndroidAsset(path)) {
+		if (_apkFile->isFolder(getAndroidAssetName(path))) {
+			return true;
+		}
+	} else if (!isAbsolutePath(path) && _apkFile->isFolder("assets/"s + path)) {
 		return true;
 	}
 	return fs::is_directory(path.toString());

@@ -3,7 +3,7 @@ local record DB
 	type Column = integer | number | string | boolean
 	type Row = {Column}
 	type SQL = string | {string, {Row}}
-	exist: function(self: DB, tableName: string): boolean
+	exist: function(self: DB, tableName: string, schema?: string): boolean
 	transaction: function(self: DB, sqls: {SQL}): boolean
 	transactionAsync: function(self: DB, sqls: {SQL}): boolean
 	query: function(

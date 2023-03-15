@@ -1074,7 +1074,7 @@ class SVGDef @ SVG : public Object
 
 class DB
 {
-	bool exist(String tableName);
+	bool exist(String tableName, String schema = nullptr);
 	static tolua_outside DB* DB_shared @ create();
 };
 

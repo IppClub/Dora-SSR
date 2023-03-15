@@ -52,11 +52,10 @@ DB::DB() {
 
 DB::~DB() { }
 
-bool DB::exist(String tableName) const {
+bool DB::exist(String tableName, String schema) const {
 	try {
 		int result = 0;
-		SQLite::Statement query(*_database,
-			"SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?");
+		SQLite::Statement query(*_database, schema.empty() ? "SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?"s : fmt::format("SELECT count(*) FROM {}.sqlite_master WHERE type = 'table' AND name = ?", schema.toString()));
 		query.bind(1, tableName);
 		if (query.executeStep()) {
 			result = query.getColumn(0);

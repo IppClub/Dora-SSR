@@ -21,7 +21,7 @@ class Value;
 class DB {
 public:
 	virtual ~DB();
-	bool exist(String tableName) const;
+	bool exist(String tableName, String schema = Slice::Empty) const;
 	int exec(String sql);
 	int exec(String sql, const std::vector<Own<Value>>& args);
 	int exec(String sql, const std::deque<std::vector<Own<Value>>>& rows);
