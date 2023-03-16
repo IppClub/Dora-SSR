@@ -1,5 +1,7 @@
 _ENV = Dorothy!
 
+HttpServer\stop!
+
 HttpServer.wwwPath = Path Content.writablePath, ".www"
 
 import "Utils" as :LintYueGlobals
@@ -242,5 +244,3 @@ if HttpServer\start 8866
 	print "server started at 8866!"
 else
 	print "port not available!"
-
-Director.entry\slot "Cleanup", -> HttpServer\stop!

@@ -53,15 +53,15 @@ void LogPrintInThread(const std::string& str) {
 	}
 	SharedApplication.invokeInLogic([str]() {
 		LogHandler(str);
-		SharedAsyncLogThread.run([str] {
+	});
+	SharedAsyncLogThread.run([str] {
 #if DORA_DEBUG
 #if BX_PLATFORM_ANDROID
-			__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
+		__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
 #else
-			fmt::print("{}", str);
+		fmt::print("{}", str);
 #endif // BX_PLATFORM_ANDROID
 #endif // DORA_DEBUG
-		});
 	});
 }
 

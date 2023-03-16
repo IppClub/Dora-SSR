@@ -51,6 +51,7 @@ public:
 public:
 	void loadAsyncUnsafe(String filename, const std::function<void(uint8_t*, int64_t)>& callback);
 	uint8_t* loadInMainUnsafe(String filename, int64_t& size);
+	uint8_t* loadUnsafe(String filename, int64_t& size);
 
 protected:
 	Content();
@@ -64,7 +65,6 @@ protected:
 	std::list<std::string> getDirEntries(String path, bool isFolder);
 
 private:
-	uint8_t* loadUnsafe(String filename, int64_t& size);
 	std::string _assetPath;
 	std::string _writablePath;
 #if BX_PLATFORM_ANDROID

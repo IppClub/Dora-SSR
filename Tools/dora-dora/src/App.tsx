@@ -9,7 +9,7 @@ import Fullscreen from '@mui/icons-material/Fullscreen';
 import FullscreenExit from '@mui/icons-material/FullscreenExit';
 import MonacoEditor, { loader } from "@monaco-editor/react";
 import FileTree, { TreeDataType, TreeMenuEvent } from "./FileTree";
-import FileTabBar, { TabMenuEvent } from './FileTabBar';
+import FileTabBar, { TabMenuEvent, TabStatus } from './FileTabBar';
 import * as Path from './Path';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -50,12 +50,7 @@ interface EditingFile {
 	uploading: boolean;
 	editor?: monaco.editor.IStandaloneCodeEditor;
 	position?: monaco.IPosition;
-};
-
-interface EditingTab {
-	key: string;
-	title: string;
-	modified: boolean;
+	status: TabStatus;
 };
 
 interface Modified {
@@ -72,7 +67,6 @@ export default function PersistentDrawerLeft() {
 	const [drawerOpen, setDrawerOpen] = useState(true);
 	const [tabIndex, setTabIndex] = useState<number | null>(null);
 	const [files, setFiles] = useState<EditingFile[]>([]);
-	const [tabs, setTabs] = useState<EditingTab[]>([]);
 	const [modified, setModified] = useState<Modified | null>(null);
 
 	const [treeData, setTreeData] = useState<TreeDataType[]>([]);
@@ -154,27 +148,21 @@ export default function PersistentDrawerLeft() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	contentModified = tabs.find(tab => tab.modified) !== undefined;
-
-	const updateTabs = (targetFiles: EditingFile[]) => {
-		setTabs(targetFiles.map((file) => (
-			{
-				key: file.key,
-				title: file.title,
-				modified: file.contentModified !== null
-			}
-		)));
-	};
-
 	if (modified !== null) {
 		setModified(null);
 		files.forEach(file => {
 			if (file.key === modified.key) {
-				file.contentModified = modified.content;
+				if (modified.content !== file.content) {
+					file.contentModified = modified.content;
+				} else {
+					file.contentModified = null;
+				}
 			}
 		});
-		updateTabs(files);
+		setFiles([...files]);
 	}
+
+	contentModified = files.find(file => file.contentModified !== null) !== undefined;
 
 	const handleDrawerOpen = () => {
 		setDrawerOpen(!drawerOpen);
@@ -182,6 +170,12 @@ export default function PersistentDrawerLeft() {
 
 	const handleChange = (newValue: number) => {
 		setTabIndex(newValue);
+		const file = files.at(newValue);
+		if (file !== undefined) {
+			setTimeout(() => {
+				file.editor?.focus();
+			}, 100);
+		}
 	};
 
 	const openFileInTab = (key: string, title: string, position?: monaco.IPosition) => {
@@ -211,9 +205,9 @@ export default function PersistentDrawerLeft() {
 						contentModified: null,
 						uploading: false,
 						position,
+						status: "normal",
 					});
 					setFiles(files);
-					updateTabs(files);
 					setTabIndex(files.length - 1);
 				}
 			}).catch(() => {
@@ -268,7 +262,6 @@ export default function PersistentDrawerLeft() {
 			loadAssets().then((res) => {
 				if (res !== null) {
 					setFiles([]);
-					setTabs([]);
 					setTabIndex(null);
 					setSelectedKeys([]);
 					addAlert("assets reloaded", "success");
@@ -286,10 +279,12 @@ export default function PersistentDrawerLeft() {
 		if (tabIndex === null) return;
 		const file = files[tabIndex];
 		if (file.contentModified !== null) {
-			Service.write({path: file.key, content: file.contentModified}).then((res) => {
+			const {contentModified} = file;
+			Service.write({path: file.key, content: contentModified}).then((res) => {
 				if (res.success) {
+					file.content = contentModified;
 					file.contentModified = null;
-					updateTabs(files);
+					setFiles([...files]);
 				} else {
 					addAlert("failed to save current file", "error");
 				}
@@ -309,10 +304,12 @@ export default function PersistentDrawerLeft() {
 		filesToSave.forEach(index => {
 			const file = files[index];
 			if (file.contentModified !== null) {
-				Service.write({path: file.key, content: file.contentModified}).then((res) => {
+				const {contentModified} = file;
+				Service.write({path: file.key, content: contentModified}).then((res) => {
 					if (res.success) {
+						file.content = contentModified;
 						file.contentModified = null;
-						updateTabs(files);
+						setFiles([...files]);
 					} else {
 						addAlert(`failed to save ${file.title}`, "error");
 					}
@@ -333,7 +330,6 @@ export default function PersistentDrawerLeft() {
 					setTabIndex(tabIndex - 1);
 				}
 				setFiles(newFiles);
-				updateTabs(newFiles);
 			};
 			if (files[tabIndex].contentModified !== null) {
 				setPopupInfo({
@@ -351,7 +347,6 @@ export default function PersistentDrawerLeft() {
 	const closeAllTabs = () => {
 		const closeTabs = () => {
 			setFiles([]);
-			updateTabs([]);
 			setTabIndex(null);
 		};
 		if (contentModified) {
@@ -370,7 +365,6 @@ export default function PersistentDrawerLeft() {
 		const closeTabs = () => {
 			const newFiles = files.filter((_, index) => index === tabIndex);
 			setFiles(newFiles);
-			updateTabs(newFiles);
 			setTabIndex(0);
 		};
 		const otherModified = files.filter((_, index) => index !== tabIndex).find((file) => file.contentModified !== null) !== undefined;
@@ -459,9 +453,9 @@ export default function PersistentDrawerLeft() {
 					content: "",
 					contentModified: null,
 					uploading: true,
+					status: "normal",
 				});
 				setFiles(files);
-				updateTabs(files);
 				setTabIndex(files.length - 1);
 				break;
 			}
@@ -525,10 +519,8 @@ export default function PersistentDrawerLeft() {
 								}
 								if (files.find(f => f.key === data.key) !== undefined) {
 									setFiles(files.filter(f => f.key !== data.key));
-									const newTabs = tabs.filter(t => t.key !== data.key);
-									setTabs(newTabs);
-									if (tabIndex !== null && tabIndex >= newTabs.length) {
-										setTabIndex(newTabs.length - 1);
+									if (tabIndex !== null && tabIndex >= files.length) {
+										setTabIndex(files.length - 1);
 									}
 								}
 								setTreeData([rootNode]);
@@ -590,12 +582,6 @@ export default function PersistentDrawerLeft() {
 							file.key = newFile;
 							file.title = newName;
 							setFiles([...files]);
-							const tab = tabs.find(t => path.relative(t.key, oldFile) === "");
-							if (tab !== undefined) {
-								tab.key = newFile;
-								tab.title = newName;
-								setTabs([...tabs]);
-							}
 						}
 						const rootNode = treeData.at(0);
 						if (rootNode === undefined) return;
@@ -627,7 +613,6 @@ export default function PersistentDrawerLeft() {
 						doRename().then(() => {
 							if (res === undefined) return;
 							setFiles(res.newFiles);
-							updateTabs(res.newFiles);
 							setExpandedKeys(res.newExpanded);
 						});
 					});
@@ -711,9 +696,9 @@ export default function PersistentDrawerLeft() {
 							content: "",
 							contentModified: null,
 							uploading: false,
+							status: "normal",
 						});
 						setFiles(files);
-						updateTabs(files);
 						setTabIndex(files.length - 1);
 					}
 				}).catch(() => {
@@ -808,7 +793,6 @@ export default function PersistentDrawerLeft() {
 						if (res === undefined) return;
 						doRename().then(() => {
 							setFiles(res.newFiles);
-							updateTabs(res.newFiles);
 							setExpandedKeys(res.newExpanded);
 						});
 					});
@@ -826,7 +810,6 @@ export default function PersistentDrawerLeft() {
 		const newFiles = files.filter(f => path.relative(f.key, key) !== "");
 		if (file.length !== newFiles.length) {
 			setFiles(newFiles);
-			updateTabs(newFiles);
 			if (tabIndex && tabIndex > newFiles.length) {
 				const newIndex = newFiles.length > 0 ? newFiles.length - 1 : null;
 				setTabIndex(newIndex);
@@ -845,8 +828,12 @@ export default function PersistentDrawerLeft() {
 				editor.revealPositionInCenter(position);
 			}, 100);
 			file.position = undefined;
+		} else {
+			setTimeout(() => {
+				editor.focus();
+			}, 100);
 		}
-		setFiles([...files]);
+		setFiles((prev) => [...prev]);
 		let inferLang: "lua" | "tl" | "yue" | null = null;
 		const ext = path.extname(file.key).toLowerCase().substring(1);
 		switch (ext) {
@@ -908,13 +895,8 @@ export default function PersistentDrawerLeft() {
 		const model = editor.getModel();
 		if (model) {
 			model.onDidChangeContent((e) => {
-				let key: string | null = null;
-				if (tabIndex !== null) {
-					key = files[tabIndex].key;
-				}
-				if (key === null) return;
-				const file = key;
-				switch (path.extname(file).toLowerCase()) {
+				const {key} = file;
+				switch (path.extname(key).toLowerCase()) {
 					case ".lua": case ".tl": case ".yue": break;
 					default: return;
 				}
@@ -925,15 +907,16 @@ export default function PersistentDrawerLeft() {
 					setTimeout(resolve, 500);
 				}).then(() => {
 					if (Date.now() - lastEditorActionTime >= 500) {
-						return Service.check({file, content: modified});
+						return Service.check({file: key, content: modified});
 					}
 				}).then((res?) => {
 					if (res === undefined) return;
+					let status: TabStatus = "normal";
 					const markers: monaco.editor.IMarkerData[] = [];
 					if (!res.success && res.info !== undefined) {
 						for (let i = 0; i < res.info.length; i++) {
 							const [errType, filename, row, col, msg] = res.info[i];
-							if (!path.isAbsolute(filename) || path.relative(filename, file) !== "") continue;
+							if (!path.isAbsolute(filename) || path.relative(filename, key) !== "") continue;
 							let startLineNumber = row;
 							let startColumn = col;
 							let endLineNumber = row;
@@ -946,6 +929,7 @@ export default function PersistentDrawerLeft() {
 								case "parsing":
 								case "syntax":
 								case "type":
+									status = "error";
 									markers.push({
 										severity: monaco.MarkerSeverity.Error,
 										message: msg,
@@ -956,6 +940,9 @@ export default function PersistentDrawerLeft() {
 									});
 									break;
 								case "warning":
+									if (status !== "error") {
+										status = "warning";
+									}
 									markers.push({
 										severity: monaco.MarkerSeverity.Warning,
 										message: msg,
@@ -966,6 +953,7 @@ export default function PersistentDrawerLeft() {
 									});
 									break;
 								case "crash":
+									status = "error";
 									if (lastChange !== undefined) {
 										markers.push({
 											severity: monaco.MarkerSeverity.Error,
@@ -982,6 +970,8 @@ export default function PersistentDrawerLeft() {
 							}
 						}
 					}
+					file.status = status;
+					setFiles((prev) => [...prev]);
 					monaco.editor.setModelMarkers(model, "owner", markers);
 				});
 			});
@@ -1087,7 +1077,7 @@ export default function PersistentDrawerLeft() {
 						</IconButton>
 						<FileTabBar
 							index={tabIndex}
-							items={tabs}
+							items={files}
 							onChange={handleChange}
 							onMenuClick={onTabMenuClick}
 						/>
@@ -1095,6 +1085,7 @@ export default function PersistentDrawerLeft() {
 				</AppBar>
 				<Drawer
 					sx={{
+						zIndex: 2,
 						width: drawerWidth,
 						flexShrink: 0,
 						'& .MuiDrawer-paper': {
@@ -1155,7 +1146,7 @@ export default function PersistentDrawerLeft() {
 											theme="dora-dark"
 											defaultValue={file.content}
 											onMount={onEditorDidMount(file)}
-											loading={<div/>}
+											loading={<div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>}
 											onChange={(content: string | undefined) => {
 												if (content === undefined) return;
 												setModified({key: file.key, content});

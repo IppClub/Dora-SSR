@@ -14,10 +14,13 @@ import {
 	AiOutlineCloseCircle,
 } from 'react-icons/ai';
 
+export type TabStatus = "normal" | "warning" | "error";
+
 interface TabItem {
 	key: string;
 	title: string;
-	modified: boolean;
+	contentModified: string | null;
+	status: TabStatus;
 }
 
 export interface FileTabBarProps {
@@ -56,24 +59,39 @@ const StyledTabs = styled((props: StyledTabsProps) => (
 
 interface StyledTabProps {
 	label: string;
+	status: TabStatus;
 	onMouseUp: (event: React.MouseEvent) => void;
 }
 
 const StyledTab = styled((props: StyledTabProps) => (
 	<Tab disableRipple {...props}/>
-))(({ theme }) => ({
-	textTransform: 'none',
-	fontWeight: theme.typography.fontWeightRegular,
-	fontSize: theme.typography.pxToRem(15),
-	marginRight: theme.spacing(1),
-	color: 'rgba(255, 255, 255, 0.7)',
-	'&.Mui-selected': {
-		color: '#fff',
-	},
-	'&.Mui-focusVisible': {
-		backgroundColor: 'rgba(100, 95, 228, 0.32)',
-	},
-}));
+))(({ theme, status }) => {
+	let color = "rgba(255, 255, 255, 0.7)";
+	let selectedColor = "rgb(255, 255, 255)";
+	switch (status) {
+		case "error":
+			color = "rgba(233, 133, 116, 0.7)";
+			selectedColor = "rgb(233, 133, 116)";
+			break;
+		case "warning":
+			color = "rgba(200, 177, 136, 0.7)";
+			selectedColor = "rgb(200, 177, 136)";
+			break;
+	}
+	return {
+		textTransform: 'none',
+		fontWeight: theme.typography.fontWeightRegular,
+		fontSize: theme.typography.pxToRem(15),
+		marginRight: theme.spacing(1),
+		color,
+		'&.Mui-selected': {
+			color: selectedColor,
+		},
+		'&.Mui-focusVisible': {
+			backgroundColor: 'rgba(100, 95, 228, 0.32)',
+		},
+	};
+});
 
 export type TabMenuEvent =
 	"Save" |
@@ -121,7 +139,8 @@ export default function FileTabBar(props: FileTabBarProps) {
 						<StyledTab
 							onMouseUp={mouseUp}
 							key={item.key}
-							label={item.modified ? '*' + item.title : item.title}
+							label={item.contentModified !== null ? '*' + item.title : item.title}
+							status={item.status}
 						/>
 					)
 				}

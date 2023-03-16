@@ -58,6 +58,7 @@ export const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open
 export const StyledStack = styled(Stack, { shouldForwardProp: (prop) => prop !== 'open' })<{
 	open?: boolean;
 }>(({ theme, open }) => ({
+	zIndex: 999,
 	width: '350px',
 	bottom: 5,
 	flexGrow: 1,
@@ -84,6 +85,7 @@ export interface AppBarProps extends MuiAppBarProps {
 export const AppBar = styled(MuiAppBar, {
 	shouldForwardProp: (prop) => prop !== 'open',
 })<AppBarProps>(({ theme, open }) => ({
+	zIndex: 1,
 	transition: theme.transitions.create(['margin', 'width'], {
 		easing: theme.transitions.easing.sharp,
 		duration: theme.transitions.duration.leavingScreen,

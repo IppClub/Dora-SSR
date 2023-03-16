@@ -70,6 +70,8 @@ const completionItemProvider = (triggerCharacters: string[], lang: DoraLang) => 
 						};
 					}),
 				};
+			}).catch(() => {
+				console.error("failed to complete codes");
 			});
 		},
 	} as monaco.languages.CompletionItemProvider;
@@ -128,6 +130,8 @@ const hoverProvider = (lang: DoraLang) => {
 					),
 					contents,
 				};
+			}).catch(() => {
+				console.error("failed to infer codes");
 			});
 		},
 	} as monaco.languages.HoverProvider;

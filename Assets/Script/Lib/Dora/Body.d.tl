@@ -4,7 +4,7 @@ local type Body = require("BodyType")
 local type Sensor = require("SensorType")
 local type PhysicsWorld = require("PhysicsWorldType")
 local record __SLOT__
-	-- Body.receivingContact = true
+	-- with Body.receivingContact = true
 	["BodyEnter"]: function(other: Body, sensorTag: integer)
 	["BodyLeave"]: function(other: Body, sensorTag: integer)
 	["ContactStart"]: function(other: Body, point: Vec2, normal: Vec2)

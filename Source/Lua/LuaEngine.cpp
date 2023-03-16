@@ -413,12 +413,12 @@ static int dora_threaded_read_file(lua_State* L) {
 	OwnArray<uint8_t> codeData;
 	size_t codeSize;
 	bx::Semaphore waitForLoaded;
-	SharedApplication.invokeInLogic([&]() {
-		SharedContent.loadAsyncData(filename, [&](OwnArray<uint8_t>&& data, size_t size) {
-			codeData = std::move(data);
-			codeSize = size;
-			waitForLoaded.post();
-		});
+	SharedAsyncThread.FileIO.run([&]() {
+		int64_t size;
+		auto data = SharedContent.loadUnsafe(filename, size);
+		codeSize = s_cast<size_t>(size);
+		codeData = MakeOwnArray(data);
+		waitForLoaded.post();
 	});
 	waitForLoaded.wait();
 	Slice codes{r_cast<char*>(codeData.get()), codeSize};
