@@ -6577,14 +6577,27 @@ tl.type_check = function(ast, opts)
 		assert(is_record_type(t1), "only records can have embeds")
 		if is_record_type(t2) then
 			local compat, fields = are_disjoint(t1, t2)
-			if compat then
-				return compat
-			else
+			local errs = {}
+			if not compat then
 				local str = {}
 				for f in pairs(fields) do
 					table.insert(str, f)
 				end
-				return nil, "records share fields: " .. table.concat(str, ", ")
+				errs[#errs + 1] = "share fields: " .. table.concat(str, ", ")
+			end
+			if t1.meta_fields and t2.meta_fields then
+				local meta_fields = {}
+				for field_name in pairs(t1.meta_fields) do
+					if t2.meta_fields[field_name] then
+						meta_fields[#meta_fields + 1] = field_name
+					end
+				end
+				errs[#errs + 1] = "share meta fields: " .. table.concat(meta_fields, ", ")
+			end
+			if #errs == 0 then
+				return true
+			else
+				return false, table.concat(errs, " and ")
 			end
 		end
 		return false, t2.typename .. " can't be embedded"
@@ -6615,10 +6628,24 @@ tl.type_check = function(ast, opts)
 			end
 			t.embeds[i] = e
 			if e.fields then
-				for fname, f in pairs(e.fields) do
-					t.fields[fname] = f
-					table.insert(t.field_order, fname)
+				local fields = t.fields or {}
+				local field_order = t.field_order or {}
+				for _, fname in ipairs(e.field_order) do
+					fields[fname] = e.fields[fname]
+					field_order[#field_order + 1] = fname
 				end
+				t.fields = fields
+				t.field_order = field_order
+			end
+			if e.meta_fields then
+				local meta_fields = t.meta_fields or {}
+				local meta_field_order = t.meta_field_order or {}
+				for _, fname in ipairs(e.meta_field_order) do
+					meta_fields[fname] = e.meta_fields[fname]
+					meta_field_order[#meta_field_order + 1] = fname
+				end
+				t.meta_fields = meta_fields
+				t.meta_field_order = meta_field_order
 			end
 			if e.readonlys then
 				if not t.readonlys then
