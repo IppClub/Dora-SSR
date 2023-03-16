@@ -564,7 +564,7 @@ Attachment *SkeletonBinary::readAttachment(DataInput *input, Skin *skin, int slo
 			Vector<float> uvs;
 			Vector<unsigned short> triangles;
 			Vector<float> vertices;
-			Vector<size_t> bones;
+			Vector<int> bones;
 			int hullLength;
 			Sequence *sequence;
 			float width = 0;
@@ -702,7 +702,7 @@ Attachment *SkeletonBinary::readAttachment(DataInput *input, Skin *skin, int slo
 	return NULL;
 }
 
-void SkeletonBinary::readVertices(DataInput *input, Vector<float> &vertices, Vector<size_t> &bones, int vertexCount) {
+void SkeletonBinary::readVertices(DataInput *input, Vector<float> &vertices, Vector<int> &bones, int vertexCount) {
 	float scale = _scale;
 	int verticesLength = vertexCount << 1;
 
@@ -1010,7 +1010,7 @@ Animation *SkeletonBinary::readAnimation(const String &name, DataInput *input, S
 						timeline->setFrame(frame, time, a);
 						if (frame == frameLast) break;
 						float time2 = readFloat(input);
-						float a2 = readByte(input) / 255;
+						float a2 = readByte(input) / 255.0;
 						switch (readSByte(input)) {
 							case CURVE_STEPPED:
 								timeline->setStepped(frame);
@@ -1249,13 +1249,13 @@ Animation *SkeletonBinary::readAnimation(const String &name, DataInput *input, S
 					setError("Attachment not found: ", attachmentName);
 					return NULL;
 				}
-				VertexAttachment *attachment = static_cast<VertexAttachment *>(baseAttachment);
 				unsigned int timelineType = readByte(input);
 				int frameCount = readVarint(input, true);
 				int frameLast = frameCount - 1;
 
 				switch (timelineType) {
 					case ATTACHMENT_DEFORM: {
+						VertexAttachment *attachment = static_cast<VertexAttachment *>(baseAttachment);
 						bool weighted = attachment->_bones.size() > 0;
 						Vector<float> &vertices = attachment->_vertices;
 						int deformLength = weighted ? (int) vertices.size() / 3 * 2 : (int) vertices.size();
@@ -1311,7 +1311,7 @@ Animation *SkeletonBinary::readAnimation(const String &name, DataInput *input, S
 						break;
 					}
 					case ATTACHMENT_SEQUENCE: {
-						SequenceTimeline *timeline = new (__FILE__, __LINE__) SequenceTimeline(frameCount, slotIndex, attachment);
+						SequenceTimeline *timeline = new (__FILE__, __LINE__) SequenceTimeline(frameCount, slotIndex, baseAttachment);
 						for (int frame = 0; frame < frameCount; frame++) {
 							float time = readFloat(input);
 							int modeAndIndex = readInt(input);
