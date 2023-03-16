@@ -385,7 +385,7 @@ void Spine::render() {
 		Texture2D* texture = nullptr;
 		if (attachment->getRTTI().isExactly(spine::RegionAttachment::rtti)) {
 			spine::RegionAttachment* region = s_cast<spine::RegionAttachment*>(attachment);
-			texture = r_cast<Texture2D*>(r_cast<spine::AtlasRegion*>(region->getRendererObject())->page->getRendererObject());
+			texture = r_cast<Texture2D*>(s_cast<spine::AtlasRegion*>(region->getRegion())->page->texture);
 			vertices.assign(4, {0, 0, 0, 1});
 			region->computeWorldVertices(*slot, &vertices[0].x, 0, sizeof(vertices[0]) / sizeof(float));
 			if (_clipper->isClipping()) {
@@ -429,7 +429,7 @@ void Spine::render() {
 			vertices.clear();
 		} else if (attachment->getRTTI().isExactly(spine::MeshAttachment::rtti)) {
 			spine::MeshAttachment* mesh = s_cast<spine::MeshAttachment*>(attachment);
-			texture = r_cast<Texture2D*>(r_cast<spine::AtlasRegion*>(mesh->getRendererObject())->page->getRendererObject());
+			texture = r_cast<Texture2D*>(s_cast<spine::AtlasRegion*>(mesh->getRegion())->page->texture);
 			size_t verticeLength = mesh->getWorldVerticesLength();
 			size_t numVertices = verticeLength / 2;
 			vertices.assign(numVertices, {0, 0, 0, 1});

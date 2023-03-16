@@ -36,11 +36,6 @@
 #include <string.h>
 #include <stdio.h>
 
-// Required for sprintf on MSVC
-#ifdef _MSC_VER
-#pragma warning(disable:4996)
-#endif
-
 namespace spine {
 	class SP_API String : public SpineObject {
 	public:

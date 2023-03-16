@@ -23,7 +23,7 @@ public:
 		auto texture = SharedTextureCache.load({path.buffer(), path.length()});
 		if (!texture) return;
 		texture->retain();
-		page.setRendererObject(texture);
+		page.texture = texture;
 		page.width = texture->getWidth();
 		page.height = texture->getHeight();
 	}
@@ -97,7 +97,7 @@ void AtlasCache::loadAsync(String filename, const std::function<void(Atlas*)>& h
 				auto& failed = std::get<3>(data);
 				if (texture) {
 					auto& page = atlas->get()->getPages()[i];
-					page->setRendererObject(texture);
+					page->texture = texture;
 					page->width = texture->getWidth();
 					page->height = texture->getHeight();
 					texture->retain();

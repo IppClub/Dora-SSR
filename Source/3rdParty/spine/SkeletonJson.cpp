@@ -512,12 +512,12 @@ SkeletonData *SkeletonJson::readSkeletonData(const char *json) {
 				skeletonData->_defaultSkin = skin;
 			}
 
-			for (attachmentsMap = Json::getItem(skinMap,
-												"attachments")
-										  ->_child;
-				 attachmentsMap; attachmentsMap = attachmentsMap->_next) {
-				SlotData *slot = skeletonData->findSlot(attachmentsMap->_name);
-				Json *attachmentMap;
+			Json *attachments = Json::getItem(skinMap, "attachments");
+			if (attachments)
+				for (attachmentsMap = attachments->_child;
+					 attachmentsMap; attachmentsMap = attachmentsMap->_next) {
+					SlotData *slot = skeletonData->findSlot(attachmentsMap->_name);
+					Json *attachmentMap;
 
 					for (attachmentMap = attachmentsMap->_child; attachmentMap; attachmentMap = attachmentMap->_next) {
 						Attachment *attachment = NULL;
