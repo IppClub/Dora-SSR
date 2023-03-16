@@ -9,6 +9,7 @@ local record SizeClass
 	): Size
 	metamethod __call: function(cls: SizeClass, other: Size): Size
 	metamethod __call: function(cls: SizeClass, vec: Vec2): Size
+	const zero: Size
 end
 local sizeClass: SizeClass
 return sizeClass

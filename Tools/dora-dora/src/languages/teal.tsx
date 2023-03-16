@@ -98,7 +98,8 @@ export const language: languages.IMonarchLanguage = {
 		'?',
 		'?:',
 		'..',
-		'...'
+		'...',
+		'>:',
 	],
 
 	// we include these common regular expressions
