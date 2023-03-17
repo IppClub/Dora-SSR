@@ -241,7 +241,20 @@ HttpServer\post "/assets", ->
 		children: visitAssets Content.writablePath
 	}
 
-if HttpServer\start 8866
-	print "server started at 8866!"
-else
-	print "port not available!"
+thread ->
+	doraWeb = Path Content.assetPath, "www", "index.html"
+	doraReady = Path Content.writablePath, ".www", "dora-ready"
+	if Content\exist(doraWeb) and not Content\exist doraReady
+		Content\remove Path Content.writablePath, ".www"
+		Content\copyAsync(
+			Path Content.assetPath, "www"
+			Path Content.writablePath, ".www"
+		)
+		Content\save doraReady, ""
+		print "dora-dora is ready!"
+	if HttpServer\start 8866
+		:localIP = HttpServer
+		localIP = "localhost" if localIP == ""
+		print "server started at http://#{localIP}:8866"
+	else
+		print "port not available!"

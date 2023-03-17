@@ -20,6 +20,64 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "SDL.h"
 
+
+#if BX_PLATFORM_WINDOWS
+static std::string get_local_ip() {
+	std::string localIP;
+
+	char hostname[255] = {0};
+	gethostname(hostname, sizeof(hostname));
+	hostent* host = gethostbyname(hostname);
+	if (host == nullptr) return localIP;
+
+	for (short i = 0; i < host->h_length; i++) {
+		in_addr addr;
+		memcpy(&addr, host->h_addr_list[i], sizeof(in_addr));
+		Slice ip(inet_ntoa(addr));
+		if (ip.left(8) == "192.168."_slice) { // C
+			localIP = ip;
+			break;
+		} else if (ip.left(3) == "10."_slice) { // A
+			localIP = ip;
+		}
+	}
+	return localIP;
+}
+
+#else // BX_PLATFORM_WINDOWS
+#include <ifaddrs.h>
+
+static std::string get_local_ip() {
+	std::string localIP;
+	ifaddrs* ifAddrStruct = nullptr;
+	ifaddrs* ifa = nullptr;
+	void* tmpAddrPtr = nullptr;
+
+	getifaddrs(&ifAddrStruct);
+
+	for (ifa = ifAddrStruct; ifa != nullptr; ifa = ifa->ifa_next) {
+		if (!ifa->ifa_addr) {
+			continue;
+		}
+		if (ifa->ifa_addr->sa_family == AF_INET) {
+			tmpAddrPtr = &(r_cast<sockaddr_in*>(ifa->ifa_addr))->sin_addr;
+			char addressBuffer[INET_ADDRSTRLEN];
+			inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+
+			Slice ip(addressBuffer);
+			if (ip.left(8) == "192.168."_slice) { // C
+				localIP = ip;
+				break;
+			} else if (ip.left(3) == "10."_slice) { // A
+				localIP = ip;
+			}
+		}
+	}
+	if (ifAddrStruct != nullptr) freeifaddrs(ifAddrStruct);
+	return localIP;
+}
+#endif // BX_PLATFORM_WINDOWS
+
 NS_DOROTHY_BEGIN
 
 HttpServer::Response::Response(HttpServer::Response&& res)
@@ -44,6 +102,10 @@ HttpServer::HttpServer()
 
 HttpServer::~HttpServer() {
 	getServer().stop();
+}
+
+std::string HttpServer::getLocalIP() const {
+	return get_local_ip();
 }
 
 void HttpServer::setWWWPath(String var) {
