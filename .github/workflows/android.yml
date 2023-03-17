@@ -32,6 +32,9 @@ jobs:
         run: cd Project/Android && ./gradlew assembleDebug
       - name: Set up yarn
         uses: bahmutov/npm-install@v1
+        with:
+          working-directory: |
+            Tools/dora-dora
       - name: Pack Android
         if: startsWith(github.ref, 'refs/tags/')
         run: |
