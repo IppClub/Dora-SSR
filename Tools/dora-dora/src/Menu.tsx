@@ -28,11 +28,13 @@ export const StyledMenu = styled((props: MenuProps) => (
 		},
 		'& .MuiMenuItem-root': {
 			'& .MuiSvgIcon-root': {
-				fontSize: 18,
-				marginRight: theme.spacing(1.5),
+				fontSize: 20,
 			},
 			'& .MuiListItemIcon-root': {
 				color: '#fff',
+			},
+			'& .MuiListItemText-root': {
+				marginRight: theme.spacing(1.5),
 			},
 		},
 	},

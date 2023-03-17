@@ -2882,7 +2882,9 @@ int Test_getNames(lua_State* L) {
 int Test_runTest(lua_State* L) {
 	size_t len = 0;
 	const char* name = luaL_checklstring(L, 2, &len);
-	return Test::runTest({name, len});
+	bool result = Test::runTest({name, len});
+	lua_pushboolean(L, result ? 1 : 0);
+	return 1;
 }
 
 NS_DOROTHY_END

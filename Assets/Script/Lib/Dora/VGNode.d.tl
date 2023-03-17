@@ -3,7 +3,7 @@ local Sprite = require("Sprite").Type
 local record VGNode
 	embed Node
 	const surface: Sprite
-	render: function(func: function())
+	render: function(self: VGNode, func: function())
 end
 local record VGNodeClass
 	type Type = VGNode

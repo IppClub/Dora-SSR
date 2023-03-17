@@ -163,3 +163,15 @@ export interface ListResponse {
 export const list = (req: ListRequest) => {
 	return post<ListResponse>("/list", req);
 };
+
+// Run
+
+export interface RunRequest {
+	file: string;
+}
+export interface RunResponse {
+	success: boolean;
+}
+export const run = (req: RunRequest) => {
+	return post<RunResponse>("/run", req);
+};

@@ -179,7 +179,7 @@ currentEntryName = nil
 footerWindow = nil
 entryWindow = nil
 
-allClear = ->
+export allClear = ->
 	for routine in *Routine
 		switch routine
 			when footerWindow, entryWindow
@@ -249,13 +249,12 @@ locateProduction = (searchPath)->
 unless locateProduction Content.writablePath
 	locateProduction Content.assetPath
 
-enterDemoEntry = (name)->
+export enterEntryAsync = (name)->
 	isInEntry = false
 	currentEntryName = name
 	if cppTestSet[name]
-		App\runTest name
-		return
-	<- thread
+		return App\runTest name
+	sleep!
 	try
 		result = require name
 		if "function" == type result
@@ -269,6 +268,8 @@ enterDemoEntry = (name)->
 	catch msg
 		print debug.traceback msg
 		allClear!
+
+enterDemoEntry = (name)-> thread -> enterEntryAsync name
 
 reloadCurrentEntry = ->
 	if currentEntryName
