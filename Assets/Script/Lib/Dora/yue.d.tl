@@ -12,7 +12,7 @@ local record yue
 		line_offset: integer
 	end
 
-	to_lua: function(code: string, config: Config): --[[codes]] string | nil, --[[error]] string | nil, --[[globals]] {{string, integer, integer}} | nil
+	to_lua: function(code: string, config?: Config): --[[codes]] string | nil, --[[error]] string | nil, --[[globals]] {{string, integer, integer}} | nil
 
 	file_exist: function(filename: string): boolean
 	read_file: function(filename: string): string

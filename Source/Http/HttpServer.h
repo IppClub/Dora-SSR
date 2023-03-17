@@ -16,6 +16,7 @@ class HttpServer {
 public:
 	virtual ~HttpServer();
 	PROPERTY_STRING(WWWPath);
+	PROPERTY_READONLY(std::string, LocalIP);
 	struct Request {
 		std::list<Slice> params;
 		Slice contentType;

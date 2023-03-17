@@ -1080,6 +1080,7 @@ class DB
 
 class HttpServer
 {
+	tolua_readonly tolua_property__common string localIP;
 	tolua_property__common string wWWPath @ wwwPath;
 	bool start(int port);
 	void stop();

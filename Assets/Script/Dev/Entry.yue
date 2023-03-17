@@ -232,11 +232,6 @@ locateProduction = (searchPath)->
 					Path productionAssets, "Spine"
 					Path productionAssets, "Image"
 					Path productionAssets, "Font"
-					productionAssets
-					Path productionAssets, "Script"
-					Path productionAssets, "Spine"
-					Path productionAssets, "Image"
-					Path productionAssets, "Font"
 				}
 				Content\insertSearchPath 1, path
 			productionTests = [Path\getName f for f in *Content\getAllFiles Path productionAssets, "Test"]
