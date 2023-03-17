@@ -4,9 +4,9 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Stack from '@mui/system/Stack';
 import { IconButton, ListItemIcon, ListItemText, Toolbar } from '@mui/material';
 import SportsEsports from '@mui/icons-material/SportsEsports';
-import { AiFillPlayCircle } from 'react-icons/ai';
+//import { AiFillPlayCircle } from 'react-icons/ai';
 import { BsFillFileEarmarkPlayFill } from 'react-icons/bs';
-import { MdOutlineFileOpen } from 'react-icons/md';
+//import { MdOutlineFileOpen } from 'react-icons/md';
 import { StyledMenu, StyledMenuItem } from './Menu';
 import { useState } from 'react';
 
