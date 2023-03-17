@@ -4,8 +4,8 @@ with Content
 	.searchPaths =
 		* Path .writablePath, "Build", "Script"
 		* Path .writablePath, "Build", "Script", "Lib"
-		* "Script"
-		* Path "Script", "Lib"
-		* Path "Script", "Lib", "Dora"
+		* Path .assetPath, "Script"
+		* Path .assetPath, "Script", "Lib"
+		* Path .assetPath, "Script", "Lib", "Dora"
 
 require "Dev.Entry"

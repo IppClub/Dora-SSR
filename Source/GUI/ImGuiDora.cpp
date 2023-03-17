@@ -445,7 +445,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	isLoadingFont = true;
 
 	float scale =
-#if BX_PLATFORM_LINUX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
+#if BX_PLATFORM_LINUX // || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
 		1.0f;
 #else
 		SharedApplication.getDeviceRatio();

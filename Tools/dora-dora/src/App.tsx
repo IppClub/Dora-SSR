@@ -21,7 +21,7 @@ import { TransitionGroup } from 'react-transition-group';
 import * as monaco from 'monaco-editor';
 import * as Service from './Service';
 import './Editor';
-import { AppBar, DrawerHeader, drawerWidth, Entry, Main, StyledStack } from './Frame';
+import { AppBar, DrawerHeader, drawerWidth, Entry, Main, PlayControl, PlayControlMode, StyledStack } from './Frame';
 
 loader.config({ monaco });
 
@@ -1005,6 +1005,36 @@ export default function PersistentDrawerLeft() {
 		}
 	};
 
+	const onPlayControlClick = (mode: PlayControlMode) => {
+		if (mode === "Run This") {
+			if (tabIndex === null) {
+				addAlert("need to select a file to run", "info");
+				return;
+			}
+			const file = files[tabIndex];
+			const ext = path.extname(file.key).toLowerCase();
+			switch (ext) {
+				case ".lua":
+				case ".yue":
+				case ".tl":
+				case ".xml":
+					Service.run({file: file.key}).then((res) => {
+						if (res.success) {
+							addAlert(`${file.title} is running`, "success");
+						} else {
+							addAlert(`failed to run ${file.title}`, "error");
+						}
+					}).catch(() => {
+						console.error("failed to run file");
+					})
+					break;
+				default:
+					addAlert("can not run current item", "info");
+					break;
+			}
+		}
+	};
+
 	return (
 		<Entry>
 			<Dialog
@@ -1207,6 +1237,7 @@ export default function PersistentDrawerLeft() {
 						</Main>
 					})
 				}
+				<PlayControl onClick={onPlayControlClick}/>
 				<StyledStack open={drawerOpen}>
 					<TransitionGroup>
 						{alerts.map((item) => (
