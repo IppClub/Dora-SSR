@@ -2123,6 +2123,18 @@ int DB_transactionAsync(lua_State* L) {
 	return DB_transactionInner(L, true);
 }
 
+static void DB_colToLua(lua_State* L, const DB::Col& c) {
+	if (std::holds_alternative<int64_t>(c)) {
+		lua_pushinteger(L, s_cast<lua_Integer>(std::get<int64_t>(c)));
+	} else if (std::holds_alternative<double>(c)) {
+		lua_pushinteger(L, s_cast<lua_Number>(std::get<double>(c)));
+	} else if (std::holds_alternative<std::string>(c)) {
+		tolua_pushslice(L, std::get<std::string>(c));
+	} else {
+		lua_pushboolean(L, std::get<bool>(c) ? 1 : 0);
+	}
+}
+
 int DB_query(lua_State* L) {
 	/* 1 self, 2 sql, 3 args or noobj */
 #ifndef TOLUA_RELEASE
@@ -2165,7 +2177,7 @@ int DB_query(lua_State* L) {
 				lua_createtable(L, s_cast<int>(row.size()), 0);
 				int j = 0;
 				for (const auto& col : row) {
-					col->pushToLua(L);
+					DB_colToLua(L, col);
 					lua_rawseti(L, -2, ++j);
 				}
 				lua_rawseti(L, -2, ++i);
@@ -2340,7 +2352,7 @@ int DB_queryAsync(lua_State* L) {
 			withColumns = tolua_toboolean(L, 5, 0);
 		} else
 			withColumns = tolua_toboolean(L, 4, 0);
-		self->queryAsync(sql, std::move(args), withColumns, [handler](const std::deque<std::vector<Own<Value>>>& result) {
+		self->queryAsync(sql, std::move(args), withColumns, [handler](const std::deque<std::vector<DB::Col>>& result) {
 			lua_State* L = SharedLuaEngine.getState();
 			int top = lua_gettop(L);
 			DEFER(lua_settop(L, top));
@@ -2350,7 +2362,7 @@ int DB_queryAsync(lua_State* L) {
 				lua_createtable(L, s_cast<int>(row.size()), 0);
 				int j = 0;
 				for (const auto& col : row) {
-					col->pushToLua(L);
+					DB_colToLua(L, col);
 					lua_rawseti(L, -2, ++j);
 				}
 				lua_rawseti(L, -2, ++i);

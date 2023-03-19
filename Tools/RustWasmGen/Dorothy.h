@@ -929,15 +929,19 @@ object class SVGDef @ SVG
 	static optional SVGDef* from @ create(string filename);
 };
 
-value struct DBRecord
+value struct DBParams
 {
 	void add(Array* params);
+};
+
+value struct DBRecord
+{
 	bool read(Array* record);
 };
 
 value struct DBQuery
 {
-	void addWithParams(string sql, DBRecord record);
+	void addWithParams(string sql, DBParams params);
 	void add(string sql);
 };
 
@@ -950,11 +954,11 @@ singleton class DB
 	outside void db_do_transaction_async @ transactionAsync(DBQuery query, function<void(bool result)> callback);
 	outside DBRecord db_do_query @ query(string sql, bool withColumns);
 	outside DBRecord db_do_query_with_params @ queryWithParams(string sql, Array* param, bool withColumns);
-	outside void db_do_insert @ insert(string tableName, DBRecord record);
-	outside int32_t db_do_exec_with_records @ execWithRecords(string sql, DBRecord record);
+	outside void db_do_insert @ insert(string tableName, DBParams params);
+	outside int32_t db_do_exec_with_records @ execWithRecords(string sql, DBParams params);
 	outside void db_do_query_with_params_async @ queryWithParamsAsync(string sql, Array* param, bool withColumns, function<void(DBRecord result)> callback);
-	outside void db_do_insert_async @ insertAsync(string tableName, DBRecord record, function<void(bool result)> callback);
-	outside void db_do_exec_async @ execAsync(string sql, DBRecord record, function<void(int64_t rowChanges)> callback);
+	outside void db_do_insert_async @ insertAsync(string tableName, DBParams params, function<void(bool result)> callback);
+	outside void db_do_exec_async @ execAsync(string sql, DBParams params, function<void(int64_t rowChanges)> callback);
 };
 
 object class MLQLearner @ QLearner

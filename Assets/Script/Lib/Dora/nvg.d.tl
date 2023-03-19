@@ -17,7 +17,7 @@ local record Transform
 end
 local record TransformClass
 	type Type = Transform
-	metamethod __call: function(cls: TransformClass): Transform
+	metamethod __call: function(self: TransformClass): Transform
 end
 local record nvg
 	enum LineCapMode

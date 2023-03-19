@@ -27,7 +27,7 @@ local record RenderTarget
 end
 local record RenderTargetClass
 	type Type = RenderTarget
-	metamethod __call: function(cls: RenderTargetClass, width: integer, height: integer): RenderTarget
+	metamethod __call: function(self: RenderTargetClass, width: integer, height: integer): RenderTarget
 end
 local renderTargetClass: RenderTargetClass
 return renderTargetClass

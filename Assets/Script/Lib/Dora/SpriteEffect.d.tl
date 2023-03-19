@@ -4,8 +4,8 @@ local record SpriteEffect
 end
 local record SpriteEffectClass
 	type Type = SpriteEffect
-	metamethod __call: function(cls: SpriteEffectClass, vertShader: string, fragShader: string): SpriteEffect
-	metamethod __call: function(cls: SpriteEffectClass): SpriteEffect
+	metamethod __call: function(self: SpriteEffectClass, vertShader: string, fragShader: string): SpriteEffect
+	metamethod __call: function(self: SpriteEffectClass): SpriteEffect
 end
 local spriteEffectClass: SpriteEffectClass
 return spriteEffectClass

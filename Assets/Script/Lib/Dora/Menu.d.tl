@@ -5,8 +5,8 @@ local record Menu
 end
 local record MenuClass
 	type Type = Menu
-	metamethod __call: function(cls: MenuClass, width: number, height: number): Menu
-	metamethod __call: function(cls: MenuClass): Menu
+	metamethod __call: function(self: MenuClass, width: number, height: number): Menu
+	metamethod __call: function(self: MenuClass): Menu
 end
 local menu: MenuClass
 return menu

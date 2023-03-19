@@ -15,10 +15,10 @@ local record BlendFuncClass
 		"InvDstColor"
 		"InvDstAlpha"
 	end
-	get: function(func: Func): integer
+	get: function(self: BlendFuncClass, func: Func): integer
+	metamethod __call: function(self: BlendFuncClass, src: Func, dst: Func): BlendFunc
+	metamethod __call: function(self: BlendFuncClass, srcColor: Func, dstColor: Func, srcAlpha: Func, dstAlpha: Func): BlendFunc
 	const default: BlendFunc
-	metamethod __call: function(cls: BlendFuncClass, src: Func, dst: Func): BlendFunc
-	metamethod __call: function(cls: BlendFuncClass, srcColor: Func, dstColor: Func, srcAlpha: Func, dstAlpha: Func): BlendFunc
 end
 local blendFuncClass: BlendFuncClass
 return blendFuncClass

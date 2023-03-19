@@ -105,6 +105,8 @@ mod svg;
 pub use svg::SVG;
 mod dbquery;
 pub use dbquery::DBQuery;
+mod dbparams;
+pub use dbparams::DBParams;
 mod dbrecord;
 pub use dbrecord::DBRecord;
 mod db;

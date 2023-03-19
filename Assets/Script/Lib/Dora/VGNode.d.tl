@@ -8,7 +8,7 @@ end
 local record VGNodeClass
 	type Type = VGNode
 	metamethod __call: function(
-		cls: VGNodeClass,
+		self: VGNodeClass,
 		width: number,
 		height: number,
 		scale?: number --[[1.0]],

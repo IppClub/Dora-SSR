@@ -31,7 +31,7 @@ local record DrawNode
 end
 local record DrawNodeClass
 	type Type = DrawNode
-	metamethod __call: function(cls: DrawNodeClass): DrawNode
+	metamethod __call: function(self: DrawNodeClass): DrawNode
 end
 local drawNodeClass: DrawNodeClass
 return drawNodeClass

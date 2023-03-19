@@ -25,7 +25,7 @@ local record AlignNode
 end
 local record AlignNodeClass
 	type Type = AlignNode
-	metamethod __call: function(cls: AlignNodeClass, param: Param): AlignNode
+	metamethod __call: function(self: AlignNodeClass, param: Param): AlignNode
 end
 local alignNodeClass: AlignNodeClass
 return alignNodeClass

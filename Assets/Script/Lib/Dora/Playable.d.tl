@@ -24,7 +24,7 @@ local record __SLOT__
 end
 local record PlayableClass
 	type Type = Playable
-	metamethod __call: function(cls: PlayableClass, filename: string): Playable
+	metamethod __call: function(self: PlayableClass, filename: string): Playable
 end
 local playableClass: PlayableClass
 return playableClass

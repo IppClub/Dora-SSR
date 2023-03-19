@@ -8,7 +8,7 @@ local record Scheduler
 end
 local record SchedulerClass
 	type Type = Scheduler
-	metamethod __call: function(cls: SchedulerClass): Scheduler
+	metamethod __call: function(self: SchedulerClass): Scheduler
 end
 local scheduler: SchedulerClass
 return scheduler

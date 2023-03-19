@@ -220,6 +220,16 @@ basicTypes =
 		* (name)-> "crate::dora::platformer::ActionUpdate::from(#{name})"
 		* (fnArgId)-> "crate::dora::platformer::ActionUpdate::from(stack#{fnArgId}.pop_i64().unwrap())"
 		* (name, fnArgId)-> "stack#{fnArgId}.push_i64(#{name}.raw());"
+	DBParams:
+		* "i64"
+		* (name)-> "*r_cast<DBParams*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new DBParams{#{name}})"
+		* "crate::dora::DBParams"
+		* "crate::dora::DBParams"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::DBParams::from(#{name})"
+		* (fnArgId)-> "crate::dora::DBParams::from(stack#{fnArgId}.pop_i64().unwrap())"
+		* -> error "unsupported"
 	DBRecord:
 		* "i64"
 		* (name)-> "*r_cast<DBRecord*>(#{name})"

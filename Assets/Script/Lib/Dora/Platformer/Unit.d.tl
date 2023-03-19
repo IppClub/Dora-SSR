@@ -10,7 +10,7 @@ local record UnitClass
 	const DetectSensorTag: integer
 	const AttackSensorTag: integer
 	metamethod __call: function(
-		cls: UnitClass,
+		self: UnitClass,
 		unitDef: Dictionary,
 		physicsworld: PhysicsWorld,
 		entity: Entity,

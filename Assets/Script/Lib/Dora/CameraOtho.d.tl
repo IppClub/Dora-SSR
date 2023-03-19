@@ -7,7 +7,7 @@ end
 local record CameraOthoClass
 	type Type = CameraOtho
 	metamethod __call: function(
-		cls: CameraOthoClass,
+		self: CameraOthoClass,
 		name?: string --[[""]]
 	): CameraOtho
 end

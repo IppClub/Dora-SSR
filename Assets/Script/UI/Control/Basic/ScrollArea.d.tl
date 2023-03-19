@@ -24,7 +24,7 @@ local record ScrollArea
 end
 local record ScrollAreaClass
 	type Type = ScrollArea
-	metamethod __call: function(cls: ScrollAreaClass, param: Param): ScrollArea
+	metamethod __call: function(self: ScrollAreaClass, param: Param): ScrollArea
 end
 local scrollAreaClass: ScrollAreaClass
 return scrollAreaClass

@@ -16,11 +16,11 @@ end
 local record UnitActionClass
 	type Type = UnitAction
 	add: function(
-		cls: UnitActionClass,
+		self: UnitActionClass,
 		name: string,
 		param: UnitActionParam
 	)
-	clear: function(cls: UnitActionClass)
+	clear: function(self: UnitActionClass)
 end
 local unitActionClass: UnitActionClass
 return unitActionClass

@@ -18,7 +18,7 @@ end
 local record ActionClass
 	type Type = Action
 	type Def = ActionDef
-	metamethod __call: function(cls: ActionClass, actionDef: ActionDef): Action
+	metamethod __call: function(self: ActionClass, actionDef: ActionDef): Action
 end
 local actionClass: ActionClass
 return actionClass

@@ -9,14 +9,14 @@ end
 local record FaceClass
 	type Type = Face
 	metamethod __call: function(
-		cls: FaceClass,
+		self: FaceClass,
 		faceStr: string,
 		point?: Vec2 --[[Vec2.zero]],
 		scale?: number --[[1.0]],
 		angle?: number --[[0.0]]
 	): Face
 	metamethod __call: function(
-		cls: FaceClass,
+		self: FaceClass,
 		createFunc: function(): (Node),
 		point?: Vec2 --[[Vec2.zero]],
 		scale?: number --[[1.0]],

@@ -8,7 +8,7 @@ local record TargetAllow
 end
 local record TargetAllowClass
 	type Type = TargetAllow
-	metamethod __call: function(cls: TargetAllowClass): TargetAllow
+	metamethod __call: function(self: TargetAllowClass): TargetAllow
 end
 local targetAllowClass: TargetAllowClass
 return targetAllowClass

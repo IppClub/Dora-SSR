@@ -3,8 +3,8 @@ _ENV = Dorothy builtin.ImGui
 Data = {
 	Angle: {"B","float",90}
 	AngleVariance: {"C","float",360}
-	BlendFuncDestination: {"D","BlendFunc",BlendFunc.get "One"}
-	BlendFuncSource: {"E"," BlendFunc",BlendFunc.get "SrcAlpha"}
+	BlendFuncDestination: {"D","BlendFunc",BlendFunc\get "One"}
+	BlendFuncSource: {"E"," BlendFunc",BlendFunc\get "SrcAlpha"}
 	Duration: {"F","floatN",-1}
 	EmissionRate: {"G","float",350}
 	FinishColor: {"H","Color",Color 0xff000000}

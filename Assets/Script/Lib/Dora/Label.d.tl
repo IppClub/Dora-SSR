@@ -24,7 +24,7 @@ end
 local record LabelClass
 	type Type = Label
 	const AutomaticWidth: number
-	metamethod __call: function(cls: LabelClass, fontName: string, fontSize: integer): Label
+	metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer): Label
 end
 local labelClass: LabelClass
 return labelClass

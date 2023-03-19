@@ -9,7 +9,7 @@ end
 local record Camera2DClass
 	type Type = Camera2D
 	metamethod __call: function(
-		cls: Camera2DClass,
+		self: Camera2DClass,
 		name?: string --[[""]]
 	): Camera2D
 end

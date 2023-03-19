@@ -28,14 +28,14 @@ local record Array
 	fastRemove: function(self: Array, index: integer): Item
 	metamethod __index: function(self: Array, index: integer): Item
 	metamethod __newindex: function(self: Array, index: integer, item: Item)
-	metamethod __len: function(cls: Array): integer
+	metamethod __len: function(self: Array): integer
 end
 local record ArrayClass
 	type Type = Array
 	type Item = Item
 	type ContainerItem = ContainerItem
-	metamethod __call: function(cls: ArrayClass): Array
-	metamethod __call: function(cls: ArrayClass, items: {Item}): Array
+	metamethod __call: function(self: ArrayClass): Array
+	metamethod __call: function(self: ArrayClass, items: {Item}): Array
 end
 local arrayClass: ArrayClass
 return arrayClass

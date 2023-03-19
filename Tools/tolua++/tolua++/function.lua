@@ -51,7 +51,15 @@ function classFunction:supcode(local_constructor)
 	local nret = 0 -- number of returned values
 	local class = self:inclass()
 	local _, _, static = strfind(self.mod, "^%s*(static)")
-	local out = string.find(self.mod, "tolua_outside")
+	if static then
+		_, _, self.mod = strfind(self.mod, "^%s*static%s%s*(.*)")
+	end
+	local out = strfind(self.mod, "tolua_outside")
+	local check_self = class and not static and self.name ~= "new"
+	local skip_self = static or self.name == "new"
+
+	local light = _light_object == self.parent.type
+	local access = light and "self." or "self->"
 
 	if class then
 		if self.name == "new" and self.parent.flags.pure_virtual then
@@ -94,25 +102,26 @@ function classFunction:supcode(local_constructor)
 
 	-- check self
 	local narg
-	if class or (static and out) then
+	if check_self then
+		narg = 2
+		if not light then
+			local func = get_is_function(self.parent.type)
+			local type = self.parent.type
+			if self.name == "new" then
+				func = "tolua_isusertable"
+				type = self.parent.type
+			end
+			if self.const ~= "" then
+				type = "const " .. type
+			end
+			output("	 !" .. func .. '(tolua_S,1,"' .. _usertype[self.parent.type] .. '"_slice,0,&tolua_err) ||\n')
+		end
+	elseif skip_self then
 		narg = 2
 	else
 		narg = 1
 	end
-	if class then
-		local func = get_is_function(self.parent.type)
-		local type = self.parent.type
-		if self.name == "new" or static ~= nil then
-			func = "tolua_isusertable"
-			type = self.parent.type
-		end
-		if self.const ~= "" then
-			type = "const " .. type
-		end
-		output("	 !" .. func .. '(tolua_S,1,"' .. _usertype[self.parent.type] .. '"_slice,0,&tolua_err) ||\n')
-	elseif (static and out) then
-		output("	 !tolua_istable(tolua_S,1,0,&tolua_err) ||\n")
-	end
+
 	-- check args
 	if self.args[1].type ~= "void" then
 		local i = 1
@@ -139,28 +148,21 @@ function classFunction:supcode(local_constructor)
 
 	-- declare self, if the case
 	local narg
-	if class or (static and out) then
+	if check_self or skip_self then
 		narg = 2
 	else
 		narg = 1
 	end
 
-	local light = _light_object == self.parent.type
-	local access = light and "self." or "self->"
-
-	if class and self.name ~= "new" and static == nil then
-		if light then
-			output(" ", self.parent.type, "self = ")
-			local to_func = get_to_function(self.parent.type)
-			output(to_func, "(tolua_S,1);")
-		else
-			output(" ", self.const, self.parent.type, "*", "self = ")
-			output("(", self.const, self.parent.type, "*) ")
-			local to_func = get_to_function(self.parent.type)
-			output(to_func, "(tolua_S,1,0);")
-		end
-	elseif static then
-		_, _, self.mod = strfind(self.mod, "^%s*static%s%s*(.*)")
+	if not skip_self and light then
+		output(" ", self.parent.type, "self = ")
+		local to_func = get_to_function(self.parent.type)
+		output(to_func, "(tolua_S,1);")
+	elseif check_self then
+		output(" ", self.const, self.parent.type, "*", "self = ")
+		output("(", self.const, self.parent.type, "*) ")
+		local to_func = get_to_function(self.parent.type)
+		output(to_func, "(tolua_S,1,0);")
 	end
 
 	-- declare parameters
@@ -176,7 +178,7 @@ function classFunction:supcode(local_constructor)
 	end
 
 	-- check self
-	if not light and class and self.name ~= "new" and static == nil then
+	if not light and check_self then
 		output("#ifndef TOLUA_RELEASE\n")
 		output(
 			'  if (!self) tolua_error(tolua_S,"' ..
@@ -186,7 +188,7 @@ function classFunction:supcode(local_constructor)
 	end
 
 	-- get array element values
-	if class or (static and out) then
+	if check_self or skip_self then
 		narg = 2
 	else
 		narg = 1
@@ -349,7 +351,7 @@ function classFunction:supcode(local_constructor)
 		output("#endif\n")
 
 		-- set array element values
-		if class or (static and out) then
+		if check_self or skip_self then
 			narg = 2
 		else
 			narg = 1
@@ -384,12 +386,12 @@ function classFunction:supcode(local_constructor)
 		if class then
 			output(
 				' tolua_error(tolua_S,"' ..
-					output_error_hook("#ferror in function '" .. class .. ".%s'.", self.lname) .. '",&tolua_err);'
+					output_error_hook("#ferror in function '" .. class .. ".%s'.", self.lname:gsub('%.', '')) .. '",&tolua_err);'
 			)
 		else
 			output(
 				' tolua_error(tolua_S,"' ..
-					output_error_hook("#ferror in function '%s'.", self.lname) .. '",&tolua_err);'
+					output_error_hook("#ferror in function '%s'.", self.lname:gsub('%.', '')) .. '",&tolua_err);'
 			)
 		end
 		output(" return 0;")

@@ -8,10 +8,10 @@ local record QLearner
 end
 local record QLearnerClass
 	type Type = QLearner
-	pack: function(cls: QLearnerClass, hints: {integer}, values: {integer}): integer
-	unpack: function(cls: QLearnerClass, hints: {integer}, state: integer): {integer}
+	pack: function(self: QLearnerClass, hints: {integer}, values: {integer}): integer
+	unpack: function(self: QLearnerClass, hints: {integer}, state: integer): {integer}
 	metamethod __call: function(
-		cls: QLearnerClass,
+		self: QLearnerClass,
 		gamma?: number --[[0.5]],
 		alpha?: number --[[0.5]],
 		maxQ?: number --[[100.0]]
