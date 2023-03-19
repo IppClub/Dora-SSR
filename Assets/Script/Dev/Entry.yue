@@ -11,6 +11,8 @@ require = (path)->
 _G.require = require
 builtin.require = require
 
+:searchPaths = Content
+
 import "Utils" as :Set, :Struct, :LintYueGlobals
 options: {extension: yueext} = yue
 
@@ -194,8 +196,6 @@ export allClear = ->
 	Entity\clear!
 	Platformer.Data\clear!
 	Platformer.UnitAction\clear!
-	currentEntryName = nil
-	isInEntry = true
 	Audio\stopStream 0.2
 	Struct\clear!
 	View.postEffect = nil
@@ -313,7 +313,10 @@ footerWindow = threadLoop ->
 	App\shutdown! if Keyboard\isKeyDown "Escape"
 	do
 		ctrl = Keyboard\isKeyPressed "LCtrl"
-		allClear! if ctrl and Keyboard\isKeyDown "Q"
+		if ctrl and Keyboard\isKeyDown "Q"
+			allClear!
+			isInEntry = true
+			currentEntryName = nil
 		if ctrl and Keyboard\isKeyDown "Z"
 			reloadCurrentEntry!
 		if ctrl and Keyboard\isKeyDown ","
@@ -392,19 +395,17 @@ footerWindow = threadLoop ->
 				_G.require = oldRequire
 				builtin.require = oldRequire
 				package.loaded["Dev.Entry"] = nil
-				Content.searchPaths =
-					* Path Content.writablePath, "Build", "Script"
-					* Path Content.writablePath, "Build", "Script", "Lib"
-					* "Script"
-					* Path "Script", "Lib"
-					* Path "Script", "Lib", "Dora"
+				Content.searchPaths = searchPaths
 				Director.systemScheduler\schedule ->
 					Routine\clear!
 					oldRequire "Dev.Entry"
 					true
 		else
 			SameLine!
-			allClear! if Button "Home", Vec2 70, 30
+			if Button "Home", Vec2 70, 30
+				allClear!
+				isInEntry = true
+				currentEntryName = nil
 			currentIndex = nil
 			for i, name in ipairs allNames
 				if currentEntryName == name
