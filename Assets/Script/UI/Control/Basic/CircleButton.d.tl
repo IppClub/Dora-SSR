@@ -13,7 +13,7 @@ local record CircleButton
 end
 local record CircleButtonClass
 	type Type = CircleButton
-	metamethod __call: function(cls: CircleButtonClass, param: Param): CircleButton
+	metamethod __call: function(self: CircleButtonClass, param: Param): CircleButton
 end
 local circleButtonClass: CircleButtonClass
 return circleButtonClass

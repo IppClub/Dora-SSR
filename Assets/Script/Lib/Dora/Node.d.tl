@@ -211,7 +211,7 @@ local record __GSLOT__
 end
 local record NodeClass
 	type Type = Node
-	metamethod __call: function(cls: NodeClass): Node
+	metamethod __call: function(self: NodeClass): Node
 end
 local nodeClass: NodeClass
 return nodeClass

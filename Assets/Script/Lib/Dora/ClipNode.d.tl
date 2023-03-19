@@ -8,7 +8,7 @@ end
 local record ClipNodeClass
 	type Type = ClipNode
 	metamethod __call: function(
-		cls: ClipNodeClass,
+		self: ClipNodeClass,
 		stencil?: Node --[[nil]]
 	): ClipNode
 end

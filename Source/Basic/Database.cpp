@@ -151,8 +151,8 @@ static void bindValues(SQLite::Statement& query, const std::vector<Own<Value>>& 
 	}
 }
 
-std::deque<std::vector<Own<Value>>> DB::query(String sql, const std::vector<Own<Value>>& args, bool withColumns) {
-	std::deque<std::vector<Own<Value>>> result;
+std::deque<std::vector<DB::Col>> DB::query(String sql, const std::vector<Own<Value>>& args, bool withColumns) {
+	std::deque<std::vector<DB::Col>> result;
 	SQLite::Statement query(*_database, sql);
 	bindValues(query, args);
 	bool columnCollected = false;
@@ -162,20 +162,20 @@ std::deque<std::vector<Own<Value>>> DB::query(String sql, const std::vector<Own<
 			columnCollected = true;
 			auto& values = result.emplace_back(colCount);
 			for (int i = 0; i < colCount; i++) {
-				values[i] = Value::alloc(std::string(query.getColumn(i).getName()));
+				values[i] = std::string(query.getColumn(i).getName());
 			}
 		}
 		auto& values = result.emplace_back(colCount);
 		for (int i = 0; i < colCount; i++) {
 			auto col = query.getColumn(i);
 			if (col.isInteger()) {
-				values[i] = Value::alloc(s_cast<int64_t>(col.getInt64()));
+				values[i] = col.getInt64();
 			} else if (col.isFloat()) {
-				values[i] = Value::alloc(s_cast<double>(col.getDouble()));
+				values[i] = col.getDouble();
 			} else if (col.isText() || col.isBlob()) {
-				values[i] = Value::alloc(std::string(col.getText()));
+				values[i] = std::string(col.getText());
 			} else if (col.isNull()) {
-				values[i] = Value::alloc(false);
+				values[i] = false;
 			}
 		}
 	}
@@ -224,7 +224,7 @@ int DB::execUnsafe(SQLite::Database* db, String sql, const std::deque<std::vecto
 	return rowChanged;
 }
 
-void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(std::deque<std::vector<Own<Value>>>&)>& callback) {
+void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(std::deque<std::vector<DB::Col>>&)>& callback) {
 	std::string sqlStr(sql);
 	auto argsPtr = std::make_shared<std::vector<Own<Value>>>(std::move(args));
 	SharedAsyncThread.run(
@@ -238,7 +238,7 @@ void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns
 			}
 		},
 		[callback](Own<Values> values) {
-			std::deque<std::vector<Own<Value>>> result;
+			std::deque<std::vector<DB::Col>> result;
 			values->get(result);
 			callback(result);
 		});
@@ -284,6 +284,18 @@ void DB::execAsync(String sql, std::deque<std::vector<Own<Value>>>&& rows, const
 			values->get(result);
 			callback(result);
 		});
+}
+
+Own<Value> DB::col(const Col& c) {
+	if (std::holds_alternative<int64_t>(c)) {
+		return Value::alloc(std::get<int64_t>(c));
+	} else if (std::holds_alternative<double>(c)) {
+		return Value::alloc(std::get<double>(c));
+	} else if (std::holds_alternative<std::string>(c)) {
+		return Value::alloc(std::get<std::string>(c));
+	} else {
+		return Value::alloc(std::get<bool>(c));
+	}
 }
 
 NS_DOROTHY_END

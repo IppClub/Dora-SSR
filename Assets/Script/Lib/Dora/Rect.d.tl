@@ -25,14 +25,14 @@ end
 local record RectClass
 	type Type = Rect
 	const zero: Rect
-	metamethod __call: function(cls: RectClass, other: Rect): Rect
-	metamethod __call: function(cls: RectClass,
+	metamethod __call: function(self: RectClass, other: Rect): Rect
+	metamethod __call: function(self: RectClass,
 		x: number,
 		y: number,
 		width: number,
 		height: number): Rect
-	metamethod __call: function(cls: RectClass, origin: Vec2, size: Size): Rect
-	metamethod __call: function(cls: RectClass): Rect
+	metamethod __call: function(self: RectClass, origin: Vec2, size: Size): Rect
+	metamethod __call: function(self: RectClass): Rect
 end
 local rectClass: RectClass
 return rectClass

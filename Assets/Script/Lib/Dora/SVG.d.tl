@@ -7,7 +7,7 @@ local record SVG
 end
 local record SVGClass
 	type Type = SVG
-	metamethod __call: function(cls: SVGClass, filename: string): SVG
+	metamethod __call: function(self: SVGClass, filename: string): SVG
 end
 local svgClass: SVGClass
 return svgClass

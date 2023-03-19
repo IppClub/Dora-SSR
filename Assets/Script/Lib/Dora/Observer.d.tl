@@ -10,7 +10,7 @@ local record ObserverClass
 		"AddOrChange"
 		"Remove"
 	end
-	metamethod __call: function(cls: ObserverClass, action: Action, components: {string}): Observer
+	metamethod __call: function(self: ObserverClass, action: Action, components: {string}): Observer
 end
 local observerClass: ObserverClass
 return observerClass

@@ -13,7 +13,7 @@ local record Pass
 end
 local record PassClass
 	type Type = Pass
-	metamethod __call: function(cls: PassClass, vertShader: string, fragShader: string): Pass
+	metamethod __call: function(self: PassClass, vertShader: string, fragShader: string): Pass
 end
 local passClass: PassClass
 return passClass

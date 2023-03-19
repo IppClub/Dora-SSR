@@ -11,7 +11,7 @@ local record __SLOT__
 end
 local record ParticleClass
 	type Type = Particle
-	metamethod __call: function(cls: ParticleClass, filename: string): Particle
+	metamethod __call: function(self: ParticleClass, filename: string): Particle
 end
 local particleClass: ParticleClass
 return particleClass

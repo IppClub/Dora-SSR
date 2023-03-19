@@ -11,10 +11,10 @@ local record Color
 end
 local record ColorClass
 	type Type = Color
-	metamethod __call: function(cls: ColorClass): Color
-	metamethod __call: function(cls: ColorClass, color: Color3, a: integer): Color
-	metamethod __call: function(cls: ColorClass, argb: integer): Color
-	metamethod __call: function(cls: ColorClass, r: integer, g: integer, b: integer, a: integer): Color
+	metamethod __call: function(self: ColorClass): Color
+	metamethod __call: function(self: ColorClass, color: Color3, a: integer): Color
+	metamethod __call: function(self: ColorClass, argb: integer): Color
+	metamethod __call: function(self: ColorClass, r: integer, g: integer, b: integer, a: integer): Color
 end
 local colorClass: ColorClass
 return colorClass

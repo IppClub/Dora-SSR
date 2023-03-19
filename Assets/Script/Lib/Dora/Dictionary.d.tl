@@ -15,7 +15,7 @@ local record DictionaryClass
 	type Type = Dictionary
 	type Item = Item
 	type ContainerItem = ContainerItem
-	metamethod __call: function(cls: DictionaryClass): Dictionary
+	metamethod __call: function(self: DictionaryClass): Dictionary
 end
 local dictionaryClass: DictionaryClass
 return dictionaryClass

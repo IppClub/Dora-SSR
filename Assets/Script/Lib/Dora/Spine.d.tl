@@ -9,10 +9,10 @@ local record Spine
 end
 local record SpineClass
 	type Type = Spine
-	getLooks: function(cls: SpineClass, spineStr: string): {string}
-	getAnimations: function(cls: SpineClass, spineStr: string): {string}
-	metamethod __call: function(cls: SpineClass, spineStr: string): Spine
-	metamethod __call: function(cls: SpineClass, skelFile: string, atlasFile: string): Spine
+	getLooks: function(self: SpineClass, spineStr: string): {string}
+	getAnimations: function(self: SpineClass, spineStr: string): {string}
+	metamethod __call: function(self: SpineClass, spineStr: string): Spine
+	metamethod __call: function(self: SpineClass, skelFile: string, atlasFile: string): Spine
 end
 local spineClass: SpineClass
 return spineClass

@@ -14,7 +14,7 @@ local record Button
 end
 local record ButtonClass
 	type Type = Button
-	metamethod __call: function(cls: ButtonClass, param: Param): Button
+	metamethod __call: function(self: ButtonClass, param: Param): Button
 end
 local buttonClass: ButtonClass
 return buttonClass

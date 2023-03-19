@@ -24,11 +24,11 @@ local record Model
 end
 local record ModelClass
 	type Type = Model
-	dummy: function(cls: ModelClass): Model
-	getClipFile: function(cls: ModelClass, filename: string): string
-	getLooks: function(cls: ModelClass, filename: string): {string}
-	getAnimations: function(cls: ModelClass, filename: string): {string}
-	metamethod __call: function(cls: ModelClass, filename: string): Model
+	dummy: function(self: ModelClass): Model
+	getClipFile: function(self: ModelClass, filename: string): string
+	getLooks: function(self: ModelClass, filename: string): {string}
+	getAnimations: function(self: ModelClass, filename: string): {string}
+	metamethod __call: function(self: ModelClass, filename: string): Model
 end
 local modelClass: ModelClass
 return modelClass

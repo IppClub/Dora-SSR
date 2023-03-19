@@ -28,23 +28,23 @@ local record Struct
 	metamethod __newindex: function(self: Struct, key: string, item: any)
 end
 local record StructClass
-	metamethod __call: function(cls: StructClass, values?: table): Struct
+	metamethod __call: function(self: StructClass, values?: table): Struct
 end
 local record StructModule
 	metamethod __index: function(self: StructModule, name: string): StructModule
-	metamethod __call: function(cls: StructClass, ...: string | {string}): StructClass
+	metamethod __call: function(self: StructClass, ...: string | {string}): StructClass
 end
 local record StructHelper
 	type Type = Struct
 	type RecordEvent = Struct.RecordEvent
 	type ArrayEvent = Struct.ArrayEvent
 	metamethod __index: function(self: StructHelper, name: string): StructModule
-	load: function(cls: StructHelper, input: string): Struct
-	load: function(cls: StructHelper, input: table): Struct
-	load: function(cls: StructHelper, name: string, input: table): Struct
-	loadfile: function(cls: StructHelper, filename: string): Struct
-	clear: function(cls: StructHelper)
-	has: function(cls: StructHelper, name: string): boolean
+	load: function(self: StructHelper, input: string): Struct
+	load: function(self: StructHelper, input: table): Struct
+	load: function(self: StructHelper, name: string, input: table): Struct
+	loadfile: function(self: StructHelper, filename: string): Struct
+	clear: function(self: StructHelper)
+	has: function(self: StructHelper, name: string): boolean
 end
 local record Utils
 	Struct: StructHelper

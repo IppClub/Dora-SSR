@@ -18,7 +18,7 @@ local record BulletDef
 end
 local record BulletDefClass
 	type Type = BulletDef
-	metamethod __call: function(cls: BulletDefClass): BulletDef
+	metamethod __call: function(self: BulletDefClass): BulletDef
 end
 local bulletDefClass: BulletDefClass
 return bulletDefClass

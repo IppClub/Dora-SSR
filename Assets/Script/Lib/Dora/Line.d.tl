@@ -21,11 +21,11 @@ end
 local record LineClass
 	type Type = Line
 	metamethod __call: function(
-		cls: LineClass,
+		self: LineClass,
 		verts: {Vec2},
 		color?: Color --[[0xffffffff]]
 	): Line
-	metamethod __call: function(cls: LineClass): Line
+	metamethod __call: function(self: LineClass): Line
 end
 local lineClass: LineClass
 return lineClass

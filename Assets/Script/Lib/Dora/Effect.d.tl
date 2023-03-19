@@ -8,8 +8,8 @@ local record Effect
 end
 local record EffectClass
 	type Type = Effect
-	metamethod __call: function(cls: EffectClass, vertShader: string, fragShader: string): Effect
-	metamethod __call: function(cls: EffectClass): Effect
+	metamethod __call: function(self: EffectClass, vertShader: string, fragShader: string): Effect
+	metamethod __call: function(self: EffectClass): Effect
 end
 local effectClass: EffectClass
 return effectClass

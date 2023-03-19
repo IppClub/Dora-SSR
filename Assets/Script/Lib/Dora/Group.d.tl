@@ -9,7 +9,7 @@ local record Group
 end
 local record GroupClass
 	type Type = Group
-	metamethod __call: function(cls: GroupClass, componemts: {string}): Group
+	metamethod __call: function(self: GroupClass, componemts: {string}): Group
 end
 local groupClass: GroupClass
 return groupClass

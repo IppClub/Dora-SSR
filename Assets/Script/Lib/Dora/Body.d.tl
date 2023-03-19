@@ -13,7 +13,7 @@ end
 local record BodyClass
 	type Type = Body
 	metamethod __call: function(
-		cls: BodyClass,
+		self: BodyClass,
 		def: BodyDef,
 		world: PhysicsWorld,
 		pos?: Vec2 --[[Vec2.zero]],

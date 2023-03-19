@@ -17,7 +17,7 @@ local record PlatformWorld
 end
 local record PlatformWorldClass
 	type Type = PlatformWorld
-	metamethod __call: function(cls: PlatformWorldClass): PlatformWorld
+	metamethod __call: function(self: PlatformWorldClass): PlatformWorld
 end
 local platformWorldClass: PlatformWorldClass
 return platformWorldClass

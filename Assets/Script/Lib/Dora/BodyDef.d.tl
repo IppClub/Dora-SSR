@@ -18,12 +18,6 @@ local record BodyDef
 	linearAcceleration: Vec2
 	fixedRotation: boolean
 	bullet: boolean
-	polygon: function(cls: BodyDef,
-		width: number,
-		height: number,
-		density?: number --[[0.0]],
-		friction?: number --[[0.4]],
-		restitution?: number --[[0.0]]): FixtureDef
 	attachPolygon: function(self: BodyDef,
 		center: Vec2,
 		width: number,
@@ -86,7 +80,13 @@ local record BodyDef
 end
 local record BodyDefClass
 	type Type = BodyDef
-	polygon: function(cls: BodyDefClass,
+	polygon: function(self: BodyDefClass,
+		width: number,
+		height: number,
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+	polygon: function(self: BodyDefClass,
 		center: Vec2,
 		width: number,
 		height: number,
@@ -94,32 +94,32 @@ local record BodyDefClass
 		density?: number --[[0.0]],
 		friction?: number --[[0.4]],
 		restitution?: number --[[0.0]]): FixtureDef
-	polygon: function(cls: BodyDefClass,
+	polygon: function(self: BodyDefClass,
 		vertices: {Vec2},
 		density?: number --[[0.0]],
 		friction?: number --[[0.4]],
 		restitution?: number --[[0.0]]): FixtureDef
-	multi: function(cls: BodyDefClass,
+	multi: function(self: BodyDefClass,
 		vertices: {Vec2},
 		density?: number --[[0.0]],
 		friction?: number --[[0.4]],
 		restitution?: number --[[0.0]]): FixtureDef
-	disk: function(cls: BodyDefClass,
+	disk: function(self: BodyDefClass,
 		center: Vec2,
 		radius: number,
 		density?: number --[[0.0]],
 		friction?: number --[[0.4]],
 		restitution?: number --[[0.0]]): FixtureDef
-	disk: function(cls: BodyDefClass,
+	disk: function(self: BodyDefClass,
 		radius: number,
 		density?: number --[[0.0]],
 		friction?: number --[[0.4]],
 		restitution?: number --[[0.0]]): FixtureDef
-	chain: function(cls: BodyDefClass,
+	chain: function(self: BodyDefClass,
 		vertices: {Vec2},
 		friction?: number --[[0.4]],
 		restitution?: number --[[0.0]]): FixtureDef
-	metamethod __call: function(cls: BodyDefClass): BodyDef
+	metamethod __call: function(self: BodyDefClass): BodyDef
 end
 local bodyDefClass: BodyDefClass
 return bodyDefClass

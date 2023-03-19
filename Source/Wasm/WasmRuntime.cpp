@@ -987,28 +987,31 @@ static void wasm_unit_action_add(
 
 // DB
 
-struct DBRecord {
+struct DBParams {
 	void add(Array* params) {
 		auto& record = records.emplace_back();
 		for (size_t i = 0; i < params->getCount(); ++i) {
 			record.emplace_back(params->get(i)->clone());
 		}
 	}
+	std::deque<std::vector<Own<Value>>> records;
+};
+struct DBRecord {
 	bool read(Array* record) {
 		if (records.empty()) return false;
-		for (auto& value : records.front()) {
-			record->add(std::move(value));
+		for (const auto& value : records.front()) {
+			record->add(DB::col(value));
 		}
 		records.pop_front();
 		return true;
 	}
-	std::deque<std::vector<Own<Value>>> records;
+	std::deque<std::vector<DB::Col>> records;
 };
 struct DBQuery {
-	void addWithParams(String sql, DBRecord& record) {
+	void addWithParams(String sql, DBParams& params) {
 		auto& query = queries.emplace_back();
 		query.first = sql;
-		for (auto& rec : record.records) {
+		for (auto& rec : params.records) {
 			query.second.emplace_back(std::move(rec));
 		}
 	}
@@ -1057,27 +1060,28 @@ static DBRecord db_do_query_with_params(String sql, Array* param, bool withColum
 	record.records = std::move(result);
 	return record;
 }
-static void db_do_insert(String tableName, const DBRecord& record) {
-	SharedDB.insert(tableName, record.records);
+static void db_do_insert(String tableName, const DBParams& params) {
+	SharedDB.insert(tableName, params.records);
 }
-static int32_t db_do_exec_with_records(String sql, const DBRecord& record) {
-	return SharedDB.exec(sql, record.records);
+static int32_t db_do_exec_with_records(String sql, const DBParams& params) {
+	return SharedDB.exec(sql, params.records);
 }
 static void db_do_query_with_params_async(String sql, Array* param, bool withColumns, const std::function<void(DBRecord& result)>& callback) {
 	std::vector<Own<Value>> args;
 	for (size_t i = 0; i < param->getCount(); ++i) {
 		args.emplace_back(param->get(i)->clone());
 	}
-	SharedDB.queryAsync(sql, std::move(args), withColumns, [callback](std::deque<std::vector<Own<Value>>>& result) {
-		DBRecord record{std::move(result)};
+	SharedDB.queryAsync(sql, std::move(args), withColumns, [callback](std::deque<std::vector<DB::Col>>& result) {
+		DBRecord record;
+		record.records = std::move(result);
 		callback(record);
 	});
 }
-static void db_do_insert_async(String tableName, DBRecord& record, const std::function<void(bool)>& callback) {
-	SharedDB.insertAsync(tableName, std::move(record.records), callback);
+static void db_do_insert_async(String tableName, DBParams& params, const std::function<void(bool)>& callback) {
+	SharedDB.insertAsync(tableName, std::move(params.records), callback);
 }
-static void db_do_exec_async(String sql, DBRecord& record, const std::function<void(int64_t)>& callback) {
-	SharedDB.execAsync(sql, std::move(record.records), [callback](int rows) {
+static void db_do_exec_async(String sql, DBParams& params, const std::function<void(int64_t)>& callback) {
+	SharedDB.execAsync(sql, std::move(params.records), [callback](int rows) {
 		callback(s_cast<int64_t>(rows));
 	});
 }
@@ -1097,6 +1101,7 @@ static void db_do_exec_async(String sql, DBRecord& record, const std::function<v
 #include "Dora/ClipNodeWasm.hpp"
 #include "Dora/ContentWasm.hpp"
 #include "Dora/DBQueryWasm.hpp"
+#include "Dora/DBParamsWasm.hpp"
 #include "Dora/DBRecordWasm.hpp"
 #include "Dora/DBWasm.hpp"
 #include "Dora/DictionaryWasm.hpp"
@@ -1209,6 +1214,7 @@ static void linkAutoModule(wasm3::module& mod) {
 	linkKeyboard(mod);
 	linkSVGDef(mod);
 	linkDBQuery(mod);
+	linkDBParams(mod);
 	linkDBRecord(mod);
 	linkDB(mod);
 	linkC45(mod);

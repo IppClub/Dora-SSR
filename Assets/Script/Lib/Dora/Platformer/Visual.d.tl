@@ -8,7 +8,7 @@ local record Visual
 end
 local record VisualClass
 	type Type = Visual
-	metamethod __call: function(cls: VisualClass, name: string): Visual
+	metamethod __call: function(self: VisualClass, name: string): Visual
 end
 local visualClass: VisualClass
 return visualClass

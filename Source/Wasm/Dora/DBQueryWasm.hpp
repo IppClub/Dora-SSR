@@ -1,8 +1,8 @@
 static void dbquery_release(int64_t raw) {
 	delete r_cast<DBQuery*>(raw);
 }
-static void dbquery_add_with_params(int64_t self, int64_t sql, int64_t record) {
-	r_cast<DBQuery*>(self)->addWithParams(*str_from(sql), *r_cast<DBRecord*>(record));
+static void dbquery_add_with_params(int64_t self, int64_t sql, int64_t params) {
+	r_cast<DBQuery*>(self)->addWithParams(*str_from(sql), *r_cast<DBParams*>(params));
 }
 static void dbquery_add(int64_t self, int64_t sql) {
 	r_cast<DBQuery*>(self)->add(*str_from(sql));

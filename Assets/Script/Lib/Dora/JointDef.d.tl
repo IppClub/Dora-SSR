@@ -8,7 +8,7 @@ local record JointDef
 end
 local record JointDefClass
 	type Type = JointDef
-	distance: function(cls: JointDefClass,
+	distance: function(self: JointDefClass,
 		collision: boolean,
 		bodyA: string,
 		bodyB: string,
@@ -16,19 +16,19 @@ local record JointDefClass
 		anchorB: Vec2,
 		frequency?: number --[[0.0]],
 		damping?: number --[[0.0]]): JointDef
-	friction: function(cls: JointDefClass,
+	friction: function(self: JointDefClass,
 		collision: boolean,
 		bodyA: string,
 		bodyB: string,
 		worldPos: Vec2,
 		maxForce: number,
 		maxTorque: number): JointDef
-	gear: function(cls: JointDefClass,
+	gear: function(self: JointDefClass,
 		collision: boolean,
 		jointA: string,
 		jointB: string,
 		ratio?: number --[[1.0]]): JointDef
-	spring: function(cls: JointDefClass,
+	spring: function(self: JointDefClass,
 		collision: boolean,
 		bodyA: string,
 		bodyB: string,
@@ -37,7 +37,7 @@ local record JointDefClass
 		maxForce: number,
 		maxTorque: number,
 		correctionFactor?: number --[[1.0]]): JointDef
-	prismatic: function(cls: JointDefClass,
+	prismatic: function(self: JointDefClass,
 		collision: boolean,
 		bodyA: string,
 		bodyB: string,
@@ -47,7 +47,7 @@ local record JointDefClass
 		upperTranslation?: number --[[0.0]],
 		maxMotorForce?: number --[[0.0]],
 		motorSpeed?: number --[[0.0]]): JointDef
-	pulley: function(cls: JointDefClass,
+	pulley: function(self: JointDefClass,
 		collision: boolean,
 		bodyA: string,
 		bodyB: string,
@@ -56,7 +56,7 @@ local record JointDefClass
 		groundAnchorA: Vec2,
 		groundAnchorB: Vec2,
 		ratio?: number --[[1.0]]): JointDef
-	revolute: function(cls: JointDefClass,
+	revolute: function(self: JointDefClass,
 		collision: boolean,
 		bodyA: string,
 		bodyB: string,
@@ -65,21 +65,21 @@ local record JointDefClass
 		upperAngle?: number --[[0.0]],
 		maxMotorTorque?: number --[[0.0]],
 		motorSpeed?: number --[[0.0]]): JointDef
-	rope: function(cls: JointDefClass,
+	rope: function(self: JointDefClass,
 		collision: boolean,
 		bodyA: string,
 		bodyB: string,
 		anchorA: Vec2,
 		anchorB: Vec2,
 		maxLength: number): JointDef
-	weld: function(cls: JointDefClass,
+	weld: function(self: JointDefClass,
 		collision: boolean,
 		bodyA: string,
 		bodyB: string,
 		worldPos: Vec2,
 		frequency?: number --[[0.0]],
 		damping?: number --[[0.0]]): JointDef
-	wheel: function(cls: JointDefClass,
+	wheel: function(self: JointDefClass,
 		collision: boolean,
 		bodyA: string,
 		bodyB: string,

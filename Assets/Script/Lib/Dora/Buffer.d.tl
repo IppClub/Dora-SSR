@@ -9,7 +9,7 @@ local record Buffer
 end
 local record BufferClass
 	type Type = Buffer
-	metamethod __call: function(cls: BufferClass, size: integer): Buffer
+	metamethod __call: function(self: BufferClass, size: integer): Buffer
 end
 local bufferClass: BufferClass
 return bufferClass

@@ -16,7 +16,7 @@ end
 local record BulletClass
 	type Type = Bullet
 	metamethod __call: function(
-		cls: BulletClass,
+		self: BulletClass,
 		def: BulletDef,
 		owner: Unit
 	): Bullet

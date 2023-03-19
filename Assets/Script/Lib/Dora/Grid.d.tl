@@ -20,10 +20,10 @@ local record Grid
 end
 local record GridClass
 	type Type = Grid
-	metamethod __call: function(cls: GridClass, textureRect: Rect, gridX: integer, gridY: integer): Grid
-	metamethod __call: function(cls: GridClass, texture: Texture2D, textureRect: Rect, gridX: integer, gridY: integer): Grid
-	metamethod __call: function(cls: GridClass, texture: Texture2D, gridX: integer, gridY: integer): Grid
-	metamethod __call: function(cls: GridClass, clipStr: string, gridX: integer, gridY: integer): Grid
+	metamethod __call: function(self: GridClass, textureRect: Rect, gridX: integer, gridY: integer): Grid
+	metamethod __call: function(self: GridClass, texture: Texture2D, textureRect: Rect, gridX: integer, gridY: integer): Grid
+	metamethod __call: function(self: GridClass, texture: Texture2D, gridX: integer, gridY: integer): Grid
+	metamethod __call: function(self: GridClass, clipStr: string, gridX: integer, gridY: integer): Grid
 end
 local gridClass: GridClass
 return gridClass

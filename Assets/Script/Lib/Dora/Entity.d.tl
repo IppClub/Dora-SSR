@@ -17,8 +17,8 @@ local record EntityClass
 	type Item = Item
 	type ContainerItem = ContainerItem
 	const count: integer
-	clear: function(cls: EntityClass)
-	metamethod __call: function(cls: EntityClass, coms: {string: Item})
+	clear: function(self: EntityClass)
+	metamethod __call: function(self: EntityClass, coms: {string: Item})
 end
 local entity: EntityClass
 return entity

@@ -8,10 +8,10 @@ local record DragonBone
 end
 local record DragonBoneClass
 	type Type = DragonBone
-	getLooks: function(cls: DragonBoneClass, boneStr: string): {string}
-	getAnimations: function(cls: DragonBoneClass, boneStr: string): {string}
-	metamethod __call: function(cls: DragonBoneClass, boneStr: string): DragonBone
-	metamethod __call: function(cls: DragonBoneClass, boneFile: string, atlasFile: string): DragonBone
+	getLooks: function(self: DragonBoneClass, boneStr: string): {string}
+	getAnimations: function(self: DragonBoneClass, boneStr: string): {string}
+	metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone
+	metamethod __call: function(self: DragonBoneClass, boneFile: string, atlasFile: string): DragonBone
 end
 local dragonBoneClass: DragonBoneClass
 return dragonBoneClass
