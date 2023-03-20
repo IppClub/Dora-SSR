@@ -1,4 +1,5 @@
 local record Path
+	getScriptPath: function(self: Path, moduleName: string): string
 	-- input: /a/b/c.TXT output: txt
 	getExt: function(self: Path, path: string): string
 	-- input: /a/b/c.TXT output: /a/b
