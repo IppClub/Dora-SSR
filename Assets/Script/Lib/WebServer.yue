@@ -247,7 +247,8 @@ HttpServer\postSchedule "/run", (req)->
 	switch req when {body: {:file}}
 		import "Dev.Entry"
 		Entry.allClear!
-		success = Entry.enterEntryAsync Path\replaceExt file, ""
+		file = Path\replaceExt file, ""
+		success = Entry.enterEntryAsync {Path\getName(file), file}
 		return :success
 	success: false
 
