@@ -12,6 +12,8 @@ disabledCheckForLua =
 	* "cannot index key .* in union"
 	* "module not found"
 	* "don't know how to resolve a dynamic require"
+	* "ContainerItem"
+	* "<any type>"
 
 yueCheck = (file, content)->
 	checkResult, luaCodes = yue.checkAsync content
