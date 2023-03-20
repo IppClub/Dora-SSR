@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include <deque>
+#include <variant>
 
 namespace SQLite {
 class Database;
@@ -20,11 +21,7 @@ class Value;
 
 class DB {
 public:
-	using Col = std::variant<
-		int64_t,
-		double,
-		std::string,
-		bool>;
+	typedef std::variant<int64_t, double, std::string, bool> Col;
 	virtual ~DB();
 	bool exist(String tableName, String schema = Slice::Empty) const;
 	int exec(String sql);
