@@ -7,7 +7,7 @@ _ENV = Dorothy(
 import "UI.Control.Basic.AlignNode"
 import "UI.Control.Basic.CircleButton"
 import "Utils" as :Set
-store:Store = Data
+store: Store = Data
 
 -- settings
 

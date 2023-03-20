@@ -130,7 +130,7 @@ bool Unit::init() {
 	_groundSensor = Body::getSensorByTag(Unit::GroundSensorTag);
 	Playable* playable = Playable::create(playableStr);
 	if (!playable) {
-		Warn("failed to load playable \"{}\" for an new unit.", playableStr);
+		Error("failed to load playable \"{}\" for an new unit.", playableStr);
 		Unit::cleanup();
 		return false;
 	}

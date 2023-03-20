@@ -1,13 +1,18 @@
 -- Ludum Dare 42
 _ENV = Dorothy!
-ns = "Game.Zombie Escape"
-require "#{ns}.Constant"
-require "#{ns}.Unit"
-require "#{ns}.Body"
-require "#{ns}.Bullet"
-require "#{ns}.Action"
-require "#{ns}.AI"
-require "#{ns}.Logic"
-require "#{ns}.Control"
-require "#{ns}.Scene"
-require "#{ns}.Debug"
+
+if scriptPath = Path\getScriptPath ...
+	Content\insertSearchPath 1, scriptPath
+	require Path scriptPath, mod for mod in *{
+		"Constant"
+		"Unit"
+		"Body"
+		"Bullet"
+		"Action"
+		"AI"
+		"Logic"
+		"Control"
+		"Scene"
+		"Debug"
+	}
+

@@ -69,7 +69,7 @@ SkeletonData* SkeletonCache::load(String skelFile, String atlasFile) {
 	}
 	auto atlas = SharedAtlasCache.load(atlasFile);
 	if (!atlas) {
-		Warn("failed to load atlas \"{}\"", atlasFile);
+		Error("failed to load atlas \"{}\"", atlasFile);
 		return nullptr;
 	}
 	SkeletonData* skeletonData = nullptr;
@@ -86,14 +86,14 @@ SkeletonData* SkeletonCache::load(String skelFile, String atlasFile) {
 			break;
 		}
 		default:
-			Warn("can not load skeleton format of \"{}\"", ext);
+			Error("can not load skeleton format of \"{}\"", ext);
 			return nullptr;
 	}
 	if (skeletonData && skeletonData->getSkel()) {
 		_skeletons[cacheKey] = skeletonData;
 		return skeletonData;
 	}
-	Warn("failed to load skeleton data \"{}\".", skelFile);
+	Error("failed to load skeleton data \"{}\".", skelFile);
 	return nullptr;
 }
 
@@ -110,14 +110,14 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 	std::string file = skelFile.toString();
 	SharedAtlasCache.loadAsync(atlasFile, [file, cacheKey, handler, this](Atlas* atlas) {
 		if (!atlas) {
-			Warn("failed to load skeleton data \"{}\".", file);
+			Error("failed to load skeleton data \"{}\".", file);
 			handler(nullptr);
 			return;
 		}
 		Ref<Atlas> at(atlas);
 		SharedContent.loadAsyncData(file, [file, cacheKey, handler, at, this](OwnArray<uint8_t>&& data, size_t size) {
 			if (!data) {
-				Warn("failed to load skeleton data \"{}\".", file);
+				Error("failed to load skeleton data \"{}\".", file);
 				handler(nullptr);
 				return;
 			}
@@ -142,7 +142,7 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 							break;
 						}
 						default:
-							Warn("can not load skeleton format of \"{}\" from \"{}\"", ext, file);
+							Error("can not load skeleton format of \"{}\" from \"{}\"", ext, file);
 							break;
 					}
 					return Values::alloc(skelData);
@@ -156,7 +156,7 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 						handler(data);
 						return;
 					}
-					Warn("failed to load skeleton data \"{}\".", file);
+					Error("failed to load skeleton data \"{}\".", file);
 					handler(nullptr);
 					return;
 				});

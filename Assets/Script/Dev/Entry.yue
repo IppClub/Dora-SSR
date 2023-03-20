@@ -13,6 +13,10 @@ builtin.require = require
 
 :searchPaths = Content
 
+runningPaths =
+	* Path Content.writablePath, ".build", "Script", "Lib"
+	* Path Content.writablePath, ".build", "Script"
+
 import "Utils" as :Set, :Struct, :LintYueGlobals
 options: {extension: yueext} = yue
 
@@ -39,11 +43,7 @@ doCompile = (minify)->
 	for {inputPath, outputPath} in *{
 			{
 				Path Content.assetPath
-				Path Content.writablePath, "Build"
-			}
-			{
-				Path Content.writablePath, "Production"
-				Path Content.writablePath, "Build", "Production"
+				Path Content.writablePath, ".build"
 			}
 		}
 		continue unless Content\exist inputPath
@@ -164,7 +164,7 @@ doCompile = (minify)->
 
 doClean = ->
 	return if building
-	targetDir = Path Content.writablePath, "Build"
+	targetDir = Path Content.writablePath, ".build"
 	cleaned = false
 	Content\clearPathCache!
 	if Content\remove targetDir
@@ -176,7 +176,7 @@ doClean = ->
 screenScale = 2 -- App.deviceRatio
 scaleContent = false
 isInEntry = true
-currentEntryName = nil
+currentEntry = nil
 
 footerWindow = nil
 entryWindow = nil
@@ -204,59 +204,79 @@ export allClear = ->
 	teal.reset!
 	collectgarbage!
 	collectgarbage!
+	Content.searchPaths = searchPaths
 
-games = [Path\getName item for item in *Content\getDirs Path Content.assetPath, "Script", "Game"]
-table.sort games
-examples = [Path\getName item for item in *getAllFiles Path(Content.assetPath, "Script", "Example"), {"xml", "lua", yueext, "tl"}]
-table.sort examples
-tests = [Path\getName item for item in *getAllFiles Path(Content.assetPath, "Script", "Test"), {"xml", "lua", yueext, "tl"}]
-table.sort tests
-allNames = [Path "Game", game, "init" for game in *games]
-for example in *examples do table.insert allNames, Path "Example", example
-for test in *tests do table.insert allNames, Path "Test", test
-cppTests = App.testNames
-allNames[] = name for name in *cppTests
+examples = {}
+tests = {}
+
+getFileEntries = (path)->
+	entries = {}
+	for file in *getAllFiles path, {"xml", "lua", yueext, "tl"}
+		entryName = Path\getName file
+		file = Path\replaceExt file, ""
+		file = Path Path\getName(path), file
+		entry = {entryName, file}
+		entries[] = entry
+	table.sort entries, (a, b)-> a[1] < b[1]
+	entries
+
+getProjectEntries = (path)->
+	entries = {}
+	for dir in *Content\getDirs path
+		continue if dir\match "^%."
+		for file in *getAllFiles Path(path, dir), {"xml", "lua", yueext, "tl"}
+			if "init" == Path\getName(file)\lower!
+				examplePath = Path path, dir, Path\getPath(file), "Example"
+				if Content\exist examplePath
+					for {name, ePath} in *getFileEntries examplePath
+						entry = {name, Path dir, Path\getPath(file), ePath}
+						examples[] = entry
+				testPath = Path path, dir, Path\getPath(file), "Test"
+				if Content\exist testPath
+					for {name, tPath} in *getFileEntries testPath
+						entry = {name, Path dir, Path\getPath(file), tPath}
+						tests[] = entry
+				file = Path\replaceExt file, ""
+				file = Path dir, file
+				entryName = Path\getName Path\getPath file
+				entry = {entryName, file}
+				entries[] = entry
+	table.sort entries, (a, b)-> a[1] < b[1]
+	entries
+
+gamesInDev = getProjectEntries Content.writablePath
+games = getProjectEntries Path Content.assetPath, "Script"
+
+examples[] = entry for entry in *getFileEntries Path Content.assetPath, "Script", "Example"
+tests[] = entry for entry in *getFileEntries Path Content.assetPath, "Script", "Test"
+
+cppTests = {}
+for name in *App.testNames
+	entry = {name}
+	cppTests[] = entry
 cppTestSet = Set cppTests
 
-productionEntries = {}
-productionTests = nil
-locateProduction = (searchPath)->
-	return false unless Content\exist Path searchPath, "Production"
-	for file in *Content\getAllFiles Path searchPath, "Production"
-		if "yue" == Path\getExt(file) and "init" == Path\getName file
-			scriptFolder = Path\getPath Path searchPath, "Production", file
-			productionAssets = Path\getPath scriptFolder
-			for path in *{
-					productionAssets
-					Path productionAssets, "Script"
-					Path productionAssets, "Spine"
-					Path productionAssets, "Image"
-					Path productionAssets, "Font"
-				}
-				Content\insertSearchPath 1, path
-			productionTests = [Path\getName f for f in *Content\getAllFiles Path productionAssets, "Test"]
-			package.path = Path(scriptFolder, "?.lua") .. ";" .. package.path
-			productionEntries[] = Path scriptFolder, "init.yue"
-			scriptFolder = Path\getPath Path Content.writablePath, "Build", "Production", file
-			productionAssets = Path\getPath scriptFolder
-			Content\insertSearchPath 1, productionAssets
-			Content\insertSearchPath 1, scriptFolder
-			package.path = Path(scriptFolder, "?.lua") .. ";" .. package.path
-			productionEntries[] = Path scriptFolder, "init.lua"
-			return true
-	false
+allEntries = {}
+for group in *{
+		games
+		examples
+		tests
+		gamesInDev
+	}
+	for entry in *group
+		allEntries[] = entry
 
-unless locateProduction Content.writablePath
-	locateProduction Content.assetPath
-
-export enterEntryAsync = (name)->
+export enterEntryAsync = (entry)->
 	isInEntry = false
-	currentEntryName = name
-	if cppTestSet[name]
+	currentEntry = entry
+	{name, file} = entry
+	if cppTestSet[entry]
 		return App\runTest name
 	sleep!
 	try
-		result = require name
+		for path in *runningPaths
+			Content\insertSearchPath 1, path
+		result = require file
 		if "function" == type result
 			result = result!
 			Director.entry\addChild if tolua.cast result, "Node"
@@ -269,13 +289,12 @@ export enterEntryAsync = (name)->
 		print debug.traceback msg
 		allClear!
 
-enterDemoEntry = (name)-> thread -> enterEntryAsync name
+enterDemoEntry = (entry)-> thread -> enterEntryAsync entry
 
 reloadCurrentEntry = ->
-	if currentEntryName
-		targetName = currentEntryName
+	if currentEntry
 		allClear!
-		enterDemoEntry targetName
+		enterDemoEntry currentEntry
 
 showEntry = false
 
@@ -289,14 +308,6 @@ thread ->
 			\removeFromParent!
 	showEntry = true
 	Director.clearColor = Color 0xff1a1a1a
-
-enterProduct = ->
-	return if currentEntryName
-	for i = #productionEntries, 1, -1
-		entry = productionEntries[i]
-		if Content\exist entry
-			enterDemoEntry Path\replaceExt entry, ""
-			break
 
 showStats = true
 showConsole = true
@@ -316,7 +327,7 @@ footerWindow = threadLoop ->
 		if ctrl and Keyboard\isKeyDown "Q"
 			allClear!
 			isInEntry = true
-			currentEntryName = nil
+			currentEntry = nil
 		if ctrl and Keyboard\isKeyDown "Z"
 			reloadCurrentEntry!
 		if ctrl and Keyboard\isKeyDown ","
@@ -327,24 +338,22 @@ footerWindow = threadLoop ->
 			showConsole = not showConsole
 		if ctrl and Keyboard\isKeyDown "/"
 			showFooter = not showFooter
-		if ctrl and Keyboard\isKeyDown "R"
-			enterProduct!
 		left = ctrl and Keyboard\isKeyDown "Left"
 		right = ctrl and Keyboard\isKeyDown "Right"
 		currentIndex = nil
-		for i, name in ipairs allNames
-			if currentEntryName == name
+		for i, entry in ipairs allEntries
+			if currentEntry == entry
 				currentIndex = i
 		if left
 			allClear!
-			currentIndex ??= #allNames + 1
+			currentIndex ??= #allEntries + 1
 			if currentIndex > 1
-				enterDemoEntry allNames[currentIndex - 1]
+				enterDemoEntry allEntries[currentIndex - 1]
 		if right
 			allClear!
 			currentIndex ??= 0
-			if currentIndex < #allNames
-				enterDemoEntry allNames[currentIndex + 1]
+			if currentIndex < #allEntries
+				enterDemoEntry allEntries[currentIndex + 1]
 	return unless showEntry
 	:width, :height = App.visualSize
 	SetNextWindowSize Vec2 200, 50
@@ -395,7 +404,6 @@ footerWindow = threadLoop ->
 				_G.require = oldRequire
 				builtin.require = oldRequire
 				package.loaded["Dev.Entry"] = nil
-				Content.searchPaths = searchPaths
 				Director.systemScheduler\schedule ->
 					Routine\clear!
 					oldRequire "Dev.Entry"
@@ -405,22 +413,22 @@ footerWindow = threadLoop ->
 			if Button "Home", Vec2 70, 30
 				allClear!
 				isInEntry = true
-				currentEntryName = nil
+				currentEntry = nil
 			currentIndex = nil
-			for i, name in ipairs allNames
-				if currentEntryName == name
+			for i, entry in ipairs allEntries
+				if currentEntry == entry
 					currentIndex = i
 			if currentIndex
 				if currentIndex > 1
 					SameLine!
 					if Button("Prev", Vec2 70, 30)
 						allClear!
-						enterDemoEntry allNames[currentIndex - 1]
-				if currentIndex < #allNames
+						enterDemoEntry allEntries[currentIndex - 1]
+				if currentIndex < #allEntries
 					SameLine!
 					if Button("Next", Vec2 70, 30)
 						allClear!
-						enterDemoEntry allNames[currentIndex + 1]
+						enterDemoEntry allEntries[currentIndex + 1]
 			SameLine!
 			if Button "Reload", Vec2 70, 30
 				reloadCurrentEntry!
@@ -449,45 +457,42 @@ entryWindow = threadLoop ->
 	SetNextWindowSize Vec2 width, height - 95
 	PushStyleColor "WindowBg", Color(0x0), ->
 		Begin "Content", windowFlags, ->
-			TextColored cyan, "Game Demos"
-			Columns math.max(math.floor(width / 200), 1), false
-			for game in *games
-				if Button game, Vec2 -1, 40
-					enterDemoEntry Path "Game", game, "init"
-				NextColumn!
-			Columns 1, false
-			TextColored cyan, "Examples"
-			Columns math.max(math.floor(width / 200), 1), false
-			for example in *examples
-				if Button example, Vec2 -1, 40
-					enterDemoEntry Path "Example", example
-				NextColumn!
-			Columns 1, false
-			TextColored cyan, "Tests"
-			Columns math.max(math.floor(width / 200), 1), false
-			for test in *tests
-				if Button test, Vec2 -1, 40
-					enterDemoEntry Path "Test", test
-				NextColumn!
-			for test in *cppTests
-				if Button test, Vec2 -1, 40
-					enterDemoEntry test
-				NextColumn!
-			if #productionEntries > 0
-				Columns 1, false
-				TextColored cyan, "Product"
+			if #games > 0
+				TextColored cyan, "Game Demos"
 				Columns math.max(math.floor(width / 200), 1), false
-				enterProduct! if Button "Enter", Vec2 -1, 40
-				NextColumn!
-				if productionTests and #productionTests > 0
-					Columns 1, false
-					TextColored cyan, "Product Test"
-					Columns math.max(math.floor(width / 200), 1), false
-					for test in *productionTests
-						if Button test, Vec2 -1, 40
-							enterDemoEntry Path "Test", test
-						NextColumn!
-			Columns 1, false
+				for game in *games
+					if Button game[1], Vec2 -1, 40
+						enterDemoEntry game
+					NextColumn!
+				Columns 1, false
+			if #examples > 0
+				TextColored cyan, "Examples"
+				Columns math.max(math.floor(width / 200), 1), false
+				for example in *examples
+					if Button example[1], Vec2 -1, 40
+						enterDemoEntry example
+					NextColumn!
+				Columns 1, false
+			if #tests > 0
+				TextColored cyan, "Tests"
+				Columns math.max(math.floor(width / 200), 1), false
+				for test in *tests
+					if Button test[1], Vec2 -1, 40
+						enterDemoEntry test
+					NextColumn!
+				for test in *cppTests
+					if Button test[1], Vec2 -1, 40
+						enterDemoEntry test
+					NextColumn!
+				Columns 1, false
+			if #gamesInDev > 0
+				TextColored cyan, "Games In Dev"
+				Columns math.max(math.floor(width / 200), 1), false
+				for game in *gamesInDev
+					if Button game[1], Vec2 -1, 40
+						enterDemoEntry game
+					NextColumn!
+				Columns 1, false
 			Dummy Vec2 100, 40
 
 require "WebServer"

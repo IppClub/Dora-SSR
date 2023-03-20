@@ -57,7 +57,7 @@ std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr) {
 			Texture2D* texture = SharedTextureCache.load(clipDef->textureFile);
 			return {texture, *it->second};
 		} else {
-			Warn("no clip named \"{}\" in {}", name, tokens.front());
+			Error("no clip named \"{}\" in {}", name, tokens.front());
 			Texture2D* tex = SharedTextureCache.load(clipDef->textureFile);
 			Rect rect(0.0f, 0.0f, s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight()));
 			return {tex, rect};
@@ -70,7 +70,7 @@ std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr) {
 			Rect rect(0.0f, 0.0f, s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight()));
 			return {tex, rect};
 		}
-		Warn("failed to get clip from clipStr \"{}\".", clipStr);
+		Error("failed to get clip from clipStr \"{}\".", clipStr);
 		return {};
 	} else {
 		Texture2D* tex = SharedTextureCache.load(clipStr);
@@ -78,7 +78,7 @@ std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr) {
 			Rect rect(0.0f, 0.0f, s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight()));
 			return {tex, rect};
 		}
-		Warn("failed to get texture from clipStr \"{}\".", clipStr);
+		Error("failed to get texture from clipStr \"{}\".", clipStr);
 		return {};
 	}
 }

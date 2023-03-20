@@ -145,7 +145,7 @@ static int dora_load_file(lua_State* L, String filename, String moduleName = nul
 			codeBufferSize = codes.size();
 			break;
 		}
-		default: {
+		case "lua"_hash: {
 			auto data = SharedContent.load(targetFile);
 			buffer = std::move(data.first);
 			codeBuffer = r_cast<char*>(buffer.get());

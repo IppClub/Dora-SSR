@@ -57,7 +57,7 @@ public:
 					_dict[file] = parser->getItem();
 					return result;
 				} catch (rapidxml::parse_error error) {
-					Warn("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<char*>(data.first.get()));
+					Error("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<char*>(data.first.get()));
 					return nullptr;
 				}
 			}
@@ -82,7 +82,7 @@ public:
 								parser->parse(r_cast<char*>(data), s_cast<int>(size));
 								result = parser->getItem();
 							} catch (rapidxml::parse_error error) {
-								Warn("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data));
+								Error("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data));
 							}
 							return Values::alloc(result);
 						},
@@ -109,7 +109,7 @@ public:
 			_dict[file] = parser->getItem();
 			return result;
 		} catch (rapidxml::parse_error error) {
-			Warn("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data.c_str()));
+			Error("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<const char*>(data.c_str()));
 			return nullptr;
 		}
 	}

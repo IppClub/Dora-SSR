@@ -42,7 +42,7 @@ Face::Face(String file, const Vec2& point, float scale, float angle)
 				break;
 			default:
 				_type = Face::Unknown;
-				Warn("load invalid face str: \"{}\"", file);
+				Error("invalid face str: \"{}\"", file);
 				break;
 		}
 	}

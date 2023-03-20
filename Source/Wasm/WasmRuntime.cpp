@@ -1380,7 +1380,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 	auto file = filename.toString();
 	SharedContent.loadAsyncData(filename, [file, handler, this](OwnArray<uint8_t>&& data, size_t size) {
 		if (!data) {
-			Warn("failed to load wasm file \"{}\".", file);
+			Error("failed to load wasm file \"{}\".", file);
 			handler(false);
 			return;
 		}

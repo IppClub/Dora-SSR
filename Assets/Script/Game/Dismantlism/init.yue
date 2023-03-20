@@ -1,11 +1,14 @@
 -- GGJ2022
 _ENV = Dorothy!
+
+scriptPath = Path\getScriptPath ...
+return unless scriptPath
+Content\insertSearchPath 1, scriptPath
+
 import "BodyEx"
 import "UI.View.Shape.SolidRect"
 import "UI.Control.Basic.AlignNode"
 import "Utils" as :Struct, :Set
-
-ns = "Game.Dismantlism"
 
 root = with Node!
 	\slot "Cleanup", -> Audio\stopStream 0.2
@@ -119,7 +122,7 @@ Director.entry\addChild with Node!
 			moveJoint = nil
 			movingBody = nil
 
-scene = require "#{ns}.scene"
+scene = require "scene"
 Struct.Body "name", "file", "position", "angle"
 Struct\load scene
 
@@ -208,7 +211,7 @@ buildScene = ->
 			:position = Vec2.zero
 			:angle = 0
 		} = scene\get i
-		node = BodyEx require("#{ns}.Physics.#{file}"), world, position, angle
+		node = BodyEx require(Path "Physics", file), world, position, angle
 		world\addChild node
 		if spaceItems[file]
 			node.data\each =>

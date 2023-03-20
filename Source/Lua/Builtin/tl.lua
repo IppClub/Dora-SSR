@@ -4784,7 +4784,7 @@ local function search_for(module_name, suffix, path, tried)
 end
 
 local function filename_to_module_name(filename)
-	local path = os.getenv("TL_PATH") or package.path
+	local path = package.path
 	for entry in path:gmatch("[^;]+") do
 		entry = entry:gsub("%.", "%%.")
 		local lua_pat = "^" .. entry:gsub("%?", ".+") .. "$"
@@ -11357,6 +11357,7 @@ tl.dora_infer = function(codes, line, row)
 end
 
 tl.dora_init = function()
+	package.path = "?.lua"
 	local env, err = tl.init_env(
 		false, false,
 		tl.target_from_lua_version(_VERSION)

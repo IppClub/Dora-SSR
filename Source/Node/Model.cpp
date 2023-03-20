@@ -581,7 +581,7 @@ AnimationHandler& Model::AnimationHandlerGroup::operator[](int index) {
 AnimationHandler& Model::AnimationHandlerGroup::operator[](String name) {
 	int index = _owner->_modelDef->getAnimationIndexByName(name);
 	if (index == Animation::None) {
-		Warn("try register callback for non-exist animation named: \"{}\".", name);
+		Warn("try registering callback for non-exist animation named: \"{}\".", name);
 		return _unavailableHandler;
 	}
 	return _owner->_animationGroups[index]->animationEnd;

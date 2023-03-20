@@ -945,6 +945,34 @@ do
 	_G.p = yue.p
 	builtin.p = yue.p
 
+	local Path = builtin.Path
+
+	local loadfile = _G.loadfile
+	_G.loadfile = function(file, ...)
+		if Path:getExt(file) == "yue" then
+			return yue.loadfile(file, ...)
+		end
+		return loadfile(file, ...)
+	end
+
+	local dofile = _G.dofile
+	_G.dofile = function(file, ...)
+		if Path:getExt(file) == "yue" then
+			return yue.dofile(file, ...)
+		end
+		return dofile(file, ...)
+	end
+
+	Path.getScriptPath = function(_, path)
+		if not path then return nil end
+		if path:match("[\\/]") then
+			return Path:getPath(path)
+		else
+			path = path:gsub("%.", "/")
+			return Path:getPath(path)
+		end
+	end
+
 	local function disallowCreateGlobal(_, name)
 		error("disallow creating global variable \"" .. name .. "\".")
 	end
