@@ -60,7 +60,7 @@ Atlas* AtlasCache::load(String filename) {
 		_atlas[fullPath] = atlas;
 		return atlas;
 	}
-	Warn("failed to load atlas \"{}\".", filename);
+	Error("failed to load atlas \"{}\".", filename);
 	return nullptr;
 }
 
@@ -75,7 +75,7 @@ void AtlasCache::loadAsync(String filename, const std::function<void(Atlas*)>& h
 	auto file = filename.toString();
 	SharedContent.loadAsync(fullPath, [file, dir, handler, this](String data) {
 		if (data.empty()) {
-			Warn("failed to async load atlas \"{}\".", file);
+			Error("failed to async load atlas \"{}\".", file);
 			handler(nullptr);
 			return;
 		}
@@ -103,7 +103,7 @@ void AtlasCache::loadAsync(String filename, const std::function<void(Atlas*)>& h
 					texture->retain();
 				} else {
 					failed = true;
-					Warn("failed to load texture \"{}\" of atlas \"{}\".", texFile, file);
+					Error("failed to load texture \"{}\" of atlas \"{}\".", texFile, file);
 				}
 				count++;
 				if (count == total) {

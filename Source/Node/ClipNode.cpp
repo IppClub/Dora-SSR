@@ -164,7 +164,7 @@ void ClipNode::visit() {
 		static bool once = true;
 		if (once) {
 			once = false;
-			Warn("Nesting more than {} stencils is not supported. Everything will be drawn without stencil for this node and its childs.", 8);
+			Warn("nesting more than {} stencils is not supported. Everything will be drawn without stencil for this node and its childs.", 8);
 		}
 		Node::visit();
 		return;

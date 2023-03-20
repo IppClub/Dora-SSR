@@ -1,12 +1,14 @@
 _ENV = Dorothy!
 
-Content\insertSearchPath 1, "Script/Game/Loli War"
-ns = "Game.Loli War"
-require "#{ns}.Constant"
-require "#{ns}.Bullet"
-require "#{ns}.Unit"
-require "#{ns}.AI"
-require "#{ns}.Action"
-require "#{ns}.Logic"
-require "#{ns}.Control"
-require "#{ns}.Scene"
+if scriptPath = Path\getScriptPath ...
+	Content\insertSearchPath 1, scriptPath
+	require Path scriptPath, mod for mod in *{
+		"Constant"
+		"Bullet"
+		"Unit"
+		"AI"
+		"Action"
+		"Logic"
+		"Control"
+		"Scene"
+	}

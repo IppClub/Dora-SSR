@@ -30,8 +30,9 @@ VisualType::VisualType(String filename)
 		_type = VisualType::Frame;
 	} else if (Path::getExt(filename) == "par"_slice) {
 		_type = VisualType::Particle;
-	} else
-		Warn("got invalid visual file str: \"{}\".", filename);
+	} else {
+		Error("got invalid visual file str: \"{}\".", filename);
+	}
 }
 
 Visual* VisualType::toVisual() const {
@@ -71,7 +72,7 @@ bool VisualCache::load(String filename) {
 		_parser.parse(r_cast<char*>(data.first.get()), s_cast<int>(data.second));
 		return true;
 	} catch (rapidxml::parse_error error) {
-		Warn("xml parse error: {}, at: {}, ", error.what(), error.where<char>() - r_cast<char*>(data.first.get()));
+		Error("xml parse error: {}, at: {}, ", error.what(), error.where<char>() - r_cast<char*>(data.first.get()));
 		return false;
 	}
 }
@@ -87,7 +88,7 @@ bool VisualCache::update(String content) {
 		_parser.parse(r_cast<char*>(data.get()), s_cast<int>(size));
 		return true;
 	} catch (rapidxml::parse_error error) {
-		Warn("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<char*>(data.get()));
+		Error("xml parse error: {}, at: {}", error.what(), error.where<char>() - r_cast<char*>(data.get()));
 		return false;
 	}
 }

@@ -44,7 +44,7 @@ FrameActionDef* FrameCache::loadFrame(String frameStr) {
 		return def;
 	}
 	BLOCK_END
-	Warn("invalid frame str not load: \"{}\".", frameStr);
+	Error("invalid frame str not load: \"{}\".", frameStr);
 	return nullptr;
 }
 

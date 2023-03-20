@@ -103,6 +103,7 @@ local Platformer = require("Platformer")
 local HttpServer = require("HttpServer")
 local Profiler = require("Profiler")
 local teal = require("teal")
+local yue = require("yue")
 global p = require("p")
 local Class: function(...: any): any
 local classmethod: function(...: any): any
@@ -215,6 +216,7 @@ global builtin = {
 	ImGui = ImGui,
 	Platformer = Platformer,
 	teal = teal,
+	yue = yue,
 	HttpServer = HttpServer,
 	Profiler = Profiler,
 }

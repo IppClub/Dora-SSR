@@ -6,7 +6,7 @@ _ENV = Dorothy(
 )
 import "UI.Control.Basic.AlignNode"
 import "UI.Control.Basic.CircleButton"
-store:Store = Data
+store: Store = Data
 
 --LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
 

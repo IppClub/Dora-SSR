@@ -115,7 +115,7 @@ void ShaderCache::loadAsync(String filename, const std::function<void(Shader*)>&
 			_shaders[shaderFile] = shader;
 			handler(shader);
 		} else {
-			Warn("failed to load shader \"{}\".", shaderFile);
+			Error("failed to load shader \"{}\".", shaderFile);
 			handler(nullptr);
 		}
 	});

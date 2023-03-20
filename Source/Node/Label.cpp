@@ -83,7 +83,7 @@ std::pair<std::string, int> FontCache::getArgsFromStr(String fontStr) {
 		int fontSize = Slice::stoi(*(++it));
 		return {fontName.toString(), fontSize};
 	} else {
-		Warn("invalid fontStr for \"{}\".", fontStr);
+		Error("invalid fontStr for \"{}\".", fontStr);
 		return {Slice::Empty, 0};
 	}
 }
@@ -180,7 +180,7 @@ Font* FontCache::load(String fontName, uint32_t fontSize) {
 			}
 			BLOCK_END
 			if (fontFile.empty()) {
-				Warn("can not load font file named \"{}\".", fontName);
+				Error("can not load font file named \"{}\".", fontName);
 				return nullptr;
 			}
 			auto data = SharedContent.load(fontFile);
@@ -231,7 +231,7 @@ void FontCache::loadAync(String fontName, uint32_t fontSize, const std::function
 			}
 			BLOCK_END
 			if (fontFile.empty()) {
-				Warn("can not load font file named \"{}\".", fontName);
+				Error("can not load font file named \"{}\".", fontName);
 				callback(nullptr);
 			}
 			SharedContent.loadAsyncUnsafe(fontFile, [this, fontFaceName, fontName, fontSize, callback](uint8_t* data, int64_t size) {
