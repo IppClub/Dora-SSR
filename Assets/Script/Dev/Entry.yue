@@ -261,6 +261,7 @@ for group in *{
 		games
 		examples
 		tests
+		cppTests
 		gamesInDev
 	}
 	for entry in *group
@@ -347,13 +348,17 @@ footerWindow = threadLoop ->
 		if left
 			allClear!
 			currentIndex ??= #allEntries + 1
-			if currentIndex > 1
-				enterDemoEntry allEntries[currentIndex - 1]
+			enterDemoEntry if currentIndex > 1
+				allEntries[currentIndex - 1]
+			else
+				allEntries[#allEntries]
 		if right
 			allClear!
 			currentIndex ??= 0
-			if currentIndex < #allEntries
-				enterDemoEntry allEntries[currentIndex + 1]
+			enterDemoEntry if currentIndex < #allEntries
+				allEntries[currentIndex + 1]
+			else
+				allEntries[1]
 	return unless showEntry
 	:width, :height = App.visualSize
 	SetNextWindowSize Vec2 200, 50
