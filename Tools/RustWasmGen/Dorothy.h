@@ -92,6 +92,7 @@ struct Path
 	static string getPath(string path);
 	static string getName(string path);
 	static string getFilename(string path);
+	static string getRelative(string path, string target);
 	static string replaceExt(string path, string newExt);
 	static string replaceFilename(string path, string newFile);
 };

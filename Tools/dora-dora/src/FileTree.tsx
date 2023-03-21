@@ -23,7 +23,6 @@ import { Path } from './Path';
 import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
-import { AiFillFolderAdd } from 'react-icons/ai';
 import { DiCode } from 'react-icons/di';
 
 export interface TreeDataType extends DataNode {

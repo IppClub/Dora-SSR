@@ -374,6 +374,7 @@ public:
 	static std::string getPath(const std::string& path);
 	static std::string getName(const std::string& path);
 	static std::string getFilename(const std::string& path);
+	static std::string getRelative(const std::string& path, const std::string& target);
 	static std::string replaceExt(const std::string& path, const std::string& newExt);
 	static std::string replaceFilename(const std::string& path, const std::string& newFile);
 };

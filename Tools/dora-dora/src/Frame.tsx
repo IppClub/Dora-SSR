@@ -4,9 +4,8 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Stack from '@mui/system/Stack';
 import { IconButton, ListItemIcon, ListItemText, Toolbar } from '@mui/material';
 import SportsEsports from '@mui/icons-material/SportsEsports';
-//import { AiFillPlayCircle } from 'react-icons/ai';
-import { BsFillFileEarmarkPlayFill } from 'react-icons/bs';
-//import { MdOutlineFileOpen } from 'react-icons/md';
+import { BsFillFileEarmarkPlayFill, BsPlayCircle, BsStopCircle } from 'react-icons/bs';
+import { MdOutlineKeyboardControlKey } from 'react-icons/md';
 import { StyledMenu, StyledMenuItem } from './Menu';
 import { useState } from 'react';
 
@@ -116,7 +115,7 @@ export const DrawerHeader = styled('div')(({ theme }) => ({
 }));
 
 
-export type PlayControlMode = "Run" | "Run This" | "Set Entry";
+export type PlayControlMode = "Run" | "Run This" | "Stop";
 
 export interface PlayControlProp {
 	onClick: (mode: PlayControlMode) => void;
@@ -156,28 +155,27 @@ export const PlayControl = (prop: PlayControlProp) => {
 			open={open}
 			onClose={onClose()}
 		>
-			{/*
-			<StyledMenuItem>
+			<StyledMenuItem onClick={onClose("Run")}>
 				<ListItemIcon>
-					<AiFillPlayCircle/>
+					<BsPlayCircle/>
 				</ListItemIcon>
-				<ListItemText primary="Run" onClick={onClose("Run")}/>
+				<ListItemText primary="Run"/>
+				<div style={{fontSize: 14, color: '#fff8'}}><MdOutlineKeyboardControlKey/>&ensp;+&ensp;r</div>
 			</StyledMenuItem>
-			*/}
-			<StyledMenuItem>
+			<StyledMenuItem onClick={onClose("Run This")}>
 				<ListItemIcon>
 					<BsFillFileEarmarkPlayFill/>
 				</ListItemIcon>
-				<ListItemText primary="Run This" onClick={onClose("Run This")}/>
+				<ListItemText primary="Run This"/>
+				<div style={{fontSize: 14, color: '#fff8'}}><MdOutlineKeyboardControlKey/>&ensp;+&ensp;R</div>
 			</StyledMenuItem>
-			{/*
-			<StyledMenuItem>
+			<StyledMenuItem onClick={onClose("Stop")}>
 				<ListItemIcon>
-					<MdOutlineFileOpen/>
+					<BsStopCircle/>
 				</ListItemIcon>
-				<ListItemText primary="Set Entry" onClick={onClose("Set Entry")}/>
+				<ListItemText primary="Stop"/>
+				<div style={{fontSize: 14, color: '#fff8'}}><MdOutlineKeyboardControlKey/>&ensp;+&ensp;q</div>
 			</StyledMenuItem>
-			*/}
 		</StyledMenu>
 		<IconButton
 			color="secondary"

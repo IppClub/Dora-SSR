@@ -206,6 +206,13 @@ export allClear = ->
 	collectgarbage!
 	Content.searchPaths = searchPaths
 
+export stop = ->
+	return false if isInEntry
+	allClear!
+	isInEntry = true
+	currentEntry = nil
+	true
+
 examples = {}
 tests = {}
 
@@ -326,9 +333,7 @@ footerWindow = threadLoop ->
 	do
 		ctrl = Keyboard\isKeyPressed "LCtrl"
 		if ctrl and Keyboard\isKeyDown "Q"
-			allClear!
-			isInEntry = true
-			currentEntry = nil
+			stop!
 		if ctrl and Keyboard\isKeyDown "Z"
 			reloadCurrentEntry!
 		if ctrl and Keyboard\isKeyDown ","

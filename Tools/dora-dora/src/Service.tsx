@@ -168,10 +168,21 @@ export const list = (req: ListRequest) => {
 
 export interface RunRequest {
 	file: string;
+	asProj: boolean;
 }
 export interface RunResponse {
 	success: boolean;
+	target?: string;
 }
 export const run = (req: RunRequest) => {
 	return post<RunResponse>("/run", req);
+};
+
+// Stop
+
+export interface StopResponse {
+	success: boolean;
+}
+export const stop = () => {
+	return post<StopResponse>("/stop");
 };
