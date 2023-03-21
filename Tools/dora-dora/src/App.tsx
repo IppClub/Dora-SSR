@@ -392,20 +392,41 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const onKeyDown = (event: React.KeyboardEvent) => {
-		if (event.metaKey || event.ctrlKey) {
+		if (event.ctrlKey) {
 			switch (event.key) {
 				case 's': {
 					event.preventDefault();
-					if (event.shiftKey) {
-						saveAllTabs();
-					} else {
-						saveCurrentTab();
-					}
+					saveCurrentTab();
+					break;
+				}
+				case 'S': {
+					event.preventDefault();
+					saveAllTabs();
 					break;
 				}
 				case 'w': {
 					event.preventDefault();
 					closeCurrentTab();
+					break;
+				}
+				case 'W': {
+					event.preventDefault();
+					closeAllTabs();
+					break;
+				}
+				case 'r': {
+					event.preventDefault();
+					onPlayControlClick("Run");
+					break;
+				}
+				case 'R': {
+					event.preventDefault();
+					onPlayControlClick("Run This");
+					break;
+				}
+				case 'q': {
+					event.preventDefault();
+					onStopRunning();
 					break;
 				}
 			}
@@ -429,7 +450,7 @@ export default function PersistentDrawerLeft() {
 			case "SaveAll": saveAllTabs(); break;
 			case "Close": closeCurrentTab(); break;
 			case "CloseAll": closeAllTabs(); break;
-			case "CloseOther": closeOtherTabs(); break;
+			case "CloseOthers": closeOtherTabs(); break;
 		}
 	};
 
@@ -1005,32 +1026,55 @@ export default function PersistentDrawerLeft() {
 		}
 	};
 
-	const onPlayControlClick = (mode: PlayControlMode) => {
-		if (mode === "Run This") {
-			if (tabIndex === null) {
-				addAlert("need to select a file to run", "info");
-				return;
+	const onStopRunning = () => {
+		Service.stop().then((res) => {
+			if (res.success) {
+				addAlert("stopped running", "success");
+			} else {
+				addAlert("nothing to stop", "info");
 			}
-			const file = files[tabIndex];
-			const ext = path.extname(file.key).toLowerCase();
-			switch (ext) {
-				case ".lua":
-				case ".yue":
-				case ".tl":
-				case ".xml":
-					Service.run({file: file.key}).then((res) => {
-						if (res.success) {
-							addAlert(`${file.title} is running`, "success");
-						} else {
-							addAlert(`failed to run ${file.title}`, "error");
-						}
-					}).catch(() => {
-						console.error("failed to run file");
-					})
-					break;
-				default:
-					addAlert("can not run current item", "info");
-					break;
+		}).catch(() => {
+			addAlert("failed to stop running", "error");
+		});
+	};
+
+	const onPlayControlClick = (mode: PlayControlMode) => {
+		switch (mode) {
+			case "Run": case "Run This": {
+				if (tabIndex === null) {
+					addAlert("please select a file to run", "info");
+					return;
+				}
+				const file = files[tabIndex];
+				const ext = path.extname(file.key).toLowerCase();
+				switch (ext) {
+					case ".lua":
+					case ".yue":
+					case ".tl":
+					case ".xml":
+						Service.run({file: file.key, asProj: mode === "Run"}).then((res) => {
+							if (res.success) {
+								if (res.target !== undefined) {
+									addAlert(`${res.target} is running`, "success");
+								} else {
+									addAlert(`${file.title} is running`, "success");
+								}
+							} else {
+								addAlert(`failed to run ${file.title}`, "error");
+							}
+						}).catch(() => {
+							console.error("failed to run file");
+						})
+						break;
+					default:
+						addAlert("can not run current item", "info");
+						break;
+				}
+				break;
+			}
+			case "Stop": {
+				onStopRunning();
+				break;
 			}
 		}
 	};

@@ -1706,7 +1706,7 @@ local function parse_function_type(ps, i)
 	end
 	if ps.tokens[i].tk == "(" then
 		if ps.tokens[i + 1].tk == "self" then
-			typ.has_method_hint = true
+			typ.is_method_hint = true
 		end
 		i, typ.args = parse_argument_type_list(ps, i)
 		i, typ.rets = parse_return_types(ps, i)
@@ -2461,7 +2461,7 @@ local function parse_function(ps, i, ft)
 	if fn.is_method then
 		table.insert(fn.args, 1, { x = selfx, y = selfy, tk = "self", kind = "identifier" })
 	elseif fn.args[1] and fn.args[1].tk == "self" then
-		fn.has_method_hint = false
+		fn.is_method_hint = false
 	end
 
 	if not fn.name then
@@ -2848,7 +2848,7 @@ parse_record_body = function(ps, i, def, node)
 					if not metamethod_names[field_name] then
 						fail(ps, i - 1, "not a valid metamethod: " .. field_name)
 					end
-					t.has_method_hint = nil
+					t.is_method_hint = nil
 				end
 				if is_const then
 					if not def.readonlys then
@@ -6012,7 +6012,7 @@ tl.type_check = function(ast, opts)
 				end
 
 				copy.is_method = t.is_method
-				copy.has_method_hint = t.has_method_hint
+				copy.is_method_hint = t.is_method_hint
 				copy.min_arity = t.min_arity
 				copy.args, same = resolve(t.args, same)
 				copy.rets, same = resolve(t.rets, same)
@@ -7726,7 +7726,7 @@ tl.type_check = function(ast, opts)
 				for i = 1, n do
 					if (not tried) or not tried[i] then
 						local f = is_func and func or func.types[i]
-						if (f.is_method or f.has_method_hint) and not is_method then
+						if (f.is_method or f.is_method_hint) and not is_method then
 							if args[1] and is_a(args[1], f.args[1]) then
 								local receiver_is_typetype = where.e1.e1 and where.e1.e1.type and where.e1.e1.type.resolved and where.e1.e1.type.resolved.typename == "typetype"
 								if not receiver_is_typetype then
@@ -9857,7 +9857,7 @@ tl.type_check = function(ast, opts)
 					x = node.x,
 					typename = "function",
 					is_method = node.is_method,
-					has_method_hint = node.has_method_hint,
+					is_method_hint = node.is_method_hint,
 					typeargs = node.typeargs,
 					args = children[3],
 					rets = get_rets(children[4]),

@@ -98,6 +98,10 @@ std::string Path::getFilename(const std::string& path) {
 	return fs::path(path).filename().string();
 }
 
+std::string Path::getRelative(const std::string& path, const std::string& target) {
+	return fs::path(path).lexically_relative(target).string();
+}
+
 std::string Path::replaceExt(const std::string& path, const std::string& newExt) {
 	std::string ext;
 	if (!newExt.empty()) {

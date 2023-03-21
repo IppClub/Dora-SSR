@@ -8,6 +8,8 @@ local record Path
 	getName: function(self: Path, path: string): string
 	-- input: /a/b/c.TXT output: c.TXT
 	getFilename: function(self: Path, path: string): string
+	-- input: /a/b/c.TXT, /a output: b/c.TXT
+	getRelative: function(self: Path, path: string, base: string): string
 	-- input: /a/b/c.TXT, lua output: /a/b/c.lua
 	replaceExt: function(self: Path, path: string, newExt: string): string
 	-- input: /a/b/c.TXT, d output: /a/b/d.TXT

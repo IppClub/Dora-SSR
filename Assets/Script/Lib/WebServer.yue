@@ -333,13 +333,37 @@ HttpServer\post "/assets", ->
 	}
 
 HttpServer\postSchedule "/run", (req)->
-	switch req when {body: {:file}}
+	switch req when {body: {:file, :asProj}}
+		:writablePath = Content
+		if writablePath ~= file\sub 1, #writablePath
+			return success: false
+		if asProj
+			searchPath = Path\getRelative file, writablePath
+			current = searchPath
+			repeat
+				current = Path\getPath current
+				break if current == ""
+				for f in *Content\getFiles Path writablePath, current
+					if Path\getName(f)\lower! == "init"
+						import "Dev.Entry"
+						Entry.allClear!
+						f = Path\replaceExt f, ""
+						target = Path writablePath, current, f
+						success = Entry.enterEntryAsync {"Project", target}
+						target = target |> Path\getPath |> Path\getName
+						return :success, :target
+			until false
+			return success: false
 		import "Dev.Entry"
 		Entry.allClear!
 		file = Path\replaceExt file, ""
 		success = Entry.enterEntryAsync {Path\getName(file), file}
 		return :success
 	success: false
+
+HttpServer\postSchedule "/stop", ->
+	import "Dev.Entry"
+	success: Entry.stop!
 
 thread ->
 	doraWeb = Path Content.assetPath, "www", "index.html"

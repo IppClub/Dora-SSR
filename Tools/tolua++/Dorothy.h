@@ -186,6 +186,7 @@ struct Path
 	static string getPath(String path);
 	static string getName(String path);
 	static string getFilename(String path);
+	static string getRelative(String path, String target);
 	static string replaceExt(String path, String newExt);
 	static string replaceFilename(String path, String newFile);
 };
