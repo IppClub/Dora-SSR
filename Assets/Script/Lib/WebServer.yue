@@ -208,7 +208,9 @@ HttpServer\postSchedule "/complete", (req)->
 		when "yue"
 			if not line\match("[%.:\\][%w_]+[%.\\]?$") and not line\match "[%w_]+[%.\\]$"
 				suggestions = teal.completeAsync "", "builtin.", 1
-				suggestions[] = item for item in *teal.completeAsync "", "x", 1
+				for item in *teal.completeAsync "", "x", 1
+					continue if item[1] == "p"
+					suggestions[] = item
 				for word in *yueKeywords
 					suggestions[] = {word, "keyword", "keyword"}
 				if #suggestions > 0
