@@ -49,7 +49,7 @@ export interface CompleteRequest {
 	row: number;
 	content: string;
 }
-type CompleteItemType = "function" | "variable" | "field" | "method";
+type CompleteItemType = "function" | "variable" | "field" | "method" | "keyword";
 export interface CompleteResponse {
 	success: boolean;
 	suggestions?: [string, string, CompleteItemType][];

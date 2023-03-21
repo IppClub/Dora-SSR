@@ -27,7 +27,7 @@ loader.config({ monaco });
 
 let lastEditorActionTime = Date.now();
 
-let path = Path.posix;
+export let path = Path.posix;
 
 document.addEventListener("contextmenu", (event) => {
 	event.preventDefault();
@@ -206,7 +206,7 @@ export default function PersistentDrawerLeft() {
 		}
 		if (index === null) {
 			Service.read({path: key}).then((res) => {
-				if (res.success && res.content) {
+				if (res.success && res.content !== undefined) {
 					const index = files.push({
 						key,
 						title,

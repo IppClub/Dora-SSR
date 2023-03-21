@@ -48,7 +48,7 @@ const fileTypes: FileType[] = [
 	{
 		icon: <AiFillFolderAdd size={50} style={{marginLeft: '10px'}}/>,
 		name: "Folder",
-		desc: "create a file folder",
+		desc: "create a folder file",
 		padding: '20px'
 	},
 ];
@@ -71,7 +71,7 @@ function NewFileDialog(props: NewFileDialogProps) {
 
 	return (
 		<Dialog onClose={handleClose} open={open}>
-			<DialogTitle sx={{ backgroundColor: '#3a3a3a' }}>New Item</DialogTitle>
+			<DialogTitle sx={{ backgroundColor: '#3a3a3a' }}>New File</DialogTitle>
 			<List sx={{ pt: 0, backgroundColor: '#3a3a3a' }}>
 			{
 				fileTypes.map((fileType) => (

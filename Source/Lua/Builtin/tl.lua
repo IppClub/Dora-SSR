@@ -5544,12 +5544,12 @@ local function init_globals(lax)
 			fields = {
 				["char"] = a_type({ typename = "function", args = VARARG({ NUMBER }), rets = TUPLE({ STRING }) }),
 				["charpattern"] = STRING,
-				["codepoint"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_NUMBER, OPT_NUMBER }), rets = VARARG({ INTEGER }) }),
-				["codes"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({
+				["codepoint"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_NUMBER, OPT_NUMBER, OPT_BOOLEAN }), rets = VARARG({ INTEGER }) }),
+				["codes"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_BOOLEAN }), rets = TUPLE({
 					a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ NUMBER, STRING }) }),
 				}), }),
-				["len"] = a_type({ typename = "function", args = TUPLE({ STRING, NUMBER, NUMBER }), rets = TUPLE({ INTEGER }) }),
-				["offset"] = a_type({ typename = "function", args = TUPLE({ STRING, NUMBER, NUMBER }), rets = TUPLE({ INTEGER }) }),
+				["len"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_NUMBER, OPT_NUMBER, OPT_BOOLEAN }), rets = TUPLE({ INTEGER }) }),
+				["offset"] = a_type({ typename = "function", args = TUPLE({ STRING, NUMBER, OPT_NUMBER }), rets = TUPLE({ INTEGER }) }),
 			},
 		}),
 		["_VERSION"] = STRING,
@@ -9497,6 +9497,9 @@ tl.type_check = function(ast, opts)
 				widen_all_unions(node)
 				begin_scope(node)
 				local from_t = resolve_tuple_and_nominal(children[2])
+				if from_t.typename ~= "integer" and from_t.typename ~= "number" then
+					node_error(node.from, "bad 'for' initial value (number expected, got %s)", from_t)
+				end
 				local to_t = resolve_tuple_and_nominal(children[3])
 				local step_t = children[4] and resolve_tuple_and_nominal(children[4])
 				local t = (from_t.typename == "integer" and
