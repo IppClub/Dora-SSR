@@ -5,7 +5,6 @@ import Stack from '@mui/system/Stack';
 import { IconButton, ListItemIcon, ListItemText, Toolbar } from '@mui/material';
 import SportsEsports from '@mui/icons-material/SportsEsports';
 import { BsFillFileEarmarkPlayFill, BsPlayCircle, BsStopCircle } from 'react-icons/bs';
-import { MdOutlineKeyboardControlKey } from 'react-icons/md';
 import { StyledMenu, StyledMenuItem } from './Menu';
 import { useState } from 'react';
 
@@ -160,21 +159,21 @@ export const PlayControl = (prop: PlayControlProp) => {
 					<BsPlayCircle/>
 				</ListItemIcon>
 				<ListItemText primary="Run"/>
-				<div style={{fontSize: 14, color: '#fff8'}}><MdOutlineKeyboardControlKey/>&ensp;+&ensp;r</div>
+				<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+R</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Run This")}>
 				<ListItemIcon>
 					<BsFillFileEarmarkPlayFill/>
 				</ListItemIcon>
 				<ListItemText primary="Run This"/>
-				<div style={{fontSize: 14, color: '#fff8'}}><MdOutlineKeyboardControlKey/>&ensp;+&ensp;R</div>
+				<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+Shift+R</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Stop")}>
 				<ListItemIcon>
 					<BsStopCircle/>
 				</ListItemIcon>
 				<ListItemText primary="Stop"/>
-				<div style={{fontSize: 14, color: '#fff8'}}><MdOutlineKeyboardControlKey/>&ensp;+&ensp;q</div>
+				<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+Q</div>
 			</StyledMenuItem>
 		</StyledMenu>
 		<IconButton

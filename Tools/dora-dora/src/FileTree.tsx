@@ -24,6 +24,8 @@ import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
 import { DiCode } from 'react-icons/di';
+import { MacScrollbar } from 'mac-scrollbar';
+import 'mac-scrollbar/dist/mac-scrollbar.css';
 
 export interface TreeDataType extends DataNode {
 	key: string;
@@ -87,6 +89,7 @@ const treeStyle = `
 	.rc-node-motion {
 		transition: all .3s;
 		overflow-y: hidden;
+		overflow-x: hidden;
 	}
 `;
 
@@ -145,14 +148,12 @@ export default function FileTree(props: FileTreeProps) {
 	};
 
 	return (
-		<div
+		<MacScrollbar
+			skin='dark'
 			style={{
 				paddingLeft: '10px',
 				color: '#fff',
 				fontSize: '14px',
-				width: '100%',
-				height: '100%',
-				overflow: 'scroll'
 			}}
 		>
 			<style dangerouslySetInnerHTML={{ __html: treeStyle }}/>
@@ -191,8 +192,9 @@ export default function FileTree(props: FileTreeProps) {
 			</StyledMenu>
 			<Tree
 				onRightClick={onRightClick}
-				showIcon={true}
-				showLine={true}
+				showIcon
+				showLine
+				virtual
 				icon={fileIcon}
 				switcherIcon={switcherIcon}
 				motion={motion}
@@ -205,6 +207,6 @@ export default function FileTree(props: FileTreeProps) {
 				selectedKeys={selectedKeys}
 				dropIndicatorRender={() => <div/>}
 			/>
-		</div>
+		</MacScrollbar>
 	);
 };
