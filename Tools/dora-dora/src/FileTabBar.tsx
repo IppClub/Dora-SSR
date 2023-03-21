@@ -13,7 +13,6 @@ import {
 	AiFillCloseCircle,
 	AiOutlineCloseCircle,
 } from 'react-icons/ai';
-import { MdOutlineKeyboardControlKey } from 'react-icons/md';
 
 export type TabStatus = "normal" | "warning" | "error";
 
@@ -159,28 +158,28 @@ export default function FileTabBar(props: FileTabBarProps) {
 						<AiOutlineSave/>
 					</ListItemIcon>
 					<ListItemText primary="Save"/>
-					<div style={{fontSize: 14, color: '#fff8'}}><MdOutlineKeyboardControlKey/>&ensp;+&ensp;s</div>
+					<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+S</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('SaveAll')}>
 					<ListItemIcon>
 						<AiFillSave/>
 					</ListItemIcon>
 					<ListItemText primary="Save All"/>
-					<div style={{fontSize: 14, color: '#fff8'}}><MdOutlineKeyboardControlKey/>&ensp;+&ensp;S</div>
+					<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+Shift+S</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('Close')}>
 					<ListItemIcon>
 						<AiOutlineClose/>
 					</ListItemIcon>
 					<ListItemText primary="Close"/>
-					<div style={{fontSize: 14, color: '#fff8'}}><MdOutlineKeyboardControlKey/>&ensp;+&ensp;w</div>
+					<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+W</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('CloseAll')}>
 					<ListItemIcon>
 						<AiFillCloseCircle/>
 					</ListItemIcon>
 					<ListItemText primary="Close All"/>
-					<div style={{fontSize: 14, color: '#fff8'}}><MdOutlineKeyboardControlKey/>&ensp;+&ensp;W</div>
+					<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+Shift+W</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('CloseOthers')}>
 					<ListItemIcon>

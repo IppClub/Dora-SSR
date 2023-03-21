@@ -41,6 +41,7 @@
     "jest": "^27.4.3",
     "jest-resolve": "^27.4.2",
     "jest-watch-typeahead": "^1.0.0",
+    "mac-scrollbar": "^0.10.6",
     "mini-css-extract-plugin": "^2.4.5",
     "monaco-editor": "^0.35.0",
     "postcss": "^8.4.4",
