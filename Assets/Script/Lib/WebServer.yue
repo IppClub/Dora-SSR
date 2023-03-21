@@ -353,7 +353,6 @@ HttpServer\postSchedule "/run", (req)->
 						target = target |> Path\getPath |> Path\getName
 						return :success, :target
 			until false
-			return success: false
 		import "Dev.Entry"
 		Entry.allClear!
 		file = Path\replaceExt file, ""
