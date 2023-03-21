@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "bx/timer.h"
 #include <ctime>
 
-#define DORA_VERSION "1.0.17"_slice
+#define DORA_VERSION "1.0.18"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>

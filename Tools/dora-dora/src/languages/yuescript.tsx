@@ -94,6 +94,7 @@ export const language: languages.IMonarchLanguage = {
 		"tonumber",
 		"tostring",
 		"type",
+		"_ENV",
 		"_VERSION",
 		"_G",
 		"getfenv",

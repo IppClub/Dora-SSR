@@ -16,6 +16,7 @@ builtin.require = require
 runningPaths =
 	* Path Content.writablePath, ".build", "Script", "Lib"
 	* Path Content.writablePath, ".build", "Script"
+	* Path Content.writablePath, ".build"
 
 import "Utils" as :Set, :Struct, :LintYueGlobals
 options: {extension: yueext} = yue
@@ -32,6 +33,8 @@ getAllFiles = (path, exts)->
 		continue if not filters[Path\getExt file]
 		file
 
+local gamesInDev
+
 doCompile = (minify)->
 	return if building
 	building = true
@@ -40,12 +43,20 @@ doCompile = (minify)->
 	yueFiles = {}
 	xmlFiles = {}
 	tlFiles = {}
-	for {inputPath, outputPath} in *{
-			{
-				Path Content.assetPath
-				Path Content.writablePath, ".build"
-			}
+	:writablePath = Content
+	buildPaths = {
+		{
+			Path Content.assetPath
+			Path writablePath, ".build"
 		}
+	}
+	for {name, entryFile} in *gamesInDev
+		gamePath = Path\getPath entryFile
+		buildPaths[] = {
+			Path writablePath, gamePath
+			Path writablePath, ".build", gamePath
+		}
+	for {inputPath, outputPath} in *buildPaths
 		continue unless Content\exist inputPath
 
 		for file in *getAllFiles inputPath, {"lua"}
