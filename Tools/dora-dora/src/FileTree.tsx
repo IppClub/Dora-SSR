@@ -19,13 +19,19 @@ import "./rctree.css";
 import { TreeNodeProps } from "rc-tree/lib/TreeNode";
 import { DataNode, EventDataNode, Key } from "rc-tree/lib/interface";
 import { NodeDragEventParams } from 'rc-tree/lib/contextTypes';
+import { Path } from './Path';
+import luaLogo from './lua.png';
+import yueLogo from './yuescript.png';
+import tealLogo from './teal.png';
+import { AiFillFolderAdd } from 'react-icons/ai';
+import { DiCode } from 'react-icons/di';
 
 export interface TreeDataType extends DataNode {
 	key: string;
 	dir: boolean;
 	root?: boolean;
 	title: string;
-	children?: TreeDataType[]
+	children?: TreeDataType[];
 };
 
 const switcherIcon = (props: TreeNodeProps) => {
@@ -57,6 +63,18 @@ const fileIcon = (props: TreeNodeProps) => {
 				return <AiOutlineFolderOpen/>;
 			} else {
 				return <AiOutlineFolder/>;
+			}
+		} else {
+			const App: {path: Path} = require("./App");
+			switch (App.path.extname(data.key).toLowerCase()) {
+				case ".lua":
+					return <img src={luaLogo} alt="lua" width="14px" height="14px"/>;
+				case ".tl":
+					return <img src={tealLogo} alt="teal" width="14px" height="14px"/>;
+				case ".yue":
+					return <img src={yueLogo} alt="yue" width="14px" height="14px"/>;
+				case ".xml":
+					return <DiCode size={14}/>;
 			}
 		}
 	}

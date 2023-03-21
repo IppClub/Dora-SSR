@@ -8099,10 +8099,12 @@ private:
 						pushScope();
 						extraScope = true;
 					}
+					auto typeVar = getUnusedName("_type_");
+					forceAddToScope(typeVar);
 					tabCheckVar = getUnusedName("_tab_");
 					forceAddToScope(tabCheckVar);
-					temp.push_back(indent() + "local "s + tabCheckVar + " = "s + globalVar("type", branch) + '(' + objVar + ')' + nll(branch));
-					temp.push_back(indent() + tabCheckVar + " = \"table\" == "s + tabCheckVar + " or \"userdata\" == "s + tabCheckVar + nll(branch));
+					temp.push_back(indent() + "local "s + typeVar + " = "s + globalVar("type", branch) + '(' + objVar + ')' + nll(branch));
+					temp.push_back(indent() + "local "s + tabCheckVar + " = \"table\" == "s + typeVar + " or \"userdata\" == "s + typeVar + nll(branch));
 				}
 				std::string matchVar;
 				bool lastBranch = branches.back() == branch_ && !switchNode->lastBranch;

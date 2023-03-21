@@ -1,2 +1,2 @@
-local sleep: function(duration: number)
+local sleep: function(duration?: number)
 return sleep

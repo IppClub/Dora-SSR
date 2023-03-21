@@ -59,6 +59,7 @@ const completionItemProvider = (triggerCharacters: string[], lang: DoraLang) => 
 							case "function": kind = monaco.languages.CompletionItemKind.Function; break;
 							case "method": kind = monaco.languages.CompletionItemKind.Method; break;
 							case "field": kind = monaco.languages.CompletionItemKind.Field; break;
+							case "keyword": kind = monaco.languages.CompletionItemKind.Keyword; break;
 						}
 						return {
 							label,
