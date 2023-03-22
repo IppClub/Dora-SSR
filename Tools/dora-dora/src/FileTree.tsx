@@ -170,12 +170,14 @@ export default function FileTree(props: FileTreeProps) {
 						<AiOutlineFileAdd/>
 					</ListItemIcon>
 					<ListItemText primary="New"/>
+					<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+N</div>
 				</StyledMenuItem>
-				<StyledMenuItem onClick={() => handleClose("Upload", anchorItem?.data)}>
+				<StyledMenuItem onClick={() => handleClose("Delete", anchorItem?.data)}>
 					<ListItemIcon>
-						<AiOutlineUpload/>
+						<AiOutlineDelete/>
 					</ListItemIcon>
-					<ListItemText primary="Upload"/>
+					<ListItemText primary="Delete"/>
+					<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+D</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose("Rename", anchorItem?.data)}>
 					<ListItemIcon>
@@ -183,11 +185,11 @@ export default function FileTree(props: FileTreeProps) {
 					</ListItemIcon>
 					<ListItemText primary="Rename"/>
 				</StyledMenuItem>
-				<StyledMenuItem onClick={() => handleClose("Delete", anchorItem?.data)}>
+				<StyledMenuItem onClick={() => handleClose("Upload", anchorItem?.data)}>
 					<ListItemIcon>
-						<AiOutlineDelete/>
+						<AiOutlineUpload/>
 					</ListItemIcon>
-					<ListItemText primary="Delete"/>
+					<ListItemText primary="Upload"/>
 				</StyledMenuItem>
 			</StyledMenu>
 			<Tree

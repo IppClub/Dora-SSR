@@ -159,21 +159,21 @@ export const PlayControl = (prop: PlayControlProp) => {
 					<BsPlayCircle/>
 				</ListItemIcon>
 				<ListItemText primary="Run"/>
-				<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+R</div>
+				<div style={{fontSize: 10, color: '#fff8'}}>Mod+R</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Run This")}>
 				<ListItemIcon>
 					<BsFillFileEarmarkPlayFill/>
 				</ListItemIcon>
 				<ListItemText primary="Run This"/>
-				<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+Shift+R</div>
+				<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+R</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Stop")}>
 				<ListItemIcon>
 					<BsStopCircle/>
 				</ListItemIcon>
 				<ListItemText primary="Stop"/>
-				<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+Q</div>
+				<div style={{fontSize: 10, color: '#fff8'}}>Mod+Q</div>
 			</StyledMenuItem>
 		</StyledMenu>
 		<IconButton
