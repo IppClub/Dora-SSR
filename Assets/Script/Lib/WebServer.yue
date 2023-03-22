@@ -241,12 +241,16 @@ HttpServer\upload(
 			uploadPath = Path Content.writablePath, ".upload"
 			if not Content\exist uploadPath
 				Content\mkdir uploadPath
-			return Path uploadPath, filename
+			targetPath = Path uploadPath, filename
+			Content\mkdir Path\getPath targetPath
+			return targetPath
 		nil
 	(req, file)->
 		switch req when {params: {:path}}
-			target = Path path, Path\getFilename file
-			if Content\move file, target
+			uploadPath = Path Content.writablePath, ".upload"
+			targetPath = Path path, Path\getRelative file, uploadPath
+			Content\mkdir Path\getPath targetPath
+			if Content\move file, targetPath
 				return true
 		false
 )
