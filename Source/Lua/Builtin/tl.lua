@@ -11255,7 +11255,7 @@ tl.dora_complete = function(codes, line, row)
 			if current_type and current_type.fields then
 				for k, v in pairs(current_type.fields) do
 					local t = type_report.types[v]
-					if t.args == nil and lastChar == ":" then
+					if (t.args == nil and not t.str:match("^polymorphic")) and lastChar == ":" then
 						goto continue
 					end
 					local itemType = t.args ~= nil and "method" or "field"
