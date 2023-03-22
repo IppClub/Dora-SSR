@@ -15,8 +15,12 @@ export interface DoraUploadProp {
 const DoraUpload = (prop: DoraUploadProp) => {
 	const props: UploadProps = {
 		name: 'file',
+		directory: true,
 		multiple: true,
 		action: addr(`/upload?path=${prop.path}`),
+		beforeUpload(file) {
+			return new File([file], file.webkitRelativePath !== "" ? file.webkitRelativePath : file.name);
+		},
 		onChange(info) {
 			const { status } = info.file;
 			if (status === 'done') {
