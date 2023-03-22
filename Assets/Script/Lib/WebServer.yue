@@ -366,9 +366,9 @@ HttpServer\postSchedule "/run", (req)->
 						Entry.allClear!
 						f = Path\replaceExt f, ""
 						target = Path writablePath, current, f
-						success = Entry.enterEntryAsync {"Project", target}
+						success, err = Entry.enterEntryAsync {"Project", target}
 						target = target |> Path\getPath |> Path\getName
-						return :success, :target
+						return :success, :target, :err
 			until false
 		import "Dev.Entry"
 		Entry.allClear!

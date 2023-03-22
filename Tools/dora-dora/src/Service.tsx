@@ -173,6 +173,7 @@ export interface RunRequest {
 export interface RunResponse {
 	success: boolean;
 	target?: string;
+	err?: string;
 }
 export const run = (req: RunRequest) => {
 	return post<RunResponse>("/run", req);
