@@ -290,7 +290,10 @@ export enterEntryAsync = (entry)->
 	currentEntry = entry
 	{name, file} = entry
 	if cppTestSet[entry]
-		return App\runTest name
+		if App\runTest name
+			return true
+		else
+			return false, "failed to run cpp test '#{name}'"
 	sleep!
 	try
 		for path in *runningPaths
@@ -305,8 +308,10 @@ export enterEntryAsync = (entry)->
 		else
 			Director.entry\addChild Node!
 	catch msg
-		print debug.traceback msg
+		err = debug.traceback msg
+		print err
 		allClear!
+		err
 
 enterDemoEntry = (entry)-> thread -> enterEntryAsync entry
 
