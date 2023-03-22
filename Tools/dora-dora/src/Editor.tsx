@@ -43,10 +43,32 @@ const completionItemProvider = (triggerCharacters: string[], lang: DoraLang) => 
 				startColumn: word.startColumn,
 				endColumn: word.endColumn,
 			};
+			let content: string;
+			if (lang === "yue") {
+				if (position.lineNumber > 1) {
+					content = model.getValueInRange({
+						startLineNumber: 1,
+						startColumn: 1,
+						endLineNumber: position.lineNumber - 1,
+						endColumn: model.getLineLastNonWhitespaceColumn(position.lineNumber - 1),
+					});
+				} else {
+					content = "";
+				}
+				content += "\n" + "\t".repeat(model.getLineFirstNonWhitespaceColumn(position.lineNumber) - 1) + "print()\n" + model.getValueInRange({
+					startLineNumber: position.lineNumber + 1,
+					startColumn: 1,
+					endLineNumber: model.getLineCount(),
+					endColumn: model.getLineLastNonWhitespaceColumn(model.getLineCount()),
+				});
+				console.log(content);
+			} else {
+				content = model.getValue();
+			}
 			return Service.complete({
 				lang, line,
 				row: position.lineNumber,
-				content: model.getValue()
+				content
 			}).then((res) => {
 				if (!res.success) return {suggestions:[]};
 				if (res.suggestions === undefined) return {suggestions:[]};

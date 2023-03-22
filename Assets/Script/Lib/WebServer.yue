@@ -54,6 +54,30 @@ luaCheck = (file, content)->
 			success = true
 	return :success, :info
 
+getCompiledYueLine = (content, line, row)->
+	luaCodes, info = yueCheck "", content
+	return nil unless luaCodes
+	current = 1
+	lastLine = 1
+	targetLine = nil
+	targetRow = nil
+	lineMap = {}
+	for lineCode in luaCodes\gmatch "[^\n\r]*"
+		num = lineCode\match "--%s*(%d+)%s*$"
+		lastLine = tonumber num if num
+		lineMap[current] = lastLine
+		if row == lastLine and not targetLine
+			targetRow = current
+			targetLine = line\gsub("::", "\\")\gsub(":", "=")\gsub("\\", ":")\match "[%w_%.:]+$"
+			if targetLine and targetLine\match "^[%.:]"
+				targetLine = lineCode\match "[%w_%.:]+[%.:]#{targetLine\sub 2, -1}"
+			break if targetLine
+		current += 1
+	if targetLine and targetRow
+		luaCodes, targetLine, targetRow
+	else
+		nil
+
 HttpServer\postSchedule "/check", (req)->
 	switch req when {body: {:file, :content}}
 		ext = Path\getExt file
@@ -93,32 +117,15 @@ HttpServer\postSchedule "/infer", (req)->
 			if infered?
 				return success: true, :infered
 		when "yue"
-			luaCodes, info = yueCheck "", content
+			luaCodes, targetLine, targetRow = getCompiledYueLine content, line, row
 			return success: false unless luaCodes
-			current = 1
-			lastLine = 1
-			targetLine = nil
-			targetRow = nil
-			lineMap = {}
-			for lineCode in luaCodes\gmatch "[^\n\r]*"
-				num = lineCode\match "--%s*(%d+)%s*$"
-				lastLine = tonumber num if num
-				lineMap[current] = lastLine
-				if row == lastLine and not targetLine
-					targetRow = current
-					targetLine = line\gsub("::", "\\")\gsub(":", "=")\gsub("\\", ":")\match "[%w_%.:]+$"
-					if targetLine and targetLine\match "^[%.:]"
-						targetLine = lineCode\match "[%w_%.:]+[%.:]#{targetLine\sub 2, -1}"
-					break if targetLine
-				current += 1
-			if targetLine and targetRow
-				infered = teal.inferAsync luaCodes, targetLine, targetRow
-				if infered?
-					:file, :row, :col = infered
-					if file == "" and row > 0 and col > 0
-						infered.row = lineMap[row] or 0
-						infered.col = 1
-					return success: true, :infered
+			infered = teal.inferAsync luaCodes, targetLine, targetRow
+			if infered?
+				:file, :row, :col = infered
+				if file == "" and row > 0 and col > 0
+					infered.row = lineMap[row] or 0
+					infered.col = 1
+				return success: true, :infered
 	success: false
 
 luaKeywords = {
@@ -206,15 +213,25 @@ HttpServer\postSchedule "/complete", (req)->
 			if #suggestions > 0
 				return success: true, :suggestions
 		when "yue"
+			suggestions = {}
+			gotGlobals = false
+			if luaCodes, targetLine, targetRow = getCompiledYueLine content, line, row
+				gotGlobals = true
+				suggestions[] = item for item in *teal.completeAsync luaCodes, targetLine, targetRow
+				if #suggestions == 0
+					suggestions[] = item for item in *teal.completeAsync luaCodes, "builtin.#{targetLine}", targetRow
 			if not line\match("[%.:\\][%w_]+[%.\\]?$") and not line\match "[%w_]+[%.\\]$"
-				suggestions = teal.completeAsync "", "builtin.", 1
-				for item in *teal.completeAsync "", "x", 1
-					continue if item[1] == "p"
-					suggestions[] = item
+				checkSet = {name, true for {name} in *suggestions}
+				for item in *teal.completeAsync "", "builtin.", 1
+					suggestions[] = item if not checkSet[item[1]]
+				if not gotGlobals
+					for item in *teal.completeAsync "", "x", 1
+						suggestions[] = item if not checkSet[item[1]]
 				for word in *yueKeywords
-					suggestions[] = {word, "keyword", "keyword"}
-				if #suggestions > 0
-					return success: true, :suggestions
+					if not checkSet[word]
+						suggestions[] = {word, "keyword", "keyword"}
+			if #suggestions > 0
+				return success: true, :suggestions
 	success: false
 
 HttpServer\upload(

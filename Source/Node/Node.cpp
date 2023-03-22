@@ -1683,7 +1683,7 @@ void Signal::emit(Event* event) {
 		}
 	} else if (_slotsArray) {
 		for (auto& item : *_slotsArray) {
-			if (event->getName() == item.first) {
+			if (item.second && event->getName() == item.first) {
 				item.second->handle(event);
 				return;
 			}
