@@ -72,6 +72,8 @@ export default function PersistentDrawerLeft() {
 	const [treeData, setTreeData] = useState<TreeDataType[]>([]);
 	const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
 	const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+	const [selectedNode, setSelectedNode] = useState<TreeDataType | null>(null);
+	const [keyEvent, setKeyEvent] = useState<KeyboardEvent | null>(null);
 
 	const [openNewFile, setOpenNewFile] = useState<TreeDataType | null>(null);
 
@@ -100,12 +102,13 @@ export default function PersistentDrawerLeft() {
 
 	const addAlert = (msg: string, type: AlertColor) => {
 		const key = msg + Date.now().toString();
-		alerts.push({
-			msg,
-			key,
-			type
+		setAlerts((prevState) => {
+			return [...prevState, {
+				msg,
+				key,
+				type
+			}];
 		});
-		setAlerts([...alerts]);
 		setTimeout(() => {
 			setAlerts((prevState) => {
 				return prevState.filter(a => a.key !== key);
@@ -145,6 +148,22 @@ export default function PersistentDrawerLeft() {
 				setExpandedKeys([res.key]);
 			}
 		});
+		document.addEventListener("keydown", (event: KeyboardEvent) => {
+			if (event.ctrlKey || event.altKey || event.metaKey) {
+				switch (event.key) {
+					case 'N': case 'n':
+					case 'D': case 'd':
+					case 'S': case 's':
+					case 'W': case 'w':
+					case 'R': case 'r':
+					case 'Q': case 'q': {
+						event.preventDefault();
+						setKeyEvent(event);
+						break;
+					}
+				}
+			}
+		}, false);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
@@ -237,8 +256,12 @@ export default function PersistentDrawerLeft() {
 
 	const onSelect = (nodes: TreeDataType[]) => {
 		setSelectedKeys(nodes.map(n => n.key));
-		if (nodes.length === 0) return;
+		if (nodes.length === 0) {
+			setSelectedNode(null);
+			return;
+		}
 		const {key, title} = nodes[0];
+		setSelectedNode(nodes[0]);
 		const ext = path.extname(title);
 		switch (ext.toLowerCase()) {
 			case ".lua":
@@ -310,23 +333,42 @@ export default function PersistentDrawerLeft() {
 				filesToSave.push(index);
 			}
 		});
-		filesToSave.forEach(index => {
-			const file = files[index];
-			if (file.contentModified !== null) {
-				const {contentModified} = file;
-				Service.write({path: file.key, content: contentModified}).then((res) => {
-					if (res.success) {
-						file.content = contentModified;
-						file.contentModified = null;
-						setFiles([...files]);
-					} else {
-						addAlert(`failed to save ${file.title}`, "error");
-					}
-				}).catch(() => {
-					addAlert(`failed to save ${file.title}`, "error");
-				});
+		return new Promise<boolean>((resolve) => {
+			const fileCount = filesToSave.length;
+			if (fileCount === 0) {
+				resolve(true);
+				return;
 			}
-		})
+			let failed = false;
+			filesToSave.forEach(index => {
+				const file = files[index];
+				if (file.contentModified !== null) {
+					const {contentModified} = file;
+					Service.write({path: file.key, content: contentModified}).then((res) => {
+						if (res.success) {
+							file.content = contentModified;
+							file.contentModified = null;
+							setFiles(prev => [...prev]);
+							if (index + 1 === fileCount) {
+								resolve(true);
+							}
+						} else {
+							addAlert(`failed to save ${file.title}`, "error");
+							if (!failed) {
+								failed = true;
+								resolve(false);
+							}
+						}
+					}).catch(() => {
+						addAlert(`failed to save ${file.title}`, "error");
+						if (!failed) {
+							failed = true;
+							resolve(false);
+						}
+					});
+				}
+			});
+		});
 	};
 
 	const closeCurrentTab = () => {
@@ -391,48 +433,6 @@ export default function PersistentDrawerLeft() {
 		closeTabs();
 	};
 
-	const onKeyDown = (event: React.KeyboardEvent) => {
-		if (event.ctrlKey) {
-			switch (event.key) {
-				case 's': {
-					event.preventDefault();
-					saveCurrentTab();
-					break;
-				}
-				case 'S': {
-					event.preventDefault();
-					saveAllTabs();
-					break;
-				}
-				case 'w': {
-					event.preventDefault();
-					closeCurrentTab();
-					break;
-				}
-				case 'W': {
-					event.preventDefault();
-					closeAllTabs();
-					break;
-				}
-				case 'r': {
-					event.preventDefault();
-					onPlayControlClick("Run");
-					break;
-				}
-				case 'R': {
-					event.preventDefault();
-					onPlayControlClick("Run This");
-					break;
-				}
-				case 'q': {
-					event.preventDefault();
-					onStopRunning();
-					break;
-				}
-			}
-		}
-	};
-
 	const handleAlertClose = () => {
 		if (popupInfo?.confirmed !== undefined) {
 			popupInfo.confirmed();
@@ -454,15 +454,69 @@ export default function PersistentDrawerLeft() {
 		}
 	};
 
+	const deleteFile = (data: TreeDataType) => {
+		const rootNode = treeData.at(0);
+		if (rootNode === undefined) return;
+		if (rootNode.key === data.key) {
+			addAlert("can not delete root folder", "info");
+			return;
+		}
+		setPopupInfo({
+			title: "Delete",
+			msg: `deleting ${data.dir ? 'folder' : 'file'} ${data.title}`,
+			cancelable: true,
+			confirmed: () => {
+				Service.deleteFile({path: data.key}).then((res) => {
+					if (!res.success) return;
+					const visitData = (node: TreeDataType) => {
+						if (data.key === node.key) return "find";
+						if (node.children !== undefined) {
+							for (let i = 0; i < node.children.length; i++) {
+								const res = visitData(node.children[i]);
+								if (res === "find") {
+									node.children = node.children.filter(n => n.key !== data.key);
+									return "stop";
+								} else if (res === "stop") {
+									return "stop";
+								}
+							}
+						}
+						return "continue";
+					};
+					visitData(rootNode);
+					if (rootNode.children && rootNode.children.length === 0) {
+						rootNode.children = [{
+							key: '...',
+							dir: false,
+							title: '...',
+						}];
+						setExpandedKeys([]);
+					}
+					if (files.find(f => f.key === data.key) !== undefined) {
+						const newFiles = files.filter(f => f.key !== data.key);
+						setFiles(newFiles);
+						if (tabIndex !== null && tabIndex >= newFiles.length) {
+							switchTab(newFiles.length - 1, newFiles[newFiles.length - 1]);
+						}
+					}
+					setTreeData([rootNode]);
+				}).then(() => {
+					addAlert(`deleted "${data.title}"`, "success");
+				}).catch(() => {
+					addAlert("failed to delete item", "error");
+				});
+			},
+		});
+	};
+
 	const onTreeMenuClick = (event: TreeMenuEvent, data?: TreeDataType)=> {
+		if (data === undefined) return;
 		switch (event) {
 			case "New": {
-				if (data === undefined) break;
 				setOpenNewFile(data);
 				break;
 			}
 			case "Upload": {
-				if (data === undefined) break;
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
 				let {key, title} = data;
@@ -494,7 +548,7 @@ export default function PersistentDrawerLeft() {
 			case "Rename": {
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
-				if (rootNode.key === data?.key) {
+				if (rootNode.key === data.key) {
 					addAlert("can not rename root folder", "info");
 					break;
 				}
@@ -511,59 +565,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 			case "Delete": {
-				const rootNode = treeData.at(0);
-				if (rootNode === undefined) break;
-				if (rootNode.key === data?.key) {
-					addAlert("can not delete root folder", "info");
-					break;
-				}
-				if (data !== undefined) {
-					setPopupInfo({
-						title: "Delete",
-						msg: `deleting ${data.dir ? 'folder' : 'file'} ${data.title}`,
-						cancelable: true,
-						confirmed: () => {
-							Service.deleteFile({path: data.key}).then((res) => {
-								if (!res.success) return;
-								const visitData = (node: TreeDataType) => {
-									if (node.key === data.key) return "find";
-									if (node.children) {
-										for (let i = 0; i < node.children.length; i++) {
-											const res = visitData(node.children[i]);
-											if (res === "find") {
-												node.children = node.children?.filter(n => n.key !== data.key);
-												return "stop";
-											} else if (res === "stop") {
-												return "stop";
-											}
-										}
-									}
-									return "continue";
-								};
-								visitData(rootNode);
-								if (rootNode.children && rootNode.children.length === 0) {
-									rootNode.children = [{
-										key: '...',
-										dir: false,
-										title: '...',
-									}];
-									setExpandedKeys([]);
-								}
-								if (files.find(f => f.key === data.key) !== undefined) {
-									setFiles(files.filter(f => f.key !== data.key));
-									if (tabIndex !== null && tabIndex >= files.length) {
-										switchTab(files.length - 1, files[files.length - 1]);
-									}
-								}
-								setTreeData([rootNode]);
-							}).then(() => {
-								addAlert(`deleted "${data.title}"`, "success");
-							}).catch(() => {
-								addAlert("failed to delete item", "error");
-							});
-						},
-					})
-				}
+				deleteFile(data);
 				break;
 			}
 		}
@@ -646,10 +648,14 @@ export default function PersistentDrawerLeft() {
 							if (res === undefined) return;
 							setFiles(res.newFiles);
 							setExpandedKeys(res.newExpanded);
+							setSelectedNode(null);
+							setSelectedKeys([]);
 						});
 					});
 				} else {
 					doRename();
+					setSelectedNode(null);
+					setSelectedKeys([]);
 				}
 			} else {
 				const dir = target.dir ?
@@ -664,6 +670,11 @@ export default function PersistentDrawerLeft() {
 					}
 					const rootNode = treeData.at(0);
 					if (rootNode === undefined) return;
+					const newNode: TreeDataType = {
+						key: newFile,
+						title: newName,
+						dir: ext === "",
+					};
 					const visitData = (node: TreeDataType) => {
 						if (node.key === target.key) return "find";
 						if (node.children) {
@@ -676,18 +687,10 @@ export default function PersistentDrawerLeft() {
 										if (child.children === undefined) {
 											child.children = [];
 										}
-										child.children.push({
-											key: newFile,
-											title: newName,
-											dir: ext === "",
-										});
+										child.children.push(newNode);
 									} else {
 										parent = node;
-										node.children.push({
-											key: newFile,
-											title: newName,
-											dir: ext === "",
-										});
+										node.children.push(newNode);
 									}
 									if (expandedKeys.find(k => parent.key === k) === undefined) {
 										expandedKeys.push(parent.key);
@@ -705,11 +708,7 @@ export default function PersistentDrawerLeft() {
 						if (rootNode.children === undefined) {
 							rootNode.children = [];
 						}
-						rootNode.children.push({
-							key: newFile,
-							title: newName,
-							dir: ext === "",
-						});
+						rootNode.children.push(newNode);
 						if (expandedKeys.find(k => rootNode.key === k) === undefined) {
 							expandedKeys.push(rootNode.key);
 							setExpandedKeys(expandedKeys);
@@ -721,6 +720,7 @@ export default function PersistentDrawerLeft() {
 					}
 					setTreeData([rootNode]);
 					setSelectedKeys([newFile]);
+					setSelectedNode(newNode);
 					if (ext !== '') {
 						const index = files.push({
 							key: newFile,
@@ -826,11 +826,15 @@ export default function PersistentDrawerLeft() {
 						doRename().then(() => {
 							setFiles(res.newFiles);
 							setExpandedKeys(res.newExpanded);
+							setSelectedNode(null);
+							setSelectedKeys([]);
 						});
 					});
 				} else {
 					doRename().then(() => {
 						setExpandedKeys(expandedKeys.filter(k => k !== self.key));
+							setSelectedNode(null);
+							setSelectedKeys([]);
 					});
 				}
 			}
@@ -1041,26 +1045,25 @@ export default function PersistentDrawerLeft() {
 	const onPlayControlClick = (mode: PlayControlMode) => {
 		switch (mode) {
 			case "Run": case "Run This": {
-				if (tabIndex === null) {
+				if (selectedNode === null) {
 					addAlert("please select a file to run", "info");
 					return;
 				}
-				const file = files[tabIndex];
-				const ext = path.extname(file.key).toLowerCase();
+				const ext = path.extname(selectedNode.key).toLowerCase();
 				switch (ext) {
 					case ".lua":
 					case ".yue":
 					case ".tl":
 					case ".xml":
-						Service.run({file: file.key, asProj: mode === "Run"}).then((res) => {
+						Service.run({file: selectedNode.key, asProj: mode === "Run"}).then((res) => {
 							if (res.success) {
 								if (res.target !== undefined) {
 									addAlert(`${res.target} is running`, "success");
 								} else {
-									addAlert(`${file.title} is running`, "success");
+									addAlert(`${selectedNode.title} is running`, "success");
 								}
 							} else {
-								addAlert(`failed to run ${file.title}`, "error");
+								addAlert(`failed to run ${selectedNode.title}`, "error");
 							}
 						}).catch(() => {
 							console.error("failed to run file");
@@ -1078,6 +1081,65 @@ export default function PersistentDrawerLeft() {
 			}
 		}
 	};
+
+	const onKeyDown = (event: KeyboardEvent) => {
+		if (event.ctrlKey || event.altKey || event.metaKey) {
+			switch (event.key) {
+				case 'N': case 'n': {
+					if (!event.shiftKey) break;
+					if (selectedNode === null) {
+						addAlert("select a file tree node before creating new file", "info");
+						break;
+					}
+					setOpenNewFile(selectedNode);
+					break;
+				}
+				case 'D': case 'd': {
+					if (!event.shiftKey) break;
+					if (selectedNode === null) {
+						addAlert("select a file tree node to delete", "info");
+						break;
+					}
+					deleteFile(selectedNode);
+					break;
+				}
+				case 'S': case 's': {
+					if (event.shiftKey) {
+						saveAllTabs();
+					} else {
+						saveCurrentTab();
+					}
+					break;
+				}
+				case 'W': case 'w': {
+					if (event.shiftKey) {
+						closeAllTabs();
+					} else {
+						closeCurrentTab();
+					}
+					break;
+				}
+				case 'R': case 'r': {
+					const shift = event.shiftKey;
+					saveAllTabs().then((success) => {
+						if (success) {
+							onPlayControlClick(shift ? "Run This" : "Run");
+						}
+					})
+					break;
+				}
+				case 'Q': case 'q': {
+					onStopRunning();
+					break;
+				}
+			}
+		}
+	};
+
+	if (keyEvent !== null) {
+		setKeyEvent(null);
+		onKeyDown(keyEvent);
+	}
 
 	return (
 		<Entry>
@@ -1156,7 +1218,7 @@ export default function PersistentDrawerLeft() {
 				</DialogActions>
 			</Dialog>
 			<NewFileDialog open={openNewFile !== null} onClose={onNewFileClose}/>
-			<Box sx={{display: "flex", width: '100%', height: '100%'}} onKeyDown={onKeyDown}>
+			<Box sx={{display: "flex", width: '100%', height: '100%'}}>
 				<CssBaseline/>
 				<AppBar
 					position="fixed"
@@ -1198,8 +1260,11 @@ export default function PersistentDrawerLeft() {
 					anchor="left"
 					open={drawerOpen}
 				>
-					<img src={logo} alt="logo"
-						width="100%" height="200px"
+					<img
+						src={logo}
+						alt="logo"
+						width="100%"
+						height="200px"
 						style={{
 							padding: "20px",
 							alignItems: "center"

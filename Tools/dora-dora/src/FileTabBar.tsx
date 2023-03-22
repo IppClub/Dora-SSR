@@ -158,28 +158,28 @@ export default function FileTabBar(props: FileTabBarProps) {
 						<AiOutlineSave/>
 					</ListItemIcon>
 					<ListItemText primary="Save"/>
-					<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+S</div>
+					<div style={{fontSize: 10, color: '#fff8'}}>Mod+S</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('SaveAll')}>
 					<ListItemIcon>
 						<AiFillSave/>
 					</ListItemIcon>
 					<ListItemText primary="Save All"/>
-					<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+Shift+S</div>
+					<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+S</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('Close')}>
 					<ListItemIcon>
 						<AiOutlineClose/>
 					</ListItemIcon>
 					<ListItemText primary="Close"/>
-					<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+W</div>
+					<div style={{fontSize: 10, color: '#fff8'}}>Mod+W</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('CloseAll')}>
 					<ListItemIcon>
 						<AiFillCloseCircle/>
 					</ListItemIcon>
 					<ListItemText primary="Close All"/>
-					<div style={{fontSize: 10, color: '#fff8'}}>Ctrl+Shift+W</div>
+					<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+W</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('CloseOthers')}>
 					<ListItemIcon>
