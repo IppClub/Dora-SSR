@@ -377,8 +377,8 @@ HttpServer\postSchedule "/run", (req)->
 		import "Dev.Entry"
 		Entry.allClear!
 		file = Path\replaceExt file, ""
-		success = Entry.enterEntryAsync {Path\getName(file), file}
-		return :success
+		success, err = Entry.enterEntryAsync {Path\getName(file), file}
+		return :success, :err
 	success: false
 
 HttpServer\postSchedule "/stop", ->

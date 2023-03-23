@@ -43,7 +43,7 @@ const DoraUpload = (prop: DoraUploadProp) => {
 					<AiOutlineUpload style={{fontSize: '40px'}}/>
 				</p>
 				<p className="dora-upload-text" style={{color: '#fff'}}>
-					Click or drag files to this area to upload
+					Click or drag files and folder to this area to upload
 				</p>
 				<p className="dora-upload-hint" style={{color: '#fff8'}}>
 					Uploading will start automatically.

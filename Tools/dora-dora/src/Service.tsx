@@ -135,8 +135,8 @@ export interface DeleteRequest {
 export interface DeleteResponse {
 	success: boolean;
 }
-export const deleteFile = async (req: DeleteRequest) => {
-	return await post<DeleteResponse>("/delete", req);
+export const deleteFile = (req: DeleteRequest) => {
+	return post<DeleteResponse>("/delete", req);
 };
 
 // New
