@@ -22,10 +22,13 @@ import * as monaco from 'monaco-editor';
 import * as Service from './Service';
 import './Editor';
 import { AppBar, DrawerHeader, drawerWidth, Entry, Main, PlayControl, PlayControlMode, StyledStack } from './Frame';
+import { MacScrollbar } from 'mac-scrollbar';
+import 'mac-scrollbar/dist/mac-scrollbar.css';
 
 loader.config({ monaco });
 
 let lastEditorActionTime = Date.now();
+let lastUploadedTime = Date.now();
 
 export let path = Path.posix;
 
@@ -81,6 +84,7 @@ export default function PersistentDrawerLeft() {
 		{
 			title: string,
 			msg: string,
+			raw?: boolean,
 			cancelable?: boolean,
 			confirmed?: () => void,
 		} | null>(null);
@@ -327,12 +331,7 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const saveAllTabs = () => {
-		const filesToSave: number[] = [];
-		files.forEach((file, index) => {
-			if (file.contentModified !== null) {
-				filesToSave.push(index);
-			}
-		});
+		const filesToSave = files.filter(file => file.contentModified !== null);
 		return new Promise<boolean>((resolve) => {
 			const fileCount = filesToSave.length;
 			if (fileCount === 0) {
@@ -340,33 +339,39 @@ export default function PersistentDrawerLeft() {
 				return;
 			}
 			let failed = false;
-			filesToSave.forEach(index => {
-				const file = files[index];
-				if (file.contentModified !== null) {
-					const {contentModified} = file;
-					Service.write({path: file.key, content: contentModified}).then((res) => {
-						if (res.success) {
-							file.content = contentModified;
-							file.contentModified = null;
-							setFiles(prev => [...prev]);
-							if (index + 1 === fileCount) {
-								resolve(true);
-							}
-						} else {
-							addAlert(`failed to save ${file.title}`, "error");
-							if (!failed) {
-								failed = true;
-								resolve(false);
-							}
+			let count = 0;
+			filesToSave.forEach(file => {
+				const content = file.contentModified;
+				if (content === null) {
+					count++;
+					if (count === fileCount) {
+						resolve(true);
+					}
+					return;
+				}
+				Service.write({path: file.key, content}).then((res) => {
+					if (res.success) {
+						file.content = content;
+						file.contentModified = null;
+						setFiles(prev => [...prev]);
+						count++;
+						if (count === fileCount) {
+							resolve(true);
 						}
-					}).catch(() => {
+					} else {
 						addAlert(`failed to save ${file.title}`, "error");
 						if (!failed) {
 							failed = true;
 							resolve(false);
 						}
-					});
-				}
+					}
+				}).catch(() => {
+					addAlert(`failed to save ${file.title}`, "error");
+					if (!failed) {
+						failed = true;
+						resolve(false);
+					}
+				});
 			});
 		});
 	};
@@ -855,7 +860,12 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		}
-		loadAssets();
+		lastUploadedTime = Date.now();
+		setTimeout(() => {
+			if (Date.now() - lastUploadedTime >= 2000) {
+				loadAssets();
+			}
+		}, 2000);
 	};
 
 	const checkFile = (file: EditingFile, content: string, model: monaco.editor.ITextModel, lastChange?: monaco.editor.IModelContentChange) => {
@@ -1049,28 +1059,37 @@ export default function PersistentDrawerLeft() {
 					addAlert("please select a file to run", "info");
 					return;
 				}
-				const ext = path.extname(selectedNode.key).toLowerCase();
+				let file = selectedNode.key;
+				let asProj = mode === "Run";
+				if (selectedNode.dir) {
+					file = path.join(file, "init.lua");
+					asProj = true;
+				}
+				const ext = path.extname(file).toLowerCase();
 				switch (ext) {
 					case ".lua":
 					case ".yue":
 					case ".tl":
 					case ".xml":
-						Service.run({file: selectedNode.key, asProj: mode === "Run"}).then((res) => {
+						Service.run({file, asProj}).then((res) => {
 							if (res.success) {
-								if (res.target !== undefined) {
-									addAlert(`${res.target} is running`, "success");
-								} else {
-									addAlert(`${selectedNode.title} is running`, "success");
-								}
+								addAlert(`${res.target ?? selectedNode.title} is running`, "success");
 							} else {
-								addAlert(`failed to run ${selectedNode.title}`, "error");
+								addAlert(`failed to run ${res.target ?? selectedNode.title}`, "error");
+							}
+							if (res.err !== undefined) {
+								setPopupInfo({
+									title: res.target ?? selectedNode.title,
+									msg: res.err,
+									raw: true
+								});
 							}
 						}).catch(() => {
-							console.error("failed to run file");
+							addAlert(`failed to run from ${selectedNode.title}`, "error");
 						})
 						break;
 					default:
-						addAlert("can not run current item", "info");
+						addAlert(`can not run from ${selectedNode.title}`, "info");
 						break;
 				}
 				break;
@@ -1144,6 +1163,7 @@ export default function PersistentDrawerLeft() {
 	return (
 		<Entry>
 			<Dialog
+				maxWidth="lg"
 				open={popupInfo !== null}
 				aria-labelledby="alert-dialog-title"
 				aria-describedby="alert-dialog-description"
@@ -1151,11 +1171,19 @@ export default function PersistentDrawerLeft() {
 				<DialogTitle id="alert-dialog-title">
 					{popupInfo?.title}
 				</DialogTitle>
-				<DialogContent>
-					<DialogContentText id="alert-dialog-description">
-						{popupInfo?.msg}
-					</DialogContentText>
-				</DialogContent>
+				<MacScrollbar skin='dark'>
+					<DialogContent>
+						<DialogContentText
+							component="span"
+							id="alert-dialog-description"
+						>
+							{popupInfo?.raw ?
+								<pre>{popupInfo?.msg}</pre>
+								: popupInfo?.msg
+							}
+						</DialogContentText>
+					</DialogContent>
+				</MacScrollbar>
 				<DialogActions>
 					<Button
 						onClick={handleAlertClose}
@@ -1182,6 +1210,7 @@ export default function PersistentDrawerLeft() {
 				</DialogTitle>
 				<DialogContent>
 					<TextField
+						autoFocus
 						label={(
 							fileInfo?.title === "New File" ?
 								"Enter a file name" : undefined

@@ -24,8 +24,8 @@ import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
 import { DiCode } from 'react-icons/di';
+import { TbSql } from 'react-icons/tb';
 import { MacScrollbar } from 'mac-scrollbar';
-import 'mac-scrollbar/dist/mac-scrollbar.css';
 
 export interface TreeDataType extends DataNode {
 	key: string;
@@ -76,6 +76,8 @@ const fileIcon = (props: TreeNodeProps) => {
 					return <img src={yueLogo} alt="yue" width="14px" height="14px"/>;
 				case ".xml":
 					return <DiCode size={14}/>;
+				case ".db":
+					return <TbSql size={14}/>
 			}
 		}
 	}
