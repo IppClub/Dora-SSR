@@ -206,7 +206,8 @@ static int dora_loader(lua_State* L) {
 
 static int dora_do_xml(lua_State* L) {
 	size_t len = 0;
-	std::string codes(luaL_checklstring(L, 1, &len), len);
+	const char* str = luaL_checklstring(L, 1, &len);
+	std::string codes(str, len);
 	codes = SharedXmlLoader.load(codes);
 	if (codes.empty()) {
 		luaL_error(L, "error parsing local xml, %s\n", SharedXmlLoader.getLastError().c_str());
@@ -222,7 +223,8 @@ static int dora_do_xml(lua_State* L) {
 
 static int dora_xml_to_lua(lua_State* L) {
 	size_t len = 0;
-	std::string codes(luaL_checklstring(L, 1, &len), len);
+	const char* str = luaL_checklstring(L, 1, &len);
+	std::string codes(str, len);
 	codes = SharedXmlLoader.loadXml(codes);
 	if (codes.empty()) {
 		const std::string& lastError = SharedXmlLoader.getLastError();
@@ -236,8 +238,10 @@ static int dora_xml_to_lua(lua_State* L) {
 
 static int dora_teal_to_lua(lua_State* L) {
 	size_t len = 0;
-	std::string codes(luaL_checklstring(L, 1, &len), len);
-	std::string moduleName(luaL_checklstring(L, 2, &len), len);
+	const char* str = luaL_checklstring(L, 1, &len);
+	std::string codes(str, len);
+	str = luaL_checklstring(L, 2, &len);
+	std::string moduleName(str, len);
 	std::string res, err;
 	std::tie(res, err) = SharedLuaEngine.compileTealToLua(codes, moduleName);
 	if (res.empty() && !err.empty()) {
@@ -251,8 +255,10 @@ static int dora_teal_to_lua(lua_State* L) {
 
 static int dora_teal_to_lua_async(lua_State* L) {
 	size_t len = 0;
-	std::string codes(luaL_checklstring(L, 1, &len), len);
-	std::string filename(luaL_checklstring(L, 2, &len), len);
+	const char* str = luaL_checklstring(L, 1, &len);
+	std::string codes(str, len);
+	str = luaL_checklstring(L, 2, &len);
+	std::string filename(str, len);
 	tolua_Error err;
 	if (!tolua_isfunction(L, 3, &err)) {
 		tolua_error(L, "#ferror in function 'teal.toluaAsync'.", &err);
@@ -283,8 +289,10 @@ static int dora_reset_teal(lua_State* L) {
 
 static int dora_teal_check_async(lua_State* L) {
 	size_t len = 0;
-	std::string codes(luaL_checklstring(L, 1, &len), len);
-	std::string moduleName(luaL_checklstring(L, 2, &len), len);
+	const char* str = luaL_checklstring(L, 1, &len);
+	std::string codes(str, len);
+	str = luaL_checklstring(L, 2, &len);
+	std::string moduleName(str, len);
 	bool lax = lua_toboolean(L, 3) != 0;
 	tolua_Error err;
 	if (!tolua_isfunction(L, 4, &err)) {
@@ -324,8 +332,10 @@ static int dora_teal_check_async(lua_State* L) {
 
 static int dora_teal_complete_async(lua_State* L) {
 	size_t len = 0;
-	std::string codes(luaL_checklstring(L, 1, &len), len);
-	std::string line(luaL_checklstring(L, 2, &len), len);
+	const char* str = luaL_checklstring(L, 1, &len);
+	std::string codes(str, len);
+	str = luaL_checklstring(L, 2, &len);
+	std::string line(str, len);
 	int row = static_cast<int>(luaL_checknumber(L, 3));
 	tolua_Error err;
 	if (!tolua_isfunction(L, 4, &err)) {
@@ -355,8 +365,10 @@ static int dora_teal_complete_async(lua_State* L) {
 
 static int dora_teal_infer_async(lua_State* L) {
 	size_t len = 0;
-	std::string codes(luaL_checklstring(L, 1, &len), len);
-	std::string line(luaL_checklstring(L, 2, &len), len);
+	const char* str = luaL_checklstring(L, 1, &len);
+	std::string codes(str, len);
+	str = luaL_checklstring(L, 2, &len);
+	std::string line(str, len);
 	int row = static_cast<int>(luaL_checknumber(L, 3));
 	tolua_Error err;
 	if (!tolua_isfunction(L, 4, &err)) {
@@ -463,7 +475,8 @@ static void dora_open_threaded_compiler(void* state) {
 
 static int dora_yue_check_async(lua_State* L) {
 	size_t len = 0;
-	Slice codes{luaL_checklstring(L, 1, &len), len};
+	const char* str = luaL_checklstring(L, 1, &len);
+	Slice codes{str, len};
 	tolua_Error err;
 	if (!tolua_isfunction(L, 2, &err)) {
 		tolua_error(L, "#ferror in function 'yue.checkAsync'.", &err);
