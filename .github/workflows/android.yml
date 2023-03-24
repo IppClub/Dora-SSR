@@ -30,11 +30,11 @@ jobs:
       - name: Build Android
         if: "!startsWith(github.ref, 'refs/tags/')"
         run: cd Project/Android && ./gradlew assembleDebug
-      - name: Set up yarn
-        uses: bahmutov/npm-install@v1
+      - name: Prepare node
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/setup-node@v3
         with:
-          working-directory: |
-            Tools/dora-dora
+          node-version: latest
       - name: Pack Android
         if: startsWith(github.ref, 'refs/tags/')
         run: |
@@ -43,7 +43,7 @@ jobs:
           cd Project/Android
           ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing-key.jks -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
           mv app/build/outputs/apk/release/app-release.apk $GITHUB_WORKSPACE/dorothy-ssr.apk
-      - name: release
+      - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
