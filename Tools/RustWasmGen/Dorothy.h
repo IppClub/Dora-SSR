@@ -59,8 +59,12 @@ singleton class Application @ App
 	readonly common double totalTime;
 	readonly common double runningTime;
 	readonly common uint32_t rand;
+	readonly common uint32_t maxFPS @ max_fps;
 	readonly boolean bool debugging;
 	common uint32_t seed;
+	common uint32_t targetFPS @ target_fps;
+	boolean bool fPSLimited @ fpsLimited;
+	boolean bool idled;
 	void shutdown();
 };
 

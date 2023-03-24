@@ -1,5 +1,7 @@
 _ENV = Dorothy builtin.ImGui
 
+App.idled = true
+
 moduleCache = {}
 oldRequire = _G.require
 require = (path)->
@@ -216,6 +218,7 @@ export allClear = ->
 	collectgarbage!
 	collectgarbage!
 	Content.searchPaths = searchPaths
+	App.idled = true
 
 export stop = ->
 	return false if isInEntry
@@ -287,6 +290,7 @@ for group in *{
 
 export enterEntryAsync = (entry)->
 	isInEntry = false
+	App.idled = false
 	currentEntry = entry
 	{name, file} = entry
 	if cppTestSet[entry]

@@ -54,6 +54,7 @@ public:
 	PROPERTY_READONLY(uint32_t, MaxFPS);
 	PROPERTY(uint32_t, Seed);
 	PROPERTY_BOOL(FPSLimited);
+	PROPERTY_BOOL(Idled);
 	SDLEventHandler eventHandler;
 	QuitHandler quitHandler;
 	int run();
@@ -80,6 +81,7 @@ protected:
 	void setupSdlWindow();
 
 private:
+	bool _idled;
 	bool _fpsLimited;
 	bool _renderRunning;
 	bool _logicRunning;

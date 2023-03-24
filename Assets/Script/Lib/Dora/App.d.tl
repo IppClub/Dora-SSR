@@ -19,9 +19,13 @@ local record App
 	const totalTime: number
 	const runningTime: number
 	const rand: integer
+	const maxFPS: integer
 	const debugging: boolean
-	seed: integer
 	const testNames: {string}
+	seed: integer
+	targetFPS: integer
+	fpsLimited: boolean
+	idled: boolean
 	runTest: function(self: App, name: string): boolean
 	shutdown: function(self: App)
 end

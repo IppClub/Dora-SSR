@@ -20,6 +20,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "SDL.h"
 #include "SDL_syswm.h"
 #include "bx/timer.h"
+
+#include <chrono>
+#include <thread>
 #include <ctime>
 
 #define DORA_VERSION "1.0.18"_slice
@@ -59,6 +62,7 @@ BGFXDora::~BGFXDora() {
 
 Application::Application()
 	: _seed(0)
+	, _idled(false)
 	, _fpsLimited(true)
 	, _renderRunning(true)
 	, _logicRunning(true)
@@ -126,6 +130,14 @@ uint32_t Application::getTargetFPS() const {
 
 uint32_t Application::getMaxFPS() const {
 	return _maxFPS;
+}
+
+void Application::setIdled(bool var) {
+	_idled = var;
+}
+
+bool Application::isIdled() const {
+	return _idled;
 }
 
 void Application::setFPSLimited(bool var) {
@@ -456,11 +468,19 @@ int Application::mainLogic(Application* app) {
 		// process submitted rendering primitives.
 		app->_frame = bgfx::frame();
 
-		// limit for target FPS
-		if (app->_fpsLimited) {
+		double targetDeltaTime = 1.0 / app->_targetFPS;
+		if (app->_idled) {
+			app->updateDeltaTime();
+			double idleTime = targetDeltaTime - app->getDeltaTime();
+			if (idleTime > 0) {
+				std::chrono::duration<double> time{idleTime};
+				std::this_thread::sleep_for(time);
+			}
+			app->updateDeltaTime();
+		} else if (app->_fpsLimited) {
 			do {
 				app->updateDeltaTime();
-			} while (app->getDeltaTime() < 1.0 / app->_targetFPS);
+			} while (app->getDeltaTime() < targetDeltaTime);
 		} else
 			app->updateDeltaTime();
 		app->makeTimeNow();

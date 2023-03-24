@@ -113,8 +113,12 @@ class Application
 	tolua_readonly tolua_property__common double totalTime;
 	tolua_readonly tolua_property__common double runningTime;
 	tolua_readonly tolua_property__common uint32_t rand;
+	tolua_readonly tolua_property__common uint32_t maxFPS;
 	tolua_readonly tolua_property__bool bool debugging;
 	tolua_property__common unsigned int seed;
+	tolua_property__common uint32_t targetFPS;
+	tolua_property__bool bool fPSLimited @ fpsLimited;
+	tolua_property__bool bool idled;
 	void shutdown();
 	static tolua_outside Application* Application_shared @ create();
 };
