@@ -31,6 +31,9 @@ static double application_get_running_time() {
 static int32_t application_get_rand() {
 	return s_cast<int32_t>(SharedApplication.getRand());
 }
+static int32_t application_get_max_fps() {
+	return s_cast<int32_t>(SharedApplication.getMaxFPS());
+}
 static int32_t application_is_debugging() {
 	return SharedApplication.isDebugging() ? 1 : 0;
 }
@@ -39,6 +42,24 @@ static void application_set_seed(int32_t var) {
 }
 static int32_t application_get_seed() {
 	return s_cast<int32_t>(SharedApplication.getSeed());
+}
+static void application_set_target_fps(int32_t var) {
+	SharedApplication.setTargetFPS(s_cast<uint32_t>(var));
+}
+static int32_t application_get_target_fps() {
+	return s_cast<int32_t>(SharedApplication.getTargetFPS());
+}
+static void application_set_fps_limited(int32_t var) {
+	SharedApplication.setFPSLimited(var != 0);
+}
+static int32_t application_is_fps_limited() {
+	return SharedApplication.isFPSLimited() ? 1 : 0;
+}
+static void application_set_idled(int32_t var) {
+	SharedApplication.setIdled(var != 0);
+}
+static int32_t application_is_idled() {
+	return SharedApplication.isIdled() ? 1 : 0;
 }
 static void application_shutdown() {
 	SharedApplication.shutdown();
@@ -55,8 +76,15 @@ static void linkApplication(wasm3::module& mod) {
 	mod.link_optional("*", "application_get_total_time", application_get_total_time);
 	mod.link_optional("*", "application_get_running_time", application_get_running_time);
 	mod.link_optional("*", "application_get_rand", application_get_rand);
+	mod.link_optional("*", "application_get_max_fps", application_get_max_fps);
 	mod.link_optional("*", "application_is_debugging", application_is_debugging);
 	mod.link_optional("*", "application_set_seed", application_set_seed);
 	mod.link_optional("*", "application_get_seed", application_get_seed);
+	mod.link_optional("*", "application_set_target_fps", application_set_target_fps);
+	mod.link_optional("*", "application_get_target_fps", application_get_target_fps);
+	mod.link_optional("*", "application_set_fps_limited", application_set_fps_limited);
+	mod.link_optional("*", "application_is_fps_limited", application_is_fps_limited);
+	mod.link_optional("*", "application_set_idled", application_set_idled);
+	mod.link_optional("*", "application_is_idled", application_is_idled);
 	mod.link_optional("*", "application_shutdown", application_shutdown);
 }

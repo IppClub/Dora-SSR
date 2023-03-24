@@ -10,9 +10,16 @@ extern "C" {
 	fn application_get_total_time() -> f64;
 	fn application_get_running_time() -> f64;
 	fn application_get_rand() -> i32;
+	fn application_get_max_fps() -> i32;
 	fn application_is_debugging() -> i32;
 	fn application_set_seed(var: i32);
 	fn application_get_seed() -> i32;
+	fn application_set_target_fps(var: i32);
+	fn application_get_target_fps() -> i32;
+	fn application_set_fps_limited(var: i32);
+	fn application_is_fps_limited() -> i32;
+	fn application_set_idled(var: i32);
+	fn application_is_idled() -> i32;
 	fn application_shutdown();
 }
 pub struct App { }
@@ -50,6 +57,9 @@ impl App {
 	pub fn get_rand() -> i32 {
 		return unsafe { application_get_rand() };
 	}
+	pub fn get_max_fps() -> i32 {
+		return unsafe { application_get_max_fps() };
+	}
 	pub fn is_debugging() -> bool {
 		return unsafe { application_is_debugging() != 0 };
 	}
@@ -58,6 +68,24 @@ impl App {
 	}
 	pub fn get_seed() -> i32 {
 		return unsafe { application_get_seed() };
+	}
+	pub fn set_target_fps(var: i32) {
+		unsafe { application_set_target_fps(var) };
+	}
+	pub fn get_target_fps() -> i32 {
+		return unsafe { application_get_target_fps() };
+	}
+	pub fn set_fps_limited(var: bool) {
+		unsafe { application_set_fps_limited(if var { 1 } else { 0 }) };
+	}
+	pub fn is_fps_limited() -> bool {
+		return unsafe { application_is_fps_limited() != 0 };
+	}
+	pub fn set_idled(var: bool) {
+		unsafe { application_set_idled(if var { 1 } else { 0 }) };
+	}
+	pub fn is_idled() -> bool {
+		return unsafe { application_is_idled() != 0 };
 	}
 	pub fn shutdown() {
 		unsafe { application_shutdown(); }
