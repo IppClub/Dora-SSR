@@ -38,7 +38,7 @@ jobs:
       - name: Pack Android
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          cd Tools/dora-dora && yarn build && cd ../.. && mv Tools/dora-dora/build Assets/www
+          cd Tools/dora-dora && yarn && yarn build && cd ../.. && mv Tools/dora-dora/build Assets/www
           echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > $GITHUB_WORKSPACE/signing-key.jks
           cd Project/Android
           ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing-key.jks -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
