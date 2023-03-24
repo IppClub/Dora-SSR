@@ -151,7 +151,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 			}
 			KeyFrameDef* lastDef = animationDef->getLastFrameDef();
 			if (!duration.empty()) {
-				keyFrameDef->duration = std::atoi(duration.rawData()) / 60.0f;
+				keyFrameDef->duration = std::atoi(duration.c_str()) / 60.0f;
 			} else if (lastDef) {
 				keyFrameDef->duration = lastDef->duration;
 			}
@@ -162,7 +162,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 				keyFrameDef->y = lastDef->y;
 			}
 			if (!rotation.empty()) {
-				keyFrameDef->rotation = s_cast<float>(std::atof(rotation.rawData()));
+				keyFrameDef->rotation = s_cast<float>(std::atof(rotation.c_str()));
 			} else if (lastDef) {
 				keyFrameDef->rotation = lastDef->rotation;
 			}
@@ -179,12 +179,12 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 				keyFrameDef->skewY = lastDef->skewY;
 			}
 			if (!opacity.empty()) {
-				keyFrameDef->opacity = Math::clamp(s_cast<float>(std::atof(opacity.rawData())), 0.0f, 1.0f);
+				keyFrameDef->opacity = Math::clamp(s_cast<float>(std::atof(opacity.c_str())), 0.0f, 1.0f);
 			} else if (lastDef) {
 				keyFrameDef->opacity = lastDef->opacity;
 			}
 			if (!visible.empty()) {
-				keyFrameDef->visible = std::atoi(visible.rawData()) != 0;
+				keyFrameDef->visible = std::atoi(visible.c_str()) != 0;
 			} else if (lastDef) {
 				keyFrameDef->visible = lastDef->visible;
 			}

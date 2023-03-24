@@ -19,11 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 /** @brief Debug flag, set with the compilar flag by default. */
 #ifndef DORA_DEBUG
-#if NDEBUG
-#define DORA_DEBUG 0
-#else
 #define DORA_DEBUG 1
-#endif
 #endif
 
 
