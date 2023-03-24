@@ -18,12 +18,12 @@ jobs:
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Windows build
         run: msbuild Project\Windows\Dorothy.sln -p:Configuration=release
-      - name: prepare node
+      - name: Prepare node
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/setup-node@v3
         with:
           node-version: latest
-      - name: pack web ui
+      - name: Pack web ui
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           cd Tools\dora-dora
@@ -31,7 +31,7 @@ jobs:
           rename build www
           7z a ..\..\dorothy-ssr-windows-x86.7z www
           cd ..\..
-      - name: pack
+      - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Audio && cd ..)
@@ -44,7 +44,7 @@ jobs:
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Script && cd ..)
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Spine && cd ..)
           (cd Project\Windows\build\Release && 7z a ..\..\..\..\dorothy-ssr-windows-x86.7z Dorothy.exe && cd ..\..\..\..)
-      - name: release
+      - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
