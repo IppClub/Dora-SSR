@@ -337,6 +337,17 @@ thread ->
 	showEntry = true
 	Director.clearColor = Color 0xff1a1a1a
 
+reloadDevEntry = ->
+	doClean!
+	allClear!
+	_G.require = oldRequire
+	builtin.require = oldRequire
+	package.loaded["Dev.Entry"] = nil
+	Director.systemScheduler\schedule ->
+		Routine\clear!
+		oldRequire "Dev.Entry"
+		true
+
 showStats = true
 showConsole = true
 showFooter = true
@@ -429,15 +440,11 @@ footerWindow = threadLoop ->
 					Keyboard\isKeyPressed("LCtrl") and
 					Keyboard\isKeyDown "Z"
 				)
-				doClean!
-				allClear!
-				_G.require = oldRequire
-				builtin.require = oldRequire
-				package.loaded["Dev.Entry"] = nil
-				Director.systemScheduler\schedule ->
-					Routine\clear!
-					oldRequire "Dev.Entry"
-					true
+				reloadDevEntry!
+			SameLine!
+			if Button "Update", Vec2 70, 30
+				Content\remove Path Content.writablePath, ".www"
+				reloadDevEntry!
 		else
 			SameLine!
 			if Button "Home", Vec2 70, 30
