@@ -136,9 +136,9 @@ namespace ImGui
 
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
-#if !DORA_DEBUG
+#if NDEBUG
 	#define IMGUI_DISABLE_DEMO_WINDOWS
-#endif // DORA_DEBUG
+#endif // NDEBUG
 
 #define IMGUI_USE_WCHAR32
 
