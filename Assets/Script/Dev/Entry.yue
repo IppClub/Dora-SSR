@@ -436,15 +436,17 @@ footerWindow = threadLoop ->
 				Separator!
 				doClean! if Selectable "Clean"
 			SameLine!
-			if Button("Reload", Vec2 70, 30) or (
-					Keyboard\isKeyPressed("LCtrl") and
-					Keyboard\isKeyDown "Z"
-				)
+			if Keyboard\isKeyPressed("LCtrl") and
+				Keyboard\isKeyDown "Z"
 				reloadDevEntry!
+			OpenPopup "reload" if Button "Reload", Vec2 70, 30
+			PushStyleVar "WindowPadding", Vec2(10, 10), -> BeginPopup "reload", ->
+				if Selectable "Web Editor"
+					Content\remove Path Content.writablePath, ".www"
+					reloadDevEntry!
+				Separator!
+				reloadDevEntry! if Selectable "Dev Entry"
 			SameLine!
-			if Button "Update", Vec2 70, 30
-				Content\remove Path Content.writablePath, ".www"
-				reloadDevEntry!
 		else
 			SameLine!
 			if Button "Home", Vec2 70, 30
@@ -458,12 +460,12 @@ footerWindow = threadLoop ->
 			if currentIndex
 				if currentIndex > 1
 					SameLine!
-					if Button("Prev", Vec2 70, 30)
+					if Button "Prev", Vec2 70, 30
 						allClear!
 						enterDemoEntry allEntries[currentIndex - 1]
 				if currentIndex < #allEntries
 					SameLine!
-					if Button("Next", Vec2 70, 30)
+					if Button "Next", Vec2 70, 30
 						allClear!
 						enterDemoEntry allEntries[currentIndex + 1]
 			SameLine!
