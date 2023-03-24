@@ -30,7 +30,8 @@ static std::string get_local_ip() {
 	hostent* host = gethostbyname(hostname);
 	if (host == nullptr) return localIP;
 
-	for (short i = 0; i < host->h_length; i++) {
+	short i = 0;
+	while (host->h_addr_list[i]) {
 		in_addr addr;
 		memcpy(&addr, host->h_addr_list[i], sizeof(in_addr));
 		Slice ip(inet_ntoa(addr));
@@ -40,6 +41,7 @@ static std::string get_local_ip() {
 		} else if (ip.left(3) == "10."_slice) { // A
 			localIP = ip;
 		}
+		i++;
 	}
 	return localIP;
 }
