@@ -18,6 +18,19 @@ jobs:
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Windows build
         run: msbuild Project\Windows\Dorothy.sln -p:Configuration=release
+      - name: prepare node
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/setup-node@v3
+        with:
+          node-version: latest
+      - name: pack web ui
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          cd Tools\dora-dora
+          yarn build
+          rename build www
+          7z a ..\..\dorothy-ssr-windows-x86.7z www
+          cd ..\..
       - name: pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |
