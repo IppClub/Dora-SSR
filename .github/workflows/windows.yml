@@ -27,11 +27,6 @@ jobs:
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Windows build
         run: msbuild Project\Windows\Dorothy.sln -p:Configuration=release
-      - name: Prepare node
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/setup-node@v3
-        with:
-          node-version: latest
       - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |
