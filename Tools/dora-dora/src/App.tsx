@@ -1053,52 +1053,57 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const onPlayControlClick = (mode: PlayControlMode) => {
-		switch (mode) {
-			case "Run": case "Run This": {
-				if (selectedNode === null) {
-					addAlert("please select a file to run", "info");
-					return;
-				}
-				let file = selectedNode.key;
-				let asProj = mode === "Run";
-				if (selectedNode.dir) {
-					file = path.join(file, "init.lua");
-					asProj = true;
-				}
-				const ext = path.extname(file).toLowerCase();
-				switch (ext) {
-					case ".lua":
-					case ".yue":
-					case ".tl":
-					case ".xml":
-						Service.run({file, asProj}).then((res) => {
-							if (res.success) {
-								addAlert(`${res.target ?? selectedNode.title} is running`, "success");
-							} else {
-								addAlert(`failed to run ${res.target ?? selectedNode.title}`, "error");
-							}
-							if (res.err !== undefined) {
-								setPopupInfo({
-									title: res.target ?? selectedNode.title,
-									msg: res.err,
-									raw: true
-								});
-							}
-						}).catch(() => {
-							addAlert(`failed to run from ${selectedNode.title}`, "error");
-						})
-						break;
-					default:
-						addAlert(`can not run from ${selectedNode.title}`, "info");
-						break;
-				}
-				break;
+		saveAllTabs().then((success) => {
+			if (!success) {
+				return;
 			}
-			case "Stop": {
-				onStopRunning();
-				break;
+			switch (mode) {
+				case "Run": case "Run This": {
+					if (selectedNode === null) {
+						addAlert("please select a file to run", "info");
+						return;
+					}
+					let file = selectedNode.key;
+					let asProj = mode === "Run";
+					if (selectedNode.dir) {
+						file = path.join(file, "init.lua");
+						asProj = true;
+					}
+					const ext = path.extname(file).toLowerCase();
+					switch (ext) {
+						case ".lua":
+						case ".yue":
+						case ".tl":
+						case ".xml":
+							Service.run({file, asProj}).then((res) => {
+								if (res.success) {
+									addAlert(`${res.target ?? selectedNode.title} is running`, "success");
+								} else {
+									addAlert(`failed to run ${res.target ?? selectedNode.title}`, "error");
+								}
+								if (res.err !== undefined) {
+									setPopupInfo({
+										title: res.target ?? selectedNode.title,
+										msg: res.err,
+										raw: true
+									});
+								}
+							}).catch(() => {
+								addAlert(`failed to run from ${selectedNode.title}`, "error");
+							})
+							break;
+						default:
+							addAlert(`can not run from ${selectedNode.title}`, "info");
+							break;
+					}
+					break;
+				}
+				case "Stop": {
+					onStopRunning();
+					break;
+				}
 			}
-		}
+		})
 	};
 
 	const onKeyDown = (event: KeyboardEvent) => {
@@ -1140,11 +1145,7 @@ export default function PersistentDrawerLeft() {
 				}
 				case 'R': case 'r': {
 					const shift = event.shiftKey;
-					saveAllTabs().then((success) => {
-						if (success) {
-							onPlayControlClick(shift ? "Run This" : "Run");
-						}
-					})
+					onPlayControlClick(shift ? "Run This" : "Run");
 					break;
 				}
 				case 'Q': case 'q': {
