@@ -35,6 +35,8 @@ namespace fs = std::filesystem;
 #include "ZipUtils.h"
 #endif
 
+#include "miniz.h"
+
 #include "SDL.h"
 
 static void releaseFileData(void* _ptr, void* _userData) {
@@ -426,6 +428,52 @@ void Content::saveAsync(String filename, OwnArray<uint8_t> content, size_t size,
 			result->get(success);
 			callback(success);
 		});
+}
+
+void Content::zipAsync(String zipFile, String folderPath, const std::function<void(bool)>& callback) {
+	std::error_code err;
+	if (!fs::exists(folderPath.toString(), err)) {
+		Error("\"{}\" must be a local disk folder to zip", folderPath);
+		callback(false);
+		return;
+	}
+	if (!Content::isFolder(folderPath)) {
+		callback(false);
+		return;
+	}
+	auto files = Content::getAllFiles(folderPath);
+	std::list<std::pair<std::string, std::string>> filePairs;
+	for (auto& file : files) {
+		for (auto& ch : file) {
+			if (ch == '\\') ch = '/';
+		}
+		auto fullPath = Content::getFullPath(Path::concat({folderPath, file}));
+		filePairs.push_back({fullPath, file});
+	}
+	SharedAsyncThread.run([files = std::move(filePairs), zipFile = zipFile.toString()]() {
+		mz_zip_archive archive;
+		mz_zip_zero_struct(&archive);
+		if (mz_zip_writer_init_file(&archive, zipFile.c_str(), 0)) {
+			for (const auto& file : files) {
+				if (!mz_zip_writer_add_file(&archive, file.second.c_str(), file.first.c_str(), nullptr, 0, MZ_DEFAULT_COMPRESSION)) {
+					Error("failed to write file \"{}\" to zip, due to: {}", file.first, mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
+					mz_zip_writer_end(&archive);
+					return Values::alloc(false);
+				}
+			}
+			mz_zip_writer_finalize_archive(&archive);
+			mz_zip_writer_end(&archive);
+			return Values::alloc(true);
+		} else {
+			Error("failed to init zip file \"{}\", due to: {}", zipFile, mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
+			mz_zip_writer_end(&archive);
+			return Values::alloc(false);
+		}
+	}, [callback](Own<Values> values) {
+		bool success = false;
+		values->get(success);
+		callback(success);
+	});
 }
 
 bool Content::exist(String filename) {

@@ -550,6 +550,39 @@ export default function PersistentDrawerLeft() {
 				switchTab(index, files[index]);
 				break;
 			}
+			case "Download": {
+				const rootNode = treeData.at(0);
+				if (rootNode === undefined) break;
+				const {key, title} = data;
+				const downloadFile = (filename: string) => {
+					const assetPath = path.relative(rootNode.key, filename).replace("\\", "/");
+					const x = new XMLHttpRequest();
+					x.open("GET", Service.addr("/" + assetPath), true);
+					x.responseType = 'blob';
+					x.onload = function() {
+						const url = window.URL.createObjectURL(x.response);
+						const a = document.createElement('a');
+						a.href = url;
+						a.download = title;
+						a.click();
+					}
+					x.send();
+				};
+				if (!data.dir) {
+					downloadFile(key);
+				} else {
+					addAlert("wait for download to start", "success");
+					const zipFile = path.join(rootNode.key, ".download", title + ".zip");
+					Service.zip({zipFile, path: key}).then(res => {
+						if (res.success) {
+							downloadFile(zipFile);
+						} else {
+							addAlert("failed to prepare download", "error");
+						}
+					})
+				}
+				break;
+			}
 			case "Rename": {
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;

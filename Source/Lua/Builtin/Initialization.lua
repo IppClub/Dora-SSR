@@ -321,6 +321,22 @@ do
 		return result
 	end
 
+	local Content_zipAsync = Content.zipAsync
+	Content.zipAsync = function(self, zipFile, folderPath)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "Content.zipAsync should be run in a thread")
+		local result
+		local done = false
+		Content_zipAsync(self, zipFile, folderPath, function(success)
+			result = success
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		return result
+	end
+
 	local Cache = builtin.Cache
 	local Cache_loadAsync = Cache.loadAsync
 	Cache.loadAsync = function(self, target, handler)

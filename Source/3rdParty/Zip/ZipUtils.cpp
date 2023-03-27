@@ -41,6 +41,7 @@ public:
 
 ZipFile::ZipFile(const std::string& zipFile, const std::string& filter) {
 	_file = New<ZipFilePrivate>();
+	mz_zip_zero_struct(&_file->archive);
 	if (mz_zip_reader_init_file(&_file->archive, zipFile.c_str(), 0)) {
 		setFilter(filter);
 	} else {
@@ -58,6 +59,7 @@ ZipFile::ZipFile(std::pair<OwnArray<uint8_t>, size_t>&& data, const std::string&
 		return;
 	}
 	_file = New<ZipFilePrivate>();
+	mz_zip_zero_struct(&_file->archive);
 	if (mz_zip_reader_init_mem(&_file->archive, _data.first.get(), _data.second, 0)) {
 		setFilter(filter);
 	} else {

@@ -16,8 +16,9 @@ local record Content
 	removeSearchPath: function(self: Content, path: string)
 	loadAsync: function(self: Content, filename: string): string
 	loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string}): {string:{{string|number}}} | nil
-	saveAsync: function(self: Content, filename: string, content: string)
-	copyAsync: function(self: Content, src: string, dst: string)
+	saveAsync: function(self: Content, filename: string, content: string): boolean
+	copyAsync: function(self: Content, src: string, dst: string): boolean
+	zipAsync: function(self: Content, zipFile: string, folderPath: string): boolean
 	getDirs: function(self: Content, path: string): {string}
 	getFiles: function(self: Content, path: string): {string}
 	getAllFiles: function(self: Content, path: string): {string}
