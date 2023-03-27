@@ -60,7 +60,7 @@ const StyledTabs = styled((props: StyledTabsProps) => (
 interface StyledTabProps {
 	label: string;
 	status: TabStatus;
-	onMouseUp: (event: React.MouseEvent) => void;
+	onContextMenu: (event: React.MouseEvent) => void;
 }
 
 const StyledTab = styled((props: StyledTabProps) => (
@@ -116,10 +116,8 @@ export default function FileTabBar(props: FileTabBarProps) {
 		onChange(newValue);
 	};
 
-	const mouseUp = (event: React.MouseEvent) => {
-		if (event.button === 2) {
-			setAnchorEl(event.currentTarget);
-		}
+	const onContextMenu = (event: React.MouseEvent) => {
+		setAnchorEl(event.currentTarget);
 	};
 
 	const handleClose = (event: TabMenuEvent) => {
@@ -137,7 +135,7 @@ export default function FileTabBar(props: FileTabBarProps) {
 				{
 					items.map((item) =>
 						<StyledTab
-							onMouseUp={mouseUp}
+							onContextMenu={onContextMenu}
 							key={item.key}
 							label={item.contentModified !== null ? '*' + item.title : item.title}
 							status={item.status}

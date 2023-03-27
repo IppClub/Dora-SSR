@@ -385,6 +385,12 @@ HttpServer\postSchedule "/stop", ->
 	import "Dev.Entry"
 	success: Entry.stop!
 
+HttpServer\postSchedule "/zip", (req)->
+	switch req when {body: {:path, :zipFile}}
+		Content\mkdir Path\getPath zipFile
+		return success: Content\zipAsync zipFile, path
+	success: false
+
 thread ->
 	doraWeb = Path Content.assetPath, "www", "index.html"
 	doraReady = Path Content.writablePath, ".www", "dora-ready"

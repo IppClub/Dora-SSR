@@ -177,7 +177,8 @@ doCompile = (minify)->
 
 doClean = ->
 	return if building
-	targetDir = Path Content.writablePath, ".build"
+	:writablePath = Content
+	targetDir = Path writablePath, ".build"
 	cleaned = false
 	Content\clearPathCache!
 	if Content\remove targetDir
@@ -185,6 +186,8 @@ doClean = ->
 		print "Cleaned: #{targetDir}"
 	if not cleaned
 		print "Nothing to clean."
+	Content\remove Path writablePath, ".upload"
+	Content\remove Path writablePath, ".download"
 
 screenScale = 2 -- App.deviceRatio
 scaleContent = false

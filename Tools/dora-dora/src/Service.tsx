@@ -187,3 +187,16 @@ export interface StopResponse {
 export const stop = () => {
 	return post<StopResponse>("/stop");
 };
+
+// Zip
+
+export interface ZipRequest {
+	path: string;
+	zipFile: string;
+}
+export interface ZipResponse {
+	success: boolean;
+}
+export const zip = (req: ZipRequest) => {
+	return post<ZipResponse>("/zip", req);
+};
