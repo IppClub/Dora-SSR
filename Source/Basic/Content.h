@@ -46,7 +46,7 @@ public:
 	void copyAsync(String src, String dst, const std::function<void(bool)>& callback);
 	void saveAsync(String filename, String content, const std::function<void(bool)>& callback);
 	void saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void(bool)>& callback);
-	void zipAsync(String zipFile, String folderPath, const std::function<void(bool)>& callback);
+	void zipAsync(String zipFile, String folderPath, const std::function<bool(String)>& filter, const std::function<void(bool)>& callback);
 	void clearPathCache();
 
 public:

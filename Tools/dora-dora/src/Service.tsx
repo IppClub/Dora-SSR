@@ -158,7 +158,7 @@ export interface ListRequest {
 }
 export interface ListResponse {
 	success: boolean;
-	files: string[];
+	files?: string[];
 }
 export const list = (req: ListRequest) => {
 	return post<ListResponse>("/list", req);

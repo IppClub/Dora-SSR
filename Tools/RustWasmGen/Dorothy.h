@@ -124,6 +124,7 @@ singleton class Content
 	void loadAsync(string filename, function<void(string content)> callback);
 	void copyAsync(string srcFile, string targetFile, function<void(bool success)> callback);
 	void saveAsync(string filename, string content, function<void(bool success)> callback);
+	void zipAsync(string zipFile, string folderPath, function<bool(string file)> filter, function<void(bool success)> callback);
 };
 
 object class Scheduler
@@ -512,7 +513,7 @@ object class Model : public IPlayable
 	Node* getNodeByName(string name);
 	bool eachNode(function<bool(Node* node)> func);
 	static Model* create(string filename);
-	static outside string model_get_clip_filename @ getClipFile(string filename);	
+	static outside string model_get_clip_filename @ getClipFile(string filename);
 	static outside VecStr model_get_look_names @ getLooks(string filename);
 	static outside VecStr model_get_animation_names @ getAnimations(string filename);
 };

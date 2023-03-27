@@ -18,7 +18,7 @@ local record Content
 	loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string}): {string:{{string|number}}} | nil
 	saveAsync: function(self: Content, filename: string, content: string): boolean
 	copyAsync: function(self: Content, src: string, dst: string): boolean
-	zipAsync: function(self: Content, zipFile: string, folderPath: string): boolean
+	zipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
 	getDirs: function(self: Content, path: string): {string}
 	getFiles: function(self: Content, path: string): {string}
 	getAllFiles: function(self: Content, path: string): {string}

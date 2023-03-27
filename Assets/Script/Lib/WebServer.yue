@@ -277,6 +277,7 @@ HttpServer\post "/list", (req)->
 					else
 						Path folder, f
 			visitAssets path, ""
+			files = nil if #files == 0
 			return success: true, :files
 	success: false
 
@@ -320,11 +321,12 @@ HttpServer\postSchedule "/write", (req)->
 	success: false
 
 HttpServer\post "/assets", ->
-	visitAssets = (path)->
+	visitAssets = (path, root)->
 		children = nil
 		dirs = Content\getDirs path
 		for dir in *dirs
-			continue if dir\match "^%."
+			if root then switch dir when ".upload", ".download", ".www"
+				continue
 			children = {} unless children
 			children[] = visitAssets Path path, dir
 		files = Content\getFiles path
@@ -350,7 +352,7 @@ HttpServer\post "/assets", ->
 		key: Content.writablePath,
 		dir: true,
 		title: "Assets",
-		children: visitAssets Content.writablePath
+		children: visitAssets Content.writablePath, true
 	}
 
 HttpServer\postSchedule "/run", (req)->
@@ -388,7 +390,8 @@ HttpServer\postSchedule "/stop", ->
 HttpServer\postSchedule "/zip", (req)->
 	switch req when {body: {:path, :zipFile}}
 		Content\mkdir Path\getPath zipFile
-		return success: Content\zipAsync zipFile, path
+		return success: Content\zipAsync zipFile, path, (file)->
+			not (file\match('^%.') or file\match "[\\/]%.")
 	success: false
 
 thread ->
