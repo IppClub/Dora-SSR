@@ -430,7 +430,7 @@ void Content::saveAsync(String filename, OwnArray<uint8_t> content, size_t size,
 		});
 }
 
-void Content::zipAsync(String zipFile, String folderPath, const std::function<void(bool)>& callback) {
+void Content::zipAsync(String zipFile, String folderPath, const std::function<bool(String)>& filter, const std::function<void(bool)>& callback) {
 	std::error_code err;
 	if (!fs::exists(folderPath.toString(), err)) {
 		Error("\"{}\" must be a local disk folder to zip", folderPath);
@@ -444,6 +444,7 @@ void Content::zipAsync(String zipFile, String folderPath, const std::function<vo
 	auto files = Content::getAllFiles(folderPath);
 	std::list<std::pair<std::string, std::string>> filePairs;
 	for (auto& file : files) {
+		if (!filter(file)) continue;
 		for (auto& ch : file) {
 			if (ch == '\\') ch = '/';
 		}

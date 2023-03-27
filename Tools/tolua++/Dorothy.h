@@ -213,7 +213,7 @@ class Content
 	void loadAsync(String filename, tolua_function_void handler);
 	void saveAsync(String filename, String content, tolua_function_void handler);
 	void copyAsync(String src, String dst, tolua_function_void handler);
-	void zipAsync(String zipFile, String folderPath, tolua_function_void callback);
+	void zipAsync(String zipFile, String folderPath, tolua_function_bool filter, tolua_function_void callback);
 	void clearPathCache();
 	tolua_outside void Content_getDirs @ getDirs(String path);
 	tolua_outside void Content_getFiles @ getFiles(String path);
@@ -650,7 +650,7 @@ class Model : public Playable
 	bool eachNode(tolua_function_bool func);
 	static Model* create(String filename);
 	static Model* dummy();
-	
+
 	static tolua_outside void Model_getClipFile @ getClipFile(String filename);
 	static tolua_outside void Model_getLookNames @ getLooks(String filename);
 	static tolua_outside void Model_getAnimationNames @ getAnimations(String filename);
@@ -1253,7 +1253,7 @@ class Unit : public Body
 		GroundSensorTag,
 		DetectSensorTag,
 		AttackSensorTag
-	};	
+	};
 	tolua_property__common Playable* playable;
 	tolua_property__common float detectDistance;
 	tolua_property__common Size attackRange;

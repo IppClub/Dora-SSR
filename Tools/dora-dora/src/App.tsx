@@ -37,6 +37,7 @@ document.addEventListener("contextmenu", (event) => {
 });
 
 let contentModified = false;
+let waitingForDownload = false;
 
 window.onbeforeunload = (event: BeforeUnloadEvent) => {
 	if (contentModified) {
@@ -571,15 +572,24 @@ export default function PersistentDrawerLeft() {
 				if (!data.dir) {
 					downloadFile(key);
 				} else {
-					addAlert("wait for download to start", "success");
+					if (waitingForDownload) {
+						addAlert("wait for previous download to finish", "info");
+						break;
+					}
+					addAlert("wait for download to start", "info");
 					const zipFile = path.join(rootNode.key, ".download", title + ".zip");
+					waitingForDownload = true;
 					Service.zip({zipFile, path: key}).then(res => {
+						waitingForDownload = false;
 						if (res.success) {
 							downloadFile(zipFile);
 						} else {
 							addAlert("failed to prepare download", "error");
 						}
-					})
+					}).catch(() => {
+						addAlert("failed to prepare download", "error");
+						waitingForDownload = false;
+					});
 				}
 				break;
 			}
@@ -793,7 +803,7 @@ export default function PersistentDrawerLeft() {
 	const updateDir = (oldDir: string, newDir: string) => {
 		return Service.list({path: oldDir}).then((res) => {
 			if (res.success) {
-				const affected = res.files.map(f => [path.join(oldDir, f), path.join(newDir, f)]);
+				const affected = res.files ? res.files.map(f => [path.join(oldDir, f), path.join(newDir, f)]) : [];
 				affected.push([oldDir, newDir]);
 				const newFiles = files.map(f => {
 					affected.some(x => {
@@ -870,9 +880,14 @@ export default function PersistentDrawerLeft() {
 					});
 				} else {
 					doRename().then(() => {
+						const file = files.find(f => path.relative(f.key, self.key) === "");
+						if (file !== undefined) {
+							file.key = newFile;
+							setFiles(prev => [...prev]);
+						}
 						setExpandedKeys(expandedKeys.filter(k => k !== self.key));
-							setSelectedNode(null);
-							setSelectedKeys([]);
+						setSelectedNode(null);
+						setSelectedKeys([]);
 					});
 				}
 			}
