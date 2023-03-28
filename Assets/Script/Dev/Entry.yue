@@ -220,6 +220,9 @@ export allClear = ->
 	teal.reset!
 	collectgarbage!
 	collectgarbage!
+	for item in *ubox!
+		if node = tolua.cast "Node", item
+			node\cleanup!
 	Content.searchPaths = searchPaths
 	App.idled = true
 
