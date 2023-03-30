@@ -623,10 +623,9 @@ NewItemPanel = (displayName, itemName, itemOptions, currentSet)->
 			NextColumn!
 			for i = 1, #itemOptions
 				item = itemOptions[i]
-				PushID "#{itemName}#{i}", ->
-					if ImageButton "Model/patreon.clip|#{item}", Vec2(itemSize,itemSize), 5
-						currentSet[itemName] = item
-						selectItems = false
+				if ImageButton "#{itemName}#{i}", "Model/patreon.clip|#{item}", Vec2(itemSize,itemSize)
+					currentSet[itemName] = item
+					selectItems = false
 				NextColumn!
 		else
 			if not currentSet[itemName]
@@ -638,8 +637,7 @@ NewItemPanel = (displayName, itemName, itemOptions, currentSet)->
 			else
 				Columns 3, false
 				item = currentSet[itemName]
-				PushID "#{itemName}c2", ->
-					selectItems = true if ImageButton "Model/patreon.clip|#{item}", Vec2(itemSize,itemSize)
+				selectItems = true if ImageButton "#{itemName}c2", "Model/patreon.clip|#{item}", Vec2(itemSize,itemSize)
 				NextColumn!
 				TextColored Color(0xfffffa0a), itemSettings[item].name
 				TextWrapped itemSettings[item].desc

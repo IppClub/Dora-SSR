@@ -176,7 +176,8 @@ doCompile = (minify)->
 		print "\n#{builtFiles} #{builtFiles == 1 and 'file' or 'files'} built! Cost #{string.format '%.2f', App.runningTime - startTime}s"
 		print "#{#errors} #{#errors == 1 and 'file fails' or 'files fail'} to build."
 		Content\clearPathCache!
-		teal.reset!
+		teal.clear!
+		yue.clear!
 		building = false
 
 doClean = ->

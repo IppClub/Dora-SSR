@@ -196,6 +196,14 @@ export default function PersistentDrawerLeft() {
 
 	contentModified = files.find(file => file.contentModified !== null) !== undefined;
 
+	const checkFileReadonly = (key: string) => {
+		if (!key.startsWith(treeData.at(0)?.key ?? "")) {
+			addAlert("can not operate on read only assets", "info");
+			return true;
+		}
+		return false;
+	};
+
 	const handleDrawerOpen = () => {
 		setDrawerOpen(!drawerOpen);
 	};
@@ -524,6 +532,7 @@ export default function PersistentDrawerLeft() {
 
 	const onTreeMenuClick = (event: TreeMenuEvent, data?: TreeDataType)=> {
 		if (data === undefined) return;
+		if (checkFileReadonly(data.key)) return;
 		switch (event) {
 			case "New": {
 				setOpenNewFile(data);
@@ -858,6 +867,8 @@ export default function PersistentDrawerLeft() {
 			addAlert("please save all files before moving", "info");
 			return;
 		}
+		if (checkFileReadonly(self.key)) return;
+		if (checkFileReadonly(target.key)) return;
 		const rootNode = treeData.at(0);
 		if (rootNode === undefined) return;
 		let targetName = target.title;
@@ -947,6 +958,10 @@ export default function PersistentDrawerLeft() {
 					let startColumn = col;
 					let endLineNumber = row;
 					let endColumn = col;
+					if (row === 0) {
+						startLineNumber = 1;
+						endLineNumber = 1;
+					}
 					if (col === 0) {
 						startColumn = model.getLineFirstNonWhitespaceColumn(row);
 						endColumn = model.getLineLastNonWhitespaceColumn(row);
@@ -1008,8 +1023,8 @@ export default function PersistentDrawerLeft() {
 			file.status = status;
 			setFiles(prev => [...prev]);
 			monaco.editor.setModelMarkers(model, "owner", markers);
-		}).catch(() => {
-			console.error("failed to check file");
+		}).catch((reason) => {
+			console.error(`failed to check file, due to: ${reason}`);
 		});
 	};
 
@@ -1221,6 +1236,8 @@ export default function PersistentDrawerLeft() {
 					if (selectedNode === null) {
 						addAlert("select a file tree node before creating new file", "info");
 						break;
+					} else if (checkFileReadonly(selectedNode.key)) {
+						break;
 					}
 					setOpenNewFile(selectedNode);
 					break;
@@ -1229,6 +1246,8 @@ export default function PersistentDrawerLeft() {
 					if (!event.shiftKey) break;
 					if (selectedNode === null) {
 						addAlert("select a file tree node to delete", "info");
+						break;
+					} else if (checkFileReadonly(selectedNode.key)) {
 						break;
 					}
 					deleteFile(selectedNode);
