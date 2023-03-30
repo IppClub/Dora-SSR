@@ -41,7 +41,7 @@ const FileFilter = (props: FileFilterProps) => {
 			}} {...params} label="Go to file"/>}
 		renderOption={(props, option) => {
 			return (
-				<li key={option.key} {...props}>
+				<li {...props}>
 					{option.title}&emsp;&emsp;
 					<p style={{textAlign: 'right', color: '#fffa', fontSize: '12px'}}>{option.path}</p>
 				</li>
@@ -54,7 +54,6 @@ const FileFilter = (props: FileFilterProps) => {
 		}}
 		onClose={(_, reason) => {
 			if (reason !== "selectOption") {
-				console.log(reason);
 				props.onClose(null);
 			}
 		}}

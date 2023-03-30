@@ -1,3 +1,3 @@
-return function(): {integer: table}
+return function(): {table}
 	return nil
 end

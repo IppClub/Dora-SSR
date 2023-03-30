@@ -121,7 +121,7 @@ HttpServer\postSchedule "/check", (req)->
 						lineMap[current] = lastLine
 						current += 1
 					for item in *res.info
-						item[3] = lineMap[item[3]]
+						item[3] = lineMap[item[3]] or 0
 						item[4] = 0
 						info[] = item
 			if #info == 0
@@ -145,7 +145,7 @@ HttpServer\postSchedule "/infer", (req)->
 				:file, :row, :col = infered
 				if file == "" and row > 0 and col > 0
 					infered.row = lineMap[row] or 0
-					infered.col = 1
+					infered.col = 0
 				return success: true, :infered
 	success: false
 
@@ -376,7 +376,11 @@ HttpServer\post "/assets", ->
 		key: Content.writablePath,
 		dir: true,
 		title: "Assets",
-		children: visitAssets Content.writablePath, true
+		children: {
+			visitAssets Path Content.assetPath, "Script", "Example"
+			visitAssets Path Content.assetPath, "Script", "Test"
+			...visitAssets Content.writablePath, true
+		}
 	}
 
 HttpServer\postSchedule "/run", (req)->

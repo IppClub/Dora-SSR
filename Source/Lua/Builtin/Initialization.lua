@@ -893,6 +893,7 @@ end
 
 -- ML
 do
+	local wait = builtin.wait
 	local BuildDecisionTreeAsync = builtin.ML.BuildDecisionTreeAsync
 	builtin.ML.BuildDecisionTreeAsync = function(data, maxDepth, handler)
 		local accuracy, err
