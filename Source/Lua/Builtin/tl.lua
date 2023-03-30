@@ -11052,7 +11052,16 @@ tl.load = function(input, chunkname, mode, ...)
 	return load(code, chunkname, mode, ...)
 end
 
-tl.dora_to_lua = function(input, filename)
+tl.dora_to_lua = function(input, filename, search_path)
+	local prev_path = package.path
+	if search_path and search_path ~= "" then
+		package.path = search_path .. ";" .. prev_path
+	end
+	local _ <close> = setmetatable({}, {
+		__close = function()
+			package.path = prev_path
+		end
+	})
 	local program, errs = tl.parse(input, filename)
 	if errs and #errs > 0 then
 		local info = {}
@@ -11096,7 +11105,16 @@ tl.dora_to_lua = function(input, filename)
 	return code
 end
 
-tl.dora_check = function(input, filename, lax)
+tl.dora_check = function(input, filename, lax, search_path)
+	local prev_path = package.path
+	if search_path and search_path ~= "" then
+		package.path = search_path .. ";" .. prev_path
+	end
+	local _ <close> = setmetatable({}, {
+		__close = function()
+			package.path = prev_path
+		end
+	})
 	filename = filename or ""
 	local success, passed, info = pcall(function()
 		local info = {}
@@ -11177,7 +11195,17 @@ local function get_real_type(type_report, id)
 	return current_type
 end
 
-tl.dora_complete = function(codes, line, row)
+tl.dora_complete = function(codes, line, row, search_path)
+	local prev_path = package.path
+	if search_path and search_path ~= "" then
+		package.path = search_path .. ";" .. prev_path
+	end
+	local _ <close> = setmetatable({}, {
+		__close = function()
+			package.path = prev_path
+		end
+	})
+
 	if codes:sub(1, 3) == "\xEF\xBB\xBF" then
 		codes = codes:sub(4)
 	end
@@ -11277,7 +11305,16 @@ tl.dora_complete = function(codes, line, row)
 	end
 end
 
-tl.dora_infer = function(codes, line, row)
+tl.dora_infer = function(codes, line, row, search_path)
+	local prev_path = package.path
+	if search_path and search_path ~= "" then
+		package.path = search_path .. ";" .. prev_path
+	end
+	local _ <close> = setmetatable({}, {
+		__close = function()
+			package.path = prev_path
+		end
+	})
 	if codes:sub(1, 3) == "\xEF\xBB\xBF" then
 		codes = codes:sub(4)
 	end

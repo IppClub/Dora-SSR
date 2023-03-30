@@ -24,6 +24,8 @@ import './Editor';
 import { AppBar, DrawerHeader, drawerWidth, Entry, Main, PlayControl, PlayControlMode, StyledStack } from './Frame';
 import { MacScrollbar } from 'mac-scrollbar';
 import 'mac-scrollbar/dist/mac-scrollbar.css';
+import FileFilter, { FilterOption } from './FileFilter';
+const Markdown = React.lazy(() => import('./Markdown'));
 
 loader.config({ monaco });
 
@@ -54,6 +56,7 @@ interface EditingFile {
 	uploading: boolean;
 	editor?: monaco.editor.IStandaloneCodeEditor;
 	position?: monaco.IPosition;
+	mdEditing?: boolean;
 	status: TabStatus;
 };
 
@@ -105,6 +108,9 @@ export default function PersistentDrawerLeft() {
 		col: number
 	}| null>(null);
 
+	const [openFilter, setOpenFilter] = useState(false);
+	const [filterOptions, setFilterOptions] = useState<FilterOption[] | null>(null);
+
 	const addAlert = (msg: string, type: AlertColor) => {
 		const key = msg + Date.now().toString();
 		setAlerts((prevState) => {
@@ -144,6 +150,7 @@ export default function PersistentDrawerLeft() {
 			if (res.platform === "Windows") {
 				path = Path.win32;
 			}
+			addAlert(`Dorothy SSR is running on ${res.platform}`, "success");
 		}).catch(() => {
 			addAlert("failed to get basic info", "error");
 		}).then(() => {
@@ -161,6 +168,7 @@ export default function PersistentDrawerLeft() {
 					case 'S': case 's':
 					case 'W': case 'w':
 					case 'R': case 'r':
+					case 'P': case 'p':
 					case 'Q': case 'q': {
 						event.preventDefault();
 						setKeyEvent(event);
@@ -212,6 +220,17 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const openFileInTab = (key: string, title: string, position?: monaco.IPosition) => {
+		const ext = path.extname(title);
+		switch (ext.toLowerCase()) {
+			case ".lua":
+			case ".tl":
+			case ".yue":
+			case ".xml":
+			case ".md": {
+				break;
+			}
+			default: return;
+		}
 		let index: number | null = null;
 		const file = files.find((file, i) => {
 			if (file.key === key) {
@@ -267,19 +286,7 @@ export default function PersistentDrawerLeft() {
 		}
 		const {key, title} = nodes[0];
 		setSelectedNode(nodes[0]);
-		const ext = path.extname(title);
-		switch (ext.toLowerCase()) {
-			case ".lua":
-			case ".tl":
-			case ".yue":
-			case ".xml":
-			case ".md": {
-				openFileInTab(key, title);
-				break;
-			}
-			default:
-				break
-		}
+		openFileInTab(key, title);
 	};
 
 	const onExpand = (keys: string[]) => {
@@ -594,6 +601,10 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 			case "Rename": {
+				if (contentModified) {
+					addAlert("please save all files before renaming", "info");
+					break;
+				}
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
 				if (rootNode.key === data.key) {
@@ -626,6 +637,7 @@ export default function PersistentDrawerLeft() {
 			case "Teal": ext = ".tl"; break;
 			case "Yuescript": ext = ".yue"; break;
 			case "Dora Xml": ext = ".xml"; break;
+			case "Markdown": ext = ".md"; break;
 			case "Folder": ext = ""; break;
 		}
 		if (ext !== null) {
@@ -778,6 +790,9 @@ export default function PersistentDrawerLeft() {
 							uploading: false,
 							status: "normal",
 						}) - 1;
+						if (ext === ".md") {
+							files[index].mdEditing = true;
+						}
 						setFiles([...files]);
 						switchTab(index, files[index]);
 					}
@@ -839,6 +854,10 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const onDrop = (self: TreeDataType, target: TreeDataType) => {
+		if (contentModified) {
+			addAlert("please save all files before moving", "info");
+			return;
+		}
 		const rootNode = treeData.at(0);
 		if (rootNode === undefined) return;
 		let targetName = target.title;
@@ -1043,6 +1062,7 @@ export default function PersistentDrawerLeft() {
 					});
 					Service.infer({
 						lang, line,
+						file: file.key,
 						row: position.lineNumber,
 						content: model.getValue()
 					}).then(function(res) {
@@ -1089,6 +1109,23 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const onStopRunning = () => {
+		if (tabIndex !== null) {
+			const file = files.at(tabIndex);
+			if (file !== undefined) {
+				const title = file.title;
+				if (path.extname(title).toLowerCase() === ".md") {
+					file.mdEditing = true;
+					if (file.editor !== undefined) {
+						const editor = file.editor;
+						setTimeout(() => {
+							editor.focus();
+						}, 100);
+					}
+					setFiles([...files]);
+					return;
+				}
+			}
+		}
 		Service.stop().then((res) => {
 			if (res.success) {
 				addAlert("stopped running", "success");
@@ -1101,54 +1138,76 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const onPlayControlClick = (mode: PlayControlMode) => {
+		if (mode === "Go to File") {
+			setOpenFilter(true);
+			return;
+		}
 		saveAllTabs().then((success) => {
 			if (!success) {
 				return;
 			}
 			switch (mode) {
 				case "Run": case "Run This": {
-					if (selectedNode === null) {
-						addAlert("please select a file to run", "info");
-						return;
+					let key: string | null = null;
+					let title: string | null = null;
+					let dir = false;
+					if (tabIndex !== null) {
+						const file = files.at(tabIndex);
+						if (file !== undefined) {
+							key = file.key;
+							title = file.title;
+							if (path.extname(title).toLowerCase() === ".md") {
+								file.mdEditing = false;
+								setFiles([...files]);
+								return;
+							}
+						}
 					}
-					let file = selectedNode.key;
+					if (key === null || title === null) {
+						if (selectedNode === null) {
+							addAlert("please select a file to run", "info");
+							return;
+						}
+						key = selectedNode.key;
+						title = selectedNode.title;
+						dir = selectedNode.dir;
+					}
 					let asProj = mode === "Run";
-					if (selectedNode.dir) {
-						file = path.join(file, "init.lua");
+					if (dir) {
+						key = path.join(key, "init.lua");
 						asProj = true;
 					}
-					const ext = path.extname(file).toLowerCase();
+					const ext = path.extname(key).toLowerCase();
 					switch (ext) {
 						case ".lua":
 						case ".yue":
 						case ".tl":
 						case ".xml":
-							Service.run({file, asProj}).then((res) => {
+							Service.run({file: key, asProj}).then((res) => {
 								if (res.success) {
-									addAlert(`${res.target ?? selectedNode.title} is running`, "success");
+									addAlert(`${res.target ?? title} is running`, "success");
 								} else {
-									addAlert(`failed to run ${res.target ?? selectedNode.title}`, "error");
+									addAlert(`failed to run ${res.target ?? title}`, "error");
 								}
 								if (res.err !== undefined) {
 									setPopupInfo({
-										title: res.target ?? selectedNode.title,
+										title: res.target ?? title ?? "",
 										msg: res.err,
 										raw: true
 									});
 								}
 							}).catch(() => {
-								addAlert(`failed to run from ${selectedNode.title}`, "error");
+								addAlert(`failed to run from ${title}`, "error");
 							})
-							break;
+							return;
 						default:
-							addAlert(`can not run from ${selectedNode.title}`, "info");
-							break;
+							addAlert(`can not run from ${title}`, "info");
+							return;
 					}
-					break;
 				}
 				case "Stop": {
 					onStopRunning();
-					break;
+					return;
 				}
 			}
 		})
@@ -1196,6 +1255,10 @@ export default function PersistentDrawerLeft() {
 					onPlayControlClick(shift ? "Run This" : "Run");
 					break;
 				}
+				case 'P': case 'p': {
+					setOpenFilter(true);
+					break;
+				}
 				case 'Q': case 'q': {
 					onStopRunning();
 					break;
@@ -1209,8 +1272,56 @@ export default function PersistentDrawerLeft() {
 		onKeyDown(keyEvent);
 	}
 
+	const onJumpLink = (link: string, fromFile: string) => {
+		const key = path.join(path.dirname(fromFile), ...link.split("[\\/]"));
+		const title = path.basename(key);
+		openFileInTab(key, title);
+	};
+
+	if (openFilter) {
+		setOpenFilter(false);
+		const rootNode = treeData.at(0);
+		if (rootNode !== undefined) {
+			const filterOptions: FilterOption[] = [];
+			const visitNode = (node: TreeDataType) => {
+				if (!node.dir) {
+					filterOptions.push({
+						title: node.title,
+						key: node.key,
+						path: node.key.substring(rootNode.key.length),
+					});
+				}
+				const {children} = node;
+				if (children !== undefined) {
+					for (let i = 0; i < children.length; i++) {
+						visitNode(children[i]);
+					}
+				}
+			};
+			visitNode(rootNode);
+			setFilterOptions(filterOptions);
+		}
+	}
+
 	return (
 		<Entry>
+			<Dialog
+				maxWidth="lg"
+				open={filterOptions !== null}
+			>
+				<DialogContent>
+					{filterOptions !== null ?
+						<FileFilter options={filterOptions} onClose={value => {
+							setFilterOptions(null);
+							if (value === null) {
+								return;
+							}
+							setFilterOptions(null);
+							openFileInTab(value.key, value.title);
+						}}/> : null
+					}
+				</DialogContent>
+			</Dialog>
 			<Dialog
 				maxWidth="lg"
 				open={popupInfo !== null}
@@ -1370,12 +1481,18 @@ export default function PersistentDrawerLeft() {
 							case ".xml": language = "xml"; break;
 							case ".md": language = "markdown"; break;
 						}
+						const markdown = language === "markdown";
 						return <Main
 							open={drawerOpen}
 							key={file.key}
 							hidden={tabIndex !== index}
 						>
 							<DrawerHeader/>
+							{markdown ?
+								<div hidden={file.mdEditing}>
+									<Markdown content={file.contentModified ?? file.content} onClick={(link) => onJumpLink(link, file.key)}/>
+								</div> : null
+							}
 							{(() => {
 								if (language) {
 									let width = 0;
@@ -1383,29 +1500,32 @@ export default function PersistentDrawerLeft() {
 										width = window.innerWidth - (drawerOpen ? drawerWidth : 0);
 									}
 									return (
-										<MonacoEditor
-											width={width}
-											height={window.innerHeight - 64}
-											language={language}
-											theme="dora-dark"
-											defaultValue={file.content}
-											onMount={onEditorDidMount(file)}
-											loading={<div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>}
-											onChange={(content: string | undefined) => {
-												if (content === undefined) return;
-												setModified({key: file.key, content});
-											}}
-											options={{
-												wordWrap: 'on',
-												wordBreak: 'keepAll',
-												selectOnLineNumbers: true,
-												matchBrackets: 'near',
-												fontSize: 18,
-												useTabStops: false,
-												insertSpaces: false,
-												renderWhitespace: 'all',
-											}}
-										/>
+										<div hidden={markdown && !file.mdEditing}>
+											<MonacoEditor
+												width={width}
+												height={window.innerHeight - 64}
+												language={language}
+												theme="dora-dark"
+												defaultValue={file.content}
+												onMount={onEditorDidMount(file)}
+												loading={<div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>}
+												onChange={(content: string | undefined) => {
+													if (content === undefined) return;
+													setModified({key: file.key, content});
+												}}
+												path={monaco.Uri.file(file.key).toString()}
+												options={{
+													wordWrap: 'on',
+													wordBreak: 'keepAll',
+													selectOnLineNumbers: true,
+													matchBrackets: 'near',
+													fontSize: 18,
+													useTabStops: false,
+													insertSpaces: false,
+													renderWhitespace: 'all',
+												}}
+											/>
+										</div>
 									);
 								} else if (file.uploading) {
 									const rootNode = treeData.at(0);

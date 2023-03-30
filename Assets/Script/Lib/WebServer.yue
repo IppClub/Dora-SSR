@@ -6,6 +6,24 @@ HttpServer.wwwPath = Path Content.writablePath, ".www"
 
 import "Utils" as :LintYueGlobals
 
+getProjectDirFromFile = (file)->
+	:writablePath = Content
+	return nil if writablePath ~= file\sub 1, #writablePath
+	current = Path\getRelative file, writablePath
+	repeat
+		current = Path\getPath current
+		break if current == ""
+		for f in *Content\getFiles Path writablePath, current
+			if Path\getName(f)\lower! == "init"
+				return Path current, Path\getPath f
+	until false
+	nil
+
+getSearchPath = (file)->
+	if dir = getProjectDirFromFile file
+		return Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
+	""
+
 disabledCheckForLua =
 	* "incompatible number of returns"
 	* "unknown variable"
@@ -17,7 +35,8 @@ disabledCheckForLua =
 	* "<unknown type>"
 
 yueCheck = (file, content)->
-	checkResult, luaCodes = yue.checkAsync content
+	searchPath = getSearchPath file
+	checkResult, luaCodes = yue.checkAsync content, searchPath
 	info = {}
 	globals = {}
 	for {t, msg, line, col} in *checkResult
@@ -40,7 +59,7 @@ luaCheck = (file, content)->
 	if not res
 		line, msg = err\match ".*:(%d+):%s*(.*)"
 		return success: false, info: {{"syntax", file, tonumber(line), 0, msg}}
-	success, info = teal.checkAsync content, file, true
+	success, info = teal.checkAsync content, file, true, ""
 	if info
 		info = for item in *info
 			useCheck = true
@@ -74,7 +93,7 @@ getCompiledYueLine = (content, line, row)->
 			break if targetLine
 		current += 1
 	if targetLine and targetRow
-		luaCodes, targetLine, targetRow
+		luaCodes, targetLine, targetRow, lineMap
 	else
 		nil
 
@@ -82,7 +101,8 @@ HttpServer\postSchedule "/check", (req)->
 	switch req when {body: {:file, :content}}
 		ext = Path\getExt file
 		switch ext when "tl"
-			success, info = teal.checkAsync content, file, false
+			searchPath = getSearchPath file
+			success, info = teal.checkAsync content, file, false, searchPath
 			return :success, :info
 		when "lua"
 			return luaCheck file, content
@@ -111,15 +131,16 @@ HttpServer\postSchedule "/check", (req)->
 	success: true
 
 HttpServer\postSchedule "/infer", (req)->
-	switch req when {body: {:lang, :content, :line, :row}}
+	switch req when {body: {:lang, :file, :content, :line, :row}}
+		searchPath = getSearchPath file
 		switch lang when "tl", "lua"
-			infered = teal.inferAsync content, line, row
+			infered = teal.inferAsync content, line, row, searchPath
 			if infered?
 				return success: true, :infered
 		when "yue"
-			luaCodes, targetLine, targetRow = getCompiledYueLine content, line, row
+			luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine content, line, row
 			return success: false unless luaCodes
-			infered = teal.inferAsync luaCodes, targetLine, targetRow
+			infered = teal.inferAsync luaCodes, targetLine, targetRow, searchPath
 			if infered?
 				:file, :row, :col = infered
 				if file == "" and row > 0 and col > 0
@@ -201,9 +222,10 @@ yueKeywords = {
 }
 
 HttpServer\postSchedule "/complete", (req)->
-	switch req when {body: {:lang, :content, :line, :row}}
+	switch req when {body: {:lang, :file, :content, :line, :row}}
+		searchPath = getSearchPath file
 		switch lang when "tl", "lua"
-			suggestions = teal.completeAsync content, line, row
+			suggestions = teal.completeAsync content, line, row, searchPath
 			if not line\match("[%.:][%w_]+[%.:]?$") and not line\match "[%w_]+[%.:]$"
 				for word in *luaKeywords
 					suggestions[] = {word, "keyword", "keyword"}
@@ -217,15 +239,15 @@ HttpServer\postSchedule "/complete", (req)->
 			gotGlobals = false
 			if luaCodes, targetLine, targetRow = getCompiledYueLine content, line, row
 				gotGlobals = true
-				suggestions[] = item for item in *teal.completeAsync luaCodes, targetLine, targetRow
+				suggestions[] = item for item in *teal.completeAsync luaCodes, targetLine, targetRow, searchPath
 				if #suggestions == 0
-					suggestions[] = item for item in *teal.completeAsync luaCodes, "builtin.#{targetLine}", targetRow
+					suggestions[] = item for item in *teal.completeAsync luaCodes, "builtin.#{targetLine}", targetRow, searchPath
 			if not line\match("[%.:\\][%w_]+[%.\\]?$") and not line\match "[%w_]+[%.\\]$"
 				checkSet = {name, true for {name} in *suggestions}
-				for item in *teal.completeAsync "", "builtin.", 1
+				for item in *teal.completeAsync "", "builtin.", 1, searchPath
 					suggestions[] = item if not checkSet[item[1]]
 				if not gotGlobals
-					for item in *teal.completeAsync "", "x", 1
+					for item in *teal.completeAsync "", "x", 1, searchPath
 						suggestions[] = item if not checkSet[item[1]]
 				for word in *yueKeywords
 					if not checkSet[word]
@@ -327,6 +349,8 @@ HttpServer\post "/assets", ->
 		for dir in *dirs
 			if root then switch dir when ".upload", ".download", ".www"
 				continue
+			elseif dir == ".git"
+				continue
 			children = {} unless children
 			children[] = visitAssets Path path, dir
 		files = Content\getFiles path
@@ -357,26 +381,14 @@ HttpServer\post "/assets", ->
 
 HttpServer\postSchedule "/run", (req)->
 	switch req when {body: {:file, :asProj}}
-		:writablePath = Content
-		if writablePath ~= file\sub 1, #writablePath
-			return success: false
-		if asProj
-			searchPath = Path\getRelative file, writablePath
-			current = searchPath
-			repeat
-				current = Path\getPath current
-				break if current == ""
-				for f in *Content\getFiles Path writablePath, current
-					if Path\getName(f)\lower! == "init"
-						import "Dev.Entry"
-						Entry.allClear!
-						f = Path\replaceExt f, ""
-						target = Path writablePath, current, f
-						success, err = Entry.enterEntryAsync {"Project", target}
-						target = target |> Path\getPath |> Path\getName
-						return :success, :target, :err
-			until false
 		import "Dev.Entry"
+		if asProj
+			if proj = getProjectDirFromFile file
+				Entry.allClear!
+				target = Path proj, "init"
+				success, err = Entry.enterEntryAsync {"Project", target}
+				target = target |> Path\getPath |> Path\getName
+				return :success, :target, :err
 		Entry.allClear!
 		file = Path\replaceExt file, ""
 		success, err = Entry.enterEntryAsync {Path\getName(file), file}

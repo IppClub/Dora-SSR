@@ -4,7 +4,7 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Stack from '@mui/system/Stack';
 import { IconButton, ListItemIcon, ListItemText, Toolbar } from '@mui/material';
 import SportsEsports from '@mui/icons-material/SportsEsports';
-import { BsFillFileEarmarkPlayFill, BsPlayCircle, BsStopCircle } from 'react-icons/bs';
+import { BsFillFileEarmarkPlayFill, BsPlayCircle, BsStopCircle, BsSearch } from 'react-icons/bs';
 import { StyledMenu, StyledMenuItem } from './Menu';
 import { useState } from 'react';
 
@@ -114,7 +114,7 @@ export const DrawerHeader = styled('div')(({ theme }) => ({
 }));
 
 
-export type PlayControlMode = "Run" | "Run This" | "Stop";
+export type PlayControlMode = "Run" | "Run This" | "Stop" | "Go to File";
 
 export interface PlayControlProp {
 	onClick: (mode: PlayControlMode) => void;
@@ -174,6 +174,13 @@ export const PlayControl = (prop: PlayControlProp) => {
 				</ListItemIcon>
 				<ListItemText primary="Stop"/>
 				<div style={{fontSize: 10, color: '#fff8'}}>Mod+Q</div>
+			</StyledMenuItem>
+			<StyledMenuItem onClick={onClose("Go to File")}>
+				<ListItemIcon>
+					<BsSearch/>
+				</ListItemIcon>
+				<ListItemText primary="Go to File"/>
+				<div style={{fontSize: 10, color: '#fff8'}}>Mod+P</div>
 			</StyledMenuItem>
 		</StyledMenu>
 		<IconButton

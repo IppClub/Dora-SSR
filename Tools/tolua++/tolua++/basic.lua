@@ -68,7 +68,7 @@ _global_enums = {}
 -- List of auto renaming
 _renaming = {}
 function appendrenaming(s)
-	local b, e, old, new = strfind(s, "%s*(.-)%s*@%s*(.-)%s*$")
+	local b, _, old, new = strfind(s, "%s*(.-)%s*@%s*(.-)%s*$")
 	if not b then
 		error("#Invalid renaming syntax; it should be of the form: pattern@pattern")
 	end
@@ -154,7 +154,7 @@ end
 -- check if basic type
 function isbasic(type)
 	local t = gsub(type, "const ", "")
-	local m, t = applytypedef("", t)
+	local _, t = applytypedef("", t)
 	local b = _basic[t]
 	if b then
 		return b, _basic_ctype[b]
@@ -187,7 +187,6 @@ function split_c_tokens(s, pat)
 	s = string.gsub(s, "%s*$", "")
 
 	local token_begin = 1
-	local token_end = 1
 	local ofs = 1
 	local ret = {n = 0}
 

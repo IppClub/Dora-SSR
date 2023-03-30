@@ -1,7 +1,7 @@
 local record teal
-	tolua: function(codes: string, moduleName: string): --[[lua codes]] string, --[[error]] string | nil
-	toluaAsync: function(codes: string, moduleName: string): --[[lua codes]] string, --[[error]] string | nil
-	checkAsync: function(codes: string, moduleName: string): --[[passed]] boolean, {
+	tolua: function(codes: string, moduleName: string, searchPath: string): --[[lua codes]] string, --[[error]] string | nil
+	toluaAsync: function(codes: string, moduleName: string, searchPath: string): --[[lua codes]] string, --[[error]] string | nil
+	checkAsync: function(codes: string, moduleName: string, searchPath: string): --[[passed]] boolean, {
 		{
 			--[[type]] string,
 			--[[filename]] string,
@@ -20,7 +20,7 @@ local record teal
 		success: boolean
 		suggestions: {{--[[label]] string, --[[desc]] string, CompleteItemType}} | nil
 	end
-	completeAsync: function(codes: string, line: string, row: integer): CompleteResult
+	completeAsync: function(codes: string, line: string, row: integer, searchPath: string): CompleteResult
 	record InferResult
 		record Info
 			desc: string
@@ -32,7 +32,7 @@ local record teal
 		success: boolean
 		infered: Info
 	end
-	inferAsync: function(codes: string, line: string, row: integer): InferResult
-	reset: function()
+	inferAsync: function(codes: string, line: string, row: integer, searchPath: string): InferResult
+	clear: function()
 end
 return teal

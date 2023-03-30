@@ -314,7 +314,7 @@ function Package(name, fn)
 			code,
 			'\n%s*%$(.)file%s*"(.-)"([^\n]*)\n',
 			function(kind, fn, extra)
-				local _, _, ext = strfind(fn, ".*%.(.*)$")
+				local _, _ = strfind(fn, ".*%.(.*)$")
 				local fp, msg = openfile(fn, "r")
 				if not fp then
 					error("#" .. msg .. ": " .. fn)
