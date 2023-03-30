@@ -426,7 +426,7 @@ function classContainer:doparse(s)
 
 	-- try the null statement
 	do
-		local b, e, code = string.find(s, "^%s*;")
+		local b, e = string.find(s, "^%s*;")
 		if b then
 			return strsub(s, e + 1)
 		end
@@ -434,7 +434,7 @@ function classContainer:doparse(s)
 
 	-- try empty verbatim line
 	do
-		local b, e, code = string.find(s, "^%s*$\n")
+		local b, e = string.find(s, "^%s*$\n")
 		if b then
 			return strsub(s, e + 1)
 		end

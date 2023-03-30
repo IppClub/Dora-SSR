@@ -249,7 +249,7 @@ export const language: languages.IMonarchLanguage = {
 			// whitespace
 			{ include: '@whitespace' },
 
-			[/<\s*\w+\s*>/, 'operator'],
+			[/<\s*(const|close)\s*>/, 'operator'],
 
 			// delimiters and operators
 			[/[{}()\[\]]/, '@brackets'],

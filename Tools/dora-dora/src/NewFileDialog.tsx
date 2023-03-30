@@ -10,8 +10,9 @@ import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
 import { AiFillFolderAdd } from 'react-icons/ai';
 import { DiCode } from 'react-icons/di';
+import { VscMarkdown } from 'react-icons/vsc';
 
-export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Dora Xml" | "Folder"
+export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Dora Xml" | "Markdown" | "Folder"
 
 interface FileType {
 	icon: React.ReactNode;
@@ -43,6 +44,12 @@ const fileTypes: FileType[] = [
 		icon: <DiCode size={50} style={{marginLeft: '10px'}}/>,
 		name: "Dora Xml",
 		desc: "write game node trees in Xml format",
+		padding: '20px'
+	},
+	{
+		icon: <VscMarkdown size={45} style={{marginLeft: '15px'}}/>,
+		name: "Markdown",
+		desc: "do some documentation",
 		padding: '20px'
 	},
 	{

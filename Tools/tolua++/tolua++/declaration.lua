@@ -57,7 +57,7 @@ function classDeclaration:checkname()
 		self.def = find_enum_var(t[t.n])
 	end
 
-	local b, e, d = strfind(self.name, "%[(.-)%]")
+	local b, _, d = strfind(self.name, "%[(.-)%]")
 	if b then
 		self.name = strsub(self.name, 1, b - 1)
 		self.dim = find_enum_var(d)
@@ -150,8 +150,8 @@ function resolve_template_types(type)
 			end
 		end
 
-		local b, i
-		type, b, i = break_template(type)
+		local b
+		type, b = break_template(type)
 		--print("concat is ",concat(m, 1, m.n))
 		local template_part = "<" .. concat(m, 1, m.n, ",") .. ">"
 		type = rebuild_template(type, b, template_part)
@@ -161,7 +161,7 @@ function resolve_template_types(type)
 end
 
 function break_template(s)
-	local b, e, timpl = string.find(s, "(%b<>)")
+	local b, _, timpl = string.find(s, "(%b<>)")
 	if timpl then
 		s = string.gsub(s, "%b<>", "")
 		return s, b, timpl
@@ -266,7 +266,6 @@ function classDeclaration:builddeclaration(narg, cplusplus)
 	local array = self.dim ~= "" and tonumber(self.dim) == nil
 	local line = ""
 	local ptr = ""
-	local mod
 	local type = self.type
 	local nctype = gsub(self.type, "const%s+", "")
 	if self.dim ~= "" then

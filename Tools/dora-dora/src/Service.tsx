@@ -23,6 +23,7 @@ async function post<T>(url: string, data: any = {}) {
 
 export interface InferRequest {
 	lang: "tl" | "lua" | "yue";
+	file: string;
 	line: string;
 	row: number;
 	content: string;
@@ -45,6 +46,7 @@ export const infer = (req: InferRequest) => {
 
 export interface CompleteRequest {
 	lang: "tl" | "lua" | "yue";
+	file: string;
 	line: string;
 	row: number;
 	content: string;

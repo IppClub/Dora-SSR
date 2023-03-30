@@ -61,12 +61,12 @@ const completionItemProvider = (triggerCharacters: string[], lang: DoraLang) => 
 					endLineNumber: model.getLineCount(),
 					endColumn: model.getLineLastNonWhitespaceColumn(model.getLineCount()),
 				});
-				console.log(content);
 			} else {
 				content = model.getValue();
 			}
 			return Service.complete({
 				lang, line,
+				file: model.uri.path,
 				row: position.lineNumber,
 				content
 			}).then((res) => {
@@ -113,6 +113,7 @@ const hoverProvider = (lang: DoraLang) => {
 			});
 			return Service.infer({
 				lang, line,
+				file: model.uri.path,
 				row: position.lineNumber,
 				content: model.getValue()
 			}).then(function (res) {

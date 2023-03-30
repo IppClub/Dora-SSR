@@ -50,6 +50,7 @@ doCompile = (minify)->
 		{
 			Path Content.assetPath
 			Path writablePath, ".build"
+			""
 		}
 	}
 	for {name, entryFile} in *gamesInDev
@@ -57,8 +58,9 @@ doCompile = (minify)->
 		buildPaths[] = {
 			Path writablePath, gamePath
 			Path writablePath, ".build", gamePath
+			Path(writablePath, gamePath, "Script", "?.lua") .. ";" .. Path writablePath, gamePath, "?.lua"
 		}
-	for {inputPath, outputPath} in *buildPaths
+	for {inputPath, outputPath, searchPath} in *buildPaths
 		continue unless Content\exist inputPath
 
 		for file in *getAllFiles inputPath, {"lua"}
@@ -72,6 +74,7 @@ doCompile = (minify)->
 				* file
 				* Path inputPath, file
 				* Path outputPath, Path\replaceExt file, "lua"
+				* searchPath
 
 		for file in *getAllFiles inputPath, {"xml"}
 			xmlFiles[] =
@@ -85,6 +88,7 @@ doCompile = (minify)->
 					* file
 					* Path inputPath, file
 					* Path outputPath, Path\replaceExt file, "lua"
+					* searchPath
 
 	paths = {Path\getPath(file[3]), true \
 		for files in *{luaFiles, yueFiles, xmlFiles, tlFiles} \
@@ -95,8 +99,8 @@ doCompile = (minify)->
 	totalFiles = #yueFiles + #xmlFiles + #tlFiles
 	fileCount = 0
 	errors = {}
-	for {file, input, output} in *yueFiles
-		(success) <- yue.compile input, output, (codes, err, globals)->
+	for {file, input, output, searchPath} in *yueFiles
+		(success) <- yue.compile input, output, searchPath, (codes, err, globals)->
 			if not codes
 				table.insert errors, "Compile errors in #{file}.\n#{err}"
 				return
@@ -131,9 +135,9 @@ doCompile = (minify)->
 			fileCount += 1
 
 	thread ->
-		for {file, input, output} in *tlFiles
+		for {file, input, output, searchPath} in *tlFiles
 			sourceCodes = Content\loadAsync input
-			codes, err = teal.toluaAsync sourceCodes, file
+			codes, err = teal.toluaAsync sourceCodes, file, searchPath
 			if not codes
 				table.insert errors, "Compile errors in #{file}.\n#{err}"
 			else
@@ -217,7 +221,8 @@ export allClear = ->
 	View.postEffect = nil
 	View.scale = scaleContent and screenScale or 1
 	Director.clearColor = Color 0xff1a1a1a
-	teal.reset!
+	teal.clear!
+	yue.clear!
 	collectgarbage!
 	collectgarbage!
 	for item in *ubox!

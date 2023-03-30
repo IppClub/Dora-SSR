@@ -265,7 +265,7 @@ export const language: languages.IMonarchLanguage = {
 					}
 				}
 			],
-			[/<\s*\w+\s*>/, 'operator'],
+			[/<\s*(close|const|total)\s*>/, 'operator'],
 
 			// whitespace
 			{ include: '@whitespace' },

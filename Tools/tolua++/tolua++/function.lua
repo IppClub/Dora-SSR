@@ -307,10 +307,6 @@ function classFunction:supcode(local_constructor)
 			else
 				t = self.type
 				new_t = string.gsub(t, "const%s+", "")
-				local owned = false
-				if string.find(self.mod, "tolua_owned") then
-					owned = true
-				end
 				local push_func = get_push_function(t)
 				-- new_t = _userltype[new_t] -- convert to renamed type
 				if self.ptr == "" then
@@ -492,8 +488,6 @@ function param_object(par) -- returns true if the parameter has an object as its
 		return false
 	end -- it has no default value
 
-	local _, _, def = string.find(par, "=(.*)$")
-
 	if string.find(par, "|") then -- a list of flags
 		return true
 	end
@@ -589,7 +583,7 @@ function Function(d, a, c)
 		ns = "(" .. string.gsub(ns, "%s*,%s*$", "") .. ")"
 		--ns = strip_defaults(ns)
 
-		local f = Function(d, ns, c)
+		local _ = Function(d, ns, c)
 		for i = 1, last do
 			t[i] = string.gsub(t[i], "=.*$", "")
 		end

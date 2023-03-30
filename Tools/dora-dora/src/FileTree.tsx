@@ -26,6 +26,7 @@ import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
 import { DiCode } from 'react-icons/di';
 import { TbSql } from 'react-icons/tb';
+import { VscMarkdown } from 'react-icons/vsc';
 import { MacScrollbar } from 'mac-scrollbar';
 
 export interface TreeDataType extends DataNode {
@@ -79,6 +80,8 @@ const fileIcon = (props: TreeNodeProps) => {
 					return <DiCode size={14}/>;
 				case ".db":
 					return <TbSql size={14}/>
+				case ".md":
+					return <VscMarkdown size={14}/>
 			}
 		}
 	}

@@ -489,12 +489,12 @@ do
 	end
 
 	local yue_checkAsync = yue.checkAsync
-	yue.checkAsync = function(codes)
+	yue.checkAsync = function(codes, searchPath)
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "yue.checkAsync should be run in a thread")
 		local result, lcodes
 		local done = false
-		yue_checkAsync(codes, function(info, luaCodes)
+		yue_checkAsync(codes, searchPath, function(info, luaCodes)
 			result, lcodes = info, luaCodes
 			done = true
 		end)
@@ -506,12 +506,12 @@ do
 
 	local teal = builtin.teal
 	local teal_toluaAsync = teal.toluaAsync
-	teal.toluaAsync = function(codes, moduleName)
+	teal.toluaAsync = function(codes, moduleName, searchPath)
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "teal.toluaAsync should be run in a thread")
 		local result, err
 		local done = false
-		teal_toluaAsync(codes, moduleName, function(luaCodes, msg)
+		teal_toluaAsync(codes, moduleName, searchPath, function(luaCodes, msg)
 			result, err = luaCodes, msg
 			done = true
 		end)
@@ -522,12 +522,12 @@ do
 	end
 
 	local teal_checkAsync = teal.checkAsync
-	teal.checkAsync = function(codes, moduleName, lax)
+	teal.checkAsync = function(codes, moduleName, lax, searchPath)
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "teal.checkAsync should be run in a thread")
 		local result, errs
 		local done = false
-		teal_checkAsync(codes, moduleName, lax, function(success, info)
+		teal_checkAsync(codes, moduleName, lax, searchPath, function(success, info)
 			result, errs = success, info
 			done = true
 		end)
@@ -538,12 +538,12 @@ do
 	end
 
 	local teal_completeAsync = teal.completeAsync
-	teal.completeAsync = function(codes, line, row)
+	teal.completeAsync = function(codes, line, row, searchPath)
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "teal.completeAsync should be run in a thread")
 		local result
 		local done = false
-		teal_completeAsync(codes, line, row, function(completeList)
+		teal_completeAsync(codes, line, row, searchPath, function(completeList)
 			result = completeList
 			done = true
 		end)
@@ -554,12 +554,12 @@ do
 	end
 
 	local teal_inferAsync = teal.inferAsync
-	teal.inferAsync = function(codes, line, row)
+	teal.inferAsync = function(codes, line, row, searchPath)
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "teal.inferAsync should be run in a thread")
 		local result
 		local done = false
-		teal_inferAsync(codes, line, row, function(infered)
+		teal_inferAsync(codes, line, row, searchPath, function(infered)
 			result = infered
 			done = true
 		end)

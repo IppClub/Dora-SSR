@@ -45,11 +45,14 @@ local record yue
 	compile: function(
 		sourceFile: string,
 		targetFile: string,
+		searchPath: string,
 		compileCodesHandler: CompileCodeHandler,
 		callback: function(result: boolean)
 	)
 
-	checkAsync: function(yueCodes: string): {{--[[type]] string, --[[msg]] string, --[[line]] integer, --[[col]] integer}}, --[[luaCodes]] string | nil
+	checkAsync: function(yueCodes: string, searchPath: string): {{--[[type]] string, --[[msg]] string, --[[line]] integer, --[[col]] integer}}, --[[luaCodes]] string | nil
+
+	clear: function()
 
 	metamethod __call: function(self: yue, module: string): any...
 end
