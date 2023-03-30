@@ -1499,6 +1499,7 @@ export default function PersistentDrawerLeft() {
 									if (tabIndex === index) {
 										width = window.innerWidth - (drawerOpen ? drawerWidth : 0);
 									}
+									const readOnly = !file.key.startsWith(treeData.at(0)?.key ?? "");
 									return (
 										<div hidden={markdown && !file.mdEditing}>
 											<MonacoEditor
@@ -1515,6 +1516,7 @@ export default function PersistentDrawerLeft() {
 												}}
 												path={monaco.Uri.file(file.key).toString()}
 												options={{
+													readOnly,
 													wordWrap: 'on',
 													wordBreak: 'keepAll',
 													selectOnLineNumbers: true,
