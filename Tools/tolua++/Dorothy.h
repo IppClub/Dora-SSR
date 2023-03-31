@@ -263,7 +263,6 @@ class Director
 	tolua_readonly tolua_property__common Node* uI3D @ ui3D;
 	tolua_readonly tolua_property__common Node* entry;
 	tolua_readonly tolua_property__common Node* postNode;
-	tolua_readonly tolua_property__common Scheduler* systemScheduler;
 	tolua_readonly tolua_property__common Scheduler* postScheduler;
 	tolua_readonly tolua_property__common Camera* currentCamera;
 	tolua_readonly tolua_property__common double deltaTime;

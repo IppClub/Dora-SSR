@@ -50,22 +50,22 @@ private:
 	DORA_TYPE_OVERRIDE(Scheduler);
 };
 
-class Timer : public Object {
+class SystemTimer : public Object {
 public:
 	PROPERTY_BOOL(Running);
 	virtual bool update(double deltaTime) override;
 	void start(float duration, const std::function<void()>& callback);
 	void stop();
-	CREATE_FUNC(Timer);
+	CREATE_FUNC(SystemTimer);
 
 protected:
-	Timer();
+	SystemTimer();
 
 private:
 	float _time;
 	float _duration;
 	std::function<void()> _callback;
-	DORA_TYPE_OVERRIDE(Timer);
+	DORA_TYPE_OVERRIDE(SystemTimer);
 };
 
 NS_DOROTHY_END

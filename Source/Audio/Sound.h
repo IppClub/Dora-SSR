@@ -18,7 +18,7 @@ class Soloud;
 
 NS_DOROTHY_BEGIN
 
-class Timer;
+class SystemTimer;
 
 class SoundFile : public Object {
 public:
@@ -68,7 +68,7 @@ protected:
 	Audio();
 
 private:
-	Ref<Timer> _timer;
+	Ref<SystemTimer> _timer;
 	uint32_t _currentVoice;
 	Ref<SoundStream> _lastStream;
 	Ref<SoundStream> _currentStream;

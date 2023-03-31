@@ -184,16 +184,17 @@ bool Scheduler::update(double deltaTime) {
 	return false;
 }
 
-/* Timer */
-Timer::Timer()
+/* SystemTimer */
+
+SystemTimer::SystemTimer()
 	: _time(0)
 	, _duration(0) { }
 
-bool Timer::isRunning() const {
+bool SystemTimer::isRunning() const {
 	return _time < _duration;
 }
 
-bool Timer::update(double deltaTime) {
+bool SystemTimer::update(double deltaTime) {
 	_time += s_cast<float>(deltaTime);
 	if (_time >= _duration) {
 		if (_callback) {
@@ -205,14 +206,14 @@ bool Timer::update(double deltaTime) {
 	return false;
 }
 
-void Timer::start(float duration, const std::function<void()>& callback) {
+void SystemTimer::start(float duration, const std::function<void()>& callback) {
 	_time = 0.0f;
 	_duration = std::max(0.0f, duration);
 	_callback = callback;
 	SharedDirector.getSystemScheduler()->schedule(this);
 }
 
-void Timer::stop() {
+void SystemTimer::stop() {
 	_time = _duration = 0.0f;
 	_callback = nullptr;
 }

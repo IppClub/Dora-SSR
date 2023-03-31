@@ -9,7 +9,6 @@ extern "C" {
 	fn director_get_ui_3d() -> i64;
 	fn director_get_entry() -> i64;
 	fn director_get_post_node() -> i64;
-	fn director_get_system_scheduler() -> i64;
 	fn director_get_post_scheduler() -> i64;
 	fn director_get_current_camera() -> i64;
 	fn director_get_delta_time() -> f64;
@@ -51,9 +50,6 @@ impl Director {
 	}
 	pub fn get_post_node() -> crate::dora::Node {
 		return unsafe { crate::dora::Node::from(director_get_post_node()).unwrap() };
-	}
-	pub fn get_system_scheduler() -> crate::dora::Scheduler {
-		return unsafe { crate::dora::Scheduler::from(director_get_system_scheduler()).unwrap() };
 	}
 	pub fn get_post_scheduler() -> crate::dora::Scheduler {
 		return unsafe { crate::dora::Scheduler::from(director_get_post_scheduler()).unwrap() };

@@ -11,7 +11,6 @@ local record Director
 	const ui3D: Node
 	const entry: Node
 	const postNode: Node
-	const systemScheduler: Scheduler
 	const postScheduler: Scheduler
 	const currentCamera: Camera
 	const deltaTime: number
