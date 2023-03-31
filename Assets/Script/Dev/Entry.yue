@@ -355,7 +355,7 @@ reloadDevEntry = ->
 	_G.require = oldRequire
 	builtin.require = oldRequire
 	package.loaded["Dev.Entry"] = nil
-	Director.postScheduler\schedule ->
+	Director.systemScheduler\schedule ->
 		Routine\clear!
 		oldRequire "Dev.Entry"
 		true

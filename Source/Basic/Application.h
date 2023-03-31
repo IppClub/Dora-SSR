@@ -12,7 +12,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Geometry.h"
 
 #include "bx/thread.h"
+
 #include <random>
+#include <thread>
 
 struct SDL_Window;
 union SDL_Event;
@@ -50,8 +52,9 @@ public:
 	PROPERTY_READONLY_BOOL(RenderRunning);
 	PROPERTY_READONLY_BOOL(LogicRunning);
 	PROPERTY_READONLY_BOOL(Debugging);
-	PROPERTY(uint32_t, TargetFPS);
+	PROPERTY_READONLY(std::thread::id, LogicThread);
 	PROPERTY_READONLY(uint32_t, MaxFPS);
+	PROPERTY(uint32_t, TargetFPS);
 	PROPERTY(uint32_t, Seed);
 	PROPERTY_BOOL(FPSLimited);
 	PROPERTY_BOOL(Idled);
@@ -106,6 +109,7 @@ private:
 	bx::Thread _logicThread;
 	EventQueue _logicEvent;
 	EventQueue _renderEvent;
+	std::thread::id _logicThreadID;
 	SDL_Window* _sdlWindow;
 	std::mt19937 _randomEngine;
 	SINGLETON_REF(Application, AsyncLogThread);

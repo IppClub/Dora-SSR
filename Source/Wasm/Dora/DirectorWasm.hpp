@@ -28,6 +28,9 @@ static int64_t director_get_entry() {
 static int64_t director_get_post_node() {
 	return from_object(SharedDirector.getPostNode());
 }
+static int64_t director_get_system_scheduler() {
+	return from_object(SharedDirector.getSystemScheduler());
+}
 static int64_t director_get_post_scheduler() {
 	return from_object(SharedDirector.getPostScheduler());
 }
@@ -63,6 +66,7 @@ static void linkDirector(wasm3::module& mod) {
 	mod.link_optional("*", "director_get_ui_3d", director_get_ui_3d);
 	mod.link_optional("*", "director_get_entry", director_get_entry);
 	mod.link_optional("*", "director_get_post_node", director_get_post_node);
+	mod.link_optional("*", "director_get_system_scheduler", director_get_system_scheduler);
 	mod.link_optional("*", "director_get_post_scheduler", director_get_post_scheduler);
 	mod.link_optional("*", "director_get_current_camera", director_get_current_camera);
 	mod.link_optional("*", "director_get_delta_time", director_get_delta_time);

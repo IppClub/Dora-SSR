@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Common/Async.h"
 
+#include "Basic/Application.h"
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
 
@@ -37,6 +38,7 @@ void Async::stop() {
 }
 
 void Async::run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher) {
+	AssertUnless(SharedApplication.getLogicThread() == std::this_thread::get_id(), "Async runner with finisher should be invoke from logic thread");
 	if (!_thread.isRunning()) {
 		_thread.init(Async::work, this);
 	}
