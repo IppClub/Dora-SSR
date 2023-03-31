@@ -241,7 +241,7 @@ export default function PersistentDrawerLeft() {
 		}
 		let index: number | null = null;
 		const file = files.find((file, i) => {
-			if (file.key === key) {
+			if (path.relative(file.key, key) === "") {
 				index = i;
 				return true;
 			}
@@ -513,8 +513,8 @@ export default function PersistentDrawerLeft() {
 						}];
 						setExpandedKeys([]);
 					}
-					if (files.find(f => f.key === data.key) !== undefined) {
-						const newFiles = files.filter(f => f.key !== data.key);
+					if (files.find(f => path.relative(f.key, data.key) === "") !== undefined) {
+						const newFiles = files.filter(f => path.relative(f.key, data.key) !== "");
 						setFiles(newFiles);
 						if (tabIndex !== null && tabIndex >= newFiles.length) {
 							switchTab(newFiles.length - 1, newFiles[newFiles.length - 1]);
@@ -1304,11 +1304,13 @@ export default function PersistentDrawerLeft() {
 			const filterOptions: FilterOption[] = [];
 			const visitNode = (node: TreeDataType) => {
 				if (!node.dir) {
-					filterOptions.push({
-						title: node.title,
-						key: node.key,
-						path: node.key.substring(rootNode.key.length),
-					});
+					if (node.key.startsWith(rootNode.key)) {
+						filterOptions.push({
+							title: node.title,
+							key: node.key,
+							path: node.key.substring(rootNode.key.length),
+						});
+					}
 				}
 				const {children} = node;
 				if (children !== undefined) {
