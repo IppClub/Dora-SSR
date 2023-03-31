@@ -218,7 +218,12 @@ bool Director::init() {
 }
 
 void Director::doLogic() {
-	if (_paused || _stoped) return;
+	if (_stoped) return;
+
+	/* update system logic */
+	_systemScheduler->update(getDeltaTime());
+
+	if (_paused) return;
 
 	/* push default view projection */
 	Camera* camera = getCurrentCamera();
@@ -228,9 +233,6 @@ void Director::doLogic() {
 		bx::mtxMul(_defaultViewProj, camera->getView(), SharedView.getProjection());
 	}
 	pushViewProjection(_defaultViewProj, [&]() {
-		/* update system logic */
-		_systemScheduler->update(getDeltaTime());
-
 		/* update game logic */
 		SharedImGui.begin();
 		_scheduler->update(getDeltaTime());

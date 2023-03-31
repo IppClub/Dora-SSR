@@ -85,7 +85,7 @@ SoundStream::~SoundStream() {
 Audio::Audio()
 	: _soloud(nullptr)
 	, _currentVoice(0)
-	, _timer(Timer::create()) { }
+	, _timer(SystemTimer::create()) { }
 
 SoLoud::Soloud* Audio::getSoLoud() {
 	return _soloud;

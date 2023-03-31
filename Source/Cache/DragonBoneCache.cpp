@@ -122,7 +122,7 @@ DragonBoneCache::DragonBoneCache()
 	, _dragonBoneInstance(New<db::DragonBones>(&_eventManager)) {
 	_dragonBones = _dragonBoneInstance.get();
 	_dragonBoneInstance->yDown = false;
-	SharedDirector.getSystemScheduler()->schedule([this](double deltaTime) {
+	SharedDirector.getPostScheduler()->schedule([this](double deltaTime) {
 		_dragonBoneInstance->advanceTime(s_cast<float>(deltaTime));
 		return false;
 	});

@@ -184,7 +184,6 @@ singleton class Director
 	readonly common Node* uI3D @ ui_3d;
 	readonly common Node* entry;
 	readonly common Node* postNode;
-	readonly common Scheduler* systemScheduler;
 	readonly common Scheduler* postScheduler;
 	readonly common Camera* currentCamera;
 	readonly common double deltaTime;
