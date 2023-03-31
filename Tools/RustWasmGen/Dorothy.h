@@ -282,7 +282,6 @@ interface object class Node
 	optional readonly common Node* parent;
 	readonly common Rect boundingBox;
 	readonly boolean bool running;
-	readonly boolean bool updating;
 	readonly boolean bool scheduled;
 	readonly common int actionCount;
 	readonly common Dictionary* userData @ data;

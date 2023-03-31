@@ -70,7 +70,7 @@ bool Node_eachChild(Node* self, const LuaFunction<bool>& func);
 
 /* Node.Grabber */
 inline void Grabber_setPos(Node::Grabber* self, uint32_t x, uint32_t y, Vec2 pos, float z) { self->setPos(x - 1, y - 1, pos, z); }
-inline Vec2 Grabber_getPos(Node::Grabber* self, uint32_t x, uint32_t y) { return self->getPos(x - 1, y - 1); }
+inline Vec2 Grabber_getPos(Node::Grabber* self, uint32_t x, uint32_t y, float* z) { return self->getPos(x - 1, y - 1, z); }
 inline Color Grabber_getColor(Node::Grabber* self, uint32_t x, uint32_t y) { return self->getColor(x - 1, y - 1); }
 inline void Grabber_setColor(Node::Grabber* self, uint32_t x, uint32_t y, Color color) { self->setColor(x - 1, y - 1, color); }
 inline void Grabber_moveUV(Node::Grabber* self, uint32_t x, uint32_t y, Vec2 offset) { self->moveUV(x - 1, y - 1, offset); }

@@ -365,6 +365,7 @@ bool NodeTouchHandler::move(const SDL_Event& event) {
 }
 
 bool NodeTouchHandler::wheel(const SDL_Event& event) {
+	if (!_target->isTouchEnabled()) return false;
 	int x, y;
 	SDL_GetMouseState(&x, &y);
 	Size size = SharedApplication.getWinSize();
@@ -379,6 +380,7 @@ bool NodeTouchHandler::wheel(const SDL_Event& event) {
 }
 
 bool NodeTouchHandler::gesture(const SDL_Event& event) {
+	if (!_target->isTouchEnabled()) return false;
 	Vec2 ratio{event.mgesture.x, 1.0f - event.mgesture.y};
 	Vec2 pos = ratio * SharedView.getSize();
 	pos = getPos({pos.x, pos.y, 0.0f});
