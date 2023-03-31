@@ -394,6 +394,8 @@ void Application::invokeInLogic(const std::function<void()>& func) {
 }
 
 int Application::mainLogic(Application* app) {
+	app->_logicThreadID = std::this_thread::get_id();
+
 	if (!SharedBGFX.init()) {
 		Error("bgfx failed to initialize!");
 		return 1;
@@ -523,6 +525,10 @@ const Slice Application::getVersion() const {
 
 bool Application::isDebugging() const {
 	return DORA_DEBUG ? true : false;
+}
+
+std::thread::id Application::getLogicThread() const {
+	return _logicThreadID;
 }
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
