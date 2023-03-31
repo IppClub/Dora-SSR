@@ -54,7 +54,6 @@ extern "C" {
 	fn node_get_parent(slf: i64) -> i64;
 	fn node_get_bounding_box(slf: i64) -> i64;
 	fn node_is_running(slf: i64) -> i32;
-	fn node_is_updating(slf: i64) -> i32;
 	fn node_is_scheduled(slf: i64) -> i32;
 	fn node_get_action_count(slf: i64) -> i32;
 	fn node_get_data(slf: i64) -> i64;
@@ -277,9 +276,6 @@ pub trait INode: IObject {
 	}
 	fn is_running(&self) -> bool {
 		return unsafe { node_is_running(self.raw()) != 0 };
-	}
-	fn is_updating(&self) -> bool {
-		return unsafe { node_is_updating(self.raw()) != 0 };
 	}
 	fn is_scheduled(&self) -> bool {
 		return unsafe { node_is_scheduled(self.raw()) != 0 };

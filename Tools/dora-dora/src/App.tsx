@@ -45,6 +45,9 @@ window.onbeforeunload = (event: BeforeUnloadEvent) => {
 	if (contentModified) {
 		event.returnValue = "Please save before leaving!";
 		return "Please save before leaving!";
+	} else {
+		event.returnValue = "Sure to leave Dorothy SSR?";
+		return "Sure to leave Dorothy SSR?";
 	}
 };
 
@@ -198,7 +201,7 @@ export default function PersistentDrawerLeft() {
 
 	const checkFileReadonly = (key: string) => {
 		if (!key.startsWith(treeData.at(0)?.key ?? "")) {
-			addAlert("can not operate on read only assets", "info");
+			addAlert("can not operate on built-in assets", "info");
 			return true;
 		}
 		return false;

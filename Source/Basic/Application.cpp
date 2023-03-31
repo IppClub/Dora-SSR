@@ -287,7 +287,7 @@ void Application::updateDeltaTime() {
 	double currentTime = getCurrentTime();
 	_deltaTime = currentTime - _lastTime;
 	// in case of system timer api error
-	if (_deltaTime < 0) {
+	if (_deltaTime <= 0) {
 		_deltaTime = 1.0 / _targetFPS;
 		_lastTime = currentTime;
 	}

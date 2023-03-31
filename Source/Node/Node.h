@@ -244,7 +244,7 @@ public:
 		PROPERTY_READONLY(uint32_t, GridX);
 		PROPERTY_READONLY(uint32_t, GridY);
 		void setPos(int x, int y, Vec2 pos, float z = 0.0f);
-		Vec2 getPos(int x, int y) const;
+		Vec2 getPos(int x, int y, float* z = nullptr) const;
 		Color getColor(int x, int y) const;
 		void setColor(int x, int y, Color color);
 		void moveUV(int x, int y, Vec2 offset);

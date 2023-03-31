@@ -112,9 +112,10 @@ void Grid::setPos(int x, int y, Vec2 pos, float z) {
 	_flags.setOn(Grid::VertexPosDirty);
 }
 
-Vec2 Grid::getPos(int x, int y) const {
+Vec2 Grid::getPos(int x, int y, float* z) const {
 	AssertIf(x < 0 || x > s_cast<int>(_gridX) || y < 0 || y > s_cast<int>(_gridY), "Grid vertex index {}, {} is out of bounds [0, {}], [0, {}]", x, y, _gridX, _gridY);
 	auto index = y * (_gridX + 1) + x;
+	if (z) *z = _points[index].position.z;
 	return {_points[index].position.x, _points[index].position.y};
 }
 

@@ -1424,8 +1424,8 @@ void Node::Grabber::setPos(int x, int y, Vec2 pos, float z) {
 	_grid->setPos(x, y, pos, z);
 }
 
-Vec2 Node::Grabber::getPos(int x, int y) const {
-	return _grid->getPos(x, y);
+Vec2 Node::Grabber::getPos(int x, int y, float* z) const {
+	return _grid->getPos(x, y, z);
 }
 
 Color Node::Grabber::getColor(int x, int y) const {
