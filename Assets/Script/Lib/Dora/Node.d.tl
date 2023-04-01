@@ -20,6 +20,8 @@ local BlendFunc = require("BlendFunc").Type
 -- class to be used to build
 -- a hierarchical tree structure of game objects.
 local record Node
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- The order of the node in the parent's children array.

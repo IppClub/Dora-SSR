@@ -1,3 +1,9 @@
+static int32_t platformer_data_get_group_first_player() {
+	return s_cast<int32_t>(SharedData.getGroupFirstPlayer());
+}
+static int32_t platformer_data_get_group_last_player() {
+	return s_cast<int32_t>(SharedData.getGroupLastPlayer());
+}
 static int32_t platformer_data_get_group_hide() {
 	return s_cast<int32_t>(SharedData.getGroupHide());
 }
@@ -62,6 +68,8 @@ static void platformer_data_clear() {
 	SharedData.clear();
 }
 static void linkPlatformerData(wasm3::module& mod) {
+	mod.link_optional("*", "platformer_data_get_group_first_player", platformer_data_get_group_first_player);
+	mod.link_optional("*", "platformer_data_get_group_last_player", platformer_data_get_group_last_player);
 	mod.link_optional("*", "platformer_data_get_group_hide", platformer_data_get_group_hide);
 	mod.link_optional("*", "platformer_data_get_group_detect_player", platformer_data_get_group_detect_player);
 	mod.link_optional("*", "platformer_data_get_group_terrain", platformer_data_get_group_terrain);

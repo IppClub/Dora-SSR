@@ -20,6 +20,8 @@ class Unit;
 
 class Data {
 public:
+	PROPERTY_READONLY(uint8_t, GroupFirstPlayer);
+	PROPERTY_READONLY(uint8_t, GroupLastPlayer);
 	PROPERTY_READONLY(uint8_t, GroupHide);
 	PROPERTY_READONLY(uint8_t, GroupDetectPlayer);
 	PROPERTY_READONLY(uint8_t, GroupTerrain);

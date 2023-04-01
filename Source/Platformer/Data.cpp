@@ -113,6 +113,14 @@ bool Data::getShouldContact(uint8_t groupA, uint8_t groupB) const {
 	return it != _contactMap.end() ? it->second : false;
 }
 
+uint8_t Data::getGroupFirstPlayer() const {
+	return FP;
+}
+
+uint8_t Data::getGroupLastPlayer() const {
+	return LP;
+}
+
 uint8_t Data::getGroupDetectPlayer() const {
 	return PSensor;
 }

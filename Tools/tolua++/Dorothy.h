@@ -1309,6 +1309,8 @@ class PlatformWorld : public PhysicsWorld
 
 class Data
 {
+	tolua_readonly tolua_property__common uint8_t groupFirstPlayer;
+	tolua_readonly tolua_property__common uint8_t groupLastPlayer;
 	tolua_readonly tolua_property__common uint8_t groupHide;
 	tolua_readonly tolua_property__common uint8_t groupDetectPlayer;
 	tolua_readonly tolua_property__common uint8_t groupTerrain;
