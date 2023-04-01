@@ -1,28 +1,122 @@
+-- The `Content` record is a singleton object that manages file searching,
+-- loading and other operations related to resources.
 local record Content
 	userdata
+
+	-- An array of directories to search for resource files.
 	searchPaths: {string}
+
+	-- The path to the directory containing read-only resources.
 	const assetPath: string
+
+	-- The path to the directory where files can be written.
 	const writablePath: string
+
+	-- Loads the content of the file with the specified filename.
+	-- @param filename (string) The name of the file to load.
+	-- @return (string) The content of the loaded file.
 	load: function(self: Content, filename: string): string
-	loadExcel: function(self: Content, filename: string, sheetNames?: {string}): {string:{{string|number}}} | nil
+
+	-- Loads the content of an Excel file with the specified filename and optional sheet names
+	-- @param filename (string) The name of the Excel file to load
+	-- @param sheetNames (table, optional) An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded.
+	-- @return (table) A table containing the data in the Excel file. The keys are the sheet names and the values are tables containing the rows and columns of the sheet.
+	loadExcel: function(self: Content, filename: string, sheetNames?: {string}): {string --[[sheetName]]: {{string|number} --[[colums]]}} --[[rows]] | nil
+
+	-- Saves the specified content to a file with the specified filename.
+	-- @param filename (string) The name of the file to save.
+	-- @param content (string) The content to save to the file.
 	save: function(self: Content, filename: string, content: string)
+
+	-- Checks if a file with the specified filename exists.
+	-- @param filename (string) The name of the file to check.
+	-- @return (boolean) `true` if the file exists, `false` otherwise.
 	exist: function(self: Content, filename: string)
+
+	-- Creates a new directory with the specified path.
+	-- @param path (string) The path of the directory to create.
+	-- @return (boolean) `true` if the directory was created, `false` otherwise.
 	mkdir: function(self: Content, path: string): boolean
+
+	-- Checks if the specified path is a directory.
+	-- @param path (string) The path to check.
+	-- @return (boolean) `true` if the path is a directory, `false` otherwise.
 	isdir: function(self: Content, path: string): boolean
+
+	-- Removes the file or directory with the specified path.
+	-- @param path (string) The path of the file or directory to remove.
+	-- @return (boolean) `true` if the file or directory was removed, `false` otherwise.
 	remove: function(self: Content, path: string): boolean
+
+	-- Gets the full path of a file with the specified filename.
+	-- @param filename (string) The name of the file to get the full path of.
+	-- @return (string) The full path of the file.
 	getFullPath: function(self: Content, filename: string): string
+
+	-- Inserts a search path at the specified index.
+	-- @param index (integer) The index at which to insert the search path.
+	-- @param path (string) The search path to insert.
 	insertSearchPath: function(self: Content, index: integer, path: string)
+
+	-- Adds a new search path to the end of the list.
+	-- @param path (string) The search path to add.
 	addSearchPath: function(self: Content, path: string)
+
+	-- Removes the specified search path from the list.
+	-- @param path (string) The search path to remove.
 	removeSearchPath: function(self: Content, path: string)
+
+	-- Asynchronously loads the content of the file with the specified filename.
+	-- @param filename (string) The name of the file to load.
+	-- @return (string) The content of the loaded file.
 	loadAsync: function(self: Content, filename: string): string
-	loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string}): {string:{{string|number}}} | nil
+
+	-- Asynchronously loads the content of an Excel file with the specified filename and optional sheet names.
+	-- @param filename (string) The name of the Excel file to load.
+	-- @param sheetNames (table, optional) An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded.
+	-- @return (table) A table containing the data in the Excel file. The keys are the sheet names and the values are tables containing the rows and columns of the sheet.
+	loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string}): {string: {{string|number}}} | nil
+
+	-- Asynchronously saves the specified content to a file with the specified filename.
+	-- @param filename (string) The name of the file to save.
+	-- @param content (string) The content to save to the file.
+	-- @return (boolean) `true` if the content was saved successfully, `false` otherwise.
 	saveAsync: function(self: Content, filename: string, content: string): boolean
+
+	-- Asynchronously copies a file or a folder from the source path to the destination path.
+	-- @param src (string) The path of the file or folder to copy.
+	-- @param dst (string) The destination path of the copied files.
+	-- @return (boolean) `true` if the file or folder was copied successfully, `false` otherwise.
 	copyAsync: function(self: Content, src: string, dst: string): boolean
+
+	-- Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
+	-- @param zipFile (string) The name of the ZIP archive to create.
+	-- @param folderPath (string) The path of the folder to compress, should be under the content writable path.
+	-- @param filter (function, optional) A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
+	-- @return (boolean) `true` if the folder was compressed successfully, `false` otherwise.
 	zipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
+
+	-- Gets the names of all subdirectories in the specified directory.
+	-- @param path (string) The path of the directory to search.
+	-- @return (table) An array of the names of all subdirectories in the specified directory.
 	getDirs: function(self: Content, path: string): {string}
+
+	-- Gets the names of all files in the specified directory.
+	-- @param path (string) The path of the directory to search.
+	-- @return (table) An array of the names of all files in the specified directory.
 	getFiles: function(self: Content, path: string): {string}
+
+	-- Gets the names of all files in the specified directory and its subdirectories.
+	-- @param path (string) The path of the directory to search.
+	-- @return (table) An array of the names of all files in the specified directory and its subdirectories.
 	getAllFiles: function(self: Content, path: string): {string}
+
+	-- Clears the search path cache of the map of relative paths to full paths.
 	clearPathCache: function(self: Content)
 end
+
+-- @usage
+-- local Content = require("Content")
+-- Content:load("filename.txt")
 local content: Content
 return content

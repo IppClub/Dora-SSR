@@ -1,4 +1,6 @@
 extern "C" {
+	fn platformer_data_get_group_first_player() -> i32;
+	fn platformer_data_get_group_last_player() -> i32;
 	fn platformer_data_get_group_hide() -> i32;
 	fn platformer_data_get_group_detect_player() -> i32;
 	fn platformer_data_get_group_terrain() -> i32;
@@ -23,6 +25,12 @@ extern "C" {
 }
 pub struct Data { }
 impl Data {
+	pub fn get_group_first_player() -> i32 {
+		return unsafe { platformer_data_get_group_first_player() };
+	}
+	pub fn get_group_last_player() -> i32 {
+		return unsafe { platformer_data_get_group_last_player() };
+	}
 	pub fn get_group_hide() -> i32 {
 		return unsafe { platformer_data_get_group_hide() };
 	}

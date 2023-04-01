@@ -1170,6 +1170,8 @@ object class PlatformWorld : public IPhysicsWorld
 
 singleton class Data
 {
+	readonly common uint8_t groupFirstPlayer;
+	readonly common uint8_t groupLastPlayer;
 	readonly common uint8_t groupHide;
 	readonly common uint8_t groupDetectPlayer;
 	readonly common uint8_t groupTerrain;
