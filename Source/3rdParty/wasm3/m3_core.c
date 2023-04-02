@@ -20,7 +20,7 @@ void m3_Abort(const char* message) {
 }
 
 M3_WEAK
-M3Result m3_Yield ()
+M3Result m3_Yield (void)
 {
     return m3Err_none;
 }

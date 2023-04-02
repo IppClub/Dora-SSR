@@ -14,7 +14,7 @@
 #include "m3_info.h"
 
 
-IM3Environment  m3_NewEnvironment  ()
+IM3Environment  m3_NewEnvironment  (void)
 {
     IM3Environment env = m3_AllocStruct (M3Environment);
 
@@ -832,7 +832,7 @@ M3Result  m3_CallV  (IM3Function i_function, ...)
 }
 
 static
-void  ReportNativeStackUsage  ()
+void  ReportNativeStackUsage  (void)
 {
 #   if d_m3LogNativeStack
         int stackUsed =  m3StackGetMax();

@@ -31,7 +31,7 @@ public:
 	PROPERTY_READONLY(Size, WinSize);
 	PROPERTY_READONLY(Size, BufferSize);
 	PROPERTY_READONLY(Size, VisualSize);
-	PROPERTY_READONLY(float, DeviceRatio);
+	PROPERTY_READONLY(float, DevicePixelRatio);
 	PROPERTY_READONLY(double, LastTime);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(double, EclapsedTime);

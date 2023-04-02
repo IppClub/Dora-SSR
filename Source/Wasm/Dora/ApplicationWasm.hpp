@@ -7,8 +7,8 @@ static int64_t application_get_buffer_size() {
 static int64_t application_get_visual_size() {
 	return size_retain(SharedApplication.getVisualSize());
 }
-static float application_get_device_ratio() {
-	return SharedApplication.getDeviceRatio();
+static float application_get_device_pixel_ratio() {
+	return SharedApplication.getDevicePixelRatio();
 }
 static int64_t application_get_platform() {
 	return str_retain(SharedApplication.getPlatform());
@@ -68,7 +68,7 @@ static void linkApplication(wasm3::module& mod) {
 	mod.link_optional("*", "application_get_frame", application_get_frame);
 	mod.link_optional("*", "application_get_buffer_size", application_get_buffer_size);
 	mod.link_optional("*", "application_get_visual_size", application_get_visual_size);
-	mod.link_optional("*", "application_get_device_ratio", application_get_device_ratio);
+	mod.link_optional("*", "application_get_device_pixel_ratio", application_get_device_pixel_ratio);
 	mod.link_optional("*", "application_get_platform", application_get_platform);
 	mod.link_optional("*", "application_get_version", application_get_version);
 	mod.link_optional("*", "application_get_deps", application_get_deps);

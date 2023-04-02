@@ -17,7 +17,6 @@ class Array : public Object {
 public:
 	Array(const Array&) = delete;
 	PROPERTY_READONLY(size_t, Count);
-	PROPERTY_READONLY(size_t, Capacity);
 	PROPERTY_READONLY_CREF(Own<Value>, Last);
 	PROPERTY_READONLY_CREF(Own<Value>, First);
 	PROPERTY_READONLY_CREF(Own<Value>, RandomObject);
@@ -34,7 +33,7 @@ public:
 	void swap(size_t indexA, size_t indexB);
 	void reverse();
 	void shrink();
-	size_t index(Value* value);
+	int index(Value* value);
 	void set(size_t index, Own<Value>&& value);
 	Own<Value>& get(size_t index);
 	const Own<Value>& get(size_t index) const;

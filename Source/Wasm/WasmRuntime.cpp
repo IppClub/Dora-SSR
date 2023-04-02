@@ -618,7 +618,7 @@ static int32_t array_contains(int64_t array, int64_t item) {
 	return r_cast<Array*>(array)->contains(to_value(*r_cast<dora_val_t*>(item)).get()) ? 1 : 0;
 }
 static int32_t array_index(int64_t array, int64_t item) {
-	return r_cast<Array*>(array)->index(to_value(*r_cast<dora_val_t*>(item)).get()) ? 1 : 0;
+	return r_cast<Array*>(array)->index(to_value(*r_cast<dora_val_t*>(item)).get());
 }
 static int64_t array_remove_last(int64_t array) {
 	auto arr = r_cast<Array*>(array);

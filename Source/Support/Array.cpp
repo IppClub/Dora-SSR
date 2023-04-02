@@ -28,10 +28,6 @@ size_t Array::getCount() const {
 	return _data.size();
 }
 
-size_t Array::getCapacity() const {
-	return _data.capacity();
-}
-
 const Own<Value>& Array::getLast() const {
 	AssertIf(_data.empty(), "get last item from an empty array.");
 	return _data.back();
@@ -118,11 +114,14 @@ void Array::shrink() {
 	_data.shrink_to_fit();
 }
 
-size_t Array::index(Value* value) {
+int Array::index(Value* value) {
 	auto it = std::find_if(_data.begin(), _data.end(), [&](const Own<Value>& val) {
 		return value->equals(val.get());
 	});
-	return std::distance(_data.begin(), it);
+	if (it == _data.end()) {
+		return -1;
+	}
+	return s_cast<int>(std::distance(_data.begin(), it));
 }
 
 void Array::set(size_t index, Own<Value>&& value) {

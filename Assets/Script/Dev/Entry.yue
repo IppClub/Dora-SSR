@@ -194,7 +194,7 @@ doClean = ->
 	Content\remove Path writablePath, ".upload"
 	Content\remove Path writablePath, ".download"
 
-screenScale = 2 -- App.deviceRatio
+screenScale = 2 -- App.devicePixelRatio
 scaleContent = false
 isInEntry = true
 currentEntry = nil
@@ -341,7 +341,7 @@ showEntry = false
 thread ->
 	unless App.debugging
 		:width, :height = App.visualSize
-		scale = App.deviceRatio * 0.7 * math.min(width, height) / 760
+		scale = App.devicePixelRatio * 0.7 * math.min(width, height) / 760
 		with Sprite nvg.GetDorothySSRHappyWhite scale
 			\addTo Director.entry
 			sleep 1.0

@@ -94,7 +94,7 @@ typedef struct OpInfo
 }
 OpInfo;
 
-void  m3_PrintM3Info  ()
+void  m3_PrintM3Info  (void)
 {
     printf ("\n-- m3 configuration --------------------------------------------\n");
 //  printf (" sizeof M3CodePage    : %zu bytes  (%d slots) \n", sizeof (M3CodePage), c_m3CodePageNumSlots);
@@ -558,7 +558,7 @@ void  m3_PrintProfilerInfo  ()
 
 # else
 
-void  m3_PrintProfilerInfo  () {}
+void  m3_PrintProfilerInfo  (void) {}
 
 # endif
 
