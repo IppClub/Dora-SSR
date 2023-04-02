@@ -105,7 +105,7 @@ class Application
 	tolua_readonly tolua_property__common uint32_t frame;
 	tolua_readonly tolua_property__common Size bufferSize;
 	tolua_readonly tolua_property__common Size visualSize;
-	tolua_readonly tolua_property__common float deviceRatio;
+	tolua_readonly tolua_property__common float devicePixelRatio;
 	tolua_readonly tolua_property__common String platform;
 	tolua_readonly tolua_property__common String version;
 	tolua_readonly tolua_property__common String deps;
@@ -138,7 +138,6 @@ class Object
 class Array : public Object
 {
 	tolua_readonly tolua_property__common size_t count;
-	tolua_readonly tolua_property__common size_t capacity;
 	tolua_readonly tolua_property__bool bool empty;
 	void addRange(Array* other);
 	void removeFrom(Array* other);

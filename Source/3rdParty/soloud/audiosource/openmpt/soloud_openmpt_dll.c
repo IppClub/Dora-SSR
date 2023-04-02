@@ -66,7 +66,7 @@ static void* getDllProc(void * aLibrary, const char *aProcName)
 #else
 #include <dlfcn.h> // dll functions
 
-static void * openDll()
+static void * openDll(void)
 {
 	void * res;
 	res = dlopen("libopenmpt.so", RTLD_LAZY);
@@ -80,7 +80,7 @@ static void* getDllProc(void * aLibrary, const char *aProcName)
 
 #endif
 
-static int load_dll()
+static int load_dll(void)
 {
 #ifdef WINDOWS_VERSION
 	HMODULE dll = NULL;

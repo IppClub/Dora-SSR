@@ -1287,6 +1287,9 @@ int Array_getFirst(lua_State* L) {
 #ifndef TOLUA_RELEASE
 	if (!self) tolua_error(L, "invalid 'self' in function 'Array_getFirst'", nullptr);
 #endif
+	if (self->isEmpty()) {
+		tolua_error(L, "'Array' indexing out of bound", nullptr);
+	}
 	self->getFirst()->pushToLua(L);
 	return 1;
 }
@@ -1296,6 +1299,9 @@ int Array_getLast(lua_State* L) {
 #ifndef TOLUA_RELEASE
 	if (!self) tolua_error(L, "invalid 'self' in function 'Array_getLast'", nullptr);
 #endif
+	if (self->isEmpty()) {
+		tolua_error(L, "'Array' indexing out of bound", nullptr);
+	}
 	self->getLast()->pushToLua(L);
 	return 1;
 }
@@ -1305,6 +1311,9 @@ int Array_getRandomObject(lua_State* L) {
 #ifndef TOLUA_RELEASE
 	if (!self) tolua_error(L, "invalid 'self' in function 'Array_getRandomObject'", nullptr);
 #endif
+	if (self->isEmpty()) {
+		tolua_error(L, "'Array' indexing out of bound", nullptr);
+	}
 	self->getRandomObject()->pushToLua(L);
 	return 1;
 }
@@ -1323,8 +1332,8 @@ int Array_index(lua_State* L) {
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_index'", nullptr);
 #endif
 		auto value = Dora_getValue(L, 2);
-		size_t index = self->index(value.get()) + 1;
-		lua_pushnumber(L, index);
+		lua_Integer index = s_cast<lua_Integer>(self->index(value.get()) + 1);
+		lua_pushinteger(L, index);
 		return 1;
 	}
 #ifndef TOLUA_RELEASE
@@ -1344,12 +1353,15 @@ int Array_set(lua_State* L) {
 #endif
 	{
 		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
-		int index = s_cast<int>(tolua_tonumber(L, 2, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_set'", nullptr);
 #endif
+		int index = s_cast<int>(tolua_tonumber(L, 2, 0)) - 1;
+		if (index < 0 || self->getCount() <= index) {
+			tolua_error(L, "'Array' indexing out of bound", nullptr);
+		}
 		auto value = Dora_getValue(L, 3);
-		self->set(index - 1, std::move(value));
+		self->set(index, std::move(value));
 		return 0;
 	}
 #ifndef TOLUA_RELEASE
@@ -1372,8 +1384,11 @@ int Array_get(lua_State* L) {
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_get'", nullptr);
 #endif
-		int index = s_cast<int>(tolua_tonumber(L, 2, 0));
-		const auto& value = self->get(index - 1);
+		int index = s_cast<int>(tolua_tonumber(L, 2, 0)) - 1;
+		if (index < 0 || self->getCount() <= index) {
+			tolua_error(L, "'Array' indexing out of bound", nullptr);
+		}
+		const auto& value = self->get(index);
 		if (value)
 			value->pushToLua(L);
 		else
@@ -1397,12 +1412,15 @@ int Array_insert(lua_State* L) {
 #endif
 	{
 		Array* self = r_cast<Array*>(tolua_tousertype(L, 1, 0));
-		int index = s_cast<int>(tolua_tonumber(L, 2, 0));
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_insert'", nullptr);
 #endif
+		int index = s_cast<int>(tolua_tonumber(L, 2, 0)) - 1;
+		if (index < 0 || self->getCount() <= index) {
+			tolua_error(L, "'Array' indexing out of bound", nullptr);
+		}
 		auto value = Dora_getValue(L, 3);
-		self->insert(index - 1, std::move(value));
+		self->insert(index, std::move(value));
 		return 0;
 	}
 #ifndef TOLUA_RELEASE

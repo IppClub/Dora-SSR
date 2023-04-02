@@ -1,7 +1,6 @@
 object class Array
 {
 	readonly common size_t count;
-	readonly common size_t capacity;
 	readonly boolean bool empty;
 	void addRange(Array* other);
 	void removeFrom(Array* other);
@@ -51,7 +50,7 @@ singleton class Application @ App
 	readonly common uint32_t frame;
 	readonly common Size bufferSize;
 	readonly common Size visualSize;
-	readonly common float deviceRatio;
+	readonly common float devicePixelRatio;
 	readonly common string platform;
 	readonly common string version;
 	readonly common string deps;

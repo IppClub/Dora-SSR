@@ -822,7 +822,7 @@ for i = 1, #characters
 playerGroup = Group {"player","unit"}
 updatePlayerControl = (key,flag)-> playerGroup\each => @unit.data[key] = flag
 
-uiScale = App.deviceRatio
+uiScale = App.devicePixelRatio
 
 Director.ui\addChild with AlignNode isRoot:true
 	\schedule ->

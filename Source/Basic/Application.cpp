@@ -95,7 +95,7 @@ Size Application::getWinSize() const {
 	return Size{s_cast<float>(_winWidth), s_cast<float>(_winHeight)};
 }
 
-float Application::getDeviceRatio() const {
+float Application::getDevicePixelRatio() const {
 	return s_cast<float>(_bufferWidth) / _visualWidth;
 }
 

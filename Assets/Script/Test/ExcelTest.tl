@@ -210,7 +210,7 @@ local function updatePlayerControl(key: string, flag: boolean, vpad: boolean)
 	end)
 end
 
-local uiScale = App.deviceRatio
+local uiScale = App.devicePixelRatio
 local alignNode = AlignNode {
 	isRoot = true,
 	inUI = true

@@ -1,7 +1,6 @@
 extern "C" {
 	fn array_type() -> i32;
 	fn array_get_count(slf: i64) -> i64;
-	fn array_get_capacity(slf: i64) -> i64;
 	fn array_is_empty(slf: i64) -> i32;
 	fn array_add_range(slf: i64, other: i64);
 	fn array_remove_from(slf: i64, other: i64);
@@ -27,9 +26,6 @@ impl Array {
 	}
 	pub fn get_count(&self) -> i64 {
 		return unsafe { array_get_count(self.raw()) };
-	}
-	pub fn get_capacity(&self) -> i64 {
-		return unsafe { array_get_capacity(self.raw()) };
 	}
 	pub fn is_empty(&self) -> bool {
 		return unsafe { array_is_empty(self.raw()) != 0 };

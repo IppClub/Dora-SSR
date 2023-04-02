@@ -530,8 +530,8 @@ NVGcontext* Director::markNVGDirty() {
 	if (!_nvgDirty) {
 		_nvgDirty = true;
 		Size visualSize = SharedApplication.getVisualSize();
-		float deviceRatio = SharedApplication.getDeviceRatio();
-		nvgBeginFrame(_nvgContext, visualSize.width, visualSize.height, deviceRatio);
+		float devicePixelRatio = SharedApplication.getDevicePixelRatio();
+		nvgBeginFrame(_nvgContext, visualSize.width, visualSize.height, devicePixelRatio);
 	}
 	return _nvgContext;
 }

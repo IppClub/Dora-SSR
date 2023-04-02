@@ -432,7 +432,7 @@ void ImGuiDora::setImePositionHint(int x, int y) {
 	_lastIMEPosY = y;
 	float scale =
 #if BX_PLATFORM_WINDOWS
-		SharedApplication.getDeviceRatio();
+		SharedApplication.getDevicePixelRatio();
 #else
 		1.0f;
 #endif // BX_PLATFORM_WINDOWS
@@ -448,7 +448,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 #if BX_PLATFORM_LINUX // || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
 		1.0f;
 #else
-		SharedApplication.getDeviceRatio();
+		SharedApplication.getDevicePixelRatio();
 	fontSize *= scale;
 #endif
 
@@ -1084,7 +1084,7 @@ void ImGuiDora::render() {
 	SharedView.pushBack("ImGui"_slice, [&]() {
 		bgfx::ViewId viewId = SharedView.getId();
 
-		float scale = SharedApplication.getDeviceRatio();
+		float scale = SharedApplication.getDevicePixelRatio();
 		_defaultPass->set("u_scale"_slice, scale);
 		_imagePass->set("u_scale"_slice, scale);
 

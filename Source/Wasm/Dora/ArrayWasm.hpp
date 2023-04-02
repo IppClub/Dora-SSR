@@ -4,9 +4,6 @@ static int32_t array_type() {
 static int64_t array_get_count(int64_t self) {
 	return s_cast<int64_t>(r_cast<Array*>(self)->getCount());
 }
-static int64_t array_get_capacity(int64_t self) {
-	return s_cast<int64_t>(r_cast<Array*>(self)->getCapacity());
-}
 static int32_t array_is_empty(int64_t self) {
 	return r_cast<Array*>(self)->isEmpty() ? 1 : 0;
 }
@@ -40,7 +37,6 @@ static int64_t array_new() {
 static void linkArray(wasm3::module& mod) {
 	mod.link_optional("*", "array_type", array_type);
 	mod.link_optional("*", "array_get_count", array_get_count);
-	mod.link_optional("*", "array_get_capacity", array_get_capacity);
 	mod.link_optional("*", "array_is_empty", array_is_empty);
 	mod.link_optional("*", "array_add_range", array_add_range);
 	mod.link_optional("*", "array_remove_from", array_remove_from);
