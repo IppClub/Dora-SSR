@@ -10,7 +10,7 @@ local record Sprite
 	-- Inherits from `Node`.
 	embed Node
 
-	-- Defines an enumeration for texture wrapping modes.
+	-- An enumeration for texture wrapping modes.
 	enum TextureWrap
 		"None"
 		"Mirror"
@@ -18,7 +18,7 @@ local record Sprite
 		"Border"
 	end
 
-	-- Defines an enumeration for texture filtering modes.
+	-- An enumeration for texture filtering modes.
 	enum TextureFilter
 		"None"
 		"Point"
@@ -29,7 +29,7 @@ local record Sprite
 	depthWrite: boolean
 
 	-- Specifies the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
-	-- Only works with SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest").
+	-- Only works with `sprite.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
 	alphaRef: number
 
 	-- Specifies the texture rectangle for the sprite, as an instance of the Rect class.
@@ -60,19 +60,19 @@ end
 local record SpriteClass
 	type Type = Sprite
 
-	-- Defines a metamethod for calling the SpriteClass as a function with no arguments.
+	-- A metamethod for calling the SpriteClass as a function with no arguments.
 	-- @param self (SpriteClass) The SpriteClass instance.
 	-- @return (Sprite) A new instance of the Sprite class.
 	metamethod __call: function(self: SpriteClass): Sprite
 
-	-- Defines a metamethod for calling the SpriteClass as a function with a Texture2D and an optional Rect argument.
+	-- A metamethod for calling the SpriteClass as a function with a Texture2D and an optional Rect argument.
 	-- @param self (SpriteClass, optional) The SpriteClass instance.
 	-- @param texture (Texture2D) The texture to be used for the sprite.
 	-- @param textureRect (Rect|nil) The rectangle defining the portion of the texture to use for the sprite.
 	-- @return (Sprite) A new instance of the Sprite class with the specified texture and texture rectangle.
 	metamethod __call: function(self: SpriteClass, texture: Texture2D, textureRect?: Rect): Sprite
 
-	-- Defines a metamethod for calling the SpriteClass as a function with a string argument.
+	-- A metamethod for calling the SpriteClass as a function with a string argument.
 	-- @param self (SpriteClass) The SpriteClass instance.
 	-- @param clipStr (string) The string containing format to texture image file.
 	-- could be "Image/file.png" and "Image/items.clip|itemA".

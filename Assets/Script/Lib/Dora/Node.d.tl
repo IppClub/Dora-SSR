@@ -428,45 +428,55 @@ local record Node
 end
 
 -- The available event slots for a Node.
+-- This is just a demonstration record showing the signal slot names and callbacks.
+-- You can register for these events using codes like:
+-- node:slot("ActionEnd", function(action: Action, target: Node)
+-- 	print("Action end", action, target)
+-- end)
 local record __SLOT__
+
 	-- The ActionEnd slot is triggered when an action is finished.
 	-- Triggers after node:runAction() and node:perform().
-	-- Parameters: action (Action) - The finished action. target (Node) - The node that finished the action.
+	-- @param action (Action) The finished action.
+	-- @param target (Node) The node that finished the action.
 	["ActionEnd"]: function(action: Action, target: Node)
 
 	-- The TapFilter slot is triggered before the TapBegan slot and can be used to filter out certain taps.
 	-- Triggers after setting node.touchEnabled = true.
-	-- Parameters: touch (Touch) - The touch that triggered the tap.
+	-- @param touch (Touch) The touch that triggered the tap.
 	["TapFilter"]: function(touch: Touch)
 
 	-- The TapBegan slot is triggered when a tap is detected.
 	-- Triggers after setting node.touchEnabled = true.
-	-- Parameters: touch (Touch) - The touch that triggered the tap.
+	-- @param touch (Touch) The touch that triggered the tap.
 	["TapBegan"]: function(touch: Touch)
 
 	-- The TapEnded slot is triggered when a tap ends.
 	-- Triggers after setting node.touchEnabled = true.
-	-- Parameters: touch (Touch) - The touch that triggered the tap.
+	-- @param touch (Touch) The touch that triggered the tap.
 	["TapEnded"]: function(touch: Touch)
 
 	-- The Tapped slot is triggered when a tap is detected and has ended.
 	-- Triggers after setting node.touchEnabled = true.
-	-- Parameters: touch (Touch) - The touch that triggered the tap.
+	-- @param touch (Touch) The touch that triggered the tap.
 	["Tapped"]: function(touch: Touch)
 
 	-- The TapMoved slot is triggered when a tap moves.
 	-- Triggers after setting node.touchEnabled = true.
-	-- Parameters: touch (Touch) - The touch that triggered the tap.
+	-- @param touch (Touch) The touch that triggered the tap.
 	["TapMoved"]: function(touch: Touch)
 
 	-- The MouseWheel slot is triggered when the mouse wheel is scrolled.
 	-- Triggers after setting node.touchEnabled = true.
-	-- Parameters: delta (Vec2) - The amount of scrolling that occurred.
+	-- @param delta (Vec2) The amount of scrolling that occurred.
 	["MouseWheel"]: function(delta: Vec2)
 
 	-- The Gesture slot is triggered when a gesture is recognized.
 	-- Triggers after setting node.touchEnabled = true.
-	-- Parameters: center (Vec2) - The center of the gesture. numFingers (integer) - The number of fingers involved in the gesture. deltaDist (number) - The distance the gesture has moved. deltaAngle (number) - The angle of the gesture.
+	-- @param center (Vec2) The center of the gesture.
+	-- @param numFingers (integer) The number of fingers involved in the gesture.
+	-- @param deltaDist (number) The distance the gesture has moved.
+	-- @param deltaAngle (number) The angle of the gesture.
 	["Gesture"]: function(center: Vec2, numFingers: integer, deltaDist: number, deltaAngle: number)
 
 	-- The Enter slot is triggered when a node is added to the scene graph.
@@ -483,17 +493,17 @@ local record __SLOT__
 
 	-- The KeyDown slot is triggered when a key is pressed down.
 	-- Triggers after setting node.keyboardEnabled = true.
-	-- Parameters: keyName (string) - The name of the key that was pressed.
+	-- @param keyName (string) The name of the key that was pressed.
 	["KeyDown"]: function(keyName: string)
 
 	-- The KeyUp slot is triggered when a key is released.
 	-- Triggers after setting node.keyboardEnabled = true.
-	-- Parameters: keyName (string) - The name of the key that was released.
+	-- @param keyName (string) The name of the key that was released.
 	["KeyUp"]: function(keyName: string)
 
 	-- The KeyPressed slot is triggered when a key is pressed and released.
 	-- Triggers after setting node.keyboardEnabled = true.
-	-- Parameters: keyName (string) - The name of the key that was pressed and released.
+	-- @param keyName (string) The name of the key that was pressed and released.
 	["KeyPressed"]: function(keyName: string)
 
 	-- The AttachIME slot is triggered when the input method editor (IME) is attached (calling node:attachIME()).
@@ -504,16 +514,22 @@ local record __SLOT__
 
 	-- The TextInput slot is triggered when text input is received.
 	-- Triggers after calling node:attachIME().
-	-- Parameters: text (string) - The text that was input.
+	-- @param text (string) The text that was input.
 	["TextInput"]: function(text: string)
 
 	-- The TextEditing slot is triggered when text is being edited.
 	-- Triggers after calling node:attachIME().
-	-- Parameters: text (string) - The text that is being edited. startPos (integer) - The starting position of the text being edited.
+	-- @param text (string) The text that is being edited.
+	-- @param startPos (integer) The starting position of the text being edited.
 	["TextEditing"]: function(text: string, startPos: integer)
 end
 
 -- The global signal slot communication features.
+-- This is just a demonstration record showing the global signal slot names and callbacks.
+-- You can register for these events using codes like:
+-- node:gslot("AppQuit", function()
+-- 	print("Application is shuting down!")
+-- end)
 local record __GSLOT__
 	-- Triggers when the application is about to quit.
 	["AppQuit"]: function()

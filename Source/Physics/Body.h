@@ -67,7 +67,8 @@ public:
 
 protected:
 	Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos = Vec2::zero, float rot = 0);
-	pr::ShapeID attachFixture(FixtureDef* fixtureDef);
+	pr::ShapeID attachFixture(const pd::Shape& shape);
+	Sensor* attachSensor(int tag, pd::Shape& shape);
 	virtual void updatePhysics();
 	pr::BodyID _prBody; // weak reference
 	PhysicsWorld* _pWorld;

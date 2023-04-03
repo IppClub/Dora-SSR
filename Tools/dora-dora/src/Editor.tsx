@@ -20,6 +20,10 @@ monaco.editor.defineTheme("dora-dark", {
 		{
 			token: "operator",
 			foreground: "cc76d1",
+		},
+		{
+			token: "comment",
+			foreground: "8bb66f",
 		}
 	],
 	colors: {},

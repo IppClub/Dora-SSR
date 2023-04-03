@@ -1,5 +1,6 @@
+local Object = require("Object").Type
 local record FixtureDef
-	userdata
+	embed Object
 end
 local record FixtureDefClass
 	type Type = FixtureDef

@@ -73,6 +73,7 @@ local objects = {
 	"Spine",
 	"DragonBone",
 	"OthoCamera",
+	"FixtureDef",
 	"BodyDef",
 	"Buffer",
 	"Camera2D",

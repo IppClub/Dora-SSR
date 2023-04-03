@@ -93,7 +93,7 @@ local record Decision
 	-- @return (Leaf) A `Leaf` node.
 	Behave: function(name: string, root: Behavior.Leaf): Leaf
 
-	-- The singleton instance to retrieve information when executing the decision tree.
+	-- The singleton instance to retrieve information while executing the decision tree.
 	AI: AI
 end
 

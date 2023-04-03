@@ -15,8 +15,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-FixtureDef BodyDef::_tempConf{};
-
 BodyDef::BodyDef()
 	: angleOffset(0)
 	, offset(Vec2::zero)
@@ -234,8 +232,7 @@ void BodyDef::attachDiskSensor(int tag, float radius) {
 }
 
 FixtureDef* BodyDef::polygon(const Vec2& center, float width, float height, float angle, float density, float friction, float restitution) {
-	_tempConf = {
-		0,
+	return FixtureDef::create(
 		pd::Shape{
 			pd::PolygonShapeConf{}
 				.SetAsBox(
@@ -245,13 +242,11 @@ FixtureDef* BodyDef::polygon(const Vec2& center, float width, float height, floa
 					-bx::toRad(angle))
 				.UseDensity(density)
 				.UseFriction(friction)
-				.UseRestitution(restitution)}};
-	return &_tempConf;
+				.UseRestitution(restitution)});
 }
 
 FixtureDef* BodyDef::polygon(float width, float height, float density, float friction, float restitution) {
-	_tempConf = {
-		0,
+	return FixtureDef::create(
 		pd::Shape{
 			pd::PolygonShapeConf{}
 				.SetAsBox(
@@ -259,8 +254,7 @@ FixtureDef* BodyDef::polygon(float width, float height, float density, float fri
 					PhysicsWorld::b2Val(height * 0.5f))
 				.UseDensity(density)
 				.UseFriction(friction)
-				.UseRestitution(restitution)}};
-	return &_tempConf;
+				.UseRestitution(restitution)});
 }
 
 FixtureDef* BodyDef::polygon(const std::vector<Vec2>& vertices, float density, float friction, float restitution) {
@@ -270,15 +264,13 @@ FixtureDef* BodyDef::polygon(const std::vector<Vec2>& vertices, float density, f
 			PhysicsWorld::b2Val(vertices[i].x),
 			PhysicsWorld::b2Val(vertices[i].y)};
 	}
-	_tempConf = {
-		0,
+	return FixtureDef::create(
 		pd::Shape{
 			pd::PolygonShapeConf{}
 				.Set(vs)
 				.UseDensity(density)
 				.UseFriction(friction)
-				.UseRestitution(restitution)}};
-	return &_tempConf;
+				.UseRestitution(restitution)});
 }
 
 FixtureDef* BodyDef::polygon(const Vec2 vertices[], int count, float density, float friction, float restitution) {
@@ -288,15 +280,13 @@ FixtureDef* BodyDef::polygon(const Vec2 vertices[], int count, float density, fl
 			PhysicsWorld::b2Val(vertices[i].x),
 			PhysicsWorld::b2Val(vertices[i].y)};
 	}
-	_tempConf = {
-		0,
+	return FixtureDef::create(
 		pd::Shape{
 			pd::PolygonShapeConf{}
 				.Set(vs)
 				.UseDensity(density)
 				.UseFriction(friction)
-				.UseRestitution(restitution)}};
-	return &_tempConf;
+				.UseRestitution(restitution)});
 }
 
 FixtureDef* BodyDef::multi(const std::vector<Vec2>& vertices, float density, float friction, float restitution) {
@@ -320,8 +310,7 @@ FixtureDef* BodyDef::multi(const std::vector<Vec2>& vertices, float density, flo
 		.UseDensity(density)
 		.UseFriction(friction)
 		.UseRestitution(restitution);
-	_tempConf = {0, pd::Shape{conf}};
-	return &_tempConf;
+	return FixtureDef::create(pd::Shape{conf});
 }
 
 FixtureDef* BodyDef::multi(const Vec2 vertices[], int count, float density, float friction, float restitution) {
@@ -345,8 +334,7 @@ FixtureDef* BodyDef::multi(const Vec2 vertices[], int count, float density, floa
 		.UseDensity(density)
 		.UseFriction(friction)
 		.UseRestitution(restitution);
-	_tempConf = {0, pd::Shape{conf}};
-	return &_tempConf;
+	return FixtureDef::create(pd::Shape{conf});
 }
 
 FixtureDef* BodyDef::disk(const Vec2& center, float radius, float density, float friction, float restitution) {
@@ -356,8 +344,7 @@ FixtureDef* BodyDef::disk(const Vec2& center, float radius, float density, float
 								 .UseDensity(density)
 								 .UseFriction(friction)
 								 .UseRestitution(restitution);
-	_tempConf = {0, pd::Shape{conf}};
-	return &_tempConf;
+	return FixtureDef::create(pd::Shape{conf});
 }
 
 FixtureDef* BodyDef::disk(float radius, float density, float friction, float restitution) {
@@ -375,8 +362,7 @@ FixtureDef* BodyDef::chain(const std::vector<Vec2>& vertices, float friction, fl
 								  .Set(vs)
 								  .UseFriction(friction)
 								  .UseRestitution(restitution);
-	_tempConf = {0, pd::Shape{conf}};
-	return &_tempConf;
+	return FixtureDef::create(pd::Shape{conf});
 }
 
 FixtureDef* BodyDef::chain(const Vec2 vertices[], int count, float friction, float restitution) {
@@ -390,11 +376,10 @@ FixtureDef* BodyDef::chain(const Vec2 vertices[], int count, float friction, flo
 								  .Set(vs)
 								  .UseFriction(friction)
 								  .UseRestitution(restitution);
-	_tempConf = {0, pd::Shape{conf}};
-	return &_tempConf;
+	return FixtureDef::create(pd::Shape{conf});
 }
 
-std::list<FixtureDef>& BodyDef::getFixtureConfs() {
+std::list<BodyDef::FixtureConf>& BodyDef::getFixtureConfs() {
 	return _fixtureConfs;
 }
 
