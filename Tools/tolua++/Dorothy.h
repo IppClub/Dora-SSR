@@ -687,7 +687,7 @@ class PhysicsWorld : public Node
 	static PhysicsWorld* create();
 };
 
-class FixtureDef {};
+class FixtureDef : public Object {};
 
 class BodyDef : public Object
 {

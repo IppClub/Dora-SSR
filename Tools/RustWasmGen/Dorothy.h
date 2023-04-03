@@ -553,7 +553,7 @@ interface object class PhysicsWorld : public INode
 	static PhysicsWorld* create();
 };
 
-class FixtureDef { };
+object class FixtureDef { };
 
 object class BodyDef
 {

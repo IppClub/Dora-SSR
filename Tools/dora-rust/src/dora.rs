@@ -159,6 +159,7 @@ static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn IObject>>>> = Lazy::new(||
 		Spine::type_info(),
 		DragonBone::type_info(),
 		PhysicsWorld::type_info(),
+		FixtureDef::type_info(),
 		BodyDef::type_info(),
 		Sensor::type_info(),
 		Body::type_info(),

@@ -19,15 +19,13 @@ namespace pd = playrho::d2;
 class Body;
 class World;
 
-struct FixtureDef {
-	FixtureDef()
-		: tag(0) { }
-	FixtureDef(int tag,
-		const pd::Shape& shape)
-		: tag(tag)
-		, shape(shape) { }
-	int tag;
+class FixtureDef : public Object {
+public:
+	FixtureDef(const pd::Shape& shape)
+		: shape(shape) { }
 	pd::Shape shape;
+	CREATE_FUNC(FixtureDef);
+	DORA_TYPE_OVERRIDE(FixtureDef);
 };
 
 class BodyDef : public Object {
@@ -180,17 +178,25 @@ public:
 		int count,
 		float friction = 0.2f,
 		float restitution = 0.0f);
-	std::list<FixtureDef>& getFixtureConfs();
+
+	struct FixtureConf {
+		FixtureConf(int tag, pd::Shape&& shape)
+		: tag(tag)
+		, shape(std::move(shape)) { }
+		int tag;
+		pd::Shape shape;
+	};
+	std::list<FixtureConf>& getFixtureConfs();
 	void clearFixtures();
+
 	CREATE_FUNC(BodyDef);
 
 protected:
 	BodyDef();
 	pd::BodyConf _conf;
-	static FixtureDef _tempConf;
 
 private:
-	std::list<FixtureDef> _fixtureConfs;
+	std::list<FixtureConf> _fixtureConfs;
 	DORA_TYPE_OVERRIDE(BodyDef);
 };
 

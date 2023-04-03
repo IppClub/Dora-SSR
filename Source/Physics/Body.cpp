@@ -46,11 +46,11 @@ bool Body::init() {
 	_prBody = pd::CreateBody(_pWorld->getPrWorld(), *_bodyDef->getConf());
 	_pWorld->setBodyData(_prBody, this);
 	Node::setPosition(PhysicsWorld::oVal(_bodyDef->getConf()->location));
-	for (FixtureDef& fixtureDef : _bodyDef->getFixtureConfs()) {
-		if (pd::IsSensor(fixtureDef.shape)) {
-			Body::attachSensor(fixtureDef.tag, &fixtureDef);
+	for (BodyDef::FixtureConf& fixtureConf : _bodyDef->getFixtureConfs()) {
+		if (pd::IsSensor(fixtureConf.shape)) {
+			Body::attachSensor(fixtureConf.tag, fixtureConf.shape);
 		} else {
-			Body::attachFixture(&fixtureDef);
+			Body::attachFixture(fixtureConf.shape);
 		}
 	}
 	contactStart += std::make_pair(this, &Body::onContactStart);
@@ -211,17 +211,17 @@ void Body::applyAngularImpulse(float impulse) {
 	pd::ApplyAngularImpulse(world, _prBody, PhysicsWorld::b2Val(impulse));
 }
 
-pr::ShapeID Body::attachFixture(FixtureDef* fixtureDef) {
+pr::ShapeID Body::attachFixture(const pd::Shape& shape) {
 	auto& world = _pWorld->getPrWorld();
 	pr::ShapeID fixture = pd::CreateShape(
 		world,
-		fixtureDef->shape);
+		shape);
 	pd::Attach(world, _prBody, fixture);
 	return fixture;
 }
 
 pr::ShapeID Body::attach(FixtureDef* fixtureDef) {
-	pr::ShapeID fixture = Body::attachFixture(fixtureDef);
+	pr::ShapeID fixture = Body::attachFixture(fixtureDef->shape);
 	/* cleanup temp vertices */
 	if (pd::GetType(fixtureDef->shape) == pr::GetTypeID<pd::ChainShapeConf>()) {
 		fixtureDef->shape = pd::Shape{};
@@ -229,8 +229,7 @@ pr::ShapeID Body::attach(FixtureDef* fixtureDef) {
 	return fixture;
 }
 
-Sensor* Body::attachSensor(int tag, FixtureDef* fixtureDef) {
-	pd::Shape shape = fixtureDef->shape;
+Sensor* Body::attachSensor(int tag, pd::Shape& shape) {
 	pd::SetSensor(shape, true);
 	pd::SetFilter(shape, _pWorld->getFilter(_group));
 	auto& world = _pWorld->getPrWorld();
@@ -243,6 +242,10 @@ Sensor* Body::attachSensor(int tag, FixtureDef* fixtureDef) {
 	if (!_sensors) _sensors = Array::create();
 	_sensors->add(Value::alloc(sensor));
 	return sensor;
+}
+
+Sensor* Body::attachSensor(int tag, FixtureDef* fixtureDef) {
+	return Body::attachSensor(tag, fixtureDef->shape);
 }
 
 bool Body::isSensor() const {
