@@ -70,9 +70,9 @@ local record BodyDef
 	-- Attaches a polygon fixture definition to the body.
 	-- @param width (number) The width of the polygon.
 	-- @param height (number) The height of the polygon.
-	-- @param density (number) (optional) The density of the polygon (default is 0.0).
-	-- @param friction (number) (optional) The friction of the polygon (default is 0.4, should be 0 to 1.0).
-	-- @param restitution (number) (optional) The restitution of the polygon (default is 0.0, should be 0 to 1.0).
+	-- @param density (number) [optional] The density of the polygon (default is 0.0).
+	-- @param friction (number) [optional] The friction of the polygon (default is 0.4, should be 0 to 1.0).
+	-- @param restitution (number) [optional] The restitution of the polygon (default is 0.0, should be 0 to 1.0).
 	attachPolygon: function(self: BodyDef,
 		width: number,
 		height: number,
@@ -82,9 +82,9 @@ local record BodyDef
 
 	-- Attaches a polygon fixture definition to the body.
 	-- @param vertices (table) The vertices of the polygon.
-	-- @param density (number) (optional) The density of the polygon (default is 0.0).
-	-- @param friction (number) (optional) The friction of the polygon (default is 0.4, should be 0 to 1.0).
-	-- @param restitution (number) (optional) The restitution of the polygon (default is 0.0, should be 0 to 1.0).
+	-- @param density (number) [optional] The density of the polygon (default is 0.0).
+	-- @param friction (number) [optional] The friction of the polygon (default is 0.4, should be 0 to 1.0).
+	-- @param restitution (number) [optional] The restitution of the polygon (default is 0.0, should be 0 to 1.0).
 	attachPolygon: function(self: BodyDef,
 		vertices: {Vec2},
 		density?: number --[[0.0]],
@@ -94,9 +94,9 @@ local record BodyDef
 	-- Attaches a concave shape definition made of multiple convex shapes to the body.
 	-- @param vertices (table) A table containing the vertices of each convex shape that makes up the concave shape.
 	-- Each convex shape in the vertices table should ends with a Vec2(0.0, 0.0) as seperator.
-	-- @param density (number) (optional) The density of the concave shape (default is 0.0).
-	-- @param friction (number) (optional) The friction of the concave shape (default is 0.4, should be 0 to 1.0).
-	-- @param restitution (number) (optional) The restitution of the concave shape (default is 0.0, should be 0 to 1.0).
+	-- @param density (number) [optional] The density of the concave shape (default is 0.0).
+	-- @param friction (number) [optional] The friction of the concave shape (default is 0.4, should be 0 to 1.0).
+	-- @param restitution (number) [optional] The restitution of the concave shape (default is 0.0, should be 0 to 1.0).
 	attachMulti: function(self: BodyDef,
 		vertices: {Vec2},
 		density?: number --[[0.0]],
@@ -106,9 +106,9 @@ local record BodyDef
 	-- Attaches a disk fixture definition to the body.
 	-- @param center (Vec2) The center point of the disk.
 	-- @param radius (number) The radius of the disk.
-	-- @param density (number) (optional) The density of the disk (default is 0.0).
-	-- @param friction (number) (optional) The friction of the disk (default is 0.4, should be 0 to 1.0).
-	-- @param restitution (number) (optional) The restitution of the disk (default is 0.0, should be 0 to 1.0).
+	-- @param density (number) [optional] The density of the disk (default is 0.0).
+	-- @param friction (number) [optional] The friction of the disk (default is 0.4, should be 0 to 1.0).
+	-- @param restitution (number) [optional] The restitution of the disk (default is 0.0, should be 0 to 1.0).
 	attachDisk: function(self: BodyDef,
 		center: Vec2,
 		radius: number,
@@ -118,9 +118,9 @@ local record BodyDef
 
 	-- Attaches a disk fixture to the body.
 	-- @param radius number The radius of the disk.
-	-- @param density number (optional) The density of the disk (default is 0.0).
-	-- @param friction number (optional) The friction of the disk (default is 0.4).
-	-- @param restitution number (optional) The restitution of the disk (default is 0.0).
+	-- @param density number [optional] The density of the disk (default is 0.0).
+	-- @param friction number [optional] The friction of the disk (default is 0.4).
+	-- @param restitution number [optional] The restitution of the disk (default is 0.0).
 	attachDisk: function(self: BodyDef,
 		radius: number,
 		density?: number --[[0.0]],
@@ -129,8 +129,8 @@ local record BodyDef
 
 	-- Attaches a chain fixture definition to the body. The Chain fixture is a free form sequence of line segments that has two-sided collision.
 	-- @param vertices (table) The vertices of the chain.
-	-- @param friction (number) (optional) The friction of the chain (default is 0.4).
-	-- @param restitution (number) (optional) The restitution of the chain (default is 0.0).
+	-- @param friction (number) [optional] The friction of the chain (default is 0.4).
+	-- @param restitution (number) [optional] The restitution of the chain (default is 0.0).
 	attachChain: function(self: BodyDef,
 		vertices: {Vec2},
 		friction?: number --[[0.4]],
@@ -150,7 +150,7 @@ local record BodyDef
 	-- @param center (Vec2) The center point of the polygon.
 	-- @param width (number) The width of the polygon.
 	-- @param height (number) The height of the polygon.
-	-- @param angle (number) (optional) The angle of the polygon (default is 0.0).
+	-- @param angle (number) [optional] The angle of the polygon (default is 0.0).
 	attachPolygonSensor: function(self: BodyDef,
 		tag: integer,
 		center: Vec2,
@@ -189,9 +189,9 @@ local record BodyDefClass
 	-- Creates a polygon fixture definition with the specified dimensions.
 	-- @param width (number) The width of the polygon.
 	-- @param height (number) The height of the polygon.
-	-- @param density (number) (optional) The density of the polygon (default is 0.0).
-	-- @param friction (number) (optional) The friction of the polygon (default is 0.4, should be 0.0 to 1.0).
-	-- @param restitution (number) (optional) The restitution of the polygon (default is 0.0, should be  0.0 to 1.0).
+	-- @param density (number) [optional] The density of the polygon (default is 0.0).
+	-- @param friction (number) [optional] The friction of the polygon (default is 0.4, should be 0.0 to 1.0).
+	-- @param restitution (number) [optional] The restitution of the polygon (default is 0.0, should be  0.0 to 1.0).
 	-- @return (FixtureDef) A FixtureDef object for the created polygon fixture.
 	polygon: function(self: BodyDefClass,
 		width: number,
@@ -204,10 +204,10 @@ local record BodyDefClass
 	-- @param center (Vec2) The center position of the polygon.
 	-- @param width (number) The width of the polygon.
 	-- @param height (number) The height of the polygon.
-	-- @param angle (number) (optional) The angle of the polygon in radians (default is 0.0).
-	-- @param density (number) (optional) The density of the polygon (default is 0.0).
-	-- @param friction (number) (optional) The friction of the polygon (default is 0.4, should be 0.0 to 1.0).
-	-- @param restitution (number) (optional) The restitution of the polygon (default is 0.0, should be 0.0 to 1.0).
+	-- @param angle (number) [optional] The angle of the polygon in radians (default is 0.0).
+	-- @param density (number) [optional] The density of the polygon (default is 0.0).
+	-- @param friction (number) [optional] The friction of the polygon (default is 0.4, should be 0.0 to 1.0).
+	-- @param restitution (number) [optional] The restitution of the polygon (default is 0.0, should be 0.0 to 1.0).
 	-- @return (FixtureDef) A FixtureDef object for the created polygon fixture.
 	polygon: function(self: BodyDefClass,
 		center: Vec2,
@@ -220,9 +220,9 @@ local record BodyDefClass
 
 	-- Creates a polygon fixture definition with the specified vertices.
 	-- @param vertices (table) A table containing the vertices of the polygon.
-	-- @param density (number) (optional) The density of the polygon (default is 0.0).
-	-- @param friction (number) (optional) The friction of the polygon (default is 0.4, should be 0.0 to 1.0).
-	-- @param restitution (number) (optional) The restitution of the polygon (default is 0.0, should be 0.0 to 1.0).
+	-- @param density (number) [optional] The density of the polygon (default is 0.0).
+	-- @param friction (number) [optional] The friction of the polygon (default is 0.4, should be 0.0 to 1.0).
+	-- @param restitution (number) [optional] The restitution of the polygon (default is 0.0, should be 0.0 to 1.0).
 	-- @return (FixtureDef) A FixtureDef object for the created polygon fixture.
 	polygon: function(self: BodyDefClass,
 		vertices: {Vec2},

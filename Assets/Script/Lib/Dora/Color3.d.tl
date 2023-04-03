@@ -1,15 +1,42 @@
+-- A color with red, green and blue channels.
 local record Color3
 	userdata
+
+	-- The red channel of the color, should be 0 to 255.
 	r: integer
+
+	-- The green channel of the color, should be 0 to 255.
 	g: integer
+
+	-- The blue channel of the color, should be 0 to 255.
 	b: integer
+
+	--- Converts the color to an RGB integer value.
+	---@return (integer)
 	toRGB: function(self: Color3): integer
 end
+
+-- A class for creating Color3 objects.
 local record Color3Class
 	type Type = Color3
+
+	-- Creates a color with all channels set to 0.
+	-- @return (Color3)
 	metamethod __call: function(self: Color3Class): Color3
+
+	-- Creates a new `Color3` object from an RGB integer value.
+	-- @param rgb (integer) The RGB integer value to create the color from.
+	-- For example 0xffffff (white), 0xff0000 (red)
+	-- @return (Color3) A new `Color3` object.
 	metamethod __call: function(self: Color3Class, rgb: integer): Color3
+
+	-- Creates a new `Color3` object from RGB color channel values.
+	-- @param r (integer) The red channel value (0-255).
+	-- @param g (integer) The green channel value (0-255).
+	-- @param b (integer) The blue channel value (0-255).
+	-- @return A new `Color3` object.
 	metamethod __call: function(self: Color3Class, r: integer, g: integer, b: integer): Color3
 end
+
 local color3Class: Color3Class
 return color3Class

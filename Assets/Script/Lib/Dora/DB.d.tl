@@ -1,42 +1,131 @@
+-- A record that represents a database.
 local record DB
 	userdata
+
+	-- Type definition for a database column.
 	type Column = integer | number | string | boolean
+
+	-- Type definition for a database row.
 	type Row = {Column}
+
+	-- Type definition for an SQL query.
+	-- Can be SQL string or a pair of SQL string and an array of parameters.
 	type SQL = string | {string, {Row}}
+
+	-- Checks whether a table exists in the database.
+	-- @param tableName (string) The name of the table to check.
+	-- @param schema (string) [optional] The name of the schema to check in.
+	-- @return (boolean) Whether the table exists or not.
 	exist: function(self: DB, tableName: string, schema?: string): boolean
+
+	-- Executes a list of SQL statements as a single transaction.
+	-- @param sqls ({SQL}) A list of SQL statements to execute.
+	-- @return (boolean) Whether the transaction was successful or not.
 	transaction: function(self: DB, sqls: {SQL}): boolean
+
+	-- Executes a list of SQL statements as a single transaction asynchronously.
+	-- @param sqls ({SQL}) A list of SQL statements to execute.
+	-- @return (boolean) Whether the transaction was successful or not.
 	transactionAsync: function(self: DB, sqls: {SQL}): boolean
+
+	-- Executes an SQL query and returns the results as a list of rows.
+	-- @param sql (string) The SQL statement to execute
+	-- @param args (Row) [optional] A list of values to substitute into the SQL statement.
+	-- @param withColumn (boolean) [optional] Whether to include column names in the result (default false).
+	-- @return ({Row}) A list of rows returned by the query.
 	query: function(
 		self: DB,
 		sql: string,
 		args: Row,
 		withColumn?: boolean --[[false]]
 	): {Row}
+
+	-- Executes an SQL query and returns the results as a list of rows.
+	-- @param sql (string) The SQL statement to execute
+	-- @param withColumn (boolean) [optional] Whether to include column names in the result (default false).
+	-- @return ({Row}) A list of rows returned by the query.
 	query: function(
 		self: DB,
 		sql: string,
 		withColumn?: boolean --[[false]]
 	): {Row}
-	insert: function(self: DB, tableName: string, values: {Row})
+
+	-- Inserts a row of data into a table.
+	-- @param tableName (string) The name of the table to insert into.
+	-- @param values (Row) The values to insert into the table.
+	-- @return (boolean) Whether the insertion was successful or not.
+	insert: function(self: DB, tableName: string, values: {Row}): boolean
+
+	-- Executes an SQL statement and returns the number of rows affected.
+	-- @param sql (string) The SQL statement to execute.
+	-- @return (integer) The number of rows affected by the statement.
 	exec: function(self: DB, sql: string): integer
+
+	-- Executes an SQL statement and returns the number of rows affected.
+	-- @param sql (string) The SQL statement to execute.
+	-- @param values (Row) A list of values to substitute into the SQL statement.
+	-- @return (integer) The number of rows affected by the statement.
 	exec: function(self: DB, sql: string, values: Row): integer
+
+	-- Executes an SQL statement and returns the number of rows affected.
+	-- @param sql (string) The SQL statement to execute.
+	-- @param values ({Row}) A list of lists of values to substitute into the SQL statement.
+	-- @return (integer) the number of rows affected by the statement.
 	exec: function(self: DB, sql: string, values: {Row}): integer
+
+	-- Inserts a row of data into a table asynchronously.
+	-- @param tableName (string) The name of the table to insert into.
+	-- @param values ({Row}) The values to insert into the table.
+	-- @return (boolean) Whether the insert was successful or not.
 	insertAsync: function(self: DB, tableName: string, values: {Row}): boolean
+
+	-- Inserts data from an Excel file into a table asynchronously.
+	-- @param tableSheets {string} the names of the tables to insert into.
+	-- @param excelFile (string) The path to the Excel file containing the data.
+	-- @param startRow (integer) The row number to start inserting data from. The row number start with 1.
+	-- @return (boolean) Whether the insert was successful or not.
 	insertAsync: function(self: DB, tableSheets: {string}, excelFile: string, startRow: integer): boolean
+
+	-- Inserts data from an Excel file into a table asynchronously.
+	-- @param tableSheets {{string, string}} A list of table names and corresponding sheet names to insert into.
+	-- @param excelFile (string) The path to the Excel file containing the data.
+	-- @param startRow (integer) The row number to start inserting data from. The row number start with 1.
+	-- @return (boolean) Whether the insert was successful or not.
 	insertAsync: function(self: DB, tableSheets: {{string, string}}, excelFile: string, startRow: integer): boolean
+
+	-- Executes an SQL query asynchronously and returns the results as a list of rows.
+	-- @param sql (string) The SQL statement to execute.
+	-- @param args (Row) [optional] A list of values to substitute into the SQL statement.
+	-- @param withColumn (boolean) [optional] Whether to include column names in the result (default false).
+	-- @return ({Row}) A list of rows returned by the query.
 	queryAsync: function(
 		self: DB,
 		sql: string,
 		args: Row,
 		withColumn?: boolean --[[false]]
 	): {Row}
+
+	-- Executes an SQL query asynchronously and returns the results as a list of rows.
+	-- @param sql (string) The SQL statement to execute.
+	-- @param withColumn (boolean) [optional] Whether to include column names in the result (default false).
+	-- @return ({Row}) A list of rows returned by the query.
 	queryAsync: function(
 		self: DB,
 		sql: string,
 		withColumn?: boolean --[[false]]
 	): {Row}
+
+	-- Executes an SQL statement asynchronously and returns the number of rows affected.
+	-- @param sql (string) The SQL statement to execute.
+	-- @param values {Row} A list of values to substitute into the SQL statement.
+	-- @return (integer) The number of rows affected by the statement.
 	execAsync: function(self: DB, sql: string, values: {Row}): integer
+
+	-- Executes an SQL statement asynchronously and returns the number of rows affected.
+	-- @param sql (string) The SQL statement to execute.
+	-- @return (integer) the number of rows affected by the statement.
 	execAsync: function(self: DB, sql: string): integer
 end
+
 local db: DB
 return db

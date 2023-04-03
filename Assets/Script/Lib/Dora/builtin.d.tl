@@ -108,6 +108,8 @@ global p = require("p")
 local Class: function(...: any): any
 local classmethod: function(...: any): any
 local property: function(...: any): any
+
+-- A global variable containing all the builtin functions.
 global builtin = {
 	Class = Class,
 	classmethod = classmethod,

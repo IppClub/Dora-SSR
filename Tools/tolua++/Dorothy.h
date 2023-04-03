@@ -406,7 +406,7 @@ class Node : public Object
 		tolua_property__common BlendFunc blendFunc;
 		tolua_property__common Color clearColor;
 		tolua_outside void Grabber_setPos @ setPos(int x, int y, Vec2 pos, float z = 0.0f);
-		tolua_outside Vec2 Grabber_getPos @ getPos(int x, int y, float* z);
+		tolua_outside Vec2 Grabber_getPos @ getPos(int x, int y);
 		tolua_outside Color Grabber_getColor @ getColor(int x, int y);
 		tolua_outside void Grabber_setColor @ setColor(int x, int y, Color color);
 		tolua_outside void Grabber_moveUV @ moveUV(int x, int y, Vec2 offset);

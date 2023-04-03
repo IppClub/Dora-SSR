@@ -1,3 +1,2 @@
-return function(condition: function(): boolean)
-	print(condition)
-end
+local wait: function(condition: function(): boolean)
+return wait
