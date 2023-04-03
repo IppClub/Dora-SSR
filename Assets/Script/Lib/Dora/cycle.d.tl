@@ -1,2 +1,5 @@
-local cycle: function(duration: number, callback: function(time: number))
+-- A function that keeps another function to run repeatedly for a duration of time.
+-- @param duration (number) The duration of the cycle, in seconds.
+-- @param work (function) A function to execute repeatedly during the cycle.
+local cycle: function(duration: number, work: function(time: number))
 return cycle

@@ -2491,7 +2491,7 @@ int DB_insertAsync01(lua_State* L) {
 			}
 		}
 		std::string excelFile = tolua_toslice(L, 3, nullptr);
-		int startRow = s_cast<int>(lua_tointeger(L, 4));
+		int startRow = std::max(0, s_cast<int>(lua_tointeger(L, 4)) - 1);
 		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 5)));
 		SharedContent.loadAsyncData(excelFile, [excelFile, names, startRow, handler](OwnArray<uint8_t>&& data, size_t size) {
 			auto excelData = std::make_shared<OwnArray<uint8_t>>(std::move(data));

@@ -396,8 +396,8 @@ local record Node
 		-- Gets the position of a vertex in the grabber grid.
 		-- @param x (integer) - The x-index of the vertex in the grabber grid.
 		-- @param y (integer) - The y-index of the vertex in the grabber grid.
-		-- @return (Vec2, number) - The position of the vertex and its z-coordinate.
-		getPos: function(self: Grabber, x: integer, y: integer): Vec2, number
+		-- @return (Vec2, number) - The position of the vertex.
+		getPos: function(self: Grabber, x: integer, y: integer): Vec2
 
 		-- Gets the color of a vertex in the grabber grid.
 		-- @param x (integer) - The x-index of the vertex in the grabber grid.
