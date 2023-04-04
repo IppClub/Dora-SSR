@@ -1,5 +1,7 @@
 extern "C" {
 	fn grid_type() -> i32;
+	fn grid_get_grid_x(slf: i64) -> i32;
+	fn grid_get_grid_y(slf: i64) -> i32;
 	fn grid_set_depth_write(slf: i64, var: i32);
 	fn grid_is_depth_write(slf: i64) -> i32;
 	fn grid_set_blend_func(slf: i64, var: i64);
@@ -33,6 +35,12 @@ impl Grid {
 				_ => Some(Box::new(Grid { raw: raw }))
 			}
 		})
+	}
+	pub fn get_grid_x(&self) -> i32 {
+		return unsafe { grid_get_grid_x(self.raw()) };
+	}
+	pub fn get_grid_y(&self) -> i32 {
+		return unsafe { grid_get_grid_y(self.raw()) };
 	}
 	pub fn set_depth_write(&mut self, var: bool) {
 		unsafe { grid_set_depth_write(self.raw(), if var { 1 } else { 0 }) };

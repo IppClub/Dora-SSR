@@ -49,27 +49,27 @@ public:
 	Joint* getJointData(pr::JointID joint) const;
 
 	/**
-	 Use this rect query at any time without worrying Box2D`s callback limits.
+	 Use this rect query at any time without worrying physics engine callback limits.
 	 */
 	bool query(const Rect& rect, const std::function<bool(Body*)>& callback);
 	bool raycast(const Vec2& start, const Vec2& end, bool closest, const std::function<bool(Body*, const Vec2&, const Vec2&)>& callback);
 	void setShouldContact(uint8_t groupA, uint8_t groupB, bool contact);
 	bool getShouldContact(uint8_t groupA, uint8_t groupB) const;
 	const pr::Filter& getFilter(uint8_t group) const;
-	static inline float oVal(pr::Real value) { return float(value) * b2Factor; }
-	static inline Vec2 oVal(const pr::Vec2& value) { return Vec2{value[0] * b2Factor, value[1] * b2Factor}; }
-	static inline Vec2 oVal(const Vec2& value) { return value * b2Factor; }
-	static inline pr::Real b2Val(float value) { return pr::Real(value / b2Factor); }
-	static inline Vec2 b2Val(const pr::Vec2& value) { return Vec2{value[0] / b2Factor, value[1] / b2Factor}; }
-	static inline Vec2 b2Val(const Vec2& value) { return value / b2Factor; }
+	static inline float oVal(pr::Real value) { return float(value) * scaleFactor; }
+	static inline Vec2 oVal(const pr::Vec2& value) { return Vec2{value[0] * scaleFactor, value[1] * scaleFactor}; }
+	static inline Vec2 oVal(const Vec2& value) { return value * scaleFactor; }
+	static inline pr::Real b2Val(float value) { return pr::Real(value / scaleFactor); }
+	static inline Vec2 b2Val(const pr::Vec2& value) { return Vec2{value[0] / scaleFactor, value[1] / scaleFactor}; }
+	static inline Vec2 b2Val(const Vec2& value) { return value / scaleFactor; }
 	/**
-	 b2Factor is used for converting PlayRho meters value to pixel value.
+	 scaleFactor is used for converting PlayRho meters value to pixel value.
 	 Default 100.0f is a good value since PlayRho can well simulate real life objects
 	 between 0.1 to 10 meters. Use value 100.0f we can simulate game objects
 	 between 10 to 1000 pixels that suites most games.
 	 Better change this value before any physics body creation.
 	 */
-	static float b2Factor;
+	static float scaleFactor;
 	enum { TotalGroups = sizeof(pr::Filter::bits_type) * 8 };
 	CREATE_FUNC(PhysicsWorld);
 

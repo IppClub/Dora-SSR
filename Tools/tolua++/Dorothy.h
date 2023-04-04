@@ -472,6 +472,8 @@ class Sprite : public Node
 
 class Grid : public Node
 {
+	tolua_readonly tolua_property__common uint32_t gridX;
+	tolua_readonly tolua_property__common uint32_t gridY;
 	tolua_property__bool bool depthWrite;
 	tolua_property__common BlendFunc blendFunc;
 	tolua_property__common SpriteEffect* effect;
@@ -683,7 +685,7 @@ class PhysicsWorld : public Node
 	void setIterations(int velocityIter, int positionIter);
 	void setShouldContact(uint8_t groupA, uint8_t groupB, bool contact);
 	bool getShouldContact(uint8_t groupA, uint8_t groupB);
-	static float b2Factor;
+	static float scaleFactor;
 	static PhysicsWorld* create();
 };
 

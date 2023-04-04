@@ -20,7 +20,7 @@ typedef Acf::Delegate<void(Event* event)> EventHandler;
 
 /** @brief This event system is designed to be used in a single threaded
  environment and is associated with event, event type and event listener.
- Events sent and recieved are all in a shared space.
+ Events sent and received are all in a shared space.
  Use this system as following.
  @example User defined event.
  // Register callback function.
@@ -28,7 +28,7 @@ typedef Acf::Delegate<void(Event* event)> EventHandler;
  {
 	Slice msg;
 	event->get(msg);
-	Log("Recieved Event with msg: {}", msg);
+	Log("Received Event with msg: {}", msg);
  });
 
  // Send event with all types of arguments, then the callback function will be invoked.

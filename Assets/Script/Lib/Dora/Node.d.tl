@@ -240,7 +240,7 @@ local record Node
 
 	-- Converts a point from node space to window space.
 	-- @param nodePoint (Vec2) - The point in node space.
-	-- @param callback (function(Vec2)) - The callback function to recieve the converted point in window space.
+	-- @param callback (function(Vec2)) - The callback function to receive the converted point in window space.
 	convertToWindowSpace: function(self: Node, nodePoint: Vec2, callback: function(Vec2))
 
 	-- Calls the given function for each child node of this node.

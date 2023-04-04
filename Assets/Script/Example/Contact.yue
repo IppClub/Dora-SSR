@@ -65,7 +65,7 @@ Director.entry\addChild with Node!
 		Begin "Contact", windowFlags, ->
 			Text "Contact"
 			Separator!
-			TextWrapped "Recieve events when physics bodies contact."
+			TextWrapped "Receive events when physics bodies contact."
 			if changed, receivingContact = Checkbox "Receiving Contact", receivingContact
 				disk.receivingContact = receivingContact
 				label.text = ""

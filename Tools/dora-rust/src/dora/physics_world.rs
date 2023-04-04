@@ -7,8 +7,8 @@ extern "C" {
 	fn physicsworld_set_iterations(slf: i64, velocity_iter: i32, position_iter: i32);
 	fn physicsworld_set_should_contact(slf: i64, group_a: i32, group_b: i32, contact: i32);
 	fn physicsworld_get_should_contact(slf: i64, group_a: i32, group_b: i32) -> i32;
-	fn physicsworld_set_b2_factor(var: f32);
-	fn physicsworld_get_b2_factor() -> f32;
+	fn physicsworld_set_scale_factor(var: f32);
+	fn physicsworld_get_scale_factor() -> f32;
 	fn physicsworld_new() -> i64;
 }
 use crate::dora::IObject;
@@ -61,11 +61,11 @@ impl PhysicsWorld {
 			}
 		})
 	}
-	pub fn set_b2_factor(var: f32) {
-		unsafe { physicsworld_set_b2_factor(var) };
+	pub fn set_scale_factor(var: f32) {
+		unsafe { physicsworld_set_scale_factor(var) };
 	}
-	pub fn get_b2_factor() -> f32 {
-		return unsafe { physicsworld_get_b2_factor() };
+	pub fn get_scale_factor() -> f32 {
+		return unsafe { physicsworld_get_scale_factor() };
 	}
 	pub fn new() -> PhysicsWorld {
 		unsafe { return PhysicsWorld { raw: physicsworld_new() }; }

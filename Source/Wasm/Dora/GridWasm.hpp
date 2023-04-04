@@ -1,6 +1,12 @@
 static int32_t grid_type() {
 	return DoraType<Grid>();
 }
+static int32_t grid_get_grid_x(int64_t self) {
+	return s_cast<int32_t>(r_cast<Grid*>(self)->getGridX());
+}
+static int32_t grid_get_grid_y(int64_t self) {
+	return s_cast<int32_t>(r_cast<Grid*>(self)->getGridY());
+}
 static void grid_set_depth_write(int64_t self, int32_t var) {
 	r_cast<Grid*>(self)->setDepthWrite(var != 0);
 }
@@ -60,6 +66,8 @@ static int64_t grid_with_file(int64_t clip_str, int32_t grid_x, int32_t grid_y) 
 }
 static void linkGrid(wasm3::module& mod) {
 	mod.link_optional("*", "grid_type", grid_type);
+	mod.link_optional("*", "grid_get_grid_x", grid_get_grid_x);
+	mod.link_optional("*", "grid_get_grid_y", grid_get_grid_y);
 	mod.link_optional("*", "grid_set_depth_write", grid_set_depth_write);
 	mod.link_optional("*", "grid_is_depth_write", grid_is_depth_write);
 	mod.link_optional("*", "grid_set_blend_func", grid_set_blend_func);

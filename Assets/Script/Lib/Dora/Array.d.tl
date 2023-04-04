@@ -107,7 +107,7 @@ local record Array
 	metamethod __index: function(self: Array, index: integer): Item
 
 	-- Metamethod to set the item at the given index using the [] operator.
-	-- @param index (integer) The index to set.
+	-- @param index (integer) The index to set, should be 1 based.
 	-- @param item (Item) The new item value.
 	metamethod __newindex: function(self: Array, index: integer, item: Item)
 
