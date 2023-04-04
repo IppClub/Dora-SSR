@@ -42,11 +42,11 @@ static void physicsworld_set_should_contact(int64_t self, int32_t group_a, int32
 static int32_t physicsworld_get_should_contact(int64_t self, int32_t group_a, int32_t group_b) {
 	return r_cast<PhysicsWorld*>(self)->getShouldContact(s_cast<uint8_t>(group_a), s_cast<uint8_t>(group_b)) ? 1 : 0;
 }
-static void physicsworld_set_b2_factor(int64_t self, float var) {
-	r_cast<PhysicsWorld*>(self)->b2Factor = s_cast<float>(var);
+static void physicsworld_set_scale_factor(int64_t self, float var) {
+	r_cast<PhysicsWorld*>(self)->scaleFactor = s_cast<float>(var);
 }
-static float physicsworld_get_b2_factor(int64_t self) {
-	return PhysicsWorld::b2Factor;
+static float physicsworld_get_scale_factor(int64_t self) {
+	return PhysicsWorld::scaleFactor;
 }
 static int64_t physicsworld_new() {
 	return from_object(PhysicsWorld::create());
@@ -60,7 +60,7 @@ static void linkPhysicsWorld(wasm3::module& mod) {
 	mod.link_optional("*", "physicsworld_set_iterations", physicsworld_set_iterations);
 	mod.link_optional("*", "physicsworld_set_should_contact", physicsworld_set_should_contact);
 	mod.link_optional("*", "physicsworld_get_should_contact", physicsworld_get_should_contact);
-	mod.link_optional("*", "physicsworld_set_b2_factor", physicsworld_set_b2_factor);
-	mod.link_optional("*", "physicsworld_get_b2_factor", physicsworld_get_b2_factor);
+	mod.link_optional("*", "physicsworld_set_scale_factor", physicsworld_set_scale_factor);
+	mod.link_optional("*", "physicsworld_get_scale_factor", physicsworld_get_scale_factor);
 	mod.link_optional("*", "physicsworld_new", physicsworld_new);
 }

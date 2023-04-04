@@ -18,14 +18,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 SoftNode::SoftNode(float minX, float maxX, float minY, float maxY, float step)
-	: _minX(minX / PhysicsWorld::b2Factor)
-	, _maxX(maxX / PhysicsWorld::b2Factor)
-	, _minY(minY / PhysicsWorld::b2Factor)
-	, _maxY(maxY / PhysicsWorld::b2Factor)
+	: _minX(minX / PhysicsWorld::scaleFactor)
+	, _maxX(maxX / PhysicsWorld::scaleFactor)
+	, _minY(minY / PhysicsWorld::scaleFactor)
+	, _maxY(maxY / PhysicsWorld::scaleFactor)
 	, _step(step) { }
 
 bool SoftNode::init() {
-	_world = New<Soft::World>(Vec2{640 / PhysicsWorld::b2Factor, 480 / PhysicsWorld::b2Factor}, Vec2{0, 10});
+	_world = New<Soft::World>(Vec2{640 / PhysicsWorld::scaleFactor, 480 / PhysicsWorld::scaleFactor}, Vec2{0, 10});
 	_originMaterial = New<Soft::Material>();
 	_originMaterial->mass = 0;
 	_size = {(_maxX - _minX) / _step, (_maxY - _minY) / _step};

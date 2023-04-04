@@ -25,7 +25,7 @@ local record Sprite
 		"Anisotropic"
 	end
 
-	-- Indicates whether the depth buffer should be written to when rendering the sprite.
+	-- Indicates whether the depth buffer should be written to when rendering the sprite (default is false).
 	depthWrite: boolean
 
 	-- Specifies the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
@@ -74,8 +74,8 @@ local record SpriteClass
 
 	-- A metamethod for calling the SpriteClass as a function with a string argument.
 	-- @param self (SpriteClass) The SpriteClass instance.
-	-- @param clipStr (string) The string containing format to texture image file.
-	-- could be "Image/file.png" and "Image/items.clip|itemA".
+	-- @param clipStr (string) The string containing format for loading a texture file.
+	-- Can be "Image/file.png" and "Image/items.clip|itemA".
 	-- @return (Sprite) A new instance of the Sprite class with the texture loaded from the specified image file.
 	metamethod __call: function(self: SpriteClass, clipStr: string): Sprite
 end

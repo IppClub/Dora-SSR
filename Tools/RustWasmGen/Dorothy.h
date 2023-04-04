@@ -371,6 +371,8 @@ object class Sprite : public INode
 
 object class Grid : public INode
 {
+	readonly common uint32_t gridX;
+	readonly common uint32_t gridY;
 	boolean bool depthWrite;
 	common BlendFunc blendFunc;
 	common SpriteEffect* effect;
@@ -549,7 +551,7 @@ interface object class PhysicsWorld : public INode
 	void setIterations(int velocityIter, int positionIter);
 	void setShouldContact(uint8_t groupA, uint8_t groupB, bool contact);
 	bool getShouldContact(uint8_t groupA, uint8_t groupB);
-	static float b2Factor;
+	static float scaleFactor;
 	static PhysicsWorld* create();
 };
 

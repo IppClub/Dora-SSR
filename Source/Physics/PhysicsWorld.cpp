@@ -44,7 +44,7 @@ void PhysicsWorld::ContactPair::release() {
 	bodyB->release();
 }
 
-float PhysicsWorld::b2Factor = 100.0f;
+float PhysicsWorld::scaleFactor = 100.0f;
 
 PhysicsWorld::PhysicsWorld()
 	: _world{} {

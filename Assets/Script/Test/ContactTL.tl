@@ -81,7 +81,7 @@ ui:schedule(function(): boolean
 	ImGui.Begin("Contact", windowFlags, function()
 		ImGui.Text("Contact")
 		ImGui.Separator()
-		ImGui.TextWrapped("Recieve events when physics bodies contact.")
+		ImGui.TextWrapped("Receive events when physics bodies contact.")
 		local changed = false
 		changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact)
 		if changed then

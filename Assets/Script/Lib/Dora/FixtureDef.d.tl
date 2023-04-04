@@ -1,9 +1,13 @@
 local Object = require("Object").Type
+
+-- A definition object for fixtures added to physics bodies.
 local record FixtureDef
 	embed Object
 end
+
 local record FixtureDefClass
 	type Type = FixtureDef
 end
+
 local fixtureDefClass: FixtureDefClass
 return fixtureDefClass
