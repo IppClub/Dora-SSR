@@ -897,8 +897,10 @@ do
 	local BuildDecisionTreeAsync = builtin.ML.BuildDecisionTreeAsync
 	builtin.ML.BuildDecisionTreeAsync = function(data, maxDepth, handler)
 		local accuracy, err
+		local done = false
 		BuildDecisionTreeAsync(data, maxDepth, function(...)
 			if not accuracy then
+				done = true
 				accuracy = select(1, ...)
 				if accuracy < 0 then
 					accuracy = nil
@@ -909,7 +911,7 @@ do
 			end
 		end)
 		wait(function()
-			return accuracy or err
+			return done
 		end)
 		return accuracy, err
 	end
