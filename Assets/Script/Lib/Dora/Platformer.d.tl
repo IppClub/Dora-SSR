@@ -10,6 +10,8 @@ local BulletDef = require("Platformer.BulletDef")
 local Bullet = require("Platformer.Bullet")
 local Face = require("Platformer.Face")
 local Visual = require("Platformer.Visual")
+
+-- A module for 2D platformer game features.
 local Platformer = {
 	Behavior = Behavior,
 	Decision = Decision,
@@ -24,4 +26,5 @@ local Platformer = {
 	Face = Face,
 	Visual = Visual
 }
+
 return Platformer
