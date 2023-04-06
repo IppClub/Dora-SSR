@@ -5,6 +5,7 @@ local record FixtureDef
 	embed Object
 end
 
+-- A record representing the class object of FixtureDef.
 local record FixtureDefClass
 	type Type = FixtureDef
 end

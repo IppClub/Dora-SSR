@@ -15,6 +15,7 @@ local record JointDef
 	angle: number
 end
 
+-- A record for creating JointDef objects.
 local record JointDefClass
 	type Type = JointDef
 
