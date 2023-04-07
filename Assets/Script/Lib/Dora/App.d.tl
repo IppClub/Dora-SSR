@@ -22,7 +22,7 @@ local record App
 
 	-- The logic visual size of the screen.
 	-- The visual size only changes when application window size changes.
-	-- And it won't be affacted by the buffer size change.
+	-- And it may not be affacted by the buffer size change.
 	const visualSize: Size
 
 	-- The ratio of the pixel density displayed by the device
@@ -76,7 +76,13 @@ local record App
 	-- Set `idled` to true, will make game logic thread use a sleep time and going idled for next frame to come. Due to the imprecision in sleep time. This idled state may cause game engine over slept for a few frames to lost.
 	idled: boolean
 
-	-- A function that runs a specific test.
+	-- The application window size.
+	-- May differ from visual size due to the different DPIs of display devices.
+	-- Set `winSize` to `Size::zero` to toggle application window into full screen mode,
+	-- It is not available to set this property on platform Android and iOS.
+	winSize: Size
+
+	-- A function that runs an specific C++ test included in the engine.
 	-- @param name (string) The name of the test to run.
 	-- @return (boolean) Whether the test ran successfully.
 	runTest: function(self: App, name: string): boolean

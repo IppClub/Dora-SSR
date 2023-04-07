@@ -367,6 +367,10 @@ ImGuiDora::ImGuiDora()
 	, _loaderTotalTime(0)
 	, _avgDeltaTime(1000.0 / SharedApplication.getTargetFPS())
 	, _memPoolSize(0)
+	, _objectFrames(0)
+	, _maxCppObjects(0)
+	, _maxLuaObjects(0)
+	, _maxCallbacks(0)
 	, _memLua(0)
 	, _lastMemPoolSize(0)
 	, _lastMemLua(0)
@@ -543,14 +547,14 @@ void ImGuiDora::showStats() {
 			ImGui::TextColored(labelColor, "Renderer:");
 			ImGui::SameLine();
 			ImGui::TextUnformatted(rendererNames[bgfx::getCaps()->rendererType]);
-			ImGui::TextColored(labelColor, "Multithreaded:");
+			ImGui::TextColored(labelColor, "Multi Threaded:");
 			ImGui::SameLine();
 			ImGui::TextUnformatted((bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
-			ImGui::TextColored(labelColor, "Backbuffer:");
+			ImGui::TextColored(labelColor, "Back Buffer:");
 			ImGui::SameLine();
 			Size size = SharedView.getSize();
 			ImGui::Text("%d x %d", s_cast<int>(size.width), s_cast<int>(size.height));
-			ImGui::TextColored(labelColor, "Drawcall:");
+			ImGui::TextColored(labelColor, "Draw Call:");
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numDraw);
 			ImGui::TextColored(labelColor, "Tri:");
@@ -560,6 +564,37 @@ void ImGuiDora::showStats() {
 			ImGui::TextColored(labelColor, "Line:");
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::LineStrip] + bgfx::getStats()->numPrims[bgfx::Topology::LineList]);
+			ImGui::TextColored(labelColor, "Visual Size:");
+			ImGui::SameLine();
+			auto visualSize = SharedApplication.getVisualSize();
+#if BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
+			ImGui::Text("%.0f x %.0f", visualSize.width, visualSize.height);
+#else
+			if (ImGui::Button(fmt::format("{:.0f} x {:.0f}", visualSize.width, visualSize.height).c_str())) {
+				ImGui::OpenPopup("WindowSizeSelector");
+			}
+			static Size sizes[] = {
+				{4096, 2160},
+				{2560, 1440},
+				{1920, 1080},
+				{1280, 720},
+				{720, 480},
+				{640, 480},
+				{320, 240}
+			};
+			if (ImGui::BeginPopup("WindowSizeSelector")) {
+				if (ImGui::Selectable("Full Screen")) {
+					SharedApplication.setWinSize(Size::zero);
+				}
+				for (const auto& size : sizes) {
+					if (ImGui::Selectable(fmt::format("{:.0f} x {:.0f}", size.width, size.height).c_str())) {
+						auto ratio = SharedApplication.getWinSize().width / SharedApplication.getVisualSize().width;
+						SharedApplication.setWinSize(size * Vec2{ratio, ratio});
+					}
+				}
+				ImGui::EndPopup();
+			}
+#endif
 			bool vsync = SharedView.isVSync();
 			if (ImGui::Checkbox("VSync", &vsync)) {
 				SharedView.setVSync(vsync);
@@ -569,8 +604,6 @@ void ImGuiDora::showStats() {
 			if (ImGui::Checkbox("FPS Limited", &fpsLimited)) {
 				SharedApplication.setFPSLimited(fpsLimited);
 			}
-			ImGui::TextColored(labelColor, "FPS:");
-			ImGui::SameLine();
 			int targetFPS = SharedApplication.getTargetFPS();
 			if (ImGui::RadioButton("30", &targetFPS, 30)) {
 				SharedApplication.setTargetFPS(targetFPS);
@@ -587,12 +620,32 @@ void ImGuiDora::showStats() {
 					SharedApplication.setTargetFPS(targetFPS);
 				}
 			}
+			ImGui::SameLine();
+			ImGui::TextColored(labelColor, "FPS");
 			int fixedFPS = SharedDirector.getScheduler()->getFixedFPS();
-			ImGui::PushItemWidth(100.0f);
-			if (ImGui::DragInt("Fixed FPS", &fixedFPS, 1, 30, SharedApplication.getMaxFPS())) {
+			ImGui::PushID("fixed30");
+			if (ImGui::RadioButton("30", &fixedFPS, 30)) {
 				SharedDirector.getScheduler()->setFixedFPS(fixedFPS);
 			}
-			ImGui::PopItemWidth();
+			ImGui::PopID();
+			ImGui::SameLine();
+			ImGui::PushID("fixed60");
+			if (ImGui::RadioButton("60", &fixedFPS, 60)) {
+				SharedDirector.getScheduler()->setFixedFPS(fixedFPS);
+			}
+			ImGui::PopID();
+			if (SharedApplication.getMaxFPS() > 60) {
+				ImGui::SameLine();
+				int maxFPS = SharedApplication.getMaxFPS();
+				std::string fpsStr = std::to_string(maxFPS);
+				ImGui::PushID("fixedExtra");
+				if (ImGui::RadioButton(fpsStr.c_str(), &fixedFPS, maxFPS)) {
+					SharedDirector.getScheduler()->setFixedFPS(fixedFPS);
+				}
+				ImGui::PopID();
+			}
+			ImGui::SameLine();
+			ImGui::TextColored(labelColor, "Fixed FPS");
 		}
 		if (ImGui::CollapsingHeader("Time")) {
 			_timeFrames++;
@@ -624,15 +677,22 @@ void ImGuiDora::showStats() {
 				ImGui::Text("%.1f ms", _avgGPUTime);
 		}
 		if (ImGui::CollapsingHeader("Object")) {
+			_objectFrames++;
 			ImGui::TextColored(labelColor, "C++ Object:");
 			ImGui::SameLine();
-			ImGui::Text("%d", Object::getCount());
+			_maxCppObjects = std::max(_maxCppObjects, Object::getCount());
+			ImGui::Text("%d", _maxCppObjects);
 			ImGui::TextColored(labelColor, "Lua Object:");
 			ImGui::SameLine();
-			ImGui::Text("%d", Object::getLuaRefCount());
+			_maxLuaObjects = std::max(_maxLuaObjects, Object::getLuaRefCount());
+			ImGui::Text("%d", _maxLuaObjects);
 			ImGui::TextColored(labelColor, "Lua Callback:");
 			ImGui::SameLine();
-			ImGui::Text("%d", Object::getLuaCallbackCount());
+			_maxCallbacks = std::max(_maxCallbacks, Object::getLuaCallbackCount());
+			ImGui::Text("%d", _maxCallbacks);
+			if (_objectFrames >= SharedApplication.getTargetFPS()) {
+				_objectFrames = _maxCppObjects = _maxLuaObjects = _maxCallbacks = 0;
+			}
 		}
 		if (ImGui::CollapsingHeader("Memory")) {
 			_memFrames++;

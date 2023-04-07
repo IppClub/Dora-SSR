@@ -14,6 +14,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+/* LuaHandler */
+
 LuaHandler::LuaHandler(int handler)
 	: _handler(handler) {
 	AssertIf(handler == 0, "invalid lua handler.");
@@ -27,11 +29,6 @@ LuaHandler::~LuaHandler() {
 	Warn("lua handler {} leaks.", _handler);
 }
 
-bool LuaHandler::update(double deltaTime) {
-	SharedLuaEngine.push(deltaTime);
-	return SharedLuaEngine.executeFunction(_handler, 1);
-}
-
 bool LuaHandler::equals(LuaHandler* other) const {
 	return SharedLuaEngine.scriptHandlerEqual(_handler, other->_handler);
 }
@@ -39,6 +36,8 @@ bool LuaHandler::equals(LuaHandler* other) const {
 int LuaHandler::get() const {
 	return _handler;
 }
+
+/* LuaFunction */
 
 void LuaFunction<void>::operator()(Event* event) const {
 	if (_handler->get() > 0) {

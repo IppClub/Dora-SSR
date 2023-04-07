@@ -15,7 +15,6 @@ NS_DOROTHY_BEGIN
 class LuaHandler : public Object {
 public:
 	virtual ~LuaHandler();
-	virtual bool update(double deltaTime) override;
 	bool equals(LuaHandler* other) const;
 	int get() const;
 	CREATE_FUNC(LuaHandler);

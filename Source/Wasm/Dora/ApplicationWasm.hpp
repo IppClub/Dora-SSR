@@ -49,6 +49,12 @@ static void application_set_target_fps(int32_t var) {
 static int32_t application_get_target_fps() {
 	return s_cast<int32_t>(SharedApplication.getTargetFPS());
 }
+static void application_set_win_size(int64_t var) {
+	SharedApplication.setWinSize(size_from(var));
+}
+static int64_t application_get_win_size() {
+	return size_retain(SharedApplication.getWinSize());
+}
 static void application_set_fps_limited(int32_t var) {
 	SharedApplication.setFPSLimited(var != 0);
 }
@@ -82,6 +88,8 @@ static void linkApplication(wasm3::module& mod) {
 	mod.link_optional("*", "application_get_seed", application_get_seed);
 	mod.link_optional("*", "application_set_target_fps", application_set_target_fps);
 	mod.link_optional("*", "application_get_target_fps", application_get_target_fps);
+	mod.link_optional("*", "application_set_win_size", application_set_win_size);
+	mod.link_optional("*", "application_get_win_size", application_get_win_size);
 	mod.link_optional("*", "application_set_fps_limited", application_set_fps_limited);
 	mod.link_optional("*", "application_is_fps_limited", application_is_fps_limited);
 	mod.link_optional("*", "application_set_idled", application_set_idled);

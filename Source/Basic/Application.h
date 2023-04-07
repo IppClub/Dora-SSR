@@ -28,7 +28,6 @@ class Application {
 public:
 	virtual ~Application() { }
 	PROPERTY_READONLY(uint32_t, Frame);
-	PROPERTY_READONLY(Size, WinSize);
 	PROPERTY_READONLY(Size, BufferSize);
 	PROPERTY_READONLY(Size, VisualSize);
 	PROPERTY_READONLY(float, DevicePixelRatio);
@@ -56,6 +55,7 @@ public:
 	PROPERTY_READONLY(uint32_t, MaxFPS);
 	PROPERTY(uint32_t, TargetFPS);
 	PROPERTY(uint32_t, Seed);
+	PROPERTY(Size, WinSize);
 	PROPERTY_BOOL(FPSLimited);
 	PROPERTY_BOOL(Idled);
 	SDLEventHandler eventHandler;

@@ -145,7 +145,7 @@ bool Unit::init() {
 	ARRAY_END
 	_decisionTreeName = _unitDef->get(Def::DecisionTree, Slice::Empty);
 	_entity->set("unit"_slice, s_cast<Object*>(this));
-	this->scheduleUpdate();
+	this->scheduleFixedUpdate();
 	return true;
 }
 
@@ -203,7 +203,10 @@ Playable* Unit::getPlayable() const {
 	return _playable;
 }
 
-bool Unit::update(double deltaTime) {
+bool Unit::fixedUpdate(double deltaTime) {
+	if (_flags.isOff(Node::FixedUpdating)) {
+		return Body::fixedUpdate(deltaTime);
+	}
 	if (_currentAction) {
 		if (_currentAction->isDoing()) {
 			_currentAction->update(s_cast<float>(deltaTime));
@@ -229,7 +232,7 @@ bool Unit::update(double deltaTime) {
 			_behaviorTree = nullptr;
 		}
 	}
-	return Body::update(deltaTime);
+	return Body::fixedUpdate(deltaTime);
 }
 
 void Unit::cleanup() {

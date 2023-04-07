@@ -58,6 +58,7 @@ protected:
 
 private:
 	bool _showPlot;
+	uint32_t _objectFrames;
 	uint32_t _timeFrames;
 	uint32_t _memFrames;
 	uint32_t _profileFrames;
@@ -81,6 +82,9 @@ private:
 	double _maxGPU;
 	double _maxDelta;
 	double _yLimit;
+	uint32_t _maxCppObjects;
+	uint32_t _maxLuaObjects;
+	uint32_t _maxCallbacks;
 
 private:
 	bool _textInputing;

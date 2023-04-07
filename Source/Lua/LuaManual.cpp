@@ -1357,7 +1357,7 @@ int Array_set(lua_State* L) {
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_set'", nullptr);
 #endif
 		int index = s_cast<int>(tolua_tonumber(L, 2, 0)) - 1;
-		if (index < 0 || self->getCount() <= index) {
+		if (index < 0 || s_cast<int>(self->getCount()) <= index) {
 			tolua_error(L, "'Array' indexing out of bound", nullptr);
 		}
 		auto value = Dora_getValue(L, 3);
@@ -1385,7 +1385,7 @@ int Array_get(lua_State* L) {
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_get'", nullptr);
 #endif
 		int index = s_cast<int>(tolua_tonumber(L, 2, 0)) - 1;
-		if (index < 0 || self->getCount() <= index) {
+		if (index < 0 || s_cast<int>(self->getCount()) <= index) {
 			tolua_error(L, "'Array' indexing out of bound", nullptr);
 		}
 		const auto& value = self->get(index);
@@ -1416,7 +1416,7 @@ int Array_insert(lua_State* L) {
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_insert'", nullptr);
 #endif
 		int index = s_cast<int>(tolua_tonumber(L, 2, 0)) - 1;
-		if (index < 0 || self->getCount() <= index) {
+		if (index < 0 || s_cast<int>(self->getCount()) <= index) {
 			tolua_error(L, "'Array' indexing out of bound", nullptr);
 		}
 		auto value = Dora_getValue(L, 3);

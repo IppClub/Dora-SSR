@@ -306,16 +306,21 @@ Node* Node::getTransformTarget() const {
 
 void Node::setScheduler(Scheduler* var) {
 	AssertUnless(var, "set invalid scheduler(nullptr) to node.");
-	if (isUpdating()) {
-		_scheduler->unschedule(this);
-		_scheduler = var;
-		if (isFixedUpdating()) {
-			_scheduler->scheduleFixed(this);
-		} else
-			_scheduler->schedule(this);
-	} else {
-		_scheduler = var;
+	auto oldScheduler = _scheduler.get();
+	if (_flags.isOn(Node::Updating)) {
+		if (_updateItem && _updateItem->scheduled()) {
+			oldScheduler->unschedule(_updateItem->scheduledItem.get());
+		}
+		var->schedule(getUpdateItem()->scheduledItem.get());
 	}
+	if (_flags.isOn(Node::FixedUpdating)) {
+		if (_fixedUpdateItem && _fixedUpdateItem->scheduled()) {
+			oldScheduler->unscheduleFixed(_fixedUpdateItem->scheduledItem.get());
+		}
+		var->scheduleFixed(getFixedUpdateItem()->scheduledItem.get());
+	}
+	_scheduler = var;
+
 }
 
 Scheduler* Node::getScheduler() const {
@@ -374,10 +379,16 @@ void Node::onEnter() {
 	ARRAY_END
 	_flags.setOn(Node::Running);
 	if (isUpdating() || isScheduled()) {
-		if (isFixedUpdating()) {
-			_scheduler->scheduleFixed(this);
-		} else
-			_scheduler->schedule(this);
+		auto updateItem = getUpdateItem();
+		if (!updateItem->scheduled()) {
+			_scheduler->schedule(updateItem->scheduledItem.get());
+		}
+	}
+	if (isFixedUpdating() || isFixedScheduled()) {
+		auto fixedUpdateItem = getFixedUpdateItem();
+		if (!fixedUpdateItem->scheduled()) {
+			_scheduler->scheduleFixed(fixedUpdateItem->scheduledItem.get());
+		}
 	}
 	resumeActionInList(_action);
 	markDirty();
@@ -391,7 +402,14 @@ void Node::onExit() {
 	ARRAY_END
 	_flags.setOff(Node::Running);
 	if (isUpdating() || isScheduled()) {
-		_scheduler->unschedule(this);
+		if (_updateItem && _updateItem->scheduled()) {
+			_scheduler->unschedule(_updateItem->scheduledItem.get());
+		}
+	}
+	if (isFixedUpdating() || isFixedScheduled()) {
+		if (_fixedUpdateItem && _fixedUpdateItem->scheduled()) {
+			_scheduler->unscheduleFixed(_fixedUpdateItem->scheduledItem.get());
+		}
 	}
 	pauseActionInList(_action);
 	emit("Exit"_slice);
@@ -599,7 +617,11 @@ Vec3 Node::convertToWorldSpace3(const Vec3& nodePoint) {
 }
 
 bool Node::isScheduled() const {
-	return _flags.isOn(Node::Scheduling);
+	return _updateItem && _updateItem->hasFunc();
+}
+
+bool Node::isFixedScheduled() const {
+	return _fixedUpdateItem && _fixedUpdateItem->hasFunc();
 }
 
 void Node::setTouchEnabled(bool var) {
@@ -640,23 +662,57 @@ TouchHandler* Node::getTouchHandler() const {
 	return _touchHandler.get();
 }
 
+Node::UpdateItem* Node::getUpdateItem() {
+	if (!_updateItem) {
+		_updateItem = New<Node::UpdateItem>();
+		_updateItem->scheduledItem = New<ScheduledItem>(this);
+	}
+	return _updateItem.get();
+}
+
+Node::UpdateItem* Node::getFixedUpdateItem() {
+	if (!_fixedUpdateItem) {
+		_fixedUpdateItem = New<Node::UpdateItem>();
+		_fixedUpdateItem->scheduledItem = New<ScheduledItem>(this);
+	}
+	return _fixedUpdateItem.get();
+}
+
 void Node::schedule(const std::function<bool(double)>& func) {
-	_scheduleFunc = func;
-	if (_flags.isOff(Node::Scheduling)) {
-		_flags.setOn(Node::Scheduling);
-		if (_flags.isOff(Node::Updating) && _flags.isOn(Node::Running)) {
-			_scheduler->schedule(this);
-		}
+	auto updateItem = getUpdateItem();
+	updateItem->scheduledFunc = func;
+	if (_flags.isOff(Node::Running)) return;
+	if (!updateItem->scheduled()) {
+		_scheduler->schedule(updateItem->scheduledItem.get());
+	}
+}
+
+void Node::scheduleFixed(const std::function<bool(double)>& func) {
+	auto fixedUpdateItem = getFixedUpdateItem();
+	fixedUpdateItem->scheduledFunc = func;
+	if (_flags.isOff(Node::Running)) return;
+	if (!fixedUpdateItem->scheduledItem->iter) {
+		_scheduler->scheduleFixed(fixedUpdateItem->scheduledItem.get());
 	}
 }
 
 void Node::unschedule() {
-	if (_flags.isOn(Node::Scheduling)) {
-		_flags.setOff(Node::Scheduling);
-		if (_flags.isOff(Node::Updating)) {
-			_scheduler->unschedule(this);
+	if (!_updateItem) return;
+	if (_updateItem->scheduledFunc) {
+		_updateItem->scheduledFunc = nullptr;
+		if (_flags.isOff(Node::Updating) && _updateItem->scheduledItem->iter) {
+			_scheduler->unschedule(_updateItem->scheduledItem.get());
 		}
-		_scheduleFunc = nullptr;
+	}
+}
+
+void Node::unscheduleFixed() {
+	if (!_fixedUpdateItem) return;
+	if (_fixedUpdateItem->scheduledFunc) {
+		_fixedUpdateItem->scheduledFunc = nullptr;
+		if (_flags.isOff(Node::FixedUpdating) && _fixedUpdateItem->scheduledItem->iter) {
+			_scheduler->unscheduleFixed(_fixedUpdateItem->scheduledItem.get());
+		}
 	}
 }
 
@@ -669,43 +725,56 @@ bool Node::isFixedUpdating() const {
 }
 
 void Node::scheduleUpdate() {
-	if (_flags.isOff(Node::Updating)) {
-		_flags.setOn(Node::Updating);
-		if (_flags.isOff(Node::Scheduling) && _flags.isOn(Node::Running)) {
-			_scheduler->schedule(this);
-		}
+	if (_flags.isOn(Node::Updating)) return;
+	_flags.setOn(Node::Updating);
+	if (_flags.isOff(Node::Running)) return;
+	auto updateItem = getUpdateItem();
+	if (!updateItem->scheduledItem->iter) {
+		_scheduler->schedule(updateItem->scheduledItem.get());
 	}
 }
 
-void Node::scheduleUpdateFixed() {
-	if (_flags.isOff(Node::Updating)) {
-		_flags.setOn(Node::Updating);
-		_flags.setOn(Node::FixedUpdating);
-		if (_flags.isOff(Node::Scheduling) && _flags.isOn(Node::Running)) {
-			_scheduler->scheduleFixed(this);
-		}
+void Node::scheduleFixedUpdate() {
+	if (_flags.isOn(Node::FixedUpdating)) return;
+	_flags.setOn(Node::FixedUpdating);
+	if (_flags.isOff(Node::Running)) return;
+	auto fixedUpdateItem = getFixedUpdateItem();
+	if (!fixedUpdateItem->scheduledItem->iter) {
+		_scheduler->scheduleFixed(fixedUpdateItem->scheduledItem.get());
 	}
 }
 
 void Node::unscheduleUpdate() {
 	if (_flags.isOn(Node::Updating)) {
 		_flags.setOff(Node::Updating);
+		if (_updateItem && !_updateItem->scheduledFunc && _updateItem->scheduledItem->iter) {
+			_scheduler->unschedule(_updateItem->scheduledItem.get());
+		}
+	}
+}
+
+void Node::unscheduleFixedUpdate() {
+	if (_flags.isOn(Node::FixedUpdating)) {
 		_flags.setOff(Node::FixedUpdating);
-		if (_flags.isOff(Node::Scheduling)) {
-			_scheduler->unschedule(this);
+		if (_fixedUpdateItem && !_fixedUpdateItem->scheduledFunc && _fixedUpdateItem->scheduledItem->iter) {
+			_scheduler->unscheduleFixed(_fixedUpdateItem->scheduledItem.get());
 		}
 	}
 }
 
 bool Node::fixedUpdate(double deltaTime) {
-	DORA_UNUSED_PARAM(deltaTime);
-	return !isFixedUpdating();
+	bool result = true;
+	if (isFixedScheduled()) {
+		result = _fixedUpdateItem->scheduledFunc(deltaTime);
+		if (result) unscheduleFixed();
+	}
+	return result && !isFixedUpdating();
 }
 
 bool Node::update(double deltaTime) {
 	bool result = true;
-	if (isScheduled() && _scheduleFunc) {
-		result = _scheduleFunc(deltaTime);
+	if (isScheduled()) {
+		result = _updateItem->scheduledFunc(deltaTime);
 		if (result) unschedule();
 	}
 	return result && !isUpdating();
@@ -1689,6 +1758,14 @@ void Signal::emit(Event* event) {
 			}
 		}
 	}
+}
+
+bool Node::UpdateItem::hasFunc() const {
+	return scheduledFunc != nullptr;
+}
+
+bool Node::UpdateItem::scheduled() const {
+	return scheduledItem->iter.has_value();
 }
 
 NS_DOROTHY_END
