@@ -67,8 +67,8 @@ bool SoftNode::update(double deltaTime) {
 	for (const auto& contrant : _world->getConstraints()) {
 		Vec2 posA = contrant->getNodeA()->getPosition();
 		Vec2 posB = contrant->getNodeB()->getPosition();
-		_line->add({PhysicsWorld::oVal(Vec2{posA.x, -posA.y}),
-					   PhysicsWorld::oVal(Vec2{posB.x, -posB.y})},
+		_line->add({PhysicsWorld::Val(Vec2{posA.x, -posA.y}),
+					   PhysicsWorld::Val(Vec2{posB.x, -posB.y})},
 			Color(0xff00ffff));
 	}
 	return false;

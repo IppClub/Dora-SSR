@@ -56,12 +56,12 @@ public:
 	void setShouldContact(uint8_t groupA, uint8_t groupB, bool contact);
 	bool getShouldContact(uint8_t groupA, uint8_t groupB) const;
 	const pr::Filter& getFilter(uint8_t group) const;
-	static inline float oVal(pr::Real value) { return float(value) * scaleFactor; }
-	static inline Vec2 oVal(const pr::Vec2& value) { return Vec2{value[0] * scaleFactor, value[1] * scaleFactor}; }
-	static inline Vec2 oVal(const Vec2& value) { return value * scaleFactor; }
-	static inline pr::Real b2Val(float value) { return pr::Real(value / scaleFactor); }
-	static inline Vec2 b2Val(const pr::Vec2& value) { return Vec2{value[0] / scaleFactor, value[1] / scaleFactor}; }
-	static inline Vec2 b2Val(const Vec2& value) { return value / scaleFactor; }
+	static inline float Val(pr::Real value) { return float(value) * scaleFactor; }
+	static inline Vec2 Val(const pr::Vec2& value) { return Vec2{value[0] * scaleFactor, value[1] * scaleFactor}; }
+	static inline Vec2 Val(const Vec2& value) { return value * scaleFactor; }
+	static inline pr::Real prVal(float value) { return pr::Real(value / scaleFactor); }
+	static inline Vec2 prVal(const pr::Vec2& value) { return Vec2{value[0] / scaleFactor, value[1] / scaleFactor}; }
+	static inline Vec2 prVal(const Vec2& value) { return value / scaleFactor; }
 	/**
 	 scaleFactor is used for converting PlayRho meters value to pixel value.
 	 Default 100.0f is a good value since PlayRho can well simulate real life objects

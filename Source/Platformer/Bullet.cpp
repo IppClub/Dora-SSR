@@ -72,7 +72,7 @@ void Bullet::updatePhysics() {
 		/* Here only Node::setPosition(const Vec2& var) work for modify Node`s position.
 		 Other positioning functions have been overridden by Body`s.
 		*/
-		Node::setPosition(Vec2{PhysicsWorld::oVal(pos[0]), PhysicsWorld::oVal(pos[1])});
+		Node::setPosition(Vec2{PhysicsWorld::Val(pos[0]), PhysicsWorld::Val(pos[1])});
 		if (pd::GetLinearAcceleration(world, _prBody) != pr::LinearAcceleration2{}) {
 			pd::Velocity velocity = pd::GetVelocity(world, _prBody);
 			Node::setAngle(-bx::toDeg(std::atan2(velocity.linear[1], velocity.linear[0])));

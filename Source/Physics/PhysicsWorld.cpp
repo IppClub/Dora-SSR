@@ -98,7 +98,7 @@ void PhysicsWorld::setupBeginContact() {
 			}
 		} else if (bodyA->isReceivingContact() || bodyB->isReceivingContact()) {
 			pd::WorldManifold worldManifold = pd::GetWorldManifold(_world, contact);
-			Vec2 point = PhysicsWorld::oVal(worldManifold.GetPoint(0));
+			Vec2 point = PhysicsWorld::Val(worldManifold.GetPoint(0));
 			pd::UnitVec normal = worldManifold.GetNormal();
 			if (bodyA->isReceivingContact()) {
 				ContactPair pair{bodyA, bodyB};
@@ -136,7 +136,7 @@ void PhysicsWorld::setupEndContact() {
 			}
 		} else if ((bodyA && bodyB) && (bodyA->isReceivingContact() || bodyB->isReceivingContact())) {
 			pd::WorldManifold worldManifold = pd::GetWorldManifold(_world, contact);
-			Vec2 point = PhysicsWorld::oVal(worldManifold.GetPoint(0));
+			Vec2 point = PhysicsWorld::Val(worldManifold.GetPoint(0));
 			if (bodyA->isReceivingContact()) {
 				pd::UnitVec normal = worldManifold.GetNormal();
 				ContactPair pair{bodyA, bodyB, point, {normal[0], normal[1]}};
@@ -166,7 +166,7 @@ void PhysicsWorld::setupPreSolve() {
 		}
 		if (!pd::IsEnabled(_world, contact)) {
 			pd::WorldManifold worldManifold = pd::GetWorldManifold(_world, contact);
-			Vec2 point = PhysicsWorld::oVal(worldManifold.GetPoint(0));
+			Vec2 point = PhysicsWorld::Val(worldManifold.GetPoint(0));
 			if (bodyA->isReceivingContact()) {
 				pd::UnitVec normal = worldManifold.GetNormal();
 				ContactPair pair{bodyA, bodyB, point, {normal[0], normal[1]}};
@@ -299,19 +299,19 @@ Joint* PhysicsWorld::getJointData(pr::JointID joint) const {
 bool PhysicsWorld::query(const Rect& rect, const std::function<bool(Body*)>& callback) {
 	pd::AABB aabb{
 		pd::AABB::Location{
-			b2Val(rect.getLeft()),
-			b2Val(rect.getBottom())},
+			prVal(rect.getLeft()),
+			prVal(rect.getBottom())},
 		pd::AABB::Location{
-			b2Val(rect.getRight()),
-			b2Val(rect.getTop())}};
+			prVal(rect.getRight()),
+			prVal(rect.getTop())}};
 	pd::Transformation transform{
 		pr::Length2{
-			b2Val(rect.getCenterX()),
-			b2Val(rect.getCenterY())}};
+			prVal(rect.getCenterX()),
+			prVal(rect.getCenterY())}};
 	pd::Shape testShape = pd::Shape{
 		pd::PolygonShapeConf{
-			b2Val(rect.size.width),
-			b2Val(rect.size.height)}};
+			prVal(rect.size.width),
+			prVal(rect.size.height)}};
 	pd::Query(_world.GetTree(), aabb, [&](pr::BodyID bodyID, pr::ShapeID shapeID, const pr::ChildCounter) {
 		BLOCK_START {
 			BREAK_IF(pd::IsSensor(_world, shapeID));
@@ -346,14 +346,14 @@ bool PhysicsWorld::query(const Rect& rect, const std::function<bool(Body*)>& cal
 }
 
 bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, const std::function<bool(Body*, const Vec2&, const Vec2&)>& callback) {
-	pd::RayCastInput input{b2Val(start), b2Val(end), pr::Real{1}};
+	pd::RayCastInput input{prVal(start), prVal(end), pr::Real{1}};
 	bool result = false;
 	pd::RayCast(_world, input, [&](pr::BodyID body, pr::ShapeID fixture, pr::ChildCounter child, pr::Length2 point, pd::UnitVec normal) {
 		Body* node = _bodyData[body.get()];
 		if (!node) return pr::RayCastOpcode::ResetRay;
 		_rayCastResult.body = node;
-		_rayCastResult.point = oVal(pr::Vec2{point[0], point[1]});
-		_rayCastResult.normal = oVal(pr::Vec2{normal[0], normal[1]});
+		_rayCastResult.point = Val(pr::Vec2{point[0], point[1]});
+		_rayCastResult.normal = Val(pr::Vec2{normal[0], normal[1]});
 		if (closest) {
 			return pr::RayCastOpcode::Terminate;
 		} else {
