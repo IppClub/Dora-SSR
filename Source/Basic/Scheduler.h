@@ -14,26 +14,37 @@ class Node;
 class Action;
 class Array;
 
+class ScheduledItem;
+
+typedef std::list<ScheduledItem*> UpdateList;
+typedef std::optional<std::list<ScheduledItem*>::iterator> UpdateIter;
+
+struct ScheduledItem {
+	ScheduledItem(Object* target): target(target) { }
+	Object* target;
+	UpdateIter iter;
+};
+
 class Scheduler : public Object {
-	typedef std::list<Ref<Object>> UpdateList;
-	typedef std::unordered_map<Object*, UpdateList::iterator> UpdateMap;
-	typedef std::unordered_set<Object*> FixedUpdateSet;
 
 public:
 	PROPERTY(float, TimeScale);
 	PROPERTY(int, FixedFPS);
 	PROPERTY_READONLY(double, DeltaTime);
-	void schedule(Object* object);
-	void scheduleFixed(Object* object);
+	void schedule(ScheduledItem* item);
+	void scheduleFixed(ScheduledItem* item);
 	void schedule(const std::function<bool(double)>& handler);
+	void scheduleFixed(const std::function<bool(double)>& handler);
 	void schedule(Action* action);
-	void unschedule(Object* object);
+	void unschedule(ScheduledItem* item);
+	void unscheduleFixed(ScheduledItem* item);
 	void unschedule(Action* action);
 	virtual bool update(double deltaTime) override;
 	CREATE_FUNC(Scheduler);
 
 protected:
 	Scheduler();
+	virtual ~Scheduler();
 
 private:
 	int _fixedFPS;
@@ -41,12 +52,11 @@ private:
 	double _deltaTime;
 	double _leftTime;
 	UpdateList _updateList;
-	UpdateMap _updateMap;
-	FixedUpdateSet _fixedUpdate;
+	UpdateList _fixedUpdateList;
 	Ref<Array> _actionList;
 
 private:
-	static std::vector<Ref<Object>> _updateItems;
+	static std::vector<std::pair<Ref<Object>, ScheduledItem*>> _updateObjects;
 	DORA_TYPE_OVERRIDE(Scheduler);
 };
 
@@ -64,6 +74,7 @@ protected:
 private:
 	float _time;
 	float _duration;
+	ScheduledItem _scheduledItem;
 	std::function<void()> _callback;
 	DORA_TYPE_OVERRIDE(SystemTimer);
 };

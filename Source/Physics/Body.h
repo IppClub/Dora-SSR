@@ -21,7 +21,7 @@ class PhysicsWorld;
 class BodyDef;
 class Contact;
 
-struct FixtureDef;
+class FixtureDef;
 
 typedef Acf::Delegate<bool(Body* body)> ContactFilterHandler;
 typedef Acf::Delegate<void(Body* body, const Vec2& point, const Vec2& normal)> ContactHandler;

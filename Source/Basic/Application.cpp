@@ -22,8 +22,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "bx/timer.h"
 
 #include <chrono>
-#include <thread>
 #include <ctime>
+#include <thread>
 
 #define DORA_VERSION "1.0.21"_slice
 
@@ -91,10 +91,6 @@ Size Application::getVisualSize() const {
 	return Size{s_cast<float>(_visualWidth), s_cast<float>(_visualHeight)};
 }
 
-Size Application::getWinSize() const {
-	return Size{s_cast<float>(_winWidth), s_cast<float>(_winHeight)};
-}
-
 float Application::getDevicePixelRatio() const {
 	return s_cast<float>(_bufferWidth) / _visualWidth;
 }
@@ -146,6 +142,28 @@ void Application::setFPSLimited(bool var) {
 
 bool Application::isFPSLimited() const {
 	return _fpsLimited;
+}
+
+void Application::setWinSize(Size var) {
+	AssertIf(getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice,
+		"changing window size is not available on {}.", getPlatform());
+	if (var == Size::zero) {
+		invokeInRender([&]() {
+			SDL_SetWindowFullscreen(_sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		});
+		Event::send("AppFullScreen", true);
+	} else {
+		invokeInRender([&, var]() {
+			SDL_SetWindowFullscreen(_sdlWindow, 0);
+			SDL_SetWindowSize(_sdlWindow, s_cast<int>(var.width), s_cast<int>(var.height));
+			SDL_SetWindowPosition(_sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+		});
+		Event::send("AppFullScreen", false);
+	}
+}
+
+Size Application::getWinSize() const {
+	return Size{s_cast<float>(_winWidth), s_cast<float>(_winHeight)};
 }
 
 uint32_t Application::getFrame() const {
@@ -619,14 +637,14 @@ int CALLBACK WinMain(
 }
 #endif // BX_PLATFORM_WINDOWS
 
+#include "Lua/LuaEngine.h"
 #include "PlayRho/Defines.hpp"
+#include "SQLiteCpp/SQLiteCpp.h"
 #include "imgui.h"
 #include "soloud.h"
 #include "sqlite3.h"
 #include "wasm3.h"
 #include "yuescript/yue_compiler.h"
-#include "Lua/LuaEngine.h"
-#include "SQLiteCpp/SQLiteCpp.h"
 
 std::string Dorothy::Application::getDeps() const {
 	return fmt::format(

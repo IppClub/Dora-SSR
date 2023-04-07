@@ -25,16 +25,33 @@ public:
 		return func(deltaTime);
 	}
 	std::function<bool(double)> func;
-	std::list<Ref<Object>>::iterator it;
+	ScheduledItem item;
 	CREATE_FUNC(FuncWrapper);
 
 protected:
 	FuncWrapper(const std::function<bool(double)>& func)
-		: func(func) { }
+		: func(func)
+		, item(this) { }
 	DORA_TYPE_OVERRIDE(FuncWrapper);
 };
 
-std::vector<Ref<Object>> Scheduler::_updateItems;
+class FixedFuncWrapper : public Object {
+public:
+	virtual bool fixedUpdate(double deltaTime) override {
+		return func(deltaTime);
+	}
+	std::function<bool(double)> func;
+	ScheduledItem item;
+	CREATE_FUNC(FixedFuncWrapper);
+
+protected:
+	FixedFuncWrapper(const std::function<bool(double)>& func)
+		: func(func)
+		, item(this) { }
+	DORA_TYPE_OVERRIDE(FixedFuncWrapper);
+};
+
+std::vector<std::pair<Ref<Object>, ScheduledItem*>> Scheduler::_updateObjects;
 
 Scheduler::Scheduler()
 	: _fixedFPS(60)
@@ -42,6 +59,15 @@ Scheduler::Scheduler()
 	, _leftTime(0.0)
 	, _timeScale(1.0f)
 	, _actionList(Array::create()) { }
+
+Scheduler::~Scheduler() {
+	for (auto item : _updateList) {
+		item->target->release();
+	}
+	for (auto item : _fixedUpdateList) {
+		item->target->release();
+	}
+}
 
 void Scheduler::setFixedFPS(int var) {
 	_fixedFPS = var;
@@ -63,28 +89,43 @@ double Scheduler::getDeltaTime() const {
 	return _deltaTime;
 }
 
-void Scheduler::schedule(Object* object) {
-	// O(1) insert operation
-	_updateMap[object] = _updateList.insert(_updateList.end(), MakeRef(object));
+void Scheduler::schedule(ScheduledItem* item) {
+	AssertIf(item->iter, "target item is already scheduled");
+	item->target->retain();
+	item->iter = _updateList.emplace(_updateList.end(), item);
 }
 
-void Scheduler::scheduleFixed(Object* object) {
-	schedule(object);
-	_fixedUpdate.insert(object);
+void Scheduler::scheduleFixed(ScheduledItem* item) {
+	AssertIf(item->iter, "target item is already scheduled");
+	item->target->retain();
+	item->iter = _fixedUpdateList.emplace(_fixedUpdateList.end(), item);
 }
 
 void Scheduler::schedule(const std::function<bool(double)>& handler) {
 	FuncWrapper* func = FuncWrapper::create(handler);
-	func->it = _updateList.insert(_updateList.end(), Ref<Object>(func));
+	func->retain();
+	func->item.iter = _updateList.emplace(_updateList.end(), &func->item);
 }
 
-void Scheduler::unschedule(Object* object) {
-	auto it = _updateMap.find(object);
-	if (it != _updateMap.end()) {
-		// O(1) remove operation
-		_updateList.erase(it->second);
-		_updateMap.erase(it);
-		_fixedUpdate.erase(object);
+void Scheduler::scheduleFixed(const std::function<bool(double)>& handler) {
+	FixedFuncWrapper* func = FixedFuncWrapper::create(handler);
+	func->retain();
+	func->item.iter = _fixedUpdateList.emplace(_fixedUpdateList.end(), &func->item);
+}
+
+void Scheduler::unschedule(ScheduledItem* item) {
+	if (item->iter) {
+		_updateList.erase(item->iter.value());
+		item->target->release();
+		item->iter = std::nullopt;
+	}
+}
+
+void Scheduler::unscheduleFixed(ScheduledItem* item) {
+	if (item->iter) {
+		_fixedUpdateList.erase(item->iter.value());
+		item->target->release();
+		item->iter = std::nullopt;
 	}
 }
 
@@ -123,15 +164,16 @@ bool Scheduler::update(double deltaTime) {
 	double fixedDelta = 1.0 / _fixedFPS;
 	double fixedDeltaTime = fixedDelta * _timeScale;
 	while (_leftTime > fixedDelta) {
-		std::list<Object*> stopedItems;
-		for (Object* item : _fixedUpdate) {
-			if (item->fixedUpdate(fixedDeltaTime)) {
-				stopedItems.push_back(item);
+		_updateObjects.reserve(_fixedUpdateList.size());
+		for (auto item : _fixedUpdateList) {
+			_updateObjects.emplace_back(item->target, item);
+		}
+		for (const auto& updateObject : _updateObjects) {
+			if (updateObject.first->fixedUpdate(fixedDeltaTime)) {
+				unscheduleFixed(updateObject.second);
 			}
 		}
-		for (Object* item : stopedItems) {
-			_fixedUpdate.erase(item);
-		}
+		_updateObjects.clear();
 		_leftTime -= fixedDelta;
 	}
 
@@ -170,17 +212,16 @@ bool Scheduler::update(double deltaTime) {
 	}
 
 	/* update scheduled items */
-	_updateItems.reserve(_updateList.size());
-	_updateItems.insert(_updateItems.begin(), _updateList.begin(), _updateList.end());
-	for (const auto& item : _updateItems) {
-		if (item->update(_deltaTime)) {
-			if (FuncWrapper* func = DoraAs<FuncWrapper>(item.get())) {
-				_updateList.erase(func->it);
-			} else
-				unschedule(item);
+	_updateObjects.reserve(_updateList.size());
+	for (auto item : _updateList) {
+		_updateObjects.emplace_back(item->target, item);
+	}
+	for (const auto& updateObject : _updateObjects) {
+		if (updateObject.first->update(deltaTime)) {
+			unschedule(updateObject.second);
 		}
 	}
-	_updateItems.clear();
+	_updateObjects.clear();
 	return false;
 }
 
@@ -188,7 +229,8 @@ bool Scheduler::update(double deltaTime) {
 
 SystemTimer::SystemTimer()
 	: _time(0)
-	, _duration(0) { }
+	, _duration(0)
+	, _scheduledItem(this) { }
 
 bool SystemTimer::isRunning() const {
 	return _time < _duration;
@@ -210,7 +252,7 @@ void SystemTimer::start(float duration, const std::function<void()>& callback) {
 	_time = 0.0f;
 	_duration = std::max(0.0f, duration);
 	_callback = callback;
-	SharedDirector.getSystemScheduler()->schedule(this);
+	SharedDirector.getSystemScheduler()->schedule(&_scheduledItem);
 }
 
 void SystemTimer::stop() {

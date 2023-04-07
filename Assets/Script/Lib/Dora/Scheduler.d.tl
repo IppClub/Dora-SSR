@@ -9,6 +9,11 @@ local record Scheduler
 	-- This factor is applied to deltaTime that the scheduled functions will receive.
 	timeScale: number
 
+	-- The target frame rate (in frames per second) for a fixed update mode.
+	-- The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
+	-- It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
+	fixedFPS: integer
+
 	-- Schedules a function to be called every frame.
 	-- @param handler (function) The function to be called.
 	-- It should take a single argument of type number, which represents the delta time since the last frame.
@@ -18,6 +23,16 @@ local record Scheduler
 	-- Schedules a coroutine job to be resumed every frame.
 	-- @param job (Routine.Job) The coroutine job to be resumed.
 	schedule: function(self: Scheduler, job: Routine.Job)
+
+	-- Schedules a function to be called every frame.
+	-- @param handler (function) The function to be called in fixed update mode.
+	-- It should take a single argument of type number, which represents the delta time since the last frame.
+	-- If the function returns true, it will not be called again.
+	scheduleFixed: function(self: Scheduler, handler: function(number): boolean)
+
+	-- Schedules a coroutine job to be resumed every frame in fixed update mode.
+	-- @param job (Routine.Job) The coroutine job to be resumed.
+	scheduleFixed: function(self: Scheduler, job: Routine.Job)
 end
 
 -- A class for creating Scheduler objects.

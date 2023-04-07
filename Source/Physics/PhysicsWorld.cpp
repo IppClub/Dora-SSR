@@ -193,7 +193,7 @@ bool PhysicsWorld::init() {
 		_filters[i].categoryBits = 1 << i;
 		_filters[i].maskBits = 0;
 	}
-	Node::scheduleUpdateFixed();
+	Node::scheduleFixedUpdate();
 	return true;
 }
 

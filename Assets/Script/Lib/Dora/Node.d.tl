@@ -114,8 +114,11 @@ local record Node
 	-- Whether the node is currently running in a scene tree.
 	const running: boolean
 
-	-- Whether the node is currently scheduled for updates.
+	-- Whether the node is currently scheduling a function or a coroutine for updates.
 	const scheduled: boolean
+
+	-- Whether the node is currently scheduling a function or a coroutine for updates in fixed update mode.
+	const fixedScheduled: boolean
 
 	-- The number of actions currently running on the node.
 	const actionCount: integer
@@ -218,6 +221,17 @@ local record Node
 
 	-- Unschedules the current node's scheduled function or coroutine.
 	unschedule: function(self: Node)
+
+	-- Schedules a function to run every frame in fixed update mode.
+	-- @param func (function) The function to run, return true to stop.
+	scheduleFixed: function(self: Node, func: function(number): boolean)
+
+	-- Schedules a coroutine to run in fixed update mode.
+	-- @param job (Routine.Job) The coroutine to run, return or yield true to stop.
+	scheduleFixed: function(self: Node, job: Routine.Job)
+
+	-- Unschedules the current node's scheduled function or coroutine in fixed update mode.
+	unscheduleFixed: function(self: Node)
 
 	convertToNodeSpace: function(self: Node, worldPoint: Vec2): Vec2
 

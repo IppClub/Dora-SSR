@@ -19,6 +19,7 @@ class Event;
 class Listener;
 class Signal;
 class Slot;
+class ScheduledItem;
 class Scheduler;
 class TouchHandler;
 class NodeTouchHandler;
@@ -73,6 +74,7 @@ public:
 	PROPERTY_READONLY_BOOL(Updating);
 	PROPERTY_READONLY_BOOL(FixedUpdating);
 	PROPERTY_READONLY_BOOL(Scheduled);
+	PROPERTY_READONLY_BOOL(FixedScheduled);
 	PROPERTY_BOOL(TouchEnabled);
 	PROPERTY_BOOL(SwallowTouches);
 	PROPERTY_BOOL(SwallowMouseWheel);
@@ -106,7 +108,9 @@ public:
 	Node* getChildByTag(String tag);
 
 	void schedule(const std::function<bool(double)>& func);
+	void scheduleFixed(const std::function<bool(double)>& func);
 	void unschedule();
+	void unscheduleFixed();
 
 	Vec2 convertToNodeSpace(const Vec2& worldPoint);
 	Vec2 convertToWorldSpace(const Vec2& nodePoint);
@@ -120,8 +124,9 @@ public:
 	void convertToWindowSpace(const Vec2& nodePoint, const std::function<void(const Vec2&)>& callback);
 
 	void scheduleUpdate();
-	void scheduleUpdateFixed();
+	void scheduleFixedUpdate();
 	void unscheduleUpdate();
+	void unscheduleFixedUpdate();
 
 	void visitInner();
 
@@ -316,7 +321,16 @@ protected:
 	Own<Signal> _signal;
 	std::string _tag;
 	std::shared_ptr<NodeTouchHandler> _touchHandler;
-	std::function<bool(double)> _scheduleFunc;
+	struct UpdateItem {
+		std::function<bool(double)> scheduledFunc;
+		Own<ScheduledItem> scheduledItem;
+		bool hasFunc() const;
+		bool scheduled() const;
+	};
+	Own<UpdateItem> _updateItem;
+	UpdateItem* getUpdateItem();
+	Own<UpdateItem> _fixedUpdateItem;
+	UpdateItem* getFixedUpdateItem();
 	enum {
 		Visible = 1,
 		SelfVisible = 1 << 1,
@@ -324,21 +338,20 @@ protected:
 		TransformDirty = 1 << 3,
 		WorldDirty = 1 << 4,
 		Running = 1 << 5,
-		Updating = 1 << 6,
-		Scheduling = 1 << 7,
-		PassOpacity = 1 << 8,
-		PassColor3 = 1 << 9,
-		Reorder = 1 << 10,
-		Cleanup = 1 << 11,
-		TouchEnabled = 1 << 12,
-		SwallowTouches = 1 << 13,
-		SwallowMouseWheel = 1 << 14,
-		KeyboardEnabled = 1 << 15,
-		TraverseEnabled = 1 << 16,
-		RenderGrouped = 1 << 17,
+		PassOpacity = 1 << 6,
+		PassColor3 = 1 << 7,
+		Reorder = 1 << 8,
+		Cleanup = 1 << 9,
+		TouchEnabled = 1 << 10,
+		SwallowTouches = 1 << 11,
+		SwallowMouseWheel = 1 << 12,
+		KeyboardEnabled = 1 << 13,
+		TraverseEnabled = 1 << 14,
+		RenderGrouped = 1 << 15,
+		IgnoreLocalTransform = 1 << 16,
+		Updating = 1 << 17,
 		FixedUpdating = 1 << 18,
-		IgnoreLocalTransform = 1 << 19,
-		UserFlag = 1 << 20
+		UserFlag = 1 << 19,
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

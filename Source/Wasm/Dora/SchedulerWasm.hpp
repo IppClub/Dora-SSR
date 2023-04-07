@@ -7,12 +7,30 @@ static void scheduler_set_time_scale(int64_t self, float var) {
 static float scheduler_get_time_scale(int64_t self) {
 	return r_cast<Scheduler*>(self)->getTimeScale();
 }
+static void scheduler_set_fixed_fps(int64_t self, int32_t var) {
+	r_cast<Scheduler*>(self)->setFixedFPS(s_cast<int>(var));
+}
+static int32_t scheduler_get_fixed_fps(int64_t self) {
+	return s_cast<int32_t>(r_cast<Scheduler*>(self)->getFixedFPS());
+}
 static void scheduler_schedule(int64_t self, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
 	r_cast<Scheduler*>(self)->schedule([func, args, deref](double deltaTime) {
+		args->clear();
+		args->push(deltaTime);
+		SharedWasmRuntime.invoke(func);
+		return std::get<bool>(args->pop());
+	});
+}
+static void scheduler_schedule_fixed(int64_t self, int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	r_cast<Scheduler*>(self)->scheduleFixed([func, args, deref](double deltaTime) {
 		args->clear();
 		args->push(deltaTime);
 		SharedWasmRuntime.invoke(func);
@@ -26,6 +44,9 @@ static void linkScheduler(wasm3::module& mod) {
 	mod.link_optional("*", "scheduler_type", scheduler_type);
 	mod.link_optional("*", "scheduler_set_time_scale", scheduler_set_time_scale);
 	mod.link_optional("*", "scheduler_get_time_scale", scheduler_get_time_scale);
+	mod.link_optional("*", "scheduler_set_fixed_fps", scheduler_set_fixed_fps);
+	mod.link_optional("*", "scheduler_get_fixed_fps", scheduler_get_fixed_fps);
 	mod.link_optional("*", "scheduler_schedule", scheduler_schedule);
+	mod.link_optional("*", "scheduler_schedule_fixed", scheduler_schedule_fixed);
 	mod.link_optional("*", "scheduler_new", scheduler_new);
 }
