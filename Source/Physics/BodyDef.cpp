@@ -29,9 +29,9 @@ BodyDef::~BodyDef() {
 void BodyDef::attachPolygon(const Vec2& center, float width, float height, float angle, float density, float friction, float restitution) {
 	pd::PolygonShapeConf conf = pd::PolygonShapeConf{}
 									.SetAsBox(
-										PhysicsWorld::b2Val(width * 0.5f),
-										PhysicsWorld::b2Val(height * 0.5f),
-										PhysicsWorld::b2Val(center),
+										PhysicsWorld::prVal(width * 0.5f),
+										PhysicsWorld::prVal(height * 0.5f),
+										PhysicsWorld::prVal(center),
 										-bx::toRad(angle))
 									.UseDensity(density)
 									.UseFriction(friction)
@@ -42,8 +42,8 @@ void BodyDef::attachPolygon(const Vec2& center, float width, float height, float
 void BodyDef::attachPolygon(float width, float height, float density, float friction, float restitution) {
 	pd::PolygonShapeConf conf = pd::PolygonShapeConf{}
 									.SetAsBox(
-										PhysicsWorld::b2Val(width * 0.5f),
-										PhysicsWorld::b2Val(height * 0.5f))
+										PhysicsWorld::prVal(width * 0.5f),
+										PhysicsWorld::prVal(height * 0.5f))
 									.UseDensity(density)
 									.UseFriction(friction)
 									.UseRestitution(restitution);
@@ -54,8 +54,8 @@ void BodyDef::attachPolygon(const std::vector<Vec2>& vertices, float density, fl
 	std::vector<pr::Length2> vs(vertices.size());
 	for (size_t i = 0; i < vertices.size(); i++) {
 		vs[i] = pr::Length2{
-			PhysicsWorld::b2Val(vertices[i].x),
-			PhysicsWorld::b2Val(vertices[i].y)};
+			PhysicsWorld::prVal(vertices[i].x),
+			PhysicsWorld::prVal(vertices[i].y)};
 	}
 	pd::PolygonShapeConf conf = pd::PolygonShapeConf{}
 									.Set(vs)
@@ -69,8 +69,8 @@ void BodyDef::attachPolygon(const Vec2 vertices[], int count, float density, flo
 	std::vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++) {
 		vs[i] = pr::Length2{
-			PhysicsWorld::b2Val(vertices[i].x),
-			PhysicsWorld::b2Val(vertices[i].y)};
+			PhysicsWorld::prVal(vertices[i].x),
+			PhysicsWorld::prVal(vertices[i].y)};
 	}
 	pd::PolygonShapeConf conf = pd::PolygonShapeConf{}
 									.Set(vs)
@@ -91,8 +91,8 @@ void BodyDef::attachMulti(const std::vector<Vec2>& vertices, float density, floa
 			}
 		} else
 			vs.add(pr::Length2{
-				PhysicsWorld::b2Val(vertices[i].x),
-				PhysicsWorld::b2Val(vertices[i].y)});
+				PhysicsWorld::prVal(vertices[i].x),
+				PhysicsWorld::prVal(vertices[i].y)});
 	}
 	if (vs.size() > 0) {
 		conf.AddConvexHull(vs);
@@ -115,8 +115,8 @@ void BodyDef::attachMulti(const Vec2 vertices[], int count, float density, float
 			}
 		} else
 			vs.add(pr::Length2{
-				PhysicsWorld::b2Val(vertices[i].x),
-				PhysicsWorld::b2Val(vertices[i].y)});
+				PhysicsWorld::prVal(vertices[i].x),
+				PhysicsWorld::prVal(vertices[i].y)});
 	}
 	if (vs.size() > 0) {
 		conf.AddConvexHull(vs);
@@ -130,8 +130,8 @@ void BodyDef::attachMulti(const Vec2 vertices[], int count, float density, float
 
 void BodyDef::attachDisk(const Vec2& center, float radius, float density, float friction, float restitution) {
 	pd::DiskShapeConf conf = pd::DiskShapeConf{}
-								 .UseLocation(PhysicsWorld::b2Val(center))
-								 .UseRadius(PhysicsWorld::b2Val(radius))
+								 .UseLocation(PhysicsWorld::prVal(center))
+								 .UseRadius(PhysicsWorld::prVal(radius))
 								 .UseDensity(density)
 								 .UseFriction(friction)
 								 .UseRestitution(restitution);
@@ -146,8 +146,8 @@ void BodyDef::attachChain(const std::vector<Vec2>& vertices, float friction, flo
 	std::vector<pr::Length2> vs(vertices.size());
 	for (size_t i = 0; i < vertices.size(); i++) {
 		vs[i] = pr::Length2{
-			PhysicsWorld::b2Val(vertices[i].x),
-			PhysicsWorld::b2Val(vertices[i].y)};
+			PhysicsWorld::prVal(vertices[i].x),
+			PhysicsWorld::prVal(vertices[i].y)};
 	}
 	pd::ChainShapeConf conf = pd::ChainShapeConf{}
 								  .Set(vs)
@@ -160,8 +160,8 @@ void BodyDef::attachChain(const Vec2 vertices[], int count, float friction, floa
 	std::vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++) {
 		vs[i] = pr::Length2{
-			PhysicsWorld::b2Val(vertices[i].x),
-			PhysicsWorld::b2Val(vertices[i].y)};
+			PhysicsWorld::prVal(vertices[i].x),
+			PhysicsWorld::prVal(vertices[i].y)};
 	}
 	pd::ChainShapeConf conf = pd::ChainShapeConf{}
 								  .Set(vs)
@@ -180,9 +180,9 @@ void BodyDef::attachPolygonSensor(int tag, const Vec2& center, float width, floa
 		pd::Shape{
 			pd::PolygonShapeConf{}
 				.SetAsBox(
-					PhysicsWorld::b2Val(width * 0.5f),
-					PhysicsWorld::b2Val(height * 0.5f),
-					PhysicsWorld::b2Val(center),
+					PhysicsWorld::prVal(width * 0.5f),
+					PhysicsWorld::prVal(height * 0.5f),
+					PhysicsWorld::prVal(center),
 					-bx::toRad(angle))
 				.UseIsSensor(true)});
 }
@@ -191,8 +191,8 @@ void BodyDef::attachPolygonSensor(int tag, const std::vector<Vec2>& vertices) {
 	std::vector<pr::Length2> vs(vertices.size());
 	for (size_t i = 0; i < vertices.size(); i++) {
 		vs[i] = pr::Length2{
-			PhysicsWorld::b2Val(vertices[i].x),
-			PhysicsWorld::b2Val(vertices[i].y)};
+			PhysicsWorld::prVal(vertices[i].x),
+			PhysicsWorld::prVal(vertices[i].y)};
 	}
 	_fixtureConfs.emplace_back(
 		tag,
@@ -206,8 +206,8 @@ void BodyDef::attachPolygonSensor(int tag, const Vec2 vertices[], int count) {
 	std::vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++) {
 		vs[i] = pr::Length2{
-			PhysicsWorld::b2Val(vertices[i].x),
-			PhysicsWorld::b2Val(vertices[i].y)};
+			PhysicsWorld::prVal(vertices[i].x),
+			PhysicsWorld::prVal(vertices[i].y)};
 	}
 	_fixtureConfs.emplace_back(
 		tag,
@@ -222,8 +222,8 @@ void BodyDef::attachDiskSensor(int tag, const Vec2& center, float radius) {
 		tag,
 		pd::Shape{
 			pd::DiskShapeConf{}
-				.UseLocation(PhysicsWorld::b2Val(center))
-				.UseRadius(PhysicsWorld::b2Val(radius))
+				.UseLocation(PhysicsWorld::prVal(center))
+				.UseRadius(PhysicsWorld::prVal(radius))
 				.UseIsSensor(true)});
 }
 
@@ -236,9 +236,9 @@ FixtureDef* BodyDef::polygon(const Vec2& center, float width, float height, floa
 		pd::Shape{
 			pd::PolygonShapeConf{}
 				.SetAsBox(
-					PhysicsWorld::b2Val(width * 0.5f),
-					PhysicsWorld::b2Val(height * 0.5f),
-					PhysicsWorld::b2Val(center),
+					PhysicsWorld::prVal(width * 0.5f),
+					PhysicsWorld::prVal(height * 0.5f),
+					PhysicsWorld::prVal(center),
 					-bx::toRad(angle))
 				.UseDensity(density)
 				.UseFriction(friction)
@@ -250,8 +250,8 @@ FixtureDef* BodyDef::polygon(float width, float height, float density, float fri
 		pd::Shape{
 			pd::PolygonShapeConf{}
 				.SetAsBox(
-					PhysicsWorld::b2Val(width * 0.5f),
-					PhysicsWorld::b2Val(height * 0.5f))
+					PhysicsWorld::prVal(width * 0.5f),
+					PhysicsWorld::prVal(height * 0.5f))
 				.UseDensity(density)
 				.UseFriction(friction)
 				.UseRestitution(restitution)});
@@ -261,8 +261,8 @@ FixtureDef* BodyDef::polygon(const std::vector<Vec2>& vertices, float density, f
 	std::vector<pr::Length2> vs(vertices.size());
 	for (size_t i = 0; i < vertices.size(); i++) {
 		vs[i] = pr::Length2{
-			PhysicsWorld::b2Val(vertices[i].x),
-			PhysicsWorld::b2Val(vertices[i].y)};
+			PhysicsWorld::prVal(vertices[i].x),
+			PhysicsWorld::prVal(vertices[i].y)};
 	}
 	return FixtureDef::create(
 		pd::Shape{
@@ -277,8 +277,8 @@ FixtureDef* BodyDef::polygon(const Vec2 vertices[], int count, float density, fl
 	std::vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++) {
 		vs[i] = pr::Length2{
-			PhysicsWorld::b2Val(vertices[i].x),
-			PhysicsWorld::b2Val(vertices[i].y)};
+			PhysicsWorld::prVal(vertices[i].x),
+			PhysicsWorld::prVal(vertices[i].y)};
 	}
 	return FixtureDef::create(
 		pd::Shape{
@@ -300,8 +300,8 @@ FixtureDef* BodyDef::multi(const std::vector<Vec2>& vertices, float density, flo
 			}
 		} else
 			vs.add(pr::Length2{
-				PhysicsWorld::b2Val(vertices[i].x),
-				PhysicsWorld::b2Val(vertices[i].y)});
+				PhysicsWorld::prVal(vertices[i].x),
+				PhysicsWorld::prVal(vertices[i].y)});
 	}
 	if (vs.size() > 0) {
 		conf.AddConvexHull(vs);
@@ -324,8 +324,8 @@ FixtureDef* BodyDef::multi(const Vec2 vertices[], int count, float density, floa
 			}
 		} else
 			vs.add(pr::Length2{
-				PhysicsWorld::b2Val(vertices[i].x),
-				PhysicsWorld::b2Val(vertices[i].y)});
+				PhysicsWorld::prVal(vertices[i].x),
+				PhysicsWorld::prVal(vertices[i].y)});
 	}
 	if (vs.size() > 0) {
 		conf.AddConvexHull(vs);
@@ -339,8 +339,8 @@ FixtureDef* BodyDef::multi(const Vec2 vertices[], int count, float density, floa
 
 FixtureDef* BodyDef::disk(const Vec2& center, float radius, float density, float friction, float restitution) {
 	pd::DiskShapeConf conf = pd::DiskShapeConf{}
-								 .UseLocation(PhysicsWorld::b2Val(center))
-								 .UseRadius(PhysicsWorld::b2Val(radius))
+								 .UseLocation(PhysicsWorld::prVal(center))
+								 .UseRadius(PhysicsWorld::prVal(radius))
 								 .UseDensity(density)
 								 .UseFriction(friction)
 								 .UseRestitution(restitution);
@@ -355,8 +355,8 @@ FixtureDef* BodyDef::chain(const std::vector<Vec2>& vertices, float friction, fl
 	std::vector<pr::Length2> vs(vertices.size());
 	for (size_t i = 0; i < vertices.size(); i++) {
 		vs[i] = pr::Length2{
-			PhysicsWorld::b2Val(vertices[i].x),
-			PhysicsWorld::b2Val(vertices[i].y)};
+			PhysicsWorld::prVal(vertices[i].x),
+			PhysicsWorld::prVal(vertices[i].y)};
 	}
 	pd::ChainShapeConf conf = pd::ChainShapeConf{}
 								  .Set(vs)
@@ -369,8 +369,8 @@ FixtureDef* BodyDef::chain(const Vec2 vertices[], int count, float friction, flo
 	std::vector<pr::Length2> vs(count);
 	for (int i = 0; i < count; i++) {
 		vs[i] = pr::Length2{
-			PhysicsWorld::b2Val(vertices[i].x),
-			PhysicsWorld::b2Val(vertices[i].y)};
+			PhysicsWorld::prVal(vertices[i].x),
+			PhysicsWorld::prVal(vertices[i].y)};
 	}
 	pd::ChainShapeConf conf = pd::ChainShapeConf{}
 								  .Set(vs)

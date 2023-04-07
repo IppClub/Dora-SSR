@@ -1243,8 +1243,8 @@ with Observer "Change", {"hp","unit"}
 			unit\start "cancel" if not boss and unit\isDoing "hit"
 			if boss
 				with Visual "Particle/bloodp.par"
-					.position = @hitPoint
-					\addTo world,unit.order
+					.position = unit.data.hitPoint
+					\addTo world, unit.order
 					\autoRemove!
 					\start!
 			if hp > 0

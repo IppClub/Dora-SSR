@@ -37,7 +37,7 @@ bool DebugDraw::IsVisible(Body* body) {
 void DebugDraw::DrawPolygon(const pr::Length2* oldVertices, int vertexCount, const Color& color) {
 	std::vector<Vec2> vertices(vertexCount + 1);
 	for (int i = 0; i < vertexCount; i++) {
-		vertices[i] = PhysicsWorld::oVal(oldVertices[i]);
+		vertices[i] = PhysicsWorld::Val(oldVertices[i]);
 	}
 	vertices[vertexCount] = vertices[0];
 	_line->add(vertices, color);
@@ -46,7 +46,7 @@ void DebugDraw::DrawPolygon(const pr::Length2* oldVertices, int vertexCount, con
 void DebugDraw::DrawSolidPolygon(const pr::Length2* oldVertices, int vertexCount, const Color& color) {
 	std::vector<Vec2> vertices(vertexCount + 1);
 	for (int i = 0; i < vertexCount; i++) {
-		vertices[i] = PhysicsWorld::oVal(oldVertices[i]);
+		vertices[i] = PhysicsWorld::Val(oldVertices[i]);
 	}
 	vertices[vertexCount] = vertices[0];
 	_drawNode->drawPolygon(vertices.data(), vertexCount, Color(s_cast<uint8_t>(color.r * 0.5f), s_cast<uint8_t>(color.g * 0.5f), s_cast<uint8_t>(color.b * 0.5f), s_cast<uint8_t>(color.a * 0.5f)));
@@ -63,7 +63,7 @@ void DebugDraw::DrawCircle(const pr::Length2& center, float radius, const Color&
 	Vec2 vertices[vertexCount + 1];
 	for (int i = 0; i < k_segments; ++i) {
 		Vec2 v = pos + Vec2{std::cos(theta), std::sin(theta)} * radius;
-		vertices[i] = PhysicsWorld::oVal(Vec2{v.x, v.y});
+		vertices[i] = PhysicsWorld::Val(Vec2{v.x, v.y});
 		theta += k_increment;
 	}
 	vertices[vertexCount] = vertices[0];
@@ -80,7 +80,7 @@ void DebugDraw::DrawSolidCircle(const pr::Length2& center, float radius, const C
 	Vec2 vertices[vertexCount + 1];
 	for (int i = 0; i < k_segments; ++i) {
 		Vec2 v = pos + Vec2{std::cos(theta), std::sin(theta)} * radius;
-		vertices[i] = PhysicsWorld::oVal(Vec2{v.x, v.y});
+		vertices[i] = PhysicsWorld::Val(Vec2{v.x, v.y});
 		theta += k_increment;
 	}
 	_drawNode->drawPolygon(vertices, vertexCount, Color(s_cast<uint8_t>(color.r * 0.5f), s_cast<uint8_t>(color.g * 0.5f), s_cast<uint8_t>(color.b * 0.5f), s_cast<uint8_t>(color.a * 0.5f)));
@@ -89,7 +89,7 @@ void DebugDraw::DrawSolidCircle(const pr::Length2& center, float radius, const C
 }
 
 void DebugDraw::DrawSegment(const pr::Length2& p1, const pr::Length2& p2, const Color& color) {
-	Vec2 vertices[] = {PhysicsWorld::oVal(p1), PhysicsWorld::oVal(p2)};
+	Vec2 vertices[] = {PhysicsWorld::Val(p1), PhysicsWorld::Val(p2)};
 	_line->add(vertices, 2, color);
 }
 

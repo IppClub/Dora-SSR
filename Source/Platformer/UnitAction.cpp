@@ -392,7 +392,7 @@ Vec2 Attack::getHitPoint(Body* self, Body* target, const pd::Shape& selfShape) {
 			const auto outputDistance = pr::GetMagnitude(std::get<0>(witnessPoints) - std::get<1>(witnessPoints));
 			if (distance == -1 || distance > outputDistance) {
 				distance = outputDistance;
-				hitPoint = PhysicsWorld::oVal(std::get<1>(witnessPoints));
+				hitPoint = PhysicsWorld::Val(std::get<1>(witnessPoints));
 			}
 		}
 	}
@@ -403,7 +403,7 @@ Vec2 Attack::getHitPoint(Body* self, Body* target, const pd::Shape& selfShape) {
 
 MeleeAttack::MeleeAttack(Unit* unit)
 	: Attack(ActionSetting::UnitActionMeleeAttack, unit) {
-	pd::PolygonShapeConf conf{PhysicsWorld::b2Val(std::max(_owner->getWidth(), 10.0f) * 0.5f), 0.0005f};
+	pd::PolygonShapeConf conf{PhysicsWorld::prVal(std::max(_owner->getWidth(), 10.0f) * 0.5f), 0.0005f};
 	_polygon = pd::Shape{conf};
 }
 
