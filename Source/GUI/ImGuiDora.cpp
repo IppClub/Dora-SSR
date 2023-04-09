@@ -604,6 +604,8 @@ void ImGuiDora::showStats() {
 			if (ImGui::Checkbox("FPS Limited", &fpsLimited)) {
 				SharedApplication.setFPSLimited(fpsLimited);
 			}
+			ImGui::TextColored(labelColor, "FPS:");
+			ImGui::SameLine();
 			int targetFPS = SharedApplication.getTargetFPS();
 			if (ImGui::RadioButton("30", &targetFPS, 30)) {
 				SharedApplication.setTargetFPS(targetFPS);
@@ -620,32 +622,12 @@ void ImGuiDora::showStats() {
 					SharedApplication.setTargetFPS(targetFPS);
 				}
 			}
-			ImGui::SameLine();
-			ImGui::TextColored(labelColor, "FPS");
 			int fixedFPS = SharedDirector.getScheduler()->getFixedFPS();
-			ImGui::PushID("fixed30");
-			if (ImGui::RadioButton("30", &fixedFPS, 30)) {
+			ImGui::PushItemWidth(100.0f);
+			if (ImGui::DragInt("Fixed FPS", &fixedFPS, 1, 30, SharedApplication.getMaxFPS())) {
 				SharedDirector.getScheduler()->setFixedFPS(fixedFPS);
 			}
-			ImGui::PopID();
-			ImGui::SameLine();
-			ImGui::PushID("fixed60");
-			if (ImGui::RadioButton("60", &fixedFPS, 60)) {
-				SharedDirector.getScheduler()->setFixedFPS(fixedFPS);
-			}
-			ImGui::PopID();
-			if (SharedApplication.getMaxFPS() > 60) {
-				ImGui::SameLine();
-				int maxFPS = SharedApplication.getMaxFPS();
-				std::string fpsStr = std::to_string(maxFPS);
-				ImGui::PushID("fixedExtra");
-				if (ImGui::RadioButton(fpsStr.c_str(), &fixedFPS, maxFPS)) {
-					SharedDirector.getScheduler()->setFixedFPS(fixedFPS);
-				}
-				ImGui::PopID();
-			}
-			ImGui::SameLine();
-			ImGui::TextColored(labelColor, "Fixed FPS");
+			ImGui::PopItemWidth();
 		}
 		if (ImGui::CollapsingHeader("Time")) {
 			_timeFrames++;
