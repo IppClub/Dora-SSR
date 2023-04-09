@@ -25,7 +25,7 @@ return function(schema: string, ...: string): DoraConfig
 				insertValues[key] = value
 			elseif value == nil then
 				deleteValues[#deleteValues + 1] = key
-			else
+			elseif oldValues[key] ~= value then
 				updateValues[key] = value
 			end
 			oldValues[key] = value
@@ -41,6 +41,7 @@ return function(schema: string, ...: string): DoraConfig
 				end
 				iValues[#iValues + 1] = {k, num, str}
 			end
+			insertValues = {}
 			local uValues: {{number | boolean, string | boolean, string}} = {}
 			for k, v in pairs(updateValues) do
 				local num: boolean | number = false
@@ -52,10 +53,12 @@ return function(schema: string, ...: string): DoraConfig
 				end
 				uValues[#uValues + 1] = {num, str, k}
 			end
+			updateValues = {}
 			local dValues: {{string}} = {}
 			for i = 1, #deleteValues do
 				dValues[#dValues + 1] = {deleteValues[i]}
 			end
+			deleteValues = {}
 			thread(function(): boolean
 				if #iValues > 0 then
 					DB:insertAsync(tableName, iValues)
@@ -70,25 +73,38 @@ return function(schema: string, ...: string): DoraConfig
 		end
 	end
 
+	if not DB:exist("Config", schema) then
+		DB:exec([[
+			CREATE TABLE ]] .. tableName .. [[(
+				name TEXT(90) NOT NULL, --配置项名称
+				value_num REAL(24,6), --配置项数值
+				value_str TEXT(255), --配置项文本
+				PRIMARY KEY (name)
+			); --通用配置表
+		]])
+	end
+
 	rawset(conf as table, "loadAsync", function(self: DoraConfig)
-		if not DB:exist("Config", schema) then
-			DB:exec([[
-				CREATE TABLE ]] .. tableName .. [[(
-					name TEXT(90) NOT NULL, --配置项名称
-					value_num REAL(24,6), --配置项数值
-					value_str TEXT(255) --配置项文本
-				); --通用配置表
-			]])
-		end
 		local rows = DB:queryAsync("select name, value_num, value_str from " .. tableName) as {{string, number, string}}
 		for i = 1, #rows do
 			local key = rows[i][1]
 			local value: number | string = rows[i][2] or rows[i][3]
-			self[key] = value
 			oldValues[key] = value
+			self[key] = value
 		end
-		rawset(conf as table, "__notify", notify)
 	end)
+
+	rawset(conf as table, "load", function(self: DoraConfig)
+		local rows = DB:query("select name, value_num, value_str from " .. tableName) as {{string, number, string}}
+		for i = 1, #rows do
+			local key = rows[i][1]
+			local value: number | string = rows[i][2] or rows[i][3]
+			oldValues[key] = value
+			self[key] = value
+		end
+	end)
+
+	rawset(conf as table, "__notify", notify)
 
 	return conf as DoraConfig
 end

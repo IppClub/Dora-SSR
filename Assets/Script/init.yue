@@ -2,7 +2,9 @@ _ENV = Dorothy!
 
 with Content
 	.searchPaths =
-		* Content.writablePath
+		* .writablePath
+		* Path .writablePath, ".build", "Script"
+		* Path .writablePath, ".build", "Script", "Lib"
 		* Path .assetPath, "Script"
 		* Path .assetPath, "Script", "Lib"
 		* Path .assetPath, "Script", "Lib", "Dora"
