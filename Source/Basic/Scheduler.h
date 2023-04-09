@@ -19,7 +19,8 @@ class ScheduledItem;
 typedef std::list<ScheduledItem*> UpdateList;
 typedef std::optional<std::list<ScheduledItem*>::iterator> UpdateIter;
 
-struct ScheduledItem {
+class ScheduledItem {
+public:
 	ScheduledItem(Object* target): target(target) { }
 	Object* target;
 	UpdateIter iter;
