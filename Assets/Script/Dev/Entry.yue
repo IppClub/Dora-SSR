@@ -20,6 +20,44 @@ runningPaths =
 	* Path Content.writablePath, ".build", "Script"
 	* Path Content.writablePath, ".build"
 
+import "Config"
+config = Config(
+	""
+	"fpsLimited"
+	"targetFPS"
+	"fixedFPS"
+	"vsync"
+	"fullScreen"
+	"winWidth"
+	"winHeight"
+)
+config\load!
+if config.fpsLimited?
+	App.fpsLimited = config.fpsLimited == 1
+else
+	config.fpsLimited = App.fpsLimited and 1 or 0
+
+if config.targetFPS?
+	App.targetFPS = config.targetFPS
+else
+	config.targetFPS = App.targetFPS
+
+if config.vsync?
+	View.vsync = config.vsync == 1
+else
+	config.vsync = View.vsync and 1 or 0
+
+if config.fixedFPS?
+	Director.scheduler.fixedFPS = config.fixedFPS
+else
+	config.fixedFPS = Director.scheduler.fixedFPS
+
+switch App.platform when "Linux", "Windows", "macOS"
+	if config.fullScreen? and config.fullScreen == 1
+		App.winSize = Size.zero
+	elseif config.winWidth? and config.winHeight?
+		App.winSize = Size config.winWidth, config.winHeight
+
 import "Utils" as :Set, :Struct, :LintYueGlobals
 options: {extension: yueext} = yue
 
@@ -202,6 +240,18 @@ currentEntry = nil
 footerWindow = nil
 entryWindow = nil
 
+setupEventHandlers = ->
+	switch App.platform when "Linux", "Windows", "macOS"
+		with Director.postNode
+			\gslot "AppSizeChanged", ->
+				:width, :height = App.winSize
+				config.winWidth = width
+				config.winHeight = height
+			\gslot "AppFullScreen", (fullScreen)->
+				config.fullScreen = fullScreen and 1 or 0
+
+setupEventHandlers!
+
 export allClear = ->
 	for routine in *Routine
 		switch routine
@@ -226,6 +276,7 @@ export allClear = ->
 	yue.clear!
 	collectgarbage!
 	collectgarbage!
+	setupEventHandlers!
 	Content.searchPaths = searchPaths
 	App.idled = true
 
@@ -490,6 +541,14 @@ footerWindow = threadLoop ->
 
 cyan = Color 0xff00ffff
 entryWindow = threadLoop ->
+	if App.fpsLimited ~= (config.fpsLimited == 1)
+		config.fpsLimited = App.fpsLimited and 1 or 0
+	if App.targetFPS ~= config.targetFPS
+		config.targetFPS = App.targetFPS
+	if View.vsync ~= (config.vsync == 1)
+		config.vsync = View.vsync and 1 or 0
+	if Director.scheduler.fixedFPS ~= config.fixedFPS
+		config.fixedFPS = Director.scheduler.fixedFPS
 	return unless showEntry
 	return unless isInEntry
 	:width, :height = App.visualSize
