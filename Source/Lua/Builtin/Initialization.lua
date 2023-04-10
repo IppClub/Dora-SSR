@@ -577,17 +577,17 @@ do
 	local Node_runAction = Node.runAction
 	Node.runAction = function(self, action)
 		if type(action) == "table" then
-			Node_runAction(self, Action(action))
+			return Node_runAction(self, Action(action))
 		else
-			Node_runAction(self, action)
+			return Node_runAction(self, action)
 		end
 	end
 	local Node_perform = Node.perform
 	Node.perform = function(self, action)
 		if type(action) == "table" then
-			Node_perform(self, Action(action))
+			return Node_perform(self, Action(action))
 		else
-			Node_perform(self, action)
+			return Node_perform(self, action)
 		end
 	end
 

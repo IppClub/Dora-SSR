@@ -22,7 +22,7 @@ local record App
 
 	-- The logic visual size of the screen.
 	-- The visual size only changes when application window size changes.
-	-- And it may not be affacted by the buffer size change.
+	-- And it won't be affacted by the view buffer scaling factor.
 	const visualSize: Size
 
 	-- The ratio of the pixel density displayed by the device

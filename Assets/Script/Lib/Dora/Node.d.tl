@@ -242,62 +242,66 @@ local record Node
 	convertToNodeSpace: function(self: Node, worldPoint: Vec2, z: number): Vec2, number
 
 	-- Converts a point from node space to world space.
-	-- @param nodePoint (Vec2) - The point in node space.
-	-- @returns (Vec2) - The converted point in world space.
+	-- @param nodePoint (Vec2) The point in node space.
+	-- @returns (Vec2) The converted point in world space.
 	convertToWorldSpace: function(self: Node, nodePoint: Vec2): Vec2
 
 	-- Converts a point from node space to world space.
-	-- @param nodePoint (Vec2) - The point in node space.
-	-- @param z (number) - The z coordinate in world space.
-	-- @returns (Vec2, number) - The converted point in world space and z coordinate.
+	-- @param nodePoint (Vec2) The point in node space.
+	-- @param z (number) The z coordinate in world space.
+	-- @returns (Vec2, number) The converted point in world space and z coordinate.
 	convertToWorldSpace: function(self: Node, nodePoint: Vec2, z: number): Vec2, number
 
 	-- Converts a point from node space to window space.
-	-- @param nodePoint (Vec2) - The point in node space.
-	-- @param callback (function(Vec2)) - The callback function to receive the converted point in window space.
+	-- @param nodePoint (Vec2) The point in node space.
+	-- @param callback (function(Vec2)) The callback function to receive the converted point in window space.
 	convertToWindowSpace: function(self: Node, nodePoint: Vec2, callback: function(Vec2))
 
 	-- Calls the given function for each child node of this node.
-	-- @param func (function(Node): boolean) - The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
-	-- @returns (boolean) - False if all children have been visited, true if the iteration was interrupted by the function.
+	-- @param func (function(Node): boolean) The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
+	-- @returns (boolean) False if all children have been visited, true if the iteration was interrupted by the function.
 	eachChild: function(self: Node, func: function(Node): boolean): boolean
 
 	-- Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
-	-- @param func (function(Node): boolean) - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
-	-- @returns (boolean) - False if all nodes have been visited, true if the traversal was interrupted by the function.
+	-- @param func (function(Node): boolean) The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
+	-- @returns (boolean) False if all nodes have been visited, true if the traversal was interrupted by the function.
 	traverse: function(self: Node, func: function(Node): boolean): boolean
 
 	-- Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
-	-- @param func (function(Node): boolean) - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
-	-- @returns (boolean) - True if all nodes have been visited, false if the traversal was interrupted by the function.
+	-- @param func (function(Node): boolean) The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
+	-- @returns (boolean) True if all nodes have been visited, false if the traversal was interrupted by the function.
 	traverseAll: function(self: Node, func: function(Node): boolean): boolean
 
 	-- Runs the given action on this node.
-	-- @param action (Action) - The action to run.
+	-- @param action (Action) The action to run.
+	-- @returns (number) The duration of the newly running action.
 	runAction: function(self: Node, action: Action)
 
 	-- Runs an action defined by the given action definition on this node.
-	-- @param actionDef (ActionDef) - The action definition to run.
+	-- @param actionDef (ActionDef) The action definition to run.
+	-- @returns (number) The duration of the newly running action.
 	runAction: function(self: Node, actionDef: ActionDef)
 
 	-- Stops all actions running on this node.
 	stopAllActions: function(self: Node)
 
 	-- Runs the given action immediately without adding it to the action queue.
-	-- @param action (Action) - The action to run.
-	perform: function(self: Node, action: Action)
+	-- @param action (Action) The action to run.
+	-- @returns (number) The duration of the newly running action.
+	perform: function(self: Node, action: Action): number
 
-	-- Runs an action defined by the given action definition immediately without adding it to the action queue.
-	-- @param actionDef (ActionDef) - The action definition to run.
-	perform: function(self: Node, actionDef: ActionDef)
+	-- Runs an action defined by the given action definition right after clear all the previous running actions.
+	-- @param actionDef (ActionDef) The action definition to run.
+	-- @returns (number) The duration of the newly running action.
+	perform: function(self: Node, actionDef: ActionDef): number
 
 	-- Stops the given action running on this node.
-	-- @param action (Action) - The action to stop.
+	-- @param action (Action) The action to stop.
 	stopAction: function(self: Node, action: Action)
 
 	-- Vertically aligns all child nodes of this node.
-	-- @param padding (number) - The padding between child nodes. Defaults to 10.
-	-- @returns (Size) - The size of the aligned child nodes.
+	-- @param padding (number) The padding between child nodes. Defaults to 10.
+	-- @returns (Size) The size of the aligned child nodes.
 	alignItemsVertically: function(
 		self: Node,
 		padding?: number --[[10]]
@@ -401,28 +405,28 @@ local record Node
 		clearColor: Color
 
 		-- Sets the position of a vertex in the grabber grid.
-		-- @param x (integer) - The x-index of the vertex in the grabber grid.
-		-- @param y (integer) - The y-index of the vertex in the grabber grid.
-		-- @param pos (Vec2) - The new position of the vertex.
-		-- @param z (number) - The new z-coordinate of the vertex (default: 0.0).
+		-- @param x (integer) The x-index of the vertex in the grabber grid.
+		-- @param y (integer) The y-index of the vertex in the grabber grid.
+		-- @param pos (Vec2) The new position of the vertex.
+		-- @param z (number) The new z-coordinate of the vertex (default: 0.0).
 		setPos: function(self: Grabber, x: integer, y: integer, pos: Vec2, z?: number --[[0.0]])
 
 		-- Gets the position of a vertex in the grabber grid.
-		-- @param x (integer) - The x-index of the vertex in the grabber grid.
-		-- @param y (integer) - The y-index of the vertex in the grabber grid.
-		-- @return (Vec2, number) - The position of the vertex.
+		-- @param x (integer) The x-index of the vertex in the grabber grid.
+		-- @param y (integer) The y-index of the vertex in the grabber grid.
+		-- @return (Vec2, number) The position of the vertex.
 		getPos: function(self: Grabber, x: integer, y: integer): Vec2
 
 		-- Gets the color of a vertex in the grabber grid.
-		-- @param x (integer) - The x-index of the vertex in the grabber grid.
-		-- @param y (integer) - The y-index of the vertex in the grabber grid.
-		-- @return (Color) - The color of the vertex.
+		-- @param x (integer) The x-index of the vertex in the grabber grid.
+		-- @param y (integer) The y-index of the vertex in the grabber grid.
+		-- @return (Color) The color of the vertex.
 		getColor: function(self: Grabber, x: integer, y: integer): Color
 
 		-- Sets the color of a vertex in the grabber grid.
-		-- @param x (integer) - The x-index of the vertex in the grabber grid.
-		-- @param y (integer) - The y-index of the vertex in the grabber grid.
-		-- @param color (Color) - The new color of the vertex.
+		-- @param x (integer) The x-index of the vertex in the grabber grid.
+		-- @param y (integer) The y-index of the vertex in the grabber grid.
+		-- @param color (Color) The new color of the vertex.
 		setColor: function(self: Grabber, x: integer, y: integer, color: Color)
 	end
 

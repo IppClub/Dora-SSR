@@ -390,9 +390,9 @@ class Node : public Object
 	bool traverse(tolua_function_bool func);
 	bool traverseAll(tolua_function_bool func);
 
-	void runAction(Action* action);
+	float runAction(Action* action);
 	void stopAllActions();
-	void perform(Action* action);
+	float perform(Action* action);
 	void stopAction(Action* action);
 
 	Size alignItemsVertically(float padding = 10.0f);
