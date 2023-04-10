@@ -1506,6 +1506,7 @@ export default function PersistentDrawerLeft() {
 							case ".md": language = "markdown"; break;
 						}
 						const markdown = language === "markdown";
+						const readOnly = !file.key.startsWith(treeData.at(0)?.key ?? "");
 						return <Main
 							open={drawerOpen}
 							key={file.key}
@@ -1514,7 +1515,11 @@ export default function PersistentDrawerLeft() {
 							<DrawerHeader/>
 							{markdown ?
 								<div hidden={file.mdEditing}>
-									<Markdown content={file.contentModified ?? file.content} onClick={(link) => onJumpLink(link, file.key)}/>
+									<Markdown
+										path={readOnly ? "" : Service.addr("/" + path.relative(treeData.at(0)?.key ?? "", path.dirname(file.key)).replace("\\", "/"))}
+										content={file.contentModified ?? file.content}
+										onClick={(link) => onJumpLink(link, file.key)}
+									/>
 								</div> : null
 							}
 							{(() => {
@@ -1523,7 +1528,6 @@ export default function PersistentDrawerLeft() {
 									if (tabIndex === index) {
 										width = window.innerWidth - (drawerOpen ? drawerWidth : 0);
 									}
-									const readOnly = !file.key.startsWith(treeData.at(0)?.key ?? "");
 									return (
 										<div hidden={markdown && !file.mdEditing}>
 											<MonacoEditor
@@ -1549,6 +1553,7 @@ export default function PersistentDrawerLeft() {
 													useTabStops: false,
 													insertSpaces: false,
 													renderWhitespace: 'all',
+													tabSize: 2,
 												}}
 											/>
 										</div>

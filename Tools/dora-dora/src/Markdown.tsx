@@ -15,6 +15,7 @@ vscDarkPlus["code[class*=\"language-\"]"].fontSize = '16px';
 
 export interface MarkdownProps {
 	content: string;
+	path: string;
 	onClick: (link: string) => void;
 };
 
@@ -23,6 +24,10 @@ const Markdown = (props: MarkdownProps) => {
 		className='markdown-body'
 		children={props.content}
 		components={{
+			img({node, src, ...iprops}) {
+				const {path} = props;
+				return <img src={path === "" ? src : path + "/" + src} {...iprops}/>;
+			},
 			a({node, href, ...aprops}) {
 				if (href?.match("^http")) {
 					// eslint-disable-next-line
