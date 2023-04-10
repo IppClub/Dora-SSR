@@ -1060,8 +1060,8 @@ int Node::getActionCount() const {
 	return count;
 }
 
-void Node::runAction(Action* action) {
-	if (!action) return;
+float Node::runAction(Action* action) {
+	if (!action) return 0.0f;
 	if (action->isRunning()) {
 		stopAction(action);
 	}
@@ -1080,15 +1080,16 @@ void Node::runAction(Action* action) {
 	if (isRunning()) {
 		_scheduler->schedule(action);
 	}
+	return _action->getDuration();
 }
 
 void Node::stopAllActions() {
 	stopActionInList(_action);
 }
 
-void Node::perform(Action* action) {
+float Node::perform(Action* action) {
 	stopAllActions();
-	runAction(action);
+	return runAction(action);
 }
 
 bool Node::hasAction(Action* action) {
