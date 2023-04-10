@@ -1,59 +1,54 @@
-# 贡献指南
+# Contribution Guide
 
-非常感谢您对Dorothy SSR的兴趣和支持！我们欢迎任何人为这个项目做出贡献。以下是一些建议和指南，以帮助您开始参与项目的贡献。
+Thank you for your interest and support in Dorothy SSR! We welcome contributions from anyone to this project. Here are some suggestions and guidelines to help you get started with contributing to the project.
 
+<br>
 
+## Reporting Issues
 
-## 报告问题
+If you encounter any issues while using Dorothy SSR, please submit an Issue in the GitHub repository. Before submitting an Issue, please ensure:
 
-如果您在使用Dorothy SSR时发现了问题，请在GitHub仓库中提交一个Issue。在提交Issue之前，请确保：
+1. Check existing Issues to avoid duplicate reports.
 
-1. 查看已有的Issue，避免重复报告。
+2. Describe the issue in detail, including expected behavior and what actually occurred.
 
-2. 详细描述问题，包括预期行为和实际发生的行为。
+3. If possible, provide a simple example code that reproduces the issue.
 
-3. 如果可能，请提供一个简单的重现问题的示例代码。
+<br>
 
-   
+## Feature Suggestions
 
-## 功能建议
+We greatly appreciate your suggestions for new features in Dorothy SSR. Before submitting a feature suggestion, please ensure:
 
-我们非常欢迎您对Dorothy SSR提出新功能的建议。在提交功能建议之前，请确保：
+1. Your suggestion aligns with the goals and vision of Dorothy SSR.
+2. Provide sufficient details so we can understand your needs and the proposed implementation.
 
-1. 您的建议与Dorothy SSR的目标和愿景保持一致。
+<br>
 
-2. 提供足够的细节，以便我们理解您的需求和建议的实现方式。
+## Code Contributions
 
-   
+If you would like to contribute code to Dorothy SSR, please follow these steps:
 
-## 代码贡献
+1. Fork the project repository.
+2. Create a new branch locally to make changes.
+3. Write the code and ensure it adheres to the project's coding standards.
+4. Commit the changes and push them to your forked repository.
+5. Create a Pull Request, describing your changes and their rationale in detail.
 
-如果您想要为Dorothy SSR贡献代码，请遵循以下步骤：
+<br>
 
-1. Fork项目仓库。
+## Documentation Contributions
 
-2. 在本地创建一个新的分支，以便进行更改。
+Documentation is crucial to the success of any open-source project. If you find errors in the documentation or believe it can be improved, please submit an Issue or Pull Request.
 
-3. 编写代码并确保代码符合项目的编码规范。
+<br>
 
-4. 提交更改并推送到您的fork仓库。
+## Community Support
 
-5. 创建一个Pull Request，详细描述您的更改及其原因。
+You can provide support to the community by answering questions, providing tutorials, and sharing example projects. If you have any resources that can help other developers, please share them in related community forums and chat rooms.
 
-   
-
-## 贡献文档
-
-文档对于开源项目的成功至关重要。如果您发现了文档中的错误，或者您认为可以改进文档，请提交Issue或Pull Request。
-
-
-
-## 社区支持
-
-您可以通过回答问题、提供教程和示例项目等方式为社区提供支持。如果您有任何可以帮助其他开发者的资源，请分享在社区相关的论坛和聊天室中。
-
-
+<br>
 
 ------
 
-希望这个贡献指南能帮助您开始参与Dorothy SSR项目。再次感谢您的支持，期待您的贡献！
+We hope this contribution guide helps you get started with contributing to Dorothy SSR. Thank you again for your support, and we look forward to your contributions!
