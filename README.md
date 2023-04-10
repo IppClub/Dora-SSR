@@ -1,4 +1,4 @@
-![Dorothy SSR](Assets/Image/Dorothy.svg)
+<img src='Assets/Image/logo.png' alt='Dorothy SSR' width='350px'/>
 
 # Dorothy SSR
 
