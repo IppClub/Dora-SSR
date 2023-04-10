@@ -24,9 +24,9 @@ const Markdown = (props: MarkdownProps) => {
 		className='markdown-body'
 		children={props.content}
 		components={{
-			img({node, src, ...iprops}) {
+			img({node, src, alt, ...iprops}) {
 				const {path} = props;
-				return <img src={path === "" ? src : path + "/" + src} {...iprops}/>;
+				return <img src={path === "" ? src : path + "/" + src} alt={alt} {...iprops}/>;
 			},
 			a({node, href, ...aprops}) {
 				if (href?.match("^http")) {
