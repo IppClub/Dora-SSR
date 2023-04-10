@@ -109,7 +109,7 @@ with Sprite "Image/logo.png"
 
 4. Step 4: Publish the game
 
-    - Open the right-click menu of the newly created project folder through the game resource tree on the left side of the editor, and click the `Download` option.
+    - Open the right-click menu of the project folder just created through the game resource tree on the left side of the editor and click the `Download` option.
 
     - Wait for the browser to pop up a download prompt for the packaged project file.
 
