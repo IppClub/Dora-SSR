@@ -14,7 +14,7 @@
 
 ## Feature
 
-- Manage game scenes based on tree node structure.
+- Manages game scenes based on tree node structure.
 
 - Basic 2D platform game functions, including game logic and AI development framework.
 
@@ -22,31 +22,31 @@
 
 - Asynchronous processing of file read and write, resource loading and other operations.
 
-- Upgraded Lua bindings that support inheritance and extension of underlying C++ objects.
+- Upgraded Lua binding with support for inheriting and extending low-level C++ objects.
 
-- Support Yuescript language, strong expressive and concise Lua dialect.
+- Supports Yuescript language, strong expressive and concise Lua dialect.
 
-- Support for the Teal language, a statically typed language that compiles to Lua.
+- Supports for the Teal language, a statically typed dialect for Lua.
 
-- Supports the Rust language, running on the built-in WASM binding and VM.
+- Supports the Rust language, running on the built-in WASM runtime with Rust bindings.
 
 - 2D skeletal animation and physics engine support.
 
 - Built-in out-of-the-box Web IDE, providing file management, code inspection, completion, highlighting and definition jump.
 
-- Supports asynchronous operation of SQLite for real-time query and writing of a large amount of game configuration data.
+- Supports asynchronous operation of SQLite for real-time query and managing large game configuration data.
 
-- Support Excel table data reading, and support synchronization to SQLite library tables.
+- Supports reading Excel spreadsheet data and synchronizing it to SQLite tables.
 
-- Provide vector graphics rendering API, which can directly render SVG format files without CSS.
+- Provides vector graphics rendering API, which can directly render SVG format files without CSS.
 
 - Built-in ImGui, easy to create debugging tools and UI interface.
 
-- Support FLAC, OGG, MP3 and WAV multi-format audio playback.
+- Supports FLAC, OGG, MP3 and WAV multi-format audio playback.
 
-- Support True Type font rendering and basic typesetting.
+- Supports True Type font rendering and basic typesetting.
 
-- Provide open art materials and game IPs that can be used to make your own games - ["Luv Sense Digital"](http://luvsensedigital.org).
+- Provides open art resources and game IPs that can be used to create your own games - ["Luv Sense Digital"](http://luvsensedigital.org).
 
 &emsp;&emsp;<img src='Assets/Image/LSD.jpg' alt='LSD' width='300px'/>
 
@@ -57,8 +57,8 @@
 - Quick start
 
   - Android
-     - 1. Download and install the [APK](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest) package on the running terminal of the game.
-     - 2. Run the software, and access the server address displayed by the software through the browser of the PC (tablet or other development equipment) in the LAN.
+     - 1. Download and install the [APK](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest) package on the running terminal for games.
+     - 2. Run the software, and access the server address displayed by the software through the browser of a PC (tablet or other development device) on the LAN.
      - 3. Start game development.
 
   - Windows
