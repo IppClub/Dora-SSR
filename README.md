@@ -2,7 +2,9 @@
 
 # Dorothy SSR
 
-&emsp;&emsp;Dorothy SSR是一个用于多种设备上快速开发2D游戏的游戏引擎。它内置易用的开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
+#### English | [中文](README.zh-CN.md)
+
+&emsp;&emsp;Dorothy SSR is a game engine for rapid development of 2D games on various devices. It has a built-in easy-to-use development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
 
 |Android|Linux|Windows|macOS|iOS|
 |:-:|:-:|:-:|:-:|:-:|
@@ -10,158 +12,159 @@
 
 <br>
 
-## 主要特点
+## Feature
 
-- 基于树形结点结构管理游戏场景。
+- Manage game scenes based on tree node structure.
 
-- 基础的2D平台游戏功能，包括游戏逻辑和AI开发框架。
+- Basic 2D platform game functions, including game logic and AI development framework.
 
-- 易用的ECS模块，便于游戏实体管理。
+- Easy-to-use ECS module for game entity management.
 
-- 异步处理的文件读写、资源加载等操作。
+- Asynchronous processing of file read and write, resource loading and other operations.
 
-- 升级的Lua绑定，支持继承和扩展底层C++对象。
+- Upgraded Lua bindings that support inheritance and extension of underlying C++ objects.
 
-- 支持Yuescript语言，强表达力且简洁的Lua方言。
+- Support Yuescript language, strong expressive and concise Lua dialect.
 
-- 支持Teal语言，编译到Lua的静态类型语言。
+- Support for the Teal language, a statically typed language that compiles to Lua.
 
-- 支持Rust语言，运行在内置的WASM绑定和VM上。
+- Supports the Rust language, running on the built-in WASM binding and VM.
 
-- 2D骨骼动画和物理引擎支持。
+- 2D skeletal animation and physics engine support.
 
-- 内置开箱即用的Web IDE，提供文件管理，代码检查、补全、高亮和定义跳转。
+- Built-in out-of-the-box Web IDE, providing file management, code inspection, completion, highlighting and definition jump.
 
-- 支持异步操作SQLite，进行大量游戏配置数据的实时查询和写入。
+- Supports asynchronous operation of SQLite for real-time query and writing of a large amount of game configuration data.
 
-- 支持Excel表格数据读取，支持同步到SQLite库表。
+- Support Excel table data reading, and support synchronization to SQLite library tables.
 
-- 提供矢量图形渲染API，可直接渲染无CSS的SVG格式文件。
+- Provide vector graphics rendering API, which can directly render SVG format files without CSS.
 
-- 内置ImGui，便于创建调试工具和UI界面。
+- Built-in ImGui, easy to create debugging tools and UI interface.
 
-- 支持FLAC、OGG、MP3和WAV多格式音频播放。
+- Support FLAC, OGG, MP3 and WAV multi-format audio playback.
 
-- 支持True Type字体的渲染和基础排版。
+- Support True Type font rendering and basic typesetting.
 
-- 提供可用于制作自己游戏的开放美术素材和游戏IP —— [《灵数奇缘》](http://luvsensedigital.org)。
+- Provide open art materials and game IPs that can be used to make your own games - ["Luv Sense Digital"](http://luvsensedigital.org).
 
 &emsp;&emsp;<img src='Assets/Image/LSD.jpg' alt='LSD' width='300px'/>
 
 <br>
 
-## 安装
+## Install
 
-- 快速上手
+- Quick start
 
   - Android
-    - 1、在游戏的运行终端下载并安装 [APK](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest) 包。
-    - 2、运行软件，通过局域网内的PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
-    - 3、开始游戏开发。
+     - 1. Download and install the [APK](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest) package on the running terminal of the game.
+     - 2. Run the software, and access the server address displayed by the software through the browser of the PC (tablet or other development equipment) in the LAN.
+     - 3. Start game development.
 
   - Windows
-    - 1、下载并运行[软件](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest)。
-    
-    - 2、运行软件，通过浏览器访问软件显示的服务器地址。
-    
-    - 3、开始游戏开发。
+     - 1. Download and run [Software](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest).
 
-- 硬核开发  
-  进行Dorothy SSR项目开发的安装配置，详见[官方文档](施工中)。
+     - 2. Run the software and access the server address displayed by the software through a browser.
+
+     - 3. Start game development.
+
+- Hard core development
+
+   For the installation and configuration of Dorothy SSR project development, see [Official Documents](under-construction) for details.
 
 <br>
 
-## 快速入门
+## Quick Start
 
-1. 第一步：创建一个新项目
+1. Step 1: Create a new project
 
-   - 在浏览器中，打开Dora Dora编辑器左侧游戏资源树的右键菜单。
-   - 点击菜单项`New`，选择新建文件夹。
+    - In the browser, open the right-click menu of the game resource tree on the left side of the Dora Dora editor.
+    - Click on the menu item `New` and choose to create a new folder.
 
-2. 第二步：编写游戏代码
+2. Step 2: Write game code
 
-   - 在项目文件夹下新建游戏入口代码文件，名字为`init.yue`。
+    - Create a new game entry code file under the project folder, named `init.yue`.
 
-   - 编写Hello World代码：
+    - Write Hello World code:
 
 ```moonscript
 _ENV = Dorothy!
 
 with Sprite "Image/logo.png"
-  \addTo Director.entry
-  \schedule once ->
-    for i = 3, 1, -1
-      print i
-      sleep 1
-    print "Hello World!"
-    \perform Sequence(
-      Scale 0.1, 1, 0.5
-      Scale 0.5, 0.5, 1, Ease.OutBack
-    )
+   \addTo Director.entry
+   \schedule once ->
+     for i = 3, 1, -1
+       print i
+       sleep 1
+     print "Hello World!"
+     \perform Sequence(
+       Scale 0.1, 1, 0.5
+       Scale 0.5, 0.5, 1, Ease. OutBack
+     )
 ```
 
-3. 第三步：运行游戏
+3. Step 3: Run the game
 
-   点击编辑器右下角`🎮`图标，然后点击菜单项`Run`。或者按下组合键`Ctrl + r`。
+    Click the `🎮` icon in the lower right corner of the editor, then click the menu item `Run`. Or press the key combination `Ctrl + r`.
 
-4. 第四步：发布游戏
+4. Step 4: Publish the game
 
-   - 通过编辑器左侧游戏资源树，打开刚才新建的项目文件夹的右键菜单，点击`Download`选项。
+    - Open the right-click menu of the newly created project folder through the game resource tree on the left side of the editor, and click the `Download` option.
 
-   - 等待浏览器弹出已打包项目文件的下载提示。
- 
+    - Wait for the browser to pop up a download prompt for the packaged project file.
 
-更详细的教程，请查看[官方文档](施工中)。
+
+For more detailed tutorials, please check [official documents](under-construction).
 
 <br>
 
-## 示例项目
+## Example project
 
-- [示例项目 - Loli War](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Loli%20War)
+- [Sample Project - Loli War](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Loli%20War)
 
 ![Loli War](Assets/Image/LoliWar.gif)
 
 <br>
 
-- [示例项目 - Zombie Escape](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
+- [Sample Project - Zombie Escape](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
 
 <img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/>
 
 <br>
 
-- [示例项目 - Dismentalism](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Dismantlism)
+- [Example Project - Dismentalism](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Dismantlism)
 
 <img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/>
 
 <br>
 
-- [示例项目 - Luv Sense Digital](https://e.coding.net/project-lsd/lsd/game.git)
+- [Example Project - Luv Sense Digital](https://e.coding.net/project-lsd/lsd/game.git)
 
 <img src='Assets/Image/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/>
 
 <br>
 
-## 文档
+## Documentation
 
-- [API参考](施工中)
-- [开发指南](施工中)
-- [教程](施工中)
-
-<br>
-
-## 社区
-
-- [社交媒体](施工中)
-- [开发者聊天室](施工中)
+- [API Reference](under-construction)
+- [Development Guide](under-construction)
+- [Tutorial](under-construction)
 
 <br>
 
-## 贡献
+## Community
 
-欢迎参与Dorothy SSR的开发和维护。请查看[贡献指南](CONTRIBUTING.md)了解如何提交Issue和Pull Request。
+- [Social Media](under-construction)
+- [Developer Chat Room](under-construction)
 
 <br>
 
-## 许可证
+## contribute
 
-Dorothy SSR使用[MIT许可证](LICENSE)。
+Welcome to participate in the development and maintenance of Dorothy SSR. Please see [Contributing Guidelines](CONTRIBUTING.md) to learn how to submit Issues and Pull Requests.
+
+<br>
+
+## license
+
+Dorothy SSR uses the [MIT License](LICENSE).
