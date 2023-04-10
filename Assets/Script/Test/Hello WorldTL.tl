@@ -13,7 +13,7 @@ end)
 node:slot("Cleanup", function()
 	print("on node destoyed event")
 end)
-node:schedule(once(function(): boolean
+node:schedule(once(function()
 	for i = 5, 1, -1 do
 		print(i)
 		sleep(1)

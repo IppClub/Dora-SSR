@@ -73,8 +73,8 @@ luaCheck = (file, content)->
 			success = true
 	return :success, :info
 
-getCompiledYueLine = (content, line, row)->
-	luaCodes, info = yueCheck "", content
+getCompiledYueLine = (content, line, row, file)->
+	luaCodes, info = yueCheck file, content
 	return nil unless luaCodes
 	current = 1
 	lastLine = 1
@@ -138,7 +138,7 @@ HttpServer\postSchedule "/infer", (req)->
 			if infered?
 				return success: true, :infered
 		when "yue"
-			luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine content, line, row
+			luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine content, line, row, file
 			return success: false unless luaCodes
 			infered = teal.inferAsync luaCodes, targetLine, targetRow, searchPath
 			if infered?
@@ -237,7 +237,7 @@ HttpServer\postSchedule "/complete", (req)->
 		when "yue"
 			suggestions = {}
 			gotGlobals = false
-			if luaCodes, targetLine, targetRow = getCompiledYueLine content, line, row
+			if luaCodes, targetLine, targetRow = getCompiledYueLine content, line, row, file
 				gotGlobals = true
 				suggestions[] = item for item in *teal.completeAsync luaCodes, targetLine, targetRow, searchPath
 				if #suggestions == 0
