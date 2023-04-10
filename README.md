@@ -48,7 +48,7 @@
 
   
 
-<img src='Assets/Image/LSD.jpg' alt='LSD' width='300px'/>
+&emsp;&emsp;<img src='Assets/Image/LSD.jpg' alt='LSD' width='300px'/>
 
 
 
@@ -123,21 +123,21 @@ with Sprite "Image/logo.png"
 
 ## 示例项目
 
-- [示例项目 - Loli War](Assets/Script/Game/Loli War)
+- [示例项目 - Loli War](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Loli%20War)
 
 ![Loli War](Assets/Image/LoliWar.gif)
 
-- [示例项目 - Zombie Escape](Assets/Script/Game/Zombie Escape)
+- [示例项目 - Zombie Escape](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
 
 <img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/>
 
-- [示例项目 - Dismentalism](Assets/Script/Game/Dismantlism)
+- [示例项目 - Dismentalism](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Dismantlism)
 
-![Dismentalism](Assets/Image/Dismentalism.png)
+<img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/>
 
 - [示例项目 - Luv Sense Digital](https://e.coding.net/project-lsd/lsd/game.git)
 
-![Luv Sense Digital](Assets/Image/LuvSenseDigital.png)
+<img src='Assets/Image/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/>
 
 
 
