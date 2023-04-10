@@ -12,7 +12,7 @@
 
 <br>
 
-## Feature
+## Key Features
 
 - Manages game scenes based on tree node structure.
 
@@ -118,7 +118,7 @@ For more detailed tutorials, please check [official documents](under-constructio
 
 <br>
 
-## Example project
+## Example Projects
 
 - [Sample Project - Loli War](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Loli%20War)
 
