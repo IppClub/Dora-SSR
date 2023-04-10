@@ -8,7 +8,7 @@
 |:-:|:-:|:-:|:-:|:-:|
 |[![Android](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/android.yml)|[![Linux](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/linux.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/linux.yml)|[![Windows](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/windows.yml)|[![macOS](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/macos.yml)|[![iOS](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/ios.yml)|
 
-
+<br>
 
 ## 主要特点
 
@@ -44,13 +44,11 @@
 
 - 支持True Type字体的渲染和基础排版。
 
-- 提供可用于制作自己游戏的开放美术素材和游戏IP —— [《灵数奇缘》](http://luvsensedigital.org)。 
-
-  
+- 提供可用于制作自己游戏的开放美术素材和游戏IP —— [《灵数奇缘》](http://luvsensedigital.org)。
 
 &emsp;&emsp;<img src='Assets/Image/LSD.jpg' alt='LSD' width='300px'/>
 
-
+<br>
 
 ## 安装
 
@@ -67,14 +65,11 @@
     - 2、运行软件，通过浏览器访问软件显示的服务器地址。
     
     - 3、开始游戏开发。
-    
-      
 
 - 硬核开发  
   进行Dorothy SSR项目开发的安装配置，详见[官方文档](施工中)。
-  
-  
 
+<br>
 
 ## 快速入门
 
@@ -114,12 +109,11 @@ with Sprite "Image/logo.png"
    - 通过编辑器左侧游戏资源树，打开刚才新建的项目文件夹的右键菜单，点击`Download`选项。
 
    - 等待浏览器弹出已打包项目文件的下载提示。
-
-     
+ 
 
 更详细的教程，请查看[官方文档](施工中)。
 
-
+<br>
 
 ## 示例项目
 
@@ -127,19 +121,25 @@ with Sprite "Image/logo.png"
 
 ![Loli War](Assets/Image/LoliWar.gif)
 
+<br>
+
 - [示例项目 - Zombie Escape](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
 
 <img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/>
+
+<br>
 
 - [示例项目 - Dismentalism](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Dismantlism)
 
 <img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/>
 
+<br>
+
 - [示例项目 - Luv Sense Digital](https://e.coding.net/project-lsd/lsd/game.git)
 
 <img src='Assets/Image/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/>
 
-
+<br>
 
 ## 文档
 
@@ -147,20 +147,20 @@ with Sprite "Image/logo.png"
 - [开发指南](施工中)
 - [教程](施工中)
 
-
+<br>
 
 ## 社区
 
 - [社交媒体](施工中)
 - [开发者聊天室](施工中)
 
-
+<br>
 
 ## 贡献
 
 欢迎参与Dorothy SSR的开发和维护。请查看[贡献指南](CONTRIBUTING.md)了解如何提交Issue和Pull Request。
 
-
+<br>
 
 ## 许可证
 
