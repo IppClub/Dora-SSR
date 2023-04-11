@@ -1,4 +1,4 @@
-<img src='Assets/Image/logo.png' alt='Dorothy SSR' width='300px'/>
+<img src='Assets/Image/logo.png' alt='Dorothy SSR' width='200px'/>
 
 # Dorothy SSR
 

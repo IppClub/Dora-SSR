@@ -1,4 +1,4 @@
-<img src='Assets/Image/logo.png' alt='Dorothy SSR' width='300px'/>
+<img src='Assets/Image/logo.png' alt='Dorothy SSR' width='200px'/>
 
 # Dorothy SSR
 
@@ -57,7 +57,7 @@
 - 快速上手
 
   - Android
-    - 1、在游戏的运行终端下载并安装 [APK](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest) 包。
+    - 1、在游戏的运行终端下载并安装[APK](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest)包。
     - 2、运行软件，通过局域网内的PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
     - 3、开始游戏开发。
 

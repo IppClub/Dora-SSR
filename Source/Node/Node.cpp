@@ -1080,7 +1080,7 @@ float Node::runAction(Action* action) {
 	if (isRunning()) {
 		_scheduler->schedule(action);
 	}
-	return _action->getDuration();
+	return _action ? _action->getDuration() : 0.0f;
 }
 
 void Node::stopAllActions() {
