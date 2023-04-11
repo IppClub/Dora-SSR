@@ -1,13 +1,9 @@
-package com.luvfight.dorothy;
+package org.ippclub.dorothyssr;
 
 import org.libsdl.app.SDLActivity;
 
-import android.app.ActionBar;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-
-import java.io.Console;
 
 public class MainActivity extends SDLActivity {
 	private static native void nativeSetPath(String path);

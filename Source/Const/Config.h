@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#define DORA_DEFAULT_ORG_NAME "LuvFight"
+#define DORA_DEFAULT_ORG_NAME "IppClub"
 #define DORA_DEFAULT_APP_NAME "DorothySSR"
 
 #define NS_DOROTHY_BEGIN namespace Dorothy {

@@ -3750,7 +3750,7 @@
 				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = Luvfight.Dorothy;
+				PRODUCT_BUNDLE_IDENTIFIER = IppClub.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source",
@@ -3812,7 +3812,7 @@
 				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = Luvfight.Dorothy;
+				PRODUCT_BUNDLE_IDENTIFIER = IppClub.Dorothy;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source",

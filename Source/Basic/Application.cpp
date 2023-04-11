@@ -31,7 +31,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <jni.h>
 static std::string g_androidAPKPath;
 extern "C" {
-JNIEXPORT void JNICALL Java_com_luvfight_dorothy_MainActivity_nativeSetPath(JNIEnv* env, jclass cls, jstring apkPath) {
+JNIEXPORT void JNICALL Java_org_ippclub_dorothyssr_MainActivity_nativeSetPath(JNIEnv* env, jclass cls, jstring apkPath) {
 	const char* pathString = env->GetStringUTFChars(apkPath, NULL);
 	g_androidAPKPath = pathString;
 	env->ReleaseStringUTFChars(apkPath, pathString);
@@ -39,7 +39,7 @@ JNIEXPORT void JNICALL Java_com_luvfight_dorothy_MainActivity_nativeSetPath(JNIE
 }
 static float g_androidScreenDensity;
 extern "C" {
-JNIEXPORT void JNICALL Java_com_luvfight_dorothy_MainActivity_nativeSetScreenDensity(JNIEnv* env, jclass cls, jfloat screenDensity) {
+JNIEXPORT void JNICALL Java_org_ippclub_dorothyssr_MainActivity_nativeSetScreenDensity(JNIEnv* env, jclass cls, jfloat screenDensity) {
 	g_androidScreenDensity = s_cast<float>(screenDensity);
 }
 }
