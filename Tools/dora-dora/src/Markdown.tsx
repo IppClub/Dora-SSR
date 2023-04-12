@@ -5,7 +5,7 @@ import {PrismLight as SyntaxHighlighter} from 'react-syntax-highlighter';
 import {vscDarkPlus} from 'react-syntax-highlighter/dist/esm/styles/prism';
 import prismYuescript from './languages/yuescript-prism';
 import prismTeal from './languages/teal-prism';
-import prismLua from 'react-syntax-highlighter/dist/esm/languages/prism/lua';
+import prismLua from './languages/lua-prism';
 
 SyntaxHighlighter.registerLanguage('yuescript', prismYuescript);
 SyntaxHighlighter.registerLanguage('lua', prismLua);

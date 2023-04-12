@@ -58,7 +58,9 @@
 
   - Android
      - 1. Download and install the [APK](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest) package on the running terminal for games.
+
      - 2. Run the software, and access the server address displayed by the software through the browser of a PC (tablet or other development device) on the LAN.
+
      - 3. Start game development.
 
   - Windows
@@ -79,11 +81,12 @@
 1. Step 1: Create a new project
 
     - In the browser, open the right-click menu of the game resource tree on the left side of the Dora Dora editor.
+
     - Click on the menu item `New` and choose to create a new folder.
 
 2. Step 2: Write game code
 
-    - Create a new game entry code file under the project folder, named `init.yue`.
+    - Create a new game entry code file of Yuescript under the project folder, named `init`.
 
     - Write Hello World code:
 

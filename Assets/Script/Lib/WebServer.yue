@@ -377,6 +377,7 @@ HttpServer\post "/assets", ->
 		dir: true,
 		title: "Assets",
 		children: {
+			visitAssets Path Content.assetPath, "Script", "Lib", "Dora"
 			visitAssets Path Content.assetPath, "Script", "Example"
 			visitAssets Path Content.assetPath, "Script", "Test"
 			...visitAssets Content.writablePath, true
@@ -413,14 +414,18 @@ HttpServer\postSchedule "/zip", (req)->
 thread ->
 	doraWeb = Path Content.assetPath, "www", "index.html"
 	doraReady = Path Content.writablePath, ".www", "dora-ready"
-	if Content\exist(doraWeb) and not Content\exist doraReady
-		Content\remove Path Content.writablePath, ".www"
-		Content\copyAsync(
-			Path Content.assetPath, "www"
-			Path Content.writablePath, ".www"
-		)
-		Content\save doraReady, ""
-		print "dora-dora is ready!"
+	if Content\exist doraWeb
+		needReload = if Content\exist doraReady
+			App.version ~= Content\load doraReady
+		else true
+		if needReload
+			Content\remove Path Content.writablePath, ".www"
+			Content\copyAsync(
+				Path Content.assetPath, "www"
+				Path Content.writablePath, ".www"
+			)
+			Content\save doraReady, App.version
+			print "dora-dora is ready!"
 	if HttpServer\start 8866
 		:localIP = HttpServer
 		localIP = "localhost" if localIP == ""
