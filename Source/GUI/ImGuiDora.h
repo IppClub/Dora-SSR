@@ -99,6 +99,7 @@ private:
 	Ref<Pass> _defaultPass;
 	Ref<Pass> _imagePass;
 	Ref<Listener> _costListener;
+	Ref<Listener> _themeListener;
 	bgfx::VertexLayout _vertexLayout;
 	std::list<std::any> _inputs;
 	std::vector<uint32_t> _textEditing;

@@ -30,6 +30,7 @@ config = Config(
 	"fullScreen"
 	"winWidth"
 	"winHeight"
+	"themeColor"
 )
 config\load!
 if config.fpsLimited?
@@ -57,6 +58,11 @@ switch App.platform when "Linux", "Windows", "macOS"
 		App.winSize = Size.zero
 	elseif config.winWidth? and config.winHeight?
 		App.winSize = Size config.winWidth, config.winHeight
+
+if config.themeColor?
+	App.themeColor = Color config.themeColor
+else
+	config.themeColor = App.themeColor\toARGB!
 
 import "Utils" as :Set, :Struct, :LintYueGlobals
 options: {extension: yueext} = yue
@@ -241,8 +247,10 @@ footerWindow = nil
 entryWindow = nil
 
 setupEventHandlers = ->
-	switch App.platform when "Linux", "Windows", "macOS"
-		with Director.postNode
+	with Director.postNode
+		\gslot "AppTheme", (argb)->
+			config.themeColor = argb
+		switch App.platform when "Linux", "Windows", "macOS"
 			\gslot "AppSizeChanged", ->
 				:width, :height = App.winSize
 				config.winWidth = width
@@ -539,7 +547,6 @@ footerWindow = threadLoop ->
 				SetNextWindowPos Vec2(width - 400, height - 365), "FirstUseEver"
 				ShowConsole!
 
-themeColor = App.themeColor
 entryWindow = threadLoop ->
 	if App.fpsLimited ~= (config.fpsLimited == 1)
 		config.fpsLimited = App.fpsLimited and 1 or 0
@@ -551,6 +558,7 @@ entryWindow = threadLoop ->
 		config.fixedFPS = Director.scheduler.fixedFPS
 	return unless showEntry
 	return unless isInEntry
+	:themeColor = App
 	:width, :height = App.visualSize
 	SetNextWindowPos Vec2.zero
 	SetNextWindowSize Vec2 width, 45
