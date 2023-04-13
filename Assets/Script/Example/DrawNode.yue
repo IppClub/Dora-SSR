@@ -20,13 +20,15 @@ StarVertices = (radius)->
 Director.entry\addChild with Node!
 	\addChild with DrawNode!
 		.position = Vec2 200, 200
-		\drawPolygon StarVertices(60), Color(0x80ff0080), 1, Color(0xffff0080)
+		\drawPolygon StarVertices(60), Color(0x80ff0080), 1, Color 0xffff0080
 
-	\addChild with Line CircleVertices(60), Color(0xff00ffff)
+	themeColor = App.themeColor
+
+	\addChild with Line CircleVertices(60), themeColor
 		.position = Vec2 -200, 200
 
 	\addChild with Node!
-		.color = Color 0xff00ffff
+		.color = themeColor
 		.scaleX = 2
 		.scaleY = 2
 		\addChild with DrawNode!

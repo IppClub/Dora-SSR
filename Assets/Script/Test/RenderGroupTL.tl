@@ -3,6 +3,7 @@ local Vec2 <const> = require("Vec2")
 local Sprite <const> = require("Sprite")
 local DrawNode <const> = require("DrawNode")
 local Color <const> = require("Color")
+local App <const> = require("App")
 local Line <const> = require("Line")
 local Angle <const> = require("Angle")
 local Size <const> = require("Size")
@@ -27,7 +28,7 @@ local function Item(): Node.Type
 		Vec2(60, -60),
 		Vec2(60, 60),
 		Vec2(-60, 60)
-	}, Color(0x3000ffff))
+	}, Color(App.themeColor:toColor3(), 0x30))
 	drawNode.renderOrder = 2
 	drawNode.angle = 45
 	drawNode:addTo(node)
@@ -61,7 +62,6 @@ currentEntry:addTo(Director.entry)
 
 -- example codes ends here, some test ui below --
 
-local App <const> = require("App")
 local ImGui <const> = require("ImGui")
 
 local renderGroup = currentEntry.renderGroup

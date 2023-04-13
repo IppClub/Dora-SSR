@@ -53,6 +53,7 @@ public:
 	PROPERTY_READONLY_BOOL(Debugging);
 	PROPERTY_READONLY(std::thread::id, LogicThread);
 	PROPERTY_READONLY(uint32_t, MaxFPS);
+	PROPERTY(Color, ThemeColor);
 	PROPERTY(uint32_t, TargetFPS);
 	PROPERTY(uint32_t, Seed);
 	PROPERTY(Size, WinSize);
@@ -94,6 +95,7 @@ private:
 	int _winHeight;
 	int _bufferWidth;
 	int _bufferHeight;
+	Color _themeColor;
 	uint32_t _seed;
 	uint32_t _targetFPS;
 	uint32_t _maxFPS;

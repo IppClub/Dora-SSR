@@ -3,6 +3,7 @@ local Director <const> = require("Director")
 local Node <const> = require("Node")
 local DrawNode <const> = require("DrawNode")
 local Color <const> = require("Color")
+local App <const> = require("App")
 local Line <const> = require("Line")
 
 local function CircleVertices(radius: number, verts?: integer): {Vec2.Type}
@@ -47,12 +48,14 @@ star.position = Vec2(200, 200)
 star:drawPolygon(StarVertices(60), Color(0x80ff0080), 1, Color(0xffff0080))
 star:addTo(node)
 
-local circle = Line(CircleVertices(60), Color(0xff00ffff))
+local themeColor = App.themeColor
+
+local circle = Line(CircleVertices(60), themeColor)
 circle.position = Vec2(-200, 200)
 circle:addTo(node)
 
 local camera = Node()
-camera.color = Color(0xff00ffff)
+camera.color = themeColor
 camera.scaleX = 2
 camera.scaleY = 2
 camera:addTo(node)
@@ -101,7 +104,6 @@ cameraLine:addTo(camera)
 
 -- example codes ends here, some test ui below --
 
-local App <const> = require("App")
 local ImGui <const> = require("ImGui")
 
 local ui = Node()

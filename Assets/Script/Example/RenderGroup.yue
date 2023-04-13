@@ -17,7 +17,7 @@ Item = Class Node,
 				Vec2 60, -60
 				Vec2 60, 60
 				Vec2 -60, 60
-			},Color 0x3000ffff
+			}, Color App.themeColor\toColor3!, 0x30
 			.renderOrder = 2
 			.angle = 45
 
@@ -27,7 +27,7 @@ Item = Class Node,
 				Vec2 60, 60
 				Vec2 -60, 60
 				Vec2 -60, -60
-			},Color 0xffff0080
+			}, Color 0xffff0080
 			.renderOrder = 3
 			.angle = 45
 

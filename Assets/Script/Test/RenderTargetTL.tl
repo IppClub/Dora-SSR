@@ -5,6 +5,7 @@ local X <const> = require("X")
 local Event <const> = require("Event")
 local RenderTarget <const> = require("RenderTarget")
 local Color <const> = require("Color")
+local App <const> = require("App")
 local Sprite <const> = require("Sprite")
 local Line <const> = require("Line")
 local Vec2 <const> = require("Vec2")
@@ -51,7 +52,7 @@ surface:addChild(Line({
 	Vec2(300, 400),
 	Vec2(0, 400),
 	Vec2.zero
-}, Color(0xff00ffff)))
+}, App.themeColor))
 surface:schedule(function(): boolean
 	node.y = 200
 	renderTarget:renderWithClear(node, Color(0xff8a8a8a))
@@ -62,7 +63,6 @@ surface:addTo(root)
 
 -- example codes ends here, some test ui below --
 
-local App <const> = require("App")
 local ImGui <const> = require("ImGui")
 
 local ui = Node()

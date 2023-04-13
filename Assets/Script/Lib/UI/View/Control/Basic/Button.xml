@@ -27,7 +27,7 @@
 			<Lua>end</Lua>
 
 			<LineRect Width="{ width }" Height="{ height }" Color="0xffffffff" RenderOrder="3"/>
-			<SolidRect Name="light" Width="{ width }" Height="{ height }" Color="0xff00ffff" RenderOrder="4"/>
+			<SolidRect Name="light" Width="{ width }" Height="{ height }" Color="{ App.themeColor:toARGB() }" RenderOrder="4"/>
 			<Lua>light.visible = false</Lua>
 		</Item>
 

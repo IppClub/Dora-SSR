@@ -4,7 +4,7 @@ local Label <const> = require("Label")
 local BodyDef <const> = require("BodyDef")
 local Body <const> = require("Body")
 local Line <const> = require("Line")
-local Color <const> = require("Color")
+local App <const> = require("App")
 local Director <const> = require("Director")
 local Node <const> = require("Node")
 
@@ -41,7 +41,7 @@ local drawNode = Line({
 	Vec2.zero,
 	Vec2(0, -20),
 	Vec2(0, 20)
-}, Color(0xff00ffff))
+}, App.themeColor)
 drawNode:addTo(world)
 
 local diskDef = BodyDef()
@@ -60,7 +60,6 @@ end)
 
 -- example codes ends here, some test ui below --
 
-local App <const> = require("App")
 local ImGui <const> = require("ImGui")
 
 local ui = Node()

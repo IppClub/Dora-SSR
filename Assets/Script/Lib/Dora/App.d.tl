@@ -1,4 +1,5 @@
 local Size = require("Size").Type
+local Color = require("Color").Type
 
 -- A record representing an application singleton instance.
 local record App
@@ -60,6 +61,9 @@ local record App
 
 	-- An array of test names of engine included C++ tests.
 	const testNames: {string}
+
+	-- A theme color for Dorothy SSR.
+	themeColor: Color
 
 	-- A random number seed.
 	seed: integer

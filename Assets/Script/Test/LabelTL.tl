@@ -4,7 +4,7 @@ local Label <const> = require("Label")
 local Sequence <const> = require("Sequence")
 local Delay <const> = require("Delay")
 local Scale <const> = require("Scale")
-local Color <const> = require("Color")
+local App <const> = require("App")
 local Vec2 <const> = require("Vec2")
 local Opacity <const> = require("Opacity")
 
@@ -30,7 +30,8 @@ end
 
 label = Label("sarasa-mono-sc-regular", 30)
 label.text = "-- from Jin."
-label.color = Color(0x0000ffff)
+label.color = App.themeColor
+label.opacity = 0
 label.position = Vec2(120, -70)
 label:runAction(
 	Sequence(
@@ -42,7 +43,6 @@ label:addTo(node)
 
 -- example codes ends here, some test ui below --
 
-local App <const> = require("App")
 local ImGui <const> = require("ImGui")
 
 local windowFlags = {

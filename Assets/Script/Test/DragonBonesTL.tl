@@ -1,6 +1,6 @@
 local DragonBone <const> = require("DragonBone")
 local Label <const> = require("Label")
-local Color <const> = require("Color")
+local App <const> = require("App")
 local Sequence <const> = require("Sequence")
 local Spawn <const> = require("Spawn")
 local Scale <const> = require("Scale")
@@ -35,7 +35,7 @@ bone:slot("TapBegan", function(touch: Touch)
 	if not name is nil then
 		local label = Label("sarasa-mono-sc-regular", 30)
 		label.text = name
-		label.color = Color(0xff00ffff)
+		label.color = App.themeColor
 		label.position = Vec2(x, y)
 		label.order = 100
 		label:perform(
@@ -60,7 +60,6 @@ Director.entry:addChild(bone)
 
 -- example codes ends here, some test ui below --
 
-local App <const> = require("App")
 local ImGui <const> = require("ImGui")
 
 local ui = Node()

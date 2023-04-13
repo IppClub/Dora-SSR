@@ -607,12 +607,13 @@ UnitDefFuncs = {
 	boss: NewBossDef
 }
 
+themeColor = App.themeColor
 itemSize = 64
 NewItemPanel = (displayName, itemName, itemOptions, currentSet)->
 	selectItems = false
 	->
 		Columns 1, false
-		TextColored Color(0xff00ffff), displayName
+		TextColored themeColor, displayName
 		NextColumn!
 		if selectItems
 			Columns #itemOptions + 1, false
@@ -759,7 +760,7 @@ NewFighter = (name, currentSet)->
 			RHandItemPanel!
 			LHandItemPanel!
 			Columns 1, false
-			TextColored Color(0xff00ffff), "性别"
+			TextColored themeColor, "性别"
 			NextColumn!
 			_, currentSet.type = RadioButton "男", currentSet.type, 1
 			SameLine!
@@ -769,7 +770,7 @@ NewFighter = (name, currentSet)->
 			for slot in *itemSlots
 				item = currentSet[slot]
 				cost += item and itemSettings[item].cost or 0
-			TextColored Color(0xff00ffff), "累计消耗资源：#{cost}"
+			TextColored themeColor, "累计消耗资源：#{cost}"
 			NextColumn!
 			Columns 2, false
 			if Button "进行训练！", Vec2(200,80)

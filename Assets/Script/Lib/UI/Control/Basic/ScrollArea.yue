@@ -20,7 +20,7 @@ export default Class ScrollArea,
 			:viewWidth = width
 			:viewHeight = height
 			:scrollBar = true
-			:scrollBarColor3 = 0x00ffff
+			:scrollBarColor3 = App.themeColor\toARGB!
 			:clipping = true
 		} = args
 		viewWidth = math.max viewWidth, width

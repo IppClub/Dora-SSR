@@ -17,7 +17,7 @@ spine = with Spine spineStr
 		if name = \containsPoint x, y
 			\addChild with Label "sarasa-mono-sc-regular", 30
 				.text = name
-				.color = Color 0xff00ffff
+				.color = App.themeColor
 				\perform Sequence(Spawn(
 					Scale 1, 0, 2, Ease.OutQuad
 					Sequence(

@@ -14,7 +14,8 @@ Director.entry\addChild with Node!
 
 	\addChild with Label "sarasa-mono-sc-regular",30
 		.text = "-- from Jin."
-		.color = Color 0x0000ffff
+		.color = App.themeColor
+		.opacity = 0
 		.position = Vec2 120, -70
 		\runAction Sequence(
 			Delay 2

@@ -32,7 +32,7 @@ targetA = with Model "Model/xiaoli.model"
 clipNodeA = with ClipNode maskA
 	\addChild targetA
 	.inverted = true
-frame = with Line StarVertices(160, true), Color 0xff00ffff
+frame = with Line StarVertices(160, true), App.themeColor
 	.visible = false
 exampleA = with Node!
 	\addChild clipNodeA

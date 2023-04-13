@@ -429,6 +429,6 @@ thread ->
 	if HttpServer\start 8866
 		:localIP = HttpServer
 		localIP = "localhost" if localIP == ""
-		print "server started at http://#{localIP}:8866"
+		print "Web IDE at http://#{localIP}:8866"
 	else
-		print "port not available!"
+		print "8866 Port not available!"
