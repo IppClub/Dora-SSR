@@ -27,7 +27,7 @@ surface = with Sprite renderTarget.texture
 		Vec2 300, 400
 		Vec2 0, 400
 		Vec2.zero
-	}, Color 0xff00ffff
+	}, App.themeColor
 	\schedule ->
 		node.y = 200
 		renderTarget\renderWithClear node, Color 0xff8a8a8a

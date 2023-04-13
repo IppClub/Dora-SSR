@@ -23,6 +23,9 @@ terrainDef = with BodyDef!
 	\attachPolygon Vec2(1250, 0), 10, 1000, 0, 1, 1, 0
 	\attachPolygon Vec2(-1250, 0), 10, 1000, 0, 1, 1, 0
 
+fillColor = Color(App.themeColor\toColor3!, 0x66)\toARGB!
+borderColor = App.themeColor\toARGB!
+
 with Body terrainDef, world, Vec2.zero
 	.order = TerrainLayer
 	.group = Data.groupTerrain
@@ -30,8 +33,8 @@ with Body terrainDef, world, Vec2.zero
 		y: -500
 		width: 2500
 		height: 10
-		fillColor: 0x6600ffff
-		borderColor: 0xff00ffff
+		:fillColor
+		:borderColor
 		fillOrder: 1
 		lineOrder: 2
 	}
@@ -40,8 +43,8 @@ with Body terrainDef, world, Vec2.zero
 		y: 0
 		width: 10
 		height: 1000
-		fillColor: 0x6600ffff
-		borderColor: 0xff00ffff
+		:fillColor
+		:borderColor
 		fillOrder: 1
 		lineOrder: 2
 	}
@@ -50,8 +53,8 @@ with Body terrainDef, world, Vec2.zero
 		y: 0
 		width: 10
 		height: 1000
-		fillColor: 0x6600ffff
-		borderColor: 0xff00ffff
+		:fillColor
+		:borderColor
 		fillOrder: 1
 		lineOrder: 2
 	}
@@ -64,19 +67,19 @@ Entity
 	obstacleDef: "Body_ObstacleS"
 	size: Size 100, 60
 	position: Vec2 100, -464
-	color: 0x00ffff
+	color: borderColor
 
 Entity
 	obstacleDef: "Body_ObstacleM"
 	size: Size 260, 60
 	position: Vec2 -400, -464
-	color: 0x00ffff
+	color: borderColor
 
 Entity
 	obstacleDef: "Body_ObstacleS"
 	size: Size 100, 60
 	position: Vec2 -400, -404
-	color: 0x00ffff
+	color: borderColor
 
 Entity
 	obstacleDef: "Body_ObstacleC"

@@ -37,6 +37,12 @@ static int32_t application_get_max_fps() {
 static int32_t application_is_debugging() {
 	return SharedApplication.isDebugging() ? 1 : 0;
 }
+static void application_set_theme_color(int32_t var) {
+	SharedApplication.setThemeColor(Color(s_cast<uint32_t>(var)));
+}
+static int32_t application_get_theme_color() {
+	return SharedApplication.getThemeColor().toARGB();
+}
 static void application_set_seed(int32_t var) {
 	SharedApplication.setSeed(s_cast<uint32_t>(var));
 }
@@ -84,6 +90,8 @@ static void linkApplication(wasm3::module& mod) {
 	mod.link_optional("*", "application_get_rand", application_get_rand);
 	mod.link_optional("*", "application_get_max_fps", application_get_max_fps);
 	mod.link_optional("*", "application_is_debugging", application_is_debugging);
+	mod.link_optional("*", "application_set_theme_color", application_set_theme_color);
+	mod.link_optional("*", "application_get_theme_color", application_get_theme_color);
 	mod.link_optional("*", "application_set_seed", application_set_seed);
 	mod.link_optional("*", "application_get_seed", application_get_seed);
 	mod.link_optional("*", "application_set_target_fps", application_set_target_fps);

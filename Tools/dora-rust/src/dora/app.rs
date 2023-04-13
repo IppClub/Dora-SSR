@@ -12,6 +12,8 @@ extern "C" {
 	fn application_get_rand() -> i32;
 	fn application_get_max_fps() -> i32;
 	fn application_is_debugging() -> i32;
+	fn application_set_theme_color(var: i32);
+	fn application_get_theme_color() -> i32;
 	fn application_set_seed(var: i32);
 	fn application_get_seed() -> i32;
 	fn application_set_target_fps(var: i32);
@@ -64,6 +66,12 @@ impl App {
 	}
 	pub fn is_debugging() -> bool {
 		return unsafe { application_is_debugging() != 0 };
+	}
+	pub fn set_theme_color(var: &crate::dora::Color) {
+		unsafe { application_set_theme_color(var.to_argb() as i32) };
+	}
+	pub fn get_theme_color() -> crate::dora::Color {
+		return unsafe { crate::dora::Color::from(application_get_theme_color()) };
 	}
 	pub fn set_seed(var: i32) {
 		unsafe { application_set_seed(var) };

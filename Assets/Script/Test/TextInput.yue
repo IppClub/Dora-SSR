@@ -128,12 +128,13 @@ Director.entry\addChild with TextInput {
 		fontName: "sarasa-mono-sc-regular"
 		fontSize: 40
 	}
+	themeColor = App.themeColor\toARGB!
 	--.text = "默认的文本 Default Text"
-	--.cursor.color = Color 0xff00ffff
+	--.cursor.color = App.themeColor
 	.label.color = Color 0xffff0080
 	\addChild LineRect {
 		x: -2
 		width: .width + 4
 		height: .height
-		color: 0xff00ffff
+		color: themeColor
 	}

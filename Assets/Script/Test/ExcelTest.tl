@@ -1,43 +1,51 @@
-local Platformer = require("Platformer")
-local ImGui = require("ImGui")
-local Rectangle = require("UI.View.Shape.Rectangle")
-local Utils = require("Utils")
-local Vec2 = require("Vec2")
-local Rect = require("Rect")
-local BodyDef = require("BodyDef")
-local Body = require("Body")
-local Director = require("Director")
-local Dictionary = require("Dictionary")
-local Size = require("Size")
-local Array = require("Array")
-local AlignNode = require("UI.Control.Basic.AlignNode")
-local CircleButton = require("UI.Control.Basic.CircleButton")
-local App = require("App")
-local Group = require("Group")
-local Menu = require("Menu")
-local Keyboard = require("Keyboard")
-local Content = require("Content")
+local Platformer <const> = require("Platformer")
+local ImGui <const> = require("ImGui")
+local Rectangle <const> = require("UI.View.Shape.Rectangle")
+local Utils <const> = require("Utils")
+local Vec2 <const> = require("Vec2")
+local Rect <const> = require("Rect")
+local BodyDef <const> = require("BodyDef")
+local Body <const> = require("Body")
+local Director <const> = require("Director")
+local Dictionary <const> = require("Dictionary")
+local Size <const> = require("Size")
+local Array <const> = require("Array")
+local AlignNode <const> = require("UI.Control.Basic.AlignNode")
+local CircleButton <const> = require("UI.Control.Basic.CircleButton")
+local App <const> = require("App")
+local Group <const> = require("Group")
+local Menu <const> = require("Menu")
+local Keyboard <const> = require("Keyboard")
+local Content <const> = require("Content")
+local Color <const> = require("Color")
 
-local Struct = Utils.Struct
-local Decision = Platformer.Decision
-local Sel = Decision.Sel
-local Seq = Decision.Seq
-local Con = Decision.Con
-local Act = Decision.Act
-local Reject = Decision.Reject
-local Data = Platformer.Data
+local Struct <const> = Utils.Struct
+local Decision <const> = Platformer.Decision
+local Sel <const> = Decision.Sel
+local Seq <const> = Decision.Seq
+local Con <const> = Decision.Con
+local Act <const> = Decision.Act
+local Reject <const> = Decision.Reject
+local Data <const> = Platformer.Data
 
 local PlayerGroup = 1
 local TerrainLayer = 0
+
+local themeColor = App.themeColor
+local fillColor = Color(themeColor:toColor3(), 0x66):toARGB()
+local borderColor = themeColor:toARGB()
+
 local world = Platformer.PlatformWorld()
 world.camera.boundary = Rect(-1250, -500, 2500, 1000)
 world.camera.followRatio = Vec2(0.01, 0.01)
+
 local terrainDef = BodyDef()
 terrainDef.type = "Static"
 terrainDef:attachPolygon(Vec2(0, -500), 2500, 10, 0, 1, 1, 0)
 terrainDef:attachPolygon(Vec2(0, 500), 2500, 10, 0, 1, 1, 0)
 terrainDef:attachPolygon(Vec2(1250, 0), 10, 1000, 0, 1, 1, 0)
 terrainDef:attachPolygon(Vec2(-1250, 0), 10, 1000, 0, 1, 1, 0)
+
 local body = Body(terrainDef, world, Vec2.zero)
 body.order = TerrainLayer
 body.group = Data.groupTerrain
@@ -45,8 +53,8 @@ body:addChild(Rectangle{
 	y = -500,
 	width = 2500,
 	height = 10,
-	fillColor = 0x6600ffff,
-	borderColor = 0xff00ffff,
+	fillColor = fillColor,
+	borderColor = borderColor,
 	fillOrder = 1,
 	lineOrder = 2
 })
@@ -55,8 +63,8 @@ body:addChild(Rectangle{
 	y = 0,
 	width = 10,
 	height = 1000,
-	fillColor = 0x6600ffff,
-	borderColor = 0xff00ffff,
+	fillColor = fillColor,
+	borderColor = borderColor,
 	fillOrder = 1,
 	lineOrder = 2
 })
@@ -65,8 +73,8 @@ body:addChild(Rectangle{
 	y = 0,
 	width = 10,
 	height = 1000,
-	fillColor = 0x6600ffff,
-	borderColor = 0xff00ffff,
+	fillColor = fillColor,
+	borderColor = borderColor,
 	fillOrder = 1,
 	lineOrder = 2
 })
@@ -379,7 +387,6 @@ local windowFlags = {
 	"NoNav",
 	"NoMove"
 }
-local Color = require("Color")
 world:schedule(function(): boolean
 	local size = App.visualSize
 	ImGui.SetNextWindowBgAlpha(0.35)
@@ -413,10 +420,10 @@ world:schedule(function(): boolean
 					end
 					ImGui.BeginTooltip(function()
 						ImGui.Text(item.name)
-						ImGui.TextColored(Color(0xff00ffff), "数量：")
+						ImGui.TextColored(themeColor, "数量：")
 						ImGui.SameLine()
 						ImGui.Text(tostring(item.num))
-						ImGui.TextColored(Color(0xff00ffff), "描述：")
+						ImGui.TextColored(themeColor, "描述：")
 						ImGui.SameLine()
 						ImGui.Text(tostring(item.desc))
 					end)

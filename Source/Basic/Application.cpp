@@ -79,7 +79,8 @@ Application::Application()
 	, _cpuTime(0)
 	, _totalTime(0)
 	, _frequency(double(bx::getHPFrequency()))
-	, _sdlWindow(nullptr) {
+	, _sdlWindow(nullptr)
+	, _themeColor(0xfffbc400) {
 	_lastTime = bx::getHPCounter() / _frequency;
 }
 
@@ -93,6 +94,14 @@ Size Application::getVisualSize() const {
 
 float Application::getDevicePixelRatio() const {
 	return s_cast<float>(_bufferWidth) / _visualWidth;
+}
+
+void Application::setThemeColor(Color var) {
+	_themeColor = var;
+}
+
+Color Application::getThemeColor() const {
+	return _themeColor;
 }
 
 void Application::setSeed(uint32_t var) {

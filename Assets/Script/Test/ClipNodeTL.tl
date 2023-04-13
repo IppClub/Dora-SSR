@@ -7,7 +7,7 @@ local Event <const> = require("Event")
 local Node <const> = require("Node")
 local ClipNode <const> = require("ClipNode")
 local Line <const> = require("Line")
-local Color <const> = require("Color")
+local App <const> = require("App")
 local Director <const> = require("Director")
 local Action <const> = require("Action")
 
@@ -56,7 +56,7 @@ clipNodeA:addChild(targetA)
 clipNodeA.inverted = true
 exampleA:addChild(clipNodeA)
 
-local frame = Line(StarVertices(160, true), Color(0xff00ffff))
+local frame = Line(StarVertices(160, true), App.themeColor)
 frame.visible = false
 exampleA:addChild(frame)
 exampleA:addTo(Director.entry)
@@ -89,7 +89,6 @@ exampleB:addTo(Director.entry)
 
 -- example codes ends here, some test ui below --
 
-local App <const> = require("App")
 local ImGui <const> = require("ImGui")
 
 local inverted = true

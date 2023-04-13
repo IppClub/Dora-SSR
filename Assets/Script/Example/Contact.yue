@@ -28,7 +28,7 @@ drawNode = with Line {
 		Vec2.zero
 		Vec2 0, -20
 		Vec2 0, 20
-	}, Color 0xff00ffff
+	}, App.themeColor
 	\addTo world
 
 diskDef = with BodyDef!

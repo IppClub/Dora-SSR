@@ -482,7 +482,7 @@ footerWindow = threadLoop ->
 	SetNextWindowPos Vec2 0, height - 50
 	SetNextWindowBgAlpha 0.35
 	PushStyleVar "WindowPadding", Vec2(10, 0), -> Begin "Footer", windowFlags, ->
-		Separator!
+		Dummy Vec2 width, 0
 		_, showStats = Checkbox "Stats", showStats
 		SameLine!
 		_, showConsole = Checkbox "Log", showConsole
@@ -539,7 +539,7 @@ footerWindow = threadLoop ->
 				SetNextWindowPos Vec2(width - 400, height - 365), "FirstUseEver"
 				ShowConsole!
 
-cyan = Color 0xff00ffff
+themeColor = App.themeColor
 entryWindow = threadLoop ->
 	if App.fpsLimited ~= (config.fpsLimited == 1)
 		config.fpsLimited = App.fpsLimited and 1 or 0
@@ -558,14 +558,14 @@ entryWindow = threadLoop ->
 	PushStyleVar "WindowPadding", Vec2(10, 0), ->
 		Begin "Dorothy Dev", windowFlags, ->
 			Dummy Vec2 width - 20, 5
-			TextColored cyan, "DOROTHY SSR DEV"
-			Separator!
+			TextColored themeColor, "DOROTHY SSR DEV"
+			Dummy Vec2 width, 0
 	SetNextWindowPos Vec2 0, 45
 	SetNextWindowSize Vec2 width, height - 95
 	PushStyleColor "WindowBg", Color(0x0), ->
 		Begin "Content", windowFlags, ->
 			if #games > 0
-				TextColored cyan, "Game Demos"
+				TextColored themeColor, "Game Demos"
 				Columns math.max(math.floor(width / 200), 1), false
 				for game in *games
 					if Button game[1], Vec2 -1, 40
@@ -573,7 +573,7 @@ entryWindow = threadLoop ->
 					NextColumn!
 				Columns 1, false
 			if #examples > 0
-				TextColored cyan, "Examples"
+				TextColored themeColor, "Examples"
 				Columns math.max(math.floor(width / 200), 1), false
 				for example in *examples
 					if Button example[1], Vec2 -1, 40
@@ -581,7 +581,7 @@ entryWindow = threadLoop ->
 					NextColumn!
 				Columns 1, false
 			if #tests > 0
-				TextColored cyan, "Tests"
+				TextColored themeColor, "Tests"
 				Columns math.max(math.floor(width / 200), 1), false
 				for test in *tests
 					if Button test[1], Vec2 -1, 40
@@ -593,7 +593,7 @@ entryWindow = threadLoop ->
 					NextColumn!
 				Columns 1, false
 			if #gamesInDev > 0
-				TextColored cyan, "Games In Dev"
+				TextColored themeColor, "Games In Dev"
 				Columns math.max(math.floor(width / 200), 1), false
 				for game in *gamesInDev
 					if Button game[1], Vec2 -1, 40

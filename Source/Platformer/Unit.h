@@ -57,7 +57,7 @@ public:
 	PROPERTY_READONLY(float, Height);
 	virtual bool init() override;
 	virtual void setGroup(uint8_t group) override;
-	virtual bool fixedUpdate(double deltaTime) override;
+	virtual bool update(double deltaTime) override;
 	virtual void onEnter() override;
 	virtual void cleanup() override;
 	// Actions

@@ -9,6 +9,8 @@ import "UI.Control.Basic.CircleButton"
 import "Utils" as :Set
 store: Store = Data
 
+themeColor = App.themeColor
+
 -- settings
 
 mutables = {
@@ -787,7 +789,7 @@ with Observer "Change", {"hp","unit"}
 
 WaitForSignal = (text,duration)->
 	with Label "sarasa-mono-sc-regular", 100
-		.color = Color 0xff00ffff
+		.color = themeColor
 		.text = text
 		\runAction Spawn(
 			Scale 0.5,0.3,1,Ease.OutBack
@@ -814,7 +816,7 @@ Director.ui\addChild with AlignNode isRoot:true
 		\gslot "AddScore", (value)->
 			return if value < 0 and GameScore == 0
 			\addChild with Label "sarasa-mono-sc-regular",64
-				.color = Color 0xff00ffff
+				.color = themeColor
 				.text = string.format "#{value > 0 and '+' or ''}%d",value
 				\runAction Sequence(
 					Spawn(

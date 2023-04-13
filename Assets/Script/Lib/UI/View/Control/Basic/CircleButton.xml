@@ -27,7 +27,7 @@
 			<Lua>end</Lua>
 
 			<LineCircle Radius="{ radius }" Color="0xffffffff" RenderOrder="3"/>
-			<SolidCircle Name="light" Radius="{ radius }" Color="0xff00ffff" RenderOrder="4"/>
+			<SolidCircle Name="light" Radius="{ radius }" Color="{ App.themeColor:toARGB() }" RenderOrder="4"/>
 			<Lua>light.visible = false</Lua>
 		</Item>
 
