@@ -251,7 +251,7 @@ public:
 		bool reclaimFocus = false;
 		ImGuiInputTextFlags inputTextFlags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
 		ImGui::PushItemWidth(-55);
-		if (ImGui::InputText("Input", _buf.data(), _buf.size(), inputTextFlags, &TextEditCallbackStub, r_cast<void*>(this))) {
+		if (ImGui::InputText("REPL", _buf.data(), _buf.size(), inputTextFlags, &TextEditCallbackStub, r_cast<void*>(this))) {
 			_historyPos = -1;
 			for (int i = s_cast<int>(_history.size()) - 1; i >= 0; i--) {
 				if (_history[i] == _buf.data()) {
@@ -337,6 +337,102 @@ private:
 	ImGuiTextFilter _filter;
 };
 
+static inline ImVec4 ImLerp(const ImVec4& a, const ImVec4& b, float t) {
+	return ImVec4(
+		a.x + (b.x - a.x) * t,
+		a.y + (b.y - a.y) * t,
+		a.z + (b.z - a.z) * t,
+		a.w + (b.w - a.w) * t);
+}
+
+static void DoraSetupTheme(Color color) {
+	auto themeColor = color.toVec4();
+	// dora theme colors, 3 intensities
+	auto HI = [&themeColor](float v) {
+		return ImVec4(
+			themeColor.x * 0.9f,
+			themeColor.y * 0.9f,
+			themeColor.z * 0.9f,
+			themeColor.w * v);
+	};
+	auto MED = [&themeColor](float v) {
+		return ImVec4(
+			themeColor.x * 0.6f,
+			themeColor.y * 0.6f,
+			themeColor.z * 0.6f,
+			themeColor.w * v);
+	};
+	auto LOW = [](float v) {
+		return ImVec4(0.204f, 0.204f, 0.204f, v);
+	};
+	// backgrounds
+	auto BG = [](float v) {
+		return ImVec4(0.102f, 0.102f, 0.102f, v);
+	};
+	// text
+	auto TEXT = [](float v) {
+		return ImVec4(0.860f, 0.860f, 0.860f, v);
+	};
+	// button
+	auto BUTTON = ImVec4(0.77f, 0.77f, 0.77f, 0.14f);
+	auto TRANSPARENT = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+
+	auto& colors = ImGui::GetStyle().Colors;
+	colors[ImGuiCol_Text] = TEXT(1.00f);
+	colors[ImGuiCol_TextDisabled] = TEXT(0.28f);
+	colors[ImGuiCol_WindowBg] = BG(1.00f);
+	colors[ImGuiCol_ChildBg] = TRANSPARENT;
+	colors[ImGuiCol_PopupBg] = BG(0.9f);
+	colors[ImGuiCol_Border] = TRANSPARENT;
+	colors[ImGuiCol_BorderShadow] = TRANSPARENT;
+	colors[ImGuiCol_FrameBg] = BUTTON;
+	colors[ImGuiCol_FrameBgHovered] = MED(0.78f);
+	colors[ImGuiCol_FrameBgActive] = MED(1.00f);
+	colors[ImGuiCol_TitleBg] = LOW(1.00f);
+	colors[ImGuiCol_TitleBgActive] = MED(1.00f);
+	colors[ImGuiCol_TitleBgCollapsed] = BG(0.75f);
+	colors[ImGuiCol_MenuBarBg] = BG(0.47f);
+	colors[ImGuiCol_ScrollbarBg] = TRANSPARENT;
+	colors[ImGuiCol_ScrollbarGrab] = LOW(0.5f);
+	colors[ImGuiCol_ScrollbarGrabHovered] = MED(0.78f);
+	colors[ImGuiCol_ScrollbarGrabActive] = MED(1.00f);
+	colors[ImGuiCol_CheckMark] = HI(1.00f);
+	colors[ImGuiCol_SliderGrab] = ImVec4(0.47f, 0.77f, 0.83f, 0.14f);
+	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.71f, 0.22f, 0.27f, 1.00f);
+	colors[ImGuiCol_Button] = BUTTON;
+	colors[ImGuiCol_ButtonHovered] = MED(0.86f);
+	colors[ImGuiCol_ButtonActive] = MED(1.00f);
+	colors[ImGuiCol_Header] = MED(0.76f);
+	colors[ImGuiCol_HeaderHovered] = MED(0.86f);
+	colors[ImGuiCol_HeaderActive] = HI(1.00f);
+	colors[ImGuiCol_Separator] = LOW(1.00f);
+	colors[ImGuiCol_SeparatorHovered] = colors[ImGuiCol_FrameBgHovered];
+	colors[ImGuiCol_SeparatorActive] = colors[ImGuiCol_FrameBgActive];
+	colors[ImGuiCol_ResizeGrip] = ImVec4(0.47f, 0.77f, 0.83f, 0.04f);
+	colors[ImGuiCol_ResizeGripHovered] = MED(0.78f);
+	colors[ImGuiCol_ResizeGripActive] = MED(1.00f);
+	colors[ImGuiCol_Tab] = ImLerp(colors[ImGuiCol_Header], colors[ImGuiCol_TitleBgActive], 0.80f);
+	colors[ImGuiCol_TabHovered] = colors[ImGuiCol_HeaderHovered];
+	colors[ImGuiCol_TabActive] = ImLerp(colors[ImGuiCol_HeaderActive], colors[ImGuiCol_TitleBgActive], 0.60f);
+	colors[ImGuiCol_TabUnfocused] = ImLerp(colors[ImGuiCol_Tab], colors[ImGuiCol_TitleBg], 0.80f);
+	colors[ImGuiCol_TabUnfocusedActive] = ImLerp(colors[ImGuiCol_TabActive], colors[ImGuiCol_TitleBg], 0.40f);
+	colors[ImGuiCol_PlotLines] = TEXT(0.63f);
+	colors[ImGuiCol_PlotLinesHovered] = MED(1.00f);
+	colors[ImGuiCol_PlotHistogram] = TEXT(0.63f);
+	colors[ImGuiCol_PlotHistogramHovered] = MED(1.00f);
+	colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
+	colors[ImGuiCol_TableBorderStrong] = ImVec4(0.31f, 0.31f, 0.35f, 1.00f); // Prefer using Alpha=1.0 here
+	colors[ImGuiCol_TableBorderLight] = ImVec4(0.23f, 0.23f, 0.25f, 1.00f); // Prefer using Alpha=1.0 here
+	colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
+	colors[ImGuiCol_TextSelectedBg] = MED(0.43f);
+	colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+	colors[ImGuiCol_NavHighlight] = HI(1.00f);
+	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+	colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+}
+
 int ImGuiDora::_lastIMEPosX;
 int ImGuiDora::_lastIMEPosY;
 
@@ -403,6 +499,11 @@ ImGuiDora::ImGuiDora()
 				_timeCosts[name] += cost;
 			}
 		}
+	});
+	_themeListener = Listener::create("AppTheme"_slice, [&](Event* e) {
+		uint32_t argb = 0;
+		e->get(argb);
+		DoraSetupTheme(Color(argb));
 	});
 }
 
@@ -524,7 +625,7 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 
 void ImGuiDora::showStats() {
 	/* print debug text */
-	const auto labelColor = SharedApplication.getThemeColor().toVec4();
+	auto themeColor = SharedApplication.getThemeColor().toVec4();
 	if (ImGui::Begin("Dorothy Stats", nullptr,
 			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 		if (ImGui::CollapsingHeader("Basic")) {
@@ -542,27 +643,27 @@ void ImGuiDora::showStats() {
 				"Vulkan", //!< Vulkan
 				"WebGPU", //!< WebGPU
 			};
-			ImGui::TextColored(labelColor, "Renderer:");
+			ImGui::TextColored(themeColor, "Renderer:");
 			ImGui::SameLine();
 			ImGui::TextUnformatted(rendererNames[bgfx::getCaps()->rendererType]);
-			ImGui::TextColored(labelColor, "Multi Threaded:");
+			ImGui::TextColored(themeColor, "Multi Threaded:");
 			ImGui::SameLine();
 			ImGui::TextUnformatted((bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
-			ImGui::TextColored(labelColor, "Back Buffer:");
+			ImGui::TextColored(themeColor, "Back Buffer:");
 			ImGui::SameLine();
 			Size size = SharedView.getSize();
 			ImGui::Text("%d x %d", s_cast<int>(size.width), s_cast<int>(size.height));
-			ImGui::TextColored(labelColor, "Draw Call:");
+			ImGui::TextColored(themeColor, "Draw Call:");
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numDraw);
-			ImGui::TextColored(labelColor, "Tri:");
+			ImGui::TextColored(themeColor, "Tri:");
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::TriStrip] + bgfx::getStats()->numPrims[bgfx::Topology::TriList]);
 			ImGui::SameLine();
-			ImGui::TextColored(labelColor, "Line:");
+			ImGui::TextColored(themeColor, "Line:");
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::LineStrip] + bgfx::getStats()->numPrims[bgfx::Topology::LineList]);
-			ImGui::TextColored(labelColor, "Visual Size:");
+			ImGui::TextColored(themeColor, "Visual Size:");
 			ImGui::SameLine();
 			auto visualSize = SharedApplication.getVisualSize();
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
@@ -578,13 +679,13 @@ void ImGuiDora::showStats() {
 				{1280, 720},
 				{720, 480},
 				{640, 480},
-				{320, 240}
-			};
+				{320, 240}};
 			if (ImGui::BeginPopup("WindowSizeSelector")) {
 				if (ImGui::Selectable("Full Screen")) {
 					SharedApplication.setWinSize(Size::zero);
 				}
 				for (const auto& size : sizes) {
+					ImGui::Separator();
 					if (ImGui::Selectable(fmt::format("{:.0f} x {:.0f}", size.width, size.height).c_str())) {
 						auto ratio = SharedApplication.getWinSize().width / SharedApplication.getVisualSize().width;
 						SharedApplication.setWinSize(size * Vec2{ratio, ratio});
@@ -602,7 +703,7 @@ void ImGuiDora::showStats() {
 			if (ImGui::Checkbox("FPS Limited", &fpsLimited)) {
 				SharedApplication.setFPSLimited(fpsLimited);
 			}
-			ImGui::TextColored(labelColor, "FPS:");
+			ImGui::TextColored(themeColor, "FPS:");
 			ImGui::SameLine();
 			int targetFPS = SharedApplication.getTargetFPS();
 			if (ImGui::RadioButton("30", &targetFPS, 30)) {
@@ -640,16 +741,16 @@ void ImGuiDora::showStats() {
 				_timeFrames = 0;
 			}
 			ImGui::Checkbox("Show Plot", &_showPlot);
-			ImGui::TextColored(labelColor, "AVG FPS:");
+			ImGui::TextColored(themeColor, "AVG FPS:");
 			ImGui::SameLine();
 			ImGui::Text("%.1f", 1000.0f / _avgDeltaTime);
-			ImGui::TextColored(labelColor, "AVG CPU:");
+			ImGui::TextColored(themeColor, "AVG CPU:");
 			ImGui::SameLine();
 			if (_avgCPUTime == 0)
 				ImGui::Text("-");
 			else
 				ImGui::Text("%.1f ms", _avgCPUTime);
-			ImGui::TextColored(labelColor, "AVG GPU:");
+			ImGui::TextColored(themeColor, "AVG GPU:");
 			ImGui::SameLine();
 			if (_avgGPUTime == 0)
 				ImGui::Text("-");
@@ -658,15 +759,15 @@ void ImGuiDora::showStats() {
 		}
 		if (ImGui::CollapsingHeader("Object")) {
 			_objectFrames++;
-			ImGui::TextColored(labelColor, "C++ Object:");
+			ImGui::TextColored(themeColor, "C++ Object:");
 			ImGui::SameLine();
 			_maxCppObjects = std::max(_maxCppObjects, Object::getCount());
 			ImGui::Text("%d", _maxCppObjects);
-			ImGui::TextColored(labelColor, "Lua Object:");
+			ImGui::TextColored(themeColor, "Lua Object:");
 			ImGui::SameLine();
 			_maxLuaObjects = std::max(_maxLuaObjects, Object::getLuaRefCount());
 			ImGui::Text("%d", _maxLuaObjects);
-			ImGui::TextColored(labelColor, "Lua Callback:");
+			ImGui::TextColored(themeColor, "Lua Callback:");
 			ImGui::SameLine();
 			_maxCallbacks = std::max(_maxCallbacks, Object::getLuaCallbackCount());
 			ImGui::Text("%d", _maxCallbacks);
@@ -684,13 +785,13 @@ void ImGuiDora::showStats() {
 				_memPoolSize = _memLua = 0;
 				_memFrames = 0;
 			}
-			ImGui::TextColored(labelColor, "Memory Pool:");
+			ImGui::TextColored(themeColor, "Memory Pool:");
 			ImGui::SameLine();
 			ImGui::Text("%d kb", _lastMemPoolSize);
-			ImGui::TextColored(labelColor, "Lua Memory:");
+			ImGui::TextColored(themeColor, "Lua Memory:");
 			ImGui::SameLine();
 			ImGui::Text("%.2f mb", _lastMemLua / 1024.0f);
-			ImGui::TextColored(labelColor, "Texture Size:");
+			ImGui::TextColored(themeColor, "Texture Size:");
 			ImGui::SameLine();
 			ImGui::Text("%.2f mb", Texture2D::getStorageSize() / 1024.0f / 1024.0f);
 		}
@@ -700,7 +801,7 @@ void ImGuiDora::showStats() {
 				_loaderTotalTime = 0;
 			}
 			ImGui::SameLine();
-			ImGui::TextColored(labelColor, "Time Cost:");
+			ImGui::TextColored(themeColor, "Time Cost:");
 			ImGui::SameLine();
 			ImGui::Text("%.4f s", _loaderTotalTime);
 			const ImGuiTableFlags flags = ImGuiTableFlags_Resizable
@@ -789,6 +890,13 @@ void ImGuiDora::showStats() {
 					}
 				ImGui::EndTable();
 			}
+		}
+		if (ImGui::CollapsingHeader("Misc")) {
+			ImGui::PushItemWidth(110);
+			if (ImGui::ColorEdit3("Theme Color", themeColor, ImGuiColorEditFlags_DisplayHex)) {
+				SharedApplication.setThemeColor(Color(themeColor));
+			}
+			ImGui::PopItemWidth();
 		}
 		ImGui::Dummy(Vec2{200.0f, 0.0f});
 	}
@@ -892,85 +1000,6 @@ static void SetPlatformImeDataFn(ImGuiViewport*, ImGuiPlatformImeData* data) {
 	ImGuiDora::setImePositionHint(s_cast<int>(data->InputPos.x), s_cast<int>(data->InputPos.y + data->InputLineHeight));
 }
 
-static inline ImVec4 ImLerp(const ImVec4& a, const ImVec4& b, float t) {
-	return ImVec4(
-		a.x + (b.x - a.x) * t,
-		a.y + (b.y - a.y) * t,
-		a.z + (b.z - a.z) * t,
-		a.w + (b.w - a.w) * t
-	);
-}
-
-static void DoraTheme() {
-	auto themeColor = SharedApplication.getThemeColor().toVec4();
-	// dora theme colors, 3 intensities
-	#define HI(v) ImVec4(themeColor.x * 0.9f, themeColor.y * 0.9f, themeColor.z * 0.9f, themeColor.w * v)
-	#define MED(v) ImVec4(themeColor.x * 0.6f, themeColor.y * 0.6f, themeColor.z * 0.6f, themeColor.w * v)
-	#define LOW(v) ImVec4(0.204f, 0.204f, 0.204f, v)
-	// backgrounds
-	#define BG(v) ImVec4(0.102f, 0.102f, 0.102f, v)
-	// text
-	#define TEXT(v) ImVec4(0.860f, 0.860f, 0.860f, v)
-	// button
-	#define BUTTON ImVec4(0.77f, 0.77f, 0.77f, 0.14f)
-
-	auto& colors = ImGui::GetStyle().Colors;
-	const ImVec4 Transparent(0.00f, 0.00f, 0.00f, 0.00f);
-	colors[ImGuiCol_Text] = TEXT(1.00f);
-	colors[ImGuiCol_TextDisabled] = TEXT(0.28f);
-	colors[ImGuiCol_WindowBg] = BG(1.00f);
-	colors[ImGuiCol_ChildBg] = Transparent;
-	colors[ImGuiCol_PopupBg] = BG(0.9f);
-	colors[ImGuiCol_Border] = Transparent;
-	colors[ImGuiCol_BorderShadow] = Transparent;
-	colors[ImGuiCol_FrameBg] = BUTTON;
-	colors[ImGuiCol_FrameBgHovered] = MED(0.78f);
-	colors[ImGuiCol_FrameBgActive] = MED(1.00f);
-	colors[ImGuiCol_TitleBg] = LOW(1.00f);
-	colors[ImGuiCol_TitleBgActive] = MED(1.00f);
-	colors[ImGuiCol_TitleBgCollapsed] = BG(0.75f);
-	colors[ImGuiCol_MenuBarBg] = BG(0.47f);
-	colors[ImGuiCol_ScrollbarBg] = Transparent;
-	colors[ImGuiCol_ScrollbarGrab] = LOW(0.5f);
-	colors[ImGuiCol_ScrollbarGrabHovered] = MED(0.78f);
-	colors[ImGuiCol_ScrollbarGrabActive] = MED(1.00f);
-	colors[ImGuiCol_CheckMark] = HI(1.00f);
-	colors[ImGuiCol_SliderGrab] = ImVec4(0.47f, 0.77f, 0.83f, 0.14f);
-	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.71f, 0.22f, 0.27f, 1.00f);
-	colors[ImGuiCol_Button] = BUTTON;
-	colors[ImGuiCol_ButtonHovered] = MED(0.86f);
-	colors[ImGuiCol_ButtonActive] = MED(1.00f);
-	colors[ImGuiCol_Header] = MED(0.76f);
-	colors[ImGuiCol_HeaderHovered] = MED(0.86f);
-	colors[ImGuiCol_HeaderActive] = HI(1.00f);
-	colors[ImGuiCol_Separator] = LOW(1.00f);
-	colors[ImGuiCol_SeparatorHovered] = colors[ImGuiCol_FrameBgHovered];
-	colors[ImGuiCol_SeparatorActive] = colors[ImGuiCol_FrameBgActive];
-	colors[ImGuiCol_ResizeGrip] = ImVec4(0.47f, 0.77f, 0.83f, 0.04f);
-	colors[ImGuiCol_ResizeGripHovered] = MED(0.78f);
-	colors[ImGuiCol_ResizeGripActive] = MED(1.00f);
-	colors[ImGuiCol_Tab] = ImLerp(colors[ImGuiCol_Header], colors[ImGuiCol_TitleBgActive], 0.80f);
-	colors[ImGuiCol_TabHovered] = colors[ImGuiCol_HeaderHovered];
-	colors[ImGuiCol_TabActive] = ImLerp(colors[ImGuiCol_HeaderActive], colors[ImGuiCol_TitleBgActive], 0.60f);
-	colors[ImGuiCol_TabUnfocused] = ImLerp(colors[ImGuiCol_Tab], colors[ImGuiCol_TitleBg], 0.80f);
-	colors[ImGuiCol_TabUnfocusedActive] = ImLerp(colors[ImGuiCol_TabActive], colors[ImGuiCol_TitleBg], 0.40f);
-	colors[ImGuiCol_PlotLines] = TEXT(0.63f);
-	colors[ImGuiCol_PlotLinesHovered] = MED(1.00f);
-	colors[ImGuiCol_PlotHistogram] = TEXT(0.63f);
-	colors[ImGuiCol_PlotHistogramHovered] = MED(1.00f);
-	colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
-	colors[ImGuiCol_TableBorderStrong] = ImVec4(0.31f, 0.31f, 0.35f, 1.00f); // Prefer using Alpha=1.0 here
-	colors[ImGuiCol_TableBorderLight] = ImVec4(0.23f, 0.23f, 0.25f, 1.00f); // Prefer using Alpha=1.0 here
-	colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-	colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
-	colors[ImGuiCol_TextSelectedBg] = MED(0.43f);
-	colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
-	colors[ImGuiCol_NavHighlight] = HI(1.00f);
-	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
-	colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
-	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
-}
-
 bool ImGuiDora::init() {
 	ImGui::CreateContext(_defaultFonts.get());
 	ImPlot::CreateContext();
@@ -1001,7 +1030,7 @@ bool ImGuiDora::init() {
 	style.AntiAliasedFill = false;
 	style.CurveTessellationTol = 1.0f;
 
-	DoraTheme();
+	DoraSetupTheme(SharedApplication.getThemeColor());
 
 	ImGuiIO& io = ImGui::GetIO();
 	_keymap[SDLK_TAB] = ImGuiKey_Tab;
