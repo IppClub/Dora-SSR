@@ -337,14 +337,6 @@ private:
 	ImGuiTextFilter _filter;
 };
 
-static inline ImVec4 ImLerp(const ImVec4& a, const ImVec4& b, float t) {
-	return ImVec4(
-		a.x + (b.x - a.x) * t,
-		a.y + (b.y - a.y) * t,
-		a.z + (b.z - a.z) * t,
-		a.w + (b.w - a.w) * t);
-}
-
 static void DoraSetupTheme(Color color) {
 	auto themeColor = color.toVec4();
 	// dora theme colors, 3 intensities
@@ -397,32 +389,32 @@ static void DoraSetupTheme(Color color) {
 	colors[ImGuiCol_ScrollbarGrabHovered] = MED(0.78f);
 	colors[ImGuiCol_ScrollbarGrabActive] = MED(1.00f);
 	colors[ImGuiCol_CheckMark] = HI(1.00f);
-	colors[ImGuiCol_SliderGrab] = ImVec4(0.47f, 0.77f, 0.83f, 0.14f);
-	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.71f, 0.22f, 0.27f, 1.00f);
+	colors[ImGuiCol_SliderGrab] = BUTTON;
+	colors[ImGuiCol_SliderGrabActive] = HI(1.00f);
 	colors[ImGuiCol_Button] = BUTTON;
 	colors[ImGuiCol_ButtonHovered] = MED(0.86f);
 	colors[ImGuiCol_ButtonActive] = MED(1.00f);
-	colors[ImGuiCol_Header] = MED(0.76f);
+	colors[ImGuiCol_Header] = BUTTON;
 	colors[ImGuiCol_HeaderHovered] = MED(0.86f);
 	colors[ImGuiCol_HeaderActive] = HI(1.00f);
 	colors[ImGuiCol_Separator] = LOW(1.00f);
 	colors[ImGuiCol_SeparatorHovered] = colors[ImGuiCol_FrameBgHovered];
 	colors[ImGuiCol_SeparatorActive] = colors[ImGuiCol_FrameBgActive];
-	colors[ImGuiCol_ResizeGrip] = ImVec4(0.47f, 0.77f, 0.83f, 0.04f);
+	colors[ImGuiCol_ResizeGrip] = ImVec4(0.77f, 0.77f, 0.77f, 0.04f);
 	colors[ImGuiCol_ResizeGripHovered] = MED(0.78f);
 	colors[ImGuiCol_ResizeGripActive] = MED(1.00f);
-	colors[ImGuiCol_Tab] = ImLerp(colors[ImGuiCol_Header], colors[ImGuiCol_TitleBgActive], 0.80f);
-	colors[ImGuiCol_TabHovered] = colors[ImGuiCol_HeaderHovered];
-	colors[ImGuiCol_TabActive] = ImLerp(colors[ImGuiCol_HeaderActive], colors[ImGuiCol_TitleBgActive], 0.60f);
-	colors[ImGuiCol_TabUnfocused] = ImLerp(colors[ImGuiCol_Tab], colors[ImGuiCol_TitleBg], 0.80f);
-	colors[ImGuiCol_TabUnfocusedActive] = ImLerp(colors[ImGuiCol_TabActive], colors[ImGuiCol_TitleBg], 0.40f);
+	colors[ImGuiCol_Tab] = MED(0.80f);
+	colors[ImGuiCol_TabHovered] = HI(0.90f);
+	colors[ImGuiCol_TabActive] = HI(0.90f);
+	colors[ImGuiCol_TabUnfocused] = MED(0.80f);
+	colors[ImGuiCol_TabUnfocusedActive] = HI(0.90f);
 	colors[ImGuiCol_PlotLines] = TEXT(0.63f);
 	colors[ImGuiCol_PlotLinesHovered] = MED(1.00f);
 	colors[ImGuiCol_PlotHistogram] = TEXT(0.63f);
 	colors[ImGuiCol_PlotHistogramHovered] = MED(1.00f);
-	colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
-	colors[ImGuiCol_TableBorderStrong] = ImVec4(0.31f, 0.31f, 0.35f, 1.00f); // Prefer using Alpha=1.0 here
-	colors[ImGuiCol_TableBorderLight] = ImVec4(0.23f, 0.23f, 0.25f, 1.00f); // Prefer using Alpha=1.0 here
+	colors[ImGuiCol_TableHeaderBg] = ImVec4(0.19f, 0.19f, 0.19f, 1.00f);
+	colors[ImGuiCol_TableBorderStrong] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f); // Prefer using Alpha=1.0 here
+	colors[ImGuiCol_TableBorderLight] = ImVec4(0.23f, 0.23f, 0.23f, 1.00f); // Prefer using Alpha=1.0 here
 	colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
 	colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
 	colors[ImGuiCol_TextSelectedBg] = MED(0.43f);
@@ -451,6 +443,9 @@ ImGuiDora::ImGuiDora()
 	, _timeFrames(0)
 	, _memFrames(0)
 	, _profileFrames(0)
+	, _objectEclapsed(0)
+	, _memEclapsed(0)
+	, _profileEclapsed(0)
 	, _cpuTime(0)
 	, _gpuTime(0)
 	, _deltaTime(0)
@@ -733,7 +728,7 @@ void ImGuiDora::showStats() {
 			_cpuTime += SharedApplication.getCPUTime();
 			_gpuTime += SharedApplication.getGPUTime();
 			_deltaTime += SharedApplication.getDeltaTime();
-			if (_timeFrames >= SharedApplication.getTargetFPS()) {
+			if (_deltaTime >= 1.0) {
 				_avgCPUTime = 1000.0 * _cpuTime / _timeFrames;
 				_avgGPUTime = 1000.0 * _gpuTime / _timeFrames;
 				_avgDeltaTime = 1000.0 * _deltaTime / _timeFrames;
@@ -759,6 +754,7 @@ void ImGuiDora::showStats() {
 		}
 		if (ImGui::CollapsingHeader("Object")) {
 			_objectFrames++;
+			_objectEclapsed += SharedApplication.getDeltaTime();
 			ImGui::TextColored(themeColor, "C++ Object:");
 			ImGui::SameLine();
 			_maxCppObjects = std::max(_maxCppObjects, Object::getCount());
@@ -771,19 +767,20 @@ void ImGuiDora::showStats() {
 			ImGui::SameLine();
 			_maxCallbacks = std::max(_maxCallbacks, Object::getLuaCallbackCount());
 			ImGui::Text("%d", _maxCallbacks);
-			if (_objectFrames >= SharedApplication.getTargetFPS()) {
-				_objectFrames = _maxCppObjects = _maxLuaObjects = _maxCallbacks = 0;
+			if (_objectEclapsed >= 1.0) {
+				_objectFrames = _maxCppObjects = _maxLuaObjects = _maxCallbacks = _objectEclapsed = 0;
 			}
 		}
 		if (ImGui::CollapsingHeader("Memory")) {
 			_memFrames++;
+			_memEclapsed += SharedApplication.getDeltaTime();
 			_memPoolSize += (MemoryPool::getTotalCapacity() / 1024);
 			_memLua += (SharedLuaEngine.getMemoryCount() / 1024);
-			if (_memFrames >= SharedApplication.getTargetFPS()) {
+			if (_memEclapsed >= 1.0) {
 				_lastMemPoolSize = _memPoolSize / _memFrames;
 				_lastMemLua = _memLua / _memFrames;
 				_memPoolSize = _memLua = 0;
-				_memFrames = 0;
+				_memFrames = _memEclapsed = 0;
 			}
 			ImGui::TextColored(themeColor, "Memory Pool:");
 			ImGui::SameLine();
@@ -866,7 +863,6 @@ void ImGuiDora::showStats() {
 					}
 
 				auto targetFPS = SharedApplication.getTargetFPS();
-				auto warningColor = Color(0xffff0080).toVec4();
 				ImGuiListClipper clipper;
 				clipper.Begin(_loaderCosts.size());
 				while (clipper.Step())
@@ -878,7 +874,7 @@ void ImGuiDora::showStats() {
 						ImGui::Text("%d", item.id);
 						ImGui::TableNextColumn();
 						if (item.time > 1.0 / targetFPS) {
-							ImGui::TextColored(warningColor, "%.2f ms", item.time * 1000.0);
+							ImGui::TextColored(themeColor, "%.2f ms", item.time * 1000.0);
 						} else {
 							ImGui::Text("%.2f ms", item.time * 1000.0);
 						}
@@ -892,7 +888,7 @@ void ImGuiDora::showStats() {
 			}
 		}
 		if (ImGui::CollapsingHeader("Misc")) {
-			ImGui::PushItemWidth(110);
+			ImGui::PushItemWidth(150);
 			if (ImGui::ColorEdit3("Theme Color", themeColor, ImGuiColorEditFlags_DisplayHex)) {
 				SharedApplication.setThemeColor(Color(themeColor));
 			}
@@ -905,13 +901,14 @@ void ImGuiDora::showStats() {
 	if (_showPlot) {
 		const int PlotCount = 30;
 		_profileFrames++;
+		_profileEclapsed += SharedApplication.getDeltaTime();
 		_maxCPU = std::max(_maxCPU, SharedApplication.getCPUTime());
 		_maxGPU = std::max(_maxGPU, SharedApplication.getGPUTime());
 		_maxDelta = std::max(_maxDelta, SharedApplication.getDeltaTime());
 		double targetTime = 1000.0 / SharedApplication.getTargetFPS();
 		_logicTime += SharedApplication.getLogicTime();
 		_renderTime += SharedApplication.getRenderTime();
-		if (_profileFrames >= SharedApplication.getTargetFPS()) {
+		if (_profileEclapsed >= 1.0) {
 			_cpuValues.push_back(_maxCPU * 1000.0);
 			_gpuValues.push_back(_maxGPU * 1000.0);
 			_dtValues.push_back(_maxDelta * 1000.0);
@@ -939,7 +936,7 @@ void ImGuiDora::showStats() {
 			_updateCosts["Logic"_slice] = std::max(0.0, (_logicTime - time) * 1000.0 / _profileFrames);
 			_updateCosts["Render"_slice] = std::max(0.0, _renderTime * 1000.0 / _profileFrames);
 			_logicTime = _renderTime = 0;
-			_profileFrames = 0;
+			_profileFrames = _profileEclapsed = 0;
 		}
 		Size size = SharedApplication.getVisualSize();
 		ImGui::SetNextWindowPos(Vec2{size.width / 2 - 160.0f, 10.0f}, ImGuiCond_FirstUseEver);
@@ -1004,13 +1001,15 @@ bool ImGuiDora::init() {
 	ImGui::CreateContext(_defaultFonts.get());
 	ImPlot::CreateContext();
 	ImGuiStyle& style = ImGui::GetStyle();
-	float rounding = 0.0f;
+	float rounding = 6.0f;
 	style.Alpha = 0.8f;
 	style.WindowPadding = ImVec2(10, 10);
 	style.WindowMinSize = ImVec2(100, 32);
 	style.WindowRounding = rounding;
 	style.WindowBorderSize = 0.0f;
 	style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
+	style.ChildRounding = rounding;
+	style.ChildBorderSize = 0.0f;
 	style.FramePadding = ImVec2(5, 5);
 	style.FrameRounding = rounding;
 	style.FrameBorderSize = 0.0f;
@@ -1020,14 +1019,18 @@ bool ImGuiDora::init() {
 	style.IndentSpacing = 10.0f;
 	style.ColumnsMinSpacing = 5.0f;
 	style.ScrollbarSize = 25.0f;
-	style.ScrollbarRounding = 5.0f;
+	style.ScrollbarRounding = rounding;
 	style.GrabMinSize = 20.0f;
 	style.GrabRounding = rounding;
+	style.TabRounding = rounding;
+	style.TabBorderSize = 0.0f;
+	style.PopupRounding = rounding;
+	style.PopupBorderSize = 0.0f;
 	style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
 	style.DisplayWindowPadding = ImVec2(50, 50);
 	style.DisplaySafeAreaPadding = ImVec2(5, 5);
 	style.AntiAliasedLines = true;
-	style.AntiAliasedFill = false;
+	style.AntiAliasedFill = true;
 	style.CurveTessellationTol = 1.0f;
 
 	DoraSetupTheme(SharedApplication.getThemeColor());

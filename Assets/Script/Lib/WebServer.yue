@@ -425,7 +425,7 @@ thread ->
 				Path Content.writablePath, ".www"
 			)
 			Content\save doraReady, App.version
-			print "dora-dora is ready!"
+			print "Dora Dora is ready!"
 	if HttpServer\start 8866
 		:localIP = HttpServer
 		localIP = "localhost" if localIP == ""

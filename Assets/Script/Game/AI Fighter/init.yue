@@ -736,6 +736,7 @@ NewFighter = (name, currentSet)->
 		.recovery = 0.2
 		.order = PlayerLayer
 		.touchEnabled = true
+		.swallowTouches = true
 		\slot "TapFilter",(touch)->
 			unless modelRect\containsPoint touch.location
 				touch.enabled = false
