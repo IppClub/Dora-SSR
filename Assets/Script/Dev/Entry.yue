@@ -295,9 +295,6 @@ export stop = ->
 	currentEntry = nil
 	true
 
-examples = {}
-tests = {}
-
 getFileEntries = (path)->
 	entries = {}
 	for file in *getAllFiles path, {"xml", "lua", yueext, "tl"}
@@ -315,6 +312,8 @@ getProjectEntries = (path)->
 		continue if dir\match "^%."
 		for file in *getAllFiles Path(path, dir), {"xml", "lua", yueext, "tl"}
 			if "init" == Path\getName(file)\lower!
+				examples = {}
+				tests = {}
 				examplePath = Path path, dir, Path\getPath(file), "Example"
 				if Content\exist examplePath
 					for {name, ePath} in *getFileEntries examplePath
@@ -328,7 +327,7 @@ getProjectEntries = (path)->
 				file = Path\replaceExt file, ""
 				file = Path dir, file
 				entryName = Path\getName Path\getPath file
-				entry = {entryName, file}
+				entry = {entryName, file, examples, tests}
 				entries[] = entry
 	table.sort entries, (a, b)-> a[1] < b[1]
 	entries
@@ -336,8 +335,8 @@ getProjectEntries = (path)->
 gamesInDev = getProjectEntries Content.writablePath
 games = getProjectEntries Path Content.assetPath, "Script"
 
-examples[] = entry for entry in *getFileEntries Path Content.assetPath, "Script", "Example"
-tests[] = entry for entry in *getFileEntries Path Content.assetPath, "Script", "Test"
+doraExamples = getFileEntries Path Content.assetPath, "Script", "Example"
+doraTests = getFileEntries Path Content.assetPath, "Script", "Test"
 
 cppTests = {}
 for name in *App.testNames
@@ -346,12 +345,18 @@ for name in *App.testNames
 cppTestSet = Set cppTests
 
 allEntries = {}
+for game in *gamesInDev
+	allEntries[] = game
+	{_, _, examples, tests} = game
+	for example in *examples
+		allEntries[] = example
+	for test in *tests
+		allEntries[] = test
 for group in *{
 		games
-		examples
-		tests
+		doraExamples
+		doraTests
 		cppTests
-		gamesInDev
 	}
 	for entry in *group
 		allEntries[] = entry
@@ -392,18 +397,8 @@ reloadCurrentEntry = ->
 		allClear!
 		enterDemoEntry currentEntry
 
-showEntry = false
-
-thread ->
-	unless App.debugging
-		:width, :height = App.visualSize
-		scale = App.devicePixelRatio * 0.7 * math.min(width, height) / 760
-		with Sprite nvg.GetDorothySSRHappyWhite scale
-			\addTo Director.entry
-			sleep 1.0
-			\removeFromParent!
-	showEntry = true
-	Director.clearColor = Color 0xff1a1a1a
+showEntry = true
+Director.clearColor = Color 0xff1a1a1a
 
 reloadDevEntry = ->
 	doClean!
@@ -416,7 +411,7 @@ reloadDevEntry = ->
 		oldRequire "Dev.Entry"
 		true
 
-showStats = true
+showStats = false
 showConsole = true
 showFooter = true
 windowFlags =
@@ -507,13 +502,7 @@ footerWindow = threadLoop ->
 			if Keyboard\isKeyPressed("LCtrl") and
 				Keyboard\isKeyDown "Z"
 				reloadDevEntry!
-			OpenPopup "reload" if Button "Reload", Vec2 70, 30
-			PushStyleVar "WindowPadding", Vec2(10, 10), -> BeginPopup "reload", ->
-				if Selectable "Web Editor"
-					Content\remove Path Content.writablePath, ".www"
-					reloadDevEntry!
-				Separator!
-				reloadDevEntry! if Selectable "Dev Entry"
+			reloadDevEntry! if Button "Reload", Vec2 70, 30
 			SameLine!
 		else
 			SameLine!
@@ -560,6 +549,7 @@ entryWindow = threadLoop ->
 	return unless isInEntry
 	:themeColor = App
 	:width, :height = App.visualSize
+	maxColumns = math.max math.floor(width / 200), 1
 	SetNextWindowPos Vec2.zero
 	SetNextWindowSize Vec2 width, 45
 	SetNextWindowBgAlpha 0.35
@@ -572,42 +562,69 @@ entryWindow = threadLoop ->
 	SetNextWindowSize Vec2 width, height - 95
 	PushStyleColor "WindowBg", Color(0x0), ->
 		Begin "Content", windowFlags, ->
-			if #games > 0
-				TextColored themeColor, "Game Demos"
-				Columns math.max(math.floor(width / 200), 1), false
-				for game in *games
-					if Button game[1], Vec2 -1, 40
-						enterDemoEntry game
-					NextColumn!
-				Columns 1, false
-			if #examples > 0
-				TextColored themeColor, "Examples"
-				Columns math.max(math.floor(width / 200), 1), false
-				for example in *examples
-					if Button example[1], Vec2 -1, 40
-						enterDemoEntry example
-					NextColumn!
-				Columns 1, false
-			if #tests > 0
-				TextColored themeColor, "Tests"
-				Columns math.max(math.floor(width / 200), 1), false
-				for test in *tests
-					if Button test[1], Vec2 -1, 40
-						enterDemoEntry test
-					NextColumn!
-				for test in *cppTests
-					if Button test[1], Vec2 -1, 40
-						enterDemoEntry test
-					NextColumn!
-				Columns 1, false
 			if #gamesInDev > 0
-				TextColored themeColor, "Games In Dev"
-				Columns math.max(math.floor(width / 200), 1), false
 				for game in *gamesInDev
-					if Button game[1], Vec2 -1, 40
-						enterDemoEntry game
-					NextColumn!
+					{gameName, _, examples, tests} = game
+					Columns 1, false
+					TextColored themeColor, gameName
+					Separator!
+					PushID gameName, ->
+						if Button "Game Start", Vec2 -1, 40
+							enterDemoEntry game
+						NextColumn!
+						if #examples > 0
+							Columns 1, false
+							TextColored themeColor, "Examples"
+							Columns maxColumns, false
+							for example in *examples
+								PushID "#{gameName} #{example[1]} example", ->
+									if Button example[1], Vec2 -1, 40
+										enterDemoEntry example
+									NextColumn!
+						if #tests > 0
+							Columns 1, false
+							TextColored themeColor, "Tests"
+							Columns maxColumns, false
+							for test in *tests
+								PushID "#{gameName} #{test[1]} test", ->
+									if Button test[1], Vec2 -1, 40
+										enterDemoEntry test
+									NextColumn!
+						Columns 1, false
+						Separator!
+			if #games > 0 or #doraExamples > 0 or #doraTests > 0
 				Columns 1, false
+				TextColored themeColor, "Dorothy SSR"
+				Separator!
+				if #games > 0
+					Columns 1, false
+					TextColored themeColor, "Demos"
+					Columns maxColumns, false
+					for game in *games
+						if Button game[1], Vec2 -1, 40
+							enterDemoEntry game
+						NextColumn!
+				if #doraExamples > 0
+					Columns 1, false
+					TextColored themeColor, "Examples"
+					Columns maxColumns, false
+					for example in *doraExamples
+						if Button example[1], Vec2 -1, 40
+							enterDemoEntry example
+						NextColumn!
+				if #doraTests > 0
+					Columns 1, false
+					TextColored themeColor, "Tests"
+					Columns maxColumns, false
+					for test in *doraTests
+						if Button test[1], Vec2 -1, 40
+							enterDemoEntry test
+						NextColumn!
+					for test in *cppTests
+						if Button test[1], Vec2 -1, 40
+							enterDemoEntry test
+						NextColumn!
+			Columns 1, false
 			Dummy Vec2 100, 40
 
 require "WebServer"

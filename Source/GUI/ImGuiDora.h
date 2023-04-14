@@ -62,6 +62,9 @@ private:
 	uint32_t _timeFrames;
 	uint32_t _memFrames;
 	uint32_t _profileFrames;
+	double _objectEclapsed;
+	double _memEclapsed;
+	double _profileEclapsed;
 	double _cpuTime;
 	double _gpuTime;
 	double _deltaTime;
