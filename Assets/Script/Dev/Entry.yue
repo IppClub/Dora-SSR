@@ -533,7 +533,7 @@ footerWindow = threadLoop ->
 				SetNextWindowPos Vec2(10, 10), "FirstUseEver"
 				ShowStats!
 			if showConsole
-				SetNextWindowPos Vec2(width - 400, height - 365), "FirstUseEver"
+				SetNextWindowPos Vec2(width - 425, height - 375), "FirstUseEver"
 				ShowConsole!
 
 entryWindow = threadLoop ->
