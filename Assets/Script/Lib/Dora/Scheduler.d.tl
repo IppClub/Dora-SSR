@@ -23,16 +23,6 @@ local record Scheduler
 	-- Schedules a coroutine job to be resumed every frame.
 	-- @param job (Routine.Job) The coroutine job to be resumed.
 	schedule: function(self: Scheduler, job: Routine.Job)
-
-	-- Schedules a function to be called every frame.
-	-- @param handler (function) The function to be called in fixed update mode.
-	-- It should take a single argument of type number, which represents the delta time since the last frame.
-	-- If the function returns true, it will not be called again.
-	scheduleFixed: function(self: Scheduler, handler: function(number): boolean)
-
-	-- Schedules a coroutine job to be resumed every frame in fixed update mode.
-	-- @param job (Routine.Job) The coroutine job to be resumed.
-	scheduleFixed: function(self: Scheduler, job: Routine.Job)
 end
 
 -- A class for creating Scheduler objects.
