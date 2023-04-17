@@ -1,5 +1,7 @@
 local Object = require("Object").Type
 local ContainerItem = require("ContainerItemType")
+
+-- The supported array data types.
 local type Item = integer | number | boolean | string | thread | ContainerItem
 
 -- An array data structure that supports various operations.

@@ -43,13 +43,11 @@ local record PlatformWorld
 	getLayerOffset: function(self: PlatformWorld, order: integer): Vec2
 
 	-- Swaps the positions of two layers.
-	-- @param self (PlatformWorld) The PlatformWorld object.
 	-- @param orderA (integer) The order of the first layer to swap.
 	-- @param orderB (integer) The order of the second layer to swap.
 	swapLayer: function(self: PlatformWorld, orderA: integer, orderB: integer)
 
 	-- Removes a layer from the game world.
-	-- @param self (PlatformWorld) The PlatformWorld object.
 	-- @param order (integer) The order of the layer to remove.
 	removeLayer: function(self: PlatformWorld, order: integer)
 

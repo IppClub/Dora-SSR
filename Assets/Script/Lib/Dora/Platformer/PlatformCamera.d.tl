@@ -18,7 +18,7 @@ local record PlatformCamera
 	-- The camera's zoom factor, 1.0 means the normal size, 2.0 mean zoom to doubled size.
 	zoom: number
 
-	-- The rectangular area within which the camera is allowed to move.
+	-- The rectangular area within which the camera is allowed to view.
 	boundary: Rect
 
 	-- The ratio at which the camera should move to keep up with the target's position.
@@ -35,8 +35,8 @@ local record PlatformCameraClass
 	type Type = PlatformCamera
 
 	-- Creates a new instance of PlatformCamera.
-	-- @param name (string, optional) -- The name of the new instance, default is empty string.
-	-- @return (PlatformCamera) -- The new PlatformCamera instance.
+	-- @param name (string) [optional] The name of the new instance, default is empty string.
+	-- @return (PlatformCamera) The new PlatformCamera instance.
 	metamethod __call: function(
 		self: PlatformCameraClass,
 		name?: string --[[""]]
