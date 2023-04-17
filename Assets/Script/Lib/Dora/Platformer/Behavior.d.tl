@@ -15,13 +15,11 @@ local record Behavior
 		const owner: Unit
 
 		-- A metamethod to index the blackboard properties.
-		-- @param self (Blackboard) The blackboard object.
 		-- @param key (string) The key to index.
 		-- @return (Item) The value associated with the key.
 		metamethod __index: function(self: Blackboard, key: string): Item
 
 		-- A metamethod to assign values to the blackboard properties.
-		-- @param self (Blackboard) The blackboard object.
 		-- @param key (string) The key to assign.
 		-- @param item (Item) The value to assign to the key.
 		metamethod __newindex: function(self: Blackboard, key: string, item: Item)
@@ -44,9 +42,9 @@ local record Behavior
 
 	-- Creates a new condition node that executes a check handler function when executed.
 	-- @param name (string) The name of the condition.
-	-- @param handler (function) A function that takes a blackboard object and returns a boolean value.
+	-- @param check (function) A function that takes a blackboard object and returns a boolean value.
 	-- @return (Leaf) A new condition node.
-	Con: function(name: string, handler: function(board: Blackboard): boolean): Leaf
+	Con: function(name: string, check: function(board: Blackboard): boolean): Leaf
 
 	-- Creates a new action node that executes an action when executed.
 	-- This node will block the execution until the action finishes.
@@ -95,8 +93,8 @@ local record Behavior
 	Retry: function(times: integer, node: Leaf): Leaf
 
 	-- Creates a new retry node that executes a child node repeatedly until it succeeds.
--- @param node (Leaf) The child node to execute.
--- @return (Leaf) A new retry node.
+	-- @param node (Leaf) The child node to execute.
+	-- @return (Leaf) A new retry node.
 	Retry: function(node: Leaf): Leaf
 end
 

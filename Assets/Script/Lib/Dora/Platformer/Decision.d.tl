@@ -50,21 +50,21 @@ local record Decision
 
 	-- Creates a selector node with the specified child nodes.
 	-- A selector node will go through the child nodes until one succeeds.
-	-- @param nodes (table) An array of `Leaf` nodes.
+	-- @param nodes ({Leaf}) An array of `Leaf` nodes.
 	-- @return (Leaf) A `Leaf` node that represents a selector.
 	Sel: function(nodes: {Leaf}): Leaf
 
 	-- Creates a sequence node with the specified child nodes.
 	-- A sequence node will go through the child nodes until all node succeeds.
-	-- @param nodes (table) An array of `Leaf` nodes.
+	-- @param nodes ({Leaf}) An array of `Leaf` nodes.
 	-- @return (Leaf) A `Leaf` node that represents a sequence.
 	Seq: function(nodes: {Leaf}): Leaf
 
 	-- Creates a condition node with the specified name and handler function.
 	-- @param name (string) The name of the condition.
-	-- @param handler (function) The handler function that takes a `Unit` parameter and returns a `Leaf` node.
+	-- @param check (function) The check function that takes a `Unit` parameter and returns a boolean result.
 	-- @return (Leaf) A `Leaf` node that represents a condition check.
-	Con: function(name: string, handler: function(self: Unit)): Leaf
+	Con: function(name: string, check: function(self: Unit): boolean): Leaf
 
 	-- Creates an action node with the specified action name.
 	-- @param actionName (string) The name of the action to perform.

@@ -76,7 +76,7 @@ local record Unit
 	getAction: function(self: Unit, name: string): UnitAction
 
 	-- Calls the specified function for each "UnitAction" attached to the "Unit".
-	-- @param func (function(UnitAction)) A function to call for each "UnitAction".
+	-- @param func (function) A function to call for each "UnitAction".
 	eachAction: function(self: Unit, func: function(UnitAction))
 
 	-- Starts the "UnitAction" with the specified name, and returns true if the "UnitAction" was started successfully.

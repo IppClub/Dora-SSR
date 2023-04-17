@@ -78,11 +78,12 @@ local record App
 
 	-- Whether the game engine is currently idled.
 	-- Set `idled` to true, will make game logic thread use a sleep time and going idled for next frame to come. Due to the imprecision in sleep time. This idled state may cause game engine over slept for a few frames to lost.
+	-- `idled` state can reduce some CPU usage.
 	idled: boolean
 
 	-- The application window size.
 	-- May differ from visual size due to the different DPIs of display devices.
-	-- Set `winSize` to `Size::zero` to toggle application window into full screen mode,
+	-- Set `winSize` to `Size.zero` to toggle application window into full screen mode,
 	-- It is not available to set this property on platform Android and iOS.
 	winSize: Size
 

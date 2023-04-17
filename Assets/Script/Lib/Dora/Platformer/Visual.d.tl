@@ -10,15 +10,12 @@ local record Visual
 	const playing: boolean
 
 	-- Starts playing the visual effect.
-	-- @param self (Visual) The visual effect to start playing.
 	start: function(self: Visual)
 
 	-- Stops playing the visual effect.
-	-- @param self (Visual) The visual effect to stop playing.
 	stop: function(self: Visual)
 
 	-- Automatically removes the visual effect from the game world when it finishes playing.
-	-- @param self (Visual) The visual effect to auto-remove.
 	-- @return (Visual) The same "Visual" object that was passed in as a parameter.
 	autoRemove: function(self: Visual): Visual
 end

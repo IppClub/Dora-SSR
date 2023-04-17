@@ -23,7 +23,7 @@ local record UnitClass
 	-- @param physicsworld (PhysicsWorld) A "PhysicsWorld" object that represents the physics simulation world.
 	-- @param entity (Entity) An "Entity" object that represents the "Unit" in ECS system.
 	-- @param pos (Vec2) A "Vec2" object that specifies the initial position of the "Unit".
-	-- @param rot (number, optional) An optional number that specifies the initial rotation of the "Unit" (default is 0.0).
+	-- @param rot (number) [optional] An optional number that specifies the initial rotation of the "Unit" (default is 0.0).
 	-- @return (Unit) The newly created "Unit" object.
 	metamethod __call: function(
 		self: UnitClass,

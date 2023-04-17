@@ -30,7 +30,7 @@ local record Action
 	resume: function(self: Action)
 
 	-- Updates the state of the Action.
-	-- @param elapsed (number) The amount of time that has elapsed to update action to.
+	-- @param elapsed (number) The amount of time in seconds that has elapsed to update action to.
 	-- @param reversed (boolean) Whether or not to update the Action in reverse (default is false).
 	updateTo: function(
 		self: Action,

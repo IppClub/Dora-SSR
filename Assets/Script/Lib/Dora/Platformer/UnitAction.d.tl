@@ -39,7 +39,7 @@ local record UnitActionParam
 
 	-- A function that gets invoked when the specified "Unit" stops performing the "UnitAction".
 	-- @param owner (Unit) The "Unit" is stoping the "UnitAction".
-	stop: function(owner: Unit) --[[nil]]
+	stop: function(owner: Unit)
 end
 
 -- A record that defines and stores the behavior and properties of the "UnitAction" class.
