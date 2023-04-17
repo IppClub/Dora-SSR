@@ -55,7 +55,6 @@ extern "C" {
 	fn node_get_bounding_box(slf: i64) -> i64;
 	fn node_is_running(slf: i64) -> i32;
 	fn node_is_scheduled(slf: i64) -> i32;
-	fn node_is_fixed_scheduled(slf: i64) -> i32;
 	fn node_get_action_count(slf: i64) -> i32;
 	fn node_get_data(slf: i64) -> i64;
 	fn node_set_touch_enabled(slf: i64, var: i32);
@@ -85,8 +84,6 @@ extern "C" {
 	fn node_get_child_by_tag(slf: i64, tag: i64) -> i64;
 	fn node_schedule(slf: i64, func: i32, stack: i64);
 	fn node_unschedule(slf: i64);
-	fn node_schedule_fixed(slf: i64, func: i32, stack: i64);
-	fn node_unschedule_fixed(slf: i64);
 	fn node_convert_to_node_space(slf: i64, world_point: i64) -> i64;
 	fn node_convert_to_world_space(slf: i64, node_point: i64) -> i64;
 	fn node_convert_to_window_space(slf: i64, node_point: i64, func: i32, stack: i64);
@@ -283,9 +280,6 @@ pub trait INode: IObject {
 	fn is_scheduled(&self) -> bool {
 		return unsafe { node_is_scheduled(self.raw()) != 0 };
 	}
-	fn is_fixed_scheduled(&self) -> bool {
-		return unsafe { node_is_fixed_scheduled(self.raw()) != 0 };
-	}
 	fn get_action_count(&self) -> i32 {
 		return unsafe { node_get_action_count(self.raw()) };
 	}
@@ -378,18 +372,6 @@ pub trait INode: IObject {
 	}
 	fn unschedule(&mut self) {
 		unsafe { node_unschedule(self.raw()); }
-	}
-	fn schedule_fixed(&mut self, mut func: Box<dyn FnMut(f64) -> bool>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = func(stack.pop_f64().unwrap());
-			stack.push_bool(result);
-		}));
-		unsafe { node_schedule_fixed(self.raw(), func_id, stack_raw); }
-	}
-	fn unschedule_fixed(&mut self) {
-		unsafe { node_unschedule_fixed(self.raw()); }
 	}
 	fn convert_to_node_space(&mut self, world_point: &crate::dora::Vec2) -> crate::dora::Vec2 {
 		unsafe { return crate::dora::Vec2::from(node_convert_to_node_space(self.raw(), world_point.into_i64())); }

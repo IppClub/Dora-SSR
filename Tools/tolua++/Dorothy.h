@@ -234,7 +234,6 @@ class Scheduler : public Object
 	tolua_property__common float timeScale;
 	tolua_property__common int fixedFPS;
 	void schedule(tolua_function_bool handler);
-	void scheduleFixed(tolua_function_bool handler);
 	static Scheduler* create();
 };
 
@@ -347,7 +346,6 @@ class Node : public Object
 	tolua_readonly tolua_property__common Rect boundingBox;
 	tolua_readonly tolua_property__bool bool running;
 	tolua_readonly tolua_property__bool bool scheduled;
-	tolua_readonly tolua_property__bool bool fixedScheduled;
 	tolua_readonly tolua_property__common int actionCount;
 	tolua_readonly tolua_property__common Dictionary* userData @ data;
 	tolua_property__bool bool touchEnabled;
@@ -377,9 +375,6 @@ class Node : public Object
 
 	void schedule(tolua_function_bool func);
 	void unschedule();
-
-	void scheduleFixed(tolua_function_bool handler);
-	void unscheduleFixed();
 
 	Vec2 convertToNodeSpace(Vec2 worldPoint);
 	Vec2 convertToNodeSpace(Vec2 worldPoint, float& zInOut);

@@ -35,7 +35,6 @@ public:
 	void schedule(ScheduledItem* item);
 	void scheduleFixed(ScheduledItem* item);
 	void schedule(const std::function<bool(double)>& handler);
-	void scheduleFixed(const std::function<bool(double)>& handler);
 	void schedule(Action* action);
 	void unschedule(ScheduledItem* item);
 	void unscheduleFixed(ScheduledItem* item);

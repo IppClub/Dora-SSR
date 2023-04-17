@@ -5,7 +5,6 @@ extern "C" {
 	fn scheduler_set_fixed_fps(slf: i64, var: i32);
 	fn scheduler_get_fixed_fps(slf: i64) -> i32;
 	fn scheduler_schedule(slf: i64, func: i32, stack: i64);
-	fn scheduler_schedule_fixed(slf: i64, func: i32, stack: i64);
 	fn scheduler_new() -> i64;
 }
 use crate::dora::IObject;
@@ -40,15 +39,6 @@ impl Scheduler {
 			stack.push_bool(result);
 		}));
 		unsafe { scheduler_schedule(self.raw(), func_id, stack_raw); }
-	}
-	pub fn schedule_fixed(&mut self, mut func: Box<dyn FnMut(f64) -> bool>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = func(stack.pop_f64().unwrap());
-			stack.push_bool(result);
-		}));
-		unsafe { scheduler_schedule_fixed(self.raw(), func_id, stack_raw); }
 	}
 	pub fn new() -> Scheduler {
 		unsafe { return Scheduler { raw: scheduler_new() }; }

@@ -35,22 +35,6 @@ protected:
 	DORA_TYPE_OVERRIDE(FuncWrapper);
 };
 
-class FixedFuncWrapper : public Object {
-public:
-	virtual bool fixedUpdate(double deltaTime) override {
-		return func(deltaTime);
-	}
-	std::function<bool(double)> func;
-	ScheduledItem item;
-	CREATE_FUNC(FixedFuncWrapper);
-
-protected:
-	FixedFuncWrapper(const std::function<bool(double)>& func)
-		: func(func)
-		, item(this) { }
-	DORA_TYPE_OVERRIDE(FixedFuncWrapper);
-};
-
 std::vector<std::pair<Ref<Object>, ScheduledItem*>> Scheduler::_updateObjects;
 
 Scheduler::Scheduler()
@@ -105,12 +89,6 @@ void Scheduler::schedule(const std::function<bool(double)>& handler) {
 	FuncWrapper* func = FuncWrapper::create(handler);
 	func->retain();
 	func->item.iter = _updateList.emplace(_updateList.end(), &func->item);
-}
-
-void Scheduler::scheduleFixed(const std::function<bool(double)>& handler) {
-	FixedFuncWrapper* func = FixedFuncWrapper::create(handler);
-	func->retain();
-	func->item.iter = _fixedUpdateList.emplace(_fixedUpdateList.end(), &func->item);
 }
 
 void Scheduler::unschedule(ScheduledItem* item) {

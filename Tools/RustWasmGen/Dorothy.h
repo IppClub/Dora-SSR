@@ -133,7 +133,6 @@ object class Scheduler
 	common float timeScale;
 	common int fixedFPS @ fixed_fps;
 	void schedule(function<bool(double deltaTime)> func);
-	void scheduleFixed(function<bool(double deltaTime)> func);
 	static Scheduler* create();
 };
 
@@ -286,7 +285,6 @@ interface object class Node
 	readonly common Rect boundingBox;
 	readonly boolean bool running;
 	readonly boolean bool scheduled;
-	readonly boolean bool fixedScheduled;
 	readonly common int actionCount;
 	readonly common Dictionary* userData @ data;
 	boolean bool touchEnabled;
@@ -316,9 +314,6 @@ interface object class Node
 
 	void schedule(function<bool(double deltaTime)> func);
 	void unschedule();
-
-	void scheduleFixed(function<bool(double deltaTime)> func);
-	void unscheduleFixed();
 
 	Vec2 convertToNodeSpace(Vec2 worldPoint);
 	Vec2 convertToWorldSpace(Vec2 nodePoint);
