@@ -74,7 +74,6 @@ public:
 	PROPERTY_READONLY_BOOL(Updating);
 	PROPERTY_READONLY_BOOL(FixedUpdating);
 	PROPERTY_READONLY_BOOL(Scheduled);
-	PROPERTY_READONLY_BOOL(FixedScheduled);
 	PROPERTY_BOOL(TouchEnabled);
 	PROPERTY_BOOL(SwallowTouches);
 	PROPERTY_BOOL(SwallowMouseWheel);
@@ -108,9 +107,7 @@ public:
 	Node* getChildByTag(String tag);
 
 	void schedule(const std::function<bool(double)>& func);
-	void scheduleFixed(const std::function<bool(double)>& func);
 	void unschedule();
-	void unscheduleFixed();
 
 	Vec2 convertToNodeSpace(const Vec2& worldPoint);
 	Vec2 convertToWorldSpace(const Vec2& nodePoint);
@@ -324,13 +321,14 @@ protected:
 	struct UpdateItem {
 		std::function<bool(double)> scheduledFunc;
 		Own<ScheduledItem> scheduledItem;
+		Own<ScheduledItem> fixedScheduledItem;
 		bool hasFunc() const;
+		bool fixedScheduled() const;
 		bool scheduled() const;
 	};
 	Own<UpdateItem> _updateItem;
 	UpdateItem* getUpdateItem();
-	Own<UpdateItem> _fixedUpdateItem;
-	UpdateItem* getFixedUpdateItem();
+	ScheduledItem* getFixedScheduledItem();
 	enum {
 		Visible = 1,
 		SelfVisible = 1 << 1,

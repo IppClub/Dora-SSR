@@ -25,18 +25,6 @@ static void scheduler_schedule(int64_t self, int32_t func, int64_t stack) {
 		return std::get<bool>(args->pop());
 	});
 }
-static void scheduler_schedule_fixed(int64_t self, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
-	});
-	auto args = r_cast<CallStack*>(stack);
-	r_cast<Scheduler*>(self)->scheduleFixed([func, args, deref](double deltaTime) {
-		args->clear();
-		args->push(deltaTime);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
-	});
-}
 static int64_t scheduler_new() {
 	return from_object(Scheduler::create());
 }
@@ -47,6 +35,5 @@ static void linkScheduler(wasm3::module& mod) {
 	mod.link_optional("*", "scheduler_set_fixed_fps", scheduler_set_fixed_fps);
 	mod.link_optional("*", "scheduler_get_fixed_fps", scheduler_get_fixed_fps);
 	mod.link_optional("*", "scheduler_schedule", scheduler_schedule);
-	mod.link_optional("*", "scheduler_schedule_fixed", scheduler_schedule_fixed);
 	mod.link_optional("*", "scheduler_new", scheduler_new);
 }

@@ -166,9 +166,6 @@ static int32_t node_is_running(int64_t self) {
 static int32_t node_is_scheduled(int64_t self) {
 	return r_cast<Node*>(self)->isScheduled() ? 1 : 0;
 }
-static int32_t node_is_fixed_scheduled(int64_t self) {
-	return r_cast<Node*>(self)->isFixedScheduled() ? 1 : 0;
-}
 static int32_t node_get_action_count(int64_t self) {
 	return s_cast<int32_t>(r_cast<Node*>(self)->getActionCount());
 }
@@ -264,21 +261,6 @@ static void node_schedule(int64_t self, int32_t func, int64_t stack) {
 }
 static void node_unschedule(int64_t self) {
 	r_cast<Node*>(self)->unschedule();
-}
-static void node_schedule_fixed(int64_t self, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
-	});
-	auto args = r_cast<CallStack*>(stack);
-	r_cast<Node*>(self)->scheduleFixed([func, args, deref](double deltaTime) {
-		args->clear();
-		args->push(deltaTime);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
-	});
-}
-static void node_unschedule_fixed(int64_t self) {
-	r_cast<Node*>(self)->unscheduleFixed();
 }
 static int64_t node_convert_to_node_space(int64_t self, int64_t world_point) {
 	return vec2_retain(r_cast<Node*>(self)->convertToNodeSpace(vec2_from(world_point)));
@@ -463,7 +445,6 @@ static void linkNode(wasm3::module& mod) {
 	mod.link_optional("*", "node_get_bounding_box", node_get_bounding_box);
 	mod.link_optional("*", "node_is_running", node_is_running);
 	mod.link_optional("*", "node_is_scheduled", node_is_scheduled);
-	mod.link_optional("*", "node_is_fixed_scheduled", node_is_fixed_scheduled);
 	mod.link_optional("*", "node_get_action_count", node_get_action_count);
 	mod.link_optional("*", "node_get_data", node_get_data);
 	mod.link_optional("*", "node_set_touch_enabled", node_set_touch_enabled);
@@ -493,8 +474,6 @@ static void linkNode(wasm3::module& mod) {
 	mod.link_optional("*", "node_get_child_by_tag", node_get_child_by_tag);
 	mod.link_optional("*", "node_schedule", node_schedule);
 	mod.link_optional("*", "node_unschedule", node_unschedule);
-	mod.link_optional("*", "node_schedule_fixed", node_schedule_fixed);
-	mod.link_optional("*", "node_unschedule_fixed", node_unschedule_fixed);
 	mod.link_optional("*", "node_convert_to_node_space", node_convert_to_node_space);
 	mod.link_optional("*", "node_convert_to_world_space", node_convert_to_world_space);
 	mod.link_optional("*", "node_convert_to_window_space", node_convert_to_window_space);
