@@ -5,6 +5,8 @@ local type Body = require("BodyType")
 
 -- A record that represents a physics world in the game.
 local record PhysicsWorld
+
+	-- Inherits from `Node`.
 	embed Node
 
 	-- Whether debug graphic should be displayed for the physics world.

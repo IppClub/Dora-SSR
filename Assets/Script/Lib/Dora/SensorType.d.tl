@@ -4,6 +4,8 @@ local type Body = require("BodyType")
 
 -- A class to represent a physics sensor object in the game world.
 local record Sensor
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- Whether the sensor is currently enabled or not.

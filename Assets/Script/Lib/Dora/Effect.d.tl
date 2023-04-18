@@ -1,9 +1,11 @@
 local Pass = require("Pass").Type
 local Object = require("Object").Type
 
--- A class for managing multiple Pass objects.
+-- A class for managing multiple render pass objects.
 -- Effect objects allow you to combine multiple passes to create more complex shader effects.
 local record Effect
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- A function that adds a Pass object to this Effect.

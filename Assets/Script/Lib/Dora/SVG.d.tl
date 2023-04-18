@@ -2,6 +2,8 @@ local Object = require("Object").Type
 
 -- A record used for Scalable Vector Graphics rendering.
 local record SVG
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- The width of the SVG object.

@@ -3,6 +3,8 @@ local Color = require("Color").Type
 
 -- A record representing a shader pass.
 local record Pass
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- Whether this Pass should be a grab pass.

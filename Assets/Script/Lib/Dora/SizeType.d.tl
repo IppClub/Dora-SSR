@@ -3,6 +3,8 @@ local type Vec2 = require("Vec2Type")
 
 -- A size object with a given width and height.
 local record Size
+
+	-- Inherits from `ContainerItem`.
 	embed ContainerItem
 
 	-- The width of the size.

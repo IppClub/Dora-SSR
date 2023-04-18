@@ -73,7 +73,6 @@ local record Cache
 	unload: function(self: Cache, filename: string): boolean
 
 	-- Removes all unused resources (not being referenced) of the given type from the cache.
-	-- @param self The cache object.
 	-- @param type (ResourceType) The type of resource to remove.
 	removeUnused: function(self: Cache, type: ResourceType)
 

@@ -3,6 +3,8 @@ local Data = require("Platformer.Data")
 
 -- A class to specifies how a bullet object should interact with other game objects or units based on their relationship.
 local record TargetAllow
+
+	-- Inherits from `ContainerItem`.
 	embed ContainerItem
 
 	-- Whether the bullet object can collide with terrain.

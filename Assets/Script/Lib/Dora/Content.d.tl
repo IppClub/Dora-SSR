@@ -19,9 +19,15 @@ local record Content
 
 	-- Loads the content of an Excel file with the specified filename and optional sheet names
 	-- @param filename (string) The name of the Excel file to load
-	-- @param sheetNames (table, optional) An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded.
+	-- @param sheetNames ({string}) [optional] An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded.
 	-- @return (table) A table containing the data in the Excel file. The keys are the sheet names and the values are tables containing the rows and columns of the sheet.
-	loadExcel: function(self: Content, filename: string, sheetNames?: {string}): {string --[[sheetName]]: {{string|number} --[[colums]]}} --[[rows]] | nil
+	loadExcel: function(self: Content, filename: string, sheetNames?: {string}):
+		{
+			--[[sheetName]] string:
+			--[[rows]] {
+				--[[colums]] {string | number}
+			}
+		} | nil
 
 	-- Saves the specified content to a file with the specified filename.
 	-- @param filename (string) The name of the file to save.
@@ -73,9 +79,15 @@ local record Content
 
 	-- Asynchronously loads the content of an Excel file with the specified filename and optional sheet names.
 	-- @param filename (string) The name of the Excel file to load.
-	-- @param sheetNames (table, optional) An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded.
+	-- @param sheetNames ({string}) [optional] An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded.
 	-- @return (table) A table containing the data in the Excel file. The keys are the sheet names and the values are tables containing the rows and columns of the sheet.
-	loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string}): {string: {{string|number}}} | nil
+	loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string}):
+		{
+			--[[sheetName]] string:
+			--[[rows]] {
+				--[[colums]] {string | number}
+			}
+		} | nil
 
 	-- Asynchronously saves the specified content to a file with the specified filename.
 	-- @param filename (string) The name of the file to save.
@@ -92,7 +104,7 @@ local record Content
 	-- Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
 	-- @param zipFile (string) The name of the ZIP archive to create.
 	-- @param folderPath (string) The path of the folder to compress, should be under the content writable path.
-	-- @param filter (function, optional) A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
+	-- @param filter (function) [optional] A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
 	-- @return (boolean) `true` if the folder was compressed successfully, `false` otherwise.
 	zipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
 

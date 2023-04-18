@@ -1,7 +1,7 @@
 local ActionDef = require("Action").Def
 local Ease = require("Ease")
 
--- Creates an ActionDef object that animates the angle of a Node from one value to another.
+-- Creates a definition for an action that animates the angle of a Node from one value to another.
 -- @param duration (number) The duration of the animation in seconds.
 -- @param from (number) The starting value of the angle in degrees.
 -- @param to (number) The ending value of the angle in degrees.

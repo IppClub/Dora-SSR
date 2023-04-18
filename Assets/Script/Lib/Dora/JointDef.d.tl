@@ -3,6 +3,8 @@ local Object = require("Object").Type
 
 -- A record that defines the properties of a joint to be created.
 local record JointDef
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- The center point of the joint, in local coordinates.

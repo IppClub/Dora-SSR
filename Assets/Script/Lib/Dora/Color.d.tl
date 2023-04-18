@@ -20,11 +20,11 @@ local record Color
 	opacity: number
 
 	-- Converts the color to a Color3 value without alpha channel.
-	---@return (Color3)
+	-- @return (Color3) Converted Color3 value.
 	toColor3: function(self: Color): Color3
 
-	--- Converts the color to an ARGB integer value.
-	---@return (integer)
+	-- Converts the color to an ARGB integer value.
+	-- @return (integer) Converted ARGB integer.
 	toARGB: function(self: Color): integer
 end
 
@@ -33,7 +33,7 @@ local record ColorClass
 	type Type = Color
 
 	-- Creates a color with all channels set to 0.
-	-- @return (Color)
+	-- @return (Color) A new Color object.
 	metamethod __call: function(self: ColorClass): Color
 
 	-- Creates a new Color object with a Color3 object and alpha value.

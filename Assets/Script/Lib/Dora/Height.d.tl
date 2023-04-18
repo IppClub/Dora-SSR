@@ -1,7 +1,7 @@
 local ActionDef = require("Action").Def
 local Ease = require("Ease")
 
--- Creates an ActionDef object that animates the height of a Node.
+-- Creates a definition for an action that animates the height of a Node.
 -- @param duration (number) The duration of the animation in seconds.
 -- @param from (number) The starting height value of the Node.
 -- @param to (number) The ending height value of the Node.

@@ -6,7 +6,8 @@ local type PhysicsWorld = require("PhysicsWorldType")
 
 -- This is just a demonstration record showing some signal slot events that are used when the receivingContact property of a Body is set to true. And they are meant to be used for collision detection between Body objects.
 -- You can register for these events using codes like:
--- node:slot("BodyEnter", function(other: Body, sensorTag: integer)
+-- body.receivingContact = true
+-- body:slot("BodyEnter", function(other: Body, sensorTag: integer)
 -- 	print("A body enter senser", other, sensorTag)
 -- end)
 local record __SLOT__
@@ -34,7 +35,7 @@ local record __SLOT__
 	["ContactEnd"]: function(other: Body, point: Vec2, normal: Vec2)
 end
 
--- A class for creating BodyDef objects.
+-- A class for creating Body objects.
 local record BodyClass
 	type Type = Body
 

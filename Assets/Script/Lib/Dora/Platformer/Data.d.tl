@@ -90,7 +90,6 @@ local record Data
 	isFriend: function(self: Data, bodyA: Body, bodyB: Body): boolean
 
 	-- A function that returns whether two groups have a "Neutral" relation.
-	-- @param self (Data) The "Data" object.
 	-- @param groupA (integer) An integer representing the first group.
 	-- @param groupB (integer) An integer representing the second group.
 	-- @return (boolean) A boolean indicating whether the two groups have a "Neutral" relation.

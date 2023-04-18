@@ -4,6 +4,8 @@ local Size = require("Size").Type
 
 -- A rectangle object with a left-bottom origin position and a size.
 local record Rect
+
+	-- Inherits from `ContainerItem`.
 	embed ContainerItem
 
 	-- The position of the origin of the rectangle.

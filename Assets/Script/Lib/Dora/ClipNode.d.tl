@@ -3,7 +3,7 @@ local Node = require("Node").Type
 -- A Node that can clip its children based on the alpha values of its stencil.
 local record ClipNode
 
-	-- Inherit from `Node`.
+	-- Inherit from the `Node`.
 	embed Node
 
 	-- The stencil Node that defines the clipping shape.

@@ -4,7 +4,7 @@ local PhysicsWorld = require("PhysicsWorld").Type
 -- A class that can be used to connect physics bodies together.
 local record Joint
 
-	-- Inherits from the "Object".
+	-- Inherits from "Object".
 	embed Object
 
 	-- The physics world that the joint belongs to.

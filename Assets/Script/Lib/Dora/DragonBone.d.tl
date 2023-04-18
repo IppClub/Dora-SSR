@@ -2,6 +2,8 @@ local Playable = require("Playable").Type
 
 -- An implementation of the 'Playable' record using the DragonBones animation system.
 local record DragonBone
+
+	-- Inherit from the `Playable`.
 	embed Playable
 
 	-- Whether to show debug graphics.
@@ -31,12 +33,12 @@ local record DragonBoneClass
 
 	-- Returns a list of available looks for the specified DragonBone file string.
 	-- @param boneStr (string) The DragonBone file string to get the looks for.
-	-- @return (table) A table of strings representing the available looks.
+	-- @return ({string}) A table of strings representing the available looks.
 	getLooks: function(self: DragonBoneClass, boneStr: string): {string}
 
 	-- Returns a list of available animations for the specified DragonBone file string.
 	-- @param boneStr (string) The DragonBone file string to get the animations for.
-	-- @return (table) A table of strings representing the available animations.
+	-- @return ({string}) A table of strings representing the available animations.
 	getAnimations: function(self: DragonBoneClass, boneStr: string): {string}
 
 	-- Creates a new instance of 'DragonBone' using the specified bone string.

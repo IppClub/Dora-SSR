@@ -129,7 +129,7 @@ local record Ease
 
 	-- Applies an easing function to a given value over a given amount of time.
 	-- @param easing (EaseFunc) The easing function to apply.
-	-- @param time (number) The amount of time to apply the easing function over.
+	-- @param time (number) The amount of time to apply the easing function over, should be 0 to 1.
 	-- @return (number) The result of applying the easing function to the value.
 	func: function(self: Ease, easing: EaseFunc, time: number): number
 end

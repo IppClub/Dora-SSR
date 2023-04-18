@@ -2,6 +2,8 @@ local Joint = require("JointType")
 
 -- A joint that applies a rotational or linear force to a physics body.
 local record MotorJoint
+
+	-- Inherits from `Joint`.
 	embed Joint
 
 	-- Whether or not the motor joint is enabled.

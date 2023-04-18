@@ -5,6 +5,8 @@ local Color = require("Color").Type
 
 -- A record for scene node that draws simple shapes such as dots, lines, and polygons.
 local record DrawNode
+
+	-- Inherit from the `Node`.
 	embed Node
 
 	-- Whether to write to the depth buffer when drawing (default is false).
@@ -50,7 +52,7 @@ local record DrawNode
 		borderColor?: Color --[[0xffffffff]]
 	)
 
-	-- Draws a set of vertices, each with its own color.
+	-- Draws a set of vertices as triangles, each vertex with its own color.
 	-- @param verts ({{Vec2, Color}}) The list of vertices and their colors.
 	drawVertices: function(self: DrawNode, verts: {{Vec2, Color}})
 

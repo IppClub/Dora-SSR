@@ -1,8 +1,10 @@
 local Object = require("Object").Type
 local Entity = require("Entity").Type
 
--- A record representing a group of entities in the game systems.
+-- A record representing a group of entities in the ECS game systems.
 local record Group
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- The number of entities in the group.
@@ -31,7 +33,7 @@ local record GroupClass
 
 	-- A metamethod that creates a new group with the specified component names.
 	-- @param components ({string}) A table listing the names of the components to include in the group.
-	-- @return The new group.
+	-- @return (Group) The new group.
 	metamethod __call: function(self: GroupClass, componemts: {string}): Group
 end
 

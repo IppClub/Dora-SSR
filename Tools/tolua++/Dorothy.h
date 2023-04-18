@@ -156,7 +156,6 @@ class Array : public Object
 class Dictionary : public Object
 {
 	tolua_readonly tolua_property__common int count;
-	tolua_outside tolua_readonly tolua_property__qt Array* Dictionary_getKeys @ keys;
 	bool each(tolua_function_bool func);
 	void clear();
 	static Dictionary* create();
