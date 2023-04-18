@@ -4,6 +4,8 @@ local Node = require("Node").Type
 -- Menu will swallow touches that is hitting children nodes.
 -- Only one child node can receive the first touch event, multi-touches comes later for other children node will be ignored.
 local record Menu
+
+	-- Inherits from `Node`.
 	embed Node
 
 	-- Whether the menu is currently enabled or disabled.

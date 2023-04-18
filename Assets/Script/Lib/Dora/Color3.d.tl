@@ -11,8 +11,8 @@ local record Color3
 	-- The blue channel of the color, should be 0 to 255.
 	b: integer
 
-	--- Converts the color to an RGB integer value.
-	---@return (integer)
+	-- Converts the color to an RGB integer value.
+	-- @return (integer) Converted RGB integer.
 	toRGB: function(self: Color3): integer
 end
 
@@ -21,7 +21,7 @@ local record Color3Class
 	type Type = Color3
 
 	-- Creates a color with all channels set to 0.
-	-- @return (Color3)
+	-- @return (Color3) A new `Color3` object.
 	metamethod __call: function(self: Color3Class): Color3
 
 	-- Creates a new `Color3` object from an RGB integer value.

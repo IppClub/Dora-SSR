@@ -5,6 +5,8 @@ local BodyDef = require("BodyDef").Type
 
 -- A record type that specifies the properties and behaviors of a bullet object in the game.
 local record BulletDef
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- The tag for the bullet object.

@@ -753,6 +753,7 @@ LuaEngine::LuaEngine()
 
 		tolua_beginmodule(L, "Dictionary");
 		{
+			tolua_variable(L, "keys", Dictionary_getKeys, nullptr);
 			tolua_function(L, "set", Dictionary_set);
 			tolua_function(L, "get", Dictionary_get);
 		}

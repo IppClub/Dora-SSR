@@ -1,0 +1,102 @@
+local Size = require("Size").Type
+local Color = require("Color").Type
+
+-- 管理应用程序信息的单例类。
+local record App
+	userdata
+
+	-- 游戏引擎运行的平台类型。
+	enum Platform
+		"Windows"
+		"Android"
+		"macOS"
+		"iOS"
+		"Linux"
+		"Unknown"
+	end
+
+	-- 引擎运行到当前时间经过的帧数。
+	const frame: integer
+
+	-- 渲染主帧的缓冲纹理的大小。
+	const bufferSize: Size
+
+	-- 屏幕的逻辑视觉大小。
+	-- 视觉大小仅在应用程序窗口大小更改时更改。
+	const visualSize: Size
+
+	-- 设备显示的像素密度比。
+	-- 等于渲染缓冲纹理的像素大小除以应用程序窗口的大小。
+	const devicePixelRatio: number
+
+	-- 游戏引擎当前运行的平台。
+	const platform: Platform
+
+	-- 游戏引擎的版本字符串。
+	-- 格式为“v0.0.0”。
+	const version: string
+
+	-- 从当前游戏帧开始到本次API调用经过的时间（以秒为单位）。
+	const eclapsedTime: number
+
+	-- 游戏引擎直到上一帧结束为止，已经运行的总时间（以秒为单位）。
+	-- 在同一个游戏帧中多次调用时得到的是一个常数。
+	const totalTime: number
+
+	-- 直到调用该API为止，游戏引擎已经运行的总时间（以秒为单位）。
+	-- 在同一个游戏帧中多次调用时得到一个递增的数字。
+	const runningTime: number
+
+	-- 基于Mersenne Twister算法生成的随机数。
+	-- 由同一种子生成的随机数在每个平台上会保持一致。
+	const rand: integer
+
+	-- 游戏引擎可以运行的最大有效帧率。
+	-- 最大有效帧率是通过设备屏幕的最大刷新率推断出来的。
+	const maxFPS: integer
+
+	-- 游戏引擎是否运行在调试模式下。
+	const debugging: boolean
+
+	-- 引擎内置的C++测试的测试名称（用于辅助引擎本身开发）。
+	const testNames: {string}
+
+	-- Dorothy SSR的主题颜色。
+	themeColor: Color
+
+	-- Dorothy SSR的随机数种子。
+	seed: integer
+
+	-- 游戏引擎应该运行的目标帧率。
+	-- 仅在`fpsLimited`设置为true时有效。
+	targetFPS: integer
+
+	-- 游戏引擎是否自动限制帧率。
+	-- 将`fpsLimited`设置为true，会使引擎通过执行一个忙等待的死循环以获取更加精准的机器时间，并计算切换到下一帧的时间点。
+	-- 这是在PC机Windows系统上的通常做法，以提升CPU占用率来提升游戏的性能。但这也会导致额外的芯片热量产生和电力消耗。
+	fpsLimited: boolean
+
+	-- 游戏引擎当前是否处于闲置状态。
+	-- 将`idled`设置为true，将使游戏逻辑线程使用`sleep`系统调用来等待进入下一个游戏帧的时间点。
+	-- 由于操作系统定时器存在一定程度的误差，可能导致游戏引擎睡眠过头而错过几个游戏帧。
+	-- 闲置状态可以减少额外的CPU占用。
+	idled: boolean
+
+	-- 应用程序窗口大小。
+	-- 由于显示设备的DPI不同，可能会与实际的可视大小有差异。
+	-- 将`winSize`设置为`Size.zero`，可以将应用程序窗口切换到全屏模式。
+	-- 在Android和iOS平台上无法设置此属性。
+	winSize: Size
+
+	-- 运行特定的包含在引擎中的C++测试函数。
+	-- @param name (string) 要运行的测试的名称。
+	-- @return (boolean) 测试是否成功运行。
+	runTest: function(self: App, name: string): boolean
+
+	-- 关闭游戏引擎。
+	-- 该函数在Android和iOS平台不会生效，以遵循移动平台上应用程序规范。
+	shutdown: function(self: App)
+end
+
+local app: App
+return app

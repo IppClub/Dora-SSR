@@ -82,6 +82,15 @@ static void pushVectorString(lua_State* L, const std::vector<std::string>& array
 	}
 }
 
+static void pushVectorString(lua_State* L, const std::vector<Slice>& array) {
+	lua_createtable(L, s_cast<int>(array.size()), 0);
+	int i = 0;
+	for (const auto& item : array) {
+		lua_pushlstring(L, item.rawData(), item.size());
+		lua_rawseti(L, -2, ++i);
+	}
+}
+
 static void pushListString(lua_State* L, const std::list<std::string>& array) {
 	lua_createtable(L, s_cast<int>(array.size()), 0);
 	int i = 0;
@@ -1182,13 +1191,10 @@ int BodyDef_SetType(lua_State* L) {
 
 /* Dictionary */
 
-Array* __Dictionary_getKeys(Dictionary* self) {
-	std::vector<Slice> keys = self->getKeys();
-	Array* array = Array::create(s_cast<int>(keys.size()));
-	for (size_t i = 0; i < keys.size(); i++) {
-		array->set(s_cast<int>(i), Value::alloc(keys[i].toString()));
-	}
-	return array;
+int Dictionary_getKeys(lua_State* L) {
+	Dictionary* self = r_cast<Dictionary*>(tolua_tousertype(L, 1, 0));
+	pushVectorString(L, self->getKeys());
+	return 1;
 }
 
 int Dictionary_get(lua_State* L) {

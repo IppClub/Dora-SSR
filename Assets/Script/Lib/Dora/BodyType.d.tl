@@ -9,7 +9,7 @@ local type PhysicsWorld = require("PhysicsWorldType")
 -- A class represents a physics body in the world.
 local record Body
 
-	-- Inherits from the `Node`.
+	-- Inherits from `Node`.
 	embed Node
 
 	-- The physics world that the body belongs to.
@@ -52,8 +52,8 @@ local record Body
 	receivingContact: boolean
 
 	-- Applies a linear impulse to the body at a specified position.
-	-- @param impulse The linear impulse to apply.
-	-- @param pos The position at which to apply the impulse.
+	-- @param impulse (Vec2) The linear impulse to apply.
+	-- @param pos (Vec2) The position at which to apply the impulse.
 	applyLinearImpulse: function(self: Body, impulse: Vec2, pos: Vec2)
 
 	-- Applies an angular impulse to the body.

@@ -2,6 +2,8 @@ local Object = require("Object").Type
 
 -- A record represents a 2D texture.
 local record Texture2D
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- The width of the texture, in pixels.

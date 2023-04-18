@@ -2,8 +2,10 @@ local Object = require("Object").Type
 local ContainerItem = require("ContainerItemType")
 local type Item = integer | number | boolean | string | ContainerItem
 
--- A record type representing an entity for a game system.
+-- A record type representing an entity for an ECS game system.
 local record Entity
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- The index of the entity.
@@ -49,7 +51,7 @@ local record Entity
 	metamethod __newindex: function(self: Entity, key: string, item: Item)
 end
 
--- A class for creating and managing entities in the game systems.
+-- A class for creating and managing entities in the ECS game systems.
 local record EntityClass
 	type Type = Entity
 	type Item = Item
@@ -63,7 +65,9 @@ local record EntityClass
 
 	-- A metamethod that creates a new entity with the specified components.
 	-- And you can then get the newly created Entity object from groups and observers.
-	-- @param coms A table mapping component names (strings) to component values (Items)
+	-- @usage
+	-- Entity({ a = 1, b = "abc", c = Node() })
+	-- @param coms ({string: Item}) A table mapping component names (strings) to component values (Items).
 	metamethod __call: function(self: EntityClass, coms: {string: Item})
 end
 

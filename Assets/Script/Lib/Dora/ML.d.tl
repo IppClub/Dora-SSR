@@ -2,6 +2,8 @@ local Object = require("Object").Type
 
 -- A simple reinforcement learning framework that can be used to learn optimal policies for Markov decision processes using Q-learning. Q-learning is a model-free reinforcement learning algorithm that learns an optimal action-value function from experience by repeatedly updating estimates of the Q-value of state-action pairs.
 local record QLearner
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- The matrix that stores state, action, and Q-value.

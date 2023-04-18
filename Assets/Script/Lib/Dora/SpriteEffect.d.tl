@@ -2,6 +2,8 @@ local Effect = require("Effect").Type
 
 -- A record that is a specialization of Effect for rendering 2D sprites.
 local record SpriteEffect
+
+	-- Inherits from `Effect`.
 	embed Effect
 end
 

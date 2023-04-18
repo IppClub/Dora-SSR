@@ -3,6 +3,8 @@ local Vec2 = require("Vec2").Type
 
 -- Represents a touch input or mouse click event.
 local record Touch
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- Whether touch input is enabled or not.

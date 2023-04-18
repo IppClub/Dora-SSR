@@ -3,6 +3,8 @@ local Node = require("Node").Type
 
 -- Another implementation of the 'Playable' record.
 local record Model
+
+	-- Inherits from `Playable`.
 	embed Playable
 
 	-- The duration model of the current animation.

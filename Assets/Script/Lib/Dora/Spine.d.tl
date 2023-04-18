@@ -2,6 +2,8 @@ local Playable = require("Playable").Type
 
 -- An implementation of an animation system using the Spine engine.
 local record Spine
+
+	-- Inherits from `Playable`.
 	embed Playable
 
 	-- Whether to show debug graphics.

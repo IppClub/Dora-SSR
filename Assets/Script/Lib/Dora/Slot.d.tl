@@ -2,6 +2,8 @@ local Object = require("Object").Type
 
 -- A Slot object that represents a single event slot with handlers.
 local record Slot
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- Adds a new handler function to this slot

@@ -3,6 +3,8 @@ local Routine = require("Routine")
 
 -- A scheduler that manages the execution of scheduled tasks.
 local record Scheduler
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- The time scale factor for the scheduler.

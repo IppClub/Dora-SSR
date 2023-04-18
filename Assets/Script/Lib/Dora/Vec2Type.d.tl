@@ -3,6 +3,8 @@ local type Size = require("SizeType")
 
 -- A record representing a 2D vector with an x and y component.
 local record Vec2
+
+	-- Inherits from `ContainerItem`.
 	embed ContainerItem
 
 	-- The x-component of the vector.

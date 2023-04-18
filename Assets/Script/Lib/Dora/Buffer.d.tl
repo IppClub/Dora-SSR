@@ -2,6 +2,8 @@ local Object = require("Object").Type
 
 -- A buffer of string for the use of ImGui widget.
 local record Buffer
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- The size of the buffer.
@@ -19,7 +21,7 @@ local record Buffer
 	toString: function(self: Buffer): string
 
 	-- Setting the contents of the buffer with a string.
-	-- @param string str The new contents of the buffer.
+	-- @param str (string) The new contents of the buffer.
 	setString: function(str: string)
 end
 

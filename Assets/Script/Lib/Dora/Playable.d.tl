@@ -3,6 +3,8 @@ local Vec2 = require("Vec2").Type
 
 -- A base class for an animation model system.
 local record Playable
+
+	-- Inherits from `Node`.
 	embed Node
 
 	-- The look of the animation.

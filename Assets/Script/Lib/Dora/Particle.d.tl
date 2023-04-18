@@ -2,6 +2,8 @@ local Node = require("Node").Type
 
 -- Represents a particle system node that emits and animates particles.
 local record Particle
+
+	-- Inherits from `Node`.
 	embed Node
 
 	-- Whether the particle system is active.

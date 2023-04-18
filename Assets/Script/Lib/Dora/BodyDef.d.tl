@@ -4,6 +4,8 @@ local FixtureDef = require("FixtureDef").Type
 
 -- A record called "BodyDef" to describe the properties of a physics body.
 local record BodyDef
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- An enumeration for the different types of bodies.
@@ -40,7 +42,7 @@ local record BodyDef
 	-- Define for angular damping of the body.
 	angularDamping: number
 
-	-- Define for linear acceleration of the body.
+	-- Define for initial linear acceleration of the body.
 	linearAcceleration: Vec2
 
 	-- Whether the body's rotation is fixed or not.
@@ -81,7 +83,7 @@ local record BodyDef
 		restitution?: number --[[0.0]])
 
 	-- Attaches a polygon fixture definition to the body.
-	-- @param vertices (table) The vertices of the polygon.
+	-- @param vertices ({Vec2}) The vertices of the polygon.
 	-- @param density (number) [optional] The density of the polygon (default is 0.0).
 	-- @param friction (number) [optional] The friction of the polygon (default is 0.4, should be 0 to 1.0).
 	-- @param restitution (number) [optional] The restitution of the polygon (default is 0.0, should be 0 to 1.0).
@@ -92,7 +94,7 @@ local record BodyDef
 		restitution?: number --[[0.0]])
 
 	-- Attaches a concave shape definition made of multiple convex shapes to the body.
-	-- @param vertices (table) A table containing the vertices of each convex shape that makes up the concave shape.
+	-- @param vertices ({Vec2}) A table containing the vertices of each convex shape that makes up the concave shape.
 	-- Each convex shape in the vertices table should ends with a Vec2(0.0, 0.0) as seperator.
 	-- @param density (number) [optional] The density of the concave shape (default is 0.0).
 	-- @param friction (number) [optional] The friction of the concave shape (default is 0.4, should be 0 to 1.0).
@@ -128,7 +130,7 @@ local record BodyDef
 		restitution?: number --[[0.0]])
 
 	-- Attaches a chain fixture definition to the body. The Chain fixture is a free form sequence of line segments that has two-sided collision.
-	-- @param vertices (table) The vertices of the chain.
+	-- @param vertices ({Vec2}) The vertices of the chain.
 	-- @param friction (number) [optional] The friction of the chain (default is 0.4).
 	-- @param restitution (number) [optional] The restitution of the chain (default is 0.0).
 	attachChain: function(self: BodyDef,
@@ -160,7 +162,7 @@ local record BodyDef
 
 	-- Attaches a polygon sensor fixture definition to the body.
 	-- @param tag (number) An integer tag for the sensor.
-	-- @param vertices (table) A table containing the vertices of the polygon.
+	-- @param vertices ({Vec2}) A table containing the vertices of the polygon.
 	attachPolygonSensor: function(self: BodyDef,
 		tag: integer,
 		vertices: {Vec2})
@@ -219,7 +221,7 @@ local record BodyDefClass
 		restitution?: number --[[0.0]]): FixtureDef
 
 	-- Creates a polygon fixture definition with the specified vertices.
-	-- @param vertices (table) A table containing the vertices of the polygon.
+	-- @param vertices ({Vec2}) A table containing the vertices of the polygon.
 	-- @param density (number) [optional] The density of the polygon (default is 0.0).
 	-- @param friction (number) [optional] The friction of the polygon (default is 0.4, should be 0.0 to 1.0).
 	-- @param restitution (number) [optional] The restitution of the polygon (default is 0.0, should be 0.0 to 1.0).
@@ -280,7 +282,7 @@ local record BodyDefClass
 		restitution?: number --[[0.0]]): FixtureDef
 
 	-- Create a new instance of BodyDef class.
-	-- @return (BodyDef).
+	-- @return (BodyDef) a new BodyDef object.
 	metamethod __call: function(self: BodyDefClass): BodyDef
 end
 

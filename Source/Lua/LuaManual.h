@@ -172,8 +172,7 @@ int BodyDef_GetType(lua_State* L);
 int BodyDef_SetType(lua_State* L);
 
 /* Dictionary */
-Array* __Dictionary_getKeys(Dictionary* self);
-#define Dictionary_getKeys() __Dictionary_getKeys(self)
+int Dictionary_getKeys(lua_State* L);
 int Dictionary_get(lua_State* L);
 int Dictionary_set(lua_State* L);
 

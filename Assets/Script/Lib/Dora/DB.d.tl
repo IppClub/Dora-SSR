@@ -3,6 +3,7 @@ local record DB
 	userdata
 
 	-- Type definition for a database column.
+	-- The boolean type is only used for representing the database NULL value with the boolean false value.
 	type Column = integer | number | string | boolean
 
 	-- Type definition for a database row.
@@ -50,7 +51,7 @@ local record DB
 		withColumn?: boolean --[[false]]
 	): {Row}
 
-	-- Inserts a row of data into a table.
+	-- Inserts a row of data into a table within a transaction.
 	-- @param tableName (string) The name of the table to insert into.
 	-- @param values (Row) The values to insert into the table.
 	-- @return (boolean) Whether the insertion was successful or not.
@@ -67,26 +68,26 @@ local record DB
 	-- @return (integer) The number of rows affected by the statement.
 	exec: function(self: DB, sql: string, values: Row): integer
 
-	-- Executes an SQL statement and returns the number of rows affected.
+	-- Executes an SQL statement with list of values and returns the number of rows affected within a transaction.
 	-- @param sql (string) The SQL statement to execute.
 	-- @param values ({Row}) A list of lists of values to substitute into the SQL statement.
 	-- @return (integer) the number of rows affected by the statement.
 	exec: function(self: DB, sql: string, values: {Row}): integer
 
-	-- Inserts a row of data into a table asynchronously.
+	-- Inserts a row of data into a table within a transaction asynchronously.
 	-- @param tableName (string) The name of the table to insert into.
 	-- @param values ({Row}) The values to insert into the table.
 	-- @return (boolean) Whether the insert was successful or not.
 	insertAsync: function(self: DB, tableName: string, values: {Row}): boolean
 
-	-- Inserts data from an Excel file into a table asynchronously.
+	-- Inserts data from an Excel file into a table within a transaction asynchronously.
 	-- @param tableSheets {string} the names of the tables to insert into.
 	-- @param excelFile (string) The path to the Excel file containing the data.
 	-- @param startRow (integer) The row number to start inserting data from. The row number start with 1.
 	-- @return (boolean) Whether the insert was successful or not.
 	insertAsync: function(self: DB, tableSheets: {string}, excelFile: string, startRow: integer): boolean
 
-	-- Inserts data from an Excel file into a table asynchronously.
+	-- Inserts data from an Excel file into a table within a transaction asynchronously.
 	-- @param tableSheets {{string, string}} A list of table names and corresponding sheet names to insert into.
 	-- @param excelFile (string) The path to the Excel file containing the data.
 	-- @param startRow (integer) The row number to start inserting data from. The row number start with 1.
@@ -115,7 +116,7 @@ local record DB
 		withColumn?: boolean --[[false]]
 	): {Row}
 
-	-- Executes an SQL statement asynchronously and returns the number of rows affected.
+	-- Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
 	-- @param sql (string) The SQL statement to execute.
 	-- @param values {Row} A list of values to substitute into the SQL statement.
 	-- @return (integer) The number of rows affected by the statement.

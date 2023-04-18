@@ -1,17 +1,18 @@
 local Object = require("Object").Type
-local Array = require("Array").Type
 local Item = require("Array").Item
 local ContainerItem = require("ContainerItemType")
 
 -- A record type for storing pairs of string keys and various values.
 local record Dictionary
+
+	-- Inherits from `Object`.
 	embed Object
 
 	-- The number of items in the dictionary.
 	const count: integer
 
 	-- The keys of the items in the dictionary.
-	const keys: Array
+	const keys: {string}
 
 	-- A function that iterates over each item in the dictionary and calls a given function with the item and its key.
 	-- @param func (function) The function to call for each item in the dictionary.
@@ -22,14 +23,14 @@ local record Dictionary
 	-- A function that removes all the items from the dictionary.
 	clear: function(self: Dictionary)
 
-	-- A metamethod that allows accessing items in the dictionary using the index notation, e.g. "dictionary['key']".
+	-- A metamethod that allows accessing items in the dictionary using the index notation, e.g. "dict['key']" or "dict.key".
 	-- @param key (string) The key of the item to retrieve.
 	-- @return (Item or nil) The Item with the given key, or nil if it does not exist.
 	metamethod __index: function(self: Dictionary, key: string): Item
 
-	-- A metamethod that allows setting items in the dictionary using the index notation, e.g. "dictionary['key'] = value".
+	-- A metamethod that allows setting items in the dictionary using the index notation, e.g. "dict['key'] = value" or "dict.key = value".
 	-- @param key (string) The key of the item to set.
-	-- @param item (Item) The Item to set for the given key.
+	-- @param item (Item) The Item to set for the given key, set to nil to delete this key-value pair.
 	metamethod __newindex: function(self: Dictionary, key: string, item: Item)
 end
 

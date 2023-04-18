@@ -5,6 +5,8 @@ local Vec2 = require("Vec2").Type
 
 -- A class provides functionality for drawing lines using vertices.
 local record Line
+
+	-- Inherits from `Node`.
 	embed Node
 
 	-- Whether the depth should be written.
