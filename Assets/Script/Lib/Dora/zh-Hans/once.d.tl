@@ -1,8 +1,8 @@
 local Routine = require("Routine")
 
--- Create a coroutine job that runs once.
--- @param routine (function) A routine function to execute once when the coroutine is resumed.
--- Yield true or just return inside the routine function to stop the job execution half way.
--- @return (Routine.Job) A coroutine that runs the given routine function once.
+-- 创建一个只运行一次的协程任务。
+-- @param routine (function) 只执行一次的协程函数。
+-- 在协程函数内部使用`coroutine.yield(true)`或者直接`return`来中止任务的执行。
+-- @return (Routine.Job) 只运行特定协程函数一次的协程任务。
 local once: function(routine: function()): Routine.Job
 return once

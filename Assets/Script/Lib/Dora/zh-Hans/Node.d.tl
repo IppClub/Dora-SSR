@@ -16,135 +16,135 @@ local Routine = require("Routine")
 local Camera = require("Camera").Type
 local SpriteEffect = require("SpriteEffect").Type
 local BlendFunc = require("BlendFunc").Type
+local Keyboard = require("Keyboard")
 
--- class to be used to build
--- a hierarchical tree structure of game objects.
+-- 用于构建游戏场景树的层次结构的类。
 local record Node
 
-	-- Inherits from `Object`.
+	-- 继承自`Object`。
 	embed Object
 
-	-- The order of the node in the parent's children array.
+	-- 在同级子节点列表中的顺序。
 	order: integer
 
-	-- The rotation angle of the node in degrees.
+	-- 节点的旋转角度，以度为单位。
 	angle: number
 
-	-- The X-axis rotation angle of the node in degrees.
+	-- 节点的 X 轴旋转角度，以度为单位。
 	angleX: number
 
-	-- The Y-axis rotation angle of the node in degrees.
+	-- 节点的 Y 轴旋转角度，以度为单位。
 	angleY: number
 
-	-- The X-axis scale factor of the node.
+	-- 节点的 X 轴缩放系数。
 	scaleX: number
 
-	-- The Y-axis scale factor of the node.
+	-- 节点的 Y 轴缩放系数。
 	scaleY: number
 
-	-- The X-axis position of the node.
+	-- 节点的 X 轴位置。
 	x: number
 
-	-- The Y-axis position of the node.
+	-- 节点的 Y 轴位置。
 	y: number
 
-	-- The Z-axis position of the node.
+	-- 节点的 Z 轴位置。
 	z: number
 
-	-- The position of the node as a Vec2 object.
+	-- 以`Vec2`对象表示的节点位置。
 	position: Vec2
 
-	-- The X-axis skew angle of the node in degrees.
+	-- 节点的 X 轴倾斜角度，以度为单位。
 	skewX: number
 
-	-- The Y-axis skew angle of the node in degrees.
+	-- 节点的 Y 轴倾斜角度，以度为单位。
 	skewY: number
 
-	-- Whether the node is visible.
+	-- 节点是否可见。
 	visible: boolean
 
-	-- The anchor point of the node as a Vec2 object.
+	-- 以 Vec2 对象表示的节点锚点。
 	anchor: Vec2
 
-	-- The width of the node.
+	-- 节点的宽度。
 	width: number
 
-	-- The height of the node.
+	-- 节点的高度。
 	height: number
 
-	-- The size of the node as a Size object.
+	-- 以`Size`对象表示的节点大小。
 	size: Size
 
-	-- The tag of the node as a string.
+	-- 以字符串形式表示的节点标签。
 	tag: string
 
-	-- The opacity of the node, should be 0 to 1.0.
+	-- 节点的不透明度，取值范围为 0 到 1.0。
 	opacity: number
 
-	-- The color of the node as a Color object.
+	-- 以`Color`对象表示的节点颜色。
 	color: Color
 
-	-- The color of the node as a Color3 object.
+	-- 以`Color3`对象表示的节点颜色。
 	color3: Color3
 
-	-- Whether to pass the opacity value to child nodes.
+	-- 是否传递不透明度值给子节点。
 	passOpacity: boolean
 
-	-- Whether to pass the color value to child nodes.
+	-- 是否传递颜色值给子节点。
 	passColor3: boolean
 
-	-- The target node acts as a parent node for transforming this node.
+	-- 用于继承矩阵变换的目标节点。
 	transformTarget: Node
 
-	-- The scheduler used for scheduling update and action callbacks.
+	-- 用于调度每帧逻辑更新的调度器。
 	scheduler: Scheduler
 
-	-- Whether the node has children.
+	-- 是否有子节点。
 	const hasChildren: boolean
 
-	-- The children of the node as an Array object, could be nil.
+	-- 子节点的列表，可能为nil。
 	const children: Array
 
-	-- The parent node of the node.
+	-- 节点的父节点。
 	const parent: Node
 
-	-- The bounding box of the node as a Rect object.
+	-- 节点的包围盒。
 	const boundingBox: Rect
 
-	-- Whether the node is currently running in a scene tree.
+	-- 节点是否在场景树中挂载运行。
 	const running: boolean
 
-	-- Whether the node is currently scheduling a function or a coroutine for updates.
+	-- 节点是否在调度更新函数或协程。
 	const scheduled: boolean
 
-	-- The number of actions currently running on the node.
+	-- 节点上当前正在运行的动作数量。
 	const actionCount: integer
 
-	-- Additional data stored on the node as a Dictionary object.
+	-- 在节点上存储管理的附加数据。
 	const data: Dictionary
 
-	-- Whether touch events are enabled on the node.
+	-- 是否启用触摸事件。
 	touchEnabled: boolean
 
-	-- Whether the node should swallow touch events.
+	-- 节点是否独占触摸事件。
 	swallowTouches: boolean
 
-	-- Whether the node should swallow mouse wheel events.
+	-- 节点是否独占鼠标滚轮事件。
 	swallowMouseWheel: boolean
 
-	-- Whether keyboard events are enabled on the node.
+	-- 是否启用键盘事件。
 	keyboardEnabled: boolean
 
-	-- Whether to group the node's rendering with all its recursive children.
+	-- 是否将所有层级的子节点按分组编号做分组渲染。
 	renderGroup: boolean
 
-	-- The rendering order of the node relative to its siblings.
+	-- 用于分组渲染的分组顺序编号。节点的渲染顺序编号越小，渲染就越靠前。
 	renderOrder: integer
 
-	-- Adds a child node to the current node.
-	-- @param child (Node) The child node to add.
-	-- @param order (integer) The drawing order of the child node. Default is 0.
-	-- @param tag (string) The tag of the child node. Default is an empty string.
+	-- 给当前节点添加子节点。
+	-- @param child (Node) 要添加的子节点。
+	-- @param order (integer) 子节点的绘制顺序。默认为0。
+	-- @param tag (string) 子节点的标签。默认为空字符串。
 	addChild: function(
 		self: Node,
 		child: Node,
@@ -152,11 +152,11 @@ local record Node
 		tag?: string --[[""]]
 	)
 
-	-- Adds the current node to a parent node.
-	-- @param parent (Node) The parent node to add the current node to.
-	-- @param order (integer) The drawing order of the current node. Default is 0.
-	-- @param tag (string) The tag of the current node. Default is an empty string.
-	-- @return (Node) The current node.
+	-- 将当前节点添加到父节点
+	-- @param parent (Node) 要添加当前节点的父节点。
+	-- @param order (integer) 当前节点的绘制顺序。默认为0。
+	-- @param tag (string) 当前节点的标签。默认为空字符串。
+	-- @return (Node) 当前节点，用于级连调用。
 	addTo: function(
 		self: Node,
 		parent: Node,
@@ -164,411 +164,423 @@ local record Node
 		tag?: string --[[""]]
 	): Node
 
-	-- Removes a child node from the current node.
-	-- @param child (Node) The child node to remove.
-	-- @param cleanup (boolean) Whether to cleanup the child node. Default is true.
+	-- 从当前节点中移除一个子节点。
+	-- @param child (Node) 要移除的子节点。
+	-- @param cleanup (boolean) [可选] 是否清理子节点。默认为 true。
 	removeChild: function(
 		self: Node,
 		child: Node,
 		cleanup?: boolean --[[true]]
 	)
 
-	-- Removes a child node from the current node by tag.
-	-- @param tag (string) The tag of the child node to remove.
-	-- @param cleanup (boolean) Whether to cleanup the child node. Default is true.
+	-- 通过标签从当前节点中移除一个子节点。
+	-- @param tag (string) 要移除的子节点的标签。
+	-- @param cleanup (boolean) [可选] 是否清理子节点。默认为 true。
 	removeChildByTag: function(
 		self: Node,
 		tag: string,
 		cleanup?: boolean --[[true]]
 	)
 
-	-- Removes all child nodes from the current node.
-	-- @param cleanup (boolean) Whether to cleanup the child nodes. Default is true.
+	-- 从当前节点中移除所有子节点。
+	-- @param cleanup (boolean) [可选] 是否清理子节点。默认为 true。
 	removeAllChildren: function(
 		self: Node,
 		cleanup?: boolean --[[true]]
 	)
 
-	-- Removes the current node from its parent node.
-	-- @param cleanup (boolean) Whether to cleanup the current node. Default is true.
+	-- 从其父节点中移除当前节点。
+	-- @param cleanup (boolean) [可选] 是否清理当前节点。默认为 true。
 	removeFromParent: function(
 		self: Node,
 		cleanup?: boolean --[[true]]
 	)
 
-	-- Moves the current node to a new parent node without triggering node events.
-	-- @param parent (Node) The new parent node to move the current node to.
+	-- 将当前节点移动到一个新的父节点中，而不触发节点进出场景树的事件。
+	-- @param parent (Node) 要将当前节点移动到的新父节点。
 	moveToParent: function(self: Node, parent: Node)
 
-	-- Cleans up the current node.
+	-- 清理当前节点上的所有资源。
 	cleanup: function(self: Node)
 
-	-- Gets a child node by tag.
-	-- @param tag (string) The tag of the child node to get.
-	-- @return (Node) The child node, or nil if not found.
+	-- 通过标签获取子节点。
+	-- @param tag (string) 要获取的子节点的标签。
+	-- @return (Node) 子节点，如果未找到则返回nil。
 	getChildByTag: function(self: Node, tag: string): Node
 
-	-- Schedules a function to run every frame.
-	-- @param func (function) The function to run, return true to stop.
+	-- 调度一个函数在每一帧运行。
+	-- @param func (function) 要被调度的函数，返回true停止运行。
 	schedule: function(self: Node, func: function(number): boolean)
 
-	-- Schedules a coroutine to run.
-	-- @param job (Routine.Job) The coroutine to run, return or yield true to stop.
+	-- 调度执行一个协程任务。
+	-- @param job (Routine.Job) 要运行的协程，用`return true`或`coroutine.yield(true)`停止运行。
 	schedule: function(self: Node, job: Routine.Job)
 
-	-- Unschedules the current node's scheduled function or coroutine.
+	-- 停止调度的每帧运行的函数或协程任务。
 	unschedule: function(self: Node)
 
-	-- Converts a point in world space to node space.
-	-- @param worldPoint (Vec2) The point to convert.
-	-- @return (Vec2) The converted point.
+	-- 将世界空间中的点坐标转换为节点空间的点坐标。
+	-- @param worldPoint (Vec2) 要转换的点。
+	-- @return (Vec2) 转换后的点。
 	convertToNodeSpace: function(self: Node, worldPoint: Vec2): Vec2
 
-	-- Converts a point in world space to node space.
-	-- @param worldPoint (Vec2) The point to convert.
-	-- @param z (number) The z-coordinate of the point. Default is 0.
-	-- @return (Vec2, number) The converted point and its z-coordinate.
+	-- 将世界空间中的点坐标转换为节点空间的点坐标。
+	-- @param worldPoint (Vec2) 要转换的点。
+	-- @param z (number) 点的 z 坐标。默认为 0。
+	-- @return (Vec2, number) 转换后的点及其 z 坐标。
 	convertToNodeSpace: function(self: Node, worldPoint: Vec2, z: number): Vec2, number
 
-	-- Converts a point from node space to world space.
-	-- @param nodePoint (Vec2) The point in node space.
-	-- @returns (Vec2) The converted point in world space.
+	-- 将节点空间中的点坐标转换为世界空间坐标。
+	-- @param nodePoint (Vec2) 节点空间中的点。
+	-- @returns (Vec2) 转换后的世界空间中的点。
 	convertToWorldSpace: function(self: Node, nodePoint: Vec2): Vec2
 
-	-- Converts a point from node space to world space.
-	-- @param nodePoint (Vec2) The point in node space.
-	-- @param z (number) The z coordinate in world space.
-	-- @returns (Vec2, number) The converted point in world space and z coordinate.
+	-- 将节点空间中的点坐标转换为世界空间坐标。
+	-- @param nodePoint (Vec2) 节点空间中的点。
+	-- @param z (number) 节点空间中的 z 坐标。
+	-- @returns (Vec2, number) 转换后的世界空间中的点及其 z 坐标。
 	convertToWorldSpace: function(self: Node, nodePoint: Vec2, z: number): Vec2, number
 
-	-- Converts a point from node space to window space.
-	-- @param nodePoint (Vec2) The point in node space.
-	-- @param callback (function(Vec2)) The callback function to receive the converted point in window space.
+	-- 将节点空间中的点坐标转换为操作系统窗口空间坐标。
+	-- @param nodePoint (Vec2) 节点空间中的点。
+	-- @param callback (function(Vec2)) 接收转换后的操作系统窗口空间中的点点坐标的回调函数。
 	convertToWindowSpace: function(self: Node, nodePoint: Vec2, callback: function(Vec2))
 
-	-- Calls the given function for each child node of this node.
-	-- @param func (function(Node): boolean) The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
-	-- @returns (boolean) False if all children have been visited, true if the iteration was interrupted by the function.
+	-- 对该节点的每个子节点调用给定的函数。
+	-- @param func (function(Node): boolean) 对每个子节点要调用的函数。该函数应返回一个布尔值，指示是否继续迭代。返回 true 以停止迭代。
+	-- @returns (boolean) 如果已访问所有子节点，则为false；如果函数中断了迭代，则为true。
 	eachChild: function(self: Node, func: function(Node): boolean): boolean
 
-	-- Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
-	-- @param func (function(Node): boolean) The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
-	-- @returns (boolean) False if all nodes have been visited, true if the traversal was interrupted by the function.
+	-- 从此节点开始遍历场景树结构，并对每个访问的节点调用给定的函数。
+	-- 未开启`TraverseEnabled`标志的节点不会被访问。
+	-- @param func (function(Node): boolean) 对于每个被访问的节点调用的函数。该函数应返回一个布尔值，指示是否继续遍历。返回true停止迭代。
+	-- @returns (boolean) 如果访问了所有节点，则为false，如果函数中断了遍历，则为true。
 	traverse: function(self: Node, func: function(Node): boolean): boolean
 
-	-- Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
-	-- @param func (function(Node): boolean) The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
-	-- @returns (boolean) True if all nodes have been visited, false if the traversal was interrupted by the function.
+	-- 从此节点开始遍历整个节点层次结构，并对每个访问的节点调用给定的函数。
+	-- @param func (function(Node): boolean) 对于每个访问的节点调用的函数。该函数应返回一个布尔值，指示是否继续遍历。
+	-- @returns (boolean) 如果访问了所有节点，则为true，如果函数中断了遍历，则为false。
 	traverseAll: function(self: Node, func: function(Node): boolean): boolean
 
-	-- Runs the given action on this node.
-	-- @param action (Action) The action to run.
-	-- @returns (number) The duration of the newly running action.
+	-- 在此节点上执行给定的动作对象。
+	-- @param action (Action) 要执行的动作对象。
+	-- @returns (number) 新执行的动作的持续时间，以秒为单位。
 	runAction: function(self: Node, action: Action)
 
-	-- Runs an action defined by the given action definition on this node.
-	-- @param actionDef (ActionDef) The action definition to run.
-	-- @returns (number) The duration of the newly running action.
+	-- 在此节点上执行由动作定义对象定义的动作。
+	-- @param actionDef (ActionDef) 要运行的动作定义。
+	-- @returns (number) 新执行的动作的持续时间，以秒为单位。
 	runAction: function(self: Node, actionDef: ActionDef)
 
-	-- Stops all actions running on this node.
+	-- 停止在此节点上运行的所有动作。
 	stopAllActions: function(self: Node)
 
-	-- Runs the given action immediately without adding it to the action queue.
-	-- @param action (Action) The action to run.
-	-- @returns (number) The duration of the newly running action.
+	-- 立即停止所有现有动作，并开始执行一个新动作。
+	-- @param action (Action) 要执行的动作。
+	-- @returns (number) 新执行的动作的持续时间，以秒为单位。
 	perform: function(self: Node, action: Action): number
 
-	-- Runs an action defined by the given action definition right after clear all the previous running actions.
-	-- @param actionDef (ActionDef) The action definition to run.
-	-- @returns (number) The duration of the newly running action.
+	-- 立即停止所有现有动作，并通过动作定义对象开始执行一个新动作。
+	-- @param actionDef (ActionDef) 要执行的动作定义。
+	-- @returns (number) 新执行的动作的持续时间，以秒为单位。
 	perform: function(self: Node, actionDef: ActionDef): number
 
-	-- Stops the given action running on this node.
-	-- @param action (Action) The action to stop.
+	-- 停止在此节点上运行的某个动作。
+	-- @param action (Action) 要停止的动作。
 	stopAction: function(self: Node, action: Action)
 
-	-- Vertically aligns all child nodes of this node.
-	-- @param padding (number) The padding between child nodes. Defaults to 10.
-	-- @returns (Size) The size of the aligned child nodes.
+	-- 垂直对齐该节点的所有子节点。
+	-- @param padding (number) [可选] 子节点之间的间距。默认值为10。
+	-- @returns (Size) 对齐后的子节点区域的大小。
 	alignItemsVertically: function(
 		self: Node,
 		padding?: number --[[10]]
 	): Size
 
-	-- Vertically aligns all child nodes within the node using the given size and padding.
-	-- @param size The size to use for alignment.
-	-- @param padding The amount of padding to use between each child node (default is 10).
-	-- @return The size of the node after alignment.
+	-- 使用给定的范围和间距在节点内垂直对齐所有子节点。
+	-- @param size (Size) 用于对齐排布的范围。
+	-- @param padding (number) 子节点之间的间距（默认值为10）。
+	-- @return (Size) 对齐后的节点区域大小。
 	alignItemsVertically: function(
 		self: Node,
 		size: Size,
 		padding?: number --[[10]]
 	): Size
 
-	-- Horizontally aligns all child nodes within the node using the given padding.
-	-- @param padding The amount of padding to use between each child node (default is 10).
-	-- @return The size of the node after alignment.
+	-- 使用给定的间距在节点内水平对齐所有子节点。
+	-- @param padding (number) [可选] 子节点之间的间距（默认值为10）。
+	-- @return (Size) 对齐后的节点区域大小。
 	alignItemsHorizontally: function(
 		self: Node,
 		padding?: number --[[10]]
 	): Size
 
-	-- Horizontally aligns all child nodes within the node using the given size and padding.
-	-- @param size The size to hint for alignment.
-	-- @param padding The amount of padding to use between each child node (default is 10).
-	-- @return The size of the node after alignment.
+	-- 使用给定的范围和间距在节点内水平对齐所有子节点。
+	-- @param size (Size) 用于对齐排布的范围。
+	-- @param padding (number) [可选] 子节点之间的间距（默认值为10）。
+	-- @return (Size) 对齐后的节点区域大小。
 	alignItemsHorizontally: function(
 		self: Node,
 		size: Size,
 		padding?: number --[[10]]
 	): Size
 
-	-- Aligns all child nodes within the node using the given size and padding.
-	-- @param padding The amount of padding to use between each child node (default is 10).
-	-- @return The size of the node after alignment.
+	-- 使用给定间距在节点内对齐所有子节点。
+	-- @param padding (number) [可选] 子节点之间的间距（默认值为10）。
+	-- @return (Size) 对齐后的节点区域大小。
 	alignItems: function(
 		self: Node,
 		padding?: number --[[10]]
 	): Size
 
-	-- Aligns all child nodes within the node using the given size and padding.
-	-- @param size The size to use for alignment (optional).
-	-- @param padding The amount of padding to use between each child node (default is 10).
-	-- @return The size of the node after alignment.
+	-- 使用给定的范围和间距在节点内对齐所有子节点。
+	-- @param size (Size) 用于对齐排布的范围。
+	-- @param padding (number) [可选] 每个子节点之间要使用的填充量（默认值为10）。
+	-- @return (Size) 对齐后的节点大小。
 	alignItems: function(
 		self: Node,
 		size: Size,
 		padding?: number --[[10]]
 	): Size
+
+	-- 基于子节点在父节点区域中的位置，移动并更改子节点的可见性。
+	-- @param delta (Vec2) 子节点移动的向量。
 	moveAndCullItems: function(self: Node, delta: Vec2)
 
-	-- Attaches the input method editor (IME) to the node.
-	-- Makes node recieving "AttachIME", "DetachIME", "TextInput", "TextEditing" events.
+	-- 将操作系统输入法功能 (IME) 开启到节点上。
+	-- 使节点能接收 "AttachIME"、"DetachIME"、"TextInput"、"TextEditing" 事件。
 	attachIME: function(self: Node)
 
-	-- Detaches the input method editor (IME) from the node.
+	-- 在节点上关闭操作系统输入法 (IME)。
 	detachIME: function(self: Node)
 
-	-- Gets the global signal slot associated with the given event name.
-	-- @param eventName The name of the event.
-	-- @return All the global signal slots associated with the event.
+	-- 获取挂在节点上的监听特定全局事件的所有信号槽。
+	-- @param eventName (string) 全局事件的名称。
+	-- @return ({GSlot}) 节点上监听对应全局事件的所有信号槽。
 	gslot: function(self: Node, eventName: string): {GSlot}
 
-	-- Associates the given handler function with the global signal slot for the given event name.
-	-- @param eventName The name of the event.
-	-- @param handler The handler function to associate with the event.
-	-- @return The global signal slot associated with the event.
+	-- 在节点上注册监听全局事件的回调函数。
+	-- @param eventName (string) 全局事件的名称。
+	-- @param handler (function) 全局事件的处理函数。
+	-- @return (GSlot) 节点上监听该全局事件的监听器对象。
 	gslot: function(self: Node, eventName: string, handler: function()): GSlot
 
-	-- Gets the signal slot associated with the given event name.
-	-- @param eventName The name of the event.
-	-- @return The signal slot associated with the event.
+	-- 获取挂在节点上的监听特定节点事件的所有信号槽。
+	-- @param eventName (string) 节点事件的名称。
+	-- @return (Slot) 节点上监听对应节点事件的信号槽。
 	slot: function(self: Node, eventName: string): Slot
 
-	-- Associates the given handler function with the signal slot for the given event name.
-	-- @param eventName The name of the event.
-	-- @param handler The handler function to associate with the event.
+	-- 在节点上注册监听节点事件的回调函数。
+	-- @param eventName (string) 节点事件的名称。
+	-- @param handler (function) 节点事件的处理函数。
 	slot: function(self: Node, eventName: string, handler: function())
 
-	-- Emits the signal associated with the given event name with the given arguments.
-	-- @param eventName The name of the event.
-	-- @param ... The arguments to pass to the signal handler functions.
+	-- 发送一个节点事件。
+	-- @param eventName (string) 节点事件的名称。
+	-- @param ... (...any) 传递给节点事件处理函数的参数。
 	emit: function(self: Node, eventName: string, ...: any)
 
-	-- A grabber which is used to render a part of the scene to a texture
-	-- by a grid of vertices.
+	-- 将场景的一部分节点渲染到一张绑定到网格的纹理上的抓取器类。
 	record Grabber
+
+		-- 继承自`Object`。
 		embed Object
 
-		-- The camera used to render the texture.
+		-- 用于渲染网格的相机。
 		camera: Camera
 
-		-- The sprite effect applied to the texture.
+		-- 渲染网格使用的图元着色器特效。
 		effect: SpriteEffect
 
-		-- The blend function applied to the texture.
+		-- 渲染网格使用的混合函数。
 		blendFunc: BlendFunc
 
-		-- The clear color used to clear the texture.
+		-- 用于清空纹理的颜色。
 		clearColor: Color
 
-		-- Sets the position of a vertex in the grabber grid.
-		-- @param x (integer) The x-index of the vertex in the grabber grid.
-		-- @param y (integer) The y-index of the vertex in the grabber grid.
-		-- @param pos (Vec2) The new position of the vertex.
-		-- @param z (number) The new z-coordinate of the vertex (default: 0.0).
+		-- 设置抓取器网格中一个顶点的位置。
+		-- @param x (integer) 顶点在抓取器网格中的 x 索引。
+		-- @param y (integer) 顶点在抓取器网格中的 y 索引。
+		-- @param pos (Vec2) 顶点的新位置。
+		-- @param z (number) 顶点的新 z 坐标（默认值：0.0）。
 		setPos: function(self: Grabber, x: integer, y: integer, pos: Vec2, z?: number --[[0.0]])
 
-		-- Gets the position of a vertex in the grabber grid.
-		-- @param x (integer) The x-index of the vertex in the grabber grid.
-		-- @param y (integer) The y-index of the vertex in the grabber grid.
-		-- @return (Vec2, number) The position of the vertex.
+		-- 获取抓取器网格中一个顶点的位置。
+		-- @param x (integer) 顶点在抓取器网格中的 x 索引。
+		-- @param y (integer) 顶点在抓取器网格中的 y 索引。
+		-- @return (Vec2) 顶点的位置。
 		getPos: function(self: Grabber, x: integer, y: integer): Vec2
 
-		-- Gets the color of a vertex in the grabber grid.
-		-- @param x (integer) The x-index of the vertex in the grabber grid.
-		-- @param y (integer) The y-index of the vertex in the grabber grid.
-		-- @return (Color) The color of the vertex.
+		-- 获取抓取器网格中一个顶点的颜色。
+		-- @param x (integer) 顶点在抓取器网格中的 x 索引。
+		-- @param y (integer) 顶点在抓取器网格中的 y 索引。
+		-- @return (Color) 顶点的颜色。
 		getColor: function(self: Grabber, x: integer, y: integer): Color
 
-		-- Sets the color of a vertex in the grabber grid.
-		-- @param x (integer) The x-index of the vertex in the grabber grid.
-		-- @param y (integer) The y-index of the vertex in the grabber grid.
-		-- @param color (Color) The new color of the vertex.
+		-- 设置抓取器网格中一个顶点的颜色。
+		-- @param x (integer) 顶点在抓取器网格中的 x 索引。
+		-- @param y (integer) 顶点在抓取器网格中的 y 索引。
+		-- @param color (Color) 顶点的新颜色。
 		setColor: function(self: Grabber, x: integer, y: integer, color: Color)
 	end
 
-	-- Creates or removes a texture grabber for the specified node.
-	-- @param enabled A boolean indicating whether to enable or disable the grabber. Default is true.
-	-- @return A Grabber object when enabled.
+	-- 创建或移除节点上的纹理抓取器。
+	-- @param enabled (boolean) 是否启用或禁用抓取器。默认为 true。
+	-- @return (Grabber) 启用时会返回一个抓取器对象。
 	grab: function(
 		self: Node,
 		enabled?: boolean --[[true]]
 	): Grabber
 
-	-- Creates a texture grabber for the specified node with a specified grid size.
-	-- @param gridX The number of horizontal grid cells to divide the grabber into.
-	-- @param gridY The number of vertical grid cells to divide the grabber into.
-	-- @return A Grabber object.
+	-- 创建一个指定网格大小的纹理抓取器。
+	-- @param gridX (number) 将抓取器分成的水平网格单元数。
+	-- @param gridY (number) 将抓取器分成的垂直网格单元数。
+	-- @return (Grabber) 返回一个抓取器对象。
 	grab: function(self: Node, gridX: number, gridY: number): Grabber
 end
 
--- The available event slots for a Node.
--- This is just a demonstration record showing the signal slot names and callbacks.
--- You can register for these events using codes like:
+-- 节点可监听的事件的定义。
+-- 这只是一个演示记录，展示了信号插槽的名称和回调。
+-- 可以使用如下示例代码注册监听这些事件：
 -- node:slot("ActionEnd", function(action: Action, target: Node)
 -- 	print("Action end", action, target)
 -- end)
 local record __SLOT__
 
-	-- The ActionEnd slot is triggered when an action is finished.
-	-- Triggers after node:runAction() and node:perform().
-	-- @param action (Action) The finished action.
-	-- @param target (Node) The node that finished the action.
+	-- ActionEnd事件会在节点执行完一个动作时触发。
+	-- 在`node:runAction()`和`node:perform()`之后触发。
+	-- @param action（Action）执行完成的动作。
+	-- @param target（Node）执行完成动作的节点。
 	["ActionEnd"]: function(action: Action, target: Node)
 
-	-- The TapFilter slot is triggered before the TapBegan slot and can be used to filter out certain taps.
-	-- Triggers after setting node.touchEnabled = true.
-	-- @param touch (Touch) The touch that triggered the tap.
+	-- TapFilter事件在TapBegan插槽之前触发，可用于过滤某些点击事件。
+	-- 在设置`node.touchEnabled = true`之后才会触发。
+	-- @param touch（Touch）点击事件的消息对象。
 	["TapFilter"]: function(touch: Touch)
 
-	-- The TapBegan slot is triggered when a tap is detected.
-	-- Triggers after setting node.touchEnabled = true.
-	-- @param touch (Touch) The touch that triggered the tap.
+	-- TapBegan事件在检测到点击时触发。
+	-- 在设置`node.touchEnabled = true`之后才会触发。
+	-- @param touch（Touch）点击事件的消息对象。
 	["TapBegan"]: function(touch: Touch)
 
-	-- The TapEnded slot is triggered when a tap ends.
-	-- Triggers after setting node.touchEnabled = true.
-	-- @param touch (Touch) The touch that triggered the tap.
+	-- TapEnded事件在点击结束时触发。
+	-- 在设置`node.touchEnabled = true`之后才会触发。
+	-- @param touch（Touch）点击事件的消息对象。
 	["TapEnded"]: function(touch: Touch)
 
-	-- The Tapped slot is triggered when a tap is detected and has ended.
-	-- Triggers after setting node.touchEnabled = true.
-	-- @param touch (Touch) The touch that triggered the tap.
+	-- Tapped事件在检测到并结束点击时触发。
+	-- 在设置`node.touchEnabled = true`之后才会触发。
+	-- @param touch（Touch）点击事件的消息对象。
 	["Tapped"]: function(touch: Touch)
 
-	-- The TapMoved slot is triggered when a tap moves.
-	-- Triggers after setting node.touchEnabled = true.
-	-- @param touch (Touch) The touch that triggered the tap.
+	-- TapMoved事件在点击移动时触发。
+	-- 在设置`node.touchEnabled = true`之后才会触发。
+	-- @param touch（Touch）点击事件的消息对象。
 	["TapMoved"]: function(touch: Touch)
 
-	-- The MouseWheel slot is triggered when the mouse wheel is scrolled.
-	-- Triggers after setting node.touchEnabled = true.
-	-- @param delta (Vec2) The amount of scrolling that occurred.
+	-- MouseWheel事件在滚动鼠标滚轮时触发。
+	-- 在设置`node.touchEnabled = true`之后才会触发。
+	-- @param delta（Vec2）滚动的向量。
 	["MouseWheel"]: function(delta: Vec2)
 
-	-- The Gesture slot is triggered when a gesture is recognized.
-	-- Triggers after setting node.touchEnabled = true.
-	-- @param center (Vec2) The center of the gesture.
-	-- @param numFingers (integer) The number of fingers involved in the gesture.
-	-- @param deltaDist (number) The distance the gesture has moved.
-	-- @param deltaAngle (number) The angle of the gesture.
+	-- Gesture事件在识别到多点手势时触发。
+	-- 在设置`node.touchEnabled = true`之后才会触发。
+	-- @param center（Vec2）手势的中心点。
+	-- @param numFingers（integer）手势涉及的触摸点数量。
+	-- @param deltaDist（number）手势移动的距离。
+	-- @param deltaAngle（number）手势的变动角度。
 	["Gesture"]: function(center: Vec2, numFingers: integer, deltaDist: number, deltaAngle: number)
 
-	-- The Enter slot is triggered when a node is added to the scene graph.
-	-- Triggers when doing node:addChild().
+	-- 当节点被添加到场景树中时，触发Enter事件。
+	-- 当执行`node:addChild()`时触发。
 	["Enter"]: function()
 
-	-- The Exit slot is triggered when a node is removed from the scene graph.
-	-- Triggers when doing node:removeChild()
+	-- 当节点从场景树中移除时，触发Exit事件。
+	-- 当执行`node:removeChild()`时触发。
 	["Exit"]: function()
 
-	-- The Cleanup slot is triggered when a node is cleaned up.
-	-- Triggers only when doing parent:removeChild(node, true)
+	-- 当节点被清理时，触发Cleanup事件。
+	-- 仅当执行`parent:removeChild(node, true)`时触发。
 	["Cleanup"]: function()
 
-	-- The KeyDown slot is triggered when a key is pressed down.
-	-- Triggers after setting node.keyboardEnabled = true.
-	-- @param keyName (string) The name of the key that was pressed.
-	["KeyDown"]: function(keyName: string)
+	-- 当按下某个键盘按键时，触发KeyDown事件。
+	-- 在设置`node.keyboardEnabled = true`后才会触发。
+	-- @param keyName (string) 被按下的键的名称。
+	["KeyDown"]: function(keyName: Keyboard.KeyName)
 
-	-- The KeyUp slot is triggered when a key is released.
-	-- Triggers after setting node.keyboardEnabled = true.
-	-- @param keyName (string) The name of the key that was released.
-	["KeyUp"]: function(keyName: string)
+	-- 当释放某个键盘按键时，触发KeyUp事件。
+	-- 在设置`node.keyboardEnabled = true`后才会触发。
+	-- @param keyName (string) 被释放的键的名称。
+	["KeyUp"]: function(keyName: Keyboard.KeyName)
 
-	-- The KeyPressed slot is triggered when a key is pressed and released.
-	-- Triggers after setting node.keyboardEnabled = true.
-	-- @param keyName (string) The name of the key that was pressed and released.
-	["KeyPressed"]: function(keyName: string)
+	-- 当持续按下某个键时，触发KeyPressed事件。
+	-- 在设置`node.keyboardEnabled = true`后才会触发。
+	-- @param keyName (string) 被持续按下的键的名称。
+	["KeyPressed"]: function(keyName: Keyboard.KeyName)
 
-	-- The AttachIME slot is triggered when the input method editor (IME) is attached (calling node:attachIME()).
+	-- 当系统输入法（IME）开启到节点（调用`node: attachIME()`）时，会触发AttachIME事件。
 	["AttachIME"]: function()
 
-	-- The DetachIME slot is triggered when the input method editor (IME) is detached (calling node:detachIME() or manually closing IME).
+	-- 当系统输入法（IME）关闭（调用`node: detachIME()`或手动关闭IME）时，会触发DetachIME事件。
 	["DetachIME"]: function()
 
-	-- The TextInput slot is triggered when text input is received.
-	-- Triggers after calling node:attachIME().
-	-- @param text (string) The text that was input.
+	-- 当接收到系统输入法文本输入时，会触发TextInput事件。
+	-- 在调用`node:attachIME()`之后触发。
+	-- @param text（string）输入的文本。
 	["TextInput"]: function(text: string)
 
-	-- The TextEditing slot is triggered when text is being edited.
-	-- Triggers after calling node:attachIME().
-	-- @param text (string) The text that is being edited.
-	-- @param startPos (integer) The starting position of the text being edited.
+	-- 当系统输入法文本正在被编辑时，会触发TextEditing事件。
+	-- 在调用`node:attachIME()`之后触发。
+	-- @param text（string）正在编辑的文本。
+	-- @param startPos（integer）正在编辑的文本的起始位置。
 	["TextEditing"]: function(text: string, startPos: integer)
 end
 
--- The global signal slot communication features.
--- This is just a demonstration record showing the global signal slot names and callbacks.
--- You can register for these events using codes like:
+-- 全局事件的定义。
+-- 这只是一个事件定义的展示，包含所有全局事件名称和回调函数的定义。
+-- 可以使用如下示例代码注册这些事件：
 -- node:gslot("AppQuit", function()
--- 	print("Application is shuting down!")
+-- 	print("应用正在被关闭！")
 -- end)
 local record __GSLOT__
-	-- Triggers when the application is about to quit.
+
+	-- 应用即将退出时触发。
 	["AppQuit"]: function()
 
-	-- Triggers when the application receives a low memory warning.
+	-- 应用接收到低内存警告时触发。
 	["AppLowMemory"]: function()
 
-	-- Triggers when the application is about to enter the background.
+	-- 应用即将进入后台时触发。
 	["AppWillEnterBackground"]: function()
 
-	-- Triggers when the application has entered the background.
+	-- 应用已经进入后台时触发。
 	["AppDidEnterBackground"]: function()
 
-	-- Triggers when the application is about to enter the foreground.
+	-- 应用即将进入前台时触发。
 	["AppWillEnterForeground"]: function()
 
-	-- Triggers when the application has entered the foreground.
+	-- 应用已经进入前台时触发。
 	["AppDidEnterForeground"]: function()
 
-	-- Triggers when the application window size changes.
+	-- 应用窗口大小发生变化时触发。
 	["AppSizeChanged"]: function()
+
+	-- 应用进入或退出全屏窗口模式时触发。
+	["AppFullScreen"]: function(fullScreen: boolean)
+
+	-- 应用改变主题颜色时触发。
+	["AppTheme"]: function(themeColor: Color)
 end
 
--- A class object for the `Node` class.
+-- 用于创建场景节点实例的类。
 local record NodeClass
 	type Type = Node
 
-	-- Creates a new instance of the `Node` class.
-	-- @returns Node A new instance of the `Node` class.
+	-- 创建一个新的场景节点实例。
 	-- @usage
 	-- local Node = require("Node")
 	-- local node = Node()
+	-- @returns (Node) 场景节点的新实例。
 	metamethod __call: function(self: NodeClass): Node
 end
 

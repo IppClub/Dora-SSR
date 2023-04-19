@@ -1,15 +1,15 @@
--- A class for profiling functions.
+-- 用于性能测试分析的类。
 local record ProfilerClass
 
-	-- The name of the profiling event.
+	-- 性能测试分析事件的名称。
 	const EventName: string
 
-	-- The current level of profiling.
+	-- 当前性能测试分析的级别。
 	level: integer
 
-	-- Calls a function and return the amount of time it took to execute.
-	-- @param funcForProfiling (function) The function to profile.
-	-- @return (number) The amount of time it took to execute the function.
+	-- 调用一个函数并返回执行所需的时间。
+	-- @param funcForProfiling (function) 要进行分析的函数。
+	-- @return (number) 执行函数所需的时间。
 	-- @usage local time = Profiler(myFunction)
 	metamethod __call: function(self: ProfilerClass, funcForProfiling: function): number
 end

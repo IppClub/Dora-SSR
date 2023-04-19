@@ -1,36 +1,38 @@
 local ContainerItem = require("ContainerItemType")
 
--- An class that is a base class for many C++ objects that managed by Lua VM.
+-- 被Lua虚拟机管理的C++对象的基类。
 local record Object
+
+	-- 继承自`ContainerItem`。
 	embed ContainerItem
 
-	-- The ID of the C++ object.
+	-- C++对象的ID。
 	const id: integer
 
-	-- The Lua reference ID for this C++ object.
+	-- C++对象的Lua引用ID。
 	const ref: integer
 end
 
--- The static class for accessing class attributes.
+-- 用于访问C++对象管理相关信息的静态类。
 local record ObjectClass
 	type Type = Object
 
-	-- The number of total existing C++ objects.
+	-- 所有现存的C++对象的数量。
 	const count: integer
 
-	-- The maximum number of objects that were ever created.
+	-- 曾经创建的C++对象的最大数量。
 	const maxCount: integer
 
-	-- The number of total existing Lua references to C++ objects.
+	-- 所有现存的Lua引用的C++对象的计数。
 	const luaRefCount: integer
 
-	-- The maximum number of Lua references that were ever created.
+	-- 曾经创建的Lua引用C++对象的最大数量。
 	const maxLuaRefCount: integer
 
-	-- The number of C++ function call objects referenced by Lua.
+	-- Lua引用的C++函数对象的数量。
 	const callRefCount: integer
 
-	-- The maximum number of function call references that were ever created.
+	-- 曾经创建的C++函数调用引用的最大数量。
 	const maxCallRefCount: integer
 end
 

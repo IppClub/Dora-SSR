@@ -1,38 +1,38 @@
 local Entity = require("Entity").Type
 
--- A record representing an observer of entity changes in the game systems.
+-- 游戏ECS系统实体更改观察器的类。
 local record Observer
 
-	-- Watches the game state for changes to entities that match the observer's component filter, calling a function whenever a change occurs.
-	-- @param func (function) The function to call when a change occurs.
-	-- @return (Observer) The same observer, for method chaining.
+	-- 监控观察器观察的实体上的组件变化，在发生变更时调用处理函数。
+	-- @param func (function) 当发生组件变更时要调用的处理函数。
+	-- @return (Observer) 当前的观察器，用于方法级连调用。
 	watch: function(self: Observer, func: function(Entity)): Observer
 end
 
--- A class for creating Observer objects.
+-- 用于创建观察器对象的类。
 local record ObserverClass
 	type Type = Observer
 
-	-- The types of actions that an observer can watch for.
+	-- 观察器可以观察的实体变更类型。
 	enum Action
 
-		-- The addition of a new entity.
+		-- 添加新实体。
 		"Add"
 
-		-- The modification of an existing entity.
+		-- 修改现有实体上的组件。
 		"Change"
 
-		-- The addition or modification of an entity.
+		-- 添加或修改实体。
 		"AddOrChange"
 
-		-- The removal of an existing entity.
+		-- 删除现有实体。
 		"Remove"
 	end
 
-	-- A metamethod that creates a new observer with the specified component filter and action to watch for
-	-- @param action (Action) The type of action to watch for.
-	-- @param components ({string}) A table listing the names of the components to filter entities by.
-	-- @return The new observer.
+	-- 用于创建监控具有特定组件的实体变化的新观察器。
+	-- @param action (Action) 要监控的实体变化类型。
+	-- @param components ({string}) 监控的实体包含的组件的清单。
+	-- @return (Observer) 新的观察器对象。
 	metamethod __call: function(self: ObserverClass, action: Action, components: {string}): Observer
 end
 

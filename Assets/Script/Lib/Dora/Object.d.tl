@@ -11,14 +11,14 @@ local record Object
 	const ref: integer
 end
 
--- The static class for accessing class attributes.
+-- The static class for accessing object class attributes.
 local record ObjectClass
 	type Type = Object
 
 	-- The number of total existing C++ objects.
 	const count: integer
 
-	-- The maximum number of objects that were ever created.
+	-- The maximum number of C++ objects that were ever created.
 	const maxCount: integer
 
 	-- The number of total existing Lua references to C++ objects.
@@ -30,7 +30,7 @@ local record ObjectClass
 	-- The number of C++ function call objects referenced by Lua.
 	const callRefCount: integer
 
-	-- The maximum number of function call references that were ever created.
+	-- The maximum number of C++ function call references that were ever created.
 	const maxCallRefCount: integer
 end
 

@@ -3,7 +3,7 @@ local Entity = require("Entity").Type
 -- A record representing an observer of entity changes in the game systems.
 local record Observer
 
-	-- Watches the game state for changes to entities that match the observer's component filter, calling a function whenever a change occurs.
+	-- Watches the components changes to entities that match the observer's component filter.
 	-- @param func (function) The function to call when a change occurs.
 	-- @return (Observer) The same observer, for method chaining.
 	watch: function(self: Observer, func: function(Entity)): Observer
@@ -32,7 +32,7 @@ local record ObserverClass
 	-- A metamethod that creates a new observer with the specified component filter and action to watch for
 	-- @param action (Action) The type of action to watch for.
 	-- @param components ({string}) A table listing the names of the components to filter entities by.
-	-- @return The new observer.
+	-- @return (Observer) The new observer.
 	metamethod __call: function(self: ObserverClass, action: Action, components: {string}): Observer
 end
 

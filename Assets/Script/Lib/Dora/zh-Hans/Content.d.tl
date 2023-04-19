@@ -18,7 +18,7 @@ local record Content
 
 	-- 以阻塞的方式按表名读取 Excel 文件的内容。
 	-- @param filename (string) 要读取的 Excel 文件名。
-	-- @param sheetNames ({string}) [可选] 要读取的Excel表名的字符串数组。如果不提供，则默认会读取所有表。
+	-- @param sheetNames ({string}) [可选] 要读取的Excel表名的字符串列表。如果不提供，则默认会读取所有表。
 	-- @return (table) 包含 Excel 文件数据的Lua表。Lua表的键是表名，值是包含Excel表的行列数据的表。如果读取失败则返回nil。
 	loadExcel: function(self: Content, filename: string, sheetNames?: {string}):
 		{
@@ -78,7 +78,7 @@ local record Content
 
 	-- 以异步的方式按表名读取 Excel 文件的内容。
 	-- @param filename (string) 要读取的 Excel 文件名。
-	-- @param sheetNames ({string}) [可选] 要读取的Excel表名的字符串数组。如果不提供，则默认会读取所有表。
+	-- @param sheetNames ({string}) [可选] 要读取的Excel表名的字符串列表。如果不提供，则默认会读取所有表。
 	-- @return (table) 包含 Excel 文件数据的Lua表。Lua表的键是表名，值是包含Excel表的行列数据的表。如果读取失败则返回nil。
 	loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string}):
 		{
@@ -109,17 +109,17 @@ local record Content
 
 	-- 获取指定目录中所有子目录的名称。
 	-- @param path (string) 要搜索的目录的路径。
-	-- @return (table) 包含指定目录中所有子目录名称的数组。
+	-- @return (table) 包含指定目录中所有子目录名称的列表。
 	getDirs: function(self: Content, path: string): {string}
 
 	-- 获取指定目录中所有文件的名称。
 	-- @param path (string) 要搜索的目录的路径。
-	-- @return (table) 包含指定目录中所有文件名称的数组。
+	-- @return (table) 包含指定目录中所有文件名称的列表。
 	getFiles: function(self: Content, path: string): {string}
 
 	-- 获取指定目录及其子目录中所有文件的名称。
 	-- @param path (string) 要搜索的目录的路径。
-	-- @return (table) 包含指定目录及其子目录中所有文件名称的数组。
+	-- @return (table) 包含指定目录及其子目录中所有文件名称的列表。
 	getAllFiles: function(self: Content, path: string): {string}
 
 	-- 清除相对路径到完整路径映射的搜索路径缓存。

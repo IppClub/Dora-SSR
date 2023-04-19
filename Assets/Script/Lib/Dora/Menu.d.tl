@@ -17,14 +17,14 @@ local record MenuClass
 	type Type = Menu
 
 	-- Creates a new instance of `Menu` with the specified width and height.
-	---@param width (number)
-	---@param height (number)
-	---@return (Menu)
+	---@param width (number) The width of Menu node.
+	---@param height (number) The height of Menu node.
+	---@return (Menu) A new Menu node object.
 	metamethod __call: function(self: MenuClass, width: number, height: number): Menu
 
 	-- Creates a new instance of `Menu` with 0 width and 0 height.
 	-- A menu with zero size will handle full screen touches for children nodes.
-	-- @return (Menu)
+	-- @return (Menu) A new Menu node object.
 	metamethod __call: function(self: MenuClass): Menu
 end
 

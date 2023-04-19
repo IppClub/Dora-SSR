@@ -30,13 +30,13 @@ local record Behavior
 		embed Object
 	end
 
-	-- 创建一个新的序列节点，并按顺序执行数组中的子节点。
-	-- @param nodes ({Leaf}) 子节点的数组。
+	-- 创建一个新的序列节点，并按顺序执行列表中的子节点。
+	-- @param nodes ({Leaf}) 子节点的列表。
 	-- @return (Leaf) 新的序列AI节点。
 	Seq: function(nodes: {Leaf}): Leaf
 
 	-- 创建一个新的选择器节点，按顺序遍历寻找可以执行成功的子节点。
-	-- @param nodes ({Leaf}) 子节点的数组。
+	-- @param nodes ({Leaf}) 子节点的列表。
 	-- @return (Leaf) 新的选择器AI节点。
 	Sel: function(nodes: {Leaf}): Leaf
 

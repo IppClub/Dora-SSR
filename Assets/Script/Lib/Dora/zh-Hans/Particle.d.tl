@@ -1,33 +1,36 @@
 local Node = require("Node").Type
 
--- Represents a particle system node that emits and animates particles.
+-- 用于发射动画粒子的粒子系统场景节点类。
 local record Particle
+
+	-- 继承自`Node`。
 	embed Node
 
-	-- Whether the particle system is active.
+	-- 粒子系统是否处于活动状态。
 	const active: boolean
 
-	-- Starts emitting particles.
+	-- 开始发射粒子。
 	start: function(self: Particle)
 
-	 -- Stops emitting particles and wait for all active particles to end their lives.
+	-- 停止发射粒子，并等待所有活动粒子结束它们的生命周期。
 	stop: function(self: Particle)
 end
 
--- Signal slot that can be connected to a Particle object.
--- This is just a demonstration record showing the signal slot names and callbacks.
+-- 可连接到粒子系统节点对象上可以监听的事件。
+-- 这只是一个事件定义的展示，定义事件名称和回调。
 local record __SLOT__
-	-- Triggered after a Particle node started a stop action and then all the active particles end their lives.
+
+	-- 当粒子系统节点在启动之后又停止发射粒子，并等待所有已发射的粒子结束它们的生命周期时触发。
 	["Finished"]: function()
 end
 
--- A class that can create new Particle objects.
+-- 可创建新的粒子系统节点对象的类。
 local record ParticleClass
 	type Type = Particle
 
-	-- Creates a new Particle object from a particle system file.
-	-- @param filename (string) The file path of the particle system file.
-	-- @return (Particle) A new Particle object.
+	-- 从粒子系统定义文件创建一个新的粒子系统节点对象。
+	-- @param filename (string) 粒子系统定义文件的文件路径。
+	-- @return (Particle) 新的粒子系统节点对象。
 	metamethod __call: function(self: ParticleClass, filename: string): Particle
 end
 

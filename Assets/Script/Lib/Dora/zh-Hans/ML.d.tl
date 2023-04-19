@@ -1,33 +1,36 @@
 local Object = require("Object").Type
 
--- A simple reinforcement learning framework that can be used to learn optimal policies for Markov decision processes using Q-learning. Q-learning is a model-free reinforcement learning algorithm that learns an optimal action-value function from experience by repeatedly updating estimates of the Q-value of state-action pairs.
+-- 一个简单的强化学习框架，可用于使用Q-learning算法学习马尔可夫决策过程的最优策略。
+-- Q-learning是一种无模型强化学习算法，通过反复更新一对状态和动作下计算的Q值，获得最优动作评估值的函数。
 local record QLearner
+
+	-- 继承自`Object`。
 	embed Object
 
-	-- The matrix that stores state, action, and Q-value.
+	-- 存储状态、动作和Q值的矩阵。
 	const matrix: {{
 		--[[state]] integer,
 		--[[action]] integer,
 		--[[Q-value]] number
 	}}
 
-	-- Update Q-value for a state-action pair based on received reward.
-	-- @param state (integer) Representing the state.
-	-- @param action (integer) Representing the action.
-	-- @param reward (number) Representing the reward received for the action in the state.
+	-- 根据收到的奖励值更新一对状态和动作下的Q值。
+	-- @param state (integer) 表示状态的整数。
+	-- @param action (integer) 表示动作的整数。
+	-- @param reward (number) 表示在状态中采取行动获得的奖励值。
 	update: function(self: QLearner, state: integer, action: integer, reward: number)
 
-	-- Returns the best action for a given state based on the current Q-values.
-	-- @param state (integer) The current state.
-	-- @return (integer) The action with the highest Q-value for the given state.
+	-- 基于当前Q值返回给定状态的最佳动作。
+	-- @param state (integer) 当前状态。
+	-- @return (integer) 给定状态下具有最高Q值的动作。
 	getBestAction: function(self: QLearner, state: integer): integer
 
-	-- Load Q-values from a matrix of state-action pairs.
+	-- 从状态-动作对的矩阵中加载Q值。
 	-- @param values ({
-	-- 	(integer) The state.
-	-- 	(integer) The action.
-	-- 	(number) The Q-value for the given state-action pair.
-	-- }) The matrix of state-action pairs to load.
+	-- 	(integer) 状态。
+	-- 	(integer) 动作。
+	-- 	(number) 状态-动作对的Q值。
+	-- }) 要加载的状态-动作对的矩阵。
 	load: function(self: QLearner, values: {{
 			--[[state]] integer,
 			--[[action]] integer,
@@ -35,26 +38,27 @@ local record QLearner
 		}})
 end
 
--- A class for creating QLearner objects.
+-- 用于创建QLearner对象的类。
 local record QLearnerClass
 	type Type = QLearner
 
-	-- Construct a state from given hints and condition values.
-	-- @param hints ({integer}) Representing the byte length of provided values.
-	-- @param values ({integer}) The condition values as discrete values.
+	-- 根据给定的数值的字节长度的提示和条件数值构造状态值。
+	-- @param hints ({integer}) 表示条件数值的字节长度。
+	-- @param values ({integer}) 离散值形式的条件值。
+	-- @return (integer) 生成的状态值。
 	pack: function(self: QLearnerClass, hints: {integer}, values: {integer}): --[[state]] integer
 
-	-- Deconstruct a state from given hints to get condition values.
-	-- @param hints ({integer}) Representing the byte length of provided values.
-	-- @param state (integer) The state integer to unpack.
-	-- @return ({integer}) The condition values as discrete values.
+	-- 通过给定的字节长度的提示解析状态值以获取条件值。
+	-- @param hints ({integer}) 表示条件数值的字节长度。
+	-- @param state (integer) 要解析的状态整数。
+	-- @return ({integer}) 包含离散值形式的条件值列表。
 	unpack: function(self: QLearnerClass, hints: {integer}, state: integer): {integer}
 
-	-- Create a new QLearner object with optional parameters for gamma, alpha, and maxQ.
-	-- @param gamma (number) The discount factor for future rewards. Defaults to 0.5.
-	-- @param alpha (number) The learning rate for updating Q-values. Defaults to 0.5.
-	-- @param maxQ (number) The maximum Q-value. Defaults to 100.0.
-	-- @return (QLearner) The newly created QLearner object.
+	-- 创建一个新的QLearner对象，并设定好gamma、alpha和maxQ参数。
+	-- @param gamma (number) 计算奖励的调节因子。默认为0.5。
+	-- @param alpha (number) 更新Q值的学习速率。默认为0.5。
+	-- @param maxQ (number) 最大Q值。默认为100.0。
+	-- @return (QLearner) 新创建的QLearner对象。
 	metamethod __call: function(
 		self: QLearnerClass,
 		gamma?: number --[[0.5]],
@@ -63,10 +67,10 @@ local record QLearnerClass
 	): QLearner
 end
 
--- A record for machine learning algorithms.
+-- 包含一些常用机器学习算法的模块。
 local record ML
 
-	-- Enumeration for comparison operators
+	-- 比较运算符的枚举。
 	enum Operator
 		"return"
 		"<="
@@ -74,18 +78,18 @@ local record ML
 		"=="
 	end
 
-	-- A function that takes CSV data as input and applies the C4.5 machine learning algorithm to build a decision tree model asynchronously.
-	-- C4.5 is a decision tree algorithm that uses information gain to select the best attribute to split the data at each node of the tree. The resulting decision tree can be used to make predictions on new data.
-	-- @param csvData (string) The CSV training data for building the decision tree using delimiter `,`.
-	-- @param maxDepth (integer) The maximum depth of the generated decision tree.
-	-- Set to 0 to prevent limiting the generated tree depth.
-	-- @param handler (function) The callback function to be called for each node of the generated decision tree.
-	-- 	@param depth (integer) The depth of the current node in the decision tree.
-	-- 	@param name (string) The name of the attribute used for splitting the data at the current node.
-	-- 	@param op (Operator) The comparison operator used for splitting the data at the current node.
-	-- 	@param value (string) The value used for splitting the data at the current node.
-	-- @return (number) The accuracy of the decision tree on the training data.
-	-- @return (string) An error message if an error occurred during building of the decision tree.
+	-- 输入CSV数据，然后异步执行C4.5机器学习算法构建决策树模型。
+	-- C4.5是一种决策树算法，它使用信息增益来选择最佳属性，在树的每个节点上拆分数据。生成的决策树可以用于对新数据进行预测。
+	-- @param csvData (string) 使用`,`分隔符的CSV格式训练数据。
+	-- @param maxDepth (integer) 生成的决策树的最大深度。
+	-- 将其设置为0则不再限制生成树的深度。
+	-- @param handler (function) 用于遍历访问生成决策树节点的回调函数。
+	-- 	@param depth (integer) 决策树中当前节点的深度。
+	-- 	@param name (string) 在当前节点处拆分数据的属性的名称。
+	-- 	@param op (Operator) 在当前节点处拆分数据使用的比较运算符。
+	-- 	@param value (string) 在当前节点处拆分数据的值。
+	-- @return (number｜nil) 决策树在训练数据上的准确度。
+	-- @return (string) 如果在构建决策树期间发生错误，则返回此错误消息。
 	BuildDecisionTreeAsync: function(
 		self: ML,
 		csvData: string,
@@ -93,7 +97,7 @@ local record ML
 		handler: function(depth: integer, name: string, op: Operator, value: string)
 	): --[[accuracy]] number, --[[error]] string
 
-	-- A field for accessing QLearner class.
+	-- 用于访问QLearner类的字段。
 	QLearner: QLearnerClass
 end
 

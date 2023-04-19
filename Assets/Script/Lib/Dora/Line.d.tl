@@ -9,7 +9,7 @@ local record Line
 	-- Inherits from `Node`.
 	embed Node
 
-	-- Whether the depth should be written.
+	-- Whether the depth should be written. (Default is false)
 	depthWrite: boolean
 
 	-- Blend function used for rendering the line.

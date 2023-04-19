@@ -10,15 +10,15 @@ local record AI
 
 	-- 获取游戏单位的检测范围内具有指定关系的单位。
 	-- @param relation (Relation) 游戏单位的关系。
-	-- @return (Array) 具有指定关系的游戏单位数组。
+	-- @return (Array) 具有指定关系的游戏单位列表。
 	getUnitsByRelation: function(self: AI, relation: Relation): Array
 
 	-- 获取AI已检测到的游戏单位。
-	-- @return (Array) 被检测到的游戏单位数组。
+	-- @return (Array) 被检测到的游戏单位列表。
 	getDetectedUnits: function(self: AI): Array
 
 	-- 获取AI已检测到的游戏物理体。
-	-- @return (Array) 被检测到的游戏物理体数组。
+	-- @return (Array) 被检测到的游戏物理体列表。
 	getDetectedBodies: function(self: AI): Array
 
 	-- 获取距离AI单位最近的具有指定关系的游戏单位。
@@ -32,11 +32,11 @@ local record AI
 	getNearestUnitDistance: function(self: AI, relation: Relation): number
 
 	-- 获取攻击范围内的游戏单位。
-	-- @return (Array) 攻击范围内的游戏单位数组。
+	-- @return (Array) 攻击范围内的游戏单位列表。
 	getUnitsInAttackRange: function(self: AI): Array
 
 	-- 获取攻击范围内的游戏物理体。
-	-- @return (Array) 攻击范围内的游戏物理体数组。
+	-- @return (Array) 攻击范围内的游戏物理体列表。
 	getBodiesInAttackRange: function(self: AI): Array
 end
 
@@ -50,13 +50,13 @@ local record Decision
 
 	-- 创建一个选择器节点。
 	-- 选择器节点将遍历子节点直到任意节点执行成功。
-	-- @param nodes ({Leaf}) 子节点的数组。
+	-- @param nodes ({Leaf}) 子节点的列表。
 	-- @return (Leaf) 新的决策树选择器节点。
 	Sel: function(nodes: {Leaf}): Leaf
 
 	-- 创建一个新的序列节点。
 	-- 序列节点将遍历执行子节点直到所有节点都成功。
-	-- @param nodes ({Leaf}) 子节点的数组。
+	-- @param nodes ({Leaf}) 子节点的列表。
 	-- @return (Leaf) 新的决策树序列节点。
 	Seq: function(nodes: {Leaf}): Leaf
 

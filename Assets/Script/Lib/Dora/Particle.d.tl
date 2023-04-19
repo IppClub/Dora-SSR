@@ -19,6 +19,7 @@ end
 -- Signal slot that can be connected to a Particle object.
 -- This is just a demonstration record showing the signal slot names and callbacks.
 local record __SLOT__
+
 	-- Triggered after a Particle node started a stop action and then all the active particles end their lives.
 	["Finished"]: function()
 end

@@ -1,16 +1,18 @@
 local Joint = require("JointType")
 
--- A joint that applies a rotational or linear force to a physics body.
+-- 用于对物理体施加旋转或线性力的连接关节。
 local record MotorJoint
+
+	-- 继承自`Joint`。
 	embed Joint
 
-	-- Whether or not the motor joint is enabled.
+	-- 关节发动机是否启用。
 	enabled: boolean
 
-	-- The force applied to the motor joint.
+	-- 关节发动机要施加的力。
 	force: number
 
-	-- The speed of the motor joint.
+	-- 关节发动机的速度。
 	speed: number
 end
 

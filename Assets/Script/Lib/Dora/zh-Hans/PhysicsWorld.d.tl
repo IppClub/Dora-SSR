@@ -1,18 +1,16 @@
 local type PhysicsWorld = require("PhysicsWorldType")
 
--- A class for creating PhysicsWorld objects.
+-- 用于创建物理世界对象的类。
 local record PhysicsWorldClass
 	type Type = PhysicsWorld
 
-	-- A factor used for converting physics engine meters value to pixel value.
-	-- Default 100.0 is a good value since the physics engine can well simulate real life objects
-	-- between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
-	-- between 10 to 1000 pixels that suite most games.
-	-- You can change this value before any physics body creation.
+	-- 用于将物理引擎的米制单位值转换为像素单位的系数。
+	-- 默认值 100.0 是一个比较适合的值，因为物理引擎可以很好地模拟现实生活中，大小在 0.1 到 10 米之间的物体。使用值 100.0 可以模拟映射到大小在 10 到 1000 像素之间的游戏对象，可以适用于大多数游戏的游戏对象。
+	-- 可以在创建任何物理体之前更改此值，使其生效。
 	scaleFactor: number
 
-	-- Creates a new "PhysicsWorld" object.
-	-- @return (PhysicsWorld) The new "PhysicsWorld" object.
+	-- 创建一个新的物理世界对象。
+	-- @return (PhysicsWorld) 新的物理世界对象。
 	metamethod __call: function(self: PhysicsWorldClass): PhysicsWorld
 end
 
