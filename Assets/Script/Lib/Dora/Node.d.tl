@@ -16,9 +16,9 @@ local Routine = require("Routine")
 local Camera = require("Camera").Type
 local SpriteEffect = require("SpriteEffect").Type
 local BlendFunc = require("BlendFunc").Type
+local Keyboard = require("Keyboard")
 
--- class to be used to build
--- a hierarchical tree structure of game objects.
+-- Class used for building a hierarchical tree structure of game objects.
 local record Node
 
 	-- Inherits from `Object`.
@@ -138,7 +138,7 @@ local record Node
 	-- Whether to group the node's rendering with all its recursive children.
 	renderGroup: boolean
 
-	-- The rendering order of the node relative to its siblings.
+	-- The rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier.
 	renderOrder: integer
 
 	-- Adds a child node to the current node.
@@ -166,7 +166,7 @@ local record Node
 
 	-- Removes a child node from the current node.
 	-- @param child (Node) The child node to remove.
-	-- @param cleanup (boolean) Whether to cleanup the child node. Default is true.
+	-- @param cleanup (boolean) [optional] Whether to cleanup the child node. Default is true.
 	removeChild: function(
 		self: Node,
 		child: Node,
@@ -175,7 +175,7 @@ local record Node
 
 	-- Removes a child node from the current node by tag.
 	-- @param tag (string) The tag of the child node to remove.
-	-- @param cleanup (boolean) Whether to cleanup the child node. Default is true.
+	-- @param cleanup (boolean) [optional] Whether to cleanup the child node. Default is true.
 	removeChildByTag: function(
 		self: Node,
 		tag: string,
@@ -183,14 +183,14 @@ local record Node
 	)
 
 	-- Removes all child nodes from the current node.
-	-- @param cleanup (boolean) Whether to cleanup the child nodes. Default is true.
+	-- @param cleanup (boolean) [optional] Whether to cleanup the child nodes. Default is true.
 	removeAllChildren: function(
 		self: Node,
 		cleanup?: boolean --[[true]]
 	)
 
 	-- Removes the current node from its parent node.
-	-- @param cleanup (boolean) Whether to cleanup the current node. Default is true.
+	-- @param cleanup (boolean) [optional] Whether to cleanup the current node. Default is true.
 	removeFromParent: function(
 		self: Node,
 		cleanup?: boolean --[[true]]
@@ -237,7 +237,7 @@ local record Node
 
 	-- Converts a point from node space to world space.
 	-- @param nodePoint (Vec2) The point in node space.
-	-- @param z (number) The z coordinate in world space.
+	-- @param z (number) The z coordinate in node space.
 	-- @returns (Vec2, number) The converted point in world space and z coordinate.
 	convertToWorldSpace: function(self: Node, nodePoint: Vec2, z: number): Vec2, number
 
@@ -263,12 +263,12 @@ local record Node
 
 	-- Runs the given action on this node.
 	-- @param action (Action) The action to run.
-	-- @returns (number) The duration of the newly running action.
+	-- @returns (number) The duration of the newly running action in seconds.
 	runAction: function(self: Node, action: Action)
 
 	-- Runs an action defined by the given action definition on this node.
 	-- @param actionDef (ActionDef) The action definition to run.
-	-- @returns (number) The duration of the newly running action.
+	-- @returns (number) The duration of the newly running action in seconds.
 	runAction: function(self: Node, actionDef: ActionDef)
 
 	-- Stops all actions running on this node.
@@ -289,7 +289,7 @@ local record Node
 	stopAction: function(self: Node, action: Action)
 
 	-- Vertically aligns all child nodes of this node.
-	-- @param padding (number) The padding between child nodes. Defaults to 10.
+	-- @param padding (number) [optional] The padding between child nodes. Defaults to 10.
 	-- @returns (Size) The size of the aligned child nodes.
 	alignItemsVertically: function(
 		self: Node,
@@ -297,9 +297,9 @@ local record Node
 	): Size
 
 	-- Vertically aligns all child nodes within the node using the given size and padding.
-	-- @param size The size to use for alignment.
-	-- @param padding The amount of padding to use between each child node (default is 10).
-	-- @return The size of the node after alignment.
+	-- @param size (Size) The size to use for alignment.
+	-- @param padding (number) The amount of padding to use between each child node (default is 10).
+	-- @return (Size) The size of the node after alignment.
 	alignItemsVertically: function(
 		self: Node,
 		size: Size,
@@ -307,17 +307,17 @@ local record Node
 	): Size
 
 	-- Horizontally aligns all child nodes within the node using the given padding.
-	-- @param padding The amount of padding to use between each child node (default is 10).
-	-- @return The size of the node after alignment.
+	-- @param padding (number) [optional] The amount of padding to use between each child node (default is 10).
+	-- @return (Size) The size of the node after alignment.
 	alignItemsHorizontally: function(
 		self: Node,
 		padding?: number --[[10]]
 	): Size
 
 	-- Horizontally aligns all child nodes within the node using the given size and padding.
-	-- @param size The size to hint for alignment.
-	-- @param padding The amount of padding to use between each child node (default is 10).
-	-- @return The size of the node after alignment.
+	-- @param size (Size) The size to hint for alignment.
+	-- @param padding (number) [optional] The amount of padding to use between each child node (default is 10).
+	-- @return (Size) The size of the node after alignment.
 	alignItemsHorizontally: function(
 		self: Node,
 		size: Size,
@@ -325,22 +325,25 @@ local record Node
 	): Size
 
 	-- Aligns all child nodes within the node using the given size and padding.
-	-- @param padding The amount of padding to use between each child node (default is 10).
-	-- @return The size of the node after alignment.
+	-- @param padding (number) [optional] The amount of padding to use between each child node (default is 10).
+	-- @return (Size) The size of the node after alignment.
 	alignItems: function(
 		self: Node,
 		padding?: number --[[10]]
 	): Size
 
 	-- Aligns all child nodes within the node using the given size and padding.
-	-- @param size The size to use for alignment (optional).
-	-- @param padding The amount of padding to use between each child node (default is 10).
-	-- @return The size of the node after alignment.
+	-- @param size (Size) The size to use for alignment.
+	-- @param padding (number) [optional] The amount of padding to use between each child node (default is 10).
+	-- @return (Size) The size of the node after alignment.
 	alignItems: function(
 		self: Node,
 		size: Size,
 		padding?: number --[[10]]
 	): Size
+
+	-- Moves and changes child nodes' visibility based on their position in parent's area.
+	-- @param delta (Vec2) The distance to move its children.
 	moveAndCullItems: function(self: Node, delta: Vec2)
 
 	-- Attaches the input method editor (IME) to the node.
@@ -350,30 +353,30 @@ local record Node
 	-- Detaches the input method editor (IME) from the node.
 	detachIME: function(self: Node)
 
-	-- Gets the global signal slot associated with the given event name.
-	-- @param eventName The name of the event.
-	-- @return All the global signal slots associated with the event.
+	-- Gets the global event listener associated with the given event name in this node.
+	-- @param eventName (string) The name of the global event.
+	-- @return ({GSlot}) All the global event listeners associated with the event.
 	gslot: function(self: Node, eventName: string): {GSlot}
 
-	-- Associates the given handler function with the global signal slot for the given event name.
-	-- @param eventName The name of the event.
-	-- @param handler The handler function to associate with the event.
-	-- @return The global signal slot associated with the event.
+	-- Associates the given event handler function with a global event.
+	-- @param eventName (string) The name of the global event.
+	-- @param handler (function) The handler function to associate with the event.
+	-- @return (GSlot) The global event listener associated with the event in this node.
 	gslot: function(self: Node, eventName: string, handler: function()): GSlot
 
-	-- Gets the signal slot associated with the given event name.
-	-- @param eventName The name of the event.
-	-- @return The signal slot associated with the event.
+	-- Gets the node event listener associated with the given node event name.
+	-- @param eventName (string) The name of the node event.
+	-- @return (Slot) The node event listener associated with the node event.
 	slot: function(self: Node, eventName: string): Slot
 
-	-- Associates the given handler function with the signal slot for the given event name.
-	-- @param eventName The name of the event.
-	-- @param handler The handler function to associate with the event.
+	-- Associates the given handler function with the node event.
+	-- @param eventName (string) The name of the node event.
+	-- @param handler (function) The handler function to associate with the node event.
 	slot: function(self: Node, eventName: string, handler: function())
 
-	-- Emits the signal associated with the given event name with the given arguments.
-	-- @param eventName The name of the event.
-	-- @param ... The arguments to pass to the signal handler functions.
+	-- Emits a node event with a given event name and arguments.
+	-- @param eventName (string) The name of the node event.
+	-- @param ... (...any) The arguments to pass to the node event handler functions.
 	emit: function(self: Node, eventName: string, ...: any)
 
 	-- A grabber which is used to render a part of the scene to a texture
@@ -403,7 +406,7 @@ local record Node
 		-- Gets the position of a vertex in the grabber grid.
 		-- @param x (integer) The x-index of the vertex in the grabber grid.
 		-- @param y (integer) The y-index of the vertex in the grabber grid.
-		-- @return (Vec2, number) The position of the vertex.
+		-- @return (Vec2) The position of the vertex.
 		getPos: function(self: Grabber, x: integer, y: integer): Vec2
 
 		-- Gets the color of a vertex in the grabber grid.
@@ -420,17 +423,17 @@ local record Node
 	end
 
 	-- Creates or removes a texture grabber for the specified node.
-	-- @param enabled A boolean indicating whether to enable or disable the grabber. Default is true.
-	-- @return A Grabber object when enabled.
+	-- @param enabled (boolean) Whether to enable or disable the grabber. Default is true.
+	-- @return (Grabber) A Grabber object when enabled.
 	grab: function(
 		self: Node,
 		enabled?: boolean --[[true]]
 	): Grabber
 
 	-- Creates a texture grabber for the specified node with a specified grid size.
-	-- @param gridX The number of horizontal grid cells to divide the grabber into.
-	-- @param gridY The number of vertical grid cells to divide the grabber into.
-	-- @return A Grabber object.
+	-- @param gridX (number) The number of horizontal grid cells to divide the grabber into.
+	-- @param gridY (number) The number of vertical grid cells to divide the grabber into.
+	-- @return (Grabber) A Grabber object.
 	grab: function(self: Node, gridX: number, gridY: number): Grabber
 end
 
@@ -443,43 +446,43 @@ end
 local record __SLOT__
 
 	-- The ActionEnd slot is triggered when an action is finished.
-	-- Triggers after node:runAction() and node:perform().
+	-- Triggers after `node:runAction()` and `node:perform()`.
 	-- @param action (Action) The finished action.
 	-- @param target (Node) The node that finished the action.
 	["ActionEnd"]: function(action: Action, target: Node)
 
 	-- The TapFilter slot is triggered before the TapBegan slot and can be used to filter out certain taps.
-	-- Triggers after setting node.touchEnabled = true.
+	-- Triggers after setting `node.touchEnabled = true`.
 	-- @param touch (Touch) The touch that triggered the tap.
 	["TapFilter"]: function(touch: Touch)
 
 	-- The TapBegan slot is triggered when a tap is detected.
-	-- Triggers after setting node.touchEnabled = true.
+	-- Triggers after setting `node.touchEnabled = true`.
 	-- @param touch (Touch) The touch that triggered the tap.
 	["TapBegan"]: function(touch: Touch)
 
 	-- The TapEnded slot is triggered when a tap ends.
-	-- Triggers after setting node.touchEnabled = true.
+	-- Triggers after setting `node.touchEnabled = true`.
 	-- @param touch (Touch) The touch that triggered the tap.
 	["TapEnded"]: function(touch: Touch)
 
 	-- The Tapped slot is triggered when a tap is detected and has ended.
-	-- Triggers after setting node.touchEnabled = true.
+	-- Triggers after setting `node.touchEnabled = true`.
 	-- @param touch (Touch) The touch that triggered the tap.
 	["Tapped"]: function(touch: Touch)
 
 	-- The TapMoved slot is triggered when a tap moves.
-	-- Triggers after setting node.touchEnabled = true.
+	-- Triggers after setting `node.touchEnabled = true`.
 	-- @param touch (Touch) The touch that triggered the tap.
 	["TapMoved"]: function(touch: Touch)
 
 	-- The MouseWheel slot is triggered when the mouse wheel is scrolled.
-	-- Triggers after setting node.touchEnabled = true.
+	-- Triggers after setting `node.touchEnabled = true`.
 	-- @param delta (Vec2) The amount of scrolling that occurred.
 	["MouseWheel"]: function(delta: Vec2)
 
 	-- The Gesture slot is triggered when a gesture is recognized.
-	-- Triggers after setting node.touchEnabled = true.
+	-- Triggers after setting `node.touchEnabled = true`.
 	-- @param center (Vec2) The center of the gesture.
 	-- @param numFingers (integer) The number of fingers involved in the gesture.
 	-- @param deltaDist (number) The distance the gesture has moved.
@@ -487,45 +490,45 @@ local record __SLOT__
 	["Gesture"]: function(center: Vec2, numFingers: integer, deltaDist: number, deltaAngle: number)
 
 	-- The Enter slot is triggered when a node is added to the scene graph.
-	-- Triggers when doing node:addChild().
+	-- Triggers when doing `node:addChild()`.
 	["Enter"]: function()
 
 	-- The Exit slot is triggered when a node is removed from the scene graph.
-	-- Triggers when doing node:removeChild()
+	-- Triggers when doing `node:removeChild()`.
 	["Exit"]: function()
 
 	-- The Cleanup slot is triggered when a node is cleaned up.
-	-- Triggers only when doing parent:removeChild(node, true)
+	-- Triggers only when doing `parent:removeChild(node, true)`.
 	["Cleanup"]: function()
 
 	-- The KeyDown slot is triggered when a key is pressed down.
-	-- Triggers after setting node.keyboardEnabled = true.
+	-- Triggers after setting `node.keyboardEnabled = true`.
 	-- @param keyName (string) The name of the key that was pressed.
-	["KeyDown"]: function(keyName: string)
+	["KeyDown"]: function(keyName: Keyboard.KeyName)
 
 	-- The KeyUp slot is triggered when a key is released.
-	-- Triggers after setting node.keyboardEnabled = true.
+	-- Triggers after setting `node.keyboardEnabled = true`.
 	-- @param keyName (string) The name of the key that was released.
-	["KeyUp"]: function(keyName: string)
+	["KeyUp"]: function(keyName: Keyboard.KeyName)
 
-	-- The KeyPressed slot is triggered when a key is pressed and released.
-	-- Triggers after setting node.keyboardEnabled = true.
-	-- @param keyName (string) The name of the key that was pressed and released.
-	["KeyPressed"]: function(keyName: string)
+	-- The KeyPressed slot is triggered when a key is pressed.
+	-- Triggers after setting `node.keyboardEnabled = true`.
+	-- @param keyName (string) The name of the key that was pressed.
+	["KeyPressed"]: function(keyName: Keyboard.KeyName)
 
-	-- The AttachIME slot is triggered when the input method editor (IME) is attached (calling node:attachIME()).
+	-- The AttachIME slot is triggered when the input method editor (IME) is attached (calling `node:attachIME()`).
 	["AttachIME"]: function()
 
-	-- The DetachIME slot is triggered when the input method editor (IME) is detached (calling node:detachIME() or manually closing IME).
+	-- The DetachIME slot is triggered when the input method editor (IME) is detached (calling `node:detachIME()` or manually closing IME).
 	["DetachIME"]: function()
 
 	-- The TextInput slot is triggered when text input is received.
-	-- Triggers after calling node:attachIME().
+	-- Triggers after calling `node:attachIME()`.
 	-- @param text (string) The text that was input.
 	["TextInput"]: function(text: string)
 
 	-- The TextEditing slot is triggered when text is being edited.
-	-- Triggers after calling node:attachIME().
+	-- Triggers after calling `node:attachIME()`.
 	-- @param text (string) The text that is being edited.
 	-- @param startPos (integer) The starting position of the text being edited.
 	["TextEditing"]: function(text: string, startPos: integer)
@@ -538,6 +541,7 @@ end
 -- 	print("Application is shuting down!")
 -- end)
 local record __GSLOT__
+
 	-- Triggers when the application is about to quit.
 	["AppQuit"]: function()
 
@@ -558,6 +562,12 @@ local record __GSLOT__
 
 	-- Triggers when the application window size changes.
 	["AppSizeChanged"]: function()
+
+	-- Triggers when the application window enters or exits full-screen mode.
+	["AppFullScreen"]: function(fullScreen: boolean)
+
+	-- Triggers when the application theme color changes.
+	["AppTheme"]: function(themeColor: Color)
 end
 
 -- A class object for the `Node` class.
@@ -565,10 +575,10 @@ local record NodeClass
 	type Type = Node
 
 	-- Creates a new instance of the `Node` class.
-	-- @returns Node A new instance of the `Node` class.
 	-- @usage
 	-- local Node = require("Node")
 	-- local node = Node()
+	-- @returns (Node) A new instance of the `Node` class.
 	metamethod __call: function(self: NodeClass): Node
 end
 

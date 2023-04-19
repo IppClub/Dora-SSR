@@ -3,69 +3,71 @@ local BlendFunc = require("BlendFunc").Type
 local SpriteEffect = require("SpriteEffect").Type
 local Sprite = require("Sprite").Type
 
--- A node for rendering text using a TrueType font.
+-- 使用TrueType字体渲染文本的场景节点类。
 local record Label
+
+	-- 继承自`Node`。
 	embed Node
 
-	-- Enumeration for text alignment setting.
+	-- 用于文本对齐设置的枚举。
 	enum TextAlign
 		"Left"
 		"Center"
 		"Right"
 	end
 
-	-- The alpha threshold value. Pixels with alpha values below this value will not be drawn.
-	-- Only works with `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+	-- Alpha阈值值。Alpha值低于此值的像素将不会被绘制。
+	-- 仅适用于 `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`。
 	alphaRef: number
 
-	-- The width of the text used for text wrapping.
-	-- Set to `Label.AutomaticWidth` to disable wrapping.
-	-- Default is `Label.AutomaticWidth`.
+	-- 用于文本换行的文本宽度。
+	-- 设置为 `Label.AutomaticWidth` 以禁用换行。
+	-- 默认值为 `Label.AutomaticWidth`。
 	textWidth: number
 
-	-- The gap in pixels between lines of text.
+	-- 文本行之间的像素间隔。
 	lineGap: number
 
-	-- The text to be rendered.
+	-- 要渲染的文本。
 	text: string
 
-	-- The blend function used to render the text.
+	-- 用于渲染文本的混合函数。
 	blendFunc: BlendFunc
 
-	-- Whether depth writing is enabled.
+	-- 是否启用深度写入。默认为false。
 	depthWrite: boolean
 
-	-- Whether the label is using batched rendering.
-	-- When using batched rendering the `label:getCharacter()` function will no longer work, and getting better rendering performance.
+	-- 标签是否使用批量渲染模式。默认为true。
+	-- 使用批量渲染可以获得更好的渲染性能，但是`label:getCharacter()`函数将无法使用。
 	batched: boolean
 
-	-- The sprite effect used to render the text.
+	-- 用于渲染文本的图元着色器特效。
 	effect: SpriteEffect
 
-	-- The text alignment setting.
+	-- 文本对齐设置。
 	alignment: TextAlign
 
-	-- The number of characters in the label.
+	-- 文本中字符的数量。
 	const characterCount: integer
 
-	-- Returns the sprite for the character at the specified index.
-	-- @param index (integer) The index of the character sprite to retrieve.
-	-- @return (Sprite|nil) The sprite for the character, or `nil` if the index is out of range.
+	-- 返回指定索引处字符的精灵。
+	-- @param index (integer) 要检索的字符图元的索引。
+	-- @return (Sprite|nil) 字符的图元，如果超出索引范围则返回 `nil`。
 	getCharacter: function(self: Label, index: integer): Sprite | nil
 end
 
--- A class for creating Label object.
+-- 用于创建文本标签对象的类。
 local record LabelClass
 	type Type = Label
 
-	-- The value to use for automatic width calculation
+	-- 用于自动计算宽度的设置常量。
 	const AutomaticWidth: number
 
-	-- Creates a new Label object with the specified font name and font size.
-	-- @param fontName (string) The name of the font to use for the label.
-	-- Can be font file path with or without file extension.
-	-- @param fontSize (integer) The size of the font to use for the label.
-	-- @return (Label) The new Label object.
+	-- 使用指定的字体名称和字体大小创建新的文本标签对象。
+	-- @param fontName (string) 用于标签的字体名称。
+	-- 可以是带有或是不带文件扩展名的字体文件路径。
+	-- @param fontSize (integer) 用于标签的字体大小。
+	-- @return (Label) 新的文本标签对象。
 	metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer): Label
 end
 

@@ -1,20 +1,20 @@
 local record Path
 	getScriptPath: function(self: Path, moduleName: string): string
-	-- input: /a/b/c.TXT output: txt
+	-- 输入: /a/b/c.TXT 输出: txt
 	getExt: function(self: Path, path: string): string
-	-- input: /a/b/c.TXT output: /a/b
+	-- 输入: /a/b/c.TXT 输出: /a/b
 	getPath: function(self: Path, path: string): string
-	-- input: /a/b/c.TXT output: c
+	-- 输入: /a/b/c.TXT 输出: c
 	getName: function(self: Path, path: string): string
-	-- input: /a/b/c.TXT output: c.TXT
+	-- 输入: /a/b/c.TXT 输出: c.TXT
 	getFilename: function(self: Path, path: string): string
-	-- input: /a/b/c.TXT, /a output: b/c.TXT
+	-- 输入: /a/b/c.TXT, /a 输出: b/c.TXT
 	getRelative: function(self: Path, path: string, base: string): string
-	-- input: /a/b/c.TXT, lua output: /a/b/c.lua
+	-- 输入: /a/b/c.TXT, lua 输出: /a/b/c.lua
 	replaceExt: function(self: Path, path: string, newExt: string): string
-	-- input: /a/b/c.TXT, d output: /a/b/d.TXT
+	-- 输入: /a/b/c.TXT, d 输出: /a/b/d.TXT
 	replaceFilename: function(self: Path, path: string, newFile: string): string
-	-- input: a, b, c.TXT output: a/b/c.TXT
+	-- 输入: a, b, c.TXT 输出: a/b/c.TXT
 	metamethod __call: function(self: Path, ...: string): string
 end
 local path: Path

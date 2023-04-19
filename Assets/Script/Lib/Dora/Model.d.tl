@@ -7,7 +7,7 @@ local record Model
 	-- Inherits from `Playable`.
 	embed Playable
 
-	-- The duration model of the current animation.
+	-- The duration of the current animation.
 	const duration: number
 
 	-- Whether the animation model will be played in reverse.
@@ -19,6 +19,7 @@ local record Model
 	-- Whether the animation model is currently paused.
 	const paused: boolean
 
+	-- Check if an animation exists in the model.
 	-- @param name (string) The name of the animation to check.
 	-- @return (boolean) Whether the animation exists in the model or not.
 	hasAnimation: function(self: Model, name: string): boolean
@@ -63,7 +64,7 @@ local record ModelClass
 	type Type = Model
 
 	-- A method that returns a new dummy instance of 'Model' that can do nothing.
-	-- @return Model a new dummy instance of 'Model'.
+	-- @return (Model) a new dummy instance of 'Model'.
 	dummy: function(self: ModelClass): Model
 
 	-- Gets the clip file from the specified model file.
@@ -84,7 +85,7 @@ local record ModelClass
 	-- Creates a new instance of 'Model' from the specified model file.
 	-- @param filename (string) The filename of the model file to load.
 	-- Can be filename with or without extension like: "Model/item" or "Model/item.model".
-	-- @return Model a new instance of 'Model'.
+	-- @return (Model) a new instance of 'Model'.
 	metamethod __call: function(self: ModelClass, filename: string): Model
 end
 

@@ -11,7 +11,7 @@ local Bullet = require("Platformer.Bullet")
 local Face = require("Platformer.Face")
 local Visual = require("Platformer.Visual")
 
--- A module for 2D platformer game features.
+-- 包含2D平台游戏的模块。
 local Platformer = {
 	Behavior = Behavior,
 	Decision = Decision,

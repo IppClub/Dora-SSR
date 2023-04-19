@@ -1,12 +1,12 @@
 local ActionDef = require("Action").Def
 local Ease = require("Ease")
 
--- Creates a definition for an action that animates the opacity of a Node from one value to another.
--- @param duration (number) The duration of the animation in seconds.
--- @param from (number) The starting opacity value of the Node (0-255).
--- @param to (number) The ending opacity value of the Node (0-255).
--- @param easing (EaseFunc) [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
--- @return (ActionDef) An ActionDef object that can be used to run the animation on a Node.
+-- 创建一个动作定义，用于将节点的不透明度从一个值变动到另一个值。
+-- @param duration (number) 动作持续时间（以秒为单位）。
+-- @param from (number) 节点的起始不透明度值（0-255）。
+-- @param to (number) 节点的结束不透明度值（0-255）。
+-- @param easing (EaseFunc) [可选] 用于动作的缓动函数。如果未指定，默认为Ease.Linear。
+-- @return (ActionDef) 一个动作定义对象，可用于在节点上执行动作。
 local opacity: function(
 		duration: number,
 		from: number,

@@ -26,6 +26,8 @@ local record Pass
 		var4?: number --[[0]])
 
 	-- Another function that sets the values of shader parameters.
+	-- Works the same as:
+	-- pass:set("varName", color.r / 255.0, color.g / 255.0, color.b / 255.0, color.opacity)
 	-- @param name (string) The name of the parameter to set.
 	-- @param var (Color) The Color object to set.
 	set: function(self: Pass, name: string, var: Color)
@@ -36,8 +38,8 @@ local record PassClass
 	type Type = Pass
 
 	-- A metamethod that allows you to create a new Pass object.
-	-- @param vertShader (string) The vertex shader code string.
-	-- @param fragShader (string) The fragment shader code string.
+	-- @param vertShader (string) The vertex shader in binary form file string.
+	-- @param fragShader (string) The fragment shader file string.
 	-- A shader file string must be one of the formats:
 	-- 	"builtin:" + theBuiltinShaderName
 	-- 	"Shader/compiled_shader_file.bin"

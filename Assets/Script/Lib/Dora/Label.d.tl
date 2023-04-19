@@ -5,6 +5,8 @@ local Sprite = require("Sprite").Type
 
 -- A node for rendering text using a TrueType font.
 local record Label
+
+	-- Inherits from `Node`.
 	embed Node
 
 	-- Enumeration for text alignment setting.
@@ -32,11 +34,11 @@ local record Label
 	-- The blend function used to render the text.
 	blendFunc: BlendFunc
 
-	-- Whether depth writing is enabled.
+	-- Whether depth writing is enabled. (Default is false)
 	depthWrite: boolean
 
 	-- Whether the label is using batched rendering.
-	-- When using batched rendering the `label:getCharacter()` function will no longer work, and getting better rendering performance.
+	-- When using batched rendering the `label:getCharacter()` function will no longer work, and getting better rendering performance. (Default is true)
 	batched: boolean
 
 	-- The sprite effect used to render the text.

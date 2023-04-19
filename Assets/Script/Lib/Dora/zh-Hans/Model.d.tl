@@ -1,88 +1,91 @@
 local Playable = require("Playable").Type
 local Node = require("Node").Type
 
--- Another implementation of the 'Playable' record.
+-- 另一套实现`Playable`接口的动画模型系统。
 local record Model
+
+	-- 继承自`Playable`。
 	embed Playable
 
-	-- The duration model of the current animation.
+	-- 当前动画的持续时间模型。
 	const duration: number
 
-	-- Whether the animation model will be played in reverse.
+	-- 动画模型是否将倒着播放动画。
 	reversed: boolean
 
-	-- Whether the animation model is currently playing.
+	-- 动画模型当前是否正在播放。
 	const playing: boolean
 
-	-- Whether the animation model is currently paused.
+	-- 动画模型当前是否处于暂停状态。
 	const paused: boolean
 
-	-- @param name (string) The name of the animation to check.
-	-- @return (boolean) Whether the animation exists in the model or not.
+	-- 检查模型是否有指定的动画。
+	-- @param name (string) 要检查的动画的名称。
+	-- @return (boolean) 动画是否存在于模型中。
 	hasAnimation: function(self: Model, name: string): boolean
 
-	-- Pauses the currently playing animation.
+	-- 暂停当前正在播放的动画。
 	pause: function(self: Model)
 
-	-- Resumes the currently paused animation, or plays a new animation if specified.
-	-- @param name (string) [optional] The name of the animation to play.
-	-- @param loop (boolean) [optional] Whether to loop the animation or not (default is false).
+	-- 恢复当前暂停的动画，或者开始播放新的动画。
+	-- @param name (string) [可选] 要播放的动画的名称。
+	-- @param loop (boolean) [可选] 是否循环播放动画（默认为 false）。
 	resume: function(
 		self: Model,
 		name?: string,
 		loop?: boolean --[[false]]
 	)
 
-	-- Resets the current animation to its initial state.
+	-- 将当前动画重置为初始状态。
 	reset: function(self: Model)
 
-	-- Updates the animation to the specified time, and optionally in reverse.
-	-- @param elapsed (number) The time to update to.
-	-- @param reversed (boolean) [optional] Whether to play the animation in reverse (default is false).
+	-- 将动画更新到指定的时间，并可选择以反向播放的进度做更新。
+	-- @param elapsed (number) 要更新到的时间。
+	-- @param reversed (boolean) [可选] 是否反向播放动画（默认为 false）。
 	updateTo: function(
 		self: Model,
 		eclapsed: number,
 		reversed?: boolean --[[false]]
 	)
 
-	-- Gets the node with the specified name.
-	-- @param name (string) The name of the node to get.
-	-- @return (Node) The node with the specified name.
+	-- 获取指定名称的节点。
+	-- @param name (string) 要获取的节点的名称。
+	-- @return (Node) 具有指定名称的节点。
 	getNodeByName: function(self: Model, name: string): Node
 
-	-- Calls the specified function for each node in the model, and stops if the function returns false.
-	-- @param func (function) The function to call for each node.
-	-- @return (boolean) Whether the function was called for all nodes or not.
+	-- 对模型中的每个节点调用指定的函数，并在函数返回 false 时停止。
+	-- @param func (function) 要为每个节点调用的函数。
+	-- @return (boolean) 是否为所有节点调用了函数。
 	eachNode: function(self: Model, func: function(Node): boolean): boolean
 end
 
--- A class for creating instances of the 'Model' record.
+-- 用于创建动画模型实例的类。
 local record ModelClass
 	type Type = Model
 
-	-- A method that returns a new dummy instance of 'Model' that can do nothing.
-	-- @return Model a new dummy instance of 'Model'.
+	-- 返回一个新的占位用的空的动画实例的方法。
+	-- @return (Model) 新的占位用的动画实例。
 	dummy: function(self: ModelClass): Model
 
-	-- Gets the clip file from the specified model file.
-	-- @param filename (string) The filename of the model file to search.
-	-- @return (string) The name of the clip file.
+	-- 从指定的模型文件中获取图片切片文件名。
+	-- @param filename (string) 要搜索的模型文件的文件名。
+	-- @return (string) 图片切片文件的名称。
 	getClipFile: function(self: ModelClass, filename: string): string
 
-	-- Gets an array of look names from the specified model file.
-	-- @param filename (string) The filename of the model file to search.
-	-- @return ({string}) An array of look names found in the model file.
+	-- 从指定的模型文件中获取外观名称列表。
+	-- @param filename (string) 要搜索的模型文件的文件名。
+	-- @return ({string}) 在模型文件中找到的外观名称列表。
 	getLooks: function(self: ModelClass, filename: string): {string}
 
-	-- Gets an array of animation names from the specified model file.
-	-- @param filename (string) The filename of the model file to search.
-	-- @return ({string}) An array of animation names found in the model file.
+	-- 从指定的模型文件中获取动画名称列表。
+	-- @param filename (string) 要搜索的模型文件的文件名。
+	-- @return ({string}) 在模型文件中找到的动画名称列表。
 	getAnimations: function(self: ModelClass, filename: string): {string}
 
-	-- Creates a new instance of 'Model' from the specified model file.
-	-- @param filename (string) The filename of the model file to load.
-	-- Can be filename with or without extension like: "Model/item" or "Model/item.model".
-	-- @return Model a new instance of 'Model'.
+	-- 从指定的模型文件创建动画模型的新实例。
+	-- @param filename (string) 要加载的模型文件的文件名。
+	-- 可以是带有扩展名的文件名，如："Model/item" 或 "Model/item.model"。
+	-- @return (Model) 动画模型的新实例。
 	metamethod __call: function(self: ModelClass, filename: string): Model
 end
 

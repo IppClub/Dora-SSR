@@ -44,7 +44,7 @@ local record Data
 	-- A function that can be used to get a boolean value indicating whether two groups should be in contact or not.
 	-- @param groupA (integer) An integer representing the first group.
 	-- @param groupB (integer) An integer representing the second group.
-	-- @return (boolean) A boolean indicating whether the two groups should be in contact.
+	-- @return (boolean) Whether the two groups should be in contact.
 	getShouldContact: function(self: Data, groupA: integer, groupB: integer): boolean
 
 	-- A function that can be used to set the relation between two groups.
@@ -68,37 +68,37 @@ local record Data
 	-- A function that returns whether two groups have an "Enemy" relation.
 	-- @param groupA (integer) An integer representing the first group.
 	-- @param groupB (integer) An integer representing the second group.
-	-- @return (boolean) A boolean indicating whether the two groups have an "Enemy" relation.
+	-- @return (boolean) Whether the two groups have an "Enemy" relation.
 	isEnemy: function(self: Data, groupA: integer, groupB: integer): boolean
 
 	-- A function that returns whether two bodies have an "Enemy" relation.
 	-- @param bodyA (Body) The first body.
 	-- @param bodyB (Body) The second body.
-	-- @return (boolean) A boolean indicating whether the two bodies have an "Enemy" relation.
+	-- @return (boolean) Whether the two bodies have an "Enemy" relation.
 	isEnemy: function(self: Data, bodyA: Body, bodyB: Body): boolean
 
 	-- A function that returns whether two groups have a "Friend" relation.
 	-- @param groupA (integer) An integer representing the first group.
 	-- @param groupB (integer) An integer representing the second group.
-	-- @return (boolean) A boolean indicating whether the two groups have a "Friend" relation.
+	-- @return (boolean) Whether the two groups have a "Friend" relation.
 	isFriend: function(self: Data, groupA: integer, groupB: integer): boolean
 
 	-- A function that returns whether two bodies have a "Friend" relation.
 	-- @param bodyA (Body) The first body.
 	-- @param bodyB (Body) The second body.
-	-- @return (boolean) A boolean indicating whether the two bodies have a "Friend" relation.
+	-- @return (boolean) Whether the two bodies have a "Friend" relation.
 	isFriend: function(self: Data, bodyA: Body, bodyB: Body): boolean
 
 	-- A function that returns whether two groups have a "Neutral" relation.
 	-- @param groupA (integer) An integer representing the first group.
 	-- @param groupB (integer) An integer representing the second group.
-	-- @return (boolean) A boolean indicating whether the two groups have a "Neutral" relation.
+	-- @return (boolean) Whether the two groups have a "Neutral" relation.
 	isNeutral: function(self: Data, groupA: integer, groupB: integer): boolean
 
 	-- A function that returns whether two bodies have a "Neutral" relation.
 	-- @param bodyA (Body) The first body.
 	-- @param bodyB (Body) The second body.
-	-- @return (boolean) A boolean indicating whether the two bodies have a "Neutral" relation.
+	-- @return (boolean) Whether the two bodies have a "Neutral" relation.
 	isNeutral: function(self: Data, bodyA: Body, bodyB: Body): boolean
 
 	-- A function that sets the bonus factor for a particular type of damage against a particular type of defence. The builtin "MeleeAttack" and "RangeAttack" actions are using simple formular of `finalDamage = damage * bonus`.
@@ -116,13 +116,13 @@ local record Data
 	-- A function that returns whether a body is a player or not.
 	-- This works the same as `Data.groupFirstPlayer <= body.group and body.group <= Data.groupLastPlayer`.
 	-- @param body (Body) The body to check.
-	-- @return (boolean) A boolean indicating whether the body is a player.
+	-- @return (boolean) Whether the body is a player.
 	isPlayer: function(self: Data, body: Body): boolean
 
 	-- A function that returns whether a body is terrain or not.
 	-- This works the same as `body.group == Data.groupTerrain`.
 	-- @param body (Body) The body to check.
-	-- @return (boolean) A boolean indicating whether the body is terrain.
+	-- @return (boolean) Whether the body is terrain.
 	isTerrain: function(self: Data, body: Body): boolean
 
 	-- A function that clears all data stored in the "Data" object, including user data in Data.store field.

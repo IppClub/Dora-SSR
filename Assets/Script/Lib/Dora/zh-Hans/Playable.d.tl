@@ -1,74 +1,81 @@
 local Node = require("Node").Type
 local Vec2 = require("Vec2").Type
 
--- A base class for an animation model system.
+-- 用于动画模型系统的接口类。
 local record Playable
+
+	-- 继承自`Node`。
 	embed Node
 
-	-- The look of the animation.
+	-- 动画模型的外观。
 	look: string
 
-	-- The play speed of the animation.
+	-- 动画模型的播放速度。
 	speed: number
 
-	-- The recovery time of the animation, in seconds.
-	-- Used for doing transitions from one animation to another animation.
+	-- 动画模型恢复时间，以秒为单位。
+	-- 用于从一个动画过渡到另一个动画。
 	recovery: number
 
-	-- Whether the animation is flipped horizontally.
+	-- 动画模型是否水平翻转。
 	fliped: boolean
 
-	-- The current playing animation name.
+	-- 当前正在播放的动画名称。
 	const current: string
 
-	-- The last completed animation name.
+	-- 上一次播放完成的动画名称。
 	const lastCompleted: string
 
-	-- @param name (string) The name of the key to get.
-	-- @return (Vec2) The key value as a Vec2.
+	-- 获取模型上的关键点的坐标。
+	-- @param name (string) 要获取模型上的关键点的名称。
+	-- @return (Vec2) 以`Vec2`形式返回的关键点的坐标。
 	getKey: function(self: Playable, name: string): Vec2
 
-	-- @param name (string) The name of the animation to play.
-	-- @param loop (boolean) [optional] Whether to loop the animation or not (default is false).
-	-- @return (number) The duration of the animation in seconds.
+	-- 播放模型包含的动画。
+	-- @param name (string) 要播放的动画的名称。
+	-- @param loop (boolean) [可选] 是否循环播放动画（默认为 false）。
+	-- @return (number) 动画的持续时间，以秒为单位。
 	play: function(
 		self: Playable,
 		name: string,
 		loop?: boolean --[[false]]
 	): number
 
-	-- Stops the currently playing animation.
+	-- 停止当前正在播放的动画。
 	stop: function(self: Playable)
 
-	-- @param name (string) The name of the slot to set.
-	-- @param item (Node) The node to set the slot to.
+	-- 将一个子节点添加到动画模型上的插槽。
+	-- @param name (string) 要设置的插槽的名称。
+	-- @param item (Node) 要在插槽上添加的节点。
 	setSlot: function(self: Playable, name: string, item: Node)
 
-	-- @param name (string) The name of the slot to get
-	-- @return (Node|nil) The node in the slot, or nil if there is no node in the slot
+	-- 获取添加到动画模型插槽上的子节点。
+	-- @param name (string) 要获取的插槽的名称。
+	-- @return (Node|nil) 插槽中的节点，如果插槽中没有节点，则返回 nil。
 	getSlot: function(self: Playable, name: string): Node | nil
 end
 
--- This is just a demonstration record showing signal slot events that are emiting by the Playable animation systems.
+-- 展示动画系统的事件定义，包含事件名称和回调函数参数。
 local record __SLOT__
-	-- Triggers after an animation has ended on a Playable instance.
-	-- @param animationName (string) The name of the animation that ended.
-	-- @param target (Playable) The Playable instance that the animation was played on.
+
+	-- 当动画模型播放结束一个动画后触发。
+	-- @param animationName (string) 播放结束的动画名称。
+	-- @param target (Playable) 播放该动画的动画模型实例。
 	["AnimationEnd"]: function(animationName: string, target: Playable)
 end
 
--- A class for creating instances of the 'Playable' record.
+-- 用于创建动画模型对象的类。
 local record PlayableClass
 	type Type = Playable
 
-	-- Creates a new instance of 'Playable' from the specified animation file.
-	-- @param filename (string) the filename of the animation file to load.
-	-- Supports DragonBone, Spine2D and Dorothy Model files.
-	-- Should be one of the formats below:
+	-- 从指定的动画模型文件创建动画模型的新实例。
+	-- @param filename (string) 要加载的动画文件的文件名。
+	-- 支持 DragonBone、Spine2D 和 Dorothy Model 文件。
+	-- 必须是以下格式之一：
 	-- 	"model:" + modelFile
 	-- 	"spine:" + spineStr
 	-- 	"bone:" + dragonBoneStr
-	-- @return (Playable) a new instance of 'Playable'.
+	-- @return (Playable) 新的动画模型实例.
 	metamethod __call: function(self: PlayableClass, filename: string): Playable
 end
 

@@ -44,6 +44,7 @@ local record QLearnerClass
 	-- Construct a state from given hints and condition values.
 	-- @param hints ({integer}) Representing the byte length of provided values.
 	-- @param values ({integer}) The condition values as discrete values.
+	-- @return (integer) The packed state value.
 	pack: function(self: QLearnerClass, hints: {integer}, values: {integer}): --[[state]] integer
 
 	-- Deconstruct a state from given hints to get condition values.
@@ -86,7 +87,7 @@ local record ML
 	-- 	@param name (string) The name of the attribute used for splitting the data at the current node.
 	-- 	@param op (Operator) The comparison operator used for splitting the data at the current node.
 	-- 	@param value (string) The value used for splitting the data at the current node.
-	-- @return (number) The accuracy of the decision tree on the training data.
+	-- @return (number｜nil) The accuracy of the decision tree on the training data.
 	-- @return (string) An error message if an error occurred during building of the decision tree.
 	BuildDecisionTreeAsync: function(
 		self: ML,

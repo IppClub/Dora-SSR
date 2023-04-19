@@ -1,11 +1,13 @@
 local Joint = require("JointType")
 local Vec2 = require("Vec2").Type
 
--- A type of joint that allows a physics body to move to a specific position.
+-- 用于控制物理体移动到特定位置的物理关节类。
 local record MoveJoint
+
+	-- 继承自`Object`。
 	embed Joint
 
-	-- The current position of the move joint in the game world.
+	-- 移动关节在游戏世界中的位置。
 	position: Vec2
 end
 

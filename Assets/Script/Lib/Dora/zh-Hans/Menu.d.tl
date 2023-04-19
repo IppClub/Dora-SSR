@@ -1,28 +1,30 @@
 local Node = require("Node").Type
 
--- This record is used for managing touch events for children nodes in a given area.
--- Menu will swallow touches that is hitting children nodes.
--- Only one child node can receive the first touch event, multi-touches comes later for other children node will be ignored.
+-- 用于管理一个矩形区域内子节点的触摸事件的场景节点类。
+-- 会中断子节点触摸事件的向上传播。
+-- 只有第一个触摸事件可以被一个子节点接收到，后来触发的多点触摸事件将被忽略。
 local record Menu
+
+	-- 继承自`Node`。
 	embed Node
 
-	-- Whether the menu is currently enabled or disabled.
+	-- 菜单当前是否启用或禁用。
 	enabled: boolean
 end
 
--- A class for creating Menu objects.
+-- 用于创建菜单节点对象的类。
 local record MenuClass
 	type Type = Menu
 
-	-- Creates a new instance of `Menu` with the specified width and height.
-	---@param width (number)
-	---@param height (number)
-	---@return (Menu)
+	-- 使用指定的宽度和高度创建菜单节点的新实例。
+	---@param width (number) 菜单节点宽度。
+	---@param height (number) 菜单节点高度。
+	---@return (Menu) 新的菜单节点对象。
 	metamethod __call: function(self: MenuClass, width: number, height: number): Menu
 
-	-- Creates a new instance of `Menu` with 0 width and 0 height.
-	-- A menu with zero size will handle full screen touches for children nodes.
-	-- @return (Menu)
+	-- 使用 0 宽度和 0 高度创建菜单节点的新实例。
+	-- 大小为零的菜单将处理全屏范围内子节点的触摸事件。
+	-- @return (Menu) 新的菜单节点对象。
 	metamethod __call: function(self: MenuClass): Menu
 end
 

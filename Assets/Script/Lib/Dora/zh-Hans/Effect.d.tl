@@ -1,22 +1,22 @@
 local Pass = require("Pass").Type
 local Object = require("Object").Type
 
--- 用于管理多个渲染Pass对象的着色器特效类，可以组合多个Pass创建更复杂的着色器渲染效果。
+-- 用于管理多个着色器渲染流程对象的着色器特效类，可以组合多个渲染流程创建更复杂的着色器渲染效果。
 local record Effect
 
 	-- 继承自`Object`。
 	embed Object
 
-	-- 添加Pass对象。
-	-- @param pass (Pass) 要添加的Pass对象。
+	-- 添加着色器渲染流程对象。
+	-- @param pass (Pass) 要添加的着色器渲染流程对象。
 	add: function(self: Effect, pass: Pass)
 
-	-- 通过从1开始的索引获取Pass对象。
-	-- @param index (integer) 获取Pass对象的整数索引，索引从1开始。
-	-- @return (Pass) 给定索引的Pass对象。
+	-- 通过从1开始的索引获取着色器渲染流程对象。
+	-- @param index (integer) 获取渲染流程对象的整数索引，索引从1开始。
+	-- @return (Pass) 给定索引下的渲染流程对象。
 	get: function(self: Effect, index: integer): Pass
 
-	-- 从特效对象中删除所有Pass对象。
+	-- 从特效对象中删除所有着色器渲染流程对象。
 	clear: function(self: Effect)
 end
 
