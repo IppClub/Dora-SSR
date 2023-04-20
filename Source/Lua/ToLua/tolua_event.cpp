@@ -234,9 +234,10 @@ static int class_newindex_event(lua_State* L) {
 		/* then, store as a new field */
 		if (t == LUA_TUSERDATA) {
 			storeatubox(L, 1);
+		} else {
+			luaL_error(L, "can not add custom field to a light user data object.");
 		}
-	} else if (t == LUA_TTABLE) // __newindex for ud`s class
-	{
+	} else if (t == LUA_TTABLE) { // __newindex for ud`s class
 		module_newindex_event(L);
 	}
 	return 0;
