@@ -26,16 +26,16 @@ local record Rect
 	-- The height of the rectangle.
 	height: number
 
-	-- The top edge of the rectangle.
+	-- The top edge in y-axis of the rectangle.
 	top: number
 
-	-- The bottom edge of the rectangle.
+	-- The bottom edge in y-axis of the rectangle.
 	bottom: number
 
-	-- The left edge of the rectangle.
+	-- The left edge in x-axis of the rectangle.
 	left: number
 
-	-- The right edge of the rectangle.
+	-- The right edge in x-axis of the rectangle.
 	right: number
 
 	-- The x-coordinate of the center of the rectangle.

@@ -13,10 +13,10 @@ local record Grid
 	embed Node
 
 	-- 网格中的列数。水平方向有 `gridX + 1` 个顶点用于渲染。
-	gridX: integer
+	const gridX: integer
 
 	-- 网格中的行数。垂直方向有 `gridY + 1` 个顶点用于渲染。
-	gridY: integer
+	const gridY: integer
 
 	-- 是否启用深度缓冲写入（默认为false）。
 	depthWrite: boolean

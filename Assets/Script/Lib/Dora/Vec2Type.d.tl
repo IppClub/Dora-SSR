@@ -67,7 +67,7 @@ local record Vec2
 	metamethod __mul: function(self: Vec2, other: number): Vec2
 
 	-- Multiplies a vector by a Size object.
-	-- @param (Size) other The Size object to multiply by.
+	-- @param other (Size) The Size object to multiply by.
 	-- @return (Vec2) The result of multiplying the vector by the Size object.
 	-- @usage local halfVec = vec * Size(0.5, 0.5)
 	metamethod __mul: function(self: Vec2, other: Size): Vec2

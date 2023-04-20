@@ -1,17 +1,19 @@
 local Object = require("Object").Type
 
--- A record represents a 2D texture.
+-- 2D纹理对象的类。
 local record Texture2D
+
+	-- 继承自`Object`。
 	embed Object
 
-	-- The width of the texture, in pixels.
+	-- 纹理的宽度，以像素为单位。
 	const width: integer
 
-	-- The height of the texture, in pixels.
+	-- 纹理的高度，以像素为单位。
 	const height: integer
 end
 
--- A record represents Texture2D class object.
+-- 代表2D纹理对象类的对象。
 local record Texture2DClass
 	type Type = Texture2D
 end

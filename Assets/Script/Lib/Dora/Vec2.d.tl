@@ -31,5 +31,6 @@ local record Vec2Class
 	-- Gets zero-vector object.
 	const zero: Vec2
 end
+
 local vec2Class: Vec2Class
 return vec2Class

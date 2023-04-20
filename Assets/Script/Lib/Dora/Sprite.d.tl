@@ -25,55 +25,56 @@ local record Sprite
 		"Anisotropic"
 	end
 
-	-- Indicates whether the depth buffer should be written to when rendering the sprite (default is false).
+	-- Whether the depth buffer should be written to when rendering the sprite (default is false).
 	depthWrite: boolean
 
-	-- Specifies the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
+	-- The alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
 	-- Only works with `sprite.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
 	alphaRef: number
 
-	-- Specifies the texture rectangle for the sprite, as an instance of the Rect class.
+	-- The texture rectangle for the sprite.
 	textureRect: Rect
 
-	-- Specifies the blend function for the sprite, as an instance of the BlendFunc class.
+	-- The blend function for the sprite.
 	blendFunc: BlendFunc
 
-	-- Specifies the sprite effect, as an instance of the SpriteEffect class.
+	-- The sprite shader effect.
 	effect: SpriteEffect
 
-	-- Specifies the texture for the sprite, as an instance of the Texture2D class.
+	-- The texture for the sprite.
 	texture: Texture2D
 
-	-- Specifies the texture wrapping mode for the U (horizontal) axis.
+	-- The texture wrapping mode for the U (horizontal) axis.
 	uwrap: TextureWrap
 
-	-- Specifies the texture wrapping mode for the V (vertical) axis.
+	-- The texture wrapping mode for the V (vertical) axis.
 	vwrap: TextureWrap
 
-	-- Specifies the texture filtering mode for the sprite.
+	-- The texture filtering mode for the sprite.
 	filter: TextureFilter
 end
 
+-- A class used for creating `Sprite` object.
 -- @usage
 -- local Sprite = require("Sprite")
 -- local sprite = Sprite("Image/file.png")
 local record SpriteClass
 	type Type = Sprite
 
-	-- A metamethod for calling the SpriteClass as a function with no arguments.
+	-- A metamethod for creating Sprite object.
 	-- @return (Sprite) A new instance of the Sprite class.
 	metamethod __call: function(self: SpriteClass): Sprite
 
-	-- A metamethod for calling the SpriteClass as a function with a Texture2D and an optional Rect argument.
+	-- A metamethod for creating Sprite object.
 	-- @param texture (Texture2D) The texture to be used for the sprite.
-	-- @param textureRect (Rect|nil) The rectangle defining the portion of the texture to use for the sprite.
-	-- @return (Sprite) A new instance of the Sprite class with the specified texture and texture rectangle.
+	-- @param textureRect (Rect) [optional] The rectangle defining the portion of the texture to use for the sprite, if not provided, the whole texture will be used for rendering.
+	-- @return (Sprite) A new instance of the Sprite class.
 	metamethod __call: function(self: SpriteClass, texture: Texture2D, textureRect?: Rect): Sprite
 
-	-- A metamethod for calling the SpriteClass as a function with a string argument.
+	-- A metamethod for creating Sprite object.
 	-- @param clipStr (string) The string containing format for loading a texture file.
 	-- Can be "Image/file.png" and "Image/items.clip|itemA".
-	-- @return (Sprite) A new instance of the Sprite class with the texture loaded from the specified image file.
+	-- @return (Sprite) A new instance of the Sprite class.
 	metamethod __call: function(self: SpriteClass, clipStr: string): Sprite
 end
 

@@ -1,83 +1,84 @@
 local ContainerItem = require("ContainerItemType")
 local type Size = require("SizeType")
 
--- A record representing a 2D vector with an x and y component.
+-- 表示具有 x 轴和 y 轴坐标的二维向量类。
 local record Vec2
+
+	-- 继承自`ContainerItem`。
 	embed ContainerItem
 
-	-- The x-component of the vector.
+	-- 向量的 x 坐标。
 	const x: number
 
-	-- The y-component of the vector.
+	-- 向量的 y 坐标。
 	const y: number
 
-	-- The length of the vector.
+	-- 向量的长度。
 	const length: number
 
-	-- The squared length of the vector.
+	-- 向量的长度平方值。
 	const lengthSquared: number
 
-	-- The angle between the vector and the x-axis.
+	-- 向量和 x 轴之间的角度。
 	const angle: number
 
-	-- Calculates the distance between two vectors.
-	-- @param vec (Vec2) The other vector to calculate the distance to, represented by a Vec2 object.
-	-- @return (number) The distance between the two vectors.
+	-- 计算两个向量之间的距离。
+	-- @param vec (Vec2) 另一个要计算距离的向量。
+	-- @return (number) 两个向量之间的距离。
 	distance: function(self: Vec2, vec: Vec2): number
 
-	-- Calculates the squared distance between two vectors.
-	-- @param vec (Vec2) The other vector to calculate the squared distance to, represented by a Vec2 object.
-	-- @return (number) The squared distance between the two vectors.
+	-- 计算两个向量之间的平方距离。
+	-- @param vec (Vec2) 另一个要计算平方距离的向量。
+	-- @return (number) 两个向量之间的距离平方值。
 	distanceSquared: function(self: Vec2, vec: Vec2): number
 
-	-- Normalizes the vector to have a length of 1.
-	-- @return (Vec2) The normalized vector.
+	-- 将向量做归一化。
+	-- @return (Vec2) 归一化的向量。
 	normalize: function(self: Vec2): Vec2
 
-	-- Gets the perpendicular vector of this vector.
-	-- @return (Vec2) The perpendicular vector.
+	-- 获取此向量的垂直向量。
+	-- @return (Vec2) 垂直向量。
 	perp: function(self: Vec2): Vec2
 
-	-- Clamps the vector to a range between two other vectors.
-	-- @param from (Vec2) The lower bound of the range, represented by a Vec2 object.
-	-- @param to (Vec2) The upper bound of the range, represented by a Vec2 object.
-	-- @return (Vec2) The clamped vector.
+	-- 将向量限定在两个其他向量之间的范围内。
+	-- @param from (Vec2) 表示范围下限的向量对象。
+	-- @param to (Vec2) 表示范围上限的向量对象。
+	-- @return (Vec2) 限定在范围内的向量。
 	clamp: function(self: Vec2, from: Vec2, to: Vec2): Vec2
 
-	-- Adds two vectors together.
-	-- @param other (Vec2) The other vector to add, represented by a Vec2 object.
-	-- @return (Vec2) The sum of the two vectors.
+	-- 将两个向量相加。
+	-- @param other (Vec2) 要相加的另一个向量。
+	-- @return (Vec2) 两个向量之和。
 	metamethod __add: function(self: Vec2, other: Vec2): Vec2
 
-	-- Subtracts one vector from another.
-	-- @param other (Vec2) The vector to subtract, represented by a Vec2 object.
-	-- @return (Vec2) The difference between the two vectors.
+	-- 从一个向量中减去另一个向量。
+	-- @param other (Vec2) 要减去的向量。
+	-- @return (Vec2) 两个向量之间的差。
 	metamethod __sub: function(self: Vec2, other: Vec2): Vec2
 
-	-- Multiplies two vectors component-wise.
-	-- @param other (Vec2) The other vector to multiply by, represented by a Vec2 object.
-	-- @return (Vec2) The result of multiplying the two vectors component-wise.
+	-- 逐分量相乘两个向量。
+	-- @param other (Vec2) 要相乘的另一个向量。
+	-- @return (Vec2) 逐分量相乘两个向量的结果。
 	metamethod __mul: function(self: Vec2, other: Vec2): Vec2
 
-	-- Multiplies a vector by a scalar.
-	-- @param other (Vec2) The scalar to multiply by, represented by a number.
-	-- @return (Vec2) The result of multiplying the vector by the scalar.
+	-- 将向量乘以标量。
+	-- @param other (number) 要乘以的标量，用数字表示。
 	metamethod __mul: function(self: Vec2, other: number): Vec2
 
-	-- Multiplies a vector by a Size object.
-	-- @param (Size) other The Size object to multiply by.
-	-- @return (Vec2) The result of multiplying the vector by the Size object.
+	-- 将向量乘以尺寸对象。
+	-- @param other (Size) 要乘以的尺寸对象。
+	-- @return (Vec2) 将向量乘以尺寸对象的结果。
 	-- @usage local halfVec = vec * Size(0.5, 0.5)
 	metamethod __mul: function(self: Vec2, other: Size): Vec2
 
-	-- Divide a vector by a scalar.
-	-- @param other (number) The scalar to divide by, represented by a number.
-	-- @return (Vec2) The result of dividing the vector by the scalar.
+	-- 将向量除以标量。
+	-- @param other (number) 要除以的标量。
+	-- @return (Vec2) 将向量除以标量的结果。
 	metamethod __div: function(self: Vec2, other: number): Vec2
 
-	-- Compare two vectors for equality.
-	-- @param other (Vec2) The other vector to compare to, represented by a Vec2 object.
-	-- @return (boolean) Whether or not the two vectors are equal.
+	-- 比较两个向量是否相等。
+	-- @param other (Vec2) 要进行比较的另一个向量。
+	-- @return (boolean) 两个向量是否相等。
 	metamethod __eq: function(self: Vec2, other: Vec2): boolean
 end
 

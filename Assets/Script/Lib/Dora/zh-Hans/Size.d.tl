@@ -1,14 +1,14 @@
 local type Size = require("SizeType")
 local type Vec2 = require("Vec2Type")
 
--- A class for creating Size objects.
+-- 用于创建尺寸对象的类。
 local record SizeClass
 	type Type = Size
 
-	-- Create a new Size object with the given width and height.
-	-- @param width (number) [optional] The width of the new size (default 0).
-	-- @param height (number) [optional] The height of the new size (default 0).
-	-- @return (Size) The new Size object.
+	-- 使用给定的宽度和高度创建一个新的尺寸对象。
+	-- @param width (number) [可选] 新尺寸的宽度（默认为0）。
+	-- @param height (number) [可选] 新尺寸的高度（默认为0）。
+	-- @return (Size) 新的尺寸对象。
 	-- @usage local size = Size(10, 20)
 	metamethod __call: function(
 		self: SizeClass,
@@ -16,19 +16,19 @@ local record SizeClass
 		height?: number --[[0]]
 	): Size
 
-	-- Create a new Size object from an existing Size object.
-	-- @param other (Size) The existing Size object to create the new object from.
-	-- @return (Size) The new Size object.
+	-- 从现有的尺寸对象创建一个新的尺寸对象。
+	-- @param other (Size) 要从中创建新对象的现有尺寸对象。
+	-- @return (Size) 新的尺寸对象。
 	-- @usage local newSize = Size(existingSize)
 	metamethod __call: function(self: SizeClass, other: Size): Size
 
-	-- Create a new Size object from a Vec2 object.
-	-- @param vec (Vec2) The vector to create the new size from, represented by a Vec2 object.
-	-- @return (Size) The new Size object.
+	-- 从二维向量对象创建一个新的尺寸对象。
+	-- @param vec (Vec2) 要从中创建新尺寸的向量，由二维向量对象表示。
+	-- @return (Size) 新的尺寸对象。
 	-- @usage local size = Size(Vec2(10, 20))
 	metamethod __call: function(self: SizeClass, vec: Vec2): Size
 
-	-- Gets zero-size object.
+	-- 获得一个属性都为0的尺寸对象。
 	const zero: Size
 end
 

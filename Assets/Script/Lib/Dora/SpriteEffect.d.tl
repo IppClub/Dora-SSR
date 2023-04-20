@@ -19,7 +19,10 @@ local record SpriteEffectClass
 	-- 	"Shader/compiled_shader_file.bin"
 	-- @return (SpriteEffect) A new SpriteEffect object.
 	metamethod __call: function(self: SpriteEffectClass, vertShader: string, fragShader: string): SpriteEffect
+
+	-- A metamethod for creating a new empty SpriteEffect object.
 	metamethod __call: function(self: SpriteEffectClass): SpriteEffect
 end
+
 local spriteEffectClass: SpriteEffectClass
 return spriteEffectClass

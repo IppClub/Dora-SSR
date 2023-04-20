@@ -1,36 +1,38 @@
 local Object = require("Object").Type
 local Routine = require("Routine")
 
--- A scheduler that manages the execution of scheduled tasks.
+-- 用于管理调度任务执行的调度器类。
 local record Scheduler
+
+	-- 继承自`Object`。
 	embed Object
 
-	-- The time scale factor for the scheduler.
-	-- This factor is applied to deltaTime that the scheduled functions will receive.
+	-- 调度器的时间缩放系数。
+	-- 会同步改变被调度的函数接收到的`deltaTime`时间参数值。
 	timeScale: number
 
-	-- The target frame rate (in frames per second) for a fixed update mode.
-	-- The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
-	-- It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
+	-- 固定更新模式下的目标帧速率（以每秒帧数为单位）。
+	-- 固定更新将确保更新函数以恒定的帧速率被调度，使用恒定的更新时间间隔值。
+	-- 用于防止物理引擎产生奇怪行为或是用于通过网络通信同步一些状态。
 	fixedFPS: integer
 
-	-- Schedules a function to be called every frame.
-	-- @param handler (function) The function to be called.
-	-- It should take a single argument of type number, which represents the delta time since the last frame.
-	-- If the function returns true, it will not be called again.
+	-- 开始调度一个函数在每一个游戏帧里被执行。
+	-- @param handler (function) 要调度的函数。
+	-- 被调度的函数会接收到自上一帧以来的时间间隔。
+	-- 如果函数返回 true，则会被停止调度。
 	schedule: function(self: Scheduler, handler: function(number): boolean)
 
-	-- Schedules a coroutine job to be resumed every frame.
-	-- @param job (Routine.Job) The coroutine job to be resumed.
+	-- 开始调度执行一个协程任务。
+	-- @param job (Routine.Job) 要被调度的协程任务。
 	schedule: function(self: Scheduler, job: Routine.Job)
 end
 
--- A class for creating Scheduler objects.
+-- 用于创建调度器对象的类。
 local record SchedulerClass
 	type Type = Scheduler
 
-	-- Creates a new Scheduler object.
-	-- @return The newly created Scheduler object.
+	-- 创建新的调度器对象。
+	-- @return 新创建的调度器对象。
 	metamethod __call: function(self: SchedulerClass): Scheduler
 end
 

@@ -13,4 +13,5 @@ local scaleX: function(
 		to: number,
 		easing?: Ease.EaseFunc --[[Ease.Linear]]
 	): ActionDef
+
 return scaleX

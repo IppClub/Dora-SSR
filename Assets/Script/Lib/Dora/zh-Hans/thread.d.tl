@@ -1,7 +1,8 @@
 local Routine = require("Routine")
 
--- Creates a new coroutine from a function and executes it.
--- @param routine (function) A function to execute as a coroutine.
--- @return (Routine.Job) A handle to the coroutine that was created.
+-- 用要执行的函数创建并执行一个新协程任务。
+-- @param routine (function) 要执行为协程任务的函数。
+-- @return (Routine.Job) 创建的协程任务对象。
 local thread: function(routine: function(): boolean): Routine.Job
+
 return thread

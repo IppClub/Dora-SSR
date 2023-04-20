@@ -1,12 +1,12 @@
 local ActionDef = require("Action").Def
 local Ease = require("Ease")
 
--- Creates a definition for an action that animates the x-axis and y-axis scale of a Node from one value to another.
--- @param duration (number) The duration of the animation in seconds.
--- @param from (number) The starting value of the x-axis and y-axis scale.
--- @param to (number) The ending value of the x-axis and y-axis scale.
--- @param easing (EaseFunc) [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
--- @return (ActionDef) An ActionDef object that can be used to run the animation on a Node.
+-- 创建一个动作定义，该操作可将节点的 x 轴和 y 轴缩放从一个值变动到另一个值。
+-- @param duration（数字）动作持续时间（秒）。
+-- @param from（数字）x 轴和 y 轴缩放的起始值。
+-- @param to（数字）x 轴和 y 轴缩放的结束值。
+-- @param easing（EaseFunc）[可选] 动作使用的缓动函数。如果未指定，默认为 Ease.Linear。
+-- @return（ActionDef）动作定义对象，可用于在节点上运行动作。
 local scale: function(
 		duration: number,
 		from: number,

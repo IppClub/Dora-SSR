@@ -1,8 +1,8 @@
 local ActionDef = require("Action").Def
 
--- Creates a definition for an action that plays a sequence of other ActionDefs.
--- @param ... (ActionDef) A variable number of ActionDef objects to play in sequence.
--- @return (ActionDef) An ActionDef object that can be used to run the sequence of actions on a Node.
+-- 创建一个动作定义，用于顺序执行一系列其它动作定义的动作。
+-- @param ... (ActionDef) 多个要按顺序播放的动作定义对象。
+-- @return (ActionDef) 动作定义对象，可用于在节点上运行动作序列。
 local sequence: function(...: ActionDef): ActionDef
 
 return sequence

@@ -1,12 +1,12 @@
 local ActionDef = require("Action").Def
 local Ease = require("Ease")
 
--- Creates a definition for an action that animates the skew of a Node along the x-axis.
--- @param duration (number) The duration of the animation in seconds.
--- @param from (number) The starting skew value of the Node on the x-axis (in degrees).
--- @param to (number) The ending skew value of the Node on the x-axis (in degrees).
--- @param easing (EaseFunc) [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
--- @return (ActionDef) An ActionDef object that can be used to run the animation on a Node.
+-- 创建一个定义动作，使节点沿x轴做倾斜的变动。
+-- @param duration（number）动作的持续时间（秒）。
+-- @param from（number）节点在x轴上开始倾斜角度（以度为单位）。
+-- @param to（number）节点在x轴上结束倾斜角度（以度为单位）。
+-- @param easing（EaseFunc）[可选] 用于动作的缓动函数。如果未指定，则默认为Ease.Linear。
+-- @return（ActionDef）定义动对象，可用于在节点上运行动作。
 local skewX: function(
 		duration: number,
 		from: number,

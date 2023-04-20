@@ -1,35 +1,35 @@
 local Size = require("Size").Type
 local SpriteEffect = require("SpriteEffect").Type
 
--- A record that provides access to the 3D graphic view.
+-- 用于访问当前应用渲染视图设置的类。
 local record View
 	userdata
 
-	-- The size of the view in pixels.
+	-- 视图的像素尺寸。
 	const size: Size
 
-	-- The standard distance of the view from the origin.
+	-- 视图平面距原点的标准距离。
 	const standardDistance: number
 
-	-- The aspect ratio of the view.
+	-- 视图的宽高比。
 	const aspectRatio: number
 
-	-- The distance to the near clipping plane.
+	-- 近裁剪平面的距离。
 	nearPlaneDistance: number
 
-	-- The distance to the far clipping plane.
+	-- 远裁剪平面的距离。
 	farPlaneDistance: number
 
-	-- The field of view of the view in degrees.
+	-- 视图的视野（以度数表示）。
 	fieldOfView: number
 
-	-- The scale factor of the view.
+	-- 视图的缩放比例系数。
 	scale: number
 
-	-- The post effect applied to the view.
+	-- 要应用到视图的后处理着色器特效。
 	postEffect: SpriteEffect
 
-	-- Whether or not vertical sync is enabled.
+	-- 是否启用垂直同步。
 	vsync: boolean
 end
 

@@ -1,6 +1,6 @@
 local type Sensor = require("SensorType")
 
--- A record representing the class object of Sensor.
+-- 物理传感器类的类对象。
 local record SensorClass
 	type Type = Sensor
 end

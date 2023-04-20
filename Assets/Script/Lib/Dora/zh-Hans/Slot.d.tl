@@ -1,22 +1,24 @@
 local Object = require("Object").Type
 
--- A Slot object that represents a single event slot with handlers.
+-- 用于监听节点事件的信号槽对象类。
 local record Slot
+
+	-- 继承自`Object`。
 	embed Object
 
-	-- Adds a new handler function to this slot
-	-- @param handler The handler function to add
+	-- 向此信号槽添加一个新的处理回调函数。
+	-- @param handler (function) 要添加的处理函数。
 	add: function(self: Slot, handler: function(...: any))
 
-	-- Sets a new handler function for this slot, replacing any existing handlers.
-	-- @param handler The handler function to set.
+	-- 清除信号槽上之前添加的处理回调函数，并设置一个新的处理回调函数。
+	-- @param handler (function) 要设置的处理回调函数。
 	set: function(self: Slot, handler: function(...: any))
 
-	-- Removes a previously added handler function from this slot.
-	-- @param handler The handler function to remove.
+	-- 从此信号槽中删除先前添加的处理回调函数。
+	-- @param handler (function) 要删除的处理回调函数。
 	remove: function(self: Slot, handler: function(...: any))
 
-	-- Clears all handler functions from this slot
+	-- 清除此信号槽中的所有处理回调函数。
 	clear: function(self: Slot)
 end
 

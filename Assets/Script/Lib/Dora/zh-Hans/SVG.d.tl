@@ -1,26 +1,28 @@
 local Object = require("Object").Type
 
--- A record used for Scalable Vector Graphics rendering.
+-- 用于渲染可缩放矢量图形的类。
 local record SVG
+
+	-- 继承自`Object`。
 	embed Object
 
-	-- The width of the SVG object.
+	-- SVG对象的宽度。
 	const width: number
 
-	-- The height of the SVG object.
+	-- SVG对象的高度。
 	const height: number
 
-	-- Renders the SVG object, should be called every frame for the render result to appear.
+	-- 渲染SVG对象，需要在每一帧调用以持续显示渲染结果。
 	render: function(self: SVG)
 end
 
--- A class for creating SVG objects.
+-- 用于创建SVG对象的类。
 local record SVGClass
 	type Type = SVG
 
-	-- Creates a new SVG object from the specified SVG file.
-	-- @param filename (string) The path to the SVG format file.
-	-- @returns (SVG) The created SVG object.
+	-- 从指定的SVG文件创建一个新的SVG对象。
+	-- @param filename (string) SVG格式文件的路径。
+	-- @returns (SVG) 创建的SVG对象。
 	metamethod __call: function(self: SVGClass, filename: string): SVG
 end
 

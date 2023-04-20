@@ -1,6 +1,6 @@
 local type Touch = require("TouchType")
 
--- A record representing the class object of Touch.
+-- 表示触摸信息对象的类对象。
 local record TouchClass
 	type Type = Touch
 end

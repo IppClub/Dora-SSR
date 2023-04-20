@@ -28,7 +28,7 @@ local record Playable
 
 	-- 获取模型上的关键点的坐标。
 	-- @param name (string) 要获取模型上的关键点的名称。
-	-- @return (Vec2) 以`Vec2`形式返回的关键点的坐标。
+	-- @return (Vec2) 以二维向量形式返回的关键点的坐标。
 	getKey: function(self: Playable, name: string): Vec2
 
 	-- 播放模型包含的动画。

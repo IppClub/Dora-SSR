@@ -1,30 +1,32 @@
 local ContainerItem = require("ContainerItemType")
 local type Vec2 = require("Vec2Type")
 
--- A size object with a given width and height.
+-- 具有给定宽度和高度的尺寸对象类。
 local record Size
+
+	-- 继承自`Object`。
 	embed ContainerItem
 
-	-- The width of the size.
+	-- 尺寸对象的宽度。
 	width: number
 
-	-- The height of the size.
+	-- 尺寸对象的高度。
 	height: number
 
-	-- Set the width and height of the size.
-	-- @param width (number) The new width of the size.
-	-- @param height (number) The new height of the size.
+	-- 设置尺寸对象的宽度和高度。
+	-- @param width (number) 尺寸对象的新宽度。
+	-- @param height (number) 尺寸对象的新高度。
 	set: function(self: Size, width: number, height: number)
 
-	-- Check if two sizes are equal.
-	-- @param other (Size) The other size to compare to, represented by a Size object.
-	-- @return (boolean) Whether or not the two sizes are equal.
+	-- 检查两个尺寸对象是否相等。
+	-- @param other (Size) 要比较的另一个尺寸对象。
+	-- @return (boolean) 两个尺寸对象是否相等。
 	-- @usage sizeA == sizeB or sizeC ~= sizeD
 	metamethod __eq: function(self: Size, other: Size): boolean
 
-	-- Multiply the size by a vector.
-	-- @param vec (Vec2) The vector to multiply by, represented by a Vec2 object.
-	-- @return (Size) The result of multiplying the size by the vector, represented by a new Size object.
+	-- 将尺寸对象乘以向量。
+	-- @param vec (Vec2) 要乘以的向量，用一个Vec2对象表示。
+	-- @return (Size) 将尺寸对象乘以向量的结果。
 	-- @usage local halfSize = size * Vec2(0.5, 0.5)
 	metamethod __mul: function(self: Size, vec: Vec2): Size
 end

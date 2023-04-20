@@ -4,4 +4,5 @@ local Routine = require("Routine")
 -- @param routine (function) A function to execute repeatedly as a coroutine.
 -- @return (Routine.Job) A handle to the coroutine that was created.
 local threadLoop: function(routine: function(): boolean): Routine.Job
+
 return threadLoop

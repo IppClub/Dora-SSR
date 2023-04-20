@@ -1,29 +1,31 @@
 local Object = require("Object").Type
 local Vec2 = require("Vec2").Type
 
--- Represents a touch input or mouse click event.
+-- 记录触摸输入或鼠标点击事件信息的类。
 local record Touch
+
+	-- 继承自`Object`。
 	embed Object
 
-	-- Whether touch input is enabled or not.
+	-- 该触摸事件是否继续启用。
 	enabled: boolean
 
-	-- Whether the touch event originated from a mouse click.
+	-- 触摸事件是否源自鼠标点击。
 	fromMouse: boolean
 
-	-- Whether this is the first touch event when multi-touches exist.
+	-- 如果存在多点触控，则此事件是否为第一个触摸事件。
 	const first: boolean
 
-	-- The unique identifier assigned to this touch event.
+	-- 分配给此触摸事件的唯一标识符。
 	const id: integer
 
-	-- The amount and direction of movement since the last touch event.
+	-- 自上一个触摸事件以来的移动量和方向。
 	const delta: Vec2
 
-	-- The location of the touch event in the node's local coordinate system.
+	-- 触摸事件在场景节点本地坐标系中的位置。
 	const location: Vec2
 
-	-- The location of the touch event in world coordinate system.
+	-- 触摸事件在世界坐标系中的位置。
 	const worldLocation: Vec2
 end
 
