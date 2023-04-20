@@ -1,33 +1,32 @@
 local ContainerItem = require("ContainerItemType")
 local Object = require("Object").Type
 
--- The `tolua` record provides utilities for interfacing between C++ and Lua.
+-- 提供了用于 C++ 和 Lua 之间进行对象转换和处理的工具类。
 local record tolua
 
-	-- Returns the C++ object type of a Lua object.
-	-- @param item (any) The Lua object to get the type of.
-	-- @return (string) The C++ object type.
+	-- 返回一个 Lua 对象的 C++ 对象类型名称。
+	-- @param item (any) 要获取类型的 Lua 对象。
+	-- @return (string) C++ 对象类型名称。
 	type: function(item: any): string
 
-	-- Attempts to cast a Lua object to a C++ type object.
-	-- @param item (ContainerItem) The Lua object to cast.
-	-- @param name (string) The name of the C++ type to cast to.
-	-- @return (T|nil) The cast object, or `nil` if the cast fails.
+	-- 尝试将 Lua 对象动态转换为特定的 C++ 类型对象。
+	-- @param item (ContainerItem) 要转换的 Lua 对象。
+	-- @param name (string) 要转换为的 C++ 类型的名称。
+	-- @return (T|nil) 转换后的对象，如果转换失败则返回 `nil`。
 	cast: function<T>(item: ContainerItem, name: string): T | nil
 
-	-- Gets the class object for a given class name.
-	-- @param className (string) The name of the class to get the table for.
-	-- @return (table|nil) The class table, or `nil` if the class does not exist.
+	-- 获取给定类名的类对象。
+	-- @param className (string) 要获取的类对象的名称。
+	-- @return (table|nil) 获取的类对象，如果类不存在则返回 `nil`。
 	class: function(className: string): table | nil
 
-	-- Sets the peer table for an object. A pear table is a table referenced by a Lua userdata providing custom fields for this userdata object.
-	-- @param obj (Object) The object to set the peer table for.
-	-- @param data (table) The table to use as the peer table.
+	-- 为一个C++对象设置关联表。关联表是一个被 Lua userdata 引用的表，可以为该 userdata 对象提供用户自定义的字段。
+	-- @param obj (Object) 要设置关联表的C++对象。
+	-- @param data (table) 用作关联表的表。
 	setpeer: function(obj: Object, data: table)
 
-	-- Gets the peer table for an object. A pear table is a table referenced by a Lua userdata providing custom fields for this userdata object.
-	-- @param obj (Object) The object to get the peer table for.
-	-- @return (table) The peer table, or nil if the object has no peer table.
+	-- 获取一个C++对象上设置的关联表。关联表是一个被 Lua userdata 引用的表，可以为该 userdata 对象提供用户自定义的字段。
+	-- @param obj (Object) 要获取关联表的C++对象。
 	getpeer: function(obj: Object): table
 end
 

@@ -8,13 +8,15 @@ local Node = require("Node").Type
 
 -- A class used to render a texture as a grid of sprites, where each sprite can be positioned, colored, and have its UV coordinates manipulated.
 local record Grid
+
+	-- Inherits from `Node`.
 	embed Node
 
 	-- The number of columns in the grid. And there are `gridX + 1` vertices horizontally for rendering.
-	gridX: integer
+	const gridX: integer
 
 	-- The number of rows in the grid. And there are `gridY + 1` vertices vertically for rendering.
-	gridY: integer
+	const gridY: integer
 
 	-- Whether depth writes are enabled (default is false).
 	depthWrite: boolean

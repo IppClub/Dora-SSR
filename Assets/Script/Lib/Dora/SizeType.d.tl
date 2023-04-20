@@ -19,14 +19,14 @@ local record Size
 	set: function(self: Size, width: number, height: number)
 
 	-- Check if two sizes are equal.
-	-- @param other (Size) The other size to compare to, represented by a Size object.
+	-- @param other (Size) The other size to compare to.
 	-- @return (boolean) Whether or not the two sizes are equal.
 	-- @usage sizeA == sizeB or sizeC ~= sizeD
 	metamethod __eq: function(self: Size, other: Size): boolean
 
 	-- Multiply the size by a vector.
-	-- @param vec (Vec2) The vector to multiply by, represented by a Vec2 object.
-	-- @return (Size) The result of multiplying the size by the vector, represented by a new Size object.
+	-- @param vec (Vec2) The vector to multiply by.
+	-- @return (Size) The result of multiplying the size by the vector.
 	-- @usage local halfSize = size * Vec2(0.5, 0.5)
 	metamethod __mul: function(self: Size, vec: Vec2): Size
 end

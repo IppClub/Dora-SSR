@@ -1,20 +1,20 @@
 local type Size = require("SizeType")
 local type Vec2 = require("Vec2Type")
 
--- A class for creating Vec2 objects.
+-- 用于创建二维向量对象的类。
 local record Vec2Class
 	type Type = Vec2
 
-	-- Creates a new Vec2 object from an existing Vec2 object.
-	-- @param other (Vec2) The existing Vec2 object to create the new object from.
-	-- @return (Vec2) The new Vec2 object.
+	-- 从现有的二维向量对象创建一个新的二维向量对象。
+	-- @param other (Vec2) 要从中创建新对象的现有二维向量对象。
+	-- @return (Vec2) 新的二维向量对象。
 	-- @usage local newVec = Vec2(existingVec)
 	metamethod __call: function(self: Vec2Class, other: Vec2): Vec2
 
-	-- Creates a new Vec2 object with the given x and y components.
-	-- @param x (number) The x-component of the new vector.
-	-- @param y (number) The y-component of the new vector.
-	-- @return (Vec2) The new Vec2 object.
+	-- 使用给定的 x 和 y 组件创建一个新的二维向量对象。
+	-- @param x (number) 新向量的 x 分量。
+	-- @param y (number) 新向量的 y 分量。
+	-- @return (Vec2) 新的二维向量对象。
 	-- @usage local newVec = Vec2(10, 20)
 	metamethod __call: function(
 		self: Vec2Class,
@@ -22,14 +22,15 @@ local record Vec2Class
 		y: number
 	): Vec2
 
-	-- Creates a new Vec2 object from a Size object.
-	-- @param size (Size) The Size object to create the new vector from.
-	-- @return (Vec2) The new Vec2 object.
+	-- 从一个尺寸对象创建一个新的二维向量对象。
+	-- @param size (Size) 要从中创建新向量的尺寸对象。
+	-- @return (Vec2) 新的二维向量对象。
 	-- @usage local newVec = Vec2Class(Size(10, 20))
 	metamethod __call: function(self: Vec2Class, size: Size): Vec2
 
-	-- Gets zero-vector object.
+	-- 获取属性为0的二维向量对象。
 	const zero: Vec2
 end
+
 local vec2Class: Vec2Class
 return vec2Class

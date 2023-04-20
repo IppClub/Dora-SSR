@@ -1,12 +1,12 @@
 local ActionDef = require("Action").Def
 local Ease = require("Ease")
 
--- Creates a definition for an action that animates the z-position of a Node.
--- @param duration (number) The duration of the animation in seconds.
--- @param from (number) The starting z-position of the Node.
--- @param to (number) The ending z-position of the Node.
--- @param easing (EaseFunc) [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
--- @return (ActionDef) An ActionDef object that can be used to run the animation on a Node.
+-- 创建一个动作定义，用于使一个节点的 z 坐标位置发生变动。
+-- @param duration (number) 动作的持续时间（秒）。
+-- @param from (number) 节点的起始 z 坐标位置。
+-- @param to (number) 节点的结束 z 坐标位置。
+-- @param easing (EaseFunc) [可选] 动作使用的缓动函数。如果未指定，则默认为 Ease.Linear。
+-- @return (ActionDef) 一个动作定义对象，可用于在节点上运行动作。
 local z: function(
 		duration: number,
 		from: number,

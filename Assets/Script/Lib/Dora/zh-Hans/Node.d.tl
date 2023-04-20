@@ -51,7 +51,7 @@ local record Node
 	-- 节点的 Z 轴位置。
 	z: number
 
-	-- 以`Vec2`对象表示的节点位置。
+	-- 以二维向量对象表示的节点位置。
 	position: Vec2
 
 	-- 节点的 X 轴倾斜角度，以度为单位。

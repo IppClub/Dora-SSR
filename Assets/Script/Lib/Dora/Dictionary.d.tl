@@ -14,6 +14,16 @@ local record Dictionary
 	-- The keys of the items in the dictionary.
 	const keys: {string}
 
+	-- A method for accessing items in the dictionary.
+	-- @param key (string) The key of the item to retrieve.
+	-- @return (Item or nil) The Item with the given key, or nil if it does not exist.
+	get: function(self: Dictionary, key: string): Item
+
+	-- A method for setting items in the dictionary.
+	-- @param key (string) The key of the item to set.
+	-- @param item (Item) The Item to set for the given key, set to nil to delete this key-value pair.
+	set: function(self: Dictionary, key: string, item: Item)
+
 	-- A function that iterates over each item in the dictionary and calls a given function with the item and its key.
 	-- @param func (function) The function to call for each item in the dictionary.
 	-- This function should take an Item and a string as arguments and return a boolean. Returns true to stop iteration, false to continue.

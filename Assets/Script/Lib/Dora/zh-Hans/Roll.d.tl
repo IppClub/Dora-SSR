@@ -1,13 +1,13 @@
 local ActionDef = require("Action").Def
 local Ease = require("Ease")
 
--- Creates a definition for an action that animates the rotation of a Node from one value to another.
--- The roll animation will make sure the node is rotated to the target angle by the minimum rotation angle.
--- @param duration (number) The duration of the animation in seconds.
--- @param from (number) The starting roll value of the Node (in degrees).
--- @param to (number) The ending roll value of the Node (in degrees).
--- @param easing (EaseFunc) [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
--- @return (ActionDef) An ActionDef object that can be used to run the animation on a Node.
+-- 创建一个动作定义，用于将一个节点的旋转角度从一个值变动到另一个值。
+-- 滚动动作将确保节点通过旋转角度最小的旋转方向旋转到目标角度。
+-- @param duration (number) 动作持续时间（秒）。
+-- @param from (number) 节点的起始旋转值（以度为单位）。
+-- @param to (number) 节点的结束旋转值（以度为单位）。
+-- @param easing (EaseFunc) [可选] 动作所使用的缓动函数。如果未指定，默认为 Ease.Linear。
+-- @return (ActionDef) 可用于在节点上运行动作的动作定义对象。
 local roll: function(
 		duration: number,
 		from: number,

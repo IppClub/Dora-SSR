@@ -2,28 +2,30 @@ local Object = require("Object").Type
 local Array = require("Array").Type
 local type Body = require("BodyType")
 
--- A class to represent a physics sensor object in the game world.
+-- 表示游戏世界中物理感应器对象的类。
 local record Sensor
+
+	-- 继承自`Object`。
 	embed Object
 
-	-- Whether the sensor is currently enabled or not.
+	-- 感应器当前是否启用。
 	enabled: boolean
 
-	-- The tag for the sensor.
+	-- 感应器的标签编号。
 	const tag: integer
 
-	-- The "Body" object that owns the sensor.
+	-- 拥有该感应器的物理体对象。
 	const owner: Body
 
-	-- Whether the sensor is currently sensing any other "Body" objects in the game world.
+	-- 感应器当前是否感应到游戏世界中的任何其它物理体对象。
 	const sensed: boolean
 
-	-- An array of "Body" objects that are currently being sensed by the sensor.
+	-- 被感应到的物理体对象列表。
 	const sensedBodies: Array
 
-	-- Determines whether the specified "Body" object is currently being sensed by the sensor.
-	-- @param body (Body) The "Body" object to check if it is being sensed.
-	-- @return (boolean) True if the "Body" object is being sensed by the sensor, false otherwise.
+	-- 感应器当前是否感应到指定的物理体对象。
+	-- @param body (Body) 要检查是否正在被感应的物理体对象。
+	-- @return (boolean) 如果感应器正在感应到物理体对象，则返回true，否则返回false。
 	contains: function(self: Sensor, body: Body): boolean
 end
 

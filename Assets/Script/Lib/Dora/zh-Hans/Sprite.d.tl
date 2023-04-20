@@ -4,13 +4,13 @@ local SpriteEffect = require("SpriteEffect").Type
 local BlendFunc = require("BlendFunc").Type
 local Node = require("Node").Type
 
--- The Sprite class to render texture in game scene tree hierarchy.
+-- 用于渲染图片纹理的游戏场景树节点类，也叫做游戏图元（精灵）。
 local record Sprite
 
-	-- Inherits from `Node`.
+	-- 继承自`Node`。
 	embed Node
 
-	-- An enumeration for texture wrapping modes.
+	-- 纹理绘制环绕模式的枚举。
 	enum TextureWrap
 		"None"
 		"Mirror"
@@ -18,62 +18,62 @@ local record Sprite
 		"Border"
 	end
 
-	-- An enumeration for texture filtering modes.
+	-- 纹理过滤模式的枚举。
 	enum TextureFilter
 		"None"
 		"Point"
 		"Anisotropic"
 	end
 
-	-- Indicates whether the depth buffer should be written to when rendering the sprite (default is false).
+	-- 是否在渲染时写入深度缓冲区（默认为false）。
 	depthWrite: boolean
 
-	-- Specifies the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
-	-- Only works with `sprite.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+	-- 用于alpha测试的alpha参考值。alpha值小于或等于该值的像素将被丢弃。
+	-- 仅生效于`sprite.effect = SpriteEffect("builtin:vs_sprite”，“builtin:fs_spritealphatest"）`。
 	alphaRef: number
 
-	-- Specifies the texture rectangle for the sprite, as an instance of the Rect class.
+	-- 渲染纹理使用的纹理矩形区域。
 	textureRect: Rect
 
-	-- Specifies the blend function for the sprite, as an instance of the BlendFunc class.
+	-- 用于渲染纹理的混合函数。
 	blendFunc: BlendFunc
 
-	-- Specifies the sprite effect, as an instance of the SpriteEffect class.
+	-- 用于渲染纹理的着色器特效对象。
 	effect: SpriteEffect
 
-	-- Specifies the texture for the sprite, as an instance of the Texture2D class.
+	-- 要渲染的纹理对象.
 	texture: Texture2D
 
-	-- Specifies the texture wrapping mode for the U (horizontal) axis.
+	-- 渲染使用的 U（水平）轴的纹理环绕模式。
 	uwrap: TextureWrap
 
-	-- Specifies the texture wrapping mode for the V (vertical) axis.
+	-- 渲染使用的 V（垂直）轴的纹理环绕模式。
 	vwrap: TextureWrap
 
-	-- Specifies the texture filtering mode for the sprite.
+	-- 渲染使用的纹理过滤模式。
 	filter: TextureFilter
 end
 
+-- 用于创建新的图元对象的类。
 -- @usage
 -- local Sprite = require("Sprite")
 -- local sprite = Sprite("Image/file.png")
 local record SpriteClass
 	type Type = Sprite
 
-	-- A metamethod for calling the SpriteClass as a function with no arguments.
+	-- 用于创建新的图元对象的元方法。
 	-- @return (Sprite) A new instance of the Sprite class.
 	metamethod __call: function(self: SpriteClass): Sprite
 
-	-- A metamethod for calling the SpriteClass as a function with a Texture2D and an optional Rect argument.
-	-- @param texture (Texture2D) The texture to be used for the sprite.
-	-- @param textureRect (Rect|nil) The rectangle defining the portion of the texture to use for the sprite.
-	-- @return (Sprite) A new instance of the Sprite class with the specified texture and texture rectangle.
+	-- 用于创建新的图元对象的元方法。
+	-- @param texture (Texture2D) 要渲染的纹理。
+	-- @param textureRect (Rect) [optional] 用于渲染的纹理矩形区域，没有提供则设置为渲染所有纹理区域。
+	-- @return (Sprite) 新的图元对象.
 	metamethod __call: function(self: SpriteClass, texture: Texture2D, textureRect?: Rect): Sprite
 
-	-- A metamethod for calling the SpriteClass as a function with a string argument.
-	-- @param clipStr (string) The string containing format for loading a texture file.
-	-- Can be "Image/file.png" and "Image/items.clip|itemA".
-	-- @return (Sprite) A new instance of the Sprite class with the texture loaded from the specified image file.
+	-- 用于创建新的图元对象的元方法。
+	-- @param clipStr (string) 包含要加载的纹理文件名的字符串。
+	-- 可以是“Image/file.png”或“Image/items.clip|itemA”。
 	metamethod __call: function(self: SpriteClass, clipStr: string): Sprite
 end
 
