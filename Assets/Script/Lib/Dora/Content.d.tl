@@ -1,5 +1,8 @@
 -- The `Content` record is a singleton object that manages file searching,
 -- loading and other operations related to resources.
+-- @usage
+-- local Content = require("Content")
+-- Content:load("filename.txt")
 local record Content
 	userdata
 
@@ -127,8 +130,5 @@ local record Content
 	clearPathCache: function(self: Content)
 end
 
--- @usage
--- local Content = require("Content")
--- Content:load("filename.txt")
 local content: Content
 return content

@@ -1,4 +1,7 @@
 -- 用于管理资源文件的搜索、加载和执行其它与资源文件相关的操作的单例类。
+-- @usage
+-- local Content = require("Content")
+-- Content:load("filename.txt")
 local record Content
 	userdata
 
@@ -126,8 +129,5 @@ local record Content
 	clearPathCache: function(self: Content)
 end
 
--- @usage
--- local Content = require("Content")
--- Content:load("filename.txt")
 local content: Content
 return content

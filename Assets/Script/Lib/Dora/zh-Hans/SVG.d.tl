@@ -22,7 +22,7 @@ local record SVGClass
 
 	-- 从指定的SVG文件创建一个新的SVG对象。
 	-- @param filename (string) SVG格式文件的路径。
-	-- @returns (SVG) 创建的SVG对象。
+	-- @return (SVG) 创建的SVG对象。
 	metamethod __call: function(self: SVGClass, filename: string): SVG
 end
 

@@ -2,4 +2,5 @@
 -- @param eventName (string) 要发送的全局事件的名称。
 -- @param ... (...any) 要发送给全局事件监听器的参数数据。
 local emit: function(eventName: string, ...: any)
+
 return emit

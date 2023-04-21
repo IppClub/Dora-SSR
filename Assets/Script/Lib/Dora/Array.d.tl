@@ -86,7 +86,7 @@ local record Array
 
 	-- Checks whether the array contains a given item.
 	-- @param item (Item) The item to check.
-	-- @return boolean True if the item is found, false otherwise.
+	-- @return (boolean) True if the item is found, false otherwise.
 	contains: function(self: Array, item: Item): boolean
 
 	-- Gets the index of a given item.

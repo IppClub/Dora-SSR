@@ -81,14 +81,14 @@ local record DB
 	insertAsync: function(self: DB, tableName: string, values: {Row}): boolean
 
 	-- 在一个事务中异步从Excel文件插入数据到数据表中
-	-- @param tableSheets {string} 要插入的数据表（和Excel表相同）的名称。
+	-- @param tableSheets ({string}) 要插入的数据表（和Excel表相同）的名称。
 	-- @param excelFile (string) 包含插入数据的Excel文件的路径。
 	-- @param startRow (integer) 开始插入数据的Excel行号，行号从1开始
 	-- @return (boolean) 插入是否成功。
 	insertAsync: function(self: DB, tableSheets: {string}, excelFile: string, startRow: integer): boolean
 
 	-- 在一个事务中异步从Excel文件插入数据到数据表中。
-	-- @param tableSheets {{string, string}} 要插入的数据表和对应Excel工作表名称的列表。
+	-- @param tableSheets ({{string, string}}) 要插入的数据表和对应Excel工作表名称的列表。
 	-- @param excelFile (string) 包含插入数据的Excel文件的路径。
 	-- @param startRow (integer) 开始插入数据的Excel行号，行号从1开始。
 	-- @return (boolean) 插入是否成功。
@@ -118,7 +118,7 @@ local record DB
 
 	-- 以不同的参数多次异步执行同一条SQL语句并返回受影响的行数。
 	-- @param sql (string) 要执行的SQL语句。
-	-- @param values {Row} 要插入到SQL语句中的参数列表。
+	-- @param values ({Row}) 要插入到SQL语句中的参数列表。
 	-- @return (integer) 语句执行影响的行数。
 	execAsync: function(self: DB, sql: string, values: {Row}): integer
 

@@ -87,7 +87,7 @@ local record Array
 
 	-- 检查数组是否包含给定的对象。
 	-- @param item (Item) 要检查的对象。
-	-- @return boolean 如果找到对象则返回True，否则返回false。
+	-- @return (boolean) 如果找到对象则返回True，否则返回false。
 	contains: function(self: Array, item: Item): boolean
 
 	-- 获取给定对象的索引。

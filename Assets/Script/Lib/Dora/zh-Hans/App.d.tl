@@ -98,5 +98,43 @@ local record App
 	shutdown: function(self: App)
 end
 
+-- 全局事件的定义。
+-- 这只是一个事件定义的展示，包含所有全局事件名称和回调函数的定义。
+-- @usage
+-- -- 可以使用如下示例代码注册这些事件：
+-- local node = Node():addTo(Director.entry)
+-- node:gslot("AppQuit", function()
+-- 	print("应用正在被关闭！")
+-- end)
+local record __GSLOT__
+
+	-- 应用即将退出时触发。
+	["AppQuit"]: function()
+
+	-- 应用接收到低内存警告时触发。
+	["AppLowMemory"]: function()
+
+	-- 应用即将进入后台时触发。
+	["AppWillEnterBackground"]: function()
+
+	-- 应用已经进入后台时触发。
+	["AppDidEnterBackground"]: function()
+
+	-- 应用即将进入前台时触发。
+	["AppWillEnterForeground"]: function()
+
+	-- 应用已经进入前台时触发。
+	["AppDidEnterForeground"]: function()
+
+	-- 应用窗口大小发生变化时触发。
+	["AppSizeChanged"]: function()
+
+	-- 应用进入或退出全屏窗口模式时触发。
+	["AppFullScreen"]: function(fullScreen: boolean)
+
+	-- 应用改变主题颜色时触发。
+	["AppTheme"]: function(themeColor: Color)
+end
+
 local app: App
 return app

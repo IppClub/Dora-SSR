@@ -32,7 +32,7 @@ local record SchedulerClass
 	type Type = Scheduler
 
 	-- Creates a new Scheduler object.
-	-- @return The newly created Scheduler object.
+	-- @return (Scheduler) The newly created Scheduler object.
 	metamethod __call: function(self: SchedulerClass): Scheduler
 end
 

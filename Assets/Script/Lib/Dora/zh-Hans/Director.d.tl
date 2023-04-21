@@ -4,6 +4,9 @@ local Node = require("Node").Type
 local Camera = require("Camera").Type
 
 -- 游戏导演类，是用于管理游戏场景树，并提供多种用途的游戏场景根节点的单例类。
+-- @usage
+-- local Director = require("Director")
+-- Director.entry:addChild(node)
 local record Director
 	userdata
 
@@ -59,8 +62,5 @@ local record Director
 	cleanup: function(self: Director)
 end
 
--- @usage
--- local Director = require("Director")
--- Director.entry:addChild(node)
 local director: Director
 return director

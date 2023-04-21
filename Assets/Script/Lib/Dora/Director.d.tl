@@ -4,6 +4,9 @@ local Node = require("Node").Type
 local Camera = require("Camera").Type
 
 -- A singleton class manages the game scene trees and provides access to root scene nodes for different game uses.
+-- @usage
+-- local Director = require("Director")
+-- Director.entry:addChild(node)
 local record Director
 	userdata
 
@@ -59,8 +62,5 @@ local record Director
 	cleanup: function(self: Director)
 end
 
--- @usage
--- local Director = require("Director")
--- Director.entry:addChild(node)
 local director: Director
 return director

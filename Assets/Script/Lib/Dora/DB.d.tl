@@ -81,14 +81,14 @@ local record DB
 	insertAsync: function(self: DB, tableName: string, values: {Row}): boolean
 
 	-- Inserts data from an Excel file into a table within a transaction asynchronously.
-	-- @param tableSheets {string} the names of the tables to insert into.
+	-- @param tableSheets ({string}) the names of the tables to insert into.
 	-- @param excelFile (string) The path to the Excel file containing the data.
 	-- @param startRow (integer) The row number to start inserting data from. The row number start with 1.
 	-- @return (boolean) Whether the insert was successful or not.
 	insertAsync: function(self: DB, tableSheets: {string}, excelFile: string, startRow: integer): boolean
 
 	-- Inserts data from an Excel file into a table within a transaction asynchronously.
-	-- @param tableSheets {{string, string}} A list of table names and corresponding sheet names to insert into.
+	-- @param tableSheets ({{string, string}}) A list of table names and corresponding sheet names to insert into.
 	-- @param excelFile (string) The path to the Excel file containing the data.
 	-- @param startRow (integer) The row number to start inserting data from. The row number start with 1.
 	-- @return (boolean) Whether the insert was successful or not.
@@ -118,7 +118,7 @@ local record DB
 
 	-- Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
 	-- @param sql (string) The SQL statement to execute.
-	-- @param values {Row} A list of values to substitute into the SQL statement.
+	-- @param values ({Row}) A list of values to substitute into the SQL statement.
 	-- @return (integer) The number of rows affected by the statement.
 	execAsync: function(self: DB, sql: string, values: {Row}): integer
 

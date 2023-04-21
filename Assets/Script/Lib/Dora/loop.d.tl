@@ -5,4 +5,5 @@ local Routine = require("Routine")
 -- Yield or return true inside the routine function to stop the job execution.
 -- @return (Routine.Job) A coroutine that runs the given routine function repeatedly.
 local loop: function(routine: function(): boolean): Routine.Job
+
 return loop

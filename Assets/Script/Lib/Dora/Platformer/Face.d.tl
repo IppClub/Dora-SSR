@@ -49,7 +49,7 @@ local record FaceClass
 	-- @param point (Vec2) [optional] The position of the `Face` component, default is `Vec2.zero`.
 	-- @param scale (number) [optional] The scale of the `Face` component, default is 1.0.
 	-- @param angle (number) [optional] The angle of the `Face` component, default is 0.0.
-	-- @return Face The new `Face` component.
+	-- @return (Face) The new `Face` component.
 	metamethod __call: function(
 		self: FaceClass,
 		createFunc: function(): (Node),

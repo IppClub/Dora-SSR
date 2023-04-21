@@ -97,5 +97,43 @@ local record App
 	shutdown: function(self: App)
 end
 
+-- The global signal slot (event system) communication features.
+-- This is just a demonstration record showing the global signal slot names and callbacks.
+-- @usage
+-- -- Register for these events using codes:
+-- local node = Node():addTo(Director.entry)
+-- node:gslot("AppQuit", function()
+-- 	print("Application is shuting down!")
+-- end)
+local record __GSLOT__
+
+	-- Triggers when the application is about to quit.
+	["AppQuit"]: function()
+
+	-- Triggers when the application receives a low memory warning.
+	["AppLowMemory"]: function()
+
+	-- Triggers when the application is about to enter the background.
+	["AppWillEnterBackground"]: function()
+
+	-- Triggers when the application has entered the background.
+	["AppDidEnterBackground"]: function()
+
+	-- Triggers when the application is about to enter the foreground.
+	["AppWillEnterForeground"]: function()
+
+	-- Triggers when the application has entered the foreground.
+	["AppDidEnterForeground"]: function()
+
+	-- Triggers when the application window size changes.
+	["AppSizeChanged"]: function()
+
+	-- Triggers when the application window enters or exits full-screen mode.
+	["AppFullScreen"]: function(fullScreen: boolean)
+
+	-- Triggers when the application theme color changes.
+	["AppTheme"]: function(themeColor: Color)
+end
+
 local app: App
 return app

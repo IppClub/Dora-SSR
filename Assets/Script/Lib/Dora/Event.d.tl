@@ -1,7 +1,8 @@
 local ActionDef = require("Action").Def
 
 -- Creates a definition for an action that emits event.
--- And you can get this event by register event slot from the action performing node. For example:
+-- @usage
+-- -- Get this event by register event from the action performing node.
 -- node:slot("EventName", function(param: string)
 -- 	print("EventName triggered with param", param)
 -- end)

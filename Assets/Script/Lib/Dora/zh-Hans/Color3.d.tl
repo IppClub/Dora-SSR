@@ -34,7 +34,7 @@ local record Color3Class
 	-- @param r (integer) 红色通道值（0-255）。
 	-- @param g (integer) 绿色通道值（0-255）。
 	-- @param b (integer) 蓝色通道值（0-255）。
-	-- @return 新的`Color3`对象。
+	-- @return (Color3) 新的`Color3`对象。
 	metamethod __call: function(self: Color3Class, r: integer, g: integer, b: integer): Color3
 end
 

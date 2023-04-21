@@ -1,7 +1,8 @@
 local ActionDef = require("Action").Def
 
 -- 创建一个会带有发送节点事件的动作定义。
--- 可以通过执行动作的节点注册事件插槽来监听此事件。例如：
+-- @usage
+-- -- 可以通过执行动作的节点注册事件插槽来监听此事件。
 -- node:slot("EventName", function(param: string)
 -- 	print("带参数的EventName被触发，参数为", param)
 -- end)

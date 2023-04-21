@@ -227,48 +227,50 @@ local record Node
 	-- Converts a point in world space to node space.
 	-- @param worldPoint (Vec2) The point to convert.
 	-- @param z (number) The z-coordinate of the point. Default is 0.
-	-- @return (Vec2, number) The converted point and its z-coordinate.
+	-- @return (Vec2) The converted point.
+	-- @return (number) The converted z-coordinate.
 	convertToNodeSpace: function(self: Node, worldPoint: Vec2, z: number): Vec2, number
 
 	-- Converts a point from node space to world space.
 	-- @param nodePoint (Vec2) The point in node space.
-	-- @returns (Vec2) The converted point in world space.
+	-- @return (Vec2) The converted point in world space.
 	convertToWorldSpace: function(self: Node, nodePoint: Vec2): Vec2
 
 	-- Converts a point from node space to world space.
 	-- @param nodePoint (Vec2) The point in node space.
 	-- @param z (number) The z coordinate in node space.
-	-- @returns (Vec2, number) The converted point in world space and z coordinate.
+	-- @return (Vec2) The converted point in world space.
+	-- @return (number) The converted z coordinate in world space .
 	convertToWorldSpace: function(self: Node, nodePoint: Vec2, z: number): Vec2, number
 
 	-- Converts a point from node space to window space.
 	-- @param nodePoint (Vec2) The point in node space.
-	-- @param callback (function(Vec2)) The callback function to receive the converted point in window space.
+	-- @param callback (function) The callback function to receive the converted point in window space.
 	convertToWindowSpace: function(self: Node, nodePoint: Vec2, callback: function(Vec2))
 
 	-- Calls the given function for each child node of this node.
-	-- @param func (function(Node): boolean) The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
-	-- @returns (boolean) False if all children have been visited, true if the iteration was interrupted by the function.
+	-- @param func (function) The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
+	-- @return (boolean) False if all children have been visited, true if the iteration was interrupted by the function.
 	eachChild: function(self: Node, func: function(Node): boolean): boolean
 
 	-- Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
-	-- @param func (function(Node): boolean) The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
-	-- @returns (boolean) False if all nodes have been visited, true if the traversal was interrupted by the function.
+	-- @param func (function) The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
+	-- @return (boolean) False if all nodes have been visited, true if the traversal was interrupted by the function.
 	traverse: function(self: Node, func: function(Node): boolean): boolean
 
 	-- Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
-	-- @param func (function(Node): boolean) The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
-	-- @returns (boolean) True if all nodes have been visited, false if the traversal was interrupted by the function.
+	-- @param func (function) The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
+	-- @return (boolean) True if all nodes have been visited, false if the traversal was interrupted by the function.
 	traverseAll: function(self: Node, func: function(Node): boolean): boolean
 
 	-- Runs the given action on this node.
 	-- @param action (Action) The action to run.
-	-- @returns (number) The duration of the newly running action in seconds.
+	-- @return (number) The duration of the newly running action in seconds.
 	runAction: function(self: Node, action: Action)
 
 	-- Runs an action defined by the given action definition on this node.
 	-- @param actionDef (ActionDef) The action definition to run.
-	-- @returns (number) The duration of the newly running action in seconds.
+	-- @return (number) The duration of the newly running action in seconds.
 	runAction: function(self: Node, actionDef: ActionDef)
 
 	-- Stops all actions running on this node.
@@ -276,12 +278,12 @@ local record Node
 
 	-- Runs the given action immediately without adding it to the action queue.
 	-- @param action (Action) The action to run.
-	-- @returns (number) The duration of the newly running action.
+	-- @return (number) The duration of the newly running action.
 	perform: function(self: Node, action: Action): number
 
 	-- Runs an action defined by the given action definition right after clear all the previous running actions.
 	-- @param actionDef (ActionDef) The action definition to run.
-	-- @returns (number) The duration of the newly running action.
+	-- @return (number) The duration of the newly running action.
 	perform: function(self: Node, actionDef: ActionDef): number
 
 	-- Stops the given action running on this node.
@@ -290,7 +292,7 @@ local record Node
 
 	-- Vertically aligns all child nodes of this node.
 	-- @param padding (number) [optional] The padding between child nodes. Defaults to 10.
-	-- @returns (Size) The size of the aligned child nodes.
+	-- @return (Size) The size of the aligned child nodes.
 	alignItemsVertically: function(
 		self: Node,
 		padding?: number --[[10]]
@@ -439,7 +441,8 @@ end
 
 -- The available event slots for a Node.
 -- This is just a demonstration record showing the signal slot names and callbacks.
--- You can register for these events using codes like:
+-- @usage
+-- -- you can register for these events using codes like:
 -- node:slot("ActionEnd", function(action: Action, target: Node)
 -- 	print("Action end", action, target)
 -- end)
@@ -534,42 +537,6 @@ local record __SLOT__
 	["TextEditing"]: function(text: string, startPos: integer)
 end
 
--- The global signal slot communication features.
--- This is just a demonstration record showing the global signal slot names and callbacks.
--- You can register for these events using codes like:
--- node:gslot("AppQuit", function()
--- 	print("Application is shuting down!")
--- end)
-local record __GSLOT__
-
-	-- Triggers when the application is about to quit.
-	["AppQuit"]: function()
-
-	-- Triggers when the application receives a low memory warning.
-	["AppLowMemory"]: function()
-
-	-- Triggers when the application is about to enter the background.
-	["AppWillEnterBackground"]: function()
-
-	-- Triggers when the application has entered the background.
-	["AppDidEnterBackground"]: function()
-
-	-- Triggers when the application is about to enter the foreground.
-	["AppWillEnterForeground"]: function()
-
-	-- Triggers when the application has entered the foreground.
-	["AppDidEnterForeground"]: function()
-
-	-- Triggers when the application window size changes.
-	["AppSizeChanged"]: function()
-
-	-- Triggers when the application window enters or exits full-screen mode.
-	["AppFullScreen"]: function(fullScreen: boolean)
-
-	-- Triggers when the application theme color changes.
-	["AppTheme"]: function(themeColor: Color)
-end
-
 -- A class object for the `Node` class.
 local record NodeClass
 	type Type = Node
@@ -578,7 +545,7 @@ local record NodeClass
 	-- @usage
 	-- local Node = require("Node")
 	-- local node = Node()
-	-- @returns (Node) A new instance of the `Node` class.
+	-- @return (Node) A new instance of the `Node` class.
 	metamethod __call: function(self: NodeClass): Node
 end
 
