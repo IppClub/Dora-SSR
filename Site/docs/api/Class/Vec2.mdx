@@ -1,0 +1,368 @@
+import "@site/src/languages/highlight";
+
+# Vec2
+
+**Description:**
+
+&emsp;&emsp;A record representing a 2D vector with an x and y component.
+
+**Inherits from:** ContainerItem.
+
+## x
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The x-component of the vector.
+
+**Signature:**
+```tl
+const x: number
+```
+
+## y
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The y-component of the vector.
+
+**Signature:**
+```tl
+const y: number
+```
+
+## length
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The length of the vector.
+
+**Signature:**
+```tl
+const length: number
+```
+
+## lengthSquared
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The squared length of the vector.
+
+**Signature:**
+```tl
+const lengthSquared: number
+```
+
+## angle
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The angle between the vector and the x-axis.
+
+**Signature:**
+```tl
+const angle: number
+```
+
+## distance
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Calculates the distance between two vectors.
+
+**Signature:**
+```tl
+distance: function(self: Vec2, vec: Vec2): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vec | Vec2 | The other vector to calculate the distance to, represented by a Vec2 object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The distance between the two vectors. |
+
+## distanceSquared
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Calculates the squared distance between two vectors.
+
+**Signature:**
+```tl
+distanceSquared: function(self: Vec2, vec: Vec2): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vec | Vec2 | The other vector to calculate the squared distance to, represented by a Vec2 object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The squared distance between the two vectors. |
+
+## normalize
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Normalizes the vector to have a length of 1.
+
+**Signature:**
+```tl
+normalize: function(self: Vec2): Vec2
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The normalized vector. |
+
+## perp
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the perpendicular vector of this vector.
+
+**Signature:**
+```tl
+perp: function(self: Vec2): Vec2
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The perpendicular vector. |
+
+## clamp
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clamps the vector to a range between two other vectors.
+
+**Signature:**
+```tl
+clamp: function(self: Vec2, from: Vec2, to: Vec2): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| from | Vec2 | The lower bound of the range, represented by a Vec2 object. |
+| to | Vec2 | The upper bound of the range, represented by a Vec2 object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The clamped vector. |
+
+## __add
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Adds two vectors together.
+
+**Signature:**
+```tl
+metamethod __add: function(self: Vec2, other: Vec2): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Vec2 | The other vector to add, represented by a Vec2 object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The sum of the two vectors. |
+
+## __sub
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Subtracts one vector from another.
+
+**Signature:**
+```tl
+metamethod __sub: function(self: Vec2, other: Vec2): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Vec2 | The vector to subtract, represented by a Vec2 object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The difference between the two vectors. |
+
+## __mul
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Multiplies two vectors component-wise.
+
+**Signature:**
+```tl
+metamethod __mul: function(self: Vec2, other: Vec2): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Vec2 | The other vector to multiply by, represented by a Vec2 object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The result of multiplying the two vectors component-wise. |
+
+## __mul
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Multiplies a vector by a scalar.
+
+**Signature:**
+```tl
+metamethod __mul: function(self: Vec2, other: number): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Vec2 | The scalar to multiply by, represented by a number. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The result of multiplying the vector by the scalar. |
+
+## __mul
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Multiplies a vector by a Size object.
+
+**Signature:**
+```tl
+metamethod __mul: function(self: Vec2, other: Size): Vec2
+```
+
+**Usage:**
+```tl
+local halfVec = vec * Size(0.5, 0.5)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Size | The Size object to multiply by. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The result of multiplying the vector by the Size object. |
+
+## __div
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Divide a vector by a scalar.
+
+**Signature:**
+```tl
+metamethod __div: function(self: Vec2, other: number): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | number | The scalar to divide by, represented by a number. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The result of dividing the vector by the scalar. |
+
+## __eq
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Compare two vectors for equality.
+
+**Signature:**
+```tl
+metamethod __eq: function(self: Vec2, other: Vec2): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Vec2 | The other vector to compare to, represented by a Vec2 object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether or not the two vectors are equal. |

@@ -1,0 +1,48 @@
+import "@site/src/languages/highlight";
+
+# ClipNode
+
+**Description:**
+
+&emsp;&emsp;A Node that can clip its children based on the alpha values of its stencil.
+
+**Inherits from:** Node.
+
+## stencil
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The stencil Node that defines the clipping shape.
+
+**Signature:**
+```tl
+stencil: Node
+```
+
+## alphaThreshold
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
+
+**Signature:**
+```tl
+alphaThreshold: number
+```
+
+## inverted
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether to invert the clipping area.
+
+**Signature:**
+```tl
+inverted: boolean
+```

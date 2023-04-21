@@ -1,0 +1,27 @@
+import "@site/src/languages/highlight";
+
+# Playable Event
+
+**Description:**
+
+&emsp;&emsp;This is just a demonstration record showing signal slot events that are emiting by the Playable animation systems.
+
+## AnimationEnd
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers after an animation has ended on a Playable instance.
+
+**Signature:**
+```tl
+["AnimationEnd"]: function(animationName: string, target: Playable)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| animationName | string | The name of the animation that ended. |
+| target | Playable | The Playable instance that the animation was played on. |

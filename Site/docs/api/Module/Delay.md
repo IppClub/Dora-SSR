@@ -1,0 +1,24 @@
+import "@site/src/languages/highlight";
+
+# Delay
+
+**Description:**
+
+&emsp;&emsp;Creates a definition for an action that makes a delay in the animation timeline.
+
+**Signature:**
+```tl
+Delay: function(duration: number): ActionDef
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| duration | number | The duration of the delay in seconds. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ActionDef | An ActionDef object that represents a delay in the animation timeline. |

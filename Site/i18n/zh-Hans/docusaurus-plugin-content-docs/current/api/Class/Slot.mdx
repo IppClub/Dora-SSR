@@ -1,0 +1,79 @@
+import "@site/src/languages/highlight";
+
+# Slot
+
+**描述：**
+
+&emsp;&emsp;用于监听节点事件的信号槽对象类。
+
+**继承自：** Object。
+
+## add
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;向此信号槽添加一个新的处理回调函数。
+
+**签名：**
+```tl
+add: function(self: Slot, handler: function(...: any))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| handler | function | 要添加的处理函数。 |
+
+## set
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清除信号槽上之前添加的处理回调函数，并设置一个新的处理回调函数。
+
+**签名：**
+```tl
+set: function(self: Slot, handler: function(...: any))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| handler | function | 要设置的处理回调函数。 |
+
+## remove
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从此信号槽中删除先前添加的处理回调函数。
+
+**签名：**
+```tl
+remove: function(self: Slot, handler: function(...: any))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| handler | function | 要删除的处理回调函数。 |
+
+## clear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清除此信号槽中的所有处理回调函数。
+
+**签名：**
+```tl
+clear: function(self: Slot)
+```

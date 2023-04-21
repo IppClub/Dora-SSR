@@ -1,0 +1,128 @@
+import "@site/src/languages/highlight";
+
+# tolua
+
+**Description:**
+
+&emsp;&emsp;The `tolua` record provides utilities for interfacing between C++ and Lua.
+
+## type
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the C++ object type of a Lua object.
+
+**Signature:**
+```tl
+type: function(item: any): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| item | any | The Lua object to get the type of. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The C++ object type. |
+
+## cast
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Attempts to cast a Lua object to a C++ type object.
+
+**Signature:**
+```tl
+cast: function<T>(item: ContainerItem, name: string): T | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| item | ContainerItem | The Lua object to cast. |
+| name | string | The name of the C++ type to cast to. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| T|nil | The cast object, or `nil` if the cast fails. |
+
+## class
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the class object for a given class name.
+
+**Signature:**
+```tl
+class: function(className: string): table | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| className | string | The name of the class to get the table for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| table|nil | The class table, or `nil` if the class does not exist. |
+
+## setpeer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the peer table for an object. A pear table is a table referenced by a Lua userdata providing custom fields for this userdata object.
+
+**Signature:**
+```tl
+setpeer: function(obj: Object, data: table)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| obj | Object | The object to set the peer table for. |
+| data | table | The table to use as the peer table. |
+
+## getpeer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the peer table for an object. A pear table is a table referenced by a Lua userdata providing custom fields for this userdata object.
+
+**Signature:**
+```tl
+getpeer: function(obj: Object): table
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| obj | Object | The object to get the peer table for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| table | The peer table, or nil if the object has no peer table. |

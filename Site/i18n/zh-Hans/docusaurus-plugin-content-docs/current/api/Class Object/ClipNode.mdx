@@ -1,0 +1,35 @@
+import "@site/src/languages/highlight";
+
+# ClipNode的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建裁剪节点对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的裁剪节点对象。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: ClipNodeClass,
+		stencil?: Node --[[nil]]
+	): ClipNode
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| stencil | Node | 定义裁剪形状的蒙版节点。默认值为nil。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ClipNode | 新的裁剪节点对象。 |

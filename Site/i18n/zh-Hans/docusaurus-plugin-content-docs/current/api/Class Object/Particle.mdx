@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# Particle的类对象
+
+**描述：**
+
+&emsp;&emsp;可创建新的粒子系统节点对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;从粒子系统定义文件创建一个新的粒子系统节点对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: ParticleClass, filename: string): Particle
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 粒子系统定义文件的文件路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Particle | 新的粒子系统节点对象。 |

@@ -1,0 +1,126 @@
+import "@site/src/languages/highlight";
+
+# Model的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建动画模型实例的类。
+
+## dummy
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回一个新的占位用的空的动画实例的方法。
+
+**签名：**
+```tl
+dummy: function(self: ModelClass): Model
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Model | 新的占位用的动画实例。 |
+
+## getClipFile
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从指定的模型文件中获取图片切片文件名。
+
+**签名：**
+```tl
+getClipFile: function(self: ModelClass, filename: string): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要搜索的模型文件的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 图片切片文件的名称。 |
+
+## getLooks
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从指定的模型文件中获取外观名称列表。
+
+**签名：**
+```tl
+getLooks: function(self: ModelClass, filename: string): {string}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要搜索的模型文件的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| {string} | 在模型文件中找到的外观名称列表。 |
+
+## getAnimations
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从指定的模型文件中获取动画名称列表。
+
+**签名：**
+```tl
+getAnimations: function(self: ModelClass, filename: string): {string}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要搜索的模型文件的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| {string} | 在模型文件中找到的动画名称列表。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;从指定的模型文件创建动画模型的新实例。
+
+**签名：**
+```tl
+metamethod __call: function(self: ModelClass, filename: string): Model
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要加载的模型文件的文件名。可以是带有扩展名的文件名，如："Model/item" 或 "Model/item.model"。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Model | 动画模型的新实例。 |

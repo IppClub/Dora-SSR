@@ -1,0 +1,258 @@
+import "@site/src/languages/highlight";
+
+# BodyDef Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating BodyDef and FixtureDef.
+
+## polygon
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a polygon fixture definition with the specified dimensions.
+
+**Signature:**
+```tl
+polygon: function(self: BodyDefClass,
+		width: number,
+		height: number,
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| width | number | The width of the polygon. |
+| height | number | The height of the polygon. |
+| density | number | [optional] The density of the polygon (default is 0.0). |
+| friction | number | [optional] The friction of the polygon (default is 0.4, should be 0.0 to 1.0). |
+| restitution | number | [optional] The restitution of the polygon (default is 0.0, should be  0.0 to 1.0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FixtureDef | A FixtureDef object for the created polygon fixture. |
+
+## polygon
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a polygon fixture definition with the specified dimensions and center position.
+
+**Signature:**
+```tl
+polygon: function(self: BodyDefClass,
+		center: Vec2,
+		width: number,
+		height: number,
+		angle?: number --[[0.0]],
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| center | Vec2 | The center position of the polygon. |
+| width | number | The width of the polygon. |
+| height | number | The height of the polygon. |
+| angle | number | [optional] The angle of the polygon in radians (default is 0.0). |
+| density | number | [optional] The density of the polygon (default is 0.0). |
+| friction | number | [optional] The friction of the polygon (default is 0.4, should be 0.0 to 1.0). |
+| restitution | number | [optional] The restitution of the polygon (default is 0.0, should be 0.0 to 1.0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FixtureDef | A FixtureDef object for the created polygon fixture. |
+
+## polygon
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a polygon fixture definition with the specified vertices.
+
+**Signature:**
+```tl
+polygon: function(self: BodyDefClass,
+		vertices: {Vec2},
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertices | {Vec2} | A table containing the vertices of the polygon. |
+| density | number | [optional] The density of the polygon (default is 0.0). |
+| friction | number | [optional] The friction of the polygon (default is 0.4, should be 0.0 to 1.0). |
+| restitution | number | [optional] The restitution of the polygon (default is 0.0, should be 0.0 to 1.0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FixtureDef | A FixtureDef object for the created polygon fixture. |
+
+## multi
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a concave shape definition made of multiple convex shapes.
+
+**Signature:**
+```tl
+multi: function(self: BodyDefClass,
+		vertices: {Vec2},
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertices | {Vec2} | A table containing the vertices of each convex shape that makes up the concave shape.Each convex shape in the vertices table should ends with a Vec2(0.0, 0.0) as seperator. |
+| density | number | The density of the shape (optional, default 0.0). |
+| friction | number | The friction coefficient of the shape (optional, default 0.4, should be 0.0 to 1.0). |
+| restitution | number | The restitution (elasticity) of the shape (optional, default 0.0, should be 0.0 to 1.0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FixtureDef | The resulting fixture definition. |
+
+## disk
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a Disk-shape fixture definition.
+
+**Signature:**
+```tl
+disk: function(self: BodyDefClass,
+		center: Vec2,
+		radius: number,
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| center | Vec2 | The center of the circle. |
+| radius | number | The radius of the circle. |
+| density | number | The density of the circle (optional, default 0.0). |
+| friction | number | The friction coefficient of the circle (optional, default 0.4, should be 0.0 to 1.0). |
+| restitution | number | The restitution (elasticity) of the circle (optional, default 0.0, should be 0.0 to 1.0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FixtureDef | The resulting fixture definition. |
+
+## disk
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a Disk-shape fixture definition with center at origin.
+
+**Signature:**
+```tl
+disk: function(self: BodyDefClass,
+		radius: number,
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| radius | number | The radius of the circle. |
+| density | number | The density of the circle (optional, default 0.0). |
+| friction | number | The friction coefficient of the circle (optional, default 0.4, should be 0.0 to 1.0). |
+| restitution | number | The restitution (elasticity) of the circle (optional, default 0.0, should be 0.0 to 1.0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FixtureDef | The resulting fixture definition. |
+
+## chain
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a Chain-shape fixture definition. This fixture is a free form sequence of line segments that has two-sided collision.
+
+**Signature:**
+```tl
+chain: function(self: BodyDefClass,
+		vertices: {Vec2},
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertices | {Vec2} | The vertices of the chain. |
+| friction | number | The friction coefficient of the chain (optional, default 0.4, should be 0.0 to 1.0). |
+| restitution | number | The restitution (elasticity) of the chain (optional, default 0.0, should be 0.0 to 1.0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FixtureDef | The resulting fixture definition. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Create a new instance of BodyDef class.
+
+**Signature:**
+```tl
+metamethod __call: function(self: BodyDefClass): BodyDef
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| BodyDef | a new BodyDef object. |

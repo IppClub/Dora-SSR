@@ -1,0 +1,369 @@
+import "@site/src/languages/highlight";
+
+# Unit
+
+**描述：**
+
+&emsp;&emsp;代表游戏场景中游戏角色或其它游戏交互物件的节点类。
+
+**继承自：** Body。
+
+## playable
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;管理的动画模型播放状态的对象。
+
+**签名：**
+```tl
+playable: Playable
+```
+
+## detectDistance
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏单位可以检测其它单位或物理体的最大距离。
+
+**签名：**
+```tl
+detectDistance: number
+```
+
+## attackRange
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏单位攻击范围的大小。
+
+**签名：**
+```tl
+attackRange: Size
+```
+
+## faceRight
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏单位是否面向右侧。
+
+**签名：**
+```tl
+faceRight: boolean
+```
+
+## receivingDecisionTrace
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否接收决策树的执行信息用于调试。
+
+**签名：**
+```tl
+receivingDecisionTrace: boolean
+```
+
+## decisionTree
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏单位使用的AI决策树的名称。
+AI决策树名称将用于在`Data.store`单例中获取AI节点对象。
+
+**签名：**
+```tl
+decisionTree: string
+```
+
+## onSurface
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否“站”在地面或物理体表面上。
+
+**签名：**
+```tl
+const onSurface: boolean
+```
+
+## groundSensor
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于检测地面或物理体表面的感应器对象。
+
+**签名：**
+```tl
+const groundSensor: Sensor
+```
+
+## detectSensor
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于检测游戏世界中其它游戏单位或物理体的感应器对象。
+
+**签名：**
+```tl
+const detectSensor: Sensor
+```
+
+## attackSensor
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于在攻击区域内检测其它游戏单位或物理体的感应器对象。
+
+**签名：**
+```tl
+const attackSensor: Sensor
+```
+
+## unitDef
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;定义游戏单位的属性和行为的字典对象。
+
+**签名：**
+```tl
+const unitDef: Dictionary
+```
+
+## currentAction
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏单位正在执行的当前动作。
+
+**签名：**
+```tl
+const currentAction: UnitAction
+```
+
+## width
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏单位的宽度。
+
+**签名：**
+```tl
+const width: number
+```
+
+## height
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏单位的高度。
+
+**签名：**
+```tl
+const height: number
+```
+
+## entity
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏单位所关联的ECS实体对象。
+
+**签名：**
+```tl
+const entity: Entity
+```
+
+## attachAction
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;给游戏单位添加一个新的单位动作，并返回新创建的单位动作对象。
+
+**签名：**
+```tl
+attachAction: function(self: Unit, name: string): UnitAction
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 新的单位动作的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| UnitAction | 新创建的单位动作对象。 |
+
+## removeAction
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从游戏单位上删除一个单位动作。
+
+**签名：**
+```tl
+removeAction: function(self: Unit, name: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要删除的单位动作的名称。 |
+
+## removeAllActions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;删除所有的游戏单位动作。
+
+**签名：**
+```tl
+removeAllActions: function(self: Unit)
+```
+
+## getAction
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;查找游戏单位上特定名称的动作，如果不存在，则返回nil。
+
+**签名：**
+```tl
+getAction: function(self: Unit, name: string): UnitAction
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要查找的游戏单位动作名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| UnitAction或nil | 指定名称的游戏单位动作，或nil。 |
+
+## eachAction
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;遍历游戏单位上的所有动作对象，并调用处理函数。
+
+**签名：**
+```tl
+eachAction: function(self: Unit, func: function(UnitAction))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| func | function | 对每个游戏单位动作调用的函数。 |
+
+## start
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;执行指定名称的游戏单位动作。
+
+**签名：**
+```tl
+start: function(self: Unit, name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要启动的游戏单位动作的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果成功启动游戏单位动作，则返回true，否则返回false。 |
+
+## stop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止当前正在执行的游戏单位动作。
+
+**签名：**
+```tl
+stop: function(self: Unit)
+```
+
+## isDoing
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;如果游戏单位当前在执行指定的动作，则返回true，否则返回false。
+
+**签名：**
+```tl
+isDoing: function(self: Unit, name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要检查的游戏单位动作。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果游戏单位当前在执行指定的动作，则返回true，否则返回false。 |

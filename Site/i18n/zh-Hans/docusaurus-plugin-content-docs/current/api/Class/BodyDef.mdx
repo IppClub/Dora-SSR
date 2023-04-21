@@ -1,0 +1,473 @@
+import "@site/src/languages/highlight";
+
+# BodyDef
+
+**描述：**
+
+&emsp;&emsp;描述物理体定义的类。
+
+**继承自：** Object。
+
+## BodyDef.BodyType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;物理体的类型
+
+**签名：**
+```tl
+enum BodyType
+
+	-- 不会动的物理体。
+	"Static"
+
+	-- 可以移动的物理体，会受到外力的影响。
+	"Dynamic"
+
+	-- 可以移动但不受外力影响的物理体。
+	"Kinematic"
+end
+```
+
+## type
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;定义物理体的类型。
+
+**签名：**
+```tl
+type: BodyType
+```
+
+## position
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;定义物理体的位置。
+
+**签名：**
+```tl
+position: Vec2
+```
+
+## angle
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;定义物理体的旋转角度。
+
+**签名：**
+```tl
+angle: number
+```
+
+## face
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;定义物理体上挂载的可视图片或其它用于创建`Face`对象的字符串。
+
+**签名：**
+```tl
+face: string
+```
+
+## facePos
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;定义物理体的可视组件的位置。
+
+**签名：**
+```tl
+facePos: Vec2
+```
+
+## linearDamping
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;定义物理体的线性阻尼。
+
+**签名：**
+```tl
+linearDamping: number
+```
+
+## angularDamping
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;定义物理体的旋转阻尼。
+
+**签名：**
+```tl
+angularDamping: number
+```
+
+## linearAcceleration
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;定义物理体的初始线性加速度。
+
+**签名：**
+```tl
+linearAcceleration: Vec2
+```
+
+## fixedRotation
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否固定旋转（物理体不会发生旋转）。
+
+**签名：**
+```tl
+fixedRotation: boolean
+```
+
+## bullet
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否为弹道物。
+设置为“true”为物理体添加额外的子弹高速运动碰撞检查。
+
+**签名：**
+```tl
+bullet: boolean
+```
+
+## attachPolygon
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个多边形的定义添加到物理体定义上。
+
+**签名：**
+```tl
+attachPolygon: function(self: BodyDef,
+		center: Vec2,
+		width: number,
+		height: number,
+		angle?: number --[[0.0]],
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| center | Vec2 | 多边形的中心点。 |
+| width | number | 多边形的宽度。 |
+| height | number | 多边形的高度。 |
+| angle | number | [可选] 多边形的角度（默认值为0.0）。 |
+| density | number | [可选] 多边形的密度（默认值为0.0）。 |
+| friction | number | [可选] 多边形的摩擦系数（默认值为0.4，应为0至1.0）。 |
+| restitution | number | [可选] 多边形的弹性系数（默认值为0.0，应为0至1.0）。 |
+
+## attachPolygon
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个多边形的定义添加到物理体定义上。
+
+**签名：**
+```tl
+attachPolygon: function(self: BodyDef,
+		width: number,
+		height: number,
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| width | number | 多边形的宽度。 |
+| height | number | 多边形的高度。 |
+| density | number | [可选] 多边形的密度（默认为 0.0）。 |
+| friction | number | [可选] 多边形的摩擦系数（默认为 0.4，应在 0 到 1.0 之间）。 |
+| restitution | number | [可选] 多边形的弹性系数（默认为 0.0，应为 0.0 到 1.0）。 |
+
+## attachPolygon
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个多边形的定义添加到物理体定义上。
+
+**签名：**
+```tl
+attachPolygon: function(self: BodyDef,
+		vertices: {Vec2},
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertices | {Vec2} | 多边形的顶点。 |
+| density | number | [可选] 多边形的密度（默认值为0.0）。 |
+| friction | number | [可选] 多边形的摩擦系数（默认值为0.4，应在0到1.0之间）。 |
+| restitution | number | [可选] 多边形的弹性系数（默认值为0.0，应在0到1.0之间）。 |
+
+## attachMulti
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将由多个凸多边形组成的凹多边形定义添加到物理体定义上。
+
+**签名：**
+```tl
+attachMulti: function(self: BodyDef,
+		vertices: {Vec2},
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertices | {Vec2} | 包含构成凹多边形的每个凸多边形的顶点的列表。列表中的每个凸多边形都应以Vec2(0.0, 0.0)结尾作为分隔。 |
+| density | number | [可选] 凹多边形的密度（默认值为0.0）。 |
+| friction | number | [可选] 凹多边形的摩擦系数（默认值为0.4，应在0到1.0之间）。 |
+| restitution | number | [可选] 凹多边形的弹性系数（默认值为0.0，应在0到1.0之间）。 |
+
+## attachDisk
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个圆盘定义添加物理体定义上。
+
+**签名：**
+```tl
+attachDisk: function(self: BodyDef,
+		center: Vec2,
+		radius: number,
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| center | Vec2 | 圆心点。 |
+| radius | number | 圆盘的半径。 |
+| density | number | [可选] 圆盘的密度（默认值为0.0）。 |
+| friction | number | [可选] 圆盘的摩擦系数（默认值为0.4，应在0到1.0之间）。 |
+| restitution | number | [可选] 圆盘的弹性系数（默认值为0.0，应在0到1.0之间）。 |
+
+## attachDisk
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个圆盘定义添加物理体定义上。
+
+**签名：**
+```tl
+attachDisk: function(self: BodyDef,
+		radius: number,
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| radius | number | 圆盘的半径。 |
+| density | number | [可选] 圆盘的密度（默认值为0.0）。 |
+| friction | number | [可选] 圆盘的摩擦系数（默认值为0.4）。 |
+| restitution | number | [可选] 圆盘的弹性系数（默认值为0.0）。 |
+
+## attachChain
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将链条形状定义添加到物理体定义上。链条形状是一组连续的线段，线段的两边都能触发碰撞。
+
+**签名：**
+```tl
+attachChain: function(self: BodyDef,
+		vertices: {Vec2},
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertices | {Vec2} | 链条的顶点。 |
+| friction | number | [可选] 链条的摩擦系数（默认值为0.4）。 |
+| restitution | number | [可选] 链条的弹性系数（默认值为0.0）。 |
+
+## attachPolygonSensor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个多边形感应器形状的定义添加到物理体定义上。
+
+**签名：**
+```tl
+attachPolygonSensor: function(self: BodyDef,
+		tag: integer,
+		width: number,
+		height: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tag | number | 感应器的标签编号。 |
+| width | number | 感应器多边形的宽度。 |
+| height | number | 感应器多边形的高度。 |
+
+## attachPolygonSensor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个多边形感应器形状的定义添加到物理体定义上。
+
+**签名：**
+```tl
+attachPolygonSensor: function(self: BodyDef,
+		tag: integer,
+		center: Vec2,
+		width: number,
+		height: number,
+		angle?: number --[[0.0]])
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tag | number | 感应器的标签编号。 |
+| center | Vec2 | 感应器多边形的中心点。 |
+| width | number | 感应器多边形的宽度。 |
+| height | number | 感应器多边形的高度。 |
+| angle | number | [可选] 感应器多边形的角度（默认为0.0）。 |
+
+## attachPolygonSensor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个多边形感应器形状的定义添加到物理体定义上。
+
+**签名：**
+```tl
+attachPolygonSensor: function(self: BodyDef,
+		tag: integer,
+		vertices: {Vec2})
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tag | number | 感应器的标签编号。 |
+| vertices | {Vec2} | 感应器的多边形定义的顶点。 |
+
+## attachDiskSensor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将圆盘形状感应器的定义添加到物理体定义上。
+
+**签名：**
+```tl
+attachDiskSensor: function(self: BodyDef,
+		tag: integer,
+		center: Vec2,
+		radius: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tag | number | 感应器的标签编号。 |
+| center | Vec2 | 圆盘的中心。 |
+| radius | number | 圆盘的半径。 |
+
+## attachDiskSensor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将圆盘形状感应器的定义添加到物理体定义上。
+
+**签名：**
+```tl
+attachDiskSensor: function(self: BodyDef,
+		tag: integer,
+		radius: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tag | number | 感应器的标签编号。 |
+| radius | number | 圆盘的半径。 |

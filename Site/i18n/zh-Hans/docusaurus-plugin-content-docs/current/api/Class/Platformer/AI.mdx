@@ -1,0 +1,158 @@
+import "@site/src/languages/highlight";
+
+# AI
+
+**描述：**
+
+&emsp;&emsp;用于在执行决策树AI时获取信息的单例类。
+
+## getUnitsByRelation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取游戏单位的检测范围内具有指定关系的单位。
+
+**签名：**
+```tl
+getUnitsByRelation: function(self: AI, relation: Relation): Array
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| relation | Relation | 游戏单位的关系。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Array | 具有指定关系的游戏单位列表。 |
+
+## getDetectedUnits
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取AI已检测到的游戏单位。
+
+**签名：**
+```tl
+getDetectedUnits: function(self: AI): Array
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Array | 被检测到的游戏单位列表。 |
+
+## getDetectedBodies
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取AI已检测到的游戏物理体。
+
+**签名：**
+```tl
+getDetectedBodies: function(self: AI): Array
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Array | 被检测到的游戏物理体列表。 |
+
+## getNearestUnit
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取距离AI单位最近的具有指定关系的游戏单位。
+
+**签名：**
+```tl
+getNearestUnit: function(self: AI, relation: Relation): Unit
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| relation | Relation | 游戏单位的关系。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Unit | 具有指定关系的最近的游戏单位。 |
+
+## getNearestUnitDistance
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取距离AI最近的具有指定关系的游戏单位的距离。
+
+**签名：**
+```tl
+getNearestUnitDistance: function(self: AI, relation: Relation): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| relation | Relation | 游戏单位的关系。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 距离最近的游戏单位的距离。 |
+
+## getUnitsInAttackRange
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取攻击范围内的游戏单位。
+
+**签名：**
+```tl
+getUnitsInAttackRange: function(self: AI): Array
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Array | 攻击范围内的游戏单位列表。 |
+
+## getBodiesInAttackRange
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取攻击范围内的游戏物理体。
+
+**签名：**
+```tl
+getBodiesInAttackRange: function(self: AI): Array
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Array | 攻击范围内的游戏物理体列表。 |

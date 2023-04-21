@@ -1,0 +1,110 @@
+import "@site/src/languages/highlight";
+
+# Color
+
+**描述：**
+
+&emsp;&emsp;具有红色、绿色、蓝色和 alpha 通道的颜色类。
+
+## r
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;颜色的红色通道，取值为 0 到 255 之间。
+
+**签名：**
+```tl
+r: integer
+```
+
+## g
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;颜色的绿色通道，取值为 0 到 255 之间。
+
+**签名：**
+```tl
+g: integer
+```
+
+## b
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;颜色的蓝色通道，取值为 0 到 255 之间。
+
+**签名：**
+```tl
+b: integer
+```
+
+## a
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;颜色的透明通道，取值为 0 到 255 之间。
+
+**签名：**
+```tl
+a: integer
+```
+
+## opacity
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;颜色的透明通道的另一种表示。取值范围从 0 到 1。
+
+**签名：**
+```tl
+opacity: number
+```
+
+## toColor3
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将颜色转换为没有透明通道的 Color3 对象。
+
+**签名：**
+```tl
+toColor3: function(self: Color): Color3
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Color3 | 转换后的Color3对象。 |
+
+## toARGB
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将颜色转换为 ARGB 整数值。
+
+**签名：**
+```tl
+toARGB: function(self: Color): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 转换后的ARGB整数值。 |

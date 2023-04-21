@@ -1,0 +1,138 @@
+import "@site/src/languages/highlight";
+
+# UnitActionParam
+
+**Description:**
+
+&emsp;&emsp;A record that defines the parameters for a "UnitAction".
+
+## priority
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The priority level for the "UnitAction".
+`UnitAction` with higher priority (larger number) will replace the running lower priority `UnitAction`.
+If performing `UnitAction` having the same priority with the running `UnitAction` and the `UnitAction` to perform having the param 'queued' to be true, the running `UnitAction` won't be replaced.
+
+**Signature:**
+```tl
+priority: integer
+```
+
+## reaction
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The length of the reaction time for the "UnitAction", in seconds.
+The reaction time will affect the AI check cycling time.
+Set to 0.0 to make AI check run in every update.
+
+**Signature:**
+```tl
+reaction: number
+```
+
+## recovery
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The length of the recovery time for the "UnitAction", in seconds.
+The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
+
+**Signature:**
+```tl
+recovery: number
+```
+
+## queued
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority.
+
+**Signature:**
+```tl
+queued: boolean
+```
+
+## available
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that determines whether the "UnitAction" is currently available for the specified "Unit".
+
+**Signature:**
+```tl
+available: function(owner: Unit, action: UnitAction): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| owner | Unit | The "Unit" that owns the "UnitAction". |
+| action | UnitAction | The "UnitAction" to check availability for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the "UnitAction" is available for the "Unit", false otherwise. |
+
+## create
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that creates a new function or "Routine.Job" that represents the processing of the "UnitAction".
+
+**Signature:**
+```tl
+create: function(owner: Unit, action: UnitAction): (
+		function(owner: Unit, action: UnitAction, deltaTime: number): (boolean)
+		| Routine.Job
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| owner | Unit | The "Unit" that will own the "UnitAction". |
+| action | UnitAction | The "UnitAction" to create the processing function or "Routine.Job" for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| function or Routine.Job | A function or a "Routine.Job" that returns or yields true if the "UnitAction" is complete. |
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that gets invoked when the specified "Unit" stops performing the "UnitAction".
+
+**Signature:**
+```tl
+stop: function(owner: Unit)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| owner | Unit | The "Unit" is stoping the "UnitAction". |

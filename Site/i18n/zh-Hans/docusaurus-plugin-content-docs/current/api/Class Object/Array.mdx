@@ -1,0 +1,51 @@
+import "@site/src/languages/highlight";
+
+# Array的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建数组对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的空数组对象的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: ArrayClass): Array
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Array | 新的数组对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;以一个Lua数组表初始化创建一个新的数组对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: ArrayClass, items: {Item}): Array
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| items | {Item} | 用于初始化数组的Lua数组表。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Array | 新的数组对象。 |

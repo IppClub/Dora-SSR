@@ -1,0 +1,37 @@
+import "@site/src/languages/highlight";
+
+# Bullet的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建新`Bullet`对象实例的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用特定的子弹定义和发射子弹的游戏单位对象，创建新的子弹对象实例的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: BulletClass,
+		def: BulletDef,
+		owner: Unit
+	): Bullet
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| def | BulletDef | 子弹属性和行为的定义对象。 |
+| owner | Unit | 发射子弹的游戏单位对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Bullet | 新的子弹对象实例。 |

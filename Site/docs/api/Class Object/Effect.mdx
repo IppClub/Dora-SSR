@@ -1,0 +1,52 @@
+import "@site/src/languages/highlight";
+
+# Effect Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating Effect objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod that allows you to create a new Effect object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: EffectClass, vertShader: string, fragShader: string): Effect
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertShader | string | The vertex shader file string. |
+| fragShader | string | The fragment shader file string.A shader file string must be one of the formats:	"builtin:" + theBuiltinShaderName	"Shader/compiled_shader_file.bin" |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Effect | A new Effect object. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Another metamethod that allows you to create a new empty Effect object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: EffectClass): Effect
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Effect | A new empty Effect object. |

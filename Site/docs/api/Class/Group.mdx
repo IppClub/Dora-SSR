@@ -1,0 +1,97 @@
+import "@site/src/languages/highlight";
+
+# Group
+
+**Description:**
+
+&emsp;&emsp;A record representing a group of entities in the ECS game systems.
+
+**Inherits from:** Object.
+
+## count
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The number of entities in the group.
+
+**Signature:**
+```tl
+const count: integer
+```
+
+## each
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Calls a function for each entity in the group.
+
+**Signature:**
+```tl
+each: function(self: Group, func: function(Entity): boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to call for each entity.Returning true inside the function to stop iteration. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | False if all entities were processed, True if the iteration was interrupted. |
+
+## find
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Finds the first entity in the group that satisfies a predicate function.
+
+**Signature:**
+```tl
+find: function(self: Group, func: function(Entity): boolean): Entity
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The predicate function to test each entity with. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Entity | The first entity that satisfies the predicate, or nil if no entity does. |
+
+## watch
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Watches the group for changes to its entities, calling a function whenever an entity is added or changed.
+
+**Signature:**
+```tl
+watch: function(self: Group, func: function(Entity)): Group
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to call when an entity is added or changed. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Group | The same group, for method chaining. |

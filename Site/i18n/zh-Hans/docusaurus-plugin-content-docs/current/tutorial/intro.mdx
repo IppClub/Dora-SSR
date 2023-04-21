@@ -1,0 +1,130 @@
+---
+sidebar_position: 1
+---
+
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 快速上手
+
+## 一、安装
+
+- Android
+	- 1、在游戏的运行终端下载并安装[APK](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest)包。
+	- 2、运行软件，通过局域网内的PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
+	- 3、开始游戏开发。
+
+- Windows
+	- 1、下载并运行[软件](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest)。
+	- 2、运行软件，通过浏览器访问软件显示的服务器地址。
+	- 3、开始游戏开发。
+
+## 二、编写游戏
+
+1. 第一步：创建一个新项目
+
+	- 在浏览器中，打开Dora Dora编辑器左侧游戏资源树的右键菜单。
+	- 点击菜单项`New`，选择新建文件夹，命名为`Hello`。
+
+2. 第二步：编写游戏代码
+
+	- 在项目文件夹下新建游戏入口代码文件，选择Yuescript语言（或Teal、Lua）命名为`init`。
+	- 编写代码：
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue title="Hello/init.yue"
+-- 导入功能模块
+_ENV = Dorothy!
+
+-- 创建图片精灵
+sprite = Sprite "Image/logo.png"
+
+with Director.entry
+	-- 挂载图片精灵到游戏场景树根节点
+	\addChild sprite
+
+	-- 接收并处理点击事件移动图片精灵
+	.touchEnabled = true
+	\slot "Tapped", (touch)->
+		sprite\perform Move(
+			1 -- 持续时间，单位为秒
+			sprite.position -- 开始位置
+			touch.location -- 结束位置
+			Ease.OutBack -- 缓动函数
+		)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="Hello/init.tl"
+-- 导入功能模块
+local Sprite <const> = require("Sprite")
+local Director <const> = require("Director")
+local Move <const> = require("Move")
+local Ease <const> = require("Ease")
+local type Touch = require("TouchType")
+
+-- 获取游戏场景树根节点
+local entry = Director.entry
+
+-- 创建图片精灵
+local sprite = Sprite("Image/logo.png")
+
+-- 挂载图片精灵到游戏场景树根节点
+entry:addChild(sprite)
+
+-- 接收并处理点击事件移动图片精灵
+entry.touchEnabled = true
+entry:slot("Tapped", function(touch: Touch)
+	sprite:perform(Move(
+		1, -- 持续时间，单位为秒
+		sprite.position, -- 开始位置
+		touch.location, -- 结束位置
+		Ease.OutBack -- 缓动函数
+	))
+end)
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="Hello/init.lua"
+-- 导入功能模块
+local _ENV = Dorothy()
+
+-- 获取游戏场景树根节点
+local entry = Director.entry
+
+-- 创建图片精灵
+local sprite = Sprite("Image/logo.png")
+
+-- 挂载图片精灵到游戏场景树根节点
+entry:addChild(sprite)
+
+-- 接收并处理点击事件移动图片精灵
+entry.touchEnabled = true
+entry:slot("Tapped", function(touch)
+	sprite:perform(Move(
+		1, -- 持续时间，单位为秒
+		sprite.position, -- 开始位置
+		touch.location, -- 结束位置
+		Ease.OutBack -- 缓动函数
+	))
+end)
+```
+
+</TabItem>
+</Tabs>
+
+3. 第三步：运行游戏
+
+	点击编辑器右下角`🎮`图标，然后点击菜单项`Run`。或者按下组合键`Ctrl + r`。
+
+## 三、发布游戏
+
+1. 通过编辑器左侧游戏资源树，打开刚才新建的项目文件夹的右键菜单，点击`Download`选项。
+2. 等待浏览器弹出已打包项目文件的下载提示。

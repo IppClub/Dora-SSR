@@ -1,0 +1,33 @@
+import "@site/src/languages/highlight";
+
+# RenderTarget Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating RenderTarget objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new RenderTarget object with the given width and height.
+
+**Signature:**
+```tl
+metamethod __call: function(self: RenderTargetClass, width: integer, height: integer): RenderTarget
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| width | integer | The width of the render target. |
+| height | integer | The height of the render target. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| RenderTarget | The created render target. |

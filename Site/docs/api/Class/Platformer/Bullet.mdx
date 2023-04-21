@@ -1,0 +1,100 @@
+import "@site/src/languages/highlight";
+
+# Bullet
+
+**Description:**
+
+&emsp;&emsp;A record type that defines the properties and behavior of a bullet object instance in the game.
+
+**Inherits from:** Body.
+
+## targetAllow
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The `TargetAllow` object for the bullet object.
+
+**Signature:**
+```tl
+targetAllow: TargetAllow
+```
+
+## faceRight
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the bullet object is facing right.
+
+**Signature:**
+```tl
+const faceRight: boolean
+```
+
+## hitStop
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the bullet object should stop on impact.
+
+**Signature:**
+```tl
+hitStop: boolean
+```
+
+## owner
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The `Unit` object that fired the bullet.
+
+**Signature:**
+```tl
+const owner: Unit
+```
+
+## bulletDef
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The `BulletDef` object that defines the bullet's properties and behavior.
+
+**Signature:**
+```tl
+const bulletDef: BulletDef
+```
+
+## face
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The `Node` object that appears as the bullet's visual item.
+
+**Signature:**
+```tl
+face: Node
+```
+
+## destroy
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Destroys the bullet object instance.
+
+**Signature:**
+```tl
+destroy: function(self: Bullet)
+```

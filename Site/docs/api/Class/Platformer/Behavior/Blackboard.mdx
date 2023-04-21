@@ -1,0 +1,78 @@
+import "@site/src/languages/highlight";
+
+# Blackboard
+
+**Description:**
+
+&emsp;&emsp;A blackboard object that can be used to store data for behavior tree nodes.
+
+## deltaTime
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The time since the last frame update in seconds.
+
+**Signature:**
+```tl
+const deltaTime: number
+```
+
+## owner
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The unit that the AI agent belongs to.
+
+**Signature:**
+```tl
+const owner: Unit
+```
+
+## __index
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod to index the blackboard properties.
+
+**Signature:**
+```tl
+metamethod __index: function(self: Blackboard, key: string): Item
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | The key to index. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Item | The value associated with the key. |
+
+## __newindex
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod to assign values to the blackboard properties.
+
+**Signature:**
+```tl
+metamethod __newindex: function(self: Blackboard, key: string, item: Item)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | The key to assign. |
+| item | Item | The value to assign to the key. |

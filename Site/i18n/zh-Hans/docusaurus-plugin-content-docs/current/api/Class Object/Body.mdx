@@ -1,0 +1,41 @@
+import "@site/src/languages/highlight";
+
+# Body的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建物理体对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的物理体实例。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: BodyClass,
+		def: BodyDef,
+		world: PhysicsWorld,
+		pos?: Vec2 --[[Vec2.zero]],
+		rot?: number --[[0]]
+	): Body -- class
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| def | BodyDef | 要创建的物理体的定义。 |
+| world | PhysicsWorld | 物理体所属的物理世界。 |
+| pos | Vec2 | [可选] 物理体的初始位置。默认为零向量。 |
+| rot | number | [可选] 物理体的初始旋转角度（以度为单位）。默认为0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Body | 新创建的物理体实例。 |

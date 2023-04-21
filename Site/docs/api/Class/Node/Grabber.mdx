@@ -1,0 +1,155 @@
+import "@site/src/languages/highlight";
+
+# Grabber
+
+**Description:**
+
+&emsp;&emsp;A grabber which is used to render a part of the scene to a texture
+by a grid of vertices.
+
+## camera
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The camera used to render the texture.
+
+**Signature:**
+```tl
+camera: Camera
+```
+
+## effect
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The sprite effect applied to the texture.
+
+**Signature:**
+```tl
+effect: SpriteEffect
+```
+
+## blendFunc
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The blend function applied to the texture.
+
+**Signature:**
+```tl
+blendFunc: BlendFunc
+```
+
+## clearColor
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The clear color used to clear the texture.
+
+**Signature:**
+```tl
+clearColor: Color
+```
+
+## setPos
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the position of a vertex in the grabber grid.
+
+**Signature:**
+```tl
+setPos: function(self: Grabber, x: integer, y: integer, pos: Vec2, z?: number --[[0.0]])
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | integer | The x-index of the vertex in the grabber grid. |
+| y | integer | The y-index of the vertex in the grabber grid. |
+| pos | Vec2 | The new position of the vertex. |
+| z | number | The new z-coordinate of the vertex (default: 0.0). |
+
+## getPos
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the position of a vertex in the grabber grid.
+
+**Signature:**
+```tl
+getPos: function(self: Grabber, x: integer, y: integer): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | integer | The x-index of the vertex in the grabber grid. |
+| y | integer | The y-index of the vertex in the grabber grid. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The position of the vertex. |
+
+## getColor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the color of a vertex in the grabber grid.
+
+**Signature:**
+```tl
+getColor: function(self: Grabber, x: integer, y: integer): Color
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | integer | The x-index of the vertex in the grabber grid. |
+| y | integer | The y-index of the vertex in the grabber grid. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Color | The color of the vertex. |
+
+## setColor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the color of a vertex in the grabber grid.
+
+**Signature:**
+```tl
+setColor: function(self: Grabber, x: integer, y: integer, color: Color)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | integer | The x-index of the vertex in the grabber grid. |
+| y | integer | The y-index of the vertex in the grabber grid. |
+| color | Color | The new color of the vertex. |

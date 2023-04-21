@@ -1,0 +1,65 @@
+import "@site/src/languages/highlight";
+
+# Color3
+
+**Description:**
+
+&emsp;&emsp;A color with red, green and blue channels.
+
+## r
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The red channel of the color, should be 0 to 255.
+
+**Signature:**
+```tl
+r: integer
+```
+
+## g
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The green channel of the color, should be 0 to 255.
+
+**Signature:**
+```tl
+g: integer
+```
+
+## b
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The blue channel of the color, should be 0 to 255.
+
+**Signature:**
+```tl
+b: integer
+```
+
+## toRGB
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts the color to an RGB integer value.
+
+**Signature:**
+```tl
+toRGB: function(self: Color3): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | Converted RGB integer. |

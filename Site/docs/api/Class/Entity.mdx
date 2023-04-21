@@ -1,0 +1,176 @@
+import "@site/src/languages/highlight";
+
+# Entity
+
+**Description:**
+
+&emsp;&emsp;A record type representing an entity for an ECS game system.
+
+**Inherits from:** Object.
+
+## index
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The index of the entity.
+
+**Signature:**
+```tl
+const index: integer
+```
+
+## oldValues
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A syntax shortcut for accessing the old values of the entity's properties.
+The old values are values before last change of the component values of the Entity.
+Don't keep a reference to it for it is not an actual table.
+
+**Signature:**
+```tl
+const oldValues: {string: Item}
+```
+
+## destroy
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that destroys the entity.
+
+**Signature:**
+```tl
+destroy: function(self: Entity)
+```
+
+## set
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that sets a property of the entity to a given value.
+This function will trigger events for Observer objects.
+
+**Signature:**
+```tl
+set: function(self: Entity, key: string, item: Item)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | The name of the property to set. |
+| item | Item | The value to set the property to. |
+
+## get
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that retrieves the value of a property of the entity
+
+**Signature:**
+```tl
+get: function(self: Entity, key: string): Item
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | The name of the property to retrieve the value of. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Item | The value of the specified property. |
+
+## getOld
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that retrieves the previous value of a property of the entity
+
+**Signature:**
+```tl
+getOld: function(self: Entity, key: string): Item
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | The name of the property to retrieve the previous value of.The old values are values before last change of the component values of the Entity. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Item | The previous value of the specified property |
+
+## __index
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod that retrieves the value of a property of the entity.
+
+**Signature:**
+```tl
+metamethod __index: function(self: Entity, key: string): Item
+```
+
+**Usage:**
+```tl
+local valueX = entity.valueX
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | The name of the property to retrieve the value of. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Item | The value of the specified property. |
+
+## __newindex
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod that sets the value of a property of the entity.
+
+**Signature:**
+```tl
+metamethod __newindex: function(self: Entity, key: string, item: Item)
+```
+
+**Usage:**
+```tl
+entity.valueX = 123
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | The name of the property to set. |
+| item | Item | The value to set the property to. |

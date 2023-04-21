@@ -1,0 +1,46 @@
+import "@site/src/languages/highlight";
+
+# Label的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建文本标签对象的类。
+
+## AutomaticWidth
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于自动计算宽度的设置常量。
+
+**签名：**
+```tl
+const AutomaticWidth: number
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用指定的字体名称和字体大小创建新的文本标签对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer): Label
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| fontName | string | 用于标签的字体名称。可以是带有或是不带文件扩展名的字体文件路径。 |
+| fontSize | integer | 用于标签的字体大小。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Label | 新的文本标签对象。 |

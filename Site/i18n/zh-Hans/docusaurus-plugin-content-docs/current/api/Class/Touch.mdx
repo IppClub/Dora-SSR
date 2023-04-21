@@ -1,0 +1,100 @@
+import "@site/src/languages/highlight";
+
+# Touch
+
+**描述：**
+
+&emsp;&emsp;记录触摸输入或鼠标点击事件信息的类。
+
+**继承自：** Object。
+
+## enabled
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;该触摸事件是否继续启用。
+
+**签名：**
+```tl
+enabled: boolean
+```
+
+## fromMouse
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;触摸事件是否源自鼠标点击。
+
+**签名：**
+```tl
+fromMouse: boolean
+```
+
+## first
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;如果存在多点触控，则此事件是否为第一个触摸事件。
+
+**签名：**
+```tl
+const first: boolean
+```
+
+## id
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;分配给此触摸事件的唯一标识符。
+
+**签名：**
+```tl
+const id: integer
+```
+
+## delta
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;自上一个触摸事件以来的移动量和方向。
+
+**签名：**
+```tl
+const delta: Vec2
+```
+
+## location
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;触摸事件在场景节点本地坐标系中的位置。
+
+**签名：**
+```tl
+const location: Vec2
+```
+
+## worldLocation
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;触摸事件在世界坐标系中的位置。
+
+**签名：**
+```tl
+const worldLocation: Vec2
+```

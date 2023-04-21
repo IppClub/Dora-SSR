@@ -1,0 +1,33 @@
+import "@site/src/languages/highlight";
+
+# PlatformWorld的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建PlatformWorld实例的类。
+
+**用法示例：**
+```tl
+local PlatformWorld = require("PlatformWorld")
+local world = PlatformWorld()
+world:addTo(entry)
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建PlatformWorld的新实例的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: PlatformWorldClass): PlatformWorld
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| PlatformWorld | PlatformWorld的新实例 |

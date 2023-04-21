@@ -1,0 +1,337 @@
+import "@site/src/languages/highlight";
+
+# Body
+
+**描述：**
+
+&emsp;&emsp;物理世界中的物理体类。
+
+**继承自：** Node。
+
+## world
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;物理体所属的物理世界。
+
+**签名：**
+```tl
+const world: PhysicsWorld
+```
+
+## bodyDef
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;物理体的定义。
+
+**签名：**
+```tl
+const bodyDef: BodyDef
+```
+
+## mass
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;物理体的质量。
+
+**签名：**
+```tl
+const mass: number
+```
+
+## sensor
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;物理体是否被用作传感器。
+
+**签名：**
+```tl
+const sensor: boolean
+```
+
+## velocityX
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;物理体的 x 轴速度。
+
+**签名：**
+```tl
+velocityX: number
+```
+
+## velocityY
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;物理体的 y 轴速度。
+
+**签名：**
+```tl
+velocityY: number
+```
+
+## velocity
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;“Vec2”对象表示的物理体的速度。
+
+**签名：**
+```tl
+velocity: Vec2
+```
+
+## angularRate
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;物理体的角速率。
+
+**签名：**
+```tl
+angularRate: number
+```
+
+## group
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;物理体所属的碰撞组编号。
+
+**签名：**
+```tl
+group: integer
+```
+
+## linearDamping
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;物理体的线性阻尼。
+
+**签名：**
+```tl
+linearDamping: number
+```
+
+## angularDamping
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;物理体的旋转阻尼。
+
+**签名：**
+```tl
+angularDamping: number
+```
+
+## owner
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;物理体的所有者。
+
+**签名：**
+```tl
+owner: Object
+```
+
+## receivingContact
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;物理体当前是否会接收碰撞接触事件。
+
+**签名：**
+```tl
+receivingContact: boolean
+```
+
+## applyLinearImpulse
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在指定位置对物理体施加线性冲量。
+
+**签名：**
+```tl
+applyLinearImpulse: function(self: Body, impulse: Vec2, pos: Vec2)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| impulse | Vec2 | 要施加的线性冲量。 |
+| pos | Vec2 | 施加冲量的位置。 |
+
+## applyAngularImpulse
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;对物理体施加角冲量。
+
+**签名：**
+```tl
+applyAngularImpulse: function(self: Body, impulse: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| impulse | number | 要施加的角冲量。 |
+
+## removeSensorByTag
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从物理体中移除具有指定标签的传感器。
+
+**签名：**
+```tl
+removeSensorByTag: function(self: Body, tag: integer): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tag | integer | 要移除的传感器的标签编号。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 是否找到并删除具有指定标签的传感器。 |
+
+## attach
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将混合物添加到物理体上。
+
+**签名：**
+```tl
+attach: function(self: Body, fixtureDef: FixtureDef)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| fixtureDef | FixtureDef | 要添加的混合物的定义。 |
+
+## getSensorByTag
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取具有特定标签编号的传感器。
+
+**签名：**
+```tl
+getSensorByTag: function(self: Body, tag: integer): Sensor
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tag | integer | 要获取的传感器的标签编号。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Sensor | 具有给定标签的传感器。 |
+
+## removeSensor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从物理体的传感器列表中移除特定的传感器。
+
+**签名：**
+```tl
+removeSensor: function(self: Body, sensor: Sensor): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sensor | Sensor | 要移除的传感器。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果成功删除传感器，则为true，否则为false。 |
+
+## attachSensor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将具有特定标签编号和混合物定义的新传感器添加到物理体上。
+
+**签名：**
+```tl
+attachSensor: function(self: Body, tag: integer, fixtureDef: FixtureDef): Sensor
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tag | integer | 要添加的传感器的标签编号。 |
+| fixtureDef | FixtureDef | 传感器的混合物定义。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Sensor | 新建的传感器。 |

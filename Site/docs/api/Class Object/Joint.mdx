@@ -1,0 +1,451 @@
+import "@site/src/languages/highlight";
+
+# Joint Class
+
+**Description:**
+
+&emsp;&emsp;A factory class to create different types of joints that can be used to connect physics bodies together.
+
+## distance
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a distance joint between two physics bodies.
+
+**Signature:**
+```tl
+distance: function(self: JointClass,
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		anchorA: Vec2,
+		anchorB: Vec2,
+		frequency?: number --[[0.0]],
+		damping?: number --[[0.0]]): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canCollide | boolean | Whether or not the physics body connected to joint will collide with each other. |
+| bodyA | Body | The first physics body to connect with the joint. |
+| bodyB | Body | The second physics body to connect with the joint. |
+| anchorA | Vec2 | The position of the joint on the first physics body. |
+| anchorB | Vec2 | The position of the joint on the second physics body. |
+| frequency | number | The frequency of the joint, in Hertz (default is 0.0). |
+| damping | number | The damping ratio of the joint (default is 0.0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The new distance joint. |
+
+## friction
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a friction joint between two physics bodies.
+
+**Signature:**
+```tl
+friction: function(self: JointClass,
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		maxForce: number,
+		maxTorque: number): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canCollide | boolean | Whether or not the physics body connected to joint will collide with each other. |
+| bodyA | Body | The first physics body to connect with the joint. |
+| bodyB | Body | The second physics body to connect with the joint. |
+| worldPos | Vec2 | The position of the joint in the game world. |
+| maxForce | number | The maximum force that can be applied to the joint. |
+| maxTorque | number | The maximum torque that can be applied to the joint. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The new friction joint. |
+
+## gear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a gear joint between two other joints.
+
+**Signature:**
+```tl
+gear: function(self: JointClass,
+		canCollide: boolean,
+		jointA: Joint,
+		jointB: Joint,
+		ratio?: number --[[1.0]]): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canCollide | boolean | Whether or not the physics bodies connected to the joint can collide with each other. |
+| jointA | Joint | The first joint to connect with the gear joint. |
+| jointB | Joint | The second joint to connect with the gear joint. |
+| ratio | number | The gear ratio (default is 1.0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The new gear joint. |
+
+## spring
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new spring joint between the two specified bodies.
+
+**Signature:**
+```tl
+spring: function(self: JointClass,
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		linearOffset: Vec2,
+		angularOffset: number,
+		maxForce: number,
+		maxTorque: number,
+		correctionFactor?: number --[[1.0]]): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canCollide | boolean | Whether the connected bodies should collide with each other. |
+| bodyA | Body | The first body connected to the joint. |
+| bodyB | Body | The second body connected to the joint. |
+| linearOffset | Vec2 | Position of body-B minus the position of body-A, in body-A's frame. |
+| angularOffset | number | Angle of body-B minus angle of body-A. |
+| maxForce | number | The maximum force the joint can exert. |
+| maxTorque | number | The maximum torque the joint can exert. |
+| correctionFactor | number | Optional correction factor, defaults to 1.0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The created joint. |
+
+## move
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new move joint for the specified body.
+
+**Signature:**
+```tl
+move: function(self: JointClass,
+		canCollide: boolean,
+		body: Body,
+		targetPos: Vec2,
+		maxForce: number,
+		frequency?: number --[[5.0]],
+		damping?: number --[[0.7]]): MoveJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canCollide | boolean | Whether the body can collide with other bodies |
+| body | Body | The body that the joint is attached to. |
+| targetPos | Vec2 | The target position that the body should move towards. |
+| maxForce | number | The maximum force the joint can exert. |
+| frequency | number | Optional frequency ratio, defaults to 5.0. |
+| damping | number | Optional damping ratio, defaults to 0.7. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| MoveJoint | The created move joint. |
+
+## prismatic
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new prismatic joint between the two specified bodies.
+
+**Signature:**
+```tl
+prismatic: function(self: JointClass,
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		axisAngle: number,
+		lowerTranslation?: number --[[0.0]],
+		upperTranslation?: number --[[0.0]],
+		maxMotorForce?: number --[[0.0]],
+		motorSpeed?: number --[[0.0]]): MotorJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canCollide | boolean | Whether the connected bodies should collide with each other. |
+| bodyA | Body | The first body connected to the joint. |
+| bodyB | Body | The second body connected to the joint. |
+| worldPos | Vec2 | The world position of the joint. |
+| axisAngle | number | The axis angle of the joint. |
+| lowerTranslation | number | Optional lower translation limit, defaults to 0.0. |
+| upperTranslation | number | Optional upper translation limit, defaults to 0.0. |
+| maxMotorForce | number | Optional maximum motor force, defaults to 0.0. |
+| motorSpeed | number | Optional motor speed, defaults to 0.0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| MotorJoint | The created prismatic joint. |
+
+## pulley
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a pulley joint between two physics bodies.
+
+**Signature:**
+```tl
+pulley: function(self: JointClass,
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		anchorA: Vec2,
+		anchorB: Vec2,
+		groundAnchorA: Vec2,
+		groundAnchorB: Vec2,
+		ratio?: number --[[1.0]]): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canCollide | boolean | Whether or not the connected bodies will collide with each other. |
+| bodyA | Body | The first physics body to connect. |
+| bodyB | Body | The second physics body to connect. |
+| anchorA | Vec2 | The position of the anchor point on the first body in world coordinates. |
+| anchorB | Vec2 | The position of the anchor point on the second body in world coordinates. |
+| groundAnchorA | Vec2 | The position of the ground anchor point on the first body in world coordinates. |
+| groundAnchorB | Vec2 | The position of the ground anchor point on the second body in world coordinates. |
+| ratio | number | [optinal] The pulley ratio (default 1.0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The pulley joint. |
+
+## revolute
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a revolute joint between two physics bodies.
+
+**Signature:**
+```tl
+revolute: function(self: JointClass,
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		lowerAngle?: number --[[0.0]],
+		upperAngle?: number --[[0.0]],
+		maxMotorTorque?: number --[[0.0]],
+		motorSpeed?: number --[[0.0]]): MotorJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canCollide | boolean | Whether or not the connected bodies will collide with each other. |
+| bodyA | Body | The first physics body to connect. |
+| bodyB | Body | The second physics body to connect. |
+| worldPos | Vec2 | The position in world coordinates where the joint will be created. |
+| lowerAngle | number | [optinal] The lower angle limit (radians) (default 0.0). |
+| upperAngle | number | [optinal] The upper angle limit (radians) (default 0.0). |
+| maxMotorTorque | number | [optinal] The maximum torque that can be applied to the joint to achieve the target speed (default 0.0). |
+| motorSpeed | number | [optinal] The desired speed of the joint (default 0.0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| MotorJoint | The revolute joint. |
+
+## rope
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a rope joint between two physics bodies.
+
+**Signature:**
+```tl
+rope: function(self: JointClass,
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		anchorA: Vec2,
+		anchorB: Vec2,
+		maxLength: number): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canCollide | boolean | Whether or not the connected bodies will collide with each other. |
+| bodyA | Body | The first physics body to connect. |
+| bodyB | Body | The second physics body to connect. |
+| anchorA | Vec2 | The position of the anchor point on the first body in world coordinates. |
+| anchorB | Vec2 | The position of the anchor point on the second body in world coordinates. |
+| maxLength | number | [optinal] The maximum distance between the anchor points (default 0.0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The rope joint. |
+
+## weld
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a weld joint between two bodies.
+
+**Signature:**
+```tl
+weld: function(self: JointClass,
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		frequency?: number --[[0.0]],
+		damping?: number --[[0.0]]): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canCollide | boolean | Whether or not the bodies connected to the joint can collide with each other. |
+| bodyA | Body | The first body to be connected by the joint. |
+| bodyB | Body | The second body to be connected by the joint. |
+| worldPos | Vec2 | The position in the world to connect the bodies together. |
+| frequency | number | [optional] The frequency at which the joint should be stiff, defaults to 0.0. |
+| damping | number | [optional] The damping rate of the joint, defaults to 0.0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The newly created weld joint. |
+
+## wheel
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a wheel joint between two bodies.
+
+**Signature:**
+```tl
+wheel: function(self: JointClass,
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		axisAngle: number,
+		maxMotorTorque?: number --[[0.0]],
+		motorSpeed?: number --[[0.0]],
+		frequency?: number --[[2.0]],
+		damping?: number --[[0.7]]): MotorJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canCollide | boolean | Whether or not the bodies connected to the joint can collide with each other. |
+| bodyA | Body | The first body to be connected by the joint. |
+| bodyB | Body | The second body to be connected by the joint. |
+| worldPos | Vec2 | The position in the world to connect the bodies together. |
+| axisAngle | number | The angle of the joint axis in radians. |
+| maxMotorTorque | number | [optional] The maximum torque the joint motor can exert, defaults to 0.0. |
+| motorSpeed | number | [optional] The target speed of the joint motor, defaults to 0.0. |
+| frequency | number | [optional] The frequency at which the joint should be stiff, defaults to 2.0. |
+| damping | number | [optional] The damping rate of the joint, defaults to 0.7. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| MotorJoint | The newly created wheel joint. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a joint instance based on the given joint definition and item dictionary containing physics bodies to be connected by joint.
+
+**Signature:**
+```tl
+metamethod __call: function(self: JointClass, def: JointDef, itemDict: Dictionary): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| def | JointDef | The joint definition. |
+| itemDict | Dictionary | The dictionary containing all the bodies and other required items. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The newly created joint. |

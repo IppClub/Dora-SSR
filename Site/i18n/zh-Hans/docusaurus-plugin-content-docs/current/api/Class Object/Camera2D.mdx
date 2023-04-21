@@ -1,0 +1,35 @@
+import "@site/src/languages/highlight";
+
+# Camera2D的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建2D相机对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用特定的名称创建一个新的2D相机对象。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: Camera2DClass,
+		name?: string --[[""]]
+	): Camera2D
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 2D相机对象的名称。默认为空字符串。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Camera2D | 2D相机对象的新实例。 |

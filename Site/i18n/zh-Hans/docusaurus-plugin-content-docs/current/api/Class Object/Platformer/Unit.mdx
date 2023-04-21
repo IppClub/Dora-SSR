@@ -1,0 +1,82 @@
+import "@site/src/languages/highlight";
+
+# Unit的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建游戏单位实例的类。
+
+## GroundSensorTag
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;在每个游戏单位上附加的地面感应器的标签。
+
+**签名：**
+```tl
+const GroundSensorTag: integer
+```
+
+## DetectSensorTag
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;在每个游戏单位上附加的探测感应器的标签。
+
+**签名：**
+```tl
+const DetectSensorTag: integer
+```
+
+## AttackSensorTag
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;在每个游戏单位上附加的攻击感应器的标签。
+
+**签名：**
+```tl
+const AttackSensorTag: integer
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于创建新的游戏单位对象的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: UnitClass,
+		unitDef: Dictionary,
+		physicsworld: PhysicsWorld,
+		entity: Entity,
+		pos: Vec2,
+		rot?: number --[[0.0]]
+	): Unit
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| unitDef | Dictionary | 定义游戏单位属性和行为的字典对象。 |
+| physicsworld | PhysicsWorld | 游戏单位所属的物理世界的对象。 |
+| entity | Entity | 游戏单位所关联ECS系统的实体对象。 |
+| pos | Vec2 | 所创建游戏单位的初始位置。 |
+| rot | number | [可选] 一个可选数字，游戏单位的初始旋转角度（默认为0.0）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Unit | 新创建的游戏单位对象。 |

@@ -1,0 +1,87 @@
+import "@site/src/languages/highlight";
+
+# UnitAction
+
+**Description:**
+
+&emsp;&emsp;A record that represents an action that can be performed by a "Unit".
+
+## reaction
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The length of the reaction time for the "UnitAction", in seconds.
+The reaction time will affect the AI check cycling time.
+
+**Signature:**
+```tl
+reaction: number
+```
+
+## recovery
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The length of the recovery time for the "UnitAction", in seconds.
+The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
+
+**Signature:**
+```tl
+recovery: number
+```
+
+## name
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The name of the "UnitAction".
+
+**Signature:**
+```tl
+const name: string
+```
+
+## doing
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the "Unit" is currently performing the "UnitAction" or not.
+
+**Signature:**
+```tl
+const doing: boolean
+```
+
+## eclapsedTime
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The elapsed time since the "UnitAction" was started, in seconds.
+
+**Signature:**
+```tl
+const eclapsedTime: number
+```
+
+## owner
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The "Unit" that owns this "UnitAction".
+
+**Signature:**
+```tl
+const owner: Unit
+```

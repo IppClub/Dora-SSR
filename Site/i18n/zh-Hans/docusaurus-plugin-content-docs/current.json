@@ -1,0 +1,50 @@
+{
+  "version.label": {
+    "message": "下一个",
+    "description": "The label for version current"
+  },
+  "sidebar.apiSidebar.category.Class": {
+    "message": "功能类",
+    "description": "The label for category Class in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.category.Ease": {
+    "message": "Ease模块",
+    "description": "The label for category Ease in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.category.Node": {
+    "message": "Node模块",
+    "description": "The label for category Node in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.category.Platformer": {
+    "message": "Platformer模块",
+    "description": "The label for category Platformer in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.category.Behavior": {
+    "message": "Behavior模块",
+    "description": "The label for category Behavior in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.category.Decision": {
+    "message": "Decision模块",
+    "description": "The label for category Decision in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.category.Routine": {
+    "message": "Routine模块",
+    "description": "The label for category Routine in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.category.Class Object": {
+    "message": "类对象",
+    "description": "The label for category Class Object in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.category.Global Event": {
+    "message": "全局事件",
+    "description": "The label for category Global Event in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.category.Module": {
+    "message": "其它模块",
+    "description": "The label for category Module in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.category.Node Event": {
+    "message": "节点事件",
+    "description": "The label for category Node Event in sidebar apiSidebar"
+  }
+}

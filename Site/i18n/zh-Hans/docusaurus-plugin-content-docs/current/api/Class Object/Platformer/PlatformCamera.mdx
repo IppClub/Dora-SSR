@@ -1,0 +1,35 @@
+import "@site/src/languages/highlight";
+
+# PlatformCamera的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建2D平台游戏相机实例的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建2D平台游戏相机的新实例。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: PlatformCameraClass,
+		name?: string --[[""]]
+	): PlatformCamera
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | [optional] 新实例的名称，默认为空字符串。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| PlatformCamera | 新的2D平台游戏相机实例。 |

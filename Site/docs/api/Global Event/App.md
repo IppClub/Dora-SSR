@@ -1,0 +1,134 @@
+import "@site/src/languages/highlight";
+
+# App Global Event
+
+**Description:**
+
+&emsp;&emsp;The global signal slot (event system) communication features.
+This is just a demonstration record showing the global signal slot names and callbacks.
+
+**Usage:**
+```tl
+-- Register for these events using codes:
+local node = Node():addTo(Director.entry)
+node:gslot("AppQuit", function()
+	print("Application is shuting down!")
+end)
+```
+
+## AppQuit
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application is about to quit.
+
+**Signature:**
+```tl
+["AppQuit"]: function()
+```
+
+## AppLowMemory
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application receives a low memory warning.
+
+**Signature:**
+```tl
+["AppLowMemory"]: function()
+```
+
+## AppWillEnterBackground
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application is about to enter the background.
+
+**Signature:**
+```tl
+["AppWillEnterBackground"]: function()
+```
+
+## AppDidEnterBackground
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application has entered the background.
+
+**Signature:**
+```tl
+["AppDidEnterBackground"]: function()
+```
+
+## AppWillEnterForeground
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application is about to enter the foreground.
+
+**Signature:**
+```tl
+["AppWillEnterForeground"]: function()
+```
+
+## AppDidEnterForeground
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application has entered the foreground.
+
+**Signature:**
+```tl
+["AppDidEnterForeground"]: function()
+```
+
+## AppSizeChanged
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application window size changes.
+
+**Signature:**
+```tl
+["AppSizeChanged"]: function()
+```
+
+## AppFullScreen
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application window enters or exits full-screen mode.
+
+**Signature:**
+```tl
+["AppFullScreen"]: function(fullScreen: boolean)
+```
+
+## AppTheme
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application theme color changes.
+
+**Signature:**
+```tl
+["AppTheme"]: function(themeColor: Color)
+```

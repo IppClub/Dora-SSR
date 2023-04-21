@@ -1,0 +1,67 @@
+import "@site/src/languages/highlight";
+
+# TargetAllow
+
+**Description:**
+
+&emsp;&emsp;A class to specifies how a bullet object should interact with other game objects or units based on their relationship.
+
+**Inherits from:** ContainerItem.
+
+## terrainAllowed
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the bullet object can collide with terrain.
+
+**Signature:**
+```tl
+terrainAllowed: boolean
+```
+
+## allow
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that allows or disallows the bullet object to interact with a game object or unit, based on their relationship.
+
+**Signature:**
+```tl
+allow: function(self: TargetAllow, relation: Data.Relation, allow: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| relation | Data.Relation | The relationship between the bullet object and the other game object or unit. |
+| allow | boolean | Whether the bullet object should be allowed to interact. |
+
+## isAllow
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that determines whether the bullet object is allowed to interact with a game object or unit, based on their relationship.
+
+**Signature:**
+```tl
+isAllow: function(self: TargetAllow, relation: Data.Relation): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| relation | Data.Relation | The relationship between the bullet object and the other game object or unit. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the bullet object is allowed to interact. |

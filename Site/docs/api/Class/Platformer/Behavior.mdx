@@ -1,0 +1,314 @@
+import "@site/src/languages/highlight";
+
+# Behavior
+
+**Description:**
+
+&emsp;&emsp;A behavior tree framework for creating game AI structures.
+
+## Seq
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new sequence node that executes an array of child nodes in order.
+
+**Signature:**
+```tl
+Seq: function(nodes: {Leaf}): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| nodes | {Leaf} | An array of child nodes. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A new sequence node. |
+
+## Sel
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new selector node that selects and executes one of its child nodes that will succeed.
+
+**Signature:**
+```tl
+Sel: function(nodes: {Leaf}): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| nodes | {Leaf} | An array of child nodes. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A new selector node. |
+
+## Con
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new condition node that executes a check handler function when executed.
+
+**Signature:**
+```tl
+Con: function(name: string, check: function(board: Blackboard): boolean): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the condition. |
+| check | function | A function that takes a blackboard object and returns a boolean value. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A new condition node. |
+
+## Act
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new action node that executes an action when executed.
+This node will block the execution until the action finishes.
+
+**Signature:**
+```tl
+Act: function(actionName: string): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| actionName | string | The name of the action to execute. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A new action node. |
+
+## Command
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new command node that executes a command when executed.
+This node will return right after the action starts.
+
+**Signature:**
+```tl
+Command: function(actionName: string): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| actionName | string | The name of the command to execute. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A new command node. |
+
+## Wait
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new wait node that waits for a specified duration when executed.
+
+**Signature:**
+```tl
+Wait: function(duration: number): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| duration | number | The duration to wait in seconds. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A new wait node. |
+
+## Countdown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new countdown node that executes a child node continuously until a timer runs out.
+
+**Signature:**
+```tl
+Countdown: function(time: number, node: Leaf): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| time | number | The time limit in seconds. |
+| node | Leaf | The child node to execute. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A new countdown node. |
+
+## Timeout
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new timeout node that executes a child node until a timer runs out.
+
+**Signature:**
+```tl
+Timeout: function(time: number, node: Leaf): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| time | number | The time limit in seconds. |
+| node | Leaf | The child node to execute. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A new timeout node. |
+
+## Repeat
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new repeat node that executes a child node a specified number of times.
+
+**Signature:**
+```tl
+Repeat: function(times: integer, node: Leaf): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| times | integer | The number of times to execute the child node. |
+| node | Leaf | The child node to execute. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A new repeat node. |
+
+## Repeat
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new repeat node that executes a child node repeatedly.
+
+**Signature:**
+```tl
+Repeat: function(node: Leaf): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| node | Leaf | The child node to execute. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A new repeat node. |
+
+## Retry
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new retry node that executes a child node repeatedly until it succeeds or a maximum number of retries is reached.
+
+**Signature:**
+```tl
+Retry: function(times: integer, node: Leaf): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| times | integer | The maximum number of retries. |
+| node | Leaf | The child node to execute. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A new retry node. |
+
+## Retry
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new retry node that executes a child node repeatedly until it succeeds.
+
+**Signature:**
+```tl
+Retry: function(node: Leaf): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| node | Leaf | The child node to execute. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A new retry node. |

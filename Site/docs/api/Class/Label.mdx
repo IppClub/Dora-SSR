@@ -1,0 +1,185 @@
+import "@site/src/languages/highlight";
+
+# Label
+
+**Description:**
+
+&emsp;&emsp;A node for rendering text using a TrueType font.
+
+**Inherits from:** Node.
+
+## Label.TextAlign
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Enumeration for text alignment setting.
+
+**Signature:**
+```tl
+enum TextAlign
+	"Left"
+	"Center"
+	"Right"
+end
+```
+
+## alphaRef
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The alpha threshold value. Pixels with alpha values below this value will not be drawn.
+Only works with `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+
+**Signature:**
+```tl
+alphaRef: number
+```
+
+## textWidth
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The width of the text used for text wrapping.
+Set to `Label.AutomaticWidth` to disable wrapping.
+Default is `Label.AutomaticWidth`.
+
+**Signature:**
+```tl
+textWidth: number
+```
+
+## lineGap
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The gap in pixels between lines of text.
+
+**Signature:**
+```tl
+lineGap: number
+```
+
+## text
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The text to be rendered.
+
+**Signature:**
+```tl
+text: string
+```
+
+## blendFunc
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The blend function used to render the text.
+
+**Signature:**
+```tl
+blendFunc: BlendFunc
+```
+
+## depthWrite
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether depth writing is enabled. (Default is false)
+
+**Signature:**
+```tl
+depthWrite: boolean
+```
+
+## batched
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the label is using batched rendering.
+When using batched rendering the `label:getCharacter()` function will no longer work, and getting better rendering performance. (Default is true)
+
+**Signature:**
+```tl
+batched: boolean
+```
+
+## effect
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The sprite effect used to render the text.
+
+**Signature:**
+```tl
+effect: SpriteEffect
+```
+
+## alignment
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The text alignment setting.
+
+**Signature:**
+```tl
+alignment: TextAlign
+```
+
+## characterCount
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The number of characters in the label.
+
+**Signature:**
+```tl
+const characterCount: integer
+```
+
+## getCharacter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the sprite for the character at the specified index.
+
+**Signature:**
+```tl
+getCharacter: function(self: Label, index: integer): Sprite | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index of the character sprite to retrieve. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Sprite|nil | The sprite for the character, or `nil` if the index is out of range. |

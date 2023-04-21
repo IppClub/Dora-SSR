@@ -1,0 +1,58 @@
+import "@site/src/languages/highlight";
+
+# Entity的类对象
+
+**描述：**
+
+&emsp;&emsp;用于在ECS游戏系统中创建和管理实体的类。
+
+## count
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;所有正在运行的实体的数量。
+
+**签名：**
+```tl
+const count: integer
+```
+
+## clear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清除所有在运行实体的函数。
+
+**签名：**
+```tl
+clear: function(self: EntityClass)
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建具有指定组件的新实体的元方法。
+新实体创建后，可以从`Group`和`Observer`对象中访问新创建的实体对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: EntityClass, coms: {string: Item})
+```
+
+**用法示例：**
+```tl
+Entity({ a = 1, b = "abc", c = Node() })
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| coms | {string: Item} | 包含组件名称（字符串）和组件值（Item）映射的Lua表。 |

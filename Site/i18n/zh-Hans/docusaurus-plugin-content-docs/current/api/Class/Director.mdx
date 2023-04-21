@@ -1,0 +1,239 @@
+import "@site/src/languages/highlight";
+
+# Director
+
+**描述：**
+
+&emsp;&emsp;游戏导演类，是用于管理游戏场景树，并提供多种用途的游戏场景根节点的单例类。
+
+**用法示例：**
+```tl
+local Director = require("Director")
+Director.entry:addChild(node)
+```
+
+## displayStats
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于控制游戏运行时是否在屏幕上显示调试统计信息。
+
+**签名：**
+```tl
+displayStats: boolean
+```
+
+## clearColor
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于设置游戏窗体的背景颜色。
+
+**签名：**
+```tl
+clearColor: Color
+```
+
+## scheduler
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;提供访问游戏调度器的方法，用于调度每帧执行的任务，如动画和游戏事件更新。
+
+**签名：**
+```tl
+scheduler: Scheduler
+```
+
+## ui
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于挂载 2D 用户界面元素（如按钮和标签）的根节点。
+
+**签名：**
+```tl
+const ui: Node
+```
+
+## ui3D
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于挂载带有 3D 投影视觉效果的 3D 用户界面元素的根节点。
+
+**签名：**
+```tl
+const ui3D: Node
+```
+
+## entry
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于挂载主要游戏内容场景树的根节点。
+
+**签名：**
+```tl
+const entry: Node
+```
+
+## postNode
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于挂载在后期做渲染的物件的场景树的根节点。
+
+**签名：**
+```tl
+const postNode: Node
+```
+
+## systemScheduler
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;访问系统调度器的方法，用于调度底层的系统任务，不应在其中放置任何游戏逻辑。
+
+**签名：**
+```tl
+const systemScheduler: Scheduler
+```
+
+## postScheduler
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;访问用于在后期处理的游戏逻辑的调度器的方法。
+
+**签名：**
+```tl
+const postScheduler: Scheduler
+```
+
+## currentCamera
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前在应用的相机。
+
+**签名：**
+```tl
+const currentCamera: Camera
+```
+
+## deltaTime
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;自从上一帧更新以来间隔的时间（以秒为单位）。
+
+**签名：**
+```tl
+const deltaTime: number
+```
+
+## pushCamera
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;添加新相机到相机堆栈中，并设置为当前应用的相机。
+
+**签名：**
+```tl
+pushCamera: function(self: Director, camera: Camera)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| camera | Camera | 要添加的相机。 |
+
+## popCamera
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从相机堆栈中删除当前应用的相机。
+
+**签名：**
+```tl
+popCamera: function(self: Director)
+```
+
+## removeCamera
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从相机堆栈中删除指定的相机。
+
+**签名：**
+```tl
+removeCamera: function(self: Director, camera: Camera): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| camera | Camera | 要删除的相机。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果相机被找到并删除，则为 true，否则为 false。 |
+
+## clearCamera
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从相机堆栈中删除所有相机。
+
+**签名：**
+```tl
+clearCamera: function(self: Director)
+```
+
+## cleanup
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清理游戏导演类管理的所有资源，包括所有场景树和相机。
+
+**签名：**
+```tl
+cleanup: function(self: Director)
+```

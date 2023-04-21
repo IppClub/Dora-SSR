@@ -1,0 +1,24 @@
+import "@site/src/languages/highlight";
+
+# Spawn
+
+**Description:**
+
+&emsp;&emsp;Creates a definition for an action that runs a group of ActionDefs in parallel.
+
+**Signature:**
+```tl
+Spawn: function(...: ActionDef): ActionDef
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| ... | ActionDef | A variable number of ActionDef objects to run in parallel. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ActionDef | An ActionDef object that can be used to run the group of actions on a Node. |

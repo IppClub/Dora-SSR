@@ -1,0 +1,96 @@
+import "@site/src/languages/highlight";
+
+# Line
+
+**Description:**
+
+&emsp;&emsp;A class provides functionality for drawing lines using vertices.
+
+**Inherits from:** Node.
+
+## depthWrite
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the depth should be written. (Default is false)
+
+**Signature:**
+```tl
+depthWrite: boolean
+```
+
+## blendFunc
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Blend function used for rendering the line.
+
+**Signature:**
+```tl
+blendFunc: BlendFunc
+```
+
+## add
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds vertices to the line.
+
+**Signature:**
+```tl
+add: function(
+		self: Line,
+		verts: {Vec2},
+		color?: Color --[[0xffffffff]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| verts | {Vec2} | Table of vertices to add to the line. |
+| color | Color | [optional] Color of the line (default is opaque white). |
+
+## set
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets vertices of the line.
+
+**Signature:**
+```tl
+set: function(
+		self: Line,
+		verts: {Vec2},
+		color?: Color --[[0xffffffff]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| verts | {Vec2} | Table of vertices to set. |
+| color | Color | Color of the line (default is opaque white). |
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears all the vertices of line.
+
+**Signature:**
+```tl
+clear: function(self: Line)
+```

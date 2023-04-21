@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# Group的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建实体组对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于创建一个新的实体组的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: GroupClass, componemts: {string}): Group
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| components | {string} | 列出要包含在实体组中的属性（组件）的名称的表格。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Group | 新的实体组。 |

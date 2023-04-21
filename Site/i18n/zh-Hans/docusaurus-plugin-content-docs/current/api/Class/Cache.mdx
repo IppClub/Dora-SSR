@@ -1,0 +1,240 @@
+import "@site/src/languages/highlight";
+
+# Cache
+
+**描述：**
+
+&emsp;&emsp;用于管理各种游戏资源缓存的单例类。
+
+## Cache.ResourceType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;可以被缓存的各种资源类型。
+
+**签名：**
+```tl
+enum ResourceType
+	"Bone"
+	"Spine"
+	"Texture"
+	"SVG"
+	"Clip"
+	"Frame"
+	"Model"
+	"Particle"
+	"Shader"
+	"Font"
+	"Sound"
+end
+```
+
+## Cache.ResourceTypeSafeUnload
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;可以从缓存中被安全卸载的各种资源类型。
+
+**签名：**
+```tl
+enum ResourceTypeSafeUnload
+	"Texture"
+	"SVG"
+	"Clip"
+	"Frame"
+	"Model"
+	"Particle"
+	"Shader"
+	"Font"
+	"Sound"
+	"Spine"
+end
+```
+
+## load
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用阻塞的操作将资源文件加载到缓存中。
+
+**签名：**
+```tl
+load: function(self: Cache, filename: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要加载的资源文件的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果资源文件成功加载，则返回 true，否则返回 false。 |
+
+## loadAsync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用异步方式将资源文件加载到缓存中。
+
+**签名：**
+```tl
+loadAsync: function(self: Cache, filename: string): boolean
+```
+
+**用法示例：**
+```tl
+thread(function()
+	local success = Cache:loadAsync("file.png")
+	if success then
+		print("游戏资源已加载到内存中")
+	end
+end)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要加载的资源文件的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果资源文件成功加载，则返回 true，否则返回 false。 |
+
+## update
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;更新缓存中已加载资源文件的内容。
+如果资源文件名称对应的项不存在于缓存中，则会将新资源内容添加到缓存中。
+
+**签名：**
+```tl
+update: function(self: Cache, filename: string, content: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要更新的资源文件名称。 |
+| content | string | 新的资源内容。 |
+
+## update
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;更新缓存中指定文件名的纹理对象。
+如果 filename 对应的纹理对象不存在于缓存中，则将其添加到缓存中。
+
+**签名：**
+```tl
+update: function(self: Cache, filename: string, texture: Texture2D)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要更新的纹理的名称。 |
+| texture | Texture2D | 文件的新纹理对象。 |
+
+## unload
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从缓存中强制卸载一类资源。
+
+**签名：**
+```tl
+unload: function(self: Cache, type: ResourceTypeSafeUnload): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type | ResourceTypeSafeUnload | 要卸载的资源类型。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果资源成功卸载，则返回 true，否则返回 false。 |
+
+## unload
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从缓存中强制卸载一个资源文件。
+
+**签名：**
+```tl
+unload: function(self: Cache, filename: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要卸载的资源文件名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果资源文件成功被卸载，则返回 true，否则返回 false。 |
+
+## removeUnused
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;按资源类型从缓存中删除所有未被使用（未被引用）的资源。
+
+**签名：**
+```tl
+removeUnused: function(self: Cache, type: ResourceType)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type | ResourceType | 要删除的资源类型。 |
+
+## removeUnused
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从缓存中删除所有未被使用（未被引用）的资源。
+
+**签名：**
+```tl
+removeUnused: function(self: Cache)
+```

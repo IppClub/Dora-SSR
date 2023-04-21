@@ -1,0 +1,122 @@
+import "@site/src/languages/highlight";
+
+# Rect的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建矩形对象的类。
+
+## zero
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;所有属性均设置为 0 的矩形对象。
+
+**签名：**
+```tl
+const zero: Rect
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用另一个矩形对象创建新的矩形对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: RectClass, other: Rect): Rect
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| other | Rect | 用于创建新矩形对象的另一个矩形对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Rect | 新的矩形对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用各种属性创建新的矩形对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: RectClass,
+		x: number,
+		y: number,
+		width: number,
+		height: number): Rect
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 矩形原点的 x 坐标。 |
+| y | number | 矩形原点的 y 坐标。 |
+| width | number | 矩形的宽度。 |
+| height | number | 矩形的高度。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Rect | 新的矩形对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用二维向量对象表示的原点和尺寸对象表示的尺寸创建新的矩形对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: RectClass, origin: Vec2, size: Size): Rect
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| origin | Vec2 | 矩形的原点，用二维向量对象表示。 |
+| size | Size | 矩形的尺寸，用尺寸对象表示。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Rect | 新的矩形对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建所有属性均设置为 0 的新矩形对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: RectClass): Rect
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Rect | 新的矩形对象。 |

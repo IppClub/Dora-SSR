@@ -1,0 +1,125 @@
+import "@site/src/languages/highlight";
+
+# Action
+
+**描述：**
+
+&emsp;&emsp;可以在节点上运行的动作类。
+
+**继承自：** Object。
+
+## duration
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;动作的持续时间。
+
+**签名：**
+```tl
+const duration: number
+```
+
+## running
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;动作是否正在运行。
+
+**签名：**
+```tl
+const running: boolean
+```
+
+## paused
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;动作是否暂停。
+
+**签名：**
+```tl
+const paused: boolean
+```
+
+## reversed
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;动作是否应该倒着播放。
+
+**签名：**
+```tl
+reversed: boolean
+```
+
+## speed
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;动作运行的速度。
+将其设置为1.0以获得正常速度，设置为2.0以获得两倍的速度，默认是1.0。
+
+**签名：**
+```tl
+speed: number
+```
+
+## pause
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;暂停动作。
+
+**签名：**
+```tl
+pause: function(self: Action)
+```
+
+## resume
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;恢复动作。
+
+**签名：**
+```tl
+resume: function(self: Action)
+```
+
+## updateTo
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;更新动作的状态。
+
+**签名：**
+```tl
+updateTo: function(
+		self: Action,
+		eclapsed: number,
+		reversed?: boolean --[[false]]
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| elapsed | number | 动作执行已经经过的时间，单位为秒。 |
+| reversed | boolean | 是否倒放动作（默认为false）。 |

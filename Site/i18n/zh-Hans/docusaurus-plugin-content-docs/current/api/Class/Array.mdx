@@ -1,0 +1,492 @@
+import "@site/src/languages/highlight";
+
+# Array
+
+**描述：**
+
+&emsp;&emsp;支持各种操作的数组数据结构类。
+这个数组类被设计成以1为基数做索引，也就是说数组中的第一项的索引为1。这与Lua语言中用作数组的Lua表的行为一致。
+
+**继承自：** Object。
+
+## count
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;数组中的对象总数。
+
+**签名：**
+```tl
+const count: integer
+```
+
+## empty
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;数组是否为空。
+
+**签名：**
+```tl
+const empty: boolean
+```
+
+## addRange
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将另一个数组中的所有对象添加到该数组的末尾。
+
+**签名：**
+```tl
+addRange: function(self: Array, other: Array)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| other | Array | 另一个数组对象。 |
+
+## removeFrom
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从该数组中删除所有在另一个数组中也存在的对象。
+
+**签名：**
+```tl
+removeFrom: function(self: Array, other: Array)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| other | Array | 另一个数组对象。 |
+
+## clear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从数组中删除所有对象。
+
+**签名：**
+```tl
+clear: function(self: Array)
+```
+
+## reverse
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;反转数组中对象的顺序。
+
+**签名：**
+```tl
+reverse: function(self: Array)
+```
+
+## shrink
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从数组末尾删除所有空内存槽位。
+用于释放数组持有的但未使用的内存。
+
+**签名：**
+```tl
+shrink: function(self: Array)
+```
+
+## swap
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;交换两个给定索引处的对象。
+
+**签名：**
+```tl
+swap: function(self: Array, indexA: integer, indexB: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| indexA | integer | 第一个索引。 |
+| indexB | integer | 第二个索引。 |
+
+## removeAt
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;删除给定索引处的对象。
+
+**签名：**
+```tl
+removeAt: function(self: Array, index: integer): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要删除的索引。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果成功删除对象，则返回true，否则返回false。 |
+
+## fastRemoveAt
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;快速删除给定索引处的对象。
+在无需确保数组中元素的顺序时使用。
+
+**签名：**
+```tl
+fastRemoveAt: function(self: Array, index: integer): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要删除的索引。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果已删除一项则返回true，否则返回false。 |
+
+## each
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;对数组中的每个对象调用处理函数。
+
+**签名：**
+```tl
+each: function(self: Array, func: function(Object): boolean): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| func | function | 要为每个对象调用的函数。如果返回false则继续迭代，返回true则停止。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果迭代完成则返回false，如果处理函数中断了迭代则返回true。 |
+
+## first
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;获取数组中的第一项。
+
+**签名：**
+```tl
+const first: Item
+```
+
+## last
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;获取数组中的最后一项。
+
+**签名：**
+```tl
+const last: Item
+```
+
+## randomObject
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;获取数组中的一个随机对象。
+
+**签名：**
+```tl
+const randomObject: Item
+```
+
+## set
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置给定索引处的对象。
+
+**签名：**
+```tl
+set: function(self: Array, index: integer, item: Item)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要设置的索引，应从基数1开始。 |
+| item | Item | 新的对象值。 |
+
+## get
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取给定索引处的对象。
+
+**签名：**
+```tl
+get: function(self: Array, index: integer): Item
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要获取的索引，应为基数1开始。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Item | 索引处的对象值. |
+
+## add
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在数组末尾添加对象。
+
+**签名：**
+```tl
+add: function(self: Array, item: Item)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| item | Item | 要添加的对象。 |
+
+## insert
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在给定索引处插入对象，并向后移动其它对象。
+
+**签名：**
+```tl
+insert: function(self: Array, index: integer, item: Item)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要插入的索引。 |
+| item | Item | 要插入的对象。 |
+
+## contains
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查数组是否包含给定的对象。
+
+**签名：**
+```tl
+contains: function(self: Array, item: Item): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| item | Item | 要检查的对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果找到对象则返回True，否则返回false。 |
+
+## index
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取给定对象的索引。
+
+**签名：**
+```tl
+index: function(self: Array, item: Item): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| item | Item | 要搜索的对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 对象的索引，如果未找到则返回0。 |
+
+## removeLast
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;删除并返回数组中的最后一项。
+
+**签名：**
+```tl
+removeLast: function(self: Array): Item
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Item | 数组中的最后一项。 |
+
+## fastRemove
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从数组快速删除第一次出现的特定对象。
+在无需确保数组中元素的顺序时使用。
+
+**签名：**
+```tl
+fastRemove: function(self: Array, item: Item): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| item | Item | 要删除的对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果找到并成功删除了该对象，则返回true，否则返回false。 |
+
+## __index
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;通过[]操作符访问给定索引处的对象的元方法。
+
+**签名：**
+```tl
+metamethod __index: function(self: Array, index: integer): Item
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要获取的索引，应从基数1开始。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Item | 获取的对象。 |
+
+## __newindex
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;通过[]操作符设置给定索引处的对象的元方法。
+
+**签名：**
+```tl
+metamethod __newindex: function(self: Array, index: integer, item: Item)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要设置的索引，应从基数1开始。 |
+| item | Item | 新的对象。 |
+
+## __len
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;通过＃运算符获取数组的长度的元方法。
+
+**签名：**
+```tl
+metamethod __len: function(self: Array): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 数组的长度。 |

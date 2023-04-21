@@ -1,0 +1,126 @@
+import "@site/src/languages/highlight";
+
+# Model Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating instances of the 'Model' record.
+
+## dummy
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A method that returns a new dummy instance of 'Model' that can do nothing.
+
+**Signature:**
+```tl
+dummy: function(self: ModelClass): Model
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Model | a new dummy instance of 'Model'. |
+
+## getClipFile
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the clip file from the specified model file.
+
+**Signature:**
+```tl
+getClipFile: function(self: ModelClass, filename: string): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filename of the model file to search. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The name of the clip file. |
+
+## getLooks
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets an array of look names from the specified model file.
+
+**Signature:**
+```tl
+getLooks: function(self: ModelClass, filename: string): {string}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filename of the model file to search. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| {string} | An array of look names found in the model file. |
+
+## getAnimations
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets an array of animation names from the specified model file.
+
+**Signature:**
+```tl
+getAnimations: function(self: ModelClass, filename: string): {string}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filename of the model file to search. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| {string} | An array of animation names found in the model file. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new instance of 'Model' from the specified model file.
+
+**Signature:**
+```tl
+metamethod __call: function(self: ModelClass, filename: string): Model
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filename of the model file to load.Can be filename with or without extension like: "Model/item" or "Model/item.model". |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Model | a new instance of 'Model'. |

@@ -1,0 +1,33 @@
+import "@site/src/languages/highlight";
+
+# Roll
+
+**Description:**
+
+&emsp;&emsp;Creates a definition for an action that animates the rotation of a Node from one value to another.
+The roll animation will make sure the node is rotated to the target angle by the minimum rotation angle.
+
+**Signature:**
+```tl
+Roll: function(
+		duration: number,
+		from: number,
+		to: number,
+		easing?: Ease.EaseFunc --[[Ease.Linear]]
+	): ActionDef
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| duration | number | The duration of the animation in seconds. |
+| from | number | The starting roll value of the Node (in degrees). |
+| to | number | The ending roll value of the Node (in degrees). |
+| easing | EaseFunc | [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ActionDef | An ActionDef object that can be used to run the animation on a Node. |

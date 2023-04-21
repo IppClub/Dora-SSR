@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# Group Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating Group objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod that creates a new group with the specified component names.
+
+**Signature:**
+```tl
+metamethod __call: function(self: GroupClass, componemts: {string}): Group
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| components | {string} | A table listing the names of the components to include in the group. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Group | The new group. |

@@ -1,0 +1,105 @@
+import "@site/src/languages/highlight";
+
+# Color的类对象
+
+**描述：**
+
+&emsp;&emsp;提供用于创建ARGB颜色对象的方法。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建所有通道都设置为 0 的颜色。
+
+**签名：**
+```tl
+metamethod __call: function(self: ColorClass): Color
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Color | 新的颜色对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用`Color3`对象和透明值创建新的颜色对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: ColorClass, color: Color3, a: integer): Color
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| color | Color3 | `Color3`颜色对象。 |
+| a | integer | [可选] 颜色的透明值，范围从 0 到 255。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Color | 新的颜色对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;从 ARGB 整数值创建新的颜色对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: ColorClass, argb: integer): Color
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| argb | integer | 创建颜色的 ARGB 整数值。示例：0xffffffff（不透明白色），0x88ff0000（半透明红色）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Color | 新的颜色对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;从 RGBA 颜色通道值创建新的颜色对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: ColorClass, r: integer, g: integer, b: integer, a: integer): Color
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| r | integer | 红色通道值（0-255）。 |
+| g | integer | 绿色通道值（0-255）。 |
+| b | integer | 蓝色通道值（0-255）。 |
+| a | integer | 透明通道值（0-255）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Color | 新的颜色对象。 |

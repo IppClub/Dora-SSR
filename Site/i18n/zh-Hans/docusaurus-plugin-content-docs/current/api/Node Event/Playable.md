@@ -1,0 +1,27 @@
+import "@site/src/languages/highlight";
+
+# Playable的节点事件
+
+**描述：**
+
+&emsp;&emsp;展示动画系统的事件定义，包含事件名称和回调函数参数。
+
+## AnimationEnd
+
+**类型：** 节点事件。
+
+**描述：**
+
+&emsp;&emsp;当动画模型播放结束一个动画后触发。
+
+**签名：**
+```tl
+["AnimationEnd"]: function(animationName: string, target: Playable)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| animationName | string | 播放结束的动画名称。 |
+| target | Playable | 播放该动画的动画模型实例。 |

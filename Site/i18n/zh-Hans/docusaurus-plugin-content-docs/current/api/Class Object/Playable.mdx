@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# Playable的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建动画模型对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;从指定的动画模型文件创建动画模型的新实例。
+
+**签名：**
+```tl
+metamethod __call: function(self: PlayableClass, filename: string): Playable
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要加载的动画文件的文件名。支持 DragonBone、Spine2D 和 Dorothy Model 文件。必须是以下格式之一：	"model:" + modelFile	"spine:" + spineStr	"bone:" + dragonBoneStr |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Playable | 新的动画模型实例. |

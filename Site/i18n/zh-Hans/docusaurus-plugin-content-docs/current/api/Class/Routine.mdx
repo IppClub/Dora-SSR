@@ -1,0 +1,72 @@
+import "@site/src/languages/highlight";
+
+# Routine
+
+**描述：**
+
+&emsp;&emsp;用于管理协程任务的单例类。
+
+**Teal类型：** {Job}。
+
+## remove
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;关闭并移除一个协程任务。
+
+**签名：**
+```tl
+remove: function(self: Routine, job: Job): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| job | Job | 要移除的协程任务。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果协程任务被移除，则为 true，否则为 false。 |
+
+## clear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;关闭并移除所有协程任务。
+
+**签名：**
+```tl
+clear: function(self: Routine)
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;添加一个新的协程任务的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: Routine, job: Job): Job
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| job | Job | 要添加的协程任务实例。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Job | 被添加的协程任务实例。 |

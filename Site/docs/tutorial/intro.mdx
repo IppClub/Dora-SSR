@@ -1,0 +1,126 @@
+---
+sidebar_position: 1
+---
+
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Quick Start
+
+## 1. Installation
+
+- Android
+  - 1. Download and install the [APK](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest) package on the game's running terminal.
+  - 2. Run the software and access the server address displayed by the software through the browser of the PC (tablet or other development device) in the LAN.
+  - 3. Start game development.
+- Windows
+  - 1. Download and run the [software](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest).
+  - 2. Run the software and access the server address displayed by the software through a browser.
+  - 3. Start game development.
+
+## 2. Write the Game
+
+1. Step One: Create a new project
+   - In the browser, open the right-click menu of the game resource tree on the left side of the Dora Dora editor.
+   - Click the `New` menu item, select "New Folder", and name it `Hello`.
+2. Step Two: Write the game code
+   - Create a new game entry code file in the project folder, select the Yuescript language (or Teal, Lua), and name it `init`.
+   - Write the code:
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue title="Hello/init.yue"
+-- Import functional modules
+_ENV = Dorothy!
+
+-- Create a sprite
+sprite = Sprite "Image/logo.png"
+
+with Director.entry
+	-- Mount the sprite to the root node of the game scene tree
+	\addChild sprite
+
+	-- Receive and process click events to move the sprite
+	.touchEnabled = true
+	\slot "Tapped", (touch)->
+		sprite\perform Move(
+			1 -- duration in seconds
+			sprite.position -- start position
+			touch.location -- end position
+			Ease.OutBack -- easing function
+		)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="Hello/init.tl"
+-- Import functional modules
+local Sprite <const> = require("Sprite")
+local Director <const> = require("Director")
+local Move <const> = require("Move")
+local Ease <const> = require("Ease")
+local type Touch = require("TouchType")
+
+-- Get the root node of the game scene tree
+local entry = Director.entry
+
+-- Create a sprite
+local sprite = Sprite("Image/logo.png")
+
+-- Mount the sprite to the root node of the game scene tree
+entry:addChild(sprite)
+
+-- Receive and process click events to move the sprite
+entry.touchEnabled = true
+entry:slot("Tapped", function(touch: Touch)
+	sprite:perform(Move(
+		1, -- duration in seconds
+		sprite.position, -- start position
+		touch.location, -- end position
+		Ease.OutBack -- easing function
+	))
+end)
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="Hello/init.lua"
+-- Import functional modules
+local _ENV = Dorothy()
+
+-- Get the root node of the game scene tree
+local entry = Director.entry
+
+-- Create a sprite
+local sprite = Sprite("Image/logo.png")
+
+-- Mount the sprite to the root node of the game scene tree
+entry:addChild(sprite)
+
+-- Receive and process click events to move the sprite
+entry.touchEnabled = true
+entry:slot("Tapped", function(touch)
+	sprite:perform(Move(
+		1, -- duration in seconds
+		sprite.position, -- start position
+		touch.location, -- end position
+		Ease.OutBack -- easing function
+	))
+end)
+```
+
+</TabItem>
+</Tabs>
+
+3. Step Three: Run the game
+
+	Click the `🎮` icon in the lower right corner of the editor, then click the `Run` menu item. Alternatively, press the `Ctrl + r` key combination.
+
+## 3. Publish the Game
+
+1. Open the right-click menu of the newly created project folder in the game resource tree on the left side of the editor.
+2. Click the `Download` option and wait for the browser to prompt for downloading the packaged project file.

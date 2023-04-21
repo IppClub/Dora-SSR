@@ -1,0 +1,108 @@
+import "@site/src/languages/highlight";
+
+# DragonBone Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating instances of the 'DragonBone' record.
+
+## getLooks
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns a list of available looks for the specified DragonBone file string.
+
+**Signature:**
+```tl
+getLooks: function(self: DragonBoneClass, boneStr: string): {string}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| boneStr | string | The DragonBone file string to get the looks for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| {string} | A table of strings representing the available looks. |
+
+## getAnimations
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns a list of available animations for the specified DragonBone file string.
+
+**Signature:**
+```tl
+getAnimations: function(self: DragonBoneClass, boneStr: string): {string}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| boneStr | string | The DragonBone file string to get the animations for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| {string} | A table of strings representing the available animations. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new instance of 'DragonBone' using the specified bone string.
+
+**Signature:**
+```tl
+metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| boneStr | string | The DragonBone file string for the new instance.A DragonBone file string can be a file path with the target file extention like "DragonBone/item" or file paths with all the related files like "DragonBone/item_ske.json|DragonBone/item_tex.json".And the an armature name can be added following a seperator of ';'. like "DragonBone/item;mainArmature" or "DragonBone/item_ske.json|DragonBone/item_tex.json;mainArmature" |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| DragonBone | A new instance of 'DragonBone'. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new instance of 'DragonBone' using the specified bone file and atlas file. This function only loads the first armature.
+
+**Signature:**
+```tl
+metamethod __call: function(self: DragonBoneClass, boneFile: string, atlasFile: string): DragonBone
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| boneFile | string | the filename of the bone file to load. |
+| atlasFile | string | the filename of the atlas file to load. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| DragonBone | a new instance of 'DragonBone' with the specified bone file and atlas file. |

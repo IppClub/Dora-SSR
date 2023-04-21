@@ -1,0 +1,12 @@
+import "@site/src/languages/highlight";
+
+# Array
+
+**Description:**
+
+&emsp;&emsp;The supported array data types.
+
+**Signature:**
+```tl
+local type Item = integer | number | boolean | string | thread | ContainerItem
+```

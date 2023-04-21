@@ -1,0 +1,63 @@
+import "@site/src/languages/highlight";
+
+# Profiler的类对象
+
+**描述：**
+
+&emsp;&emsp;用于性能测试分析的类。
+
+## EventName
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;性能测试分析事件的名称。
+
+**签名：**
+```tl
+const EventName: string
+```
+
+## level
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前性能测试分析的级别。
+
+**签名：**
+```tl
+level: integer
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;调用一个函数并返回执行所需的时间。
+
+**签名：**
+```tl
+metamethod __call: function(self: ProfilerClass, funcForProfiling: function): number
+```
+
+**用法示例：**
+```tl
+local time = Profiler(myFunction)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| funcForProfiling | function | 要进行分析的函数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 执行函数所需的时间。 |

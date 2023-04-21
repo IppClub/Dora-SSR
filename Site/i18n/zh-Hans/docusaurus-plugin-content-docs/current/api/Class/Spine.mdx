@@ -1,0 +1,115 @@
+import "@site/src/languages/highlight";
+
+# Spine
+
+**描述：**
+
+&emsp;&emsp;使用 Spine2D 引擎实现的动画模型系统的类。
+
+**继承自：** Playable。
+
+## showDebug
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否显示调试图形。
+
+**签名：**
+```tl
+showDebug: boolean
+```
+
+## hitTestEnabled
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否启用碰撞检测的功能。
+
+**签名：**
+```tl
+hitTestEnabled: boolean
+```
+
+## setBoneRotation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置`Spine`骨骼中骨骼的旋转角度。
+
+**签名：**
+```tl
+setBoneRotation: function(self: Spine, name: string, rotation: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 骨骼的名称。 |
+| rotation | number | 骨骼旋转的角度，以度数为单位。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 旋转是否成功设置。 |
+
+## containsPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查一个点坐标是否在动画模型的碰撞检测边界内，并返回该点处的骨骼或插槽名称。
+
+**签名：**
+```tl
+containsPoint: function(self: Spine, x: number, y: number): string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 要检查的点的 x 坐标。 |
+| y | number | 要检查的点的 y 坐标。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string|nil | 该点处的骨骼或插槽名称，如果没有找到骨骼或插槽则返回 nil。 |
+
+## intersectsSegment
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查线段是否与动画模型的碰撞检测边界相交，并返回交点处的骨骼或插槽名称。
+
+**签名：**
+```tl
+intersectsSegment: function(self: Spine, x1: number, y1: number, x2: number, y2: number): string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x1 | number | 线段起点的 x 坐标。 |
+| y1 | number | 线段起点的 y 坐标。 |
+| x2 | number | 线段终点的 x 坐标。 |
+| y2 | number | 线段终点的 y 坐标。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string|nil | 交点处的骨骼或插槽名称，如果没有找到骨骼或插槽则返回 nil。 |

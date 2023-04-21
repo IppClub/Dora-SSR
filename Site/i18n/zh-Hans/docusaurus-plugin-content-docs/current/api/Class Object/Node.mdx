@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# Node的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建场景节点实例的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的场景节点实例。
+
+**签名：**
+```tl
+metamethod __call: function(self: NodeClass): Node
+```
+
+**用法示例：**
+```tl
+local Node = require("Node")
+local node = Node()
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Node | 场景节点的新实例。 |

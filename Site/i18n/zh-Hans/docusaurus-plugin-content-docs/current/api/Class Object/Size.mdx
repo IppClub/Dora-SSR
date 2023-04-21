@@ -1,0 +1,115 @@
+import "@site/src/languages/highlight";
+
+# Size的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建尺寸对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用给定的宽度和高度创建一个新的尺寸对象。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: SizeClass,
+		width?: number --[[0]],
+		height?: number --[[0]]
+	): Size
+```
+
+**用法示例：**
+```tl
+local size = Size(10, 20)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| width | number | [可选] 新尺寸的宽度（默认为0）。 |
+| height | number | [可选] 新尺寸的高度（默认为0）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Size | 新的尺寸对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;从现有的尺寸对象创建一个新的尺寸对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: SizeClass, other: Size): Size
+```
+
+**用法示例：**
+```tl
+local newSize = Size(existingSize)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| other | Size | 要从中创建新对象的现有尺寸对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Size | 新的尺寸对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;从二维向量对象创建一个新的尺寸对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: SizeClass, vec: Vec2): Size
+```
+
+**用法示例：**
+```tl
+local size = Size(Vec2(10, 20))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vec | Vec2 | 要从中创建新尺寸的向量，由二维向量对象表示。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Size | 新的尺寸对象。 |
+
+## zero
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;获得一个属性都为0的尺寸对象。
+
+**签名：**
+```tl
+const zero: Size
+```

@@ -1,0 +1,100 @@
+import "@site/src/languages/highlight";
+
+# Touch
+
+**Description:**
+
+&emsp;&emsp;Represents a touch input or mouse click event.
+
+**Inherits from:** Object.
+
+## enabled
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether touch input is enabled or not.
+
+**Signature:**
+```tl
+enabled: boolean
+```
+
+## fromMouse
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the touch event originated from a mouse click.
+
+**Signature:**
+```tl
+fromMouse: boolean
+```
+
+## first
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether this is the first touch event when multi-touches exist.
+
+**Signature:**
+```tl
+const first: boolean
+```
+
+## id
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The unique identifier assigned to this touch event.
+
+**Signature:**
+```tl
+const id: integer
+```
+
+## delta
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The amount and direction of movement since the last touch event.
+
+**Signature:**
+```tl
+const delta: Vec2
+```
+
+## location
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The location of the touch event in the node's local coordinate system.
+
+**Signature:**
+```tl
+const location: Vec2
+```
+
+## worldLocation
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The location of the touch event in world coordinate system.
+
+**Signature:**
+```tl
+const worldLocation: Vec2
+```

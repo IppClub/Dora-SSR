@@ -1,0 +1,100 @@
+import "@site/src/languages/highlight";
+
+# Bullet
+
+**描述：**
+
+&emsp;&emsp;包含游戏中的子弹对象的属性和行为的类。
+
+**继承自：** Body。
+
+## targetAllow
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;子弹的允许碰撞对象的定义信息。
+
+**签名：**
+```tl
+targetAllow: TargetAllow
+```
+
+## faceRight
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;子弹对象是否面向右边。
+
+**签名：**
+```tl
+const faceRight: boolean
+```
+
+## hitStop
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;子弹对象是否在碰撞后停止运动。
+
+**签名：**
+```tl
+hitStop: boolean
+```
+
+## owner
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;发射子弹的单位对象。
+
+**签名：**
+```tl
+const owner: Unit
+```
+
+## bulletDef
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;定义子弹属性和行为的对象。
+
+**签名：**
+```tl
+const bulletDef: BulletDef
+```
+
+## face
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;子弹上挂载的视觉元素的对象。
+
+**签名：**
+```tl
+face: Node
+```
+
+## destroy
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;主动销毁子弹对象实例。
+
+**签名：**
+```tl
+destroy: function(self: Bullet)
+```

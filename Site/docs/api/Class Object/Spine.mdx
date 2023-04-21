@@ -1,0 +1,108 @@
+import "@site/src/languages/highlight";
+
+# Spine Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating instances of the 'Spine' record.
+
+## getLooks
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns a list of available looks for the specified Spine2D file string.
+
+**Signature:**
+```tl
+getLooks: function(self: SpineClass, spineStr: string): {string}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| spineStr | string | The Spine2D file string to get the looks for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| table | A table of strings representing the available looks. |
+
+## getAnimations
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns a list of available animations for the specified Spine2D file string.
+
+**Signature:**
+```tl
+getAnimations: function(self: SpineClass, spineStr: string): {string}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| spineStr | string | The Spine2D file string to get the animations for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| table | A table of strings representing the available animations. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new instance of 'Spine' using the specified Spine string.
+
+**Signature:**
+```tl
+metamethod __call: function(self: SpineClass, spineStr: string): Spine
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| spineStr | string | The Spine file string for the new instance.A Spine file string can be a file path with the target file extention like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas". |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Spine | A new instance of 'Spine'. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new instance of 'Spine' using the specified skeleton file and atlas file.
+
+**Signature:**
+```tl
+metamethod __call: function(self: SpineClass, skelFile: string, atlasFile: string): Spine
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| skelFile | string | the filename of the skeleton file to load. |
+| atlasFile | string | the filename of the atlas file to load. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Spine | a new instance of 'Spine' with the specified skeleton file and atlas file. |

@@ -1,0 +1,1495 @@
+import "@site/src/languages/highlight";
+
+# Node
+
+**Description:**
+
+&emsp;&emsp;Class used for building a hierarchical tree structure of game objects.
+
+**Inherits from:** Object.
+
+## order
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The order of the node in the parent's children array.
+
+**Signature:**
+```tl
+order: integer
+```
+
+## angle
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The rotation angle of the node in degrees.
+
+**Signature:**
+```tl
+angle: number
+```
+
+## angleX
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The X-axis rotation angle of the node in degrees.
+
+**Signature:**
+```tl
+angleX: number
+```
+
+## angleY
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The Y-axis rotation angle of the node in degrees.
+
+**Signature:**
+```tl
+angleY: number
+```
+
+## scaleX
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The X-axis scale factor of the node.
+
+**Signature:**
+```tl
+scaleX: number
+```
+
+## scaleY
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The Y-axis scale factor of the node.
+
+**Signature:**
+```tl
+scaleY: number
+```
+
+## x
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The X-axis position of the node.
+
+**Signature:**
+```tl
+x: number
+```
+
+## y
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The Y-axis position of the node.
+
+**Signature:**
+```tl
+y: number
+```
+
+## z
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The Z-axis position of the node.
+
+**Signature:**
+```tl
+z: number
+```
+
+## position
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The position of the node as a Vec2 object.
+
+**Signature:**
+```tl
+position: Vec2
+```
+
+## skewX
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The X-axis skew angle of the node in degrees.
+
+**Signature:**
+```tl
+skewX: number
+```
+
+## skewY
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The Y-axis skew angle of the node in degrees.
+
+**Signature:**
+```tl
+skewY: number
+```
+
+## visible
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the node is visible.
+
+**Signature:**
+```tl
+visible: boolean
+```
+
+## anchor
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The anchor point of the node as a Vec2 object.
+
+**Signature:**
+```tl
+anchor: Vec2
+```
+
+## width
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The width of the node.
+
+**Signature:**
+```tl
+width: number
+```
+
+## height
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The height of the node.
+
+**Signature:**
+```tl
+height: number
+```
+
+## size
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The size of the node as a Size object.
+
+**Signature:**
+```tl
+size: Size
+```
+
+## tag
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The tag of the node as a string.
+
+**Signature:**
+```tl
+tag: string
+```
+
+## opacity
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The opacity of the node, should be 0 to 1.0.
+
+**Signature:**
+```tl
+opacity: number
+```
+
+## color
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The color of the node as a Color object.
+
+**Signature:**
+```tl
+color: Color
+```
+
+## color3
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The color of the node as a Color3 object.
+
+**Signature:**
+```tl
+color3: Color3
+```
+
+## passOpacity
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether to pass the opacity value to child nodes.
+
+**Signature:**
+```tl
+passOpacity: boolean
+```
+
+## passColor3
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether to pass the color value to child nodes.
+
+**Signature:**
+```tl
+passColor3: boolean
+```
+
+## transformTarget
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The target node acts as a parent node for transforming this node.
+
+**Signature:**
+```tl
+transformTarget: Node
+```
+
+## scheduler
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The scheduler used for scheduling update and action callbacks.
+
+**Signature:**
+```tl
+scheduler: Scheduler
+```
+
+## hasChildren
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the node has children.
+
+**Signature:**
+```tl
+const hasChildren: boolean
+```
+
+## children
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The children of the node as an Array object, could be nil.
+
+**Signature:**
+```tl
+const children: Array
+```
+
+## parent
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The parent node of the node.
+
+**Signature:**
+```tl
+const parent: Node
+```
+
+## boundingBox
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The bounding box of the node as a Rect object.
+
+**Signature:**
+```tl
+const boundingBox: Rect
+```
+
+## running
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the node is currently running in a scene tree.
+
+**Signature:**
+```tl
+const running: boolean
+```
+
+## scheduled
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the node is currently scheduling a function or a coroutine for updates.
+
+**Signature:**
+```tl
+const scheduled: boolean
+```
+
+## actionCount
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The number of actions currently running on the node.
+
+**Signature:**
+```tl
+const actionCount: integer
+```
+
+## data
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Additional data stored on the node as a Dictionary object.
+
+**Signature:**
+```tl
+const data: Dictionary
+```
+
+## touchEnabled
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether touch events are enabled on the node.
+
+**Signature:**
+```tl
+touchEnabled: boolean
+```
+
+## swallowTouches
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the node should swallow touch events.
+
+**Signature:**
+```tl
+swallowTouches: boolean
+```
+
+## swallowMouseWheel
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the node should swallow mouse wheel events.
+
+**Signature:**
+```tl
+swallowMouseWheel: boolean
+```
+
+## keyboardEnabled
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether keyboard events are enabled on the node.
+
+**Signature:**
+```tl
+keyboardEnabled: boolean
+```
+
+## renderGroup
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether to group the node's rendering with all its recursive children.
+
+**Signature:**
+```tl
+renderGroup: boolean
+```
+
+## renderOrder
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier.
+
+**Signature:**
+```tl
+renderOrder: integer
+```
+
+## addChild
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a child node to the current node.
+
+**Signature:**
+```tl
+addChild: function(
+		self: Node,
+		child: Node,
+		order?: integer --[[0]],
+		tag?: string --[[""]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| child | Node | The child node to add. |
+| order | integer | The drawing order of the child node. Default is 0. |
+| tag | string | The tag of the child node. Default is an empty string. |
+
+## addTo
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds the current node to a parent node.
+
+**Signature:**
+```tl
+addTo: function(
+		self: Node,
+		parent: Node,
+		order?: integer --[[0]],
+		tag?: string --[[""]]
+	): Node
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| parent | Node | The parent node to add the current node to. |
+| order | integer | The drawing order of the current node. Default is 0. |
+| tag | string | The tag of the current node. Default is an empty string. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Node | The current node. |
+
+## removeChild
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes a child node from the current node.
+
+**Signature:**
+```tl
+removeChild: function(
+		self: Node,
+		child: Node,
+		cleanup?: boolean --[[true]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| child | Node | The child node to remove. |
+| cleanup | boolean | [optional] Whether to cleanup the child node. Default is true. |
+
+## removeChildByTag
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes a child node from the current node by tag.
+
+**Signature:**
+```tl
+removeChildByTag: function(
+		self: Node,
+		tag: string,
+		cleanup?: boolean --[[true]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tag | string | The tag of the child node to remove. |
+| cleanup | boolean | [optional] Whether to cleanup the child node. Default is true. |
+
+## removeAllChildren
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes all child nodes from the current node.
+
+**Signature:**
+```tl
+removeAllChildren: function(
+		self: Node,
+		cleanup?: boolean --[[true]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| cleanup | boolean | [optional] Whether to cleanup the child nodes. Default is true. |
+
+## removeFromParent
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes the current node from its parent node.
+
+**Signature:**
+```tl
+removeFromParent: function(
+		self: Node,
+		cleanup?: boolean --[[true]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| cleanup | boolean | [optional] Whether to cleanup the current node. Default is true. |
+
+## moveToParent
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Moves the current node to a new parent node without triggering node events.
+
+**Signature:**
+```tl
+moveToParent: function(self: Node, parent: Node)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| parent | Node | The new parent node to move the current node to. |
+
+## cleanup
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Cleans up the current node.
+
+**Signature:**
+```tl
+cleanup: function(self: Node)
+```
+
+## getChildByTag
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets a child node by tag.
+
+**Signature:**
+```tl
+getChildByTag: function(self: Node, tag: string): Node
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tag | string | The tag of the child node to get. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Node | The child node, or nil if not found. |
+
+## schedule
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Schedules a function to run every frame.
+
+**Signature:**
+```tl
+schedule: function(self: Node, func: function(number): boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to run, return true to stop. |
+
+## schedule
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Schedules a coroutine to run.
+
+**Signature:**
+```tl
+schedule: function(self: Node, job: Routine.Job)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| job | Routine.Job | The coroutine to run, return or yield true to stop. |
+
+## unschedule
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Unschedules the current node's scheduled function or coroutine.
+
+**Signature:**
+```tl
+unschedule: function(self: Node)
+```
+
+## convertToNodeSpace
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a point in world space to node space.
+
+**Signature:**
+```tl
+convertToNodeSpace: function(self: Node, worldPoint: Vec2): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| worldPoint | Vec2 | The point to convert. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The converted point. |
+
+## convertToNodeSpace
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a point in world space to node space.
+
+**Signature:**
+```tl
+convertToNodeSpace: function(self: Node, worldPoint: Vec2, z: number): Vec2, number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| worldPoint | Vec2 | The point to convert. |
+| z | number | The z-coordinate of the point. Default is 0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The converted point. |
+| number | The converted z-coordinate. |
+
+## convertToWorldSpace
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a point from node space to world space.
+
+**Signature:**
+```tl
+convertToWorldSpace: function(self: Node, nodePoint: Vec2): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| nodePoint | Vec2 | The point in node space. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The converted point in world space. |
+
+## convertToWorldSpace
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a point from node space to world space.
+
+**Signature:**
+```tl
+convertToWorldSpace: function(self: Node, nodePoint: Vec2, z: number): Vec2, number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| nodePoint | Vec2 | The point in node space. |
+| z | number | The z coordinate in node space. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The converted point in world space. |
+| number | The converted z coordinate in world space . |
+
+## convertToWindowSpace
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a point from node space to window space.
+
+**Signature:**
+```tl
+convertToWindowSpace: function(self: Node, nodePoint: Vec2, callback: function(Vec2))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| nodePoint | Vec2 | The point in node space. |
+| callback | function | The callback function to receive the converted point in window space. |
+
+## eachChild
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Calls the given function for each child node of this node.
+
+**Signature:**
+```tl
+eachChild: function(self: Node, func: function(Node): boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | False if all children have been visited, true if the iteration was interrupted by the function. |
+
+## traverse
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
+
+**Signature:**
+```tl
+traverse: function(self: Node, func: function(Node): boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | False if all nodes have been visited, true if the traversal was interrupted by the function. |
+
+## traverseAll
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
+
+**Signature:**
+```tl
+traverseAll: function(self: Node, func: function(Node): boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if all nodes have been visited, false if the traversal was interrupted by the function. |
+
+## runAction
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Runs the given action on this node.
+
+**Signature:**
+```tl
+runAction: function(self: Node, action: Action)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| action | Action | The action to run. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The duration of the newly running action in seconds. |
+
+## runAction
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Runs an action defined by the given action definition on this node.
+
+**Signature:**
+```tl
+runAction: function(self: Node, actionDef: ActionDef)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| actionDef | ActionDef | The action definition to run. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The duration of the newly running action in seconds. |
+
+## stopAllActions
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops all actions running on this node.
+
+**Signature:**
+```tl
+stopAllActions: function(self: Node)
+```
+
+## perform
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Runs the given action immediately without adding it to the action queue.
+
+**Signature:**
+```tl
+perform: function(self: Node, action: Action): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| action | Action | The action to run. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The duration of the newly running action. |
+
+## perform
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Runs an action defined by the given action definition right after clear all the previous running actions.
+
+**Signature:**
+```tl
+perform: function(self: Node, actionDef: ActionDef): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| actionDef | ActionDef | The action definition to run. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The duration of the newly running action. |
+
+## stopAction
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops the given action running on this node.
+
+**Signature:**
+```tl
+stopAction: function(self: Node, action: Action)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| action | Action | The action to stop. |
+
+## alignItemsVertically
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Vertically aligns all child nodes of this node.
+
+**Signature:**
+```tl
+alignItemsVertically: function(
+		self: Node,
+		padding?: number --[[10]]
+	): Size
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| padding | number | [optional] The padding between child nodes. Defaults to 10. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Size | The size of the aligned child nodes. |
+
+## alignItemsVertically
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Vertically aligns all child nodes within the node using the given size and padding.
+
+**Signature:**
+```tl
+alignItemsVertically: function(
+		self: Node,
+		size: Size,
+		padding?: number --[[10]]
+	): Size
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| size | Size | The size to use for alignment. |
+| padding | number | The amount of padding to use between each child node (default is 10). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Size | The size of the node after alignment. |
+
+## alignItemsHorizontally
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Horizontally aligns all child nodes within the node using the given padding.
+
+**Signature:**
+```tl
+alignItemsHorizontally: function(
+		self: Node,
+		padding?: number --[[10]]
+	): Size
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| padding | number | [optional] The amount of padding to use between each child node (default is 10). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Size | The size of the node after alignment. |
+
+## alignItemsHorizontally
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Horizontally aligns all child nodes within the node using the given size and padding.
+
+**Signature:**
+```tl
+alignItemsHorizontally: function(
+		self: Node,
+		size: Size,
+		padding?: number --[[10]]
+	): Size
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| size | Size | The size to hint for alignment. |
+| padding | number | [optional] The amount of padding to use between each child node (default is 10). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Size | The size of the node after alignment. |
+
+## alignItems
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Aligns all child nodes within the node using the given size and padding.
+
+**Signature:**
+```tl
+alignItems: function(
+		self: Node,
+		padding?: number --[[10]]
+	): Size
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| padding | number | [optional] The amount of padding to use between each child node (default is 10). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Size | The size of the node after alignment. |
+
+## alignItems
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Aligns all child nodes within the node using the given size and padding.
+
+**Signature:**
+```tl
+alignItems: function(
+		self: Node,
+		size: Size,
+		padding?: number --[[10]]
+	): Size
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| size | Size | The size to use for alignment. |
+| padding | number | [optional] The amount of padding to use between each child node (default is 10). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Size | The size of the node after alignment. |
+
+## moveAndCullItems
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Moves and changes child nodes' visibility based on their position in parent's area.
+
+**Signature:**
+```tl
+moveAndCullItems: function(self: Node, delta: Vec2)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| delta | Vec2 | The distance to move its children. |
+
+## attachIME
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches the input method editor (IME) to the node.
+Makes node recieving "AttachIME", "DetachIME", "TextInput", "TextEditing" events.
+
+**Signature:**
+```tl
+attachIME: function(self: Node)
+```
+
+## detachIME
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Detaches the input method editor (IME) from the node.
+
+**Signature:**
+```tl
+detachIME: function(self: Node)
+```
+
+## gslot
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the global event listener associated with the given event name in this node.
+
+**Signature:**
+```tl
+gslot: function(self: Node, eventName: string): {GSlot}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| eventName | string | The name of the global event. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| {GSlot} | All the global event listeners associated with the event. |
+
+## gslot
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Associates the given event handler function with a global event.
+
+**Signature:**
+```tl
+gslot: function(self: Node, eventName: string, handler: function()): GSlot
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| eventName | string | The name of the global event. |
+| handler | function | The handler function to associate with the event. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| GSlot | The global event listener associated with the event in this node. |
+
+## slot
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the node event listener associated with the given node event name.
+
+**Signature:**
+```tl
+slot: function(self: Node, eventName: string): Slot
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| eventName | string | The name of the node event. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Slot | The node event listener associated with the node event. |
+
+## slot
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Associates the given handler function with the node event.
+
+**Signature:**
+```tl
+slot: function(self: Node, eventName: string, handler: function())
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| eventName | string | The name of the node event. |
+| handler | function | The handler function to associate with the node event. |
+
+## emit
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Emits a node event with a given event name and arguments.
+
+**Signature:**
+```tl
+emit: function(self: Node, eventName: string, ...: any)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| eventName | string | The name of the node event. |
+| ... | ...any | The arguments to pass to the node event handler functions. |
+
+## grab
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates or removes a texture grabber for the specified node.
+
+**Signature:**
+```tl
+grab: function(
+		self: Node,
+		enabled?: boolean --[[true]]
+	): Grabber
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| enabled | boolean | Whether to enable or disable the grabber. Default is true. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Grabber | A Grabber object when enabled. |
+
+## grab
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a texture grabber for the specified node with a specified grid size.
+
+**Signature:**
+```tl
+grab: function(self: Node, gridX: number, gridY: number): Grabber
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| gridX | number | The number of horizontal grid cells to divide the grabber into. |
+| gridY | number | The number of vertical grid cells to divide the grabber into. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Grabber | A Grabber object. |

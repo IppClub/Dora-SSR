@@ -1,0 +1,45 @@
+import "@site/src/languages/highlight";
+
+# UnitAction Class
+
+**Description:**
+
+&emsp;&emsp;A record that defines and stores the behavior and properties of the "UnitAction" class.
+It is a singleton object that manages all "UnitAction" objects.
+
+## add
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a new "UnitAction" to the "UnitActionClass" with the specified name and parameters.
+
+**Signature:**
+```tl
+add: function(
+		self: UnitActionClass,
+		name: string,
+		param: UnitActionParam
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the new "UnitAction". |
+| param | UnitActionParam | The parameters for the new "UnitAction". |
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes all "UnitAction" objects from the "UnitActionClass".
+
+**Signature:**
+```tl
+clear: function(self: UnitActionClass)
+```

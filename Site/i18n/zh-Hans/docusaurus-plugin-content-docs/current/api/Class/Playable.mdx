@@ -1,0 +1,201 @@
+import "@site/src/languages/highlight";
+
+# Playable
+
+**描述：**
+
+&emsp;&emsp;用于动画模型系统的接口类。
+
+**继承自：** Node。
+
+## look
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;动画模型的外观。
+
+**签名：**
+```tl
+look: string
+```
+
+## speed
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;动画模型的播放速度。
+
+**签名：**
+```tl
+speed: number
+```
+
+## recovery
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;动画模型恢复时间，以秒为单位。
+用于从一个动画过渡到另一个动画。
+
+**签名：**
+```tl
+recovery: number
+```
+
+## fliped
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;动画模型是否水平翻转。
+
+**签名：**
+```tl
+fliped: boolean
+```
+
+## current
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前正在播放的动画名称。
+
+**签名：**
+```tl
+const current: string
+```
+
+## lastCompleted
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;上一次播放完成的动画名称。
+
+**签名：**
+```tl
+const lastCompleted: string
+```
+
+## getKey
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取模型上的关键点的坐标。
+
+**签名：**
+```tl
+getKey: function(self: Playable, name: string): Vec2
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要获取模型上的关键点的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec2 | 以二维向量形式返回的关键点的坐标。 |
+
+## play
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;播放模型包含的动画。
+
+**签名：**
+```tl
+play: function(
+		self: Playable,
+		name: string,
+		loop?: boolean --[[false]]
+	): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要播放的动画的名称。 |
+| loop | boolean | [可选] 是否循环播放动画（默认为 false）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 动画的持续时间，以秒为单位。 |
+
+## stop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止当前正在播放的动画。
+
+**签名：**
+```tl
+stop: function(self: Playable)
+```
+
+## setSlot
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个子节点添加到动画模型上的插槽。
+
+**签名：**
+```tl
+setSlot: function(self: Playable, name: string, item: Node)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要设置的插槽的名称。 |
+| item | Node | 要在插槽上添加的节点。 |
+
+## getSlot
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取添加到动画模型插槽上的子节点。
+
+**签名：**
+```tl
+getSlot: function(self: Playable, name: string): Node | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要获取的插槽的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Node|nil | 插槽中的节点，如果插槽中没有节点，则返回 nil。 |

@@ -1,0 +1,92 @@
+import "@site/src/languages/highlight";
+
+# Buffer
+
+**Description:**
+
+&emsp;&emsp;A buffer of string for the use of ImGui widget.
+
+**Inherits from:** Object.
+
+## size
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The size of the buffer.
+
+**Signature:**
+```tl
+const size: integer
+```
+
+## resize
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Changing the size of the buffer.
+
+**Signature:**
+```tl
+resize: function(self: Buffer, size: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| size | integer | The new size of the buffer. |
+
+## zeroMemory
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Setting all bytes in the buffer to zero.
+
+**Signature:**
+```tl
+zeroMemory: function(self: Buffer)
+```
+
+## toString
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converting the buffer to a string.
+
+**Signature:**
+```tl
+toString: function(self: Buffer): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The buffer contents as a string. |
+
+## setString
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Setting the contents of the buffer with a string.
+
+**Signature:**
+```tl
+setString: function(str: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| str | string | The new contents of the buffer. |

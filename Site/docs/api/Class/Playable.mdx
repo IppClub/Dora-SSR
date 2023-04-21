@@ -1,0 +1,201 @@
+import "@site/src/languages/highlight";
+
+# Playable
+
+**Description:**
+
+&emsp;&emsp;A base class for an animation model system.
+
+**Inherits from:** Node.
+
+## look
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The look of the animation.
+
+**Signature:**
+```tl
+look: string
+```
+
+## speed
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The play speed of the animation.
+
+**Signature:**
+```tl
+speed: number
+```
+
+## recovery
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The recovery time of the animation, in seconds.
+Used for doing transitions from one animation to another animation.
+
+**Signature:**
+```tl
+recovery: number
+```
+
+## fliped
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the animation is flipped horizontally.
+
+**Signature:**
+```tl
+fliped: boolean
+```
+
+## current
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The current playing animation name.
+
+**Signature:**
+```tl
+const current: string
+```
+
+## lastCompleted
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The last completed animation name.
+
+**Signature:**
+```tl
+const lastCompleted: string
+```
+
+## getKey
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Get a key point on the animation model by its name.
+
+**Signature:**
+```tl
+getKey: function(self: Playable, name: string): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the key point to get. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The key point value as a Vec2. |
+
+## play
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Plays an animation from the model.
+
+**Signature:**
+```tl
+play: function(
+		self: Playable,
+		name: string,
+		loop?: boolean --[[false]]
+	): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the animation to play. |
+| loop | boolean | [optional] Whether to loop the animation or not (default is false). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The duration of the animation in seconds. |
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops the currently playing animation.
+
+**Signature:**
+```tl
+stop: function(self: Playable)
+```
+
+## setSlot
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a child node to a slot on the animation model.
+
+**Signature:**
+```tl
+setSlot: function(self: Playable, name: string, item: Node)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the slot to set. |
+| item | Node | The node to set the slot to. |
+
+## getSlot
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the child node attached to the animation model.
+
+**Signature:**
+```tl
+getSlot: function(self: Playable, name: string): Node | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the slot to get. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Node|nil | The node in the slot, or nil if there is no node in the slot. |

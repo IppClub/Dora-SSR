@@ -1,0 +1,43 @@
+import "@site/src/languages/highlight";
+
+# Menu的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建菜单节点对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用指定的宽度和高度创建菜单节点的新实例。
+-@param width (number) 菜单节点宽度。
+-@param height (number) 菜单节点高度。
+-@return (Menu) 新的菜单节点对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: MenuClass, width: number, height: number): Menu
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用 0 宽度和 0 高度创建菜单节点的新实例。
+大小为零的菜单将处理全屏范围内子节点的触摸事件。
+
+**签名：**
+```tl
+metamethod __call: function(self: MenuClass): Menu
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Menu | 新的菜单节点对象。 |

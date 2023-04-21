@@ -1,0 +1,51 @@
+import "@site/src/languages/highlight";
+
+# Array Class
+
+**Description:**
+
+&emsp;&emsp;A class that creates Array objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Metamethod to create a new, empty array object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: ArrayClass): Array
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Array | A new Array object. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Metamethod to create a new array object initialized with a list of items.
+
+**Signature:**
+```tl
+metamethod __call: function(self: ArrayClass, items: {Item}): Array
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| items | {Item} | A table of items to initialize the array with. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Array | A new Array object. |

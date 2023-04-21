@@ -1,0 +1,59 @@
+import "@site/src/languages/highlight";
+
+# Observer Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating Observer objects.
+
+## Observer.Action
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;The types of actions that an observer can watch for.
+
+**Signature:**
+```tl
+enum Action
+
+	-- The addition of a new entity.
+	"Add"
+
+	-- The modification of an existing entity.
+	"Change"
+
+	-- The addition or modification of an entity.
+	"AddOrChange"
+
+	-- The removal of an existing entity.
+	"Remove"
+end
+```
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod that creates a new observer with the specified component filter and action to watch for
+
+**Signature:**
+```tl
+metamethod __call: function(self: ObserverClass, action: Action, components: {string}): Observer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| action | Action | The type of action to watch for. |
+| components | {string} | A table listing the names of the components to filter entities by. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Observer | The new observer. |

@@ -1,0 +1,99 @@
+import "@site/src/languages/highlight";
+
+# Sensor
+
+**Description:**
+
+&emsp;&emsp;A class to represent a physics sensor object in the game world.
+
+**Inherits from:** Object.
+
+## enabled
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the sensor is currently enabled or not.
+
+**Signature:**
+```tl
+enabled: boolean
+```
+
+## tag
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The tag for the sensor.
+
+**Signature:**
+```tl
+const tag: integer
+```
+
+## owner
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The "Body" object that owns the sensor.
+
+**Signature:**
+```tl
+const owner: Body
+```
+
+## sensed
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the sensor is currently sensing any other "Body" objects in the game world.
+
+**Signature:**
+```tl
+const sensed: boolean
+```
+
+## sensedBodies
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;An array of "Body" objects that are currently being sensed by the sensor.
+
+**Signature:**
+```tl
+const sensedBodies: Array
+```
+
+## contains
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Determines whether the specified "Body" object is currently being sensed by the sensor.
+
+**Signature:**
+```tl
+contains: function(self: Sensor, body: Body): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body | Body | The "Body" object to check if it is being sensed. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the "Body" object is being sensed by the sensor, false otherwise. |

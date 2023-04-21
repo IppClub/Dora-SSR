@@ -1,0 +1,86 @@
+import "@site/src/languages/highlight";
+
+# Face的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建可视化组件定义对象的类。
+
+**用法示例：**
+```tl
+local Face = require("Face")
+local faceA = Face("Image/file.png")
+local faceB = Face(function()
+	return Sprite("Image/file.png")
+end)
+faceA:toNode():addTo(entry)
+faceB:toNode():addTo(entry)
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建新的可视化组件的定义对象。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: FaceClass,
+		faceStr: string,
+		point?: Vec2 --[[Vec2.zero]],
+		scale?: number --[[1.0]],
+		angle?: number --[[0.0]]
+	): Face
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| faceStr | string | 用于创建可视对象的字符串。可以是 'Image/file.png' 和 'Image/items.clip|itemA'。 |
+| point | Vec2 | [可选] 可视组件的位置，默认为 `Vec2.zero`。 |
+| scale | number | [可选] 可视组件的缩放比例，默认为 1.0。 |
+| angle | number | [可选] 可视组件的角度，默认为 0.0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Face | 新的可视组件的定义。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建新的可视化组件的定义对象。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: FaceClass,
+		createFunc: function(): (Node),
+		point?: Vec2 --[[Vec2.zero]],
+		scale?: number --[[1.0]],
+		angle?: number --[[0.0]]
+	): Face
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| createFunc | function | 动态创建新的游戏场景节点的函数。 |
+| point | Vec2 | [可选] 可视组件的位置，默认为 `Vec2.zero`。 |
+| scale | number | [可选] 可视组件的缩放比例，默认为 1.0。 |
+| angle | number | [可选] 可视组件的角度，默认为 0.0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Face | 新的可视组件的定义。 |

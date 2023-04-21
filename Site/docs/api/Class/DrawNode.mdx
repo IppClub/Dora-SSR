@@ -1,0 +1,149 @@
+import "@site/src/languages/highlight";
+
+# DrawNode
+
+**Description:**
+
+&emsp;&emsp;A record for scene node that draws simple shapes such as dots, lines, and polygons.
+
+**Inherits from:** Node.
+
+## depthWrite
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether to write to the depth buffer when drawing (default is false).
+
+**Signature:**
+```tl
+depthWrite: boolean
+```
+
+## blendFunc
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The blend function used to draw the shape.
+
+**Signature:**
+```tl
+blendFunc: BlendFunc
+```
+
+## drawDot
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a dot at a specified position with a specified radius and color.
+
+**Signature:**
+```tl
+drawDot: function(
+		self: DrawNode,
+		pos: Vec2,
+		radius: number,
+		color?: Color --[[0xffffffff]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| pos | Vec2 | The position of the dot. |
+| radius | number | The radius of the dot. |
+| color | Color | [optional] The color of the dot (default is white). |
+
+## drawSegment
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a line segment between two points with a specified radius and color.
+
+**Signature:**
+```tl
+drawSegment: function(
+		self: DrawNode,
+		from: Vec2,
+		to: Vec2,
+		radius: number,
+		color?: Color --[[0xffffffff]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| from | Vec2 | The starting point of the line. |
+| to | Vec2 | The ending point of the line. |
+| radius | number | The radius of the line. |
+| color | Color | [optional] The color of the line (default is white). |
+
+## drawPolygon
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a polygon defined by a list of vertices with a specified fill color and border.
+
+**Signature:**
+```tl
+drawPolygon: function(
+		self: DrawNode,
+		verts: {Vec2},
+		fillColor?: Color --[[0xffffffff]],
+		borderWidth?: number --[[0]],
+		borderColor?: Color --[[0xffffffff]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| verts | {Vec2} | The vertices of the polygon. |
+| fillColor | Color | [optional] The fill color of the polygon (default is white). |
+| borderWidth | number | [optional] The width of the border (default is 0). |
+| borderColor | Color | [optional] The color of the border (default is white). |
+
+## drawVertices
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a set of vertices as triangles, each vertex with its own color.
+
+**Signature:**
+```tl
+drawVertices: function(self: DrawNode, verts: {{Vec2, Color}})
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| verts | {{Vec2, Color}} | The list of vertices and their colors. |
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears all previously drawn shapes from the node.
+
+**Signature:**
+```tl
+clear: function(self: DrawNode)
+```

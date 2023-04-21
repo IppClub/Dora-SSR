@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# Buffer的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建缓冲区对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的缓冲区实例。
+
+**签名：**
+```tl
+metamethod __call: function(self: BufferClass, size: integer): Buffer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | integer | 要创建的缓冲区的大小。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Buffer | "Buffer"类型的新实例。 |

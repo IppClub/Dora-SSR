@@ -1,0 +1,349 @@
+import "@site/src/languages/highlight";
+
+# Node Event
+
+**Description:**
+
+&emsp;&emsp;The available event slots for a Node.
+This is just a demonstration record showing the signal slot names and callbacks.
+
+**Usage:**
+```tl
+-- you can register for these events using codes like:
+node:slot("ActionEnd", function(action: Action, target: Node)
+	print("Action end", action, target)
+end)
+```
+
+## ActionEnd
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The ActionEnd slot is triggered when an action is finished.
+Triggers after `node:runAction()` and `node:perform()`.
+
+**Signature:**
+```tl
+["ActionEnd"]: function(action: Action, target: Node)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| action | Action | The finished action. |
+| target | Node | The node that finished the action. |
+
+## TapFilter
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The TapFilter slot is triggered before the TapBegan slot and can be used to filter out certain taps.
+Triggers after setting `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+["TapFilter"]: function(touch: Touch)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| touch | Touch | The touch that triggered the tap. |
+
+## TapBegan
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The TapBegan slot is triggered when a tap is detected.
+Triggers after setting `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+["TapBegan"]: function(touch: Touch)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| touch | Touch | The touch that triggered the tap. |
+
+## TapEnded
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The TapEnded slot is triggered when a tap ends.
+Triggers after setting `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+["TapEnded"]: function(touch: Touch)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| touch | Touch | The touch that triggered the tap. |
+
+## Tapped
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The Tapped slot is triggered when a tap is detected and has ended.
+Triggers after setting `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+["Tapped"]: function(touch: Touch)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| touch | Touch | The touch that triggered the tap. |
+
+## TapMoved
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The TapMoved slot is triggered when a tap moves.
+Triggers after setting `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+["TapMoved"]: function(touch: Touch)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| touch | Touch | The touch that triggered the tap. |
+
+## MouseWheel
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The MouseWheel slot is triggered when the mouse wheel is scrolled.
+Triggers after setting `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+["MouseWheel"]: function(delta: Vec2)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| delta | Vec2 | The amount of scrolling that occurred. |
+
+## Gesture
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The Gesture slot is triggered when a gesture is recognized.
+Triggers after setting `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+["Gesture"]: function(center: Vec2, numFingers: integer, deltaDist: number, deltaAngle: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| center | Vec2 | The center of the gesture. |
+| numFingers | integer | The number of fingers involved in the gesture. |
+| deltaDist | number | The distance the gesture has moved. |
+| deltaAngle | number | The angle of the gesture. |
+
+## Enter
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The Enter slot is triggered when a node is added to the scene graph.
+Triggers when doing `node:addChild()`.
+
+**Signature:**
+```tl
+["Enter"]: function()
+```
+
+## Exit
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The Exit slot is triggered when a node is removed from the scene graph.
+Triggers when doing `node:removeChild()`.
+
+**Signature:**
+```tl
+["Exit"]: function()
+```
+
+## Cleanup
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The Cleanup slot is triggered when a node is cleaned up.
+Triggers only when doing `parent:removeChild(node, true)`.
+
+**Signature:**
+```tl
+["Cleanup"]: function()
+```
+
+## KeyDown
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The KeyDown slot is triggered when a key is pressed down.
+Triggers after setting `node.keyboardEnabled = true`.
+
+**Signature:**
+```tl
+["KeyDown"]: function(keyName: Keyboard.KeyName)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| keyName | string | The name of the key that was pressed. |
+
+## KeyUp
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The KeyUp slot is triggered when a key is released.
+Triggers after setting `node.keyboardEnabled = true`.
+
+**Signature:**
+```tl
+["KeyUp"]: function(keyName: Keyboard.KeyName)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| keyName | string | The name of the key that was released. |
+
+## KeyPressed
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The KeyPressed slot is triggered when a key is pressed.
+Triggers after setting `node.keyboardEnabled = true`.
+
+**Signature:**
+```tl
+["KeyPressed"]: function(keyName: Keyboard.KeyName)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| keyName | string | The name of the key that was pressed. |
+
+## AttachIME
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The AttachIME slot is triggered when the input method editor (IME) is attached (calling `node:attachIME()`).
+
+**Signature:**
+```tl
+["AttachIME"]: function()
+```
+
+## DetachIME
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The DetachIME slot is triggered when the input method editor (IME) is detached (calling `node:detachIME()` or manually closing IME).
+
+**Signature:**
+```tl
+["DetachIME"]: function()
+```
+
+## TextInput
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The TextInput slot is triggered when text input is received.
+Triggers after calling `node:attachIME()`.
+
+**Signature:**
+```tl
+["TextInput"]: function(text: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| text | string | The text that was input. |
+
+## TextEditing
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The TextEditing slot is triggered when text is being edited.
+Triggers after calling `node:attachIME()`.
+
+**Signature:**
+```tl
+["TextEditing"]: function(text: string, startPos: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| text | string | The text that is being edited. |
+| startPos | integer | The starting position of the text being edited. |

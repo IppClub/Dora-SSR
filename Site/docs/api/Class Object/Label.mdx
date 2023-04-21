@@ -1,0 +1,46 @@
+import "@site/src/languages/highlight";
+
+# Label Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating Label object.
+
+## AutomaticWidth
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The value to use for automatic width calculation
+
+**Signature:**
+```tl
+const AutomaticWidth: number
+```
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Label object with the specified font name and font size.
+
+**Signature:**
+```tl
+metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer): Label
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| fontName | string | The name of the font to use for the label.Can be font file path with or without file extension. |
+| fontSize | integer | The size of the font to use for the label. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Label | The new Label object. |

@@ -1,0 +1,482 @@
+import "@site/src/languages/highlight";
+
+# DB
+
+**Description:**
+
+&emsp;&emsp;A record that represents a database.
+
+## Column
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Type definition for a database column.
+The boolean type is only used for representing the database NULL value with the boolean false value.
+
+**Signature:**
+```tl
+type Column = integer | number | string | boolean
+```
+
+## Row
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Type definition for a database row.
+
+**Signature:**
+```tl
+type Row = {Column}
+```
+
+## SQL
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Type definition for an SQL query.
+Can be SQL string or a pair of SQL string and an array of parameters.
+
+**Signature:**
+```tl
+type SQL = string | {string, {Row}}
+```
+
+## exist
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether a table exists in the database.
+
+**Signature:**
+```tl
+exist: function(self: DB, tableName: string, schema?: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tableName | string | The name of the table to check. |
+| schema | string | [optional] The name of the schema to check in. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the table exists or not. |
+
+## transaction
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Executes a list of SQL statements as a single transaction.
+
+**Signature:**
+```tl
+transaction: function(self: DB, sqls: {SQL}): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sqls | {SQL} | A list of SQL statements to execute. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the transaction was successful or not. |
+
+## transactionAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Executes a list of SQL statements as a single transaction asynchronously.
+
+**Signature:**
+```tl
+transactionAsync: function(self: DB, sqls: {SQL}): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sqls | {SQL} | A list of SQL statements to execute. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the transaction was successful or not. |
+
+## query
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Executes an SQL query and returns the results as a list of rows.
+
+**Signature:**
+```tl
+query: function(
+		self: DB,
+		sql: string,
+		args: Row,
+		withColumn?: boolean --[[false]]
+	): {Row}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sql | string | The SQL statement to execute |
+| args | Row | [optional] A list of values to substitute into the SQL statement. |
+| withColumn | boolean | [optional] Whether to include column names in the result (default false). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| {Row} | A list of rows returned by the query. |
+
+## query
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Executes an SQL query and returns the results as a list of rows.
+
+**Signature:**
+```tl
+query: function(
+		self: DB,
+		sql: string,
+		withColumn?: boolean --[[false]]
+	): {Row}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sql | string | The SQL statement to execute |
+| withColumn | boolean | [optional] Whether to include column names in the result (default false). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| {Row} | A list of rows returned by the query. |
+
+## insert
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Inserts a row of data into a table within a transaction.
+
+**Signature:**
+```tl
+insert: function(self: DB, tableName: string, values: {Row}): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tableName | string | The name of the table to insert into. |
+| values | Row | The values to insert into the table. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the insertion was successful or not. |
+
+## exec
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Executes an SQL statement and returns the number of rows affected.
+
+**Signature:**
+```tl
+exec: function(self: DB, sql: string): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sql | string | The SQL statement to execute. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The number of rows affected by the statement. |
+
+## exec
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Executes an SQL statement and returns the number of rows affected.
+
+**Signature:**
+```tl
+exec: function(self: DB, sql: string, values: Row): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sql | string | The SQL statement to execute. |
+| values | Row | A list of values to substitute into the SQL statement. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The number of rows affected by the statement. |
+
+## exec
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Executes an SQL statement with list of values and returns the number of rows affected within a transaction.
+
+**Signature:**
+```tl
+exec: function(self: DB, sql: string, values: {Row}): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sql | string | The SQL statement to execute. |
+| values | {Row} | A list of lists of values to substitute into the SQL statement. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | the number of rows affected by the statement. |
+
+## insertAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Inserts a row of data into a table within a transaction asynchronously.
+
+**Signature:**
+```tl
+insertAsync: function(self: DB, tableName: string, values: {Row}): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tableName | string | The name of the table to insert into. |
+| values | {Row} | The values to insert into the table. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the insert was successful or not. |
+
+## insertAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Inserts data from an Excel file into a table within a transaction asynchronously.
+
+**Signature:**
+```tl
+insertAsync: function(self: DB, tableSheets: {string}, excelFile: string, startRow: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tableSheets | {string} | the names of the tables to insert into. |
+| excelFile | string | The path to the Excel file containing the data. |
+| startRow | integer | The row number to start inserting data from. The row number start with 1. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the insert was successful or not. |
+
+## insertAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Inserts data from an Excel file into a table within a transaction asynchronously.
+
+**Signature:**
+```tl
+insertAsync: function(self: DB, tableSheets: {{string, string}}, excelFile: string, startRow: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tableSheets | {{string, string}} | A list of table names and corresponding sheet names to insert into. |
+| excelFile | string | The path to the Excel file containing the data. |
+| startRow | integer | The row number to start inserting data from. The row number start with 1. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the insert was successful or not. |
+
+## queryAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Executes an SQL query asynchronously and returns the results as a list of rows.
+
+**Signature:**
+```tl
+queryAsync: function(
+		self: DB,
+		sql: string,
+		args: Row,
+		withColumn?: boolean --[[false]]
+	): {Row}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sql | string | The SQL statement to execute. |
+| args | Row | [optional] A list of values to substitute into the SQL statement. |
+| withColumn | boolean | [optional] Whether to include column names in the result (default false). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| {Row} | A list of rows returned by the query. |
+
+## queryAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Executes an SQL query asynchronously and returns the results as a list of rows.
+
+**Signature:**
+```tl
+queryAsync: function(
+		self: DB,
+		sql: string,
+		withColumn?: boolean --[[false]]
+	): {Row}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sql | string | The SQL statement to execute. |
+| withColumn | boolean | [optional] Whether to include column names in the result (default false). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| {Row} | A list of rows returned by the query. |
+
+## execAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
+
+**Signature:**
+```tl
+execAsync: function(self: DB, sql: string, values: {Row}): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sql | string | The SQL statement to execute. |
+| values | {Row} | A list of values to substitute into the SQL statement. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The number of rows affected by the statement. |
+
+## execAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Executes an SQL statement asynchronously and returns the number of rows affected.
+
+**Signature:**
+```tl
+execAsync: function(self: DB, sql: string): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sql | string | The SQL statement to execute. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | the number of rows affected by the statement. |

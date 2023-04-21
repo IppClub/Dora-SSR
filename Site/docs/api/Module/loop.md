@@ -1,0 +1,24 @@
+import "@site/src/languages/highlight";
+
+# loop
+
+**Description:**
+
+&emsp;&emsp;Create a coroutine job that runs repeatedly until a condition is met.
+
+**Signature:**
+```tl
+loop: function(routine: function(): boolean): Routine.Job
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| routine | function | A routine function to execute repeatedly until it returns non-nil or non-false.Yield or return true inside the routine function to stop the job execution. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Routine.Job | A coroutine that runs the given routine function repeatedly. |

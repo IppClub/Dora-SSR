@@ -1,0 +1,369 @@
+import "@site/src/languages/highlight";
+
+# Unit
+
+**Description:**
+
+&emsp;&emsp;A class represents a character or other interactive item in a game scene.
+
+**Inherits from:** Body.
+
+## playable
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A property that references a "Playable" object for managing the animation state and playback of the "Unit".
+
+**Signature:**
+```tl
+playable: Playable
+```
+
+## detectDistance
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A property that specifies the maximum distance at which the "Unit" can detect other "Unit" or objects.
+
+**Signature:**
+```tl
+detectDistance: number
+```
+
+## attackRange
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A property that specifies the size of the attack range for the "Unit".
+
+**Signature:**
+```tl
+attackRange: Size
+```
+
+## faceRight
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A boolean property that specifies whether the "Unit" is facing right or not.
+
+**Signature:**
+```tl
+faceRight: boolean
+```
+
+## receivingDecisionTrace
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A boolean property that specifies whether the "Unit" is receiving a trace of the decision tree for debugging purposes.
+
+**Signature:**
+```tl
+receivingDecisionTrace: boolean
+```
+
+## decisionTree
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A string property that specifies the decision tree to use for the "Unit's" AI behavior.
+The decision tree object will be searched in The singleton instance Data.store.
+
+**Signature:**
+```tl
+decisionTree: string
+```
+
+## onSurface
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the "Unit" is currently on a surface or not.
+
+**Signature:**
+```tl
+const onSurface: boolean
+```
+
+## groundSensor
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A "Sensor" object for detecting ground surfaces.
+
+**Signature:**
+```tl
+const groundSensor: Sensor
+```
+
+## detectSensor
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A "Sensor" object for detecting other "Unit" objects or physics bodies in the game world.
+
+**Signature:**
+```tl
+const detectSensor: Sensor
+```
+
+## attackSensor
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A "Sensor" object for detecting other "Unit" objects within the attack senser area.
+
+**Signature:**
+```tl
+const attackSensor: Sensor
+```
+
+## unitDef
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A "Dictionary" object for defining the properties and behavior of the "Unit".
+
+**Signature:**
+```tl
+const unitDef: Dictionary
+```
+
+## currentAction
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A property that specifies the current action being performed by the "Unit".
+
+**Signature:**
+```tl
+const currentAction: UnitAction
+```
+
+## width
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The width of the "Unit".
+
+**Signature:**
+```tl
+const width: number
+```
+
+## height
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The height of the "Unit".
+
+**Signature:**
+```tl
+const height: number
+```
+
+## entity
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;An "Entity" object for representing the "Unit" in the ECS system.
+
+**Signature:**
+```tl
+const entity: Entity
+```
+
+## attachAction
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a new "UnitAction" to the "Unit" with the specified name, and returns the new "UnitAction".
+
+**Signature:**
+```tl
+attachAction: function(self: Unit, name: string): UnitAction
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the new "UnitAction". |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| UnitAction | The newly created "UnitAction". |
+
+## removeAction
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes the "UnitAction" with the specified name from the "Unit".
+
+**Signature:**
+```tl
+removeAction: function(self: Unit, name: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the "UnitAction" to remove. |
+
+## removeAllActions
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes all "UnitAction" objects from the "Unit".
+
+**Signature:**
+```tl
+removeAllActions: function(self: Unit)
+```
+
+## getAction
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the "UnitAction" with the specified name, or nil if the "UnitAction" does not exist.
+
+**Signature:**
+```tl
+getAction: function(self: Unit, name: string): UnitAction
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the "UnitAction" to retrieve. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| UnitAction or nil | The "UnitAction" with the specified name, or nil. |
+
+## eachAction
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Calls the specified function for each "UnitAction" attached to the "Unit".
+
+**Signature:**
+```tl
+eachAction: function(self: Unit, func: function(UnitAction))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | A function to call for each "UnitAction". |
+
+## start
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Starts the "UnitAction" with the specified name, and returns true if the "UnitAction" was started successfully.
+
+**Signature:**
+```tl
+start: function(self: Unit, name: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the "UnitAction" to start. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the "UnitAction" was started successfully, false otherwise. |
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops the currently running "UnitAction".
+
+**Signature:**
+```tl
+stop: function(self: Unit)
+```
+
+## isDoing
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns true if the "Unit" is currently performing the specified "UnitAction", false otherwise.
+
+**Signature:**
+```tl
+isDoing: function(self: Unit, name: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the "UnitAction" to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the "Unit" is currently performing the specified "UnitAction", false otherwise. |

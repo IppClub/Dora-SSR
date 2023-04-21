@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# Action的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建可在节点上运行的动作的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;根据给定的定义创建新的动作。
+
+**签名：**
+```tl
+metamethod __call: function(self: ActionClass, actionDef: ActionDef): Action
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| actionDef | ActionDef | 动作的定义。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Action | 新的动作对象。 |

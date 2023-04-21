@@ -1,0 +1,59 @@
+import "@site/src/languages/highlight";
+
+# Observer的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建观察器对象的类。
+
+## Observer.Action
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;观察器可以观察的实体变更类型。
+
+**签名：**
+```tl
+enum Action
+
+	-- 添加新实体。
+	"Add"
+
+	-- 修改现有实体上的组件。
+	"Change"
+
+	-- 添加或修改实体。
+	"AddOrChange"
+
+	-- 删除现有实体。
+	"Remove"
+end
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于创建监控具有特定组件的实体变化的新观察器。
+
+**签名：**
+```tl
+metamethod __call: function(self: ObserverClass, action: Action, components: {string}): Observer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| action | Action | 要监控的实体变化类型。 |
+| components | {string} | 监控的实体包含的组件的清单。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Observer | 新的观察器对象。 |

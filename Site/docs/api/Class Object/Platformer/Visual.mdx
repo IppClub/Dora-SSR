@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# Visual Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating "Visual" objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new "Visual" object with the specified name.
+
+**Signature:**
+```tl
+metamethod __call: function(self: VisualClass, name: string): Visual
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the new "Visual" object.Could be a particle file, a frame animation file or a image file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Visual | The new "Visual" object. |

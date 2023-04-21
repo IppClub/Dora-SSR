@@ -1,0 +1,78 @@
+import "@site/src/languages/highlight";
+
+# Blackboard
+
+**描述：**
+
+&emsp;&emsp;黑板对象，可用于为行为树节点存储状态数据。
+
+## deltaTime
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;上一帧更新以来的时间，以秒为单位。
+
+**签名：**
+```tl
+const deltaTime: number
+```
+
+## owner
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前AI所属的单位。
+
+**签名：**
+```tl
+const owner: Unit
+```
+
+## __index
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于索引黑板对象的元方法。
+
+**签名：**
+```tl
+metamethod __index: function(self: Blackboard, key: string): Item
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 要索引的键。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Item | 与键相关联的值。 |
+
+## __newindex
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于为黑板设置属性的元方法。
+
+**签名：**
+```tl
+metamethod __newindex: function(self: Blackboard, key: string, item: Item)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 要设置的键。 |
+| item | Item | 要设置给键的值。 |
