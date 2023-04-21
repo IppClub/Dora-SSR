@@ -51,7 +51,7 @@ local record Array
 	fastRemoveAt: function(self: Array, index: integer): boolean
 
 	-- Calls a given function for each item in the array.
-	-- @param func The function to call for each item.
+	-- @param func (function) The function to call for each item.
 	-- Should return false to continue iteration, true to stop.
 	-- @return (boolean) False if the iteration completed, true if it was interrupted by the function.
 	each: function(self: Array, func: function(Object): boolean): boolean

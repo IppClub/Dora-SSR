@@ -119,10 +119,10 @@ local record BodyDef
 		restitution?: number --[[0.0]])
 
 	-- Attaches a disk fixture to the body.
-	-- @param radius number The radius of the disk.
-	-- @param density number [optional] The density of the disk (default is 0.0).
-	-- @param friction number [optional] The friction of the disk (default is 0.4).
-	-- @param restitution number [optional] The restitution of the disk (default is 0.0).
+	-- @param radius (number) The radius of the disk.
+	-- @param density (number) [optional] The density of the disk (default is 0.0).
+	-- @param friction (number) [optional] The friction of the disk (default is 0.4).
+	-- @param restitution (number) [optional] The restitution of the disk (default is 0.0).
 	attachDisk: function(self: BodyDef,
 		radius: number,
 		density?: number --[[0.0]],
