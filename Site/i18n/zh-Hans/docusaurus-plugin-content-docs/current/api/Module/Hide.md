@@ -1,0 +1,18 @@
+import "@site/src/languages/highlight";
+
+# Hide
+
+**描述：**
+
+&emsp;&emsp;创建一个动作定义对象，用于立即隐藏场景节点。
+
+**签名：**
+```tl
+Hide: function(): ActionDef
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ActionDef | 用于立即隐藏场景节点的动作定义对象。 |

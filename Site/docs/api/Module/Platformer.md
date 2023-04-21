@@ -1,0 +1,25 @@
+import "@site/src/languages/highlight";
+
+# Platformer
+
+**Description:**
+
+&emsp;&emsp;A module for 2D platformer game features.
+
+**Signature:**
+```tl
+local Platformer = {
+	Behavior = Behavior,
+	Decision = Decision,
+	Data = Data,
+	PlatformCamera = PlatformCamera,
+	PlatformWorld = PlatformWorld,
+	TargetAllow = TargetAllow,
+	UnitAction = UnitAction,
+	Unit = Unit,
+	BulletDef = BulletDef,
+	Bullet = Bullet,
+	Face = Face,
+	Visual = Visual
+}
+```

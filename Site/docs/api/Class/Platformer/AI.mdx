@@ -1,0 +1,158 @@
+import "@site/src/languages/highlight";
+
+# AI
+
+**Description:**
+
+&emsp;&emsp;The singleton record to retrieve information when executing the decision tree.
+
+## getUnitsByRelation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets an array of units in detection range that have the specified relation to current AI agent.
+
+**Signature:**
+```tl
+getUnitsByRelation: function(self: AI, relation: Relation): Array
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| relation | Relation | The relation to filter the units by. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Array | An array of units with the specified relation. |
+
+## getDetectedUnits
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets an array of units that the AI has detected.
+
+**Signature:**
+```tl
+getDetectedUnits: function(self: AI): Array
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Array | An array of detected units. |
+
+## getDetectedBodies
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets an array of bodies that the AI has detected.
+
+**Signature:**
+```tl
+getDetectedBodies: function(self: AI): Array
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Array | An array of detected bodies. |
+
+## getNearestUnit
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the nearest unit that has the specified relation to the AI.
+
+**Signature:**
+```tl
+getNearestUnit: function(self: AI, relation: Relation): Unit
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| relation | Relation | The relation to filter the units by. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Unit | The nearest unit with the specified relation. |
+
+## getNearestUnitDistance
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the distance to the nearest unit that has the specified relation to the AI agent.
+
+**Signature:**
+```tl
+getNearestUnitDistance: function(self: AI, relation: Relation): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| relation | Relation | The relation to filter the units by. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The distance to the nearest unit with the specified relation. |
+
+## getUnitsInAttackRange
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets an array of units that are within attack range.
+
+**Signature:**
+```tl
+getUnitsInAttackRange: function(self: AI): Array
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Array | An array of units in attack range. |
+
+## getBodiesInAttackRange
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets an array of bodies that are within attack range.
+
+**Signature:**
+```tl
+getBodiesInAttackRange: function(self: AI): Array
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Array | An array of bodies in attack range. |

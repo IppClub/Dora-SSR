@@ -1,0 +1,76 @@
+import "@site/src/languages/highlight";
+
+# Scheduler
+
+**描述：**
+
+&emsp;&emsp;用于管理调度任务执行的调度器类。
+
+**继承自：** Object。
+
+## timeScale
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;调度器的时间缩放系数。
+会同步改变被调度的函数接收到的`deltaTime`时间参数值。
+
+**签名：**
+```tl
+timeScale: number
+```
+
+## fixedFPS
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;固定更新模式下的目标帧速率（以每秒帧数为单位）。
+固定更新将确保更新函数以恒定的帧速率被调度，使用恒定的更新时间间隔值。
+用于防止物理引擎产生奇怪行为或是用于通过网络通信同步一些状态。
+
+**签名：**
+```tl
+fixedFPS: integer
+```
+
+## schedule
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;开始调度一个函数在每一个游戏帧里被执行。
+
+**签名：**
+```tl
+schedule: function(self: Scheduler, handler: function(number): boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| handler | function | 要调度的函数。被调度的函数会接收到自上一帧以来的时间间隔。如果函数返回 true，则会被停止调度。 |
+
+## schedule
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;开始调度执行一个协程任务。
+
+**签名：**
+```tl
+schedule: function(self: Scheduler, job: Routine.Job)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| job | Routine.Job | 要被调度的协程任务。 |

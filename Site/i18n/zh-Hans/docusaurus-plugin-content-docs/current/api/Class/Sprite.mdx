@@ -1,0 +1,162 @@
+import "@site/src/languages/highlight";
+
+# Sprite
+
+**描述：**
+
+&emsp;&emsp;用于渲染图片纹理的游戏场景树节点类，也叫做游戏图元（精灵）。
+
+**继承自：** Node。
+
+## Sprite.TextureWrap
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;纹理绘制环绕模式的枚举。
+
+**签名：**
+```tl
+enum TextureWrap
+	"None"
+	"Mirror"
+	"Clamp"
+	"Border"
+end
+```
+
+## Sprite.TextureFilter
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;纹理过滤模式的枚举。
+
+**签名：**
+```tl
+enum TextureFilter
+	"None"
+	"Point"
+	"Anisotropic"
+end
+```
+
+## depthWrite
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否在渲染时写入深度缓冲区（默认为false）。
+
+**签名：**
+```tl
+depthWrite: boolean
+```
+
+## alphaRef
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于alpha测试的alpha参考值。alpha值小于或等于该值的像素将被丢弃。
+仅生效于`sprite.effect = SpriteEffect("builtin:vs_sprite”，“builtin:fs_spritealphatest"）`。
+
+**签名：**
+```tl
+alphaRef: number
+```
+
+## textureRect
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;渲染纹理使用的纹理矩形区域。
+
+**签名：**
+```tl
+textureRect: Rect
+```
+
+## blendFunc
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于渲染纹理的混合函数。
+
+**签名：**
+```tl
+blendFunc: BlendFunc
+```
+
+## effect
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于渲染纹理的着色器特效对象。
+
+**签名：**
+```tl
+effect: SpriteEffect
+```
+
+## texture
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;要渲染的纹理对象.
+
+**签名：**
+```tl
+texture: Texture2D
+```
+
+## uwrap
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;渲染使用的 U（水平）轴的纹理环绕模式。
+
+**签名：**
+```tl
+uwrap: TextureWrap
+```
+
+## vwrap
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;渲染使用的 V（垂直）轴的纹理环绕模式。
+
+**签名：**
+```tl
+vwrap: TextureWrap
+```
+
+## filter
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;渲染使用的纹理过滤模式。
+
+**签名：**
+```tl
+filter: TextureFilter
+```

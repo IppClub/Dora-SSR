@@ -1,0 +1,44 @@
+import "@site/src/languages/highlight";
+
+# UnitAction的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建并存储游戏单位动作定义的单例类。
+
+## add
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用指定的名称和参数添加新的游戏单位动作定义。
+
+**签名：**
+```tl
+add: function(
+		self: UnitActionClass,
+		name: string,
+		param: UnitActionParam
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 新单位动作的名称。 |
+| param | UnitActionParam | 新单位动作定义的参数。 |
+
+## clear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;删除所有的游戏单位动作定义。
+
+**签名：**
+```tl
+clear: function(self: UnitActionClass)
+```

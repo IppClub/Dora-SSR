@@ -1,0 +1,185 @@
+import "@site/src/languages/highlight";
+
+# Label
+
+**描述：**
+
+&emsp;&emsp;使用TrueType字体渲染文本的场景节点类。
+
+**继承自：** Node。
+
+## Label.TextAlign
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;用于文本对齐设置的枚举。
+
+**签名：**
+```tl
+enum TextAlign
+	"Left"
+	"Center"
+	"Right"
+end
+```
+
+## alphaRef
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;Alpha阈值值。Alpha值低于此值的像素将不会被绘制。
+仅适用于 `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`。
+
+**签名：**
+```tl
+alphaRef: number
+```
+
+## textWidth
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于文本换行的文本宽度。
+设置为 `Label.AutomaticWidth` 以禁用换行。
+默认值为 `Label.AutomaticWidth`。
+
+**签名：**
+```tl
+textWidth: number
+```
+
+## lineGap
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;文本行之间的像素间隔。
+
+**签名：**
+```tl
+lineGap: number
+```
+
+## text
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;要渲染的文本。
+
+**签名：**
+```tl
+text: string
+```
+
+## blendFunc
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于渲染文本的混合函数。
+
+**签名：**
+```tl
+blendFunc: BlendFunc
+```
+
+## depthWrite
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否启用深度写入。默认为false。
+
+**签名：**
+```tl
+depthWrite: boolean
+```
+
+## batched
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;标签是否使用批量渲染模式。默认为true。
+使用批量渲染可以获得更好的渲染性能，但是`label:getCharacter()`函数将无法使用。
+
+**签名：**
+```tl
+batched: boolean
+```
+
+## effect
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于渲染文本的图元着色器特效。
+
+**签名：**
+```tl
+effect: SpriteEffect
+```
+
+## alignment
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;文本对齐设置。
+
+**签名：**
+```tl
+alignment: TextAlign
+```
+
+## characterCount
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;文本中字符的数量。
+
+**签名：**
+```tl
+const characterCount: integer
+```
+
+## getCharacter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回指定索引处字符的精灵。
+
+**签名：**
+```tl
+getCharacter: function(self: Label, index: integer): Sprite | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要检索的字符图元的索引。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Sprite|nil | 字符的图元，如果超出索引范围则返回 `nil`。 |

@@ -1,0 +1,209 @@
+import "@site/src/languages/highlight";
+
+# PlatformWorld
+
+**Description:**
+
+&emsp;&emsp;A class representing a 2D platformer game world with physics simulations.
+
+**Inherits from:** PhysicsWorld.
+
+## camera
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The camera used to control the view of the game world.
+
+**Signature:**
+```tl
+const camera: PlatformCamera
+```
+
+## moveChild
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Moves a child node to a new order for a different layer.
+
+**Signature:**
+```tl
+moveChild: function(self: PlatformWorld, child: Node, newOrder: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| child | Node | The child node to be moved. |
+| newOrder | integer | The new order of the child node. |
+
+## getLayer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the layer node at a given order.
+
+**Signature:**
+```tl
+getLayer: function(self: PlatformWorld, order: integer): Node
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| order | integer | The order of the layer node to get. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Node | The layer node at the given order. |
+
+## setLayerRatio
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the parallax moving ratio for a given layer to simulate 3D projection effect.
+
+**Signature:**
+```tl
+setLayerRatio: function(self: PlatformWorld, order: integer, ratio: Vec2)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| order | integer | The order of the layer to set the ratio for. |
+| ratio | Vec2 | The new parallax ratio for the layer. |
+
+## getLayerRatio
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the parallax moving ratio for a given layer.
+
+**Signature:**
+```tl
+getLayerRatio: function(self: PlatformWorld, order: integer): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| order | integer | The order of the layer to get the ratio for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The parallax ratio for the layer. |
+
+## setLayerOffset
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the position offset for a given layer.
+
+**Signature:**
+```tl
+setLayerOffset: function(self: PlatformWorld, order: integer, offset: Vec2)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| order | integer | The order of the layer to set the offset for. |
+| offset | Vec2 | The new position offset for the layer. |
+
+## getLayerOffset
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the position offset for a given layer.
+
+**Signature:**
+```tl
+getLayerOffset: function(self: PlatformWorld, order: integer): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| order | integer | The order of the layer to get the offset for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The position offset for the layer. |
+
+## swapLayer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Swaps the positions of two layers.
+
+**Signature:**
+```tl
+swapLayer: function(self: PlatformWorld, orderA: integer, orderB: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| orderA | integer | The order of the first layer to swap. |
+| orderB | integer | The order of the second layer to swap. |
+
+## removeLayer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes a layer from the game world.
+
+**Signature:**
+```tl
+removeLayer: function(self: PlatformWorld, order: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| order | integer | The order of the layer to remove. |
+
+## removeAllLayers
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes all layers from the game world.
+
+**Signature:**
+```tl
+removeAllLayers: function(self: PlatformWorld)
+```

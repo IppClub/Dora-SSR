@@ -1,0 +1,162 @@
+import "@site/src/languages/highlight";
+
+# Sprite
+
+**Description:**
+
+&emsp;&emsp;The Sprite class to render texture in game scene tree hierarchy.
+
+**Inherits from:** Node.
+
+## Sprite.TextureWrap
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;An enumeration for texture wrapping modes.
+
+**Signature:**
+```tl
+enum TextureWrap
+	"None"
+	"Mirror"
+	"Clamp"
+	"Border"
+end
+```
+
+## Sprite.TextureFilter
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;An enumeration for texture filtering modes.
+
+**Signature:**
+```tl
+enum TextureFilter
+	"None"
+	"Point"
+	"Anisotropic"
+end
+```
+
+## depthWrite
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the depth buffer should be written to when rendering the sprite (default is false).
+
+**Signature:**
+```tl
+depthWrite: boolean
+```
+
+## alphaRef
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
+Only works with `sprite.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+
+**Signature:**
+```tl
+alphaRef: number
+```
+
+## textureRect
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The texture rectangle for the sprite.
+
+**Signature:**
+```tl
+textureRect: Rect
+```
+
+## blendFunc
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The blend function for the sprite.
+
+**Signature:**
+```tl
+blendFunc: BlendFunc
+```
+
+## effect
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The sprite shader effect.
+
+**Signature:**
+```tl
+effect: SpriteEffect
+```
+
+## texture
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The texture for the sprite.
+
+**Signature:**
+```tl
+texture: Texture2D
+```
+
+## uwrap
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The texture wrapping mode for the U (horizontal) axis.
+
+**Signature:**
+```tl
+uwrap: TextureWrap
+```
+
+## vwrap
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The texture wrapping mode for the V (vertical) axis.
+
+**Signature:**
+```tl
+vwrap: TextureWrap
+```
+
+## filter
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The texture filtering mode for the sprite.
+
+**Signature:**
+```tl
+filter: TextureFilter
+```

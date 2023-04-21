@@ -1,0 +1,74 @@
+import "@site/src/languages/highlight";
+
+# Pass
+
+**描述：**
+
+&emsp;&emsp;代表着色器渲染流程的类。
+
+**继承自：** Object。
+
+## grabPass
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否应该是一个采样流程。
+一个采样流程将会把游戏场景渲染到一个纹理缓存中。
+然后将该纹理帧缓存用作下一次渲染流程的输入。
+
+**签名：**
+```tl
+grabPass: boolean
+```
+
+## set
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用于设置着色器参数值的函数。
+
+**签名：**
+```tl
+set: function(self: Pass,
+		name: string,
+		var1: number,
+		var2?: number --[[0]],
+		var3?: number --[[0]],
+		var4?: number --[[0]])
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要设置的参数名称。 |
+| var1 | number | 要设置的第一个数值。 |
+| var2 | number | [可选] 要设置的第二个数值（默认为0）。 |
+| var3 | number | [可选] 要设置的第三个数值（默认为0）。 |
+| var4 | number | [可选] 要设置的第四个数值（默认为0）。 |
+
+## set
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;另一个设置着色器参数值的函数。
+等同于代码：
+pass:set("varName", color.r / 255.0, color.g / 255.0, color.b / 255.0, color.opacity)
+
+**签名：**
+```tl
+set: function(self: Pass, name: string, var: Color)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要设置的参数名称。 |
+| var | Color | 要设置的颜色对象。 |

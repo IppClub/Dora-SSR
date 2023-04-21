@@ -1,0 +1,65 @@
+import "@site/src/languages/highlight";
+
+# TargetAllow
+
+**描述：**
+
+&emsp;&emsp;用于定义游戏子弹的对象如何与其他游戏对象碰撞的类。
+
+## terrainAllowed
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;子弹对象是否可以与地形对象发生碰撞。
+
+**签名：**
+```tl
+terrainAllowed: boolean
+```
+
+## allow
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;允许或禁止子弹对象与游戏对象或单位碰撞。
+
+**签名：**
+```tl
+allow: function(self: TargetAllow, relation: Data.Relation, allow: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| relation | Data.Relation | 子弹对象与其他游戏对象或游戏单位之间的关系。 |
+| allow | boolean | 是否允许子弹对象进行碰撞。 |
+
+## isAllow
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取子弹对象是否允许与游戏对象或游戏单位碰撞。
+
+**签名：**
+```tl
+isAllow: function(self: TargetAllow, relation: Data.Relation): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| relation | Data.Relation | 子弹对象与其他游戏对象或游戏单位之间的关系。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 子弹对象是否允许发生碰撞。 |

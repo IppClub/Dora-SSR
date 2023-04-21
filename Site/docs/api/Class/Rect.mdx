@@ -1,0 +1,288 @@
+import "@site/src/languages/highlight";
+
+# Rect
+
+**Description:**
+
+&emsp;&emsp;A rectangle object with a left-bottom origin position and a size.
+
+**Inherits from:** ContainerItem.
+
+## origin
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The position of the origin of the rectangle.
+
+**Signature:**
+```tl
+origin: Vec2
+```
+
+## size
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The dimensions of the rectangle.
+
+**Signature:**
+```tl
+size: Size
+```
+
+## x
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The x-coordinate of the origin of the rectangle.
+
+**Signature:**
+```tl
+x: number
+```
+
+## y
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The y-coordinate of the origin of the rectangle.
+
+**Signature:**
+```tl
+y: number
+```
+
+## width
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The width of the rectangle.
+
+**Signature:**
+```tl
+width: number
+```
+
+## height
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The height of the rectangle.
+
+**Signature:**
+```tl
+height: number
+```
+
+## top
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The top edge in y-axis of the rectangle.
+
+**Signature:**
+```tl
+top: number
+```
+
+## bottom
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The bottom edge in y-axis of the rectangle.
+
+**Signature:**
+```tl
+bottom: number
+```
+
+## left
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The left edge in x-axis of the rectangle.
+
+**Signature:**
+```tl
+left: number
+```
+
+## right
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The right edge in x-axis of the rectangle.
+
+**Signature:**
+```tl
+right: number
+```
+
+## centerX
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The x-coordinate of the center of the rectangle.
+
+**Signature:**
+```tl
+centerX: number
+```
+
+## centerY
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The y-coordinate of the center of the rectangle.
+
+**Signature:**
+```tl
+centerY: number
+```
+
+## lowerBound
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The lower bound (left-bottom) of the rectangle.
+
+**Signature:**
+```tl
+lowerBound: Vec2
+```
+
+## upperBound
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The upper bound (right-top) of the rectangle.
+
+**Signature:**
+```tl
+upperBound: Vec2
+```
+
+## set
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Set the properties of the rectangle.
+
+**Signature:**
+```tl
+set: function(self: Rect, x: number, y: number, width: number, height: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The x-coordinate of the origin of the rectangle. |
+| y | number | The y-coordinate of the origin of the rectangle. |
+| width | number | The width of the rectangle. |
+| height | number | The height of the rectangle. |
+
+## containsPoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Check if a point is inside the rectangle.
+
+**Signature:**
+```tl
+containsPoint: function(self: Rect, point: Vec2): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| point | Vec2 | The point to check, represented by a Vec2 object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether or not the point is inside the rectangle. |
+
+## intersectsRect
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Check if the rectangle intersects with another rectangle.
+
+**Signature:**
+```tl
+intersectsRect: function(self: Rect, rect: Rect): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| rect | Rect | The other rectangle to check for intersection with, represented by a Rect object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether or not the rectangles intersect. |
+
+## __eq
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Check if two rectangles are equal.
+
+**Signature:**
+```tl
+metamethod __eq: function(self: Rect, other: Rect): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Rect | The other rectangle to compare to, represented by a Rect object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether or not the two rectangles are equal. |

@@ -1,0 +1,85 @@
+import "@site/src/languages/highlight";
+
+# Object的类对象
+
+**描述：**
+
+&emsp;&emsp;用于访问C++对象管理相关信息的静态类。
+
+## count
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;所有现存的C++对象的数量。
+
+**签名：**
+```tl
+const count: integer
+```
+
+## maxCount
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;曾经创建的C++对象的最大数量。
+
+**签名：**
+```tl
+const maxCount: integer
+```
+
+## luaRefCount
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;所有现存的Lua引用的C++对象的计数。
+
+**签名：**
+```tl
+const luaRefCount: integer
+```
+
+## maxLuaRefCount
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;曾经创建的Lua引用C++对象的最大数量。
+
+**签名：**
+```tl
+const maxLuaRefCount: integer
+```
+
+## callRefCount
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;Lua引用的C++函数对象的数量。
+
+**签名：**
+```tl
+const callRefCount: integer
+```
+
+## maxCallRefCount
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;曾经创建的C++函数调用引用的最大数量。
+
+**签名：**
+```tl
+const maxCallRefCount: integer
+```

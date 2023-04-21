@@ -1,0 +1,72 @@
+import "@site/src/languages/highlight";
+
+# Routine
+
+**Description:**
+
+&emsp;&emsp;A singleton record for managing coroutines.
+
+**Teal Type:** {Job}.
+
+## remove
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Remove a coroutine job from the set and close it if it is still running.
+
+**Signature:**
+```tl
+remove: function(self: Routine, job: Job): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| job | Job | The Job instance to remove. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the job was removed, false otherwise. |
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Remove all coroutine jobs and close them if they are still running.
+
+**Signature:**
+```tl
+clear: function(self: Routine)
+```
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Metamethod to add a new Job to the Routine.
+
+**Signature:**
+```tl
+metamethod __call: function(self: Routine, job: Job): Job
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| job | Job | The Job instance to add. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Job | The Job instance that was added. |

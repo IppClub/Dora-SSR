@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# SkewX
+
+**描述：**
+
+&emsp;&emsp;创建一个定义动作，使节点沿x轴做倾斜的变动。
+
+**签名：**
+```tl
+SkewX: function(
+		duration: number,
+		from: number,
+		to: number,
+		easing?: Ease.EaseFunc --[[Ease.Linear]]
+	): ActionDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| duration | number | 动作的持续时间（秒）。 |
+| from | number | 节点在x轴上开始倾斜角度（以度为单位）。 |
+| to | number | 节点在x轴上结束倾斜角度（以度为单位）。 |
+| easing | EaseFunc | [可选] 用于动作的缓动函数。如果未指定，则默认为Ease.Linear。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ActionDef | 定义动对象，可用于在节点上运行动作。 |

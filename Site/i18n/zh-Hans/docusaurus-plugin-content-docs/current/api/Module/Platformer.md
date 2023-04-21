@@ -1,0 +1,25 @@
+import "@site/src/languages/highlight";
+
+# Platformer
+
+**描述：**
+
+&emsp;&emsp;包含2D平台游戏的模块。
+
+**签名：**
+```tl
+local Platformer = {
+	Behavior = Behavior,
+	Decision = Decision,
+	Data = Data,
+	PlatformCamera = PlatformCamera,
+	PlatformWorld = PlatformWorld,
+	TargetAllow = TargetAllow,
+	UnitAction = UnitAction,
+	Unit = Unit,
+	BulletDef = BulletDef,
+	Bullet = Bullet,
+	Face = Face,
+	Visual = Visual
+}
+```

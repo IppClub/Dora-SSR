@@ -1,0 +1,24 @@
+import "@site/src/languages/highlight";
+
+# Sequence
+
+**描述：**
+
+&emsp;&emsp;创建一个动作定义，用于顺序执行一系列其它动作定义的动作。
+
+**签名：**
+```tl
+Sequence: function(...: ActionDef): ActionDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| ... | ActionDef | 多个要按顺序播放的动作定义对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ActionDef | 动作定义对象，可用于在节点上运行动作序列。 |

@@ -1,0 +1,115 @@
+import "@site/src/languages/highlight";
+
+# Size Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating Size objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Create a new Size object with the given width and height.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: SizeClass,
+		width?: number --[[0]],
+		height?: number --[[0]]
+	): Size
+```
+
+**Usage:**
+```tl
+local size = Size(10, 20)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| width | number | [optional] The width of the new size (default 0). |
+| height | number | [optional] The height of the new size (default 0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Size | The new Size object. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Create a new Size object from an existing Size object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: SizeClass, other: Size): Size
+```
+
+**Usage:**
+```tl
+local newSize = Size(existingSize)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Size | The existing Size object to create the new object from. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Size | The new Size object. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Create a new Size object from a Vec2 object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: SizeClass, vec: Vec2): Size
+```
+
+**Usage:**
+```tl
+local size = Size(Vec2(10, 20))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vec | Vec2 | The vector to create the new size from, represented by a Vec2 object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Size | The new Size object. |
+
+## zero
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Gets zero-size object.
+
+**Signature:**
+```tl
+const zero: Size
+```

@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# Action Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating an action that can be run on a Node.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Action from the given definition.
+
+**Signature:**
+```tl
+metamethod __call: function(self: ActionClass, actionDef: ActionDef): Action
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| actionDef | ActionDef | The definition of the Action. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Action | The new Action object. |

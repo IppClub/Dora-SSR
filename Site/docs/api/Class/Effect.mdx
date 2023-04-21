@@ -1,0 +1,67 @@
+import "@site/src/languages/highlight";
+
+# Effect
+
+**Description:**
+
+&emsp;&emsp;A class for managing multiple render pass objects.
+Effect objects allow you to combine multiple passes to create more complex shader effects.
+
+**Inherits from:** Object.
+
+## add
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that adds a Pass object to this Effect.
+
+**Signature:**
+```tl
+add: function(self: Effect, pass: Pass)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| pass | Pass | The Pass object to add. |
+
+## get
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that retrieves a Pass object from this Effect by index.
+
+**Signature:**
+```tl
+get: function(self: Effect, index: integer): Pass
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index of the Pass object to retrieve. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Pass | The Pass object at the given index. |
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that removes all Pass objects from this Effect.
+
+**Signature:**
+```tl
+clear: function(self: Effect)
+```

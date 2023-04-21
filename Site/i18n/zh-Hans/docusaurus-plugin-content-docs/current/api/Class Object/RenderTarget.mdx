@@ -1,0 +1,33 @@
+import "@site/src/languages/highlight";
+
+# RenderTarget的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建渲染目标对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用给定的宽度和高度创建一个新的渲染目标对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: RenderTargetClass, width: integer, height: integer): RenderTarget
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| width | integer | 渲染目标的宽度。 |
+| height | integer | 渲染目标的高度。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| RenderTarget | 创建的渲染目标。 |

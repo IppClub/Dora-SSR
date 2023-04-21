@@ -1,0 +1,176 @@
+import "@site/src/languages/highlight";
+
+# Entity
+
+**描述：**
+
+&emsp;&emsp;ECS游戏系统中的实体类。
+
+**继承自：** Object。
+
+## index
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;实体的索引。
+
+**签名：**
+```tl
+const index: integer
+```
+
+## oldValues
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于访问实体属性旧值的语法糖。
+旧值是指实体的组件在上次发生更改之前的值。
+不要在代码中保留对它的引用，因为它不是有效的Lua对象。
+
+**签名：**
+```tl
+const oldValues: {string: Item}
+```
+
+## destroy
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用于销毁实体及相关组件的函数。
+
+**签名：**
+```tl
+destroy: function(self: Entity)
+```
+
+## set
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用于设置实体上关联的属性（组件）。
+这个函数将触发`Observer`对象监听的组件变更事件。
+
+**签名：**
+```tl
+set: function(self: Entity, key: string, item: Item)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 要设置的属性的名称。 |
+| item | Item | 要将属性设置为的值。 |
+
+## get
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取实体属性（组件）的值的函数。
+
+**签名：**
+```tl
+get: function(self: Entity, key: string): Item
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 要获取值的属性（组件）的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Item | 属性（组件）的值。 |
+
+## getOld
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取实体属性（组件）的先前的值。
+
+**签名：**
+```tl
+getOld: function(self: Entity, key: string): Item
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 要获取先前值的属性的名称。旧值是指实体的组件值在上次发生更改之前的值。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Item | 属性（组件）的先前值。 |
+
+## __index
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;检索实体属性（组件）的值的元方法。
+
+**签名：**
+```tl
+metamethod __index: function(self: Entity, key: string): Item
+```
+
+**用法示例：**
+```tl
+local valueX = entity.valueX
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 要检索值的属性的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Item | 属性（组件）的值。 |
+
+## __newindex
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;设置实体属性（组件）的值的元方法。
+
+**签名：**
+```tl
+metamethod __newindex: function(self: Entity, key: string, item: Item)
+```
+
+**用法示例：**
+```tl
+entity.valueX = 123
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 要设置的属性（组件）的名称。 |
+| item | Item | 要将属性（组件）设置为的值。 |

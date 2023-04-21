@@ -1,0 +1,115 @@
+import "@site/src/languages/highlight";
+
+# Vec2的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建二维向量对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;从现有的二维向量对象创建一个新的二维向量对象的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: Vec2Class, other: Vec2): Vec2
+```
+
+**用法示例：**
+```tl
+local newVec = Vec2(existingVec)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| other | Vec2 | 要从中创建新对象的现有二维向量对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec2 | 新的二维向量对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用给定的 x 和 y 组件创建一个新的二维向量对象的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: Vec2Class,
+		x: number,
+		y: number
+	): Vec2
+```
+
+**用法示例：**
+```tl
+local newVec = Vec2(10, 20)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 新向量的 x 分量。 |
+| y | number | 新向量的 y 分量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec2 | 新的二维向量对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;从一个尺寸对象创建一个新的二维向量对象的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: Vec2Class, size: Size): Vec2
+```
+
+**用法示例：**
+```tl
+local newVec = Vec2Class(Size(10, 20))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | Size | 要从中创建新向量的尺寸对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec2 | 新的二维向量对象。 |
+
+## zero
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;获取属性为0的二维向量对象。
+
+**签名：**
+```tl
+const zero: Vec2
+```

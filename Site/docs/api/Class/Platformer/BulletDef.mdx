@@ -1,0 +1,165 @@
+import "@site/src/languages/highlight";
+
+# BulletDef
+
+**Description:**
+
+&emsp;&emsp;A record type that specifies the properties and behaviors of a bullet object in the game.
+
+**Inherits from:** Object.
+
+## tag
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The tag for the bullet object.
+
+**Signature:**
+```tl
+tag: string
+```
+
+## endEffect
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The effect that occurs when the bullet object ends its life.
+
+**Signature:**
+```tl
+endEffect: string
+```
+
+## lifeTime
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The amount of time in seconds that the bullet object remains active.
+
+**Signature:**
+```tl
+lifeTime: number
+```
+
+## damageRadius
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The radius of the bullet object's damage area.
+
+**Signature:**
+```tl
+damageRadius: number
+```
+
+## highSpeedFix
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the bullet object should be fixed for high speeds.
+
+**Signature:**
+```tl
+highSpeedFix: boolean
+```
+
+## gravity
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The gravity vector that applies to the bullet object.
+
+**Signature:**
+```tl
+gravity: Vec2
+```
+
+## face
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The visual item of the bullet object.
+
+**Signature:**
+```tl
+face: Face
+```
+
+## bodyDef
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The physics body definition for the bullet object.
+
+**Signature:**
+```tl
+const bodyDef: BodyDef
+```
+
+## velocity
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The velocity vector of the bullet object.
+
+**Signature:**
+```tl
+const velocity: Vec2
+```
+
+## setAsCircle
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the bullet object's physics body as a circle.
+
+**Signature:**
+```tl
+setAsCircle: function(self: BulletDef, radius: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| radius | number | The radius of the circle. |
+
+## setVelocity
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the velocity of the bullet object.
+
+**Signature:**
+```tl
+setVelocity: function(self: BulletDef, angle: number, speed: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| angle | number | The angle of the velocity in degree. |
+| speed | number | The speed of the velocity. |

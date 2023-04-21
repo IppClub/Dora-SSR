@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# ScaleX
+
+**描述：**
+
+&emsp;&emsp;创建一个动作定义，用于将节点的 x 轴缩放比例从一个值变动到另一个值。
+
+**签名：**
+```tl
+ScaleX: function(
+		duration: number,
+		from: number,
+		to: number,
+		easing?: Ease.EaseFunc --[[Ease.Linear]]
+	): ActionDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| duration | number | 动作持续时间，单位为秒。 |
+| from | number | x 轴缩放比例的起始值。 |
+| to | number | x 轴缩放比例的结束值。 |
+| easing | EaseFunc | [可选] 动作使用的缓动函数。如果未指定，默认为 Ease.Linear。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ActionDef | 可用于在节点上运行动作的动作定义对象。 |

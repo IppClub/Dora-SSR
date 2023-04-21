@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# Observer
+
+**描述：**
+
+&emsp;&emsp;游戏ECS系统实体更改观察器的类。
+
+## watch
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;监控观察器观察的实体上的组件变化，在发生变更时调用处理函数。
+
+**签名：**
+```tl
+watch: function(self: Observer, func: function(Entity)): Observer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| func | function | 当发生组件变更时要调用的处理函数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Observer | 当前的观察器，用于方法级连调用。 |

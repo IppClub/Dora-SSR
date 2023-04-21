@@ -1,0 +1,58 @@
+import "@site/src/languages/highlight";
+
+# Entity Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating and managing entities in the ECS game systems.
+
+## count
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The number of all running entities.
+
+**Signature:**
+```tl
+const count: integer
+```
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that clears all entities.
+
+**Signature:**
+```tl
+clear: function(self: EntityClass)
+```
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod that creates a new entity with the specified components.
+And you can then get the newly created Entity object from groups and observers.
+
+**Signature:**
+```tl
+metamethod __call: function(self: EntityClass, coms: {string: Item})
+```
+
+**Usage:**
+```tl
+Entity({ a = 1, b = "abc", c = Node() })
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| coms | {string: Item} | A table mapping component names (strings) to component values (Items). |

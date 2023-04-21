@@ -1,0 +1,134 @@
+import "@site/src/languages/highlight";
+
+# App的全局事件
+
+**描述：**
+
+&emsp;&emsp;全局事件的定义。
+这只是一个事件定义的展示，包含所有全局事件名称和回调函数的定义。
+
+**用法示例：**
+```tl
+-- 可以使用如下示例代码注册这些事件：
+local node = Node():addTo(Director.entry)
+node:gslot("AppQuit", function()
+	print("应用正在被关闭！")
+end)
+```
+
+## AppQuit
+
+**类型：** 全局事件。
+
+**描述：**
+
+&emsp;&emsp;应用即将退出时触发。
+
+**签名：**
+```tl
+["AppQuit"]: function()
+```
+
+## AppLowMemory
+
+**类型：** 全局事件。
+
+**描述：**
+
+&emsp;&emsp;应用接收到低内存警告时触发。
+
+**签名：**
+```tl
+["AppLowMemory"]: function()
+```
+
+## AppWillEnterBackground
+
+**类型：** 全局事件。
+
+**描述：**
+
+&emsp;&emsp;应用即将进入后台时触发。
+
+**签名：**
+```tl
+["AppWillEnterBackground"]: function()
+```
+
+## AppDidEnterBackground
+
+**类型：** 全局事件。
+
+**描述：**
+
+&emsp;&emsp;应用已经进入后台时触发。
+
+**签名：**
+```tl
+["AppDidEnterBackground"]: function()
+```
+
+## AppWillEnterForeground
+
+**类型：** 全局事件。
+
+**描述：**
+
+&emsp;&emsp;应用即将进入前台时触发。
+
+**签名：**
+```tl
+["AppWillEnterForeground"]: function()
+```
+
+## AppDidEnterForeground
+
+**类型：** 全局事件。
+
+**描述：**
+
+&emsp;&emsp;应用已经进入前台时触发。
+
+**签名：**
+```tl
+["AppDidEnterForeground"]: function()
+```
+
+## AppSizeChanged
+
+**类型：** 全局事件。
+
+**描述：**
+
+&emsp;&emsp;应用窗口大小发生变化时触发。
+
+**签名：**
+```tl
+["AppSizeChanged"]: function()
+```
+
+## AppFullScreen
+
+**类型：** 全局事件。
+
+**描述：**
+
+&emsp;&emsp;应用进入或退出全屏窗口模式时触发。
+
+**签名：**
+```tl
+["AppFullScreen"]: function(fullScreen: boolean)
+```
+
+## AppTheme
+
+**类型：** 全局事件。
+
+**描述：**
+
+&emsp;&emsp;应用改变主题颜色时触发。
+
+**签名：**
+```tl
+["AppTheme"]: function(themeColor: Color)
+```

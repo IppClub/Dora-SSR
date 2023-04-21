@@ -1,0 +1,536 @@
+import "@site/src/languages/highlight";
+
+# Content
+
+**描述：**
+
+&emsp;&emsp;用于管理资源文件的搜索、加载和执行其它与资源文件相关的操作的单例类。
+
+**用法示例：**
+```tl
+local Content = require("Content")
+Content:load("filename.txt")
+```
+
+## searchPaths
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于搜索资源文件的文件路径列表。
+
+**签名：**
+```tl
+searchPaths: {string}
+```
+
+## assetPath
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎只读资源所在目录的路径。
+
+**签名：**
+```tl
+const assetPath: string
+```
+
+## writablePath
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎可以做写入操作的文件路径。
+
+**签名：**
+```tl
+const writablePath: string
+```
+
+## load
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;以阻塞的方式读取文件内容。
+
+**签名：**
+```tl
+load: function(self: Content, filename: string): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要读取的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 读取的文件内容。 |
+
+## loadExcel
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;以阻塞的方式按表名读取 Excel 文件的内容。
+
+**签名：**
+```tl
+loadExcel: function(self: Content, filename: string, sheetNames?: {string}):
+		{
+			--[[表名]] string:
+			--[[行]] {
+				--[[列]] {string | number}
+			}
+		} | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要读取的 Excel 文件名。 |
+| sheetNames | {string} | [可选] 要读取的Excel表名的字符串列表。如果不提供，则默认会读取所有表。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| table | 包含 Excel 文件数据的Lua表。Lua表的键是表名，值是包含Excel表的行列数据的表。如果读取失败则返回nil。 |
+
+## save
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;保存文本内容到指定文件名的文件中。
+
+**签名：**
+```tl
+save: function(self: Content, filename: string, content: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要保存到的文件名。 |
+| content | string | 要保存到文件中的内容。 |
+
+## exist
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查是否存在指定文件名的文件。
+
+**签名：**
+```tl
+exist: function(self: Content, filename: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要检查的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果文件存在，则为 `true`，否则为 `false`。 |
+
+## mkdir
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建具有指定路径的新目录。
+
+**签名：**
+```tl
+mkdir: function(self: Content, path: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要创建的目录的路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果创建了目录，则为 `true`，否则为 `false`。 |
+
+## isdir
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查指定路径是否为目录。
+
+**签名：**
+```tl
+isdir: function(self: Content, path: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要检查的路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果路径为目录，则为 `true`，否则为 `false`。 |
+
+## remove
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;删除指定路径的文件或目录。
+
+**签名：**
+```tl
+remove: function(self: Content, path: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要删除的文件或目录的路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果删除了文件或目录，则为 `true`，否则为 `false`。 |
+
+## getFullPath
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指定文件名的文件的完整路径。
+
+**签名：**
+```tl
+getFullPath: function(self: Content, filename: string): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要获取完整路径的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 文件的完整路径。 |
+
+## insertSearchPath
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在指定索引处插入文件搜索路径。
+
+**签名：**
+```tl
+insertSearchPath: function(self: Content, index: integer, path: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要插入搜索路径的索引。 |
+| path | string | 要插入的搜索路径。 |
+
+## addSearchPath
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;添加新的文件搜索路径。
+
+**签名：**
+```tl
+addSearchPath: function(self: Content, path: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要添加的搜索路径。 |
+
+## removeSearchPath
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从列表中删除指定的搜索路径。
+
+**签名：**
+```tl
+removeSearchPath: function(self: Content, path: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要删除的搜索路径。 |
+
+## loadAsync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;异步读取指定文件名的文件内容。
+
+**签名：**
+```tl
+loadAsync: function(self: Content, filename: string): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要读取的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 读取的文件内容。 |
+
+## loadExcelAsync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;以异步的方式按表名读取 Excel 文件的内容。
+
+**签名：**
+```tl
+loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string}):
+		{
+			--[[表名]] string:
+			--[[行]] {
+				--[[列]] {string | number}
+			}
+		} | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要读取的 Excel 文件名。 |
+| sheetNames | {string} | [可选] 要读取的Excel表名的字符串列表。如果不提供，则默认会读取所有表。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| table | 包含 Excel 文件数据的Lua表。Lua表的键是表名，值是包含Excel表的行列数据的表。如果读取失败则返回nil。 |
+
+## saveAsync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;异步将指定内容保存到指定文件名的文件中。
+
+**签名：**
+```tl
+saveAsync: function(self: Content, filename: string, content: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要保存到的文件名。 |
+| content | string | 要保存到文件中的内容。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果成功保存内容，则为 `true`，否则为 `false`。 |
+
+## copyAsync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;异步从源路径复制文件或文件夹到目标路径。
+
+**签名：**
+```tl
+copyAsync: function(self: Content, src: string, dst: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| src | string | 要复制的文件或文件夹的路径。 |
+| dst | string | 复制文件的目标路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果成功复制了文件或文件夹，则为 `true`，否则为 `false`。 |
+
+## zipAsync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;异步将指定文件夹压缩为具有指定文件名的 ZIP 归档文件。
+
+**签名：**
+```tl
+zipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| zipFile | string | 要创建的 ZIP 归档文件的名称。 |
+| folderPath | string | 要压缩的文件夹的路径，应在内容可写路径下。 |
+| filter | function, 可选 | 用于过滤要包含在归档中的文件的函数。该函数以文件名作为输入，并返回一个布尔值，表示是否包含文件。如果未提供，则包含所有文件。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果成功压缩了文件夹，则为 `true`，否则为 `false`。 |
+
+## getDirs
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指定目录中所有子目录的名称。
+
+**签名：**
+```tl
+getDirs: function(self: Content, path: string): {string}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要搜索的目录的路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| table | 包含指定目录中所有子目录名称的列表。 |
+
+## getFiles
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指定目录中所有文件的名称。
+
+**签名：**
+```tl
+getFiles: function(self: Content, path: string): {string}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要搜索的目录的路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| table | 包含指定目录中所有文件名称的列表。 |
+
+## getAllFiles
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指定目录及其子目录中所有文件的名称。
+
+**签名：**
+```tl
+getAllFiles: function(self: Content, path: string): {string}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要搜索的目录的路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| table | 包含指定目录及其子目录中所有文件名称的列表。 |
+
+## clearPathCache
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清除相对路径到完整路径映射的搜索路径缓存。
+
+**签名：**
+```tl
+clearPathCache: function(self: Content)
+```

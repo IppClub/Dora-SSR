@@ -1,0 +1,74 @@
+import "@site/src/languages/highlight";
+
+# Pass
+
+**Description:**
+
+&emsp;&emsp;A record representing a shader pass.
+
+**Inherits from:** Object.
+
+## grabPass
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether this Pass should be a grab pass.
+A grab pass will render a portion of game scene into a texture frame buffer.
+Then use this texture frame buffer as an input for next render pass.
+
+**Signature:**
+```tl
+grabPass: boolean
+```
+
+## set
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that sets the values of shader parameters.
+
+**Signature:**
+```tl
+set: function(self: Pass,
+		name: string,
+		var1: number,
+		var2?: number --[[0]],
+		var3?: number --[[0]],
+		var4?: number --[[0]])
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the parameter to set. |
+| var1 | number | The first numeric value to set. |
+| var2 | number | [optional] An optional second numeric value to set (default is 0). |
+| var3 | number | [optional] An optional third numeric value to set (default is 0). |
+| var4 | number | [optional] An optional fourth numeric value to set (default is 0). |
+
+## set
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Another function that sets the values of shader parameters.
+Works the same as:
+pass:set("varName", color.r / 255.0, color.g / 255.0, color.b / 255.0, color.opacity)
+
+**Signature:**
+```tl
+set: function(self: Pass, name: string, var: Color)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the parameter to set. |
+| var | Color | The Color object to set. |

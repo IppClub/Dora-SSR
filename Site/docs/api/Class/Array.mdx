@@ -1,0 +1,490 @@
+import "@site/src/languages/highlight";
+
+# Array
+
+**Description:**
+
+&emsp;&emsp;An array data structure that supports various operations.
+The Array record is designed to be 1-based indexing, which means that the first item in the array has an index of 1. This is the same behavior of Lua table used as an array.
+
+**Inherits from:** Object.
+
+## count
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The number of items in the array.
+
+**Signature:**
+```tl
+const count: integer
+```
+
+## empty
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the array is empty or not.
+
+**Signature:**
+```tl
+const empty: boolean
+```
+
+## addRange
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds all items from another array to the end of this array.
+
+**Signature:**
+```tl
+addRange: function(self: Array, other: Array)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Array | Another array object. |
+
+## removeFrom
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes all items from this array that are also in another array.
+
+**Signature:**
+```tl
+removeFrom: function(self: Array, other: Array)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Array | Another array object. |
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes all items from the array.
+
+**Signature:**
+```tl
+clear: function(self: Array)
+```
+
+## reverse
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Reverses the order of the items in the array.
+
+**Signature:**
+```tl
+reverse: function(self: Array)
+```
+
+## shrink
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes any empty slots from the end of the array.
+Used for release the unused memory this array holds.
+
+**Signature:**
+```tl
+shrink: function(self: Array)
+```
+
+## swap
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Swaps the items at two given indices.
+
+**Signature:**
+```tl
+swap: function(self: Array, indexA: integer, indexB: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| indexA | integer | The first index. |
+| indexB | integer | The second index. |
+
+## removeAt
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes the item at the given index.
+
+**Signature:**
+```tl
+removeAt: function(self: Array, index: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index to remove. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if an item was removed, false otherwise. |
+
+## fastRemoveAt
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes the item at the given index without preserving the order of the array.
+
+**Signature:**
+```tl
+fastRemoveAt: function(self: Array, index: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index to remove. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if an item was removed, false otherwise. |
+
+## each
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Calls a given function for each item in the array.
+
+**Signature:**
+```tl
+each: function(self: Array, func: function(Object): boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to call for each item.Should return false to continue iteration, true to stop. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | False if the iteration completed, true if it was interrupted by the function. |
+
+## first
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The first item in the array.
+
+**Signature:**
+```tl
+const first: Item
+```
+
+## last
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The last item in the array.
+
+**Signature:**
+```tl
+const last: Item
+```
+
+## randomObject
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A random item from the array.
+
+**Signature:**
+```tl
+const randomObject: Item
+```
+
+## set
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the item at the given index.
+
+**Signature:**
+```tl
+set: function(self: Array, index: integer, item: Item)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index to set, should be 1 based. |
+| item | Item | The new item value. |
+
+## get
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the item at the given index.
+
+**Signature:**
+```tl
+get: function(self: Array, index: integer): Item
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index to get, should be 1 based. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Item | The item value. |
+
+## add
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds an item to the end of the array.
+
+**Signature:**
+```tl
+add: function(self: Array, item: Item)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| item | Item | The item to add. |
+
+## insert
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Inserts an item at the given index, shifting other items to the right.
+
+**Signature:**
+```tl
+insert: function(self: Array, index: integer, item: Item)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index to insert at. |
+| item | Item | The item to insert. |
+
+## contains
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether the array contains a given item.
+
+**Signature:**
+```tl
+contains: function(self: Array, item: Item): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| item | Item | The item to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the item is found, false otherwise. |
+
+## index
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the index of a given item.
+
+**Signature:**
+```tl
+index: function(self: Array, item: Item): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| item | Item | The item to search for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The index of the item, or 0 if it is not found. |
+
+## removeLast
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes and returns the last item in the array.
+
+**Signature:**
+```tl
+removeLast: function(self: Array): Item
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Item | The last item in the array. |
+
+## fastRemove
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes the first occurrence of a given item from the array without preserving order.
+
+**Signature:**
+```tl
+fastRemove: function(self: Array, item: Item): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| item | Item | The item to remove. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the item was found and removed, false otherwise. |
+
+## __index
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Metamethod to access the item at the given index using the [] operator.
+
+**Signature:**
+```tl
+metamethod __index: function(self: Array, index: integer): Item
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index to get, should be 1 based. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Item | The item value. |
+
+## __newindex
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Metamethod to set the item at the given index using the [] operator.
+
+**Signature:**
+```tl
+metamethod __newindex: function(self: Array, index: integer, item: Item)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index to set, should be 1 based. |
+| item | Item | The new item value. |
+
+## __len
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Metamethod to get the length of the array using the # operator.
+
+**Signature:**
+```tl
+metamethod __len: function(self: Array): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The length of the array. |

@@ -1,0 +1,105 @@
+import "@site/src/languages/highlight";
+
+# Color Class
+
+**Description:**
+
+&emsp;&emsp;Provides methods for creating Color objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a color with all channels set to 0.
+
+**Signature:**
+```tl
+metamethod __call: function(self: ColorClass): Color
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Color | A new Color object. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Color object with a Color3 object and alpha value.
+
+**Signature:**
+```tl
+metamethod __call: function(self: ColorClass, color: Color3, a: integer): Color
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| color | Color3 | The color as a Color3 object. |
+| a | integer | [optional] The alpha value of the color ranging from 0 to 255. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Color | A new Color object. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new `Color` object from an ARGB integer value.
+
+**Signature:**
+```tl
+metamethod __call: function(self: ColorClass, argb: integer): Color
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| argb | integer | The ARGB integer value to create the color from.For example 0xffffffff (opaque white), 0x88ff0000 (half transparent red) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Color | A new `Color` object. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new `Color` object from RGBA color channel values.
+
+**Signature:**
+```tl
+metamethod __call: function(self: ColorClass, r: integer, g: integer, b: integer, a: integer): Color
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| r | integer | The red channel value (0-255). |
+| g | integer | The green channel value (0-255). |
+| b | integer | The blue channel value (0-255). |
+| a | integer | The alpha channel value (0-255). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Color | A new `Color` object. |

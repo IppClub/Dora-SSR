@@ -1,0 +1,209 @@
+import "@site/src/languages/highlight";
+
+# PlatformWorld
+
+**描述：**
+
+&emsp;&emsp;带有物理模拟的2D平台游戏世界的类。
+
+**继承自：** PhysicsWorld。
+
+## camera
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于控制游戏世界可见区域的相机。
+
+**签名：**
+```tl
+const camera: PlatformCamera
+```
+
+## moveChild
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;移动一个子节点到另一个游戏场景层。
+
+**签名：**
+```tl
+moveChild: function(self: PlatformWorld, child: Node, newOrder: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| child | Node | 要移动的子节点。 |
+| newOrder | integer | 要移动到的游戏场景层的顺序编号。 |
+
+## getLayer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取特定顺序编号的游戏场景层。
+
+**签名：**
+```tl
+getLayer: function(self: PlatformWorld, order: integer): Node
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| order | integer | 要获取的场景层的顺序编号。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Node | 目标的游戏场景层节点。 |
+
+## setLayerRatio
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置特定游戏场景层的平移比率，用于模拟3D投影效果。
+
+**签名：**
+```tl
+setLayerRatio: function(self: PlatformWorld, order: integer, ratio: Vec2)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| order | integer | 要设置的场景层的顺序编号。 |
+| ratio | Vec2 | 场景层的新平移比率。 |
+
+## getLayerRatio
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取特定游戏场景层的平移比率，用于模拟3D投影效果。
+
+**签名：**
+```tl
+getLayerRatio: function(self: PlatformWorld, order: integer): Vec2
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| order | integer | 要设置的场景层的顺序编号。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec2 | 场景层的平移比率. |
+
+## setLayerOffset
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置特定游戏场景层的位置偏移量。
+
+**签名：**
+```tl
+setLayerOffset: function(self: PlatformWorld, order: integer, offset: Vec2)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| order | integer | 要设置偏移量的场景层的顺序编号。 |
+| offset | Vec2 | 场景层的位置偏移量。 |
+
+## getLayerOffset
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;Gets the position offset for a given layer.
+
+**签名：**
+```tl
+getLayerOffset: function(self: PlatformWorld, order: integer): Vec2
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| order | integer | The order of the layer to get the offset for. |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec2 | The position offset for the layer. |
+
+## swapLayer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;交换两个游戏场景层的顺序。
+
+**签名：**
+```tl
+swapLayer: function(self: PlatformWorld, orderA: integer, orderB: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| orderA | integer | 要交换的第一个场景层的顺序编号。 |
+| orderB | integer | 要交换的第二个场景层的顺序编号。 |
+
+## removeLayer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从游戏世界中删除一个场景层。
+
+**签名：**
+```tl
+removeLayer: function(self: PlatformWorld, order: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| order | integer | 要删除的场景层的位置。 |
+
+## removeAllLayers
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;删除游戏世界中的所有场景层。
+
+**签名：**
+```tl
+removeAllLayers: function(self: PlatformWorld)
+```

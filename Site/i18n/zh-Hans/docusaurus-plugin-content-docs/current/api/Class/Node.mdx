@@ -1,0 +1,1496 @@
+import "@site/src/languages/highlight";
+
+# Node
+
+**描述：**
+
+&emsp;&emsp;用于构建游戏场景树的层次结构的类。
+
+**继承自：** Object。
+
+## order
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;在同级子节点列表中的顺序。
+
+**签名：**
+```tl
+order: integer
+```
+
+## angle
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的旋转角度，以度为单位。
+
+**签名：**
+```tl
+angle: number
+```
+
+## angleX
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 X 轴旋转角度，以度为单位。
+
+**签名：**
+```tl
+angleX: number
+```
+
+## angleY
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 Y 轴旋转角度，以度为单位。
+
+**签名：**
+```tl
+angleY: number
+```
+
+## scaleX
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 X 轴缩放系数。
+
+**签名：**
+```tl
+scaleX: number
+```
+
+## scaleY
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 Y 轴缩放系数。
+
+**签名：**
+```tl
+scaleY: number
+```
+
+## x
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 X 轴位置。
+
+**签名：**
+```tl
+x: number
+```
+
+## y
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 Y 轴位置。
+
+**签名：**
+```tl
+y: number
+```
+
+## z
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 Z 轴位置。
+
+**签名：**
+```tl
+z: number
+```
+
+## position
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;以二维向量对象表示的节点位置。
+
+**签名：**
+```tl
+position: Vec2
+```
+
+## skewX
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 X 轴倾斜角度，以度为单位。
+
+**签名：**
+```tl
+skewX: number
+```
+
+## skewY
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 Y 轴倾斜角度，以度为单位。
+
+**签名：**
+```tl
+skewY: number
+```
+
+## visible
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点是否可见。
+
+**签名：**
+```tl
+visible: boolean
+```
+
+## anchor
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;以 Vec2 对象表示的节点锚点。
+
+**签名：**
+```tl
+anchor: Vec2
+```
+
+## width
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的宽度。
+
+**签名：**
+```tl
+width: number
+```
+
+## height
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的高度。
+
+**签名：**
+```tl
+height: number
+```
+
+## size
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;以`Size`对象表示的节点大小。
+
+**签名：**
+```tl
+size: Size
+```
+
+## tag
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;以字符串形式表示的节点标签。
+
+**签名：**
+```tl
+tag: string
+```
+
+## opacity
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的不透明度，取值范围为 0 到 1.0。
+
+**签名：**
+```tl
+opacity: number
+```
+
+## color
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;以`Color`对象表示的节点颜色。
+
+**签名：**
+```tl
+color: Color
+```
+
+## color3
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;以`Color3`对象表示的节点颜色。
+
+**签名：**
+```tl
+color3: Color3
+```
+
+## passOpacity
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否传递不透明度值给子节点。
+
+**签名：**
+```tl
+passOpacity: boolean
+```
+
+## passColor3
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否传递颜色值给子节点。
+
+**签名：**
+```tl
+passColor3: boolean
+```
+
+## transformTarget
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于继承矩阵变换的目标节点。
+
+**签名：**
+```tl
+transformTarget: Node
+```
+
+## scheduler
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于调度每帧逻辑更新的调度器。
+
+**签名：**
+```tl
+scheduler: Scheduler
+```
+
+## hasChildren
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否有子节点。
+
+**签名：**
+```tl
+const hasChildren: boolean
+```
+
+## children
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;子节点的列表，可能为nil。
+
+**签名：**
+```tl
+const children: Array
+```
+
+## parent
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的父节点。
+
+**签名：**
+```tl
+const parent: Node
+```
+
+## boundingBox
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的包围盒。
+
+**签名：**
+```tl
+const boundingBox: Rect
+```
+
+## running
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点是否在场景树中挂载运行。
+
+**签名：**
+```tl
+const running: boolean
+```
+
+## scheduled
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点是否在调度更新函数或协程。
+
+**签名：**
+```tl
+const scheduled: boolean
+```
+
+## actionCount
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点上当前正在运行的动作数量。
+
+**签名：**
+```tl
+const actionCount: integer
+```
+
+## data
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;在节点上存储管理的附加数据。
+
+**签名：**
+```tl
+const data: Dictionary
+```
+
+## touchEnabled
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否启用触摸事件。
+
+**签名：**
+```tl
+touchEnabled: boolean
+```
+
+## swallowTouches
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点是否独占触摸事件。
+
+**签名：**
+```tl
+swallowTouches: boolean
+```
+
+## swallowMouseWheel
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点是否独占鼠标滚轮事件。
+
+**签名：**
+```tl
+swallowMouseWheel: boolean
+```
+
+## keyboardEnabled
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否启用键盘事件。
+
+**签名：**
+```tl
+keyboardEnabled: boolean
+```
+
+## renderGroup
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否将所有层级的子节点按分组编号做分组渲染。
+
+**签名：**
+```tl
+renderGroup: boolean
+```
+
+## renderOrder
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于分组渲染的分组顺序编号。节点的渲染顺序编号越小，渲染就越靠前。
+
+**签名：**
+```tl
+renderOrder: integer
+```
+
+## addChild
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;给当前节点添加子节点。
+
+**签名：**
+```tl
+addChild: function(
+		self: Node,
+		child: Node,
+		order?: integer --[[0]],
+		tag?: string --[[""]]
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| child | Node | 要添加的子节点。 |
+| order | integer | 子节点的绘制顺序。默认为0。 |
+| tag | string | 子节点的标签。默认为空字符串。 |
+
+## addTo
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将当前节点添加到父节点
+
+**签名：**
+```tl
+addTo: function(
+		self: Node,
+		parent: Node,
+		order?: integer --[[0]],
+		tag?: string --[[""]]
+	): Node
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| parent | Node | 要添加当前节点的父节点。 |
+| order | integer | 当前节点的绘制顺序。默认为0。 |
+| tag | string | 当前节点的标签。默认为空字符串。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Node | 当前节点，用于级连调用。 |
+
+## removeChild
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从当前节点中移除一个子节点。
+
+**签名：**
+```tl
+removeChild: function(
+		self: Node,
+		child: Node,
+		cleanup?: boolean --[[true]]
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| child | Node | 要移除的子节点。 |
+| cleanup | boolean | [可选] 是否清理子节点。默认为 true。 |
+
+## removeChildByTag
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;通过标签从当前节点中移除一个子节点。
+
+**签名：**
+```tl
+removeChildByTag: function(
+		self: Node,
+		tag: string,
+		cleanup?: boolean --[[true]]
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tag | string | 要移除的子节点的标签。 |
+| cleanup | boolean | [可选] 是否清理子节点。默认为 true。 |
+
+## removeAllChildren
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从当前节点中移除所有子节点。
+
+**签名：**
+```tl
+removeAllChildren: function(
+		self: Node,
+		cleanup?: boolean --[[true]]
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| cleanup | boolean | [可选] 是否清理子节点。默认为 true。 |
+
+## removeFromParent
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从其父节点中移除当前节点。
+
+**签名：**
+```tl
+removeFromParent: function(
+		self: Node,
+		cleanup?: boolean --[[true]]
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| cleanup | boolean | [可选] 是否清理当前节点。默认为 true。 |
+
+## moveToParent
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将当前节点移动到一个新的父节点中，而不触发节点进出场景树的事件。
+
+**签名：**
+```tl
+moveToParent: function(self: Node, parent: Node)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| parent | Node | 要将当前节点移动到的新父节点。 |
+
+## cleanup
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清理当前节点上的所有资源。
+
+**签名：**
+```tl
+cleanup: function(self: Node)
+```
+
+## getChildByTag
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;通过标签获取子节点。
+
+**签名：**
+```tl
+getChildByTag: function(self: Node, tag: string): Node
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tag | string | 要获取的子节点的标签。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Node | 子节点，如果未找到则返回nil。 |
+
+## schedule
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;调度一个函数在每一帧运行。
+
+**签名：**
+```tl
+schedule: function(self: Node, func: function(number): boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| func | function | 要被调度的函数，返回true停止运行。 |
+
+## schedule
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;调度执行一个协程任务。
+
+**签名：**
+```tl
+schedule: function(self: Node, job: Routine.Job)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| job | Routine.Job | 要运行的协程，用`return true`或`coroutine.yield(true)`停止运行。 |
+
+## unschedule
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止调度的每帧运行的函数或协程任务。
+
+**签名：**
+```tl
+unschedule: function(self: Node)
+```
+
+## convertToNodeSpace
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将世界空间中的点坐标转换为节点空间的点坐标。
+
+**签名：**
+```tl
+convertToNodeSpace: function(self: Node, worldPoint: Vec2): Vec2
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| worldPoint | Vec2 | 要转换的点。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec2 | 转换后的点。 |
+
+## convertToNodeSpace
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将世界空间中的点坐标转换为节点空间的点坐标。
+
+**签名：**
+```tl
+convertToNodeSpace: function(self: Node, worldPoint: Vec2, z: number): Vec2, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| worldPoint | Vec2 | 要转换的点。 |
+| z | number | 点的 z 坐标。默认为 0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec2 | 转换后的点。 |
+| number | 转换后的点的 z 坐标。 |
+
+## convertToWorldSpace
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将节点空间中的点坐标转换为世界空间坐标。
+
+**签名：**
+```tl
+convertToWorldSpace: function(self: Node, nodePoint: Vec2): Vec2
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| nodePoint | Vec2 | 节点空间中的点。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec2 | 转换后的世界空间中的点。 |
+
+## convertToWorldSpace
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将节点空间中的点坐标转换为世界空间坐标。
+
+**签名：**
+```tl
+convertToWorldSpace: function(self: Node, nodePoint: Vec2, z: number): Vec2, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| nodePoint | Vec2 | 节点空间中的点。 |
+| z | number | 节点空间中的 z 坐标。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec2 | 转换后的世界空间中的点。 |
+| number | 转换后的世界空间中 z 坐标。 |
+
+## convertToWindowSpace
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将节点空间中的点坐标转换为操作系统窗口空间坐标。
+
+**签名：**
+```tl
+convertToWindowSpace: function(self: Node, nodePoint: Vec2, callback: function(Vec2))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| nodePoint | Vec2 | 节点空间中的点。 |
+| callback | function | 接收转换后的操作系统窗口空间中的点点坐标的回调函数。 |
+
+## eachChild
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;对该节点的每个子节点调用给定的函数。
+
+**签名：**
+```tl
+eachChild: function(self: Node, func: function(Node): boolean): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| func | function | 对每个子节点要调用的函数。该函数应返回一个布尔值，指示是否继续迭代。返回 true 以停止迭代。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果已访问所有子节点，则为false；如果函数中断了迭代，则为true。 |
+
+## traverse
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从此节点开始遍历场景树结构，并对每个访问的节点调用给定的函数。
+未开启`TraverseEnabled`标志的节点不会被访问。
+
+**签名：**
+```tl
+traverse: function(self: Node, func: function(Node): boolean): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| func | function | 对于每个被访问的节点调用的函数。该函数应返回一个布尔值，指示是否继续遍历。返回true停止迭代。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果访问了所有节点，则为false，如果函数中断了遍历，则为true。 |
+
+## traverseAll
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从此节点开始遍历整个节点层次结构，并对每个访问的节点调用给定的函数。
+
+**签名：**
+```tl
+traverseAll: function(self: Node, func: function(Node): boolean): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| func | function | 对于每个访问的节点调用的函数。该函数应返回一个布尔值，指示是否继续遍历。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果访问了所有节点，则为true，如果函数中断了遍历，则为false。 |
+
+## runAction
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在此节点上执行给定的动作对象。
+
+**签名：**
+```tl
+runAction: function(self: Node, action: Action)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| action | Action | 要执行的动作对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 新执行的动作的持续时间，以秒为单位。 |
+
+## runAction
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在此节点上执行由动作定义对象定义的动作。
+
+**签名：**
+```tl
+runAction: function(self: Node, actionDef: ActionDef)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| actionDef | ActionDef | 要运行的动作定义。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 新执行的动作的持续时间，以秒为单位。 |
+
+## stopAllActions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止在此节点上运行的所有动作。
+
+**签名：**
+```tl
+stopAllActions: function(self: Node)
+```
+
+## perform
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;立即停止所有现有动作，并开始执行一个新动作。
+
+**签名：**
+```tl
+perform: function(self: Node, action: Action): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| action | Action | 要执行的动作。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 新执行的动作的持续时间，以秒为单位。 |
+
+## perform
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;立即停止所有现有动作，并通过动作定义对象开始执行一个新动作。
+
+**签名：**
+```tl
+perform: function(self: Node, actionDef: ActionDef): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| actionDef | ActionDef | 要执行的动作定义。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 新执行的动作的持续时间，以秒为单位。 |
+
+## stopAction
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止在此节点上运行的某个动作。
+
+**签名：**
+```tl
+stopAction: function(self: Node, action: Action)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| action | Action | 要停止的动作。 |
+
+## alignItemsVertically
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;垂直对齐该节点的所有子节点。
+
+**签名：**
+```tl
+alignItemsVertically: function(
+		self: Node,
+		padding?: number --[[10]]
+	): Size
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| padding | number | [可选] 子节点之间的间距。默认值为10。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Size | 对齐后的子节点区域的大小。 |
+
+## alignItemsVertically
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用给定的范围和间距在节点内垂直对齐所有子节点。
+
+**签名：**
+```tl
+alignItemsVertically: function(
+		self: Node,
+		size: Size,
+		padding?: number --[[10]]
+	): Size
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | Size | 用于对齐排布的范围。 |
+| padding | number | 子节点之间的间距（默认值为10）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Size | 对齐后的节点区域大小。 |
+
+## alignItemsHorizontally
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用给定的间距在节点内水平对齐所有子节点。
+
+**签名：**
+```tl
+alignItemsHorizontally: function(
+		self: Node,
+		padding?: number --[[10]]
+	): Size
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| padding | number | [可选] 子节点之间的间距（默认值为10）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Size | 对齐后的节点区域大小。 |
+
+## alignItemsHorizontally
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用给定的范围和间距在节点内水平对齐所有子节点。
+
+**签名：**
+```tl
+alignItemsHorizontally: function(
+		self: Node,
+		size: Size,
+		padding?: number --[[10]]
+	): Size
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | Size | 用于对齐排布的范围。 |
+| padding | number | [可选] 子节点之间的间距（默认值为10）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Size | 对齐后的节点区域大小。 |
+
+## alignItems
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用给定间距在节点内对齐所有子节点。
+
+**签名：**
+```tl
+alignItems: function(
+		self: Node,
+		padding?: number --[[10]]
+	): Size
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| padding | number | [可选] 子节点之间的间距（默认值为10）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Size | 对齐后的节点区域大小。 |
+
+## alignItems
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用给定的范围和间距在节点内对齐所有子节点。
+
+**签名：**
+```tl
+alignItems: function(
+		self: Node,
+		size: Size,
+		padding?: number --[[10]]
+	): Size
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | Size | 用于对齐排布的范围。 |
+| padding | number | [可选] 每个子节点之间要使用的填充量（默认值为10）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Size | 对齐后的节点大小。 |
+
+## moveAndCullItems
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;基于子节点在父节点区域中的位置，移动并更改子节点的可见性。
+
+**签名：**
+```tl
+moveAndCullItems: function(self: Node, delta: Vec2)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| delta | Vec2 | 子节点移动的向量。 |
+
+## attachIME
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将操作系统输入法功能 (IME) 开启到节点上。
+使节点能接收 "AttachIME"、"DetachIME"、"TextInput"、"TextEditing" 事件。
+
+**签名：**
+```tl
+attachIME: function(self: Node)
+```
+
+## detachIME
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在节点上关闭操作系统输入法 (IME)。
+
+**签名：**
+```tl
+detachIME: function(self: Node)
+```
+
+## gslot
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取挂在节点上的监听特定全局事件的所有信号槽。
+
+**签名：**
+```tl
+gslot: function(self: Node, eventName: string): {GSlot}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| eventName | string | 全局事件的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| {GSlot} | 节点上监听对应全局事件的所有信号槽。 |
+
+## gslot
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在节点上注册监听全局事件的回调函数。
+
+**签名：**
+```tl
+gslot: function(self: Node, eventName: string, handler: function()): GSlot
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| eventName | string | 全局事件的名称。 |
+| handler | function | 全局事件的处理函数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| GSlot | 节点上监听该全局事件的监听器对象。 |
+
+## slot
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取挂在节点上的监听特定节点事件的所有信号槽。
+
+**签名：**
+```tl
+slot: function(self: Node, eventName: string): Slot
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| eventName | string | 节点事件的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Slot | 节点上监听对应节点事件的信号槽。 |
+
+## slot
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在节点上注册监听节点事件的回调函数。
+
+**签名：**
+```tl
+slot: function(self: Node, eventName: string, handler: function())
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| eventName | string | 节点事件的名称。 |
+| handler | function | 节点事件的处理函数。 |
+
+## emit
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;发送一个节点事件。
+
+**签名：**
+```tl
+emit: function(self: Node, eventName: string, ...: any)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| eventName | string | 节点事件的名称。 |
+| ... | ...any | 传递给节点事件处理函数的参数。 |
+
+## grab
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建或移除节点上的纹理抓取器。
+
+**签名：**
+```tl
+grab: function(
+		self: Node,
+		enabled?: boolean --[[true]]
+	): Grabber
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| enabled | boolean | 是否启用或禁用抓取器。默认为 true。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Grabber | 启用时会返回一个抓取器对象。 |
+
+## grab
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个指定网格大小的纹理抓取器。
+
+**签名：**
+```tl
+grab: function(self: Node, gridX: number, gridY: number): Grabber
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| gridX | number | 将抓取器分成的水平网格单元数。 |
+| gridY | number | 将抓取器分成的垂直网格单元数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Grabber | 返回一个抓取器对象。 |

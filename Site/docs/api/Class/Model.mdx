@@ -1,0 +1,210 @@
+import "@site/src/languages/highlight";
+
+# Model
+
+**Description:**
+
+&emsp;&emsp;Another implementation of the 'Playable' record.
+
+**Inherits from:** Playable.
+
+## duration
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The duration of the current animation.
+
+**Signature:**
+```tl
+const duration: number
+```
+
+## reversed
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the animation model will be played in reverse.
+
+**Signature:**
+```tl
+reversed: boolean
+```
+
+## playing
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the animation model is currently playing.
+
+**Signature:**
+```tl
+const playing: boolean
+```
+
+## paused
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the animation model is currently paused.
+
+**Signature:**
+```tl
+const paused: boolean
+```
+
+## hasAnimation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Check if an animation exists in the model.
+
+**Signature:**
+```tl
+hasAnimation: function(self: Model, name: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the animation to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the animation exists in the model or not. |
+
+## pause
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Pauses the currently playing animation.
+
+**Signature:**
+```tl
+pause: function(self: Model)
+```
+
+## resume
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Resumes the currently paused animation, or plays a new animation if specified.
+
+**Signature:**
+```tl
+resume: function(
+		self: Model,
+		name?: string,
+		loop?: boolean --[[false]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | [optional] The name of the animation to play. |
+| loop | boolean | [optional] Whether to loop the animation or not (default is false). |
+
+## reset
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Resets the current animation to its initial state.
+
+**Signature:**
+```tl
+reset: function(self: Model)
+```
+
+## updateTo
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Updates the animation to the specified time, and optionally in reverse.
+
+**Signature:**
+```tl
+updateTo: function(
+		self: Model,
+		eclapsed: number,
+		reversed?: boolean --[[false]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| elapsed | number | The time to update to. |
+| reversed | boolean | [optional] Whether to play the animation in reverse (default is false). |
+
+## getNodeByName
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the node with the specified name.
+
+**Signature:**
+```tl
+getNodeByName: function(self: Model, name: string): Node
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the node to get. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Node | The node with the specified name. |
+
+## eachNode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Calls the specified function for each node in the model, and stops if the function returns false.
+
+**Signature:**
+```tl
+eachNode: function(self: Model, func: function(Node): boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to call for each node. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the function was called for all nodes or not. |

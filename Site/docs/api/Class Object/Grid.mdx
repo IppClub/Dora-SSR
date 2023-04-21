@@ -1,0 +1,116 @@
+import "@site/src/languages/highlight";
+
+# Grid Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating Grid objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Grid with the specified texture rectangle and grid size.
+
+**Signature:**
+```tl
+metamethod __call: function(self: GridClass, textureRect: Rect, gridX: integer, gridY: integer): Grid
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| textureRect | Rect | The rectangle within the texture to use for the grid. |
+| gridX | integer | The number of columns in the grid. |
+| gridY | integer | The number of rows in the grid. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Grid | The new Grid instance. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Grid with the specified texture, texture rectangle, and grid size.
+
+**Signature:**
+```tl
+metamethod __call: function(self: GridClass, texture: Texture2D, textureRect: Rect, gridX: integer, gridY: integer): Grid
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| texture | Texture2D | The texture to use for the grid. |
+| textureRect | Rect | The rectangle within the texture to use for the grid. |
+| gridX | integer | The number of columns in the grid. |
+| gridY | integer | The number of rows in the grid. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Grid | The new Grid instance. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Grid with the specified texture and grid size.
+
+**Signature:**
+```tl
+metamethod __call: function(self: GridClass, texture: Texture2D, gridX: integer, gridY: integer): Grid
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| texture | Texture2D | The texture to use for the grid. |
+| gridX | integer | The number of columns in the grid. |
+| gridY | integer | The number of rows in the grid. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Grid | The new Grid instance. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Grid with the specified clip string and grid size.
+
+**Signature:**
+```tl
+metamethod __call: function(self: GridClass, clipStr: string, gridX: integer, gridY: integer): Grid
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| clipStr | string | The clip string to use for the grid.Can be "Image/file.png" and "Image/items.clip|itemA". |
+| gridX | integer | The number of columns in the grid. |
+| gridY | integer | The number of rows in the grid. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Grid | The new Grid instance. |

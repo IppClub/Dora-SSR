@@ -1,0 +1,77 @@
+import "@site/src/languages/highlight";
+
+# Sprite的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建新的图元对象的类。
+
+**用法示例：**
+```tl
+local Sprite = require("Sprite")
+local sprite = Sprite("Image/file.png")
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于创建新的图元对象的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: SpriteClass): Sprite
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Sprite | A new instance of the Sprite class. |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于创建新的图元对象的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: SpriteClass, texture: Texture2D, textureRect?: Rect): Sprite
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| texture | Texture2D | 要渲染的纹理。 |
+| textureRect | Rect | [optional] 用于渲染的纹理矩形区域，没有提供则设置为渲染所有纹理区域。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Sprite | 新的图元对象. |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于创建新的图元对象的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: SpriteClass, clipStr: string): Sprite
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| clipStr | string | 包含要加载的纹理文件名的字符串。可以是“Image/file.png”或“Image/items.clip|itemA”。 |

@@ -1,0 +1,149 @@
+import "@site/src/languages/highlight";
+
+# DrawNode
+
+**描述：**
+
+&emsp;&emsp;用于绘制简单几何形状，如点、线和多边形的场景节点类。
+
+**继承自：** Node。
+
+## depthWrite
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否在绘制时写入深度缓冲区（默认为 false）。
+
+**签名：**
+```tl
+depthWrite: boolean
+```
+
+## blendFunc
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;图形绘制使用的混合函数。
+
+**签名：**
+```tl
+blendFunc: BlendFunc
+```
+
+## drawDot
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在指定位置绘制指定半径和颜色的点。
+
+**签名：**
+```tl
+drawDot: function(
+		self: DrawNode,
+		pos: Vec2,
+		radius: number,
+		color?: Color --[[0xffffffff]]
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| pos | Vec2 | 点的位置。 |
+| radius | number | 点的半径。 |
+| color | Color | [可选] 点的颜色（默认为白色）。 |
+
+## drawSegment
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在两个点之间绘制指定半径和颜色的线段。
+
+**签名：**
+```tl
+drawSegment: function(
+		self: DrawNode,
+		from: Vec2,
+		to: Vec2,
+		radius: number,
+		color?: Color --[[0xffffffff]]
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| from | Vec2 | 线段的起点。 |
+| to | Vec2 | 线段的终点。 |
+| radius | number | 线段的半径。 |
+| color | Color | [可选] 线段的颜色（默认为白色）。 |
+
+## drawPolygon
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用指定填充颜色和边框绘制由顶点列表定义的多边形。
+
+**签名：**
+```tl
+drawPolygon: function(
+		self: DrawNode,
+		verts: {Vec2},
+		fillColor?: Color --[[0xffffffff]],
+		borderWidth?: number --[[0]],
+		borderColor?: Color --[[0xffffffff]]
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| verts | {Vec2} | 多边形的顶点。 |
+| fillColor | Color | [可选] 多边形的填充颜色（默认为白色）。 |
+| borderWidth | number | [可选] 边框的宽度（默认为 0）。 |
+| borderColor | Color | [可选] 边框的颜色（默认为白色）。 |
+
+## drawVertices
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制一组具有自己颜色的顶点组成的三角形。
+
+**签名：**
+```tl
+drawVertices: function(self: DrawNode, verts: {{Vec2, Color}})
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| verts | {{Vec2, Color}} | 顶点及其颜色的列表。 |
+
+## clear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清除节点中先前绘制的所有图形。
+
+**签名：**
+```tl
+clear: function(self: DrawNode)
+```

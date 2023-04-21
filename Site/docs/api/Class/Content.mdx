@@ -1,0 +1,537 @@
+import "@site/src/languages/highlight";
+
+# Content
+
+**Description:**
+
+&emsp;&emsp;The `Content` record is a singleton object that manages file searching,
+loading and other operations related to resources.
+
+**Usage:**
+```tl
+local Content = require("Content")
+Content:load("filename.txt")
+```
+
+## searchPaths
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;An array of directories to search for resource files.
+
+**Signature:**
+```tl
+searchPaths: {string}
+```
+
+## assetPath
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The path to the directory containing read-only resources.
+
+**Signature:**
+```tl
+const assetPath: string
+```
+
+## writablePath
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The path to the directory where files can be written.
+
+**Signature:**
+```tl
+const writablePath: string
+```
+
+## load
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Loads the content of the file with the specified filename.
+
+**Signature:**
+```tl
+load: function(self: Content, filename: string): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the file to load. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The content of the loaded file. |
+
+## loadExcel
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Loads the content of an Excel file with the specified filename and optional sheet names
+
+**Signature:**
+```tl
+loadExcel: function(self: Content, filename: string, sheetNames?: {string}):
+		{
+			--[[sheetName]] string:
+			--[[rows]] {
+				--[[colums]] {string | number}
+			}
+		} | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the Excel file to load |
+| sheetNames | {string} | [optional] An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| table | A table containing the data in the Excel file. The keys are the sheet names and the values are tables containing the rows and columns of the sheet. |
+
+## save
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Saves the specified content to a file with the specified filename.
+
+**Signature:**
+```tl
+save: function(self: Content, filename: string, content: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the file to save. |
+| content | string | The content to save to the file. |
+
+## exist
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if a file with the specified filename exists.
+
+**Signature:**
+```tl
+exist: function(self: Content, filename: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the file to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the file exists, `false` otherwise. |
+
+## mkdir
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new directory with the specified path.
+
+**Signature:**
+```tl
+mkdir: function(self: Content, path: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The path of the directory to create. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the directory was created, `false` otherwise. |
+
+## isdir
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if the specified path is a directory.
+
+**Signature:**
+```tl
+isdir: function(self: Content, path: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The path to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the path is a directory, `false` otherwise. |
+
+## remove
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes the file or directory with the specified path.
+
+**Signature:**
+```tl
+remove: function(self: Content, path: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The path of the file or directory to remove. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the file or directory was removed, `false` otherwise. |
+
+## getFullPath
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the full path of a file with the specified filename.
+
+**Signature:**
+```tl
+getFullPath: function(self: Content, filename: string): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the file to get the full path of. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The full path of the file. |
+
+## insertSearchPath
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Inserts a search path at the specified index.
+
+**Signature:**
+```tl
+insertSearchPath: function(self: Content, index: integer, path: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index at which to insert the search path. |
+| path | string | The search path to insert. |
+
+## addSearchPath
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a new search path to the end of the list.
+
+**Signature:**
+```tl
+addSearchPath: function(self: Content, path: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The search path to add. |
+
+## removeSearchPath
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes the specified search path from the list.
+
+**Signature:**
+```tl
+removeSearchPath: function(self: Content, path: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The search path to remove. |
+
+## loadAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Asynchronously loads the content of the file with the specified filename.
+
+**Signature:**
+```tl
+loadAsync: function(self: Content, filename: string): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the file to load. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The content of the loaded file. |
+
+## loadExcelAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Asynchronously loads the content of an Excel file with the specified filename and optional sheet names.
+
+**Signature:**
+```tl
+loadExcelAsync: function(self: Content, filename: string, sheetNames?: {string}):
+		{
+			--[[sheetName]] string:
+			--[[rows]] {
+				--[[colums]] {string | number}
+			}
+		} | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the Excel file to load. |
+| sheetNames | {string} | [optional] An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| table | A table containing the data in the Excel file. The keys are the sheet names and the values are tables containing the rows and columns of the sheet. |
+
+## saveAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Asynchronously saves the specified content to a file with the specified filename.
+
+**Signature:**
+```tl
+saveAsync: function(self: Content, filename: string, content: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the file to save. |
+| content | string | The content to save to the file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the content was saved successfully, `false` otherwise. |
+
+## copyAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Asynchronously copies a file or a folder from the source path to the destination path.
+
+**Signature:**
+```tl
+copyAsync: function(self: Content, src: string, dst: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| src | string | The path of the file or folder to copy. |
+| dst | string | The destination path of the copied files. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the file or folder was copied successfully, `false` otherwise. |
+
+## zipAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
+
+**Signature:**
+```tl
+zipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| zipFile | string | The name of the ZIP archive to create. |
+| folderPath | string | The path of the folder to compress, should be under the content writable path. |
+| filter | function | [optional] A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the folder was compressed successfully, `false` otherwise. |
+
+## getDirs
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the names of all subdirectories in the specified directory.
+
+**Signature:**
+```tl
+getDirs: function(self: Content, path: string): {string}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The path of the directory to search. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| table | An array of the names of all subdirectories in the specified directory. |
+
+## getFiles
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the names of all files in the specified directory.
+
+**Signature:**
+```tl
+getFiles: function(self: Content, path: string): {string}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The path of the directory to search. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| table | An array of the names of all files in the specified directory. |
+
+## getAllFiles
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the names of all files in the specified directory and its subdirectories.
+
+**Signature:**
+```tl
+getAllFiles: function(self: Content, path: string): {string}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The path of the directory to search. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| table | An array of the names of all files in the specified directory and its subdirectories. |
+
+## clearPathCache
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears the search path cache of the map of relative paths to full paths.
+
+**Signature:**
+```tl
+clearPathCache: function(self: Content)
+```

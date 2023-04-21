@@ -1,0 +1,156 @@
+import "@site/src/languages/highlight";
+
+# Grabber
+
+**描述：**
+
+&emsp;&emsp;将场景的一部分节点渲染到一张绑定到网格的纹理上的抓取器类。
+
+**继承自：** Object。
+
+## camera
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于渲染网格的相机。
+
+**签名：**
+```tl
+camera: Camera
+```
+
+## effect
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;渲染网格使用的图元着色器特效。
+
+**签名：**
+```tl
+effect: SpriteEffect
+```
+
+## blendFunc
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;渲染网格使用的混合函数。
+
+**签名：**
+```tl
+blendFunc: BlendFunc
+```
+
+## clearColor
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于清空纹理的颜色。
+
+**签名：**
+```tl
+clearColor: Color
+```
+
+## setPos
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置抓取器网格中一个顶点的位置。
+
+**签名：**
+```tl
+setPos: function(self: Grabber, x: integer, y: integer, pos: Vec2, z?: number --[[0.0]])
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | integer | 顶点在抓取器网格中的 x 索引。 |
+| y | integer | 顶点在抓取器网格中的 y 索引。 |
+| pos | Vec2 | 顶点的新位置。 |
+| z | number | 顶点的新 z 坐标（默认值：0.0）。 |
+
+## getPos
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取抓取器网格中一个顶点的位置。
+
+**签名：**
+```tl
+getPos: function(self: Grabber, x: integer, y: integer): Vec2
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | integer | 顶点在抓取器网格中的 x 索引。 |
+| y | integer | 顶点在抓取器网格中的 y 索引。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec2 | 顶点的位置。 |
+
+## getColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取抓取器网格中一个顶点的颜色。
+
+**签名：**
+```tl
+getColor: function(self: Grabber, x: integer, y: integer): Color
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | integer | 顶点在抓取器网格中的 x 索引。 |
+| y | integer | 顶点在抓取器网格中的 y 索引。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Color | 顶点的颜色。 |
+
+## setColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置抓取器网格中一个顶点的颜色。
+
+**签名：**
+```tl
+setColor: function(self: Grabber, x: integer, y: integer, color: Color)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | integer | 顶点在抓取器网格中的 x 索引。 |
+| y | integer | 顶点在抓取器网格中的 y 索引。 |
+| color | Color | 顶点的新颜色。 |

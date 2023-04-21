@@ -1,0 +1,216 @@
+import "@site/src/languages/highlight";
+
+# Grid
+
+**描述：**
+
+&emsp;&emsp;用于将一张纹理渲染为一组网格状的图元的场景节点类，网格中每个图元可以被重新定位、着色和操纵其UV坐标。
+
+**继承自：** Node。
+
+## gridX
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;网格中的列数。水平方向有 `gridX + 1` 个顶点用于渲染。
+
+**签名：**
+```tl
+const gridX: integer
+```
+
+## gridY
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;网格中的行数。垂直方向有 `gridY + 1` 个顶点用于渲染。
+
+**签名：**
+```tl
+const gridY: integer
+```
+
+## depthWrite
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否启用深度缓冲写入（默认为false）。
+
+**签名：**
+```tl
+depthWrite: boolean
+```
+
+## texture
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于网格渲染的纹理。
+
+**签名：**
+```tl
+texture: Texture2D
+```
+
+## textureRect
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;在纹理中用于渲染网格的矩形区域。
+
+**签名：**
+```tl
+textureRect: Rect
+```
+
+## blendFunc
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于渲染网格的混合函数。
+
+**签名：**
+```tl
+blendFunc: BlendFunc
+```
+
+## effect
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;应用于网格渲染的图元着色器效果。
+默认值为`SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")`。
+
+**签名：**
+```tl
+effect: SpriteEffect
+```
+
+## setPos
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置网格中顶点的位置。
+
+**签名：**
+```tl
+setPos: function(self: Grid, x: integer, y: integer, pos: Vec2)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | integer | 网格中顶点的x坐标。 |
+| y | integer | 网格中顶点的y坐标。 |
+| pos | Vec2 | 顶点的新位置。 |
+
+## getPos
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取网格中顶点的位置。
+
+**签名：**
+```tl
+getPos: function(self: Grid, x: integer, y: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | integer | 网格中顶点的x坐标。 |
+| y | integer | 网格中顶点的y坐标。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec2 | 顶点的当前位置。 |
+
+## getColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取网格中顶点的颜色。
+
+**签名：**
+```tl
+getColor: function(self: Grid, x: integer, y: integer): Color
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | integer | 网格中顶点的x坐标。 |
+| y | integer | 网格中顶点的y坐标。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Color | 顶点的当前颜色。 |
+
+## setColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置网格中顶点的颜色。
+
+**签名：**
+```tl
+setColor: function(self: Grid, x: integer, y: integer, color: Color)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | integer | 网格中顶点的x坐标。 |
+| y | integer | 网格中顶点的y坐标。 |
+| color | Color | 顶点的新颜色。 |
+
+## moveUV
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;移动网格中顶点的UV坐标。
+
+**签名：**
+```tl
+moveUV: function(self: Grid, x: integer, y: integer, offset: Vec2)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | integer | 网格中顶点的x坐标。 |
+| y | integer | 网格中顶点的y坐标。 |
+| offset | Vec2 | 移动UV坐标的偏移量。 |

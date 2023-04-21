@@ -1,0 +1,43 @@
+import "@site/src/languages/highlight";
+
+# PhysicsWorld Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating PhysicsWorld objects.
+
+## scaleFactor
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A factor used for converting physics engine meters value to pixel value.
+Default 100.0 is a good value since the physics engine can well simulate real life objects
+between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
+between 10 to 1000 pixels that suite most games.
+You can change this value before any physics body creation.
+
+**Signature:**
+```tl
+scaleFactor: number
+```
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new "PhysicsWorld" object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: PhysicsWorldClass): PhysicsWorld
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| PhysicsWorld | The new "PhysicsWorld" object. |

@@ -1,0 +1,67 @@
+import "@site/src/languages/highlight";
+
+# Visual
+
+**Description:**
+
+&emsp;&emsp;A class to represent a visual effect object like Particle, Frame Animation or just a Sprite.
+
+**Inherits from:** Node.
+
+## playing
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the visual effect is currently playing or not.
+
+**Signature:**
+```tl
+const playing: boolean
+```
+
+## start
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Starts playing the visual effect.
+
+**Signature:**
+```tl
+start: function(self: Visual)
+```
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops playing the visual effect.
+
+**Signature:**
+```tl
+stop: function(self: Visual)
+```
+
+## autoRemove
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Automatically removes the visual effect from the game world when it finishes playing.
+
+**Signature:**
+```tl
+autoRemove: function(self: Visual): Visual
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Visual | The same "Visual" object that was passed in as a parameter. |

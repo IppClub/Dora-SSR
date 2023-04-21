@@ -1,0 +1,115 @@
+import "@site/src/languages/highlight";
+
+# Vec2 Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating Vec2 objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Vec2 object from an existing Vec2 object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: Vec2Class, other: Vec2): Vec2
+```
+
+**Usage:**
+```tl
+local newVec = Vec2(existingVec)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Vec2 | The existing Vec2 object to create the new object from. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The new Vec2 object. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Vec2 object with the given x and y components.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: Vec2Class,
+		x: number,
+		y: number
+	): Vec2
+```
+
+**Usage:**
+```tl
+local newVec = Vec2(10, 20)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The x-component of the new vector. |
+| y | number | The y-component of the new vector. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The new Vec2 object. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Vec2 object from a Size object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: Vec2Class, size: Size): Vec2
+```
+
+**Usage:**
+```tl
+local newVec = Vec2Class(Size(10, 20))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| size | Size | The Size object to create the new vector from. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The new Vec2 object. |
+
+## zero
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Gets zero-vector object.
+
+**Signature:**
+```tl
+const zero: Vec2
+```

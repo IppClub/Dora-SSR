@@ -1,0 +1,12 @@
+import "@site/src/languages/highlight";
+
+# Array
+
+**描述：**
+
+&emsp;&emsp;数组对象支持存储的数据类型
+
+**签名：**
+```tl
+local type Item = integer | number | boolean | string | thread | ContainerItem
+```

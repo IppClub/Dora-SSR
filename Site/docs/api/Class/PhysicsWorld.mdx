@@ -1,0 +1,175 @@
+import "@site/src/languages/highlight";
+
+# PhysicsWorld
+
+**Description:**
+
+&emsp;&emsp;A record that represents a physics world in the game.
+
+**Inherits from:** Node.
+
+## showDebug
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether debug graphic should be displayed for the physics world.
+
+**Signature:**
+```tl
+showDebug: boolean
+```
+
+## query
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Queries the physics world for all bodies that intersect with the specified rectangle.
+
+**Signature:**
+```tl
+query: function(self: PhysicsWorld, rect: Rect, handler: function(Body): boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| rect | Rect | The rectangle to query for bodies. |
+| handler | function | A function that is called for each body found in the query. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the query was interrupted, true means interrupted, false otherwise. |
+
+**Definition for handler:**
+
+
+* **Parameters of handler:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body | Body | The body found in the query. |
+
+* **Returns of handler:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether to continue querying for more bodies, false to continue, true to stop. |
+
+## raycast
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Casts a ray through the physics world and finds the first body that intersects with the ray.
+
+**Signature:**
+```tl
+raycast: function(self: PhysicsWorld, start: Vec2, stop: Vec2, closest: boolean, handler: function(Body, point: Vec2, normal: Vec2): boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| start | Vec2 | The starting point of the ray. |
+| stop | Vec2 | The ending point of the ray. |
+| closest | boolean | Whether to stop ray casting upon the closest body that intersects with the ray.Set closest to true to get a faster ray casting search. |
+| handler | function | A function that is called for each body found in the raycast. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the raycast was interrupted, true means interrupted, false otherwise. |
+
+**Definition for handler:**
+
+
+* **Parameters of handler:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body | Body | The body found in the raycast. |
+| point | Vec2 | The point where the ray intersects with the body. |
+| normal | Vec2 | The normal vector at the point of intersection. |
+
+* **Returns of handler:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether to continue casting the ray for more bodies, returns true to stop, false otherwise. |
+
+## setIterations
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the number of velocity and position iterations to perform in the physics world.
+
+**Signature:**
+```tl
+setIterations: function(self: PhysicsWorld, velocityIter: integer, positionIter: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| velocityIter | integer | The number of velocity iterations to perform. |
+| positionIter | integer | The number of position iterations to perform. |
+
+## setShouldContact
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets whether two physics groups should make contact with each other or not.
+
+**Signature:**
+```tl
+setShouldContact: function(self: PhysicsWorld, groupA: integer, groupB: integer, contact: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| groupA | integer | The first physics group. |
+| groupB | integer | The second physics group. |
+| contact | boolean | Whether the two groups should make contact with each other. |
+
+## getShouldContact
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether two physics groups should make contact with each other or not.
+
+**Signature:**
+```tl
+getShouldContact: function(self: PhysicsWorld, groupA: integer, groupB: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| groupA | integer | The first physics group. |
+| groupB | integer | The second physics group. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the two groups should make contact with each other. |

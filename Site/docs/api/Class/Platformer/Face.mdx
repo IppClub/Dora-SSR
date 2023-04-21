@@ -1,0 +1,47 @@
+import "@site/src/languages/highlight";
+
+# Face
+
+**Description:**
+
+&emsp;&emsp;Represents a definition for a visual component of a game bullet or other visual item.
+
+**Inherits from:** Object.
+
+## addChild
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a child `Face` definition to it.
+
+**Signature:**
+```tl
+addChild: function(self: Face, face: Face)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| face | Face | The child `Face` to add. |
+
+## toNode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns a node that can be added to a scene tree for rendering.
+
+**Signature:**
+```tl
+toNode: function(self: Face): Node
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Node | The `Node` representing this `Face`. |

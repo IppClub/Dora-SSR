@@ -1,0 +1,41 @@
+import "@site/src/languages/highlight";
+
+# Body Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating Body objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new instance of `Body`.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: BodyClass,
+		def: BodyDef,
+		world: PhysicsWorld,
+		pos?: Vec2 --[[Vec2.zero]],
+		rot?: number --[[0]]
+	): Body -- class
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| def | BodyDef | The definition for the body to be created. |
+| world | PhysicsWorld | The physics world where the body belongs. |
+| pos | Vec2 | [optional] The initial position of the body. Defaults to zero vector. |
+| rot | number | [optional] The initial rotation angle of the body in degrees. Defaults to 0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Body | The newly created `Body` instance. |

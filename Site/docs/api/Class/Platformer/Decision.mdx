@@ -1,0 +1,215 @@
+import "@site/src/languages/highlight";
+
+# Decision
+
+**Description:**
+
+&emsp;&emsp;A decision tree framework for creating game AI structures.
+
+## Sel
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a selector node with the specified child nodes.
+A selector node will go through the child nodes until one succeeds.
+
+**Signature:**
+```tl
+Sel: function(nodes: {Leaf}): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| nodes | {Leaf} | An array of `Leaf` nodes. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A `Leaf` node that represents a selector. |
+
+## Seq
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a sequence node with the specified child nodes.
+A sequence node will go through the child nodes until all node succeeds.
+
+**Signature:**
+```tl
+Seq: function(nodes: {Leaf}): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| nodes | {Leaf} | An array of `Leaf` nodes. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A `Leaf` node that represents a sequence. |
+
+## Con
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a condition node with the specified name and handler function.
+
+**Signature:**
+```tl
+Con: function(name: string, check: function(self: Unit): boolean): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the condition. |
+| check | function | The check function that takes a `Unit` parameter and returns a boolean result. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A `Leaf` node that represents a condition check. |
+
+## Act
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates an action node with the specified action name.
+
+**Signature:**
+```tl
+Act: function(actionName: string): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| actionName | string | The name of the action to perform. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A `Leaf` node that represents an action. |
+
+## Act
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates an action node with the specified handler function.
+
+**Signature:**
+```tl
+Act: function(handler: function(self: Unit): string): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| handler | function | The handler function that takes a `Unit` parameter which is the running AI agent and returns an action. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A `Leaf` node that represents an action. |
+
+## Accept
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a leaf node that represents accepting the current behavior tree.
+Always get success result from this node.
+
+**Signature:**
+```tl
+Accept: function(): Leaf
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A `Leaf` node. |
+
+## Reject
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a leaf node that represents rejecting the current behavior tree.
+Always get failure result from this node.
+
+**Signature:**
+```tl
+Reject: function(): Leaf
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A `Leaf` node. |
+
+## Behave
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a leaf node with the specified behavior tree as its root.
+It is possible to include a Behavior Tree as a node in a Decision Tree by using the Behave() function. This allows the AI to use a combination of decision-making and behavior execution to achieve its goals.
+
+**Signature:**
+```tl
+Behave: function(name: string, root: Behavior.Leaf): Leaf
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the behavior tree. |
+| root | Behavior.Leaf | The root node of the behavior tree. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Leaf | A `Leaf` node. |
+
+## AI
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The singleton instance to retrieve information while executing the decision tree.
+
+**Signature:**
+```tl
+AI: AI
+```

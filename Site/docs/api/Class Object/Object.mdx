@@ -1,0 +1,85 @@
+import "@site/src/languages/highlight";
+
+# Object Class
+
+**Description:**
+
+&emsp;&emsp;The static class for accessing object class attributes.
+
+## count
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The number of total existing C++ objects.
+
+**Signature:**
+```tl
+const count: integer
+```
+
+## maxCount
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The maximum number of C++ objects that were ever created.
+
+**Signature:**
+```tl
+const maxCount: integer
+```
+
+## luaRefCount
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The number of total existing Lua references to C++ objects.
+
+**Signature:**
+```tl
+const luaRefCount: integer
+```
+
+## maxLuaRefCount
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The maximum number of Lua references that were ever created.
+
+**Signature:**
+```tl
+const maxLuaRefCount: integer
+```
+
+## callRefCount
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The number of C++ function call objects referenced by Lua.
+
+**Signature:**
+```tl
+const callRefCount: integer
+```
+
+## maxCallRefCount
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The maximum number of C++ function call references that were ever created.
+
+**Signature:**
+```tl
+const maxCallRefCount: integer
+```

@@ -1,0 +1,35 @@
+import "@site/src/languages/highlight";
+
+# Camera2D Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating Camera2D objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Camera2D object with the given name.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: Camera2DClass,
+		name?: string --[[""]]
+	): Camera2D
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the Camera2D object. Defaults to an empty string. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Camera2D | A new instance of the Camera2D object. |

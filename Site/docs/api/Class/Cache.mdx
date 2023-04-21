@@ -1,0 +1,240 @@
+import "@site/src/languages/highlight";
+
+# Cache
+
+**Description:**
+
+&emsp;&emsp;A singleton cache instance for various game resources.
+
+## Cache.ResourceType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;An enum that defines the various types of resources that can be loaded into the cache.
+
+**Signature:**
+```tl
+enum ResourceType
+	"Bone"
+	"Spine"
+	"Texture"
+	"SVG"
+	"Clip"
+	"Frame"
+	"Model"
+	"Particle"
+	"Shader"
+	"Font"
+	"Sound"
+end
+```
+
+## Cache.ResourceTypeSafeUnload
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;An enum that defines the various types of resources that can be safely unloaded from the cache.
+
+**Signature:**
+```tl
+enum ResourceTypeSafeUnload
+	"Texture"
+	"SVG"
+	"Clip"
+	"Frame"
+	"Model"
+	"Particle"
+	"Shader"
+	"Font"
+	"Sound"
+	"Spine"
+end
+```
+
+## load
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Loads a file into the cache with a blocking operation.
+
+**Signature:**
+```tl
+load: function(self: Cache, filename: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the file to load. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the file was loaded successfully, false otherwise. |
+
+## loadAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Loads a file into the cache asynchronously.
+
+**Signature:**
+```tl
+loadAsync: function(self: Cache, filename: string): boolean
+```
+
+**Usage:**
+```tl
+thread(function()
+	local success = Cache:loadAsync("file.png")
+	if success then
+		print("Game resource is loaded into memory")
+	end
+end)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the file to load. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the file was loaded successfully, false otherwise. |
+
+## update
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Updates the content of a file loaded in the cache.
+If the item of filename does not exist in the cache, a new file content will be added into the cache.
+
+**Signature:**
+```tl
+update: function(self: Cache, filename: string, content: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the file to update. |
+| content | string | The new content for the file. |
+
+## update
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Updates the texture object of the specific filename loaded in the cache.
+If the texture object of filename does not exist in the cache, it will be added into the cache.
+
+**Signature:**
+```tl
+update: function(self: Cache, filename: string, texture: Texture2D)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the texture to update. |
+| texture | Texture2D | The new texture object for the file. |
+
+## unload
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Unloads a resource from the cache.
+
+**Signature:**
+```tl
+unload: function(self: Cache, type: ResourceTypeSafeUnload): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| type | ResourceTypeSafeUnload | The type of resource to unload. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the resource was unloaded successfully, false otherwise. |
+
+## unload
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Unloads a resource from the cache.
+
+**Signature:**
+```tl
+unload: function(self: Cache, filename: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the file to unload. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the resource was unloaded successfully, false otherwise. |
+
+## removeUnused
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes all unused resources (not being referenced) of the given type from the cache.
+
+**Signature:**
+```tl
+removeUnused: function(self: Cache, type: ResourceType)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| type | ResourceType | The type of resource to remove. |
+
+## removeUnused
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes all unused resources (not being referenced) from the cache.
+
+**Signature:**
+```tl
+removeUnused: function(self: Cache)
+```

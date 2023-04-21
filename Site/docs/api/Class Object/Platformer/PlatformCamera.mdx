@@ -1,0 +1,35 @@
+import "@site/src/languages/highlight";
+
+# PlatformCamera Class
+
+**Description:**
+
+&emsp;&emsp;A class that defines how to create instances of PlatformCamera.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new instance of PlatformCamera.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: PlatformCameraClass,
+		name?: string --[[""]]
+	): PlatformCamera
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | [optional] The name of the new instance, default is empty string. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| PlatformCamera | The new PlatformCamera instance. |

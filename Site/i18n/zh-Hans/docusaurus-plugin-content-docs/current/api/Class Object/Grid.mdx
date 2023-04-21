@@ -1,0 +1,116 @@
+import "@site/src/languages/highlight";
+
+# Grid的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建网格对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建具有指定纹理矩形和网格大小的新网格。
+
+**签名：**
+```tl
+metamethod __call: function(self: GridClass, textureRect: Rect, gridX: integer, gridY: integer): Grid
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| textureRect | Rect | 用于网格的纹理内的矩形。 |
+| gridX | integer | 网格中列的数量。 |
+| gridY | integer | 网格中行的数量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Grid | 新网格实例。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建具有指定纹理、纹理矩形和网格大小的新网格。
+
+**签名：**
+```tl
+metamethod __call: function(self: GridClass, texture: Texture2D, textureRect: Rect, gridX: integer, gridY: integer): Grid
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| texture | Texture2D | 用于网格的纹理。 |
+| textureRect | Rect | 用于网格的纹理内的矩形。 |
+| gridX | integer | 网格中列的数量。 |
+| gridY | integer | 网格中行的数量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Grid | 新网格实例。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建具有指定纹理和网格大小的新网格。
+
+**签名：**
+```tl
+metamethod __call: function(self: GridClass, texture: Texture2D, gridX: integer, gridY: integer): Grid
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| texture | Texture2D | 用于网格的纹理。 |
+| gridX | integer | 网格中列的数量。 |
+| gridY | integer | 网格中行的数量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Grid | 新网格实例。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建具有指定图片切片字符串和网格大小的新网格。
+
+**签名：**
+```tl
+metamethod __call: function(self: GridClass, clipStr: string, gridX: integer, gridY: integer): Grid
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| clipStr | string | 用于网格渲染的图片切片字符串。可以是 "Image/file.png" 或者 "Image/items.clip|itemA"。 |
+| gridX | integer | 网格中列的数量。 |
+| gridY | integer | 网格中行的数量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Grid | 新网格实例。 |

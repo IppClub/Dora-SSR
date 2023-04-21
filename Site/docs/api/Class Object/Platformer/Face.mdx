@@ -1,0 +1,86 @@
+import "@site/src/languages/highlight";
+
+# Face Class
+
+**Description:**
+
+&emsp;&emsp;A record provides functions of creating instances of the `Face` component with different configurations.
+
+**Usage:**
+```tl
+local Face = require("Face")
+local faceA = Face("Image/file.png")
+local faceB = Face(function()
+	return Sprite("Image/file.png")
+end)
+faceA:toNode():addTo(entry)
+faceB:toNode():addTo(entry)
+```
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new `Face` definition using the specified attributes.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: FaceClass,
+		faceStr: string,
+		point?: Vec2 --[[Vec2.zero]],
+		scale?: number --[[1.0]],
+		angle?: number --[[0.0]]
+	): Face
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| faceStr | string | A string for creating the `Face` component.Could be 'Image/file.png' and 'Image/items.clip|itemA'. |
+| point | Vec2 | [optional] The position of the `Face` component, default is `Vec2.zero`. |
+| scale | number | [optional] The scale of the `Face` component, default is 1.0. |
+| angle | number | [optional] The angle of the `Face` component, default is 0.0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Face | The new `Face` component. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new `Face` definition using the specified attributes.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: FaceClass,
+		createFunc: function(): (Node),
+		point?: Vec2 --[[Vec2.zero]],
+		scale?: number --[[1.0]],
+		angle?: number --[[0.0]]
+	): Face
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| createFunc | function | A function that returns a `Node` representing the `Face` component. |
+| point | Vec2 | [optional] The position of the `Face` component, default is `Vec2.zero`. |
+| scale | number | [optional] The scale of the `Face` component, default is 1.0. |
+| angle | number | [optional] The angle of the `Face` component, default is 0.0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Face | The new `Face` component. |

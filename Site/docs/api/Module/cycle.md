@@ -1,0 +1,19 @@
+import "@site/src/languages/highlight";
+
+# cycle
+
+**Description:**
+
+&emsp;&emsp;A function that keeps another function to run repeatedly for a duration of time.
+
+**Signature:**
+```tl
+cycle: function(duration: number, work: function(time: number))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| duration | number | The duration of the cycle, in seconds. |
+| work | function | A function to execute repeatedly during the cycle. receiving a time value from 0 to 1 to indicate the execution progress. |

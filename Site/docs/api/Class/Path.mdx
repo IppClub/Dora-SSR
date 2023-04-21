@@ -1,0 +1,132 @@
+import "@site/src/languages/highlight";
+
+# Path
+
+**Description:**
+
+&emsp;&emsp;Helper class for file path operations.
+
+## getScriptPath
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets script running path from a module name.
+
+**Signature:**
+```tl
+getScriptPath: function(self: Path, moduleName: string): string
+```
+
+**Usage:**
+```tl
+-- in the script entry file named 'init'
+local scriptPath = Path:getScriptPath(...)
+-- set up the project search paths
+Content:insertSearchPath(1, scriptPath)
+```
+
+## getExt
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;input: /a/b/c.TXT output: txt
+
+**Signature:**
+```tl
+getExt: function(self: Path, path: string): string
+```
+
+## getPath
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;input: /a/b/c.TXT output: /a/b
+
+**Signature:**
+```tl
+getPath: function(self: Path, path: string): string
+```
+
+## getName
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;input: /a/b/c.TXT output: c
+
+**Signature:**
+```tl
+getName: function(self: Path, path: string): string
+```
+
+## getFilename
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;input: /a/b/c.TXT output: c.TXT
+
+**Signature:**
+```tl
+getFilename: function(self: Path, path: string): string
+```
+
+## getRelative
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;input: /a/b/c.TXT, /a output: b/c.TXT
+
+**Signature:**
+```tl
+getRelative: function(self: Path, path: string, base: string): string
+```
+
+## replaceExt
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;input: /a/b/c.TXT, lua output: /a/b/c.lua
+
+**Signature:**
+```tl
+replaceExt: function(self: Path, path: string, newExt: string): string
+```
+
+## replaceFilename
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;input: /a/b/c.TXT, d output: /a/b/d.TXT
+
+**Signature:**
+```tl
+replaceFilename: function(self: Path, path: string, newFile: string): string
+```
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;input: a, b, c.TXT output: a/b/c.TXT
+
+**Signature:**
+```tl
+metamethod __call: function(self: Path, ...: string): string
+```

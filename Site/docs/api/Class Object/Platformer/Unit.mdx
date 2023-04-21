@@ -1,0 +1,82 @@
+import "@site/src/languages/highlight";
+
+# Unit Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating instances of Unit.
+
+## GroundSensorTag
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The tag for the "GroundSensor" attached to each "Unit".
+
+**Signature:**
+```tl
+const GroundSensorTag: integer
+```
+
+## DetectSensorTag
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The tag for the "DetectSensor" attached to each "Unit".
+
+**Signature:**
+```tl
+const DetectSensorTag: integer
+```
+
+## AttackSensorTag
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The tag for the "AttackSensor" attached to each "Unit".
+
+**Signature:**
+```tl
+const AttackSensorTag: integer
+```
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod that creates a new "Unit" object.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: UnitClass,
+		unitDef: Dictionary,
+		physicsworld: PhysicsWorld,
+		entity: Entity,
+		pos: Vec2,
+		rot?: number --[[0.0]]
+	): Unit
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| unitDef | Dictionary | A "Dictionary" object that defines the properties and behavior of the "Unit". |
+| physicsworld | PhysicsWorld | A "PhysicsWorld" object that represents the physics simulation world. |
+| entity | Entity | An "Entity" object that represents the "Unit" in ECS system. |
+| pos | Vec2 | A "Vec2" object that specifies the initial position of the "Unit". |
+| rot | number | [optional] An optional number that specifies the initial rotation of the "Unit" (default is 0.0). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Unit | The newly created "Unit" object. |

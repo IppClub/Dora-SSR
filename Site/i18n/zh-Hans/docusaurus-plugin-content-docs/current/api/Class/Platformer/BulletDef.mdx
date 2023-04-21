@@ -1,0 +1,165 @@
+import "@site/src/languages/highlight";
+
+# BulletDef
+
+**描述：**
+
+&emsp;&emsp;用于定义游戏中子弹对象的属性和行为的类。
+
+**继承自：** Object。
+
+## tag
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;子弹对象的标签。
+
+**签名：**
+```tl
+tag: string
+```
+
+## endEffect
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;当子弹对象生命周期结束时播放的特效。
+
+**签名：**
+```tl
+endEffect: string
+```
+
+## lifeTime
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;子弹对象保持活动的时间（以秒为单位）。
+
+**签名：**
+```tl
+lifeTime: number
+```
+
+## damageRadius
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;子弹对象伤害区域的半径。
+
+**签名：**
+```tl
+damageRadius: number
+```
+
+## highSpeedFix
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否应该增加高速度子弹类型的碰撞检测处理。
+
+**签名：**
+```tl
+highSpeedFix: boolean
+```
+
+## gravity
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;应用于子弹对象的重力向量。
+
+**签名：**
+```tl
+gravity: Vec2
+```
+
+## face
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;子弹对象上挂载的可视化元素的定义。
+
+**签名：**
+```tl
+face: Face
+```
+
+## bodyDef
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;子弹对象的物理体定义。
+
+**签名：**
+```tl
+const bodyDef: BodyDef
+```
+
+## velocity
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;子弹对象的速度向量。
+
+**签名：**
+```tl
+const velocity: Vec2
+```
+
+## setAsCircle
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将子弹对象的物理体设置为圆形。
+
+**签名：**
+```tl
+setAsCircle: function(self: BulletDef, radius: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| radius | number | 圆的半径。 |
+
+## setVelocity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置子弹对象的速度。
+
+**签名：**
+```tl
+setVelocity: function(self: BulletDef, angle: number, speed: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| angle | number | 速度的角度，以度为单位。 |
+| speed | number | 速度的大小。 |

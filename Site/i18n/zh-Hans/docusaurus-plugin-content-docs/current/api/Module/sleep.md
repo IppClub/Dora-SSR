@@ -1,0 +1,18 @@
+import "@site/src/languages/highlight";
+
+# sleep
+
+**描述：**
+
+&emsp;&emsp;在指定的时间内暂停一个协程任务。
+
+**签名：**
+```tl
+sleep: function(duration?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| duration | number | [可选] 暂停的持续时间，以秒为单位。如果为nil，则协程将只会暂停一个游戏帧。 |

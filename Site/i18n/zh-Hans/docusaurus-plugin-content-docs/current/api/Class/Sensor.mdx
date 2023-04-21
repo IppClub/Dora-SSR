@@ -1,0 +1,99 @@
+import "@site/src/languages/highlight";
+
+# Sensor
+
+**描述：**
+
+&emsp;&emsp;表示游戏世界中物理感应器对象的类。
+
+**继承自：** Object。
+
+## enabled
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;感应器当前是否启用。
+
+**签名：**
+```tl
+enabled: boolean
+```
+
+## tag
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;感应器的标签编号。
+
+**签名：**
+```tl
+const tag: integer
+```
+
+## owner
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;拥有该感应器的物理体对象。
+
+**签名：**
+```tl
+const owner: Body
+```
+
+## sensed
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;感应器当前是否感应到游戏世界中的任何其它物理体对象。
+
+**签名：**
+```tl
+const sensed: boolean
+```
+
+## sensedBodies
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;被感应到的物理体对象列表。
+
+**签名：**
+```tl
+const sensedBodies: Array
+```
+
+## contains
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;感应器当前是否感应到指定的物理体对象。
+
+**签名：**
+```tl
+contains: function(self: Sensor, body: Body): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body | Body | 要检查是否正在被感应的物理体对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果感应器正在感应到物理体对象，则返回true，否则返回false。 |

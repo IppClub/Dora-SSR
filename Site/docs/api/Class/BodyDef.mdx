@@ -1,0 +1,473 @@
+import "@site/src/languages/highlight";
+
+# BodyDef
+
+**Description:**
+
+&emsp;&emsp;A record called "BodyDef" to describe the properties of a physics body.
+
+**Inherits from:** Object.
+
+## BodyDef.BodyType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;An enumeration for the different types of bodies.
+
+**Signature:**
+```tl
+enum BodyType
+
+	-- A body that does not move.
+	"Static"
+
+	-- A body that can move and be affected by forces.
+	"Dynamic"
+
+	-- A body that can move but is not affected by forces.
+	"Kinematic"
+end
+```
+
+## type
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Define for the type of the body.
+
+**Signature:**
+```tl
+type: BodyType
+```
+
+## position
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Define for the position of the body.
+
+**Signature:**
+```tl
+position: Vec2
+```
+
+## angle
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Define for the angle of the body.
+
+**Signature:**
+```tl
+angle: number
+```
+
+## face
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Define for the face image or other items accepted by creating `Face` for the body.
+
+**Signature:**
+```tl
+face: string
+```
+
+## facePos
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Define for the face position of the body.
+
+**Signature:**
+```tl
+facePos: Vec2
+```
+
+## linearDamping
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Define for linear damping of the body.
+
+**Signature:**
+```tl
+linearDamping: number
+```
+
+## angularDamping
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Define for angular damping of the body.
+
+**Signature:**
+```tl
+angularDamping: number
+```
+
+## linearAcceleration
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Define for initial linear acceleration of the body.
+
+**Signature:**
+```tl
+linearAcceleration: Vec2
+```
+
+## fixedRotation
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the body's rotation is fixed or not.
+
+**Signature:**
+```tl
+fixedRotation: boolean
+```
+
+## bullet
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the body is a bullet or not.
+Set to true to add extra bullet movement check for the body.
+
+**Signature:**
+```tl
+bullet: boolean
+```
+
+## attachPolygon
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a polygon fixture definition to the body.
+
+**Signature:**
+```tl
+attachPolygon: function(self: BodyDef,
+		center: Vec2,
+		width: number,
+		height: number,
+		angle?: number --[[0.0]],
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| center | Vec2 | The center point of the polygon. |
+| width | number | The width of the polygon. |
+| height | number | The height of the polygon. |
+| angle | number | [optional] The angle of the polygon (default is 0.0). |
+| density | number | [optional] The density of the polygon (default is 0.0). |
+| friction | number | [optional] The friction of the polygon (default is 0.4, should be 0 to 1.0). |
+| restitution | number | [optional] The restitution of the polygon (default is 0.0, should be 0 to 1.0). |
+
+## attachPolygon
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a polygon fixture definition to the body.
+
+**Signature:**
+```tl
+attachPolygon: function(self: BodyDef,
+		width: number,
+		height: number,
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| width | number | The width of the polygon. |
+| height | number | The height of the polygon. |
+| density | number | [optional] The density of the polygon (default is 0.0). |
+| friction | number | [optional] The friction of the polygon (default is 0.4, should be 0 to 1.0). |
+| restitution | number | [optional] The restitution of the polygon (default is 0.0, should be 0 to 1.0). |
+
+## attachPolygon
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a polygon fixture definition to the body.
+
+**Signature:**
+```tl
+attachPolygon: function(self: BodyDef,
+		vertices: {Vec2},
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertices | {Vec2} | The vertices of the polygon. |
+| density | number | [optional] The density of the polygon (default is 0.0). |
+| friction | number | [optional] The friction of the polygon (default is 0.4, should be 0 to 1.0). |
+| restitution | number | [optional] The restitution of the polygon (default is 0.0, should be 0 to 1.0). |
+
+## attachMulti
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a concave shape definition made of multiple convex shapes to the body.
+
+**Signature:**
+```tl
+attachMulti: function(self: BodyDef,
+		vertices: {Vec2},
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertices | {Vec2} | A table containing the vertices of each convex shape that makes up the concave shape.Each convex shape in the vertices table should ends with a Vec2(0.0, 0.0) as seperator. |
+| density | number | [optional] The density of the concave shape (default is 0.0). |
+| friction | number | [optional] The friction of the concave shape (default is 0.4, should be 0 to 1.0). |
+| restitution | number | [optional] The restitution of the concave shape (default is 0.0, should be 0 to 1.0). |
+
+## attachDisk
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a disk fixture definition to the body.
+
+**Signature:**
+```tl
+attachDisk: function(self: BodyDef,
+		center: Vec2,
+		radius: number,
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| center | Vec2 | The center point of the disk. |
+| radius | number | The radius of the disk. |
+| density | number | [optional] The density of the disk (default is 0.0). |
+| friction | number | [optional] The friction of the disk (default is 0.4, should be 0 to 1.0). |
+| restitution | number | [optional] The restitution of the disk (default is 0.0, should be 0 to 1.0). |
+
+## attachDisk
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a disk fixture to the body.
+
+**Signature:**
+```tl
+attachDisk: function(self: BodyDef,
+		radius: number,
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| radius | number | The radius of the disk. |
+| density | number | [optional] The density of the disk (default is 0.0). |
+| friction | number | [optional] The friction of the disk (default is 0.4). |
+| restitution | number | [optional] The restitution of the disk (default is 0.0). |
+
+## attachChain
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a chain fixture definition to the body. The Chain fixture is a free form sequence of line segments that has two-sided collision.
+
+**Signature:**
+```tl
+attachChain: function(self: BodyDef,
+		vertices: {Vec2},
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]])
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertices | {Vec2} | The vertices of the chain. |
+| friction | number | [optional] The friction of the chain (default is 0.4). |
+| restitution | number | [optional] The restitution of the chain (default is 0.0). |
+
+## attachPolygonSensor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a polygon sensor fixture definition to the body.
+
+**Signature:**
+```tl
+attachPolygonSensor: function(self: BodyDef,
+		tag: integer,
+		width: number,
+		height: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tag | number | An integer tag for the sensor. |
+| width | number | The width of the polygon. |
+| height | number | The height of the polygon. |
+
+## attachPolygonSensor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a polygon sensor fixture definition to the body.
+
+**Signature:**
+```tl
+attachPolygonSensor: function(self: BodyDef,
+		tag: integer,
+		center: Vec2,
+		width: number,
+		height: number,
+		angle?: number --[[0.0]])
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tag | number | An integer tag for the sensor. |
+| center | Vec2 | The center point of the polygon. |
+| width | number | The width of the polygon. |
+| height | number | The height of the polygon. |
+| angle | number | [optional] The angle of the polygon (default is 0.0). |
+
+## attachPolygonSensor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a polygon sensor fixture definition to the body.
+
+**Signature:**
+```tl
+attachPolygonSensor: function(self: BodyDef,
+		tag: integer,
+		vertices: {Vec2})
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tag | number | An integer tag for the sensor. |
+| vertices | {Vec2} | A table containing the vertices of the polygon. |
+
+## attachDiskSensor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a disk sensor fixture definition to the body.
+
+**Signature:**
+```tl
+attachDiskSensor: function(self: BodyDef,
+		tag: integer,
+		center: Vec2,
+		radius: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tag | number | An integer tag for the sensor. |
+| center | Vec2 | The center of the disk. |
+| radius | number | The radius of the disk. |
+
+## attachDiskSensor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a disk sensor fixture to the body.
+
+**Signature:**
+```tl
+attachDiskSensor: function(self: BodyDef,
+		tag: integer,
+		radius: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tag | number | An integer tag for the sensor. |
+| radius | number | The radius of the disk. |

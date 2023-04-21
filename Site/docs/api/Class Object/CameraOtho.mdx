@@ -1,0 +1,35 @@
+import "@site/src/languages/highlight";
+
+# CameraOtho Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating CameraOtho objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new CameraOtho object with the given name.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: CameraOthoClass,
+		name?: string --[[""]]
+	): CameraOtho
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the CameraOtho object. Defaults to an empty string. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| CameraOtho | A new instance of the CameraOtho object. |

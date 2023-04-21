@@ -1,0 +1,19 @@
+import "@site/src/languages/highlight";
+
+# emit
+
+**Description:**
+
+&emsp;&emsp;Emits a global event with the given name and arguments to all listeners registered by node:gslot() function.
+
+**Signature:**
+```tl
+emit: function(eventName: string, ...: any)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| eventName | string | The name of the event to emit. |
+| ... | ...any | The data to pass to the global event listeners. |

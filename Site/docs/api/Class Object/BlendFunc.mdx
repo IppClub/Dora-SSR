@@ -1,0 +1,144 @@
+import "@site/src/languages/highlight";
+
+# BlendFunc Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating BlendFunc objects.
+
+## BlendFunc.Func
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;An enum defining blend functions.
+
+**Signature:**
+```tl
+enum Func
+
+	-- The source color is multiplied by 1 and added to the destination color (essentially, the source color is drawn on top of the destination color).
+	"One"
+
+	-- The source color is multiplied by 0 and added to the destination color (essentially, the source color has no effect on the destination color).
+	"Zero"
+
+	-- The source color is multiplied by the source alpha, and added to the destination color multiplied by the inverse of the source alpha.
+	"SrcColor"
+
+	-- The source alpha is multiplied by the source color, and added to the destination alpha multiplied by the inverse of the source alpha.
+	"SrcAlpha"
+
+	-- The destination color is multiplied by the destination alpha, and added to the source color multiplied by the inverse of the destination alpha.
+	"DstColor"
+
+	-- The destination alpha is multiplied by the source alpha, and added to the source alpha multiplied by the inverse of the destination alpha.
+	"DstAlpha"
+
+	-- Same as "SrcColor", but with the source and destination colors swapped.
+	"InvSrcColor"
+
+	-- Same as "SrcAlpha", but with the source and destination alphas swapped.
+	"InvSrcAlpha"
+
+	-- Same as "DstColor", but with the source and destination colors swapped.
+	"InvDstColor"
+
+	-- Same as "DstAlpha", but with the source and destination alphas swapped.
+	"InvDstAlpha"
+end
+```
+
+## get
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the integer value of a blend function.
+
+**Signature:**
+```tl
+get: function(self: BlendFuncClass, func: Func): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | Func | The blend function to get the value of. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The integer value of the specified blend function. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new BlendFunc instance with the specified source and destination factors.
+
+**Signature:**
+```tl
+metamethod __call: function(self: BlendFuncClass, src: Func, dst: Func): BlendFunc
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| src | Func | The source blend factor. |
+| dst | Func | The destination blend factor. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| BlendFunc | The new BlendFunc instance. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new BlendFunc instance with the specified source and destination factors for color and alpha channels.
+
+**Signature:**
+```tl
+metamethod __call: function(self: BlendFuncClass, srcColor: Func, dstColor: Func, srcAlpha: Func, dstAlpha: Func): BlendFunc
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| srcColor | Func | The source blend factor for the color channel. |
+| dstColor | Func | The destination blend factor for the color channel. |
+| srcAlpha | Func | The source blend factor for the alpha channel. |
+| dstAlpha | Func | The destination blend factor for the alpha channel. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| BlendFunc | The new BlendFunc instance. |
+
+## default
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The default blend function.
+Equals to BlendFunc("SrcAlpha", "InvSrcAlpha", "One", "InvSrcAlpha")
+
+**Signature:**
+```tl
+const default: BlendFunc
+```

@@ -1,0 +1,48 @@
+import "@site/src/languages/highlight";
+
+# Particle
+
+**描述：**
+
+&emsp;&emsp;用于发射动画粒子的粒子系统场景节点类。
+
+**继承自：** Node。
+
+## active
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;粒子系统是否处于活动状态。
+
+**签名：**
+```tl
+const active: boolean
+```
+
+## start
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;开始发射粒子。
+
+**签名：**
+```tl
+start: function(self: Particle)
+```
+
+## stop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止发射粒子，并等待所有活动粒子结束它们的生命周期。
+
+**签名：**
+```tl
+stop: function(self: Particle)
+```

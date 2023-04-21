@@ -1,0 +1,33 @@
+import "@site/src/languages/highlight";
+
+# Pass Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating Pass objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod that allows you to create a new Pass object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: PassClass, vertShader: string, fragShader: string): Pass
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertShader | string | The vertex shader in binary form file string. |
+| fragShader | string | The fragment shader file string.A shader file string must be one of the formats:	"builtin:" + theBuiltinShaderName	"Shader/compiled_shader_file.bin" |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Pass | A new Pass object. |

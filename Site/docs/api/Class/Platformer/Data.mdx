@@ -1,0 +1,506 @@
+import "@site/src/languages/highlight";
+
+# Data
+
+**Description:**
+
+&emsp;&emsp;A singleton object that provides a centralized location for storing and accessing game-related data.
+
+## Data.Relation
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;An enum representing the possible relations between two groups.
+
+**Signature:**
+```tl
+enum Relation
+	"Enemy"
+	"Friend"
+	"Neutral"
+	"Unknown"
+	"Any"
+end
+```
+
+## groupFirstPlayer
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A group key representing the first index for a player group.
+
+**Signature:**
+```tl
+const groupFirstPlayer: integer
+```
+
+## groupLastPlayer
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A group key representing the last index for a player group.
+
+**Signature:**
+```tl
+const groupLastPlayer: integer
+```
+
+## groupHide
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A group key that won't have any contact with other groups by default.
+
+**Signature:**
+```tl
+const groupHide: integer
+```
+
+## groupDetectPlayer
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A group key that will have contacts with player groups by default.
+
+**Signature:**
+```tl
+const groupDetectPlayer: integer
+```
+
+## groupTerrain
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A group key representing terrain that will have contacts with other groups by default.
+
+**Signature:**
+```tl
+const groupTerrain: integer
+```
+
+## groupDetection
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A group key that will have contacts with other groups by default.
+
+**Signature:**
+```tl
+const groupDetection: integer
+```
+
+## store
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A dictionary that can be used to store arbitrary data associated with string keys and various values globally.
+
+**Signature:**
+```tl
+const store: Dictionary
+```
+
+## setShouldContact
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that can be used to set a boolean value indicating whether two groups should be in contact or not.
+
+**Signature:**
+```tl
+setShouldContact: function(self: Data, groupA: integer, groupB: integer, contact: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| groupA | integer | An integer representing the first group. |
+| groupB | integer | An integer representing the second group. |
+| contact | boolean | A boolean indicating whether the two groups should be in contact. |
+
+## getShouldContact
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that can be used to get a boolean value indicating whether two groups should be in contact or not.
+
+**Signature:**
+```tl
+getShouldContact: function(self: Data, groupA: integer, groupB: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| groupA | integer | An integer representing the first group. |
+| groupB | integer | An integer representing the second group. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the two groups should be in contact. |
+
+## setRelation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that can be used to set the relation between two groups.
+
+**Signature:**
+```tl
+setRelation: function(self: Data, groupA: integer, groupB: integer, relation: Relation)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| groupA | integer | An integer representing the first group. |
+| groupB | integer | An integer representing the second group. |
+| relation | Relation | The relation between the two groups. |
+
+## getRelation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that can be used to get the relation between two groups.
+
+**Signature:**
+```tl
+getRelation: function(self: Data, groupA: integer, groupB: integer): Relation
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| groupA | integer | An integer representing the first group. |
+| groupB | integer | An integer representing the second group. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Relation | The relation between the two groups. |
+
+## getRelation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that can be used to get the relation between two bodies.
+
+**Signature:**
+```tl
+getRelation: function(self: Data, bodyA: Body, bodyB: Body): Relation
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| bodyA | Body | The first body. |
+| bodyB | Body | The second body. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Relation | The relation between the two bodies. |
+
+## isEnemy
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that returns whether two groups have an "Enemy" relation.
+
+**Signature:**
+```tl
+isEnemy: function(self: Data, groupA: integer, groupB: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| groupA | integer | An integer representing the first group. |
+| groupB | integer | An integer representing the second group. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the two groups have an "Enemy" relation. |
+
+## isEnemy
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that returns whether two bodies have an "Enemy" relation.
+
+**Signature:**
+```tl
+isEnemy: function(self: Data, bodyA: Body, bodyB: Body): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| bodyA | Body | The first body. |
+| bodyB | Body | The second body. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the two bodies have an "Enemy" relation. |
+
+## isFriend
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that returns whether two groups have a "Friend" relation.
+
+**Signature:**
+```tl
+isFriend: function(self: Data, groupA: integer, groupB: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| groupA | integer | An integer representing the first group. |
+| groupB | integer | An integer representing the second group. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the two groups have a "Friend" relation. |
+
+## isFriend
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that returns whether two bodies have a "Friend" relation.
+
+**Signature:**
+```tl
+isFriend: function(self: Data, bodyA: Body, bodyB: Body): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| bodyA | Body | The first body. |
+| bodyB | Body | The second body. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the two bodies have a "Friend" relation. |
+
+## isNeutral
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that returns whether two groups have a "Neutral" relation.
+
+**Signature:**
+```tl
+isNeutral: function(self: Data, groupA: integer, groupB: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| groupA | integer | An integer representing the first group. |
+| groupB | integer | An integer representing the second group. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the two groups have a "Neutral" relation. |
+
+## isNeutral
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that returns whether two bodies have a "Neutral" relation.
+
+**Signature:**
+```tl
+isNeutral: function(self: Data, bodyA: Body, bodyB: Body): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| bodyA | Body | The first body. |
+| bodyB | Body | The second body. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the two bodies have a "Neutral" relation. |
+
+## setDamageFactor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that sets the bonus factor for a particular type of damage against a particular type of defence. The builtin "MeleeAttack" and "RangeAttack" actions are using simple formular of `finalDamage = damage * bonus`.
+
+**Signature:**
+```tl
+setDamageFactor: function(self: Data, damageType: integer, defenceType: integer, bounus: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| damageType | integer | An integer representing the type of damage. |
+| defenceType | integer | An integer representing the type of defence. |
+| bonus | number | A number representing the bonus. |
+
+## getDamageFactor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that gets the bonus factor for a particular type of damage against a particular type of defence.
+
+**Signature:**
+```tl
+getDamageFactor: function(self: Data, damageType: integer, defenceType: integer): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| damageType | integer | An integer representing the type of damage. |
+| defenceType | integer | An integer representing the type of defence. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | A number representing the bonus factor. |
+
+## isPlayer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that returns whether a body is a player or not.
+This works the same as `Data.groupFirstPlayer <= body.group and body.group <= Data.groupLastPlayer`.
+
+**Signature:**
+```tl
+isPlayer: function(self: Data, body: Body): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body | Body | The body to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the body is a player. |
+
+## isTerrain
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that returns whether a body is terrain or not.
+This works the same as `body.group == Data.groupTerrain`.
+
+**Signature:**
+```tl
+isTerrain: function(self: Data, body: Body): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body | Body | The body to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the body is terrain. |
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that clears all data stored in the "Data" object, including user data in Data.store field.
+And reset some data to default values.
+
+**Signature:**
+```tl
+clear: function(self: Data)
+```

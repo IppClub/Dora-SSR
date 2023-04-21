@@ -1,0 +1,122 @@
+import "@site/src/languages/highlight";
+
+# tolua
+
+**描述：**
+
+&emsp;&emsp;提供了用于 C++ 和 Lua 之间进行对象转换和处理的工具类。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回一个 Lua 对象的 C++ 对象类型名称。
+
+**签名：**
+```tl
+type: function(item: any): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| item | any | 要获取类型的 Lua 对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | C++ 对象类型名称。 |
+
+## cast
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;尝试将 Lua 对象动态转换为特定的 C++ 类型对象。
+
+**签名：**
+```tl
+cast: function<T>(item: ContainerItem, name: string): T | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| item | ContainerItem | 要转换的 Lua 对象。 |
+| name | string | 要转换为的 C++ 类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| T|nil | 转换后的对象，如果转换失败则返回 `nil`。 |
+
+## class
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取给定类名的类对象。
+
+**签名：**
+```tl
+class: function(className: string): table | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| className | string | 要获取的类对象的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| table|nil | 获取的类对象，如果类不存在则返回 `nil`。 |
+
+## setpeer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;为一个C++对象设置关联表。关联表是一个被 Lua userdata 引用的表，可以为该 userdata 对象提供用户自定义的字段。
+
+**签名：**
+```tl
+setpeer: function(obj: Object, data: table)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| obj | Object | 要设置关联表的C++对象。 |
+| data | table | 用作关联表的表。 |
+
+## getpeer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取一个C++对象上设置的关联表。关联表是一个被 Lua userdata 引用的表，可以为该 userdata 对象提供用户自定义的字段。
+
+**签名：**
+```tl
+getpeer: function(obj: Object): table
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| obj | Object | 要获取关联表的C++对象。 |

@@ -1,0 +1,125 @@
+import "@site/src/languages/highlight";
+
+# Action
+
+**Description:**
+
+&emsp;&emsp;Represents an action that can be run on a node.
+
+**Inherits from:** Object.
+
+## duration
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The duration of the action.
+
+**Signature:**
+```tl
+const duration: number
+```
+
+## running
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the action is currently running.
+
+**Signature:**
+```tl
+const running: boolean
+```
+
+## paused
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the action is currently paused.
+
+**Signature:**
+```tl
+const paused: boolean
+```
+
+## reversed
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the action should be run in reverse.
+
+**Signature:**
+```tl
+reversed: boolean
+```
+
+## speed
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The speed at which the action should be run.
+Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
+
+**Signature:**
+```tl
+speed: number
+```
+
+## pause
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Pauses the action.
+
+**Signature:**
+```tl
+pause: function(self: Action)
+```
+
+## resume
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Resumes the action.
+
+**Signature:**
+```tl
+resume: function(self: Action)
+```
+
+## updateTo
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Updates the state of the Action.
+
+**Signature:**
+```tl
+updateTo: function(
+		self: Action,
+		eclapsed: number,
+		reversed?: boolean --[[false]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| elapsed | number | The amount of time in seconds that has elapsed to update action to. |
+| reversed | boolean | Whether or not to update the Action in reverse (default is false). |

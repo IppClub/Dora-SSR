@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# Opacity
+
+**描述：**
+
+&emsp;&emsp;创建一个动作定义，用于将节点的不透明度从一个值变动到另一个值。
+
+**签名：**
+```tl
+Opacity: function(
+		duration: number,
+		from: number,
+		to: number,
+		easing?: Ease.EaseFunc --[[Ease.Linear]]
+	): ActionDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| duration | number | 动作持续时间（以秒为单位）。 |
+| from | number | 节点的起始不透明度值（0-255）。 |
+| to | number | 节点的结束不透明度值（0-255）。 |
+| easing | EaseFunc | [可选] 用于动作的缓动函数。如果未指定，默认为Ease.Linear。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ActionDef | 一个动作定义对象，可用于在节点上执行动作。 |

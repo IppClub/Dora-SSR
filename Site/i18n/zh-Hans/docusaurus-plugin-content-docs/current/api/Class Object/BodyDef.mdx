@@ -1,0 +1,258 @@
+import "@site/src/languages/highlight";
+
+# BodyDef的类对象
+
+**描述：**
+
+&emsp;&emsp;A class for creating BodyDef and FixtureDef.
+
+## polygon
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建多边形形状的混合物的定义。
+
+**签名：**
+```tl
+polygon: function(self: BodyDefClass,
+		width: number,
+		height: number,
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| width | number | 多边形的宽度。 |
+| height | number | 多边形的高度。 |
+| density | number | [可选] 多边形的密度（默认为 0.0）。 |
+| friction | number | [可选] 多边形的摩擦力（默认为 0.4，应为 0.0 到 1.0）。 |
+| restitution | number | [可选] 多边形的恢复力（默认为 0.0，应为 0.0 到 1.0）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FixtureDef | 用于创建多边形混合物的定义对象。 |
+
+## polygon
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用指定的中心位置创建一个多边形混合物的定义。
+
+**签名：**
+```tl
+polygon: function(self: BodyDefClass,
+		center: Vec2,
+		width: number,
+		height: number,
+		angle?: number --[[0.0]],
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| center | Vec2 | 多边形的中心位置。 |
+| width | number | 多边形的宽度。 |
+| height | number | 多边形的高度。 |
+| angle | number | [可选] 多边形的旋转角度，弧度制（默认为 0.0）。 |
+| density | number | [可选] 多边形的密度（默认为 0.0）。 |
+| friction | number | [可选] 多边形的摩擦力（默认为 0.4，应为 0.0 到 1.0）。 |
+| restitution | number | [可选] 多边形的恢复力（默认为 0.0，应为 0.0 到 1.0）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FixtureDef | 用于创建多边形混合物的定义对象。 |
+
+## polygon
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用指定的顶点创建一个多边形混合物的定义。
+
+**签名：**
+```tl
+polygon: function(self: BodyDefClass,
+		vertices: {Vec2},
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertices | {Vec2} | 包含多边形顶点的表格。 |
+| density | number | [可选] 多边形的密度（默认为 0.0）。 |
+| friction | number | [可选] 多边形的摩擦力（默认为 0.4，应为 0.0 到 1.0）。 |
+| restitution | number | [可选] 多边形的恢复力（默认为 0.0，应为 0.0 到 1.0）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FixtureDef | 用于创建多边形混合物的定义对象。 |
+
+## multi
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建由多个凸多边形组成的凹多边形混合物的定义。
+
+**签名：**
+```tl
+multi: function(self: BodyDefClass,
+		vertices: {Vec2},
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertices | {Vec2} | 包含构成凹多边形的每个凸多边形的顶点的列表。列表中的每个凸多边形都应以Vec2(0.0, 0.0)结尾作为分隔。 |
+| density | number | [可选] 凹多边形的密度（默认值为0.0）。 |
+| friction | number | [可选] 凹多边形的摩擦系数（默认值为0.4，应在0到1.0之间）。 |
+| restitution | number | [可选] 凹多边形的弹性系数（默认值为0.0，应在0到1.0之间）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FixtureDef | 用于创建凹多边形混合物的定义对象。 |
+
+## disk
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个圆盘形混合物的定义。
+
+**签名：**
+```tl
+disk: function(self: BodyDefClass,
+		center: Vec2,
+		radius: number,
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| center | Vec2 | 圆盘中心的坐标。 |
+| radius | number | 圆盘的半径。 |
+| density | number | [可选] 圆盘的密度（默认为0.0）。 |
+| friction | number | [可选] 圆盘的摩擦系数（默认为0.4，应在0.0到1.0之间）。 |
+| restitution | number | [可选] 圆盘的弹性系数（默认为0.0，应在0.0到1.0之间）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FixtureDef | 用于创建圆盘形混合物的定义对象。 |
+
+## disk
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个圆盘形混合物的定义。
+
+**签名：**
+```tl
+disk: function(self: BodyDefClass,
+		radius: number,
+		density?: number --[[0.0]],
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| radius | number | 圆盘的半径。 |
+| density | number | [可选] 圆盘的密度（默认为0.0）。 |
+| friction | number | [可选] 圆盘的摩擦系数（默认为0.4，应在0.0到1.0之间）。 |
+| restitution | number | [可选] 圆盘的弹性系数（默认为0.0，应在0.0到1.0之间）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FixtureDef | 用于创建圆盘形混合物的定义对象。 |
+
+## chain
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个链条形状混合物的定义。链条形状是一组连续的线段，线段的两边都能触发碰撞。
+
+**签名：**
+```tl
+chain: function(self: BodyDefClass,
+		vertices: {Vec2},
+		friction?: number --[[0.4]],
+		restitution?: number --[[0.0]]): FixtureDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertices | {Vec2} | 链条的顶点。 |
+| friction | number | [可选] 链条的摩擦系数（默认值为0.4）。 |
+| restitution | number | [可选] 链条的弹性系数（默认值为0.0）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FixtureDef | 用于创建链条形混合物的定义对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的物理体定义的实例。
+
+**签名：**
+```tl
+metamethod __call: function(self: BodyDefClass): BodyDef
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| BodyDef | 新的物理体定义。 |

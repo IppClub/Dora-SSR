@@ -1,0 +1,110 @@
+import "@site/src/languages/highlight";
+
+# Color
+
+**Description:**
+
+&emsp;&emsp;A color with red, green, blue, and alpha channels.
+
+## r
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The red channel of the color, should be 0 to 255.
+
+**Signature:**
+```tl
+r: integer
+```
+
+## g
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The green channel of the color, should be 0 to 255.
+
+**Signature:**
+```tl
+g: integer
+```
+
+## b
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The blue channel of the color, should be 0 to 255.
+
+**Signature:**
+```tl
+b: integer
+```
+
+## a
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The alpha channel of the color, should be 0 to 255.
+
+**Signature:**
+```tl
+a: integer
+```
+
+## opacity
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Another representation for alpha channel. The opacity of the color, ranging from 0 to 1.
+
+**Signature:**
+```tl
+opacity: number
+```
+
+## toColor3
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts the color to a Color3 value without alpha channel.
+
+**Signature:**
+```tl
+toColor3: function(self: Color): Color3
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Color3 | Converted Color3 value. |
+
+## toARGB
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts the color to an ARGB integer value.
+
+**Signature:**
+```tl
+toARGB: function(self: Color): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | Converted ARGB integer. |

@@ -1,0 +1,108 @@
+import "@site/src/languages/highlight";
+
+# Spine的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建`Spine`动画模型实例的类。
+
+## getLooks
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回`Spine2D`动画模型文件的可用的外观列表。
+
+**签名：**
+```tl
+getLooks: function(self: SpineClass, spineStr: string): {string}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| boneStr | string | 要获取外观的`Spine2D`文件名字符串。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| {string} | 包含可用外观的字符串列表。 |
+
+## getAnimations
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回`Spine2D`动画模型文件的可用的动画列表。
+
+**签名：**
+```tl
+getAnimations: function(self: SpineClass, spineStr: string): {string}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| boneStr | string | 要获取动画的`Spine2D`文件名字符串。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| {string} | 包含可用动画的字符串列表。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用指定的`Spine2D`字符串创建`Spine`的新实例。
+
+**签名：**
+```tl
+metamethod __call: function(self: SpineClass, spineStr: string): Spine
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| spineStr | string | 用于创建新实例的`Spine2D`文件名字符串。`Spine2D`文件名字符串可以是不带扩展名的文件路径，例如：“Spine/item”，也可以是带有所有相关文件的文件路径，例如 “Spine/item.skel|Spine/item.atlas” 或 “Spine/item.json|Spine/item.atlas”。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Spine | `Spine`的新实例。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用指定的骨架文件和图集文件创建`Spine`的新实例。
+
+**签名：**
+```tl
+metamethod __call: function(self: SpineClass, skelFile: string, atlasFile: string): Spine
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| skelFile | string | 要加载的骨架文件的文件名。 |
+| atlasFile | string | 要加载的图集文件的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Spine | `Spine`的新实例，具有指定的骨架文件和图集文件。 |

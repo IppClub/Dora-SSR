@@ -1,0 +1,67 @@
+import "@site/src/languages/highlight";
+
+# Visual
+
+**描述：**
+
+&emsp;&emsp;代表粒子、帧动画或精灵之类的可视效果对象的类。
+
+**继承自：** Node。
+
+## playing
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否正在播放可视效果。
+
+**签名：**
+```tl
+const playing: boolean
+```
+
+## start
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;开始播放可视效果。
+
+**签名：**
+```tl
+start: function(self: Visual)
+```
+
+## stop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止播放可视效果。
+
+**签名：**
+```tl
+stop: function(self: Visual)
+```
+
+## autoRemove
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当可视效果播放完毕时，自动将其从游戏场景树中移除。
+
+**签名：**
+```tl
+autoRemove: function(self: Visual): Visual
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Visual | 当前的可视效果结点对象，用于方法级连调用。 |

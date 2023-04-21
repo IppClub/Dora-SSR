@@ -1,0 +1,37 @@
+import "@site/src/languages/highlight";
+
+# Bullet Class
+
+**Description:**
+
+&emsp;&emsp;A record type that creates new `Bullet` object instances.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod that creates a new `Bullet` object instance with the specified `BulletDef` and `Unit` objects.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: BulletClass,
+		def: BulletDef,
+		owner: Unit
+	): Bullet
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| def | BulletDef | The `BulletDef` object that defines the bullet's properties and behavior. |
+| owner | Unit | The `Unit` object that fired the bullet. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Bullet | The new `Bullet` object instance. |

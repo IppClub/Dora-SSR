@@ -1,0 +1,96 @@
+import "@site/src/languages/highlight";
+
+# QLearner
+
+**Description:**
+
+&emsp;&emsp;A simple reinforcement learning framework that can be used to learn optimal policies for Markov decision processes using Q-learning. Q-learning is a model-free reinforcement learning algorithm that learns an optimal action-value function from experience by repeatedly updating estimates of the Q-value of state-action pairs.
+
+**Inherits from:** Object.
+
+## matrix
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The matrix that stores state, action, and Q-value.
+
+**Signature:**
+```tl
+const matrix: {{
+		--[[state]] integer,
+		--[[action]] integer,
+		--[[Q-value]] number
+	}}
+```
+
+## update
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Update Q-value for a state-action pair based on received reward.
+
+**Signature:**
+```tl
+update: function(self: QLearner, state: integer, action: integer, reward: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| state | integer | Representing the state. |
+| action | integer | Representing the action. |
+| reward | number | Representing the reward received for the action in the state. |
+
+## getBestAction
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the best action for a given state based on the current Q-values.
+
+**Signature:**
+```tl
+getBestAction: function(self: QLearner, state: integer): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| state | integer | The current state. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The action with the highest Q-value for the given state. |
+
+## load
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Load Q-values from a matrix of state-action pairs.
+
+**Signature:**
+```tl
+load: function(self: QLearner, values: {{
+			--[[state]] integer,
+			--[[action]] integer,
+			--[[Q-value]] number
+		}})
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| values | {
+	(integer | The state.	(integer) The action.	(number) The Q-value for the given state-action pair.}) The matrix of state-action pairs to load. |

@@ -1,0 +1,132 @@
+import "@site/src/languages/highlight";
+
+# Path
+
+**描述：**
+
+&emsp;&emsp;进行系统文件路径操作的类。
+
+## getScriptPath
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从脚本模块名称中获得脚本的文件路径。
+
+**签名：**
+```tl
+getScriptPath: function(self: Path, moduleName: string): string
+```
+
+**用法示例：**
+```tl
+-- 在名字叫'init'的项目脚本程序入口文件中
+local scriptPath = Path:getScriptPath(...)
+-- 设置项目文件搜索路径
+Content:insertSearchPath(1, scriptPath)
+```
+
+## getExt
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;输入: /a/b/c.TXT 输出: txt
+
+**签名：**
+```tl
+getExt: function(self: Path, path: string): string
+```
+
+## getPath
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;输入: /a/b/c.TXT 输出: /a/b
+
+**签名：**
+```tl
+getPath: function(self: Path, path: string): string
+```
+
+## getName
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;输入: /a/b/c.TXT 输出: c
+
+**签名：**
+```tl
+getName: function(self: Path, path: string): string
+```
+
+## getFilename
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;输入: /a/b/c.TXT 输出: c.TXT
+
+**签名：**
+```tl
+getFilename: function(self: Path, path: string): string
+```
+
+## getRelative
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;输入: /a/b/c.TXT, /a 输出: b/c.TXT
+
+**签名：**
+```tl
+getRelative: function(self: Path, path: string, base: string): string
+```
+
+## replaceExt
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;输入: /a/b/c.TXT, lua 输出: /a/b/c.lua
+
+**签名：**
+```tl
+replaceExt: function(self: Path, path: string, newExt: string): string
+```
+
+## replaceFilename
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;输入: /a/b/c.TXT, d 输出: /a/b/d.TXT
+
+**签名：**
+```tl
+replaceFilename: function(self: Path, path: string, newFile: string): string
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;输入: a, b, c.TXT 输出: a/b/c.TXT
+
+**签名：**
+```tl
+metamethod __call: function(self: Path, ...: string): string
+```

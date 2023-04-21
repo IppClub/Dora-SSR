@@ -1,0 +1,33 @@
+import "@site/src/languages/highlight";
+
+# PlatformWorld Class
+
+**Description:**
+
+&emsp;&emsp;A class for instantiating instances of PlatformWorld.
+
+**Usage:**
+```tl
+local PlatformWorld = require("PlatformWorld")
+local world = PlatformWorld()
+world:addTo(entry)
+```
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;The metamethod to create a new instance of PlatformWorld.
+
+**Signature:**
+```tl
+metamethod __call: function(self: PlatformWorldClass): PlatformWorld
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| PlatformWorld | A new instance of PlatformWorld. |

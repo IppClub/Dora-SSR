@@ -1,0 +1,147 @@
+import "@site/src/languages/highlight";
+
+# RenderTarget
+
+**描述：**
+
+&emsp;&emsp;用于将游戏场景节点渲染到一张纹理上的类。
+
+**继承自：** Object。
+
+## width
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;渲染目标的宽度。
+
+**签名：**
+```tl
+const width: integer
+```
+
+## height
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;渲染目标的高度。
+
+**签名：**
+```tl
+const height: integer
+```
+
+## texture
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;渲染目标生成的纹理。
+
+**签名：**
+```tl
+const texture: Texture2D
+```
+
+## camera
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于渲染场景节点的相机。
+
+**签名：**
+```tl
+camera: Camera
+```
+
+## render
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;渲染节点到目标纹理，不清空之前渲染的内容。
+
+**签名：**
+```tl
+render: function(self: RenderTarget, target: Node)
+```
+
+## renderWithClear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;初始化渲染目标纹理上颜色，深度和模板值。
+
+**签名：**
+```tl
+renderWithClear: function(
+		self: RenderTarget,
+		color: Color,
+		depth?: number --[[1]],
+		stencil?: number --[[0]]
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| color | Color | 用于初始化渲染目标的颜色。 |
+| depth | number | [可选] 用于初始化渲染目标的深度缓冲区的值。默认为1。 |
+| stencil | number | [可选] 用于初始化渲染目标的模板缓冲区的值。默认为0。 |
+
+## renderWithClear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;初始化渲染目标纹理之后，再将场景节点渲染到目标纹理。
+
+**签名：**
+```tl
+renderWithClear: function(
+		self: RenderTarget,
+		target: Node,
+		color: Color,
+		depth?: number --[[1]],
+		stencil?: integer --[[0]]
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| target | Node | 要渲染到渲染目标的节点。 |
+| color | Color | 用于初始化渲染目标的颜色。 |
+| depth | number | [可选] 用于初始化渲染目标的深度缓冲区的值。默认为1。 |
+| stencil | number | [可选] 用于初始化渲染目标的模板缓冲区的值。默认为0。 |
+
+## saveAsync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;异步将渲染目标的内容保存成一张PNG文件。
+
+**签名：**
+```tl
+saveAsync: function(self: RenderTarget, filename: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 新生成的PNG文件的名称。 |

@@ -1,0 +1,48 @@
+import "@site/src/languages/highlight";
+
+# Particle
+
+**Description:**
+
+&emsp;&emsp;Represents a particle system node that emits and animates particles.
+
+**Inherits from:** Node.
+
+## active
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the particle system is active.
+
+**Signature:**
+```tl
+const active: boolean
+```
+
+## start
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Starts emitting particles.
+
+**Signature:**
+```tl
+start: function(self: Particle)
+```
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops emitting particles and wait for all active particles to end their lives.
+
+**Signature:**
+```tl
+stop: function(self: Particle)
+```

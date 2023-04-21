@@ -1,0 +1,163 @@
+import "@site/src/languages/highlight";
+
+# Dictionary
+
+**Description:**
+
+&emsp;&emsp;A record type for storing pairs of string keys and various values.
+
+**Inherits from:** Object.
+
+## count
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The number of items in the dictionary.
+
+**Signature:**
+```tl
+const count: integer
+```
+
+## keys
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The keys of the items in the dictionary.
+
+**Signature:**
+```tl
+const keys: {string}
+```
+
+## get
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A method for accessing items in the dictionary.
+
+**Signature:**
+```tl
+get: function(self: Dictionary, key: string): Item
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | The key of the item to retrieve. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Item or nil | The Item with the given key, or nil if it does not exist. |
+
+## set
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A method for setting items in the dictionary.
+
+**Signature:**
+```tl
+set: function(self: Dictionary, key: string, item: Item)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | The key of the item to set. |
+| item | Item | The Item to set for the given key, set to nil to delete this key-value pair. |
+
+## each
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that iterates over each item in the dictionary and calls a given function with the item and its key.
+
+**Signature:**
+```tl
+each: function(self: Dictionary, func: function(Item, string): boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to call for each item in the dictionary.This function should take an Item and a string as arguments and return a boolean. Returns true to stop iteration, false to continue. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Returns false if the iteration completed successfully, true otherwise. |
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that removes all the items from the dictionary.
+
+**Signature:**
+```tl
+clear: function(self: Dictionary)
+```
+
+## __index
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod that allows accessing items in the dictionary using the index notation, e.g. "dict['key']" or "dict.key".
+
+**Signature:**
+```tl
+metamethod __index: function(self: Dictionary, key: string): Item
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | The key of the item to retrieve. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Item or nil | The Item with the given key, or nil if it does not exist. |
+
+## __newindex
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod that allows setting items in the dictionary using the index notation, e.g. "dict['key'] = value" or "dict.key = value".
+
+**Signature:**
+```tl
+metamethod __newindex: function(self: Dictionary, key: string, item: Item)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | The key of the item to set. |
+| item | Item | The Item to set for the given key, set to nil to delete this key-value pair. |

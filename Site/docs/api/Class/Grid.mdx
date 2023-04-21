@@ -1,0 +1,216 @@
+import "@site/src/languages/highlight";
+
+# Grid
+
+**Description:**
+
+&emsp;&emsp;A class used to render a texture as a grid of sprites, where each sprite can be positioned, colored, and have its UV coordinates manipulated.
+
+**Inherits from:** Node.
+
+## gridX
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The number of columns in the grid. And there are `gridX + 1` vertices horizontally for rendering.
+
+**Signature:**
+```tl
+const gridX: integer
+```
+
+## gridY
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The number of rows in the grid. And there are `gridY + 1` vertices vertically for rendering.
+
+**Signature:**
+```tl
+const gridY: integer
+```
+
+## depthWrite
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether depth writes are enabled (default is false).
+
+**Signature:**
+```tl
+depthWrite: boolean
+```
+
+## texture
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The texture used for the grid.
+
+**Signature:**
+```tl
+texture: Texture2D
+```
+
+## textureRect
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The rectangle within the texture that is used for the grid.
+
+**Signature:**
+```tl
+textureRect: Rect
+```
+
+## blendFunc
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The blending function used for the grid.
+
+**Signature:**
+```tl
+blendFunc: BlendFunc
+```
+
+## effect
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The sprite effect applied to the grid.
+Default is `SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")`.
+
+**Signature:**
+```tl
+effect: SpriteEffect
+```
+
+## setPos
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the position of a vertex in the grid.
+
+**Signature:**
+```tl
+setPos: function(self: Grid, x: integer, y: integer, pos: Vec2)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | integer | The x-coordinate of the vertex in the grid. |
+| y | integer | The y-coordinate of the vertex in the grid. |
+| pos | Vec2 | The new position of the vertex. |
+
+## getPos
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the position of a vertex in the grid.
+
+**Signature:**
+```tl
+getPos: function(self: Grid, x: integer, y: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | integer | The x-coordinate of the vertex in the grid. |
+| y | integer | The y-coordinate of the vertex in the grid. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The current position of the vertex. |
+
+## getColor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the color of a vertex in the grid.
+
+**Signature:**
+```tl
+getColor: function(self: Grid, x: integer, y: integer): Color
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | integer | The x-coordinate of the vertex in the grid. |
+| y | integer | The y-coordinate of the vertex in the grid. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Color | The current color of the vertex. |
+
+## setColor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the color of a vertex in the grid.
+
+**Signature:**
+```tl
+setColor: function(self: Grid, x: integer, y: integer, color: Color)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | integer | The x-coordinate of the vertex in the grid. |
+| y | integer | The y-coordinate of the vertex in the grid. |
+| color | Color | The new color of the vertex. |
+
+## moveUV
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Moves the UV coordinates of a vertex in the grid.
+
+**Signature:**
+```tl
+moveUV: function(self: Grid, x: integer, y: integer, offset: Vec2)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | integer | The x-coordinate of the vertex in the grid. |
+| y | integer | The y-coordinate of the vertex in the grid. |
+| offset | Vec2 | The offset by which to move the UV coordinates. |

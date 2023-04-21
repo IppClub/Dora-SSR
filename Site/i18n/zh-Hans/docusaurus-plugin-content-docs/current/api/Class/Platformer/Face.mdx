@@ -1,0 +1,47 @@
+import "@site/src/languages/highlight";
+
+# Face
+
+**描述：**
+
+&emsp;&emsp;用于定义游戏子弹或其他游戏对象上挂载的可视化对象的类。
+
+**继承自：** Object。
+
+## addChild
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;添加一个子组件的定义。
+
+**签名：**
+```tl
+addChild: function(self: Face, face: Face)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| face | Face | 要添加的子定义。 |
+
+## toNode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回可添加到场景树以进行渲染的节点。
+
+**签名：**
+```tl
+toNode: function(self: Face): Node
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Node | 新的由定义创建的场景节点对象。 |

@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# AngleY
+
+**描述：**
+
+&emsp;&emsp;创建一个动作定义对象，用于将场景节点的Y轴旋转角度从一个值变动到另一个值。
+
+**签名：**
+```tl
+AngleY: function(
+		duration: number,
+		from: number,
+		to: number,
+		easing?: Ease.EaseFunc --[[Ease.Linear]]
+	): ActionDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| duration | number | 动作持续时间（秒）。 |
+| from | number | Y轴旋转角度的起始值（度数）。 |
+| to | number | Y轴旋转角度的结束值（度数）。 |
+| easing | EaseFunc | [可选] 应用于动作的缓动函数。如果未指定，则默认为Ease.Linear。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ActionDef | 返回一个动作定义对象，可用于在节点上执行动作。 |

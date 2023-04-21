@@ -1,0 +1,84 @@
+import "@site/src/languages/highlight";
+
+# ML
+
+**Description:**
+
+&emsp;&emsp;A record for machine learning algorithms.
+
+## ML.Operator
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Enumeration for comparison operators
+
+**Signature:**
+```tl
+enum Operator
+	"return"
+	"<="
+	">"
+	"=="
+end
+```
+
+## BuildDecisionTreeAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that takes CSV data as input and applies the C4.5 machine learning algorithm to build a decision tree model asynchronously.
+C4.5 is a decision tree algorithm that uses information gain to select the best attribute to split the data at each node of the tree. The resulting decision tree can be used to make predictions on new data.
+
+**Signature:**
+```tl
+BuildDecisionTreeAsync: function(
+		self: ML,
+		csvData: string,
+		maxDepth: integer,
+		handler: function(depth: integer, name: string, op: Operator, value: string)
+	): --[[accuracy]] number, --[[error]] string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| csvData | string | The CSV training data for building the decision tree using delimiter `,`. |
+| maxDepth | integer | The maximum depth of the generated decision tree.Set to 0 to prevent limiting the generated tree depth. |
+| handler | function | The callback function to be called for each node of the generated decision tree. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number｜nil | The accuracy of the decision tree on the training data. |
+| string | An error message if an error occurred during building of the decision tree. |
+
+**Definition for handler:**
+
+
+* **Parameters of handler:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| depth | integer | The depth of the current node in the decision tree. |
+| name | string | The name of the attribute used for splitting the data at the current node. |
+| op | Operator | The comparison operator used for splitting the data at the current node. |
+| value | string | The value used for splitting the data at the current node. |
+
+## QLearner
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A field for accessing QLearner class.
+
+**Signature:**
+```tl
+QLearner: QLearnerClass
+```

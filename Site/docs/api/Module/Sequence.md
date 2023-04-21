@@ -1,0 +1,24 @@
+import "@site/src/languages/highlight";
+
+# Sequence
+
+**Description:**
+
+&emsp;&emsp;Creates a definition for an action that plays a sequence of other ActionDefs.
+
+**Signature:**
+```tl
+Sequence: function(...: ActionDef): ActionDef
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| ... | ActionDef | A variable number of ActionDef objects to play in sequence. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ActionDef | An ActionDef object that can be used to run the sequence of actions on a Node. |

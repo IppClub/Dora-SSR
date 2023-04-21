@@ -1,0 +1,46 @@
+import "@site/src/languages/highlight";
+
+# SpriteEffect的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建新的2D图元着色器特效的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于创建一个新的2D图元着色器特效对象的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: SpriteEffectClass, vertShader: string, fragShader: string): SpriteEffect
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertShader | string | 顶点着色器文件名字符串。 |
+| fragShader | string | 片段着色器文件名字符串。着色器文件名字符串必须是以下格式之一：	"builtin:" + theBuiltinShaderName	"Shader/compiled_shader_file.bin" |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| SpriteEffect | 新的2D图元着色器特效对象。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于创建一个空的2D图元着色器特效对象的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: SpriteEffectClass): SpriteEffect
+```

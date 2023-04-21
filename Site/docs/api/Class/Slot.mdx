@@ -1,0 +1,79 @@
+import "@site/src/languages/highlight";
+
+# Slot
+
+**Description:**
+
+&emsp;&emsp;A Slot object that represents a single event slot with handlers.
+
+**Inherits from:** Object.
+
+## add
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a new handler function to this slot.
+
+**Signature:**
+```tl
+add: function(self: Slot, handler: function(...: any))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| handler | function | The handler function to add. |
+
+## set
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets a new handler function for this slot, replacing any existing handlers.
+
+**Signature:**
+```tl
+set: function(self: Slot, handler: function(...: any))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| handler | function | The handler function to set. |
+
+## remove
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes a previously added handler function from this slot.
+
+**Signature:**
+```tl
+remove: function(self: Slot, handler: function(...: any))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| handler | function | The handler function to remove. |
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears all handler functions from this slot.
+
+**Signature:**
+```tl
+clear: function(self: Slot)
+```

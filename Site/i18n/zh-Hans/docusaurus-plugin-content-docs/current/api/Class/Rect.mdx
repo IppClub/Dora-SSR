@@ -1,0 +1,288 @@
+import "@site/src/languages/highlight";
+
+# Rect
+
+**描述：**
+
+&emsp;&emsp;一个以左下角为原点位置的矩形区域类。
+
+**继承自：** ContainerItem。
+
+## origin
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形原点的位置。
+
+**签名：**
+```tl
+origin: Vec2
+```
+
+## size
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形的尺寸。
+
+**签名：**
+```tl
+size: Size
+```
+
+## x
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形原点的 x 坐标。
+
+**签名：**
+```tl
+x: number
+```
+
+## y
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形原点的 y 坐标。
+
+**签名：**
+```tl
+y: number
+```
+
+## width
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形的宽度。
+
+**签名：**
+```tl
+width: number
+```
+
+## height
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形的高度。
+
+**签名：**
+```tl
+height: number
+```
+
+## top
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形的上边缘的 y 轴坐标值。
+
+**签名：**
+```tl
+top: number
+```
+
+## bottom
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形的下边缘的 y 轴坐标值。
+
+**签名：**
+```tl
+bottom: number
+```
+
+## left
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形的左边缘的 x 轴坐标值。
+
+**签名：**
+```tl
+left: number
+```
+
+## right
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形的右边缘的 x 轴坐标值。
+
+**签名：**
+```tl
+right: number
+```
+
+## centerX
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形中心的 x 坐标。
+
+**签名：**
+```tl
+centerX: number
+```
+
+## centerY
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形中心的 y 坐标。
+
+**签名：**
+```tl
+centerY: number
+```
+
+## lowerBound
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形的下界（左下角坐标）。
+
+**签名：**
+```tl
+lowerBound: Vec2
+```
+
+## upperBound
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;矩形的上界（右上角坐标）。
+
+**签名：**
+```tl
+upperBound: Vec2
+```
+
+## set
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置矩形的属性。
+
+**签名：**
+```tl
+set: function(self: Rect, x: number, y: number, width: number, height: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 矩形原点的 x 坐标。 |
+| y | number | 矩形原点的 y 坐标。 |
+| width | number | 矩形的宽度。 |
+| height | number | 矩形的高度。 |
+
+## containsPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查点是否在矩形内。
+
+**签名：**
+```tl
+containsPoint: function(self: Rect, point: Vec2): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| point | Vec2 | 要检查的点，用二维向量对象表示。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 点是否在矩形内。 |
+
+## intersectsRect
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查矩形是否与另一个矩形相交。
+
+**签名：**
+```tl
+intersectsRect: function(self: Rect, rect: Rect): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| rect | Rect | 要检查相交的另一个矩形，用矩形对象表示。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 矩形是否相交。 |
+
+## __eq
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;检查两个矩形是否相等。
+
+**签名：**
+```tl
+metamethod __eq: function(self: Rect, other: Rect): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| other | Rect | 要比较的另一个矩形，用`Rect`对象表示。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 两个矩形是否相等。 |

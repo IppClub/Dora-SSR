@@ -1,0 +1,46 @@
+import "@site/src/languages/highlight";
+
+# SpriteEffect Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating SpriteEffect objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod that allows you to create a new SpriteEffect object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: SpriteEffectClass, vertShader: string, fragShader: string): SpriteEffect
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertShader | string | The vertex shader file string. |
+| fragShader | string | The fragment shader file string.A shader file string must be one of the formats:	"builtin:" + theBuiltinShaderName	"Shader/compiled_shader_file.bin" |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| SpriteEffect | A new SpriteEffect object. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod for creating a new empty SpriteEffect object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: SpriteEffectClass): SpriteEffect
+```

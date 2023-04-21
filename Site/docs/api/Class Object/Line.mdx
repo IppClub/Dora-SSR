@@ -1,0 +1,56 @@
+import "@site/src/languages/highlight";
+
+# Line Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating Line object.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates and returns a new Line object.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: LineClass,
+		verts: {Vec2},
+		color?: Color --[[0xffffffff]]
+	): Line
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| verts | {Vec2} | Table of vertices to add to the line. |
+| color | Color | [optional] Color of the line (default is opaque white). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Line | Line object. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates and returns a new empty Line object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: LineClass): Line
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Line | Line object. |

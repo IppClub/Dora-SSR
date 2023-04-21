@@ -1,0 +1,76 @@
+import "@site/src/languages/highlight";
+
+# Scheduler
+
+**Description:**
+
+&emsp;&emsp;A scheduler that manages the execution of scheduled tasks.
+
+**Inherits from:** Object.
+
+## timeScale
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The time scale factor for the scheduler.
+This factor is applied to deltaTime that the scheduled functions will receive.
+
+**Signature:**
+```tl
+timeScale: number
+```
+
+## fixedFPS
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The target frame rate (in frames per second) for a fixed update mode.
+The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
+It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
+
+**Signature:**
+```tl
+fixedFPS: integer
+```
+
+## schedule
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Schedules a function to be called every frame.
+
+**Signature:**
+```tl
+schedule: function(self: Scheduler, handler: function(number): boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| handler | function | The function to be called.It should take a single argument of type number, which represents the delta time since the last frame.If the function returns true, it will not be called again. |
+
+## schedule
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Schedules a coroutine job to be resumed every frame.
+
+**Signature:**
+```tl
+schedule: function(self: Scheduler, job: Routine.Job)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| job | Routine.Job | The coroutine job to be resumed. |

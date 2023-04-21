@@ -1,0 +1,91 @@
+import "@site/src/languages/highlight";
+
+# QLearner Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating QLearner objects.
+
+## pack
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Construct a state from given hints and condition values.
+
+**Signature:**
+```tl
+pack: function(self: QLearnerClass, hints: {integer}, values: {integer}): --[[state]] integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| hints | {integer} | Representing the byte length of provided values. |
+| values | {integer} | The condition values as discrete values. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The packed state value. |
+
+## unpack
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Deconstruct a state from given hints to get condition values.
+
+**Signature:**
+```tl
+unpack: function(self: QLearnerClass, hints: {integer}, state: integer): {integer}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| hints | {integer} | Representing the byte length of provided values. |
+| state | integer | The state integer to unpack. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| {integer} | The condition values as discrete values. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Create a new QLearner object with optional parameters for gamma, alpha, and maxQ.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: QLearnerClass,
+		gamma?: number --[[0.5]],
+		alpha?: number --[[0.5]],
+		maxQ?: number --[[100.0]]
+	): QLearner
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| gamma | number | The discount factor for future rewards. Defaults to 0.5. |
+| alpha | number | The learning rate for updating Q-values. Defaults to 0.5. |
+| maxQ | number | The maximum Q-value. Defaults to 100.0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| QLearner | The newly created QLearner object. |

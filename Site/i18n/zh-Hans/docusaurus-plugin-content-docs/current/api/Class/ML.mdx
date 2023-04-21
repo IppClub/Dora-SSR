@@ -1,0 +1,84 @@
+import "@site/src/languages/highlight";
+
+# ML
+
+**描述：**
+
+&emsp;&emsp;包含一些常用机器学习算法的模块。
+
+## ML.Operator
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;比较运算符的枚举。
+
+**签名：**
+```tl
+enum Operator
+	"return"
+	"<="
+	">"
+	"=="
+end
+```
+
+## BuildDecisionTreeAsync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;输入CSV数据，然后异步执行C4.5机器学习算法构建决策树模型。
+C4.5是一种决策树算法，它使用信息增益来选择最佳属性，在树的每个节点上拆分数据。生成的决策树可以用于对新数据进行预测。
+
+**签名：**
+```tl
+BuildDecisionTreeAsync: function(
+		self: ML,
+		csvData: string,
+		maxDepth: integer,
+		handler: function(depth: integer, name: string, op: Operator, value: string)
+	): --[[accuracy]] number, --[[error]] string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| csvData | string | 使用`,`分隔符的CSV格式训练数据。 |
+| maxDepth | integer | 生成的决策树的最大深度。将其设置为0则不再限制生成树的深度。 |
+| handler | function | 用于遍历访问生成决策树节点的回调函数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number｜nil | 决策树在训练数据上的准确度。 |
+| string | 如果在构建决策树期间发生错误，则返回此错误消息。 |
+
+**handler的定义：**
+
+
+* **handler的参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| depth | integer | 决策树中当前节点的深度。 |
+| name | string | 在当前节点处拆分数据的属性的名称。 |
+| op | Operator | 在当前节点处拆分数据使用的比较运算符。 |
+| value | string | 在当前节点处拆分数据的值。 |
+
+## QLearner
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于访问QLearner类的字段。
+
+**签名：**
+```tl
+QLearner: QLearnerClass
+```

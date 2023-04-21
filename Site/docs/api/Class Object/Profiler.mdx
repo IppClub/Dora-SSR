@@ -1,0 +1,63 @@
+import "@site/src/languages/highlight";
+
+# Profiler Class
+
+**Description:**
+
+&emsp;&emsp;A class for profiling functions.
+
+## EventName
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The name of the profiling event.
+
+**Signature:**
+```tl
+const EventName: string
+```
+
+## level
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The current level of profiling.
+
+**Signature:**
+```tl
+level: integer
+```
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Calls a function and return the amount of time it took to execute.
+
+**Signature:**
+```tl
+metamethod __call: function(self: ProfilerClass, funcForProfiling: function): number
+```
+
+**Usage:**
+```tl
+local time = Profiler(myFunction)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| funcForProfiling | function | The function to profile. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The amount of time it took to execute the function. |

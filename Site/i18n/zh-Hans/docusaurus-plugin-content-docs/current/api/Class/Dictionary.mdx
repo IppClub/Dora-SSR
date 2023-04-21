@@ -1,0 +1,163 @@
+import "@site/src/languages/highlight";
+
+# Dictionary
+
+**描述：**
+
+&emsp;&emsp;用字符串键和对应值存储数据的字典类。
+
+**继承自：** Object。
+
+## count
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;字典储存的键值对总数。
+
+**签名：**
+```tl
+const count: integer
+```
+
+## keys
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;字典中所有键的列表。
+
+**签名：**
+```tl
+const keys: {string}
+```
+
+## get
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;访问字典数据的方法。
+
+**签名：**
+```tl
+get: function(self: Dictionary, key: string): Item
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 字符串类型的索引键。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Item 或 nil | 字典里存储的值，如果不存在则返回nil。 |
+
+## set
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置字典里的值的方法。
+
+**签名：**
+```tl
+set: function(self: Dictionary, key: string, item: Item)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 字符串类型的索引键。 |
+| item | Item | 要为给定键设置的值，当设置值为nil时可以删除该键值对。 |
+
+## each
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;遍历字典中每个键值对并调用处理函数。
+
+**签名：**
+```tl
+each: function(self: Dictionary, func: function(Item, string): boolean): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| func | function | 对字典中每个键值对调用的函数。此函数会接收一个值对象Item和一个字符串的键作为参数，并需要返回一个布尔值。返回true停止遍历，false继续。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果遍历成功完成，则返回false，否则返回true。 |
+
+## clear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从字典中删除所有键值对。
+
+**签名：**
+```tl
+clear: function(self: Dictionary)
+```
+
+## __index
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;允许使用索引访问字典的元方法，例如：dict['keyA'] 或 dict.keyB。
+
+**签名：**
+```tl
+metamethod __index: function(self: Dictionary, key: string): Item
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 字符串类型的索引键。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Item 或 nil | 字典里存储的值，如果不存在则返回nil。 |
+
+## __newindex
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;允许使用索引设置字典里的值的元方法，例如：dict['keyA'] = value 或 dict.keyB = value。
+
+**签名：**
+```tl
+metamethod __newindex: function(self: Dictionary, key: string, item: Item)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 字符串类型的索引键。 |
+| item | Item | 要为给定键设置的值，当设置值为nil时可以删除该键值对。 |

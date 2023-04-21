@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# Height
+
+**描述：**
+
+&emsp;&emsp;创建一个动作定义对象，用于改变场景节点的高度。
+
+**签名：**
+```tl
+Height: function(
+		duration: number,
+		from: number,
+		to: number,
+		easing?: Ease.EaseFunc --[[Ease.Linear]]
+	): ActionDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| duration | number | 动作时长，单位为秒。 |
+| from | number | 节点高度的起始值。 |
+| to | number | 节点高度的结束值。 |
+| easing | EaseFunc | [可选] 动作所使用的缓动函数，默认为Ease.Linear。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ActionDef | 动作定义对象，可用于在节点上运行动作。 |

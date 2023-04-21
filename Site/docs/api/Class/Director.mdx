@@ -1,0 +1,239 @@
+import "@site/src/languages/highlight";
+
+# Director
+
+**Description:**
+
+&emsp;&emsp;A singleton class manages the game scene trees and provides access to root scene nodes for different game uses.
+
+**Usage:**
+```tl
+local Director = require("Director")
+Director.entry:addChild(node)
+```
+
+## displayStats
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether debug statistics are displayed on the screen during gameplay.
+
+**Signature:**
+```tl
+displayStats: boolean
+```
+
+## clearColor
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The background color for the game world.
+
+**Signature:**
+```tl
+clearColor: Color
+```
+
+## scheduler
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Provides access to the game scheduler, which is used for scheduling tasks like animations and gameplay events.
+
+**Signature:**
+```tl
+scheduler: Scheduler
+```
+
+## ui
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The root node for 2D user interface elements like buttons and labels.
+
+**Signature:**
+```tl
+const ui: Node
+```
+
+## ui3D
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The root node for 3D user interface elements with 3D projection effect.
+
+**Signature:**
+```tl
+const ui3D: Node
+```
+
+## entry
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The root node for the starting point of a game.
+
+**Signature:**
+```tl
+const entry: Node
+```
+
+## postNode
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The root node for post-rendering scene tree.
+
+**Signature:**
+```tl
+const postNode: Node
+```
+
+## systemScheduler
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Provides access to the system scheduler, which is used for low-level system tasks, should not put any game logic in it.
+
+**Signature:**
+```tl
+const systemScheduler: Scheduler
+```
+
+## postScheduler
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Provides access to the scheduler used for processing post game logic.
+
+**Signature:**
+```tl
+const postScheduler: Scheduler
+```
+
+## currentCamera
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The current active camera in Director's camera stack.
+
+**Signature:**
+```tl
+const currentCamera: Camera
+```
+
+## deltaTime
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The time in seconds since the last frame update.
+
+**Signature:**
+```tl
+const deltaTime: number
+```
+
+## pushCamera
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a new camera to Director's camera stack and sets it to the current camera.
+
+**Signature:**
+```tl
+pushCamera: function(self: Director, camera: Camera)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| camera | Camera | The camera to add. |
+
+## popCamera
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes the current camera from Director's camera stack.
+
+**Signature:**
+```tl
+popCamera: function(self: Director)
+```
+
+## removeCamera
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes a specified camera from Director's camera stack.
+
+**Signature:**
+```tl
+removeCamera: function(self: Director, camera: Camera): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| camera | Camera | The camera to remove. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the camera was removed, false otherwise. |
+
+## clearCamera
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes all cameras from Director's camera stack.
+
+**Signature:**
+```tl
+clearCamera: function(self: Director)
+```
+
+## cleanup
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Cleans up all resources managed by the Director, including scene trees and cameras.
+
+**Signature:**
+```tl
+cleanup: function(self: Director)
+```

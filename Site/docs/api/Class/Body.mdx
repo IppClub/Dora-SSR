@@ -1,0 +1,337 @@
+import "@site/src/languages/highlight";
+
+# Body
+
+**Description:**
+
+&emsp;&emsp;A class represents a physics body in the world.
+
+**Inherits from:** Node.
+
+## world
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The physics world that the body belongs to.
+
+**Signature:**
+```tl
+const world: PhysicsWorld
+```
+
+## bodyDef
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The definition of the body.
+
+**Signature:**
+```tl
+const bodyDef: BodyDef
+```
+
+## mass
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The mass of the body.
+
+**Signature:**
+```tl
+const mass: number
+```
+
+## sensor
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the body is used as a sensor or not.
+
+**Signature:**
+```tl
+const sensor: boolean
+```
+
+## velocityX
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The x-axis velocity of the body.
+
+**Signature:**
+```tl
+velocityX: number
+```
+
+## velocityY
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The y-axis velocity of the body.
+
+**Signature:**
+```tl
+velocityY: number
+```
+
+## velocity
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The velocity of the body as a `Vec2`.
+
+**Signature:**
+```tl
+velocity: Vec2
+```
+
+## angularRate
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The angular rate of the body.
+
+**Signature:**
+```tl
+angularRate: number
+```
+
+## group
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The collision group that the body belongs to.
+
+**Signature:**
+```tl
+group: integer
+```
+
+## linearDamping
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The linear damping of the body.
+
+**Signature:**
+```tl
+linearDamping: number
+```
+
+## angularDamping
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The angular damping of the body.
+
+**Signature:**
+```tl
+angularDamping: number
+```
+
+## owner
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The reference for an owner of the body.
+
+**Signature:**
+```tl
+owner: Object
+```
+
+## receivingContact
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the body is currently receiving contact events or not.
+
+**Signature:**
+```tl
+receivingContact: boolean
+```
+
+## applyLinearImpulse
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Applies a linear impulse to the body at a specified position.
+
+**Signature:**
+```tl
+applyLinearImpulse: function(self: Body, impulse: Vec2, pos: Vec2)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| impulse | Vec2 | The linear impulse to apply. |
+| pos | Vec2 | The position at which to apply the impulse. |
+
+## applyAngularImpulse
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Applies an angular impulse to the body.
+
+**Signature:**
+```tl
+applyAngularImpulse: function(self: Body, impulse: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| impulse | number | The angular impulse to apply. |
+
+## removeSensorByTag
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes the sensor with the specified tag from the body.
+
+**Signature:**
+```tl
+removeSensorByTag: function(self: Body, tag: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tag | integer | The tag of the sensor to remove. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether a sensor with the specified tag was found and removed. |
+
+## attach
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a fixture to the body.
+
+**Signature:**
+```tl
+attach: function(self: Body, fixtureDef: FixtureDef)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| fixtureDef | FixtureDef | The fixture definition for the fixture to attach. |
+
+## getSensorByTag
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the sensor with the given tag.
+
+**Signature:**
+```tl
+getSensorByTag: function(self: Body, tag: integer): Sensor
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tag | integer | the tag of the sensor to get. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Sensor | the sensor with the given tag. |
+
+## removeSensor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes the given sensor from the body's sensor list.
+
+**Signature:**
+```tl
+removeSensor: function(self: Body, sensor: Sensor): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sensor | Sensor | the sensor to remove. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | true if the sensor was successfully removed, false otherwise. |
+
+## attachSensor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a new sensor with the given tag and fixture definition to the body.
+
+**Signature:**
+```tl
+attachSensor: function(self: Body, tag: integer, fixtureDef: FixtureDef): Sensor
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tag | integer | the tag of the sensor to attach. |
+| fixtureDef | FixtureDef | the fixture definition of the sensor. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Sensor | the newly attached sensor. |

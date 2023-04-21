@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# SVG Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating SVG objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new SVG object from the specified SVG file.
+
+**Signature:**
+```tl
+metamethod __call: function(self: SVGClass, filename: string): SVG
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The path to the SVG format file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| SVG | The created SVG object. |

@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# Z
+
+**描述：**
+
+&emsp;&emsp;创建一个动作定义，用于使一个节点的 z 坐标位置发生变动。
+
+**签名：**
+```tl
+Z: function(
+		duration: number,
+		from: number,
+		to: number,
+		easing?: Ease.EaseFunc --[[Ease.Linear]]
+	): ActionDef
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| duration | number | 动作的持续时间（秒）。 |
+| from | number | 节点的起始 z 坐标位置。 |
+| to | number | 节点的结束 z 坐标位置。 |
+| easing | EaseFunc | [可选] 动作使用的缓动函数。如果未指定，则默认为 Ease.Linear。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ActionDef | 一个动作定义对象，可用于在节点上运行动作。 |

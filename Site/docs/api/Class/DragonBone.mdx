@@ -1,0 +1,89 @@
+import "@site/src/languages/highlight";
+
+# DragonBone
+
+**Description:**
+
+&emsp;&emsp;An implementation of the 'Playable' record using the DragonBones animation system.
+
+**Inherits from:** Playable.
+
+## showDebug
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether to show debug graphics.
+
+**Signature:**
+```tl
+showDebug: boolean
+```
+
+## hitTestEnabled
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether hit testing is enabled.
+
+**Signature:**
+```tl
+hitTestEnabled: boolean
+```
+
+## containsPoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if a point is inside the boundaries of the instance and returns the name of the bone or slot at that point, or nil if no bone or slot is found.
+
+**Signature:**
+```tl
+containsPoint: function(self: DragonBone, x: number, y: number): string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The x-coordinate of the point to check. |
+| y | number | The y-coordinate of the point to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string|nil | The name of the bone or slot at the point, or nil if no bone or slot is found. |
+
+## intersectsSegment
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or nil if no bone or slot is found.
+
+**Signature:**
+```tl
+intersectsSegment: function(self: DragonBone, x1: number, y1: number, x2: number, y2: number): string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x1 | number | The x-coordinate of the start point of the line segment. |
+| y1 | number | The y-coordinate of the start point of the line segment. |
+| x2 | number | The x-coordinate of the end point of the line segment. |
+| y2 | number | The y-coordinate of the end point of the line segment. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string|nil | The name of the bone or slot at the intersection point, or nil if no bone or slot is found. |
