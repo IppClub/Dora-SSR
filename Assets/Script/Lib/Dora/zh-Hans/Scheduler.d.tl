@@ -32,7 +32,7 @@ local record SchedulerClass
 	type Type = Scheduler
 
 	-- 创建新的调度器对象。
-	-- @return 新创建的调度器对象。
+	-- @return (Scheduler) 新创建的调度器对象。
 	metamethod __call: function(self: SchedulerClass): Scheduler
 end
 

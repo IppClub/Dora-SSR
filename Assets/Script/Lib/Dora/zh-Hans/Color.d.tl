@@ -53,7 +53,7 @@ local record ColorClass
 	-- @param g (integer) 绿色通道值（0-255）。
 	-- @param b (integer) 蓝色通道值（0-255）。
 	-- @param a (integer) 透明通道值（0-255）。
-	-- @return 新的颜色对象。
+	-- @return (Color) 新的颜色对象。
 	metamethod __call: function(self: ColorClass, r: integer, g: integer, b: integer, a: integer): Color
 end
 

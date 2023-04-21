@@ -227,49 +227,51 @@ local record Node
 	-- 将世界空间中的点坐标转换为节点空间的点坐标。
 	-- @param worldPoint (Vec2) 要转换的点。
 	-- @param z (number) 点的 z 坐标。默认为 0。
-	-- @return (Vec2, number) 转换后的点及其 z 坐标。
+	-- @return (Vec2) 转换后的点。
+	-- @return (number) 转换后的点的 z 坐标。
 	convertToNodeSpace: function(self: Node, worldPoint: Vec2, z: number): Vec2, number
 
 	-- 将节点空间中的点坐标转换为世界空间坐标。
 	-- @param nodePoint (Vec2) 节点空间中的点。
-	-- @returns (Vec2) 转换后的世界空间中的点。
+	-- @return (Vec2) 转换后的世界空间中的点。
 	convertToWorldSpace: function(self: Node, nodePoint: Vec2): Vec2
 
 	-- 将节点空间中的点坐标转换为世界空间坐标。
 	-- @param nodePoint (Vec2) 节点空间中的点。
 	-- @param z (number) 节点空间中的 z 坐标。
-	-- @returns (Vec2, number) 转换后的世界空间中的点及其 z 坐标。
+	-- @return (Vec2) 转换后的世界空间中的点。
+	-- @return (number) 转换后的世界空间中 z 坐标。
 	convertToWorldSpace: function(self: Node, nodePoint: Vec2, z: number): Vec2, number
 
 	-- 将节点空间中的点坐标转换为操作系统窗口空间坐标。
 	-- @param nodePoint (Vec2) 节点空间中的点。
-	-- @param callback (function(Vec2)) 接收转换后的操作系统窗口空间中的点点坐标的回调函数。
+	-- @param callback (function) 接收转换后的操作系统窗口空间中的点点坐标的回调函数。
 	convertToWindowSpace: function(self: Node, nodePoint: Vec2, callback: function(Vec2))
 
 	-- 对该节点的每个子节点调用给定的函数。
-	-- @param func (function(Node): boolean) 对每个子节点要调用的函数。该函数应返回一个布尔值，指示是否继续迭代。返回 true 以停止迭代。
-	-- @returns (boolean) 如果已访问所有子节点，则为false；如果函数中断了迭代，则为true。
+	-- @param func (function) 对每个子节点要调用的函数。该函数应返回一个布尔值，指示是否继续迭代。返回 true 以停止迭代。
+	-- @return (boolean) 如果已访问所有子节点，则为false；如果函数中断了迭代，则为true。
 	eachChild: function(self: Node, func: function(Node): boolean): boolean
 
 	-- 从此节点开始遍历场景树结构，并对每个访问的节点调用给定的函数。
 	-- 未开启`TraverseEnabled`标志的节点不会被访问。
-	-- @param func (function(Node): boolean) 对于每个被访问的节点调用的函数。该函数应返回一个布尔值，指示是否继续遍历。返回true停止迭代。
-	-- @returns (boolean) 如果访问了所有节点，则为false，如果函数中断了遍历，则为true。
+	-- @param func (function) 对于每个被访问的节点调用的函数。该函数应返回一个布尔值，指示是否继续遍历。返回true停止迭代。
+	-- @return (boolean) 如果访问了所有节点，则为false，如果函数中断了遍历，则为true。
 	traverse: function(self: Node, func: function(Node): boolean): boolean
 
 	-- 从此节点开始遍历整个节点层次结构，并对每个访问的节点调用给定的函数。
-	-- @param func (function(Node): boolean) 对于每个访问的节点调用的函数。该函数应返回一个布尔值，指示是否继续遍历。
-	-- @returns (boolean) 如果访问了所有节点，则为true，如果函数中断了遍历，则为false。
+	-- @param func (function) 对于每个访问的节点调用的函数。该函数应返回一个布尔值，指示是否继续遍历。
+	-- @return (boolean) 如果访问了所有节点，则为true，如果函数中断了遍历，则为false。
 	traverseAll: function(self: Node, func: function(Node): boolean): boolean
 
 	-- 在此节点上执行给定的动作对象。
 	-- @param action (Action) 要执行的动作对象。
-	-- @returns (number) 新执行的动作的持续时间，以秒为单位。
+	-- @return (number) 新执行的动作的持续时间，以秒为单位。
 	runAction: function(self: Node, action: Action)
 
 	-- 在此节点上执行由动作定义对象定义的动作。
 	-- @param actionDef (ActionDef) 要运行的动作定义。
-	-- @returns (number) 新执行的动作的持续时间，以秒为单位。
+	-- @return (number) 新执行的动作的持续时间，以秒为单位。
 	runAction: function(self: Node, actionDef: ActionDef)
 
 	-- 停止在此节点上运行的所有动作。
@@ -277,12 +279,12 @@ local record Node
 
 	-- 立即停止所有现有动作，并开始执行一个新动作。
 	-- @param action (Action) 要执行的动作。
-	-- @returns (number) 新执行的动作的持续时间，以秒为单位。
+	-- @return (number) 新执行的动作的持续时间，以秒为单位。
 	perform: function(self: Node, action: Action): number
 
 	-- 立即停止所有现有动作，并通过动作定义对象开始执行一个新动作。
 	-- @param actionDef (ActionDef) 要执行的动作定义。
-	-- @returns (number) 新执行的动作的持续时间，以秒为单位。
+	-- @return (number) 新执行的动作的持续时间，以秒为单位。
 	perform: function(self: Node, actionDef: ActionDef): number
 
 	-- 停止在此节点上运行的某个动作。
@@ -291,7 +293,7 @@ local record Node
 
 	-- 垂直对齐该节点的所有子节点。
 	-- @param padding (number) [可选] 子节点之间的间距。默认值为10。
-	-- @returns (Size) 对齐后的子节点区域的大小。
+	-- @return (Size) 对齐后的子节点区域的大小。
 	alignItemsVertically: function(
 		self: Node,
 		padding?: number --[[10]]
@@ -441,7 +443,8 @@ end
 
 -- 节点可监听的事件的定义。
 -- 这只是一个演示记录，展示了信号插槽的名称和回调。
--- 可以使用如下示例代码注册监听这些事件：
+-- @usage
+-- -- 可以使用如下示例代码注册监听这些事件：
 -- node:slot("ActionEnd", function(action: Action, target: Node)
 -- 	print("Action end", action, target)
 -- end)
@@ -449,46 +452,46 @@ local record __SLOT__
 
 	-- ActionEnd事件会在节点执行完一个动作时触发。
 	-- 在`node:runAction()`和`node:perform()`之后触发。
-	-- @param action（Action）执行完成的动作。
-	-- @param target（Node）执行完成动作的节点。
+	-- @param action (Action) 执行完成的动作。
+	-- @param target (Node) 执行完成动作的节点。
 	["ActionEnd"]: function(action: Action, target: Node)
 
 	-- TapFilter事件在TapBegan插槽之前触发，可用于过滤某些点击事件。
 	-- 在设置`node.touchEnabled = true`之后才会触发。
-	-- @param touch（Touch）点击事件的消息对象。
+	-- @param touch (Touch) 点击事件的消息对象。
 	["TapFilter"]: function(touch: Touch)
 
 	-- TapBegan事件在检测到点击时触发。
 	-- 在设置`node.touchEnabled = true`之后才会触发。
-	-- @param touch（Touch）点击事件的消息对象。
+	-- @param touch (Touch) 点击事件的消息对象。
 	["TapBegan"]: function(touch: Touch)
 
 	-- TapEnded事件在点击结束时触发。
 	-- 在设置`node.touchEnabled = true`之后才会触发。
-	-- @param touch（Touch）点击事件的消息对象。
+	-- @param touch (Touch) 点击事件的消息对象。
 	["TapEnded"]: function(touch: Touch)
 
 	-- Tapped事件在检测到并结束点击时触发。
 	-- 在设置`node.touchEnabled = true`之后才会触发。
-	-- @param touch（Touch）点击事件的消息对象。
+	-- @param touch (Touch) 点击事件的消息对象。
 	["Tapped"]: function(touch: Touch)
 
 	-- TapMoved事件在点击移动时触发。
 	-- 在设置`node.touchEnabled = true`之后才会触发。
-	-- @param touch（Touch）点击事件的消息对象。
+	-- @param touch (Touch) 点击事件的消息对象。
 	["TapMoved"]: function(touch: Touch)
 
 	-- MouseWheel事件在滚动鼠标滚轮时触发。
 	-- 在设置`node.touchEnabled = true`之后才会触发。
-	-- @param delta（Vec2）滚动的向量。
+	-- @param delta (Vec2) 滚动的向量。
 	["MouseWheel"]: function(delta: Vec2)
 
 	-- Gesture事件在识别到多点手势时触发。
 	-- 在设置`node.touchEnabled = true`之后才会触发。
-	-- @param center（Vec2）手势的中心点。
-	-- @param numFingers（integer）手势涉及的触摸点数量。
-	-- @param deltaDist（number）手势移动的距离。
-	-- @param deltaAngle（number）手势的变动角度。
+	-- @param center (Vec2) 手势的中心点。
+	-- @param numFingers (integer) 手势涉及的触摸点数量。
+	-- @param deltaDist (number) 手势移动的距离。
+	-- @param deltaAngle (number) 手势的变动角度。
 	["Gesture"]: function(center: Vec2, numFingers: integer, deltaDist: number, deltaAngle: number)
 
 	-- 当节点被添加到场景树中时，触发Enter事件。
@@ -526,50 +529,14 @@ local record __SLOT__
 
 	-- 当接收到系统输入法文本输入时，会触发TextInput事件。
 	-- 在调用`node:attachIME()`之后触发。
-	-- @param text（string）输入的文本。
+	-- @param text (string) 输入的文本。
 	["TextInput"]: function(text: string)
 
 	-- 当系统输入法文本正在被编辑时，会触发TextEditing事件。
 	-- 在调用`node:attachIME()`之后触发。
-	-- @param text（string）正在编辑的文本。
-	-- @param startPos（integer）正在编辑的文本的起始位置。
+	-- @param text (string) 正在编辑的文本。
+	-- @param startPos (integer) 正在编辑的文本的起始位置。
 	["TextEditing"]: function(text: string, startPos: integer)
-end
-
--- 全局事件的定义。
--- 这只是一个事件定义的展示，包含所有全局事件名称和回调函数的定义。
--- 可以使用如下示例代码注册这些事件：
--- node:gslot("AppQuit", function()
--- 	print("应用正在被关闭！")
--- end)
-local record __GSLOT__
-
-	-- 应用即将退出时触发。
-	["AppQuit"]: function()
-
-	-- 应用接收到低内存警告时触发。
-	["AppLowMemory"]: function()
-
-	-- 应用即将进入后台时触发。
-	["AppWillEnterBackground"]: function()
-
-	-- 应用已经进入后台时触发。
-	["AppDidEnterBackground"]: function()
-
-	-- 应用即将进入前台时触发。
-	["AppWillEnterForeground"]: function()
-
-	-- 应用已经进入前台时触发。
-	["AppDidEnterForeground"]: function()
-
-	-- 应用窗口大小发生变化时触发。
-	["AppSizeChanged"]: function()
-
-	-- 应用进入或退出全屏窗口模式时触发。
-	["AppFullScreen"]: function(fullScreen: boolean)
-
-	-- 应用改变主题颜色时触发。
-	["AppTheme"]: function(themeColor: Color)
 end
 
 -- 用于创建场景节点实例的类。
@@ -580,7 +547,7 @@ local record NodeClass
 	-- @usage
 	-- local Node = require("Node")
 	-- local node = Node()
-	-- @returns (Node) 场景节点的新实例。
+	-- @return (Node) 场景节点的新实例。
 	metamethod __call: function(self: NodeClass): Node
 end
 

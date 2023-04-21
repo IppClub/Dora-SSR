@@ -5,7 +5,8 @@ local type Sensor = require("SensorType")
 local type PhysicsWorld = require("PhysicsWorldType")
 
 -- 物理对象碰撞事件的信号槽定义。将物理体对象的“receivingContact“属性设置为true时，可以触发并接收到这些信号槽事件。
--- 可以使用以下形式的代码来注册兼听这些事件：
+-- @usage
+-- -- 可以使用以下形式的代码来注册监听这些事件：
 -- body.receivingContact = true
 -- body:slot("BodyEnter", function(other: Body, sensorTag: integer)
 -- 	print("感应器感应到了物理体", other, sensorTag)

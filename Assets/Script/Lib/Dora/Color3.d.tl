@@ -34,7 +34,7 @@ local record Color3Class
 	-- @param r (integer) The red channel value (0-255).
 	-- @param g (integer) The green channel value (0-255).
 	-- @param b (integer) The blue channel value (0-255).
-	-- @return A new `Color3` object.
+	-- @return (Color) A new `Color3` object.
 	metamethod __call: function(self: Color3Class, r: integer, g: integer, b: integer): Color3
 end
 

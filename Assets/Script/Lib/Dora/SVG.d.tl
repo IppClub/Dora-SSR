@@ -22,7 +22,7 @@ local record SVGClass
 
 	-- Creates a new SVG object from the specified SVG file.
 	-- @param filename (string) The path to the SVG format file.
-	-- @returns (SVG) The created SVG object.
+	-- @return (SVG) The created SVG object.
 	metamethod __call: function(self: SVGClass, filename: string): SVG
 end
 

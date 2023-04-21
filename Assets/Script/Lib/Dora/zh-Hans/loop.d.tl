@@ -5,4 +5,5 @@ local Routine = require("Routine")
 -- 在 routine 函数中使用`coroutine.yield(true)`或`return true`来停止执行任务。
 -- @return (Routine.Job) 重复运行给定函数的协程。
 local loop: function(routine: function(): boolean): Routine.Job
+
 return loop
