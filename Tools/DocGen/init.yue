@@ -1,0 +1,290 @@
+_ENV = Dorothy!
+
+if path = Path\getScriptPath ...
+	Content\insertSearchPath 1, path
+
+import "lulpeg" as :Cmt, :P, :S, :C, :Ct, :B, :match
+
+lastPos = 1
+
+Newline = Cmt P"\n", (str, pos)->
+	lastPos = pos
+	true
+
+White = (S" \t" + Newline)^0
+
+Seperator = S(" \t")^0 * Newline * S(" \t")^0 * Newline
+
+Skip = (1 - Newline * S(" \t")^0 * P"--")^1
+
+Comment = C "--" * White * (1 - Newline)^1
+
+Space = (S" \t" + Newline)^1
+
+CommentBlock = Ct White * Comment * (White * Comment)^0 * White * C(P"enum" * (1 - Space * P"end" * Space)^1 * White * P"end" + (1 - (Space * P"end" * Space + Seperator))^1)
+
+Doc = Ct CommentBlock^-1 * (White * Ct(C(P"end")) + Skip + CommentBlock)^0
+
+records = {}
+classes = {}
+nodeEvents = {}
+globalEvents = {}
+modules = {}
+
+generate = (path, file, cn)->
+	codes = Content\load Path path, file
+	modName = file\gsub("%.d%.tl", "")\gsub "[\\//]", "."
+	path = Path\getPath(file)\gsub "[\\//]", "."
+	if res = match Doc, codes
+		for x = 1, #res
+			group = res[x]
+			newGroup = {}
+			lastComment = false
+			for i = 1, #group
+				comment = group[i]\match "^%s*%-%-"
+				group[i] = group[i]\gsub "^%s*%-%- *", ""
+				if #newGroup == 0 or group[i]\match "^%s*@"
+					newGroup[] = group[i]
+				elseif (comment and lastComment) or (not comment and not lastComment)
+					newGroup[#newGroup] ..= ('\n' .. group[i])
+				else
+					newGroup[] = group[i]
+				lastComment = comment
+			last = newGroup[#newGroup]
+			className = last\match "%s*local%s*record%s*([%w_]+)"
+			className or= last\match "%s*record%s*([%w_]+)"
+			if className
+				newGroup[#newGroup] = className
+				newGroup[] = false
+			elseif #newGroup == 1 and newGroup[1] == "end"
+				newGroup[] = false
+			elseif typeDef = last\match "%s*local%s*type%s*([%w_]+)"
+				newGroup[] = "__ITEM__"
+				newGroup[] = false
+			elseif last\match "%s*local"
+				newGroup[#newGroup] = last\gsub "%s*local%s*[%w_]+:%s*", "#{modName}: "
+				newGroup[] = "__ITEM__"
+				newGroup[] = false
+			res[x] = newGroup
+		mods = {}
+		docs = {}
+		currentType = nil
+		transformDocs = (doc, group, start, stop, funcName)->
+			startParam = false
+			startReturn = false
+			params = nil
+			returns = nil
+			lastParamName = nil
+			subFuns = {}
+			local subFun
+			addSubFun = ->
+				return unless subFun
+				subFuns[] = cn and "**#{lastParamName}的定义：**\n" or "**Definition for #{lastParamName}:**\n"
+				transformDocs subFuns, subFun, 1, #subFun, lastParamName
+				subFun = nil
+			for i = start, stop
+				if not group[i]\match "^%s*@"
+					addSubFun!
+					doc[] = group[i]
+				elseif group[i]\match "^%s*@usage"
+					addSubFun!
+					doc[] = "**#{cn and '用法示例：' or 'Usage:'}**\n```tl\n#{group[i]\gsub "^%s*@usage%s*\n?", ""}\n```"
+				elseif group[i]\match "^%s*@param"
+					if group[i]\match "^%s+@param"
+						if not subFun
+							subFun = {}
+						subFun[] = group[i]\gsub "^%s+", ""
+					else
+						addSubFun!
+						if not startParam
+							startParam = true
+							params = {
+								(funcName and '* ' or '') .. (cn and "**#{funcName and funcName .. '的' or ''}参数：**\n" or "**Parameters#{funcName and ' of ' .. funcName or ''}:**\n")
+								cn and "| 参数名 | 类型 | 描述 |" or "| Parameter | Type | Description |"
+								"| --- | --- | --- |"
+							}
+						name, typ, desc = group[i]\match "^%s*@param%s*([%w_]+)%s*%(([^%)]-)%)%s*(.+)"
+						if not name
+							name, typ, desc = group[i]\match "^%s*@param%s*(%.%.%.)%s*%(([^%)]-)%)%s*(.+)"
+						lastParamName = name
+						print group[i] if desc == nil
+						params[] = "| #{name} | #{typ} | #{desc\gsub('\n', '')} |"
+				elseif group[i]\match "^%s*@return"
+					if group[i]\match "^%s+@return"
+						if not subFun
+							subFun = {}
+						subFun[] = group[i]\gsub "^%s+", ""
+					else
+						addSubFun!
+						if not startReturn
+							startReturn = true
+							returns = {
+								(funcName and '* ' or '') .. (cn and "**#{funcName and funcName .. '的' or ''}返回值：**\n" or "**Returns#{funcName and ' of ' .. funcName or ''}:**\n")
+								cn and "| 返回类型 | 描述 |" or "| Return Type | Description |"
+								"| --- | --- |"
+							}
+						typ, desc = group[i]\match "^%s*@return%s*%(([^%)]-)%)%s*(.+)"
+						returns[] = "| #{typ} | #{desc\gsub('\n', '')} |"
+			if params
+				doc[] = table.concat params, "\n"
+			if returns
+				doc[] = table.concat returns, "\n"
+			if #subFuns > 0
+				doc[] = table.concat subFuns, "\n\n"
+		for group in *res
+			if not group[#group]
+				if group[#group - 1] == "end"
+					mods[#mods] = nil
+					docs[#docs] = nil
+				else
+					name = group[#group - 1]
+					docs[] = {}
+					doc = docs[#docs]
+					prefix = path == "" and "" or path .. "."
+					switch name when "__SLOT__"
+						currentType = "Event"
+						mods[] = modName
+						nodeEvents[] = {prefix .. modName, doc}
+					when "__GSLOT__"
+						currentType = "GEvent"
+						mods[] = modName
+						globalEvents[] = {prefix .. modName, doc}
+					when "__ITEM__"
+						currentType = "Item"
+						modules[] = {prefix .. modName, doc}
+					else
+						if className = name\match "([%w_]+)Class"
+							currentType = "Class"
+							mods[] = className
+							classes[] = {prefix .. className, doc}
+						else
+							mods[] = name
+							currentType = "Record"
+							records[] = {prefix .. table.concat(mods, '.'), doc}
+					if currentType == "Item"
+						doc[] = "# #{modName}"
+						doc[] = "**#{cn and '描述：' or 'Description:'}**"
+						doc[] = "&emsp;&emsp;" .. group[1]
+						doc[] = "**#{cn and '签名：' or 'Signature:'}**\n```tl\n#{group[#group - 2]}\n```"
+						transformDocs doc, group, 2, #group - 3
+					else
+						doc[] = "# #{mods[#mods]}" ..
+							(currentType == "Class" and (cn and "的类对象" or " Class") or "") ..
+							(currentType == "Event" and (cn and "的节点事件" or " Event") or "") ..
+							(currentType == "GEvent" and (cn and "的全局事件" or " Global Event") or "")
+						doc[] = "**#{cn and '描述：' or 'Description:'}**"
+						doc[] = "&emsp;&emsp;" .. group[1]
+						transformDocs doc, group, 2, #group - 2
+			else
+				doc = docs[#docs]
+				last = group[#group]
+				metaField = last\match "^%s*metamethod%s*([%w_]+)"
+				fieldName or= metaField
+				constField = last\match "^%s*const%s*([%w_]+)"
+				embedField = last\match "^%s*embed%s*([%w_]+)"
+				enumField = last\match "^%s*enum%s*([%w_]+)"
+				recordType = last\match "^{"
+				fieldName or= constField
+				typeAlias = last\match "^%s*type%s*([%w_]+)"
+				typeAlias or= last\match "^%s*local%s*type%s*([%w_]+)"
+				fieldName or= typeAlias
+				functionField = last\match "^%s*([%w_]+)%s*:%s*function%s*%("
+				fieldName or= functionField
+				fieldName or= last\match '^%s*%["([%w_]+)"%]'
+				fieldName or= last\match '^%s*([%w_]+)'
+				period = cn and "。" or "."
+				if recordType
+					doc[] = "**#{cn and 'Teal类型：' or 'Teal Type:'}** #{last}#{period}"
+				elseif embedField
+					doc[] = "**#{cn and '继承自：' or 'Inherits from:'}** #{embedField}#{period}"
+				elseif enumField
+					mods[] = enumField
+					doc[] = "## #{table.concat(mods, '.')}"
+					doc[] = cn and '**类型：** 枚举。' or '**Type:** Enumeration.'
+					mods[#mods] = nil
+					last = last |> string.gsub("[ \t]+%-%-", "\t--") |> string.gsub("\n[ \t]+\"", "\n\t\"") |> string.gsub("[ \t]*end", "end")
+					doc[] = "**#{cn and '描述：' or 'Description:'}**"
+					doc[] = "&emsp;&emsp;" .. group[1]
+					doc[] = "**#{cn and '签名：' or 'Signature:'}**\n```tl\n#{last}\n```"
+				else
+					if not doc
+						p res
+					doc[] = "## #{fieldName}"
+					if functionField
+						doc[] = cn and '**类型：** 函数。' or '**Type:** Function.'
+					elseif metaField
+						doc[] = cn and '**类型：** 元方法。' or '**Type:** Metamethod.'
+					elseif currentType == "Event"
+						doc[] = cn and '**类型：** 节点事件。' or '**Type:** Node Event.'
+					elseif currentType == "GEvent"
+						doc[] = cn and '**类型：** 全局事件。' or '**Type:** Global Event.'
+					else
+						doc[] = cn and '**类型：** 成员变量。' or '**Type:** Field.'
+					doc[] = "**#{cn and '描述：' or 'Description:'}**"
+					doc[] = "&emsp;&emsp;" .. group[1]
+					doc[] = "**#{cn and '签名：' or 'Signature:'}**\n```tl\n#{last}\n```"
+				transformDocs doc, group, 2, #group - 1
+
+gen = (docPath, target, cn)->
+	records = {}
+	classes = {}
+	nodeEvents = {}
+	globalEvents = {}
+	modules = {}
+
+	mdPrefix = 'import "@site/src/languages/highlight";\n\n'
+
+	files = Content\getAllFiles docPath
+	for file in *files
+		continue if "zh-Hans" == file\sub 1, 7
+		switch file
+			when "builtin.d.tl", "teal.d.tl"
+				continue
+		switch Path\getExt file
+			when "tl"
+				generate docPath, file, cn
+
+	targetPath = Path Content.writablePath, target, "Class"
+
+	for {name, doc} in *records
+		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
+		namePath = Path(targetPath, namePath .. ".mdx")
+		Content\mkdir Path\getPath namePath
+		Content\save namePath, mdPrefix .. table.concat(doc, "\n\n")
+
+	targetPath = Path Content.writablePath, target, "Class Object"
+
+	for {name, doc} in *classes
+		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
+		namePath = Path(targetPath, namePath .. ".mdx")
+		Content\mkdir Path\getPath namePath
+		Content\save namePath, mdPrefix .. table.concat(doc, "\n\n")
+
+	targetPath = Path Content.writablePath, target, "Module"
+
+	for {name, doc} in *modules
+		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
+		namePath = Path(targetPath, namePath .. ".md")
+		Content\mkdir Path\getPath namePath
+		Content\save namePath, mdPrefix .. table.concat(doc, "\n\n")
+
+	targetPath = Path Content.writablePath, target, "Node Event"
+
+	for {name, doc} in *nodeEvents
+		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
+		namePath = Path(targetPath, namePath .. ".md")
+		Content\mkdir Path\getPath namePath
+		Content\save namePath, mdPrefix .. table.concat(doc, "\n\n")
+
+	targetPath = Path Content.writablePath, target, "Global Event"
+
+	for {name, doc} in *globalEvents
+		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
+		namePath = Path(targetPath, namePath .. ".md")
+		Content\mkdir Path\getPath namePath
+		Content\save namePath, mdPrefix .. table.concat(doc, "\n\n")
+
+docPath = Path Content.assetPath, "Script", "Lib", "Dora"
+gen docPath, ".doc", false
+docPath = Path Content.assetPath, "Script", "Lib", "Dora", "zh-Hans"
+gen docPath, ".zhdoc", true
