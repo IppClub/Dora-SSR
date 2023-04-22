@@ -51,18 +51,21 @@ generate = (path, file, cn)->
 					newGroup[] = group[i]
 				lastComment = comment
 			last = newGroup[#newGroup]
-			className = last\match "%s*local%s*record%s*([%w_]+)"
-			className or= last\match "%s*record%s*([%w_]+)"
+			className = last\match "^%s*local%s*record%s*([%w_]+)"
+			className or= last\match "^%s*record%s*([%w_]+)"
 			if className
 				newGroup[#newGroup] = className
 				newGroup[] = false
 			elseif #newGroup == 1 and newGroup[1] == "end"
 				newGroup[] = false
-			elseif typeDef = last\match "%s*local%s*type%s*([%w_]+)"
+			elseif typeDef = last\match "^%s*local%s*type%s*([%w_]+)"
 				newGroup[] = "__ITEM__"
 				newGroup[] = false
-			elseif last\match "%s*local"
-				newGroup[#newGroup] = last\gsub "%s*local%s*[%w_]+:%s*", "#{modName}: "
+			elseif last\match "^%s*local"
+				newGroup[#newGroup] = last\gsub "^%s*local%s*[%w_]+:%s*", "#{modName}: "
+				newGroup[] = "__ITEM__"
+				newGroup[] = false
+			elseif last\match "^%s*global"
 				newGroup[] = "__ITEM__"
 				newGroup[] = false
 			res[x] = newGroup
@@ -219,7 +222,10 @@ generate = (path, file, cn)->
 					elseif currentType == "GEvent"
 						doc[] = cn and '**类型：** 全局事件。' or '**Type:** Global Event.'
 					else
-						doc[] = cn and '**类型：** 成员变量。' or '**Type:** Field.'
+						if constField
+							doc[] = cn and '**类型：** 只读成员变量。' or '**Type:** Readonly Field.'
+						else
+							doc[] = cn and '**类型：** 成员变量。' or '**Type:** Field.'
 					doc[] = "**#{cn and '描述：' or 'Description:'}**"
 					doc[] = "&emsp;&emsp;" .. group[1]
 					doc[] = "**#{cn and '签名：' or 'Signature:'}**\n```tl\n#{last}\n```"
@@ -236,13 +242,14 @@ gen = (docPath, target, cn)->
 
 	files = Content\getAllFiles docPath
 	for file in *files
-		continue if "zh-Hans" == file\sub 1, 7
 		switch file
-			when "builtin.d.tl", "teal.d.tl"
+			when "teal.d.tl"
 				continue
 		switch Path\getExt file
 			when "tl"
 				generate docPath, file, cn
+
+	Content\remove Path Content.writablePath, target
 
 	targetPath = Path Content.writablePath, target, "Class"
 
@@ -264,7 +271,7 @@ gen = (docPath, target, cn)->
 
 	for {name, doc} in *modules
 		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
-		namePath = Path(targetPath, namePath .. ".md")
+		namePath = Path(targetPath, namePath .. ".mdx")
 		Content\mkdir Path\getPath namePath
 		Content\save namePath, mdPrefix .. table.concat(doc, "\n\n")
 
@@ -272,7 +279,7 @@ gen = (docPath, target, cn)->
 
 	for {name, doc} in *nodeEvents
 		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
-		namePath = Path(targetPath, namePath .. ".md")
+		namePath = Path(targetPath, namePath .. ".mdx")
 		Content\mkdir Path\getPath namePath
 		Content\save namePath, mdPrefix .. table.concat(doc, "\n\n")
 
@@ -280,11 +287,12 @@ gen = (docPath, target, cn)->
 
 	for {name, doc} in *globalEvents
 		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
-		namePath = Path(targetPath, namePath .. ".md")
+		namePath = Path(targetPath, namePath .. ".mdx")
 		Content\mkdir Path\getPath namePath
 		Content\save namePath, mdPrefix .. table.concat(doc, "\n\n")
 
-docPath = Path Content.assetPath, "Script", "Lib", "Dora"
+docPath = Path Content.assetPath, "Script", "Lib", "Dora", "en"
 gen docPath, ".doc", false
 docPath = Path Content.assetPath, "Script", "Lib", "Dora", "zh-Hans"
 gen docPath, ".zhdoc", true
+
