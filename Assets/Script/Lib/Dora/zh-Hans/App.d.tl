@@ -58,6 +58,9 @@ local record App
 	-- 游戏引擎是否运行在调试模式下。
 	const debugging: boolean
 
+	-- 当前系统的语言环境字符串，格式例如：`zh-Hans`，`en`.
+	const locale: string
+
 	-- 引擎内置的C++测试的测试名称（用于辅助引擎本身开发）。
 	const testNames: {string}
 

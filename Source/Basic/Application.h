@@ -53,6 +53,7 @@ public:
 	PROPERTY_READONLY_BOOL(Debugging);
 	PROPERTY_READONLY(std::thread::id, LogicThread);
 	PROPERTY_READONLY(uint32_t, MaxFPS);
+	PROPERTY_READONLY_CREF(std::string, Locale);
 	PROPERTY(Color, ThemeColor);
 	PROPERTY(uint32_t, TargetFPS);
 	PROPERTY(uint32_t, Seed);
@@ -108,6 +109,7 @@ private:
 	double _totalTime;
 	double _logicTime;
 	double _renderTime;
+	std::string _locale;
 	bx::Thread _logicThread;
 	EventQueue _logicEvent;
 	EventQueue _renderEvent;

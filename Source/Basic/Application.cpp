@@ -82,6 +82,17 @@ Application::Application()
 	, _sdlWindow(nullptr)
 	, _themeColor(0xfffbc400) {
 	_lastTime = bx::getHPCounter() / _frequency;
+#if !BX_PLATFORM_LINUX
+	auto locale = SDL_GetPreferredLocales();
+	_locale = locale->language;
+	SDL_free(locale);
+#else
+	_locale = "en"s;
+#endif
+}
+
+const std::string& Application::getLocale() const {
+	return _locale;
 }
 
 Size Application::getBufferSize() const {

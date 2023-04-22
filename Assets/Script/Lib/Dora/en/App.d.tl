@@ -59,6 +59,9 @@ local record App
 	-- Whether the game engine is running in debug mode.
 	const debugging: boolean
 
+	-- The system locale string, in format like: `zh-Hans`, `en`.
+	const locale: string
+
 	-- An array of test names of engine included C++ tests.
 	const testNames: {string}
 

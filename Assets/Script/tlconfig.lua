@@ -1,7 +1,7 @@
 return {
 	include_dir = {
 		"Lib",
-		"Lib/Dora"
+		"Lib/Dora/en"
 	},
 	global_env_def = "builtin",
 	gen_compat = "off",
