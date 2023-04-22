@@ -115,6 +115,7 @@ class Application
 	tolua_readonly tolua_property__common uint32_t rand;
 	tolua_readonly tolua_property__common uint32_t maxFPS;
 	tolua_readonly tolua_property__bool bool debugging;
+	tolua_readonly tolua_property__common string locale;
 	tolua_property__common Color themeColor;
 	tolua_property__common unsigned int seed;
 	tolua_property__common uint32_t targetFPS;
