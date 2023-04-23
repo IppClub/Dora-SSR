@@ -34,9 +34,7 @@ jobs:
           cd Site
           yarn
           yarn build
-          cd build
-          echo dorothy-ssr.net |> CNAME
-          cd ../..
+          cd ..
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
