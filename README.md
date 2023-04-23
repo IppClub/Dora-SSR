@@ -38,6 +38,8 @@
 
 - Supports reading Excel spreadsheet data and synchronizing it to SQLite tables.
 
+- Built-in machine learning algorithm framework for innovative gameplay.
+
 - Provides vector graphics rendering API, which can directly render SVG format files without CSS.
 
 - Built-in ImGui, easy to create debugging tools and UI interface.

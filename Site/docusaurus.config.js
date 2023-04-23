@@ -42,14 +42,14 @@ const config = {
 					// Please change this to your repo.
 					// Remove this to remove the "edit this page" links.
 					editUrl:
-						'https://github.com/pigpigyyy/Dorothy-SSR/Site',
+						'https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Site',
 				},
 				blog: {
 					showReadingTime: true,
 					// Please change this to your repo.
 					// Remove this to remove the "edit this page" links.
 					editUrl:
-						'https://github.com/pigpigyyy/Dorothy-SSR/Site',
+						'https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Site',
 				},
 				theme: {
 					customCss: require.resolve('./src/css/custom.css'),
