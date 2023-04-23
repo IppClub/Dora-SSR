@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm'
 import "./github-markdown-dark.css";
 
 import {PrismLight as SyntaxHighlighter} from 'react-syntax-highlighter';
@@ -23,6 +24,7 @@ const Markdown = (props: MarkdownProps) => {
 	return <ReactMarkdown
 		className='markdown-body'
 		children={props.content}
+		remarkPlugins={[remarkGfm]}
 		components={{
 			img({node, src, alt, ...iprops}) {
 				const {path} = props;
