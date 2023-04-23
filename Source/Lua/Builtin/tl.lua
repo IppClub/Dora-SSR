@@ -11226,7 +11226,7 @@ tl.dora_complete = function(codes, line, row, search_path)
 		end
 		local env = tl.dora_new_env()
 		env.keep_going = true
-		local result = tl.process_string(codes, false, env, "", "")
+		local result = tl.process_string(codes, true, env, "", "")
 		if not result or not result.ast then
 			return {}
 		end
@@ -11334,7 +11334,7 @@ tl.dora_infer = function(codes, line, row, search_path)
 		end
 		local env = tl.dora_new_env()
 		env.keep_going = true
-		local result = tl.process_string(codes, false, env, "", "")
+		local result = tl.process_string(codes, true, env, "", "")
 		if not result or not result.ast then
 			return nil
 		end

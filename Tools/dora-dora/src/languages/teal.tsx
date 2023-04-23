@@ -60,6 +60,7 @@ export const language: languages.IMonarchLanguage = {
 		'type',
 		'embed',
 		'enum',
+		'const',
 	],
 
 	types: [

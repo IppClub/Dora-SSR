@@ -25,10 +25,9 @@ local record yue
 		"t"
 		"bt"
 	end
-
-	loadstring: function(input: string, chunkname: string, mode: LoadMode, ...: {any:any}): function(...: any): (any...), string
-	loadfile: function(filename: string, chunkname: string, mode: LoadMode, ...: {any:any}): function(...: any): (any...), string
-	dofile: function(filename: string, chunkname: string, mode: LoadMode, ...: {any:any}): any...
+	loadstring: function(input: string, chunkname?: string, mode?: LoadMode, env?: table, config?: Config): function(...: any): (any...), string
+	loadfile: function(filename: string, chunkname?: string, mode?: LoadMode, env?: table, config?: Config): function(...: any): (any...), string
+	dofile: function(filename: string, chunkname?: string, mode?: LoadMode, env?: table, config?: Config): any...
 	create_yuepath: function(package_path: string): string
 	find_modulepath: function(name: string): string
 	pcall: function(f: function, ...: any): boolean, any...

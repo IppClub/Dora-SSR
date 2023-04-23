@@ -1,7 +1,7 @@
 local record teal
 	tolua: function(codes: string, moduleName: string, searchPath: string): --[[lua codes]] string, --[[error]] string | nil
 	toluaAsync: function(codes: string, moduleName: string, searchPath: string): --[[lua codes]] string, --[[error]] string | nil
-	checkAsync: function(codes: string, moduleName: string, searchPath: string): --[[passed]] boolean, {
+	checkAsync: function(codes: string, moduleName: string, lax: boolean, searchPath: string): --[[passed]] boolean, {
 		{
 			--[[type]] string,
 			--[[filename]] string,
