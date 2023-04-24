@@ -29,7 +29,6 @@ public:
 	virtual ~Director();
 	PROPERTY(Scheduler*, Scheduler);
 	PROPERTY(Color, ClearColor);
-	PROPERTY_BOOL(DisplayStats);
 	PROPERTY_READONLY_CALL(Node*, UI);
 	PROPERTY_READONLY_CALL(Node*, UI3D);
 	PROPERTY_READONLY_CALL(Node*, Entry);
@@ -65,12 +64,10 @@ public:
 
 protected:
 	Director();
-	void displayStats();
 	void pushViewProjection(const Matrix& viewProj);
 	void popViewProjection();
 
 private:
-	bool _displayStats;
 	bool _nvgDirty;
 	bool _paused;
 	bool _stoped;

@@ -90,6 +90,7 @@ private:
 	uint32_t _maxCallbacks;
 
 private:
+	bool _isLoadingFont;
 	bool _textInputing;
 	bool _backSpaceIgnore;
 	bool _mouseVisible;

@@ -10,9 +10,6 @@ local Camera = require("Camera").Type
 local record Director
 	userdata
 
-	-- Whether debug statistics are displayed on the screen during gameplay.
-	displayStats: boolean
-
 	-- The background color for the game world.
 	clearColor: Color
 

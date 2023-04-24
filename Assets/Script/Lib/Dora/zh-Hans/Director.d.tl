@@ -10,9 +10,6 @@ local Camera = require("Camera").Type
 local record Director
 	userdata
 
-	-- 用于控制游戏运行时是否在屏幕上显示调试统计信息。
-	displayStats: boolean
-
 	-- 用于设置游戏窗体的背景颜色。
 	clearColor: Color
 

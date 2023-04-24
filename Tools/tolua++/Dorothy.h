@@ -258,7 +258,6 @@ class CameraOtho : public Camera
 
 class Director
 {
-	tolua_property__bool bool displayStats;
 	tolua_property__common Color clearColor;
 	tolua_property__common Scheduler* scheduler;
 	tolua_readonly tolua_property__common Node* uI @ ui;

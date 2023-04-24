@@ -1,6 +1,4 @@
 extern "C" {
-	fn director_set_stat_display(var: i32);
-	fn director_is_stat_display() -> i32;
 	fn director_set_clear_color(var: i32);
 	fn director_get_clear_color() -> i32;
 	fn director_set_scheduler(var: i64);
@@ -22,12 +20,6 @@ extern "C" {
 use crate::dora::IObject;
 pub struct Director { }
 impl Director {
-	pub fn set_stat_display(var: bool) {
-		unsafe { director_set_stat_display(if var { 1 } else { 0 }) };
-	}
-	pub fn is_stat_display() -> bool {
-		return unsafe { director_is_stat_display() != 0 };
-	}
 	pub fn set_clear_color(var: &crate::dora::Color) {
 		unsafe { director_set_clear_color(var.to_argb() as i32) };
 	}

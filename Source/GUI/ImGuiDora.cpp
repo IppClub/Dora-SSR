@@ -429,7 +429,8 @@ int ImGuiDora::_lastIMEPosX;
 int ImGuiDora::_lastIMEPosY;
 
 ImGuiDora::ImGuiDora()
-	: _rejectAllEvents(false)
+	: _isLoadingFont(false)
+	, _rejectAllEvents(false)
 	, _textInputing(false)
 	, _mouseVisible(true)
 	, _lastCursor(0)
@@ -538,9 +539,8 @@ void ImGuiDora::setImePositionHint(int x, int y) {
 }
 
 void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRanges) {
-	static bool isLoadingFont = false;
-	AssertIf(isLoadingFont, "font is loading.");
-	isLoadingFont = true;
+	AssertIf(_isLoadingFont, "font is loading.");
+	_isLoadingFont = true;
 
 	float scale =
 #if BX_PLATFORM_LINUX // || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
@@ -610,11 +610,11 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 				io.Fonts = _fonts.get();
 				updateTexture(_fonts->TexPixelsAlpha8, _fonts->TexWidth, _fonts->TexHeight);
 				MakeOwnArray(fileData);
-				isLoadingFont = false;
+				_isLoadingFont = false;
 			});
 	} else {
 		MakeOwnArray(fileData);
-		isLoadingFont = false;
+		_isLoadingFont = false;
 	}
 }
 
