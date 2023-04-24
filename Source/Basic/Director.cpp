@@ -38,7 +38,6 @@ Director::Director()
 	, _postScheduler(Scheduler::create())
 	, _camStack(Array::create())
 	, _clearColor(0xff1a1a1a)
-	, _displayStats(false)
 	, _nvgDirty(false)
 	, _paused(false)
 	, _stoped(false)
@@ -107,14 +106,6 @@ void Director::setClearColor(Color var) {
 
 Color Director::getClearColor() const {
 	return _clearColor;
-}
-
-void Director::setDisplayStats(bool var) {
-	_displayStats = var;
-}
-
-bool Director::isDisplayStats() const {
-	return _displayStats;
 }
 
 Scheduler* Director::getSystemScheduler() const {
@@ -343,10 +334,6 @@ void Director::doRender() {
 						SharedRendererManager.flush();
 					});
 				}
-				/* profile info */
-				if (_displayStats) {
-					displayStats();
-				}
 			});
 		} else {
 			/* release unused RT */
@@ -377,7 +364,7 @@ void Director::doRender() {
 				});
 			}
 			/* render ui node */
-			if (_ui || _displayStats) {
+			if (_ui) {
 				SharedView.pushBack("UI"_slice, [&]() {
 					bgfx::ViewId viewId = SharedView.getId();
 					/* ui node */
@@ -387,10 +374,6 @@ void Director::doRender() {
 							_ui->visit();
 							SharedRendererManager.flush();
 						});
-					}
-					/* profile info */
-					if (_displayStats) {
-						displayStats();
 					}
 				});
 			}
@@ -417,57 +400,6 @@ void Director::doRender() {
 			_uiTouchHandler->clear();
 		}
 	});
-}
-
-void Director::displayStats() {
-	/* print debug text */
-	bgfx::setDebug(BGFX_DEBUG_TEXT);
-	bgfx::dbgTextClear();
-	const bgfx::Stats* stats = bgfx::getStats();
-	const char* rendererNames[] = {
-		"Noop", //!< No rendering.
-		"Agc", //!< AGC
-		"Direct3D9", //!< Direct3D 9.0
-		"Direct3D11", //!< Direct3D 11.0
-		"Direct3D12", //!< Direct3D 12.0
-		"Gnm", //!< GNM
-		"Metal", //!< Metal
-		"Nvn", //!< NVN
-		"OpenGLES", //!< OpenGL ES 2.0+
-		"OpenGL", //!< OpenGL 2.1+
-		"Vulkan", //!< Vulkan
-		"WebGPU", //!< WebGPU
-	};
-	bgfx::ViewId dbgViewId = SharedView.getId();
-	int row = 0;
-	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mRenderer: \x1b[15;m%s", rendererNames[bgfx::getCaps()->rendererType]);
-	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mMultithreaded: \x1b[15;m%s", (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
-	Size size = SharedView.getSize();
-	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mBackbuffer: \x1b[15;m%d x %d", s_cast<int>(size.width), s_cast<int>(size.height));
-	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mDraw call: \x1b[15;m%d", stats->numDraw);
-	static int frames = 0;
-	static double cpuTime = 0, gpuTime = 0, deltaTime = 0;
-	cpuTime += SharedApplication.getCPUTime();
-	gpuTime += std::abs(double(stats->gpuTimeEnd) - double(stats->gpuTimeBegin)) / double(stats->gpuTimerFreq);
-	deltaTime += SharedApplication.getDeltaTime();
-	frames++;
-	static double lastCpuTime = 0, lastGpuTime = 0, lastDeltaTime = 1000.0 / SharedApplication.getTargetFPS();
-	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mCPU time: \x1b[15;m%.1f ms", lastCpuTime);
-	if (lastGpuTime > 0.0) {
-		bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mGPU time: \x1b[15;m%.1f ms", lastGpuTime);
-	}
-	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mDelta time: \x1b[15;m%.1f ms", lastDeltaTime);
-	if (frames == SharedApplication.getTargetFPS()) {
-		lastCpuTime = 1000.0 * cpuTime / frames;
-		lastGpuTime = 1000.0 * gpuTime / frames;
-		lastDeltaTime = 1000.0 * deltaTime / frames;
-		frames = 0;
-		cpuTime = gpuTime = deltaTime = 0.0;
-	}
-	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mC++ Object: \x1b[15;m%d", Object::getCount());
-	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mLua Object: \x1b[15;m%d", Object::getLuaRefCount());
-	bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mLua Callback: \x1b[15;m%d", Object::getLuaCallbackCount());
-	// bgfx::dbgTextPrintf(dbgViewId, ++row, 0x0f, "\x1b[11;mMemory Pool: \x1b[15;m%d kb", MemoryPool::getCapacity()/1024);
 }
 
 void Director::pushViewProjection(const Matrix& viewProj) {

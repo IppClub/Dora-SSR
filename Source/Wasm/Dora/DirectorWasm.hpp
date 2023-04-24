@@ -1,9 +1,3 @@
-static void director_set_stat_display(int32_t var) {
-	SharedDirector.setDisplayStats(var != 0);
-}
-static int32_t director_is_stat_display() {
-	return SharedDirector.isDisplayStats() ? 1 : 0;
-}
 static void director_set_clear_color(int32_t var) {
 	SharedDirector.setClearColor(Color(s_cast<uint32_t>(var)));
 }
@@ -56,8 +50,6 @@ static void director_cleanup() {
 	SharedDirector.cleanup();
 }
 static void linkDirector(wasm3::module& mod) {
-	mod.link_optional("*", "director_set_stat_display", director_set_stat_display);
-	mod.link_optional("*", "director_is_stat_display", director_is_stat_display);
 	mod.link_optional("*", "director_set_clear_color", director_set_clear_color);
 	mod.link_optional("*", "director_get_clear_color", director_get_clear_color);
 	mod.link_optional("*", "director_set_scheduler", director_set_scheduler);

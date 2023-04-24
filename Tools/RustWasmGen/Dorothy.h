@@ -180,7 +180,6 @@ object class SpriteEffect : public IEffect
 
 singleton class Director
 {
-	boolean bool displayStats @ statDisplay;
 	common Color clearColor;
 	common Scheduler* scheduler;
 	readonly common Node* uI @ ui;
