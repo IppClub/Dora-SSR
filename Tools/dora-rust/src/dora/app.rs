@@ -12,6 +12,7 @@ extern "C" {
 	fn application_get_rand() -> i32;
 	fn application_get_max_fps() -> i32;
 	fn application_is_debugging() -> i32;
+	fn application_set_locale(var: i64);
 	fn application_get_locale() -> i64;
 	fn application_set_theme_color(var: i32);
 	fn application_get_theme_color() -> i32;
@@ -67,6 +68,9 @@ impl App {
 	}
 	pub fn is_debugging() -> bool {
 		return unsafe { application_is_debugging() != 0 };
+	}
+	pub fn set_locale(var: &str) {
+		unsafe { application_set_locale(crate::dora::from_string(var)) };
 	}
 	pub fn get_locale() -> String {
 		return unsafe { crate::dora::to_string(application_get_locale()) };

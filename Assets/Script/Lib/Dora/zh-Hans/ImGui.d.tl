@@ -246,11 +246,21 @@ local record ImGui
 		"AnyPopupLevel"
 		"AnyPopup"
 	end
-	LoadFontTTF: function(
+	enum GlyphRange
+		"Default"
+		"Chinese"
+		"Korean"
+		"Japanese"
+		"Cyrillic"
+		"Thai"
+		"Greek"
+		"Vietnamese"
+	end
+	LoadFontTTFAsync: function(
 		ttfFontFile: string,
 		fontSize: number,
-		glyphRanges?: string --[["Default"]]
-	)
+		glyphRanges?: GlyphRange --[["Default"]]
+	): boolean
 	ShowStats: function()
 	ShowConsole: function()
 	Begin: function(

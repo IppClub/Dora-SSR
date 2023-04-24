@@ -53,7 +53,7 @@ public:
 	PROPERTY_READONLY_BOOL(Debugging);
 	PROPERTY_READONLY(std::thread::id, LogicThread);
 	PROPERTY_READONLY(uint32_t, MaxFPS);
-	PROPERTY_READONLY_CREF(std::string, Locale);
+	PROPERTY_STRING(Locale);
 	PROPERTY(Color, ThemeColor);
 	PROPERTY(uint32_t, TargetFPS);
 	PROPERTY(uint32_t, Seed);

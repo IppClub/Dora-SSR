@@ -484,8 +484,8 @@ static uint32_t TableColumnFlags(const std::vector<std::string>& flags) {
 	return result;
 }
 
-void LoadFontTTF(String ttfFontFile, float fontSize, String glyphRanges) {
-	SharedImGui.loadFontTTF(ttfFontFile, fontSize, glyphRanges);
+void LoadFontTTFAsync(String ttfFontFile, float fontSize, String glyphRanges, const std::function<void(bool)>& handler) {
+	SharedImGui.loadFontTTFAsync(ttfFontFile, fontSize, glyphRanges, handler);
 }
 
 void ShowStats() {

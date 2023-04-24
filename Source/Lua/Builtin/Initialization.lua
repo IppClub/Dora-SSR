@@ -568,6 +568,24 @@ do
 		end)
 		return result
 	end
+
+	local ImGui = builtin.ImGui
+	local ImGui_LoadFontTTFAsync = ImGui.LoadFontTTFAsync
+	ImGui.LoadFontTTFAsync = function(fontFile, fontSize, glyphRanges)
+		glyphRanges = glyphRanges or "Default"
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "ImGui.LoadFontTTFAsync should be run in a thread")
+		local done = false
+		local success = false
+		ImGui_LoadFontTTFAsync(fontFile, fontSize, glyphRanges, function(result)
+			done = true
+			success = result
+		end)
+		wait(function()
+			return done
+		end)
+		return success
+	end
 end
 
 -- node actions

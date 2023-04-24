@@ -1,5 +1,13 @@
-static void imgui_load_font_ttf(int64_t ttf_font_file, float font_size, int64_t glyph_ranges) {
-	ImGui::Binding::LoadFontTTF(*str_from(ttf_font_file), font_size, *str_from(glyph_ranges));
+static void imgui_load_font_ttf_async(int64_t ttf_font_file, float font_size, int64_t glyph_ranges, int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	ImGui::Binding::LoadFontTTFAsync(*str_from(ttf_font_file), font_size, *str_from(glyph_ranges), [func, args, deref](bool success) {
+		args->clear();
+		args->push(success);
+		SharedWasmRuntime.invoke(func);
+	});
 }
 static void imgui_show_stats() {
 	ImGui::Binding::ShowStats();
@@ -356,7 +364,7 @@ static int32_t imgui__color_edit4(int64_t label, int64_t stack, int32_t show_alp
 	return ImGui::Binding::ColorEdit4(*str_from(label), r_cast<CallStack*>(stack), show_alpha != 0) ? 1 : 0;
 }
 static void linkImGui(wasm3::module& mod) {
-	mod.link_optional("*", "imgui_load_font_ttf", imgui_load_font_ttf);
+	mod.link_optional("*", "imgui_load_font_ttf_async", imgui_load_font_ttf_async);
 	mod.link_optional("*", "imgui_show_stats", imgui_show_stats);
 	mod.link_optional("*", "imgui_show_console", imgui_show_console);
 	mod.link_optional("*", "imgui_begin", imgui_begin);

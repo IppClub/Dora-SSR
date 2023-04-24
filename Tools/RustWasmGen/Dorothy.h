@@ -60,7 +60,7 @@ singleton class Application @ App
 	readonly common uint32_t rand;
 	readonly common uint32_t maxFPS @ max_fps;
 	readonly boolean bool debugging;
-	readonly common string locale;
+	common string locale;
 	common Color themeColor;
 	common uint32_t seed;
 	common uint32_t targetFPS @ target_fps;
@@ -1211,10 +1211,11 @@ object class Buffer {
 
 singleton struct ImGui {
 
-static void Binding::LoadFontTTF @ load_font_ttf(
+static void Binding::LoadFontTTFAsync @ load_font_ttf_async(
 	string ttfFontFile,
 	float fontSize,
-	string glyphRanges);
+	string glyphRanges,
+	function<void(bool success)> handler);
 
 static void Binding::ShowStats @ showStats();
 static void Binding::ShowConsole @ showConsole();

@@ -43,10 +43,11 @@ using namespace Dorothy;
 
 extern std::vector<std::string> EmptyOptions;
 
-void LoadFontTTF(
+void LoadFontTTFAsync(
 	String ttfFontFile,
 	float fontSize,
-	String glyphRanges = "Default"_slice);
+	String glyphRanges,
+	const std::function<void(bool)>& handler);
 
 void ShowStats();
 void ShowConsole();

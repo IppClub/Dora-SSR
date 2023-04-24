@@ -28,7 +28,7 @@ public:
 	void begin();
 	void end();
 	void render();
-	void loadFontTTF(String ttfFontFile, float fontSize, String glyphRanges = "Default"_slice);
+	void loadFontTTFAsync(String ttfFontFile, float fontSize, String glyphRanges, const std::function<void(bool)>& handler);
 	void showStats();
 	void showConsole();
 	void handleEvent(const SDL_Event& event);
@@ -90,6 +90,8 @@ private:
 	uint32_t _maxCallbacks;
 
 private:
+	bool _isChineseSupported;
+	bool _useChinese;
 	bool _isLoadingFont;
 	bool _textInputing;
 	bool _backSpaceIgnore;
@@ -104,6 +106,7 @@ private:
 	Ref<Pass> _imagePass;
 	Ref<Listener> _costListener;
 	Ref<Listener> _themeListener;
+	Ref<Listener> _localeListener;
 	bgfx::VertexLayout _vertexLayout;
 	std::list<std::any> _inputs;
 	std::vector<uint32_t> _textEditing;

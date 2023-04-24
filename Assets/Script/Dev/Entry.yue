@@ -31,6 +31,7 @@ config = Config(
 	"winWidth"
 	"winHeight"
 	"themeColor"
+	"locale"
 )
 config\load!
 if config.fpsLimited?
@@ -64,12 +65,26 @@ if config.themeColor?
 else
 	config.themeColor = App.themeColor\toARGB!
 
+useChinese = false
+updateLocale = ->
+	useChinese = App.locale\match("^zh")?
+	searchPaths[#searchPaths] = Path Content.assetPath, "Script", "Lib", "Dora", useChinese and "zh-Hans" or "en"
+	Content.searchPaths = searchPaths
+
+if config.locale?
+	App.locale = config.locale
+	updateLocale!
+else
+	config.locale = App.locale
+
 import "Utils" as :Set, :Struct, :LintYueGlobals
 options: {extension: yueext} = yue
 
 print "Dorothy SSR #{App.version}#{App.debugging and ', debugging' or ''}"
 
-LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
+isChineseSupported = false
+Director.systemScheduler\schedule once ->
+	isChineseSupported = LoadFontTTFAsync "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
 
 building = false
 
@@ -250,6 +265,9 @@ setupEventHandlers = ->
 	with Director.postNode
 		\gslot "AppTheme", (argb)->
 			config.themeColor = argb
+		\gslot "AppLocale", (locale)->
+			config.locale = locale
+			updateLocale!
 		switch App.platform when "Linux", "Windows", "macOS"
 			\gslot "AppSizeChanged", ->
 				:width, :height = App.winSize
@@ -459,6 +477,7 @@ footerWindow = threadLoop ->
 			else
 				allEntries[1]
 	return unless showEntry
+	zh = useChinese and isChineseSupported
 	:width, :height = App.visualSize
 	SetNextWindowSize Vec2 170, 50
 	SetNextWindowPos if width >= 600
@@ -475,7 +494,7 @@ footerWindow = threadLoop ->
 				Dummy Vec2 10, 30
 			SameLine!
 			NextColumn!
-			_, showFooter = Checkbox "Dev", showFooter
+			_, showFooter = Checkbox zh and "开发" or "Dev", showFooter
 	if initFooter
 		initFooter = false
 	else
@@ -486,27 +505,27 @@ footerWindow = threadLoop ->
 	SetNextWindowBgAlpha 0.35
 	PushStyleVar "WindowPadding", Vec2(10, 0), -> Begin "Footer", windowFlags, ->
 		Dummy Vec2 width, 0
-		_, showStats = Checkbox "Stats", showStats
+		_, showStats = Checkbox zh and "状态" or "Stats", showStats
 		SameLine!
-		_, showConsole = Checkbox "Log", showConsole
+		_, showConsole = Checkbox zh and "控制台" or "Log", showConsole
 		SameLine!
 		if isInEntry
-			OpenPopup "build" if Button "Build", Vec2 70, 30
+			OpenPopup "build" if Button zh and "生成" or "Build", Vec2 70, 30
 			PushStyleVar "WindowPadding", Vec2(10, 10), -> BeginPopup "build", ->
-				doCompile false if Selectable "Compile"
+				doCompile false if Selectable zh and "编译" or "Compile"
 				Separator!
-				doCompile true if Selectable "Minify"
+				doCompile true if Selectable zh and "压缩" or "Minify"
 				Separator!
-				doClean! if Selectable "Clean"
+				doClean! if Selectable zh and "清理" or "Clean"
 			SameLine!
 			if Keyboard\isKeyPressed("LCtrl") and
 				Keyboard\isKeyDown "Z"
 				reloadDevEntry!
-			reloadDevEntry! if Button "Reload", Vec2 70, 30
+			reloadDevEntry! if Button zh and "刷新" or "Reload", Vec2 70, 30
 			SameLine!
 		else
 			SameLine!
-			if Button "Home", Vec2 70, 30
+			if Button zh and "主页" or "Home", Vec2 70, 30
 				allClear!
 				isInEntry = true
 				currentEntry = nil
@@ -517,16 +536,16 @@ footerWindow = threadLoop ->
 			if currentIndex
 				if currentIndex > 1
 					SameLine!
-					if Button "Prev", Vec2 70, 30
+					if Button zh and "前一个" or "Prev", Vec2 70, 30
 						allClear!
 						enterDemoEntry allEntries[currentIndex - 1]
 				if currentIndex < #allEntries
 					SameLine!
-					if Button "Next", Vec2 70, 30
+					if Button zh and "后一个" or "Next", Vec2 70, 30
 						allClear!
 						enterDemoEntry allEntries[currentIndex + 1]
 			SameLine!
-			if Button "Reload", Vec2 70, 30
+			if Button zh and "刷新" or "Reload", Vec2 70, 30
 				reloadCurrentEntry!
 		PushStyleVar "WindowPadding", Vec2(10, 10), ->
 			if showStats
@@ -547,6 +566,7 @@ entryWindow = threadLoop ->
 		config.fixedFPS = Director.scheduler.fixedFPS
 	return unless showEntry
 	return unless isInEntry
+	zh = useChinese and isChineseSupported
 	:themeColor = App
 	:width, :height = App.visualSize
 	maxColumns = math.max math.floor(width / 200), 1
@@ -569,12 +589,12 @@ entryWindow = threadLoop ->
 					TextColored themeColor, gameName
 					Separator!
 					PushID gameName, ->
-						if Button "Game Start", Vec2 -1, 40
+						if Button zh and "开始运行" or "Game Start", Vec2 -1, 40
 							enterDemoEntry game
 						NextColumn!
 						if #examples > 0
 							Columns 1, false
-							TextColored themeColor, "Examples"
+							TextColored themeColor, zh and "示例" or "Examples"
 							Columns maxColumns, false
 							for example in *examples
 								PushID "#{gameName} #{example[1]} example", ->
@@ -583,7 +603,7 @@ entryWindow = threadLoop ->
 									NextColumn!
 						if #tests > 0
 							Columns 1, false
-							TextColored themeColor, "Tests"
+							TextColored themeColor, zh and "测试" or "Tests"
 							Columns maxColumns, false
 							for test in *tests
 								PushID "#{gameName} #{test[1]} test", ->
@@ -598,7 +618,7 @@ entryWindow = threadLoop ->
 				Separator!
 				if #games > 0
 					Columns 1, false
-					TextColored themeColor, "Demos"
+					TextColored themeColor, zh and "演示" or "Demos"
 					Columns maxColumns, false
 					for game in *games
 						if Button game[1], Vec2 -1, 40
@@ -606,7 +626,7 @@ entryWindow = threadLoop ->
 						NextColumn!
 				if #doraExamples > 0
 					Columns 1, false
-					TextColored themeColor, "Examples"
+					TextColored themeColor, zh and "示例" or "Examples"
 					Columns maxColumns, false
 					for example in *doraExamples
 						if Button example[1], Vec2 -1, 40
@@ -614,7 +634,7 @@ entryWindow = threadLoop ->
 						NextColumn!
 				if #doraTests > 0
 					Columns 1, false
-					TextColored themeColor, "Tests"
+					TextColored themeColor, zh and "测试" or "Tests"
 					Columns maxColumns, false
 					for test in *doraTests
 						if Button test[1], Vec2 -1, 40
