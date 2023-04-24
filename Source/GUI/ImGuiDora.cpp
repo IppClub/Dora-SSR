@@ -176,7 +176,7 @@ public:
 		return 0;
 	}
 
-	void Draw(const char* title, bool* p_open = nullptr) {
+	void Draw(const char* title, bool useChinese, bool* p_open = nullptr) {
 		if (_fullScreen) {
 			ImGui::SetNextWindowPos(Vec2::zero);
 			ImGui::SetNextWindowSize(Vec2{1, 1} * SharedApplication.getVisualSize(), ImGuiCond_Always);
@@ -185,9 +185,9 @@ public:
 			ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
 			ImGui::Begin(title, p_open);
 		}
-		if (ImGui::Button("Clear")) clear();
+		if (ImGui::Button(useChinese ? "清空" : "Clear")) clear();
 		ImGui::SameLine();
-		if (ImGui::Button("Copy") && !_logs.empty()) {
+		if (ImGui::Button(useChinese ? "复制" : "Copy") && !_logs.empty()) {
 			std::string logText;
 			for (const auto& line : _logs) {
 				logText.append(line);
@@ -204,7 +204,7 @@ public:
 			_fullScreen = !_fullScreen;
 		}
 		ImGui::SameLine();
-		_filter.Draw("Filter", -60.0f);
+		_filter.Draw(useChinese ? "筛选" : "Filter", -60.0f);
 		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
 		ImGui::BeginChild(_fullScreen ? "scrolling_full" : "scrolling", ImVec2(0, -footer_height_to_reserve), false);
 		if (_forceScroll == 0 && _scrollToBottom && ImGui::GetScrollY() + footer_height_to_reserve < ImGui::GetScrollMaxY()) {
@@ -251,7 +251,7 @@ public:
 		bool reclaimFocus = false;
 		ImGuiInputTextFlags inputTextFlags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
 		ImGui::PushItemWidth(-55);
-		if (ImGui::InputText("REPL", _buf.data(), _buf.size(), inputTextFlags, &TextEditCallbackStub, r_cast<void*>(this))) {
+		if (ImGui::InputText(useChinese ? "命令行" : "REPL", _buf.data(), _buf.size(), inputTextFlags, &TextEditCallbackStub, r_cast<void*>(this))) {
 			_historyPos = -1;
 			for (int i = s_cast<int>(_history.size()) - 1; i >= 0; i--) {
 				if (_history[i] == _buf.data()) {
@@ -429,7 +429,9 @@ int ImGuiDora::_lastIMEPosX;
 int ImGuiDora::_lastIMEPosY;
 
 ImGuiDora::ImGuiDora()
-	: _isLoadingFont(false)
+	: _isChineseSupported(false)
+	, _useChinese(false)
+	, _isLoadingFont(false)
 	, _rejectAllEvents(false)
 	, _textInputing(false)
 	, _mouseVisible(true)
@@ -501,6 +503,12 @@ ImGuiDora::ImGuiDora()
 		e->get(argb);
 		DoraSetupTheme(Color(argb));
 	});
+	_localeListener = Listener::create("AppLocale"_slice, [&](Event* e) {
+		std::string locale;
+		e->get(locale);
+		_useChinese = Slice(locale).left(2) == "zh";
+	});
+	_useChinese = Slice(SharedApplication.getLocale()).left(2) == "zh";
 }
 
 ImGuiDora::ImGuiTouchHandler* ImGuiDora::getTouchHandler() const {
@@ -538,9 +546,50 @@ void ImGuiDora::setImePositionHint(int x, int y) {
 	SharedKeyboard.updateIMEPosHint({s_cast<float>(x) * scale, s_cast<float>(y) * scale});
 }
 
-void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRanges) {
+void ImGuiDora::loadFontTTFAsync(String ttfFontFile, float fontSize, String glyphRanges, const std::function<void(bool)>& handler) {
 	AssertIf(_isLoadingFont, "font is loading.");
+	AssertIf(ImGui::GetIO().Fonts->Locked, "font is locked.");
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	const ImWchar* targetGlyphRanges = nullptr;
+	switch (Switch::hash(glyphRanges)) {
+		case "Default"_hash:
+			targetGlyphRanges = io.Fonts->GetGlyphRangesDefault();
+			break;
+		case "Chinese"_hash:
+			targetGlyphRanges = io.Fonts->GetGlyphRangesChineseFull();
+			break;
+		case "Korean"_hash:
+			targetGlyphRanges = io.Fonts->GetGlyphRangesKorean();
+			break;
+		case "Japanese"_hash:
+			targetGlyphRanges = io.Fonts->GetGlyphRangesJapanese();
+			break;
+		case "Cyrillic"_hash:
+			targetGlyphRanges = io.Fonts->GetGlyphRangesCyrillic();
+			break;
+		case "Thai"_hash:
+			targetGlyphRanges = io.Fonts->GetGlyphRangesThai();
+			break;
+		case "Greek"_hash:
+			targetGlyphRanges = io.Fonts->GetGlyphRangesGreek();
+			break;
+		case "Vietnamese"_hash:
+			targetGlyphRanges = io.Fonts->GetGlyphRangesVietnamese();
+			break;
+		default:
+			break;
+	}
+
+	if (!targetGlyphRanges) {
+		Warn("unsupported glyph ranges: \"{}\".", glyphRanges);
+		handler(false);
+		return;
+	}
+
 	_isLoadingFont = true;
+	_isChineseSupported = false;
 
 	float scale =
 #if BX_PLATFORM_LINUX // || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
@@ -555,10 +604,10 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 
 	if (!fileData) {
 		Warn("failed to load ttf file for ImGui!");
+		handler(false);
 		return;
 	}
 
-	ImGuiIO& io = ImGui::GetIO();
 	io.FontGlobalScale = 1.0f / scale;
 	io.Fonts = _defaultFonts.get();
 	io.Fonts->Clear();
@@ -575,55 +624,34 @@ void ImGuiDora::loadFontTTF(String ttfFontFile, float fontSize, String glyphRang
 	updateTexture(texData, width, height);
 	io.Fonts->ClearTexData();
 
-	const ImWchar* targetGlyphRanges = nullptr;
-	switch (Switch::hash(glyphRanges)) {
-		case "Chinese"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesChineseFull();
-			break;
-		case "Korean"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesKorean();
-			break;
-		case "Japanese"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesJapanese();
-			break;
-		case "Cyrillic"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesCyrillic();
-			break;
-		case "Thai"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesThai();
-			break;
-	}
-
-	if (targetGlyphRanges) {
-		_fonts->Clear();
-		_fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), s_cast<float>(fontSize), &fontConfig, targetGlyphRanges);
-		SharedAsyncThread.run(
-			[this]() {
-				_fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
-				_fonts->TexDesiredWidth = MAX_FONT_TEXTURE_WIDTH;
-				_fonts->Build();
-				return nullptr;
-			},
-			[this, fileData, size](Own<Values> result) {
-				ImGuiIO& io = ImGui::GetIO();
-				io.Fonts->Clear();
-				io.Fonts = _fonts.get();
-				updateTexture(_fonts->TexPixelsAlpha8, _fonts->TexWidth, _fonts->TexHeight);
-				MakeOwnArray(fileData);
-				_isLoadingFont = false;
-			});
-	} else {
-		MakeOwnArray(fileData);
-		_isLoadingFont = false;
-	}
+	_fonts->Clear();
+	_fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), s_cast<float>(fontSize), &fontConfig, targetGlyphRanges);
+	SharedAsyncThread.run(
+		[this]() {
+			_fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
+			_fonts->TexDesiredWidth = MAX_FONT_TEXTURE_WIDTH;
+			_fonts->Build();
+			return nullptr;
+		},
+		[this, fileData, size, glyphRanges = glyphRanges.toString(), handler](Own<Values> result) {
+			ImGuiIO& io = ImGui::GetIO();
+			io.Fonts->Clear();
+			io.Fonts = _fonts.get();
+			updateTexture(_fonts->TexPixelsAlpha8, _fonts->TexWidth, _fonts->TexHeight);
+			MakeOwnArray(fileData);
+			_isChineseSupported = glyphRanges == "Chinese"_slice;
+			_isLoadingFont = false;
+			handler(true);
+		});
 }
 
 void ImGuiDora::showStats() {
 	/* print debug text */
+	bool useChinese = _useChinese && _isChineseSupported;
 	auto themeColor = SharedApplication.getThemeColor().toVec4();
-	if (ImGui::Begin("Dorothy Stats", nullptr,
+	if (ImGui::Begin(useChinese ? "Dorothy状态" : "Dorothy Stats", nullptr,
 			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
-		if (ImGui::CollapsingHeader("Basic")) {
+		if (ImGui::CollapsingHeader(useChinese ? "基础" : "Basic")) {
 			const char* rendererNames[] = {
 				"Noop", //!< No rendering.
 				"Agc", //!< AGC
@@ -638,27 +666,27 @@ void ImGuiDora::showStats() {
 				"Vulkan", //!< Vulkan
 				"WebGPU", //!< WebGPU
 			};
-			ImGui::TextColored(themeColor, "Renderer:");
+			ImGui::TextColored(themeColor, useChinese ? "渲染器：" : "Renderer:");
 			ImGui::SameLine();
 			ImGui::TextUnformatted(rendererNames[bgfx::getCaps()->rendererType]);
-			ImGui::TextColored(themeColor, "Multi Threaded:");
+			ImGui::TextColored(themeColor, useChinese ? "多线程渲染：" : "Multi Threaded:");
 			ImGui::SameLine();
 			ImGui::TextUnformatted((bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
-			ImGui::TextColored(themeColor, "Back Buffer:");
+			ImGui::TextColored(themeColor, useChinese ? "渲染缓冲区：" : "Back Buffer:");
 			ImGui::SameLine();
 			Size size = SharedView.getSize();
 			ImGui::Text("%d x %d", s_cast<int>(size.width), s_cast<int>(size.height));
-			ImGui::TextColored(themeColor, "Draw Call:");
+			ImGui::TextColored(themeColor, useChinese ? "渲染调用：" : "Draw Call:");
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numDraw);
-			ImGui::TextColored(themeColor, "Tri:");
+			ImGui::TextColored(themeColor, useChinese ? "三角形：" : "Tri:");
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::TriStrip] + bgfx::getStats()->numPrims[bgfx::Topology::TriList]);
 			ImGui::SameLine();
-			ImGui::TextColored(themeColor, "Line:");
+			ImGui::TextColored(themeColor, useChinese ? "线段：" : "Line:");
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::LineStrip] + bgfx::getStats()->numPrims[bgfx::Topology::LineList]);
-			ImGui::TextColored(themeColor, "Visual Size:");
+			ImGui::TextColored(themeColor, useChinese ? "可视区尺寸：" : "Visual Size:");
 			ImGui::SameLine();
 			auto visualSize = SharedApplication.getVisualSize();
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
@@ -676,7 +704,7 @@ void ImGuiDora::showStats() {
 				{640, 480},
 				{320, 240}};
 			if (ImGui::BeginPopup("WindowSizeSelector")) {
-				if (ImGui::Selectable("Full Screen")) {
+				if (ImGui::Selectable(useChinese ? "全屏模式" : "Full Screen")) {
 					SharedApplication.setWinSize(Size::zero);
 				}
 				for (const auto& size : sizes) {
@@ -690,15 +718,15 @@ void ImGuiDora::showStats() {
 			}
 #endif
 			bool vsync = SharedView.isVSync();
-			if (ImGui::Checkbox("VSync", &vsync)) {
+			if (ImGui::Checkbox(useChinese ? "垂直同步" : "VSync", &vsync)) {
 				SharedView.setVSync(vsync);
 			}
 			ImGui::SameLine();
 			bool fpsLimited = SharedApplication.isFPSLimited();
-			if (ImGui::Checkbox("FPS Limited", &fpsLimited)) {
+			if (ImGui::Checkbox(useChinese ? "限制帧数" : "FPS Limited", &fpsLimited)) {
 				SharedApplication.setFPSLimited(fpsLimited);
 			}
-			ImGui::TextColored(themeColor, "FPS:");
+			ImGui::TextColored(themeColor, useChinese ? "帧数：" : "FPS:");
 			ImGui::SameLine();
 			int targetFPS = SharedApplication.getTargetFPS();
 			if (ImGui::RadioButton("30", &targetFPS, 30)) {
@@ -718,12 +746,12 @@ void ImGuiDora::showStats() {
 			}
 			int fixedFPS = SharedDirector.getScheduler()->getFixedFPS();
 			ImGui::PushItemWidth(100.0f);
-			if (ImGui::DragInt("Fixed FPS", &fixedFPS, 1, 30, SharedApplication.getMaxFPS())) {
+			if (ImGui::DragInt(useChinese ? "固定更新帧数" : "Fixed FPS", &fixedFPS, 1, 30, SharedApplication.getMaxFPS())) {
 				SharedDirector.getScheduler()->setFixedFPS(fixedFPS);
 			}
 			ImGui::PopItemWidth();
 		}
-		if (ImGui::CollapsingHeader("Time")) {
+		if (ImGui::CollapsingHeader(useChinese ? "时间" : "Time")) {
 			_timeFrames++;
 			_cpuTime += SharedApplication.getCPUTime();
 			_gpuTime += SharedApplication.getGPUTime();
@@ -735,35 +763,35 @@ void ImGuiDora::showStats() {
 				_cpuTime = _gpuTime = _deltaTime = 0.0;
 				_timeFrames = 0;
 			}
-			ImGui::Checkbox("Show Plot", &_showPlot);
-			ImGui::TextColored(themeColor, "AVG FPS:");
+			ImGui::Checkbox(useChinese ? "显示图形" : "Show Plot", &_showPlot);
+			ImGui::TextColored(themeColor, useChinese ? "平均帧数：" : "AVG FPS:");
 			ImGui::SameLine();
 			ImGui::Text("%.1f", 1000.0f / _avgDeltaTime);
-			ImGui::TextColored(themeColor, "AVG CPU:");
+			ImGui::TextColored(themeColor, useChinese ? "平均CPU耗时：" : "AVG CPU:");
 			ImGui::SameLine();
 			if (_avgCPUTime == 0)
 				ImGui::Text("-");
 			else
 				ImGui::Text("%.1f ms", _avgCPUTime);
-			ImGui::TextColored(themeColor, "AVG GPU:");
+			ImGui::TextColored(themeColor, useChinese ? "平均GPU耗时：" : "AVG GPU:");
 			ImGui::SameLine();
 			if (_avgGPUTime == 0)
 				ImGui::Text("-");
 			else
 				ImGui::Text("%.1f ms", _avgGPUTime);
 		}
-		if (ImGui::CollapsingHeader("Object")) {
+		if (ImGui::CollapsingHeader(useChinese ? "对象" : "Object")) {
 			_objectFrames++;
 			_objectEclapsed += SharedApplication.getDeltaTime();
-			ImGui::TextColored(themeColor, "C++ Object:");
+			ImGui::TextColored(themeColor, useChinese ? "C++对象：" : "C++ Object:");
 			ImGui::SameLine();
 			_maxCppObjects = std::max(_maxCppObjects, Object::getCount());
 			ImGui::Text("%d", _maxCppObjects);
-			ImGui::TextColored(themeColor, "Lua Object:");
+			ImGui::TextColored(themeColor, useChinese ? "Lua对象" : "Lua Object:");
 			ImGui::SameLine();
 			_maxLuaObjects = std::max(_maxLuaObjects, Object::getLuaRefCount());
 			ImGui::Text("%d", _maxLuaObjects);
-			ImGui::TextColored(themeColor, "Lua Callback:");
+			ImGui::TextColored(themeColor, useChinese ? "Lua回调：" : "Lua Callback:");
 			ImGui::SameLine();
 			_maxCallbacks = std::max(_maxCallbacks, Object::getLuaCallbackCount());
 			ImGui::Text("%d", _maxCallbacks);
@@ -771,7 +799,7 @@ void ImGuiDora::showStats() {
 				_objectFrames = _maxCppObjects = _maxLuaObjects = _maxCallbacks = _objectEclapsed = 0;
 			}
 		}
-		if (ImGui::CollapsingHeader("Memory")) {
+		if (ImGui::CollapsingHeader(useChinese ? "内存" : "Memory")) {
 			_memFrames++;
 			_memEclapsed += SharedApplication.getDeltaTime();
 			_memPoolSize += (MemoryPool::getTotalCapacity() / 1024);
@@ -782,23 +810,23 @@ void ImGuiDora::showStats() {
 				_memPoolSize = _memLua = 0;
 				_memFrames = _memEclapsed = 0;
 			}
-			ImGui::TextColored(themeColor, "Memory Pool:");
+			ImGui::TextColored(themeColor, useChinese ? "内存池：" : "Memory Pool:");
 			ImGui::SameLine();
 			ImGui::Text("%d kb", _lastMemPoolSize);
-			ImGui::TextColored(themeColor, "Lua Memory:");
+			ImGui::TextColored(themeColor, useChinese ? "Lua内存：" : "Lua Memory:");
 			ImGui::SameLine();
 			ImGui::Text("%.2f mb", _lastMemLua / 1024.0f);
-			ImGui::TextColored(themeColor, "Texture Size:");
+			ImGui::TextColored(themeColor, useChinese ? "纹理内存：" : "Texture Size:");
 			ImGui::SameLine();
 			ImGui::Text("%.2f mb", Texture2D::getStorageSize() / 1024.0f / 1024.0f);
 		}
-		if (ImGui::CollapsingHeader("Loader")) {
-			if (ImGui::Button("Clear")) {
+		if (ImGui::CollapsingHeader(useChinese ? "加载脚本" : "Loader")) {
+			if (ImGui::Button(useChinese ? "清除" : "Clear")) {
 				_loaderCosts.clear();
 				_loaderTotalTime = 0;
 			}
 			ImGui::SameLine();
-			ImGui::TextColored(themeColor, "Time Cost:");
+			ImGui::TextColored(themeColor, useChinese ? "耗时：" : "Time Cost:");
 			ImGui::SameLine();
 			ImGui::Text("%.4f s", _loaderTotalTime);
 			const ImGuiTableFlags flags = ImGuiTableFlags_Resizable
@@ -810,18 +838,18 @@ void ImGuiDora::showStats() {
 				| ImGuiTableFlags_NoBordersInBody
 				| ImGuiTableFlags_ScrollY
 				| ImGuiTableFlags_SizingFixedFit;
-			if (ImGui::BeginTable("Loaders", 4, flags, ImVec2(0.0f, 400.0f))) {
-				ImGui::TableSetupColumn("ID",
+			if (ImGui::BeginTable(useChinese ? "加载器" : "Loaders", 4, flags, ImVec2(0.0f, 400.0f))) {
+				ImGui::TableSetupColumn(useChinese ? "编号" : "ID",
 					ImGuiTableColumnFlags_DefaultSort
 						| ImGuiTableColumnFlags_PreferSortDescending
 						| ImGuiTableColumnFlags_WidthFixed);
-				ImGui::TableSetupColumn("Time",
+				ImGui::TableSetupColumn(useChinese ? "时间" : "Time",
 					ImGuiTableColumnFlags_PreferSortDescending
 						| ImGuiTableColumnFlags_WidthFixed);
-				ImGui::TableSetupColumn("Level",
+				ImGui::TableSetupColumn(useChinese ? "层级" : "Level",
 					ImGuiTableColumnFlags_PreferSortAscending
 						| ImGuiTableColumnFlags_WidthFixed);
-				ImGui::TableSetupColumn("Module",
+				ImGui::TableSetupColumn(useChinese ? "模块名" : "Module",
 					ImGuiTableColumnFlags_NoSort
 						| ImGuiTableColumnFlags_WidthStretch);
 				ImGui::TableSetupScrollFreeze(0, 1);
@@ -887,10 +915,17 @@ void ImGuiDora::showStats() {
 				ImGui::EndTable();
 			}
 		}
-		if (ImGui::CollapsingHeader("Misc")) {
+		if (ImGui::CollapsingHeader(useChinese ? "杂项" : "Misc")) {
 			ImGui::PushItemWidth(150);
-			if (ImGui::ColorEdit3("Theme Color", themeColor, ImGuiColorEditFlags_DisplayHex)) {
+			if (ImGui::ColorEdit3(useChinese ? "主题色" : "Theme Color", themeColor, ImGuiColorEditFlags_DisplayHex)) {
 				SharedApplication.setThemeColor(Color(themeColor));
+			}
+			static const char* languages[] = {
+				"English",
+				"简体中文"};
+			int index = useChinese ? 1 : 0;
+			if (ImGui::Combo(useChinese ? "语言" : "Language", &index, languages, _isChineseSupported ? 2 : 1)) {
+				SharedApplication.setLocale(index == 0 ? "en"_slice : "zh-Hans"_slice);
 			}
 			ImGui::PopItemWidth();
 		}
@@ -940,7 +975,7 @@ void ImGuiDora::showStats() {
 		}
 		Size size = SharedApplication.getVisualSize();
 		ImGui::SetNextWindowPos(Vec2{size.width / 2 - 160.0f, 10.0f}, ImGuiCond_FirstUseEver);
-		if (ImGui::Begin("Frame Time Peaks(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
+		if (ImGui::Begin(useChinese ? "每秒内帧耗时峰值" : "Frame Time Peaks(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 			ImPlot::SetNextAxesLimits(0, PlotCount, 0, std::max(_yLimit, targetTime) + 1.0, ImGuiCond_Always);
 			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0, 0, 0, 0));
 			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0, 0, 0, 0));
@@ -948,12 +983,12 @@ void ImGuiDora::showStats() {
 					ImPlotFlags_NoChild | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoTitle | ImPlotFlags_NoInputs)) {
 				ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoTickLabels);
 				ImPlot::SetupLegend(ImPlotLocation_South, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
-				ImPlot::PlotInfLines("Base", &targetTime, 1, ImPlotInfLinesFlags_Horizontal);
+				ImPlot::PlotInfLines(useChinese ? "基准" : "Base", &targetTime, 1, ImPlotInfLinesFlags_Horizontal);
 				ImPlot::PlotLine("CPU", _times.data(), _cpuValues.data(),
 					s_cast<int>(_cpuValues.size()));
 				ImPlot::PlotLine("GPU", _times.data(), _gpuValues.data(),
 					s_cast<int>(_gpuValues.size()));
-				ImPlot::PlotLine("Delta", _times.data(), _dtValues.data(),
+				ImPlot::PlotLine(useChinese ? "帧间隔" : "Delta", _times.data(), _dtValues.data(),
 					s_cast<int>(_dtValues.size()));
 				ImPlot::EndPlot();
 			}
@@ -962,7 +997,7 @@ void ImGuiDora::showStats() {
 		ImGui::End();
 		if (!_updateCosts.empty()) {
 			ImGui::SetNextWindowPos(Vec2{size.width / 2 + 170.0f, 10.0f}, ImGuiCond_FirstUseEver);
-			if (ImGui::Begin("Total CPU Time(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
+			if (ImGui::Begin(useChinese ? "每秒内CPU耗时占比" : "Total CPU Time(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 				ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0, 0, 0, 0));
 				ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0, 0, 0, 0));
 				ImPlot::PushStyleColor(ImPlotCol_LegendBg, ImVec4(0, 0, 0, 0.3f));
@@ -990,7 +1025,8 @@ void ImGuiDora::showStats() {
 }
 
 void ImGuiDora::showConsole() {
-	_console->Draw("Dorothy Console");
+	bool useChinese = _useChinese && _isChineseSupported;
+	_console->Draw(useChinese ? "Dorothy控制台" : "Dorothy Console", useChinese);
 }
 
 static void SetPlatformImeDataFn(ImGuiViewport*, ImGuiPlatformImeData* data) {

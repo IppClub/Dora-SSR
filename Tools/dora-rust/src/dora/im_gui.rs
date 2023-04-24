@@ -1,5 +1,5 @@
 extern "C" {
-	fn imgui_load_font_ttf(ttf_font_file: i64, font_size: f32, glyph_ranges: i64);
+	fn imgui_load_font_ttf_async(ttf_font_file: i64, font_size: f32, glyph_ranges: i64, func: i32, stack: i64);
 	fn imgui_show_stats();
 	fn imgui_show_console();
 	fn imgui_begin(name: i64) -> i32;
@@ -122,8 +122,13 @@ extern "C" {
 use crate::dora::IObject;
 pub struct ImGui { }
 impl ImGui {
-	pub fn load_font_ttf(ttf_font_file: &str, font_size: f32, glyph_ranges: &str) {
-		unsafe { imgui_load_font_ttf(crate::dora::from_string(ttf_font_file), font_size, crate::dora::from_string(glyph_ranges)); }
+	pub fn load_font_ttf_async(ttf_font_file: &str, font_size: f32, glyph_ranges: &str, mut handler: Box<dyn FnMut(bool)>) {
+		let mut stack = crate::dora::CallStack::new();
+		let stack_raw = stack.raw();
+		let func_id = crate::dora::push_function(Box::new(move || {
+			handler(stack.pop_bool().unwrap())
+		}));
+		unsafe { imgui_load_font_ttf_async(crate::dora::from_string(ttf_font_file), font_size, crate::dora::from_string(glyph_ranges), func_id, stack_raw); }
 	}
 	pub fn show_stats() {
 		unsafe { imgui_show_stats(); }

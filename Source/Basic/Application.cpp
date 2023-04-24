@@ -95,6 +95,11 @@ const std::string& Application::getLocale() const {
 	return _locale;
 }
 
+void Application::setLocale(String var) {
+	_locale = var;
+	Event::send("AppLocale", _locale);
+}
+
 Size Application::getBufferSize() const {
 	return Size{s_cast<float>(_bufferWidth), s_cast<float>(_bufferHeight)};
 }
