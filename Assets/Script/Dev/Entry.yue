@@ -83,8 +83,10 @@ options: {extension: yueext} = yue
 print "Dorothy SSR #{App.version}#{App.debugging and ', debugging' or ''}"
 
 isChineseSupported = false
-Director.systemScheduler\schedule once ->
-	isChineseSupported = LoadFontTTFAsync "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
+unless IsFontLoaded!
+	Director.systemScheduler\schedule once ->
+		isChineseSupported = LoadFontTTFAsync "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
+else isChineseSupported = true
 
 building = false
 

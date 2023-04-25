@@ -435,7 +435,7 @@ static int dora_threaded_read_file(lua_State* L) {
 	OwnArray<uint8_t> codeData;
 	size_t codeSize;
 	bx::Semaphore waitForLoaded;
-	SharedAsyncThread.FileIO.run([&]() {
+	SharedContent.getThread()->run([&]() {
 		int64_t size;
 		auto data = SharedContent.loadUnsafe(filename, size);
 		codeSize = s_cast<size_t>(size);

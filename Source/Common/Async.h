@@ -45,7 +45,6 @@ private:
 
 class AsyncThread {
 public:
-	Async FileIO;
 	AsyncThread();
 	Async& getProcess(int index);
 	Async* newThread();

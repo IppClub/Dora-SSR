@@ -23,6 +23,7 @@ class ConsolePanel;
 
 class ImGuiDora {
 public:
+	PROPERTY_BOOL(FontLoaded);
 	virtual ~ImGuiDora();
 	bool init();
 	void begin();
@@ -57,6 +58,7 @@ protected:
 	static int _lastIMEPosX, _lastIMEPosY;
 
 private:
+	bool _fontLoaded;
 	bool _showPlot;
 	uint32_t _objectFrames;
 	uint32_t _timeFrames;

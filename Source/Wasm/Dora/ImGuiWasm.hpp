@@ -9,6 +9,9 @@ static void imgui_load_font_ttf_async(int64_t ttf_font_file, float font_size, in
 		SharedWasmRuntime.invoke(func);
 	});
 }
+static int32_t imgui_is_font_loaded() {
+	return ImGui::Binding::IsFontLoaded() ? 1 : 0;
+}
 static void imgui_show_stats() {
 	ImGui::Binding::ShowStats();
 }
@@ -365,6 +368,7 @@ static int32_t imgui__color_edit4(int64_t label, int64_t stack, int32_t show_alp
 }
 static void linkImGui(wasm3::module& mod) {
 	mod.link_optional("*", "imgui_load_font_ttf_async", imgui_load_font_ttf_async);
+	mod.link_optional("*", "imgui_is_font_loaded", imgui_is_font_loaded);
 	mod.link_optional("*", "imgui_show_stats", imgui_show_stats);
 	mod.link_optional("*", "imgui_show_console", imgui_show_console);
 	mod.link_optional("*", "imgui_begin", imgui_begin);

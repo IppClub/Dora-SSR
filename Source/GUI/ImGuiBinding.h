@@ -49,6 +49,8 @@ void LoadFontTTFAsync(
 	String glyphRanges,
 	const std::function<void(bool)>& handler);
 
+bool IsFontLoaded();
+
 void ShowStats();
 void ShowConsole();
 

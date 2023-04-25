@@ -18,10 +18,12 @@ class Database;
 NS_DOROTHY_BEGIN
 
 class Value;
+class Async;
 
 class DB {
 public:
 	typedef std::variant<int64_t, double, std::string, bool> Col;
+	PROPERTY_READONLY(Async*, Thread);
 	virtual ~DB();
 	bool exist(String tableName, String schema = Slice::Empty) const;
 	int exec(String sql);
@@ -37,7 +39,9 @@ public:
 	static Own<Value> col(const Col& c);
 public:
 	bool transaction(const std::function<void(SQLite::Database*)>& func);
+	bool transactionUnsafe(const std::function<void(SQLite::Database*)>& func);
 	void transactionAsync(const std::function<void(SQLite::Database*)>& func, const std::function<void(bool)>& callback);
+	std::deque<std::vector<Col>> queryUnsafe(String sql, const std::vector<Own<Value>>& args, bool withColumns = false);
 	static void insertUnsafe(SQLite::Database* db, String tableName, const std::deque<std::vector<Own<Value>>>& values);
 	static int execUnsafe(SQLite::Database* db, String sql);
 	static int execUnsafe(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args);
@@ -48,6 +52,7 @@ protected:
 
 private:
 	Own<SQLite::Database> _database;
+	Async* _thread;
 	SINGLETON_REF(DB, Application);
 };
 

@@ -14,6 +14,7 @@ class Buffer : public Object
 namespace ImGui
 {
 	void Binding::LoadFontTTFAsync @ LoadFontTTFAsync(String ttfFontFile, float fontSize, String glyphRanges, tolua_function_void handler);
+	bool Binding::IsFontLoaded @ IsFontLoaded();
 	void Binding::ShowStats @ ShowStats();
 	void Binding::ShowConsole @ ShowConsole();
 	bool Binding::Begin @ Begin(CString name);

@@ -1217,6 +1217,8 @@ static void Binding::LoadFontTTFAsync @ load_font_ttf_async(
 	string glyphRanges,
 	function<void(bool success)> handler);
 
+static bool Binding::IsFontLoaded @ is_font_loaded();
+
 static void Binding::ShowStats @ showStats();
 static void Binding::ShowConsole @ showConsole();
 

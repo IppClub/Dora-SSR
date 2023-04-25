@@ -488,6 +488,10 @@ void LoadFontTTFAsync(String ttfFontFile, float fontSize, String glyphRanges, co
 	SharedImGui.loadFontTTFAsync(ttfFontFile, fontSize, glyphRanges, handler);
 }
 
+bool IsFontLoaded() {
+	return SharedImGui.isFontLoaded();
+}
+
 void ShowStats() {
 	SharedImGui.showStats();
 }

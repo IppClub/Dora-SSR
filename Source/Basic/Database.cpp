@@ -30,11 +30,12 @@ void assertion_failed(const char* apFile, const int apLine, const char* apFunc, 
 
 NS_DOROTHY_BEGIN
 
-DB::DB() {
+DB::DB()
+	: _thread(SharedAsyncThread.newThread()) {
 	auto dbFile = Path::concat({SharedContent.getWritablePath(), "dora.db"_slice});
 	try {
 		_database = New<SQLite::Database>(dbFile,
-			SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE | SQLite::OPEN_FULLMUTEX);
+			SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 	} catch (std::exception&) {
 		if (SharedContent.exist(dbFile)) {
 			SharedContent.remove(dbFile);
@@ -52,54 +53,79 @@ DB::DB() {
 
 DB::~DB() { }
 
+Async* DB::getThread() const {
+	return _thread;
+}
+
 bool DB::exist(String tableName, String schema) const {
+	bool existed = false;
+	_thread->pause();
 	try {
+		SQLite::Statement statement(*_database, schema.empty() ? "SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?"s : fmt::format("SELECT count(*) FROM {}.sqlite_master WHERE type = 'table' AND name = ?", schema.toString()));
+		statement.bind(1, tableName);
 		int result = 0;
-		SQLite::Statement query(*_database, schema.empty() ? "SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?"s : fmt::format("SELECT count(*) FROM {}.sqlite_master WHERE type = 'table' AND name = ?", schema.toString()));
-		query.bind(1, tableName);
-		if (query.executeStep()) {
-			result = query.getColumn(0);
+		if (statement.executeStep()) {
+			result = statement.getColumn(0);
 		}
-		return result == 0 ? false : true;
+		existed = result == 0 ? false : true;
 	} catch (std::exception& e) {
 		Error("failed to execute DB query: {}", e.what());
-		return false;
 	}
+	_thread->resume();
+	return existed;
 }
 
 int DB::exec(String sql) {
+	int rowChanged = 0;
+	_thread->pause();
 	try {
-		return execUnsafe(_database.get(), sql);
+		rowChanged = execUnsafe(_database.get(), sql);
 	} catch (std::exception& e) {
 		Error("failed to execute DB SQL: {}", e.what());
-		return false;
 	}
+	_thread->resume();
+	return rowChanged;
 }
 
 int DB::exec(String sql, const std::vector<Own<Value>>& args) {
+	int rowChanged = 0;
+	_thread->pause();
 	try {
-		return execUnsafe(_database.get(), sql, args);
+		rowChanged = execUnsafe(_database.get(), sql, args);
 	} catch (std::exception& e) {
 		Error("failed to execute DB SQL: {}", e.what());
-		return false;
 	}
+	_thread->resume();
+	return rowChanged;
 }
 
 int DB::exec(String sql, const std::deque<std::vector<Own<Value>>>& rows) {
-	int result = 0;
+	int rowChanged = 0;
+	_thread->pause();
 	transaction([&](SQLite::Database* db) {
-		result = execUnsafe(db, sql, rows);
+		rowChanged = execUnsafe(db, sql, rows);
 	});
-	return result;
+	_thread->resume();
+	return rowChanged;
 }
 
 bool DB::insert(String tableName, const std::deque<std::vector<Own<Value>>>& rows) {
-	return transaction([&](SQLite::Database* db) {
+	_thread->pause();
+	bool success = transaction([&](SQLite::Database* db) {
 		insertUnsafe(db, tableName, rows);
 	});
+	_thread->resume();
+	return success;
 }
 
 bool DB::transaction(const std::function<void(SQLite::Database*)>& sqls) {
+	_thread->pause();
+	bool success = DB::transactionUnsafe(sqls);
+	_thread->resume();
+	return success;
+}
+
+bool DB::transactionUnsafe(const std::function<void(SQLite::Database*)>& sqls) {
 	try {
 		SQLite::Transaction transaction(*_database);
 		sqls(_database.get());
@@ -107,12 +133,12 @@ bool DB::transaction(const std::function<void(SQLite::Database*)>& sqls) {
 		return true;
 	} catch (std::exception& e) {
 		Error("failed to execute DB transaction: {}", e.what());
-		return false;
 	}
+	return false;
 }
 
 void DB::transactionAsync(const std::function<void(SQLite::Database*)>& sqls, const std::function<void(bool)>& callback) {
-	SharedAsyncThread.run(
+	_thread->run(
 		[sqls, this]() {
 			try {
 				SQLite::Transaction transaction(*_database);
@@ -134,15 +160,11 @@ void DB::transactionAsync(const std::function<void(SQLite::Database*)>& sqls, co
 static void bindValues(SQLite::Statement& query, const std::vector<Own<Value>>& args) {
 	int argCount = 0;
 	for (auto& arg : args) {
-		if (auto v = arg->asVal<int>()) {
+		if (auto v = arg->asVal<int64_t>()) {
 			query.bind(++argCount, *v);
 		} else if (auto v = arg->asVal<double>()) {
 			query.bind(++argCount, *v);
 		} else if (auto v = arg->asVal<std::string>()) {
-			query.bind(++argCount, *v);
-		} else if (auto v = arg->asVal<uint32_t>()) {
-			query.bind(++argCount, *v);
-		} else if (auto v = arg->asVal<int64_t>()) {
 			query.bind(++argCount, *v);
 		} else if (arg->asVal<bool>() && *arg->asVal<bool>() == false) {
 			query.bind(++argCount);
@@ -152,22 +174,29 @@ static void bindValues(SQLite::Statement& query, const std::vector<Own<Value>>& 
 }
 
 std::deque<std::vector<DB::Col>> DB::query(String sql, const std::vector<Own<Value>>& args, bool withColumns) {
+	_thread->pause();
+	auto result = DB::queryUnsafe(sql, args, withColumns);
+	_thread->resume();
+	return result;
+}
+
+std::deque<std::vector<DB::Col>> DB::queryUnsafe(String sql, const std::vector<Own<Value>>& args, bool withColumns) {
 	std::deque<std::vector<DB::Col>> result;
-	SQLite::Statement query(*_database, sql);
-	bindValues(query, args);
+	SQLite::Statement statement(*_database, sql);
+	bindValues(statement, args);
 	bool columnCollected = false;
-	while (query.executeStep()) {
-		int colCount = query.getColumnCount();
+	while (statement.executeStep()) {
+		int colCount = statement.getColumnCount();
 		if (!columnCollected && withColumns) {
 			columnCollected = true;
 			auto& values = result.emplace_back(colCount);
 			for (int i = 0; i < colCount; i++) {
-				values[i] = std::string(query.getColumn(i).getName());
+				values[i] = std::string(statement.getColumn(i).getName());
 			}
 		}
 		auto& values = result.emplace_back(colCount);
 		for (int i = 0; i < colCount; i++) {
-			auto col = query.getColumn(i);
+			auto col = statement.getColumn(i);
 			if (col.isInteger()) {
 				values[i] = col.getInt64();
 			} else if (col.isFloat()) {
@@ -189,37 +218,37 @@ void DB::insertUnsafe(SQLite::Database* db, String tableName, const std::deque<s
 		valueHolder += '?';
 		if (i != rows.front().size() - 1) valueHolder += ',';
 	}
-	SQLite::Statement query(*db, fmt::format("INSERT INTO {} VALUES ({})", tableName.toString(), valueHolder));
+	SQLite::Statement statement(*db, fmt::format("INSERT INTO {} VALUES ({})", tableName.toString(), valueHolder));
 	for (const auto& row : rows) {
-		query.clearBindings();
-		bindValues(query, row);
-		query.exec();
-		query.reset();
+		statement.clearBindings();
+		bindValues(statement, row);
+		statement.exec();
+		statement.reset();
 	}
 }
 
 int DB::execUnsafe(SQLite::Database* db, String sql) {
-	SQLite::Statement query(*db, sql);
-	return query.exec();
+	SQLite::Statement statement(*db, sql);
+	return statement.exec();
 }
 
 int DB::execUnsafe(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args) {
-	SQLite::Statement query(*db, sql);
-	bindValues(query, args);
-	return query.exec();
+	SQLite::Statement statement(*db, sql);
+	bindValues(statement, args);
+	return statement.exec();
 }
 
 int DB::execUnsafe(SQLite::Database* db, String sql, const std::deque<std::vector<Own<Value>>>& rows) {
-	SQLite::Statement query(*db, sql);
+	SQLite::Statement statement(*db, sql);
 	if (rows.empty()) {
-		return query.exec();
+		return statement.exec();
 	}
 	int rowChanged = 0;
 	for (const auto& row : rows) {
-		query.clearBindings();
-		bindValues(query, row);
-		rowChanged += query.exec();
-		query.reset();
+		statement.clearBindings();
+		bindValues(statement, row);
+		rowChanged += statement.exec();
+		statement.reset();
 	}
 	return rowChanged;
 }
@@ -227,10 +256,10 @@ int DB::execUnsafe(SQLite::Database* db, String sql, const std::deque<std::vecto
 void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(std::deque<std::vector<DB::Col>>&)>& callback) {
 	std::string sqlStr(sql);
 	auto argsPtr = std::make_shared<std::vector<Own<Value>>>(std::move(args));
-	SharedAsyncThread.run(
+	_thread->run(
 		[sqlStr, argsPtr = std::move(argsPtr), withColumns]() {
 			try {
-				auto result = SharedDB.query(sqlStr, *argsPtr, withColumns);
+				auto result = SharedDB.queryUnsafe(sqlStr, *argsPtr, withColumns);
 				return Values::alloc(std::move(result));
 			} catch (std::exception& e) {
 				Error("failed to execute DB query: {}", e.what());
@@ -247,9 +276,9 @@ void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns
 void DB::insertAsync(String tableName, std::deque<std::vector<Own<Value>>>&& rows, const std::function<void(bool)>& callback) {
 	std::string tableStr(tableName);
 	auto rowsPtr = std::make_shared<std::deque<std::vector<Own<Value>>>>(std::move(rows));
-	SharedAsyncThread.run(
+	_thread->run(
 		[tableStr, rowsPtr = std::move(rowsPtr)]() {
-			bool result = SharedDB.transaction([&](SQLite::Database* db) {
+			bool result = SharedDB.transactionUnsafe([&](SQLite::Database* db) {
 				DB::insertUnsafe(db, tableStr, *rowsPtr);
 			});
 			return Values::alloc(result);
@@ -271,10 +300,10 @@ void DB::execAsync(String sql, std::vector<Own<Value>>&& args, const std::functi
 void DB::execAsync(String sql, std::deque<std::vector<Own<Value>>>&& rows, const std::function<void(int)>& callback) {
 	std::string sqlStr(sql);
 	auto rowsPtr = std::make_shared<std::deque<std::vector<Own<Value>>>>(std::move(rows));
-	SharedAsyncThread.run(
+	_thread->run(
 		[sqlStr, rowsPtr = std::move(rowsPtr)]() {
 			int result = 0;
-			SharedDB.transaction([&](SQLite::Database* db) {
+			SharedDB.transactionUnsafe([&](SQLite::Database* db) {
 				result += DB::execUnsafe(db, sqlStr, *rowsPtr);
 			});
 			return Values::alloc(result);

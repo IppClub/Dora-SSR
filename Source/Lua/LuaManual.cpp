@@ -2501,11 +2501,11 @@ int DB_insertAsync01(lua_State* L) {
 		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 5)));
 		SharedContent.loadAsyncData(excelFile, [excelFile, names, startRow, handler](OwnArray<uint8_t>&& data, size_t size) {
 			auto excelData = std::make_shared<OwnArray<uint8_t>>(std::move(data));
-			SharedAsyncThread.run(
+			SharedDB.getThread()->run(
 				[excelFile, names, startRow, excelData = std::move(excelData), size]() {
 					auto workbook = New<xlsxtext::workbook>(std::make_pair(std::move(*excelData), size));
 					if (workbook->read()) {
-						bool result = SharedDB.transaction([&](SQLite::Database* db) {
+						bool result = SharedDB.transactionUnsafe([&](SQLite::Database* db) {
 							const auto& strs = workbook->shared_strings();
 							for (auto& worksheet : *workbook) {
 								if (auto it = std::find_if(names->begin(), names->end(),

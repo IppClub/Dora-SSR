@@ -261,6 +261,7 @@ local record ImGui
 		fontSize: number,
 		glyphRanges?: GlyphRange --[["Default"]]
 	): boolean
+	IsFontLoaded: function(): boolean
 	ShowStats: function()
 	ShowConsole: function()
 	Begin: function(
