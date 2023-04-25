@@ -14,11 +14,14 @@ class ZipFile;
 
 NS_DOROTHY_BEGIN
 
+class Async;
+
 class Content {
 public:
 	PROPERTY_READONLY_CREF(std::string, AssetPath);
 	PROPERTY_READONLY_CREF(std::string, WritablePath);
 	PROPERTY_CREF(std::vector<std::string>, SearchPaths);
+	PROPERTY_READONLY(Async*, Thread);
 	virtual ~Content();
 	bool exist(String filename);
 	bool isFolder(String path);
@@ -76,6 +79,7 @@ private:
 #endif
 	std::vector<std::string> _searchPaths;
 	std::unordered_map<std::string, std::string> _fullPathCache;
+	Async* _thread;
 	SINGLETON_REF(Content, Application);
 };
 

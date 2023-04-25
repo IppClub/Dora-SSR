@@ -432,6 +432,7 @@ ImGuiDora::ImGuiDora()
 	: _isChineseSupported(false)
 	, _useChinese(false)
 	, _isLoadingFont(false)
+	, _fontLoaded(false)
 	, _rejectAllEvents(false)
 	, _textInputing(false)
 	, _mouseVisible(true)
@@ -548,7 +549,7 @@ void ImGuiDora::setImePositionHint(int x, int y) {
 
 void ImGuiDora::loadFontTTFAsync(String ttfFontFile, float fontSize, String glyphRanges, const std::function<void(bool)>& handler) {
 	AssertIf(_isLoadingFont, "font is loading.");
-	AssertIf(ImGui::GetIO().Fonts->Locked, "font is locked.");
+	AssertIf(ImGui::GetIO().Fonts->Locked, "font is locked, can only load font in system scheduler.");
 
 	ImGuiIO& io = ImGui::GetIO();
 
@@ -641,6 +642,7 @@ void ImGuiDora::loadFontTTFAsync(String ttfFontFile, float fontSize, String glyp
 			MakeOwnArray(fileData);
 			_isChineseSupported = glyphRanges == "Chinese"_slice;
 			_isLoadingFont = false;
+			_fontLoaded = true;
 			handler(true);
 		});
 }
@@ -1031,6 +1033,10 @@ void ImGuiDora::showConsole() {
 
 static void SetPlatformImeDataFn(ImGuiViewport*, ImGuiPlatformImeData* data) {
 	ImGuiDora::setImePositionHint(s_cast<int>(data->InputPos.x), s_cast<int>(data->InputPos.y + data->InputLineHeight));
+}
+
+bool ImGuiDora::isFontLoaded() const {
+	return _fontLoaded;
 }
 
 bool ImGuiDora::init() {

@@ -30,7 +30,6 @@ namespace fs = ghc::filesystem;
 namespace fs = std::filesystem;
 #endif // BX_PLATFORM_LINUX
 
-
 #if BX_PLATFORM_ANDROID
 #include "ZipUtils.h"
 #endif
@@ -65,26 +64,30 @@ String Content::getAndroidAssetName(String fullPath) const {
 
 Content::~Content() { }
 
+Async* Content::getThread() const {
+	return _thread;
+}
+
 std::pair<OwnArray<uint8_t>, size_t> Content::load(String filename) {
-	SharedAsyncThread.FileIO.pause();
+	_thread->pause();
 	int64_t size = 0;
 	uint8_t* data = Content::loadUnsafe(filename, size);
-	SharedAsyncThread.FileIO.resume();
+	_thread->resume();
 	return {OwnArray<uint8_t>(data), s_cast<size_t>(size)};
 }
 
 const bgfx::Memory* Content::loadBX(String filename) {
-	SharedAsyncThread.FileIO.pause();
+	_thread->pause();
 	int64_t size = 0;
 	uint8_t* data = Content::loadUnsafe(filename, size);
-	SharedAsyncThread.FileIO.resume();
+	_thread->resume();
 	return bgfx::makeRef(data, (uint32_t)size, releaseFileData);
 }
 
 bool Content::copy(String src, String dst) {
-	SharedAsyncThread.FileIO.pause();
+	_thread->pause();
 	bool result = Content::copyUnsafe(src, dst);
-	SharedAsyncThread.FileIO.resume();
+	_thread->resume();
 	return result;
 }
 
@@ -353,7 +356,7 @@ bool Content::copyUnsafe(String src, String dst) {
 
 void Content::loadAsyncUnsafe(String filename, const std::function<void(uint8_t*, int64_t)>& callback) {
 	std::string fileStr = filename;
-	SharedAsyncThread.FileIO.run(
+	_thread->run(
 		[fileStr, this]() {
 			int64_t size = 0;
 			uint8_t* buffer = this->loadUnsafe(fileStr, size);
@@ -388,7 +391,7 @@ void Content::loadAsyncBX(String filename, const std::function<void(const bgfx::
 
 void Content::copyAsync(String src, String dst, const std::function<void(bool)>& callback) {
 	std::string srcFile(src), dstFile(dst);
-	SharedAsyncThread.FileIO.run(
+	_thread->run(
 		[srcFile, dstFile, this]() {
 			bool success = Content::copyUnsafe(srcFile, dstFile);
 			return Values::alloc(success);
@@ -403,7 +406,7 @@ void Content::copyAsync(String src, String dst, const std::function<void(bool)>&
 void Content::saveAsync(String filename, String content, const std::function<void(bool)>& callback) {
 	std::string file(filename);
 	auto data = std::make_shared<std::string>(content);
-	SharedAsyncThread.FileIO.run(
+	_thread->run(
 		[file, data, this]() {
 			bool success = Content::save(file, *data);
 			return Values::alloc(success);
@@ -418,7 +421,7 @@ void Content::saveAsync(String filename, String content, const std::function<voi
 void Content::saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void(bool)>& callback) {
 	std::string file(filename);
 	auto data = std::make_shared<OwnArray<uint8_t>>(std::move(content));
-	SharedAsyncThread.FileIO.run(
+	_thread->run(
 		[file, data, size, this]() {
 			bool success = Content::save(file, Slice(r_cast<char*>((*data).get()), size));
 			return Values::alloc(success);
@@ -469,12 +472,10 @@ void Content::zipAsync(String zipFile, String folderPath, const std::function<bo
 			Error("failed to init zip file \"{}\", due to: {}", zipFile, mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
 			mz_zip_writer_end(&archive);
 			return Values::alloc(false);
-		}
-	}, [callback](Own<Values> values) {
+		} }, [callback](Own<Values> values) {
 		bool success = false;
 		values->get(success);
-		callback(success);
-	});
+		callback(success); });
 }
 
 bool Content::exist(String filename) {
@@ -508,9 +509,9 @@ std::list<std::string> Content::getDirEntries(String path, bool isFolder) {
 }
 
 uint8_t* Content::loadInMainUnsafe(String filename, int64_t& size) {
-	SharedAsyncThread.FileIO.pause();
+	_thread->pause();
 	uint8_t* data = Content::loadUnsafe(filename, size);
-	SharedAsyncThread.FileIO.resume();
+	_thread->resume();
 	return data;
 }
 
@@ -519,7 +520,8 @@ void Content::clearPathCache() {
 }
 
 #if BX_PLATFORM_ANDROID
-Content::Content() {
+Content::Content()
+	: _thread(SharedAsyncThread.newThread()) {
 	_apkFilter = "assets/"s;
 	_assetPath = SharedApplication.getAPKPath() + '/' + _apkFilter;
 	_apkFile = New<ZipFile>(SharedApplication.getAPKPath(), _apkFilter);
@@ -632,7 +634,8 @@ bool Content::isAbsolutePath(String strPath) {
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_WINDOWS
-Content::Content() {
+Content::Content()
+	: _thread(SharedAsyncThread.newThread()) {
 	_assetPath = fs::current_path().string();
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
@@ -662,7 +665,8 @@ bool Content::isFileExist(String filePath) {
 #endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_IOS
-Content::Content() {
+Content::Content()
+	: _thread(SharedAsyncThread.newThread()) {
 	char* currentPath = SDL_GetBasePath();
 	_assetPath = currentPath;
 	SDL_free(currentPath);
@@ -674,7 +678,8 @@ Content::Content() {
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
 #if BX_PLATFORM_LINUX
-Content::Content() {
+Content::Content()
+	: _thread(SharedAsyncThread.newThread()) {
 	auto currentPath = NewArray<char>(PATH_MAX);
 	::getcwd(currentPath.get(), PATH_MAX);
 	_assetPath = currentPath.get();

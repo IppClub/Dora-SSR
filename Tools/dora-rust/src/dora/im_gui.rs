@@ -1,5 +1,6 @@
 extern "C" {
 	fn imgui_load_font_ttf_async(ttf_font_file: i64, font_size: f32, glyph_ranges: i64, func: i32, stack: i64);
+	fn imgui_is_font_loaded() -> i32;
 	fn imgui_show_stats();
 	fn imgui_show_console();
 	fn imgui_begin(name: i64) -> i32;
@@ -129,6 +130,9 @@ impl ImGui {
 			handler(stack.pop_bool().unwrap())
 		}));
 		unsafe { imgui_load_font_ttf_async(crate::dora::from_string(ttf_font_file), font_size, crate::dora::from_string(glyph_ranges), func_id, stack_raw); }
+	}
+	pub fn is_font_loaded() -> bool {
+		unsafe { return imgui_is_font_loaded() != 0; }
 	}
 	pub fn show_stats() {
 		unsafe { imgui_show_stats(); }
