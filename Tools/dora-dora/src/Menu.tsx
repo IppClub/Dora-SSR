@@ -45,5 +45,4 @@ export const StyledMenuItem = styled((props: MenuItemProps) => (
 		disableRipple
 		{...props}
 	/>
-))(({ theme }) => ({
-}));
+))(({ theme }) => ({}));

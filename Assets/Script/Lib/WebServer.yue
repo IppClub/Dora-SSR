@@ -303,7 +303,7 @@ HttpServer\post "/list", (req)->
 			return success: true, :files
 	success: false
 
-HttpServer\post "/info", -> platform: App.platform, locale: App.locale
+HttpServer\post "/info", -> platform: App.platform, locale: App.locale, version: App.version
 
 HttpServer\post "/new", (req)->
 	switch req when {body: {:path}}

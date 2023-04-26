@@ -10,7 +10,7 @@ import FullscreenExit from '@mui/icons-material/FullscreenExit';
 import MonacoEditor, { loader } from "@monaco-editor/react";
 import FileTree, { TreeDataType, TreeMenuEvent } from "./FileTree";
 import FileTabBar, { TabMenuEvent, TabStatus } from './FileTabBar';
-import * as Path from './Path';
+import Info from './Info';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField } from '@mui/material';
@@ -25,14 +25,16 @@ import { AppBar, DrawerHeader, drawerWidth, Entry, Main, PlayControl, PlayContro
 import { MacScrollbar } from 'mac-scrollbar';
 import 'mac-scrollbar/dist/mac-scrollbar.css';
 import FileFilter, { FilterOption } from './FileFilter';
+import { useTranslation } from 'react-i18next';
+
 const Markdown = React.lazy(() => import('./Markdown'));
+
+const {path} = Info;
 
 loader.config({ monaco });
 
 let lastEditorActionTime = Date.now();
 let lastUploadedTime = Date.now();
-
-export let path = Path.posix;
 
 document.addEventListener("contextmenu", (event) => {
 	event.preventDefault();
@@ -69,6 +71,7 @@ interface Modified {
 };
 
 export default function PersistentDrawerLeft() {
+	const {t} = useTranslation();
 	const [alerts, setAlerts] = useState<{
 		msg: string,
 		key: string,
@@ -98,7 +101,7 @@ export default function PersistentDrawerLeft() {
 
 	const [fileInfo, setFileInfo] = useState<
 		{
-			title: "New File" | "New Folder" | "Rename",
+			title: "file.new" | "file.newFolder" | "file.rename",
 			node?: TreeDataType,
 			name: string,
 			ext: string,
@@ -133,6 +136,7 @@ export default function PersistentDrawerLeft() {
 	const loadAssets = () => {
 		return Service.assets().then((res: TreeDataType) => {
 			res.root = true;
+			res.title = t("tree.assets");
 			if (res.children === undefined) {
 				res.children = [{
 					key: '...',
@@ -143,22 +147,18 @@ export default function PersistentDrawerLeft() {
 			setTreeData([res]);
 			return res;
 		}).catch(() => {
-			addAlert("failed to load assets", "error");
+			addAlert(t("alert.assetLoad"), "error");
 			return null;
 		});
 	};
 
 	useEffect(() => {
-		Service.info().then((res) => {
-			if (res.platform === "Windows") {
-				path = Path.win32;
-			}
-			addAlert(`Dorothy SSR is running on ${res.platform}`, "success");
-		}).catch(() => {
-			addAlert("failed to get basic info", "error");
-		}).then(() => {
-			return loadAssets();
-		}).then((res) => {
+		if (Info.version === undefined) {
+			addAlert(t("alert.getInfo"), "error");
+			return;
+		}
+		addAlert(t("alert.platform", {platform: Info.platform}), "success");
+		loadAssets().then((res) => {
 			if (res !== null) {
 				setExpandedKeys([res.key]);
 			}
@@ -201,7 +201,7 @@ export default function PersistentDrawerLeft() {
 
 	const checkFileReadonly = (key: string) => {
 		if (!key.startsWith(treeData.at(0)?.key ?? "")) {
-			addAlert("can not operate on built-in assets", "info");
+			addAlert(t("alert.builtin"), "info");
 			return true;
 		}
 		return false;
@@ -274,7 +274,7 @@ export default function PersistentDrawerLeft() {
 					switchTab(index, files[index]);
 				}
 			}).catch(() => {
-				addAlert(`failed to read ${title}`, "error");
+				addAlert(t("alert.read", {title}), "error");
 			});
 		} else {
 			switchTab(index, file);
@@ -311,7 +311,7 @@ export default function PersistentDrawerLeft() {
 		}
 		if (changedKey === rootNode.key) {
 			if (contentModified) {
-				addAlert("please save before reloading assets", "warning");
+				addAlert(t("alert.reloading"), "warning");
 				return;
 			}
 			loadAssets().then((res) => {
@@ -319,7 +319,7 @@ export default function PersistentDrawerLeft() {
 					setFiles([]);
 					switchTab(null);
 					setSelectedKeys([]);
-					addAlert("assets reloaded", "success");
+					addAlert(t("alert.reloaded"), "success");
 				}
 			});
 			return;
@@ -341,10 +341,10 @@ export default function PersistentDrawerLeft() {
 					file.contentModified = null;
 					setFiles([...files]);
 				} else {
-					addAlert("failed to save current file", "error");
+					addAlert(t("alert.saveCurrent"), "error");
 				}
 			}).catch(() => {
-				addAlert("failed to save current file", "error");
+				addAlert(t("alert.saveCurrent"), "error");
 			});
 		}
 	};
@@ -378,14 +378,14 @@ export default function PersistentDrawerLeft() {
 							resolve(true);
 						}
 					} else {
-						addAlert(`failed to save ${file.title}`, "error");
+						addAlert(t("alert.save", {title: file.title}), "error");
 						if (!failed) {
 							failed = true;
 							resolve(false);
 						}
 					}
 				}).catch(() => {
-					addAlert(`failed to save ${file.title}`, "error");
+					addAlert(t("alert.save", {title: file.title}), "error");
 					if (!failed) {
 						failed = true;
 						resolve(false);
@@ -410,8 +410,8 @@ export default function PersistentDrawerLeft() {
 			};
 			if (files[tabIndex].contentModified !== null) {
 				setPopupInfo({
-					title: "Closing Tab",
-					msg: "close tab without saving",
+					title: t("popup.closingTab"),
+					msg: t("popup.closingNoSave"),
 					cancelable: true,
 					confirmed: closeTab,
 				});
@@ -428,8 +428,8 @@ export default function PersistentDrawerLeft() {
 		};
 		if (contentModified) {
 			setPopupInfo({
-				title: "Closing Tabs",
-				msg: "close tabs without saving",
+				title: t("popup.closingTab"),
+				msg: t("popup.closingNoSave"),
 				cancelable: true,
 				confirmed: closeTabs,
 			});
@@ -447,8 +447,8 @@ export default function PersistentDrawerLeft() {
 		const otherModified = files.filter((_, index) => index !== tabIndex).find((file) => file.contentModified !== null) !== undefined;
 		if (otherModified) {
 			setPopupInfo({
-				title: "Closing Tabs",
-				msg: "close tabs without saving",
+				title: t("popup.closingTab"),
+				msg: t("popup.closingNoSave"),
 				cancelable: true,
 				confirmed: closeTabs,
 			});
@@ -482,12 +482,12 @@ export default function PersistentDrawerLeft() {
 		const rootNode = treeData.at(0);
 		if (rootNode === undefined) return;
 		if (rootNode.key === data.key) {
-			addAlert("can not delete root folder", "info");
+			addAlert(t("alert.deleteRoot"), "info");
 			return;
 		}
 		setPopupInfo({
-			title: "Delete",
-			msg: `deleting ${data.dir ? 'folder' : 'file'} ${data.title}`,
+			title: t("menu.delete"),
+			msg: t(data.dir ? 'file.deleteFolder' : 'file.deleteFile', {name: data.title}),
 			cancelable: true,
 			confirmed: () => {
 				Service.deleteFile({path: data.key}).then((res) => {
@@ -525,15 +525,16 @@ export default function PersistentDrawerLeft() {
 					}
 					setTreeData([rootNode]);
 				}).then(() => {
-					addAlert(`deleted "${data.title}"`, "success");
+					addAlert(t("alert.deleted", {title: data.title}), "success");
 				}).catch(() => {
-					addAlert("failed to delete item", "error");
+					addAlert(t("alert.delete"), "error");
 				});
 			},
 		});
 	};
 
 	const onTreeMenuClick = (event: TreeMenuEvent, data?: TreeDataType)=> {
+		if (event === "Cancel") return;
 		if (data === undefined) return;
 		if (checkFileReadonly(data.key)) return;
 		switch (event) {
@@ -549,7 +550,7 @@ export default function PersistentDrawerLeft() {
 					key = path.dirname(key);
 					title = path.basename(key);
 					if (path.relative(key, rootNode.key) === "") {
-						title = "Assets";
+						title = t("tree.assets");
 					}
 				}
 				const file = files.find(f => path.relative(f.key, key) === "");
@@ -592,10 +593,10 @@ export default function PersistentDrawerLeft() {
 					downloadFile(key);
 				} else {
 					if (waitingForDownload) {
-						addAlert("wait for previous download to finish", "info");
+						addAlert(t("alert.downloadWait"), "info");
 						break;
 					}
-					addAlert("wait for download to start", "info");
+					addAlert(t("alert.downloadStart"), "info");
 					const zipFile = path.join(rootNode.key, ".download", title + ".zip");
 					waitingForDownload = true;
 					Service.zip({zipFile, path: key}).then(res => {
@@ -603,10 +604,10 @@ export default function PersistentDrawerLeft() {
 						if (res.success) {
 							downloadFile(zipFile);
 						} else {
-							addAlert("failed to prepare download", "error");
+							addAlert(t("alert.downloadFailed"), "error");
 						}
 					}).catch(() => {
-						addAlert("failed to prepare download", "error");
+						addAlert(t("alert.downloadFailed"), "error");
 						waitingForDownload = false;
 					});
 				}
@@ -614,20 +615,20 @@ export default function PersistentDrawerLeft() {
 			}
 			case "Rename": {
 				if (contentModified) {
-					addAlert("please save all files before renaming", "info");
+					addAlert(t("alert.renameSave"), "info");
 					break;
 				}
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
 				if (rootNode.key === data.key) {
-					addAlert("can not rename root folder", "info");
+					addAlert(t("alert.renameRoot"), "info");
 					break;
 				}
 				if (data !== undefined) {
 					const ext = path.extname(data.title).toLowerCase();
 					const name = path.basename(data.title, ext);
 					setFileInfo({
-						title: "Rename",
+						title: "file.rename",
 						node: data,
 						name,
 						ext,
@@ -654,7 +655,7 @@ export default function PersistentDrawerLeft() {
 		}
 		if (ext !== null) {
 			setFileInfo({
-				title: ext === "" ? "New Folder" : "New File",
+				title: ext === "" ? "file.newFolder" : "file.new",
 				node: openNewFile !== null ? openNewFile : undefined,
 				name: "",
 				ext
@@ -666,7 +667,7 @@ export default function PersistentDrawerLeft() {
 	const handleFilenameClose = () => {
 		if (fileInfo && fileInfo.node !== undefined) {
 			const target = fileInfo.node;
-			if (fileInfo.title === "Rename") {
+			if (fileInfo.title === "file.rename") {
 				const newName = fileInfo.name + fileInfo.ext;
 				if (newName === target.title) {
 					setFileInfo(null);
@@ -677,11 +678,14 @@ export default function PersistentDrawerLeft() {
 				const doRename = () => {
 					return Service.rename({old: oldFile, new: newFile}).then((res) => {
 						if (!res.success) {
-							addAlert("failed to rename item", "error");
+							addAlert(t("alert.renameFailed"), "error");
 							return;
 						}
 						if (target.dir) {
-							return loadAssets();
+							loadAssets().then(() => {
+								addAlert(t("alert.renamed", {oldFile: path.basename(oldFile), newFile: path.basename(newFile)}), "success");
+							});
+							return;
 						}
 						const file = files.find(f => path.relative(f.key, oldFile) === "");
 						if (file !== undefined) {
@@ -708,10 +712,9 @@ export default function PersistentDrawerLeft() {
 						};
 						visitData(rootNode);
 						setTreeData([rootNode]);
-					}).then(() => {
-						addAlert(`renamed "${path.basename(oldFile)}" to "${path.basename(newFile)}"`, "success");
+						addAlert(t("alert.renamed", {oldFile: path.basename(oldFile), newFile: path.basename(newFile)}), "success");
 					}).catch(() => {
-						addAlert("failed to rename item", "error");
+						addAlert(t("alert.renameFailed"), "error");
 					});
 				};
 				if (target.dir) {
@@ -737,7 +740,7 @@ export default function PersistentDrawerLeft() {
 				const newFile = path.join(dir, newName);
 				Service.newFile({path: newFile}).then((res) => {
 					if (!res.success) {
-						addAlert("failed to create item", "error");
+						addAlert(t("alert.newFailed"), "error");
 						return;
 					}
 					const rootNode = treeData.at(0);
@@ -809,7 +812,7 @@ export default function PersistentDrawerLeft() {
 						switchTab(index, files[index]);
 					}
 				}).catch(() => {
-					addAlert("failed to create item", "error");
+					addAlert(t("alert.newFailed"), "error");
 				});
 			}
 		}
@@ -867,7 +870,7 @@ export default function PersistentDrawerLeft() {
 
 	const onDrop = (self: TreeDataType, target: TreeDataType) => {
 		if (contentModified) {
-			addAlert("please save all files before moving", "info");
+			addAlert(t("alert.movingNoSave"), "info");
 			return;
 		}
 		if (checkFileReadonly(self.key)) return;
@@ -888,17 +891,20 @@ export default function PersistentDrawerLeft() {
 			return;
 		}
 		setPopupInfo({
-			title: 'Moving Item',
-			msg: `move "${self.title}" to folder "${targetName}"`,
+			title: t("popup.moving"),
+			msg: t("popup.movingInfo", {from: self.title, to: targetName}),
 			cancelable: true,
 			confirmed: () => {
 				const newFile = path.join(targetParent, path.basename(self.key));
 				const doRename = () => {
 					return Service.rename({old: self.key, new: newFile}).then((res) => {
 						if (res.success) {
-							return loadAssets();
+							loadAssets().then(() => {
+								addAlert(t("alert.moved", {from: self.title, to: targetName}), "success");
+							});
+							return;
 						}
-						addAlert(`failed to move "${self.title}" to folder "${targetName}"`, "error");
+						addAlert(t("alert.movingFailed", {from: self.title, to: targetName}), "error");
 					});
 				};
 				if (self.dir) {
@@ -1058,7 +1064,7 @@ export default function PersistentDrawerLeft() {
 			const lang = inferLang;
 			editor.addAction({
 				id: "dora-action-definition",
-				label: "Go to Definition",
+				label: t("editor.goToDefinition"),
 				keybindings: [
 					monaco.KeyCode.F12 | monaco.KeyMod.CtrlCmd,
 					monaco.KeyCode.F12 | monaco.KeyMod.WinCtrl,
@@ -1146,12 +1152,12 @@ export default function PersistentDrawerLeft() {
 		}
 		Service.stop().then((res) => {
 			if (res.success) {
-				addAlert("stopped running", "success");
+				addAlert(t("alert.stopped"), "success");
 			} else {
-				addAlert("nothing to stop", "info");
+				addAlert(t("alert.stopNone"), "info");
 			}
 		}).catch(() => {
-			addAlert("failed to stop running", "error");
+			addAlert(t("alert.stopFailed"), "error");
 		});
 	};
 
@@ -1183,7 +1189,7 @@ export default function PersistentDrawerLeft() {
 					}
 					if (key === null || title === null) {
 						if (selectedNode === null) {
-							addAlert("please select a file to run", "info");
+							addAlert(t("alert.runNoTarget"), "info");
 							return;
 						}
 						key = selectedNode.key;
@@ -1203,9 +1209,9 @@ export default function PersistentDrawerLeft() {
 						case ".xml":
 							Service.run({file: key, asProj}).then((res) => {
 								if (res.success) {
-									addAlert(`${res.target ?? title} is running`, "success");
+									addAlert(t("alert.run", {title: res.target ?? title}), "success");
 								} else {
-									addAlert(`failed to run ${res.target ?? title}`, "error");
+									addAlert(t("alert.runFailed", {title: res.target ?? title}), "error");
 								}
 								if (res.err !== undefined) {
 									setPopupInfo({
@@ -1215,11 +1221,11 @@ export default function PersistentDrawerLeft() {
 									});
 								}
 							}).catch(() => {
-								addAlert(`failed to run from ${title}`, "error");
+								addAlert(t("alert.runFailed", {title}), "error");
 							})
 							return;
 						default:
-							addAlert(`can not run from ${title}`, "info");
+							addAlert(t("alert.runFailed", {title}), "info");
 							return;
 					}
 				}
@@ -1237,7 +1243,7 @@ export default function PersistentDrawerLeft() {
 				case 'N': case 'n': {
 					if (!event.shiftKey) break;
 					if (selectedNode === null) {
-						addAlert("select a file tree node before creating new file", "info");
+						addAlert(t("alert.newNoTarget"), "info");
 						break;
 					} else if (checkFileReadonly(selectedNode.key)) {
 						break;
@@ -1248,7 +1254,7 @@ export default function PersistentDrawerLeft() {
 				case 'D': case 'd': {
 					if (!event.shiftKey) break;
 					if (selectedNode === null) {
-						addAlert("select a file tree node to delete", "info");
+						addAlert(t("alert.deleteNoTarget"), "info");
 						break;
 					} else if (checkFileReadonly(selectedNode.key)) {
 						break;
@@ -1373,13 +1379,13 @@ export default function PersistentDrawerLeft() {
 						onClick={handleAlertClose}
 						autoFocus={popupInfo?.cancelable === undefined}
 					>
-						{popupInfo?.cancelable !== undefined ?
-							"Confirm" : "OK"
+						{t(popupInfo?.cancelable !== undefined ?
+							"action.confirm" : "action.ok")
 						}
 					</Button>
 					{popupInfo?.cancelable !== undefined ?
 						<Button onClick={handleAlertCancel}>
-							Cancel
+							{t("action.cancel")}
 						</Button> : null
 					}
 				</DialogActions>
@@ -1390,17 +1396,17 @@ export default function PersistentDrawerLeft() {
 				aria-describedby="filename-dialog-description"
 			>
 				<DialogTitle id="filename-dialog-title">
-					{fileInfo?.title}
+					{t(fileInfo?.title ?? "")}
 				</DialogTitle>
 				<DialogContent>
 					<TextField
 						autoFocus
 						label={(
-							fileInfo?.title === "New File" ?
-								"Enter a file name" : undefined
+							fileInfo?.title === "file.new" ?
+								t("file.enterFile") : undefined
 							) ?? (
-							fileInfo?.title === "New Folder" ?
-								"Enter a folder name" : undefined
+							fileInfo?.title === "file.newFolder" ?
+								t("file.enterFolder") : undefined
 							)
 						}
 						defaultValue={fileInfo?.name ?? ""}
@@ -1423,10 +1429,10 @@ export default function PersistentDrawerLeft() {
 				</DialogContent>
 				<DialogActions>
 					<Button onClick={handleFilenameClose}>
-						OK
+						{t("action.ok")}
 					</Button>
 					<Button onClick={handleFilenameCancel}>
-						Cancel
+						{t("action.cancel")}
 					</Button>
 				</DialogActions>
 			</Dialog>
@@ -1477,12 +1483,13 @@ export default function PersistentDrawerLeft() {
 						src={logo}
 						alt="logo"
 						width="100%"
-						height="200px"
+						height="180px"
 						style={{
-							padding: "20px",
-							alignItems: "center"
+							paddingTop: "20px",
+							textAlign: "center"
 						}}
 					/>
+					<p style={{textAlign: "center", opacity: 0.6, fontSize: "12px", margin: '5px'}}>{Info.version ? `v${Info.version}` : ""}</p>
 					<Divider style={{backgroundColor:'#fff2'}}/>
 					<FileTree
 						selectedKeys={selectedKeys}
@@ -1562,7 +1569,7 @@ export default function PersistentDrawerLeft() {
 									const rootNode = treeData.at(0);
 									if (rootNode === undefined) return null;
 									let target = path.relative(rootNode.key, file.key);
-									target = path.join("Assets", target);
+									target = path.join(t("tree.assets"), target);
 									return (
 										<div style={{width: '100%', height: '100%'}}>
 											<DrawerHeader/>

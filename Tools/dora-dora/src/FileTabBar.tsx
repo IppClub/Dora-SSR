@@ -13,6 +13,7 @@ import {
 	AiFillCloseCircle,
 	AiOutlineCloseCircle,
 } from 'react-icons/ai';
+import { useTranslation } from 'react-i18next';
 
 export type TabStatus = "normal" | "warning" | "error";
 
@@ -104,6 +105,7 @@ export default function FileTabBar(props: FileTabBarProps) {
 	const {index, items = [], onChange, onMenuClick} = props;
 	const [anchorEl, setAnchorEl] = useState<Element | null>(null);
 	const [value, setValue] = useState<number | false>(false);
+	const {t} = useTranslation();
 
 	if (index !== null && index !== value) {
 		setValue(index);
@@ -155,35 +157,35 @@ export default function FileTabBar(props: FileTabBarProps) {
 					<ListItemIcon>
 						<AiOutlineSave/>
 					</ListItemIcon>
-					<ListItemText primary="Save"/>
+					<ListItemText primary={ t("menu.save") }/>
 					<div style={{fontSize: 10, color: '#fff8'}}>Mod+S</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('SaveAll')}>
 					<ListItemIcon>
 						<AiFillSave/>
 					</ListItemIcon>
-					<ListItemText primary="Save All"/>
+					<ListItemText primary={ t("menu.saveAll") }/>
 					<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+S</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('Close')}>
 					<ListItemIcon>
 						<AiOutlineClose/>
 					</ListItemIcon>
-					<ListItemText primary="Close"/>
+					<ListItemText primary={ t("menu.close") }/>
 					<div style={{fontSize: 10, color: '#fff8'}}>Mod+W</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('CloseAll')}>
 					<ListItemIcon>
 						<AiFillCloseCircle/>
 					</ListItemIcon>
-					<ListItemText primary="Close All"/>
+					<ListItemText primary={ t("menu.closeAll") }/>
 					<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+W</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('CloseOthers')}>
 					<ListItemIcon>
 						<AiOutlineCloseCircle/>
 					</ListItemIcon>
-					<ListItemText primary="Close Others"/>
+					<ListItemText primary={ t("menu.closeOthers") }/>
 				</StyledMenuItem>
 			</StyledMenu>
 		</Box>

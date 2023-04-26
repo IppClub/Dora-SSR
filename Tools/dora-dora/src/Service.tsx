@@ -85,6 +85,8 @@ export const assets = () => {
 
 export interface InfoResponse {
 	platform: "Windows" | "macOS" | "iOS" | "Android" | "Linux";
+	locale: string;
+	version: string;
 }
 export const info = () => {
 	return post<InfoResponse>("/info");

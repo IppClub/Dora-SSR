@@ -28,6 +28,8 @@ import { DiCode } from 'react-icons/di';
 import { TbSql } from 'react-icons/tb';
 import { VscMarkdown } from 'react-icons/vsc';
 import { MacScrollbar } from 'mac-scrollbar';
+import { useTranslation } from 'react-i18next';
+import Info from './Info';
 
 export interface TreeDataType extends DataNode {
 	key: string;
@@ -68,8 +70,7 @@ const fileIcon = (props: TreeNodeProps) => {
 				return <AiOutlineFolder/>;
 			}
 		} else {
-			const App: {path: Path} = require("./App");
-			switch (App.path.extname(data.key).toLowerCase()) {
+			switch (Info.path.extname(data.key).toLowerCase()) {
 				case ".lua":
 					return <img src={luaLogo} alt="lua" width="14px" height="14px"/>;
 				case ".tl":
@@ -123,6 +124,7 @@ export interface FileTreeProps {
 export default function FileTree(props: FileTreeProps) {
 	const {treeData, expandedKeys, selectedKeys} = props;
 	const [anchorItem, setAnchorItem] = useState<null | {target: Element, data: TreeDataType}>(null);
+	const {t} = useTranslation();
 
 	function onRightClick(info: {
 		event: React.MouseEvent;
@@ -175,33 +177,33 @@ export default function FileTree(props: FileTreeProps) {
 					<ListItemIcon>
 						<AiOutlineFileAdd/>
 					</ListItemIcon>
-					<ListItemText primary="New"/>
+					<ListItemText primary={ t("menu.new") }/>
 					<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+N</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose("Delete", anchorItem?.data)}>
 					<ListItemIcon>
 						<AiOutlineDelete/>
 					</ListItemIcon>
-					<ListItemText primary="Delete"/>
+					<ListItemText primary={ t("menu.delete") }/>
 					<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+D</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose("Rename", anchorItem?.data)}>
 					<ListItemIcon>
 						<AiOutlineEdit/>
 					</ListItemIcon>
-					<ListItemText primary="Rename"/>
+					<ListItemText primary={ t("menu.rename") }/>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose("Upload", anchorItem?.data)}>
 					<ListItemIcon>
 						<AiOutlineUpload/>
 					</ListItemIcon>
-					<ListItemText primary="Upload"/>
+					<ListItemText primary={ t("menu.upload") }/>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose("Download", anchorItem?.data)}>
 					<ListItemIcon>
 						<AiOutlineDownload/>
 					</ListItemIcon>
-					<ListItemText primary="Download"/>
+					<ListItemText primary={ t("menu.download") }/>
 				</StyledMenuItem>
 			</StyledMenu>
 			<Tree
