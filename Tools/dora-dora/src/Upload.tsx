@@ -3,6 +3,7 @@ import { ConfigProvider, theme, UploadProps } from 'antd';
 import { Upload } from 'antd';
 import { AiOutlineUpload } from 'react-icons/ai';
 import { addr } from './Service';
+import { useTranslation } from 'react-i18next';
 
 const { Dragger } = Upload;
 
@@ -28,6 +29,7 @@ const DoraUpload = (prop: DoraUploadProp) => {
 			}
 		},
 	};
+	const {t} = useTranslation();
 	return (
 		<Container maxWidth="sm">
 			<ConfigProvider
@@ -43,10 +45,10 @@ const DoraUpload = (prop: DoraUploadProp) => {
 					<AiOutlineUpload style={{fontSize: '40px'}}/>
 				</p>
 				<p className="dora-upload-text" style={{color: '#fff'}}>
-					Click or drag files and folder to this area to upload
+					{t("upload.text")}
 				</p>
 				<p className="dora-upload-hint" style={{color: '#fff8'}}>
-					Uploading will start automatically.
+					{t("upload.hint")}
 				</p>
 			</Dragger>
 			</ConfigProvider>

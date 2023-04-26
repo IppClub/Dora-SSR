@@ -11,6 +11,7 @@ import tealLogo from './teal.png';
 import { AiFillFolderAdd } from 'react-icons/ai';
 import { DiCode } from 'react-icons/di';
 import { VscMarkdown } from 'react-icons/vsc';
+import { useTranslation } from 'react-i18next';
 
 export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Dora Xml" | "Markdown" | "Folder"
 
@@ -25,37 +26,37 @@ const fileTypes: FileType[] = [
 	{
 		icon: <img src={luaLogo} alt="Lua" width="50px" height="50px" style={{marginLeft: '10px'}}/>,
 		name: "Lua",
-		desc: "lightweight, high-level, multi-paradigm language ",
+		desc: "file.lua",
 		padding: '20px'
 	},
 	{
 		icon: <img src={yueLogo} alt="Yuescript" width="60px" height="60px" style={{marginLeft: '10px'}}/>,
 		name: "Yuescript",
-		desc: "expressive, extremely concise language",
+		desc: "file.yuescript",
 		padding: '10px'
 	},
 	{
 		icon: <img src={tealLogo} alt="Teal" width="45px" height="45px" style={{marginLeft: '15px'}}/>,
 		name: "Teal",
-		desc: "a typed dialect of Lua",
+		desc: "file.teal",
 		padding: '20px'
 	},
 	{
 		icon: <DiCode size={50} style={{marginLeft: '10px'}}/>,
 		name: "Dora Xml",
-		desc: "write game node trees in Xml format",
+		desc: "file.xml",
 		padding: '20px'
 	},
 	{
 		icon: <VscMarkdown size={45} style={{marginLeft: '15px'}}/>,
 		name: "Markdown",
-		desc: "do some documentation",
+		desc: "file.markdown",
 		padding: '20px'
 	},
 	{
 		icon: <AiFillFolderAdd size={50} style={{marginLeft: '10px'}}/>,
 		name: "Folder",
-		desc: "create a folder file",
+		desc: "file.folder",
 		padding: '20px'
 	},
 ];
@@ -66,6 +67,7 @@ export interface NewFileDialogProps {
 }
 
 function NewFileDialog(props: NewFileDialogProps) {
+	const {t} = useTranslation();
 	const { onClose, open } = props;
 
 	const handleClose = () => {
@@ -78,7 +80,7 @@ function NewFileDialog(props: NewFileDialogProps) {
 
 	return (
 		<Dialog onClose={handleClose} open={open}>
-			<DialogTitle sx={{ backgroundColor: '#3a3a3a' }}>New File</DialogTitle>
+			<DialogTitle sx={{ backgroundColor: '#3a3a3a' }}>{t("file.new")}</DialogTitle>
 			<List sx={{ pt: 0, backgroundColor: '#3a3a3a' }}>
 			{
 				fileTypes.map((fileType) => (
@@ -88,7 +90,7 @@ function NewFileDialog(props: NewFileDialogProps) {
 							key={fileType.name}
 						>
 								{ fileType.icon }
-							<ListItemText primary={fileType.name} secondary={fileType.desc} sx={{paddingLeft: fileType.padding, paddingRight: '10px'}}/>
+							<ListItemText primary={fileType.name} secondary={t(fileType.desc)} sx={{paddingLeft: fileType.padding, paddingRight: '10px'}}/>
 						</ListItemButton>
 					</ListItem>
 				))

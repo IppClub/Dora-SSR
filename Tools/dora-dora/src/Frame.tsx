@@ -7,6 +7,7 @@ import SportsEsports from '@mui/icons-material/SportsEsports';
 import { BsFillFileEarmarkPlayFill, BsPlayCircle, BsStopCircle, BsSearch } from 'react-icons/bs';
 import { StyledMenu, StyledMenuItem } from './Menu';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const theme = createTheme({
 	palette: {
@@ -123,6 +124,8 @@ export interface PlayControlProp {
 export const PlayControl = (prop: PlayControlProp) => {
 	const [open, setOpen] = useState(false);
 	const [anchorEl, setAnchorEl] = useState<Element | null>(null);
+	const {t} = useTranslation();
+
 	const onClose = (mode?: PlayControlMode) => () => {
 		setOpen(false);
 		if (mode !== undefined) {
@@ -158,28 +161,28 @@ export const PlayControl = (prop: PlayControlProp) => {
 				<ListItemIcon>
 					<BsPlayCircle/>
 				</ListItemIcon>
-				<ListItemText primary="Run"/>
+				<ListItemText primary={ t("menu.run") }/>
 				<div style={{fontSize: 10, color: '#fff8'}}>Mod+R</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Run This")}>
 				<ListItemIcon>
 					<BsFillFileEarmarkPlayFill/>
 				</ListItemIcon>
-				<ListItemText primary="Run This"/>
+				<ListItemText primary={ t("menu.runThis") }/>
 				<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+R</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Stop")}>
 				<ListItemIcon>
 					<BsStopCircle/>
 				</ListItemIcon>
-				<ListItemText primary="Stop"/>
+				<ListItemText primary={ t("menu.stop") }/>
 				<div style={{fontSize: 10, color: '#fff8'}}>Mod+Q</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Go to File")}>
 				<ListItemIcon>
 					<BsSearch/>
 				</ListItemIcon>
-				<ListItemText primary="Go to File"/>
+				<ListItemText primary={ t("menu.goToFile") }/>
 				<div style={{fontSize: 10, color: '#fff8'}}>Mod+P</div>
 			</StyledMenuItem>
 		</StyledMenu>

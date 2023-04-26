@@ -125,7 +125,7 @@ const hoverProvider = (lang: DoraLang) => {
 				if (res.infered === undefined) return {contents:[]};
 				const polyText = "polymorphic function (with types ";
 				let desc = res.infered.desc;
-				if (desc === "<invalid type>") return {contents:[]};
+				if (desc === "<invalid type>" || desc === "<unknown type>") return {contents:[]};
 				if (desc.startsWith(polyText)) {
 					desc = desc.substring(polyText.length);
 					desc = desc.substring(0, desc.length - 1);

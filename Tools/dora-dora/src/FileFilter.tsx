@@ -1,5 +1,6 @@
 import { Autocomplete, TextField } from '@mui/material';
 import { matchSorter } from 'match-sorter';
+import { useTranslation } from 'react-i18next';
 
 export interface FilterOption {
 	title: string;
@@ -13,6 +14,7 @@ export interface FileFilterProps {
 }
 
 const FileFilter = (props: FileFilterProps) => {
+	const {t} = useTranslation();
 	const filterOptions = (options: FilterOption[], state: { inputValue: string }) => {
 		return matchSorter(
 			options,
@@ -38,7 +40,7 @@ const FileFilter = (props: FileFilterProps) => {
 				"& .MuiOutlinedInput-notchedOutline": {
 					borderColor: '#fffa',
 				}
-			}} {...params} label="Go to file"/>}
+			}} {...params} label={t("popup.goToFile")}/>}
 		renderOption={(props, option) => {
 			return (
 				<li {...props}>

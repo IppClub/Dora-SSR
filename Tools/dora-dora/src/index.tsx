@@ -1,7 +1,28 @@
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
+import React from 'react';
+import * as Service from './Service';
+import i18n from './i18n';
+import Info from './Info';
+import * as Path from './Path';
+
+const App = React.lazy(() => Service.info().then((res) => {
+	const {locale} = res;
+	Info.locale = locale;
+	Info.platform = res.platform;
+	Info.path = res.platform === "Windows" ? Path.win32 : Path.posix;
+	Info.version = res.version;
+
+	(window as any).getLanguageSetting = () => {
+		if (locale.match(/^zh/)) {
+			return "zh-cn";
+		}
+		return "en";
+	};
+	i18n.changeLanguage(locale.match(/^zh/) ? "zh" : "en");
+	return import('./App')
+}).catch(() => import('./App')));
 
 const root = ReactDOM.createRoot(
 	document.getElementById('root') as HTMLElement
