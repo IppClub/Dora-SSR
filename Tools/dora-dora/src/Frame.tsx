@@ -8,6 +8,7 @@ import { BsFillFileEarmarkPlayFill, BsPlayCircle, BsStopCircle, BsSearch } from 
 import { StyledMenu, StyledMenuItem } from './Menu';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import Info from './Info';
 
 const theme = createTheme({
 	palette: {
@@ -185,6 +186,9 @@ export const PlayControl = (prop: PlayControlProp) => {
 				<ListItemText primary={ t("menu.goToFile") }/>
 				<div style={{fontSize: 10, color: '#fff8'}}>Mod+P</div>
 			</StyledMenuItem>
+			{Info.version ?
+				<p style={{textAlign: "center", opacity: 0.6, fontSize: "12px", margin: '5px'}}>{t("menu.version", {version: Info.version})}</p> : null
+			}
 		</StyledMenu>
 		<IconButton
 			color="secondary"

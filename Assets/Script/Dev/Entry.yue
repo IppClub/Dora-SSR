@@ -270,6 +270,7 @@ setupEventHandlers = ->
 		\gslot "AppLocale", (locale)->
 			config.locale = locale
 			updateLocale!
+			teal.clear true
 		switch App.platform when "Linux", "Windows", "macOS"
 			\gslot "AppSizeChanged", ->
 				:width, :height = App.winSize

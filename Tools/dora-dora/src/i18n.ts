@@ -78,6 +78,7 @@ i18n
 						goToDefinition: "Go to Definition",
 					},
 					menu: {
+						version: "Dorothy SSR version {{version}}",
 						new: "New",
 						delete: "Delete",
 						rename: "Rename",
@@ -168,6 +169,7 @@ i18n
 						goToDefinition: "跳转到定义",
 					},
 					menu: {
+						version: "Dorothy SSR 版本号 {{version}}",
 						new: "新建",
 						delete: "删除",
 						rename: "重命名",

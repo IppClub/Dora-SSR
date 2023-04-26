@@ -2,10 +2,14 @@ import React from 'react';
 import clsx from 'clsx';
 import styles from './styles.module.css';
 import Translate from '@docusaurus/Translate';
+const feature_img_one = require('@site/static/img/undraw_docusaurus_mountain.svg');
+const feature_img_two = require('@site/static/img/undraw_docusaurus_tree.svg');
+const feature_img_three = require('@site/static/img/undraw_docusaurus_react.svg');
 
 type FeatureItem = {
 	title: JSX.Element;
-	Svg: React.ComponentType<React.ComponentProps<'svg'>>;
+	Svg?: React.ComponentType<React.ComponentProps<'svg'>>;
+	image?: React.ReactNode;
 	description: JSX.Element;
 };
 
@@ -18,7 +22,7 @@ const FeatureList: FeatureItem[] = [
 				Play as You Create
 			</Translate>
 		),
-		Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+		Svg: feature_img_one.default,
 		description: (
 			<Translate
 				id="feature_description_one"
@@ -35,7 +39,7 @@ const FeatureList: FeatureItem[] = [
 				Game Dev Freedom
 			</Translate>
 		),
-		Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+		Svg: feature_img_two.default,
 		description: (
 			<Translate
 				id='feature_description_two'
@@ -50,7 +54,7 @@ const FeatureList: FeatureItem[] = [
 				Multilingual Playground
 			</Translate>
 		),
-		Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+		Svg: feature_img_three.default,
 		description: (
 			<Translate
 				id='feature_description_three'
@@ -61,11 +65,11 @@ const FeatureList: FeatureItem[] = [
 	},
 ];
 
-function Feature({title, Svg, description}: FeatureItem) {
+function Feature({title, Svg, image, description}: FeatureItem) {
 	return (
 		<div className={clsx('col col--4')}>
 			<div className="text--center">
-				<Svg className={styles.featureSvg} role="img" />
+				{Svg ? <Svg className={styles.featureSvg} role="img"/> : image}
 			</div>
 			<div className="text--center padding-horiz--md">
 				<h3>{title}</h3>
