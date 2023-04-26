@@ -11463,8 +11463,12 @@ tl.dora_new_env = function()
 	return env
 end
 
-tl.dora_clear = function()
-	tl.package_loader_env = tl.dora_new_env()
+tl.dora_clear = function(reset)
+	if reset then
+		tl.dora_init()
+	else
+		tl.package_loader_env = tl.dora_new_env()
+	end
 	collectgarbage()
 end
 

@@ -20,7 +20,6 @@ import "./rctree.css";
 import { TreeNodeProps } from "rc-tree/lib/TreeNode";
 import { DataNode, EventDataNode, Key } from "rc-tree/lib/interface";
 import { NodeDragEventParams } from 'rc-tree/lib/contextTypes';
-import { Path } from './Path';
 import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';

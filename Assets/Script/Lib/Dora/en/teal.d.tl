@@ -33,6 +33,6 @@ local record teal
 		infered: Info
 	end
 	inferAsync: function(codes: string, line: string, row: integer, searchPath: string): InferResult
-	clear: function()
+	clear: function(reset?: boolean --[[false]])
 end
 return teal

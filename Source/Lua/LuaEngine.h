@@ -56,7 +56,7 @@ public:
 		int col;
 	};
 	void inferTealAsync(String tlCodes, String line, int row, String searchPath, const std::function<void(std::optional<TealInference>)>& callback);
-	void clearTealCompiler();
+	void clearTealCompiler(bool reset);
 
 	void insertLuaLoader(lua_CFunction func, int index);
 

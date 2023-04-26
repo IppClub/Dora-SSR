@@ -398,15 +398,17 @@ export default function PersistentDrawerLeft() {
 	const closeCurrentTab = () => {
 		if (tabIndex !== null) {
 			const closeTab = () => {
-				const newFiles = files.filter((_, index) => index !== tabIndex);
-				if (newFiles.length === 0) {
-					switchTab(null);
-				} else if (tabIndex > 0) {
-					switchTab(tabIndex - 1, newFiles[tabIndex - 1]);
-				} else {
-					switchTab(tabIndex, newFiles[tabIndex]);
-				}
-				setFiles(newFiles);
+				setFiles(prev => {
+					const newFiles = prev.filter((_, index) => index !== tabIndex);
+					if (newFiles.length === 0) {
+						switchTab(null);
+					} else if (tabIndex > 0) {
+						switchTab(tabIndex - 1, newFiles[tabIndex - 1]);
+					} else {
+						switchTab(tabIndex, newFiles[tabIndex]);
+					}
+					return newFiles;
+				});
 			};
 			if (files[tabIndex].contentModified !== null) {
 				setPopupInfo({
@@ -440,9 +442,12 @@ export default function PersistentDrawerLeft() {
 
 	const closeOtherTabs = () => {
 		const closeTabs = () => {
-			const newFiles = files.filter((_, index) => index === tabIndex);
-			setFiles(newFiles);
-			switchTab(0, newFiles[0]);
+			setFiles(prev => {
+				const newFiles = prev.filter((_, index) => index === tabIndex);
+				setFiles(newFiles);
+				switchTab(0, newFiles[0]);
+				return newFiles;
+			});
 		};
 		const otherModified = files.filter((_, index) => index !== tabIndex).find((file) => file.contentModified !== null) !== undefined;
 		if (otherModified) {
@@ -1483,13 +1488,12 @@ export default function PersistentDrawerLeft() {
 						src={logo}
 						alt="logo"
 						width="100%"
-						height="180px"
+						height="200px"
 						style={{
-							paddingTop: "20px",
+							padding: "20px",
 							textAlign: "center"
 						}}
 					/>
-					<p style={{textAlign: "center", opacity: 0.6, fontSize: "12px", margin: '5px'}}>{Info.version ? `v${Info.version}` : ""}</p>
 					<Divider style={{backgroundColor:'#fff2'}}/>
 					<FileTree
 						selectedKeys={selectedKeys}

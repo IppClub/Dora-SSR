@@ -287,7 +287,8 @@ static int dora_teal_to_lua_async(lua_State* L) {
 }
 
 static int dora_clear_teal(lua_State* L) {
-	SharedLuaEngine.clearTealCompiler();
+	bool reset = lua_toboolean(L, 1) != 0;
+	SharedLuaEngine.clearTealCompiler(reset);
 	return 0;
 }
 
@@ -1207,7 +1208,7 @@ void LuaEngine::inferTealAsync(String tlCodes, String line, int row, String sear
 		});
 }
 
-void LuaEngine::clearTealCompiler() {
+void LuaEngine::clearTealCompiler(bool reset) {
 	if (!_tlState) return;
 	auto tl = _tlState->L;
 	auto thread = _tlState->thread;
@@ -1219,7 +1220,8 @@ void LuaEngine::clearTealCompiler() {
 		lua_getfield(tl, -1, "loaded"); // package loaded
 		lua_getfield(tl, -1, "tl"); // package loaded tl
 		lua_getfield(tl, -1, "dora_clear");
-		LuaEngine::call(tl, 0, 0); // clear(), package loaded tl
+		lua_pushboolean(tl, reset ? 1 : 0);
+		LuaEngine::call(tl, 1, 0); // clear(reset), package loaded tl
 	}
 	thread->resume();
 }
