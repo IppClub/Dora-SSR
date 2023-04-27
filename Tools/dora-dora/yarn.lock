@@ -7505,11 +7505,6 @@ mkdirp@~0.5.1:
   dependencies:
     minimist "^1.2.6"
 
-monaco-editor-locales-plugin@^0.0.3:
-  version "0.0.3"
-  resolved "https://mirrors.cloud.tencent.com/npm/monaco-editor-locales-plugin/-/monaco-editor-locales-plugin-0.0.3.tgz#cf30090ddf894400789f9f43683c02b08e075a32"
-  integrity sha512-qa8/simp+bpeu/goag5bwX9BJtxtQFv0BldXMFBamzA6B9mJIk+4kyhxMjZq0uVds+kH6w/1+TRAjMIk9kANpA==
-
 monaco-editor-webpack-plugin@^7.0.1:
   version "7.0.1"
   resolved "https://mirrors.cloud.tencent.com/npm/monaco-editor-webpack-plugin/-/monaco-editor-webpack-plugin-7.0.1.tgz#ba19c60aba990184e36ad8722b1ed6a564527c7c"
@@ -7517,10 +7512,10 @@ monaco-editor-webpack-plugin@^7.0.1:
   dependencies:
     loader-utils "^2.0.2"
 
-monaco-editor@^0.35.0:
-  version "0.35.0"
-  resolved "https://mirrors.cloud.tencent.com/npm/monaco-editor/-/monaco-editor-0.35.0.tgz#49c4220c815262a900dacf0ae8a59bef66efab8b"
-  integrity sha512-BJfkAZ0EJ7JgrgWzqjfBNP9hPSS8NlfECEDMEIIiozV2UaPq22yeuOjgbd3TwMh3anH0krWZirXZfn8KUSxiOA==
+monaco-editor@^0.37.1:
+  version "0.37.1"
+  resolved "https://mirrors.cloud.tencent.com/npm/monaco-editor/-/monaco-editor-0.37.1.tgz#d6f5ffb593e019e74e19bf8a2bdef5a691876f4e"
+  integrity sha512-jLXEEYSbqMkT/FuJLBZAVWGuhIb4JNwHE9kPTorAVmsdZ4UzHAfgWxLsVtD7pLRFaOwYPhNG9nUCpmFL1t/dIg==
 
 mri@^1.1.0:
   version "1.2.0"
