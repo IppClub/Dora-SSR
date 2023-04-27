@@ -26,7 +26,7 @@ const ForkTsCheckerWebpackPlugin =
     : require('react-dev-utils/ForkTsCheckerWebpackPlugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
-const MonacoLocalesPlugin = require('monaco-editor-locales-plugin');
+const MonacoLocalesPlugin = require('./monaco-editor-locales-plugin');
 
 const createEnvironmentHash = require('./webpack/persistentCache/createEnvironmentHash');
 
@@ -565,14 +565,14 @@ module.exports = function (webpackEnv) {
       ].filter(Boolean),
     },
     plugins: [
-      new MonacoWebpackPlugin({
-        languages: ['xml', 'markdown', 'ini']
-      }),
       new MonacoLocalesPlugin({
         languages: ["en", "zh-cn"],
-        defaultLanguage: "getLanguageSetting()",
+        defaultLanguage: "window.getLanguageSetting()",
         logUnmatched: false,
         mapLanguage: {},
+      }),
+      new MonacoWebpackPlugin({
+        languages: ['xml', 'markdown', 'ini']
       }),
       // Generates an `index.html` file with the <script> injected.
       new HtmlWebpackPlugin(
