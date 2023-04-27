@@ -105,7 +105,7 @@ RayCastOutput RayCast( // NOLINT(readability-function-cognitive-complexity)
             auto s = -1; // Sign of the normal vector.
             if (t1 > t2)
             {
-                swap(t1, t2);
+                std::swap(t1, t2);
                 s = 1;
             }
             if (tmin < t1)
