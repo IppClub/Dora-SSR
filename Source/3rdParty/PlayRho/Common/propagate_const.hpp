@@ -1,7 +1,7 @@
 /*
 
 Original work Copyright (c) 2014-2018 Jonathan B. Coe
-Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -67,26 +67,30 @@ class propagate_const {
  private:
   /// @brief Gets pointer.
   template <class U>
-  static element_type* get_pointer(U* u) {
+  static PROPAGATE_CONST_CONSTEXPR element_type* get_pointer(U* u) noexcept {
     return u;
   }
 
   /// @brief Gets pointer.
   template <class U>
-  static element_type* get_pointer(U& u) {
+  static PROPAGATE_CONST_CONSTEXPR element_type* get_pointer(U& u)
+    noexcept(noexcept(get_pointer(u.get())))
+  {
     return get_pointer(u.get());
   }
 
   /// @brief Gets pointer.
   template <class U>
-  static const element_type* get_pointer(const U* u) {
+  static PROPAGATE_CONST_CONSTEXPR const element_type* get_pointer(const U* u) noexcept {
     return u;
   }
 
   /// @brief Gets pointer.
   template <class U>
-  static const element_type* get_pointer(const U& u) {
-    return get_pointer(u.get());
+  static PROPAGATE_CONST_CONSTEXPR const element_type* get_pointer(const U& u)
+    noexcept(noexcept(get_pointer(u.get())))
+  {
+      return get_pointer(u.get());
   }
 
   /// @brief Trait for detecting that the given type is not this one.
@@ -100,13 +104,15 @@ class propagate_const {
  public:
   // [propagate_const.ctor], constructors
   /// @brief Default constructor.
-  PROPAGATE_CONST_CONSTEXPR propagate_const() = default;
+  PROPAGATE_CONST_CONSTEXPR propagate_const()
+    noexcept(std::is_nothrow_default_constructible_v<T>) = default;
 
   /// @brief Explicityly deleted copy constructor.
   propagate_const(const propagate_const& p) = delete;
 
   /// @brief Move constructor.
-  PROPAGATE_CONST_CONSTEXPR propagate_const(propagate_const&& p) = default;
+  PROPAGATE_CONST_CONSTEXPR propagate_const(propagate_const&& p)
+    noexcept(std::is_nothrow_move_constructible_v<T>) = default;
 
 #ifdef PROPAGATE_CONST_HAS_NO_EXPRESSION_SFINAE
   //
@@ -115,6 +121,7 @@ class propagate_const {
 
   template <class U, class = std::enable_if_t<is_constructible<T, U&&>::value>>
   explicit PROPAGATE_CONST_CONSTEXPR propagate_const(propagate_const<U>&& pu)
+    noexcept(std::is_nothrow_constructible_v<T, decltype(std::move(pu.t_))>)
       : t_(std::move(pu.t_))
   {
   }
@@ -123,6 +130,7 @@ class propagate_const {
             class = std::enable_if_t<is_constructible<T, U&&>::value &&
                                 !is_propagate_const<std::decay_t<U>>::value>>
   explicit PROPAGATE_CONST_CONSTEXPR propagate_const(U&& u)
+    noexcept(std::is_nothrow_constructible_v<T, decltype(std::forward<U>(u))>)
       : t_(std::forward<U>(u))
   {
   }
@@ -136,27 +144,34 @@ class propagate_const {
                                      std::is_constructible<T, U&&>::value,
                                  bool> = true>
   explicit PROPAGATE_CONST_CONSTEXPR propagate_const(propagate_const<U>&& pu)
+    noexcept(std::is_nothrow_constructible_v<T, decltype(std::move(pu.t_))>)
       : t_(std::move(pu.t_)) {}
 
   /// @brief Move constructor.
   template <class U, std::enable_if_t<std::is_convertible<U&&, T>::value &&
                                      std::is_constructible<T, U&&>::value,
                                  bool> = false>
-  PROPAGATE_CONST_CONSTEXPR propagate_const(propagate_const<U>&& pu) : t_(std::move(pu.t_)) {}
+  PROPAGATE_CONST_CONSTEXPR propagate_const(propagate_const<U>&& pu)
+    noexcept(std::is_nothrow_constructible_v<T, decltype(std::move(pu.t_))>)
+      : t_(std::move(pu.t_)) {}
 
   /// @brief Move constructor.
   template <class U, std::enable_if_t<!std::is_convertible<U&&, T>::value &&
                                      std::is_constructible<T, U&&>::value &&
                                      !is_propagate_const<std::decay_t<U>>::value,
                                  bool> = true>
-  explicit PROPAGATE_CONST_CONSTEXPR propagate_const(U&& u) : t_(std::forward<U>(u)) {}
+  explicit PROPAGATE_CONST_CONSTEXPR propagate_const(U&& u)
+    noexcept(std::is_nothrow_constructible_v<T, decltype(std::forward<U>(u))>)
+      : t_(std::forward<U>(u)) {}
 
   /// @brief Move constructor.
   template <class U, std::enable_if_t<std::is_convertible<U&&, T>::value &&
                                      std::is_constructible<T, U&&>::value &&
                                      !is_propagate_const<std::decay_t<U>>::value,
                                  bool> = false>
-  PROPAGATE_CONST_CONSTEXPR propagate_const(U&& u) : t_(std::forward<U>(u)) {}
+  PROPAGATE_CONST_CONSTEXPR propagate_const(U&& u)
+    noexcept(std::is_nothrow_constructible_v<T, decltype(std::forward<U>(u))>)
+      : t_(std::forward<U>(u)) {}
 #endif
 
   // [propagate_const.assignment], assignment
@@ -164,11 +179,14 @@ class propagate_const {
   propagate_const& operator=(const propagate_const& p) = delete;
 
   /// @brief Move assignment operator.
-  PROPAGATE_CONST_CONSTEXPR propagate_const& operator=(propagate_const&& p) = default;
+  PROPAGATE_CONST_CONSTEXPR propagate_const& operator=(propagate_const&& p)
+    noexcept(std::is_nothrow_move_assignable_v<T>) = default;
 
   /// @brief Move assignment operator for compatible <code>propagate_const</code> types.
   template <class U>
-  PROPAGATE_CONST_CONSTEXPR propagate_const& operator=(propagate_const<U>&& pu) {
+  PROPAGATE_CONST_CONSTEXPR propagate_const& operator=(propagate_const<U>&& pu)
+    noexcept(std::is_nothrow_assignable_v<T, decltype(std::move(pu.t_))>)
+  {
     t_ = std::move(pu.t_);
     return *this;
   }
@@ -176,22 +194,33 @@ class propagate_const {
   /// @brief Move assignment operator for compatible types.
   template <class U,
             class = std::enable_if_t<!is_propagate_const<std::decay_t<U>>::value>>
-  PROPAGATE_CONST_CONSTEXPR propagate_const& operator=(U&& u) {
-    t_ = std::move(u);
+  PROPAGATE_CONST_CONSTEXPR propagate_const& operator=(U&& u)
+    noexcept(std::is_nothrow_assignable_v<T, decltype(std::forward<U>(u))>)
+  {
+    t_ = std::forward<U>(u);
     return *this;
   }
 
   // [propagate_const.const_observers], const observers
   /// @brief Boolean observer operator.
-  explicit PROPAGATE_CONST_CONSTEXPR operator bool() const { return get() != nullptr; }
+  explicit PROPAGATE_CONST_CONSTEXPR operator bool() const
+    noexcept(noexcept(this->get()))
+  {
+    return get() != nullptr;
+  }
 
   /// @brief Member-of operator support.
-  PROPAGATE_CONST_CONSTEXPR const element_type* operator->() const { return get(); }
+  PROPAGATE_CONST_CONSTEXPR const element_type* operator->() const
+    noexcept(noexcept(this->get()))
+  {
+    return get();
+  }
 
   /// @brief Const-conversion operator support.
   template <class T_ = T, class U = std::enable_if_t<std::is_convertible<
                               const T_, const element_type*>::value>>
   PROPAGATE_CONST_CONSTEXPR operator const element_type*() const  // Not always defined
+    noexcept(noexcept(this->get()))
   {
     return get();
   }
@@ -200,25 +229,42 @@ class propagate_const {
   PROPAGATE_CONST_CONSTEXPR const element_type& operator*() const { return *get(); }
 
   /// @brief Gets pointer content.
-  PROPAGATE_CONST_CONSTEXPR const element_type* get() const { return get_pointer(t_); }
+  PROPAGATE_CONST_CONSTEXPR const element_type* get() const
+    noexcept(noexcept(get_pointer(t_)))
+  {
+    return get_pointer(t_);
+  }
 
   // [propagate_const.non_const_observers], non-const observers
   /// @brief Member-of operator support.
-  PROPAGATE_CONST_CONSTEXPR element_type* operator->() { return get(); }
-
-  /// @brief Indirection operator support.
-  template <class T_ = T,
-            class U = std::enable_if_t<std::is_convertible<T_, element_type*>::value>>
-  PROPAGATE_CONST_CONSTEXPR operator element_type*()  // Not always defined
+  PROPAGATE_CONST_CONSTEXPR element_type* operator->()
+    noexcept(noexcept(this->get()))
   {
     return get();
   }
 
   /// @brief Indirection operator support.
-  PROPAGATE_CONST_CONSTEXPR element_type& operator*() { return *get(); }
+  template <class T_ = T,
+            class U = std::enable_if_t<std::is_convertible<T_, element_type*>::value>>
+  PROPAGATE_CONST_CONSTEXPR operator element_type*()  // Not always defined
+    noexcept(noexcept(this->get()))
+  {
+    return get();
+  }
+
+  /// @brief Indirection operator support.
+  PROPAGATE_CONST_CONSTEXPR element_type& operator*()
+    noexcept(noexcept(*(this->get())))
+  {
+    return *get();
+  }
 
   /// @brief Gets pointer content.
-  PROPAGATE_CONST_CONSTEXPR element_type* get() { return get_pointer(t_); }
+  PROPAGATE_CONST_CONSTEXPR element_type* get()
+    noexcept(noexcept(get_pointer(t_)))
+  {
+    return get_pointer(t_);
+  }
   
   // [propagate_const.modifiers], modifiers
   /// @brief Swap support.
@@ -407,8 +453,8 @@ namespace std {
 /// @brief Support for hash operation.
 template <class T>
 struct hash<::playrho::propagate_const<T>> {
-  typedef size_t result_type; ///< Result type.
-  typedef ::playrho::propagate_const<T> argument_type; ///< Argument type.
+  using result_type = size_t; ///< Result type.
+  using argument_type = ::playrho::propagate_const<T>; ///< Argument type.
 
   /// @brief Hash operation functor.
   bool operator()(
@@ -422,8 +468,8 @@ struct hash<::playrho::propagate_const<T>> {
 /// @brief Support for equal-to operations.
 template <class T>
 struct equal_to<::playrho::propagate_const<T>> {
-  typedef ::playrho::propagate_const<T> first_argument_type; ///< First argument type.
-  typedef ::playrho::propagate_const<T> second_argument_type; ///< Second argument type.
+  using first_argument_type = ::playrho::propagate_const<T>; ///< First argument type.
+  using second_argument_type = ::playrho::propagate_const<T>; ///< Second argument type.
 
   /// @brief Equal-to operation functor.
   bool operator()(
@@ -436,8 +482,8 @@ struct equal_to<::playrho::propagate_const<T>> {
 /// @brief Support for not-equal-to operations.
 template <class T>
 struct not_equal_to<::playrho::propagate_const<T>> {
-  typedef ::playrho::propagate_const<T> first_argument_type; ///< First argument type.
-  typedef ::playrho::propagate_const<T> second_argument_type; ///< Second argument type.
+  using first_argument_type = ::playrho::propagate_const<T>; ///< First argument type.
+  using second_argument_type = ::playrho::propagate_const<T>; ///< Second argument type.
 
   /// @brief Not-equal-to operation functor.
   bool operator()(
@@ -450,8 +496,8 @@ struct not_equal_to<::playrho::propagate_const<T>> {
 /// @brief Support for less than operations.
 template <class T>
 struct less<::playrho::propagate_const<T>> {
-  typedef ::playrho::propagate_const<T> first_argument_type; ///< First argument type.
-  typedef ::playrho::propagate_const<T> second_argument_type; ///< Second argument type.
+  using first_argument_type = ::playrho::propagate_const<T>; ///< First argument type.
+  using second_argument_type = ::playrho::propagate_const<T>; ///< Second argument type.
 
   /// @brief Less-than operation functor.
   bool operator()(
@@ -464,8 +510,8 @@ struct less<::playrho::propagate_const<T>> {
 /// @brief Support for greater than operations.
 template <class T>
 struct greater<::playrho::propagate_const<T>> {
-  typedef ::playrho::propagate_const<T> first_argument_type; ///< First argument type.
-  typedef ::playrho::propagate_const<T> second_argument_type; ///< Second argument type.
+  using first_argument_type = ::playrho::propagate_const<T>; ///< First argument type.
+  using second_argument_type = ::playrho::propagate_const<T>; ///< Second argument type.
 
   /// @brief Greater-than operation functor.
   bool operator()(
@@ -478,8 +524,8 @@ struct greater<::playrho::propagate_const<T>> {
 /// @brief Support for less than or equal operations.
 template <class T>
 struct less_equal<::playrho::propagate_const<T>> {
-  typedef ::playrho::propagate_const<T> first_argument_type; ///< First argument type.
-  typedef ::playrho::propagate_const<T> second_argument_type; ///< Second argument type.
+  using first_argument_type = ::playrho::propagate_const<T>; ///< First argument type.
+  using second_argument_type = ::playrho::propagate_const<T>; ///< Second argument type.
 
   /// @brief Lesser-than operation functor.
   bool operator()(
@@ -492,8 +538,8 @@ struct less_equal<::playrho::propagate_const<T>> {
 /// @brief Support for greater than or equal operations.
 template <class T>
 struct greater_equal<::playrho::propagate_const<T>> {
-  typedef ::playrho::propagate_const<T> first_argument_type; ///< First argument type.
-  typedef ::playrho::propagate_const<T> second_argument_type; ///< Second argument type.
+  using first_argument_type = ::playrho::propagate_const<T>; ///< First argument type.
+  using second_argument_type = ::playrho::propagate_const<T>; ///< Second argument type.
 
   /// @brief Greater-than operation functor.
   bool operator()(

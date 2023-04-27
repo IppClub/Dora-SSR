@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2007-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -37,7 +37,7 @@ constexpr auto cfloor(T v) noexcept
 /// @brief Constant expression enhanced floor function.
 /// @note Unlike <code>std::floor</code>, this function is only defined for finite values.
 /// @see https://en.cppreference.com/w/cpp/numeric/math/floor
-#if defined(USE_BOOST_UNITS)
+#if defined(PLAYRHO_USE_BOOST_UNITS)
 template <class Unit>
 constexpr auto cfloor(const boost::units::quantity<Unit, Real>& v) noexcept
 {
@@ -172,12 +172,11 @@ Length2 ComputeCentroid(const Span<const Length2>& vertices)
 
     for (auto i = decltype(size(vertices)){0}; i < size(vertices); ++i) {
         // Triangle vertices.
-        const auto p1 = pRef;
-        const auto p2 = vertices[i];
-        const auto p3 = vertices[GetModuloNext(i, size(vertices))];
+        const auto& p2 = vertices[i];
+        const auto& p3 = vertices[GetModuloNext(i, size(vertices))];
 
-        const auto e1 = p2 - p1;
-        const auto e2 = p3 - p1;
+        const auto e1 = p2 - pRef;
+        const auto e2 = p3 - pRef;
 
         constexpr auto RealInverseOfTwo = Real{1} / Real{2};
         const auto triangleArea = Area{Cross(e1, e2) * RealInverseOfTwo};
@@ -185,7 +184,7 @@ Length2 ComputeCentroid(const Span<const Length2>& vertices)
 
         // Area weighted centroid
         constexpr auto RealInverseOfThree = Real{1} / Real{3};
-        const auto aveP = (p1 + p2 + p3) * RealInverseOfThree;
+        const auto aveP = (pRef + p2 + p3) * RealInverseOfThree;
         c += triangleArea * aveP;
     }
 
@@ -230,16 +229,16 @@ NonNegative<Area> GetAreaOfCircle(Length radius)
     return Area{radius * radius * Pi};
 }
 
-NonNegative<Area> GetAreaOfPolygon(Span<const Length2> vertices)
+NonNegative<Area> GetAreaOfPolygon(const Span<const Length2>& vertices)
 {
     // Uses the "Shoelace formula".
     // See: https://en.wikipedia.org/wiki/Shoelace_formula
     auto sum = 0_m2;
     const auto count = size(vertices);
     for (auto i = decltype(count){0}; i < count; ++i) {
-        const auto last_v = vertices[GetModuloPrev(i, count)];
-        const auto this_v = vertices[i];
-        const auto next_v = vertices[GetModuloNext(i, count)];
+        const auto& last_v = vertices[GetModuloPrev(i, count)];
+        const auto& this_v = vertices[i];
+        const auto& next_v = vertices[GetModuloNext(i, count)];
         sum += GetX(this_v) * (GetY(next_v) - GetY(last_v));
     }
 
@@ -249,7 +248,7 @@ NonNegative<Area> GetAreaOfPolygon(Span<const Length2> vertices)
     return abs(sum) * RealInverseOfTwo;
 }
 
-SecondMomentOfArea GetPolarMoment(Span<const Length2> vertices)
+SecondMomentOfArea GetPolarMoment(const Span<const Length2>& vertices)
 {
     assert(size(vertices) > 2);
 
@@ -263,8 +262,8 @@ SecondMomentOfArea GetPolarMoment(Span<const Length2> vertices)
     auto sum_y = SquareMeter * SquareMeter * 0;
     const auto count = size(vertices);
     for (auto i = decltype(count){0}; i < count; ++i) {
-        const auto this_v = vertices[i];
-        const auto next_v = vertices[GetModuloNext(i, count)];
+        const auto& this_v = vertices[i];
+        const auto& next_v = vertices[GetModuloNext(i, count)];
         const auto fact_b = Cross(this_v, next_v);
         sum_x += [&]() {
             const auto fact_a =
@@ -285,7 +284,7 @@ SecondMomentOfArea GetPolarMoment(Span<const Length2> vertices)
 
 namespace d2 {
 
-Position GetPosition(Position pos0, Position pos1, Real beta) noexcept
+Position GetPosition(const Position& pos0, const Position& pos1, Real beta) noexcept
 {
     assert(IsValid(pos0));
     assert(IsValid(pos1));
@@ -329,8 +328,8 @@ Position Cap(Position pos, const ConstraintSolverConf& conf)
     return pos;
 }
 
-LinearVelocity2 GetContactRelVelocity(const Velocity velA, const Length2 relA, const Velocity velB,
-                                      const Length2 relB) noexcept
+LinearVelocity2 GetContactRelVelocity(const Velocity& velA, const Length2& relA, const Velocity& velB,
+                                      const Length2& relB) noexcept
 {
 #if 0 // Using std::fma appears to be slower!
     const auto revPerpRelB = GetRevPerpendicular(relB);

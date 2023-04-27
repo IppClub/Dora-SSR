@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -45,10 +45,16 @@ namespace d2 {
 class PolygonShapeConf : public ShapeBuilder<PolygonShapeConf>
 {
 public:
+    /// @brief Default vertex radius.
+    static constexpr auto DefaultVertexRadius = NonNegative<Length>{DefaultLinearSlop * 2};
+
     /// @brief Gets the default vertex radius for the <code>PolygonShapeConf</code>.
+    /// @note This is just a backward compatibility interface for getting the default vertex radius.
+    ///    The new way is to use <code>DefaultVertexRadius</code> directly.
+    /// @return <code>DefaultVertexRadius</code>.
     static constexpr NonNegative<Length> GetDefaultVertexRadius() noexcept
     {
-        return NonNegative<Length>{DefaultLinearSlop * 2};
+        return DefaultVertexRadius;
     }
 
     /// @brief Gets the default configuration for a <code>PolygonShapeConf</code>.
@@ -57,7 +63,7 @@ public:
         return PolygonShapeConf{};
     }
 
-    PolygonShapeConf();
+    PolygonShapeConf() noexcept;
 
     /// @brief Initializing constructor for a 4-sided box polygon.
     /// @param hx Half of the width.
@@ -65,7 +71,7 @@ public:
     /// @param conf Additional configuration information.
     /// @see SetAsBox.
     PolygonShapeConf(Length hx, Length hy,
-                     const PolygonShapeConf& conf = GetDefaultConf()) noexcept;
+                     const PolygonShapeConf& conf = GetDefaultConf());
 
     /// @brief Creates a convex hull from the given array of local points.
     /// @note The size of the span must be in the range [1, <code>MaxShapeVertices</code>].
@@ -73,51 +79,51 @@ public:
     /// @warning collinear points are handled but not removed. Collinear points
     /// may lead to poor stacking behavior.
     explicit PolygonShapeConf(Span<const Length2> points,
-                              const PolygonShapeConf& conf = GetDefaultConf()) noexcept;
+                              const PolygonShapeConf& conf = GetDefaultConf());
 
     /// @brief Uses the given vertex radius.
     PolygonShapeConf& UseVertexRadius(NonNegative<Length> value) noexcept;
 
     /// @brief Uses the given vertices.
-    PolygonShapeConf& UseVertices(const std::vector<Length2>& verts) noexcept;
+    PolygonShapeConf& UseVertices(const std::vector<Length2>& verts);
 
     /// @brief Sets the vertices to represent an axis-aligned box centered on the local origin.
     /// @param hx the half-width.
     /// @param hy the half-height.
-    PolygonShapeConf& SetAsBox(Length hx, Length hy) noexcept;
+    PolygonShapeConf& SetAsBox(Length hx, Length hy);
 
     /// @brief Sets the vertices for the described box.
-    PolygonShapeConf& SetAsBox(Length hx, Length hy, Length2 center, Angle angle) noexcept;
+    PolygonShapeConf& SetAsBox(Length hx, Length hy, const Length2& center, Angle angle);
 
     /// @brief Sets the vertices to a convex hull of the given ones.
     /// @note The size of the span must be in the range [1, <code>MaxShapeVertices</code>].
     /// @warning Points may be re-ordered, even if they form a convex polygon
     /// @warning Collinear points are handled but not removed. Collinear points
     ///   may lead to poor stacking behavior.
-    PolygonShapeConf& Set(Span<const Length2> verts) noexcept;
+    PolygonShapeConf& Set(Span<const Length2> points);
 
     /// @brief Sets the vertices to a convex hull of the given ones.
     /// @note The size of the span must be in the range [1, <code>MaxShapeVertices</code>].
     /// @warning Points may be re-ordered, even if they form a convex polygon
     /// @warning Collinear points are handled but not removed. Collinear points
     ///   may lead to poor stacking behavior.
-    PolygonShapeConf& Set(const VertexSet& points) noexcept;
+    PolygonShapeConf& Set(const VertexSet& points);
 
     /// @brief Transforms the vertices by the given transformation.
-    PolygonShapeConf& Transform(Transformation xfm) noexcept;
+    PolygonShapeConf& Transform(const Transformation& xfm) noexcept;
 
     /// @brief Transforms the vertices by the given transformation matrix.
     /// @see https://en.wikipedia.org/wiki/Transformation_matrix
-    PolygonShapeConf& Transform(const Mat22& m) noexcept;
+    PolygonShapeConf& Transform(const Mat22& m);
 
     /// @brief Translates all the vertices by the given amount.
-    PolygonShapeConf& Translate(const Length2& value) noexcept;
+    PolygonShapeConf& Translate(const Length2& value);
 
     /// @brief Scales all the vertices by the given amount.
-    PolygonShapeConf& Scale(const Vec2& value) noexcept;
+    PolygonShapeConf& Scale(const Vec2& value);
 
     /// @brief Rotates all the vertices by the given amount.
-    PolygonShapeConf& Rotate(const UnitVec& value) noexcept;
+    PolygonShapeConf& Rotate(const UnitVec& value);
 
     /// @brief Equality operator.
     friend bool operator==(const PolygonShapeConf& lhs, const PolygonShapeConf& rhs) noexcept
@@ -167,13 +173,13 @@ public:
     /// @details Vertices go counter-clockwise.
     Span<const Length2> GetVertices() const noexcept
     {
-        return Span<const Length2>(data(m_vertices), size(m_vertices));
+        return {data(m_vertices), size(m_vertices)};
     }
 
     /// @brief Gets the span of normals.
     Span<const UnitVec> GetNormals() const noexcept
     {
-        return Span<const UnitVec>(data(m_normals), size(m_vertices));
+        return {data(m_normals), size(m_vertices)};
     }
 
     /// @brief Gets the centroid.
@@ -264,7 +270,7 @@ inline void SetVertexRadius(PolygonShapeConf& arg, ChildCounter, NonNegative<Len
 
 /// @brief Gets the mass data for the given shape configuration.
 /// @relatedalso PolygonShapeConf
-inline MassData GetMassData(const PolygonShapeConf& arg) noexcept
+inline MassData GetMassData(const PolygonShapeConf& arg)
 {
     return playrho::d2::GetMassData(arg.vertexRadius, arg.density, arg.GetVertices());
 }
@@ -279,25 +285,25 @@ Length2 GetEdge(const PolygonShapeConf& shape, VertexCounter index);
 ///   transformation matrix.
 /// @see https://en.wikipedia.org/wiki/Transformation_matrix
 /// @relatedalso PolygonShapeConf
-inline void Transform(PolygonShapeConf& arg, const Mat22& m) noexcept
+inline void Transform(PolygonShapeConf& arg, const Mat22& m)
 {
     arg.Transform(m);
 }
 
 /// @brief Translates the given shape configuration's vertices by the given amount.
-inline void Translate(PolygonShapeConf& arg, const Length2& value) noexcept
+inline void Translate(PolygonShapeConf& arg, const Length2& value)
 {
     arg.Translate(value);
 }
 
 /// @brief Scales the given shape configuration's vertices by the given amount.
-inline void Scale(PolygonShapeConf& arg, const Vec2& value) noexcept
+inline void Scale(PolygonShapeConf& arg, const Vec2& value)
 {
     arg.Scale(value);
 }
 
 /// @brief Rotates the given shape configuration's vertices by the given amount.
-inline void Rotate(PolygonShapeConf& arg, const UnitVec& value) noexcept
+inline void Rotate(PolygonShapeConf& arg, const UnitVec& value)
 {
     arg.Rotate(value);
 }
@@ -306,7 +312,7 @@ inline void Rotate(PolygonShapeConf& arg, const UnitVec& value) noexcept
 /// @note This is a time consuming operation.
 /// @returns <code>true</code> if the given collection of vertices is indeed convex,
 ///   <code>false</code> otherwise.
-bool Validate(const Span<const Length2> verts);
+bool Validate(const Span<const Length2>& verts);
 
 } // namespace d2
 

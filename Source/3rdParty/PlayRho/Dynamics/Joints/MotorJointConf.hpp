@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2012 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -50,14 +50,24 @@ struct MotorJointConf : public JointBuilder<MotorJointConf> {
     /// @brief Super type.
     using super = JointBuilder<MotorJointConf>;
 
+    /// @brief Default max force.
+    static constexpr auto DefaultMaxForce = NonNegative<Force>(1_N);
+
+    /// @brief Default max torque.
+    static constexpr auto DefaultMaxTorque = NonNegative<Torque>(1_Nm);
+
+    /// @brief Default correction factor.
+    static constexpr auto DefaultCorrectionFactor = Real(0.3);
+
     /// @brief Default constructor.
-    constexpr MotorJointConf() = default;
+    constexpr MotorJointConf() noexcept = default;
 
     /// @brief Initialize the bodies and offsets using the current transforms.
-    MotorJointConf(BodyID bA, BodyID bB, Length2 lo = Length2{}, Angle ao = 0_deg) noexcept;
+    MotorJointConf(BodyID bA, BodyID bB, // force line-break
+                   const Length2& lo = Length2{}, Angle ao = 0_deg) noexcept;
 
     /// @brief Uses the given linear offset value.
-    constexpr auto& UseLinearOffset(Length2 v) noexcept
+    constexpr auto& UseLinearOffset(const Length2& v) noexcept
     {
         linearOffset = v;
         return *this;
@@ -101,13 +111,13 @@ struct MotorJointConf : public JointBuilder<MotorJointConf> {
     AngularMomentum angularImpulse{}; ///< Angular impulse.
 
     /// @brief Maximum motor force.
-    NonNegative<Force> maxForce = NonNegative<Force>(1_N);
+    NonNegative<Force> maxForce = DefaultMaxForce;
 
     /// @brief Maximum motor torque.
-    NonNegative<Torque> maxTorque = NonNegative<Torque>(1_Nm);
+    NonNegative<Torque> maxTorque = DefaultMaxTorque;
 
     /// @brief Position correction factor in the range [0,1].
-    Real correctionFactor = Real(0.3);
+    Real correctionFactor = DefaultCorrectionFactor;
 
     // Solver temp
     Length2 rA = {}; ///< Relative A.
@@ -145,8 +155,9 @@ constexpr bool operator!=(const MotorJointConf& lhs, const MotorJointConf& rhs) 
 }
 
 /// @brief Gets the definition data for the given joint.
+/// @throws std::bad_cast If the given joint's type is inappropriate for getting this value.
 /// @relatedalso Joint
-MotorJointConf GetMotorJointConf(const Joint& joint) noexcept;
+MotorJointConf GetMotorJointConf(const Joint& joint);
 
 /// @brief Gets the confguration for the given parameters.
 /// @relatedalso World
@@ -168,13 +179,20 @@ constexpr auto GetLocalAnchorB(const MotorJointConf&) noexcept
 
 /// @brief Shifts the origin notion of the given configuration.
 /// @relatedalso MotorJointConf
-constexpr auto ShiftOrigin(MotorJointConf&, Length2) noexcept
+constexpr auto ShiftOrigin(MotorJointConf&, const Length2&) noexcept
 {
     return false;
 }
 
 /// @brief Initializes velocity constraint data based on the given solver data.
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso MotorJointConf
 void InitVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
@@ -182,6 +200,12 @@ void InitVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies, c
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso MotorJointConf
@@ -189,7 +213,8 @@ bool SolveVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
-/// @return <code>true</code> if the position errors are within tolerance.
+/// @note This is a no-op and always returns <code>true</code>.
+/// @return <code>true</code>.
 /// @relatedalso MotorJointConf
 bool SolvePosition(const MotorJointConf& object, std::vector<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
@@ -245,7 +270,7 @@ constexpr auto GetLinearOffset(const MotorJointConf& object) noexcept
 
 /// @brief Free function for setting the linear offset value of the given configuration.
 /// @relatedalso MotorJointConf
-constexpr auto SetLinearOffset(MotorJointConf& object, Length2 value) noexcept
+constexpr auto SetLinearOffset(MotorJointConf& object, const Length2& value) noexcept
 {
     object.UseLinearOffset(value);
 }

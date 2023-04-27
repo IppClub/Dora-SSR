@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -30,27 +30,21 @@
 #include <memory>
 
 using std::for_each;
-using std::remove;
-using std::sort;
-using std::transform;
-using std::unique;
 
 namespace playrho {
 namespace d2 {
-
-using playrho::size;
 
 BodyCounter GetBodyRange(const World& world) noexcept
 {
     return world.GetBodyRange();
 }
 
-std::vector<BodyID> GetBodies(const World& world) noexcept
+const std::vector<BodyID>& GetBodies(const World& world) noexcept
 {
     return world.GetBodies();
 }
 
-std::vector<BodyID> GetBodiesForProxies(const World& world) noexcept
+const std::vector<BodyID>& GetBodiesForProxies(const World& world) noexcept
 {
     return world.GetBodiesForProxies();
 }
@@ -119,7 +113,7 @@ bool Detach(World& world, BodyID id, bool resetMassData)
     return anyDetached;
 }
 
-std::vector<ShapeID> GetShapes(const World& world, BodyID id)
+const std::vector<ShapeID>& GetShapes(const World& world, BodyID id)
 {
     return world.GetShapes(id);
 }
@@ -141,14 +135,14 @@ Acceleration GetAcceleration(const World& world, BodyID id)
 }
 
 void SetAcceleration(World& world, BodyID id,
-                     LinearAcceleration2 linear, AngularAcceleration angular)
+                     const LinearAcceleration2& linear, AngularAcceleration angular)
 {
     auto body = GetBody(world, id);
     SetAcceleration(body, linear, angular);
     SetBody(world, id, body);
 }
 
-void SetAcceleration(World& world, BodyID id, LinearAcceleration2 value)
+void SetAcceleration(World& world, BodyID id, const LinearAcceleration2& value)
 {
     auto body = GetBody(world, id);
     SetAcceleration(body, value);
@@ -162,21 +156,21 @@ void SetAcceleration(World& world, BodyID id, AngularAcceleration value)
     SetBody(world, id, body);
 }
 
-void SetAcceleration(World& world, BodyID id, Acceleration value)
+void SetAcceleration(World& world, BodyID id, const Acceleration& value)
 {
     auto body = GetBody(world, id);
     SetAcceleration(body, value);
     SetBody(world, id, body);
 }
 
-void SetTransformation(World& world, BodyID id, Transformation value)
+void SetTransformation(World& world, BodyID id, const Transformation& value)
 {
     auto body = GetBody(world, id);
     SetTransformation(body, value);
     SetBody(world, id, body);
 }
 
-void SetLocation(World& world, BodyID id, Length2 value)
+void SetLocation(World& world, BodyID id, const Length2& value)
 {
     auto body = GetBody(world, id);
     SetLocation(body, value);
@@ -190,9 +184,9 @@ void SetAngle(World& world, BodyID id, Angle value)
     SetBody(world, id, body);
 }
 
-void RotateAboutWorldPoint(World& world, BodyID body, Angle amount, Length2 worldPoint)
+void RotateAboutWorldPoint(World& world, BodyID id, Angle amount, const Length2& worldPoint)
 {
-    const auto xfm = GetTransformation(world, body);
+    const auto xfm = GetTransformation(world, id);
     const auto p = xfm.p - worldPoint;
     const auto c = cos(amount);
     const auto s = sin(amount);
@@ -200,22 +194,22 @@ void RotateAboutWorldPoint(World& world, BodyID body, Angle amount, Length2 worl
     const auto y = GetX(p) * s + GetY(p) * c;
     const auto pos = Length2{x, y} + worldPoint;
     const auto angle = GetAngle(xfm.q) + amount;
-    SetTransform(world, body, pos, angle);
+    SetTransform(world, id, pos, angle);
 }
 
-void RotateAboutLocalPoint(World& world, BodyID body, Angle amount, Length2 localPoint)
+void RotateAboutLocalPoint(World& world, BodyID id, Angle amount, const Length2& localPoint)
 {
-    RotateAboutWorldPoint(world, body, amount, GetWorldPoint(world, body, localPoint));
+    RotateAboutWorldPoint(world, id, amount, GetWorldPoint(world, id, localPoint));
 }
 
-Acceleration CalcGravitationalAcceleration(const World& world, BodyID body)
+Acceleration CalcGravitationalAcceleration(const World& world, BodyID id)
 {
-    const auto m1 = GetMass(world, body);
+    const auto m1 = GetMass(world, id);
     if (isnormal(m1)) {
         auto sumForce = Force2{};
-        const auto loc1 = GetLocation(world, body);
+        const auto loc1 = GetLocation(world, id);
         for (const auto& b2: world.GetBodies()) {
-            if (b2 == body) {
+            if (b2 == id) {
                 continue;
             }
             const auto m2 = GetMass(world, b2);
@@ -389,11 +383,11 @@ void SetMassData(World& world, BodyID id, const MassData& massData)
     const auto mass = (massData.mass > 0_kg)? Mass{massData.mass}: 1_kg;
     const auto invMass = Real{1} / mass;
     auto invRotInertia = Real(0) / (1_m2 * 1_kg / SquareRadian);
-    if ((massData.I > RotInertia{0}) && (!body.IsFixedRotation())) {
+    if ((massData.I > RotInertia{}) && (!body.IsFixedRotation())) {
         const auto lengthSquared = GetMagnitudeSquared(massData.center);
         // L^2 M QP^-2
         const auto I = RotInertia{massData.I} - RotInertia{(mass * lengthSquared) / SquareRadian};
-        assert(I > RotInertia{0});
+        assert(I > RotInertia{});
         invRotInertia = Real{1} / I;
     }
     body.SetInvMassData(invMass, invRotInertia);
@@ -412,7 +406,7 @@ void SetMassData(World& world, BodyID id, const MassData& massData)
     world.SetBody(id, body);
 }
 
-std::vector<std::pair<BodyID, JointID>> GetJoints(const World& world, BodyID id)
+const std::vector<std::pair<BodyID, JointID>>& GetJoints(const World& world, BodyID id)
 {
     return world.GetJoints(id);
 }
@@ -463,10 +457,10 @@ Frequency GetLinearDamping(const World& world, BodyID id)
     return GetLinearDamping(GetBody(world, id));
 }
 
-void SetLinearDamping(World& world, BodyID id, NonNegative<Frequency> value)
+void SetLinearDamping(World& world, BodyID id, NonNegative<Frequency> linearDamping)
 {
     auto body = GetBody(world, id);
-    SetLinearDamping(body, value);
+    SetLinearDamping(body, linearDamping);
     world.SetBody(id, body);
 }
 
@@ -475,19 +469,19 @@ Frequency GetAngularDamping(const World& world, BodyID id)
     return GetAngularDamping(GetBody(world, id));
 }
 
-void SetAngularDamping(World& world, BodyID id, NonNegative<Frequency> value)
+void SetAngularDamping(World& world, BodyID id, NonNegative<Frequency> angularDamping)
 {
     auto body = GetBody(world, id);
-    SetAngularDamping(body, value);
+    SetAngularDamping(body, angularDamping);
     world.SetBody(id, body);
 }
 
-std::vector<KeyedContactPtr> GetContacts(const World& world, BodyID id)
+const std::vector<KeyedContactPtr>& GetContacts(const World& world, BodyID id)
 {
     return world.GetContacts(id);
 }
 
-Force2 GetCentripetalForce(const World& world, BodyID id, Length2 axis)
+Force2 GetCentripetalForce(const World& world, BodyID id, const Length2& axis)
 {
     // For background on centripetal force, see:
     //   https://en.wikipedia.org/wiki/Centripetal_force
@@ -503,7 +497,7 @@ Force2 GetCentripetalForce(const World& world, BodyID id, Length2 axis)
     return Force2{dir * mass * Square(magnitudeOfVelocity) * invRadius};
 }
 
-void ApplyForce(World& world, BodyID id, Force2 force, Length2 point)
+void ApplyForce(World& world, BodyID id, const Force2& force, const Length2& point)
 {
     // Torque is L^2 M T^-2 QP^-1.
     const auto& body = GetBody(world, id);
@@ -526,7 +520,7 @@ void ApplyTorque(World& world, BodyID id, Torque torque)
     SetAcceleration(world, id, linAccel, angAccel);
 }
 
-void ApplyLinearImpulse(World& world, BodyID id, Momentum2 impulse, Length2 point)
+void ApplyLinearImpulse(World& world, BodyID id, const Momentum2& impulse, const Length2& point)
 {
     auto body = GetBody(world, id);
     ApplyLinearImpulse(body, impulse, point);
@@ -540,7 +534,7 @@ void ApplyAngularImpulse(World& world, BodyID id, AngularMomentum impulse)
     SetBody(world, id, body);
 }
 
-void SetForce(World& world, BodyID id, Force2 force, Length2 point)
+void SetForce(World& world, BodyID id, const Force2& force, const Length2& point)
 {
     const auto linAccel = LinearAcceleration2{force * GetInvMass(world, id)};
     const auto invRotI = GetInvRotInertia(world, id);
@@ -558,19 +552,19 @@ void SetTorque(World& world, BodyID id, Torque torque)
     SetAcceleration(world, id, linAccel, angAccel);
 }
 
-BodyCounter GetAwakeCount(const World& world) noexcept
+BodyCounter GetAwakeCount(const World& world)
 {
-    const auto bodies = world.GetBodies();
+    const auto& bodies = world.GetBodies();
     return static_cast<BodyCounter>(count_if(cbegin(bodies), cend(bodies),
                                              [&](const auto &b) {
         return IsAwake(world, b); }));
 }
 
-BodyCounter Awaken(World& world) noexcept
+BodyCounter Awaken(World& world)
 {
     // Can't use count_if since body gets modified.
     auto awoken = BodyCounter{0};
-    const auto bodies = world.GetBodies();
+    const auto& bodies = world.GetBodies();
     for_each(begin(bodies), end(bodies), [&world,&awoken](const auto &b) {
         if (::playrho::d2::Awaken(world, b))
         {
@@ -580,25 +574,25 @@ BodyCounter Awaken(World& world) noexcept
     return awoken;
 }
 
-void SetAccelerations(World& world, Acceleration acceleration) noexcept
+void SetAccelerations(World& world, const Acceleration& acceleration)
 {
-    const auto bodies = world.GetBodies();
+    const auto& bodies = world.GetBodies();
     for_each(begin(bodies), end(bodies), [&world, acceleration](const auto &b) {
         SetAcceleration(world, b, acceleration);
     });
 }
 
-void SetAccelerations(World& world, LinearAcceleration2 acceleration) noexcept
+void SetAccelerations(World& world, const LinearAcceleration2& acceleration)
 {
-    const auto bodies = world.GetBodies();
+    const auto& bodies = world.GetBodies();
     for_each(begin(bodies), end(bodies), [&world, acceleration](const auto &b) {
         SetAcceleration(world, b, acceleration);
     });
 }
 
-BodyID FindClosestBody(const World& world, Length2 location) noexcept
+BodyID FindClosestBody(const World& world, const Length2& location)
 {
-    const auto bodies = world.GetBodies();
+    const auto& bodies = world.GetBodies();
     auto found = InvalidBodyID;
     auto minLengthSquared = std::numeric_limits<Area>::infinity();
     for (const auto& body: bodies)

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -79,7 +79,7 @@ void Destroy(WorldImpl& world, BodyID id);
 /// @brief Gets the range of all joints attached to this body.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso WorldImpl
-std::vector<std::pair<BodyID, JointID>> GetJoints(const WorldImpl& world, BodyID id);
+const std::vector<std::pair<BodyID, JointID>>& GetJoints(const WorldImpl& world, BodyID id);
 
 /// @brief Associates a validly identified shape with the validly identified body.
 /// @throws std::out_of_range If given an invalid body or shape identifier.
@@ -98,14 +98,14 @@ bool Detach(WorldImpl& world, BodyID id, ShapeID shapeID);
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @throws WrongState if this method is called while the world is locked.
 /// @relatedalso WorldImpl
-std::vector<ShapeID> GetShapes(const WorldImpl& world, BodyID id);
+const std::vector<ShapeID>& GetShapes(const WorldImpl& world, BodyID id);
 
 /// @brief Gets the container of all contacts attached to this body.
 /// @warning This collection changes during the time step and you may
 ///   miss some collisions if you don't use <code>ContactListener</code>.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso WorldImpl
-std::vector<KeyedContactPtr> GetContacts(const WorldImpl& world, BodyID id);
+const std::vector<KeyedContactPtr>& GetContacts(const WorldImpl& world, BodyID id);
 
 } // namespace d2
 } // namespace playrho

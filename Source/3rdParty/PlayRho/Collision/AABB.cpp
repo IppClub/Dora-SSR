@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -56,7 +56,7 @@ AABB ComputeAABB(const DistanceProxy& proxy, const Transformation& xfm0,
     return GetFattenedAABB(result, proxy.GetVertexRadius());
 }
 
-AABB ComputeAABB(const Shape& shape, const Transformation& xf) noexcept
+AABB ComputeAABB(const Shape& shape, const Transformation& xf)
 {
     auto sum = AABB{};
     const auto childCount = GetChildCount(shape);
@@ -82,7 +82,7 @@ AABB ComputeAABB(const World& world, BodyID id)
 }
 
 AABB ComputeIntersectingAABB(const World& world, BodyID bA, ShapeID sA, ChildCounter iA, BodyID bB,
-                             ShapeID sB, ChildCounter iB) noexcept
+                             ShapeID sB, ChildCounter iB)
 {
     const auto xA = GetTransformation(world, bA);
     const auto xB = GetTransformation(world, bB);

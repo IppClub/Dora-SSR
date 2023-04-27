@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -44,10 +44,10 @@ namespace playrho {
 
 /// @brief Computes the absolute value.
 /// @see https://en.cppreference.com/w/cpp/numeric/math/fabs
-template <typename BT, unsigned int FB, int N = 5>
+template <typename BT, unsigned int FB>
 constexpr Fixed<BT, FB> abs(Fixed<BT, FB> arg)
 {
-    return arg >= 0? arg: -arg;
+    return (arg >= 0)? arg: -arg;
 }
 
 /// @brief Computes the value of the given number raised to the given power.
@@ -112,6 +112,12 @@ namespace detail {
 template <typename BT, unsigned int FB>
 constexpr auto FixedPi = Fixed<BT, FB>{3.14159265358979323846264338327950288};
 
+constexpr auto DefaultExpIterations = 6;
+constexpr auto DefaultLogIterations = 6;
+constexpr auto DefaultSinIterations = 5;
+constexpr auto DefaultCosIterations = 5;
+constexpr auto DefaultAtanIterations = 5;
+
 /// @brief Computes the factorial.
 constexpr auto factorial(std::int64_t n)
 {
@@ -130,7 +136,7 @@ constexpr auto factorial(std::int64_t n)
 /// @see https://en.wikipedia.org/wiki/Taylor_series
 /// @see https://en.wikipedia.org/wiki/Exponentiation
 /// @see https://en.wikipedia.org/wiki/Exponential_function
-template <typename BT, unsigned int FB, int N = 6>
+template <typename BT, unsigned int FB, int N = DefaultExpIterations>
 constexpr Fixed<BT, FB> exp(Fixed<BT, FB> arg)
 {
     const auto doReciprocal = (arg < 0);
@@ -162,7 +168,7 @@ constexpr Fixed<BT, FB> exp(Fixed<BT, FB> arg)
 /// @note A better method may be explained in https://math.stackexchange.com/a/61236/408405
 /// @see https://en.cppreference.com/w/cpp/numeric/math/log
 /// @see https://en.wikipedia.org/wiki/Natural_logarithm
-template <typename BT, unsigned int FB, int N = 6>
+template <typename BT, unsigned int FB, int N = DefaultLogIterations>
 Fixed<BT, FB> log(Fixed<BT, FB> arg)
 {
     if (arg.isnan() || (arg < 0))
@@ -214,7 +220,7 @@ Fixed<BT, FB> log(Fixed<BT, FB> arg)
 
 /// @brief Computes the sine of the given argument via Maclaurin series approximation.
 /// @see https://en.wikipedia.org/wiki/Taylor_series
-template <typename BT, unsigned int FB, int N = 5>
+template <typename BT, unsigned int FB, int N = DefaultSinIterations>
 constexpr Fixed<BT, FB> sin(Fixed<BT, FB> arg)
 {
     // Maclaurin series approximation...
@@ -243,7 +249,7 @@ constexpr Fixed<BT, FB> sin(Fixed<BT, FB> arg)
 
 /// @brief Computes the cosine of the given argument via Maclaurin series approximation.
 /// @see https://en.wikipedia.org/wiki/Taylor_series
-template <typename BT, unsigned int FB, int N = 5>
+template <typename BT, unsigned int FB, int N = DefaultCosIterations>
 constexpr Fixed<BT, FB> cos(Fixed<BT, FB> arg)
 {
     // Maclaurin series approximation...
@@ -271,7 +277,7 @@ constexpr Fixed<BT, FB> cos(Fixed<BT, FB> arg)
 /// @brief Computes the arctangent of the given argument via Maclaurin series approximation.
 /// @see https://en.cppreference.com/w/cpp/numeric/math/atan
 /// @see https://en.wikipedia.org/wiki/Taylor_series
-template <typename BT, unsigned int FB, int N = 5>
+template <typename BT, unsigned int FB, int N = DefaultAtanIterations>
 constexpr Fixed<BT, FB> atan(Fixed<BT, FB> arg)
 {
     // Note: if (x > 0) then arctan(x) ==  Pi/2 - arctan(1/x)
@@ -433,7 +439,7 @@ template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> sin(Fixed<BT, FB> arg)
 {
     arg = detail::AngularNormalize(arg);
-    return detail::sin<BT, FB, 5>(arg);
+    return detail::sin<BT, FB>(arg);
 }
 
 /// @brief Computes the cosine of the argument for Fixed types.
@@ -442,7 +448,7 @@ template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> cos(Fixed<BT, FB> arg)
 {
     arg = detail::AngularNormalize(arg);
-    return detail::cos<BT, FB, 5>(arg);
+    return detail::cos<BT, FB>(arg);
 }
 
 /// @brief Computes the arc tangent.
@@ -463,7 +469,7 @@ inline Fixed<BT, FB> atan(Fixed<BT, FB> arg)
     {
         return -detail::FixedPi<BT, FB> / 2;
     }
-    return detail::atan<BT, FB, 5>(arg);
+    return detail::atan<BT, FB>(arg);
 }
 
 /// @brief Computes the multi-valued inverse tangent.
@@ -498,7 +504,12 @@ inline Fixed<BT, FB> atan2(Fixed<BT, FB> y, Fixed<BT, FB> x)
 template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> log(Fixed<BT, FB> arg)
 {
-    return (arg < 8)? detail::log<BT, FB, 36>(arg): detail::log<BT, FB, 96>(arg);
+    static constexpr auto MaxForLowerIterations = 8;
+    static constexpr auto IterationsForSmaller = 36;
+    static constexpr auto IterationsForLarger = 96;
+    return (arg < MaxForLowerIterations)
+        ? detail::log<BT, FB, IterationsForSmaller>(arg)
+        : detail::log<BT, FB, IterationsForLarger>(arg);
 }
 
 /// @brief Computes the Euler number raised to the power of the given argument.
@@ -506,7 +517,11 @@ inline Fixed<BT, FB> log(Fixed<BT, FB> arg)
 template <typename BT, unsigned int FB>
 inline Fixed<BT, FB> exp(Fixed<BT, FB> arg)
 {
-    return (arg <= 2)? detail::exp<BT, FB, 6>(arg): detail::exp<BT, FB, 24>(arg);
+    static constexpr auto MaxForLowerIterations = 2;
+    static constexpr auto IterationsForLarger = 24;
+    return (arg <= MaxForLowerIterations)
+        ? detail::exp<BT, FB, detail::DefaultExpIterations>(arg)
+        : detail::exp<BT, FB, IterationsForLarger>(arg);
 }
 
 /// @brief Computes the value of the base number raised to the power of the exponent.

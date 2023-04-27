@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -21,6 +21,7 @@
 #ifndef PLAYRHO_COMMON_ARRAYALLOCATOR_HPP
 #define PLAYRHO_COMMON_ARRAYALLOCATOR_HPP
 
+#include <algorithm> // for std::any_of
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -28,9 +29,9 @@
 
 namespace playrho {
 
-/// @brief Array allocator.
+/// @brief Object pool with indexable properties.
 template <typename T>
-class ArrayAllocator
+class ObjectPool
 {
 public:
     /// @brief Element type.
@@ -113,12 +114,9 @@ public:
     /// @see https://en.wikipedia.org/wiki/Big_O_notation
     bool FindFree(size_type index) const noexcept
     {
-        for (const auto& element: m_free) {
-            if (element == index) {
-                return true;
-            }
-        }
-        return false;
+        return std::any_of(std::begin(m_free), std::end(m_free), [index](size_type element) {
+            return element == index;
+        });
     }
 
     /// @brief Array index operator.
@@ -221,7 +219,7 @@ private:
 /// @brief Gets the number of elements that are used in the specified structure.
 /// @return Size of the specified structure minus the size of its free pool.
 template <typename T>
-typename ArrayAllocator<T>::size_type used(const ArrayAllocator<T>& array) noexcept
+typename ObjectPool<T>::size_type used(const ObjectPool<T>& array) noexcept
 {
     return array.size() - array.free_size();
 }

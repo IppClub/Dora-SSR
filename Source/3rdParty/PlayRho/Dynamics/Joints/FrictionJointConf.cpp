@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -55,19 +55,20 @@ static_assert(std::is_nothrow_destructible<FrictionJointConf>::value,
 // J = [0 0 -1 0 0 1]
 // K = invI1 + invI2
 
-FrictionJointConf::FrictionJointConf(BodyID bA, BodyID bB, Length2 laA, Length2 laB) noexcept
+FrictionJointConf::FrictionJointConf(BodyID bA, BodyID bB, // force line-break
+                                     const Length2& laA, const Length2& laB) noexcept
     : super{super{}.UseBodyA(bA).UseBodyB(bB)}, localAnchorA{laA}, localAnchorB{laB}
 {
     // Intentionally empty.
 }
 
-FrictionJointConf GetFrictionJointConf(const Joint& joint) noexcept
+FrictionJointConf GetFrictionJointConf(const Joint& joint)
 {
     return TypeCast<FrictionJointConf>(joint);
 }
 
 FrictionJointConf GetFrictionJointConf(const World& world, BodyID bodyA, BodyID bodyB,
-                                       Length2 anchor)
+                                       const Length2& anchor)
 {
     return FrictionJointConf{bodyA, bodyB, GetLocalPoint(world, bodyA, anchor),
                              GetLocalPoint(world, bodyB, anchor)};
@@ -76,6 +77,10 @@ FrictionJointConf GetFrictionJointConf(const World& world, BodyID bodyA, BodyID 
 void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf&)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
     const auto posA = bodyConstraintA.GetPosition();
@@ -123,7 +128,7 @@ void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies
 
     const auto invRotInertia = invRotInertiaA + invRotInertiaB;
     object.angularMass =
-        (invRotInertia > InvRotInertia{0}) ? RotInertia{Real{1} / invRotInertia} : RotInertia{0};
+        (invRotInertia > InvRotInertia{}) ? RotInertia{Real{1} / invRotInertia} : RotInertia{};
 
     if (step.doWarmStart) {
         // Scale impulses to support a variable time step.
@@ -142,7 +147,7 @@ void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies
     }
     else {
         object.linearImpulse = Momentum2{};
-        object.angularImpulse = AngularMomentum{0};
+        object.angularImpulse = AngularMomentum{};
     }
 
     bodyConstraintA.SetVelocity(velA);
@@ -152,6 +157,10 @@ void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies
 bool SolveVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies,
                    const StepConf& step)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return true;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -178,7 +187,7 @@ bool SolveVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodie
                                            -maxAngularImpulse, maxAngularImpulse);
         const auto incAngularImpulse = object.angularImpulse - oldAngularImpulse;
 
-        if (incAngularImpulse != AngularMomentum{0}) {
+        if (incAngularImpulse != AngularMomentum{}) {
             solved = false;
         }
 
@@ -208,7 +217,7 @@ bool SolveVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodie
         const auto angImpulseA = AngularMomentum{Cross(object.rA, incImpulse) / Radian};
         const auto angImpulseB = AngularMomentum{Cross(object.rB, incImpulse) / Radian};
 
-        if (incImpulse != Momentum2{}) {
+        if (incImpulse != Momentum2{0_Ns, 0_Ns}) {
             solved = false;
         }
 

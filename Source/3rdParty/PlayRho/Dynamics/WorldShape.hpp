@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -106,7 +106,7 @@ TypeID GetType(const World& world, ShapeID id);
 
 /// @brief Gets the count of body-shape associations in the given world.
 /// @relatedalso World
-ShapeCounter GetAssociationCount(const World& world) noexcept;
+ShapeCounter GetAssociationCount(const World& world);
 
 /// @brief Gets the count of uniquely identified shapes that are in use -
 ///   i.e. that are attached to bodies.
@@ -238,7 +238,7 @@ MassData ComputeMassData(const World& world, const std::vector<ShapeID>& ids);
 /// @throws std::out_of_range If given an invalid body or shape identifier.
 /// @relatedalso World
 /// @ingroup TestPointGroup
-bool TestPoint(const World& world, BodyID bodyId, ShapeID shapeId, Length2 p);
+bool TestPoint(const World& world, BodyID bodyId, ShapeID shapeId, const Length2& p);
 
 /// @brief Gets the default friction amount for the given shapes.
 /// @relatedalso Shape

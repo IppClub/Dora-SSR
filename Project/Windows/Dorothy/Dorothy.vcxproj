@@ -1465,8 +1465,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\ToiOutput.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\WorldManifold.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Acceleration.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\AllocatedArray.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\ArrayAllocator.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\ArrayList.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\BlockAllocator.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\CheckedValue.hpp" />
@@ -1489,6 +1487,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\NonNegative.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\NonPositive.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\NonZero.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\ObjectPool.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Position.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Positive.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\propagate_const.hpp" />

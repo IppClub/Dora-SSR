@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -30,6 +30,8 @@
 #include "PlayRho/Dynamics/BodyConf.hpp"
 #include "PlayRho/Dynamics/StepConf.hpp"
 
+#include <utility> // for std::move
+
 namespace playrho {
 namespace d2 {
 
@@ -45,37 +47,37 @@ static_assert(std::is_nothrow_destructible<World>::value, "World must be nothrow
 
 void World::SetShapeDestructionListener(ShapeListener listener) noexcept
 {
-    ::playrho::d2::SetShapeDestructionListener(*m_impl, listener);
+    ::playrho::d2::SetShapeDestructionListener(*m_impl, std::move(listener));
 }
 
 void World::SetDetachListener(AssociationListener listener) noexcept
 {
-    ::playrho::d2::SetDetachListener(*m_impl, listener);
+    ::playrho::d2::SetDetachListener(*m_impl, std::move(listener));
 }
 
-void World::SetJointDestructionListener(const JointListener& listener) noexcept
+void World::SetJointDestructionListener(JointListener listener) noexcept
 {
-    ::playrho::d2::SetJointDestructionListener(*m_impl, listener);
+    ::playrho::d2::SetJointDestructionListener(*m_impl, std::move(listener));
 }
 
 void World::SetBeginContactListener(ContactListener listener) noexcept
 {
-    ::playrho::d2::SetBeginContactListener(*m_impl, listener);
+    ::playrho::d2::SetBeginContactListener(*m_impl, std::move(listener));
 }
 
 void World::SetEndContactListener(ContactListener listener) noexcept
 {
-    ::playrho::d2::SetEndContactListener(*m_impl, listener);
+    ::playrho::d2::SetEndContactListener(*m_impl, std::move(listener));
 }
 
 void World::SetPreSolveContactListener(ManifoldContactListener listener) noexcept
 {
-    ::playrho::d2::SetPreSolveContactListener(*m_impl, listener);
+    ::playrho::d2::SetPreSolveContactListener(*m_impl, std::move(listener));
 }
 
 void World::SetPostSolveContactListener(ImpulsesContactListener listener) noexcept
 {
-    ::playrho::d2::SetPostSolveContactListener(*m_impl, listener);
+    ::playrho::d2::SetPostSolveContactListener(*m_impl, std::move(listener));
 }
 
 void World::Clear() noexcept
@@ -113,7 +115,7 @@ bool World::IsLocked() const noexcept
     return m_impl && ::playrho::d2::IsLocked(*m_impl);
 }
 
-void World::ShiftOrigin(Length2 newOrigin)
+void World::ShiftOrigin(const Length2& newOrigin)
 {
     ::playrho::d2::ShiftOrigin(*m_impl, newOrigin);
 }
@@ -148,12 +150,12 @@ ContactCounter World::GetContactRange() const noexcept
     return ::playrho::d2::GetContactRange(*m_impl);
 }
 
-World::Bodies World::GetBodies() const noexcept
+const World::Bodies& World::GetBodies() const noexcept
 {
     return ::playrho::d2::GetBodies(*m_impl);
 }
 
-World::Bodies World::GetBodiesForProxies() const noexcept
+const World::Bodies& World::GetBodiesForProxies() const noexcept
 {
     return ::playrho::d2::GetBodiesForProxies(*m_impl);
 }
@@ -178,22 +180,22 @@ void World::Destroy(BodyID id)
     ::playrho::d2::Destroy(*m_impl, id);
 }
 
-World::Shapes World::GetShapes(BodyID id) const
+const World::Shapes& World::GetShapes(BodyID id) const
 {
     return ::playrho::d2::GetShapes(*m_impl, id);
 }
 
-World::BodyJoints World::GetJoints(BodyID id) const
+const World::BodyJoints& World::GetJoints(BodyID id) const
 {
     return ::playrho::d2::GetJoints(*m_impl, id);
 }
 
-World::Contacts World::GetContacts(BodyID id) const
+const World::Contacts& World::GetContacts(BodyID id) const
 {
     return ::playrho::d2::GetContacts(*m_impl, id);
 }
 
-World::Joints World::GetJoints() const noexcept
+const World::Joints& World::GetJoints() const noexcept
 {
     return ::playrho::d2::GetJoints(*m_impl);
 }
@@ -243,7 +245,7 @@ void World::Destroy(ShapeID id)
     ::playrho::d2::Destroy(*m_impl, id);
 }
 
-World::Contacts World::GetContacts() const noexcept
+const World::Contacts& World::GetContacts() const noexcept
 {
     return ::playrho::d2::GetContacts(*m_impl);
 }

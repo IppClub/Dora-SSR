@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2007-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -32,8 +32,8 @@ namespace d2 {
 namespace {
 
 inline WorldManifold GetForCircles(const Manifold& manifold,
-                                   const Transformation xfA, const Length radiusA,
-                                   const Transformation xfB, const Length radiusB)
+                                   const Transformation& xfA, const Length radiusA,
+                                   const Transformation& xfB, const Length radiusB)
 {
     assert(manifold.GetPointCount() == 1);
 
@@ -49,8 +49,8 @@ inline WorldManifold GetForCircles(const Manifold& manifold,
 }
 
 inline WorldManifold GetForFaceA(const Manifold& manifold,
-                                 const Transformation xfA, const Length radiusA,
-                                 const Transformation xfB, const Length radiusB)
+                                 const Transformation& xfA, const Length radiusA,
+                                 const Transformation& xfB, const Length radiusB)
 {
     const auto normal = Rotate(manifold.GetLocalNormal(), xfA.q);
     const auto planePoint = Transform(manifold.GetLocalPoint(), xfA);
@@ -76,8 +76,8 @@ inline WorldManifold GetForFaceA(const Manifold& manifold,
 }
 
 inline WorldManifold GetForFaceB(const Manifold& manifold,
-                                 const Transformation xfA, const Length radiusA,
-                                 const Transformation xfB, const Length radiusB)
+                                 const Transformation& xfA, const Length radiusA,
+                                 const Transformation& xfB, const Length radiusB)
 {
     const auto normal = Rotate(manifold.GetLocalNormal(), xfB.q);
     const auto planePoint = Transform(manifold.GetLocalPoint(), xfB);
@@ -106,8 +106,8 @@ inline WorldManifold GetForFaceB(const Manifold& manifold,
 } // anonymous namespace
 
 WorldManifold GetWorldManifold(const Manifold& manifold,
-                               Transformation xfA, Length radiusA,
-                               Transformation xfB, Length radiusB)
+                               const Transformation& xfA, Length radiusA,
+                               const Transformation& xfB, Length radiusB)
 {
     const auto type = manifold.GetType();
 

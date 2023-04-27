@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -225,7 +225,7 @@ public:
     const Point& GetPointAt(size_type index) const
     {
         assert(index < MaxManifoldPoints);
-        return m_points[index];
+        return m_points[index]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
     
 private:
@@ -237,16 +237,16 @@ private:
     ///   <code>MaxManifoldPoints</code> points.
     /// @see GetPointCount().
     void AddPoint(Momentum normalImpulse, Momentum tangentImpulse,
-                  Length2 relA, Length2 relB, const std::vector<BodyConstraint>& bodies,
-                  Conf conf);
+                  const Length2& relA, const Length2& relB, const std::vector<BodyConstraint>& bodies,
+                  const Conf& conf);
     
     /// Removes the last point added.
     void RemovePoint() noexcept;
     
     /// @brief Gets a point instance for the given parameters.
     Point GetPoint(Momentum normalImpulse, Momentum tangentImpulse,
-                   Length2 relA, Length2 relB, const std::vector<BodyConstraint>& bodies,
-                   Conf conf) const noexcept;
+                   const Length2& relA, const Length2& relB, const std::vector<BodyConstraint>& bodies,
+                   const Conf& conf) const noexcept;
     
     /// Accesses the point identified by the given index.
     /// @warning Behavior is undefined if given index is not less than
@@ -259,7 +259,7 @@ private:
     Point& PointAt(size_type index)
     {
         assert(index < MaxManifoldPoints);
-        return m_points[index];
+        return m_points[index]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
     
     Point m_points[MaxManifoldPoints]; ///< Velocity constraint points array (at least 72-bytes).
@@ -297,7 +297,7 @@ private:
 inline void VelocityConstraint::RemovePoint() noexcept
 {
     assert(m_pointCount > 0);
-    m_points[m_pointCount - 1] = Point{};
+    m_points[m_pointCount - 1] = Point{}; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     --m_pointCount;
 }
 
@@ -460,14 +460,14 @@ inline void SetTangentImpulseAtPoint(VelocityConstraint& vc, VelocityConstraint:
 }
 
 /// @brief Sets the normal impulses of the given velocity constraint.
-inline void SetNormalImpulses(VelocityConstraint& vc, const Momentum2 impulses)
+inline void SetNormalImpulses(VelocityConstraint& vc, const Momentum2& impulses)
 {
     SetNormalImpulseAtPoint(vc, 0, impulses[0]);
     SetNormalImpulseAtPoint(vc, 1, impulses[1]);
 }
 
 /// @brief Sets the tangent impulses of the given velocity constraint.
-inline void SetTangentImpulses(VelocityConstraint& vc, const Momentum2 impulses)
+inline void SetTangentImpulses(VelocityConstraint& vc, const Momentum2& impulses)
 {
     SetTangentImpulseAtPoint(vc, 0, impulses[0]);
     SetTangentImpulseAtPoint(vc, 1, impulses[1]);

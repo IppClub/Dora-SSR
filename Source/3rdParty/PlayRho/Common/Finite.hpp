@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -22,12 +22,9 @@
 #define PLAYRHO_COMMON_FINITE_HPP
 
 #include "PlayRho/Common/CheckedValue.hpp"
-
-#include <cmath>
+#include "PlayRho/Common/Math.hpp" // for playrho::isfinite
 
 namespace playrho {
-
-using std::isfinite;
 
 /// @brief Finite constrained value checker.
 template <typename T>
@@ -44,7 +41,7 @@ struct FiniteChecker {
 
     /// @brief Value checking functor.
     /// @throws exception_type if given value is not valid.
-    constexpr auto operator()(const T& v) -> decltype(isfinite(v), T{v})
+    auto operator()(const T& v) -> decltype(isfinite(v), T{v})
     {
         if (!isfinite(v)) {
             throw exception_type("value not finite");

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -33,8 +33,8 @@ namespace {
 /// @param plp Point's local point. Location of shape B in local coordinates.
 /// @note The returned separation is the magnitude of the positional difference of the two points.
 ///   This is always a non-negative amount.
-inline PositionSolverManifold GetForCircles(const Transformation& xfA, Length2 lp,
-                                            const Transformation& xfB, Length2 plp)
+inline PositionSolverManifold GetForCircles(const Transformation& xfA, const Length2& lp,
+                                            const Transformation& xfB, const Length2& plp)
 {
     const auto pointA = Transform(lp, xfA);
     const auto pointB = Transform(plp, xfB);
@@ -54,8 +54,8 @@ inline PositionSolverManifold GetForCircles(const Transformation& xfA, Length2 l
 /// @param plp Point's local point. Location for shape B in local coordinates.
 /// @return Separation is the dot-product of the positional difference between the two points in
 ///   the direction of the world normal.
-inline PositionSolverManifold GetForFaceA(const Transformation& xfA, Length2 lp, UnitVec ln,
-                                          const Transformation& xfB, Length2 plp)
+inline PositionSolverManifold GetForFaceA(const Transformation& xfA, const Length2& lp, const UnitVec& ln,
+                                          const Transformation& xfB, const Length2& plp)
 {
     const auto planePoint = Transform(lp, xfA);
     const auto normal = Rotate(ln, xfA.q);
@@ -73,8 +73,8 @@ inline PositionSolverManifold GetForFaceA(const Transformation& xfA, Length2 lp,
 /// @param plp Point's local point. Location for shape A in local coordinates.
 /// @return Separation is the dot-product of the positional difference between the two points in
 ///   the direction of the world normal.
-inline PositionSolverManifold GetForFaceB(const Transformation& xfB, Length2 lp, UnitVec ln,
-                                          const Transformation& xfA, Length2 plp)
+inline PositionSolverManifold GetForFaceB(const Transformation& xfB, const Length2& lp, const UnitVec& ln,
+                                          const Transformation& xfA, const Length2& plp)
 {
     const auto planePoint = Transform(lp, xfB);
     const auto normal = Rotate(ln, xfB.q);

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2010 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -28,7 +28,8 @@ namespace d2 {
 
 static_assert(IsValidShapeType<EdgeShapeConf>::value);
 
-EdgeShapeConf::EdgeShapeConf(Length2 vA, Length2 vB, const EdgeShapeConf& conf) noexcept
+EdgeShapeConf::EdgeShapeConf(const Length2& vA, const Length2& vB, // force line-break
+                             const EdgeShapeConf& conf) noexcept
     : ShapeBuilder{conf}, vertexRadius{conf.vertexRadius}, m_vertices{vA, vB}
 {
     const auto normal = GetUnitVector(GetFwdPerpendicular(vB - vA));
@@ -36,7 +37,7 @@ EdgeShapeConf::EdgeShapeConf(Length2 vA, Length2 vB, const EdgeShapeConf& conf) 
     m_normals[1] = -normal;
 }
 
-EdgeShapeConf& EdgeShapeConf::Set(Length2 vA, Length2 vB) noexcept
+EdgeShapeConf& EdgeShapeConf::Set(const Length2& vA, const Length2& vB) noexcept
 {
     m_vertices[0] = vA;
     m_vertices[1] = vB;

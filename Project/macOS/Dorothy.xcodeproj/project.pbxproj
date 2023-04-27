@@ -591,12 +591,10 @@
 		3C3B97E726FDAD4F00BD9F3E /* TypeInfo.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = TypeInfo.hpp; sourceTree = "<group>"; };
 		3C3B97E826FDAD4F00BD9F3E /* Transformation.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Transformation.hpp; sourceTree = "<group>"; };
 		3C3B97E926FDAD4F00BD9F3E /* NonZero.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = NonZero.hpp; sourceTree = "<group>"; };
-		3C3B97EA26FDAD4F00BD9F3E /* AllocatedArray.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = AllocatedArray.hpp; sourceTree = "<group>"; };
 		3C3B97EB26FDAD4F00BD9F3E /* NonPositive.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = NonPositive.hpp; sourceTree = "<group>"; };
 		3C3B97EC26FDAD4F00BD9F3E /* WrongState.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WrongState.hpp; sourceTree = "<group>"; };
 		3C3B97ED26FDAD4F00BD9F3E /* DynamicMemory.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = DynamicMemory.hpp; sourceTree = "<group>"; };
 		3C3B97EE26FDAD4F00BD9F3E /* Units.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Units.hpp; sourceTree = "<group>"; };
-		3C3B97EF26FDAD4F00BD9F3E /* ArrayAllocator.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ArrayAllocator.hpp; sourceTree = "<group>"; };
 		3C3B97F026FDAD4F00BD9F3E /* Version.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Version.hpp; sourceTree = "<group>"; };
 		3C3B97F126FDAD4F00BD9F3E /* FixedLimits.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = FixedLimits.hpp; sourceTree = "<group>"; };
 		3C3B97F226FDAD4F00BD9F3E /* InvalidArgument.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = InvalidArgument.hpp; sourceTree = "<group>"; };
@@ -1000,6 +998,7 @@
 		3C7708311E08CB4300B38C2A /* LuaCode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LuaCode.cpp; path = ../../../Source/Lua/LuaCode.cpp; sourceTree = "<group>"; };
 		3C78C93E1E0CB1A2004D0A3C /* EventQueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventQueue.cpp; path = ../../../Source/Event/EventQueue.cpp; sourceTree = "<group>"; };
 		3C78C93F1E0CB1A2004D0A3C /* EventQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventQueue.h; path = ../../../Source/Event/EventQueue.h; sourceTree = "<group>"; };
+		3C7C5FC929FA0645007A282E /* ObjectPool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ObjectPool.hpp; sourceTree = "<group>"; };
 		3C853F7F28E2DC0F0012C0D0 /* Test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Test.cpp; path = ../../../Source/Test/Test.cpp; sourceTree = "<group>"; };
 		3C853F8028E2DC0F0012C0D0 /* Test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Test.h; path = ../../../Source/Test/Test.h; sourceTree = "<group>"; };
 		3C853F8428E2FCDF0012C0D0 /* HelloWorldCpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HelloWorldCpp.cpp; path = ../../../Source/Test/HelloWorldCpp.cpp; sourceTree = "<group>"; };
@@ -2721,9 +2720,8 @@
 		3CFDA8B02200358900C9DFD0 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				3C7C5FC929FA0645007A282E /* ObjectPool.hpp */,
 				3C3B97D826FDAD4F00BD9F3E /* Acceleration.hpp */,
-				3C3B97EA26FDAD4F00BD9F3E /* AllocatedArray.hpp */,
-				3C3B97EF26FDAD4F00BD9F3E /* ArrayAllocator.hpp */,
 				3C3B97E026FDAD4F00BD9F3E /* ArrayList.hpp */,
 				3C3B980526FDAD5000BD9F3E /* BlockAllocator.cpp */,
 				3C3B980726FDAD5000BD9F3E /* BlockAllocator.hpp */,

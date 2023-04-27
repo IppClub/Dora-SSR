@@ -50,6 +50,9 @@ PhysicsWorld::PhysicsWorld()
 	: _world{} {
 	_stepConf.regVelocityIters = 1;
 	_stepConf.regPositionIters = 1;
+	static_assert(sizeof(decltype(pr::Filter::categoryBits)) == 4, "filter category should be 32 bits");
+	static_assert(sizeof(decltype(pr::Filter::maskBits)) == 4, "filter mask should be 32 bits");
+	static_assert(sizeof(decltype(pr::Filter::groupIndex)) == 1, "filter group index should be 8 bits");
 }
 
 PhysicsWorld::~PhysicsWorld() {

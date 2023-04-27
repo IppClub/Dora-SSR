@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -46,7 +46,7 @@ struct PositionSolution
 };
 
 /// @brief Addition operator.
-inline PositionSolution operator+ (PositionSolution lhs, PositionSolution rhs)
+inline PositionSolution operator+ (const PositionSolution& lhs, const PositionSolution& rhs)
 {
     return PositionSolution{
         lhs.pos_a + rhs.pos_a,
@@ -56,7 +56,7 @@ inline PositionSolution operator+ (PositionSolution lhs, PositionSolution rhs)
 }
 
 /// @brief Subtraction operator.
-inline PositionSolution operator- (PositionSolution lhs, PositionSolution rhs)
+inline PositionSolution operator- (const PositionSolution& lhs, const PositionSolution& rhs)
 {
     return PositionSolution{
         lhs.pos_a - rhs.pos_a,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -32,16 +32,16 @@ struct NonNegativeChecker {
     using exception_type = std::invalid_argument;
 
     /// @brief Valid value supplying functor.
-    constexpr auto operator()() noexcept -> decltype(static_cast<T>(0))
+    constexpr auto operator()() noexcept -> decltype(T{})
     {
-        return static_cast<T>(0);
+        return T{};
     }
 
     /// @brief Value checking functor.
     /// @throws exception_type if given value is not valid.
-    constexpr auto operator()(const T& v) -> decltype(!(v >= static_cast<T>(0)), T{v})
+    constexpr auto operator()(const T& v) -> decltype(!(v >= T{}), T{v})
     {
-        if (!(v >= static_cast<T>(0))) {
+        if (!(v >= T{})) {
             throw exception_type("value not greater than nor equal to zero");
         }
         return v;

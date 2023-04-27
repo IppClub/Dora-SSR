@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -26,6 +26,7 @@
 #include "PlayRho/Collision/DistanceProxy.hpp"
 #include "PlayRho/Collision/MassData.hpp"
 
+#include <utility> // for std::move
 #include <vector>
 
 namespace playrho {
@@ -65,13 +66,13 @@ public:
     }
 
     /// @brief Translates all the vertices by the given amount.
-    ConvexHull& Translate(const Length2& value) noexcept;
+    ConvexHull& Translate(const Length2& value);
 
     /// @brief Scales all the vertices by the given amount.
-    ConvexHull& Scale(const Vec2& value) noexcept;
+    ConvexHull& Scale(const Vec2& value);
 
     /// @brief Rotates all the vertices by the given amount.
-    ConvexHull& Rotate(const UnitVec& value) noexcept;
+    ConvexHull& Rotate(const UnitVec& value);
 
     /// @brief Equality operator.
     friend bool operator==(const ConvexHull& lhs, const ConvexHull& rhs) noexcept
@@ -89,7 +90,7 @@ public:
 private:
     /// @brief Initializing constructor.
     ConvexHull(std::vector<Length2> verts, std::vector<UnitVec> norms, NonNegative<Length> vr)
-        : vertices{verts}, normals{norms}, vertexRadius{vr}
+        : vertices{std::move(verts)}, normals{std::move(norms)}, vertexRadius{vr}
     {
     }
 
@@ -121,21 +122,22 @@ private:
 /// @details Composes zero or more convex shapes into what can be a concave shape.
 /// @ingroup PartsGroup
 struct MultiShapeConf : public ShapeBuilder<MultiShapeConf> {
+    /// @brief Default vertex radius.
+    static constexpr auto DefaultVertexRadius = NonNegative<Length>{DefaultLinearSlop * 2};
+
     /// @brief Gets the default vertex radius for the <code>MultiShapeConf</code>.
+    /// @note This is just a backward compatibility interface for getting the default vertex radius.
+    ///    The new way is to use <code>DefaultVertexRadius</code> directly.
+    /// @return <code>DefaultVertexRadius</code>.
     static constexpr NonNegative<Length> GetDefaultVertexRadius() noexcept
     {
-        return NonNegative<Length>{DefaultLinearSlop * 2};
+        return DefaultVertexRadius;
     }
 
     /// @brief Gets the default configuration for a <code>MultiShapeConf</code>.
     static inline MultiShapeConf GetDefaultConf() noexcept
     {
         return MultiShapeConf{};
-    }
-
-    inline MultiShapeConf() : ShapeBuilder{ShapeConf{}}
-    {
-        // Intentionally empty.
     }
 
     /// Creates a convex hull from the given set of local points.
@@ -145,16 +147,16 @@ struct MultiShapeConf : public ShapeBuilder<MultiShapeConf> {
     ///   may lead to poor stacking behavior.
     MultiShapeConf&
     AddConvexHull(const VertexSet& pointSet,
-                  NonNegative<Length> vertexRadius = GetDefaultVertexRadius()) noexcept;
+                  NonNegative<Length> vertexRadius = GetDefaultVertexRadius());
 
     /// @brief Translates all the vertices by the given amount.
-    MultiShapeConf& Translate(const Length2& value) noexcept;
+    MultiShapeConf& Translate(const Length2& value);
 
     /// @brief Scales all the vertices by the given amount.
-    MultiShapeConf& Scale(const Vec2& value) noexcept;
+    MultiShapeConf& Scale(const Vec2& value);
 
     /// @brief Rotates all the vertices by the given amount.
-    MultiShapeConf& Rotate(const UnitVec& value) noexcept;
+    MultiShapeConf& Rotate(const UnitVec& value);
 
     std::vector<ConvexHull> children; ///< Children.
 };
@@ -191,7 +193,7 @@ inline DistanceProxy GetChild(const MultiShapeConf& arg, ChildCounter index)
 }
 
 /// @brief Gets the mass data for the given shape configuration.
-MassData GetMassData(const MultiShapeConf& arg) noexcept;
+MassData GetMassData(const MultiShapeConf& arg);
 
 /// @brief Gets the vertex radius of the given shape configuration.
 inline NonNegative<Length> GetVertexRadius(const MultiShapeConf& arg, ChildCounter index)
@@ -212,19 +214,19 @@ inline void SetVertexRadius(MultiShapeConf& arg, ChildCounter index, NonNegative
 }
 
 /// @brief Translates the given shape configuration's vertices by the given amount.
-inline void Translate(MultiShapeConf& arg, const Length2& value) noexcept
+inline void Translate(MultiShapeConf& arg, const Length2& value)
 {
     arg.Translate(value);
 }
 
 /// @brief Scales the given shape configuration's vertices by the given amount.
-inline void Scale(MultiShapeConf& arg, const Vec2& value) noexcept
+inline void Scale(MultiShapeConf& arg, const Vec2& value)
 {
     arg.Scale(value);
 }
 
 /// @brief Rotates the given shape configuration's vertices by the given amount.
-inline void Rotate(MultiShapeConf& arg, const UnitVec& value) noexcept
+inline void Rotate(MultiShapeConf& arg, const UnitVec& value)
 {
     arg.Rotate(value);
 }

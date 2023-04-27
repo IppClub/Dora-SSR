@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -70,7 +70,7 @@ private:
 
     /// @brief Total "Radius" distance of the associated shapes of fixture A and fixture B.
     /// @note 0 or greater.
-    Length m_totalRadius; // 4-bytes.
+    Length m_totalRadius{}; // 4-bytes.
 };
 
 } // namespace d2

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -111,8 +111,9 @@ static_assert(std::is_nothrow_destructible<PrismaticJointConf>::value,
 // Now compute impulse to be applied:
 // df = f2 - f1
 
-PrismaticJointConf::PrismaticJointConf(BodyID bA, BodyID bB, Length2 laA, Length2 laB,
-                                       UnitVec axisA, Angle angle) noexcept
+PrismaticJointConf::PrismaticJointConf(BodyID bA, BodyID bB, // force line-break
+                                       const Length2& laA, const Length2& laB, // force line-break
+                                       const UnitVec& axisA, Angle angle) noexcept
     : super{super{}.UseBodyA(bA).UseBodyB(bB)},
       localAnchorA{laA},
       localAnchorB{laB},
@@ -129,7 +130,7 @@ PrismaticJointConf GetPrismaticJointConf(const Joint& joint)
 }
 
 PrismaticJointConf GetPrismaticJointConf(const World& world, BodyID bA, BodyID bB,
-                                         const Length2 anchor, const UnitVec axis)
+                                         const Length2& anchor, const UnitVec& axis)
 {
     return PrismaticJointConf{bA,
                               bB,
@@ -154,6 +155,10 @@ AngularMomentum GetAngularReaction(const PrismaticJointConf& conf)
 void InitVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf& conf)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -183,7 +188,7 @@ void InitVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodie
     const auto invRotMassA = InvMass{invRotInertiaA * Square(object.a1) / SquareRadian};
     const auto invRotMassB = InvMass{invRotInertiaB * Square(object.a2) / SquareRadian};
     const auto totalInvMass = invMassA + invMassB + invRotMassA + invRotMassB;
-    object.motorMass = (totalInvMass > InvMass{0}) ? Real{1} / totalInvMass : 0_kg;
+    object.motorMass = (totalInvMass > InvMass{}) ? Real{1} / totalInvMass : 0_kg;
 
     // Prismatic constraint.
     {
@@ -205,7 +210,7 @@ void InitVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodie
         const auto totalInvRotInertia = invRotInertiaA + invRotInertiaB;
 
         const auto k22 =
-            (totalInvRotInertia == InvRotInertia{0}) ? Real{1} : StripUnit(totalInvRotInertia);
+            (totalInvRotInertia == InvRotInertia{}) ? Real{1} : StripUnit(totalInvRotInertia);
         const auto k23 = (invRotInertiaA * object.a1 + invRotInertiaB * object.a2) * Meter *
                          Kilogram / SquareRadian;
         const auto k33 = StripUnit(totalInvMass);
@@ -244,7 +249,7 @@ void InitVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodie
     }
 
     if (!object.enableMotor) {
-        object.motorImpulse = 0;
+        object.motorImpulse = 0_Ns;
     }
 
     if (step.doWarmStart) {
@@ -272,7 +277,7 @@ void InitVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodie
     }
     else {
         object.impulse = Vec3{};
-        object.motorImpulse = 0;
+        object.motorImpulse = 0_Ns;
     }
 
     bodyConstraintA.SetVelocity(velA);
@@ -282,6 +287,10 @@ void InitVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodie
 bool SolveVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodies,
                    const StepConf& step)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return true;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -400,6 +409,10 @@ bool SolveVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodi
 bool SolvePosition(const PrismaticJointConf& object, std::vector<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return true;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 

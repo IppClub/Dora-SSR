@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -45,12 +45,12 @@ struct PositionSolverManifold
     /// Point.
     /// @details Point at which position resolution should be relatively applied.
     /// @note This field is 8-bytes large.
-    Length2 m_point;
+    Length2 m_point{};
     
     /// Separation.
     /// @details Separation between two points (i.e. penetration if negative).
     /// @note This field is 4-bytes large.
-    Length m_separation;
+    Length m_separation{};
 };
 
 /// Gets the normal-point-separation data in world coordinates for the given inputs.

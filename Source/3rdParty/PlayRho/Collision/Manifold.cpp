@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -57,7 +57,7 @@ inline index_type GetEdgeIndex(VertexCounter i1, VertexCounter i2, VertexCounter
 
 using VertexCounterPair = std::pair<VertexCounter, VertexCounter>;
 
-VertexCounterPair GetMostAntiParallelEdge(UnitVec shape0_rel_n0, const Transformation& xf0,
+VertexCounterPair GetMostAntiParallelEdge(const UnitVec& shape0_rel_n0, const Transformation& xf0,
                                           const DistanceProxy& shape1, const Transformation& xf1,
                                           const VertexCounter2 indices1) noexcept
 {
@@ -78,9 +78,9 @@ VertexCounterPair GetMostAntiParallelEdge(UnitVec shape0_rel_n0, const Transform
                : std::make_pair(secondIdx, firstIdx);
 }
 
-ClipList GetClipPoints(Length2 shape0_abs_v0, Length2 shape0_abs_v1, VertexCounterPair shape0_e,
-                       UnitVec shape0_abs_e0_dir, Length2 shape1_abs_v0, Length2 shape1_abs_v1,
-                       VertexCounterPair shape1_e)
+ClipList GetClipPoints(const Length2& shape0_abs_v0, const Length2& shape0_abs_v1, VertexCounterPair shape0_e,
+                       const UnitVec& shape0_abs_e0_dir, const Length2& shape1_abs_v0,
+                       const Length2& shape1_abs_v1, VertexCounterPair shape1_e)
 {
     // Gets the two vertices in world coordinates and their face-vertex contact features
     // of the incident edge of shape1
@@ -106,10 +106,11 @@ Manifold::Conf GetManifoldConf(const StepConf& conf) noexcept
     return manifoldConf;
 }
 
-Manifold GetManifold(bool flipped, const DistanceProxy& shape0, const Transformation& xf0,
+Manifold GetManifold(bool flipped, // NOLINT(readability-function-cognitive-complexity)
+                     const DistanceProxy& shape0, const Transformation& xf0,
                      const VertexCounter idx0, const DistanceProxy& shape1,
                      const Transformation& xf1, const VertexCounter2 indices1,
-                     const Manifold::Conf conf)
+                     const Manifold::Conf& conf)
 {
     assert(shape0.GetVertexCount() > 1 && shape1.GetVertexCount() > 1);
 
@@ -204,7 +205,7 @@ Manifold GetManifold(bool flipped, const DistanceProxy& shape0, const Transforma
         }
         return Manifold::GetForCircles(shape1_rel_v0, shape1_e.first, shape0_rel_v0, idx0);
     }
-    else if (GetMagnitudeSquared(shape0_abs_v0 - shape1_abs_v1) <= totalRadiusSquared) {
+    if (GetMagnitudeSquared(shape0_abs_v0 - shape1_abs_v1) <= totalRadiusSquared) {
         // shape 1 vertex 1 is colliding with shape 2 vertex 2
         if (!flipped) {
             if (mustUseFaceManifold) {
@@ -221,7 +222,7 @@ Manifold GetManifold(bool flipped, const DistanceProxy& shape0, const Transforma
         }
         return Manifold::GetForCircles(shape1_rel_v1, shape1_e.second, shape0_rel_v0, idx0);
     }
-    else if (GetMagnitudeSquared(shape0_abs_v1 - shape1_abs_v1) <= totalRadiusSquared) {
+    if (GetMagnitudeSquared(shape0_abs_v1 - shape1_abs_v1) <= totalRadiusSquared) {
         // shape 1 vertex 2 is colliding with shape 2 vertex 2
         if (!flipped) {
             if (mustUseFaceManifold) {
@@ -238,7 +239,7 @@ Manifold GetManifold(bool flipped, const DistanceProxy& shape0, const Transforma
         }
         return Manifold::GetForCircles(shape1_rel_v1, shape1_e.second, shape0_rel_v1, idx0Next);
     }
-    else if (GetMagnitudeSquared(shape0_abs_v1 - shape1_abs_v0) <= totalRadiusSquared) {
+    if (GetMagnitudeSquared(shape0_abs_v1 - shape1_abs_v0) <= totalRadiusSquared) {
         // shape 1 vertex 2 is colliding with shape 2 vertex 1
         if (!flipped) {
             if (mustUseFaceManifold) {
@@ -259,13 +260,14 @@ Manifold GetManifold(bool flipped, const DistanceProxy& shape0, const Transforma
 }
 
 Manifold GetManifold(bool flipped, Length totalRadius, const DistanceProxy& shape,
-                     const Transformation& sxf, Length2 point, const Transformation& xfm)
+                     const Transformation& sxf, const Length2& point, const Transformation& xfm)
 {
+    const auto vertexCount = shape.GetVertexCount();
+    assert(vertexCount > 0);
+
     // Computes the center of the circle in the frame of the polygon.
     const auto cLocal =
         InverseTransform(Transform(point, xfm), sxf); ///< Center of circle in frame of polygon.
-
-    const auto vertexCount = shape.GetVertexCount();
 
     // Find edge that circle is closest to.
     auto indexOfMax = decltype(vertexCount){0};
@@ -342,8 +344,9 @@ Manifold GetManifold(bool flipped, Length totalRadius, const DistanceProxy& shap
                                  ContactFeature::e_vertex, 0, point);
 }
 
-Manifold GetManifold(Length2 locationA, const Transformation& xfA, Length2 locationB,
-                     const Transformation& xfB, Length totalRadius) noexcept
+Manifold GetManifold(const Length2& locationA, const Transformation& xfA, // force line-break
+                     const Length2& locationB, const Transformation& xfB, // force line-break
+                     Length totalRadius) noexcept
 {
     const auto pA = Transform(locationA, xfA);
     const auto pB = Transform(locationB, xfB);
@@ -360,7 +363,7 @@ Manifold GetManifold(Length2 locationA, const Transformation& xfA, Length2 locat
 
 Manifold CollideShapes(const DistanceProxy& shapeA, const Transformation& xfA, //
                        const DistanceProxy& shapeB, const Transformation& xfB, //
-                       Manifold::Conf conf)
+                       const Manifold::Conf& conf)
 {
     // Assumes called after detecting AABB overlap.
     // Find edge normal of max separation on A - return if separating axis is found

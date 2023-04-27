@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2010 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -34,9 +34,9 @@ static_assert(IsValidShapeType<ChainShapeConf>::value);
 
 namespace {
 
-void ResetNormals(std::vector<UnitVec>& normals, const std::vector<Length2>& vertices)
+std::vector<UnitVec> ComputeNormals(const std::vector<Length2>& vertices)
 {
-    normals.clear();
+    std::vector<UnitVec> normals;
     if (size(vertices) > std::size_t{1}) {
         auto vprev = Length2{};
         auto first = true;
@@ -54,49 +54,53 @@ void ResetNormals(std::vector<UnitVec>& normals, const std::vector<Length2>& ver
             vprev = v;
         }
     }
+    return normals;
 }
 
 } // anonymous namespace
 
-ChainShapeConf::ChainShapeConf() = default;
-
 ChainShapeConf& ChainShapeConf::Set(std::vector<Length2> vertices)
 {
-    const auto count = size(vertices);
-    if (count > MaxChildCount) {
+    if (size(vertices) > MaxChildCount) {
         throw InvalidArgument("too many vertices");
     }
 
-    m_vertices = vertices;
-    ResetNormals(m_normals, m_vertices);
+    m_normals = ComputeNormals(vertices);
+    m_vertices = std::move(vertices);
     return *this;
 }
 
-ChainShapeConf& ChainShapeConf::Translate(const Length2& value) noexcept
+ChainShapeConf& ChainShapeConf::Translate(const Length2& value)
 {
-    std::for_each(begin(m_vertices), end(m_vertices), [=](Length2& v) { v = v + value; });
-    ResetNormals(m_normals, m_vertices);
+    auto vertices = m_vertices;
+    std::for_each(begin(vertices), end(vertices), [=](Length2& v) { v = v + value; });
+    m_normals = ComputeNormals(vertices);
+    m_vertices = std::move(vertices);
     return *this;
 }
 
-ChainShapeConf& ChainShapeConf::Scale(const Vec2& value) noexcept
+ChainShapeConf& ChainShapeConf::Scale(const Vec2& value)
 {
-    std::for_each(begin(m_vertices), end(m_vertices), [=](Length2& v) {
+    auto vertices = m_vertices;
+    std::for_each(begin(vertices), end(vertices), [=](Length2& v) {
         v = Length2{GetX(value) * GetX(v), GetY(value) * GetY(v)};
     });
-    ResetNormals(m_normals, m_vertices);
+    m_normals = ComputeNormals(vertices);
+    m_vertices = std::move(vertices);
     return *this;
 }
 
-ChainShapeConf& ChainShapeConf::Rotate(const UnitVec& value) noexcept
+ChainShapeConf& ChainShapeConf::Rotate(const UnitVec& value)
 {
-    std::for_each(begin(m_vertices), end(m_vertices),
+    auto vertices = m_vertices;
+    std::for_each(begin(vertices), end(vertices),
                   [=](Length2& v) { v = ::playrho::d2::Rotate(v, value); });
-    ResetNormals(m_normals, m_vertices);
+    m_normals = ComputeNormals(vertices);
+    m_vertices = std::move(vertices);
     return *this;
 }
 
-ChainShapeConf& ChainShapeConf::Add(Length2 vertex)
+ChainShapeConf& ChainShapeConf::Add(const Length2& vertex)
 {
     if (!empty(m_vertices)) {
         auto vprev = m_vertices.back();
@@ -111,7 +115,7 @@ ChainShapeConf& ChainShapeConf::Add(Length2 vertex)
     return *this;
 }
 
-MassData ChainShapeConf::GetMassData() const noexcept
+MassData ChainShapeConf::GetMassData() const
 {
     const auto density = this->density;
     if (density > 0_kgpm2) {
@@ -119,7 +123,7 @@ MassData ChainShapeConf::GetMassData() const noexcept
         if (vertexCount > 1) {
             // XXX: This overcounts for the overlapping circle shape.
             auto mass = 0_kg;
-            auto I = RotInertia{0};
+            auto I = RotInertia{};
             auto area = 0_m2;
             auto center = Length2{};
             auto vprev = GetVertex(0);
@@ -157,12 +161,12 @@ DistanceProxy ChainShapeConf::GetChild(ChildCounter index) const
     if (vertexCount > 1) {
         return DistanceProxy{vertexRadius, 2, &m_vertices[index], &m_normals[index * 2]};
     }
-    return DistanceProxy{vertexRadius, 1, &m_vertices[0], nullptr};
+    return DistanceProxy{vertexRadius, 1, &m_vertices[index], nullptr};
 }
 
 // Free functions...
 
-ChainShapeConf GetChainShapeConf(Length2 dimensions)
+ChainShapeConf GetChainShapeConf(const Length2& dimensions)
 {
     auto conf = ChainShapeConf{};
 

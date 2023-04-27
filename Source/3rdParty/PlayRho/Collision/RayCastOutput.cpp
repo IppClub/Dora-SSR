@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2007-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -36,7 +36,7 @@
 namespace playrho {
 namespace d2 {
 
-RayCastOutput RayCast(Length radius, Length2 location, const RayCastInput& input) noexcept
+RayCastOutput RayCast(Length radius, const Length2& location, const RayCastInput& input) noexcept
 {
     // Collision Detection in Interactive 3D Environments by Gino van den Bergen
     // From Section 3.1.2
@@ -72,7 +72,8 @@ RayCastOutput RayCast(Length radius, Length2 location, const RayCastInput& input
     return RayCastOutput{};
 }
 
-RayCastOutput RayCast(const ::playrho::detail::AABB<2>& aabb, const RayCastInput& input) noexcept
+RayCastOutput RayCast( // NOLINT(readability-function-cognitive-complexity)
+                      const ::playrho::detail::AABB<2>& aabb, const RayCastInput& input) noexcept
 {
     // From Real-time Collision Detection, p179.
 
@@ -82,11 +83,11 @@ RayCastOutput RayCast(const ::playrho::detail::AABB<2>& aabb, const RayCastInput
     
     const auto p1 = input.p1;
     const auto pDelta = input.p2 - input.p1;
-    for (auto i = decltype(pDelta.max_size()){0}; i < pDelta.max_size(); ++i)
+    for (auto i = decltype(max_size(pDelta)){0}; i < max_size(pDelta); ++i)
     {
-        const auto p1i = p1[i];
-        const auto pdi = pDelta[i];
-        const auto range = aabb.ranges[i];
+        const auto& p1i = p1[i];
+        const auto& pdi = pDelta[i];
+        const auto& range = aabb.ranges[i];
 
         if (AlmostZero(pdi))
         {
@@ -104,7 +105,7 @@ RayCastOutput RayCast(const ::playrho::detail::AABB<2>& aabb, const RayCastInput
             auto s = -1; // Sign of the normal vector.
             if (t1 > t2)
             {
-                std::swap(t1, t2);
+                swap(t1, t2);
                 s = 1;
             }
             if (tmin < t1)
@@ -241,8 +242,8 @@ bool RayCast(const DynamicTree& tree, RayCastInput input, const DynamicTreeRayCa
     const auto v = GetRevPerpendicular(GetUnitVector(input.p2 - input.p1, UnitVec::GetZero()));
     const auto abs_v = abs(v);
     auto segmentAABB = d2::GetAABB(input);
-    
-    GrowableStack<ContactCounter, 256> stack;
+    static constexpr auto InitialStackCapacity = 256;
+    GrowableStack<ContactCounter, InitialStackCapacity> stack;
     stack.push(tree.GetRootIndex());
     while (!empty(stack))
     {

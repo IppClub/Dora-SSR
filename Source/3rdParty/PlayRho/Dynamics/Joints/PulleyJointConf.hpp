@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -72,9 +72,19 @@ struct PulleyJointConf : public JointBuilder<PulleyJointConf> {
     PulleyJointConf() noexcept : super{super{}.UseCollideConnected(true)} {}
 
     /// Initialize the bodies, anchors, lengths, max lengths, and ratio using the world anchors.
-    PulleyJointConf(BodyID bodyA, BodyID bodyB, Length2 groundAnchorA = DefaultGroundAnchorA,
-                    Length2 groundAnchorB = DefaultGroundAnchorB,
-                    Length2 anchorA = DefaultLocalAnchorA, Length2 anchorB = DefaultLocalAnchorB,
+    /// @post <code>bodyA</code> will have the value of <code>bA</code>.
+    /// @post <code>bodyB</code> will have the value of <code>bB</code>.
+    /// @post <code>groundAnchorA</code> will have the value of <code>gaA</code>.
+    /// @post <code>groundAnchorB</code> will have the value of <code>gaB</code>.
+    /// @post <code>localAnchorA</code> will have the value of <code>laA</code>.
+    /// @post <code>localAnchorB</code> will have the value of <code>laB</code>.
+    /// @post <code>lengthA</code> will have the value of <code>lA</code>.
+    /// @post <code>lengthB</code> will have the value of <code>lB</code>.
+    PulleyJointConf(BodyID bA, BodyID bB, // force line-break
+                    const Length2& gaA = DefaultGroundAnchorA,
+                    const Length2& gaB = DefaultGroundAnchorB,
+                    const Length2& laA = DefaultLocalAnchorA,
+                    const Length2& laB = DefaultLocalAnchorB,
                     Length lA = 0_m, Length lB = 0_m);
 
     /// @brief Uses the given ratio value.
@@ -145,13 +155,15 @@ constexpr bool operator!=(const PulleyJointConf& lhs, const PulleyJointConf& rhs
 }
 
 /// @brief Gets the definition data for the given joint.
+/// @throws std::bad_cast If the given joint's type is inappropriate for getting this value.
 /// @relatedalso Joint
 PulleyJointConf GetPulleyJointConf(const Joint& joint);
 
 /// @brief Gets the configuration for the given parameters.
 /// @relatedalso World
-PulleyJointConf GetPulleyJointConf(const World& world, BodyID bA, BodyID bB, Length2 groundA,
-                                   Length2 groundB, Length2 anchorA, Length2 anchorB);
+PulleyJointConf GetPulleyJointConf(const World& world, BodyID bA, BodyID bB, // force line-break
+                                   const Length2& groundA, const Length2& groundB,
+                                   const Length2& anchorA, const Length2& anchorB);
 
 /// @brief Gets the current linear reaction of the given configuration.
 /// @relatedalso PulleyJointConf
@@ -164,15 +176,22 @@ constexpr Momentum2 GetLinearReaction(const PulleyJointConf& object) noexcept
 /// @relatedalso PulleyJointConf
 constexpr AngularMomentum GetAngularReaction(const PulleyJointConf&) noexcept
 {
-    return AngularMomentum{0};
+    return AngularMomentum{};
 }
 
 /// @brief Shifts the origin notion of the given configuration.
 /// @relatedalso PulleyJointConf
-bool ShiftOrigin(PulleyJointConf& object, Length2 newOrigin) noexcept;
+bool ShiftOrigin(PulleyJointConf& object, const Length2& newOrigin) noexcept;
 
 /// @brief Initializes velocity constraint data based on the given solver data.
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso PulleyJointConf
 void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
@@ -180,6 +199,12 @@ void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso PulleyJointConf
@@ -187,6 +212,12 @@ bool SolveVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso PulleyJointConf
 bool SolvePosition(const PulleyJointConf& object, std::vector<BodyConstraint>& bodies,

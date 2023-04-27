@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -39,10 +39,13 @@ namespace playrho {
         /// @brief Size type.
         using size_type = std::size_t;
 
+        /// @brief Chunk array increment.
+        static constexpr auto ChunkArrayIncrement = size_type{128};
+
         /// @brief Allocator block sizes array data.
         static constexpr std::size_t AllocatorBlockSizes[] =
         {
-            16, 32, 64, 96, 128, 160, 192, 224, 256, 320, 384, 448, 512, 640,
+            16u, 32u, 64u, 96u, 128u, 160u, 192u, 224u, 256u, 320u, 384u, 448u, 512u, 640u,
         };
 
         /// @brief Chunk size.
@@ -57,7 +60,7 @@ namespace playrho {
         /// @brief Chunk array increment.
         static constexpr size_type GetChunkArrayIncrement() noexcept
         {
-            return size_type{128};
+            return ChunkArrayIncrement;
         }
         
         BlockAllocator();
@@ -112,25 +115,16 @@ namespace playrho {
         
         size_type m_chunkCount = 0; ///< Chunk count.
         size_type m_chunkSpace = GetChunkArrayIncrement(); ///< Chunk space.
-        Chunk* m_chunks; ///< Chunks array.
-        Block* m_freeLists[size(AllocatorBlockSizes)]; ///< Free lists.
+        Chunk* m_chunks = nullptr; ///< Chunks array.
+        Block* m_freeLists[size(AllocatorBlockSizes)] = {}; ///< Free lists.
     };
-    
-    /// @brief Deletes the given pointer by calling the pointed-to object's destructor and
-    ///    returning it to the given allocator.
-    template <typename T>
-    inline void Delete(const T* p, BlockAllocator& allocator)
-    {
-        p->~T();
-        allocator.Free(const_cast<T*>(p), sizeof(T));
-    }
     
     /// Block deallocator.
     struct BlockDeallocator
     {
         /// @brief Size type.
         using size_type = BlockAllocator::size_type;
-        
+
         BlockDeallocator() = default;
 
         /// @brief Initializing constructor.
@@ -139,15 +133,15 @@ namespace playrho {
         {
             // Intentionally empty.
         }
-        
+
         /// @brief Default operator.
-        void operator()(void *p) noexcept
+        void operator()(void *p) const noexcept
         {
             allocator->Free(p, nelem);
         }
-        
-        BlockAllocator* allocator; ///< Allocator pointer.
-        size_type nelem; ///< Number of elements.
+
+        BlockAllocator* allocator = nullptr; ///< Allocator pointer.
+        size_type nelem = 0u; ///< Number of elements.
     };
     
     /// @brief <code>BlockAllocator</code> equality operator.

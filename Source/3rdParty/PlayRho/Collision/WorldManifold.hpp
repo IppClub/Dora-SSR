@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -80,7 +80,7 @@ public:
     WorldManifold() = default;
     
     /// @brief Initializing constructor.
-    constexpr explicit WorldManifold(UnitVec normal) noexcept:
+    constexpr explicit WorldManifold(const UnitVec& normal) noexcept:
         m_normal{normal}
     {
         assert(IsValid(normal));
@@ -88,7 +88,7 @@ public:
     }
     
     /// @brief Initializing constructor.
-    constexpr explicit WorldManifold(UnitVec normal, PointData ps0) noexcept:
+    constexpr explicit WorldManifold(const UnitVec& normal, const PointData& ps0) noexcept:
         m_normal{normal},
         m_points{ps0.location, GetInvalid<Length2>()},
         m_impulses{ps0.impulse, Momentum2{}},
@@ -99,7 +99,7 @@ public:
     }
     
     /// @brief Initializing constructor.
-    constexpr explicit WorldManifold(UnitVec normal, PointData ps0, PointData ps1) noexcept:
+    constexpr explicit WorldManifold(const UnitVec& normal, const PointData& ps0, const PointData& ps1) noexcept:
         m_normal{normal},
         m_points{ps0.location, ps1.location},
         m_impulses{ps0.impulse, ps1.impulse},
@@ -139,7 +139,7 @@ public:
     Length2 GetPoint(size_type index) const noexcept
     {
         assert(index < MaxManifoldPoints);
-        return m_points[index];
+        return m_points[index]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
     
     /// Gets the amount of separation at the given indexed point.
@@ -155,7 +155,7 @@ public:
     Length GetSeparation(size_type index) const noexcept
     {
         assert(index < MaxManifoldPoints);
-        return m_separations[index];
+        return m_separations[index]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
     
     /// @brief Gets the given index contact impulses.
@@ -163,7 +163,7 @@ public:
     Momentum2 GetImpulses(size_type index) const noexcept
     {
         assert(index < MaxManifoldPoints);
-        return m_impulses[index];
+        return m_impulses[index]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
 };
 
@@ -186,8 +186,8 @@ public:
 /// @relatedalso Manifold
 ///
 WorldManifold GetWorldManifold(const Manifold& manifold,
-                               Transformation xfA, Length radiusA,
-                               Transformation xfB, Length radiusB);
+                               const Transformation& xfA, Length radiusA,
+                               const Transformation& xfB, Length radiusB);
 
 /// Gets the world manifold for the given data.
 ///

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -84,7 +84,7 @@ constexpr bool IsValid(const Vector2<TYPE>& value) noexcept
     return IsValid(get<0>(value)) && IsValid(get<1>(value));
 }
 
-#ifdef USE_BOOST_UNITS
+#ifdef PLAYRHO_USE_BOOST_UNITS
 /// @brief Gets an invalid value for the Length2 type.
 template <>
 constexpr Length2 GetInvalid() noexcept
@@ -113,7 +113,7 @@ constexpr Momentum2 GetInvalid() noexcept
     return Momentum2{GetInvalid<Momentum>(), GetInvalid<Momentum>()};
 }
 
-constexpr Vec2 GetVec2(const Length2 value)
+constexpr Vec2 GetVec2(const Length2& value)
 {
     return Vec2{
         get<0>(value) / Meter,
@@ -121,7 +121,7 @@ constexpr Vec2 GetVec2(const Length2 value)
     };
 }
 
-constexpr Vec2 GetVec2(const LinearVelocity2 value)
+constexpr Vec2 GetVec2(const LinearVelocity2& value)
 {
     return Vec2{
         get<0>(value) / MeterPerSecond,
@@ -129,7 +129,7 @@ constexpr Vec2 GetVec2(const LinearVelocity2 value)
     };
 }
 
-constexpr Vec2 GetVec2(const Momentum2 value)
+constexpr Vec2 GetVec2(const Momentum2& value)
 {
     return Vec2{
         get<0>(value) / (Kilogram * MeterPerSecond),
@@ -137,7 +137,7 @@ constexpr Vec2 GetVec2(const Momentum2 value)
     };
 }
 
-constexpr Vec2 GetVec2(const Force2 value)
+constexpr Vec2 GetVec2(const Force2& value)
 {
     return Vec2{
         get<0>(value) / Newton,
@@ -147,12 +147,11 @@ constexpr Vec2 GetVec2(const Force2 value)
 #endif
 
 namespace d2 {
-    
-    /// @brief Earthly gravity in 2-dimensions.
-    /// @details Linear acceleration in 2-dimensions of an earthly object due to Earth's mass.
-    /// @see EarthlyLinearAcceleration
-    constexpr auto EarthlyGravity = LinearAcceleration2{
-        0_mps2, EarthlyLinearAcceleration};
+
+/// @brief Earthly gravity in 2-dimensions.
+/// @details Linear acceleration in 2-dimensions of an earthly object due to Earth's mass.
+/// @see EarthlyLinearAcceleration
+constexpr auto EarthlyGravity = LinearAcceleration2{0_mps2, EarthlyLinearAcceleration};
 
 } // namespace d2
 } // namespace playrho

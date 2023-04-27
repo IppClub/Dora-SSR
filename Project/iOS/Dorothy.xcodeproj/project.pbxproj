@@ -1181,7 +1181,6 @@
 		3C3B998026FDB04F00BD9F3E /* Matrix.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Matrix.hpp; sourceTree = "<group>"; };
 		3C3B998126FDB04F00BD9F3E /* UnitInterval.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = UnitInterval.hpp; sourceTree = "<group>"; };
 		3C3B998226FDB04F00BD9F3E /* NonZero.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = NonZero.hpp; sourceTree = "<group>"; };
-		3C3B998326FDB04F00BD9F3E /* ArrayAllocator.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ArrayAllocator.hpp; sourceTree = "<group>"; };
 		3C3B998426FDB04F00BD9F3E /* BlockAllocator.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BlockAllocator.hpp; sourceTree = "<group>"; };
 		3C3B998526FDB04F00BD9F3E /* WrongState.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WrongState.hpp; sourceTree = "<group>"; };
 		3C3B998626FDB04F00BD9F3E /* Vector3.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Vector3.hpp; sourceTree = "<group>"; };
@@ -1207,7 +1206,6 @@
 		3C3B999A26FDB04F00BD9F3E /* Math.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Math.cpp; sourceTree = "<group>"; };
 		3C3B999B26FDB04F00BD9F3E /* Version.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Version.cpp; sourceTree = "<group>"; };
 		3C3B999C26FDB04F00BD9F3E /* Vector2.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Vector2.hpp; sourceTree = "<group>"; };
-		3C3B999D26FDB04F00BD9F3E /* AllocatedArray.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = AllocatedArray.hpp; sourceTree = "<group>"; };
 		3C3B999E26FDB04F00BD9F3E /* Span.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Span.hpp; sourceTree = "<group>"; };
 		3C3B999F26FDB05000BD9F3E /* VertexSet.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = VertexSet.hpp; sourceTree = "<group>"; };
 		3C3B99A026FDB05000BD9F3E /* Sweep.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Sweep.hpp; sourceTree = "<group>"; };
@@ -1444,6 +1442,7 @@
 		3C6E804C272A40B400E9F115 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = ../../../Source/3rdParty/sqlite/sqlite3.h; sourceTree = "<group>"; };
 		3C73E45921B02624004E5731 /* Sound.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound.cpp; path = ../../../Source/Audio/Sound.cpp; sourceTree = "<group>"; };
 		3C73E45A21B02625004E5731 /* Sound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound.h; path = ../../../Source/Audio/Sound.h; sourceTree = "<group>"; };
+		3C7C5FE229FA0DCD007A282E /* ObjectPool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ObjectPool.hpp; sourceTree = "<group>"; };
 		3C814F5C259C75CF0009DEC9 /* Value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Value.cpp; path = ../../../Source/Support/Value.cpp; sourceTree = "<group>"; };
 		3C853F8728E3ED8A0012C0D0 /* Test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Test.cpp; path = ../../../Source/Test/Test.cpp; sourceTree = "<group>"; };
 		3C853F8828E3ED8A0012C0D0 /* HelloWorldCpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HelloWorldCpp.cpp; path = ../../../Source/Test/HelloWorldCpp.cpp; sourceTree = "<group>"; };
@@ -2144,9 +2143,8 @@
 		3C16771B2212C0FD00892CD4 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				3C7C5FE229FA0DCD007A282E /* ObjectPool.hpp */,
 				3C3B99A226FDB05000BD9F3E /* Acceleration.hpp */,
-				3C3B999D26FDB04F00BD9F3E /* AllocatedArray.hpp */,
-				3C3B998326FDB04F00BD9F3E /* ArrayAllocator.hpp */,
 				3C3B99A126FDB05000BD9F3E /* ArrayList.hpp */,
 				3C3B997A26FDB04E00BD9F3E /* BlockAllocator.cpp */,
 				3C3B998426FDB04F00BD9F3E /* BlockAllocator.hpp */,

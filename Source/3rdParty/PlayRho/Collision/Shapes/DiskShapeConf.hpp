@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -41,13 +41,19 @@ namespace d2 {
 /// @ingroup PartsGroup
 ///
 struct DiskShapeConf : ShapeBuilder<DiskShapeConf> {
+    /// @brief Default radius.
+    static constexpr auto DefaultRadius = NonNegative<Length>{DefaultLinearSlop * 2};
+
     /// @brief Gets the default radius.
+    /// @note This is just a backward compatibility interface for getting the default radius.
+    ///    The new way is to use <code>DefaultRadius</code> directly.
+    /// @return <code>DefaultRadius</code>.
     static constexpr NonNegative<Length> GetDefaultRadius() noexcept
     {
-        return NonNegative<Length>{DefaultLinearSlop * 2};
+        return DefaultRadius;
     }
 
-    constexpr DiskShapeConf() = default;
+    constexpr DiskShapeConf() noexcept = default;
 
     /// @brief Initializing constructor.
     constexpr DiskShapeConf(NonNegative<Length> r) : vertexRadius{r}
@@ -56,7 +62,7 @@ struct DiskShapeConf : ShapeBuilder<DiskShapeConf> {
     }
 
     /// @brief Uses the given value as the location.
-    constexpr DiskShapeConf& UseLocation(Length2 value) noexcept
+    constexpr DiskShapeConf& UseLocation(const Length2& value) noexcept
     {
         location = value;
         return *this;
@@ -70,14 +76,14 @@ struct DiskShapeConf : ShapeBuilder<DiskShapeConf> {
     }
 
     /// @brief Translates the location by the given amount.
-    constexpr DiskShapeConf& Translate(Length2 value) noexcept
+    constexpr DiskShapeConf& Translate(const Length2& value) noexcept
     {
         location += value;
         return *this;
     }
 
     /// @brief Scales the location by the given amount.
-    constexpr DiskShapeConf& Scale(Vec2 value) noexcept
+    constexpr DiskShapeConf& Scale(const Vec2& value) noexcept
     {
         location = Length2{GetX(location) * GetX(value), GetY(location) * GetY(value)};
         return *this;
@@ -169,7 +175,7 @@ inline void SetVertexRadius(DiskShapeConf& arg, ChildCounter, NonNegative<Length
 }
 
 /// @brief Gets the mass data of the given disk shape configuration.
-inline MassData GetMassData(const DiskShapeConf& arg) noexcept
+inline MassData GetMassData(const DiskShapeConf& arg)
 {
     return playrho::d2::GetMassData(arg.vertexRadius, arg.density, arg.location);
 }

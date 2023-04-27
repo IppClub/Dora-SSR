@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -57,12 +57,15 @@ public:
     /// @brief Constant pointer type.
     using const_pointer = const value_type*;
 
-    constexpr ArrayList() noexcept
-    {
-        // Intentionally empty.
-        // Note that defaulting this method instead of writing it out here,
-        // causes issues with gcc.
-    }
+    /// @brief Iterator type.
+    using iterator = value_type*;
+
+    /// @brief Constant iterator type.
+    using const_iterator = const value_type*;
+
+    /// @brief Default constructor.
+    /// @note Some older versions of gcc have issues with this being defaulted.
+    constexpr ArrayList() noexcept = default;
 
     template <std::size_t COPY_MAXSIZE, typename COPY_SIZE_TYPE,
               typename = std::enable_if_t<COPY_MAXSIZE <= MAXSIZE>>
@@ -106,7 +109,7 @@ public:
     constexpr void push_back(const value_type& value) noexcept
     {
         assert(m_size < MAXSIZE);
-        m_elements[m_size] = value;
+        m_elements[m_size] = value; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
         ++m_size;
     }
 
@@ -139,13 +142,13 @@ public:
     reference operator[](size_type index) noexcept
     {
         assert(index < MAXSIZE);
-        return m_elements[index];
+        return m_elements[index]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
 
     constexpr const_reference operator[](size_type index) const noexcept
     {
         assert(index < MAXSIZE);
-        return m_elements[index];
+        return m_elements[index]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
 
     /// Gets the size of this collection.
@@ -164,32 +167,39 @@ public:
         return MAXSIZE;
     }
 
-    auto data() const noexcept
+    pointer data() noexcept
     {
         return m_elements.data();
     }
 
-    pointer begin() noexcept
+    const_pointer data() const noexcept
     {
         return m_elements.data();
-    }
-    pointer end() noexcept
-    {
-        return m_elements.data() + m_size;
     }
 
-    const_pointer begin() const noexcept
+    iterator begin() noexcept
     {
-        return m_elements.data();
+        return data();
     }
-    const_pointer end() const noexcept
+
+    iterator end() noexcept
     {
-        return m_elements.data() + m_size;
+        return data() + size();
+    }
+
+    const_iterator begin() const noexcept
+    {
+        return data();
+    }
+
+    const_iterator end() const noexcept
+    {
+        return data() + size();
     }
 
 private:
     size_type m_size = size_type{0};
-    std::array<value_type, MAXSIZE> m_elements;
+    std::array<value_type, MAXSIZE> m_elements = {};
 };
 
 /// @brief <code>ArrayList</code> append operator.

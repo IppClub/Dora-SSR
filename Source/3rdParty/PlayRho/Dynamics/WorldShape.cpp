@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -61,10 +61,10 @@ TypeID GetType(const World& world, ShapeID id)
     return GetType(GetShape(world, id));
 }
 
-ShapeCounter GetAssociationCount(const World& world) noexcept
+ShapeCounter GetAssociationCount(const World& world)
 {
     auto sum = ShapeCounter{0};
-    const auto bodies = world.GetBodies();
+    const auto& bodies = world.GetBodies();
     for_each(begin(bodies), end(bodies), [&world,&sum](const auto &b) {
         sum += static_cast<ShapeCounter>(size(world.GetShapes(b)));
     });
@@ -96,10 +96,10 @@ void SetRestitution(World& world, ShapeID id, Real value)
     SetShape(world, id, object);
 }
 
-void SetFilterData(World& world, ShapeID id, const Filter& value)
+void SetFilterData(World& world, ShapeID id, const Filter& filter)
 {
     auto object = GetShape(world, id);
-    SetFilter(object, value);
+    SetFilter(object, filter);
     SetShape(world, id, object);
 }
 
@@ -141,7 +141,7 @@ void Rotate(World& world, ShapeID id, const UnitVec& value)
 MassData ComputeMassData(const World& world, const std::vector<ShapeID>& ids)
 {
     auto mass = 0_kg;
-    auto I = RotInertia{0};
+    auto I = RotInertia{};
     auto weightedCenter = Length2{};
     for (const auto& shapeId: ids) {
         const auto& shape = GetShape(world, shapeId);
@@ -156,7 +156,7 @@ MassData ComputeMassData(const World& world, const std::vector<ShapeID>& ids)
     return MassData{center, mass, I};
 }
 
-bool TestPoint(const World& world, BodyID bodyId, ShapeID shapeId, Length2 p)
+bool TestPoint(const World& world, BodyID bodyId, ShapeID shapeId, const Length2& p)
 {
     return TestPoint(GetShape(world, shapeId), InverseTransform(p, GetTransformation(world, bodyId)));
 }

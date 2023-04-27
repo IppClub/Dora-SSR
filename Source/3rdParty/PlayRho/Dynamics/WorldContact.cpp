@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -38,7 +38,7 @@ ContactCounter GetContactRange(const World& world) noexcept
     return world.GetContactRange();
 }
 
-std::vector<KeyedContactPtr> GetContacts(const World& world) noexcept
+const std::vector<KeyedContactPtr>& GetContacts(const World& world) noexcept
 {
     return world.GetContacts();
 }
@@ -135,17 +135,17 @@ Real GetRestitution(const World& world, ContactID id)
     return GetRestitution(GetContact(world, id));
 }
 
-void SetFriction(World& world, ContactID id, Real value)
+void SetFriction(World& world, ContactID id, Real friction)
 {
     auto contact = GetContact(world, id);
-    SetFriction(contact, value);
+    SetFriction(contact, friction);
     SetContact(world, id, contact);
 }
 
-void SetRestitution(World& world, ContactID id, Real value)
+void SetRestitution(World& world, ContactID id, Real restitution)
 {
     auto contact = GetContact(world, id);
-    SetRestitution(contact, value);
+    SetRestitution(contact, restitution);
     SetContact(world, id, contact);
 }
 
@@ -202,9 +202,9 @@ WorldManifold GetWorldManifold(const World& world, ContactID id)
     return GetWorldManifold(world, GetContact(world, id), GetManifold(world, id));
 }
 
-ContactCounter GetTouchingCount(const World& world) noexcept
+ContactCounter GetTouchingCount(const World& world)
 {
-    const auto contacts = world.GetContacts();
+    const auto& contacts = world.GetContacts();
     return static_cast<ContactCounter>(count_if(cbegin(contacts), cend(contacts),
                                                 [&](const auto &c) {
         return IsTouching(world, std::get<ContactID>(c));

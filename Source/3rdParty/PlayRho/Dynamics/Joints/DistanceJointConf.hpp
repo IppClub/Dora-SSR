@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -54,14 +54,13 @@ struct DistanceJointConf : public JointBuilder<DistanceJointConf> {
     using super = JointBuilder<DistanceJointConf>;
 
     /// @brief Default constructor.
-    constexpr DistanceJointConf() = default;
-
-    /// @brief Copy constructor.
-    DistanceJointConf(const DistanceJointConf& copy) = default;
+    constexpr DistanceJointConf() noexcept = default;
 
     /// @brief Initializing constructor.
     /// @details Initialize the bodies, anchors, and length using the world anchors.
-    DistanceJointConf(BodyID bA, BodyID bB, Length2 laA = Length2{}, Length2 laB = Length2{},
+    DistanceJointConf(BodyID bA, BodyID bB, // force line-break
+                      const Length2& laA = Length2{}, // force line-break
+                      const Length2& laB = Length2{}, // force line-break
                       Length l = 1_m) noexcept;
 
     /// @brief Uses the given length.
@@ -150,13 +149,15 @@ constexpr bool operator!=(const DistanceJointConf& lhs, const DistanceJointConf&
 }
 
 /// @brief Gets the definition data for the given joint.
+/// @throws std::bad_cast If the given joint's type is inappropriate for getting this value.
 /// @relatedalso Joint
-DistanceJointConf GetDistanceJointConf(const Joint& joint) noexcept;
+DistanceJointConf GetDistanceJointConf(const Joint& joint);
 
 /// @brief Gets the configuration for the given parameters.
 /// @relatedalso World
-DistanceJointConf GetDistanceJointConf(const World& world, BodyID bodyA, BodyID bodyB,
-                                       Length2 anchorA = Length2{}, Length2 anchorB = Length2{});
+DistanceJointConf GetDistanceJointConf(const World& world, BodyID bodyA, BodyID bodyB, // force line-break
+                                       const Length2& anchorA = Length2{}, // force line-break
+                                       const Length2& anchorB = Length2{});
 
 /// @brief Gets the current linear reaction for the given configuration.
 /// @relatedalso DistanceJointConf
@@ -169,7 +170,7 @@ constexpr Momentum2 GetLinearReaction(const DistanceJointConf& object) noexcept
 /// @relatedalso DistanceJointConf
 constexpr AngularMomentum GetAngularReaction(const DistanceJointConf&) noexcept
 {
-    return AngularMomentum{0};
+    return AngularMomentum{};
 }
 
 /// @brief Shifts the origin notion of the given configuration.
@@ -181,6 +182,13 @@ constexpr bool ShiftOrigin(DistanceJointConf&, Length2) noexcept
 
 /// @brief Initializes velocity constraint data based on the given solver data.
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso DistanceJointConf
 void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies,
@@ -188,6 +196,12 @@ void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso DistanceJointConf
@@ -195,6 +209,12 @@ bool SolveVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodie
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso DistanceJointConf
 bool SolvePosition(const DistanceJointConf& object, std::vector<BodyConstraint>& bodies,

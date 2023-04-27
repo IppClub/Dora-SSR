@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2012 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -58,13 +58,14 @@ static_assert(std::is_nothrow_destructible<MotorJointConf>::value,
 // J = [0 0 -1 0 0 1]
 // K = invI1 + invI2
 
-MotorJointConf::MotorJointConf(BodyID bA, BodyID bB, Length2 lo, Angle ao) noexcept
+MotorJointConf::MotorJointConf(BodyID bA, BodyID bB, // force line-break
+                               const Length2& lo, Angle ao) noexcept
     : super{super{}.UseBodyA(bA).UseBodyB(bB)}, linearOffset{lo}, angularOffset{ao}
 {
     // Intentionally empty.
 }
 
-MotorJointConf GetMotorJointConf(const Joint& joint) noexcept
+MotorJointConf GetMotorJointConf(const Joint& joint)
 {
     return TypeCast<MotorJointConf>(joint);
 }
@@ -78,6 +79,10 @@ MotorJointConf GetMotorJointConf(const World& world, BodyID bA, BodyID bB)
 void InitVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf&)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -124,7 +129,7 @@ void InitVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies, c
 
     const auto invRotInertia = invRotInertiaA + invRotInertiaB;
     object.angularMass =
-        (invRotInertia > InvRotInertia{0}) ? RotInertia{Real{1} / invRotInertia} : RotInertia{0};
+        (invRotInertia > InvRotInertia{}) ? RotInertia{Real{1} / invRotInertia} : RotInertia{};
 
     object.linearError = (posB.linear + object.rB) - (posA.linear + object.rA);
     object.angularError = (posB.angular - posA.angular) - object.angularOffset;
@@ -145,7 +150,7 @@ void InitVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies, c
     }
     else {
         object.linearImpulse = Momentum2{};
-        object.angularImpulse = AngularMomentum{0};
+        object.angularImpulse = AngularMomentum{};
     }
 
     bodyConstraintA.SetVelocity(velA);
@@ -155,6 +160,10 @@ void InitVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies, c
 bool SolveVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies,
                    const StepConf& step)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return true;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -184,7 +193,7 @@ bool SolveVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies,
         object.angularImpulse = newAngularImpulse;
         const auto incAngularImpulse = newAngularImpulse - oldAngularImpulse;
 
-        if (incAngularImpulse != AngularMomentum{0}) {
+        if (incAngularImpulse != AngularMomentum{}) {
             solved = false;
         }
         velA.angular -= invRotInertiaA * incAngularImpulse;
@@ -215,7 +224,7 @@ bool SolveVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies,
         const auto angImpulseA = AngularMomentum{Cross(object.rA, incImpulse) / Radian};
         const auto angImpulseB = AngularMomentum{Cross(object.rB, incImpulse) / Radian};
 
-        if (incImpulse != Momentum2{}) {
+        if (incImpulse != Momentum2{0_Ns, 0_Ns}) {
             solved = false;
         }
 

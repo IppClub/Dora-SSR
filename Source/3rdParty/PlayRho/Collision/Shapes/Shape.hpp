@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * Erin Catto's http://www.box2d.org was the origin for this software.
  * TypeCast code originated from the LLVM Project https://llvm.org/LICENSE.txt.
@@ -212,8 +212,8 @@ SetFilter(T& o, Filter value)
 
 /// @brief Fallback translate function that throws unless the given value has no effect.
 template <class T>
-std::enable_if_t<IsValidShapeType<T>::value && !HasTranslate<T>::value, void>
-Translate(T&, Length2 value)
+auto Translate(T&, const Length2& value)
+    -> std::enable_if_t<IsValidShapeType<T>::value && !HasTranslate<T>::value, void>
 {
     if (Length2{} != value) {
         throw InvalidArgument("Translate non-zero amount not supported");
@@ -222,7 +222,8 @@ Translate(T&, Length2 value)
 
 /// @brief Fallback scale function that throws unless the given value has no effect.
 template <class T>
-std::enable_if_t<IsValidShapeType<T>::value && !HasScale<T>::value, void> Scale(T&, Vec2 value)
+auto Scale(T&, const Vec2& value)
+    -> std::enable_if_t<IsValidShapeType<T>::value && !HasScale<T>::value, void>
 {
     if (Vec2{Real(1), Real(1)} != value) {
         throw InvalidArgument("Scale non-identity amount not supported");
@@ -231,8 +232,8 @@ std::enable_if_t<IsValidShapeType<T>::value && !HasScale<T>::value, void> Scale(
 
 /// @brief Fallback rotate function that throws unless the given value has no effect.
 template <class T>
-std::enable_if_t<IsValidShapeType<T>::value && !HasRotate<T>::value, void> Rotate(T&,
-                                                                                  UnitVec value)
+auto Rotate(T&, const UnitVec& value)
+    -> std::enable_if_t<IsValidShapeType<T>::value && !HasRotate<T>::value, void>
 {
     if (UnitVec::GetRight() != value) {
         throw InvalidArgument("Rotate non-zero amount not supported");
@@ -259,7 +260,7 @@ DistanceProxy GetChild(const Shape& shape, ChildCounter index);
 
 /// @brief Gets the mass properties of this shape using its dimensions and density.
 /// @return Mass data for this shape.
-MassData GetMassData(const Shape& shape) noexcept;
+MassData GetMassData(const Shape& shape);
 
 /// @brief Gets the coefficient of friction.
 /// @return Value of 0 or higher.
@@ -400,6 +401,9 @@ bool operator!=(const Shape& lhs, const Shape& rhs) noexcept;
 class Shape
 {
 public:
+    /// @brief Default density of a default-constructed, or otherwise value-less, shape.
+    static constexpr auto DefaultDensity = NonNegative<AreaDensity>{0_kgpm2};
+
     /// @brief Default constructor.
     /// @post <code>has_value()</code> returns false.
     Shape() noexcept = default;
@@ -496,7 +500,7 @@ public:
         return shape.m_self->GetChild_(index);
     }
 
-    friend MassData GetMassData(const Shape& shape) noexcept
+    friend MassData GetMassData(const Shape& shape)
     {
         return shape.m_self ? shape.m_self->GetMassData_() : MassData{};
     }
@@ -548,7 +552,7 @@ public:
 
     friend NonNegative<AreaDensity> GetDensity(const Shape& shape) noexcept
     {
-        return shape.m_self ? shape.m_self->GetDensity_() : NonNegative<AreaDensity>{0_kgpm2};
+        return shape.m_self ? shape.m_self->GetDensity_() : DefaultDensity;
     }
 
     friend void SetDensity(Shape& shape, NonNegative<AreaDensity> value)
@@ -641,8 +645,8 @@ public:
 
 private:
     /// @brief Internal configuration concept.
-    /// @note Provides the interface for runtime value polymorphism.
-    struct Concept {
+    /// @details Provides an internal pure virtual interface for the runtime value polymorphism.
+    struct Concept { // NOLINT(cppcoreguidelines-special-member-functions)
         virtual ~Concept() = default;
 
         /// @brief Clones this concept and returns a pointer to a mutable copy.
@@ -658,7 +662,7 @@ private:
         virtual DistanceProxy GetChild_(ChildCounter index) const = 0;
 
         /// @brief Gets the mass data.
-        virtual MassData GetMassData_() const noexcept = 0;
+        virtual MassData GetMassData_() const = 0;
 
         /// @brief Gets the vertex radius.
         /// @param idx Child index to get vertex radius for.
@@ -743,7 +747,7 @@ private:
         using data_type = T;
 
         /// @brief Initializing constructor.
-        template <typename U>
+        template <typename U, std::enable_if_t<!std::is_same_v<U, Model>, int> = 0>
         explicit Model(U&& arg) noexcept(std::is_nothrow_constructible_v<T, U>)
             : data{std::forward<U>(arg)}
         {
@@ -765,7 +769,7 @@ private:
             return GetChild(data, index);
         }
 
-        MassData GetMassData_() const noexcept override
+        MassData GetMassData_() const override
         {
             return GetMassData(data);
         }
@@ -884,7 +888,7 @@ private:
 ///   <code>false</code> otherwise.
 /// @relatedalso Shape
 /// @ingroup TestPointGroup
-bool TestPoint(const Shape& shape, Length2 point) noexcept;
+bool TestPoint(const Shape& shape, const Length2& point) noexcept;
 
 /// @brief Gets the vertex count for the specified child of the given shape.
 /// @relatedalso Shape
@@ -906,8 +910,9 @@ inline T TypeCast(const Shape& value)
                   "T is required to be a const lvalue reference "
                   "or a CopyConstructible type");
     auto tmp = ::playrho::d2::TypeCast<std::add_const_t<RawType>>(&value);
-    if (tmp == nullptr)
+    if (!tmp) {
         throw std::bad_cast();
+    }
     return static_cast<T>(*tmp);
 }
 

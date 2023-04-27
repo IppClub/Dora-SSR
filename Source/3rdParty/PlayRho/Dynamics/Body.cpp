@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -86,11 +86,11 @@ Body::FlagsType Body::GetFlags(const BodyConf& bd) noexcept
     return flags;
 }
 
-Body::Body(const BodyConf& bd) noexcept
+Body::Body(const BodyConf& bd)
     : m_xf{::playrho::d2::GetTransformation(bd)},
       m_sweep{Position{bd.location, bd.angle}},
       m_flags{GetFlags(bd)},
-      m_invMass{(bd.type == playrho::BodyType::Dynamic) ? InvMass{Real{1} / Kilogram} : InvMass{0}},
+      m_invMass{(bd.type == playrho::BodyType::Dynamic) ? InvMass{Real{1} / Kilogram} : InvMass{}},
       m_linearDamping{bd.linearDamping},
       m_angularDamping{bd.angularDamping},
       m_shapes{(bd.shape == InvalidShapeID) ? std::vector<ShapeID>{}
@@ -144,7 +144,7 @@ void Body::SetType(BodyType value) noexcept
         SetInvMassData(InvMass{}, InvRotInertia{});
         break;
     }
-    m_underActiveTime = 0;
+    m_underActiveTime = 0_s;
 }
 
 void Body::SetSleepingAllowed(bool flag) noexcept
@@ -173,7 +173,7 @@ void Body::UnsetAwake() noexcept
 {
     if (!IsSpeedable() || IsSleepingAllowed()) {
         UnsetAwakeFlag();
-        m_underActiveTime = 0;
+        m_underActiveTime = 0_s;
         m_linearVelocity = LinearVelocity2{};
         m_angularVelocity = 0_rpm;
     }
@@ -191,14 +191,14 @@ void Body::SetVelocity(const Velocity& velocity) noexcept
     JustSetVelocity(velocity);
 }
 
-void Body::JustSetVelocity(Velocity value) noexcept
+void Body::JustSetVelocity(const Velocity& value) noexcept
 {
     assert(IsSpeedable() || (value == Velocity{}));
     m_linearVelocity = value.linear;
     m_angularVelocity = value.angular;
 }
 
-void Body::SetAcceleration(LinearAcceleration2 linear, AngularAcceleration angular) noexcept
+void Body::SetAcceleration(const LinearAcceleration2& linear, AngularAcceleration angular) noexcept
 {
     assert(IsValid(linear));
     assert(IsValid(angular));
@@ -209,7 +209,7 @@ void Body::SetAcceleration(LinearAcceleration2 linear, AngularAcceleration angul
     }
 
     if (!IsAccelerable()) {
-        if ((linear != LinearAcceleration2{}) || (angular != AngularAcceleration{0})) {
+        if ((linear != LinearAcceleration2{}) || (angular != AngularAcceleration{})) {
             // non-accelerable bodies can only be set to zero acceleration, bail...
             return;
         }
@@ -266,7 +266,7 @@ void SetTransformation(Body& body, const Transformation& value) noexcept
     SetSweep(body, Sweep{Position{value.p, GetAngle(value.q)}, GetSweep(body).GetLocalCenter()});
 }
 
-void SetLocation(Body& body, Length2 value)
+void SetLocation(Body& body, const Length2& value)
 {
     SetTransformation(body, Transformation{value, GetTransformation(body).q});
 }
@@ -302,7 +302,7 @@ Velocity GetVelocity(const Body& body, Time h) noexcept
     return velocity;
 }
 
-void ApplyLinearImpulse(Body& body, Momentum2 impulse, Length2 point) noexcept
+void ApplyLinearImpulse(Body& body, const Momentum2& impulse, const Length2& point) noexcept
 {
     auto velocity = body.GetVelocity();
     velocity.linear += body.GetInvMass() * impulse;

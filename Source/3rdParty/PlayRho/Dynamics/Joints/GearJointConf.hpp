@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -74,7 +74,7 @@ struct GearJointConf : public JointBuilder<GearJointConf> {
     using TypeData = std::variant<std::monostate, PrismaticData, RevoluteData>;
 
     /// @brief Default constructor.
-    constexpr GearJointConf() = default;
+    constexpr GearJointConf() noexcept = default;
 
     /// @brief Initializing constructor.
     GearJointConf(BodyID bA, BodyID bB, BodyID bC, BodyID bD) noexcept;
@@ -179,8 +179,9 @@ constexpr bool operator!=(const GearJointConf& lhs, const GearJointConf& rhs) no
 }
 
 /// @brief Gets the definition data for the given joint.
+/// @throws std::bad_cast If the given joint's type is inappropriate for getting this value.
 /// @relatedalso Joint
-GearJointConf GetGearJointConf(const Joint& joint) noexcept;
+GearJointConf GetGearJointConf(const Joint& joint);
 
 /// @brief Gets the configuration for the given parameters.
 /// @relatedalso World
@@ -202,13 +203,20 @@ constexpr AngularMomentum GetAngularReaction(const GearJointConf& object)
 
 /// @brief Shifts the origin notion of the given configuration.
 /// @relatedalso GearJointConf
-constexpr bool ShiftOrigin(GearJointConf&, Length2) noexcept
+constexpr bool ShiftOrigin(GearJointConf&, const Length2&) noexcept
 {
     return false;
 }
 
 /// @brief Initializes velocity constraint data based on the given solver data.
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso GearJointConf
 void InitVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
@@ -216,6 +224,12 @@ void InitVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies, co
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso GearJointConf
@@ -223,6 +237,12 @@ bool SolveVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso GearJointConf
 bool SolvePosition(const GearJointConf& object, std::vector<BodyConstraint>& bodies,

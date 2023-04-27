@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -326,7 +326,7 @@ private:
 
     /// Tangent speed.
     /// @note Field is 4-bytes (with 4-byte Real).
-    LinearVelocity m_tangentSpeed = 0;
+    LinearVelocity m_tangentSpeed = 0_mps;
 
     /// Time of impact.
     /// @note This is a unit interval of time (a value between 0 and 1).

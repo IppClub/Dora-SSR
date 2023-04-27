@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -62,11 +62,11 @@ static constexpr auto k_errorTol = 1e-3_mps; ///< error tolerance
 ///
 struct ImpulseChange
 {
-    Momentum magnitude; ///< Magnitude.
+    Momentum magnitude{}; ///< Magnitude.
     UnitVec direction; ///< Direction.
 };
 
-VelocityPair GetVelocityDelta(const VelocityConstraint& vc, const Momentum2 impulses,
+VelocityPair GetVelocityDelta(const VelocityConstraint& vc, const Momentum2& impulses,
                               const std::vector<BodyConstraint>& bodies)
 {
     assert(IsValid(impulses));
@@ -97,7 +97,7 @@ VelocityPair GetVelocityDelta(const VelocityConstraint& vc, const Momentum2 impu
     };
 }
 
-Momentum BlockSolveUpdate(VelocityConstraint& vc, const Momentum2 newImpulses,
+Momentum BlockSolveUpdate(VelocityConstraint& vc, const Momentum2& newImpulses,
                           std::vector<BodyConstraint>& bodies)
 {
     const auto delta_v = GetVelocityDelta(vc, newImpulses - GetNormalImpulses(vc), bodies);
@@ -111,7 +111,7 @@ Momentum BlockSolveUpdate(VelocityConstraint& vc, const Momentum2 newImpulses,
 
 std::optional<Momentum> BlockSolveNormalCase1(VelocityConstraint& vc,
                                               std::vector<BodyConstraint>& bodies,
-                                              const LinearVelocity2 b_prime)
+                                              const LinearVelocity2& b_prime)
 {
     //
     // Case 1: vn = 0
@@ -151,7 +151,7 @@ std::optional<Momentum> BlockSolveNormalCase1(VelocityConstraint& vc,
 
 std::optional<Momentum> BlockSolveNormalCase2(VelocityConstraint& vc,
                                               std::vector<BodyConstraint>& bodies,
-                                              const LinearVelocity2 b_prime)
+                                              const LinearVelocity2& b_prime)
 {
     //
     // Case 2: vn1 = 0 and x2 = 0
@@ -188,7 +188,7 @@ std::optional<Momentum> BlockSolveNormalCase2(VelocityConstraint& vc,
 
 std::optional<Momentum> BlockSolveNormalCase3(VelocityConstraint& vc,
                                               std::vector<BodyConstraint>& bodies,
-                                              const LinearVelocity2 b_prime)
+                                              const LinearVelocity2& b_prime)
 {
     //
     // Case 3: vn2 = 0 and x1 = 0
@@ -225,7 +225,7 @@ std::optional<Momentum> BlockSolveNormalCase3(VelocityConstraint& vc,
 
 std::optional<Momentum> BlockSolveNormalCase4(VelocityConstraint& vc,
                                               std::vector<BodyConstraint>& bodies,
-                                              const LinearVelocity2 b_prime)
+                                              const LinearVelocity2& b_prime)
 {
     //
     // Case 4: x1 = 0 and x2 = 0
@@ -330,7 +330,7 @@ inline Momentum BlockSolveNormalConstraint(VelocityConstraint& vc,
     }
     
     // No solution, give up. This is hit sometimes, but it doesn't seem to matter.
-    return 0;
+    return 0_Ns;
 }
 
 inline Momentum SeqSolveNormalConstraint(VelocityConstraint& vc,
@@ -503,23 +503,23 @@ d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,
     const auto bodyA = &bodies[to_underlying(pc.GetBodyA())];
     const auto bodyB = &bodies[to_underlying(pc.GetBodyB())];
     
-    const auto invMassA = moveA? bodyA->GetInvMass(): InvMass{0};
-    const auto invRotInertiaA = moveA? bodyA->GetInvRotInertia(): InvRotInertia{0};
+    const auto invMassA = moveA? bodyA->GetInvMass(): InvMass{};
+    const auto invRotInertiaA = moveA? bodyA->GetInvRotInertia(): InvRotInertia{};
     const auto localCenterA = bodyA->GetLocalCenter();
     
-    const auto invMassB = moveB? bodyB->GetInvMass(): InvMass{0};
-    const auto invRotInertiaB = moveB? bodyB->GetInvRotInertia(): InvRotInertia{0};
+    const auto invMassB = moveB? bodyB->GetInvMass(): InvMass{};
+    const auto invRotInertiaB = moveB? bodyB->GetInvRotInertia(): InvRotInertia{};
     const auto localCenterB = bodyB->GetLocalCenter();
     
     // Compute inverse mass total.
     // This must be > 0 unless doing TOI solving and neither bodies were the bodies specified.
     const auto invMassTotal = invMassA + invMassB;
-    assert(invMassTotal >= InvMass{0});
+    assert(invMassTotal >= InvMass{});
     
     const auto totalRadius = pc.GetTotalRadius();
     
-    const auto solver_fn = [&](const d2::PositionSolverManifold psm,
-                               const Length2 pA, const Length2 pB) {
+    const auto solver_fn = [&](const d2::PositionSolverManifold& psm,
+                               const Length2& pA, const Length2& pB) {
         const auto separation = psm.m_separation - totalRadius;
         // Positive separation means shapes not overlapping and not touching.
         // Zero separation means shapes are touching.
@@ -532,7 +532,7 @@ d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,
         const auto K = invMassTotal + GetEffectiveInvMass(invRotInertiaA, rA, psm.m_normal) +
             GetEffectiveInvMass(invRotInertiaB, rB, psm.m_normal);
         
-        assert(K >= InvMass{0});
+        assert(K >= InvMass{});
         
         // Prevent large corrections & don't push separation above -conf.linearSlop.
         const auto C = -std::clamp(conf.resolutionRate * (separation + conf.linearSlop),

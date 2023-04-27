@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -24,6 +24,7 @@
 
 #include "PlayRho/Common/Units.hpp"
 #include "PlayRho/Common/Finite.hpp"
+#include "PlayRho/Common/NonNegative.hpp"
 #include "PlayRho/Common/Settings.hpp"
 #include "PlayRho/Dynamics/Filter.hpp"
 
@@ -33,6 +34,22 @@ namespace d2 {
 /// @brief Base configuration for initializing shapes.
 /// @note This is a nested base value class for initializing shapes.
 struct BaseShapeConf {
+
+    /// @brief Default friction value.
+    static constexpr auto DefaultFriction = NonNegative<Real>{Real{2} / Real{10}};
+
+    /// @brief Default restitution value.
+    static inline const auto DefaultRestitution = Finite<Real>{0};
+
+    /// @brief Default density value.
+    static constexpr auto DefaultDensity = NonNegative<AreaDensity>{0_kgpm2};
+
+    /// @brief Default filter value.
+    static constexpr auto DefaultFilter = Filter{};
+
+    /// @brief Default is-sensor value.
+    static constexpr auto DefaultIsSensor = false;
+
     /// @brief Friction coefficient.
     ///
     /// @note This must be a value between 0 and +infinity. It is safer however to
@@ -41,27 +58,27 @@ struct BaseShapeConf {
     /// @note The square-root of the product of this value multiplied by a touching
     ///   fixture's friction becomes the friction coefficient for the contact.
     ///
-    NonNegative<Real> friction = NonNegative<Real>{Real{2} / Real{10}};
+    NonNegative<Real> friction = DefaultFriction;
 
     /// @brief Restitution (elasticity) of the associated shape.
     ///
     /// @note This should be a valid finite value.
     /// @note This is usually in the range [0,1].
     ///
-    Finite<Real> restitution = Finite<Real>{0};
+    Finite<Real> restitution = DefaultRestitution;
 
     /// @brief Area density of the associated shape.
     ///
     /// @note This must be a non-negative value.
     /// @note Use 0 to indicate that the shape's associated mass should be 0.
     ///
-    NonNegative<AreaDensity> density = NonNegative<AreaDensity>{0_kgpm2};
+    NonNegative<AreaDensity> density = DefaultDensity;
 
     /// Filtering data for contacts.
-    Filter filter;
+    Filter filter = DefaultFilter;
 
     /// A sensor shape collects contact information but never generates a collision response.
-    bool isSensor = false;
+    bool isSensor = DefaultIsSensor;
 };
 
 /// @brief Builder configuration structure.
@@ -74,15 +91,6 @@ struct BaseShapeConf {
 template <typename ConcreteConf>
 struct ShapeBuilder : BaseShapeConf {
     // Note: don't use 'using ShapeConf::ShapeConf' here as it doesn't work in this context!
-
-    /// @brief Default constructor.
-    constexpr ShapeBuilder() = default;
-
-    /// @brief Initializing constructor.
-    constexpr explicit ShapeBuilder(const BaseShapeConf& value) noexcept : BaseShapeConf{value}
-    {
-        // Intentionally empty.
-    }
 
     /// @brief Uses the given friction.
     constexpr ConcreteConf& UseFriction(NonNegative<Real> value) noexcept;

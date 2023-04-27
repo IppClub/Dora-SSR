@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -224,7 +224,7 @@ DynamicTree::Size UpdateUpwardFrom(DynamicTree::TreeNode nodes[], DynamicTree::S
 /// @details Finds the index of the "lowest cost" node using a surface area heuristic
 ///   (S.A.H.) for two dimensions.
 /// @warning Behavior is undefined if the given index is invalid or for an unused node.
-DynamicTree::Size FindLowestCostNode(const DynamicTree::TreeNode nodes[], AABB leafAABB,
+DynamicTree::Size FindLowestCostNode(const DynamicTree::TreeNode nodes[], const AABB& leafAABB,
                                      DynamicTree::Size index) noexcept
 {
     assert(IsValid(leafAABB));
@@ -637,7 +637,7 @@ void DynamicTree::RebuildBottomUp()
     Free(nodes);
 }
 
-void DynamicTree::ShiftOrigin(Length2 newOrigin) noexcept
+void DynamicTree::ShiftOrigin(const Length2& newOrigin) noexcept
 {
     // Build array of leaves. Free the rest.
     for (auto i = decltype(m_nodeCapacity){0}; i < m_nodeCapacity; ++i) {
@@ -662,7 +662,8 @@ void swap(DynamicTree& lhs, DynamicTree& rhs) noexcept
 
 void Query(const DynamicTree& tree, const AABB& aabb, const DynamicTreeSizeCB& callback)
 {
-    GrowableStack<DynamicTree::Size, 256> stack;
+    static constexpr auto InitialStackCapacity = 256;
+    GrowableStack<DynamicTree::Size, InitialStackCapacity> stack;
     stack.push(tree.GetRootIndex());
 
     while (!empty(stack)) {

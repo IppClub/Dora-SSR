@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -29,62 +29,56 @@ namespace d2 {
 
 static_assert(IsValidShapeType<PolygonShapeConf>::value);
 
-PolygonShapeConf::PolygonShapeConf() = default;
+PolygonShapeConf::PolygonShapeConf() noexcept = default;
 
-PolygonShapeConf::PolygonShapeConf(Length hx, Length hy, const PolygonShapeConf& conf) noexcept
+PolygonShapeConf::PolygonShapeConf(Length hx, Length hy, const PolygonShapeConf& conf)
     : ShapeBuilder{conf}
 {
     SetAsBox(hx, hy);
 }
 
 PolygonShapeConf::PolygonShapeConf(Span<const Length2> points,
-                                   const PolygonShapeConf& conf) noexcept
+                                   const PolygonShapeConf& conf)
     : ShapeBuilder{conf}
 {
     Set(points);
 }
 
-PolygonShapeConf& PolygonShapeConf::SetAsBox(Length hx, Length hy) noexcept
+PolygonShapeConf& PolygonShapeConf::SetAsBox(Length hx, Length hy)
 {
     m_centroid = Length2{};
 
     // vertices must be counter-clockwise
-
-    const auto btm_rgt = Length2{+hx, -hy};
-    const auto top_rgt = Length2{hx, hy};
-    const auto top_lft = Length2{-hx, +hy};
-    const auto btm_lft = Length2{-hx, -hy};
-
     m_vertices.clear();
-    m_vertices.emplace_back(btm_rgt);
-    m_vertices.emplace_back(top_rgt);
-    m_vertices.emplace_back(top_lft);
-    m_vertices.emplace_back(btm_lft);
+    m_vertices.emplace_back(+hx, -hy); // bottom right
+    m_vertices.emplace_back(+hx, +hy); // top right
+    m_vertices.emplace_back(-hx, +hy); // top left
+    m_vertices.emplace_back(-hx, -hy); // bottom left
 
     m_normals.clear();
-    m_normals.emplace_back(UnitVec::GetRight());
-    m_normals.emplace_back(UnitVec::GetTop());
-    m_normals.emplace_back(UnitVec::GetLeft());
-    m_normals.emplace_back(UnitVec::GetBottom());
+    m_normals.push_back(UnitVec::GetRight());
+    m_normals.push_back(UnitVec::GetTop());
+    m_normals.push_back(UnitVec::GetLeft());
+    m_normals.push_back(UnitVec::GetBottom());
 
     return *this;
 }
 
 /// @brief Uses the given vertices.
-PolygonShapeConf& PolygonShapeConf::UseVertices(const std::vector<Length2>& verts) noexcept
+PolygonShapeConf& PolygonShapeConf::UseVertices(const std::vector<Length2>& verts)
 {
     return Set(Span<const Length2>(data(verts), size(verts)));
 }
 
-PolygonShapeConf& PolygonShapeConf::SetAsBox(Length hx, Length hy, Length2 center,
-                                             Angle angle) noexcept
+PolygonShapeConf& PolygonShapeConf::SetAsBox(Length hx, Length hy, const Length2& center,
+                                             Angle angle)
 {
     SetAsBox(hx, hy);
     Transform(Transformation{center, UnitVec::Get(angle)});
     return *this;
 }
 
-PolygonShapeConf& PolygonShapeConf::Transform(Transformation xfm) noexcept
+PolygonShapeConf& PolygonShapeConf::Transform(const Transformation& xfm) noexcept
 {
     for (auto i = decltype(GetVertexCount()){0}; i < GetVertexCount(); ++i) {
         m_vertices[i] = playrho::d2::Transform(m_vertices[i], xfm);
@@ -94,7 +88,7 @@ PolygonShapeConf& PolygonShapeConf::Transform(Transformation xfm) noexcept
     return *this;
 }
 
-PolygonShapeConf& PolygonShapeConf::Transform(const Mat22& m) noexcept
+PolygonShapeConf& PolygonShapeConf::Transform(const Mat22& m)
 {
     auto newPoints = VertexSet{};
     for (const auto& v : m_vertices) {
@@ -103,7 +97,7 @@ PolygonShapeConf& PolygonShapeConf::Transform(const Mat22& m) noexcept
     return Set(newPoints);
 }
 
-PolygonShapeConf& PolygonShapeConf::Translate(const Length2& value) noexcept
+PolygonShapeConf& PolygonShapeConf::Translate(const Length2& value)
 {
     auto newPoints = VertexSet{};
     for (const auto& v : m_vertices) {
@@ -112,7 +106,7 @@ PolygonShapeConf& PolygonShapeConf::Translate(const Length2& value) noexcept
     return Set(newPoints);
 }
 
-PolygonShapeConf& PolygonShapeConf::Scale(const Vec2& value) noexcept
+PolygonShapeConf& PolygonShapeConf::Scale(const Vec2& value)
 {
     auto newPoints = VertexSet{};
     for (const auto& v : m_vertices) {
@@ -121,7 +115,7 @@ PolygonShapeConf& PolygonShapeConf::Scale(const Vec2& value) noexcept
     return Set(newPoints);
 }
 
-PolygonShapeConf& PolygonShapeConf::Rotate(const UnitVec& value) noexcept
+PolygonShapeConf& PolygonShapeConf::Rotate(const UnitVec& value)
 {
     auto newPoints = VertexSet{};
     for (const auto& v : m_vertices) {
@@ -130,7 +124,7 @@ PolygonShapeConf& PolygonShapeConf::Rotate(const UnitVec& value) noexcept
     return Set(newPoints);
 }
 
-PolygonShapeConf& PolygonShapeConf::Set(Span<const Length2> points) noexcept
+PolygonShapeConf& PolygonShapeConf::Set(Span<const Length2> points)
 {
     // Perform welding and copy vertices into local buffer.
     auto point_set = VertexSet(Square(DefaultLinearSlop));
@@ -140,7 +134,7 @@ PolygonShapeConf& PolygonShapeConf::Set(Span<const Length2> points) noexcept
     return Set(point_set);
 }
 
-PolygonShapeConf& PolygonShapeConf::Set(const VertexSet& points) noexcept
+PolygonShapeConf& PolygonShapeConf::Set(const VertexSet& points)
 {
     m_vertices = GetConvexHullAsVector(points);
     assert(size(m_vertices) < std::numeric_limits<VertexCounter>::max());
@@ -152,11 +146,11 @@ PolygonShapeConf& PolygonShapeConf::Set(const VertexSet& points) noexcept
         // Compute normals.
         for (auto i = decltype(count){0}; i < count; ++i) {
             const auto edge = GetEdge(*this, i);
-            m_normals.emplace_back(GetUnitVector(GetFwdPerpendicular(edge)));
+            m_normals.push_back(GetUnitVector(GetFwdPerpendicular(edge)));
         }
     }
     else if (count == 1) {
-        m_normals.emplace_back(UnitVec{});
+        m_normals.emplace_back();
     }
 
     // Compute the polygon centroid.
@@ -187,13 +181,13 @@ Length2 GetEdge(const PolygonShapeConf& shape, VertexCounter index)
     return shape.GetVertex(i1) - shape.GetVertex(i0);
 }
 
-bool Validate(Span<const Length2> verts)
+bool Validate(const Span<const Length2>& verts)
 {
     const auto count = size(verts);
     for (auto i = decltype(count){0}; i < count; ++i) {
         const auto i1 = i;
         const auto i2 = GetModuloNext(i1, count);
-        const auto p = verts[i1];
+        const auto& p = verts[i1];
         const auto e = verts[i2] - p;
         for (auto j = decltype(count){0}; j < count; ++j) {
             if ((j == i1) || (j == i2)) {

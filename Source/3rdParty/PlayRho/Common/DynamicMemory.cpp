@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -29,7 +29,7 @@ namespace playrho {
     void* Alloc(std::size_t size)
     {
         if (size) {
-            const auto memory = std::malloc(size);
+            const auto memory = std::malloc(size); // NOLINT(cppcoreguidelines-no-malloc,cppcoreguidelines-owning-memory)
             if (!memory) {
                 throw std::bad_alloc{};
             }
@@ -41,7 +41,7 @@ namespace playrho {
     void* Realloc(void* ptr, std::size_t size)
     {
         if (size) {
-            const auto memory = std::realloc(ptr, size);
+            const auto memory = std::realloc(ptr, size); // NOLINT(cppcoreguidelines-no-malloc,cppcoreguidelines-owning-memory)
              if (!memory) {
                  throw std::bad_alloc{};
              }
@@ -53,7 +53,7 @@ namespace playrho {
     
     void Free(void* mem)
     {
-        std::free(mem);
+        std::free(mem); // NOLINT(cppcoreguidelines-no-malloc,cppcoreguidelines-owning-memory)
     }
 
 } // namespace playrho
