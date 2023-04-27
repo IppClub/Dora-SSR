@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -58,20 +58,21 @@ static_assert(std::is_nothrow_destructible<DistanceJointConf>::value,
 // K = J * invM * JT
 //   = invMass1 + invI1 * cross(r1, u)^2 + invMass2 + invI2 * cross(r2, u)^2
 
-DistanceJointConf::DistanceJointConf(BodyID bA, BodyID bB, Length2 laA, Length2 laB,
+DistanceJointConf::DistanceJointConf(BodyID bA, BodyID bB, // force line-break
+                                     const Length2& laA, const Length2& laB, // force line-break
                                      Length l) noexcept
     : super{super{}.UseBodyA(bA).UseBodyB(bB)}, localAnchorA{laA}, localAnchorB{laB}, length{l}
 {
     // Intentionally empty.
 }
 
-DistanceJointConf GetDistanceJointConf(const Joint& joint) noexcept
+DistanceJointConf GetDistanceJointConf(const Joint& joint)
 {
     return TypeCast<DistanceJointConf>(joint);
 }
 
-DistanceJointConf GetDistanceJointConf(const World& world, BodyID bodyA, BodyID bodyB,
-                                       Length2 anchorA, Length2 anchorB)
+DistanceJointConf GetDistanceJointConf(const World& world, BodyID bodyA, BodyID bodyB, // force line-break
+                                       const Length2& anchorA, const Length2& anchorB)
 {
     return DistanceJointConf{bodyA, bodyB, GetLocalPoint(world, bodyA, anchorA),
                              GetLocalPoint(world, bodyB, anchorB), GetMagnitude(anchorB - anchorA)};
@@ -80,6 +81,10 @@ DistanceJointConf GetDistanceJointConf(const World& world, BodyID bodyA, BodyID 
 void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf&)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -110,7 +115,7 @@ void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies
     const auto invRotMassB = InvMass{invRotInertiaB * Square(crBu)};
     auto invMass = invMassA + invRotMassA + invMassB + invRotMassB;
 
-    object.mass = (invMass != InvMass{0}) ? Real{1} / invMass : 0_kg;
+    object.mass = (invMass != InvMass{}) ? Real{1} / invMass : 0_kg;
 
     if (object.frequency > 0_Hz) {
         const auto C = length - object.length; // L
@@ -127,14 +132,14 @@ void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies
         // magic formulas
         const auto h = step.deltaTime;
         const auto gamma = Mass{h * (d + h * k)}; // T (M T^-1 + T M T^-2) = M
-        object.invGamma = (gamma != 0_kg) ? Real{1} / gamma : 0;
+        object.invGamma = (gamma != 0_kg) ? Real{1} / gamma : InvMass{};
         object.bias = C * h * k * object.invGamma; // L T M T^-2 M^-1 = L T^-1
 
         invMass += object.invGamma;
-        object.mass = (invMass != InvMass{0}) ? Real{1} / invMass : 0;
+        object.mass = (invMass != InvMass{}) ? Real{1} / invMass : 0_kg;
     }
     else {
-        object.invGamma = InvMass{0};
+        object.invGamma = InvMass{};
         object.bias = 0_mps;
     }
 
@@ -154,7 +159,7 @@ void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies
         velB += Velocity{invMassB * P, invRotInertiaB * LB};
     }
     else {
-        object.impulse = 0;
+        object.impulse = 0_Ns;
     }
 
     bodyConstraintA.SetVelocity(velA);
@@ -163,6 +168,10 @@ void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies
 
 bool SolveVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf&)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return true;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -194,13 +203,17 @@ bool SolveVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodie
 bool SolvePosition(const DistanceJointConf& object, std::vector<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
-    if (object.frequency > 0_Hz) {
-        // There is no position correction for soft distance constraints.
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
         return true;
     }
 
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
+
+    if (object.frequency > 0_Hz) {
+        // There is no position correction for soft distance constraints.
+        return true;
+    }
 
     auto posA = bodyConstraintA.GetPosition();
     auto posB = bodyConstraintB.GetPosition();

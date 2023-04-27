@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2007-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -84,7 +84,7 @@ GearJointConf::GearJointConf(BodyID bA, BodyID bB, BodyID bC, BodyID bD) noexcep
     // Intentionally empty.
 }
 
-GearJointConf GetGearJointConf(const Joint& joint) noexcept
+GearJointConf GetGearJointConf(const Joint& joint)
 {
     return TypeCast<GearJointConf>(joint);
 }
@@ -171,10 +171,11 @@ GearJointConf GetGearJointConf(const World& world, JointID id1, JointID id2, Rea
 void InitVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf&)
 {
-    if (object.bodyA == InvalidBodyID || object.bodyB == InvalidBodyID || //
-        object.bodyC == InvalidBodyID || object.bodyD == InvalidBodyID) {
+    if ((object.bodyA == InvalidBodyID) || (object.bodyB == InvalidBodyID) || //
+        (object.bodyC == InvalidBodyID) || (object.bodyD == InvalidBodyID)) {
         return;
     }
+
     auto& bodyConstraintA = At(bodies, object.bodyA);
     auto& bodyConstraintB = At(bodies, object.bodyB);
     auto& bodyConstraintC = At(bodies, object.bodyC);
@@ -263,10 +264,11 @@ void InitVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies, co
 
 bool SolveVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf&)
 {
-    if (object.bodyA == InvalidBodyID || object.bodyB == InvalidBodyID || //
-        object.bodyC == InvalidBodyID || object.bodyD == InvalidBodyID) {
+    if ((object.bodyA == InvalidBodyID) || (object.bodyB == InvalidBodyID) || //
+        (object.bodyC == InvalidBodyID) || (object.bodyD == InvalidBodyID)) {
         return true;
     }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
     auto& bodyConstraintC = At(bodies, object.bodyC);
@@ -300,12 +302,11 @@ bool SolveVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies, c
 bool SolvePosition(const GearJointConf& object, std::vector<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
-    // return true;
-    if (object.bodyA == InvalidBodyID || object.bodyB == InvalidBodyID || //
-        object.bodyC == InvalidBodyID || object.bodyD == InvalidBodyID || //
-        !isfinite(object.constant)) {
+    if ((object.bodyA == InvalidBodyID) || (object.bodyB == InvalidBodyID) || //
+        (object.bodyC == InvalidBodyID) || (object.bodyD == InvalidBodyID)) {
         return true;
     }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
     auto& bodyConstraintC = At(bodies, object.bodyC);
@@ -314,6 +315,10 @@ bool SolvePosition(const GearJointConf& object, std::vector<BodyConstraint>& bod
     auto posB = bodyConstraintB.GetPosition();
     auto posC = bodyConstraintC.GetPosition();
     auto posD = bodyConstraintD.GetPosition();
+
+    if (!isfinite(object.constant)) {
+        return true;
+    }
 
     auto JvAC = Vec2{};
     auto JvBD = Vec2{};

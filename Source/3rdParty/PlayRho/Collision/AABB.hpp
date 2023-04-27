@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -425,7 +425,7 @@ AABB ComputeAABB(const DistanceProxy& proxy, const Transformation& xfm0,
 
 /// @brief Computes the AABB for the given shape with the given transformation.
 /// @relatedalso Shape
-AABB ComputeAABB(const Shape& shape, const Transformation& xf) noexcept;
+AABB ComputeAABB(const Shape& shape, const Transformation& xf);
 
 /// @brief Computes the AABB for the identified shape relative to the identified body
 ///   within the given world.
@@ -442,7 +442,7 @@ AABB ComputeAABB(const World& world, BodyID id);
 ///   shape B of body B.
 /// @relatedalso World
 AABB ComputeIntersectingAABB(const World& world, BodyID bA, ShapeID sA, ChildCounter iA, BodyID bB,
-                             ShapeID sB, ChildCounter iB) noexcept;
+                             ShapeID sB, ChildCounter iB);
 
 /// @brief Computes the intersecting AABB for the given contact.
 /// @relatedalso World

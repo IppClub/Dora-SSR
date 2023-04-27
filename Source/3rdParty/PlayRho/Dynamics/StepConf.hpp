@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -29,6 +29,8 @@
 #include "PlayRho/Common/NonNegative.hpp"
 #include "PlayRho/Common/Positive.hpp"
 
+#include <type_traits> // for std::is_default_constructible_v
+
 namespace playrho {
 
 /// @brief Step configuration.
@@ -48,6 +50,108 @@ struct StepConf {
     /// @brief Invalid iteration value.
     static constexpr auto InvalidIteration = static_cast<iteration_type>(-1);
 
+    /// @brief Default step time.
+    static constexpr auto DefaultStepTime = Time{playrho::DefaultStepTime};
+
+    /// @brief Default delta time ratio.
+    static constexpr auto DefaultDtRatio = Real{1};
+
+    /// @brief Default min still time to sleep.
+    static constexpr auto DefaultMinStillTimeToSleep = Time{playrho::DefaultMinStillTimeToSleep};
+
+    /// @brief Default linear slop.
+    static constexpr auto DefaultLinearSlop = Positive<Length>{playrho::DefaultLinearSlop};
+
+    /// @brief Default angular slop.
+    static constexpr auto DefaultAngularSlop = Positive<Angle>{playrho::DefaultAngularSlop};
+
+    /// @brief Default regular resolution rate.
+    static constexpr auto DefaultRegResolutionRate = Real{2} / 10; // aka 0.2.;
+
+    /// @brief Default regular min separation.
+    static constexpr auto DefaultRegMinSeparation = -playrho::DefaultLinearSlop * Real{3};
+
+    /// @brief Default regular min momentum.
+    static constexpr auto DefaultRegMinMomentum = Momentum{playrho::DefaultRegMinMomentum};
+
+    /// @brief Default time of impact (TOI) resolution rate.
+    static constexpr auto DefaultToiResolutionRate = Real{75} / 100; // aka .75
+
+    /// @brief Default time of impact (TOI) min separation.
+    static constexpr auto DefaultToiMinSeparation = -playrho::DefaultLinearSlop * Real(1.5f);
+
+    /// @brief Default time of impact (TOI) min momemtum.
+    static constexpr auto DefaultToiMinMomentum = Momentum{playrho::DefaultToiMinMomentum};
+
+    /// @brief Default target depth.
+    static constexpr auto DefaultTargetDepth = DefaultLinearSlop * Real{3};
+
+    /// @brief Default tolerance.
+    static constexpr auto DefaultTolerance = NonNegative<Length>{DefaultLinearSlop / Real{4}};
+
+    /// @brief Default velocity threshold.
+    static constexpr auto DefaultVelocityThreshold = LinearVelocity{playrho::DefaultVelocityThreshold};
+
+    /// @brief Default max translation.
+    static constexpr auto DefaultMaxTranslation = Length{playrho::DefaultMaxTranslation};
+
+    /// @brief Default max rotation.
+    static constexpr auto DefaultMaxRotation = Angle{playrho::DefaultMaxRotation};
+
+    /// @brief Default max linear correction.
+    static constexpr auto DefaultMaxLinearCorrection = Length{playrho::DefaultMaxLinearCorrection};
+
+    /// @brief Default max angular correction.
+    static constexpr auto DefaultMaxAngularCorrection = Angle{playrho::DefaultMaxAngularCorrection};
+
+    /// @brief Default linear sleep tolerance.
+    static constexpr auto DefaultLinearSleepTolerance = LinearVelocity{playrho::DefaultLinearSleepTolerance};
+
+    /// @brief Default angular sleep tolerance.
+    static constexpr auto DefaultAngularSleepTolerance = AngularVelocity{playrho::DefaultAngularSleepTolerance};
+
+    /// @brief Default distance multiplier.
+    static constexpr auto DefaultDistanceMultiplier = Real{playrho::DefaultDistanceMultiplier};
+
+    /// @brief Default abstract aligned bounding box (AABB) extension.
+    static constexpr auto DefaultAabbExtension = Length{playrho::DefaultAabbExtension};
+
+    /// @brief Default curcles ratio.
+    static constexpr auto DefaultCirclesRatio = Real{playrho::DefaultCirclesRatio};
+
+    /// @brief Default regular velocity iterations.
+    static constexpr auto DefaultRegVelocityIters = iteration_type{8};
+
+    /// @brief Default regular position iterations.
+    static constexpr auto DefaultRegPositionIters = iteration_type{3};
+
+    /// @brief Default time of impact velocity iterations.
+    static constexpr auto DefaultToiVelocityIters = iteration_type{8};
+
+    /// @brief Default time of impact position iterations.
+    static constexpr auto DefaultToiPositionIters = iteration_type{20};
+
+    /// @brief Default max time of impact root iterations.
+    static constexpr auto DefaultMaxToiRootIters = iteration_type{playrho::DefaultMaxToiRootIters};
+
+    /// @brief Default max time of impact iterations.
+    static constexpr auto DefaultMaxToiIters = iteration_type{playrho::DefaultMaxToiIters};
+
+    /// @brief Default max distance iterations.
+    static constexpr auto DefaultMaxDistanceIters = iteration_type{playrho::DefaultMaxDistanceIters};
+
+    /// @brief Default max sub-steps value.
+    static constexpr auto DefaultMaxSubSteps = iteration_type{playrho::DefaultMaxSubSteps};
+
+    /// @brief Default do warm start processing.
+    static constexpr auto DefaultDoWarmStart = true;
+
+    /// @brief Default do time of impact (TOI) processing.
+    static constexpr auto DefaultDoToi = true;
+
+    /// @brief Default do block-solve processing value .
+    static constexpr auto DefaultDoBlocksolve = true;
+
     /// @brief Delta time.
     /// @details This is the time step in seconds.
     Time deltaTime = DefaultStepTime;
@@ -56,7 +160,7 @@ struct StepConf {
     /// @details This is the delta-time multiplied by the inverse delta time from the previous
     ///    world step. The value of 1 indicates that the time step has not varied.
     /// @note Used in the regular phase processing of the step.
-    Real dtRatio = 1;
+    Real dtRatio = DefaultDtRatio;
 
     /// @brief Minimum still time to sleep.
     /// @details The time that a body must be still before it will be put to sleep.
@@ -82,7 +186,7 @@ struct StepConf {
     /// However using values close to 1 often lead to overshoot.
     /// @note Must be greater than 0 for any regular-phase positional resolution to get done.
     /// @note Used in the regular phase of step processing.
-    Real regResolutionRate = Real{2} / 10; // aka 0.2.
+    Real regResolutionRate = DefaultRegResolutionRate;
 
     /// @brief Regular minimum separation.
     /// @details
@@ -91,7 +195,7 @@ struct StepConf {
     /// of the regular position iterations have been done.
     /// @note Used in the regular phase of step processing.
     /// @see regPositionIterations.
-    Length regMinSeparation = -DefaultLinearSlop * Real{3};
+    Length regMinSeparation = DefaultRegMinSeparation;
 
     /// @brief Regular-phase minimum momentum.
     Momentum regMinMomentum = DefaultRegMinMomentum;
@@ -103,7 +207,7 @@ struct StepConf {
     /// However using values close to 1 often lead to overshoot.
     /// @note Used in the TOI phase of step processing.
     /// @note Must be greater than 0 for any TOI-phase positional resolution to get done.
-    Real toiResolutionRate = Real{75} / 100; // aka .75
+    Real toiResolutionRate = DefaultToiResolutionRate;
 
     /// @brief Time of impact minimum separation.
     /// @details
@@ -112,7 +216,7 @@ struct StepConf {
     /// of the TOI position iterations have been done.
     /// @note Used in the TOI phase of step processing.
     /// @see toiPositionIterations.
-    Length toiMinSeparation = -DefaultLinearSlop * Real(1.5f);
+    Length toiMinSeparation = DefaultToiMinSeparation;
 
     /// @brief TOI-phase minimum momentum.
     Momentum toiMinMomentum = DefaultToiMinMomentum;
@@ -121,7 +225,7 @@ struct StepConf {
     /// @details Target depth of overlap for calculating the TOI for CCD eligible bodies.
     /// @note Recommend value that's less than twice the world's minimum vertex radius.
     /// @note Used in the TOI phase of step processing.
-    Length targetDepth = DefaultLinearSlop * Real{3};
+    Length targetDepth = DefaultTargetDepth;
 
     /// @brief Tolerance.
     /// @details The acceptable plus or minus tolerance from the target depth for TOI calculations.
@@ -129,7 +233,7 @@ struct StepConf {
     /// @note Must not be subnormal.
     /// @note Must be less than the target depth.
     /// @note Used in the TOI phase of step processing.
-    NonNegative<Length> tolerance = DefaultLinearSlop / Real{4};
+    NonNegative<Length> tolerance = DefaultTolerance;
 
     /// @brief Velocity threshold.
     /// @details A velocity threshold for elastic collisions. Any collision with a relative linear
@@ -215,7 +319,7 @@ struct StepConf {
     /// @brief Regular velocity iterations.
     /// @details The number of iterations of velocity resolution that will be done in the step.
     /// @note Used in the regular phase of step processing.
-    iteration_type regVelocityIters = 8;
+    iteration_type regVelocityIters = DefaultRegVelocityIters;
 
     /// @brief Regular position iterations.
     /// @details
@@ -225,13 +329,13 @@ struct StepConf {
     /// or equal to the regular minimum separation amount.
     /// @note Used in the regular phase of step processing.
     /// @see regMinSeparation.
-    iteration_type regPositionIters = 3;
+    iteration_type regPositionIters = DefaultRegPositionIters;
 
     /// @brief TOI velocity iterations.
     /// @details
     /// This is the number of iterations of velocity resolution that will be done in the step.
     /// @note Used in the TOI phase of step processing.
-    iteration_type toiVelocityIters = 8;
+    iteration_type toiVelocityIters = DefaultToiVelocityIters;
 
     /// @brief TOI position iterations.
     /// @details
@@ -241,7 +345,7 @@ struct StepConf {
     /// or equal to the TOI minimum separation amount.
     /// @note Used in the TOI phase of step processing.
     /// @see toiMinSeparation.
-    iteration_type toiPositionIters = 20;
+    iteration_type toiPositionIters = DefaultToiPositionIters;
 
     /// @brief Max TOI root finder iterations.
     /// @note Used in the TOI phase of step processing.
@@ -266,7 +370,7 @@ struct StepConf {
     /// @brief Do warm start.
     /// @details Whether or not to perform warm starting (in the regular phase).
     /// @note Used in the regular phase of step processing.
-    bool doWarmStart = true;
+    bool doWarmStart = DefaultDoWarmStart;
 
     /// @brief Do time of impact (TOI) calculations.
     /// @details Whether or not to perform any time of impact (TOI) calculations used for doing
@@ -275,11 +379,15 @@ struct StepConf {
     ///   (a process called "tunneling") even when they're not supposed to be able to go through
     ///   them.
     /// @note Used in the TOI phase of step processing.
-    bool doToi = true;
+    bool doToi = DefaultDoToi;
 
     /// @brief Do the block-solve algorithm.
-    bool doBlocksolve = true;
+    bool doBlocksolve = DefaultDoBlocksolve;
 };
+
+// Basic requirements...
+static_assert(std::is_default_constructible_v<StepConf>);
+static_assert(std::is_copy_constructible_v<StepConf>);
 
 /// @brief Gets the maximum regular linear correction from the given value.
 /// @relatedalso StepConf

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -44,11 +44,8 @@ public:
     /// @brief Default constructor.
     Sweep() = default;
 
-    /// @brief Copy constructor.
-    constexpr Sweep(const Sweep& copy) = default;
-
     /// @brief Initializing constructor.
-    constexpr Sweep(const Position p0, const Position p1, const Length2 lc = Length2{0_m, 0_m},
+    constexpr Sweep(const Position& p0, const Position& p1, const Length2& lc = Length2{0_m, 0_m},
                     Real a0 = 0) noexcept
         : pos0{p0}, pos1{p1}, localCenter{lc}, alpha0{a0}
     {
@@ -57,7 +54,7 @@ public:
     }
 
     /// @brief Initializing constructor.
-    constexpr explicit Sweep(const Position p, const Length2 lc = Length2{0_m, 0_m})
+    constexpr explicit Sweep(const Position& p, const Length2& lc = Length2{0_m, 0_m})
         : Sweep{p, p, lc, 0}
     {
         // Intentionally empty.
@@ -97,10 +94,10 @@ public:
     }
 
     /// @brief Center world position and world angle at time "0".
-    Position pos0;
+    Position pos0{};
 
     /// @brief Center world position and world angle at time "1".
-    Position pos1;
+    Position pos1{};
 
 private:
     /// @brief Local center of mass position.
@@ -135,7 +132,7 @@ constexpr bool operator!=(const Sweep& lhs, const Sweep& rhs)
 
 /// @brief Convenience function for setting the sweep's local center.
 /// @relatedalso Sweep
-inline void SetLocalCenter(Sweep& sweep, Length2 value) noexcept
+inline void SetLocalCenter(Sweep& sweep, const Length2& value) noexcept
 {
     sweep = Sweep{sweep.pos0, sweep.pos1, value, sweep.GetAlpha0()};
 }

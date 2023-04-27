@@ -2346,12 +2346,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Acceleration.hpp">
       <Filter>3rdParty\PlayRho\Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\AllocatedArray.hpp">
-      <Filter>3rdParty\PlayRho\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\ArrayAllocator.hpp">
-      <Filter>3rdParty\PlayRho\Common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\ArrayList.hpp">
       <Filter>3rdParty\PlayRho\Common</Filter>
     </ClInclude>
@@ -2990,6 +2984,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Http\HttpServer.h">
       <Filter>Http</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\ObjectPool.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

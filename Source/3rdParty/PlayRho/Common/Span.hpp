@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -56,9 +56,6 @@ public:
     using size_type = std::size_t;
 
     Span() = default;
-
-    /// @brief Copy constructor.
-    Span(const Span& copy) = default;
 
     /// @brief Initializing constructor.
     constexpr Span(pointer array, size_type size) noexcept : m_array{array}, m_size{size} {}

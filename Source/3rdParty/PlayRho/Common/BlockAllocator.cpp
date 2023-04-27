@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -26,11 +26,6 @@
 #include <cstddef>
 
 namespace playrho {
-
-static_assert(size(BlockAllocator::AllocatorBlockSizes) == 14,
-              "Invalid number of elements of AllocatorBlockSizes");
-static_assert(BlockAllocator::GetMaxBlockSize() == 640,
-              "Invalid maximum block size of AllocatorBlockSizes");
 
 namespace {
 
@@ -115,7 +110,6 @@ BlockAllocator::BlockAllocator():
     static_assert(size(AllocatorBlockSizes) < std::numeric_limits<std::uint8_t>::max(),
                   "AllocatorBlockSizes too big");
     std::memset(m_chunks, 0, m_chunkSpace * sizeof(Chunk));
-    std::memset(m_freeLists, 0, sizeof(m_freeLists));
 }
 
 BlockAllocator::~BlockAllocator() noexcept
@@ -224,14 +218,12 @@ void BlockAllocator::Free(void* p, size_type n)
 
 void BlockAllocator::Clear()
 {
-    for (auto i = decltype(m_chunkCount){0}; i < m_chunkCount; ++i)
-    {
+    for (auto i = decltype(m_chunkCount){0}; i < m_chunkCount; ++i) {
         playrho::Free(m_chunks[i].blocks);
     }
-
     m_chunkCount = 0;
     std::memset(m_chunks, 0, m_chunkSpace * sizeof(Chunk));
-    std::memset(m_freeLists, 0, sizeof(m_freeLists));
+    std::memset(data(m_freeLists), 0, sizeof(m_freeLists));
 }
 
 } // namespace playrho

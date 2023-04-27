@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -31,6 +31,25 @@ struct StepConf;
 /// @details Defines how a constraint solver should resolve a given constraint.
 /// @see SolvePositionConstraint.
 struct ConstraintSolverConf {
+
+    /// @brief Default regular resolution rate.
+    static constexpr auto DefaultRegResolutionRate = Real(0.2);
+
+    /// @brief Default time of impact (TOI) resolution rate.
+    static constexpr auto DefaultToiResolutionRate = Real(0.75);
+
+    /// @brief Default linear slop.
+    static constexpr auto DefaultLinearSlop = ::playrho::DefaultLinearSlop;
+
+    /// @brief Default angular slop.
+    static constexpr auto DefaultAngularSlop = ::playrho::DefaultAngularSlop;
+
+    /// @brief Default max linear correction.
+    static constexpr auto DefaultMaxLinearCorrection = DefaultLinearSlop * Real{20};
+
+    /// @brief Default max angular correction.
+    static constexpr auto DefaultMaxAngularCorrection = DefaultAngularSlop * Real{4};
+
     /// @brief Uses the given resolution rate.
     constexpr ConstraintSolverConf& UseResolutionRate(Real value) noexcept
     {
@@ -74,7 +93,7 @@ struct ConstraintSolverConf {
     /// However using values close to 1 often leads to overshoot.
     /// @note Recommended values are: <code>0.2</code> for solving regular constraints
     ///   or <code>0.75</code> for solving TOI constraints.
-    Real resolutionRate = Real(0.2);
+    Real resolutionRate = DefaultRegResolutionRate;
 
     /// Linear slop.
     /// @note The negative of this amount is the maximum amount of separation to create.
@@ -89,26 +108,26 @@ struct ConstraintSolverConf {
     /// @details
     /// Maximum amount of overlap to resolve in a single solver call. Helps prevent overshoot.
     /// @note Recommended value: <code>linearSlop * 40</code>.
-    Length maxLinearCorrection = DefaultLinearSlop * Real{20};
+    Length maxLinearCorrection = DefaultMaxLinearCorrection;
 
     /// Maximum angular correction.
     /// @details Maximum angular position correction used when solving constraints.
     /// Helps to prevent overshoot.
     /// @note Recommended value: <code>angularSlop * 4</code>.
-    Angle maxAngularCorrection = DefaultAngularSlop * Real{4};
+    Angle maxAngularCorrection = DefaultMaxAngularCorrection;
 };
 
 /// @brief Gets the default position solver configuration.
 constexpr ConstraintSolverConf GetDefaultPositionSolverConf() noexcept
 {
-    return ConstraintSolverConf{}.UseResolutionRate(Real(0.2));
+    return ConstraintSolverConf{}.UseResolutionRate(ConstraintSolverConf::DefaultRegResolutionRate);
 }
 
 /// @brief Gets the default TOI position solver configuration.
 constexpr ConstraintSolverConf GetDefaultToiPositionSolverConf() noexcept
 {
     // For solving TOI events, use a faster/higher resolution rate than normally used.
-    return ConstraintSolverConf{}.UseResolutionRate(Real(0.75));
+    return ConstraintSolverConf{}.UseResolutionRate(ConstraintSolverConf::DefaultToiResolutionRate);
 }
 
 /// @brief Gets the regular phase constraint solver configuration for the given step configuration.

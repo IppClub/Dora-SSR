@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -52,12 +52,12 @@ struct Discriminator : Base {
 /// @note This class is not intended for standalone use.
 /// @see Compositor.
 template <class Set1, class Set2, class Set3, class Set4, class Set5, class Set6>
-struct PolicySelector : Discriminator<Set1, 1>, //
-                        Discriminator<Set2, 2>, //
-                        Discriminator<Set3, 3>, //
-                        Discriminator<Set4, 4>, //
-                        Discriminator<Set5, 5>, //
-                        Discriminator<Set6, 6> //
+struct PolicySelector : Discriminator<Set1, 1>, // NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+                        Discriminator<Set2, 2>, // NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+                        Discriminator<Set3, 3>, // NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+                        Discriminator<Set4, 4>, // NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+                        Discriminator<Set5, 5>, // NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+                        Discriminator<Set6, 6>  // NOLINT(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
 {
 };
 
@@ -217,7 +217,7 @@ public:
     DynamicRectangle() = default;
 
     /// @brief Initializing constructor.
-    DynamicRectangle(Length width, Length height, Length2 offset = Length2{})
+    DynamicRectangle(Length width, Length height, const Length2& offset = Length2{})
         : vertices{Length2{+width / 2, -height / 2} + offset, //
                    Length2{+width / 2, +height / 2} + offset, //
                    Length2{-width / 2, +height / 2} + offset, //
@@ -236,7 +236,7 @@ public:
 
     /// @brief Sets the dimensions of this rectangle.
     /// @see GetDimensions.
-    void SetDimensions(Length2 val)
+    void SetDimensions(const Length2& val)
     {
         const auto offset = GetOffset();
         vertices = {Length2{+GetX(val) / 2, -GetY(val) / 2} + offset, //
@@ -255,7 +255,7 @@ public:
 
     /// @brief Sets the x and y offset of this rectangle.
     /// @see GetOffset.
-    void SetOffset(Length2 val)
+    void SetOffset(const Length2& val)
     {
         const auto dims = GetDimensions();
         vertices = {Length2{+GetX(dims) / 2, -GetY(dims) / 2} + val, //
@@ -315,13 +315,13 @@ public:
     }
 
     /// @brief Translates the vertices of this geometry.
-    void Translate(Length2 value)
+    void Translate(const Length2& value)
     {
         SetOffset(GetOffset() + value);
     }
 
     /// @brief Scales the vertices of this geometry.
-    void Scale(Vec2 value)
+    void Scale(const Vec2& value)
     {
         const auto dims = GetDimensions();
         SetDimensions(Length2{GetX(dims) * GetX(value), GetY(dims) * GetY(value)});
@@ -412,8 +412,9 @@ struct DynamicAreaDensity {
 /// <code>Compositor</code> host class template.
 /// @note This class is not intended for standalone use.
 /// @see DynamicFilter, Compositor.
-template <Filter::bits_type CategoryBits = 1, Filter::bits_type MaskBits = 0xFFFF,
-          Filter::index_type GroupIndex = 0>
+template <Filter::bits_type CategoryBits = Filter::DefaultCategoryBits, //
+          Filter::bits_type MaskBits = Filter::DefaultMaskBits, //
+          Filter::index_type GroupIndex = Filter::DefaultGroupIndex>
 struct StaticFilter {
     /// @brief The filter of the shape.
     static inline const auto filter = Filter{CategoryBits, MaskBits, GroupIndex};
@@ -424,8 +425,9 @@ struct StaticFilter {
 /// <code>Compositor</code> host class template.
 /// @note This class is not intended for standalone use.
 /// @see StaticFilter, Compositor.
-template <Filter::bits_type CategoryBits = 1, Filter::bits_type MaskBits = 0xFFFF,
-          Filter::index_type GroupIndex = 0>
+template <Filter::bits_type CategoryBits = Filter::DefaultCategoryBits, //
+          Filter::bits_type MaskBits = Filter::DefaultMaskBits, //
+          Filter::index_type GroupIndex = Filter::DefaultGroupIndex>
 struct DynamicFilter {
     /// @brief The filter of the shape.
     Filter filter = Filter{CategoryBits, MaskBits, GroupIndex};

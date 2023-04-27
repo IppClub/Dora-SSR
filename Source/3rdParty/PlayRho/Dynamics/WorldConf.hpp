@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -24,13 +24,28 @@
 /// @file
 /// Declarations of the WorldConf class.
 
-#include "PlayRho/Common/Positive.hpp"
+#include "PlayRho/Common/Settings.hpp"
 
 namespace playrho {
 namespace d2 {
 
 /// @brief World configuration data.
 struct WorldConf {
+    /// @brief Default min vertex radius.
+    static constexpr auto DefaultMinVertexRadius = ::playrho::DefaultMinVertexRadius;
+
+    /// @brief Default max vertex radius.
+    static constexpr auto DefaultMaxVertexRadius = ::playrho::DefaultMaxVertexRadius;
+
+    /// @brief Default tree capacity.
+    static constexpr auto DefaultTreeCapacity = ContactCounter(4096u);
+
+    /// @brief Default contact capacity.
+    static constexpr auto DefaultContactCapacity = ContactCounter(2048u);
+
+    /// @brief Default initial proxy capacity.
+    static constexpr auto DefaultProxyCapacity = ContactCounter(1024);
+
     /// @brief Uses the given min vertex radius value.
     constexpr WorldConf& UseMinVertexRadius(Positive<Length> value) noexcept;
 
@@ -42,6 +57,9 @@ struct WorldConf {
 
     /// @brief Uses the given value as the initial contact capacity.
     constexpr WorldConf& UseContactCapacity(ContactCounter value) noexcept;
+
+    /// @brief Uses the given value as the initial proxy capacity.
+    constexpr WorldConf& UseProxyCapacity(ContactCounter value) noexcept;
 
     /// @brief Minimum vertex radius.
     /// @details This is the minimum vertex radius that this world establishes which bodies
@@ -63,10 +81,13 @@ struct WorldConf {
     Positive<Length> maxVertexRadius = DefaultMaxVertexRadius;
 
     /// @brief Initial tree size.
-    ContactCounter treeCapacity = 4096u;
+    ContactCounter treeCapacity = DefaultTreeCapacity;
 
     /// @brief Initial contact capacity.
-    ContactCounter contactCapacity = 2048u;
+    ContactCounter contactCapacity = DefaultContactCapacity;
+
+    /// @brief Initial proxy capacity.
+    ContactCounter proxyCapacity = DefaultProxyCapacity;
 };
 
 constexpr WorldConf& WorldConf::UseMinVertexRadius(Positive<Length> value) noexcept
@@ -90,6 +111,12 @@ constexpr WorldConf& WorldConf::UseTreeCapacity(ContactCounter value) noexcept
 constexpr WorldConf& WorldConf::UseContactCapacity(ContactCounter value) noexcept
 {
     contactCapacity = value;
+    return *this;
+}
+
+constexpr WorldConf& WorldConf::UseProxyCapacity(ContactCounter value) noexcept
+{
+    proxyCapacity = value;
     return *this;
 }
 

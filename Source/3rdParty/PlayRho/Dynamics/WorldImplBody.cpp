@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -58,7 +58,7 @@ void Destroy(WorldImpl& world, BodyID id)
     world.Destroy(id);
 }
 
-std::vector<std::pair<BodyID, JointID>> GetJoints(const WorldImpl& world, BodyID id)
+const std::vector<std::pair<BodyID, JointID>>& GetJoints(const WorldImpl& world, BodyID id)
 {
     return world.GetJoints(id);
 }
@@ -80,12 +80,12 @@ bool Detach(WorldImpl& world, BodyID id, ShapeID shapeID)
     return false;
 }
 
-std::vector<ShapeID> GetShapes(const WorldImpl& world, BodyID id)
+const std::vector<ShapeID>& GetShapes(const WorldImpl& world, BodyID id)
 {
     return world.GetBody(id).GetShapes();
 }
 
-std::vector<KeyedContactPtr> GetContacts(const WorldImpl& world, BodyID id)
+const std::vector<KeyedContactPtr>& GetContacts(const WorldImpl& world, BodyID id)
 {
     return world.GetContacts(id);
 }

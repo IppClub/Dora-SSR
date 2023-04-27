@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -53,17 +53,23 @@ struct WeldJointConf : public JointBuilder<WeldJointConf> {
     using super = JointBuilder<WeldJointConf>;
 
     /// @brief Default constructor.
-    constexpr WeldJointConf() = default;
+    constexpr WeldJointConf() noexcept = default;
 
     /// @brief Initializing constructor.
     /// @details Initializes the bodies, anchors, and reference angle using a world
     ///   anchor point.
-    /// @param bodyA Identifier of body A.
+    /// @param bA Identifier of body A.
+    /// @param bB Identifier of body B.
     /// @param laA Local anchor A location in world coordinates.
-    /// @param bodyB Identifier of body B.
     /// @param laB Local anchor B location in world coordinates.
     /// @param ra Reference angle.
-    WeldJointConf(BodyID bodyA, BodyID bodyB, Length2 laA = Length2{}, Length2 laB = Length2{},
+    /// @post <code>bodyA</code> will have the value of <code>bA</code>.
+    /// @post <code>bodyB</code> will have the value of <code>bB</code>.
+    /// @post <code>localAnchorA</code> will have the value of <code>laA</code>.
+    /// @post <code>localAnchorB</code> will have the value of <code>laB</code>.
+    /// @post <code>referenceAngle</code> will have the value of <code>ra</code>.
+    WeldJointConf(BodyID bA, BodyID bB, // force line-break
+                  const Length2& laA = Length2{}, const Length2& laB = Length2{},
                   Angle ra = 0_deg) noexcept;
 
     /// @brief Uses the given frequency value.
@@ -130,13 +136,14 @@ constexpr bool operator!=(const WeldJointConf& lhs, const WeldJointConf& rhs) no
 }
 
 /// @brief Gets the definition data for the given joint.
+/// @throws std::bad_cast If the given joint's type is inappropriate for getting this value.
 /// @relatedalso Joint
 WeldJointConf GetWeldJointConf(const Joint& joint);
 
 /// @brief Gets the configuration for the given parameters.
 /// @relatedalso World
 WeldJointConf GetWeldJointConf(const World& world, BodyID bodyA, BodyID bodyB,
-                               const Length2 anchor = Length2{});
+                               const Length2& anchor = Length2{});
 
 /// @brief Gets the current linear reaction of the given configuration.
 /// @relatedalso WeldJointConf
@@ -155,13 +162,20 @@ constexpr AngularMomentum GetAngularReaction(const WeldJointConf& object) noexce
 
 /// @brief Shifts the origin notion of the given configuration.
 /// @relatedalso WeldJointConf
-constexpr auto ShiftOrigin(WeldJointConf&, Length2) noexcept
+constexpr auto ShiftOrigin(WeldJointConf&, const Length2&) noexcept
 {
     return false;
 }
 
 /// @brief Initializes velocity constraint data based on the given solver data.
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso WeldJointConf
 void InitVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
@@ -169,6 +183,12 @@ void InitVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies, co
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso WeldJointConf
@@ -176,6 +196,12 @@ bool SolveVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso WeldJointConf
 bool SolvePosition(const WeldJointConf& object, std::vector<BodyConstraint>& bodies,

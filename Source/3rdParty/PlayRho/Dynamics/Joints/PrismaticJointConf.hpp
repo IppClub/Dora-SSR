@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -59,16 +59,14 @@ struct PrismaticJointConf : public JointBuilder<PrismaticJointConf> {
     using super = JointBuilder<PrismaticJointConf>;
 
     /// @brief Default constructor.
-    constexpr PrismaticJointConf() = default;
-
-    /// @brief Copy constructor.
-    PrismaticJointConf(const PrismaticJointConf& copy) = default;
+    constexpr PrismaticJointConf() noexcept = default;
 
     /// @brief Initializing constructor.
     /// @details Initializes the bodies, anchors, axis, and reference angle using the world
     ///   anchor and unit world axis.
-    PrismaticJointConf(BodyID bA, BodyID bB, Length2 laA = Length2{}, Length2 laB = Length2{},
-                       UnitVec axisA = UnitVec::GetRight(), Angle angle = 0_deg) noexcept;
+    PrismaticJointConf(BodyID bA, BodyID bB, // force line-break
+                       const Length2& laA = Length2{}, const Length2& laB = Length2{},
+                       const UnitVec& axisA = UnitVec::GetRight(), Angle angle = 0_deg) noexcept;
 
     /// @brief Uses the given enable limit state value.
     constexpr auto& UseEnableLimit(bool v) noexcept
@@ -129,7 +127,7 @@ struct PrismaticJointConf : public JointBuilder<PrismaticJointConf> {
 
     Vec3 impulse = Vec3{}; ///< Impulse.
 
-    Momentum motorImpulse = 0; ///< Motor impulse.
+    Momentum motorImpulse = 0_Ns; ///< Motor impulse.
 
     /// Enable/disable the joint limit.
     bool enableLimit = false;
@@ -200,13 +198,14 @@ constexpr bool operator!=(const PrismaticJointConf& lhs, const PrismaticJointCon
 }
 
 /// @brief Gets the definition data for the given joint.
+/// @throws std::bad_cast If the given joint's type is inappropriate for getting this value.
 /// @relatedalso Joint
 PrismaticJointConf GetPrismaticJointConf(const Joint& joint);
 
 /// @brief Gets the configuration for the given parameters.
 /// @relatedalso World
 PrismaticJointConf GetPrismaticJointConf(const World& world, BodyID bA, BodyID bB,
-                                         const Length2 anchor, const UnitVec axis);
+                                         const Length2& anchor, const UnitVec& axis);
 
 /// @brief Gets the current linear velocity of the given configuration.
 /// @relatedalso World
@@ -235,7 +234,7 @@ constexpr void SetLinearLimits(PrismaticJointConf& conf, Length lower, Length up
 
 /// @brief Shifts the origin notion of the given configuration.
 /// @relatedalso PrismaticJointConf
-constexpr auto ShiftOrigin(PrismaticJointConf&, Length2) noexcept
+constexpr auto ShiftOrigin(PrismaticJointConf&, const Length2&) noexcept
 {
     return false;
 }
@@ -250,6 +249,13 @@ AngularMomentum GetAngularReaction(const PrismaticJointConf& conf);
 
 /// @brief Initializes velocity constraint data based on the given solver data.
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocityConstraints.
 /// @relatedalso PrismaticJointConf
 void InitVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodies,
@@ -257,6 +263,12 @@ void InitVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodie
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso PrismaticJointConf
@@ -264,6 +276,12 @@ bool SolveVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodi
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso PrismaticJointConf
 bool SolvePosition(const PrismaticJointConf& object, std::vector<BodyConstraint>& bodies,

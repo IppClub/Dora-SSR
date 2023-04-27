@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -90,9 +90,6 @@ union DynamicTreeVariantData {
 
     /// @brief Branch specific data.
     DynamicTreeBranchData branch;
-
-    /// @brief Default constructor.
-    DynamicTreeVariantData() noexcept {}
 
     /// @brief Initializing constructor.
     constexpr DynamicTreeVariantData(DynamicTreeUnusedData value) noexcept : unused{value} {}

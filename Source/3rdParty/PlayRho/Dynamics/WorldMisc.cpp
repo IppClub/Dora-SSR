@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -27,52 +27,47 @@
 #include "PlayRho/Dynamics/StepConf.hpp"
 #include "PlayRho/Dynamics/MovementConf.hpp"
 
-#include <algorithm> // for std::for_each
-#include <set>
-
-using std::for_each;
+#include <utility> // for std::move
 
 namespace playrho {
 namespace d2 {
 
-using playrho::size;
-
 void SetShapeDestructionListener(World& world, std::function<void(ShapeID)> listener) noexcept
 {
-    world.SetShapeDestructionListener(listener);
+    world.SetShapeDestructionListener(std::move(listener));
 }
 
 void SetDetachListener(World& world, std::function<void(std::pair<BodyID, ShapeID>)> listener) noexcept
 {
-    world.SetDetachListener(listener);
+    world.SetDetachListener(std::move(listener));
 }
 
 void SetJointDestructionListener(World& world, std::function<void(JointID)> listener) noexcept
 {
-    world.SetJointDestructionListener(listener);
+    world.SetJointDestructionListener(std::move(listener));
 }
 
 void SetBeginContactListener(World& world, std::function<void(ContactID)> listener) noexcept
 {
-    world.SetBeginContactListener(listener);
+    world.SetBeginContactListener(std::move(listener));
 }
 
 void SetEndContactListener(World& world, std::function<void(ContactID)> listener) noexcept
 {
-    world.SetEndContactListener(listener);
+    world.SetEndContactListener(std::move(listener));
 }
 
 void SetPreSolveContactListener(World& world,
                                 std::function<void(ContactID, const Manifold&)> listener) noexcept
 {
-    world.SetPreSolveContactListener(listener);
+    world.SetPreSolveContactListener(std::move(listener));
 }
 
 void SetPostSolveContactListener(World& world,
                                  std::function<void(ContactID, const ContactImpulsesList&,
                                                     unsigned)> listener) noexcept
 {
-    world.SetPostSolveContactListener(listener);
+    world.SetPostSolveContactListener(std::move(listener));
 }
 
 void Clear(World& world) noexcept
@@ -126,7 +121,7 @@ const DynamicTree& GetTree(const World& world) noexcept
     return world.GetTree();
 }
 
-void ShiftOrigin(World& world, Length2 newOrigin)
+void ShiftOrigin(World& world, const Length2& newOrigin)
 {
     world.ShiftOrigin(newOrigin);
 }

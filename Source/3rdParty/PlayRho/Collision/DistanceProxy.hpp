@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -63,7 +63,7 @@ public:
     DistanceProxy() = default;
 
     /// @brief Copy constructor.
-    DistanceProxy(const DistanceProxy& copy) noexcept
+    DistanceProxy(const DistanceProxy& copy) noexcept // NOLINT(modernize-use-equals-default)
         :
 #ifndef IMPLEMENT_DISTANCEPROXY_WITH_BUFFERS
           m_vertices{copy.m_vertices},
@@ -99,7 +99,7 @@ public:
     /// @warning Behavior is undefined if the normals aren't normals for adjacent vertices.
     /// @warning Behavior is undefined if any normal is not unique.
     ///
-    DistanceProxy(const NonNegative<Length> vertexRadius, const VertexCounter count,
+    DistanceProxy(const NonNegative<Length>& vertexRadius, const VertexCounter count,
                   const Length2* vertices, const UnitVec* normals) noexcept
         :
 #ifndef IMPLEMENT_DISTANCEPROXY_WITH_BUFFERS
@@ -168,7 +168,7 @@ public:
     {
         assert(index != InvalidVertex);
         assert(index < m_count);
-        return *(m_vertices + index);
+        return *(m_vertices + index); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     }
 
     /// @brief Gets the normal for the given index.
@@ -176,7 +176,7 @@ public:
     {
         assert(index != InvalidVertex);
         assert(index < m_count);
-        return *(m_normals + index);
+        return *(m_normals + index); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     }
 
 private:
@@ -246,7 +246,7 @@ inline VertexCounter GetSupportIndex(const DistanceProxy& proxy, T dir) noexcept
 /// @return <code>true</code> if point is contained in the proxy, <code>false</code> otherwise.
 /// @relatedalso DistanceProxy
 /// @ingroup TestPointGroup
-bool TestPoint(const DistanceProxy& proxy, Length2 point) noexcept;
+bool TestPoint(const DistanceProxy& proxy, const Length2& point) noexcept;
 
 /// @brief Finds the lowest right most vertex in the given collection.
 std::size_t FindLowestRightMostVertex(Span<const Length2> vertices);

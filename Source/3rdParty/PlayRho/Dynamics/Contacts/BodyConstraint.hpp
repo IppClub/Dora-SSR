@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -43,8 +43,8 @@ public:
 
     /// @brief Initializing constructor.
     constexpr
-    BodyConstraint(InvMass invMass, InvRotInertia invRotI, Length2 localCenter,
-                     Position position, Velocity velocity) noexcept:
+    BodyConstraint(InvMass invMass, InvRotInertia invRotI, const Length2& localCenter,
+                   const Position& position, const Velocity& velocity) noexcept:
         m_position{position},
         m_velocity{velocity},
         m_localCenter{localCenter},
@@ -54,8 +54,8 @@ public:
         assert(IsValid(position));
         assert(IsValid(velocity));
         assert(IsValid(localCenter));
-        assert(invMass >= InvMass{0});
-        assert(invRotI >= InvRotInertia{0});
+        assert(invMass >= InvMass{});
+        assert(invRotI >= InvRotInertia{});
     }
 
     /// @brief Gets the inverse mass of this body representation.
@@ -78,12 +78,12 @@ public:
     /// @brief Sets the position of the body.
     /// @param value A valid position value to set for the represented body.
     /// @warning Behavior is undefined if the given value is not valid.
-    BodyConstraint& SetPosition(Position value) noexcept;
+    BodyConstraint& SetPosition(const Position& value) noexcept;
 
     /// @brief Sets the velocity of the body.
     /// @param value A valid velocity value to set for the represented body.
     /// @warning Behavior is undefined if the given value is not valid.
-    BodyConstraint& SetVelocity(Velocity value) noexcept;
+    BodyConstraint& SetVelocity(const Velocity& value) noexcept;
 
 private:
     Position m_position; ///< Position data of body.
@@ -121,14 +121,14 @@ inline Velocity BodyConstraint::GetVelocity() const noexcept
     return m_velocity;
 }
 
-inline BodyConstraint& BodyConstraint::SetPosition(Position value) noexcept
+inline BodyConstraint& BodyConstraint::SetPosition(const Position& value) noexcept
 {
     assert(IsValid(value));
     m_position = value;
     return *this;
 }
 
-inline BodyConstraint& BodyConstraint::SetVelocity(Velocity value) noexcept
+inline BodyConstraint& BodyConstraint::SetVelocity(const Velocity& value) noexcept
 {
     assert(IsValid(value));
     m_velocity = value;
@@ -137,7 +137,7 @@ inline BodyConstraint& BodyConstraint::SetVelocity(Velocity value) noexcept
 
 /// @brief Gets the <code>BodyConstraint</code> based on the given parameters.
 inline BodyConstraint GetBodyConstraint(const Body& body, Time time,
-                                        MovementConf conf) noexcept
+                                        const MovementConf& conf) noexcept
 {
     return BodyConstraint{
         GetInvMass(body),

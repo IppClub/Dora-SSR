@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * Erin Catto's http://www.box2d.org was the origin for this software.
  * TypeCast code originated from the LLVM Project https://llvm.org/LICENSE.txt.
@@ -25,8 +25,9 @@
 #define PLAYRHO_DYNAMICS_JOINTS_JOINT_HPP
 
 #include "PlayRho/Common/Math.hpp"
-#include "PlayRho/Dynamics/Joints/LimitState.hpp"
 #include "PlayRho/Common/Templates.hpp" // for DecayedTypeIfNotSame
+#include "PlayRho/Common/TypeInfo.hpp" // for GetTypeID
+#include "PlayRho/Dynamics/Joints/LimitState.hpp"
 #include "PlayRho/Dynamics/BodyID.hpp"
 
 #include <memory> // for std::unique_ptr
@@ -88,7 +89,7 @@ bool GetCollideConnected(const Joint& object) noexcept;
 
 /// @brief Shifts the origin for any points stored in world coordinates.
 /// @return <code>true</code> if shift done, <code>false</code> otherwise.
-bool ShiftOrigin(Joint& object, Length2 value) noexcept;
+bool ShiftOrigin(Joint& object, const Length2& value) noexcept;
 
 /// @brief Initializes velocity constraint data based on the given solver data.
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
@@ -290,7 +291,7 @@ public:
         return object.m_self ? object.m_self->GetCollideConnected_() : false;
     }
 
-    friend bool ShiftOrigin(Joint& object, Length2 value) noexcept
+    friend bool ShiftOrigin(Joint& object, const Length2& value) noexcept
     {
         return object.m_self ? object.m_self->ShiftOrigin_(value) : false;
     }
@@ -298,8 +299,9 @@ public:
     friend void InitVelocity(Joint& object, std::vector<BodyConstraint>& bodies,
                              const playrho::StepConf& step, const ConstraintSolverConf& conf)
     {
-        if (object.m_self)
+        if (object.m_self) {
             object.m_self->InitVelocity_(bodies, step, conf);
+        }
     }
 
     friend bool SolveVelocity(Joint& object, std::vector<BodyConstraint>& bodies,
@@ -317,7 +319,7 @@ public:
 private:
     /// @brief Internal configuration concept.
     /// @note Provides the interface for runtime value polymorphism.
-    struct Concept {
+    struct Concept { // NOLINT(cppcoreguidelines-special-member-functions)
         /// @brief Explicitly declared virtual destructor.
         virtual ~Concept() = default;
 
@@ -350,7 +352,7 @@ private:
         virtual bool GetCollideConnected_() const noexcept = 0;
 
         /// @brief Call to notify joint of a shift in the world origin.
-        virtual bool ShiftOrigin_(Length2 value) noexcept = 0;
+        virtual bool ShiftOrigin_(const Length2& value) noexcept = 0;
 
         /// @brief Initializes the velocities for this joint.
         virtual void InitVelocity_(BodyConstraintsMap& bodies, const playrho::StepConf& step,
@@ -372,7 +374,7 @@ private:
         using data_type = T;
 
         /// @brief Initializing constructor.
-        template <typename U>
+        template <typename U, std::enable_if_t<!std::is_same_v<U, Model>, int> = 0>
         explicit Model(U&& arg) noexcept(std::is_nothrow_constructible_v<T, U>)
             : data{std::forward<U>(arg)}
         {
@@ -434,7 +436,7 @@ private:
         }
 
         /// @copydoc Concept::ShiftOrigin_
-        bool ShiftOrigin_(Length2 value) noexcept override
+        bool ShiftOrigin_(const Length2& value) noexcept override
         {
             return ShiftOrigin(data, value);
         }
@@ -514,8 +516,9 @@ inline T TypeCast(const Joint& value)
                   "T is required to be a const lvalue reference "
                   "or a CopyConstructible type");
     auto tmp = ::playrho::d2::TypeCast<std::add_const_t<RawType>>(&value);
-    if (tmp == nullptr)
+    if (!tmp) {
         throw std::bad_cast();
+    }
     return static_cast<T>(*tmp);
 }
 
@@ -533,8 +536,9 @@ inline T TypeCast(Joint& value)
                   "T is required to be a const lvalue reference "
                   "or a CopyConstructible type");
     auto tmp = ::playrho::d2::TypeCast<RawType>(&value);
-    if (tmp == nullptr)
+    if (!tmp) {
         throw std::bad_cast();
+    }
     return static_cast<T>(*tmp);
 }
 
@@ -552,8 +556,9 @@ inline T TypeCast(Joint&& value)
                   "T is required to be a const lvalue reference "
                   "or a CopyConstructible type");
     auto tmp = ::playrho::d2::TypeCast<RawType>(&value);
-    if (tmp == nullptr)
+    if (!tmp) {
         throw std::bad_cast();
+    }
     return static_cast<T>(std::move(*tmp));
 }
 
@@ -561,7 +566,11 @@ template <typename T>
 inline std::add_pointer_t<std::add_const_t<T>> TypeCast(const Joint* value) noexcept
 {
     static_assert(!std::is_reference<T>::value, "T may not be a reference.");
-    return ::playrho::d2::TypeCast<T>(const_cast<Joint*>(value));
+    using ReturnType = std::add_pointer_t<T>;
+    if (value && value->m_self && (GetType(*value) == GetTypeID<T>())) {
+        return static_cast<ReturnType>(value->m_self->GetData_());
+    }
+    return nullptr;
 }
 
 template <typename T>
@@ -684,7 +693,7 @@ Length2 GetTarget(const Joint& object);
 /// @brief Sets the given joint's target property if it has one.
 /// @throws std::invalid_argument If not supported for the given joint's type.
 /// @relatedalso Joint
-void SetTarget(Joint& object, Length2 value);
+void SetTarget(Joint& object, const Length2& value);
 
 /// Gets the lower linear joint limit.
 /// @throws std::invalid_argument If not supported for the given joint's type.
@@ -744,7 +753,7 @@ Length2 GetLinearOffset(const Joint& object);
 /// @brief Sets the linear offset property of the specified joint if its type has one.
 /// @throws std::invalid_argument If not supported for the given joint's type.
 /// @relatedalso Joint
-void SetLinearOffset(Joint& object, Length2 value);
+void SetLinearOffset(Joint& object, const Length2& value);
 
 /// @brief Gets the angular offset property of the specified joint if its type has one.
 /// @throws std::invalid_argument If not supported for the given joint's type.

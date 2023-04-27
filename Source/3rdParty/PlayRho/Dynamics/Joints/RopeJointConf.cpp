@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2007-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -43,7 +43,7 @@ static_assert(std::is_move_assignable<RopeJointConf>::value,
 static_assert(std::is_nothrow_destructible<RopeJointConf>::value,
               "RopeJointConf should be nothrow destructible!");
 
-RopeJointConf GetRopeJointConf(const Joint& joint) noexcept
+RopeJointConf GetRopeJointConf(const Joint& joint)
 {
     return TypeCast<RopeJointConf>(joint);
 }
@@ -59,6 +59,10 @@ RopeJointConf GetRopeJointConf(const Joint& joint) noexcept
 void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -92,7 +96,7 @@ void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, co
     else {
         object.u = UnitVec::GetZero();
         object.mass = 0_kg;
-        object.impulse = 0;
+        object.impulse = 0_Ns;
         return;
     }
 
@@ -103,7 +107,7 @@ void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, co
     const auto invRotMassB = InvMass{invRotInertiaB * Square(crB)};
     const auto invMass = invMassA + invMassB + invRotMassA + invRotMassB;
 
-    object.mass = (invMass != InvMass{0}) ? Real{1} / invMass : 0_kg;
+    object.mass = (invMass != InvMass{}) ? Real{1} / invMass : 0_kg;
 
     if (step.doWarmStart) {
         // Scale the impulse to support a variable time step.
@@ -119,7 +123,7 @@ void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, co
         velB += Velocity{invMassB * P, invRotInertiaB * LB};
     }
     else {
-        object.impulse = 0;
+        object.impulse = 0_Ns;
     }
 
     bodyConstraintA.SetVelocity(velA);
@@ -128,6 +132,10 @@ void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, co
 
 bool SolveVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return true;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -166,6 +174,10 @@ bool SolveVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, c
 bool SolvePosition(const RopeJointConf& object, std::vector<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return true;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 

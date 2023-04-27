@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -49,17 +49,23 @@ struct TargetJointConf : public JointBuilder<TargetJointConf> {
     /// @brief Super type.
     using super = JointBuilder<TargetJointConf>;
 
+    /// @brief Default frequency.
+    static constexpr auto DefaultFrequency = NonNegative<Frequency>(5_Hz);
+
+    /// @brief Default damping ratio.
+    static constexpr auto DefaultDampingRatio = NonNegative<Real>(0.7f);
+
     /// @brief Default constructor.
-    constexpr TargetJointConf() = default;
+    constexpr TargetJointConf() noexcept = default;
 
     /// @brief Initializing constructor.
-    constexpr TargetJointConf(BodyID b) noexcept : super{super{}.UseBodyB(b)}
+    constexpr TargetJointConf(BodyID b) noexcept: super{super{}.UseBodyB(b)}
     {
         // Intentionally empty.
     }
 
     /// @brief Use value for target.
-    constexpr auto& UseTarget(Length2 v) noexcept
+    constexpr auto& UseTarget(const Length2& v) noexcept
     {
         target = v;
         return *this;
@@ -70,7 +76,7 @@ struct TargetJointConf : public JointBuilder<TargetJointConf> {
     ///   <code>bodyB != InvalidBodyID
     ///     ? GetLocalPoint(GetBody(world, bodyB), target)
     ///     : GetInvalid<Length2>()</code>.
-    constexpr auto& UseAnchor(Length2 v) noexcept
+    constexpr auto& UseAnchor(const Length2& v) noexcept
     {
         localAnchorB = v;
         return *this;
@@ -115,12 +121,12 @@ struct TargetJointConf : public JointBuilder<TargetJointConf> {
     /// Frequency.
     /// @details The has to do with the response speed.
     /// @note This value may not be negative.
-    NonNegative<Frequency> frequency = NonNegative<Frequency>(5_Hz);
+    NonNegative<Frequency> frequency = DefaultFrequency;
 
     /// The damping ratio. 0 = no damping, 1 = critical damping.
-    NonNegative<Real> dampingRatio = NonNegative<Real>(0.7f);
+    NonNegative<Real> dampingRatio = DefaultDampingRatio;
 
-    InvMass gamma = InvMass{0}; ///< Gamma.
+    InvMass gamma = InvMass{}; ///< Gamma.
 
     Momentum2 impulse = Momentum2{}; ///< Impulse.
 
@@ -151,6 +157,7 @@ constexpr bool operator!=(const TargetJointConf& lhs, const TargetJointConf& rhs
 }
 
 /// @brief Gets the definition data for the given joint.
+/// @throws std::bad_cast If the given joint's type is inappropriate for getting this value.
 /// @relatedalso Joint
 TargetJointConf GetTargetJointConf(const Joint& joint);
 
@@ -172,12 +179,12 @@ constexpr Momentum2 GetLinearReaction(const TargetJointConf& object)
 /// @relatedalso TargetJointConf
 constexpr AngularMomentum GetAngularReaction(const TargetJointConf&)
 {
-    return AngularMomentum{0};
+    return AngularMomentum{};
 }
 
 /// @brief Shifts the origin notion of the given configuration.
 /// @relatedalso TargetJointConf
-constexpr bool ShiftOrigin(TargetJointConf& object, Length2 newOrigin)
+constexpr bool ShiftOrigin(TargetJointConf& object, const Length2& newOrigin)
 {
     object.target -= newOrigin;
     return true;
@@ -196,6 +203,13 @@ Mass22 GetEffectiveMassMatrix(const TargetJointConf& object, const BodyConstrain
 
 /// @brief Initializes velocity constraint data based on the given solver data.
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
+/// @param object Configuration object. <code>bodyB</code> must index a body within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyB</code> value is not
+///  <code>InvalidBodyID</code> and does not index within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso TargetJointConf
 void InitVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
@@ -203,6 +217,12 @@ void InitVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
+/// @param object Configuration object. <code>bodyB</code> must index a body within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @throws std::out_of_range If the given object's <code>bodyB</code> value is not
+///  <code>InvalidBodyID</code> and does not index within range of the given <code>bodies</code> container.
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso TargetJointConf
@@ -210,14 +230,15 @@ bool SolveVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
-/// @return <code>true</code> if the position errors are within tolerance.
+/// @note This is a no-op and always returns <code>true</code>.
+/// @return <code>true</code>.
 /// @relatedalso TargetJointConf
 bool SolvePosition(const TargetJointConf& object, std::vector<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
 
 /// @brief Free function for setting the target value of the given configuration.
 /// @relatedalso TargetJointConf
-constexpr void SetTarget(TargetJointConf& object, Length2 value) noexcept
+constexpr void SetTarget(TargetJointConf& object, const Length2& value) noexcept
 {
     object.UseTarget(value);
 }

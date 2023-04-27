@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -36,10 +36,8 @@ namespace playrho {
 class ContactKey
 {
 public:
-    constexpr ContactKey() noexcept
-    {
-        // Intentionally empty
-    }
+    /// @brief Default constructor.
+    constexpr ContactKey() noexcept = default;
 
     /// @brief Initializing constructor.
     constexpr ContactKey(ContactCounter fp1, ContactCounter fp2) noexcept

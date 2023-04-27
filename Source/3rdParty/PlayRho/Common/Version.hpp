@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -59,16 +59,54 @@ struct Version {
     Revnum revision;
 };
 
-/// @brief Equality operator.
-constexpr bool operator==(Version lhs, Version rhs)
+/// @brief Comparison function.
+/// @return Less-than zero if left-hand-side argument is less than the right. Greater-than zero if left-hand-side argument is greater than the right.
+///    Or zero if both arguments are the same.
+constexpr auto compare(const Version& lhs, const Version& rhs) noexcept
 {
-    return lhs.major == rhs.major && lhs.minor == rhs.minor && lhs.revision == rhs.revision;
+    if (const auto diff = lhs.major - rhs.major) {
+        return diff;
+    }
+    if (const auto diff = lhs.minor - rhs.minor) {
+        return diff;
+    }
+    return lhs.revision - rhs.revision;
+}
+
+/// @brief Equality operator.
+constexpr auto operator==(const Version& lhs, const Version& rhs) noexcept
+{
+    return compare(lhs, rhs) == 0;
 }
 
 /// @brief Inequality operator.
-constexpr bool operator!=(Version lhs, Version rhs)
+constexpr auto operator!=(const Version& lhs, const Version& rhs) noexcept
 {
-    return !(lhs == rhs);
+    return compare(lhs, rhs) != 0;
+}
+
+/// @brief Less-than  operator.
+constexpr auto operator<(const Version& lhs, const Version& rhs) noexcept
+{
+    return compare(lhs, rhs) < 0;
+}
+
+/// @brief Less-than or equal-to  operator.
+constexpr auto operator<=(const Version& lhs, const Version& rhs) noexcept
+{
+    return compare(lhs, rhs) <= 0;
+}
+
+/// @brief Greater-than  operator.
+constexpr auto operator>(const Version& lhs, const Version& rhs) noexcept
+{
+    return compare(lhs, rhs) > 0;
+}
+
+/// @brief Greater-than or equal-to  operator.
+constexpr auto operator>=(const Version& lhs, const Version& rhs) noexcept
+{
+    return compare(lhs, rhs) >= 0;
 }
 
 /// @brief Gets the version information of the library.

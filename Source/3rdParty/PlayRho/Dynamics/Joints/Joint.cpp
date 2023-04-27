@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -465,7 +465,7 @@ Length2 GetTarget(const Joint& object)
     throw std::invalid_argument("GetTarget not supported by joint type");
 }
 
-void SetTarget(Joint& object, Length2 value)
+void SetTarget(Joint& object, const Length2& value)
 {
     const auto type = GetType(object);
     if (type == GetTypeID<TargetJointConf>()) {
@@ -599,7 +599,7 @@ Length2 GetLinearOffset(const Joint& object)
     throw std::invalid_argument("GetLinearOffset not supported by joint type!");
 }
 
-void SetLinearOffset(Joint& object, Length2 value)
+void SetLinearOffset(Joint& object, const Length2& value)
 {
     const auto type = GetType(object);
     if (type == GetTypeID<MotorJointConf>()) {

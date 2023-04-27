@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -84,6 +84,10 @@ Mass22 GetEffectiveMassMatrix(const TargetJointConf& object, const BodyConstrain
 void InitVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf&)
 {
+    if (GetBodyB(object) == InvalidBodyID) {
+        return;
+    }
+
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
     const auto posB = bodyConstraintB.GetPosition();
@@ -111,7 +115,7 @@ void InitVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
     const auto tmp = d + h * k; // M T^-1
     assert(IsValid(Real{tmp * Second / Kilogram}));
     const auto invGamma = Mass{h * tmp}; // M T^-1 * T is simply M.
-    object.gamma = (invGamma != 0_kg) ? Real{1} / invGamma : InvMass{0};
+    object.gamma = (invGamma != 0_kg) ? Real{1} / invGamma : InvMass{};
     const auto beta = Frequency{h * k * object.gamma}; // T * M T^-2 * M^-1 is T^-1
 
     // Compute the effective mass matrix.
@@ -123,7 +127,8 @@ void InitVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
     assert(IsValid(object.C));
 
     // Cheat with some damping
-    velB.angular *= 0.98f;
+    static constexpr auto DampingAmount = 0.98f;
+    velB.angular *= DampingAmount;
 
     if (step.doWarmStart) {
         object.impulse *= step.dtRatio;
@@ -143,6 +148,10 @@ void InitVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
 bool SolveVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
                    const StepConf& step)
 {
+    if (GetBodyB(object) == InvalidBodyID) {
+        return true;
+    }
+
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
     auto velB = bodyConstraintB.GetVelocity();
@@ -168,7 +177,7 @@ bool SolveVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
 
     bodyConstraintB.SetVelocity(velB);
 
-    return incImpulse == Momentum2{};
+    return incImpulse == Momentum2{0_Ns, 0_Ns};
 }
 
 bool SolvePosition(const TargetJointConf&, std::vector<BodyConstraint>&,

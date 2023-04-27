@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -136,7 +136,7 @@ constexpr bool IsValid(const T& value) noexcept
     // So for all T, for which isnan() is implemented, this should work
     // correctly and quite usefully!
     //
-    return value == value;
+    return value == value; // NOLINT(misc-redundant-expression)
 }
 
 // GetInvalid template specializations.
@@ -465,7 +465,7 @@ private:
     static constexpr std::false_type check(...);
 
     /// @brief Type alias for given template parameters.
-    using type = decltype(check<Type>(0));
+    using type = decltype(check<Type>(nullptr)); // NOLINT(cppcoreguidelines-pro-type-vararg)
 
 public:
     /// Whether or not the given type has the specified functor.

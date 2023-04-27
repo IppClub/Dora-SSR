@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -32,6 +32,24 @@
 #include <iostream>
 
 namespace playrho {
+namespace detail {
+
+template <typename BASE_TYPE>
+struct FixedDefault {};
+
+template <>
+struct FixedDefault<std::int32_t>
+{
+    static constexpr auto FractionBits = 9u;
+};
+
+template <>
+struct FixedDefault<std::int64_t>
+{
+    static constexpr auto FractionBits = 24u;
+};
+
+}
 
 /// @brief Template class for fixed-point numbers.
 ///
@@ -116,10 +134,13 @@ public:
     {
         static_assert(std::is_floating_point<T>::value, "floating point value required");
         // Note: std::isnan(val) *NOT* constant expression, so can't use here!
-        return !(val <= 0 || val >= 0)? GetNaN().m_value:
-            (val > static_cast<long double>(GetMax()))? GetInfinity().m_value:
-            (val < static_cast<long double>(GetLowest()))? GetNegativeInfinity().m_value:
-            static_cast<value_type>(val * ScaleFactor);
+        return !(val <= 0 || val >= 0) // NOLINT(misc-redundant-expression)
+            ? GetNaN().m_value // force line-break
+            : (val > static_cast<long double>(GetMax())) // force line-break
+                ? GetInfinity().m_value // force line-break
+                : (val < static_cast<long double>(GetLowest())) // force line-break
+                    ? GetNegativeInfinity().m_value // force line-break
+                    : static_cast<value_type>(val * ScaleFactor);
     }
 
     /// @brief Gets the value from a signed integral value.
@@ -707,7 +728,7 @@ inline ::std::ostream& operator<<(::std::ostream& os, const Fixed<BT, FB>& value
 /// @see Fixed, Real
 /// @see https://en.wikipedia.org/wiki/Q_(number_format)
 ///
-using Fixed32 = Fixed<std::int32_t,9>;
+using Fixed32 = Fixed<std::int32_t, detail::FixedDefault<std::int32_t>::FractionBits>;
 
 // Fixed32 free functions.
 
@@ -816,7 +837,7 @@ struct TypeInfo<Fixed32>
 /// @see Fixed, Real
 /// @see https://en.wikipedia.org/wiki/Q_(number_format)
 ///
-using Fixed64 = Fixed<std::int64_t,24>;
+using Fixed64 = Fixed<std::int64_t,detail::FixedDefault<std::int64_t>::FractionBits>;
 
 /// @brief Gets an invalid value.
 template <>

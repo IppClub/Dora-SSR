@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2007-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -41,16 +41,13 @@ public:
     /// @brief Default constructor.
     SimplexEdge() = default;
     
-    /// @brief Copy constructor.
-    constexpr SimplexEdge(const SimplexEdge& copy) = default;
-    
     /// @brief Initializing constructor.
     /// @param pA Point A in world coordinates.
     /// @param iA Index of point A within the shape that it comes from.
     /// @param pB Point B in world coordinates.
     /// @param iB Index of point B within the shape that it comes from.
-    constexpr SimplexEdge(Length2 pA, VertexCounter iA,
-                                         Length2 pB, VertexCounter iB) noexcept;
+    constexpr SimplexEdge(const Length2& pA, VertexCounter iA, // force line-break
+                          const Length2& pB, VertexCounter iB) noexcept;
     
     /// @brief Gets point A (in world coordinates).
     constexpr auto GetPointA() const noexcept { return m_wA; }
@@ -68,13 +65,13 @@ public:
     constexpr auto GetIndexPair() const noexcept { return m_indexPair; }
 
 private:
-    Length2 m_wA; ///< Point A in world coordinates. This is the support point in proxy A. 8-bytes.
-    Length2 m_wB; ///< Point B in world coordinates. This is the support point in proxy B. 8-bytes.
-    IndexPair m_indexPair; ///< Index pair. @details Indices of points A and B. 2-bytes.
+    Length2 m_wA{}; ///< Point A in world coordinates. This is the support point in proxy A. 8-bytes.
+    Length2 m_wB{}; ///< Point B in world coordinates. This is the support point in proxy B. 8-bytes.
+    IndexPair m_indexPair{}; ///< Index pair. @details Indices of points A and B. 2-bytes.
 };
 
-constexpr SimplexEdge::SimplexEdge(Length2 pA, VertexCounter iA,
-                                                  Length2 pB, VertexCounter iB) noexcept:
+constexpr SimplexEdge::SimplexEdge(const Length2& pA, VertexCounter iA, // force line-break
+                                   const Length2& pB, VertexCounter iB) noexcept:
     m_wA{pA}, m_wB{pB}, m_indexPair{iA, iB}
 {
     // Intentionally empty.

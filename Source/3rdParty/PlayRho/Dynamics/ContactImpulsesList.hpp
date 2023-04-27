@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -22,7 +22,9 @@
 #define PLAYRHO_DYNAMICS_CONTACTIMPULSESLIST_HPP
 
 #include "PlayRho/Common/Settings.hpp"
+
 #include <algorithm>
+#include <cassert>
 
 namespace playrho {
 namespace d2 {
@@ -45,23 +47,31 @@ public:
     Counter GetCount() const noexcept { return count; }
     
     /// @brief Gets the given indexed entry normal.
-    Momentum GetEntryNormal(Counter index) const noexcept { return normalImpulses[index]; }
-    
+    Momentum GetEntryNormal(Counter index) const noexcept
+    {
+        assert(index < MaxManifoldPoints);
+        return normalImpulses[index]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+    }
+
     /// @brief Gets the given indexed entry tangent.
-    Momentum GetEntryTanget(Counter index) const noexcept { return tangentImpulses[index]; }
-    
+    Momentum GetEntryTanget(Counter index) const noexcept
+    {
+        assert(index < MaxManifoldPoints);
+        return tangentImpulses[index]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+    }
+
     /// @brief Adds an entry of the given data.
     void AddEntry(Momentum normal, Momentum tangent) noexcept
     {
         assert(count < MaxManifoldPoints);
-        normalImpulses[count] = normal;
-        tangentImpulses[count] = tangent;
+        normalImpulses[count] = normal; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+        tangentImpulses[count] = tangent; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
         ++count;
     }
     
 private:
-    Momentum normalImpulses[MaxManifoldPoints]; ///< Normal impulses.
-    Momentum tangentImpulses[MaxManifoldPoints]; ///< Tangent impulses.
+    Momentum normalImpulses[MaxManifoldPoints] = {}; ///< Normal impulses.
+    Momentum tangentImpulses[MaxManifoldPoints] = {}; ///< Tangent impulses.
     Counter count = 0; ///< Count of entries added.
 };
 

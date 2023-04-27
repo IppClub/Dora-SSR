@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -43,8 +43,8 @@
 #include <type_traits>
 #include <cmath>
 
-// #define USE_BOOST_UNITS
-#if defined(USE_BOOST_UNITS)
+// #define PLAYRHO_USE_BOOST_UNITS
+#if defined(PLAYRHO_USE_BOOST_UNITS)
 #include <boost/units/io.hpp>
 #include <boost/units/limits.hpp>
 #include <boost/units/cmath.hpp>
@@ -53,7 +53,6 @@
 #include <boost/units/systems/si/velocity.hpp>
 #include <boost/units/systems/si/acceleration.hpp>
 #include <boost/units/systems/si/frequency.hpp>
-#include <boost/units/systems/si/velocity.hpp>
 #include <boost/units/systems/si/mass.hpp>
 #include <boost/units/systems/si/momentum.hpp>
 #include <boost/units/systems/si/area.hpp>
@@ -108,18 +107,94 @@ using inverse_moment_of_inertia =
 
 } // namespace playrho::units::si
 
-#endif // defined(USE_BOOST_UNITS)
-
-// Define quantity and unit related macros to abstract away C-preprocessor definitions
-#if defined(USE_BOOST_UNITS)
-#define PLAYRHO_QUANTITY(BoostDimension) boost::units::quantity<BoostDimension, Real>
-#define PLAYRHO_UNIT(Quantity, BoostUnit) Quantity((BoostUnit)*Real(1))
-#else // defined(USE_BOOST_UNITS)
-#define PLAYRHO_QUANTITY(BoostDimension) Real
-#define PLAYRHO_UNIT(Quantity, BoostUnit) Real(1)
-#endif // defined(USE_BOOST_UNITS)
+#endif // defined(PLAYRHO_USE_BOOST_UNITS)
 
 namespace playrho {
+
+namespace detail {
+
+/// @brief Seconds per minute.
+constexpr auto SecondsPerMinute = 60;
+
+/// @brief Minutes per hour.
+constexpr auto MinutesPerHour = 60;
+
+/// @brief Hours per day.
+constexpr auto HoursPerDay = 24;
+
+// Setup quantity types...
+#if defined(PLAYRHO_USE_BOOST_UNITS)
+using time = boost::units::quantity<boost::units::si::time, Real>;
+using frequency = boost::units::quantity<boost::units::si::frequency, Real>;
+using length = boost::units::quantity<boost::units::si::length, Real>;
+using velocity = boost::units::quantity<boost::units::si::velocity, Real>;
+using acceleration = boost::units::quantity<boost::units::si::acceleration, Real>;
+using mass = boost::units::quantity<boost::units::si::mass, Real>;
+using inverse_mass = boost::units::quantity<playrho::units::si::inverse_mass, Real>;
+using area = boost::units::quantity<boost::units::si::area, Real>;
+using surface_density = boost::units::quantity<boost::units::si::surface_density, Real>;
+using plane_angle = boost::units::quantity<boost::units::si::plane_angle, Real>;
+using angular_velocity = boost::units::quantity<boost::units::si::angular_velocity, Real>;
+using angular_acceleration = boost::units::quantity<boost::units::si::angular_acceleration, Real>;
+using force = boost::units::quantity<boost::units::si::force, Real>;
+using torque = boost::units::quantity<boost::units::si::torque, Real>;
+using second_moment_of_area = boost::units::quantity<playrho::units::si::second_moment_of_area, Real>;
+using moment_of_inertia = boost::units::quantity<boost::units::si::moment_of_inertia, Real>;
+using inverse_moment_of_inertia = boost::units::quantity<playrho::units::si::inverse_moment_of_inertia, Real>;
+using momentum = boost::units::quantity<boost::units::si::momentum, Real>;
+using angular_momentum = boost::units::quantity<boost::units::si::angular_momentum, Real>;
+#else // !defined(PLAYRHO_USE_BOOST_UNITS)
+using time = Real;
+using frequency = Real;
+using length = Real;
+using velocity = Real;
+using acceleration = Real;
+using mass = Real;
+using inverse_mass = Real;
+using area = Real;
+using surface_density = Real;
+using plane_angle = Real;
+using angular_velocity = Real;
+using angular_acceleration = Real;
+using force = Real;
+using torque = Real;
+using second_moment_of_area = Real;
+using moment_of_inertia = Real;
+using inverse_moment_of_inertia = Real;
+using momentum = Real;
+using angular_momentum = Real;
+#endif // defined(PLAYRHO_USE_BOOST_UNITS)
+
+// Setup unit types...
+#if defined(PLAYRHO_USE_BOOST_UNITS)
+constexpr auto second = 1 * boost::units::si::second;
+constexpr auto hertz = 1 * boost::units::si::hertz;
+constexpr auto meter = 1 * boost::units::si::meter;
+constexpr auto meter_per_second = 1 * boost::units::si::meter_per_second;
+constexpr auto meter_per_second_squared = 1 * boost::units::si::meter_per_second_squared;
+constexpr auto kilogram = 1 * boost::units::si::kilogram;
+constexpr auto square_meter = 1 * boost::units::si::square_meter;
+constexpr auto kilogram_per_square_meter = 1 * boost::units::si::kilogram_per_square_meter;
+constexpr auto radian = 1 * boost::units::si::radian;
+constexpr auto radian_per_second = 1 * boost::units::si::radian_per_second;
+constexpr auto newton = 1 * boost::units::si::newton;
+constexpr auto newton_meter = 1 * boost::units::si::newton_meter;
+#else // !defined(PLAYRHO_USE_BOOST_UNITS)
+constexpr auto second = 1;
+constexpr auto hertz = 1;
+constexpr auto meter = 1;
+constexpr auto meter_per_second = 1;
+constexpr auto meter_per_second_squared = 1;
+constexpr auto kilogram = 1;
+constexpr auto square_meter = 1;
+constexpr auto kilogram_per_square_meter = 1;
+constexpr auto radian = 1;
+constexpr auto radian_per_second = 1;
+constexpr auto newton = 1;
+constexpr auto newton_meter = 1;
+#endif // defined(PLAYRHO_USE_BOOST_UNITS)
+
+}
 
 /// @defgroup PhysicalQuantities Physical Quantity Types
 /// @brief Types for physical quantities.
@@ -137,7 +212,7 @@ namespace playrho {
 /// @note The SI unit of time is the second.
 /// @see Second.
 /// @see https://en.wikipedia.org/wiki/Time_in_physics
-using Time = PLAYRHO_QUANTITY(boost::units::si::time);
+using Time = detail::time;
 
 /// @brief Frequency quantity.
 /// @details This is the type alias for the frequency quantity. It's a derived quantity
@@ -147,7 +222,7 @@ using Time = PLAYRHO_QUANTITY(boost::units::si::time);
 /// @see Time.
 /// @see Hertz.
 /// @see https://en.wikipedia.org/wiki/Frequency
-using Frequency = PLAYRHO_QUANTITY(boost::units::si::frequency);
+using Frequency = detail::frequency;
 
 /// @brief Length quantity.
 /// @details This is the type alias for the length base quantity.
@@ -155,7 +230,7 @@ using Frequency = PLAYRHO_QUANTITY(boost::units::si::frequency);
 /// @note The SI unit of length is the meter.
 /// @see Meter.
 /// @see https://en.wikipedia.org/wiki/Length
-using Length = PLAYRHO_QUANTITY(boost::units::si::length);
+using Length = detail::length;
 
 /// @brief Linear velocity quantity.
 /// @details This is the type alias for the linear velocity derived quantity.
@@ -164,7 +239,7 @@ using Length = PLAYRHO_QUANTITY(boost::units::si::length);
 /// @see Length, Time.
 /// @see MeterPerSecond.
 /// @see https://en.wikipedia.org/wiki/Speed
-using LinearVelocity = PLAYRHO_QUANTITY(boost::units::si::velocity);
+using LinearVelocity = detail::velocity;
 
 /// @brief Linear acceleration quantity.
 /// @details This is the type alias for the linear acceleration derived quantity.
@@ -173,7 +248,7 @@ using LinearVelocity = PLAYRHO_QUANTITY(boost::units::si::velocity);
 /// @see Length, Time, LinearVelocity.
 /// @see MeterPerSquareSecond.
 /// @see https://en.wikipedia.org/wiki/Acceleration
-using LinearAcceleration = PLAYRHO_QUANTITY(boost::units::si::acceleration);
+using LinearAcceleration = detail::acceleration;
 
 /// @brief Mass quantity.
 /// @details This is the type alias for the mass base quantity.
@@ -181,14 +256,14 @@ using LinearAcceleration = PLAYRHO_QUANTITY(boost::units::si::acceleration);
 /// @note The SI unit of mass is the kilogram.
 /// @see Kilogram.
 /// @see https://en.wikipedia.org/wiki/Mass
-using Mass = PLAYRHO_QUANTITY(boost::units::si::mass);
+using Mass = detail::mass;
 
 /// @brief Inverse mass quantity.
 /// @details This is the type alias for the inverse mass quantity. It's a derived quantity
 ///   that's the inverse of mass.
 /// @note This quantity's dimension is: inverse mass (<code>M^-1</code>).
 /// @see Mass.
-using InvMass = PLAYRHO_QUANTITY(playrho::units::si::inverse_mass);
+using InvMass = detail::inverse_mass;
 
 /// @brief Area quantity.
 /// @details This is the type alias for the area quantity. It's a derived quantity.
@@ -197,7 +272,7 @@ using InvMass = PLAYRHO_QUANTITY(playrho::units::si::inverse_mass);
 /// @see Length.
 /// @see SquareMeter.
 /// @see https://en.wikipedia.org/wiki/Area
-using Area = PLAYRHO_QUANTITY(boost::units::si::area);
+using Area = detail::area;
 
 /// @brief Area (surface) density quantity.
 /// @details This is the type alias for the area density quantity. It's a derived quantity.
@@ -206,13 +281,13 @@ using Area = PLAYRHO_QUANTITY(boost::units::si::area);
 /// @see Mass, Area.
 /// @see KilogramPerSquareMeter.
 /// @see https://en.wikipedia.org/wiki/Area_density
-using AreaDensity = PLAYRHO_QUANTITY(boost::units::si::surface_density);
+using AreaDensity = detail::surface_density;
 
 /// @brief Angle quantity.
 /// @details This is the type alias for the plane angle base quantity.
 /// @note This quantity's dimension is: plane angle (<code>QP</code>).
 /// @see Radian, Degree.
-using Angle = PLAYRHO_QUANTITY(boost::units::si::plane_angle);
+using Angle = detail::plane_angle;
 
 /// @brief Angular velocity quantity.
 /// @details This is the type alias for the plane angular velocity quantity. It's a
@@ -222,7 +297,7 @@ using Angle = PLAYRHO_QUANTITY(boost::units::si::plane_angle);
 /// @see Angle, Time.
 /// @see RadianPerSecond, DegreePerSecond.
 /// @see https://en.wikipedia.org/wiki/Angular_velocity
-using AngularVelocity = PLAYRHO_QUANTITY(boost::units::si::angular_velocity);
+using AngularVelocity = detail::angular_velocity;
 
 /// @brief Angular acceleration quantity.
 /// @details This is the type alias for the angular acceleration quantity. It's a
@@ -232,7 +307,7 @@ using AngularVelocity = PLAYRHO_QUANTITY(boost::units::si::angular_velocity);
 /// @see Angle, Time, AngularVelocity.
 /// @see RadianPerSquareSecond, DegreePerSquareSecond.
 /// @see https://en.wikipedia.org/wiki/Angular_acceleration
-using AngularAcceleration = PLAYRHO_QUANTITY(boost::units::si::angular_acceleration);
+using AngularAcceleration = detail::angular_acceleration;
 
 /// @brief Force quantity.
 /// @details This is the type alias for the force quantity. It's a derived quantity.
@@ -241,7 +316,7 @@ using AngularAcceleration = PLAYRHO_QUANTITY(boost::units::si::angular_accelerat
 /// @see Length, Mass, Time.
 /// @see Newton.
 /// @see https://en.wikipedia.org/wiki/Force
-using Force = PLAYRHO_QUANTITY(boost::units::si::force);
+using Force = detail::force;
 
 /// @brief Torque quantity.
 /// @details This is the type alias for the torque quantity. It's a derived quantity
@@ -252,7 +327,7 @@ using Force = PLAYRHO_QUANTITY(boost::units::si::force);
 /// @see Length, Mass, Time, Angle.
 /// @see NewtonMeter.
 /// @see https://en.wikipedia.org/wiki/Torque
-using Torque = PLAYRHO_QUANTITY(boost::units::si::torque);
+using Torque = detail::torque;
 
 /// @brief Second moment of area quantity.
 /// @details This is the type alias for the second moment of area quantity. It's a
@@ -260,7 +335,7 @@ using Torque = PLAYRHO_QUANTITY(boost::units::si::torque);
 /// @note This quantity's dimensions are: length-squared-squared (<code>L^4</code>).
 /// @see Length.
 /// @see https://en.wikipedia.org/wiki/Second_moment_of_area
-using SecondMomentOfArea = PLAYRHO_QUANTITY(playrho::units::si::second_moment_of_area);
+using SecondMomentOfArea = detail::second_moment_of_area;
 
 /// @brief Rotational inertia quantity.
 /// @details This is the type alias for the rotational inertia quantity. It's a
@@ -271,7 +346,7 @@ using SecondMomentOfArea = PLAYRHO_QUANTITY(playrho::units::si::second_moment_of
 ///   (<code>kg * m^2</code>).
 /// @see Length, Mass, Angle, InvRotInertia.
 /// @see https://en.wikipedia.org/wiki/Moment_of_inertia
-using RotInertia = PLAYRHO_QUANTITY(boost::units::si::moment_of_inertia);
+using RotInertia = detail::moment_of_inertia;
 
 /// @brief Inverse rotational inertia quantity.
 /// @details This is the type alias for the inverse rotational inertia quantity. It's
@@ -279,7 +354,7 @@ using RotInertia = PLAYRHO_QUANTITY(boost::units::si::moment_of_inertia);
 /// @note This quantity's dimensions are: angle-squared per length-squared per mass
 ///    (<code>L^-2 M^-1 QP^2</code>).
 /// @see Length, Mass, Angle, RotInertia.
-using InvRotInertia = PLAYRHO_QUANTITY(playrho::units::si::inverse_moment_of_inertia);
+using InvRotInertia = detail::inverse_moment_of_inertia;
 
 /// @brief Momentum quantity.
 /// @details This is the type alias for the momentum quantity. It's a derived quantity.
@@ -290,7 +365,7 @@ using InvRotInertia = PLAYRHO_QUANTITY(playrho::units::si::inverse_moment_of_ine
 /// @see Length, Mass, Time.
 /// @see NewtonSecond.
 /// @see https://en.wikipedia.org/wiki/Momentum
-using Momentum = PLAYRHO_QUANTITY(boost::units::si::momentum);
+using Momentum = detail::momentum;
 
 /// @brief Angular momentum quantity.
 /// @details This is the type alias for the angular momentum quantity. It's a derived
@@ -301,7 +376,7 @@ using Momentum = PLAYRHO_QUANTITY(boost::units::si::momentum);
 /// @see Length, Mass, Time, Angle, Momentum.
 /// @see NewtonMeterSecond.
 /// @see https://en.wikipedia.org/wiki/Angular_momentum
-using AngularMomentum = PLAYRHO_QUANTITY(boost::units::si::angular_momentum);
+using AngularMomentum = detail::angular_momentum;
 
 /// @}
 
@@ -317,7 +392,7 @@ using AngularMomentum = PLAYRHO_QUANTITY(boost::units::si::angular_momentum);
 /// @note This is the SI base unit of time.
 /// @see Time.
 /// @see https://en.wikipedia.org/wiki/Second
-constexpr auto Second = PLAYRHO_UNIT(Time, boost::units::si::second);
+constexpr auto Second = Time(detail::second);
 
 /// @brief Square second unit.
 /// @see Second
@@ -327,46 +402,44 @@ constexpr auto SquareSecond = Second * Second;
 /// @details Represents the hertz unit of frequency (Hz).
 /// @see Frequency.
 /// @see https://en.wikipedia.org/wiki/Hertz
-constexpr auto Hertz = PLAYRHO_UNIT(Frequency, boost::units::si::hertz);
+constexpr auto Hertz = Frequency(detail::hertz);
 
 /// @brief Meter unit of Length.
 /// @details A unit of the length quantity.
 /// @note This is the SI base unit of length.
 /// @see Length.
 /// @see https://en.wikipedia.org/wiki/Metre
-constexpr auto Meter = PLAYRHO_UNIT(Length, boost::units::si::meter);
+constexpr auto Meter = Length(detail::meter);
 
 /// @brief Meter per second unit of linear velocity.
 /// @see LinearVelocity.
-constexpr auto MeterPerSecond = PLAYRHO_UNIT(LinearVelocity, boost::units::si::meter_per_second);
+constexpr auto MeterPerSecond = LinearVelocity(detail::meter_per_second);
 
 /// @brief Meter per square second unit of linear acceleration.
 /// @see LinearAcceleration.
-constexpr auto MeterPerSquareSecond =
-    PLAYRHO_UNIT(LinearAcceleration, boost::units::si::meter_per_second_squared);
+constexpr auto MeterPerSquareSecond = LinearAcceleration(detail::meter_per_second_squared);
 
 /// @brief Kilogram unit of mass.
 /// @note This is the SI base unit of mass.
 /// @see Mass.
 /// @see https://en.wikipedia.org/wiki/Kilogram
-constexpr auto Kilogram = PLAYRHO_UNIT(Mass, boost::units::si::kilogram);
+constexpr auto Kilogram = Mass(detail::kilogram);
 
 /// @brief Square meter unit of area.
 /// @see Area.
-constexpr auto SquareMeter = PLAYRHO_UNIT(Area, boost::units::si::square_meter);
+constexpr auto SquareMeter = Area(detail::square_meter);
 
 /// @brief Cubic meter unit of volume.
 constexpr auto CubicMeter = Meter * Meter * Meter;
 
 /// @brief Kilogram per square meter unit of area density.
 /// @see AreaDensity.
-constexpr auto KilogramPerSquareMeter =
-    PLAYRHO_UNIT(AreaDensity, boost::units::si::kilogram_per_square_meter);
+constexpr auto KilogramPerSquareMeter = AreaDensity(detail::kilogram_per_square_meter);
 
 /// @brief Radian unit of angle.
 /// @see Angle.
 /// @see Degree.
-constexpr auto Radian = PLAYRHO_UNIT(Angle, boost::units::si::radian);
+constexpr auto Radian = Angle(detail::radian);
 
 /// @brief Degree unit of angle quantity.
 /// @see Angle.
@@ -381,7 +454,7 @@ constexpr auto SquareRadian = Radian * Radian;
 /// @brief Radian per second unit of angular velocity.
 /// @see AngularVelocity.
 /// @see Radian, Second.
-constexpr auto RadianPerSecond = PLAYRHO_UNIT(AngularVelocity, boost::units::si::radian_per_second);
+constexpr auto RadianPerSecond = AngularVelocity(detail::radian_per_second);
 
 /// @brief Degree per second unit of angular velocity.
 /// @see AngularVelocity.
@@ -400,12 +473,12 @@ constexpr auto DegreePerSquareSecond = Degree / (Second * Second);
 
 /// @brief Newton unit of force.
 /// @see Force.
-constexpr auto Newton = PLAYRHO_UNIT(Force, boost::units::si::newton);
+constexpr auto Newton = Force(detail::newton);
 
 /// @brief Newton meter unit of torque.
 /// @see Torque.
 /// @see Newton, Meter.
-constexpr auto NewtonMeter = PLAYRHO_UNIT(Torque, boost::units::si::newton_meter);
+constexpr auto NewtonMeter = Torque(detail::newton_meter);
 
 /// @brief Newton second unit of momentum.
 /// @see Momentum.
@@ -420,7 +493,7 @@ constexpr auto NewtonMeterSecond = NewtonMeter * Second;
 /// @brief Revolutions per minute units of angular velocity.
 /// @see AngularVelocity, Time
 /// @see Minute.
-constexpr auto RevolutionsPerMinute = 2 * Pi * Radian / (Real{60} * Second);
+constexpr auto RevolutionsPerMinute = 2 * Pi * Radian / (Real{detail::SecondsPerMinute} * Second);
 
 /// @}
 
@@ -598,42 +671,42 @@ constexpr Time operator"" _s(long double v) noexcept
 /// @see https://en.wikipedia.org/wiki/Minute
 constexpr Time operator"" _min(unsigned long long int v) noexcept
 {
-    return static_cast<Real>(v) * 60 * Second;
+    return static_cast<Real>(v) * detail::SecondsPerMinute * Second;
 }
 
 /// @brief SI symbol for a minute unit of Time.
 /// @see https://en.wikipedia.org/wiki/Minute
 constexpr Time operator"" _min(long double v) noexcept
 {
-    return static_cast<Real>(v) * 60 * Second;
+    return static_cast<Real>(v) * detail::SecondsPerMinute * Second;
 }
 
 /// @brief Symbol for an hour unit of Time.
 /// @see https://en.wikipedia.org/wiki/Hour
 constexpr Time operator"" _h(unsigned long long int v) noexcept
 {
-    return static_cast<Real>(v) * 60 * 60 * Second;
+    return static_cast<Real>(v) * detail::MinutesPerHour * detail::SecondsPerMinute * Second;
 }
 
 /// @brief Symbol for an hour unit of Time.
 /// @see https://en.wikipedia.org/wiki/Hour
 constexpr Time operator"" _h(long double v) noexcept
 {
-    return static_cast<Real>(v) * 60 * 60 * Second;
+    return static_cast<Real>(v) * detail::MinutesPerHour * detail::SecondsPerMinute * Second;
 }
 
 /// @brief Symbol for a day unit of Time.
 /// @see https://en.wikipedia.org/wiki/Day
 constexpr Time operator"" _d(unsigned long long int v) noexcept
 {
-    return static_cast<Real>(v) * 60 * 60 * 24 * Second;
+    return static_cast<Real>(v) * detail::HoursPerDay * detail::MinutesPerHour * detail::SecondsPerMinute * Second;
 }
 
 /// @brief Symbol for a day unit of Time.
 /// @see https://en.wikipedia.org/wiki/Day
 constexpr Time operator"" _d(long double v) noexcept
 {
-    return static_cast<Real>(v) * 60 * 60 * 24 * Second;
+    return static_cast<Real>(v) * detail::HoursPerDay * detail::MinutesPerHour * detail::SecondsPerMinute * Second;
 }
 
 /// @brief SI symbol for a radian unit of Angle.
@@ -865,7 +938,7 @@ constexpr auto BigG = Real{6.67408e-11f} * CubicMeter / (Kilogram * SquareSecond
 
 /// @}
 
-#if defined(USE_BOOST_UNITS)
+#if defined(PLAYRHO_USE_BOOST_UNITS)
 using boost::units::cos;
 using boost::units::isfinite;
 using boost::units::isnormal;
@@ -1016,11 +1089,11 @@ constexpr RotInertia GetInvalid() noexcept
     return GetInvalid<Real>() * SquareMeter * Kilogram / SquareRadian;
 }
 
-#endif // defined(USE_BOOST_UNITS)
+#endif // defined(PLAYRHO_USE_BOOST_UNITS)
 
 } // namespace playrho
 
-#if defined(USE_BOOST_UNITS)
+#if defined(PLAYRHO_USE_BOOST_UNITS)
 namespace boost {
 namespace units {
 
@@ -1095,9 +1168,6 @@ constexpr auto operator*(X lhs, quantity<Dimension, playrho::Real> rhs)
 
 } // namespace units
 } // namespace boost
-#endif // defined(USE_BOOST_UNITS)
-
-#undef PLAYRHO_QUANTITY
-#undef PLAYRHO_UNIT
+#endif // defined(PLAYRHO_USE_BOOST_UNITS)
 
 #endif // PLAYRHO_COMMON_UNITS_HPP

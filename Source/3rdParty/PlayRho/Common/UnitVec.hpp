@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -66,7 +66,7 @@ public:
     
     /// @brief Constant reverse iterator type.
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    
+
     /// @brief Gets the right-ward oriented unit vector.
     /// @note This is the value for the 0/4 turned (0 angled) unit vector.
     /// @note This is the reverse perpendicular unit vector of the bottom oriented vector.
@@ -92,7 +92,7 @@ public:
     static constexpr UnitVec GetBottom() noexcept { return UnitVec{0, -1}; }
 
     /// @brief Gets the non-oriented unit vector.
-    static constexpr UnitVec GetZero() noexcept { return UnitVec{0, 0}; }
+    static constexpr UnitVec GetZero() noexcept { return UnitVec{}; }
 
     /// @brief Gets the 45 degree unit vector.
     /// @details This is the unit vector in the positive X and Y quadrant where X == Y.
@@ -124,7 +124,7 @@ public:
     /// @brief Gets the unit vector & magnitude from the given parameters.
     template <typename T>
     static PolarCoord<T> Get(const T x, const T y,
-                             const UnitVec fallback = GetDefaultFallback()) noexcept
+                             const UnitVec& fallback = GetDefaultFallback()) noexcept
     {
         // Try the faster way first...
         const auto magnitudeSquared = x * x + y * y;
@@ -144,7 +144,7 @@ public:
         }
         
         // Give up and return the fallback value.
-        return std::make_pair(fallback, T{0});
+        return std::make_pair(fallback, T{});
     }
 
     /// @brief Gets the given angled unit vector.
@@ -153,25 +153,25 @@ public:
     ///   better accuracy will be had by using one of the four oriented unit
     ///   vector returning methods - for the right, top, left, bottom orientations.
     ///
-    static UnitVec Get(const Angle angle) noexcept;
+    static UnitVec Get(Angle angle) noexcept;
 
     constexpr UnitVec() noexcept = default;
     
     /// @brief Gets the max size.
-    constexpr size_type max_size() const noexcept { return size_type{2}; }
+    static constexpr size_type max_size() noexcept { return N; }
     
     /// @brief Gets the size.
-    constexpr size_type size() const noexcept { return size_type{2}; }
+    static constexpr size_type size() noexcept { return N; }
     
     /// @brief Whether empty.
     /// @note Always false for N > 0.
-    constexpr bool empty() const noexcept { return false; }
+    static constexpr bool empty() noexcept { return false; }
     
     /// @brief Gets a "begin" iterator.
-    const_iterator begin() const noexcept { return const_iterator(m_elems); }
+    const_iterator begin() const noexcept { return const_iterator(data()); }
     
     /// @brief Gets an "end" iterator.
-    const_iterator end() const noexcept { return const_iterator(m_elems + 2); }
+    const_iterator end() const noexcept { return const_iterator(data() + N); }
     
     /// @brief Gets a "begin" iterator.
     const_iterator cbegin() const noexcept { return begin(); }
@@ -182,13 +182,13 @@ public:
     /// @brief Gets a reverse "begin" iterator.
     const_reverse_iterator crbegin() const noexcept
     {
-        return const_reverse_iterator{m_elems + 2};
+        return const_reverse_iterator{data() + N};
     }
     
     /// @brief Gets a reverse "end" iterator.
     const_reverse_iterator crend() const noexcept
     {
-        return const_reverse_iterator{m_elems};
+        return const_reverse_iterator{data()};
     }
     
     /// @brief Gets a reverse "begin" iterator.
@@ -209,7 +209,7 @@ public:
     constexpr const_reference operator[](size_type pos) const noexcept
     {
         assert(pos < size());
-        return m_elems[pos];
+        return m_elems[pos]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
     
     /// @brief Gets a constant reference to the requested element.
@@ -220,13 +220,14 @@ public:
         {
             throw InvalidArgument("Vector::at: position >= size()");
         }
-        return m_elems[pos];
+        return m_elems[pos]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
     
     /// @brief Direct access to data.
     constexpr const_pointer data() const noexcept
     {
-        return m_elems;
+        // Cast to be more explicit about wanting to decay array into pointer...
+        return static_cast<const_pointer>(m_elems);
     }
     
     /// @brief Gets the "X" value.
@@ -251,7 +252,7 @@ public:
     ///
     /// @return Result of rotating this unit vector by the given amount.
     ///
-    constexpr UnitVec Rotate(UnitVec amount) const noexcept
+    constexpr UnitVec Rotate(const UnitVec& amount) const noexcept
     {
         return UnitVec{GetX() * amount.GetX() - GetY() * amount.GetY(),
                         GetY() * amount.GetX() + GetX() * amount.GetY()};
@@ -290,33 +291,35 @@ public:
     }
 
 private:
-    
+    /// @brief Dimensionality of this type.
+    static constexpr auto N = std::size_t{2};
+
     /// @brief Initializing constructor.
     constexpr UnitVec(value_type x, value_type y) noexcept : m_elems{x, y}
     {
         // Intentionally empty.
     }
 
-    value_type m_elems[2] = { value_type{0}, value_type{0} }; ///< Element values.
+    value_type m_elems[N] = {}; ///< Element values.
 };
 
 // Free functions...
 
 /// @brief Gets the "X-axis".
-constexpr UnitVec GetXAxis(UnitVec rot) noexcept { return rot; }
+constexpr UnitVec GetXAxis(const UnitVec& rot) noexcept { return rot; }
 
 /// @brief Gets the "Y-axis".
 /// @note This is the reverse perpendicular vector of the given unit vector.
-constexpr UnitVec GetYAxis(UnitVec rot) noexcept { return rot.GetRevPerpendicular(); }
+constexpr UnitVec GetYAxis(const UnitVec& rot) noexcept { return rot.GetRevPerpendicular(); }
 
 /// @brief Equality operator.
-constexpr bool operator==(const UnitVec a, const UnitVec b) noexcept
+constexpr bool operator==(const UnitVec& a, const UnitVec& b) noexcept
 {
     return (a.GetX() == b.GetX()) && (a.GetY() == b.GetY());
 }
 
 /// @brief Inequality operator.
-constexpr bool operator!=(const UnitVec a, const UnitVec b) noexcept
+constexpr bool operator!=(const UnitVec& a, const UnitVec& b) noexcept
 {
     return (a.GetX() != b.GetX()) || (a.GetY() != b.GetY());
 }
@@ -327,7 +330,7 @@ constexpr bool operator!=(const UnitVec a, const UnitVec b) noexcept
 /// @param vector Vector to return a counter-clockwise perpendicular equivalent for.
 /// @return A counter-clockwise 90-degree rotation of the given vector.
 /// @see GetFwdPerpendicular.
-constexpr UnitVec GetRevPerpendicular(const UnitVec vector) noexcept
+constexpr UnitVec GetRevPerpendicular(const UnitVec& vector) noexcept
 {
     return vector.GetRevPerpendicular();
 }
@@ -337,7 +340,7 @@ constexpr UnitVec GetRevPerpendicular(const UnitVec vector) noexcept
 /// @param vector Vector to return a clockwise perpendicular equivalent for.
 /// @return A clockwise 90-degree rotation of the given vector.
 /// @see GetRevPerpendicular.
-constexpr UnitVec GetFwdPerpendicular(const UnitVec vector) noexcept
+constexpr UnitVec GetFwdPerpendicular(const UnitVec& vector) noexcept
 {
     return vector.GetFwdPerpendicular();
 }
@@ -345,22 +348,22 @@ constexpr UnitVec GetFwdPerpendicular(const UnitVec vector) noexcept
 /// @brief Rotates a unit vector by the angle expressed by the second unit vector.
 /// @return Unit vector for the angle that's the sum of the two angles expressed by
 ///   the input unit vectors.
-constexpr UnitVec Rotate(const UnitVec vector, const UnitVec& angle) noexcept
+constexpr UnitVec Rotate(const UnitVec& vector, const UnitVec& angle) noexcept
 {
     return vector.Rotate(angle);
 }
 
 /// @brief Inverse rotates a vector.
-constexpr UnitVec InverseRotate(const UnitVec vector, const UnitVec& angle) noexcept
+constexpr UnitVec InverseRotate(const UnitVec& vector, const UnitVec& angle) noexcept
 {
     return vector.Rotate(angle.FlipY());
 }
 
 /// @brief Gets the specified element of the given collection.
 template <std::size_t I>
-constexpr UnitVec::value_type get(UnitVec v) noexcept
+constexpr UnitVec::value_type get(const UnitVec& v) noexcept
 {
-    static_assert(I < 2, "Index out of bounds in playrho::get<> (playrho::UnitVec)");
+    static_assert(I < UnitVec::size(), "Index out of bounds in playrho::get<> (playrho::UnitVec)");
     switch (I)
     {
         case 0: return v.GetX();
@@ -370,14 +373,14 @@ constexpr UnitVec::value_type get(UnitVec v) noexcept
 
 /// @brief Gets element 0 of the given collection.
 template <>
-constexpr UnitVec::value_type get<0>(UnitVec v) noexcept
+constexpr UnitVec::value_type get<0>(const UnitVec& v) noexcept
 {
     return v.GetX();
 }
 
 /// @brief Gets element 1 of the given collection.
 template <>
-constexpr UnitVec::value_type get<1>(UnitVec v) noexcept
+constexpr UnitVec::value_type get<1>(const UnitVec& v) noexcept
 {
     return v.GetY();
 }
@@ -405,7 +408,7 @@ namespace std {
 
 /// @brief Tuple size info for <code>playrho::d2::UnitVec</code>.
 template<>
-class tuple_size< playrho::d2::UnitVec >: public std::integral_constant<std::size_t, 2> {};
+class tuple_size< playrho::d2::UnitVec >: public std::integral_constant<std::size_t, playrho::d2::UnitVec::size()> {};
 
 /// @brief Tuple element type info for <code>playrho::d2::UnitVec</code>.
 template<std::size_t I>

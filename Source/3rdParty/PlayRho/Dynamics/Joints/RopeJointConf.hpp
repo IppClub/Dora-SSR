@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -59,7 +59,7 @@ struct RopeJointConf : public JointBuilder<RopeJointConf> {
     using super = JointBuilder<RopeJointConf>;
 
     /// @brief Default constructor.
-    constexpr RopeJointConf() = default;
+    constexpr RopeJointConf() noexcept = default;
 
     /// @brief Initializing constructor.
     constexpr RopeJointConf(BodyID bodyA, BodyID bodyB) noexcept
@@ -84,7 +84,7 @@ struct RopeJointConf : public JointBuilder<RopeJointConf> {
     /// The maximum length of the rope.
     Length maxLength = 0_m;
 
-    Length length = 0; ///< Length.
+    Length length = 0_m; ///< Length.
     Momentum impulse = 0_Ns; ///< Impulse.
 
     // Solver temp
@@ -115,8 +115,9 @@ constexpr bool operator!=(const RopeJointConf& lhs, const RopeJointConf& rhs) no
 }
 
 /// @brief Gets the definition data for the given joint.
+/// @throws std::bad_cast If the given joint's type is inappropriate for getting this value.
 /// @relatedalso Joint
-RopeJointConf GetRopeJointConf(const Joint& joint) noexcept;
+RopeJointConf GetRopeJointConf(const Joint& joint);
 
 /// @brief Gets the current linear reaction of the given configuration.
 /// @relatedalso RopeJointConf
@@ -129,18 +130,25 @@ constexpr Momentum2 GetLinearReaction(const RopeJointConf& object) noexcept
 /// @relatedalso RopeJointConf
 constexpr AngularMomentum GetAngularReaction(const RopeJointConf&) noexcept
 {
-    return AngularMomentum{0};
+    return AngularMomentum{};
 }
 
 /// @brief Shifts the origin notion of the given configuration.
 /// @relatedalso RopeJointConf
-constexpr auto ShiftOrigin(RopeJointConf&, Length2) noexcept
+constexpr auto ShiftOrigin(RopeJointConf&, const Length2&) noexcept
 {
     return false;
 }
 
 /// @brief Initializes velocity constraint data based on the given solver data.
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso RopeJointConf
 void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
@@ -148,6 +156,12 @@ void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, co
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso RopeJointConf
@@ -155,6 +169,12 @@ bool SolveVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso RopeJointConf
 bool SolvePosition(const RopeJointConf& object, std::vector<BodyConstraint>& bodies,

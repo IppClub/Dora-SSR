@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -31,35 +31,36 @@
 namespace playrho {
 
 /// @brief A holder for contact filtering data.
-/// @note This data structure size is 6-bytes.
+/// @note This data structure size is 9-bytes.
 struct Filter {
     /// @brief Bits type definition.
-    ///
     using bits_type = std::uint32_t;
 
     /// @brief Index type definition.
-    ///
     using index_type = std::int8_t;
 
+    /// @brief Default category bits.
+    static constexpr auto DefaultCategoryBits = bits_type(0x1);
+
+    /// @brief Default mask bits.
+    static constexpr auto DefaultMaskBits = bits_type(~0u);
+
+    /// @brief Default group index.
+    static constexpr auto DefaultGroupIndex = index_type{0};
+
     /// @brief The collision category bits.
-    ///
     /// @note Normally you would just set one bit.
-    ///
-    bits_type categoryBits = 0x0001;
+    bits_type categoryBits = DefaultCategoryBits;
 
     /// @brief The collision mask bits.
-    ///
     /// @details This states the categories that this shape would accept for collision.
-    ///
-    bits_type maskBits = ~0u;
+    bits_type maskBits = DefaultMaskBits;
 
     /// @brief Group index.
-    ///
     /// @details Collision groups allow a certain group of objects to never collide
     ///   (negative) or always collide (positive). Zero means no collision group.
     ///    Non-zero group filtering always wins against the mask bits.
-    ///
-    index_type groupIndex = 0;
+    index_type groupIndex = DefaultGroupIndex;
 };
 
 /// @brief Equality operator.

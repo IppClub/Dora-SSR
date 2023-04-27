@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -58,7 +58,7 @@ public:
     Area GetMinSeparationSquared() const noexcept { return m_minSepSquared; }
 
     /// @brief Adds the given vertex into the set if allowed.
-    bool add(Length2 value)
+    bool add(const Length2& value)
     {
         if (find(value) != end())
         {
@@ -91,12 +91,12 @@ public:
 
     /// Finds contained point whose delta with the given point has a squared length less
     /// than or equal to this set's minimum length squared value.
-    const_pointer find(Length2 value) const
+    const_pointer find(const Length2& value) const
     {
         // squaring anything smaller than the sqrt(std::numeric_limits<Vec2::data_type>::min())
         // won't be reversible.
         // i.e. won't obey the property that square(sqrt(a)) == a and sqrt(square(a)) == a.
-        return std::find_if(begin(), end(), [&](Length2 elem) {
+        return std::find_if(begin(), end(), [&](const Length2& elem) {
             // length squared must be large enough to have a reasonable enough unit vector.
             return GetMagnitudeSquared(value - elem) <= m_minSepSquared;
         });

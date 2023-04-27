@@ -1,6 +1,6 @@
 /*
  * Based on work by Jonathan Boccara and Jonathan Müller.
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -133,9 +133,9 @@ private:
     underlying_type value_; ///< Underlying value.
 };
 
-static_assert(std::is_default_constructible<IndexingNamedType<int, struct Test>>::value, "");
-static_assert(std::is_nothrow_copy_constructible<IndexingNamedType<int, struct Test>>::value, "");
-static_assert(std::is_nothrow_move_constructible<IndexingNamedType<int, struct Test>>::value, "");
+static_assert(std::is_default_constructible<IndexingNamedType<int, struct Test>>::value);
+static_assert(std::is_nothrow_copy_constructible<IndexingNamedType<int, struct Test>>::value);
+static_assert(std::is_nothrow_move_constructible<IndexingNamedType<int, struct Test>>::value);
 
 /// @brief Gets the underlying value.
 template <typename T, typename Tag>

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -119,8 +119,8 @@ StepStats Step(World& world, const StepConf& conf = StepConf{});
 /// @relatedalso World
 ///
 StepStats Step(World& world, Time delta,
-               TimestepIters velocityIterations = 8,
-               TimestepIters positionIterations = 3);
+               TimestepIters velocityIterations = StepConf::DefaultRegVelocityIters,
+               TimestepIters positionIterations = StepConf::DefaultRegPositionIters);
 
 /// @brief Gets whether or not sub-stepping is enabled.
 /// @see SetSubStepping, IsStepComplete.
@@ -156,7 +156,7 @@ Length GetMaxVertexRadius(const World& world) noexcept;
 /// @param newOrigin the new origin with respect to the old origin
 /// @throws WrongState if this method is called while the world is locked.
 /// @relatedalso World
-void ShiftOrigin(World& world, Length2 newOrigin);
+void ShiftOrigin(World& world, const Length2& newOrigin);
 
 } // namespace d2
 } // namespace playrho

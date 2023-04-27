@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2007-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -31,7 +31,8 @@
 
 namespace playrho::d2 {
 
-ToiOutput GetToiViaSat(const DistanceProxy& proxyA, const Sweep& sweepA, // force line-break
+ToiOutput GetToiViaSat( // NOLINT(readability-function-cognitive-complexity)
+                       const DistanceProxy& proxyA, const Sweep& sweepA, // force line-break
                        const DistanceProxy& proxyB, const Sweep& sweepB, // force line-break
                        const ToiConf& conf)
 {

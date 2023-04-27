@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -61,7 +61,7 @@ JointCounter GetJointRange(const World& world) noexcept;
 
 /// @brief Gets the joints of the specified world.
 /// @relatedalso World
-std::vector<JointID> GetJoints(const World& world) noexcept;
+const std::vector<JointID>& GetJoints(const World& world) noexcept;
 
 /// @brief Creates a new joint within the given world.
 /// @throws WrongState if this method is called while the world is locked.
@@ -303,7 +303,7 @@ Length2 GetLinearOffset(const World& world, JointID id);
 /// @brief Sets the target linear offset, in frame A.
 /// @throws std::out_of_range If given an invalid joint identifier.
 /// @relatedalso World
-void SetLinearOffset(World& world, JointID id, Length2 value);
+void SetLinearOffset(World& world, JointID id, const Length2& value);
 
 /// @brief Gets the target angular offset.
 /// @throws std::out_of_range If given an invalid joint identifier.
@@ -345,7 +345,7 @@ Length2 GetTarget(const World& world, JointID id);
 /// @throws WrongState if this method is called while the world is locked.
 /// @throws std::out_of_range If given an invalid joint identifier.
 /// @relatedalso World
-void SetTarget(World& world, JointID id, Length2 value);
+void SetTarget(World& world, JointID id, const Length2& value);
 
 /// Get the lower joint limit.
 /// @throws std::out_of_range If given an invalid joint identifier.
@@ -368,7 +368,7 @@ void SetAngularLimits(World& world, JointID id, Angle lower, Angle upper);
 /// @throws WrongState if this method is called while the world is locked.
 /// @throws std::out_of_range If given an invalid joint identifier.
 /// @relatedalso World
-bool ShiftOrigin(World& world, JointID id, Length2 value);
+bool ShiftOrigin(World& world, JointID id, const Length2& value);
 
 /// @brief Gets the damping ratio associated with the identified joint if it has one.
 /// @throws std::out_of_range If given an invalid joint identifier.

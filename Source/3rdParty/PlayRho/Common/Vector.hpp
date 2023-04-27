@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -95,26 +95,26 @@ struct Vector
     }
 
     /// @brief Gets the max size.
-    constexpr size_type max_size() const noexcept { return N; }
+    static constexpr size_type max_size() noexcept { return N; }
     
     /// @brief Gets the size.
-    constexpr size_type size() const noexcept { return N; }
+    static constexpr size_type size() noexcept { return N; }
     
     /// @brief Whether empty.
     /// @note Always false for N > 0.
-    constexpr bool empty() const noexcept { return N == 0; }
+    static constexpr bool empty() noexcept { return N == 0; }
     
     /// @brief Gets a "begin" iterator.
-    iterator begin() noexcept { return iterator(elements); }
+    iterator begin() noexcept { return iterator(data()); }
 
     /// @brief Gets an "end" iterator.
-    iterator end() noexcept { return iterator(elements + N); }
+    iterator end() noexcept { return iterator(data() + N); }
     
     /// @brief Gets a "begin" iterator.
-    const_iterator begin() const noexcept { return const_iterator(elements); }
+    const_iterator begin() const noexcept { return const_iterator(data()); }
     
     /// @brief Gets an "end" iterator.
-    const_iterator end() const noexcept { return const_iterator(elements + N); }
+    const_iterator end() const noexcept { return const_iterator(data() + N); }
     
     /// @brief Gets a "begin" iterator.
     const_iterator cbegin() const noexcept { return begin(); }
@@ -123,21 +123,21 @@ struct Vector
     const_iterator cend() const noexcept { return end(); }
 
     /// @brief Gets a reverse "begin" iterator.
-    reverse_iterator rbegin() noexcept { return reverse_iterator{elements + N}; }
+    reverse_iterator rbegin() noexcept { return reverse_iterator{data() + N}; }
 
     /// @brief Gets a reverse "end" iterator.
-    reverse_iterator rend() noexcept { return reverse_iterator{elements}; }
+    reverse_iterator rend() noexcept { return reverse_iterator{data()}; }
     
     /// @brief Gets a reverse "begin" iterator.
     const_reverse_iterator crbegin() const noexcept
     {
-        return const_reverse_iterator{elements + N};
+        return const_reverse_iterator{data() + N};
     }
     
     /// @brief Gets a reverse "end" iterator.
     const_reverse_iterator crend() const noexcept
     {
-        return const_reverse_iterator{elements};
+        return const_reverse_iterator{data()};
     }
 
     /// @brief Gets a reverse "begin" iterator.
@@ -158,7 +158,7 @@ struct Vector
     constexpr reference operator[](size_type pos) noexcept
     {
         assert(pos < size());
-        return elements[pos];
+        return elements[pos]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
     
     /// @brief Gets a constant reference to the requested element.
@@ -167,7 +167,7 @@ struct Vector
     constexpr const_reference operator[](size_type pos) const noexcept
     {
         assert(pos < size());
-        return elements[pos];
+        return elements[pos]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
     
     /// @brief Gets a reference to the requested element.
@@ -195,13 +195,15 @@ struct Vector
     /// @brief Direct access to data.
     constexpr pointer data() noexcept
     {
-        return elements;
+        // Cast to be more explicit about wanting to decay array into pointer...
+        return static_cast<pointer>(elements);
     }
     
     /// @brief Direct access to data.
     constexpr const_pointer data() const noexcept
     {
-        return elements;
+        // Cast to be more explicit about wanting to decay array into pointer...
+        return static_cast<const_pointer>(elements);
     }
     
     /// @brief Elements.

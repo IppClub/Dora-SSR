@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2010 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -43,10 +43,16 @@ namespace d2 {
 class EdgeShapeConf : public ShapeBuilder<EdgeShapeConf>
 {
 public:
+    /// @brief Default vertex radius.
+    static constexpr auto DefaultVertexRadius = NonNegative<Length>{DefaultLinearSlop * Real{2}};
+
     /// @brief Gets the default vertex radius.
+    /// @note This is just a backward compatibility interface for getting the default vertex radius.
+    ///    The new way is to use <code>DefaultVertexRadius</code> directly.
+    /// @return <code>DefaultVertexRadius</code>.
     static constexpr NonNegative<Length> GetDefaultVertexRadius() noexcept
     {
-        return NonNegative<Length>{DefaultLinearSlop * Real{2}};
+        return DefaultVertexRadius;
     }
 
     /// @brief Gets the default configuration.
@@ -55,13 +61,14 @@ public:
         return EdgeShapeConf{};
     }
 
-    EdgeShapeConf() = default;
+    EdgeShapeConf() noexcept = default;
 
     /// @brief Initializing constructor.
-    EdgeShapeConf(Length2 vA, Length2 vB, const EdgeShapeConf& conf = GetDefaultConf()) noexcept;
+    EdgeShapeConf(const Length2& vA, const Length2& vB, // force line-break
+                  const EdgeShapeConf& conf = GetDefaultConf()) noexcept;
 
     /// @brief Sets both vertices in one call.
-    EdgeShapeConf& Set(Length2 vA, Length2 vB) noexcept;
+    EdgeShapeConf& Set(const Length2& vA, const Length2& vB) noexcept;
 
     /// @brief Uses the given vertex radius.
     EdgeShapeConf& UseVertexRadius(NonNegative<Length> value) noexcept;
@@ -90,7 +97,10 @@ public:
     /// @brief Gets the "child" shape.
     DistanceProxy GetChild() const noexcept
     {
-        return DistanceProxy{vertexRadius, 2, m_vertices, m_normals};
+        return DistanceProxy{vertexRadius, 2, // force line-break
+            static_cast<const Length2*>(m_vertices), // explicitly decay array into pointer
+            static_cast<const UnitVec*>(m_normals) // explicitly decay array into pointer
+        };
     }
 
     /// @brief Vertex radius.
@@ -175,7 +185,7 @@ inline void SetVertexRadius(EdgeShapeConf& arg, ChildCounter, NonNegative<Length
 }
 
 /// @brief Gets the mass data for the given shape configuration.
-inline MassData GetMassData(const EdgeShapeConf& arg) noexcept
+inline MassData GetMassData(const EdgeShapeConf& arg)
 {
     return playrho::d2::GetMassData(arg.vertexRadius, arg.density, arg.GetVertexA(),
                                     arg.GetVertexB());

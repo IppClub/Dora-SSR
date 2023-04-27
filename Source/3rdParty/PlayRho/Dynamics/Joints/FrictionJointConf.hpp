@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -51,13 +51,18 @@ struct FrictionJointConf : public JointBuilder<FrictionJointConf> {
     using super = JointBuilder<FrictionJointConf>;
 
     /// @brief Default constructor.
-    constexpr FrictionJointConf() = default;
+    constexpr FrictionJointConf() noexcept = default;
 
     /// @brief Initializing constructor.
-    /// @details Initialize the bodies, anchors, axis, and reference angle using the world
-    ///   anchor and world axis.
-    FrictionJointConf(BodyID bodyA, BodyID bodyB, Length2 laA = Length2{},
-                      Length2 laB = Length2{}) noexcept;
+    /// @details Initialize the bodies and local anchors.
+    /// @post <code>bodyA</code> will hold the value of <code>bA</code>.
+    /// @post <code>bodyB</code> will hold the value of <code>bB</code>.
+    /// @post <code>localAnchorA</code> will hold the value of <code>laA</code>.
+    /// @post <code>localAnchorB</code> will hold the value of <code>laB</code>.
+    /// @post All other member variables will be zero initialized.
+    FrictionJointConf(BodyID bA, BodyID bB, // force line-break
+                      const Length2& laA = Length2{}, // force line-break
+                      const Length2& laB = Length2{}) noexcept;
 
     /// @brief Uses the given maximum force value.
     constexpr auto& UseMaxForce(NonNegative<Force> v) noexcept
@@ -87,7 +92,7 @@ struct FrictionJointConf : public JointBuilder<FrictionJointConf> {
 
     // Solver shared data - data saved & updated over multiple InitVelocityConstraints calls.
     Momentum2 linearImpulse = Momentum2{}; ///< Linear impulse.
-    AngularMomentum angularImpulse = AngularMomentum{0}; ///< Angular impulse.
+    AngularMomentum angularImpulse = AngularMomentum{}; ///< Angular impulse.
 
     // Solver temp
     Length2 rA = {}; ///< Relative A.
@@ -122,13 +127,14 @@ constexpr bool operator!=(const FrictionJointConf& lhs, const FrictionJointConf&
 }
 
 /// @brief Gets the definition data for the given joint.
+/// @throws std::bad_cast If the given joint's type is inappropriate for getting this value.
 /// @relatedalso Joint
-FrictionJointConf GetFrictionJointConf(const Joint& joint) noexcept;
+FrictionJointConf GetFrictionJointConf(const Joint& joint);
 
 /// @brief Gets the confguration for the given parameters.
 /// @relatedalso World
 FrictionJointConf GetFrictionJointConf(const World& world, BodyID bodyA, BodyID bodyB,
-                                       Length2 anchor);
+                                       const Length2& anchor);
 
 /// @brief Gets the current linear reaction for the given configuration.
 /// @relatedalso FrictionJointConf
@@ -153,6 +159,13 @@ constexpr bool ShiftOrigin(FrictionJointConf&, Length2) noexcept
 
 /// @brief Initializes velocity constraint data based on the given solver data.
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @param conf Constraint solver configuration.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso FrictionJointConf
 void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies,
@@ -160,6 +173,12 @@ void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
+/// @param object Configuration object. <code>bodyA</code> and <code>bodyB</code> must index bodies within
+///   the given <code>bodies</code> container or be the special body ID value of <code>InvalidBodyID</code>.
+/// @param bodies Container of body constraints.
+/// @param step Configuration for the step.
+/// @throws std::out_of_range If the given object's <code>bodyA</code> or <code>bodyB</code> values are not
+///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso FrictionJointConf
@@ -167,7 +186,8 @@ bool SolveVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodie
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
-/// @return <code>true</code> if the position errors are within tolerance.
+/// @note This is a no-op and always returns <code>true</code>.
+/// @return <code>true</code>.
 /// @relatedalso FrictionJointConf
 bool SolvePosition(const FrictionJointConf& object, std::vector<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);

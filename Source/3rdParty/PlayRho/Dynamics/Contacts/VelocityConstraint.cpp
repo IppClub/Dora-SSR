@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -56,7 +56,7 @@ inline InvMass3 ComputeK(const VelocityConstraint& vc, const std::vector<BodyCon
     const auto invMassB = bodyB->GetInvMass();
     
     const auto invMass = invMassA + invMassB;
-    assert(invMass > InvMass{0});
+    assert(invMass > InvMass{});
     
     const auto invRotMassA0 = InvMass{(invRotInertiaA * Square(rnA0)) / SquareRadian};
     const auto invRotMassA1 = InvMass{(invRotInertiaA * Square(rnA1)) / SquareRadian};
@@ -130,8 +130,8 @@ VelocityConstraint::VelocityConstraint(Real friction, Real restitution,
 
 VelocityConstraint::Point
 VelocityConstraint::GetPoint(Momentum normalImpulse, Momentum tangentImpulse,
-                             Length2 relA, Length2 relB, const std::vector<BodyConstraint>& bodies,
-                             Conf conf) const noexcept
+                             const Length2& relA, const Length2& relB, const std::vector<BodyConstraint>& bodies,
+                             const Conf& conf) const noexcept
 {
     assert(IsValid(normalImpulse));
     assert(IsValid(tangentImpulse));
@@ -167,21 +167,22 @@ VelocityConstraint::GetPoint(Momentum normalImpulse, Momentum tangentImpulse,
         const auto invRotMassA = invRotInertiaA * Square(Cross(relA, GetNormal())) / SquareRadian;
         const auto invRotMassB = invRotInertiaB * Square(Cross(relB, GetNormal())) / SquareRadian;
         const auto value = invMass + invRotMassA + invRotMassB;
-        return (value != InvMass{0})? Real{1} / value : 0_kg;
+        return (value != InvMass{})? Real{1} / value : 0_kg;
     }();
     point.tangentMass = [&]() {
         const auto invRotMassA = invRotInertiaA * Square(Cross(relA, GetTangent())) / SquareRadian;
         const auto invRotMassB = invRotInertiaB * Square(Cross(relB, GetTangent())) / SquareRadian;
         const auto value = invMass + invRotMassA + invRotMassB;
-        return (value != InvMass{0})? Real{1} / value : 0_kg;
+        return (value != InvMass{})? Real{1} / value : 0_kg;
     }();
 
     return point;
 }
 
 void VelocityConstraint::AddPoint(Momentum normalImpulse, Momentum tangentImpulse,
-                                  Length2 relA, Length2 relB, const std::vector<BodyConstraint>& bodies,
-                                  Conf conf)
+                                  const Length2& relA, const Length2& relB,
+                                  const std::vector<BodyConstraint>& bodies,
+                                  const Conf& conf)
 {
     assert(m_pointCount < MaxManifoldPoints);
     m_points[m_pointCount] = GetPoint(normalImpulse * conf.dtRatio, tangentImpulse * conf.dtRatio,

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -36,6 +36,7 @@
 
 #include "PlayRho/Common/Templates.hpp"
 #include "PlayRho/Common/RealConstants.hpp"
+#include "PlayRho/Common/Positive.hpp"
 #include "PlayRho/Common/Units.hpp"
 #include "PlayRho/Common/Wider.hpp"
 
@@ -46,11 +47,17 @@ namespace detail {
 template <typename T>
 struct Defaults
 {
+    /// @brief Linear slop.
+    static constexpr auto LinearSlop = 0.005_m;
+
+    /// @brief Max vertex radius.
+    static constexpr auto MaxVertexRadius = 255_m;
+
     /// @brief Gets the linear slop.
     static constexpr auto GetLinearSlop() noexcept
     {
         // Return the value used by Box2D 2.3.2 b2_linearSlop define....
-        return 0.005_m;
+        return LinearSlop;
     }
     
     /// @brief Gets the max vertex radius.
@@ -58,7 +65,7 @@ struct Defaults
     {
         // DefaultLinearSlop * Real{2 * 1024 * 1024};
         // linearSlop * 2550000
-        return 255_m;
+        return MaxVertexRadius;
     }
 };
 
@@ -66,6 +73,9 @@ struct Defaults
 template <unsigned int FRACTION_BITS>
 struct Defaults<Fixed<std::int32_t,FRACTION_BITS>>
 {
+    /// @brief Max shift bits.
+    static constexpr auto MaxShiftBits = 28;
+
     /// @brief Gets the linear slop.
     static constexpr auto GetLinearSlop() noexcept
     {
@@ -78,7 +88,7 @@ struct Defaults<Fixed<std::int32_t,FRACTION_BITS>>
     static constexpr auto GetMaxVertexRadius() noexcept
     {
         // linearSlop * 2550000
-        return Length{Real(1u << (28 - FRACTION_BITS)) * 1_m};
+        return Length{Real(1u << (MaxShiftBits - FRACTION_BITS)) * 1_m};
     }
 };
 
@@ -134,10 +144,10 @@ constexpr auto InvalidVertex = static_cast<VertexCounter>(-1);
 constexpr auto DefaultLinearSlop = detail::Defaults<Real>::GetLinearSlop();
 
 /// @brief Default minimum vertex radius.
-constexpr auto DefaultMinVertexRadius = DefaultLinearSlop * Real{2};
+constexpr auto DefaultMinVertexRadius = Positive<Length>{DefaultLinearSlop * Real{2}};
 
 /// @brief Default maximum vertex radius.
-constexpr auto DefaultMaxVertexRadius = detail::Defaults<Real>::GetMaxVertexRadius();
+constexpr auto DefaultMaxVertexRadius = Positive<Length>{detail::Defaults<Real>::GetMaxVertexRadius()};
 
 /// @brief Default AABB extension amount.
 constexpr auto DefaultAabbExtension = DefaultLinearSlop * Real{20};

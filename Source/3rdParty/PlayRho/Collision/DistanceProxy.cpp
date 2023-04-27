@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -113,7 +113,7 @@ std::vector<Length2> GetConvexHullAsVector(Span<const Length2> vertices)
     return result;
 }
 
-bool TestPoint(const DistanceProxy& proxy, Length2 point) noexcept
+bool TestPoint(const DistanceProxy& proxy, const Length2& point) noexcept
 {
     const auto count = proxy.GetVertexCount();
     const auto vr = proxy.GetVertexRadius();

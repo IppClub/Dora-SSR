@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2007 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -55,13 +55,15 @@ static_assert(std::is_nothrow_destructible<PulleyJointConf>::value,
 // K = J * invM * JT
 //   = invMass1 + invI1 * cross(r1, u1)^2 + ratio^2 * (invMass2 + invI2 * cross(r2, u2)^2)
 
-PulleyJointConf::PulleyJointConf(BodyID bA, BodyID bB, Length2 groundA, Length2 groundB,
-                                 Length2 anchorA, Length2 anchorB, Length lA, Length lB)
+PulleyJointConf::PulleyJointConf(BodyID bA, BodyID bB, // force line-break
+                                 const Length2& gaA, const Length2& gaB, // force line-break
+                                 const Length2& laA, const Length2& laB, // force line-break
+                                 Length lA, Length lB)
     : super{super{}.UseBodyA(bA).UseBodyB(bB).UseCollideConnected(true)},
-      groundAnchorA{groundA},
-      groundAnchorB{groundB},
-      localAnchorA{anchorA},
-      localAnchorB{anchorB},
+      groundAnchorA{gaA},
+      groundAnchorB{gaB},
+      localAnchorA{laA},
+      localAnchorB{laB},
       lengthA{lA},
       lengthB{lB}
 {
@@ -73,8 +75,9 @@ PulleyJointConf GetPulleyJointConf(const Joint& joint)
     return TypeCast<PulleyJointConf>(joint);
 }
 
-PulleyJointConf GetPulleyJointConf(const World& world, BodyID bA, BodyID bB, Length2 groundA,
-                                   Length2 groundB, Length2 anchorA, Length2 anchorB)
+PulleyJointConf GetPulleyJointConf(const World& world, BodyID bA, BodyID bB, // force line-break
+                                   const Length2& groundA, const Length2& groundB, // force line-break
+                                   const Length2& anchorA, const Length2& anchorB)
 {
     return PulleyJointConf{bA,
                            bB,
@@ -89,6 +92,10 @@ PulleyJointConf GetPulleyJointConf(const World& world, BodyID bA, BodyID bB, Len
 void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf&)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -124,7 +131,7 @@ void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
 
     const auto totalInvMass = totInvMassA + object.ratio * object.ratio * totInvMassB;
 
-    object.mass = (totalInvMass > InvMass{0}) ? Real{1} / totalInvMass : 0_kg;
+    object.mass = (totalInvMass > InvMass{}) ? Real{1} / totalInvMass : 0_kg;
 
     if (step.doWarmStart) {
         // Scale impulses to support variable time steps.
@@ -147,6 +154,10 @@ void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
 
 bool SolveVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf&)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return true;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -181,6 +192,10 @@ bool SolveVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
 bool SolvePosition(const PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return true;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -216,7 +231,7 @@ bool SolvePosition(const PulleyJointConf& object, std::vector<BodyConstraint>& b
     const auto totalInvMassB = invMassB + invRotInertiaB * Square(ruB) / SquareRadian;
 
     const auto totalInvMass = totalInvMassA + Square(object.ratio) * totalInvMassB;
-    const auto mass = (totalInvMass > InvMass{0}) ? Real{1} / totalInvMass : 0_kg;
+    const auto mass = (totalInvMass > InvMass{}) ? Real{1} / totalInvMass : 0_kg;
 
     const auto srcLengthRatio = object.lengthA + object.ratio * object.lengthB; // constant C0
     const auto dstLengthRatio = lengthA + object.ratio * lengthB;
@@ -237,7 +252,7 @@ bool SolvePosition(const PulleyJointConf& object, std::vector<BodyConstraint>& b
     return linearError < conf.linearSlop;
 }
 
-bool ShiftOrigin(PulleyJointConf& object, Length2 newOrigin) noexcept
+bool ShiftOrigin(PulleyJointConf& object, const Length2& newOrigin) noexcept
 {
     object.groundAnchorA -= newOrigin;
     object.groundAnchorB -= newOrigin;

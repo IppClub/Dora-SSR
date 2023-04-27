@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2021 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -32,8 +32,8 @@ namespace d2 {
 
 namespace {
 
-Mat33 GetMat33(InvMass invMassA, Length2 rA, InvRotInertia invRotInertiaA, InvMass invMassB,
-               Length2 rB, InvRotInertia invRotInertiaB)
+Mat33 GetMat33(InvMass invMassA, const Length2& rA, InvRotInertia invRotInertiaA, InvMass invMassB,
+               const Length2& rB, InvRotInertia invRotInertiaB)
 {
     const auto totInvI = invRotInertiaA + invRotInertiaB;
 
@@ -89,7 +89,8 @@ static_assert(std::is_nothrow_destructible<RevoluteJointConf>::value,
 // J = [0 0 -1 0 0 1]
 // K = invI1 + invI2
 
-RevoluteJointConf::RevoluteJointConf(BodyID bA, BodyID bB, Length2 laA, Length2 laB,
+RevoluteJointConf::RevoluteJointConf(BodyID bA, BodyID bB, // force line-break
+                                     const Length2& laA, const Length2& laB,
                                      Angle ra) noexcept
     : super{super{}.UseBodyA(bA).UseBodyB(bB)},
       localAnchorA{laA},
@@ -105,7 +106,7 @@ RevoluteJointConf GetRevoluteJointConf(const Joint& joint)
 }
 
 RevoluteJointConf GetRevoluteJointConf(const World& world, BodyID bodyA, BodyID bodyB,
-                                       Length2 anchor)
+                                       const Length2& anchor)
 {
     return RevoluteJointConf{bodyA, bodyB, GetLocalPoint(world, bodyA, anchor),
                              GetLocalPoint(world, bodyB, anchor),
@@ -126,6 +127,10 @@ AngularVelocity GetAngularVelocity(const World& world, const RevoluteJointConf& 
 void InitVelocity(RevoluteJointConf& object, std::vector<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf& conf)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -155,15 +160,15 @@ void InitVelocity(RevoluteJointConf& object, std::vector<BodyConstraint>& bodies
     //     [          -r1y*iA-r2y*iB,           r1x*iA+r2x*iB,                   iA+iB]
 
     const auto totInvI = invRotInertiaA + invRotInertiaB;
-    const auto fixedRotation = (totInvI == InvRotInertia{0});
+    const auto fixedRotation = (totInvI == InvRotInertia{});
 
     object.mass =
         GetMat33(invMassA, object.rA, invRotInertiaA, invMassB, object.rB, invRotInertiaB);
     object.angularMass =
-        (totInvI > InvRotInertia{0}) ? RotInertia{Real{1} / totInvI} : RotInertia{0};
+        (totInvI > InvRotInertia{}) ? RotInertia{Real{1} / totInvI} : RotInertia{};
 
     if (!object.enableMotor || fixedRotation) {
-        object.angularMotorImpulse = 0;
+        object.angularMotorImpulse = {};
     }
 
     if (object.enableLimit && !fixedRotation) {
@@ -213,7 +218,7 @@ void InitVelocity(RevoluteJointConf& object, std::vector<BodyConstraint>& bodies
     }
     else {
         object.impulse = Vec3{};
-        object.angularMotorImpulse = 0;
+        object.angularMotorImpulse = {};
     }
 
     bodyConstraintA.SetVelocity(velA);
@@ -223,6 +228,10 @@ void InitVelocity(RevoluteJointConf& object, std::vector<BodyConstraint>& bodies
 bool SolveVelocity(RevoluteJointConf& object, std::vector<BodyConstraint>& bodies,
                    const StepConf& step)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return true;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -236,7 +245,7 @@ bool SolveVelocity(RevoluteJointConf& object, std::vector<BodyConstraint>& bodie
     const auto invMassB = bodyConstraintB.GetInvMass();
     const auto invRotInertiaB = bodyConstraintB.GetInvRotInertia();
 
-    const auto fixedRotation = (invRotInertiaA + invRotInertiaB == InvRotInertia{0});
+    const auto fixedRotation = (invRotInertiaA + invRotInertiaB == InvRotInertia{});
 
     // Solve motor constraint.
     if (object.enableMotor && (object.limitState != LimitState::e_equalLimits) && !fixedRotation) {
@@ -338,6 +347,10 @@ bool SolveVelocity(RevoluteJointConf& object, std::vector<BodyConstraint>& bodie
 bool SolvePosition(const RevoluteJointConf& object, std::vector<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
+    if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
+        return true;
+    }
+
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
 
@@ -347,7 +360,7 @@ bool SolvePosition(const RevoluteJointConf& object, std::vector<BodyConstraint>&
     auto posB = bodyConstraintB.GetPosition();
     const auto invRotInertiaB = bodyConstraintB.GetInvRotInertia();
 
-    const auto fixedRotation = ((invRotInertiaA + invRotInertiaB) == InvRotInertia{0});
+    const auto fixedRotation = ((invRotInertiaA + invRotInertiaB) == InvRotInertia{});
 
     // Solve angular limit constraint.
     auto angularError = 0_rad;
