@@ -180,7 +180,7 @@ public:
 		if (_fullScreen) {
 			ImGui::SetNextWindowPos(Vec2::zero);
 			ImGui::SetNextWindowSize(Vec2{1, 1} * SharedApplication.getVisualSize(), ImGuiCond_Always);
-			ImGui::Begin((std::string(title) + "_full").c_str(), nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
+			ImGui::Begin("DorothyConsole_full", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
 		} else {
 			ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
 			ImGui::Begin(title, p_open);
@@ -651,7 +651,7 @@ void ImGuiDora::showStats() {
 	/* print debug text */
 	bool useChinese = _useChinese && _isChineseSupported;
 	auto themeColor = SharedApplication.getThemeColor().toVec4();
-	if (ImGui::Begin(useChinese ? "Dorothy状态" : "Dorothy Stats", nullptr,
+	if (ImGui::Begin(useChinese ? "Dorothy状态###DorothyStats" : "Dorothy Stats###DorothyStats", nullptr,
 			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 		if (ImGui::CollapsingHeader(useChinese ? "基础" : "Basic")) {
 			const char* rendererNames[] = {
@@ -1028,7 +1028,7 @@ void ImGuiDora::showStats() {
 
 void ImGuiDora::showConsole() {
 	bool useChinese = _useChinese && _isChineseSupported;
-	_console->Draw(useChinese ? "Dorothy控制台" : "Dorothy Console", useChinese);
+	_console->Draw(useChinese ? "Dorothy控制台###DorothyConsole" : "Dorothy Console###DorothyConsole", useChinese);
 }
 
 static void SetPlatformImeDataFn(ImGuiViewport*, ImGuiPlatformImeData* data) {
