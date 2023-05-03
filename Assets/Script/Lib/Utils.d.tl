@@ -32,7 +32,7 @@ local record StructClass
 end
 local record StructModule
 	metamethod __index: function(self: StructModule, name: string): StructModule
-	metamethod __call: function(self: StructClass, ...: string | {string}): StructClass
+	metamethod __call: function(self: StructModule, ...: string | {string}): StructClass
 end
 local record StructHelper
 	type Type = Struct
