@@ -23,7 +23,7 @@ const FeatureList: FeatureItem[] = [
 				Play as You Create
 			</Translate>
 		),
-		image: <img src={feature_img_one.default} alt='feature_title_one'/>,
+		image: <img src={feature_img_one.default} alt='feature_title_one' className={styles.featureImg}/>,
 		description: (
 			<Translate
 				id="feature_description_one"
@@ -40,7 +40,7 @@ const FeatureList: FeatureItem[] = [
 				Game Dev Freedom
 			</Translate>
 		),
-		image: <img src={feature_img_two.default} alt='feature_title_two'/>,
+		image: <img src={feature_img_two.default} alt='feature_title_two' className={styles.featureImg}/>,
 		description: (
 			<Translate
 				id='feature_description_two'
@@ -55,7 +55,7 @@ const FeatureList: FeatureItem[] = [
 				Multilingual Playground
 			</Translate>
 		),
-		image: <img src={feature_img_three.default} alt='feature_title_three'/>,
+		image: <img src={feature_img_three.default} alt='feature_title_three' className={styles.featureImg}/>,
 		description: (
 			<Translate
 				id='feature_description_three'
@@ -70,7 +70,7 @@ function Feature({title, Svg, image, description}: FeatureItem) {
 	return (
 		<div className={clsx('col col--4')}>
 			<div className="text--center">
-				{Svg ? <Svg className={styles.featureSvg} role="img"/> : image}
+				{Svg ? <Svg className={styles.featureImg} role="img"/> : image}
 			</div>
 			<div className="text--center padding-horiz--md">
 				<h3>{title}</h3>
