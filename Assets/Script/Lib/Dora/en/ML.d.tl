@@ -38,6 +38,9 @@ local record QLearner
 end
 
 -- A class for creating QLearner objects.
+-- @usage
+-- local ML = require("ML")
+-- local qLearner = ML.QLearner()
 local record QLearnerClass
 	type Type = QLearner
 

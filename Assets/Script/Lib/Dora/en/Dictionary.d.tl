@@ -45,6 +45,9 @@ local record Dictionary
 end
 
 -- A class for creating Dictionary
+-- @usage
+-- local Dictionary = require("Dictionary")
+-- local dict = Dictionary()
 local record DictionaryClass
 	type Type = Dictionary
 	type Item = Item
