@@ -45,6 +45,9 @@ local record Dictionary
 end
 
 -- 用于创建字典对象的类。
+-- @usage
+-- local Dictionary = require("Dictionary")
+-- local dict = Dictionary()
 local record DictionaryClass
 	type Type = Dictionary
 	type Item = Item

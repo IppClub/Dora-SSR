@@ -6,7 +6,9 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;An implementation of the 'Playable' record using the DragonBones animation system.
 
-**Inherits from:** Playable.
+**Class Object:** [DragonBone Class](/docs/api/Class%20Object/DragonBone).
+
+**Inherits from:** [Playable](/docs/api/Class/Playable).
 
 ## showDebug
 
@@ -58,7 +60,7 @@ containsPoint: function(self: DragonBone, x: number, y: number): string | nil
 
 | Return Type | Description |
 | --- | --- |
-| string|nil | The name of the bone or slot at the point, or nil if no bone or slot is found. |
+| string\|nil | The name of the bone or slot at the point, or nil if no bone or slot is found. |
 
 ## intersectsSegment
 
@@ -86,4 +88,4 @@ intersectsSegment: function(self: DragonBone, x1: number, y1: number, x2: number
 
 | Return Type | Description |
 | --- | --- |
-| string|nil | The name of the bone or slot at the intersection point, or nil if no bone or slot is found. |
+| string\|nil | The name of the bone or slot at the intersection point, or nil if no bone or slot is found. |

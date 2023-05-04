@@ -39,6 +39,9 @@ local record QLearner
 end
 
 -- 用于创建QLearner对象的类。
+-- @usage
+-- local ML = require("ML")
+-- local qLearner = ML.QLearner()
 local record QLearnerClass
 	type Type = QLearner
 

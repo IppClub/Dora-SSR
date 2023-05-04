@@ -6,7 +6,9 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;继承 `Playable` 接口使用 DragonBones 系统实现动画功能的类。
 
-**继承自：** Playable。
+**类对象：**[DragonBone Class](/docs/api/Class%20Object/DragonBone)。
+
+**继承自：**[Playable](/docs/api/Class/Playable)。
 
 ## showDebug
 
@@ -58,7 +60,7 @@ containsPoint: function(self: DragonBone, x: number, y: number): string | nil
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string|nil | 该点处的骨骼或插槽名称，如果没有找到骨骼或插槽则返回 nil。 |
+| string\|nil | 该点处的骨骼或插槽名称，如果没有找到骨骼或插槽则返回 nil。 |
 
 ## intersectsSegment
 
@@ -86,4 +88,4 @@ intersectsSegment: function(self: DragonBone, x1: number, y1: number, x2: number
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string|nil | 交点处的骨骼或插槽名称，如果没有找到骨骼或插槽则返回 nil。 |
+| string\|nil | 交点处的骨骼或插槽名称，如果没有找到骨骼或插槽则返回 nil。 |

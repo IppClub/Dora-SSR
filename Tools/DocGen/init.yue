@@ -127,7 +127,7 @@ generate = (path, file, cn)->
 								"| --- | --- |"
 							}
 						typ, desc = group[i]\match "^%s*@return%s*%(([^%)]-)%)%s*(.+)"
-						returns[] = "| #{typ} | #{desc\gsub('\n', '')} |"
+						returns[] = "| #{typ\gsub '|', '\\|'} | #{desc\gsub('\n', '')} |"
 			if params
 				doc[] = table.concat params, "\n"
 			if returns
@@ -197,9 +197,9 @@ generate = (path, file, cn)->
 				fieldName or= last\match '^%s*([%w_]+)'
 				period = cn and "。" or "."
 				if recordType
-					doc[] = "**#{cn and 'Teal类型：' or 'Teal Type:'}** #{last}#{period}"
+					doc[] = "**#{cn and 'Teal类型：**' or 'Teal Type:** '}#{last}#{period}"
 				elseif embedField
-					doc[] = "**#{cn and '继承自：' or 'Inherits from:'}** #{embedField}#{period}"
+					doc[] = "**#{cn and '继承自：**' or 'Inherits from:** '}[#{embedField}](/docs/api/Class/#{embedField})#{period}"
 				elseif enumField
 					mods[] = enumField
 					doc[] = "## #{table.concat(mods, '.')}"
@@ -254,6 +254,9 @@ gen = (docPath, target, cn)->
 	targetPath = Path Content.writablePath, target, "Class"
 
 	for {name, doc} in *records
+		for {clsName} in *classes
+			if clsName == name
+				table.insert doc, 4, cn and "**类对象：**[#{clsName} Class](/docs/api/Class%20Object/#{clsName\gsub '%.', '/'})。" or "**Class Object:** [#{clsName} Class](/docs/api/Class%20Object/#{clsName\gsub '%.', '/'})."
 		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
 		namePath = Path(targetPath, namePath .. ".mdx")
 		Content\mkdir Path\getPath namePath
