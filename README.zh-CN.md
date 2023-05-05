@@ -116,7 +116,7 @@ with Sprite "Image/logo.png"
    - 等待浏览器弹出已打包项目文件的下载提示。
 
 
-更详细的教程，请查看[官方文档](施工中)。
+更详细的教程，请查看[官方文档](https://dorothy-ssr.net/zh-Hans/docs/tutorial/intro)。
 
 <br>
 
@@ -148,7 +148,7 @@ with Sprite "Image/logo.png"
 
 ## 文档
 
-- [API参考](施工中)
+- [API参考](https://dorothy-ssr.net/zh-Hans/docs/api/intro)
 - [开发指南](施工中)
 - [教程](施工中)
 

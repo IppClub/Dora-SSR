@@ -119,7 +119,7 @@ with Sprite "Image/logo.png"
     - Wait for the browser to pop up a download prompt for the packaged project file.
 
 
-For more detailed tutorials, please check [official documents](under-construction).
+For more detailed tutorials, please check [official documents](https://dorothy-ssr.net/docs/tutorial/intro).
 
 <br>
 
@@ -151,7 +151,7 @@ For more detailed tutorials, please check [official documents](under-constructio
 
 ## Documentation
 
-- [API Reference](under-construction)
+- [API Reference](https://dorothy-ssr.net/docs/api/intro)
 - [Development Guide](under-construction)
 - [Tutorial](under-construction)
 

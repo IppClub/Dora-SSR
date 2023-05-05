@@ -43,9 +43,6 @@ builtin.Keyboard = Keyboard()
 local DB = builtin.DB
 builtin.DB = DB()
 
-local Wasm = builtin.Wasm
-builtin.Wasm = Wasm()
-
 local HttpServer = builtin.HttpServer
 builtin.HttpServer = HttpServer()
 
@@ -463,6 +460,7 @@ do
 		return result
 	end
 
+	local Wasm = builtin.Wasm
 	local Wasm_executeMainFileAsync = Wasm.executeMainFileAsync
 	Wasm.executeMainFileAsync = function(self, filename)
 		local _, mainThread = coroutine.running()
