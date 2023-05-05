@@ -1041,7 +1041,8 @@ static void db_do_transaction_async(DBQuery& query, const std::function<void(boo
 				DB::execUnsafe(db, sql.first, sql.second);
 			}
 		}
-	}, callback);
+	},
+		callback);
 }
 static DBRecord db_do_query(String sql, bool withColumns) {
 	std::vector<Own<Value>> args;
@@ -1093,6 +1094,7 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/AudioWasm.hpp"
 #include "Dora/BodyDefWasm.hpp"
 #include "Dora/BodyWasm.hpp"
+#include "Dora/BufferWasm.hpp"
 #include "Dora/C45Wasm.hpp"
 #include "Dora/CacheWasm.hpp"
 #include "Dora/Camera2DWasm.hpp"
@@ -1100,8 +1102,8 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/CameraWasm.hpp"
 #include "Dora/ClipNodeWasm.hpp"
 #include "Dora/ContentWasm.hpp"
-#include "Dora/DBQueryWasm.hpp"
 #include "Dora/DBParamsWasm.hpp"
+#include "Dora/DBQueryWasm.hpp"
 #include "Dora/DBRecordWasm.hpp"
 #include "Dora/DBWasm.hpp"
 #include "Dora/DictionaryWasm.hpp"
@@ -1116,6 +1118,7 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/FixtureDefWasm.hpp"
 #include "Dora/GrabberWasm.hpp"
 #include "Dora/GridWasm.hpp"
+#include "Dora/ImGuiWasm.hpp"
 #include "Dora/JointDefWasm.hpp"
 #include "Dora/JointWasm.hpp"
 #include "Dora/KeyboardWasm.hpp"
@@ -1158,8 +1161,6 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/TouchWasm.hpp"
 #include "Dora/VertexColorWasm.hpp"
 #include "Dora/ViewWasm.hpp"
-#include "Dora/BufferWasm.hpp"
-#include "Dora/ImGuiWasm.hpp"
 
 static void linkAutoModule(wasm3::module& mod) {
 	linkArray(mod);
