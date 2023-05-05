@@ -372,7 +372,9 @@ void Model::visit(SpriteDef* parentDef, Node* parentNode, ClipDef* clipDef) {
 		SpriteDef* nodeDef = childrenDefs[n].get();
 		Sprite* node = nodeDef->toSprite(clipDef);
 		if (nodeDef->emittingEvent) {
-			node->slot("ModelEvent"_slice, [this](Event* e) { emit(e); });
+			node->slot("ModelEvent"_slice, [this](Event* e) {
+				emit(e);
+			});
 		}
 		_spritePairs.push_back(std::make_pair(node, nodeDef));
 

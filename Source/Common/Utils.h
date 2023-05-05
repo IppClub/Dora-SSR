@@ -212,7 +212,7 @@ struct TupleHelper {
 template <typename TupleT>
 struct TupleHelper<TupleT, 0> {
 	template <typename Func>
-	static void foreach (const TupleT&, Func &&) { }
+	static void foreach (const TupleT&, Func&&) { }
 };
 template <typename TupleT, typename Func>
 inline int foreach (const TupleT& item, Func && func) {
@@ -362,9 +362,9 @@ private:
 };
 
 #if DORA_DISABLE_PROFILER
-	#define PROFILE(name, ...)
+#define PROFILE(name, ...)
 #else
-	#define PROFILE(...) Profiler _(__VA_ARGS__)
+#define PROFILE(...) Profiler _(__VA_ARGS__)
 #endif
 
 class Path {
@@ -379,7 +379,9 @@ public:
 	static std::string replaceFilename(const std::string& path, const std::string& newFile);
 };
 
-#define _DEFER(code, line) std::shared_ptr<void> _defer_##line(nullptr, [&](auto) { code; })
+#define _DEFER(code, line) std::shared_ptr<void> _defer_##line(nullptr, [&](auto) { \
+	code; \
+})
 #define DEFER(code) _DEFER(code, __LINE__)
 
 NS_DOROTHY_END

@@ -320,7 +320,7 @@ void Rect::setUpperBound(const Vec2& point) {
 
 bool Rect::containsPoint(const Vec2& point) const {
 	return (point.x >= getLeft() && point.x <= getRight()
-		&& point.y >= getBottom() && point.y <= getTop());
+			&& point.y >= getBottom() && point.y <= getTop());
 }
 
 bool Rect::intersectsRect(const Rect& rect) const {

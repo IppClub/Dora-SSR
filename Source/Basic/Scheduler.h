@@ -21,7 +21,8 @@ typedef std::optional<std::list<ScheduledItem*>::iterator> UpdateIter;
 
 class ScheduledItem {
 public:
-	ScheduledItem(Object* target): target(target) { }
+	ScheduledItem(Object* target)
+		: target(target) { }
 	Object* target;
 	UpdateIter iter;
 };

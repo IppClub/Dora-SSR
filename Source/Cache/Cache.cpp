@@ -86,16 +86,24 @@ void Cache::loadAsync(String filename, const std::function<void()>& callback) {
 	if (tokens.size() == 2) {
 		switch (Switch::hash(tokens.front())) {
 			case "model"_hash:
-				SharedModelCache.loadAsync(tokens.back(), [callback](ModelDef*) { callback(); });
+				SharedModelCache.loadAsync(tokens.back(), [callback](ModelDef*) {
+					callback();
+				});
 				return;
 			case "spine"_hash:
-				SharedSkeletonCache.loadAsync(tokens.back(), [callback](SkeletonData*) { callback(); });
+				SharedSkeletonCache.loadAsync(tokens.back(), [callback](SkeletonData*) {
+					callback();
+				});
 				return;
 			case "bone"_hash:
-				SharedDragonBoneCache.loadAsync(tokens.back(), [callback](bool) { callback(); });
+				SharedDragonBoneCache.loadAsync(tokens.back(), [callback](bool) {
+					callback();
+				});
 				return;
 			case "font"_hash:
-				SharedFontCache.loadAync(tokens.back(), [callback](Font*) { callback(); });
+				SharedFontCache.loadAync(tokens.back(), [callback](Font*) {
+					callback();
+				});
 				return;
 			default:
 				Error("resource str flag must be \"model\", \"spine\", \"bone\" and \"font\".");
@@ -106,35 +114,51 @@ void Cache::loadAsync(String filename, const std::function<void()>& callback) {
 	if (!ext.empty()) {
 		switch (Switch::hash(ext)) {
 			case "clip"_hash:
-				SharedClipCache.loadAsync(filename, [callback](ClipDef*) { callback(); });
+				SharedClipCache.loadAsync(filename, [callback](ClipDef*) {
+					callback();
+				});
 				break;
 			case "frame"_hash:
-				SharedFrameCache.loadAsync(filename, [callback](FrameActionDef*) { callback(); });
+				SharedFrameCache.loadAsync(filename, [callback](FrameActionDef*) {
+					callback();
+				});
 				break;
 			case "model"_hash:
-				SharedModelCache.loadAsync(filename, [callback](ModelDef*) { callback(); });
+				SharedModelCache.loadAsync(filename, [callback](ModelDef*) {
+					callback();
+				});
 				break;
 			case "par"_hash:
-				SharedParticleCache.loadAsync(filename, [callback](ParticleDef*) { callback(); });
+				SharedParticleCache.loadAsync(filename, [callback](ParticleDef*) {
+					callback();
+				});
 				break;
 			case "jpg"_hash:
 			case "png"_hash:
 			case "dds"_hash:
 			case "pvr"_hash:
 			case "ktx"_hash:
-				SharedTextureCache.loadAsync(filename, [callback](Texture2D*) { callback(); });
+				SharedTextureCache.loadAsync(filename, [callback](Texture2D*) {
+					callback();
+				});
 				break;
 			case "svg"_hash:
-				SharedSVGCache.loadAsync(filename, [callback](SVGDef*) { callback(); });
+				SharedSVGCache.loadAsync(filename, [callback](SVGDef*) {
+					callback();
+				});
 				break;
 			case "bin"_hash:
-				SharedShaderCache.loadAsync(filename, [callback](Shader*) { callback(); });
+				SharedShaderCache.loadAsync(filename, [callback](Shader*) {
+					callback();
+				});
 				break;
 			case "wav"_hash:
 			case "ogg"_hash:
 			case "mp3"_hash:
 			case "flac"_hash:
-				SharedSoundCache.loadAsync(filename, [callback](SoundFile*) { callback(); });
+				SharedSoundCache.loadAsync(filename, [callback](SoundFile*) {
+					callback();
+				});
 				break;
 			default:
 				Error("resource is not supported by name: \"{}\".", filename);

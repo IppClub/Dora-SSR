@@ -23,7 +23,8 @@ public:
 		Slice body;
 	};
 	struct Response {
-		Response(int status = -1): status(status) { }
+		Response(int status = -1)
+			: status(status) { }
 		Response(Response&& res);
 		void operator=(Response&& res);
 		std::string content;
@@ -57,8 +58,10 @@ public:
 	void upload(String pattern, const FileAcceptHandler& acceptHandler, const FileDoneHandler& doneHandler);
 	bool start(int port);
 	void stop();
+
 protected:
 	HttpServer();
+
 private:
 	std::string _wwwPath;
 	std::list<Post> _posts;

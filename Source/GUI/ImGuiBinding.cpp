@@ -1144,8 +1144,7 @@ bool DragFloat2(
 	const std::vector<std::string>& flags) {
 	float floats[2] = {
 		s_cast<float>(std::get<double>(stack->pop())),
-		s_cast<float>(std::get<double>(stack->pop()))
-	};
+		s_cast<float>(std::get<double>(stack->pop()))};
 	bool changed = ImGui::DragFloat2(label.c_str(), floats, v_speed, v_min, v_max, display_format.c_str(), SliderFlags(flags));
 	stack->push(floats[0]);
 	stack->push(floats[1]);
@@ -1176,8 +1175,7 @@ bool DragInt2(
 	const std::vector<std::string>& flags) {
 	int ints[] = {
 		s_cast<int>(std::get<int64_t>(stack->pop())),
-		s_cast<int>(std::get<int64_t>(stack->pop()))
-	};
+		s_cast<int>(std::get<int64_t>(stack->pop()))};
 	bool changed = ImGui::DragInt2(label.c_str(), ints, v_speed, v_min, v_max, display_format.c_str(), SliderFlags(flags));
 	stack->push(s_cast<int64_t>(ints[0]));
 	stack->push(s_cast<int64_t>(ints[1]));
@@ -1204,8 +1202,7 @@ bool InputFloat2(
 	const std::vector<std::string>& flags) {
 	float floats[2] = {
 		s_cast<float>(std::get<double>(stack->pop())),
-		s_cast<float>(std::get<double>(stack->pop()))
-	};
+		s_cast<float>(std::get<double>(stack->pop()))};
 	bool changed = ImGui::InputFloat2(label.c_str(), floats, format.c_str(), InputTextFlags(flags));
 	stack->push(floats[0]);
 	stack->push(floats[1]);
@@ -1230,8 +1227,7 @@ bool InputInt2(
 	const std::vector<std::string>& flags) {
 	int ints[] = {
 		s_cast<int>(std::get<int64_t>(stack->pop())),
-		s_cast<int>(std::get<int64_t>(stack->pop()))
-	};
+		s_cast<int>(std::get<int64_t>(stack->pop()))};
 	bool changed = ImGui::InputInt2(label.c_str(), ints, InputTextFlags(flags));
 	stack->push(s_cast<int64_t>(ints[0]));
 	stack->push(s_cast<int64_t>(ints[1]));
@@ -1260,8 +1256,7 @@ bool SliderFloat2(
 	const std::vector<std::string>& flags) {
 	float floats[2] = {
 		s_cast<float>(std::get<double>(stack->pop())),
-		s_cast<float>(std::get<double>(stack->pop()))
-	};
+		s_cast<float>(std::get<double>(stack->pop()))};
 	bool changed = ImGui::SliderFloat2(label.c_str(), floats, v_min, v_max, display_format.c_str(), SliderFlags(flags));
 	stack->push(floats[0]);
 	stack->push(floats[1]);
@@ -1290,8 +1285,7 @@ bool SliderInt2(
 	const std::vector<std::string>& flags) {
 	int ints[] = {
 		s_cast<int>(std::get<int64_t>(stack->pop())),
-		s_cast<int>(std::get<int64_t>(stack->pop()))
-	};
+		s_cast<int>(std::get<int64_t>(stack->pop()))};
 	bool changed = ImGui::SliderInt2(label.c_str(), ints, v_min, v_max, display_format.c_str(), SliderFlags(flags));
 	stack->push(s_cast<int64_t>(ints[0]));
 	stack->push(s_cast<int64_t>(ints[1]));

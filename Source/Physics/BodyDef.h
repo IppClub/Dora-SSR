@@ -181,8 +181,8 @@ public:
 
 	struct FixtureConf {
 		FixtureConf(int tag, pd::Shape&& shape)
-		: tag(tag)
-		, shape(std::move(shape)) { }
+			: tag(tag)
+			, shape(std::move(shape)) { }
 		int tag;
 		pd::Shape shape;
 	};

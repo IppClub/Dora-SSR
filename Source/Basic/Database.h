@@ -37,6 +37,7 @@ public:
 	void execAsync(String sql, std::deque<std::vector<Own<Value>>>&& rows, const std::function<void(int)>& callback);
 
 	static Own<Value> col(const Col& c);
+
 public:
 	bool transaction(const std::function<void(SQLite::Database*)>& func);
 	bool transactionUnsafe(const std::function<void(SQLite::Database*)>& func);

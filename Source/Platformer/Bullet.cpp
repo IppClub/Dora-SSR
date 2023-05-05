@@ -41,7 +41,9 @@ bool Bullet::init() {
 	Bullet::setFaceRight(_owner->isFaceRight());
 	Bullet::setTag(_bulletDef->tag);
 	Body::setReceivingContact(true);
-	filterContact = [](Body*) { return false; };
+	filterContact = [](Body*) {
+		return false;
+	};
 	contactStart += std::make_pair(this, &Bullet::onBodyContact);
 	Vec2 v = _bulletDef->getVelocity();
 	Body::setVelocity((isFaceRight() ? v.x : -v.x), v.y);

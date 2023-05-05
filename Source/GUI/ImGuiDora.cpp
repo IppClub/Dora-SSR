@@ -845,14 +845,14 @@ void ImGuiDora::showStats() {
 			ImGui::SameLine();
 			ImGui::Text("%.4f s", _loaderTotalTime);
 			const ImGuiTableFlags flags = ImGuiTableFlags_Resizable
-				| ImGuiTableFlags_Sortable
-				| ImGuiTableFlags_SortMulti
-				| ImGuiTableFlags_RowBg
-				| ImGuiTableFlags_BordersOuter
-				| ImGuiTableFlags_BordersV
-				| ImGuiTableFlags_NoBordersInBody
-				| ImGuiTableFlags_ScrollY
-				| ImGuiTableFlags_SizingFixedFit;
+										| ImGuiTableFlags_Sortable
+										| ImGuiTableFlags_SortMulti
+										| ImGuiTableFlags_RowBg
+										| ImGuiTableFlags_BordersOuter
+										| ImGuiTableFlags_BordersV
+										| ImGuiTableFlags_NoBordersInBody
+										| ImGuiTableFlags_ScrollY
+										| ImGuiTableFlags_SizingFixedFit;
 			if (ImGui::BeginTable(useChinese ? "加载器" : "Loaders", 4, flags, ImVec2(0.0f, 400.0f))) {
 				ImGui::TableSetupColumn(useChinese ? "编号" : "ID",
 					ImGuiTableColumnFlags_DefaultSort
@@ -1287,10 +1287,10 @@ void ImGuiDora::render() {
 					}
 
 					uint64_t state = 0
-						| BGFX_STATE_WRITE_RGB
-						| BGFX_STATE_WRITE_A
-						| BGFX_STATE_MSAA
-						| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
+								   | BGFX_STATE_WRITE_RGB
+								   | BGFX_STATE_WRITE_A
+								   | BGFX_STATE_MSAA
+								   | BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 
 					const uint16_t xx = uint16_t(bx::max(cmd->ClipRect.x * scale, 0.0f));
 					const uint16_t yy = uint16_t(bx::max(cmd->ClipRect.y * scale, 0.0f));

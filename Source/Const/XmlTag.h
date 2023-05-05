@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 Jin Li, dragon-fly@qq.com
+/* Copyright (c) 2023 Jin Li, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -26,7 +26,7 @@ enum struct Clip {
 	Name = 'A',
 	Rect = 'B',
 };
-}
+} // namespace Clip
 
 enum struct Particle {
 	Dorothy = 'A',
@@ -84,7 +84,7 @@ enum struct Visual {
 	Name = 'A',
 	File = 'B',
 };
-}
+} // namespace Visual
 
 namespace Frame {
 enum struct Element {
@@ -100,7 +100,7 @@ enum struct Dorothy {
 enum struct Clip {
 	Rect = 'A',
 };
-};
+}; // namespace Frame
 
 namespace Model {
 enum struct Element {
@@ -171,7 +171,7 @@ enum struct KeyPoint {
 	Key = 'A',
 	Position = 'B'
 };
-};
+}; // namespace Model
 
 } // namespace Xml
 

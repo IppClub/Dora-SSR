@@ -22,7 +22,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define DORA_DEBUG 1
 #endif
 
-
 /** @brief Flag to enable test, set with the compilar flag by default. */
 #ifndef DORA_TEST
 #if DORA_DEBUG
