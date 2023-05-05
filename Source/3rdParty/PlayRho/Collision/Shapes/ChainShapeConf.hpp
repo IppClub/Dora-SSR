@@ -115,14 +115,14 @@ public:
     /// @brief Gets a vertex by index.
     Length2 GetVertex(ChildCounter index) const
     {
-        assert((0 <= index) && (index < GetVertexCount()));
+        assert(index < GetVertexCount());
         return m_vertices[index];
     }
 
     /// @brief Gets the normal at the given index.
     UnitVec GetNormal(ChildCounter index) const
     {
-        assert((0 <= index) && (index < GetVertexCount()));
+        assert(index < GetVertexCount());
         return m_normals[index];
     }
 

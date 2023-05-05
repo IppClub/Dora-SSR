@@ -53,7 +53,7 @@ Angle GetNormalized(Angle value) noexcept
     constexpr auto twoPi = Real(2) * Pi;
     constexpr auto rTwoPi = Real(1) / twoPi;
     auto angleInRadians = Real{value / Radian};
-#if NORMALIZE_ANGLE_VIA_FMOD_MODULO
+#if defined(NORMALIZE_ANGLE_VIA_FMOD_MODULO)
     // Note: std::fmod appears slower than std::trunc.
     //   See Benchmark ModuloViaFmod for data.
     angleInRadians = ModuloViaFmod(angleInRadians, twoPi);
@@ -66,7 +66,7 @@ Angle GetNormalized(Angle value) noexcept
         angleInRadians += Pi * 2;
     }
     return angleInRadians * Radian;
-#elif NORMALIZE_ANGLE_VIA_TRUNC_MODULO // previous way
+#elif defined(NORMALIZE_ANGLE_VIA_TRUNC_MODULO) // previous way
     // Note: std::trunc appears more than twice as fast as std::fmod.
     //   See Benchmark ModuloViaTrunc for data.
     angleInRadians = ModuloViaTrunc(angleInRadians, twoPi);
@@ -79,11 +79,11 @@ Angle GetNormalized(Angle value) noexcept
         angleInRadians += Pi * 2;
     }
     return angleInRadians * Radian;
-#elif NORMALIZE_ANGLE_VIA_TWICE_TRUNC_MODULO
+#elif defined(NORMALIZE_ANGLE_VIA_TWICE_TRUNC_MODULO)
     // ((a % 360) + 540) % 360 - 180
     constexpr auto threePi = Pi * Real(3);
     return (ModuloViaTrunc((ModuloViaTrunc(angleInRadians, twoPi) + threePi), twoPi) - Pi) * 1_rad;
-#elif NORMALIZE_ANGLE_VIA_CFLOOR
+#elif defined(NORMALIZE_ANGLE_VIA_CFLOOR)
     // Fails with infinity
     // Fails with GetNormalized(angleInRadians * 1_rad)==GetNormalized(GetNormalized(angleInRadians
     // * 1_rad))
@@ -114,7 +114,7 @@ Angle GetShortestDelta(Angle a0, Angle a1) noexcept
 {
     // Note: atan2(sin(x-y), cos(x-y)) is probably the most accurate, albeit slowest
     // See https://stackoverflow.com/a/2007279/7410358
-#if USE_SLOWER_ALGORITHM
+#if defined(USE_SLOWER_ALGORITHM)
     a0 = GetNormalized(a0);
     a1 = GetNormalized(a1);
     const auto a01 = a1 - a0;
@@ -127,13 +127,13 @@ Angle GetShortestDelta(Angle a0, Angle a1) noexcept
         return a01 + 2 * Pi * Radian;
     }
     return a01;
-#elif USE_FASTER_ALGORITHM
+#elif defined(USE_FASTER_ALGORITHM)
     constexpr auto onePi = playrho::Pi * 1;
     constexpr auto twoPi = playrho::Pi * 2;
     constexpr auto threePi = playrho::Pi * 3;
     const auto da = playrho::Real{(a1 - a0) / playrho::Radian};
     return (ModuloViaTrunc(ModuloViaTrunc(da, twoPi) + threePi, twoPi) - onePi) * 1_rad;
-#elif USE_ALMOST_FASTEST_ALGORITHM
+#elif defined(USE_ALMOST_FASTEST_ALGORITHM)
     constexpr auto twoPi = Pi * 2;
     const auto da = ModuloViaTrunc(Real{(a1 - a0) / 1_rad}, twoPi);
     return (ModuloViaTrunc(2 * da, twoPi) - da) * 1_rad;
@@ -301,14 +301,14 @@ Position GetPosition(const Position& pos0, const Position& pos1, Real beta) noex
     // pos0 + (pos1 - pos0) * beta
 
 //#define USE_NORMALIZATION_FOR_ANGULAR_LERP 1
-#if USE_NORMALIZATION_FOR_ANGULAR_LERP
+#if defined(USE_NORMALIZATION_FOR_ANGULAR_LERP)
     constexpr auto twoPi = Real(2) * Pi;
     constexpr auto rTwoPi = Real(1) / twoPi;
     const auto da = pos1.angular - pos0.angular;
     const auto na = pos0.angular + (da - twoPi * cfloor((da + Pi * 1_rad) * rTwoPi)) * beta;
     return {pos0.linear + (pos1.linear - pos0.linear) * beta,
             na - twoPi * cfloor((na + Pi * 1_rad) * rTwoPi)};
-#elif USE_GETSHORTESTDELTA_FOR_ANGULAR_LERP
+#elif defined(USE_GETSHORTESTDELTA_FOR_ANGULAR_LERP)
     // ~25% slower than USE_NORMALIZATION_FOR_ANGULAR_LERP
     return Position{pos0.linear + (pos1.linear - pos0.linear) * beta,
                     pos0.angular + GetShortestDelta(pos0.angular, pos1.angular) * beta};

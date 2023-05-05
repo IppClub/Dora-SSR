@@ -118,7 +118,7 @@ public:
     ///
     size_type GetPointCount() const noexcept
     {
-        return (IsValid(m_separations[0])? 1: 0) + (IsValid(m_separations[1])? 1: 0);
+        return static_cast<size_type>((IsValid(m_separations[0])? 1u: 0u) + (IsValid(m_separations[1])? 1u: 0u));
     }
     
     /// Gets the normal of the contact.

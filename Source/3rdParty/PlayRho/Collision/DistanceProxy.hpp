@@ -110,9 +110,8 @@ public:
           m_vertexRadius{vertexRadius}
     {
         assert(vertexRadius >= 0_m);
-        assert(count >= 0);
-        assert(count < 1 || vertices);
-        assert(count < 2 || normals);
+        assert(count < 1u || vertices);
+        assert(count < 2u || normals);
 #ifdef IMPLEMENT_DISTANCEPROXY_WITH_BUFFERS
         if (vertices) {
             std::copy(vertices, vertices + count, m_vertices);

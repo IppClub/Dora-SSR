@@ -133,8 +133,8 @@ bool TestPoint(const DistanceProxy& proxy, const Length2& point) noexcept
     }
     
     auto maxDot = -MaxFloat * Meter;
-    auto maxIdx = static_cast<decltype(count)>(-1);
-    for (auto i = decltype(count){0}; i < count; ++i)
+    auto maxIdx = decltype(proxy.GetVertexCount())(-1);
+    for (auto i = decltype(proxy.GetVertexCount())(0); i < count; ++i)
     {
         const auto vi = proxy.GetVertex(i);
         const auto delta = point - vi;

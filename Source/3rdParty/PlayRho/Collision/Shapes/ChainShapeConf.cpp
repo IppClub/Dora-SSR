@@ -117,7 +117,6 @@ ChainShapeConf& ChainShapeConf::Add(const Length2& vertex)
 
 MassData ChainShapeConf::GetMassData() const
 {
-    const auto density = this->density;
     if (density > 0_kgpm2) {
         const auto vertexCount = GetVertexCount();
         if (vertexCount > 1) {

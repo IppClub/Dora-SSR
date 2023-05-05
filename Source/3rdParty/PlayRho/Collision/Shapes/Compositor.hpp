@@ -872,7 +872,8 @@ bool operator==(const Compositor<P11, P12, P13, P14, P15, P16>& lhs,
     if (lhsCount != rhsCount) {
         return false;
     }
-    for (auto i = static_cast<decltype(lhsCount)>(0); i < lhsCount; ++i) {
+    using IndexType = std::remove_cv_t<decltype(lhsCount)>;
+    for (auto i = static_cast<IndexType>(0); i < lhsCount; ++i) {
         if (GetChild(lhs, i) != GetChild(rhs, i)) {
             return false;
         }
