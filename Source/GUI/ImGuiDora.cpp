@@ -22,6 +22,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/Listener.h"
 #include "Input/Keyboard.h"
 #include "Lua/LuaEngine.h"
+#include "Wasm/WasmRuntime.h"
+
 #include "Other/utf8.h"
 #include "imgui.h"
 #include "implot.h"
@@ -459,14 +461,16 @@ ImGuiDora::ImGuiDora()
 	, _avgGPUTime(0)
 	, _loaderTotalTime(0)
 	, _avgDeltaTime(1000.0 / SharedApplication.getTargetFPS())
-	, _memPoolSize(0)
 	, _objectFrames(0)
 	, _maxCppObjects(0)
 	, _maxLuaObjects(0)
 	, _maxCallbacks(0)
+	, _memPoolSize(0)
 	, _memLua(0)
+	, _memWASM(0)
 	, _lastMemPoolSize(0)
 	, _lastMemLua(0)
+	, _lastMemWASM(0)
 	, _maxCPU(0)
 	, _maxGPU(0)
 	, _maxDelta(0)
@@ -804,20 +808,29 @@ void ImGuiDora::showStats() {
 		if (ImGui::CollapsingHeader(useChinese ? "内存" : "Memory")) {
 			_memFrames++;
 			_memEclapsed += SharedApplication.getDeltaTime();
-			_memPoolSize += (MemoryPool::getTotalCapacity() / 1024);
-			_memLua += (SharedLuaEngine.getMemoryCount() / 1024);
+			_memPoolSize = std::max(MemoryPool::getTotalCapacity(), _memPoolSize);
+			_memLua = std::max(SharedLuaEngine.getMemoryCount(), _memLua);
+			if (Singleton<WasmRuntime>::isInitialized()) {
+				_memWASM = std::max(s_cast<int>(SharedWasmRuntime.getMemorySize()), _memWASM);
+			}
 			if (_memEclapsed >= 1.0) {
-				_lastMemPoolSize = _memPoolSize / _memFrames;
-				_lastMemLua = _memLua / _memFrames;
-				_memPoolSize = _memLua = 0;
+				_lastMemPoolSize = _memPoolSize;
+				_lastMemLua = _memLua;
+				_lastMemWASM = _memWASM;
+				_memPoolSize = _memLua = _memWASM = 0;
 				_memFrames = _memEclapsed = 0;
 			}
 			ImGui::TextColored(themeColor, useChinese ? "内存池：" : "Memory Pool:");
 			ImGui::SameLine();
-			ImGui::Text("%d kb", _lastMemPoolSize);
+			ImGui::Text("%d kb", _lastMemPoolSize / 1024);
 			ImGui::TextColored(themeColor, useChinese ? "Lua内存：" : "Lua Memory:");
 			ImGui::SameLine();
-			ImGui::Text("%.2f mb", _lastMemLua / 1024.0f);
+			ImGui::Text("%.2f mb", _lastMemLua / 1024.0f / 1024.0f);
+			if (Singleton<WasmRuntime>::isInitialized()) {
+				ImGui::TextColored(themeColor, useChinese ? "WASM内存：" : "WASM Memory:");
+				ImGui::SameLine();
+				ImGui::Text("%.2f mb", _lastMemWASM / 1024.0f / 1024.0f);
+			}
 			ImGui::TextColored(themeColor, useChinese ? "纹理内存：" : "Texture Size:");
 			ImGui::SameLine();
 			ImGui::Text("%.2f mb", Texture2D::getStorageSize() / 1024.0f / 1024.0f);

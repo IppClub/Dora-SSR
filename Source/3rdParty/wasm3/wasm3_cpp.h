@@ -217,6 +217,8 @@ namespace wasm3 {
 
         const char* get_error_message() const;
 
+        uint32_t get_memory_size() const;
+
     protected:
         friend class environment;
 
@@ -394,6 +396,10 @@ namespace wasm3 {
         M3ErrorInfo info;
         m3_GetErrorInfo(m_runtime.get(), &info);
         return info.message;
+    }
+
+    inline uint32_t runtime::get_memory_size() const {
+        return m3_GetMemorySize(m_runtime.get());
     }
 
     template<typename Func>

@@ -246,7 +246,7 @@ inline HttpServer* HttpServer_shared() { return &SharedHttpServer; }
 inline Pass* Effect_get(Effect* self, size_t index) { return self->get(index - 1); }
 
 /* Wasm */
-inline WasmRuntime* WasmRuntime_shared() { return &SharedWasmRuntime; }
+void WasmRuntime_clear();
 
 /* Test */
 int Test_getNames(lua_State* L);

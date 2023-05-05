@@ -43,18 +43,20 @@ private:
 
 class WasmRuntime {
 public:
+	PROPERTY_READONLY(uint32_t, MemorySize);
 	~WasmRuntime();
 	bool executeMainFile(String filename);
 	void executeMainFileAsync(String filename, const std::function<void(bool)>& handler);
 	void invoke(int32_t funcId);
 	void deref(int32_t funcId);
+	void clear();
 
 protected:
 	WasmRuntime();
 
 private:
-	wasm3::environment _env;
-	wasm3::runtime _runtime;
+	Own<wasm3::environment> _env;
+	Own<wasm3::runtime> _runtime;
 	Own<wasm3::function> _callFunc;
 	Own<wasm3::function> _derefFunc;
 	std::pair<OwnArray<uint8_t>, size_t> _wasm;

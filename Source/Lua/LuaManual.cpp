@@ -2901,6 +2901,14 @@ tolua_lerror:
 #endif
 }
 
+/* WasmRuntime */
+
+void WasmRuntime_clear() {
+	if (Singleton<WasmRuntime>::isInitialized()) {
+		SharedWasmRuntime.clear();
+	}
+}
+
 /* Test */
 
 int Test_getNames(lua_State* L) {

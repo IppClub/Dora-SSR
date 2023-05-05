@@ -1108,11 +1108,11 @@ void BuildDecisionTreeAsync(String data, int maxDepth, tolua_function_void handl
 
 } // namespace ML
 
-class WasmRuntime @ Wasm
+struct WasmRuntime @ Wasm
 {
-	bool executeMainFile(String filename);
-	void executeMainFileAsync(String filename, tolua_function_void handler);
-	static tolua_outside WasmRuntime* WasmRuntime_shared @ create();
+	static tolua_outside bool SharedWasmRuntime.executeMainFile @ executeMainFile(String filename);
+	static tolua_outside void SharedWasmRuntime.executeMainFileAsync @ executeMainFileAsync(String filename, tolua_function_void handler);
+	static tolua_outside void WasmRuntime_clear @ clear();
 };
 
 namespace Platformer {

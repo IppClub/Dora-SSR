@@ -1341,8 +1341,10 @@ static void linkDoraModule(wasm3::module& mod) {
 	mod.link_optional("*", "blackboard_get", blackboard_get);
 }
 
-WasmRuntime::WasmRuntime()
-	: _runtime(_env.new_runtime(1024 * 1024)) { }
+WasmRuntime::WasmRuntime() {
+	_env = New<wasm3::environment>();
+	_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
+}
 
 WasmRuntime::~WasmRuntime() { }
 
@@ -1356,25 +1358,25 @@ bool WasmRuntime::executeMainFile(String filename) {
 		{
 			PROFILE("Loader"_slice, filename + " [Load]"s);
 			_wasm = SharedContent.load(filename);
-			auto mod = _env.parse_module(_wasm.first.get(), _wasm.second);
-			_runtime.load(mod);
+			auto mod = _env->parse_module(_wasm.first.get(), _wasm.second);
+			_runtime->load(mod);
 			mod.link_default();
 			linkDoraModule(mod);
-			_callFunc = New<wasm3::function>(_runtime.find_function("call_function"));
-			_derefFunc = New<wasm3::function>(_runtime.find_function("deref_function"));
+			_callFunc = New<wasm3::function>(_runtime->find_function("call_function"));
+			_derefFunc = New<wasm3::function>(_runtime->find_function("deref_function"));
 		}
-		wasm3::function mainFn = _runtime.find_function("_start");
+		wasm3::function mainFn = _runtime->find_function("_start");
 		mainFn.call_argv();
 		return true;
 	} catch (std::runtime_error& e) {
-		Error("failed to load wasm module: {}, due to: {}{}", filename, e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
+		Error("failed to load wasm module: {}, due to: {}{}", filename, e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
 		return false;
 	}
 }
 
 void WasmRuntime::executeMainFileAsync(String filename, const std::function<void(bool)>& handler) {
 	if (_wasm.first) {
-		Warn("only one wasm module can be executed.");
+		Warn("only one wasm module can be executed, clear the current module before executing another");
 		return;
 	}
 	auto file = filename.toString();
@@ -1388,16 +1390,16 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 		SharedAsyncThread.run(
 			[file, this] {
 				try {
-					auto mod = New<wasm3::module>(_env.parse_module(_wasm.first.get(), _wasm.second));
-					_runtime.load(*mod);
+					auto mod = New<wasm3::module>(_env->parse_module(_wasm.first.get(), _wasm.second));
+					_runtime->load(*mod);
 					mod->link_default();
 					linkDoraModule(*mod);
-					_callFunc = New<wasm3::function>(_runtime.find_function("call_function"));
-					_derefFunc = New<wasm3::function>(_runtime.find_function("deref_function"));
-					auto mainFn = New<wasm3::function>(_runtime.find_function("_start"));
+					_callFunc = New<wasm3::function>(_runtime->find_function("call_function"));
+					_derefFunc = New<wasm3::function>(_runtime->find_function("deref_function"));
+					auto mainFn = New<wasm3::function>(_runtime->find_function("_start"));
 					return Values::alloc(std::move(mod), std::move(mainFn));
 				} catch (std::runtime_error& e) {
-					Error("failed to load wasm module: {}, due to: {}{}", file, e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
+					Error("failed to load wasm module: {}, due to: {}{}", file, e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
 					return Values::alloc(Own<wasm3::module>(), Own<wasm3::function>());
 				}
 			},
@@ -1413,7 +1415,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 					} else
 						handler(false);
 				} catch (std::runtime_error& e) {
-					Error("failed to execute wasm module: {}, due to: {}{}", file, e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
+					Error("failed to execute wasm module: {}, due to: {}{}", file, e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
 					handler(false);
 				}
 			});
@@ -1421,15 +1423,34 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 }
 
 void WasmRuntime::invoke(int32_t funcId) {
+	AssertUnless(_callFunc, "wasm module is not ready");
 	try {
 		_callFunc->call(funcId);
 	} catch (std::runtime_error& e) {
-		Error("failed to execute wasm module due to: {}{}", e.what(), _runtime.get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime.get_error_message());
+		Error("failed to execute wasm module due to: {}{}", e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
 	}
 }
 
 void WasmRuntime::deref(int32_t funcId) {
+	AssertUnless(_derefFunc, "wasm module is not ready");
 	_derefFunc->call(funcId);
+}
+
+uint32_t WasmRuntime::getMemorySize() const {
+	if (_wasm.first) {
+		return _runtime->get_memory_size() + _wasm.second + DORA_WASM_STACK_SIZE;
+	}
+	return DORA_WASM_STACK_SIZE;
+}
+
+void WasmRuntime::clear() {
+	_callFunc = nullptr;
+	_derefFunc = nullptr;
+	_runtime = nullptr;
+
+	_env = New<wasm3::environment>();
+	_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
+	_wasm = {nullptr, 0};
 }
 
 NS_DOROTHY_END

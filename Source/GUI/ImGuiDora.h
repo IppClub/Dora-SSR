@@ -77,8 +77,10 @@ private:
 	double _renderTime;
 	int _memPoolSize;
 	int _memLua;
+	int _memWASM;
 	int _lastMemPoolSize;
 	int _lastMemLua;
+	int _lastMemWASM;
 	std::vector<double> _cpuValues;
 	std::vector<double> _gpuValues;
 	std::vector<double> _dtValues;
