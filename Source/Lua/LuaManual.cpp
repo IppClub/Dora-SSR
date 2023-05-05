@@ -18,8 +18,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "SQLiteCpp/SQLiteCpp.h"
 
 extern "C" {
-int colibc_json_load(lua_State *L);
-int colibc_json_dump(lua_State *L);
+int colibc_json_load(lua_State* L);
+int colibc_json_dump(lua_State* L);
 }
 
 NS_DOROTHY_BEGIN
@@ -2116,7 +2116,8 @@ static int DB_transactionInner(lua_State* L, bool async) {
 						DB::execUnsafe(db, sql.sql, sql.rows);
 					}
 				}
-			}, callback);
+			},
+				callback);
 			return 0;
 		} else {
 			bool result = self->transaction([&sqls](SQLite::Database* db) {
@@ -2582,7 +2583,7 @@ int DB_execAsync(lua_State* L) {
 		|| !tolua_isslice(L, 2, 0, &tolua_err)
 		|| !((
 				 tolua_isfunction(L, 3, &tolua_err) && tolua_isnoobj(L, 4, &tolua_err))
-			|| (tolua_istable(L, 3, 0, &tolua_err) && tolua_isfunction(L, 4, &tolua_err) && tolua_isnoobj(L, 5, &tolua_err)))) {
+			 || (tolua_istable(L, 3, 0, &tolua_err) && tolua_isfunction(L, 4, &tolua_err) && tolua_isnoobj(L, 5, &tolua_err)))) {
 		goto tolua_lerror;
 	}
 #endif
@@ -2837,61 +2838,63 @@ int HttpServer_upload(lua_State* L) {
 		Slice pattern = tolua_toslice(L, 2, nullptr);
 		Ref<LuaHandler> acceptHandler(LuaHandler::create(tolua_ref_function(L, 3)));
 		Ref<LuaHandler> doneHandler(LuaHandler::create(tolua_ref_function(L, 4)));
-		self->upload(pattern, [=](const HttpServer::Request& req, const std::string& filename) -> std::optional<std::string> {
-			auto L = SharedLuaEngine.getState();
-			int top = lua_gettop(L);
-			DEFER(lua_settop(L, top));
-			lua_createtable(L, 0, 0);
-			lua_pushliteral(L, "params");
-			lua_createtable(L, 0, 0);
-			std::string key;
-			bool startPair = true;
-			for (const auto& v : req.params) {
-				if (startPair) {
-					startPair = false;
-					key = v;
-				} else {
-					startPair = true;
-					tolua_pushslice(L, key);
-					tolua_pushslice(L, v);
-					lua_rawset(L, -3);
+		self->upload(
+			pattern, [=](const HttpServer::Request& req, const std::string& filename) -> std::optional<std::string> {
+				auto L = SharedLuaEngine.getState();
+				int top = lua_gettop(L);
+				DEFER(lua_settop(L, top));
+				lua_createtable(L, 0, 0);
+				lua_pushliteral(L, "params");
+				lua_createtable(L, 0, 0);
+				std::string key;
+				bool startPair = true;
+				for (const auto& v : req.params) {
+					if (startPair) {
+						startPair = false;
+						key = v;
+					} else {
+						startPair = true;
+						tolua_pushslice(L, key);
+						tolua_pushslice(L, v);
+						lua_rawset(L, -3);
+					}
 				}
-			}
-			lua_rawset(L, -3);
-			tolua_pushslice(L, filename);
-			LuaEngine::invoke(L, acceptHandler->get(), 2, 1);
-			if (lua_isstring(L, -1)) {
-				return tolua_toslice(L, -1, nullptr);
-			}
-			return std::nullopt;
-		}, [=](const HttpServer::Request& req, const std::string& file) {
-			auto L = SharedLuaEngine.getState();
-			int top = lua_gettop(L);
-			DEFER(lua_settop(L, top));
-			lua_createtable(L, 0, 0);
-			lua_pushliteral(L, "params");
-			lua_createtable(L, 0, 0);
-			std::string key;
-			bool startPair = true;
-			for (const auto& v : req.params) {
-				if (startPair) {
-					startPair = false;
-					key = v;
-				} else {
-					startPair = true;
-					tolua_pushslice(L, key);
-					tolua_pushslice(L, v);
-					lua_rawset(L, -3);
+				lua_rawset(L, -3);
+				tolua_pushslice(L, filename);
+				LuaEngine::invoke(L, acceptHandler->get(), 2, 1);
+				if (lua_isstring(L, -1)) {
+					return tolua_toslice(L, -1, nullptr);
 				}
-			}
-			lua_rawset(L, -3);
-			tolua_pushslice(L, file);
-			LuaEngine::invoke(L, doneHandler->get(), 2, 1);
-			if (lua_toboolean(L, -1) != 0) {
-				return true;
-			}
-			return false;
-		});
+				return std::nullopt;
+			},
+			[=](const HttpServer::Request& req, const std::string& file) {
+				auto L = SharedLuaEngine.getState();
+				int top = lua_gettop(L);
+				DEFER(lua_settop(L, top));
+				lua_createtable(L, 0, 0);
+				lua_pushliteral(L, "params");
+				lua_createtable(L, 0, 0);
+				std::string key;
+				bool startPair = true;
+				for (const auto& v : req.params) {
+					if (startPair) {
+						startPair = false;
+						key = v;
+					} else {
+						startPair = true;
+						tolua_pushslice(L, key);
+						tolua_pushslice(L, v);
+						lua_rawset(L, -3);
+					}
+				}
+				lua_rawset(L, -3);
+				tolua_pushslice(L, file);
+				LuaEngine::invoke(L, doneHandler->get(), 2, 1);
+				if (lua_toboolean(L, -1) != 0) {
+					return true;
+				}
+				return false;
+			});
 		return 0;
 	}
 #ifndef TOLUA_RELEASE

@@ -56,7 +56,9 @@ public:
 			updatedEntities.clear();
 			return false;
 		});
-		SharedApplication.quitHandler += [this]() { clear(); };
+		SharedApplication.quitHandler += [this]() {
+			clear();
+		};
 	}
 	virtual ~EntityPool() { }
 	int tryGetIndex(String name) const {

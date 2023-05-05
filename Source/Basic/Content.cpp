@@ -472,10 +472,13 @@ void Content::zipAsync(String zipFile, String folderPath, const std::function<bo
 			Error("failed to init zip file \"{}\", due to: {}", zipFile, mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
 			mz_zip_writer_end(&archive);
 			return Values::alloc(false);
-		} }, [callback](Own<Values> values) {
-		bool success = false;
-		values->get(success);
-		callback(success); });
+		}
+	},
+		[callback](Own<Values> values) {
+			bool success = false;
+			values->get(success);
+			callback(success);
+		});
 }
 
 bool Content::exist(String filename) {

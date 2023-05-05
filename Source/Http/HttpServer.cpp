@@ -20,7 +20,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "SDL.h"
 
-
 #if BX_PLATFORM_WINDOWS
 static std::string get_local_ip() {
 	std::string localIP;

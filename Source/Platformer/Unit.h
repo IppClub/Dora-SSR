@@ -30,7 +30,7 @@ class Leaf;
 namespace Behavior {
 class Leaf;
 class Blackboard;
-}
+} // namespace Behavior
 
 typedef Acf::Delegate<void(UnitAction* action)> UnitActionHandler;
 

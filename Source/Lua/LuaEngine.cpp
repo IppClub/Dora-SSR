@@ -505,48 +505,49 @@ static int dora_yue_check_async(lua_State* L) {
 		}
 		auto result = yue::YueCompiler{nullptr, dora_open_threaded_compiler}.compile(codes, config);
 		return Values::alloc(result);
-	}, [handler](Own<Values> values) {
-		yue::CompileInfo result;
-		values->get(result);
-		auto L = SharedLuaEngine.getState();
-		int top = lua_gettop(L);
-		DEFER(lua_settop(L, top));
-		lua_createtable(L, 0, 0);
-		int i = 0;
-		if (result.error) {
-			const auto& error = result.error.value();
-			lua_createtable(L, 4, 0);
-			tolua_pushslice(L, "error"_slice);
-			lua_rawseti(L, -2, 1);
-			tolua_pushslice(L, error.msg);
-			lua_rawseti(L, -2, 2);
-			tolua_pushinteger(L, error.line);
-			lua_rawseti(L, -2, 3);
-			tolua_pushinteger(L, error.col);
-			lua_rawseti(L, -2, 4);
-			lua_rawseti(L, -2, ++i);
-		}
-		if (result.globals) {
-			for (const auto& global : *result.globals) {
+	},
+		[handler](Own<Values> values) {
+			yue::CompileInfo result;
+			values->get(result);
+			auto L = SharedLuaEngine.getState();
+			int top = lua_gettop(L);
+			DEFER(lua_settop(L, top));
+			lua_createtable(L, 0, 0);
+			int i = 0;
+			if (result.error) {
+				const auto& error = result.error.value();
 				lua_createtable(L, 4, 0);
-				tolua_pushslice(L, "global"_slice);
+				tolua_pushslice(L, "error"_slice);
 				lua_rawseti(L, -2, 1);
-				tolua_pushslice(L, global.name);
+				tolua_pushslice(L, error.msg);
 				lua_rawseti(L, -2, 2);
-				tolua_pushinteger(L, global.line);
+				tolua_pushinteger(L, error.line);
 				lua_rawseti(L, -2, 3);
-				tolua_pushinteger(L, global.col);
+				tolua_pushinteger(L, error.col);
 				lua_rawseti(L, -2, 4);
 				lua_rawseti(L, -2, ++i);
 			}
-		}
-		if (result.error) {
-			LuaEngine::invoke(L, handler->get(), 1, 0);
-		} else {
-			tolua_pushslice(L, result.codes);
-			LuaEngine::invoke(L, handler->get(), 2, 0);
-		}
-	});
+			if (result.globals) {
+				for (const auto& global : *result.globals) {
+					lua_createtable(L, 4, 0);
+					tolua_pushslice(L, "global"_slice);
+					lua_rawseti(L, -2, 1);
+					tolua_pushslice(L, global.name);
+					lua_rawseti(L, -2, 2);
+					tolua_pushinteger(L, global.line);
+					lua_rawseti(L, -2, 3);
+					tolua_pushinteger(L, global.col);
+					lua_rawseti(L, -2, 4);
+					lua_rawseti(L, -2, ++i);
+				}
+			}
+			if (result.error) {
+				LuaEngine::invoke(L, handler->get(), 1, 0);
+			} else {
+				tolua_pushslice(L, result.codes);
+				LuaEngine::invoke(L, handler->get(), 2, 0);
+			}
+		});
 	return 0;
 }
 
@@ -1042,7 +1043,8 @@ void LuaEngine::compileTealToLuaAsync(String tlCodes, String filename, String se
 	thread->run([tl, codes = tlCodes.toString(), name = filename.toString(), searchPath = searchPath.toString(), this]() {
 		initTealState(false);
 		auto res = compile_teal(tl, codes, name, searchPath, false);
-		return Values::alloc(std::move(res)); },
+		return Values::alloc(std::move(res));
+	},
 		[callback](Own<Values> values) {
 			std::pair<std::string, std::string> res;
 			values->get(res);
@@ -1103,7 +1105,8 @@ void LuaEngine::checkTealAsync(String tlCodes, String moduleName, bool lax, Stri
 	thread->run([tl, codes = tlCodes.toString(), name = moduleName.toString(), lax, searchPath = searchPath.toString(), this]() {
 		initTealState(false);
 		auto res = check_teal_async(tl, codes, name, lax, searchPath);
-		return Values::alloc(std::move(res)); },
+		return Values::alloc(std::move(res));
+	},
 		[callback](Own<Values> values) {
 			std::optional<std::list<LuaEngine::TealError>> res;
 			values->get(res);
@@ -1149,7 +1152,8 @@ void LuaEngine::completeTealAsync(String tlCodes, String line, int row, String s
 	thread->run([tl, tlCodes = tlCodes.toString(), line = line.toString(), row, searchPath = searchPath.toString(), this]() {
 		initTealState(false);
 		auto res = complete_teal_async(tl, tlCodes, line, row, searchPath);
-		return Values::alloc(std::move(res)); },
+		return Values::alloc(std::move(res));
+	},
 		[callback](Own<Values> values) {
 			std::list<LuaEngine::TealToken> res;
 			values->get(res);
@@ -1200,7 +1204,8 @@ void LuaEngine::inferTealAsync(String tlCodes, String line, int row, String sear
 	thread->run([tl, tlCodes = tlCodes.toString(), line = line.toString(), row, searchPath = searchPath.toString(), this]() {
 		initTealState(false);
 		auto res = infer_teal_async(tl, tlCodes, line, row, searchPath);
-		return Values::alloc(std::move(res)); },
+		return Values::alloc(std::move(res));
+	},
 		[callback](Own<Values> values) {
 			std::optional<LuaEngine::TealInference> res;
 			values->get(res);

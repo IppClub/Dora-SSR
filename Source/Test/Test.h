@@ -33,13 +33,14 @@ private:
 #define DORA_TEST_ENTRY(name) \
 	class name : public TestEntry { \
 	public: \
-		name(): TestEntry(#name) { } \
+		name() \
+			: TestEntry(#name) { } \
 		virtual bool run() override; \
 	}; \
-	static inline name _##name;\
+	static inline name _##name; \
 	bool name::run()
 #else
-	#define DORA_TEST_ENTRY(name) inline bool _##name()
+#define DORA_TEST_ENTRY(name) inline bool _##name()
 #endif // DORA_TEST
 
 NS_DOROTHY_END

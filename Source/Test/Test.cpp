@@ -46,7 +46,7 @@ bool Test::runTest(String name) {
 #else // DORA_TEST
 
 std::list<std::string> Test::getNames() {
-	return { };
+	return {};
 }
 
 bool Test::runTest(String) {

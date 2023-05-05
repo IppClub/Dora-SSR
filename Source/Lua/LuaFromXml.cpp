@@ -15,6 +15,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "tinyxml2/SAXParser.h"
 #include "yuescript/yue_compiler.h"
 
+// clang-format off
+
 NS_DOROTHY_BEGIN
 
 #define SWITCH_STR_START(str) switch (Switch::hash(str))
@@ -1061,7 +1063,7 @@ static const char* _toBoolean(const char* str) {
 		size_t pos = mod.rfind('.'); \
 		std::string modStr = (name ? name : (pos == std::string::npos ? std::string(module) : mod.substr(pos + 1))); \
 		imported.insert(modStr); \
-		fmt::format_to(std::back_inserter(requires), "local {} = require(\"{}\"){}"sv, modStr, module, nl()); \
+		fmt::format_to(std::back_inserter(imports), "local {} = require(\"{}\"){}"sv, modStr, module, nl()); \
 	}
 
 // Item
@@ -1320,11 +1322,11 @@ static const char* _toBoolean(const char* str) {
 #define Item(name, var) \
 	CASE_STR(name) { \
 		Item_Define(name) \
-			Item_Loop(name) \
-				Self_Check(var) \
-					Item_Create(name) \
-						Item_Handle(name) \
-							Item_Push(name) break; \
+		Item_Loop(name) \
+		Self_Check(var) \
+		Item_Create(name) \
+		Item_Handle(name) \
+		Item_Push(name) break; \
 	}
 
 #define ItemDot_Push(prename, name) \
@@ -1334,11 +1336,11 @@ static const char* _toBoolean(const char* str) {
 #define ItemDot(prename, name, var) \
 	CASE_STR_DOT(prename, name) { \
 		Item_Define(prename##_##name) \
-			Item_Loop(prename##_##name) \
-				Self_Check(var) \
-					Item_Create(prename##_##name) \
-						Item_Handle(prename##_##name) \
-							ItemDot_Push(prename, name) break; \
+		Item_Loop(prename##_##name) \
+		Self_Check(var) \
+		Item_Create(prename##_##name) \
+		Item_Handle(prename##_##name) \
+		ItemDot_Push(prename, name) break; \
 	}
 
 class XmlDelegator : public SAXDelegator {
@@ -1372,7 +1374,7 @@ public:
 		for (; !items.empty(); items.pop())
 			;
 		stream = fmt::memory_buffer();
-		requires = fmt::memory_buffer();
+		imports = fmt::memory_buffer();
 		names.clear();
 		imported.clear();
 		firstItem.clear();
@@ -1388,8 +1390,8 @@ public:
 	}
 	std::string getResult() {
 		if (lastError.empty()) {
-			std::string requireStr = fmt::to_string(requires);
-			return requireStr + fmt::to_string(stream);
+			std::string importStr = fmt::to_string(imports);
+			return importStr + fmt::to_string(stream);
 		}
 		return std::string();
 	}
@@ -1447,7 +1449,7 @@ private:
 	std::unordered_set<std::string> imported;
 	std::unordered_map<std::string, std::string> attributes;
 	fmt::memory_buffer stream;
-	fmt::memory_buffer requires;
+	fmt::memory_buffer imports;
 };
 
 int XmlDelegator::getLineNumber(const char* name, const char* start) {
@@ -1606,84 +1608,85 @@ std::string XmlDelegator::nl() {
 	return currentLineStr;
 }
 
-void XmlDelegator::startElement(const char* element, const char** atts){
-	SWITCH_STR_START(element){
+void XmlDelegator::startElement(const char* element, const char** atts) {
+	SWITCH_STR_START(element) {
 		CASE_STR(Delay)
-			CASE_STR(Scale)
-				CASE_STR(Move)
-					CASE_STR(Angle)
-						CASE_STR(Opacity)
-							CASE_STR(SkewX)
-								CASE_STR(SkewY)
-									CASE_STR(Tint)
-										CASE_STR(Show)
-											CASE_STR(Hide)
-												CASE_STR(Event)
-													CASE_STR(Sequence)
-														CASE_STR(Spawn){
-															bool parentIsAction = !elementStack.empty() && strcmp(elementStack.top().type, "Action") == 0;
-if (parentIsAction) {
-	updateLineNumber(element);
-}
-break;
-}
-default: {
-	updateLineNumber(element);
-	break;
-}
+		CASE_STR(Scale)
+		CASE_STR(Move)
+		CASE_STR(Angle)
+		CASE_STR(Opacity)
+		CASE_STR(SkewX)
+		CASE_STR(SkewY)
+		CASE_STR(Tint)
+		CASE_STR(Show)
+		CASE_STR(Hide)
+		CASE_STR(Event)
+		CASE_STR(Sequence)
+		CASE_STR(Spawn) {
+			bool parentIsAction = !elementStack.empty()
+				&& strcmp(elementStack.top().type, "Action") == 0;
+			if (parentIsAction) {
+				updateLineNumber(element);
+			}
+			break;
+		}
+		default: {
+			updateLineNumber(element);
+			break;
+		}
 	}
 	SWITCH_STR_END
+
 	SWITCH_STR_START(element) {
 		CASE_STR(Dorothy) {
 			break;
 		}
-
 		Item(Node, node)
-			Item(DrawNode, drawNode)
-				Item(Line, line)
-					Item(Sprite, sprite)
-						Item(Grid, grid)
-							Item(ClipNode, clipNode)
-								Item(Label, label)
+		Item(DrawNode, drawNode)
+		Item(Line, line)
+		Item(Sprite, sprite)
+		Item(Grid, grid)
+		Item(ClipNode, clipNode)
+		Item(Label, label)
 
-									Item(Playable, playable)
-										Item(Menu, menu)
+		Item(Playable, playable)
+		Item(Menu, menu)
 
-											Item(Delay, delay)
-												Item(Scale, scale)
-													Item(Move, move)
-														Item(Angle, angle)
-															Item(Opacity, opacity)
-																Item(SkewX, skewX)
-																	Item(SkewY, skewY)
-																		Item(Tint, tint)
+		Item(Delay, delay)
+		Item(Scale, scale)
+		Item(Move, move)
+		Item(Angle, angle)
+		Item(Opacity, opacity)
+		Item(SkewX, skewX)
+		Item(SkewY, skewY)
+		Item(Tint, tint)
 
-																			Item(Show, show)
-																				Item(Hide, hide)
-																					Item(Event, event)
+		Item(Show, show)
+		Item(Hide, hide)
+		Item(Event, event)
 
-																						Item(Sequence, sequence)
-																							Item(Spawn, spawn)
+		Item(Sequence, sequence)
+		Item(Spawn, spawn)
 
-																								CASE_STR(Vec2) {
+		CASE_STR(Vec2) {
 			Item_Define(Vec2)
-				Item_Loop(Vec2)
-					Item_Handle(Vec2) break;
+			Item_Loop(Vec2)
+			Item_Handle(Vec2) break;
 		}
 		CASE_STR(Dot) {
 			Item_Define(Dot)
-				Item_Loop(Dot)
-					Dot_Finish break;
+			Item_Loop(Dot)
+			Dot_Finish break;
 		}
 		CASE_STR(Polygon) {
 			Item_Define(Polygon)
-				Item_Loop(Polygon)
-					Polygon_Finish break;
+			Item_Loop(Polygon)
+			Polygon_Finish break;
 		}
 		CASE_STR(Segment) {
 			Item_Define(Segment)
-				Item_Loop(Segment)
-					Segment_Finish break;
+			Item_Loop(Segment)
+			Segment_Finish break;
 		}
 		CASE_STR(Stencil) {
 			oItem item = {"Stencil"};
@@ -1692,8 +1695,8 @@ default: {
 		}
 		CASE_STR(Import) {
 			Item_Define(Import)
-				Item_Loop(Import)
-					Import_Create break;
+			Item_Loop(Import)
+			Import_Create break;
 		}
 		CASE_STR(Action) {
 			oItem item = {"Action"};
@@ -1702,14 +1705,14 @@ default: {
 		}
 		CASE_STR(Item) {
 			Item_Define(NodeItem)
-				Item_Loop(NodeItem)
-					Item_Create(NodeItem)
-						Item_Handle(NodeItem) break;
+			Item_Loop(NodeItem)
+			Item_Create(NodeItem)
+			Item_Handle(NodeItem) break;
 		}
 		CASE_STR(Slot) {
 			Item_Define(Slot)
-				Item_Loop(Slot)
-					Item_Create(Slot) break;
+			Item_Loop(Slot)
+			Item_Create(Slot) break;
 		}
 		CASE_STR(Lua)
 		CASE_STR(Yue) {
@@ -1717,246 +1720,246 @@ default: {
 		}
 		default: {
 			Item_Define(ModuleNode)
-				Item_Loop(ModuleNode)
-					Self_Check(item)
-						Item_Create(ModuleNode)
-							Item_Handle(ModuleNode)
-								ModuleNode_Finish;
+			Item_Loop(ModuleNode)
+			Self_Check(item)
+			Item_Create(ModuleNode)
+			Item_Handle(ModuleNode)
+			ModuleNode_Finish;
 			oItem item = {element, self, ref};
 			elementStack.push(item);
 			break;
 		}
 	}
 	SWITCH_STR_END
-	}
+}
 
-	std::string XmlDelegator::compileYueCodes(const char* codes) {
-		yue::YueConfig config;
-		config.lineOffset = currentLine - 2;
-		config.reserveLineNumber = true;
-		config.implicitReturnRoot = false;
-		auto result = yue::YueCompiler{}.compile(fmt::format("do{}{}", nl(), codes), config);
-		if (result.codes.empty() && result.error) {
-			lastError += fmt::format("failed to compile yue codes started at line {}\n{}", getLineNumber(codes), result.error.value().displayMessage);
+std::string XmlDelegator::compileYueCodes(const char* codes) {
+	yue::YueConfig config;
+	config.lineOffset = currentLine - 2;
+	config.reserveLineNumber = true;
+	config.implicitReturnRoot = false;
+	auto result = yue::YueCompiler{}.compile(fmt::format("do{}{}", nl(), codes), config);
+	if (result.codes.empty() && result.error) {
+		lastError += fmt::format("failed to compile yue codes started at line {}\n{}", getLineNumber(codes), result.error.value().displayMessage);
+	}
+	return std::move(result.codes);
+}
+
+void XmlDelegator::endElement(const char* name) {
+	SWITCH_STR_START(name) {
+		CASE_STR(Yue) {
+			std::string codeStr;
+			if (codes) codeStr = compileYueCodes(codes);
+			codes = nullptr;
+			if (!funcs.empty() && funcs.top().type == oFuncType::Slot) {
+				funcs.top().begin += codeStr;
+			} else {
+				fmt::format_to(std::back_inserter(elementStack.empty() ? imports : stream), "{}"sv, codeStr);
+			}
+			return;
 		}
-		return std::move(result.codes);
-	}
-
-	void XmlDelegator::endElement(const char* name) {
-		SWITCH_STR_START(name) {
-			CASE_STR(Yue) {
+		CASE_STR(Lua) {
+			if (codes) {
+				Slice luaCodes(codes);
+				luaCodes.trimSpace();
+				std::string_view lcodes(luaCodes.begin(), luaCodes.size());
+				auto pos = lcodes.find("[["sv);
+				if (pos == std::string::npos) {
+					pos = lcodes.find("[="sv);
+				}
+				if (pos != std::string::npos) {
+					lastError += fmt::format("Lua multiline string is not supported at line {}.\n", getLineNumber(luaCodes.begin() + pos));
+				}
+				auto lines = luaCodes.split("\n");
+				fmt::memory_buffer buf;
 				std::string codeStr;
-				if (codes) codeStr = compileYueCodes(codes);
-				codes = nullptr;
+				if (!lines.empty()) {
+					if (lines.size() == 1) {
+						updateLineNumber(lines.begin()->begin());
+						codeStr = lines.front() + nl();
+					} else {
+						if (!lines.begin()->empty()) {
+							updateLineNumber(lines.begin()->begin());
+							fmt::format_to(std::back_inserter(buf), "{}{}"sv, lines.front().toString(), nl());
+						}
+						for (auto it = ++lines.begin(); it != lines.end(); ++it) {
+							if (!it->empty()) {
+								updateLineNumber(it->begin());
+								fmt::format_to(std::back_inserter(buf), "{}{}"sv, it->toString(), nl());
+							}
+						}
+						codeStr = fmt::to_string(buf);
+					}
+				}
 				if (!funcs.empty() && funcs.top().type == oFuncType::Slot) {
 					funcs.top().begin += codeStr;
 				} else {
-					fmt::format_to(std::back_inserter(elementStack.empty() ? requires : stream), "{}"sv, codeStr);
+					fmt::format_to(std::back_inserter(elementStack.empty() ? imports : stream), "{}"sv, codeStr);
 				}
-				return;
 			}
-			CASE_STR(Lua) {
-				if (codes) {
-					Slice luaCodes(codes);
-					luaCodes.trimSpace();
-					std::string_view lcodes(luaCodes.begin(), luaCodes.size());
-					auto pos = lcodes.find("[["sv);
-					if (pos == std::string::npos) {
-						pos = lcodes.find("[="sv);
-					}
-					if (pos != std::string::npos) {
-						lastError += fmt::format("Lua multiline string is not supported at line {}.\n", getLineNumber(luaCodes.begin() + pos));
-					}
-					auto lines = luaCodes.split("\n");
-					fmt::memory_buffer buf;
-					std::string codeStr;
-					if (!lines.empty()) {
-						if (lines.size() == 1) {
-							updateLineNumber(lines.begin()->begin());
-							codeStr = lines.front() + nl();
-						} else {
-							if (!lines.begin()->empty()) {
-								updateLineNumber(lines.begin()->begin());
-								fmt::format_to(std::back_inserter(buf), "{}{}"sv, lines.front().toString(), nl());
-							}
-							for (auto it = ++lines.begin(); it != lines.end(); ++it) {
-								if (!it->empty()) {
-									updateLineNumber(it->begin());
-									fmt::format_to(std::back_inserter(buf), "{}{}"sv, it->toString(), nl());
-								}
-							}
-							codeStr = fmt::to_string(buf);
-						}
-					}
-					if (!funcs.empty() && funcs.top().type == oFuncType::Slot) {
-						funcs.top().begin += codeStr;
-					} else {
-						fmt::format_to(std::back_inserter(elementStack.empty() ? requires : stream), "{}"sv, codeStr);
-					}
-				}
-				codes = nullptr;
-				return;
-			}
+			codes = nullptr;
+			return;
 		}
-		SWITCH_STR_END
+	}
+	SWITCH_STR_END
 
-		if (elementStack.empty()) return;
-		oItem currentData = elementStack.top();
-		if (strcmp(name, elementStack.top().type) == 0) elementStack.pop();
-		bool parentIsAction = !elementStack.empty() && strcmp(elementStack.top().type, "Action") == 0;
+	if (elementStack.empty()) return;
+	oItem currentData = elementStack.top();
+	if (strcmp(name, elementStack.top().type) == 0) elementStack.pop();
+	bool parentIsAction = !elementStack.empty() && strcmp(elementStack.top().type, "Action") == 0;
 
-		SWITCH_STR_START(name) {
-			CASE_STR(Slot) {
-				oFunc func = funcs.top();
-				funcs.pop();
-				fmt::format_to(std::back_inserter(stream), "{}{}{}"sv, func.begin, func.end, nl());
-				break;
+	SWITCH_STR_START(name) {
+		CASE_STR(Slot) {
+			oFunc func = funcs.top();
+			funcs.pop();
+			fmt::format_to(std::back_inserter(stream), "{}{}{}"sv, func.begin, func.end, nl());
+			break;
+		}
+		// Action
+		CASE_STR(Delay)
+		CASE_STR(Scale)
+		CASE_STR(Move)
+		CASE_STR(Angle)
+		CASE_STR(Opacity)
+		CASE_STR(SkewX)
+		CASE_STR(SkewY)
+		CASE_STR(Tint)
+		CASE_STR(Show)
+		CASE_STR(Hide)
+		CASE_STR(Event) {
+			oFunc func = funcs.top();
+			funcs.pop();
+			if (parentIsAction) {
+				fmt::format_to(std::back_inserter(stream), func.type == oFuncType::ActionDef ? "local {} = {}{}"sv : "local {} = Action({}){}"sv, currentData.name, func.begin, nl());
+			} else {
+				items.push(func.begin);
+				auto it = names.find(currentData.name);
+				if (it != names.end()) names.erase(it);
 			}
-			// Action
-			CASE_STR(Delay)
-			CASE_STR(Scale)
-			CASE_STR(Move)
-			CASE_STR(Angle)
-			CASE_STR(Opacity)
-			CASE_STR(SkewX)
-			CASE_STR(SkewY)
-			CASE_STR(Tint)
-			CASE_STR(Show)
-			CASE_STR(Hide)
-			CASE_STR(Event) {
-				oFunc func = funcs.top();
-				funcs.pop();
-				if (parentIsAction) {
-					fmt::format_to(std::back_inserter(stream), func.type == oFuncType::ActionDef ? "local {} = {}{}"sv : "local {} = Action({}){}"sv, currentData.name, func.begin, nl());
-				} else {
-					items.push(func.begin);
-					auto it = names.find(currentData.name);
-					if (it != names.end()) names.erase(it);
-				}
-				break;
-			}
-			CASE_STR(Sequence)
-			CASE_STR(Spawn) {
-				oFunc func = funcs.top();
-				funcs.pop();
-				std::string tempItem = std::string(name) + "(";
-				std::stack<std::string> tempStack;
-				while (items.top() != name) {
-					tempStack.push(items.top());
-					items.pop();
-				}
+			break;
+		}
+		CASE_STR(Sequence)
+		CASE_STR(Spawn) {
+			oFunc func = funcs.top();
+			funcs.pop();
+			std::string tempItem = std::string(name) + "(";
+			std::stack<std::string> tempStack;
+			while (items.top() != name) {
+				tempStack.push(items.top());
 				items.pop();
-				while (!tempStack.empty()) {
-					tempItem += tempStack.top();
-					tempStack.pop();
-					if (!tempStack.empty()) tempItem += ",";
-				}
-				tempItem += ")";
-				if (parentIsAction) {
-					fmt::format_to(std::back_inserter(stream), func.type == oFuncType::ActionDef ? "local {} = {}{}"sv : "local {} = Action({}){}"sv, currentData.name, tempItem, nl());
-				} else {
-					items.push(tempItem);
-					auto it = names.find(currentData.name);
-					if (it != names.end()) names.erase(it);
-				}
-				break;
 			}
-			CASE_STR(Polygon)
-			CASE_STR(Line) {
-				oFunc func = funcs.top();
-				funcs.pop();
-				fmt::format_to(std::back_inserter(stream), "{}"sv, func.begin);
-				std::stack<std::string> tempStack;
-				while (items.top() != name) {
-					tempStack.push(items.top());
-					items.pop();
-				}
+			items.pop();
+			while (!tempStack.empty()) {
+				tempItem += tempStack.top();
+				tempStack.pop();
+				if (!tempStack.empty()) tempItem += ",";
+			}
+			tempItem += ")";
+			if (parentIsAction) {
+				fmt::format_to(std::back_inserter(stream), func.type == oFuncType::ActionDef ? "local {} = {}{}"sv : "local {} = Action({}){}"sv, currentData.name, tempItem, nl());
+			} else {
+				items.push(tempItem);
+				auto it = names.find(currentData.name);
+				if (it != names.end()) names.erase(it);
+			}
+			break;
+		}
+		CASE_STR(Polygon)
+		CASE_STR(Line) {
+			oFunc func = funcs.top();
+			funcs.pop();
+			fmt::format_to(std::back_inserter(stream), "{}"sv, func.begin);
+			std::stack<std::string> tempStack;
+			while (items.top() != name) {
+				tempStack.push(items.top());
 				items.pop();
-				while (!tempStack.empty()) {
-					fmt::format_to(std::back_inserter(stream), "{}"sv, tempStack.top());
-					tempStack.pop();
-					if (!tempStack.empty()) fmt::format_to(std::back_inserter(stream), ","sv);
-				}
-				fmt::format_to(std::back_inserter(stream), "{}"sv, func.end);
-				break;
 			}
-			// Builtin node
-			CASE_STR(Action)
-			CASE_STR(Node)
-			CASE_STR(DrawNode)
-			CASE_STR(Sprite)
-			CASE_STR(Grid)
-			CASE_STR(ClipNode)
-			CASE_STR(Label)
-			CASE_STR(Playable)
-			CASE_STR(Menu)
-			CASE_STR(Vec2)
-			CASE_STR(Dot)
-			CASE_STR(Segment)
-			CASE_STR(Stencil)
-			CASE_STR(Import)
-			CASE_STR(Item) {
-				break;
+			items.pop();
+			while (!tempStack.empty()) {
+				fmt::format_to(std::back_inserter(stream), "{}"sv, tempStack.top());
+				tempStack.pop();
+				if (!tempStack.empty()) fmt::format_to(std::back_inserter(stream), ","sv);
 			}
-			default: {
-				auto it = imported.find(name);
-				if (it == imported.end()) {
-					lastError += fmt::format("Tag <{}> not imported, closed at line {}.\n", name, getLineNumber(name));
-				}
-				break;
-			}
+			fmt::format_to(std::back_inserter(stream), "{}"sv, func.end);
+			break;
 		}
-		SWITCH_STR_END
-
-		if (parentIsAction && currentData.ref) {
-			fmt::format_to(std::back_inserter(stream), "{}.{} = {}{}"sv, firstItem, currentData.name, currentData.name, nl());
+		// Builtin node
+		CASE_STR(Action)
+		CASE_STR(Node)
+		CASE_STR(DrawNode)
+		CASE_STR(Sprite)
+		CASE_STR(Grid)
+		CASE_STR(ClipNode)
+		CASE_STR(Label)
+		CASE_STR(Playable)
+		CASE_STR(Menu)
+		CASE_STR(Vec2)
+		CASE_STR(Dot)
+		CASE_STR(Segment)
+		CASE_STR(Stencil)
+		CASE_STR(Import)
+		CASE_STR(Item) {
+			break;
+		}
+		default: {
+			auto it = imported.find(name);
+			if (it == imported.end()) {
+				lastError += fmt::format("Tag <{}> not imported, closed at line {}.\n", name, getLineNumber(name));
+			}
+			break;
 		}
 	}
+	SWITCH_STR_END
 
-	void XmlDelegator::textHandler(const char* s, int len) {
-		updateLineNumber(s);
-		codes = s;
+	if (parentIsAction && currentData.ref) {
+		fmt::format_to(std::back_inserter(stream), "{}.{} = {}{}"sv, firstItem, currentData.name, currentData.name, nl());
 	}
+}
 
-	XmlLoader::XmlLoader()
-		: _delegator(new XmlDelegator(&_parser)) {
-		_parser.setDelegator(_delegator.get());
+void XmlDelegator::textHandler(const char* s, int len) {
+	updateLineNumber(s);
+	codes = s;
+}
+
+XmlLoader::XmlLoader()
+	: _delegator(new XmlDelegator(&_parser)) {
+	_parser.setDelegator(_delegator.get());
+}
+
+XmlLoader::~XmlLoader() { }
+
+std::string XmlLoader::load(String filename) {
+	auto data = SharedContent.load(filename);
+	_delegator->originalXml = Slice(r_cast<char*>(data.first.get()), data.second).toString();
+	_delegator->begin();
+	SAXParser::setHeaderHandler(Handler);
+	bool result = _parser.parseXml(_delegator->originalXml);
+	SAXParser::setHeaderHandler(nullptr);
+	_delegator->end();
+	std::string codes = result ? _delegator->getResult() : std::string();
+	_delegator->clear();
+	return codes;
+}
+
+std::string XmlLoader::loadXml(String xml) {
+	_delegator->originalXml = xml.toString();
+	_delegator->begin();
+	SAXParser::setHeaderHandler(Handler);
+	bool result = _parser.parseXml(_delegator->originalXml);
+	SAXParser::setHeaderHandler(nullptr);
+	_delegator->end();
+	std::string codes = result ? _delegator->getResult() : std::string();
+	_delegator->clear();
+	return codes;
+}
+
+std::string XmlLoader::getLastError() {
+	const std::string& parserError = _parser.getLastError();
+	const std::string& dorothyError = _delegator->getLastError();
+	if (parserError.empty() && !dorothyError.empty()) {
+		return std::string("Xml document error\n") + dorothyError;
 	}
+	return parserError + dorothyError;
+}
 
-	XmlLoader::~XmlLoader() { }
-
-	std::string XmlLoader::load(String filename) {
-		auto data = SharedContent.load(filename);
-		_delegator->originalXml = Slice(r_cast<char*>(data.first.get()), data.second).toString();
-		_delegator->begin();
-		SAXParser::setHeaderHandler(Handler);
-		bool result = _parser.parseXml(_delegator->originalXml);
-		SAXParser::setHeaderHandler(nullptr);
-		_delegator->end();
-		std::string codes = result ? _delegator->getResult() : std::string();
-		_delegator->clear();
-		return codes;
-	}
-
-	std::string XmlLoader::loadXml(String xml) {
-		_delegator->originalXml = xml.toString();
-		_delegator->begin();
-		SAXParser::setHeaderHandler(Handler);
-		bool result = _parser.parseXml(_delegator->originalXml);
-		SAXParser::setHeaderHandler(nullptr);
-		_delegator->end();
-		std::string codes = result ? _delegator->getResult() : std::string();
-		_delegator->clear();
-		return codes;
-	}
-
-	std::string XmlLoader::getLastError() {
-		const std::string& parserError = _parser.getLastError();
-		const std::string& dorothyError = _delegator->getLastError();
-		if (parserError.empty() && !dorothyError.empty()) {
-			return std::string("Xml document error\n") + dorothyError;
-		}
-		return parserError + dorothyError;
-	}
-
-	NS_DOROTHY_END
+NS_DOROTHY_END

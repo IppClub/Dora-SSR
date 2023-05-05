@@ -28,9 +28,11 @@ using namespace std::string_literals;
 #include <string_view>
 using namespace std::string_view_literals;
 
-#include "Other/AcfDelegate.h"
 #include "bx/platform.h"
+
 #include "bgfx/platform.h"
+
+#include "Other/AcfDelegate.h"
 #include "fmt/format.h"
 #include "silly/Slice.h"
 using namespace silly::slice;

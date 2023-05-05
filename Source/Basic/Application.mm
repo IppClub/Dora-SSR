@@ -24,7 +24,7 @@ void Application::updateWindowSize() {
 	SDL_GetWindowWMInfo(_sdlWindow, &wmi);
 	CALayer* layer = wmi.info.uikit.window.rootViewController.view.layer;
 	CGRect frame = layer.frame;
-	for(NSUInteger i = 0; i < layer.sublayers.count; i++) {
+	for (NSUInteger i = 0; i < layer.sublayers.count; i++) {
 		layer.sublayers[i].frame = frame;
 	}
 	[layer layoutSublayers];
