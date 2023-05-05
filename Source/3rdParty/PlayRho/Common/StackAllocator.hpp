@@ -150,10 +150,10 @@ private:
         bool usedMalloc; ///< Whether <code>malloc</code> was used.
     };
     
-    char* const m_data; ///< Data.
-    AllocationRecord* const m_entries; ///< Entries.
-    size_type const m_size; ///< Size.
-    size_type const m_max_entries; ///< Max entries.
+    char* m_data; ///< Data.
+    AllocationRecord* m_entries; ///< Entries.
+    size_type m_size; ///< Size.
+    size_type m_max_entries; ///< Max entries.
     
     size_type m_index = 0; ///< Index.
     size_type m_allocation = 0; ///< Allocation.

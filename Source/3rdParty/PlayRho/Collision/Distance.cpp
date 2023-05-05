@@ -124,8 +124,10 @@ DistanceOutput Distance(const DistanceProxy& proxyA, const Transformation& trans
     }
 
     if (empty(simplexEdges)) {
-        simplexEdges.push_back(GetSimplexEdge(proxyA, transformA, 0, proxyB, transformB, 0));
-        savedIndices = IndexPair3{{IndexPair{0, 0}, InvalidIndexPair, InvalidIndexPair}};
+        static constexpr auto idxA = static_cast<VertexCounter>(0u);
+        static constexpr auto idxB = static_cast<VertexCounter>(0u);
+        simplexEdges.push_back(GetSimplexEdge(proxyA, transformA, idxA, proxyB, transformB, idxB));
+        savedIndices = IndexPair3{{IndexPair{idxA, idxB}, InvalidIndexPair, InvalidIndexPair}};
     }
 
     auto simplex = Simplex{};

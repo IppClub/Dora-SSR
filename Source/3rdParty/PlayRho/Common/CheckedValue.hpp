@@ -333,9 +333,9 @@ constexpr auto operator!= (const Other& lhs,
 template <typename ValueType, typename CheckerType, typename Other>
 constexpr auto operator<= (const CheckedValue<ValueType, CheckerType>& lhs,
                            const Other& rhs)
--> decltype(ValueType(lhs) <= rhs)
+-> decltype(ValueType(lhs) <= ValueType(rhs))
 {
-    return ValueType(lhs) <= rhs;
+    return ValueType(lhs) <= ValueType(rhs);
 }
 
 /// @brief Constrained value less-than or equal-to operator.
@@ -346,9 +346,9 @@ constexpr auto operator<= (const CheckedValue<ValueType, CheckerType>& lhs,
 template <typename ValueType, typename CheckerType, typename Other>
 constexpr auto operator<= (const Other& lhs,
                            const CheckedValue<ValueType, CheckerType>& rhs)
--> decltype(lhs <= ValueType(rhs))
+-> decltype(ValueType(lhs) <= ValueType(rhs))
 {
-    return lhs <= ValueType(rhs);
+    return ValueType(lhs) <= ValueType(rhs);
 }
 
 /// @brief Constrained value greater-than or equal-to operator.
@@ -359,9 +359,9 @@ constexpr auto operator<= (const Other& lhs,
 template <typename ValueType, typename CheckerType, typename Other>
 constexpr auto operator>= (const CheckedValue<ValueType, CheckerType>& lhs,
                            const Other& rhs)
--> decltype(ValueType(lhs) >= rhs)
+-> decltype(ValueType(lhs) >= ValueType(rhs))
 {
-    return ValueType(lhs) >= rhs;
+    return ValueType(lhs) >= ValueType(rhs);
 }
 
 /// @brief Constrained value greater-than or equal-to operator.
@@ -372,9 +372,9 @@ constexpr auto operator>= (const CheckedValue<ValueType, CheckerType>& lhs,
 template <typename ValueType, typename CheckerType, typename Other>
 constexpr auto operator>= (const Other& lhs,
                            const CheckedValue<ValueType, CheckerType>& rhs)
--> decltype(lhs >= ValueType(rhs))
+-> decltype(ValueType(lhs) >= ValueType(rhs))
 {
-    return lhs >= ValueType(rhs);
+    return ValueType(lhs) >= ValueType(rhs);
 }
 
 
@@ -386,9 +386,9 @@ constexpr auto operator>= (const Other& lhs,
 template <typename ValueType, typename CheckerType, typename Other>
 constexpr auto operator< (const CheckedValue<ValueType, CheckerType>& lhs,
                           const Other& rhs)
--> decltype(ValueType(lhs) < rhs)
+-> decltype(ValueType(lhs) < ValueType(rhs))
 {
-    return ValueType(lhs) < rhs;
+    return ValueType(lhs) < ValueType(rhs);
 }
 
 /// @brief Constrained value less-than operator.
@@ -399,9 +399,9 @@ constexpr auto operator< (const CheckedValue<ValueType, CheckerType>& lhs,
 template <typename ValueType, typename CheckerType, typename Other>
 constexpr auto operator< (const Other& lhs,
                           const CheckedValue<ValueType, CheckerType>& rhs)
--> decltype(lhs < ValueType(rhs))
+-> decltype(ValueType(lhs) < ValueType(rhs))
 {
-    return lhs < ValueType(rhs);
+    return ValueType(lhs) < ValueType(rhs);
 }
 
 /// @brief Constrained value greater-than operator.
@@ -412,9 +412,9 @@ constexpr auto operator< (const Other& lhs,
 template <typename ValueType, typename CheckerType, typename Other>
 constexpr auto operator> (const CheckedValue<ValueType, CheckerType>& lhs,
                           const Other& rhs)
--> decltype(ValueType(lhs) > rhs)
+-> decltype(ValueType(lhs) > ValueType(rhs))
 {
-    return ValueType(lhs) > rhs;
+    return ValueType(lhs) > ValueType(rhs);
 }
 
 /// @brief Constrained value greater-than ooperator.
@@ -425,9 +425,9 @@ constexpr auto operator> (const CheckedValue<ValueType, CheckerType>& lhs,
 template <typename ValueType, typename CheckerType, typename Other>
 constexpr auto operator> (const Other& lhs,
                           const CheckedValue<ValueType, CheckerType>& rhs)
--> decltype(lhs > ValueType(rhs))
+-> decltype(ValueType(lhs) > ValueType(rhs))
 {
-    return lhs > ValueType(rhs);
+    return ValueType(lhs) > ValueType(rhs);
 }
 
 /// @brief Constrained value multiplication operator.

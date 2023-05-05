@@ -80,7 +80,7 @@
 // Enable this macro to enable sorting ID lists like m_contacts. This results in more linearly
 // accessed memory. Benchmarking hasn't found a significant performance improvement however but
 // it does seem to decrease performance in smaller simulations.
-//#define DO_SORT_ID_LISTS
+#define DO_SORT_ID_LISTS 0
 
 using std::for_each;
 using std::remove;
@@ -1246,8 +1246,8 @@ void WorldImpl::AddToIsland(Island& island, BodyStack& stack,
         assert(newNumContacts >= oldNumContacts);
         const auto netNumContacts = newNumContacts - oldNumContacts;
         assert(remNumContacts >= netNumContacts);
-        remNumContacts -= netNumContacts;
-        
+        remNumContacts -= static_cast<ContactCounter>(netNumContacts);
+
         const auto numJoints = size(island.joints);
         // Adds appropriate joints of current body and appropriate 'other' bodies of those joint.
         AddJointsToIsland(island, stack, m_bodyJoints[to_underlying(bodyID)]);
@@ -1335,8 +1335,8 @@ RegStepStats WorldImpl::SolveReg(const StepConf& conf)
                 AddToIsland(island, b, remNumBodies, remNumContacts, remNumJoints);
                 stats.maxIslandBodies = std::max(stats.maxIslandBodies,
                                                  static_cast<BodyCounter>(size(island.bodies)));
-				remNumBodies += static_cast<BodyCounter>(RemoveUnspeedablesFromIslanded(island.bodies, m_bodyBuffer,
-                                                               m_islandedBodies));
+                const auto numRemoved = RemoveUnspeedablesFromIslanded(island.bodies, m_bodyBuffer, m_islandedBodies);
+                remNumBodies += static_cast<BodyCounter>(numRemoved);
 #if defined(DO_THREADED)
                 // Updates bodies' sweep.pos0 to current sweep.pos1 and bodies' sweep.pos1 to new positions
                 futures.push_back(std::async(std::launch::async, &WorldImpl::SolveRegIslandViaGS,
