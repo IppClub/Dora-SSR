@@ -3,7 +3,14 @@ name = "dora"
 version = "0.1.0"
 authors = ["Li Jin <dragon-fly@qq.com>"]
 edition = "2021"
+license = "MIT"
+homepage = "https://dorothy-ssr.net"
+repository = "https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Tools/dora-rust/dora"
+keywords = ["gamedev", "WASM"]
+documentation = "https://dorothy-ssr.net/docs/api/intro"
+description = "The lib for building Dorothy SSR games in Rust running on target wasm32-wasi."
 
 [dependencies]
 paste = "1.0.12"
 once_cell = "1.17.1"
+
