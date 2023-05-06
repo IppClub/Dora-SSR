@@ -1,4 +1,4 @@
-use dora::{IObject, Node, INode, Director, App, Array, Group, Entity, Action, platformer, p, args};
+use dorothy_ssr::*;
 
 fn main() {
 	platformer::UnitAction::add(
@@ -41,7 +41,7 @@ fn main() {
 			Action::delay(3.0),
 			Action::emit("End", "3 seconds later!")
 		]),
-		Action::prop(1.0, 0.0, 233.0, dora::Property::X, dora::EaseType::InBack)
+		Action::prop(1.0, 0.0, 233.0, Property::X, EaseType::InBack)
 	]));
 	node.slot("End", Box::new(|args| {
 		let n = args.pop_cast::<Node>().unwrap();
