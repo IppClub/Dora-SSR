@@ -308,6 +308,7 @@ export allClear = ->
 	setupEventHandlers!
 	Content.searchPaths = searchPaths
 	App.idled = true
+	Wasm\clear!
 
 export stop = ->
 	return false if isInEntry
@@ -331,7 +332,7 @@ getProjectEntries = (path)->
 	entries = {}
 	for dir in *Content\getDirs path
 		continue if dir\match "^%."
-		for file in *getAllFiles Path(path, dir), {"xml", "lua", yueext, "tl"}
+		for file in *getAllFiles Path(path, dir), {"xml", "lua", yueext, "tl", "wasm"}
 			if "init" == Path\getName(file)\lower!
 				examples = {}
 				tests = {}
