@@ -1,5 +1,4 @@
-pub mod dora;
-use dora::{IObject, Node, INode, Director, Array, App, Group, Entity, Action, platformer};
+use dora::{IObject, Node, INode, Director, App, Array, Group, Entity, Action, platformer, p, args};
 
 fn main() {
 	platformer::UnitAction::add(
