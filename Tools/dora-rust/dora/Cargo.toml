@@ -9,6 +9,7 @@ repository = "https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Tools/dora-rust
 keywords = ["gamedev", "WASM"]
 documentation = "https://dorothy-ssr.net/docs/api/intro"
 description = "The lib for building Dorothy SSR games in Rust running on target wasm32-wasi."
+crate-type = "lib"
 
 [dependencies]
 paste = "1.0.12"
