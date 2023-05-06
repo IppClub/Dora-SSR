@@ -1185,6 +1185,7 @@ export default function PersistentDrawerLeft() {
 						if (file !== undefined) {
 							key = file.key;
 							title = file.title;
+							dir = file.uploading;
 							if (path.extname(title).toLowerCase() === ".md") {
 								file.mdEditing = false;
 								setFiles([...files]);
@@ -1203,7 +1204,7 @@ export default function PersistentDrawerLeft() {
 					}
 					let asProj = mode === "Run";
 					if (dir) {
-						key = path.join(key, "init.lua");
+						key = path.join(key, "init");
 						asProj = true;
 					}
 					const ext = path.extname(key).toLowerCase();
@@ -1212,6 +1213,8 @@ export default function PersistentDrawerLeft() {
 						case ".yue":
 						case ".tl":
 						case ".xml":
+						case ".wasm":
+						case "":
 							Service.run({file: key, asProj}).then((res) => {
 								if (res.success) {
 									addAlert(t("alert.run", {title: res.target ?? title}), "success");

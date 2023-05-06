@@ -51,8 +51,13 @@ i18n
 						movingInfo: "move {{from}} to folder {{to}}",
 					},
 					upload: {
-						text: "Click or drag files and folder to this area to upload.",
+						text: "Click to select a folder or drag files to this area to upload.",
 						hint: "Uploading will start automatically.",
+						selectFile: "Select File",
+						uploading: "Uploading",
+						startUpload: "Start Upload",
+						success: "Upload successfully.",
+						failed: "Upload failed."
 					},
 					action: {
 						"ok": "OK",
@@ -142,8 +147,13 @@ i18n
 						movingInfo: "将移动 {{from}} 到目录 {{to}}",
 					},
 					upload: {
-						text: "点击上传文件夹或拖拽文件到这里进行上传。",
+						text: "点击上传文件夹或拖拽文件到这里进行批量上传。",
 						hint: "文件上传会自动开始。",
+						selectFile: "选择文件",
+						uploading: "上传中",
+						startUpload: "开始上传",
+						success: "上传成功。",
+						failed: "上传失败。"
 					},
 					action: {
 						"ok": "确定",
