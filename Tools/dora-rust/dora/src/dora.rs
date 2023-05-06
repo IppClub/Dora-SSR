@@ -274,10 +274,10 @@ pub fn print(msg: &str) {
 #[macro_export]
 macro_rules! p {
 	() => {
-		dora::print("\n")
+		dorothy_ssr::print("\n")
 	};
 	($($arg:tt)*) => {{
-		dora::print((format!($($arg)*) + "\n").as_str());
+		dorothy_ssr::print((format!($($arg)*) + "\n").as_str());
 	}};
 }
 
@@ -774,9 +774,9 @@ impl<'a> IntoValue<'a> for Size {
 macro_rules! args {
 	( $( $x:expr ),* ) => {
 		{
-			let mut stack = dora::CallStack::new();
+			let mut stack = dorothy_ssr::CallStack::new();
 			$(
-				dora::Value::new($x).push(&mut stack);
+				dorothy_ssr::Value::new($x).push(&mut stack);
 			)*
 			stack
 		}
