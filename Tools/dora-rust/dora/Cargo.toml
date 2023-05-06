@@ -1,0 +1,9 @@
+[package]
+name = "dora"
+version = "0.1.0"
+authors = ["Li Jin <dragon-fly@qq.com>"]
+edition = "2021"
+
+[dependencies]
+paste = "1.0.12"
+once_cell = "1.17.1"

@@ -774,9 +774,9 @@ impl<'a> IntoValue<'a> for Size {
 macro_rules! args {
 	( $( $x:expr ),* ) => {
 		{
-			let mut stack = crate::dora::CallStack::new();
+			let mut stack = dora::CallStack::new();
 			$(
-				crate::dora::Value::new($x).push(&mut stack);
+				dora::Value::new($x).push(&mut stack);
 			)*
 			stack
 		}

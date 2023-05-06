@@ -1,8 +1,7 @@
 [package]
-name = "dora"
+name = "init"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-paste = "1.0.12"
-once_cell = "1.17.1"
+dora = { path = "../dora" }
