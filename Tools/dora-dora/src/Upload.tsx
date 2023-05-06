@@ -4,7 +4,7 @@ import { AiOutlineUpload } from 'react-icons/ai';
 import { addr } from './Service';
 import { useTranslation } from 'react-i18next';
 import { UploadOutlined } from '@ant-design/icons';
-import { Button, message, Upload } from 'antd';
+import { Button, App, Upload } from 'antd';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import { useState } from 'react';
 
@@ -16,7 +16,7 @@ export interface DoraUploadProp {
 	onUploaded: (path: string, file: string) => void;
 };
 
-const DoraUpload = (prop: DoraUploadProp) => {
+const DoraUploadInner = (prop: DoraUploadProp) => {
 	const props: UploadProps = {
 		name: 'file',
 		directory: true,
@@ -35,6 +35,7 @@ const DoraUpload = (prop: DoraUploadProp) => {
 	const {t} = useTranslation();
 	const [fileList, setFileList] = useState<UploadFile[]>([]);
 	const [uploading, setUploading] = useState(false);
+	const { message } = App.useApp();
 
 	const handleUpload = () => {
 		const formData = new FormData();
@@ -73,15 +74,6 @@ const DoraUpload = (prop: DoraUploadProp) => {
 	};
 	return (
 		<Container maxWidth="sm">
-			<ConfigProvider
-				theme={{
-					algorithm: theme.darkAlgorithm,
-					token: {
-						colorPrimary: '#fbc400',
-						colorBgContainer: '#3a3a3a'
-					}
-				}}
-			>
 			<p className="dora-upload-title" style={{color: '#fff'}}>
 				{prop.title}
 			</p>
@@ -110,8 +102,25 @@ const DoraUpload = (prop: DoraUploadProp) => {
 					{t("upload.hint")}
 				</p>
 			</Dragger>
-			</ConfigProvider>
 		</Container>
+	);
+};
+
+const DoraUpload = (prop: DoraUploadProp) => {
+	return (
+		<ConfigProvider
+			theme={{
+				algorithm: theme.darkAlgorithm,
+				token: {
+					colorPrimary: '#fbc400',
+					colorBgContainer: '#3a3a3a'
+				}
+			}}
+		>
+			<App>
+				<DoraUploadInner {...prop}/>
+			</App>
+		</ConfigProvider>
 	);
 };
 
