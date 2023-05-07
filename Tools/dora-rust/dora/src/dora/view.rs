@@ -12,6 +12,7 @@ extern "C" {
 	fn view_get_scale() -> f32;
 	fn view_set_post_effect(var: i64);
 	fn view_get_post_effect() -> i64;
+	fn view_set_post_effect_null();
 	fn view_set_vsync(var: i32);
 	fn view_is_vsync() -> i32;
 }
@@ -56,6 +57,9 @@ impl View {
 	}
 	pub fn get_post_effect() -> Option<crate::dora::SpriteEffect> {
 		return unsafe { crate::dora::SpriteEffect::from(view_get_post_effect()) };
+	}
+	pub fn set_post_effect_null() {
+		unsafe { view_set_post_effect_null(); }
 	}
 	pub fn set_vsync(var: bool) {
 		unsafe { view_set_vsync(if var { 1 } else { 0 }) };

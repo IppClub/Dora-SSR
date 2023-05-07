@@ -363,6 +363,9 @@ static int64_t node_grab_with_size(int64_t self, int32_t grid_x, int32_t grid_y)
 static void node_stop_grab(int64_t self) {
 	node_stop_grabbing(r_cast<Node*>(self));
 }
+static void node_set_transform_target_null(int64_t self) {
+	node_set_transform_target_nullptr(r_cast<Node*>(self));
+}
 static int32_t node_slot(int64_t self, int64_t name, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
@@ -496,6 +499,7 @@ static void linkNode(wasm3::module& mod) {
 	mod.link_optional("*", "node_grab", node_grab);
 	mod.link_optional("*", "node_grab_with_size", node_grab_with_size);
 	mod.link_optional("*", "node_stop_grab", node_stop_grab);
+	mod.link_optional("*", "node_set_transform_target_null", node_set_transform_target_null);
 	mod.link_optional("*", "node_slot", node_slot);
 	mod.link_optional("*", "node_gslot", node_gslot);
 	mod.link_optional("*", "node_new", node_new);

@@ -106,6 +106,7 @@ extern "C" {
 	fn node_grab(slf: i64) -> i64;
 	fn node_grab_with_size(slf: i64, grid_x: i32, grid_y: i32) -> i64;
 	fn node_stop_grab(slf: i64);
+	fn node_set_transform_target_null(slf: i64);
 	fn node_slot(slf: i64, name: i64, func: i32, stack: i64) -> i32;
 	fn node_gslot(slf: i64, name: i64, func: i32, stack: i64) -> i32;
 	fn node_new() -> i64;
@@ -461,6 +462,9 @@ pub trait INode: IObject {
 	}
 	fn stop_grab(&mut self) {
 		unsafe { node_stop_grab(self.raw()); }
+	}
+	fn set_transform_target_null(&mut self) {
+		unsafe { node_set_transform_target_null(self.raw()); }
 	}
 	fn slot(&mut self, name: &str, mut func: Box<dyn FnMut(&mut crate::dora::CallStack)>) -> bool {
 		let mut stack = crate::dora::CallStack::new();

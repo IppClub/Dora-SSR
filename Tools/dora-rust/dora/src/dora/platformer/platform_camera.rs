@@ -14,6 +14,7 @@ extern "C" {
 	fn platformer_platformcamera_get_follow_offset(slf: i64) -> i64;
 	fn platformer_platformcamera_set_follow_target(slf: i64, var: i64);
 	fn platformer_platformcamera_get_follow_target(slf: i64) -> i64;
+	fn platformer_platformcamera_set_follow_target_null(slf: i64);
 	fn platformer_platformcamera_new(name: i64) -> i64;
 }
 use crate::dora::IObject;
@@ -69,8 +70,11 @@ impl PlatformCamera {
 	pub fn set_follow_target(&mut self, var: &dyn crate::dora::INode) {
 		unsafe { platformer_platformcamera_set_follow_target(self.raw(), var.raw()) };
 	}
-	pub fn get_follow_target(&self) -> crate::dora::Node {
-		return unsafe { crate::dora::Node::from(platformer_platformcamera_get_follow_target(self.raw())).unwrap() };
+	pub fn get_follow_target(&self) -> Option<crate::dora::Node> {
+		return unsafe { crate::dora::Node::from(platformer_platformcamera_get_follow_target(self.raw())) };
+	}
+	pub fn set_follow_target_null(&mut self) {
+		unsafe { platformer_platformcamera_set_follow_target_null(self.raw()); }
 	}
 	pub fn new(name: &str) -> PlatformCamera {
 		unsafe { return PlatformCamera { raw: platformer_platformcamera_new(crate::dora::from_string(name)) }; }

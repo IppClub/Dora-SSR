@@ -37,6 +37,9 @@ static void view_set_post_effect(int64_t var) {
 static int64_t view_get_post_effect() {
 	return from_object(SharedView.getPostEffect());
 }
+static void view_set_post_effect_null() {
+	view_set_post_effect_nullptr();
+}
 static void view_set_vsync(int32_t var) {
 	SharedView.setVSync(var != 0);
 }
@@ -57,6 +60,7 @@ static void linkView(wasm3::module& mod) {
 	mod.link_optional("*", "view_get_scale", view_get_scale);
 	mod.link_optional("*", "view_set_post_effect", view_set_post_effect);
 	mod.link_optional("*", "view_get_post_effect", view_get_post_effect);
+	mod.link_optional("*", "view_set_post_effect_null", view_set_post_effect_null);
 	mod.link_optional("*", "view_set_vsync", view_set_vsync);
 	mod.link_optional("*", "view_is_vsync", view_is_vsync);
 }

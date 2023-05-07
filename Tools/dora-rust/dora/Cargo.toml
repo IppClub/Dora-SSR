@@ -1,6 +1,6 @@
 [package]
 name = "dorothy-ssr"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Li Jin <dragon-fly@qq.com>"]
 edition = "2021"
 license = "MIT"
