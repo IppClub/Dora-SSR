@@ -52,6 +52,9 @@ static void sprite_set_filter(int64_t self, int32_t var) {
 static int32_t sprite_get_filter(int64_t self) {
 	return s_cast<int32_t>(r_cast<Sprite*>(self)->getFilter());
 }
+static void sprite_set_effect_as_default(int64_t self) {
+	sprite_set_effect_nullptr(r_cast<Sprite*>(self));
+}
 static int64_t sprite_new() {
 	return from_object(Sprite::create());
 }
@@ -83,6 +86,7 @@ static void linkSprite(wasm3::module& mod) {
 	mod.link_optional("*", "sprite_get_vwrap", sprite_get_vwrap);
 	mod.link_optional("*", "sprite_set_filter", sprite_set_filter);
 	mod.link_optional("*", "sprite_get_filter", sprite_get_filter);
+	mod.link_optional("*", "sprite_set_effect_as_default", sprite_set_effect_as_default);
 	mod.link_optional("*", "sprite_new", sprite_new);
 	mod.link_optional("*", "sprite_with_texture_rect", sprite_with_texture_rect);
 	mod.link_optional("*", "sprite_with_texture", sprite_with_texture);

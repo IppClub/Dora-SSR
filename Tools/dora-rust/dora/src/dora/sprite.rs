@@ -17,6 +17,7 @@ extern "C" {
 	fn sprite_get_vwrap(slf: i64) -> i32;
 	fn sprite_set_filter(slf: i64, var: i32);
 	fn sprite_get_filter(slf: i64) -> i32;
+	fn sprite_set_effect_as_default(slf: i64);
 	fn sprite_new() -> i64;
 	fn sprite_with_texture_rect(texture: i64, texture_rect: i64) -> i64;
 	fn sprite_with_texture(texture: i64) -> i64;
@@ -86,6 +87,9 @@ impl Sprite {
 	}
 	pub fn get_filter(&self) -> crate::dora::TextureFilter {
 		return unsafe { core::mem::transmute(sprite_get_filter(self.raw())) };
+	}
+	pub fn set_effect_as_default(&mut self) {
+		unsafe { sprite_set_effect_as_default(self.raw()); }
 	}
 	pub fn new() -> Sprite {
 		unsafe { return Sprite { raw: sprite_new() }; }

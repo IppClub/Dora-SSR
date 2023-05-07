@@ -43,6 +43,9 @@ static void platformer_platformcamera_set_follow_target(int64_t self, int64_t va
 static int64_t platformer_platformcamera_get_follow_target(int64_t self) {
 	return from_object(r_cast<Platformer::PlatformCamera*>(self)->getFollowTarget());
 }
+static void platformer_platformcamera_set_follow_target_null(int64_t self) {
+	platform_camera_set_follow_target_nullptr(r_cast<Platformer::PlatformCamera*>(self));
+}
 static int64_t platformer_platformcamera_new(int64_t name) {
 	return from_object(Platformer::PlatformCamera::create(*str_from(name)));
 }
@@ -62,5 +65,6 @@ static void linkPlatformerPlatformCamera(wasm3::module& mod) {
 	mod.link_optional("*", "platformer_platformcamera_get_follow_offset", platformer_platformcamera_get_follow_offset);
 	mod.link_optional("*", "platformer_platformcamera_set_follow_target", platformer_platformcamera_set_follow_target);
 	mod.link_optional("*", "platformer_platformcamera_get_follow_target", platformer_platformcamera_get_follow_target);
+	mod.link_optional("*", "platformer_platformcamera_set_follow_target_null", platformer_platformcamera_set_follow_target_null);
 	mod.link_optional("*", "platformer_platformcamera_new", platformer_platformcamera_new);
 }

@@ -207,6 +207,7 @@ singleton class View
 	common float fieldOfView;
 	common float scale;
 	optional common SpriteEffect* postEffect;
+	outside void view_set_post_effect_nullptr @ set_post_effect_null();
 	boolean bool vSync @ vsync;
 };
 
@@ -233,7 +234,7 @@ object class Action
 	static outside ActionDef action_def_delay @ delay(float duration);
 	static outside ActionDef action_def_show @ show();
 	static outside ActionDef action_def_hide @ hide();
-	static outside ActionDef action_def_emit @ emit(string eventName, string msg);
+	static outside ActionDef action_def_emit @ event(string eventName, string msg);
 	static outside ActionDef action_def_move @ move_to(float duration, Vec2 start, Vec2 stop,
 		EaseType easing);
 	static outside ActionDef action_def_scale @ scale(float duration, float start, float stop,
@@ -343,6 +344,8 @@ interface object class Node
 	Grabber* grab @ grabWithSize(uint32_t gridX, uint32_t gridY);
 	outside void node_stop_grabbing @ stop_grab();
 
+	outside void node_set_transform_target_nullptr @ set_transform_target_null();
+
 	bool slot(string name, function<void(Event* e)> func);
 	bool gslot(string name, function<void(Event* e)> func);
 
@@ -366,6 +369,7 @@ object class Sprite : public INode
 	common TextureWrap uWrap @ uwrap;
 	common TextureWrap vWrap @ vwrap;
 	common TextureFilter filter;
+	outside void sprite_set_effect_nullptr @ set_effect_as_default();
 	static Sprite* create();
 	static Sprite* create @ createTextureRect(Texture2D* texture, Rect textureRect);
 	static Sprite* create @ createTexture(Texture2D* texture);
@@ -1153,7 +1157,8 @@ object class PlatformCamera : public ICamera
 	common Rect boundary;
 	common Vec2 followRatio;
 	common Vec2 followOffset;
-	common Node* followTarget;
+	optional common Node* followTarget;
+	outside void platform_camera_set_follow_target_nullptr @ set_follow_target_null();
 	static PlatformCamera* create(string name);
 };
 

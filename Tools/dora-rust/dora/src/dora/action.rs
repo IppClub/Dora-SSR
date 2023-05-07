@@ -18,7 +18,7 @@ extern "C" {
 	fn action_delay(duration: f32) -> i64;
 	fn action_show() -> i64;
 	fn action_hide() -> i64;
-	fn action_emit(event_name: i64, msg: i64) -> i64;
+	fn action_event(event_name: i64, msg: i64) -> i64;
 	fn action_move_to(duration: f32, start: i64, stop: i64, easing: i32) -> i64;
 	fn action_scale(duration: f32, start: f32, stop: f32, easing: i32) -> i64;
 }
@@ -88,8 +88,8 @@ impl Action {
 	pub fn hide() -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(action_hide()); }
 	}
-	pub fn emit(event_name: &str, msg: &str) -> crate::dora::ActionDef {
-		unsafe { return crate::dora::ActionDef::from(action_emit(crate::dora::from_string(event_name), crate::dora::from_string(msg))); }
+	pub fn event(event_name: &str, msg: &str) -> crate::dora::ActionDef {
+		unsafe { return crate::dora::ActionDef::from(action_event(crate::dora::from_string(event_name), crate::dora::from_string(msg))); }
 	}
 	pub fn move_to(duration: f32, start: &crate::dora::Vec2, stop: &crate::dora::Vec2, easing: crate::dora::EaseType) -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(action_move_to(duration, start.into_i64(), stop.into_i64(), easing as i32)); }

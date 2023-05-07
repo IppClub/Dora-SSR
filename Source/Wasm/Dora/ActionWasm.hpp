@@ -55,7 +55,7 @@ static int64_t action_show() {
 static int64_t action_hide() {
 	return r_cast<int64_t>(new ActionDef{action_def_hide()});
 }
-static int64_t action_emit(int64_t event_name, int64_t msg) {
+static int64_t action_event(int64_t event_name, int64_t msg) {
 	return r_cast<int64_t>(new ActionDef{action_def_emit(*str_from(event_name), *str_from(msg))});
 }
 static int64_t action_move_to(float duration, int64_t start, int64_t stop, int32_t easing) {
@@ -84,7 +84,7 @@ static void linkAction(wasm3::module& mod) {
 	mod.link_optional("*", "action_delay", action_delay);
 	mod.link_optional("*", "action_show", action_show);
 	mod.link_optional("*", "action_hide", action_hide);
-	mod.link_optional("*", "action_emit", action_emit);
+	mod.link_optional("*", "action_event", action_event);
 	mod.link_optional("*", "action_move_to", action_move_to);
 	mod.link_optional("*", "action_scale", action_scale);
 }

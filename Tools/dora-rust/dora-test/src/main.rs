@@ -13,7 +13,8 @@ fn main() {
 		Box::new(|_unit, _action| {
 			platformer::ActionUpdate::new(Box::new(|_unit, _action, _dt| {
 				true
-			})) }),
+			}))
+		}),
 		Box::new(|_unit, _action| {
 		})
 	);
@@ -39,7 +40,7 @@ fn main() {
 	node.perform(&Action::spawn(&vec![
 		Action::sequence(&vec![
 			Action::delay(3.0),
-			Action::emit("End", "3 seconds later!")
+			Action::event("End", "3 seconds later!")
 		]),
 		Action::prop(1.0, 0.0, 233.0, Property::X, EaseType::InBack)
 	]));

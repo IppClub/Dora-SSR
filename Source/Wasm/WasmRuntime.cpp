@@ -723,6 +723,9 @@ static Grabber* node_start_grabbing(Node* node) {
 static void node_stop_grabbing(Node* node) {
 	node->grab(false);
 }
+static void node_set_transform_target_nullptr(Node* node) {
+	node->setTransformTarget(nullptr);
+}
 static Action* node_run_action_def(Node* node, ActionDef def) {
 	if (def) {
 		auto action = Action::create(std::move(def));
@@ -738,6 +741,24 @@ static Action* node_perform_def(Node* node, ActionDef def) {
 		return action;
 	}
 	return nullptr;
+}
+
+// Sprite
+
+static void sprite_set_effect_nullptr(Sprite* self) {
+	self->setEffect(nullptr);
+}
+
+// Platformer::PlatformCamera
+
+static void platform_camera_set_follow_target_nullptr(Platformer::PlatformCamera* self) {
+	self->setFollowTarget(nullptr);
+}
+
+// View
+
+static void view_set_post_effect_nullptr() {
+	SharedView.setPostEffect(nullptr);
 }
 
 // Effect
