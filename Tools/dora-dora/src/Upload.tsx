@@ -48,6 +48,10 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 			body: formData,
 		})
 		.then(() => {
+			fileList.forEach(file => {
+				const f = file as RcFile;
+				prop.onUploaded(prop.path, f.name);
+			});
 			setFileList([]);
 			message.success(t('upload.success'));
 		})
