@@ -11,7 +11,7 @@ const config = {
 	favicon: 'img/favicon.ico',
 
 	// Set the production url of your site here
-	url: 'https://dorothyssr.org',
+	url: 'https://dorothy-ssr.net',
 	// Set the /<baseUrl>/ pathname under which your site is served
 	// For GitHub pages deployment, it is often '/<projectName>/'
 	baseUrl: '/',
@@ -19,7 +19,7 @@ const config = {
 	// GitHub pages deployment config.
 	// If you aren't using GitHub pages, you don't need these.
 	organizationName: 'ippclub', // Usually your GitHub org/user name.
-	projectName: 'dorothyssr', // Usually your repo name.
+	projectName: 'Dorothy-SSR', // Usually your repo name.
 
 	onBrokenLinks: 'throw',
 	onBrokenMarkdownLinks: 'warn',
@@ -114,7 +114,11 @@ const config = {
 				items: [
 					{
 						label: 'Discord',
-						href: 'https://github.com/pigpigyyy/Dorothy-SSR/Site',
+						href: 'https://discord.gg/ydJVuZhh',
+					},
+					{
+						label: 'QQ Group: 512620381',
+						href: 'https://qm.qq.com/cgi-bin/qm/qr?k=7siAhjlLaSMGLHIbNctO-9AJQ0bn0G7i&jump_from=webapi&authKey=Kb6tXlvcJ2LgyTzHQzKwkMxdsQ7sjERXMJ3g10t6b+716pdKClnXqC9bAfrFUEWa',
 					},
 				],
 			},

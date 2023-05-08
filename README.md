@@ -152,24 +152,23 @@ For more detailed tutorials, please check [official documents](https://dorothy-s
 ## Documentation
 
 - [API Reference](https://dorothy-ssr.net/docs/api/intro)
-- [Development Guide](under-construction)
-- [Tutorial](under-construction)
+- [Tutorial](https://dorothy-ssr.net/docs/tutorial/intro)
 
 <br>
 
 ## Community
 
-- [Social Media](under-construction)
-- [Developer Chat Room](under-construction)
+- [Discord](https://discord.gg/ydJVuZhh)
+- [QQ Group: 512620381](https://qm.qq.com/cgi-bin/qm/qr?k=7siAhjlLaSMGLHIbNctO-9AJQ0bn0G7i&jump_from=webapi&authKey=Kb6tXlvcJ2LgyTzHQzKwkMxdsQ7sjERXMJ3g10t6b+716pdKClnXqC9bAfrFUEWa)
 
 <br>
 
-## contribute
+## Contribute
 
 Welcome to participate in the development and maintenance of Dorothy SSR. Please see [Contributing Guidelines](CONTRIBUTING.md) to learn how to submit Issues and Pull Requests.
 
 <br>
 
-## license
+## License
 
 Dorothy SSR uses the [MIT License](LICENSE).

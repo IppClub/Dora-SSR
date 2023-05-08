@@ -149,15 +149,14 @@ with Sprite "Image/logo.png"
 ## 文档
 
 - [API参考](https://dorothy-ssr.net/zh-Hans/docs/api/intro)
-- [开发指南](施工中)
-- [教程](施工中)
+- [教程](https://dorothy-ssr.net/zh-Hans/docs/tutorial/intro)
 
 <br>
 
 ## 社区
 
-- [社交媒体](施工中)
-- [开发者聊天室](施工中)
+- [Discord](https://discord.gg/ydJVuZhh)
+- [QQ群：512620381](https://qm.qq.com/cgi-bin/qm/qr?k=7siAhjlLaSMGLHIbNctO-9AJQ0bn0G7i&jump_from=webapi&authKey=Kb6tXlvcJ2LgyTzHQzKwkMxdsQ7sjERXMJ3g10t6b+716pdKClnXqC9bAfrFUEWa)
 
 <br>
 
