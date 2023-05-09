@@ -28,13 +28,13 @@ with io.open "../../Project/Windows/Dorothy/Resource.rc", "rb"
 		\write content
 		\close!
 
-with io.open "../../Project/Android/app/src/main/AndroidManifest.xml", "r"
+with io.open "../../Project/Android/app/build.gradle", "r"
 	content = \read "*a"
 	\close!
-	content = content\gsub "(android:versionName=\")[^\"]+(\")", "%1#{version}%2"
-	bundleVersion = tonumber content\match "android:versionCode=\"([^\"]+)\""
-	content = content\gsub "(android:versionCode=\")[^\"]+(\")", "%1#{bundleVersion + 1}%2"
-	with io.open "../../Project/Android/app/src/main/AndroidManifest.xml", "w+"
+	content = content\gsub "(versionName \")[^\"]+(\")", "%1#{version}%2"
+	bundleVersion = tonumber content\match "versionCode ([^\n]+)\n"
+	content = content\gsub "(versionCode )[^\n]+(\n)", "%1#{bundleVersion + 1}%2"
+	with io.open "../../Project/Android/app/build.gradle", "w+"
 		\write content
 		\close!
 
