@@ -41,5 +41,5 @@ jobs:
         uses: actions/upload-artifact@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: dorothy-ssr-${{ github.ref_name }}-windows-x86.apk
+          name: dorothy-ssr-${{ github.ref_name }}-windows-x86.7z
           path: dorothy-ssr-windows-x86.7z
