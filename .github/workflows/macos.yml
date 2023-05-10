@@ -28,9 +28,12 @@ jobs:
           xcodebuild -project Project/macOS/Dorothy.xcodeproj -configuration Release -target Dorothy
           cd Project/macOS/build/Release
           7zz a Dorothy.7z Dorothy.app
+          mv Dorothy.7z ../../../../dorothy-ssr-${{ github.ref_name }}-macos-universal.7z
       - name: Release
-        uses: actions/upload-artifact@v3
+        uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: dorothy-ssr-${{ github.ref_name }}-macos-universal.7z
-          path: Project/macOS/build/Release/Dorothy.7z
+          files: |
+            dorothy-ssr-${{ github.ref_name }}-macos-universal.7z
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
