@@ -37,10 +37,12 @@ jobs:
           echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > $GITHUB_WORKSPACE/signing-key.jks
           cd Project/Android
           ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing-key.jks -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
-          mv app/build/outputs/apk/release/app-release.apk $GITHUB_WORKSPACE/dorothy-ssr.apk
+          mv app/build/outputs/apk/release/app-release.apk $GITHUB_WORKSPACE/dorothy-ssr-${{ github.ref_name }}-android.apk
       - name: Release
-        uses: actions/upload-artifact@v3
+        uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: dorothy-ssr-${{ github.ref_name }}-android.apk
-          path: dorothy-ssr.apk
+          files: |
+            dorothy-ssr-${{ github.ref_name }}-android.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
