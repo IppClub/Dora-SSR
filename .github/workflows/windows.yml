@@ -38,10 +38,8 @@ jobs:
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Spine && cd ..)
           (cd Project\Windows\build\Release && 7z a ..\..\..\..\dorothy-ssr-windows-x86.7z Dorothy.exe && cd ..\..\..\..)
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: actions/upload-artifact@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: |
-            dorothy-ssr-windows-x86.7z
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: dorothy-ssr-windows-x86-${{ github.ref_name }}.apk
+          path: dorothy-ssr-windows-x86.7z
