@@ -14,12 +14,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: macOS build
+        if: "!startsWith(github.ref, 'refs/tags/')"
         run: |
           Tools/tolua++/build.sh
-          xcodebuild -project Project/macOS/Dorothy.xcodeproj -configuration Release -target Dorothy
+          xcodebuild ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO -project Project/macOS/Dorothy.xcodeproj -target Dorothy
       - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |
+          cd Tools/dora-dora && yarn && yarn build && cd ../.. && mv Tools/dora-dora/build Assets/www
+          cd $GITHUB_WORKSPACE
+          xcodebuild -project Project/macOS/Dorothy.xcodeproj -configuration Release -target Dorothy
           cd Project/macOS/build/Release
           7zz a Dorothy.7z Dorothy.app
       - name: Release
