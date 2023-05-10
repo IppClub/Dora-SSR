@@ -36,10 +36,12 @@ jobs:
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Particle && cd ..)
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Script && cd ..)
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Spine && cd ..)
-          (cd Project\Windows\build\Release && 7z a ..\..\..\..\dorothy-ssr-windows-x86.7z Dorothy.exe && cd ..\..\..\..)
+          (cd Project\Windows\build\Release && 7z a ..\..\..\..\dorothy-ssr-${{ github.ref_name }}-windows-x86.7z Dorothy.exe && cd ..\..\..\..)
       - name: Release
-        uses: actions/upload-artifact@v3
+        uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: dorothy-ssr-${{ github.ref_name }}-windows-x86.7z
-          path: dorothy-ssr-windows-x86.7z
+          files: |
+            dorothy-ssr-${{ github.ref_name }}-windows-x86.7z
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
