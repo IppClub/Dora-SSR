@@ -39,10 +39,8 @@ jobs:
           ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing-key.jks -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
           mv app/build/outputs/apk/release/app-release.apk $GITHUB_WORKSPACE/dorothy-ssr.apk
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: actions/upload-artifact@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: |
-            dorothy-ssr.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: dorothy-ssr-android-${{ github.ref_name }}.apk
+          path: dorothy-ssr.apk
