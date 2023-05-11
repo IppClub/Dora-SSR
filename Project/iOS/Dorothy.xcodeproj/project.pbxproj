@@ -22,7 +22,6 @@
 		3C030CD124CAC2BA0074786E /* DrawNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030CC224CAC2B90074786E /* DrawNode.cpp */; };
 		3C030CD324CAC2BA0074786E /* Menu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030CC724CAC2B90074786E /* Menu.cpp */; };
 		3C030CF524CAE6580074786E /* Spine in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CED24CAE6570074786E /* Spine */; };
-		3C030CF624CAE6580074786E /* Production in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CEE24CAE6570074786E /* Production */; };
 		3C030CF724CAE6580074786E /* Model in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CEF24CAE6570074786E /* Model */; };
 		3C030CF824CAE6580074786E /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF024CAE6570074786E /* Script */; };
 		3C030CF924CAE6580074786E /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF124CAE6570074786E /* Audio */; };
@@ -458,6 +457,8 @@
 		3CA1B7F61EC16ED300BC58FF /* tinyxml2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */; };
 		3CA31651299234DE007879C4 /* soloud_duckfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA31650299234DE007879C4 /* soloud_duckfilter.cpp */; };
 		3CA31652299234DF007879C4 /* soloud_duckfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA31650299234DE007879C4 /* soloud_duckfilter.cpp */; };
+		3CA8DF0F2A0CE83D0022CC90 /* www in Resources */ = {isa = PBXBuildFile; fileRef = 3CA8DF0E2A0CE83D0022CC90 /* www */; };
+		3CA8DF102A0CE83D0022CC90 /* www in Resources */ = {isa = PBXBuildFile; fileRef = 3CA8DF0E2A0CE83D0022CC90 /* www */; };
 		3CAA2D1526155DB3004443A6 /* Backup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0826155DB3004443A6 /* Backup.cpp */; };
 		3CAA2D1626155DB3004443A6 /* Column.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0B26155DB3004443A6 /* Column.cpp */; };
 		3CAA2D1726155DB3004443A6 /* Transaction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0C26155DB3004443A6 /* Transaction.cpp */; };
@@ -609,7 +610,6 @@
 		3CBE0F0026087F7B003F4F45 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */; };
 		3CBE0F0126087F7B003F4F45 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3316F1D96D92700F9C3F6 /* CoreMotion.framework */; };
 		3CBE0F0326087F7B003F4F45 /* Model in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CEF24CAE6570074786E /* Model */; };
-		3CBE0F0426087F7B003F4F45 /* Production in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CEE24CAE6570074786E /* Production */; };
 		3CBE0F0526087F7B003F4F45 /* Spine in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CED24CAE6570074786E /* Spine */; };
 		3CBE0F0626087F7B003F4F45 /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF224CAE6570074786E /* Image */; };
 		3CBE0F0826087F7B003F4F45 /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF324CAE6570074786E /* Font */; };
@@ -915,7 +915,6 @@
 		3C030CC624CAC2B90074786E /* ClipNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ClipNode.h; path = ../../../Source/Node/ClipNode.h; sourceTree = "<group>"; };
 		3C030CC724CAC2B90074786E /* Menu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Menu.cpp; path = ../../../Source/Node/Menu.cpp; sourceTree = "<group>"; };
 		3C030CED24CAE6570074786E /* Spine */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Spine; path = ../../Assets/Spine; sourceTree = "<group>"; };
-		3C030CEE24CAE6570074786E /* Production */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Production; path = ../../Assets/Production; sourceTree = "<group>"; };
 		3C030CEF24CAE6570074786E /* Model */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Model; path = ../../Assets/Model; sourceTree = "<group>"; };
 		3C030CF024CAE6570074786E /* Script */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Script; path = ../../Assets/Script; sourceTree = "<group>"; };
 		3C030CF124CAE6570074786E /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Audio; path = ../../Assets/Audio; sourceTree = "<group>"; };
@@ -1491,6 +1490,7 @@
 		3CA1B7F41EC16ED300BC58FF /* tinyxml2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinyxml2.h; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.h; sourceTree = "<group>"; };
 		3CA3164C29923466007879C4 /* soloud_duckfilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_duckfilter.h; path = ../../../Source/3rdParty/soloud/soloud_duckfilter.h; sourceTree = "<group>"; };
 		3CA31650299234DE007879C4 /* soloud_duckfilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = soloud_duckfilter.cpp; sourceTree = "<group>"; };
+		3CA8DF0E2A0CE83D0022CC90 /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; name = www; path = ../../Assets/www; sourceTree = "<group>"; };
 		3CAA2D0226155DB2004443A6 /* Statement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Statement.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Statement.h; sourceTree = "<group>"; };
 		3CAA2D0326155DB2004443A6 /* SQLiteCpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SQLiteCpp.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/SQLiteCpp.h; sourceTree = "<group>"; };
 		3CAA2D0426155DB3004443A6 /* Backup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Backup.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Backup.h; sourceTree = "<group>"; };
@@ -2355,6 +2355,7 @@
 		3C1F87CD1DF7B68C005F1B4D /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3CA8DF0E2A0CE83D0022CC90 /* www */,
 				3C0C775B275744690030BDCD /* Data */,
 				3C030CF124CAE6570074786E /* Audio */,
 				3CFEBE4226930B91006D9974 /* DragonBones */,
@@ -2362,7 +2363,6 @@
 				3C030CF224CAE6570074786E /* Image */,
 				3C030CEF24CAE6570074786E /* Model */,
 				3C030CF424CAE6580074786E /* Particle */,
-				3C030CEE24CAE6570074786E /* Production */,
 				3C030CF024CAE6570074786E /* Script */,
 				3C030CED24CAE6570074786E /* Spine */,
 			);
@@ -3621,10 +3621,10 @@
 				3C0C775D275744690030BDCD /* Data in Resources */,
 				3C59DA802703037C0096813A /* Assets.xcassets in Resources */,
 				3CBE0F0326087F7B003F4F45 /* Model in Resources */,
-				3CBE0F0426087F7B003F4F45 /* Production in Resources */,
 				3CBE0F0526087F7B003F4F45 /* Spine in Resources */,
 				3CBE0F0626087F7B003F4F45 /* Image in Resources */,
 				3CFEBE4426930B91006D9974 /* DragonBones in Resources */,
+				3CA8DF102A0CE83D0022CC90 /* www in Resources */,
 				3CBE0F0826087F7B003F4F45 /* Font in Resources */,
 				3CBE0F0926087F7B003F4F45 /* Script in Resources */,
 				3CBE0F0B26087F7B003F4F45 /* Particle in Resources */,
@@ -3641,10 +3641,10 @@
 				3C0C775C275744690030BDCD /* Data in Resources */,
 				3C59DA7D270303750096813A /* Assets.xcassets in Resources */,
 				3C030CF724CAE6580074786E /* Model in Resources */,
-				3C030CF624CAE6580074786E /* Production in Resources */,
 				3C030CF524CAE6580074786E /* Spine in Resources */,
 				3C030CFA24CAE6580074786E /* Image in Resources */,
 				3CFEBE4326930B91006D9974 /* DragonBones in Resources */,
+				3CA8DF0F2A0CE83D0022CC90 /* www in Resources */,
 				3C030CFB24CAE6580074786E /* Font in Resources */,
 				3C030CF824CAE6580074786E /* Script in Resources */,
 				3C030CFC24CAE6580074786E /* Particle in Resources */,
