@@ -802,7 +802,6 @@
 		3C42B09F20FECB0A00186F9C /* AI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AI.cpp; path = ../../../Source/Platformer/AI.cpp; sourceTree = "<group>"; };
 		3C42B0A420FEFEA800186F9C /* UnitAction.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = UnitAction.cpp; path = ../../../Source/Platformer/UnitAction.cpp; sourceTree = "<group>"; };
 		3C42B0A520FEFEA800186F9C /* UnitAction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UnitAction.h; path = ../../../Source/Platformer/UnitAction.h; sourceTree = "<group>"; };
-		3C46E81B2614090300DC9D4F /* libsqlite3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsqlite3.a; path = ../../Source/3rdParty/sqlite/Lib/macOS/libsqlite3.a; sourceTree = "<group>"; };
 		3C46E81E26140A8F00DC9D4F /* Exception.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Exception.cpp; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Exception.cpp; sourceTree = "<group>"; };
 		3C46E81F26140A8F00DC9D4F /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Utils.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Utils.h; sourceTree = "<group>"; };
 		3C46E82026140A8F00DC9D4F /* Column.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Column.cpp; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Column.cpp; sourceTree = "<group>"; };
@@ -1008,7 +1007,6 @@
 		3C8934B320F3094A00124463 /* Dorothy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dorothy.h; path = ../../../Source/Dorothy.h; sourceTree = "<group>"; };
 		3C8CD74727267A5A0045B362 /* RenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderTarget.cpp; path = ../../../Source/Basic/RenderTarget.cpp; sourceTree = "<group>"; };
 		3C8CD74827267A5A0045B362 /* RenderTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderTarget.h; path = ../../../Source/Basic/RenderTarget.h; sourceTree = "<group>"; };
-		3C8E77E0248F954700546BCB /* liblua.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblua.a; path = ../../Source/3rdParty/Lua/Lib/macOS/liblua.a; sourceTree = "<group>"; };
 		3C9A7D711E5428A200205094 /* Label.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Label.cpp; path = ../../../Source/Node/Label.cpp; sourceTree = "<group>"; };
 		3C9A7D721E5428A200205094 /* Label.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Label.h; path = ../../../Source/Node/Label.h; sourceTree = "<group>"; };
 		3C9A7D781E55957500205094 /* atlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = atlas.cpp; path = ../../../Source/3rdParty/Other/atlas.cpp; sourceTree = "<group>"; };
@@ -1084,7 +1082,6 @@
 		3CC7945A2579F9B000042394 /* yue_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yue_parser.h; path = ../../../Source/3rdParty/yuescript/yue_parser.h; sourceTree = "<group>"; };
 		3CC7945B2579F9B000042394 /* yuescript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yuescript.cpp; path = ../../../Source/3rdParty/yuescript/yuescript.cpp; sourceTree = "<group>"; };
 		3CC7945C2579F9B000042394 /* yue_compiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yue_compiler.cpp; path = ../../../Source/3rdParty/yuescript/yue_compiler.cpp; sourceTree = "<group>"; };
-		3CC7A0ED1E8D56E8003188D6 /* libsoloud.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsoloud.a; path = ../../Source/3rdParty/soloud/Lib/macOS/libsoloud.a; sourceTree = "<group>"; };
 		3CC81FE61D966770008C8B77 /* Dorothy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dorothy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CC81FF51D966770008C8B77 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3CC81FFA1D966770008C8B77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -1662,11 +1659,8 @@
 			children = (
 				3CA32CEA26FEE89E0046C13D /* CoreHaptics.framework */,
 				3CA32CE826FEE8440046C13D /* GameController.framework */,
-				3C46E81B2614090300DC9D4F /* libsqlite3.a */,
-				3C8E77E0248F954700546BCB /* liblua.a */,
 				3CE7D3731EADF594008EADB3 /* libbimg_decode.a */,
 				3CE7D3741EADF594008EADB3 /* libbimg.a */,
-				3CC7A0ED1E8D56E8003188D6 /* libsoloud.a */,
 				3C0EBE2F1E2DB3FB0066450A /* libbx.a */,
 				3CD029151E07DD720016E1EC /* libSDL2.a */,
 				3CD029131E07DD5F0016E1EC /* libbgfx.a */,
