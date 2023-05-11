@@ -69,7 +69,6 @@ imgui.ini
 
 # Ignore dev files
 Assets/www/
-Assets/Production/
 
 # Ignore Linux lib files
 Project/Linux/3rdParty/
