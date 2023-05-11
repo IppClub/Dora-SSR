@@ -68,7 +68,11 @@
   - Windows, macOS
 
      - 1. Download and run the [software](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest).
-          - Get software on macOS with Homebrew using `brew install --cask dorothy-ssr`。
+          - Get software on macOS with Homebrew using 
+          ```sh
+          brew tap pigpigyyy/dorothy-ssr 
+          brew install --cask dorothy-ssr
+          ```
 
      - 2. Run the software and access the server address displayed by the software through a browser.
 
