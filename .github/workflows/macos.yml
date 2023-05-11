@@ -22,13 +22,14 @@ jobs:
       - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |
+          rm -rf Assets/www
           cd Tools/dora-dora && yarn && yarn build && cd ../.. && mv Tools/dora-dora/build Assets/www
           cd $GITHUB_WORKSPACE
           Tools/tolua++/build.sh
-          xcodebuild -project Project/macOS/Dorothy.xcodeproj -configuration Release -target Dorothy
-          cd Project/macOS/build/Release
-          zip -vr Dorothy.zip folder/ Dorothy.app
-          mv Dorothy.zip ../../../../dorothy-ssr-${{ github.ref_name }}-macos-universal.zip
+          xcodebuild archive -project Project/macOS/Dorothy.xcodeproj -scheme Dorothy -configuration release -archivePath dorothy.xcarchive
+          cd dorothy.xcarchive/Products/Applications
+          zip -vr Dorothy.zip Dorothy.app
+          mv Dorothy.zip $GITHUB_WORKSPACE/dorothy-ssr-${{ github.ref_name }}-macos-universal.zip
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
