@@ -29,6 +29,7 @@ import { VscMarkdown } from 'react-icons/vsc';
 import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import Info from './Info';
+import { Color } from './Frame';
 
 export interface TreeDataType extends DataNode {
 	key: string;
@@ -159,7 +160,7 @@ export default function FileTree(props: FileTreeProps) {
 			skin='dark'
 			style={{
 				paddingLeft: '10px',
-				color: '#fff',
+				color: Color.Primary,
 				fontSize: '14px',
 			}}
 		>
@@ -177,14 +178,14 @@ export default function FileTree(props: FileTreeProps) {
 						<AiOutlineFileAdd/>
 					</ListItemIcon>
 					<ListItemText primary={ t("menu.new") }/>
-					<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+N</div>
+					<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+N</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose("Delete", anchorItem?.data)}>
 					<ListItemIcon>
 						<AiOutlineDelete/>
 					</ListItemIcon>
 					<ListItemText primary={ t("menu.delete") }/>
-					<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+D</div>
+					<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+D</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose("Rename", anchorItem?.data)}>
 					<ListItemIcon>

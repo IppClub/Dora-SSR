@@ -21,7 +21,7 @@ import { TransitionGroup } from 'react-transition-group';
 import * as monaco from 'monaco-editor';
 import * as Service from './Service';
 import './Editor';
-import { AppBar, DrawerHeader, drawerWidth, Entry, Main, PlayControl, PlayControlMode, StyledStack } from './Frame';
+import { AppBar, DrawerHeader, drawerWidth, Entry, Main, PlayControl, PlayControlMode, StyledStack, Color } from './Frame';
 import { MacScrollbar } from 'mac-scrollbar';
 import 'mac-scrollbar/dist/mac-scrollbar.css';
 import FileFilter, { FilterOption } from './FileFilter';
@@ -1423,7 +1423,7 @@ export default function PersistentDrawerLeft() {
 							m: 1,
 							width: '25ch',
 							"& .MuiOutlinedInput-notchedOutline": {
-								borderColor: '#fffa',
+								borderColor: Color.Secondary,
 							}
 						}}
 						InputProps={{
@@ -1455,7 +1455,7 @@ export default function PersistentDrawerLeft() {
 						backgroundColor: "#2a2a2a",
 						width: "100%",
 						height: "30px",
-						color: "#fff"
+						color: Color.Primary
 					}}>
 						<IconButton
 							color="inherit"
