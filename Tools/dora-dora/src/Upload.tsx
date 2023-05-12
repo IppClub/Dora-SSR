@@ -7,6 +7,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import { Button, App, Upload } from 'antd';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import { useState } from 'react';
+import { Color } from './Frame';
 
 const { Dragger } = Upload;
 
@@ -78,7 +79,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 	};
 	return (
 		<Container maxWidth="sm">
-			<p className="dora-upload-title" style={{color: '#fff'}}>
+			<p className="dora-upload-title" style={{color: Color.TextPrimary}}>
 				{prop.title}
 			</p>
 			<div style={{display: 'flex'}}>
@@ -96,13 +97,13 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 			</div>
 			<div style={{padding: 20}}/>
 			<Dragger {...props}>
-				<p className="dora-upload-drag-icon" style={{color: '#fff'}}>
+				<p className="dora-upload-drag-icon" style={{color: Color.Primary}}>
 					<AiOutlineUpload style={{fontSize: '40px'}}/>
 				</p>
-				<p className="dora-upload-text" style={{color: '#fff'}}>
+				<p className="dora-upload-text" style={{color: Color.TextPrimary}}>
 					{t("upload.text")}
 				</p>
-				<p className="dora-upload-hint" style={{color: '#fff8'}}>
+				<p className="dora-upload-hint" style={{color: Color.TextSecondary}}>
 					{t("upload.hint")}
 				</p>
 			</Dragger>

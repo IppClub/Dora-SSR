@@ -1,6 +1,7 @@
 import { styled } from '@mui/material/styles';
 import Menu, { MenuProps } from '@mui/material/Menu';
 import MenuItem, { MenuItemProps } from '@mui/material/MenuItem';
+import { Color } from './Frame';
 
 export const StyledMenu = styled((props: MenuProps) => (
 	<Menu
@@ -31,7 +32,7 @@ export const StyledMenu = styled((props: MenuProps) => (
 				fontSize: 20,
 			},
 			'& .MuiListItemIcon-root': {
-				color: '#fff',
+				color: Color.Primary,
 			},
 			'& .MuiListItemText-root': {
 				marginRight: theme.spacing(1.5),

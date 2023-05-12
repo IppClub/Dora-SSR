@@ -14,6 +14,7 @@ import {
 	AiOutlineCloseCircle,
 } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next';
+import { Color } from './Frame';
 
 export type TabStatus = "normal" | "warning" | "error";
 
@@ -67,8 +68,8 @@ interface StyledTabProps {
 const StyledTab = styled((props: StyledTabProps) => (
 	<Tab disableRipple {...props}/>
 ))(({ theme, status }) => {
-	let color = "rgba(255, 255, 255, 0.7)";
-	let selectedColor = "rgb(255, 255, 255)";
+	let color = Color.Secondary;
+	let selectedColor = Color.Primary;
 	switch (status) {
 		case "error":
 			color = "rgba(233, 133, 116, 0.7)";
@@ -158,28 +159,28 @@ export default function FileTabBar(props: FileTabBarProps) {
 						<AiOutlineSave/>
 					</ListItemIcon>
 					<ListItemText primary={ t("menu.save") }/>
-					<div style={{fontSize: 10, color: '#fff8'}}>Mod+S</div>
+					<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+S</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('SaveAll')}>
 					<ListItemIcon>
 						<AiFillSave/>
 					</ListItemIcon>
 					<ListItemText primary={ t("menu.saveAll") }/>
-					<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+S</div>
+					<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+S</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('Close')}>
 					<ListItemIcon>
 						<AiOutlineClose/>
 					</ListItemIcon>
 					<ListItemText primary={ t("menu.close") }/>
-					<div style={{fontSize: 10, color: '#fff8'}}>Mod+W</div>
+					<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+W</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('CloseAll')}>
 					<ListItemIcon>
 						<AiFillCloseCircle/>
 					</ListItemIcon>
 					<ListItemText primary={ t("menu.closeAll") }/>
-					<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+W</div>
+					<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+W</div>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose('CloseOthers')}>
 					<ListItemIcon>
