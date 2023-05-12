@@ -117,8 +117,8 @@ const DoraUpload = (prop: DoraUploadProp) => {
 			theme={{
 				algorithm: theme.darkAlgorithm,
 				token: {
-					colorPrimary: '#fbc400',
-					colorBgContainer: '#3a3a3a'
+					colorPrimary: Color.Theme,
+					colorBgContainer: Color.Background
 				}
 			}}
 		>
