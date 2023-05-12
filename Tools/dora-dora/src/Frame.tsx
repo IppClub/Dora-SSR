@@ -19,6 +19,8 @@ export namespace Color {
 
 	export const TextPrimary = '#eee';
 	export const TextSecondary = '#eee8';
+
+	export const Theme = '#fbc400';
 };
 
 const theme = createTheme({
@@ -38,9 +40,9 @@ const theme = createTheme({
 			secondary: Color.TextSecondary,
 		},
 		action: {
-			hover: '#fbc40066',
-			focus: '#fbc40044',
-			active: '#fbc40022',
+			hover: Color.Theme + '66',
+			focus: Color.Theme + '44',
+			active: Color.Theme + '22',
 		}
 	}
 });
