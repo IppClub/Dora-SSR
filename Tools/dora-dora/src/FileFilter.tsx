@@ -1,6 +1,7 @@
 import { Autocomplete, TextField } from '@mui/material';
 import { matchSorter } from 'match-sorter';
 import { useTranslation } from 'react-i18next';
+import { Color } from './Frame';
 
 export interface FilterOption {
 	title: string;
@@ -38,14 +39,14 @@ const FileFilter = (props: FileFilterProps) => {
 				m: 1,
 				width: '50ch',
 				"& .MuiOutlinedInput-notchedOutline": {
-					borderColor: '#fffa',
+					borderColor: Color.Secondary
 				}
 			}} {...params} label={t("popup.goToFile")}/>}
 		renderOption={(props, option) => {
 			return (
 				<li {...props}>
 					{option.title}&emsp;&emsp;
-					<p style={{textAlign: 'right', color: '#fffa', fontSize: '12px'}}>{option.path}</p>
+					<p style={{textAlign: 'right', color: Color.TextSecondary, fontSize: '12px'}}>{option.path}</p>
 				</li>
 			);
 		}}

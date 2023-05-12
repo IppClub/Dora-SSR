@@ -10,21 +10,32 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Info from './Info';
 
+export namespace Color {
+	export const Background = '#3a3a3a';
+	export const BackgroundSecondary = '#2a2a2a';
+
+	export const Primary = '#eee';
+	export const Secondary = '#eeea';
+
+	export const TextPrimary = '#eee';
+	export const TextSecondary = '#eee8';
+};
+
 const theme = createTheme({
 	palette: {
 		background: {
-			default: '#3a3a3a',
-			paper: '#2a2a2a',
+			default: Color.Background,
+			paper: Color.BackgroundSecondary,
 		},
 		primary: {
-			main: '#fff',
+			main: Color.Primary,
 		},
 		secondary: {
-			main: '#fff8',
+			main: Color.Secondary,
 		},
 		text: {
-			primary: '#fff',
-			secondary: '#fffa',
+			primary: Color.TextPrimary,
+			secondary: Color.TextSecondary,
 		},
 		action: {
 			hover: '#fbc40066',
@@ -115,7 +126,6 @@ export const DrawerHeader = styled('div')(({ theme }) => ({
 	justifyContent: 'flex-end',
 }));
 
-
 export type PlayControlMode = "Run" | "Run This" | "Stop" | "Go to File";
 
 export interface PlayControlProp {
@@ -141,7 +151,7 @@ export const PlayControl = (prop: PlayControlProp) => {
 		backgroundColor: "#0000",
 		width: "65px",
 		height: "65px",
-		color: "#fff",
+		color: Color.Primary,
 		bottom: 0,
 		right: 120,
 		flexGrow: 1,
@@ -163,28 +173,28 @@ export const PlayControl = (prop: PlayControlProp) => {
 					<BsPlayCircle/>
 				</ListItemIcon>
 				<ListItemText primary={ t("menu.run") }/>
-				<div style={{fontSize: 10, color: '#fff8'}}>Mod+R</div>
+				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+R</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Run This")}>
 				<ListItemIcon>
 					<BsFillFileEarmarkPlayFill/>
 				</ListItemIcon>
 				<ListItemText primary={ t("menu.runThis") }/>
-				<div style={{fontSize: 10, color: '#fff8'}}>Mod+Shift+R</div>
+				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+R</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Stop")}>
 				<ListItemIcon>
 					<BsStopCircle/>
 				</ListItemIcon>
 				<ListItemText primary={ t("menu.stop") }/>
-				<div style={{fontSize: 10, color: '#fff8'}}>Mod+Q</div>
+				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Q</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Go to File")}>
 				<ListItemIcon>
 					<BsSearch/>
 				</ListItemIcon>
 				<ListItemText primary={ t("menu.goToFile") }/>
-				<div style={{fontSize: 10, color: '#fff8'}}>Mod+P</div>
+				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+P</div>
 			</StyledMenuItem>
 			{Info.version ?
 				<p style={{textAlign: "center", opacity: 0.6, fontSize: "12px", margin: '5px'}}>{t("menu.version", {version: Info.version})}</p> : null
