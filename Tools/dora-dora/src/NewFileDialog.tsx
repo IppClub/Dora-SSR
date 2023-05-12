@@ -12,6 +12,7 @@ import { AiFillFolderAdd } from 'react-icons/ai';
 import { DiCode } from 'react-icons/di';
 import { VscMarkdown } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
+import { Color } from './Frame';
 
 export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Dora Xml" | "Markdown" | "Folder"
 
@@ -80,8 +81,8 @@ function NewFileDialog(props: NewFileDialogProps) {
 
 	return (
 		<Dialog onClose={handleClose} open={open}>
-			<DialogTitle sx={{ backgroundColor: '#3a3a3a' }}>{t("file.new")}</DialogTitle>
-			<List sx={{ pt: 0, backgroundColor: '#3a3a3a' }}>
+			<DialogTitle sx={{ backgroundColor: Color.Background }}>{t("file.new")}</DialogTitle>
+			<List sx={{ pt: 0, backgroundColor: Color.Background }}>
 			{
 				fileTypes.map((fileType) => (
 					<ListItem key={fileType.name} disableGutters>

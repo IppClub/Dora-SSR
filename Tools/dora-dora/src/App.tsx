@@ -1452,7 +1452,7 @@ export default function PersistentDrawerLeft() {
 					open={drawerOpen}
 				>
 					<Toolbar style={{
-						backgroundColor: "#2a2a2a",
+						backgroundColor: Color.BackgroundSecondary,
 						width: "100%",
 						height: "30px",
 						color: Color.Primary
