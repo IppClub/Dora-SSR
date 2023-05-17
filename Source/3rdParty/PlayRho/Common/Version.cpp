@@ -38,7 +38,7 @@ Version GetVersion() noexcept
     return Version{PLAYRHO_VERSION_MAJOR, PLAYRHO_VERSION_MINOR, PLAYRHO_VERSION_PATCH};
 }
 
-std::string GetBuildDetails() noexcept
+std::string GetBuildDetails()
 {
     std::stringstream stream;
     stream << "asserts=";

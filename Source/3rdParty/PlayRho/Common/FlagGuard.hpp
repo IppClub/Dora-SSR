@@ -64,8 +64,11 @@ namespace playrho {
         FlagGuard() = delete;
         
     private:
-        T& m_flag; ///< Flag.
-        T m_value; ///< Value.
+        /// @brief Flag.
+        T& m_flag; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+
+        /// @brief Value.
+        T m_value;
     };
 
 } // namespace playrho
