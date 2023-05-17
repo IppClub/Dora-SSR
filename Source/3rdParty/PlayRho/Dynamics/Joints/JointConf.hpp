@@ -24,6 +24,7 @@
 
 #include "PlayRho/Dynamics/BodyID.hpp"
 
+#include <cstddef> // for std::max_align_t
 #include <cstdint>
 
 namespace playrho {
@@ -61,15 +62,28 @@ constexpr bool GetCollideConnected(const JointConf& object) noexcept
     return object.collideConnected;
 }
 
+#ifdef _MSC_VER
+#pragma warning( push )
+#endif
+
+// Disable MSVC from warning "structure was padded due to alignment specifier".
+// The possibly additional space usage is preferable to U.B. from returning
+// possibly misaligned references.
+#ifdef _MSC_VER
+#pragma warning( disable : 4324 )
+#endif
+
 /// @brief Joint builder definition structure.
 /// @details This is a builder structure of chainable methods for building a shape
 ///   configuration.
+/// @note Alignment requirement specified to ensure proper alignment of references
+///   returned for method chaining.
 /// @note This is a templated nested value class for initializing joints that
 ///   uses the Curiously Recurring Template Pattern (CRTP) to provide method chaining
 ///   via static polymorphism.
 /// @see https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern
 template <class T>
-struct JointBuilder : JointConf {
+struct alignas(std::max_align_t) JointBuilder : JointConf {
     /// @brief Value type.
     using value_type = T;
 
@@ -97,6 +111,10 @@ struct JointBuilder : JointConf {
         return static_cast<reference>(*this);
     }
 };
+
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 
 class Joint;
 

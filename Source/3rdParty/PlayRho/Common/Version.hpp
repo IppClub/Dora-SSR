@@ -113,7 +113,7 @@ constexpr auto operator>=(const Version& lhs, const Version& rhs) noexcept
 Version GetVersion() noexcept;
 
 /// @brief Gets the build details of the library.
-std::string GetBuildDetails() noexcept;
+std::string GetBuildDetails();
 
 } // namespace playrho
 
