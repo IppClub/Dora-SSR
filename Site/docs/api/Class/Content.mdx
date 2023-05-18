@@ -10,7 +10,7 @@ loading and other operations related to resources.
 **Usage:**
 ```tl
 local Content = require("Content")
-Content:load("filename.txt")
+local text = Content:load("filename.txt")
 ```
 
 ## searchPaths
@@ -119,7 +119,7 @@ loadExcel: function(self: Content, filename: string, sheetNames?: {string}):
 
 **Signature:**
 ```tl
-save: function(self: Content, filename: string, content: string)
+save: function(self: Content, filename: string, content: string): boolean
 ```
 
 **Parameters:**
@@ -128,6 +128,12 @@ save: function(self: Content, filename: string, content: string)
 | --- | --- | --- |
 | filename | string | The name of the file to save. |
 | content | string | The content to save to the file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the content saves to file successfully, `false` otherwise. |
 
 ## exist
 
@@ -139,7 +145,7 @@ save: function(self: Content, filename: string, content: string)
 
 **Signature:**
 ```tl
-exist: function(self: Content, filename: string)
+exist: function(self: Content, filename: string): boolean
 ```
 
 **Parameters:**
@@ -228,6 +234,58 @@ remove: function(self: Content, path: string): boolean
 | Return Type | Description |
 | --- | --- |
 | boolean | `true` if the file or directory was removed, `false` otherwise. |
+
+## copy
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Copies the file or directory in the specified path to target path.
+
+**Signature:**
+```tl
+copy: function(self: Content, srcPath: string, dstPath: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| srcPath | string | The path of the file or directory to copy. |
+| dstPath | string | The path to copy files to. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the file or directory was copied to target path, `false` otherwise. |
+
+## move
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Moves the file or directory in the specified path to target path.
+
+**Signature:**
+```tl
+move: function(self: Content, srcPath: string, dstPath: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| srcPath | string | The path of the file or directory to move. |
+| dstPath | string | The path to move files to. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the file or directory was moved to target path, `false` otherwise. |
 
 ## getFullPath
 

@@ -20,6 +20,18 @@ runningPaths =
 	* Path Content.writablePath, ".build", "Script"
 	* Path Content.writablePath, ".build"
 
+useChinese = false
+updateLocale = ->
+	useChinese = App.locale\match("^zh")?
+	searchPaths[#searchPaths] = Path Content.assetPath, "Script", "Lib", "Dora", useChinese and "zh-Hans" or "en"
+	Content.searchPaths = searchPaths
+
+if DB\exist "Config"
+	switch DB\query "select value_str from Config where name = 'locale'"
+		when {{locale}} then if App.locale ~= locale
+			App.locale = locale
+			updateLocale!
+
 import "Config"
 config = Config(
 	""
@@ -64,12 +76,6 @@ if config.themeColor?
 	App.themeColor = Color config.themeColor
 else
 	config.themeColor = App.themeColor\toARGB!
-
-useChinese = false
-updateLocale = ->
-	useChinese = App.locale\match("^zh")?
-	searchPaths[#searchPaths] = Path Content.assetPath, "Script", "Lib", "Dora", useChinese and "zh-Hans" or "en"
-	Content.searchPaths = searchPaths
 
 if config.locale?
 	App.locale = config.locale

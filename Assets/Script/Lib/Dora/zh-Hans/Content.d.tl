@@ -1,7 +1,7 @@
 -- 用于管理资源文件的搜索、加载和执行其它与资源文件相关的操作的单例类。
 -- @usage
 -- local Content = require("Content")
--- Content:load("filename.txt")
+-- local text = Content:load("filename.txt")
 local record Content
 	userdata
 
@@ -34,12 +34,13 @@ local record Content
 	-- 保存文本内容到指定文件名的文件中。
 	-- @param filename (string) 要保存到的文件名。
 	-- @param content (string) 要保存到文件中的内容。
-	save: function(self: Content, filename: string, content: string)
+	-- @return (boolean) 如果文件保存成功，则为 `true`，否则为 `false`。
+	save: function(self: Content, filename: string, content: string): boolean
 
 	-- 检查是否存在指定文件名的文件。
 	-- @param filename (string) 要检查的文件名。
 	-- @return (boolean) 如果文件存在，则为 `true`，否则为 `false`。
-	exist: function(self: Content, filename: string)
+	exist: function(self: Content, filename: string): boolean
 
 	-- 创建具有指定路径的新目录。
 	-- @param path (string) 要创建的目录的路径。
@@ -55,6 +56,18 @@ local record Content
 	-- @param path (string) 要删除的文件或目录的路径。
 	-- @return (boolean) 如果删除了文件或目录，则为 `true`，否则为 `false`。
 	remove: function(self: Content, path: string): boolean
+
+	-- 复制指定路径下的单个文件或目录下的所有文件到目标路径。
+	-- @param srcPath (string) 要复制的文件或目录的路径。
+	-- @param dstPath (string) 复制文件到的目标路径。
+	-- @return (boolean) 如果成功复制了文件或目录，则为 `true`，否则为 `false`。
+	copy: function(self: Content, srcPath: string, dstPath: string): boolean
+
+	-- 移动指定路径下的单个文件或目录到目标路径。
+	-- @param srcPath (string) 要移动的文件或目录的路径。
+	-- @param dstPath (string) 移动文件或目录到的目标路径。
+	-- @return (boolean) 如果成功移动了文件或目录，则为 `true`，否则为 `false`。
+	move: function(self: Content, srcPath: string, dstPath: string): boolean
 
 	-- 获取指定文件名的文件的完整路径。
 	-- @param filename (string) 要获取完整路径的文件名。
