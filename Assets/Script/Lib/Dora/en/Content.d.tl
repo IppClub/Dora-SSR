@@ -2,7 +2,7 @@
 -- loading and other operations related to resources.
 -- @usage
 -- local Content = require("Content")
--- Content:load("filename.txt")
+-- local text = Content:load("filename.txt")
 local record Content
 	userdata
 
@@ -35,12 +35,13 @@ local record Content
 	-- Saves the specified content to a file with the specified filename.
 	-- @param filename (string) The name of the file to save.
 	-- @param content (string) The content to save to the file.
-	save: function(self: Content, filename: string, content: string)
+	-- @return (boolean) `true` if the content saves to file successfully, `false` otherwise.
+	save: function(self: Content, filename: string, content: string): boolean
 
 	-- Checks if a file with the specified filename exists.
 	-- @param filename (string) The name of the file to check.
 	-- @return (boolean) `true` if the file exists, `false` otherwise.
-	exist: function(self: Content, filename: string)
+	exist: function(self: Content, filename: string): boolean
 
 	-- Creates a new directory with the specified path.
 	-- @param path (string) The path of the directory to create.
@@ -56,6 +57,18 @@ local record Content
 	-- @param path (string) The path of the file or directory to remove.
 	-- @return (boolean) `true` if the file or directory was removed, `false` otherwise.
 	remove: function(self: Content, path: string): boolean
+
+	-- Copies the file or directory in the specified path to target path.
+	-- @param srcPath (string) The path of the file or directory to copy.
+	-- @param dstPath (string) The path to copy files to.
+	-- @return (boolean) `true` if the file or directory was copied to target path, `false` otherwise.
+	copy: function(self: Content, srcPath: string, dstPath: string): boolean
+
+	-- Moves the file or directory in the specified path to target path.
+	-- @param srcPath (string) The path of the file or directory to move.
+	-- @param dstPath (string) The path to move files to.
+	-- @return (boolean) `true` if the file or directory was moved to target path, `false` otherwise.
+	move: function(self: Content, srcPath: string, dstPath: string): boolean
 
 	-- Gets the full path of a file with the specified filename.
 	-- @param filename (string) The name of the file to get the full path of.

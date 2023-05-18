@@ -9,7 +9,7 @@ import "@site/src/languages/highlight";
 **用法示例：**
 ```tl
 local Content = require("Content")
-Content:load("filename.txt")
+local text = Content:load("filename.txt")
 ```
 
 ## searchPaths
@@ -118,7 +118,7 @@ loadExcel: function(self: Content, filename: string, sheetNames?: {string}):
 
 **签名：**
 ```tl
-save: function(self: Content, filename: string, content: string)
+save: function(self: Content, filename: string, content: string): boolean
 ```
 
 **参数：**
@@ -127,6 +127,12 @@ save: function(self: Content, filename: string, content: string)
 | --- | --- | --- |
 | filename | string | 要保存到的文件名。 |
 | content | string | 要保存到文件中的内容。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果文件保存成功，则为 `true`，否则为 `false`。 |
 
 ## exist
 
@@ -138,7 +144,7 @@ save: function(self: Content, filename: string, content: string)
 
 **签名：**
 ```tl
-exist: function(self: Content, filename: string)
+exist: function(self: Content, filename: string): boolean
 ```
 
 **参数：**
@@ -227,6 +233,58 @@ remove: function(self: Content, path: string): boolean
 | 返回类型 | 描述 |
 | --- | --- |
 | boolean | 如果删除了文件或目录，则为 `true`，否则为 `false`。 |
+
+## copy
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;复制指定路径下的单个文件或目录下的所有文件到目标路径。
+
+**签名：**
+```tl
+copy: function(self: Content, srcPath: string, dstPath: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| srcPath | string | 要复制的文件或目录的路径。 |
+| dstPath | string | 复制文件到的目标路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果成功复制了文件或目录，则为 `true`，否则为 `false`。 |
+
+## move
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;移动指定路径下的单个文件或目录到目标路径。
+
+**签名：**
+```tl
+move: function(self: Content, srcPath: string, dstPath: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| srcPath | string | 要移动的文件或目录的路径。 |
+| dstPath | string | 移动文件或目录到的目标路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果成功移动了文件或目录，则为 `true`，否则为 `false`。 |
 
 ## getFullPath
 
