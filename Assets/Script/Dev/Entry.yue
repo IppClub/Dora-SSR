@@ -20,7 +20,7 @@ runningPaths =
 	* Path Content.writablePath, ".build", "Script"
 	* Path Content.writablePath, ".build"
 
-useChinese = false
+useChinese = App.locale\match("^zh")?
 updateLocale = ->
 	useChinese = App.locale\match("^zh")?
 	searchPaths[#searchPaths] = Path Content.assetPath, "Script", "Lib", "Dora", useChinese and "zh-Hans" or "en"
@@ -77,10 +77,7 @@ if config.themeColor?
 else
 	config.themeColor = App.themeColor\toARGB!
 
-if config.locale?
-	App.locale = config.locale
-	updateLocale!
-else
+if not config.locale?
 	config.locale = App.locale
 
 import "Utils" as :Set, :Struct, :LintYueGlobals
