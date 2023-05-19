@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, Suspense, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Toolbar from '@mui/material/Toolbar';
@@ -13,7 +13,7 @@ import FileTabBar, { TabMenuEvent, TabStatus } from './FileTabBar';
 import Info from './Info';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
-import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField } from '@mui/material';
+import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField, Container } from '@mui/material';
 import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
 import DoraUpload from './Upload';
@@ -26,7 +26,9 @@ import { MacScrollbar } from 'mac-scrollbar';
 import 'mac-scrollbar/dist/mac-scrollbar.css';
 import FileFilter, { FilterOption } from './FileFilter';
 import { useTranslation } from 'react-i18next';
+import { Image } from 'antd';
 
+const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
 
 const {path} = Info;
@@ -231,13 +233,16 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const openFileInTab = (key: string, title: string, position?: monaco.IPosition) => {
-		const ext = path.extname(title);
-		switch (ext.toLowerCase()) {
+		const ext = path.extname(title).toLowerCase();
+		switch (ext) {
 			case ".lua":
 			case ".tl":
 			case ".yue":
 			case ".xml":
-			case ".md": {
+			case ".md":
+			case ".png":
+			case ".jpg":
+			case ".skel": {
 				break;
 			}
 			default: return;
@@ -259,12 +264,14 @@ export default function PersistentDrawerLeft() {
 			}, 100);
 		}
 		if (index === null) {
-			Service.read({path: key}).then((res) => {
-				if (res.success && res.content !== undefined) {
+			switch (ext) {
+				case ".png":
+				case ".jpg":
+				case ".skel": {
 					const index = files.push({
 						key,
 						title,
-						content: res.content,
+						content: "",
 						contentModified: null,
 						uploading: false,
 						position,
@@ -272,10 +279,28 @@ export default function PersistentDrawerLeft() {
 					}) - 1;
 					setFiles([...files]);
 					switchTab(index, files[index]);
+					break;
 				}
-			}).catch(() => {
-				addAlert(t("alert.read", {title}), "error");
-			});
+				default: {
+					Service.read({path: key}).then((res) => {
+						if (res.success && res.content !== undefined) {
+							const index = files.push({
+								key,
+								title,
+								content: res.content,
+								contentModified: null,
+								uploading: false,
+								position,
+								status: "normal",
+							}) - 1;
+							setFiles([...files]);
+							switchTab(index, files[index]);
+						}
+					}).catch(() => {
+						addAlert(t("alert.read", {title}), "error");
+					});
+				}
+			}
 		} else {
 			switchTab(index, file);
 		}
@@ -630,8 +655,9 @@ export default function PersistentDrawerLeft() {
 					break;
 				}
 				if (data !== undefined) {
-					const ext = path.extname(data.title).toLowerCase();
-					const name = path.basename(data.title, ext);
+					const extname = path.extname(data.title);
+					const name = path.basename(data.title, extname);
+					const ext = extname.toLowerCase();
 					setFileInfo({
 						title: "file.rename",
 						node: data,
@@ -1341,6 +1367,10 @@ export default function PersistentDrawerLeft() {
 		}
 	}
 
+	const spineLoadFailed = (message: string) => {
+		addAlert(message, 'error');
+	};
+
 	return (
 		<Entry>
 			<Dialog
@@ -1512,12 +1542,17 @@ export default function PersistentDrawerLeft() {
 					files.map((file, index) => {
 						const ext = path.extname(file.title);
 						let language = null;
+						let image = false;
+						let spine = false;
 						switch (ext.toLowerCase()) {
 							case ".lua": language = "lua"; break;
 							case ".tl": language = "tl"; break;
 							case ".yue": language = "yue"; break;
 							case ".xml": language = "xml"; break;
 							case ".md": language = "markdown"; break;
+							case ".jpg": image = true; break;
+							case ".png": image = true; break;
+							case ".skel": spine = true; break;
 						}
 						const markdown = language === "markdown";
 						const readOnly = !file.key.startsWith(treeData.at(0)?.key ?? "");
@@ -1536,6 +1571,32 @@ export default function PersistentDrawerLeft() {
 									/>
 								</div> : null
 							}
+							{image ?
+								<Container maxWidth="lg" style={{paddingTop: 40}}>
+									<Image src={
+										Service.addr("/" + path
+											.relative(treeData.at(0)?.key ?? "", file.key)
+											.replace("\\", "/"))
+										} preview={false}/>
+								</Container> : null
+							}
+							{(() => {
+								if (spine && tabIndex === index) {
+									const skelFile = path.relative(treeData.at(0)?.key ?? "", file.key);
+									const coms = path.parse(skelFile);
+									const atlasFile = path.join(coms.dir, coms.name + ".atlas");
+									return <Container maxWidth="lg" style={{paddingTop: 40}}>
+										<Suspense fallback={<div/>}>
+											<SpinePlayer
+												skelFile={skelFile}
+												atlasFile={atlasFile}
+												onLoadFailed={spineLoadFailed}
+											/>
+										</Suspense>
+									</Container>;
+								}
+								return null;
+							})()}
 							{(() => {
 								if (language) {
 									let width = 0;

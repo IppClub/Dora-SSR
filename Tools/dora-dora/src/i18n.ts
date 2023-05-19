@@ -7,6 +7,9 @@ i18n
 		resources: {
 			en: {
 				translation: {
+					spine: {
+						load: "failed to load {{file}}",
+					},
 					tree: {
 						assets: "Assets",
 					},
@@ -103,6 +106,9 @@ i18n
 			},
 			zh: {
 				translation: {
+					spine: {
+						load: "加载 {{file}} 失败",
+					},
 					tree: {
 						assets: "资源根目录",
 					},
