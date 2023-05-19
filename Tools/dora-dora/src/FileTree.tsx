@@ -15,6 +15,8 @@ import {
 	AiOutlineUpload,
 	AiOutlineDownload,
 } from 'react-icons/ai';
+import { FcImageFile } from 'react-icons/fc';
+import { SiWebassembly } from 'react-icons/si';
 import Tree from 'rc-tree';
 import "./rctree.css";
 import { TreeNodeProps } from "rc-tree/lib/TreeNode";
@@ -23,6 +25,7 @@ import { NodeDragEventParams } from 'rc-tree/lib/contextTypes';
 import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
+import spineLogo from './spine.png';
 import { DiCode } from 'react-icons/di';
 import { TbSql } from 'react-icons/tb';
 import { VscMarkdown } from 'react-icons/vsc';
@@ -74,15 +77,22 @@ const fileIcon = (props: TreeNodeProps) => {
 				case ".lua":
 					return <img src={luaLogo} alt="lua" width="14px" height="14px"/>;
 				case ".tl":
-					return <img src={tealLogo} alt="teal" width="14px" height="14px"/>;
+					return <img src={tealLogo} alt="teal" width="12px" height="12px"/>;
 				case ".yue":
 					return <img src={yueLogo} alt="yue" width="14px" height="14px"/>;
 				case ".xml":
 					return <DiCode size={14}/>;
 				case ".db":
-					return <TbSql size={14}/>
+					return <TbSql size={14}/>;
 				case ".md":
-					return <VscMarkdown size={14}/>
+					return <VscMarkdown size={14}/>;
+				case ".png":
+				case ".jpg":
+					return <FcImageFile size={14}/>;
+				case ".wasm":
+					return <SiWebassembly size={12}/>;
+				case ".skel":
+					return <img src={spineLogo} alt="spine" width="14px" height="14px"/>;
 			}
 		}
 	}
