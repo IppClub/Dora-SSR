@@ -56,12 +56,7 @@ SAXParser::SAXParser()
 
 SAXParser::~SAXParser() { }
 
-const std::string& SAXParser::getLastError() const {
-	return _lastError;
-}
-
-bool SAXParser::parseXml(const std::string& xmlData) {
-	_lastError.clear();
+std::optional<SAXParser::SAXError> SAXParser::parse(const std::string& xmlData) {
 	tinyxml2::XMLError error;
 	if (xmlData.empty()) {
 		error = _tinyDoc.Parse(xmlData.c_str());
@@ -69,49 +64,37 @@ bool SAXParser::parseXml(const std::string& xmlData) {
 		error = _tinyDoc.Parse(xmlData.c_str(), xmlData.size());
 	}
 	if (error != tinyxml2::XML_NO_ERROR) {
-		_lastError = fmt::format("Xml document error at line {}, ", _tinyDoc.GetErrorLine());
+		int errorLine = _tinyDoc.GetErrorLine();
+		std::string errorMessage;
 		switch (error) {
-			case tinyxml2::XML_NO_ATTRIBUTE: _lastError += "no attribute."; break;
-			case tinyxml2::XML_WRONG_ATTRIBUTE_TYPE: _lastError += "wrong attribute type."; break;
-			case tinyxml2::XML_ERROR_FILE_NOT_FOUND: _lastError += "file not found."; break;
-			case tinyxml2::XML_ERROR_FILE_COULD_NOT_BE_OPENED: _lastError += "file could not be opened."; break;
-			case tinyxml2::XML_ERROR_FILE_READ_ERROR: _lastError += "file read error."; break;
-			case tinyxml2::XML_ERROR_ELEMENT_MISMATCH: _lastError += "element mismatch."; break;
-			case tinyxml2::XML_ERROR_PARSING_ELEMENT: _lastError += "parsing element error."; break;
-			case tinyxml2::XML_ERROR_PARSING_ATTRIBUTE: _lastError += "parsing attribute error."; break;
-			case tinyxml2::XML_ERROR_IDENTIFYING_TAG: _lastError += "identifying tag error."; break;
-			case tinyxml2::XML_ERROR_PARSING_TEXT: _lastError += "parsing text error."; break;
-			case tinyxml2::XML_ERROR_PARSING_CDATA: _lastError += "parsing cdata error."; break;
-			case tinyxml2::XML_ERROR_PARSING_COMMENT: _lastError += "parsing comment error."; break;
-			case tinyxml2::XML_ERROR_PARSING_DECLARATION: _lastError += "parsing declaration error."; break;
-			case tinyxml2::XML_ERROR_PARSING_UNKNOWN: _lastError += "parsing unknown error."; break;
-			case tinyxml2::XML_ERROR_EMPTY_DOCUMENT: _lastError += "empty document."; break;
-			case tinyxml2::XML_ERROR_MISMATCHED_ELEMENT: _lastError += "mismatch element."; break;
-			case tinyxml2::XML_ERROR_PARSING: _lastError += "parsing error."; break;
-			case tinyxml2::XML_CAN_NOT_CONVERT_TEXT: _lastError += "can not convert text."; break;
-			case tinyxml2::XML_NO_TEXT_NODE: _lastError += "no text node."; break;
+			case tinyxml2::XML_NO_ATTRIBUTE: errorMessage += "no attribute"; break;
+			case tinyxml2::XML_WRONG_ATTRIBUTE_TYPE: errorMessage += "wrong attribute type"; break;
+			case tinyxml2::XML_ERROR_FILE_NOT_FOUND: errorMessage += "file not found"; break;
+			case tinyxml2::XML_ERROR_FILE_COULD_NOT_BE_OPENED: errorMessage += "file could not be opened"; break;
+			case tinyxml2::XML_ERROR_FILE_READ_ERROR: errorMessage += "file read error"; break;
+			case tinyxml2::XML_ERROR_ELEMENT_MISMATCH: errorMessage += "element mismatch"; break;
+			case tinyxml2::XML_ERROR_PARSING_ELEMENT: errorMessage += "parsing element error"; break;
+			case tinyxml2::XML_ERROR_PARSING_ATTRIBUTE: errorMessage += "parsing attribute error"; break;
+			case tinyxml2::XML_ERROR_IDENTIFYING_TAG: errorMessage += "identifying tag error"; break;
+			case tinyxml2::XML_ERROR_PARSING_TEXT: errorMessage += "parsing text error"; break;
+			case tinyxml2::XML_ERROR_PARSING_CDATA: errorMessage += "parsing cdata error"; break;
+			case tinyxml2::XML_ERROR_PARSING_COMMENT: errorMessage += "parsing comment error"; break;
+			case tinyxml2::XML_ERROR_PARSING_DECLARATION: errorMessage += "parsing declaration error"; break;
+			case tinyxml2::XML_ERROR_PARSING_UNKNOWN: errorMessage += "parsing unknown error"; break;
+			case tinyxml2::XML_ERROR_EMPTY_DOCUMENT: errorMessage += "empty document"; break;
+			case tinyxml2::XML_ERROR_MISMATCHED_ELEMENT: errorMessage += "mismatch element"; break;
+			case tinyxml2::XML_ERROR_PARSING: errorMessage += "parsing error"; break;
+			case tinyxml2::XML_CAN_NOT_CONVERT_TEXT: errorMessage += "can not convert text"; break;
+			case tinyxml2::XML_NO_TEXT_NODE: errorMessage += "no text node"; break;
 			default:
 				break;
 		}
-		if (_tinyDoc.GetErrorStr1()) {
-			_lastError += " ";
-			_lastError += _tinyDoc.GetErrorStr1();
-		}
-		if (_tinyDoc.GetErrorStr2()) {
-			_lastError += ", ";
-			_lastError += _tinyDoc.GetErrorStr2();
-		}
-		_lastError += "\n";
-		return false;
+		return SAXError{errorLine, errorMessage};
 	}
 	XmlSaxHander printer;
 	printer.setSAXParser(this);
-	return _tinyDoc.Accept(&printer);
-}
-
-bool SAXParser::parse(const std::string& filename) {
-	auto data = SharedContent.load(filename);
-	return parseXml(Slice(r_cast<char*>(data.first.get()), data.second));
+	_tinyDoc.Accept(&printer);
+	return std::nullopt;
 }
 
 const char* SAXParser::getBuffer() const {
@@ -134,10 +117,10 @@ void SAXParser::setDelegator(SAXDelegator* delegator) {
 	_delegator = delegator;
 }
 
-void SAXParser::placeCDataHeader(const char* cdataHeader) {
-	tinyxml2::XMLUtil::PlaceCDataHeader(cdataHeader);
+void SAXParser::setCDataHeader(const char* cdataHeader) {
+	_tinyDoc.setCDataHeader(cdataHeader);
 }
 
-void SAXParser::setHeaderHandler(void (*handler)(const char* start, const char* end)) {
-	tinyxml2::XMLUtil::PlaceHeaderHandler(handler);
+void SAXParser::setHeaderHandler(tinyxml2::XMLDocument::HeaderHandler handler) {
+	_tinyDoc.setHeaderHandler(handler);
 }

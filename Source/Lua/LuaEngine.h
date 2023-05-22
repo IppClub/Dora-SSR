@@ -58,6 +58,12 @@ public:
 	void inferTealAsync(String tlCodes, String line, int row, String searchPath, const std::function<void(std::optional<TealInference>)>& callback);
 	void clearTealCompiler(bool reset);
 
+	struct XmlToken {
+		std::string label;
+		std::string insertText;
+	};
+	std::list<XmlToken> completeXml(String xmlCodes);
+
 	void insertLuaLoader(lua_CFunction func, int index);
 
 	void removeScriptHandler(int handler);

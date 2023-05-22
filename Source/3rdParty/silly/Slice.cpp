@@ -22,6 +22,7 @@
 
 #include "Slice.h"
 #include <cstdlib>
+#include <sstream>
 
 namespace silly {
 
@@ -59,8 +60,8 @@ std::string Slice::toUpper() const {
 }
 
 std::list<Slice> Slice::split(Slice delims) const {
-	std::string text = toString();
-	std::string delimers = delims.toString();
+	std::string_view text{str_, len_};
+	std::string_view delimers{delims.rawData(), delims.size()};
 	std::list<Slice> tokens;
 	std::size_t start = 0, end = 0;
 	while ((end = text.find(delimers, start)) < text.size()) {
@@ -79,6 +80,27 @@ float Slice::stof(Slice str) {
 
 int Slice::stoi(Slice str, int base) {
 	return std::stoi(str.toString(), 0, base);
+}
+
+std::string Slice::join(const std::list<std::string>& list, Slice delimer) {
+	if (list.empty())
+		return Empty;
+	else if (list.size() == 1)
+		return list.front();
+	auto begin = ++list.begin();
+	std::ostringstream stream;
+	stream << list.front();
+	if (delimer.empty()) {
+		for (auto it = begin; it != list.end(); ++it) {
+			stream << *it;
+		}
+	} else {
+		std::string_view sep = delimer.toView();
+		for (auto it = begin; it != list.end(); ++it) {
+			stream << sep << *it;
+		}
+	}
+	return stream.str();
 }
 
 } // namespace slice

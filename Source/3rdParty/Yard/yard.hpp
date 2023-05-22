@@ -15,11 +15,10 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "yard_base_grammar.hpp"
-#include "yard_char_set.hpp"
-#include "yard_tree.hpp"
-#include "yard_parser.hpp"
-
-#include "yard_tester.hpp"
+#include "Yard/yard_base_grammar.hpp"
+#include "Yard/yard_char_set.hpp"
+#include "Yard/yard_tree.hpp"
+#include "Yard/yard_parser.hpp"
+#include "Yard/yard_tester.hpp"
 
 #endif
