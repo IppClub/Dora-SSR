@@ -1280,6 +1280,8 @@
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_map.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_push.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_to.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\Xml\DorothyTag.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\Xml\XmlResolver.cpp" />
     <ClCompile Include="..\..\..\Source\ML\ML.cpp" />
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\DragonBone.cpp" />
@@ -1806,6 +1808,9 @@
     <ClInclude Include="..\..\..\Source\Lua\LuaManual.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h" />
+    <ClInclude Include="..\..\..\Source\Lua\Xml\DorothyTag.h" />
+    <ClInclude Include="..\..\..\Source\Lua\Xml\DorothyTagText.hpp" />
+    <ClInclude Include="..\..\..\Source\Lua\Xml\XmlResolver.h" />
     <ClInclude Include="..\..\..\Source\ML\ML.h" />
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h" />
     <ClInclude Include="..\..\..\Source\Node\DragonBone.h" />
