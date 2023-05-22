@@ -18,6 +18,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Node.h"
 #include "Support/Value.h"
 
+#include "Lua/Xml/DorothyTag.h"
+#include "Lua/Xml/XmlResolver.h"
+
 extern "C" {
 int luaopen_yue(lua_State* L);
 int luaopen_colibc_json(lua_State* L);
@@ -107,10 +110,9 @@ static int dora_load_file(lua_State* L, String filename, String moduleName = nul
 	std::string codes;
 	switch (Switch::hash(extension)) {
 		case "xml"_hash: {
-			codes = SharedXmlLoader.load(targetFile);
-			if (codes.empty()) {
-				luaL_error(L, "error parsing xml file: %s\n%s", filename.c_str().get(), SharedXmlLoader.getLastError().c_str());
-			} else {
+			auto result = SharedXmlLoader.loadFile(targetFile);
+			if (std::holds_alternative<std::string>(result)) {
+				codes = std::move(std::get<std::string>(result));
 				codes.insert(0, "-- [xml]: "s + filename + '\n');
 				codeBuffer = codes.c_str();
 				codeBufferSize = codes.size();
@@ -123,6 +125,14 @@ static int dora_load_file(lua_State* L, String filename, String moduleName = nul
 				lua_pushlstring(L, codeBuffer, codeBufferSize); // package loaded yue compiled name buffer
 				lua_rawset(L, -3); // compiled[name] = buffer, package loaded yue compiled
 				lua_pop(L, 4); // clear
+			} else {
+				auto errors = std::get<XmlLoader::XmlErrors>(result);
+				std::list<std::string> errList;
+				for (const auto& err : errors) {
+					errList.emplace_back(err.line == 0 ? err.message : fmt::format("{} at line {}", err.message, err.line));
+				}
+				std::string errorMessage = Slice::join(errList, "\n"_slice);
+				luaL_error(L, "failed to parse XML file \"%s\" due to:\n%s\n", filename.c_str().get(), errorMessage.c_str());
 			}
 			break;
 		}
@@ -208,32 +218,88 @@ static int dora_do_xml(lua_State* L) {
 	size_t len = 0;
 	const char* str = luaL_checklstring(L, 1, &len);
 	std::string codes(str, len);
-	codes = SharedXmlLoader.load(codes);
-	if (codes.empty()) {
-		luaL_error(L, "error parsing local xml, %s\n", SharedXmlLoader.getLastError().c_str());
+	auto result = SharedXmlLoader.loadXml(codes);
+	if (std::holds_alternative<std::string>(result)) {
+		codes = std::move(std::get<std::string>(result));
+	} else {
+		auto errors = std::get<XmlLoader::XmlErrors>(result);
+		std::list<std::string> errList;
+		for (const auto& err : errors) {
+			errList.emplace_back(err.line == 0 ? err.message : fmt::format("{} at line {}", err.message, err.line));
+		}
+		std::string errorMessage = Slice::join(errList, "\n"_slice);
+		luaL_error(L, "failed to parse XML due to:\n%s\n", errorMessage.c_str());
 	}
 	if (luaL_loadbuffer(L, codes.c_str(), codes.size(), "xml") != 0) {
-		Error("[Lua] {}", codes);
-		luaL_error(L, "error loading module %s from file %s :\n\t%s",
-			lua_tostring(L, 1), "xml", lua_tostring(L, -1));
+		luaL_error(L, "failed to load XML due to:\n%s\n", lua_tostring(L, -1));
 	}
 	LuaEngine::call(L, 0, 1);
 	return 1;
+}
+
+static int dora_complete_xml(lua_State* L) {
+	size_t len = 0;
+	const char* str = luaL_checklstring(L, 1, &len);
+	std::string codes(str, len);
+	auto result = SharedLuaEngine.completeXml(codes);
+	lua_createtable(L, s_cast<int>(result.size()), 0);
+	int i = 0;
+	for (const auto& item : result) {
+		lua_createtable(L, 2, 0);
+		tolua_pushslice(L, item.label);
+		lua_rawseti(L, -2, 1);
+		tolua_pushslice(L, item.insertText);
+		lua_rawseti(L, -2, 2);
+		lua_rawseti(L, -2, ++i);
+	}
+	return 1;
+}
+
+static int dora_check_xml(lua_State* L) {
+	size_t len = 0;
+	const char* str = luaL_checklstring(L, 1, &len);
+	std::string codes(str, len);
+	auto result = SharedXmlLoader.loadXml(codes);
+	if (std::holds_alternative<XmlLoader::XmlErrors>(result)) {
+		const auto& errors = std::get<XmlLoader::XmlErrors>(result);
+		lua_pushboolean(L, 0);
+		lua_createtable(L, s_cast<int>(errors.size()), 0);
+		int i = 0;
+		for (const auto& err : errors) {
+			lua_createtable(L, 2, 0);
+			lua_pushinteger(L, err.line);
+			lua_rawseti(L, -2, 1);
+			tolua_pushslice(L, err.message);
+			lua_rawseti(L, -2, 2);
+			lua_seti(L, -2, ++i);
+		}
+	} else {
+		lua_pushboolean(L, 1);
+		tolua_pushslice(L, std::get<std::string>(result));
+	}
+	return 2;
 }
 
 static int dora_xml_to_lua(lua_State* L) {
 	size_t len = 0;
 	const char* str = luaL_checklstring(L, 1, &len);
 	std::string codes(str, len);
-	codes = SharedXmlLoader.loadXml(codes);
-	if (codes.empty()) {
-		const std::string& lastError = SharedXmlLoader.getLastError();
+	auto result = SharedXmlLoader.loadXml(codes);
+	if (std::holds_alternative<std::string>(result)) {
+		codes = std::move(std::get<std::string>(result));
+		lua_pushlstring(L, codes.c_str(), codes.size());
+		return 1;
+	} else {
+		auto errors = std::get<XmlLoader::XmlErrors>(result);
+		std::list<std::string> errList;
+		for (const auto& err : errors) {
+			errList.emplace_back(err.line == 0 ? err.message : fmt::format("{} at line {}", err.message, err.line));
+		}
+		std::string errorMessage = Slice::join(errList, "\n"_slice);
 		lua_pushnil(L);
-		lua_pushlstring(L, lastError.c_str(), lastError.size());
+		lua_pushlstring(L, errorMessage.c_str(), errorMessage.size());
 		return 2;
 	}
-	lua_pushlstring(L, codes.c_str(), codes.size());
-	return 1;
 }
 
 static int dora_teal_to_lua(lua_State* L) {
@@ -713,8 +779,6 @@ LuaEngine::LuaEngine()
 	// add manual binding
 	tolua_beginmodule(L, nullptr); // stack: builtin
 	{
-		tolua_function(L, "doxml", dora_do_xml);
-		tolua_function(L, "xmltolua", dora_xml_to_lua);
 		tolua_function(L, "ubox", dora_ubox);
 		tolua_function(L, "emit", dora_emit);
 
@@ -870,6 +934,16 @@ LuaEngine::LuaEngine()
 				tolua_variable(L, "matrix", QLearner_getMatrix, nullptr);
 			}
 			tolua_endmodule(L);
+		}
+		tolua_endmodule(L);
+
+		tolua_module(L, "xml", 0);
+		tolua_beginmodule(L, "xml");
+		{
+			tolua_function(L, "dostring", dora_do_xml);
+			tolua_function(L, "tolua", dora_xml_to_lua);
+			tolua_function(L, "complete", dora_complete_xml);
+			tolua_function(L, "check", dora_check_xml);
 		}
 		tolua_endmodule(L);
 
@@ -1229,6 +1303,118 @@ void LuaEngine::clearTealCompiler(bool reset) {
 		LuaEngine::call(tl, 1, 0); // clear(reset), package loaded tl
 	}
 	thread->resume();
+}
+
+std::list<LuaEngine::XmlToken> LuaEngine::completeXml(String xmlCodes) {
+	XmlResolver resolver{};
+	resolver.resolve(xmlCodes);
+	auto input = xmlCodes.right(1);
+	if (input == "<"_slice) {
+		if (resolver.getCurrentElement().empty()) {
+			auto words = DorothyTag::shared().getSubElements("Dorothy"s);
+			const auto& imports = resolver.getImports();
+			words.insert(words.end(), imports.begin(), imports.end());
+			words.push_back("Dorothy"s);
+			std::list<LuaEngine::XmlToken> list;
+			for (const auto& word : words) {
+				list.push_back({word, word});
+			}
+			return list;
+		} else {
+			auto words = DorothyTag::shared().getSubElements(resolver.getCurrentElement());
+			if (DorothyTag::shared().isElementNode(resolver.getCurrentElement()) || resolver.getCurrentElement() == "Stencil"sv) {
+				const auto& imports = resolver.getImports();
+				words.insert(words.end(), imports.begin(), imports.end());
+			}
+			std::list<LuaEngine::XmlToken> list;
+			for (const auto& word : words) {
+				list.push_back({word, word});
+			}
+			list.push_back({'/' + resolver.getCurrentElement(),
+				"${1:}/"s + resolver.getCurrentElement()});
+			return list;
+		}
+	} else if (xmlCodes.right(2) != "/>"_slice && input == ">"_slice) {
+		if (!resolver.isCurrentInTag() && !resolver.getCurrentElement().empty() && resolver.getCurrentAttribute().empty()) {
+			std::list<LuaEngine::XmlToken> list;
+			list.push_back({"</"s + resolver.getCurrentElement() + '>',
+				"${1:}</"s + resolver.getCurrentElement() + '>'});
+			return list;
+		}
+	} else if (input == " "_slice || input == "\t"_slice || input == "\n"_slice) {
+		if (resolver.isCurrentInTag() && !resolver.getCurrentElement().empty() && resolver.getCurrentAttribute().empty()) {
+			auto words = DorothyTag::shared().getAttributes(resolver.getCurrentElement());
+			if (words.empty()) {
+				bool importedTag = false;
+				for (const auto& item : resolver.getImports()) {
+					if (resolver.getCurrentElement() == item) {
+						importedTag = true;
+						break;
+					}
+				}
+				if (importedTag) {
+					words.push_back("Name"s);
+					words.push_back("Ref"s);
+				}
+			}
+			std::list<LuaEngine::XmlToken> list;
+			for (const auto& word : words) {
+				list.push_back({word, word});
+			}
+			return list;
+		}
+	} else if (input == "="_slice) {
+		if (resolver.isCurrentInTag() && !resolver.getCurrentAttribute().empty()) {
+			auto words = DorothyTag::shared().getAttributeHints(resolver.getCurrentElement(), resolver.getCurrentAttribute());
+			if (!words.empty()) {
+				std::list<LuaEngine::XmlToken> list;
+				for (const auto& word : words) {
+					auto insertWord = '"' + word + '"';
+					list.push_back({insertWord, insertWord});
+				}
+				return list;
+			}
+		}
+		std::list<LuaEngine::XmlToken> list;
+		list.push_back({"\"\""s, "\"${1:}\""s});
+		list.push_back({"\"{}\""s, "\"{ ${1:} }\""s});
+		return list;
+	} else if (input == "/"_slice) {
+		if (!resolver.getCurrentElement().empty()) {
+			if (xmlCodes.right(2) == "</"_slice) {
+				std::list<LuaEngine::XmlToken> list;
+				list.push_back({resolver.getCurrentElement(), resolver.getCurrentElement()});
+				return list;
+			} else {
+				std::list<LuaEngine::XmlToken> list;
+				list.push_back({">"s, ">"s});
+				return list;
+			}
+		}
+	} else {
+		if (resolver.isCurrentInTag() && !resolver.getCurrentElement().empty() && resolver.getCurrentAttribute().empty()) {
+			auto words = DorothyTag::shared().getAttributes(resolver.getCurrentElement());
+			if (words.empty()) {
+				bool importedTag = false;
+				for (const auto& item : resolver.getImports()) {
+					if (resolver.getCurrentElement() == item) {
+						importedTag = true;
+						break;
+					}
+				}
+				if (importedTag) {
+					words.push_back("Name"s);
+					words.push_back("Ref"s);
+				}
+			}
+			std::list<LuaEngine::XmlToken> list;
+			for (const auto& word : words) {
+				list.push_back({word, word});
+			}
+			return list;
+		}
+	}
+	return {};
 }
 
 void LuaEngine::insertLuaLoader(lua_CFunction func, int index) {

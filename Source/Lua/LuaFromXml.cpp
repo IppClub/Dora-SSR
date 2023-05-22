@@ -24,10 +24,10 @@ NS_DOROTHY_BEGIN
 #define CASE_STR_DOT(prename, name) case #prename "." #name##_hash:
 #define SWITCH_STR_END
 
-static void Handler(const char* begin, const char* end) {
+static void Handler(tinyxml2::XMLDocument* doc, const char* begin, const char* end) {
 #define CHECK_CDATA(name) \
 	if (strncmp(begin, #name, sizeof(#name) / sizeof(char) - 1) == 0) { \
-		SAXParser::placeCDataHeader("</" #name ">"); \
+		doc->setCDataHeader("</" #name ">"); \
 		return; \
 	}
 	if (begin < end && *(begin - 1) != '/') {
@@ -1362,26 +1362,8 @@ public:
 	int getLineNumber(const char* name, const char* start = nullptr);
 	void updateLineNumber(const char* pos);
 	std::string nl();
-	void clear() {
-		currentLine = 1;
-		currentLinePos = nullptr;
-		currentLineStr = " -- 1\n"s;
-		codes = nullptr;
-		for (; !elementStack.empty(); elementStack.pop())
-			;
-		for (; !funcs.empty(); funcs.pop())
-			;
-		for (; !items.empty(); items.pop())
-			;
-		stream = fmt::memory_buffer();
-		imports = fmt::memory_buffer();
-		names.clear();
-		imported.clear();
-		firstItem.clear();
-		originalXml.clear();
-	}
 	void begin() {
-		lastError.clear();
+		errors.clear();
 		fmt::format_to(std::back_inserter(stream),
 			"return function(args)"s + nl() + "local _ENV = Dorothy(args)"s + nl());
 	}
@@ -1389,14 +1371,18 @@ public:
 		fmt::format_to(std::back_inserter(stream), "return {}{}end"sv, firstItem, nl());
 	}
 	std::string getResult() {
-		if (lastError.empty()) {
+		if (errors.empty()) {
 			std::string importStr = fmt::to_string(imports);
 			return importStr + fmt::to_string(stream);
 		}
 		return std::string();
 	}
-	const std::string& getLastError() {
-		return lastError;
+	struct XmlError {
+		int line;
+		std::string message;
+	};
+	const std::list<XmlError>& getErrors() const {
+		return errors;
 	}
 
 private:
@@ -1441,7 +1427,7 @@ private:
 	const char* codes;
 	// Loader
 	std::string firstItem;
-	std::string lastError;
+	std::list<XmlError> errors;
 	std::stack<oFunc> funcs;
 	std::stack<std::string> items;
 	std::stack<oItem> elementStack;
@@ -1471,8 +1457,9 @@ std::string XmlDelegator::oVal(const char* value, const char* def, const char* e
 		if (def)
 			return std::string(def);
 		else if (attr && element) {
-			std::string num = fmt::format("{}", getLineNumber(element));
-			lastError += std::string("Missing attribute ") + (char)toupper(attr[0]) + std::string(attr).substr(1) + " for <" + element + ">, at line " + num + "\n";
+			int line = getLineNumber(element);
+			std::string message = "missing attribute "s + s_cast<char>(toupper(attr[0])) + std::string(attr).substr(1) + " for <"s + element + '>';
+			errors.push_back({line, message});
 		}
 		return std::string();
 	}
@@ -1487,8 +1474,9 @@ std::string XmlDelegator::oVal(const char* value, const char* def, const char* e
 			;
 		if (end < start) {
 			if (attr && element) {
-				std::string num = fmt::format("{}", getLineNumber(element));
-				lastError += std::string("Missing attribute ") + (char)toupper(attr[0]) + std::string(attr).substr(1) + " for <" + element + ">, at line " + num + "\n";
+				int line = getLineNumber(element);
+				std::string message = "missing attribute "s + s_cast<char>(toupper(attr[0])) + std::string(attr).substr(1) + " for <"s + element + '>';
+				errors.push_back({line, message});
 			}
 			return std::string();
 		}
@@ -1514,8 +1502,9 @@ std::string XmlDelegator::oVal(const char* value, const char* def, const char* e
 						}
 					}
 					if (parent.empty() && element) {
-						std::string num = fmt::format("{}", getLineNumber(element));
-						lastError += std::string("The $ expression can`t be used in tag at line ") + num + "\n";
+						int line = getLineNumber(element);
+						std::string message = "the $ expression can`t be used in tag"s;
+						errors.push_back({line, message});
 					}
 					newStr += valStr.substr(start, i - start);
 					i++;
@@ -1543,8 +1532,9 @@ std::string XmlDelegator::oVal(const char* value, const char* def, const char* e
 							break;
 						default:
 							if (element) {
-								std::string num = fmt::format("{}", getLineNumber(element));
-								lastError += std::string("Invalid expression $") + valStr[i] + " at line " + num + "\n";
+								int line = getLineNumber(element);
+								std::string message = "invalid expression $"s + valStr[i];
+								errors.push_back({line, message});
 							}
 							break;
 					}
@@ -1575,8 +1565,9 @@ std::string XmlDelegator::oVal(const char* value, const char* def, const char* e
 							break;
 						default:
 							if (element) {
-								std::string num = fmt::format("{}", getLineNumber(element));
-								lastError += std::string("Invalid expression @") + valStr[i] + " at line " + num + "\n";
+								int line = getLineNumber(element);
+								std::string message = "invalid expression @"s + valStr[i];
+								errors.push_back({line, message});
 							}
 							break;
 					}
@@ -1740,7 +1731,9 @@ std::string XmlDelegator::compileYueCodes(const char* codes) {
 	config.implicitReturnRoot = false;
 	auto result = yue::YueCompiler{}.compile(fmt::format("do{}{}", nl(), codes), config);
 	if (result.codes.empty() && result.error) {
-		lastError += fmt::format("failed to compile yue codes started at line {}\n{}", getLineNumber(codes), result.error.value().displayMessage);
+		int line = getLineNumber(codes);
+		std::string message = fmt::format("failed to compile Yuescript: {}", result.error.value().displayMessage);
+		errors.push_back({line, message});
 	}
 	return std::move(result.codes);
 }
@@ -1768,7 +1761,9 @@ void XmlDelegator::endElement(const char* name) {
 					pos = lcodes.find("[="sv);
 				}
 				if (pos != std::string::npos) {
-					lastError += fmt::format("Lua multiline string is not supported at line {}.\n", getLineNumber(luaCodes.begin() + pos));
+					int line = getLineNumber(luaCodes.begin() + pos);
+					std::string message = "Lua multiline string is not supported"s;
+					errors.push_back({line, message});
 				}
 				auto lines = luaCodes.split("\n");
 				fmt::memory_buffer buf;
@@ -1904,7 +1899,9 @@ void XmlDelegator::endElement(const char* name) {
 		default: {
 			auto it = imported.find(name);
 			if (it == imported.end()) {
-				lastError += fmt::format("Tag <{}> not imported, closed at line {}.\n", name, getLineNumber(name));
+				int line = getLineNumber(name);
+				std::string message = fmt::format("tag <{}> not imported", name);
+				errors.push_back({line, message});
 			}
 			break;
 		}
@@ -1922,44 +1919,49 @@ void XmlDelegator::textHandler(const char* s, int len) {
 }
 
 XmlLoader::XmlLoader()
-	: _delegator(new XmlDelegator(&_parser)) {
-	_parser.setDelegator(_delegator.get());
+	: _delegator(nullptr)
+	, _parser(nullptr) {
 }
 
 XmlLoader::~XmlLoader() { }
 
-std::string XmlLoader::load(String filename) {
+std::variant<std::string, XmlLoader::XmlErrors> XmlLoader::loadFile(String filename) {
 	auto data = SharedContent.load(filename);
-	_delegator->originalXml = Slice(r_cast<char*>(data.first.get()), data.second).toString();
-	_delegator->begin();
-	SAXParser::setHeaderHandler(Handler);
-	bool result = _parser.parseXml(_delegator->originalXml);
-	SAXParser::setHeaderHandler(nullptr);
-	_delegator->end();
-	std::string codes = result ? _delegator->getResult() : std::string();
-	_delegator->clear();
-	return codes;
-}
-
-std::string XmlLoader::loadXml(String xml) {
-	_delegator->originalXml = xml.toString();
-	_delegator->begin();
-	SAXParser::setHeaderHandler(Handler);
-	bool result = _parser.parseXml(_delegator->originalXml);
-	SAXParser::setHeaderHandler(nullptr);
-	_delegator->end();
-	std::string codes = result ? _delegator->getResult() : std::string();
-	_delegator->clear();
-	return codes;
-}
-
-std::string XmlLoader::getLastError() {
-	const std::string& parserError = _parser.getLastError();
-	const std::string& dorothyError = _delegator->getLastError();
-	if (parserError.empty() && !dorothyError.empty()) {
-		return std::string("Xml document error\n") + dorothyError;
+	auto xmlData = Slice(r_cast<char*>(data.first.get()), data.second);
+	if (xmlData.empty()) {
+		XmlLoader::XmlError error{0, "failed to load xml file"s};
+		return XmlLoader::XmlErrors{error};
 	}
-	return parserError + dorothyError;
+	return loadXml(xmlData);
+}
+
+std::variant<std::string, XmlLoader::XmlErrors> XmlLoader::loadXml(String xmlData) {
+	_parser = New<SAXParser>();
+	_delegator = New<XmlDelegator>(_parser.get());
+	_parser->setDelegator(_delegator.get());
+	_delegator->originalXml = xmlData.toString();
+	_delegator->begin();
+	_parser->setHeaderHandler(Handler);
+	auto error = _parser->parse(_delegator->originalXml);
+	_delegator->end();
+	XmlLoader::XmlErrors errors;
+	if (error) {
+		const auto& err = error.value();
+		errors.push_back({err.line, err.message});
+	}
+	if (!_delegator->getErrors().empty()) {
+		for (const auto& err : _delegator->getErrors()) {
+			errors.push_back({err.line, err.message});
+		}
+	}
+	std::string codes = errors.empty() ? _delegator->getResult() : std::string();
+	_delegator = nullptr;
+	_parser = nullptr;
+	if (errors.empty()) {
+		return codes;
+	} else {
+		return errors;
+	}
 }
 
 NS_DOROTHY_END

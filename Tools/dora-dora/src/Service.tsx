@@ -45,7 +45,7 @@ export const infer = (req: InferRequest) => {
 // Complete
 
 export interface CompleteRequest {
-	lang: "tl" | "lua" | "yue";
+	lang: "tl" | "lua" | "yue" | "xml";
 	file: string;
 	line: string;
 	row: number;

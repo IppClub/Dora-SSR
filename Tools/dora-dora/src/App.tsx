@@ -1089,7 +1089,6 @@ export default function PersistentDrawerLeft() {
 			case "lua": case "tl": case "yue":
 				inferLang = ext;
 				break;
-			default: return;
 		}
 		if (inferLang !== null) {
 			const lang = inferLang;
@@ -1146,7 +1145,7 @@ export default function PersistentDrawerLeft() {
 		if (model) {
 			model.onDidChangeContent((e) => {
 				switch (path.extname(file.key).toLowerCase()) {
-					case ".lua": case ".tl": case ".yue": break;
+					case ".lua": case ".tl": case ".yue": case ".xml": break;
 					default: return;
 				}
 				lastEditorActionTime = Date.now();

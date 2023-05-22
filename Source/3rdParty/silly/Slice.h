@@ -81,6 +81,10 @@ public:
 		return std::string(str_, len_);
 	}
 
+	inline std::string_view toView() const {
+		return std::string_view(str_, len_);
+	}
+
 	inline bool empty() const {
 		return len_ == 0;
 	}
@@ -178,6 +182,8 @@ public:
 	static float stof(Slice str);
 
 	static int stoi(Slice str, int base = 10);
+
+	static std::string join(const std::list<std::string>& list, Slice delimer = Empty);
 
 	constexpr friend Slice operator"" _slice(const char* s, size_t n);
 

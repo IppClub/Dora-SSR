@@ -9,7 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "tinyxml2/tinyxml2.h"
-#include <string>
 
 typedef unsigned char XML_CHAR;
 
@@ -25,10 +24,13 @@ public:
 	SAXParser();
 	~SAXParser();
 
-	bool parseXml(const std::string& xmlData);
-	bool parse(const std::string& filename);
+	struct SAXError {
+		int line;
+		std::string message;
+	};
+
+	std::optional<SAXError> parse(const std::string& xmlData);
 	const char* getBuffer() const;
-	const std::string& getLastError() const;
 
 	void setDelegator(SAXDelegator* delegator);
 
@@ -36,11 +38,10 @@ public:
 	static void endElement(void* ctx, const XML_CHAR* name);
 	static void textHandler(void* ctx, const XML_CHAR* name, int len);
 
-	static void placeCDataHeader(const char* cdataHeader);
-	static void setHeaderHandler(void (*handler)(const char* start, const char* end));
+	void setCDataHeader(const char* cdataHeader);
+	void setHeaderHandler(tinyxml2::XMLDocument::HeaderHandler handler);
 
 private:
 	SAXDelegator* _delegator;
-	std::string _lastError;
 	tinyxml2::XMLDocument _tinyDoc;
 };

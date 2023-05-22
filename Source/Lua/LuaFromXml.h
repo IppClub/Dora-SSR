@@ -17,16 +17,20 @@ class XmlDelegator;
 class XmlLoader {
 public:
 	virtual ~XmlLoader();
-	std::string load(String filename);
-	std::string loadXml(String xml);
-	std::string getLastError();
+	struct XmlError {
+		int line;
+		std::string message;
+	};
+	using XmlErrors = std::list<XmlError>;
+	std::variant<std::string, XmlErrors> loadFile(String filename);
+	std::variant<std::string, XmlErrors> loadXml(String xml);
 
 protected:
 	XmlLoader();
 
 private:
 	Own<XmlDelegator> _delegator;
-	SAXParser _parser;
+	Own<SAXParser> _parser;
 	SINGLETON_REF(XmlLoader, ObjectBase);
 };
 

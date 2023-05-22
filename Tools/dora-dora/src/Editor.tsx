@@ -29,8 +29,8 @@ monaco.editor.defineTheme("dora-dark", {
 	colors: {},
 })
 
-type DoraLang = "tl" | "lua" | "yue";
-const completionItemProvider = (triggerCharacters: string[], lang: DoraLang) => {
+type CompleteLang = "tl" | "lua" | "yue" | "xml";
+const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang) => {
 	return {
 		triggerCharacters,
 		provideCompletionItems: function(model, position) {
@@ -65,6 +65,13 @@ const completionItemProvider = (triggerCharacters: string[], lang: DoraLang) => 
 					endLineNumber: model.getLineCount(),
 					endColumn: model.getLineLastNonWhitespaceColumn(model.getLineCount()),
 				});
+			} else if (lang === "xml") {
+				content = model.getValueInRange({
+					startLineNumber: 1,
+					startColumn: 1,
+					endLineNumber: position.lineNumber,
+					endColumn: position.column,
+				});
 			} else {
 				content = model.getValue();
 			}
@@ -87,6 +94,16 @@ const completionItemProvider = (triggerCharacters: string[], lang: DoraLang) => 
 							case "field": kind = monaco.languages.CompletionItemKind.Field; break;
 							case "keyword": kind = monaco.languages.CompletionItemKind.Keyword; break;
 						}
+						if (lang === "xml") {
+							return {
+								label,
+								kind,
+								insertText: desc,
+								insertTextRules:
+				monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+								range: range,
+							};
+						}
 						return {
 							label,
 							kind,
@@ -104,7 +121,8 @@ const completionItemProvider = (triggerCharacters: string[], lang: DoraLang) => 
 	} as monaco.languages.CompletionItemProvider;
 };
 
-const hoverProvider = (lang: DoraLang) => {
+type InferLang = "tl" | "lua" | "yue";
+const hoverProvider = (lang: InferLang) => {
 	return {
 		provideHover: function(model, position) {
 			const word = model.getWordAtPosition(position);
@@ -184,3 +202,6 @@ monaco.languages.setMonarchTokensProvider("yue", yuescript.language);
 const yueComplete = completionItemProvider([".", "::", "\\"], "yue");
 monaco.languages.registerCompletionItemProvider("yue", yueComplete);
 monaco.languages.registerHoverProvider("yue", hoverProvider("yue"));
+
+const xmlComplete = completionItemProvider([">", "<", "/", " ", "\t", "=", "\n"], "xml");
+monaco.languages.registerCompletionItemProvider("xml", xmlComplete);
