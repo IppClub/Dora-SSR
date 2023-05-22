@@ -155,6 +155,8 @@ add_executable(dorothy-ssr
 	../../../Source/Lua/ToLua/tolua_fix.cpp
 	../../../Source/Lua/ToLua/tolua_to.cpp
 	../../../Source/Lua/ToLua/tolua_is.cpp
+	../../../Source/Lua/Xml/DorothyTag.cpp
+	../../../Source/Lua/Xml/XmlResolver.cpp
 	../../../Source/Test/Test.cpp
 	../../../Source/Test/HelloWorldCpp.cpp
 	../../../Source/3rdParty/yuescript/yue_compiler.cpp
