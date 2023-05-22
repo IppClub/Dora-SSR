@@ -32,8 +32,6 @@
 		3C03CC002A1B6A6700383FAE /* DorothyTag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C03CBFB2A1B6A6700383FAE /* DorothyTag.cpp */; };
 		3C03CC012A1B6A6700383FAE /* XmlResolver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C03CBFC2A1B6A6700383FAE /* XmlResolver.cpp */; };
 		3C03CC022A1B6A6700383FAE /* XmlResolver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C03CBFC2A1B6A6700383FAE /* XmlResolver.cpp */; };
-		3C03CC032A1B6A6700383FAE /* Yard in Resources */ = {isa = PBXBuildFile; fileRef = 3C03CBFE2A1B6A6700383FAE /* Yard */; };
-		3C03CC042A1B6A6700383FAE /* Yard in Resources */ = {isa = PBXBuildFile; fileRef = 3C03CBFE2A1B6A6700383FAE /* Yard */; };
 		3C0AD7BB1E0CE95F0033AD59 /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7B31E0CE95F0033AD59 /* Event.cpp */; };
 		3C0AD7BC1E0CE95F0033AD59 /* EventQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7B51E0CE95F0033AD59 /* EventQueue.cpp */; };
 		3C0AD7BD1E0CE95F0033AD59 /* EventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7B71E0CE95F0033AD59 /* EventType.cpp */; };
@@ -932,7 +930,6 @@
 		3C03CBFB2A1B6A6700383FAE /* DorothyTag.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DorothyTag.cpp; path = ../../../Source/Lua/Xml/DorothyTag.cpp; sourceTree = "<group>"; };
 		3C03CBFC2A1B6A6700383FAE /* XmlResolver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = XmlResolver.cpp; path = ../../../Source/Lua/Xml/XmlResolver.cpp; sourceTree = "<group>"; };
 		3C03CBFD2A1B6A6700383FAE /* DorothyTagText.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DorothyTagText.hpp; path = ../../../Source/Lua/Xml/DorothyTagText.hpp; sourceTree = "<group>"; };
-		3C03CBFE2A1B6A6700383FAE /* Yard */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Yard; path = ../../../Source/Lua/Xml/Yard; sourceTree = "<group>"; };
 		3C0AD7B31E0CE95F0033AD59 /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Event.cpp; path = ../../../Source/Event/Event.cpp; sourceTree = "<group>"; };
 		3C0AD7B41E0CE95F0033AD59 /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = ../../../Source/Event/Event.h; sourceTree = "<group>"; };
 		3C0AD7B51E0CE95F0033AD59 /* EventQueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventQueue.cpp; path = ../../../Source/Event/EventQueue.cpp; sourceTree = "<group>"; };
@@ -1958,7 +1955,6 @@
 				3C03CBFD2A1B6A6700383FAE /* DorothyTagText.hpp */,
 				3C03CBFC2A1B6A6700383FAE /* XmlResolver.cpp */,
 				3C03CBFA2A1B6A6700383FAE /* XmlResolver.h */,
-				3C03CBFE2A1B6A6700383FAE /* Yard */,
 			);
 			name = Xml;
 			sourceTree = "<group>";
@@ -3648,7 +3644,6 @@
 				3C59DA802703037C0096813A /* Assets.xcassets in Resources */,
 				3CBE0F0326087F7B003F4F45 /* Model in Resources */,
 				3CBE0F0526087F7B003F4F45 /* Spine in Resources */,
-				3C03CC042A1B6A6700383FAE /* Yard in Resources */,
 				3CBE0F0626087F7B003F4F45 /* Image in Resources */,
 				3CFEBE4426930B91006D9974 /* DragonBones in Resources */,
 				3CA8DF102A0CE83D0022CC90 /* www in Resources */,
@@ -3669,7 +3664,6 @@
 				3C59DA7D270303750096813A /* Assets.xcassets in Resources */,
 				3C030CF724CAE6580074786E /* Model in Resources */,
 				3C030CF524CAE6580074786E /* Spine in Resources */,
-				3C03CC032A1B6A6700383FAE /* Yard in Resources */,
 				3C030CFA24CAE6580074786E /* Image in Resources */,
 				3CFEBE4326930B91006D9974 /* DragonBones in Resources */,
 				3CA8DF0F2A0CE83D0022CC90 /* www in Resources */,
