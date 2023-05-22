@@ -73,6 +73,26 @@ luaCheck = (file, content)->
 			success = true
 	return :success, :info
 
+luaCheckWithLineInfo = (file, luaCodes)->
+	res = luaCheck file, luaCodes
+	info = {}
+	if not res.success
+		current = 1
+		lastLine = 1
+		lineMap = {}
+		for lineCode in luaCodes\gmatch "[^\n\r]*"
+			num = lineCode\match "--%s*(%d+)%s*$"
+			if num
+				lastLine = tonumber num
+			lineMap[current] = lastLine
+			current += 1
+		for item in *res.info
+			item[3] = lineMap[item[3]] or 0
+			item[4] = 0
+			info[] = item
+		return false, info
+	return true, info
+
 getCompiledYueLine = (content, line, row, file)->
 	luaCodes, info = yueCheck file, content
 	return nil unless luaCodes
@@ -108,25 +128,24 @@ HttpServer\postSchedule "/check", (req)->
 			return luaCheck file, content
 		when "yue"
 			luaCodes, info = yueCheck file, content
+			success = false
 			if luaCodes
-				res = luaCheck file, luaCodes
-				if not res.success
-					current = 1
-					lastLine = 1
-					lineMap = {}
-					for lineCode in luaCodes\gmatch "[^\n\r]*"
-						num = lineCode\match "--%s*(%d+)%s*$"
-						if num
-							lastLine = tonumber num
-						lineMap[current] = lastLine
-						current += 1
-					for item in *res.info
-						item[3] = lineMap[item[3]] or 0
-						item[4] = 0
-						info[] = item
-			if #info == 0
-				return success: true
+				success, info = luaCheckWithLineInfo file, luaCodes
+			return if #info > 0
+				:success, :info
 			else
+				:success
+		when "xml"
+			success, result = xml.check content
+			if success
+				success, info = luaCheckWithLineInfo file, result
+				return if #info > 0
+					:success, :info
+				else
+					:success
+			else
+				info = for {row, err} in *result
+					{"syntax", file, row, 0, err}
 				return success: false, :info
 	success: true
 
@@ -253,6 +272,12 @@ HttpServer\postSchedule "/complete", (req)->
 					if not checkSet[word]
 						suggestions[] = {word, "keyword", "keyword"}
 			if #suggestions > 0
+				return success: true, :suggestions
+		when "xml"
+			items = xml.complete content
+			if #items > 0
+				suggestions = for {label, insertText} in *items
+					{label, insertText, "field"}
 				return success: true, :suggestions
 	success: false
 

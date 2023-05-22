@@ -1,3 +1,4 @@
+R"dorothy_tag(
 Ease:Linear,InQuad,OutQuad,InOutQuad,OutInQuad,InCubic,OutCubic,InOutCubic,OutInCubic,InQuart,OutQuart,InOutQuart,OutInQuart,InQuint,OutQuint,InOutQuint,OutInQuint,InSine,OutSine,InOutSine,OutInSine,InExpo,OutExpo,InOutExpo,OutInExpo,InCirc,OutCirc,InOutCirc,OutInCirc,InElastic,OutElastic,InOutElastic,OutInElastic,InBack,OutBack,InOutBack,OutInBack,InBounce,OutBounce,InOutBounce,OutInBounce
 
 ActionParent:Action,Sequence,Spawn
@@ -34,39 +35,39 @@ Slot
 	Args
 	Target
 	Perform
-        Loop:Boolean
+	Loop:Boolean
 Item
 	Base:No
-        Parent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Playable,Item
+	Parent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Playable,Item
 	Name
-        Width
-        Height
-        X
-        Y
-        Z
-        AnchorX
-        AnchorY
-        PassColor:Boolean
-        PassOpacity:Boolean
-        Color3
-        Opacity
-        Angle
-        AngleX
-        AngleY
-        ScaleX
-        ScaleY
-        SkewX
-        SkewY
-        Order
-        Tag
-        TransformTarget
-        Visible:Boolean
-        TouchEnabled:Boolean
-        SwallowTouches:Boolean
-        SwallowMouseWheel:Boolean
-        RenderGroup:Boolean
-        RenderOrder
-        Ref:Boolean
+	Width
+	Height
+	X
+	Y
+	Z
+	AnchorX
+	AnchorY
+	PassColor:Boolean
+	PassOpacity:Boolean
+	Color3
+	Opacity
+	Angle
+	AngleX
+	AngleY
+	ScaleX
+	ScaleY
+	SkewX
+	SkewY
+	Order
+	Tag
+	TransformTarget
+	Visible:Boolean
+	TouchEnabled:Boolean
+	SwallowTouches:Boolean
+	SwallowMouseWheel:Boolean
+	RenderGroup:Boolean
+	RenderOrder
+	Ref:Boolean
 Vec2
 	Base:No
 	Parent:Polygon,Line
@@ -249,8 +250,8 @@ Label
 	FontSize
 	TextAlign:Center,Left,Right
 	TextWidth
-        Spacing
-        LineGap
+	Spacing
+	LineGap
 Sprite
 	Base:Node
 	Parent:BaseParent
@@ -258,13 +259,13 @@ Sprite
 	BlendSrc:Blend
 	BlendDst:Blend
 Grid
-        Base:Node
-        Parent:BaseParent
-        File
-        GridX
-        GridY
-        BlendSrc:Blend
-        BlendDst:Blend
+	Base:Node
+	Parent:BaseParent
+	File
+	GridX
+	GridY
+	BlendSrc:Blend
+	BlendDst:Blend
 Menu
 	Base:Node
 	Parent:BaseParent
@@ -278,4 +279,4 @@ Playable
 	Play
 	Fliped:Boolean
 	Speed
-
+)dorothy_tag";

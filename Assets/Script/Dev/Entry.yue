@@ -190,7 +190,7 @@ doCompile = (minify)->
 	thread ->
 		for {file, input, output} in *xmlFiles
 			sourceCodes = Content\loadAsync input
-			codes, err = xmltolua sourceCodes
+			codes, err = xml.tolua sourceCodes
 			if not codes
 				table.insert errors, "Compile errors in #{file}.\n#{err}"
 			else
