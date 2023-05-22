@@ -27,10 +27,12 @@ getSearchPath = (file)->
 disabledCheckForLua =
 	* "incompatible number of returns"
 	* "unknown variable"
-	* "cannot index key .* in union"
+	* "cannot index key"
 	* "module not found"
 	* "don't know how to resolve a dynamic require"
 	* "ContainerItem"
+	* "cannot resolve a type"
+	* "invalid key"
 	* "<any type>"
 	* "<unknown type>"
 
