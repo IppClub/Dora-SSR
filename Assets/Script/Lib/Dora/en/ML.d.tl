@@ -25,11 +25,7 @@ local record QLearner
 	getBestAction: function(self: QLearner, state: integer): integer
 
 	-- Load Q-values from a matrix of state-action pairs.
-	-- @param values ({
-	-- 	(integer) The state.
-	-- 	(integer) The action.
-	-- 	(number) The Q-value for the given state-action pair.
-	-- }) The matrix of state-action pairs to load.
+	-- @param values ({integer - The state, integer The action, number - The Q-value for the given state-action pair}) The matrix of state-action pairs to load.
 	load: function(self: QLearner, values: {{
 			--[[state]] integer,
 			--[[action]] integer,
