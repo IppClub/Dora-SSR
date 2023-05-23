@@ -27,7 +27,7 @@ NS_DOROTHY_BEGIN
 static void Handler(tinyxml2::XMLDocument* doc, const char* begin, const char* end) {
 #define CHECK_CDATA(name) \
 	if (strncmp(begin, #name, sizeof(#name) / sizeof(char) - 1) == 0) { \
-		doc->setCDataHeader("</" #name ">"); \
+		doc->SetCDataHeader("</" #name ">"); \
 		return; \
 	}
 	if (begin < end && *(begin - 1) != '/') {
