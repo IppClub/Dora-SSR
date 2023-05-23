@@ -760,14 +760,14 @@ char* XMLNode::ParseDeep(char* p, StrPair* parentEnd) {
 // --------- XMLText ---------- //
 char* XMLText::ParseDeep(char* p, StrPair*) {
 	const char* start = p;
-	if (_document->getCDataHeader()) {
-		p = _value.ParseText(p, _document->getCDataHeader(), StrPair::NEEDS_NEWLINE_NORMALIZATION);
+	if (_document->GetCDataHeader()) {
+		p = _value.ParseText(p, _document->GetCDataHeader(), StrPair::NEEDS_NEWLINE_NORMALIZATION);
 		if (!p) {
 			_document->SetError(start, XML_ERROR_PARSING_CDATA, start, 0);
 		}
 		if (p && *p) {
-			size_t len = strlen(_document->getCDataHeader());
-			_document->setCDataHeader(nullptr);
+			size_t len = strlen(_document->GetCDataHeader());
+			_document->SetCDataHeader(nullptr);
 			return p - len;
 		}
 	} else if (this->CData()) {
@@ -1240,8 +1240,8 @@ char* XMLElement::ParseDeep(char* p, StrPair* strPair) {
 
 	p = _value.ParseName(p);
 
-	if (_document->getHeaderHandler()) {
-		_document->getHeaderHandler()(_document, _value.GetStart(), _value.GetEnd());
+	if (_document->GetHeaderHandler()) {
+		_document->GetHeaderHandler()(_document, _value.GetStart(), _value.GetEnd());
 	}
 
 	if (_value.Empty()) {
@@ -1250,8 +1250,8 @@ char* XMLElement::ParseDeep(char* p, StrPair* strPair) {
 
 	p = ParseAttributes(p);
 	if (!p || !*p || _closingType) {
-		if (_closingType == CLOSED && _document->getCDataHeader()) {
-			_document->setCDataHeader(nullptr);
+		if (_closingType == CLOSED && _document->GetCDataHeader()) {
+			_document->SetCDataHeader(nullptr);
 		}
 		return p;
 	}
