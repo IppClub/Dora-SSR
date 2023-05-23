@@ -1522,20 +1522,20 @@ public:
 		return false;
 	}
 
-	inline void setCDataHeader(const char* cdataHeader) {
+	inline void SetCDataHeader(const char* cdataHeader) {
 		_cdataHeader = cdataHeader;
 	}
 
-	inline const char* getCDataHeader() const {
+	inline const char* GetCDataHeader() const {
 		return _cdataHeader;
 	}
 
 	typedef void (*HeaderHandler)(XMLDocument*, const char*, const char*);
-	inline void setHeaderHandler(HeaderHandler handler) {
+	inline void SetHeaderHandler(HeaderHandler handler) {
 		_headerHandler = handler;
 	}
 
-	inline HeaderHandler getHeaderHandler() const {
+	inline HeaderHandler GetHeaderHandler() const {
 		return _headerHandler;
 	}
 

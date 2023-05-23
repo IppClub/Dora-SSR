@@ -57,12 +57,7 @@ SAXParser::SAXParser()
 SAXParser::~SAXParser() { }
 
 std::optional<SAXParser::SAXError> SAXParser::parse(const std::string& xmlData) {
-	tinyxml2::XMLError error;
-	if (xmlData.empty()) {
-		error = _tinyDoc.Parse(xmlData.c_str());
-	} else {
-		error = _tinyDoc.Parse(xmlData.c_str(), xmlData.size());
-	}
+	tinyxml2::XMLError error = _tinyDoc.Parse(xmlData.c_str(), xmlData.size());
 	if (error != tinyxml2::XML_NO_ERROR) {
 		int errorLine = _tinyDoc.GetErrorLine();
 		std::string errorMessage;
@@ -118,9 +113,9 @@ void SAXParser::setDelegator(SAXDelegator* delegator) {
 }
 
 void SAXParser::setCDataHeader(const char* cdataHeader) {
-	_tinyDoc.setCDataHeader(cdataHeader);
+	_tinyDoc.SetCDataHeader(cdataHeader);
 }
 
 void SAXParser::setHeaderHandler(tinyxml2::XMLDocument::HeaderHandler handler) {
-	_tinyDoc.setHeaderHandler(handler);
+	_tinyDoc.SetHeaderHandler(handler);
 }
