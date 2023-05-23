@@ -26,7 +26,7 @@ local record QLearner
 	getBestAction: function(self: QLearner, state: integer): integer
 
 	-- 从状态-动作对的矩阵中加载Q值。
-	-- @param values ({integer 状态, integer 动作, number 状态-动作对的Q值}) 要加载的状态-动作对的矩阵。
+	-- @param values ({{integer 状态, integer 动作, number 状态-动作对的Q值}}) 要加载的状态-动作对的矩阵。
 	load: function(self: QLearner, values: {{
 			--[[state]] integer,
 			--[[action]] integer,
