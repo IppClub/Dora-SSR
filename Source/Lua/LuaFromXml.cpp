@@ -1426,6 +1426,7 @@ private:
 	// Script
 	const char* codes;
 	// Loader
+	bool isInCodeElement = false;
 	std::string firstItem;
 	std::list<XmlError> errors;
 	std::stack<oFunc> funcs;
@@ -1707,6 +1708,7 @@ void XmlDelegator::startElement(const char* element, const char** atts) {
 		}
 		CASE_STR(Lua)
 		CASE_STR(Yue) {
+			isInCodeElement = true;
 			break;
 		}
 		default: {
@@ -1731,8 +1733,8 @@ std::string XmlDelegator::compileYueCodes(const char* codes) {
 	config.implicitReturnRoot = false;
 	auto result = yue::YueCompiler{}.compile(fmt::format("do{}{}", nl(), codes), config);
 	if (result.codes.empty() && result.error) {
-		int line = getLineNumber(codes);
-		std::string message = fmt::format("failed to compile Yuescript: {}", result.error.value().displayMessage);
+		int line = result.error.value().line;
+		std::string message = std::move(result.error.value().msg);
 		errors.push_back({line, message});
 	}
 	return std::move(result.codes);
@@ -1741,6 +1743,7 @@ std::string XmlDelegator::compileYueCodes(const char* codes) {
 void XmlDelegator::endElement(const char* name) {
 	SWITCH_STR_START(name) {
 		CASE_STR(Yue) {
+			isInCodeElement = false;
 			std::string codeStr;
 			if (codes) codeStr = compileYueCodes(codes);
 			codes = nullptr;
@@ -1752,6 +1755,7 @@ void XmlDelegator::endElement(const char* name) {
 			return;
 		}
 		CASE_STR(Lua) {
+			isInCodeElement = false;
 			if (codes) {
 				Slice luaCodes(codes);
 				luaCodes.trimSpace();
@@ -1915,7 +1919,12 @@ void XmlDelegator::endElement(const char* name) {
 
 void XmlDelegator::textHandler(const char* s, int len) {
 	updateLineNumber(s);
-	codes = s;
+	if (isInCodeElement) {
+		codes = s;
+	} else {
+		int line = getLineNumber(s);
+		errors.push_back({line, "invalid text content"s});
+	}
 }
 
 XmlLoader::XmlLoader()

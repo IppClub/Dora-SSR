@@ -1,5 +1,5 @@
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm'
+import remarkGfm from 'remark-gfm';
 import "./github-markdown-dark.css";
 
 import {PrismLight as SyntaxHighlighter} from 'react-syntax-highlighter';
@@ -28,7 +28,19 @@ const Markdown = (props: MarkdownProps) => {
 		components={{
 			img({node, src, alt, ...iprops}) {
 				const {path} = props;
-				return <img src={path === "" ? src : path + "/" + src} alt={alt} {...iprops}/>;
+				const tokens = (alt ?? "").split(':');
+				let width: number | undefined = undefined;
+				let height: number | undefined = undefined;
+				if (tokens.length === 2) {
+					const size = tokens[tokens.length - 1].split('x');
+					if (size.length === 1) {
+						width = Number.parseFloat(size[0]);
+					} else if (size.length === 2) {
+						width = Number.parseFloat(size[0]);
+						height = Number.parseFloat(size[1]);
+					}
+				}
+				return <img src={path === "" ? src : path + "/" + src} alt={alt} width={width} height={height} {...iprops}/>;
 			},
 			a({node, href, ...aprops}) {
 				if (href?.match("^http")) {
