@@ -94,7 +94,7 @@ git clone https://github.com/pigpigyyy/Dorothy-SSR.git
 ## 三、进行 Dora Dora 编辑器的开发
 
 1. 编译并运行 Dorothy SSR 引擎。
-2. 安装最新版的 node.js。
+2. 安装最新版的 Node.js。
 3. 初始化项目并进入 Dora Dora 编辑器开发模式。
    ```sh
    cd Tools/dora-dora
