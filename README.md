@@ -54,7 +54,7 @@
 
 <br>
 
-## Install
+## Installation
 
 - Quick start
 
@@ -78,9 +78,9 @@
 
      - 3. Start game development.
 
-- Hard core development
+- Engine project development
 
-   For the installation and configuration of Dorothy SSR project development, see [Official Documents](under-construction) for details.
+   For the installation and configuration of Dorothy SSR project development, see [Official Documents](https://dorothy-ssr.net/docs/tutorial/dev-configuration) for details.
 
 <br>
 
