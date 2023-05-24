@@ -54,7 +54,7 @@
 
 <br>
 
-## 安装
+## 安装配置
 
 - 快速上手
 
@@ -77,9 +77,9 @@
 
     - 3、开始游戏开发。
 
-- 硬核开发
+- 引擎项目开发
 
-  进行Dorothy SSR项目开发的安装配置，详见[官方文档](施工中)。
+  进行Dorothy SSR项目开发的安装配置，详见[官方文档](https://dorothy-ssr.net/docs/zh-Hans/tutorial/dev-configuration)。
 
 <br>
 
