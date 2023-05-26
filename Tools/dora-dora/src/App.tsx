@@ -44,14 +44,13 @@ document.addEventListener("contextmenu", (event) => {
 
 let contentModified = false;
 let waitingForDownload = false;
+let beforeUnload: () => void = () => {};
 
 window.onbeforeunload = (event: BeforeUnloadEvent) => {
+	beforeUnload();
 	if (contentModified) {
 		event.returnValue = "Please save before leaving!";
 		return "Please save before leaving!";
-	} else {
-		event.returnValue = "Sure to leave Dorothy SSR?";
-		return "Sure to leave Dorothy SSR?";
 	}
 };
 
@@ -113,7 +112,8 @@ export default function PersistentDrawerLeft() {
 		key: string,
 		title: string,
 		row: number,
-		col: number
+		col: number,
+		mdEditing?: boolean,
 	}| null>(null);
 
 	const [openFilter, setOpenFilter] = useState(false);
@@ -164,6 +164,15 @@ export default function PersistentDrawerLeft() {
 			if (res !== null) {
 				setExpandedKeys([res.key]);
 			}
+		}).then(() => {
+			Service.editingInfo().then((res: {success: boolean, editingInfo?: string}) => {
+				if (res.success && res.editingInfo) {
+					const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
+					editingInfo.files.forEach((file, i) => {
+						openFileInTab(file.key, file.title, file.position, file.mdEditing, editingInfo.index !== i);
+					});
+				}
+			});
 		});
 		document.addEventListener("keydown", (event: KeyboardEvent) => {
 			if (event.ctrlKey || event.altKey || event.metaKey) {
@@ -232,7 +241,7 @@ export default function PersistentDrawerLeft() {
 		switchTab(newValue, files[newValue]);
 	};
 
-	const openFileInTab = (key: string, title: string, position?: monaco.IPosition) => {
+	const openFileInTab = (key: string, title: string, position?: monaco.IPosition, mdEditing?: boolean, noSwitchTab?: boolean) => {
 		const ext = path.extname(title).toLowerCase();
 		switch (ext) {
 			case ".lua":
@@ -255,13 +264,16 @@ export default function PersistentDrawerLeft() {
 			}
 			return false;
 		});
-		if (file && file.editor && position) {
-			const editor = file.editor;
-			setTimeout(() => {
-				editor.focus();
-				editor.setPosition(position);
-				editor.revealPositionInCenter(position);
-			}, 100);
+		if (file) {
+			file.mdEditing = mdEditing;
+			if (file.editor && position) {
+				const editor = file.editor;
+				setTimeout(() => {
+					editor.focus();
+					editor.setPosition(position);
+					editor.revealPositionInCenter(position);
+				}, 100);
+			}
 		}
 		if (index === null) {
 			switch (ext) {
@@ -275,10 +287,11 @@ export default function PersistentDrawerLeft() {
 						contentModified: null,
 						uploading: false,
 						position,
+						mdEditing,
 						status: "normal",
 					}) - 1;
 					setFiles([...files]);
-					switchTab(index, files[index]);
+					if (!noSwitchTab) switchTab(index, files[index]);
 					break;
 				}
 				default: {
@@ -291,17 +304,19 @@ export default function PersistentDrawerLeft() {
 								contentModified: null,
 								uploading: false,
 								position,
+								mdEditing,
 								status: "normal",
 							}) - 1;
 							setFiles([...files]);
-							switchTab(index, files[index]);
+							if (!noSwitchTab) switchTab(index, files[index]);
 						}
 					}).catch(() => {
 						addAlert(t("alert.read", {title}), "error");
 					});
+					break;
 				}
 			}
-		} else {
+		} else if (!noSwitchTab) {
 			switchTab(index, file);
 		}
 	};
@@ -311,7 +326,7 @@ export default function PersistentDrawerLeft() {
 		openFileInTab(jumpToFile.key, jumpToFile.title, {
 			lineNumber: jumpToFile.row,
 			column: jumpToFile.col
-		});
+		}, jumpToFile.mdEditing);
 	}
 
 	const onSelect = (nodes: TreeDataType[]) => {
@@ -1368,6 +1383,25 @@ export default function PersistentDrawerLeft() {
 
 	const spineLoadFailed = (message: string) => {
 		addAlert(message, 'error');
+	};
+
+	beforeUnload = () => {
+		const editingInfo: Service.EditingInfo = {
+			index: tabIndex ?? 0,
+			files: files.map(f => {
+				const {key, title, mdEditing, editor} = f;
+				let position: monaco.Position | null = null;
+				if (editor) {
+					position = editor.getPosition();
+				}
+				return {key, title, mdEditing, position: position ? position : undefined};
+			})
+		};
+		Service.editingInfo({
+			editingInfo: editingInfo.files.length > 0 ? JSON.stringify(editingInfo) : ""
+		}).catch(reason => {
+			console.error(`failed to save editing info, due to: ${reason}`);
+		});
 	};
 
 	return (

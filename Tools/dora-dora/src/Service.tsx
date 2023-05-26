@@ -204,3 +204,28 @@ export interface ZipResponse {
 export const zip = (req: ZipRequest) => {
 	return post<ZipResponse>("/zip", req);
 };
+
+// EditingInfo
+
+export interface EditingInfo {
+	index: number;
+	files: {
+		key: string,
+		title: string,
+		mdEditing?: boolean,
+		position?: {
+			lineNumber: number,
+			column: number
+		}
+	}[];
+};
+export interface EditingInfoRequest {
+	editingInfo: string;
+};
+export interface EditingInfoResponse {
+	success: boolean;
+	editingInfo?: string;
+};
+export const editingInfo = (req?: EditingInfoRequest) => {
+	return post<EditingInfoResponse>("/editingInfo", req ?? {});
+};
