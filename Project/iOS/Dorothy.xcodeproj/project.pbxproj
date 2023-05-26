@@ -315,6 +315,8 @@
 		3C59DA7E2703037C0096813A /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3C59DA77270303590096813A /* Launch Screen.storyboard */; };
 		3C59DA7F2703037C0096813A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3C59DA79270303590096813A /* Main.storyboard */; };
 		3C59DA802703037C0096813A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3C1D41002703019800202534 /* Assets.xcassets */; };
+		3C60DE152A2069FE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE142A2069FE007D7865 /* Doc */; };
+		3C60DE162A2069FE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE142A2069FE007D7865 /* Doc */; };
 		3C6577481ECC2C9D00C5FB09 /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6577461ECC2C9D00C5FB09 /* Keyboard.cpp */; };
 		3C6D37251E27D9CE008C92E8 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6D37231E27D9CE008C92E8 /* TextureCache.cpp */; };
 		3C6D37291E27DA09008C92E8 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6D37271E27DA09008C92E8 /* lodepng.cpp */; };
@@ -1331,6 +1333,7 @@
 		3C59DA78270303590096813A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = "Dorothy/Base.lproj/Launch Screen.storyboard"; sourceTree = "<group>"; };
 		3C59DA7A270303590096813A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Dorothy/Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		3C59DA82270305A10096813A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Dorothy/Info.plist; sourceTree = "<group>"; };
+		3C60DE142A2069FE007D7865 /* Doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Doc; path = ../../Assets/Doc; sourceTree = "<group>"; };
 		3C64DF891E161A600030489C /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Utils.h; path = ../../../Source/Common/Utils.h; sourceTree = "<group>"; };
 		3C6577461ECC2C9D00C5FB09 /* Keyboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Keyboard.cpp; path = ../../../Source/Input/Keyboard.cpp; sourceTree = "<group>"; };
 		3C6577471ECC2C9D00C5FB09 /* Keyboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Keyboard.h; path = ../../../Source/Input/Keyboard.h; sourceTree = "<group>"; };
@@ -2376,6 +2379,7 @@
 		3C1F87CD1DF7B68C005F1B4D /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3C60DE142A2069FE007D7865 /* Doc */,
 				3CA8DF0E2A0CE83D0022CC90 /* www */,
 				3C0C775B275744690030BDCD /* Data */,
 				3C030CF124CAE6570074786E /* Audio */,
@@ -3643,6 +3647,7 @@
 				3C0C775D275744690030BDCD /* Data in Resources */,
 				3C59DA802703037C0096813A /* Assets.xcassets in Resources */,
 				3CBE0F0326087F7B003F4F45 /* Model in Resources */,
+				3C60DE162A2069FE007D7865 /* Doc in Resources */,
 				3CBE0F0526087F7B003F4F45 /* Spine in Resources */,
 				3CBE0F0626087F7B003F4F45 /* Image in Resources */,
 				3CFEBE4426930B91006D9974 /* DragonBones in Resources */,
@@ -3663,6 +3668,7 @@
 				3C0C775C275744690030BDCD /* Data in Resources */,
 				3C59DA7D270303750096813A /* Assets.xcassets in Resources */,
 				3C030CF724CAE6580074786E /* Model in Resources */,
+				3C60DE152A2069FE007D7865 /* Doc in Resources */,
 				3C030CF524CAE6580074786E /* Spine in Resources */,
 				3C030CFA24CAE6580074786E /* Image in Resources */,
 				3CFEBE4326930B91006D9974 /* DragonBones in Resources */,

@@ -188,6 +188,7 @@
 		3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39D1E0A05AD002141DF /* EventType.cpp */; };
 		3C57A3A31E0A05AD002141DF /* Listener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39F1E0A05AD002141DF /* Listener.cpp */; };
 		3C5AE08E1FFC737100CB95EB /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5AE08A1FFC737100CB95EB /* Entity.cpp */; };
+		3C60DE132A2069CE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE122A2069CE007D7865 /* Doc */; };
 		3C65B5B61EC010CA0039DA1D /* Menu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C65B5B41EC010CA0039DA1D /* Menu.cpp */; };
 		3C6929721E2C60BE0097AC49 /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6929701E2C60BE0097AC49 /* Effect.cpp */; };
 		3C6DA2051EAEF19E006EEE32 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6DA2031EAEF19E006EEE32 /* Model.cpp */; };
@@ -876,6 +877,7 @@
 		3C57A3A01E0A05AD002141DF /* Listener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Listener.h; path = ../../../Source/Event/Listener.h; sourceTree = "<group>"; };
 		3C5AE0871FFC737100CB95EB /* Entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Entity.h; path = ../../../Source/Entity/Entity.h; sourceTree = "<group>"; };
 		3C5AE08A1FFC737100CB95EB /* Entity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Entity.cpp; path = ../../../Source/Entity/Entity.cpp; sourceTree = "<group>"; };
+		3C60DE122A2069CE007D7865 /* Doc */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Doc; sourceTree = "<group>"; };
 		3C65B5B41EC010CA0039DA1D /* Menu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Menu.cpp; path = ../../../Source/Node/Menu.cpp; sourceTree = "<group>"; };
 		3C65B5B51EC010CA0039DA1D /* Menu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Menu.h; path = ../../../Source/Node/Menu.h; sourceTree = "<group>"; };
 		3C6929701E2C60BE0097AC49 /* Effect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Effect.cpp; path = ../../../Source/Effect/Effect.cpp; sourceTree = "<group>"; };
@@ -1481,6 +1483,7 @@
 		3C030CD824CAD9670074786E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3C60DE122A2069CE007D7865 /* Doc */,
 				3CA8DF0C2A0CE6FD0022CC90 /* www */,
 				3C0C774A27573F350030BDCD /* Data */,
 				3CBC784424CE7527003C9E83 /* Audio */,
@@ -3159,6 +3162,7 @@
 				3CBC785224CE7528003C9E83 /* Font in Resources */,
 				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
 				3CBC784D24CE7528003C9E83 /* Script in Resources */,
+				3C60DE132A2069CE007D7865 /* Doc in Resources */,
 				3CBC785124CE7528003C9E83 /* Model in Resources */,
 				3CBC785024CE7528003C9E83 /* Spine in Resources */,
 			);
