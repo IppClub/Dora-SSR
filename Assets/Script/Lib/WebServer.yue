@@ -438,7 +438,18 @@ HttpServer\postSchedule "/zip", (req)->
 			not (file\match('^%.') or file\match "[\\/]%.")
 	success: false
 
+HttpServer\post "/editingInfo", (req)->
+	import "Dev.Entry"
+	config = Entry.getConfig!
+	switch req when {body: {:editingInfo}}
+		config.editingInfo = editingInfo
+		success: true
+	else
+		success: true, editingInfo: config.editingInfo
+
 thread ->
+	import "Dev.Entry"
+	wait -> not Entry.isDocPreparing!
 	doraWeb = Path Content.assetPath, "www", "index.html"
 	doraReady = Path Content.writablePath, ".www", "dora-ready"
 	if Content\exist doraWeb

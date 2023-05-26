@@ -44,6 +44,7 @@ config = Config(
 	"winHeight"
 	"themeColor"
 	"locale"
+	"editingInfo"
 )
 config\load!
 if config.fpsLimited?
@@ -79,6 +80,28 @@ else
 
 if not config.locale?
 	config.locale = App.locale
+
+docPreparing = false
+if not config.editingInfo?
+	config.editingInfo = "{
+		\"index\":0,
+		\"files\":[
+			{
+				\"key\":\"#{Path Content.writablePath, 'Doc', App.locale, 'welcome.md'}\",
+				\"title\":\"welcome.md\"
+			}
+		]
+	}"
+	docPath = Path Content.writablePath, "Doc"
+	unless Content\exist docPath
+		docPreparing = true
+		<- thread
+		Content\copyAsync Path(Content.assetPath, 'Doc'), docPath
+		docPreparing = false
+
+export.isDocPreparing = -> docPreparing
+
+export.getConfig = -> config
 
 import "Utils" as :Set, :Struct, :LintYueGlobals
 options: {extension: yueext} = yue
