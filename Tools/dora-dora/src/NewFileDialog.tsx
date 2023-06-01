@@ -14,7 +14,7 @@ import { VscMarkdown } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
 import { Color } from './Frame';
 
-export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Dora Xml" | "Markdown" | "Folder"
+export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Dora Xml" | "Markdown" | "Yarn" | "Folder"
 
 interface FileType {
 	icon: React.ReactNode;
@@ -49,6 +49,12 @@ const fileTypes: FileType[] = [
 		padding: '20px'
 	},
 	{
+		icon: <img src="yarn-editor/icon_512x512.png" alt="Yuescript" width="50px" height="50px" style={{marginLeft: '10px'}}/>,
+		name: "Yarn",
+		desc: "file.yarn",
+		padding: '20px'
+	},
+	{
 		icon: <VscMarkdown size={45} style={{marginLeft: '15px'}}/>,
 		name: "Markdown",
 		desc: "file.markdown",
@@ -68,7 +74,7 @@ export interface NewFileDialogProps {
 }
 
 function NewFileDialog(props: NewFileDialogProps) {
-	const {t} = useTranslation();
+	const { t } = useTranslation();
 	const { onClose, open } = props;
 
 	const handleClose = () => {
