@@ -27,6 +27,13 @@ jobs:
           ren build www
           7z a ..\..\dorothy-ssr-windows-x86.7z www
           cd ..\..
+          cd Tools\YarnEditor
+          yarn
+          yarn build
+          mkdir www
+          ren dist www\yarn-editor
+          7z a ..\..\dorothy-ssr-windows-x86.7z www\yarn-editor
+          cd ..\..
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Audio && cd ..)
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z DragonBones && cd ..)
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Font && cd ..)
