@@ -1651,13 +1651,15 @@ export default function PersistentDrawerLeft() {
 								</div> : null
 							}
 							{image ?
-								<Container maxWidth="lg" style={{paddingTop: 40}}>
-									<Image src={
-										Service.addr("/" + path
-											.relative(treeData.at(0)?.key ?? "", file.key)
-											.replace("\\", "/"))
-										} preview={false}/>
-								</Container> : null
+								<MacScrollbar skin='dark'>
+									<Container maxWidth="lg" style={{paddingTop: 40, height: window.innerHeight - 64}}>
+											<Image src={
+												Service.addr("/" + path
+													.relative(treeData.at(0)?.key ?? "", file.key)
+													.replace("\\", "/"))
+												} preview={false}/>
+									</Container>
+								</MacScrollbar> : null
 							}
 							{(() => {
 								if (spine && tabIndex === index) {
