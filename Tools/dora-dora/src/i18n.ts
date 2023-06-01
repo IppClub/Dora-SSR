@@ -81,6 +81,7 @@ i18n
 						xml: "write game node trees in Xml format",
 						markdown: "do some documentation",
 						folder: "create a file folder",
+						yarn: "a language for game dialogue",
 					},
 					editor: {
 						goToDefinition: "Go to Definition",
@@ -180,6 +181,7 @@ i18n
 						xml: "用标记语言来编写游戏节点树",
 						markdown: "来写一些文档吧",
 						folder: "创建文件夹",
+						yarn: "用于编写游戏对话的语言",
 					},
 					editor: {
 						goToDefinition: "跳转到定义",
