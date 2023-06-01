@@ -93,6 +93,8 @@ const fileIcon = (props: TreeNodeProps) => {
 					return <SiWebassembly size={12}/>;
 				case ".skel":
 					return <img src={spineLogo} alt="spine" width="14px" height="14px"/>;
+				case ".yarn":
+					return <img src="yarn-editor/icon_96x96.png" alt="yarn" width="14px" height="14px"/>;
 			}
 		}
 	}

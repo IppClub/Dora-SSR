@@ -27,6 +27,7 @@ import 'mac-scrollbar/dist/mac-scrollbar.css';
 import FileFilter, { FilterOption } from './FileFilter';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'antd';
+import YarnEditor, { YarnEditorData } from './YarnEditor';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -63,6 +64,7 @@ interface EditingFile {
 	editor?: monaco.editor.IStandaloneCodeEditor;
 	position?: monaco.IPosition;
 	mdEditing?: boolean;
+	yarnData?: YarnEditorData;
 	status: TabStatus;
 };
 
@@ -198,7 +200,7 @@ export default function PersistentDrawerLeft() {
 		setModified(null);
 		files.forEach(file => {
 			if (file.key === modified.key) {
-				if (modified.content !== file.content) {
+				if (modified.content !== file.content || file.yarnData) {
 					file.contentModified = modified.content;
 				} else {
 					file.contentModified = null;
@@ -251,7 +253,8 @@ export default function PersistentDrawerLeft() {
 			case ".md":
 			case ".png":
 			case ".jpg":
-			case ".skel": {
+			case ".skel":
+			case ".yarn": {
 				break;
 			}
 			default: return;
@@ -373,19 +376,31 @@ export default function PersistentDrawerLeft() {
 	const saveCurrentTab = () => {
 		if (tabIndex === null) return;
 		const file = files[tabIndex];
-		if (file.contentModified !== null) {
-			const {contentModified} = file;
-			Service.write({path: file.key, content: contentModified}).then((res) => {
-				if (res.success) {
-					file.content = contentModified;
-					file.contentModified = null;
-					setFiles([...files]);
-				} else {
+		const saveFile = () => {
+			if (file.contentModified !== null) {
+				const {contentModified} = file;
+				Service.write({path: file.key, content: contentModified}).then((res) => {
+					if (res.success) {
+						file.content = contentModified;
+						file.contentModified = null;
+						setFiles([...files]);
+					} else {
+						addAlert(t("alert.saveCurrent"), "error");
+					}
+				}).catch(() => {
 					addAlert(t("alert.saveCurrent"), "error");
-				}
+				});
+			}
+		};
+		if (file.yarnData !== undefined) {
+			file.yarnData.getJSONData().then((value) => {
+				file.contentModified = value;
+				saveFile();
 			}).catch(() => {
 				addAlert(t("alert.saveCurrent"), "error");
-			});
+			})
+		} else {
+			saveFile();
 		}
 	};
 
@@ -400,37 +415,48 @@ export default function PersistentDrawerLeft() {
 			let failed = false;
 			let count = 0;
 			filesToSave.forEach(file => {
-				const content = file.contentModified;
-				if (content === null) {
+				let {contentModified} = file;
+				if (contentModified === null) {
 					count++;
 					if (count === fileCount) {
 						resolve(true);
 					}
 					return;
 				}
-				Service.write({path: file.key, content}).then((res) => {
-					if (res.success) {
-						file.content = content;
-						file.contentModified = null;
-						setFiles(prev => [...prev]);
-						count++;
-						if (count === fileCount) {
-							resolve(true);
+				const saveFile = (content: string) => {
+					Service.write({path: file.key, content}).then((res) => {
+						if (res.success) {
+							file.content = content;
+							file.contentModified = null;
+							setFiles(prev => [...prev]);
+							count++;
+							if (count === fileCount) {
+								resolve(true);
+							}
+						} else {
+							addAlert(t("alert.save", {title: file.title}), "error");
+							if (!failed) {
+								failed = true;
+								resolve(false);
+							}
 						}
-					} else {
+					}).catch(() => {
 						addAlert(t("alert.save", {title: file.title}), "error");
 						if (!failed) {
 							failed = true;
 							resolve(false);
 						}
-					}
-				}).catch(() => {
-					addAlert(t("alert.save", {title: file.title}), "error");
-					if (!failed) {
-						failed = true;
-						resolve(false);
-					}
-				});
+					});
+				};
+				if (file.yarnData !== undefined) {
+					file.yarnData.getJSONData().then((value: string) => {
+						saveFile(value);
+					}).catch(() => {
+						addAlert(t("alert.save", {title: file.title}), "error");
+					})
+				} else {
+					saveFile(contentModified);
+				}
 			});
 		});
 	};
@@ -697,6 +723,7 @@ export default function PersistentDrawerLeft() {
 			case "Yuescript": ext = ".yue"; break;
 			case "Dora Xml": ext = ".xml"; break;
 			case "Markdown": ext = ".md"; break;
+			case "Yarn": ext = ".yarn"; break;
 			case "Folder": ext = ""; break;
 		}
 		if (ext !== null) {
@@ -1577,6 +1604,7 @@ export default function PersistentDrawerLeft() {
 						let language = null;
 						let image = false;
 						let spine = false;
+						let yarn = false;
 						switch (ext.toLowerCase()) {
 							case ".lua": language = "lua"; break;
 							case ".tl": language = "tl"; break;
@@ -1586,6 +1614,7 @@ export default function PersistentDrawerLeft() {
 							case ".jpg": image = true; break;
 							case ".png": image = true; break;
 							case ".skel": spine = true; break;
+							case ".yarn": yarn = true; break;
 						}
 						const markdown = language === "markdown";
 						const readOnly = !file.key.startsWith(treeData.at(0)?.key ?? "");
@@ -1595,6 +1624,23 @@ export default function PersistentDrawerLeft() {
 							hidden={tabIndex !== index}
 						>
 							<DrawerHeader/>
+							{yarn ?
+								<YarnEditor
+									title={file.key}
+									defaultValue={file.content}
+									width={window.innerWidth - (drawerOpen ? drawerWidth : 0)}
+									height={window.innerHeight - 64}
+									onLoad={(data) => {
+										file.yarnData = data;
+									}}
+									onChange={() => {
+										setModified({key: file.key, content: ""});
+									}}
+									onKeydown={(e) => {
+										setKeyEvent(e);
+									}}
+								/> : null
+							}
 							{markdown ?
 								<div hidden={file.mdEditing}>
 									<Markdown
