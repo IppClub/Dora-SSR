@@ -33,7 +33,7 @@ jobs:
       - name: Pack Android
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          cd Tools/YarnEditor && yarn && yarn build-fix && rm -rf ../dora-dora/public/yarn-editor && mv dist ../dora-dora/public/yarn-editor && cd ../..
+          cd Tools/YarnEditor && yarn && yarn build-linux && rm -rf ../dora-dora/public/yarn-editor && mv dist ../dora-dora/public/yarn-editor && cd ../..
           cd Tools/dora-dora && yarn && yarn build && cd ../.. && rm -rf Assets/www && mv Tools/dora-dora/build Assets/www
           echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > $GITHUB_WORKSPACE/signing-key.jks
           cd Project/Android
