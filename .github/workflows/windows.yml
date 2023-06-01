@@ -29,7 +29,7 @@ jobs:
           cd ..\..
           cd Tools\YarnEditor
           yarn
-          yarn build-fix
+          yarn build-win
           mkdir www
           ren dist www\yarn-editor
           7z a ..\..\dorothy-ssr-windows-x86.7z www\yarn-editor
