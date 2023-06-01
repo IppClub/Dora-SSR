@@ -15,8 +15,9 @@
   "scripts": {
     "build": "npm run copy-version && webpack -p --progress --mode production --config webpack.config.js",
     "build-dev": "npm run copy-version && cross-env NODE_ENV=dev webpack -p --progress --config webpack.config.js",
-    "build-fix": "cross-env NODE_OPTIONS=--openssl-legacy-provider && npm run copy-version && webpack -p --progress --mode production --config webpack.config.js",
+    "build-linux": "export NODE_OPTIONS=--openssl-legacy-provider && npm run copy-version && webpack -p --progress --mode production --config webpack.config.js",
     "build-tiny": "npm run copy-version && NODE_ENV=tiny webpack -p --progress --mode production --config webpack.config.js",
+    "build-win": "set NODE_OPTIONS=--openssl-legacy-provider && npm run copy-version && webpack -p --progress --mode production --config webpack.config.js",
     "copy-version": "node ./scripts/copy-version.js",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
