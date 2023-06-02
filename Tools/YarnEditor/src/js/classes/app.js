@@ -764,7 +764,7 @@ export var App = function(name, version) {
 
 		if (self.settings.editorSplit()) {
 			self.splitEditor();
-			self.workspace.warpToNodeByIdx(node.index() - 1);
+			self.workspace.warpToNodeByIdx(node.index());
 		}
 
 		if (self.settings.editorSplitDirection() === 'right') {
