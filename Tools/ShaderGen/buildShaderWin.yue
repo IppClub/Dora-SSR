@@ -13,7 +13,7 @@ for stage in *{"v", "f"}
 		sname = file\match "[^%.]+"
 		target = "#{dir}\\#{sname}.bin.h"
 		for {cmd, t} in *{
-				{"#{tool} -i #{bgfx}\\src --type #{stage} --platform windows -f #{dir}\\#{file} -o #{dir}\\tmp -p #{stage == 'f' and 'p' or stage}s_3_0 --bin2c #{sname}_dx9 --varyingdef #{dir}\\varying.def.sc", "DirectX9"}
+				-- {"#{tool} -i #{bgfx}\\src --type #{stage} --platform windows -f #{dir}\\#{file} -o #{dir}\\tmp -p #{stage == 'f' and 'p' or stage}s_3_0 --bin2c #{sname}_dx9 --varyingdef #{dir}\\varying.def.sc", "DirectX9"}
 				{"#{tool} -i #{bgfx}\\src --type #{stage} --platform windows -f #{dir}\\#{file} -o #{dir}\\tmp -p #{stage == 'f' and 'p' or stage}s_4_0 -O 3 --bin2c #{sname}_dx11 --varyingdef #{dir}\\varying.def.sc", "DirectX11"}
 			}
 			with io.popen cmd
