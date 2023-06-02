@@ -163,8 +163,8 @@ namespace ImGui
 	float CalcItemWidth();
 	void PushTextWrapPos(float wrap_pos_x = 0.0f);
 	void PopTextWrapPos();
-	void PushAllowKeyboardFocus(bool v);
-	void PopAllowKeyboardFocus();
+	void PushTabStop(bool v);
+	void PopTabStop();
 	void PushButtonRepeat(bool repeat);
 	void PopButtonRepeat();
 
