@@ -55,7 +55,7 @@ namespace bx
 		//
 		const uint32_t tmp0   = uint32_sra(_value, 31);
 		const uint32_t tmp1   = uint32_neg(tmp0);
-		const uint32_t mask   = uint32_or(tmp1, 0x80000000);
+		const uint32_t mask   = uint32_or(tmp1, kFloatSignMask);
 		const uint32_t result = uint32_xor(_value, mask);
 		return result;
 	}
@@ -63,37 +63,37 @@ namespace bx
 	inline BX_CONST_FUNC bool isNan(float _f)
 	{
 		const uint32_t tmp = floatToBits(_f) & INT32_MAX;
-		return tmp > UINT32_C(0x7f800000);
+		return tmp > kFloatExponentMask;
 	}
 
 	inline BX_CONST_FUNC bool isNan(double _f)
 	{
 		const uint64_t tmp = doubleToBits(_f) & INT64_MAX;
-		return tmp > UINT64_C(0x7ff0000000000000);
+		return tmp > kDoubleExponentMask;
 	}
 
 	inline BX_CONST_FUNC bool isFinite(float _f)
 	{
 		const uint32_t tmp = floatToBits(_f) & INT32_MAX;
-		return tmp < UINT32_C(0x7f800000);
+		return tmp < kFloatExponentMask;
 	}
 
 	inline BX_CONST_FUNC bool isFinite(double _f)
 	{
 		const uint64_t tmp = doubleToBits(_f) & INT64_MAX;
-		return tmp < UINT64_C(0x7ff0000000000000);
+		return tmp < kDoubleExponentMask;
 	}
 
 	inline BX_CONST_FUNC bool isInfinite(float _f)
 	{
 		const uint32_t tmp = floatToBits(_f) & INT32_MAX;
-		return tmp == UINT32_C(0x7f800000);
+		return tmp == kFloatExponentMask;
 	}
 
 	inline BX_CONST_FUNC bool isInfinite(double _f)
 	{
 		const uint64_t tmp = doubleToBits(_f) & INT64_MAX;
-		return tmp == UINT64_C(0x7ff0000000000000);
+		return tmp == kDoubleExponentMask;
 	}
 
 	inline BX_CONSTEXPR_FUNC float floor(float _a)
@@ -212,49 +212,60 @@ namespace bx
 
 	inline BX_CONST_FUNC float rsqrtRef(float _a)
 	{
-		return pow(_a, -0.5f);
-	}
-
-	inline BX_CONST_FUNC float sqrtRef(float _a)
-	{
 		if (_a < kNearZero)
 		{
-			return 0.0f;
+			return kFloatInfinity;
 		}
 
-		return 1.0f/rsqrtRef(_a);
-	}
-
-	inline BX_CONST_FUNC float sqrtSimd(float _a)
-	{
-		const simd128_t aa    = simd_splat(_a);
-		const simd128_t sqrta = simd_sqrt(aa);
-		float result;
-		simd_stx(&result, sqrta);
-
-		return result;
-	}
-
-	inline BX_CONST_FUNC float sqrt(float _a)
-	{
-#if BX_CONFIG_SUPPORTS_SIMD
-		return sqrtSimd(_a);
-#else
-		return sqrtRef(_a);
-#endif // BX_CONFIG_SUPPORTS_SIMD
+		return pow(_a, -0.5f);
 	}
 
 	inline BX_CONST_FUNC float rsqrtSimd(float _a)
 	{
 		if (_a < kNearZero)
 		{
+			return kFloatInfinity;
+		}
+
+		const simd128_t aa = simd_splat(_a);
+#if BX_SIMD_NEON
+		const simd128_t rsqrta = simd_rsqrt_nr(aa);
+#else
+		const simd128_t rsqrta = simd_rsqrt_ni(aa);
+#endif // BX_SIMD_NEON
+
+		float result;
+		simd_stx(&result, rsqrta);
+
+		return result;
+	}
+
+	inline BX_CONST_FUNC float sqrtRef(float _a)
+	{
+		if (_a < 0.0F)
+		{
+			return bitsToFloat(kFloatExponentMask | kFloatMantissaMask);
+		}
+
+		return _a * pow(_a, -0.5f);
+	}
+
+	inline BX_CONST_FUNC float sqrtSimd(float _a)
+	{
+		if (_a < 0.0F)
+		{
+			return bitsToFloat(kFloatExponentMask | kFloatMantissaMask);
+		}
+		else if (_a < kNearZero)
+		{
 			return 0.0f;
 		}
 
-		const simd128_t aa     = simd_splat(_a);
-		const simd128_t rsqrta = simd_rsqrt_nr(aa);
+		const simd128_t aa   = simd_splat(_a);
+		const simd128_t sqrt = simd_sqrt(aa);
+
 		float result;
-		simd_stx(&result, rsqrta);
+		simd_stx(&result, sqrt);
 
 		return result;
 	}
@@ -265,6 +276,15 @@ namespace bx
 		return rsqrtSimd(_a);
 #else
 		return rsqrtRef(_a);
+#endif // BX_CONFIG_SUPPORTS_SIMD
+	}
+
+	inline BX_CONST_FUNC float sqrt(float _a)
+	{
+#if BX_CONFIG_SUPPORTS_SIMD
+		return sqrtSimd(_a);
+#else
+		return sqrtRef(_a);
 #endif // BX_CONFIG_SUPPORTS_SIMD
 	}
 
@@ -395,7 +415,7 @@ namespace bx
 	template<typename Ty>
 	inline Ty load(const void* _ptr)
 	{
-		Ty result(init::None);
+		Ty result(InitNone);
 		memCopy(&result, _ptr, sizeof(Ty) );
 		return result;
 	}
@@ -406,18 +426,18 @@ namespace bx
 		memCopy(_ptr, &_a, sizeof(Ty) );
 	}
 
-	inline Vec3::Vec3(init::NoneTag)
+	inline Vec3::Vec3(InitNoneTag)
 	{
 	}
 
-	constexpr Vec3::Vec3(init::ZeroTag)
+	constexpr Vec3::Vec3(InitZeroTag)
 		: x(0.0f)
 		, y(0.0f)
 		, z(0.0f)
 	{
 	}
 
-	constexpr Vec3::Vec3(init::IdentityTag)
+	constexpr Vec3::Vec3(InitIdentityTag)
 		: x(0.0f)
 		, y(0.0f)
 		, z(0.0f)
@@ -438,18 +458,18 @@ namespace bx
 	{
 	}
 
-	inline Plane::Plane(init::NoneTag)
-		: normal(init::None)
+	inline Plane::Plane(InitNoneTag)
+		: normal(InitNone)
 	{
 	}
 
-	constexpr Plane::Plane(init::ZeroTag)
-		: normal(init::Zero)
+	constexpr Plane::Plane(InitZeroTag)
+		: normal(InitZero)
 		, dist(0.0f)
 	{
 	}
 
-	constexpr Plane::Plane(init::IdentityTag)
+	constexpr Plane::Plane(InitIdentityTag)
 		: normal(0.0f, 1.0f, 0.0f)
 		, dist(0.0f)
 	{
@@ -461,11 +481,11 @@ namespace bx
 	{
 	}
 
-	inline Quaternion::Quaternion(init::NoneTag)
+	inline Quaternion::Quaternion(InitNoneTag)
 	{
 	}
 
-	constexpr Quaternion::Quaternion(init::ZeroTag)
+	constexpr Quaternion::Quaternion(InitZeroTag)
 		: x(0.0f)
 		, y(0.0f)
 		, z(0.0f)
@@ -473,7 +493,7 @@ namespace bx
 	{
 	}
 
-	constexpr Quaternion::Quaternion(init::IdentityTag)
+	constexpr Quaternion::Quaternion(InitIdentityTag)
 		: x(0.0f)
 		, y(0.0f)
 		, z(0.0f)
@@ -745,7 +765,7 @@ namespace bx
 
 	inline BX_CONST_FUNC Vec3 fromLatLong(float _u, float _v)
 	{
-		Vec3 result(init::None);
+		Vec3 result(InitNone);
 		const float phi   = _u * kPi2;
 		const float theta = _v * kPi;
 
@@ -1103,8 +1123,8 @@ namespace bx
 
 	inline void mtxFromNormal(float* _result, const Vec3& _normal, float _scale, const Vec3& _pos)
 	{
-		Vec3 tangent(init::None);
-		Vec3 bitangent(init::None);
+		Vec3 tangent(InitNone);
+		Vec3 bitangent(InitNone);
 		calcTangentFrame(tangent, bitangent, _normal);
 
 		store(&_result[ 0], mul(bitangent, _scale) );
@@ -1122,8 +1142,8 @@ namespace bx
 
 	inline void mtxFromNormal(float* _result, const Vec3& _normal, float _scale, const Vec3& _pos, float _angle)
 	{
-		Vec3 tangent(init::None);
-		Vec3 bitangent(init::None);
+		Vec3 tangent(InitNone);
+		Vec3 bitangent(InitNone);
 		calcTangentFrame(tangent, bitangent, _normal, _angle);
 
 		store(&_result[0], mul(bitangent, _scale) );
@@ -1188,7 +1208,7 @@ namespace bx
 
 	inline Vec3 mul(const Vec3& _vec, const float* _mat)
 	{
-		Vec3 result(init::None);
+		Vec3 result(InitNone);
 		result.x = _vec.x * _mat[0] + _vec.y * _mat[4] + _vec.z * _mat[ 8] + _mat[12];
 		result.y = _vec.x * _mat[1] + _vec.y * _mat[5] + _vec.z * _mat[ 9] + _mat[13];
 		result.z = _vec.x * _mat[2] + _vec.y * _mat[6] + _vec.z * _mat[10] + _mat[14];
@@ -1197,7 +1217,7 @@ namespace bx
 
 	inline Vec3 mulXyz0(const Vec3& _vec, const float* _mat)
 	{
-		Vec3 result(init::None);
+		Vec3 result(InitNone);
 		result.x = _vec.x * _mat[0] + _vec.y * _mat[4] + _vec.z * _mat[ 8];
 		result.y = _vec.x * _mat[1] + _vec.y * _mat[5] + _vec.z * _mat[ 9];
 		result.z = _vec.x * _mat[2] + _vec.y * _mat[6] + _vec.z * _mat[10];
