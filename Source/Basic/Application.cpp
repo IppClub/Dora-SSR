@@ -667,6 +667,7 @@ int CALLBACK WinMain(
 #include "PlayRho/Defines.hpp"
 #include "SQLiteCpp/SQLiteCpp.h"
 #include "imgui.h"
+#include "implot.h"
 #include "soloud.h"
 #include "sqlite3.h"
 #include "wasm3.h"
@@ -683,7 +684,8 @@ std::string Dorothy::Application::getDeps() const {
 		"- soloud {}\n"
 		"- DragonBones 5.6.3\n"
 		"- Spine 4.1.4\n"
-		"- imgui {}\n"
+		"- ImGui {}\n"
+		"- ImPlot {}\n"
 		"- sqlite3 {}\n"
 		"- SQLiteCpp {}\n"
 		"- wasm3 {}\n"
@@ -695,7 +697,8 @@ std::string Dorothy::Application::getDeps() const {
 		SharedLuaEngine.getTealVersion(),
 		PLAYRHO_VERSION_MAJOR, PLAYRHO_VERSION_MINOR, PLAYRHO_VERSION_PATCH,
 		SOLOUD_VERSION,
-		IMGUI_VERSION_NUM,
+		IMGUI_VERSION,
+		IMPLOT_VERSION,
 		SQLITE_VERSION,
 		SQLITECPP_VERSION,
 		M3_VERSION,

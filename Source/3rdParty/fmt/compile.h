@@ -331,7 +331,7 @@ template <typename T, typename Char> struct parse_specs_result {
   int next_arg_id;
 };
 
-constexpr int manual_indexing_id = -1;
+enum { manual_indexing_id = -1 };
 
 template <typename T, typename Char>
 constexpr parse_specs_result<T, Char> parse_specs(basic_string_view<Char> str,
@@ -448,20 +448,18 @@ constexpr auto compile_format_string(S format_str) {
       } else if constexpr (arg_id_result.arg_id.kind == arg_id_kind::name) {
         constexpr auto arg_index =
             get_arg_index_by_name(arg_id_result.arg_id.val.name, Args{});
-        if constexpr (arg_index != invalid_arg_index) {
+        if constexpr (arg_index >= 0) {
           constexpr auto next_id =
               ID != manual_indexing_id ? ID + 1 : manual_indexing_id;
           return parse_replacement_field_then_tail<
               decltype(get_type<arg_index, Args>::value), Args, arg_id_end_pos,
               arg_index, next_id>(format_str);
-        } else {
-          if constexpr (c == '}') {
-            return parse_tail<Args, arg_id_end_pos + 1, ID>(
-                runtime_named_field<char_type>{arg_id_result.arg_id.val.name},
-                format_str);
-          } else if constexpr (c == ':') {
-            return unknown_format();  // no type info for specs parsing
-          }
+        } else if constexpr (c == '}') {
+          return parse_tail<Args, arg_id_end_pos + 1, ID>(
+              runtime_named_field<char_type>{arg_id_result.arg_id.val.name},
+              format_str);
+        } else if constexpr (c == ':') {
+          return unknown_format();  // no type info for specs parsing
         }
       }
     }
@@ -497,7 +495,7 @@ constexpr auto compile(S format_str) {
 #endif  // defined(__cpp_if_constexpr) && defined(__cpp_return_type_deduction)
 }  // namespace detail
 
-FMT_MODULE_EXPORT_BEGIN
+FMT_BEGIN_EXPORT
 
 #if defined(__cpp_if_constexpr) && defined(__cpp_return_type_deduction)
 
@@ -601,7 +599,7 @@ template <detail_exported::fixed_string Str> constexpr auto operator""_cf() {
 }  // namespace literals
 #endif
 
-FMT_MODULE_EXPORT_END
+FMT_END_EXPORT
 FMT_END_NAMESPACE
 
 #endif  // FMT_COMPILE_H_

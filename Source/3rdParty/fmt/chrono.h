@@ -377,37 +377,11 @@ auto write_encoded_tm_str(OutputIt out, string_view in, const std::locale& loc)
     unit_t unit;
     write_codecvt(unit, in, loc);
     // In UTF-8 is used one to four one-byte code units.
-    auto&& buf = basic_memory_buffer<char, unit_t::max_size * 4>();
-    for (code_unit* p = unit.buf; p != unit.end; ++p) {
-      uint32_t c = static_cast<uint32_t>(*p);
-      if (sizeof(code_unit) == 2 && c >= 0xd800 && c <= 0xdfff) {
-        // surrogate pair
-        ++p;
-        if (p == unit.end || (c & 0xfc00) != 0xd800 ||
-            (*p & 0xfc00) != 0xdc00) {
-          FMT_THROW(format_error("failed to format time"));
-        }
-        c = (c << 10) + static_cast<uint32_t>(*p) - 0x35fdc00;
-      }
-      if (c < 0x80) {
-        buf.push_back(static_cast<char>(c));
-      } else if (c < 0x800) {
-        buf.push_back(static_cast<char>(0xc0 | (c >> 6)));
-        buf.push_back(static_cast<char>(0x80 | (c & 0x3f)));
-      } else if ((c >= 0x800 && c <= 0xd7ff) || (c >= 0xe000 && c <= 0xffff)) {
-        buf.push_back(static_cast<char>(0xe0 | (c >> 12)));
-        buf.push_back(static_cast<char>(0x80 | ((c & 0xfff) >> 6)));
-        buf.push_back(static_cast<char>(0x80 | (c & 0x3f)));
-      } else if (c >= 0x10000 && c <= 0x10ffff) {
-        buf.push_back(static_cast<char>(0xf0 | (c >> 18)));
-        buf.push_back(static_cast<char>(0x80 | ((c & 0x3ffff) >> 12)));
-        buf.push_back(static_cast<char>(0x80 | ((c & 0xfff) >> 6)));
-        buf.push_back(static_cast<char>(0x80 | (c & 0x3f)));
-      } else {
-        FMT_THROW(format_error("failed to format time"));
-      }
-    }
-    return copy_str<char>(buf.data(), buf.data() + buf.size(), out);
+    auto u =
+        to_utf8<code_unit, basic_memory_buffer<char, unit_t::max_size * 4>>();
+    if (!u.convert({unit.buf, to_unsigned(unit.end - unit.buf)}))
+      FMT_THROW(format_error("failed to format time"));
+    return copy_str<char>(u.c_str(), u.c_str() + u.size(), out);
   }
   return copy_str<char>(in.data(), in.data() + in.size(), out);
 }
@@ -460,7 +434,7 @@ auto write(OutputIt out, const std::tm& time, const std::locale& loc,
 
 }  // namespace detail
 
-FMT_MODULE_EXPORT_BEGIN
+FMT_BEGIN_EXPORT
 
 /**
   Converts given time since epoch as ``std::time_t`` value into calendar time,
@@ -504,7 +478,7 @@ inline std::tm localtime(std::time_t time) {
 }
 
 #if FMT_USE_LOCAL_TIME
-template <class Duration>
+template <typename Duration>
 inline auto localtime(std::chrono::local_time<Duration> time) -> std::tm {
   return localtime(std::chrono::system_clock::to_time_t(
       std::chrono::current_zone()->to_sys(time)));
@@ -556,7 +530,7 @@ inline std::tm gmtime(
   return gmtime(std::chrono::system_clock::to_time_t(time_point));
 }
 
-FMT_BEGIN_DETAIL_NAMESPACE
+namespace detail {
 
 // DEPRECATED!
 template <typename Char>
@@ -664,6 +638,30 @@ enum class numeric_system {
   alternative
 };
 
+// Glibc extensions for formatting numeric values.
+enum class pad_type {
+  unspecified,
+  // Do not pad a numeric result string.
+  none,
+  // Pad a numeric result string with zeros even if the conversion specifier
+  // character uses space-padding by default.
+  zero,
+  // Pad a numeric result string with spaces.
+  space,
+};
+
+template <typename OutputIt>
+auto write_padding(OutputIt out, pad_type pad, int width) -> OutputIt {
+  if (pad == pad_type::none) return out;
+  return std::fill_n(out, width, pad == pad_type::space ? ' ' : '0');
+}
+
+template <typename OutputIt>
+auto write_padding(OutputIt out, pad_type pad) -> OutputIt {
+  if (pad != pad_type::none) *out++ = pad == pad_type::space ? ' ' : '0';
+  return out;
+}
+
 // Parses a put_time-like format string and invokes handler actions.
 template <typename Char, typename Handler>
 FMT_CONSTEXPR const Char* parse_chrono_format(const Char* begin,
@@ -672,6 +670,7 @@ FMT_CONSTEXPR const Char* parse_chrono_format(const Char* begin,
   if (begin == end || *begin == '}') return begin;
   if (*begin != '%') FMT_THROW(format_error("invalid format"));
   auto ptr = begin;
+  pad_type pad = pad_type::unspecified;
   while (ptr != end) {
     auto c = *ptr;
     if (c == '}') break;
@@ -681,6 +680,22 @@ FMT_CONSTEXPR const Char* parse_chrono_format(const Char* begin,
     }
     if (begin != ptr) handler.on_text(begin, ptr);
     ++ptr;  // consume '%'
+    if (ptr == end) FMT_THROW(format_error("invalid format"));
+    c = *ptr;
+    switch (c) {
+    case '_':
+      pad = pad_type::space;
+      ++ptr;
+      break;
+    case '-':
+      pad = pad_type::none;
+      ++ptr;
+      break;
+    case '0':
+      pad = pad_type::zero;
+      ++ptr;
+      break;
+    }
     if (ptr == end) FMT_THROW(format_error("invalid format"));
     c = *ptr++;
     switch (c) {
@@ -758,16 +773,16 @@ FMT_CONSTEXPR const Char* parse_chrono_format(const Char* begin,
       break;
     // Hour, minute, second:
     case 'H':
-      handler.on_24_hour(numeric_system::standard);
+      handler.on_24_hour(numeric_system::standard, pad);
       break;
     case 'I':
-      handler.on_12_hour(numeric_system::standard);
+      handler.on_12_hour(numeric_system::standard, pad);
       break;
     case 'M':
-      handler.on_minute(numeric_system::standard);
+      handler.on_minute(numeric_system::standard, pad);
       break;
     case 'S':
-      handler.on_second(numeric_system::standard);
+      handler.on_second(numeric_system::standard, pad);
       break;
     // Other:
     case 'c':
@@ -872,16 +887,16 @@ FMT_CONSTEXPR const Char* parse_chrono_format(const Char* begin,
         handler.on_dec1_weekday(numeric_system::alternative);
         break;
       case 'H':
-        handler.on_24_hour(numeric_system::alternative);
+        handler.on_24_hour(numeric_system::alternative, pad);
         break;
       case 'I':
-        handler.on_12_hour(numeric_system::alternative);
+        handler.on_12_hour(numeric_system::alternative, pad);
         break;
       case 'M':
-        handler.on_minute(numeric_system::alternative);
+        handler.on_minute(numeric_system::alternative, pad);
         break;
       case 'S':
-        handler.on_second(numeric_system::alternative);
+        handler.on_second(numeric_system::alternative, pad);
         break;
       case 'z':
         handler.on_utc_offset(numeric_system::alternative);
@@ -965,10 +980,10 @@ struct tm_format_checker : null_chrono_spec_handler<tm_format_checker> {
   FMT_CONSTEXPR void on_day_of_year() {}
   FMT_CONSTEXPR void on_day_of_month(numeric_system) {}
   FMT_CONSTEXPR void on_day_of_month_space(numeric_system) {}
-  FMT_CONSTEXPR void on_24_hour(numeric_system) {}
-  FMT_CONSTEXPR void on_12_hour(numeric_system) {}
-  FMT_CONSTEXPR void on_minute(numeric_system) {}
-  FMT_CONSTEXPR void on_second(numeric_system) {}
+  FMT_CONSTEXPR void on_24_hour(numeric_system, pad_type) {}
+  FMT_CONSTEXPR void on_12_hour(numeric_system, pad_type) {}
+  FMT_CONSTEXPR void on_minute(numeric_system, pad_type) {}
+  FMT_CONSTEXPR void on_second(numeric_system, pad_type) {}
   FMT_CONSTEXPR void on_datetime(numeric_system) {}
   FMT_CONSTEXPR void on_loc_date(numeric_system) {}
   FMT_CONSTEXPR void on_loc_time(numeric_system) {}
@@ -1115,9 +1130,9 @@ void write_fractional_seconds(OutputIt& out, Duration d, int precision = -1) {
   }
 }
 
-// Format subseconds which are given as a floating point type with an appropiate
-// number of digits. We cannot pass the Duration here, as we explicitly need to
-// pass the Rep value in the chrono_formatter.
+// Format subseconds which are given as a floating point type with an
+// appropriate number of digits. We cannot pass the Duration here, as we
+// explicitly need to pass the Rep value in the chrono_formatter.
 template <typename Duration>
 void write_floating_seconds(memory_buffer& buf, Duration duration,
                             int num_fractional_digits = -1) {
@@ -1127,10 +1142,13 @@ void write_floating_seconds(memory_buffer& buf, Duration duration,
   auto val = duration.count();
 
   if (num_fractional_digits < 0) {
+    // For `std::round` with fallback to `round`:
+    // On some toolchains `std::round` is not available (e.g. GCC 6).
+    using namespace std;
     num_fractional_digits =
         count_fractional_digits<Duration::period::num,
                                 Duration::period::den>::value;
-    if (num_fractional_digits < 6 && static_cast<rep>(std::round(val)) != val)
+    if (num_fractional_digits < 6 && static_cast<rep>(round(val)) != val)
       num_fractional_digits = 6;
   }
 
@@ -1238,6 +1256,17 @@ class tm_writer {
     *out_++ = *d++;
     *out_++ = *d;
   }
+  void write2(int value, pad_type pad) {
+    unsigned int v = to_unsigned(value) % 100;
+    if (v >= 10) {
+      const char* d = digits2(v);
+      *out_++ = *d++;
+      *out_++ = *d;
+    } else {
+      out_ = detail::write_padding(out_, pad);
+      *out_++ = static_cast<char>('0' + v);
+    }
+  }
 
   void write_year_extended(long long year) {
     // At least 4 characters.
@@ -1330,8 +1359,6 @@ class tm_writer {
         tm_(tm) {}
 
   OutputIt out() const { return out_; }
-
-  const std::locale& locale() const { return loc_; }
 
   FMT_CONSTEXPR void on_text(const Char* begin, const Char* end) {
     out_ = copy_str<Char>(begin, end, out_);
@@ -1514,23 +1541,25 @@ class tm_writer {
     }
   }
 
-  void on_24_hour(numeric_system ns) {
-    if (is_classic_ || ns == numeric_system::standard) return write2(tm_hour());
+  void on_24_hour(numeric_system ns, pad_type pad) {
+    if (is_classic_ || ns == numeric_system::standard)
+      return write2(tm_hour(), pad);
     format_localized('H', 'O');
   }
-  void on_12_hour(numeric_system ns) {
+  void on_12_hour(numeric_system ns, pad_type pad) {
     if (is_classic_ || ns == numeric_system::standard)
-      return write2(tm_hour12());
+      return write2(tm_hour12(), pad);
     format_localized('I', 'O');
   }
-  void on_minute(numeric_system ns) {
-    if (is_classic_ || ns == numeric_system::standard) return write2(tm_min());
+  void on_minute(numeric_system ns, pad_type pad) {
+    if (is_classic_ || ns == numeric_system::standard)
+      return write2(tm_min(), pad);
     format_localized('M', 'O');
   }
 
-  void on_second(numeric_system ns) {
+  void on_second(numeric_system ns, pad_type pad) {
     if (is_classic_ || ns == numeric_system::standard) {
-      write2(tm_sec());
+      write2(tm_sec(), pad);
       if (subsecs_) {
         if (std::is_floating_point<typename Duration::rep>::value) {
           auto buf = memory_buffer();
@@ -1567,10 +1596,9 @@ class tm_writer {
     write2(tm_min());
   }
   void on_iso_time() {
-    char buf[8];
-    write_digit2_separated(buf, to_unsigned(tm_hour()), to_unsigned(tm_min()),
-                           to_unsigned(tm_sec()), ':');
-    out_ = copy_str<Char>(std::begin(buf), std::end(buf), out_);
+    on_24_hour_time();
+    *out_++ = ':';
+    on_second(numeric_system::standard, pad_type::unspecified);
   }
 
   void on_am_pm() {
@@ -1594,10 +1622,10 @@ struct chrono_format_checker : null_chrono_spec_handler<chrono_format_checker> {
 
   template <typename Char>
   FMT_CONSTEXPR void on_text(const Char*, const Char*) {}
-  FMT_CONSTEXPR void on_24_hour(numeric_system) {}
-  FMT_CONSTEXPR void on_12_hour(numeric_system) {}
-  FMT_CONSTEXPR void on_minute(numeric_system) {}
-  FMT_CONSTEXPR void on_second(numeric_system) {}
+  FMT_CONSTEXPR void on_24_hour(numeric_system, pad_type) {}
+  FMT_CONSTEXPR void on_12_hour(numeric_system, pad_type) {}
+  FMT_CONSTEXPR void on_minute(numeric_system, pad_type) {}
+  FMT_CONSTEXPR void on_second(numeric_system, pad_type) {}
   FMT_CONSTEXPR void on_12_hour_time() {}
   FMT_CONSTEXPR void on_24_hour_time() {}
   FMT_CONSTEXPR void on_iso_time() {}
@@ -1610,7 +1638,8 @@ struct chrono_format_checker : null_chrono_spec_handler<chrono_format_checker> {
   FMT_CONSTEXPR void on_duration_unit() {}
 };
 
-template <typename T, FMT_ENABLE_IF(std::is_integral<T>::value)>
+template <typename T,
+          FMT_ENABLE_IF(std::is_integral<T>::value&& has_isfinite<T>::value)>
 inline bool isfinite(T) {
   return true;
 }
@@ -1819,13 +1848,15 @@ struct chrono_formatter {
     }
   }
 
-  void write(Rep value, int width) {
+  void write(Rep value, int width, pad_type pad = pad_type::unspecified) {
     write_sign();
     if (isnan(value)) return write_nan();
     uint32_or_64_or_128_t<int> n =
         to_unsigned(to_nonnegative_int(value, max_value<int>()));
     int num_digits = detail::count_digits(n);
-    if (width > num_digits) out = std::fill_n(out, width - num_digits, '0');
+    if (width > num_digits) {
+      out = detail::write_padding(out, pad, width - num_digits);
+    }
     out = format_decimal<char_type>(out, n, num_digits).end;
   }
 
@@ -1874,34 +1905,34 @@ struct chrono_formatter {
   void on_day_of_month(numeric_system) {}
   void on_day_of_month_space(numeric_system) {}
 
-  void on_24_hour(numeric_system ns) {
+  void on_24_hour(numeric_system ns, pad_type pad) {
     if (handle_nan_inf()) return;
 
-    if (ns == numeric_system::standard) return write(hour(), 2);
+    if (ns == numeric_system::standard) return write(hour(), 2, pad);
     auto time = tm();
     time.tm_hour = to_nonnegative_int(hour(), 24);
-    format_tm(time, &tm_writer_type::on_24_hour, ns);
+    format_tm(time, &tm_writer_type::on_24_hour, ns, pad);
   }
 
-  void on_12_hour(numeric_system ns) {
+  void on_12_hour(numeric_system ns, pad_type pad) {
     if (handle_nan_inf()) return;
 
-    if (ns == numeric_system::standard) return write(hour12(), 2);
+    if (ns == numeric_system::standard) return write(hour12(), 2, pad);
     auto time = tm();
     time.tm_hour = to_nonnegative_int(hour12(), 12);
-    format_tm(time, &tm_writer_type::on_12_hour, ns);
+    format_tm(time, &tm_writer_type::on_12_hour, ns, pad);
   }
 
-  void on_minute(numeric_system ns) {
+  void on_minute(numeric_system ns, pad_type pad) {
     if (handle_nan_inf()) return;
 
-    if (ns == numeric_system::standard) return write(minute(), 2);
+    if (ns == numeric_system::standard) return write(minute(), 2, pad);
     auto time = tm();
     time.tm_min = to_nonnegative_int(minute(), 60);
-    format_tm(time, &tm_writer_type::on_minute, ns);
+    format_tm(time, &tm_writer_type::on_minute, ns, pad);
   }
 
-  void on_second(numeric_system ns) {
+  void on_second(numeric_system ns, pad_type pad) {
     if (handle_nan_inf()) return;
 
     if (ns == numeric_system::standard) {
@@ -1910,10 +1941,12 @@ struct chrono_formatter {
         write_floating_seconds(buf, std::chrono::duration<rep, Period>(val),
                                precision);
         if (negative) *out++ = '-';
-        if (buf.size() < 2 || buf[1] == '.') *out++ = '0';
+        if (buf.size() < 2 || buf[1] == '.') {
+          out = detail::write_padding(out, pad);
+        }
         out = std::copy(buf.begin(), buf.end(), out);
       } else {
-        write(second(), 2);
+        write(second(), 2, pad);
         write_fractional_seconds<char_type>(
             out, std::chrono::duration<rep, Period>(val), precision);
       }
@@ -1921,7 +1954,7 @@ struct chrono_formatter {
     }
     auto time = tm();
     time.tm_sec = to_nonnegative_int(second(), 60);
-    format_tm(time, &tm_writer_type::on_second, ns);
+    format_tm(time, &tm_writer_type::on_second, ns, pad);
   }
 
   void on_12_hour_time() {
@@ -1945,7 +1978,7 @@ struct chrono_formatter {
     on_24_hour_time();
     *out++ = ':';
     if (handle_nan_inf()) return;
-    on_second(numeric_system::standard);
+    on_second(numeric_system::standard, pad_type::unspecified);
   }
 
   void on_am_pm() {
@@ -1964,7 +1997,7 @@ struct chrono_formatter {
   }
 };
 
-FMT_END_DETAIL_NAMESPACE
+}  // namespace detail
 
 #if defined(__cpp_lib_chrono) && __cpp_lib_chrono >= 201907
 using weekday = std::chrono::weekday;
@@ -2109,8 +2142,9 @@ struct formatter<std::chrono::time_point<std::chrono::system_clock, Duration>,
           epoch - std::chrono::duration_cast<std::chrono::seconds>(epoch));
 
       if (subsecs.count() < 0) {
-        auto second = std::chrono::seconds(1);
-        if (epoch.count() < (Duration::min() + second).count())
+        auto second =
+            std::chrono::duration_cast<Duration>(std::chrono::seconds(1));
+        if (epoch.count() < ((Duration::min)() + second).count())
           FMT_THROW(format_error("duration is too small"));
         subsecs += second;
         val -= second;
@@ -2228,7 +2262,7 @@ template <typename Char> struct formatter<std::tm, Char> {
   }
 };
 
-FMT_MODULE_EXPORT_END
+FMT_END_EXPORT
 FMT_END_NAMESPACE
 
 #endif  // FMT_CHRONO_H_
