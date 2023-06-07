@@ -178,6 +178,7 @@
 		3C46E8622614227300DC9D4F /* VGRender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C46E8512614227200DC9D4F /* VGRender.cpp */; };
 		3C46E8632614227300DC9D4F /* Content.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C46E8562614227300DC9D4F /* Content.mm */; };
 		3C47CF1128A356B40011F3E1 /* Cache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C47CF1028A356B40011F3E1 /* Cache.cpp */; };
+		3C49068F2A2EC5530084A5F4 /* YarnCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49068E2A2EC5530084A5F4 /* YarnCompiler.cpp */; };
 		3C49FFE820EF609700E775D7 /* nanovg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFE120EF609600E775D7 /* nanovg.cpp */; };
 		3C49FFE920EF609700E775D7 /* nanovg_bgfx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFE720EF609700E775D7 /* nanovg_bgfx.cpp */; };
 		3C49FFEF20EF644900E775D7 /* stb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFEE20EF644900E775D7 /* stb.cpp */; };
@@ -855,6 +856,8 @@
 		3C46E8562614227300DC9D4F /* Content.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Content.mm; path = ../../../Source/Basic/Content.mm; sourceTree = "<group>"; };
 		3C47CF0F28A356B30011F3E1 /* Cache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Cache.h; path = ../../../Source/Cache/Cache.h; sourceTree = "<group>"; };
 		3C47CF1028A356B40011F3E1 /* Cache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Cache.cpp; path = ../../../Source/Cache/Cache.cpp; sourceTree = "<group>"; };
+		3C49068D2A2EC5530084A5F4 /* YarnCompiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YarnCompiler.h; path = ../../../Source/Lua/Yarn/YarnCompiler.h; sourceTree = "<group>"; };
+		3C49068E2A2EC5530084A5F4 /* YarnCompiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = YarnCompiler.cpp; path = ../../../Source/Lua/Yarn/YarnCompiler.cpp; sourceTree = "<group>"; };
 		3C49FFE120EF609600E775D7 /* nanovg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = nanovg.cpp; path = ../../../Source/3rdParty/nanovg/nanovg.cpp; sourceTree = "<group>"; };
 		3C49FFE220EF609600E775D7 /* vs_nanovg_fill.bin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vs_nanovg_fill.bin.h; path = ../../../Source/3rdParty/nanovg/vs_nanovg_fill.bin.h; sourceTree = "<group>"; };
 		3C49FFE320EF609700E775D7 /* fontstash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fontstash.h; path = ../../../Source/3rdParty/nanovg/fontstash.h; sourceTree = "<group>"; };
@@ -1932,6 +1935,15 @@
 				3C46E82D26140A8F00DC9D4F /* VariadicBind.h */,
 			);
 			name = sqlite;
+			sourceTree = "<group>";
+		};
+		3C49068C2A2EC4590084A5F4 /* Yarn */ = {
+			isa = PBXGroup;
+			children = (
+				3C49068E2A2EC5530084A5F4 /* YarnCompiler.cpp */,
+				3C49068D2A2EC5530084A5F4 /* YarnCompiler.h */,
+			);
+			name = Yarn;
 			sourceTree = "<group>";
 		};
 		3C49FFE020EF607900E775D7 /* nanovg */ = {
@@ -3075,6 +3087,7 @@
 		3CFF5F221E012874004E3CA6 /* Lua */ = {
 			isa = PBXGroup;
 			children = (
+				3C49068C2A2EC4590084A5F4 /* Yarn */,
 				3C03CBE02A18953400383FAE /* Xml */,
 				3C1D40ED2702FD6800202534 /* Builtin */,
 				3C7708341E08D98F00B38C2A /* ToLua */,
@@ -3532,6 +3545,7 @@
 				3CC794602579F9B000042394 /* yuescript.cpp in Sources */,
 				3C030CA124CABDFE0074786E /* DecisionTree.cpp in Sources */,
 				3C77082E1E08C72900B38C2A /* LuaManual.cpp in Sources */,
+				3C49068F2A2EC5530084A5F4 /* YarnCompiler.cpp in Sources */,
 				3C3B986226FDAD8E00BD9F3E /* DistanceConf.cpp in Sources */,
 				3C0C774727535A520030BDCD /* miniz.c in Sources */,
 				3CF10EC82874AE7E00940268 /* Extension.cpp in Sources */,
