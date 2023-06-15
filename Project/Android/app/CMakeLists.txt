@@ -152,6 +152,7 @@ add_library(main SHARED
 	src/main/cpp/Lua/ToLua/tolua_is.cpp
 	src/main/cpp/Lua/Xml/DorothyTag.cpp
 	src/main/cpp/Lua/Xml/XmlResolver.cpp
+	src/main/cpp/Lua/Yarn/YarnCompiler.cpp
 	src/main/cpp/Test/Test.cpp
 	src/main/cpp/Test/HelloWorldCpp.cpp
 	src/main/cpp/3rdParty/yuescript/yue_compiler.cpp

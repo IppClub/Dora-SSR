@@ -20,6 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Lua/Xml/DorothyTag.h"
 #include "Lua/Xml/XmlResolver.h"
+#include "Lua/Yarn/YarnCompiler.h"
 
 extern "C" {
 int luaopen_yue(lua_State* L);
@@ -719,6 +720,29 @@ tolua_lerror:
 #endif
 }
 
+static int dora_yarn_compile(lua_State* L) {
+	size_t len = 0;
+	const char* str = luaL_checklstring(L, 1, &len);
+	Slice codes{str, len};
+	auto res = yarn::compile({codes.rawData(), codes.size()});
+	if (res.error) {
+		const auto& error = res.error.value();
+		lua_pushnil(L);
+		tolua_pushslice(L, error.displayMessage);
+		lua_createtable(L, 0, 0);
+		tolua_pushslice(L, error.msg);
+		lua_rawseti(L, -2, 1);
+		lua_pushinteger(L, error.line);
+		lua_rawseti(L, -2, 2);
+		lua_pushinteger(L, error.col);
+		lua_rawseti(L, -2, 3);
+		return 3;
+	} else {
+		tolua_pushslice(L, res.codes);
+		return 1;
+	}
+}
+
 static int dora_yue_clear(lua_State* L) {
 	yue::YueCompiler::clear(L);
 	return 0;
@@ -781,6 +805,7 @@ LuaEngine::LuaEngine()
 	{
 		tolua_function(L, "ubox", dora_ubox);
 		tolua_function(L, "emit", dora_emit);
+		tolua_function(L, "yarncompile", dora_yarn_compile);
 
 		tolua_beginmodule(L, "Application");
 		{

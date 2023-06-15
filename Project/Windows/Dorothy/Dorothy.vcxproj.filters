@@ -229,6 +229,9 @@
     <Filter Include="Lua\Xml">
       <UniqueIdentifier>{0103014a-643f-4f1c-83c2-7f0593043ea4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Lua\Yarn">
+      <UniqueIdentifier>{6a97e199-f34a-4842-9583-d63dbc7d146d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
@@ -1454,6 +1457,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Lua\Xml\XmlResolver.cpp">
       <Filter>Lua\Xml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\Yarn\YarnCompiler.cpp">
+      <Filter>Lua\Yarn</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3005,6 +3011,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Lua\Xml\XmlResolver.h">
       <Filter>Lua\Xml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\Yarn\YarnCompiler.h">
+      <Filter>Lua\Yarn</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

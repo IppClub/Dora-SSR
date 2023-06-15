@@ -8,6 +8,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-NS_DOROTHY_BEGIN
+namespace yarn {
 
-NS_DOROTHY_END
+struct CompileInfo {
+	std::string codes;
+	struct Error {
+		std::string msg;
+		int line;
+		int col;
+		std::string displayMessage;
+	};
+	std::optional<Error> error;
+};
+
+CompileInfo compile(std::string_view codes);
+
+} // namespace yarn

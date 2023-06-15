@@ -8670,10 +8670,14 @@ tl.type_check = function(ast, opts)
 			return TUPLE({ BOOLEAN })
 		end
 
+
 		local ftype = table.remove(b, 1)
-		local fe2 = {}
-		if node.e1.tk == "xpcall" then
+		ftype = shallow_copy_type(ftype)
+		ftype.is_method = false
+
+ 		if node.e1.tk == "xpcall" then
 			base_nargs = 2
+		local ftype = table.remove(b, 1)
 			local msgh = table.remove(b, 1)
 			assert_is_a(node.e2[2], msgh, XPCALL_MSGH_FUNCTION, "in message handler")
 		end
