@@ -139,6 +139,8 @@
 		3C25B874257A7F8B002DD8E1 /* parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C25B86F257A7F8B002DD8E1 /* parser.cpp */; };
 		3C28C0A22772CFE4007FC76E /* Grid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C28C0A12772CFE4007FC76E /* Grid.cpp */; };
 		3C28C0A32772CFE4007FC76E /* Grid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C28C0A12772CFE4007FC76E /* Grid.cpp */; };
+		3C33A3CA2A3AF3C300E60A14 /* YarnCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C33A3C92A3AF3C300E60A14 /* YarnCompiler.cpp */; };
+		3C33A3CB2A3AF3C300E60A14 /* YarnCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C33A3C92A3AF3C300E60A14 /* YarnCompiler.cpp */; };
 		3C3B990A26FDAFE700BD9F3E /* Joint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B98F026FDAFE600BD9F3E /* Joint.cpp */; };
 		3C3B990B26FDAFE700BD9F3E /* RopeJointConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B98F126FDAFE600BD9F3E /* RopeJointConf.cpp */; };
 		3C3B990C26FDAFE700BD9F3E /* LimitState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B98F326FDAFE600BD9F3E /* LimitState.cpp */; };
@@ -1081,6 +1083,8 @@
 		3C25B86F257A7F8B002DD8E1 /* parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = parser.cpp; path = ../../../Source/3rdParty/yuescript/parser.cpp; sourceTree = "<group>"; };
 		3C28C0A02772CFE4007FC76E /* Grid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Grid.h; path = ../../../Source/Node/Grid.h; sourceTree = "<group>"; };
 		3C28C0A12772CFE4007FC76E /* Grid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Grid.cpp; path = ../../../Source/Node/Grid.cpp; sourceTree = "<group>"; };
+		3C33A3C82A3AF3C300E60A14 /* YarnCompiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YarnCompiler.h; path = ../../../Source/Lua/Yarn/YarnCompiler.h; sourceTree = "<group>"; };
+		3C33A3C92A3AF3C300E60A14 /* YarnCompiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = YarnCompiler.cpp; path = ../../../Source/Lua/Yarn/YarnCompiler.cpp; sourceTree = "<group>"; };
 		3C3B98ED26FDAFE600BD9F3E /* RevoluteJointConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RevoluteJointConf.hpp; sourceTree = "<group>"; };
 		3C3B98EE26FDAFE600BD9F3E /* MotorJointConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MotorJointConf.hpp; sourceTree = "<group>"; };
 		3C3B98EF26FDAFE600BD9F3E /* WheelJointConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WheelJointConf.hpp; sourceTree = "<group>"; };
@@ -2599,6 +2603,15 @@
 			name = yuescript;
 			sourceTree = "<group>";
 		};
+		3C33A3C72A3AF39A00E60A14 /* Yarn */ = {
+			isa = PBXGroup;
+			children = (
+				3C33A3C92A3AF3C300E60A14 /* YarnCompiler.cpp */,
+				3C33A3C82A3AF3C300E60A14 /* YarnCompiler.h */,
+			);
+			name = Yarn;
+			sourceTree = "<group>";
+		};
 		3C41D60721490CCD003FDDFE /* nanovg */ = {
 			isa = PBXGroup;
 			children = (
@@ -3539,6 +3552,7 @@
 		3CFF5F351E013708004E3CA6 /* Lua */ = {
 			isa = PBXGroup;
 			children = (
+				3C33A3C72A3AF39A00E60A14 /* Yarn */,
 				3C03CBF82A1B6A4E00383FAE /* Xml */,
 				3C1D40F42702FFAB00202534 /* Builtin */,
 				3C77083D1E08D9F500B38C2A /* ToLua */,
@@ -4036,6 +4050,7 @@
 				3CBE0E4626087F7B003F4F45 /* ModelDef.cpp in Sources */,
 				3CBE0E4926087F7B003F4F45 /* DebugDraw.cpp in Sources */,
 				3C1A3BD9272A8820003A2829 /* ldump.c in Sources */,
+				3C33A3CB2A3AF3C300E60A14 /* YarnCompiler.cpp in Sources */,
 				3CF10FB72874C81C00940268 /* EventTimeline.cpp in Sources */,
 				3CF10FBB2874C81C00940268 /* PointAttachment.cpp in Sources */,
 				3CBE0E4B26087F7B003F4F45 /* View.cpp in Sources */,
@@ -4452,6 +4467,7 @@
 				3C0AD7BD1E0CE95F0033AD59 /* EventType.cpp in Sources */,
 				3CAA2D1526155DB3004443A6 /* Backup.cpp in Sources */,
 				3C1A3BD4272A8820003A2829 /* lmem.c in Sources */,
+				3C33A3CA2A3AF3C300E60A14 /* YarnCompiler.cpp in Sources */,
 				3CF10FB62874C81C00940268 /* EventTimeline.cpp in Sources */,
 				3CF10FBA2874C81C00940268 /* PointAttachment.cpp in Sources */,
 				3C3B99F426FDB08000BD9F3E /* WorldManifold.cpp in Sources */,

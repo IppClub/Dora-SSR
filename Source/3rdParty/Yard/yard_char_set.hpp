@@ -133,7 +133,7 @@ namespace yard
     CharSetUnion() : CharSetBase() {
       const T0 x0;
       const T1 x1;
-      for (size_t i=0; i<size; i++) {
+      for (uint8_t i=0; i<(uint8_t)size; i++) {
         a[i] = x0[i] || x1[i];
       }
     }
