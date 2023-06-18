@@ -724,7 +724,8 @@ static int dora_yarn_compile(lua_State* L) {
 	size_t len = 0;
 	const char* str = luaL_checklstring(L, 1, &len);
 	Slice codes{str, len};
-	auto res = yarn::compile({codes.rawData(), codes.size()});
+	bool dora = lua_toboolean(L, 2) != 0;
+	auto res = yarn::compile({codes.rawData(), codes.size()}, dora);
 	if (res.error) {
 		const auto& error = res.error.value();
 		lua_pushnil(L);

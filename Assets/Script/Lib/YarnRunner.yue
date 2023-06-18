@@ -1,0 +1,125 @@
+import "yarncompile"
+import "Content"
+import "json"
+
+yarn = {}
+
+rewriteError = (err, luaCode, title)->
+	line, msg = err\match ".*:(%d+):%s*(.*)"
+	line = tonumber line
+	current = 1
+	lastLine = 1
+	lineMap = {}
+	for lineCode in luaCode\gmatch "[^\n\r]*"
+		num = lineCode\match "--%s*(%d+)%s*$"
+		lastLine = tonumber num if num
+		lineMap[current] = lastLine
+		current += 1
+	line = lineMap[line] or line
+	"#{title}:#{line}: #{msg}"
+
+export default class YarnRunner
+	gotoStory: (title)=>
+		storyFunc = @funcs[title]
+		unless storyFunc
+			yarnCode = @codes[title]
+			luaCode, err = yarncompile yarnCode, @doraSyntax
+			print luaCode
+			unless luaCode
+				if @startTitle
+					return false, "#{title}:#{err}"
+				else
+					coroutine.yield "Error", "#{title}:#{err}"
+					return
+			@codes[title] = luaCode
+			luaFunc, err = load luaCode, title
+			unless luaFunc
+				err = rewriteError err, luaCode, title
+				if @startTitle
+					return false, err
+				else
+					coroutine.yield "Error", err
+					return
+			storyFunc = luaFunc!
+			@funcs[title] = storyFunc
+		@branches = {}
+		@stories = {} unless @doraSyntax
+		@stories[] = {title, coroutine.create ->
+			storyFunc title, @state, @command, yarn, @\gotoStory
+		}
+		true
+
+	new: (filename, startTitle, state = {}, command = {}, testing = false, doraSyntax = false)=>
+		@codes = {}
+		@funcs = {}
+		@state = state
+		@command = command
+		@stories = {}
+		@startTitle = startTitle
+		@branches = {}
+		@doraSyntax = doraSyntax
+		jsonCode = Content\load filename
+		error "failed to read yarn file \"#{filename}\"" unless jsonCode
+		jsonObject = json.load jsonCode
+		error "failed to load yarn json code" unless jsonObject
+		if testing
+			if variables = jsonObject.header?.pluginStorage?.Runner?.variables
+				for {:key, :value} in *variables
+					switch value when "true"
+						state[key] = true
+					when "false"
+						state[key] = false
+					else
+						if num = tonumber value
+							state[key] = num
+						else
+							state[key] = value
+		if nodes = jsonObject.nodes
+			for node in *nodes
+				:title, :body = node
+				@codes[title] = body
+
+	advance: (choice)=>
+		if @startTitle
+			success, err = @gotoStory @startTitle
+			@startTitle = nil
+			return nil, err unless success
+		if choice
+			unless @option
+				return nil, "there is no option to choose"
+			:title, :branches = @option
+			if choice not in [1, #branches]
+				return nil, "choice #{choice} is out of range"
+			optionBranch = branches[choice]
+			@option = nil
+			@branches[] = {title, coroutine.create optionBranch}
+		local title
+		success, resultType, body, branches = if branchItem = @branches[#@branches]
+			{title, branch} = branchItem
+			coroutine.resume branch
+		elseif storyItem = @stories[#@stories]
+			{title, story} = storyItem
+			coroutine.resume story
+		if not success and #@stories > 0
+			@stories = {}
+			err = rewriteError resultType, @codes[title], title
+			return nil, err
+		unless resultType
+			if #@stories > 0
+				@stories[#@stories] = nil
+				return @advance!
+		switch resultType
+			when "Dialog"
+				"Text", body
+			when "Option"
+				@option = {:title, :branches}
+				"Option", body
+			when "Goto"
+				@advance!
+			when "Command"
+				"Command", body
+			when "Error"
+				@stories = {}
+				nil, body
+			else
+				nil
