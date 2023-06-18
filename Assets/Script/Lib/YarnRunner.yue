@@ -24,7 +24,6 @@ export default class YarnRunner
 		unless storyFunc
 			yarnCode = @codes[title]
 			luaCode, err = yarncompile yarnCode, @doraSyntax
-			print luaCode
 			unless luaCode
 				if @startTitle
 					return false, "#{title}:#{err}"
@@ -42,7 +41,6 @@ export default class YarnRunner
 					return
 			storyFunc = luaFunc!
 			@funcs[title] = storyFunc
-		@branches = {}
 		@stories = {} unless @doraSyntax
 		@stories[] = {title, coroutine.create ->
 			storyFunc title, @state, @command, yarn, @\gotoStory
@@ -56,7 +54,6 @@ export default class YarnRunner
 		@command = command
 		@stories = {}
 		@startTitle = startTitle
-		@branches = {}
 		@doraSyntax = doraSyntax
 		jsonCode = Content\load filename
 		error "failed to read yarn file \"#{filename}\"" unless jsonCode
@@ -92,12 +89,9 @@ export default class YarnRunner
 				return nil, "choice #{choice} is out of range"
 			optionBranch = branches[choice]
 			@option = nil
-			@branches[] = {title, coroutine.create optionBranch}
+			@stories[] = {title, coroutine.create optionBranch}
 		local title
-		success, resultType, body, branches = if branchItem = @branches[#@branches]
-			{title, branch} = branchItem
-			coroutine.resume branch
-		elseif storyItem = @stories[#@stories]
+		success, resultType, body, branches = if storyItem = @stories[#@stories]
 			{title, story} = storyItem
 			coroutine.resume story
 		if not success and #@stories > 0

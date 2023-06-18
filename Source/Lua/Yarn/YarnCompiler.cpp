@@ -118,16 +118,19 @@ AST_LEAF(Title)
 AST_END(Title, "title"sv)
 
 AST_LEAF(CharName)
-AST_END(CharName, "charName"sv)
+AST_END(CharName, "char_name"sv)
 
 AST_NODE(Character)
 	ast_ptr<true, CharName_t> name;
 	AST_MEMBER(Character, &name)
 AST_END(Character, "character"sv)
 
+AST_LEAF(AttributeValue)
+AST_END(AttributeValue, "attribute_value"sv)
+
 AST_NODE(Attribute)
 	ast_ptr<true, Name_t> name;
-	ast_ptr<true, Value_t> value;
+	ast_sel<true, Value_t, String_t, AttributeValue_t> value;
 	AST_MEMBER(Attribute, &name, &value)
 AST_END(Attribute, "attribute"sv)
 
@@ -137,7 +140,7 @@ AST_END(MarkupClose, "markup_close"sv)
 AST_NODE(Markup)
 	ast_ptr<false, MarkupClose_t> pre;
 	ast_ptr<true, Name_t> name;
-	ast_ptr<false, Value_t> value;
+	ast_sel<false, Value_t, String_t, AttributeValue_t> value;
 	ast_ptr<true, Seperator_t> sep;
 	ast_list<false, Attribute_t> attrs;
 	ast_ptr<false, MarkupClose_t> post;
@@ -671,11 +674,13 @@ public:
 
 			Boolean = (expr("true") | "false") >> not_alpha_num;
 
-			Attribute = Name >> '=' >> Value;
+			AttributeValue = +(not_(line_break | space_one | ']' | "/]") >> any_char);
+
+			Attribute = Name >> '=' >> (String | AttributeValue);
 
 			MarkupClose = true_();
 
-			Markup = '[' >> -('/' >> MarkupClose) >> Name >> -('=' >> Value) >> Seperator >> *(space >> Attribute) >> space >> (']' | "/]" >> MarkupClose >> -space_one);
+			Markup = '[' >> -('/' >> MarkupClose) >> Name >> -('=' >> (String | AttributeValue)) >> Seperator >> *(space >> Attribute) >> space >> (']' | "/]" >> MarkupClose >> -space_one);
 
 			Text = '\\' >> set("[#{<") | +(not_(line_break | Markup | '#' | "<<" | '{') >> any_char);
 
@@ -869,6 +874,7 @@ private:
 	AST_RULE(OptionGroup);
 	AST_RULE(MarkupClose);
 	AST_RULE(Attribute);
+	AST_RULE(AttributeValue);
 	AST_RULE(Markup);
 	AST_RULE(Text);
 	AST_RULE(NumHex);
@@ -1059,19 +1065,33 @@ public:
 	struct MarkupItem {
 		std::string name;
 		std::list<AttributeItem> attrs;
-		int begin = -1;
-		int end = -1;
+		std::string begin;
+		std::string end;
 	};
+
+	void transformAttributeValue(ast_node* value, str_list& out) {
+		switch (value->getId()) {
+			case id<Value_t>():
+				transformValue(static_cast<Value_t*>(value), out);
+				break;
+			case id<String_t>():
+				transformString(static_cast<String_t*>(value), out);
+				break;
+			case id<AttributeValue_t>():
+				out.push_back("[==========["s + _parser.toString(value) + "]==========]"s);
+				break;
+			default: YUEE("AST node mismatch", value); break;
+		}
+	}
 
 	void transformDialog(Dialog_t* dialog, str_list& out) {
 		auto x = dialog;
 		str_list texts;
 		std::list<MarkupItem> markups;
-		int length = 0;
+		std::string length("0"sv);
 		if (dialog->character) {
 			auto& markup = markups.emplace_back();
 			markup.name = "Character"s;
-			markup.begin = markup.end = 0;
 			auto& attr = markup.attrs.emplace_back();
 			attr.name = "name"s;
 			attr.value = "[==========["s + _parser.toString(dialog->character->name) + "]==========]"s;
@@ -1092,7 +1112,7 @@ public:
 			switch (token->getId()) {
 				case id<Text_t>(): {
 					auto text = static_cast<Text_t*>(token);
-					length += static_cast<int>(std::distance(token->m_begin.m_it, token->m_end.m_it));
+					length += " + "s + std::to_string(static_cast<int>(std::distance(token->m_begin.m_it, token->m_end.m_it)));
 					texts.push_back(_parser.toString(text));
 					break;
 				}
@@ -1100,6 +1120,7 @@ public:
 					auto exp = static_cast<Exp_t*>(token);
 					str_list temp;
 					transformExp(exp, temp);
+					length += " + "s + "utf8.len(tostring("s + temp.back() + "))"s;
 					texts.push_back("\" .. tostring("s + temp.back() + ") .. \""s);
 					break;
 				}
@@ -1109,8 +1130,8 @@ public:
 						auto name = _parser.toString(markup->name);
 						bool found = false;
 						for (auto it = markups.rbegin(); it != markups.rend(); ++it) {
-							if (it->name == name && it->end < 0) {
-								it->end = length - 1;
+							if (it->name == name && it->end.empty()) {
+								it->end = length + " - 1"s;
 								found = true;
 								break;
 							}
@@ -1122,7 +1143,7 @@ public:
 						item.begin = length;
 						if (markup->value) {
 							str_list temp;
-							transformValue(markup->value, temp);
+							transformAttributeValue(markup->value, temp);
 							auto& attr = item.attrs.emplace_back();
 							attr.name = item.name;
 							attr.value = temp.back();
@@ -1132,7 +1153,7 @@ public:
 							auto& attr = item.attrs.emplace_back();
 							attr.name = _parser.toString(attrNode->name);
 							str_list temp;
-							transformValue(attrNode->value, temp);
+							transformAttributeValue(attrNode->value, temp);
 							attr.value = temp.back();
 						}
 					}
@@ -1142,15 +1163,13 @@ public:
 			}
 		}
 		for (auto& markup : markups) {
-			if (markup.end < 0) {
-				markup.end = length - 1;
+			if (!markup.begin.empty() && markup.end.empty()) {
+				markup.end = length + " - 1"s;
 			}
 		}
 		_buf << '{' << nl(x);
 		incIndentOffset();
-		auto text = join(texts);
-		Utils::trim(text);
-		_buf << indent() << "text = \""sv << text << "\","sv << nl(x);
+		_buf << indent() << "text = \""sv << join(texts) << "\","sv << nl(x);
 		_buf << indent() << "title = title,"sv << nl(x);
 		if (!markups.empty()) {
 			_buf << indent() << "marks = {"sv << nl(x);
@@ -1159,11 +1178,11 @@ public:
 				_buf << indent() << '{' << nl(x);
 				incIndentOffset();
 				_buf << indent() << "name = \""sv << markup.name << "\","sv << nl(x);
-				if (markup.begin > 0) {
-					_buf << indent() << "start = "sv << markup.begin + 1 << ',' << nl(x);
+				if (!markup.begin.empty()) {
+					_buf << indent() << "start = "sv << markup.begin << " + 1,"sv << nl(x);
 				}
-				if (markup.end > 0) {
-					_buf << indent() << "stop = "sv << markup.end + 1 << ","sv << nl(x);
+				if (!markup.end.empty()) {
+					_buf << indent() << "stop = "sv << markup.end << " + 1,"sv << nl(x);
 				}
 				if (!markup.attrs.empty()) {
 					_buf << indent() << "attrs = {"sv << nl(x);
