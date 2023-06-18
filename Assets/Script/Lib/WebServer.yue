@@ -66,7 +66,7 @@ luaCheck = (file, content)->
 		info = for item in *info
 			useCheck = true
 			for check in *disabledCheckForLua
-				if item[5]\match check
+				if not item[5]\match("unused") and item[5]\match check
 					useCheck = false
 			continue unless useCheck
 			item
@@ -132,7 +132,9 @@ HttpServer\postSchedule "/check", (req)->
 			luaCodes, info = yueCheck file, content
 			success = false
 			if luaCodes
-				success, info = luaCheckWithLineInfo file, luaCodes
+				luaSuccess, luaInfo = luaCheckWithLineInfo file, luaCodes
+				info = {...info, ...luaInfo}
+				success and= luaSuccess
 			return if #info > 0
 				:success, :info
 			else
