@@ -304,12 +304,6 @@ export const Input = function(app) {
 				}
 			}
 		});
-
-		$(document).on('keydown', function(e) {
-			if (!app.inEditor()) return;
-
-			app.updateEditorStats(true);
-		});
 	};
 
 	// initKnockoutBindings

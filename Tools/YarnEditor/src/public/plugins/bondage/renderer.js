@@ -139,7 +139,7 @@ export var yarnRender = function(app) {
 				switch (item.name) {
 					case "character": {
 						const {properties: {name}} = item;
-						text = `${name}: ${text}`;
+						text = `[color=fbc400]${name}:[/color] ${text}`;
 						break;
 					}
 					case "b":
