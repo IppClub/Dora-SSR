@@ -377,207 +377,367 @@ public:
 		int col;
 	};
 
-	YarnParser() {
-		plain_space = *set(" \t");
-		line_break = nl(-expr('\r') >> '\n');
-		any_char = line_break | any();
-		stop = line_break | eof();
-		comment = "##" >> *(not_(set("\r\n")) >> any_char) >> and_(stop);
-		space_one = set(" \t");
-		space = -(and_(set(" \t-\\")) >> *space_one >> -comment);
-		space_break = space >> line_break;
-		white = space >> *(line_break >> space);
-		alpha_num = range('a', 'z') | range('A', 'Z') | range('0', '9') | '_';
-		not_alpha_num = not_(alpha_num);
-		Name = (range('a', 'z') | range('A', 'Z') | '_') >> *alpha_num;
-		num_expo = set("eE") >> -set("+-") >> num_char;
-		num_expo_hex = set("pP") >> -set("+-") >> num_char;
-		num_char = range('0', '9') >> *(range('0', '9') | '_' >> and_(range('0', '9')));
-		num_char_hex = range('0', '9') | range('a', 'f') | range('A', 'F');
-		num_lit = num_char_hex >> *(num_char_hex | '_' >> and_(num_char_hex));
-		Num = "0x" >> (+num_lit >> ('.' >> +num_lit >> -num_expo_hex | num_expo_hex | true_()) | ('.' >> +num_lit >> -num_expo_hex)) | +num_char >> ('.' >> +num_char >> -num_expo | num_expo | true_()) | '.' >> +num_char >> -num_expo;
+	YarnParser(bool dora) {
+		if (dora) {
+			plain_space = *set(" \t");
+			line_break = nl(-expr('\r') >> '\n');
+			any_char = line_break | any();
+			stop = line_break | eof();
+			comment = "##" >> *(not_(set("\r\n")) >> any_char) >> and_(stop);
+			space_one = set(" \t");
+			space = -(and_(set(" \t-\\")) >> *space_one >> -comment);
+			space_break = space >> line_break;
+			white = space >> *(line_break >> space);
+			alpha_num = range('a', 'z') | range('A', 'Z') | range('0', '9') | '_';
+			not_alpha_num = not_(alpha_num);
+			Name = (range('a', 'z') | range('A', 'Z') | '_') >> *alpha_num;
+			num_expo = set("eE") >> -set("+-") >> num_char;
+			num_expo_hex = set("pP") >> -set("+-") >> num_char;
+			num_char = range('0', '9') >> *(range('0', '9') | '_' >> and_(range('0', '9')));
+			num_char_hex = range('0', '9') | range('a', 'f') | range('A', 'F');
+			num_lit = num_char_hex >> *(num_char_hex | '_' >> and_(num_char_hex));
+			Num = "0x" >> (+num_lit >> ('.' >> +num_lit >> -num_expo_hex | num_expo_hex | true_()) | ('.' >> +num_lit >> -num_expo_hex)) | +num_char >> ('.' >> +num_char >> -num_expo | num_expo | true_()) | '.' >> +num_char >> -num_expo;
 
-		cut = false_();
-		Seperator = true_();
+			cut = false_();
+			Seperator = true_();
 
-		empty_block_error = pl::user(true_(), [](const item_t& item) {
-			throw ParserError("must be followed by a statement or an indented block"sv, item.begin);
-			return false;
-		});
+			empty_block_error = pl::user(true_(), [](const item_t& item) {
+				throw ParserError("must be followed by a statement or an indented block"sv, item.begin);
+				return false;
+			});
 
-		indentation_error = pl::user(not_(eof()), [](const item_t& item) {
-			throw ParserError("unexpected indent"sv, item.begin);
-			return false;
-		});
+			indentation_error = pl::user(not_(eof()), [](const item_t& item) {
+				throw ParserError("unexpected indent"sv, item.begin);
+				return false;
+			});
 
-		#define ensure(patt, finally) ((patt) >> (finally) | (finally) >> cut)
-		#define key(str) (expr(str) >> not_alpha_num)
+			#define ensure(patt, finally) ((patt) >> (finally) | (finally) >> cut)
+			#define key(str) (expr(str) >> not_alpha_num)
 
-		check_indent = pl::user(plain_space, [](const item_t& item) {
-			int indent = 0;
-			for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
-				switch (*i) {
-					case ' ': indent++; break;
-					case '\t': indent += 4; break;
+			check_indent = pl::user(plain_space, [](const item_t& item) {
+				int indent = 0;
+				for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
+					switch (*i) {
+						case ' ': indent++; break;
+						case '\t': indent += 4; break;
+					}
 				}
-			}
-			State* st = reinterpret_cast<State*>(item.user_data);
-			return st->indents.top() == indent;
-		});
-		check_indent_match = and_(check_indent);
+				State* st = reinterpret_cast<State*>(item.user_data);
+				return st->indents.top() == indent;
+			});
+			check_indent_match = and_(check_indent);
 
-		advance = pl::user(plain_space, [](const item_t& item) {
-			int indent = 0;
-			for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
-				switch (*i) {
-					case ' ': indent++; break;
-					case '\t': indent += 4; break;
+			advance = pl::user(plain_space, [](const item_t& item) {
+				int indent = 0;
+				for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
+					switch (*i) {
+						case ' ': indent++; break;
+						case '\t': indent += 4; break;
+					}
 				}
-			}
-			State* st = reinterpret_cast<State*>(item.user_data);
-			int top = st->indents.top();
-			if (top != -1 && indent > top) {
-				st->indents.push(indent);
+				State* st = reinterpret_cast<State*>(item.user_data);
+				int top = st->indents.top();
+				if (top != -1 && indent > top) {
+					st->indents.push(indent);
+					return true;
+				}
+				return false;
+			});
+			advance_match = and_(advance);
+
+			pop_indent = pl::user(true_(), [](const item_t& item) {
+				State* st = reinterpret_cast<State*>(item.user_data);
+				st->indents.pop();
 				return true;
-			}
-			return false;
-		});
-		advance_match = and_(advance);
+			});
 
-		push_indent = pl::user(plain_space, [](const item_t& item) {
-			int indent = 0;
-			for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
-				switch (*i) {
-					case ' ': indent++; break;
-					case '\t': indent += 4; break;
+			Variable = Name;
+
+			Func = Name >> '(' >> Seperator >> space >> -(Value >> *(space >> ',' >> space >> Value)) >> space >> ')';
+
+			Value = Boolean | Num | String | Func | Variable;
+
+			single_string_inner = '\\' >> set("'\\") | not_('\'') >> any_char;
+			SingleString = '\'' >> *single_string_inner >> '\'';
+
+			interp = "#{" >> space >> Exp >> space >> '}';
+			double_string_plain = '\\' >> set("\"\\") | not_('"') >> any_char;
+			DoubleStringInner = +(not_(interp) >> double_string_plain);
+			DoubleStringContent = DoubleStringInner | interp;
+			DoubleString = '"' >> Seperator >> *DoubleStringContent >> '"';
+			String = DoubleString | SingleString;
+
+			exponential_operator = '^';
+			expo_value = exponential_operator >> *space_break >> space >> Value;
+			expo_exp = Value >> *(space >> expo_value);
+
+			UnaryOperator =
+				'-' >> not_(set(">=") | space_one) |
+				'#' |
+				'~' >> not_('=' | space_one) |
+				key("not");
+
+			UnaryExp = *(UnaryOperator >> space) >> expo_exp;
+
+			BinaryOperator =
+				key("or") |
+				key("and") |
+				"<=" | ">=" | "~=" | "!=" | "==" |
+				".." | "<<" | ">>" | "//" |
+				set("+-*/%><|&~");
+
+			ExpOpValue = BinaryOperator >> *space_break >> space >> UnaryExp;
+
+			Exp = UnaryExp >> *(space >> ExpOpValue);
+
+			Boolean = (expr("true") | "false") >> not_alpha_num;
+
+			Attribute = Name >> '=' >> Value;
+
+			MarkupClose = true_();
+
+			Markup = '[' >> -('/' >> MarkupClose) >> Name >> -('=' >> Value) >> Seperator >> *(space >> Attribute) >> space >> (']' | "/]" >> MarkupClose >> -space_one);
+
+			Text = '\\' >> set("[#") | +(not_(line_break | Markup | '#') >> any_char);
+
+			NumHex = +num_char_hex;
+
+			TagLine = "#line:" >> space >> NumHex;
+
+			TagIf = "#if" >> not_alpha_num >> space >> Exp;
+
+			Tag = '#' >> Name;
+
+			CharName = +(not_(set(":：") | space_one | line_break) >> any_char);
+
+			Character = CharName >> set(":：") >> space_one >> space;
+
+			Dialog = -Character >> Seperator >> +(Text | Markup | interp) >> Seperator >> *(space >> (TagLine | TagIf | Tag));
+
+			Option = "->" >> space >> Dialog >> -in_block;
+
+			OptionGroup = Seperator >> Option >> *(line_break >> *(empty_line_break >> line_break) >> check_indent >> Option);
+
+			Assignment =
+				key("set") >> space >> Variable >> space >> key("to") >> space >> Exp |
+				Variable >> space >> '=' >> space >> Exp;
+
+			Title = +(not_(line_break) >> any_char);
+
+			Goto = key("goto") >> space >> Title;
+
+			Call = Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
+
+			Command = '#' >> (
+				If |
+				Goto |
+				Assignment |
+				Call
+			);
+
+			statement = Command | OptionGroup | Dialog;
+
+			empty_line_break = (
+				check_indent >> comment |
+				advance >> ensure(comment, pop_indent) |
+				plain_space
+			) >> and_(line_break);
+
+			if_else_if = line_break >> *(empty_line_break >> line_break) >> check_indent >> '#' >> space >> key("elseif") >> space >> Exp >> in_block;
+			if_else = line_break >> *(empty_line_break >> line_break) >> check_indent >> '#' >> space >> key("else") >> in_block;
+			If = key("if") >> space >> Seperator >> Exp >> in_block >> *if_else_if >> -if_else;
+
+			line = (
+				empty_line_break |
+				check_indent >> statement |
+				advance_match >> ensure(space >> (indentation_error | statement), pop_indent)
+			);
+
+			in_block = space_break >> *(*set(" \t") >> line_break) >> advance_match >> ensure(Block, pop_indent);
+
+			Block = Seperator >> line >> *(+line_break >> line);
+
+			File = -Block >> white >> stop;
+		} else {
+			plain_space = *set(" \t");
+			line_break = nl(-expr('\r') >> '\n');
+			any_char = line_break | any();
+			stop = line_break | eof();
+			comment = "//" >> *(not_(set("\r\n")) >> any_char) >> and_(stop);
+			space_one = set(" \t");
+			space = -(and_(set(" \t-\\")) >> *space_one >> -comment);
+			space_break = space >> line_break;
+			white = space >> *(line_break >> space);
+			alpha_num = range('a', 'z') | range('A', 'Z') | range('0', '9') | '_';
+			not_alpha_num = not_(alpha_num);
+			Name = (range('a', 'z') | range('A', 'Z') | '_') >> *alpha_num;
+			num_expo = set("eE") >> -set("+-") >> num_char;
+			num_expo_hex = set("pP") >> -set("+-") >> num_char;
+			num_char = range('0', '9') >> *(range('0', '9') | '_' >> and_(range('0', '9')));
+			num_char_hex = range('0', '9') | range('a', 'f') | range('A', 'F');
+			num_lit = num_char_hex >> *(num_char_hex | '_' >> and_(num_char_hex));
+			Num = "0x" >> (+num_lit >> ('.' >> +num_lit >> -num_expo_hex | num_expo_hex | true_()) | ('.' >> +num_lit >> -num_expo_hex)) | +num_char >> ('.' >> +num_char >> -num_expo | num_expo | true_()) | '.' >> +num_char >> -num_expo;
+
+			cut = false_();
+			Seperator = true_();
+
+			empty_block_error = pl::user(true_(), [](const item_t& item) {
+				throw ParserError("must be followed by a statement or an indented block"sv, item.begin);
+				return false;
+			});
+
+			indentation_error = pl::user(not_(eof()), [](const item_t& item) {
+				throw ParserError("unexpected indent"sv, item.begin);
+				return false;
+			});
+
+			#define ensure(patt, finally) ((patt) >> (finally) | (finally) >> cut)
+			#define key(str) (expr(str) >> not_alpha_num)
+
+			check_indent = pl::user(plain_space, [](const item_t& item) {
+				int indent = 0;
+				for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
+					switch (*i) {
+						case ' ': indent++; break;
+						case '\t': indent += 4; break;
+					}
 				}
-			}
-			State* st = reinterpret_cast<State*>(item.user_data);
-			st->indents.push(indent);
-			return true;
-		});
-		push_indent_match = and_(push_indent);
+				State* st = reinterpret_cast<State*>(item.user_data);
+				return st->indents.top() == indent;
+			});
+			check_indent_match = and_(check_indent);
 
-		prevent_indent = pl::user(true_(), [](const item_t& item) {
-			State* st = reinterpret_cast<State*>(item.user_data);
-			st->indents.push(-1);
-			return true;
-		});
+			advance = pl::user(plain_space, [](const item_t& item) {
+				int indent = 0;
+				for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
+					switch (*i) {
+						case ' ': indent++; break;
+						case '\t': indent += 4; break;
+					}
+				}
+				State* st = reinterpret_cast<State*>(item.user_data);
+				int top = st->indents.top();
+				if (top != -1 && indent > top) {
+					st->indents.push(indent);
+					return true;
+				}
+				return false;
+			});
+			advance_match = and_(advance);
 
-		pop_indent = pl::user(true_(), [](const item_t& item) {
-			State* st = reinterpret_cast<State*>(item.user_data);
-			st->indents.pop();
-			return true;
-		});
+			pop_indent = pl::user(true_(), [](const item_t& item) {
+				State* st = reinterpret_cast<State*>(item.user_data);
+				st->indents.pop();
+				return true;
+			});
 
-		Variable = Name;
+			Variable = '$' >> Name;
 
-		Func = Name >> '(' >> Seperator >> space >> -(Value >> *(space >> ',' >> space >> Value)) >> space >> ')';
+			Func = Name >> '(' >> Seperator >> space >> -(Value >> *(space >> ',' >> space >> Value)) >> space >> ')';
 
-		Value = Boolean | Num | String | Func | Variable;
+			Value = Variable | Boolean | Num | String | Func;
 
-		single_string_inner = '\\' >> set("'\\") | not_('\'') >> any_char;
-		SingleString = '\'' >> *single_string_inner >> '\'';
+			single_string_inner = '\\' >> set("'\\") | not_('\'') >> any_char;
+			SingleString = '\'' >> *single_string_inner >> '\'';
 
-		interp = "#{" >> space >> Exp >> space >> '}';
-		double_string_plain = '\\' >> set("\"\\") | not_('"') >> any_char;
-		DoubleStringInner = +(not_(interp) >> double_string_plain);
-		DoubleStringContent = DoubleStringInner | interp;
-		DoubleString = '"' >> Seperator >> *DoubleStringContent >> '"';
-		String = DoubleString | SingleString;
+			double_string_plain = '\\' >> set("\"\\") | not_('"') >> any_char;
+			DoubleStringInner = +double_string_plain;
+			DoubleStringContent = DoubleStringInner;
+			DoubleString = '"' >> Seperator >> *DoubleStringContent >> '"';
+			String = DoubleString | SingleString;
 
-		exponential_operator = '^';
-		expo_value = exponential_operator >> *space_break >> space >> Value;
-		expo_exp = Value >> *(space >> expo_value);
+			exponential_operator = '^';
+			expo_value = exponential_operator >> *space_break >> space >> Value;
+			expo_exp = Value >> *(space >> expo_value);
 
-		UnaryOperator =
-			'-' >> not_(set(">=") | space_one) |
-			'#' |
-			'~' >> not_('=' | space_one) |
-			key("not");
+			UnaryOperator =
+				'-' >> not_(set(">=") | space_one) |
+				'#' |
+				'~' >> not_('=' | space_one) |
+				key("not");
 
-		UnaryExp = *(UnaryOperator >> space) >> expo_exp;
+			UnaryExp = *(UnaryOperator >> space) >> expo_exp;
 
-		BinaryOperator =
-			key("or") |
-			key("and") |
-			"<=" | ">=" | "~=" | "!=" | "==" |
-			".." | "<<" | ">>" | "//" |
-			set("+-*/%><|&~");
+			BinaryOperator =
+				key("or") |
+				key("and") |
+				"<=" | ">=" | "~=" | "!=" | "==" |
+				".." | "<<" | ">>" | "//" |
+				set("+-*/%><|&~");
 
-		ExpOpValue = BinaryOperator >> *space_break >> space >> UnaryExp;
+			ExpOpValue = BinaryOperator >> *space_break >> space >> UnaryExp;
 
-		Exp = UnaryExp >> *(space >> ExpOpValue);
+			Exp = UnaryExp >> *(space >> ExpOpValue);
 
-		Boolean = (expr("true") | "false") >> not_alpha_num;
+			Boolean = (expr("true") | "false") >> not_alpha_num;
 
-		Attribute = Name >> '=' >> Value;
+			Attribute = Name >> '=' >> Value;
 
-		MarkupClose = true_();
+			MarkupClose = true_();
 
-		Markup = '[' >> -('/' >> MarkupClose) >> Name >> -('=' >> Value) >> Seperator >> *(space >> Attribute) >> space >> (']' | "/]" >> MarkupClose >> -space_one);
+			Markup = '[' >> -('/' >> MarkupClose) >> Name >> -('=' >> Value) >> Seperator >> *(space >> Attribute) >> space >> (']' | "/]" >> MarkupClose >> -space_one);
 
-		Text = '\\' >> set("[#") | +(not_(line_break | Markup | '#') >> any_char);
+			Text = '\\' >> set("[#{<") | +(not_(line_break | Markup | '#' | "<<" | '{') >> any_char);
 
-		NumHex = +num_char_hex;
+			NumHex = +num_char_hex;
 
-		TagLine = "#line:" >> space >> NumHex;
+			TagLine = "#line:" >> space >> NumHex;
 
-		TagIf = "#if" >> not_alpha_num >> space >> Exp;
+			TagIf = "<<" >> space >> "if" >> not_alpha_num >> space >> Exp >> space >> ">>";
 
-		Tag = '#' >> Name;
+			Tag = '#' >> Name;
 
-		CharName = +(not_(set(":：") | space_one | line_break) >> any_char);
+			CharName = +(not_(':' | space_one | line_break) >> any_char);
 
-		Character = CharName >> set(":：") >> space_one >> space;
+			Character = CharName >> ':' >> space_one >> space;
 
-		Dialog = -Character >> Seperator >> +(Text | Markup | interp) >> Seperator >> *(space >> (TagLine | TagIf | Tag));
+			interp = '{' >> space >> Exp >> space >> '}';
 
-		Option = "->" >> space >> Dialog >> -in_block;
+			Dialog = -Character >> Seperator >> +(Text | Markup | interp) >> Seperator >> *(space >> (TagIf | TagLine | Tag));
 
-		OptionGroup = Seperator >> Option >> *(line_break >> *(empty_line_break >> line_break) >> check_indent >> Option);
+			Option = "->" >> space >> Dialog >> -in_block;
 
-		Assignment =
-			key("set") >> space >> Variable >> space >> key("to") >> space >> Exp |
-			Variable >> space >> '=' >> space >> Exp;
+			OptionGroup = Seperator >> Option >> *(line_break >> *(empty_line_break >> line_break) >> check_indent >> Option);
 
-		Title = +(not_(line_break) >> any_char);
+			Assignment =
+				key("set") >> space >> Variable >> space >> ('=' | key("to")) >> space >> Exp;
 
-		Goto = key("goto") >> space >> Title;
+			Title = (range('a', 'z') | range('A', 'Z') | '_') >> *alpha_num;
 
-		Call = Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
+			Goto = key("jump") >> space >> Title;
 
-		Command = '#' >> (
-			If |
-			Goto |
-			Assignment |
-			Call |
-			+(not_(line_break) >> any_char)
-		);
+			Call = not_("endif" >> not_alpha_num) >> Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
 
-		statement = Command | OptionGroup | Dialog;
+			Command = "<<" >> space >> (
+				If |
+				Goto |
+				Assignment |
+				Call) >> space >> ">>";
 
-		empty_line_break = (
-			check_indent >> comment |
-			advance >> ensure(comment, pop_indent) |
-			plain_space
-		) >> and_(line_break);
+			statement = Command | OptionGroup | Dialog;
 
-		if_else_if = line_break >> *(empty_line_break >> line_break) >> check_indent >> '#' >> space >> key("elseif") >> space >> Exp >> in_block;
-		if_else = line_break >> *(empty_line_break >> line_break) >> check_indent >> '#' >> space >> key("else") >> in_block;
-		If = key("if") >> space >> Seperator >> Exp >> in_block >> *if_else_if >> -if_else;
+			empty_line_break = (
+				check_indent >> comment |
+				advance >> ensure(comment, pop_indent) |
+				plain_space
+			) >> and_(line_break);
 
-		line = (
-			empty_line_break |
-			check_indent >> statement |
-			advance_match >> ensure(space >> (indentation_error | statement), pop_indent)
-		);
+			if_else_if = line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("elseif") >> space >> Exp >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> Block;
+			if_else = line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("else") >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> Block;
+			If = key("if") >> space >> Seperator >> Exp >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> Block >> *if_else_if >> -if_else >> line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> "endif";
 
-		in_block = space_break >> *(*set(" \t") >> line_break) >> advance_match >> ensure(Block, pop_indent);
+			line = (
+				empty_line_break |
+				check_indent >> statement |
+				advance_match >> ensure(space >> (indentation_error | statement), pop_indent)
+			);
 
-		Block = Seperator >> line >> *(+line_break >> line);
+			in_block = space_break >> *(*set(" \t") >> line_break) >> advance_match >> ensure(Block, pop_indent);
 
-		File = -Block >> white >> stop;
+			Block = Seperator >> line >> *(+line_break >> line);
+
+			File = -Block >> white >> stop;
+		}
 	}
 
 	template <class AST>
@@ -687,9 +847,6 @@ private:
 	NONE_AST_RULE(check_indent_match);
 	NONE_AST_RULE(advance);
 	NONE_AST_RULE(advance_match);
-	NONE_AST_RULE(push_indent);
-	NONE_AST_RULE(push_indent_match);
-	NONE_AST_RULE(prevent_indent);
 	NONE_AST_RULE(pop_indent);
 	NONE_AST_RULE(empty_line_break);
 	NONE_AST_RULE(line);
@@ -759,12 +916,14 @@ private:
 	std::list<Scope> _scopes;
 
 public:
+	YarnCompiler(bool dora): _parser(dora) {}
+
 	CompileInfo compile(std::string_view codes) {
 		auto res = _parser.parse<File_t>(codes);
 		if (!res.error) {
 			pushScope();
 			str_list temp;
-			temp.push_back(indent() + "return function(title, state, command, yarn)"s + nl(res.node));
+			temp.push_back(indent() + "return function(title, state, command, yarn, gotoStory)"s + nl(res.node));
 			pushScope();
 			try {
 				auto file = res.node.to<File_t>();
@@ -915,7 +1074,7 @@ public:
 			markup.begin = markup.end = 0;
 			auto& attr = markup.attrs.emplace_back();
 			attr.name = "name"s;
-			attr.value = "[=["s + _parser.toString(dialog->character->name) + "]=]"s;
+			attr.value = "[==========["s + _parser.toString(dialog->character->name) + "]==========]"s;
 		}
 		std::list<TagIf_t*> ifTags;
 		for (auto tag : dialog->tags.objects()) {
@@ -1000,8 +1159,12 @@ public:
 				_buf << indent() << '{' << nl(x);
 				incIndentOffset();
 				_buf << indent() << "name = \""sv << markup.name << "\","sv << nl(x);
-				_buf << indent() << "start = "sv << (markup.begin > 0 ? markup.begin + 1 : markup.begin) << ',' << nl(x);
-				_buf << indent() << "stop = "sv << (markup.end > 0 ? markup.end + 1 : markup.end) << ","sv << nl(x);
+				if (markup.begin > 0) {
+					_buf << indent() << "start = "sv << markup.begin + 1 << ',' << nl(x);
+				}
+				if (markup.end > 0) {
+					_buf << indent() << "stop = "sv << markup.end + 1 << ","sv << nl(x);
+				}
 				if (!markup.attrs.empty()) {
 					_buf << indent() << "attrs = {"sv << nl(x);
 					incIndentOffset();
@@ -1062,6 +1225,7 @@ public:
 			if (option->block) {
 				pushScope();
 				transformBlock(option->block, branches);
+				branches.push_back(indent() + "return nil"s + nl(x));
 				popScope();
 			}
 			branches.push_back(indent() + "end,"s + nl(x));
@@ -1080,7 +1244,7 @@ public:
 	}
 
 	void transformGoto(Goto_t* gotoNode, str_list& out) {
-		out.push_back(indent() + "yarn[\"goto\"]([=["s + _parser.toString(gotoNode->title) + "]=])"s + nl(gotoNode));
+		out.push_back(indent() + "gotoStory([==========["s + _parser.toString(gotoNode->title) + "]==========])"s + nl(gotoNode) + indent() + "coroutine.yield(\"Goto\")"s + nl(gotoNode));
 	}
 
 	void transformCall(Call_t* call, str_list& out) {
@@ -1175,7 +1339,11 @@ public:
 		transformUnaryExp(exp->expr, temp);
 		for (auto _opValue : exp->opValues.objects()) {
 			auto opValue = static_cast<ExpOpValue_t*>(_opValue);
-			temp.push_back(_parser.toString(opValue->op));
+			auto opStr = _parser.toString(opValue->op);
+			if (opStr == "!="sv) {
+				opStr = "~="s;
+			}
+			temp.push_back(opStr);
 			transformUnaryExp(opValue->expr, temp);
 		}
 		out.push_back(join(temp, " "sv));
@@ -1205,7 +1373,7 @@ public:
 				transformString(static_cast<String_t*>(value->value.get()), out);
 				break;
 			case id<Variable_t>():
-				out.push_back("state[\""s + _parser.toString(value->value) + "\"]");
+				out.push_back("state[\""s + _parser.toString(value->value.as<Variable_t>()->name) + "\"]");
 				break;
 			case id<Func_t>():
 				transformFunc(static_cast<Func_t*>(value->value.get()), out);
@@ -1255,8 +1423,8 @@ public:
 	}
 };
 
-CompileInfo compile(std::string_view codes) {
-	return YarnCompiler{}.compile(codes);
+CompileInfo compile(std::string_view codes, bool dora) {
+	return YarnCompiler{dora}.compile(codes);
 }
 
 } // namespace yarn

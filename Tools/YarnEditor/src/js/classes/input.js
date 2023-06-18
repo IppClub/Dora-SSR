@@ -305,10 +305,10 @@ export const Input = function(app) {
 			}
 		});
 
-		$(document).on('keyup keydown pointerdown pointerup', function(e) {
+		$(document).on('keydown', function(e) {
 			if (!app.inEditor()) return;
 
-			app.updateEditorStats();
+			app.updateEditorStats(true);
 		});
 	};
 
