@@ -719,6 +719,7 @@ export var App = function(name, version) {
 		// autocompletion
 		let autoCompleteTimeout = undefined;
 		self.editor.getSession().on('change', function(evt) {
+			self.updateEditorStats(true);
 			const autoComplete = self.settings.autoCloseTags();
 			if (evt.action === 'insert' && autoComplete) {
 				if (self.richTextFormatter.justInsertedAutoComplete) {
