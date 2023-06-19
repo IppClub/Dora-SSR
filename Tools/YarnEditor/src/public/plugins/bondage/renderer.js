@@ -137,9 +137,12 @@ export var yarnRender = function(app) {
 				const mid = text.substring(position, position + length);
 				const after = text.substring(position + length);
 				switch (item.name) {
-					case "character": {
+					case "character":
+					case "char": {
 						const {properties: {name}} = item;
-						text = `[color=fbc400]${name}:[/color] ${text}`;
+						if (name) {
+							text = `[color=fbc400]${name}:[/color] ${text}`;
+						}
 						break;
 					}
 					case "b":
