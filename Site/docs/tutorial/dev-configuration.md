@@ -95,6 +95,7 @@ git clone https://github.com/pigpigyyy/Dorothy-SSR.git
 2. Install the latest version of **Node.js**.
 3. Initialize the project and enter the Dora Dora editor development mode.
    ```sh
+   cd Tools/YarnEditor && yarn && yarn build && rm -rf ../dora-dora/public/yarn-editor && mv dist ../dora-dora/public/yarn-editor && cd ../..
    cd Tools/dora-dora
    yarn
    yarn start
