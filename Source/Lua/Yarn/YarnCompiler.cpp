@@ -10,12 +10,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/Yarn/YarnCompiler.h"
 
 #include "yuescript/ast.hpp"
-#include <sstream>
 #include <memory>
+#include <sstream>
 
 namespace pl = parserlib;
 
-#define _DEFER(code, line) std::shared_ptr<void> _defer_##line(nullptr, [&](auto) { code; })
+#define _DEFER(code, line) std::shared_ptr<void> _defer_##line(nullptr, [&](auto) { \
+	code; \
+})
 #define DEFER(code) _DEFER(code, __LINE__)
 
 namespace Utils {
@@ -380,80 +382,96 @@ public:
 		int col;
 	};
 
+	// clang-format off
 	YarnParser(bool dora) {
-		if (dora) {
-			plain_space = *set(" \t");
-			line_break = nl(-expr('\r') >> '\n');
-			any_char = line_break | any();
-			stop = line_break | eof();
-			comment = "##" >> *(not_(set("\r\n")) >> any_char) >> and_(stop);
-			space_one = set(" \t");
-			space = -(and_(set(" \t-\\")) >> *space_one >> -comment);
-			space_break = space >> line_break;
-			white = space >> *(line_break >> space);
-			alpha_num = range('a', 'z') | range('A', 'Z') | range('0', '9') | '_';
-			not_alpha_num = not_(alpha_num);
-			Name = (range('a', 'z') | range('A', 'Z') | '_') >> *alpha_num;
-			num_expo = set("eE") >> -set("+-") >> num_char;
-			num_expo_hex = set("pP") >> -set("+-") >> num_char;
-			num_char = range('0', '9') >> *(range('0', '9') | '_' >> and_(range('0', '9')));
-			num_char_hex = range('0', '9') | range('a', 'f') | range('A', 'F');
-			num_lit = num_char_hex >> *(num_char_hex | '_' >> and_(num_char_hex));
-			Num = "0x" >> (+num_lit >> ('.' >> +num_lit >> -num_expo_hex | num_expo_hex | true_()) | ('.' >> +num_lit >> -num_expo_hex)) | +num_char >> ('.' >> +num_char >> -num_expo | num_expo | true_()) | '.' >> +num_char >> -num_expo;
+		plain_space = *set(" \t");
+		line_break = nl(-expr('\r') >> '\n');
+		any_char = line_break | any();
+		stop = line_break | eof();
+		comment = "##" >> *(not_(set("\r\n")) >> any_char) >> and_(stop);
+		space_one = set(" \t");
+		space = -(and_(set(" \t-\\")) >> *space_one >> -comment);
+		space_break = space >> line_break;
+		white = space >> *(line_break >> space);
+		alpha_num = range('a', 'z') | range('A', 'Z') | range('0', '9') | '_';
+		not_alpha_num = not_(alpha_num);
+		Name = (range('a', 'z') | range('A', 'Z') | '_') >> *alpha_num;
+		num_expo = set("eE") >> -set("+-") >> num_char;
+		num_expo_hex = set("pP") >> -set("+-") >> num_char;
+		num_char = range('0', '9') >> *(range('0', '9') | '_' >> and_(range('0', '9')));
+		num_char_hex = range('0', '9') | range('a', 'f') | range('A', 'F');
+		num_lit = num_char_hex >> *(num_char_hex | '_' >> and_(num_char_hex));
+		Num =
+			"0x" >> (
+				+num_lit >> (
+					'.' >> +num_lit >> -num_expo_hex |
+					num_expo_hex |
+					true_()
+				) | (
+					'.' >> +num_lit >> -num_expo_hex
+				)
+			) |
+			+num_char >> (
+				'.' >> +num_char >> -num_expo |
+				num_expo |
+				true_()
+			) |
+			'.' >> +num_char >> -num_expo;
 
-			cut = false_();
-			Seperator = true_();
+		cut = false_();
+		Seperator = true_();
 
-			empty_block_error = pl::user(true_(), [](const item_t& item) {
-				throw ParserError("must be followed by a statement or an indented block"sv, item.begin);
-				return false;
-			});
+		empty_block_error = pl::user(true_(), [](const item_t& item) {
+			throw ParserError("must be followed by a statement or an indented block"sv, item.begin);
+			return false;
+		});
 
-			indentation_error = pl::user(not_(eof()), [](const item_t& item) {
-				throw ParserError("unexpected indent"sv, item.begin);
-				return false;
-			});
+		indentation_error = pl::user(not_(eof()), [](const item_t& item) {
+			throw ParserError("unexpected indent"sv, item.begin);
+			return false;
+		});
 
-			#define ensure(patt, finally) ((patt) >> (finally) | (finally) >> cut)
-			#define key(str) (expr(str) >> not_alpha_num)
+		#define ensure(patt, finally) ((patt) >> (finally) | (finally) >> cut)
+		#define key(str) (expr(str) >> not_alpha_num)
 
-			check_indent = pl::user(plain_space, [](const item_t& item) {
-				int indent = 0;
-				for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
-					switch (*i) {
-						case ' ': indent++; break;
-						case '\t': indent += 4; break;
-					}
+		check_indent = pl::user(plain_space, [](const item_t& item) {
+			int indent = 0;
+			for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
+				switch (*i) {
+					case ' ': indent++; break;
+					case '\t': indent += 4; break;
 				}
-				State* st = reinterpret_cast<State*>(item.user_data);
-				return st->indents.top() == indent;
-			});
-			check_indent_match = and_(check_indent);
+			}
+			State* st = reinterpret_cast<State*>(item.user_data);
+			return st->indents.top() == indent;
+		});
+		check_indent_match = and_(check_indent);
 
-			advance = pl::user(plain_space, [](const item_t& item) {
-				int indent = 0;
-				for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
-					switch (*i) {
-						case ' ': indent++; break;
-						case '\t': indent += 4; break;
-					}
+		advance = pl::user(plain_space, [](const item_t& item) {
+			int indent = 0;
+			for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
+				switch (*i) {
+					case ' ': indent++; break;
+					case '\t': indent += 4; break;
 				}
-				State* st = reinterpret_cast<State*>(item.user_data);
-				int top = st->indents.top();
-				if (top != -1 && indent > top) {
-					st->indents.push(indent);
-					return true;
-				}
-				return false;
-			});
-			advance_match = and_(advance);
-
-			pop_indent = pl::user(true_(), [](const item_t& item) {
-				State* st = reinterpret_cast<State*>(item.user_data);
-				st->indents.pop();
+			}
+			State* st = reinterpret_cast<State*>(item.user_data);
+			int top = st->indents.top();
+			if (top != -1 && indent > top) {
+				st->indents.push(indent);
 				return true;
-			});
+			}
+			return false;
+		});
+		advance_match = and_(advance);
 
+		pop_indent = pl::user(true_(), [](const item_t& item) {
+			State* st = reinterpret_cast<State*>(item.user_data);
+			st->indents.pop();
+			return true;
+		});
+
+		if (dora) {
 			Variable = Name;
 
 			Func = Name >> '(' >> Seperator >> space >> -(Value >> *(space >> ',' >> space >> Value)) >> space >> ')';
@@ -562,78 +580,6 @@ public:
 
 			File = -Block >> white >> stop;
 		} else {
-			plain_space = *set(" \t");
-			line_break = nl(-expr('\r') >> '\n');
-			any_char = line_break | any();
-			stop = line_break | eof();
-			comment = "//" >> *(not_(set("\r\n")) >> any_char) >> and_(stop);
-			space_one = set(" \t");
-			space = -(and_(set(" \t-\\")) >> *space_one >> -comment);
-			space_break = space >> line_break;
-			white = space >> *(line_break >> space);
-			alpha_num = range('a', 'z') | range('A', 'Z') | range('0', '9') | '_';
-			not_alpha_num = not_(alpha_num);
-			Name = (range('a', 'z') | range('A', 'Z') | '_') >> *alpha_num;
-			num_expo = set("eE") >> -set("+-") >> num_char;
-			num_expo_hex = set("pP") >> -set("+-") >> num_char;
-			num_char = range('0', '9') >> *(range('0', '9') | '_' >> and_(range('0', '9')));
-			num_char_hex = range('0', '9') | range('a', 'f') | range('A', 'F');
-			num_lit = num_char_hex >> *(num_char_hex | '_' >> and_(num_char_hex));
-			Num = "0x" >> (+num_lit >> ('.' >> +num_lit >> -num_expo_hex | num_expo_hex | true_()) | ('.' >> +num_lit >> -num_expo_hex)) | +num_char >> ('.' >> +num_char >> -num_expo | num_expo | true_()) | '.' >> +num_char >> -num_expo;
-
-			cut = false_();
-			Seperator = true_();
-
-			empty_block_error = pl::user(true_(), [](const item_t& item) {
-				throw ParserError("must be followed by a statement or an indented block"sv, item.begin);
-				return false;
-			});
-
-			indentation_error = pl::user(not_(eof()), [](const item_t& item) {
-				throw ParserError("unexpected indent"sv, item.begin);
-				return false;
-			});
-
-			#define ensure(patt, finally) ((patt) >> (finally) | (finally) >> cut)
-			#define key(str) (expr(str) >> not_alpha_num)
-
-			check_indent = pl::user(plain_space, [](const item_t& item) {
-				int indent = 0;
-				for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
-					switch (*i) {
-						case ' ': indent++; break;
-						case '\t': indent += 4; break;
-					}
-				}
-				State* st = reinterpret_cast<State*>(item.user_data);
-				return st->indents.top() == indent;
-			});
-			check_indent_match = and_(check_indent);
-
-			advance = pl::user(plain_space, [](const item_t& item) {
-				int indent = 0;
-				for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
-					switch (*i) {
-						case ' ': indent++; break;
-						case '\t': indent += 4; break;
-					}
-				}
-				State* st = reinterpret_cast<State*>(item.user_data);
-				int top = st->indents.top();
-				if (top != -1 && indent > top) {
-					st->indents.push(indent);
-					return true;
-				}
-				return false;
-			});
-			advance_match = and_(advance);
-
-			pop_indent = pl::user(true_(), [](const item_t& item) {
-				State* st = reinterpret_cast<State*>(item.user_data);
-				st->indents.pop();
-				return true;
-			});
-
 			Variable = '$' >> Name;
 
 			Func = Name >> '(' >> Seperator >> space >> -(Value >> *(space >> ',' >> space >> Value)) >> space >> ')';
@@ -744,6 +690,7 @@ public:
 			File = -Block >> white >> stop;
 		}
 	}
+	// clang-format on
 
 	template <class AST>
 	ParseInfo parse(std::string_view codes) {
@@ -918,11 +865,12 @@ private:
 	std::ostringstream _joinBuf;
 	const std::string _newLine = "\n";
 
-	struct Scope {};
+	struct Scope { };
 	std::list<Scope> _scopes;
 
 public:
-	YarnCompiler(bool dora): _parser(dora) {}
+	YarnCompiler(bool dora)
+		: _parser(dora) { }
 
 	CompileInfo compile(std::string_view codes) {
 		auto res = _parser.parse<File_t>(codes);
@@ -943,17 +891,14 @@ public:
 						err.what(),
 						err.line,
 						err.col,
-						res.errorMessage(err.what(), err.line, err.col)
-					}
-				};
+						res.errorMessage(err.what(), err.line, err.col)}};
 			}
 			temp.push_back(indent() + "return nil"s + nl(res.node));
 			popScope();
 			temp.push_back(indent() + "end"s + nl(res.node));
 			popScope();
 			return {
-				join(temp)
-			};
+				join(temp)};
 		}
 		const auto& err = res.error.value();
 		return {
@@ -962,9 +907,7 @@ public:
 				err.msg,
 				err.line,
 				err.col,
-				res.errorMessage(err.msg, err.line, err.col)
-			}
-		};
+				res.errorMessage(err.msg, err.line, err.col)}};
 	}
 
 	void incIndentOffset() {

@@ -1,0 +1,465 @@
+---
+sidebar_position: 2
+---
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Creating Game Scene
+
+## Creating a Node
+
+To create a node in the Dorothy SSR engine, you need to create an instance of the Node class, which will be used to build the hierarchical structure of your game scene.
+
+Here's an example of how to create a new Node instance in script code:
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue
+node = Node!
+
+-- Mount the newly created Node instance to the root node of the game scene
+Director.entry\addChild node
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+local node = Node()
+
+-- Mount the newly created Node instance to the root node of the game scene
+Director.entry:addChild(node)
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua
+local node = Node()
+
+-- Mount the newly created Node instance to the root node of the game scene
+Director.entry:addChild(node)
+```
+
+</TabItem>
+</Tabs>
+
+## Setting Node Properties
+
+The Node class has many member variables that can be set, such as `x`, `y`, `z` (position of the node), `width`, `height` (size of the node), `angle`, `angleX`, `angleY` (rotation angles of the node), `scaleX`, `scaleY` (scaling factors of the node), and `visible` (whether the node is visible), etc.
+
+Here's an example of how to set these properties in Lua:
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue
+with node
+  .x = 100
+  .y = 200
+  .width = 50
+  .height = 50
+  .visible = true
+```
+
+</TabItem>
+<TabItem value="teal" label="Teal">
+
+```teal
+node.x = 100
+node.y = 200
+node.width = 50
+node.height = 50
+node.visible = true
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua
+node.x = 100
+node.y = 200
+node.width = 50
+node.height = 50
+node.visible = true
+```
+
+</TabItem>
+</Tabs>
+
+## Adding Child Nodes
+
+In the Node class, you can add child nodes using the `addChild` method. Here's an example of how to add a child node in your code:
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue
+childNode = Node!
+node\addChild childNode
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+local childNode = Node()
+node:addChild(childNode)
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua
+local childNode = Node()
+node:addChild(childNode)
+```
+
+</TabItem>
+</Tabs>
+
+In this example, `childNode` is added to `node` as its child node.
+
+## Checking Node Properties
+
+The Node class has some read-only member variables, such as `hasChildren` (whether the node has child nodes), `children` (a list of child nodes), `parent` (the parent node of the current node), and `boundingBox` (the bounding box of the node), etc.
+
+Here's an example of how to check these properties in Lua:
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue
+with node
+  print .hasChildren -- Print whether the node has child nodes
+  print .children -- Print the list of child nodes
+  print .parent -- Print the parent node of the current node
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+print(node.hasChildren) -- Print whether the node has child nodes
+print(node.children) -- Print the list of child nodes
+print(node.parent) -- Print the parent node of the current node
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua
+print(node.hasChildren) -- Print whether the node has child nodes
+print(node.children) -- Print the list of child nodes
+print(node.parent) -- Print the parent node of the current node
+```
+
+</TabItem>
+</Tabs>
+
+## Node's Event System
+
+Firstly, the event system of the scene node class supports various types of events, such as action end, tap began, tap ended, tap moved, mouse wheel scroll, etc. Each event type has a specific callback function that gets triggered when the event occurs.
+
+The basic steps to register and handle events are as follows:
+
+1. **Registering an Event**: You can register an event on a node to listen to it. For example, you can use the following code pattern to register and listen to an event:
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue
+node\slot "EventName", (...)->
+  -- Add your code here
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+node:slot("EventName", function(...)
+  -- Add your code here
+end)
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua
+node:slot("EventName", function(...)
+  -- Add your code here
+end)
+```
+
+</TabItem>
+</Tabs>
+
+2. **Handling the Event**: When the registered event is triggered, you can add code to handle the event in the callback function and retrieve the event-related parameters. For example, you can add code to handle the action end event in the callback function:
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue
+node\slot "ActionEnd", (action, target)->
+  print "Action completed: #{action} Target node: #{target}"
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+node:slot("ActionEnd", function(action: Action.Type, target: Node.Type)
+  print("Action completed: " .. action .. " Target node: " .. target)
+end)
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua
+node:slot("ActionEnd", function(action, target)
+  print("Action completed: " .. action .. " Target node: " .. target)
+end)
+```
+
+</TabItem>
+</Tabs>
+
+The commonly used node event types related to game interactions and their corresponding callback function signatures are as follows. Before using these events, you also need to enable the node to receive touch events:
+
+   ```lua
+   node.touchEnabled = true
+   ```
+
+- **Tap Filter**: Triggered before the tap begins, can be used to filter certain tap events. Callback function signature: `function(touch: Touch)`
+- **Tap Began**: Triggered when a tap is detected. Callback function signature: `function(touch: Touch)`
+- **Tap Ended**: Triggered when a tap ends. Callback function signature: `function(touch: Touch)`
+- **Tapped**: Triggered when a tap is detected and ends. Callback function signature: `function(touch: Touch)`
+- **Tap Moved**: Triggered when a tap is moved. Callback function signature: `function(touch: Touch)`
+- **Mouse Wheel Scroll**: Triggered when the mouse wheel is scrolled. Callback function signature: `function(delta: Vec2)`
+
+By registering and handling these events, you can easily add complex interactive functionality to your game nodes. For other available node events, please refer to [here](../api/Node%20Event/Node).
+
+## Node Actions
+
+&emsp;&emsp;Below, we will demonstrate how to use the node action system to create various animation effects.
+
+1. **Move Action**:
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue
+moveAction = Move duration, startPosition, stopPosition
+node\perform moveAction
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+local moveAction = Move(duration, startPosition, stopPosition)
+node:perform(moveAction)
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua
+local moveAction = Move(duration, startPosition, stopPosition)
+node:perform(moveAction)
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;In the above code, `duration` represents the duration of the movement, `startPosition` is the starting position of the movement, and `stopPosition` is the target position of the movement.
+
+2. **Scale Action**:
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue
+scaleAction = Scale duration, startScale, stopScale
+node\perform scaleAction
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+local scaleAction = Scale(duration, startScale, stopScale)
+node:perform(scaleAction)
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua
+local scaleAction = Scale(duration, startScale, stopScale)
+node:perform(scaleAction)
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;In the above code, `duration` represents the duration of the scaling, `startScale` is the initial scale value, and `stopScale` is the target scale value.
+
+3. **Rotation Action**:
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue
+rotateAction = Angle duration, startAngle, stopAngle
+node\perform rotateAction
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+local rotateAction = Angle(duration, startAngle, stopAngle)
+node:perform(rotateAction)
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua
+local rotateAction = Angle(duration, startAngle, stopAngle)
+node:perform(rotateAction)
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;In the above code, `duration` represents the duration of the rotation, `startAngle` is the initial rotation angle, and `stopAngle` is the target rotation angle.
+
+&emsp;&emsp;You can also combine multiple actions to create more complex animation effects.
+
+4. **Sequence Action**:
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue
+node\perform Sequence(
+  Move duration, startPosition, stopPosition
+  Angle duration, startAngle, stopAngle
+)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+node:perform(Sequence(
+  Move(duration, startPosition, stopPosition),
+  Angle(duration, startAngle, stopAngle)
+))
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua
+node:perform(Sequence(
+  Move(duration, startPosition, stopPosition),
+  Angle(duration, startAngle, stopAngle)
+))
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;In the above code, `Move` and `Angle` actions will be executed sequentially in the order they appear in the sequence.
+
+5. **Spawn Action**:
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue
+node\perform Spawn(
+  Move duration, startPosition, stopPosition
+  Scale duration, startScale, stopScale
+)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+node:perform(Spawn(
+  Move(duration, startPosition, stopPosition),
+  Scale(duration, startScale, stopScale)
+))
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua
+node:perform(Spawn(
+  Move(duration, startPosition, stopPosition),
+  Scale(duration, startScale, stopScale)
+))
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;In the above code, the `Move` and `Scale` actions will be executed simultaneously.
+
+&emsp;&emsp;In addition to the action types demonstrated above, our action system also supports other actions such as scaling (ScaleX, ScaleY), rotation (AngleX, AngleY, Roll), skewing (SkewX, SkewY), delay (Delay), event (Event), show (Show), hide (Hide), and anchor point (AnchorX, AnchorY).
+
+&emsp;&emsp;By combining and adjusting these actions, you can create a variety of animation effects to enhance your game experience.
+
+6. **Easing Functions**:
+
+&emsp;&emsp;Easing functions can be used to add smooth transitions to actions, making animations appear more natural. In our action system, you can use enumerated parameters to specify different easing functions. Here are some commonly used easing functions and their corresponding enumeration parameters:
+
+- **Linear Easing (Ease.Linear)**: This is the default easing function, where the action progresses at a constant speed.
+- **Ease In-Out Quad (Ease.InOutQuad)**: The action gradually accelerates and decelerates at the beginning and end, creating a smooth transition.
+- **Ease In Quad (Ease.InQuad)**: The action gradually accelerates.
+- **Ease Out Quad (Ease.OutQuad)**: The action gradually decelerates.
+- **Ease Out Elastic (Ease.OutElastic)**: The action bounces back and forth like a spring.
+- **Ease Out Bounce (Ease.OutBounce)**: The action bounces like a ball.
+
+&emsp;&emsp;When creating an instance of an action, you can pass the easing function as the last parameter to the corresponding creation function. For example:
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue
+moveAction = Move duration, startPosition, stopPosition, Ease.InOutQuad
+node\perform moveAction
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+local moveAction = Move(duration, startPosition, stopPosition, Ease.InOutQuad)
+node:perform(moveAction)
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua
+local moveAction = Move(duration, startPosition, stopPosition, Ease.InOutQuad)
+node:perform(moveAction)
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;In the above example, `Ease.InOutQuad` specifies the easing function as the ease-in-out effect.
+
+&emsp;&emsp;You can choose the appropriate easing function according to your needs to add more dynamics and details to your actions. Remember to try different easing functions to achieve the desired animation effects. For all available easing functions, please refer to [here](../api/Class/Ease)。
+
