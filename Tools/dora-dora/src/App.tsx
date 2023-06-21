@@ -1281,7 +1281,11 @@ export default function PersistentDrawerLeft() {
 						case ".tl":
 						case ".xml":
 						case ".wasm":
+						case ".yarn":
 						case "":
+							if (ext === ".yarn" && !asProj) {
+								break;
+							}
 							Service.run({file: key, asProj}).then((res) => {
 								if (res.success) {
 									addAlert(t("alert.run", {title: res.target ?? title}), "success");
@@ -1299,10 +1303,9 @@ export default function PersistentDrawerLeft() {
 								addAlert(t("alert.runFailed", {title}), "error");
 							})
 							return;
-						default:
-							addAlert(t("alert.runFailed", {title}), "info");
-							return;
 					}
+					addAlert(t("alert.runFailed", {title}), "info");
+					return;
 				}
 				case "Stop": {
 					onStopRunning();
