@@ -38,6 +38,8 @@
 
 - Supports reading Excel spreadsheet data and synchronizing it to SQLite tables.
 
+- Supports the Yarn Spinner language, making it easy to write complex game story systems.
+
 - Built-in machine learning algorithm framework for innovative gameplay.
 
 - Provides vector graphics rendering API, which can directly render SVG format files without CSS.
