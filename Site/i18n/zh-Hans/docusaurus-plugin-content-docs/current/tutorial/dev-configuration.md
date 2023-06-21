@@ -98,6 +98,7 @@ git clone https://github.com/pigpigyyy/Dorothy-SSR.git
 2. 安装最新版的 **Node.js**。
 3. 初始化项目并进入 Dora Dora 编辑器开发模式。
    ```sh
+   cd Tools/YarnEditor && yarn && yarn build && rm -rf ../dora-dora/public/yarn-editor && mv dist ../dora-dora/public/yarn-editor && cd ../..
    cd Tools/dora-dora
    yarn
    yarn start
