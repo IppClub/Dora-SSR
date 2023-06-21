@@ -436,7 +436,12 @@ node:perform(Spawn(
 <TabItem value="yue" label="Yuescript">
 
 ```yue
-moveAction = Move duration, startPosition, stopPosition, Ease.InOutQuad
+moveAction = Move(
+  duration
+  startPosition
+  stopPosition
+  Ease.InOutQuad
+)
 node\perform moveAction
 ```
 
@@ -444,7 +449,12 @@ node\perform moveAction
 <TabItem value="tl" label="Teal">
 
 ```teal
-local moveAction = Move(duration, startPosition, stopPosition, Ease.InOutQuad)
+local moveAction = Move(
+  duration,
+  startPosition,
+  stopPosition,
+  Ease.InOutQuad
+)
 node:perform(moveAction)
 ```
 
@@ -452,7 +462,12 @@ node:perform(moveAction)
 <TabItem value="lua" label="Lua">
 
 ```lua
-local moveAction = Move(duration, startPosition, stopPosition, Ease.InOutQuad)
+local moveAction = Move(
+  duration,
+  startPosition,
+  stopPosition,
+  Ease.InOutQuad
+)
 node:perform(moveAction)
 ```
 
