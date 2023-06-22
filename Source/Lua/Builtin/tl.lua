@@ -8675,7 +8675,8 @@ tl.type_check = function(ast, opts)
 		ftype = shallow_copy_type(ftype)
 		ftype.is_method = false
 
- 		if node.e1.tk == "xpcall" then
+		local fe2 = {}
+		if node.e1.tk == "xpcall" then
 			base_nargs = 2
 		local ftype = table.remove(b, 1)
 			local msgh = table.remove(b, 1)
