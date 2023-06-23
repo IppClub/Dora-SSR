@@ -23,7 +23,7 @@ local function toNode(item: Entity.Item): Node.Type | nil
 	end
 end
 
-Observer("Add", { "scene" }):watch(function(_self: Entity.Type, scene: Node.Type)
+Observer("Add", { "scene" }):watch(function(_entity: Entity.Type, scene: Node.Type)
 	scene.touchEnabled = true
 	scene:slot("TapEnded", function(touch: Touch)
 		local location = touch.location
@@ -53,7 +53,7 @@ Observer("Remove", { "sprite" }):watch(function(self: Entity.Type)
 		if not scene is nil then
 			local sprite = toNode(self.oldValues.sprite)
 			if not sprite is nil then
-				scene:addChild(sprite)
+				scene:removeChild(sprite)
 				return true
 			end
 		end
