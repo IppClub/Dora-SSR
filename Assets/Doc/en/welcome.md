@@ -18,6 +18,7 @@
 * Support for asynchronous SQLite operations for real-time querying and writing of large amounts of game configuration data
 * Reading Excel spreadsheet data with support for synchronization to SQLite tables
 * Machine learning algorithm framework for innovative gameplay
+* Supports the Yarn Spinner language, making it easy to write complex game story systems
 * Vector graphics rendering API for directly rendering CSS-less SVG format files
 * Built-in ImGui for creating debugging tools and UI interfaces
 * Playback of audio in multiple formats and rendering of TrueType fonts
