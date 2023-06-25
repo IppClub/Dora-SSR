@@ -101,7 +101,7 @@ const config = {
 				items: [
 					{
 						label: 'Tutorial',
-						to: '/docs/tutorial/intro',
+						to: '/docs/tutorial/quick-start',
 					},
 					{
 						label: 'API Reference',
