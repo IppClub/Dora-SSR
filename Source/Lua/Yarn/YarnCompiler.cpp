@@ -45,14 +45,14 @@ namespace parserlib {
 	namespace yarn { \
 	class type##_t : public ast_node { \
 	public: \
-		virtual int getId() const override { return COUNTER_READ; }
+		virtual int get_id() const override { return COUNTER_READ; }
 
 #define AST_NODE(type) \
 	COUNTER_INC; \
 	namespace yarn { \
 	class type##_t : public ast_container { \
 	public: \
-		virtual int getId() const override { return COUNTER_READ; }
+		virtual int get_id() const override { return COUNTER_READ; }
 
 #define AST_MEMBER(type, ...) \
 	type##_t() { \
@@ -60,7 +60,7 @@ namespace parserlib {
 	}
 
 #define AST_END(type, name) \
-	virtual const std::string_view getName() const override { return name; } \
+	virtual const std::string_view get_name() const override { return name; } \
 	} \
 	; \
 	} \
@@ -979,7 +979,7 @@ public:
 		}
 		str_list temp;
 		for (auto stmt : block->statements.objects()) {
-			switch (stmt->getId()) {
+			switch (stmt->get_id()) {
 				case id<Dialog_t>(): {
 					transformDialog(static_cast<Dialog_t*>(stmt), temp);
 					temp.back() = indent() + "coroutine.yield(\"Dialog\", "s + temp.back() + ')' + nl(stmt);
@@ -1013,7 +1013,7 @@ public:
 	};
 
 	void transformAttributeValue(ast_node* value, str_list& out) {
-		switch (value->getId()) {
+		switch (value->get_id()) {
 			case id<Value_t>():
 				transformValue(static_cast<Value_t*>(value), out);
 				break;
@@ -1052,7 +1052,7 @@ public:
 			}
 		}
 		for (auto token : dialog->tokens.objects()) {
-			switch (token->getId()) {
+			switch (token->get_id()) {
 				case id<Text_t>(): {
 					auto text = static_cast<Text_t*>(token);
 					length += " + "s + std::to_string(static_cast<int>(std::distance(token->m_begin.m_it, token->m_end.m_it)));
@@ -1253,7 +1253,7 @@ public:
 	}
 
 	void transformCommand(Command_t* command, str_list& out) {
-		switch (command->item->getId()) {
+		switch (command->item->get_id()) {
 			case id<Assignment_t>(): {
 				auto assignment = static_cast<Assignment_t*>(command->item.get());
 				transformAssignment(assignment, out);
@@ -1321,7 +1321,7 @@ public:
 	}
 
 	void transformValue(Value_t* value, str_list& out) {
-		switch (value->value->getId()) {
+		switch (value->value->get_id()) {
 			case id<Boolean_t>():
 				out.push_back(_parser.toString(value->value));
 				break;
@@ -1356,7 +1356,7 @@ public:
 		for (auto seg_ : doubleString->segments.objects()) {
 			auto seg = static_cast<DoubleStringContent_t*>(seg_);
 			auto content = seg->content.get();
-			switch (content->getId()) {
+			switch (content->get_id()) {
 				case id<DoubleStringInner_t>(): {
 					auto str = _parser.toString(content);
 					Utils::replace(str, "\r\n"sv, "\n");
@@ -1377,7 +1377,7 @@ public:
 
 	void transformString(String_t* string, str_list& out) {
 		auto str = string->str.get();
-		switch (str->getId()) {
+		switch (str->get_id()) {
 			case id<SingleString_t>(): transformSingleString(static_cast<SingleString_t*>(str), out); break;
 			case id<DoubleString_t>(): transformDoubleString(static_cast<DoubleString_t*>(str), out); break;
 			default: YUEE("AST node mismatch", str); break;

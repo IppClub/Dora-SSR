@@ -189,6 +189,7 @@
 		3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39D1E0A05AD002141DF /* EventType.cpp */; };
 		3C57A3A31E0A05AD002141DF /* Listener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39F1E0A05AD002141DF /* Listener.cpp */; };
 		3C5AE08E1FFC737100CB95EB /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5AE08A1FFC737100CB95EB /* Entity.cpp */; };
+		3C5B33D52A496F0F0080049B /* yue_ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5B33D42A496F0F0080049B /* yue_ast.cpp */; };
 		3C60DE132A2069CE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE122A2069CE007D7865 /* Doc */; };
 		3C65B5B61EC010CA0039DA1D /* Menu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C65B5B41EC010CA0039DA1D /* Menu.cpp */; };
 		3C6929721E2C60BE0097AC49 /* Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6929701E2C60BE0097AC49 /* Effect.cpp */; };
@@ -880,6 +881,7 @@
 		3C57A3A01E0A05AD002141DF /* Listener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Listener.h; path = ../../../Source/Event/Listener.h; sourceTree = "<group>"; };
 		3C5AE0871FFC737100CB95EB /* Entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Entity.h; path = ../../../Source/Entity/Entity.h; sourceTree = "<group>"; };
 		3C5AE08A1FFC737100CB95EB /* Entity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Entity.cpp; path = ../../../Source/Entity/Entity.cpp; sourceTree = "<group>"; };
+		3C5B33D42A496F0F0080049B /* yue_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yue_ast.cpp; path = ../../../Source/3rdParty/yuescript/yue_ast.cpp; sourceTree = "<group>"; };
 		3C60DE122A2069CE007D7865 /* Doc */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Doc; sourceTree = "<group>"; };
 		3C65B5B41EC010CA0039DA1D /* Menu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Menu.cpp; path = ../../../Source/Node/Menu.cpp; sourceTree = "<group>"; };
 		3C65B5B51EC010CA0039DA1D /* Menu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Menu.h; path = ../../../Source/Node/Menu.h; sourceTree = "<group>"; };
@@ -2446,6 +2448,7 @@
 				3CC794532579F9AF00042394 /* parser.hpp */,
 				3CC794562579F9AF00042394 /* stacktraceplus.h */,
 				3CC794582579F9B000042394 /* yue_ast.h */,
+				3C5B33D42A496F0F0080049B /* yue_ast.cpp */,
 				3CC7945C2579F9B000042394 /* yue_compiler.cpp */,
 				3CC794592579F9B000042394 /* yue_compiler.h */,
 				3CC794572579F9AF00042394 /* yue_parser.cpp */,
@@ -3235,6 +3238,7 @@
 				3C46E8612614227300DC9D4F /* Object.cpp in Sources */,
 				3C6E7F35272A30E700E9F115 /* resonator.cpp in Sources */,
 				3CF10EE62874AE7E00940268 /* Slot.cpp in Sources */,
+				3C5B33D52A496F0F0080049B /* yue_ast.cpp in Sources */,
 				3C6E7F0D272A30E700E9F115 /* soloud_lofifilter.cpp in Sources */,
 				3CFEBD77268DA6E4006D9974 /* Animation.cpp in Sources */,
 				3C7708321E08CB4300B38C2A /* LuaBinding.cpp in Sources */,
