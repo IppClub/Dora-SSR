@@ -19,14 +19,14 @@ traversal ast_node::traverse(const std::function<traversal(ast_node*)>& func) {
 	return func(this);
 }
 
-ast_node* ast_node::getByTypeIds(int* begin, int* end) {
+ast_node* ast_node::get_by_type_ids(int* begin, int* end) {
 	ast_node* current = this;
 	auto it = begin;
 	while (it != end) {
 		ast_node* findNode = nullptr;
 		int i = *it;
-		current->visitChild([&](ast_node* node) {
-			if (node->getId() == i) {
+		current->visit_child([&](ast_node* node) {
+			if (node->get_id() == i) {
 				findNode = node;
 				return true;
 			}
@@ -43,7 +43,7 @@ ast_node* ast_node::getByTypeIds(int* begin, int* end) {
 	return current;
 }
 
-bool ast_node::visitChild(const std::function<bool(ast_node*)>&) {
+bool ast_node::visit_child(const std::function<bool(ast_node*)>&) {
 	return false;
 }
 
@@ -92,7 +92,7 @@ traversal ast_container::traverse(const std::function<traversal(ast_node*)>& fun
 	return traversal::Continue;
 }
 
-bool ast_container::visitChild(const std::function<bool(ast_node*)>& func) {
+bool ast_container::visit_child(const std::function<bool(ast_node*)>& func) {
 	const auto& members = this->members();
 	for (auto member : members) {
 		switch (member->get_type()) {
@@ -128,6 +128,27 @@ bool ast_container::visitChild(const std::function<bool(ast_node*)>& func) {
 ast_node* parse(input& i, rule& g, error_list& el, void* ud) {
 	ast_stack st;
 	if (!parse(i, g, el, &st, ud)) {
+		for (auto node : st) {
+			delete node;
+		}
+		st.clear();
+		return nullptr;
+	}
+	assert(st.size() == 1);
+	return st.front();
+}
+
+/** check if the start part of given input matches grammar.
+	The parse procedures of each rule parsed are executed
+	before this function returns, if parsing succeeds.
+	@param i input.
+	@param g root rule of grammar.
+	@param ud user data, passed to the parse procedures.
+	@return true on parsing success, false on failure.
+*/
+ast_node* start_with(input& i, rule& g, error_list& el, void* ud) {
+	ast_stack st;
+	if (!start_with(i, g, el, &st, ud)) {
 		for (auto node : st) {
 			delete node;
 		}

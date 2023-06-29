@@ -72,7 +72,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.17.0"sv;
+const std::string_view version = "0.17.2"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -176,7 +176,7 @@ public:
 				if (_info.exportMacro) {
 					for (auto stmt_ : block->statements.objects()) {
 						auto stmt = static_cast<Statement_t*>(stmt_);
-						switch (stmt->content->getId()) {
+						switch (stmt->content->get_id()) {
 							case id<MacroInPlace_t>():
 							case id<Macro_t>():
 								break;
@@ -202,6 +202,7 @@ public:
 								} else if (auto exportNode = stmt->content.as<Export_t>()) {
 									if (exportNode->target.is<Macro_t>()) break;
 								}
+								[[fallthrough]];
 							default:
 								throw CompileError("macro exporting module only accepts macro definition, macro importing and macro expansion in place"sv, stmt);
 								break;
@@ -701,30 +702,21 @@ private:
 		return str;
 	}
 
-	std::string join(const str_list& items) {
+	std::string join(const str_list& items, std::string_view sep = {}) {
 		if (items.empty())
 			return Empty;
 		else if (items.size() == 1)
 			return items.front();
-		for (const auto& item : items) {
-			_joinBuf << item;
-		}
-		auto result = _joinBuf.str();
-		_joinBuf.str("");
-		_joinBuf.clear();
-		return result;
-	}
-
-	std::string join(const str_list& items, std::string_view sep) {
-		if (items.empty())
-			return Empty;
-		else if (items.size() == 1)
-			return items.front();
-		std::string sepStr = std::string(sep);
-		auto begin = ++items.begin();
-		_joinBuf << items.front();
-		for (auto it = begin; it != items.end(); ++it) {
-			_joinBuf << sepStr << *it;
+		if (sep.empty()) {
+			for (const auto& item : items) {
+				_joinBuf << item;
+			}
+		} else {
+			auto begin = ++items.begin();
+			_joinBuf << items.front();
+			for (auto it = begin; it != items.end(); ++it) {
+				_joinBuf << sep << *it;
+			}
 		}
 		auto result = _joinBuf.str();
 		_joinBuf.str("");
@@ -734,7 +726,7 @@ private:
 
 	UnaryExp_t* singleUnaryExpFrom(ast_node* item) const {
 		Exp_t* exp = nullptr;
-		switch (item->getId()) {
+		switch (item->get_id()) {
 			case id<Exp_t>():
 				exp = static_cast<Exp_t*>(item);
 				break;
@@ -785,7 +777,7 @@ private:
 			if (unary->ops.empty()) {
 				Value_t* value = static_cast<Value_t*>(unary->expos.back());
 				if (auto chain = ast_cast<ChainValue_t>(value->item); chain && chain->items.size() == 1) {
-					if (auto exp = chain->getByPath<Callable_t, Parens_t, Exp_t>()) {
+					if (auto exp = chain->get_by_path<Callable_t, Parens_t, Exp_t>()) {
 						if (auto insideValue = singleValueFrom(exp)) {
 							return insideValue;
 						}
@@ -854,7 +846,7 @@ private:
 	}
 
 	Statement_t* lastStatementFrom(ast_node* body) const {
-		switch (body->getId()) {
+		switch (body->get_id()) {
 			case id<Block_t>():
 				return lastStatementFrom(static_cast<Block_t*>(body));
 			case id<Statement_t>(): {
@@ -892,7 +884,7 @@ private:
 	}
 
 	Exp_t* lastExpFromAssign(ast_node* action) {
-		switch (action->getId()) {
+		switch (action->get_id()) {
 			case id<Update_t>(): {
 				auto update = static_cast<Update_t*>(action);
 				return update->value;
@@ -907,7 +899,7 @@ private:
 
 	Exp_t* lastExpFromStatement(Statement_t* stmt) {
 		if (!stmt->content) return nullptr;
-		switch (stmt->content->getId()) {
+		switch (stmt->content->get_id()) {
 			case id<ExpListAssign_t>(): {
 				auto expListAssign = static_cast<ExpListAssign_t*>(stmt->content.get());
 				if (auto action = expListAssign->action.get()) {
@@ -921,7 +913,7 @@ private:
 				if (auto action = exportNode->assign.get()) {
 					return lastExpFromAssign(action);
 				} else {
-					switch (exportNode->target->getId()) {
+					switch (exportNode->target->get_id()) {
 						case id<Exp_t>(): return exportNode->target.to<Exp_t>();
 						case id<ExpList_t>(): return static_cast<Exp_t*>(exportNode->target.to<ExpList_t>()->exprs.back());
 					}
@@ -1039,7 +1031,7 @@ private:
 		BREAK_IF(!chainValue);
 		BREAK_IF(chainValue->items.size() != 1);
 		auto callable = ast_cast<Callable_t>(chainValue->items.front());
-		BREAK_IF(!callable || !(callable->item.is<Variable_t>() || callable->getByPath<SelfItem_t, Self_t>()));
+		BREAK_IF(!callable || !(callable->item.is<Variable_t>() || callable->get_by_path<SelfItem_t, Self_t>()));
 		str_list tmp;
 		if (accessing) {
 			transformCallable(callable, tmp);
@@ -1072,7 +1064,7 @@ private:
 		if (chainItems.size() == 1) {
 			auto firstItem = chainItems.back();
 			if (auto callable = ast_cast<Callable_t>(firstItem)) {
-				switch (callable->item->getId()) {
+				switch (callable->item->get_id()) {
 					case id<Variable_t>():
 						checkConst(_parser.toString(callable->item.get()), callable->item.get());
 						return true;
@@ -1080,7 +1072,7 @@ private:
 						return true;
 				}
 			} else
-				switch (firstItem->getId()) {
+				switch (firstItem->get_id()) {
 					case id<DotChainItem_t>():
 					case id<Exp_t>():
 						return true;
@@ -1093,7 +1085,7 @@ private:
 				return false;
 			}
 			auto lastItem = chainItems.back();
-			switch (lastItem->getId()) {
+			switch (lastItem->get_id()) {
 				case id<DotChainItem_t>():
 				case id<Exp_t>():
 				case id<TableAppendingOp_t>():
@@ -1106,7 +1098,7 @@ private:
 	bool isAssignable(Exp_t* exp) {
 		if (auto value = singleValueFrom(exp)) {
 			auto item = value->item.get();
-			switch (item->getId()) {
+			switch (item->get_id()) {
 				case id<SimpleTable_t>():
 					return true;
 				case id<SimpleValue_t>(): {
@@ -1264,7 +1256,7 @@ private:
 		auto x = statement;
 		if (_config.reserveComment && !x->comments.empty()) {
 			for (ast_node* node : x->comments.objects()) {
-				switch (node->getId()) {
+				switch (node->get_id()) {
 					case id<YueLineComment_t>(): {
 						auto comment = ast_cast<YueLineComment_t>(node);
 						out.push_back(indent() + "--"s + _parser.toString(comment) + '\n');
@@ -1289,7 +1281,7 @@ private:
 				}
 			} else if (auto attrib = statement->content.as<LocalAttrib_t>()) {
 				auto appendix = statement->appendix.get();
-				switch (appendix->item->getId()) {
+				switch (appendix->item->get_id()) {
 					case id<IfLine_t>(): {
 						auto if_line = static_cast<IfLine_t*>(appendix->item.get());
 						auto ifNode = x->new_ptr<If_t>();
@@ -1298,7 +1290,7 @@ private:
 
 						auto expList = x->new_ptr<ExpList_t>();
 						for (auto val : attrib->assign->values.objects()) {
-							switch (val->getId()) {
+							switch (val->get_id()) {
 								case id<If_t>():
 								case id<Switch_t>():
 								case id<With_t>(): {
@@ -1349,7 +1341,7 @@ private:
 				}
 			} else if (!statement->appendix->item.is<IfLine_t>()) {
 				auto appendix = statement->appendix->item.get();
-				switch (statement->content->getId()) {
+				switch (statement->content->get_id()) {
 					case id<Return_t>():
 						throw CompileError("loop line decorator can not be used in a return statement"sv, appendix);
 						break;
@@ -1359,7 +1351,7 @@ private:
 				}
 			}
 			auto appendix = statement->appendix.get();
-			switch (appendix->item->getId()) {
+			switch (appendix->item->get_id()) {
 				case id<IfLine_t>(): {
 					auto if_line = static_cast<IfLine_t*>(appendix->item.get());
 					auto ifNode = x->new_ptr<If_t>();
@@ -1428,7 +1420,7 @@ private:
 			out.push_back(Empty);
 			return;
 		}
-		switch (content->getId()) {
+		switch (content->get_id()) {
 			case id<Import_t>(): transformImport(static_cast<Import_t*>(content), out); break;
 			case id<While_t>(): transformWhile(static_cast<While_t*>(content), out); break;
 			case id<Repeat_t>(): transformRepeat(static_cast<Repeat_t*>(content), out); break;
@@ -1460,7 +1452,7 @@ private:
 						if (auto simpleValue = singleValue->item.as<SimpleValue_t>()) {
 							auto value = simpleValue->value.get();
 							bool specialSingleValue = true;
-							switch (value->getId()) {
+							switch (value->get_id()) {
 								case id<If_t>(): transformIf(static_cast<If_t*>(value), out, ExpUsage::Common); break;
 								case id<ClassDecl_t>(): transformClassDecl(static_cast<ClassDecl_t*>(value), out, ExpUsage::Common); break;
 								case id<Switch_t>(): transformSwitch(static_cast<Switch_t*>(value), out, ExpUsage::Common); break;
@@ -1496,25 +1488,6 @@ private:
 			}
 			case id<ChainAssign_t>(): transformChainAssign(static_cast<ChainAssign_t*>(content), out); break;
 			default: YUEE("AST node mismatch", content); break;
-		}
-		if (statement->needSep && !out.empty() && !out.back().empty()) {
-			auto index = std::string::npos;
-			if (_config.reserveLineNumber) {
-				index = out.back().rfind(" -- "sv);
-			} else {
-				index = out.back().find_last_not_of('\n');
-				if (index != std::string::npos) index++;
-			}
-			if (index != std::string::npos) {
-				auto ending = out.back().substr(0, index);
-				auto ind = ending.find_last_of(" \t\n"sv);
-				if (ind != std::string::npos) {
-					ending = ending.substr(ind + 1);
-				}
-				if (LuaKeywords.find(ending) == LuaKeywords.end()) {
-					out.back().insert(index, ";"sv);
-				}
-			}
 		}
 	}
 
@@ -1687,7 +1660,7 @@ private:
 		bool checkValuesLater = false;
 		if (exprs.size() > values.size()) {
 			BLOCK_START
-			switch (values.back()->getId()) {
+			switch (values.back()->get_id()) {
 				case id<If_t>():
 				case id<Switch_t>():
 					checkValuesLater = true;
@@ -1700,7 +1673,7 @@ private:
 				throw CompileError(clearBuf(), values.front());
 			}
 			if (auto val = value->item.as<SimpleValue_t>()) {
-				switch (val->value->getId()) {
+				switch (val->value->get_id()) {
 					case id<If_t>():
 					case id<Switch_t>():
 					case id<Do_t>():
@@ -1729,7 +1702,7 @@ private:
 				BLOCK_START
 				auto value = singleValueFrom(*it);
 				BREAK_IF(!value);
-				if (value->item.is<SimpleTable_t>() || value->getByPath<SimpleValue_t, TableLit_t>()) {
+				if (value->item.is<SimpleTable_t>() || value->get_by_path<SimpleValue_t, TableLit_t>()) {
 					holdItem = true;
 					break;
 				}
@@ -1886,7 +1859,7 @@ private:
 				value = val->value.get();
 			}
 		}
-		switch (value->getId()) {
+		switch (value->get_id()) {
 			case id<If_t>(): {
 				auto ifNode = static_cast<If_t*>(value);
 				auto assignList = assignment->expList.get();
@@ -1970,6 +1943,7 @@ private:
 					out.back().insert(0, preDefine);
 					return;
 				}
+				break;
 			}
 			case id<TableBlock_t>(): {
 				auto tableBlock = static_cast<TableBlock_t*>(value);
@@ -1980,6 +1954,7 @@ private:
 					out.back().insert(0, preDefine);
 					return;
 				}
+				break;
 			}
 		}
 		auto exp = ast_cast<Exp_t>(value);
@@ -2268,7 +2243,7 @@ private:
 	}
 
 	void transformAssignItem(ast_node* value, str_list& out) {
-		switch (value->getId()) {
+		switch (value->get_id()) {
 			case id<With_t>(): transformWithClosure(static_cast<With_t*>(value), out); break;
 			case id<If_t>(): transformIf(static_cast<If_t*>(value), out, ExpUsage::Closure); break;
 			case id<Switch_t>(): transformSwitch(static_cast<Switch_t*>(value), out, ExpUsage::Closure); break;
@@ -2281,11 +2256,11 @@ private:
 	std::list<DestructItem> destructFromExp(ast_node* node, bool optional) {
 		const node_container* tableItems = nullptr;
 		ast_ptr<false, ExistentialOp_t> sep = optional ? node->new_ptr<ExistentialOp_t>() : nullptr;
-		switch (node->getId()) {
+		switch (node->get_id()) {
 			case id<Exp_t>(): {
 				auto item = singleValueFrom(node)->item.get();
 				if (!item) throw CompileError("invalid destructure value"sv, node);
-				auto tbA = item->getByPath<TableLit_t>();
+				auto tbA = item->get_by_path<TableLit_t>();
 				if (tbA) {
 					tableItems = &tbA->values.objects();
 				} else {
@@ -2321,7 +2296,7 @@ private:
 		int index = 0;
 		auto subMetaDestruct = node->new_ptr<TableLit_t>();
 		for (auto pair : *tableItems) {
-			switch (pair->getId()) {
+			switch (pair->get_id()) {
 				case id<Exp_t>():
 				case id<NormalDef_t>(): {
 					Exp_t* defVal = nullptr;
@@ -2335,7 +2310,7 @@ private:
 					}
 					auto value = singleValueFrom(pair);
 					auto item = value->item.get();
-					if (ast_is<SimpleTable_t>(item) || item->getByPath<TableLit_t>()) {
+					if (ast_is<SimpleTable_t>(item) || item->get_by_path<TableLit_t>()) {
 						auto subPairs = destructFromExp(pair, optional);
 						if (!subPairs.empty()) {
 							if (defVal) {
@@ -2388,14 +2363,14 @@ private:
 					auto np = static_cast<NormalPair_t*>(pair);
 					ast_ptr<true, ast_node> keyIndex;
 					if (np->key) {
-						if (auto key = np->key->getByPath<Name_t>()) {
+						if (auto key = np->key->get_by_path<Name_t>()) {
 							auto keyNameStr = _parser.toString(key);
 							if (LuaKeywords.find(keyNameStr) != LuaKeywords.end()) {
 								keyIndex = toAst<Exp_t>('"' + keyNameStr + '"', key).get();
 							} else {
 								keyIndex = toAst<DotChainItem_t>('.' + keyNameStr, key).get();
 							}
-						} else if (auto key = np->key->getByPath<SelfItem_t>()) {
+						} else if (auto key = np->key->get_by_path<SelfItem_t>()) {
 							auto callable = np->new_ptr<Callable_t>();
 							callable->item.set(key);
 							auto chainValue = np->new_ptr<ChainValue_t>();
@@ -2412,7 +2387,7 @@ private:
 					if (auto exp = np->value.as<Exp_t>()) {
 						if (!isAssignable(exp)) throw CompileError("can't do destructure value"sv, exp);
 						auto item = singleValueFrom(exp)->item.get();
-						if (ast_is<SimpleTable_t>(item) || item->getByPath<TableLit_t>()) {
+						if (ast_is<SimpleTable_t>(item) || item->get_by_path<TableLit_t>()) {
 							auto subPairs = destructFromExp(exp, optional);
 							if (!subPairs.empty()) {
 								if (defVal) {
@@ -2492,7 +2467,7 @@ private:
 					auto mp = static_cast<MetaNormalPair_t*>(pair);
 					auto newPair = pair->new_ptr<NormalPair_t>();
 					if (mp->key) {
-						switch (mp->key->getId()) {
+						switch (mp->key->get_id()) {
 							case id<Name_t>(): {
 								auto key = _parser.toString(mp->key);
 								checkMetamethod(key, mp->key);
@@ -2566,11 +2541,11 @@ private:
 			if (!value) {
 				throw CompileError("invalid destructure"sv, expr);
 			}
-			ast_node* destructNode = value->getByPath<SimpleValue_t, TableLit_t>();
+			ast_node* destructNode = value->get_by_path<SimpleValue_t, TableLit_t>();
 			if (destructNode || (destructNode = value->item.as<SimpleTable_t>())) {
 				if (*j != nil) {
 					if (auto ssVal = simpleSingleValueFrom(*j)) {
-						switch (ssVal->value->getId()) {
+						switch (ssVal->value->get_id()) {
 							case id<ConstValue_t>():
 								throw CompileError("can not destructure a constant"sv, ssVal->value);
 								break;
@@ -2587,7 +2562,7 @@ private:
 				auto subDestruct = destructNode->new_ptr<TableLit_t>();
 				auto subMetaDestruct = destructNode->new_ptr<TableLit_t>();
 				const node_container* dlist = nullptr;
-				switch (destructNode->getId()) {
+				switch (destructNode->get_id()) {
 					case id<TableLit_t>():
 						dlist = &static_cast<TableLit_t*>(destructNode)->values.objects();
 						break;
@@ -2597,7 +2572,7 @@ private:
 					default: YUEE("AST node mismatch", destructNode); break;
 				}
 				for (auto item : *dlist) {
-					switch (item->getId()) {
+					switch (item->get_id()) {
 						case id<MetaVariablePairDef_t>(): {
 							auto mvp = static_cast<MetaVariablePairDef_t*>(item);
 							auto mp = mvp->pair.get();
@@ -2614,7 +2589,7 @@ private:
 							auto mp = mnp->pair.get();
 							auto newPair = item->new_ptr<NormalPair_t>();
 							if (mp->key) {
-								switch (mp->key->getId()) {
+								switch (mp->key->get_id()) {
 									case id<Name_t>(): {
 										auto key = _parser.toString(mp->key);
 										checkMetamethod(key, mp->key);
@@ -2653,7 +2628,7 @@ private:
 							auto mp = static_cast<MetaNormalPair_t*>(item);
 							auto newPair = item->new_ptr<NormalPair_t>();
 							if (mp->key) {
-								switch (mp->key->getId()) {
+								switch (mp->key->get_id()) {
 									case id<Name_t>(): {
 										auto key = _parser.toString(mp->key);
 										checkMetamethod(key, mp->key);
@@ -2824,7 +2799,7 @@ private:
 		str_list temp;
 		auto expList = assignment->expList.get();
 		auto action = assignment->action.get();
-		switch (action->getId()) {
+		switch (action->get_id()) {
 			case id<Update_t>(): {
 				if (expList->exprs.size() > 1) throw CompileError("can not apply update to multiple values"sv, expList);
 				auto update = static_cast<Update_t*>(action);
@@ -3018,7 +2993,7 @@ private:
 		std::list<std::pair<IfCond_t*, ast_node*>> ifCondPairs;
 		ifCondPairs.emplace_back();
 		for (auto node : nodes) {
-			switch (node->getId()) {
+			switch (node->get_id()) {
 				case id<IfCond_t>():
 					ifCondPairs.back().first = static_cast<IfCond_t*>(node);
 					break;
@@ -3391,7 +3366,7 @@ private:
 
 	void transformValue(Value_t* value, str_list& out) {
 		auto item = value->item.get();
-		switch (item->getId()) {
+		switch (item->get_id()) {
 			case id<SimpleValue_t>(): transformSimpleValue(static_cast<SimpleValue_t*>(item), out); break;
 			case id<SimpleTable_t>(): transform_simple_table(static_cast<SimpleTable_t*>(item), out); break;
 			case id<ChainValue_t>(): transformChainValue(static_cast<ChainValue_t*>(item), out, ExpUsage::Closure); break;
@@ -3402,7 +3377,7 @@ private:
 
 	void transformCallable(Callable_t* callable, str_list& out, const ast_sel<false, Invoke_t, InvokeArgs_t>& invoke = {}) {
 		auto item = callable->item.get();
-		switch (item->getId()) {
+		switch (item->get_id()) {
 			case id<Variable_t>(): {
 				transformVariable(static_cast<Variable_t*>(item), out);
 				if (_config.lintGlobalVariable && !isLocal(out.back())) {
@@ -3430,7 +3405,7 @@ private:
 
 	void transformSimpleValue(SimpleValue_t* simpleValue, str_list& out) {
 		auto value = simpleValue->value.get();
-		switch (value->getId()) {
+		switch (value->get_id()) {
 			case id<ConstValue_t>(): transformConstValue(static_cast<ConstValue_t*>(value), out); break;
 			case id<If_t>(): transformIf(static_cast<If_t*>(value), out, ExpUsage::Closure); break;
 			case id<Switch_t>(): transformSwitch(static_cast<Switch_t*>(value), out, ExpUsage::Closure); break;
@@ -3543,8 +3518,6 @@ private:
 				}
 				lst->appendix.set(stmt->appendix);
 				stmt->appendix.set(nullptr);
-				lst->needSep.set(stmt->needSep);
-				stmt->needSep.set(nullptr);
 				auto exp = lastExpFromStatement(lst);
 				BREAK_IF(!exp);
 				for (auto val : pipeBody->values.objects()) {
@@ -3637,7 +3610,7 @@ private:
 			if (auto local = stmt->content.as<Local_t>()) {
 				if (!local->collected) {
 					local->collected = true;
-					switch (local->item->getId()) {
+					switch (local->item->get_id()) {
 						case id<LocalFlag_t>(): {
 							auto flag = static_cast<LocalFlag_t*>(local->item.get());
 							LocalMode newMode = _parser.toString(flag) == "*"sv ? LocalMode::Any : LocalMode::Capital;
@@ -3713,11 +3686,11 @@ private:
 					BREAK_IF(!exp);
 					auto value = singleValueFrom(exp);
 					BREAK_IF(!value);
-					classDecl = value->getByPath<SimpleValue_t, ClassDecl_t>();
+					classDecl = value->get_by_path<SimpleValue_t, ClassDecl_t>();
 					BLOCK_END
 				} else if (auto expList = expListFrom(stmt)) {
 					auto value = singleValueFrom(expList);
-					classDecl = value->getByPath<SimpleValue_t, ClassDecl_t>();
+					classDecl = value->get_by_path<SimpleValue_t, ClassDecl_t>();
 				}
 				if (classDecl) {
 					if (auto variable = classDecl->name->item.as<Variable_t>()) {
@@ -3753,22 +3726,6 @@ private:
 				returnNode->valueList.set(expListLow);
 				returnNode->allowBlockMacroReturn = true;
 				last->content.set(returnNode);
-				last->needSep.set(nullptr);
-				auto bLast = ++nodes.rbegin();
-				if (bLast != nodes.rend()) {
-					bool isMacro = false;
-					BLOCK_START
-					BREAK_IF(expListLow->exprs.size() != 1);
-					auto exp = static_cast<Exp_t*>(expListLow->exprs.back());
-					BREAK_IF(!exp->opValues.empty());
-					auto chainValue = exp->getByPath<UnaryExp_t, Value_t, ChainValue_t>();
-					BREAK_IF(!chainValue);
-					isMacro = isMacroChain(chainValue);
-					BLOCK_END
-					if (!isMacro) {
-						ast_to<Statement_t>(*bLast)->needSep.set(nullptr);
-					}
-				}
 				BLOCK_END
 				break;
 			}
@@ -3777,7 +3734,7 @@ private:
 				if (!last) throw CompileError("block is not assignable"sv, block);
 				if (last->appendix) {
 					auto appendix = last->appendix->item.get();
-					switch (appendix->getId()) {
+					switch (appendix->get_id()) {
 						case id<WhileLine_t>():
 							throw CompileError("while-loop line decorator is not supported here"sv, appendix);
 							break;
@@ -3802,11 +3759,6 @@ private:
 					}
 					newAssignment->action.set(assign);
 					last->content.set(newAssignment);
-					last->needSep.set(nullptr);
-					auto bLast = ++nodes.rbegin();
-					if (bLast != nodes.rend()) {
-						static_cast<Statement_t*>(*bLast)->needSep.set(nullptr);
-					}
 				} else if (!last->content.is<BreakLoop_t>()) {
 					throw CompileError("expecting assignable statement or break loop"sv, last);
 				}
@@ -3818,6 +3770,28 @@ private:
 			str_list temp;
 			for (auto node : nodes) {
 				transformStatement(static_cast<Statement_t*>(node), temp);
+				if (!temp.empty() && _parser.startWith<StatementSep_t>(temp.back())) {
+					auto rit = ++temp.rbegin();
+					if (rit != temp.rend() && !rit->empty()) {
+						auto index = std::string::npos;
+						if (_config.reserveLineNumber) {
+							index = rit->rfind(" -- "sv);
+						} else {
+							index = rit->find_last_not_of('\n');
+							if (index != std::string::npos) index++;
+						}
+						if (index != std::string::npos) {
+							auto ending = rit->substr(0, index);
+							auto ind = ending.find_last_of(" \t\n"sv);
+							if (ind != std::string::npos) {
+								ending = ending.substr(ind + 1);
+							}
+							if (LuaKeywords.find(ending) == LuaKeywords.end()) {
+								rit->insert(index, ";"sv);
+							}
+						}
+					}
+				}
 			}
 			out.push_back(join(temp));
 		} else {
@@ -4085,7 +4059,7 @@ private:
 			if (auto singleValue = singleValueFrom(valueList)) {
 				if (auto simpleValue = singleValue->item.as<SimpleValue_t>()) {
 					auto value = simpleValue->value.get();
-					switch (value->getId()) {
+					switch (value->get_id()) {
 						case id<Comprehension_t>():
 							transformComprehension(static_cast<Comprehension_t*>(value), out, ExpUsage::Return);
 							return;
@@ -4186,7 +4160,7 @@ private:
 		for (auto _def : argDefList->definitions.objects()) {
 			auto def = static_cast<FnArgDef_t*>(_def);
 			auto& arg = argItems.emplace_back();
-			switch (def->name->getId()) {
+			switch (def->name->get_id()) {
 				case id<Variable_t>(): arg.name = _parser.toString(def->name); break;
 				case id<SelfItem_t>(): {
 					assignSelf = true;
@@ -4197,7 +4171,7 @@ private:
 						arg.checkExistence = true;
 					}
 					auto selfName = static_cast<SelfItem_t*>(def->name.get());
-					switch (selfName->name->getId()) {
+					switch (selfName->name->get_id()) {
 						case id<SelfClassName_t>(): {
 							auto clsName = static_cast<SelfClassName_t*>(selfName->name.get());
 							arg.name = _parser.toString(clsName->name);
@@ -4271,7 +4245,7 @@ private:
 	void transformSelfName(SelfItem_t* selfName, str_list& out, const ast_sel<false, Invoke_t, InvokeArgs_t>& invoke = {}) {
 		auto x = selfName;
 		auto name = selfName->name.get();
-		switch (name->getId()) {
+		switch (name->get_id()) {
 			case id<SelfClassName_t>(): {
 				auto clsName = static_cast<SelfClassName_t*>(name);
 				auto nameStr = _parser.toString(clsName->name);
@@ -4554,7 +4528,7 @@ private:
 					break;
 			}
 			auto baseChain = x->new_ptr<ChainValue_t>();
-			switch (chainList.front()->getId()) {
+			switch (chainList.front()->get_id()) {
 				case id<DotChainItem_t>():
 				case id<ColonChainItem_t>():
 				case id<Exp_t>():
@@ -4665,11 +4639,11 @@ private:
 			chain = toAst<ChainValue_t>("getmetatable()"sv, x);
 			ast_to<Invoke_t>(chain->items.back())->args.push_back(exp);
 		}
-		switch ((*opIt)->getId()) {
+		switch ((*opIt)->get_id()) {
 			case id<ColonChainItem_t>(): {
 				auto colon = static_cast<ColonChainItem_t*>(*opIt);
 				auto meta = colon->name.to<Metamethod_t>();
-				switch (meta->item->getId()) {
+				switch (meta->item->get_id()) {
 					case id<Name_t>(): {
 						auto name = _parser.toString(meta->item);
 						checkMetamethod(name, meta->item);
@@ -4764,7 +4738,7 @@ private:
 				auto dot = static_cast<DotChainItem_t*>(*opIt);
 				if (dot->name.is<Metatable_t>()) break;
 				auto meta = dot->name.to<Metamethod_t>();
-				switch (meta->item->getId()) {
+				switch (meta->item->get_id()) {
 					case id<Name_t>(): {
 						auto name = _parser.toString(meta->item);
 						checkMetamethod(name, meta->item);
@@ -4795,7 +4769,7 @@ private:
 	void transformChainList(const node_container& chainList, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
 		auto x = chainList.front();
 		str_list temp;
-		switch (x->getId()) {
+		switch (x->get_id()) {
 			case id<DotChainItem_t>():
 			case id<ColonChainItem_t>():
 			case id<Exp_t>():
@@ -4808,7 +4782,7 @@ private:
 		}
 		for (auto it = chainList.begin(); it != chainList.end(); ++it) {
 			auto item = *it;
-			switch (item->getId()) {
+			switch (item->get_id()) {
 				case id<Invoke_t>():
 					transformInvoke(static_cast<Invoke_t*>(item), temp);
 					break;
@@ -4840,7 +4814,7 @@ private:
 						auto block = x->new_ptr<Block_t>();
 						{
 							auto chainValue = x->new_ptr<ChainValue_t>();
-							switch (chainList.front()->getId()) {
+							switch (chainList.front()->get_id()) {
 								case id<DotChainItem_t>():
 								case id<ColonChainItem_t>():
 									chainValue->items.push_back(toAst<Callable_t>(_withVars.top(), x));
@@ -5075,7 +5049,7 @@ private:
 					BREAK_IF(!exp);
 					auto value = singleValueFrom(exp);
 					BREAK_IF(!value);
-					auto lstr = value->getByPath<String_t, LuaString_t>();
+					auto lstr = value->get_by_path<String_t, LuaString_t>();
 					BREAK_IF(!lstr);
 					str = _parser.toString(lstr->content);
 					rawString = true;
@@ -5088,21 +5062,15 @@ private:
 						auto exp = static_cast<Exp_t*>(arg);
 						BLOCK_START
 						BREAK_IF(!exp->opValues.empty());
-						auto chainValue = exp->getByPath<UnaryExp_t, Value_t, ChainValue_t>();
+						auto chainValue = exp->get_by_path<UnaryExp_t, Value_t, ChainValue_t>();
 						BREAK_IF(!chainValue);
 						BREAK_IF(!isMacroChain(chainValue));
 						str = std::get<1>(expandMacroStr(chainValue));
 						BLOCK_END
-						if (str.empty() && arg->m_begin.m_it == arg->m_end.m_it) {
-							// exp is reassembled due to pipe expressions
-							// in transform stage, toString(exp) won't be able
-							// to convert its whole text content
-							str = _parser.toString(exp->pipeExprs.front());
-						}
 					}
 				}
 				if (!rawString && str.empty()) {
-					str = _parser.toString(arg);
+					str = YueFormat{}.toString(arg);
 				}
 				Utils::trim(str);
 				Utils::replace(str, "\r\n"sv, "\n"sv);
@@ -5381,7 +5349,7 @@ private:
 	void transformInvoke(Invoke_t* invoke, str_list& out) {
 		str_list temp;
 		for (auto arg : invoke->args.objects()) {
-			switch (arg->getId()) {
+			switch (arg->get_id()) {
 				case id<Exp_t>(): transformExp(static_cast<Exp_t*>(arg), temp, ExpUsage::Closure); break;
 				case id<SingleString_t>(): transformSingleString(static_cast<SingleString_t*>(arg), temp); break;
 				case id<DoubleString_t>(): transformDoubleString(static_cast<DoubleString_t*>(arg), temp); break;
@@ -5600,7 +5568,7 @@ private:
 		}
 		for (; it != values.end(); ++it) {
 			auto item = *it;
-			switch (item->getId()) {
+			switch (item->get_id()) {
 				case id<SpreadExp_t>(): {
 					auto spread = static_cast<SpreadExp_t*>(item);
 					std::string indexVar = getUnusedName("_idx_"sv);
@@ -5652,7 +5620,7 @@ private:
 					auto assignment = toAst<ExpListAssign_t>(tableVar + "=nil"s, item);
 					auto chainValue = singleValueFrom(ast_to<Exp_t>(assignment->expList->exprs.front()))->item.to<ChainValue_t>();
 					auto key = normalPair->key.get();
-					switch (key->getId()) {
+					switch (key->get_id()) {
 						case id<KeyName_t>(): {
 							auto keyName = static_cast<KeyName_t*>(key);
 							ast_ptr<false, ast_node> chainItem;
@@ -5767,7 +5735,7 @@ private:
 					auto assignment = toAst<ExpListAssign_t>(tableVar + "=nil"s, item);
 					auto chainValue = singleValueFrom(ast_to<Exp_t>(assignment->expList->exprs.front()))->item.to<ChainValue_t>();
 					auto key = metaNormalPair->key.get();
-					switch (key->getId()) {
+					switch (key->get_id()) {
 						case id<Name_t>(): {
 							auto dotItem = x->new_ptr<DotChainItem_t>();
 							dotItem->name.set(key);
@@ -5842,7 +5810,7 @@ private:
 		ast_sel<false, Exp_t, TableBlock_t> metatableItem;
 		for (auto value : values) {
 			auto item = value;
-			switch (item->getId()) {
+			switch (item->get_id()) {
 				case id<VariablePairDef_t>(): {
 					auto pair = static_cast<VariablePairDef_t*>(item);
 					if (pair->defVal) {
@@ -5885,7 +5853,7 @@ private:
 				}
 			}
 			bool isMetamethod = false;
-			switch (item->getId()) {
+			switch (item->get_id()) {
 				case id<Exp_t>(): transformExp(static_cast<Exp_t*>(item), temp, ExpUsage::Closure); break;
 				case id<VariablePair_t>(): transform_variable_pair(static_cast<VariablePair_t*>(item), temp); break;
 				case id<NormalPair_t>(): transform_normal_pair(static_cast<NormalPair_t*>(item), temp, false); break;
@@ -5912,7 +5880,7 @@ private:
 						if (metatableItem) {
 							throw CompileError("too many metatable declarations"sv, mp->key);
 						}
-						switch (mp->key->getId()) {
+						switch (mp->key->get_id()) {
 							case id<Name_t>(): {
 								auto key = _parser.toString(mp->key);
 								checkMetamethod(key, mp->key);
@@ -5967,7 +5935,7 @@ private:
 			if (!metatable->pairs.empty()) {
 				transform_simple_table(metatable, tmp);
 			} else
-				switch (metatableItem->getId()) {
+				switch (metatableItem->get_id()) {
 					case id<Exp_t>():
 						transformExp(static_cast<Exp_t*>(metatableItem.get()), tmp, ExpUsage::Closure);
 						break;
@@ -5995,7 +5963,7 @@ private:
 		auto x = comp;
 		auto compInner = comp->forLoop.get();
 		for (auto item : compInner->items.objects()) {
-			switch (item->getId()) {
+			switch (item->get_id()) {
 				case id<CompForEach_t>():
 					transformCompForEach(static_cast<CompForEach_t*>(item), temp);
 					break;
@@ -6052,7 +6020,7 @@ private:
 		addToScope(lenVar);
 		auto compInner = comp->forLoop.get();
 		for (auto item : compInner->items.objects()) {
-			switch (item->getId()) {
+			switch (item->get_id()) {
 				case id<CompForEach_t>():
 					transformCompForEach(static_cast<CompForEach_t*>(item), temp);
 					break;
@@ -6132,7 +6100,7 @@ private:
 		std::list<std::pair<ast_node*, ast_ptr<false, ast_node>>> destructPairs;
 		for (auto _item : nameList->items.objects()) {
 			auto item = static_cast<NameOrDestructure_t*>(_item)->item.get();
-			switch (item->getId()) {
+			switch (item->get_id()) {
 				case id<Variable_t>():
 					transformVariable(static_cast<Variable_t*>(item), vars);
 					varAfter.push_back(vars.back());
@@ -6147,7 +6115,7 @@ private:
 				default: YUEE("AST node mismatch", item); break;
 			}
 		}
-		switch (loopTarget->getId()) {
+		switch (loopTarget->get_id()) {
 			case id<StarExp_t>(): {
 				auto star_exp = static_cast<StarExp_t*>(loopTarget);
 				auto listVar = singleVariableFrom(star_exp->value, true);
@@ -6165,7 +6133,7 @@ private:
 				BREAK_IF(!slice);
 				endWithSlice = true;
 				if (listVar.empty() && chainList.size() == 2) {
-					if (auto var = chainList.front()->getByPath<Variable_t>()) {
+					if (auto var = chainList.front()->get_by_path<Variable_t>()) {
 						listVar = _parser.toString(var);
 						if (!isLocal(listVar)) listVar.clear();
 					}
@@ -6320,7 +6288,7 @@ private:
 		}
 		str_list temp;
 		for (auto arg : invokeArgs->args.objects()) {
-			switch (arg->getId()) {
+			switch (arg->get_id()) {
 				case id<Exp_t>(): transformExp(static_cast<Exp_t*>(arg), temp, ExpUsage::Closure); break;
 				case id<TableBlock_t>(): transformTableBlock(static_cast<TableBlock_t*>(arg), temp); break;
 				default: YUEE("AST node mismatch", arg); break;
@@ -6354,7 +6322,7 @@ private:
 	}
 
 	void transform_plain_body(ast_node* body, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
-		switch (body->getId()) {
+		switch (body->get_id()) {
 			case id<Block_t>():
 				transformBlock(static_cast<Block_t*>(body), out, usage, assignList);
 				break;
@@ -6380,7 +6348,7 @@ private:
 					auto simpleValue = value->item.as<SimpleValue_t>();
 					BREAK_IF(!simpleValue);
 					auto sVal = simpleValue->value.get();
-					switch (sVal->getId()) {
+					switch (sVal->get_id()) {
 						case id<With_t>(): {
 							auto withNode = static_cast<With_t*>(sVal);
 							if (hasContinueStatement(withNode->body)) {
@@ -6422,7 +6390,7 @@ private:
 					BLOCK_END
 				}
 			} else {
-				switch (node->getId()) {
+				switch (node->get_id()) {
 					case id<Body_t>():
 					case id<Block_t>():
 						return traversal::Continue;
@@ -6766,7 +6734,7 @@ private:
 	void transform_normal_pair(NormalPair_t* pair, str_list& out, bool assignClass) {
 		auto key = pair->key.get();
 		str_list temp;
-		switch (key->getId()) {
+		switch (key->get_id()) {
 			case id<KeyName_t>(): {
 				auto keyName = static_cast<KeyName_t*>(key);
 				transformKeyName(keyName, temp);
@@ -6782,7 +6750,7 @@ private:
 			case id<String_t>(): {
 				auto strNode = static_cast<String_t*>(key);
 				auto str = strNode->str.get();
-				switch (str->getId()) {
+				switch (str->get_id()) {
 					case id<DoubleString_t>():
 						transformDoubleString(static_cast<DoubleString_t*>(str), temp);
 						temp.back() = '[' + temp.back() + ']';
@@ -6802,7 +6770,7 @@ private:
 			default: YUEE("AST node mismatch", key); break;
 		}
 		auto value = pair->value.get();
-		switch (value->getId()) {
+		switch (value->get_id()) {
 			case id<Exp_t>(): transformExp(static_cast<Exp_t*>(value), temp, ExpUsage::Closure); break;
 			case id<TableBlock_t>(): transformTableBlock(static_cast<TableBlock_t*>(value), temp); break;
 			default: YUEE("AST node mismatch", value); break;
@@ -6812,7 +6780,7 @@ private:
 
 	void transformKeyName(KeyName_t* keyName, str_list& out) {
 		auto name = keyName->name.get();
-		switch (name->getId()) {
+		switch (name->get_id()) {
 			case id<SelfItem_t>():
 				transformSelfName(static_cast<SelfItem_t*>(name), out);
 				break;
@@ -6847,7 +6815,7 @@ private:
 		for (auto _seg : doubleString->segments.objects()) {
 			auto seg = static_cast<DoubleStringContent_t*>(_seg);
 			auto content = seg->content.get();
-			switch (content->getId()) {
+			switch (content->get_id()) {
 				case id<DoubleStringInner_t>(): {
 					auto str = _parser.toString(content);
 					Utils::replace(str, "\r\n"sv, "\n");
@@ -6868,7 +6836,7 @@ private:
 
 	void transformString(String_t* string, str_list& out) {
 		auto str = string->str.get();
-		switch (str->getId()) {
+		switch (str->get_id()) {
 			case id<SingleString_t>(): transformSingleString(static_cast<SingleString_t*>(str), out); break;
 			case id<DoubleString_t>(): transformDoubleString(static_cast<DoubleString_t*>(str), out); break;
 			case id<LuaString_t>(): transformLuaString(static_cast<LuaString_t*>(str), out); break;
@@ -6925,7 +6893,7 @@ private:
 					if (auto dotChain = ast_cast<DotChainItem_t>(chain->items.back())) {
 						className = '\"' + _parser.toString(dotChain->name) + '\"';
 					} else if (auto index = ast_cast<Exp_t>(chain->items.back())) {
-						if (auto name = index->getByPath<UnaryExp_t, Value_t, String_t>()) {
+						if (auto name = index->get_by_path<UnaryExp_t, Value_t, String_t>()) {
 							transformString(name, temp);
 							className = std::move(temp.back());
 							temp.pop_back();
@@ -6974,11 +6942,11 @@ private:
 						BREAK_IF(!exp);
 						auto value = singleValueFrom(exp);
 						BREAK_IF(!value);
-						clsDecl = value->getByPath<SimpleValue_t, ClassDecl_t>();
+						clsDecl = value->get_by_path<SimpleValue_t, ClassDecl_t>();
 						BLOCK_END
 					} else if (auto expList = expListFrom(statement)) {
 						auto value = singleValueFrom(expList);
-						clsDecl = value->getByPath<SimpleValue_t, ClassDecl_t>();
+						clsDecl = value->get_by_path<SimpleValue_t, ClassDecl_t>();
 					}
 					if (clsDecl) {
 						std::string clsName;
@@ -7010,7 +6978,7 @@ private:
 		if (body) {
 			std::list<ClassMember> members;
 			for (auto content : classDecl->body->contents.objects()) {
-				switch (content->getId()) {
+				switch (content->get_id()) {
 					case id<ClassMemberList_t>(): {
 						size_t inc = transform_class_member_list(static_cast<ClassMemberList_t*>(content), members, classVar);
 						auto it = members.end();
@@ -7170,7 +7138,7 @@ private:
 		for (auto keyValue : class_member_list->values.objects()) {
 			MemType type = MemType::Common;
 			ast_ptr<false, ast_node> ref;
-			switch (keyValue->getId()) {
+			switch (keyValue->get_id()) {
 				case id<MetaVariablePair_t>(): {
 					auto mtPair = static_cast<MetaVariablePair_t*>(keyValue);
 					auto nameStr = _parser.toString(mtPair->name);
@@ -7223,14 +7191,14 @@ private:
 				}
 			}
 			normal_pair->value->traverse([&](ast_node* node) {
-				if (node->getId() == id<ClassDecl_t>()) return traversal::Return;
+				if (node->get_id() == id<ClassDecl_t>()) return traversal::Return;
 				if (auto chainValue = ast_cast<ChainValue_t>(node)) {
 					if (auto callable = ast_cast<Callable_t>(chainValue->items.front())) {
 						auto var = callable->item.get();
 						if (_parser.toString(var) == "super"sv) {
 							auto insertSelfToArguments = [&](ast_node* item) {
 								auto x = item;
-								switch (item->getId()) {
+								switch (item->get_id()) {
 									case id<InvokeArgs_t>(): {
 										auto invoke = static_cast<InvokeArgs_t*>(item);
 										invoke->args.push_front(toAst<Exp_t>("self"sv, x));
@@ -7276,7 +7244,7 @@ private:
 			if (type == MemType::Property) {
 				decIndentOffset();
 			}
-			switch (keyValue->getId()) {
+			switch (keyValue->get_id()) {
 				case id<VariablePair_t>():
 					transform_variable_pair(static_cast<VariablePair_t*>(keyValue), temp);
 					break;
@@ -7298,7 +7266,7 @@ private:
 
 	void transformAssignable(Assignable_t* assignable, str_list& out) {
 		auto item = assignable->item.get();
-		switch (item->getId()) {
+		switch (item->get_id()) {
 			case id<AssignableChain_t>(): transformAssignableChain(static_cast<AssignableChain_t*>(item), out); break;
 			case id<Variable_t>(): transformVariable(static_cast<Variable_t*>(item), out); break;
 			case id<SelfItem_t>(): transformSelfName(static_cast<SelfItem_t*>(item), out); break;
@@ -7416,12 +7384,12 @@ private:
 						auto exp = ast_cast<Exp_t>(assign->values.objects().front());
 						BREAK_IF(!exp);
 						if (auto value = singleValueFrom(exp)) {
-							clsDecl = value->getByPath<SimpleValue_t, ClassDecl_t>();
+							clsDecl = value->get_by_path<SimpleValue_t, ClassDecl_t>();
 						}
 						BLOCK_END
 					} else if (auto expList = expListFrom(statement)) {
 						auto value = singleValueFrom(expList);
-						clsDecl = value->getByPath<SimpleValue_t, ClassDecl_t>();
+						clsDecl = value->get_by_path<SimpleValue_t, ClassDecl_t>();
 					}
 					if (clsDecl) {
 						auto variable = clsDecl->name.as<Variable_t>();
@@ -7476,10 +7444,10 @@ private:
 	void transformGlobal(Global_t* global, str_list& out) {
 		auto x = global;
 		auto item = global->item.get();
-		switch (item->getId()) {
+		switch (item->get_id()) {
 			case id<ClassDecl_t>(): {
 				auto classDecl = static_cast<ClassDecl_t*>(item);
-				if (classDecl->name && classDecl->name->item->getId() == id<Variable_t>()) {
+				if (classDecl->name && classDecl->name->item->get_id() == id<Variable_t>()) {
 					markVarsGlobal(GlobalMode::Any);
 					addGlobalVar(_parser.toString(classDecl->name->item), classDecl->name->item);
 				}
@@ -7530,13 +7498,13 @@ private:
 	}
 
 	std::optional<std::string> getExportKey(ast_node* node) {
-		switch (node->getId()) {
+		switch (node->get_id()) {
 			case id<Name_t>(): {
 				return _parser.toString(node);
 			}
 			case id<String_t>(): {
 				auto strNode = static_cast<String_t*>(node);
-				switch (strNode->str->getId()) {
+				switch (strNode->str->get_id()) {
 					case id<DoubleString_t>(): {
 						auto str = static_cast<DoubleString_t*>(strNode->str.get());
 						if (str->segments.size() == 1) {
@@ -7631,7 +7599,7 @@ private:
 				}
 				for (auto _exp : expList->exprs.objects()) {
 					auto exp = static_cast<Exp_t*>(_exp);
-					if (!variableFrom(exp) && !exp->getByPath<UnaryExp_t, Value_t, SimpleValue_t, TableLit_t>() && !exp->getByPath<UnaryExp_t, Value_t, SimpleTable_t>()) {
+					if (!variableFrom(exp) && !exp->get_by_path<UnaryExp_t, Value_t, SimpleValue_t, TableLit_t>() && !exp->get_by_path<UnaryExp_t, Value_t, SimpleTable_t>()) {
 						throw CompileError("left hand expressions must be variables in export statement"sv, x);
 					}
 				}
@@ -7681,8 +7649,8 @@ private:
 				auto assignList = toAst<ExpList_t>(_info.moduleName + "[#"s + _info.moduleName + "+1]"s, x);
 				assignment->expList.set(assignList);
 				for (auto exp : expList->exprs.objects()) {
-					if (auto classDecl = exp->getByPath<UnaryExp_t, Value_t, SimpleValue_t, ClassDecl_t>()) {
-						if (classDecl->name && classDecl->name->item->getId() == id<Variable_t>()) {
+					if (auto classDecl = exp->get_by_path<UnaryExp_t, Value_t, SimpleValue_t, ClassDecl_t>()) {
+						if (classDecl->name && classDecl->name->item->get_id() == id<Variable_t>()) {
 							transformClassDecl(classDecl, temp, ExpUsage::Common);
 							auto name = _parser.toString(classDecl->name->item);
 							assignment->expList.set(toAst<ExpList_t>(_info.moduleName + "[\""s + name + "\"]"s, x));
@@ -7728,7 +7696,7 @@ private:
 		str_list temp;
 		auto compInner = comp->forLoop.get();
 		for (auto item : compInner->items.objects()) {
-			switch (item->getId()) {
+			switch (item->get_id()) {
 				case id<CompForEach_t>():
 					transformCompForEach(static_cast<CompForEach_t*>(item), temp);
 					break;
@@ -7943,7 +7911,7 @@ private:
 		auto expList = x->new_ptr<ExpList_t>();
 		auto assign = x->new_ptr<Assign_t>();
 		for (auto name : import->names.objects()) {
-			switch (name->getId()) {
+			switch (name->get_id()) {
 				case id<Variable_t>(): {
 					auto var = static_cast<Variable_t*>(name);
 					{
@@ -8032,7 +8000,7 @@ private:
 			auto newTab = x->new_ptr<ImportTabLit_t>();
 			if (auto tabLit = import->target.as<ImportTabLit_t>()) {
 				for (auto item : tabLit->items.objects()) {
-					switch (item->getId()) {
+					switch (item->get_id()) {
 #ifdef YUE_NO_MACRO
 						case id<MacroName_t>():
 						case id<MacroNamePair_t>():
@@ -8162,7 +8130,7 @@ private:
 			auto simpleValue = x->new_ptr<SimpleValue_t>();
 			auto tableLit = x->new_ptr<TableLit_t>();
 			for (auto pair : tabLit->items.objects()) {
-				switch (pair->getId()) {
+				switch (pair->get_id()) {
 					case id<VariablePair_t>(): {
 						auto pairDef = pair->new_ptr<VariablePairDef_t>();
 						pairDef->pair.set(pair);
@@ -8220,7 +8188,7 @@ private:
 
 	void transformImport(Import_t* import, str_list& out) {
 		auto content = import->content.get();
-		switch (content->getId()) {
+		switch (content->get_id()) {
 			case id<ImportAs_t>():
 				transformImportAs(static_cast<ImportAs_t*>(content), out);
 				break;
@@ -8377,7 +8345,7 @@ private:
 			}
 			auto valueList = branch->condition.to<SwitchList_t>();
 			if (auto value = singleValueFrom(valueList);
-				value && (value->item.is<SimpleTable_t>() || value->getByPath<SimpleValue_t, TableLit_t>())) {
+				value && (value->item.is<SimpleTable_t>() || value->get_by_path<SimpleValue_t, TableLit_t>())) {
 				if (!firstBranch) {
 					temp.push_back(indent() + "else"s + nll(branch));
 					pushScope();
@@ -8513,7 +8481,7 @@ private:
 			local->defined = true;
 			transformLocalDef(local, temp);
 		}
-		switch (local->item->getId()) {
+		switch (local->item->get_id()) {
 			case id<LocalValues_t>(): {
 				auto values = static_cast<LocalValues_t*>(local->item.get());
 				if (values->valueList) {
@@ -8573,7 +8541,7 @@ private:
 			} else {
 				auto item = *i;
 				auto value = item->new_ptr<Value_t>();
-				switch (item->getId()) {
+				switch (item->get_id()) {
 					case id<SimpleTable_t>():
 						value->item.set(item);
 						break;

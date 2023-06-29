@@ -162,6 +162,7 @@ add_executable(dorothy-ssr
 	../../../Source/Test/HelloWorldCpp.cpp
 	../../../Source/3rdParty/yuescript/yue_compiler.cpp
 	../../../Source/3rdParty/yuescript/ast.cpp
+	../../../Source/3rdParty/yuescript/yue_ast.cpp
 	../../../Source/3rdParty/yuescript/yue_parser.cpp
 	../../../Source/3rdParty/yuescript/yuescript.cpp
 	../../../Source/3rdParty/yuescript/parser.cpp

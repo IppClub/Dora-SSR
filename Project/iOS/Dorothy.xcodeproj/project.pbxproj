@@ -317,6 +317,8 @@
 		3C59DA7E2703037C0096813A /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3C59DA77270303590096813A /* Launch Screen.storyboard */; };
 		3C59DA7F2703037C0096813A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3C59DA79270303590096813A /* Main.storyboard */; };
 		3C59DA802703037C0096813A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3C1D41002703019800202534 /* Assets.xcassets */; };
+		3C5B33D72A4D2B470080049B /* yue_ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5B33D62A4D2B470080049B /* yue_ast.cpp */; };
+		3C5B33D82A4D2B470080049B /* yue_ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5B33D62A4D2B470080049B /* yue_ast.cpp */; };
 		3C60DE152A2069FE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE142A2069FE007D7865 /* Doc */; };
 		3C60DE162A2069FE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE142A2069FE007D7865 /* Doc */; };
 		3C6577481ECC2C9D00C5FB09 /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6577461ECC2C9D00C5FB09 /* Keyboard.cpp */; };
@@ -1337,6 +1339,7 @@
 		3C59DA78270303590096813A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = "Dorothy/Base.lproj/Launch Screen.storyboard"; sourceTree = "<group>"; };
 		3C59DA7A270303590096813A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Dorothy/Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		3C59DA82270305A10096813A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Dorothy/Info.plist; sourceTree = "<group>"; };
+		3C5B33D62A4D2B470080049B /* yue_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yue_ast.cpp; path = ../../../Source/3rdParty/yuescript/yue_ast.cpp; sourceTree = "<group>"; };
 		3C60DE142A2069FE007D7865 /* Doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Doc; path = ../../Assets/Doc; sourceTree = "<group>"; };
 		3C64DF891E161A600030489C /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Utils.h; path = ../../../Source/Common/Utils.h; sourceTree = "<group>"; };
 		3C6577461ECC2C9D00C5FB09 /* Keyboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Keyboard.cpp; path = ../../../Source/Input/Keyboard.cpp; sourceTree = "<group>"; };
@@ -2592,6 +2595,7 @@
 				3C25B86F257A7F8B002DD8E1 /* parser.cpp */,
 				3C25B86B257A7F8A002DD8E1 /* parser.hpp */,
 				3C25B864257A7F8A002DD8E1 /* stacktraceplus.h */,
+				3C5B33D62A4D2B470080049B /* yue_ast.cpp */,
 				3C25B865257A7F8A002DD8E1 /* yue_ast.h */,
 				3C25B868257A7F8A002DD8E1 /* yue_compiler.cpp */,
 				3C25B86C257A7F8A002DD8E1 /* yue_compiler.h */,
@@ -3769,6 +3773,7 @@
 				3C1A3BE3272A8820003A2829 /* lopcodes.c in Sources */,
 				3C3B9A0B26FDB25D00BD9F3E /* World.cpp in Sources */,
 				3C1A3BDB272A8820003A2829 /* lobject.c in Sources */,
+				3C5B33D82A4D2B470080049B /* yue_ast.cpp in Sources */,
 				3C853F8D28E3ED8A0012C0D0 /* HelloWorldCpp.cpp in Sources */,
 				3C3B9A0C26FDB25D00BD9F3E /* WorldBody.cpp in Sources */,
 				3CFEA178285B87B8002D106F /* WasmRuntime.cpp in Sources */,
@@ -4186,6 +4191,7 @@
 				3C6E803F272A404A00E9F115 /* soloud_core_faderops.cpp in Sources */,
 				3C59730A1E7F74E900BFD00F /* FrameCache.cpp in Sources */,
 				3CFEBDC3269309C7006D9974 /* BaseTimelineState.cpp in Sources */,
+				3C5B33D72A4D2B470080049B /* yue_ast.cpp in Sources */,
 				3C853F8C28E3ED8A0012C0D0 /* HelloWorldCpp.cpp in Sources */,
 				3C13200121011BB60087154A /* Face.cpp in Sources */,
 				3C030CAC24CAC2160074786E /* ML.cpp in Sources */,
