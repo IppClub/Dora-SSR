@@ -67,7 +67,7 @@
     "resolve": "^1.20.0",
     "resolve-url-loader": "^5.0.0",
     "sass-loader": "^13.2.2",
-    "semver": "^7.3.5",
+    "semver": "^7.5.2",
     "source-map-loader": "^4.0.1",
     "style-loader": "^3.3.1",
     "tailwindcss": "^3.0.2",
