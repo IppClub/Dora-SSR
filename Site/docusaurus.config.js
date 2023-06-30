@@ -136,7 +136,7 @@ const config = {
 				],
 			},
 		],
-		copyright: `Copyright © ${new Date().getFullYear()} Dorothy SSR, Inc. Built with Docusaurus.`,
+		copyright: `Copyright © ${new Date().getFullYear()} Dorothy SSR Community. Built with Docusaurus.`,
 		},
 		prism: {
 			theme: lightCodeTheme,
