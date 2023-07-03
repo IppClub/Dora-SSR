@@ -1,0 +1,161 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Using Dora Xml for UI Development II
+
+After defining the graphical UI using Dora Xml, the next problem to solve is how to add handling logic for UI interactions. We can use the class mechanism of Dorothy SSR to write a new class that inherits from the Xml UI component and contains the interface logic for the UI. For example, we have a button Xml component.
+
+```xml title="ButtonView.xml"
+<!-- params: X, Y, Radius, Text, FontSize -->
+<Node X="{ x }" Y="{ y }" Width="{ radius * 2 }" Height="{ radius * 2 }"
+  TouchEnabled="True">
+  <Action>
+    <Opacity Name="fadeIn" Start="1"/>
+    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+  </Action>
+
+  <DrawNode Name="dot" X="{ radius }" Y="{ radius }" Opacity="0.4">
+    <Dot Radius="{ radius }" Color="0xfffbc400"/>
+  </DrawNode>
+  <Label Name="label" X="{ radius }" Y="{ radius }" Text="{ text }"
+    FontName="sarasa-mono-sc-regular"
+    FontSize="{ fontSize }" Ref="True"/>
+
+  <Slot Name="TapBegan" Target="dot" Perform="fadeIn"/>
+  <Slot Name="TapEnded" Target="dot" Perform="fadeOut"/>
+</Node>
+```
+
+Note that we export the access interface to the label by setting the Name and Ref attributes. Then we write a class to inherit from this component and add some business logic:
+
+```lua title="Button.lua"
+local _ENV = Dorothy()
+local ButtonView = require("ButtonView")
+
+-- params: x, y, radius, text, fontSize
+local Button = Class({
+  -- Inherit methods from the C++ object
+  __partial = function(self, args)
+    return ButtonView(args)
+  end,
+
+  -- Constructor
+  __init = function(self, args)
+    self._text = args.text -- Store the text on the button
+
+    self._clickCount = 0 -- Record the number of times the button is clicked
+    
+    self:slot("Tapped", function() -- Listen for click events
+      self._clickCount = self._clickCount + 1 -- Increment the click count
+    end)
+  end,
+
+  -- Add text property
+  text = property(
+    function(self) -- Getter
+      return self._text
+    end,
+    function(self, value) -- Setter
+      self._text = value
+      self.label.text = value -- Get and set the text of the label component
+    end),
+
+  -- Add clickCount property
+  clickCount = property(
+    function(self) -- Getter only
+      return self._clickCount -- Get the click count
+    end),
+})
+
+return Button
+```
+
+The business logic we added to the button mainly includes a feature to count the number of clicks, an interface `clickCount` to get the click count, and an interface `text` to directly set the button text. Now let's use this button with the extended business logic.
+
+```xml title="MainSceneView.xml"
+<Node>
+  <Import Module="Button"/><!-- Import the Lua module directly in Xml -->
+
+  <Menu X="100" Y="100" Width="100" Height="100">
+    <Button X="25" Y="25" Radius="
+
+50" Text="Click"
+      FontSize="28" Ref="True"/><!-- Create and export an object -->
+  </Menu>
+</Node>
+```
+
+Next, add the corresponding business logic to `MainSceneView.xml`.
+
+```lua title="MainScene.lua"
+local _ENV = Dorothy()
+local MainSceneView = require("MainSceneView")
+
+local MainScene = class({
+  __partial = function(self, args)
+    return MainSceneView(args)
+  end,
+
+  __init = function(self, args)
+    self.button.text = "Button"
+
+    self.button:slots("Tapped", function(button)
+      print("Button click count:", button.clickCount)
+    end)
+  end,
+})
+
+return MainScene
+```
+
+```lua title="init.lua"
+local MainScene = require("MainScene")
+Director.entry:addChild(MainScene())
+```
+
+This way, the organization of our program logic for UI development is more complete. We use Dora Xml to manage the appearance of the UI, and then write the UI logic in Lua classes. Now the appearance definition of UI components and the code for business logic can be developed and maintained in separate files.
+
+## Writing UI Logic with Yuescript
+
+With Dora Xml simplifying the UI code, we can further introduce a new language called Yuescript for development. Yuescript is a language that compiles into Lua and can seamlessly integrate with Lua. Its main feature is concise and easy-to-maintain code. Let's see how to use Yuescript together with Dora Xml to write business logic. The code from the previous section can be written in Yuescript as follows:
+
+```yue title="Button.yue"
+_ENV = Dorothy!
+import "ButtonView"
+
+-- params: x, y, radius, text, fontSize
+Class
+  __partial: (args)=> ButtonView args
+  __init: (args)=>
+    @_text = args.text
+    @_clickCount = 0
+    @slots "Tapped", -> @_clickCount += 1
+
+  text: property => @_text,
+    (value)=>
+      @_text = value
+      @label.text = value
+
+  clickCount: property => @_clickCount
+```
+
+```yue title="MainScene.yue"
+_ENV = Dorothy!
+import "MainSceneView"
+
+Class
+  __partial: (args)=> MainSceneView args
+  __init: (args)=>
+    @button.text = "Button"
+
+    @button\slots "Tapped",(button)->
+      print "Button click count: #{button.clickCount}"
+```
+
+```yue title="init.yue"
+import "MainScene"
+Director.entry\addChild MainScene!
+```
+
+The code is much more concise than the previous version, but it achieves the same functionality. Therefore, I recommend readers to try using Yuescript to write UI logic code. Yuescript adopts the code style of Python with indentation controlling code blocks, and it incorporates excellent syntax features from many languages, including Python. Currently, the Dorothy SSR Web IDE also supports Yuescript code writing, including features like syntax highlighting, autocompletion, and error checking. If you want to learn Yuescript, you can start [here](https://yuescript.org/doc).

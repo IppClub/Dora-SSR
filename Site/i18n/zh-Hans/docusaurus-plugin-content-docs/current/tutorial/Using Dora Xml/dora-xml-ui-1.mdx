@@ -1,0 +1,225 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 使用Dora Xml编写UI 1
+
+&emsp;&emsp;Dorothy SSR 提供了一个可以帮助做图形展示与逻辑处理代码做一些开发分离的功能框架，叫做Dora Xml。Dora Xml的核心功能就是把图形展示和交互的代码，特别是一些游戏UI界面中的关注于用户展示的代码用Xml标记语言来编写，就像Web网页中的HTML语言类似的定位。像创建UI组件，设置布局尺寸、颜色外观，创建交互动画和UI动画响应消息事件，都可以只用Dora Xml语言来组织和完成编写。Dora Xml基本符合Xml规范，但也稍微做了些修改，有很多预定义的标签，也可以自定义新的标签。
+
+&emsp;&emsp;编写Dora Xml，只要在 Dorothy SSR 自带的 Web IDE 中创建和编辑代码文件，就可以获得语法高亮、代码补全和一些错误检查的功能，写起来就能省力一些。下面我们来看看怎么用 Dora Xml 写一个自定义的按钮组件吧。
+
+&emsp;&emsp;先简单地设计一下我们的按钮：
+
+* 应该拥有一个点击区域
+* 应该拥有按钮上的显示文本
+* 至少有正常、点击两种外观
+* 按钮的外观随着点击事件触发而切换
+* 作为独立的控件可以在多处引用并支持调整显示参数
+
+&emsp;&emsp;然后就可以开始编写了。
+
+### 1.创建一个点击区域
+
+```xml title="Button.xml"
+<Node Width="60" Height="60" TouchEnabled="True">
+</Node>
+```
+
+&emsp;&emsp;我们先创建了一个带尺寸属性的场景节点对象，并开启点击事件接收的功能，用于接收在场景中触发的点击事件。纯粹的场景节点并没有任何可见的外观属性，所以还需要在后续添加按钮图形显示的子节点才能正常使用。
+
+### 2.创建按钮上的显示文本
+
+```xml title="Button.xml"
+<Node Width="60" Height="60" TouchEnabled="True">
+  <Label X="30" Y="30" Text="Click Me" FontName="sarasa-mono-sc-regular" FontSize="16"/>
+</Node>
+```
+
+&emsp;&emsp;增加Label作为按钮组件的子节点，然后补全Label对象的一些基本参数，在 Web IDE 的补全下可以比较容易的编写。
+
+### 3.创建正常和点击两种外观
+
+```xml title="Button.xml"
+<Node Width="60" Height="60">
+  <Action>
+    <Opacity Name="fadeIn" Start="1"/>
+    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+  </Action>
+
+  <DrawNode X="30" Y="30" Opacity="0.4">
+    <Dot Radius="30" Color="0xff00ffff"/>
+  </DrawNode>
+
+  <Label X="30" Y="30" Text="Click Me"
+    FontName="sarasa-mono-sc-regular"
+    FontSize="16"/>
+</Node>
+```
+
+&emsp;&emsp;画了一个半径为30的半透明实心圆作为按钮的外观。注意用作外观的`<DrawNode>`被写在`<Label>`的前面，这样它们就会先后进行渲染，使`<Label>`的文字覆盖在外观的`<DrawNode>`上。然后还创建了两个节点动作并取名字为fadeIn和fadeOut，用于来控制按钮外观的改变。动作只能写在`<Action>`标签中。动作还可以使用`<Sequence>`和`<Spawn>`标签嵌套写成串行或并行执行的动作序列。
+
+### 4.按钮的外观随着点击事件而切换
+
+```xml title="Button.xml"
+<Node Width="60" Height="60" TouchEnabled="True">
+  <Action>
+    <Opacity Name="fadeIn" Start="1"/>
+    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+  </Action>
+
+  <DrawNode Name="dot" X="30" Y="30" Opacity="0.4">
+    <Dot Radius="30" Color="0xfffbc400"/>
+  </DrawNode>
+  <Label X="30" Y="30" Text="Click Me"
+    FontName="sarasa-mono-sc-regular"
+    FontSize="16"/>
+
+  <Slot Name="TapBegan" Target="dot" Perform="fadeIn"/>
+  <Slot Name="TapEnded">
+    <Lua>
+      dot:perform(fadeOut)
+    </Lua>
+  </Slot>
+</Node>
+```
+
+&emsp;&emsp;用`<Slot>`标签添加对按钮点击事件的监听，并在处理事件时执行相应的动作。执行动作的对象为绘图的节点，所以为了在事件标签中引用它，所以给它添加了`Name`的属性。其实在`<Slot>`标签里还可以内嵌代码，可以支持`<Lua>`或是`<Yue>`标签在任意位置插入并执行一段代码，这些标签中可以编写的代码不限行数与内容，也不用担心`>`和`<`操作符影响Xml标签解析的问题。
+
+### 5.让按钮支持显示参数的调整
+
+```xml title="Button.xml"
+<!-- params: X, Y, Radius, Text, FontSize -->
+<Node X="{ x }" Y="{ y }" Width="{ radius * 2 }" Height="{ radius * 2 }" TouchEnabled="True">
+  <Action>
+    <Opacity Name="fadeIn" Start="1"/>
+    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+  </Action>
+
+  <DrawNode Name="dot" X="{ radius }" Y="{ radius }" Opacity="0.4">
+    <Dot Radius="{ radius }" Color="0xfffbc400"/>
+  </DrawNode>
+  <Label X="{ radius }" Y="{ radius }" Text="{ text }"
+    FontName="sarasa-mono-sc-regular"
+    FontSize="{ fontSize }"/>
+
+  <Slot Name="TapBegan" Target="dot" Perform="fadeIn"/>
+  <Slot Name="TapEnded">
+    <Lua>
+      dot:perform(fadeOut)
+    </Lua>
+  </Slot>
+</Node>
+```
+
+&emsp;&emsp;将固定的参数改为由花括号包裹的任意Lua表达式`{ expr }`，在表达式中可以引用任意名称的参数变量，注意花括号必须紧靠前后双引号，否则会解析不正确，引用的参数变量建议用注释写在组件的开头方便使用者了解。
+
+### 6.在其他文件中引用按钮控件
+
+```xml title="MainScene.xml"
+<Node>
+  <Import Module="Button"/>
+
+  <Menu X="100" Y="100" Width="50" Height="50">
+    <Button X="25" Y="25" Radius="50" Text="Click" FontSize="28"/>
+  </Menu>
+</Node>
+```
+
+&emsp;&emsp;用`<Import>`标签导入Xml模块。Import的Module属性的中需要填入模块的完整路径，如果Button.xml的路径为View/Button.xml，则需要写为`<Import Module="View.Button"/>`。此外还可以在当前模块范围内重命名导入的模块，比如写成`<Import Module="View.Button" Name="ButtonView"/>`，之后的标签名称就可以使用ButtonView而不是Button了。
+
+&emsp;&emsp;导入模块可以设置的属性，除了有特殊作用内置的Name和Ref属性（Ref="True"可以通过根节点节点变量访问这个模块对象，Name用于做后续代码引用），其它设置的属性都会作为首字母小写的参数变量传入模块内部使用。所以一定不能漏填模块中所需要的参数变量。
+
+&emsp;&emsp;这样我们的自定义按钮就完成了，要加载运行Dora Xml文件很简单，可以直接当成普通的Lua文件进行加载，比如这样：
+
+```lua
+local Director = require("Director")
+local MainScene = require("MainScene") -- 返回新的场景节点的创建函数
+local scene = MainScene() -- 调用函数创建新的节点对象
+Director.entry:addChild(scene)
+```
+
+&emsp;&emsp;我们也可以用Lua代码来创建按钮，比如把MainScene.xml换成MainScene.lua。
+
+```lua title="MainScene.lua"
+local _ENV = Dorothy()
+local Button = require("Button")
+
+return function()
+  local scene = Node()
+
+  local menu = Menu()
+  menu.position = Vec2(100,100)
+  menu.size = Size(50,50)
+  scene:addChild(menu)
+
+  local button = Button {
+    x = 25,
+    y = 25,
+    radius = 50,
+    text = "Click",
+    fontSize = 28
+  }
+  menu:addChild(button)
+
+  return scene
+end
+```
+
+&emsp;&emsp;事实上，Dora Xml也是编译生成Lua代码执行的，以上代码正是MainScene.xml编译生成的结果。但是用Xml标签来编写这样的Lua代码逻辑可以得到更加清晰的代码结构，也提升了程序代码的可维护性。
+
+### 7.制作按钮模板
+
+&emsp;&emsp;如果我们想做多种外观不同但是功能基本相同的按钮，我们就可以想把一些固定的按钮功能做成通用的模板。在Dora Xml里我们可以把之前写的按钮改造成这样的模版。
+
+```xml title="ButtonBase.xml"
+<!-- params: X, Y, Width, Height, Text, FontSize -->
+<Node X="{ x }" Y="{ y }" Width="{ width }" Height="{ height }" TouchEnabled="True">
+  <Action>
+    <Opacity Name="fadeIn" Start="1"/>
+    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+  </Action>
+
+  <Node Name="face" X="{ $X }" Y="{ $Y }" Opacity="0.4" Ref="True"/>
+  <Label X="{ $X }" Y="{ $Y }" Text="{ text }"
+    FontName="sarasa-mono-sc-regular"
+    FontSize="{ fontSize }"/>
+
+  <Slot Name="TapBegan" Target="face" Perform="fadeIn"/>
+  <Slot Name="TapEnded" Target="face" Perform="fadeOut"/>
+</Node>
+```
+
+&emsp;&emsp;我们把固定的外观替换成了一个可以挂载任意内容的节点`<Node>`，并取名为face。我们还使用了一些特殊的表达式符号`$X`，`$Y`，表示父节点内部X，Y坐标轴的中心位置。注意我们还给它增加了一个叫Ref的属性，并设置值为True，只有Ref属性为True的节点才会被导出这个组件，并且能被外部直接访问。访问导出节点的方法如下：
+
+```lua
+local ButtonBase = require("ButtonBase")
+local buttonBase = ButtonBase()
+print(buttonBase.face) -- 这里就可以获取到face节点
+```
+
+&emsp;&emsp;接下来在Dora Xml中可以这样使用这个模板：
+
+```xml title="SpriteButton.xml"
+<!-- params: X, Y, Text -->
+<Dorothy>
+  <Import Module="ButtonBase"/>
+
+  <ButtonBase X="{ x }" Y="{ y }" Width="120" Height="120" Text="{ text }" FontSize="28">
+    <Item Name="face">
+      <Sprite File="Image/logo.png" ScaleX="0.2" ScaleY="0.2"/>
+    </Item>
+  </ButtonBase>
+</Dorothy>
+```
+
+```xml title="MainScene.xml"
+<Node>
+  <Import Module="SpriteButton"/>
+
+  <Menu>
+    <SpriteButton X="50" Y="100" Text="Click"/>
+  </Menu>
+</Node>
+```
+
+&emsp;&emsp;我们导入并复用了这个模板模块，并通过`<Item>`标签获取模板中导出的子组件，把Item标签中的Name属性设置为与导出的子节点相同的名字face，并在这个子组件下添加了一个图元节点。Dora Xml 中`<Import>`标签必须出现在引用的外部组件之前，如果引用的外部组件要用作根节点，可以通过添加一个顶层的`<Dorothy>`将所有实际的代码包裹起来。通过这样的写法，我们就可以在套用按钮模板功能之下，定制不同外观的按钮了。
