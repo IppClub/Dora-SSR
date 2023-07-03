@@ -1,0 +1,229 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Using Dora Xml for UI Development I
+
+Dorothy SSR provides a functionality called Dora Xml, which helps separate the graphical presentation and logical processing code. The core functionality of Dora Xml is to write code for graphical presentation and interaction, especially code focused on user display in game UI interfaces, using an XML markup language, similar to HTML in web pages. Creating UI components, setting layout dimensions and appearance colors, creating interactive animations, and UI animations triggered by events can all be organized and written in the Dora Xml language. Dora Xml mostly complies with the XML specification, but with some modifications and additions, including many predefined tags and the ability to create custom tags.
+
+To write Dora Xml, you can create and edit code files in the web IDE provided by Dorothy SSR to benefit from features such as syntax highlighting, code completion, and error checking, which make the writing process much more easier. Now let's see how to use Dora Xml to write a custom button component.
+
+First, let's design our button:
+
+* It has a clickable area.
+* It has text displayed on the button.
+* It has at least two appearances: normal and clicked.
+* The appearance of the button should change when a click event is triggered.
+* As an independent control, it should be reusable in multiple places and support adjusting displays with different parameters.
+
+Now we can start our Dora Xml coding.
+
+### 1. Creating a Clickable Area
+
+```xml title="Button.xml"
+<Node Width="60" Height="60" TouchEnabled="True">
+</Node>
+```
+
+First, we create a scene node object with size properties and enable the reception of click events. This node represents the clickable area in the scene. Since a pure scene node does not have any visible appearance properties, we need to add child nodes for the button's graphical display in order to use it properly.
+
+### 2. Creating Text Display on the Button
+
+```xml title="Button.xml"
+<Node Width="60" Height="60" TouchEnabled="True">
+  <Label X="30" Y="30" Text="Click Me" FontName="sarasa-mono-sc-regular" FontSize="16"/>
+</Node>
+```
+
+We add a Label as a child node of the button component and complete some basic parameters of the Label object. With the help of code completion in the web IDE, this can be easily written.
+
+### 3. Creating Normal and Clicked Appearances
+
+```xml title="Button.xml"
+<Node Width="60" Height="60">
+  <Action>
+    <Opacity Name="fadeIn" Start="1"/>
+    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+  </Action>
+
+  <DrawNode X="30" Y="30" Opacity="0.4">
+    <Dot Radius="30" Color="0xff00ffff"/>
+  </DrawNode>
+
+  <Label X="30" Y="30" Text="Click Me"
+    FontName="sarasa-mono-sc-regular"
+    FontSize="16"/>
+</Node>
+```
+
+We create a semi-transparent solid circle with a radius of 30 as the appearance of the button. Note that the `<DrawNode>` used for the appearance is written before the `<Label>`, so they will be rendered in order, with the text of the `<Label>` covering the appearance
+
+ of the `<DrawNode>`. We also create two action nodes named "fadeIn" and "fadeOut" to control the change in appearance of the button. Actions can only be written within the `<Action>` tag. Actions can also be written as nested sequences or parallel execution using the `<Sequence>` and `<Spawn>` tags.
+
+### 4. Changing the Button Appearance with Click Events
+
+```xml title="Button.xml"
+<Node Width="60" Height="60" TouchEnabled="True">
+  <Action>
+    <Opacity Name="fadeIn" Start="1"/>
+    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+  </Action>
+
+  <DrawNode Name="dot" X="30" Y="30" Opacity="0.4">
+    <Dot Radius="30" Color="0xfffbc400"/>
+  </DrawNode>
+  <Label X="30" Y="30" Text="Click Me"
+    FontName="sarasa-mono-sc-regular"
+    FontSize="16"/>
+
+  <Slot Name="TapBegan" Target="dot" Perform="fadeIn"/>
+  <Slot Name="TapEnded">
+    <Lua>
+      dot:perform(fadeOut)
+    </Lua>
+  </Slot>
+</Node>
+```
+
+We use the `<Slot>` tag to add a listener for the button click event and perform the corresponding actions when handling the event. The target for performing actions is the drawing node, so we give it a name by adding the `Name` attribute. In fact, the `<Slot>` tag can also embed code. You can use the `<Lua>` or `<Yue>` tag to insert and execute a piece of code at any position. These tags allow writing code without worrying about the `>` and `<` operators affecting the parsing of XML tags.
+
+### 5. Making the Button Support Adjustable Display Parameters
+
+```xml title="Button.xml"
+<!-- params: X, Y, Radius, Text, FontSize -->
+<Node X="{ x }" Y="{ y }" Width="{ radius * 2 }" Height="{ radius * 2 }" TouchEnabled="True">
+  <Action>
+    <Opacity Name="fadeIn" Start="1"/>
+    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+  </Action>
+
+  <DrawNode Name="dot" X="{ radius }" Y="{ radius }" Opacity="0.4">
+    <Dot Radius="{ radius }" Color="0xfffbc400"/>
+  </DrawNode>
+  <Label X="{ radius }" Y="{ radius }" Text="{ text }"
+    FontName="sarasa-mono-sc-regular"
+    FontSize="{ fontSize }"/>
+
+  <Slot Name="TapBegan" Target="dot" Perform="fadeIn"/>
+  <Slot Name="TapEnded">
+    <Lua>
+      dot:perform(fadeOut)
+    </Lua>
+  </Slot>
+</Node>
+```
+
+We replace the fixed parameters with Lua expressions wrapped in curly braces `{ expr }`. These expressions can reference arbitrary named parameter variables. Note that the curly braces must be directly adjacent to the double quotes; otherwise, they will not be parsed correctly. It is recommended to write comments for the referenced parameter variables at the beginning of the component to make it easier for users to understand.
+
+### 6. Referencing the Button Component in Other Files
+
+```xml title="MainScene.xml"
+<Node>
+  <Import Module="Button"/>
+
+  <Menu X="100" Y="100" Width="50" Height="50">
+    <Button X="25" Y="25" Radius="50" Text="Click" FontSize="28"/>
+  </Menu>
+</Node>
+```
+
+We use the `<Import>` tag to import the XML module. The `Module` attribute of Import should be filled with the complete path of the module. For example, if the path of Button.xml is View/Button.xml, it should be written as `<Import Module="View.Button"/>`. Furthermore, you can rename the imported module within the current module scope. For example, it can be written as `<Import Module="View.Button" Name="ButtonView"/>`, and then the module can be referred to using the name ButtonView instead of Button in subsequent tags.
+
+The Import module can have additional attributes. Apart from the special-purpose built-in attributes Name and Ref (Ref="True" allows accessing the module object through the root node variable, and Name is used for subsequent code references), any other attributes set will be passed as lowercase parameter variables into the module internally. So be sure to fill in the required parameter variables in the module.
+
+This way, our custom button is complete. Loading and running a Dora Xml file is straightforward; you can directly load it like a regular Lua file. For example:
+
+```lua
+local Director = require("Director")
+local MainScene = require("MainScene") -- Returns a function to create a new scene node
+local scene = MainScene() -- Call the function to create a new node object
+Director.entry:addChild(scene)
+```
+
+We can also create buttons using Lua code, for example, by replacing MainScene.xml with MainScene.lua.
+
+```lua title="MainScene.lua"
+local _ENV = Dorothy()
+local Button = require("Button")
+
+return function()
+  local scene = Node()
+
+  local menu = Menu()
+  menu.position = Vec2(100,100)
+  menu.size = Size(50,50)
+  scene:addChild(menu)
+
+  local button = Button {
+    x = 25,
+    y = 25,
+    radius = 50,
+    text = "Click",
+    fontSize = 28
+  }
+  menu:addChild(button)
+
+  return scene
+end
+```
+
+In fact, Dora Xml is compiled into Lua code for execution. The above code is the result of compiling MainScene.xml. However, writing Lua code logic using XML tags provides a clearer code structure and improves the maintainability of the program.
+
+### 7. Creating a Button Template
+
+If we want to create buttons with different appearances but similar functionality, we can create a reusable template for certain fixed button functionalities. In Dora Xml, we can modify the previously written button into such a template.
+
+```xml title="ButtonBase.xml"
+<!-- params: X, Y, Width, Height, Text, FontSize -->
+<Node X="{ x }" Y="{ y }" Width="{ width }" Height="{ height }" TouchEnabled="True">
+  <Action>
+    <Opacity Name="fadeIn" Start="1"/>
+    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+  </Action>
+
+  <Node Name="face" X="{ $X }" Y="{ $Y }" Opacity="0.4" Ref="True"/>
+  <Label X="{ $X }" Y="{ $Y }" Text="{ text }"
+    FontName="sarasa-mono-sc-regular"
+    FontSize="{ fontSize }"/>
+
+  <Slot Name="TapBegan" Target="face" Perform="fadeIn"/>
+  <Slot Name="TapEnded" Target="face" Perform="fadeOut"/>
+</Node>
+```
+
+We replace the fixed appearance with a node `<Node>`
+
+ that can host any content and name it "face". We also use special expression symbols `$X` and `$Y` to represent the center positions of the X and Y axes within the parent node. Note that we add an attribute called "Ref" to it with a value of True. Only nodes with the Ref attribute set to True will be exported from this component and can be accessed directly from the outside. You can access the exported node as follows:
+
+```lua
+local ButtonBase = require("ButtonBase")
+local buttonBase = ButtonBase()
+print(buttonBase.face) -- This will give you access to the face node
+```
+
+Next, we can use this template in Dora Xml:
+
+```xml title="SpriteButton.xml"
+<!-- params: X, Y, Text -->
+<Dorothy>
+  <Import Module="ButtonBase"/>
+
+  <ButtonBase X="{ x }" Y="{ y }" Width="120" Height="120" Text="{ text }" FontSize="28">
+    <Item Name="face">
+      <Sprite File="Image/logo.png" ScaleX="0.2" ScaleY="0.2"/>
+    </Item>
+  </ButtonBase>
+</Dorothy>
+```
+
+```xml title="MainScene.xml"
+<Node>
+  <Import Module="SpriteButton"/>
+
+  <Menu>
+    <SpriteButton X="50" Y="100" Text="Click"/>
+  </Menu>
+</Node>
+```
+
+We import and reuse the template module and use the `<Item>` tag to obtain the exported child component from the template. The Name attribute of the Item tag is set to the same name as the exported child node, "face", and we add a graphic node as a child of this component. The `<Import>` tag must appear before the referenced external component. If the external component is to be used as the root node, it can be wrapped with a top-level `<Dorothy>` tag. With this approach, we can customize buttons with different appearances while using the button template functionality.
