@@ -46,5 +46,9 @@
   "sidebar.apiSidebar.category.Node Event": {
     "message": "节点事件",
     "description": "The label for category Node Event in sidebar apiSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Using Dora Xml": {
+    "message": "使用Dora Xml",
+    "description": "The label for category Using Dora Xml in sidebar tutorialSidebar"
   }
 }

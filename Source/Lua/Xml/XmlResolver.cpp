@@ -1004,8 +1004,7 @@ void XmlResolver::resolve(String text) {
 
 bool XmlResolver::parse(const char* codes, int length) {
 	dorothy_xml_grammar::DoraSimpleTextParser parser(codes, codes + length);
-	auto simpleParser = s_cast<yard::SimpleTextParser*>(&parser);
-	bool result = simpleParser->Parse<yard::Seq<dorothy_xml_grammar::Document, yard::EndOfInput>>();
+	bool result = parser.Parse<yard::Seq<dorothy_xml_grammar::Document, yard::EndOfInput>>();
 	_isInTag = parser.isInTag;
 	_currentPadding = parser.currentPadding;
 	_currentElement = parser.elements.empty() ? std::string() : parser.elements.top();

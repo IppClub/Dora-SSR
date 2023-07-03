@@ -1,0 +1,159 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 使用Dora Xml编写UI 2
+
+&emsp;&emsp;使用 Dora Xml 编写UI界面的图形定义以后，接下来要解决的问题是如何增加界面交互的处理逻辑。我们可以使用Dorothy SSR的class类的机制，写一个继承Xml界面组件的带有界面处理逻辑的新的类。比如我们有一个按钮的Xml组件。
+
+```xml title="ButtonView.xml"
+<!-- params: X, Y, Radius, Text, FontSize -->
+<Node X="{ x }" Y="{ y }" Width="{ radius * 2 }" Height="{ radius * 2 }"
+  TouchEnabled="True">
+  <Action>
+    <Opacity Name="fadeIn" Start="1"/>
+    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+  </Action>
+
+  <DrawNode Name="dot" X="{ radius }" Y="{ radius }" Opacity="0.4">
+    <Dot Radius="{ radius }" Color="0xfffbc400"/>
+  </DrawNode>
+  <Label Name="label" X="{ radius }" Y="{ radius }" Text="{ text }"
+    FontName="sarasa-mono-sc-regular"
+    FontSize="{ fontSize }" Ref="True"/>
+
+  <Slot Name="TapBegan" Target="dot" Perform="fadeIn"/>
+  <Slot Name="TapEnded" Target="dot" Perform="fadeOut"/>
+</Node>
+```
+
+&emsp;&emsp;注意我们通过设置Name和Ref属性来导出了访问Label的接口label。然后我们写一个类来继承这个组件并添加一些业务逻辑：
+
+```lua title="Button.lua"
+local _ENV = Dorothy()
+local ButtonView = require("ButtonView")
+
+-- params: x, y, radius, text, fontSize
+local Button = Class({
+  -- 继承C++对象的方法
+  __partial = function(self, args)
+    return ButtonView(args)
+  end,
+
+  -- 构造函数
+  __init = function(self, args)
+    self._text = args.text -- 存储按钮上的文本
+
+    self._clickCount = 0 -- 记录按钮被点击次数
+    
+    self:slot("Tapped",function() -- 监听点击事件
+      self._clickCount = self._clickCount + 1 -- 点击次数 +1
+    end)
+  end,
+
+  -- 添加text属性
+  text = property(
+    function(self) -- getter
+      return self._text
+    end,
+    function(self, value) -- setter
+      self._text = value
+      self.label.text = value -- 获取并设置label组件的text
+    end),
+
+  -- 添加clickCount属性
+  clickCount = property(
+    function(self) -- getter only
+      return self._clickCount -- 获取点击次数
+    end),
+})
+
+return Button
+```
+
+&emsp;&emsp;我们给按钮增加的业务逻辑主要是一个统计点击次数的功能，一个获取点击次数的接口clickCount，还有一个直接设置按钮文本的接口text。接下来使用这个扩展业务逻辑了的按钮。
+
+```xml title="MainSceneView.xml"
+<Node>
+  <Import Module="Button"/><!-- 直接在Xml中导入Lua模块 -->
+
+  <Menu X="100" Y="100" Width="100" Height="100">
+    <Button X="25" Y="25" Radius="50" Text="Click"
+      FontSize="28" Ref="True"/><!-- 创建并导出对象 -->
+  </Menu>
+</Node>
+```
+
+&emsp;&emsp;接下来给MainSceneView.xml也添加相应的业务逻辑。
+
+```lua title="MainScene.lua"
+local _ENV = Dorothy()
+local MainSceneView = require("MainSceneView")
+
+local MainScene = class({
+  __partial = function(self, args)
+    return MainSceneView(args)
+  end,
+
+  __init = function(self, args)
+    self.button.text = "Button"
+
+    self.button:slots("Tapped",function(button)
+      print("Button click count:", button.clickCount)
+    end)
+  end,
+})
+
+return MainScene
+```
+
+```lua title="init.lua"
+local MainScene = require("MainScene")
+Director.entry:addChild(MainScene())
+```
+
+&emsp;&emsp;这样我们的界面开发的程序逻辑组织就比较完善了。用Dora Xml来管理界面外观，然后在Lua类中写界面逻辑。现在UI组件的外观定义和业务逻辑的代码就可以分别在不同的文件中进行开发和维护了。
+
+## 使用 Yuescript 编写 UI 逻辑
+
+&emsp;&emsp;有了Dora Xml简化界面代码的编写，我们可以进一步地引入了叫做Yuescript的新语言进行开发，Yuescript是一门编译成Lua运行的语言，所以可以和Lua无缝结合使用。它的最大的特性是代码比较简洁和易于维护。下面就来看一下怎么用 Yuescript 配合 Dora Xml 写业务逻辑吧。前文中的代码如果使用 Yuescript 就可以写成：
+
+```yue title="Button.yue"
+_ENV = Dorothy!
+import "ButtonView"
+
+-- params: x, y, radius, text, fontSize
+Class
+  __partial: (args)=> ButtonView args
+  __init: (args)=>
+    @_text = args.text
+    @_clickCount = 0
+    @slots "Tapped", -> @_clickCount += 1
+
+  text: property => @_text,
+    (value)=>
+      @_text = value
+      @label.text = value
+
+  clickCount: property => @_clickCount
+```
+
+```yue title="MainScene.yue"
+_ENV = Dorothy!
+import "MainSceneView"
+
+Class
+  __partial: (args)=> MainSceneView args
+  __init: (args)=>
+    @button.text = "Button"
+
+    @button\slots "Tapped",(button)->
+      print "Button click count: #{button.clickCount}"
+```
+
+```yue title="init.yue"
+import "MainScene"
+Director.entry\addChild MainScene!
+```
+
+&emsp;&emsp;比前文的代码要简练了很多，但实现的功能是完全相同的。所以推荐读者可以尝试使用 Yuescript 来编写UI界面的逻辑代码。Yuescript 使用了Python的缩进控制代码块的代码风格，以及从包括 Python 在内的很多语言中吸收了优秀的语法特性。目前在 Dorothy SSR 的 Web IDE 中也添加了对 Yuescript 的代码编写的支持，包括高亮补全和错误检查等，想学习 Yuescript 这门语言，就从[这里](https://yuescript.org/doc)开始吧。
