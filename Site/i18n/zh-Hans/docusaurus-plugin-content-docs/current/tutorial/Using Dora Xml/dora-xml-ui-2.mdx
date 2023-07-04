@@ -46,7 +46,7 @@ local Button = Class({
 
     self._clickCount = 0 -- 记录按钮被点击次数
     
-    self:slot("Tapped",function() -- 监听点击事件
+    self:slot("Tapped", function() -- 监听点击事件
       self._clickCount = self._clickCount + 1 -- 点击次数 +1
     end)
   end,
@@ -98,7 +98,7 @@ local MainScene = class({
   __init = function(self, args)
     self.button.text = "Button"
 
-    self.button:slots("Tapped",function(button)
+    self.button:slots("Tapped", function(button)
       print("Button click count:", button.clickCount)
     end)
   end,
