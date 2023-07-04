@@ -127,7 +127,7 @@ with Sprite "Image/logo.png"
     - Wait for the browser to pop up a download prompt for the packaged project file.
 
 
-For more detailed tutorials, please check [official documents](https://dorothy-ssr.net/docs/tutorial/intro).
+For more detailed tutorials, please check [official documents](https://dorothy-ssr.net/docs/tutorial/quick-start).
 
 <br>
 
