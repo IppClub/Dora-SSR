@@ -1645,13 +1645,13 @@ export default function PersistentDrawerLeft() {
 								/> : null
 							}
 							{markdown ?
-								<div hidden={file.mdEditing}>
+								<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: window.innerHeight - 64}}>
 									<Markdown
 										path={readOnly ? "" : Service.addr("/" + path.relative(treeData.at(0)?.key ?? "", path.dirname(file.key)).replace("\\", "/"))}
 										content={file.contentModified ?? file.content}
 										onClick={(link) => onJumpLink(link, file.key)}
 									/>
-								</div> : null
+								</MacScrollbar> : null
 							}
 							{image ?
 								<MacScrollbar skin='dark'>
