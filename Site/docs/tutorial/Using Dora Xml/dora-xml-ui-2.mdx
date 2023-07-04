@@ -45,7 +45,7 @@ local Button = Class({
     self._text = args.text -- Store the text on the button
 
     self._clickCount = 0 -- Record the number of times the button is clicked
-    
+
     self:slot("Tapped", function() -- Listen for click events
       self._clickCount = self._clickCount + 1 -- Increment the click count
     end)
@@ -78,9 +78,7 @@ The business logic we added to the button mainly includes a feature to count the
   <Import Module="Button"/><!-- Import the Lua module directly in Xml -->
 
   <Menu X="100" Y="100" Width="100" Height="100">
-    <Button X="25" Y="25" Radius="
-
-50" Text="Click"
+    <Button X="25" Y="25" Radius="50" Text="Click"
       FontSize="28" Ref="True"/><!-- Create and export an object -->
   </Menu>
 </Node>
@@ -149,7 +147,7 @@ Class
   __init: (args)=>
     @button.text = "Button"
 
-    @button\slots "Tapped",(button)->
+    @button\slots "Tapped", (button)->
       print "Button click count: #{button.clickCount}"
 ```
 

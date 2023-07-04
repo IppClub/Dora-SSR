@@ -48,18 +48,18 @@ _ENV = Dorothy!
 sprite = Sprite "Image/logo.png"
 
 with Director.entry
-	-- 挂载图片精灵到游戏场景树根节点
-	\addChild sprite
+  -- 挂载图片精灵到游戏场景树根节点
+  \addChild sprite
 
-	-- 接收并处理点击事件移动图片精灵
-	.touchEnabled = true
-	\slot "Tapped", (touch)->
-		sprite\perform Move(
-			1 -- 持续时间，单位为秒
-			sprite.position -- 开始位置
-			touch.location -- 结束位置
-			Ease.OutBack -- 缓动函数
-		)
+  -- 接收并处理点击事件移动图片精灵
+  .touchEnabled = true
+  \slot "Tapped", (touch)->
+    sprite\perform Move(
+      1 -- 持续时间，单位为秒
+      sprite.position -- 开始位置
+      touch.location -- 结束位置
+      Ease.OutBack -- 缓动函数
+    )
 ```
 
 </TabItem>
@@ -85,12 +85,12 @@ entry:addChild(sprite)
 -- 接收并处理点击事件移动图片精灵
 entry.touchEnabled = true
 entry:slot("Tapped", function(touch: Touch)
-	sprite:perform(Move(
-		1, -- 持续时间，单位为秒
-		sprite.position, -- 开始位置
-		touch.location, -- 结束位置
-		Ease.OutBack -- 缓动函数
-	))
+  sprite:perform(Move(
+    1, -- 持续时间，单位为秒
+    sprite.position, -- 开始位置
+    touch.location, -- 结束位置
+    Ease.OutBack -- 缓动函数
+  ))
 end)
 ```
 
@@ -113,12 +113,12 @@ entry:addChild(sprite)
 -- 接收并处理点击事件移动图片精灵
 entry.touchEnabled = true
 entry:slot("Tapped", function(touch)
-	sprite:perform(Move(
-		1, -- 持续时间，单位为秒
-		sprite.position, -- 开始位置
-		touch.location, -- 结束位置
-		Ease.OutBack -- 缓动函数
-	))
+  sprite:perform(Move(
+    1, -- 持续时间，单位为秒
+    sprite.position, -- 开始位置
+    touch.location, -- 结束位置
+    Ease.OutBack -- 缓动函数
+  ))
 end)
 ```
 
@@ -127,7 +127,7 @@ end)
 
 3. 第三步：运行游戏
 
-	点击编辑器右下角`🎮`图标，然后点击菜单项`运行`。或者按下组合键`Ctrl + r`。
+&emsp;&emsp;点击编辑器右下角`🎮`图标，然后点击菜单项`运行`。或者按下组合键`Ctrl + r`。
 
 ## 三、发布游戏
 
