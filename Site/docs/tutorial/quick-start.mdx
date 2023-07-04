@@ -44,18 +44,18 @@ _ENV = Dorothy!
 sprite = Sprite "Image/logo.png"
 
 with Director.entry
-	-- Mount the sprite to the root node of the game scene tree
-	\addChild sprite
+  -- Mount the sprite to the root node of the game scene tree
+  \addChild sprite
 
-	-- Receive and process click events to move the sprite
-	.touchEnabled = true
-	\slot "Tapped", (touch)->
-		sprite\perform Move(
-			1 -- duration in seconds
-			sprite.position -- start position
-			touch.location -- end position
-			Ease.OutBack -- easing function
-		)
+  -- Receive and process click events to move the sprite
+  .touchEnabled = true
+  \slot "Tapped", (touch)->
+    sprite\perform Move(
+      1 -- duration in seconds
+      sprite.position -- start position
+      touch.location -- end position
+      Ease.OutBack -- easing function
+    )
 ```
 
 </TabItem>
@@ -81,12 +81,12 @@ entry:addChild(sprite)
 -- Receive and process click events to move the sprite
 entry.touchEnabled = true
 entry:slot("Tapped", function(touch: Touch)
-	sprite:perform(Move(
-		1, -- duration in seconds
-		sprite.position, -- start position
-		touch.location, -- end position
-		Ease.OutBack -- easing function
-	))
+  sprite:perform(Move(
+    1, -- duration in seconds
+    sprite.position, -- start position
+    touch.location, -- end position
+    Ease.OutBack -- easing function
+  ))
 end)
 ```
 
@@ -109,12 +109,12 @@ entry:addChild(sprite)
 -- Receive and process click events to move the sprite
 entry.touchEnabled = true
 entry:slot("Tapped", function(touch)
-	sprite:perform(Move(
-		1, -- duration in seconds
-		sprite.position, -- start position
-		touch.location, -- end position
-		Ease.OutBack -- easing function
-	))
+  sprite:perform(Move(
+    1, -- duration in seconds
+    sprite.position, -- start position
+    touch.location, -- end position
+    Ease.OutBack -- easing function
+  ))
 end)
 ```
 
@@ -123,7 +123,7 @@ end)
 
 3. Step Three: Run the game
 
-	Click the `🎮` icon in the lower right corner of the editor, then click the `Run` menu item. Alternatively, press the `Ctrl + r` key combination.
+Click the `🎮` icon in the lower right corner of the editor, then click the `Run` menu item. Alternatively, press the `Ctrl + r` key combination.
 
 ## 3. Publish the Game
 
