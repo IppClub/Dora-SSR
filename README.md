@@ -160,7 +160,7 @@ For more detailed tutorials, please check [official documents](https://dorothy-s
 ## Documentation
 
 - [API Reference](https://dorothy-ssr.net/docs/api/intro)
-- [Tutorial](https://dorothy-ssr.net/docs/tutorial/intro)
+- [Tutorial](https://dorothy-ssr.net/docs/tutorial/quick-start)
 
 <br>
 
