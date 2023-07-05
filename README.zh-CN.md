@@ -81,7 +81,7 @@
 
 - 引擎项目开发
 
-  进行Dorothy SSR项目开发的安装配置，详见[官方文档](https://dorothy-ssr.net/docs/zh-Hans/tutorial/dev-configuration)。
+  进行Dorothy SSR项目开发的安装配置，详见[官方文档](https://dorothy-ssr.net/zh-Hans/docs/tutorial/dev-configuration)。
 
 <br>
 
@@ -159,7 +159,7 @@ with Sprite "Image/logo.png"
 ## 文档
 
 - [API参考](https://dorothy-ssr.net/zh-Hans/docs/api/intro)
-- [教程](https://dorothy-ssr.net/zh-Hans/docs/tutorial/intro)
+- [教程](https://dorothy-ssr.net/zh-Hans/docs/tutorial/quick-start)
 
 <br>
 
