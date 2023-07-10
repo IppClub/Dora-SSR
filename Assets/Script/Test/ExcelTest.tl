@@ -46,10 +46,10 @@ terrainDef:attachPolygon(Vec2(0, 500), 2500, 10, 0, 1, 1, 0)
 terrainDef:attachPolygon(Vec2(1250, 0), 10, 1000, 0, 1, 1, 0)
 terrainDef:attachPolygon(Vec2(-1250, 0), 10, 1000, 0, 1, 1, 0)
 
-local body = Body(terrainDef, world, Vec2.zero)
-body.order = TerrainLayer
-body.group = Data.groupTerrain
-body:addChild(Rectangle{
+local terrain = Body(terrainDef, world, Vec2.zero)
+terrain.order = TerrainLayer
+terrain.group = Data.groupTerrain
+terrain:addChild(Rectangle{
 	y = -500,
 	width = 2500,
 	height = 10,
@@ -58,7 +58,7 @@ body:addChild(Rectangle{
 	fillOrder = 1,
 	lineOrder = 2
 })
-body:addChild(Rectangle{
+terrain:addChild(Rectangle{
 	x = 1250,
 	y = 0,
 	width = 10,
@@ -68,7 +68,7 @@ body:addChild(Rectangle{
 	fillOrder = 1,
 	lineOrder = 2
 })
-body:addChild(Rectangle{
+terrain:addChild(Rectangle{
 	x = -1250,
 	y = 0,
 	width = 10,
@@ -78,7 +78,7 @@ body:addChild(Rectangle{
 	fillOrder = 1,
 	lineOrder = 2
 })
-world:addChild(body)
+world:addChild(terrain)
 Director.entry:addChild(world)
 
 local Unit = Platformer.Unit
@@ -143,7 +143,7 @@ UnitAction:add("fmove", {
 	end
 })
 
-Data.store["AI_PlayerControl"] = Sel {
+Data.store["AI:PlayerControl"] = Sel {
 	Seq {
 		Sel {
 			Seq {
@@ -177,14 +177,14 @@ unitDef.friction = 1.0
 unitDef.restitution = 0.0
 unitDef.playable = "spine:Spine/moling"
 unitDef.defaultFaceRight = true
-unitDef.size = Size(100, 300)
+unitDef.size = Size(60, 300)
 unitDef.sensity = 0
 unitDef.move = 300
 unitDef.jump = 1200
 unitDef.detectDistance = 350
 unitDef.hp = 5.0
 unitDef.tag = "player"
-unitDef.decisionTree = "AI_PlayerControl"
+unitDef.decisionTree = "AI:PlayerControl"
 unitDef.usePreciseHit = false
 unitDef.actions = Array {
 	"idle",
@@ -301,17 +301,17 @@ end
 
 local backpack: {PackItem} = {}
 Observer("Add", {"x","icon","no","name","num","desc"}):watch(function(self: Entity.Type, x: number, icon: string, no: number, name: string, num: number, desc: string)
-	local sprite = Sprite(icon);
+	local sprite = Sprite(icon)
 	local bodyDef = BodyDef()
 	bodyDef.type = "Dynamic"
 	bodyDef.linearAcceleration = Vec2(0, -10)
 	bodyDef:attachPolygon(sprite.width * 0.5, sprite.height)
 	bodyDef:attachPolygonSensor(0, sprite.width, sprite.height)
-	local b = Body(bodyDef, world, Vec2(x, 0))
-	b:slot("BodyEnter", function(item: Body.Type)
+	local body = Body(bodyDef, world, Vec2(x, 0))
+	body:slot("BodyEnter", function(item: Body.Type)
 		if tolua.type(item) == "Platformer::Unit" then
 			table.insert(backpack, {no = no, icon = icon, name = name, num = num, desc = desc})
-			b.group = Data.groupHide
+			body.group = Data.groupHide
 			sprite:runAction(Sequence(
 				Spawn(
 					Scale(0.2, 1, 1.3, Ease.OutBack),
@@ -324,23 +324,24 @@ Observer("Add", {"x","icon","no","name","num","desc"}):watch(function(self: Enti
 			end)
 		end
 	end)
-	b.group = PlayerGroup
-	b:addChild(sprite)
+	body.group = PlayerGroup
+	body:addChild(sprite)
 	local action = Sequence(
 		Spawn(
 			AngleY(5, 0, 360),
 			Sequence(
 				Y(2.5, 0, 40, Ease.OutQuad),
-				Y(2.5, 40, 0, Ease.InQuad))
-			),
+				Y(2.5, 40, 0, Ease.InQuad)
+			)
+		),
 		Event("Stop")
 	)
 	sprite:runAction(action)
 	sprite:slot("Stop", function()
 		sprite:runAction(action)
 	end)
-	world:addChild(b)
-	self.body = b
+	world:addChild(body)
+	self.body = body
 end)
 
 Observer("Remove", {"body"}):watch(function(self: Entity.Type)

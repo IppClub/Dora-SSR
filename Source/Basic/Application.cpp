@@ -624,7 +624,7 @@ extern "C" int main(int argc, char* argv[]) {
 
 #if BX_PLATFORM_WINDOWS
 
-#if DORA_DEBUG
+#if DORA_WIN_CONSOLE
 
 #include "Common/Async.h"
 
@@ -649,14 +649,14 @@ public:
 	Dorothy::Singleton<Dorothy::Console>::shared()
 
 NS_DOROTHY_END
-#endif // DORA_DEBUG
+#endif // DORA_WIN_CONSOLE
 
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_ HINSTANCE hPrevInstance,
 	_In_ LPSTR lpCmdLine,
 	_In_ int nCmdShow) {
-#if DORA_DEBUG
+#if DORA_WIN_CONSOLE
 	SharedConsole.init();
 #endif
 	return SharedApplication.run();
