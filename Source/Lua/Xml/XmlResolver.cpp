@@ -225,24 +225,19 @@ struct EntityValue :
 	>
 { };
 
-struct AttValEnd
-{
+struct AttValEnd {
 	template<typename ParserState_T>
-	static bool Match(ParserState_T& p)
-	{
-		if (Char<'\"'>::Match(p))
-		{
+	static bool Match(ParserState_T& p) {
+		if (Char<'\"'>::Match(p)) {
 			return true;
 		}
 		return false;
 	}
 };
 
-struct AttValue
-{
+struct AttValue {
 	template<typename ParserState_T>
-	static bool Match(ParserState_T& p)
-	{
+	static bool Match(ParserState_T& p) {
 		const char* p0 = p.GetPos();
 		if (Or<
 				Seq<
@@ -259,17 +254,12 @@ struct AttValue
 						Reference
 					>
 				>
-			>::Match(p))
-		{
+			>::Match(p)) {
 			auto parser = s_cast<DoraSimpleTextParser*>(&p);
-			if (parser->isInImport)
-			{
-				if (parser->currentAttr == "Module")
-				{
+			if (parser->isInImport) {
+				if (parser->currentAttr == "Module"sv) {
 					parser->importModule = std::string(p0 + 1, p.GetPos() - 1);
-				}
-				else if (parser->currentAttr == "Name")
-				{
+				} else if (parser->currentAttr == "Name"sv) {
 					parser->importName = std::string(p0+1, p.GetPos()-1);
 				}
 			}
@@ -518,17 +508,14 @@ struct SDDecl :
 	>
 { };
 
-struct ElementStart
-{
+struct ElementStart {
 	template<typename ParserState_T>
-	static bool Match(ParserState_T& p)
-	{
+	static bool Match(ParserState_T& p) {
 		const char* p0 = p.GetPos();
-		if (Seq<Char<'<'>,Name>::Match(p))
-		{
+		if (Seq<Char<'<'>,Name>::Match(p)) {
 			std::string elementName(p0 + 1, p.GetPos());
 			auto parser = s_cast<DoraSimpleTextParser*>(&p);
-			parser->isInImport = (elementName == "Import");
+			parser->isInImport = (elementName == "Import"sv);
 			parser->elements.push(elementName);
 			parser->currentPadding++;
 			parser->isInTag = true;
@@ -538,19 +525,16 @@ struct ElementStart
 	}
 };
 
-struct Element
-{
+struct Element {
 	template<typename ParserState_T>
-	static bool Match(ParserState_T& p)
-	{
+	static bool Match(ParserState_T& p) {
 		if (Seq<
 				ElementStart,
 				Or<
 					EmptyElemTag,
 					Seq<STag, Content, ETag>
 				>
-			>::Match(p))
-		{
+			>::Match(p)) {
 			auto parser = s_cast<DoraSimpleTextParser*>(&p);
 			parser->elements.pop();
 			parser->currentPadding--;
@@ -560,33 +544,23 @@ struct Element
 	}
 };
 
-struct STag
-{
+struct STag {
 	template<typename ParserState_T>
-	static bool Match(ParserState_T& p)
-	{
+	static bool Match(ParserState_T& p) {
 		if (Seq<
 			Star<Seq<S, Attribute> >,
 			Opt<S>,
 			Char<'>'>
-		>::Match(p))
-		{
+		>::Match(p)) {
 			auto parser = s_cast<DoraSimpleTextParser*>(&p);
-			if (parser->isInImport)
-			{
-				if (!parser->importName.empty())
-				{
+			if (parser->isInImport) {
+				if (!parser->importName.empty()) {
 					parser->imports.push_back(parser->importName);
-				}
-				else if (!parser->importModule.empty())
-				{
+				} else if (!parser->importModule.empty()) {
 					size_t pos = parser->importModule.rfind('.');
-					if (pos != std::string::npos)
-					{
+					if (pos != std::string::npos) {
 						parser->imports.push_back(parser->importModule.substr(pos + 1));
-					}
-					else
-					{
+					} else {
 						parser->imports.push_back(parser->importModule);
 					}
 				}
@@ -600,14 +574,11 @@ struct STag
 	}
 };
 
-struct AttributeStart
-{
+struct AttributeStart {
 	template<typename ParserState_T>
-	static bool Match(ParserState_T& p)
-	{
+	static bool Match(ParserState_T& p) {
 		const char* p0 = p.GetPos();
-		if (Seq<Name,Eq>::Match(p))
-		{
+		if (Seq<Name,Eq>::Match(p)) {
 			auto parser = s_cast<DoraSimpleTextParser*>(&p);
 			parser->currentAttr = std::string(p0, p.GetPos() - 1);
 			return true;
@@ -645,33 +616,23 @@ struct Content :
 	>
 { };
 
-struct EmptyElemTag
-{
+struct EmptyElemTag {
 	template<typename ParserState_T>
-	static bool Match(ParserState_T& p)
-	{
+	static bool Match(ParserState_T& p) {
 		if (Seq<
 			Star<Seq<S, Attribute> >,
 			Opt<S>,
 			CharSeq<'/','>'>
-		>::Match(p))
-		{
+		>::Match(p)) {
 			auto parser = s_cast<DoraSimpleTextParser*>(&p);
-			if (parser->isInImport)
-			{
-				if (!parser->importName.empty())
-				{
+			if (parser->isInImport) {
+				if (!parser->importName.empty()) {
 					parser->imports.push_back(parser->importName);
-				}
-				else if (!parser->importModule.empty())
-				{
+				} else if (!parser->importModule.empty()) {
 					size_t pos = parser->importModule.rfind('.');
-					if (pos != std::string::npos)
-					{
+					if (pos != std::string::npos) {
 						parser->imports.push_back(parser->importModule.substr(pos+1));
-					}
-					else
-					{
+					} else {
 						parser->imports.push_back(parser->importModule);
 					}
 				}

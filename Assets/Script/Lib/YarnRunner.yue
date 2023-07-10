@@ -2,8 +2,6 @@ import "yarncompile"
 import "Content"
 import "json"
 
-yarn = {}
-
 rewriteError = (err, luaCode, title)->
 	line, msg = err\match ".*:(%d+):%s*(.*)"
 	line = tonumber line
@@ -41,9 +39,10 @@ export default class YarnRunner
 					return
 			storyFunc = luaFunc!
 			@funcs[title] = storyFunc
+		@visited[title] = 1 + @visited[title] ?? 0
 		@stories = {} unless @doraSyntax
 		@stories[] = {title, coroutine.create ->
-			storyFunc title, @state, @command, yarn, @\gotoStory
+			storyFunc title, @state, @command, @yarn, @\gotoStory
 		}
 		true
 
@@ -51,8 +50,19 @@ export default class YarnRunner
 		@codes = {}
 		@funcs = {}
 		@state = state
-		@command = command
+		@command = {
+			stop: -> coroutine.yield "Stop"
+			...command
+		}
 		@stories = {}
+		@visited = {}
+		@yarn = {
+			dice: (num)-> math.random num
+			random: -> math.random!
+			random_range: (start, stop)-> math.random start, stop
+			visited: (name)-> @visited[name]?
+			visited_count: (name)-> @visited[name] ?? 0
+		}
 		@startTitle = startTitle
 		@doraSyntax = doraSyntax
 		jsonCode = Content\load filename
@@ -112,7 +122,7 @@ export default class YarnRunner
 				@advance!
 			when "Command"
 				"Command", body
-			when "Error"
+			when "Error", "Stop"
 				@stories = {}
 				nil, body
 			else

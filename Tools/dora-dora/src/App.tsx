@@ -1654,13 +1654,14 @@ export default function PersistentDrawerLeft() {
 								</MacScrollbar> : null
 							}
 							{image ?
-								<MacScrollbar skin='dark'>
-									<Container maxWidth="lg" style={{paddingTop: 40, height: window.innerHeight - 64}}>
-											<Image src={
-												Service.addr("/" + path
-													.relative(treeData.at(0)?.key ?? "", file.key)
-													.replace("\\", "/"))
-												} preview={false}/>
+								<MacScrollbar skin='dark' style={{height: window.innerHeight - 64}}>
+									<Container maxWidth="lg">
+										<DrawerHeader/>
+										<Image src={
+											Service.addr("/" + path
+												.relative(treeData.at(0)?.key ?? "", file.key)
+												.replace("\\", "/"))
+											} preview={false}/>
 									</Container>
 								</MacScrollbar> : null
 							}
@@ -1669,15 +1670,20 @@ export default function PersistentDrawerLeft() {
 									const skelFile = path.relative(treeData.at(0)?.key ?? "", file.key);
 									const coms = path.parse(skelFile);
 									const atlasFile = path.join(coms.dir, coms.name + ".atlas");
-									return <Container maxWidth="lg" style={{paddingTop: 40}}>
-										<Suspense fallback={<div/>}>
-											<SpinePlayer
-												skelFile={skelFile}
-												atlasFile={atlasFile}
-												onLoadFailed={spineLoadFailed}
-											/>
-										</Suspense>
-									</Container>;
+									return (
+										<MacScrollbar skin='dark' style={{height: window.innerHeight - 64}}>
+											<Container maxWidth="lg">
+												<DrawerHeader/>
+												<Suspense fallback={<div/>}>
+													<SpinePlayer
+														skelFile={skelFile}
+														atlasFile={atlasFile}
+														onLoadFailed={spineLoadFailed}
+													/>
+												</Suspense>
+											</Container>
+										</MacScrollbar>
+									);
 								}
 								return null;
 							})()}
@@ -1723,10 +1729,10 @@ export default function PersistentDrawerLeft() {
 									let target = path.relative(rootNode.key, file.key);
 									target = path.join(t("tree.assets"), target);
 									return (
-										<div style={{width: '100%', height: '100%'}}>
+										<MacScrollbar skin='dark' style={{height: window.innerHeight - 64}}>
 											<DrawerHeader/>
 											<DoraUpload onUploaded={onUploaded} title={target + path.sep} path={file.key}/>
-										</div>
+										</MacScrollbar>
 									);
 								}
 								return null;
