@@ -1590,7 +1590,7 @@ export default function PersistentDrawerLeft() {
 							textAlign: "center"
 						}}
 					/>
-					<Divider style={{backgroundColor:'#fff2'}}/>
+					<Divider style={{backgroundColor: '#0002'}}/>
 					<FileTree
 						selectedKeys={selectedKeys}
 						expandedKeys={expandedKeys}
