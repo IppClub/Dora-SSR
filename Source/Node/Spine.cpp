@@ -53,7 +53,7 @@ void Spine::SpineListener::callback(spine::AnimationState* state, spine::EventTy
 			_owner->emit(animationName, s_cast<Playable*>(_owner));
 			break;
 		case spine::EventType_Complete:
-			_owner->emit("AnimationEnd"_slice, animationName, s_cast<Playable*>(_owner));
+			_owner->emit("AnimationEnd"_slice, animationName.toString(), s_cast<Playable*>(_owner));
 			_owner->_lastCompletedAnimationName = animationName;
 			break;
 		case spine::EventType_Interrupt:
