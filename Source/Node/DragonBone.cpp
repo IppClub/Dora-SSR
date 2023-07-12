@@ -386,7 +386,7 @@ bool DragonBone::DBArmatureProxy::hasDBEventListener(const std::string& type) co
 
 void DragonBone::DBArmatureProxy::dispatchDBEvent(const std::string& type, db::EventObject* value) {
 	if (type == db::EventObject::COMPLETE) {
-		auto animationName = value->animationState->getName();
+		const std::string& animationName = value->animationState->getName();
 		_parent->emit("AnimationEnd"_slice, animationName, s_cast<Playable*>(_parent));
 		_parent->_lastCompletedAnimationName = animationName;
 	} else if (type == db::EventObject::LOOP_COMPLETE) {

@@ -90,7 +90,7 @@ function NewFileDialog(props: NewFileDialogProps) {
 			<Grid container columns={2}>
 			{
 				fileTypes.map((fileType) => (
-					<Grid key={fileType.name} xs={1}>
+					<Grid key={fileType.name} xs={1} item>
 						<ListItem>
 							<ListItemButton sx={{height:"80px"}}
 								onClick={() => handleListItemClick(fileType.name)}
