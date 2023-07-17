@@ -1,0 +1,33 @@
+import "@site/src/languages/highlight";
+
+# Writing the Game Entry Program Module
+
+Welcome to the last tutorial of the Dorothy SSR Game Engine side-scrolling 2D game development series! In this tutorial, we will learn how to write the game's entry program module. This module must be named "init" and generally performs two main tasks: dynamically inserting game resource search paths at runtime, including the search paths for code files to be referenced later, and dynamically loading individual program modules related to the initial game execution.
+
+Firstly, we need to import some necessary modules:
+
+```lua title=init.lua
+local Content <const> = require("Content")
+local Path <const> = require("Path")
+```
+
+Next, we will [add](../../api/Class/Content#insertsearchpath) the path of the current script to the resource search paths:
+
+```lua title=init.lua
+Content:insertSearchPath(1, Path:getScriptPath(...))
+```
+
+Then, we import other game modules, including all the program modules we have written in our previous tutorials. Generally, modules defining simple game functionalities are loaded first, while modules that perform immediate initialization processing, such as creating scenes and UI elements, are loaded later. If the code modules are well-designed, it is possible to avoid directly referencing other program modules through the `require()` function in the code. Therefore, when there are many code files in the future, we can even delay loading many code modules and dynamically load and execute them promptly only when they are needed.
+
+```lua title=init.lua
+require("Script.Unit")
+require("Script.Action")
+require("Script.AI")
+require("Script.Logic")
+require("Script.Scene")
+require("Script.UI")
+```
+
+With this, our game entry program module is complete. Please note that the filename of the game entry program file must be named "init" and it is recommended to use Lua for writing it. This is because, in general, this entry program dynamically inserts some game resource search paths at runtime, including the search paths for code files to be referenced later. If a language like Teal or Yuescript, which requires pre-compilation before runtime, is used, it may result in an error because the search paths during the compilation process have not taken effect yet.
+
+This also marks the end of our Dorothy SSR Game Engine side-scrolling 2D game development tutorial series. In this series, we started with the configuration parameter module and gradually introduced the scene creation module, game character action module, game character AI module, game character attribute definition module, game logic processing module, Excel configuration file loading module, UI module, and the game entry program module writing methods. We hope that this series has helped you understand and master the basic usage of the Dorothy SSR Game Engine, providing guidance for your game development journey. If you encounter any issues during the learning process or have any suggestions for our tutorials, please feel free to provide us with feedback. We look forward to seeing the amazing games you create using the Dorothy SSR Game Engine!

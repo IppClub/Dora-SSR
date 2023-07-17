@@ -1,8 +1,9 @@
 local Object = require("Object").Type
 local ContainerItem = require("ContainerItemType")
+local Job = require("Routine").Job
 
 -- The supported array data types.
-local type Item = integer | number | boolean | string | thread | ContainerItem
+local type Item = integer | number | boolean | string | thread | ContainerItem | Job
 
 -- An array data structure that supports various operations.
 -- The Array record is designed to be 1-based indexing, which means that the first item in the array has an index of 1. This is the same behavior of Lua table used as an array.

@@ -266,12 +266,12 @@ local record Node
 	-- Runs the given action on this node.
 	-- @param action (Action) The action to run.
 	-- @return (number) The duration of the newly running action in seconds.
-	runAction: function(self: Node, action: Action)
+	runAction: function(self: Node, action: Action): number
 
 	-- Runs an action defined by the given action definition on this node.
 	-- @param actionDef (ActionDef) The action definition to run.
 	-- @return (number) The duration of the newly running action in seconds.
-	runAction: function(self: Node, actionDef: ActionDef)
+	runAction: function(self: Node, actionDef: ActionDef): number
 
 	-- Stops all actions running on this node.
 	stopAllActions: function(self: Node)

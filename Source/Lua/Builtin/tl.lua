@@ -2364,6 +2364,12 @@ parse_argument_list = function(ps, i)
 	return i, node
 end
 
+
+
+
+
+
+
 local function parse_argument_type(ps, i)
 	local is_va = false
 	local argument_name = nil
@@ -2396,8 +2402,6 @@ local function parse_argument_type(ps, i)
 			i = i + 1
 			is_va = true
 		end
-
-		typ.is_va = is_va
 		typ.opt = opt
 	end
 
@@ -2405,24 +2409,22 @@ local function parse_argument_type(ps, i)
 		typ.is_self = true
 	end
 
-	return i, typ, 0
+	return i, { i = i, type = typ, is_va = is_va }, 0
 end
 
 parse_argument_type_list = function(ps, i)
+	local tvs = {}
+	i = parse_bracket_list(ps, i, tvs, "(", ")", "sep", parse_argument_type)
 	local list = new_type(ps, i, "tuple")
-	i = parse_bracket_list(ps, i, list, "(", ")", "sep", parse_argument_type)
-
-	if list[#list] then
-		for l = 1, #list - 1 do
-			if list[l].is_va then
-				list[l].is_va = nil
-				fail(ps, i, "'...' can only be last argument")
-			end
+	local n = #tvs
+	for l, tv in ipairs(tvs) do
+		list[l] = tv.type
+		if tv.is_va and l < n then
+			fail(ps, tv.i, "'...' can only be last argument")
 		end
-		if list[#list].is_va then
-			list[#list].is_va = nil
-			list.is_va = true
-		end
+	end
+	if tvs[n] and tvs[n].is_va then
+		list.is_va = true
 	end
 	return i, list
 end

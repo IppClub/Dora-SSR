@@ -1,0 +1,116 @@
+import "@site/src/languages/highlight";
+
+# Writing Game Logic Module
+
+Welcome to the seventh tutorial of the Dorothy SSR game engine side-scrolling 2D game development series! In this tutorial, we will introduce how to use the ECS (Entity Component System) framework of Dorothy SSR to write game logic modules. ECS is a commonly used game development pattern that decomposes game data processing into entities, components, and systems, making the game logic clearer and the code easier to manage and extend. In Dorothy SSR, the ECS framework is provided by components such as [Entity](../../api/Class/Entity), [Observer](../../api/Class/Observer), and [Group](../../api/Class/Group) with their respective functionalities.
+
+First, we need to import some necessary modules. This time, we are importing several functional components, indicating that the implementation of this module will be relatively complex:
+
+```tl title=Script/Logic.tl
+local type Entity = require("Entity")
+local Observer <const> = require("Observer")
+local Sprite <const> = require("Sprite")
+local Spawn <const> = require("Spawn")
+local AngleY <const> = require("AngleY")
+local Sequence <const> = require("Sequence")
+local Y <const> = require("Y")
+local Scale <const> = require("Scale")
+local Opacity <const> = require("Opacity")
+local Ease <const> = require("Ease")
+local tolua <const> = require("tolua")
+local Platformer <const> = require("Platformer")
+local BodyDef <const> = require("BodyDef")
+local Vec2 <const> = require("Vec2")
+local Body <const> = require("Body")
+local type Dictionary = require("Dictionary")
+local sleep <const> = require("sleep")
+local once <const> = require("once")
+local loop <const> = require("loop")
+local Config <const> = require("Script.Config")
+local Data <const> = Platformer.Data
+local Unit <const> = Platformer.Unit
+```
+
+Next, we create an [Observer](../../api/Class/Observer) to monitor the creation behavior of the game player character entity. When an entity is created, we create a [Unit](../../api/Class/Platformer/Unit) object representing the actual player character scene node and perform the necessary initialization operations. Therefore, the Entity represents pure game data objects, and the rendering and interaction of game functions in the game scene rely on the creation of scene node objects corresponding to the game data:
+
+```tl title=Script/Logic.tl
+Observer("Add", {"player"}):watch(function(self: Entity.Type)
+  local unitDef = Data.store["Unit:player"] as Dictionary.Type
+  local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
+  if unitDef is nil or world is nil then
+    return
+  end
+
+  local unit = Unit(unitDef, world, self, Vec2(300, -350))
+  unit.order = Config.PlayerLayer
+  unit.group = Config.PlayerGroup
+  unit.playable.position = Vec2(0, -150)
+  unit.playable:play("idle", true)
+  world:addChild(unit)
+  world.camera.followTarget = unit
+end)
+```
+
+Then, we create another Observer to monitor the creation behavior of game item entities. When an entity is created, we create a [Sprite](../../api/Class/Sprite) object, which represents the graphic representation of the game item. At the same time, we also create a physical body [Body](../../api/Class/Body) object for the game item and add a sensor to it. This sensor can detect collisions with other objects. When a collision with the player object is detected, it triggers a node event called ["BodyEnter"](../../api/Node%20Event/Body#bodyenter) and executes the registered item pickup processing logic:
+
+```tl title=Script/Logic.tl
+Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon: string)
+  local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
+  if world is nil then
+    return
+  end
+
+  -- Create the display graphics and animation for the item in the scene
+  local sprite = Sprite(icon)
+  sprite:schedule(loop(function(): boolean
+    sleep(sprite:runAction(Spawn(
+      AngleY(5, 0, 360),
+      Sequence(
+        Y(2.5, 0, 40, Ease.OutQuad),
+        Y(2.5, 40, 0, Ease.InQuad)
+      )
+    )))
+  end))
+
+  -- Create the definition of the physical collision body for the item
+  local bodyDef = BodyDef()
+  bodyDef.type = "Dynamic"
+  bodyDef.linearAcceleration = Vec2(0, -10)
+  bodyDef:attachPolygon(sprite.width * 0.5, sprite.height)
+  bodyDef:attachPolygonSensor(0, sprite.width, sprite.height)
+
+  -- Create the physical body node for the item in the scene
+  local body = Body(bodyDef, world, Vec2(x, 0))
+  body.order = Config.ItemLayer
+  body.group = Config.ItemGroup
+  body:addChild(sprite)
+  body:slot("BodyEnter", function(item: Body.Type)
+    if tolua.type(item) == "Platformer::Unit" then
+      self.picked = true
+      body.group = Data.groupHide
+      body:schedule(once(function()
+        sleep(sprite:runAction(Spawn(
+          Scale(0.2, 1, 1.3, Ease.OutBack),
+          Opacity(0.2, 1, 0)
+        )))
+        self.body = nil
+      end))
+    end
+  end)
+  world:addChild(body)
+  
+  -- Store the node object of the item in the scene as a component on an entity
+  -- for triggering subsequent processing logic
+  self.body = body
+end)
+```
+
+Finally, we create an Observer to monitor the deletion behavior of the body component on entities. When the body component is removed, we destroy the related game objects:
+
+```tl title=Script/Logic.tl
+Observer("Remove", {"body"}):watch(function(self: Entity.Type)
+  (self.oldValues.body as Body.Type):removeFromParent()
+end)
+```
+
+With this, our game logic module is complete. In this module, we use the ECS framework of Dorothy SSR to monitor the creation and deletion behaviors of entities and perform corresponding logical operations based on entity changes. In the upcoming tutorials, we will continue to explore how to use the Dorothy SSR game engine to develop side-scrolling 2D games. We hope you can keep up with our pace and learn the usage of the Dorothy SSR game engine together!

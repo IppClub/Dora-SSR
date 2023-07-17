@@ -1,0 +1,33 @@
+import "@site/src/languages/highlight";
+
+# 编写游戏入口程序模块
+
+&emsp;&emsp;欢迎来到Dorothy SSR游戏引擎横版2D游戏开发教程的最后一篇！在这篇教程中，我们将介绍如何编写游戏的入口程序模块。这个模块必须命名为init，并且一般主要做两件事：在运行时动态地插入一些游戏的资源搜索路径，并包括后续要引用的代码文件的搜索路径；然后动态地逐个加载游戏初始运行相关的各个独立的程序模块。
+
+&emsp;&emsp;首先，我们需要引入一些必要的模块：
+
+```lua title=init.lua
+local Content <const> = require("Content")
+local Path <const> = require("Path")
+```
+
+&emsp;&emsp;接着，我们将当前脚本的路径[添加](../../api/Class/Content#insertsearchpath)到资源搜索路径中：
+
+```lua title=init.lua
+Content:insertSearchPath(1, Path:getScriptPath(...))
+```
+
+&emsp;&emsp;然后，我们引入了其他游戏模块，包括了我们之前教程中编写的所有程序模块。一般简单的游戏功能定义的模块会优先进行加载，实际会立即执行初始化处理逻辑的模块比如创建场景和UI会在后加载，如果是程序设计良好的代码模块，是可以尽可能避免直接在代码里通过`require()`函数引用其它的程序模块的，所以在未来代码文件较多的时候，我们甚至可以延迟加载很多代码模块，只在用到它们的时候再及时动态的加载运行：
+
+```lua title=init.lua
+require("Script.Unit")
+require("Script.Action")
+require("Script.AI")
+require("Script.Logic")
+require("Script.Scene")
+require("Script.UI")
+```
+
+&emsp;&emsp;至此，我们的游戏入口程序模块就编写完成了。请注意，游戏入口程序文件的文件名一定要命名为init，并且建议用Lua编写，因为一般这个入口程序，会在运行时动态地插入一些游戏的资源搜索路径，其中也会包括后续引用的代码文件的搜索路径，此时如果使用的是Teal或者Yuescript等需要在运行前预编译的语言的话，就会因为编译过程中的搜索路径还未生效而报错。
+
+&emsp;&emsp;这也标志着我们的Dorothy SSR游戏引擎横版2D游戏开发教程系列的结束。在这个系列中，我们从配置参数模块开始，逐步介绍了场景创建模块、游戏角色动作模块、游戏角色AI模块、游戏角色属性定义模块、游戏逻辑处理模块、Excel配置文件加载模块、UI模块以及游戏入口程序模块的编写方法。我们希望这个系列能够帮助你理解和掌握Dorothy SSR游戏引擎的基本使用方法，为你的游戏开发之旅提供指导。如果你在学习过程中遇到任何问题，或者对我们的教程有任何建议，欢迎随时向我们反馈。我们期待看到你用Dorothy SSR游戏引擎创造出的精彩游戏！

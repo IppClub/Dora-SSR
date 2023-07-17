@@ -50,5 +50,9 @@
   "sidebar.tutorialSidebar.category.Using Dora Xml": {
     "message": "使用Dora Xml",
     "description": "The label for category Using Dora Xml in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Platformer Tutorial": {
+    "message": "2D 横版游戏开发教程",
+    "description": "The label for category Platformer Tutorial in sidebar tutorialSidebar"
   }
 }
