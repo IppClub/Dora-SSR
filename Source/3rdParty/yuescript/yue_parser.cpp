@@ -469,7 +469,7 @@ YueParser::YueParser() {
 	NotIn = true_();
 	InRange = ('(' >> InRangeOpen | '[' >> InRangeClose) >> space >> Exp >> space >> ',' >> space >> Exp >> space >> (')' >> InRangeOpen | ']' >> InRangeClose);
 	InDiscrete = '{' >> Seperator >> space >> exp_not_tab >> *(space >> ',' >> space >> exp_not_tab) >> space >> '}';
-	In = -(key("not") >> NotIn >> space) >> key("in") >> space >> (InRange | InDiscrete | Exp);
+	In = -(key("not") >> NotIn >> space) >> key("in") >> space >> (InRange | InDiscrete | key("not") >> confusing_unary_not_error | Exp);
 
 	UnaryOperator =
 		'-' >> not_(set(">=") | space_one) |

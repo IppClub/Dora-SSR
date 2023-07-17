@@ -651,10 +651,20 @@ void ImGuiDora::loadFontTTFAsync(String ttfFontFile, float fontSize, String glyp
 		});
 }
 
+static void HelpMarker(Slice desc) {
+	if (ImGui::BeginTooltip()) {
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 15.0f);
+		ImGui::TextUnformatted(desc.begin(), desc.end());
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
+}
+
 void ImGuiDora::showStats() {
 	/* print debug text */
 	bool useChinese = _useChinese && _isChineseSupported;
 	auto themeColor = SharedApplication.getThemeColor().toVec4();
+	bool itemHovered = false;
 	if (ImGui::Begin(useChinese ? "Dorothy状态###DorothyStats" : "Dorothy Stats###DorothyStats", nullptr,
 			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 		if (ImGui::CollapsingHeader(useChinese ? "基础" : "Basic")) {
@@ -673,26 +683,57 @@ void ImGuiDora::showStats() {
 				"WebGPU", //!< WebGPU
 			};
 			ImGui::TextColored(themeColor, useChinese ? "渲染器：" : "Renderer:");
+			itemHovered |= ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::TextUnformatted(rendererNames[bgfx::getCaps()->rendererType]);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"当前使用的渲染底层的图形接口，可能是OpenGL、OpenGLES、DirectX11、Metal和Vulkan之一"_slice :
+				"the current rendering graphics interface which can be OpenGL, OpenGLES, DirectX11, Metal or Vulkan"_slice);
 			ImGui::TextColored(themeColor, useChinese ? "多线程渲染：" : "Multi Threaded:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::TextUnformatted((bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"显示当前环境是否使用多线程渲染"_slice :
+				"whether the current environment uses multi-threaded rendering"_slice);
 			ImGui::TextColored(themeColor, useChinese ? "渲染缓冲区：" : "Back Buffer:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			Size size = SharedView.getSize();
 			ImGui::Text("%d x %d", s_cast<int>(size.width), s_cast<int>(size.height));
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"主渲染缓冲区的大小，渲染缓冲区越大会越发明显的增加GPU渲染的开销"_slice :
+				"the size of the main rendering buffer, larger rendering buffer will increase GPU rendering overhead"_slice);
 			ImGui::TextColored(themeColor, useChinese ? "渲染调用：" : "Draw Call:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numDraw);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"底层图形接口的调用次数，图形接口的调用，包括设置渲染状态，传输渲染数据之类的操作。这些操作调用的次数减少对改善性能会有一定的帮助"_slice :
+				"the number of calls to the low-level graphics interface, including operations such as setting rendering states and transferring rendering data, a reduction of these operations can improve performance"_slice);
 			ImGui::TextColored(themeColor, useChinese ? "三角形：" : "Tri:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::TriStrip] + bgfx::getStats()->numPrims[bgfx::Topology::TriList]);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"当前提交到GPU进行渲染的三角形的数量"_slice :
+				"the number of triangles submitted to the GPU for rendering"_slice);
 			ImGui::SameLine();
 			ImGui::TextColored(themeColor, useChinese ? "线段：" : "Line:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::LineStrip] + bgfx::getStats()->numPrims[bgfx::Topology::LineList]);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"当前提交到GPU进行渲染的线段的数量"_slice :
+				"the number of line segments submitted to the GPU for rendering"_slice);
 			ImGui::TextColored(themeColor, useChinese ? "可视区尺寸：" : "Visual Size:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			auto visualSize = SharedApplication.getVisualSize();
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
@@ -701,6 +742,10 @@ void ImGuiDora::showStats() {
 			if (ImGui::Button(fmt::format("{:.0f} x {:.0f}", visualSize.width, visualSize.height).c_str())) {
 				ImGui::OpenPopup("WindowSizeSelector");
 			}
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"当前进行渲染的图形窗口的逻辑尺寸，通常等于渲染缓冲区大小除以显示屏的像素密度"_slice :
+				"the logical size of the graphics window currently being rendered, equals to the renderbuffer size divided by the pixel density of the display"_slice);
 			static Size sizes[] = {
 				{4096, 2160},
 				{2560, 1440},
@@ -727,21 +772,30 @@ void ImGuiDora::showStats() {
 			if (ImGui::Checkbox(useChinese ? "垂直同步" : "VSync", &vsync)) {
 				SharedView.setVSync(vsync);
 			}
+			if (ImGui::IsItemHovered()) HelpMarker(useChinese ?
+				"垂直同步用于使GPU将在显示屏每次刷新之前进行等待，防止图形渲染过快导致的画面撕裂的现象"_slice :
+				"vertical synchronization is used to make the GPU wait before each refresh of the display to prevent screen tearing caused by too fast graphics rendering"_slice);
 			ImGui::SameLine();
 			bool fpsLimited = SharedApplication.isFPSLimited();
 			if (ImGui::Checkbox(useChinese ? "限制帧数" : "FPS Limited", &fpsLimited)) {
 				SharedApplication.setFPSLimited(fpsLimited);
 			}
+			if (ImGui::IsItemHovered()) HelpMarker(useChinese ?
+				"帧数限制会使引擎通过执行一个忙等待的死循环以获取更加精准的机器时间，并计算切换到下一帧的时间点。这是在PC机Windows系统上的通常做法，以提升CPU占用率来提升游戏的性能。但这也会导致额外的芯片热量产生和电力消耗"_slice :
+				"FPS limiting will make engine run in a busy loop to track the  precise frame time to switch to the next frame. And this behavior can lead to 100% CPU usage. This is usually common practice on Windows PCs for better CPU usage occupation. But it also results in extra heat and power consumption"_slice);
 			ImGui::TextColored(themeColor, useChinese ? "帧数：" : "FPS:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			int targetFPS = SharedApplication.getTargetFPS();
 			if (ImGui::RadioButton("30", &targetFPS, 30)) {
 				SharedApplication.setTargetFPS(targetFPS);
 			}
+			itemHovered |= ImGui::IsItemHovered();
 			ImGui::SameLine();
 			if (ImGui::RadioButton("60", &targetFPS, 60)) {
 				SharedApplication.setTargetFPS(targetFPS);
 			}
+			itemHovered |= ImGui::IsItemHovered();
 			if (SharedApplication.getMaxFPS() > 60) {
 				ImGui::SameLine();
 				int maxFPS = SharedApplication.getMaxFPS();
@@ -749,12 +803,19 @@ void ImGuiDora::showStats() {
 				if (ImGui::RadioButton(fpsStr.c_str(), &targetFPS, maxFPS)) {
 					SharedApplication.setTargetFPS(targetFPS);
 				}
+				itemHovered |= ImGui::IsItemHovered();
 			}
+			if (itemHovered) HelpMarker(useChinese ?
+				"游戏引擎应该运行的每秒目标帧数，仅在“限制帧数”选项被勾选时有效"_slice :
+				"the target frames per second the game engine is supposed to run at, only works when 'FPS Limited' is checked"_slice);
 			int fixedFPS = SharedDirector.getScheduler()->getFixedFPS();
 			ImGui::PushItemWidth(100.0f);
 			if (ImGui::DragInt(useChinese ? "固定更新帧数" : "Fixed FPS", &fixedFPS, 1, 30, SharedApplication.getMaxFPS())) {
 				SharedDirector.getScheduler()->setFixedFPS(fixedFPS);
 			}
+			if (ImGui::IsItemHovered()) HelpMarker(useChinese ?
+				"固定更新模式下的目标帧速率（以每秒帧数为单位），固定更新将确保更新函数以恒定的帧速率被调度，使用恒定的更新时间间隔值，用于防止物理引擎产生奇怪行为或是用于通过网络通信同步一些状态"_slice :
+				"the target frame rate (in frames per second) for a fixed update mode and the fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value, it is used for preventing weird behavior of a physics engine or synchronizing some states via network communications"_slice);
 			ImGui::PopItemWidth();
 		}
 		if (ImGui::CollapsingHeader(useChinese ? "时间" : "Time")) {
@@ -769,38 +830,71 @@ void ImGuiDora::showStats() {
 				_cpuTime = _gpuTime = _deltaTime = 0.0;
 				_timeFrames = 0;
 			}
-			ImGui::Checkbox(useChinese ? "显示图形" : "Show Plot", &_showPlot);
-			ImGui::TextColored(themeColor, useChinese ? "平均帧数：" : "AVG FPS:");
+			ImGui::Checkbox(useChinese ? "显示图表" : "Show Plot", &_showPlot);
+			if (ImGui::IsItemHovered()) HelpMarker(useChinese ?
+				"显示每秒内的帧耗时峰值和CPU时间的占比的图表"_slice :
+				"display the graphs showing the peak frame time spent per second and the percentage of CPU time"_slice);
+			ImGui::TextColored(themeColor, useChinese ? "当前帧数：" : "Current FPS:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%.1f", 1000.0f / _avgDeltaTime);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"最近一秒内过去的游戏帧数"_slice :
+				"the passd frames in the last second"_slice);
 			ImGui::TextColored(themeColor, useChinese ? "平均CPU耗时：" : "AVG CPU:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			if (_avgCPUTime == 0)
 				ImGui::Text("-");
 			else
 				ImGui::Text("%.1f ms", _avgCPUTime);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"最近一秒内每帧平均CPU耗时"_slice :
+				"average CPU time per frame in the last second"_slice);
 			ImGui::TextColored(themeColor, useChinese ? "平均GPU耗时：" : "AVG GPU:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			if (_avgGPUTime == 0)
 				ImGui::Text("-");
 			else
 				ImGui::Text("%.1f ms", _avgGPUTime);
 		}
+		itemHovered |= ImGui::IsItemHovered();
+		if (itemHovered) HelpMarker(useChinese ?
+			"最近一秒内每帧平均GPU耗时"_slice :
+			"average GPU time per frame in the last second"_slice);
 		if (ImGui::CollapsingHeader(useChinese ? "对象" : "Object")) {
 			_objectFrames++;
 			_objectEclapsed += SharedApplication.getDeltaTime();
 			ImGui::TextColored(themeColor, useChinese ? "C++对象：" : "C++ Object:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			_maxCppObjects = std::max(_maxCppObjects, Object::getCount());
 			ImGui::Text("%d", _maxCppObjects);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"所有现存的C++对象的数量"_slice :
+				"the number of total existing C++ objects"_slice);
 			ImGui::TextColored(themeColor, useChinese ? "Lua对象" : "Lua Object:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			_maxLuaObjects = std::max(_maxLuaObjects, Object::getLuaRefCount());
 			ImGui::Text("%d", _maxLuaObjects);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"所有现存的Lua引用的C++对象的计数"_slice :
+				"the number of total existing Lua references to C++ objects"_slice);
 			ImGui::TextColored(themeColor, useChinese ? "Lua回调：" : "Lua Callback:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			_maxCallbacks = std::max(_maxCallbacks, Object::getLuaCallbackCount());
 			ImGui::Text("%d", _maxCallbacks);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"Lua引用的C++函数对象的数量"_slice :
+				"the number of C++ function call objects referenced by Lua"_slice);
 			if (_objectEclapsed >= 1.0) {
 				_objectFrames = _maxCppObjects = _maxLuaObjects = _maxCallbacks = _objectEclapsed = 0;
 			}
@@ -821,19 +915,39 @@ void ImGuiDora::showStats() {
 				_memFrames = _memEclapsed = 0;
 			}
 			ImGui::TextColored(themeColor, useChinese ? "内存池：" : "Memory Pool:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%d kb", _lastMemPoolSize / 1024);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"引擎用于频繁分配小数据对象的内存池大小"_slice :
+				"the size of the memory pool used by the engine to frequently allocate small data objects"_slice);
 			ImGui::TextColored(themeColor, useChinese ? "Lua内存：" : "Lua Memory:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%.2f mb", _lastMemLua / 1024.0f / 1024.0f);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"正在运行Lua虚拟机所分配的内存大小"_slice :
+				"the size of memory allocated by the running Lua virtual machine"_slice);
 			if (Singleton<WasmRuntime>::isInitialized()) {
 				ImGui::TextColored(themeColor, useChinese ? "WASM内存：" : "WASM Memory:");
+				itemHovered = ImGui::IsItemHovered();
 				ImGui::SameLine();
 				ImGui::Text("%.2f mb", _lastMemWASM / 1024.0f / 1024.0f);
+				itemHovered |= ImGui::IsItemHovered();
+				if (itemHovered) HelpMarker(useChinese ?
+					"正在运行WASM虚拟机所分配的内存大小"_slice :
+					"the size of memory allocated by the running WASM virtual machine"_slice);
 			}
 			ImGui::TextColored(themeColor, useChinese ? "纹理内存：" : "Texture Size:");
+			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%.2f mb", Texture2D::getStorageSize() / 1024.0f / 1024.0f);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"引擎已加载的纹理占用的内存大小"_slice :
+				"the memory footprint used by loaded textures"_slice);
 		}
 		if (ImGui::CollapsingHeader(useChinese ? "加载脚本" : "Loader")) {
 			if (ImGui::Button(useChinese ? "清除" : "Clear")) {
