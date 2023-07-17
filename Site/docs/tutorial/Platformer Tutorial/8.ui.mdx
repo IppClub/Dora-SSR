@@ -1,0 +1,196 @@
+import "@site/src/languages/highlight";
+
+# Writing UI Module
+
+In this tutorial, we will explain how to create a UI module for a game using the Dorothy SSR game engine. We will create UI using two approaches: one using UI functional components based on game scene nodes, and the other using the ImGui framework's interface. However, it's important to note that ImGui is not recommended for creating game UI directly in actual development. It is mainly recommended for developing debugging UI for games.
+
+Firstly, we need to import the required modules and libraries:
+
+```tl title=Script/UI.tl
+local Platformer <const> = require("Platformer")
+local ImGui <const> = require("ImGui")
+local Vec2 <const> = require("Vec2")
+local Director <const> = require("Director")
+local AlignNode <const> = require("UI.Control.Basic.AlignNode")
+local CircleButton <const> = require("UI.Control.Basic.CircleButton")
+local App <const> = require("App")
+local Group <const> = require("Group")
+local Menu <const> = require("Menu")
+local Keyboard <const> = require("Keyboard")
+local Loader <const> = require("Script.Loader")
+local Sprite <const> = require("Sprite")
+local Spawn <const> = require("Spawn")
+local Opacity <const> = require("Opacity")
+local Y <const> = require("Y")
+local type Entity = require("Entity")
+local type UnitType = Platformer.Unit.Type
+```
+
+Next, we define a function called `updatePlayerControl` that is used to update the player's control state. This function takes a key name and a boolean value indicating whether the key is pressed. If the key is pressed, the state of that key for the player will be set to `true`, otherwise it will be set to `false`.
+
+```tl title=Script/UI.tl
+local keyboardEnabled = true
+
+local playerGroup = Group{"player"}
+local function updatePlayerControl(key: string, flag: boolean, vpad: boolean)
+  -- Disable keyboard input detection if screen virtual pad is pressed
+  if keyboardEnabled and vpad then
+    keyboardEnabled = false
+  end
+  -- Distribute the key state data to player data entities for processing
+  playerGroup:each(function(self: Entity.Type): boolean
+    self[key] = flag
+  end)
+end
+```
+
+Then, we create a root node for the UI called `alignNode` and add it to [Director.ui](../../api/Class/Director#ui). This node serves as the parent node for all other UI nodes.
+
+```tl title=Script/UI.tl
+-- Get the DPI scaling value of the device to ensure consistent display size of UI on different devices
+local uiScale = App.devicePixelRatio
+local alignNode = AlignNode{
+  isRoot = true,
+  inUI = true
+}
+Director.ui:addChild(alignNode)
+```
+
+Next, we create a left-aligned node called `leftAlign` and add it to `alignNode`. Then, within `leftAlign`, we create a menu called `leftMenu`.
+
+```tl title=Script/UI.tl
+local leftAlign = AlignNode{
+  hAlign = "Left",
+  vAlign = "Bottom"
+}
+alignNode:addChild(leftAlign)
+
+local leftMenu = Menu()
+leftAlign:addChild(leftMenu)
+```
+
+Inside `leftMenu`, we create three circular buttons: `leftButton`, `rightButton`, and `jumpButton`. These buttons are used to control the player's left movement, right movement, and jumping actions, respectively. Each button has a [TapBegan](../../api/Node%20Event/Node#tapbegan) event and a [TapEnded](../../api/Node%20Event/Node#tapended) event, which are triggered when the button is pressed and released, respectively.
+
+```tl title=Script/UI.tl
+-- Create the left movement button
+local leftButton = CircleButton{
+  text = "左(a)",
+  x = 20 * uiScale,
+  y = 60 * uiScale,
+  radius = 30 * uiScale,
+  fontSize = math.floor(18 * uiScale)
+}
+leftButton.anchor = Vec2.zero
+leftButton:slot("TapBegan", function()
+  updatePlayerControl("keyLeft", true, true)
+end)
+leftButton:slot("TapEnded", function()
+  updatePlayerControl("keyLeft", false, true)
+end)
+leftMenu:addChild(leftButton)
+
+-- Create the right movement button
+local rightButton = CircleButton{
+  text = "右(d)",
+  x = 90 * uiScale,
+  y = 60 * uiScale,
+  radius = 30 * uiScale,
+  fontSize = math.floor(18 * uiScale)
+}
+rightButton.anchor = Vec2.zero
+rightButton:slot("TapBegan", function()
+  updatePlayerControl("keyRight", true, true)
+end)
+rightButton:slot("TapEnded", function()
+  updatePlayerControl("keyRight", false, true)
+end)
+leftMenu:addChild(rightButton)
+
+-- Create the jump button
+local jumpButton = CircleButton{
+  text = "跳(j)",
+  x = 160 * uiScale,
+  y = 60 * uiScale,
+  radius = 30 * uiScale,
+  fontSize = math.floor(18 * uiScale)
+}
+jumpButton.anchor = Vec2.zero
+jumpButton:slot("TapBegan", function()
+  updatePlayerControl("keyJump", true, true)
+end)
+jumpButton:slot("TapEnded", function()
+  updatePlayerControl("keyJump", false, true)
+end)
+leftMenu:addChild(jumpButton)
+```
+
+Next, we use ImGui to create an inventory window. In this window, we can see all the items in the player's inventory, along with the quantity and description of each item. When a player clicks on an item, its quantity decreases by 1, and a corresponding sprite is generated on the player's character.
+
+```tl title=Script/UI.tl
+local pickedItemGroup = Group{"picked"}
+local windowFlags = {
+  "NoDecoration",
+  "AlwaysAutoResize",
+  "NoSavedSettings",
+  "NoFocusOnAppearing",
+  "NoNav",
+  "NoMove"
+}
+local themeColor = App.themeColor
+Director.ui:schedule(function(): boolean
+  local size = App.visualSize
+  ImGui.SetNextWindowBgAlpha(0.35)
+  ImGui.SetNextWindowPos(Vec2(size.width - 10, 10), "Always", Vec2(1, 0))
+  ImGui.SetNextWindowSize(Vec2(100, 300), "FirstUseEver")
+  ImGui.Begin("BackPack", windowFlags, function()
+    if ImGui.Button("重新加载Excel") then
+      Loader.loadExcel()
+    end
+    ImGui.Separator()
+    ImGui.Dummy(Vec2(100, 10))
+    ImGui.Text("背包")
+    ImGui.Separator()
+    ImGui.Columns(3, false)
+
+    -- Iterate through item entities with the picked component marked
+    pickedItemGroup:each(function(e: Entity.Type): boolean
+      local item = e as Loader.ItemEntity
+      if item.num > 0 then
+        -- Handle when an item button is pressed
+        if ImGui.ImageButton("item" .. tostring(item.no), item.icon, Vec2(50, 50)) then
+          item.num = item.num - 1
+          local sprite =
+
+ Sprite(item.icon)
+          sprite.scaleX = 0.5
+          sprite.scaleY = 0.5
+          sprite:perform(Spawn(
+            Opacity(1, 1, 0),
+            Y(1, 150, 250)
+          ))
+          local player = playerGroup:find(function(): boolean return true end)
+          local unit = player.unit as UnitType
+          unit:addChild(sprite)
+        end
+
+        -- Handle when the pointer hovers over an item button
+        if ImGui.IsItemHovered() then
+          ImGui.BeginTooltip(function()
+            ImGui.Text(item.name)
+            ImGui.TextColored(themeColor, "数量：")
+            ImGui.SameLine()
+            ImGui.Text(tostring(item.num))
+            ImGui.TextColored(themeColor, "描述：")
+            ImGui.SameLine()
+            ImGui.Text(tostring(item.desc))
+          end)
+        end
+        ImGui.NextColumn()
+      end
+    end)
+  end)
+  return false
+end)
+```
+
+The above is the complete content of our UI module. UI programming can often be complex, but it mostly involves writing repetitive code that is not difficult. In this module, we have created a UI based on game scene nodes to control the player's movement and jumping actions, and an ImGui-based UI to display the player's inventory. With this, we are nearing the end of our tutorial. Keep going, and in the next tutorial, we will be able to run the complete game. Good luck!

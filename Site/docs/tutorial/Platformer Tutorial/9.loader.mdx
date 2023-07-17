@@ -1,0 +1,92 @@
+import "@site/src/languages/highlight";
+
+# Writing Excel Configuration File Loading Module
+
+Welcome to the eighth tutorial of the Dorothy SSR game engine's side-scrolling 2D game development series! In this tutorial, we will learn how to load Excel formatted configuration files. This module primarily does one thing: loads an Excel spreadsheet into a Lua table, processes it, creates corresponding game item entity objects in the ECS system, and hands them over to the ECS system mentioned in the previous tutorials for logic processing.
+
+First, we need to import some necessary modules:
+
+```tl title=Script/Loader.tl
+local Content <const> = require("Content")
+local Group <const> = require("Group")
+local Entity <const> = require("Entity")
+local Utils <const> = require("Utils")
+local Struct <const> = Utils.Struct
+```
+
+Next, we will load an Excel file named "Data/items.xlsx," which contains a table named "items." The contents of this table are as follows:
+
+| Structure Name | Index | Item Name | Item X Coordinate | Item Quantity | Item Icon                   | Item Description |
+| -------------- | ----- | --------- | ---------------- | ------------- | -------------------------- | ---------------- |
+| Struct         | No    | Name      | X                | Num           | Icon                       | Desc             |
+| Item           | 1     | Item1     | 0                | 1             | Model/patreon.clip\|whale  | Description1     |
+| Item           | 2     | Item2     | 300              | 2             | Model/patreon.clip\|cow    | Description2     |
+| Item           | 3     | Item3     | 600              | 3             | Model/patreon.clip\|sloth  | Description3     |
+| Item           | 4     | Item4     | 900              | 4             | Model/patreon.clip\|panda  | Description4     |
+| Item           | 5     | Item5     | -300             | 5             | Model/patreon.clip\|rabbit | Description5     |
+
+When using the Teal language, we can first define a structure for the Lua object to which the Excel data will be converted.
+
+```tl title=Script/Loader.tl
+local record ItemEntity
+  name: string
+  no: number
+  x: number
+  icon: string
+  num: number
+  desc: string
+  item: boolean
+end
+```
+
+Now we can start writing the processing function for loading the Excel file, which will be executed using the [Content:loadExcel()](../../api/Class/Content#loadexcel) function.
+
+```tl title=Script/Loader.tl
+function loadExcel()
+  local xlsx = Content:loadExcel("Data/items.xlsx", {"items"})
+  if not xlsx is nil then
+    local its = xlsx["items"]
+    -- Retrieve the field name array to be accessed by the program from the second row of data
+    local names = its[2] as {string}
+    -- Remove the first column data that doesn't contain field names from the field name array
+    table.remove(names, 1)
+    -- Create a Struct data object definition with the name "Item"
+    if not Struct:has("Item") then
+      Struct.Item(names)
+    end
+    -- Remove all entities containing the "item" component from the ECS system
+    Group{"item"}:each(function(e: Entity.Type): boolean
+      e:destroy()
+    end)
+    -- Traverse the Excel data starting from the third row
+    for i = 3, #its do
+      local st = Struct:load(its[i])
+      local item <total>: ItemEntity = {
+        name = st.Name as string,
+        no = st.No as number,
+        x = st.X as number,
+        num = st.Num as number,
+        icon = st.Icon as string,
+        desc = st.Desc as string,
+        item = true
+      }
+      Entity(item)
+    end
+  end
+end
+```
+
+Finally, we define a Loader object as the result returned by the module, which can be accessed and called by other modules.
+
+```tl title=Script/Loader.tl
+local record Loader
+  type ItemEntity = ItemEntity
+  loadExcel: function()
+end
+Loader.loadExcel = loadExcel
+return Loader
+```
+
+In the above code, we first load the Excel file and obtain a Lua table object containing the file data directly. Then, we retrieve the table header from the table and use it to create a definition for a Struct data object named "Item." Next, we iterate over all existing item entities in the ECS system with the "item" component and destroy them. Finally, we iterate over each row of data in the Excel table, convert each row's data into a Struct object, create a new game item entity using this object to access various data fields, and trigger the subsequent logic processing of game entities in the ECS system.
+
+With this, our Excel configuration file loading module is complete. In the upcoming tutorials, we will use this loaded data to create game characters and implement game logic. We hope you can keep up with us and learn how to use the Dorothy SSR game engine together!

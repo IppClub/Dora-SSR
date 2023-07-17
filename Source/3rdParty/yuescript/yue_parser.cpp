@@ -103,6 +103,11 @@ YueParser::YueParser() {
 		return false;
 	});
 
+	confusing_unary_not_error = pl::user(true_(), [](const item_t& item) {
+		throw ParserError("deprecated unary operator not"sv, item.begin);
+		return false;
+	});
+
 	#define ensure(patt, finally) ((patt) >> (finally) | (finally) >> cut)
 
 	#define key(str) (expr(str) >> not_alpha_num)

@@ -6,6 +6,7 @@ local record Routine
 
 	-- A record type for a Job. It is actually an alias for a coroutine function.
 	record Job
+		embed thread
 		metamethod __call: function(...: any): any...
 	end
 

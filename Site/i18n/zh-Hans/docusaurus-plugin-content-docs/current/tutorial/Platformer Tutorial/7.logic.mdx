@@ -1,0 +1,116 @@
+import "@site/src/languages/highlight";
+
+# 编写游戏处理逻辑模块
+
+&emsp;&emsp;欢迎来到Dorothy SSR游戏引擎横版2D游戏开发教程的第七篇！在这篇教程中，我们将介绍如何使用Dorothy SSR的ECS（Entity Component System）框架来编写游戏处理逻辑模块。ECS是一种常用的游戏开发模式，它将游戏的数据处理分解为实体（Entity）、组件（Component）和系统（System），使得游戏逻辑更加清晰，代码更易于管理和扩展。在Dorothy SSR中ECS框架具体由[Entity](../../api/Class/Entity)、[Observer](../../api/Class/Observer)和[Group](../../api/Class/Group)等组件提供相应的功能。
+
+&emsp;&emsp;首先，我们需要引入一些必要的模块，这次要引入的功能组件比较多，可以想见这个模块的实现的功能也会比较复杂：
+
+```tl title=Script/Logic.tl
+local type Entity = require("Entity")
+local Observer <const> = require("Observer")
+local Sprite <const> = require("Sprite")
+local Spawn <const> = require("Spawn")
+local AngleY <const> = require("AngleY")
+local Sequence <const> = require("Sequence")
+local Y <const> = require("Y")
+local Scale <const> = require("Scale")
+local Opacity <const> = require("Opacity")
+local Ease <const> = require("Ease")
+local tolua <const> = require("tolua")
+local Platformer <const> = require("Platformer")
+local BodyDef <const> = require("BodyDef")
+local Vec2 <const> = require("Vec2")
+local Body <const> = require("Body")
+local type Dictionary = require("Dictionary")
+local sleep <const> = require("sleep")
+local once <const> = require("once")
+local loop <const> = require("loop")
+local Config <const> = require("Script.Config")
+local Data <const> = Platformer.Data
+local Unit <const> = Platformer.Unit
+```
+
+&emsp;&emsp;接着，我们创建了一个[观察器](../../api/Class/Observer)，用于监听游戏玩家角色实体的创建行为。当实体被创建时，我们会创建一个代表实际玩家角色的场景节点的[Unit](../../api/Class/Platformer/Unit)对象，并进行相关的初始化操作，所以Entity代表的只是纯粹的游戏数据对象，而真正在游戏场景中渲染图形和进行互动的游戏功能，还得靠创建与游戏数据相对应的游戏场景节点对象：
+
+```tl title=Script/Logic.tl
+Observer("Add", {"player"}):watch(function(self: Entity.Type)
+  local unitDef = Data.store["Unit:player"] as Dictionary.Type
+  local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
+  if unitDef is nil or world is nil then
+    return
+  end
+
+  local unit = Unit(unitDef, world, self, Vec2(300, -350))
+  unit.order = Config.PlayerLayer
+  unit.group = Config.PlayerGroup
+  unit.playable.position = Vec2(0, -150)
+  unit.playable:play("idle", true)
+  world:addChild(unit)
+  world.camera.followTarget = unit
+end)
+```
+
+&emsp;&emsp;然后，我们创建了另一个观察器，用于监听游戏道具实体的创建行为。当实体被创建时，我们会创建一个[Sprite](../../api/Class/Sprite)对象，这是游戏道具的图形表示。同时，我们也创建了一个游戏道具的物理体[Body](../../api/Class/Body)的对象，并在物理体上添加了一个感应器。这个感应器可以监听到与其发生碰撞的其他物体，当感应到与玩家对象碰撞时，就会触发名字叫["BodyEnter"](../../api/Node%20Event/Body#bodyenter)的节点事件，并执行我们注册好的道具拾取的处理逻辑：
+
+```tl title=Script/Logic.tl
+Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon: string)
+  local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
+  if world is nil then
+    return
+  end
+
+  -- 创建道具在场景中的显示图形和动画
+  local sprite = Sprite(icon)
+  sprite:schedule(loop(function(): boolean
+    sleep(sprite:runAction(Spawn(
+      AngleY(5, 0, 360),
+      Sequence(
+        Y(2.5, 0, 40, Ease.OutQuad),
+        Y(2.5, 40, 0, Ease.InQuad)
+      )
+    )))
+  end))
+
+  -- 创建道具物理碰撞体的定义
+  local bodyDef = BodyDef()
+  bodyDef.type = "Dynamic"
+  bodyDef.linearAcceleration = Vec2(0, -10)
+  bodyDef:attachPolygon(sprite.width * 0.5, sprite.height)
+  bodyDef:attachPolygonSensor(0, sprite.width, sprite.height)
+
+  -- 创建道具的在场景中的物理体节点
+  local body = Body(bodyDef, world, Vec2(x, 0))
+  body.order = Config.ItemLayer
+  body.group = Config.ItemGroup
+  body:addChild(sprite)
+  body:slot("BodyEnter", function(item: Body.Type)
+    if tolua.type(item) == "Platformer::Unit" then
+      self.picked = true
+      body.group = Data.groupHide
+      body:schedule(once(function()
+        sleep(sprite:runAction(Spawn(
+          Scale(0.2, 1, 1.3, Ease.OutBack),
+          Opacity(0.2, 1, 0)
+        )))
+        self.body = nil
+      end))
+    end
+  end)
+  world:addChild(body)
+  
+  -- 将道具在场景中的节点对象存储为一个实体（Entity）上的组件
+  -- 用于触发后续的处理逻辑
+  self.body = body
+end)
+```
+
+&emsp;&emsp;最后，我们创建了一个观察器，用于监听实体上的body组件的删除行为。当body组件被删除时，我们会销毁相关的游戏对象：
+
+```tl title=Script/Logic.tl
+Observer("Remove", {"body"}):watch(function(self: Entity.Type)
+  (self.oldValues.body as Body.Type):removeFromParent()
+end)
+```
+
+&emsp;&emsp;至此，我们的游戏处理逻辑模块就编写完成了。在这个模块中，我们使用了Dorothy SSR的ECS框架来监听实体的创建和删除行为，然后根据实体的变化执行相应的逻辑操作。在接下来的教程中，我们将继续介绍如何使用Dorothy SSR游戏引擎来开发横版2D游戏。希望你能跟上我们的步伐，一起学习Dorothy SSR游戏引擎的使用方法！

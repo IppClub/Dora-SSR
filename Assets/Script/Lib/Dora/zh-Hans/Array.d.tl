@@ -1,8 +1,9 @@
 local Object = require("Object").Type
 local ContainerItem = require("ContainerItemType")
+local Job = require("Routine").Job
 
 -- 数组对象支持存储的数据类型
-local type Item = integer | number | boolean | string | thread | ContainerItem
+local type Item = integer | number | boolean | string | thread | ContainerItem | Job
 
 -- 支持各种操作的数组数据结构类。
 -- 这个数组类被设计成以1为基数做索引，也就是说数组中的第一项的索引为1。这与Lua语言中用作数组的Lua表的行为一致。

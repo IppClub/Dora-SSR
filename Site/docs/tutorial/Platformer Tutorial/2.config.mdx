@@ -1,0 +1,50 @@
+import "@site/src/languages/highlight";
+
+# Writing the Configuration Module
+
+Welcome to the second tutorial of the Dorothy SSR game engine for 2D side-scrolling game development! In this tutorial, we will introduce how to write the configuration parameter module. This module is a fundamental part of game development as it defines some basic parameters in the game, including the graphics' layer order (Layer ID) and the management of collision relationships between physical objects (Group ID).
+
+Firstly, we need to import the [Platformer](../../api/Module/Platformer) and [Data](../../api/Class/Platformer/Data) modules. The Platformer module is a module provided by the Dorothy SSR game engine that contains functionalities related to 2D platform games. On the other hand, the Data module is a singleton object that provides a unified location for storing and accessing globally defined game data.
+
+```tl title=Script/Config.tl
+local Platformer <const> = require("Platformer")
+local Data <const> = Platformer.Data
+```
+
+Next, we define three Layer IDs: TerrainLayer, PlayerLayer, and ItemLayer. These IDs are used to represent the layering order of the graphics, where graphics with smaller numbers will be occluded by graphics with larger numbers.
+
+```tl title=Script/Config.tl
+local TerrainLayer = 0
+local PlayerLayer = 1
+local ItemLayer = 2
+```
+
+Then, we define three Group IDs: PlayerGroup, ItemGroup, and TerrainGroup. These IDs are used to manage the collision relationships between physical objects. Here, we use the groupFirstPlayer and groupTerrain provided by the Data module to obtain the Group IDs for the player and terrain, respectively.
+
+```tl title=Script/Config.tl
+local PlayerGroup = Data.groupFirstPlayer
+local ItemGroup = Data.groupFirstPlayer + 1
+local TerrainGroup = Data.groupTerrain
+```
+
+After that, we use the setShouldContact method from the Data module to set up collision detection between the player and items. This method takes three parameters: two Group IDs and a boolean value. If the boolean value is true, then collision can occur between physical objects belonging to those two Groups.
+
+```tl title=Script/Config.tl
+Data:setShouldContact(PlayerGroup, ItemGroup, true)
+```
+
+Finally, we return these parameters so that other modules can use them.
+
+```tl title=Script/Config.tl
+return {
+  TerrainLayer = TerrainLayer,
+  PlayerLayer = PlayerLayer,
+  ItemLayer = ItemLayer,
+
+  PlayerGroup = PlayerGroup,
+  ItemGroup = ItemGroup,
+  TerrainGroup = TerrainGroup
+}
+```
+
+With this, our configuration parameter module is complete. In the upcoming tutorials, we will use these parameters to create game scenes and game characters. We hope you can keep up with us and learn how to use the Dorothy SSR game engine together!

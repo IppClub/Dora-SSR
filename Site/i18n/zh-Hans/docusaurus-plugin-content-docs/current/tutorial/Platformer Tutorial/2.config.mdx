@@ -1,0 +1,50 @@
+import "@site/src/languages/highlight";
+
+# 编写配置参数模块
+
+&emsp;&emsp;欢迎来到Dorothy SSR游戏引擎横版2D游戏开发教程的第二篇！在这篇教程中，我们将介绍如何编写配置参数模块。这个模块是游戏开发中的基础部分，它定义了游戏中的一些基本参数，包括图形的遮挡顺序（Layer编号）和物理对象碰撞关系的管理（Group编号）。
+
+&emsp;&emsp;首先，我们需要引入[Platformer](../../api/Module/Platformer)和[Data](../../api/Class/Platformer/Data)模块。Platformer模块是Dorothy SSR游戏引擎提供的一个包含了2D平台游戏相关功能的模块，而Data模块则是一个单例对象，提供了存储和访问游戏全局定义数据的统一位置。
+
+```tl title=Script/Config.tl
+local Platformer <const> = require("Platformer")
+local Data <const> = Platformer.Data
+```
+
+&emsp;&emsp;接下来，我们定义了三个Layer编号，分别是TerrainLayer、PlayerLayer和ItemLayer。这些编号用于表示图形的遮挡顺序，数字越小的图形会被数字越大的图形遮挡。
+
+```tl title=Script/Config.tl
+local TerrainLayer = 0
+local PlayerLayer = 1
+local ItemLayer = 2
+```
+
+&emsp;&emsp;然后，我们定义了三个Group编号，分别是PlayerGroup、ItemGroup和TerrainGroup。这些编号用于管理物理对象的碰撞关系。在这里，我们使用了Data模块提供的groupFirstPlayer和groupTerrain来获取玩家和地形的Group编号。
+
+```tl title=Script/Config.tl
+local PlayerGroup = Data.groupFirstPlayer
+local ItemGroup = Data.groupFirstPlayer + 1
+local TerrainGroup = Data.groupTerrain
+```
+
+&emsp;&emsp;接着，我们使用Data模块的[setShouldContact](../../api/Class/Platformer/Data#setshouldcontact)方法来设置玩家和物品之间可以发生碰撞。这个方法接受三个参数，分别是两个Group编号和一个布尔值，如果布尔值为true，那么这两个Group的物理对象之间就可以发生碰撞。
+
+```tl title=Script/Config.tl
+Data:setShouldContact(PlayerGroup, ItemGroup, true)
+```
+
+&emsp;&emsp;最后，我们将这些参数返回，这样其他模块就可以使用这些参数了。
+
+```tl title=Script/Config.tl
+return {
+  TerrainLayer = TerrainLayer,
+  PlayerLayer = PlayerLayer,
+  ItemLayer = ItemLayer,
+
+  PlayerGroup = PlayerGroup,
+  ItemGroup = ItemGroup,
+  TerrainGroup = TerrainGroup
+}
+```
+
+&emsp;&emsp;至此，我们的配置参数模块就编写完成了。在接下来的教程中，我们将使用这些参数来创建游戏场景和游戏角色。希望你能跟上我们的步伐，一起学习Dorothy SSR游戏引擎的使用方法！
