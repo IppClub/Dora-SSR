@@ -1,0 +1,56 @@
+import "@site/src/languages/highlight";
+
+# Writing Game Character Attribute Definition Module
+
+Welcome to the sixth tutorial of the Dorothy SSR Game Engine 2D Side-Scrolling Game Development series! In this tutorial, we will learn how to define attributes for game characters. This module primarily performs two tasks: storing various game character attribute data using a dictionary container and saving this dictionary object to the global interface of Platformer.Data.store for access and use by other modules.
+
+Firstly, we need to import some necessary modules:
+
+```tl title=Script/Unit.tl
+local Dictionary <const> = require("Dictionary")
+local Vec2 <const> = require("Vec2")
+local Size <const> = require("Size")
+local Array <const> = require("Array")
+local Platformer <const> = require("Platformer")
+```
+
+Next, we create a [Dictionary](../../api/Class/Dictionary) object and set attributes for various game characters:
+
+```tl title=Script/Unit.tl
+local unitDef = Dictionary()
+unitDef.linearAcceleration = Vec2(0, -15)
+unitDef.bodyType = "Dynamic"
+unitDef.scale = 1.0
+unitDef.density = 1.0
+unitDef.friction = 1.0
+unitDef.restitution = 0.0
+unitDef.playable = "spine:Spine/moling"
+unitDef.defaultFaceRight = true
+unitDef.size = Size(60, 300)
+unitDef.sensity = 0
+unitDef.move = 300
+unitDef.jump = 1000
+unitDef.detectDistance = 350
+unitDef.hp = 5.0
+unitDef.tag = "player"
+unitDef.decisionTree = "AI:playerControl"
+unitDef.usePreciseHit = false
+unitDef.actions = Array {
+  "idle",
+  "turn",
+  "move",
+  "jump",
+  "fallOff",
+  "cancel"
+}
+```
+
+In the above code, we define various attributes for game characters, including linear acceleration (gravity), body type, scale, density, friction, restitution, animation model, default facing direction (right), size, reaction time factor, movement speed, jump force, detection distance, health points, tag, decision tree, whether to use precise hit, and a list of actions. These attributes are common basic properties of side-scrolling game characters, but in the game example of this tutorial, only a small portion of the defined data is used. You can also try defining other new attributes and access and use them in other custom processing logic.
+
+Finally, we save this dictionary object to [Platformer.Data.store](../../api/Class/Platformer/Data#store), so that other modules can access this object:
+
+```tl title=Script/Unit.tl
+Platformer.Data.store["Unit:player"] = unitDef
+```
+
+With this, our game character attribute definition module is complete. In the upcoming tutorials, we will use these defined attributes to create game characters and implement game logic. We hope you can keep up with our pace and learn how to use the Dorothy SSR game engine together!

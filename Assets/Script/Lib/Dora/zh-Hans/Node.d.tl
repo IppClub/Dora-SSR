@@ -267,12 +267,12 @@ local record Node
 	-- 在此节点上执行给定的动作对象。
 	-- @param action (Action) 要执行的动作对象。
 	-- @return (number) 新执行的动作的持续时间，以秒为单位。
-	runAction: function(self: Node, action: Action)
+	runAction: function(self: Node, action: Action): number
 
 	-- 在此节点上执行由动作定义对象定义的动作。
 	-- @param actionDef (ActionDef) 要运行的动作定义。
 	-- @return (number) 新执行的动作的持续时间，以秒为单位。
-	runAction: function(self: Node, actionDef: ActionDef)
+	runAction: function(self: Node, actionDef: ActionDef): number
 
 	-- 停止在此节点上运行的所有动作。
 	stopAllActions: function(self: Node)

@@ -6,6 +6,7 @@ local record Routine
 
 	-- 协程任务类。
 	record Job
+		embed thread
 		metamethod __call: function(...: any): any...
 	end
 

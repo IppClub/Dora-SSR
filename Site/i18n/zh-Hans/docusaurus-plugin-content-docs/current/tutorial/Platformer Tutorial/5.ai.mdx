@@ -1,0 +1,60 @@
+import "@site/src/languages/highlight";
+
+# 编写游戏角色AI模块
+
+&emsp;&emsp;欢迎来到Dorothy SSR游戏引擎横版2D游戏开发教程的第五篇！在这篇教程中，我们将介绍如何编写游戏角色的AI模块。这个模块主要是根据玩家的输入和游戏角色的状态触发执行不同的动作。
+
+&emsp;&emsp;首先，我们需要引入一些必要的模块：
+
+```tl title=Script/AI.tl
+local Platformer <const> = require("Platformer")
+local Decision <const> = Platformer.Decision
+local Sel <const> = Decision.Sel
+local Seq <const> = Decision.Seq
+local Con <const> = Decision.Con
+local Act <const> = Decision.Act
+local Data <const> = Platformer.Data
+local type UnitType = Platformer.Unit.Type
+```
+
+&emsp;&emsp;接着，我们使用[决策树框架](../../api/Class/Platformer/Decision)来创建AI。决策树是一种常用的AI设计模式，它可以根据一系列条件来决定执行哪个动作。在这个例子中，我们使用了[Sel](../../api/Class/Platformer/Decision#sel)（选择器节点）和[Seq](../../api/Class/Platformer/Decision#seq)（序列节点）来组织决策树，[Con](../../api/Class/Platformer/Decision#con)（条件节点）来检查条件，[Act](../../api/Class/Platformer/Decision#act)（动作节点）来执行动作。
+
+```tl title=Script/AI.tl
+Data.store["AI:playerControl"] = Sel {
+  Seq {
+    Con("move key down", function(self: UnitType): boolean
+      return not (self.entity.keyLeft and self.entity.keyRight) and
+      (
+        (self.entity.keyLeft and self.faceRight) or
+        (self.entity.keyRight and not self.faceRight)
+      )
+    end),
+    Act("turn")
+  },
+  Seq {
+    Con("is falling", function(self: UnitType): boolean
+      return not self.onSurface
+    end),
+    Act("fallOff")
+  },
+  Seq {
+    Con("jump key down", function(self: UnitType): boolean
+      return self.entity.keyJump as boolean
+    end),
+    Act("jump")
+  },
+  Seq {
+    Con("fmove key down", function(self: UnitType): boolean
+      return (self.entity.keyLeft or self.entity.keyRight) as boolean
+    end),
+    Act("move")
+  },
+  Act("idle")
+}
+```
+
+&emsp;&emsp;在这个决策树中，我们首先检查是否需要转身，如果需要则执行转身动作；然后检查角色是否正在下落，如果是则执行下落动作；接着检查是否按下了跳跃键，如果按下则执行跳跃动作；然后检查是否按下了移动键，如果按下则执行移动动作；最后，如果以上所有条件都不满足，则执行空闲动作。
+
+&emsp;&emsp;这个决策树的设计非常简单，但是它已经能够处理大部分的游戏角色控制需求。在实际的游戏开发中，你可能需要根据游戏的具体需求来设计更复杂的决策树。
+
+&emsp;&emsp;至此，我们的游戏角色AI模块就编写完成了。在接下来的教程中，我们将使用这个AI来控制游戏角色的行为。希望你能跟上我们的步伐，一起学习Dorothy SSR游戏引擎的使用方法！
