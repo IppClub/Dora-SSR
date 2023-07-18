@@ -1035,7 +1035,37 @@ export default function PersistentDrawerLeft() {
 			if (!res.success && res.info !== undefined) {
 				for (let i = 0; i < res.info.length; i++) {
 					const [errType, filename, row, col, msg] = res.info[i];
-					if (!path.isAbsolute(filename) || path.relative(filename, file.key) !== "") continue;
+					if (!path.isAbsolute(filename) || path.relative(filename, file.key) !== "") {
+						status = "error";
+						let severity = monaco.MarkerSeverity.Info;
+						switch (errType) {
+							case "parsing":
+							case "syntax":
+							case "type":
+								status = "error";
+								severity = monaco.MarkerSeverity.Error;
+								break;
+							case "warning":
+								if (status !== "error") {
+									status = "warning";
+									severity = monaco.MarkerSeverity.Warning;
+								}
+								break;
+							case "crash":
+								status = "error";
+								severity = monaco.MarkerSeverity.Error;
+								break;
+						}
+						markers.push({
+							severity,
+							message: filename + ': '+ msg,
+							startLineNumber: 1,
+							startColumn: 1,
+							endLineNumber: 1,
+							endColumn: 1,
+						});
+						continue;
+					}
 					let startLineNumber = row;
 					let startColumn = col;
 					let endLineNumber = row;
