@@ -9,11 +9,16 @@ store:Store = Data
 	:TerrainLayer
 } = Store
 
+const DesignWidth = 1280
+
 world = with PlatformWorld!
 	\getLayer(PlayerLayer).renderGroup = true
 	\getLayer(ZombieLayer).renderGroup = true
 	\getLayer(TerrainLayer).renderGroup = true
 	.camera.followRatio = Vec2 0.01, 0.01
+	.camera.zoom = View.size.width / DesignWidth
+	\gslot "AppSizeChanged", ->
+		.camera.zoom = View.size.width / DesignWidth
 Store.world = world
 
 terrainDef = with BodyDef!

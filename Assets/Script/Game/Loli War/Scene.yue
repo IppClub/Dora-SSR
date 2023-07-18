@@ -20,6 +20,10 @@ store:Store = Data
 GameWorld = Class PlatformWorld,
 	__init:=>
 		Entity world: @
+		const DesignWidth = 1024
+		@camera.zoom = View.size.width / DesignWidth
+		@gslot "AppSizeChanged", ->
+			@camera.zoom = View.size.width / DesignWidth
 
 	buildBackground: =>
 		terrainDef = with BodyDef!
