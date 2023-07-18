@@ -23,7 +23,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           rm -rf Assets/www
-          cd Tools/YarnEditor && yarn && yarn build-linux && rm -rf ../dora-dora/public/yarn-editor && mv dist ../dora-dora/public/yarn-editor && cd ../..
+          cd Tools/YarnEditor && unset NODE_OPTIONS && yarn && yarn build-linux && rm -rf ../dora-dora/public/yarn-editor && mv dist ../dora-dora/public/yarn-editor && cd ../..
           cd Tools/dora-dora && yarn && yarn build && cd ../.. && mv Tools/dora-dora/build Assets/www
           cd $GITHUB_WORKSPACE
           Tools/tolua++/build.sh
