@@ -496,7 +496,14 @@ ImGuiDora::ImGuiDora()
 				msg = Path::concat({"assets"_slice, msg.substr(assetPath.size())});
 			}
 			if (level == 0) _loaderTotalTime += cost;
-			_loaderCosts.push_front({s_cast<int>(_loaderCosts.size()), level, msg + '\t', cost});
+			_loaderCosts.push_front({
+				s_cast<int>(_loaderCosts.size()),
+				level,
+				msg + '\t',
+				cost,
+				std::string(level, ' ') + std::to_string(level),
+				fmt::format("{:.2f} ms", cost * 1000.0)
+			});
 		} else {
 			if (!_timeCosts.insert({name, cost}).second) {
 				_timeCosts[name] += cost;
@@ -968,14 +975,14 @@ void ImGuiDora::showStats() {
 										| ImGuiTableFlags_ScrollY
 										| ImGuiTableFlags_SizingFixedFit;
 			if (ImGui::BeginTable(useChinese ? "加载器" : "Loaders", 4, flags, ImVec2(0.0f, 400.0f))) {
-				ImGui::TableSetupColumn(useChinese ? "编号" : "ID",
+				ImGui::TableSetupColumn(useChinese ? "序号" : "Order",
 					ImGuiTableColumnFlags_DefaultSort
 						| ImGuiTableColumnFlags_PreferSortDescending
 						| ImGuiTableColumnFlags_WidthFixed);
 				ImGui::TableSetupColumn(useChinese ? "时间" : "Time",
 					ImGuiTableColumnFlags_PreferSortDescending
 						| ImGuiTableColumnFlags_WidthFixed);
-				ImGui::TableSetupColumn(useChinese ? "层级" : "Level",
+				ImGui::TableSetupColumn(useChinese ? "层级" : "Depth",
 					ImGuiTableColumnFlags_PreferSortAscending
 						| ImGuiTableColumnFlags_WidthFixed);
 				ImGui::TableSetupColumn(useChinese ? "模块名" : "Module",
@@ -1031,14 +1038,16 @@ void ImGuiDora::showStats() {
 						ImGui::Text("%d", item.id);
 						ImGui::TableNextColumn();
 						if (item.time > 1.0 / targetFPS) {
-							ImGui::TextColored(themeColor, "%.2f ms", item.time * 1000.0);
+							ImGui::PushStyleColor(ImGuiCol_Text, themeColor);
+							ImGui::TextUnformatted(&item.timeStr.front(), &item.timeStr.back() + 1);
+							ImGui::PopStyleColor();
 						} else {
-							ImGui::Text("%.2f ms", item.time * 1000.0);
+							ImGui::TextUnformatted(&item.timeStr.front(), &item.timeStr.back() + 1);
 						}
 						ImGui::TableNextColumn();
-						ImGui::Text("%d", item.level);
+						ImGui::TextUnformatted(&item.levelStr.front(), &item.levelStr.back() + 1);
 						ImGui::TableNextColumn();
-						ImGui::TextUnformatted(item.module.c_str());
+						ImGui::TextUnformatted(&item.module.front(), &item.module.back() + 1);
 						ImGui::PopID();
 					}
 				ImGui::EndTable();
@@ -1056,6 +1065,18 @@ void ImGuiDora::showStats() {
 			if (ImGui::Combo(useChinese ? "语言" : "Language", &index, languages, _isChineseSupported ? 2 : 1)) {
 				SharedApplication.setLocale(index == 0 ? "en"_slice : "zh-Hans"_slice);
 			}
+			ImGui::TextColored(themeColor, useChinese ? "调试模式：" : "Debug Mode:");
+			ImGui::SameLine();
+			auto isDebugging = SharedApplication.isDebugging();
+			if (useChinese) {
+				ImGui::TextUnformatted(isDebugging ? "开启" : "关闭");
+			} else {
+				ImGui::TextUnformatted(isDebugging ? "true" : "false");
+			}
+			ImGui::TextColored(themeColor, useChinese ? "版本号：" : "Version:");
+			ImGui::SameLine();
+			auto version = SharedApplication.getVersion();
+			ImGui::TextUnformatted(&version.front(), &version.back() + 1);
 			ImGui::PopItemWidth();
 		}
 		ImGui::Dummy(Vec2{200.0f, 0.0f});
@@ -1104,7 +1125,7 @@ void ImGuiDora::showStats() {
 		}
 		Size size = SharedApplication.getVisualSize();
 		ImGui::SetNextWindowPos(Vec2{size.width / 2 - 160.0f, 10.0f}, ImGuiCond_FirstUseEver);
-		if (ImGui::Begin(useChinese ? "每秒内帧耗时峰值" : "Frame Time Peaks(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
+		if (ImGui::Begin(useChinese ? "每秒内帧耗时峰值(ms)" : "Frame Time Peaks(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 			ImPlot::SetNextAxesLimits(0, PlotCount, 0, std::max(_yLimit, targetTime) + 1.0, ImGuiCond_Always);
 			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0, 0, 0, 0));
 			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0, 0, 0, 0));
@@ -1126,7 +1147,7 @@ void ImGuiDora::showStats() {
 		ImGui::End();
 		if (!_updateCosts.empty()) {
 			ImGui::SetNextWindowPos(Vec2{size.width / 2 + 170.0f, 10.0f}, ImGuiCond_FirstUseEver);
-			if (ImGui::Begin(useChinese ? "每秒内CPU耗时占比" : "Total CPU Time(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
+			if (ImGui::Begin(useChinese ? "每秒内CPU耗时(ms)" : "Total CPU Time(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 				ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0, 0, 0, 0));
 				ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0, 0, 0, 0));
 				ImPlot::PushStyleColor(ImPlotCol_LegendBg, ImVec4(0, 0, 0, 0.3f));

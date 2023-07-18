@@ -4,11 +4,8 @@ local record Routine
 	-- The Routine record is also an array of Job objects.
 	{Job}
 
-	-- A record type for a Job. It is actually an alias for a coroutine function.
-	record Job
-		embed thread
-		metamethod __call: function(...: any): any...
-	end
+	-- An alias for a coroutine thread.
+	type Job = thread
 
 	-- Remove a coroutine job from the set and close it if it is still running.
 	-- @param job (Job) The Job instance to remove.
