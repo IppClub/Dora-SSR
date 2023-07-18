@@ -5,10 +5,7 @@ local record Routine
 	{Job}
 
 	-- 协程任务类。
-	record Job
-		embed thread
-		metamethod __call: function(...: any): any...
-	end
+	type Job = thread
 
 	-- 关闭并移除一个协程任务。
 	-- @param job (Job) 要移除的协程任务。

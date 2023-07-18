@@ -106,8 +106,6 @@ export.getConfig = -> config
 import "Utils" as :Set, :Struct, :LintYueGlobals
 options: {extension: yueext} = yue
 
-print "Dorothy SSR #{App.version}#{App.debugging and ', debugging' or ''}"
-
 isChineseSupported = false
 unless IsFontLoaded!
 	Director.systemScheduler\schedule once ->

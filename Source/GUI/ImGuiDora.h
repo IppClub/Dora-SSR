@@ -126,6 +126,8 @@ private:
 		int level;
 		std::string module;
 		double time;
+		std::string levelStr;
+		std::string timeStr;
 	};
 	double _loaderTotalTime;
 	std::deque<LoaderCost> _loaderCosts;
