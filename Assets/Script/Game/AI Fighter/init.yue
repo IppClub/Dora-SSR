@@ -649,7 +649,7 @@ NewItemPanel = (displayName, itemName, itemOptions, currentSet)->
 
 -- background
 
-size,grid = 1500,150
+size,grid = 2000,150
 
 background = -> with DrawNode!
 	.depthWrite = true
@@ -686,11 +686,20 @@ PlayerLayer = 2
 PlayerGroup = 1
 EnemyGroup = 2
 
+const DesignWidth = 1500
+
 Data\setRelation PlayerGroup, EnemyGroup, "Enemy"
 Data\setShouldContact PlayerGroup, EnemyGroup, true
 
 world = with PlatformWorld!
+	.camera.boundary = Rect -1250, -500, 2500, 1000
 	.camera.followRatio = Vec2 0.01,0.01
+	.camera.zoom = View.size.width / DesignWidth
+	\gslot "AppSizeChanged", ->
+		zoom = View.size.width / DesignWidth
+		.camera.zoom = zoom
+		with Director.ui
+			.scaleX = .scaleY = zoom
 Store["world"] = world
 
 terrainDef = with BodyDef!

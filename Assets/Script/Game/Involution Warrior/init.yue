@@ -220,10 +220,11 @@ world = with PlatformWorld!
 		dist = 0
 		for loc in *locs
 			dist = math.max(dist, loc\distance origin)
+		const DesignWidth = 1250
 		currentZoom = .camera.zoom
-		width = App.visualSize.width
-		targetZoom = math.max(math.min(3.0, (width/dist/2)), 0.8)
-		.camera.zoom = currentZoom + (targetZoom - currentZoom) * 0.01
+		baseZoom = View.size.width / DesignWidth
+		targetZoom = baseZoom * math.max(math.min(3.0, (DesignWidth / dist / 4)), 0.8)
+		.camera.zoom = currentZoom + (targetZoom - currentZoom) * 0.005
 	--.showDebug = true
 Store["world"] = world
 
