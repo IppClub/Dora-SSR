@@ -222,8 +222,9 @@ bool Unit::update(double deltaTime) {
 			_currentAction->_status = Behavior::Status::Success;
 			_currentAction = nullptr;
 		}
-	} else
+	} else {
 		SharedAI.runDecisionTree(this);
+	}
 	if (_behaviorTree) {
 		_blackboard->setDeltaTime(deltaTime);
 		auto status = _behaviorTree->tick(_blackboard.get());
@@ -409,10 +410,10 @@ UnitAction* Unit::getCurrentAction() const {
 void Unit::setDecisionTreeName(String name) {
 	_decisionTreeName = name;
 	if (const auto& item = SharedData.getStore()->get(name)) {
-		Decision::Leaf* leaf = item->to<Decision::Leaf>();
+		Decision::Leaf* leaf = item->as<Decision::Leaf>();
+		WarnIf(leaf == nullptr, "decision tree \"{}\" not found", name);
 		_behaviorTree = nullptr;
 		_decisionTree = leaf;
-		SharedAI.runDecisionTree(this);
 	}
 }
 
@@ -428,8 +429,9 @@ void Unit::setBehaviorTree(Behavior::Leaf* var) {
 	_behaviorTree = var;
 	if (!_blackboard) {
 		_blackboard = New<Behavior::Blackboard>(this);
-	} else
+	} else {
 		_blackboard->clear();
+	}
 }
 
 Behavior::Leaf* Unit::getBehaviorTree() const {
