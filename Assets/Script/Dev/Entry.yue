@@ -604,7 +604,7 @@ entryWindow = threadLoop ->
 	PushStyleVar "WindowPadding", Vec2(10, 0), ->
 		Begin "Dorothy Dev", windowFlags, ->
 			Dummy Vec2 width - 20, 5
-			TextColored themeColor, "DOROTHY SSR DEV"
+			TextColored themeColor, "DOROTHY SSR #{zh and '开发' or 'DEV'}"
 			Dummy Vec2 width, 0
 	SetNextWindowPos Vec2 0, 45
 	SetNextWindowSize Vec2 width, height - 95
@@ -614,7 +614,9 @@ entryWindow = threadLoop ->
 				for game in *gamesInDev
 					{gameName, _, examples, tests} = game
 					Columns 1, false
-					TextColored themeColor, gameName
+					TextColored themeColor, zh and "项目：" or "Project:"
+					SameLine!
+					Text gameName
 					Separator!
 					PushID gameName, ->
 						if Button zh and "开始运行" or "Game Start", Vec2 -1, 40
@@ -622,7 +624,9 @@ entryWindow = threadLoop ->
 						NextColumn!
 						if #examples > 0
 							Columns 1, false
-							TextColored themeColor, zh and "示例" or "Examples"
+							TextColored themeColor, zh and "示例：" or "Example:"
+							SameLine!
+							Text gameName
 							Columns maxColumns, false
 							for example in *examples
 								PushID "#{gameName} #{example[1]} example", ->
@@ -631,7 +635,9 @@ entryWindow = threadLoop ->
 									NextColumn!
 						if #tests > 0
 							Columns 1, false
-							TextColored themeColor, zh and "测试" or "Tests"
+							TextColored themeColor, zh and "测试：" or "Test:"
+							SameLine!
+							Text gameName
 							Columns maxColumns, false
 							for test in *tests
 								PushID "#{gameName} #{test[1]} test", ->
@@ -642,27 +648,25 @@ entryWindow = threadLoop ->
 						Separator!
 			if #games > 0 or #doraExamples > 0 or #doraTests > 0
 				Columns 1, false
-				TextColored themeColor, "Dorothy SSR"
+				TextColored themeColor, "Dorothy SSR:"
+				SameLine!
+				Text zh and "开发示例" or "Development Showcase"
 				Separator!
-				if #games > 0
-					Columns 1, false
-					TextColored themeColor, zh and "演示" or "Demos"
+				if #games > 0 and CollapsingHeader zh and "游戏演示" or "Game Demo"
 					Columns maxColumns, false
 					for game in *games
 						if Button game[1], Vec2 -1, 40
 							enterDemoEntry game
 						NextColumn!
-				if #doraExamples > 0
 					Columns 1, false
-					TextColored themeColor, zh and "示例" or "Examples"
+				if #doraExamples > 0 and CollapsingHeader zh and "引擎示例" or "Engine Example"
 					Columns maxColumns, false
 					for example in *doraExamples
 						if Button example[1], Vec2 -1, 40
 							enterDemoEntry example
 						NextColumn!
-				if #doraTests > 0
 					Columns 1, false
-					TextColored themeColor, zh and "测试" or "Tests"
+				if #doraTests > 0 and CollapsingHeader zh and "引擎测试" or "Engine Test"
 					Columns maxColumns, false
 					for test in *doraTests
 						if Button test[1], Vec2 -1, 40
