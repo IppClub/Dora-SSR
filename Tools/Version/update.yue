@@ -38,3 +38,4 @@ with io.open "../../Project/Android/app/build.gradle", "r"
 		\write content
 		\close!
 
+print "version updated to #{version}"

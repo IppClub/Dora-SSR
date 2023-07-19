@@ -672,7 +672,7 @@ void ImGuiDora::showStats() {
 	bool useChinese = _useChinese && _isChineseSupported;
 	auto themeColor = SharedApplication.getThemeColor().toVec4();
 	bool itemHovered = false;
-	if (ImGui::Begin(useChinese ? "Dorothy状态###DorothyStats" : "Dorothy Stats###DorothyStats", nullptr,
+	if (ImGui::Begin(useChinese ? "Dorothy 状态###DorothyStats" : "Dorothy Stats###DorothyStats", nullptr,
 			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 		if (ImGui::CollapsingHeader(useChinese ? "基础" : "Basic")) {
 			const char* rendererNames[] = {
@@ -867,11 +867,11 @@ void ImGuiDora::showStats() {
 				ImGui::Text("-");
 			else
 				ImGui::Text("%.1f ms", _avgGPUTime);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ?
+				"最近一秒内每帧平均GPU耗时"_slice :
+				"average GPU time per frame in the last second"_slice);
 		}
-		itemHovered |= ImGui::IsItemHovered();
-		if (itemHovered) HelpMarker(useChinese ?
-			"最近一秒内每帧平均GPU耗时"_slice :
-			"average GPU time per frame in the last second"_slice);
 		if (ImGui::CollapsingHeader(useChinese ? "对象" : "Object")) {
 			_objectFrames++;
 			_objectEclapsed += SharedApplication.getDeltaTime();
@@ -1176,7 +1176,7 @@ void ImGuiDora::showStats() {
 
 void ImGuiDora::showConsole() {
 	bool useChinese = _useChinese && _isChineseSupported;
-	_console->Draw(useChinese ? "Dorothy控制台###DorothyConsole" : "Dorothy Console###DorothyConsole", useChinese);
+	_console->Draw(useChinese ? "Dorothy 控制台###DorothyConsole" : "Dorothy Console###DorothyConsole", useChinese);
 }
 
 static void SetPlatformImeDataFn(ImGuiViewport*, ImGuiPlatformImeData* data) {
