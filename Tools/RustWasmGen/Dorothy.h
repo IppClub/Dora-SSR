@@ -61,6 +61,7 @@ singleton class Application @ App
 	readonly common uint32_t maxFPS @ max_fps;
 	readonly boolean bool debugging;
 	common string locale;
+	common string orientation;
 	common Color themeColor;
 	common uint32_t seed;
 	common uint32_t targetFPS @ target_fps;

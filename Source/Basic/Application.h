@@ -54,6 +54,7 @@ public:
 	PROPERTY_READONLY(std::thread::id, LogicThread);
 	PROPERTY_READONLY(uint32_t, MaxFPS);
 	PROPERTY_STRING(Locale);
+	PROPERTY_STRING(Orientation);
 	PROPERTY(Color, ThemeColor);
 	PROPERTY(uint32_t, TargetFPS);
 	PROPERTY(uint32_t, Seed);
@@ -110,6 +111,7 @@ private:
 	double _logicTime;
 	double _renderTime;
 	std::string _locale;
+	std::string _orientation;
 	bx::Thread _logicThread;
 	EventQueue _logicEvent;
 	EventQueue _renderEvent;

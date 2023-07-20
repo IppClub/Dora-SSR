@@ -5,16 +5,6 @@ local Color = require("Color").Type
 local record App
 	userdata
 
-	-- 游戏引擎运行的平台类型。
-	enum Platform
-		"Windows"
-		"Android"
-		"macOS"
-		"iOS"
-		"Linux"
-		"Unknown"
-	end
-
 	-- 引擎运行到当前时间经过的帧数。
 	const frame: integer
 
@@ -28,6 +18,16 @@ local record App
 	-- 设备显示的像素密度比。
 	-- 等于渲染缓冲纹理的像素大小除以应用程序窗口的大小。
 	const devicePixelRatio: number
+
+	-- 游戏引擎运行的平台类型。
+	enum Platform
+		"Windows"
+		"Android"
+		"macOS"
+		"iOS"
+		"Linux"
+		"Unknown"
+	end
 
 	-- 游戏引擎当前运行的平台。
 	const platform: Platform
@@ -58,11 +58,22 @@ local record App
 	-- 游戏引擎是否运行在调试模式下。
 	const debugging: boolean
 
-	-- 当前系统的语言环境字符串，格式例如：`zh-Hans`，`en`.
-	const locale: string
-
 	-- 引擎内置的C++测试的测试名称（用于辅助引擎本身开发）。
 	const testNames: {string}
+
+	-- 当前系统的语言环境字符串，格式例如：`zh-Hans`，`en`.
+	locale: string
+
+	-- 屏幕显示方向的模式。
+	enum Orientation
+		"LandscapeLeft"
+		"LandscapeRight"
+		"Portrait"
+		"PortraitUpsideDown"
+	end
+
+	-- 当前设备的屏幕显示方向设定，只在iOS和Android系统上生效。
+	orientation: Orientation
 
 	-- Dorothy SSR的主题颜色。
 	themeColor: Color

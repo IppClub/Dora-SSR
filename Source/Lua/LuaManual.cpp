@@ -464,14 +464,12 @@ int Node_gslot(lua_State* L) {
 #endif
 		if (lua_isstring(L, 2)) {
 			Slice name = tolua_toslice(L, 2, 0);
-			if (tolua_isfunction(L, 3)) // set
-			{
+			if (tolua_isfunction(L, 3)) { // set
 				int handler = tolua_ref_function(L, 3);
 				Listener* listener = self->gslot(name, LuaFunction<void>(handler));
 				tolua_pushobject(L, listener);
 				return 1;
-			} else if (lua_gettop(L) < 3) // get
-			{
+			} else if (lua_gettop(L) < 3) { // get
 				RefVector<Listener> gslots = self->gslot(name);
 				if (!gslots.empty()) {
 					int size = s_cast<int>(gslots.size());
@@ -483,8 +481,7 @@ int Node_gslot(lua_State* L) {
 				} else
 					lua_pushnil(L);
 				return 1;
-			} else if (lua_isnil(L, 3)) // del
-			{
+			} else if (lua_isnil(L, 3)) { // del
 				self->gslot(name, nullptr);
 				return 0;
 			}

@@ -6,26 +6,6 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;管理应用程序信息的单例类。
 
-## App.Platform
-
-**类型：** 枚举。
-
-**描述：**
-
-&emsp;&emsp;游戏引擎运行的平台类型。
-
-**签名：**
-```tl
-enum Platform
-	"Windows"
-	"Android"
-	"macOS"
-	"iOS"
-	"Linux"
-	"Unknown"
-end
-```
-
 ## frame
 
 **类型：** 只读成员变量。
@@ -78,6 +58,26 @@ const visualSize: Size
 **签名：**
 ```tl
 const devicePixelRatio: number
+```
+
+## App.Platform
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎运行的平台类型。
+
+**签名：**
+```tl
+enum Platform
+	"Windows"
+	"Android"
+	"macOS"
+	"iOS"
+	"Linux"
+	"Unknown"
+end
 ```
 
 ## platform
@@ -189,19 +189,6 @@ const maxFPS: integer
 const debugging: boolean
 ```
 
-## locale
-
-**类型：** 只读成员变量。
-
-**描述：**
-
-&emsp;&emsp;当前系统的语言环境字符串，格式例如：`zh-Hans`，`en`.
-
-**签名：**
-```tl
-const locale: string
-```
-
 ## testNames
 
 **类型：** 只读成员变量。
@@ -213,6 +200,50 @@ const locale: string
 **签名：**
 ```tl
 const testNames: {string}
+```
+
+## locale
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前系统的语言环境字符串，格式例如：`zh-Hans`，`en`.
+
+**签名：**
+```tl
+locale: string
+```
+
+## App.Orientation
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;屏幕显示方向的模式。
+
+**签名：**
+```tl
+enum Orientation
+	"LandscapeLeft"
+	"LandscapeRight"
+	"Portrait"
+	"PortraitUpsideDown"
+end
+```
+
+## orientation
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前设备的屏幕显示方向设定，只在iOS和Android系统上生效。
+
+**签名：**
+```tl
+orientation: Orientation
 ```
 
 ## themeColor
