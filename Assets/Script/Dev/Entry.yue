@@ -279,7 +279,7 @@ doClean = ->
 	Content\remove Path writablePath, ".upload"
 	Content\remove Path writablePath, ".download"
 
-screenScale = 2 -- App.devicePixelRatio
+screenScale = 2.0 -- App.devicePixelRatio
 scaleContent = false
 isInEntry = true
 currentEntry = nil
@@ -333,6 +333,8 @@ export allClear = ->
 	Content.searchPaths = searchPaths
 	App.idled = true
 	Wasm\clear!
+	for _, item in pairs ubox!
+		node\cleanup! if node = tolua.cast item, "Node"
 
 export stop = ->
 	return false if isInEntry
