@@ -43,6 +43,12 @@ static void application_set_locale(int64_t var) {
 static int64_t application_get_locale() {
 	return str_retain(SharedApplication.getLocale());
 }
+static void application_set_orientation(int64_t var) {
+	SharedApplication.setOrientation(*str_from(var));
+}
+static int64_t application_get_orientation() {
+	return str_retain(SharedApplication.getOrientation());
+}
 static void application_set_theme_color(int32_t var) {
 	SharedApplication.setThemeColor(Color(s_cast<uint32_t>(var)));
 }
@@ -98,6 +104,8 @@ static void linkApplication(wasm3::module& mod) {
 	mod.link_optional("*", "application_is_debugging", application_is_debugging);
 	mod.link_optional("*", "application_set_locale", application_set_locale);
 	mod.link_optional("*", "application_get_locale", application_get_locale);
+	mod.link_optional("*", "application_set_orientation", application_set_orientation);
+	mod.link_optional("*", "application_get_orientation", application_get_orientation);
 	mod.link_optional("*", "application_set_theme_color", application_set_theme_color);
 	mod.link_optional("*", "application_get_theme_color", application_get_theme_color);
 	mod.link_optional("*", "application_set_seed", application_set_seed);

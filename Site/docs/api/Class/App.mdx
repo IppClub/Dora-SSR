@@ -6,26 +6,6 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;A record representing an application singleton instance.
 
-## App.Platform
-
-**Type:** Enumeration.
-
-**Description:**
-
-&emsp;&emsp;An enumerated type representing the platform the game engine is running on.
-
-**Signature:**
-```tl
-enum Platform
-	"Windows"
-	"Android"
-	"macOS"
-	"iOS"
-	"Linux"
-	"Unknown"
-end
-```
-
 ## frame
 
 **Type:** Readonly Field.
@@ -79,6 +59,26 @@ Can be calculated as the size of the rendering buffer divided by the size of the
 **Signature:**
 ```tl
 const devicePixelRatio: number
+```
+
+## App.Platform
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;An enumerated type representing the platform the game engine is running on.
+
+**Signature:**
+```tl
+enum Platform
+	"Windows"
+	"Android"
+	"macOS"
+	"iOS"
+	"Linux"
+	"Unknown"
+end
 ```
 
 ## platform
@@ -190,19 +190,6 @@ const maxFPS: integer
 const debugging: boolean
 ```
 
-## locale
-
-**Type:** Readonly Field.
-
-**Description:**
-
-&emsp;&emsp;The system locale string, in format like: `zh-Hans`, `en`.
-
-**Signature:**
-```tl
-const locale: string
-```
-
 ## testNames
 
 **Type:** Readonly Field.
@@ -214,6 +201,50 @@ const locale: string
 **Signature:**
 ```tl
 const testNames: {string}
+```
+
+## locale
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The system locale string, in format like: `zh-Hans`, `en`.
+
+**Signature:**
+```tl
+locale: string
+```
+
+## App.Orientation
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;The display orientation modes.
+
+**Signature:**
+```tl
+enum Orientation
+	"LandscapeLeft"
+	"LandscapeRight"
+	"Portrait"
+	"PortraitUpsideDown"
+end
+```
+
+## orientation
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The display orientation setting of the current device only takes effect on iOS and Android systems.
+
+**Signature:**
+```tl
+orientation: Orientation
 ```
 
 ## themeColor

@@ -5,16 +5,6 @@ local Color = require("Color").Type
 local record App
 	userdata
 
-	-- An enumerated type representing the platform the game engine is running on.
-	enum Platform
-		"Windows"
-		"Android"
-		"macOS"
-		"iOS"
-		"Linux"
-		"Unknown"
-	end
-
 	-- The current passed frame number.
 	const frame: integer
 
@@ -29,6 +19,16 @@ local record App
 	-- The ratio of the pixel density displayed by the device
 	-- Can be calculated as the size of the rendering buffer divided by the size of the application window.
 	const devicePixelRatio: number
+
+	-- An enumerated type representing the platform the game engine is running on.
+	enum Platform
+		"Windows"
+		"Android"
+		"macOS"
+		"iOS"
+		"Linux"
+		"Unknown"
+	end
 
 	-- The platform the game engine is running on.
 	const platform: Platform
@@ -59,11 +59,22 @@ local record App
 	-- Whether the game engine is running in debug mode.
 	const debugging: boolean
 
-	-- The system locale string, in format like: `zh-Hans`, `en`.
-	const locale: string
-
 	-- An array of test names of engine included C++ tests.
 	const testNames: {string}
+
+	-- The system locale string, in format like: `zh-Hans`, `en`.
+	locale: string
+
+	-- The display orientation modes.
+	enum Orientation
+		"LandscapeLeft"
+		"LandscapeRight"
+		"Portrait"
+		"PortraitUpsideDown"
+	end
+
+	-- The display orientation setting of the current device only takes effect on iOS and Android systems.
+	orientation: Orientation
 
 	-- A theme color for Dorothy SSR.
 	themeColor: Color
