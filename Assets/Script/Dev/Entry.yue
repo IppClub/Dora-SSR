@@ -240,7 +240,7 @@ doCompile = (minify)->
 					* output
 					* output
 
-			import "luaminify.FormatMini"
+			import "luaminify" as :FormatMini
 			for {file, input, output} in *luaFiles
 				if Content\exist input
 					sourceCodes = Content\loadAsync input
