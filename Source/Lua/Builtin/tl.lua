@@ -7657,11 +7657,11 @@ tl.type_check = function(ast, opts)
 
 			check_args_rets = function(where, where_args, f, args, rets, argdelta)
 				local rets_ok = true
-				local rets_errs
+				-- local rets_errs
 				local args_ok
 				local args_errs
 
-				local from = 1
+				-- local from = 1
 				if argdelta == -1 then
 					from = 2
 					local errs = {}
