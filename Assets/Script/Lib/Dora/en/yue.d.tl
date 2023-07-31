@@ -1,6 +1,6 @@
 local record yue
 	dirsep: string
-	yue_compiled: {string:string}
+	yue_compiled: {string: string}
 	version: string
 
 	record Config
@@ -10,6 +10,19 @@ local record yue
 		space_over_tab: boolean
 		same_module: boolean
 		line_offset: integer
+		enum LuaTarget
+			"5.1"
+			"5.2"
+			"5.3"
+			"5.4"
+		end
+		record Options
+			target: LuaTarget
+			path: string
+			metamethod __newindex: function(self: Options, key: string, value: string)
+			metamethod __index: function(self: Options, key: string): string
+		end
+		options: Options
 	end
 
 	to_lua: function(code: string, config?: Config): --[[codes]] string | nil, --[[error]] string | nil, --[[globals]] {{string, integer, integer}} | nil
@@ -28,12 +41,12 @@ local record yue
 	loadstring: function(input: string, chunkname?: string, mode?: LoadMode, env?: table, config?: Config): function(...: any): (any...), string
 	loadfile: function(filename: string, chunkname?: string, mode?: LoadMode, env?: table, config?: Config): function(...: any): (any...), string
 	dofile: function(filename: string, chunkname?: string, mode?: LoadMode, env?: table, config?: Config): any...
-	create_yuepath: function(package_path: string): string
 	find_modulepath: function(name: string): string
 	pcall: function(f: function, ...: any): boolean, any...
 	require: function(name: string): any...
 	p: function(...: any)
 	options: {string: string}
+	traceback: function(message: string): string
 
 	type CompileCodeHandler = function(
 		codes: string,
@@ -55,4 +68,5 @@ local record yue
 
 	metamethod __call: function(self: yue, module: string): any...
 end
+
 return yue
