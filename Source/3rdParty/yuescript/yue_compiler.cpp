@@ -72,7 +72,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.17.10"sv;
+const std::string_view version = "0.17.14"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -5366,9 +5366,10 @@ private:
 
 	void transformUnaryValue(UnaryValue_t* unary_value, str_list& out) {
 		str_list temp;
+		int target = getLuaTarget(unary_value);
 		for (auto _op : unary_value->ops.objects()) {
 			std::string op = _parser.toString(_op);
-			if (op == "~"sv && getLuaTarget(_op) < 503) {
+			if (op == "~"sv && target < 503) {
 				throw CompileError("bitwise operator is not available when not targeting Lua version 5.3 or higher"sv, _op);
 			}
 			temp.push_back(op == "not"sv ? op + ' ' : op);
@@ -5630,9 +5631,10 @@ private:
 			return;
 		}
 		std::string unary_op;
+		int target = getLuaTarget(unary_exp);
 		for (auto _op : unary_exp->ops.objects()) {
 			std::string op = _parser.toString(_op);
-			if (op == "~"sv && getLuaTarget(_op) < 503) {
+			if (op == "~"sv && target < 503) {
 				throw CompileError("bitwise operator is not available when not targeting Lua version 5.3 or higher"sv, _op);
 			}
 			unary_op.append(op == "not"sv ? op + ' ' : op);
@@ -7952,6 +7954,20 @@ private:
 			funLit->body.set(body);
 		}
 		if (auto tryBlock = tryNode->func.as<Block_t>()) {
+			BLOCK_START
+			BREAK_IF(tryBlock->statements.size() != 1);
+			auto stmt = static_cast<Statement_t*>(tryBlock->statements.front());
+			auto expListAssign = stmt->content.as<ExpListAssign_t>();
+			BREAK_IF(expListAssign->action);
+			auto value = singleValueFrom(expListAssign->expList);
+			BREAK_IF(!value);
+			auto chainValue = value->item.as<ChainValue_t>();
+			BREAK_IF(!chainValue);
+			BREAK_IF(!isChainValueCall(chainValue));
+			tryNode->func.set(expListAssign->expList->exprs.front());
+			BLOCK_END
+		}
+		if (auto tryBlock = tryNode->func.as<Block_t>()) {
 			auto tryExp = toAst<Exp_t>("->"sv, x);
 			auto funLit = simpleSingleValueFrom(tryExp)->value.to<FunLit_t>();
 			auto body = x->new_ptr<Body_t>();
@@ -7978,31 +7994,50 @@ private:
 			auto chainValue = value->item.as<ChainValue_t>();
 			BREAK_IF(!chainValue);
 			BREAK_IF(!isChainValueCall(chainValue));
-			ast_ptr<true, ast_node> last = chainValue->items.back();
-			chainValue->items.pop_back();
-			_ast_list* args = nullptr;
-			if (auto invoke = ast_cast<InvokeArgs_t>(last)) {
-				args = &invoke->args;
-			} else {
-				args = &(ast_to<Invoke_t>(last)->args);
-			}
-			if (errHandler) {
+			if (errHandler && getLuaTarget(x) < 502) {
+				auto tryExp = toAst<Exp_t>("->"sv, x);
+				auto funLit = simpleSingleValueFrom(tryExp)->value.to<FunLit_t>();
+				auto expList = x->new_ptr<ExpList_t>();
+				expList->exprs.push_back(tryNode->func);
+				auto expListAssign = x->new_ptr<ExpListAssign_t>();
+				expListAssign->expList.set(expList);
+				auto stmt = x->new_ptr<Statement_t>();
+				stmt->content.set(expListAssign);
+				auto body = x->new_ptr<Body_t>();
+				body->content.set(stmt);
+				funLit->body.set(body);
 				auto xpcall = toAst<ChainValue_t>("xpcall()", x);
 				auto invoke = ast_to<Invoke_t>(xpcall->items.back());
-				invoke->args.push_back(tryNode->func);
+				invoke->args.push_back(tryExp);
 				invoke->args.push_back(errHandler);
-				for (auto arg : args->objects()) {
-					invoke->args.push_back(arg);
-				}
 				transformChainValue(xpcall, out, ExpUsage::Closure);
 			} else {
-				auto pcall = toAst<ChainValue_t>("pcall()", x);
-				auto invoke = ast_to<Invoke_t>(pcall->items.back());
-				invoke->args.push_back(tryNode->func);
-				for (auto arg : args->objects()) {
-					invoke->args.push_back(arg);
+				ast_ptr<true, ast_node> last = chainValue->items.back();
+				chainValue->items.pop_back();
+				_ast_list* args = nullptr;
+				if (auto invoke = ast_cast<InvokeArgs_t>(last)) {
+					args = &invoke->args;
+				} else {
+					args = &(ast_to<Invoke_t>(last)->args);
 				}
-				transformChainValue(pcall, out, ExpUsage::Closure);
+				if (errHandler) {
+					auto xpcall = toAst<ChainValue_t>("xpcall()", x);
+					auto invoke = ast_to<Invoke_t>(xpcall->items.back());
+					invoke->args.push_back(tryNode->func);
+					invoke->args.push_back(errHandler);
+					for (auto arg : args->objects()) {
+						invoke->args.push_back(arg);
+					}
+					transformChainValue(xpcall, out, ExpUsage::Closure);
+				} else {
+					auto pcall = toAst<ChainValue_t>("pcall()", x);
+					auto invoke = ast_to<Invoke_t>(pcall->items.back());
+					invoke->args.push_back(tryNode->func);
+					for (auto arg : args->objects()) {
+						invoke->args.push_back(arg);
+					}
+					transformChainValue(pcall, out, ExpUsage::Closure);
+				}
 			}
 			if (usage == ExpUsage::Common) {
 				out.back().append(nlr(x));

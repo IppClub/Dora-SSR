@@ -1737,6 +1737,12 @@ local function Format_Mini(ast)
 			return a.."\n"..b
 		end]]
 		sep = sep or ' '
+		if sep == ';' then
+			local token = a:match("([%w_]+)%s*$")
+			if token == "then" or token == "do" then
+				sep = ' '
+			end
+		end
 		local aa, bb = a:sub(-1,-1), b:sub(1,1)
 		if UpperChars[aa] or LowerChars[aa] or aa == '_' then
 			if not (UpperChars[bb] or LowerChars[bb] or bb == '_' or Digits[bb]) then
@@ -2094,9 +2100,15 @@ local function FormatYue(ast, lineMap)
 				break
 			end
 		end
+		aa = aa or ''
 		sep = sep or ' '
 		if spaceSep then
 			sep = ''
+		elseif sep == ';' then
+			local token = aa:match("([%w_]+)%s*$")
+			if token == "then" or token == "do" then
+				sep = ' '
+			end
 		end
 		local bb = b:match("^%s*([^%s])")
 		if UpperChars[aa] or LowerChars[aa] or aa == '_' then
@@ -2136,21 +2148,6 @@ local function FormatYue(ast, lineMap)
 
 	formatExpr = function(expr)
 		local out = {string.rep('(', expr.ParenCount or 0)}
-		if expr.Tokens then
-			local line = expr.Tokens[1].Line
-			local targetLine = lineMap[line]
-			if targetLine and currentLine < targetLine then
-				out[#out + 1] = string.rep('\n', targetLine - currentLine)
-				currentLine = targetLine
-			end
-		elseif expr.Value then
-			local line = expr.Value.Line
-			local targetLine = lineMap[line]
-			if targetLine and currentLine < targetLine then
-				out[#out + 1] = string.rep('\n', targetLine - currentLine)
-				currentLine = targetLine
-			end
-		end
 		if expr.AstType == 'VarExpr' then
 			if expr.Variable then
 				out[#out + 1] = expr.Variable.Name
@@ -2214,6 +2211,11 @@ local function FormatYue(ast, lineMap)
 
 		elseif expr.AstType == 'MemberExpr' then
 			out[#out + 1] = formatExpr(expr.Base)
+			local targetLine = lineMap[expr.Ident.Line]
+			if targetLine and currentLine < targetLine then
+				out[#out + 1] = string.rep('\n', targetLine - currentLine)
+				currentLine = targetLine
+			end
 			out[#out + 1] = expr.Indexer
 			out[#out + 1] = expr.Ident.Data
 
@@ -2264,19 +2266,19 @@ local function FormatYue(ast, lineMap)
 
 		end
 		out[#out + 1] = string.rep(')', expr.ParenCount or 0)
+		if expr.Tokens and expr.Tokens[1] then
+			local line = expr.Tokens[1].Line
+			local targetLine = lineMap[line]
+			if targetLine and currentLine < targetLine then
+				table.insert(out, 1, string.rep('\n', targetLine - currentLine))
+				currentLine = targetLine
+			end
+		end
 		return table.concat(out)
 	end
 
 	local formatStatement = function(statement)
 		local out = {""}
-		if statement.Tokens and statement.Tokens[1] then
-			local line = statement.Tokens[1].Line
-			local targetLine = lineMap[line]
-			if targetLine and currentLine < targetLine then
-				out[#out + 1] = string.rep('\n', targetLine - currentLine)
-				currentLine = targetLine
-			end
-		end
 		if statement.AstType == 'AssignmentStatement' then
 			for i = 1, #statement.Lhs do
 				out[#out + 1] = formatExpr(statement.Lhs[i])
@@ -2430,6 +2432,14 @@ local function FormatYue(ast, lineMap)
 			-- Ignore
 		else
 			print("Unknown AST Type: ", statement.AstType)
+		end
+		if statement.Tokens and statement.Tokens[1] then
+			local line = statement.Tokens[1].Line
+			local targetLine = lineMap[line]
+			if targetLine and currentLine < targetLine then
+				table.insert(out, 1, string.rep('\n', targetLine - currentLine))
+				currentLine = targetLine
+			end
 		end
 		return table.concat(out)
 	end
