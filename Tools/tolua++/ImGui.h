@@ -270,7 +270,7 @@ namespace ImGui
 	Vec2 GetItemRectMin();
 	Vec2 GetItemRectMax();
 	Vec2 GetItemRectSize();
-	void SetItemAllowOverlap();
+	void SetNextItemAllowOverlap();
 	bool IsWindowHovered();
 	bool IsWindowFocused();
 	bool IsRectVisible(Vec2 size);

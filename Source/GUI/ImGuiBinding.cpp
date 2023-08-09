@@ -188,7 +188,7 @@ static ImGuiTreeNodeFlags_ getTreeNodeFlag(String flag) {
 	switch (Switch::hash(flag)) {
 		case "Selected"_hash: return ImGuiTreeNodeFlags_Selected;
 		case "Framed"_hash: return ImGuiTreeNodeFlags_Framed;
-		case "AllowItemOverlap"_hash: return ImGuiTreeNodeFlags_AllowItemOverlap;
+		case "AllowOverlap"_hash: return ImGuiTreeNodeFlags_AllowOverlap;
 		case "NoTreePushOnOpen"_hash: return ImGuiTreeNodeFlags_NoTreePushOnOpen;
 		case "NoAutoOpenOnLog"_hash: return ImGuiTreeNodeFlags_NoAutoOpenOnLog;
 		case "DefaultOpen"_hash: return ImGuiTreeNodeFlags_DefaultOpen;
@@ -226,7 +226,7 @@ static ImGuiSelectableFlags_ getSelectableFlag(String flag) {
 		case "SpanAllColumns"_hash: return ImGuiSelectableFlags_SpanAllColumns;
 		case "AllowDoubleClick"_hash: return ImGuiSelectableFlags_AllowDoubleClick;
 		case "Disabled"_hash: return ImGuiSelectableFlags_Disabled;
-		case "AllowItemOverlap"_hash: return ImGuiSelectableFlags_AllowItemOverlap;
+		case "AllowOverlap"_hash: return ImGuiSelectableFlags_AllowOverlap;
 		case ""_hash: return ImGuiSelectableFlags_None;
 		default:
 			Issue("ImGui selectable flag named \"{}\" is invalid.", flag);
