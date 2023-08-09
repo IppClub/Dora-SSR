@@ -32,12 +32,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-#if BX_PLATFORM_LINUX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
-#define MAX_FONT_TEXTURE_WIDTH 4096
-#else
-#define MAX_FONT_TEXTURE_WIDTH 8192
-#endif
-
 void pushYue(lua_State* L, String name) {
 	lua_getglobal(L, "package"); // package
 	lua_getfield(L, -1, "loaded"); // package loaded
@@ -641,7 +635,7 @@ void ImGuiDora::loadFontTTFAsync(String ttfFontFile, float fontSize, String glyp
 	SharedAsyncThread.run(
 		[this]() {
 			_fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
-			_fonts->TexDesiredWidth = MAX_FONT_TEXTURE_WIDTH;
+			_fonts->TexDesiredWidth = bgfx::getCaps()->limits.maxTextureSize;
 			_fonts->Build();
 			return nullptr;
 		},
