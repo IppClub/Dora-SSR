@@ -14,12 +14,12 @@
 
 namespace bx
 {
-	inline BX_CONST_FUNC float toRad(float _deg)
+	inline BX_CONSTEXPR_FUNC float toRad(float _deg)
 	{
 		return _deg * kPi / 180.0f;
 	}
 
-	inline BX_CONST_FUNC float toDeg(float _rad)
+	inline BX_CONSTEXPR_FUNC float toDeg(float _rad)
 	{
 		return _rad * 180.0f / kPi;
 	}
@@ -136,6 +136,20 @@ namespace bx
 	inline BX_CONSTEXPR_FUNC float sign(float _a)
 	{
 		return float( (0.0f < _a) - (0.0f > _a) );
+	}
+
+	inline BX_CONSTEXPR_FUNC bool signbit(float _a)
+	{
+		return -0.0f == _a ? 0.0f != _a : 0.0f > _a;
+	}
+
+	inline BX_CONSTEXPR_FUNC float copysign(float _value, float _sign)
+	{
+#if BX_COMPILER_MSVC
+		return signbit(_value) != signbit(_sign) ? -_value : _value;
+#else
+		return __builtin_copysign(_value, _sign);
+#endif // BX_COMPILER_MSVC
 	}
 
 	inline BX_CONSTEXPR_FUNC float abs(float _a)
@@ -328,7 +342,7 @@ namespace bx
 		return 1.0f / _a;
 	}
 
-	inline BX_CONST_FUNC float mod(float _a, float _b)
+	inline BX_CONSTEXPR_FUNC float mod(float _a, float _b)
 	{
 		return _a - _b * floor(_a / _b);
 	}
@@ -354,7 +368,7 @@ namespace bx
 		return result;
 	}
 
-	inline BX_CONST_FUNC float wrap(float _a, float _wrap)
+	inline BX_CONSTEXPR_FUNC float wrap(float _a, float _wrap)
 	{
 		const float tmp0   = mod(_a, _wrap);
 		const float result = tmp0 < 0.0f ? _wrap + tmp0 : tmp0;
@@ -401,13 +415,13 @@ namespace bx
 		return bias(_time * 2.0f - 1.0f, 1.0f - _gain) * 0.5f + 0.5f;
 	}
 
-	inline BX_CONST_FUNC float angleDiff(float _a, float _b)
+	inline BX_CONSTEXPR_FUNC float angleDiff(float _a, float _b)
 	{
 		const float dist = wrap(_b - _a, kPi2);
 		return wrap(dist*2.0f, kPi2) - dist;
 	}
 
-	inline BX_CONST_FUNC float angleLerp(float _a, float _b, float _t)
+	inline BX_CONSTEXPR_FUNC float angleLerp(float _a, float _b, float _t)
 	{
 		return _a + angleDiff(_a, _b) * _t;
 	}

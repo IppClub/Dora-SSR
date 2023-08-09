@@ -52,8 +52,10 @@ extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 
 NS_DOROTHY_BEGIN
 
-bool BGFXDora::init() {
-	return bgfx::init();
+bool BGFXDora::init(const bgfx::PlatformData& data) {
+	bgfx::Init init{};
+	bx::memCopy(&init.platformData, &data, sizeof(bgfx::PlatformData));
+	return bgfx::init(init);
 }
 
 BGFXDora::~BGFXDora() {
@@ -80,7 +82,8 @@ Application::Application()
 	, _totalTime(0)
 	, _frequency(double(bx::getHPFrequency()))
 	, _sdlWindow(nullptr)
-	, _themeColor(0xfffbc400) {
+	, _themeColor(0xfffbc400)
+	, _platformData{} {
 	_lastTime = bx::getHPCounter() / _frequency;
 #if !BX_PLATFORM_LINUX
 	auto locale = SDL_GetPreferredLocales();
@@ -465,7 +468,7 @@ void Application::invokeInLogic(const std::function<void()>& func) {
 int Application::mainLogic(Application* app) {
 	app->_logicThreadID = std::this_thread::get_id();
 
-	if (!SharedBGFX.init()) {
+	if (!SharedBGFX.init(app->_platformData)) {
 		Error("bgfx failed to initialize!");
 		return 1;
 	}
@@ -605,16 +608,15 @@ void Application::setupSdlWindow() {
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
 	SDL_GetWindowWMInfo(_sdlWindow, &wmi);
-	bgfx::PlatformData pd{};
 #if BX_PLATFORM_OSX
-	pd.nwh = wmi.info.cocoa.window;
+	_platformData.nwh = wmi.info.cocoa.window;
 #elif BX_PLATFORM_WINDOWS
-	pd.nwh = wmi.info.win.window;
+	_platformData.nwh = wmi.info.win.window;
 #elif BX_PLATFORM_ANDROID
-	pd.nwh = wmi.info.android.window;
+	_platformData.nwh = wmi.info.android.window;
 #elif BX_PLATFORM_LINUX
-	pd.ndt = wmi.info.x11.display;
-	pd.nwh = r_cast<void*>(wmi.info.x11.window);
+	_platformData.ndt = wmi.info.x11.display;
+	_platformData.nwh = r_cast<void*>(wmi.info.x11.window);
 #endif // BX_PLATFORM
 #if BX_PLATFORM_WINDOWS
 	int displayIndex = SDL_GetWindowDisplayIndex(_sdlWindow);
@@ -633,7 +635,6 @@ void Application::setupSdlWindow() {
 		SDL_SetWindowPosition(_sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 	}
 #endif // BX_PLATFORM_WINDOWS
-	bgfx::setPlatformData(pd);
 	updateWindowSize();
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX

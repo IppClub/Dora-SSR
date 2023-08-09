@@ -118,6 +118,7 @@ private:
 	std::thread::id _logicThreadID;
 	SDL_Window* _sdlWindow;
 	std::mt19937 _randomEngine;
+	bgfx::PlatformData _platformData;
 	SINGLETON_REF(Application, AsyncLogThread);
 };
 
@@ -126,7 +127,7 @@ private:
 
 class BGFXDora {
 public:
-	bool init();
+	bool init(const bgfx::PlatformData& data);
 	virtual ~BGFXDora();
 	SINGLETON_REF(BGFXDora, Application);
 };

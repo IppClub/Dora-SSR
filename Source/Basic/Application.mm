@@ -53,13 +53,11 @@ void Application::setupSdlWindow() {
 	[layer addSublayer:displayLayer];
 	[layer layoutSublayers];
 
-	bgfx::PlatformData pd;
-	pd.ndt = NULL;
-	pd.nwh = (__bridge void*)displayLayer;
-	pd.context = NULL;
-	pd.backBuffer = NULL;
-	pd.backBufferDS = NULL;
-	bgfx::setPlatformData(pd);
+	_platformData.ndt = NULL;
+	_platformData.nwh = (__bridge void*)displayLayer;
+	_platformData.context = NULL;
+	_platformData.backBuffer = NULL;
+	_platformData.backBufferDS = NULL;
 	updateWindowSize();
 }
 NS_DOROTHY_END
