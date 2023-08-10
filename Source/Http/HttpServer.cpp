@@ -274,4 +274,8 @@ void HttpServer::stop() {
 	_files.clear();
 }
 
+const char* HttpServer::getVersion() {
+	return CPPHTTPLIB_VERSION;
+}
+
 NS_DOROTHY_END

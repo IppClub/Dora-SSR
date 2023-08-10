@@ -5,13 +5,14 @@
  * secured operation. Similar to a transaction while allowing child savepoints.
  *
  * Copyright (c) 2020 Kelvin Hammond (hammond.kelvin@gmail.com)
- * Copyright (c) 2020-2022 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2020-2023 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt or
  * copy at http://opensource.org/licenses/MIT)
  */
 #pragma once
 
+#include "SQLiteCpp/SQLiteCppExport.h"
 #include "SQLiteCpp/Exception.h"
 
 namespace SQLite
@@ -53,7 +54,7 @@ class Database;
  *    because of the way it shares the underling SQLite precompiled statement
  *    in a custom shared pointer (See the inner class "Statement::Ptr").
  */
-class Savepoint
+class SQLITECPP_API Savepoint
 {
 public:
     /**

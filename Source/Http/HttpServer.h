@@ -59,6 +59,8 @@ public:
 	bool start(int port);
 	void stop();
 
+	static const char* getVersion();
+
 protected:
 	HttpServer();
 

@@ -3,7 +3,7 @@
  * @ingroup SQLiteCpp
  * @brief   Definition of the SQLITECPP_ASSERT() macro.
  *
- * Copyright (c) 2012-2022 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2023 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -26,9 +26,10 @@
 // if an assert handler is provided by user code, use it instead of assert()
 namespace SQLite
 {
-    // declaration of the assert handler to define in user code
-    void assertion_failed(const char* apFile, const int apLine, const char* apFunc,
-                          const char* apExpr, const char* apMsg);
+
+// declaration of the assert handler to define in user code
+void assertion_failed(const char* apFile, const int apLine, const char* apFunc,
+                        const char* apExpr, const char* apMsg);
 
 #ifdef _MSC_VER
     #define __func__ __FUNCTION__
@@ -36,6 +37,7 @@ namespace SQLite
 // call the assert handler provided by user code
 #define SQLITECPP_ASSERT(expression, message) \
     if (!(expression))  SQLite::assertion_failed(__FILE__, __LINE__, __func__, #expression, message)
+
 } // namespace SQLite
 
 #else

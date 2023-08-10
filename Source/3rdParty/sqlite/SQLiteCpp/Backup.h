@@ -4,19 +4,20 @@
  * @brief   Backup is used to backup a database file in a safe and online way.
  *
  * Copyright (c) 2015 Shibao HONG (shibaohong@outlook.com)
- * Copyright (c) 2015-2022 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2015-2023 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
  */
 #pragma once
 
+#include "SQLiteCpp/SQLiteCppExport.h"
 #include "SQLiteCpp/Database.h"
 
 #include <string>
 #include <memory>
 
-// Forward declaration to avoid inclusion of "sqlite3.h" in a header
+// Forward declaration to avoid inclusion of <sqlite3.h> in a header
 struct sqlite3_backup;
 
 namespace SQLite
@@ -31,7 +32,7 @@ namespace SQLite
  * See also the a reference implementation of live backup taken from the official site:
  * https://www.sqlite.org/backup.html
  */
-class Backup
+class SQLITECPP_API Backup
 {
 public:
     /**
@@ -124,7 +125,7 @@ private:
         void operator()(sqlite3_backup* apBackup);
     };
 
-    std::unique_ptr<sqlite3_backup, Deleter> mpSQLiteBackup{};   ///< Pointer to SQLite Database Backup Handle
+    std::unique_ptr<sqlite3_backup, Deleter> mpSQLiteBackup;    ///< Pointer to SQLite Database Backup Handle
 };
 
 }  // namespace SQLite
