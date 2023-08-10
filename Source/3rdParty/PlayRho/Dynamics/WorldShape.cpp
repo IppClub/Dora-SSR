@@ -138,7 +138,7 @@ void Rotate(World& world, ShapeID id, const UnitVec& value)
     SetShape(world, id, object);
 }
 
-MassData ComputeMassData(const World& world, const std::vector<ShapeID>& ids)
+MassData ComputeMassData(const World& world, const Span<const ShapeID>& ids)
 {
     auto mass = 0_kg;
     auto I = RotInertia{};

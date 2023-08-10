@@ -54,9 +54,13 @@ static_assert(std::is_nothrow_destructible<Joint>::value, "Joint must be nothrow
 
 // Free functions...
 
-BodyConstraint& At(std::vector<BodyConstraint>& container, BodyID key)
+BodyConstraint& At(const Span<BodyConstraint>& container, BodyID key)
 {
-    return container.at(to_underlying(key));
+    const auto index = to_underlying(key);
+    if (index >= container.size()) {
+        throw std::out_of_range{"invalid index"};
+    }
+    return container[index];
 }
 
 Length2 GetLocalAnchorA(const Joint& object)

@@ -25,6 +25,7 @@
 #include "PlayRho/Dynamics/Joints/JointConf.hpp"
 
 #include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Span.hpp"
 
 namespace playrho {
 
@@ -230,7 +231,7 @@ constexpr auto ShiftOrigin(WheelJointConf&, const Length2&)
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso WheelJointConf
-void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
+void InitVelocity(WheelJointConf& object, const Span<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -244,7 +245,7 @@ void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies, c
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso WheelJointConf
-bool SolveVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(WheelJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
@@ -256,7 +257,7 @@ bool SolveVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso WheelJointConf
-bool SolvePosition(const WheelJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const WheelJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
 
 /// @brief Sets the maximum motor torque for the given configuration.

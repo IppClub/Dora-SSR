@@ -38,6 +38,7 @@
 /// @see https://en.wikipedia.org/wiki/Create,_read,_update_and_delete.
 
 #include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Span.hpp"
 
 #include "PlayRho/Collision/MassData.hpp"
 #include "PlayRho/Collision/Shapes/Shape.hpp"
@@ -228,7 +229,7 @@ inline MassData GetMassData(const World& world, ShapeID id)
 /// @return accumulated mass data for all shapes identified.
 /// @throws std::out_of_range If given an invalid shape identifier.
 /// @relatedalso World
-MassData ComputeMassData(const World& world, const std::vector<ShapeID>& ids);
+MassData ComputeMassData(const World& world, const Span<const ShapeID>& ids);
 
 /// @brief Tests a point for containment in a shape associated with a body.
 /// @param world The world that the given shape ID exists within.

@@ -65,9 +65,9 @@ PolygonShapeConf& PolygonShapeConf::SetAsBox(Length hx, Length hy)
 }
 
 /// @brief Uses the given vertices.
-PolygonShapeConf& PolygonShapeConf::UseVertices(const std::vector<Length2>& verts)
+PolygonShapeConf& PolygonShapeConf::UseVertices(const Span<const Length2>& verts)
 {
-    return Set(Span<const Length2>(data(verts), size(verts)));
+    return Set(verts);
 }
 
 PolygonShapeConf& PolygonShapeConf::SetAsBox(Length hx, Length hy, const Length2& center,

@@ -123,16 +123,14 @@ namespace playrho {
 
 using std::count;
 
-static_assert(std::is_default_constructible<Island>::value,
-              "Must be default constructible.");
 static_assert(std::is_copy_constructible<Island>::value,
               "Must be copy constructible.");
 static_assert(std::is_copy_assignable<Island>::value,
               "Must be copy assignable.");
 static_assert(std::is_nothrow_move_constructible<Island>::value,
               "Must be nothrow move constructible.");
-static_assert(std::is_nothrow_move_assignable<Island>::value,
-              "Must be nothrow move assignable.");
+static_assert(std::is_move_assignable<Island>::value,
+              "Must be move assignable.");
 static_assert(std::is_nothrow_destructible<Island>::value,
               "Must be nothrow destructible.");
 

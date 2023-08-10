@@ -25,7 +25,9 @@
 /// @file
 /// Declarations of the WorldImpl class.
 
+#include "PlayRho/Common/Interval.hpp"
 #include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/PoolMemoryResource.hpp"
 #include "PlayRho/Common/Positive.hpp"
 #include "PlayRho/Common/ObjectPool.hpp"
 
@@ -51,6 +53,7 @@
 #include <stack>
 #include <stdexcept>
 #include <functional>
+#include <type_traits> // for std::is_default_constructible_v, etc.
 
 namespace playrho {
 
@@ -119,13 +122,21 @@ public:
     ///   data that's given to the world's <code>Step</code> method.
     /// @throws InvalidArgument if the given max vertex radius is less than the min.
     /// @see Step.
-    explicit WorldImpl(const WorldConf& conf = GetDefaultWorldConf());
+    explicit WorldImpl(const WorldConf& conf = WorldConf{});
+
+    /// @brief Copy constructor.
+    WorldImpl(const WorldImpl& other);
 
     /// @brief Destructor.
     /// @details All physics entities are destroyed and all memory is released.
     /// @note This will call the <code>Clear()</code> function.
     /// @see Clear.
     ~WorldImpl() noexcept;
+
+    // Delete compiler defined implementations of move construction/assignment and copy assignment...
+    WorldImpl(WorldImpl&& other) = delete;
+    WorldImpl& operator=(const WorldImpl& other) = delete;
+    WorldImpl& operator=(WorldImpl&& other) = delete;
 
     /// @}
 
@@ -341,7 +352,7 @@ public:
 
     /// @brief Gets the contacts associated with the identified body.
     /// @throws std::out_of_range if given an invalid id.
-    const Contacts& GetContacts(BodyID id) const;
+    const std::vector<KeyedContactPtr>& GetContacts(BodyID id) const;
 
     /// @throws std::out_of_range if given an invalid id.
     const BodyJoints& GetJoints(BodyID id) const;
@@ -466,7 +477,7 @@ public:
     /// @warning contacts are created and destroyed in the middle of a time step.
     /// Use <code>ContactListener</code> to avoid missing contacts.
     /// @return World contacts sized-range.
-    const Contacts& GetContacts() const noexcept;
+    std::vector<KeyedContactPtr> GetContacts() const;
 
     /// @brief Gets the identified contact.
     /// @throws std::out_of_range If given an invalid contact identifier.
@@ -515,10 +526,22 @@ private:
         e_needsContactFiltering = 0x0080,
     };
 
+    /// Bodies, contacts, and joints that are already in an <code>Island</code> by their ID.
+    /// @see Step.
+    struct Islanded
+    {
+        using vector = std::vector<bool>;
+        vector bodies;
+        vector contacts;
+        vector joints;
+    };
+
     /// @brief Solves the step.
     /// @details Finds islands, integrates and solves constraints, solves position constraints.
     /// @note This may miss collisions involving fast moving bodies and allow them to tunnel
     ///   through each other.
+    /// @pre <code>IsLocked()</code> returns false.
+    /// @pre <code>IsStepComplete()</code> returns true.
     RegStepStats SolveReg(const StepConf& conf);
 
     /// @brief Solves the given island (regularly).
@@ -551,23 +574,24 @@ private:
                      BodyCounter& remNumBodies,
                      ContactCounter& remNumContacts,
                      JointCounter& remNumJoints);
-    
+
     /// @brief Body stack.
-    using BodyStack = std::stack<BodyID, std::vector<BodyID>>;
-    
+    using BodyStack = std::vector<BodyID, pmr::polymorphic_allocator<BodyID>>;
+
     /// @brief Adds to the island.
     void AddToIsland(Island& island, BodyStack& stack,
                      BodyCounter& remNumBodies,
                      ContactCounter& remNumContacts,
                      JointCounter& remNumJoints);
-    
-    /// @brief Adds contacts to the island.
+
+    /// @brief Adds contacts of the specified body to the island and adds the other contacted
+    ///   bodies to the body stack.
     void AddContactsToIsland(Island& island, BodyStack& stack, const Contacts& contacts,
                              BodyID bodyID);
 
     /// @brief Adds joints to the island.
     void AddJointsToIsland(Island& island, BodyStack& stack, const BodyJoints& joints);
-    
+
     /// @brief Solves the step using successive time of impact (TOI) events.
     /// @details Used for continuous physics.
     /// @note This is intended to detect and prevent the tunneling that the faster Solve method
@@ -683,6 +707,17 @@ private:
         root_iter_type maxRootIters = 0; ///< Max root iterations.
     };
 
+    struct Listeners
+    {
+        ShapeListener shapeDestruction; ///< Listener for shape destruction.
+        AssociationListener detach; ///< Listener for shapes detaching from bodies.
+        JointListener jointDestruction; ///< Listener for joint destruction.
+        ContactListener beginContact; ///< Listener for beginning contact events.
+        ContactListener endContact; ///< Listener for ending contact events.
+        ManifoldContactListener preSolveContact; ///< Listener for pre-solving contacts.
+        ImpulsesContactListener postSolveContact; ///< Listener for post-solving contacts.
+    };
+
     /// @brief Updates the contact times of impact.
     UpdateContactsData UpdateContactTOIs(const StepConf& conf);
 
@@ -704,7 +739,7 @@ private:
     /// @note New contacts will all have overlapping AABBs.
     /// @post <code>GetProxies()</code> will return an empty container.
     /// @see GetProxies.
-    ContactCounter FindNewContacts(std::vector<ContactKey>&& contactKeys);
+    ContactCounter FindNewContacts(std::vector<ContactKey, pmr::polymorphic_allocator<ContactKey>>&& contactKeys);
 
     /// @brief Destroys the given contact and removes it from its container.
     /// @details This updates the contacts container, returns the memory to the allocator,
@@ -740,6 +775,13 @@ private:
 
     /******** Member variables. ********/
 
+    pmr::PoolMemoryResource m_bodyStackResource;
+    pmr::PoolMemoryResource m_bodyConstraintsResource;
+    pmr::PoolMemoryResource m_positionConstraintsResource;
+    pmr::PoolMemoryResource m_velocityConstraintsResource;
+    pmr::PoolMemoryResource m_contactKeysResource;
+    pmr::PoolMemoryResource m_islandResource;
+
     DynamicTree m_tree; ///< Dynamic tree.
 
     ObjectPool<Body> m_bodyBuffer; ///< Array of body data both used and freed.
@@ -755,7 +797,7 @@ private:
 
     /// @brief Cache of contacts associated with bodies.
     /// @note Size depends on and matches <code>size(m_bodyBuffer)</code>.
-    ObjectPool<Contacts> m_bodyContacts;
+    ObjectPool<std::vector<KeyedContactPtr>> m_bodyContacts;
 
     ///< Cache of joints associated with bodies.
     /// @note Size depends on and matches <code>size(m_bodyBuffer)</code>.
@@ -766,18 +808,12 @@ private:
     ObjectPool<Proxies> m_bodyProxies;
 
     /// @brief Buffer of proxies to inspect for finding new contacts.
-    /// @note Built from fixtures-for-proxies and on body synchronization. Consumed by the finding-of-new-contacts.
+    /// @note Built from @a m_fixturesForProxies and on body synchronization. Consumed by the finding-of-new-contacts.
     Proxies m_proxiesForContacts;
 
     /// @brief Fixtures for proxies queue.
     /// @note Capacity grows on calls to <code>CreateBody</code>, <code>SetBody</code>, and <code>SetShape</code>.
     std::vector<std::pair<BodyID, ShapeID>> m_fixturesForProxies;
-
-    /// @brief Cache of constraints associated with bodies.
-    /// @note Size grows on calls to <code>CreateBody</code>.
-    /// @note Size shrinks on calls to <code>Remove(BodyID id)</code>.
-    /// @note Size depends on and matches <code>size(m_bodyBuffer)</code>.
-    std::vector<BodyConstraint> m_bodyConstraints;
 
     /// @brief Bodies for proxies queue.
     /// @note Size & capacity grows on calls to <code>SetBody</code>.
@@ -794,25 +830,14 @@ private:
     ///   during a given time step.
     Contacts m_contacts;
 
-    /// @brief Per body boolean on whether body islanded.
-    /// @note Size depends on and matches <code>size(m_bodyBuffer)</code>.
-    std::vector<bool> m_islandedBodies;
+    /// Bodies, contacts, and joints that are already in an island.
+    /// @note This is step-wise state that needs to be here or within a step solving co-routine for sub-stepping TOI solving.
+    /// @note This instance's members capacities depend on state changed outside the step loop.
+    /// @see Island.
+    Islanded m_islanded;
 
-    /// @brief Per contact boolean on whether contact islanded.
-    /// @note Size depends on and matches <code>size(m_contactBuffer)</code>.
-    std::vector<bool> m_islandedContacts;
-
-    /// @brief Per joint boolean on whether joint islanded.
-    /// @note Size depends on and matches <code>size(m_jointBuffer)</code>.
-    std::vector<bool> m_islandedJoints;
-
-    ShapeListener m_shapeDestructionListener; ///< Listener for shape destruction.
-    AssociationListener m_detachListener; ///< Listener for shapes detaching from bodies.
-    JointListener m_jointDestructionListener; ///< Listener for joint destruction.
-    ContactListener m_beginContactListener; ///< Listener for beginning contact events.
-    ContactListener m_endContactListener; ///< Listener for ending contact events.
-    ManifoldContactListener m_preSolveContactListener; ///< Listener for pre-solving contacts.
-    ImpulsesContactListener m_postSolveContactListener; ///< Listener for post-solving contacts.
+    /// @brief Listeners.
+    Listeners m_listeners;
 
     FlagsType m_flags = e_stepComplete; ///< Flags.
     
@@ -821,19 +846,16 @@ private:
     /// @note 4-bytes large.
     /// @see Step.
     Frequency m_inv_dt0 = 0_Hz;
-    
-    /// @brief Minimum vertex radius.
-    Positive<Length> m_minVertexRadius;
-    
-    /// @brief Maximum vertex radius.
+
+    /// @brief Min and max vertex radii.
     /// @details
-    /// This is the maximum shape vertex radius that any bodies' of this world should create
-    /// fixtures for. Requests to create fixtures for shapes with vertex radiuses bigger than
+    /// The interval max is the maximum shape vertex radius that any bodies' of this world should
+    /// create fixtures for. Requests to create fixtures for shapes with vertex radiuses bigger than
     /// this must be rejected. As an upper bound, this value prevents shapes from getting
     /// associated with this world that would otherwise not be able to be simulated due to
     /// numerical issues. It can also be set below this upper bound to constrain the differences
     /// between shape vertex radiuses to possibly more limited visual ranges.
-    Positive<Length> m_maxVertexRadius;
+    Interval<Positive<Length>> m_vertexRadius{WorldConf::DefaultMinVertexRadius, WorldConf::DefaultMaxVertexRadius};
 };
 
 inline const WorldImpl::Proxies& WorldImpl::GetProxies() const noexcept
@@ -861,9 +883,9 @@ inline const WorldImpl::Joints& WorldImpl::GetJoints() const noexcept
     return m_joints;
 }
 
-inline const WorldImpl::Contacts& WorldImpl::GetContacts() const noexcept
+inline std::vector<KeyedContactPtr> WorldImpl::GetContacts() const
 {
-    return m_contacts;
+    return std::vector<KeyedContactPtr>{begin(m_contacts), end(m_contacts)};
 }
 
 inline bool WorldImpl::IsLocked() const noexcept
@@ -893,12 +915,12 @@ inline void WorldImpl::SetSubStepping(bool flag) noexcept
 
 inline Length WorldImpl::GetMinVertexRadius() const noexcept
 {
-    return m_minVertexRadius;
+    return m_vertexRadius.GetMin();
 }
 
 inline Length WorldImpl::GetMaxVertexRadius() const noexcept
 {
-    return m_maxVertexRadius;
+    return m_vertexRadius.GetMax();
 }
 
 inline Frequency WorldImpl::GetInvDeltaTime() const noexcept
@@ -913,38 +935,46 @@ inline const DynamicTree& WorldImpl::GetTree() const noexcept
 
 inline void WorldImpl::SetShapeDestructionListener(ShapeListener listener) noexcept
 {
-    m_shapeDestructionListener = std::move(listener);
+    m_listeners.shapeDestruction = std::move(listener);
 }
 
 inline void WorldImpl::SetDetachListener(AssociationListener listener) noexcept
 {
-    m_detachListener = std::move(listener);
+    m_listeners.detach = std::move(listener);
 }
 
 inline void WorldImpl::SetJointDestructionListener(JointListener listener) noexcept
 {
-    m_jointDestructionListener = std::move(listener);
+    m_listeners.jointDestruction = std::move(listener);
 }
 
 inline void WorldImpl::SetBeginContactListener(ContactListener listener) noexcept
 {
-    m_beginContactListener = std::move(listener);
+    m_listeners.beginContact = std::move(listener);
 }
 
 inline void WorldImpl::SetEndContactListener(ContactListener listener) noexcept
 {
-    m_endContactListener = std::move(listener);
+    m_listeners.endContact = std::move(listener);
 }
 
 inline void WorldImpl::SetPreSolveContactListener(ManifoldContactListener listener) noexcept
 {
-    m_preSolveContactListener = std::move(listener);
+    m_listeners.preSolveContact = std::move(listener);
 }
 
 inline void WorldImpl::SetPostSolveContactListener(ImpulsesContactListener listener) noexcept
 {
-    m_postSolveContactListener = std::move(listener);
+    m_listeners.postSolveContact = std::move(listener);
 }
+
+// State & confirm compile-time traits of WorldImpl class.
+// It minimally needs to be default and copy constructable.
+static_assert(std::is_default_constructible_v<WorldImpl>);
+static_assert(std::is_copy_constructible_v<WorldImpl>);
+static_assert(!std::is_move_constructible_v<WorldImpl>);
+static_assert(!std::is_copy_assignable_v<WorldImpl>);
+static_assert(!std::is_move_assignable_v<WorldImpl>);
 
 } // namespace d2
 } // namespace playrho

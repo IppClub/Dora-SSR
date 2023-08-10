@@ -24,7 +24,7 @@
 #include "PlayRho/Collision/Simplex.hpp"
 #include "PlayRho/Collision/Distance.hpp"
 #include "PlayRho/Collision/DistanceProxy.hpp"
-#include "PlayRho/Collision/Collision.hpp"
+#include "PlayRho/Collision/ClipList.hpp"
 #include "PlayRho/Collision/ShapeSeparation.hpp"
 
 #include "PlayRho/Defines.hpp"

@@ -31,7 +31,7 @@ namespace d2 {
 
 namespace {
 
-inline InvMass3 ComputeK(const VelocityConstraint& vc, const std::vector<BodyConstraint>& bodies) noexcept
+inline InvMass3 ComputeK(const VelocityConstraint& vc, const Span<const BodyConstraint>& bodies) noexcept
 {
     assert(vc.GetPointCount() == 2);
 
@@ -79,7 +79,7 @@ VelocityConstraint::VelocityConstraint(Real friction, Real restitution,
                                        const WorldManifold& worldManifold,
                                        BodyID bA,
                                        BodyID bB,
-                                       const std::vector<BodyConstraint>& bodies,
+                                       const Span<const BodyConstraint>& bodies,
                                        const Conf& conf):
     m_bodyA{bA}, m_bodyB{bB},
     m_normal{worldManifold.GetNormal()},
@@ -130,7 +130,8 @@ VelocityConstraint::VelocityConstraint(Real friction, Real restitution,
 
 VelocityConstraint::Point
 VelocityConstraint::GetPoint(Momentum normalImpulse, Momentum tangentImpulse,
-                             const Length2& relA, const Length2& relB, const std::vector<BodyConstraint>& bodies,
+                             const Length2& relA, const Length2& relB,
+                             const Span<const BodyConstraint>& bodies,
                              const Conf& conf) const noexcept
 {
     assert(IsValid(normalImpulse));
@@ -181,7 +182,7 @@ VelocityConstraint::GetPoint(Momentum normalImpulse, Momentum tangentImpulse,
 
 void VelocityConstraint::AddPoint(Momentum normalImpulse, Momentum tangentImpulse,
                                   const Length2& relA, const Length2& relB,
-                                  const std::vector<BodyConstraint>& bodies,
+                                  const Span<const BodyConstraint>& bodies,
                                   const Conf& conf)
 {
     assert(m_pointCount < MaxManifoldPoints);

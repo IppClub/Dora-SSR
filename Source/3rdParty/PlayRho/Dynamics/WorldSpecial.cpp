@@ -40,6 +40,10 @@ World::World(const World& other): m_impl{CreateWorldImpl(*other.m_impl)}
 {
 }
 
+World::World(World&& other) noexcept = default;
+
+World& World::operator=(World&& other) noexcept = default;
+
 World::~World() noexcept
 {
     if (m_impl) {
@@ -51,7 +55,7 @@ World::~World() noexcept
 
 World& World::operator= (const World& other)
 {
-    *m_impl = *other.m_impl;
+    m_impl = CreateWorldImpl(*other.m_impl);
     return *this;
 }
 

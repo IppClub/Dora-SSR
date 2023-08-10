@@ -68,7 +68,7 @@ ContactCounter GetContactRange(const World& world) noexcept;
 
 /// @brief Gets the contacts recognized within the given world.
 /// @relatedalso World
-const std::vector<KeyedContactPtr>& GetContacts(const World& world) noexcept;
+std::vector<KeyedContactPtr> GetContacts(const World& world);
 
 /// @brief Gets the identified contact.
 /// @throws std::out_of_range If given an invalid contact identifier.

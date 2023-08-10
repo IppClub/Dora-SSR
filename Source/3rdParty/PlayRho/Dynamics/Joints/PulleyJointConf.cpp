@@ -89,7 +89,7 @@ PulleyJointConf GetPulleyJointConf(const World& world, BodyID bA, BodyID bB, // 
                            GetMagnitude(anchorB - groundB)};
 }
 
-void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
+void InitVelocity(PulleyJointConf& object, const Span<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf&)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
@@ -152,7 +152,7 @@ void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
     bodyConstraintB.SetVelocity(velB);
 }
 
-bool SolveVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf&)
+bool SolveVelocity(PulleyJointConf& object, const Span<BodyConstraint>& bodies, const StepConf&)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
         return true;
@@ -189,7 +189,7 @@ bool SolveVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
     return impulse == 0_Ns;
 }
 
-bool SolvePosition(const PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const PulleyJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {

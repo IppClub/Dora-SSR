@@ -56,7 +56,7 @@ RopeJointConf GetRopeJointConf(const Joint& joint)
 // K = J * invM * JT
 //   = invMassA + invIA * cross(rA, u)^2 + invMassB + invIB * cross(rB, u)^2
 
-void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
+void InitVelocity(RopeJointConf& object, const Span<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
@@ -130,7 +130,7 @@ void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, co
     bodyConstraintB.SetVelocity(velB);
 }
 
-bool SolveVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step)
+bool SolveVelocity(RopeJointConf& object, const Span<BodyConstraint>& bodies, const StepConf& step)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
         return true;
@@ -171,7 +171,7 @@ bool SolveVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, c
     return localImpulse == 0_Ns;
 }
 
-bool SolvePosition(const RopeJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const RopeJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {

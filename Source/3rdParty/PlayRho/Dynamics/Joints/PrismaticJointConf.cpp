@@ -152,7 +152,7 @@ AngularMomentum GetAngularReaction(const PrismaticJointConf& conf)
     return GetY(conf.impulse) * SquareMeter * Kilogram / (Second * Radian);
 }
 
-void InitVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodies,
+void InitVelocity(PrismaticJointConf& object, const Span<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf& conf)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
@@ -284,7 +284,7 @@ void InitVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodie
     bodyConstraintB.SetVelocity(velB);
 }
 
-bool SolveVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(PrismaticJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
@@ -406,7 +406,7 @@ bool SolveVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodi
 // We could take the active state from the velocity solver. However, the joint might push past the
 // limit when the velocity solver indicates the limit is inactive.
 //
-bool SolvePosition(const PrismaticJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const PrismaticJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {

@@ -25,7 +25,7 @@
 #include "PlayRho/Defines.hpp"
 
 #include <cstddef>
-#include <limits>
+#include <limits> // for std::numeric_limits
 #include <new>
 #include <type_traits>
 

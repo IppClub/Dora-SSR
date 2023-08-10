@@ -76,7 +76,7 @@ MotorJointConf GetMotorJointConf(const World& world, BodyID bA, BodyID bB)
                           GetAngle(world, bB) - GetAngle(world, bA)};
 }
 
-void InitVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
+void InitVelocity(MotorJointConf& object, const Span<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf&)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
@@ -157,7 +157,7 @@ void InitVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies, c
     bodyConstraintB.SetVelocity(velB);
 }
 
-bool SolveVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(MotorJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
@@ -238,7 +238,7 @@ bool SolveVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies,
     return solved;
 }
 
-bool SolvePosition(const MotorJointConf&, std::vector<BodyConstraint>&, const ConstraintSolverConf&)
+bool SolvePosition(const MotorJointConf&, const Span<BodyConstraint>&, const ConstraintSolverConf&)
 {
     return true;
 }

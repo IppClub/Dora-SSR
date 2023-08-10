@@ -23,6 +23,8 @@
 #define PLAYRHO_DYNAMICS_CONTACTS_VELOCITYCONSTRAINT_HPP
 
 #include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Span.hpp"
+
 #include "PlayRho/Dynamics/Contacts/BodyConstraint.hpp"
 
 namespace playrho {
@@ -80,7 +82,7 @@ public:
                        const WorldManifold& worldManifold,
                        BodyID bA,
                        BodyID bB,
-                       const std::vector<BodyConstraint>& bodies,
+                       const Span<const BodyConstraint>& bodies,
                        const Conf& conf = GetDefaultConf());
     
     /// Gets the normal of the contact in world coordinates.
@@ -237,7 +239,7 @@ private:
     ///   <code>MaxManifoldPoints</code> points.
     /// @see GetPointCount().
     void AddPoint(Momentum normalImpulse, Momentum tangentImpulse,
-                  const Length2& relA, const Length2& relB, const std::vector<BodyConstraint>& bodies,
+                  const Length2& relA, const Length2& relB, const Span<const BodyConstraint>& bodies,
                   const Conf& conf);
     
     /// Removes the last point added.
@@ -245,7 +247,7 @@ private:
     
     /// @brief Gets a point instance for the given parameters.
     Point GetPoint(Momentum normalImpulse, Momentum tangentImpulse,
-                   const Length2& relA, const Length2& relB, const std::vector<BodyConstraint>& bodies,
+                   const Length2& relA, const Length2& relB, const Span<const BodyConstraint>& bodies,
                    const Conf& conf) const noexcept;
     
     /// Accesses the point identified by the given index.

@@ -903,9 +903,6 @@
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\AABB.cpp">
       <Filter>3rdParty\PlayRho\Collision</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Collision.cpp">
-      <Filter>3rdParty\PlayRho\Collision</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Distance.cpp">
       <Filter>3rdParty\PlayRho\Collision</Filter>
     </ClCompile>
@@ -1463,6 +1460,21 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yue_ast.cpp">
       <Filter>3rdParty\yuescript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\ClipList.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\PointStates.cpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\MemoryResource.cpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\PoolMemoryResource.cpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\StatsResource.cpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2295,9 +2307,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\AABB.hpp">
       <Filter>3rdParty\PlayRho\Collision</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Collision.hpp">
-      <Filter>3rdParty\PlayRho\Collision</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\ContactFeature.hpp">
       <Filter>3rdParty\PlayRho\Collision</Filter>
     </ClInclude>
@@ -3017,6 +3026,24 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Lua\Yarn\YarnCompiler.h">
       <Filter>Lua\Yarn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\ClipList.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\PointStates.hpp">
+      <Filter>3rdParty\PlayRho\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\MemoryResource.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\PoolMemoryResource.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\StatsResource.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\ThreadLocalAllocator.hpp">
+      <Filter>3rdParty\PlayRho\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

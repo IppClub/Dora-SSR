@@ -77,11 +77,11 @@ public:
     /// @brief Gets the current size of this set.
     std::size_t size() const noexcept
     {
-        return ::playrho::detail::Size(m_elements);
+        return ::playrho::size(m_elements);
     }
     
     /// @brief Gets the pointer to the data buffer.
-    const_pointer data() const { return ::playrho::detail::Data(m_elements); }
+    const_pointer data() const { return ::playrho::data(m_elements); }
     
     /// @brief Gets the "begin" iterator value.
     const_pointer begin() const { return data(); }
@@ -110,7 +110,7 @@ public:
 
 private:
     std::vector<Length2> m_elements; ///< Elements.
-    const Area m_minSepSquared; ///< Minimum length squared. <code>sizeof(Vec2)/2</code> or 4-bytes.
+    Area m_minSepSquared; ///< Minimum length squared. <code>sizeof(Vec2)/2</code> or 4-bytes.
 };
 
 } // namespace d2

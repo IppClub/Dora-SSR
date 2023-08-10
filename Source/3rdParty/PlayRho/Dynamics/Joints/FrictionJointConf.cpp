@@ -74,7 +74,7 @@ FrictionJointConf GetFrictionJointConf(const World& world, BodyID bodyA, BodyID 
                              GetLocalPoint(world, bodyB, anchor)};
 }
 
-void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies,
+void InitVelocity(FrictionJointConf& object, const Span<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf&)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
@@ -154,7 +154,7 @@ void InitVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies
     bodyConstraintB.SetVelocity(velB);
 }
 
-bool SolveVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(FrictionJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
@@ -231,7 +231,7 @@ bool SolveVelocity(FrictionJointConf& object, std::vector<BodyConstraint>& bodie
     return solved;
 }
 
-bool SolvePosition(const FrictionJointConf&, std::vector<BodyConstraint>&,
+bool SolvePosition(const FrictionJointConf&, const Span<BodyConstraint>&,
                    const ConstraintSolverConf&)
 {
     return true;

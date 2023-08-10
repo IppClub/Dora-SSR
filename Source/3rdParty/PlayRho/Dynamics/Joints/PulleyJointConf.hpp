@@ -23,8 +23,8 @@
 #define PLAYRHO_DYNAMICS_JOINTS_PULLEYJOINTCONF_HPP
 
 #include "PlayRho/Dynamics/Joints/JointConf.hpp"
-
 #include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Span.hpp"
 
 namespace playrho {
 
@@ -194,7 +194,7 @@ bool ShiftOrigin(PulleyJointConf& object, const Length2& newOrigin) noexcept;
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso PulleyJointConf
-void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
+void InitVelocity(PulleyJointConf& object, const Span<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -208,7 +208,7 @@ void InitVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso PulleyJointConf
-bool SolveVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(PulleyJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
@@ -220,7 +220,7 @@ bool SolveVelocity(PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso PulleyJointConf
-bool SolvePosition(const PulleyJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const PulleyJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
 
 /// @brief Free function for getting the length A value of the given configuration.

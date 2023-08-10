@@ -25,6 +25,7 @@
 #include "PlayRho/Dynamics/Joints/JointConf.hpp"
 
 #include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Span.hpp"
 
 namespace playrho {
 
@@ -212,7 +213,7 @@ Mass22 GetEffectiveMassMatrix(const TargetJointConf& object, const BodyConstrain
 ///  <code>InvalidBodyID</code> and does not index within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso TargetJointConf
-void InitVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
+void InitVelocity(TargetJointConf& object, const Span<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -226,14 +227,14 @@ void InitVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso TargetJointConf
-bool SolveVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(TargetJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
 /// @note This is a no-op and always returns <code>true</code>.
 /// @return <code>true</code>.
 /// @relatedalso TargetJointConf
-bool SolvePosition(const TargetJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const TargetJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
 
 /// @brief Free function for setting the target value of the given configuration.

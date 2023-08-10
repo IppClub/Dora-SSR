@@ -19,11 +19,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "PlayRho/Dynamics/Contacts/ContactSolver.hpp"
-
-#include "PlayRho/Dynamics/Contacts/ConstraintSolverConf.hpp"
-#include "PlayRho/Collision/Collision.hpp"
 #include "PlayRho/Collision/WorldManifold.hpp"
+#include "PlayRho/Dynamics/Contacts/ContactSolver.hpp"
+#include "PlayRho/Dynamics/Contacts/ConstraintSolverConf.hpp"
 #include "PlayRho/Dynamics/Contacts/BodyConstraint.hpp"
 #include "PlayRho/Dynamics/Contacts/PositionSolverManifold.hpp"
 #include "PlayRho/Dynamics/Contacts/VelocityConstraint.hpp"
@@ -67,7 +65,7 @@ struct ImpulseChange
 };
 
 VelocityPair GetVelocityDelta(const VelocityConstraint& vc, const Momentum2& impulses,
-                              const std::vector<BodyConstraint>& bodies)
+                              const Span<const BodyConstraint>& bodies)
 {
     assert(IsValid(impulses));
 
@@ -98,7 +96,7 @@ VelocityPair GetVelocityDelta(const VelocityConstraint& vc, const Momentum2& imp
 }
 
 Momentum BlockSolveUpdate(VelocityConstraint& vc, const Momentum2& newImpulses,
-                          std::vector<BodyConstraint>& bodies)
+                          const Span<BodyConstraint>& bodies)
 {
     const auto delta_v = GetVelocityDelta(vc, newImpulses - GetNormalImpulses(vc), bodies);
     const auto bodyA = &bodies[to_underlying(vc.GetBodyA())];
@@ -110,7 +108,7 @@ Momentum BlockSolveUpdate(VelocityConstraint& vc, const Momentum2& newImpulses,
 }
 
 std::optional<Momentum> BlockSolveNormalCase1(VelocityConstraint& vc,
-                                              std::vector<BodyConstraint>& bodies,
+                                              const Span<BodyConstraint>& bodies,
                                               const LinearVelocity2& b_prime)
 {
     //
@@ -150,7 +148,7 @@ std::optional<Momentum> BlockSolveNormalCase1(VelocityConstraint& vc,
 }
 
 std::optional<Momentum> BlockSolveNormalCase2(VelocityConstraint& vc,
-                                              std::vector<BodyConstraint>& bodies,
+                                              const Span<BodyConstraint>& bodies,
                                               const LinearVelocity2& b_prime)
 {
     //
@@ -187,7 +185,7 @@ std::optional<Momentum> BlockSolveNormalCase2(VelocityConstraint& vc,
 }
 
 std::optional<Momentum> BlockSolveNormalCase3(VelocityConstraint& vc,
-                                              std::vector<BodyConstraint>& bodies,
+                                              const Span<BodyConstraint>& bodies,
                                               const LinearVelocity2& b_prime)
 {
     //
@@ -224,7 +222,7 @@ std::optional<Momentum> BlockSolveNormalCase3(VelocityConstraint& vc,
 }
 
 std::optional<Momentum> BlockSolveNormalCase4(VelocityConstraint& vc,
-                                              std::vector<BodyConstraint>& bodies,
+                                              const Span<BodyConstraint>& bodies,
                                               const LinearVelocity2& b_prime)
 {
     //
@@ -242,7 +240,7 @@ std::optional<Momentum> BlockSolveNormalCase4(VelocityConstraint& vc,
 }
 
 inline Momentum BlockSolveNormalConstraint(VelocityConstraint& vc,
-                                           std::vector<BodyConstraint>& bodies)
+                                           const Span<BodyConstraint>& bodies)
 {
     assert(vc.GetPointCount() == 2);
 
@@ -334,7 +332,7 @@ inline Momentum BlockSolveNormalConstraint(VelocityConstraint& vc,
 }
 
 inline Momentum SeqSolveNormalConstraint(VelocityConstraint& vc,
-                                         std::vector<BodyConstraint>& bodies)
+                                         const Span<BodyConstraint>& bodies)
 {
     auto maxIncImpulse = 0_Ns;
     
@@ -392,7 +390,7 @@ inline Momentum SeqSolveNormalConstraint(VelocityConstraint& vc,
 }
 
 inline Momentum SolveTangentConstraint(VelocityConstraint& vc,
-                                       std::vector<BodyConstraint>& bodies)
+                                       const Span<BodyConstraint>& bodies)
 {
     auto maxIncImpulse = 0_Ns;
     
@@ -453,7 +451,7 @@ inline Momentum SolveTangentConstraint(VelocityConstraint& vc,
 }
 
 inline Momentum SolveNormalConstraint(VelocityConstraint& vc,
-                                      std::vector<BodyConstraint>& bodies)
+                                      const Span<BodyConstraint>& bodies)
 {
 #if 1
     // Note: Block solving reduces World.TilesComesToRest iteration counts and is faster.
@@ -477,8 +475,7 @@ inline Momentum SolveNormalConstraint(VelocityConstraint& vc,
 
 namespace GaussSeidel {
 
-Momentum SolveVelocityConstraint(d2::VelocityConstraint& vc,
-                                 std::vector<d2::BodyConstraint>& bodies)
+Momentum SolveVelocityConstraint(d2::VelocityConstraint& vc, const Span<d2::BodyConstraint>& bodies)
 {
     auto maxIncImpulse = 0_Ns;
     
@@ -493,7 +490,7 @@ Momentum SolveVelocityConstraint(d2::VelocityConstraint& vc,
 
 d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,
                                              bool moveA, bool moveB,
-                                             const std::vector<d2::BodyConstraint>& bodies,
+                                             const Span<d2::BodyConstraint>& bodies,
                                              const ConstraintSolverConf& conf)
 {
     assert(IsValid(conf.resolutionRate));

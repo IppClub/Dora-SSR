@@ -1,5 +1,5 @@
 /*
- * Original work Copyright (c) 2007-2009 Erin Catto http://www.box2d.org
+ * Original work Copyright (c) 2006-2009 Erin Catto http://www.box2d.org
  * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
@@ -19,50 +19,11 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "PlayRho/Collision/Collision.hpp"
-#include "PlayRho/Collision/Manifold.hpp"
-
 #include <cmath>
 
-namespace playrho {
-namespace d2 {
+#include "PlayRho/Collision/ClipList.hpp"
 
-PointStates GetPointStates(const Manifold& manifold1, const Manifold& manifold2) noexcept
-{
-    auto retval = PointStates{};
-
-    // Detect persists and removes.
-    for (auto i = decltype(manifold1.GetPointCount()){0}; i < manifold1.GetPointCount(); ++i)
-    {
-        const auto cf = manifold1.GetContactFeature(i);
-        retval.state1[i] = PointState::RemoveState;
-        for (auto j = decltype(manifold2.GetPointCount()){0}; j < manifold2.GetPointCount(); ++j)
-        {
-            if (manifold2.GetContactFeature(j) == cf)
-            {
-                retval.state1[i] = PointState::PersistState;
-                break;
-            }
-        }
-    }
-
-    // Detect persists and adds.
-    for (auto i = decltype(manifold2.GetPointCount()){0}; i < manifold2.GetPointCount(); ++i)
-    {
-        const auto cf = manifold2.GetContactFeature(i);
-        retval.state2[i] = PointState::AddState;
-        for (auto j = decltype(manifold1.GetPointCount()){0}; j < manifold1.GetPointCount(); ++j)
-        {
-            if (manifold1.GetContactFeature(j) == cf)
-            {
-                retval.state2[i] = PointState::PersistState;
-                break;
-            }
-        }
-    }
-    
-    return retval;
-}
+namespace playrho::d2 {
 
 ClipList ClipSegmentToLine(const ClipList& vIn, const UnitVec& normal, Length offset,
                            ContactFeature::Index indexA)
@@ -107,5 +68,4 @@ ClipList ClipSegmentToLine(const ClipList& vIn, const UnitVec& normal, Length of
     return vOut;
 }
 
-} // namespace d2
-} // namespace playrho
+}
