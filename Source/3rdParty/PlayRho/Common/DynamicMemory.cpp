@@ -24,36 +24,36 @@
 #include <cstdlib>
 
 namespace playrho {
-    
-    // Memory allocators. Modify these to use your own allocator.
-    void* Alloc(std::size_t size)
-    {
-        if (size) {
-            const auto memory = std::malloc(size); // NOLINT(cppcoreguidelines-no-malloc,cppcoreguidelines-owning-memory)
-            if (!memory) {
-                throw std::bad_alloc{};
-            }
-            return memory;
+
+// Memory allocators. Modify these to use your own allocator.
+void* Alloc(std::size_t size)
+{
+    if (size) {
+        const auto memory = std::malloc(size); // NOLINT(cppcoreguidelines-no-malloc,cppcoreguidelines-owning-memory)
+        if (!memory) {
+            throw std::bad_alloc{};
         }
-        return nullptr;
+        return memory;
     }
-    
-    void* Realloc(void* ptr, std::size_t size)
-    {
-        if (size) {
-            const auto memory = std::realloc(ptr, size); // NOLINT(cppcoreguidelines-no-malloc,cppcoreguidelines-owning-memory)
-             if (!memory) {
-                 throw std::bad_alloc{};
-             }
-             return memory;
+    return nullptr;
+}
+
+void* Realloc(void* ptr, std::size_t size)
+{
+    if (size) {
+        const auto memory = std::realloc(ptr, size); // NOLINT(cppcoreguidelines-no-malloc,cppcoreguidelines-owning-memory)
+        if (!memory) {
+            throw std::bad_alloc{};
         }
-        Free(ptr);
-        return nullptr;
+        return memory;
     }
-    
-    void Free(void* mem)
-    {
-        std::free(mem); // NOLINT(cppcoreguidelines-no-malloc,cppcoreguidelines-owning-memory)
-    }
+    Free(ptr);
+    return nullptr;
+}
+
+void Free(void* mem)
+{
+    std::free(mem); // NOLINT(cppcoreguidelines-no-malloc,cppcoreguidelines-owning-memory)
+}
 
 } // namespace playrho

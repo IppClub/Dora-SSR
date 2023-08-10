@@ -23,9 +23,9 @@
 #define PLAYRHO_DYNAMICS_JOINTS_REVOLUTEJOINTCONF_HPP
 
 #include "PlayRho/Dynamics/Joints/JointConf.hpp"
-
 #include "PlayRho/Common/Math.hpp"
 #include "PlayRho/Dynamics/Joints/LimitState.hpp"
+#include "PlayRho/Common/Span.hpp"
 
 namespace playrho {
 
@@ -247,7 +247,7 @@ constexpr AngularMomentum GetAngularReaction(const RevoluteJointConf& conf) noex
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocityConstraints.
 /// @relatedalso RevoluteJointConf
-void InitVelocity(RevoluteJointConf& object, std::vector<BodyConstraint>& bodies,
+void InitVelocity(RevoluteJointConf& object, const Span<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -261,7 +261,7 @@ void InitVelocity(RevoluteJointConf& object, std::vector<BodyConstraint>& bodies
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso RevoluteJointConf
-bool SolveVelocity(RevoluteJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(RevoluteJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
@@ -273,7 +273,7 @@ bool SolveVelocity(RevoluteJointConf& object, std::vector<BodyConstraint>& bodie
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso RevoluteJointConf
-bool SolvePosition(const RevoluteJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const RevoluteJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
 
 /// @brief Free function for setting the angular limits of the given configuration.

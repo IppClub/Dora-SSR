@@ -96,7 +96,6 @@
 		3C3B986026FDAD8E00BD9F3E /* AABB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B983C26FDAD8D00BD9F3E /* AABB.cpp */; };
 		3C3B986126FDAD8E00BD9F3E /* ToiConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B984126FDAD8D00BD9F3E /* ToiConf.cpp */; };
 		3C3B986226FDAD8E00BD9F3E /* DistanceConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B984326FDAD8D00BD9F3E /* DistanceConf.cpp */; };
-		3C3B986326FDAD8E00BD9F3E /* Collision.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B984826FDAD8D00BD9F3E /* Collision.cpp */; };
 		3C3B986426FDAD8E00BD9F3E /* ToiOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B984C26FDAD8E00BD9F3E /* ToiOutput.cpp */; };
 		3C3B986526FDAD8E00BD9F3E /* WorldManifold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B985126FDAD8E00BD9F3E /* WorldManifold.cpp */; };
 		3C3B986626FDAD8E00BD9F3E /* Manifold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3B985226FDAD8E00BD9F3E /* Manifold.cpp */; };
@@ -261,6 +260,11 @@
 		3C853F8528E2FCE00012C0D0 /* HelloWorldCpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C853F8428E2FCDF0012C0D0 /* HelloWorldCpp.cpp */; };
 		3C8805771E5EDCE100B52D4B /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8805761E5EDCE100B52D4B /* Debug.cpp */; };
 		3C883AF921E0896A00BFD758 /* VGNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883AF721E0896A00BFD758 /* VGNode.cpp */; };
+		3C8C9C5F2A8481E400890BCC /* ClipList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8C9C5B2A8481E400890BCC /* ClipList.cpp */; };
+		3C8C9C602A8481E400890BCC /* PointStates.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8C9C5C2A8481E400890BCC /* PointStates.cpp */; };
+		3C8C9C682A84820800890BCC /* PoolMemoryResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8C9C622A84820800890BCC /* PoolMemoryResource.cpp */; };
+		3C8C9C692A84820800890BCC /* StatsResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8C9C652A84820800890BCC /* StatsResource.cpp */; };
+		3C8C9C6A2A84820800890BCC /* MemoryResource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8C9C672A84820800890BCC /* MemoryResource.cpp */; };
 		3C8CD74927267A5A0045B362 /* RenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8CD74727267A5A0045B362 /* RenderTarget.cpp */; };
 		3C9A7D731E5428A200205094 /* Label.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9A7D711E5428A200205094 /* Label.cpp */; };
 		3C9A7D7A1E55957500205094 /* atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9A7D781E55957500205094 /* atlas.cpp */; };
@@ -676,14 +680,12 @@
 		3C3B984526FDAD8D00BD9F3E /* MassData.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MassData.hpp; sourceTree = "<group>"; };
 		3C3B984626FDAD8D00BD9F3E /* ShapeSeparation.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ShapeSeparation.hpp; sourceTree = "<group>"; };
 		3C3B984726FDAD8D00BD9F3E /* DynamicTreeData.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = DynamicTreeData.hpp; sourceTree = "<group>"; };
-		3C3B984826FDAD8D00BD9F3E /* Collision.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Collision.cpp; sourceTree = "<group>"; };
 		3C3B984926FDAD8E00BD9F3E /* RayCastOpcode.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RayCastOpcode.hpp; sourceTree = "<group>"; };
 		3C3B984A26FDAD8E00BD9F3E /* Manifold.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Manifold.hpp; sourceTree = "<group>"; };
 		3C3B984B26FDAD8E00BD9F3E /* ToiConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ToiConf.hpp; sourceTree = "<group>"; };
 		3C3B984C26FDAD8E00BD9F3E /* ToiOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ToiOutput.cpp; sourceTree = "<group>"; };
 		3C3B984D26FDAD8E00BD9F3E /* ToiOutput.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ToiOutput.hpp; sourceTree = "<group>"; };
 		3C3B984E26FDAD8E00BD9F3E /* ContactFeature.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ContactFeature.hpp; sourceTree = "<group>"; };
-		3C3B984F26FDAD8E00BD9F3E /* Collision.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Collision.hpp; sourceTree = "<group>"; };
 		3C3B985026FDAD8E00BD9F3E /* SeparationScenario.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SeparationScenario.hpp; sourceTree = "<group>"; };
 		3C3B985126FDAD8E00BD9F3E /* WorldManifold.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WorldManifold.cpp; sourceTree = "<group>"; };
 		3C3B985226FDAD8E00BD9F3E /* Manifold.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Manifold.cpp; sourceTree = "<group>"; };
@@ -1019,6 +1021,17 @@
 		3C883AF721E0896A00BFD758 /* VGNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VGNode.cpp; path = ../../../Source/Node/VGNode.cpp; sourceTree = "<group>"; };
 		3C883AF821E0896A00BFD758 /* VGNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VGNode.h; path = ../../../Source/Node/VGNode.h; sourceTree = "<group>"; };
 		3C8934B320F3094A00124463 /* Dorothy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dorothy.h; path = ../../../Source/Dorothy.h; sourceTree = "<group>"; };
+		3C8C9C5B2A8481E400890BCC /* ClipList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClipList.cpp; sourceTree = "<group>"; };
+		3C8C9C5C2A8481E400890BCC /* PointStates.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PointStates.cpp; sourceTree = "<group>"; };
+		3C8C9C5D2A8481E400890BCC /* PointStates.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PointStates.hpp; sourceTree = "<group>"; };
+		3C8C9C5E2A8481E400890BCC /* ClipList.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ClipList.hpp; sourceTree = "<group>"; };
+		3C8C9C612A84820800890BCC /* PoolMemoryResource.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PoolMemoryResource.hpp; sourceTree = "<group>"; };
+		3C8C9C622A84820800890BCC /* PoolMemoryResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PoolMemoryResource.cpp; sourceTree = "<group>"; };
+		3C8C9C632A84820800890BCC /* StatsResource.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = StatsResource.hpp; sourceTree = "<group>"; };
+		3C8C9C642A84820800890BCC /* MemoryResource.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = MemoryResource.hpp; sourceTree = "<group>"; };
+		3C8C9C652A84820800890BCC /* StatsResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StatsResource.cpp; sourceTree = "<group>"; };
+		3C8C9C662A84820800890BCC /* ThreadLocalAllocator.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ThreadLocalAllocator.hpp; sourceTree = "<group>"; };
+		3C8C9C672A84820800890BCC /* MemoryResource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MemoryResource.cpp; sourceTree = "<group>"; };
 		3C8CD74727267A5A0045B362 /* RenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderTarget.cpp; path = ../../../Source/Basic/RenderTarget.cpp; sourceTree = "<group>"; };
 		3C8CD74827267A5A0045B362 /* RenderTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderTarget.h; path = ../../../Source/Basic/RenderTarget.h; sourceTree = "<group>"; };
 		3C9A7D711E5428A200205094 /* Label.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Label.cpp; path = ../../../Source/Node/Label.cpp; sourceTree = "<group>"; };
@@ -2751,6 +2764,13 @@
 		3CFDA8B02200358900C9DFD0 /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				3C8C9C672A84820800890BCC /* MemoryResource.cpp */,
+				3C8C9C642A84820800890BCC /* MemoryResource.hpp */,
+				3C8C9C622A84820800890BCC /* PoolMemoryResource.cpp */,
+				3C8C9C612A84820800890BCC /* PoolMemoryResource.hpp */,
+				3C8C9C652A84820800890BCC /* StatsResource.cpp */,
+				3C8C9C632A84820800890BCC /* StatsResource.hpp */,
+				3C8C9C662A84820800890BCC /* ThreadLocalAllocator.hpp */,
 				3C7C5FC929FA0645007A282E /* ObjectPool.hpp */,
 				3C3B97D826FDAD4F00BD9F3E /* Acceleration.hpp */,
 				3C3B97E026FDAD4F00BD9F3E /* ArrayList.hpp */,
@@ -2815,10 +2835,12 @@
 		3CFDA8E22200358900C9DFD0 /* Collision */ = {
 			isa = PBXGroup;
 			children = (
+				3C8C9C5B2A8481E400890BCC /* ClipList.cpp */,
+				3C8C9C5E2A8481E400890BCC /* ClipList.hpp */,
+				3C8C9C5C2A8481E400890BCC /* PointStates.cpp */,
+				3C8C9C5D2A8481E400890BCC /* PointStates.hpp */,
 				3C3B983C26FDAD8D00BD9F3E /* AABB.cpp */,
 				3C3B983D26FDAD8D00BD9F3E /* AABB.hpp */,
-				3C3B984826FDAD8D00BD9F3E /* Collision.cpp */,
-				3C3B984F26FDAD8E00BD9F3E /* Collision.hpp */,
 				3C3B984E26FDAD8E00BD9F3E /* ContactFeature.hpp */,
 				3C3B985626FDAD8E00BD9F3E /* Distance.cpp */,
 				3C3B984226FDAD8D00BD9F3E /* Distance.hpp */,
@@ -3270,6 +3292,7 @@
 				3C3B98DB26FDADDC00BD9F3E /* StepStats.cpp in Sources */,
 				3C1A3B0A272A850F003A2829 /* lmathlib.c in Sources */,
 				3CF10ECB2874AE7E00940268 /* AnimationStateData.cpp in Sources */,
+				3C8C9C6A2A84820800890BCC /* MemoryResource.cpp in Sources */,
 				3C0EBE361E2E1D840066450A /* ShaderCache.cpp in Sources */,
 				3C6E7F0E272A30E700E9F115 /* soloud_flangerfilter.cpp in Sources */,
 				3CE9D7F61E7FC2A6003AAECB /* Joint.cpp in Sources */,
@@ -3305,6 +3328,7 @@
 				3C3B981726FDAD5000BD9F3E /* BlockAllocator.cpp in Sources */,
 				3C3B98A626FDADC500BD9F3E /* ContactSolver.cpp in Sources */,
 				3CCA844A263668AE00AA9B44 /* implot.cpp in Sources */,
+				3C8C9C692A84820800890BCC /* StatsResource.cpp in Sources */,
 				3C3B988826FDADBB00BD9F3E /* RopeJointConf.cpp in Sources */,
 				3C3B985E26FDAD8E00BD9F3E /* MassData.cpp in Sources */,
 				3C3B98E826FDADDC00BD9F3E /* WorldShape.cpp in Sources */,
@@ -3493,6 +3517,7 @@
 				3C49FFEF20EF644900E775D7 /* stb.cpp in Sources */,
 				3C3B988726FDADBB00BD9F3E /* WheelJointConf.cpp in Sources */,
 				3C1A3AEA272A850F003A2829 /* lfunc.c in Sources */,
+				3C8C9C5F2A8481E400890BCC /* ClipList.cpp in Sources */,
 				3C03CBF52A18966600383FAE /* XmlResolver.cpp in Sources */,
 				3C05BCA41E3594C500CC6986 /* TouchDispather.cpp in Sources */,
 				3C3B985D26FDAD8E00BD9F3E /* TimeOfImpact.cpp in Sources */,
@@ -3568,6 +3593,7 @@
 				3CCA844B263668AE00AA9B44 /* implot_items.cpp in Sources */,
 				3C3B986926FDAD8E00BD9F3E /* Distance.cpp in Sources */,
 				3C1A3B06272A850F003A2829 /* lutf8lib.c in Sources */,
+				3C8C9C682A84820800890BCC /* PoolMemoryResource.cpp in Sources */,
 				3CF10ECC2874AE7E00940268 /* Updatable.cpp in Sources */,
 				3CF10EC72874AE7E00940268 /* SequenceTimeline.cpp in Sources */,
 				3C2DFE1B1E95C58A0077B67D /* Sound.cpp in Sources */,
@@ -3605,7 +3631,6 @@
 				3C3B98D926FDADDC00BD9F3E /* WorldImplMisc.cpp in Sources */,
 				3CF10EE92874AE7E00940268 /* TransformConstraintTimeline.cpp in Sources */,
 				3C6E7F4B272A389200E9F115 /* sqlite3.c in Sources */,
-				3C3B986326FDAD8E00BD9F3E /* Collision.cpp in Sources */,
 				3C3B982D26FDAD7600BD9F3E /* Shape.cpp in Sources */,
 				3C6E7F0F272A30E700E9F115 /* soloud_freeverbfilter.cpp in Sources */,
 				3C6DA2121EAF0726006EEE32 /* SAXParser.cpp in Sources */,
@@ -3626,6 +3651,7 @@
 				3C42B0A620FEFEA800186F9C /* UnitAction.cpp in Sources */,
 				3C6E7F40272A30E700E9F115 /* soloud_vizsn.cpp in Sources */,
 				3CFEA126285B857B002D106F /* m3_exec.c in Sources */,
+				3C8C9C602A8481E400890BCC /* PointStates.cpp in Sources */,
 				3CFFEC6E292F19EC00BC6DA1 /* ImGuiBinding.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

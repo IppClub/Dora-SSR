@@ -361,6 +361,9 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/PlayRho/Common/Velocity.cpp
 	../../../Source/3rdParty/PlayRho/Common/StackAllocator.cpp
 	../../../Source/3rdParty/PlayRho/Common/CodeDumper.cpp
+	../../../Source/3rdParty/PlayRho/Common/PoolMemoryResource.cpp
+	../../../Source/3rdParty/PlayRho/Common/MemoryResource.cpp
+	../../../Source/3rdParty/PlayRho/Common/StatsResource.cpp
 	../../../Source/3rdParty/PlayRho/Collision/RayCastOutput.cpp
 	../../../Source/3rdParty/PlayRho/Collision/Manifold.cpp
 	../../../Source/3rdParty/PlayRho/Collision/Simplex.cpp
@@ -376,7 +379,8 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/PlayRho/Collision/MassData.cpp
 	../../../Source/3rdParty/PlayRho/Collision/ToiConf.cpp
 	../../../Source/3rdParty/PlayRho/Collision/ShapeSeparation.cpp
-	../../../Source/3rdParty/PlayRho/Collision/Collision.cpp
+	../../../Source/3rdParty/PlayRho/Collision/ClipList.cpp
+	../../../Source/3rdParty/PlayRho/Collision/PointStates.cpp
 	../../../Source/3rdParty/PlayRho/Collision/DistanceConf.cpp
 	../../../Source/3rdParty/sqlite/SQLiteCpp/Column.cpp
 	../../../Source/3rdParty/sqlite/SQLiteCpp/Savepoint.cpp

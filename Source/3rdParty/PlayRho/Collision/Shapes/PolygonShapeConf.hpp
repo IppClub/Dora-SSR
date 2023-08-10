@@ -23,6 +23,7 @@
 #define PLAYRHO_COLLISION_SHAPES_POLYGONSHAPECONF_HPP
 
 #include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Span.hpp"
 #include "PlayRho/Collision/Shapes/ShapeConf.hpp"
 #include "PlayRho/Collision/DistanceProxy.hpp"
 #include "PlayRho/Collision/MassData.hpp"
@@ -85,7 +86,7 @@ public:
     PolygonShapeConf& UseVertexRadius(NonNegative<Length> value) noexcept;
 
     /// @brief Uses the given vertices.
-    PolygonShapeConf& UseVertices(const std::vector<Length2>& verts);
+    PolygonShapeConf& UseVertices(const Span<const Length2>& verts);
 
     /// @brief Sets the vertices to represent an axis-aligned box centered on the local origin.
     /// @param hx the half-width.

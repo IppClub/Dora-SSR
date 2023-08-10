@@ -78,7 +78,7 @@ DistanceJointConf GetDistanceJointConf(const World& world, BodyID bodyA, BodyID 
                              GetLocalPoint(world, bodyB, anchorB), GetMagnitude(anchorB - anchorA)};
 }
 
-void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies,
+void InitVelocity(DistanceJointConf& object, const Span<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf&)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
@@ -166,7 +166,7 @@ void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies
     bodyConstraintB.SetVelocity(velB);
 }
 
-bool SolveVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf&)
+bool SolveVelocity(DistanceJointConf& object, const Span<BodyConstraint>& bodies, const StepConf&)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
         return true;
@@ -200,7 +200,7 @@ bool SolveVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodie
     return impulse == 0_Ns;
 }
 
-bool SolvePosition(const DistanceJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const DistanceJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {

@@ -163,7 +163,7 @@ public:
     /// @param iA Index of vertex from shape A representing the local center of "circle" A.
     /// @param vB Local center of "circle" B.
     /// @param iB Index of vertex from shape B representing the local center of "circle" B.
-    static inline Manifold GetForCircles(const Length2& vA, CfIndex iA, const Length2& vB, CfIndex iB) noexcept
+    static Manifold GetForCircles(const Length2& vA, CfIndex iA, const Length2& vB, CfIndex iB) noexcept
     {
         return Manifold{e_circles,
                         GetInvalid<UnitVec>(),
@@ -177,7 +177,7 @@ public:
     /// Gets a face A typed manifold.
     /// @param normalA Local normal of the face from polygon A.
     /// @param faceA Any point in local coordinates on the face whose normal was provided.
-    static inline Manifold GetForFaceA(const UnitVec& normalA, const Length2& faceA) noexcept
+    static Manifold GetForFaceA(const UnitVec& normalA, const Length2& faceA) noexcept
     {
         return Manifold{e_faceA, normalA, faceA, 0, {{}}};
     }
@@ -186,7 +186,7 @@ public:
     /// @param ln Normal on polygon A.
     /// @param lp Center of face A.
     /// @param mp1 Manifold point 1 (of 1).
-    static inline Manifold GetForFaceA(const UnitVec& ln, const Length2& lp, const Point& mp1) noexcept
+    static Manifold GetForFaceA(const UnitVec& ln, const Length2& lp, const Point& mp1) noexcept
     {
         // assert(mp1.contactFeature.typeA == ContactFeature::e_face || mp1.contactFeature.typeB ==
         // ContactFeature::e_face);
@@ -198,8 +198,8 @@ public:
     /// @param lp Center of face A.
     /// @param mp1 Manifold point 1 (of 2).
     /// @param mp2 Manifold point 2 (of 2).
-    static inline Manifold GetForFaceA(const UnitVec& ln, const Length2& lp, const Point& mp1,
-                                       const Point& mp2) noexcept
+    static Manifold GetForFaceA(const UnitVec& ln, const Length2& lp, const Point& mp1,
+                                const Point& mp2) noexcept
     {
         // assert(mp1.contactFeature.typeA == ContactFeature::e_face || mp1.contactFeature.typeB ==
         // ContactFeature::e_face); assert(mp2.contactFeature.typeA == ContactFeature::e_face ||
@@ -213,7 +213,7 @@ public:
     /// Gets a face B typed manifold.
     /// @param ln Normal on polygon B.
     /// @param lp Center of face B.
-    static inline Manifold GetForFaceB(const UnitVec& ln, const Length2& lp) noexcept
+    static Manifold GetForFaceB(const UnitVec& ln, const Length2& lp) noexcept
     {
         return Manifold{e_faceB, ln, lp, 0, {{}}};
     }
@@ -222,7 +222,7 @@ public:
     /// @param ln Normal on polygon B.
     /// @param lp Center of face B.
     /// @param mp1 Manifold point 1.
-    static inline Manifold GetForFaceB(const UnitVec& ln, const Length2& lp, const Point& mp1) noexcept
+    static Manifold GetForFaceB(const UnitVec& ln, const Length2& lp, const Point& mp1) noexcept
     {
         // assert(mp1.contactFeature.typeA == ContactFeature::e_face || mp1.contactFeature.typeB ==
         // ContactFeature::e_face);
@@ -234,8 +234,8 @@ public:
     /// @param lp Center of face B.
     /// @param mp1 Manifold point 1 (of 2).
     /// @param mp2 Manifold point 2 (of 2).
-    static inline Manifold GetForFaceB(const UnitVec& ln, const Length2& lp, const Point& mp1,
-                                       const Point& mp2) noexcept
+    static Manifold GetForFaceB(const UnitVec& ln, const Length2& lp, const Point& mp1,
+                                const Point& mp2) noexcept
     {
         // assert(mp1.contactFeature.typeA == ContactFeature::e_face || mp1.contactFeature.typeB ==
         // ContactFeature::e_face); assert(mp2.contactFeature.typeA == ContactFeature::e_face ||
@@ -245,7 +245,7 @@ public:
     }
 
     /// @brief Gets the face A manifold for the given data.
-    static inline Manifold GetForFaceA(const UnitVec& na, CfIndex ia, const Length2& pa) noexcept
+    static Manifold GetForFaceA(const UnitVec& na, CfIndex ia, const Length2& pa) noexcept
     {
         return Manifold{
             e_faceA,
@@ -259,7 +259,7 @@ public:
     }
 
     /// @brief Gets the face B manifold for the given data.
-    static inline Manifold GetForFaceB(const UnitVec& nb, CfIndex ib, const Length2& pb) noexcept
+    static Manifold GetForFaceB(const UnitVec& nb, CfIndex ib, const Length2& pb) noexcept
     {
         return Manifold{
             e_faceB,
@@ -273,8 +273,8 @@ public:
     }
 
     /// @brief Gets the face A manifold for the given data.
-    static inline Manifold GetForFaceA(const UnitVec& na, CfIndex ia, const Length2& pa, CfType tb0, CfIndex ib0,
-                                       const Length2& pb0) noexcept
+    static Manifold GetForFaceA(const UnitVec& na, CfIndex ia, const Length2& pa, CfType tb0, CfIndex ib0,
+                                const Length2& pb0) noexcept
     {
         return Manifold{e_faceA,
                         na,
@@ -285,8 +285,8 @@ public:
     }
 
     /// @brief Gets the face B manifold for the given data.
-    static inline Manifold GetForFaceB(const UnitVec& nb, CfIndex ib, const Length2& pb, CfType ta0, CfIndex ia0,
-                                       const Length2& pa0) noexcept
+    static Manifold GetForFaceB(const UnitVec& nb, CfIndex ib, const Length2& pb, CfType ta0, CfIndex ia0,
+                                const Length2& pa0) noexcept
     {
         return Manifold{e_faceB,
                         nb,
@@ -297,8 +297,8 @@ public:
     }
 
     /// @brief Gets the face A manifold for the given data.
-    static inline Manifold GetForFaceA(const UnitVec& na, CfIndex ia, const Length2& pa, CfType tb0, CfIndex ib0,
-                                       const Length2& pb0, CfType tb1, CfIndex ib1, const Length2& pb1) noexcept
+    static Manifold GetForFaceA(const UnitVec& na, CfIndex ia, const Length2& pa, CfType tb0, CfIndex ib0,
+                                const Length2& pb0, CfType tb1, CfIndex ib1, const Length2& pb1) noexcept
     {
         return Manifold{e_faceA,
                         na,
@@ -309,8 +309,8 @@ public:
     }
 
     /// @brief Gets the face B manifold for the given data.
-    static inline Manifold GetForFaceB(const UnitVec& nb, CfIndex ib, const Length2& pb, CfType ta0, CfIndex ia0,
-                                       const Length2& pa0, CfType ta1, CfIndex ia1, const Length2& pa1) noexcept
+    static Manifold GetForFaceB(const UnitVec& nb, CfIndex ib, const Length2& pb, CfType ta0, CfIndex ia0,
+                                const Length2& pa0, CfType ta1, CfIndex ia1, const Length2& pa1) noexcept
     {
         return Manifold{e_faceB,
                         nb,

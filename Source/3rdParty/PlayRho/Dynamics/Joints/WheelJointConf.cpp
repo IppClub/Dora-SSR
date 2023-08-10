@@ -88,7 +88,7 @@ AngularVelocity GetAngularVelocity(const World& world, const WheelJointConf& con
     return GetVelocity(world, GetBodyB(conf)).angular - GetVelocity(world, GetBodyA(conf)).angular;
 }
 
-void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
+void InitVelocity(WheelJointConf& object, const Span<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf&)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
@@ -215,7 +215,7 @@ void InitVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies, c
     bodyConstraintB.SetVelocity(velB);
 }
 
-bool SolveVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(WheelJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {
@@ -292,7 +292,7 @@ bool SolveVelocity(WheelJointConf& object, std::vector<BodyConstraint>& bodies,
     return true;
 }
 
-bool SolvePosition(const WheelJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const WheelJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
     if ((GetBodyA(object) == InvalidBodyID) || (GetBodyB(object) == InvalidBodyID)) {

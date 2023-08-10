@@ -23,9 +23,9 @@
 #define PLAYRHO_DYNAMICS_JOINTS_GEARJOINTCONF_HPP
 
 #include "PlayRho/Dynamics/Joints/JointConf.hpp"
-
 #include "PlayRho/Common/Math.hpp"
 #include "PlayRho/Dynamics/Joints/JointID.hpp"
+#include "PlayRho/Common/Span.hpp"
 
 #include <variant>
 
@@ -219,7 +219,7 @@ constexpr bool ShiftOrigin(GearJointConf&, const Length2&) noexcept
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso GearJointConf
-void InitVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
+void InitVelocity(GearJointConf& object, const Span<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -233,7 +233,7 @@ void InitVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies, co
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso GearJointConf
-bool SolveVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(GearJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
@@ -245,7 +245,7 @@ bool SolveVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies,
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso GearJointConf
-bool SolvePosition(const GearJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const GearJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
 
 /// @brief Free function for getting the ratio value of the given configuration.

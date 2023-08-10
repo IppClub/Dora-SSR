@@ -25,6 +25,7 @@
 #include "PlayRho/Dynamics/Joints/JointConf.hpp"
 #include "PlayRho/Common/NonNegative.hpp"
 #include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Span.hpp"
 
 namespace playrho {
 
@@ -191,7 +192,7 @@ constexpr bool ShiftOrigin(DistanceJointConf&, Length2) noexcept
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso DistanceJointConf
-void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies,
+void InitVelocity(DistanceJointConf& object, const Span<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -205,7 +206,7 @@ void InitVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso DistanceJointConf
-bool SolveVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(DistanceJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
@@ -217,7 +218,7 @@ bool SolveVelocity(DistanceJointConf& object, std::vector<BodyConstraint>& bodie
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso DistanceJointConf
-bool SolvePosition(const DistanceJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const DistanceJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
 
 /// @brief Free function for setting the frequency value of the given configuration.

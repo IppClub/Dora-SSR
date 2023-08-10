@@ -45,7 +45,7 @@
 #include <memory> // for std::unique_ptr
 #include <stdexcept>
 #include <functional> // for std::function
-#include <type_traits> // for std::add_pointer_t, std::add_const_t
+#include <type_traits> // for std::is_default_constructible_v, etc.
 
 namespace playrho {
 
@@ -168,15 +168,29 @@ public:
     ///   data that's given to the world's <code>Step</code> method.
     /// @throws InvalidArgument if the given max vertex radius is less than the min.
     /// @see Step.
-    explicit World(const WorldConf& def = GetDefaultWorldConf());
+    explicit World(const WorldConf& def = WorldConf{});
 
     /// @brief Copy constructor.
     /// @details Copy constructs this world with a deep copy of the given world.
     World(const World& other);
 
-    /// @brief Assignment operator.
+    /// @brief Move constructor.
+    /// @details Move constructs this world.
+    /// @post <code>this</code> is what <code>other</code> used to be.
+    /// @post <code>other</code> is in a "valid but unspecified state". The only thing it
+    ///   can be used for, is as the destination of an assignment.
+    World(World&& other) noexcept;
+
+    /// @brief Copy assignment operator.
     /// @details Copy assigns this world with a deep copy of the given world.
     World& operator=(const World& other);
+
+    /// @brief Move assignment operator.
+    /// @details Move assigns this world.
+    /// @post <code>this</code> is what <code>other</code> used to be.
+    /// @post <code>other</code> is in a "valid but unspecified state". The only thing it
+    ///   can be used for, is as the destination of an assignment.
+    World& operator=(World&& other) noexcept;
 
     /// @brief Destructor.
     /// @details All physics entities are destroyed and all memory is released.
@@ -501,7 +515,7 @@ public:
     /// @warning contacts are created and destroyed in the middle of a time step.
     /// Use <code>ContactListener</code> to avoid missing contacts.
     /// @return World contacts sized-range.
-    const Contacts& GetContacts() const noexcept;
+    Contacts GetContacts() const;
 
     /// @brief Gets the identified contact.
     /// @throws std::out_of_range If given an invalid contact identifier.
@@ -531,6 +545,13 @@ private:
     /// @see https://en.cppreference.com/w/cpp/language/pimpl
     propagate_const<std::unique_ptr<WorldImpl>> m_impl;
 };
+
+// State & confirm intended compile-time traits of World class...
+static_assert(std::is_default_constructible_v<World>);
+static_assert(std::is_copy_constructible_v<World>);
+static_assert(std::is_copy_assignable_v<World>);
+static_assert(std::is_nothrow_move_constructible_v<World>);
+static_assert(std::is_nothrow_move_assignable_v<World>);
 
 /// @example HelloWorld.cpp
 /// This is the source file for the <code>HelloWorld</code> application that demonstrates

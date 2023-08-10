@@ -36,7 +36,6 @@ namespace playrho {
 class StackAllocator
 {
 public:
-
     /// @brief Size type.
     using size_type = std::size_t;
 
@@ -60,7 +59,7 @@ public:
     }
 
     /// @brief Initializing constructor.
-    explicit StackAllocator(Conf config = GetDefaultConf());
+    explicit StackAllocator(const Conf& config = GetDefaultConf());
 
     ~StackAllocator() noexcept;
 
@@ -127,19 +126,19 @@ public:
     {
         return m_allocation;
     }
-    
+
     /// @brief Gets the preallocated size.
     auto GetPreallocatedSize() const noexcept
     {
         return m_size;
     }
-    
+
     /// @brief Gets the max entries.
     auto GetMaxEntries() const noexcept
     {
         return m_max_entries;
     }
-    
+
 private:
 
     /// @brief Allocation record.
@@ -149,12 +148,14 @@ private:
         size_type size; ///< Size.
         bool usedMalloc; ///< Whether <code>malloc</code> was used.
     };
-    
-    char* m_data; ///< Data.
-    AllocationRecord* m_entries; ///< Entries.
-    size_type m_size; ///< Size.
-    size_type m_max_entries; ///< Max entries.
-    
+
+    // Set on construction...
+    char* m_data{}; ///< Data.
+    AllocationRecord* m_entries{}; ///< Entries.
+    size_type m_size{}; ///< Size.
+    size_type m_max_entries{}; ///< Max entries.
+
+    // Dynamically updated...
     size_type m_index = 0; ///< Index.
     size_type m_allocation = 0; ///< Allocation.
     size_type m_maxAllocation = 0; ///< Max allocation.

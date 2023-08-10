@@ -123,7 +123,7 @@ ToiOutput GetToiViaSat( // NOLINT(readability-function-cognitive-complexity)
         auto pbIter = decltype(MaxShapeVertices){0};
         for (; pbIter < MaxShapeVertices; ++pbIter) {
             // Find the deepest point at timeHi. Store the witness point indices.
-            const auto timeHiMinSep = FindMinSeparation(fcn, timeHiXfA, timeHiXfB);
+            const auto timeHiMinSep = FindMinSeparation(fcn, proxyA, timeHiXfA, proxyB, timeHiXfB);
 
             // Is the final configuration separated?
             if (timeHiMinSep.distance > maxTarget) {
@@ -167,7 +167,7 @@ ToiOutput GetToiViaSat( // NOLINT(readability-function-cognitive-complexity)
 
             // Compute the initial separation of the witness points.
             const auto timeLoEvalDistance =
-                Evaluate(fcn, timeLoXfA, timeLoXfB, timeHiMinSep.indices);
+                Evaluate(fcn, proxyA, timeLoXfA, proxyB, timeLoXfB, timeHiMinSep.indices);
 
             // Check for initial overlap. Might happen if root finder runs out of iterations.
             // assert(s1 >= minTarget);
@@ -219,8 +219,7 @@ ToiOutput GetToiViaSat( // NOLINT(readability-function-cognitive-complexity)
 
                 const auto txfA = GetTransformation(sweepA, t);
                 const auto txfB = GetTransformation(sweepB, t);
-                const auto s = Evaluate(fcn, txfA, txfB, timeHiMinSep.indices);
-
+                const auto s = Evaluate(fcn, proxyA, txfA, proxyB, txfB, timeHiMinSep.indices);
                 if (abs(s - target) <= conf.tolerance) // Root finding succeeded!
                 {
                     assert(t != timeHi);

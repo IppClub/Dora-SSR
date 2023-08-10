@@ -22,6 +22,7 @@
 #ifndef PLAYRHO_DYNAMICS_ISLAND_HPP
 #define PLAYRHO_DYNAMICS_ISLAND_HPP
 
+#include "PlayRho/Common/MemoryResource.hpp" // for pmr::polymorphic_allocator
 #include "PlayRho/Common/Templates.hpp" // IsFull
 #include "PlayRho/Common/Settings.hpp" // BodyCounter, ContactCounter, JointCounter
 
@@ -40,13 +41,18 @@ namespace playrho {
 struct Island
 {   
     /// @brief Container type for body identifiers.
-    using Bodies = std::vector<BodyID>;
+    using Bodies = std::vector<BodyID, pmr::polymorphic_allocator<BodyID>>;
 
     /// @brief Container type for contact identifiers.
-    using Contacts = std::vector<ContactID>;
+    using Contacts = std::vector<ContactID, pmr::polymorphic_allocator<ContactID>>;
 
     /// @brief Container type for joint identifiers.
-    using Joints = std::vector<JointID>;
+    using Joints = std::vector<JointID, pmr::polymorphic_allocator<JointID>>;
+
+    Island() = default;
+
+    Island(pmr::memory_resource& br, pmr::memory_resource& cr, pmr::memory_resource& jr)
+    : bodies(&br), contacts(&cr), joints(&jr) {}
 
     Bodies bodies; ///< Container of body identifiers.
     Contacts contacts; ///< Container of contact identifiers.

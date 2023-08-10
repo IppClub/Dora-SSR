@@ -81,7 +81,7 @@ Mass22 GetEffectiveMassMatrix(const TargetJointConf& object, const BodyConstrain
 // Identity used:
 // w k % (rx i + ry j) = w * (-ry i + rx j)
 
-void InitVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
+void InitVelocity(TargetJointConf& object, const Span<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf&)
 {
     if (GetBodyB(object) == InvalidBodyID) {
@@ -145,7 +145,7 @@ void InitVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
     bodyConstraintB.SetVelocity(velB);
 }
 
-bool SolveVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(TargetJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step)
 {
     if (GetBodyB(object) == InvalidBodyID) {
@@ -180,7 +180,7 @@ bool SolveVelocity(TargetJointConf& object, std::vector<BodyConstraint>& bodies,
     return incImpulse == Momentum2{0_Ns, 0_Ns};
 }
 
-bool SolvePosition(const TargetJointConf&, std::vector<BodyConstraint>&,
+bool SolvePosition(const TargetJointConf&, const Span<BodyConstraint>&,
                    const ConstraintSolverConf&)
 {
     return true;

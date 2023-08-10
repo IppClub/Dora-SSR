@@ -23,6 +23,7 @@
 #define PLAYRHO_DYNAMICS_CONTACTS_CONTACTSOLVER_HPP
 
 #include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Span.hpp"
 
 #include <vector>
 
@@ -85,7 +86,7 @@ namespace GaussSeidel {
 ///   valid point relative positions, and valid velocity biases.
 ///
 Momentum SolveVelocityConstraint(d2::VelocityConstraint& vc,
-                                 std::vector<d2::BodyConstraint>& bodies);
+                                 const Span<d2::BodyConstraint>& bodies);
 
 /// Solves the given position constraint.
 /// @details
@@ -96,7 +97,7 @@ Momentum SolveVelocityConstraint(d2::VelocityConstraint& vc,
 ///   (prior to "solving").
 d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,
                                              bool moveA, bool moveB,
-                                             const std::vector<d2::BodyConstraint>& bodies,
+                                             const Span<d2::BodyConstraint>& bodies,
                                              const ConstraintSolverConf& conf);
 
 } // namespace GaussSidel

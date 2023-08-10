@@ -23,8 +23,8 @@
 #define PLAYRHO_DYNAMICS_JOINTS_ROPEJOINTCONF_HPP
 
 #include "PlayRho/Dynamics/Joints/JointConf.hpp"
-
 #include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Span.hpp"
 #include "PlayRho/Dynamics/Joints/LimitState.hpp"
 
 namespace playrho {
@@ -151,7 +151,7 @@ constexpr auto ShiftOrigin(RopeJointConf&, const Length2&) noexcept
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso RopeJointConf
-void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
+void InitVelocity(RopeJointConf& object, const Span<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -165,7 +165,7 @@ void InitVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies, co
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso RopeJointConf
-bool SolveVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(RopeJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
@@ -177,7 +177,7 @@ bool SolveVelocity(RopeJointConf& object, std::vector<BodyConstraint>& bodies,
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso RopeJointConf
-bool SolvePosition(const RopeJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const RopeJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
 
 /// @brief Free function for getting the maximum length value of the given configuration.

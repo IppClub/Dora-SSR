@@ -168,7 +168,7 @@ GearJointConf GetGearJointConf(const World& world, JointID id1, JointID id2, Rea
     return def;
 }
 
-void InitVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
+void InitVelocity(GearJointConf& object, const Span<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf&)
 {
     if ((object.bodyA == InvalidBodyID) || (object.bodyB == InvalidBodyID) || //
@@ -262,7 +262,7 @@ void InitVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies, co
     bodyConstraintD.SetVelocity(velD);
 }
 
-bool SolveVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf&)
+bool SolveVelocity(GearJointConf& object, const Span<BodyConstraint>& bodies, const StepConf&)
 {
     if ((object.bodyA == InvalidBodyID) || (object.bodyB == InvalidBodyID) || //
         (object.bodyC == InvalidBodyID) || (object.bodyD == InvalidBodyID)) {
@@ -299,7 +299,7 @@ bool SolveVelocity(GearJointConf& object, std::vector<BodyConstraint>& bodies, c
     return impulse == 0_Ns;
 }
 
-bool SolvePosition(const GearJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const GearJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf)
 {
     if ((object.bodyA == InvalidBodyID) || (object.bodyB == InvalidBodyID) || //

@@ -25,6 +25,7 @@
 #include "PlayRho/Dynamics/Joints/JointConf.hpp"
 
 #include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Span.hpp"
 
 namespace playrho {
 
@@ -178,7 +179,7 @@ constexpr auto ShiftOrigin(WeldJointConf&, const Length2&) noexcept
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso WeldJointConf
-void InitVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
+void InitVelocity(WeldJointConf& object, const Span<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -192,7 +193,7 @@ void InitVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies, co
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso WeldJointConf
-bool SolveVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(WeldJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
@@ -204,7 +205,7 @@ bool SolveVelocity(WeldJointConf& object, std::vector<BodyConstraint>& bodies,
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso WeldJointConf
-bool SolvePosition(const WeldJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const WeldJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
 
 /// @brief Free function for setting the frequency of the given configuration.

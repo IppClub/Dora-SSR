@@ -19,38 +19,17 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#ifndef PLAYRHO_COLLISION_COLLISION_HPP
-#define PLAYRHO_COLLISION_COLLISION_HPP
+#ifndef PLAYRHO_COLLISION_CLIPLIST_HPP
+#define PLAYRHO_COLLISION_CLIPLIST_HPP
 
 /// @file
-/// Structures and functions used for computing contact points, distance
-/// queries, and TOI queries.
+/// Structures and functions used for computing clip lists.
 
-#include "PlayRho/Common/Math.hpp"
 #include "PlayRho/Common/ArrayList.hpp"
+
 #include "PlayRho/Collision/ContactFeature.hpp"
-#include "PlayRho/Collision/PointState.hpp"
 
-namespace playrho {
-
-/// @brief Point states.
-/// @details The states pertain to the transition from an old manifold to a new manifold.
-///   So state 1 is either persist or remove while state 2 is either add or persist.
-struct PointStates
-{
-    /// @brief State 1.
-    PointState state1[MaxManifoldPoints] = {PointState::NullState, PointState::NullState};
-    
-    /// @brief State 2.
-    PointState state2[MaxManifoldPoints] = {PointState::NullState, PointState::NullState};
-};
-
-namespace d2 {
-
-class Manifold;
-
-/// @brief Computes the point states given two manifolds.
-PointStates GetPointStates(const Manifold& manifold1, const Manifold& manifold2) noexcept;
+namespace playrho::d2 {
 
 /// @brief Clip vertex.
 /// @details Used for computing contact manifolds.
@@ -77,7 +56,6 @@ using ClipList = ArrayList<ClipVertex, MaxManifoldPoints>;
 ClipList ClipSegmentToLine(const ClipList& vIn, const UnitVec& normal, Length offset,
                            ContactFeature::Index indexA);
 
-} // namespace d2
-} // namespace playrho
+}
 
-#endif // PLAYRHO_COLLISION_COLLISION_HPP
+#endif /* PLAYRHO_COLLISION_CLIPLIST_HPP */

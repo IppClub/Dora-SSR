@@ -94,18 +94,18 @@ bool ShiftOrigin(Joint& object, const Length2& value) noexcept;
 /// @brief Initializes velocity constraint data based on the given solver data.
 /// @note This MUST be called prior to calling <code>SolveVelocity</code>.
 /// @see SolveVelocity.
-void InitVelocity(Joint& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
+void InitVelocity(Joint& object, const Span<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
 /// @pre <code>InitVelocity</code> has been called.
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
-bool SolveVelocity(Joint& object, std::vector<BodyConstraint>& bodies, const StepConf& step);
+bool SolveVelocity(Joint& object, const Span<BodyConstraint>& bodies, const StepConf& step);
 
 /// @brief Solves the position constraint.
 /// @return <code>true</code> if the position errors are within tolerance.
-bool SolvePosition(const Joint& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const Joint& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
 
 /// @example Joint.cpp
@@ -131,11 +131,11 @@ bool SolvePosition(const Joint& object, std::vector<BodyConstraint>& bodies,
 ///   - <code>BodyID GetBodyB(const T& object) noexcept;</code>
 ///   - <code>bool GetCollideConnected(const T& object) noexcept;</code>
 ///   - <code>bool ShiftOrigin(T& object, Length2 value) noexcept;</code>
-///   - <code>void InitVelocity(T& object, std::vector<BodyConstraint>& bodies,
+///   - <code>void InitVelocity(T& object, const Span<BodyConstraint>& bodies,
 ///       const StepConf& step, const ConstraintSolverConf& conf);</code>
-///   - <code>bool SolveVelocity(T& object, std::vector<BodyConstraint>& bodies,
+///   - <code>bool SolveVelocity(T& object, const Span<BodyConstraint>& bodies,
 ///       const StepConf& step);</code>
-///   - <code>bool SolvePosition(const T& object, std::vector<BodyConstraint>& bodies,
+///   - <code>bool SolvePosition(const T& object, const Span<BodyConstraint>& bodies,
 ///       const ConstraintSolverConf& conf);</code>
 /// @ingroup JointsGroup
 /// @ingroup PhysicalEntities
@@ -145,9 +145,6 @@ bool SolvePosition(const Joint& object, std::vector<BodyConstraint>& bodies,
 class Joint
 {
 public:
-    /// @brief Type alias for body constraints mapping.
-    using BodyConstraintsMap = std::vector<BodyConstraint>;
-
     /// @brief Default constructor.
     /// @details Constructs a joint that contains no value.
     /// @post <code>has_value()</code> returns false.
@@ -296,7 +293,7 @@ public:
         return object.m_self ? object.m_self->ShiftOrigin_(value) : false;
     }
 
-    friend void InitVelocity(Joint& object, std::vector<BodyConstraint>& bodies,
+    friend void InitVelocity(Joint& object, const Span<BodyConstraint>& bodies,
                              const playrho::StepConf& step, const ConstraintSolverConf& conf)
     {
         if (object.m_self) {
@@ -304,13 +301,13 @@ public:
         }
     }
 
-    friend bool SolveVelocity(Joint& object, std::vector<BodyConstraint>& bodies,
+    friend bool SolveVelocity(Joint& object, const Span<BodyConstraint>& bodies,
                               const playrho::StepConf& step)
     {
         return object.m_self ? object.m_self->SolveVelocity_(bodies, step) : false;
     }
 
-    friend bool SolvePosition(const Joint& object, std::vector<BodyConstraint>& bodies,
+    friend bool SolvePosition(const Joint& object, const Span<BodyConstraint>& bodies,
                               const ConstraintSolverConf& conf)
     {
         return object.m_self ? object.m_self->SolvePosition_(bodies, conf) : false;
@@ -355,14 +352,14 @@ private:
         virtual bool ShiftOrigin_(const Length2& value) noexcept = 0;
 
         /// @brief Initializes the velocities for this joint.
-        virtual void InitVelocity_(BodyConstraintsMap& bodies, const playrho::StepConf& step,
+        virtual void InitVelocity_(const Span<BodyConstraint>& bodies, const playrho::StepConf& step,
                                    const ConstraintSolverConf& conf) = 0;
 
         /// @brief Solves the velocities for this joint.
-        virtual bool SolveVelocity_(BodyConstraintsMap& bodies, const playrho::StepConf& step) = 0;
+        virtual bool SolveVelocity_(const Span<BodyConstraint>& bodies, const playrho::StepConf& step) = 0;
 
         /// @brief Solves the positions for this joint.
-        virtual bool SolvePosition_(BodyConstraintsMap& bodies,
+        virtual bool SolvePosition_(const Span<BodyConstraint>& bodies,
                                     const ConstraintSolverConf& conf) const = 0;
     };
 
@@ -442,20 +439,20 @@ private:
         }
 
         /// @copydoc Concept::InitVelocity_
-        void InitVelocity_(BodyConstraintsMap& bodies, const playrho::StepConf& step,
+        void InitVelocity_(const Span<BodyConstraint>& bodies, const playrho::StepConf& step,
                            const ConstraintSolverConf& conf) override
         {
             InitVelocity(data, bodies, step, conf);
         }
 
         /// @copydoc Concept::SolveVelocity_
-        bool SolveVelocity_(BodyConstraintsMap& bodies, const playrho::StepConf& step) override
+        bool SolveVelocity_(const Span<BodyConstraint>& bodies, const playrho::StepConf& step) override
         {
             return SolveVelocity(data, bodies, step);
         }
 
         /// @copydoc Concept::SolvePosition_
-        bool SolvePosition_(BodyConstraintsMap& bodies,
+        bool SolvePosition_(const Span<BodyConstraint>& bodies,
                             const ConstraintSolverConf& conf) const override
         {
             return SolvePosition(data, bodies, conf);
@@ -485,11 +482,11 @@ struct IsValidJointType<
         decltype(GetBodyB(std::declval<T>())), //
         decltype(GetCollideConnected(std::declval<T>())), //
         decltype(ShiftOrigin(std::declval<T&>(), std::declval<Length2>())), //
-        decltype(InitVelocity(std::declval<T&>(), std::declval<std::vector<BodyConstraint>&>(),
+        decltype(InitVelocity(std::declval<T&>(), std::declval<const Span<BodyConstraint>&>(),
                               std::declval<StepConf>(), std::declval<ConstraintSolverConf>())), //
-        decltype(SolveVelocity(std::declval<T&>(), std::declval<std::vector<BodyConstraint>&>(),
+        decltype(SolveVelocity(std::declval<T&>(), std::declval<const Span<BodyConstraint>&>(),
                                std::declval<StepConf>())), //
-        decltype(SolvePosition(std::declval<T>(), std::declval<std::vector<BodyConstraint>&>(),
+        decltype(SolvePosition(std::declval<T>(), std::declval<const Span<BodyConstraint>&>(),
                                std::declval<ConstraintSolverConf>())), //
         decltype(std::declval<T>() == std::declval<T>()), //
         decltype(Joint{std::declval<T>()})>> : std::true_type {
@@ -498,7 +495,7 @@ struct IsValidJointType<
 // Free functions...
 
 /// @brief Provides referenced access to the identified element of the given container.
-BodyConstraint& At(std::vector<BodyConstraint>& container, BodyID key);
+BodyConstraint& At(const Span<BodyConstraint>& container, BodyID key);
 
 /// @brief Converts the given joint into its current configuration value.
 /// @note The design for this was based off the design of the C++17 <code>std::any</code>

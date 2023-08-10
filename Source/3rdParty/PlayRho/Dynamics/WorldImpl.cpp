@@ -57,6 +57,7 @@
 #include "PlayRho/Common/LengthError.hpp"
 #include "PlayRho/Common/DynamicMemory.hpp"
 #include "PlayRho/Common/FlagGuard.hpp"
+#include "PlayRho/Common/Span.hpp"
 #include "PlayRho/Common/WrongState.hpp"
 
 #include <algorithm>
@@ -91,25 +92,16 @@ using std::unique;
 namespace playrho {
 namespace d2 {
 
-static_assert(std::is_default_constructible<WorldImpl>::value,
-              "WorldImpl must be default constructible!");
-static_assert(std::is_copy_constructible<WorldImpl>::value,
-              "WorldImpl must be copy constructible!");
-static_assert(std::is_copy_assignable<WorldImpl>::value,
-              "WorldImpl must be copy assignable!");
-static_assert(std::is_nothrow_destructible<WorldImpl>::value,
-              "WorldImpl must be nothrow destructible!");
-
 using playrho::size;
 
 /// @brief Collection of body constraints.
-using BodyConstraints = std::vector<BodyConstraint>;
+using BodyConstraints = std::vector<BodyConstraint, pmr::polymorphic_allocator<BodyConstraint>>;
 
 /// @brief Collection of position constraints.
-using PositionConstraints = std::vector<PositionConstraint>;
+using PositionConstraints = std::vector<PositionConstraint, pmr::polymorphic_allocator<PositionConstraint>>;
 
 /// @brief Collection of velocity constraints.
-using VelocityConstraints = std::vector<VelocityConstraint>;
+using VelocityConstraints = std::vector<VelocityConstraint, pmr::polymorphic_allocator<VelocityConstraint>>;
 
 /// @brief The contact updating configuration.
 struct WorldImpl::ContactUpdateConf
@@ -123,7 +115,7 @@ namespace {
 constexpr auto idIsDestroyedMsg = "ID is destroyed";
 constexpr auto worldIsLockedMsg = "world is locked";
 
-inline void IntegratePositions(const Island::Bodies& bodies, BodyConstraints& constraints, Time h)
+inline void IntegratePositions(const Span<const BodyID>& bodies, const Span<BodyConstraint>& constraints, Time h)
 {
     assert(IsValid(h));
     for_each(cbegin(bodies), cend(bodies), [&](const auto& id) {
@@ -142,8 +134,8 @@ inline void IntegratePositions(const Island::Bodies& bodies, BodyConstraints& co
 /// @param listener Listener to call.
 /// @param constraints Array of m_contactCount contact velocity constraint elements.
 inline void Report(const WorldImpl::ImpulsesContactListener& listener,
-                   const std::vector<ContactID>& contacts,
-                   const VelocityConstraints& constraints,
+                   const Span<const ContactID>& contacts,
+                   const Span<const VelocityConstraint>& constraints,
                    StepConf::iteration_type solved)
 {
     const auto numContacts = size(contacts);
@@ -176,7 +168,7 @@ inline void AssignImpulses(Manifold& var, const VelocityConstraint& vc)
 
 /// @brief Calculates the "warm start" velocity deltas for the given velocity constraint.
 VelocityPair CalcWarmStartVelocityDeltas(const VelocityConstraint& vc,
-                                         const std::vector<BodyConstraint>& bodies)
+                                         const Span<const BodyConstraint>& bodies)
 {
     auto vp = VelocityPair{Velocity{LinearVelocity2{}, 0_rpm}, Velocity{LinearVelocity2{}, 0_rpm}};
 
@@ -209,8 +201,8 @@ VelocityPair CalcWarmStartVelocityDeltas(const VelocityConstraint& vc,
     return vp;
 }
 
-void WarmStartVelocities(const VelocityConstraints& velConstraints,
-                         std::vector<BodyConstraint>& bodies)
+void WarmStartVelocities(const Span<const VelocityConstraint>& velConstraints,
+                         const Span<BodyConstraint>& bodies)
 {
     for_each(cbegin(velConstraints), cend(velConstraints), [&](const VelocityConstraint& vc) {
         const auto vp = CalcWarmStartVelocityDeltas(vc, bodies);
@@ -221,24 +213,29 @@ void WarmStartVelocities(const VelocityConstraints& velConstraints,
     });
 }
 
-void GetBodyConstraints(std::vector<BodyConstraint>& constraints, const Island::Bodies& bodies,
-                        const ObjectPool<Body>& bodyBuffer, Time h, const MovementConf& conf)
+BodyConstraints GetBodyConstraints(pmr::memory_resource& resource,
+                                   const Span<const BodyID>& bodies,
+                                   const ObjectPool<Body>& bodyBuffer,
+                                   Time h, const MovementConf& conf)
 {
-    assert(size(constraints) == size(bodyBuffer));
+    auto constraints = BodyConstraints{&resource};
+    constraints.resize(size(bodyBuffer)); // can't be size(bodies)!
     for (const auto& id: bodies) {
         constraints[to_underlying(id)] = GetBodyConstraint(bodyBuffer[to_underlying(id)], h, conf);
     }
+    return constraints;
 }
 
-PositionConstraints GetPositionConstraints(const Island::Contacts& contacts,
+PositionConstraints GetPositionConstraints(pmr::memory_resource& resource,
+                                           const Span<const ContactID>& contacts,
                                            const ObjectPool<Contact>& contactBuffer,
                                            const ObjectPool<Manifold>& manifoldBuffer,
                                            const ObjectPool<Shape>& shapeBuffer)
 {
-    auto constraints = PositionConstraints{};
+    auto constraints = PositionConstraints{&resource};
     constraints.reserve(size(contacts));
     transform(cbegin(contacts), cend(contacts), back_inserter(constraints),
-              [&](const auto& contactID) {
+              [&](const ContactID& contactID) {
         const auto& contact = contactBuffer[to_underlying(contactID)];
         const auto shapeA = GetShapeA(contact);
         const auto shapeB = GetShapeB(contact);
@@ -261,14 +258,15 @@ PositionConstraints GetPositionConstraints(const Island::Contacts& contacts,
 ///   normal for them.
 /// @post Velocity constraints will have their constraint points set.
 /// @see SolveVelocityConstraints.
-VelocityConstraints GetVelocityConstraints(const Island::Contacts& contacts,
+VelocityConstraints GetVelocityConstraints(pmr::memory_resource& resource,
+                                           const Span<const ContactID>& contacts,
                                            const ObjectPool<Contact>& contactBuffer,
                                            const ObjectPool<Manifold>& manifoldBuffer,
                                            const ObjectPool<Shape>& shapeBuffer,
-                                           const BodyConstraints& bodies,
+                                           const Span<const BodyConstraint>& bodies,
                                            const VelocityConstraint::Conf conf)
 {
-    auto velConstraints = VelocityConstraints{};
+    auto velConstraints = VelocityConstraints{&resource};
     velConstraints.reserve(size(contacts));
     transform(cbegin(contacts), cend(contacts), back_inserter(velConstraints),
               [&](const auto& contactID) {
@@ -303,11 +301,11 @@ VelocityConstraints GetVelocityConstraints(const Island::Contacts& contacts,
 /// @pre <code>UpdateVelocityConstraints</code> has been called on the velocity constraints.
 /// @return Maximum momentum used for solving both the tangential and normal portions of
 ///   the velocity constraints.
-Momentum SolveVelocityConstraintsViaGS(VelocityConstraints& velConstraints, BodyConstraints& bodies)
+Momentum SolveVelocityConstraintsViaGS(const Span<VelocityConstraint>& velConstraints,
+                                       const Span<BodyConstraint>& bodies)
 {
     auto maxIncImpulse = 0_Ns;
-    for_each(begin(velConstraints), end(velConstraints), [&](VelocityConstraint& vc)
-    {
+    for_each(begin(velConstraints), end(velConstraints), [&](VelocityConstraint& vc) {
         maxIncImpulse = std::max(maxIncImpulse, GaussSeidel::SolveVelocityConstraint(vc, bodies));
     });
     return maxIncImpulse;
@@ -319,12 +317,12 @@ Momentum SolveVelocityConstraintsViaGS(VelocityConstraints& velConstraints, Body
 ///  <code>-conf.linearSlop</code> because code won't push the separation above this
 ///   amount to begin with.
 /// @return Minimum separation.
-Length SolvePositionConstraintsViaGS(PositionConstraints& posConstraints,
-                                     BodyConstraints& bodies,
+Length SolvePositionConstraintsViaGS(const Span<const PositionConstraint>& posConstraints,
+                                     const Span<BodyConstraint>& bodies,
                                      const ConstraintSolverConf& conf)
 {
     auto minSeparation = std::numeric_limits<Length>::infinity();
-    for_each(begin(posConstraints), end(posConstraints), [&](PositionConstraint &pc) {
+    for_each(begin(posConstraints), end(posConstraints), [&](const PositionConstraint &pc) {
         assert(pc.GetBodyA() != pc.GetBodyB()); // Confirms ContactManager::Add() did its job.
         const auto res = GaussSeidel::SolvePositionConstraint(pc, true, true, bodies, conf);
         bodies[to_underlying(pc.GetBodyA())].SetPosition(res.pos_a);
@@ -342,16 +340,14 @@ inline Time GetUnderActiveTime(const Body& b, const StepConf& conf) noexcept
     return (sleepable && underactive)? GetUnderActiveTime(b) + conf.deltaTime: 0_s;
 }
 
-inline Time UpdateUnderActiveTimes(const Island::Bodies& bodies,
+inline Time UpdateUnderActiveTimes(const Span<const BodyID>& bodies,
                                    ObjectPool<Body>& bodyBuffer,
                                    const StepConf& conf)
 {
     auto minUnderActiveTime = std::numeric_limits<Time>::infinity();
-    for_each(cbegin(bodies), cend(bodies), [&](const auto& bodyID)
-    {
+    for_each(cbegin(bodies), cend(bodies), [&](const auto& bodyID) {
         auto& b = bodyBuffer[to_underlying(bodyID)];
-        if (IsSpeedable(b))
-        {
+        if (IsSpeedable(b)) {
             const auto underActiveTime = GetUnderActiveTime(b, conf);
             b.SetUnderActiveTime(underActiveTime);
             minUnderActiveTime = std::min(minUnderActiveTime, underActiveTime);
@@ -360,7 +356,7 @@ inline Time UpdateUnderActiveTimes(const Island::Bodies& bodies,
     return minUnderActiveTime;
 }
 
-inline BodyCounter Sleepem(const Island::Bodies& bodies,
+inline BodyCounter Sleepem(const Span<const BodyID>& bodies,
                            ObjectPool<Body>& bodyBuffer,
                            ObjectPool<WorldImpl::Contacts>& bodyContacts,
                            ObjectPool<Contact>& contactBuffer)
@@ -395,7 +391,7 @@ inline bool IsValidForTime(ToiOutput::State state) noexcept
 }
 
 bool FlagForFiltering(ObjectPool<Contact>& contactBuffer, BodyID bodyA,
-                      const std::vector<KeyedContactPtr>& contactsBodyB,
+                      const Span<const KeyedContactPtr>& contactsBodyB,
                       BodyID bodyB) noexcept
 {
     auto anyFlagged = false;
@@ -441,19 +437,19 @@ bool ShouldCollide(const ObjectPool<Joint>& jointBuffer,
     const auto& joints = bodyJoints[to_underlying(lhs)];
     const auto it = std::find_if(cbegin(joints), cend(joints), [&](const auto& ji) {
         return (std::get<BodyID>(ji) == rhs) &&
-            !GetCollideConnected(jointBuffer[to_underlying(std::get<JointID>(ji))]);
+        !GetCollideConnected(jointBuffer[to_underlying(std::get<JointID>(ji))]);
     });
     return it == end(joints);
 }
 
-void Unset(std::vector<bool>& islanded, const WorldImpl::Bodies& elements)
+void Unset(std::vector<bool>& islanded, const Span<const BodyID>& elements)
 {
     for (const auto& element: elements) {
         islanded[to_underlying(element)] = false;
     }
 }
 
-void Unset(std::vector<bool>& islanded, const WorldImpl::Contacts& elements)
+void Unset(std::vector<bool>& islanded, const Span<const KeyedContactPtr>& elements)
 {
     for (const auto& element: elements) {
         islanded[to_underlying(std::get<ContactID>(element))] = false;
@@ -470,7 +466,7 @@ void ResetBodiesForSolveTOI(WorldImpl::Bodies& bodies, ObjectPool<Body>& buffer)
 
 /// @brief Reset contacts for solve TOI.
 void ResetBodyContactsForSolveTOI(ObjectPool<Contact>& buffer,
-                                  const std::vector<KeyedContactPtr>& contacts) noexcept
+                                  const Span<const KeyedContactPtr>& contacts) noexcept
 {
     // Invalidate all contact TOIs on this displaced body.
     for_each(cbegin(contacts), cend(contacts), [&buffer](const auto& ci) {
@@ -491,7 +487,7 @@ void ResetContactsForSolveTOI(ObjectPool<Contact>& buffer,
 
 /// @brief Destroys all of the given fixture's proxies.
 void DestroyProxies(DynamicTree& tree,
-                    const std::vector<DynamicTree::Size>& fixtureProxies,
+                    const Span<const DynamicTree::Size>& fixtureProxies,
                     std::vector<DynamicTree::Size>& proxies) noexcept
 {
     const auto childCount = size(fixtureProxies);
@@ -596,7 +592,7 @@ std::vector<DynamicTree::Size> FindProxies(const DynamicTree& tree, BodyID bodyI
 
 template <class Function>
 auto ForMatchingProxies(const DynamicTree& tree, ShapeID shapeId, Function f)
-    -> decltype(f(DynamicTree::Size{}), std::declval<void>())
+-> decltype(f(DynamicTree::Size{}), std::declval<void>())
 {
     const auto n = tree.GetNodeCapacity();
     for (auto i = static_cast<decltype(tree.GetNodeCapacity())>(0); i < n; ++i) {
@@ -647,9 +643,9 @@ void ResizeAndReset(std::vector<T>& vector, typename std::vector<T>::size_type n
 
 /// @brief Removes <em>unspeedables</em> from the is <em>is-in-island</em> state.
 WorldImpl::Bodies::size_type
-RemoveUnspeedablesFromIslanded(const std::vector<BodyID>& bodies,
-                                          const ObjectPool<Body>& buffer,
-                                          std::vector<bool>& islanded)
+RemoveUnspeedablesFromIslanded(const Span<const BodyID>& bodies,
+                               const ObjectPool<Body>& buffer,
+                               std::vector<bool>& islanded)
 {
     // Allow static bodies to participate in other islands.
     auto numRemoved = WorldImpl::Bodies::size_type{0};
@@ -703,10 +699,11 @@ ContactToiData GetSoonestContact(const WorldImpl::Contacts& contacts,
     return ContactToiData{found, minToi, count};
 }
 
-auto FindContactKeys(const DynamicTree& tree, WorldImpl::Proxies&& proxies) -> std::vector<ContactKey>
+auto FindContactKeys(pmr::memory_resource& resource, const DynamicTree& tree, WorldImpl::Proxies&& proxies)
+-> std::vector<ContactKey, pmr::polymorphic_allocator<ContactKey>>
 {
+    std::vector<ContactKey, pmr::polymorphic_allocator<ContactKey>> proxyKeys{&resource};
     static constexpr auto DefaultReserveSize = 512u;
-    std::vector<ContactKey> proxyKeys;
     proxyKeys.reserve(DefaultReserveSize);
 
     // Accumalate contact keys for pairs of nodes that are overlapping and aren't identical.
@@ -732,22 +729,57 @@ auto FindContactKeys(const DynamicTree& tree, WorldImpl::Proxies&& proxies) -> s
     return proxyKeys;
 }
 
+constexpr auto ReserveBuffers = 1u;
+
 } // anonymous namespace
 
 WorldImpl::WorldImpl(const WorldConf& conf):
+    m_bodyStackResource({ReserveBuffers, conf.reserveBodyStack * sizeof(BodyID)}, conf.upstream),
+    m_bodyConstraintsResource({ReserveBuffers, conf.reserveBodyConstraints * sizeof(BodyConstraint)}, conf.upstream),
+    m_positionConstraintsResource({ReserveBuffers, conf.reserveDistanceConstraints * sizeof(PositionConstraint)}, conf.upstream),
+    m_velocityConstraintsResource({ReserveBuffers, conf.reserveDistanceConstraints * sizeof(VelocityConstraint)}, conf.upstream),
+    m_contactKeysResource({ReserveBuffers, conf.reserveContactKeys * sizeof(ContactKey)}, conf.upstream),
+    m_islandResource({ReserveBuffers}, conf.upstream),
     m_tree(conf.treeCapacity),
-    m_minVertexRadius{conf.minVertexRadius},
-    m_maxVertexRadius{conf.maxVertexRadius}
+    m_vertexRadius{conf.minVertexRadius, conf.maxVertexRadius}
 {
-    if (conf.minVertexRadius > conf.maxVertexRadius)
-    {
+    if (conf.minVertexRadius > conf.maxVertexRadius) {
         throw InvalidArgument("max vertex radius must be >= min vertex radius");
     }
     m_proxiesForContacts.reserve(conf.proxyCapacity);
     m_contactBuffer.reserve(conf.contactCapacity);
     m_manifoldBuffer.reserve(conf.contactCapacity);
     m_contacts.reserve(conf.contactCapacity);
-    m_islandedContacts.reserve(conf.contactCapacity);
+    m_islanded.contacts.reserve(conf.contactCapacity);
+}
+
+WorldImpl::WorldImpl(const WorldImpl& other):
+    m_bodyConstraintsResource(other.m_bodyConstraintsResource.GetOptions()),
+    m_positionConstraintsResource(other.m_positionConstraintsResource.GetOptions()),
+    m_velocityConstraintsResource(other.m_velocityConstraintsResource.GetOptions()),
+    m_contactKeysResource(other.m_contactKeysResource.GetOptions()),
+    m_islandResource(other.m_islandResource.GetOptions()),
+    m_tree(other.m_tree),
+    m_bodyBuffer(other.m_bodyBuffer),
+    m_shapeBuffer(other.m_shapeBuffer),
+    m_jointBuffer(other.m_jointBuffer),
+    m_contactBuffer(other.m_contactBuffer),
+    m_manifoldBuffer(other.m_manifoldBuffer),
+    m_bodyContacts(other.m_bodyContacts),
+    m_bodyJoints(other.m_bodyJoints),
+    m_bodyProxies(other.m_bodyProxies),
+    m_proxiesForContacts(other.m_proxiesForContacts),
+    m_fixturesForProxies(other.m_fixturesForProxies),
+    m_bodiesForSync(other.m_bodiesForSync),
+    m_bodies(other.m_bodies),
+    m_joints(other.m_joints),
+    m_contacts(other.m_contacts),
+    m_islanded(other.m_islanded),
+    m_listeners(other.m_listeners),
+    m_flags(other.m_flags),
+    m_inv_dt0(other.m_inv_dt0),
+    m_vertexRadius(other.m_vertexRadius)
+{
 }
 
 WorldImpl::~WorldImpl() noexcept
@@ -757,10 +789,10 @@ WorldImpl::~WorldImpl() noexcept
 
 void WorldImpl::Clear() noexcept
 {
-    if (m_jointDestructionListener) {
+    if (m_listeners.jointDestruction) {
         try {
             for_each(cbegin(m_joints), cend(m_joints), [this](const auto& id) {
-                m_jointDestructionListener(id);
+                m_listeners.jointDestruction(id);
             });
         }
         catch (...)
@@ -768,12 +800,12 @@ void WorldImpl::Clear() noexcept
             // Don't allow exception to escape.
         }
     }
-    if (m_shapeDestructionListener) {
+    if (m_listeners.shapeDestruction) {
         try {
             for (auto&& shape: m_shapeBuffer) {
                 if (shape != Shape{}) {
                     const auto index = &shape - m_shapeBuffer.data();
-                    m_shapeDestructionListener(static_cast<ShapeID>(static_cast<underlying_type_t<ShapeID>>(index)));
+                    m_listeners.shapeDestruction(static_cast<ShapeID>(static_cast<underlying_type_t<ShapeID>>(index)));
                 }
             }
         }
@@ -828,7 +860,7 @@ BodyID WorldImpl::CreateBody(Body body)
     }
     const auto id = static_cast<BodyID>(
         static_cast<BodyID::underlying_type>(m_bodyBuffer.Allocate(std::move(body))));
-    m_islandedBodies.resize(size(m_bodyBuffer));
+    m_islanded.bodies.resize(size(m_bodyBuffer));
     const auto bodyContactsIndex = m_bodyContacts.Allocate();
     static constexpr auto DefaultBodyContactsReserveSize = 32u;
     m_bodyContacts[bodyContactsIndex].reserve(DefaultBodyContactsReserveSize);
@@ -836,7 +868,6 @@ BodyID WorldImpl::CreateBody(Body body)
     const auto bodyProxiesIndex = m_bodyProxies.Allocate();
     m_bodyProxies[bodyProxiesIndex].reserve(1u);
     m_bodies.push_back(id);
-    m_bodyConstraints.resize(size(m_bodyBuffer));
     const auto& bufferedBody = m_bodyBuffer[to_underlying(id)];
     if (IsEnabled(bufferedBody)) {
         const auto& shapes = bufferedBody.GetShapes();
@@ -859,8 +890,7 @@ void WorldImpl::Remove(BodyID id)
         m_bodyJoints.Free(to_underlying(id));
         m_bodyContacts.Free(to_underlying(id));
         m_bodyBuffer.Free(to_underlying(id));
-        m_bodyConstraints.resize(size(m_bodyBuffer));
-        m_islandedBodies.resize(size(m_bodyBuffer));
+        m_islanded.bodies.resize(size(m_bodyBuffer));
     }
 }
 
@@ -876,8 +906,8 @@ void WorldImpl::Destroy(BodyID id)
     auto& joints = m_bodyJoints[to_underlying(id)];
     while (!joints.empty()) {
         const auto jointID = std::get<JointID>(*begin(joints));
-        if (m_jointDestructionListener) {
-            m_jointDestructionListener(jointID);
+        if (m_listeners.jointDestruction) {
+            m_listeners.jointDestruction(jointID);
         }
         const auto endIter = cend(m_joints);
         const auto iter = find(cbegin(m_joints), endIter, jointID);
@@ -902,9 +932,9 @@ void WorldImpl::Destroy(BodyID id)
     for (const auto& proxy: proxies) {
         m_tree.DestroyLeaf(proxy);
     }
-    if (m_detachListener) {
+    if (m_listeners.detach) {
         for (const auto& shapeId: body.GetShapes()) {
-            m_detachListener(std::make_pair(id, shapeId));
+            m_listeners.detach(std::make_pair(id, shapeId));
         }
     }
     Remove(id);
@@ -953,7 +983,7 @@ JointID WorldImpl::CreateJoint(Joint def)
     }
     const auto id = static_cast<JointID>(
         static_cast<JointID::underlying_type>(m_jointBuffer.Allocate(std::move(def))));
-    m_islandedJoints.resize(size(m_jointBuffer));
+    m_islanded.joints.resize(size(m_jointBuffer));
     m_joints.push_back(id);
     // Note: creating a joint doesn't wake the bodies.
     Add(id, !GetCollideConnected(m_jointBuffer[to_underlying(id)]));
@@ -1191,7 +1221,7 @@ void WorldImpl::AddToIsland(Island& island, BodyID seedID,
                             JointCounter& remNumJoints)
 {
 #ifndef NDEBUG
-    assert(!m_islandedBodies[to_underlying(seedID)]);
+    assert(!m_islanded.bodies[to_underlying(seedID)]);
     auto& seed = m_bodyBuffer[to_underlying(seedID)];
     assert(seed.IsSpeedable());
     assert(seed.IsAwake());
@@ -1201,15 +1231,11 @@ void WorldImpl::AddToIsland(Island& island, BodyID seedID,
 #endif
     // Perform a depth first search (DFS) on the constraint graph.
     // Create a stack for bodies to be is-in-island that aren't already in the island.
-    auto bodies = std::vector<BodyID>{};
-    bodies.reserve(remNumBodies);
-    bodies.push_back(seedID);
-    auto stack = BodyStack{std::move(bodies)};
-    m_islandedBodies[to_underlying(seedID)] = true;
+    auto stack = BodyStack{&m_bodyStackResource};
+    stack.reserve(remNumBodies);
+    stack.push_back(seedID);
+    m_islanded.bodies[to_underlying(seedID)] = true;
     AddToIsland(island, stack, remNumBodies, remNumContacts, remNumJoints);
-#if DO_SORT_ID_LISTS
-    Sort(island);
-#endif
 }
 
 void WorldImpl::AddToIsland(Island& island, BodyStack& stack,
@@ -1219,8 +1245,8 @@ void WorldImpl::AddToIsland(Island& island, BodyStack& stack,
 {
     while (!empty(stack)) {
         // Grab the next body off the stack and add it to the island.
-        const auto bodyID = stack.top();
-        stack.pop();
+        const auto bodyID = stack.back();
+        stack.pop_back();
 
         auto& body = m_bodyBuffer[to_underlying(bodyID)];
 
@@ -1261,19 +1287,19 @@ void WorldImpl::AddContactsToIsland(Island& island, BodyStack& stack,
 {
     for_each(cbegin(contacts), cend(contacts), [&](const KeyedContactPtr& ci) {
         const auto contactID = std::get<ContactID>(ci);
-        if (!m_islandedContacts[to_underlying(contactID)]) {
-            auto& contact = m_contactBuffer[to_underlying(contactID)];
+        if (!m_islanded.contacts[to_underlying(contactID)]) {
+            const auto& contact = m_contactBuffer[to_underlying(contactID)];
             if (IsEnabled(contact) && IsTouching(contact) && !IsSensor(contact))
             {
                 const auto bodyA = GetBodyA(contact);
                 const auto bodyB = GetBodyB(contact);
                 const auto other = (bodyID != bodyA)? bodyA: bodyB;
                 island.contacts.push_back(contactID);
-                m_islandedContacts[to_underlying(contactID)] = true;
-                if (!m_islandedBodies[to_underlying(other)])
+                m_islanded.contacts[to_underlying(contactID)] = true;
+                if (!m_islanded.bodies[to_underlying(other)])
                 {
-                    m_islandedBodies[to_underlying(other)] = true;
-                    stack.push(other);
+                    m_islanded.bodies[to_underlying(other)] = true;
+                    stack.push_back(other);
                 }
             }
         }
@@ -1285,18 +1311,18 @@ void WorldImpl::AddJointsToIsland(Island& island, BodyStack& stack, const BodyJo
     for_each(cbegin(joints), cend(joints), [this,&island,&stack](const auto& ji) {
         const auto jointID = std::get<JointID>(ji);
         assert(jointID != InvalidJointID);
-        if (!m_islandedJoints[to_underlying(jointID)]) {
+        if (!m_islanded.joints[to_underlying(jointID)]) {
             const auto otherID = std::get<BodyID>(ji);
             const auto other = (otherID == InvalidBodyID)? static_cast<Body*>(nullptr): &m_bodyBuffer[to_underlying(otherID)];
             assert(!other || other->IsEnabled() || !other->IsAwake());
             if (!other || other->IsEnabled())
             {
-                m_islandedJoints[to_underlying(jointID)] = true;
+                m_islanded.joints[to_underlying(jointID)] = true;
                 island.joints.push_back(jointID);
-                if ((otherID != InvalidBodyID) && !m_islandedBodies[to_underlying(otherID)])
+                if ((otherID != InvalidBodyID) && !m_islanded.bodies[to_underlying(otherID)])
                 {
-                    m_islandedBodies[to_underlying(otherID)] = true;
-                    stack.push(otherID);
+                    m_islanded.bodies[to_underlying(otherID)] = true;
+                    stack.push_back(otherID);
                 }
             }
         }
@@ -1314,9 +1340,9 @@ RegStepStats WorldImpl::SolveReg(const StepConf& conf)
     // This builds the logical set of bodies, contacts, and joints eligible for resolution.
     // As bodies, contacts, or joints get added to resolution islands, they're essentially
     // removed from this eligible set.
-    ResizeAndReset(m_islandedBodies, size(m_bodyBuffer), false);
-    ResizeAndReset(m_islandedContacts, size(m_contactBuffer), false);
-    ResizeAndReset(m_islandedJoints, size(m_jointBuffer), false);
+    ResizeAndReset(m_islanded.bodies, size(m_bodyBuffer), false);
+    ResizeAndReset(m_islanded.contacts, size(m_contactBuffer), false);
+    ResizeAndReset(m_islanded.joints, size(m_jointBuffer), false);
 
 #if defined(DO_THREADED)
     std::vector<std::future<IslandStats>> futures;
@@ -1324,18 +1350,23 @@ RegStepStats WorldImpl::SolveReg(const StepConf& conf)
 #endif
     // Build and simulate all awake islands.
     for (const auto& b: m_bodies) {
-        if (!m_islandedBodies[to_underlying(b)]) {
+        if (!m_islanded.bodies[to_underlying(b)]) {
             auto& body = m_bodyBuffer[to_underlying(b)];
             assert(!IsAwake(body) || IsSpeedable(body));
             if (IsAwake(body) && IsEnabled(body)) {
                 ++stats.islandsFound;
-                Island island;
+                Island island{m_islandResource, m_islandResource, m_islandResource};
                 // Size the island for the remaining un-evaluated contacts.
+                island.bodies.reserve(remNumBodies);
                 island.contacts.reserve(remNumContacts);
+                island.joints.reserve(remNumJoints);
                 AddToIsland(island, b, remNumBodies, remNumContacts, remNumJoints);
+#if defined(DO_SORT_ISLANDS)
+                Sort(island);
+#endif
                 stats.maxIslandBodies = std::max(stats.maxIslandBodies,
                                                  static_cast<BodyCounter>(size(island.bodies)));
-                const auto numRemoved = RemoveUnspeedablesFromIslanded(island.bodies, m_bodyBuffer, m_islandedBodies);
+                const auto numRemoved = RemoveUnspeedablesFromIslanded(island.bodies, m_bodyBuffer, m_islanded.bodies);
                 remNumBodies += static_cast<BodyCounter>(numRemoved);
 #if defined(DO_THREADED)
                 // Updates bodies' sweep.pos0 to current sweep.pos1 and bodies' sweep.pos1 to new positions
@@ -1357,7 +1388,7 @@ RegStepStats WorldImpl::SolveReg(const StepConf& conf)
 #endif
 
     for (const auto& b: m_bodies) {
-        if (m_islandedBodies[to_underlying(b)]) {
+        if (m_islanded.bodies[to_underlying(b)]) {
             // A non-static body that was in an island may have moved.
             const auto& body = m_bodyBuffer[to_underlying(b)];
             if (IsSpeedable(body)) {
@@ -1371,7 +1402,7 @@ RegStepStats WorldImpl::SolveReg(const StepConf& conf)
     }
 
     // Look for new contacts.
-    stats.contactsAdded = FindNewContacts(FindContactKeys(m_tree, std::move(m_proxiesForContacts)));
+    stats.contactsAdded = FindNewContacts(FindContactKeys(m_contactKeysResource, m_tree, std::move(m_proxiesForContacts)));
     m_proxiesForContacts = {};
     
     return stats;
@@ -1395,22 +1426,23 @@ IslandStats WorldImpl::SolveRegIslandViaGS(const StepConf& conf, const Island& i
     });
 
     // Copy bodies' pos1 and velocity data into local arrays.
-    GetBodyConstraints(m_bodyConstraints, island.bodies, m_bodyBuffer, h, GetMovementConf(conf));
-    auto posConstraints = GetPositionConstraints(island.contacts, m_contactBuffer,
-                                                 m_manifoldBuffer, m_shapeBuffer);
-    auto velConstraints = GetVelocityConstraints(island.contacts,
+    auto bodyConstraints = GetBodyConstraints(m_bodyConstraintsResource,
+                                              island.bodies, m_bodyBuffer, h, GetMovementConf(conf));
+    auto posConstraints = GetPositionConstraints(m_positionConstraintsResource, island.contacts,
+                                                 m_contactBuffer, m_manifoldBuffer, m_shapeBuffer);
+    auto velConstraints = GetVelocityConstraints(m_velocityConstraintsResource, island.contacts,
                                                  m_contactBuffer, m_manifoldBuffer, m_shapeBuffer,
-                                                 m_bodyConstraints,
+                                                 bodyConstraints,
                                                  GetRegVelocityConstraintConf(conf));
     if (conf.doWarmStart) {
-        WarmStartVelocities(velConstraints, m_bodyConstraints);
+        WarmStartVelocities(velConstraints, bodyConstraints);
     }
 
     const auto psConf = GetRegConstraintSolverConf(conf);
 
     for_each(cbegin(island.joints), cend(island.joints), [&](const auto& id) {
         auto& joint = m_jointBuffer[to_underlying(id)];
-        InitVelocity(joint, m_bodyConstraints, conf, psConf);
+        InitVelocity(joint, bodyConstraints, conf, psConf);
     });
     
     results.velocityIters = conf.regVelocityIters;
@@ -1418,11 +1450,11 @@ IslandStats WorldImpl::SolveRegIslandViaGS(const StepConf& conf, const Island& i
         auto jointsOkay = true;
         for_each(cbegin(island.joints), cend(island.joints), [&](const auto& id) {
             auto& joint = m_jointBuffer[to_underlying(id)];
-            jointsOkay &= SolveVelocity(joint, m_bodyConstraints, conf);
+            jointsOkay &= SolveVelocity(joint, bodyConstraints, conf);
         });
         // Note that the new incremental impulse can potentially be orders of magnitude
         // greater than the last incremental impulse used in this loop.
-        const auto newIncImpulse = SolveVelocityConstraintsViaGS(velConstraints, m_bodyConstraints);
+        const auto newIncImpulse = SolveVelocityConstraintsViaGS(velConstraints, bodyConstraints);
         results.maxIncImpulse = std::max(results.maxIncImpulse, newIncImpulse);
         if (jointsOkay && (newIncImpulse <= conf.regMinMomentum)) {
             // No joint related velocity constraints were out of tolerance.
@@ -1436,18 +1468,18 @@ IslandStats WorldImpl::SolveRegIslandViaGS(const StepConf& conf, const Island& i
     }
     
     // updates array of tentative new body positions per the velocities as if there were no obstacles...
-    IntegratePositions(island.bodies, m_bodyConstraints, h);
+    IntegratePositions(island.bodies, bodyConstraints, h);
     
     // Solve position constraints
     for (auto i = decltype(conf.regPositionIters){0}; i < conf.regPositionIters; ++i) {
-        const auto minSeparation = SolvePositionConstraintsViaGS(posConstraints, m_bodyConstraints,
+        const auto minSeparation = SolvePositionConstraintsViaGS(posConstraints, bodyConstraints,
                                                                  psConf);
         results.minSeparation = std::min(results.minSeparation, minSeparation);
         const auto contactsOkay = (minSeparation >= conf.regMinSeparation);
         auto jointsOkay = true;
         for_each(cbegin(island.joints), cend(island.joints), [&](const auto& id) {
             auto& joint = m_jointBuffer[to_underlying(id)];
-            jointsOkay &= SolvePosition(joint, m_bodyConstraints, psConf);
+            jointsOkay &= SolvePosition(joint, bodyConstraints, psConf);
         });
         if (contactsOkay && jointsOkay) {
             // Reached tolerance, early out...
@@ -1465,7 +1497,7 @@ IslandStats WorldImpl::SolveRegIslandViaGS(const StepConf& conf, const Island& i
 
     for (const auto& id: island.bodies) {
         const auto i = to_underlying(id);
-        const auto& bc = m_bodyConstraints[i];
+        const auto& bc = bodyConstraints[i];
         auto& body = m_bodyBuffer[i];
         // Could normalize position here to avoid unbounded angles but angular
         // normalization isn't handled correctly by joints that constrain rotation.
@@ -1479,8 +1511,8 @@ IslandStats WorldImpl::SolveRegIslandViaGS(const StepConf& conf, const Island& i
 
     // XXX: Should contacts needing updating be updated now??
 
-    if (m_postSolveContactListener) {
-        Report(m_postSolveContactListener, island.contacts, velConstraints,
+    if (m_listeners.postSolveContact) {
+        Report(m_listeners.postSolveContact, island.contacts, velConstraints,
                results.solved? results.positionIters - 1: StepConf::InvalidIteration);
     }
     
@@ -1573,9 +1605,9 @@ ToiStepStats WorldImpl::SolveToi(const StepConf& conf)
 
     if (IsStepComplete()) {
         ResetBodiesForSolveTOI(m_bodies, m_bodyBuffer);
-        Unset(m_islandedBodies, m_bodies);
+        Unset(m_islanded.bodies, m_bodies);
         ResetContactsForSolveTOI(m_contactBuffer, m_contacts);
-        Unset(m_islandedContacts, m_contacts);
+        Unset(m_islanded.contacts, m_contacts);
     }
 
     const auto subStepping = GetSubStepping();
@@ -1602,7 +1634,7 @@ ToiStepStats WorldImpl::SolveToi(const StepConf& conf)
                                           static_cast<decltype(stats.maxSimulContacts)>(ncount));
         stats.contactsFound += ncount;
         auto islandsFound = 0u;
-        if (!m_islandedContacts[to_underlying(contactID)]) {
+        if (!m_islanded.contacts[to_underlying(contactID)]) {
             const auto solverResults = SolveToi(contactID, conf);
             stats.minSeparation = std::min(stats.minSeparation, solverResults.minSeparation);
             stats.maxIncImpulse = std::max(stats.maxIncImpulse, solverResults.maxIncImpulse);
@@ -1619,8 +1651,8 @@ ToiStepStats WorldImpl::SolveToi(const StepConf& conf)
 
         // Reset island flags and synchronize broad-phase proxies.
         for (const auto& b: m_bodies) {
-            if (m_islandedBodies[to_underlying(b)]) {
-                m_islandedBodies[to_underlying(b)] = false;
+            if (m_islanded.bodies[to_underlying(b)]) {
+                m_islanded.bodies[to_underlying(b)] = false;
                 const auto& body = m_bodyBuffer[to_underlying(b)];
                 if (IsAccelerable(body)) {
                     stats.proxiesMoved += Synchronize(b,
@@ -1629,14 +1661,14 @@ ToiStepStats WorldImpl::SolveToi(const StepConf& conf)
                                                       conf.displaceMultiplier, conf.aabbExtension);
                     const auto& bodyContacts = m_bodyContacts[to_underlying(b)];
                     ResetBodyContactsForSolveTOI(m_contactBuffer, bodyContacts);
-                    Unset(m_islandedContacts, bodyContacts);
+                    Unset(m_islanded.contacts, bodyContacts);
                 }
             }
         }
 
         // Commit fixture proxy movements to the broad-phase so that new contacts are created.
         // Also, some contacts can be destroyed.
-        stats.contactsAdded += FindNewContacts(FindContactKeys(m_tree, std::move(m_proxiesForContacts)));
+        stats.contactsAdded += FindNewContacts(FindContactKeys(m_contactKeysResource, m_tree, std::move(m_proxiesForContacts)));
         m_proxiesForContacts = {};
 
         if (subStepping) {
@@ -1669,7 +1701,7 @@ IslandStats WorldImpl::SolveToi(ContactID contactID, const StepConf& conf)
     assert(!IsSensor(contact));
     assert(IsActive(contact));
     assert(IsImpenetrable(contact));
-    assert(!m_islandedContacts[to_underlying(contactID)]);
+    assert(!m_islanded.contacts[to_underlying(contactID)]);
 
     const auto toi = GetToi(contact);
     const auto bodyIdA = GetBodyA(contact);
@@ -1731,15 +1763,16 @@ IslandStats WorldImpl::SolveToi(ContactID contactID, const StepConf& conf)
     }
 
     // Build the island
-    Island island;
+    Island island{m_islandResource, m_islandResource, m_islandResource};
+    island.bodies.reserve(size(m_bodies));
     island.contacts.reserve(used(m_contactBuffer));
 
      // These asserts get triggered sometimes if contacts within TOI are iterated over.
-    assert(!m_islandedBodies[to_underlying(bodyIdA)]);
-    assert(!m_islandedBodies[to_underlying(bodyIdB)]);
-    m_islandedBodies[to_underlying(bodyIdA)] = true;
-    m_islandedBodies[to_underlying(bodyIdB)] = true;
-    m_islandedContacts[to_underlying(contactID)] = true;
+    assert(!m_islanded.bodies[to_underlying(bodyIdA)]);
+    assert(!m_islanded.bodies[to_underlying(bodyIdB)]);
+    m_islanded.bodies[to_underlying(bodyIdA)] = true;
+    m_islanded.bodies[to_underlying(bodyIdB)] = true;
+    m_islanded.contacts[to_underlying(contactID)] = true;
     island.bodies.push_back(bodyIdA);
     island.bodies.push_back(bodyIdB);
     island.contacts.push_back(contactID);
@@ -1758,10 +1791,10 @@ IslandStats WorldImpl::SolveToi(ContactID contactID, const StepConf& conf)
         contactsSkipped += procOut.contactsSkipped;
     }
 
-#if DO_SORT_ID_LISTS
+#if defined(DO_SORT_ISLANDS)
     Sort(island);
 #endif
-    RemoveUnspeedablesFromIslanded(island.bodies, m_bodyBuffer, m_islandedBodies);
+    RemoveUnspeedablesFromIslanded(island.bodies, m_bodyBuffer, m_islanded.bodies);
 
     // Now solve for remainder of time step.
     auto subConf = StepConf{conf};
@@ -1783,10 +1816,11 @@ IslandStats WorldImpl::SolveToiViaGS(const Island& island, const StepConf& conf)
      * the body constraint doesn't need to pass an elapsed time (and doesn't need to
      * update the velocity from what it already is).
      */
-    GetBodyConstraints(m_bodyConstraints, island.bodies, m_bodyBuffer, 0_s, GetMovementConf(conf));
+    auto bodyConstraints = GetBodyConstraints(m_bodyConstraintsResource,
+                                              island.bodies, m_bodyBuffer, 0_s, GetMovementConf(conf));
 
     // Initialize the body state.
-    auto posConstraints = GetPositionConstraints(island.contacts, m_contactBuffer,
+    auto posConstraints = GetPositionConstraints(m_positionConstraintsResource, island.contacts, m_contactBuffer,
                                                  m_manifoldBuffer, m_shapeBuffer);
 
     // Solve TOI-based position constraints.
@@ -1807,7 +1841,7 @@ IslandStats WorldImpl::SolveToiViaGS(const Island& island, const StepConf& conf)
             //   then the non-selective function is the one to be calling here.
             //
             const auto minSeparation = SolvePositionConstraintsViaGS(posConstraints,
-                                                                     m_bodyConstraints, psConf);
+                                                                     bodyConstraints, psConf);
             results.minSeparation = std::min(results.minSeparation, minSeparation);
             if (minSeparation >= conf.toiMinSeparation) {
                 // Reached tolerance, early out...
@@ -1823,13 +1857,13 @@ IslandStats WorldImpl::SolveToiViaGS(const Island& island, const StepConf& conf)
     // Originally this update was only done to island.bodies 0 and 1.
     // Unclear whether rest of bodies should also be updated. No difference noticed.
     for (const auto& id: island.bodies) {
-        const auto& bc = m_bodyConstraints[to_underlying(id)];
+        const auto& bc = bodyConstraints[to_underlying(id)];
         SetPosition0(m_bodyBuffer[to_underlying(id)], bc.GetPosition());
     }
 
-    auto velConstraints = GetVelocityConstraints(island.contacts,
+    auto velConstraints = GetVelocityConstraints(m_velocityConstraintsResource, island.contacts,
                                                  m_contactBuffer, m_manifoldBuffer, m_shapeBuffer,
-                                                 m_bodyConstraints,
+                                                 bodyConstraints,
                                                  GetToiVelocityConstraintConf(conf));
 
     // No warm starting is needed for TOI events because warm
@@ -1839,7 +1873,7 @@ IslandStats WorldImpl::SolveToiViaGS(const Island& island, const StepConf& conf)
     assert(results.maxIncImpulse == 0_Ns);
     results.velocityIters = conf.toiVelocityIters;
     for (auto i = decltype(conf.toiVelocityIters){0}; i < conf.toiVelocityIters; ++i) {
-        const auto newIncImpulse = SolveVelocityConstraintsViaGS(velConstraints, m_bodyConstraints);
+        const auto newIncImpulse = SolveVelocityConstraintsViaGS(velConstraints, bodyConstraints);
         if (newIncImpulse <= conf.toiMinMomentum) {
             // No body related velocity constraints were out of tolerance.
             // There does not appear to be any benefit to doing more loops now.
@@ -1853,11 +1887,11 @@ IslandStats WorldImpl::SolveToiViaGS(const Island& island, const StepConf& conf)
 
     // Don't store TOI contact forces for warm starting because they can be quite large.
 
-    IntegratePositions(island.bodies, m_bodyConstraints, conf.deltaTime);
+    IntegratePositions(island.bodies, bodyConstraints, conf.deltaTime);
     for (const auto& id: island.bodies) {
         const auto i = to_underlying(id);
         auto& body = m_bodyBuffer[i];
-        auto& bc = m_bodyConstraints[i];
+        auto& bc = bodyConstraints[i];
         body.JustSetVelocity(bc.GetVelocity());
         if (const auto pos = bc.GetPosition(); GetPosition1(body) != pos) {
             SetPosition1(body, pos);
@@ -1865,8 +1899,8 @@ IslandStats WorldImpl::SolveToiViaGS(const Island& island, const StepConf& conf)
         }
     }
 
-    if (m_postSolveContactListener) {
-        Report(m_postSolveContactListener, island.contacts, velConstraints, results.positionIters);
+    if (m_listeners.postSolveContact) {
+        Report(m_listeners.postSolveContact, island.contacts, velConstraints, results.positionIters);
     }
 
     return results;
@@ -1878,7 +1912,7 @@ WorldImpl::ProcessContactsForTOI( // NOLINT(readability-function-cognitive-compl
 {
     const auto& body = m_bodyBuffer[to_underlying(id)];
 
-    assert(m_islandedBodies[to_underlying(id)]);
+    assert(m_islanded.bodies[to_underlying(id)]);
     assert(body.IsAccelerable());
     assert(toi >= 0 && toi <= 1);
 
@@ -1892,7 +1926,7 @@ WorldImpl::ProcessContactsForTOI( // NOLINT(readability-function-cognitive-compl
     const auto bodyImpenetrable = body.IsImpenetrable();
     for (const auto& ci: m_bodyContacts[to_underlying(id)]) {
         const auto contactID = std::get<ContactID>(ci);
-        if (!m_islandedContacts[to_underlying(contactID)]) {
+        if (!m_islanded.contacts[to_underlying(contactID)]) {
             auto& contact = m_contactBuffer[to_underlying(contactID)];
             if (!contact.IsSensor()) {
                 const auto bodyIdA = GetBodyA(contact);
@@ -1900,7 +1934,7 @@ WorldImpl::ProcessContactsForTOI( // NOLINT(readability-function-cognitive-compl
                 const auto otherId = (bodyIdA != id)? bodyIdA: bodyIdB;
                 auto& other = m_bodyBuffer[to_underlying(otherId)];
                 if (bodyImpenetrable || IsImpenetrable(other)) {
-                    const auto otherIslanded = m_islandedBodies[to_underlying(otherId)];
+                    const auto otherIslanded = m_islanded.bodies[to_underlying(otherId)];
                     {
                         const auto backup = GetSweep(other);
                         if (!otherIslanded /* && GetSweep(other).GetAlpha0() != toi */) {
@@ -1925,13 +1959,13 @@ WorldImpl::ProcessContactsForTOI( // NOLINT(readability-function-cognitive-compl
                         }
                     }
                     island.contacts.push_back(contactID);
-                    m_islandedContacts[to_underlying(contactID)] = true;
+                    m_islanded.contacts[to_underlying(contactID)] = true;
                     if (!otherIslanded) {
                         if (IsSpeedable(other)) {
                             other.SetAwakeFlag();
                         }
                         island.bodies.push_back(otherId);
-                        m_islandedBodies[to_underlying(otherId)] = true;
+                        m_islanded.bodies[to_underlying(otherId)] = true;
 #if 0
                         if (IsAccelerable(other)) {
                             contactsUpdated += ProcessContactsForTOI(island, other, toi);
@@ -1959,8 +1993,8 @@ WorldImpl::ProcessContactsForTOI( // NOLINT(readability-function-cognitive-compl
 
 StepStats WorldImpl::Step(const StepConf& conf)
 {
-    assert((Length{m_maxVertexRadius} * Real{2}) +
-           (Length{conf.linearSlop} / Real{4}) > (Length{m_maxVertexRadius} * Real{2}));
+    assert((Length{m_vertexRadius.GetMax()} * Real{2}) +
+           (Length{conf.linearSlop} / Real{4}) > (Length{m_vertexRadius.GetMax()} * Real{2}));
     
     if (IsLocked()) {
         throw WrongState(worldIsLockedMsg);
@@ -2001,7 +2035,7 @@ StepStats WorldImpl::Step(const StepConf& conf)
 
         // For any new fixtures added: need to find and create the new contacts.
         // Note: this may update bodies (in addition to the contacts container).
-        stepStats.pre.added = FindNewContacts(FindContactKeys(m_tree, std::move(m_proxiesForContacts)));
+        stepStats.pre.added = FindNewContacts(FindContactKeys(m_contactKeysResource, m_tree, std::move(m_proxiesForContacts)));
         m_proxiesForContacts = {};
 
         if (conf.deltaTime != 0_s) {
@@ -2055,10 +2089,10 @@ void WorldImpl::InternalDestroy(ContactID contactID, const Body* from)
 {
     assert(contactID != InvalidContactID);
     auto& contact = m_contactBuffer[to_underlying(contactID)];
-    if (m_endContactListener && contact.IsTouching()) {
+    if (m_listeners.endContact && contact.IsTouching()) {
         // EndContact hadn't been called in DestroyOrUpdateContacts() since is-touching,
         //  so call it now
-        m_endContactListener(contactID);
+        m_listeners.endContact(contactID);
     }
     const auto bodyIdA = contact.GetBodyA();
     const auto bodyIdB = contact.GetBodyB();
@@ -2244,7 +2278,7 @@ WorldImpl::UpdateContactsStats WorldImpl::UpdateContacts(const StepConf& conf)
 }
 
 ContactCounter WorldImpl::FindNewContacts( // NOLINT(readability-function-cognitive-complexity)
-                                          std::vector<ContactKey>&& contactKeys)
+                                          std::vector<ContactKey, pmr::polymorphic_allocator<ContactKey>>&& contactKeys)
 {
     const auto numContactsBefore = size(m_contacts);
     for_each(cbegin(contactKeys), cend(contactKeys), [this](ContactKey key) {
@@ -2320,7 +2354,7 @@ ContactCounter WorldImpl::FindNewContacts( // NOLINT(readability-function-cognit
 
         const auto contactID = static_cast<ContactID>(static_cast<ContactID::underlying_type>(
             m_contactBuffer.Allocate(bodyIdA, shapeIdA, indexA, bodyIdB, shapeIdB, indexB)));
-        m_islandedContacts.resize(size(m_contactBuffer));
+        m_islanded.contacts.resize(size(m_contactBuffer));
         m_manifoldBuffer.Allocate();
         auto& contact = m_contactBuffer[to_underlying(contactID)];
         if (IsImpenetrable(bodyA) || IsImpenetrable(bodyB)) {
@@ -2526,20 +2560,20 @@ void WorldImpl::Update( // NOLINT(readability-function-cognitive-complexity)
 
     if (!oldTouching && newTouching) {
         c.SetTouching();
-        if (m_beginContactListener) {
-            m_beginContactListener(contactID);
+        if (m_listeners.beginContact) {
+            m_listeners.beginContact(contactID);
         }
     }
     else if (oldTouching && !newTouching) {
         c.UnsetTouching();
-        if (m_endContactListener) {
-            m_endContactListener(contactID);
+        if (m_listeners.endContact) {
+            m_listeners.endContact(contactID);
         }
     }
 
     if (!sensor && newTouching) {
-        if (m_preSolveContactListener) {
-            m_preSolveContactListener(contactID, oldManifold);
+        if (m_listeners.preSolveContact) {
+            m_listeners.preSolveContact(contactID, oldManifold);
         }
     }
 }

@@ -259,6 +259,7 @@ public:
     /// @attention Call this if neither body A nor body B are "awake".
     constexpr void UnsetIsActive() noexcept;
 
+private:
     /// Flags type data type.
     using FlagsType = std::uint8_t;
 
@@ -289,7 +290,6 @@ public:
         e_impenetrableFlag = 0x80,
     };
 
-private:
     /// Identifier of body A.
     /// @note Field is 2-bytes.
     /// @warning Should only be body associated with shape A.

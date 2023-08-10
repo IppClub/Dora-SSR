@@ -245,7 +245,7 @@ void World::Destroy(ShapeID id)
     ::playrho::d2::Destroy(*m_impl, id);
 }
 
-const World::Contacts& World::GetContacts() const noexcept
+World::Contacts World::GetContacts() const
 {
     return ::playrho::d2::GetContacts(*m_impl);
 }

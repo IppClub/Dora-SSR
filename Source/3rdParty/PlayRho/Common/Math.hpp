@@ -627,6 +627,13 @@ constexpr auto NextPowerOfTwo(T x) -> decltype((x | (x >> 1u)), T(++x))
     return ++x;
 }
 
+/// @brief Reports whether or not the given value is a power of two.
+template <typename T>
+constexpr auto IsPowerOfTwo(const T& n) -> decltype(n && !(n & (n - 1)))
+{
+    return n && !(n & (n - 1));
+}
+
 /// @brief Converts the given vector into a unit vector and returns its original length.
 Real Normalize(Vec2& vector);
 
@@ -654,6 +661,13 @@ constexpr auto GetModuloPrev(const T value, const T count) noexcept -> T
 {
     assert(value < count);
     return (value ? value : count) - 1;
+}
+
+/// @brief Converts the given value to its closest signed equivalent.
+template< class T >
+constexpr auto ToSigned(const T& value) -> decltype(static_cast<std::make_signed_t<T>>(value))
+{
+    return static_cast<std::make_signed_t<T>>(value);
 }
 
 /// @brief Gets the shortest angular distance to go from angle 0 to angle 1.
@@ -971,13 +985,6 @@ constexpr auto GetReflectionMatrix(const UnitVec& axis)
         }
     }
     return result;
-}
-
-/// @brief Converts the given value to its closest signed equivalent.
-template< class T >
-constexpr auto ToSigned(const T& value) -> decltype(static_cast<std::make_signed_t<T>>(value))
-{
-    return static_cast<std::make_signed_t<T>>(value);
 }
 
 } // namespace d2

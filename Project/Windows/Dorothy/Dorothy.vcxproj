@@ -329,7 +329,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Collision.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\ClipList.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -358,6 +358,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\MassData.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\PointStates.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -437,9 +441,21 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\MemoryResource.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\PoolMemoryResource.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\StackAllocator.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\StatsResource.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\Sweep.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -1440,7 +1456,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Other\rapidxml_sax3.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\utf8.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\AABB.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Collision.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\ClipList.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\ContactFeature.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Distance.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\DistanceConf.hpp" />
@@ -1451,6 +1467,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Manifold.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\MassData.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\PointState.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\PointStates.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\RayCastInput.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\RayCastOpcode.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\RayCastOutput.hpp" />
@@ -1490,11 +1507,13 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\LengthError.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Math.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Matrix.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\MemoryResource.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Negative.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\NonNegative.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\NonPositive.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\NonZero.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\ObjectPool.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\PoolMemoryResource.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Position.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Positive.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\propagate_const.hpp" />
@@ -1503,8 +1522,10 @@
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Settings.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Span.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\StackAllocator.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\StatsResource.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Sweep.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Templates.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\ThreadLocalAllocator.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Transformation.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\TypeInfo.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\UnitInterval.hpp" />

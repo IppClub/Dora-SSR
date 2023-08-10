@@ -23,9 +23,9 @@
 #define PLAYRHO_DYNAMICS_JOINTS_PRISMATICJOINTCONF_HPP
 
 #include "PlayRho/Dynamics/Joints/JointConf.hpp"
-
 #include "PlayRho/Dynamics/Joints/LimitState.hpp"
 #include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Span.hpp"
 
 namespace playrho {
 
@@ -258,7 +258,7 @@ AngularMomentum GetAngularReaction(const PrismaticJointConf& conf);
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocityConstraints.
 /// @relatedalso PrismaticJointConf
-void InitVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodies,
+void InitVelocity(PrismaticJointConf& object, const Span<BodyConstraint>& bodies,
                   const StepConf& step, const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -272,7 +272,7 @@ void InitVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodie
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso PrismaticJointConf
-bool SolveVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(PrismaticJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
@@ -284,7 +284,7 @@ bool SolveVelocity(PrismaticJointConf& object, std::vector<BodyConstraint>& bodi
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @return <code>true</code> if the position errors are within tolerance.
 /// @relatedalso PrismaticJointConf
-bool SolvePosition(const PrismaticJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const PrismaticJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
 
 /// @brief Free function for setting the maximum motor torque value of the given configuration.

@@ -356,6 +356,9 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/PlayRho/Common/Velocity.cpp
 	src/main/cpp/3rdParty/PlayRho/Common/StackAllocator.cpp
 	src/main/cpp/3rdParty/PlayRho/Common/CodeDumper.cpp
+	src/main/cpp/3rdParty/PlayRho/Common/PoolMemoryResource.cpp
+	src/main/cpp/3rdParty/PlayRho/Common/MemoryResource.cpp
+	src/main/cpp/3rdParty/PlayRho/Common/StatsResource.cpp
 	src/main/cpp/3rdParty/PlayRho/Collision/RayCastOutput.cpp
 	src/main/cpp/3rdParty/PlayRho/Collision/Manifold.cpp
 	src/main/cpp/3rdParty/PlayRho/Collision/Simplex.cpp
@@ -371,7 +374,8 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/PlayRho/Collision/MassData.cpp
 	src/main/cpp/3rdParty/PlayRho/Collision/ToiConf.cpp
 	src/main/cpp/3rdParty/PlayRho/Collision/ShapeSeparation.cpp
-	src/main/cpp/3rdParty/PlayRho/Collision/Collision.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/ClipList.cpp
+	src/main/cpp/3rdParty/PlayRho/Collision/PointStates.cpp
 	src/main/cpp/3rdParty/PlayRho/Collision/DistanceConf.cpp
 	src/main/cpp/3rdParty/sqlite/SQLiteCpp/Column.cpp
 	src/main/cpp/3rdParty/sqlite/SQLiteCpp/Savepoint.cpp

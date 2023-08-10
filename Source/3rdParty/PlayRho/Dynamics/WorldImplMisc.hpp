@@ -131,7 +131,7 @@ const std::vector<JointID>& GetJoints(const WorldImpl& world) noexcept;
 
 /// @brief Gets the contacts of the specified world.
 /// @relatedalso WorldImpl
-const std::vector<KeyedContactPtr>& GetContacts(const WorldImpl& world) noexcept;
+std::vector<KeyedContactPtr> GetContacts(const WorldImpl& world);
 
 /// @brief Is the world locked (in the middle of a time step).
 /// @relatedalso WorldImpl

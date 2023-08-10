@@ -23,9 +23,9 @@
 #define PLAYRHO_DYNAMICS_JOINTS_MOTORJOINTCONF_HPP
 
 #include "PlayRho/Dynamics/Joints/JointConf.hpp"
-
 #include "PlayRho/Common/NonNegative.hpp"
 #include "PlayRho/Common/Math.hpp"
+#include "PlayRho/Common/Span.hpp"
 
 namespace playrho {
 
@@ -195,7 +195,7 @@ constexpr auto ShiftOrigin(MotorJointConf&, const Length2&) noexcept
 ///  <code>InvalidBodyID</code> and are not  indices within range of the given <code>bodies</code> container.
 /// @see SolveVelocity.
 /// @relatedalso MotorJointConf
-void InitVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies, const StepConf& step,
+void InitVelocity(MotorJointConf& object, const Span<BodyConstraint>& bodies, const StepConf& step,
                   const ConstraintSolverConf& conf);
 
 /// @brief Solves velocity constraint.
@@ -209,14 +209,14 @@ void InitVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies, c
 /// @see InitVelocity.
 /// @return <code>true</code> if velocity is "solved", <code>false</code> otherwise.
 /// @relatedalso MotorJointConf
-bool SolveVelocity(MotorJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolveVelocity(MotorJointConf& object, const Span<BodyConstraint>& bodies,
                    const StepConf& step);
 
 /// @brief Solves the position constraint.
 /// @note This is a no-op and always returns <code>true</code>.
 /// @return <code>true</code>.
 /// @relatedalso MotorJointConf
-bool SolvePosition(const MotorJointConf& object, std::vector<BodyConstraint>& bodies,
+bool SolvePosition(const MotorJointConf& object, const Span<BodyConstraint>& bodies,
                    const ConstraintSolverConf& conf);
 
 /// @brief Free function for getting the maximum force value of the given configuration.

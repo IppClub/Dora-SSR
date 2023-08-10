@@ -19,8 +19,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "PlayRho/Collision/Shapes/ChainShapeConf.hpp"
+#include "PlayRho/Common/Span.hpp"
 
+#include "PlayRho/Collision/Shapes/ChainShapeConf.hpp"
 #include "PlayRho/Collision/AABB.hpp"
 #include "PlayRho/Collision/Shapes/Shape.hpp"
 
@@ -34,7 +35,7 @@ static_assert(IsValidShapeType<ChainShapeConf>::value);
 
 namespace {
 
-std::vector<UnitVec> ComputeNormals(const std::vector<Length2>& vertices)
+std::vector<UnitVec> ComputeNormals(const Span<const Length2>& vertices)
 {
     std::vector<UnitVec> normals;
     if (size(vertices) > std::size_t{1}) {
