@@ -698,6 +698,7 @@ int CALLBACK WinMain(
 #include "sqlite3.h"
 #include "wasm3.h"
 #include "yuescript/yue_compiler.h"
+#include "Http/HttpServer.h"
 
 std::string Dorothy::Application::getDeps() const {
 	return fmt::format(
@@ -715,7 +716,8 @@ std::string Dorothy::Application::getDeps() const {
 		"- sqlite3 {}\n"
 		"- SQLiteCpp {}\n"
 		"- wasm3 {}\n"
-		"- fmt {}",
+		"- fmt {}\n"
+		"- httplib {}",
 		SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL,
 		BGFX_API_VERSION,
 		LUA_VERSION_MAJOR, LUA_VERSION_MINOR, LUA_VERSION_RELEASE,
@@ -728,5 +730,6 @@ std::string Dorothy::Application::getDeps() const {
 		SQLITE_VERSION,
 		SQLITECPP_VERSION,
 		M3_VERSION,
-		FMT_VERSION);
+		FMT_VERSION,
+		HttpServer::getVersion());
 }

@@ -3,7 +3,7 @@
  * @ingroup SQLiteCpp
  * @brief   Management of a SQLite Database Connection.
  *
- * Copyright (c) 2012-2022 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2023 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -22,8 +22,6 @@
 #ifndef SQLITE_DETERMINISTIC
 #define SQLITE_DETERMINISTIC 0x800
 #endif // SQLITE_DETERMINISTIC
-
-#define SQLITE_OMIT_LOAD_EXTENSION
 
 namespace SQLite
 {
