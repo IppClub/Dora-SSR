@@ -207,6 +207,13 @@ tealKeywords = {
 	'type'
 	'embed'
 	'enum'
+	'global'
+	'any'
+	'boolean'
+	'integer'
+	'number'
+	'string'
+	'thread'
 }
 
 yueKeywords = {
