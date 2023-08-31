@@ -2,7 +2,7 @@ import "@site/src/languages/highlight";
 
 # 编写游戏角色动作模块
 
-&emsp;&emsp;欢迎来到Dorothy SSR游戏引擎横版2D游戏开发教程的第四篇！在这篇教程中，我们将介绍如何编写游戏角色动作模块。在游戏中，角色的动作是非常重要的一部分，它们决定了角色的行为和反应。我们将使用Dorothy SSR游戏引擎的[UnitAction](../../api/Class%20Object/Platformer/UnitAction)类来定义和管理角色的动作。
+&emsp;&emsp;欢迎来到Dorothy SSR游戏引擎横版2D游戏开发教程的第四篇！在这篇教程中，我们将介绍如何编写游戏角色动作模块。在游戏中，角色的动作是非常重要的一部分，它们决定了角色的行为和反应。我们将使用Dorothy SSR游戏引擎的[UnitAction](/docs/api/Class%20Object/Platformer/UnitAction)类来定义和管理角色的动作。
 
 &emsp;&emsp;首先，我们需要引入一些必要的模块：
 
@@ -16,7 +16,7 @@ local UnitAction <const> = Platformer.UnitAction
 local type UnitType = Platformer.Unit.Type
 ```
 
-&emsp;&emsp;接着，我们使用UnitAction的[add](../../api/Class%20Object/Platformer/UnitAction#add)方法来添加新的动作。每个动作都有一个名称和一组[参数](../../api/Class/Platformer/UnitActionParam)，这些参数定义了动作的行为。例如，我们可以定义一个"idle"动作，表示角色在空闲状态下的行为：
+&emsp;&emsp;接着，我们使用UnitAction的[add](/docs/api/Class%20Object/Platformer/UnitAction#add)方法来添加新的动作。每个动作都有一个名称和一组[参数](/docs/api/Class/Platformer/UnitActionParam)，这些参数定义了动作的行为。例如，我们可以定义一个"idle"动作，表示角色在空闲状态下的行为：
 
 ```tl title=Script/Action.tl
 UnitAction:add("idle", {
@@ -57,9 +57,9 @@ UnitAction:add("idle", {
 })
 ```
 
-&emsp;&emsp;在这个例子中，我们设置了动作的优先级、反应时间和恢复时间。优先级决定了当多个动作同时触发时，哪个动作会被执行。反应时间决定了AI检查的周期时间，恢复时间主要影响动画模型在不同动作中播放动画做切换的动画过渡时间。我们还定义了一个[available](../../api/Class/Platformer/UnitActionParam#available)函数，用于检查角色是否可以执行这个动作。在这个例子中，角色只有在地面上时才可以执行"idle"动作。
+&emsp;&emsp;在这个例子中，我们设置了动作的优先级、反应时间和恢复时间。优先级决定了当多个动作同时触发时，哪个动作会被执行。反应时间决定了AI检查的周期时间，恢复时间主要影响动画模型在不同动作中播放动画做切换的动画过渡时间。我们还定义了一个[available](/docs/api/Class/Platformer/UnitActionParam#available)函数，用于检查角色是否可以执行这个动作。在这个例子中，角色只有在地面上时才可以执行"idle"动作。
 
-&emsp;&emsp;[create](../../api/Class/Platformer/UnitActionParam#create)函数用于创建动作的初始状态，并返回一个函数或协程，用于处理动作的逻辑。当返回一个函数时，这个函数将会被每帧调用，直到函数返回值为true时，停止调用。如果返回的是一个协程，这个协程也会被每帧进行resume调度，直到协程在执行中抛出（yield）true的返回值。在这个例子中，我们创建了一个协程，用于循环播放角色的普通和特殊空闲动画，并同时反复检查角色和地面接触的状态，如果离了开地面，动作执行就会被终止。
+&emsp;&emsp;[create](/docs/api/Class/Platformer/UnitActionParam#create)函数用于创建动作的初始状态，并返回一个函数或协程，用于处理动作的逻辑。当返回一个函数时，这个函数将会被每帧调用，直到函数返回值为true时，停止调用。如果返回的是一个协程，这个协程也会被每帧进行resume调度，直到协程在执行中抛出（yield）true的返回值。在这个例子中，我们创建了一个协程，用于循环播放角色的普通和特殊空闲动画，并同时反复检查角色和地面接触的状态，如果离了开地面，动作执行就会被终止。
 
 &emsp;&emsp;当然，我们可以继续深入讲解"move"、"jump"和"fallOff"这三个动作的定义。
 

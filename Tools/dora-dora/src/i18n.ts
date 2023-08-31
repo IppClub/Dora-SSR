@@ -82,6 +82,7 @@ i18n
 						markdown: "do some documentation",
 						folder: "create a file folder",
 						yarn: "a language for game dialogue",
+						visualScript: "write game logic by connecting visual nodes together",
 					},
 					editor: {
 						goToDefinition: "Go to Definition",
@@ -182,6 +183,7 @@ i18n
 						markdown: "来写一些文档吧",
 						folder: "创建文件夹",
 						yarn: "用于编写游戏对话的语言",
+						visualScript: "通过将可视化节点连接在一起来写游戏逻辑",
 					},
 					editor: {
 						goToDefinition: "跳转到定义",
