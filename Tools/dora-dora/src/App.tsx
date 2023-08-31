@@ -28,6 +28,7 @@ import FileFilter, { FilterOption } from './FileFilter';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'antd';
 import YarnEditor, { YarnEditorData } from './YarnEditor';
+import CodeWire from './CodeWire';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -254,7 +255,8 @@ export default function PersistentDrawerLeft() {
 			case ".png":
 			case ".jpg":
 			case ".skel":
-			case ".yarn": {
+			case ".yarn":
+			case ".vs": {
 				break;
 			}
 			default: return;
@@ -724,6 +726,7 @@ export default function PersistentDrawerLeft() {
 			case "Dora Xml": ext = ".xml"; break;
 			case "Markdown": ext = ".md"; break;
 			case "Yarn": ext = ".yarn"; break;
+			case "Visual Script": ext = ".vs"; break;
 			case "Folder": ext = ""; break;
 		}
 		if (ext !== null) {
@@ -1312,6 +1315,7 @@ export default function PersistentDrawerLeft() {
 						case ".xml":
 						case ".wasm":
 						case ".yarn":
+						case ".vs":
 						case "":
 							if (ext === ".yarn" && !asProj) {
 								break;
@@ -1638,6 +1642,7 @@ export default function PersistentDrawerLeft() {
 						let image = false;
 						let spine = false;
 						let yarn = false;
+						let visualScript = false;
 						switch (ext.toLowerCase()) {
 							case ".lua": language = "lua"; break;
 							case ".tl": language = "tl"; break;
@@ -1648,6 +1653,7 @@ export default function PersistentDrawerLeft() {
 							case ".png": image = true; break;
 							case ".skel": spine = true; break;
 							case ".yarn": yarn = true; break;
+							case ".vs": visualScript = true; break;
 						}
 						const markdown = language === "markdown";
 						const readOnly = !file.key.startsWith(treeData.at(0)?.key ?? "");
@@ -1672,6 +1678,14 @@ export default function PersistentDrawerLeft() {
 									onKeydown={(e) => {
 										setKeyEvent(e);
 									}}
+								/> : null
+							}
+							{visualScript ?
+								<CodeWire
+									title={file.key}
+									defaultValue={file.content}
+									width={window.innerWidth - (drawerOpen ? drawerWidth : 0)}
+									height={window.innerHeight - 64}
 								/> : null
 							}
 							{markdown ?

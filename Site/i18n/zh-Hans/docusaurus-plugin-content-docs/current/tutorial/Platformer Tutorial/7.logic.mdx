@@ -2,7 +2,7 @@ import "@site/src/languages/highlight";
 
 # 编写游戏处理逻辑模块
 
-&emsp;&emsp;欢迎来到Dorothy SSR游戏引擎横版2D游戏开发教程的第七篇！在这篇教程中，我们将介绍如何使用Dorothy SSR的ECS（Entity Component System）框架来编写游戏处理逻辑模块。ECS是一种常用的游戏开发模式，它将游戏的数据处理分解为实体（Entity）、组件（Component）和系统（System），使得游戏逻辑更加清晰，代码更易于管理和扩展。在Dorothy SSR中ECS框架具体由[Entity](../../api/Class/Entity)、[Observer](../../api/Class/Observer)和[Group](../../api/Class/Group)等组件提供相应的功能。
+&emsp;&emsp;欢迎来到Dorothy SSR游戏引擎横版2D游戏开发教程的第七篇！在这篇教程中，我们将介绍如何使用Dorothy SSR的ECS（Entity Component System）框架来编写游戏处理逻辑模块。ECS是一种常用的游戏开发模式，它将游戏的数据处理分解为实体（Entity）、组件（Component）和系统（System），使得游戏逻辑更加清晰，代码更易于管理和扩展。在Dorothy SSR中ECS框架具体由[Entity](/docs/api/Class/Entity)、[Observer](/docs/api/Class/Observer)和[Group](/docs/api/Class/Group)等组件提供相应的功能。
 
 &emsp;&emsp;首先，我们需要引入一些必要的模块，这次要引入的功能组件比较多，可以想见这个模块的实现的功能也会比较复杂：
 
@@ -31,7 +31,7 @@ local Data <const> = Platformer.Data
 local Unit <const> = Platformer.Unit
 ```
 
-&emsp;&emsp;接着，我们创建了一个[观察器](../../api/Class/Observer)，用于监听游戏玩家角色实体的创建行为。当实体被创建时，我们会创建一个代表实际玩家角色的场景节点的[Unit](../../api/Class/Platformer/Unit)对象，并进行相关的初始化操作，所以Entity代表的只是纯粹的游戏数据对象，而真正在游戏场景中渲染图形和进行互动的游戏功能，还得靠创建与游戏数据相对应的游戏场景节点对象：
+&emsp;&emsp;接着，我们创建了一个[观察器](/docs/api/Class/Observer)，用于监听游戏玩家角色实体的创建行为。当实体被创建时，我们会创建一个代表实际玩家角色的场景节点的[Unit](/docs/api/Class/Platformer/Unit)对象，并进行相关的初始化操作，所以Entity代表的只是纯粹的游戏数据对象，而真正在游戏场景中渲染图形和进行互动的游戏功能，还得靠创建与游戏数据相对应的游戏场景节点对象：
 
 ```tl title=Script/Logic.tl
 Observer("Add", {"player"}):watch(function(self: Entity.Type)
@@ -51,7 +51,7 @@ Observer("Add", {"player"}):watch(function(self: Entity.Type)
 end)
 ```
 
-&emsp;&emsp;然后，我们创建了另一个观察器，用于监听游戏道具实体的创建行为。当实体被创建时，我们会创建一个[Sprite](../../api/Class/Sprite)对象，这是游戏道具的图形表示。同时，我们也创建了一个游戏道具的物理体[Body](../../api/Class/Body)的对象，并在物理体上添加了一个感应器。这个感应器可以监听到与其发生碰撞的其他物体，当感应到与玩家对象碰撞时，就会触发名字叫["BodyEnter"](../../api/Node%20Event/Body#bodyenter)的节点事件，并执行我们注册好的道具拾取的处理逻辑：
+&emsp;&emsp;然后，我们创建了另一个观察器，用于监听游戏道具实体的创建行为。当实体被创建时，我们会创建一个[Sprite](/docs/api/Class/Sprite)对象，这是游戏道具的图形表示。同时，我们也创建了一个游戏道具的物理体[Body](/docs/api/Class/Body)的对象，并在物理体上添加了一个感应器。这个感应器可以监听到与其发生碰撞的其他物体，当感应到与玩家对象碰撞时，就会触发名字叫["BodyEnter"](/docs/api/Node%20Event/Body#bodyenter)的节点事件，并执行我们注册好的道具拾取的处理逻辑：
 
 ```tl title=Script/Logic.tl
 Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon: string)

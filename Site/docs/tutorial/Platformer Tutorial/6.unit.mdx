@@ -14,7 +14,7 @@ local Array <const> = require("Array")
 local Platformer <const> = require("Platformer")
 ```
 
-Next, we create a [Dictionary](../../api/Class/Dictionary) object and set attributes for various game characters:
+Next, we create a [Dictionary](/docs/api/Class/Dictionary) object and set attributes for various game characters:
 
 ```tl title=Script/Unit.tl
 local unitDef = Dictionary()
@@ -47,7 +47,7 @@ unitDef.actions = Array {
 
 In the above code, we define various attributes for game characters, including linear acceleration (gravity), body type, scale, density, friction, restitution, animation model, default facing direction (right), size, reaction time factor, movement speed, jump force, detection distance, health points, tag, decision tree, whether to use precise hit, and a list of actions. These attributes are common basic properties of side-scrolling game characters, but in the game example of this tutorial, only a small portion of the defined data is used. You can also try defining other new attributes and access and use them in other custom processing logic.
 
-Finally, we save this dictionary object to [Platformer.Data.store](../../api/Class/Platformer/Data#store), so that other modules can access this object:
+Finally, we save this dictionary object to [Platformer.Data.store](/docs/api/Class/Platformer/Data#store), so that other modules can access this object:
 
 ```tl title=Script/Unit.tl
 Platformer.Data.store["Unit:player"] = unitDef

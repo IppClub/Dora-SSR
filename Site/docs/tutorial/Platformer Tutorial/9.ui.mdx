@@ -44,7 +44,7 @@ local function updatePlayerControl(key: string, flag: boolean, vpad: boolean)
 end
 ```
 
-Then, we create a root node for the UI called `alignNode` and add it to [Director.ui](../../api/Class/Director#ui). This node serves as the parent node for all other UI nodes.
+Then, we create a root node for the UI called `alignNode` and add it to [Director.ui](/docs/api/Class/Director#ui). This node serves as the parent node for all other UI nodes.
 
 ```tl title=Script/UI.tl
 -- Get the DPI scaling value of the device to ensure consistent display size of UI on different devices
@@ -69,7 +69,7 @@ local leftMenu = Menu()
 leftAlign:addChild(leftMenu)
 ```
 
-Inside `leftMenu`, we create three circular buttons: `leftButton`, `rightButton`, and `jumpButton`. These buttons are used to control the player's left movement, right movement, and jumping actions, respectively. Each button has a [TapBegan](../../api/Node%20Event/Node#tapbegan) event and a [TapEnded](../../api/Node%20Event/Node#tapended) event, which are triggered when the button is pressed and released, respectively.
+Inside `leftMenu`, we create three circular buttons: `leftButton`, `rightButton`, and `jumpButton`. These buttons are used to control the player's left movement, right movement, and jumping actions, respectively. Each button has a [TapBegan](/docs/api/Node%20Event/Node#tapbegan) event and a [TapEnded](/docs/api/Node%20Event/Node#tapended) event, which are triggered when the button is pressed and released, respectively.
 
 ```tl title=Script/UI.tl
 -- Create the left movement button

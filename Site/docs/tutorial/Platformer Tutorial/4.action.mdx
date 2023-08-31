@@ -2,7 +2,7 @@ import "@site/src/languages/highlight";
 
 # Writing Game Character Action Module
 
-&emsp;&emsp;Welcome to the fourth tutorial of the Dorothy SSR game engine side-scrolling 2D game development series! In this tutorial, we will learn how to write the game character action module. In a game, the actions of the characters are a crucial part as they determine the behavior and reactions of the characters. We will use the [UnitAction](../../api/Class%20Object/Platformer/UnitAction) class from the Dorothy SSR game engine to define and manage the character actions.
+&emsp;&emsp;Welcome to the fourth tutorial of the Dorothy SSR game engine side-scrolling 2D game development series! In this tutorial, we will learn how to write the game character action module. In a game, the actions of the characters are a crucial part as they determine the behavior and reactions of the characters. We will use the [UnitAction](/docs/api/Class%20Object/Platformer/UnitAction) class from the Dorothy SSR game engine to define and manage the character actions.
 
 &emsp;&emsp;Firstly, we need to import some necessary modules:
 
@@ -16,7 +16,7 @@ local UnitAction <const> = Platformer.UnitAction
 local type UnitType = Platformer.Unit.Type
 ```
 
-&emsp;&emsp;Next, we use the [add](../../api/Class%20Object/Platformer/UnitAction#add) method of UnitAction to add new actions. Each action has a name and a set of [parameters](../../api/Class/Platformer/UnitActionParam) that define its behavior. For example, we can define an "idle" action that represents the character's behavior in an idle state:
+&emsp;&emsp;Next, we use the [add](/docs/api/Class%20Object/Platformer/UnitAction#add) method of UnitAction to add new actions. Each action has a name and a set of [parameters](/docs/api/Class/Platformer/UnitActionParam) that define its behavior. For example, we can define an "idle" action that represents the character's behavior in an idle state:
 
 ```tl title=Script/Action.tl
 UnitAction:add("idle", {
@@ -57,9 +57,9 @@ UnitAction:add("idle", {
 })
 ```
 
-&emsp;&emsp;In this example, we set the priority, reaction time, and recovery time of the action. The priority determines which action will be executed when multiple actions are triggered simultaneously. The reaction time determines the period at which AI checks are performed, and the recovery time primarily affects the animation transition time when switching between different actions. We also define an [available](../../api/Class/Platformer/UnitActionParam#available) function to check if the character can perform this action. In this example, the character can only perform the "idle" action when it is on the ground.
+&emsp;&emsp;In this example, we set the priority, reaction time, and recovery time of the action. The priority determines which action will be executed when multiple actions are triggered simultaneously. The reaction time determines the period at which AI checks are performed, and the recovery time primarily affects the animation transition time when switching between different actions. We also define an [available](/docs/api/Class/Platformer/UnitActionParam#available) function to check if the character can perform this action. In this example, the character can only perform the "idle" action when it is on the ground.
 
-&emsp;&emsp;The [create](../../api/Class/Platformer/UnitActionParam#create) function is used to create the initial state of the action and return a function or coroutine to handle the action's logic. When returning a function, this function will be called per frame until the function returns true, at which point the calls stop. If a coroutine is returned, it will also be scheduled for resume per frame until the coroutine yields (returns) true during execution. In this example, we create a coroutine that loops to play both the normal and special idle animations of the character and repeatedly checks the status of the character's contact with the ground. If the character leaves the ground, the action execution will be terminated.
+&emsp;&emsp;The [create](/docs/api/Class/Platformer/UnitActionParam#create) function is used to create the initial state of the action and return a function or coroutine to handle the action's logic. When returning a function, this function will be called per frame until the function returns true, at which point the calls stop. If a coroutine is returned, it will also be scheduled for resume per frame until the coroutine yields (returns) true during execution. In this example, we create a coroutine that loops to play both the normal and special idle animations of the character and repeatedly checks the status of the character's contact with the ground. If the character leaves the ground, the action execution will be terminated.
 
 &emsp;&emsp;Of course, we can continue to explain the definitions of the "move", "jump", and "fallOff" actions in more detail.
 

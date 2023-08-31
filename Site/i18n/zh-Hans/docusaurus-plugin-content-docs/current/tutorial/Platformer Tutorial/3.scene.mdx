@@ -31,7 +31,7 @@ local borderColor = themeColor:toARGB()
 local DesignWidth <const> = 1000
 ```
 
-&emsp;&emsp;然后，我们创建了一个[PlatformWorld](../../api/Class/Platformer/PlatformWorld)对象，并设置了相机的边界、跟随比例和缩放比例。这里的[world.camera](../../api/Class/Platformer/PlatformWorld#camera)是一个[PlatformCamera](../../api/Class/Platformer/PlatformCamera)对象，它是用于2D平台游戏的相机，可以跟踪游戏单位的移动并保持其在相机视野内。[boundary](../../api/Class/Platformer/PlatformCamera#boundary)是相机可见范围的矩形区域，[followRatio](../../api/Class/Platformer/PlatformCamera#followratio)是相机移动以跟随目标位置的速率，[zoom](../../api/Class/Platformer/PlatformCamera#zoom)是相机的缩放系数，1.0表示正常大小，2.0表示缩放到两倍大小。
+&emsp;&emsp;然后，我们创建了一个[PlatformWorld](/docs/api/Class/Platformer/PlatformWorld)对象，并设置了相机的边界、跟随比例和缩放比例。这里的[world.camera](/docs/api/Class/Platformer/PlatformWorld#camera)是一个[PlatformCamera](/docs/api/Class/Platformer/PlatformCamera)对象，它是用于2D平台游戏的相机，可以跟踪游戏单位的移动并保持其在相机视野内。[boundary](/docs/api/Class/Platformer/PlatformCamera#boundary)是相机可见范围的矩形区域，[followRatio](/docs/api/Class/Platformer/PlatformCamera#followratio)是相机移动以跟随目标位置的速率，[zoom](/docs/api/Class/Platformer/PlatformCamera#zoom)是相机的缩放系数，1.0表示正常大小，2.0表示缩放到两倍大小。
 
 ```tl title=Script/Scene.tl
 local world = Platformer.PlatformWorld()
@@ -43,7 +43,7 @@ world:gslot("AppSizeChanged", function()
 end)
 ```
 
-&emsp;&emsp;接下来，我们创建了一个[BodyDef](../../api/Class/BodyDef)对象，这个对象用来描述游戏场景物理对象的定义。我们附加了四个多边形，这些多边形将作为游戏场景边界碰撞的物理对象：
+&emsp;&emsp;接下来，我们创建了一个[BodyDef](/docs/api/Class/BodyDef)对象，这个对象用来描述游戏场景物理对象的定义。我们附加了四个多边形，这些多边形将作为游戏场景边界碰撞的物理对象：
 
 ```tl title=Script/Scene.tl
 local terrainDef = BodyDef()
@@ -54,7 +54,7 @@ terrainDef:attachPolygon(Vec2(1250, 0), 10, 1000, 0, 1, 1, 0)
 terrainDef:attachPolygon(Vec2(-1250, 0), 10, 1000, 0, 1, 1, 0)
 ```
 
-&emsp;&emsp;然后，我们创建了一个[Body](../../api/Class/Body)对象，这是由terrainDef定义对象创建的物理实体，也是一个场景节点的类型，可以挂在到游戏场景中。我们设置了它的顺序和组，然后添加了四个Rectangle对象作为场景的可视图形对象。这些Rectangle对象是用于展示物理场景的图形节点：
+&emsp;&emsp;然后，我们创建了一个[Body](/docs/api/Class/Body)对象，这是由terrainDef定义对象创建的物理实体，也是一个场景节点的类型，可以挂在到游戏场景中。我们设置了它的顺序和组，然后添加了四个Rectangle对象作为场景的可视图形对象。这些Rectangle对象是用于展示物理场景的图形节点：
 
 ```tl title=Script/Scene.tl
 local terrain = Body(terrainDef, world, Vec2.zero)
@@ -91,20 +91,20 @@ terrain:addChild(Rectangle{
 })
 ```
 
-接着，我们将terrain对象添加到world对象中，然后将world对象添加到[Director.entry](../../api/Class/Director#entry)中。这里的Director.entry是引擎提供的创建游戏场景树的根节点接口：
+接着，我们将terrain对象添加到world对象中，然后将world对象添加到[Director.entry](/docs/api/Class/Director#entry)中。这里的Director.entry是引擎提供的创建游戏场景树的根节点接口：
 
 ```tl title=Script/Scene.tl
 world:addChild(terrain)
 Director.entry:addChild(world)
 ```
 
-然后，我们将world对象保存在[Platformer.Data.store](../../api/Class/Platformer/Data#store)中，这样其他模块就可以访问这个对象了：
+然后，我们将world对象保存在[Platformer.Data.store](/docs/api/Class/Platformer/Data#store)中，这样其他模块就可以访问这个对象了：
 
 ```tl title=Script/Scene.tl
 Platformer.Data.store["Scene:world"] = world
 ```
 
-最后，我们创建了一个[Entity](../../api/Class/Entity)对象，并调用了`Loader.loadExcel()`函数。这两行代码的具体作用将在后续的教程中进行解释：
+最后，我们创建了一个[Entity](/docs/api/Class/Entity)对象，并调用了`Loader.loadExcel()`函数。这两行代码的具体作用将在后续的教程中进行解释：
 
 ```tl title=Script/Scene.tl
 Entity{player = true}

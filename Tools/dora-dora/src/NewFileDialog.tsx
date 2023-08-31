@@ -8,12 +8,13 @@ import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
 import { AiFillFolderAdd } from 'react-icons/ai';
+import { SiNodered } from 'react-icons/si';
 import { DiCode } from 'react-icons/di';
 import { VscMarkdown } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
 import { DialogActions, Grid } from '@mui/material';
 
-export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Dora Xml" | "Markdown" | "Yarn" | "Folder"
+export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Dora Xml" | "Markdown" | "Yarn" | "Visual Script" | "Folder"
 
 interface FileType {
 	icon: React.ReactNode;
@@ -58,6 +59,12 @@ const fileTypes: FileType[] = [
 		name: "Markdown",
 		desc: "file.markdown",
 		padding: '15px'
+	},
+	{
+		icon: <SiNodered size={60} style={{marginLeft: '5px'}}/>,
+		name: "Visual Script",
+		desc: "file.visualScript",
+		padding: '30px'
 	},
 	{
 		icon: <AiFillFolderAdd size={50} style={{marginLeft: '0px'}}/>,
