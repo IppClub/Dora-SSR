@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>CodeWire</title>
+    <link rel="icon" href="images/Code Wire Logo.svg">
+    <link rel="stylesheet" href="style.css">
+    <link href="./bootstrap.min.css" rel="stylesheet">
+    <script src="./337dc27142.js"></script>
+    <link rel="stylesheet" href="./javascript/Dependencies/CodeMirror/codemirror.css">
+    <link rel="stylesheet" href="./javascript/Dependencies/CodeMirror/material.css">
+
+</head>
+
+<body>
+    <div class="main">
+        <div id="left-panel">
+            <!-- <div>Icons made by <a href="https://www.flaticon.com/authors/google" title="Google">Google</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div> -->
+            <!-- <img src="./images/right-chevron.svg" id="slider"> -->
+            <div class="slider-icon" id="slide-left-panel">
+                <div style="margin-top: 1rem;">
+                    <i class="fas fa-arrow-left"></i>
+                </div>
+            </div>
+            <div class="left-panel-content">
+                <div id="add-variables" class="left-panel-tab">Add Variable <div id="add-variables-plus-icon"
+                        style="position: absolute; right: 0.7rem; transition: 0.1s;"><i class="fas fa-chevron-down"></i></div>
+                </div>
+                <div id="add-variables-content" class="left-panel-tab-content">
+                    <div id="create-variables" class="pb-5">
+                        <div class="input-group pt-3 ps-5 pe-5 input-group-lg">
+                            <div class="icon2">Type</div>
+                            <select class="form-select" id="variable-data-type">
+                                <option value="Number" selected>Number</option>
+                                <option value="Boolean">Boolean</option>
+                                <option value="String">String</option>
+                                <option value="Array">Array</option>
+                            </select>
+                        </div>
+                        <div class="input-group input-group-lg pt-3 ps-5 pe-5">
+                            <div class="icon2">Name</div>
+                            <input type="text" class="form-control" placeholder="Name" id="variable-name">
+                        </div>
+                        <div class="input-group input-group-lg pt-3 ps-5 pe-5" id="number-default-form">
+                            <div class="icon2">Value</div>
+                            <input type="number" class="form-control" placeholder="Default" title="enter number"
+                                id="number-default-value" value=0>
+                        </div>
+                        <div class="input-group input-group-lg pt-3 ps-5 pe-5 hidden" id="string-default-form">
+                            <div class="icon2">Value</div>
+                            <input type="text" class="form-control" placeholder="Default" title="enter string"
+                                id="string-default-value" value=hello>
+                        </div>
+                        <div class="input-group input-group-lg pt-3 ps-5 pe-5 hidden" id="array-default-form">
+                            <div class="icon2">Value</div>
+                            <input type="text" class="form-control" placeholder="Default"
+                                title="enter array values in [1, 2, 3, 4] or ['Love', 'Shove', 'Dove'] or [true, false, true] etc format"
+                                id="array-default-value" value=[]>
+                        </div>
+                        <div class="input-group pt-3 ps-5 pe-5 input-group-lg hidden" id="bool-default-form">
+                            <div class="icon2">Value</div>
+                            <select class="form-select" id="bool-default-value">
+                                <option value=true selected>True</option>
+                                <option value=false>False</option>
+                            </select>
+                        </div>
+                        <button type="button" class="icon" style="margin: auto; margin-top: 15px;"
+                            id="create-btn">Create</button>
+                    </div>
+                </div>
+                <div id="list-of-variables" class="left-panel-tab">Variable List<div id="list-of-variables-down-icon"
+                        style="position: absolute; right: 0.7rem; transition: 0.1s;"><i class="fas fa-chevron-down"></i></div>
+                </div>
+                <div id="list-of-variables-content" class="left-panel-tab-content" style="width: 90%;">
+                    <div class="variableList" style="width: 100%;">
+                        <ul class="list-group list-group-flush" id="variable-list">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="container">
+
+        </div>
+        <div id="live-code-container" class="live-code-container live-code-closed">
+            <div class="icons-live-code">
+                <div id="live-code-arrow"><i class="fas fa-arrow-left"></i></div>
+                <div id="live-code-refresh" title="Ctrl+Q"><i class="fas fa-sync"></i></div>
+                <h3 style="margin-left: 2rem; color: yellowgreen; transform: translateY(2px);">Live Code</h3>
+            </div>
+            <div id="live-code">
+
+            </div>
+        </div>
+
+    </div>
+    <div class="rightbar">
+        <button class="icon" id="Run">
+            Run
+        </button>
+        <button class="icon" id="Code">
+            <span>Code</span>
+        </button>
+        <button class="icon" id="Github">
+            <a href="https://github.com/ayushk7/CodeWire" target="_blank" style="text-decoration: none;"
+                class="icon">Github</a>
+        </button>
+        <button class="icon" id="Console">
+            Output
+        </button>
+        <button class="icon" id="import">
+            Import
+        </button>
+        <button class="icon" id="export">
+            Export
+            <a id="exportAnchorElem" style="display:none"></a>
+        </button>
+        <button class="icon" id="starter">
+            Starter
+        </button>
+        <button class="icon" id="refresh">
+            New
+        </button>
+        <button class="icon" id="reload">
+            Reload
+        </button>
+        <button class="icon" id="save">
+            Save
+        </button>
+
+    </div>
+
+    <div id="import-menu" class="sidebox hidden">
+        <button id="cross-upload-cross" class="cross">
+            <div>+</div>
+        </button>
+        <div class="sidebox-flex">
+            <div style="font-size: 1.2rem; color: white; padding: 10px;; text-align: center;"><span
+                    style="color: tomato;">Alert:</span>Current Script Will Be Lost</div>
+            <div class="#button-wrap">
+                <label for="upload-json" class="icon">JSON</label>
+                <input id="upload-json" type="file">
+            </div>
+            <button id="import-btn" class="icon">Import</button>
+        </div>
+    </div>
+    <div id="save-menu" class="sidebox hidden">
+        <div class="sidebox-flex">
+            <div style="font-size: 1.2rem; color: white; padding: 10px; text-align: center;"><span
+                    style="color: yellowgreen;">Save Found:</span> Reload Last Save?</div>
+            <button id="load-btn" class="icon">Load</button>
+            <button id="load-cancel-btn" class="icon">No</button>
+        </div>
+    </div>
+    <div id="saving" class="sidebox hidden">
+        <div class="sidebox-flex">
+            <div style="font-size: 1.2rem; color: white; padding: 10px; text-align: center;">Saving...</div>
+        </div>
+    </div>
+    <div id="alert-box" class="sidebox hidden">
+        <div class="sidebox-flex">
+            <div style="font-size: 1.2rem; color: white; padding: 10px;; text-align: center;"><span
+                    style="color: tomato;">Alert:</span> Export Current script If Not Exported</div>
+            <button id="alert-ok-btn" class="icon">OK</button>
+        </div>
+    </div>
+    <div id="refresh-box" class="sidebox hidden">
+        <div class="sidebox-flex">
+            <div style="font-size: 1.2rem; color: white; padding: 10px;; text-align: center;;"><span
+                    style="color: tomato;">Alert:</span> Current Script Will Be Lost</div>
+            <button id="refresh-btn" class="icon">Refresh</button>
+            <button id="refresh-cancel-btn" class="icon">Cancel</button>
+        </div>
+    </div>
+    <div id="delete-ctx-container" class="context-menu-items hidden">
+        <div>Delete</div>
+        <div style="font-size: xx-small;">Ctrl+LMB</div>
+    </div>
+    <div id="get-set-ctx-menu-container" class="hidden">
+        <div id="get-set-ctx-menu">
+            <div class="context-menu-items" data-isGetOrSet="Get">Get</div>
+            <div class="context-menu-items" data-isGetOrSet="Set">Set</div>
+        </div>
+    </div>
+    <div id="ctx-menu-container" class="hidden">
+        <input type="text" id="ctx-search-bar" placeholder="Search...">
+        <div id="context-menu">
+            <div class="context-menu-items">Begin</div>
+            <div class="context-menu-items">Print</div>
+            <div class="context-menu-items">Alert</div>
+            <div class="context-menu-items">Confirm</div>
+            <div class="context-menu-items">Prompt</div>
+            <hr>
+            <div class="context-menu-items">If/Else</div>
+            <div class="context-menu-items">WhileLoop</div>
+            <div class="context-menu-items">ForLoop</div>
+            <div class="context-menu-items">ForEachLoop</div>
+            <div class="context-menu-items">Continue</div>
+            <div class="context-menu-items">Break</div>
+            <hr>
+            <div class="context-menu-items">Add</div>
+            <div class="context-menu-items">Subtract</div>
+            <div class="context-menu-items">Multiply</div>
+            <div class="context-menu-items">Divide</div>
+            <div class="context-menu-items">Modulo</div>
+            <div class="context-menu-items">Power</div>
+            <div class="context-menu-items">Random</div>
+            <div class="context-menu-items">Ceil</div>
+            <div class="context-menu-items">Floor</div>
+            <div class="context-menu-items">Max(Num)</div>
+            <div class="context-menu-items">Min(Num)</div>
+            <hr>
+            <div class="context-menu-items">Swap</div>
+            <div class="context-menu-items">Equals</div>
+            <div class="context-menu-items">Not Equals</div>
+            <div class="context-menu-items">Less</div>
+            <div class="context-menu-items">LessEq</div>
+            <div class="context-menu-items">Greater</div>
+            <div class="context-menu-items">GreaterEq</div>
+            <hr>
+            <div class="context-menu-items">AND</div>
+            <div class="context-menu-items">OR</div>
+            <div class="context-menu-items">XOR</div>
+            <div class="context-menu-items">NEG</div>
+            <hr>
+            <div class="context-menu-items" title="bitwise operators">bAND</div>
+            <div class="context-menu-items" title="bitwise operators">bOR</div>
+            <div class="context-menu-items" title="bitwise operators">bXOR</div>
+            <div class="context-menu-items" title="bitwise operators">bNEG</div>
+            <hr>
+            <div class="context-menu-items">OpenWindow</div>
+            <div class="context-menu-items">HttpRequest</div>
+            <div class="context-menu-items">GetByName(JSON)</div>
+            <hr>
+            <div class="context-menu-items">StrToArray</div>
+            <div class="context-menu-items">ArrayToStr</div>
+            <div class="context-menu-items">Length</div>
+            <div class="context-menu-items">Front</div>
+            <div class="context-menu-items">Back</div>
+            <div class="context-menu-items">GetByPos</div>
+            <div class="context-menu-items">SetByPos</div>
+            <div class="context-menu-items">Search</div>
+            <div class="context-menu-items">BinarySearch(Num)</div>
+            <div class="context-menu-items">PushBack</div>
+            <div class="context-menu-items">PopBack</div>
+            <div class="context-menu-items">PushFront</div>
+            <div class="context-menu-items">PopFront</div>
+            <div class="context-menu-items">Insert</div>
+            <div class="context-menu-items">Sort(Num)</div>
+            <div class="context-menu-items">isEmpty</div>
+            <div class="context-menu-items">Reverse</div>
+            <div class="context-menu-items">Max(Array)</div>
+            <div class="context-menu-items">Min(Array)</div>
+            <hr>
+        </div>
+    </div>
+    <input type="number" name="number-ip" id="number-ip" class="ipn" title="Enter Number">
+    <input type="text" name="string-ip" id="string-ip" class="ips"
+        title="if(string) then enter with single 'quotes' only with no special character inbetween">
+    <input type="text" name="array-ip" id="array-ip" class="ips" title="enter array in [1, 2, 3, 4] format">
+    <select class="ipb" id="bool-ip" title="select value">
+        <option value=true selected>true</option>
+        <option value=false>false</option>
+    </select>
+
+    <div class="hidden" id="console-window">
+        <p style="position: absolute; font-size: 1.4rem; font-family: 'Courier New', Courier, monospace; padding: 0.5rem 1rem;">Console</p>
+        <button id="cross-console" class="cross">
+            <div>+</div>
+        </button>
+        <iframe id="console">
+        </iframe>
+    </div>
+</body>
+<script src="./bootstrap.bundle.min.js"></script>
+<script src="./javascript/Dependencies/CodeMirror/codemirror.js"></script>
+<script src="./javascript/Dependencies/CodeMirror/javascript/javascript.js"></script>
+<script src="./javascript/Dependencies/jquery/jquery.js"></script>
+<script src="./javascript/Dependencies/Konva/konva.min.js"></script>
+<script type="module" src="./javascript/main/main.js"></script>
+
+</html>

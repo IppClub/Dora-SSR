@@ -28,6 +28,7 @@ import tealLogo from './teal.png';
 import spineLogo from './spine.png';
 import { DiCode } from 'react-icons/di';
 import { TbSql } from 'react-icons/tb';
+import { SiNodered } from 'react-icons/si';
 import { VscMarkdown } from 'react-icons/vsc';
 import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
@@ -95,6 +96,8 @@ const fileIcon = (props: TreeNodeProps) => {
 					return <img src={spineLogo} alt="spine" width="14px" height="14px"/>;
 				case ".yarn":
 					return <img src="yarn-editor/icon_96x96.png" alt="yarn" width="14px" height="14px"/>;
+				case ".vs":
+					return <SiNodered size={12}/>;
 			}
 		}
 	}

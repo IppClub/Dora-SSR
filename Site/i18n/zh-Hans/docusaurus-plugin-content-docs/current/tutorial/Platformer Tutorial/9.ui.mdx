@@ -44,7 +44,7 @@ local function updatePlayerControl(key: string, flag: boolean, vpad: boolean)
 end
 ```
 
-&emsp;&emsp;然后，我们创建了一个UI的根节点`alignNode`，并将其添加到[Director.ui](../../api/Class/Director#ui)中。这个节点是所有其他UI节点的父节点。
+&emsp;&emsp;然后，我们创建了一个UI的根节点`alignNode`，并将其添加到[Director.ui](/docs/api/Class/Director#ui)中。这个节点是所有其他UI节点的父节点。
 
 ```tl title=Script/UI.tl
 -- 获取设备的DPI缩放值使UI在各种设备上的显示大小一致
@@ -69,7 +69,7 @@ local leftMenu = Menu()
 leftAlign:addChild(leftMenu)
 ```
 
-&emsp;&emsp;在`leftMenu`中，我们创建了三个圆形按钮：`leftButton`、`rightButton`和`jumpButton`。这三个按钮分别用于控制玩家的左移、右移和跳跃操作。每个按钮都有一个[TapBegan](../../api/Node%20Event/Node#tapbegan)事件和一个[TapEnded](../../api/Node%20Event/Node#tapended)事件，分别在按钮被按下和按钮被释放时触发。
+&emsp;&emsp;在`leftMenu`中，我们创建了三个圆形按钮：`leftButton`、`rightButton`和`jumpButton`。这三个按钮分别用于控制玩家的左移、右移和跳跃操作。每个按钮都有一个[TapBegan](/docs/api/Node%20Event/Node#tapbegan)事件和一个[TapEnded](/docs/api/Node%20Event/Node#tapended)事件，分别在按钮被按下和按钮被释放时触发。
 
 ```tl title=Script/UI.tl
 -- 创建左移按钮

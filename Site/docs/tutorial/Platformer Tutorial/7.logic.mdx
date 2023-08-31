@@ -2,7 +2,7 @@ import "@site/src/languages/highlight";
 
 # Writing Game Logic Module
 
-Welcome to the seventh tutorial of the Dorothy SSR game engine side-scrolling 2D game development series! In this tutorial, we will introduce how to use the ECS (Entity Component System) framework of Dorothy SSR to write game logic modules. ECS is a commonly used game development pattern that decomposes game data processing into entities, components, and systems, making the game logic clearer and the code easier to manage and extend. In Dorothy SSR, the ECS framework is provided by components such as [Entity](../../api/Class/Entity), [Observer](../../api/Class/Observer), and [Group](../../api/Class/Group) with their respective functionalities.
+Welcome to the seventh tutorial of the Dorothy SSR game engine side-scrolling 2D game development series! In this tutorial, we will introduce how to use the ECS (Entity Component System) framework of Dorothy SSR to write game logic modules. ECS is a commonly used game development pattern that decomposes game data processing into entities, components, and systems, making the game logic clearer and the code easier to manage and extend. In Dorothy SSR, the ECS framework is provided by components such as [Entity](/docs/api/Class/Entity), [Observer](/docs/api/Class/Observer), and [Group](/docs/api/Class/Group) with their respective functionalities.
 
 First, we need to import some necessary modules. This time, we are importing several functional components, indicating that the implementation of this module will be relatively complex:
 
@@ -31,7 +31,7 @@ local Data <const> = Platformer.Data
 local Unit <const> = Platformer.Unit
 ```
 
-Next, we create an [Observer](../../api/Class/Observer) to monitor the creation behavior of the game player character entity. When an entity is created, we create a [Unit](../../api/Class/Platformer/Unit) object representing the actual player character scene node and perform the necessary initialization operations. Therefore, the Entity represents pure game data objects, and the rendering and interaction of game functions in the game scene rely on the creation of scene node objects corresponding to the game data:
+Next, we create an [Observer](/docs/api/Class/Observer) to monitor the creation behavior of the game player character entity. When an entity is created, we create a [Unit](/docs/api/Class/Platformer/Unit) object representing the actual player character scene node and perform the necessary initialization operations. Therefore, the Entity represents pure game data objects, and the rendering and interaction of game functions in the game scene rely on the creation of scene node objects corresponding to the game data:
 
 ```tl title=Script/Logic.tl
 Observer("Add", {"player"}):watch(function(self: Entity.Type)
@@ -51,7 +51,7 @@ Observer("Add", {"player"}):watch(function(self: Entity.Type)
 end)
 ```
 
-Then, we create another Observer to monitor the creation behavior of game item entities. When an entity is created, we create a [Sprite](../../api/Class/Sprite) object, which represents the graphic representation of the game item. At the same time, we also create a physical body [Body](../../api/Class/Body) object for the game item and add a sensor to it. This sensor can detect collisions with other objects. When a collision with the player object is detected, it triggers a node event called ["BodyEnter"](../../api/Node%20Event/Body#bodyenter) and executes the registered item pickup processing logic:
+Then, we create another Observer to monitor the creation behavior of game item entities. When an entity is created, we create a [Sprite](/docs/api/Class/Sprite) object, which represents the graphic representation of the game item. At the same time, we also create a physical body [Body](/docs/api/Class/Body) object for the game item and add a sensor to it. This sensor can detect collisions with other objects. When a collision with the player object is detected, it triggers a node event called ["BodyEnter"](/docs/api/Node%20Event/Body#bodyenter) and executes the registered item pickup processing logic:
 
 ```tl title=Script/Logic.tl
 Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon: string)
