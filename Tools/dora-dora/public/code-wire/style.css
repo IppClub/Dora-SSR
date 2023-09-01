@@ -22,7 +22,7 @@ html{
   /* border-radius: 50%; */
 }
 ::-webkit-scrollbar-thumb{
-  background-color: #d65a31;
+  background-color: #e1b000;
   /* box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.25); */
   /* border-radius: 50%; */
 }
@@ -38,7 +38,7 @@ html{
   overflow: hidden;
   /* border: #f0f0f0 solid 7px; */
   /* border-left: #f0f0f0 solid 3px; */
-  background-color: 	#26282b;
+  background-color: 	#1a1a1a;
   /* background-color: #b3b3b3; */
   /* background-image: url("images/sqq1.png"); */
   background-image: linear-gradient(rgb(92, 92, 92) .1rem, transparent .1rem), linear-gradient(90deg, rgb(92, 92, 92) .1rem, transparent .1rem);
@@ -56,9 +56,9 @@ background-size: 10rem 10rem;
     /* flex: 1; */
     width: 25rem;
     height: 100vh;
-    background-color: rgba(43, 46, 51, 0.4);
+    background-color: rgba(43, 43, 43, 0.4);
     /* background-color: #2d2d38; */
-    border-right: 1px solid #d65a31;
+    border-right: 1px solid #e1b000;
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     box-shadow: 15px 15px 25px rgba(0, 0, 0, 0.5);
@@ -88,9 +88,9 @@ background-size: 10rem 10rem;
     transform-origin: top left;
     font-size: 1.5rem;
     /* height: 2.5rem; */
-    border: #d65a31 solid 1px;
+    border: #e1b000 solid 1px;
     padding: 0.5rem;
-    background-color: rgb(230, 221, 221, 0.3);
+    background-color: rgb(221, 221, 221, 0.3);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     caret-color: white;
@@ -103,7 +103,7 @@ background-size: 10rem 10rem;
   #context-menu{
     /* display: none; */
     /* position: absolute; */
-    border: #d65a31 solid 1px;
+    border: #e1b000 solid 1px;
     box-shadow: 15px 15px 25px rgba(0, 0, 0, 0.5);
     margin-top: 1px;
     border-top: none;
@@ -129,16 +129,16 @@ background-size: 10rem 10rem;
     padding: 5px;
 
   }
-  
+
   .context-menu-items:hover{
-    background-color: #d65a31;
+    background-color: #e1b000;
     color: white;
     /* z-index: 20; */
     /* cursor:pointer; */
-    
+
   }
   .ctx-focus{
-    background-color: #2d2d38;
+    background-color: #2d2d2d;
     color: white;
   }
 .icon2{
@@ -154,7 +154,7 @@ background-size: 10rem 10rem;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   outline: none;
   border: none;
-  background-color: #d65a31;
+  background-color: #e1b000;
   z-index: 10;
   color: white;
   user-select: none;
@@ -261,13 +261,13 @@ background-size: 10rem 10rem;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   outline: none;
   border: none;
-  background-color: #d65a31;
+  background-color: #e1b000;
   z-index: 10;
   color: white;
   user-select: none;
 }
 .icon:hover{
-  color: #d65a31;
+  color: #e1b000;
   background-color: white;
 }
 
@@ -280,13 +280,13 @@ background-size: 10rem 10rem;
   bottom: 0px;
   /* border-radius: 3px; */
   overflow: hidden;
-  background-color: rgba(11, 11, 12, 0.4);
+  background-color: rgba(11, 11, 11, 0.4);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   z-index: 3;
   /* background-color: transparent; */
   opacity: 0.9;
-  border: 1px solid #d65a31;
+  border: 1px solid #e1b000;
   /* box-shadow: 15px 15px 15px rgba(0, 0, 0, 0.5); */
   color: white;
 }
@@ -297,7 +297,7 @@ background-size: 10rem 10rem;
   color:white;
   /* font-size: 30px; */
   /* transform: translateY(-10px); */
-  background-color: #d65a31;
+  background-color: #e1b000;
   border: none;
   outline: none;
   width: 25px;
@@ -308,7 +308,7 @@ background-size: 10rem 10rem;
   font-size: 15px;
 }
 .cross:hover{
-  color: #d65a31;
+  color: #e1b000;
   background-color: white;
 }
 iframe{
@@ -324,13 +324,13 @@ iframe{
   transform-origin: center center;
   height: 150px;
   width: 400px;
-  background-color: rgba(43, 46, 51, 0.4);
+  background-color: rgba(43, 43, 43, 0.4);
   left: 500px;
   top:20px;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   box-shadow: 15px 15px 25px rgba(0, 0, 0, 0.5);
-  border: 1px solid #d65a31;
+  border: 1px solid #e1b000;
   /* display:flex;
   flex-direction: column;
   justify-content: space-around;
@@ -350,9 +350,9 @@ iframe{
   justify-content: space-around;
 }
 @keyframes border-anim{
-  0% {border-color: #d65a31;}
+  0% {border-color: #e1b000;}
   50% {border-color: transparent;}
-  100% {border-color: #d65a31;}
+  100% {border-color: #e1b000;}
 }
 input[type="file"] {
   position: absolute;
@@ -377,7 +377,7 @@ input[type="file"] {
   /* padding: 0.5rem; */
   user-select: none;
   color: black;
-  border: solid 1px #d65a31;
+  border: solid 1px #e1b000;
   /* background-color: white; */
   background-color: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(4px);
@@ -385,12 +385,12 @@ input[type="file"] {
   width: 125px !important;
 }
 #delete-ctx-container:hover{
-  background-color: #d65a31;
+  background-color: #e1b000;
   color: white;
 }
 #get-set-ctx-menu-container{
     position: absolute;
-    border: #d65a31 solid 1px;
+    border: #e1b000 solid 1px;
     box-shadow: 15px 15px 25px rgba(0, 0, 0, 0.5);
     width: 100px !important;
     overflow: auto;
@@ -433,12 +433,12 @@ input[type="file"] {
   font-size: 2rem;
   user-select: none;
   /* transition: transform 0.5s; */
-  /* border: 1px solid #d65a31; */
+  /* border: 1px solid #e1b000; */
   z-index: 10 ;
 }
 .slider-icon:hover{
   /* background-color:transparent; */
-  color: #d65a31;
+  color: #e1b000;
   /* transform: scale(1.1); */
 }
 .closed-left-panel{
@@ -475,7 +475,7 @@ input[type="file"] {
   overflow:visible;
 }
 .left-panel-tab:hover{
-  background-color:#d65a31;
+  background-color:#e1b000;
   color:white;
 }
 .left-panel-tab-arrow-up{
@@ -492,10 +492,10 @@ input[type="file"] {
   justify-content: flex-start;
   align-items: flex-start;
   flex-direction: column;
-  background-color: rgba(43, 46, 51, 0.4);
+  background-color: rgba(43, 43, 43, 0.4);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  border: #d65a31 solid 1px;
+  border: #e1b000 solid 1px;
   position: fixed;
   transition: right 0.5s;
   overflow: hidden;
@@ -523,7 +523,7 @@ input[type="file"] {
 }
 .icons-live-code div:hover{
   /* background-color:transparent; */
-  color: #d65a31;
+  color: #e1b000;
   /* transform: scale(1.1); */
 }
 .live-code-closed{
@@ -546,5 +546,5 @@ input[type="file"] {
   height:;
 }
 #Github a:hover{
-  color: #d65a31;
+  color: #e1b000;
 } */
