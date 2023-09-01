@@ -77,6 +77,21 @@ class VariableList {
                 elem.remove();
         })
     }
+
+	deleteVariableByName(name)
+	{
+		const newVariables = [];
+		for (let i = 0; i < this.variables.length; i++) {
+			const variable = this.variables[i];
+			if (variable.name !== name) {
+				newVariables.push(variable);
+			}
+		}
+		this.deleteAllVariables();
+		for (let i = 0; i < newVariables.length; i++) {
+			this.addVariable(newVariables[i]);
+		}
+	}
 }
 
 export var variableList = new VariableList();

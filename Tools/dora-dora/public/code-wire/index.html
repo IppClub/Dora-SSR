@@ -9,9 +9,11 @@
     <link rel="icon" href="images/Code Wire Logo.svg">
     <link rel="stylesheet" href="style.css">
     <link href="./bootstrap.min.css" rel="stylesheet">
-    <script src="./337dc27142.js"></script>
+    <link href="./fontawesome/free.min.css" rel="stylesheet">
+    <link href="./fontawesome/free-v4-shims.min.css" rel="stylesheet">
+    <link href="./fontawesome/free-v4-font-face.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./javascript/Dependencies/CodeMirror/codemirror.css">
-    <link rel="stylesheet" href="./javascript/Dependencies/CodeMirror/material.css">
+    <link rel="stylesheet" href="./javascript/Dependencies/CodeMirror/material-darker.css">
 
 </head>
 
@@ -58,7 +60,7 @@
                             <div class="icon2">Value</div>
                             <input type="text" class="form-control" placeholder="Default"
                                 title="enter array values in [1, 2, 3, 4] or ['Love', 'Shove', 'Dove'] or [true, false, true] etc format"
-                                id="array-default-value" value=[]>
+                                id="array-default-value" value="{}">
                         </div>
                         <div class="input-group pt-3 ps-5 pe-5 input-group-lg hidden" id="bool-default-form">
                             <div class="icon2">Value</div>
@@ -97,7 +99,7 @@
         </div>
 
     </div>
-    <div class="rightbar">
+    <div class="rightbar" hidden>
         <button class="icon" id="Run">
             Run
         </button>
@@ -183,6 +185,7 @@
         <div id="get-set-ctx-menu">
             <div class="context-menu-items" data-isGetOrSet="Get">Get</div>
             <div class="context-menu-items" data-isGetOrSet="Set">Set</div>
+            <div class="context-menu-items" data-isGetOrSet="Delete">Delete</div>
         </div>
     </div>
     <div id="ctx-menu-container" class="hidden">
@@ -190,15 +193,11 @@
         <div id="context-menu">
             <div class="context-menu-items">Begin</div>
             <div class="context-menu-items">Print</div>
-            <div class="context-menu-items">Alert</div>
-            <div class="context-menu-items">Confirm</div>
-            <div class="context-menu-items">Prompt</div>
             <hr>
             <div class="context-menu-items">If/Else</div>
             <div class="context-menu-items">WhileLoop</div>
             <div class="context-menu-items">ForLoop</div>
             <div class="context-menu-items">ForEachLoop</div>
-            <div class="context-menu-items">Continue</div>
             <div class="context-menu-items">Break</div>
             <hr>
             <div class="context-menu-items">Add</div>
@@ -210,10 +209,7 @@
             <div class="context-menu-items">Random</div>
             <div class="context-menu-items">Ceil</div>
             <div class="context-menu-items">Floor</div>
-            <div class="context-menu-items">Max(Num)</div>
-            <div class="context-menu-items">Min(Num)</div>
             <hr>
-            <div class="context-menu-items">Swap</div>
             <div class="context-menu-items">Equals</div>
             <div class="context-menu-items">Not Equals</div>
             <div class="context-menu-items">Less</div>
@@ -221,39 +217,21 @@
             <div class="context-menu-items">Greater</div>
             <div class="context-menu-items">GreaterEq</div>
             <hr>
-            <div class="context-menu-items">AND</div>
-            <div class="context-menu-items">OR</div>
-            <div class="context-menu-items">XOR</div>
-            <div class="context-menu-items">NEG</div>
+            <div class="context-menu-items">And</div>
+            <div class="context-menu-items">Or</div>
+            <div class="context-menu-items">Not</div>
             <hr>
-            <div class="context-menu-items" title="bitwise operators">bAND</div>
-            <div class="context-menu-items" title="bitwise operators">bOR</div>
-            <div class="context-menu-items" title="bitwise operators">bXOR</div>
-            <div class="context-menu-items" title="bitwise operators">bNEG</div>
+            <div class="context-menu-items" title="bitwise operators">BitAnd</div>
+            <div class="context-menu-items" title="bitwise operators">BitOr</div>
+            <div class="context-menu-items" title="bitwise operators">BitXOr</div>
+            <div class="context-menu-items" title="bitwise operators">BitNeg</div>
             <hr>
-            <div class="context-menu-items">OpenWindow</div>
-            <div class="context-menu-items">HttpRequest</div>
-            <div class="context-menu-items">GetByName(JSON)</div>
-            <hr>
-            <div class="context-menu-items">StrToArray</div>
-            <div class="context-menu-items">ArrayToStr</div>
             <div class="context-menu-items">Length</div>
-            <div class="context-menu-items">Front</div>
-            <div class="context-menu-items">Back</div>
-            <div class="context-menu-items">GetByPos</div>
-            <div class="context-menu-items">SetByPos</div>
-            <div class="context-menu-items">Search</div>
-            <div class="context-menu-items">BinarySearch(Num)</div>
-            <div class="context-menu-items">PushBack</div>
-            <div class="context-menu-items">PopBack</div>
-            <div class="context-menu-items">PushFront</div>
-            <div class="context-menu-items">PopFront</div>
-            <div class="context-menu-items">Insert</div>
-            <div class="context-menu-items">Sort(Num)</div>
-            <div class="context-menu-items">isEmpty</div>
-            <div class="context-menu-items">Reverse</div>
-            <div class="context-menu-items">Max(Array)</div>
-            <div class="context-menu-items">Min(Array)</div>
+            <div class="context-menu-items">First</div>
+            <div class="context-menu-items">Last</div>
+            <div class="context-menu-items">GetIndex</div>
+            <div class="context-menu-items">SetIndex</div>
+            <div class="context-menu-items">IsEmpty</div>
             <hr>
         </div>
     </div>
@@ -277,7 +255,7 @@
 </body>
 <script src="./bootstrap.bundle.min.js"></script>
 <script src="./javascript/Dependencies/CodeMirror/codemirror.js"></script>
-<script src="./javascript/Dependencies/CodeMirror/javascript/javascript.js"></script>
+<script src="./javascript/Dependencies/CodeMirror/lua/lua.js"></script>
 <script src="./javascript/Dependencies/jquery/jquery.js"></script>
 <script src="./javascript/Dependencies/Konva/konva.min.js"></script>
 <script type="module" src="./javascript/main/main.js"></script>

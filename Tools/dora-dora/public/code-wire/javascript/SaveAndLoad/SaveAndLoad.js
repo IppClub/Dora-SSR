@@ -1,7 +1,7 @@
 import { Nodes } from '../Nodes/nodes.js'
 import { addConnectionWire } from '../Wiring/Wiring.js'
 import { variableList } from '../Variable/variable.js'
-import {showAlert, vscriptOnLoad} from '../main/alertBox.js'
+//import {showAlert, vscriptOnLoad} from '../main/alertBox.js'
 function writeError(err, msg) {
     document.getElementById("console-window").classList.toggle("hidden", false);
     let codeDoc = document.getElementById("console").contentWindow.document;
@@ -164,8 +164,8 @@ export function prompLastSave(stage, layer, wireLayer) {
         };
     }
     else{
-        vscriptOnLoad(stage);
-        showAlert('No Previous Save Was Found');
+        //vscriptOnLoad(stage);
+        //showAlert('No Previous Save Was Found');
     }
 }
 
@@ -181,7 +181,7 @@ function printContent(json, stage, layer, wireLayer) {
     }
     // let X = layer.findOne('Group');
     // console.log(layer.children);
-    // console.log(X); 
+    // console.log(X);
     for (let aWire of json.wireData) {
         // console.log(`${aWire.srcId}`, `${aWire.destId}`);
         let src = layer.findOne(`#${aWire.srcId}`);

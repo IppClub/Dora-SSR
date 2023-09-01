@@ -134,6 +134,9 @@ export var ContextMenu = {
             if (e.target.innerHTML == "Get") {
                 Nodes.CreateNode(nodeType, { x: xx, y: yy }, layer, stage, "Get", draggedVariableInfo.dataType, null);
             }
+            else if (e.target.innerHTML == "Delete") {
+                variableList.deleteVariableByName(draggedVariableInfo.name);
+            }
             else {
                 Nodes.CreateNode(nodeType, { x: xx, y: yy }, layer, stage, "Set", draggedVariableInfo.dataType, null);
             }
