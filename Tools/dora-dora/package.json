@@ -164,6 +164,7 @@
     "@babel/plugin-transform-react-jsx": "^7.14.9",
     "@testing-library/dom": "^9.2.0",
     "@types/react-syntax-highlighter": "^15.5.6",
-    "monaco-editor-webpack-plugin": "^7.0.1"
+    "monaco-editor-webpack-plugin": "^7.0.1",
+    "tslint-config-prettier": "^1.18.0"
   }
 }

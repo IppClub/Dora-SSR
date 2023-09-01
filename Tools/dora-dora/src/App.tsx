@@ -28,7 +28,7 @@ import FileFilter, { FilterOption } from './FileFilter';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'antd';
 import YarnEditor, { YarnEditorData } from './YarnEditor';
-import CodeWire from './CodeWire';
+import CodeWire, { CodeWireData } from './CodeWire';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -66,6 +66,7 @@ interface EditingFile {
 	position?: monaco.IPosition;
 	mdEditing?: boolean;
 	yarnData?: YarnEditorData;
+	codeWireData?: CodeWireData;
 	status: TabStatus;
 };
 
@@ -201,7 +202,7 @@ export default function PersistentDrawerLeft() {
 		setModified(null);
 		files.forEach(file => {
 			if (file.key === modified.key) {
-				if (modified.content !== file.content || file.yarnData) {
+				if (modified.content !== file.content || file.yarnData || file.codeWireData) {
 					file.contentModified = modified.content;
 				} else {
 					file.contentModified = null;
@@ -401,6 +402,9 @@ export default function PersistentDrawerLeft() {
 			}).catch(() => {
 				addAlert(t("alert.saveCurrent"), "error");
 			})
+		} else if (file.codeWireData !== undefined) {
+			file.contentModified = file.codeWireData.getVisualScript();
+			saveFile();
 		} else {
 			saveFile();
 		}
@@ -1686,6 +1690,15 @@ export default function PersistentDrawerLeft() {
 									defaultValue={file.content}
 									width={window.innerWidth - (drawerOpen ? drawerWidth : 0)}
 									height={window.innerHeight - 64}
+									onLoad={(data) => {
+										file.codeWireData = data;
+									}}
+									onChange={() => {
+										setModified({key: file.key, content: ""});
+									}}
+									onKeydown={(e) => {
+										setKeyEvent(e);
+									}}
 								/> : null
 							}
 							{markdown ?

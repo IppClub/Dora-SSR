@@ -99,7 +99,7 @@ export class leftPanel {
                     }
                 }
                 else if (type == "Array") {
-                    if (formInputsField.arrayFormField.value.length !== 0 && formInputsField.arrayFormField.value[0] == '[' && formInputsField.arrayFormField.value[formInputsField.arrayFormField.value.length - 1] == ']') {
+                    if (formInputsField.arrayFormField.value.length !== 0 && formInputsField.arrayFormField.value[0] == '{' && formInputsField.arrayFormField.value[formInputsField.arrayFormField.value.length - 1] == '}') {
                         value = formInputsField.arrayFormField.value.toString();
                         isArrayValid = true;
                     }
@@ -126,4 +126,4 @@ export class leftPanel {
 }
 // 'Number': '#00ffff',
 //     'String': '#aaff00',
-//     'Boolean': '#e60000', 
+//     'Boolean': '#e60000',
