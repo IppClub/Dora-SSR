@@ -737,6 +737,12 @@ export const Workspace = function(app) {
 		app.focusedNodeIdx = idx;
 	};
 
+	this.warpToFocusedNode = function() {
+		if (app.focusedNodeIdx !== null && app.focusedNodeIdx !== undefined) {
+			self.warpToNode(app.nodes()[app.focusedNodeIdx]);
+		}
+	};
+
 	// warpToSelectedNodeByIdx
 	//
 	// Moves the viewport to focus a node from the selected nodes list

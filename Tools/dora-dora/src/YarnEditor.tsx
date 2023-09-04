@@ -1,4 +1,5 @@
 export interface YarnEditorData {
+	warpToFocusedNode: () => void;
 	getJSONData: () => Promise<string>;
 };
 
