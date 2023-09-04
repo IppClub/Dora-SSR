@@ -2,6 +2,7 @@ export interface CodeWireData {
 	getScript: () => string;
 	getVisualScript: () => string;
 	setVisualScript: (script: string) => void;
+	reportVisualScriptError: (message: string) => void;
 };
 
 export interface CodeWireProps {

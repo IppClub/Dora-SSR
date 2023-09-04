@@ -16,6 +16,3 @@ export function refresh(script) {
     myCodeMirror.setCursor({ line: 0, ch: 0 });
     // console.log(script);
 }
-
-
-

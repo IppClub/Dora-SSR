@@ -106,7 +106,7 @@ export var VSToJS = class {
 			switch (node.customClass.type.typeOfNode) {
 				case "Begin": {
 					this.coreAlgorithm(execOutPins[0]);
-					this.script = '-- Generated Code Space Begins\n' + this.script + '-- Generated Code Space Ends\n';
+					//this.script = '-- Generated Code Space Begins\n' + this.script + '-- Generated Code Space Ends\n';
 					break;
 				}
 				case "Print": {

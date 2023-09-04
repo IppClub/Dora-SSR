@@ -382,7 +382,7 @@ export default function PersistentDrawerLeft() {
 		const saveFile = () => {
 			if (file.contentModified !== null) {
 				const {contentModified} = file;
-				Service.write({path: file.key, content: contentModified}).then((res) => {
+				return Service.write({path: file.key, content: contentModified}).then((res) => {
 					if (res.success) {
 						file.content = contentModified;
 						file.contentModified = null;
@@ -403,8 +403,51 @@ export default function PersistentDrawerLeft() {
 				addAlert(t("alert.saveCurrent"), "error");
 			})
 		} else if (file.codeWireData !== undefined) {
-			file.contentModified = file.codeWireData.getVisualScript();
-			saveFile();
+			let {codeWireData} = file;
+			const vscript = codeWireData.getVisualScript();
+			if (file.contentModified !== null || file.content !== vscript) {
+				file.contentModified = vscript;
+				saveFile()?.then(() => {
+					let tealCode = codeWireData.getScript();
+					const extname = path.extname(file.key);
+					const name = path.basename(file.key, extname);
+					const tlFile = path.join(path.dirname(file.key), name + ".tl");
+					const fileInTab = files.find(f => path.relative(f.key, tlFile) === "");
+					Service.write({path: tlFile, content: tealCode}).then((res) => {
+						if (res.success) {
+							if (fileInTab !== undefined) {
+								setFiles(files.filter(f => f.key !== fileInTab.key));
+							}
+						} else {
+							addAlert(t("alert.saveCurrent"), "error");
+						}
+					}).then(() => {
+						Service.check({file: tlFile, content: tealCode}).then((res) => {
+							if (res.success) {
+								codeWireData.reportVisualScriptError("");
+							}
+							if (res.info !== undefined) {
+								const lines = tealCode.split("\n");
+								const message = [];
+								for (let err of res.info) {
+									const [_type, filename, row, _col, msg] = err;
+									let node = "";
+									if (path.relative(filename, tlFile) === "" && 1 <= row && row <= lines.length) {
+										const ends = lines[row - 1].match(/-- (\d+)$/);
+										if (ends !== null) {
+											node = "node " + ends[1] + ", ";
+										}
+									}
+									message.push(node + "line " + row + ": " + msg);
+								}
+								codeWireData.reportVisualScriptError(message.join("<br>"));
+							}
+						});
+					}).catch(() => {
+						addAlert(t("alert.saveCurrent"), "error");
+					});
+				});
+			}
 		} else {
 			saveFile();
 		}
