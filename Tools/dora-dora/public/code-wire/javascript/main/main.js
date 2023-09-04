@@ -53,8 +53,37 @@ document.getElementById("Run").addEventListener("click", (e) => {
 //	 console.log("x");
 // })
 
+window.reportVisualScriptError = (err) => {
+	if (err === "") {
+		document.getElementById("console-window").classList.toggle("hidden", true);
+		return;
+	}
+	document.getElementById("console-window").classList.toggle("hidden", false);
+	let codeDoc = document.getElementById("console").contentWindow.document;
+	codeDoc.open();
+	codeDoc.writeln(
+		`<!DOCTYPE html>\n
+		<style>
+			html{
+				color: white;
+				margin: 20;
+			}
+		</style>
+		<body>
+		<code>
+		${err}
+		</code>
+		</body>
+		</html>
+		`
+	);
+	codeDoc.close();
+};
+
 window.getScript = () => {
-	return new VSToJS(stage, layer, "live-code-refresh").script;
+	let script = new VSToJS(stage, layer, "live-code-refresh").script;
+	refresh(script);
+	return script;
 };
 
 window.setVisualScript = (vscript) => {
@@ -158,13 +187,6 @@ document.getElementById("live-code-refresh").addEventListener("click", () => {
 	refresh(script);
 }
 );
-document.addEventListener("keydown", (e) => {
-	// e.preventDefault();
-	if (e.code == 'KeyS' && (e.ctrlKey || e.altKey || e.metaKey)) {
-		let script = new VSToJS(stage, layer, "live-code-refresh").script;
-		refresh(script);
-	}
-});
 document.getElementById("live-code-arrow").addEventListener("click", () => {
 	document.getElementById("live-code-container").classList.toggle("live-code-closed");
 	document.getElementById("live-code-arrow").classList.toggle("live-code-arrow-clicked");
