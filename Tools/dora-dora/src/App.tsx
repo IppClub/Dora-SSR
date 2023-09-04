@@ -232,11 +232,14 @@ export default function PersistentDrawerLeft() {
 		if (fileToFocus !== undefined) {
 			setTimeout(() => {
 				const {editor} = fileToFocus;
-				if (editor === undefined) return;
-				editor.focus();
-				const model = editor.getModel();
-				if (model === null) return;
-				checkFile(fileToFocus, fileToFocus.contentModified ?? fileToFocus.content, model);
+				if (editor !== undefined) {
+					editor.focus();
+					const model = editor.getModel();
+					if (model === null) return;
+					checkFile(fileToFocus, fileToFocus.contentModified ?? fileToFocus.content, model);
+					return;
+				}
+				fileToFocus.yarnData?.warpToFocusedNode();
 			}, 100);
 		}
 	};
