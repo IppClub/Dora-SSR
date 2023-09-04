@@ -382,11 +382,11 @@ export default function PersistentDrawerLeft() {
 		const saveFile = () => {
 			if (file.contentModified !== null) {
 				const {contentModified} = file;
-				return Service.write({path: file.key, content: contentModified}).then((res) => {
+				Service.write({path: file.key, content: contentModified}).then((res) => {
 					if (res.success) {
 						file.content = contentModified;
 						file.contentModified = null;
-						setFiles([...files]);
+						setFiles(prev => [...prev]);
 					} else {
 						addAlert(t("alert.saveCurrent"), "error");
 					}
@@ -407,45 +407,44 @@ export default function PersistentDrawerLeft() {
 			const vscript = codeWireData.getVisualScript();
 			if (file.contentModified !== null || file.content !== vscript) {
 				file.contentModified = vscript;
-				saveFile()?.then(() => {
-					let tealCode = codeWireData.getScript();
-					const extname = path.extname(file.key);
-					const name = path.basename(file.key, extname);
-					const tlFile = path.join(path.dirname(file.key), name + ".tl");
-					const fileInTab = files.find(f => path.relative(f.key, tlFile) === "");
-					Service.write({path: tlFile, content: tealCode}).then((res) => {
-						if (res.success) {
-							if (fileInTab !== undefined) {
-								setFiles(files.filter(f => f.key !== fileInTab.key));
-							}
-						} else {
-							addAlert(t("alert.saveCurrent"), "error");
+				let tealCode = codeWireData.getScript();
+				const extname = path.extname(file.key);
+				const name = path.basename(file.key, extname);
+				const tlFile = path.join(path.dirname(file.key), name + ".tl");
+				const fileInTab = files.find(f => path.relative(f.key, tlFile) === "");
+				Service.write({path: tlFile, content: tealCode}).then((res) => {
+					if (res.success) {
+						if (fileInTab !== undefined) {
+							setFiles(prev => prev.filter(f => f.key !== fileInTab.key));
 						}
-					}).then(() => {
-						Service.check({file: tlFile, content: tealCode}).then((res) => {
-							if (res.success) {
-								codeWireData.reportVisualScriptError("");
-							}
-							if (res.info !== undefined) {
-								const lines = tealCode.split("\n");
-								const message = [];
-								for (let err of res.info) {
-									const [_type, filename, row, _col, msg] = err;
-									let node = "";
-									if (path.relative(filename, tlFile) === "" && 1 <= row && row <= lines.length) {
-										const ends = lines[row - 1].match(/-- (\d+)$/);
-										if (ends !== null) {
-											node = "node " + ends[1] + ", ";
-										}
-									}
-									message.push(node + "line " + row + ": " + msg);
-								}
-								codeWireData.reportVisualScriptError(message.join("<br>"));
-							}
-						});
-					}).catch(() => {
+					} else {
 						addAlert(t("alert.saveCurrent"), "error");
+					}
+				}).then(() => {
+					saveFile();
+					Service.check({file: tlFile, content: tealCode}).then((res) => {
+						if (res.success) {
+							codeWireData.reportVisualScriptError("");
+						}
+						if (res.info !== undefined) {
+							const lines = tealCode.split("\n");
+							const message = [];
+							for (let err of res.info) {
+								const [_type, filename, row, _col, msg] = err;
+								let node = "";
+								if (path.relative(filename, tlFile) === "" && 1 <= row && row <= lines.length) {
+									const ends = lines[row - 1].match(/-- (\d+)$/);
+									if (ends !== null) {
+										node = "node " + ends[1] + ", ";
+									}
+								}
+								message.push(node + "line " + row + ": " + msg);
+							}
+							codeWireData.reportVisualScriptError(message.join("<br>"));
+						}
 					});
+				}).catch(() => {
+					addAlert(t("alert.saveCurrent"), "error");
 				});
 			}
 		} else {
@@ -473,7 +472,7 @@ export default function PersistentDrawerLeft() {
 					return;
 				}
 				const saveFile = (content: string) => {
-					Service.write({path: file.key, content}).then((res) => {
+					return Service.write({path: file.key, content}).then((res) => {
 						if (res.success) {
 							file.content = content;
 							file.contentModified = null;
@@ -503,6 +502,50 @@ export default function PersistentDrawerLeft() {
 					}).catch(() => {
 						addAlert(t("alert.save", {title: file.title}), "error");
 					})
+				} else if (file.codeWireData !== undefined) {
+					let {codeWireData} = file;
+					const vscript = codeWireData.getVisualScript();
+					if (file.contentModified !== null || file.content !== vscript) {
+						let tealCode = codeWireData.getScript();
+						const extname = path.extname(file.key);
+						const name = path.basename(file.key, extname);
+						const tlFile = path.join(path.dirname(file.key), name + ".tl");
+						const fileInTab = files.find(f => path.relative(f.key, tlFile) === "");
+						Service.write({path: tlFile, content: tealCode}).then((res) => {
+							if (res.success) {
+								if (fileInTab !== undefined) {
+									setFiles(prev => prev.filter(f => f.key !== fileInTab.key));
+								}
+							} else {
+								addAlert(t("alert.save", {title: file.title}), "error");
+							}
+						}).then(() => {
+							saveFile(vscript);
+							Service.check({file: tlFile, content: tealCode}).then((res) => {
+								if (res.success) {
+									codeWireData.reportVisualScriptError("");
+								}
+								if (res.info !== undefined) {
+									const lines = tealCode.split("\n");
+									const message = [];
+									for (let err of res.info) {
+										const [_type, filename, row, _col, msg] = err;
+										let node = "";
+										if (path.relative(filename, tlFile) === "" && 1 <= row && row <= lines.length) {
+											const ends = lines[row - 1].match(/-- (\d+)$/);
+											if (ends !== null) {
+												node = "node " + ends[1] + ", ";
+											}
+										}
+										message.push(node + "line " + row + ": " + msg);
+									}
+									codeWireData.reportVisualScriptError(message.join("<br>"));
+								}
+							});
+						}).catch(() => {
+							addAlert(t("alert.save", {title: file.title}), "error");
+						});
+					}
 				} else {
 					saveFile(contentModified);
 				}
