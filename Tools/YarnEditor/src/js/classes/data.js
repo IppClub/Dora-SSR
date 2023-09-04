@@ -50,6 +50,9 @@ export const data = {
 		//data.saveAppStateToLocalStorage();
 		app.ui.dispatchEvent('newYarnFileStarted');
 	},
+	warpToFocusedNode: function() {
+		app.workspace.warpToFocusedNode();
+	},
 	askForFileName: function() {
 		Swal.fire({
 			title: 'Enter a New File Name',
