@@ -2408,10 +2408,9 @@ local function parse_argument_type(ps, i)
 			is_va = true
 		end
 		typ.opt = opt
-	end
-
-	if argument_name == "self" then
-		typ.is_self = true
+		if argument_name == "self" then
+			typ.is_self = true
+		end
 	end
 
 	return i, { i = i, type = typ, is_va = is_va }, 0
