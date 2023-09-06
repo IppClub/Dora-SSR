@@ -5498,14 +5498,14 @@ local function init_globals(lax)
 				}),
 				["loaders"] = a_type({
 					typename = "array",
-					elements = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ ANY }) }),
+					elements = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ ANY, ANY }) }),
 				}),
 				["loadlib"] = a_type({ typename = "function", args = TUPLE({ STRING, STRING }), rets = TUPLE({ FUNCTION }) }),
 				["path"] = STRING,
 				["preload"] = TABLE,
 				["searchers"] = a_type({
 					typename = "array",
-					elements = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ ANY }) }),
+					elements = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ ANY, ANY }) }),
 				}),
 				["searchpath"] = a_type({ typename = "function", args = TUPLE({ STRING, STRING, OPT_STRING, OPT_STRING }), rets = TUPLE({ STRING, STRING }) }),
 			},
@@ -11031,11 +11031,14 @@ local function tl_package_loader(module_name)
 		local code = assert(tl.pretty_print_ast(program, env.gen_target, true))
 		local chunk, err = load(code, "@" .. found_filename, "t")
 		if chunk then
-			return function()
-				local ret = chunk(module_name, found_filename)
+			return function(modname, loader_data)
+				if loader_data == nil then
+					loader_data = found_filename
+				end
+				local ret = chunk(modname, loader_data)
 				package.loaded[module_name] = ret
 				return ret
-			end
+			end, found_filename
 		else
 			error("Internal Compiler Error: Teal generator produced invalid Lua. Please report a bug at https://github.com/teal-language/tl\n\n" .. err)
 		end
