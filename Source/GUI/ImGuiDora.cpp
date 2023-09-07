@@ -661,7 +661,7 @@ static void HelpMarker(Slice desc) {
 	}
 }
 
-void ImGuiDora::showStats() {
+void ImGuiDora::showStats(const std::function<void()>& extra) {
 	/* print debug text */
 	bool useChinese = _useChinese && _isChineseSupported;
 	auto themeColor = SharedApplication.getThemeColor().toVec4();
@@ -1049,6 +1049,18 @@ void ImGuiDora::showStats() {
 		}
 		if (ImGui::CollapsingHeader(useChinese ? "杂项" : "Misc")) {
 			ImGui::PushItemWidth(150);
+			ImGui::TextColored(themeColor, useChinese ? "版本号：" : "Version:");
+			ImGui::SameLine();
+			auto version = SharedApplication.getVersion();
+			ImGui::TextUnformatted(&version.front(), &version.back() + 1);
+			ImGui::TextColored(themeColor, useChinese ? "调试模式：" : "Debug Mode:");
+			ImGui::SameLine();
+			auto isDebugging = SharedApplication.isDebugging();
+			if (useChinese) {
+				ImGui::TextUnformatted(isDebugging ? "开启" : "关闭");
+			} else {
+				ImGui::TextUnformatted(isDebugging ? "true" : "false");
+			}
 			if (ImGui::ColorEdit3(useChinese ? "主题色" : "Theme Color", themeColor, ImGuiColorEditFlags_DisplayHex)) {
 				SharedApplication.setThemeColor(Color(themeColor));
 			}
@@ -1059,18 +1071,7 @@ void ImGuiDora::showStats() {
 			if (ImGui::Combo(useChinese ? "语言" : "Language", &index, languages, _isChineseSupported ? 2 : 1)) {
 				SharedApplication.setLocale(index == 0 ? "en"_slice : "zh-Hans"_slice);
 			}
-			ImGui::TextColored(themeColor, useChinese ? "调试模式：" : "Debug Mode:");
-			ImGui::SameLine();
-			auto isDebugging = SharedApplication.isDebugging();
-			if (useChinese) {
-				ImGui::TextUnformatted(isDebugging ? "开启" : "关闭");
-			} else {
-				ImGui::TextUnformatted(isDebugging ? "true" : "false");
-			}
-			ImGui::TextColored(themeColor, useChinese ? "版本号：" : "Version:");
-			ImGui::SameLine();
-			auto version = SharedApplication.getVersion();
-			ImGui::TextUnformatted(&version.front(), &version.back() + 1);
+			if (extra) extra();
 			ImGui::PopItemWidth();
 		}
 		ImGui::Dummy(Vec2{200.0f, 0.0f});

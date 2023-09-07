@@ -106,11 +106,10 @@ export.getConfig = -> config
 import "Utils" as :Set, :Struct, :LintYueGlobals
 options: {extension: yueext} = yue
 
-isChineseSupported = false
-unless IsFontLoaded!
+isChineseSupported = IsFontLoaded!
+unless isChineseSupported
 	Director.systemScheduler\schedule once ->
 		isChineseSupported = LoadFontTTFAsync "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
-else isChineseSupported = true
 
 building = false
 
@@ -269,13 +268,9 @@ doClean = ->
 	return if building
 	:writablePath = Content
 	targetDir = Path writablePath, ".build"
-	cleaned = false
 	Content\clearPathCache!
 	if Content\remove targetDir
-		cleaned = true
 		print "Cleaned: #{targetDir}"
-	if not cleaned
-		print "Nothing to clean."
 	Content\remove Path writablePath, ".upload"
 	Content\remove Path writablePath, ".download"
 
@@ -459,6 +454,19 @@ reloadDevEntry = ->
 		oldRequire "Dev.Entry"
 		true
 
+extraOperations = ->
+	zh = useChinese and isChineseSupported
+	<- TreeNode zh and "开发操作" or "Development"
+	OpenPopup "build" if Button zh and "脚本编译" or "Script Build"
+	PushStyleVar "WindowPadding", Vec2(10, 10), -> BeginPopup "build", ->
+		doCompile false if Selectable zh and "编译" or "Compile"
+		Separator!
+		doCompile true if Selectable zh and "压缩" or "Minify"
+		Separator!
+		doClean! if Selectable zh and "清理" or "Clean"
+	if changed, scaleContent = Checkbox string.format("%.1fx #{zh and '屏幕缩放' or 'Screen'}", screenScale), scaleContent
+		View.scale = scaleContent and screenScale or 1
+
 showStats = false
 showConsole = true
 showFooter = true
@@ -517,12 +525,6 @@ footerWindow = threadLoop ->
 	PushStyleColor "WindowBg", Color(0x0), -> Begin "Show", windowFlags, ->
 		if width >= 600
 			Columns 2, false
-			if showFooter
-				changed, scaleContent = Checkbox string.format("%.1fx", screenScale), scaleContent
-				View.scale = scaleContent and screenScale or 1 if changed
-			else
-				Dummy Vec2 10, 30
-			SameLine!
 			NextColumn!
 			_, showFooter = Checkbox zh and "开发" or "Dev", showFooter
 	if initFooter
@@ -538,21 +540,12 @@ footerWindow = threadLoop ->
 		_, showStats = Checkbox zh and "状态" or "Stats", showStats
 		SameLine!
 		_, showConsole = Checkbox zh and "控制台" or "Log", showConsole
-		SameLine!
 		if isInEntry
-			OpenPopup "build" if Button zh and "生成" or "Build", Vec2 70, 30
-			PushStyleVar "WindowPadding", Vec2(10, 10), -> BeginPopup "build", ->
-				doCompile false if Selectable zh and "编译" or "Compile"
-				Separator!
-				doCompile true if Selectable zh and "压缩" or "Minify"
-				Separator!
-				doClean! if Selectable zh and "清理" or "Clean"
-			SameLine!
 			if Keyboard\isKeyPressed("LCtrl") and
 				Keyboard\isKeyDown "Z"
 				reloadDevEntry!
-			reloadDevEntry! if Button zh and "刷新" or "Reload", Vec2 70, 30
 			SameLine!
+			reloadDevEntry! if Button zh and "刷新" or "Reload", Vec2 70, 30
 		else
 			SameLine!
 			if Button zh and "主页" or "Home", Vec2 70, 30
@@ -580,7 +573,7 @@ footerWindow = threadLoop ->
 		PushStyleVar "WindowPadding", Vec2(10, 10), ->
 			if showStats
 				SetNextWindowPos Vec2(10, 50), "FirstUseEver"
-				ShowStats!
+				ShowStats extraOperations
 			if showConsole
 				SetNextWindowPos Vec2(width - 425, height - 375), "FirstUseEver"
 				ShowConsole!

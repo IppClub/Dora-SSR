@@ -492,8 +492,8 @@ bool IsFontLoaded() {
 	return SharedImGui.isFontLoaded();
 }
 
-void ShowStats() {
-	SharedImGui.showStats();
+void ShowStats(const std::function<void()>& extra) {
+	SharedImGui.showStats(extra);
 }
 
 void ShowConsole() {
