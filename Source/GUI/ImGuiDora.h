@@ -30,7 +30,7 @@ public:
 	void end();
 	void render();
 	void loadFontTTFAsync(String ttfFontFile, float fontSize, String glyphRanges, const std::function<void(bool)>& handler);
-	void showStats();
+	void showStats(const std::function<void()>& extra = nullptr);
 	void showConsole();
 	void handleEvent(const SDL_Event& event);
 	void updateTexture(uint8_t* data, int width, int height);

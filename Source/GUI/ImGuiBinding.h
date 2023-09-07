@@ -51,7 +51,7 @@ void LoadFontTTFAsync(
 
 bool IsFontLoaded();
 
-void ShowStats();
+void ShowStats(const std::function<void()>& extra = nullptr);
 void ShowConsole();
 
 bool Begin(
