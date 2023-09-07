@@ -169,6 +169,7 @@ namespace ImGui
 	void PopButtonRepeat();
 
 	void Separator();
+	void SeparatorText(CString text);
 	void SameLine(float pos_x = 0.0f, float spacing_w = -1.0f);
 	void NewLine();
 	void Spacing();
