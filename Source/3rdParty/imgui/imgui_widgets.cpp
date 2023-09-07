@@ -1418,8 +1418,8 @@ void ImGui::SeparatorEx(ImGuiSeparatorFlags flags, float thickness)
     else if (flags & ImGuiSeparatorFlags_Horizontal)
     {
         // Horizontal Separator
-        float x1 = window->Pos.x;
-        float x2 = window->Pos.x + window->Size.x;
+        float x1 = window->Pos.x + window->WindowPadding.x;
+        float x2 = window->Pos.x + window->Size.x - window->WindowPadding.x;
 
         // FIXME-WORKRECT: old hack (#205) until we decide of consistent behavior with WorkRect/Indent and Separator
         if (g.GroupStack.Size > 0 && g.GroupStack.back().WindowID == window->ID)

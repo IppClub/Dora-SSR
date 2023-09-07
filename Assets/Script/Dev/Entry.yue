@@ -579,11 +579,13 @@ footerWindow = threadLoop ->
 				reloadCurrentEntry!
 		PushStyleVar "WindowPadding", Vec2(10, 10), ->
 			if showStats
-				SetNextWindowPos Vec2(10, 10), "FirstUseEver"
+				SetNextWindowPos Vec2(10, 50), "FirstUseEver"
 				ShowStats!
 			if showConsole
 				SetNextWindowPos Vec2(width - 425, height - 375), "FirstUseEver"
 				ShowConsole!
+
+const MaxWidth = 800
 
 entryWindow = threadLoop ->
 	if App.fpsLimited ~= (config.fpsLimited == 1)
@@ -598,19 +600,21 @@ entryWindow = threadLoop ->
 	return unless isInEntry
 	zh = useChinese and isChineseSupported
 	:themeColor = App
-	:width, :height = App.visualSize
+	width:fullWidth, :height = App.visualSize
+	width = math.min MaxWidth, fullWidth
+	paddingX = math.max 10, fullWidth / 2 - width / 2 - 10
 	maxColumns = math.max math.floor(width / 200), 1
 	SetNextWindowPos Vec2.zero
-	SetNextWindowSize Vec2 width, 45
+	SetNextWindowSize Vec2 fullWidth, 45
 	SetNextWindowBgAlpha 0.35
 	PushStyleVar "WindowPadding", Vec2(10, 0), ->
 		Begin "Dorothy Dev", windowFlags, ->
-			Dummy Vec2 width - 20, 5
+			Dummy Vec2 fullWidth - 20, 5
 			TextColored themeColor, "DOROTHY SSR #{zh and '开发' or 'DEV'}"
-			Dummy Vec2 width, 0
+			Dummy Vec2 fullWidth, 0
 	SetNextWindowPos Vec2 0, 45
-	SetNextWindowSize Vec2 width, height - 95
-	PushStyleColor "WindowBg", Color(0x0), ->
+	SetNextWindowSize Vec2 fullWidth, height - 95
+	PushStyleColor "WindowBg", Color(0x0), -> PushStyleVar "WindowPadding", Vec2(paddingX, 10), ->
 		Begin "Content", windowFlags, ->
 			if #gamesInDev > 0
 				for game in *gamesInDev
@@ -654,21 +658,24 @@ entryWindow = threadLoop ->
 				SameLine!
 				Text zh and "开发示例" or "Development Showcase"
 				Separator!
-				if #games > 0 and CollapsingHeader zh and "游戏演示" or "Game Demo"
+				if #games > 0
+					<- TreeNode zh and "游戏演示" or "Game Demo"
 					Columns maxColumns, false
 					for game in *games
 						if Button game[1], Vec2 -1, 40
 							enterDemoEntry game
 						NextColumn!
 					Columns 1, false
-				if #doraExamples > 0 and CollapsingHeader zh and "引擎示例" or "Engine Example"
+				if #doraExamples > 0
+					<- TreeNode zh and "引擎示例" or "Engine Example"
 					Columns maxColumns, false
 					for example in *doraExamples
 						if Button example[1], Vec2 -1, 40
 							enterDemoEntry example
 						NextColumn!
 					Columns 1, false
-				if #doraTests > 0 and CollapsingHeader zh and "引擎测试" or "Engine Test"
+				if #doraTests > 0
+					<- TreeNode zh and "引擎测试" or "Engine Test"
 					Columns maxColumns, false
 					for test in *doraTests
 						if Button test[1], Vec2 -1, 40

@@ -899,8 +899,11 @@ do
 	ImGui.PopButtonRepeat = nil
 	ImGui.PushID = pairCallC(ImGui.PushID, ImGui.PopID)
 	ImGui.PopID = nil
-	ImGui.TreePush = pairCallC(ImGui.TreePush, ImGui.TreePop)
+	local TreePop = ImGui.TreePop
 	ImGui.TreePop = nil
+	ImGui.TreePush = pairCallB(ImGui.TreePush, TreePop)
+	ImGui.TreeNode = pairCallB(ImGui.TreeNode, TreePop)
+	ImGui.TreeNodeEx = pairCallB(ImGui.TreeNodeEx, TreePop)
 	ImGui.PushClipRect = pairCallC(ImGui.PushClipRect, ImGui.PopClipRect)
 	ImGui.PopClipRect = nil
 	ImGui.BeginTable = pairCallB(ImGui.BeginTable, ImGui.EndTable)
