@@ -256,10 +256,11 @@ local record ImGui
 		"Greek"
 		"Vietnamese"
 	end
-	LoadFontTTFAsync: function(
+	LoadFontTTF: function(
 		ttfFontFile: string,
 		fontSize: number,
-		glyphRanges?: GlyphRange --[["Default"]]
+		glyphRanges: GlyphRange,
+		callback: function()
 	): boolean
 	IsFontLoaded: function(): boolean
 	ShowStats: function()
