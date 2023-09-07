@@ -374,12 +374,23 @@ local record ImGui
 	): boolean
 	TreeNodeEx: function(
 		label: string,
-		treeNodeFlags?: {TreeNodeFlag} --[[nil]]
+		treeNodeFlags?: {TreeNodeFlag},
+		inside: function()
+	): boolean
+	TreeNodeEx: function(
+		label: string,
+		inside: function()
 	): boolean
 	TreeNodeEx: function(
 		str_id: string,
 		text: string,
-		treeNodeFlags?: {TreeNodeFlag} --[[nil]]
+		treeNodeFlags?: {TreeNodeFlag},
+		inside: function()
+	): boolean
+	TreeNodeEx: function(
+		str_id: string,
+		text: string,
+		inside: function()
 	): boolean
 	SetNextItemOpen: function(
 		is_open: boolean,
@@ -446,7 +457,6 @@ local record ImGui
 	TextWrapped: function(text: string)
 	LabelText: function(label: string, text: string)
 	BulletText: function(text: string)
-	TreeNode: function(str_id: string, text: string): boolean
 	SetTooltip: function(text: string)
 
 	ColorEdit3: function(label: string, color3: Color3): boolean
@@ -711,6 +721,7 @@ local record ImGui
 	PushButtonRepeat: function(repeated: boolean, inside: function())
 
 	Separator: function()
+	SeparatorText: function(text: string)
 	SameLine: function(
 		pos_x?: number --[[0.0]],
 		spacing_w?: number --[[-1.0]]
@@ -799,7 +810,8 @@ local record ImGui
 		v_degrees_max?: number --[[360.0]]
 	): boolean, number
 
-	TreeNode: function(label: string): boolean
+	TreeNode: function(label: string, inside: function()): boolean
+	TreeNode: function(str_id: string, text: string, inside: function()): boolean
 	TreePush: function(
 		str_id: string --[[""]],
 		inside: function()
