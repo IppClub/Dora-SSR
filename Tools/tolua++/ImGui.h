@@ -15,7 +15,7 @@ namespace ImGui
 {
 	void Binding::LoadFontTTFAsync @ LoadFontTTFAsync(String ttfFontFile, float fontSize, String glyphRanges, tolua_function_void handler);
 	bool Binding::IsFontLoaded @ IsFontLoaded();
-	void Binding::ShowStats @ ShowStats();
+	void Binding::ShowStats @ ShowStats(tolua_function_void handler = nullptr);
 	void Binding::ShowConsole @ ShowConsole();
 	bool Binding::Begin @ Begin(CString name);
 	bool Binding::Begin @ Begin(CString name, String windowsFlags[tolua_len]);
