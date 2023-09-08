@@ -433,7 +433,7 @@ export default function PersistentDrawerLeft() {
 							const lines = tealCode.split("\n");
 							const message = [];
 							for (let err of res.info) {
-								const [_type, filename, row, _col, msg] = err;
+								const [, filename, row, , msg] = err;
 								let node = "";
 								if (path.relative(filename, tlFile) === "" && 1 <= row && row <= lines.length) {
 									const ends = lines[row - 1].match(/-- (\d+)$/);
@@ -532,7 +532,7 @@ export default function PersistentDrawerLeft() {
 									const lines = tealCode.split("\n");
 									const message = [];
 									for (let err of res.info) {
-										const [_type, filename, row, _col, msg] = err;
+										const [, filename, row, , msg] = err;
 										let node = "";
 										if (path.relative(filename, tlFile) === "" && 1 <= row && row <= lines.length) {
 											const ends = lines[row - 1].match(/-- (\d+)$/);
