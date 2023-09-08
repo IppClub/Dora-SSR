@@ -426,10 +426,9 @@ export default function PersistentDrawerLeft() {
 				}).then(() => {
 					saveFile();
 					Service.check({file: tlFile, content: tealCode}).then((res) => {
-						if (res.success) {
+						if (res.success && tealCode !== "") {
 							codeWireData.reportVisualScriptError("");
-						}
-						if (res.info !== undefined) {
+						} else if (res.info !== undefined) {
 							const lines = tealCode.split("\n");
 							const message = [];
 							for (let err of res.info) {

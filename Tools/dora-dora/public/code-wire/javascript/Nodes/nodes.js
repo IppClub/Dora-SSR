@@ -1317,6 +1317,160 @@ export var Nodes = {
 			nodeDescription.rows = 2;
 			nodeDescription.colums = 10;
 		}
+		if (type == 'Append') {
+			nodeDescription.nodeTitle = 'Append';
+			nodeDescription.execIn = true;
+			nodeDescription.pinExecInId = null;
+			nodeDescription.execOut = {
+				execOut0: {
+					execOutTitle: null,
+					pinExecOutId: null,
+					outOrder: 0,
+				},
+			}
+			nodeDescription.inputs = {
+				input0: {
+					inputTitle: 'Array',
+					dataType: 'Array',
+					isInputBoxRequired: false,
+					pinInId: null,
+				},
+				input1: {
+					inputTitle: 'Value',
+					dataType: 'Data',
+					defValue: 1,
+					pinInId: null,
+				},
+			}
+			nodeDescription.outputs = {
+				output0: {
+					outputTitle: 'Array(Ref)',
+					dataType: 'Array',
+					pinOutId: null,
+					outOrder: 1,
+				}
+			}
+			nodeDescription.color = 'Func';
+			nodeDescription.rows = 3;
+			nodeDescription.colums = 12;
+		}
+		if (type == 'Insert') {
+			nodeDescription.nodeTitle = 'Insert';
+			nodeDescription.execIn = true;
+			nodeDescription.pinExecInId = null;
+			nodeDescription.execOut = {
+				execOut0: {
+					execOutTitle: null,
+					pinExecOutId: null,
+					outOrder: 0,
+				},
+			}
+			nodeDescription.inputs = {
+				input0: {
+					inputTitle: 'Array',
+					dataType: 'Array',
+					isInputBoxRequired: false,
+					pinInId: null,
+				},
+				input1: {
+					inputTitle: 'Index',
+					dataType: 'Number',
+					defValue: 0,
+					pinInId: null,
+				},
+				input2: {
+					inputTitle: 'Value',
+					dataType: 'Data',
+					defValue: 1,
+					pinInId: null,
+				},
+			}
+			nodeDescription.outputs = {
+				output0: {
+					outputTitle: 'Array(Ref)',
+					dataType: 'Array',
+					pinOutId: null,
+					outOrder: 1,
+				}
+			}
+			nodeDescription.color = 'Func';
+			nodeDescription.rows = 4;
+			nodeDescription.colums = 12;
+		}
+		if (type == 'RemoveAt') {
+			nodeDescription.nodeTitle = 'RemoveAt';
+			nodeDescription.execIn = true;
+			nodeDescription.pinExecInId = null;
+			nodeDescription.execOut = {
+				execOut0: {
+					execOutTitle: null,
+					pinExecOutId: null,
+					outOrder: 0,
+				},
+			}
+			nodeDescription.inputs = {
+				input0: {
+					inputTitle: 'Array',
+					dataType: 'Array',
+					isInputBoxRequired: false,
+					pinInId: null,
+				},
+				input1: {
+					inputTitle: 'Index',
+					dataType: 'Number',
+					defValue: 0,
+					pinInId: null,
+				},
+			}
+			nodeDescription.outputs = {
+				output0: {
+					outputTitle: 'Array(Ref)',
+					dataType: 'Array',
+					pinOutId: null,
+					outOrder: 1,
+				}
+			}
+			nodeDescription.color = 'Func';
+			nodeDescription.rows = 3;
+			nodeDescription.colums = 12;
+		}
+		if (type == 'RemoveLast') {
+			nodeDescription.nodeTitle = 'RemoveLast';
+			nodeDescription.execIn = true;
+			nodeDescription.pinExecInId = null;
+			nodeDescription.execOut = {
+				execOut0: {
+					execOutTitle: null,
+					pinExecOutId: null,
+					outOrder: 0,
+				},
+			}
+			nodeDescription.inputs = {
+				input0: {
+					inputTitle: 'Array',
+					dataType: 'Array',
+					isInputBoxRequired: false,
+					pinInId: null,
+				},
+				input1: {
+					inputTitle: 'Index',
+					dataType: 'Number',
+					defValue: 0,
+					pinInId: null,
+				},
+			}
+			nodeDescription.outputs = {
+				output0: {
+					outputTitle: 'Array(Ref)',
+					dataType: 'Array',
+					pinOutId: null,
+					outOrder: 1,
+				},
+			}
+			nodeDescription.color = 'Func';
+			nodeDescription.rows = 3;
+			nodeDescription.colums = 12;
+		}
 		if (type == 'Length') {
 			nodeDescription.nodeTitle = 'Length';
 			nodeDescription.inputs = {
@@ -1409,15 +1563,15 @@ export var Nodes = {
 			nodeDescription.nodeTitle = 'GetIndex';
 			nodeDescription.inputs = {
 				input0: {
-					inputTitle: 'Index',
-					dataType: 'Number',
-					defValue: 0,
-					pinInId: null,
-				},
-				input1: {
 					inputTitle: 'Array',
 					dataType: 'Array',
 					isInputBoxRequired: false,
+					pinInId: null,
+				},
+				input1: {
+					inputTitle: 'Index',
+					dataType: 'Number',
+					defValue: 0,
 					pinInId: null,
 				},
 			}
@@ -1446,24 +1600,22 @@ export var Nodes = {
 			}
 			nodeDescription.inputs = {
 				input0: {
+					inputTitle: 'Array',
+					dataType: 'Array',
+					isInputBoxRequired: false,
+					pinInId: null,
+				},
+				input1: {
 					inputTitle: 'Index',
 					dataType: 'Number',
 					defValue: 0,
 					pinInId: null,
 				},
-				input1: {
+				input2: {
 					inputTitle: 'Value',
 					dataType: 'Data',
 					defValue: 1,
 					pinInId: null,
-
-				},
-				input2: {
-					inputTitle: 'Array',
-					dataType: 'Array',
-					isInputBoxRequired: false,
-					pinInId: null,
-
 				},
 			}
 			nodeDescription.outputs = {
