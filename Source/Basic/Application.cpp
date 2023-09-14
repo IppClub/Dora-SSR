@@ -690,7 +690,7 @@ int CALLBACK WinMain(
 #endif // BX_PLATFORM_WINDOWS
 
 #include "Lua/LuaEngine.h"
-#include "PlayRho/Defines.hpp"
+#include "playrho/Defines.hpp"
 #include "SQLiteCpp/SQLiteCpp.h"
 #include "imgui.h"
 #include "implot.h"
