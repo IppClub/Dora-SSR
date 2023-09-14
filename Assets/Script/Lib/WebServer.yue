@@ -476,9 +476,9 @@ thread ->
 			)
 			Content\save doraReady, App.version
 			print "Dora Dora is ready!"
-	if HttpServer\start 8866
-		:localIP = HttpServer
-		localIP = "localhost" if localIP == ""
-		print "Web IDE at http://#{localIP}:8866"
-	else
-		print "8866 Port not available!"
+		if HttpServer\start 8866
+			:localIP = HttpServer
+			localIP = "localhost" if localIP == ""
+			print "Web IDE at http://#{localIP}:8866"
+		else
+			print "8866 Port not available!"
