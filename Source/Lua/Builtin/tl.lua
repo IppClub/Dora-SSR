@@ -5582,7 +5582,7 @@ local function init_globals(lax)
 				["charpattern"] = STRING,
 				["codepoint"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_NUMBER, OPT_NUMBER, OPT_BOOLEAN }), rets = VARARG({ INTEGER }) }),
 				["codes"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_BOOLEAN }), rets = TUPLE({
-					a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ NUMBER, NUMBER }) }),
+					a_type({ typename = "function", args = TUPLE({ STRING, OPT_NUMBER }), rets = TUPLE({ NUMBER, NUMBER }) }),
 				}), }),
 				["len"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_NUMBER, OPT_NUMBER, OPT_BOOLEAN }), rets = TUPLE({ INTEGER }) }),
 				["offset"] = a_type({ typename = "function", args = TUPLE({ STRING, NUMBER, OPT_NUMBER }), rets = TUPLE({ INTEGER }) }),
@@ -8449,7 +8449,7 @@ tl.type_check = function(ast, opts)
 				elseif is_a(t2, t1) then
 					return t2
 				else
-					return INVALID
+					return NIL
 				end
 			end
 		end
@@ -8490,7 +8490,7 @@ tl.type_check = function(ast, opts)
 			end
 
 			if #types == 0 then
-				return INVALID
+				return NIL
 			end
 
 			return unite(types)
@@ -8614,7 +8614,8 @@ tl.type_check = function(ast, opts)
 				end
 				if typ.typename ~= "typevar" then
 					if is_a(typ, f.typ) then
-						node_warning("branch", f.where, f.var .. " (of type %s) is always a %s", show_type(typ), show_type(f.typ))
+
+
 						return { [f.var] = f }
 					elseif not is_a(f.typ, typ) then
 						node_error(f.where, f.var .. " (of type %s) can never be a %s", typ, f.typ)
