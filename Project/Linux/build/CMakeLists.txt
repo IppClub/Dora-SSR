@@ -332,56 +332,6 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/dragonBones/model/TextureAtlasData.cpp
 	../../../Source/3rdParty/dragonBones/event/EventObject.cpp
 	../../../Source/3rdParty/dragonBones/factory/BaseFactory.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/StepStats.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/WorldJoint.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/MovementConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/WorldImplMisc.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/WorldImplContact.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/BodyConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/ContactImpulsesList.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/WorldContact.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/WorldImplJoint.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/WorldBody.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/WorldSpecial.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/WorldImpl.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Body.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/WorldShape.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/WorldImplBody.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Island.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/WorldImplShape.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/StepConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/WorldMisc.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/World.cpp
-	../../../Source/3rdParty/PlayRho/Common/BlockAllocator.cpp
-	../../../Source/3rdParty/PlayRho/Common/Version.cpp
-	../../../Source/3rdParty/PlayRho/Common/Sweep.cpp
-	../../../Source/3rdParty/PlayRho/Common/Math.cpp
-	../../../Source/3rdParty/PlayRho/Common/UnitVec.cpp
-	../../../Source/3rdParty/PlayRho/Common/DynamicMemory.cpp
-	../../../Source/3rdParty/PlayRho/Common/Velocity.cpp
-	../../../Source/3rdParty/PlayRho/Common/StackAllocator.cpp
-	../../../Source/3rdParty/PlayRho/Common/CodeDumper.cpp
-	../../../Source/3rdParty/PlayRho/Common/PoolMemoryResource.cpp
-	../../../Source/3rdParty/PlayRho/Common/MemoryResource.cpp
-	../../../Source/3rdParty/PlayRho/Common/StatsResource.cpp
-	../../../Source/3rdParty/PlayRho/Collision/RayCastOutput.cpp
-	../../../Source/3rdParty/PlayRho/Collision/Manifold.cpp
-	../../../Source/3rdParty/PlayRho/Collision/Simplex.cpp
-	../../../Source/3rdParty/PlayRho/Collision/SeparationScenario.cpp
-	../../../Source/3rdParty/PlayRho/Collision/AABB.cpp
-	../../../Source/3rdParty/PlayRho/Collision/DynamicTree.cpp
-	../../../Source/3rdParty/PlayRho/Collision/DistanceProxy.cpp
-	../../../Source/3rdParty/PlayRho/Collision/TimeOfImpact.cpp
-	../../../Source/3rdParty/PlayRho/Collision/DynamicTreeData.cpp
-	../../../Source/3rdParty/PlayRho/Collision/WorldManifold.cpp
-	../../../Source/3rdParty/PlayRho/Collision/Distance.cpp
-	../../../Source/3rdParty/PlayRho/Collision/ToiOutput.cpp
-	../../../Source/3rdParty/PlayRho/Collision/MassData.cpp
-	../../../Source/3rdParty/PlayRho/Collision/ToiConf.cpp
-	../../../Source/3rdParty/PlayRho/Collision/ShapeSeparation.cpp
-	../../../Source/3rdParty/PlayRho/Collision/ClipList.cpp
-	../../../Source/3rdParty/PlayRho/Collision/PointStates.cpp
-	../../../Source/3rdParty/PlayRho/Collision/DistanceConf.cpp
 	../../../Source/3rdParty/sqlite/SQLiteCpp/Column.cpp
 	../../../Source/3rdParty/sqlite/SQLiteCpp/Savepoint.cpp
 	../../../Source/3rdParty/sqlite/SQLiteCpp/Exception.cpp
@@ -422,33 +372,6 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/soloud/filter/soloud_freeverbfilter.cpp
 	../../../Source/3rdParty/soloud/filter/soloud_biquadresonantfilter.cpp
 	../../../Source/3rdParty/soloud/filter/soloud_waveshaperfilter.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Contacts/ConstraintSolverConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Contacts/ContactSolver.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Contacts/Contact.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Contacts/PositionSolverManifold.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Contacts/ContactKey.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Contacts/VelocityConstraint.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/MotorJointConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/Joint.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/FrictionJointConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/TargetJointConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/JointConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/LimitState.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/RopeJointConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/GearJointConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/WheelJointConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/WeldJointConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/PulleyJointConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/RevoluteJointConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/PrismaticJointConf.cpp
-	../../../Source/3rdParty/PlayRho/Dynamics/Joints/DistanceJointConf.cpp
-	../../../Source/3rdParty/PlayRho/Collision/Shapes/EdgeShapeConf.cpp
-	../../../Source/3rdParty/PlayRho/Collision/Shapes/MultiShapeConf.cpp
-	../../../Source/3rdParty/PlayRho/Collision/Shapes/DiskShapeConf.cpp
-	../../../Source/3rdParty/PlayRho/Collision/Shapes/Shape.cpp
-	../../../Source/3rdParty/PlayRho/Collision/Shapes/PolygonShapeConf.cpp
-	../../../Source/3rdParty/PlayRho/Collision/Shapes/ChainShapeConf.cpp
-	../../../Source/3rdParty/PlayRho/Collision/Shapes/Compositor.cpp
 	../../../Source/3rdParty/soloud/backend/sdl/soloud_sdl2.cpp
 	../../../Source/3rdParty/soloud/backend/sdl/soloud_sdl2_dll.c
 	../../../Source/3rdParty/soloud/audiosource/vic/soloud_vic.cpp
@@ -475,6 +398,81 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/soloud/audiosource/vizsn/soloud_vizsn.cpp
 	../../../Source/3rdParty/soloud/audiosource/openmpt/soloud_openmpt_dll.c
 	../../../Source/3rdParty/soloud/audiosource/openmpt/soloud_openmpt.cpp
+	../../../Source/3rdParty/playrho/StepStats.cpp
+	../../../Source/3rdParty/playrho/MovementConf.cpp
+	../../../Source/3rdParty/playrho/BlockAllocator.cpp
+	../../../Source/3rdParty/playrho/Version.cpp
+	../../../Source/3rdParty/playrho/LimitState.cpp
+	../../../Source/3rdParty/playrho/Math.cpp
+	../../../Source/3rdParty/playrho/ConstraintSolverConf.cpp
+	../../../Source/3rdParty/playrho/DynamicMemory.cpp
+	../../../Source/3rdParty/playrho/Island.cpp
+	../../../Source/3rdParty/playrho/Contact.cpp
+	../../../Source/3rdParty/playrho/ToiOutput.cpp
+	../../../Source/3rdParty/playrho/StepConf.cpp
+	../../../Source/3rdParty/playrho/StackAllocator.cpp
+	../../../Source/3rdParty/playrho/ToiConf.cpp
+	../../../Source/3rdParty/playrho/pmr/PoolMemoryResource.cpp
+	../../../Source/3rdParty/playrho/pmr/StatsResource.cpp
+	../../../Source/3rdParty/playrho/pmr/MemoryResource.cpp
+	../../../Source/3rdParty/playrho/d2/RayCastOutput.cpp
+	../../../Source/3rdParty/playrho/d2/EdgeShapeConf.cpp
+	../../../Source/3rdParty/playrho/d2/Manifold.cpp
+	../../../Source/3rdParty/playrho/d2/MotorJointConf.cpp
+	../../../Source/3rdParty/playrho/d2/Simplex.cpp
+	../../../Source/3rdParty/playrho/d2/Joint.cpp
+	../../../Source/3rdParty/playrho/d2/MultiShapeConf.cpp
+	../../../Source/3rdParty/playrho/d2/WorldJoint.cpp
+	../../../Source/3rdParty/playrho/d2/FrictionJointConf.cpp
+	../../../Source/3rdParty/playrho/d2/TargetJointConf.cpp
+	../../../Source/3rdParty/playrho/d2/WorldImplMisc.cpp
+	../../../Source/3rdParty/playrho/d2/SeparationScenario.cpp
+	../../../Source/3rdParty/playrho/d2/JointConf.cpp
+	../../../Source/3rdParty/playrho/d2/Sweep.cpp
+	../../../Source/3rdParty/playrho/d2/WorldImplContact.cpp
+	../../../Source/3rdParty/playrho/d2/UnitVec.cpp
+	../../../Source/3rdParty/playrho/d2/BodyConf.cpp
+	../../../Source/3rdParty/playrho/d2/DiskShapeConf.cpp
+	../../../Source/3rdParty/playrho/d2/AABB.cpp
+	../../../Source/3rdParty/playrho/d2/ContactImpulsesList.cpp
+	../../../Source/3rdParty/playrho/d2/DynamicTree.cpp
+	../../../Source/3rdParty/playrho/d2/DistanceProxy.cpp
+	../../../Source/3rdParty/playrho/d2/RopeJointConf.cpp
+	../../../Source/3rdParty/playrho/d2/ClipList.cpp
+	../../../Source/3rdParty/playrho/d2/WorldContact.cpp
+	../../../Source/3rdParty/playrho/d2/WorldImplJoint.cpp
+	../../../Source/3rdParty/playrho/d2/WorldBody.cpp
+	../../../Source/3rdParty/playrho/d2/TimeOfImpact.cpp
+	../../../Source/3rdParty/playrho/d2/GearJointConf.cpp
+	../../../Source/3rdParty/playrho/d2/WorldSpecial.cpp
+	../../../Source/3rdParty/playrho/d2/WorldImpl.cpp
+	../../../Source/3rdParty/playrho/d2/Body.cpp
+	../../../Source/3rdParty/playrho/d2/WheelJointConf.cpp
+	../../../Source/3rdParty/playrho/d2/WeldJointConf.cpp
+	../../../Source/3rdParty/playrho/d2/WorldShape.cpp
+	../../../Source/3rdParty/playrho/d2/ContactSolver.cpp
+	../../../Source/3rdParty/playrho/d2/WorldImplBody.cpp
+	../../../Source/3rdParty/playrho/d2/Shape.cpp
+	../../../Source/3rdParty/playrho/d2/PolygonShapeConf.cpp
+	../../../Source/3rdParty/playrho/d2/PulleyJointConf.cpp
+	../../../Source/3rdParty/playrho/d2/WorldManifold.cpp
+	../../../Source/3rdParty/playrho/d2/PositionSolverManifold.cpp
+	../../../Source/3rdParty/playrho/d2/Velocity.cpp
+	../../../Source/3rdParty/playrho/d2/Distance.cpp
+	../../../Source/3rdParty/playrho/d2/ChainShapeConf.cpp
+	../../../Source/3rdParty/playrho/d2/RevoluteJointConf.cpp
+	../../../Source/3rdParty/playrho/d2/WorldImplShape.cpp
+	../../../Source/3rdParty/playrho/d2/PrismaticJointConf.cpp
+	../../../Source/3rdParty/playrho/d2/WorldMisc.cpp
+	../../../Source/3rdParty/playrho/d2/CodeDumper.cpp
+	../../../Source/3rdParty/playrho/d2/VelocityConstraint.cpp
+	../../../Source/3rdParty/playrho/d2/DistanceJointConf.cpp
+	../../../Source/3rdParty/playrho/d2/World.cpp
+	../../../Source/3rdParty/playrho/d2/MassData.cpp
+	../../../Source/3rdParty/playrho/d2/ShapeSeparation.cpp
+	../../../Source/3rdParty/playrho/d2/DistanceConf.cpp
+	../../../Source/3rdParty/playrho/d2/PointStates.cpp
+	../../../Source/3rdParty/playrho/d2/part/Compositor.cpp
 )
 
 target_link_libraries(dorothy-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11)

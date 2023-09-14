@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "PlayRho/Collision/Shapes/Shape.hpp"
+#include "playrho/d2/Shape.hpp"
 #include "Support/Geometry.h"
 
 NS_DOROTHY_BEGIN

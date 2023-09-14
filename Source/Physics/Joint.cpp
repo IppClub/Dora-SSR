@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/JointDef.h"
 #include "Physics/PhysicsWorld.h"
 #include "Physics/Sensor.h"
-#include "PlayRho/Dynamics/Joints/Joint.hpp"
+#include "playrho/d2/Joint.hpp"
 
 NS_DOROTHY_BEGIN
 
