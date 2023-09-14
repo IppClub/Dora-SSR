@@ -27,7 +27,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/Data.h"
 #include "Platformer/Unit.h"
 #include "Platformer/VisualCache.h"
-#include "PlayRho/Collision/Distance.hpp"
+#include "playrho/d2/Distance.hpp"
 #include "Support/Dictionary.h"
 
 NS_DOROTHY_PLATFORMER_BEGIN

@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Node/Node.h"
-#include "PlayRho/Collision/RayCastOutput.hpp"
+#include "playrho/d2/RayCastOutput.hpp"
 
 NS_DOROTHY_BEGIN
 

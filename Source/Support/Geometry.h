@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "PlayRho/PlayRho.hpp"
+#include "playrho/d2/BasicAPI.hpp"
 #include "bx/math.h"
 
 NS_DOROTHY_BEGIN

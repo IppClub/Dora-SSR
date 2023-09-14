@@ -16,9 +16,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/DebugDraw.h"
 #include "Physics/Joint.h"
 #include "Physics/Sensor.h"
-#include "PlayRho/Collision/Distance.hpp"
-#include "PlayRho/Collision/DynamicTree.hpp"
-#include "PlayRho/Collision/Manifold.hpp"
+#include "playrho/d2/Distance.hpp"
+#include "playrho/d2/DynamicTree.hpp"
+#include "playrho/d2/Manifold.hpp"
 
 NS_DOROTHY_BEGIN
 

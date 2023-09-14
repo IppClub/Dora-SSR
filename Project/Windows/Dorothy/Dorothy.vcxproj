@@ -325,311 +325,303 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\AABB.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\BlockAllocator.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\ClipList.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\ConstraintSolverConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Distance.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\Contact.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\DistanceConf.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\AABB.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\DistanceProxy.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\DynamicTree.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Body.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\DynamicTreeData.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Manifold.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\BodyConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\MassData.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\PointStates.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ChainShapeConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\RayCastOutput.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\SeparationScenario.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ClipList.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\ShapeSeparation.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ChainShapeConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\CodeDumper.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\Compositor.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ContactImpulsesList.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\DiskShapeConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ContactSolver.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\EdgeShapeConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\DiskShapeConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\MultiShapeConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Distance.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\PolygonShapeConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\DistanceConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\Shape.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\DistanceJointConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\Simplex.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\DistanceProxy.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\TimeOfImpact.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\ToiConf.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\DynamicTree.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\ToiOutput.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Collision\WorldManifold.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\EdgeShapeConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\BlockAllocator.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\CodeDumper.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\FrictionJointConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\DynamicMemory.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\Math.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\GearJointConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\MemoryResource.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Joint.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\PoolMemoryResource.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\JointConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\StackAllocator.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Manifold.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\StatsResource.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\MassData.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\Sweep.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\MotorJointConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\UnitVec.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\Velocity.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\MultiShapeConf.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\part\Compositor.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Common\Version.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\PointStates.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\PolygonShapeConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Body.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\PositionSolverManifold.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\PrismaticJointConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\BodyConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\PulleyJointConf.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\RayCastOutput.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\ContactImpulsesList.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\RevoluteJointConf.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\RopeJointConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\ConstraintSolverConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\SeparationScenario.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\Contact.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Shape.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\ContactKey.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ShapeSeparation.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\ContactSolver.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Simplex.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\PositionSolverManifold.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Sweep.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\VelocityConstraint.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\TargetJointConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Island.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\TimeOfImpact.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\UnitVec.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\DistanceJointConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Velocity.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\FrictionJointConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\VelocityConstraint.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\GearJointConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WeldJointConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\Joint.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WheelJointConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\World.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\LimitState.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldBody.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\MotorJointConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldContact.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\PrismaticJointConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldImpl.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\PulleyJointConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplBody.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\RevoluteJointConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplContact.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\RopeJointConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplJoint.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\TargetJointConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplMisc.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WeldJointConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplShape.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WheelJointConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldJoint.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\MovementConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldManifold.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldMisc.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\StepConf.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldShape.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldSpecial.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\StepStats.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\DynamicMemory.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\World.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\Island.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldBody.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\LimitState.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldContact.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\Math.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldImpl.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\MovementConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldImplBody.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\pmr\MemoryResource.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldImplContact.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\pmr\PoolMemoryResource.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldImplJoint.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\pmr\StatsResource.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldImplMisc.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\StackAllocator.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldImplShape.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\StepConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldJoint.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\StepStats.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldMisc.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\ToiConf.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldShape.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\ToiOutput.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldSpecial.cpp">
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\Version.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -1455,141 +1447,150 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Other\atlas.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\rapidxml_sax3.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\utf8.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\AABB.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\ClipList.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\ContactFeature.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Distance.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\DistanceConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\DistanceProxy.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\DynamicTree.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\DynamicTreeData.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\IndexPair.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Manifold.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\MassData.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\PointState.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\PointStates.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\RayCastInput.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\RayCastOpcode.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\RayCastOutput.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\SeparationScenario.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\ShapeSeparation.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ChainShapeConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\Compositor.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\DiskShapeConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\EdgeShapeConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\MultiShapeConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\PolygonShapeConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\Shape.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ShapeConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Shapes\ShapeID.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\Simplex.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\SimplexEdge.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\TimeOfImpact.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\ToiConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\ToiOutput.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Collision\WorldManifold.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Acceleration.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\ArrayList.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\BlockAllocator.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\CheckedValue.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\CodeDumper.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\DynamicMemory.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Finite.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Fixed.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\FixedLimits.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\FixedMath.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\FlagGuard.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\GrowableStack.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\IndexingNamedType.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Interval.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Intervals.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\InvalidArgument.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\LengthError.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Math.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Matrix.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\MemoryResource.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Negative.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\NonNegative.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\NonPositive.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\NonZero.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\ObjectPool.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\PoolMemoryResource.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Position.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Positive.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\propagate_const.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Real.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\RealConstants.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Settings.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Span.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\StackAllocator.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\StatsResource.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Sweep.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Templates.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\ThreadLocalAllocator.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Transformation.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\TypeInfo.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\UnitInterval.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Units.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\UnitVec.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Vector.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Vector2.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Vector3.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Velocity.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Version.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\VertexSet.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\Wider.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Common\WrongState.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Defines.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Body.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\BodyConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\BodyID.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\BodyType.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\ContactImpulsesList.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\BodyConstraint.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\ConstraintSolverConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\Contact.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\ContactID.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\ContactKey.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\ContactSolver.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\KeyedContactID.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\PositionConstraint.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\PositionSolverManifold.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Contacts\VelocityConstraint.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Filter.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Island.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\IslandStats.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\DistanceJointConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\FrictionJointConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\GearJointConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\Joint.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\JointID.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\LimitState.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\MotorJointConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\PrismaticJointConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\PulleyJointConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\RevoluteJointConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\RopeJointConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\TargetJointConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WeldJointConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\Joints\WheelJointConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\MovementConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\StepConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\StepStats.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\World.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldBody.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldContact.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldImpl.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldImplBody.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldImplContact.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldImplJoint.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldImplMisc.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldImplShape.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldJoint.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldMisc.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\Dynamics\WorldShape.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\PlayRho\PlayRho.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ArrayList.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\BlockAllocator.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\BodyID.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\BodyType.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\CheckedValue.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ConstraintSolverConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Contact.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Contactable.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ContactFeature.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ContactID.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ContactKey.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\AABB.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Acceleration.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\BasicAPI.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Body.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\BodyConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\BodyConstraint.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ChainShapeConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ClipList.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\CodeDumper.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactImpulsesList.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactSolver.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DiskShapeConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Distance.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DistanceConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DistanceJointConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DistanceProxy.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DynamicTree.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DynamicTreeData.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\EdgeShapeConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\FrictionJointConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\GearJointConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\IndexPair.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Joint.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\JointConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Manifold.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\MassData.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\MotorJointConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\MultiShapeConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\part\Compositor.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PointStates.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PolygonShapeConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Position.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PositionConstraint.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PositionSolverManifold.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PrismaticJointConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PulleyJointConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\RayCastInput.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\RayCastOutput.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\RevoluteJointConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\RopeJointConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\SeparationScenario.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Shape.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ShapeConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ShapeSeparation.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Simplex.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\SimplexEdge.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Sweep.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\TargetJointConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\TimeOfImpact.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Transformation.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\UnitVec.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Velocity.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\VelocityConstraint.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\VertexSet.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WeldJointConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WheelJointConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\World.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldBody.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldContact.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldImpl.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplBody.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplContact.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplJoint.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplMisc.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplShape.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldJoint.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldManifold.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldMisc.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldShape.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Defines.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\AABB.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\IndexingNamedType.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\RayCastInput.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\Templates.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\TypeInfo.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\underlying_type.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\Wider.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Doxygen.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\DynamicMemory.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Filter.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Finite.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Fixed.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\FixedLimits.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\FixedMath.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\FlagGuard.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\GrowableStack.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Interval.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Intervals.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\InvalidArgument.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Island.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\IslandStats.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\JointID.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\KeyedContactID.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\LengthError.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\LimitState.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Math.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Matrix.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\MovementConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Negative.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\NonNegative.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\NonPositive.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\NonZero.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ObjectPool.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\MemoryResource.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\PoolMemoryResource.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\StatsResource.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\ThreadLocalAllocator.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\PointState.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Positive.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\propagate_const.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\RayCastOpcode.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Real.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\RealConstants.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Settings.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ShapeID.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Span.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\StackAllocator.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\StepConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\StepStats.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Templates.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ToiConf.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ToiOutput.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\to_underlying.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\TypeInfo.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\UnitInterval.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Units.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Vector.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Vector2.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Vector3.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Version.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\WiderType.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\WrongState.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\chipplayer.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndbuffer.h" />
@@ -1891,7 +1892,7 @@
     <Image Include="Dorothy SSR.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\Source\3rdParty\PlayRho\Common\Real.hpp.in" />
+    <None Include="..\..\..\Source\3rdParty\playrho\Real.hpp.in" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{340C4AB9-29B3-4591-B8AA-CF532ADE77AA}</ProjectGuid>
