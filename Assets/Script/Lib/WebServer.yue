@@ -156,12 +156,33 @@ HttpServer\postSchedule "/check", (req)->
 				return success: false, :info
 	success: true
 
+updateInferedDesc = (infered)->
+	return if not infered.key or infered.key == "" or infered.desc\match "^polymorphic function %(with types "
+	:key, :row = infered
+	if codes = Content\loadAsync key
+		comments = {}
+		line = 0
+		skipping = false
+		for lineCode in codes\gmatch "[^\n\r]*"
+			line += 1
+			break if line >= row
+			if lineCode\match "^%s*-- @"
+				skipping = true
+				continue
+			if result = lineCode\match "%s*-- (.+)"
+				comments[] = result unless skipping
+			elseif #comments > 0
+				comments = {}
+				skipping = false
+		infered.doc = table.concat comments, "\n"
+
 HttpServer\postSchedule "/infer", (req)->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
 		searchPath = getSearchPath file
 		switch lang when "tl", "lua"
 			infered = teal.inferAsync content, line, row, searchPath
 			if infered?
+				updateInferedDesc infered
 				return success: true, :infered
 		when "yue"
 			luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine content, line, row, file
@@ -172,6 +193,7 @@ HttpServer\postSchedule "/infer", (req)->
 				if file == "" and row > 0 and col > 0
 					infered.row = lineMap[row] or 0
 					infered.col = 0
+				updateInferedDesc infered
 				return success: true, :infered
 	success: false
 

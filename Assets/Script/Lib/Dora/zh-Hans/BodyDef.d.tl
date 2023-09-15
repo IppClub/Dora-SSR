@@ -184,7 +184,7 @@ local record BodyDef
 		radius: number)
 end
 
--- A class for creating BodyDef and FixtureDef.
+-- 用于创建 BodyDef 和 FixtureDef 对象的类。
 local record BodyDefClass
 	type Type = BodyDef
 
