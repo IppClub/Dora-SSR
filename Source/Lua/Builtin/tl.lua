@@ -11447,6 +11447,14 @@ tl.dora_infer = function(codes, line, row, search_path)
 			while current_type and current_type.ref do
 				current_type = type_report.types[current_type.ref]
 			end
+			if str:match("^polymorphic") then
+				for _, id in ipairs(current_type.types) do
+					local tp = type_report.types[id]
+					if tp.y < current_type.y then
+						current_type = tp
+					end
+				end
+			end
 			return {
 				str = str,
 				file = current_type.file,

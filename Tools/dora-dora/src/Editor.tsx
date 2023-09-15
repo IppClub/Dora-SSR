@@ -3,6 +3,7 @@ import * as yuescript from './languages/yuescript';
 import * as teal from './languages/teal';
 import * as lua from './languages/lua';
 import * as Service from './Service';
+import Info from './Info';
 
 monaco.editor.defineTheme("dora-dark", {
 	base: "vs-dark",
@@ -147,7 +148,8 @@ const hoverProvider = (lang: InferLang) => {
 				if (desc.startsWith(polyText)) {
 					desc = desc.substring(polyText.length);
 					desc = desc.substring(0, desc.length - 1);
-					desc = "polymorphic:\n" + desc.split(" and ").join("\n")
+					const tag = Info.locale.match(/^zh/) ? "多重定义" : "Polymorphic";
+					desc = tag + ":\n" + desc.split(" and ").join("\n")
 					res.infered.desc = desc;
 				}
 				const contents = [
@@ -155,6 +157,11 @@ const hoverProvider = (lang: InferLang) => {
 						value: "```tl\n" + res.infered.desc + "\n```",
 					},
 				];
+				if (res.infered.doc !== undefined) {
+					contents.push({
+						value: res.infered.doc,
+					});
+				}
 				if (res.infered.row !== 0 && res.infered.col !== 0) {
 					if (res.infered.file === "") {
 						res.infered.file = "current file";
