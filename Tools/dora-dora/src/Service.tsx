@@ -32,6 +32,7 @@ export interface InferResponse {
 	success: boolean;
 	infered?: {
 		desc: string,
+		doc?: string,
 		file: string,
 		row: number,
 		col: number,
