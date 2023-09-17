@@ -566,6 +566,22 @@ do
 		end)
 		return result
 	end
+
+	local teal_getSignatureAsync = teal.getSignatureAsync
+	teal.getSignatureAsync = function(codes, line, row, searchPath)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "teal.inferAsync should be run in a thread")
+		local result
+		local done = false
+		teal_getSignatureAsync(codes, line, row, searchPath, function(infered)
+			result = infered
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		return result
+	end
 end
 
 -- node actions

@@ -479,6 +479,47 @@ static int dora_teal_infer_async(lua_State* L) {
 	return 0;
 }
 
+static int dora_get_teal_signature_async(lua_State* L) {
+	size_t len = 0;
+	const char* str = luaL_checklstring(L, 1, &len);
+	std::string codes(str, len);
+	str = luaL_checklstring(L, 2, &len);
+	std::string line(str, len);
+	int row = static_cast<int>(luaL_checknumber(L, 3));
+	str = luaL_checklstring(L, 4, &len);
+	std::string searchPath(str, len);
+	tolua_Error err;
+	if (!tolua_isfunction(L, 5, &err)) {
+		tolua_error(L, "#ferror in function 'teal.completeAsync'.", &err);
+	}
+	Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 5)));
+	SharedLuaEngine.getTealSignatureAsync(codes, line, row, searchPath, [handler](auto result) {
+		auto L = SharedLuaEngine.getState();
+		int top = lua_gettop(L);
+		DEFER(lua_settop(L, top));
+		if (result) {
+			lua_createtable(L, s_cast<int>(result.value().size()), 0);
+			int i = 0;
+			for (const auto item : result.value()) {
+				lua_createtable(L, 0, 0);
+				tolua_pushslice(L, item.desc);
+				lua_setfield(L, -2, "desc");
+				tolua_pushslice(L, item.file);
+				lua_setfield(L, -2, "file");
+				lua_pushinteger(L, item.row);
+				lua_setfield(L, -2, "row");
+				lua_pushinteger(L, item.col);
+				lua_setfield(L, -2, "col");
+				lua_rawseti(L, -2, ++i);
+			}
+		} else {
+			lua_pushnil(L);
+		}
+		LuaEngine::invoke(L, handler->get(), 1, 0);
+	});
+	return 0;
+}
+
 static int dora_file_exist(lua_State* L) {
 	size_t size = 0;
 	auto str = luaL_checklstring(L, 1, &size);
@@ -995,6 +1036,7 @@ LuaEngine::LuaEngine()
 			tolua_function(L, "checkAsync", dora_teal_check_async);
 			tolua_function(L, "completeAsync", dora_teal_complete_async);
 			tolua_function(L, "inferAsync", dora_teal_infer_async);
+			tolua_function(L, "getSignatureAsync", dora_get_teal_signature_async);
 		}
 		tolua_endmodule(L);
 
@@ -1308,6 +1350,65 @@ void LuaEngine::inferTealAsync(String tlCodes, String line, int row, String sear
 	},
 		[callback](Own<Values> values) {
 			std::optional<LuaEngine::TealInference> res;
+			values->get(res);
+			callback(res);
+		});
+}
+
+static std::optional<std::list<LuaEngine::TealInference>> get_teal_signature_async(lua_State* L, String tlCodes, String line, int row, String searchPath) {
+	int top = lua_gettop(L);
+	DEFER(lua_settop(L, top));
+	lua_getglobal(L, "package"); // package
+	lua_getfield(L, -1, "loaded"); // package loaded
+	lua_getfield(L, -1, "tl"); // package loaded tl
+	lua_pushcfunction(L, dora_threaded_read_file);
+	lua_setfield(L, -2, "read_file");
+	lua_getfield(L, -1, "dora_signature"); // package loaded tl infer
+	tolua_pushslice(L, tlCodes); // package loaded tl infer tlCodes
+	tolua_pushslice(L, line); // package loaded tl infer tlCodes line
+	lua_pushnumber(L, row); // package loaded tl infer tlCodes line row
+	tolua_pushslice(L, searchPath); // package loaded tl infer tlCodes line row searchPath
+	LuaEngine::call(L, 4, 1); // infer(tlCodes,line,row,searchPath), package loaded tl res
+	std::optional<std::list<LuaEngine::TealInference>> res;
+	if (lua_istable(L, -1) != 0) {
+		std::list<LuaEngine::TealInference> list;
+		int len = s_cast<int>(lua_rawlen(L, -1));
+		for (int i = 0; i < len; i++) {
+			lua_rawgeti(L, -1, i + 1);
+			lua_getfield(L, -1, "str");
+			lua_getfield(L, -2, "file");
+			lua_getfield(L, -3, "y");
+			lua_getfield(L, -4, "x");
+			LuaEngine::TealInference item{"", "", 0, 0};
+			item.desc = tolua_toslice(L, -4, nullptr);
+			if (lua_isstring(L, -3) != 0) {
+				item.file = tolua_toslice(L, -3, nullptr);
+			}
+			if (lua_isnumber(L, -2) != 0) {
+				item.row = static_cast<int>(lua_tonumber(L, -2));
+			}
+			if (lua_isnumber(L, -1) != 0) {
+				item.col = static_cast<int>(lua_tonumber(L, -1));
+			}
+			lua_pop(L, 5);
+			list.push_back(item);
+		}
+		return list;
+	}
+	return std::nullopt;
+}
+
+void LuaEngine::getTealSignatureAsync(String tlCodes, String line, int row, String searchPath, const std::function<void(std::optional<std::list<TealInference>>)>& callback) {
+	auto tlState = loadTealState();
+	auto tl = tlState->L;
+	auto thread = tlState->thread;
+	thread->run([tl, tlCodes = tlCodes.toString(), line = line.toString(), row, searchPath = searchPath.toString(), this]() {
+		initTealState(false);
+		auto res = get_teal_signature_async(tl, tlCodes, line, row, searchPath);
+		return Values::alloc(std::move(res));
+	},
+		[callback](Own<Values> values) {
+			std::optional<std::list<TealInference>> res;
 			values->get(res);
 			callback(res);
 		});

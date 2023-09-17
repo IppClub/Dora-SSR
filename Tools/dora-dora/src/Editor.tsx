@@ -190,18 +190,106 @@ const hoverProvider = (lang: InferLang) => {
 	} as monaco.languages.HoverProvider;
 };
 
+type SignatureLang = "tl" | "lua";
+const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: SignatureLang) => {
+	return {
+		signatureHelpTriggerCharacters,
+		provideSignatureHelp(model, position, token, context) {
+			let activeSignature = context.activeSignatureHelp?.activeSignature ?? 0;
+			let activeParameter = 0;
+			const currentLine: string = model.getValueInRange({
+				startLineNumber: position.lineNumber,
+				startColumn: 1,
+				endLineNumber: position.lineNumber,
+				endColumn: position.column,
+			});
+			let newLine = currentLine;
+			while (true) {
+				const tmp = newLine.replace(/\([^()]*\)/g,"");
+				if (tmp === newLine) {
+					break;
+				} else {
+					newLine = tmp;
+				}
+			}
+			let line = newLine;
+			switch (lang) {
+				case "lua":
+				case "tl": {
+					const index = newLine.lastIndexOf("(");
+					line = newLine.substring(0, index);
+					if (index >= 0) {
+						for (let i = index; i < newLine.length; i++) {
+							if (newLine.at(i) === ",") {
+								activeParameter++;
+							}
+						}
+					}
+					break;
+				}
+			}
+			return Service.signature({
+				lang, line,
+				file: model.uri.path,
+				row: position.lineNumber,
+				content: model.getValue()
+			}).then((res)=> {
+				if (!res.success) return null;
+				if (res.signatures === undefined) return null;
+				const signatures = res.signatures.map(s => {
+					return {
+						label: s.desc,
+						documentation: {
+							value: s.doc
+						},
+						parameters: (s.params ?? []).map(p => {
+							return {
+								label: p.name,
+								documentation: {
+									value: p.desc
+								}
+							};
+						})
+					};
+				});
+				if (activeSignature >= signatures.length || signatures[activeSignature].label !== context.activeSignatureHelp?.signatures[activeSignature].label) {
+					activeSignature = 0;
+				}
+				if (signatures[activeSignature].parameters.length <= activeParameter) {
+					for (let i = 0; i < signatures.length; i++) {
+						if (signatures[i].parameters.length > activeParameter) {
+							activeSignature = i;
+							break;
+						}
+					}
+				}
+				return {
+					dispose: () => {},
+					value: {
+						signatures,
+						activeSignature,
+						activeParameter,
+					}
+				};
+			});
+		},
+	} as monaco.languages.SignatureHelpProvider;
+};
+
 monaco.languages.register({id: 'tl'});
 monaco.languages.setLanguageConfiguration("tl", teal.config);
 monaco.languages.setMonarchTokensProvider("tl", teal.language);
 const tlComplete = completionItemProvider([".", ":"], "tl");
 monaco.languages.registerCompletionItemProvider("tl", tlComplete);
 monaco.languages.registerHoverProvider("tl", hoverProvider("tl"));
+monaco.languages.registerSignatureHelpProvider("tl", signatureHelpProvider(["(", ","], "tl"));
 
 const luaComplete = completionItemProvider([".", ":"], "lua");
 monaco.languages.setLanguageConfiguration("lua", lua.config);
 monaco.languages.setMonarchTokensProvider("lua", lua.language);
 monaco.languages.registerCompletionItemProvider("lua", luaComplete);
 monaco.languages.registerHoverProvider("lua", hoverProvider("lua"));
+monaco.languages.registerSignatureHelpProvider("lua", signatureHelpProvider(["(", ","], "lua"));
 
 monaco.languages.register({id: 'yue'});
 monaco.languages.setLanguageConfiguration("yue", yuescript.config);
