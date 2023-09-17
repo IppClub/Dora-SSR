@@ -136,6 +136,7 @@ local tl = {TypeCheckOptions = {}, Env = {}, Symbol = {}, Result = {}, Error = {
 
 
 
+
 tl.version = function()
 	return VERSION
 end
@@ -10751,6 +10752,14 @@ function tl.get_types(result, trenv)
 				r[k] = get_typenum(v)
 			end
 			ti.fields = r
+			if rt.meta_fields then
+				local mr = {}
+				for _, k in ipairs(rt.meta_field_order) do
+					local v = rt.meta_fields[k]
+					mr[k] = get_typenum(v)
+				end
+				ti.meta_fields = mr
+			end
 		end
 
 		if is_array_type(rt) then
@@ -11461,6 +11470,119 @@ tl.dora_infer = function(codes, line, row, search_path)
 				y = current_type.y,
 				x = current_type.x,
 			}
+		end
+		return nil
+	end)
+	if success then
+		return res
+	else
+		print(res)
+		return nil
+	end
+end
+
+tl.dora_signature = function(codes, line, row, search_path)
+	local prev_path = package.path
+	if search_path and search_path ~= "" then
+		package.path = search_path .. ";" .. prev_path
+	end
+	local _ <close> = setmetatable({}, {
+		__close = function()
+			package.path = prev_path
+		end
+	})
+	if codes:sub(1, 3) == "\xEF\xBB\xBF" then
+		codes = codes:sub(4)
+	end
+	local success, res = pcall(function()
+		local resolve = get_resolving_text(line)
+		if not resolve then
+			return nil
+		end
+		local chains = {}
+		for item in resolve:gmatch("[%w_]+") do
+			chains[#chains + 1] = item
+		end
+		if #chains == 0 then
+			return nil
+		end
+		local env = tl.dora_new_env()
+		env.keep_going = true
+		local result = tl.process_string(codes, true, env, "", "")
+		if not result or not result.ast then
+			return nil
+		end
+		local type_report = tl.get_types(result)
+		if not type_report then
+			return nil
+		end
+		local symbols = tl.symbols_in_scope(type_report, row, 1)
+		if not symbols then
+			return nil
+		end
+		local first = true
+		local current_type = nil
+		for i, item in ipairs(chains) do
+			if first then
+				first = false
+				local id = symbols[item]
+				if not id then
+					id = type_report.globals[item]
+				end
+				if id then
+					if #chains == 1 then
+						current_type = type_report.types[id]
+					else
+						current_type = get_real_type(type_report, id)
+					end
+				end
+			elseif current_type.fields then
+				local id = current_type.fields[item]
+				if id then
+					if i == #chains then
+						current_type = type_report.types[id]
+					else
+						current_type = get_real_type(type_report, id)
+					end
+				end
+			end
+			if current_type == nil then
+				break
+			end
+		end
+		if current_type then
+			while current_type and current_type.ref do
+				current_type = type_report.types[current_type.ref]
+			end
+			if current_type.meta_fields then
+				local id = current_type.meta_fields["__call"]
+				if id then
+					current_type = type_report.types[id]
+				end
+			end
+			if current_type.str:match("^polymorphic") then
+				local results = {}
+				for _, id in ipairs(current_type.types) do
+					local tp = type_report.types[id]
+					results[#results + 1] = {
+						str = tp.str,
+						file = tp.file,
+						y = tp.y,
+						x = tp.x,
+					}
+				end
+				table.sort(results, function(a, b)
+					return a.y < b.y
+				end)
+				return results
+			else
+				return {{
+					str = current_type.str,
+					file = current_type.file,
+					y = current_type.y,
+					x = current_type.x,
+				}}
+			end
 		end
 		return nil
 	end)

@@ -43,6 +43,30 @@ export const infer = (req: InferRequest) => {
 	return post<InferResponse>("/infer", req);
 };
 
+// signature
+
+export interface SignatureRequest {
+	lang: "tl" | "lua" | "yue";
+	file: string;
+	line: string;
+	row: number;
+	content: string;
+}
+export interface SignatureResponse {
+	success: boolean;
+	signatures?: [{
+		desc: string,
+		params?: [{
+			name: string,
+			desc: string
+		}]
+		doc: string,
+	}];
+}
+export const signature = (req: SignatureRequest) => {
+	return post<SignatureResponse>("/signature", req);
+};
+
 // Complete
 
 export interface CompleteRequest {

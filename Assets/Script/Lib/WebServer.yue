@@ -166,10 +166,10 @@ updateInferedDesc = (infered)->
 		for lineCode in codes\gmatch "[^\n\r]*"
 			line += 1
 			break if line >= row
-			if lineCode\match "^%s*-- @"
+			if lineCode\match "^%s*%-%- @"
 				skipping = true
 				continue
-			if result = lineCode\match "%s*-- (.+)"
+			if result = lineCode\match "%s*%-%- (.+)"
 				comments[] = result unless skipping
 			elseif #comments > 0
 				comments = {}
@@ -195,6 +195,68 @@ HttpServer\postSchedule "/infer", (req)->
 					infered.col = 0
 				updateInferedDesc infered
 				return success: true, :infered
+	success: false
+
+getParamDocs = (signatures)->
+	if codes = Content\loadAsync signatures[1].file
+		comments = {}
+		params = {}
+		line = 0
+		docs = {}
+		returnType = nil
+		for lineCode in codes\gmatch "[^\n\r]*"
+			line += 1
+			needBreak = true
+			for i, {:row} in ipairs signatures
+				if line >= row and not docs[i]
+					docs[i] = {
+						doc: table.concat comments, "\n"
+						:returnType
+					}
+					docs[i].params = params if #params > 0
+				needBreak = false if not docs[i]
+			break if needBreak
+			if result = lineCode\match "%s*%-%- (.+)"
+				name, typ, desc = result\match "^@param%s*([%w_]+)%s*%(([^%)]-)%)%s*(.+)"
+				if not name
+					name, typ, desc = result\match "^@param%s*(%.%.%.)%s*%(([^%)]-)%)%s*(.+)"
+				if name
+					params[] = {
+						:name
+						desc: "**#{typ}**: #{desc}"
+					}
+				else
+					typ = result\match "^@return%s*%(([^%)]-)%)"
+					returnType = typ if typ
+					comments[] = result
+			elseif #comments > 0
+				comments = {}
+				params = {}
+				returnType = nil
+		for doc in *docs
+			doc.desc = if doc.params
+				"function(#{table.concat [param.name for param in *doc.params], ', '})"
+			else
+				"function()"
+			if doc.returnType
+				doc.desc ..= ": #{doc.returnType}"
+				doc.returnType = nil
+		return docs
+	nil
+
+HttpServer\postSchedule "/signature", (req)->
+	switch req when {body: {:lang, :file, :content, :line, :row}}
+		searchPath = getSearchPath file
+		switch lang when "tl", "lua"
+			if signatures = teal.getSignatureAsync content, line, row, searchPath
+				if signatures = getParamDocs signatures
+					return success: true, :signatures
+		when "yue"
+			luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine content, line, row, file
+			return success: false unless luaCodes
+			if signatures = teal.getSignatureAsync luaCodes, targetLine, targetRow, searchPath
+				if signatures = getParamDocs signatures
+					return success: true, :signatures
 	success: false
 
 luaKeywords = {

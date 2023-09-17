@@ -16,23 +16,17 @@ local record teal
 		"method"
 		"field"
 	end
-	record CompleteResult
-		success: boolean
-		suggestions: {{--[[label]] string, --[[desc]] string, CompleteItemType}} | nil
-	end
+	type CompleteResult = {{--[[label]] string, --[[desc]] string, CompleteItemType}} | nil
 	completeAsync: function(codes: string, line: string, row: integer, searchPath: string): CompleteResult
 	record InferResult
-		record Info
-			desc: string
-			file: string
-			row: number
-			col: number
-			key: string | nil
-		end
-		success: boolean
-		infered: Info
+		desc: string
+		file: string
+		row: number
+		col: number
+		key: string | nil
 	end
 	inferAsync: function(codes: string, line: string, row: integer, searchPath: string): InferResult
+	getSignatureAsync: function(codes: string, line: string, row: integer, searchPath: string): {InferResult}
 	clear: function(reset?: boolean --[[false]])
 end
 return teal
