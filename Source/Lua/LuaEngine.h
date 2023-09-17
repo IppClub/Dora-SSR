@@ -56,6 +56,7 @@ public:
 		int col;
 	};
 	void inferTealAsync(String tlCodes, String line, int row, String searchPath, const std::function<void(std::optional<TealInference>)>& callback);
+	void getTealSignatureAsync(String tlCodes, String line, int row, String searchPath, const std::function<void(std::optional<std::list<TealInference>>)>& callback);
 	void clearTealCompiler(bool reset);
 
 	struct XmlToken {
