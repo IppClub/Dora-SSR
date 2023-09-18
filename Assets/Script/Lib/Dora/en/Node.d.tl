@@ -143,8 +143,8 @@ local record Node
 
 	-- Adds a child node to the current node.
 	-- @param child (Node) The child node to add.
-	-- @param order (integer) The drawing order of the child node. Default is 0.
-	-- @param tag (string) The tag of the child node. Default is an empty string.
+	-- @param order (integer) [optional] The drawing order of the child node. Default is 0.
+	-- @param tag (string) [optional] The tag of the child node. Default is an empty string.
 	addChild: function(
 		self: Node,
 		child: Node,
@@ -154,8 +154,8 @@ local record Node
 
 	-- Adds the current node to a parent node.
 	-- @param parent (Node) The parent node to add the current node to.
-	-- @param order (integer) The drawing order of the current node. Default is 0.
-	-- @param tag (string) The tag of the current node. Default is an empty string.
+	-- @param order (integer) [optional] The drawing order of the current node. Default is 0.
+	-- @param tag (string) [optional] The tag of the current node. Default is an empty string.
 	-- @return (Node) The current node.
 	addTo: function(
 		self: Node,
@@ -226,7 +226,7 @@ local record Node
 
 	-- Converts a point in world space to node space.
 	-- @param worldPoint (Vec2) The point to convert.
-	-- @param z (number) The z-coordinate of the point. Default is 0.
+	-- @param z (number) The z-coordinate of the point.
 	-- @return (Vec2) The converted point.
 	-- @return (number) The converted z-coordinate.
 	convertToNodeSpace: function(self: Node, worldPoint: Vec2, z: number): Vec2, number
@@ -300,7 +300,7 @@ local record Node
 
 	-- Vertically aligns all child nodes within the node using the given size and padding.
 	-- @param size (Size) The size to use for alignment.
-	-- @param padding (number) The amount of padding to use between each child node (default is 10).
+	-- @param padding (number) [optional] The amount of padding to use between each child node (default is 10).
 	-- @return (Size) The size of the node after alignment.
 	alignItemsVertically: function(
 		self: Node,
@@ -402,7 +402,7 @@ local record Node
 		-- @param x (integer) The x-index of the vertex in the grabber grid.
 		-- @param y (integer) The y-index of the vertex in the grabber grid.
 		-- @param pos (Vec2) The new position of the vertex.
-		-- @param z (number) The new z-coordinate of the vertex (default: 0.0).
+		-- @param z (number) [optional] The new z-coordinate of the vertex (default: 0.0).
 		setPos: function(self: Grabber, x: integer, y: integer, pos: Vec2, z?: number --[[0.0]])
 
 		-- Gets the position of a vertex in the grabber grid.
@@ -425,7 +425,7 @@ local record Node
 	end
 
 	-- Creates or removes a texture grabber for the specified node.
-	-- @param enabled (boolean) Whether to enable or disable the grabber. Default is true.
+	-- @param enabled (boolean) [optional] Whether to enable or disable the grabber. Default is true.
 	-- @return (Grabber) A Grabber object when enabled.
 	grab: function(
 		self: Node,
