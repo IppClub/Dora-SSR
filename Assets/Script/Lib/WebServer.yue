@@ -224,14 +224,18 @@ getParamDocs = (signatures)->
 				if not name
 					name, typ, desc = result\match "^@param%s*(%.%.%.)%s*%(([^%)]-)%)%s*(.+)"
 				if name
+					name ..= "?" if desc\match("%[optional%]") or desc\match "%[可选%]"
 					params[] = {
 						:name
 						desc: "**#{typ}**: #{desc}"
 					}
 				else
-					typ = result\match "^@return%s*%(([^%)]-)%)"
-					returnType = typ if typ
 					comments[] = result
+					if typ = result\match "^@return%s*%(([^%)]-)%)"
+						returnType = if returnType
+							returnType .. ", " .. typ
+						else
+							typ
 			elseif #comments > 0
 				comments = {}
 				params = {}

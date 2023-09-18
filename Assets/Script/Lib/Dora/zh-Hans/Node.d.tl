@@ -143,8 +143,8 @@ local record Node
 
 	-- 给当前节点添加子节点。
 	-- @param child (Node) 要添加的子节点。
-	-- @param order (integer) 子节点的绘制顺序。默认为0。
-	-- @param tag (string) 子节点的标签。默认为空字符串。
+	-- @param order (integer) [可选] 子节点的绘制顺序。默认为0。
+	-- @param tag (string) [可选] 子节点的标签。默认为空字符串。
 	addChild: function(
 		self: Node,
 		child: Node,
@@ -154,8 +154,8 @@ local record Node
 
 	-- 将当前节点添加到父节点
 	-- @param parent (Node) 要添加当前节点的父节点。
-	-- @param order (integer) 当前节点的绘制顺序。默认为0。
-	-- @param tag (string) 当前节点的标签。默认为空字符串。
+	-- @param order (integer) [可选] 当前节点的绘制顺序。默认为0。
+	-- @param tag (string) [可选] 当前节点的标签。默认为空字符串。
 	-- @return (Node) 当前节点，用于级连调用。
 	addTo: function(
 		self: Node,
@@ -226,7 +226,7 @@ local record Node
 
 	-- 将世界空间中的点坐标转换为节点空间的点坐标。
 	-- @param worldPoint (Vec2) 要转换的点。
-	-- @param z (number) 点的 z 坐标。默认为 0。
+	-- @param z (number) 点的 z 坐标。
 	-- @return (Vec2) 转换后的点。
 	-- @return (number) 转换后的点的 z 坐标。
 	convertToNodeSpace: function(self: Node, worldPoint: Vec2, z: number): Vec2, number
@@ -301,7 +301,7 @@ local record Node
 
 	-- 使用给定的范围和间距在节点内垂直对齐所有子节点。
 	-- @param size (Size) 用于对齐排布的范围。
-	-- @param padding (number) 子节点之间的间距（默认值为10）。
+	-- @param padding (number) [可选] 子节点之间的间距（默认值为10）。
 	-- @return (Size) 对齐后的节点区域大小。
 	alignItemsVertically: function(
 		self: Node,
@@ -404,7 +404,7 @@ local record Node
 		-- @param x (integer) 顶点在抓取器网格中的 x 索引。
 		-- @param y (integer) 顶点在抓取器网格中的 y 索引。
 		-- @param pos (Vec2) 顶点的新位置。
-		-- @param z (number) 顶点的新 z 坐标（默认值：0.0）。
+		-- @param z (number) [可选] 顶点的新 z 坐标（默认值：0.0）。
 		setPos: function(self: Grabber, x: integer, y: integer, pos: Vec2, z?: number --[[0.0]])
 
 		-- 获取抓取器网格中一个顶点的位置。
@@ -427,7 +427,7 @@ local record Node
 	end
 
 	-- 创建或移除节点上的纹理抓取器。
-	-- @param enabled (boolean) 是否启用或禁用抓取器。默认为 true。
+	-- @param enabled (boolean) [可选] 是否启用或禁用抓取器。默认为 true。
 	-- @return (Grabber) 启用时会返回一个抓取器对象。
 	grab: function(
 		self: Node,
