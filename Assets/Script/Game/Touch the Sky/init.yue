@@ -258,9 +258,9 @@ buildBlocks = (index)->
 						 body.position
 						Audio\play "sfx/explode2.wav"
 					\schedule once ->
-							isInvincible = true
-							sleep 1
-							isInvincible = false
+						isInvincible = true
+						sleep 1
+						isInvincible = false
 					if heart <= 0
 						isGrabbing = false
 						isGrabbed = false
