@@ -60,7 +60,7 @@ const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang)
 				} else {
 					content = "";
 				}
-				content += "\n" + "\t".repeat(model.getLineFirstNonWhitespaceColumn(position.lineNumber) - 1) + "print()\n" + model.getValueInRange({
+				content += "\n" + "\t".repeat(Math.max(0, model.getLineFirstNonWhitespaceColumn(position.lineNumber) - 1)) + "print()\n" + model.getValueInRange({
 					startLineNumber: position.lineNumber + 1,
 					startColumn: 1,
 					endLineNumber: model.getLineCount(),
@@ -190,7 +190,7 @@ const hoverProvider = (lang: InferLang) => {
 	} as monaco.languages.HoverProvider;
 };
 
-type SignatureLang = "tl" | "lua";
+type SignatureLang = "tl" | "lua" | "yue";
 const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: SignatureLang) => {
 	return {
 		signatureHelpTriggerCharacters,
@@ -213,6 +213,7 @@ const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: S
 				}
 			}
 			let line = newLine;
+			let content = "";
 			switch (lang) {
 				case "lua":
 				case "tl": {
@@ -225,6 +226,36 @@ const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: S
 							}
 						}
 					}
+					content = model.getValue();
+					break;
+				}
+				case "yue": {
+					newLine = newLine.replace(/\s*,\s*/g, ",");
+					let index = Math.max(newLine.lastIndexOf(" "), newLine.lastIndexOf("("));
+					line = newLine.substring(0, index);
+					if (index >= 0) {
+						for (let i = index; i < newLine.length; i++) {
+							if (newLine.at(i) === ",") {
+								activeParameter++;
+							}
+						}
+					}
+					if (position.lineNumber > 1) {
+						content = model.getValueInRange({
+							startLineNumber: 1,
+							startColumn: 1,
+							endLineNumber: position.lineNumber - 1,
+							endColumn: model.getLineLastNonWhitespaceColumn(position.lineNumber - 1),
+						});
+					} else {
+						content = "";
+					}
+					content += "\n" + "\t".repeat(Math.max(0, model.getLineFirstNonWhitespaceColumn(position.lineNumber) - 1)) + "print()\n" + model.getValueInRange({
+						startLineNumber: position.lineNumber + 1,
+						startColumn: 1,
+						endLineNumber: model.getLineCount(),
+						endColumn: model.getLineLastNonWhitespaceColumn(model.getLineCount()),
+					});
 					break;
 				}
 			}
@@ -232,7 +263,7 @@ const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: S
 				lang, line,
 				file: model.uri.path,
 				row: position.lineNumber,
-				content: model.getValue()
+				content
 			}).then((res)=> {
 				if (!res.success) return null;
 				if (res.signatures === undefined) return null;
@@ -297,6 +328,7 @@ monaco.languages.setMonarchTokensProvider("yue", yuescript.language);
 const yueComplete = completionItemProvider([".", "::", "\\"], "yue");
 monaco.languages.registerCompletionItemProvider("yue", yueComplete);
 monaco.languages.registerHoverProvider("yue", hoverProvider("yue"));
+monaco.languages.registerSignatureHelpProvider("yue", signatureHelpProvider(["(", ",", " "], "yue"));
 
 const xmlComplete = completionItemProvider([">", "<", "/", " ", "\t", "=", "\n"], "xml");
 monaco.languages.registerCompletionItemProvider("xml", xmlComplete);
