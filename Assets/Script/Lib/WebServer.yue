@@ -208,12 +208,15 @@ getParamDocs = (signatures)->
 			line += 1
 			needBreak = true
 			for i, {:row} in ipairs signatures
-				if line >= row and not docs[i]
-					docs[i] = {
-						doc: table.concat comments, "  \n"
-						:returnType
-					}
-					docs[i].params = params if #params > 0
+				if line >= row and not docs[i]?
+					if #comments > 0 or #params > 0 or returnType
+						docs[i] = {
+							doc: table.concat comments, "  \n"
+							:returnType
+						}
+						docs[i].params = params if #params > 0
+					else
+						docs[i] = false
 				needBreak = false if not docs[i]
 			break if needBreak
 			if result = lineCode\match "%s*%-%- (.+)"
@@ -233,7 +236,9 @@ getParamDocs = (signatures)->
 				comments = {}
 				params = {}
 				returnType = nil
+		results = {}
 		for doc in *docs
+			continue unless doc
 			doc.desc = if doc.params
 				"function(#{table.concat [param.name for param in *doc.params], ', '})"
 			else
@@ -241,7 +246,8 @@ getParamDocs = (signatures)->
 			if doc.returnType
 				doc.desc ..= ": #{doc.returnType}"
 				doc.returnType = nil
-		return docs
+			results[] = doc
+		return if #results > 0 then results else nil
 	nil
 
 HttpServer\postSchedule "/signature", (req)->

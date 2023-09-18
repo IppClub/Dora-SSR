@@ -8115,7 +8115,7 @@ tl.type_check = function(ast, opts)
 
 	local function get_assignment_values(vals, wanted)
 		local ret = {}
-		if vals == nil then
+		if vals == nil or #vals == 0 then
 			return ret
 		end
 
@@ -10089,29 +10089,30 @@ tl.type_check = function(ast, opts)
 					end
 					node.type = type_check_funcall(node, a, b, 0)
 				elseif node.op.op == "." then
-					assert(node.e2.kind == "identifier")
-					local bnode = {
-						y = node.e2.y,
-						x = node.e2.x,
-						tk = node.e2.tk,
-						kind = "string",
-						conststr = node.e2.tk,
-					}
-					local btype = a_type({
-						y = node.e2.y,
-						x = node.e2.x,
-						tk = '"' .. node.e2.tk .. '"',
-						typename = "string",
-					})
-					node.type = type_check_index(node.e1, bnode, orig_a, btype)
+					if node.e2.kind == "identifier" then
+						local bnode = {
+							y = node.e2.y,
+							x = node.e2.x,
+							tk = node.e2.tk,
+							kind = "string",
+							conststr = node.e2.tk,
+						}
+						local btype = a_type({
+							y = node.e2.y,
+							x = node.e2.x,
+							tk = '"' .. node.e2.tk .. '"',
+							typename = "string",
+						})
+						node.type = type_check_index(node.e1, bnode, orig_a, btype)
 
-					if node.type.needs_compat and opts.gen_compat ~= "off" then
+						if node.type.needs_compat and opts.gen_compat ~= "off" then
 
-						if node.e1.kind == "variable" and node.e2.kind == "identifier" then
-							local key = node.e1.tk .. "." .. node.e2.tk
-							node.kind = "variable"
-							node.tk = "_tl_" .. node.e1.tk .. "_" .. node.e2.tk
-							all_needs_compat[key] = true
+							if node.e1.kind == "variable" and node.e2.kind == "identifier" then
+								local key = node.e1.tk .. "." .. node.e2.tk
+								node.kind = "variable"
+								node.tk = "_tl_" .. node.e1.tk .. "_" .. node.e2.tk
+								all_needs_compat[key] = true
+							end
 						end
 					end
 				elseif node.op.op == "@index" then
