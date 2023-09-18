@@ -1,4 +1,4 @@
--- GGJ2023 by Bao Yicheng
+-- GGJ2023 by Bao Yicheng from https://github.com/thisisbadBao/TouchTheSky
 _ENV = Dorothy builtin.ImGui
 
 scriptPath = Path\getScriptPath ...
