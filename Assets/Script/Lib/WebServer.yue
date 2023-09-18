@@ -210,7 +210,7 @@ getParamDocs = (signatures)->
 			for i, {:row} in ipairs signatures
 				if line >= row and not docs[i]
 					docs[i] = {
-						doc: table.concat comments, "\n"
+						doc: table.concat comments, "  \n"
 						:returnType
 					}
 					docs[i].params = params if #params > 0
