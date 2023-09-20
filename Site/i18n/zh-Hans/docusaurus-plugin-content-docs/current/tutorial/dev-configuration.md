@@ -3,7 +3,7 @@
 ## 一、获取项目源码
 
 ```sh
-git clone https://github.com/pigpigyyy/Dorothy-SSR.git
+git clone https://github.com/ippclub/Dorothy-SSR.git
 ```
 
 ## 二、进行游戏引擎的开发配置
