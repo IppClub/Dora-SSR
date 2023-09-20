@@ -3,7 +3,7 @@
 ## 1. Get the Source
 
 ```sh
-git clone https://github.com/pigpigyyy/Dorothy-SSR.git
+git clone https://github.com/ippclub/Dorothy-SSR.git
 ```
 
 ## 2. Game Engine Development
