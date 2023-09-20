@@ -8,7 +8,7 @@
 
 |Android|Linux|Windows|macOS|iOS|
 |:-:|:-:|:-:|:-:|:-:|
-|[![Android](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/android.yml)|[![Linux](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/linux.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/linux.yml)|[![Windows](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/windows.yml)|[![macOS](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/macos.yml)|[![iOS](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/ios.yml)|
+|[![Android](https://github.com/ippclub/Dorothy-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/android.yml)|[![Linux](https://github.com/ippclub/Dorothy-SSR/actions/workflows/linux.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/linux.yml)|[![Windows](https://github.com/ippclub/Dorothy-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/windows.yml)|[![macOS](https://github.com/ippclub/Dorothy-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/macos.yml)|[![iOS](https://github.com/ippclub/Dorothy-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/ios.yml)|
 
 <img src='Site/static/img/3.png' alt='Playground' width='600px'/>
 
@@ -61,17 +61,17 @@
 - 快速上手
 
   - Android
-    - 1、在游戏的运行终端下载并安装[APK](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest)包。
+    - 1、在游戏的运行终端下载并安装[APK](https://github.com/ippclub/Dorothy-SSR/releases/latest)包。
 
     - 2、运行软件，通过局域网内的PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
 
     - 3、开始游戏开发。
 
   - Windows、macOS
-    - 1、下载并运行[软件](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest)。
+    - 1、下载并运行[软件](https://github.com/ippclub/Dorothy-SSR/releases/latest)。
       - 在macOS上也可以通过 Homebrew 进行软件安装。
           ```sh
-          brew tap pigpigyyy/dorothy-ssr 
+          brew tap ippclub/dorothy-ssr 
           brew install --cask dorothy-ssr
           ```
 
@@ -132,19 +132,19 @@ with Sprite "Image/logo.png"
 
 ## 示例项目
 
-- [示例项目 - Loli War](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Loli%20War)
+- [示例项目 - Loli War](https://github.com/ippclub/Dorothy-SSR/tree/main/Assets/Script/Game/Loli%20War)
 
 ![Loli War](Assets/Image/LoliWar.gif)
 
 <br>
 
-- [示例项目 - Zombie Escape](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
+- [示例项目 - Zombie Escape](https://github.com/ippclub/Dorothy-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
 
 <img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/>
 
 <br>
 
-- [示例项目 - Dismentalism](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Dismantlism)
+- [示例项目 - Dismentalism](https://github.com/ippclub/Dorothy-SSR/tree/main/Assets/Script/Game/Dismantlism)
 
 <img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/>
 

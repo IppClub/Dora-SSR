@@ -8,7 +8,7 @@
 
 |Android|Linux|Windows|macOS|iOS|
 |:-:|:-:|:-:|:-:|:-:|
-|[![Android](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/android.yml)|[![Linux](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/linux.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/linux.yml)|[![Windows](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/windows.yml)|[![macOS](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/macos.yml)|[![iOS](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/pigpigyyy/Dorothy-SSR/actions/workflows/ios.yml)|
+|[![Android](https://github.com/ippclub/Dorothy-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/android.yml)|[![Linux](https://github.com/ippclub/Dorothy-SSR/actions/workflows/linux.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/linux.yml)|[![Windows](https://github.com/ippclub/Dorothy-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/windows.yml)|[![macOS](https://github.com/ippclub/Dorothy-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/macos.yml)|[![iOS](https://github.com/ippclub/Dorothy-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/ios.yml)|
 
 <img src='Site/static/img/3.png' alt='Playground' width='600px'/>
 
@@ -61,7 +61,7 @@
 - Quick start
 
   - Android
-     - 1. Download and install the [APK](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest) package on the running terminal for games.
+     - 1. Download and install the [APK](https://github.com/ippclub/Dorothy-SSR/releases/latest) package on the running terminal for games.
 
      - 2. Run the software, and access the server address displayed by the software through the browser of a PC (tablet or other development device) on the LAN.
 
@@ -69,10 +69,10 @@
 
   - Windows, macOS
 
-     - 1. Download and run the [software](https://github.com/pigpigyyy/Dorothy-SSR/releases/latest).
+     - 1. Download and run the [software](https://github.com/ippclub/Dorothy-SSR/releases/latest).
           - Get software on macOS with Homebrew using 
           ```sh
-          brew tap pigpigyyy/dorothy-ssr 
+          brew tap ippclub/dorothy-ssr 
           brew install --cask dorothy-ssr
           ```
 
@@ -133,19 +133,19 @@ For more detailed tutorials, please check [official documents](https://dorothy-s
 
 ## Example Projects
 
-- [Sample Project - Loli War](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Loli%20War)
+- [Sample Project - Loli War](https://github.com/ippclub/Dorothy-SSR/tree/main/Assets/Script/Game/Loli%20War)
 
 ![Loli War](Assets/Image/LoliWar.gif)
 
 <br>
 
-- [Sample Project - Zombie Escape](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
+- [Sample Project - Zombie Escape](https://github.com/ippclub/Dorothy-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
 
 <img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/>
 
 <br>
 
-- [Example Project - Dismentalism](https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Assets/Script/Game/Dismantlism)
+- [Example Project - Dismentalism](https://github.com/ippclub/Dorothy-SSR/tree/main/Assets/Script/Game/Dismantlism)
 
 <img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/>
 
