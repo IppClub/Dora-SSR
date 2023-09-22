@@ -16,7 +16,7 @@
 ///   <code>memory_resource</code> header file.
 /// @see: https://en.cppreference.com/w/cpp/header/memory_resource.
 
-#if !defined(__has_include) || !__has_include(<memory_resource>)
+#if 1 // !defined(__has_include) || !__has_include(<memory_resource>)
 
 #include <cstddef> // for std::size_t, std::max_align_t
 #include <limits> // for std::numeric_limits
