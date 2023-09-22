@@ -1100,7 +1100,6 @@
 		3CC098681E262F85006F4B76 /* Sprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sprite.cpp; path = ../../../Source/Node/Sprite.cpp; sourceTree = "<group>"; };
 		3CC098691E262F85006F4B76 /* Sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sprite.h; path = ../../../Source/Node/Sprite.h; sourceTree = "<group>"; };
 		3CC54E5F1E039E2800462FD7 /* AcfDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AcfDelegate.h; path = ../../../Source/3rdParty/Other/AcfDelegate.h; sourceTree = "<group>"; };
-		3CC54E7B1E03B78200462FD7 /* libz.1.2.8.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.1.2.8.tbd; path = usr/lib/libz.1.2.8.tbd; sourceTree = SDKROOT; };
 		3CC54EA01E03CA6C00462FD7 /* Slice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Slice.cpp; path = ../../../Source/3rdParty/silly/Slice.cpp; sourceTree = "<group>"; };
 		3CC54EA11E03CA6C00462FD7 /* Slice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Slice.h; path = ../../../Source/3rdParty/silly/Slice.h; sourceTree = "<group>"; };
 		3CC794512579F9AF00042394 /* parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = parser.cpp; path = ../../../Source/3rdParty/yuescript/parser.cpp; sourceTree = "<group>"; };
@@ -1703,14 +1702,13 @@
 		3C17D58D1D9C401F008758E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				3CA32CEA26FEE89E0046C13D /* CoreHaptics.framework */,
-				3CA32CE826FEE8440046C13D /* GameController.framework */,
+				3CD029151E07DD720016E1EC /* libSDL2.a */,
+				3CD029131E07DD5F0016E1EC /* libbgfx.a */,
 				3CE7D3731EADF594008EADB3 /* libbimg_decode.a */,
 				3CE7D3741EADF594008EADB3 /* libbimg.a */,
 				3C0EBE2F1E2DB3FB0066450A /* libbx.a */,
-				3CD029151E07DD720016E1EC /* libSDL2.a */,
-				3CD029131E07DD5F0016E1EC /* libbgfx.a */,
-				3CC54E7B1E03B78200462FD7 /* libz.1.2.8.tbd */,
+				3CA32CEA26FEE89E0046C13D /* CoreHaptics.framework */,
+				3CA32CE826FEE8440046C13D /* GameController.framework */,
 				3CE331641D96D56C00F9C3F6 /* QuartzCore.framework */,
 				3CE331561D96D30100F9C3F6 /* Metal.framework */,
 				3CE331521D96D12200F9C3F6 /* Carbon.framework */,
@@ -3157,7 +3155,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1500;
 				ORGANIZATIONNAME = Dorothy;
 				TargetAttributes = {
 					3CC81FE51D966770008C8B77 = {
@@ -3777,6 +3775,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_INCREASE_PRECOMPILED_HEADER_SHARING = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
@@ -3841,6 +3840,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_INCREASE_PRECOMPILED_HEADER_SHARING = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
