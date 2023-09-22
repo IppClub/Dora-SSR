@@ -8,7 +8,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !defined(__has_include) || !__has_include(<memory_resource>)
+#if 1 // !defined(__has_include) || !__has_include(<memory_resource>)
 
 #include <atomic>
 #include <new>
