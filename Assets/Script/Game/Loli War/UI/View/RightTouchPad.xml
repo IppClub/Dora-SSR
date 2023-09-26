@@ -3,7 +3,7 @@
 	<Import Module="UI.View.Button"/>
 
 	<AlignNode Name="pad" HAlign="Right" VAlign="Bottom" AlignOffset="{ Vec2(20,60) }">
-		<Menu AnchorX="1" AnchorY="0" Width="114" Height="52" ScaleX="2" ScaleY="2">
+		<Menu AnchorX="1" AnchorY="0" Width="114" Height="52" ScaleX="{2 * App.devicePixelRatio}" ScaleY="{2 * App.devicePixelRatio}">
 			<Button ImageUp="{ 'keyf_up' }" ImageDown="{ 'keyf_down' }" Width="52" Height="52">
 				<Slot Name="TapBegan"><Lua>pad:emit("KeyFDown")</Lua></Slot>
 				<Slot Name="TapEnded"><Lua>pad:emit("KeyFUp")</Lua></Slot>
