@@ -61,7 +61,9 @@ with Observer "Add", {"unitDef", "position", "order", "group", "faceRight"}
 			.faceRight = faceRight
 			\addTo world
 			\eachAction => @recovery = 0
-			.playable\eachNode (sp)-> sp.filter = "Point"
+			with .playable
+				\eachNode (sp)-> sp.filter = "Point"
+				\play "groundEntrance" if @zombie
 		world.camera.followTarget = unit if @player and unit.decisionTree == "AI_KidSearch"
 
 with Observer "Change", {"hp", "unit"}
