@@ -3,7 +3,7 @@
 	<Import Module="UI.Control.ButtonGlow"/>
 
 	<AlignNode VAlign="{ 'Center' }" HAlign="{ 'Center' }">
-		<Node ScaleX="2" ScaleY="2">
+		<Node ScaleX="{2 * App.devicePixelRatio}" ScaleY="{2 * App.devicePixelRatio}">
 			<Node Name="node" TouchEnabled="True" SwallowTouches="True" Ref="True">
 				<Sprite File="Model/misc.clip|startboard">
 					<Action>
