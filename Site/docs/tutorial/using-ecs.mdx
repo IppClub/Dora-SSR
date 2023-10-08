@@ -109,7 +109,7 @@ Finally, we use `positionGroup\each (entity)->` to iterate over all entities in 
 
 ```yue
 positionGroup\each (entity)->
-	entity.target = location
+  entity.target = location
 ```
 
 In this way, when a new entity with the "scene" component is added, this observer will be triggered, and the defined operations will be executed. The scene node will be added to the game scene, touch events will be enabled, and the target property of entities in the positionGroup will be set to the touch location.
@@ -121,7 +121,7 @@ with Observer "Add", {"sprite"}
   \watch (sprite)=>
     sceneGroup\each (e)->
       e.scene\addChild with sprite
-      \runAction Scale 0.5, 0, 0.5, Ease.OutBack
+        \runAction Scale 0.5, 0, 0.5, Ease.OutBack
 
 with Observer "Remove", {"sprite"}
   \watch =>
@@ -133,16 +133,16 @@ Then, we create an entity group with the components "position", "direction", "sp
 
 ```yue
 with Group {"position", "direction", "speed", "target"}
-	\watch (entity, position, direction, speed, target)=>
-		return if target == position
-		dir = target - position
-		dir = dir\normalize!
-		newPos = position + dir * speed
-		newPos = newPos\clamp position, target
-		entity.position = newPos
-		entity.target = nil if newPos == target
-		angle = math.deg math.atan dir.x, dir.y
-		entity.direction = angle
+  \watch (entity, position, direction, speed, target)=>
+    return if target == position
+    dir = target - position
+    dir = dir\normalize!
+    newPos = position + dir * speed
+    newPos = newPos\clamp position, target
+    entity.position = newPos
+    entity.target = nil if newPos == target
+    angle = math.deg math.atan dir.x, dir.y
+    entity.direction = angle
 ```
 
 In this code snippet, we first create a group object using the `Group` class and specify the component types as "position", "direction", "speed", and "target".
@@ -198,27 +198,56 @@ entity.direction = angle
 
 By using this code, the defined callback function will be executed for each entity in the group every frame, updating the rotation angle and position properties based on their speed and target position.
 
+After completing the data calculation and update, we also need to update the data results to the rendered graphics.
+
+```yue
+with Observer "AddOrChange", {"position", "direction", "sprite"}
+  \watch (position, direction, sprite)=>
+    -- Update the display position of the image
+    sprite.position = position
+    lastDirection = @oldValues.direction or sprite.angle
+    -- When the rotation angle of the image changes, we play a rotation animation
+    if math.abs(direction - lastDirection) > 1
+      sprite\runAction Roll 0.3, lastDirection, direction
+```
+
 Lastly, we create three entities and add different components to them. This is where the game system begins to run.
 
 ```yue
 Entity
-	sprite: Sprite "Image/logo.png"
-	position: Vec2.zero
-	direction: 45.0
-	speed: 4.0
+  sprite: Sprite "Image/logo.png"
+  position: Vec2.zero
+  direction: 45.0
+  speed: 4.0
 
 Entity
-	sprite: Sprite "Image/logo.png"
-	position: Vec2 -100, 200
-	direction: 90.0
-	speed: 10.0
+  sprite: Sprite "Image/logo.png"
+  position: Vec2 -100, 200
+  direction: 90.0
+  speed: 10.0
 
 Entity
-	scene: Node!
+  scene: Node!
 ```
 
 </TabItem>
 <TabItem value="tl" label="Teal">
+
+Before writing the actual code, we require the modules we will use in this tutorial for Teal language.
+
+```tl
+local Group = require("Group")
+local Observer = require("Observer")
+local Entity = require("Entity")
+local Node = require("Node")
+local Director = require("Director")
+local Touch = require("Touch")
+local Sprite = require("Sprite")
+local Scale = require("Scale")
+local Ease = require("Ease")
+local Vec2 = require("Vec2")
+local Roll = require("Roll")
+```
 
 First, we create two entity groups, `sceneGroup` and `positionGroup`, which are used to access and manage entities with the "scene" and "position" component names, respectively.
 
@@ -294,16 +323,16 @@ In this way, when a new entity with the "scene" component is added, this observe
 Next, we create additional observers to handle other types of entity changes, such as "Add" and "Remove" events, for the "sprite" component.
 
 ```tl
-Observer("Add", { "sprite" }):watch(function(_self: Entity.Type, sprite: Sprite.Type)
+Observer("Add", {"sprite"}):watch(function(_entity: Entity.Type, sprite: Sprite.Type)
   sceneGroup:each(function(e: Entity.Type): boolean
-    local scene = e.scene as Node
+    local scene = e.scene as Node.Type
     sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
     scene:addChild(sprite)
     return true
   end)
 end)
 
-Observer("Remove", { "sprite" }):watch(function(self: Entity.Type)
+Observer("Remove", {"sprite"}):watch(function(self: Entity.Type)
   sceneGroup:each(function(e: Entity.Type): boolean
     local scene = e.scene as Node.Type
     local sprite = self.oldValues.sprite as Node.Type
@@ -316,7 +345,7 @@ end)
 Then, we create an entity group with the components "position", "direction", "speed", and "target". We define an observer to handle changes in these components and update the rotation angle and position properties of the entities based on their speed and the elapsed time.
 
 ```tl
-Group({ "position", "direction", "speed", "target" }):watch(
+Group({"position", "direction", "speed", "target"}):watch(
   function(entity: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
   if target == position then
     return
@@ -337,7 +366,7 @@ end)
 In this code snippet, we first create a group object using the `Group` class and specify the component types as "position", "direction", "speed", and "target".
 
 ```tl
-Group({ "position", "direction", "speed", "target" })
+Group({"position", "direction", "speed", "target"})
 ```
 
 Then, we use the `watch` method of the entity group to iterate over all entities in the group every frame and execute the defined callback function to handle the components on each entity.
@@ -391,6 +420,21 @@ entity.direction = angle
 ```
 
 By using this code, the defined callback function will be executed for each entity in the group every frame, updating the rotation angle and position properties based on their speed and target position.
+
+After completing the data calculation and update, we also need to update the data results to the rendered graphics.
+
+```tl
+Observer("AddOrChange", {"position", "direction", "sprite"})
+  :watch(function(entity: Entity.Type, position: Vec2.Type, direction: number, sprite: Sprite.Type)
+    -- Update the display position of the image
+    sprite.position = position
+    local lastDirection = entity.oldValues.direction as number or sprite.angle
+    -- When the rotation angle of the image changes, we play a rotation animation
+    if math.abs(direction - lastDirection) > 1 then
+      sprite:runAction(Roll(0.3, lastDirection, direction))
+    end
+  end)
+```
 
 Lastly, we create three entities and add different components to them. This is where the game system begins to run.
 
@@ -487,7 +531,7 @@ In this way, when a new entity with the "scene" component is added, this observe
 Next, we create additional observers to handle other types of entity changes, such as "Add" and "Remove" events, for the "sprite" component.
 
 ```lua
-Observer("Add", { "sprite" }):watch(function(_entity, sprite)
+Observer("Add", {"sprite"}):watch(function(_entity, sprite)
   sceneGroup:each(function(e)
     local scene = e.scene
     sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
@@ -496,7 +540,7 @@ Observer("Add", { "sprite" }):watch(function(_entity, sprite)
   end)
 end)
 
-Observer("Remove", { "sprite" }):watch(function(entity)
+Observer("Remove", {"sprite"}):watch(function(entity)
   sceneGroup:each(function(e)
     local scene = e.scene
     local sprite = entity.oldValues.sprite
@@ -509,7 +553,7 @@ end)
 Then, we create an entity group with the components "position", "direction", "speed", and "target". We define an observer to handle changes in these components and update the rotation angle and position properties of the entities based on their speed and the elapsed time.
 
 ```lua
-Group({ "position", "direction", "speed", "target" }):watch(
+Group({"position", "direction", "speed", "target"}):watch(
   function(entity, position, _direction, speed, target)
   if target == position then
     return
@@ -530,7 +574,7 @@ end)
 In this code snippet, we first create a group object using the `Group` class and specify the component types as "position", "direction", "speed", and "target".
 
 ```lua
-Group({ "position", "direction", "speed", "target" })
+Group({"position", "direction", "speed", "target"})
 ```
 
 Then, we use the `watch` method of the entity group to iterate over all entities in the group every frame and execute the defined callback function to handle the components on each entity.
@@ -584,6 +628,21 @@ entity.direction = angle
 ```
 
 By using this code, the defined callback function will be executed for each entity in the group every frame, updating the rotation angle and position properties based on their speed and target position.
+
+After completing the data calculation and update, we also need to update the data results to the rendered graphics.
+
+```lua
+Observer("AddOrChange", {"position", "direction", "sprite"})
+  :watch(function(entity, position, direction, sprite)
+    -- Update the display position of the image
+    sprite.position = position
+    local lastDirection = entity.oldValues.direction or sprite.angle
+    -- When the rotation angle of the image changes, we play a rotation animation
+    if math.abs(direction - lastDirection) > 1 then
+      sprite:runAction(Roll(0.3, lastDirection, direction))
+    end
+  end)
+```
 
 Lastly, we create three entities and add different components to them. This is where the game system begins to run.
 
