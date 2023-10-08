@@ -47,7 +47,7 @@
     "match-sorter": "^6.3.1",
     "mini-css-extract-plugin": "^2.4.5",
     "monaco-editor": "^0.43.0",
-    "postcss": "^8.4.4",
+    "postcss": "^8.4.31",
     "postcss-flexbugs-fixes": "^5.0.2",
     "postcss-loader": "^7.3.0",
     "postcss-normalize": "^10.0.1",
