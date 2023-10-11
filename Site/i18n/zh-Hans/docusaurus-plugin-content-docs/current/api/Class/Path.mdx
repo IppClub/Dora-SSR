@@ -27,6 +27,18 @@ local scriptPath = Path:getScriptPath(...)
 Content:insertSearchPath(1, scriptPath)
 ```
 
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| moduleName | string | 脚本模块的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 脚本模块的路径。 |
+
 ## getExt
 
 **类型：** 函数。
@@ -39,6 +51,18 @@ Content:insertSearchPath(1, scriptPath)
 ```tl
 getExt: function(self: Path, path: string): string
 ```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要处理的文件路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 文件扩展名。 |
 
 ## getPath
 
@@ -53,6 +77,18 @@ getExt: function(self: Path, path: string): string
 getPath: function(self: Path, path: string): string
 ```
 
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要处理的文件路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 获得的父级文件路径。 |
+
 ## getName
 
 **类型：** 函数。
@@ -65,6 +101,18 @@ getPath: function(self: Path, path: string): string
 ```tl
 getName: function(self: Path, path: string): string
 ```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要处理的文件路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 不包含扩展名的文件名。 |
 
 ## getFilename
 
@@ -79,6 +127,18 @@ getName: function(self: Path, path: string): string
 getFilename: function(self: Path, path: string): string
 ```
 
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要处理的文件路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 文件名。 |
+
 ## getRelative
 
 **类型：** 函数。
@@ -91,6 +151,19 @@ getFilename: function(self: Path, path: string): string
 ```tl
 getRelative: function(self: Path, path: string, base: string): string
 ```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要处理的文件路径。 |
+| base | string | 要取得相对路径的基础文件路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 相对文件路径。 |
 
 ## replaceExt
 
@@ -105,6 +178,19 @@ getRelative: function(self: Path, path: string, base: string): string
 replaceExt: function(self: Path, path: string, newExt: string): string
 ```
 
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要处理的文件路径。 |
+| newExt | string | 要替换的新文件扩展名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 处理后的文件路径。 |
+
 ## replaceFilename
 
 **类型：** 函数。
@@ -118,6 +204,19 @@ replaceExt: function(self: Path, path: string, newExt: string): string
 replaceFilename: function(self: Path, path: string, newFile: string): string
 ```
 
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要处理的文件路径。 |
+| newFile | string | 要替换的新文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 处理后的文件路径。 |
+
 ## __call
 
 **类型：** 元方法。
@@ -130,3 +229,15 @@ replaceFilename: function(self: Path, path: string, newFile: string): string
 ```tl
 metamethod __call: function(self: Path, ...: string): string
 ```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| ... | string | 要拼接成新文件路径的文件名分段。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 新的文件路径。 |

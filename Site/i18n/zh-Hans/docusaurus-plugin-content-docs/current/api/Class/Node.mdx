@@ -540,8 +540,8 @@ addChild: function(
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | child | Node | 要添加的子节点。 |
-| order | integer | 子节点的绘制顺序。默认为0。 |
-| tag | string | 子节点的标签。默认为空字符串。 |
+| order | integer | [可选] 子节点的绘制顺序。默认为0。 |
+| tag | string | [可选] 子节点的标签。默认为空字符串。 |
 
 ## addTo
 
@@ -566,8 +566,8 @@ addTo: function(
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | parent | Node | 要添加当前节点的父节点。 |
-| order | integer | 当前节点的绘制顺序。默认为0。 |
-| tag | string | 当前节点的标签。默认为空字符串。 |
+| order | integer | [可选] 当前节点的绘制顺序。默认为0。 |
+| tag | string | [可选] 当前节点的标签。默认为空字符串。 |
 
 **返回值：**
 
@@ -818,7 +818,7 @@ convertToNodeSpace: function(self: Node, worldPoint: Vec2, z: number): Vec2, num
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | worldPoint | Vec2 | 要转换的点。 |
-| z | number | 点的 z 坐标。默认为 0。 |
+| z | number | 点的 z 坐标。 |
 
 **返回值：**
 
@@ -1157,7 +1157,7 @@ alignItemsVertically: function(
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | size | Size | 用于对齐排布的范围。 |
-| padding | number | 子节点之间的间距（默认值为10）。 |
+| padding | number | [可选] 子节点之间的间距（默认值为10）。 |
 
 **返回值：**
 
@@ -1463,7 +1463,7 @@ grab: function(
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| enabled | boolean | 是否启用或禁用抓取器。默认为 true。 |
+| enabled | boolean | [可选] 是否启用或禁用抓取器。默认为 true。 |
 
 **返回值：**
 

@@ -246,7 +246,7 @@ public:
 
 		bool reclaimFocus = false;
 		ImGuiInputTextFlags inputTextFlags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
-		ImGui::PushItemWidth(-55);
+		ImGui::PushItemWidth(-60);
 		if (ImGui::InputText(useChinese ? "命令行" : "REPL", _buf.data(), _buf.size(), inputTextFlags, &TextEditCallbackStub, r_cast<void*>(this))) {
 			_historyPos = -1;
 			for (int i = s_cast<int>(_history.size()) - 1; i >= 0; i--) {

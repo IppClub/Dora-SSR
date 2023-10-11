@@ -1,0 +1,96 @@
+_ENV = Dorothy!
+import "UI.Control.Basic.CircleButton"
+import "YarnRunner"
+import "UI.View.Shape.LineRect"
+import "UI.Control.Basic.ScrollArea"
+import "UI.Control.Basic.AlignNode"
+
+path = Path\getScriptPath ...
+Content\insertSearchPath 1, path
+
+width: viewWidth, height: viewHeight = View.size
+
+width, height = viewWidth - 200, viewHeight - 20
+
+fontSize = math.floor 20 * App.devicePixelRatio
+
+texts = {}
+
+local root, label, scroll, control
+
+Director.entry\addChild with AlignNode isRoot: true, inUI: false
+	\addChild with root = AlignNode alignWidth: "w", alignHeight: "h"
+		\addChild with scroll = ScrollArea {
+				width: width
+				height: height
+				paddingX: 0
+				paddingY: 50
+				viewWidth: height
+				viewHeight: height
+			}
+			.border = LineRect width: width, height: height, color: 0xffffffff
+			.area\addChild .border
+			\slot "AlignLayout", (w, h)->
+				.position = Vec2 w / 2, h / 2
+				w -= 200
+				h -= 20
+				.view.children.first.textWidth = w - fontSize
+				\adjustSizeWithAlign "Auto", 10, Size w, h
+				.area\removeChild .border
+				.border = LineRect width: w, height: h, color: 0xffffffff
+				.area\addChild .border
+			.view\addChild with label = Label "sarasa-mono-sc-regular", fontSize
+				.alignment = "Left"
+				.textWidth = width - fontSize
+				.text = ""
+	\addChild with control = AlignNode hAlign: "Center", vAlign: "Bottom"
+		.alignOffset = Vec2 0, 200
+
+runner = YarnRunner "tutorial.yarn", "Start", {}, {}, true
+
+menu = with Menu!
+	\addTo control
+
+local advance
+
+setButtons = (options)->
+	menu\removeAllChildren!
+	buttons = options ?? 1
+	with menu
+		.size = Size 140 * buttons, 140
+		for i = 1, buttons
+			\addChild with CircleButton {
+					text: options and "#{i}" or "Next"
+					radius: 60
+					fontSize: 40
+				}
+				\slot "Tapped", ->
+					if options
+						advance i
+					else
+						advance!
+		\alignItems!
+
+advance = (option)->
+	action, result = runner\advance option
+	switch action when "Text"
+		charName = ""
+		if result.marks
+			for mark in *result.marks
+				switch mark when {name: attr, attrs: {:name}}
+					charName = "#{name}: " if attr == "char"
+		texts[] = charName .. result.text
+		setButtons!
+	when "Option"
+		for i, op in ipairs result
+			texts[] = "[#{i}]: #{op.text}"
+		setButtons #result
+	else
+		menu\removeAllChildren!
+		texts[] = result
+	label.text = table.concat texts, "\n"
+	root\alignLayout!
+	scroll\scrollToPosY label.y - label.height / 2
+
+advance!
+

@@ -1,0 +1,304 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 加载和运行 Yarn 叙事脚本
+
+&emsp;&emsp;欢迎来到 YarnRunner 功能库使用教程。在本教程中，我们将指导您如何加载和运行您在[前一教程](/docs/tutorial/Writing%20Game%20Dialogue/introduction-to-yarn)中编写的 Yarn 叙事脚本。
+
+### 一、初始化 YarnRunner
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+&emsp;&emsp;首先确保您已经导入所有必需的模块。
+
+```yue title=init.yue
+_ENV = Dorothy!
+import "YarnRunner"
+```
+
+&emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
+
+```yue title=init.yue
+path = Path\getScriptPath ...
+Content\insertSearchPath 1, path
+```
+
+&emsp;&emsp;接下来，假设我们要加载的 Yarn 文件名为 "tutorial.yarn"，起始节点的标题名称为 "Start"，则编写如下代码：
+
+```yue title=init.yue
+runner = YarnRunner "tutorial.yarn", "Start"
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title=init.tl
+local YarnRunner = require("YarnRunner")
+local Content = require("Content")
+local Path = require("Path")
+local Node = require("Node")
+local Director = require("Director")
+```
+
+&emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
+
+```tl title=init.tl
+local path = Path:getScriptPath(...)
+Content:insertSearchPath(1, path)
+```
+
+&emsp;&emsp;接下来，假设我们要加载的 Yarn 文件名为 "tutorial.yarn"，起始节点的标题名称为 "Start"，则编写如下代码：
+
+```tl title=init.tl
+local runner = YarnRunner("tutorial.yarn", "Start")
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+&emsp;&emsp;首先确保您已正确地导入所有必需的模块。以下是本教程示例中我们需要的模块：
+
+```lua title=init.lua
+_ENV = Dorothy!
+local YarnRunner = require("YarnRunner")
+```
+
+&emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
+
+```lua title=init.lua
+local path = Path:getScriptPath(...)
+Content:insertSearchPath(1, path)
+```
+
+&emsp;&emsp;接下来，假设我们要加载的 Yarn 文件名为 "tutorial.yarn"，起始节点的标题名称为 "Start"，则编写如下代码：
+
+```lua title=init.lua
+local runner = YarnRunner("tutorial.yarn", "Start")
+```
+
+</TabItem>
+</Tabs>
+
+### 二、执行和展示叙事内容
+
+&emsp;&emsp;我们定义了一个 `advance` 函数，该函数可以读取并展示 Yarn 脚本中的文本内容或选项。根据叙事的内容，它还可以展示角色的名字：
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue title=init.yue
+-- advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
+-- 当第一次调用此函数或在不需要选择时，我们将传递 nil
+advance = (option)->
+
+  -- 函数首先调用 runner\advance 来获取 Yarn 脚本的下一部分内容。
+  -- 这将返回两个值：一个动作类型和一个结果。
+  action, result = runner\advance option
+  
+  -- 根据动作类型，选择如何处理结果。
+  switch action when "Text"
+
+    -- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
+    -- 其中包含文本内容和任何相关的标记（例如角色名）。
+    -- 检查标记，提取角色名（如果存在）并打印出文本内容。
+    charName = ""
+    if result.marks
+      for mark in *result.marks
+        switch mark when {name: attr, attrs: {:name}}
+          charName = "#{name}: " if attr == "char"
+    print charName .. result.text
+
+  when "Option"
+
+    -- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
+    -- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
+    -- 玩家稍后可以选择它们。
+    for i, op in ipairs result
+      print "[#{i}]: #{op.text}" if op
+
+  else
+
+    -- 对于其他动作（例如错误），函数将直接打印结果。
+    print result
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title=init.tl
+-- advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
+-- 当第一次调用此函数或在不需要选择时，我们将传递 nil
+local function advance(option?: integer)
+
+  -- 函数首先调用 runner:advance(option) 来获取 Yarn 脚本的下一部分内容。
+  -- 这将返回两个值：一个动作类型和一个结果。
+  local action, result = runner:advance(option)
+
+  -- 根据动作类型，选择如何处理结果。
+  if action == "Text" then
+
+    -- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
+    -- 其中包含文本内容和任何相关的标记（例如角色名）。
+    local textResult = result as YarnRunner.TextResult
+    
+    -- 检查标记，提取角色名（如果存在）并打印出文本内容。
+    local characterName = ""
+    local marks = textResult.marks
+    if not (marks is nil) then
+      for i = 1, #marks do
+        local mark = marks[i]
+        if mark.name == "char" then
+          characterName = tostring(mark.attrs.name) .. ": "
+        end
+      end
+    end
+    print(characterName .. textResult.text)
+
+  elseif action == "Option" then
+
+    -- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
+    -- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
+    -- 玩家稍后可以选择它们。
+    local optionResult = result as YarnRunner.OptionResult
+    for i, op in ipairs(optionResult) do
+      if op and not (op is boolean) then
+        print("[" .. tostring(i) .. "]: " .. op.text)
+      end
+    end
+
+  else
+
+    -- 对于其他动作（例如错误），函数将直接打印结果。
+    print(result)
+
+  end
+end
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title=init.lua
+-- advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
+-- 当第一次调用此函数或在不需要选择时，我们将传递 nil
+local function advance(option)
+
+  -- 函数首先调用 runner:advance(option) 来获取 Yarn 脚本的下一部分内容。
+  -- 这将返回两个值：一个动作类型和一个结果。
+  local action, result = runner:advance(option)
+
+  -- 根据动作类型，选择如何处理结果。
+  if action == "Text" then
+
+    -- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
+    -- 其中包含文本内容和任何相关的标记（例如角色名）。
+    -- 检查标记，提取角色名（如果存在）并打印出文本内容。
+    local characterName = ""
+    local marks = result.marks
+    if marks then
+      for i = 1, #marks do
+        local mark = marks[i]
+        if mark.name == "char" then
+          characterName = mark.attrs.name .. ": "
+        end
+      end
+    end
+    print(characterName .. result.text)
+
+  elseif action == "Option" then
+
+    -- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
+    -- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
+    -- 玩家稍后可以选择它们。
+    for i, op in ipairs(result) do
+      if op then
+        print("[" .. tostring(i) .. "]: " .. op.text)
+      end
+    end
+
+  else
+
+    -- 对于其他动作（例如错误），函数将直接打印结果。
+    print(result)
+
+  end
+end
+```
+
+</TabItem>
+</Tabs>
+
+### 三、启动叙事
+
+&emsp;&emsp;要启动叙事，我们只需调用 `advance` 函数，不带任何参数：
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue title=init.yue
+advance!
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title=init.tl
+advance()
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title=init.lua
+advance()
+```
+
+</TabItem>
+</Tabs>
+
+### 四、响应用户输入
+
+&emsp;&emsp;为了能够让玩家与叙事互动，我们需要一个节点来捕获和响应用户的输入。我们创建一个节点，并为其指定一个名为 "go" 的信号槽。当这个信号被触发时，它将再次调用 `advance` 函数，并传递玩家选择的选项：
+
+<Tabs>
+<TabItem value="yue" label="Yuescript">
+
+```yue title=init.yue
+with Node!
+  \gslot "go", (option)-> advance option
+  \addTo Director.entry
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title=init.tl
+local node = Node()
+node:gslot("go", function(option: nil | integer)
+    advance(option)
+end)
+node:addTo(Director.entry)
+```
+
+</TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title=init.lua
+local node = Node()
+node:gslot("go", function(option)
+    advance(option)
+end)
+node:addTo(Director.entry)
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;这里只是为了能快速进行测试而注册了一个全局的事件监听器。在实际的游戏开发中会需要通过编写UI交互的逻辑来完成使用。有了这个名叫“go”的全局事件监听器后。我们就可以通过打开 Dorothy SSR 的控制台界面，在下面的命令行中输入 `emit 'go'` 来继续推进对话，输入 `emit 'go', 1` 来选择对话分支完成交互式的测试运行了。
+
+
+## 五、结论
+
+&emsp;&emsp;现在，您已经设置好了所有必要的代码来加载和运行 Yarn 叙事脚本。您可以运行上述脚本来开始您的互动叙事，玩家可以通过选择选项来与叙事互动。祝您创作愉快！
