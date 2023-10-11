@@ -17,14 +17,12 @@ PoolManager::~PoolManager() {
 }
 
 void PoolManager::clear() {
-	std::stack<Ref<AutoreleasePool>> emptyStack;
+	std::stack<Own<AutoreleasePool>> emptyStack;
 	_releasePoolStack.swap(emptyStack);
 }
 
 void PoolManager::push() {
-	AutoreleasePool* pool = new AutoreleasePool();
-	_releasePoolStack.push(MakeRef(pool));
-	pool->release();
+	_releasePoolStack.push(New<AutoreleasePool>());
 }
 
 void PoolManager::pop() {
@@ -33,40 +31,9 @@ void PoolManager::pop() {
 	}
 }
 
-void PoolManager::removeObject(Object* object) {
-	AssertIf(_releasePoolStack.empty(), "current auto release pool stack should not be empty.");
-	_releasePoolStack.top()->removeObject(object);
-}
-
 void PoolManager::addObject(Object* object) {
 	AssertIf(_releasePoolStack.empty(), "current auto release pool stack should not be empty.");
-	_releasePoolStack.top()->addObject(object);
-}
-
-PoolManager::AutoreleasePool::~AutoreleasePool() {
-	AutoreleasePool::clear();
-}
-
-void PoolManager::AutoreleasePool::addObject(Object* object) {
-	_managedObjects.push_back(object);
-	AssertUnless(object->getRefCount() > 1, "reference count should be greater than 1.");
-	object->_managed = true;
-	object->release();
-}
-
-void PoolManager::AutoreleasePool::removeObject(Object* object) {
-	Ref<Object> objectRef(object);
-	if (_managedObjects.fast_remove(object)) {
-		object->_managed = false;
-		object->retain();
-	}
-}
-
-void PoolManager::AutoreleasePool::clear() {
-	for (Object* object : _managedObjects) {
-		object->_managed = false;
-	}
-	_managedObjects.clear();
+	_releasePoolStack.top()->push_back(object);
 }
 
 NS_DOROTHY_END
