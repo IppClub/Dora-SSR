@@ -383,7 +383,7 @@ public:
 	};
 
 	// clang-format off
-	YarnParser(bool dora) {
+	YarnParser() {
 		plain_space = *set(" \t");
 		line_break = nl(-expr('\r') >> '\n');
 		any_char = line_break | any();
@@ -471,224 +471,114 @@ public:
 			return true;
 		});
 
-		if (dora) {
-			Variable = Name;
+		Variable = '$' >> Name;
 
-			Func = Name >> '(' >> Seperator >> space >> -(Value >> *(space >> ',' >> space >> Value)) >> space >> ')';
+		Func = Name >> '(' >> Seperator >> space >> -(Value >> *(space >> ',' >> space >> Value)) >> space >> ')';
 
-			Value = Boolean | Num | String | Func | Variable;
+		Value = Variable | Boolean | Num | String | Func;
 
-			single_string_inner = '\\' >> set("'\\") | not_('\'') >> any_char;
-			SingleString = '\'' >> *single_string_inner >> '\'';
+		single_string_inner = '\\' >> set("'\\") | not_('\'') >> any_char;
+		SingleString = '\'' >> *single_string_inner >> '\'';
 
-			interp = "#{" >> space >> Exp >> space >> '}';
-			double_string_plain = '\\' >> set("\"\\") | not_('"') >> any_char;
-			DoubleStringInner = +(not_(interp) >> double_string_plain);
-			DoubleStringContent = DoubleStringInner | interp;
-			DoubleString = '"' >> Seperator >> *DoubleStringContent >> '"';
-			String = DoubleString | SingleString;
+		double_string_plain = '\\' >> set("\"\\") | not_('"') >> any_char;
+		DoubleStringInner = +double_string_plain;
+		DoubleStringContent = DoubleStringInner;
+		DoubleString = '"' >> Seperator >> *DoubleStringContent >> '"';
+		String = DoubleString | SingleString;
 
-			exponential_operator = '^';
-			expo_value = exponential_operator >> *space_break >> space >> Value;
-			expo_exp = Value >> *(space >> expo_value);
+		exponential_operator = '^';
+		expo_value = exponential_operator >> *space_break >> space >> Value;
+		expo_exp = Value >> *(space >> expo_value);
 
-			UnaryOperator =
-				'-' >> not_(set(">=") | space_one) |
-				'#' |
-				'~' >> not_('=' | space_one) |
-				key("not");
+		UnaryOperator =
+			'-' >> not_(set(">=") | space_one) |
+			'#' |
+			'~' >> not_('=' | space_one) |
+			key("not");
 
-			UnaryExp = *(UnaryOperator >> space) >> expo_exp;
+		UnaryExp = *(UnaryOperator >> space) >> expo_exp;
 
-			BinaryOperator =
-				key("or") |
-				key("and") |
-				"<=" | ">=" | "~=" | "!=" | "==" |
-				".." | "<<" | ">>" | "//" |
-				set("+-*/%><|&~");
+		BinaryOperator =
+			key("or") |
+			key("and") |
+			"<=" | ">=" | "~=" | "!=" | "==" |
+			".." | "<<" | ">>" | "//" |
+			set("+-*/%><|&~");
 
-			ExpOpValue = BinaryOperator >> *space_break >> space >> UnaryExp;
+		ExpOpValue = BinaryOperator >> *space_break >> space >> UnaryExp;
 
-			Exp = UnaryExp >> *(space >> ExpOpValue);
+		Exp = UnaryExp >> *(space >> ExpOpValue);
 
-			Boolean = (expr("true") | "false") >> not_alpha_num;
+		Boolean = (expr("true") | "false") >> not_alpha_num;
 
-			Attribute = Name >> '=' >> Value;
+		AttributeValue = +(not_(line_break | space_one | ']' | "/]") >> any_char);
 
-			MarkupClose = true_();
+		Attribute = Name >> '=' >> (String | AttributeValue);
 
-			Markup = '[' >> -('/' >> MarkupClose) >> Name >> -('=' >> Value) >> Seperator >> *(space >> Attribute) >> space >> (']' | "/]" >> MarkupClose >> -space_one);
+		MarkupClose = true_();
 
-			Text = '\\' >> set("[#") | +(not_(line_break | Markup | '#') >> any_char);
+		Markup = '[' >> -('/' >> MarkupClose) >> Name >> -('=' >> (String | AttributeValue)) >> Seperator >> *(space >> Attribute) >> space >> (']' | "/]" >> MarkupClose >> -space_one);
 
-			NumHex = +num_char_hex;
+		Text = '\\' >> set("[#{<") | +(not_(line_break | Markup | '#' | "<<" | '{') >> any_char);
 
-			TagLine = "#line:" >> space >> NumHex;
+		NumHex = +num_char_hex;
 
-			TagIf = "#if" >> not_alpha_num >> space >> Exp;
+		TagLine = "#line:" >> space >> NumHex;
 
-			Tag = '#' >> Name;
+		TagIf = "<<" >> space >> "if" >> not_alpha_num >> space >> Exp >> space >> ">>";
 
-			CharName = +(not_(set(":：") | space_one | line_break) >> any_char);
+		Tag = '#' >> Name;
 
-			Character = CharName >> set(":：") >> space_one >> space;
+		CharName = +(not_(':' | space_one | line_break) >> any_char);
 
-			Dialog = -Character >> Seperator >> +(Text | Markup | interp) >> Seperator >> *(space >> (TagLine | TagIf | Tag));
+		Character = CharName >> ':' >> space_one >> space;
 
-			Option = "->" >> space >> Dialog >> -in_block;
+		interp = '{' >> space >> Exp >> space >> '}';
 
-			OptionGroup = Seperator >> Option >> *(line_break >> *(empty_line_break >> line_break) >> check_indent >> Option);
+		Dialog = -Character >> Seperator >> +(Text | Markup | interp) >> Seperator >> *(space >> (TagIf | TagLine | Tag));
 
-			Assignment =
-				key("set") >> space >> Variable >> space >> key("to") >> space >> Exp |
-				Variable >> space >> '=' >> space >> Exp;
+		Option = "->" >> space >> Dialog >> -in_block;
 
-			Title = +(not_(line_break) >> any_char);
+		OptionGroup = Seperator >> Option >> *(line_break >> *(empty_line_break >> line_break) >> check_indent >> Option);
 
-			Goto = key("goto") >> space >> Title;
+		Assignment =
+			key("set") >> space >> Variable >> space >> ('=' | key("to")) >> space >> Exp;
 
-			Call = Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
+		Title = (range('a', 'z') | range('A', 'Z') | '_') >> *alpha_num;
 
-			Command = '#' >> (
-				If |
-				Goto |
-				Assignment |
-				Call
-			);
+		Goto = key("jump") >> space >> Title;
 
-			statement = Command | OptionGroup | Dialog;
+		Call = not_((expr("endif") | "else") >> not_alpha_num) >> Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
 
-			empty_line_break = (
-				check_indent >> comment |
-				advance >> ensure(comment, pop_indent) |
-				plain_space
-			) >> and_(line_break);
+		Command = "<<" >> space >> (
+			If |
+			Goto |
+			Assignment |
+			Call) >> space >> ">>";
 
-			if_else_if = line_break >> *(empty_line_break >> line_break) >> check_indent >> '#' >> space >> key("elseif") >> space >> Exp >> in_block;
-			if_else = line_break >> *(empty_line_break >> line_break) >> check_indent >> '#' >> space >> key("else") >> in_block;
-			If = key("if") >> space >> Seperator >> Exp >> in_block >> *if_else_if >> -if_else;
+		statement = Command | OptionGroup | Dialog;
 
-			line = (
-				empty_line_break |
-				check_indent >> statement |
-				advance_match >> ensure(space >> (indentation_error | statement), pop_indent)
-			);
+		empty_line_break = (
+			check_indent >> comment |
+			advance >> ensure(comment, pop_indent) |
+			plain_space
+		) >> and_(line_break);
 
-			in_block = space_break >> *(*set(" \t") >> line_break) >> advance_match >> ensure(Block, pop_indent);
+		if_else_if = line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("elseif") >> space >> Exp >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> Block;
+		if_else = line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("else") >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> Block;
+		If = key("if") >> space >> Seperator >> Exp >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> Block >> *if_else_if >> -if_else >> line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("endif");
 
-			Block = Seperator >> line >> *(+line_break >> line);
+		line = (
+			empty_line_break |
+			check_indent >> statement |
+			advance_match >> ensure(space >> (indentation_error | statement), pop_indent)
+		);
 
-			File = -Block >> white >> stop;
-		} else {
-			Variable = '$' >> Name;
+		in_block = space_break >> *(*set(" \t") >> line_break) >> advance_match >> ensure(Block, pop_indent);
 
-			Func = Name >> '(' >> Seperator >> space >> -(Value >> *(space >> ',' >> space >> Value)) >> space >> ')';
+		Block = Seperator >> line >> *(+line_break >> line);
 
-			Value = Variable | Boolean | Num | String | Func;
-
-			single_string_inner = '\\' >> set("'\\") | not_('\'') >> any_char;
-			SingleString = '\'' >> *single_string_inner >> '\'';
-
-			double_string_plain = '\\' >> set("\"\\") | not_('"') >> any_char;
-			DoubleStringInner = +double_string_plain;
-			DoubleStringContent = DoubleStringInner;
-			DoubleString = '"' >> Seperator >> *DoubleStringContent >> '"';
-			String = DoubleString | SingleString;
-
-			exponential_operator = '^';
-			expo_value = exponential_operator >> *space_break >> space >> Value;
-			expo_exp = Value >> *(space >> expo_value);
-
-			UnaryOperator =
-				'-' >> not_(set(">=") | space_one) |
-				'#' |
-				'~' >> not_('=' | space_one) |
-				key("not");
-
-			UnaryExp = *(UnaryOperator >> space) >> expo_exp;
-
-			BinaryOperator =
-				key("or") |
-				key("and") |
-				"<=" | ">=" | "~=" | "!=" | "==" |
-				".." | "<<" | ">>" | "//" |
-				set("+-*/%><|&~");
-
-			ExpOpValue = BinaryOperator >> *space_break >> space >> UnaryExp;
-
-			Exp = UnaryExp >> *(space >> ExpOpValue);
-
-			Boolean = (expr("true") | "false") >> not_alpha_num;
-
-			AttributeValue = +(not_(line_break | space_one | ']' | "/]") >> any_char);
-
-			Attribute = Name >> '=' >> (String | AttributeValue);
-
-			MarkupClose = true_();
-
-			Markup = '[' >> -('/' >> MarkupClose) >> Name >> -('=' >> (String | AttributeValue)) >> Seperator >> *(space >> Attribute) >> space >> (']' | "/]" >> MarkupClose >> -space_one);
-
-			Text = '\\' >> set("[#{<") | +(not_(line_break | Markup | '#' | "<<" | '{') >> any_char);
-
-			NumHex = +num_char_hex;
-
-			TagLine = "#line:" >> space >> NumHex;
-
-			TagIf = "<<" >> space >> "if" >> not_alpha_num >> space >> Exp >> space >> ">>";
-
-			Tag = '#' >> Name;
-
-			CharName = +(not_(':' | space_one | line_break) >> any_char);
-
-			Character = CharName >> ':' >> space_one >> space;
-
-			interp = '{' >> space >> Exp >> space >> '}';
-
-			Dialog = -Character >> Seperator >> +(Text | Markup | interp) >> Seperator >> *(space >> (TagIf | TagLine | Tag));
-
-			Option = "->" >> space >> Dialog >> -in_block;
-
-			OptionGroup = Seperator >> Option >> *(line_break >> *(empty_line_break >> line_break) >> check_indent >> Option);
-
-			Assignment =
-				key("set") >> space >> Variable >> space >> ('=' | key("to")) >> space >> Exp;
-
-			Title = (range('a', 'z') | range('A', 'Z') | '_') >> *alpha_num;
-
-			Goto = key("jump") >> space >> Title;
-
-			Call = not_("endif" >> not_alpha_num) >> Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
-
-			Command = "<<" >> space >> (
-				If |
-				Goto |
-				Assignment |
-				Call) >> space >> ">>";
-
-			statement = Command | OptionGroup | Dialog;
-
-			empty_line_break = (
-				check_indent >> comment |
-				advance >> ensure(comment, pop_indent) |
-				plain_space
-			) >> and_(line_break);
-
-			if_else_if = line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("elseif") >> space >> Exp >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> Block;
-			if_else = line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("else") >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> Block;
-			If = key("if") >> space >> Seperator >> Exp >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> Block >> *if_else_if >> -if_else >> line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> "endif";
-
-			line = (
-				empty_line_break |
-				check_indent >> statement |
-				advance_match >> ensure(space >> (indentation_error | statement), pop_indent)
-			);
-
-			in_block = space_break >> *(*set(" \t") >> line_break) >> advance_match >> ensure(Block, pop_indent);
-
-			Block = Seperator >> line >> *(+line_break >> line);
-
-			File = -Block >> white >> stop;
-		}
+		File = -Block >> white >> stop;
 	}
 	// clang-format on
 
@@ -869,8 +759,8 @@ private:
 	std::list<Scope> _scopes;
 
 public:
-	YarnCompiler(bool dora)
-		: _parser(dora) { }
+	YarnCompiler()
+		: _parser() { }
 
 	CompileInfo compile(std::string_view codes) {
 		auto res = _parser.parse<File_t>(codes);
@@ -1385,8 +1275,8 @@ public:
 	}
 };
 
-CompileInfo compile(std::string_view codes, bool dora) {
-	return YarnCompiler{dora}.compile(codes);
+CompileInfo compile(std::string_view codes) {
+	return YarnCompiler{}.compile(codes);
 }
 
 } // namespace yarn

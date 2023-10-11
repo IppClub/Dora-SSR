@@ -21,6 +21,6 @@ struct CompileInfo {
 	std::optional<Error> error;
 };
 
-CompileInfo compile(std::string_view codes, bool dora);
+CompileInfo compile(std::string_view codes);
 
 } // namespace yarn

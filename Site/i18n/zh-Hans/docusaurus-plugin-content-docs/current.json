@@ -27,10 +27,6 @@
     "message": "Decision模块",
     "description": "The label for category Decision in sidebar apiSidebar"
   },
-  "sidebar.apiSidebar.category.Routine": {
-    "message": "Routine模块",
-    "description": "The label for category Routine in sidebar apiSidebar"
-  },
   "sidebar.apiSidebar.category.Class Object": {
     "message": "类对象",
     "description": "The label for category Class Object in sidebar apiSidebar"
@@ -54,5 +50,9 @@
   "sidebar.tutorialSidebar.category.Platformer Tutorial": {
     "message": "2D 横版游戏开发教程",
     "description": "The label for category Platformer Tutorial in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Writing Game Dialogue": {
+    "message": "编写游戏对话系统",
+    "description": "The label for category Writing Game Dialogue in sidebar tutorialSidebar"
   }
 }

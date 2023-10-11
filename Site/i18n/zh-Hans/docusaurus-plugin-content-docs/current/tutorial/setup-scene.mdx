@@ -7,7 +7,7 @@ import TabItem from '@theme/TabItem';
 
 # 创建游戏场景
 
-## 创建一个节点
+### 一、创建一个节点
 
 &emsp;&emsp;要在Dorothy SSR引擎中创建一个节点，您需要创建一个Node类的实例，并用于后续构建游戏场景树的层次结构。
 
@@ -46,7 +46,7 @@ Director.entry:addChild(node)
 </TabItem>
 </Tabs>
 
-## 设置节点属性
+### 二、设置节点属性
 
 &emsp;&emsp;Node类有许多成员变量可供设置，如`x`, `y`, `z`（节点的位置），`width`, `height`（节点的大小），`angle`, `angleX`, `angleY`（节点的旋转角度），`scaleX`, `scaleY`（节点的缩放系数），以及`visible`（节点是否可见）等。
 
@@ -89,7 +89,7 @@ node.visible = true
 </TabItem>
 </Tabs>
 
-## 添加子节点
+### 三、添加子节点
 
 &emsp;&emsp;在Node类中，可以通过`addChild`方法添加子节点。以下是在代码中如何添加子节点的示例：
 
@@ -122,7 +122,7 @@ node:addChild(childNode)
 
 &emsp;&emsp;在这个例子中，`childNode`被添加到`node`作为其子节点。
 
-## 检查节点属性
+### 四、检查节点属性
 
 &emsp;&emsp;Node类有一些只读成员变量，如`hasChildren`（是否有子节点），`children`（子节点的列表），`parent`（节点的父节点），以及`boundingBox`（节点的包围盒）等。
 
@@ -159,7 +159,7 @@ print(node.parent) -- 打印节点的父节点
 </TabItem>
 </Tabs>
 
-## 节点的事件系统
+### 五、节点的事件系统
 
 &emsp;&emsp;首先，场景节点类的事件系统支持多种事件类型，如动作结束、点击开始、点击结束、点击移动、滚动鼠标滚轮等。每种事件类型都有一个特定的回调函数，当该事件发生时，这个回调函数会被触发。
 
@@ -242,7 +242,7 @@ end)
 
 &emsp;&emsp;通过注册和处理这些事件，你可以轻松地为你的游戏节点添加复杂的交互功能。其它可以监听的节点事件详见[这里](../api/Node%20Event/Node)。
 
-## 节点动作
+### 六、节点动作
 
 &emsp;&emsp;下面将展示如何使用节点动作系统来创建各种动画效果。
 
