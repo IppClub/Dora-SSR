@@ -59,6 +59,7 @@ export default class YarnRunner
 			stop: -> coroutine.yield "Stop"
 			...command
 		}
+		@command.<> = command.<>
 		@stories = {}
 		@visited = {}
 		@yarn = {
@@ -122,6 +123,8 @@ export default class YarnRunner
 				"Option", body
 			when "Goto"
 				@advance!
+			when "Command"
+				"Command", body
 			when "Error", "Stop"
 				@stories = {}
 				"Error", body
