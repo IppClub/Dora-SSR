@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dorothy builtin.ImGui
 import "UI.Control.Basic.CircleButton"
 import "YarnRunner"
 import "UI.View.Shape.LineRect"
@@ -46,7 +46,11 @@ Director.entry\addChild with AlignNode isRoot: true, inUI: false
 	\addChild with control = AlignNode hAlign: "Center", vAlign: "Bottom"
 		.alignOffset = Vec2 0, 200
 
-runner = YarnRunner "tutorial.yarn", "Start", {}, {}, true
+commands = <index>: (name)=> (...)->
+	msg = "[command]: " .. name .. " " .. table.concat [tostring select i, ... for i = 1, select '#', ...], ", "
+	coroutine.yield "Command", msg
+
+runner = YarnRunner "tutorial.yarn", "Start", {}, commands, true
 
 menu = with Menu!
 	\addTo control
@@ -85,6 +89,9 @@ advance = (option)->
 		for i, op in ipairs result
 			texts[] = "[#{i}]: #{op.text}"
 		setButtons #result
+	when "Command"
+		texts[] = result
+		setButtons!
 	else
 		menu\removeAllChildren!
 		texts[] = result
@@ -94,3 +101,34 @@ advance = (option)->
 
 advance!
 
+testFiles = {"tutorial.yarn"}
+files = {"tutorial.yarn"}
+for file in *Content\getAllFiles Content.writablePath
+	continue if "yarn" ~= Path\getExt file
+	testFiles[] = Path Content.writablePath, file
+	files[] = Path\getFilename file
+
+Director.entry\addChild with Node!
+	currentFile = 1
+	windowFlags =
+		* "NoDecoration"
+		* "NoSavedSettings"
+		* "NoFocusOnAppearing"
+		* "NoNav"
+		* "NoMove"
+	\schedule ->
+		const :width = App.visualSize
+		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+		SetNextWindowSize Vec2(200, 0), "Always"
+		Begin "Yarn Test", windowFlags, ->
+			Text "Yarn Tester"
+			Separator!
+			changed, currentFile = Combo "File", currentFile, files
+			if changed
+				runner = YarnRunner testFiles[currentFile], "Start", {}, commands, true
+				texts = {}
+				advance!
+			Text "Variables"
+			Separator!
+			for k, v in pairs runner.state
+				Text "#{k}: #{v}"
