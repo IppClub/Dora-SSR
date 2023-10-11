@@ -27,18 +27,42 @@ local scriptPath = Path:getScriptPath(...)
 Content:insertSearchPath(1, scriptPath)
 ```
 
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| moduleName | string | The input module name. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The module path for script searching. |
+
 ## getExt
 
 **Type:** Function.
 
 **Description:**
 
-&emsp;&emsp;input: /a/b/c.TXT output: txt
+&emsp;&emsp;Input: /a/b/c.TXT output: txt
 
 **Signature:**
 ```tl
 getExt: function(self: Path, path: string): string
 ```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The input file path. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The input file's extension. |
 
 ## getPath
 
@@ -46,12 +70,24 @@ getExt: function(self: Path, path: string): string
 
 **Description:**
 
-&emsp;&emsp;input: /a/b/c.TXT output: /a/b
+&emsp;&emsp;Input: /a/b/c.TXT output: /a/b
 
 **Signature:**
 ```tl
 getPath: function(self: Path, path: string): string
 ```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The input file path. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The input file's parent path. |
 
 ## getName
 
@@ -59,12 +95,24 @@ getPath: function(self: Path, path: string): string
 
 **Description:**
 
-&emsp;&emsp;input: /a/b/c.TXT output: c
+&emsp;&emsp;Input: /a/b/c.TXT output: c
 
 **Signature:**
 ```tl
 getName: function(self: Path, path: string): string
 ```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The input file path. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The input file's name without extension. |
 
 ## getFilename
 
@@ -72,12 +120,24 @@ getName: function(self: Path, path: string): string
 
 **Description:**
 
-&emsp;&emsp;input: /a/b/c.TXT output: c.TXT
+&emsp;&emsp;Input: /a/b/c.TXT output: c.TXT
 
 **Signature:**
 ```tl
 getFilename: function(self: Path, path: string): string
 ```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The input file path. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The input file's name. |
 
 ## getRelative
 
@@ -85,12 +145,25 @@ getFilename: function(self: Path, path: string): string
 
 **Description:**
 
-&emsp;&emsp;input: /a/b/c.TXT, /a output: b/c.TXT
+&emsp;&emsp;Input: /a/b/c.TXT, base: /a output: b/c.TXT
 
 **Signature:**
 ```tl
 getRelative: function(self: Path, path: string, base: string): string
 ```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The input file path. |
+| base | string | The target file path. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The relative from input file to target file. |
 
 ## replaceExt
 
@@ -98,12 +171,25 @@ getRelative: function(self: Path, path: string, base: string): string
 
 **Description:**
 
-&emsp;&emsp;input: /a/b/c.TXT, lua output: /a/b/c.lua
+&emsp;&emsp;Input: /a/b/c.TXT, lua output: /a/b/c.lua
 
 **Signature:**
 ```tl
 replaceExt: function(self: Path, path: string, newExt: string): string
 ```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The input file path. |
+| newExt | string | The new file extention to add to file path. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The new file path. |
 
 ## replaceFilename
 
@@ -111,12 +197,25 @@ replaceExt: function(self: Path, path: string, newExt: string): string
 
 **Description:**
 
-&emsp;&emsp;input: /a/b/c.TXT, d output: /a/b/d.TXT
+&emsp;&emsp;Input: /a/b/c.TXT, d output: /a/b/d.TXT
 
 **Signature:**
 ```tl
 replaceFilename: function(self: Path, path: string, newFile: string): string
 ```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The input file path. |
+| newFile | string | The new filename to replace. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The new file path. |
 
 ## __call
 
@@ -130,3 +229,15 @@ replaceFilename: function(self: Path, path: string, newFile: string): string
 ```tl
 metamethod __call: function(self: Path, ...: string): string
 ```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| ... | string | The segments to be joined as a new file path. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The new file path. |

@@ -540,8 +540,8 @@ addChild: function(
 | Parameter | Type | Description |
 | --- | --- | --- |
 | child | Node | The child node to add. |
-| order | integer | The drawing order of the child node. Default is 0. |
-| tag | string | The tag of the child node. Default is an empty string. |
+| order | integer | [optional] The drawing order of the child node. Default is 0. |
+| tag | string | [optional] The tag of the child node. Default is an empty string. |
 
 ## addTo
 
@@ -566,8 +566,8 @@ addTo: function(
 | Parameter | Type | Description |
 | --- | --- | --- |
 | parent | Node | The parent node to add the current node to. |
-| order | integer | The drawing order of the current node. Default is 0. |
-| tag | string | The tag of the current node. Default is an empty string. |
+| order | integer | [optional] The drawing order of the current node. Default is 0. |
+| tag | string | [optional] The tag of the current node. Default is an empty string. |
 
 **Returns:**
 
@@ -818,7 +818,7 @@ convertToNodeSpace: function(self: Node, worldPoint: Vec2, z: number): Vec2, num
 | Parameter | Type | Description |
 | --- | --- | --- |
 | worldPoint | Vec2 | The point to convert. |
-| z | number | The z-coordinate of the point. Default is 0. |
+| z | number | The z-coordinate of the point. |
 
 **Returns:**
 
@@ -1156,7 +1156,7 @@ alignItemsVertically: function(
 | Parameter | Type | Description |
 | --- | --- | --- |
 | size | Size | The size to use for alignment. |
-| padding | number | The amount of padding to use between each child node (default is 10). |
+| padding | number | [optional] The amount of padding to use between each child node (default is 10). |
 
 **Returns:**
 
@@ -1462,7 +1462,7 @@ grab: function(
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| enabled | boolean | Whether to enable or disable the grabber. Default is true. |
+| enabled | boolean | [optional] Whether to enable or disable the grabber. Default is true. |
 
 **Returns:**
 
