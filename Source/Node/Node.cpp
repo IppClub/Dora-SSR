@@ -490,6 +490,7 @@ void Node::removeChild(Node* child, bool cleanup) {
 			child->cleanup();
 		}
 		child->_parent = nullptr;
+		child->autorelease();
 	}
 }
 

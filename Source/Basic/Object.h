@@ -48,13 +48,11 @@ public:
 	void release();
 	void retain();
 	void autorelease();
-	void autoretain();
 
 protected:
 	Object();
 
 private:
-	bool _managed;
 	uint32_t _id; // object id, each object has unique one
 	uint32_t _refCount; // count of C++ references
 	uint32_t _luaRef; // lua reference id

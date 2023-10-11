@@ -56,8 +56,7 @@ void Weak::retain() {
 }
 
 Object::Object()
-	: _managed(false)
-	, _refCount(1)
+	: _refCount(0)
 	, _luaRef(0)
 	, _weak(nullptr) {
 	auto& info = SharedObjectBase;
@@ -71,7 +70,7 @@ Object::Object()
 
 Object::~Object() {
 	auto& info = SharedObjectBase;
-	assert(!_managed); // object is still managed when destroyed
+	assert(_refCount == 0); // object should not be referenced when destroyed
 	info.availableIds.push(_id);
 	if (_luaRef != 0) {
 		info.availableLuaRefs.push(_luaRef);
@@ -96,20 +95,12 @@ void Object::release() {
 }
 
 void Object::retain() {
-	AssertUnless(_refCount > 0, "reference count should be greater than 0.");
+	AssertUnless(_refCount >= 0, "reference count should not be negtive value.");
 	++_refCount;
 }
 
 void Object::autorelease() {
-	AssertIf(_managed, "object is already managed.");
 	SharedPoolManager.addObject(this);
-}
-
-void Object::autoretain() {
-	if (!_managed) {
-		retain();
-		autorelease();
-	}
 }
 
 bool Object::isSingleReferenced() const {

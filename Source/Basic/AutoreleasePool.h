@@ -16,21 +16,11 @@ public:
 	void push();
 	void pop();
 	void clear();
-	void removeObject(Object* object);
 	void addObject(Object* object);
 
 private:
-	class AutoreleasePool : public Object {
-	public:
-		virtual ~AutoreleasePool();
-		void addObject(Object* object);
-		void removeObject(Object* object);
-		void clear();
-
-	private:
-		RefVector<Object> _managedObjects;
-	};
-	std::stack<Ref<AutoreleasePool>> _releasePoolStack;
+	using AutoreleasePool = RefVector<Object>;
+	std::stack<Own<AutoreleasePool>> _releasePoolStack;
 	SINGLETON_REF(PoolManager, ObjectBase);
 };
 
