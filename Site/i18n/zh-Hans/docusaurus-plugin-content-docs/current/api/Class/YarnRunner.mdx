@@ -1,0 +1,95 @@
+import "@site/src/languages/highlight";
+
+# YarnRunner
+
+**描述：**
+
+&emsp;&emsp;用于加载和执行 Yarn 叙述脚本的类。
+
+## YarnRunner.ResultType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;表示执行返回的结果类型的枚举。
+
+**签名：**
+```tl
+enum ResultType
+
+	-- 表示文本结果。
+	"Text"
+
+	-- 表示选择或选项。
+	"Option"
+
+	-- 表示错误。
+	"Error"
+
+	-- 仅用于特殊的测试模式。
+	"Command"
+end
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于创建 Yarn 脚本运行器的元方法。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: YarnRunner,
+		filename: string,
+		startTitle: string,
+		state?: table, --[[{}]]
+		command?: {string: function}, --[[{}]]
+		testing?: boolean --[[false]]
+	): YarnRunner
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要加载和执行的 Yarn 文件的名称。 |
+| startTitle | string | Yarn 脚本中的起始节点/标题。 |
+| state | table | [可选] 用于提供预定义变量的表格。 |
+| command | {string: function} | [可选] 包含可以执行命令的Lua表。 |
+| testing | boolean | [可选] 用于测试模式的布尔标志。当处于测试模式时，将加载Web IDE的测试变量。默认为`false`。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| YarnRunner | 返回 YarnRunner 对象。 |
+
+## advance
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;执行并推进叙述脚本的方法。
+
+**签名：**
+```tl
+advance: function(self: YarnRunner, choice?: integer): nil | ResultType, string | table
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| choice | integer | [可选] 如果提供了选项，则为选项的索引。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| nil \| ResultType | 如果叙述结束则返回 nil。当 YarnRunner 仍在运行时返回 ResultType 枚举字符串结果。 |
+| string \| table | 根据叙述执行的情况，会返回一个和执行结果相关的内容：执行结果为 "Text" 时，得到 TextResult 对象执行结果为 "Option" 时，得到 OptionResult 对象执行结果为 "Error" 时，得到一个字符串错误消息。执行结果为 nil 时，得到一个表示叙述结束的字符串。 |
