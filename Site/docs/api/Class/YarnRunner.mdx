@@ -1,0 +1,95 @@
+import "@site/src/languages/highlight";
+
+# YarnRunner
+
+**Description:**
+
+&emsp;&emsp;The YarnRunner record is used for loading and executing Yarn narrative scripts.
+
+## YarnRunner.ResultType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Enum for types of results that can be returned.
+
+**Signature:**
+```tl
+enum ResultType
+
+	-- Represents textual results.
+	"Text"
+
+	-- Represents choices or options.
+	"Option"
+
+	-- Represents errors.
+	"Error"
+
+	-- Only for special test use.
+	"Command"
+end
+```
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;The metamethod to create a Yarn script runner.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: YarnRunner,
+		filename: string,
+		startTitle: string,
+		state?: table, --[[{}]]
+		command?: {string: function}, --[[{}]]
+		testing?: boolean --[[false]]
+	): YarnRunner
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the Yarn file to load and execute. |
+| startTitle | string | The starting node/title in the Yarn script. |
+| state | table | [optional] Table for providing predefined variables. |
+| command | {string: function} | [optional] Table of commands to execute. |
+| testing | boolean | [optional] Boolean flag for testing mode. When in testing mode, the testing variables from Web IDE will be loaded. Defaults to `false`. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| YarnRunner | Returns the YarnRunner object. |
+
+## advance
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Method to advance the narrative.
+
+**Signature:**
+```tl
+advance: function(self: YarnRunner, choice?: integer): nil | ResultType, string | table
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| choice | integer | [optional] Index of the choice if presented with options. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| nil \| ResultType | Returns nil if the narrative ended. Returns enum string result when YarnRunner is still running. |
+| string \| table | Depending on the narrative, it can return a type of result and the associated content:"Text" and a TextResult"Option" and an OptionResult"Error" and a string error messagenil and a string indecating the narrative ends. |
