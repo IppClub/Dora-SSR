@@ -3,12 +3,18 @@ local record YarnRunner
 
 	-- Enum for types of results that can be returned.
 	enum ResultType
-		--- Represents textual results.
+
+		-- Represents textual results.
 		"Text"
+
 		-- Represents choices or options.
 		"Option"
+
 		-- Represents errors.
 		"Error"
+
+		-- Only for special test use.
+		"Command"
 	end
 
 	-- The metamethod to create a Yarn script runner.
@@ -29,27 +35,35 @@ local record YarnRunner
 
 	-- Record to define markup attributes.
 	record Markup
+
 		-- Name of the markup.
 		name: string
+
 		-- Starting position of the markup.
 		start: integer
+
 		-- Ending position of the markup.
 		stop: integer
+
 		-- Attributes associated with the markup.
 		attrs: {string: boolean | number | string}
 	end
 
 	-- Record to define textual results with optional markup.
 	record TextResult
+
 		-- Textual content.
 		text: string
+
 		-- Optional markup for the text.
 		marks: nil | {Markup}
 	end
 
 	-- Record to define options in the narrative.
 	record OptionResult
-			{TextResult | boolean}
+
+		-- Gets element as TextResult when option is available，gets boolean false when option is unavailable。
+		{TextResult | boolean}
 	end
 
 	-- Method to advance the narrative.

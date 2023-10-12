@@ -3,19 +3,25 @@ local record YarnRunner
 
 	-- 表示执行返回的结果类型的枚举。
 	enum ResultType
-		--- 表示文本结果。
+
+		-- 表示文本结果。
 		"Text"
+
 		-- 表示选择或选项。
 		"Option"
+
 		-- 表示错误。
 		"Error"
+
+		-- 仅用于特殊的测试模式。
+		"Command"
 	end
 
 	-- 用于创建 Yarn 脚本运行器的元方法。
 	-- @param filename (string) 要加载和执行的 Yarn 文件的名称。
 	-- @param startTitle (string) Yarn 脚本中的起始节点/标题。
 	-- @param state (table) [可选] 用于提供预定义变量的表格。
-	-- @param command ({string: function}) [可选] 要执行的命令的表格。
+	-- @param command ({string: function}) [可选] 包含可以执行命令的Lua表。
 	-- @param testing (boolean) [可选] 用于测试模式的布尔标志。当处于测试模式时，将加载Web IDE的测试变量。默认为`false`。
 	-- @return (YarnRunner) 返回 YarnRunner 对象。
 	metamethod __call: function(
@@ -29,27 +35,35 @@ local record YarnRunner
 
 	-- 定义标记属性的类。
 	record Markup
+
 		-- 标记的名称。
 		name: string
+
 		-- 标记的起始位置。
 		start: integer
+
 		-- 标记的结束位置。
 		stop: integer
+
 		-- 与标记相关的属性。
 		attrs: {string: boolean | number | string}
 	end
 
 	-- 定义带有可选标记的文本结果的类。
 	record TextResult
+
 		-- 文本内容。
 		text: string
+
 		-- 文本的可选标记。
 		marks: nil | {Markup}
 	end
 
 	-- 在叙述中定义选项的记录。
 	record OptionResult
-		 {TextResult | boolean}
+
+		-- 当选项为可选状态时为 TextResult，当选项被隐藏时为布尔值 false。
+		{TextResult | boolean}
 	end
 
 	-- 执行并推进叙述脚本的方法。
