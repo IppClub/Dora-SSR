@@ -307,6 +307,52 @@ const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: S
 	} as monaco.languages.SignatureHelpProvider;
 };
 
+const codeActionProvider = {
+	resolveCodeAction(codeAction, token) {
+		console.log(codeAction, token);
+		return undefined;
+	},
+	provideCodeActions(model, range, context, token) {
+		if (context.only !== "quickfix") {
+			return undefined;
+		}
+		const marker = context.markers.find(m => {
+			return m.message.startsWith("unknown variable:");
+		});
+		if (marker === undefined) {
+			return undefined;
+		}
+		const moduleName = marker.message.replace("unknown variable: ", "");
+		const message = Info.locale.match(/^zh/) ? "导入模块" : "Require";
+		return {
+			actions: [
+				{
+					title: `${message} ${moduleName}`,
+					edit: {
+						edits: [
+							{
+								resource: model.uri,
+								textEdit: {
+									text: `local ${moduleName} = require("${moduleName}")\n`,
+									range: {
+										startLineNumber: 1,
+										startColumn: 0,
+										endLineNumber: 1,
+										endColumn: 0
+									}
+								},
+							}
+						]
+					},
+					isPreferred: true,
+					kind: "quickfix"
+				}
+			],
+			dispose() { },
+		} as monaco.languages.CodeActionList;
+	},
+} as monaco.languages.CodeActionProvider;
+
 monaco.languages.register({id: 'tl'});
 monaco.languages.setLanguageConfiguration("tl", teal.config);
 monaco.languages.setMonarchTokensProvider("tl", teal.language);
@@ -314,6 +360,7 @@ const tlComplete = completionItemProvider([".", ":"], "tl");
 monaco.languages.registerCompletionItemProvider("tl", tlComplete);
 monaco.languages.registerHoverProvider("tl", hoverProvider("tl"));
 monaco.languages.registerSignatureHelpProvider("tl", signatureHelpProvider(["(", ","], "tl"));
+monaco.languages.registerCodeActionProvider("tl", codeActionProvider)
 
 const luaComplete = completionItemProvider([".", ":"], "lua");
 monaco.languages.setLanguageConfiguration("lua", lua.config);

@@ -86,6 +86,7 @@ i18n
 					},
 					editor: {
 						goToDefinition: "Go to Definition",
+						require: "Import this module",
 					},
 					menu: {
 						version: "Dorothy SSR version {{version}}",
@@ -187,6 +188,7 @@ i18n
 					},
 					editor: {
 						goToDefinition: "跳转到定义",
+						require: "导入该模块",
 					},
 					menu: {
 						version: "Dorothy SSR 版本号 {{version}}",
