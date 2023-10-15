@@ -1267,7 +1267,7 @@ export default function PersistentDrawerLeft() {
 					monaco.KeyCode.F12 | monaco.KeyMod.WinCtrl,
 				],
 				contextMenuGroupId: "navigation",
-				contextMenuOrder: 1.5,
+				contextMenuOrder: 1,
 				run: function(ed) {
 					const position = ed.getPosition();
 					if (position === null) return;
@@ -1307,6 +1307,35 @@ export default function PersistentDrawerLeft() {
 					});
 				},
 			});
+			if (lang === "tl" || lang === "lua") {
+				editor.addAction({
+					id: "dora-action-require",
+					label: t("editor.require"),
+					keybindings: [
+						monaco.KeyCode.F1 | monaco.KeyMod.CtrlCmd,
+						monaco.KeyCode.F1 | monaco.KeyMod.WinCtrl,
+					],
+					contextMenuGroupId: "navigation",
+					contextMenuOrder: 2,
+					run: function(ed) {
+						const position = ed.getPosition();
+						if (position === null) return;
+						const model = ed.getModel();
+						if (model === null) return;
+						const word = model.getWordAtPosition(position);
+						if (word === null) return;
+						model.pushEditOperations(null, [{
+							text: `local ${word.word} = require("${word.word}")\n`,
+							range: {
+								startLineNumber: 1,
+								startColumn: 0,
+								endLineNumber: 1,
+								endColumn: 0
+							}
+						}], () => {return null});
+					},
+				});
+			}
 		}
 		const model = editor.getModel();
 		if (model) {
