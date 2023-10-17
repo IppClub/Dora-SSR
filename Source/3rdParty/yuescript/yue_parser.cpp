@@ -653,6 +653,14 @@ YueParser::YueParser() {
 		SpreadExp |
 		NormalDef;
 
+	table_value_list = table_value >> *(space >> ',' >> space >> table_value);
+
+	table_lit_line = (
+		push_indent_match >> (space >> table_value_list >> pop_indent | pop_indent)
+	) | (
+		space
+	);
+
 	table_lit_lines = space_break >> table_lit_line >> *(-(space >> ',') >> space_break >> table_lit_line) >> -(space >> ',');
 
 	TableLit =
@@ -661,14 +669,6 @@ YueParser::YueParser() {
 		-(space >> ',') >>
 		-table_lit_lines >>
 		white >> '}';
-
-	table_value_list = table_value >> *(space >> ',' >> space >> table_value);
-
-	table_lit_line = (
-		push_indent_match >> (space >> table_value_list >> pop_indent | pop_indent)
-	) | (
-		space
-	);
 
 	table_block_inner = Seperator >> key_value_line >> *(+space_break >> key_value_line);
 	TableBlock = +space_break >> advance_match >> ensure(table_block_inner, pop_indent);
