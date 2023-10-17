@@ -24,6 +24,13 @@ getSearchPath = (file)->
 		return Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
 	""
 
+getSearchFolders = (file)->
+	if dir = getProjectDirFromFile file
+		return
+			* Path dir, "Script"
+			* dir
+	{}
+
 disabledCheckForLua =
 	* "incompatible number of returns"
 	* "unknown variable"
@@ -348,9 +355,42 @@ yueKeywords = {
 	"with"
 }
 
+moduleExts =
+	lua: true
+	tl: true
+	yue: true
+	xml: true
+
 HttpServer\postSchedule "/complete", (req)->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
 		searchPath = getSearchPath file
+		repeat
+			item = line\match "require%s*%(%s*['\"]([%w%d-_%.]*)$"
+			if lang == "yue"
+				item = line\match "require%s*['\"]([%w%d-_%.]*)$" unless item
+				item = line\match "import%s*['\"]([%w%d-_%.]*)$" unless item
+			break unless item
+			:searchPaths = Content
+			for folder in *getSearchFolders file
+				searchPaths[] = folder
+			tokens = [mod for mod in item\gmatch "([%w%d-_]+)%."]
+			suggestions = {}
+			for path in *searchPaths
+				sPath = Path path, table.unpack tokens
+				continue unless Content\exist sPath
+				for f in *Content\getFiles sPath
+					if moduleExts[Path\getExt f]
+						name = Path\getName f
+						continue if "d" == Path\getExt name
+						suggestions[] = {name, "module", "field"}
+				for dir in *Content\getDirs sPath
+					suggestions[] = {dir, "folder", "variable"}
+			if item == ""
+				for {name} in *teal.completeAsync "", "builtin.", 1, searchPath
+					suggestions[] = {name, "builtin module", "function"}
+			if #suggestions > 0
+				return success: true, :suggestions
+		until true
 		switch lang when "tl", "lua"
 			suggestions = teal.completeAsync content, line, row, searchPath
 			if not line\match("[%.:][%w_]+[%.:]?$") and not line\match "[%w_]+[%.:]$"

@@ -34,13 +34,24 @@ type CompleteLang = "tl" | "lua" | "yue" | "xml";
 const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang) => {
 	return {
 		triggerCharacters,
-		provideCompletionItems: function(model, position) {
+		provideCompletionItems: function(model, position, context) {
 			const line: string = model.getValueInRange({
 				startLineNumber: position.lineNumber,
 				startColumn: 1,
 				endLineNumber: position.lineNumber,
 				endColumn: position.column,
 			});
+			switch (context.triggerCharacter) {
+				case "\"": case "'":
+					let available = line.match(/\brequire\b/) !== null;
+					if (lang === "yue") {
+						available = available || line.match(/\bimport\b/) !== null;
+					}
+					if (!available) {
+						return {suggestions:[]};
+					}
+					break;
+			}
 			const word = model.getWordUntilPosition(position);
 			const range: monaco.IRange = {
 				startLineNumber: position.lineNumber,
@@ -312,7 +323,7 @@ const codeActionProvider = {
 		console.log(codeAction, token);
 		return undefined;
 	},
-	provideCodeActions(model, range, context, token) {
+	provideCodeActions(model, range, context) {
 		if (context.only !== "quickfix") {
 			return undefined;
 		}
@@ -356,13 +367,13 @@ const codeActionProvider = {
 monaco.languages.register({id: 'tl'});
 monaco.languages.setLanguageConfiguration("tl", teal.config);
 monaco.languages.setMonarchTokensProvider("tl", teal.language);
-const tlComplete = completionItemProvider([".", ":"], "tl");
+const tlComplete = completionItemProvider([".", ":", "\"", "\'"], "tl");
 monaco.languages.registerCompletionItemProvider("tl", tlComplete);
 monaco.languages.registerHoverProvider("tl", hoverProvider("tl"));
 monaco.languages.registerSignatureHelpProvider("tl", signatureHelpProvider(["(", ","], "tl"));
 monaco.languages.registerCodeActionProvider("tl", codeActionProvider)
 
-const luaComplete = completionItemProvider([".", ":"], "lua");
+const luaComplete = completionItemProvider([".", ":", "\"", "\'"], "lua");
 monaco.languages.setLanguageConfiguration("lua", lua.config);
 monaco.languages.setMonarchTokensProvider("lua", lua.language);
 monaco.languages.registerCompletionItemProvider("lua", luaComplete);
@@ -372,7 +383,7 @@ monaco.languages.registerSignatureHelpProvider("lua", signatureHelpProvider(["("
 monaco.languages.register({id: 'yue'});
 monaco.languages.setLanguageConfiguration("yue", yuescript.config);
 monaco.languages.setMonarchTokensProvider("yue", yuescript.language);
-const yueComplete = completionItemProvider([".", "::", "\\"], "yue");
+const yueComplete = completionItemProvider([".", "::", "\\", "\"", "\'"], "yue");
 monaco.languages.registerCompletionItemProvider("yue", yueComplete);
 monaco.languages.registerHoverProvider("yue", hoverProvider("yue"));
 monaco.languages.registerSignatureHelpProvider("yue", signatureHelpProvider(["(", ",", " "], "yue"));
