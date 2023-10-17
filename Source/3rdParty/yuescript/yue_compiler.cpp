@@ -2632,6 +2632,7 @@ private:
 						break;
 					default: YUEE("AST node mismatch", destructNode); break;
 				}
+				if (dlist->empty()) throw CompileError("expect items to be destructured"sv, destructNode);
 				for (auto item : *dlist) {
 					switch (item->get_id()) {
 						case id<MetaVariablePairDef_t>(): {
