@@ -42,11 +42,12 @@ const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang)
 				endColumn: position.column,
 			});
 			switch (context.triggerCharacter) {
-				case "\"": case "'":
+				case "\"": case "'": case "/":
 					let available = line.match(/\brequire\b/) !== null;
 					if (lang === "yue") {
 						available = available || line.match(/\bimport\b/) !== null;
 					}
+					available = available || line.match(/\bSprite\b/) !== null;
 					if (!available) {
 						return {suggestions:[]};
 					}
@@ -367,13 +368,13 @@ const codeActionProvider = {
 monaco.languages.register({id: 'tl'});
 monaco.languages.setLanguageConfiguration("tl", teal.config);
 monaco.languages.setMonarchTokensProvider("tl", teal.language);
-const tlComplete = completionItemProvider([".", ":", "\"", "\'"], "tl");
+const tlComplete = completionItemProvider([".", ":", "\"", "'", "/"], "tl");
 monaco.languages.registerCompletionItemProvider("tl", tlComplete);
 monaco.languages.registerHoverProvider("tl", hoverProvider("tl"));
 monaco.languages.registerSignatureHelpProvider("tl", signatureHelpProvider(["(", ","], "tl"));
 monaco.languages.registerCodeActionProvider("tl", codeActionProvider)
 
-const luaComplete = completionItemProvider([".", ":", "\"", "\'"], "lua");
+const luaComplete = completionItemProvider([".", ":", "\"", "'", "/"], "lua");
 monaco.languages.setLanguageConfiguration("lua", lua.config);
 monaco.languages.setMonarchTokensProvider("lua", lua.language);
 monaco.languages.registerCompletionItemProvider("lua", luaComplete);
@@ -383,7 +384,7 @@ monaco.languages.registerSignatureHelpProvider("lua", signatureHelpProvider(["("
 monaco.languages.register({id: 'yue'});
 monaco.languages.setLanguageConfiguration("yue", yuescript.config);
 monaco.languages.setMonarchTokensProvider("yue", yuescript.language);
-const yueComplete = completionItemProvider([".", "::", "\\", "\"", "\'"], "yue");
+const yueComplete = completionItemProvider([".", "::", "\\", "/", "\"", "'"], "yue");
 monaco.languages.registerCompletionItemProvider("yue", yueComplete);
 monaco.languages.registerHoverProvider("yue", hoverProvider("yue"));
 monaco.languages.registerSignatureHelpProvider("yue", signatureHelpProvider(["(", ",", " "], "yue"));
