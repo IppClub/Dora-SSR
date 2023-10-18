@@ -355,41 +355,51 @@ yueKeywords = {
 	"with"
 }
 
-moduleExts =
-	lua: true
-	tl: true
-	yue: true
-	xml: true
-
 HttpServer\postSchedule "/complete", (req)->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
 		searchPath = getSearchPath file
 		repeat
-			item = line\match "require%s*%(%s*['\"]([%w%d-_%.]*)$"
+			item = line\match "require%s*%(%s*['\"]([%w%d-_%./ ]*)$"
 			if lang == "yue"
-				item = line\match "require%s*['\"]([%w%d-_%.]*)$" unless item
+				item = line\match "require%s*['\"]([%w%d-_%./ ]*)$" unless item
 				item = line\match "import%s*['\"]([%w%d-_%.]*)$" unless item
+			searchImage = false
+			if not item
+				item = line\match "Sprite%s*%(%s*['\"]([%w%d-_/ ]*)$"
+				if lang == "yue"
+					item = line\match "Sprite%s*['\"]([%w%d-_/ ]*)$"
+				searchImage = item?
 			break unless item
 			:searchPaths = Content
 			for folder in *getSearchFolders file
 				searchPaths[] = folder
-			tokens = [mod for mod in item\gmatch "([%w%d-_]+)%."]
+			searchPaths[] = Content.assetPath if searchImage
+			tokens = [mod for mod in item\gmatch "([%w%d-_ ]+)[%./]"]
 			suggestions = {}
 			for path in *searchPaths
 				sPath = Path path, table.unpack tokens
 				continue unless Content\exist sPath
 				for f in *Content\getFiles sPath
-					if moduleExts[Path\getExt f]
+					if searchImage
+						switch Path\getExt f when "clip", "jpg", "png", "dds", "pvr", "ktx"
+							continue if "." == f\sub 1, 1
+							suggestions[] = {f, "module", "field"}
+						continue
+					switch Path\getExt f when "lua", "tl", "yue", "xml"
 						name = Path\getName f
 						continue if "d" == Path\getExt name
+						continue if "." == name\sub 1, 1
 						suggestions[] = {name, "module", "field"}
 				for dir in *Content\getDirs sPath
+					continue if "." == dir\sub 1, 1
 					suggestions[] = {dir, "folder", "variable"}
-			if item == ""
+			if item == "" and not searchImage
 				for {name} in *teal.completeAsync "", "builtin.", 1, searchPath
 					suggestions[] = {name, "builtin module", "function"}
 			if #suggestions > 0
 				return success: true, :suggestions
+			else
+				return success: false
 		until true
 		switch lang when "tl", "lua"
 			suggestions = teal.completeAsync content, line, row, searchPath
@@ -476,7 +486,10 @@ HttpServer\post "/list", (req)->
 			return success: true, :files
 	success: false
 
-HttpServer\post "/info", -> platform: App.platform, locale: App.locale, version: App.version
+HttpServer\post "/info", -> return
+	platform: App.platform
+	locale: App.locale
+	version: App.version
 
 HttpServer\post "/new", (req)->
 	switch req when {body: {:path}}
