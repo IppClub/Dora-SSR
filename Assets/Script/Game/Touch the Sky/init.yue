@@ -213,7 +213,7 @@ addHeartUI = ->
 loseHeart = ->
 	heart = heart - 1
 	heartNode\removeAllChildren!
-	heartSprite = if heart in [0, 3]
+	heartSprite = if 0 <= heart <= 3
 		Sprite "Image/heart_#{math.tointeger heart}.png"
 	else
 		Sprite "Image/heart_0.png"

@@ -96,7 +96,7 @@ export default class YarnRunner
 			unless @option
 				return "Error", "there is no option to choose"
 			:title, :branches = @option
-			if choice not in [1, #branches]
+			if not (1 <= choice <= #branches)
 				return "Error", "choice #{choice} is out of range"
 			optionBranch = branches[choice]
 			@option = nil
