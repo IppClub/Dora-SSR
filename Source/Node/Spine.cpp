@@ -160,9 +160,9 @@ void Spine::setLook(String name) {
 			if (skinName.empty()) {
 				skinName = "unnamed"_slice;
 			}
-			_newSkin = New<spine::Skin>(spine::String{skinName.begin(), skinName.size(), false});
+			_newSkin = New<spine::Skin>(spine::String{skinName.begin(), skinName.size(), false, false});
 			for (const auto& token : tokens) {
-				auto skin = _skeletonData->getSkel()->findSkin(spine::String{token.begin(), token.size(), false});
+				auto skin = _skeletonData->getSkel()->findSkin(spine::String{token.begin(), token.size(), false, false});
 				if (skin) {
 					_newSkin->addSkin(skin);
 				}
@@ -171,7 +171,7 @@ void Spine::setLook(String name) {
 			_skeleton->setSlotsToSetupPose();
 			Playable::setLook(skinName);
 		} else {
-			auto skin = _skeletonData->getSkel()->findSkin(spine::String{name.begin(), name.size(), false});
+			auto skin = _skeletonData->getSkel()->findSkin(spine::String{name.begin(), name.size(), false, false});
 			if (skin) {
 				_skeleton->setSkin(skin);
 				_skeleton->setSlotsToSetupPose();
@@ -197,7 +197,7 @@ const std::string& Spine::getLastCompleted() const {
 Vec2 Spine::getKeyPoint(String name) const {
 	auto tokens = name.split("/"_slice);
 	if (tokens.size() == 1) {
-		auto slotName = spine::String{name.begin(), name.size(), false};
+		auto slotName = spine::String{name.begin(), name.size(), false, false};
 		auto slot = _skeletonData->getSkel()->findSlot(slotName);
 		if (!slot) return Vec2::zero;
 		if (auto skin = _skeleton->getSkin()) {
@@ -215,10 +215,10 @@ Vec2 Spine::getKeyPoint(String name) const {
 				}
 			}
 		} else if (tokens.size() == 2) {
-			auto slotName = spine::String{tokens.front().begin(), tokens.front().size(), false};
+			auto slotName = spine::String{tokens.front().begin(), tokens.front().size(), false, false};
 			int slotIndex = slot->getIndex();
 			if (slotIndex < 0) return Vec2::zero;
-			auto attachmentName = spine::String{tokens.back().begin(), tokens.back().size(), false};
+			auto attachmentName = spine::String{tokens.back().begin(), tokens.back().size(), false, false};
 			auto attachment = _skeleton->getAttachment(slotIndex, attachmentName);
 			if (attachment->getRTTI().isExactly(spine::PointAttachment::rtti)) {
 				spine::PointAttachment* point = s_cast<spine::PointAttachment*>(attachment);
@@ -233,7 +233,7 @@ Vec2 Spine::getKeyPoint(String name) const {
 }
 
 float Spine::play(String name, bool loop) {
-	auto animation = _skeletonData->getSkel()->findAnimation(spine::String{name.begin(), name.size(), false});
+	auto animation = _skeletonData->getSkel()->findAnimation(spine::String{name.begin(), name.size(), false, false});
 	if (!animation) {
 		return 0.0f;
 	}
@@ -287,7 +287,7 @@ Node* Spine::getSlot(String name) {
 
 bool Spine::setBoneRotation(String name, float rotation) {
 	if (_skeleton) {
-		if (auto bone = _skeleton->findBone(spine::String{name.begin(), name.size(), false})) {
+		if (auto bone = _skeleton->findBone(spine::String{name.begin(), name.size(), false, false})) {
 			bone->setRotation(rotation);
 			return true;
 		}
