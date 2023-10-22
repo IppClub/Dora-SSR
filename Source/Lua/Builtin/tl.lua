@@ -5230,7 +5230,7 @@ local function init_globals(lax)
 				typename = "record",
 				is_userdata = true,
 				fields = {
-					["close"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE }), rets = TUPLE({ BOOLEAN, STRING }) }),
+					["close"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE }), rets = TUPLE({ BOOLEAN, STRING, INTEGER }) }),
 					["flush"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE }), rets = TUPLE({}) }),
 					["lines"] = a_type({ typename = "function", args = VARARG({ NOMINAL_FILE, a_type({ opt = true, typename = "union", types = { STRING, NUMBER } }) }), rets = TUPLE({
 						a_type({ typename = "function", args = TUPLE({}), rets = VARARG({ STRING }) }),
@@ -5238,7 +5238,7 @@ local function init_globals(lax)
 					["read"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE, OPT_UNION({ STRING, NUMBER }) }), rets = TUPLE({ STRING, STRING }) }),
 					["seek"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE, OPT_STRING, OPT_NUMBER }), rets = TUPLE({ INTEGER, STRING }) }),
 					["setvbuf"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE, STRING, OPT_NUMBER }), rets = TUPLE({}) }),
-					["write"] = a_type({ typename = "function", args = VARARG({ NOMINAL_FILE, STRING }), rets = TUPLE({ NOMINAL_FILE, STRING }) }),
+					["write"] = a_type({ typename = "function", args = VARARG({ NOMINAL_FILE, UNION({ STRING, NUMBER }) }), rets = TUPLE({ NOMINAL_FILE, STRING }) }),
 
 				},
 				meta_fields = { ["__close"] = FUNCTION },
@@ -5381,7 +5381,7 @@ local function init_globals(lax)
 				["stdout"] = NOMINAL_FILE,
 				["tmpfile"] = a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ NOMINAL_FILE }) }),
 				["type"] = a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({ STRING }) }),
-				["write"] = a_type({ typename = "function", args = VARARG({ STRING }), rets = TUPLE({ NOMINAL_FILE, STRING }) }),
+				["write"] = a_type({ typename = "function", args = VARARG({ UNION({ STRING, NUMBER }) }), rets = TUPLE({ NOMINAL_FILE, STRING }) }),
 			},
 		}),
 		["math"] = a_type({
@@ -5886,6 +5886,10 @@ tl.type_check = function(ast, opts)
 	end
 
 	local function is_valid_union(typ)
+		if typ.typename ~= "union" then
+			return false, nil
+		end
+
 
 
 		local n_table_types = 0
@@ -6257,6 +6261,9 @@ tl.type_check = function(ast, opts)
 
 	local function infer_at(where, t)
 		local ret = resolve_typevars_at(where, t)
+		if ret.typename == "invalid" then
+			ret = t
+		end
 		ret = (ret ~= t) and ret or shallow_copy_type(t)
 		ret.inferred_at = where
 		ret.inferred_at_file = filename
@@ -7824,7 +7831,7 @@ tl.type_check = function(ast, opts)
 		end
 	end
 
-	local function check_metamethod(node, op, a, b)
+	local function check_metamethod(node, op, a, b, orig_a, orig_b)
 		local method_name
 		local where_args
 		local args
@@ -7832,11 +7839,11 @@ tl.type_check = function(ast, opts)
 		if a and b then
 			method_name = binop_to_metamethod[op]
 			where_args = { node.e1, node.e2 }
-			args = { typename = "tuple", a, b }
+			args = { typename = "tuple", orig_a, orig_b }
 		else
 			method_name = unop_to_metamethod[op]
 			where_args = { node.e1 }
-			args = { typename = "tuple", a }
+			args = { typename = "tuple", orig_a }
 		end
 
 		local metamethod = a.meta_fields and a.meta_fields[method_name or ""]
@@ -7877,7 +7884,7 @@ tl.type_check = function(ast, opts)
 				return tbl.fields[key]
 			end
 
-			local mt_type = check_metamethod(rec, "@index", tbl, STRING)
+			local mt_type = check_metamethod(rec, "@index", tbl, STRING, tbl, STRING)
 			if mt_type then
 				return mt_type
 			end
@@ -8248,7 +8255,7 @@ tl.type_check = function(ast, opts)
 			errm, erra, errb = "cannot index object of type %s with %s", orig_a, orig_b
 		end
 
-		local meta_t = check_metamethod(anode, "@index", a, orig_b)
+		local meta_t = check_metamethod(anode, "@index", a, orig_b, orig_a, orig_b)
 		if meta_t then
 			return meta_t
 		end
@@ -10176,7 +10183,7 @@ tl.type_check = function(ast, opts)
 						local a_is = is_a(a, node.expected)
 						local b_is = is_a(b, node.expected)
 						if a_is and b_is then
-							node.type = node.expected
+							node.type = resolve_typevars_at(node, node.expected)
 						elseif a_is then
 							node.type = resolve_tuple(b)
 						else
@@ -10211,7 +10218,7 @@ tl.type_check = function(ast, opts)
 					node.type = types_op[a.typename]
 					local meta_on_operator
 					if not node.type then
-						node.type, meta_on_operator = check_metamethod(node, node.op.op, a)
+						node.type, meta_on_operator = check_metamethod(node, node.op.op, a, nil, orig_a, nil)
 						if not node.type then
 							node_error(node, "cannot use operator '" .. node.op.op:gsub("%%", "%%%%") .. "' on type %s", resolve_tuple(orig_a))
 						end
@@ -10257,9 +10264,12 @@ tl.type_check = function(ast, opts)
 					node.type = types_op[a.typename] and types_op[a.typename][b.typename]
 					local meta_on_operator
 					if not node.type then
-						node.type, meta_on_operator = check_metamethod(node, node.op.op, a, b)
+						node.type, meta_on_operator = check_metamethod(node, node.op.op, a, b, orig_a, orig_b)
 						if not node.type then
 							node_error(node, "cannot use operator '" .. node.op.op:gsub("%%", "%%%%") .. "' for types %s and %s", resolve_tuple(orig_a), resolve_tuple(orig_b))
+							if node.op.op == "or" and is_valid_union(unite({ orig_a, orig_b })) then
+								node_warning("hint", node, "if a union type was intended, consider declaring it explicitly")
+							end
 						end
 					end
 
