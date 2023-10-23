@@ -30,17 +30,17 @@
 namespace playrho {
 namespace d2 {
 
-static_assert(std::is_default_constructible<TargetJointConf>::value,
+static_assert(std::is_default_constructible_v<TargetJointConf>,
               "TargetJointConf should be default constructible!");
-static_assert(std::is_copy_constructible<TargetJointConf>::value,
+static_assert(std::is_copy_constructible_v<TargetJointConf>,
               "TargetJointConf should be copy constructible!");
-static_assert(std::is_copy_assignable<TargetJointConf>::value,
+static_assert(std::is_copy_assignable_v<TargetJointConf>,
               "TargetJointConf should be copy assignable!");
-static_assert(std::is_move_constructible<TargetJointConf>::value,
+static_assert(std::is_move_constructible_v<TargetJointConf>,
               "TargetJointConf should be move constructible!");
-static_assert(std::is_move_assignable<TargetJointConf>::value,
+static_assert(std::is_move_assignable_v<TargetJointConf>,
               "TargetJointConf should be move assignable!");
-static_assert(std::is_nothrow_destructible<TargetJointConf>::value,
+static_assert(std::is_nothrow_destructible_v<TargetJointConf>,
               "TargetJointConf should be nothrow destructible!");
 
 TargetJointConf GetTargetJointConf(const Joint& joint)

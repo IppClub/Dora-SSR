@@ -24,8 +24,10 @@
 
 #include <variant>
 
-#include "playrho/Math.hpp"
+#include "playrho/Vector2.hpp" // for Length2
+
 #include "playrho/d2/IndexPair.hpp"
+#include "playrho/d2/UnitVec.hpp"
 
 namespace playrho {
 namespace d2 {

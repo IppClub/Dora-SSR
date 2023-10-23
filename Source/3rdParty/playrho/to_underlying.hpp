@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_TOUNDERLYING_HPP
 #define PLAYRHO_TOUNDERLYING_HPP
 
+/// @file
+/// @brief Definition of @c to_underlying function template.
+
 #include "playrho/detail/underlying_type.hpp"
 
 namespace playrho {

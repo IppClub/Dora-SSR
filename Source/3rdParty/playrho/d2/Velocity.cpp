@@ -18,12 +18,11 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include "playrho/d2/Math.hpp"
 #include "playrho/d2/Velocity.hpp"
-#include "playrho/Math.hpp"
 #include "playrho/d2/VelocityConstraint.hpp"
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 Velocity Cap(Velocity velocity, Time h, const MovementConf& conf) noexcept
 {
@@ -45,5 +44,4 @@ Velocity Cap(Velocity velocity, Time h, const MovementConf& conf) noexcept
     return velocity;
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

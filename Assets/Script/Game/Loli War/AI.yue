@@ -52,7 +52,7 @@ Store["PlayerControlAI"] = Sel {
 				Con "at switch", =>
 					theSwitch = @data.atSwitch
 					theSwitch? and not theSwitch.data.pushed and
-					(@x < theSwitch.x == @faceRight)
+					((@x < theSwitch.x) == @faceRight)
 				Act "pushSwitch"
 			}
 			Act "villyAttack"

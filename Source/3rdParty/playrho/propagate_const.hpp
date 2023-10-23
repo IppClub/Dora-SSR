@@ -25,6 +25,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef JBCOE_PROPAGATE_CONST_INCLUDED
 #define JBCOE_PROPAGATE_CONST_INCLUDED
 
+/// @file
+/// @brief Definition of the @c propagate_const class template and related code.
+
 #include <functional>
 #include <type_traits>
 #include <utility>
@@ -119,7 +122,7 @@ class propagate_const {
   // Make converting constructors explicit as we cannot use SFINAE to check.
   //
 
-  template <class U, class = std::enable_if_t<is_constructible<T, U&&>::value>>
+  template <class U, class = std::enable_if_t<is_constructible_v<T, U&&>>>
   explicit PROPAGATE_CONST_CONSTEXPR propagate_const(propagate_const<U>&& pu)
     noexcept(std::is_nothrow_constructible_v<T, decltype(std::move(pu.t_))>)
       : t_(std::move(pu.t_))
@@ -127,7 +130,7 @@ class propagate_const {
   }
 
   template <class U,
-            class = std::enable_if_t<is_constructible<T, U&&>::value &&
+            class = std::enable_if_t<is_constructible_v<T, U&&> &&
                                 !is_propagate_const<std::decay_t<U>>::value>>
   explicit PROPAGATE_CONST_CONSTEXPR propagate_const(U&& u)
     noexcept(std::is_nothrow_constructible_v<T, decltype(std::forward<U>(u))>)
@@ -140,24 +143,24 @@ class propagate_const {
   //
 
   /// @brief Move constructor.
-  template <class U, std::enable_if_t<!std::is_convertible<U&&, T>::value &&
-                                     std::is_constructible<T, U&&>::value,
+  template <class U, std::enable_if_t<!std::is_convertible_v<U&&, T> &&
+                                     std::is_constructible_v<T, U&&>,
                                  bool> = true>
   explicit PROPAGATE_CONST_CONSTEXPR propagate_const(propagate_const<U>&& pu)
     noexcept(std::is_nothrow_constructible_v<T, decltype(std::move(pu.t_))>)
       : t_(std::move(pu.t_)) {}
 
   /// @brief Move constructor.
-  template <class U, std::enable_if_t<std::is_convertible<U&&, T>::value &&
-                                     std::is_constructible<T, U&&>::value,
+  template <class U, std::enable_if_t<std::is_convertible_v<U&&, T> &&
+                                     std::is_constructible_v<T, U&&>,
                                  bool> = false>
   PROPAGATE_CONST_CONSTEXPR propagate_const(propagate_const<U>&& pu)
     noexcept(std::is_nothrow_constructible_v<T, decltype(std::move(pu.t_))>)
       : t_(std::move(pu.t_)) {}
 
   /// @brief Move constructor.
-  template <class U, std::enable_if_t<!std::is_convertible<U&&, T>::value &&
-                                     std::is_constructible<T, U&&>::value &&
+  template <class U, std::enable_if_t<!std::is_convertible_v<U&&, T> &&
+                                     std::is_constructible_v<T, U&&> &&
                                      !is_propagate_const<std::decay_t<U>>::value,
                                  bool> = true>
   explicit PROPAGATE_CONST_CONSTEXPR propagate_const(U&& u)
@@ -165,8 +168,8 @@ class propagate_const {
       : t_(std::forward<U>(u)) {}
 
   /// @brief Move constructor.
-  template <class U, std::enable_if_t<std::is_convertible<U&&, T>::value &&
-                                     std::is_constructible<T, U&&>::value &&
+  template <class U, std::enable_if_t<std::is_convertible_v<U&&, T> &&
+                                     std::is_constructible_v<T, U&&> &&
                                      !is_propagate_const<std::decay_t<U>>::value,
                                  bool> = false>
   PROPAGATE_CONST_CONSTEXPR propagate_const(U&& u)
@@ -217,8 +220,8 @@ class propagate_const {
   }
 
   /// @brief Const-conversion operator support.
-  template <class T_ = T, class U = std::enable_if_t<std::is_convertible<
-                              const T_, const element_type*>::value>>
+  template <class T_ = T, class U = std::enable_if_t<std::is_convertible_v<
+                              const T_, const element_type*>>>
   PROPAGATE_CONST_CONSTEXPR operator const element_type*() const  // Not always defined
     noexcept(noexcept(this->get()))
   {
@@ -245,7 +248,7 @@ class propagate_const {
 
   /// @brief Indirection operator support.
   template <class T_ = T,
-            class U = std::enable_if_t<std::is_convertible<T_, element_type*>::value>>
+            class U = std::enable_if_t<std::is_convertible_v<T_, element_type*>>>
   PROPAGATE_CONST_CONSTEXPR operator element_type*()  // Not always defined
     noexcept(noexcept(this->get()))
   {

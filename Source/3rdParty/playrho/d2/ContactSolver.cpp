@@ -499,9 +499,9 @@ d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,
     assert(IsValid(conf.linearSlop));
     assert(IsValid(conf.maxLinearCorrection));
     
-    const auto bodyA = &bodies[to_underlying(pc.GetBodyA())];
-    const auto bodyB = &bodies[to_underlying(pc.GetBodyB())];
-    
+    const auto bodyA = &bodies[to_underlying(pc.bodyA)];
+    const auto bodyB = &bodies[to_underlying(pc.bodyB)];
+
     const auto invMassA = moveA? bodyA->GetInvMass(): InvMass{};
     const auto invRotInertiaA = moveA? bodyA->GetInvRotInertia(): InvRotInertia{};
     const auto localCenterA = bodyA->GetLocalCenter();
@@ -515,7 +515,7 @@ d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,
     const auto invMassTotal = invMassA + invMassB;
     assert(invMassTotal >= InvMass{});
     
-    const auto totalRadius = pc.GetTotalRadius();
+    const auto totalRadius = pc.totalRadius;
     
     const auto solver_fn = [&](const d2::PositionSolverManifold& psm,
                                const Length2& pA, const Length2& pB) {
@@ -634,6 +634,7 @@ d2::PositionSolution SolvePositionConstraint(const d2::PositionConstraint& pc,
             }
 #endif
             // reaches here if one or both psm separation values was NaN (and NDEBUG is defined).
+            [[fallthrough]];
         }
         default: break;
     }

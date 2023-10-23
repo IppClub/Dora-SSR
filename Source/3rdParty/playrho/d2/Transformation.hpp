@@ -27,7 +27,7 @@
 #include "playrho/d2/UnitVec.hpp"
 
 /// @file
-/// Definition of the Transformation class and free functions directly associated with it.
+/// @brief Definition of the Transformation class and free functions directly associated with it.
 
 namespace playrho {
 namespace d2 {

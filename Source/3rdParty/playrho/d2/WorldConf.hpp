@@ -22,7 +22,7 @@
 #define PLAYRHO_D2_WORLDCONF_HPP
 
 /// @file
-/// Declarations of the WorldConf class.
+/// @brief Declarations of the @c WorldConf class.
 
 #include "playrho/Interval.hpp"
 #include "playrho/Positive.hpp"
@@ -55,6 +55,9 @@ struct WorldConf {
     /// @brief Default initial proxy capacity.
     static constexpr auto DefaultProxyCapacity = ContactCounter(1024);
 
+    /// @brief Default initial reserve buffers capacity.
+    static constexpr auto DefaultReserveBuffers = std::uint8_t(1u);
+
     /// @brief Default initial reserve body stack capacity.
     static constexpr auto DefaultReserveBodyStack = BodyCounter(16384u);
 
@@ -62,10 +65,13 @@ struct WorldConf {
     static constexpr auto DefaultReserveBodyConstraints = BodyCounter(1024u);
 
     /// @brief Default initial reserve distance constraints capacity.
-    static constexpr auto DefaultReserveDistanceConstraints = DefaultReserveBodyConstraints * 4u;
+    static constexpr auto DefaultReserveDistanceConstraints = ContactCounter{DefaultReserveBodyConstraints * 4u};
 
     /// @brief Default initial reserve contact keys capacity.
     static constexpr auto DefaultReserveContactKeys = ContactCounter(1024u);
+
+    /// @brief Default do-stats value.
+    static constexpr auto DefaultDoStats = false;
 
     /// @brief Uses the given min vertex radius value.
     constexpr WorldConf& UseUpstream(pmr::memory_resource *value) noexcept;
@@ -107,17 +113,34 @@ struct WorldConf {
     /// @brief Initial proxy capacity.
     ContactCounter proxyCapacity = DefaultProxyCapacity;
 
-    /// @brief Reserve body stack capacity.
+    /// @brief Initial reserve contact keys capacity in #-of-elements.
+    /// @note This is used as the reserve buffer #-of-elements for finding contacts. The number of
+    ///   contact keys has an **upper bound** of the square of the number of bodies in the world.
+    ContactCounter reserveContactKeys = DefaultReserveContactKeys;
+
+    /// @brief Initial reserve distance constraints capacity in #-of-elements.
+    /// @note This is used for reserving #-of-elements capacity for position and velocity
+    ///   constraints. It's tied to the number of contacts in the world.
+    ContactCounter reserveDistanceConstraints = DefaultReserveDistanceConstraints;
+
+    /// @brief Initial reserve body stack capacity in #-of-elements.
+    /// @note Max body stack #-of-elements capacity has **upper bound** of # of bodies in world.
     BodyCounter reserveBodyStack = DefaultReserveBodyStack;
 
-    /// @brief Reserve body constraints capacity.
+    /// @brief Initial reserve body constraints capacity in #-of-elements.
+    /// @note This is tied to the number of bodies in the world.
     BodyCounter reserveBodyConstraints = DefaultReserveBodyConstraints;
 
-    /// @brief Reserve distance constraints capacity.
-    BodyCounter reserveDistanceConstraints = DefaultReserveDistanceConstraints;
+    /// @brief Initial reserve buffers capacity in #-of-elements.
+    std::uint8_t reserveBuffers = DefaultReserveBuffers;
 
-    /// @brief Reserve contact keys capacity.
-    ContactCounter reserveContactKeys = DefaultReserveContactKeys;
+    /// @brief Whether to collect resource statistics or not.
+    /// @note The collected statistics can help tweak the @c reserve* data members to help avoid
+    ///    dynamic memory allocation during world step processing. Collecting these statistics
+    ///    incurs some performance overhead however, so consider disabling this setting after
+    ///    getting those data members tweaked to your needs.
+    /// @see GetResourceStats(const World&).
+    bool doStats = DefaultDoStats;
 };
 
 constexpr WorldConf& WorldConf::UseUpstream(pmr::memory_resource *value) noexcept

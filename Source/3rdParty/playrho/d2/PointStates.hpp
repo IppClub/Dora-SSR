@@ -23,8 +23,8 @@
 #define PLAYRHO_D2_POINTSTATES_HPP
 
 /// @file
-/// Structures and functions used for computing before and after like point oriented
-/// collision response states.
+/// @brief Structures and functions used for computing before and after like point
+///   oriented collision response states.
 
 #include "playrho/Settings.hpp"
 #include "playrho/PointState.hpp"

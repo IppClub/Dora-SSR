@@ -21,12 +21,15 @@
 #ifndef PLAYRHO_CONTACTID_HPP
 #define PLAYRHO_CONTACTID_HPP
 
+/// @file
+/// @brief Definition of the @c ContactID alias and closely related code.
+
 #include "playrho/detail/IndexingNamedType.hpp"
 #include "playrho/Settings.hpp"
 
 namespace playrho {
 
-/// @brief Identifier of contacts.
+/// @brief Strongly typed identifier of contacts within @c World instances.
 using ContactID = detail::IndexingNamedType<ContactCounter, struct ContactIdentifier>;
 
 /// @brief Invalid contact ID value.

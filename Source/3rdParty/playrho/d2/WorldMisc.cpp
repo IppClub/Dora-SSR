@@ -29,66 +29,7 @@
 
 #include <utility> // for std::move
 
-namespace playrho {
-namespace d2 {
-
-void SetShapeDestructionListener(World& world, std::function<void(ShapeID)> listener) noexcept
-{
-    world.SetShapeDestructionListener(std::move(listener));
-}
-
-void SetDetachListener(World& world, std::function<void(std::pair<BodyID, ShapeID>)> listener) noexcept
-{
-    world.SetDetachListener(std::move(listener));
-}
-
-void SetJointDestructionListener(World& world, std::function<void(JointID)> listener) noexcept
-{
-    world.SetJointDestructionListener(std::move(listener));
-}
-
-void SetBeginContactListener(World& world, std::function<void(ContactID)> listener) noexcept
-{
-    world.SetBeginContactListener(std::move(listener));
-}
-
-void SetEndContactListener(World& world, std::function<void(ContactID)> listener) noexcept
-{
-    world.SetEndContactListener(std::move(listener));
-}
-
-void SetPreSolveContactListener(World& world,
-                                std::function<void(ContactID, const Manifold&)> listener) noexcept
-{
-    world.SetPreSolveContactListener(std::move(listener));
-}
-
-void SetPostSolveContactListener(World& world,
-                                 std::function<void(ContactID, const ContactImpulsesList&,
-                                                    unsigned)> listener) noexcept
-{
-    world.SetPostSolveContactListener(std::move(listener));
-}
-
-void Clear(World& world) noexcept
-{
-    world.Clear();
-}
-
-Length GetMinVertexRadius(const World& world) noexcept
-{
-    return world.GetMinVertexRadius();
-}
-
-Length GetMaxVertexRadius(const World& world) noexcept
-{
-    return world.GetMaxVertexRadius();
-}
-
-StepStats Step(World& world, const StepConf& conf)
-{
-    return world.Step(conf);
-}
+namespace playrho::d2 {
 
 StepStats Step(World& world, Time delta, TimestepIters velocityIterations,
                TimestepIters positionIterations)
@@ -102,29 +43,8 @@ StepStats Step(World& world, Time delta, TimestepIters velocityIterations,
     {
         conf.toiPositionIters = 0;
     }
-    conf.dtRatio = delta * world.GetInvDeltaTime();
-    return world.Step(conf);
+    conf.dtRatio = delta * GetInvDeltaTime(world);
+    return Step(world, conf);
 }
 
-bool GetSubStepping(const World& world) noexcept
-{
-    return world.GetSubStepping();
-}
-
-void SetSubStepping(World& world, bool flag) noexcept
-{
-    world.SetSubStepping(flag);
-}
-
-const DynamicTree& GetTree(const World& world) noexcept
-{
-    return world.GetTree();
-}
-
-void ShiftOrigin(World& world, const Length2& newOrigin)
-{
-    world.ShiftOrigin(newOrigin);
-}
-
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

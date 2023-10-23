@@ -22,24 +22,28 @@
 #ifndef PLAYRHO_D2_SIMPLEX_HPP
 #define PLAYRHO_D2_SIMPLEX_HPP
 
-#include "playrho/ArrayList.hpp"
-#include "playrho/Vector.hpp"
-#include "playrho/d2/SimplexEdge.hpp"
+/// @file
+/// @brief Definition of the @c Simplex class and closely related code.
+
 #include <array>
+
+#include "playrho/ArrayList.hpp"
+
+#include "playrho/d2/SimplexEdge.hpp"
 
 namespace playrho {
 namespace d2 {
 
 /// @brief Simplex edge collection.
 using SimplexEdges =
-    ArrayList<SimplexEdge, MaxSimplexEdges, std::remove_const<decltype(MaxSimplexEdges)>::type>;
+    ArrayList<SimplexEdge, MaxSimplexEdges, std::remove_const_t<decltype(MaxSimplexEdges)>>;
 
 /// @brief Gets index pairs for the given edges collection.
 IndexPair3 GetIndexPairs(const SimplexEdges& collection) noexcept;
 
 /// @brief Calculates the "search direction" for the given simplex edge list.
 /// @param simplexEdges A one or two edge list.
-/// @warning Behavior is undefined if the given edge list has zero edges.
+/// @warning Behavior is not specified if the given edge list has zero edges.
 /// @return "search direction" vector.
 Length2 CalcSearchDirection(const SimplexEdges& simplexEdges) noexcept;
 
@@ -60,7 +64,7 @@ public:
     /// @brief Coefficients.
     /// @details Collection of coefficient values.
     using Coefficients =
-        ArrayList<Real, MaxSimplexEdges, std::remove_const<decltype(MaxSimplexEdges)>::type>;
+        ArrayList<Real, MaxSimplexEdges, std::remove_const_t<decltype(MaxSimplexEdges)>>;
 
     /// @brief Simplex cache.
     /// @details Used to warm start Distance. Caches particular information from a simplex:
@@ -86,7 +90,7 @@ public:
 
     /// @brief Gets the simplex for the given 2 edges.
     /// @note The given simplex vertices must have different index pairs or be of the same values.
-    /// @warning Behavior is undefined if the given simplex edges index pairs are the same
+    /// @warning Behavior is not specified if the given simplex edges index pairs are the same
     ///    and the whole edges values are not also the same.
     /// @param s0 Simplex edge 0.
     /// @param s1 Simplex edge 1.
@@ -100,7 +104,6 @@ public:
 
     /// @brief Gets the simplex for the given collection of vertices.
     /// @param edges Collection of zero, one, two, or three simplex edges.
-    /// @warning Behavior is undefined if the given collection has more than 3 edges.
     /// @return Zero, one, two, or three edge simplex.
     static Simplex Get(const SimplexEdges& edges) noexcept;
 

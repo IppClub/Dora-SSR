@@ -19,19 +19,20 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/RayCastOutput.hpp"
+#include <utility>
 
-#include "playrho/Math.hpp"
 #include "playrho/GrowableStack.hpp"
-#include "playrho/d2/RayCastInput.hpp"
+
 #include "playrho/d2/AABB.hpp"
 #include "playrho/d2/DistanceProxy.hpp"
 #include "playrho/d2/DynamicTree.hpp"
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/RayCastInput.hpp"
+#include "playrho/d2/RayCastOutput.hpp"
+#include "playrho/d2/World.hpp"
 #include "playrho/d2/WorldBody.hpp"
 #include "playrho/d2/WorldMisc.hpp"
 #include "playrho/d2/WorldShape.hpp"
-
-#include <utility>
 
 namespace playrho {
 namespace d2 {
@@ -191,7 +192,7 @@ RayCastOutput RayCast(const DistanceProxy& proxy, const RayCastInput& input,
         {
             const auto normal = proxy.GetNormal(i);
             const auto offset = normal * radius;
-            const auto v0off = v0 + offset;
+            const auto v0off = v0 + Vec2{offset[0], offset[1]};
             const auto q_sub_p = v0off - ray0;
             const auto reciprocalRayCrossEdge = Real{1} / ray_cross_edge;
 
@@ -299,14 +300,13 @@ bool RayCast(const DynamicTree& tree, RayCastInput input, const DynamicTreeRayCa
 bool RayCast(const World& world, const RayCastInput& input, const ShapeRayCastCB& callback)
 {
     return RayCast(GetTree(world), input,
-                   [&world,&callback](BodyID body, ShapeID shape, ChildCounter index,
+                   [&world,&callback](BodyID bodyId, ShapeID shapeId, ChildCounter index,
                                       const RayCastInput& rci) {
-        const auto output = RayCast(GetChild(GetShape(world, shape), index), rci,
-                                    GetTransformation(world, body));
+        const auto shape = GetShape(world, shapeId);
+        const auto output = RayCast(GetChild(shape, index), rci, GetTransformation(world, bodyId));
         if (output.has_value())
         {
             const auto fraction = output->fraction;
-            assert(fraction >= 0 && fraction <= 1);
             
             // Here point can be calculated these two ways:
             //   (1) point = p1 * (1 - fraction) + p2 * fraction
@@ -322,7 +322,7 @@ bool RayCast(const World& world, const RayCastInput& input, const ShapeRayCastCB
             // The second way, does not have this problem.
             //
             const auto point = rci.p1 + (rci.p2 - rci.p1) * fraction;
-            const auto opcode = callback(body, shape, index, point, output->normal);
+            const auto opcode = callback(bodyId, shapeId, index, point, output->normal);
             switch (opcode)
             {
                 case RayCastOpcode::Terminate: return Real{0};

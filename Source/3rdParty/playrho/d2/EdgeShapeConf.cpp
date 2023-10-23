@@ -23,34 +23,26 @@
 
 #include "playrho/d2/Shape.hpp"
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
-static_assert(IsValidShapeType<EdgeShapeConf>::value);
+static_assert(IsValidShapeTypeV<EdgeShapeConf>);
 
 EdgeShapeConf::EdgeShapeConf(const Length2& vA, const Length2& vB, // force line-break
                              const EdgeShapeConf& conf) noexcept
-    : ShapeBuilder{conf}, vertexRadius{conf.vertexRadius}, m_vertices{vA, vB}
+    : ShapeBuilder{conf}, vertexRadius{conf.vertexRadius}, ngon{{vA, vB}}
 {
-    const auto normal = GetUnitVector(GetFwdPerpendicular(vB - vA));
-    m_normals[0] = normal;
-    m_normals[1] = -normal;
+    // Intentionally empty.
 }
 
 EdgeShapeConf& EdgeShapeConf::Set(const Length2& vA, const Length2& vB) noexcept
 {
-    m_vertices[0] = vA;
-    m_vertices[1] = vB;
-    const auto normal = GetUnitVector(GetFwdPerpendicular(vB - vA));
-    m_normals[0] = normal;
-    m_normals[1] = -normal;
+    ngon = NgonWithFwdNormals<2>{{vA, vB}};
     return *this;
 }
 
 EdgeShapeConf& EdgeShapeConf::Translate(const Length2& value) noexcept
 {
-    m_vertices[0] += value;
-    m_vertices[1] += value;
+    ngon = NgonWithFwdNormals<2>{{GetVertexA() + value, GetVertexB() + value}};
     return *this;
 }
 
@@ -66,5 +58,4 @@ EdgeShapeConf& EdgeShapeConf::Rotate(const UnitVec& value) noexcept
                ::playrho::d2::Rotate(GetVertexB(), value));
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

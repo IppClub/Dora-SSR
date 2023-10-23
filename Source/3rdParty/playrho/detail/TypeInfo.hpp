@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_DETAIL_TYPEINFO_HPP
 #define PLAYRHO_DETAIL_TYPEINFO_HPP
 
+/// @file
+/// @brief Definition of @c TypeInfo class template and related code.
+
 #include <regex>
 #include <string>
 
@@ -87,7 +90,7 @@ const char* GetNameForTypeInfo()
 
 /// @brief Type information.
 /// @note Users may specialize this to provide an alternative name for a type so long as the provided
-///    name is still non-empty and unique for the application otherwise behavior is undefined.
+///    name is still non-empty and unique for the application otherwise behavior is not specified.
 template <typename T>
 struct TypeInfo
 {

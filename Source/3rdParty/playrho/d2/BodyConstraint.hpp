@@ -22,12 +22,19 @@
 #ifndef PLAYRHO_D2_BODYCONSTRAINT_HPP
 #define PLAYRHO_D2_BODYCONSTRAINT_HPP
 
-#include "playrho/Math.hpp"
-#include "playrho/MovementConf.hpp"
-#include "playrho/d2/Body.hpp"
+/// @file
+/// @brief Definition of the @c BodyConstraint class and closely related code.
 
-namespace playrho {
-namespace d2 {
+#include <cassert>
+
+#include "playrho/MovementConf.hpp"
+#include "playrho/Units.hpp"
+
+#include "playrho/d2/Body.hpp" // for GetInvMass & other Body helpers
+
+namespace playrho::d2 {
+
+class Body;
 
 /// @brief Constraint for a body.
 /// @details Data related to body constraint processing.
@@ -155,7 +162,6 @@ inline BodyConstraint GetBodyConstraint(const Body& body, Time time,
     };
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_BODYCONSTRAINT_HPP

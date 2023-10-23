@@ -22,8 +22,11 @@
 #ifndef PLAYRHO_D2_POSITION_HPP
 #define PLAYRHO_D2_POSITION_HPP
 
-#include "playrho/Templates.hpp"
+/// @file
+/// @brief Definition of the @c Position class and closely related code.
+
 #include "playrho/Settings.hpp"
+#include "playrho/Templates.hpp"
 #include "playrho/Vector2.hpp"
 
 namespace playrho {

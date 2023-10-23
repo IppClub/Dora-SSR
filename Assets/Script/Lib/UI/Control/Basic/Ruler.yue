@@ -194,7 +194,7 @@ export default Class Ruler,
 			a = _v > 0 and -val or val
 			yR = _v > 0
 			_v = _v + a*deltaTime
-			if _v < 0 == yR
+			if (_v < 0) == yR
 				_v = 0
 				a = 0
 			ds = _v * deltaTime + a*(0.5*deltaTime*deltaTime)

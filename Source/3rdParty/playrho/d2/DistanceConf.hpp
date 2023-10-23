@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_D2_DISTANCE_CONF_HPP
 #define PLAYRHO_D2_DISTANCE_CONF_HPP
 
+/// @file
+/// @brief Definition of the @c DistanceConf class and closely related code.
+
 #include "playrho/Settings.hpp"
 
 #include "playrho/d2/Simplex.hpp"
@@ -36,7 +39,7 @@ namespace d2 {
 /// @details Configuration information for calling GJK distance functions.
 struct DistanceConf {
     /// @brief Iteration type.
-    using iteration_type = std::remove_const<decltype(DefaultMaxDistanceIters)>::type;
+    using iteration_type = std::remove_const_t<decltype(DefaultMaxDistanceIters)>;
 
     Simplex::Cache cache; ///< Cache.
     iteration_type maxIterations = DefaultMaxDistanceIters; ///< Max iterations.

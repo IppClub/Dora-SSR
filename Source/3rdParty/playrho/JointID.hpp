@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_JOINTID_HPP
 #define PLAYRHO_JOINTID_HPP
 
+/// @file
+/// @brief Definition of the @c JointID alias and closely related code.
+
 #include "playrho/detail/IndexingNamedType.hpp"
 #include "playrho/Settings.hpp"
 

@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_DETAIL_TEMPLATES_HPP
 #define PLAYRHO_DETAIL_TEMPLATES_HPP
 
+/// @file
+/// @brief Low-level declarations for general class & function templates.
+
 #include <algorithm>
 #include <functional>
 #include <iterator>
@@ -181,22 +184,63 @@ constexpr auto IsFull(const T& arg) -> decltype(size(arg) == max_size(arg))
     return size(arg) == max_size(arg);
 }
 
-template <class T>
-auto c_str(const T& arg) -> decltype(arg.c_str())
-{
-    return arg.c_str();
-}
+/// @brief None such type.
+/// @see https://en.cppreference.com/w/cpp/experimental/is_detected
+struct nonesuch {
+    nonesuch() = delete;
+    ~nonesuch() = delete;
+    nonesuch(nonesuch const&) = delete;
+    void operator=(nonesuch const&) = delete;
+};
 
-inline auto c_str(const char* arg) -> const char*
+/// @brief Detector class template.
+/// @see https://en.cppreference.com/w/cpp/experimental/is_detected
+template<class Default, class AlwaysVoid, template<class...> class Op, class... Args>
+struct detector
 {
-    return arg? arg: "";
-}
+    /// @brief Value type.
+    using value_t = std::false_type;
 
-template <class T>
-auto c_str(const T& arg) -> decltype(arg.has_value(), c_str(arg.value()))
+    /// @brief Default type.
+    using type = Default;
+};
+
+/// @brief Detected class template specialized for successful detection.
+/// @see https://en.cppreference.com/w/cpp/experimental/is_detected
+template<class Default, template<class...> class Op, class... Args>
+struct detector<Default, std::void_t<Op<Args...>>, Op, Args...>
 {
-    return arg.has_value()? c_str(arg.value()): "";
-}
+    /// @brief Value type.
+    using value_t = std::true_type;
+
+    /// @brief Specialized type.
+    using type = Op<Args...>;
+};
+
+/// @brief Is-detected value type.
+/// @see https://en.cppreference.com/w/cpp/experimental/is_detected
+template<template<class...> class Op, class... Args>
+using is_detected = typename detector<nonesuch, void, Op, Args...>::value_t;
+
+/// @brief Is-detected-value.
+/// @see https://en.cppreference.com/w/cpp/experimental/is_detected
+template< template<class...> class Op, class... Args >
+constexpr bool is_detected_v = is_detected<Op, Args...>::value;
+
+/// @brief Is narrowing conversion implementation true trait.
+/// @see https://stackoverflow.com/a/67603594/7410358.
+template<typename From, typename To, typename = void>
+struct is_narrowing_conversion_impl : std::true_type {};
+
+/// @brief Is narrowing conversion implementation false trait.
+/// @see https://stackoverflow.com/a/67603594/7410358.
+template<typename From, typename To>
+struct is_narrowing_conversion_impl<From, To, std::void_t<decltype(To{std::declval<From>()})>> : std::false_type {};
+
+/// @brief Is narrowing conversion trait.
+/// @see https://stackoverflow.com/a/67603594/7410358.
+template<typename From, typename To>
+struct is_narrowing_conversion : is_narrowing_conversion_impl<From, To> {};
 
 } // namespace detail
 

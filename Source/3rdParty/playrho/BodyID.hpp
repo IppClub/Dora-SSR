@@ -21,18 +21,23 @@
 #ifndef PLAYRHO_BODYID_HPP
 #define PLAYRHO_BODYID_HPP
 
+/// @file
+/// @brief Definition of the <code>BodyID</code> alias and closely related code.
+
 #include "playrho/detail/IndexingNamedType.hpp"
 #include "playrho/Settings.hpp"
 
 namespace playrho {
 
-/// @brief Identifier for bodies.
+/// @brief Strongly typed identifier for bodies within @c World instances.
 using BodyID = detail::IndexingNamedType<BodyCounter, struct BodyIdentifier>;
 
 /// @brief Invalid body ID value.
+/// @see BodyID.
 constexpr auto InvalidBodyID = static_cast<BodyID>(static_cast<BodyID::underlying_type>(-1));
 
 /// @brief Gets an invalid value for the BodyID type.
+/// @see BodyID.
 template <>
 constexpr BodyID GetInvalid() noexcept
 {
@@ -40,6 +45,7 @@ constexpr BodyID GetInvalid() noexcept
 }
 
 /// @brief Determines if the given value is valid.
+/// @see BodyID.
 template <>
 constexpr bool IsValid(const BodyID& value) noexcept
 {

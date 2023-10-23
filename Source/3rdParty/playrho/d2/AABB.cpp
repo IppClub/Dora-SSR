@@ -24,11 +24,9 @@
 #include "playrho/d2/DistanceProxy.hpp"
 #include "playrho/d2/Shape.hpp"
 #include "playrho/Contact.hpp"
+#include "playrho/d2/World.hpp"
 #include "playrho/d2/WorldBody.hpp"
 #include "playrho/d2/WorldShape.hpp"
-
-/// @file
-/// Definitions for the AABB class.
 
 namespace playrho {
 namespace d2 {
@@ -81,22 +79,22 @@ AABB ComputeAABB(const World& world, BodyID id)
     return sum;
 }
 
-AABB ComputeIntersectingAABB(const World& world, BodyID bA, ShapeID sA, ChildCounter iA, BodyID bB,
-                             ShapeID sB, ChildCounter iB)
+AABB ComputeIntersectingAABB(const World& world, // force newline
+                             BodyID bA, ShapeID sA, ChildCounter iA, // force newline
+                             BodyID bB, ShapeID sB, ChildCounter iB)
 {
-    const auto xA = GetTransformation(world, bA);
-    const auto xB = GetTransformation(world, bB);
-    const auto childA = GetChild(GetShape(world, sA), iA);
-    const auto childB = GetChild(GetShape(world, sB), iB);
-    const auto aabbA = ComputeAABB(childA, xA);
-    const auto aabbB = ComputeAABB(childB, xB);
+    const auto shapeA = GetShape(world, sA); // extends shape's lifetime for GetChild
+    const auto shapeB = GetShape(world, sB); // extends shape's lifetime for GetChild
+    const auto aabbA = ComputeAABB(GetChild(shapeA, iA), GetTransformation(world, bA));
+    const auto aabbB = ComputeAABB(GetChild(shapeB, iB), GetTransformation(world, bB));
     return GetIntersectingAABB(aabbA, aabbB);
 }
 
 AABB ComputeIntersectingAABB(const World& world, const Contact& c)
 {
-    return ComputeIntersectingAABB(world, c.GetBodyA(), c.GetShapeA(), c.GetChildIndexA(),
-                                   c.GetBodyB(), c.GetShapeB(), c.GetChildIndexB());
+    return ComputeIntersectingAABB(world, // force newline
+                                   GetBodyA(c), GetShapeA(c), GetChildIndexA(c), // force newline
+                                   GetBodyB(c), GetShapeB(c), GetChildIndexB(c));
 }
 
 AABB GetAABB(const RayCastInput& input) noexcept

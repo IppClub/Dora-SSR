@@ -22,9 +22,15 @@
 #ifndef PLAYRHO_D2_PULLEYJOINTCONF_HPP
 #define PLAYRHO_D2_PULLEYJOINTCONF_HPP
 
-#include "playrho/d2/JointConf.hpp"
-#include "playrho/Math.hpp"
+/// @file
+/// @brief Definition of the @c PulleyJointConf class and closely related code.
+
 #include "playrho/Span.hpp"
+#include "playrho/TypeInfo.hpp"
+
+#include "playrho/d2/JointConf.hpp"
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/UnitVec.hpp"
 
 namespace playrho {
 

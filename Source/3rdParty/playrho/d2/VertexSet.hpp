@@ -21,23 +21,22 @@
 #ifndef PLAYRHO_D2_VERTEXSET_HPP
 #define PLAYRHO_D2_VERTEXSET_HPP
 
-#include "playrho/Math.hpp"
+/// @file
+/// @brief Definition of the @c VertexSet class and closely related code.
 
 #include <vector>
 #include <algorithm>
 
-namespace playrho {
-namespace d2 {
+#include "playrho/d2/Math.hpp"
+
+namespace playrho::d2 {
 
 /// @brief Vertex Set.
-///
 /// @details This is a container that enforces the invariant that no two
-/// vertices can be closer together than the minimum separation distance.
-///
+///   vertices can be closer together than the minimum separation distance.
 class VertexSet
 {
 public:
-    
     /// @brief Constant pointer type.
     using const_pointer = const Length2*;
 
@@ -46,7 +45,7 @@ public:
     {
         return sqrt(std::numeric_limits<Vec2::value_type>::min()) * SquareMeter;
     }
-    
+
     /// @brief Initializing constructor.
     explicit VertexSet(Area minSepSquared = GetDefaultMinSeparationSquared()):
         m_minSepSquared{minSepSquared}
@@ -60,14 +59,13 @@ public:
     /// @brief Adds the given vertex into the set if allowed.
     bool add(const Length2& value)
     {
-        if (find(value) != end())
-        {
+        if (find(value) != end()) {
             return false;
         }
         m_elements.push_back(value);
         return true;
     }
-    
+
     /// @brief Clear this set.
     void clear() noexcept
     {
@@ -79,15 +77,15 @@ public:
     {
         return ::playrho::size(m_elements);
     }
-    
+
     /// @brief Gets the pointer to the data buffer.
-    const_pointer data() const { return ::playrho::data(m_elements); }
-    
+    const_pointer data() const noexcept { return ::playrho::data(m_elements); }
+
     /// @brief Gets the "begin" iterator value.
-    const_pointer begin() const { return data(); }
-    
+    const_pointer begin() const noexcept { return data(); }
+
     /// @brief Gets the "end" iterator value.
-    const_pointer end() const { return data() + size(); }
+    const_pointer end() const noexcept { return data() + size(); }
 
     /// Finds contained point whose delta with the given point has a squared length less
     /// than or equal to this set's minimum length squared value.
@@ -113,7 +111,6 @@ private:
     Area m_minSepSquared; ///< Minimum length squared.
 };
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_VERTEXSET_HPP

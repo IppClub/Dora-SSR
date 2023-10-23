@@ -21,102 +21,21 @@
 #ifndef PLAYRHO_D2_SHAPES_MULTISHAPECONF_HPP
 #define PLAYRHO_D2_SHAPES_MULTISHAPECONF_HPP
 
-#include "playrho/Math.hpp"
-#include "playrho/d2/ShapeConf.hpp"
-#include "playrho/d2/DistanceProxy.hpp"
-#include "playrho/d2/MassData.hpp"
+/// @file
+/// @brief Definition of the @c MultiShapeConf class and closely related code.
 
 #include <utility> // for std::move
 #include <vector>
 
-namespace playrho {
-namespace d2 {
+#include "playrho/TypeInfo.hpp"
 
-class VertexSet;
+#include "playrho/d2/ConvexHull.hpp"
+#include "playrho/d2/ShapeConf.hpp"
+#include "playrho/d2/DistanceProxy.hpp"
+#include "playrho/d2/MassData.hpp"
+#include "playrho/d2/Math.hpp"
 
-/// @brief Convex hull.
-class ConvexHull
-{
-public:
-    /// @brief Gets the convex hull for the given set of vertices.
-    static ConvexHull Get(const VertexSet& pointSet,
-                          NonNegative<Length> vertexRadius = NonNegative<Length>{DefaultLinearSlop *
-                                                                                 Real{2}});
-
-    /// @brief Gets the distance proxy for this convex hull.
-    DistanceProxy GetDistanceProxy() const
-    {
-        return DistanceProxy{vertexRadius, static_cast<VertexCounter>(size(vertices)),
-                             data(vertices), data(normals)};
-    }
-
-    /// @brief Gets the vertex radius of this convex hull.
-    /// @return Non-negative distance.
-    /// @see SetVertexRadius.
-    NonNegative<Length> GetVertexRadius() const noexcept
-    {
-        return vertexRadius;
-    }
-
-    /// @brief Sets the vertex radius of this convex hull.
-    /// @see GetVertexRadius.
-    void SetVertexRadius(NonNegative<Length> value) noexcept
-    {
-        vertexRadius = value;
-    }
-
-    /// @brief Translates all the vertices by the given amount.
-    ConvexHull& Translate(const Length2& value);
-
-    /// @brief Scales all the vertices by the given amount.
-    ConvexHull& Scale(const Vec2& value);
-
-    /// @brief Rotates all the vertices by the given amount.
-    ConvexHull& Rotate(const UnitVec& value);
-
-    /// @brief Equality operator.
-    friend bool operator==(const ConvexHull& lhs, const ConvexHull& rhs) noexcept
-    {
-        // No need to check normals - they're based on vertices.
-        return lhs.vertexRadius == rhs.vertexRadius && lhs.vertices == rhs.vertices;
-    }
-
-    /// @brief Inequality operator.
-    friend bool operator!=(const ConvexHull& lhs, const ConvexHull& rhs) noexcept
-    {
-        return !(lhs == rhs);
-    }
-
-private:
-    /// @brief Initializing constructor.
-    ConvexHull(std::vector<Length2> verts, std::vector<UnitVec> norms, NonNegative<Length> vr)
-        : vertices{std::move(verts)}, normals{std::move(norms)}, vertexRadius{vr}
-    {
-    }
-
-    /// Array of vertices.
-    /// @details Consecutive vertices constitute "edges" of the polygon.
-    std::vector<Length2> vertices;
-
-    /// Normals of edges.
-    /// @details
-    /// These are 90-degree clockwise-rotated unit-vectors of the vectors defined by
-    /// consecutive pairs of elements of vertices.
-    std::vector<UnitVec> normals;
-
-    /// @brief Vertex radius.
-    ///
-    /// @details This is the radius from the vertex that the shape's "skin" should
-    ///   extend outward by. While any edges &mdash; line segments between multiple
-    ///   vertices &mdash; are straight, corners between them (the vertices) are
-    ///   rounded and treated as rounded. Shapes with larger vertex radiuses compared
-    ///   to edge lengths therefore will be more prone to rolling or having other
-    ///   shapes more prone to roll off of them.
-    ///
-    /// @note This should be a non-negative value.
-    ///
-    NonNegative<Length> vertexRadius;
-};
+namespace playrho::d2 {
 
 /// @brief The "multi-shape" shape configuration.
 /// @details Composes zero or more convex shapes into what can be a concave shape.
@@ -231,8 +150,7 @@ inline void Rotate(MultiShapeConf& arg, const UnitVec& value)
     arg.Rotate(value);
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 /// @brief Type info specialization for <code>playrho::d2::MultiShapeConf</code>.
 template <>

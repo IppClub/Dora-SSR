@@ -22,12 +22,13 @@
 #ifndef PLAYRHO_D2_SHAPESEPARATION_HPP
 #define PLAYRHO_D2_SHAPESEPARATION_HPP
 
-#include "playrho/Math.hpp"
-#include "playrho/d2/IndexPair.hpp"
+#include "playrho/d2/IndexPair.hpp" // for SeparationInfo
+#include "playrho/d2/Math.hpp"
 
 namespace playrho::d2 {
 
 class DistanceProxy;
+struct Transformation;
 
 /// @brief Gets the max separation information.
 /// @note Prefer using this function - over the <code>GetMaxSeparation</code>

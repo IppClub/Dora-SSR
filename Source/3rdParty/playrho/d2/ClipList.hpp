@@ -23,10 +23,12 @@
 #define PLAYRHO_D2_CLIPLIST_HPP
 
 /// @file
-/// Structures and functions used for computing clip lists.
+/// @brief Structures and functions used for computing clip lists.
 
 #include "playrho/ArrayList.hpp"
 #include "playrho/ContactFeature.hpp"
+
+#include "playrho/d2/Math.hpp"
 
 namespace playrho::d2 {
 

@@ -22,15 +22,21 @@
 #ifndef PLAYRHO_D2_SHAPES_POLYGONSHAPECONF_HPP
 #define PLAYRHO_D2_SHAPES_POLYGONSHAPECONF_HPP
 
-#include "playrho/Math.hpp"
-#include "playrho/Span.hpp"
-#include "playrho/d2/ShapeConf.hpp"
-#include "playrho/d2/DistanceProxy.hpp"
-#include "playrho/d2/MassData.hpp"
-#include "playrho/d2/VertexSet.hpp"
+/// @file
+/// @brief Definition of the @c PolygonShapeConf class and closely related code.
 
 #include <type_traits>
 #include <vector>
+
+#include "playrho/Span.hpp"
+#include "playrho/TypeInfo.hpp"
+
+#include "playrho/d2/DistanceProxy.hpp"
+#include "playrho/d2/MassData.hpp"
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/NgonWithFwdNormals.hpp"
+#include "playrho/d2/ShapeConf.hpp"
+#include "playrho/d2/VertexSet.hpp"
 
 namespace playrho::d2 {
 
@@ -42,9 +48,8 @@ namespace playrho::d2 {
 /// @image html convex_concave.gif
 /// @see Shape, ::playrho::d2::part::Compositor.
 /// @ingroup PartsGroup
-class PolygonShapeConf : public ShapeBuilder<PolygonShapeConf>
+struct PolygonShapeConf : public ShapeBuilder<PolygonShapeConf>
 {
-public:
     /// @brief Default vertex radius.
     static constexpr auto DefaultVertexRadius = NonNegative<Length>{DefaultLinearSlop * 2};
 
@@ -103,14 +108,15 @@ public:
     PolygonShapeConf& Set(Span<const Length2> points);
 
     /// @brief Sets the vertices to a convex hull of the given ones.
-    /// @note The size of the span must be in the range [1, <code>MaxShapeVertices</code>].
+    /// @note The size of the span must be in the range [0, <code>MaxShapeVertices</code>].
+    /// @note This function provides the strong exception guarantee.
     /// @warning Points may be re-ordered, even if they form a convex polygon
     /// @warning Collinear points are handled but not removed. Collinear points
     ///   may lead to poor stacking behavior.
     PolygonShapeConf& Set(const VertexSet& points);
 
     /// @brief Transforms the vertices by the given transformation.
-    PolygonShapeConf& Transform(const Transformation& xfm) noexcept;
+    PolygonShapeConf& Transform(const Transformation& xfm);
 
     /// @brief Transforms the vertices by the given transformation matrix.
     /// @see https://en.wikipedia.org/wiki/Transformation_matrix
@@ -132,7 +138,7 @@ public:
         return lhs.vertexRadius == rhs.vertexRadius && lhs.friction == rhs.friction &&
                lhs.restitution == rhs.restitution && lhs.density == rhs.density &&
                lhs.filter == rhs.filter && lhs.isSensor == rhs.isSensor &&
-               lhs.m_vertices == rhs.m_vertices;
+               lhs.ngon == rhs.ngon;
     }
 
     /// @brief Inequality operator.
@@ -146,7 +152,7 @@ public:
     /// @see MaxShapeVertices
     VertexCounter GetVertexCount() const noexcept
     {
-        return static_cast<VertexCounter>(size(m_vertices));
+        return static_cast<VertexCounter>(size(ngon.GetVertices()));
     }
 
     /// Gets a vertex by index.
@@ -154,7 +160,7 @@ public:
     Length2 GetVertex(VertexCounter index) const
     {
         assert(0 <= index && index < GetVertexCount());
-        return m_vertices[index];
+        return ngon.GetVertices()[index];
     }
 
     /// Gets a normal by index.
@@ -166,53 +172,34 @@ public:
     UnitVec GetNormal(VertexCounter index) const
     {
         assert(0 <= index && index < GetVertexCount());
-        return m_normals[index];
+        return ngon.GetNormals()[index];
     }
 
     /// Gets the span of vertices.
     /// @details Vertices go counter-clockwise.
     Span<const Length2> GetVertices() const noexcept
     {
-        return {data(m_vertices), size(m_vertices)};
+        return {ngon.GetVertices()};
     }
 
     /// @brief Gets the span of normals.
     Span<const UnitVec> GetNormals() const noexcept
     {
-        return {data(m_normals), size(m_vertices)};
-    }
-
-    /// @brief Gets the centroid.
-    Length2 GetCentroid() const noexcept
-    {
-        return m_centroid;
+        return {ngon.GetNormals()};
     }
 
     /// @brief Vertex radius.
-    ///
     /// @details This is the radius from the vertex that the shape's "skin" should
     ///   extend outward by. While any edges &mdash; line segments between multiple
     ///   vertices &mdash; are straight, corners between them (the vertices) are
     ///   rounded and treated as rounded. Shapes with larger vertex radiuses compared
     ///   to edge lengths therefore will be more prone to rolling or having other
     ///   shapes more prone to roll off of them.
-    ///
     /// @note This should be a non-negative value.
-    ///
-    NonNegative<Length> vertexRadius = GetDefaultVertexRadius();
+    NonNegativeFF<Length> vertexRadius = GetDefaultVertexRadius();
 
-private:
-    /// @brief Array of vertices.
-    /// @details Consecutive vertices constitute "edges" of the polygon.
-    std::vector<Length2> m_vertices;
-
-    /// @brief Normals of edges.
-    /// @details These are 90-degree clockwise-rotated unit-vectors of the vectors defined
-    ///   by consecutive pairs of elements of vertices.
-    std::vector<UnitVec> m_normals;
-
-    /// Centroid of this shape.
-    Length2 m_centroid = GetInvalid<Length2>();
+    /// @brief N-gon data.
+    NgonWithFwdNormals<> ngon;
 };
 
 inline PolygonShapeConf& PolygonShapeConf::UseVertexRadius(NonNegative<Length> value) noexcept
@@ -259,7 +246,7 @@ inline NonNegative<Length> GetVertexRadius(const PolygonShapeConf& arg, ChildCou
 /// @brief Sets the vertex radius of the shape.
 inline void SetVertexRadius(PolygonShapeConf& arg, NonNegative<Length> value)
 {
-    arg.vertexRadius = value;
+    arg.UseVertexRadius(value);
 }
 
 /// @brief Sets the vertex radius of the shape for the given index.
@@ -274,13 +261,6 @@ inline MassData GetMassData(const PolygonShapeConf& arg)
 {
     return playrho::d2::GetMassData(arg.vertexRadius, arg.density, arg.GetVertices());
 }
-
-/// @brief Gets the identified edge of the given polygon shape.
-/// @param shape The shape to get vertices for
-/// @param index Vertex index in shape to get edge for.
-/// @pre @p shape has 2 or more vertices and @p index is less than the number of vertices.
-/// @relatedalso PolygonShapeConf
-Length2 GetEdge(const PolygonShapeConf& shape, VertexCounter index);
 
 /// @brief Transforms the given polygon configuration's vertices by the given
 ///   transformation matrix.

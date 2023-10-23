@@ -18,18 +18,16 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/MultiShapeConf.hpp"
-
-#include "playrho/d2/Shape.hpp"
-#include "playrho/d2/VertexSet.hpp"
-
 #include <algorithm>
 #include <iterator>
 
-namespace playrho {
-namespace d2 {
+#include "playrho/d2/MultiShapeConf.hpp"
+#include "playrho/d2/Shape.hpp"
+#include "playrho/d2/VertexSet.hpp"
 
-static_assert(IsValidShapeType<MultiShapeConf>::value);
+namespace playrho::d2 {
+
+static_assert(IsValidShapeTypeV<MultiShapeConf>);
 
 /// Computes the mass properties of this shape using its dimensions and density.
 /// The inertia tensor is computed about the local origin.
@@ -54,59 +52,6 @@ MassData GetMassData(const MultiShapeConf& arg)
 
     const auto center = (mass > 0_kg) ? weightedCenter / mass : origin;
     return MassData{center, mass, I};
-}
-
-ConvexHull ConvexHull::Get(const VertexSet& pointSet, NonNegative<Length> vertexRadius)
-{
-    auto vertices = GetConvexHullAsVector(pointSet);
-    assert(!empty(vertices) && size(vertices) < std::numeric_limits<VertexCounter>::max());
-
-    const auto count = static_cast<VertexCounter>(size(vertices));
-
-    auto normals = std::vector<UnitVec>();
-    if (count > 1) {
-        // Compute normals.
-        for (auto i = decltype(count){0}; i < count; ++i) {
-            const auto nextIndex = GetModuloNext(i, count);
-            const auto edge = vertices[nextIndex] - vertices[i];
-            normals.push_back(GetUnitVector(GetFwdPerpendicular(edge)));
-        }
-    }
-    else if (count == 1) {
-        normals.emplace_back();
-    }
-
-    return ConvexHull{vertices, normals, vertexRadius};
-}
-
-ConvexHull& ConvexHull::Translate(const Length2& value)
-{
-    auto newPoints = VertexSet{};
-    for (const auto& v : vertices) {
-        newPoints.add(v + value);
-    }
-    *this = Get(newPoints, vertexRadius);
-    return *this;
-}
-
-ConvexHull& ConvexHull::Scale(const Vec2& value)
-{
-    auto newPoints = VertexSet{};
-    for (const auto& v : vertices) {
-        newPoints.add(Length2{GetX(v) * GetX(value), GetY(v) * GetY(value)});
-    }
-    *this = Get(newPoints, vertexRadius);
-    return *this;
-}
-
-ConvexHull& ConvexHull::Rotate(const UnitVec& value)
-{
-    auto newPoints = VertexSet{};
-    for (const auto& v : vertices) {
-        newPoints.add(::playrho::d2::Rotate(v, value));
-    }
-    *this = Get(newPoints, vertexRadius);
-    return *this;
 }
 
 MultiShapeConf& MultiShapeConf::AddConvexHull(const VertexSet& pointSet,
@@ -137,5 +82,4 @@ MultiShapeConf& MultiShapeConf::Rotate(const UnitVec& value)
     return *this;
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

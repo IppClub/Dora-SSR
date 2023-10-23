@@ -23,32 +23,24 @@
 #define PLAYRHO_D2_BODYCONF_HPP
 
 /// @file
-/// Declarations of the BodyConf struct and free functions associated with it.
-
-#include "playrho/Settings.hpp"
-#include "playrho/NonNegative.hpp"
-#include "playrho/Math.hpp"
+/// @brief Declarations of @c BodyConf class and free functions associated with it.
 
 #include "playrho/BodyType.hpp"
-
+#include "playrho/NonNegative.hpp"
+#include "playrho/Settings.hpp"
 #include "playrho/ShapeID.hpp"
+
+#include "playrho/d2/Math.hpp"
 
 namespace playrho::d2 {
 
 class Body;
 
 /// @brief Configuration for a body.
-///
 /// @details A body configuration holds all the data needed to construct a rigid body.
 ///   You can safely re-use body configurations.
-///
-/// @note This is a value class meant for passing in to the <code>World::CreateBody</code>
-///   method.
-///
-/// @ingroup PhysicalEntities
-///
+/// @note Value class meant for passing in for <code>Body</code> construction.
 /// @see World, Body.
-///
 struct BodyConf {
     /// @brief Default body type.
     static constexpr auto DefaultBodyType = BodyType::Static;

@@ -21,12 +21,15 @@
 #ifndef PLAYRHO_INTERVAL_HPP
 #define PLAYRHO_INTERVAL_HPP
 
-#include "playrho/NonNegative.hpp"
+/// @file
+/// @brief Definition of the @c Interval class template and closely related code.
 
 #include <algorithm>
 #include <limits> // for std::numeric_limits
 #include <iostream>
 #include <type_traits> // for std::is_nothrow_copy_constructible_v
+
+#include "playrho/NonNegative.hpp"
 
 namespace playrho {
 
@@ -172,7 +175,7 @@ public:
     ///   given value is positive.
     /// @param v Amount to expand this interval by.
     /// @note This function is either non-throwing or offers the "strong exception guarantee". It has no effect on the interval if it throws.
-    /// @warning Behavior is undefined if expanding the range by
+    /// @warning Behavior is not specified if expanding the range by
     ///   the given amount overflows the range of the <code>value_type</code>,
     constexpr Interval& Expand(const value_type& v) noexcept(noexcept(m_min += v) && noexcept(m_max += v))
     {
@@ -196,7 +199,7 @@ public:
     /// @note This operation has no effect if this interval is "unset".
     /// @param v Amount to expand both ends of this interval by.
     /// @note This function is either non-throwing or offers the "strong exception guarantee". It has no effect on the interval if it throws.
-    /// @warning Behavior is undefined if expanding the range by
+    /// @warning Behavior is not specified if expanding the range by
     ///   the given amount overflows the range of the <code>value_type</code>,
     constexpr Interval& ExpandEqually(const NonNegative<value_type>& v)
         noexcept(noexcept(Interval{pair_type{m_min - value_type{v}, m_max + value_type{v}}}) &&
@@ -265,7 +268,7 @@ constexpr auto GetSize(const Interval<T>& v) noexcept(noexcept(v.GetMax() - v.Ge
 }
 
 /// @brief Gets the center of the given interval.
-/// @warning Behavior is undefined if the difference between the given range's
+/// @warning Behavior is not specified if the difference between the given range's
 ///   max and min values overflows the range of the <code>Interval::value_type</code>.
 /// @relatedalso Interval
 template <typename T, typename U = decltype(Interval<T>{}, ((T{} + T{}) / 2))>

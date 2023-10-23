@@ -425,11 +425,10 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/playrho/d2/WorldJoint.cpp
 	../../../Source/3rdParty/playrho/d2/FrictionJointConf.cpp
 	../../../Source/3rdParty/playrho/d2/TargetJointConf.cpp
-	../../../Source/3rdParty/playrho/d2/WorldImplMisc.cpp
 	../../../Source/3rdParty/playrho/d2/SeparationScenario.cpp
 	../../../Source/3rdParty/playrho/d2/JointConf.cpp
 	../../../Source/3rdParty/playrho/d2/Sweep.cpp
-	../../../Source/3rdParty/playrho/d2/WorldImplContact.cpp
+	../../../Source/3rdParty/playrho/d2/Math.cpp
 	../../../Source/3rdParty/playrho/d2/UnitVec.cpp
 	../../../Source/3rdParty/playrho/d2/BodyConf.cpp
 	../../../Source/3rdParty/playrho/d2/DiskShapeConf.cpp
@@ -440,28 +439,26 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/playrho/d2/RopeJointConf.cpp
 	../../../Source/3rdParty/playrho/d2/ClipList.cpp
 	../../../Source/3rdParty/playrho/d2/WorldContact.cpp
-	../../../Source/3rdParty/playrho/d2/WorldImplJoint.cpp
 	../../../Source/3rdParty/playrho/d2/WorldBody.cpp
 	../../../Source/3rdParty/playrho/d2/TimeOfImpact.cpp
 	../../../Source/3rdParty/playrho/d2/GearJointConf.cpp
-	../../../Source/3rdParty/playrho/d2/WorldSpecial.cpp
-	../../../Source/3rdParty/playrho/d2/WorldImpl.cpp
+	../../../Source/3rdParty/playrho/d2/AabbTreeWorld.cpp
 	../../../Source/3rdParty/playrho/d2/Body.cpp
 	../../../Source/3rdParty/playrho/d2/WheelJointConf.cpp
 	../../../Source/3rdParty/playrho/d2/WeldJointConf.cpp
 	../../../Source/3rdParty/playrho/d2/WorldShape.cpp
 	../../../Source/3rdParty/playrho/d2/ContactSolver.cpp
-	../../../Source/3rdParty/playrho/d2/WorldImplBody.cpp
 	../../../Source/3rdParty/playrho/d2/Shape.cpp
 	../../../Source/3rdParty/playrho/d2/PolygonShapeConf.cpp
 	../../../Source/3rdParty/playrho/d2/PulleyJointConf.cpp
 	../../../Source/3rdParty/playrho/d2/WorldManifold.cpp
 	../../../Source/3rdParty/playrho/d2/PositionSolverManifold.cpp
+	../../../Source/3rdParty/playrho/d2/ConvexHull.cpp
 	../../../Source/3rdParty/playrho/d2/Velocity.cpp
 	../../../Source/3rdParty/playrho/d2/Distance.cpp
 	../../../Source/3rdParty/playrho/d2/ChainShapeConf.cpp
 	../../../Source/3rdParty/playrho/d2/RevoluteJointConf.cpp
-	../../../Source/3rdParty/playrho/d2/WorldImplShape.cpp
+	../../../Source/3rdParty/playrho/d2/AabbTreeWorldBody.cpp
 	../../../Source/3rdParty/playrho/d2/PrismaticJointConf.cpp
 	../../../Source/3rdParty/playrho/d2/WorldMisc.cpp
 	../../../Source/3rdParty/playrho/d2/CodeDumper.cpp

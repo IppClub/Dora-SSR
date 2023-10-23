@@ -18,9 +18,11 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-
 #ifndef PLAYRHO_INTERVALS_HPP
 #define PLAYRHO_INTERVALS_HPP
+
+/// @file
+/// @brief Alias for an @c Interval of @c Length .
 
 #include "playrho/Interval.hpp"
 #include "playrho/Units.hpp"

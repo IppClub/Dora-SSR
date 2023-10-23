@@ -23,13 +23,13 @@
 #define PLAYRHO_D2_MASSDATA_HPP
 
 /// @file
-/// Declaration of the <code>MassData</code> structure and associated free functions.
+/// @brief Declaration of the <code>MassData</code> structure and associated free functions.
 
-#include "playrho/Math.hpp"
+#include "playrho/BodyID.hpp"
 #include "playrho/NonNegative.hpp"
 #include "playrho/Units.hpp"
 
-#include "playrho/BodyID.hpp"
+#include "playrho/d2/Math.hpp"
 
 namespace playrho {
 namespace detail {
@@ -74,6 +74,7 @@ constexpr bool operator!= (MassData<N> lhs, MassData<N> rhs)
 {
     return !(lhs == rhs);
 }
+
 } // namespace detail
 
 namespace d2 {

@@ -25,16 +25,16 @@
 namespace playrho {
 namespace d2 {
 
-static_assert(std::is_default_constructible<JointConf>::value,
+static_assert(std::is_default_constructible_v<JointConf>,
               "JointConf should be default constructible!");
-static_assert(std::is_copy_constructible<JointConf>::value,
+static_assert(std::is_copy_constructible_v<JointConf>,
               "JointConf should be copy constructible!");
-static_assert(std::is_copy_assignable<JointConf>::value, "JointConf should be copy assignable!");
-static_assert(std::is_nothrow_move_constructible<JointConf>::value,
+static_assert(std::is_copy_assignable_v<JointConf>, "JointConf should be copy assignable!");
+static_assert(std::is_nothrow_move_constructible_v<JointConf>,
               "JointConf should be nothrow move constructible!");
-static_assert(std::is_nothrow_move_assignable<JointConf>::value,
+static_assert(std::is_nothrow_move_assignable_v<JointConf>,
               "JointConf should be nothrow move assignable!");
-static_assert(std::is_nothrow_destructible<JointConf>::value,
+static_assert(std::is_nothrow_destructible_v<JointConf>,
               "JointConf should be nothrow destructible!");
 
 void Set(JointConf& def, const Joint& joint) noexcept

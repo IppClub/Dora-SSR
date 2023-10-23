@@ -19,33 +19,33 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/GearJointConf.hpp"
+#include "playrho/ConstraintSolverConf.hpp"
+#include "playrho/StepConf.hpp"
 
+#include "playrho/d2/BodyConstraint.hpp"
+#include "playrho/d2/GearJointConf.hpp"
+#include "playrho/d2/Joint.hpp"
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/PrismaticJointConf.hpp"
+#include "playrho/d2/RevoluteJointConf.hpp"
+#include "playrho/d2/World.hpp"
 #include "playrho/d2/WorldBody.hpp"
 #include "playrho/d2/WorldJoint.hpp"
-#include "playrho/d2/Joint.hpp"
-#include "playrho/d2/RevoluteJointConf.hpp"
-#include "playrho/d2/PrismaticJointConf.hpp"
-#include "playrho/StepConf.hpp"
-#include "playrho/d2/BodyConstraint.hpp"
-#include "playrho/ConstraintSolverConf.hpp"
-
-#include "playrho/Math.hpp"
 
 namespace playrho {
 namespace d2 {
 
-static_assert(std::is_default_constructible<GearJointConf>::value,
+static_assert(std::is_default_constructible_v<GearJointConf>,
               "GearJointConf should be default constructible!");
-static_assert(std::is_copy_constructible<GearJointConf>::value,
+static_assert(std::is_copy_constructible_v<GearJointConf>,
               "GearJointConf should be copy constructible!");
-static_assert(std::is_copy_assignable<GearJointConf>::value,
+static_assert(std::is_copy_assignable_v<GearJointConf>,
               "GearJointConf should be copy assignable!");
-static_assert(std::is_move_constructible<GearJointConf>::value,
+static_assert(std::is_move_constructible_v<GearJointConf>,
               "GearJointConf should be move constructible!");
-static_assert(std::is_move_assignable<GearJointConf>::value,
+static_assert(std::is_move_assignable_v<GearJointConf>,
               "GearJointConf should be move assignable!");
-static_assert(std::is_nothrow_destructible<GearJointConf>::value,
+static_assert(std::is_nothrow_destructible_v<GearJointConf>,
               "GearJointConf should be nothrow destructible!");
 
 namespace {

@@ -24,8 +24,7 @@
 #include <algorithm>
 #include <iterator>
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 bool operator== (const DistanceProxy& lhs, const DistanceProxy& rhs) noexcept
 {
@@ -40,7 +39,7 @@ bool operator== (const DistanceProxy& lhs, const DistanceProxy& rhs) noexcept
     return std::equal(cbegin(lhr), cend(lhr), cbegin(rhr), cend(rhr));
 }
 
-std::size_t FindLowestRightMostVertex(Span<const Length2> vertices)
+std::size_t FindLowestRightMostVertex(Span<const Length2> vertices) noexcept
 {
     if (const auto numVertices = size(vertices); numVertices > 0)
     {
@@ -63,21 +62,17 @@ std::size_t FindLowestRightMostVertex(Span<const Length2> vertices)
 std::vector<Length2> GetConvexHullAsVector(Span<const Length2> vertices)
 {
     auto result = std::vector<Length2>{};
-    
     // Create the convex hull using the Gift wrapping algorithm
     // http://en.wikipedia.org/wiki/Gift_wrapping_algorithm
-    
     const auto index0 = FindLowestRightMostVertex(vertices);
     if (index0 != GetInvalid<std::size_t>())
     {
         const auto numVertices = size(vertices);
         auto hull = std::vector<decltype(size(vertices))>();
-        
         auto ih = index0;
         for (;;)
         {
             hull.push_back(ih);
-            
             auto ie = decltype(numVertices){0};
             for (auto j = decltype(numVertices){1}; j < numVertices; ++j)
             {
@@ -86,7 +81,6 @@ std::vector<Length2> GetConvexHullAsVector(Span<const Length2> vertices)
                     ie = j;
                     continue;
                 }
-                
                 const auto r = vertices[ie] - vertices[ih];
                 const auto v = vertices[j] - vertices[ih];
                 const auto c = Cross(r, v);
@@ -95,21 +89,18 @@ std::vector<Length2> GetConvexHullAsVector(Span<const Length2> vertices)
                     ie = j;
                 }
             }
-            
             ih = ie;
             if (ie == index0)
             {
                 break;
             }
         }
-        
         const auto count = size(hull);
         for (auto i = decltype(count){0}; i < count; ++i)
         {
             result.emplace_back(vertices[hull[i]]);
         }
     }
-    
     return result;
 }
 
@@ -167,5 +158,4 @@ bool TestPoint(const DistanceProxy& proxy, const Length2& point) noexcept
     return true;
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

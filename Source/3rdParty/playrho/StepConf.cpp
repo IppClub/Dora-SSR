@@ -1,6 +1,5 @@
 /*
- * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -19,8 +18,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/StepConf.hpp"
 #include "playrho/Math.hpp"
+#include "playrho/StepConf.hpp"
 
 namespace playrho {
 

@@ -385,7 +385,8 @@ Vec2 Attack::getHitPoint(Body* self, Body* target, const pd::Shape& selfShape) {
 	for (pr::ShapeID f : pd::GetShapes(world, targetB)) {
 		if (!pd::IsSensor(world, f)) {
 			const auto proxyA = pd::GetChild(selfShape, 0);
-			const auto proxyB = pd::GetChild(pd::GetShape(world, f), 0);
+			const auto shapeB = pd::GetShape(world, f);
+			const auto proxyB = pd::GetChild(shapeB, 0);
 			const auto transformB = pd::GetTransformation(world, targetB);
 			pd::DistanceOutput output = Distance(proxyA, transformA, proxyB, transformB);
 			const auto witnessPoints = pd::GetWitnessPoints(output.simplex);

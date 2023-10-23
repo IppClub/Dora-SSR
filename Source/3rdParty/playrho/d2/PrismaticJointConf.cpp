@@ -30,17 +30,17 @@
 namespace playrho {
 namespace d2 {
 
-static_assert(std::is_default_constructible<PrismaticJointConf>::value,
+static_assert(std::is_default_constructible_v<PrismaticJointConf>,
               "PrismaticJointConf should be default constructible!");
-static_assert(std::is_copy_constructible<PrismaticJointConf>::value,
+static_assert(std::is_copy_constructible_v<PrismaticJointConf>,
               "PrismaticJointConf should be copy constructible!");
-static_assert(std::is_copy_assignable<PrismaticJointConf>::value,
+static_assert(std::is_copy_assignable_v<PrismaticJointConf>,
               "PrismaticJointConf should be copy assignable!");
-static_assert(std::is_move_constructible<PrismaticJointConf>::value,
+static_assert(std::is_move_constructible_v<PrismaticJointConf>,
               "PrismaticJointConf should be move constructible!");
-static_assert(std::is_move_assignable<PrismaticJointConf>::value,
+static_assert(std::is_move_assignable_v<PrismaticJointConf>,
               "PrismaticJointConf should be move assignable!");
-static_assert(std::is_nothrow_destructible<PrismaticJointConf>::value,
+static_assert(std::is_nothrow_destructible_v<PrismaticJointConf>,
               "PrismaticJointConf should be nothrow destructible!");
 
 // Linear constraint (point-to-line)

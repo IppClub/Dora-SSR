@@ -19,6 +19,7 @@
  */
 
 #include <algorithm> // for std::max
+#include <cassert> // for assert
 
 #include "playrho/pmr/StatsResource.hpp"
 
@@ -26,6 +27,7 @@ namespace playrho::pmr {
 
 void *StatsResource::do_allocate(std::size_t bytes, std::size_t alignment)
 {
+    assert(m_upstream != nullptr);
     // Don't update statistics if allocate throws.
     const auto p = m_upstream->allocate(bytes, alignment);
     auto stats = m_stats;
@@ -41,6 +43,7 @@ void *StatsResource::do_allocate(std::size_t bytes, std::size_t alignment)
 
 void StatsResource::do_deallocate(void *p, std::size_t bytes, std::size_t alignment)
 {
+    assert(m_upstream != nullptr);
     // Don't update statistics if deallocate throws.
     m_upstream->deallocate(p, bytes, alignment);
     auto stats = m_stats;

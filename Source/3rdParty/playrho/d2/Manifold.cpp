@@ -123,7 +123,7 @@ Manifold GetManifold(bool flipped, // NOLINT(readability-function-cognitive-comp
     const auto shape0_abs_v0 = Transform(shape0_rel_v0, xf0);
     const auto shape0_abs_v1 = Transform(shape0_rel_v1, xf0);
 
-    auto shape0_len_edge0 = GetMagnitudeSquared(shape0_rel_v1 - shape0_rel_v0);
+    const auto shape0_len_edge0 = GetMagnitudeSquared(shape0_rel_v1 - shape0_rel_v0);
 
     // Clip incident edge against extruded edge1 side edges.
     // Side offsets, extended by polytope skin thickness.
@@ -203,23 +203,6 @@ Manifold GetManifold(bool flipped, // NOLINT(readability-function-cognitive-comp
         }
         return Manifold::GetForCircles(shape1_rel_v0, shape1_e.first, shape0_rel_v0, idx0);
     }
-    if (GetMagnitudeSquared(shape0_abs_v0 - shape1_abs_v1) <= totalRadiusSquared) {
-        // shape 1 vertex 1 is colliding with shape 2 vertex 2
-        if (!flipped) {
-            if (mustUseFaceManifold) {
-                return Manifold::GetForFaceA(GetFwdPerpendicular(shape0_rel_e0_dir), idx0,
-                                             shape0_rel_v0, ContactFeature::e_vertex,
-                                             shape1_e.second, shape1_rel_v1);
-            }
-            return Manifold::GetForCircles(shape0_rel_v0, idx0, shape1_rel_v1, shape1_e.second);
-        }
-        if (mustUseFaceManifold) {
-            return Manifold::GetForFaceB(GetFwdPerpendicular(shape0_rel_e0_dir), idx0,
-                                         shape0_rel_v0, ContactFeature::e_vertex, shape1_e.second,
-                                         shape1_rel_v1);
-        }
-        return Manifold::GetForCircles(shape1_rel_v1, shape1_e.second, shape0_rel_v0, idx0);
-    }
     if (GetMagnitudeSquared(shape0_abs_v1 - shape1_abs_v1) <= totalRadiusSquared) {
         // shape 1 vertex 2 is colliding with shape 2 vertex 2
         if (!flipped) {
@@ -236,6 +219,23 @@ Manifold GetManifold(bool flipped, // NOLINT(readability-function-cognitive-comp
                                          shape1_rel_v1);
         }
         return Manifold::GetForCircles(shape1_rel_v1, shape1_e.second, shape0_rel_v1, idx0Next);
+    }
+    if (GetMagnitudeSquared(shape0_abs_v0 - shape1_abs_v1) <= totalRadiusSquared) {
+        // shape 1 vertex 1 is colliding with shape 2 vertex 2
+        if (!flipped) {
+            if (mustUseFaceManifold) {
+                return Manifold::GetForFaceA(GetFwdPerpendicular(shape0_rel_e0_dir), idx0,
+                                             shape0_rel_v0, ContactFeature::e_vertex,
+                                             shape1_e.second, shape1_rel_v1);
+            }
+            return Manifold::GetForCircles(shape0_rel_v0, idx0, shape1_rel_v1, shape1_e.second);
+        }
+        if (mustUseFaceManifold) {
+            return Manifold::GetForFaceB(GetFwdPerpendicular(shape0_rel_e0_dir), idx0,
+                                         shape0_rel_v0, ContactFeature::e_vertex, shape1_e.second,
+                                         shape1_rel_v1);
+        }
+        return Manifold::GetForCircles(shape1_rel_v1, shape1_e.second, shape0_rel_v0, idx0);
     }
     if (GetMagnitudeSquared(shape0_abs_v1 - shape1_abs_v0) <= totalRadiusSquared) {
         // shape 1 vertex 2 is colliding with shape 2 vertex 1

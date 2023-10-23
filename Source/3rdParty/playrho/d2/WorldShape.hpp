@@ -22,7 +22,7 @@
 #define PLAYRHO_D2_WORLDSHAPE_HPP
 
 /// @file
-/// Declarations of free functions of World for shapes identified by <code>ShapeID</code>.
+/// @brief Declarations of free functions of World for shapes identified by <code>ShapeID</code>.
 /// @details This is a collection of non-member non-friend functions - also called "free"
 ///   functions - that are related to shapes within an instance of a <code>World</code>.
 ///   Many are just "wrappers" to similarly named member functions but some are additional
@@ -37,15 +37,12 @@
 /// @see World, ShapeID.
 /// @see https://en.wikipedia.org/wiki/Create,_read,_update_and_delete.
 
-#include "playrho/Math.hpp"
+#include "playrho/ShapeID.hpp"
 #include "playrho/Span.hpp"
+#include "playrho/TypeInfo.hpp"
 
 #include "playrho/d2/MassData.hpp"
-#include "playrho/d2/Shape.hpp"
-#include "playrho/ShapeID.hpp"
-
-#include <iterator>
-#include <vector>
+#include "playrho/d2/Math.hpp"
 
 namespace playrho {
 
@@ -53,52 +50,13 @@ struct Filter;
 
 namespace d2 {
 
+class Shape;
 class World;
 
 /// @example WorldShape.cpp
 /// This is the <code>googletest</code> based unit testing file for the free function
 ///   interfaces to <code>playrho::d2::World</code> shape member functions and additional
 ///   functionality.
-
-/// @brief Gets the extent of the currently valid shape range.
-/// @note This is one higher than the maxium <code>ShapeID</code> that is in range
-///   for shape related functions.
-/// @relatedalso World
-ShapeCounter GetShapeRange(const World& world) noexcept;
-
-/// @brief Creates a shape within the specified world.
-/// @throws WrongState if called while the world is "locked".
-/// @relatedalso World
-ShapeID CreateShape(World& world, const Shape& def);
-
-/// @brief Creates a shape within the specified world using a configuration of the shape.
-/// @details This is a convenience function for allowing limited implicit conversions to shapes.
-/// @throws WrongState if called while the world is "locked".
-/// @see CreateShape(World& world, const Shape& def).
-/// @relatedalso World
-template <typename T>
-auto CreateShape(World& world, const T& shapeConf) ->
-    decltype(CreateShape(world, Shape{shapeConf}))
-{
-    return CreateShape(world, Shape{shapeConf});
-}
-
-/// @brief Destroys the identified shape.
-/// @throws WrongState if this function is called while the world is locked.
-/// @throws std::out_of_range If given an invalid identifier.
-/// @relatedalso World
-void Destroy(World& world, ShapeID id);
-
-/// @brief Gets the shape associated with the identifier.
-/// @throws std::out_of_range If given an invalid identifier.
-/// @relatedalso World
-const Shape& GetShape(const World& world, ShapeID id);
-
-/// @brief Sets the identified shape to the new value.
-/// @throws std::out_of_range If given an invalid shape identifier.
-/// @see CreateShape.
-/// @relatedalso World
-void SetShape(World& world, ShapeID, const Shape& def);
 
 /// @brief Gets the type of the shape.
 /// @throws std::out_of_range If given an invalid identifier.
@@ -118,10 +76,7 @@ ShapeCounter GetUsedShapesCount(const World& world) noexcept;
 /// @throws std::out_of_range If given an invalid identifier.
 /// @see SetFilterData.
 /// @relatedalso World
-inline Filter GetFilterData(const World& world, ShapeID id)
-{
-    return GetFilter(GetShape(world, id));
-}
+Filter GetFilterData(const World& world, ShapeID id);
 
 /// @brief Convenience function for setting the contact filtering data.
 /// @note This won't update contacts until the next time step when either parent body
@@ -136,10 +91,7 @@ void SetFilterData(World& world, ShapeID id, const Filter& filter);
 /// @return Value of 0 or higher.
 /// @throws std::out_of_range If given an invalid identifier.
 /// @relatedalso World
-inline NonNegativeFF<Real> GetFriction(const World& world, ShapeID id)
-{
-    return GetFriction(GetShape(world, id));
-}
+NonNegativeFF<Real> GetFriction(const World& world, ShapeID id);
 
 /// @brief Convenience function for setting the coefficient of friction of the specified shape.
 /// @throws std::out_of_range If given an invalid identifier.
@@ -150,10 +102,7 @@ void SetFriction(World& world, ShapeID id, NonNegative<Real> value);
 /// @brief Gets the coefficient of restitution of the specified shape.
 /// @throws std::out_of_range If given an invalid identifier.
 /// @relatedalso World
-inline Real GetRestitution(const World& world, ShapeID id)
-{
-    return GetRestitution(GetShape(world, id));
-}
+Real GetRestitution(const World& world, ShapeID id);
 
 /// @brief Sets the coefficient of restitution of the specified shape.
 /// @throws std::out_of_range If given an invalid identifier.
@@ -165,10 +114,7 @@ void SetRestitution(World& world, ShapeID id, Real value);
 /// @throws std::out_of_range If given an invalid identifier.
 /// @see SetSensor.
 /// @relatedalso World
-inline bool IsSensor(const World& world, ShapeID id)
-{
-    return IsSensor(GetShape(world, id));
-}
+bool IsSensor(const World& world, ShapeID id);
 
 /// @brief Convenience function for setting whether the shape is a sensor or not.
 /// @throws std::out_of_range If given an invalid identifier.
@@ -180,10 +126,7 @@ void SetSensor(World& world, ShapeID id, bool value);
 /// @return Non-negative density (in mass per area).
 /// @throws std::out_of_range If given an invalid identifier.
 /// @relatedalso World
-inline NonNegative<AreaDensity> GetDensity(const World& world, ShapeID id)
-{
-    return GetDensity(GetShape(world, id));
-}
+NonNegative<AreaDensity> GetDensity(const World& world, ShapeID id);
 
 /// @brief Sets the density of this shape.
 /// @throws std::out_of_range If given an invalid identifier.
@@ -217,10 +160,7 @@ void Rotate(World& world, ShapeID id, const UnitVec& value);
 /// @brief Gets the mass data for the identified shape in the given world.
 /// @throws std::out_of_range If given an invalid identifier.
 /// @relatedalso World
-inline MassData GetMassData(const World& world, ShapeID id)
-{
-    return GetMassData(GetShape(world, id));
-}
+MassData GetMassData(const World& world, ShapeID id);
 
 /// @brief Computes the mass data total of the identified shapes.
 /// @details This basically accumulates the mass data over all shapes.
