@@ -21,7 +21,11 @@
 #ifndef PLAYRHO_TOIOUTPUT_HPP
 #define PLAYRHO_TOIOUTPUT_HPP
 
+/// @file
+/// @brief Definitions of @c ToiOutput class and closely related code.
+
 #include "playrho/Settings.hpp"
+#include "playrho/UnitInterval.hpp"
 #include "playrho/WiderType.hpp"
 
 namespace playrho {
@@ -31,13 +35,13 @@ struct ToiOutput {
     /// @brief Time of impact statistics.
     struct Statistics {
         /// @brief TOI iterations type.
-        using toi_iter_type = std::remove_const<decltype(DefaultMaxToiIters)>::type;
+        using toi_iter_type = std::remove_const_t<decltype(DefaultMaxToiIters)>;
 
         /// @brief Distance iterations type.
-        using dist_iter_type = std::remove_const<decltype(DefaultMaxDistanceIters)>::type;
+        using dist_iter_type = std::remove_const_t<decltype(DefaultMaxDistanceIters)>;
 
         /// @brief Root iterations type.
-        using root_iter_type = std::remove_const<decltype(DefaultMaxToiRootIters)>::type;
+        using root_iter_type = std::remove_const_t<decltype(DefaultMaxToiRootIters)>;
 
         /// @brief TOI iterations sum type.
         using toi_sum_type = WiderType<toi_iter_type>;
@@ -76,7 +80,7 @@ struct ToiOutput {
         /// @details Indicates that the two convex polygons never actually collide
         ///   during their defined sweeps.
         /// @note This is a desirable result.
-        /// @note Time of impact in this case is <code>tMax</code> (which is typically 1).
+        /// @note Time of impact in this case is <code>timeMax</code> (which is typically 1).
         e_separated,
 
         /// @brief Overlapped.
@@ -120,9 +124,9 @@ struct ToiOutput {
     ToiOutput() = default;
 
     /// @brief Initializing constructor.
-    ToiOutput(Real t, Statistics s, State z) noexcept : time{t}, stats{s}, state{z} {}
+    ToiOutput(UnitIntervalFF<Real> t, Statistics s, State z) noexcept : time{t}, stats{s}, state{z} {}
 
-    Real time = 0; ///< Time factor in range of [0,1] into the future.
+    UnitIntervalFF<Real> time{}; ///< Time factor in range of [0,1] into the future.
     Statistics stats; ///< Statistics.
     State state = e_unknown; ///< State at time factor.
 };

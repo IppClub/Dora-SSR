@@ -22,7 +22,7 @@
 #define PLAYRHO_DETAIL_AABB_HPP
 
 /// @file
-/// Declaration of the AABB class and free functions that return instances of it.
+/// @brief Declaration of the AABB class and free functions that return instances of it.
 
 #include <algorithm> // for std::mismatch, lexicographical_compare, etc
 #include <utility> // for std::get

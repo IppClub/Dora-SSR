@@ -28,7 +28,7 @@ Body::Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos, float rot)
 
 Body::~Body() {
 	if (_prBody != pr::InvalidBodyID) {
-		_pWorld->getPrWorld().Destroy(_prBody);
+		pd::Destroy(_pWorld->getPrWorld(), _prBody);
 		_pWorld->setBodyData(_prBody, nullptr);
 		_prBody = pr::InvalidBodyID;
 	}
@@ -72,7 +72,7 @@ void Body::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
 		Node::cleanup();
 		if (_prBody != pr::InvalidBodyID) {
-			_pWorld->getPrWorld().Destroy(_prBody);
+			pd::Destroy(_pWorld->getPrWorld(), _prBody);
 			_pWorld->setBodyData(_prBody, nullptr);
 			_prBody = pr::InvalidBodyID;
 		}

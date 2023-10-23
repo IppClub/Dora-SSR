@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_TYPEINFO_HPP
 #define PLAYRHO_TYPEINFO_HPP
 
+/// @file
+/// @brief Definition of @c TypeID class and closely related code.
+
 #include <cstring> // for std::strcmp
 
 #include "playrho/Templates.hpp"

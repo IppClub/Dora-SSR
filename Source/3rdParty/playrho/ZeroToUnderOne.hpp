@@ -18,38 +18,29 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/WorldImplShape.hpp"
-#include "playrho/d2/WorldImpl.hpp"
+#ifndef PLAYRHO_ZEROTOUNDERONE_HPP
+#define PLAYRHO_ZEROTOUNDERONE_HPP
 
-#include "playrho/d2/Shape.hpp"
+/// @file
+/// @brief Definition of the @c ZeroToUnderOne value checked types and related code.
+
+#include "playrho/detail/Checked.hpp"
+#include "playrho/detail/ZeroToUnderOneChecker.hpp"
 
 namespace playrho {
-namespace d2 {
 
-ShapeCounter GetShapeRange(const WorldImpl& world) noexcept
-{
-    return world.GetShapeRange();
-}
+/// @ingroup CheckedTypes
+/// @brief Unit interval constrained value type.
+template <typename T>
+using ZeroToUnderOne = detail::Checked<T, detail::ZeroToUnderOneChecker<T>>;
 
-ShapeID CreateShape(WorldImpl& world, const Shape& def)
-{
-    return world.CreateShape(def);
-}
+/// @ingroup CheckedTypes
+/// @brief Fast failing unit interval constrained value type.
+template <typename T>
+using ZeroToUnderOneFF = detail::Checked<T, detail::ZeroToUnderOneChecker<T>, true>;
 
-const Shape& GetShape(const WorldImpl& world, ShapeID id)
-{
-    return world.GetShape(id);
-}
+static_assert(std::is_default_constructible_v<ZeroToUnderOne<int>>);
 
-void SetShape(WorldImpl& world, ShapeID id, const Shape& def)
-{
-    world.SetShape(id, def);
-}
-
-void Destroy(WorldImpl& world, ShapeID id)
-{
-    world.Destroy(id);
-}
-
-} // namespace d2
 } // namespace playrho
+
+#endif // PLAYRHO_ZEROTOUNDERONE_HPP

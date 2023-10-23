@@ -23,7 +23,7 @@
 #define PLAYRHO_STEPCONF_HPP
 
 /// @file
-/// Declarations of the StepConf class, and free functions associated with it.
+/// @brief Declarations of the StepConf class, and free functions associated with it.
 
 #include <type_traits> // for std::is_default_constructible_v
 

@@ -31,7 +31,7 @@
 namespace playrho {
 namespace d2 {
 
-static_assert(IsValidShapeType<ChainShapeConf>::value);
+static_assert(IsValidShapeTypeV<ChainShapeConf>);
 
 namespace {
 
@@ -44,7 +44,7 @@ std::vector<UnitVec> ComputeNormals(const Span<const Length2>& vertices)
         for (const auto& v : vertices) {
             if (!first) {
                 // Get the normal and push it and its reverse.
-                // This "doubling up" of the normals, makes the GetChild() method work.
+                // This "doubling up" of the normals, makes the GetChild() function work.
                 const auto normal = GetUnitVector(GetFwdPerpendicular(v - vprev));
                 normals.push_back(normal);
                 normals.push_back(-normal);
@@ -60,59 +60,53 @@ std::vector<UnitVec> ComputeNormals(const Span<const Length2>& vertices)
 
 } // anonymous namespace
 
+ChainShapeConf::VerticesWithNormals::VerticesWithNormals(std::vector<Length2> vertices)
+    : m_vertices(std::move(vertices)), m_normals(ComputeNormals(m_vertices))
+{
+}
+
 ChainShapeConf& ChainShapeConf::Set(std::vector<Length2> vertices)
 {
     if (size(vertices) > MaxChildCount) {
         throw InvalidArgument("too many vertices");
     }
 
-    m_normals = ComputeNormals(vertices);
-    m_vertices = std::move(vertices);
+    segments = VerticesWithNormals{std::move(vertices)};
     return *this;
 }
 
 ChainShapeConf& ChainShapeConf::Translate(const Length2& value)
 {
-    auto vertices = m_vertices;
+    auto vertices = segments.GetVertices();
     std::for_each(begin(vertices), end(vertices), [=](Length2& v) { v = v + value; });
-    m_normals = ComputeNormals(vertices);
-    m_vertices = std::move(vertices);
+    segments = VerticesWithNormals{std::move(vertices)};
     return *this;
 }
 
 ChainShapeConf& ChainShapeConf::Scale(const Vec2& value)
 {
-    auto vertices = m_vertices;
+    auto vertices = segments.GetVertices();
     std::for_each(begin(vertices), end(vertices), [=](Length2& v) {
         v = Length2{GetX(value) * GetX(v), GetY(value) * GetY(v)};
     });
-    m_normals = ComputeNormals(vertices);
-    m_vertices = std::move(vertices);
+    segments = VerticesWithNormals{std::move(vertices)};
     return *this;
 }
 
 ChainShapeConf& ChainShapeConf::Rotate(const UnitVec& value)
 {
-    auto vertices = m_vertices;
+    auto vertices = segments.GetVertices();
     std::for_each(begin(vertices), end(vertices),
                   [=](Length2& v) { v = ::playrho::d2::Rotate(v, value); });
-    m_normals = ComputeNormals(vertices);
-    m_vertices = std::move(vertices);
+    segments = VerticesWithNormals{std::move(vertices)};
     return *this;
 }
 
 ChainShapeConf& ChainShapeConf::Add(const Length2& vertex)
 {
-    if (!empty(m_vertices)) {
-        auto vprev = m_vertices.back();
-        m_vertices.emplace_back(vertex);
-        const auto normal = GetUnitVector(GetFwdPerpendicular(vertex - vprev));
-        m_normals.push_back(normal);
-        m_normals.push_back(-normal);
-    }
-    else {
-        m_vertices.emplace_back(vertex);
-    }
+    auto vertices = segments.GetVertices();
+    vertices.emplace_back(vertex);
+    segments = VerticesWithNormals{std::move(vertices)};
     return *this;
 }
 
@@ -159,9 +153,9 @@ DistanceProxy ChainShapeConf::GetChild(ChildCounter index) const
     }
     const auto vertexCount = GetVertexCount();
     if (vertexCount > 1) {
-        return DistanceProxy{vertexRadius, 2, &m_vertices[index], &m_normals[index * 2]};
+        return DistanceProxy{vertexRadius, 2, &segments.GetVertices()[index], &segments.GetNormals()[index * 2]};
     }
-    return DistanceProxy{vertexRadius, 1, &m_vertices[index], nullptr};
+    return DistanceProxy{vertexRadius, 1, &segments.GetVertices()[index], nullptr};
 }
 
 // Free functions...

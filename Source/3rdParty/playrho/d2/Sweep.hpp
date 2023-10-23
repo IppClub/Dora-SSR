@@ -22,73 +22,39 @@
 #ifndef PLAYRHO_D2_SWEEP_HPP
 #define PLAYRHO_D2_SWEEP_HPP
 
-#include "playrho/d2/Position.hpp"
+/// @file
+/// @brief Definition of the @c Sweep class and closely related code.
+
 #include "playrho/Settings.hpp"
 #include "playrho/Vector2.hpp"
+#include "playrho/ZeroToUnderOne.hpp"
 
-namespace playrho {
-namespace d2 {
+#include "playrho/d2/Position.hpp"
+
+namespace playrho::d2 {
 
 /// @brief Description of a "sweep" of motion in 2-D space.
-///
 /// @details This describes the motion of a body/shape for TOI computation.
 ///   Shapes are defined with respect to the body origin, which may
 ///   not coincide with the center of mass. However, to support dynamics
 ///   we must interpolate the center of mass position.
-///
-class Sweep
+struct Sweep
 {
-public:
     /// @brief Default constructor.
-    Sweep() = default;
+    constexpr Sweep() = default;
 
     /// @brief Initializing constructor.
     constexpr Sweep(const Position& p0, const Position& p1, const Length2& lc = Length2{0_m, 0_m},
-                    Real a0 = 0) noexcept
+                    ZeroToUnderOneFF<Real> a0 = {}) noexcept
         : pos0{p0}, pos1{p1}, localCenter{lc}, alpha0{a0}
     {
-        assert(a0 >= 0);
-        assert(a0 < 1);
     }
 
     /// @brief Initializing constructor.
     constexpr explicit Sweep(const Position& p, const Length2& lc = Length2{0_m, 0_m})
-        : Sweep{p, p, lc, 0}
+        : Sweep{p, p, lc, ZeroToUnderOneFF<Real>{}}
     {
         // Intentionally empty.
-    }
-
-    /// @brief Gets the local center of mass position.
-    /// @note This value can only be set via a sweep constructed using an initializing
-    ///   constructor.
-    constexpr Length2 GetLocalCenter() const noexcept
-    {
-        return localCenter;
-    }
-
-    /// @brief Gets the alpha 0 for this sweep.
-    /// @return Value between 0 and less than 1.
-    constexpr Real GetAlpha0() const noexcept
-    {
-        return alpha0;
-    }
-
-    /// @brief Advances the sweep by a factor of the difference between the given time alpha
-    ///   and the sweep's alpha 0.
-    /// @details This advances position 0 (<code>pos0</code>) of the sweep towards position
-    ///   1 (<code>pos1</code>) by a factor of the difference between the given alpha and
-    ///   the alpha 0.
-    ///
-    /// @param alpha Valid new time factor in [0,1) to update the sweep to. Behavior is
-    ///   undefined if value is invalid.
-    ///
-    void Advance0(Real alpha) noexcept;
-
-    /// @brief Resets the alpha 0 value back to zero.
-    /// @post Getting the alpha 0 value after calling this method will return zero.
-    constexpr void ResetAlpha0() noexcept
-    {
-        alpha0 = 0;
     }
 
     /// @brief Center world position and world angle at time "0".
@@ -97,17 +63,26 @@ public:
     /// @brief Center world position and world angle at time "1".
     Position pos1{};
 
-private:
     /// @brief Local center of mass position.
     Length2 localCenter = Length2{0_m, 0_m};
 
-    /// @brief Fraction of the current time step in the range [0,1]
+    /// @brief Alpha 0 of this sweep.
+    /// @details Fraction of the current time step in the range [0,1)
     /// @note <code>pos0.linear</code> and <code>pos0.angular</code> are the positions at
     ///   <code>alpha0</code>.
-    Real alpha0 = 0;
+    ZeroToUnderOneFF<Real> alpha0;
 };
 
 // Free functions...
+
+/// @brief Advances the sweep by a factor of the difference between the given time alpha
+///   and the sweep's alpha 0.
+/// @details This advances position 0 (<code>pos0</code>) of the sweep towards position
+///   1 (<code>pos1</code>) by a factor of the difference between the given alpha and
+///   the alpha 0.
+/// @param sweep The sweep to return an advancement of.
+/// @param alpha Valid new time factor in [0,1) to update the sweep to.
+Sweep Advance0(const Sweep& sweep, ZeroToUnderOneFF<Real> alpha) noexcept;
 
 /// @brief Equals operator.
 /// @relatedalso Sweep
@@ -115,8 +90,8 @@ constexpr bool operator==(const Sweep& lhs, const Sweep& rhs)
 {
     return lhs.pos0 == rhs.pos0 && //
            lhs.pos1 == rhs.pos1 && //
-           lhs.GetLocalCenter() == rhs.GetLocalCenter() && //
-           lhs.GetAlpha0() == rhs.GetAlpha0();
+           lhs.localCenter == rhs.localCenter && //
+           lhs.alpha0 == rhs.alpha0;
 }
 
 /// @brief Not-equals operator.
@@ -130,18 +105,20 @@ constexpr bool operator!=(const Sweep& lhs, const Sweep& rhs)
 /// @relatedalso Sweep
 inline void SetLocalCenter(Sweep& sweep, const Length2& value) noexcept
 {
-    sweep = Sweep{sweep.pos0, sweep.pos1, value, sweep.GetAlpha0()};
+    sweep = Sweep{sweep.pos0, sweep.pos1, value, sweep.alpha0};
 }
 
-} // namespace d2
+} // namespace playrho::d2
+
+namespace playrho {
 
 /// @brief Determines if the given value is valid.
 /// @relatedalso d2::Sweep
 template <>
 constexpr bool IsValid(const d2::Sweep& value) noexcept
 {
-    return IsValid(value.pos0) && IsValid(value.pos1) && IsValid(value.GetLocalCenter()) &&
-           IsValid(value.GetAlpha0());
+    return IsValid(value.pos0) && IsValid(value.pos1) && IsValid(value.localCenter) &&
+           IsValid(value.alpha0);
 }
 
 } // namespace playrho

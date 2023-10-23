@@ -23,7 +23,7 @@
 #define PLAYRHO_FILTER_HPP
 
 /// @file
-/// Declarations of the Filter struct and any free functions associated with it.
+/// @brief Declarations of the Filter class and any free functions associated with it.
 
 #include "playrho/Defines.hpp"
 #include <cstdint>

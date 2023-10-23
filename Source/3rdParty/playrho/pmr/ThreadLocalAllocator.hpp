@@ -44,8 +44,8 @@ namespace playrho {
 /// @note This is meant to meet the allocator named requirements.
 /// @note Being a "stateless" allocator, means that objects of this type do not have
 ///    any *non-static* data members - i.e. instances themselves don't have any state.
-/// @warning Behavior is undefined if memory allocated by this class is ever used or
-///   deallocated by a different thread.
+/// @warning Behavior is not specified if memory allocated by this class is ever used
+///   or deallocated by a different thread.
 /// @tparam T cv-unqualified object type of each array element that the instantiated
 ///   allocator will allocate buffers for.
 /// @tparam MemoryResource The <code>pmr::memory_resource</code> derived type that the

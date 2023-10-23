@@ -22,34 +22,63 @@
 #ifndef PLAYRHO_D2_SHAPES_CHAINSHAPECONF_HPP
 #define PLAYRHO_D2_SHAPES_CHAINSHAPECONF_HPP
 
-#include "playrho/Math.hpp"
-#include "playrho/d2/ShapeConf.hpp"
-#include "playrho/d2/DistanceProxy.hpp"
-#include "playrho/d2/MassData.hpp"
-#include "playrho/d2/AABB.hpp"
+/// @file
+/// @brief Definition of the @c ChainShapeConf class and closely related code.
 
 #include <vector>
 
-namespace playrho {
-namespace d2 {
+#include "playrho/TypeInfo.hpp"
+
+#include "playrho/d2/ShapeConf.hpp"
+#include "playrho/d2/DistanceProxy.hpp"
+#include "playrho/d2/MassData.hpp"
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/AABB.hpp"
+
+namespace playrho::d2 {
 
 /// @brief Chain shape configuration.
-///
 /// @details A chain shape is a free form sequence of line segments.
-/// The chain has two-sided collision, so you can use inside and outside collision.
-/// Therefore, you may use any winding order.
-/// Since there may be many vertices, they are allocated on the memory heap.
-///
+///   The chain has two-sided collision, so you can use inside and outside collision.
+///   Therefore, you may use any winding order.
+///   Since there may be many vertices, they are allocated on the memory heap.
 /// @image html Chain1.png
 /// @image html SelfIntersect.png
-///
 /// @warning The chain will not collide properly if there are self-intersections.
-///
 /// @ingroup PartsGroup
-///
-class ChainShapeConf : public ShapeBuilder<ChainShapeConf>
+struct ChainShapeConf : public ShapeBuilder<ChainShapeConf>
 {
-public:
+    /// @invariant The normals provided are always the forward & reverse normals of each
+    ///   segment of the assigned vertices.
+    class VerticesWithNormals {
+        std::vector<Length2> m_vertices{}; ///< Vertices
+        std::vector<UnitVec> m_normals{}; ///< Normals.
+    public:
+        /// @brief Default constructor.
+        VerticesWithNormals() noexcept = default;
+
+        /// @brief Initializing constructor.
+        VerticesWithNormals(std::vector<Length2> vertices);
+
+        /// @brief Gets vertices this instance was constructed with.
+        auto GetVertices() const noexcept -> decltype((m_vertices))
+        {
+            return m_vertices;
+        }
+
+        /// @brief Gets the normals of the vectors this instance was constructed with.
+        auto GetNormals() const noexcept -> decltype((m_normals))
+        {
+            return m_normals;
+        }
+
+        /// @brief Equals operator support.
+        friend auto operator==(const VerticesWithNormals& lhs, const VerticesWithNormals& rhs) noexcept -> bool
+        {
+            return lhs.m_vertices == rhs.m_vertices;
+        }
+    };
+
     /// @brief Default vertex radius.
     static constexpr auto DefaultVertexRadius = NonNegative<Length>{DefaultLinearSlop * Real{2}};
 
@@ -109,27 +138,21 @@ public:
     /// @brief Gets the vertex count.
     ChildCounter GetVertexCount() const noexcept
     {
-        return static_cast<ChildCounter>(size(m_vertices));
+        return static_cast<ChildCounter>(size(segments.GetVertices()));
     }
 
     /// @brief Gets a vertex by index.
     Length2 GetVertex(ChildCounter index) const
     {
         assert(index < GetVertexCount());
-        return m_vertices[index];
+        return segments.GetVertices()[index];
     }
 
     /// @brief Gets the normal at the given index.
     UnitVec GetNormal(ChildCounter index) const
     {
         assert(index < GetVertexCount());
-        return m_normals[index];
-    }
-
-    /// @brief Gets a copy of all the vertices of the shape in one call.
-    std::vector<Length2> GetVertices() const
-    {
-        return m_vertices;
+        return segments.GetNormals()[index];
     }
 
     /// @brief Equality operator.
@@ -139,7 +162,7 @@ public:
         return lhs.vertexRadius == rhs.vertexRadius && lhs.friction == rhs.friction &&
                lhs.restitution == rhs.restitution && lhs.density == rhs.density &&
                lhs.filter == rhs.filter && lhs.isSensor == rhs.isSensor &&
-               lhs.m_vertices == rhs.m_vertices;
+               lhs.segments == rhs.segments;
     }
 
     /// @brief Inequality operator.
@@ -149,21 +172,16 @@ public:
     }
 
     /// @brief Vertex radius.
-    ///
     /// @details This is the radius from the vertex that the shape's "skin" should
     ///   extend outward by. While any edges &mdash; line segments between multiple
     ///   vertices &mdash; are straight, corners between them (the vertices) are
     ///   rounded and treated as rounded. Shapes with larger vertex radiuses compared
     ///   to edge lengths therefore will be more prone to rolling or having other
     ///   shapes more prone to roll off of them.
-    ///
     /// @note This should be a non-negative value.
-    ///
     NonNegative<Length> vertexRadius = GetDefaultVertexRadius();
 
-private:
-    std::vector<Length2> m_vertices; ///< Vertices.
-    std::vector<UnitVec> m_normals; ///< Normals.
+    VerticesWithNormals segments; ///< Vertex & normals data
 };
 
 inline ChainShapeConf& ChainShapeConf::UseVertexRadius(NonNegative<Length> value) noexcept
@@ -261,8 +279,7 @@ inline ChainShapeConf GetChainShapeConf(Length dimension)
 /// @brief Gets an enclosing chain shape configuration for the given axis aligned box.
 ChainShapeConf GetChainShapeConf(const AABB& arg);
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 /// @brief Type info specialization for <code>playrho::d2::ChainShapeConf</code>.
 template <>

@@ -30,17 +30,17 @@
 namespace playrho {
 namespace d2 {
 
-static_assert(std::is_default_constructible<MotorJointConf>::value,
+static_assert(std::is_default_constructible_v<MotorJointConf>,
               "MotorJointConf should be default constructible!");
-static_assert(std::is_copy_constructible<MotorJointConf>::value,
+static_assert(std::is_copy_constructible_v<MotorJointConf>,
               "MotorJointConf should be copy constructible!");
-static_assert(std::is_copy_assignable<MotorJointConf>::value,
+static_assert(std::is_copy_assignable_v<MotorJointConf>,
               "MotorJointConf should be copy assignable!");
-static_assert(std::is_move_constructible<MotorJointConf>::value,
+static_assert(std::is_move_constructible_v<MotorJointConf>,
               "MotorJointConf should be move constructible!");
-static_assert(std::is_move_assignable<MotorJointConf>::value,
+static_assert(std::is_move_assignable_v<MotorJointConf>,
               "MotorJointConf should be move assignable!");
-static_assert(std::is_nothrow_destructible<MotorJointConf>::value,
+static_assert(std::is_nothrow_destructible_v<MotorJointConf>,
               "MotorJointConf should be nothrow destructible!");
 
 // Point-to-point constraint
@@ -123,7 +123,7 @@ void InitVelocity(MotorJointConf& object, const Span<BodyConstraint>& bodies, co
             InvMass{invMassA + invMassB + invRotInertiaA * Square(GetX(object.rA)) / SquareRadian +
                     invRotInertiaB * Square(GetX(object.rB)) / SquareRadian};
         // Upper 2 by 2 of K above for point to point
-        const auto k22 = InvMass22{Vector<InvMass, 2>{exx, exy}, Vector<InvMass, 2>{exy, eyy}};
+        const auto k22 = InvMass22{InvMass2{exx, exy}, InvMass2{exy, eyy}};
         object.linearMass = Invert(k22);
     }
 

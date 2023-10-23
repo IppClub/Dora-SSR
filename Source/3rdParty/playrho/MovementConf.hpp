@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_MOVEMENTCONF_HPP
 #define PLAYRHO_MOVEMENTCONF_HPP
 
+/// @file
+/// @brief Definition of the @c MovementConf class and closely related code.
+
 #include "playrho/Units.hpp"
 
 namespace playrho {

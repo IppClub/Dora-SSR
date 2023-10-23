@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_WIDER_TYPE_HPP
 #define PLAYRHO_WIDER_TYPE_HPP
 
+/// @file
+/// @brief Definition of the @c WiderType alias template.
+
 #include "playrho/detail/Wider.hpp"
 
 namespace playrho {

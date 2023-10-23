@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_SPAN_HPP
 #define PLAYRHO_SPAN_HPP
 
+/// @file
+/// @brief Definition of the @c Span class template.
+
 #include <cstddef>
 #include <cassert>
 #include <type_traits>

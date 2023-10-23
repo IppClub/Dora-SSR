@@ -22,11 +22,15 @@
 #ifndef PLAYRHO_D2_REVOLUTEJOINTCONF_HPP
 #define PLAYRHO_D2_REVOLUTEJOINTCONF_HPP
 
+/// @file
+/// @brief Definition of the @c RevoluteJointConf class and closely related code.
+
 #include "playrho/LimitState.hpp"
-#include "playrho/Math.hpp"
 #include "playrho/Span.hpp"
+#include "playrho/TypeInfo.hpp"
 
 #include "playrho/d2/JointConf.hpp"
+#include "playrho/d2/Math.hpp"
 
 namespace playrho {
 

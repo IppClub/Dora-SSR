@@ -42,8 +42,13 @@ class memory_resource
     virtual bool do_is_equal(const memory_resource& other) const noexcept = 0;
 
 public:
+    /// @brief Default constructor.
     memory_resource() = default;
+
+    /// @brief Copy constructor.
     memory_resource(const memory_resource&) = default;
+
+    /// @brief Destructor.
     virtual ~memory_resource();
 
     /// @brief Allocates memory.
@@ -116,16 +121,19 @@ class polymorphic_allocator
     ResourceType m_resource{get_default_resource()};
 
 public:
-    using value_type = T;
+    using value_type = T; ///< Value type alias.
 
+    /// @brief Initializing constructor.
     polymorphic_allocator(ResourceType resource = nullptr) noexcept:
         m_resource{resource ? resource : get_default_resource()}
     {
         // Intentionally empty.
     }
 
+    /// @brief Copy constructor.
     polymorphic_allocator(const polymorphic_allocator&) = default;
 
+    /// @brief Compatible value type copy constructor.
     template <class U>
     polymorphic_allocator(const polymorphic_allocator<U>& other) noexcept
         : m_resource(other.resource())
@@ -133,8 +141,10 @@ public:
         // Intentionally empty.
     }
 
+    /// @brief Copy assignment is explicitly deleted.
     polymorphic_allocator& operator=(const polymorphic_allocator&) = delete;
 
+    /// @brief Allocates buffer for array of @p n elements.
     [[nodiscard]] T* allocate(std::size_t n)
     {
         if (n > (std::numeric_limits<std::size_t>::max() / sizeof(T))) {
@@ -143,21 +153,25 @@ public:
         return static_cast<T*>(m_resource->allocate(n * sizeof(value_type), alignof(T)));
     }
 
+    /// @brief Deallocates buffer @p p of array of @p n elements.
     void deallocate(T* p, std::size_t n) noexcept
     {
         m_resource->deallocate(p, n * sizeof(value_type), alignof(T));
     }
 
+    /// @brief Gets the resource property of this instance.
     ResourceType resource() const noexcept
     {
         return m_resource;
     }
 
+    /// @brief Equality support.
     friend bool operator==(const polymorphic_allocator& lhs, const polymorphic_allocator& rhs) noexcept
     {
         return lhs.m_resource == rhs.m_resource;
     }
 
+    /// @brief Inequality support.
     friend bool operator!=(const polymorphic_allocator& lhs, const polymorphic_allocator& rhs) noexcept
     {
         return !(lhs == rhs);
@@ -170,6 +184,7 @@ static_assert(std::is_nothrow_move_constructible_v<polymorphic_allocator<int>>);
 static_assert(!std::is_copy_assignable_v<polymorphic_allocator<int>>);
 static_assert(!std::is_move_assignable_v<polymorphic_allocator<int>>);
 
+/// @brief Equalality operator support.
 template <class T1, class T2>
 bool operator==(const pmr::polymorphic_allocator<T1>& lhs,
                 const pmr::polymorphic_allocator<T2>& rhs) noexcept
@@ -177,6 +192,7 @@ bool operator==(const pmr::polymorphic_allocator<T1>& lhs,
     return lhs.resource() == rhs.resource();
 }
 
+/// @brief Inequalality operator support.
 template <class T1, class T2>
 inline bool operator!=(const pmr::polymorphic_allocator<T1>& lhs,
                        const pmr::polymorphic_allocator<T2>& rhs) noexcept
@@ -188,7 +204,10 @@ inline bool operator!=(const pmr::polymorphic_allocator<T1>& lhs,
 /// @see https://en.cppreference.com/w/cpp/memory/pool_options
 struct pool_options
 {
+    /// @brief Max blocks per chunk.
     std::size_t max_blocks_per_chunk = 0;
+
+    /// @brief Largest required pool block.
     std::size_t largest_required_pool_block = 0;
 };
 

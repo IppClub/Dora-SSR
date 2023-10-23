@@ -57,7 +57,7 @@ PhysicsWorld::PhysicsWorld()
 
 PhysicsWorld::~PhysicsWorld() {
 	RefVector<Body> bodies;
-	for (pr::BodyID b : _world.GetBodies()) {
+	for (pr::BodyID b : pd::GetBodies(_world)) {
 		Body* body = _bodyData[b.get()];
 		if (body) bodies.push_back(body);
 	}
@@ -79,7 +79,7 @@ PhysicsWorld::~PhysicsWorld() {
 }
 
 void PhysicsWorld::setupBeginContact() {
-	_world.SetBeginContactListener([this](pr::ContactID contact) {
+	pd::SetBeginContactListener(_world, [this](pr::ContactID contact) {
 		pr::ShapeID fixtureA = pd::GetShapeA(_world, contact);
 		pr::ShapeID fixtureB = pd::GetShapeB(_world, contact);
 		Body* bodyA = _bodyData[pd::GetBodyA(_world, contact).get()];
@@ -118,7 +118,7 @@ void PhysicsWorld::setupBeginContact() {
 }
 
 void PhysicsWorld::setupEndContact() {
-	_world.SetEndContactListener([this](pr::ContactID contact) {
+	pd::SetEndContactListener(_world, [this](pr::ContactID contact) {
 		pr::ShapeID fixtureA = pd::GetShapeA(_world, contact);
 		pr::ShapeID fixtureB = pd::GetShapeB(_world, contact);
 		Body* bodyA = _bodyData[pd::GetBodyA(_world, contact).get()];
@@ -157,7 +157,7 @@ void PhysicsWorld::setupEndContact() {
 }
 
 void PhysicsWorld::setupPreSolve() {
-	_world.SetPreSolveContactListener([this](pr::ContactID contact, const pd::Manifold&) {
+	pd::SetPreSolveContactListener(_world, [this](pr::ContactID contact, const pd::Manifold&) {
 		Body* bodyA = _bodyData[pd::GetBodyA(_world, contact).get()];
 		Body* bodyB = _bodyData[pd::GetBodyB(_world, contact).get()];
 		if (!bodyA || !bodyB) return;
@@ -239,9 +239,9 @@ void PhysicsWorld::doUpdate(double deltaTime) {
 	{
 		PROFILE("Physics"_slice);
 		_stepConf.deltaTime = s_cast<pr::Time>(deltaTime);
-		_stepConf.dtRatio = _stepConf.deltaTime * _world.GetInvDeltaTime();
-		_world.Step(_stepConf);
-		const auto& bodies = _world.GetBodies();
+		_stepConf.dtRatio = _stepConf.deltaTime * pd::GetInvDeltaTime(_world);
+		pd::Step(_world, _stepConf);
+		const auto& bodies = pd::GetBodies(_world);
 		for (pr::BodyID b : bodies) {
 			if (pd::IsEnabled(_world, b)) {
 				Body* body = _bodyData[b.get()];
@@ -315,12 +315,13 @@ bool PhysicsWorld::query(const Rect& rect, const std::function<bool(Body*)>& cal
 		pd::PolygonShapeConf{
 			prVal(rect.size.width),
 			prVal(rect.size.height)}};
-	pd::Query(_world.GetTree(), aabb, [&](pr::BodyID bodyID, pr::ShapeID shapeID, const pr::ChildCounter) {
+	pd::Query(pd::GetTree(_world), aabb, [&](pr::BodyID bodyID, pr::ShapeID shapeID, const pr::ChildCounter) {
 		BLOCK_START {
 			BREAK_IF(pd::IsSensor(_world, shapeID));
 			const auto shapeType = pd::GetType(_world, shapeID);
 			bool isCommonShape = shapeType != pr::GetTypeID<pd::ChainShapeConf>() && shapeType != pr::GetTypeID<pd::EdgeShapeConf>();
-			BREAK_IF(isCommonShape && !pd::TestOverlap(pd::GetChild(testShape, 0), transform, pd::GetChild(pd::GetShape(_world, shapeID), 0), pd::GetTransformation(_world, bodyID)));
+			const auto shape = pd::GetShape(_world, shapeID);
+			BREAK_IF(isCommonShape && !pd::TestOverlap(pd::GetChild(testShape, 0), transform, pd::GetChild(shape, 0), pd::GetTransformation(_world, bodyID)));
 			Body* body = _bodyData[bodyID.get()];
 			std::vector<Body*>& results = isCommonShape ? _queryResultsOfCommonShapes : _queryResultsOfChainsAndEdges;
 			if (body && (results.empty() || results.back() != body)) {
@@ -390,7 +391,7 @@ void PhysicsWorld::setShouldContact(uint8_t groupA, uint8_t groupB, bool contact
 		filterA.maskBits &= (~filterB.categoryBits);
 		filterB.maskBits &= (~filterA.categoryBits);
 	}
-	for (pr::BodyID body : _world.GetBodies()) {
+	for (pr::BodyID body : pd::GetBodies(_world)) {
 		for (pr::ShapeID f : pd::GetShapes(_world, body)) {
 			int groupIndex = pd::GetFilterData(_world, f).groupIndex;
 			if (groupIndex == groupA) {

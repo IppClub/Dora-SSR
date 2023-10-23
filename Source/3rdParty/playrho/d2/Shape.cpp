@@ -27,7 +27,7 @@ namespace d2 {
 // Confirm that a Shape itself isn't a valid shape type in the sense of preventing what could
 // otherwise be an infinitely recursive configuration. Note that this doesn't prevent copy/move
 // construction nor copy/move assignment.
-static_assert(!IsValidShapeType<Shape>::value);
+static_assert(!IsValidShapeTypeV<Shape>);
 
 bool TestPoint(const Shape& shape, const Length2& point) noexcept
 {

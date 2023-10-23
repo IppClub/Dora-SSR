@@ -21,52 +21,25 @@
 #ifndef PLAYRHO_UNITINTERVAL_HPP
 #define PLAYRHO_UNITINTERVAL_HPP
 
-#include <stdexcept> // for std::invalid_argument
+/// @file
+/// @brief Definition of the @c UnitInterval value checked types and related code.
 
-#include "playrho/CheckedValue.hpp"
+#include "playrho/detail/Checked.hpp"
+#include "playrho/detail/UnitIntervalChecker.hpp"
 
 namespace playrho {
 
-/// @brief Unit-interval constrained value checker.
-/// @details Provides functors ensuring values are:
-///   greater-than or equal-to zero, and less-than or equal-to one.
-/// @note This is meant to be used as a checker with types like <code>CheckedValue</code>.
-/// @see CheckedValue.
-template <typename T>
-struct UnitIntervalChecker {
-
-    /// @brief Default value supplying functor.
-    /// @return Zero casted to the checked type.
-    constexpr auto operator()() noexcept -> decltype(static_cast<T>(0))
-    {
-        return static_cast<T>(0);
-    }
-
-    /// @brief Value checking functor.
-    constexpr auto operator()(const T& v) noexcept
-        -> decltype((v >= static_cast<T>(0)) && (v <= static_cast<T>(1)), static_cast<const char*>(nullptr))
-    {
-        if (!(v >= static_cast<T>(0))) {
-            return "value not greater than nor equal to zero";
-        }
-        if (!(v <= static_cast<T>(1))) {
-            return "value not less than nor equal to one";
-        }
-        return {};
-    }
-};
-
-/// @ingroup CheckedValues
+/// @ingroup CheckedTypes
 /// @brief Unit interval constrained value type.
 template <typename T>
-using UnitInterval = CheckedValue<T, UnitIntervalChecker<T>>;
+using UnitInterval = detail::Checked<T, detail::UnitIntervalChecker<T>>;
 
-/// @ingroup CheckedValues
+/// @ingroup CheckedTypes
 /// @brief Fast failing unit interval constrained value type.
 template <typename T>
-using UnitIntervalFF = CheckedValue<T, UnitIntervalChecker<T>, true>;
+using UnitIntervalFF = detail::Checked<T, detail::UnitIntervalChecker<T>, true>;
 
-static_assert(std::is_default_constructible<UnitInterval<int>>::value);
+static_assert(std::is_default_constructible_v<UnitInterval<int>>);
 
 } // namespace playrho
 

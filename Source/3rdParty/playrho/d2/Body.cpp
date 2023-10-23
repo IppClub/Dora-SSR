@@ -28,12 +28,12 @@
 
 namespace playrho::d2 {
 
-static_assert(std::is_default_constructible<Body>::value, "Body must be default constructible!");
-static_assert(std::is_copy_constructible<Body>::value, "Body must be copy constructible!");
-static_assert(std::is_move_constructible<Body>::value, "Body must be move constructible!");
-static_assert(std::is_copy_assignable<Body>::value, "Body must be copy assignable!");
-static_assert(std::is_move_assignable<Body>::value, "Body must be move assignable!");
-static_assert(std::is_nothrow_destructible<Body>::value, "Body must be nothrow destructible!");
+static_assert(std::is_default_constructible_v<Body>, "Body must be default constructible!");
+static_assert(std::is_copy_constructible_v<Body>, "Body must be copy constructible!");
+static_assert(std::is_move_constructible_v<Body>, "Body must be move constructible!");
+static_assert(std::is_copy_assignable_v<Body>, "Body must be copy assignable!");
+static_assert(std::is_move_assignable_v<Body>, "Body must be move assignable!");
+static_assert(std::is_nothrow_destructible_v<Body>, "Body must be nothrow destructible!");
 
 Body::FlagsType Body::GetFlags(BodyType type) noexcept
 {
@@ -155,7 +155,7 @@ void Body::SetSleepingAllowed(bool flag) noexcept
     else if (IsSpeedable()) {
         m_flags &= ~e_autoSleepFlag;
         SetAwakeFlag();
-        ResetUnderActiveTime();
+        m_underActiveTime = 0_s;
     }
 }
 
@@ -165,7 +165,7 @@ void Body::SetAwake() noexcept
     // that only "speedable" bodies can be awake.
     if (IsSpeedable()) {
         SetAwakeFlag();
-        ResetUnderActiveTime();
+        m_underActiveTime = 0_s;
     }
 }
 
@@ -179,16 +179,16 @@ void Body::UnsetAwake() noexcept
     }
 }
 
-void Body::SetVelocity(const Velocity& velocity) noexcept
+void Body::SetVelocity(const Velocity& value) noexcept
 {
-    if (velocity != Velocity{}) {
+    if (value != Velocity{}) {
         if (!IsSpeedable()) {
             return;
         }
         SetAwakeFlag();
-        ResetUnderActiveTime();
+        m_underActiveTime = 0_s;
     }
-    JustSetVelocity(velocity);
+    JustSetVelocity(value);
 }
 
 void Body::JustSetVelocity(const Velocity& value) noexcept
@@ -221,7 +221,7 @@ void Body::SetAcceleration(const LinearAcceleration2& linear, AngularAcceleratio
             (signbit(m_angularAcceleration) != signbit(angular))) {
             // Increasing accel or changing direction of accel, awake & reset time.
             SetAwakeFlag();
-            ResetUnderActiveTime();
+            m_underActiveTime = 0_s;
         }
     }
 
@@ -242,8 +242,9 @@ void Body::SetFixedRotation(bool flag)
 
 Body& Body::Attach(ShapeID shapeId)
 {
+    assert(shapeId != InvalidShapeID);
     m_shapes.push_back(shapeId);
-    SetMassDataDirty();
+    m_flags |= e_massDataDirtyFlag;
     return *this;
 }
 
@@ -253,7 +254,7 @@ bool Body::Detach(ShapeID shapeId)
     const auto it = find(begin(m_shapes), endIt, shapeId);
     if (it != endIt) {
         m_shapes.erase(it);
-        SetMassDataDirty();
+        m_flags |= e_massDataDirtyFlag;
         return true;
     }
     return false;
@@ -263,7 +264,7 @@ bool Body::Detach(ShapeID shapeId)
 
 void SetTransformation(Body& body, const Transformation& value) noexcept
 {
-    SetSweep(body, Sweep{Position{value.p, GetAngle(value.q)}, GetSweep(body).GetLocalCenter()});
+    SetSweep(body, Sweep{Position{value.p, GetAngle(value.q)}, GetSweep(body).localCenter});
 }
 
 void SetLocation(Body& body, const Length2& value)

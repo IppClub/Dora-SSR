@@ -32,7 +32,7 @@ PhysicsWorld* Joint::getPhysicsWorld() {
 
 void Joint::destroy() {
 	if (_world && _joint != pr::InvalidJointID) {
-		_world->getPrWorld().Destroy(_joint);
+		pd::Destroy(_world->getPrWorld(), _joint);
 		_world->setJointData(_joint, nullptr);
 		_world = nullptr;
 		_joint = pr::InvalidJointID;

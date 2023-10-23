@@ -19,28 +19,28 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/DistanceJointConf.hpp"
-
-#include "playrho/d2/WorldBody.hpp"
-#include "playrho/d2/Joint.hpp"
-#include "playrho/StepConf.hpp"
-#include "playrho/d2/BodyConstraint.hpp"
 #include "playrho/ConstraintSolverConf.hpp"
+#include "playrho/StepConf.hpp"
+
+#include "playrho/d2/BodyConstraint.hpp"
+#include "playrho/d2/DistanceJointConf.hpp"
+#include "playrho/d2/Joint.hpp"
+#include "playrho/d2/WorldBody.hpp"
 
 namespace playrho {
 namespace d2 {
 
-static_assert(std::is_default_constructible<DistanceJointConf>::value,
+static_assert(std::is_default_constructible_v<DistanceJointConf>,
               "DistanceJointConf must be nothrow default constructible!");
-static_assert(std::is_copy_constructible<DistanceJointConf>::value,
+static_assert(std::is_copy_constructible_v<DistanceJointConf>,
               "DistanceJointConf must be copy constructible!");
-static_assert(std::is_move_constructible<DistanceJointConf>::value,
+static_assert(std::is_move_constructible_v<DistanceJointConf>,
               "DistanceJointConf must be move constructible!");
-static_assert(std::is_copy_assignable<DistanceJointConf>::value,
+static_assert(std::is_copy_assignable_v<DistanceJointConf>,
               "DistanceJointConf must be copy assignable!");
-static_assert(std::is_move_assignable<DistanceJointConf>::value,
+static_assert(std::is_move_assignable_v<DistanceJointConf>,
               "DistanceJointConf must be move assignable!");
-static_assert(std::is_nothrow_destructible<DistanceJointConf>::value,
+static_assert(std::is_nothrow_destructible_v<DistanceJointConf>,
               "DistanceJointConf must be nothrow destructible!");
 
 // 1-D constrained system

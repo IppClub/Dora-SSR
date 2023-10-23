@@ -19,21 +19,15 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include "playrho/d2/Math.hpp" // for GetPosition
 #include "playrho/d2/Sweep.hpp"
-#include "playrho/Math.hpp" // for GetPosition
 
 namespace playrho::d2 {
 
-void Sweep::Advance0(const Real alpha) noexcept
+Sweep Advance0(const Sweep& sweep, const ZeroToUnderOneFF<Real> alpha) noexcept
 {
-    assert(IsValid(alpha));
-    assert(alpha >= 0);
-    assert(alpha < 1);
-    assert(alpha0 < 1);
-
-    const auto beta = (alpha - alpha0) / (1 - alpha0);
-    pos0 = GetPosition(pos0, pos1, beta);
-    alpha0 = alpha;
+    const auto beta = (alpha - sweep.alpha0) / (Real(1) - sweep.alpha0);
+    return {GetPosition(sweep.pos0, sweep.pos1, beta), sweep.pos1, sweep.localCenter, alpha};
 }
 
 } // namespace playrho::d2

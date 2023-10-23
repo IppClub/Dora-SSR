@@ -41,15 +41,15 @@
 namespace playrho {
 namespace d2 {
 
-static_assert(std::is_nothrow_default_constructible<Joint>::value,
+static_assert(std::is_nothrow_default_constructible_v<Joint>,
               "Joint must be nothrow default constructible!");
-static_assert(std::is_copy_constructible<Joint>::value, "Joint must be copy constructible!");
-static_assert(std::is_nothrow_move_constructible<Joint>::value,
+static_assert(std::is_copy_constructible_v<Joint>, "Joint must be copy constructible!");
+static_assert(std::is_nothrow_move_constructible_v<Joint>,
               "Joint must be nothrow move constructible!");
-static_assert(std::is_copy_assignable<Joint>::value, "Joint must be copy assignable!");
-static_assert(std::is_nothrow_move_assignable<Joint>::value,
+static_assert(std::is_copy_assignable_v<Joint>, "Joint must be copy assignable!");
+static_assert(std::is_nothrow_move_assignable_v<Joint>,
               "Joint must be nothrow move assignable!");
-static_assert(std::is_nothrow_destructible<Joint>::value, "Joint must be nothrow destructible!");
+static_assert(std::is_nothrow_destructible_v<Joint>, "Joint must be nothrow destructible!");
 
 // Free functions...
 

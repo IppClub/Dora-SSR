@@ -22,12 +22,17 @@
 #ifndef PLAYRHO_D2_GEARJOINTCONF_HPP
 #define PLAYRHO_D2_GEARJOINTCONF_HPP
 
-#include "playrho/d2/JointConf.hpp"
-#include "playrho/Math.hpp"
-#include "playrho/JointID.hpp"
-#include "playrho/Span.hpp"
+/// @file
+/// @brief Definition of the @c GearJointConf class and closely related code.
 
 #include <variant>
+
+#include "playrho/JointID.hpp"
+#include "playrho/Span.hpp"
+#include "playrho/TypeInfo.hpp"
+
+#include "playrho/d2/JointConf.hpp"
+#include "playrho/d2/Math.hpp"
 
 namespace playrho {
 

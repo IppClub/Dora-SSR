@@ -123,15 +123,15 @@ namespace playrho {
 
 using std::count;
 
-static_assert(std::is_copy_constructible<Island>::value,
+static_assert(std::is_copy_constructible_v<Island>,
               "Must be copy constructible.");
-static_assert(std::is_copy_assignable<Island>::value,
+static_assert(std::is_copy_assignable_v<Island>,
               "Must be copy assignable.");
-static_assert(std::is_nothrow_move_constructible<Island>::value,
+static_assert(std::is_nothrow_move_constructible_v<Island>,
               "Must be nothrow move constructible.");
-static_assert(std::is_move_assignable<Island>::value,
+static_assert(std::is_move_assignable_v<Island>,
               "Must be move assignable.");
-static_assert(std::is_nothrow_destructible<Island>::value,
+static_assert(std::is_nothrow_destructible_v<Island>,
               "Must be nothrow destructible.");
 
 void Reserve(Island& island, BodyCounter bodies, ContactCounter contacts, JointCounter joints)

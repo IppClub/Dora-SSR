@@ -21,11 +21,14 @@
 #ifndef PLAYRHO_D2_VELOCITY_HPP
 #define PLAYRHO_D2_VELOCITY_HPP
 
-#include "playrho/Settings.hpp"
-#include "playrho/Vector2.hpp"
+/// @file
+/// @brief Definition of the @c Velocity class and closely related code.
 
 #include <utility>
 #include <vector>
+
+#include "playrho/Settings.hpp"
+#include "playrho/Vector2.hpp"
 
 namespace playrho {
 

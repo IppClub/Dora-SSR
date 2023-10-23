@@ -21,36 +21,25 @@
 #ifndef PLAYRHO_POSITIVE_HPP
 #define PLAYRHO_POSITIVE_HPP
 
-#include "playrho/CheckedValue.hpp"
+/// @file
+/// @brief Definition of the @c Positive value checked types and related code.
+
+#include "playrho/detail/Checked.hpp"
+#include "playrho/detail/PositiveChecker.hpp"
 
 namespace playrho {
 
-/// @brief Positive constrained value checker.
-template <typename T>
-struct PositiveChecker {
-
-    /// @brief Value checking functor.
-    constexpr auto operator()(const T& v) noexcept
-        -> decltype(v > T{}, static_cast<const char*>(nullptr))
-    {
-        if (!(v > T{})) {
-            return "value not greater than zero";
-        }
-        return {};
-    }
-};
-
-/// @ingroup CheckedValues
+/// @ingroup CheckedTypes
 /// @brief Positive constrained value type.
 template <typename T>
-using Positive = CheckedValue<T, PositiveChecker<T>>;
+using Positive = detail::Checked<T, detail::PositiveChecker<T>>;
 
-/// @ingroup CheckedValues
+/// @ingroup CheckedTypes
 /// @brief Fast failing positive constrained value type.
 template <typename T>
-using PositiveFF = CheckedValue<T, PositiveChecker<T>, true>;
+using PositiveFF = detail::Checked<T, detail::PositiveChecker<T>, true>;
 
-static_assert(!std::is_default_constructible<Positive<int>>::value);
+static_assert(!std::is_default_constructible_v<Positive<int>>);
 
 } // namespace playrho
 
@@ -141,9 +130,10 @@ public:
     static constexpr bool is_bounded = true; ///< Type bounded: has limited precision.
     static constexpr bool is_modulo = false; ///< Doesn't modulo arithmetic overflows.
 
+    /// @brief Whether the type for which this is specialized can cause arithmetic operations to trap.
     static constexpr bool traps = numeric_limits<T>::traps;
 
-    ///< Doesn't detect <code>tinyness</code> before rounding.
+    /// @brief Doesn't detect <code>tinyness</code> before rounding.
     static constexpr bool tinyness_before = numeric_limits<T>::tinyness_before;
 
     static constexpr float_round_style round_style = numeric_limits<T>::round_style; ///< Rounds down.

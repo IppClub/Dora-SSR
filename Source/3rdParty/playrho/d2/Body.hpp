@@ -23,18 +23,18 @@
 #define PLAYRHO_D2_BODY_HPP
 
 /// @file
-/// Declarations of the Body class, and free functions associated with it.
-
-#include "playrho/Math.hpp"
-
-#include "playrho/BodyType.hpp"
-#include "playrho/d2/BodyConf.hpp"
-
-#include "playrho/d2/MassData.hpp"
-#include "playrho/ShapeID.hpp"
+/// @brief Declarations of the Body class, and functions associated with it.
 
 #include <cassert>
 #include <utility>
+
+#include "playrho/BodyType.hpp"
+#include "playrho/ShapeID.hpp"
+#include "playrho/ZeroToUnderOne.hpp"
+
+#include "playrho/d2/BodyConf.hpp"
+#include "playrho/d2/MassData.hpp"
+#include "playrho/d2/Math.hpp"
 
 namespace playrho::d2 {
 
@@ -48,12 +48,11 @@ namespace playrho::d2 {
 ///   acceleration, and mass.
 ///
 /// @invariant Only bodies that allow sleeping, can be put to sleep.
-/// @invariant Only "speedable" bodies can be awake.
-/// @invariant Only "speedable" bodies can have non-zero velocities.
-/// @invariant Only "accelerable" bodies can have non-zero accelerations.
-/// @invariant Only "accelerable" bodies can have non-zero "under-active" times.
-/// @invariant The body's transformation is always the body's sweep position one's linear position
-///   and the unit vector of the body's sweep position one's angular position.
+/// @invariant Only "speedable" bodies can be awake or have non-zero velocities.
+/// @invariant Only "accelerable" bodies can have non-zero accelerations or non-zero
+///   "under-active" times.
+/// @invariant The body's transformation is always the body's sweep position one's linear
+///   position and the unit vector of the body's sweep position one's angular position.
 ///
 /// @ingroup PhysicalEntities
 ///
@@ -156,18 +155,24 @@ public:
     const Sweep& GetSweep() const noexcept;
 
     /// @brief Gets the velocity.
-    /// @see SetVelocity.
+    /// @see SetVelocity, JustSetVelocity.
     Velocity GetVelocity() const noexcept;
 
     /// @brief Sets the body's velocity (linear and angular velocity).
-    /// @note This method does nothing if this body is not speedable.
-    /// @note A non-zero velocity will awaken this body.
-    /// @see SetAwake, SetUnderActiveTime, GetVelocity.
-    void SetVelocity(const Velocity& velocity) noexcept;
+    /// @param value Value of the velocity to set.
+    /// @post If @p velocity is non-zero and <code>IsSpeedable()</code> is true,
+    ///   <code>IsAwake()</code> returns true and <code>GetUnderActiveTime()</code> returns 0.
+    /// @post If @p velocity is zero or <code>IsSpeedable()</code> is true,
+    ///   <code>GetVelocity()</code> returns the @p value set.
+    /// @see IsAwake, IsSpeedable, GetUnderActiveTime, GetVelocity.
+    void SetVelocity(const Velocity& value) noexcept;
 
     /// Sets the body's velocity.
     /// @note This sets what <code>GetVelocity()</code> returns.
-    /// @see GetVelocity.
+    /// @param value Value of the velocity to set.
+    /// @pre <code>IsSpeedable()</code> is true or given velocity is zero.
+    /// @post <code>GetVelocity()</code> returns the @p value set.
+    /// @see GetVelocity, IsSpeedable.
     void JustSetVelocity(const Velocity& value) noexcept;
 
     /// @brief Sets the linear and rotational accelerations on this body.
@@ -194,7 +199,7 @@ public:
     /// them all the time by the mass.
     /// @return Value of zero or more representing the body's inverse mass (in 1/kg).
     /// @see SetInvMassData.
-    InvMass GetInvMass() const noexcept;
+    NonNegativeFF<InvMass> GetInvMass() const noexcept;
 
     /// @brief Gets the inverse rotational inertia of the body.
     /// @details This is the cached result of dividing 1 by the body's rotational inertia or
@@ -204,10 +209,10 @@ public:
     /// them all the time by the rotational inertia.
     /// @return Inverse rotational inertia (in 1/kg-m^2).
     /// @see SetInvMassData.
-    InvRotInertia GetInvRotInertia() const noexcept;
+    NonNegativeFF<InvRotInertia> GetInvRotInertia() const noexcept;
 
     /// @brief Sets the inverse mass data and clears the mass-data-dirty flag.
-    /// @note This calls <code>UnsetMassDataDirty</code>.
+    /// @post <code>IsMassDataDirty()</code> returns false.
     /// @see GetInvMass, GetInvRotInertia, IsMassDataDirty.
     void SetInvMassData(NonNegative<InvMass> invMass, NonNegative<InvRotInertia> invRotI) noexcept;
 
@@ -232,12 +237,16 @@ public:
     BodyType GetType() const noexcept;
 
     /// @brief Sets the type of this body.
+    /// @post <code>GetType()</code> returns type set.
+    /// @post <code>GetUnderActiveTime()</code> returns 0.
+    /// @post <code>IsAwake()</code> returns true for <code>BodyType::Dynamic</code> or
+    ///   <code>BodyType::Kinematic</code>, and returns false for <code>BodyType::Static</code>.
     /// @see GetType.
     void SetType(BodyType value) noexcept;
 
     /// @brief Is "speedable".
     /// @details Is this body able to have a non-zero speed associated with it.
-    /// Kinematic and Dynamic bodies are speedable. Static bodies are not.
+    ///   Kinematic and Dynamic bodies are speedable. Static bodies are not.
     /// @see GetType, SetType.
     bool IsSpeedable() const noexcept;
 
@@ -249,19 +258,21 @@ public:
     bool IsAccelerable() const noexcept;
 
     /// @brief Is this body treated like a bullet for continuous collision detection?
-    /// @see GetType, SetType, SetImpenetrable, UnsetImpenetrable.
+    /// @see SetImpenetrable, UnsetImpenetrable.
     bool IsImpenetrable() const noexcept;
 
     /// @brief Sets the impenetrable status of this body.
-    /// @details Sets whether or not this body should be treated like a bullet for continuous
-    ///   collision detection.
-    /// @see IsImpenetrable, GetType, SetType.
+    /// @details Sets that this body should be treated like a bullet for continuous collision
+    ///   detection.
+    /// @post <code>IsImpenetrable()</code> returns true.
+    /// @see IsImpenetrable.
     void SetImpenetrable() noexcept;
 
     /// @brief Unsets the impenetrable status of this body.
-    /// @details Sets whether or not this body should be treated like a bullet for continuous
-    ///   collision detection.
-    /// @see IsImpenetrable, GetType, SetType.
+    /// @details Unsets that this body should be treated like a bullet for continuous collision
+    ///   detection.
+    /// @post <code>IsImpenetrable()</code> returns false.
+    /// @see IsImpenetrable.
     void UnsetImpenetrable() noexcept;
 
     /// @brief Gets whether or not this body allowed to sleep.
@@ -282,11 +293,11 @@ public:
 
     /// @brief Awakens this body.
     /// @details Sets this body to awake and resets its under-active time if it's a "speedable"
-    ///   body. This method has no effect otherwise.
-    /// @post If this body is a "speedable" body, then this body's <code>IsAwake</code> method
+    ///   body. This function has no effect otherwise.
+    /// @post If this body is a "speedable" body, then this body's <code>IsAwake</code> function
     ///   returns true.
     /// @post If this body is a "speedable" body, then this body's <code>GetUnderActiveTime</code>
-    ///   method returns zero.
+    ///   function returns zero.
     /// @see IsAwake.
     void SetAwake() noexcept;
 
@@ -294,9 +305,9 @@ public:
     /// @details If this body is allowed to sleep, this: sets the sleep state of the body to
     ///   asleep, resets this body's under active time, and resets this body's velocity (linear
     ///   and angular).
-    /// @post This body's <code>IsAwake</code> method returns false.
-    /// @post This body's <code>GetUnderActiveTime</code> method returns zero.
-    /// @post This body's <code>GetVelocity</code> method returns zero linear and zero angular
+    /// @post This body's <code>IsAwake</code> function returns false.
+    /// @post This body's <code>GetUnderActiveTime</code> function returns zero.
+    /// @post This body's <code>GetVelocity</code> function returns zero linear and zero angular
     ///   speed.
     /// @see IsAwake.
     void UnsetAwake() noexcept;
@@ -304,7 +315,7 @@ public:
     /// @brief Gets this body's under-active time value.
     /// @return Zero or more time in seconds (of step time) that this body has been
     ///   "under-active" for.
-    /// @see SetUnderActiveTime, ResetUnderActiveTime.
+    /// @see SetUnderActiveTime.
     Time GetUnderActiveTime() const noexcept;
 
     /// @brief Sets the "under-active" time to the given value.
@@ -313,12 +324,6 @@ public:
     /// @note A non-zero time is only valid for an "accelerable" body.
     /// @see GetUnderActiveTime.
     void SetUnderActiveTime(Time value) noexcept;
-
-    /// @brief Resets the under-active time for this body.
-    /// @note This has performance degrading potential and is best not called unless the
-    ///   caller is certain that it should be.
-    /// @see GetUnderActiveTime.
-    void ResetUnderActiveTime() noexcept;
 
     /// @brief Does this body have fixed rotation?
     /// @see SetFixedRotation.
@@ -342,16 +347,7 @@ public:
     void UnsetAwakeFlag() noexcept;
 
     /// @brief Gets whether the mass data for this body is "dirty".
-    /// @see SetMassDataDirty, UnsetMassDataDirty.
     bool IsMassDataDirty() const noexcept;
-
-    /// @brief Sets this body to have the mass data dirty state.
-    /// @see IsMassDataDirty.
-    void SetMassDataDirty() noexcept;
-
-    /// @brief Unsets the body from being in the mass data dirty state.
-    /// @see IsMassDataDirty.
-    void UnsetMassDataDirty() noexcept;
 
     /// @brief Gets the enabled/disabled state of the body.
     /// @see SetEnabled, UnsetEnabled.
@@ -381,36 +377,39 @@ public:
     /// @see GetSweep.
     void ResetAlpha0() noexcept;
 
-    /// @brief Calls the body sweep's <code>Advance0</code> method to advance to
+    /// @brief Calls the body sweep's <code>Advance0</code> function to advance to
     ///    the given value.
     /// @see GetSweep.
-    void Advance0(Real value) noexcept;
+    void Advance0(ZeroToUnderOneFF<Real> value) noexcept;
 
     /// @brief Gets the identifiers of the shapes attached to this body.
     /// @see SetShapes, Attach, Detach.
     const std::vector<ShapeID>& GetShapes() const noexcept;
 
     /// @brief Sets the identifiers of the shapes attached to this body.
-    /// @note This also sets the mass-data-dirty flag.
+    /// @post <code>GetShapes()</code> returns the value given.
+    /// @post <code>IsMassDataDirty()</code> returns true.
     /// @see GetShapes, Attach, Detach.
     void SetShapes(std::vector<ShapeID> value);
 
     /// @brief Adds the given shape identifier to the identifiers associated with this body.
-    /// @note This also sets the mass-data-dirty flag. Call <code>SetInvMassData</code> to clear it.
-    /// @see GetShapes, SetShapes, Detach, SetInvMassData.
+    /// @param shapeId Identifier of the shape to attach.
+    /// @pre @p shapeId is not @c InvalidShapeID .
+    /// @post <code>IsMassDataDirty()</code> returns true.
+    /// @post <code>GetShapes()</code> returned container contains the given identifier.
+    /// @see Detach, GetShapes, SetShapes, IsMassDataDirty.
     Body& Attach(ShapeID shapeId);
 
     /// @brief Removes the given shape identifier from the identifiers associated with this body.
     /// @note This also sets the mass-data-dirty flag. Call <code>SetInvMassData</code> to clear it.
+    /// @param shapeId Identifier of the shape to detach.
+    /// @return true if identified shape was detached, false otherwise.
+    /// @post <code>IsMassDataDirty()</code> returns true if this function returned true.
+    /// @post <code>GetShapes()</code> returned container contains one less of the identifier.
     /// @see GetShapes, SetShapes, Attach, SetInvMassData.
     bool Detach(ShapeID shapeId);
 
 private:
-
-    //
-    // Member variables. Try to keep total size small.
-    //
-
     /// Transformation for body origin.
     /// @note Also availble from <code>GetTransform1(m_sweep)</code>.
     /// @note <code>m_xf.p == m_sweep.pos1.linear && m_xf.q ==
@@ -437,12 +436,12 @@ private:
     AngularAcceleration m_angularAcceleration = {};
 
     /// Inverse mass of the body.
-    /// @details A non-negative value. Zero for non linearly-accelerable bodies.
-    InvMass m_invMass = {};
+    /// @details Zero for non linearly-accelerable bodies.
+    NonNegativeFF<InvMass> m_invMass;
 
     /// Inverse rotational inertia about the center of mass.
     /// @details A non-negative value. Zero for non rotationally-accelerable bodies.
-    InvRotInertia m_invRotI = {};
+    NonNegativeFF<InvRotInertia> m_invRotI = {};
 
     NonNegative<Frequency> m_linearDamping{DefaultLinearDamping}; ///< Linear damping.
     NonNegative<Frequency> m_angularDamping{DefaultAngularDamping}; ///< Angular damping.
@@ -471,12 +470,12 @@ inline Velocity Body::GetVelocity() const noexcept
     return Velocity{m_linearVelocity, m_angularVelocity};
 }
 
-inline InvMass Body::GetInvMass() const noexcept
+inline NonNegativeFF<InvMass> Body::GetInvMass() const noexcept
 {
     return m_invMass;
 }
 
-inline InvRotInertia Body::GetInvRotInertia() const noexcept
+inline NonNegativeFF<InvRotInertia> Body::GetInvRotInertia() const noexcept
 {
     return m_invRotI;
 }
@@ -486,7 +485,7 @@ inline void Body::SetInvMassData(NonNegative<InvMass> invMass,
 {
     m_invMass = invMass;
     m_invRotI = invRotI;
-    UnsetMassDataDirty();
+    m_flags &= ~e_massDataDirtyFlag;
 }
 
 inline NonNegative<Frequency> Body::GetLinearDamping() const noexcept
@@ -554,11 +553,6 @@ inline void Body::SetUnderActiveTime(Time value) noexcept
     }
 }
 
-inline void Body::ResetUnderActiveTime() noexcept
-{
-    m_underActiveTime = 0_s;
-}
-
 inline bool Body::IsEnabled() const noexcept
 {
     return (m_flags & e_enabledFlag) != 0;
@@ -594,16 +588,6 @@ inline AngularAcceleration Body::GetAngularAcceleration() const noexcept
     return m_angularAcceleration;
 }
 
-inline void Body::SetMassDataDirty() noexcept
-{
-    m_flags |= e_massDataDirtyFlag;
-}
-
-inline void Body::UnsetMassDataDirty() noexcept
-{
-    m_flags &= ~e_massDataDirtyFlag;
-}
-
 inline bool Body::IsMassDataDirty() const noexcept
 {
     return (m_flags & e_massDataDirtyFlag) != 0;
@@ -636,20 +620,20 @@ inline void Body::SetPosition1(const Position& value) noexcept
 {
     assert(IsSpeedable() || m_sweep.pos1 == value);
     m_sweep.pos1 = value;
-    m_xf = ::playrho::d2::GetTransformation(value, m_sweep.GetLocalCenter());
+    m_xf = ::playrho::d2::GetTransformation(value, m_sweep.localCenter);
 }
 
 inline void Body::ResetAlpha0() noexcept
 {
-    m_sweep.ResetAlpha0();
+    m_sweep.alpha0 = {};
 }
 
-inline void Body::Advance0(Real value) noexcept
+inline void Body::Advance0(ZeroToUnderOneFF<Real> value) noexcept
 {
     // Note: Static bodies must **never** have different sweep position values.
     // Confirm bodies don't have different sweep positions to begin with...
     assert(IsSpeedable() || m_sweep.pos1 == m_sweep.pos0);
-    m_sweep.Advance0(value);
+    m_sweep = ::playrho::d2::Advance0(m_sweep, value);
     // Confirm bodies don't have different sweep positions to end with...
     assert(IsSpeedable() || m_sweep.pos1 == m_sweep.pos0);
 }
@@ -662,7 +646,7 @@ inline const std::vector<ShapeID>& Body::GetShapes() const noexcept
 inline void Body::SetShapes(std::vector<ShapeID> value)
 {
     m_shapes = std::move(value);
-    SetMassDataDirty();
+    m_flags |= e_massDataDirtyFlag;
 }
 
 // Free functions...
@@ -796,11 +780,11 @@ inline bool IsAwake(const Body& body) noexcept
 
 /// @brief Awakens this body.
 /// @details Sets this body to awake and resets its under-active time if it's a "speedable"
-///   body. This method has no effect otherwise.
-/// @post If this body is a "speedable" body, then this body's <code>IsAwake</code> method
+///   body. This function has no effect otherwise.
+/// @post If this body is a "speedable" body, then this body's <code>IsAwake</code> function
 ///   returns true.
 /// @post If this body is a "speedable" body, then this body's <code>GetUnderActiveTime</code>
-///   method returns zero.
+///   function returns zero.
 /// @see IsAwake(const Body&), UnsetAwake(Body&).
 /// @relatedalso Body
 inline void SetAwake(Body& body) noexcept
@@ -812,9 +796,9 @@ inline void SetAwake(Body& body) noexcept
 /// @details If this body is allowed to sleep, this: sets the sleep state of the body to
 /// asleep, resets this body's under active time, and resets this body's velocity (linear
 /// and angular).
-/// @post This body's <code>IsAwake</code> method returns false.
-/// @post This body's <code>GetUnderActiveTime</code> method returns zero.
-/// @post This body's <code>GetVelocity</code> method returns zero linear and zero angular
+/// @post This body's <code>IsAwake</code> function returns false.
+/// @post This body's <code>GetUnderActiveTime</code> function returns zero.
+/// @post This body's <code>GetVelocity</code> function returns zero linear and zero angular
 ///   speed.
 /// @see IsAwake(const Body&), SetAwake(Body&).
 /// @relatedalso Body
@@ -893,23 +877,23 @@ inline void SetPosition1(Body& body, const Position& value) noexcept
     body.SetPosition1(value);
 }
 
-/// @brief Calls the body sweep's <code>Advance0</code> method to advance to
+/// @brief Calls the body sweep's <code>Advance0</code> function to advance to
 ///    the given value.
 /// @see GetSweep.
-inline void Advance0(Body& body, Real value) noexcept
+inline void Advance0(Body& body, ZeroToUnderOneFF<Real> value) noexcept
 {
     body.Advance0(value);
 }
 
 /// Advances the body by a given time ratio.
-/// @details This method:
+/// @details This function:
 ///    1. advances the body's sweep to the given time ratio;
 ///    2. updates the body's sweep positions (linear and angular) to the advanced ones; and
 ///    3. updates the body's transform to the new sweep one settings.
 /// @param body The body to update.
 /// @param value Valid new time factor in [0,1) to advance the sweep to.
 /// @see GetSweep, SetSweep, GetTransofmration, SetTransformation.
-inline void Advance(Body& body, Real value) noexcept
+inline void Advance(Body& body, ZeroToUnderOneFF<Real> value) noexcept
 {
     // Advance to the new safe time. This doesn't sync the broad-phase.
     Advance0(body, value);
@@ -956,7 +940,7 @@ inline Length2 GetWorldCenter(const Body& body) noexcept
 /// @brief Gets the local position of the center of mass.
 inline Length2 GetLocalCenter(const Body& body) noexcept
 {
-    return body.GetSweep().GetLocalCenter();
+    return body.GetSweep().localCenter;
 }
 
 /// @brief Gets the body's position.
@@ -1007,7 +991,7 @@ inline bool IsMassDataDirty(const Body& body) noexcept
 /// @return Value of zero or more representing the body's inverse mass (in 1/kg).
 /// @see SetInvMassData.
 /// @relatedalso Body
-inline InvMass GetInvMass(const Body& body) noexcept
+inline NonNegativeFF<InvMass> GetInvMass(const Body& body) noexcept
 {
     return body.GetInvMass();
 }
@@ -1019,7 +1003,7 @@ inline InvMass GetInvMass(const Body& body) noexcept
 /// them all the time by the rotational inertia.
 /// @return Inverse rotational inertia (in 1/kg-m^2).
 /// @relatedalso Body
-inline InvRotInertia GetInvRotInertia(const Body& body) noexcept
+inline NonNegativeFF<InvRotInertia> GetInvRotInertia(const Body& body) noexcept
 {
     return body.GetInvRotInertia();
 }
@@ -1203,7 +1187,7 @@ inline Velocity GetVelocity(const Body& body) noexcept
 }
 
 /// @brief Sets the body's velocity (linear and angular velocity).
-/// @note This method does nothing if this body is not speedable.
+/// @note This function does nothing if this body is not speedable.
 /// @note A non-zero velocity will awaken this body.
 /// @see GetVelocity(const Body& body), SetAwake, SetUnderActiveTime.
 /// @relatedalso Body

@@ -29,7 +29,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
-static const float BOTTOM_OFFSET = 4.0f;
+static const float BOTTOM_OFFSET = 5.0f;
 static const float GROUND_SENSOR_HEIGHT = 1.0f;
 
 const Slice Unit::Def::Size = "size"_slice;

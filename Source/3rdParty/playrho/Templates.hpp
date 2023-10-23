@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_TEMPLATES_HPP
 #define PLAYRHO_TEMPLATES_HPP
 
+/// @file
+/// @brief Definitions of miscellaneous template related code.
+
 #include "playrho/detail/Templates.hpp"
 
 namespace playrho {
@@ -96,35 +99,35 @@ constexpr bool IsValid(const std::size_t& value) noexcept
 
 /// @brief Determines whether the given type is an iterable type.
 template <class T>
-using IsIterable = typename detail::IsIterable<T>;
+inline constexpr bool IsIterableV = detail::IsIterable<T>::value;
 
 /// @brief Determines whether the given type is a reverse iterable type.
 template <class T>
-using IsReverseIterable = typename detail::IsReverseIterable<T>;
+inline constexpr bool IsReverseIterableV = detail::IsReverseIterable<T>::value;
 
 /// @brief Determines whether the given types are equality comparable.
 template <class T1, class T2 = T1>
-using IsEqualityComparable = typename detail::IsEqualityComparable<T1, T2>;
+inline constexpr bool IsEqualityComparableV = detail::IsEqualityComparable<T1, T2>::value;
 
 /// @brief Determines whether the given types are inequality comparable.
 template <class T1, class T2 = T1>
-using IsInequalityComparable = typename detail::IsInequalityComparable<T1, T2>;
+inline constexpr bool IsInequalityComparableV = detail::IsInequalityComparable<T1, T2>::value;
 
 /// @brief Determines whether the given type is an addable type.
 template <class T1, class T2 = T1>
-using IsAddable = typename detail::IsAddable<T1, T2>;
+inline constexpr bool IsAddableV = detail::IsAddable<T1, T2>::value;
 
 /// @brief Determines whether the given type is a multipliable type.
 template <class T1, class T2 = T1>
-using IsMultipliable = typename detail::IsMultipliable<T1, T2>;
+inline constexpr bool IsMultipliableV = detail::IsMultipliable<T1, T2>::value;
 
 /// @brief Determines whether the given type is a divisible type.
 template <class T1, class T2 = T1>
-using IsDivisable = typename detail::IsDivisable<T1, T2>;
+inline constexpr bool IsDivisableV = detail::IsDivisable<T1, T2>::value;
 
 /// @brief Determines whether the given type is an arithmetic type.
-template <class T>
-using IsArithmetic = typename detail::IsArithmetic<T>;
+template< class T >
+inline constexpr bool IsArithmeticV = detail::IsArithmetic<T>::value;
 
 /// @brief Wrapper for reversing ranged-for loop ordering.
 /// @warning This won't lifetime extend the iterable variable!
@@ -152,7 +155,7 @@ auto end(ReversionWrapper<T> w)
 /// @brief Gets a reversed order iterated wrapper.
 /// @see https://stackoverflow.com/a/28139075/7410358
 template <typename T>
-std::enable_if_t<IsReverseIterable<T>::value, ReversionWrapper<T>> Reverse(T&& iterable)
+std::enable_if_t<IsReverseIterableV<T>, ReversionWrapper<T>> Reverse(T&& iterable)
 {
     return {iterable};
 }
@@ -289,7 +292,7 @@ using HasUnaryFunctor = detail::HasFunctor<Type, Return(Arg)>;
 /// @brief Decayed type if not same as the checked type.
 /// @note This is done separately from other checks to ensure order of compiler's SFINAE
 ///   processing and to ensure elimination of check class before attempting to process other
-///   checks like is_copy_constructible. This prevents a compiler error that started showing
+///   checks like is_copy_constructible_v. This prevents a compiler error that started showing
 ///   up in gcc-9.
 template <typename Type, typename Check, typename DecayedType = std::decay_t<Type>>
 using DecayedTypeIfNotSame = std::enable_if_t<!std::is_same_v<DecayedType, Check>, DecayedType>;

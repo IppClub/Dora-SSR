@@ -19,10 +19,11 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/WorldManifold.hpp"
+#include "playrho/Contact.hpp"
 
 #include "playrho/d2/Manifold.hpp"
-#include "playrho/Contact.hpp"
+#include "playrho/d2/World.hpp"
+#include "playrho/d2/WorldManifold.hpp"
 #include "playrho/d2/WorldBody.hpp"
 #include "playrho/d2/WorldShape.hpp"
 
@@ -122,17 +123,17 @@ WorldManifold GetWorldManifold(const Manifold& manifold,
         default: break;
     }
     
-    // When type == Manifold::e_unset (or is an undefined value & NDEBUG is defined)...
+    // When type == Manifold::e_unset (or is not an enumerated value & NDEBUG is defined)...
     return WorldManifold{};
 }
 
 WorldManifold GetWorldManifold(const World& world, const Contact& contact, const Manifold& manifold)
 {
     return GetWorldManifold(manifold,
-                            GetTransformation(world, contact.GetBodyA()),
-                            GetVertexRadius(GetShape(world, contact.GetShapeA()), contact.GetChildIndexA()),
-                            GetTransformation(world, contact.GetBodyB()),
-                            GetVertexRadius(GetShape(world, contact.GetShapeB()), contact.GetChildIndexB()));
+                            GetTransformation(world, GetBodyA(contact)),
+                            GetVertexRadius(GetShape(world, GetShapeA(contact)), GetChildIndexA(contact)),
+                            GetTransformation(world, GetBodyB(contact)),
+                            GetVertexRadius(GetShape(world, GetShapeB(contact)), GetChildIndexB(contact)));
 }
 
 } /* namespace d2 */

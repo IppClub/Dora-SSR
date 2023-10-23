@@ -22,10 +22,13 @@
 #ifndef PLAYRHO_D2_JOINTCONF_HPP
 #define PLAYRHO_D2_JOINTCONF_HPP
 
-#include "playrho/BodyID.hpp"
+/// @file
+/// @brief Definition of the @c JointConf class and closely related code.
 
 #include <cstddef> // for std::max_align_t
 #include <cstdint>
+
+#include "playrho/BodyID.hpp"
 
 namespace playrho {
 namespace d2 {
@@ -77,9 +80,9 @@ constexpr bool GetCollideConnected(const JointConf& object) noexcept
 /// @details This is a builder structure of chainable methods for building a shape
 ///   configuration.
 /// @note Alignment requirement specified to ensure proper alignment of references
-///   returned for method chaining.
+///   returned for function chaining.
 /// @note This is a templated nested value class for initializing joints that
-///   uses the Curiously Recurring Template Pattern (CRTP) to provide method chaining
+///   uses the Curiously Recurring Template Pattern (CRTP) to provide function chaining
 ///   via static polymorphism.
 /// @see https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern
 template <class T>

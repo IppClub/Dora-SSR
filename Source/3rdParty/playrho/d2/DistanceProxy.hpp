@@ -22,10 +22,17 @@
 #ifndef PLAYRHO_D2_DISTANCEPROXY_HPP
 #define PLAYRHO_D2_DISTANCEPROXY_HPP
 
-#include "playrho/Math.hpp"
-#include "playrho/Span.hpp"
-#include <vector>
+/// @file
+/// @brief Definition of the @c DistanceProxy class and closely related code.
+
+#ifdef IMPLEMENT_DISTANCEPROXY_WITH_BUFFERS
 #include <algorithm>
+#endif
+#include <vector>
+
+#include "playrho/Span.hpp"
+
+#include "playrho/d2/Math.hpp"
 
 // Define IMPLEMENT_DISTANCEPROXY_WITH_BUFFERS to implement the DistanceProxy class
 // using buffers instead of pointers. Note that timing tests suggest implementing with
@@ -38,9 +45,12 @@ namespace playrho::d2 {
 class Shape;
 
 /// @brief Distance Proxy.
-/// @details A distance proxy aggregates a convex set of vertices, their normals, and a vertex
-///   radius of those vertices. This can be visualized as a convex N-sided polygon with rounded
-///   corners. It's meant to represent any single portion of a shape identified by its child-index.
+/// @details A distance proxy aggregates a convex set of vertices, their normals, and
+///   a vertex radius of those vertices. This can be visualized as a convex N-sided
+///   polygon with rounded corners. It's meant to represent any single portion of a
+///   shape identified by its child-index.
+/// @warning It is the programmer's responsibility to ensure that the @c DistanceProxy
+///   does not outlive the pointed-to vertices or normals!
 class DistanceProxy
 {
 public:
@@ -60,6 +70,8 @@ public:
     DistanceProxy() = default;
 
     /// @brief Copy constructor.
+    /// @warning It is the programmer's responsibility to ensure that this
+    ///   @c DistanceProxy does not outlive the copied from @c DistanceProxy.
     DistanceProxy(const DistanceProxy& copy) noexcept // NOLINT(modernize-use-equals-default)
         :
 #ifndef IMPLEMENT_DISTANCEPROXY_WITH_BUFFERS
@@ -82,15 +94,17 @@ public:
     /// @details Constructs a distance proxy for n-point shape (like a polygon).
     /// @param vertexRadius Radius of the given vertices.
     /// @param count Count of elements of the vertices and normals arrays.
-    /// @param vertices Collection of vertices of the shape (relative to the shape's origin).
-    /// @param normals Collection of normals of the shape.
+    /// @param vertices Pointer to array of vertices of shape (relative to shape's origin).
+    /// @param normals Pointer to array of normals of the shape.
     /// @note The vertices collection must have more than zero elements and no more than
     ///    <code>MaxShapeVertices</code> elements.
-    /// @warning Behavior is not specified if the vertices collection has less than one element or
+    /// @warning It is the programmer's responsibility to ensure that the @c DistanceProxy
+    ///   does not outlive the pointed-to vertices or normals!
+    /// @warning Behavior not specified if vertices array has less than one element or
     ///   more than <code>MaxShapeVertices</code> elements.
-    /// @warning Behavior is not specified if the vertices are not in counter-clockwise order.
-    /// @warning Behavior is not specified if the shape defined by the vertices is not convex.
-    /// @warning Behavior is not specified if the normals aren't normals for adjacent vertices.
+    /// @warning Behavior is not specified if vertices are not in counter-clockwise order.
+    /// @warning Behavior is not specified if shape defined by the vertices is not convex.
+    /// @warning Behavior is not specified if normals aren't normals for adjacent vertices.
     /// @warning Behavior is not specified if any normal is not unique.
     DistanceProxy(const NonNegative<Length>& vertexRadius, const VertexCounter count,
                   const Length2* vertices, const UnitVec* normals) noexcept
@@ -102,7 +116,6 @@ public:
           m_count{count},
           m_vertexRadius{vertexRadius}
     {
-        assert(vertexRadius >= 0_m);
         assert(count < 1u || vertices);
         assert(count < 2u || normals);
 #ifdef IMPLEMENT_DISTANCEPROXY_WITH_BUFFERS
@@ -144,9 +157,9 @@ public:
     }
 
     /// @brief Gets a vertex by index.
-    /// @param index Index value less than the count of vertices represented by this proxy.
+    /// @param index Index value less than count of vertices represented by this proxy.
     /// @pre The given @p index is less than <code>GetVertexCount()</code>.
-    /// @return Vertex linear position (relative to the shape's origin) at the given index.
+    /// @return Vertex linear position (relative to shape's origin) at the given index.
     /// @see Distance, GetVertexCount.
     auto GetVertex(VertexCounter index) const noexcept
     {
@@ -159,6 +172,7 @@ public:
     /// @pre The given @p index is less than <code>GetVertexCount()</code>.
     auto GetNormal(VertexCounter index) const noexcept
     {
+        assert(m_normals);
         assert(index != InvalidVertex);
         assert(index < m_count);
         return *(m_normals + index); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -196,8 +210,8 @@ inline auto GetVertexRadius(const DistanceProxy& arg) noexcept
     return arg.GetVertexRadius();
 }
 
-/// @brief Gets the supporting vertex index in the given direction for the given distance proxy.
-/// @details This finds the vertex that's most significantly in the direction of the given
+/// @brief Gets the supporting vertex index in given direction for given distance proxy.
+/// @details This finds the vertex that's most significantly in direction of the given
 ///   vector and returns its index.
 /// @note 0 is returned for a given zero length direction vector.
 /// @param proxy Distance proxy object to find index in if a valid index exists for it.
@@ -211,7 +225,7 @@ inline VertexCounter GetSupportIndex(const DistanceProxy& proxy, T dir) noexcept
 {
     using VT = typename T::value_type;
     using OT = decltype(VT{} * 0_m);
-    auto index = InvalidVertex; // Index of vertex that when dotted with dir has the max value.
+    auto index = InvalidVertex; // Index of vertex that when dotted with dir has max value.
     auto maxValue = -std::numeric_limits<OT>::infinity(); // Max dot value.
     auto i = VertexCounter{0};
     for (const auto& vertex : proxy.GetVertices()) {
@@ -228,15 +242,20 @@ inline VertexCounter GetSupportIndex(const DistanceProxy& proxy, T dir) noexcept
 /// @brief Tests a point for containment in the given distance proxy.
 /// @param proxy Distance proxy to check if point is within.
 /// @param point Point in local coordinates.
-/// @return <code>true</code> if point is contained in the proxy, <code>false</code> otherwise.
+/// @return <code>true</code> if point is contained in proxy, <code>false</code> otherwise.
 /// @relatedalso DistanceProxy
 /// @ingroup TestPointGroup
 bool TestPoint(const DistanceProxy& proxy, const Length2& point) noexcept;
 
-/// @brief Finds the lowest right most vertex in the given collection.
-std::size_t FindLowestRightMostVertex(Span<const Length2> vertices);
+/// @brief Finds the index of the lowest right most vertex in the given collection.
+/// @return Index of the lowest right most vertex in the given collection, or
+///   <code>GetInvalid<std::size_t>()</code> for empty container.
+std::size_t FindLowestRightMostVertex(Span<const Length2> vertices) noexcept;
 
 /// @brief Gets the convex hull for the given collection of vertices as a vector.
+/// @return Counter-clockwise vertices that "gift-wrap" the given vertices starting with
+///   lowest right-most vertex.
+/// @see FindLowestRightMostVertex.
 std::vector<Length2> GetConvexHullAsVector(Span<const Length2> vertices);
 
 } // namespace playrho::d2

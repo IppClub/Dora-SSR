@@ -22,10 +22,15 @@
 #ifndef PLAYRHO_D2_WHEELJOINTCONF_HPP
 #define PLAYRHO_D2_WHEELJOINTCONF_HPP
 
-#include "playrho/d2/JointConf.hpp"
+/// @file
+/// @brief Definition of the @c WheelJointConf class and closely related code.
 
-#include "playrho/Math.hpp"
 #include "playrho/Span.hpp"
+#include "playrho/Units.hpp"
+
+#include "playrho/d2/JointConf.hpp"
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/UnitVec.hpp"
 
 namespace playrho {
 

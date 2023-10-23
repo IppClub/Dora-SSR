@@ -19,13 +19,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/WeldJointConf.hpp"
-
-#include "playrho/d2/WorldBody.hpp"
-#include "playrho/d2/Joint.hpp"
-#include "playrho/StepConf.hpp"
-#include "playrho/d2/BodyConstraint.hpp"
 #include "playrho/ConstraintSolverConf.hpp"
+#include "playrho/StepConf.hpp"
+
+#include "playrho/d2/BodyConstraint.hpp"
+#include "playrho/d2/Joint.hpp"
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/WeldJointConf.hpp"
+#include "playrho/d2/WorldBody.hpp"
 
 namespace playrho {
 namespace d2 {
@@ -62,17 +63,17 @@ Mat33 GetMat33(InvMass invMassA, const Length2& rA, InvRotInertia invRotInertiaA
 
 } // unnamed namespace
 
-static_assert(std::is_default_constructible<WeldJointConf>::value,
+static_assert(std::is_default_constructible_v<WeldJointConf>,
               "WeldJointConf should be default constructible!");
-static_assert(std::is_copy_constructible<WeldJointConf>::value,
+static_assert(std::is_copy_constructible_v<WeldJointConf>,
               "WeldJointConf should be copy constructible!");
-static_assert(std::is_copy_assignable<WeldJointConf>::value,
+static_assert(std::is_copy_assignable_v<WeldJointConf>,
               "WeldJointConf should be copy assignable!");
-static_assert(std::is_move_constructible<WeldJointConf>::value,
+static_assert(std::is_move_constructible_v<WeldJointConf>,
               "WeldJointConf should be move constructible!");
-static_assert(std::is_move_assignable<WeldJointConf>::value,
+static_assert(std::is_move_assignable_v<WeldJointConf>,
               "WeldJointConf should be move assignable!");
-static_assert(std::is_nothrow_destructible<WeldJointConf>::value,
+static_assert(std::is_nothrow_destructible_v<WeldJointConf>,
               "WeldJointConf should be nothrow destructible!");
 
 // Point-to-point constraint

@@ -23,6 +23,9 @@
 
 #include <type_traits>
 
+/// @file
+/// @brief Definition of the @c FlagGuard class template.
+
 namespace playrho {
     
     /// @brief Flag guard type.
@@ -30,7 +33,7 @@ namespace playrho {
     class FlagGuard
     {
     public:
-        static_assert(std::is_unsigned<T>::value, "Unsigned type required");
+        static_assert(std::is_unsigned_v<T>, "Unsigned type required");
 
         /// @brief Initializing constructor.
         /// @details Sets the given flag variable to the bitwise or of it with the

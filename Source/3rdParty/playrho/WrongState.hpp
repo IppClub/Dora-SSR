@@ -21,13 +21,16 @@
 #ifndef PLAYRHO_WRONGSTATE_HPP
 #define PLAYRHO_WRONGSTATE_HPP
 
+/// @file
+/// @brief Definition of the @c WrongState class.
+
 #include <stdexcept>
 
 namespace playrho {
 
     /// @brief Wrong state logic error.
-    /// @details Indicates that a method was called on an object in the wrong state for
-    ///   its operation.
+    /// @details Indicates that a function was called with an object in the wrong
+    ///   state for its operation.
     /// @ingroup ExceptionsGroup
     class WrongState: public std::logic_error
     {

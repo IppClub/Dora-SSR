@@ -420,11 +420,10 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/playrho/d2/WorldJoint.cpp
 	src/main/cpp/3rdParty/playrho/d2/FrictionJointConf.cpp
 	src/main/cpp/3rdParty/playrho/d2/TargetJointConf.cpp
-	src/main/cpp/3rdParty/playrho/d2/WorldImplMisc.cpp
 	src/main/cpp/3rdParty/playrho/d2/SeparationScenario.cpp
 	src/main/cpp/3rdParty/playrho/d2/JointConf.cpp
 	src/main/cpp/3rdParty/playrho/d2/Sweep.cpp
-	src/main/cpp/3rdParty/playrho/d2/WorldImplContact.cpp
+	src/main/cpp/3rdParty/playrho/d2/Math.cpp
 	src/main/cpp/3rdParty/playrho/d2/UnitVec.cpp
 	src/main/cpp/3rdParty/playrho/d2/BodyConf.cpp
 	src/main/cpp/3rdParty/playrho/d2/DiskShapeConf.cpp
@@ -435,28 +434,26 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/playrho/d2/RopeJointConf.cpp
 	src/main/cpp/3rdParty/playrho/d2/ClipList.cpp
 	src/main/cpp/3rdParty/playrho/d2/WorldContact.cpp
-	src/main/cpp/3rdParty/playrho/d2/WorldImplJoint.cpp
 	src/main/cpp/3rdParty/playrho/d2/WorldBody.cpp
 	src/main/cpp/3rdParty/playrho/d2/TimeOfImpact.cpp
 	src/main/cpp/3rdParty/playrho/d2/GearJointConf.cpp
-	src/main/cpp/3rdParty/playrho/d2/WorldSpecial.cpp
-	src/main/cpp/3rdParty/playrho/d2/WorldImpl.cpp
+	src/main/cpp/3rdParty/playrho/d2/AabbTreeWorld.cpp
 	src/main/cpp/3rdParty/playrho/d2/Body.cpp
 	src/main/cpp/3rdParty/playrho/d2/WheelJointConf.cpp
 	src/main/cpp/3rdParty/playrho/d2/WeldJointConf.cpp
 	src/main/cpp/3rdParty/playrho/d2/WorldShape.cpp
 	src/main/cpp/3rdParty/playrho/d2/ContactSolver.cpp
-	src/main/cpp/3rdParty/playrho/d2/WorldImplBody.cpp
 	src/main/cpp/3rdParty/playrho/d2/Shape.cpp
 	src/main/cpp/3rdParty/playrho/d2/PolygonShapeConf.cpp
 	src/main/cpp/3rdParty/playrho/d2/PulleyJointConf.cpp
 	src/main/cpp/3rdParty/playrho/d2/WorldManifold.cpp
 	src/main/cpp/3rdParty/playrho/d2/PositionSolverManifold.cpp
+	src/main/cpp/3rdParty/playrho/d2/ConvexHull.cpp
 	src/main/cpp/3rdParty/playrho/d2/Velocity.cpp
 	src/main/cpp/3rdParty/playrho/d2/Distance.cpp
 	src/main/cpp/3rdParty/playrho/d2/ChainShapeConf.cpp
 	src/main/cpp/3rdParty/playrho/d2/RevoluteJointConf.cpp
-	src/main/cpp/3rdParty/playrho/d2/WorldImplShape.cpp
+	src/main/cpp/3rdParty/playrho/d2/AabbTreeWorldBody.cpp
 	src/main/cpp/3rdParty/playrho/d2/PrismaticJointConf.cpp
 	src/main/cpp/3rdParty/playrho/d2/WorldMisc.cpp
 	src/main/cpp/3rdParty/playrho/d2/CodeDumper.cpp

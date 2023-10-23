@@ -20,14 +20,12 @@
  */
 
 #include "playrho/d2/PolygonShapeConf.hpp"
-
 #include "playrho/d2/Shape.hpp"
 #include "playrho/d2/VertexSet.hpp"
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
-static_assert(IsValidShapeType<PolygonShapeConf>::value);
+static_assert(IsValidShapeTypeV<PolygonShapeConf>);
 
 PolygonShapeConf::PolygonShapeConf() noexcept = default;
 
@@ -46,25 +44,17 @@ PolygonShapeConf::PolygonShapeConf(Span<const Length2> points,
 
 PolygonShapeConf& PolygonShapeConf::SetAsBox(Length hx, Length hy)
 {
-    m_centroid = Length2{};
-
     // vertices must be counter-clockwise
-    m_vertices.clear();
-    m_vertices.emplace_back(+hx, -hy); // bottom right
-    m_vertices.emplace_back(+hx, +hy); // top right
-    m_vertices.emplace_back(-hx, +hy); // top left
-    m_vertices.emplace_back(-hx, -hy); // bottom left
-
-    m_normals.clear();
-    m_normals.push_back(UnitVec::GetRight());
-    m_normals.push_back(UnitVec::GetTop());
-    m_normals.push_back(UnitVec::GetLeft());
-    m_normals.push_back(UnitVec::GetBottom());
-
+    auto vertices = std::vector<Length2>{
+        {+hx, -hy}, // bottom right
+        {+hx, +hy}, // top right}
+        {-hx, +hy}, // top left
+        {-hx, -hy} // bottom left
+    };
+    ngon = NgonWithFwdNormals<>{std::move(vertices)};
     return *this;
 }
 
-/// @brief Uses the given vertices.
 PolygonShapeConf& PolygonShapeConf::UseVertices(const Span<const Length2>& verts)
 {
     return Set(verts);
@@ -78,20 +68,20 @@ PolygonShapeConf& PolygonShapeConf::SetAsBox(Length hx, Length hy, const Length2
     return *this;
 }
 
-PolygonShapeConf& PolygonShapeConf::Transform(const Transformation& xfm) noexcept
+PolygonShapeConf& PolygonShapeConf::Transform(const Transformation& xfm)
 {
-    for (auto i = decltype(GetVertexCount()){0}; i < GetVertexCount(); ++i) {
-        m_vertices[i] = playrho::d2::Transform(m_vertices[i], xfm);
-        m_normals[i] = ::playrho::d2::Rotate(m_normals[i], xfm.q);
+    auto vertices = ngon.GetVertices();
+    for (auto&& vertex: vertices) {
+        vertex = playrho::d2::Transform(vertex, xfm);
     }
-    m_centroid = playrho::d2::Transform(m_centroid, xfm);
+    ngon = NgonWithFwdNormals<>{std::move(vertices)};
     return *this;
 }
 
 PolygonShapeConf& PolygonShapeConf::Transform(const Mat22& m)
 {
     auto newPoints = VertexSet{};
-    for (const auto& v : m_vertices) {
+    for (const auto& v : ngon.GetVertices()) {
         newPoints.add(m * v);
     }
     return Set(newPoints);
@@ -100,7 +90,7 @@ PolygonShapeConf& PolygonShapeConf::Transform(const Mat22& m)
 PolygonShapeConf& PolygonShapeConf::Translate(const Length2& value)
 {
     auto newPoints = VertexSet{};
-    for (const auto& v : m_vertices) {
+    for (const auto& v : ngon.GetVertices()) {
         newPoints.add(v + value);
     }
     return Set(newPoints);
@@ -109,7 +99,7 @@ PolygonShapeConf& PolygonShapeConf::Translate(const Length2& value)
 PolygonShapeConf& PolygonShapeConf::Scale(const Vec2& value)
 {
     auto newPoints = VertexSet{};
-    for (const auto& v : m_vertices) {
+    for (const auto& v : ngon.GetVertices()) {
         newPoints.add(Length2{GetX(v) * GetX(value), GetY(v) * GetY(value)});
     }
     return Set(newPoints);
@@ -118,7 +108,7 @@ PolygonShapeConf& PolygonShapeConf::Scale(const Vec2& value)
 PolygonShapeConf& PolygonShapeConf::Rotate(const UnitVec& value)
 {
     auto newPoints = VertexSet{};
-    for (const auto& v : m_vertices) {
+    for (const auto& v : ngon.GetVertices()) {
         newPoints.add(::playrho::d2::Rotate(v, value));
     }
     return Set(newPoints);
@@ -136,49 +126,11 @@ PolygonShapeConf& PolygonShapeConf::Set(Span<const Length2> points)
 
 PolygonShapeConf& PolygonShapeConf::Set(const VertexSet& points)
 {
-    m_vertices = GetConvexHullAsVector(points);
-    assert(size(m_vertices) < std::numeric_limits<VertexCounter>::max());
-
-    const auto count = static_cast<VertexCounter>(size(m_vertices));
-
-    m_normals.clear();
-    if (count > 1) {
-        // Compute normals.
-        for (auto i = decltype(count){0}; i < count; ++i) {
-            const auto edge = GetEdge(*this, i);
-            m_normals.push_back(GetUnitVector(GetFwdPerpendicular(edge)));
-        }
-    }
-    else if (count == 1) {
-        m_normals.emplace_back();
-    }
-
-    // Compute the polygon centroid.
-    switch (count) {
-    case 0:
-        m_centroid = GetInvalid<Length2>();
-        break;
-    case 1:
-        m_centroid = m_vertices[0];
-        break;
-    case 2:
-        m_centroid = (m_vertices[0] + m_vertices[1]) / Real{2};
-        break;
-    default:
-        m_centroid = ComputeCentroid(GetVertices());
-        break;
-    }
-
+    // Provide strong exception guarantee!
+    auto vertices = GetConvexHullAsVector(points);
+    assert(size(vertices) < std::numeric_limits<VertexCounter>::max());
+    ngon = NgonWithFwdNormals<>{std::move(vertices)};
     return *this;
-}
-
-Length2 GetEdge(const PolygonShapeConf& shape, VertexCounter index)
-{
-    assert(shape.GetVertexCount() > 1);
-
-    const auto i0 = index;
-    const auto i1 = GetModuloNext(index, shape.GetVertexCount());
-    return shape.GetVertex(i1) - shape.GetVertex(i0);
 }
 
 bool Validate(const Span<const Length2>& verts)
@@ -203,5 +155,4 @@ bool Validate(const Span<const Length2>& verts)
     return true;
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

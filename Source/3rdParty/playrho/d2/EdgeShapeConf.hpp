@@ -22,25 +22,29 @@
 #ifndef PLAYRHO_D2_SHAPES_EDGESHAPECONF_HPP
 #define PLAYRHO_D2_SHAPES_EDGESHAPECONF_HPP
 
-#include "playrho/Math.hpp"
-#include "playrho/d2/ShapeConf.hpp"
+/// @file
+/// @brief Definition of the @c EdgeShapeConf class and closely related code.
+
+#include <array>
+#include <utility> // for std::index_sequence
+
+#include "playrho/TypeInfo.hpp"
+
 #include "playrho/d2/DistanceProxy.hpp"
 #include "playrho/d2/MassData.hpp"
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/NgonWithFwdNormals.hpp"
+#include "playrho/d2/ShapeConf.hpp"
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 /// @brief Edge shape configuration.
-///
 /// @details A line segment (edge) shape. These can be connected in chains or loops
 ///   to other edge shapes. The connectivity information is used to ensure correct
 ///   contact normals.
-///
 /// @ingroup PartsGroup
-///
-class EdgeShapeConf : public ShapeBuilder<EdgeShapeConf>
+struct EdgeShapeConf : public ShapeBuilder<EdgeShapeConf>
 {
-public:
     /// @brief Default vertex radius.
     static constexpr auto DefaultVertexRadius = NonNegative<Length>{DefaultLinearSlop * Real{2}};
 
@@ -83,40 +87,25 @@ public:
     /// @brief Gets vertex A.
     Length2 GetVertexA() const noexcept
     {
-        return m_vertices[0];
+        return ngon.GetVertices()[0];
     }
 
     /// @brief Gets vertex B.
     Length2 GetVertexB() const noexcept
     {
-        return m_vertices[1];
-    }
-
-    /// @brief Gets the "child" shape.
-    DistanceProxy GetChild() const noexcept
-    {
-        return DistanceProxy{vertexRadius, 2, // force line-break
-            static_cast<const Length2*>(m_vertices), // explicitly decay array into pointer
-            static_cast<const UnitVec*>(m_normals) // explicitly decay array into pointer
-        };
+        return ngon.GetVertices()[1];
     }
 
     /// @brief Vertex radius.
-    ///
     /// @details This is the radius from the vertex that the shape's "skin" should
     ///   extend outward by. While any edges &mdash; line segments between multiple
     ///   vertices &mdash; are straight, corners between them (the vertices) are
     ///   rounded and treated as rounded. Shapes with larger vertex radiuses compared
     ///   to edge lengths therefore will be more prone to rolling or having other
     ///   shapes more prone to roll off of them.
-    ///
-    /// @note This should be a non-negative value.
-    ///
-    NonNegative<Length> vertexRadius = GetDefaultVertexRadius();
+    NonNegativeFF<Length> vertexRadius = GetDefaultVertexRadius();
 
-private:
-    Length2 m_vertices[2] = {Length2{}, Length2{}}; ///< Vertices
-    UnitVec m_normals[2] = {UnitVec{}, UnitVec{}}; ///< Normals.
+    NgonWithFwdNormals<2> ngon;
 };
 
 inline EdgeShapeConf& EdgeShapeConf::UseVertexRadius(NonNegative<Length> value) noexcept
@@ -133,7 +122,7 @@ inline bool operator==(const EdgeShapeConf& lhs, const EdgeShapeConf& rhs) noexc
     return lhs.vertexRadius == rhs.vertexRadius && lhs.friction == rhs.friction &&
            lhs.restitution == rhs.restitution && lhs.density == rhs.density &&
            lhs.filter == rhs.filter && lhs.isSensor == rhs.isSensor &&
-           lhs.GetVertexA() == rhs.GetVertexA() && lhs.GetVertexB() == rhs.GetVertexB();
+           lhs.ngon == rhs.ngon;
 }
 
 /// @brief Inequality operator.
@@ -155,7 +144,10 @@ inline DistanceProxy GetChild(const EdgeShapeConf& arg, ChildCounter index)
     if (index != 0) {
         throw InvalidArgument("only index of 0 is supported");
     }
-    return arg.GetChild();
+    return DistanceProxy{arg.vertexRadius, 2, // force line-break
+        data(arg.ngon.GetVertices()), // explicitly decay array into pointer
+        data(arg.ngon.GetNormals()) // explicitly decay array into pointer
+    };
 }
 
 /// @brief Gets the vertex radius of the given shape configuration.
@@ -207,8 +199,7 @@ inline void Rotate(EdgeShapeConf& arg, const UnitVec& value) noexcept
     arg.Rotate(value);
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 /// @brief Type info specialization for <code>playrho::d2::EdgeShapeConf</code>.
 template <>

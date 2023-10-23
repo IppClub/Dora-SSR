@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_CONTACTABLE_HPP
 #define PLAYRHO_CONTACTABLE_HPP
 
+/// @file
+/// @brief Definition of the <code>Contactable</code> class and closely related code.
+
 #include "playrho/Settings.hpp" // for ChildCounter
 #include "playrho/ShapeID.hpp"
 #include "playrho/BodyID.hpp"
@@ -62,6 +65,13 @@ constexpr bool operator==(const Contactable& lhs, const Contactable& rhs) noexce
 constexpr bool operator!=(const Contactable& lhs, const Contactable& rhs) noexcept
 {
     return !(lhs == rhs);
+}
+
+/// @brief Is-for convenience function.
+/// @return true if contactable is for the identified body and shape, else false.
+constexpr bool IsFor(const Contactable& c, BodyID bodyID, ShapeID shapeID) noexcept
+{
+    return (c.bodyId == bodyID) && (c.shapeId == shapeID);
 }
 
 }

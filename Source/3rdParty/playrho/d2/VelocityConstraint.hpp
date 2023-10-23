@@ -22,10 +22,13 @@
 #ifndef PLAYRHO_D2_VELOCITYCONSTRAINT_HPP
 #define PLAYRHO_D2_VELOCITYCONSTRAINT_HPP
 
-#include "playrho/Math.hpp"
+/// @file
+/// @brief Definition of the @c VelocityConstraint class and closely related code.
+
 #include "playrho/Span.hpp"
 
 #include "playrho/d2/BodyConstraint.hpp"
+#include "playrho/d2/Math.hpp"
 
 namespace playrho {
 
@@ -49,7 +52,7 @@ class VelocityConstraint
 {
 public:
     /// @brief Size type.
-    using size_type = std::remove_const<decltype(MaxManifoldPoints)>::type;
+    using size_type = std::remove_const_t<decltype(MaxManifoldPoints)>;
 
     /// @brief Configuration data for velocity constraints.
     struct Conf
@@ -126,21 +129,21 @@ public:
     BodyID GetBodyB() const noexcept { return m_bodyB; }
     
     /// Gets the normal impulse at the given point.
-    /// @note Call the <code>AddPoint</code> or <code>SetNormalImpulseAtPoint</code> method
+    /// @note Call the <code>AddPoint</code> or <code>SetNormalImpulseAtPoint</code> function
     ///   to set this value.
     /// @return Value previously set, or an invalid value.
     /// @see SetNormalImpulseAtPoint.
     Momentum GetNormalImpulseAtPoint(size_type index) const noexcept;
     
     /// Gets the tangent impulse at the given point.
-    /// @note Call the <code>AddPoint</code> or <code>SetTangentImpulseAtPoint</code> method
+    /// @note Call the <code>AddPoint</code> or <code>SetTangentImpulseAtPoint</code> function
     ///   to set this value.
     /// @return Value previously set, or an invalid value.
     /// @see SetTangentImpulseAtPoint.
     Momentum GetTangentImpulseAtPoint(size_type index) const noexcept;
     
     /// Gets the velocity bias at the given point.
-    /// @note The <code>AddPoint</code> method sets this value.
+    /// @note The <code>AddPoint</code> function sets this value.
     /// @return Previously set value or an invalid value.
     LinearVelocity GetVelocityBiasAtPoint(size_type index) const noexcept;
     
@@ -150,7 +153,7 @@ public:
     ///   the bodies' inverse-rotational-inertia,
     ///   the point-relative A and B positions, and
     ///   the normal.
-    /// @note The <code>AddPoint</code> method sets this value.
+    /// @note The <code>AddPoint</code> function sets this value.
     Mass GetNormalMassAtPoint(size_type index) const noexcept;
     
     /// Gets the tangent mass at the given point.
@@ -159,16 +162,16 @@ public:
     ///   the bodies' inverse-rotational-inertia,
     ///   the point-relative A and B positions, and
     ///   the tangent.
-    /// @note The <code>AddPoint</code> method sets this value.
+    /// @note The <code>AddPoint</code> function sets this value.
     Mass GetTangentMassAtPoint(size_type index) const noexcept;
     
     /// Gets the point relative position of A.
-    /// @note The <code>AddPoint</code> method sets this value.
+    /// @note The <code>AddPoint</code> function sets this value.
     /// @return Previously set value or an invalid value.
     Length2 GetPointRelPosA(size_type index) const noexcept;
     
     /// Gets the point relative position of B.
-    /// @note The <code>AddPoint</code> method sets this value.
+    /// @note The <code>AddPoint</code> function sets this value.
     /// @return Previously set value or an invalid value.
     Length2 GetPointRelPosB(size_type index) const noexcept;
     
@@ -367,7 +370,7 @@ VelocityConstraint::Conf GetRegVelocityConstraintConf(const StepConf& conf) noex
 VelocityConstraint::Conf GetToiVelocityConstraintConf(const StepConf& conf) noexcept;
 
 /// Gets the normal of the velocity constraint contact in world coordinates.
-/// @note This value is set via the velocity constraint's <code>SetNormal</code> method.
+/// @note This value is set via the velocity constraint's <code>SetNormal</code> function.
 /// @return The contact normal (in world coordinates) if previously set, an invalid value
 ///   otherwise.
 inline UnitVec GetNormal(const VelocityConstraint& vc) noexcept

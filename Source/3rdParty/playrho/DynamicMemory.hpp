@@ -22,6 +22,9 @@
 #ifndef PLAYRHO_DYNAMICMEMORY_HPP
 #define PLAYRHO_DYNAMICMEMORY_HPP
 
+/// @file
+/// @brief Dynamic memory allocation helpers.
+
 #include "playrho/Defines.hpp"
 
 #include <cstddef>

@@ -22,6 +22,9 @@
 #ifndef PLAYRHO_D2_BASICAPI_HPP
 #define PLAYRHO_D2_BASICAPI_HPP
 
+/// @file
+/// @brief Basic API include file to pull in at once most headers used.
+
 // For purists, just include this first file.
 #include "playrho/d2/World.hpp"
 

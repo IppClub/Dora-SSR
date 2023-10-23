@@ -22,6 +22,9 @@
 #ifndef PLAYRHO_D2_ACCELERATION_HPP
 #define PLAYRHO_D2_ACCELERATION_HPP
 
+/// @file
+/// @brief Definition of the @c Acceleration class and closely related code.
+
 #include "playrho/Settings.hpp"
 #include "playrho/Vector2.hpp"
 

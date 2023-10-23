@@ -24,6 +24,6 @@
 
 namespace playrho::d2 {
 
-static_assert(IsValidShapeType<DiskShapeConf>::value);
+static_assert(IsValidShapeTypeV<DiskShapeConf>);
 
 } // namespace playrho::d2

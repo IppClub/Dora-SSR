@@ -22,10 +22,13 @@
 #ifndef PLAYRHO_VERSION_HPP
 #define PLAYRHO_VERSION_HPP
 
-#include "playrho/Defines.hpp"
+/// @file
+/// @brief Definition of the @c Version class and closely related code.
 
-#include <cstdint>
+#include <cstdint> // for std::std::int32_t
 #include <string>
+
+#include "playrho/Defines.hpp"
 
 namespace playrho {
 

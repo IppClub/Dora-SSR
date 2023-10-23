@@ -22,8 +22,10 @@
 #ifndef PLAYRHO_VECTOR2_HPP
 #define PLAYRHO_VECTOR2_HPP
 
+/// @file
+/// @brief Definition of the @c Vector2 alias template and closely related code.
+
 #include "playrho/Settings.hpp"
-#include "playrho/InvalidArgument.hpp"
 #include "playrho/Vector.hpp"
 
 namespace playrho {
@@ -65,9 +67,41 @@ using InvMass2 = Vector2<InvMass>;
 using Momentum2 = Vector2<Momentum>;
 
 /// @brief Gets the given value as a 2-element vector of reals (<code>Vec2</code>).
-constexpr Vec2 GetVec2(const Vector2<Real> value)
+constexpr auto GetVec2(const Vector2<Real>& value) -> Vec2
 {
     return value;
+}
+
+/// @brief Gets value as 2-element vector of reals for any type having <code>value()</code> member function.
+template <class T>
+constexpr auto GetVec2(const Vector2<T>& value)
+-> decltype(Vec2{static_cast<Real>(get<0>(value).value()), static_cast<Real>(get<1>(value).value())})
+{
+    return {static_cast<Real>(get<0>(value).value()), static_cast<Real>(get<1>(value).value())};
+}
+
+/// @brief Gets a vector counter-clockwise (reverse-clockwise) perpendicular to the given vector.
+/// @details This takes a vector of form (x, y) and returns the vector (-y, x).
+/// @param vector Vector to return a counter-clockwise perpendicular equivalent for.
+/// @return A counter-clockwise 90-degree rotation of the given vector.
+/// @see GetFwdPerpendicular.
+template <class T>
+constexpr auto GetRevPerpendicular(const Vector2<T>& vector) noexcept -> Vector2<T>
+{
+    // See http://mathworld.wolfram.com/PerpendicularVector.html
+    return {-get<1>(vector), get<0>(vector)};
+}
+
+/// @brief Gets a vector clockwise (forward-clockwise) perpendicular to the given vector.
+/// @details This takes a vector of form (x, y) and returns the vector (y, -x).
+/// @param vector Vector to return a clockwise perpendicular equivalent for.
+/// @return A clockwise 90-degree rotation of the given vector.
+/// @see GetRevPerpendicular.
+template <class T>
+constexpr auto GetFwdPerpendicular(const Vector2<T>& vector) noexcept -> Vector2<T>
+{
+    // See http://mathworld.wolfram.com/PerpendicularVector.html
+    return {get<1>(vector), -get<0>(vector)};
 }
 
 /// @brief Gets an invalid value for the <code>Vec2</code> type.
@@ -113,37 +147,6 @@ constexpr Momentum2 GetInvalid() noexcept
     return Momentum2{GetInvalid<Momentum>(), GetInvalid<Momentum>()};
 }
 
-constexpr Vec2 GetVec2(const Length2& value)
-{
-    return Vec2{
-        get<0>(value) / Meter,
-        get<1>(value) / Meter
-    };
-}
-
-constexpr Vec2 GetVec2(const LinearVelocity2& value)
-{
-    return Vec2{
-        get<0>(value) / MeterPerSecond,
-        get<1>(value) / MeterPerSecond
-    };
-}
-
-constexpr Vec2 GetVec2(const Momentum2& value)
-{
-    return Vec2{
-        get<0>(value) / (Kilogram * MeterPerSecond),
-        get<1>(value) / (Kilogram * MeterPerSecond)
-    };
-}
-
-constexpr Vec2 GetVec2(const Force2& value)
-{
-    return Vec2{
-        get<0>(value) / Newton,
-        get<1>(value) / Newton
-    };
-}
 #endif
 
 namespace d2 {

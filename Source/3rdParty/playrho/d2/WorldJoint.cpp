@@ -28,98 +28,67 @@
 
 #include <algorithm>
 
-namespace playrho {
-namespace d2 {
-
-JointCounter GetJointRange(const World& world) noexcept
-{
-    return world.GetJointRange();
-}
-
-const std::vector<JointID>& GetJoints(const World& world) noexcept
-{
-    return world.GetJoints();
-}
-
-JointID CreateJoint(World& world, const Joint& def)
-{
-    return world.CreateJoint(def);
-}
-
-void Destroy(World& world, JointID id)
-{
-    world.Destroy(id);
-}
-
-const Joint& GetJoint(const World& world, JointID id)
-{
-    return world.GetJoint(id);
-}
-
-void SetJoint(World& world, JointID id, const Joint& def)
-{
-    world.SetJoint(id, def);
-}
+namespace playrho::d2 {
 
 TypeID GetType(const World& world, JointID id)
 {
-    return GetType(world.GetJoint(id));
+    return GetType(GetJoint(world, id));
 }
 
 bool GetCollideConnected(const World& world, JointID id)
 {
-    return GetCollideConnected(world.GetJoint(id));
+    return GetCollideConnected(GetJoint(world, id));
 }
 
 BodyID GetBodyA(const World& world, JointID id)
 {
-    return GetBodyA(world.GetJoint(id));
+    return GetBodyA(GetJoint(world, id));
 }
 
 BodyID GetBodyB(const World& world, JointID id)
 {
-    return GetBodyB(world.GetJoint(id));
+    return GetBodyB(GetJoint(world, id));
 }
 
 Length2 GetLocalAnchorA(const World& world, JointID id)
 {
-    return GetLocalAnchorA(world.GetJoint(id));
+    return GetLocalAnchorA(GetJoint(world, id));
 }
 
 Length2 GetLocalAnchorB(const World& world, JointID id)
 {
-    return GetLocalAnchorB(world.GetJoint(id));
+    return GetLocalAnchorB(GetJoint(world, id));
 }
 
 Momentum2 GetLinearReaction(const World& world, JointID id)
 {
-    return GetLinearReaction(world.GetJoint(id));
+    return GetLinearReaction(GetJoint(world, id));
 }
 
 AngularMomentum GetAngularReaction(const World& world, JointID id)
 {
-    return GetAngularReaction(world.GetJoint(id));
+    return GetAngularReaction(GetJoint(world, id));
 }
 
 Angle GetReferenceAngle(const World& world, JointID id)
 {
-    return GetReferenceAngle(world.GetJoint(id));
+    return GetReferenceAngle(GetJoint(world, id));
 }
 
 void SetAwake(World& world, JointID id)
 {
-    const auto& joint = world.GetJoint(id);
+    const auto joint = GetJoint(world, id);
     const auto bA = GetBodyA(joint);
     const auto bB = GetBodyB(joint);
     if (bA != InvalidBodyID) {
-        auto body = world.GetBody(bA);
+        auto body = GetBody(world, bA);
         SetAwake(body);
-        world.SetBody(bA, body);
+        SetBody(world, bA, body);
     }
     if (bB != InvalidBodyID) {
-        auto body = world.GetBody(bB);
+        auto body = GetBody(world, bB);
         SetAwake(body);
-        world.SetBody(bB, body);
+        SetBody(world, bB, body);
     }
 }
 
@@ -181,17 +150,17 @@ void SetFrequency(World& world, JointID id, Frequency value)
 
 AngularVelocity GetAngularVelocity(const World& world, JointID id)
 {
-    const auto& joint = GetJoint(world, id);
-    return GetAngularVelocity(world.GetBody(GetBodyB(joint)))
-         - GetAngularVelocity(world.GetBody(GetBodyA(joint)));
+    const auto joint = GetJoint(world, id);
+    return GetAngularVelocity(GetBody(world, GetBodyB(joint)))
+         - GetAngularVelocity(GetBody(world, GetBodyA(joint)));
 }
 
 bool IsEnabled(const World& world, JointID id)
 {
     const auto bA = GetBodyA(world, id);
     const auto bB = GetBodyB(world, id);
-    return (bA == InvalidBodyID || IsEnabled(world.GetBody(bA)))
-        && (bB == InvalidBodyID || IsEnabled(world.GetBody(bB)));
+    return (bA == InvalidBodyID || IsEnabled(GetBody(world, bA)))
+        && (bB == InvalidBodyID || IsEnabled(GetBody(world, bB)));
 }
 
 JointCounter GetWorldIndex(const World&, JointID id) noexcept
@@ -201,18 +170,18 @@ JointCounter GetWorldIndex(const World&, JointID id) noexcept
 
 Length2 GetAnchorA(const World& world, JointID id)
 {
-    const auto& joint = world.GetJoint(id);
+    const auto joint = GetJoint(world, id);
     const auto la = GetLocalAnchorA(joint);
     const auto body = GetBodyA(joint);
-    return (body != InvalidBodyID)? Transform(la, GetTransformation(world.GetBody(body))): la;
+    return (body != InvalidBodyID)? Transform(la, GetTransformation(GetBody(world, body))): la;
 }
 
 Length2 GetAnchorB(const World& world, JointID id)
 {
-    const auto& joint = world.GetJoint(id);
+    const auto joint = GetJoint(world, id);
     const auto la = GetLocalAnchorB(joint);
     const auto body = GetBodyB(joint);
-    return (body != InvalidBodyID)? Transform(la, GetTransformation(world.GetBody(body))): la;
+    return (body != InvalidBodyID)? Transform(la, GetTransformation(GetBody(world, body))): la;
 }
 
 Real GetRatio(const World& world, JointID id)
@@ -222,18 +191,18 @@ Real GetRatio(const World& world, JointID id)
 
 Length GetJointTranslation(const World& world, JointID id)
 {
-    const auto& joint = world.GetJoint(id);
+    const auto joint = GetJoint(world, id);
     const auto pA = GetAnchorA(world, id);
     const auto pB = GetAnchorB(world, id);
     const auto uv = Rotate(GetLocalXAxisA(joint),
-                           GetTransformation(world.GetBody(GetBodyA(joint))).q);
+                           GetTransformation(GetBody(world, GetBodyA(joint))).q);
     return Dot(pB - pA, uv);
 }
 
 Angle GetAngle(const World& world, JointID id)
 {
-    const auto& joint = world.GetJoint(id);
-    return GetAngle(world.GetBody(GetBodyB(joint))) - GetAngle(world.GetBody(GetBodyA(joint)))
+    const auto joint = GetJoint(world, id);
+    return GetAngle(GetBody(world, GetBodyB(joint))) - GetAngle(GetBody(world, GetBodyA(joint)))
          - GetReferenceAngle(world, id);
 }
 
@@ -362,5 +331,4 @@ LimitState GetLimitState(const World& world, JointID id)
     return GetLimitState(GetJoint(world, id));
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

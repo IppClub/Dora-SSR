@@ -22,21 +22,23 @@
 #ifndef PLAYRHO_ISLAND_HPP
 #define PLAYRHO_ISLAND_HPP
 
-#include "playrho/pmr/MemoryResource.hpp" // for pmr::polymorphic_allocator
-#include "playrho/Templates.hpp" // IsFull
-#include "playrho/Settings.hpp" // BodyCounter, ContactCounter, JointCounter
-
-#include "playrho/BodyID.hpp"
-#include "playrho/JointID.hpp"
-#include "playrho/ContactID.hpp"
+/// @file
+/// @brief Definition of the @c Island class and related code.
 
 #include <vector>
+
+#include "playrho/BodyID.hpp"
+#include "playrho/ContactID.hpp"
+#include "playrho/JointID.hpp"
+#include "playrho/Settings.hpp" // BodyCounter, ContactCounter, JointCounter
+#include "playrho/Templates.hpp" // IsFull
+
+#include "playrho/pmr/MemoryResource.hpp" // for pmr::polymorphic_allocator
 
 namespace playrho {
 
 /// @brief Definition of a self-contained constraint "island".
-/// @details A container of bodies contacts and joints relevant to handling world dynamics.
-/// @note This is an internal class.
+/// @details A container of body contact and joint identifiers for handling world dynamics.
 struct Island
 {   
     /// @brief Container type for body identifiers.

@@ -22,6 +22,9 @@
 #ifndef PLAYRHO_BLOCKALLOCATOR_HPP
 #define PLAYRHO_BLOCKALLOCATOR_HPP
 
+/// @file
+/// @brief Definition of the <code>BlockAllocator</code> class and closely related code.
+
 #include "playrho/Settings.hpp"
 
 namespace playrho {
