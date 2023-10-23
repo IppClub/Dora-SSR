@@ -22,10 +22,13 @@
 #ifndef PLAYRHO_D2_MANIFOLD_HPP
 #define PLAYRHO_D2_MANIFOLD_HPP
 
+/// @file
+/// @brief Definition of the @c Manifold class and closely related code.
+
 #include "playrho/ContactFeature.hpp"
-#include "playrho/Math.hpp"
 
 #include "playrho/d2/IndexPair.hpp"
+#include "playrho/d2/Math.hpp"
 
 namespace playrho {
 
@@ -68,7 +71,7 @@ class Manifold
 {
 public:
     /// @brief Size type.
-    using size_type = std::remove_const<decltype(MaxManifoldPoints)>::type;
+    using size_type = std::remove_const_t<decltype(MaxManifoldPoints)>;
 
     /// The contact feature index.
     using CfIndex = ContactFeature::Index;
@@ -329,60 +332,59 @@ public:
     }
 
     /// Gets the manifold point count.
-    ///
     /// @details This is the count of contact points for this manifold.
     ///   Only up to this many points can be validly accessed using the
-    ///   <code>GetPoint()</code> method.
+    ///   <code>GetPoint()</code> function.
     /// @note Non-zero values indicate that the two shapes are touching.
-    ///
     /// @return Value between 0 and <code>MaxManifoldPoints</code>.
-    ///
-    /// @see MaxManifoldPoints.
-    /// @see AddPoint().
-    /// @see GetPoint().
-    ///
+    /// @see MaxManifoldPoints, AddPoint(), GetPoint().
     constexpr size_type GetPointCount() const noexcept
     {
         return m_pointCount;
     }
 
     /// @brief Gets the contact feature for the given index.
+    /// @pre @p index is less than <code>GetPointCount()</code>.
     constexpr ContactFeature GetContactFeature(size_type index) const noexcept
     {
-        assert(index < m_pointCount);
+        assert(index < GetPointCount());
         return m_points[index].contactFeature;
     }
 
     /// @brief Gets the contact impulses for the given index.
+    /// @pre @p index is less than <code>GetPointCount()</code>.
     /// @return Pair of impulses where the first impulse is the "normal impulse"
     ///   and the second impulse is the "tangent impulse".
     constexpr Momentum2 GetContactImpulses(size_type index) const noexcept
     {
-        assert(index < m_pointCount);
+        assert(index < GetPointCount());
         return Momentum2{m_points[index].normalImpulse, m_points[index].tangentImpulse};
     }
 
     /// @brief Sets the contact impulses for the given index.
     /// @details Sets the contact impulses for the given index where the first impulse
     ///   is the "normal impulse" and the second impulse is the "tangent impulse".
+    /// @pre @p index is less than <code>GetPointCount()</code>.
     void SetContactImpulses(size_type index, const Momentum2& value) noexcept
     {
-        assert(index < m_pointCount);
+        assert(index < GetPointCount());
         m_points[index].normalImpulse = get<0>(value);
         m_points[index].tangentImpulse = get<1>(value);
     }
 
     /// @brief Gets the point identified by the given index.
+    /// @pre @p index is less than <code>GetPointCount()</code>.
     const Point& GetPoint(size_type index) const noexcept
     {
-        assert((0 <= index) && (index < m_pointCount));
+        assert(index < GetPointCount());
         return m_points[index];
     }
 
     /// @brief Sets the point impulses for the given index.
+    /// @pre @p index is less than <code>GetPointCount()</code>.
     void SetPointImpulses(size_type index, Momentum n, Momentum t)
     {
-        assert((index < m_pointCount) || (index < MaxManifoldPoints && n == 0_Ns && t == 0_Ns));
+        assert(index < GetPointCount());
         m_points[index].normalImpulse = n;
         m_points[index].tangentImpulse = t;
     }
@@ -391,8 +393,8 @@ public:
     /// @details This can be called once for circle type manifolds,
     ///   and up to twice for face-A or face-B type manifolds. <code>GetPointCount()</code>
     ///   can be called to find out how many points have already been added.
-    /// @warning Behavior is undefined if this object's type is e_unset.
-    /// @warning Behavior is undefined if this is called more than twice.
+    /// @pre <code>GetType()</code> is not <code>e_unset</code>.
+    /// @pre <code>GetPointCount()</code> is less than <code>MaxManifoldPoints</code>.
     void AddPoint(const Point& mp) noexcept;
 
     /// @brief Adds a new point with the given data.
@@ -400,13 +402,12 @@ public:
 
     /// @brief Gets the local normal for a face-type manifold.
     /// @note Only valid for face-A or face-B type manifolds.
-    /// @warning Behavior is undefined for unset (e_unset) type manifolds.
-    /// @warning Behavior is undefined for circles (e_circles) type manifolds.
+    /// @pre This is a face manifold, i.e.:
+    ///   <code>GetType() == e_faceA || GetType() == e_faceB</code>.
     /// @return Local normal if the manifold type is face A or face B, else invalid value.
     constexpr UnitVec GetLocalNormal() const noexcept
     {
-        assert(m_type != e_unset);
-        assert(m_type != e_circles);
+        assert(GetType() == e_faceA || GetType() == e_faceB);
         return m_localNormal;
     }
 
@@ -416,18 +417,19 @@ public:
     /// the center of face A for face-A-type manifolds; or
     /// the center of face B for face-B-type manifolds.
     /// @note Only valid for circle, face-A, or face-B type manifolds.
-    /// @warning Behavior is undefined for unset (e_unset) type manifolds.
+    /// @pre This is not an unset manifold, i.e. <code>GetType() != e_unset</code>.
     /// @return Local point.
     constexpr Length2 GetLocalPoint() const noexcept
     {
-        assert(m_type != e_unset);
+        assert(GetType() != e_unset);
         return m_localPoint;
     }
 
     /// @brief Gets the opposing point.
+    /// @pre @p index is less than <code>GetPointCount()</code>.
     constexpr Length2 GetOpposingPoint(size_type index) const noexcept
     {
-        assert((0 <= index) && (index < m_pointCount));
+        assert(index < GetPointCount());
         return m_points[index].localPoint;
     }
 
@@ -512,14 +514,14 @@ constexpr Manifold::Manifold(Type t, const UnitVec& ln, const Length2& lp, size_
 
 inline void Manifold::AddPoint(const Point& mp) noexcept
 {
-    assert(m_type != e_unset);
-    assert(m_type != e_circles || m_pointCount == 0);
-    assert(m_pointCount < MaxManifoldPoints);
-    // assert((m_pointCount == 0) || (mp.contactFeature != m_points[0].contactFeature));
-    // assert((m_type != e_circles) || (mp.contactFeature.typeA == ContactFeature::e_vertex ||
-    // mp.contactFeature.typeB == ContactFeature::e_vertex)); assert((m_type != e_faceA) ||
-    // ((mp.contactFeature.typeA == ContactFeature::e_face) && (m_pointCount == 0 ||
-    // mp.contactFeature.indexA == m_points[0].contactFeature.indexA))); assert((m_type != e_faceB)
+    assert(GetType() != e_unset);
+    assert(GetType() != e_circles || GetPointCount() == 0);
+    assert(GetPointCount() < MaxManifoldPoints);
+    // assert((GetPointCount() == 0) || (mp.contactFeature != m_points[0].contactFeature));
+    // assert((GetType() != e_circles) || (mp.contactFeature.typeA == ContactFeature::e_vertex ||
+    // mp.contactFeature.typeB == ContactFeature::e_vertex)); assert((GetType() != e_faceA) ||
+    // ((mp.contactFeature.typeA == ContactFeature::e_face) && (GetPointCount() == 0 ||
+    // mp.contactFeature.indexA == m_points[0].contactFeature.indexA))); assert((GetType() != e_faceB)
     // || (mp.contactFeature.typeB == ContactFeature::e_face));
     m_points[m_pointCount] = mp;
     ++m_pointCount;
@@ -527,8 +529,8 @@ inline void Manifold::AddPoint(const Point& mp) noexcept
 
 inline void Manifold::AddPoint(CfType type, CfIndex index, const Length2& point) noexcept
 {
-    assert(m_pointCount < MaxManifoldPoints);
-    switch (m_type) {
+    assert(GetPointCount() < MaxManifoldPoints);
+    switch (GetType()) {
     case e_unset:
         break;
     case e_circles:
@@ -591,7 +593,6 @@ Manifold GetManifold(bool flipped, const DistanceProxy& shape0, const Transforma
 
 /// @brief Computes manifolds for face-to-point collision.
 /// @pre The given distance proxy <code>GetVertexCount()</code> must be one or greater.
-/// @warning Behavior is undefined if the given distance proxy <code>GetVertexCount()</code> is less than one.
 Manifold GetManifold(bool flipped, Length totalRadius, const DistanceProxy& shape,
                      const Transformation& sxf, const Length2& point, const Transformation& xfm);
 
@@ -601,13 +602,10 @@ Manifold GetManifold(const Length2& locationA, const Transformation& xfA, // for
                      Length totalRadius) noexcept;
 
 /// @brief Calculates the relevant collision manifold.
-///
 /// @note The returned touching state information typically agrees with that returned from
 ///   the distance-proxy-based <code>TestOverlap</code> function. This is not always the
 ///   case however especially when the separation or overlap distance is closer to zero.
-///
 /// @relatedalso Manifold
-///
 Manifold CollideShapes(const DistanceProxy& shapeA, const Transformation& xfA,
                        const DistanceProxy& shapeB, const Transformation& xfB,
                        const Manifold::Conf& conf = GetDefaultManifoldConf());

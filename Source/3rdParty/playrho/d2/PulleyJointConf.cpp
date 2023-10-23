@@ -30,17 +30,17 @@
 namespace playrho {
 namespace d2 {
 
-static_assert(std::is_default_constructible<PulleyJointConf>::value,
+static_assert(std::is_default_constructible_v<PulleyJointConf>,
               "PulleyJointConf should be default constructible!");
-static_assert(std::is_copy_constructible<PulleyJointConf>::value,
+static_assert(std::is_copy_constructible_v<PulleyJointConf>,
               "PulleyJointConf should be copy constructible!");
-static_assert(std::is_copy_assignable<PulleyJointConf>::value,
+static_assert(std::is_copy_assignable_v<PulleyJointConf>,
               "PulleyJointConf should be copy assignable!");
-static_assert(std::is_move_constructible<PulleyJointConf>::value,
+static_assert(std::is_move_constructible_v<PulleyJointConf>,
               "PulleyJointConf should be move constructible!");
-static_assert(std::is_move_assignable<PulleyJointConf>::value,
+static_assert(std::is_move_assignable_v<PulleyJointConf>,
               "PulleyJointConf should be move assignable!");
-static_assert(std::is_nothrow_destructible<PulleyJointConf>::value,
+static_assert(std::is_nothrow_destructible_v<PulleyJointConf>,
               "PulleyJointConf should be nothrow destructible!");
 
 // Pulley:

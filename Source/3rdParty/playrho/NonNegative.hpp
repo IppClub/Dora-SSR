@@ -21,42 +21,67 @@
 #ifndef PLAYRHO_NONNEGATIVE_HPP
 #define PLAYRHO_NONNEGATIVE_HPP
 
-#include "playrho/CheckedValue.hpp"
+/// @file
+/// @brief Definition of the @c NonNegative value checked types.
+
+#include "playrho/detail/Checked.hpp"
+#include "playrho/detail/NonNegativeChecker.hpp"
 
 namespace playrho {
 
-/// @brief Non-negative constrained value checker.
-template <typename T>
-struct NonNegativeChecker {
-
-    /// @brief Default value supplying functor.
-    constexpr auto operator()() noexcept -> decltype(T{})
-    {
-        return T{};
-    }
-
-    /// @brief Value checking functor.
-    constexpr auto operator()(const T& v) noexcept
-        -> decltype(v >= T{}, static_cast<const char*>(nullptr))
-    {
-        if (!(v >= T{})) {
-            return "value not greater than nor equal to zero";
-        }
-        return {};
-    }
-};
-
-/// @ingroup CheckedValues
+/// @ingroup CheckedTypes
 /// @brief Non-negative constrained value type.
 template <typename T>
-using NonNegative = CheckedValue<T, NonNegativeChecker<T>>;
+using NonNegative = detail::Checked<T, detail::NonNegativeChecker<T>>;
 
-/// @ingroup CheckedValues
+/// @ingroup CheckedTypes
 /// @brief Fast failing non-negative constrained value type.
 template <typename T>
-using NonNegativeFF = CheckedValue<T, NonNegativeChecker<T>, true>;
+using NonNegativeFF = detail::Checked<T, detail::NonNegativeChecker<T>, true>;
 
-static_assert(std::is_default_constructible<NonNegative<int>>::value);
+// Confirm default constructability...
+static_assert(std::is_default_constructible_v<NonNegative<float>>);
+static_assert(!std::is_nothrow_default_constructible_v<NonNegative<float>>);
+static_assert(!std::is_trivially_default_constructible_v<NonNegative<float>>);
+
+// Confirm constructable traits from underlying type...
+static_assert((std::is_constructible_v<NonNegative<float>, float>));
+static_assert(!(std::is_nothrow_constructible_v<NonNegative<float>, float>));
+static_assert(!(std::is_trivially_constructible_v<NonNegative<float>, float>));
+
+// Confirm constructable traits from fail-fast type...
+static_assert((std::is_constructible_v<NonNegative<float>, NonNegativeFF<float>>));
+static_assert((std::is_nothrow_constructible_v<NonNegative<float>, NonNegativeFF<float>>));
+static_assert(!(std::is_trivially_constructible_v<NonNegative<float>, NonNegativeFF<float>>));
+
+// Confirm copy construction traits...
+static_assert(std::is_copy_constructible_v<NonNegative<float>>);
+static_assert(std::is_nothrow_copy_constructible_v<NonNegative<float>>);
+static_assert(std::is_trivially_copy_constructible_v<NonNegative<float>>);
+
+// Confirm move construction traits...
+static_assert(std::is_move_constructible_v<NonNegative<float>>);
+static_assert(std::is_nothrow_move_constructible_v<NonNegative<float>>);
+static_assert(std::is_trivially_move_constructible_v<NonNegative<float>>);
+
+// Confirm copy assignable traits...
+static_assert(std::is_copy_assignable_v<NonNegative<float>>);
+static_assert(std::is_nothrow_copy_assignable_v<NonNegative<float>>);
+static_assert(std::is_trivially_copy_assignable_v<NonNegative<float>>);
+
+// Confirm move assignable traits...
+static_assert(std::is_move_assignable_v<NonNegative<float>>);
+static_assert(std::is_nothrow_move_assignable_v<NonNegative<float>>);
+static_assert(std::is_trivially_move_assignable_v<NonNegative<float>>);
+
+// Confirm destruction traits...
+static_assert(std::is_destructible_v<NonNegative<float>>);
+static_assert(std::is_nothrow_destructible_v<NonNegative<float>>);
+static_assert(std::is_trivially_destructible_v<NonNegative<float>>);
+
+// Confirm convertability traits (repeat of above but for clarity)...
+static_assert((std::is_convertible_v<NonNegative<float>, NonNegative<float>::underlying_type>));
+static_assert((std::is_convertible_v<NonNegative<float>::underlying_type, NonNegative<float>>));
 
 } // namespace playrho
 

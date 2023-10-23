@@ -25,6 +25,7 @@
 
 #include "playrho/DynamicMemory.hpp"
 #include "playrho/Math.hpp" // for ToSigned
+
 #include "playrho/pmr/PoolMemoryResource.hpp"
 
 namespace playrho::pmr {
@@ -36,6 +37,7 @@ static_assert(PoolMemoryOptions{}.limitBuffers == static_cast<std::size_t>(-1));
 /// @brief Signed size type.
 using ssize_t = std::make_signed_t<std::size_t>;
 
+/// @brief Buffer record for @c PoolMemoryResource.
 class PoolMemoryResource::BufferRecord
 {
     void* pointer{};
@@ -43,8 +45,10 @@ class PoolMemoryResource::BufferRecord
     std::size_t align_bytes{};
 public:
 
+    /// @brief Default constructor.
     BufferRecord() noexcept = default;
 
+    /// @brief Initializing constructor.
     BufferRecord(void* p, std::size_t n, std::size_t a)
         : pointer{p},
           size_bytes{n},
@@ -53,8 +57,10 @@ public:
         // Intentionally empty.
     }
 
+    /// @brief Copy construction is explicitly deleted.
     BufferRecord(const BufferRecord& other) = delete;
 
+    /// @brief Move constructor.
     BufferRecord(BufferRecord&& other) noexcept
         : pointer(std::exchange(other.pointer, nullptr)),
           size_bytes(std::exchange(other.size_bytes, 0u)),
@@ -63,10 +69,13 @@ public:
         // Intentionally empty.
     }
 
+    /// @brief Destructor.
     ~BufferRecord() = default;
 
+    /// @brief Copy assignment is explicitly deleted.
     BufferRecord& operator=(const BufferRecord& other) = delete;
 
+    /// @brief Move assignment support.
     BufferRecord& operator=(BufferRecord&& other) noexcept
     {
         if (this != &other) {
@@ -77,6 +86,7 @@ public:
         return *this;
     }
 
+    /// @brief Assignment function.
     BufferRecord& assign(void* p, std::size_t n, std::size_t a) noexcept
     {
         pointer = p;
@@ -85,37 +95,44 @@ public:
         return *this;
     }
 
+    /// @brief Access to underlying pointer.
     void *data() const noexcept
     {
         return pointer;
     }
 
+    /// @brief Size of the underlying buffer in bytes.
     std::size_t size() const noexcept
     {
         return static_cast<std::size_t>(std::abs(ssize()));
     }
 
+    /// @brief Signed size of the underlying buffer in bytes.
     ssize_t ssize() const noexcept
     {
         return ToSigned(size_bytes);
     }
 
+    /// @brief Alignment of the underlying buffer in bytes.
     std::size_t alignment() const noexcept
     {
         return align_bytes;
     }
 
+    /// @brief Whether for memory which is allocated currently.
     bool is_allocated() const noexcept
     {
         return ssize() < 0;
     }
 
+    /// @brief Allocate this buffer record.
     void allocate() noexcept
     {
         assert(!is_allocated());
         size_bytes = static_cast<std::size_t>(-abs(ssize()));
     }
 
+    /// @brief Deallocate this buffer record.
     void deallocate() noexcept
     {
         assert(is_allocated());

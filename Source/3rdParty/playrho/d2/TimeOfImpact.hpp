@@ -28,23 +28,21 @@
 namespace playrho::d2 {
 
 class DistanceProxy;
-class Sweep;
+struct Sweep;
 
 /// @brief Gets the time of impact for two disjoint convex sets using the
 ///    Separating Axis Theorem.
 ///
 /// @details
 /// Computes the upper bound on time before two shapes penetrate too much.
-/// Time is represented as a fraction between [0,<code>tMax</code>].
+/// Time is represented as a fraction between [0,<code>timeMax</code>].
 /// This uses a swept separating axis and may miss some intermediate,
 /// non-tunneling collision.
 /// If you change the time interval, you should call this function again.
 ///
 /// @see https://en.wikipedia.org/wiki/Hyperplane_separation_theorem
 /// @pre The given sweeps are both at the same alpha-0.
-/// @warning Behavior is undefined if sweeps are not at the same alpha-0.
-/// @warning Behavior is undefined if the configuration's <code>tMax</code> is not
-///    between 0 and 1 inclusive.
+/// @warning Behavior is not specified if sweeps are not at the same alpha-0.
 /// @note Uses Distance to compute the contact point and normal at the time of impact.
 /// @note This only works for two disjoint convex sets.
 ///

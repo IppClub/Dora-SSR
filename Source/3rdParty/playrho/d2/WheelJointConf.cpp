@@ -19,28 +19,29 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/WheelJointConf.hpp"
-
-#include "playrho/d2/Joint.hpp"
-#include "playrho/d2/WorldBody.hpp"
-#include "playrho/StepConf.hpp"
-#include "playrho/d2/BodyConstraint.hpp"
 #include "playrho/ConstraintSolverConf.hpp"
+#include "playrho/StepConf.hpp"
+
+#include "playrho/d2/BodyConstraint.hpp"
+#include "playrho/d2/Joint.hpp"
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/WorldBody.hpp"
+#include "playrho/d2/WheelJointConf.hpp"
 
 namespace playrho {
 namespace d2 {
 
-static_assert(std::is_default_constructible<WheelJointConf>::value,
+static_assert(std::is_default_constructible_v<WheelJointConf>,
               "WheelJointConf should be default constructible!");
-static_assert(std::is_copy_constructible<WheelJointConf>::value,
+static_assert(std::is_copy_constructible_v<WheelJointConf>,
               "WheelJointConf should be copy constructible!");
-static_assert(std::is_copy_assignable<WheelJointConf>::value,
+static_assert(std::is_copy_assignable_v<WheelJointConf>,
               "WheelJointConf should be copy assignable!");
-static_assert(std::is_move_constructible<WheelJointConf>::value,
+static_assert(std::is_move_constructible_v<WheelJointConf>,
               "WheelJointConf should be move constructible!");
-static_assert(std::is_move_assignable<WheelJointConf>::value,
+static_assert(std::is_move_assignable_v<WheelJointConf>,
               "WheelJointConf should be move assignable!");
-static_assert(std::is_nothrow_destructible<WheelJointConf>::value,
+static_assert(std::is_nothrow_destructible_v<WheelJointConf>,
               "WheelJointConf should be nothrow destructible!");
 
 // Linear constraint (point-to-line)

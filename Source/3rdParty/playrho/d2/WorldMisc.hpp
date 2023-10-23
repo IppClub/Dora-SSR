@@ -23,9 +23,9 @@
 #define PLAYRHO_D2_WORLDMISC_HPP
 
 /// @file
-/// Declarations of free functions of World for unidentified information.
+/// @brief Declarations of free functions of World for unidentified information.
 
-#include "playrho/Math.hpp"
+#include <utility> // for std::pair
 
 #include "playrho/BodyID.hpp"
 #include "playrho/JointID.hpp"
@@ -34,65 +34,21 @@
 #include "playrho/StepStats.hpp"
 #include "playrho/ShapeID.hpp"
 
-#include <utility> // for std::pair
+#include "playrho/d2/Math.hpp"
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 class World;
 class DynamicTree;
 class Manifold;
 class ContactImpulsesList;
 
-/// @brief Sets the shape destruction lister.
-/// @relatedalso World
-void SetShapeDestructionListener(World& world, std::function<void(ShapeID)> listener) noexcept;
-
-/// @brief Sets the detach lister.
-/// @relatedalso World
-void SetDetachListener(World& world, std::function<void(std::pair<BodyID, ShapeID>)> listener) noexcept;
-
-/// @brief Sets the joint destruction lister.
-/// @relatedalso World
-void SetJointDestructionListener(World& world, std::function<void(JointID)> listener) noexcept;
-
-/// @brief Sets the begin-contact lister.
-/// @relatedalso World
-void SetBeginContactListener(World& world, std::function<void(ContactID)> listener) noexcept;
-
-/// @brief Sets the end-contact lister.
-/// @relatedalso World
-void SetEndContactListener(World& world, std::function<void(ContactID)> listener) noexcept;
-
-/// @brief Sets the pre-solve-contact lister.
-/// @relatedalso World
-void SetPreSolveContactListener(World& world,
-                                std::function<void(ContactID, const Manifold&)> listener) noexcept;
-
-/// @brief Sets the post-solve-contact lister.
-/// @relatedalso World
-void SetPostSolveContactListener(World& world,
-                                 std::function<void(ContactID, const ContactImpulsesList&,
-                                                    unsigned)> listener) noexcept;
-
-/// @brief Clears this world.
-/// @note This calls the joint and fixture destruction listeners (if they're set)
-///   before clearing anything.
-/// @post The contents of this world have all been destroyed and this world's internal
-///   state is reset as though it had just been constructed.
-/// @relatedalso World
-void Clear(World& world) noexcept;
-
-/// @brief Steps the given world the specified amount.
-/// @relatedalso World
-StepStats Step(World& world, const StepConf& conf = StepConf{});
-
 /// @brief Steps the world ahead by a given time amount.
 ///
 /// @details Performs position and velocity updating, sleeping of non-moving bodies, updating
 ///   of the contacts, and notifying the contact listener of begin-contact, end-contact,
 ///   pre-solve, and post-solve events.
-///   If the given velocity and position iterations are more than zero, this method also
+///   If the given velocity and position iterations are more than zero, this function also
 ///   respectively performs velocity and position resolution of the contacting bodies.
 ///
 /// @note While body velocities are updated accordingly (per the sum of forces acting on them),
@@ -122,43 +78,6 @@ StepStats Step(World& world, Time delta,
                TimestepIters velocityIterations = StepConf::DefaultRegVelocityIters,
                TimestepIters positionIterations = StepConf::DefaultRegPositionIters);
 
-/// @brief Gets whether or not sub-stepping is enabled.
-/// @see SetSubStepping, IsStepComplete.
-/// @relatedalso World
-bool GetSubStepping(const World& world) noexcept;
-
-/// @brief Enables/disables single stepped continuous physics.
-/// @note This is not normally used. Enabling sub-stepping is meant for testing.
-/// @post The <code>GetSubStepping()</code> method will return the value this method was
-///   called with.
-/// @see IsStepComplete, GetSubStepping.
-/// @relatedalso World
-void SetSubStepping(World& world, bool flag) noexcept;
-
-/// @brief Gets the dynamic tree of the given world.
-/// @relatedalso World
-const DynamicTree& GetTree(const World& world) noexcept;
-
-/// @brief Gets the min vertex radius that shapes for the given world are allowed to be.
-/// @relatedalso World
-Length GetMinVertexRadius(const World& world) noexcept;
-
-/// @brief Gets the max vertex radius that shapes for the given world are allowed to be.
-/// @relatedalso World
-Length GetMaxVertexRadius(const World& world) noexcept;
-
-/// @brief Shifts the world origin.
-/// @note Useful for large worlds.
-/// @note The body shift formula is: <code>position -= newOrigin</code>.
-/// @post The "origin" of this world's bodies, joints, and the board-phase dynamic tree
-///   have been translated per the shift amount and direction.
-/// @param world The world whose origin should be shifted.
-/// @param newOrigin the new origin with respect to the old origin
-/// @throws WrongState if this method is called while the world is locked.
-/// @relatedalso World
-void ShiftOrigin(World& world, const Length2& newOrigin);
-
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_WORLDMISC_HPP

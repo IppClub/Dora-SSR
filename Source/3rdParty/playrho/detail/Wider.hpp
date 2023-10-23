@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_DETAIL_WIDER_HPP
 #define PLAYRHO_DETAIL_WIDER_HPP
 
+/// @file
+/// @brief Definition of the @c Wider class template and specializations.
+
 #include <cstdint>
 #include <type_traits>
 

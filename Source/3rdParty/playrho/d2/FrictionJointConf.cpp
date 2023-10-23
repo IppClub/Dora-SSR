@@ -30,17 +30,17 @@
 namespace playrho {
 namespace d2 {
 
-static_assert(std::is_default_constructible<FrictionJointConf>::value,
+static_assert(std::is_default_constructible_v<FrictionJointConf>,
               "FrictionJointConf should be default constructible!");
-static_assert(std::is_copy_constructible<FrictionJointConf>::value,
+static_assert(std::is_copy_constructible_v<FrictionJointConf>,
               "FrictionJointConf should be copy constructible!");
-static_assert(std::is_copy_assignable<FrictionJointConf>::value,
+static_assert(std::is_copy_assignable_v<FrictionJointConf>,
               "FrictionJointConf should be copy assignable!");
-static_assert(std::is_move_constructible<FrictionJointConf>::value,
+static_assert(std::is_move_constructible_v<FrictionJointConf>,
               "FrictionJointConf should be move constructible!");
-static_assert(std::is_move_assignable<FrictionJointConf>::value,
+static_assert(std::is_move_assignable_v<FrictionJointConf>,
               "FrictionJointConf should be move assignable!");
-static_assert(std::is_nothrow_destructible<FrictionJointConf>::value,
+static_assert(std::is_nothrow_destructible_v<FrictionJointConf>,
               "FrictionJointConf should be nothrow destructible!");
 
 // Point-to-point constraint

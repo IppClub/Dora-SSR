@@ -21,16 +21,19 @@
 #ifndef PLAYRHO_DETAIL_UNDERLYINGTYPE_HPP
 #define PLAYRHO_DETAIL_UNDERLYINGTYPE_HPP
 
-#include <type_traits> // for std::void_t, std::is_nothrow_default_constructible
+/// @file
+/// @brief Definition of @c underlying_type trait class and related code.
+
+#include <type_traits> // for std::void_t, std::is_nothrow_default_constructible_v
 
 namespace playrho::detail {
 
-/// Primary template handles types that have no nested <code>::type</code> member.
+/// Primary template handles types that have no nested @c type member.
 /// @see https://en.cppreference.com/w/cpp/types/void_t
 template<class, class = void>
 struct has_underlying_type_member : std::false_type {};
 
-/// Specialization recognizes types that do have a nested <code>::type</code> member.
+/// Specialization recognizes types that do have a nested @c type member.
 /// @see https://en.cppreference.com/w/cpp/types/void_t
 template<class T>
 struct has_underlying_type_member<T, std::void_t<typename T::underlying_type>> : std::true_type {};
@@ -49,7 +52,7 @@ struct underlying_type<T, std::enable_if_t<std::is_enum_v<T>>>
 
 /// Underlying-type template class for <code>detail::IndexingNamedType</code> types.
 template <class T>
-struct underlying_type<T, std::enable_if_t<detail::has_underlying_type_member<T>::value>>
+struct underlying_type<T, std::enable_if_t<has_underlying_type_member<T>::value>>
 {
     /// @brief Type alias of the underlying type.
     using type = typename T::underlying_type;

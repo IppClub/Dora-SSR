@@ -107,7 +107,7 @@ static void Draw(DebugDraw* drawer, const pd::DiskShapeConf& shape, Color color,
 	const auto radius = shape.GetRadius();
 	drawer->DrawSolidCircle(center, radius, color);
 	const auto axis = pd::Rotate(pd::UnitVec::GetLeft(), xf.q);
-	drawer->DrawSegment(center, center + radius * axis, color);
+	drawer->DrawSegment(center, center + radius * pr::Vec2{axis[0], axis[1]}, color);
 }
 
 static void Draw(DebugDraw* drawer, const pd::EdgeShapeConf& shape, Color color, pd::Transformation xf) {
@@ -220,12 +220,12 @@ void DebugDraw::DrawWorld(PhysicsWorld* pworld) {
 	_drawNode->clear();
 	_line->clear();
 	auto& world = pworld->getPrWorld();
-	for (auto body : world.GetBodies()) {
+	for (auto body : pd::GetBodies(world)) {
 		if (DebugDraw::IsVisible(pworld->getBodyData(body))) {
 			Draw(this, world, body);
 		}
 	}
-	for (auto joint : world.GetJoints()) {
+	for (auto joint : pd::GetJoints(world)) {
 		Draw(this, world, joint);
 	}
 }

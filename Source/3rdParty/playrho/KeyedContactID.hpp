@@ -22,7 +22,7 @@
 #define PLAYRHO_KEYEDCONTACTID_HPP
 
 /// @file
-/// Declaration of the <code>KeyedContactID</code> alias.
+/// @brief Declaration of the <code>KeyedContactID</code> alias.
 
 #include "playrho/ContactKey.hpp"
 #include "playrho/ContactID.hpp"

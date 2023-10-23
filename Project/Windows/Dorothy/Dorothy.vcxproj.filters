@@ -1239,6 +1239,9 @@
     <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yue_ast.cpp">
       <Filter>3rdParty\yuescript</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\part\Compositor.cpp">
+      <Filter>3rdParty\playrho\d2\part</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\BlockAllocator.cpp">
       <Filter>3rdParty\playrho</Filter>
     </ClCompile>
@@ -1284,6 +1287,12 @@
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\AABB.cpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\AabbTreeWorld.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\AabbTreeWorldBody.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Body.cpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClCompile>
@@ -1303,6 +1312,9 @@
       <Filter>3rdParty\playrho\d2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ContactSolver.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ConvexHull.cpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\DiskShapeConf.cpp">
@@ -1342,6 +1354,9 @@
       <Filter>3rdParty\playrho\d2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\MassData.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Math.cpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\MotorJointConf.cpp">
@@ -1419,24 +1434,6 @@
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldContact.cpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldImpl.cpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplBody.cpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplContact.cpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplJoint.cpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplMisc.cpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplShape.cpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldJoint.cpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClCompile>
@@ -1448,12 +1445,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldShape.cpp">
       <Filter>3rdParty\playrho\d2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldSpecial.cpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\part\Compositor.cpp">
-      <Filter>3rdParty\playrho\d2\part</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\pmr\MemoryResource.cpp">
       <Filter>3rdParty\playrho\pmr</Filter>
@@ -2628,6 +2619,9 @@
     <ClInclude Include="..\..\..\Source\Lua\Yarn\YarnCompiler.h">
       <Filter>Lua\Yarn</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\part\Compositor.hpp">
+      <Filter>3rdParty\playrho\d2\part</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ArrayList.hpp">
       <Filter>3rdParty\playrho</Filter>
     </ClInclude>
@@ -2638,9 +2632,6 @@
       <Filter>3rdParty\playrho</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\BodyType.hpp">
-      <Filter>3rdParty\playrho</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\CheckedValue.hpp">
       <Filter>3rdParty\playrho</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ConstraintSolverConf.hpp">
@@ -2674,15 +2665,6 @@
       <Filter>3rdParty\playrho</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\Finite.hpp">
-      <Filter>3rdParty\playrho</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Fixed.hpp">
-      <Filter>3rdParty\playrho</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\FixedLimits.hpp">
-      <Filter>3rdParty\playrho</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\FixedMath.hpp">
       <Filter>3rdParty\playrho</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\FlagGuard.hpp">
@@ -2817,7 +2799,16 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\WrongState.hpp">
       <Filter>3rdParty\playrho</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ZeroToUnderOne.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\AABB.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\AabbTreeWorld.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\AabbTreeWorldBody.hpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Acceleration.hpp">
@@ -2848,6 +2839,9 @@
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactSolver.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ConvexHull.hpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DiskShapeConf.hpp">
@@ -2895,10 +2889,16 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\MassData.hpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Math.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\MotorJointConf.hpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\MultiShapeConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\NgonWithFwdNormals.hpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PointStates.hpp">
@@ -2911,6 +2911,9 @@
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PositionConstraint.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PositionSolution.hpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PositionSolverManifold.hpp">
@@ -2994,24 +2997,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldContact.hpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldImpl.hpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplBody.hpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplContact.hpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplJoint.hpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplMisc.hpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldImplShape.hpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldJoint.hpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
@@ -3024,25 +3009,34 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldShape.hpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\part\Compositor.hpp">
-      <Filter>3rdParty\playrho\d2\part</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\MemoryResource.hpp">
-      <Filter>3rdParty\playrho\pmr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\PoolMemoryResource.hpp">
-      <Filter>3rdParty\playrho\pmr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\StatsResource.hpp">
-      <Filter>3rdParty\playrho\pmr</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\ThreadLocalAllocator.hpp">
-      <Filter>3rdParty\playrho\pmr</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\AABB.hpp">
       <Filter>3rdParty\playrho\detail</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\Checked.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\CheckedMath.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\FiniteChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\IndexingNamedType.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\NegativeChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\NonNegativeChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\NonPositiveChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\NonZeroChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\PositiveChecker.hpp">
       <Filter>3rdParty\playrho\detail</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\RayCastInput.hpp">
@@ -3057,8 +3051,26 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\underlying_type.hpp">
       <Filter>3rdParty\playrho\detail</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\UnitIntervalChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\Wider.hpp">
       <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\ZeroToUnderOneChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\MemoryResource.hpp">
+      <Filter>3rdParty\playrho\pmr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\PoolMemoryResource.hpp">
+      <Filter>3rdParty\playrho\pmr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\StatsResource.hpp">
+      <Filter>3rdParty\playrho\pmr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\ThreadLocalAllocator.hpp">
+      <Filter>3rdParty\playrho\pmr</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -3070,10 +3082,5 @@
     <Image Include="Dorothy SSR.ico">
       <Filter>Resources</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\Source\3rdParty\playrho\Real.hpp.in">
-      <Filter>3rdParty\playrho</Filter>
-    </None>
   </ItemGroup>
 </Project>

@@ -22,13 +22,13 @@
 #define PLAYRHO_CONTACTKEY_HPP
 
 /// @file
-/// Declaration of the <code>ContactKey</code> class.
-
-#include "playrho/Settings.hpp"
+/// @brief Declaration of the <code>ContactKey</code> class and closely related code.
 
 #include <algorithm>
 #include <functional>
 #include <utility>
+
+#include "playrho/Settings.hpp"
 
 namespace playrho {
 

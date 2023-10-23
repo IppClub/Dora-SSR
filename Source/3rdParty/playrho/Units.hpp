@@ -21,7 +21,7 @@
 /**
  * @file
  *
- * @brief Units file.
+ * @brief Declarations for physical units possibly backed by strong types.
  *
  * @details This file establishes quantity aliases, unit constants, and associated code
  *   for the expression of physical quantities using recognizably named units of those
@@ -38,10 +38,13 @@
 #ifndef PLAYRHO_UNITS_HPP
 #define PLAYRHO_UNITS_HPP
 
+#include <cmath>
+#include <type_traits>
+
 #include "playrho/RealConstants.hpp"
 #include "playrho/Templates.hpp"
-#include <type_traits>
-#include <cmath>
+
+#include "playrho/to_underlying.hpp"
 
 // #define PLAYRHO_USE_BOOST_UNITS
 #if defined(PLAYRHO_USE_BOOST_UNITS)
@@ -144,25 +147,25 @@ using inverse_moment_of_inertia = boost::units::quantity<playrho::units::si::inv
 using momentum = boost::units::quantity<boost::units::si::momentum, Real>;
 using angular_momentum = boost::units::quantity<boost::units::si::angular_momentum, Real>;
 #else // !defined(PLAYRHO_USE_BOOST_UNITS)
-using time = Real;
-using frequency = Real;
-using length = Real;
-using velocity = Real;
-using acceleration = Real;
-using mass = Real;
-using inverse_mass = Real;
-using area = Real;
-using surface_density = Real;
-using plane_angle = Real;
-using angular_velocity = Real;
-using angular_acceleration = Real;
-using force = Real;
-using torque = Real;
-using second_moment_of_area = Real;
-using moment_of_inertia = Real;
-using inverse_moment_of_inertia = Real;
-using momentum = Real;
-using angular_momentum = Real;
+using time = Real; ///< Time quantity type.
+using frequency = Real; ///< Frequency quantity type.
+using length = Real; ///< Length quantity type.
+using velocity = Real; ///< Velocity quantity type.
+using acceleration = Real; ///< Acceleration quantity type.
+using mass = Real; ///< Mass quantity type.
+using inverse_mass = Real; ///< Inverse mass quantity type.
+using area = Real; ///< Area quantity type.
+using surface_density = Real; ///< Surface density quantity type.
+using plane_angle = Real; ///< Plane angle quantity type.
+using angular_velocity = Real; ///< Angular velocity quantity type.
+using angular_acceleration = Real; ///< Angular acceleration quantity type.
+using force = Real; ///< Force quantity type.
+using torque = Real; ///< Torque quantity type.
+using second_moment_of_area = Real; ///< 2nd moment of area quantity type.
+using moment_of_inertia = Real; ///< 2nd momemnt of inertia quantity type.
+using inverse_moment_of_inertia = Real; ///< Inverse moment of inertia quantity type.
+using momentum = Real; ///< Linear momentum quantity type.
+using angular_momentum = Real; ///< Angular momemntum quantity type.
 #endif // defined(PLAYRHO_USE_BOOST_UNITS)
 
 // Setup unit types...
@@ -180,19 +183,23 @@ constexpr auto radian_per_second = 1 * boost::units::si::radian_per_second;
 constexpr auto newton = 1 * boost::units::si::newton;
 constexpr auto newton_meter = 1 * boost::units::si::newton_meter;
 #else // !defined(PLAYRHO_USE_BOOST_UNITS)
-constexpr auto second = 1;
-constexpr auto hertz = 1;
-constexpr auto meter = 1;
-constexpr auto meter_per_second = 1;
-constexpr auto meter_per_second_squared = 1;
-constexpr auto kilogram = 1;
-constexpr auto square_meter = 1;
-constexpr auto kilogram_per_square_meter = 1;
-constexpr auto radian = 1;
-constexpr auto radian_per_second = 1;
-constexpr auto newton = 1;
-constexpr auto newton_meter = 1;
+constexpr auto second = 1; ///< Second unit value.
+constexpr auto hertz = 1; ///< Hertz unit value.
+constexpr auto meter = 1; ///< Meter unit value.
+constexpr auto meter_per_second = 1; ///< Meter per second unit value.
+constexpr auto meter_per_second_squared = 1; ///< Meter per second^2 unit value.
+constexpr auto kilogram = 1; ///< Kilogram unit value.
+constexpr auto square_meter = 1; ///< Square meter unit value.
+constexpr auto kilogram_per_square_meter = 1; ///< Kilogram per meter^2 unit value.
+constexpr auto radian = 1; ///< Radian unit value.
+constexpr auto radian_per_second = 1; ///< Radian per second unit value.
+constexpr auto newton = 1; ///< Newton unit value.
+constexpr auto newton_meter = 1; ///< Newton meter unit value.
 #endif // defined(PLAYRHO_USE_BOOST_UNITS)
+
+/// @brief Alias for getting the return type of a @c get() member function.
+template<class T>
+using get_member_type = decltype(std::declval<T&>().get());
 
 }
 
@@ -912,7 +919,8 @@ namespace playrho {
 
 /// @brief Strips the units off of the given value.
 template <class T>
-constexpr auto StripUnit(const T& value) -> std::enable_if_t<std::is_arithmetic_v<T>, T>
+constexpr auto StripUnit(const T& value)
+-> std::enable_if_t<IsArithmeticV<T> && !detail::is_detected_v<detail::get_member_type, T>, T>
 {
     return value;
 }
@@ -1092,11 +1100,20 @@ constexpr RotInertia GetInvalid() noexcept
 
 #endif // defined(PLAYRHO_USE_BOOST_UNITS)
 
+/// @brief Strips the unit from the given value.
+/// @note This definition is for two step stripping of units. As such, it has to be after
+///   all other overloads of the @c StripUnit functions have been declared so it can use any
+///   of those as needed.
+template <typename T>
+constexpr auto StripUnit(const T& v) -> decltype(StripUnit(to_underlying(v)))
+{
+    return StripUnit(to_underlying(v));
+}
+
 } // namespace playrho
 
 #if defined(PLAYRHO_USE_BOOST_UNITS)
-namespace boost {
-namespace units {
+namespace boost::units {
 
 // Define division and multiplication templated operators in boost::units namespace since
 //   boost::units is the consistent namespace of operands for these and this aids with
@@ -1117,8 +1134,8 @@ namespace units {
 ///
 template <class Dimension, typename X,
           typename = std::enable_if_t<
-              playrho::IsArithmetic<X>::value && !std::is_same<X, playrho::Real>::value &&
-              std::is_same<decltype(playrho::Real{} / X{}), playrho::Real>::value>>
+              playrho::IsArithmeticV<X> && !std::is_same_v<X, playrho::Real> &&
+              std::is_same_v<decltype(playrho::Real{} / X{}), playrho::Real>>>
 constexpr auto operator/(quantity<Dimension, playrho::Real> lhs, X rhs)
 {
     return lhs / playrho::Real(rhs);
@@ -1126,8 +1143,8 @@ constexpr auto operator/(quantity<Dimension, playrho::Real> lhs, X rhs)
 
 template <class Dimension, typename X,
           typename = std::enable_if_t<
-              playrho::IsArithmetic<X>::value && !std::is_same<X, playrho::Real>::value &&
-              std::is_same<decltype(X{} / playrho::Real{}), playrho::Real>::value>>
+              playrho::IsArithmeticV<X> && !std::is_same_v<X, playrho::Real> &&
+              std::is_same_v<decltype(X{} / playrho::Real{}), playrho::Real>>>
 constexpr auto operator/(X lhs, quantity<Dimension, playrho::Real> rhs)
 {
     return playrho::Real(lhs) / rhs;
@@ -1143,8 +1160,8 @@ constexpr auto operator/(X lhs, quantity<Dimension, playrho::Real> rhs)
 ///
 template <class Dimension, typename X,
           typename = std::enable_if_t<
-              playrho::IsArithmetic<X>::value && !std::is_same<X, playrho::Real>::value &&
-              std::is_same<decltype(playrho::Real{} * X{}), playrho::Real>::value>>
+              playrho::IsArithmeticV<X> && !std::is_same_v<X, playrho::Real> &&
+              std::is_same_v<decltype(playrho::Real{} * X{}), playrho::Real>>>
 constexpr auto operator*(quantity<Dimension, playrho::Real> lhs, X rhs)
 {
     return lhs * playrho::Real(rhs);
@@ -1160,15 +1177,15 @@ constexpr auto operator*(quantity<Dimension, playrho::Real> lhs, X rhs)
 ///
 template <class Dimension, typename X,
           typename = std::enable_if_t<
-              playrho::IsArithmetic<X>::value && !std::is_same<X, playrho::Real>::value &&
-              std::is_same<decltype(playrho::Real{} * X{}), playrho::Real>::value>>
+              playrho::IsArithmeticV<X> && !std::is_same_v<X, playrho::Real> &&
+              std::is_same_v<decltype(playrho::Real{} * X{}), playrho::Real>>>
 constexpr auto operator*(X lhs, quantity<Dimension, playrho::Real> rhs)
 {
     return playrho::Real(lhs) * rhs;
 }
 
-} // namespace units
-} // namespace boost
+} // namespace boost::units
+
 #endif // defined(PLAYRHO_USE_BOOST_UNITS)
 
 #endif // PLAYRHO_UNITS_HPP

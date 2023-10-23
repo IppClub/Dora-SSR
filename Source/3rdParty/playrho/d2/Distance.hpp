@@ -22,9 +22,8 @@
 #ifndef PLAYRHO_D2_DISTANCE_HPP
 #define PLAYRHO_D2_DISTANCE_HPP
 
-#include "playrho/Math.hpp"
-
 #include "playrho/d2/DistanceConf.hpp"
+#include "playrho/d2/Math.hpp"
 #include "playrho/d2/Simplex.hpp"
 
 namespace playrho {
@@ -37,6 +36,7 @@ using PairLength2 = std::pair<Length2, Length2>;
 namespace d2 {
 
 class DistanceProxy;
+struct Transformation;
 
 /// @brief Gets the witness points of the given simplex.
 PairLength2 GetWitnessPoints(const Simplex& simplex) noexcept;
@@ -59,7 +59,7 @@ struct DistanceOutput {
     };
 
     /// @brief Iteration type.
-    using iteration_type = std::remove_const<decltype(DefaultMaxDistanceIters)>::type;
+    using iteration_type = std::remove_const_t<decltype(DefaultMaxDistanceIters)>;
 
     Simplex simplex; ///< Simplex.
     iteration_type iterations = 0; ///< Count of iterations performed to return result.

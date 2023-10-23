@@ -33,26 +33,6 @@
 namespace playrho {
 namespace d2 {
 
-ContactCounter GetContactRange(const World& world) noexcept
-{
-    return world.GetContactRange();
-}
-
-std::vector<KeyedContactID> GetContacts(const World& world)
-{
-    return world.GetContacts();
-}
-
-const Contact& GetContact(const World& world, ContactID id)
-{
-    return world.GetContact(id);
-}
-
-void SetContact(World& world, ContactID id, const Contact& value)
-{
-    world.SetContact(id, value);
-}
-
 bool IsTouching(const World& world, ContactID id)
 {
     return IsTouching(GetContact(world, id));
@@ -120,7 +100,7 @@ bool HasValidToi(const World& world, ContactID id)
     return HasValidToi(GetContact(world, id));
 }
 
-UnitIntervalFF<Real> GetToi(const World& world, ContactID id)
+std::optional<UnitIntervalFF<Real>> GetToi(const World& world, ContactID id)
 {
     return GetToi(GetContact(world, id));
 }
@@ -147,11 +127,6 @@ void SetRestitution(World& world, ContactID id, Real restitution)
     auto contact = GetContact(world, id);
     SetRestitution(contact, restitution);
     SetContact(world, id, contact);
-}
-
-const Manifold& GetManifold(const World& world, ContactID id)
-{
-    return world.GetManifold(id);
 }
 
 LinearVelocity GetTangentSpeed(const World& world, ContactID id)
@@ -187,14 +162,14 @@ void UnsetEnabled(World& world, ContactID id)
 
 Real GetDefaultFriction(const World& world, ContactID id)
 {
-    const auto& c = world.GetContact(id);
-    return GetDefaultFriction(world.GetShape(GetShapeA(c)), world.GetShape(GetShapeB(c)));
+    const auto c = GetContact(world, id);
+    return GetDefaultFriction(GetShape(world, GetShapeA(c)), GetShape(world, GetShapeB(c)));
 }
 
 Real GetDefaultRestitution(const World& world, ContactID id)
 {
-    const auto& c = world.GetContact(id);
-    return GetDefaultRestitution(world.GetShape(GetShapeA(c)), world.GetShape(GetShapeB(c)));
+    const auto c = GetContact(world, id);
+    return GetDefaultRestitution(GetShape(world, GetShapeA(c)), GetShape(world, GetShapeB(c)));
 }
 
 WorldManifold GetWorldManifold(const World& world, ContactID id)
@@ -204,7 +179,7 @@ WorldManifold GetWorldManifold(const World& world, ContactID id)
 
 ContactCounter GetTouchingCount(const World& world)
 {
-    const auto& contacts = world.GetContacts();
+    const auto contacts = GetContacts(world);
     return static_cast<ContactCounter>(count_if(cbegin(contacts), cend(contacts),
                                                 [&](const auto &c) {
         return IsTouching(world, std::get<ContactID>(c));

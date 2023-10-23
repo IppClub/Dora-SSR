@@ -22,6 +22,9 @@
 #ifndef PLAYRHO_BODYTYPE_HPP
 #define PLAYRHO_BODYTYPE_HPP
 
+/// @file
+/// @brief Definition of the <code>BodyType</code> enumeration and closely related code.
+
 namespace playrho {
 
 /// @brief Type of body.

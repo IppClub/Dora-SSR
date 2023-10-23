@@ -22,6 +22,9 @@
 #ifndef PLAYRHO_POINTSTATE_HPP
 #define PLAYRHO_POINTSTATE_HPP
 
+/// @file
+/// @brief Definition of the @c PointState enumeration.
+
 namespace playrho {
 
 /// @brief Point state enumeration.

@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_ARRAYALLOCATOR_HPP
 #define PLAYRHO_ARRAYALLOCATOR_HPP
 
+/// @file
+/// @brief Definition of the @c ObjectPool class template and closely related code.
+
 #include <algorithm> // for std::any_of
 #include <stdexcept>
 #include <type_traits>

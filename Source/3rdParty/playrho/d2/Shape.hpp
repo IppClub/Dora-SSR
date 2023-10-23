@@ -24,14 +24,8 @@
 #ifndef PLAYRHO_D2_SHAPES_SHAPE_HPP
 #define PLAYRHO_D2_SHAPES_SHAPE_HPP
 
-#include "playrho/Math.hpp"
-#include "playrho/TypeInfo.hpp"
-
-#include "playrho/d2/DistanceProxy.hpp"
-#include "playrho/d2/MassData.hpp"
-#include "playrho/NonNegative.hpp"
-#include "playrho/InvalidArgument.hpp"
-#include "playrho/Filter.hpp"
+/// @file
+/// @brief Definition of the @c Shape class and closely related code.
 
 #include <memory>
 #include <functional>
@@ -39,15 +33,22 @@
 #include <stdexcept>
 #include <type_traits> // for std::add_pointer_t, std::add_const_t
 
-// Set this to 1 to use std::unique_ptr or to 0 to use std::shared_ptr.
-#define SHAPE_USES_UNIQUE_PTR 1
+#include "playrho/InvalidArgument.hpp"
+#include "playrho/Filter.hpp"
+#include "playrho/NonNegative.hpp"
+#include "playrho/TypeInfo.hpp"
 
-namespace playrho {
-namespace d2 {
+#include "playrho/d2/DistanceProxy.hpp"
+#include "playrho/d2/MassData.hpp"
+#include "playrho/d2/Math.hpp"
+
+namespace playrho::d2 {
 
 class Shape;
 
 // Traits...
+
+namespace detail {
 
 /// @brief An "is valid shape type" trait.
 /// @note This is the general false template type.
@@ -151,18 +152,67 @@ struct HasScale<T, std::void_t<decltype(Scale(std::declval<T&>(), std::declval<V
     : std::true_type {
 };
 
+/// @brief Type trait for not finding a <code>Rotate(T&, Angle)</code> function.
+/// @details A @c UnaryTypeTrait providing the member constant @c value equal to @c false for
+///   the given type for which no <code>Rotate</code> function is found taking it and an @c Angle.
+/// @tparam T type to check.
+/// @see https://en.cppreference.com/w/cpp/named_req/UnaryTypeTrait.
 template <class T, class = void>
 struct HasRotate : std::false_type {
 };
 
+/// @brief Type trait for finding a <code>Rotate(T&, Angle)</code> function.
+/// @details A @c UnaryTypeTrait providing the member constant @c value equal to @c true for
+///   the given type for which a <code>Rotate</code> function is found taking it and an @c Angle.
+/// @tparam T type to check.
+/// @see https://en.cppreference.com/w/cpp/named_req/UnaryTypeTrait.
 template <class T>
 struct HasRotate<T, std::void_t<decltype(Rotate(std::declval<T&>(), std::declval<Angle>()))>>
     : std::true_type {
 };
 
+}
+
+/// @brief Boolean value for whether the specified type is a valid shape type.
+/// @see Shape.
+template <class T>
+inline constexpr bool IsValidShapeTypeV = detail::IsValidShapeType<T>::value;
+
+/// @brief Helper variable template on whether <code>SetFriction(T&, Real)</code> is found.
+template <class T>
+inline constexpr bool HasSetFrictionV = detail::HasSetFriction<T>::value;
+
+/// @brief Helper variable template on whether <code>SetSensor(T&, bool)</code> is found.
+template <class T>
+inline constexpr bool HasSetSensorV = detail::HasSetSensor<T>::value;
+
+/// @brief Helper variable template on whether <code>SetDensity(T&, NonNegative<AreaDensity>)</code> is found.
+template <class T>
+inline constexpr bool HasSetDensityV = detail::HasSetDensity<T>::value;
+
+/// @brief Helper variable template on whether <code>SetRestitution(T&, Real)</code> is found.
+template <class T>
+inline constexpr bool HasSetRestitutionV = detail::HasSetRestitution<T>::value;
+
+/// @brief Helper variable template on whether <code>SetFilter(T&, Filter)</code> is found.
+template <class T>
+inline constexpr bool HasSetFilterV = detail::HasSetFilter<T>::value;
+
+/// @brief Helper variable template on whether <code>Translate(T&, Length2)</code> is found.
+template <class T>
+inline constexpr bool HasTranslateV = detail::HasTranslate<T>::value;
+
+/// @brief Helper variable template on whether <code>Scale(T&, Vec2)</code> is found.
+template <class T>
+inline constexpr bool HasScaleV = detail::HasScale<T>::value;
+
+/// @brief Helper variable template on whether <code>Rotate(T&, Angle)</code> is found.
+template <class T>
+inline constexpr bool HasRotateV = detail::HasRotate<T>::value;
+
 /// @brief Fallback friction setter that throws unless given the same value as current.
 template <class T>
-std::enable_if_t<IsValidShapeType<T>::value && !HasSetFriction<T>::value, void>
+std::enable_if_t<IsValidShapeTypeV<T> && !HasSetFrictionV<T>, void>
 SetFriction(T& o, NonNegative<Real> value)
 {
     if (GetFriction(o) != value) {
@@ -172,8 +222,8 @@ SetFriction(T& o, NonNegative<Real> value)
 
 /// @brief Fallback sensor setter that throws unless given the same value as current.
 template <class T>
-std::enable_if_t<IsValidShapeType<T>::value && !HasSetSensor<T>::value, void> SetSensor(T& o,
-                                                                                        bool value)
+std::enable_if_t<IsValidShapeTypeV<T> && !HasSetSensorV<T>, void>
+SetSensor(T& o, bool value)
 {
     if (IsSensor(o) != value) {
         throw InvalidArgument("SetSensor to non-equivalent value not supported");
@@ -182,7 +232,7 @@ std::enable_if_t<IsValidShapeType<T>::value && !HasSetSensor<T>::value, void> Se
 
 /// @brief Fallback density setter that throws unless given the same value as current.
 template <class T>
-std::enable_if_t<IsValidShapeType<T>::value && !HasSetDensity<T>::value, void>
+std::enable_if_t<IsValidShapeTypeV<T> && !HasSetDensityV<T>, void>
 SetDensity(T& o, NonNegative<AreaDensity> value)
 {
     if (GetDensity(o) != value) {
@@ -192,7 +242,7 @@ SetDensity(T& o, NonNegative<AreaDensity> value)
 
 /// @brief Fallback restitution setter that throws unless given the same value as current.
 template <class T>
-std::enable_if_t<IsValidShapeType<T>::value && !HasSetRestitution<T>::value, void>
+std::enable_if_t<IsValidShapeTypeV<T> && !HasSetRestitutionV<T>, void>
 SetRestitution(T& o, Real value)
 {
     if (GetRestitution(o) != value) {
@@ -202,7 +252,7 @@ SetRestitution(T& o, Real value)
 
 /// @brief Fallback filter setter that throws unless given the same value as current.
 template <class T>
-std::enable_if_t<IsValidShapeType<T>::value && !HasSetFilter<T>::value, void>
+std::enable_if_t<IsValidShapeTypeV<T> && !HasSetFilterV<T>, void>
 SetFilter(T& o, Filter value)
 {
     if (GetFilter(o) != value) {
@@ -213,7 +263,7 @@ SetFilter(T& o, Filter value)
 /// @brief Fallback translate function that throws unless the given value has no effect.
 template <class T>
 auto Translate(T&, const Length2& value)
-    -> std::enable_if_t<IsValidShapeType<T>::value && !HasTranslate<T>::value, void>
+    -> std::enable_if_t<IsValidShapeTypeV<T> && !HasTranslateV<T>, void>
 {
     if (Length2{} != value) {
         throw InvalidArgument("Translate non-zero amount not supported");
@@ -223,7 +273,7 @@ auto Translate(T&, const Length2& value)
 /// @brief Fallback scale function that throws unless the given value has no effect.
 template <class T>
 auto Scale(T&, const Vec2& value)
-    -> std::enable_if_t<IsValidShapeType<T>::value && !HasScale<T>::value, void>
+    -> std::enable_if_t<IsValidShapeTypeV<T> && !HasScaleV<T>, void>
 {
     if (Vec2{Real(1), Real(1)} != value) {
         throw InvalidArgument("Scale non-identity amount not supported");
@@ -233,7 +283,7 @@ auto Scale(T&, const Vec2& value)
 /// @brief Fallback rotate function that throws unless the given value has no effect.
 template <class T>
 auto Rotate(T&, const UnitVec& value)
-    -> std::enable_if_t<IsValidShapeType<T>::value && !HasRotate<T>::value, void>
+    -> std::enable_if_t<IsValidShapeTypeV<T> && !HasRotateV<T>, void>
 {
     if (UnitVec::GetRight() != value) {
         throw InvalidArgument("Rotate non-zero amount not supported");
@@ -253,10 +303,13 @@ ChildCounter GetChildCount(const Shape& shape) noexcept;
 /// @param shape Shape to get "child" shape of.
 /// @param index Index to a child element of the shape. Value must be less
 ///   than the number of child primitives of the shape.
-/// @note The shape must remain in scope while the proxy is in use.
+/// @warning The shape must remain in scope while the proxy is in use!
 /// @throws InvalidArgument if the given index is out of range.
 /// @see GetChildCount
 DistanceProxy GetChild(const Shape& shape, ChildCounter index);
+
+/// @brief Getting the "child" for a temporary is deleted to prevent dangling references.
+DistanceProxy GetChild(Shape&& shape, ChildCounter index) = delete;
 
 /// @brief Gets the mass properties of this shape using its dimensions and density.
 /// @return Mass data for this shape.
@@ -394,7 +447,7 @@ bool operator!=(const Shape& lhs, const Shape& rhs) noexcept;
 ///   Different shapes of a given type meanwhile are had by providing different values for the
 ///   type.
 /// @note A shape can be constructed from or have its value set to any value whose type
-///   <code>T</code> satisfies the requirement that <code>IsValidShapeType<T>::value == true</code>.
+///   <code>T</code> satisfies the requirement that <code>IsValidShapeTypeV<T> == true</code>.
 /// @ingroup PartsGroup
 /// @see https://youtu.be/QGcVXgEVMJg
 /// @see https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Polymorphic_Value_Types
@@ -408,16 +461,11 @@ public:
     /// @post <code>has_value()</code> returns false.
     Shape() noexcept = default;
 
-#if SHAPE_USES_UNIQUE_PTR
     /// @brief Copy constructor.
     Shape(const Shape& other) : m_self{other.m_self ? other.m_self->Clone_() : nullptr}
     {
         // Intentionally empty.
     }
-#else
-    /// @brief Copy constructor.
-    Shape(const Shape& other) = default;
-#endif
 
     /// @brief Move constructor.
     Shape(Shape&& other) noexcept = default;
@@ -433,29 +481,17 @@ public:
     /// @throws std::bad_alloc if there's a failure allocating storage.
     template <typename T, typename Tp = DecayedTypeIfNotSame<T, Shape>,
               typename = std::enable_if_t<std::is_constructible_v<Tp, T>>>
-    explicit Shape(T&& arg) : m_self
-    {
-#if SHAPE_USES_UNIQUE_PTR
-        std::make_unique<Model<Tp>>(std::forward<T>(arg))
-#else
-        std::make_shared<Model<Tp>>(std::forward<T>(arg))
-#endif
-    }
+    explicit Shape(T&& arg) : m_self{std::make_unique<Model<Tp>>(std::forward<T>(arg))}
     {
         // Intentionally empty.
     }
 
-#if SHAPE_USES_UNIQUE_PTR
     /// @brief Copy assignment.
     Shape& operator=(const Shape& other)
     {
         m_self = other.m_self ? other.m_self->Clone_() : nullptr;
         return *this;
     }
-#else
-    /// @brief Copy assignment operator.
-    Shape& operator=(const Shape& other) = default;
-#endif
 
     /// @brief Move assignment operator.
     Shape& operator=(Shape&& other) = default;
@@ -716,7 +752,7 @@ private:
         /// @brief Rotates all of the shape's vertices by the given amount.
         virtual void Rotate_(const UnitVec& value) = 0;
 
-        /// @brief Equality checking method.
+        /// @brief Equality checking function.
         virtual bool IsEqual_(const Concept& other) const noexcept = 0;
 
         /// @brief Gets the use type information.
@@ -872,11 +908,7 @@ private:
         data_type data; ///< Data.
     };
 
-#if SHAPE_USES_UNIQUE_PTR
     std::unique_ptr<const Concept> m_self; ///< Self pointer.
-#else
-    std::shared_ptr<const Concept> m_self; ///< Self pointer.
-#endif
 };
 
 // Related free functions...
@@ -936,7 +968,6 @@ inline bool ShouldCollide(const Shape& a, const Shape& b) noexcept
     return ShouldCollide(GetFilter(a), GetFilter(b));
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_SHAPES_SHAPE_HPP

@@ -176,7 +176,7 @@ Store["AI_KidSearch"] = Sel {
 		Act "fallOff"
 	}
 	Seq {
-		Con "reach search limit", => math.abs(@x) > 1150 and (@x > 0 == @faceRight)
+		Con "reach search limit", => math.abs(@x) > 1150 and ((@x > 0) == @faceRight)
 		Act "turn"
 	}
 	Seq {

@@ -21,17 +21,17 @@
 
 #include "playrho/Contact.hpp"
 
-#include <type_traits> // for std::is_default_constructible etc.
+#include <type_traits> // for std::is_default_constructible_v etc.
 
 namespace playrho {
 
-static_assert(std::is_default_constructible<Contact>::value,
+static_assert(std::is_default_constructible_v<Contact>,
               "Contact must be default constructible!");
-static_assert(std::is_copy_constructible<Contact>::value, "Contact must be copy constructible!");
-static_assert(std::is_move_constructible<Contact>::value, "Contact must be move constructible!");
-static_assert(std::is_copy_assignable<Contact>::value, "Contact must be copy assignable!");
-static_assert(std::is_move_assignable<Contact>::value, "Contact must be move assignable!");
-static_assert(std::is_nothrow_destructible<Contact>::value,
+static_assert(std::is_copy_constructible_v<Contact>, "Contact must be copy constructible!");
+static_assert(std::is_move_constructible_v<Contact>, "Contact must be move constructible!");
+static_assert(std::is_copy_assignable_v<Contact>, "Contact must be copy assignable!");
+static_assert(std::is_move_assignable_v<Contact>, "Contact must be move assignable!");
+static_assert(std::is_nothrow_destructible_v<Contact>,
               "Contact must be nothrow destructible!");
 
 // Free functions...

@@ -19,29 +19,30 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/DynamicTree.hpp"
-#include "playrho/GrowableStack.hpp"
-#include "playrho/DynamicMemory.hpp"
-#include "playrho/Math.hpp" // for NextPowerOfTwo and others
-#include "playrho/Templates.hpp"
-
 #include <algorithm>
 #include <cstring>
 #include <limits>
 #include <numeric>
 #include <utility>
 
+#include "playrho/GrowableStack.hpp"
+#include "playrho/DynamicMemory.hpp"
+#include "playrho/Templates.hpp"
+
+#include "playrho/d2/DynamicTree.hpp"
+#include "playrho/d2/Math.hpp" // for NextPowerOfTwo and others
+
 namespace playrho {
 namespace d2 {
 
-static_assert(std::is_nothrow_default_constructible<DynamicTree>::value,
+static_assert(std::is_nothrow_default_constructible_v<DynamicTree>,
               "DynamicTree must be nothrow default constructible!");
-static_assert(std::is_copy_constructible<DynamicTree>::value,
+static_assert(std::is_copy_constructible_v<DynamicTree>,
               "DynamicTree must be copy constructible!");
-static_assert(std::is_nothrow_move_constructible<DynamicTree>::value,
+static_assert(std::is_nothrow_move_constructible_v<DynamicTree>,
               "DynamicTree must be nothrow move constructible!");
-static_assert(std::is_copy_assignable<DynamicTree>::value, "DynamicTree must be copy assignable!");
-static_assert(std::is_nothrow_move_assignable<DynamicTree>::value,
+static_assert(std::is_copy_assignable_v<DynamicTree>, "DynamicTree must be copy assignable!");
+static_assert(std::is_nothrow_move_assignable_v<DynamicTree>,
               "DynamicTree must be move assignable!");
 
 namespace {
@@ -470,7 +471,6 @@ void DynamicTree::FreeNode(Size index) noexcept
     assert(m_nodeCount > 0); // index is not necessarily less than m_nodeCount.
     assert(!IsUnused(m_nodes[index].GetHeight()));
     assert(m_nodes[index].GetOther() == GetInvalidSize());
-
     m_nodes[index] = TreeNode{m_freeIndex};
     m_freeIndex = index;
     --m_nodeCount;
@@ -516,8 +516,10 @@ DynamicTree::Size DynamicTree::FindReference(Size index) const noexcept
 
 DynamicTree::Size DynamicTree::CreateLeaf(const AABB& aabb, const Contactable& data)
 {
+    assert(m_leafCount < std::numeric_limits<Size>::max());
     assert(IsValid(aabb));
     if (m_rootIndex == GetInvalidSize()) {
+        assert(GetNodeCount() < std::numeric_limits<Size>::max());
         Reserve(GetNodeCount() + 1u); // Note: may change m_nodes!
         const auto index = AllocateNode();
         m_nodes[index] = TreeNode{data, aabb};
@@ -525,6 +527,7 @@ DynamicTree::Size DynamicTree::CreateLeaf(const AABB& aabb, const Contactable& d
         ++m_leafCount;
         return index;
     }
+    assert(GetNodeCount() < (std::numeric_limits<Size>::max() - 1u));
     Reserve(GetNodeCount() + 2u); // Note: may change m_nodes!
     const auto index = AllocateNode();
     m_nodes[index] = TreeNode{data, aabb};

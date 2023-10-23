@@ -22,16 +22,16 @@
 #define PLAYRHO_D2_UNITVEC2_HPP
 
 /// @file
-/// Declarations of the UnitVec class and free functions associated with it.
-
-#include "playrho/Settings.hpp"
-#include "playrho/Units.hpp"
-#include "playrho/InvalidArgument.hpp"
+/// @brief Declarations of the UnitVec class and free functions associated with it.
 
 #include <cstdlib>
 #include <iostream>
 #include <utility>
 #include <type_traits>
+
+#include "playrho/InvalidArgument.hpp"
+#include "playrho/Settings.hpp"
+#include "playrho/Units.hpp"
 
 namespace playrho {
 
@@ -119,14 +119,29 @@ public:
     /// @note A magnitude of 0 indicates that no conclusive direction could be determined.
     ///   The magnitude will otherwise be a normal value.
     template <typename T>
-    using PolarCoord = std::enable_if_t<IsArithmetic<T>::value, std::pair<UnitVec, T>>;
+    using PolarCoord = std::enable_if_t<IsArithmeticV<T>, std::pair<UnitVec, T>>;
 
     /// @brief Gets the unit vector & magnitude from the given parameters.
     template <typename T>
     static PolarCoord<T> Get(const T x, const T y,
                              const UnitVec& fallback = GetDefaultFallback()) noexcept
     {
-        // Try the faster way first...
+        // Try the fastest way first...
+        static constexpr auto t0 = T{};
+        enum: unsigned { None = 0x0, Left = 0x1, Right = 0x2, Up = 0x4, Down = 0x8, NaN = 0xF };
+        const auto xBits = (x > t0)? Right: (x < t0)? Left: (x == t0)? None: NaN;
+        const auto yBits = (y > t0)? Up: (y < t0)? Down: (y == t0)? None: NaN;
+        switch (xBits | yBits) {
+        case Right: return std::make_pair(GetRight(), x);
+        case Left: return std::make_pair(GetLeft(), -x);
+        case Up: return std::make_pair(GetTop(), y);
+        case Down: return std::make_pair(GetBottom(), -y);
+        case None: return std::make_pair(fallback, T{});
+        case NaN: return std::make_pair(fallback, T{});
+        default: break;
+        }
+
+        // Try the faster way next...
         const auto magnitudeSquared = x * x + y * y;
         if (isnormal(magnitudeSquared))
         {
@@ -136,25 +151,20 @@ public:
             return {UnitVec{value_type{x * invMagnitude}, value_type{y * invMagnitude}}, magnitude};
         }
         
-        // Failed the faster way, try the more accurate and robust way...
+        // Finally, try the more accurate and robust way...
         const auto magnitude = hypot(x, y);
-        if (isnormal(magnitude))
-        {
-            return std::make_pair(UnitVec{x / magnitude, y / magnitude}, magnitude);
-        }
-        
-        // Give up and return the fallback value.
-        return std::make_pair(fallback, T{});
+        return std::make_pair(UnitVec{x / magnitude, y / magnitude}, magnitude);
     }
 
     /// @brief Gets the given angled unit vector.
-    ///
     /// @note For angles that are meant to be at exact multiples of the quarter turn,
     ///   better accuracy will be had by using one of the four oriented unit
     ///   vector returning methods - for the right, top, left, bottom orientations.
-    ///
     static UnitVec Get(Angle angle) noexcept;
 
+    /// @brief Default constructor.
+    /// @details Constructs a non-oriented unit vector.
+    /// @post <code>GetX()</code> and <code>GetY()</code> return zero.
     constexpr UnitVec() noexcept = default;
     
     /// @brief Gets the max size.
@@ -386,6 +396,18 @@ constexpr UnitVec::value_type get<1>(const UnitVec& v) noexcept
     return v.GetY();
 }
 
+/// @brief Gets the "X" element of the given value - i.e. the first element.
+constexpr auto GetX(const UnitVec& value)
+{
+    return value.GetX();
+}
+
+/// @brief Gets the "Y" element of the given value - i.e. the second element.
+constexpr auto GetY(const UnitVec& value) -> decltype(get<1>(value))
+{
+    return value.GetY();
+}
+
 /// @brief Output stream operator.
 inline ::std::ostream& operator<<(::std::ostream& os, const UnitVec& value)
 {
@@ -401,6 +423,12 @@ template <> constexpr d2::UnitVec GetInvalid() noexcept { return d2::UnitVec{}; 
 template <> constexpr bool IsValid(const d2::UnitVec& value) noexcept
 {
     return IsValid(value.GetX()) && IsValid(value.GetY()) && (value != d2::UnitVec::GetZero());
+}
+
+/// @brief Gets the absolute value of the given value.
+inline d2::UnitVec abs(const d2::UnitVec& v) noexcept
+{
+    return v.Absolute();
 }
 
 } // namespace playrho

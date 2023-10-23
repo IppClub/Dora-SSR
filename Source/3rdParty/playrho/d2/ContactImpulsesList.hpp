@@ -21,13 +21,15 @@
 #ifndef PLAYRHO_D2_CONTACTIMPULSESLIST_HPP
 #define PLAYRHO_D2_CONTACTIMPULSESLIST_HPP
 
-#include "playrho/Settings.hpp"
+/// @file
+/// @brief Definition of the @c ContactImpulsesList class and closely related code.
 
 #include <algorithm>
 #include <cassert>
 
-namespace playrho {
-namespace d2 {
+#include "playrho/Settings.hpp"
+
+namespace playrho::d2 {
 
 class VelocityConstraint;
 
@@ -41,7 +43,7 @@ class ContactImpulsesList
 public:
     
     /// @brief Counter type.
-    using Counter = std::remove_const<decltype(MaxManifoldPoints)>::type;
+    using Counter = std::remove_const_t<decltype(MaxManifoldPoints)>;
     
     /// @brief Gets the count.
     Counter GetCount() const noexcept { return count; }
@@ -91,7 +93,6 @@ inline Momentum GetMaxNormalImpulse(const ContactImpulsesList& impulses) noexcep
 /// @brief Gets the contact impulses for the given velocity constraint.
 ContactImpulsesList GetContactImpulses(const VelocityConstraint& vc);
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_CONTACTIMPULSESLIST_HPP

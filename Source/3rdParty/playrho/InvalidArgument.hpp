@@ -21,13 +21,15 @@
 #ifndef PLAYRHO_INVALIDARGUMENT_HPP
 #define PLAYRHO_INVALIDARGUMENT_HPP
 
-#include "playrho/Defines.hpp"
+/// @file
+/// @brief Definition of the @c InvalidArgument class.
+
 #include <stdexcept>
 
 namespace playrho {
 
 /// @brief Invalid argument logic error.
-/// @details Indicates that an argument to a function or method was invalid.
+/// @details Indicates that an argument to a function was invalid.
 /// @ingroup ExceptionsGroup
 class InvalidArgument: public std::invalid_argument
 {

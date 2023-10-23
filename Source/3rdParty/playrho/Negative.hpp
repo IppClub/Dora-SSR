@@ -21,36 +21,25 @@
 #ifndef PLAYRHO_NEGATIVE_HPP
 #define PLAYRHO_NEGATIVE_HPP
 
-#include "playrho/CheckedValue.hpp"
+/// @file
+/// @brief Definition of the @c Negative value checked types.
+
+#include "playrho/detail/Checked.hpp"
+#include "playrho/detail/NegativeChecker.hpp"
 
 namespace playrho {
 
-/// @brief Negative constrained value checker.
-template <typename T>
-struct NegativeChecker {
-
-    /// @brief Value checking functor.
-    constexpr auto operator()(const T& v) noexcept
-        -> decltype(v < static_cast<T>(0), static_cast<const char*>(nullptr))
-    {
-        if (!(v < static_cast<T>(0))) {
-            return "value not less than zero";
-        }
-        return {};
-    }
-};
-
-/// @ingroup CheckedValues
+/// @ingroup CheckedTypes
 /// @brief Negative constrained value type.
 template <typename T>
-using Negative = CheckedValue<T, NegativeChecker<T>>;
+using Negative = detail::Checked<T, detail::NegativeChecker<T>>;
 
-/// @ingroup CheckedValues
+/// @ingroup CheckedTypes
 /// @brief Fast failing negative constrained value type.
 template <typename T>
-using NegativeFF = CheckedValue<T, NegativeChecker<T>, true>;
+using NegativeFF = detail::Checked<T, detail::NegativeChecker<T>, true>;
 
-static_assert(!std::is_default_constructible<Negative<int>>::value);
+static_assert(!std::is_default_constructible_v<Negative<int>>);
 
 } // namespace playrho
 

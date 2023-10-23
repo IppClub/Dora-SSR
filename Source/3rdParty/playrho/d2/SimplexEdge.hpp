@@ -22,8 +22,11 @@
 #ifndef PLAYRHO_D2_SIMPLEXEDGE_HPP
 #define PLAYRHO_D2_SIMPLEXEDGE_HPP
 
-#include "playrho/Math.hpp"
+/// @file
+/// @brief Definition of the @c SimplexEdge class and closely related code.
+
 #include "playrho/d2/IndexPair.hpp"
+#include "playrho/d2/Math.hpp"
 
 namespace playrho {
 namespace d2 {

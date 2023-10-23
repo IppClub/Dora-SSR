@@ -22,7 +22,7 @@
 #define PLAYRHO_D2_RAYCASTINPUT_HPP
 
 /// @file
-/// Alias for the 2-D RayCastInput struct.
+/// @brief Alias for the 2-D RayCastInput struct.
 
 #include "playrho/detail/RayCastInput.hpp"
 

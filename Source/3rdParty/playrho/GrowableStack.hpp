@@ -22,6 +22,9 @@
 #ifndef PLAYRHO_GROWABLESTACK_HPP
 #define PLAYRHO_GROWABLESTACK_HPP
 
+/// @file
+/// @brief Definition of the @c GrowableStack class template.
+
 #include "playrho/DynamicMemory.hpp"
 #include "playrho/Templates.hpp"
 

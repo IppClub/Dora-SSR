@@ -21,48 +21,37 @@
 #ifndef PLAYRHO_NONZERO_HPP
 #define PLAYRHO_NONZERO_HPP
 
-#include "playrho/CheckedValue.hpp"
+/// @file
+/// @brief Definition of the @c NonZero value checked types.
+
+#include "playrho/detail/Checked.hpp"
+#include "playrho/detail/NonZeroChecker.hpp"
 
 namespace playrho {
 
-/// @brief Non-zero constrained value checker.
-template <typename T>
-struct NonZeroChecker {
-
-    /// @brief Value checking functor.
-    constexpr auto operator()(const T& v) noexcept
-        -> decltype(!(v != static_cast<T>(0)), static_cast<const char*>(nullptr))
-    {
-        if (!(v != static_cast<T>(0))) {
-            return "value not non-zero";
-        }
-        return {};
-    }
-};
-
-/// @ingroup CheckedValues
+/// @ingroup CheckedTypes
 /// @brief Non-zero constrained value type.
 template <typename T>
-using NonZero = std::enable_if_t<!std::is_pointer<T>::value, CheckedValue<T, NonZeroChecker<T>>>;
+using NonZero = std::enable_if_t<!std::is_pointer_v<T>, detail::Checked<T, detail::NonZeroChecker<T>>>;
 
-/// @ingroup CheckedValues
+/// @ingroup CheckedTypes
 /// @brief Fast failing non-zero constrained value type.
 template <typename T>
-using NonZeroFF = std::enable_if_t<!std::is_pointer<T>::value, CheckedValue<T, NonZeroChecker<T>, true>>;
+using NonZeroFF = std::enable_if_t<!std::is_pointer_v<T>, detail::Checked<T, detail::NonZeroChecker<T>, true>>;
 
-static_assert(!std::is_default_constructible<NonZero<int>>::value);
+static_assert(!std::is_default_constructible_v<NonZero<int>>);
 
-/// @ingroup CheckedValues
+/// @ingroup CheckedTypes
 /// @brief Non-null constrained value type.
 template <typename T>
-using NonNull = std::enable_if_t<std::is_pointer<T>::value, CheckedValue<T, NonZeroChecker<T>>>;
+using NonNull = std::enable_if_t<std::is_pointer_v<T>, detail::Checked<T, detail::NonZeroChecker<T>>>;
 
-/// @ingroup CheckedValues
+/// @ingroup CheckedTypes
 /// @brief Fast failing non-null constrained value type.
 template <typename T>
-using NonNullFF = std::enable_if_t<std::is_pointer<T>::value, CheckedValue<T, NonZeroChecker<T>, true>>;
+using NonNullFF = std::enable_if_t<std::is_pointer_v<T>, detail::Checked<T, detail::NonZeroChecker<T>, true>>;
 
-static_assert(!std::is_default_constructible<NonNull<int*>>::value);
+static_assert(!std::is_default_constructible_v<NonNull<int*>>);
 
 } // namespace playrho
 

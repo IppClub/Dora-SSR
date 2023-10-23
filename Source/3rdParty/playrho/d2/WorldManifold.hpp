@@ -22,7 +22,10 @@
 #ifndef PLAYRHO_D2_WORLDMANIFOLD_HPP
 #define PLAYRHO_D2_WORLDMANIFOLD_HPP
 
-#include "playrho/Math.hpp"
+/// @file
+/// @brief Declarations of the @c WorldManifold class and closely related code.
+
+#include "playrho/d2/Math.hpp"
 
 namespace playrho {
 
@@ -55,7 +58,7 @@ private:
 public:
     
     /// @brief Size type.
-    using size_type = std::remove_const<decltype(MaxManifoldPoints)>::type;
+    using size_type = std::remove_const_t<decltype(MaxManifoldPoints)>;
 
     /// @brief Point data for world manifold.
     struct PointData
@@ -120,7 +123,7 @@ public:
     
     /// @brief Gets the indexed point's location in world coordinates.
     /// @param index Index to return point for. This must be between 0 and
-    ///   <code>GetPointCount()</code> to get a valid point from this method.
+    ///   <code>GetPointCount()</code> to get a valid point from this function.
     /// @pre @p index is less than <code>MaxManifoldPoints</code>.
     /// @return Point or an invalid value if the given index was invalid.
     Length2 GetPoint(size_type index) const noexcept

@@ -22,6 +22,9 @@
 #ifndef PLAYRHO_RAYCASTOPCODE_HPP
 #define PLAYRHO_RAYCASTOPCODE_HPP
 
+/// @file
+/// @brief Definition of the @c RayCastOpcode enumeration.
+
 namespace playrho {
 
 /// @brief Ray cast opcode enumeration.

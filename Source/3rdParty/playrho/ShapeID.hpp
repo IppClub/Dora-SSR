@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_SHAPES_SHAPEID_HPP
 #define PLAYRHO_SHAPES_SHAPEID_HPP
 
+/// @file
+/// @brief Definition of the @c ShapeID alias and closely related code.
+
 #include "playrho/detail/IndexingNamedType.hpp"
 #include "playrho/Settings.hpp"
 

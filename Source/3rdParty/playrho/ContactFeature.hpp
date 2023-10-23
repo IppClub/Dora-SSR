@@ -22,8 +22,12 @@
 #ifndef PLAYRHO_CONTACTFEATURE_HPP
 #define PLAYRHO_CONTACTFEATURE_HPP
 
-#include "playrho/Math.hpp"
+/// @file
+/// @brief Definition of the <code>ContactFeature</code> class and closely related code.
+
 #include <ostream>
+
+#include "playrho/Math.hpp"
 
 namespace playrho {
 

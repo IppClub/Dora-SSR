@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_LENGTHERROR_HPP
 #define PLAYRHO_LENGTHERROR_HPP
 
+/// @file
+/// @brief Definition of the @c LengthError class.
+
 #include <stdexcept>
 
 namespace playrho {

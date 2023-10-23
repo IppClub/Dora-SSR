@@ -22,6 +22,9 @@
 #ifndef PLAYRHO_LIMITSTATE_HPP
 #define PLAYRHO_LIMITSTATE_HPP
 
+/// @file
+/// @brief Definition of the @c LimitState enumeration and closely related code.
+
 namespace playrho {
 
 /// @brief Limit state.

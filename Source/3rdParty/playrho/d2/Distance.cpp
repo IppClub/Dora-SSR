@@ -50,7 +50,7 @@ inline SimplexEdges GetSimplexEdges(const IndexPair3 indexPairs, const DistanceP
                                     const Transformation& xfB)
 {
     /// @brief Size type.
-    using size_type = std::remove_const<decltype(MaxSimplexEdges)>::type;
+    using size_type = std::remove_const_t<decltype(MaxSimplexEdges)>;
 
     auto simplexEdges = SimplexEdges{};
     const auto count = GetNumValidIndices(indexPairs);

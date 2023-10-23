@@ -25,29 +25,6 @@
 
 namespace playrho {
 
-namespace {
-
-template <class T>
-constexpr auto cfloor(T v) noexcept
-{
-    assert(isfinite(v));
-    return T((v >= T{}) ? static_cast<std::int64_t>(v) : static_cast<std::int64_t>(v) - 1);
-}
-
-/// @brief Constant expression enhanced floor function.
-/// @note Unlike <code>std::floor</code>, this function is only defined for finite values.
-/// @see https://en.cppreference.com/w/cpp/numeric/math/floor
-#if defined(PLAYRHO_USE_BOOST_UNITS)
-template <class Unit>
-constexpr auto cfloor(const boost::units::quantity<Unit, Real>& v) noexcept
-{
-    using quantity = boost::units::quantity<Unit, Real>;
-    return quantity::from_value(cfloor(v.value()));
-}
-#endif
-
-} // namespace
-
 Angle GetNormalized(Angle value) noexcept
 {
     constexpr auto twoPi = Real(2) * Pi;
@@ -161,7 +138,16 @@ Real Normalize(Vec2& vector)
 
 Length2 ComputeCentroid(const Span<const Length2>& vertices)
 {
-    assert(size(vertices) >= 3);
+    switch (size(vertices)) {
+    case 0:
+        return GetInvalid<Length2>();
+    case 1:
+        return vertices[0];
+    case 2:
+        return (vertices[0] + vertices[1]) / Real(2);
+    default:
+        break;
+    }
 
     auto c = Length2{} * 0_m2;
     auto area = 0_m2;
@@ -193,10 +179,11 @@ Length2 ComputeCentroid(const Span<const Length2>& vertices)
     return c / area;
 }
 
-std::vector<Length2> GetCircleVertices(Length radius, unsigned slices, Angle start, Real turns)
+std::vector<Length2> GetCircleVertices(Length radius, std::size_t slices, Angle start, Real turns)
 {
     std::vector<Length2> vertices;
-    if (slices > 0) {
+    if (slices > 0u) {
+        vertices.reserve(slices);
         const auto integralTurns = static_cast<long int>(turns);
         const auto wholeNum = (turns == static_cast<Real>(integralTurns));
         const auto deltaAngle = (Pi * 2_rad * turns) / static_cast<Real>(slices);
@@ -281,85 +268,5 @@ SecondMomentOfArea GetPolarMoment(const Span<const Length2>& vertices)
     constexpr auto RealInverseOfTwelve = Real{1} / Real{12};
     return (secondMomentOfAreaX + secondMomentOfAreaY) * RealInverseOfTwelve;
 }
-
-namespace d2 {
-
-Position GetPosition(const Position& pos0, const Position& pos1, Real beta) noexcept
-{
-    assert(IsValid(pos0));
-    assert(IsValid(pos1));
-
-    // Note: have to be careful how this is done.
-    //   If pos0 == pos1 then return value should always be equal to pos0 too.
-    //   But if Real is float, pos0 * (1 - beta) + pos1 * beta can fail this requirement.
-    //   Meanwhile, pos0 + (pos1 - pos0) * beta always works.
-
-    // pos0 * (1 - beta) + pos1 * beta
-    // pos0 - pos0 * beta + pos1 * beta
-    // pos0 + (pos1 * beta - pos0 * beta)
-    // pos0 + (pos1 - pos0) * beta
-
-//#define USE_NORMALIZATION_FOR_ANGULAR_LERP 1
-#if defined(USE_NORMALIZATION_FOR_ANGULAR_LERP)
-    constexpr auto twoPi = Real(2) * Pi;
-    constexpr auto rTwoPi = Real(1) / twoPi;
-    const auto da = pos1.angular - pos0.angular;
-    const auto na = pos0.angular + (da - twoPi * cfloor((da + Pi * 1_rad) * rTwoPi)) * beta;
-    return {pos0.linear + (pos1.linear - pos0.linear) * beta,
-            na - twoPi * cfloor((na + Pi * 1_rad) * rTwoPi)};
-#elif defined(USE_GETSHORTESTDELTA_FOR_ANGULAR_LERP)
-    // ~25% slower than USE_NORMALIZATION_FOR_ANGULAR_LERP
-    return Position{pos0.linear + (pos1.linear - pos0.linear) * beta,
-                    pos0.angular + GetShortestDelta(pos0.angular, pos1.angular) * beta};
-#else
-    // More than twice as fast as USE_NORMALIZATION_FOR_ANGULAR_LERP
-    return pos0 + (pos1 - pos0) * beta;
-#endif
-}
-
-Position Cap(Position pos, const ConstraintSolverConf& conf)
-{
-    if (const auto lsquared = GetMagnitudeSquared(pos.linear);
-        lsquared > Square(conf.maxLinearCorrection)) {
-        pos.linear *= conf.maxLinearCorrection / sqrt(lsquared);
-    }
-    pos.angular = std::clamp(pos.angular, -conf.maxAngularCorrection, +conf.maxAngularCorrection);
-    return pos;
-}
-
-LinearVelocity2 GetContactRelVelocity(const Velocity& velA, const Length2& relA, const Velocity& velB,
-                                      const Length2& relB) noexcept
-{
-#if 0 // Using std::fma appears to be slower!
-    const auto revPerpRelB = GetRevPerpendicular(relB);
-    const auto xRevPerpRelB = StripUnit(revPerpRelB.x);
-    const auto yRevPerpRelB = StripUnit(revPerpRelB.y);
-    const auto angVelB = StripUnit(velB.angular);
-    const auto xLinVelB = StripUnit(velB.linear.x);
-    const auto yLinVelB = StripUnit(velB.linear.y);
-    const auto xFmaB = std::fma(xRevPerpRelB, angVelB, xLinVelB);
-    const auto yFmaB = std::fma(yRevPerpRelB, angVelB, yLinVelB);
-    
-    const auto revPerpRelA = GetRevPerpendicular(relA);
-    const auto xRevPerpRelA = StripUnit(revPerpRelA.x);
-    const auto yRevPerpRelA = StripUnit(revPerpRelA.y);
-    const auto angVelA = StripUnit(velA.angular);
-    const auto xLinVelA = StripUnit(velA.linear.x);
-    const auto yLinVelA = StripUnit(velA.linear.y);
-    const auto xFmaA = std::fma(xRevPerpRelA, angVelA, xLinVelA);
-    const auto yFmaA = std::fma(yRevPerpRelA, angVelA, yLinVelA);
-    
-    const auto deltaFmaX = xFmaB - xFmaA;
-    const auto deltaFmaY = yFmaB - yFmaA;
-    
-    return Vec2{deltaFmaX, deltaFmaY} * MeterPerSecond;
-#else
-    const auto velBrot = GetRevPerpendicular(relB) * (velB.angular / Radian);
-    const auto velArot = GetRevPerpendicular(relA) * (velA.angular / Radian);
-    return (velB.linear + velBrot) - (velA.linear + velArot);
-#endif
-}
-
-} // namespace d2
 
 } // namespace playrho

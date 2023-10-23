@@ -22,8 +22,12 @@
 #ifndef PLAYRHO_CONTACT_HPP
 #define PLAYRHO_CONTACT_HPP
 
+/// @file
+/// @brief Definition of the <code>Contact</code> class and closely related code.
+
 #include <cassert> // for assert
 #include <limits> // for std::numeric_limits
+#include <optional>
 
 #include "playrho/Contactable.hpp"
 #include "playrho/Math.hpp"
@@ -33,18 +37,20 @@
 namespace playrho {
 
 /// @brief Mixes friction.
-/// @details Friction mixing formula. The idea is to allow either value to drive the
-///   resulting friction to zero. For example, anything slides on ice.
+/// @details Friction mixing formula. The idea is to allow either value to drive
+///   the resulting friction to zero. For example, anything slides on ice.
 /// @param friction1 A zero or greater value.
 /// @param friction2 A zero or greater value.
+/// @return Mixed friction result.
 inline auto MixFriction(NonNegativeFF<Real> friction1, NonNegativeFF<Real> friction2)
 {
     return NonNegativeFF<Real>(sqrt(friction1 * friction2));
 }
 
 /// @brief Mixes restitution.
-/// @details Restitution mixing law. The idea is allow for anything to bounce off an inelastic
-///   surface. For example, a super ball bounces on anything.
+/// @details Restitution mixing law. The idea is allow for anything to bounce off
+///   an inelastic surface. For example, a super ball bounces on anything.
+/// @return Mixed restitution result.
 inline auto MixRestitution(Real restitution1, Real restitution2) noexcept
 {
     return (restitution1 > restitution2) ? restitution1 : restitution2;
@@ -53,14 +59,11 @@ inline auto MixRestitution(Real restitution1, Real restitution2) noexcept
 struct ToiConf;
 
 /// @brief A potential contact between the children of two body associated shapes.
-///
-/// @details The class manages contact between two shapes. A contact exists for each overlapping
-///   AABB in the broad-phase (except if filtered). Therefore a contact object may exist
-///   that has no actual contact points.
-///
+/// @details The class manages contact between two shapes. A contact exists for
+///   each overlapping AABB in the broad-phase (except if filtered). Therefore a
+///   contact object may exist that has no actual contact points.
 /// @ingroup PhysicalEntities
 /// @ingroup ConstraintsGroup
-///
 class Contact
 {
 public:
@@ -78,15 +81,16 @@ public:
     /// @details
     /// Touching is defined as either:
     ///   1. This contact's manifold has more than 0 contact points, or
-    ///   2. This contact has sensors and the two shapes of this contact are found to be
-    ///      overlapping.
+    ///   2. This contact has sensors and the two shapes of this contact are found
+    ///      to be overlapping.
     /// @return true if this contact is said to be touching, false otherwise.
     constexpr bool IsTouching() const noexcept;
 
     /// @brief Sets the touching flag state.
     /// @note This should only be called if either:
     ///   1. The contact's manifold has more than 0 contact points, or
-    ///   2. The contact has sensors and the two shapes of this contact are found to be overlapping.
+    ///   2. The contact has sensors and the two shapes of this contact are found
+    ///      to be overlapping.
     /// @post <code>IsTouching()</code> returns true.
     /// @see IsTouching().
     constexpr void SetTouching() noexcept;
@@ -109,23 +113,11 @@ public:
     /// @see IsEnabled.
     constexpr void UnsetEnabled() noexcept;
 
-    /// @brief Gets the body-A identifier.
-    constexpr BodyID GetBodyA() const noexcept;
+    /// @brief Gets contactable A.
+    constexpr const Contactable& GetContactableA() const noexcept;
 
-    /// @brief Gets shape A in this contact.
-    constexpr ShapeID GetShapeA() const noexcept;
-
-    /// @brief Get the child primitive index for shape A.
-    constexpr ChildCounter GetChildIndexA() const noexcept;
-
-    /// @brief Gets the body-B identifier.
-    constexpr BodyID GetBodyB() const noexcept;
-
-    /// @brief Gets shape B in this contact.
-    constexpr ShapeID GetShapeB() const noexcept;
-
-    /// @brief Get the child primitive index for shape B.
-    constexpr ChildCounter GetChildIndexB() const noexcept;
+    /// @brief Gets contactable B.
+    constexpr const Contactable& GetContactableB() const noexcept;
 
     /// @brief Sets the friction value for this contact.
     /// @details Override the default friction mixture.
@@ -137,7 +129,7 @@ public:
     constexpr void SetFriction(NonNegative<Real> friction) noexcept;
 
     /// @brief Gets the coefficient of friction.
-    /// @details Gets the combined friction of the two shapes associated with this contact.
+    /// @details Gets combined friction of two shapes associated with this.
     /// @see SetFriction.
     constexpr NonNegativeFF<Real> GetFriction() const noexcept;
 
@@ -170,7 +162,8 @@ public:
     constexpr void SetToiCount(substep_type value) noexcept;
 
     /// @brief Increments the TOI count.
-    /// @pre <code>GetToiCount()</code> is less than <code>numeric_limits<substep_type>::max()</code>.
+    /// @pre <code>GetToiCount()</code> is less than
+    ///   <code>numeric_limits<substep_type>::max()</code>.
     /// @post <code>GetToiCount()</code> returns one more than before.
     /// @see GetToiCount, SetToiCount.
     constexpr void IncrementToiCount() noexcept;
@@ -180,24 +173,18 @@ public:
     constexpr bool HasValidToi() const noexcept;
 
     /// @brief Gets the time of impact (TOI) as a fraction.
-    /// @pre <code>HasValidToi()</code> must be true.
     /// @return Time of impact fraction in the range of 0 to 1 if set (where 1
-    ///   means no actual impact in current time slot), otherwise undefined.
-    /// @see void SetToi(Real toi).
-    constexpr UnitIntervalFF<Real> GetToi() const;
+    ///   means no actual impact in current time slot), otherwise empty.
+    /// @see SetToi(const std::optional<UnitIntervalFF<Real>>&).
+    constexpr std::optional<UnitIntervalFF<Real>> GetToi() const noexcept;
 
     /// @brief Sets the time of impact (TOI).
-    /// @param toi Time of impact as a fraction between 0 and 1 where 1 indicates no actual
-    ///   impact in the current time slot.
-    /// @post <code>HasValidToi()</code> returns true, and <code>GetToi()</code> returns
-    ///   the value set.
-    /// @see Real GetToi() const.
-    /// @see HasValidToi.
-    constexpr void SetToi(UnitInterval<Real> toi) noexcept;
-
-    /// @brief Unsets the TOI.
-    /// @post <code>HasValidToi()</code> returns false.
-    constexpr void UnsetToi() noexcept;
+    /// @param toi Time of impact as a fraction between 0 and 1 where 1 indicates
+    ///   no actual impact in the current time slot, or empty.
+    /// @post <code>GetToi()</code> returns the value set and
+    ///   <code>HasValidToi()</code> returns <code>toi.has_value()</code>.
+    /// @see Real GetToi() const, HasValidToi.
+    constexpr void SetToi(const std::optional<UnitIntervalFF<Real>>& toi) noexcept;
 
     /// @brief Whether or not the contact needs filtering.
     constexpr bool NeedsFiltering() const noexcept;
@@ -298,7 +285,7 @@ private:
         /// Indicates whether the contact is to be treated as active or not.
         e_activeFlag = 0x40,
 
-        /// Indicates whether the contact is to be treated as between impenetrable bodies.
+        /// Whether contact is to be treated as between impenetrable bodies.
         e_impenetrableFlag = 0x80,
     };
 
@@ -369,24 +356,14 @@ constexpr void Contact::UnsetTouching() noexcept
     m_flags &= ~e_touchingFlag;
 }
 
-constexpr BodyID Contact::GetBodyA() const noexcept
+constexpr const Contactable& Contact::GetContactableA() const noexcept
 {
-    return m_contactableA.bodyId;
+    return m_contactableA;
 }
 
-constexpr BodyID Contact::GetBodyB() const noexcept
+constexpr const Contactable& Contact::GetContactableB() const noexcept
 {
-    return m_contactableB.bodyId;
-}
-
-constexpr ShapeID Contact::GetShapeA() const noexcept
-{
-    return m_contactableA.shapeId;
-}
-
-constexpr ShapeID Contact::GetShapeB() const noexcept
-{
-    return m_contactableB.shapeId;
+    return m_contactableB;
 }
 
 constexpr void Contact::FlagForFiltering() noexcept
@@ -454,21 +431,22 @@ constexpr bool Contact::HasValidToi() const noexcept
     return (m_flags & Contact::e_toiFlag) != 0;
 }
 
-constexpr UnitIntervalFF<Real> Contact::GetToi() const
+constexpr std::optional<UnitIntervalFF<Real>> Contact::GetToi() const noexcept
 {
-    assert(HasValidToi());
-    return m_toi;
+    return HasValidToi() // force newline
+        ? std::optional<UnitIntervalFF<Real>>{m_toi} // force newline
+        : std::optional<UnitIntervalFF<Real>>{};
 }
 
-constexpr void Contact::SetToi(UnitInterval<Real> toi) noexcept
+constexpr void Contact::SetToi(const std::optional<UnitIntervalFF<Real>>& toi) noexcept
 {
-    m_toi = toi;
-    m_flags |= Contact::e_toiFlag;
-}
-
-constexpr void Contact::UnsetToi() noexcept
-{
-    m_flags &= ~Contact::e_toiFlag;
+    if (toi) {
+        m_toi = *toi;
+        m_flags |= Contact::e_toiFlag;
+    }
+    else {
+        m_flags &= ~Contact::e_toiFlag;
+    }
 }
 
 constexpr void Contact::SetToiCount(substep_type value) noexcept
@@ -479,16 +457,6 @@ constexpr void Contact::SetToiCount(substep_type value) noexcept
 constexpr Contact::substep_type Contact::GetToiCount() const noexcept
 {
     return m_toiCount;
-}
-
-constexpr ChildCounter Contact::GetChildIndexA() const noexcept
-{
-    return m_contactableA.childId;
-}
-
-constexpr ChildCounter Contact::GetChildIndexB() const noexcept
-{
-    return m_contactableB.childId;
 }
 
 constexpr bool Contact::IsSensor() const noexcept
@@ -548,12 +516,7 @@ constexpr void Contact::IncrementToiCount() noexcept
 /// @relatedalso Contact
 constexpr bool operator==(const Contact& lhs, const Contact& rhs) noexcept
 {
-    return lhs.GetBodyA() == rhs.GetBodyA() && //
-           lhs.GetBodyB() == rhs.GetBodyB() && //
-           lhs.GetShapeA() == rhs.GetShapeA() && //
-           lhs.GetShapeB() == rhs.GetShapeB() && //
-           lhs.GetChildIndexA() == rhs.GetChildIndexA() && //
-           lhs.GetChildIndexB() == rhs.GetChildIndexB() && //
+    return lhs.GetContactableA() == rhs.GetContactableB() && //
            lhs.GetFriction() == rhs.GetFriction() && //
            lhs.GetRestitution() == rhs.GetRestitution() && //
            lhs.GetTangentSpeed() == rhs.GetTangentSpeed() && //
@@ -566,7 +529,7 @@ constexpr bool operator==(const Contact& lhs, const Contact& rhs) noexcept
            lhs.IsSensor() == rhs.IsSensor() && //
            lhs.IsActive() == rhs.IsActive() && //
            lhs.IsImpenetrable() == rhs.IsImpenetrable() && //
-           (!lhs.HasValidToi() || !rhs.HasValidToi() || lhs.GetToi() == rhs.GetToi());
+           lhs.GetToi() == rhs.GetToi();
 }
 
 /// @brief Operator not-equals.
@@ -580,42 +543,42 @@ constexpr bool operator!=(const Contact& lhs, const Contact& rhs) noexcept
 /// @relatedalso Contact
 constexpr BodyID GetBodyA(const Contact& contact) noexcept
 {
-    return contact.GetBodyA();
+    return contact.GetContactableA().bodyId;
 }
 
 /// @brief Gets the body B ID of the given contact.
 /// @relatedalso Contact
 constexpr BodyID GetBodyB(const Contact& contact) noexcept
 {
-    return contact.GetBodyB();
+    return contact.GetContactableB().bodyId;
 }
 
 /// @brief Gets the shape A associated with the given contact.
 /// @relatedalso Contact
 constexpr ShapeID GetShapeA(const Contact& contact) noexcept
 {
-    return contact.GetShapeA();
+    return contact.GetContactableA().shapeId;
 }
 
 /// @brief Gets the shape B associated with the given contact.
 /// @relatedalso Contact
 constexpr ShapeID GetShapeB(const Contact& contact) noexcept
 {
-    return contact.GetShapeB();
+    return contact.GetContactableB().shapeId;
 }
 
 /// @brief Gets the child index A of the given contact.
 /// @relatedalso Contact
 constexpr ChildCounter GetChildIndexA(const Contact& contact) noexcept
 {
-    return contact.GetChildIndexA();
+    return contact.GetContactableA().childId;
 }
 
 /// @brief Gets the child index B of the given contact.
 /// @relatedalso Contact
 constexpr ChildCounter GetChildIndexB(const Contact& contact) noexcept
 {
-    return contact.GetChildIndexB();
+    return contact.GetContactableB().childId;
 }
 
 /// @brief Whether the given contact is "impenetrable".
@@ -806,11 +769,9 @@ constexpr auto HasValidToi(const Contact& contact) noexcept
 }
 
 /// @brief Gets the time of impact (TOI) as a fraction.
-/// @note This is only valid if a TOI has been set.
-/// @see void SetToi(Real toi).
 /// @return Time of impact fraction in the range of 0 to 1 if set (where 1
-///   means no actual impact in current time slot), otherwise undefined.
-/// @see HasValidToi
+///   means no actual impact in current time slot), otherwise empty.
+/// @see HasValidToi, SetToi(Contact&, const std::optional<UnitIntervalFF<Real>>&).
 /// @relatedalso Contact
 constexpr auto GetToi(const Contact& contact) noexcept
 {
@@ -819,24 +780,15 @@ constexpr auto GetToi(const Contact& contact) noexcept
 
 /// @brief Sets the time of impact (TOI).
 /// @param contact The contact to update.
-/// @param toi Time of impact as a fraction between 0 and 1 where 1 indicates no actual impact
-///   in the current time slot.
-/// @post <code>HasValidToi(contact)</code> returns true.
+/// @param toi Optional time of impact as a fraction between 0 and 1 where 1 indicates no
+///   actual impact in the current time slot.
+/// @post <code>HasValidToi(contact)</code> returns <code>toi.has_value()</code>.
 /// @post <code>GetToi(const Contact&)</code> returns the value set.
 /// @see HasValidToi, GetToi.
 /// @relatedalso Contact
-constexpr void SetToi(Contact& contact, UnitInterval<Real> toi) noexcept
+constexpr void SetToi(Contact& contact, const std::optional<UnitIntervalFF<Real>>& toi) noexcept
 {
     contact.SetToi(toi);
-}
-
-/// @brief Unsets the TOI.
-/// @post <code>HasValidToi(contact)</code> returns false.
-/// @see HasValidToi.
-/// @relatedalso Contact
-constexpr void UnsetToi(Contact& contact) noexcept
-{
-    contact.UnsetToi();
 }
 
 /// @brief Gets the coefficient of friction.
@@ -896,6 +848,31 @@ constexpr auto GetTangentSpeed(const Contact& contact) noexcept
 constexpr void SetTangentSpeed(Contact& contact, LinearVelocity value) noexcept
 {
     contact.SetTangentSpeed(value);
+}
+
+/// @brief Is-for convenience function.
+/// @return true if contact is for the identified body and shape, else false.
+/// @relatedalso Contact
+constexpr bool IsFor(const Contact& c, BodyID bodyID, ShapeID shapeID) noexcept
+{
+    return IsFor(c.GetContactableA(), bodyID, shapeID) // force newline
+        || IsFor(c.GetContactableB(), bodyID, shapeID);
+}
+
+/// @brief Is-for convenience function.
+/// @return true if contact is for the identified shape, else false.
+/// @relatedalso Contact
+constexpr bool IsFor(const Contact& c, ShapeID shapeID) noexcept
+{
+    return (GetShapeA(c) == shapeID) || (GetShapeB(c) == shapeID);
+}
+
+/// @brief Gets the other body ID for the contact than the one given.
+/// @relatedalso Contact
+constexpr auto GetOtherBody(const Contact& c, BodyID bodyID) noexcept
+{
+    return (c.GetContactableA().bodyId != bodyID)
+        ? c.GetContactableA().bodyId: c.GetContactableB().bodyId;
 }
 
 } // namespace playrho

@@ -22,14 +22,16 @@
 #ifndef PLAYRHO_D2_SHAPES_SHAPECONF_HPP
 #define PLAYRHO_D2_SHAPES_SHAPECONF_HPP
 
+/// @file
+/// @brief Definition of the @c BaseShapeConf class and closely related code.
+
 #include "playrho/Filter.hpp"
 #include "playrho/Finite.hpp"
 #include "playrho/NonNegative.hpp"
 #include "playrho/Settings.hpp"
 #include "playrho/Units.hpp"
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 /// @brief Base configuration for initializing shapes.
 /// @note This is a nested base value class for initializing shapes.
@@ -39,7 +41,7 @@ struct BaseShapeConf {
     static constexpr auto DefaultFriction = NonNegative<Real>{Real{2} / Real{10}};
 
     /// @brief Default restitution value.
-    static inline const auto DefaultRestitution = Finite<Real>{0};
+    static inline const auto DefaultRestitution = Finite<Real>{};
 
     /// @brief Default density value.
     static constexpr auto DefaultDensity = NonNegative<AreaDensity>{0_kgpm2};
@@ -85,7 +87,7 @@ struct BaseShapeConf {
 /// @details This is a builder structure of chainable methods for building a shape
 ///   configuration.
 /// @note This is a templated nested value class for initializing shapes that
-///   uses the Curiously Recurring Template Pattern (CRTP) to provide method chaining
+///   uses the Curiously Recurring Template Pattern (CRTP) to provide function chaining
 ///   via static polymorphism.
 /// @see https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern
 template <typename ConcreteConf>
@@ -221,7 +223,6 @@ inline void SetSensor(BaseShapeConf& arg, bool value)
     arg.isSensor = value;
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_SHAPES_SHAPECONF_HPP

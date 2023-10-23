@@ -19,15 +19,16 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/TimeOfImpact.hpp"
+#include <algorithm>
+#include <cassert> // for assert
+
+#include "playrho/detail/CheckedMath.hpp" // for nextafter
 
 #include "playrho/d2/Distance.hpp"
 #include "playrho/d2/DistanceProxy.hpp"
 #include "playrho/d2/SeparationScenario.hpp"
 #include "playrho/d2/Sweep.hpp"
-
-#include <algorithm>
-#include <cassert> // for assert
+#include "playrho/d2/TimeOfImpact.hpp"
 
 namespace playrho::d2 {
 
@@ -38,8 +39,7 @@ ToiOutput GetToiViaSat( // NOLINT(readability-function-cognitive-complexity)
 {
     assert(IsValid(sweepA));
     assert(IsValid(sweepB));
-    assert(sweepA.GetAlpha0() == sweepB.GetAlpha0());
-    assert(conf.tMax >= 0 && conf.tMax <= 1);
+    assert(sweepA.alpha0 == sweepB.alpha0);
 
     // CCD via the local separating axis method. This seeks progression
     // by computing the largest time at which separation is maintained.
@@ -48,7 +48,7 @@ ToiOutput GetToiViaSat( // NOLINT(readability-function-cognitive-complexity)
 
     const auto totalRadius = proxyA.GetVertexRadius() + proxyB.GetVertexRadius();
     if (conf.targetDepth > totalRadius) {
-        return ToiOutput{0, stats, ToiOutput::e_targetDepthExceedsTotalRadius};
+        return ToiOutput{{}, stats, ToiOutput::e_targetDepthExceedsTotalRadius};
     }
 
     const auto target = totalRadius - conf.targetDepth;
@@ -57,15 +57,15 @@ ToiOutput GetToiViaSat( // NOLINT(readability-function-cognitive-complexity)
 
     const auto minTargetSquared = Square(minTarget);
     if (!isfinite(minTargetSquared) && isfinite(minTarget)) {
-        return ToiOutput{0, stats, ToiOutput::e_minTargetSquaredOverflow};
+        return ToiOutput{{}, stats, ToiOutput::e_minTargetSquaredOverflow};
     }
 
     const auto maxTargetSquared = Square(maxTarget);
     if (!isfinite(maxTargetSquared) && isfinite(maxTarget)) {
-        return ToiOutput{0, stats, ToiOutput::e_maxTargetSquaredOverflow};
+        return ToiOutput{{}, stats, ToiOutput::e_maxTargetSquaredOverflow};
     }
 
-    auto timeLo = Real{0}; // Will be set to value of timeHi
+    auto timeLo = UnitIntervalFF<Real>{}; // Will be set to value of timeHi
     auto timeLoXfA = GetTransformation(sweepA, timeLo);
     auto timeLoXfB = GetTransformation(sweepB, timeLo);
 
@@ -116,7 +116,7 @@ ToiOutput GetToiViaSat( // NOLINT(readability-function-cognitive-complexity)
 
         // Compute the TOI on the separating axis. We do this by successively
         // resolving the deepest point. This loop is bounded by the number of vertices.
-        auto timeHi = conf.tMax; // timeHi goes to values between timeLo and timeHi.
+        auto timeHi = UnitIntervalFF<Real>(conf.timeMax); // timeHi goes to values between timeLo and timeHi.
         auto timeHiXfA = GetTransformation(sweepA, timeHi);
         auto timeHiXfB = GetTransformation(sweepB, timeHi);
 
@@ -128,11 +128,11 @@ ToiOutput GetToiViaSat( // NOLINT(readability-function-cognitive-complexity)
             // Is the final configuration separated?
             if (timeHiMinSep.distance > maxTarget) {
                 // Victory! No collision occurs within time span.
-                assert(timeHi == conf.tMax);
-                // Formerly this used tMax as in...
-                // return ToiOutput{ToiOutput::e_separated, tMax};
+                assert(timeHi == conf.timeMax);
+                // Formerly this used timeMax as in...
+                // return ToiOutput{ToiOutput::e_separated, timeMax};
                 // timeHi seems more appropriate however given s2 was derived from it.
-                // Meanwhile timeHi always seems equal to input.tMax at this point.
+                // Meanwhile timeHi always seems equal to input.timeMax at this point.
                 stats.sum_finder_iters += pbIter;
                 return ToiOutput{timeHi, stats, ToiOutput::e_separated};
             }
@@ -173,13 +173,9 @@ ToiOutput GetToiViaSat( // NOLINT(readability-function-cognitive-complexity)
             // assert(s1 >= minTarget);
             // Check for touching
             if (timeLoEvalDistance <= maxTarget) {
-                if (timeLoEvalDistance < minTarget) {
-                    stats.sum_finder_iters += pbIter;
-                    return ToiOutput{timeLo, stats, ToiOutput::e_belowMinTarget};
-                }
-                // Victory! timeLo should hold the TOI (could be 0.0).
                 stats.sum_finder_iters += pbIter;
-                return ToiOutput{timeLo, stats, ToiOutput::e_touching};
+                return ToiOutput{timeLo, stats, (timeLoEvalDistance < minTarget)?
+                    ToiOutput::e_belowMinTarget: ToiOutput::e_touching};
             }
 
             // Now: timeLoEvalDistance > maxTarget
@@ -201,7 +197,7 @@ ToiOutput GetToiViaSat( // NOLINT(readability-function-cognitive-complexity)
                     stats.max_root_iters = std::max(stats.max_root_iters, roots);
                     return ToiOutput{t, stats, ToiOutput::e_maxRootIters};
                 }
-                if (nextafter(a1, a2) >= a2) {
+                if (nextafter(static_cast<float>(a1), static_cast<float>(a2)) >= a2) {
                     stats.sum_finder_iters += pbIter;
                     stats.sum_root_iters += roots;
                     stats.max_root_iters = std::max(stats.max_root_iters, roots);

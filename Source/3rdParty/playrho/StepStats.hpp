@@ -21,6 +21,9 @@
 #ifndef PLAYRHO_STEPSTATS_HPP
 #define PLAYRHO_STEPSTATS_HPP
 
+/// @file
+/// @brief Definition of the @c StepStats related classes and code.
+
 #include "playrho/Settings.hpp"
 
 namespace playrho {
@@ -81,16 +84,15 @@ struct ToiStepStats {
     counter_type proxiesMoved = 0; ///< Proxies moved count.
     counter_type sumPosIters = 0; ///< Sum position iterations count.
     counter_type sumVelIters = 0; ///< Sum velocity iterations count.
-    counter_type maxSimulContacts = 0; ///< Max contacts occurring simultaneously.
 
     /// @brief Distance iteration type.
-    using dist_iter_type = std::remove_const<decltype(DefaultMaxDistanceIters)>::type;
+    using dist_iter_type = std::remove_const_t<decltype(DefaultMaxDistanceIters)>;
 
     /// @brief TOI iteration type.
-    using toi_iter_type = std::remove_const<decltype(DefaultMaxToiIters)>::type;
+    using toi_iter_type = std::remove_const_t<decltype(DefaultMaxToiIters)>;
 
     /// @brief Root iteration type.
-    using root_iter_type = std::remove_const<decltype(DefaultMaxToiRootIters)>::type;
+    using root_iter_type = std::remove_const_t<decltype(DefaultMaxToiRootIters)>;
 
     dist_iter_type maxDistIters = 0; ///< Max distance iterations.
     toi_iter_type maxToiIters = 0; ///< Max TOI iterations.
@@ -98,7 +100,7 @@ struct ToiStepStats {
 };
 
 /// @brief Per-step statistics.
-/// @details These are statistics output from the <code>d2::World::Step</code> method.
+/// @details These are statistics output from the <code>d2::World::Step</code> function.
 /// @note Efficient transfer of this data is predicated on compiler support for
 ///   "named-return-value-optimization" (N.R.V.O.) - a form of "copy elision".
 /// @see d2::World::Step.

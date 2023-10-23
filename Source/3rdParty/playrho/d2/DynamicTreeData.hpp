@@ -21,8 +21,11 @@
 #ifndef PLAYRHO_D2_DYNAMICTREEDATA_HPP
 #define PLAYRHO_D2_DYNAMICTREEDATA_HPP
 
-#include "playrho/Settings.hpp"
+/// @file
+/// @brief Definitions of @c DynamicTree related classes.
+
 #include "playrho/Contactable.hpp"
+#include "playrho/Settings.hpp"
 
 namespace playrho {
 

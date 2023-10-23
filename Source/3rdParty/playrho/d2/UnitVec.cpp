@@ -18,8 +18,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include "playrho/d2/Math.hpp"
 #include "playrho/d2/UnitVec.hpp"
-#include "playrho/Math.hpp"
 
 namespace playrho {
 namespace d2 {

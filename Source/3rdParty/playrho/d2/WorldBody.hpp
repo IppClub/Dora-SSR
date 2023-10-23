@@ -23,7 +23,7 @@
 #define PLAYRHO_D2_WORLDBODY_HPP
 
 /// @file
-/// Declarations of free functions of World for bodies identified by <code>BodyID</code>.
+/// @brief Declarations of free functions of World for bodies identified by <code>BodyID</code>.
 /// @details This is a collection of non-member non-friend functions - also called "free"
 ///   functions - that are related to bodies within an instance of a <code>World</code>.
 ///   Many are just "wrappers" to similarly named member functions but some are additional
@@ -45,14 +45,13 @@
 #include "playrho/BodyID.hpp"
 #include "playrho/JointID.hpp"
 #include "playrho/KeyedContactID.hpp"
-#include "playrho/Math.hpp"
 #include "playrho/ShapeID.hpp"
 
 #include "playrho/d2/Body.hpp"
 #include "playrho/d2/MassData.hpp"
+#include "playrho/d2/Math.hpp"
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 struct BodyConf;
 class World;
@@ -63,84 +62,32 @@ class Shape;
 ///   interfaces to <code>playrho::d2::World</code> body member functions and additional
 ///   functionality.
 
-/// @brief Gets the extent of the currently valid body range.
-/// @note This is one higher than the maxium BodyID that is in range for body related
-///   functions.
-/// @relatedalso World
-BodyCounter GetBodyRange(const World& world) noexcept;
-
-/// @brief Gets the bodies of the specified world.
-/// @relatedalso World
-const std::vector<BodyID>& GetBodies(const World& world) noexcept;
-
-/// @brief Gets the bodies-for-proxies range for the given world.
-/// @relatedalso World
-const std::vector<BodyID>& GetBodiesForProxies(const World& world) noexcept;
-
-/// @brief Creates a rigid body within the world that's a copy of the given one.
-/// @warning This function should not be used while the world is locked &mdash; as it is
-///   during callbacks. If it is, it will throw an exception or abort your program.
-/// @note No references to the configuration are retained. Its value is copied.
-/// @post The created body will be present in the range returned from the
-///   <code>GetBodies(const World&)</code> method.
-/// @param world The world within which to create the body.
-/// @param body A customized body or its default value that is to be copied into the world.
-/// @param resetMassData Whether or not the mass data of the body should be reset.
-/// @return Identifier of the newly created body which can later be destroyed by calling
-///   the <code>Destroy(World&, BodyID)</code> method.
-/// @throws WrongState if this method is called while the world is locked.
-/// @throws LengthError if this operation would create more than <code>MaxBodies</code>.
-/// @see Destroy(World& world, BodyID), GetBodies(const World&), ResetMassData.
-/// @see PhysicalEntities.
-/// @relatedalso World
-BodyID CreateBody(World& world, const Body& body = Body{}, bool resetMassData = true);
+/// @name World Body Non-Member Functions.
+/// Non-Member functions relating to bodies.
+/// @{
 
 /// @brief Creates a rigid body with the given configuration.
 /// @warning This function should not be used while the world is locked &mdash; as it is
 ///   during callbacks. If it is, it will throw an exception or abort your program.
 /// @note No references to the configuration are retained. Its value is copied.
 /// @post The created body will be present in the range returned from the
-///   <code>GetBodies(const World&)</code> method.
+///   <code>GetBodies(const World&)</code> function.
 /// @param world The world within which to create the body.
 /// @param def A customized body configuration or its default value.
 /// @param resetMassData Whether or not the mass data of the body should be reset.
 /// @return Identifier of the newly created body which can later be destroyed by calling
-///   the <code>Destroy(World&, BodyID)</code> method.
-/// @throws WrongState if this method is called while the world is locked.
+///   the <code>Destroy(World&, BodyID)</code> function.
+/// @throws WrongState if this function is called while the world is locked.
 /// @throws LengthError if this operation would create more than <code>MaxBodies</code>.
 /// @see Destroy(World& world, BodyID), GetBodies(const World&), ResetMassData.
 /// @see PhysicalEntities.
 /// @relatedalso World
-inline BodyID CreateBody(World& world, const BodyConf& def, bool resetMassData = true)
-{
-    return CreateBody(world, Body{def}, resetMassData);
-}
-
-/// @brief Gets the body configuration for the identified body.
-/// @throws std::out_of_range If given an invalid body identifier.
-/// @see CreateBody(World& world, const BodyConf&),
-///   SetBody(World& world, BodyID id, const Body& body).
-/// @relatedalso World
-const Body& GetBody(const World& world, BodyID id);
-
-/// @brief Sets the body state for the identified body.
-/// @throws WrongState if this method is called while the world is locked.
-/// @throws std::out_of_range If given an invalid body identifier.
-/// @see GetBody(const World& world, BodyID id).
-/// @relatedalso World
-void SetBody(World& world, BodyID id, const Body& body);
-
-/// @brief Destroys the identified body.
-/// @throws WrongState if this method is called while the world is locked.
-/// @throws std::out_of_range If given an invalid body identifier.
-/// @see CreateBody(World&, const BodyConf&).
-/// @relatedalso World
-void Destroy(World& world, BodyID id);
+BodyID CreateBody(World& world, const BodyConf& def, bool resetMassData = true);
 
 /// @brief Associates a validly identified shape with the validly identified body.
 /// @note This function should not be called if the world is locked.
 /// @throws std::out_of_range If given an invalid body or shape identifier.
-/// @throws WrongState if this method is called while the world is locked.
+/// @throws WrongState if this function is called while the world is locked.
 /// @see GetShapes, ResetMassData.
 /// @relatedalso World
 void Attach(World& world, BodyID id, ShapeID shapeID, bool resetMassData = true);
@@ -148,40 +95,30 @@ void Attach(World& world, BodyID id, ShapeID shapeID, bool resetMassData = true)
 /// @brief Creates the shape within the world and then associates it with the validly
 ///   identified body.
 /// @throws std::out_of_range If given an invalid body.
-/// @throws WrongState if this method is called while the world is locked.
+/// @throws WrongState if this function is called while the world is locked.
 /// @see GetShapes, ResetMassData.
 /// @relatedalso World
 void Attach(World& world, BodyID id, const Shape& shape, bool resetMassData = true);
 
 /// @brief Disassociates a validly identified shape from the validly identified body.
 /// @throws std::out_of_range If given an invalid body or shape identifier.
-/// @throws WrongState if this method is called while the world is locked.
+/// @throws WrongState if this function is called while the world is locked.
 /// @see ResetMassData.
 /// @relatedalso World
 bool Detach(World& world, BodyID id, ShapeID shapeID, bool resetMassData = true);
 
 /// @brief Disassociates all of the associated shape from the validly identified body.
 /// @throws std::out_of_range If given an invalid body identifier.
-/// @throws WrongState if this method is called while the world is locked.
+/// @throws WrongState if this function is called while the world is locked.
 /// @see Attach, ResetMassData.
 /// @relatedalso World
 bool Detach(World& world, BodyID id, bool resetMassData = true);
-
-/// @brief Gets the identities of the shapes associated with the identified body.
-/// @throws std::out_of_range If given an invalid body identifier.
-/// @see Attach, Detach.
-/// @relatedalso World
-const std::vector<ShapeID>& GetShapes(const World& world, BodyID id);
 
 /// @brief Gets the count of shapes associated with the identified body.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @see GetShapes(const World& world, BodyID id).
 /// @relatedalso World
-inline ShapeCounter GetShapeCount(const World& world, BodyID id)
-{
-    using std::size;
-    return static_cast<ShapeCounter>(size(GetShapes(world, id)));
-}
+ShapeCounter GetShapeCount(const World& world, BodyID id);
 
 /// @brief Gets this body's linear acceleration.
 /// @throws std::out_of_range If given an invalid body identifier.
@@ -261,9 +198,8 @@ void SetTransformation(World& world, BodyID id, const Transformation& value);
 /// @note Contacts are updated on the next call to World::Step.
 /// @param world The world in which the identified body's transform should be set.
 /// @param id Identifier of body whose transform is to be set.
-/// @param location Valid world location of the body's local origin. Behavior is undefined
-///   if value is invalid.
-/// @param angle Valid world rotation. Behavior is undefined if value is invalid.
+/// @param location Valid world location of the body's local origin.
+/// @param angle Valid world rotation.
 /// @throws WrongState if this function is called while the world is locked.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso World
@@ -277,8 +213,7 @@ inline void SetTransform(World& world, BodyID id, const Length2& location, Angle
 /// @warning Manipulating a body's location this way can cause non-physical behavior!
 /// @param world The world in which the identified body's location should be set.
 /// @param id Identifier of body to move.
-/// @param value Valid world location of the body's local origin. Behavior is undefined
-///   if value is invalid.
+/// @param value Valid world location of the body's local origin.
 /// @throws WrongState if this function is called while the world is locked.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @see GetLocation(const World& world, BodyID id).
@@ -290,8 +225,7 @@ void SetLocation(World& world, BodyID id, const Length2& value);
 /// @warning Manipulating a body's angle this way can cause non-physical behavior!
 /// @param world The world in which the identified body's angle should be set.
 /// @param id Identifier of body to move.
-/// @param value Valid world angle of the body's local origin. Behavior is undefined
-///   if value is invalid.
+/// @param value Valid world angle of the body's local origin.
 /// @throws WrongState if this function is called while the world is locked.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @see GetAngle(const World& world, BodyID id).
@@ -343,7 +277,7 @@ BodyType GetType(const World& world, BodyID id);
 
 /// @brief Sets the type of the given body.
 /// @note This may alter the body's mass and velocity.
-/// @throws WrongState if this method is called while the world is locked.
+/// @throws WrongState if this function is called while the world is locked.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @see GetType(const World& world, BodyID id), ResetMassData.
 /// @relatedalso World
@@ -422,7 +356,7 @@ inline UnitVec GetWorldVector(const World& world, BodyID id, const UnitVec& loca
 Velocity GetVelocity(const World& world, BodyID id);
 
 /// @brief Sets the body's velocity (linear and angular velocity).
-/// @note This method does nothing if this body is not speedable.
+/// @note This function does nothing if this body is not speedable.
 /// @note A non-zero velocity will awaken this body.
 /// @throws WrongState if this function is called while the world is locked.
 /// @throws std::out_of_range If given an invalid body identifier.
@@ -591,25 +525,6 @@ inline RotInertia GetRotInertia(const World& world, BodyID id)
 /// @relatedalso World
 Length2 GetLocalCenter(const World& world, BodyID id);
 
-/// @brief Gets the rotational inertia of the body about the local origin.
-/// @return the rotational inertia.
-/// @throws std::out_of_range If given an invalid body identifier.
-/// @relatedalso World
-inline RotInertia GetLocalRotInertia(const World& world, BodyID id)
-{
-    return GetRotInertia(world, id)
-         + GetMass(world, id) * GetMagnitudeSquared(GetLocalCenter(world, id)) / SquareRadian;
-}
-
-/// @brief Gets the mass data of the body.
-/// @return Data structure containing the mass, inertia, and center of the body.
-/// @throws std::out_of_range If given an invalid body identifier.
-/// @relatedalso World
-inline MassData GetMassData(const World& world, BodyID id)
-{
-    return MassData{GetLocalCenter(world, id), GetMass(world, id), GetLocalRotInertia(world, id)};
-}
-
 /// @brief Computes the identified body's mass data.
 /// @details This basically accumulates the mass data over all fixtures.
 /// @note The center is the mass weighted sum of all fixture centers. Divide it by the
@@ -633,21 +548,32 @@ void SetMassData(World& world, BodyID id, const MassData& massData);
 
 /// @brief Resets the mass data properties.
 /// @details This resets the mass data to the sum of the mass properties of the fixtures.
-/// @note This method must be called after associating new shapes to the body to update the
+/// @note This function must be called after associating new shapes to the body to update the
 ///   body mass data properties unless <code>SetMassData</code> is used.
 /// @throws WrongState if this function is called while the world is locked.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @see SetMassData, Attach, Detach.
 /// @relatedalso World
-inline void ResetMassData(World& world, BodyID id)
-{
-    SetMassData(world, id, ComputeMassData(world, id));
-}
+void ResetMassData(World& world, BodyID id);
 
-/// @brief Gets the range of all joints attached to the identified body.
+/// @brief Gets the rotational inertia of the body about the local origin.
+/// @return the rotational inertia.
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso World
-const std::vector<std::pair<BodyID, JointID>>& GetJoints(const World& world, BodyID id);
+inline RotInertia GetLocalRotInertia(const World& world, BodyID id)
+{
+    return GetRotInertia(world, id)
+         + GetMass(world, id) * GetMagnitudeSquared(GetLocalCenter(world, id)) / SquareRadian;
+}
+
+/// @brief Gets the mass data of the body.
+/// @return Data structure containing the mass, inertia, and center of the body.
+/// @throws std::out_of_range If given an invalid body identifier.
+/// @relatedalso World
+inline MassData GetMassData(const World& world, BodyID id)
+{
+    return MassData{GetLocalCenter(world, id), GetMass(world, id), GetLocalRotInertia(world, id)};
+}
 
 /// @brief Is identified body "speedable".
 /// @details Is the body able to have a non-zero speed associated with it.
@@ -707,13 +633,6 @@ bool IsSleepingAllowed(const World& world, BodyID id);
 /// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso World
 void SetSleepingAllowed(World& world, BodyID, bool value);
-
-/// @brief Gets the container of all contacts attached to the identified body.
-/// @warning This collection changes during the time step and you may
-///   miss some collisions if you don't use <code>ContactListener</code>.
-/// @throws std::out_of_range If given an invalid body identifier.
-/// @relatedalso World
-const std::vector<std::tuple<ContactKey, ContactID>>& GetContacts(const World& world, BodyID id);
 
 /// @brief Gets the centripetal force necessary to put the body into an orbit having
 ///    the given radius.
@@ -823,8 +742,8 @@ void SetAngularDamping(World& world, BodyID id, NonNegative<Frequency> angularDa
 BodyCounter GetAwakeCount(const World& world);
 
 /// @brief Awakens all of the bodies in the given world.
-/// @details Calls all of the world's bodies' <code>SetAwake</code> method.
-/// @return Sum total of calls to bodies' <code>SetAwake</code> method that returned true.
+/// @details Calls all of the world's bodies' <code>SetAwake</code> function.
+/// @return Sum total of calls to bodies' <code>SetAwake</code> function that returned true.
 /// @relatedalso World
 BodyCounter Awaken(World& world);
 
@@ -835,11 +754,7 @@ BodyID FindClosestBody(const World& world, const Length2& location);
 /// @brief Gets the body count in the given world.
 /// @return 0 or higher.
 /// @relatedalso World
-inline BodyCounter GetBodyCount(const World& world) noexcept
-{
-    using std::size;
-    return static_cast<BodyCounter>(size(GetBodies(world)));
-}
+BodyCounter GetBodyCount(const World& world) noexcept;
 
 /// @brief Sets the accelerations of all the world's bodies to the given value.
 /// @throws WrongState if this function is called while the world is locked.
@@ -861,22 +776,8 @@ inline void ClearForces(World& world)
     SetAccelerations(world, Acceleration{});
 }
 
-/// @brief Sets the accelerations of all the world's bodies.
-/// @param world World instance to set the acceleration of all contained bodies for.
-/// @param fn Function or functor with a signature like:
-///   <code>Acceleration (*fn)(World&,BodyID)</code>.
-/// @throws WrongState if this function is called while the world is locked.
-/// @relatedalso World
-template <class F>
-void SetAccelerations(World& world, F fn)
-{
-    const auto bodies = GetBodies(world);
-    std::for_each(begin(bodies), end(bodies), [&](const auto &b) {
-        SetAcceleration(world, b, fn(world, b));
-    });
-}
+/// @}
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_WORLDBODY_HPP

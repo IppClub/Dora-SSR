@@ -22,49 +22,23 @@
 #ifndef PLAYRHO_D2_CONTACTSOLVER_HPP
 #define PLAYRHO_D2_CONTACTSOLVER_HPP
 
-#include "playrho/Math.hpp"
+/// @file
+/// @brief Declarations of the velocity and position constraint solver functions.
+
 #include "playrho/Span.hpp"
 
-#include <vector>
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/PositionSolution.hpp"
 
 namespace playrho {
 
-struct StepConf;
 struct ConstraintSolverConf;
 
 namespace d2 {
 
 class VelocityConstraint;
-class PositionConstraint;
+struct PositionConstraint;
 class BodyConstraint;
-
-/// @brief Solution for position constraint.
-struct PositionSolution
-{
-    Position pos_a; ///< Position A.
-    Position pos_b; ///< Position B.
-    Length min_separation; ///< Min separation.
-};
-
-/// @brief Addition operator.
-inline PositionSolution operator+ (const PositionSolution& lhs, const PositionSolution& rhs)
-{
-    return PositionSolution{
-        lhs.pos_a + rhs.pos_a,
-        lhs.pos_b + rhs.pos_b,
-        lhs.min_separation + rhs.min_separation
-    };
-}
-
-/// @brief Subtraction operator.
-inline PositionSolution operator- (const PositionSolution& lhs, const PositionSolution& rhs)
-{
-    return PositionSolution{
-        lhs.pos_a - rhs.pos_a,
-        lhs.pos_b - rhs.pos_b,
-        lhs.min_separation - rhs.min_separation
-    };
-}
 
 } // namespace d2
 
@@ -76,8 +50,6 @@ namespace GaussSeidel {
 /// @note Linear velocity is only changed if the inverse mass of either body is non-zero.
 /// @note Angular velocity is only changed if the inverse rotational inertia of either
 ///   body is non-zero.
-/// @note Inlining this function may yield a 10% speed boost in the
-///   <code>World.TilesComesToRest</code> unit test.
 /// @param vc Velocity constraint to solve for.
 /// @param bodies Collection of bodies containing the two for the velocity constraint.
 /// @pre @p vc must have a valid normal, a valid tangent, valid point relative positions,

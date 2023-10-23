@@ -22,10 +22,15 @@
 #ifndef PLAYRHO_D2_SHAPES_DISKSHAPECONF_HPP
 #define PLAYRHO_D2_SHAPES_DISKSHAPECONF_HPP
 
-#include "playrho/Math.hpp"
-#include "playrho/d2/ShapeConf.hpp"
+/// @file
+/// @brief Definition of the @c DiskShapeConf class and closely related code.
+
+#include "playrho/TypeInfo.hpp"
+
 #include "playrho/d2/DistanceProxy.hpp"
 #include "playrho/d2/MassData.hpp"
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/ShapeConf.hpp"
 
 namespace playrho::d2 {
 

@@ -26,7 +26,7 @@ namespace playrho {
 ToiConf GetToiConf(const StepConf& conf) noexcept
 {
     return ToiConf{}
-        .UseTimeMax(1)
+        .UseTimeMax(1.0f)
         .UseTargetDepth(conf.targetDepth)
         .UseTolerance(conf.tolerance)
         .UseMaxRootIters(conf.maxToiRootIters)

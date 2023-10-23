@@ -18,53 +18,51 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#ifndef PLAYRHO_REAL_HPP
+#define PLAYRHO_REAL_HPP
+
 /**
  * @file
  * @brief Real number definition file.
  */
 
-#ifndef PLAYRHO_REAL_HPP
-#define PLAYRHO_REAL_HPP
+#include "playrho/Templates.hpp" // for IsArithmeticV
 
-#include "playrho/Fixed.hpp"
-#include "playrho/FixedMath.hpp"
-#include "playrho/FixedLimits.hpp"
+// Any header(s) for a user defined arithmetic type for Real go here...
 
 namespace playrho {
 
 /// @brief Real-number type.
 ///
-/// @details This is the number type underlying numerical calculations conceptually involving
-///   real-numbers. Ideally the implementation of this type doesn't suffer from things like:
-///   catastrophic cancellation, catastrophic division, overflows, nor underflows.
+/// @details This is the number type underlying numerical calculations conceptually
+///   involving real-numbers. Ideally the implementation of this type doesn't suffer
+///   from things like: catastrophic cancellation, catastrophic division, overflows,
+///   nor underflows.
 ///
-/// @note This can be implemented using any of the fundamental floating point types (
-///   <code>float</code>, <code>double</code>, or <code>long double</code>).
-/// @note This can also be implemented using a <code>LiteralType</code> that has the necessary
-///   support: all common mathematical functions, support for infinity and NaN, and a
-///   specialization of the <code>std::numeric_limits</code> class template for it.
-/// @note At present, the <code>Fixed32</code> and <code>Fixed64</code> aliases of the
-///   <code>Fixed</code> template type are provided as examples of qualifying literal types
-///   though the usability of these are limited and their use is discouraged.
+/// @note This can be implemented using any of the fundamental floating point types
+///   (<code>float</code>, <code>double</code>, or <code>long double</code>).
+/// @note This can also be implemented using a <code>LiteralType</code> that has
+///   necessary support: all common mathematical functions, support for infinity and
+///   NaN, and a specialization of the @c std::numeric_limits class template for it.
 ///
 /// @note Regarding division:
-///  - While dividing 1 by a real, caching the result, and then doing multiplications with the
-///    result may well be faster (than repeatedly dividing), dividing 1 by the real can also
-///    result in an underflow situation that's then compounded every time it's multiplied with
-///    other values.
-///  - Meanwhile, dividing every time by a real isolates any underflows to the particular
-///    division where underflow occurs.
+///  - While dividing 1 by a real, caching the result, and then doing multiplications
+///    with the result may well be faster (than repeatedly dividing), dividing 1 by
+///    the real can also result in an underflow situation that's then compounded
+///    every time it's multiplied with other values.
+///  - Meanwhile, dividing every time by a real isolates any underflows to the
+///    particular division where underflow occurs.
 ///
-/// @warning Using <code>Fixed32</code> is not advised as its numerical limitations are more
-///   likely to result in problems like overflows or underflows.
-/// @warning The note regarding division applies even more so when using a fixed-point type
-///   (for <code>Real</code>).
+/// @warning The note regarding division applies even more so when using a
+///   fixed-point type (for <code>Real</code>).
 ///
 /// @see https://en.cppreference.com/w/cpp/language/types
 /// @see https://en.cppreference.com/w/cpp/types/is_floating_point
 /// @see https://en.cppreference.com/w/cpp/named_req/LiteralType
 ///
 using Real = float;
+
+static_assert(IsArithmeticV<Real>);
 
 } // namespace playrho
 

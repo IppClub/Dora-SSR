@@ -18,43 +18,18 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/WorldShape.hpp"
+#include <set>
+
+#include "playrho/Contact.hpp" // for MixFriction
 
 #include "playrho/d2/World.hpp"
 #include "playrho/d2/WorldBody.hpp"
-#include "playrho/Contact.hpp" // for MixFriction
-
-#include <set>
+#include "playrho/d2/WorldShape.hpp"
 
 namespace playrho {
 namespace d2 {
 
 using playrho::size;
-
-ShapeCounter GetShapeRange(const World& world) noexcept
-{
-    return world.GetShapeRange();
-}
-
-ShapeID CreateShape(World& world, const Shape& def)
-{
-    return world.CreateShape(def);
-}
-
-void Destroy(World& world, ShapeID id)
-{
-    world.Destroy(id);
-}
-
-const Shape& GetShape(const World& world, ShapeID id)
-{
-    return world.GetShape(id);
-}
-
-void SetShape(World& world, ShapeID id, const Shape& def)
-{
-    world.SetShape(id, def);
-}
 
 TypeID GetType(const World& world, ShapeID id)
 {
@@ -64,9 +39,9 @@ TypeID GetType(const World& world, ShapeID id)
 ShapeCounter GetAssociationCount(const World& world)
 {
     auto sum = ShapeCounter{0};
-    const auto& bodies = world.GetBodies();
+    const auto bodies = GetBodies(world);
     for_each(begin(bodies), end(bodies), [&world,&sum](const auto &b) {
-        sum += static_cast<ShapeCounter>(size(world.GetShapes(b)));
+        sum += static_cast<ShapeCounter>(size(GetShapes(world, b)));
     });
     return sum;
 }
@@ -74,12 +49,17 @@ ShapeCounter GetAssociationCount(const World& world)
 ShapeCounter GetUsedShapesCount(const World& world) noexcept
 {
     auto ids = std::set<ShapeID>{};
-    for (auto&& bodyId: world.GetBodies()) {
-        for (auto&& shapeId: world.GetShapes(bodyId)) {
+    for (auto&& bodyId: GetBodies(world)) {
+        for (auto&& shapeId: GetShapes(world, bodyId)) {
             ids.insert(shapeId);
         }
     }
     return static_cast<ShapeCounter>(std::size(ids));
+}
+
+Filter GetFilterData(const World& world, ShapeID id)
+{
+    return GetFilter(GetShape(world, id));
 }
 
 void SetFriction(World& world, ShapeID id, NonNegative<Real> value)
@@ -89,11 +69,21 @@ void SetFriction(World& world, ShapeID id, NonNegative<Real> value)
     SetShape(world, id, object);
 }
 
+Real GetRestitution(const World& world, ShapeID id)
+{
+    return GetRestitution(GetShape(world, id));
+}
+
 void SetRestitution(World& world, ShapeID id, Real value)
 {
     auto object = GetShape(world, id);
     SetRestitution(object, value);
     SetShape(world, id, object);
+}
+
+bool IsSensor(const World& world, ShapeID id)
+{
+    return IsSensor(GetShape(world, id));
 }
 
 void SetFilterData(World& world, ShapeID id, const Filter& filter)
@@ -103,11 +93,21 @@ void SetFilterData(World& world, ShapeID id, const Filter& filter)
     SetShape(world, id, object);
 }
 
+NonNegativeFF<Real> GetFriction(const World& world, ShapeID id)
+{
+    return GetFriction(GetShape(world, id));
+}
+
 void SetSensor(World& world, ShapeID id, bool value)
 {
     auto object = GetShape(world, id);
     SetSensor(object, value);
     SetShape(world, id, object);
+}
+
+NonNegative<AreaDensity> GetDensity(const World& world, ShapeID id)
+{
+    return GetDensity(GetShape(world, id));
 }
 
 void SetDensity(World& world, ShapeID id, NonNegative<AreaDensity> value)
@@ -138,13 +138,18 @@ void Rotate(World& world, ShapeID id, const UnitVec& value)
     SetShape(world, id, object);
 }
 
+MassData GetMassData(const World& world, ShapeID id)
+{
+    return GetMassData(GetShape(world, id));
+}
+
 MassData ComputeMassData(const World& world, const Span<const ShapeID>& ids)
 {
     auto mass = 0_kg;
     auto I = RotInertia{};
     auto weightedCenter = Length2{};
     for (const auto& shapeId: ids) {
-        const auto& shape = GetShape(world, shapeId);
+        const auto shape = GetShape(world, shapeId);
         if (GetDensity(shape) > 0_kgpm2) {
             const auto massData = GetMassData(shape);
             mass += Mass{massData.mass};
