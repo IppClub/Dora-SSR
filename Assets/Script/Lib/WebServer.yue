@@ -274,6 +274,9 @@ HttpServer\postSchedule "/signature", (req)->
 			if signatures = teal.getSignatureAsync luaCodes, targetLine, targetRow, searchPath
 				if signatures = getParamDocs signatures
 					return success: true, :signatures
+			elseif signatures = teal.getSignatureAsync luaCodes, "builtin.#{targetLine}", targetRow, searchPath
+				if signatures = getParamDocs signatures
+					return success: true, :signatures
 	success: false
 
 luaKeywords = {
