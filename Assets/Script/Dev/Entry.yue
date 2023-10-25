@@ -331,14 +331,14 @@ export allClear = ->
 	Director.clearColor = Color 0xff1a1a1a
 	teal.clear!
 	yue.clear!
+	for _, item in pairs ubox!
+		node\cleanup! if node = tolua.cast item, "Node"
 	collectgarbage!
 	collectgarbage!
 	setupEventHandlers!
 	Content.searchPaths = searchPaths
 	App.idled = true
 	Wasm\clear!
-	for _, item in pairs ubox!
-		node\cleanup! if node = tolua.cast item, "Node"
 
 export stop = ->
 	return false if isInEntry
