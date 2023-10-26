@@ -172,6 +172,7 @@ export const deleteFile = (req: DeleteRequest) => {
 
 export interface NewRequest {
 	path: string;
+	content: string;
 }
 export interface NewResponse {
 	success: boolean;

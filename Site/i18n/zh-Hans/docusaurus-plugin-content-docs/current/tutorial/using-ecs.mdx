@@ -49,6 +49,12 @@ Entitas ECS
 <Tabs>
 <TabItem value="yue" label="Yuescript">
 
+&emsp;&emsp;在编写实际的代码之前，我们先为Yuescript语言引入这篇教程中要用到的功能模块。
+
+```yue
+_ENV = Dorothy!
+```
+
 &emsp;&emsp;首先，我们创建两个实体组 `sceneGroup` 和 `positionGroup`，分别用于访问和管理所有具有 "scene" 和 "position" 组件名称的实体。
 
 ```yue
@@ -236,17 +242,17 @@ Entity
 &emsp;&emsp;在编写实际的代码之前，我们先为Teal语言引入这篇教程中要用到的功能模块。
 
 ```tl
-local Group = require("Group")
-local Observer = require("Observer")
-local Entity = require("Entity")
-local Node = require("Node")
-local Director = require("Director")
-local Touch = require("Touch")
-local Sprite = require("Sprite")
-local Scale = require("Scale")
-local Ease = require("Ease")
-local Vec2 = require("Vec2")
-local Roll = require("Roll")
+local Group <const> = require("Group")
+local Observer <const> = require("Observer")
+local Entity <const> = require("Entity")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local Touch <const> = require("Touch")
+local Sprite <const> = require("Sprite")
+local Scale <const> = require("Scale")
+local Ease <const> = require("Ease")
+local Vec2 <const> = require("Vec2")
+local Roll <const> = require("Roll")
 ```
 
 &emsp;&emsp;首先，我们创建两个实体组 `sceneGroup` 和 `positionGroup`，分别用于访问和管理所有具有 "scene" 和 "position" 组件名称的实体。
@@ -458,6 +464,23 @@ Entity { scene = Node() }
 
 </TabItem>
 <TabItem value="lua" label="Lua">
+
+
+&emsp;&emsp;在编写实际的代码之前，我们先为Lua语言引入这篇教程中要用到的功能模块。
+
+```lua
+local Group <const> = require("Group")
+local Observer <const> = require("Observer")
+local Entity <const> = require("Entity")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local Touch <const> = require("Touch")
+local Sprite <const> = require("Sprite")
+local Scale <const> = require("Scale")
+local Ease <const> = require("Ease")
+local Vec2 <const> = require("Vec2")
+local Roll <const> = require("Roll")
+```
 
 &emsp;&emsp;首先，我们创建两个实体组 `sceneGroup` 和 `positionGroup`，分别用于访问和管理所有具有 "scene" 和 "position" 组件名称的实体。
 

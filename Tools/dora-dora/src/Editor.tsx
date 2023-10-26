@@ -345,7 +345,7 @@ const codeActionProvider = {
 							{
 								resource: model.uri,
 								textEdit: {
-									text: `local ${moduleName} = require("${moduleName}")\n`,
+									text: `local ${moduleName} <const> = require("${moduleName}")\n`,
 									range: {
 										startLineNumber: 1,
 										startColumn: 0,

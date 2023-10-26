@@ -95,7 +95,10 @@ end)
 
 ```lua title="Hello/init.lua"
 -- Import functional modules
-local _ENV = Dorothy()
+local Sprite <const> = require("Sprite")
+local Director <const> = require("Director")
+local Move <const> = require("Move")
+local Ease <const> = require("Ease")
 
 -- Get the root node of the game scene tree
 local entry = Director.entry

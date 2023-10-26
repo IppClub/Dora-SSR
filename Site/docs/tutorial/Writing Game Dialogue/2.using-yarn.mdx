@@ -34,12 +34,14 @@ runner = YarnRunner "tutorial.yarn", "Start"
 </TabItem>
 <TabItem value="tl" label="Teal">
 
+First, make sure you have correctly imported all the necessary modules. Here are the modules we need for the examples in this tutorial:
+
 ```tl title=init.tl
-local YarnRunner = require("YarnRunner")
-local Content = require("Content")
-local Path = require("Path")
-local Node = require("Node")
-local Director = require("Director")
+local Content <const> = require("Content")
+local Path <const> = require("Path")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local YarnRunner <const> = require("YarnRunner")
 ```
 
 To ensure that we can locate the Yarn script, we need to set the correct search path. If the Yarn script and program modules are in the same directory, you can add the following code:
@@ -61,8 +63,11 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 First, make sure you have correctly imported all the necessary modules. Here are the modules we need for the examples in this tutorial:
 
 ```lua title=init.lua
-_ENV = Dorothy!
-local YarnRunner = require("YarnRunner")
+local Content <const> = require("Content")
+local Path <const> = require("Path")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local YarnRunner <const> = require("YarnRunner")
 ```
 
 To ensure that we can locate the Yarn script, we need to set the correct search path. If the Yarn script and program modules are in the same directory, you can add the following code:
