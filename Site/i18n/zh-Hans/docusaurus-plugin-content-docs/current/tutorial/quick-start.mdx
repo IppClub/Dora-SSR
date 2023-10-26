@@ -99,7 +99,10 @@ end)
 
 ```lua title="Hello/init.lua"
 -- 导入功能模块
-local _ENV = Dorothy()
+local Sprite <const> = require("Sprite")
+local Director <const> = require("Director")
+local Move <const> = require("Move")
+local Ease <const> = require("Ease")
 
 -- 获取游戏场景树根节点
 local entry = Director.entry

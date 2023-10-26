@@ -34,12 +34,14 @@ runner = YarnRunner "tutorial.yarn", "Start"
 </TabItem>
 <TabItem value="tl" label="Teal">
 
+&emsp;&emsp;首先确保您已正确地导入所有必需的模块。以下是本教程示例中我们需要的模块：
+
 ```tl title=init.tl
-local YarnRunner = require("YarnRunner")
-local Content = require("Content")
-local Path = require("Path")
-local Node = require("Node")
-local Director = require("Director")
+local Content <const> = require("Content")
+local Path <const> = require("Path")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local YarnRunner <const> = require("YarnRunner")
 ```
 
 &emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
@@ -61,8 +63,11 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 &emsp;&emsp;首先确保您已正确地导入所有必需的模块。以下是本教程示例中我们需要的模块：
 
 ```lua title=init.lua
-_ENV = Dorothy!
-local YarnRunner = require("YarnRunner")
+local Content <const> = require("Content")
+local Path <const> = require("Path")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local YarnRunner <const> = require("YarnRunner")
 ```
 
 &emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：

@@ -40,10 +40,9 @@ disabledCheckForLua =
 	* "ContainerItem"
 	* "cannot resolve a type"
 	* "invalid key"
-	* "<any type>"
-	* "<unknown type>"
 	* "inconsistent index type"
-	* "cannot use operator '#' on type record"
+	* "cannot use operator '#'"
+	* "attempting ipairs loop"
 	* "expects record or nominal"
 
 yueCheck = (file, content)->
@@ -79,6 +78,8 @@ luaCheck = (file, content)->
 				if not item[5]\match("unused") and item[5]\match check
 					useCheck = false
 			continue unless useCheck
+			if item[1] == "type"
+				item[1] = "warning"
 			item
 		if #info == 0
 			info = nil
@@ -386,7 +387,7 @@ HttpServer\postSchedule "/complete", (req)->
 					if searchImage
 						switch Path\getExt f when "clip", "jpg", "png", "dds", "pvr", "ktx"
 							continue if "." == f\sub 1, 1
-							suggestions[] = {f, "module", "field"}
+							suggestions[] = {f, "image", "field"}
 						continue
 					switch Path\getExt f when "lua", "tl", "yue", "xml"
 						name = Path\getName f
@@ -495,12 +496,12 @@ HttpServer\post "/info", -> return
 	version: App.version
 
 HttpServer\post "/new", (req)->
-	switch req when {body: {:path}}
+	switch req when {body: {:path, :content}}
 		if not Content\exist path
 			if "" == Path\getExt path
 				if Content\mkdir path
 					return success: true
-			else if Content\save path, ""
+			elseif Content\save path, content
 				return success: true
 	success: false
 

@@ -1,9 +1,16 @@
 local record teal
 	tolua: function(codes: string, moduleName: string, searchPath: string): --[[lua codes]] string, --[[error]] string | nil
 	toluaAsync: function(codes: string, moduleName: string, searchPath: string): --[[lua codes]] string, --[[error]] string | nil
+	enum ErrorType
+		"parsing"
+		"syntax"
+		"type"
+		"warning"
+		"crash"
+	end
 	checkAsync: function(codes: string, moduleName: string, lax: boolean, searchPath: string): --[[passed]] boolean, {
 		{
-			--[[type]] string,
+			--[[type]] ErrorType,
 			--[[filename]] string,
 			--[[row]] integer,
 			--[[col]] integer,
