@@ -26,3 +26,4 @@
 - wasm3: [MIT License](./Source/3rdParty/wasm3/LICENSE)
 - Yard: unknown
 - yuescript: [MIT License](./Source/3rdParty/yuescript/LICENSE)
+- miniz ([richgel999/miniz](https://github.com/richgel999/miniz)): [MIT License](./Source/3rdParty/Zip/LICENSE-miniz)
