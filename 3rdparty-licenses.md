@@ -1,0 +1,28 @@
+# Thirdparty Licenses
+
+- bgfx: [BSD-2 License](./Source/3rdParty/bgfx/LICENSE)
+- colib: [MIT License](./Source/3rdParty/colib/LICENSE)
+- dragonBones: [MIT License](./Source/3rdParty/dragonBones/LICENSE)
+- fmt: [MIT License](./Source/3rdParty/fmt/LICENSE.rst)
+- bgfx-font: [BSD-2 License](./Source/3rdParty/bgfx/LICENSE)
+- ghc ([gulrak/filesystem](https://github.com/gulrak/filesystem)): [MIT License](./Source/3rdParty/ghc/LICENSE)
+- httplib: [MIT License](./Source/3rdParty/httplib/LICENSE)
+- imgui: [MIT License](./Source/3rdParty/imgui/LICENSE.txt)
+- implot: [MIT License](./Source/3rdParty/implot/LICENSE)
+- lodepng: [zlib License](./Source/3rdParty/lodepng/LICENSE)
+- Lua: [MIT License](./Source/3rdParty/Lua/LICENSE)
+- ml: unknown
+- nanovg: [zlib License](./Source/3rdParty/nanovg/LICENSE.txt)
+- playrho: [zlib License](./Source/3rdParty/playrho/LICENSE.txt)
+- rapidjson: [MIT License](./Source/3rdParty/rapidjson/license.txt)
+- SDL2: [zlib License](./Source/3rdParty/SDL2/COPYING.txt)
+- silly: unknown
+- soloud: [zlib License](./Source/3rdParty/soloud/LICENSE)
+- spine: [Spine Runtimes License](./Source/3rdParty/spine/LICENSE)
+- sqlite: [SQLite Public Domain License](./Source/3rdParty/sqlite/LICENSE.md)
+- sqliteCpp: [MIT License](./Source/3rdParty/sqlite/sqliteCpp/LICENSE)
+- stb: [MIT License](./Source/3rdParty/stb/LICENSE)
+- tinyxml2: [zlib License](./Source/3rdParty/tinyxml2/LICENSE.txt)
+- wasm3: [MIT License](./Source/3rdParty/wasm3/LICENSE)
+- Yard: unknown
+- yuescript: [MIT License](./Source/3rdParty/yuescript/LICENSE)
