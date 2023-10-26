@@ -904,9 +904,22 @@ export default function PersistentDrawerLeft() {
 				const dir = target.dir ?
 					target.key : path.dirname(target.key);
 				const {ext} = fileInfo;
-				const newName = fileInfo.name + fileInfo.ext;
+				const newName = fileInfo.name + ext;
 				const newFile = path.join(dir, newName);
-				Service.newFile({path: newFile}).then((res) => {
+				let content = "";
+				let position: monaco.IPosition | undefined = undefined;
+				switch (ext) {
+					case ".yue":
+						content = "_ENV = Dorothy!\n\n";
+						position = {
+							lineNumber: 3,
+							column: 1
+						};
+						break;
+					default:
+						break;
+				}
+				Service.newFile({path: newFile, content}).then((res) => {
 					if (!res.success) {
 						addAlert(t("alert.newFailed"), "error");
 						return;
@@ -968,7 +981,8 @@ export default function PersistentDrawerLeft() {
 						const index = files.push({
 							key: newFile,
 							title: newName,
-							content: "",
+							position,
+							content,
 							contentModified: null,
 							uploading: false,
 							status: "normal",
@@ -1325,7 +1339,7 @@ export default function PersistentDrawerLeft() {
 						const word = model.getWordAtPosition(position);
 						if (word === null) return;
 						model.pushEditOperations(null, [{
-							text: `local ${word.word} = require("${word.word}")\n`,
+							text: `local ${word.word} <const> = require("${word.word}")\n`,
 							range: {
 								startLineNumber: 1,
 								startColumn: 0,

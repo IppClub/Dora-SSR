@@ -49,6 +49,12 @@ In this tutorial, we will demonstrate how to use the ECS (Entity Component Syste
 <Tabs>
 <TabItem value="yue" label="Yuescript">
 
+Before writing the actual code, we require the modules we will use in this tutorial for Yuescript language.
+
+```yue
+_ENV = Dorothy!
+```
+
 First, we create two entity groups, `sceneGroup` and `positionGroup`, which are used to access and manage entities with the "scene" and "position" component names, respectively.
 
 ```yue
@@ -236,17 +242,17 @@ Entity
 Before writing the actual code, we require the modules we will use in this tutorial for Teal language.
 
 ```tl
-local Group = require("Group")
-local Observer = require("Observer")
-local Entity = require("Entity")
-local Node = require("Node")
-local Director = require("Director")
-local Touch = require("Touch")
-local Sprite = require("Sprite")
-local Scale = require("Scale")
-local Ease = require("Ease")
-local Vec2 = require("Vec2")
-local Roll = require("Roll")
+local Group <const> = require("Group")
+local Observer <const> = require("Observer")
+local Entity <const> = require("Entity")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local Touch <const> = require("Touch")
+local Sprite <const> = require("Sprite")
+local Scale <const> = require("Scale")
+local Ease <const> = require("Ease")
+local Vec2 <const> = require("Vec2")
+local Roll <const> = require("Roll")
 ```
 
 First, we create two entity groups, `sceneGroup` and `positionGroup`, which are used to access and manage entities with the "scene" and "position" component names, respectively.
@@ -458,6 +464,22 @@ Entity { scene = Node() }
 
 </TabItem>
 <TabItem value="lua" label="Lua">
+
+Before writing the actual code, we require the modules we will use in this tutorial for Lua language.
+
+```lua
+local Group <const> = require("Group")
+local Observer <const> = require("Observer")
+local Entity <const> = require("Entity")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local Touch <const> = require("Touch")
+local Sprite <const> = require("Sprite")
+local Scale <const> = require("Scale")
+local Ease <const> = require("Ease")
+local Vec2 <const> = require("Vec2")
+local Roll <const> = require("Roll")
+```
 
 First, we create two entity groups, `sceneGroup` and `positionGroup`, which are used to access and manage entities with the "scene" and "position" component names, respectively.
 
