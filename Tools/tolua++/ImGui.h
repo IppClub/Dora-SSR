@@ -26,7 +26,7 @@ namespace ImGui
 	bool Binding::BeginChild @ BeginChild(ImGuiID id, Vec2 size = Vec2::zero, bool border = false);
 	bool Binding::BeginChild @ BeginChild(ImGuiID id, Vec2 size, bool border, String windowsFlags[tolua_len]);
 	void Binding::SetNextWindowPos @ SetNextWindowPos(Vec2 pos, String setCond = nullptr, Vec2 pivot = Vec2::zero);
-	void Binding::SetNextWindowPosCenter @ SetNextWindowPosCenter(String setCond = nullptr);
+	void Binding::SetNextWindowPosCenter @ SetNextWindowPosCenter(String setCond = nullptr, Vec2 pivot = Vec2::zero);
 	void Binding::SetNextWindowSize @ SetNextWindowSize(Vec2 size, String setCond = nullptr);
 	void Binding::SetNextWindowCollapsed @ SetNextWindowCollapsed(bool collapsed, String setCond = nullptr);
 	void Binding::SetWindowPos @ SetWindowPos(CString name, Vec2 pos, String setCond = nullptr);

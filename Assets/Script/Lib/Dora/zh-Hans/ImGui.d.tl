@@ -269,66 +269,66 @@ local record ImGui
 		name: string,
 		windowsFlags: {WindowFlag},
 		inside: function()
-	): boolean
+	)
 	Begin: function(
 		name: string,
+		inside: function()
+	)
+	Begin: function(
+		name: string,
+		p_open: boolean,
+		windowsFlags: {WindowFlag},
 		inside: function()
 	): boolean
 	Begin: function(
 		name: string,
 		p_open: boolean,
-		windowsFlags: {WindowFlag},
 		inside: function()
-	): boolean, boolean
-	Begin: function(
-		name: string,
-		p_open: boolean,
-		inside: function()
-	): boolean, boolean
+	): boolean
 	BeginChild: function(
 		str_id: string,
 		size: Vec2,
 		border: boolean,
 		windowsFlags: {WindowFlag},
 		inside: function()
-	): boolean
+	)
 	BeginChild: function(
 		str_id: string,
 		size: Vec2,
 		border: boolean,
 		inside: function()
-	): boolean
+	)
 	BeginChild: function(
 		str_id: string,
 		size: Vec2,
 		inside: function()
-	): boolean
+	)
 	BeginChild: function(
 		str_id: string,
 		inside: function()
-	): boolean
+	)
 	BeginChild: function(
 		id: integer,
 		size: Vec2,
 		border: boolean,
 		windowsFlags: {WindowFlag},
 		inside: function()
-	): boolean
+	)
 	BeginChild: function(
 		id: integer,
 		size: Vec2,
 		border: boolean,
 		inside: function()
-	): boolean
+	)
 	BeginChild: function(
 		id: integer,
 		size: Vec2,
 		inside: function()
-	): boolean
+	)
 	BeginChild: function(
 		id: integer,
 		inside: function()
-	): boolean
+	)
 	SetNextWindowBgAlpha: function(alpha: number)
 	SetNextWindowPos: function(
 		pos: Vec2,
@@ -336,7 +336,8 @@ local record ImGui
 		pivot?: Vec2 --[[Vec2.zero]]
 	)
 	SetNextWindowPosCenter: function(
-		setCond?: SetCond --[[""]]
+		setCond?: SetCond --[[""]],
+		pivot?: Vec2 --[[Vec2.zero]]
 	)
 	SetNextWindowSize: function(
 		size: Vec2,
@@ -420,33 +421,33 @@ local record ImGui
 		name: string,
 		windowsFlags: {WindowFlag} --[[nil]],
 		inside: function()
-	): boolean
+	)
 	BeginPopupModal: function(
 		name: string,
 		inside: function()
-	): boolean
+	)
 	BeginPopupModal: function(
 		name: string,
 		p_open: boolean,
 		windowsFlags: {WindowFlag} --[[nil]],
 		inside: function()
-	): boolean, boolean
+	): boolean
 	BeginPopupModal: function(
 		name: string,
 		p_open: boolean,
 		inside: function()
-	): boolean, boolean
+	): boolean
 	BeginChildFrame: function(
 		id: integer,
 		size: Vec2,
 		windowsFlags: {WindowFlag} --[[nil]],
 		inside: function()
-	): boolean
+	)
 	BeginChildFrame: function(
 		id: integer,
 		size: Vec2,
 		inside: function()
-	): boolean
+	)
 
 	PushStyleColor: function(name: StyleColor, color: Color, inside: function())
 	PushStyleVar: function(name: StyleVarNum, val: number, inside: function())
@@ -835,17 +836,17 @@ local record ImGui
 
 	BeginTooltip: function(inside: function())
 
-	BeginMainMenuBar: function(inside: function()): boolean
-	BeginMenuBar: function(inside: function()): boolean
+	BeginMainMenuBar: function(inside: function())
+	BeginMenuBar: function(inside: function())
 	BeginMenu: function(
 		label: string,
 		enabled: boolean --[[true]],
 		inside: function()
-	): boolean
+	)
 	BeginMenu: function(
 		label: string,
 		inside: function()
-	): boolean
+	)
 	MenuItem: function(
 		label: string,
 		shortcut?: string --[[""]],
@@ -860,37 +861,37 @@ local record ImGui
 	): boolean, boolean
 
 	OpenPopup: function(str_id: string)
-	BeginPopup: function(str_id: string, inside: function()): boolean
+	BeginPopup: function(str_id: string, inside: function())
 	BeginPopupContextItem: function(
 		str_id: string,
 		popupFlags: {PopupFlag} --[[nil]],
 		inside: function()
-	): boolean
+	)
 	BeginPopupContextItem: function(
 		str_id: string,
 		inside: function()
-	): boolean
+	)
 	BeginPopupContextWindow: function(
 		str_id: string,
 		popupFlags: {PopupFlag} --[[nil]],
 		inside: function()
-	): boolean
+	)
 	BeginPopupContextWindow: function(
 		str_id: string,
 		inside: function()
-	): boolean
+	)
 	BeginPopupContextVoid: function(
 		str_id: string --[[""]],
 		popupFlags: {PopupFlag} --[[nil]],
 		inside: function()
-	): boolean
+	)
 	BeginPopupContextVoid: function(
 		str_id: string,
 		inside: function()
-	): boolean
+	)
 	BeginPopupContextVoid: function(
 		inside: function()
-	): boolean
+	)
 	CloseCurrentPopup: function()
 
 	PushClipRect: function(
