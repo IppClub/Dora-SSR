@@ -269,6 +269,7 @@
 		3CA77F1D2AE665C100B7BADA /* ToiOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77EB82AE665C000B7BADA /* ToiOutput.cpp */; };
 		3CA77F1E2AE665C100B7BADA /* ConstraintSolverConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77EBB2AE665C100B7BADA /* ConstraintSolverConf.cpp */; };
 		3CA77F1F2AE665C100B7BADA /* Math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77ED02AE665C100B7BADA /* Math.cpp */; };
+		3CA780A12AEB82B100B7BADA /* LICENSES in Resources */ = {isa = PBXBuildFile; fileRef = 3CA780A02AEB82B100B7BADA /* LICENSES */; };
 		3CA8DF0D2A0CE6FD0022CC90 /* www in Resources */ = {isa = PBXBuildFile; fileRef = 3CA8DF0C2A0CE6FD0022CC90 /* www */; };
 		3CB2115125C2984900CEA033 /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2115025C2984900CEA033 /* imgui_tables.cpp */; };
 		3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2487D1E4DB41500B6BF26 /* utf8.cpp */; };
@@ -1070,6 +1071,7 @@
 		3CA77ED32AE665C100B7BADA /* UnitInterval.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = UnitInterval.hpp; sourceTree = "<group>"; };
 		3CA77ED42AE665C100B7BADA /* Version.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Version.hpp; sourceTree = "<group>"; };
 		3CA77ED52AE665C100B7BADA /* Positive.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Positive.hpp; sourceTree = "<group>"; };
+		3CA780A02AEB82B100B7BADA /* LICENSES */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSES; sourceTree = "<group>"; };
 		3CA8DF0C2A0CE6FD0022CC90 /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; path = www; sourceTree = "<group>"; };
 		3CB2115025C2984900CEA033 /* imgui_tables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_tables.cpp; path = ../../../Source/3rdParty/imgui/imgui_tables.cpp; sourceTree = "<group>"; };
 		3CB2487D1E4DB41500B6BF26 /* utf8.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = utf8.cpp; path = ../../../Source/3rdParty/Other/utf8.cpp; sourceTree = "<group>"; };
@@ -1505,6 +1507,7 @@
 		3C030CD824CAD9670074786E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3CA780A02AEB82B100B7BADA /* LICENSES */,
 				3C60DE122A2069CE007D7865 /* Doc */,
 				3CA8DF0C2A0CE6FD0022CC90 /* www */,
 				3C0C774A27573F350030BDCD /* Data */,
@@ -3191,6 +3194,7 @@
 				3CA8DF0D2A0CE6FD0022CC90 /* www in Resources */,
 				3CBC784F24CE7528003C9E83 /* Particle in Resources */,
 				3C0C774B27573F350030BDCD /* Data in Resources */,
+				3CA780A12AEB82B100B7BADA /* LICENSES in Resources */,
 				3CBC784C24CE7528003C9E83 /* Audio in Resources */,
 				3CFEBDAB268EFC62006D9974 /* DragonBones in Resources */,
 				3CBC784B24CE7528003C9E83 /* Image in Resources */,
