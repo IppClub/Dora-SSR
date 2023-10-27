@@ -823,12 +823,13 @@ do
 			if type(callFunc) ~= "function" then
 				error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 			end
-			local began = beginFunc(unpack(args))
+			local began, ret = beginFunc(unpack(args))
 			closeVar[#closeVar + 1] = endFunc
 			local _ <close> = closeVar
 			if began then
 				callFunc()
 			end
+			return ret
 		end
 	end
 
@@ -839,11 +840,13 @@ do
 			if type(callFunc) ~= "function" then
 				error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 			end
-			if beginFunc(unpack(args)) then
+			local began, ret = beginFunc(unpack(args))
+			if began then
 				closeVar[#closeVar + 1] = endFunc
 				local _ <close> = closeVar
 				callFunc()
 			end
+			return ret
 		end
 	end
 
@@ -854,10 +857,11 @@ do
 			if type(callFunc) ~= "function" then
 				error("ImGui paired calls now require a function as last argument in 'Begin' function.")
 			end
-			beginFunc(unpack(args))
+			local began, ret = beginFunc(unpack(args))
 			closeVar[#closeVar + 1] = endFunc
 			local _ <close> = closeVar
 			callFunc()
+			return began, ret
 		end
 	end
 

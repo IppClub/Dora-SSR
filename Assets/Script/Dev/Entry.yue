@@ -349,7 +349,7 @@ export stop = ->
 
 getFileEntries = (path)->
 	entries = {}
-	for file in *getAllFiles path, {"xml", "lua", yueext, "tl"}
+	for file in *getAllFiles path, ["xml", "lua", yueext, "tl"]
 		entryName = Path\getName file
 		file = Path\replaceExt file, ""
 		file = Path Path\getName(path), file
@@ -362,7 +362,7 @@ getProjectEntries = (path)->
 	entries = {}
 	for dir in *Content\getDirs path
 		continue if dir\match "^%."
-		for file in *getAllFiles Path(path, dir), {"xml", "lua", yueext, "tl", "wasm"}
+		for file in *getAllFiles Path(path, dir), ["xml", "lua", yueext, "tl", "wasm"]
 			if "init" == Path\getName(file)\lower!
 				examples = {}
 				tests = {}
@@ -462,8 +462,27 @@ reloadDevEntry = ->
 		oldRequire "Dev.Entry"
 		true
 
+isOSSLicenseExist = Content\exist "LICENSES"
+textOSSLicense = nil
+textOSSLicenseOpen = false
+
 extraOperations = ->
 	zh = useChinese and isChineseSupported
+	if isOSSLicenseExist
+		if Button zh and '开源协议' or 'OSS Licenses'
+			unless textOSSLicenseOpen
+				textOSSLicense = Content\load "LICENSES"
+				textOSSLicenseOpen = textOSSLicense?
+		if textOSSLicenseOpen
+			:width, :height = App.visualSize
+			SetNextWindowPosCenter "Appearing", Vec2 0.5, 0.5
+			SetNextWindowSize Vec2(math.min(width * 0.8, 750), height * 0.8), "Appearing"
+			textOSSLicenseOpen = Begin(
+				zh and '开源协议' or 'OSS Licenses'
+				textOSSLicenseOpen
+				{"NoSavedSettings"}
+				-> TextWrapped textOSSLicense
+			)
 	<- TreeNode zh and "开发操作" or "Development"
 	OpenPopup "build" if Button zh and "脚本编译" or "Script Build"
 	PushStyleVar "WindowPadding", Vec2(10, 10), -> BeginPopup "build", ->

@@ -520,8 +520,8 @@ void SetNextWindowPos(const Vec2& pos, String setCond, const Vec2& pivot) {
 	ImGui::SetNextWindowPos(pos, SetCondFlag(setCond), pivot);
 }
 
-void SetNextWindowPosCenter(String setCond) {
-	ImGui::SetNextWindowPos(Vec2(ImGui::GetIO().DisplaySize) * 0.5f, SetCondFlag(setCond));
+void SetNextWindowPosCenter(String setCond, const Vec2& pivot) {
+	ImGui::SetNextWindowPos(Vec2(ImGui::GetIO().DisplaySize) * 0.5f, SetCondFlag(setCond), pivot);
 }
 
 void SetNextWindowSize(const Vec2& size, String setCond) {

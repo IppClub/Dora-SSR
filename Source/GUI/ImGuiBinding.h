@@ -106,7 +106,8 @@ void SetNextWindowPos(
 	const Vec2& pivot = Vec2::zero);
 
 void SetNextWindowPosCenter(
-	String setCond = nullptr);
+	String setCond = nullptr,
+	const Vec2& pivot = Vec2::zero);
 
 void SetNextWindowSize(
 	const Vec2& size,

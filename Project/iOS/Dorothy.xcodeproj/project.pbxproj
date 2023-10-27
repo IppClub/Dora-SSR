@@ -467,6 +467,8 @@
 		3CA7809C2AE770DC00B7BADA /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780982AE770DC00B7BADA /* libbimg_decode.a */; };
 		3CA7809D2AE770DC00B7BADA /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA780992AE770DC00B7BADA /* libbx.a */; };
 		3CA7809F2AE770EE00B7BADA /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA7809E2AE770EE00B7BADA /* libSDL2.a */; };
+		3CA780A32AEB88B600B7BADA /* LICENSES in Resources */ = {isa = PBXBuildFile; fileRef = 3CA780A22AEB88B600B7BADA /* LICENSES */; };
+		3CA780A42AEB88B600B7BADA /* LICENSES in Resources */ = {isa = PBXBuildFile; fileRef = 3CA780A22AEB88B600B7BADA /* LICENSES */; };
 		3CA8DF0F2A0CE83D0022CC90 /* www in Resources */ = {isa = PBXBuildFile; fileRef = 3CA8DF0E2A0CE83D0022CC90 /* www */; };
 		3CA8DF102A0CE83D0022CC90 /* www in Resources */ = {isa = PBXBuildFile; fileRef = 3CA8DF0E2A0CE83D0022CC90 /* www */; };
 		3CAA2D1526155DB3004443A6 /* Backup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CAA2D0826155DB3004443A6 /* Backup.cpp */; };
@@ -1526,6 +1528,7 @@
 		3CA780982AE770DC00B7BADA /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/bgfx/Lib/iOS/libbimg_decode.a; sourceTree = "<group>"; };
 		3CA780992AE770DC00B7BADA /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/bgfx/Lib/iOS/libbx.a; sourceTree = "<group>"; };
 		3CA7809E2AE770EE00B7BADA /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/iOS/libSDL2.a; sourceTree = "<group>"; };
+		3CA780A22AEB88B600B7BADA /* LICENSES */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LICENSES; path = ../../Assets/LICENSES; sourceTree = "<group>"; };
 		3CA8DF0E2A0CE83D0022CC90 /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; name = www; path = ../../Assets/www; sourceTree = "<group>"; };
 		3CAA2D0226155DB2004443A6 /* Statement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Statement.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/Statement.h; sourceTree = "<group>"; };
 		3CAA2D0326155DB2004443A6 /* SQLiteCpp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SQLiteCpp.h; path = ../../../Source/3rdParty/sqlite/SQLiteCpp/SQLiteCpp.h; sourceTree = "<group>"; };
@@ -2221,6 +2224,7 @@
 		3C1F87CD1DF7B68C005F1B4D /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3CA780A22AEB88B600B7BADA /* LICENSES */,
 				3C60DE142A2069FE007D7865 /* Doc */,
 				3CA8DF0E2A0CE83D0022CC90 /* www */,
 				3C0C775B275744690030BDCD /* Data */,
@@ -3675,6 +3679,7 @@
 				3CBE0F0826087F7B003F4F45 /* Font in Resources */,
 				3CBE0F0926087F7B003F4F45 /* Script in Resources */,
 				3CBE0F0B26087F7B003F4F45 /* Particle in Resources */,
+				3CA780A42AEB88B600B7BADA /* LICENSES in Resources */,
 				3CBE0F0E26087F7B003F4F45 /* Audio in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3696,6 +3701,7 @@
 				3C030CFB24CAE6580074786E /* Font in Resources */,
 				3C030CF824CAE6580074786E /* Script in Resources */,
 				3C030CFC24CAE6580074786E /* Particle in Resources */,
+				3CA780A32AEB88B600B7BADA /* LICENSES in Resources */,
 				3C030CF924CAE6580074786E /* Audio in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
