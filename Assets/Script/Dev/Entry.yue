@@ -112,7 +112,7 @@ export.isDocPreparing = -> docPreparing
 
 export.getConfig = -> config
 
-import "Utils" as :Set, :Struct, :LintYueGlobals
+import "Utils" as :Set, :Struct, :LintYueGlobals, :GSplit
 options: {extension: yueext} = yue
 
 isChineseSupported = IsFontLoaded!
@@ -463,25 +463,33 @@ reloadDevEntry = ->
 		true
 
 isOSSLicenseExist = Content\exist "LICENSES"
-textOSSLicense = nil
-textOSSLicenseOpen = false
+ossLicenses = nil
+ossLicenseOpen = false
 
 extraOperations = ->
 	zh = useChinese and isChineseSupported
 	if isOSSLicenseExist
 		if Button zh and '开源协议' or 'OSS Licenses'
-			unless textOSSLicenseOpen
-				textOSSLicense = Content\load "LICENSES"
-				textOSSLicenseOpen = textOSSLicense?
-		if textOSSLicenseOpen
+			unless ossLicenses
+				ossLicenses = []
+				licenseText = Content\load "LICENSES"
+				if ossLicenseOpen = licenseText?
+					for license in GSplit licenseText, "\n--------\n", true
+						if name, text = license\match "[%s\n\r]*([^\n\r]*)[%s\n\r]*(.*)"
+							ossLicenses[] = [name, text]
+			else
+				ossLicenseOpen = true
+		if ossLicenseOpen
 			:width, :height = App.visualSize
 			SetNextWindowPosCenter "Appearing", Vec2 0.5, 0.5
 			SetNextWindowSize Vec2(math.min(width * 0.8, 750), height * 0.8), "Appearing"
-			textOSSLicenseOpen = Begin(
+			ossLicenseOpen = Begin(
 				zh and '开源协议' or 'OSS Licenses'
-				textOSSLicenseOpen
+				ossLicenseOpen
 				{"NoSavedSettings"}
-				-> TextWrapped textOSSLicense
+				-> for {name, text} in *ossLicenses
+					if CollapsingHeader name
+						TextWrapped text
 			)
 	<- TreeNode zh and "开发操作" or "Development"
 	OpenPopup "build" if Button zh and "脚本编译" or "Script Build"

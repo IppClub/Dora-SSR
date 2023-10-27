@@ -329,3 +329,23 @@ export LintYueGlobals = (luaCodes, globals, globalInLocal = true)->
 		false, errors
 	else
 		true, table.concat requireModules, "\n"
+
+export GSplit = (text, pattern, plain)->
+	splitStart, length = 1, #text
+	->
+		if splitStart
+			sepStart, sepEnd = string.find text, pattern, splitStart, plain
+			local ret
+			if not sepStart
+				ret = string.sub text, splitStart
+				splitStart = nil
+			elseif sepEnd < sepStart
+				ret = string.sub text, splitStart, sepStart
+				splitStart = if sepStart < length
+					sepStart + 1
+				else
+					nil
+			else
+				ret = sepStart > splitStart and string.sub(text, splitStart, sepStart - 1) or ''
+				splitStart = sepEnd + 1
+			ret
