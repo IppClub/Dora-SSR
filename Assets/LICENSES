@@ -1,6 +1,4 @@
-Dorothy SSR
-
-The MIT License (MIT)
+Dorothy SSR: MIT License
 
 Copyright (c) 2023 Li Jin
 
@@ -23,7 +21,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------
 
-bgfx
+bgfx: BSD-2 License
 
 Copyright 2010-2017 Branimir Karadzic. All rights reserved.
 
@@ -56,9 +54,7 @@ https://github.com/bkaradzic/bx/blob/master/LICENSE
 
 --------
 
-colib
-
-MIT License
+colib: MIT License
 
 Copyright (c) 2020 colin
 
@@ -82,9 +78,7 @@ SOFTWARE.
 
 --------
 
-dragonbone
-
-The MIT License (MIT)
+DragonBones: MIT License
 
 Copyright (c) 2012-2016 DragonBones team and other contributors
 
@@ -107,7 +101,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------
 
-fmt
+fmt: MIT License
 
 Copyright (c) 2012 - present, Victor Zverovich
 
@@ -139,7 +133,7 @@ without including the above copyright and permission notices.
 
 --------
 
-gulrak/filesystem
+gulrak/filesystem: MIT License
 
 Copyright (c) 2018, Steffen Schümann <s.schuemann@pobox.com>
 
@@ -163,9 +157,7 @@ SOFTWARE.
 
 --------
 
-httplib
-
-The MIT License (MIT)
+httplib: MIT License
 
 Copyright (c) 2017 yhirose
 
@@ -189,9 +181,7 @@ SOFTWARE.
 
 --------
 
-imgui
-
-The MIT License (MIT)
+imgui: MIT License
 
 Copyright (c) 2014-2020 Omar Cornut
 
@@ -215,9 +205,7 @@ SOFTWARE.
 
 --------
 
-implot
-
-MIT License
+implot: MIT License
 
 Copyright (c) 2020 Evan Pezent
 
@@ -241,7 +229,7 @@ SOFTWARE.
 
 --------
 
-lodepng
+lodepng: zlib License
 
 Copyright (c) 2005-2018 Lode Vandevenne
 
@@ -266,7 +254,7 @@ freely, subject to the following restrictions:
 
 --------
 
-lua
+Lua: MIT License
 
 Copyright © 1994–2023 Lua.org, PUC-Rio.
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -277,9 +265,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------
 
-MachineLearning-DecisionTree
-
-BSD 2-Clause License
+MachineLearning-DecisionTree: BSD-2 License
 
 Copyright (c) 2017, 达达
 All rights reserved.
@@ -307,7 +293,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------
 
-nanovg
+nanovg: zlib License
 
 Copyright (c) 2013 Mikko Mononen memon@inside.org
 
@@ -329,7 +315,7 @@ freely, subject to the following restrictions:
 
 --------
 
-playrho
+playrho: zlib License
 
 Copyright (c) 2006-2017 Erin Catto https://box2d.org
 Copyright (c) 2016-2023 Louis Langholtz https://github.com/louis-langholtz
@@ -352,7 +338,7 @@ freely, subject to the following restrictions:
 
 --------
 
-RapidJSON
+RapidJSON: MIT License
 
 Tencent is pleased to support the open source community by making RapidJSON available. 
 
@@ -414,7 +400,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------
 
-SDL2
+SDL2: zlib License
 
 Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
   
@@ -436,7 +422,7 @@ freely, subject to the following restrictions:
 
 --------
 
-silly
+silly: Apache License 2.0
 
                                  Apache License
                            Version 2.0, January 2004
@@ -617,7 +603,7 @@ silly
 
 --------
 
-soloud
+soloud: zlib License
 
 SoLoud contains various third party libraries which vary in licenses,
 but are all extremely liberal; no attribution in binary form is required.
@@ -649,7 +635,7 @@ freely, subject to the following restrictions:
 
 --------
 
-Spine
+Spine: Spine Runtimes License
 
 Spine Runtimes License Agreement
 Last updated July 28, 2023. Replaces all prior versions.
@@ -680,7 +666,7 @@ SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------
 
-SQLite
+SQLite: Public Domain
 
 The author disclaims copyright to this source code. In place of a legal notice, here is a blessing:
 
@@ -690,9 +676,7 @@ May you share freely, never taking more than you give.
 
 --------
 
-SQLiteCpp
-
-The MIT License (MIT)
+SQLiteCpp: MIT License
 
 Copyright (c) 2012-2023 Sebastien Rombauts (sebastien.rombauts@gmail.com)
 
@@ -715,7 +699,7 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------
 
-nothings/stb
+nothings/stb: MIT License
 
 This software is available under 2 licenses -- choose whichever you prefer.
 ------------------------------------------------------------------------------
@@ -760,7 +744,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --------
 
-tinyxml2
+tinyxml2: zlib License
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any
@@ -783,9 +767,7 @@ distribution.
 
 --------
 
-wasm3
-
-MIT License
+wasm3: MIT License
 
 Copyright (c) 2019 Steven Massey, Volodymyr Shymanskyy
 
@@ -809,15 +791,13 @@ SOFTWARE.
 
 --------
 
-Yard
+Yard: Public Domain
 
-Public Domain
+By Christopher Diggins.
 
 --------
 
-Yuescript
-
-MIT License
+Yuescript: MIT License
 
 Copyright (c) 2021 Li Jin
 
@@ -841,7 +821,7 @@ SOFTWARE.
 
 --------
 
-richgel999/miniz
+richgel999/miniz: MIT License
 
 Copyright 2013-2014 RAD Game Tools and Valve Software
 Copyright 2010-2014 Rich Geldreich and Tenacious Software LLC
@@ -868,7 +848,7 @@ THE SOFTWARE.
 
 --------
 
-concurrentqueue
+concurrentqueue: BSD-2 License
 
 This license file applies to everything in this repository except that which
 is explicitly annotated as being written by other authors, i.e. the Boost
@@ -935,7 +915,7 @@ DEALINGS IN THE SOFTWARE.
 
 --------
 
-utf8
+utf8: MIT License
 
 Copyright (c) 2008-2009 Bjoern Hoehrmann <bjoern@hoehrmann.de>
 
@@ -947,9 +927,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 --------
 
-septbr/xlsxtext
-
-MIT License
+septbr/xlsxtext: MIT License
 
 Copyright (c) 2021 septbr
 
@@ -973,7 +951,7 @@ SOFTWARE.
 
 --------
 
-timniederhausen/rapidxml
+timniederhausen/rapidxml: MIT License
 
 Use of this software is granted under one of the following two licenses,
 to be chosen freely by the user.
