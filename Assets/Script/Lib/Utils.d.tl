@@ -53,6 +53,7 @@ local record Utils
 	Round: function(val: number): integer
 	Round: function(val: Vec2): Vec2
 	IsValidPath: function(path: string): boolean
+	GSplit: function(text: string, pattern: string, plain: boolean): function(): string
 end
 
 return Utils

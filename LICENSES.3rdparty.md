@@ -11,7 +11,7 @@
 - [implot](https://github.com/epezent/implot): [MIT License](Source/3rdParty/implot/LICENSE)
 - [lodepng](https://github.com/lvandeve/lodepng): [zlib License](Source/3rdParty/lodepng/LICENSE)
 - [Lua](https://github.com/lua/lua): [MIT License](Source/3rdParty/Lua/LICENSE)
-- ml ([MachineLearning-DecisionTree](https://github.com/PiggyGaGa/MachineLearning-DecisionTree)): [BSD 2-Clause](Source/3rdParty/ml/LICENSE)
+- ml ([MachineLearning-DecisionTree](https://github.com/PiggyGaGa/MachineLearning-DecisionTree)): [BSD-2 License](Source/3rdParty/ml/LICENSE)
 - [nanovg](https://github.com/memononen/nanovg): [zlib License](Source/3rdParty/nanovg/LICENSE.txt)
 - [playrho](https://github.com/louis-langholtz/PlayRho): [zlib License](Source/3rdParty/playrho/LICENSE.txt)
 - [rapidjson](https://github.com/Tencent/rapidjson): [MIT License](Source/3rdParty/rapidjson/license.txt)
