@@ -2,12 +2,12 @@ _ENV = Dorothy builtin.ImGui
 
 App.idled = true
 
-moduleCache = {}
+moduleCache = []
 oldRequire = _G.require
 require = (path)->
 	loaded = package.loaded[path]
 	if loaded == nil
-		table.insert moduleCache, path
+		moduleCache[] = path
 		return oldRequire path
 	loaded
 _G.require = require
@@ -28,7 +28,7 @@ updateLocale = ->
 
 if DB\exist "Config"
 	switch DB\query "select value_str from Config where name = 'locale'"
-		when {{locale}} then if App.locale ~= locale
+		when [ [locale,], ] then if App.locale ~= locale
 			App.locale = locale
 			updateLocale!
 
@@ -134,48 +134,47 @@ doCompile = (minify)->
 	return if building
 	building = true
 	startTime = App.runningTime
-	luaFiles = {}
-	yueFiles = {}
-	xmlFiles = {}
-	tlFiles = {}
+	luaFiles = []
+	yueFiles = []
+	xmlFiles = []
+	tlFiles = []
 	:writablePath = Content
-	buildPaths = {
-		{
+	buildPaths = [
+		[
 			Path Content.assetPath
 			Path writablePath, ".build"
 			""
-		}
-	}
-	for {name, entryFile} in *gamesInDev
+		],
+	]
+	for [name, entryFile] in *gamesInDev
 		gamePath = Path\getPath entryFile
-		buildPaths[] = {
-			Path writablePath, gamePath
-			Path writablePath, ".build", gamePath
-			Path(writablePath, gamePath, "Script", "?.lua") .. ";" .. Path writablePath, gamePath, "?.lua"
-		}
-	for {inputPath, outputPath, searchPath} in *buildPaths
+		buildPaths[] =
+			* Path writablePath, gamePath
+			* Path writablePath, ".build", gamePath
+			* Path(writablePath, gamePath, "Script", "?.lua") .. ";" .. Path writablePath, gamePath, "?.lua"
+	for [inputPath, outputPath, searchPath] in *buildPaths
 		continue unless Content\exist inputPath
 
-		for file in *getAllFiles inputPath, {"lua"}
+		for file in *getAllFiles inputPath, ["lua",]
 			luaFiles[] =
 				* file
 				* Path inputPath, file
 				* Path outputPath, file
 
-		for file in *getAllFiles inputPath, {yueext}
+		for file in *getAllFiles inputPath, [yueext,]
 			yueFiles[] =
 				* file
 				* Path inputPath, file
 				* Path outputPath, Path\replaceExt file, "lua"
 				* searchPath
 
-		for file in *getAllFiles inputPath, {"xml"}
+		for file in *getAllFiles inputPath, ["xml",]
 			xmlFiles[] =
 				* file
 				* Path inputPath, file
 				* Path outputPath, Path\replaceExt file, "lua"
 
-		for file in *getAllFiles inputPath, {"tl"}
+		for file in *getAllFiles inputPath, ["tl",]
 			if not file\match ".*%.d%.tl$"
 				tlFiles[] =
 					* file
@@ -184,18 +183,18 @@ doCompile = (minify)->
 					* searchPath
 
 	paths = {Path\getPath(file[3]), true \
-		for files in *{luaFiles, yueFiles, xmlFiles, tlFiles} \
+		for files in *[luaFiles, yueFiles, xmlFiles, tlFiles] \
 		for file in *files}
 
 	Content\mkdir path for path in pairs paths
 
 	totalFiles = #yueFiles + #xmlFiles + #tlFiles
 	fileCount = 0
-	errors = {}
-	for {file, input, output, searchPath} in *yueFiles
+	errors = []
+	for [file, input, output, searchPath] in *yueFiles
 		(success) <- yue.compile input, output, searchPath, (codes, err, globals)->
 			if not codes
-				table.insert errors, "Compile errors in #{file}.\n#{err}"
+				errors[] = "Compile errors in #{file}.\n#{err}"
 				return
 			success, result = LintYueGlobals codes, globals
 			if success
@@ -204,7 +203,7 @@ doCompile = (minify)->
 				"-- [yue]: #{file}\n#{result}" .. codes
 			else
 				yueCodes = Content\load file
-				for {name, line, col} in *result
+				for [name, line, col] in *result
 					countLine = 1
 					code = ""
 					for lineCode in yueCodes\gmatch "[^\r\n]*"
@@ -217,22 +216,22 @@ doCompile = (minify)->
 		fileCount += 1
 
 	thread ->
-		for {file, input, output} in *xmlFiles
+		for [file, input, output] in *xmlFiles
 			sourceCodes = Content\loadAsync input
 			codes, err = xml.tolua sourceCodes
 			if not codes
-				table.insert errors, "Compile errors in #{file}.\n#{err}"
+				errors[] = "Compile errors in #{file}.\n#{err}"
 			else
 				Content\saveAsync output, "-- [xml]: #{file}\n#{codes}"
 				print "Xml compiled: #{file}"
 			fileCount += 1
 
 	thread ->
-		for {file, input, output, searchPath} in *tlFiles
+		for [file, input, output, searchPath] in *tlFiles
 			sourceCodes = Content\loadAsync input
 			codes, err = teal.toluaAsync sourceCodes, file, searchPath
 			if not codes
-				table.insert errors, "Compile errors in #{file}.\n#{err}"
+				errors[] = "Compile errors in #{file}.\n#{err}"
 			else
 				Content\saveAsync output, codes
 				print "Teal compiled: #{file}"
@@ -241,7 +240,7 @@ doCompile = (minify)->
 	thread ->
 		wait -> fileCount == totalFiles
 		if minify
-			for files in *{yueFiles, xmlFiles, tlFiles} do for file in *files
+			for files in *[yueFiles, xmlFiles, tlFiles] do for file in *files
 				output = Path\replaceExt file[3], "lua"
 				luaFiles[] =
 					* Path\replaceExt file[1], "lua"
@@ -249,7 +248,7 @@ doCompile = (minify)->
 					* output
 
 			import "luaminify" as :FormatMini
-			for {file, input, output} in *luaFiles
+			for [file, input, output] in *luaFiles
 				if Content\exist input
 					sourceCodes = Content\loadAsync input
 					res, err = FormatMini sourceCodes
@@ -257,9 +256,9 @@ doCompile = (minify)->
 						Content\saveAsync output, res
 						print "Minify: #{file}"
 					else
-						table.insert errors, "Minify errors in #{file}.\n#{err}"
+						errors[] = "Minify errors in #{file}.\n#{err}"
 				else
-					table.insert errors, "Minify errors in #{file}.\nTarget file is not exist!"
+					errors[] = "Minify errors in #{file}.\nTarget file is not exist!"
 			package.loaded["luaminify.FormatMini"] = nil
 			package.loaded["luaminify.ParseLua"] = nil
 			package.loaded["luaminify.Scope"] = nil
@@ -318,7 +317,7 @@ export allClear = ->
 				Routine\remove routine
 	for module in *moduleCache
 		package.loaded[module] = nil
-	moduleCache = {}
+	moduleCache = []
 	Director\cleanup!
 	Cache\unload!
 	Entity\clear!
@@ -353,33 +352,33 @@ getFileEntries = (path)->
 		entryName = Path\getName file
 		file = Path\replaceExt file, ""
 		file = Path Path\getName(path), file
-		entry = {entryName, file}
+		entry = [entryName, file]
 		entries[] = entry
 	table.sort entries, (a, b)-> a[1] < b[1]
 	entries
 
 getProjectEntries = (path)->
-	entries = {}
+	entries = []
 	for dir in *Content\getDirs path
 		continue if dir\match "^%."
 		for file in *getAllFiles Path(path, dir), ["xml", "lua", yueext, "tl", "wasm"]
 			if "init" == Path\getName(file)\lower!
-				examples = {}
-				tests = {}
+				examples = []
+				tests = []
 				examplePath = Path path, dir, Path\getPath(file), "Example"
 				if Content\exist examplePath
-					for {name, ePath} in *getFileEntries examplePath
-						entry = {name, Path dir, Path\getPath(file), ePath}
+					for [name, ePath] in *getFileEntries examplePath
+						entry = [name, Path(dir, Path\getPath(file), ePath)]
 						examples[] = entry
 				testPath = Path path, dir, Path\getPath(file), "Test"
 				if Content\exist testPath
-					for {name, tPath} in *getFileEntries testPath
-						entry = {name, Path dir, Path\getPath(file), tPath}
+					for [name, tPath] in *getFileEntries testPath
+						entry = [name, Path(dir, Path\getPath(file), tPath)]
 						tests[] = entry
 				file = Path\replaceExt file, ""
 				file = Path dir, file
 				entryName = Path\getName Path\getPath file
-				entry = {entryName, file, examples, tests}
+				entry = [entryName, file, examples, tests]
 				entries[] = entry
 	table.sort entries, (a, b)-> a[1] < b[1]
 	entries
@@ -390,26 +389,26 @@ games = getProjectEntries Path Content.assetPath, "Script"
 doraExamples = getFileEntries Path Content.assetPath, "Script", "Example"
 doraTests = getFileEntries Path Content.assetPath, "Script", "Test"
 
-cppTests = {}
+cppTests = []
 for name in *App.testNames
-	entry = {name}
+	entry = [name,]
 	cppTests[] = entry
 cppTestSet = Set cppTests
 
-allEntries = {}
+allEntries = []
 for game in *gamesInDev
 	allEntries[] = game
-	{_, _, examples, tests} = game
+	[_, _, examples, tests] = game
 	for example in *examples
 		allEntries[] = example
 	for test in *tests
 		allEntries[] = test
-for group in *{
+for group in *[
 		games
 		doraExamples
 		doraTests
 		cppTests
-	}
+	]
 	for entry in *group
 		allEntries[] = entry
 
@@ -417,7 +416,7 @@ export enterEntryAsync = (entry)->
 	isInEntry = false
 	App.idled = false
 	currentEntry = entry
-	{name, file} = entry
+	[name, file] = entry
 	if cppTestSet[entry]
 		if App\runTest name
 			return true
@@ -475,21 +474,23 @@ extraOperations = ->
 				licenseText = Content\load "LICENSES"
 				if ossLicenseOpen = licenseText?
 					for license in GSplit licenseText, "\n--------\n", true
-						if name, text = license\match "[%s\n\r]*([^\n\r]*)[%s\n\r]*(.*)"
+						if name, text = license\match "[%s\n\r]*([^\n\r]*)[\n\r]*(.*)"
 							ossLicenses[] = [name, text]
 			else
 				ossLicenseOpen = true
 		if ossLicenseOpen
-			:width, :height = App.visualSize
+			visualSize: {:width, :height}, :themeColor = App
 			SetNextWindowPosCenter "Appearing", Vec2 0.5, 0.5
 			SetNextWindowSize Vec2(math.min(width * 0.8, 750), height * 0.8), "Appearing"
-			ossLicenseOpen = Begin(
+			PushStyleVar "WindowPadding", Vec2(20, 10), -> ossLicenseOpen = Begin(
 				zh and '开源协议' or 'OSS Licenses'
 				ossLicenseOpen
-				{"NoSavedSettings"}
-				-> for {name, text} in *ossLicenses
-					if CollapsingHeader name
-						TextWrapped text
+				["NoSavedSettings",]
+				-> for [firstLine, text] in *ossLicenses
+					name, license = firstLine\match "(.+): (.+)"
+					TextColored themeColor, name
+					SameLine!
+					TreeNode "#{license}####{name}", -> TextWrapped text
 			)
 	<- TreeNode zh and "开发操作" or "Development"
 	OpenPopup "build" if Button zh and "脚本编译" or "Script Build"
@@ -646,7 +647,7 @@ entryWindow = threadLoop ->
 		Begin "Content", windowFlags, ->
 			if #gamesInDev > 0
 				for game in *gamesInDev
-					{gameName, _, examples, tests} = game
+					[gameName, _, examples, tests] = game
 					Columns 1, false
 					TextColored themeColor, zh and "项目：" or "Project:"
 					SameLine!
