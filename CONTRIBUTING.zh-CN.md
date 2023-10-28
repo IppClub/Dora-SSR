@@ -40,7 +40,7 @@
 
 3. **从源代码构建**：
 
-   通过参考[从源代码构建的文档](https://dorothy-ssr.net/docs/tutorial/dev-configuration)，熟悉项目从源代码编译的过程。
+   通过参考[从源代码构建的文档](https://dorothy-ssr.net/zh-Hans/docs/tutorial/dev-configuration)，熟悉项目从源代码编译的过程。
 
 4. **进行编码**：
 
