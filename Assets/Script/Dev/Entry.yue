@@ -112,7 +112,7 @@ export.isDocPreparing = -> docPreparing
 
 export.getConfig = -> config
 
-import "Utils" as :Set, :Struct, :LintYueGlobals, :GSplit
+from "Utils" import Set, Struct, LintYueGlobals, GSplit
 options: {extension: yueext} = yue
 
 isChineseSupported = IsFontLoaded!
@@ -247,7 +247,7 @@ doCompile = (minify)->
 					* output
 					* output
 
-			import "luaminify" as :FormatMini
+			from "luaminify" import FormatMini
 			for [file, input, output] in *luaFiles
 				if Content\exist input
 					sourceCodes = Content\loadAsync input

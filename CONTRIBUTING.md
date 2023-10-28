@@ -29,11 +29,34 @@ We greatly appreciate your suggestions for new features in Dorothy SSR. Before s
 
 If you would like to contribute code to Dorothy SSR, please follow these steps:
 
-1. Fork the project repository.
-2. Create a new branch locally to make changes.
-3. Write the code and ensure it adheres to the project's coding standards.
-4. Commit the changes and push them to your forked repository.
-5. Create a Pull Request, describing your changes and their rationale in detail.
+1. **Fork the Project**:
+
+   Fork the project repository.
+
+2. **Branch Creation**:
+
+   Create a new branch locally to make changes.
+
+3. **Build from Source**:
+
+   Familiarize yourself with the project's compile-from-source process by referring to the [Build-from-Source Documentation](https://dorothy-ssr.net/docs/tutorial/dev-configuration).
+
+4. **Coding**:
+
+   Write the code and ensure it adheres to the project's coding standards.
+
+   **Coding Style Guidelines:**
+
+   - We adhere to a coding style to maintain consistency and readability across the project. Our style is defined in the clang-format config file located [here](Tools/Format/.clang-format).
+   - Before submitting your code, please ensure running clang-format on your code.
+
+5. **Commit and Push**:
+
+   Commit the changes and push them to your forked repository.
+
+6. **Submit a Pull Request**:
+
+   Create a Pull Request, describing your changes and their rationale in detail.
 
 <br>
 
