@@ -25,11 +25,11 @@ static int64_t dragonbone_with_files(int64_t bone_file, int64_t atlas_file) {
 static int64_t dragonbone_new(int64_t bone_str) {
 	return from_object(DragonBone::create(*str_from(bone_str)));
 }
-static void dragonbone_get_looks(int64_t bone_str) {
-	dragon_bone_get_look_names(*str_from(bone_str));
+static int64_t dragonbone_get_looks(int64_t bone_str) {
+	return to_vec(dragon_bone_get_look_names(*str_from(bone_str)));
 }
-static void dragonbone_get_animations(int64_t bone_str) {
-	dragon_bone_get_animation_names(*str_from(bone_str));
+static int64_t dragonbone_get_animations(int64_t bone_str) {
+	return to_vec(dragon_bone_get_animation_names(*str_from(bone_str)));
 }
 static void linkDragonBone(wasm3::module& mod) {
 	mod.link_optional("*", "dragonbone_type", dragonbone_type);

@@ -8,8 +8,8 @@ extern "C" {
 	fn dragonbone_intersects_segment(slf: i64, x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> i64;
 	fn dragonbone_with_files(bone_file: i64, atlas_file: i64) -> i64;
 	fn dragonbone_new(bone_str: i64) -> i64;
-	fn dragonbone_get_looks(bone_str: i64);
-	fn dragonbone_get_animations(bone_str: i64);
+	fn dragonbone_get_looks(bone_str: i64) -> i64;
+	fn dragonbone_get_animations(bone_str: i64) -> i64;
 }
 use crate::dora::IObject;
 use crate::dora::IPlayable;
@@ -51,10 +51,10 @@ impl DragonBone {
 	pub fn new(bone_str: &str) -> DragonBone {
 		unsafe { return DragonBone { raw: dragonbone_new(crate::dora::from_string(bone_str)) }; }
 	}
-	pub fn get_looks(bone_str: &str) {
-		unsafe { dragonbone_get_looks(crate::dora::from_string(bone_str)); }
+	pub fn get_looks(bone_str: &str) -> Vec<String> {
+		unsafe { return crate::dora::Vector::to_str(dragonbone_get_looks(crate::dora::from_string(bone_str))); }
 	}
-	pub fn get_animations(bone_str: &str) {
-		unsafe { dragonbone_get_animations(crate::dora::from_string(bone_str)); }
+	pub fn get_animations(bone_str: &str) -> Vec<String> {
+		unsafe { return crate::dora::Vector::to_str(dragonbone_get_animations(crate::dora::from_string(bone_str))); }
 	}
 }

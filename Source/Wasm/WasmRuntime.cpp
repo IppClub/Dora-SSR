@@ -787,7 +787,7 @@ static Pass* effect_get_pass(Effect* self, size_t index) {
 
 // Model
 
-std::string model_get_clip_filename(String filename) {
+static std::string model_get_clip_filename(String filename) {
 	if (ModelDef* modelDef = SharedModelCache.load(filename)) {
 		return modelDef->getClipFile();
 	}
@@ -808,7 +808,7 @@ static std::vector<std::string> model_get_animation_names(String filename) {
 
 // Spine
 
-std::vector<std::string> spine_get_look_names(String spineStr) {
+static std::vector<std::string> spine_get_look_names(String spineStr) {
 	if (auto skelData = SharedSkeletonCache.load(spineStr)) {
 		auto& skins = skelData->getSkel()->getSkins();
 		std::vector<std::string> res;
@@ -821,7 +821,7 @@ std::vector<std::string> spine_get_look_names(String spineStr) {
 	}
 	return std::vector<std::string>();
 }
-std::vector<std::string> spine_get_animation_names(String spineStr) {
+static std::vector<std::string> spine_get_animation_names(String spineStr) {
 	if (auto skelData = SharedSkeletonCache.load(spineStr)) {
 		auto& anims = skelData->getSkel()->getAnimations();
 		std::vector<std::string> res;
@@ -837,7 +837,7 @@ std::vector<std::string> spine_get_animation_names(String spineStr) {
 
 // DragonBones
 
-std::vector<std::string> dragon_bone_get_look_names(String boneStr) {
+static std::vector<std::string> dragon_bone_get_look_names(String boneStr) {
 	auto boneData = SharedDragonBoneCache.load(boneStr);
 	if (boneData.first) {
 		if (boneData.second.empty()) {
@@ -853,7 +853,7 @@ std::vector<std::string> dragon_bone_get_look_names(String boneStr) {
 	}
 	return std::vector<std::string>();
 }
-std::vector<std::string> dragon_bone_get_animation_names(String boneStr) {
+static std::vector<std::string> dragon_bone_get_animation_names(String boneStr) {
 	auto boneData = SharedDragonBoneCache.load(boneStr);
 	if (boneData.first) {
 		if (boneData.second.empty()) {
