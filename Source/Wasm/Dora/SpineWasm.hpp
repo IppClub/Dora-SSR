@@ -28,11 +28,11 @@ static int64_t spine_with_files(int64_t skel_file, int64_t atlas_file) {
 static int64_t spine_new(int64_t spine_str) {
 	return from_object(Spine::create(*str_from(spine_str)));
 }
-static void spine_get_looks(int64_t spine_str) {
-	spine_get_look_names(*str_from(spine_str));
+static int64_t spine_get_looks(int64_t spine_str) {
+	return to_vec(spine_get_look_names(*str_from(spine_str)));
 }
-static void spine_get_animations(int64_t spine_str) {
-	spine_get_animation_names(*str_from(spine_str));
+static int64_t spine_get_animations(int64_t spine_str) {
+	return to_vec(spine_get_animation_names(*str_from(spine_str)));
 }
 static void linkSpine(wasm3::module& mod) {
 	mod.link_optional("*", "spine_type", spine_type);

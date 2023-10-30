@@ -9,8 +9,8 @@ extern "C" {
 	fn spine_intersects_segment(slf: i64, x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> i64;
 	fn spine_with_files(skel_file: i64, atlas_file: i64) -> i64;
 	fn spine_new(spine_str: i64) -> i64;
-	fn spine_get_looks(spine_str: i64);
-	fn spine_get_animations(spine_str: i64);
+	fn spine_get_looks(spine_str: i64) -> i64;
+	fn spine_get_animations(spine_str: i64) -> i64;
 }
 use crate::dora::IObject;
 use crate::dora::IPlayable;
@@ -55,10 +55,10 @@ impl Spine {
 	pub fn new(spine_str: &str) -> Spine {
 		unsafe { return Spine { raw: spine_new(crate::dora::from_string(spine_str)) }; }
 	}
-	pub fn get_looks(spine_str: &str) {
-		unsafe { spine_get_looks(crate::dora::from_string(spine_str)); }
+	pub fn get_looks(spine_str: &str) -> Vec<String> {
+		unsafe { return crate::dora::Vector::to_str(spine_get_looks(crate::dora::from_string(spine_str))); }
 	}
-	pub fn get_animations(spine_str: &str) {
-		unsafe { spine_get_animations(crate::dora::from_string(spine_str)); }
+	pub fn get_animations(spine_str: &str) -> Vec<String> {
+		unsafe { return crate::dora::Vector::to_str(spine_get_animations(crate::dora::from_string(spine_str))); }
 	}
 }

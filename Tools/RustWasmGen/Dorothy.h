@@ -535,8 +535,8 @@ object class Spine : public IPlayable
 	string intersectsSegment(float x1, float y1, float x2, float y2);
 	static Spine* create @ createFiles(string skelFile, string atlasFile);
 	static Spine* create(string spineStr);
-	static outside void spine_get_look_names @ getLooks(string spineStr);
-	static outside void spine_get_animation_names @ getAnimations(string spineStr);
+	static outside VecStr spine_get_look_names @ getLooks(string spineStr);
+	static outside VecStr spine_get_animation_names @ getAnimations(string spineStr);
 };
 
 object class DragonBone : public IPlayable
@@ -547,8 +547,8 @@ object class DragonBone : public IPlayable
 	string intersectsSegment(float x1, float y1, float x2, float y2);
 	static DragonBone* create @ createFiles(string boneFile, string atlasFile);
 	static DragonBone* create(string boneStr);
-	static outside void dragon_bone_get_look_names @ getLooks(string boneStr);
-	static outside void dragon_bone_get_animation_names @ getAnimations(string boneStr);
+	static outside VecStr dragon_bone_get_look_names @ getLooks(string boneStr);
+	static outside VecStr dragon_bone_get_animation_names @ getAnimations(string boneStr);
 };
 
 interface object class PhysicsWorld : public INode
