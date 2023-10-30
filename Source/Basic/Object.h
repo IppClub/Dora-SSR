@@ -41,13 +41,13 @@ public:
 	/** @brief return true to stop updating, false to continue. */
 	virtual bool update(double deltaTime);
 	virtual bool fixedUpdate(double deltaTime);
-	virtual bool equals(Object* other) const;
 	virtual void cleanup();
-	void addLuaRef();
-	void removeLuaRef();
 	void release();
 	void retain();
 	void autorelease();
+
+	static void incLuaRefCount();
+	static void decLuaRefCount();
 
 protected:
 	Object();

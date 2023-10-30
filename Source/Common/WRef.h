@@ -82,16 +82,16 @@ public:
 		return *this;
 	}
 	bool operator==(const WRef& ref) const {
-		return get()->equals(ref.get());
+		return get() == ref.get();
 	}
 	bool operator!=(const WRef& ref) const {
-		return !get()->equals(ref.get());
+		return get() != ref.get();
 	}
 	bool operator==(const Ref<T>& ref) const {
-		return get()->equals(ref.get());
+		return get() == ref.get();
 	}
 	bool operator!=(const Ref<T>& ref) const {
-		return !get()->equals(ref.get());
+		return get() != ref.get();
 	}
 	inline operator T*() const {
 		return get();
