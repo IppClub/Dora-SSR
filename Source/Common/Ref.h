@@ -83,10 +83,10 @@ public:
 		return *this;
 	}
 	bool operator==(const Ref& ref) const {
-		return _item->equals(ref._item);
+		return _item == ref._item;
 	}
 	bool operator!=(const Ref& ref) const {
-		return !_item->equals(ref._item);
+		return _item != ref._item;
 	}
 	inline operator T*() const {
 		return r_cast<T*>(_item);
