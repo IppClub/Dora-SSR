@@ -40,8 +40,8 @@ void tolua_collect_callback_ref_id(int refid) {
 
 int tolua_collect_object(lua_State* L) {
 	if (Object* object = r_cast<Object*>(tolua_tousertype(L, 1, 0))) {
-		object->removeLuaRef();
 		object->release();
+		Object::decLuaRefCount();
 	}
 	return 0;
 }
@@ -56,8 +56,7 @@ void tolua_pushobject(lua_State* L, Object* object) {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, TOLUA_REG_INDEX_UBOX); // ubox
 	lua_rawgeti(L, -1, refid); // ubox ud
 
-	if (!lua_toboolean(L, -1)) // !ud
-	{
+	if (lua_toboolean(L, -1) == 0) { // ud is falsy (nil or false)
 		lua_pop(L, 1); // ubox
 		*r_cast<void**>(lua_newuserdata(L, sizeof(void*))) = object; // ubox newud
 		lua_pushvalue(L, -1); // ubox newud newud
@@ -68,9 +67,9 @@ void tolua_pushobject(lua_State* L, Object* object) {
 		lua_setmetatable(L, -2); // newud<mt>, newud
 		lua_pushvalue(L, TOLUA_NOPEER);
 		lua_setuservalue(L, -2);
-		// register oObject GC
-		object->addLuaRef();
+		// register Object GC
 		object->retain();
+		Object::incLuaRefCount();
 	} else
 		lua_remove(L, -2); // ud
 }

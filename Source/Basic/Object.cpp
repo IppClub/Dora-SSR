@@ -121,10 +121,6 @@ bool Object::fixedUpdate(double deltaTime) {
 	return true;
 }
 
-bool Object::equals(Object* other) const {
-	return this == other;
-}
-
 void Object::cleanup() {
 	if (_weak) _weak->target = nullptr;
 }
@@ -166,14 +162,6 @@ Weak* Object::getWeakRef() {
 	return _weak;
 }
 
-void Object::addLuaRef() {
-	++SharedObjectBase.luaRefCount;
-}
-
-void Object::removeLuaRef() {
-	--SharedObjectBase.luaRefCount;
-}
-
 uint32_t Object::getLuaRef() {
 	if (_luaRef == 0) {
 		auto& info = SharedObjectBase;
@@ -189,6 +177,14 @@ uint32_t Object::getLuaRef() {
 
 bool Object::isLuaReferenced() const {
 	return _luaRef != 0;
+}
+
+void Object::incLuaRefCount() {
+	++SharedObjectBase.luaRefCount;
+}
+
+void Object::decLuaRefCount() {
+	--SharedObjectBase.luaRefCount;
 }
 
 NS_DOROTHY_END

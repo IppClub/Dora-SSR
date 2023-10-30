@@ -28,7 +28,7 @@
 
 ## 代码贡献
 
-如果您想要为Dorothy SSR贡献代码，请遵循以下步骤：
+&emsp;&emsp;如果您想要为Dorothy SSR贡献代码，请遵循以下步骤：
 
 1. **Fork 项目**：
 
