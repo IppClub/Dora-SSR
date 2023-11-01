@@ -181,7 +181,9 @@ public:
 			pairs.push_back({values[i], _labelCol->values[i]});
 		}
 		std::stable_sort(pairs.begin(), pairs.end(),
-			[](auto a, auto b) { return b.first - a.first > NUM_DIFF; });
+			[](auto a, auto b) {
+				return b.first - a.first > NUM_DIFF;
+			});
 		std::vector<double> result;
 		auto ncol = new Col(ColType::Numeric);
 		for (const auto& item : pairs) {
@@ -480,8 +482,8 @@ static double ComputeFeatureEntropyGain(const Matrix& matrix, int featureIndex, 
 			for (size_t i = 0; i < uniqueValues->values.size(); i++) {
 				const auto& tempScores = valueScores[static_cast<int>(uniqueValues->values[i])];
 				tempEntropy = ComputeScoreEntropy(tempScores)
-					* static_cast<double>(tempScores.size())
-					/ static_cast<double>(labels.size());
+							* static_cast<double>(tempScores.size())
+							/ static_cast<double>(labels.size());
 				afterEntropy += tempEntropy;
 			}
 			gainedEntropy = originalEntropy - afterEntropy;
@@ -493,7 +495,7 @@ static double ComputeFeatureEntropyGain(const Matrix& matrix, int featureIndex, 
 			double upperLen = static_cast<double>(parts.upperScores.size());
 			double len = lowerLen + upperLen;
 			double afterEntropy = lowerLen / len * ComputeScoreEntropy(parts.lowerScores)
-				+ upperLen / len * ComputeScoreEntropy(parts.upperScores);
+								+ upperLen / len * ComputeScoreEntropy(parts.upperScores);
 			double gainedEntropy = originalEntropy - afterEntropy;
 			return gainedEntropy;
 		}
@@ -558,8 +560,10 @@ public:
 		}
 		if (maxFeatureIndex == -1) {
 			const auto& labels = matrix.GetLabels();
-			Col* labelCol = matrix.GetLabelCol();
-			tree->node = (*labelCol->stringIndexer)[static_cast<int>(FrequentValues(labels))];
+			if (labels.size() > 0) {
+				Col* labelCol = matrix.GetLabelCol();
+				tree->node = (*labelCol->stringIndexer)[static_cast<int>(FrequentValues(labels))];
+			}
 			return;
 		}
 
@@ -696,4 +700,4 @@ std::pair<std::list<DecisionTree::Node>, double> DecisionTree::BuildTestFromFile
 	return BuildTestTree(matrix, maxDepth);
 }
 
-} // GaGa
+} // namespace GaGa
