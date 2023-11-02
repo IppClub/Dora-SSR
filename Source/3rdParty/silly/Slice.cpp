@@ -79,7 +79,13 @@ float Slice::toFloat() const {
 }
 
 int Slice::toInt(int base) const {
-	return std::stoi(toString(), 0, base);
+	try {
+		return std::stoi(toString(), 0, base);
+	} catch (const std::invalid_argument&) {
+		return 0;
+	} catch (const std::out_of_range&) {
+		return std::numeric_limits<int>::max();
+	}
 }
 
 std::string Slice::join(const std::list<std::string>& list, Slice delimer) {
