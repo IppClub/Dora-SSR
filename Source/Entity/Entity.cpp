@@ -62,14 +62,15 @@ public:
 	}
 	virtual ~EntityPool() { }
 	int tryGetIndex(String name) const {
-		auto it = comIndices.find(name);
+		auto it = comIndices.find(name.toString());
 		return it == comIndices.end() ? -1 : it->second;
 	}
 	int getIndex(String name) {
-		auto it = comIndices.find(name);
+		auto nameStr = name.toString();
+		auto it = comIndices.find(nameStr);
 		if (it == comIndices.end()) {
 			int index = s_cast<int>(comIndices.size());
-			comIndices[name] = index;
+			comIndices[nameStr] = index;
 			return index;
 		}
 		return it->second;
@@ -183,7 +184,7 @@ int Entity::getIndex(String name) {
 
 bool Entity::has(String name) const {
 	auto& comIndices = SharedEntityPool.comIndices;
-	auto it = comIndices.find(name);
+	auto it = comIndices.find(name.toString());
 	if (it != comIndices.end()) {
 		return has(it->second);
 	}
@@ -483,7 +484,7 @@ EntityGroup* EntityGroup::create(Slice components[], int count) {
 	std::vector<std::string> coms;
 	coms.resize(count);
 	for (int i = 0; i < count; i++) {
-		coms[i] = components[i];
+		coms[i] = components[i].toString();
 	}
 	return EntityGroup::create(coms);
 }
@@ -631,7 +632,7 @@ EntityObserver* EntityObserver::create(int option, Slice components[], int count
 	std::vector<std::string> coms;
 	coms.resize(count);
 	for (int i = 0; i < count; i++) {
-		coms[i] = components[i];
+		coms[i] = components[i].toString();
 	}
 	return EntityObserver::create(option, coms);
 }

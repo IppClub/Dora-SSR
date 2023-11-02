@@ -43,7 +43,7 @@ std::pair<std::string, std::string> SkeletonCache::getFileFromStr(String spineSt
 					break;
 			}
 		}
-		return {skelFile, atlasFile};
+		return {skelFile.toString(), atlasFile.toString()};
 	}
 	auto str = spineStr.toString();
 	std::string skelFile = str + ".skel"_slice;
@@ -69,7 +69,7 @@ SkeletonData* SkeletonCache::load(String skelFile, String atlasFile) {
 	}
 	auto atlas = SharedAtlasCache.load(atlasFile);
 	if (!atlas) {
-		Error("failed to load atlas \"{}\"", atlasFile);
+		Error("failed to load atlas \"{}\"", atlasFile.toString());
 		return nullptr;
 	}
 	SkeletonData* skeletonData = nullptr;
@@ -93,7 +93,7 @@ SkeletonData* SkeletonCache::load(String skelFile, String atlasFile) {
 		_skeletons[cacheKey] = skeletonData;
 		return skeletonData;
 	}
-	Error("failed to load skeleton data \"{}\".", skelFile);
+	Error("failed to load skeleton data \"{}\".", skelFile.toString());
 	return nullptr;
 }
 

@@ -60,7 +60,7 @@ Atlas* AtlasCache::load(String filename) {
 		_atlas[fullPath] = atlas;
 		return atlas;
 	}
-	Error("failed to load atlas \"{}\".", filename);
+	Error("failed to load atlas \"{}\".", filename.toString());
 	return nullptr;
 }
 

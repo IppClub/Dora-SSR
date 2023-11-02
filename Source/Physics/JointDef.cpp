@@ -29,8 +29,8 @@ JointDef* JointDef::distance(
 	float damping) {
 	DistanceDef* def = new DistanceDef();
 	def->collision = collision;
-	def->bodyA = bodyA;
-	def->bodyB = bodyB;
+	def->bodyA = bodyA.toString();
+	def->bodyB = bodyB.toString();
 	def->anchorA = anchorA;
 	def->anchorB = anchorB;
 	def->frequency = frequency;
@@ -48,8 +48,8 @@ JointDef* JointDef::friction(
 	float maxTorque) {
 	FrictionDef* def = new FrictionDef();
 	def->collision = collision;
-	def->bodyA = bodyA;
-	def->bodyB = bodyB;
+	def->bodyA = bodyA.toString();
+	def->bodyB = bodyB.toString();
 	def->worldPos = worldPos;
 	def->maxForce = maxForce;
 	def->maxTorque = maxTorque;
@@ -64,8 +64,8 @@ JointDef* JointDef::gear(
 	float ratio) {
 	GearDef* def = new GearDef();
 	def->collision = collision;
-	def->jointA = jointA;
-	def->jointB = jointB;
+	def->jointA = jointA.toString();
+	def->jointB = jointB.toString();
 	def->ratio = ratio;
 	def->autorelease();
 	return def;
@@ -82,8 +82,8 @@ JointDef* JointDef::spring(
 	float correctionFactor) {
 	SpringDef* def = new SpringDef();
 	def->collision = collision;
-	def->bodyA = bodyA;
-	def->bodyB = bodyB;
+	def->bodyA = bodyA.toString();
+	def->bodyB = bodyB.toString();
 	def->linearOffset = linearOffset;
 	def->angularOffset = angularOffset;
 	def->maxForce = maxForce;
@@ -105,8 +105,8 @@ JointDef* JointDef::prismatic(
 	float motorSpeed) {
 	PrismaticDef* def = new PrismaticDef();
 	def->collision = collision;
-	def->bodyA = bodyA;
-	def->bodyB = bodyB;
+	def->bodyA = bodyA.toString();
+	def->bodyB = bodyB.toString();
 	def->worldPos = worldPos;
 	def->axisAngle = axisAngle;
 	def->lowerTranslation = lowerTranslation;
@@ -128,8 +128,8 @@ JointDef* JointDef::pulley(
 	float ratio) {
 	PulleyDef* def = new PulleyDef();
 	def->collision = collision;
-	def->bodyA = bodyA;
-	def->bodyB = bodyB;
+	def->bodyA = bodyA.toString();
+	def->bodyB = bodyB.toString();
 	def->anchorA = anchorA;
 	def->anchorB = anchorB;
 	def->groundAnchorA = groundAnchorA;
@@ -150,8 +150,8 @@ JointDef* JointDef::revolute(
 	float motorSpeed) {
 	RevoluteDef* def = new RevoluteDef();
 	def->collision = collision;
-	def->bodyA = bodyA;
-	def->bodyB = bodyB;
+	def->bodyA = bodyA.toString();
+	def->bodyB = bodyB.toString();
 	def->worldPos = worldPos;
 	def->lowerAngle = lowerAngle;
 	def->upperAngle = upperAngle;
@@ -170,8 +170,8 @@ JointDef* JointDef::rope(
 	float maxLength) {
 	RopeDef* def = new RopeDef();
 	def->collision = collision;
-	def->bodyA = bodyA;
-	def->bodyB = bodyB;
+	def->bodyA = bodyA.toString();
+	def->bodyB = bodyB.toString();
 	def->anchorA = anchorA;
 	def->anchorB = anchorB;
 	def->maxLength = maxLength;
@@ -188,8 +188,8 @@ JointDef* JointDef::weld(
 	float damping) {
 	WeldDef* def = new WeldDef();
 	def->collision = collision;
-	def->bodyA = bodyA;
-	def->bodyB = bodyB;
+	def->bodyA = bodyA.toString();
+	def->bodyB = bodyB.toString();
 	def->worldPos = worldPos;
 	def->frequency = frequency;
 	def->damping = damping;
@@ -209,8 +209,8 @@ JointDef* JointDef::wheel(
 	float damping) {
 	WheelDef* def = new WheelDef();
 	def->collision = collision;
-	def->bodyA = bodyA;
-	def->bodyB = bodyB;
+	def->bodyA = bodyA.toString();
+	def->bodyB = bodyB.toString();
 	def->worldPos = worldPos;
 	def->axisAngle = axisAngle;
 	def->maxMotorTorque = maxMotorTorque;

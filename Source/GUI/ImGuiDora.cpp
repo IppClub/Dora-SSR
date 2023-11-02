@@ -94,7 +94,7 @@ public:
 			start = end + 1;
 		}
 		for (auto line : lines) {
-			_logs.push_back(line);
+			_logs.push_back(line.toString());
 		}
 		_scrollToBottom = true;
 	}
@@ -262,7 +262,7 @@ public:
 			codes.insert(0,
 				"rawset builtin, '_REPL', <index>: builtin unless builtin._REPL\n"
 				"_ENV = builtin._REPL\n"
-				"global *\n"_slice);
+				"global *\n"s);
 			lua_State* L = SharedLuaEngine.getState();
 			int top = lua_gettop(L);
 			DEFER(lua_settop(L, top));
@@ -504,12 +504,12 @@ ImGuiDora::ImGuiDora()
 			}
 		}
 	});
-	_themeListener = Listener::create("AppTheme"_slice, [&](Event* e) {
+	_themeListener = Listener::create("AppTheme"s, [&](Event* e) {
 		uint32_t argb = 0;
 		e->get(argb);
 		DoraSetupTheme(Color(argb));
 	});
-	_localeListener = Listener::create("AppLocale"_slice, [&](Event* e) {
+	_localeListener = Listener::create("AppLocale"s, [&](Event* e) {
 		std::string locale;
 		e->get(locale);
 		_useChinese = Slice(locale).left(2) == "zh";
@@ -589,7 +589,7 @@ void ImGuiDora::loadFontTTFAsync(String ttfFontFile, float fontSize, String glyp
 	}
 
 	if (!targetGlyphRanges) {
-		Warn("unsupported glyph ranges: \"{}\".", glyphRanges);
+		Warn("unsupported glyph ranges: \"{}\".", glyphRanges.toString());
 		handler(false);
 		return;
 	}
@@ -1113,8 +1113,8 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 				_updateCosts[item.first] = std::max(0.0, item.second * 1000.0 / _profileFrames);
 			}
 			_timeCosts.clear();
-			_updateCosts["Logic"_slice] = std::max(0.0, (_logicTime - time) * 1000.0 / _profileFrames);
-			_updateCosts["Render"_slice] = std::max(0.0, _renderTime * 1000.0 / _profileFrames);
+			_updateCosts["Logic"s] = std::max(0.0, (_logicTime - time) * 1000.0 / _profileFrames);
+			_updateCosts["Render"s] = std::max(0.0, _renderTime * 1000.0 / _profileFrames);
 			_logicTime = _renderTime = 0;
 			_profileFrames = _profileEclapsed = 0;
 		}

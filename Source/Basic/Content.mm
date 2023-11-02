@@ -16,7 +16,7 @@ NS_DOROTHY_BEGIN
 
 bool Content::isFileExist(String filePath) {
 	if (filePath[0] != '/') {
-		std::string path = filePath;
+		std::string path = filePath.toString();
 		std::string file;
 		size_t pos = path.find_last_of("/");
 		if (pos != std::string::npos) {
@@ -50,7 +50,7 @@ std::string Content::getFullPathForDirectoryAndFilename(String directory, String
 			return [fullPath UTF8String];
 		}
 	} else {
-		std::string fullPath = directory + filename;
+		std::string fullPath = directory.toString() + filename.toString();
 		// Search path is an absolute path.
 		NSFileManager* fileManager = [NSFileManager defaultManager];
 		if ([fileManager fileExistsAtPath:[NSString stringWithUTF8String:fullPath.c_str()]]) {

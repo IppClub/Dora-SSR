@@ -80,22 +80,22 @@ private:
 };
 
 struct ActionSetting {
-	static const Slice AnimationWalk;
-	static const Slice AnimationAttack;
-	static const Slice AnimationIdle;
-	static const Slice AnimationJump;
-	static const Slice AnimationHit;
-	static const Slice AnimationFall;
+	static const std::string AnimationWalk;
+	static const std::string AnimationAttack;
+	static const std::string AnimationIdle;
+	static const std::string AnimationJump;
+	static const std::string AnimationHit;
+	static const std::string AnimationFall;
 
-	static const Slice UnitActionWalk;
-	static const Slice UnitActionTurn;
-	static const Slice UnitActionMeleeAttack;
-	static const Slice UnitActionRangeAttack;
-	static const Slice UnitActionIdle;
-	static const Slice UnitActionCancel;
-	static const Slice UnitActionJump;
-	static const Slice UnitActionHit;
-	static const Slice UnitActionFall;
+	static const std::string UnitActionWalk;
+	static const std::string UnitActionTurn;
+	static const std::string UnitActionMeleeAttack;
+	static const std::string UnitActionRangeAttack;
+	static const std::string UnitActionIdle;
+	static const std::string UnitActionCancel;
+	static const std::string UnitActionJump;
+	static const std::string UnitActionHit;
+	static const std::string UnitActionFall;
 
 	static const int PriorityWalk;
 	static const int PriorityTurn;

@@ -464,7 +464,7 @@ DragonBone::DBArmatureProxy* DragonBone::getArmatureProxy() const {
 }
 
 void DragonBone::setLook(String name) {
-	db::SkinData* skin = _armatureProxy->getArmature()->getArmatureData()->getSkin(name);
+	db::SkinData* skin = _armatureProxy->getArmature()->getArmatureData()->getSkin(name.toString());
 	SharedDragonBoneCache.replaceSkin(_armatureProxy->getArmature(), skin);
 }
 
@@ -489,7 +489,7 @@ float DragonBone::play(String name, bool loop) {
 	if (_armatureProxy->getAnimation()->isPlaying()) {
 		_lastCompletedAnimationName.clear();
 	}
-	db::AnimationState* state = _armatureProxy->getAnimation()->fadeIn(name, _recoveryTime, loop ? 0 : 1);
+	db::AnimationState* state = _armatureProxy->getAnimation()->fadeIn(name.toString(), _recoveryTime, loop ? 0 : 1);
 	return (state->getTotalTime() + _recoveryTime) / std::max(_speed, FLT_EPSILON);
 }
 

@@ -52,13 +52,13 @@ void Flag::toggle(IntType type) {
 	set(type, !isOn(type));
 }
 
-const Slice Profiler::EventName = "_TIMECOST_"_slice;
+const std::string Profiler::EventName = "_TIMECOST_"s;
 int Profiler::level = -1;
 
 Profiler::Profiler(String name, String msg)
 	: _lastTime(SharedApplication.getCurrentTime())
-	, _name(name)
-	, _msg(msg) {
+	, _name(name.toString())
+	, _msg(msg.toString()) {
 	level++;
 }
 
@@ -70,7 +70,7 @@ Profiler::~Profiler() {
 
 std::string Path::concat(const std::list<Slice>& paths) {
 	if (paths.empty()) return Slice::Empty;
-	if (paths.size() == 1) return paths.front();
+	if (paths.size() == 1) return paths.front().toString();
 	fs::path path = paths.front().toString();
 	for (auto it = ++paths.begin(); it != paths.end(); ++it) {
 		if (it->empty()) continue;
@@ -79,39 +79,39 @@ std::string Path::concat(const std::list<Slice>& paths) {
 	return path.string();
 }
 
-std::string Path::getExt(const std::string& path) {
-	auto ext = fs::path(path).extension().string();
+std::string Path::getExt(String path) {
+	auto ext = fs::path(path.toString()).extension().string();
 	if (!ext.empty()) ext.erase(ext.begin());
 	for (auto& ch : ext) ch = s_cast<char>(std::tolower(ch));
 	return ext;
 }
 
-std::string Path::getPath(const std::string& path) {
-	return fs::path(path).parent_path().string();
+std::string Path::getPath(String path) {
+	return fs::path(path.toString()).parent_path().string();
 }
 
-std::string Path::getName(const std::string& path) {
-	return fs::path(path).stem().string();
+std::string Path::getName(String path) {
+	return fs::path(path.toString()).stem().string();
 }
 
-std::string Path::getFilename(const std::string& path) {
-	return fs::path(path).filename().string();
+std::string Path::getFilename(String path) {
+	return fs::path(path.toString()).filename().string();
 }
 
-std::string Path::getRelative(const std::string& path, const std::string& target) {
-	return fs::path(path).lexically_relative(target).string();
+std::string Path::getRelative(String path, String target) {
+	return fs::path(path.toString()).lexically_relative(target.toString()).string();
 }
 
-std::string Path::replaceExt(const std::string& path, const std::string& newExt) {
+std::string Path::replaceExt(String path, String newExt) {
 	std::string ext;
 	if (!newExt.empty()) {
-		ext = newExt.front() != '.' ? '.' + newExt : newExt;
+		ext = newExt.front() != '.' ? '.' + newExt.toString() : newExt.toString();
 	}
-	return fs::path(path).replace_extension(ext).string();
+	return fs::path(path.toString()).replace_extension(ext).string();
 }
 
-std::string Path::replaceFilename(const std::string& path, const std::string& newFile) {
-	return fs::path(path).replace_filename(newFile).string();
+std::string Path::replaceFilename(String path, String newFile) {
+	return fs::path(path.toString()).replace_filename(newFile.toString()).string();
 }
 
 NS_DOROTHY_END

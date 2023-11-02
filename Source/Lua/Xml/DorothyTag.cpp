@@ -67,7 +67,7 @@ void DorothyTag::load() {
 				auto tokens = Slice(listStr).split(","_slice);
 				auto list = std::make_shared<std::list<std::string>>();
 				for (const auto& token : tokens) {
-					list->push_back(token);
+					list->push_back(token.toString());
 				}
 				lists[line.substr(0, index)] = list;
 				break;
@@ -99,7 +99,7 @@ void DorothyTag::load() {
 								list = std::make_shared<std::list<std::string>>();
 								auto tokens = Slice(hints).split(","_slice);
 								for (const auto& token : tokens) {
-									list->push_back(token);
+									list->push_back(token.toString());
 								}
 							} else if (hints == "*"_slice) {
 								list = std::make_shared<std::list<std::string>>();
@@ -115,7 +115,7 @@ void DorothyTag::load() {
 							list = std::make_shared<std::list<std::string>>();
 							auto tokens = Slice(hints).split(","_slice);
 							for (const auto& token : tokens) {
-								list->push_back(token);
+								list->push_back(token.toString());
 							}
 						} else {
 							std::string listName = line.substr(index + 1);
@@ -184,7 +184,7 @@ std::list<std::string> DorothyTag::getSubElements(const std::string& elementName
 	if (it != _elements.end()) {
 		return it->second->subElements;
 	} else {
-		it = _elements.find("Node"_slice);
+		it = _elements.find("Node"s);
 		if (it != _elements.end()) {
 			return it->second->subElements;
 		}

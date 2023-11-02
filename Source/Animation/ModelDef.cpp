@@ -20,15 +20,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 inline std::string s2(float var) {
-	return Slice(fmt::format("{:.2f}", var)).trimZero();
+	return Slice(fmt::format("{:.2f}", var)).trimZero().toString();
 }
 
 inline std::string s3(float var) {
-	return Slice(fmt::format("{:.3f}", var)).trimZero();
+	return Slice(fmt::format("{:.3f}", var)).trimZero().toString();
 }
 
 inline std::string s4(float var) {
-	return Slice(fmt::format("{:.4f}", var)).trimZero();
+	return Slice(fmt::format("{:.4f}", var)).trimZero().toString();
 }
 
 /* SpriteDef */
@@ -188,7 +188,7 @@ std::string ModelDef::toXml() {
 }
 
 int ModelDef::getAnimationIndexByName(String name) {
-	auto it = _animationIndex.find(name);
+	auto it = _animationIndex.find(name.toString());
 	if (it != _animationIndex.end()) {
 		return it->second;
 	}
@@ -205,7 +205,7 @@ const std::string& ModelDef::getAnimationNameByIndex(int index) {
 }
 
 int ModelDef::getLookIndexByName(String name) {
-	auto it = _lookIndex.find(name);
+	auto it = _lookIndex.find(name.toString());
 	if (it != _lookIndex.end()) {
 		return it->second;
 	}
@@ -221,19 +221,19 @@ const std::unordered_map<std::string, int>& ModelDef::getLookIndexMap() const {
 }
 
 void ModelDef::setActionName(int index, String name) {
-	_animationIndex[name] = index;
+	_animationIndex[name.toString()] = index;
 }
 
 void ModelDef::setLookName(int index, String name) {
-	_lookIndex[name] = index;
+	_lookIndex[name.toString()] = index;
 }
 
 void ModelDef::addKeyPoint(String key, const Vec2& point) {
-	ModelDef::getKeyPoints()[key] = point;
+	ModelDef::getKeyPoints()[key.toString()] = point;
 }
 
 Vec2 ModelDef::getKeyPoint(String key) const {
-	auto it = _keys.find(key);
+	auto it = _keys.find(key.toString());
 	return it != _keys.end() ? it->second : Vec2::zero;
 }
 

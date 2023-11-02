@@ -61,7 +61,7 @@ public:
 		: str_(nullptr)
 		, len_(0) { }
 
-	inline operator std::string() const {
+	explicit inline operator std::string() const {
 		return std::string(str_, len_);
 	}
 

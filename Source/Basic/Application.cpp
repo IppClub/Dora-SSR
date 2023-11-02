@@ -25,7 +25,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <ctime>
 #include <thread>
 
-#define DORA_VERSION "1.0.40"_slice
+#define DORA_VERSION "1.0.41"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -99,8 +99,8 @@ const std::string& Application::getLocale() const {
 }
 
 void Application::setLocale(String var) {
-	_locale = var;
-	Event::send("AppLocale", _locale);
+	_locale = var.toString();
+	Event::send("AppLocale"_slice, _locale);
 }
 
 const std::string& Application::getOrientation() const {
@@ -109,8 +109,8 @@ const std::string& Application::getOrientation() const {
 
 void Application::setOrientation(String var) {
 	AssertUnless(getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice,
-		"changing application orientation is not available on {}.", getPlatform());
-	_orientation = var;
+		"changing application orientation is not available on {}.", getPlatform().toString());
+	_orientation = var.toString();
 	switch (Switch::hash(var)) {
 		case "LandscapeLeft"_hash:
 		case "LandscapeRight"_hash:
@@ -118,7 +118,7 @@ void Application::setOrientation(String var) {
 		case "PortraitUpsideDown"_hash:
 			break;
 		default:
-			Issue("application orientation \"{}\" is invalid.", var);
+			Issue("application orientation \"{}\" is invalid.", var.toString());
 			break;
 	}
 	invokeInRender([orientation = _orientation]() {
@@ -199,19 +199,19 @@ bool Application::isFPSLimited() const {
 
 void Application::setWinSize(Size var) {
 	AssertIf(getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice,
-		"changing window size is not available on {}.", getPlatform());
+		"changing window size is not available on {}.", getPlatform().toString());
 	if (var == Size::zero) {
 		invokeInRender([&]() {
 			SDL_SetWindowFullscreen(_sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
 		});
-		Event::send("AppFullScreen", true);
+		Event::send("AppFullScreen"_slice, true);
 	} else {
 		invokeInRender([&, var]() {
 			SDL_SetWindowFullscreen(_sdlWindow, 0);
 			SDL_SetWindowSize(_sdlWindow, s_cast<int>(var.width), s_cast<int>(var.height));
 			SDL_SetWindowPosition(_sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 		});
-		Event::send("AppFullScreen", false);
+		Event::send("AppFullScreen"_slice, false);
 	}
 }
 

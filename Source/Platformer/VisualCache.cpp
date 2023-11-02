@@ -24,14 +24,14 @@ NS_DOROTHY_PLATFORMER_BEGIN
 // VisualType
 
 VisualType::VisualType(String filename)
-	: _file(filename)
+	: _file(filename.toString())
 	, _type(VisualType::Unkown) {
 	if (SharedFrameCache.isFrame(filename)) {
 		_type = VisualType::Frame;
-	} else if (Path::getExt(filename) == "par"_slice) {
+	} else if (Path::getExt(filename.toString()) == "par"_slice) {
 		_type = VisualType::Particle;
 	} else {
-		Error("got invalid visual file str: \"{}\".", filename);
+		Error("got invalid visual file str: \"{}\".", filename.toString());
 	}
 }
 
@@ -103,20 +103,20 @@ bool VisualCache::unload() {
 }
 
 Visual* VisualCache::create(String name) {
-	auto it = _visuals.find(name);
+	auto it = _visuals.find(name.toString());
 	if (it != _visuals.end()) {
 		return it->second->toVisual();
 	}
 	if (SharedFrameCache.isFrame(name)) {
 		return SpriteVisual::create(name);
-	} else if (Path::getExt(name) == "par"_slice) {
+	} else if (Path::getExt(name.toString()) == "par"_slice) {
 		return ParticleVisual::create(name);
 	}
 	return nullptr;
 }
 
 const std::string& VisualCache::getFileByName(String name) {
-	auto it = _visuals.find(name);
+	auto it = _visuals.find(name.toString());
 	if (it != _visuals.end()) {
 		return it->second->getFilename();
 	}
@@ -134,7 +134,7 @@ void VisualCache::xmlSAX2StartElement(const char* name, size_t len, const std::v
 			for (int i = 0; attrs[i].first != nullptr; i++) {
 				switch (Xml::Visual::Visual(attrs[i].first[0])) {
 					case Xml::Visual::Visual::Name:
-						name = Slice(attrs[++i]);
+						name = Slice(attrs[++i]).toString();
 						break;
 					case Xml::Visual::Visual::File:
 						file = _path + Slice(attrs[++i]);

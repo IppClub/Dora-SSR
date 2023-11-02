@@ -621,6 +621,9 @@ public:
 				matched++;
 			}
 		}
+		if (predictions.size() == 0) {
+			return 0.0;
+		}
 		return matched / static_cast<double>(predictions.size());
 	}
 

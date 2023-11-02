@@ -94,7 +94,7 @@ bool Content::copy(String src, String dst) {
 bool Content::move(String src, String dst) {
 	std::error_code err;
 	fs::rename(src.toString(), dst.toString(), err);
-	WarnIf(err, "failed to move file from \"{}\" to \"{}\" due to \"{}\".", src, dst, err.message());
+	WarnIf(err, "failed to move file from \"{}\" to \"{}\" due to \"{}\".", src.toString(), dst.toString(), err.message());
 	return !err;
 }
 
@@ -121,7 +121,7 @@ bool Content::remove(String filename) {
 	if (!Content::exist(fullPath)) return false;
 	std::error_code err;
 	fs::remove_all(fullPath, err);
-	WarnIf(err, "failed to remove files from \"{}\" due to \"{}\".", filename, err.message());
+	WarnIf(err, "failed to remove files from \"{}\" due to \"{}\".", filename.toString(), err.message());
 	return !err;
 }
 
@@ -203,7 +203,7 @@ std::string Content::getFullPath(String filename) {
 	targetFile.trimSpace();
 
 	if (Content::isAbsolutePath(targetFile)) {
-		return targetFile;
+		return targetFile.toString();
 	}
 
 	while (targetFile.size() > 1 && (targetFile.back() == '\\' || targetFile.back() == '/')) {
@@ -214,7 +214,7 @@ std::string Content::getFullPath(String filename) {
 	{
 		std::lock_guard<std::mutex> lock(pathMutex);
 
-		auto it = _fullPathCache.find(targetFile);
+		auto it = _fullPathCache.find(targetFile.toString());
 		if (it != _fullPathCache.end()) {
 			return it->second;
 		}
@@ -230,15 +230,15 @@ std::string Content::getFullPath(String filename) {
 			}
 		}
 
-		std::tie(path, file) = splitDirectoryAndFilename(targetFile);
+		std::tie(path, file) = splitDirectoryAndFilename(targetFile.toString());
 		fullPath = Content::getFullPathForDirectoryAndFilename(path, file);
 		if (!fullPath.empty()) {
-			_fullPathCache[targetFile] = fullPath;
+			_fullPathCache[targetFile.toString()] = fullPath;
 			return fullPath;
 		}
 	}
 
-	return targetFile;
+	return targetFile.toString();
 }
 
 std::list<std::string> Content::getFullPathsToTry(String filename) {
@@ -252,7 +252,7 @@ std::list<std::string> Content::getFullPathsToTry(String filename) {
 	}
 
 	if (Content::isAbsolutePath(targetFile)) {
-		return {targetFile};
+		return {targetFile.toString()};
 	}
 
 	std::list<std::string> paths;
@@ -303,7 +303,7 @@ bool Content::copyUnsafe(String src, String dst) {
 	// Info("copy file from {}", srcPath);
 	// Info("copy file to {}", dst);
 	if (Content::isPathFolder(srcPath)) {
-		std::string dstPath = dst;
+		std::string dstPath = dst.toString();
 		auto folders = Content::getDirEntries(src, true);
 		for (const std::string& folder : folders) {
 			std::string dstFolder = (fs::path(dstPath) / folder).string();
@@ -335,14 +335,14 @@ bool Content::copyUnsafe(String src, String dst) {
 			}
 		}
 	} else {
-		ofstream stream(dst, std::ios::out | std::ios::trunc | std::ios::binary);
+		ofstream stream(dst.toString(), std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!stream) {
-			Error("failed to open file: \"{}\"", dst);
+			Error("failed to open file: \"{}\"", dst.toString());
 			return false;
 		}
 		bool result = Content::loadByChunks(src, [&](uint8_t* buffer, int size) {
 			if (!stream.write(r_cast<char*>(buffer), size)) {
-				Error("failed to copy to file \"{}\"", dst);
+				Error("failed to copy to file \"{}\"", dst.toString());
 				return true;
 			}
 			return false;
@@ -355,7 +355,7 @@ bool Content::copyUnsafe(String src, String dst) {
 }
 
 void Content::loadAsyncUnsafe(String filename, const std::function<void(uint8_t*, int64_t)>& callback) {
-	std::string fileStr = filename;
+	std::string fileStr = filename.toString();
 	_thread->run(
 		[fileStr, this]() {
 			int64_t size = 0;
@@ -390,7 +390,7 @@ void Content::loadAsyncBX(String filename, const std::function<void(const bgfx::
 }
 
 void Content::copyAsync(String src, String dst, const std::function<void(bool)>& callback) {
-	std::string srcFile(src), dstFile(dst);
+	std::string srcFile(src.toString()), dstFile(dst.toString());
 	_thread->run(
 		[srcFile, dstFile, this]() {
 			bool success = Content::copyUnsafe(srcFile, dstFile);
@@ -404,7 +404,7 @@ void Content::copyAsync(String src, String dst, const std::function<void(bool)>&
 }
 
 void Content::saveAsync(String filename, String content, const std::function<void(bool)>& callback) {
-	std::string file(filename);
+	std::string file(filename.toString());
 	auto data = std::make_shared<std::string>(content);
 	_thread->run(
 		[file, data, this]() {
@@ -419,7 +419,7 @@ void Content::saveAsync(String filename, String content, const std::function<voi
 }
 
 void Content::saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void(bool)>& callback) {
-	std::string file(filename);
+	std::string file(filename.toString());
 	auto data = std::make_shared<OwnArray<uint8_t>>(std::move(content));
 	_thread->run(
 		[file, data, size, this]() {
@@ -436,7 +436,7 @@ void Content::saveAsync(String filename, OwnArray<uint8_t> content, size_t size,
 void Content::zipAsync(String zipFile, String folderPath, const std::function<bool(String)>& filter, const std::function<void(bool)>& callback) {
 	std::error_code err;
 	if (!fs::exists(folderPath.toString(), err)) {
-		Error("\"{}\" must be a local disk folder to zip", folderPath);
+		Error("\"{}\" must be a local disk folder to zip", folderPath.toString());
 		callback(false);
 		return;
 	}
@@ -658,7 +658,7 @@ bool Content::isAbsolutePath(String strPath) {
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
 bool Content::isFileExist(String filePath) {
-	std::string strPath = filePath;
+	std::string strPath = filePath.toString();
 	if (!Content::isAbsolutePath(strPath)) {
 		strPath.insert(0, _assetPath);
 	}
@@ -721,7 +721,7 @@ uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 #endif // BX_PLATFORM_WINDOWS
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr) {
-		Error("failed to load file: {}", filename);
+		Error("failed to load file: {}", filename.toString());
 		return nullptr;
 	}
 	size = SDL_RWsize(io);

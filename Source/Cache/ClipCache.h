@@ -57,7 +57,7 @@ private:
 	public:
 		Parser(ClipDef* def, String path)
 			: XmlParser<ClipDef>(this, def)
-			, _path(path) { }
+			, _path(path.toString()) { }
 		virtual void xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) override;
 		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
 		virtual void xmlSAX2Text(const char* s, size_t len) override;

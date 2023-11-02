@@ -18,7 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 std::shared_ptr<XmlParser<ModelDef>> ModelCache::prepareParser(String filename) {
-	return std::shared_ptr<XmlParser<ModelDef>>(new Parser(ModelDef::create(), Path::getPath(filename)));
+	return std::shared_ptr<XmlParser<ModelDef>>(new Parser(ModelDef::create(), Path::getPath(filename.toString())));
 }
 
 ModelCache::Parser::Parser(ModelDef* def, String path)
@@ -35,7 +35,7 @@ KeyAnimationDef* ModelCache::Parser::getCurrentKeyAnimation() {
 
 void ModelCache::Parser::getPosFromStr(String str, float& x, float& y) {
 	auto tokens = str.split(",");
-	AssertUnless(tokens.size() == 2, "invalid pos str for: \"{}\"", str);
+	AssertUnless(tokens.size() == 2, "invalid pos str for: \"{}\"", str.toString());
 	auto it = tokens.begin();
 	x = Slice::stof(*it);
 	y = Slice::stof(*++it);
@@ -82,10 +82,10 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						getPosFromStr(attrs[++i], spriteDef->skewX, spriteDef->skewY);
 						break;
 					case Xml::Model::Sprite::Name:
-						spriteDef->name = Slice(attrs[++i]);
+						spriteDef->name = Slice(attrs[++i]).toString();
 						break;
 					case Xml::Model::Sprite::Clip:
-						spriteDef->clip = Slice(attrs[++i]);
+						spriteDef->clip = Slice(attrs[++i]).toString();
 						break;
 					case Xml::Model::Sprite::Front:
 						spriteDef->front = std::atoi(attrs[++i].first) != 0;
@@ -144,7 +144,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						keyFrameDef->easeOpacity = Ease::Enum(std::atoi(attrs[++i].first));
 						break;
 					case Xml::Model::KeyFrame::Event:
-						keyFrameDef->event = Slice(attrs[++i]);
+						keyFrameDef->event = Slice(attrs[++i]).toString();
 						_nodeStack.top()->emittingEvent = true;
 						break;
 				}
@@ -238,7 +238,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						break;
 				}
 			}
-			_item->_animationIndex[name] = index;
+			_item->_animationIndex[name.toString()] = index;
 			break;
 		}
 		case Xml::Model::Element::LookName: {
@@ -254,7 +254,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						break;
 				}
 			}
-			_item->_lookIndex[name] = index;
+			_item->_lookIndex[name.toString()] = index;
 			break;
 		}
 		case Xml::Model::Element::KeyPoint: {

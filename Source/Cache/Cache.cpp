@@ -73,7 +73,7 @@ bool Cache::load(String filename) {
 			case "flac"_hash:
 				return SharedSoundCache.load(filename) != nullptr;
 			default: {
-				Error("failed to load unsupported resource \"{}\".", filename);
+				Error("failed to load unsupported resource \"{}\".", filename.toString());
 				return false;
 			}
 		}
@@ -161,7 +161,7 @@ void Cache::loadAsync(String filename, const std::function<void()>& callback) {
 				});
 				break;
 			default:
-				Error("resource is not supported by name: \"{}\".", filename);
+				Error("resource is not supported by name: \"{}\".", filename.toString());
 				break;
 		}
 	}
@@ -187,7 +187,7 @@ void Cache::update(String filename, String content) {
 				SharedSVGCache.update(filename, content);
 				break;
 			default:
-				Error("failed to update unsupported resource \"{}\".", filename);
+				Error("failed to update unsupported resource \"{}\".", filename.toString());
 				break;
 		}
 	}
@@ -234,7 +234,7 @@ bool Cache::unload(String name) {
 			case "flac"_hash:
 				return SharedSoundCache.unload(name);
 			default:
-				Warn("failed to unload resource \"{}\".", name);
+				Warn("failed to unload resource \"{}\".", name.toString());
 				break;
 		}
 	} else {
@@ -260,7 +260,7 @@ bool Cache::unload(String name) {
 			case "Spine"_hash:
 				return SharedAtlasCache.unload() && SharedSkeletonCache.unload();
 			default: {
-				Warn("failed to unload resources \"{}\".", name);
+				Warn("failed to unload resources \"{}\".", name.toString());
 				break;
 			}
 		}
@@ -335,7 +335,7 @@ void Cache::removeUnused(String name) {
 			SharedSoundCache.removeUnused();
 			break;
 		default:
-			Error("failed to remove unused cache type \"{}\".", name);
+			Error("failed to remove unused cache type \"{}\".", name.toString());
 			break;
 	}
 }

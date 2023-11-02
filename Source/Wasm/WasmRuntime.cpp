@@ -996,7 +996,7 @@ static void wasm_unit_action_add(
 	const std::function<WasmActionUpdate(Unit*, UnitAction*)>& create,
 	const std::function<void(Unit*, UnitAction*)>& stop) {
 	UnitActionDef* actionDef = new WasmActionDef(available, create, stop);
-	actionDef->name = name;
+	actionDef->name = name.toString();
 	actionDef->priority = priority;
 	actionDef->reaction = reaction;
 	actionDef->recovery = recovery;
@@ -1031,14 +1031,14 @@ struct DBRecord {
 struct DBQuery {
 	void addWithParams(String sql, DBParams& params) {
 		auto& query = queries.emplace_back();
-		query.first = sql;
+		query.first = sql.toString();
 		for (auto& rec : params.records) {
 			query.second.emplace_back(std::move(rec));
 		}
 	}
 	void add(String sql) {
 		auto& query = queries.emplace_back();
-		query.first = sql;
+		query.first = sql.toString();
 	}
 	std::list<std::pair<std::string, std::deque<std::vector<Own<Value>>>>> queries;
 };
@@ -1378,7 +1378,7 @@ bool WasmRuntime::executeMainFile(String filename) {
 	try {
 		PROFILE("Loader"_slice, filename);
 		{
-			PROFILE("Loader"_slice, filename + " [Load]"s);
+			PROFILE("Loader"_slice, filename.toString() + " [Load]"s);
 			_wasm = SharedContent.load(filename);
 			auto mod = _env->parse_module(_wasm.first.get(), _wasm.second);
 			_runtime->load(mod);
@@ -1391,7 +1391,7 @@ bool WasmRuntime::executeMainFile(String filename) {
 		mainFn.call_argv();
 		return true;
 	} catch (std::runtime_error& e) {
-		Error("failed to load wasm module: {}, due to: {}{}", filename, e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
+		Error("failed to load wasm module: {}, due to: {}{}", filename.toString(), e.what(), _runtime->get_error_message() == Slice::Empty ? ""s : ": "s + _runtime->get_error_message());
 		return false;
 	}
 }

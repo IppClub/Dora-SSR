@@ -433,8 +433,8 @@ bool Emit::update(Node* target, float eclapsed) {
 Own<ActionDuration> Emit::alloc(String event, String arg) {
 	Emit* emit = new Emit();
 	emit->_ended = false;
-	emit->_event = event;
-	emit->_argument = arg;
+	emit->_event = event.toString();
+	emit->_argument = arg.toString();
 	return Own<ActionDuration>(emit);
 }
 

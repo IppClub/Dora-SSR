@@ -54,7 +54,7 @@ void Spine::SpineListener::callback(spine::AnimationState* state, spine::EventTy
 			break;
 		case spine::EventType_Complete:
 			_owner->emit("AnimationEnd"_slice, animationName.toString(), s_cast<Playable*>(_owner));
-			_owner->_lastCompletedAnimationName = animationName;
+			_owner->_lastCompletedAnimationName = animationName.toString();
 			break;
 		case spine::EventType_Interrupt:
 			_owner->_lastCompletedAnimationName.clear();
@@ -237,7 +237,7 @@ float Spine::play(String name, bool loop) {
 	if (!animation) {
 		return 0.0f;
 	}
-	_currentAnimationName = name;
+	_currentAnimationName = name.toString();
 	float recoveryTime = _animationStateData->getDefaultMix();
 	if (recoveryTime > 0.0f) {
 		_animationState->setEmptyAnimation(0, recoveryTime);
@@ -263,13 +263,14 @@ void Spine::setSlot(String name, Node* item) {
 	if (!_slots) {
 		_slots = New<std::unordered_map<std::string, Ref<Node>>>();
 	}
-	auto it = _slots->find(name);
+	auto nameStr = name.toString();
+	auto it = _slots->find(nameStr);
 	if (it != _slots->end()) {
 		it->second->removeFromParent();
 		_slots->erase(it);
 	}
 	if (item) {
-		(*_slots)[name] = item;
+		(*_slots)[nameStr] = item;
 		item->setVisible(false);
 		addChild(item);
 	}
@@ -277,7 +278,7 @@ void Spine::setSlot(String name, Node* item) {
 
 Node* Spine::getSlot(String name) {
 	if (_slots) {
-		auto it = _slots->find(name);
+		auto it = _slots->find(name.toString());
 		if (it != _slots->end()) {
 			return it->second;
 		}

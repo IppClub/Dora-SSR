@@ -14,7 +14,7 @@ NS_DOROTHY_BEGIN
 #if DORA_TEST
 
 TestEntry::TestEntry(String name) {
-	Test::getTests()[name] = this;
+	Test::getTests()[name.toString()] = this;
 }
 
 std::list<std::string> Test::getNames() {
@@ -32,7 +32,7 @@ std::unordered_map<std::string, TestEntry*>& Test::getTests() {
 
 bool Test::runTest(String name) {
 	try {
-		if (auto it = getTests().find(name); it != getTests().end()) {
+		if (auto it = getTests().find(name.toString()); it != getTests().end()) {
 			return it->second->run();
 		} else {
 			return false;

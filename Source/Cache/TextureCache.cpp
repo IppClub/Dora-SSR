@@ -140,7 +140,7 @@ Texture2D* TextureCache::update(String filename, const uint8_t* data, int64_t si
 		_textures[fullPath] = texture;
 		return texture;
 	}
-	Error("texture format \"{}\" is not supported for \"{}\".", Path::getExt(filename), filename);
+	Error("texture format \"{}\" is not supported for \"{}\".", Path::getExt(filename.toString()), filename.toString());
 	return nullptr;
 }
 
@@ -152,7 +152,7 @@ Texture2D* TextureCache::load(String filename) {
 	}
 	auto data = SharedContent.load(filename);
 	if (data.second == 0) {
-		Error("failed to load texture \"{}\"", filename);
+		Error("failed to load texture \"{}\"", filename.toString());
 		return nullptr;
 	}
 	return update(filename, data.first.get(), data.second);
@@ -165,7 +165,7 @@ void TextureCache::loadAsync(String filename, const std::function<void(Texture2D
 		handler(it->second);
 		return;
 	}
-	std::string file(filename);
+	std::string file(filename.toString());
 	SharedContent.loadAsyncUnsafe(fullPath, [this, file, handler](uint8_t* data, int64_t size) {
 		if (!data) {
 			Error("failed to read file data from \"{}\".", file);

@@ -48,7 +48,7 @@ Model::Model(ModelDef* def)
 
 Model::Model(String filename)
 	: Model(SharedModelCache.load(
-		Path::getExt(filename).empty() ? filename + ".model"s : filename.toString())) { }
+		Path::getExt(filename.toString()).empty() ? filename.toString() + ".model"s : filename.toString())) { }
 
 bool Model::init() {
 	if (!Node::init()) return false;
@@ -418,7 +418,7 @@ Node* Model::getNodeByName(String name) const {
 	if (!_nodeMap) {
 		return nullptr;
 	} else {
-		auto it = _nodeMap->find(name);
+		auto it = _nodeMap->find(name.toString());
 		if (it != _nodeMap->end()) {
 			return it->second;
 		}
@@ -447,7 +447,7 @@ const std::string& Model::getLastCompleted() const {
 
 Vec2 Model::getKeyPoint(String name) const {
 	auto& keyPoints = _modelDef->getKeyPoints();
-	auto it = keyPoints.find(name);
+	auto it = keyPoints.find(name.toString());
 	if (it != keyPoints.end()) {
 		auto keyPoint = it->second;
 		if (isFliped()) {
@@ -583,7 +583,7 @@ AnimationHandler& Model::AnimationHandlerGroup::operator[](int index) {
 AnimationHandler& Model::AnimationHandlerGroup::operator[](String name) {
 	int index = _owner->_modelDef->getAnimationIndexByName(name);
 	if (index == Animation::None) {
-		Warn("try registering callback for non-exist animation named: \"{}\".", name);
+		Warn("try registering callback for non-exist animation named: \"{}\".", name.toString());
 		return _unavailableHandler;
 	}
 	return _owner->_animationGroups[index]->animationEnd;

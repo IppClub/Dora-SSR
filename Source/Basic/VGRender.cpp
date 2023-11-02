@@ -65,7 +65,7 @@ int nvg::CreateImage(int w, int h, String filename, Slice* imageFlags, int flagC
 			case "Premultiplied"_hash: flags |= NVG_IMAGE_PREMULTIPLIED; break;
 			case "Nearest"_hash: flags |= NVG_IMAGE_NEAREST; break;
 			default:
-				Issue("nvg image flag named \"{}\" is invalid.", imageFlags[i]);
+				Issue("nvg image flag named \"{}\" is invalid.", imageFlags[i].toString());
 				break;
 		}
 	}

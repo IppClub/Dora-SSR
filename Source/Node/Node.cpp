@@ -234,7 +234,7 @@ const Size& Node::getSize() const {
 }
 
 void Node::setTag(String tag) {
-	_tag = tag;
+	_tag = tag.toString();
 }
 
 const std::string& Node::getTag() const {
@@ -1569,14 +1569,15 @@ Signal::~Signal() {
 }
 
 Slot* Signal::addSlot(String name) {
+	auto nameStr = name.toString();
 	if (_slots) {
-		auto it = _slots->find(name);
+		auto it = _slots->find(nameStr);
 		if (it != _slots->end()) {
 			return it->second.get();
 		} else {
 			auto slot = Slot::alloc();
 			auto slotPtr = slot.get();
-			(*_slots)[name] = std::move(slot);
+			(*_slots)[nameStr] = std::move(slot);
 			return slotPtr;
 		}
 	} else if (_slotsArray) {
@@ -1589,7 +1590,7 @@ Slot* Signal::addSlot(String name) {
 			auto slot = Slot::alloc();
 			auto slotPtr = slot.get();
 			_slotsArray->push_back(
-				std::make_pair(name.toString(), std::move(slot)));
+				std::make_pair(nameStr, std::move(slot)));
 			return slotPtr;
 		} else {
 			_slots = New<std::unordered_map<std::string, Own<Slot>>>();
@@ -1598,7 +1599,7 @@ Slot* Signal::addSlot(String name) {
 			}
 			auto slot = Slot::alloc();
 			auto slotPtr = slot.get();
-			(*_slots)[name] = std::move(slot);
+			(*_slots)[nameStr] = std::move(slot);
 			_slotsArray = nullptr;
 			return slotPtr;
 		}
@@ -1612,15 +1613,16 @@ Slot* Signal::addSlot(String name) {
 }
 
 Slot* Signal::addSlot(String name, const EventHandler& handler) {
+	auto nameStr = name.toString();
 	if (_slots) {
-		auto it = _slots->find(name);
+		auto it = _slots->find(nameStr);
 		if (it != _slots->end()) {
 			it->second->add(handler);
 			return it->second.get();
 		} else {
 			auto slot = Slot::alloc(handler);
 			auto slotPtr = slot.get();
-			(*_slots)[name] = std::move(slot);
+			(*_slots)[nameStr] = std::move(slot);
 			return slotPtr;
 		}
 	} else if (_slotsArray) {
@@ -1643,7 +1645,7 @@ Slot* Signal::addSlot(String name, const EventHandler& handler) {
 			}
 			auto slot = Slot::alloc(handler);
 			auto slotPtr = slot.get();
-			(*_slots)[name] = std::move(slot);
+			(*_slots)[nameStr] = std::move(slot);
 			_slotsArray = nullptr;
 			return slotPtr;
 		}
@@ -1651,20 +1653,20 @@ Slot* Signal::addSlot(String name, const EventHandler& handler) {
 		_slotsArray = New<std::vector<std::pair<std::string, Own<Slot>>>>(MaxSlotArraySize);
 		auto slot = Slot::alloc(handler);
 		auto slotPtr = slot.get();
-		_slotsArray->push_back(std::make_pair(name.toString(), std::move(slot)));
+		_slotsArray->push_back(std::make_pair(nameStr, std::move(slot)));
 		return slotPtr;
 	}
 }
 
 Listener* Signal::addGSlot(String name, const EventHandler& handler) {
-	auto gslot = Listener::create(name, handler);
+	auto gslot = Listener::create(name.toString(), handler);
 	_gslots.push_back(gslot);
 	return gslot;
 }
 
 void Signal::removeSlot(String name, const EventHandler& handler) {
 	if (_slots) {
-		auto it = _slots->find(name);
+		auto it = _slots->find(name.toString());
 		if (it != _slots->end()) {
 			it->second->remove(handler);
 			return;
@@ -1685,7 +1687,7 @@ void Signal::removeGSlot(Listener* gslot) {
 
 void Signal::removeSlots(String name) {
 	if (_slots) {
-		auto it = _slots->find(name);
+		auto it = _slots->find(name.toString());
 		if (it != _slots->end()) {
 			it->second->clear();
 			return;
@@ -1719,7 +1721,7 @@ RefVector<Listener> Signal::getGSlots(String name) const {
 
 void Signal::emit(Event* event) {
 	if (_slots) {
-		auto it = _slots->find(event->getName());
+		auto it = _slots->find(event->getName().toString());
 		if (it != _slots->end()) {
 			it->second->handle(event);
 		}

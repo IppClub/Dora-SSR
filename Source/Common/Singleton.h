@@ -106,7 +106,7 @@ public:
 	}
 
 	static void setDependencyInfo(String name, String dependencyStr) {
-		_name = name;
+		_name = name.toString();
 		Life::addName(name);
 		auto dependencies = dependencyStr.split(",");
 		for (auto& dependency : dependencies) {
