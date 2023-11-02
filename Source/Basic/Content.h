@@ -73,7 +73,7 @@ private:
 	std::string _writablePath;
 #if BX_PLATFORM_ANDROID
 	bool isAndroidAsset(String fullPath) const;
-	String getAndroidAssetName(String fullPath) const;
+	std::string getAndroidAssetName(String fullPath) const;
 	Own<ZipFile> _apkFile;
 	std::string _apkFilter;
 #endif

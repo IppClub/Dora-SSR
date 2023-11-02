@@ -35,10 +35,10 @@ static std::string get_local_ip() {
 		memcpy(&addr, host->h_addr_list[i], sizeof(in_addr));
 		Slice ip(inet_ntoa(addr));
 		if (ip.left(8) == "192.168."_slice) { // C
-			localIP = ip;
+			localIP = ip.toString();
 			break;
 		} else if (ip.left(3) == "10."_slice) { // A
-			localIP = ip;
+			localIP = ip.toString();
 		}
 		i++;
 	}

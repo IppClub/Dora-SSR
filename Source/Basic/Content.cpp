@@ -54,10 +54,10 @@ bool Content::isAndroidAsset(String fullPath) const {
 	return fullPath.left(_assetPath.length()) == _assetPath;
 }
 
-String Content::getAndroidAssetName(String fullPath) const {
+std::string Content::getAndroidAssetName(String fullPath) const {
 	const auto& apkPath = SharedApplication.getAPKPath();
 	fullPath.skip(apkPath.length() + 1);
-	return fullPath;
+	return fullPath.toString();
 }
 
 #endif // BX_PLATFORM_ANDROID
