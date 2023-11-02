@@ -998,7 +998,7 @@ static const char* _toBoolean(const char* str) {
 #define ModuleNode_Check \
 	Object_Check default : { \
 		int index = i; \
-		attributes[atts[index]] = Slice(atts[++i]).trimSpace(); \
+		attributes[atts[index]] = Slice(atts[++i]).trimSpace().toString(); \
 		break; \
 	}
 #define ModuleNode_Create \
@@ -1775,7 +1775,7 @@ void XmlDelegator::endElement(const char* name) {
 				if (!lines.empty()) {
 					if (lines.size() == 1) {
 						updateLineNumber(lines.begin()->begin());
-						codeStr = lines.front() + nl();
+						codeStr = lines.front().toString() + nl();
 					} else {
 						if (!lines.begin()->empty()) {
 							updateLineNumber(lines.begin()->begin());

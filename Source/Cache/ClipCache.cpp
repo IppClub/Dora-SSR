@@ -19,7 +19,7 @@ NS_DOROTHY_BEGIN
 ClipDef::ClipDef() { }
 
 Sprite* ClipDef::toSprite(String name) {
-	auto it = rects.find(name);
+	auto it = rects.find(name.toString());
 	if (it != rects.end()) {
 		Texture2D* texture = SharedTextureCache.load(textureFile);
 		Sprite* sprite = Sprite::create(texture, *it->second);
@@ -48,21 +48,22 @@ std::string ClipDef::toXml() {
 std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr) {
 	if (clipStr.toString().find('|') != std::string::npos) {
 		auto tokens = clipStr.split("|");
-		AssertUnless(tokens.size() == 2 && Path::getExt(tokens.front()) == "clip"_slice, "invalid clip str: \"{}\".", clipStr);
+		AssertUnless(tokens.size() == 2 && Path::getExt(tokens.front().toString()) == "clip"_slice, "invalid clip str: \"{}\".", clipStr.toString());
 		ClipDef* clipDef = ClipCache::load(tokens.front());
-		AssertUnless(clipDef, "failed to load clip: \"{}\".", clipStr);
+		AssertUnless(clipDef, "failed to load clip: \"{}\".", clipStr.toString());
 		Slice name = tokens.back();
-		auto it = clipDef->rects.find(name);
+		auto nameStr = name.toString();
+		auto it = clipDef->rects.find(nameStr);
 		if (it != clipDef->rects.end()) {
 			Texture2D* texture = SharedTextureCache.load(clipDef->textureFile);
 			return {texture, *it->second};
 		} else {
-			Error("no clip named \"{}\" in {}", name, tokens.front());
+			Error("no clip named \"{}\" in {}", nameStr, tokens.front().toString());
 			Texture2D* tex = SharedTextureCache.load(clipDef->textureFile);
 			Rect rect(0.0f, 0.0f, s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight()));
 			return {tex, rect};
 		}
-	} else if (Path::getExt(clipStr) == "clip"_slice) {
+	} else if (Path::getExt(clipStr.toString()) == "clip"_slice) {
 		Texture2D* tex = nullptr;
 		ClipDef* clipDef = SharedClipCache.load(clipStr);
 		if (clipDef) tex = SharedTextureCache.load(clipDef->textureFile);
@@ -70,7 +71,7 @@ std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr) {
 			Rect rect(0.0f, 0.0f, s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight()));
 			return {tex, rect};
 		}
-		Error("failed to get clip from clipStr \"{}\".", clipStr);
+		Error("failed to get clip from clipStr \"{}\".", clipStr.toString());
 		return {};
 	} else {
 		Texture2D* tex = SharedTextureCache.load(clipStr);
@@ -78,7 +79,7 @@ std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr) {
 			Rect rect(0.0f, 0.0f, s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight()));
 			return {tex, rect};
 		}
-		Error("failed to get texture from clipStr \"{}\".", clipStr);
+		Error("failed to get texture from clipStr \"{}\".", clipStr.toString());
 		return {};
 	}
 }
@@ -101,15 +102,15 @@ bool ClipCache::isFileExist(String clipStr) const {
 bool ClipCache::isClip(String clipStr) const {
 	if (clipStr.toString().find('|') != std::string::npos) {
 		auto tokens = clipStr.split("|");
-		return tokens.size() == 2 && Path::getExt(tokens.front()) == "clip"_slice;
-	} else if (Path::getExt(clipStr) == "clip"_slice) {
+		return tokens.size() == 2 && Path::getExt(tokens.front().toString()) == "clip"_slice;
+	} else if (Path::getExt(clipStr.toString()) == "clip"_slice) {
 		return true;
 	}
 	return false;
 }
 
 std::shared_ptr<XmlParser<ClipDef>> ClipCache::prepareParser(String filename) {
-	return std::shared_ptr<XmlParser<ClipDef>>(new Parser(ClipDef::create(), Path::getPath(filename)));
+	return std::shared_ptr<XmlParser<ClipDef>>(new Parser(ClipDef::create(), Path::getPath(filename.toString())));
 }
 
 void ClipCache::Parser::xmlSAX2Text(const char* s, size_t len) { }
@@ -137,13 +138,13 @@ void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const 
 					case Xml::Clip::Clip::Rect: {
 						Slice attr(attrs[++i]);
 						auto tokens = attr.split(",");
-						AssertUnless(tokens.size() == 4, "invalid clip rect str for: \"{}\"", attr);
+						AssertUnless(tokens.size() == 4, "invalid clip rect str for: \"{}\"", attr.toString());
 						auto it = tokens.begin();
 						float x = Slice::stof(*it);
 						float y = Slice::stof(*++it);
 						float w = Slice::stof(*++it);
 						float h = Slice::stof(*++it);
-						_item->rects[name] = New<Rect>(x, y, w, h);
+						_item->rects[name.toString()] = New<Rect>(x, y, w, h);
 						break;
 					}
 				}

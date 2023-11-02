@@ -29,7 +29,7 @@ public:
 	T get(String key, const T& def) const {
 		const auto& val = get(key);
 		if (!val) return def;
-		using Type = std::remove_pointer_t<T>;
+		using Type = std::remove_cv_t<std::remove_reference_t<std::remove_pointer_t<T>>>;
 		if constexpr (std::is_base_of_v<Object, Type>) {
 			return val->as<std::remove_pointer_t<special_decay_t<T>>>();
 		} else {

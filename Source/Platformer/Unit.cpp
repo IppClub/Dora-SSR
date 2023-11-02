@@ -278,12 +278,13 @@ Entity* Unit::getEntity() const {
 }
 
 UnitAction* Unit::attachAction(String name) {
-	auto it = _actions.find(name);
+	auto nameStr = name.toString();
+	auto it = _actions.find(nameStr);
 	if (it == _actions.end()) {
-		Own<UnitAction> action = UnitAction::alloc(name, this);
+		Own<UnitAction> action = UnitAction::alloc(nameStr, this);
 		UnitAction* temp = action.get();
 		if (action) {
-			_actions[name] = std::move(action);
+			_actions[nameStr] = std::move(action);
 		}
 		return temp;
 	}
@@ -291,7 +292,7 @@ UnitAction* Unit::attachAction(String name) {
 }
 
 void Unit::removeAction(String name) {
-	auto it = _actions.find(name);
+	auto it = _actions.find(name.toString());
 	if (it != _actions.end()) {
 		_actions.erase(it);
 	}
@@ -302,7 +303,7 @@ void Unit::removeAllActions() {
 }
 
 UnitAction* Unit::getAction(String name) const {
-	auto it = _actions.find(name);
+	auto it = _actions.find(name.toString());
 	return it == _actions.end() ? nullptr : it->second.get();
 }
 
@@ -313,7 +314,7 @@ void Unit::eachAction(const UnitActionHandler& func) {
 }
 
 bool Unit::start(String name) {
-	auto it = _actions.find(name);
+	auto it = _actions.find(name.toString());
 	if (it != _actions.end()) {
 		UnitAction* action = it->second.get();
 		if (action->isDoing()) return true;
@@ -408,10 +409,11 @@ UnitAction* Unit::getCurrentAction() const {
 }
 
 void Unit::setDecisionTreeName(String name) {
-	_decisionTreeName = name;
-	if (const auto& item = SharedData.getStore()->get(name)) {
+	_decisionTreeName = name.toString();
+	const auto& item = SharedData.getStore()->get(_decisionTreeName);
+	if (item) {
 		Decision::Leaf* leaf = item->as<Decision::Leaf>();
-		WarnIf(leaf == nullptr, "decision tree \"{}\" not found", name);
+		WarnIf(leaf == nullptr, "decision tree \"{}\" not found", _decisionTreeName);
 		_behaviorTree = nullptr;
 		_decisionTree = leaf;
 	}

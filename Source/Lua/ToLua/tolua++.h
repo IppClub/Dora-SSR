@@ -159,6 +159,7 @@ int tolua_isfunction(lua_State* L, int lo);
 void tolua_stack_dump(lua_State* L, int offset, const char* label);
 int tolua_get_callback_ref_count();
 int tolua_get_max_callback_ref_count();
+
 Slice tolua_toslice(lua_State* L, int narg, const char* def);
 #define tolua_isslice tolua_isstring
 void tolua_pushslice(lua_State* L, String str);

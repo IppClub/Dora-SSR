@@ -125,7 +125,7 @@ void Pass::set(String name, const Matrix& var) {
 }
 
 Value* Pass::get(String name) const {
-	auto it = _uniforms.find(name);
+	auto it = _uniforms.find(name.toString());
 	if (it != _uniforms.end()) {
 		return it->second->getValue();
 	}

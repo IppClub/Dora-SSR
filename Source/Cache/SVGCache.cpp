@@ -41,7 +41,7 @@ SVGDef* SVGDef::from(String filename) {
 
 static void get(String value, Rect& rect) {
 	auto tokens = value.split(" ");
-	AssertUnless(tokens.size() == 4, "invalid vec4 str for: \"{}\"", value);
+	AssertUnless(tokens.size() == 4, "invalid vec4 str for: \"{}\"", value.toString());
 	auto it = tokens.begin();
 	rect.origin.x = Slice::stof(*it);
 	rect.origin.y = Slice::stof(*++it);
@@ -61,7 +61,7 @@ static void get(String value, Color& color) {
 				rgb = Slice::stoi("0x" + str.toString(), 16);
 			}
 		} catch (std::invalid_argument&) {
-			Error("got invalid color string for VG render: {}", str);
+			Error("got invalid color string for VG render: {}", str.toString());
 			return;
 		}
 		Color c(rgb);
@@ -119,7 +119,7 @@ static void attribFillStroke(FillStrokeData& data, String name, String value) {
 				v.skip(4);
 				v.skipRight(1);
 				v.trimSpace();
-				data.definition = v;
+				data.definition = v.toString();
 			} else {
 				get(value, data.color);
 			}
@@ -358,7 +358,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 			case "y1"_hash: _currentLinearGradient.y1 = Slice::stof(v); break;
 			case "x2"_hash: _currentLinearGradient.x2 = Slice::stof(v); break;
 			case "y2"_hash: _currentLinearGradient.y2 = Slice::stof(v); break;
-			case "id"_hash: _currentLinearGradient.id = v; break;
+			case "id"_hash: _currentLinearGradient.id = v.toString(); break;
 			case "gradientTransform"_hash: {
 				if (!getTransform(_currentLinearGradient.transform, v)) {
 					throw rapidxml::parse_error("transform is not supported", r_cast<void*>(c_cast<char*>(name)));

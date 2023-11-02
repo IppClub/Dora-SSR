@@ -37,7 +37,7 @@ void LogPrint(const char* format, const Args&... args) noexcept {
 	LogPrintInThread(LogFormat(format, args...));
 }
 inline void LogPrint(const Slice& str) {
-	LogPrintInThread(str);
+	LogPrintInThread(str.toString());
 }
 template <typename... Args>
 void println(const char* format, const Args&... args) noexcept {

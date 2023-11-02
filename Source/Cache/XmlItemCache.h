@@ -70,7 +70,7 @@ public:
 		if (it != _dict.end()) {
 			handler(it->second);
 		} else {
-			std::string file(filename);
+			std::string file(filename.toString());
 			SharedContent.loadAsyncUnsafe(file, [this, file, handler](uint8_t* data, int64_t size) {
 				if (data) {
 					auto parser = prepareParser(file);
@@ -100,7 +100,7 @@ public:
 	}
 	T* update(String name, String content) {
 		std::string file = SharedContent.getFullPath(name);
-		std::string data(content);
+		std::string data(content.toString());
 		T* result = nullptr;
 		auto parser = prepareParser(name);
 		try {

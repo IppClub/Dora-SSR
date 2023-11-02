@@ -21,7 +21,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_PLATFORMER_BEGIN
 
 Face::Face(String file, const Vec2& point, float scale, float angle)
-	: _file(file)
+	: _file(file.toString())
 	, _pos(point)
 	, _scale(scale)
 	, _angle(angle) {
@@ -29,10 +29,10 @@ Face::Face(String file, const Vec2& point, float scale, float angle)
 		_type = Face::Clip;
 	} else if (SharedFrameCache.isFrame(_file)) {
 		_type = Face::Frame;
-	} else if (Path::getExt(file) == "par"_slice) {
+	} else if (Path::getExt(_file) == "par"_slice) {
 		_type = Face::Particle;
 	} else {
-		switch (Switch::hash(Path::getExt(file))) {
+		switch (Switch::hash(Path::getExt(file.toString()))) {
 			case "jpg"_hash:
 			case "png"_hash:
 			case "dds"_hash:
@@ -42,7 +42,7 @@ Face::Face(String file, const Vec2& point, float scale, float angle)
 				break;
 			default:
 				_type = Face::Unknown;
-				Error("invalid face str: \"{}\"", file);
+				Error("invalid face str: \"{}\"", file.toString());
 				break;
 		}
 	}

@@ -42,14 +42,14 @@ SoundFile* SoundCache::load(String filename) {
 		_soundFiles[fullPath] = soundFile;
 		return soundFile;
 	} else {
-		Error("failed to load sound file \"{}\".", filename);
+		Error("failed to load sound file \"{}\".", filename.toString());
 		return nullptr;
 	}
 }
 
 void SoundCache::loadAsync(String filename, const std::function<void(SoundFile*)>& handler) {
 	std::string fullPath = SharedContent.getFullPath(filename);
-	std::string file(filename);
+	std::string file(filename.toString());
 	SharedContent.loadAsyncUnsafe(fullPath, [this, file, fullPath, handler](uint8_t* data, int64_t size) {
 		SoundFile* soundFile = SoundFile::create(MakeOwnArray(data), s_cast<size_t>(size));
 		if (soundFile) {

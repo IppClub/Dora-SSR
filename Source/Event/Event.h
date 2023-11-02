@@ -81,6 +81,10 @@ struct WasmArgsPusher {
 		stack->push(value);
 	}
 
+	inline void operator()(String value) {
+		stack->push(value.toString());
+	}
+
 	inline void operator()(const std::string& value) {
 		stack->push(value);
 	}

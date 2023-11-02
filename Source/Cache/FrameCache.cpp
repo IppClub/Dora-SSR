@@ -18,12 +18,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 FrameActionDef* FrameCache::loadFrame(String frameStr) {
-	if (Path::getExt(frameStr) == "frame"_slice) return load(frameStr);
+	if (Path::getExt(frameStr.toString()) == "frame"_slice) return load(frameStr);
 	BLOCK_START {
 		auto parts = frameStr.split("::"_slice);
 		BREAK_IF(parts.size() != 2);
 		FrameActionDef* def = FrameActionDef::create();
-		def->clipStr = parts.front();
+		def->clipStr = parts.front().toString();
 		Vec2 origin{};
 		if (SharedClipCache.isClip(parts.front())) {
 			Texture2D* tex = nullptr;
@@ -44,14 +44,14 @@ FrameActionDef* FrameCache::loadFrame(String frameStr) {
 		return def;
 	}
 	BLOCK_END
-	Error("invalid frame str not load: \"{}\".", frameStr);
+	Error("invalid frame str not load: \"{}\".", frameStr.toString());
 	return nullptr;
 }
 
 bool FrameCache::isFrame(String frameStr) const {
 	auto parts = frameStr.split("::"_slice);
 	if (parts.size() == 1)
-		return Path::getExt(parts.front()) == "frame"_slice;
+		return Path::getExt(parts.front().toString()) == "frame"_slice;
 	else if (parts.size() == 2)
 		return parts.back().split(","_slice).size() == 4;
 	else
@@ -59,7 +59,7 @@ bool FrameCache::isFrame(String frameStr) const {
 }
 
 std::shared_ptr<XmlParser<FrameActionDef>> FrameCache::prepareParser(String filename) {
-	return std::shared_ptr<XmlParser<FrameActionDef>>(new Parser(FrameActionDef::create(), Path::getPath(filename)));
+	return std::shared_ptr<XmlParser<FrameActionDef>>(new Parser(FrameActionDef::create(), Path::getPath(filename.toString())));
 }
 
 void FrameCache::Parser::xmlSAX2Text(const char* s, size_t len) { }
@@ -88,7 +88,7 @@ void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 					case Xml::Frame::Clip::Rect: {
 						Slice attr(attrs[++i]);
 						auto tokens = attr.split(",");
-						AssertUnless(tokens.size() == 4, "invalid clip rect str for: \"{}\"", attr);
+						AssertUnless(tokens.size() == 4, "invalid clip rect str for: \"{}\"", attr.toString());
 						auto it = tokens.begin();
 						float x = Slice::stof(*it);
 						float y = Slice::stof(*++it);

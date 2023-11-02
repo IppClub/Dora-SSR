@@ -352,7 +352,7 @@ class Profiler {
 public:
 	Profiler(String name, String msg = Slice::Empty);
 	~Profiler();
-	static const Slice EventName;
+	static const std::string EventName;
 	static int level;
 
 private:
@@ -370,13 +370,13 @@ private:
 class Path {
 public:
 	static std::string concat(const std::list<Slice>& paths);
-	static std::string getExt(const std::string& path);
-	static std::string getPath(const std::string& path);
-	static std::string getName(const std::string& path);
-	static std::string getFilename(const std::string& path);
-	static std::string getRelative(const std::string& path, const std::string& target);
-	static std::string replaceExt(const std::string& path, const std::string& newExt);
-	static std::string replaceFilename(const std::string& path, const std::string& newFile);
+	static std::string getExt(String path);
+	static std::string getPath(String path);
+	static std::string getName(String path);
+	static std::string getFilename(String path);
+	static std::string getRelative(String path, String target);
+	static std::string replaceExt(String path, String newExt);
+	static std::string replaceFilename(String path, String newFile);
 };
 
 #define _DEFER(code, line) std::shared_ptr<void> _defer_##line(nullptr, [&](auto) { \

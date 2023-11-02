@@ -198,7 +198,7 @@ bool Director::init() {
 				case "init.tl"_hash:
 				case "init.lua"_hash:
 				case "init.wasm"_hash:
-					SharedLuaEngine.executeModule(Path::concat({path, Path::getName(file)}));
+					SharedLuaEngine.executeModule(Path::concat({path, Path::getName(file.toString())}));
 					return true;
 			}
 			return false;
