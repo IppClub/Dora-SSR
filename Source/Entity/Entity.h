@@ -146,7 +146,7 @@ std::enable_if_t<!std::is_null_pointer_v<T>> Entity::set(int index, const T& val
 template <typename T>
 T Entity::get(String key) const {
 	auto com = getComponent(key);
-	AssertIf(com == nullptr, "access non-exist component \"{}\".", key);
+	AssertIf(com == nullptr, "access non-exist component \"{}\".", key.toString());
 	using Type = std::remove_pointer_t<T>;
 	if constexpr (std::is_base_of_v<Object, Type>) {
 		return com->to<std::remove_pointer_t<special_decay_t<T>>>();

@@ -62,7 +62,7 @@ static std::vector<std::string> getVectorString(lua_State* L, int loc) {
 	{
 		std::vector<std::string> array(length);
 		for (int i = 0; i < length; i++) {
-			array[i] = tolua_tofieldslice(L, loc, i + 1, 0);
+			array[i] = tolua_tofieldslice(L, loc, i + 1, 0).toString();
 		}
 		return array;
 	}
@@ -268,7 +268,7 @@ int Content_loadExcel(lua_State* L) {
 #endif
 			for (int i = 0; i < length; i++) {
 				lua_geti(L, 3, i + 1);
-				sheets.push_back(tolua_toslice(L, -1, nullptr));
+				sheets.push_back(tolua_toslice(L, -1, nullptr).toString());
 				lua_pop(L, 1);
 			}
 		}
@@ -282,7 +282,7 @@ int Content_loadExcel(lua_State* L) {
 				}
 				auto errors = worksheet.read();
 				if (!errors.empty()) {
-					Error("failed to read excel sheet \"{}\" from file \"{}\":", worksheet.name(), filename);
+					Error("failed to read excel sheet \"{}\" from file \"{}\":", worksheet.name(), filename.toString());
 					for (auto [refer, msg] : errors) {
 						Error("{}: {}", refer, msg);
 					}
@@ -314,7 +314,7 @@ int Content_loadExcelAsync(lua_State* L) {
 		Content* self = r_cast<Content*>(tolua_tousertype(L, 1, 0));
 		if (!self) tolua_error(L, "invalid 'self' in function 'Node_emit'", nullptr);
 #endif
-		std::string filename = tolua_toslice(L, 2, 0);
+		std::string filename = tolua_toslice(L, 2, 0).toString();
 		std::list<std::string> sheets;
 		if (lua_istable(L, 3) != 0) {
 			int length = s_cast<int>(lua_rawlen(L, 3));
@@ -325,7 +325,7 @@ int Content_loadExcelAsync(lua_State* L) {
 #endif
 			for (int i = 0; i < length; i++) {
 				lua_geti(L, 3, i + 1);
-				sheets.push_back(tolua_toslice(L, -1, nullptr));
+				sheets.push_back(tolua_toslice(L, -1, nullptr).toString());
 				lua_pop(L, 1);
 			}
 		}
@@ -512,7 +512,7 @@ static TextureWrap toTextureWrap(lua_State* L, String value) {
 		case "Clamp"_hash: return TextureWrap::Clamp;
 		case "Border"_hash: return TextureWrap::Border;
 		default:
-			luaL_error(L, LogFormat("Texture wrap \"{}\" is invalid, only \"None\", \"Mirror\", \"Clamp\", \"Border\" are allowed.", value).c_str());
+			luaL_error(L, LogFormat("Texture wrap \"{}\" is invalid, only \"None\", \"Mirror\", \"Clamp\", \"Border\" are allowed.", value.toString()).c_str());
 			break;
 	}
 	return TextureWrap::None;
@@ -591,7 +591,7 @@ int Sprite_SetTextureFilter(lua_State* L) {
 		case "Point"_hash: self->setFilter(TextureFilter::Point); break;
 		case "Anisotropic"_hash: self->setFilter(TextureFilter::Anisotropic); break;
 		default:
-			luaL_error(L, LogFormat("Texture filter \"{}\" is invalid, only \"None\", \"Point\", \"Anisotropic\" are allowed.", value).c_str());
+			luaL_error(L, LogFormat("Texture filter \"{}\" is invalid, only \"None\", \"Point\", \"Anisotropic\" are allowed.", value.toString()).c_str());
 			break;
 	}
 	return 0;
@@ -624,7 +624,7 @@ int Label_SetTextAlign(lua_State* L) {
 		case "Center"_hash: self->setAlignment(TextAlign::Center); break;
 		case "Right"_hash: self->setAlignment(TextAlign::Right); break;
 		default:
-			luaL_error(L, LogFormat("Label text alignment \"{}\" is invalid, only \"Left\", \"Center\", \"Right\" are allowed.", value).c_str());
+			luaL_error(L, LogFormat("Label text alignment \"{}\" is invalid, only \"Left\", \"Center\", \"Right\" are allowed.", value.toString()).c_str());
 			break;
 	}
 	return 0;
@@ -714,7 +714,7 @@ uint32_t getBlendFuncVal(String name) {
 				"blendfunc name \"{}\" is invalid. use one of [One, Zero,\n"
 				"SrcColor, SrcAlpha, DstColor, DstAlpha,\n"
 				"InvSrcColor, InvSrcAlpha, InvDstColor, InvDstAlpha]",
-				name);
+				name.toString());
 			break;
 	}
 	return BlendFunc::Zero;
@@ -1180,7 +1180,7 @@ int BodyDef_SetType(lua_State* L) {
 		case "Dynamic"_hash: self->setType(pr::BodyType::Dynamic); break;
 		case "Kinematic"_hash: self->setType(pr::BodyType::Kinematic); break;
 		default:
-			luaL_error(L, LogFormat("Body type \"{}\" is invalid, only \"Static\", \"Dynamic\", \"Kinematic\" are allowed.", value).c_str());
+			luaL_error(L, LogFormat("Body type \"{}\" is invalid, only \"Static\", \"Dynamic\", \"Kinematic\" are allowed.", value.toString()).c_str());
 			break;
 	}
 	return 0;
@@ -1773,7 +1773,7 @@ EntityObserver* EntityObserver_create(String option, Slice components[], int cou
 		case "Remove"_hash: optionVal = Entity::Remove; break;
 		case "AddOrChange"_hash: optionVal = Entity::AddOrChange; break;
 		default:
-			Issue("EntityObserver option name \"{}\" is invalid.", option);
+			Issue("EntityObserver option name \"{}\" is invalid.", option.toString());
 			break;
 	}
 	return EntityObserver::create(optionVal, components, count);
@@ -2077,7 +2077,7 @@ static int DB_transactionInner(lua_State* L, bool async) {
 					goto tolua_lerror;
 				}
 #endif
-				sql.sql = tolua_toslice(L, strLoc, 0);
+				sql.sql = tolua_toslice(L, strLoc, 0).toString();
 				int argListSize = s_cast<int>(lua_rawlen(L, tableLoc));
 				sql.rows.resize(argListSize);
 				for (int j = 0; j < argListSize; j++) {
@@ -2099,7 +2099,7 @@ static int DB_transactionInner(lua_State* L, bool async) {
 				}
 				lua_pop(L, 2);
 			} else {
-				sql.sql = tolua_toslice(L, -1, 0);
+				sql.sql = tolua_toslice(L, -1, 0).toString();
 			}
 			lua_pop(L, 1);
 		}
@@ -2494,7 +2494,7 @@ int DB_insertAsync01(lua_State* L) {
 				lua_pop(L, 1);
 			}
 		}
-		std::string excelFile = tolua_toslice(L, 3, nullptr);
+		std::string excelFile = tolua_toslice(L, 3, nullptr).toString();
 		int startRow = std::max(0, s_cast<int>(lua_tointeger(L, 4)) - 1);
 		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 5)));
 		SharedContent.loadAsyncData(excelFile, [excelFile, names, startRow, handler](OwnArray<uint8_t>&& data, size_t size) {
@@ -2670,7 +2670,7 @@ int HttpServer_post(lua_State* L) {
 			for (const auto& v : req.params) {
 				if (startPair) {
 					startPair = false;
-					key = v;
+					key = v.toString();
 				} else {
 					startPair = true;
 					tolua_pushslice(L, key);
@@ -2697,14 +2697,14 @@ int HttpServer_post(lua_State* L) {
 				lua_pushcfunction(L, colibc_json_dump);
 				lua_insert(L, -2);
 				if (LuaEngine::call(L, 1, 1)) {
-					res.content = tolua_toslice(L, -1, nullptr);
-					res.contentType = "application/json"_slice;
+					res.content = tolua_toslice(L, -1, nullptr).toString();
+					res.contentType = "application/json"s;
 				} else {
 					res.status = 500;
 				}
 			} else if (lua_isstring(L, -1)) {
-				res.content = tolua_toslice(L, -1, nullptr);
-				res.contentType = "text/plain"_slice;
+				res.content = tolua_toslice(L, -1, nullptr).toString();
+				res.contentType = "text/plain"s;
 			} else {
 				res.status = 500;
 			}
@@ -2749,7 +2749,7 @@ int HttpServer_postSchedule(lua_State* L) {
 			for (const auto& v : req.params) {
 				if (startPair) {
 					startPair = false;
-					key = v;
+					key = v.toString();
 				} else {
 					startPair = true;
 					tolua_pushslice(L, key);
@@ -2791,14 +2791,14 @@ int HttpServer_postSchedule(lua_State* L) {
 						lua_pushcfunction(L, colibc_json_dump);
 						lua_insert(L, -2);
 						if (LuaEngine::call(L, 1, 1)) {
-							res.content = tolua_toslice(L, -1, nullptr);
-							res.contentType = "application/json"_slice;
+							res.content = tolua_toslice(L, -1, nullptr).toString();
+							res.contentType = "application/json"s;
 						} else {
 							res.status = 500;
 						}
 					} else if (lua_isstring(L, -1)) {
-						res.content = tolua_toslice(L, -1, nullptr);
-						res.contentType = "text/plain"_slice;
+						res.content = tolua_toslice(L, -1, nullptr).toString();
+						res.contentType = "text/plain"s;
 					} else {
 						res.status = 500;
 					}
@@ -2848,7 +2848,7 @@ int HttpServer_upload(lua_State* L) {
 				for (const auto& v : req.params) {
 					if (startPair) {
 						startPair = false;
-						key = v;
+						key = v.toString();
 					} else {
 						startPair = true;
 						tolua_pushslice(L, key);
@@ -2860,7 +2860,7 @@ int HttpServer_upload(lua_State* L) {
 				tolua_pushslice(L, filename);
 				LuaEngine::invoke(L, acceptHandler->get(), 2, 1);
 				if (lua_isstring(L, -1)) {
-					return tolua_toslice(L, -1, nullptr);
+					return tolua_toslice(L, -1, nullptr).toString();
 				}
 				return std::nullopt;
 			},
@@ -2876,7 +2876,7 @@ int HttpServer_upload(lua_State* L) {
 				for (const auto& v : req.params) {
 					if (startPair) {
 						startPair = false;
-						key = v;
+						key = v.toString();
 					} else {
 						startPair = true;
 						tolua_pushslice(L, key);
@@ -2943,7 +2943,7 @@ static Relation toRelation(String value) {
 		case "Unknown"_hash: return Relation::Unknown;
 		case "Any"_hash: return Relation::Any;
 		default:
-			Issue("Relation \"{}\" is invalid, only \"Enemy\", \"Friend\", \"Neutral\", \"Unknown\", \"Any\" are allowed.", value);
+			Issue("Relation \"{}\" is invalid, only \"Enemy\", \"Friend\", \"Neutral\", \"Unknown\", \"Any\" are allowed.", value.toString());
 			break;
 	}
 	return Relation::Unknown;
@@ -3027,7 +3027,7 @@ void LuaUnitAction_add(
 	LuaFunction<LuaFunction<bool>> create,
 	LuaFunction<void> stop) {
 	UnitActionDef* actionDef = new LuaActionDef(available, create, stop);
-	actionDef->name = name;
+	actionDef->name = name.toString();
 	actionDef->priority = priority;
 	actionDef->reaction = reaction;
 	actionDef->recovery = recovery;

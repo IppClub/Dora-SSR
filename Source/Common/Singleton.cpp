@@ -81,7 +81,7 @@ struct LifeCycler {
 			for (auto& ref : refs) {
 				ref.visited = false;
 			}
-			entries.insert(itemName);
+			entries.insert(itemName.toString());
 		}
 		for (const auto& entry : entries) {
 			std::vector<std::string> items;
@@ -148,17 +148,18 @@ LifeCycler* getCycler() {
 
 void Life::addName(String name) {
 	LifeCycler* cycler = getCycler();
-	cycler->names.insert(name);
+	cycler->names.insert(name.toString());
 }
 
 void Life::addDependency(String target, String dependency) {
 	LifeCycler* cycler = getCycler();
-	cycler->refs.push_back(LifeCycler::Reference{false, target});
-	auto it = cycler->itemRefs.find(dependency);
+	cycler->refs.push_back(LifeCycler::Reference{false, target.toString()});
+	auto dependencyStr = dependency.toString();
+	auto it = cycler->itemRefs.find(dependencyStr);
 	if (it == cycler->itemRefs.end()) {
 		auto refList = new std::vector<LifeCycler::Reference*>();
 		refList->push_back(&cycler->refs.back());
-		cycler->itemRefs[dependency] = MakeOwn(refList);
+		cycler->itemRefs[dependencyStr] = MakeOwn(refList);
 	} else {
 		it->second->push_back(&cycler->refs.back());
 	}
@@ -166,8 +167,9 @@ void Life::addDependency(String target, String dependency) {
 
 void Life::addItem(String name, Life* life) {
 	LifeCycler* cycler = getCycler();
-	AssertIf(cycler->lives.find(name) != cycler->lives.end(), "Singleton name duplicated: \"{}\".", name);
-	cycler->lives[name] = MakeOwn(life);
+	auto nameStr = name.toString();
+	AssertIf(cycler->lives.find(nameStr) != cycler->lives.end(), "Singleton name duplicated: \"{}\".", nameStr);
+	cycler->lives[nameStr] = MakeOwn(life);
 }
 
 void Life::destroy(String name) {

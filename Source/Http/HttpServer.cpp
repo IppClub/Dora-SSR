@@ -67,10 +67,10 @@ static std::string get_local_ip() {
 
 			Slice ip(addressBuffer);
 			if (ip.left(8) == "192.168."_slice) { // C
-				localIP = ip;
+				localIP = ip.toString();
 				break;
 			} else if (ip.left(3) == "10."_slice) { // A
-				localIP = ip;
+				localIP = ip.toString();
 			}
 		}
 	}
@@ -110,7 +110,7 @@ std::string HttpServer::getLocalIP() const {
 }
 
 void HttpServer::setWWWPath(String var) {
-	_wwwPath = var;
+	_wwwPath = var.toString();
 }
 
 const std::string& HttpServer::getWWWPath() const {
@@ -118,15 +118,15 @@ const std::string& HttpServer::getWWWPath() const {
 }
 
 void HttpServer::post(String pattern, const PostHandler& handler) {
-	_posts.push_back({pattern, handler});
+	_posts.push_back({pattern.toString(), handler});
 }
 
 void HttpServer::postSchedule(String pattern, const PostScheduledHandler& handler) {
-	_postScheduled.push_back({pattern, handler});
+	_postScheduled.push_back({pattern.toString(), handler});
 }
 
 void HttpServer::upload(String pattern, const FileAcceptHandler& acceptHandler, const FileDoneHandler& doneHandler) {
-	_files.push_back({pattern, acceptHandler, doneHandler});
+	_files.push_back({pattern.toString(), acceptHandler, doneHandler});
 }
 
 bool HttpServer::start(int port) {

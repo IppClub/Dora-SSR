@@ -42,8 +42,8 @@ private:
 	std::vector<bool> _newKeyStates;
 	std::vector<bool> _oldCodeStates;
 	std::vector<bool> _newCodeStates;
-	std::vector<Slice> _keyNames;
-	std::vector<Slice> _codeNames;
+	std::vector<std::string> _keyNames;
+	std::vector<std::string> _codeNames;
 	std::unordered_map<std::string, int> _keyMap;
 	std::unordered_map<std::string, int> _codeMap;
 	KeyboardHandler _imeHandler;

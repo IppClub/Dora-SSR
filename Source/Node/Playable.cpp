@@ -46,7 +46,7 @@ float Playable::getRecovery() const {
 }
 
 void Playable::setLook(String var) {
-	_lookName = var;
+	_lookName = var.toString();
 }
 
 const std::string& Playable::getLook() const {
@@ -57,7 +57,7 @@ Playable* Playable::create(String filename) {
 	if (filename.empty()) return Model::dummy();
 	auto tokens = filename.split(":"_slice);
 	if (tokens.size() != 2) {
-		Error("playable str must be of format [label]:[filename], got \"{}\"", filename);
+		Error("playable str must be of format [label]:[filename], got \"{}\"", filename.toString());
 		return Model::dummy();
 	}
 	switch (Switch::hash(tokens.front())) {

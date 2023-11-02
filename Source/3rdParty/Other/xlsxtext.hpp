@@ -138,7 +138,7 @@ namespace xlsxtext
 			{
 				error = "cell error";
 			}
-			return Slice(v).trimSpace();
+			return Slice(v).trimSpace().toString();
 		}
 
 	public:
@@ -280,7 +280,7 @@ namespace xlsxtext
 							continue;
 
 						auto fv = c->FirstChildElement("v");
-						std::string v = Slice(fv ? fv->GetText() : nullptr), t = Slice(c->Attribute("t")), s = Slice(c->Attribute("s"));
+						std::string v = Slice(fv ? fv->GetText() : nullptr).toString(), t = Slice(c->Attribute("t")).toString(), s = Slice(c->Attribute("s")).toString();
 						/**
 						 * (Ecma Office Open XML Part 1)
 						 * 
@@ -500,13 +500,13 @@ namespace xlsxtext
 						for (; r; r = r->NextSiblingElement("r"))
 						{
 							if (auto tt = r->FirstChildElement("t"))
-								t += Slice(tt->GetText());
+								t += Slice(tt->GetText()).toString();
 						}
-						t = Slice(t).trimSpace();
+						t = Slice(t).trimSpace().toString();
 					}
 					else if (auto sit = si->FirstChildElement("t"))
 					{
-						t = Slice(sit->GetText()).trimSpace();
+						t = Slice(sit->GetText()).trimSpace().toString();
 					}
 					_package->shared_strings.push_back(t);
 				}

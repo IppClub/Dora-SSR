@@ -6,8 +6,8 @@ android {
 		applicationId "org.ippclub.dorothyssr"
 		minSdkVersion 28
 		targetSdkVersion 32
-		versionCode 16
-		versionName "1.0.40"
+		versionCode 17
+		versionName "1.0.41"
 		testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 		externalNativeBuild {
 			cmake {

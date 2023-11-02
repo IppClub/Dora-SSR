@@ -34,79 +34,79 @@ Keyboard::~Keyboard() {
 }
 
 bool Keyboard::init() {
-	_keyNames[SDLK_RETURN] = "Return"_slice;
-	_keyNames[SDLK_ESCAPE] = "Escape"_slice;
-	_keyNames[SDLK_BACKSPACE] = "BackSpace"_slice;
-	_keyNames[SDLK_TAB] = "Tab"_slice;
-	_keyNames[SDLK_SPACE] = "Space"_slice;
-	_keyNames[SDLK_EXCLAIM] = "!"_slice;
-	_keyNames[SDLK_QUOTEDBL] = "\""_slice;
-	_keyNames[SDLK_HASH] = "#"_slice;
-	_keyNames[SDLK_PERCENT] = "%"_slice;
-	_keyNames[SDLK_DOLLAR] = "$"_slice;
-	_keyNames[SDLK_AMPERSAND] = "&"_slice;
-	_keyNames[SDLK_QUOTE] = "\'"_slice;
-	_keyNames[SDLK_LEFTPAREN] = "("_slice;
-	_keyNames[SDLK_RIGHTPAREN] = ")"_slice;
-	_keyNames[SDLK_ASTERISK] = "*"_slice;
-	_keyNames[SDLK_PLUS] = "+"_slice;
-	_keyNames[SDLK_COMMA] = ","_slice;
-	_keyNames[SDLK_MINUS] = "-"_slice;
-	_keyNames[SDLK_PERIOD] = "."_slice;
-	_keyNames[SDLK_SLASH] = "/"_slice;
+	_keyNames[SDLK_RETURN] = "Return"s;
+	_keyNames[SDLK_ESCAPE] = "Escape"s;
+	_keyNames[SDLK_BACKSPACE] = "BackSpace"s;
+	_keyNames[SDLK_TAB] = "Tab"s;
+	_keyNames[SDLK_SPACE] = "Space"s;
+	_keyNames[SDLK_EXCLAIM] = "!"s;
+	_keyNames[SDLK_QUOTEDBL] = "\""s;
+	_keyNames[SDLK_HASH] = "#"s;
+	_keyNames[SDLK_PERCENT] = "%"s;
+	_keyNames[SDLK_DOLLAR] = "$"s;
+	_keyNames[SDLK_AMPERSAND] = "&"s;
+	_keyNames[SDLK_QUOTE] = "\'"s;
+	_keyNames[SDLK_LEFTPAREN] = "("s;
+	_keyNames[SDLK_RIGHTPAREN] = ")"s;
+	_keyNames[SDLK_ASTERISK] = "*"s;
+	_keyNames[SDLK_PLUS] = "+"s;
+	_keyNames[SDLK_COMMA] = ","s;
+	_keyNames[SDLK_MINUS] = "-"s;
+	_keyNames[SDLK_PERIOD] = "."s;
+	_keyNames[SDLK_SLASH] = "/"s;
 
-	_keyNames[SDLK_1] = "1"_slice;
-	_keyNames[SDLK_2] = "2"_slice;
-	_keyNames[SDLK_3] = "3"_slice;
-	_keyNames[SDLK_4] = "4"_slice;
-	_keyNames[SDLK_5] = "5"_slice;
-	_keyNames[SDLK_6] = "6"_slice;
-	_keyNames[SDLK_7] = "7"_slice;
-	_keyNames[SDLK_8] = "8"_slice;
-	_keyNames[SDLK_9] = "9"_slice;
-	_keyNames[SDLK_0] = "0"_slice;
-	_keyNames[SDLK_COLON] = ":"_slice;
-	_keyNames[SDLK_SEMICOLON] = ";"_slice;
-	_keyNames[SDLK_LESS] = "<"_slice;
-	_keyNames[SDLK_EQUALS] = "="_slice;
-	_keyNames[SDLK_GREATER] = ">"_slice;
-	_keyNames[SDLK_QUESTION] = "?"_slice;
-	_keyNames[SDLK_AT] = "@"_slice;
-	_keyNames[SDLK_LEFTBRACKET] = "["_slice;
-	_keyNames[SDLK_BACKSLASH] = "\\"_slice;
-	_keyNames[SDLK_RIGHTBRACKET] = "]"_slice;
-	_keyNames[SDLK_CARET] = "^"_slice;
-	_keyNames[SDLK_UNDERSCORE] = "_"_slice;
-	_keyNames[SDLK_BACKQUOTE] = "`"_slice;
+	_keyNames[SDLK_1] = "1"s;
+	_keyNames[SDLK_2] = "2"s;
+	_keyNames[SDLK_3] = "3"s;
+	_keyNames[SDLK_4] = "4"s;
+	_keyNames[SDLK_5] = "5"s;
+	_keyNames[SDLK_6] = "6"s;
+	_keyNames[SDLK_7] = "7"s;
+	_keyNames[SDLK_8] = "8"s;
+	_keyNames[SDLK_9] = "9"s;
+	_keyNames[SDLK_0] = "0"s;
+	_keyNames[SDLK_COLON] = ":"s;
+	_keyNames[SDLK_SEMICOLON] = ";"s;
+	_keyNames[SDLK_LESS] = "<"s;
+	_keyNames[SDLK_EQUALS] = "="s;
+	_keyNames[SDLK_GREATER] = ">"s;
+	_keyNames[SDLK_QUESTION] = "?"s;
+	_keyNames[SDLK_AT] = "@"s;
+	_keyNames[SDLK_LEFTBRACKET] = "["s;
+	_keyNames[SDLK_BACKSLASH] = "\\"s;
+	_keyNames[SDLK_RIGHTBRACKET] = "]"s;
+	_keyNames[SDLK_CARET] = "^"s;
+	_keyNames[SDLK_UNDERSCORE] = "_"s;
+	_keyNames[SDLK_BACKQUOTE] = "`"s;
 
-	_keyNames[SDLK_a] = "A"_slice;
-	_keyNames[SDLK_b] = "B"_slice;
-	_keyNames[SDLK_c] = "C"_slice;
-	_keyNames[SDLK_d] = "D"_slice;
-	_keyNames[SDLK_e] = "E"_slice;
-	_keyNames[SDLK_f] = "F"_slice;
-	_keyNames[SDLK_g] = "G"_slice;
-	_keyNames[SDLK_h] = "H"_slice;
-	_keyNames[SDLK_i] = "I"_slice;
-	_keyNames[SDLK_j] = "J"_slice;
-	_keyNames[SDLK_k] = "K"_slice;
-	_keyNames[SDLK_l] = "L"_slice;
-	_keyNames[SDLK_m] = "M"_slice;
-	_keyNames[SDLK_n] = "N"_slice;
-	_keyNames[SDLK_o] = "O"_slice;
-	_keyNames[SDLK_p] = "P"_slice;
-	_keyNames[SDLK_q] = "Q"_slice;
-	_keyNames[SDLK_r] = "R"_slice;
-	_keyNames[SDLK_s] = "S"_slice;
-	_keyNames[SDLK_t] = "T"_slice;
-	_keyNames[SDLK_u] = "U"_slice;
-	_keyNames[SDLK_v] = "V"_slice;
-	_keyNames[SDLK_w] = "W"_slice;
-	_keyNames[SDLK_x] = "X"_slice;
-	_keyNames[SDLK_y] = "Y"_slice;
-	_keyNames[SDLK_z] = "Z"_slice;
+	_keyNames[SDLK_a] = "A"s;
+	_keyNames[SDLK_b] = "B"s;
+	_keyNames[SDLK_c] = "C"s;
+	_keyNames[SDLK_d] = "D"s;
+	_keyNames[SDLK_e] = "E"s;
+	_keyNames[SDLK_f] = "F"s;
+	_keyNames[SDLK_g] = "G"s;
+	_keyNames[SDLK_h] = "H"s;
+	_keyNames[SDLK_i] = "I"s;
+	_keyNames[SDLK_j] = "J"s;
+	_keyNames[SDLK_k] = "K"s;
+	_keyNames[SDLK_l] = "L"s;
+	_keyNames[SDLK_m] = "M"s;
+	_keyNames[SDLK_n] = "N"s;
+	_keyNames[SDLK_o] = "O"s;
+	_keyNames[SDLK_p] = "P"s;
+	_keyNames[SDLK_q] = "Q"s;
+	_keyNames[SDLK_r] = "R"s;
+	_keyNames[SDLK_s] = "S"s;
+	_keyNames[SDLK_t] = "T"s;
+	_keyNames[SDLK_u] = "U"s;
+	_keyNames[SDLK_v] = "V"s;
+	_keyNames[SDLK_w] = "W"s;
+	_keyNames[SDLK_x] = "X"s;
+	_keyNames[SDLK_y] = "Y"s;
+	_keyNames[SDLK_z] = "Z"s;
 
-	_keyNames[SDLK_DELETE] = "Delete"_slice;
+	_keyNames[SDLK_DELETE] = "Delete"s;
 
 	for (int i = 0; i < SDL_NUM_SCANCODES; i++) {
 		if (!_keyNames[i].empty()) {
@@ -114,63 +114,63 @@ bool Keyboard::init() {
 		}
 	}
 
-	_codeNames[SDL_SCANCODE_CAPSLOCK] = "CapsLock"_slice;
+	_codeNames[SDL_SCANCODE_CAPSLOCK] = "CapsLock"s;
 
-	_codeNames[SDL_SCANCODE_F1] = "F1"_slice;
-	_codeNames[SDL_SCANCODE_F2] = "F2"_slice;
-	_codeNames[SDL_SCANCODE_F3] = "F3"_slice;
-	_codeNames[SDL_SCANCODE_F4] = "F4"_slice;
-	_codeNames[SDL_SCANCODE_F5] = "F5"_slice;
-	_codeNames[SDL_SCANCODE_F6] = "F6"_slice;
-	_codeNames[SDL_SCANCODE_F7] = "F7"_slice;
-	_codeNames[SDL_SCANCODE_F8] = "F8"_slice;
-	_codeNames[SDL_SCANCODE_F9] = "F9"_slice;
-	_codeNames[SDL_SCANCODE_F10] = "F10"_slice;
-	_codeNames[SDL_SCANCODE_F11] = "F11"_slice;
-	_codeNames[SDL_SCANCODE_F12] = "F12"_slice;
+	_codeNames[SDL_SCANCODE_F1] = "F1"s;
+	_codeNames[SDL_SCANCODE_F2] = "F2"s;
+	_codeNames[SDL_SCANCODE_F3] = "F3"s;
+	_codeNames[SDL_SCANCODE_F4] = "F4"s;
+	_codeNames[SDL_SCANCODE_F5] = "F5"s;
+	_codeNames[SDL_SCANCODE_F6] = "F6"s;
+	_codeNames[SDL_SCANCODE_F7] = "F7"s;
+	_codeNames[SDL_SCANCODE_F8] = "F8"s;
+	_codeNames[SDL_SCANCODE_F9] = "F9"s;
+	_codeNames[SDL_SCANCODE_F10] = "F10"s;
+	_codeNames[SDL_SCANCODE_F11] = "F11"s;
+	_codeNames[SDL_SCANCODE_F12] = "F12"s;
 
-	_codeNames[SDL_SCANCODE_PRINTSCREEN] = "PrintScreen"_slice;
-	_codeNames[SDL_SCANCODE_SCROLLLOCK] = "ScrollLock"_slice;
-	_codeNames[SDL_SCANCODE_PAUSE] = "Pause"_slice;
-	_codeNames[SDL_SCANCODE_INSERT] = "Insert"_slice;
+	_codeNames[SDL_SCANCODE_PRINTSCREEN] = "PrintScreen"s;
+	_codeNames[SDL_SCANCODE_SCROLLLOCK] = "ScrollLock"s;
+	_codeNames[SDL_SCANCODE_PAUSE] = "Pause"s;
+	_codeNames[SDL_SCANCODE_INSERT] = "Insert"s;
 
-	_codeNames[SDL_SCANCODE_HOME] = "Home"_slice;
-	_codeNames[SDL_SCANCODE_PAGEUP] = "PageUp"_slice;
-	_codeNames[SDL_SCANCODE_DELETE] = "Delete"_slice;
-	_codeNames[SDL_SCANCODE_END] = "End"_slice;
-	_codeNames[SDL_SCANCODE_PAGEDOWN] = "PageDown"_slice;
-	_codeNames[SDL_SCANCODE_RIGHT] = "Right"_slice;
-	_codeNames[SDL_SCANCODE_LEFT] = "Left"_slice;
-	_codeNames[SDL_SCANCODE_DOWN] = "Down"_slice;
-	_codeNames[SDL_SCANCODE_UP] = "Up"_slice;
+	_codeNames[SDL_SCANCODE_HOME] = "Home"s;
+	_codeNames[SDL_SCANCODE_PAGEUP] = "PageUp"s;
+	_codeNames[SDL_SCANCODE_DELETE] = "Delete"s;
+	_codeNames[SDL_SCANCODE_END] = "End"s;
+	_codeNames[SDL_SCANCODE_PAGEDOWN] = "PageDown"s;
+	_codeNames[SDL_SCANCODE_RIGHT] = "Right"s;
+	_codeNames[SDL_SCANCODE_LEFT] = "Left"s;
+	_codeNames[SDL_SCANCODE_DOWN] = "Down"s;
+	_codeNames[SDL_SCANCODE_UP] = "Up"s;
 
-	_codeNames[SDL_SCANCODE_KP_DIVIDE] = "/"_slice;
-	_codeNames[SDL_SCANCODE_KP_MULTIPLY] = "*"_slice;
-	_codeNames[SDL_SCANCODE_KP_MINUS] = "-"_slice;
-	_codeNames[SDL_SCANCODE_KP_PLUS] = "+"_slice;
-	_codeNames[SDL_SCANCODE_KP_ENTER] = "Return"_slice;
-	_codeNames[SDL_SCANCODE_KP_1] = "1"_slice;
-	_codeNames[SDL_SCANCODE_KP_2] = "2"_slice;
-	_codeNames[SDL_SCANCODE_KP_3] = "3"_slice;
-	_codeNames[SDL_SCANCODE_KP_4] = "4"_slice;
-	_codeNames[SDL_SCANCODE_KP_5] = "5"_slice;
-	_codeNames[SDL_SCANCODE_KP_6] = "6"_slice;
-	_codeNames[SDL_SCANCODE_KP_7] = "7"_slice;
-	_codeNames[SDL_SCANCODE_KP_8] = "8"_slice;
-	_codeNames[SDL_SCANCODE_KP_9] = "9"_slice;
-	_codeNames[SDL_SCANCODE_KP_0] = "0"_slice;
-	_codeNames[SDL_SCANCODE_KP_PERIOD] = "."_slice;
+	_codeNames[SDL_SCANCODE_KP_DIVIDE] = "/"s;
+	_codeNames[SDL_SCANCODE_KP_MULTIPLY] = "*"s;
+	_codeNames[SDL_SCANCODE_KP_MINUS] = "-"s;
+	_codeNames[SDL_SCANCODE_KP_PLUS] = "+"s;
+	_codeNames[SDL_SCANCODE_KP_ENTER] = "Return"s;
+	_codeNames[SDL_SCANCODE_KP_1] = "1"s;
+	_codeNames[SDL_SCANCODE_KP_2] = "2"s;
+	_codeNames[SDL_SCANCODE_KP_3] = "3"s;
+	_codeNames[SDL_SCANCODE_KP_4] = "4"s;
+	_codeNames[SDL_SCANCODE_KP_5] = "5"s;
+	_codeNames[SDL_SCANCODE_KP_6] = "6"s;
+	_codeNames[SDL_SCANCODE_KP_7] = "7"s;
+	_codeNames[SDL_SCANCODE_KP_8] = "8"s;
+	_codeNames[SDL_SCANCODE_KP_9] = "9"s;
+	_codeNames[SDL_SCANCODE_KP_0] = "0"s;
+	_codeNames[SDL_SCANCODE_KP_PERIOD] = "."s;
 
-	_codeNames[SDL_SCANCODE_APPLICATION] = "Application"_slice;
+	_codeNames[SDL_SCANCODE_APPLICATION] = "Application"s;
 
-	_codeNames[SDL_SCANCODE_LCTRL] = "LCtrl"_slice;
-	_codeNames[SDL_SCANCODE_LSHIFT] = "LShift"_slice;
-	_codeNames[SDL_SCANCODE_LALT] = "LAlt"_slice;
-	_codeNames[SDL_SCANCODE_LGUI] = "LGui"_slice;
-	_codeNames[SDL_SCANCODE_RCTRL] = "RCtrl"_slice;
-	_codeNames[SDL_SCANCODE_RSHIFT] = "RShift"_slice;
-	_codeNames[SDL_SCANCODE_RALT] = "RAlt"_slice;
-	_codeNames[SDL_SCANCODE_RGUI] = "RGui"_slice;
+	_codeNames[SDL_SCANCODE_LCTRL] = "LCtrl"s;
+	_codeNames[SDL_SCANCODE_LSHIFT] = "LShift"s;
+	_codeNames[SDL_SCANCODE_LALT] = "LAlt"s;
+	_codeNames[SDL_SCANCODE_LGUI] = "LGui"s;
+	_codeNames[SDL_SCANCODE_RCTRL] = "RCtrl"s;
+	_codeNames[SDL_SCANCODE_RSHIFT] = "RShift"s;
+	_codeNames[SDL_SCANCODE_RALT] = "RAlt"s;
+	_codeNames[SDL_SCANCODE_RGUI] = "RGui"s;
 
 	for (int i = 0; i < SDL_NUM_SCANCODES; i++) {
 		if (!_codeNames[i].empty()) {
@@ -257,7 +257,7 @@ void Keyboard::handleEvent(const SDL_Event& event) {
 			}
 			if (!oldDown) {
 				_changedKeys.push_back(event.key.keysym.sym);
-				EventArgs<Slice> keyDown("KeyDown"_slice, name);
+				EventArgs<Slice> keyDown("KeyDown"_slice, name.toString());
 				KeyHandler(&keyDown);
 			}
 			EventArgs<Slice> keyPressed("KeyPressed"_slice, name);
@@ -305,41 +305,44 @@ void Keyboard::handleEvent(const SDL_Event& event) {
 }
 
 bool Keyboard::isKeyDown(String name) const {
-	auto it = _keyMap.find(name);
+	auto nameStr = name.toString();
+	auto it = _keyMap.find(nameStr);
 	if (it != _keyMap.end()) {
 		return !_oldKeyStates[it->second] && _newKeyStates[it->second];
 	}
-	it = _codeMap.find(name);
+	it = _codeMap.find(nameStr);
 	if (it != _codeMap.end()) {
 		return !_oldCodeStates[it->second] && _newCodeStates[it->second];
 	}
-	Warn("invalid keyboard button name for \"{}\"", name);
+	Warn("invalid keyboard button name for \"{}\"", nameStr);
 	return false;
 }
 
 bool Keyboard::isKeyUp(String name) const {
-	auto it = _keyMap.find(name);
+	auto nameStr = name.toString();
+	auto it = _keyMap.find(nameStr);
 	if (it != _keyMap.end()) {
 		return _oldKeyStates[it->second] && !_newKeyStates[it->second];
 	}
-	it = _codeMap.find(name);
+	it = _codeMap.find(nameStr);
 	if (it != _codeMap.end()) {
 		return _oldCodeStates[it->second] && !_newCodeStates[it->second];
 	}
-	Warn("invalid keyboard button name for \"{}\"", name);
+	Warn("invalid keyboard button name for \"{}\"", nameStr);
 	return false;
 }
 
 bool Keyboard::isKeyPressed(String name) const {
-	auto it = _keyMap.find(name);
+	auto nameStr = name.toString();
+	auto it = _keyMap.find(nameStr);
 	if (it != _keyMap.end()) {
 		return _newKeyStates[it->second];
 	}
-	it = _codeMap.find(name);
+	it = _codeMap.find(nameStr);
 	if (it != _codeMap.end()) {
 		return _newCodeStates[it->second];
 	}
-	Warn("invalid keyboard button name for \"{}\"", name);
+	Warn("invalid keyboard button name for \"{}\"", nameStr);
 	return false;
 }
 

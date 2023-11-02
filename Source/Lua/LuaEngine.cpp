@@ -40,7 +40,7 @@ static int dora_print(lua_State* L) {
 		lua_pushvalue(L, funcIndex);
 		lua_pushvalue(L, i);
 		lua_call(L, 1, 1);
-		t += tolua_toslice(L, -1, nullptr);
+		t += tolua_toslice(L, -1, nullptr).toString();
 		lua_pop(L, 1);
 		if (i != nargs) t += '\t';
 	}
@@ -65,7 +65,7 @@ static int dora_trace_back(lua_State* L) {
 static int dora_load_file(lua_State* L, String filename, String moduleName = nullptr) {
 	AssertIf(filename.empty(), "passing empty filename string to lua loader.");
 	std::string extension = Path::getExt(filename);
-	std::string targetFile = filename;
+	std::string targetFile = filename.toString();
 	if (extension.empty() && targetFile.back() != '.') {
 		std::string fullPath;
 		for (auto ext : {"lua"s, "xml"s, "tl"s, "wasm"s}) {
@@ -667,9 +667,9 @@ static int dora_yue_compile(lua_State* L) {
 	} else
 #endif
 	{
-		std::string src = tolua_toslice(L, 1, 0);
-		std::string dest = tolua_toslice(L, 2, 0);
-		std::string searchPath = tolua_toslice(L, 3, 0);
+		std::string src = tolua_toslice(L, 1, 0).toString();
+		std::string dest = tolua_toslice(L, 2, 0).toString();
+		std::string searchPath = tolua_toslice(L, 3, 0).toString();
 		Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 4)));
 		LuaFunction<void> callback(tolua_ref_function(L, 5));
 		SharedContent.loadAsyncData(src, [src, dest, searchPath, handler, callback](OwnArray<uint8_t>&& codes, size_t size) {
@@ -739,7 +739,7 @@ static int dora_yue_compile(lua_State* L) {
 							auto mainL = SharedLuaEngine.getState();
 							LuaEngine::invoke(mainL, handler->get(), 3, 1);
 							if (lua_isstring(mainL, -1) != 0) {
-								finalCodes = tolua_toslice(mainL, -1, nullptr);
+								finalCodes = tolua_toslice(mainL, -1, nullptr).toString();
 								success = true;
 							}
 						}
@@ -1135,7 +1135,7 @@ std::string LuaEngine::getTealVersion() {
 		lua_getfield(tl, -1, "tl"); // package loaded tl
 		lua_getfield(tl, -1, "version"); // package loaded tl version
 		LuaEngine::call(tl, 0, 1); // version(), package loaded tl res err
-		version = tolua_toslice(tl, -1, nullptr);
+		version = tolua_toslice(tl, -1, nullptr).toString();
 	}
 	thread->resume();
 	return version;
@@ -1160,9 +1160,9 @@ static std::pair<std::string, std::string> compile_teal(lua_State* L, String tlC
 	tolua_pushslice(L, searchPath); // package loaded tl tolua tlCodes filename searchPath
 	LuaEngine::call(L, 3, 2); // tolua(tlCodes,moduleName,searchPath), package loaded tl res err
 	if (lua_isnil(L, -2) != 0) {
-		return {Slice::Empty, tolua_toslice(L, -1, nullptr)};
+		return {""s, tolua_toslice(L, -1, nullptr).toString()};
 	} else {
-		return {tolua_toslice(L, -2, nullptr), Slice::Empty};
+		return {tolua_toslice(L, -2, nullptr).toString(), ""s};
 	}
 }
 
@@ -1210,7 +1210,7 @@ static std::optional<std::list<LuaEngine::TealError>> check_teal_async(lua_State
 	if (lua_toboolean(L, -2) == 0) {
 		std::list<LuaEngine::TealError> errors;
 		if (lua_istable(L, -1) == 0) {
-			errors = {{"crash", moduleName, 0, 0, ""}};
+			errors = {{"crash"s, moduleName.toString(), 0, 0, ""s}};
 		} else {
 			int tabIndex = lua_gettop(L);
 			size_t len = lua_rawlen(L, tabIndex);
@@ -1231,7 +1231,7 @@ static std::optional<std::list<LuaEngine::TealError>> check_teal_async(lua_State
 				lua_rawgeti(L, -1, 5);
 				Slice msg = tolua_toslice(L, -1, nullptr);
 				lua_pop(L, 1);
-				errors.push_back({type, filename, row, col, msg});
+				errors.push_back({type.toString(), filename.toString(), row, col, msg.toString()});
 			}
 		}
 		return errors;
@@ -1277,9 +1277,9 @@ static std::list<LuaEngine::TealToken> complete_teal_async(lua_State* L, String 
 			lua_rawgeti(L, -1, 1);
 			lua_rawgeti(L, -2, 2);
 			lua_rawgeti(L, -3, 3);
-			res.push_back({tolua_toslice(L, -3, nullptr),
-				tolua_toslice(L, -2, nullptr),
-				tolua_toslice(L, -1, nullptr)});
+			res.push_back({tolua_toslice(L, -3, nullptr).toString(),
+				tolua_toslice(L, -2, nullptr).toString(),
+				tolua_toslice(L, -1, nullptr).toString()});
 			lua_pop(L, 4);
 		}
 	}
@@ -1323,9 +1323,9 @@ static std::optional<LuaEngine::TealInference> infer_teal_async(lua_State* L, St
 		lua_getfield(L, -3, "y");
 		lua_getfield(L, -4, "x");
 		LuaEngine::TealInference res{"", "", 0, 0};
-		res.desc = tolua_toslice(L, -4, nullptr);
+		res.desc = tolua_toslice(L, -4, nullptr).toString();
 		if (lua_isstring(L, -3) != 0) {
-			res.file = tolua_toslice(L, -3, nullptr);
+			res.file = tolua_toslice(L, -3, nullptr).toString();
 		}
 		if (lua_isnumber(L, -2) != 0) {
 			res.row = static_cast<int>(lua_tonumber(L, -2));
@@ -1379,9 +1379,9 @@ static std::optional<std::list<LuaEngine::TealInference>> get_teal_signature_asy
 			lua_getfield(L, -3, "y");
 			lua_getfield(L, -4, "x");
 			LuaEngine::TealInference item{"", "", 0, 0};
-			item.desc = tolua_toslice(L, -4, nullptr);
+			item.desc = tolua_toslice(L, -4, nullptr).toString();
 			if (lua_isstring(L, -3) != 0) {
-				item.file = tolua_toslice(L, -3, nullptr);
+				item.file = tolua_toslice(L, -3, nullptr).toString();
 			}
 			if (lua_isnumber(L, -2) != 0) {
 				item.row = static_cast<int>(lua_tonumber(L, -2));
@@ -1644,7 +1644,7 @@ bool LuaEngine::to(bool& value, int index) {
 
 bool LuaEngine::to(std::string& value, int index) {
 	if (lua_isstring(L, index)) {
-		value = tolua_toslice(L, index, 0);
+		value = tolua_toslice(L, index, 0).toString();
 		return true;
 	}
 	return false;
@@ -1766,7 +1766,7 @@ bool LuaEngine::execute(lua_State* L, int handler, int numArgs) {
 	tolua_get_function_by_refid(L, handler); // args... func
 	if (!tolua_isfunction(L, -1)) {
 		Slice name = tolua_typename(L, -1);
-		Error("[Lua] function refid '{}' referenced \"{}\" instead of lua function or thread.", handler, name);
+		Error("[Lua] function refid '{}' referenced \"{}\" instead of lua function or thread.", handler, name.toString());
 		lua_pop(L, 2 + numArgs);
 		return true;
 	}
@@ -1778,7 +1778,7 @@ bool LuaEngine::invoke(lua_State* L, int handler, int numArgs, int numRets) {
 	tolua_get_function_by_refid(L, handler); // args... func
 	if (!tolua_isfunction(L, -1)) {
 		Slice name = tolua_typename(L, -1);
-		Error("[Lua] function refid '{}' referenced \"{}\" instead of lua function or thread.", handler, name);
+		Error("[Lua] function refid '{}' referenced \"{}\" instead of lua function or thread.", handler, name.toString());
 		lua_pop(L, 2 + numArgs);
 		return 1;
 	}

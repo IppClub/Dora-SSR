@@ -62,7 +62,7 @@ bool DB::exist(String tableName, String schema) const {
 	_thread->pause();
 	try {
 		SQLite::Statement statement(*_database, schema.empty() ? "SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?"s : fmt::format("SELECT count(*) FROM {}.sqlite_master WHERE type = 'table' AND name = ?", schema.toString()));
-		statement.bind(1, tableName);
+		statement.bind(1, tableName.toString());
 		int result = 0;
 		if (statement.executeStep()) {
 			result = statement.getColumn(0);
@@ -182,7 +182,7 @@ std::deque<std::vector<DB::Col>> DB::query(String sql, const std::vector<Own<Val
 
 std::deque<std::vector<DB::Col>> DB::queryUnsafe(String sql, const std::vector<Own<Value>>& args, bool withColumns) {
 	std::deque<std::vector<DB::Col>> result;
-	SQLite::Statement statement(*_database, sql);
+	SQLite::Statement statement(*_database, sql.toString());
 	bindValues(statement, args);
 	bool columnCollected = false;
 	while (statement.executeStep()) {
@@ -228,18 +228,18 @@ void DB::insertUnsafe(SQLite::Database* db, String tableName, const std::deque<s
 }
 
 int DB::execUnsafe(SQLite::Database* db, String sql) {
-	SQLite::Statement statement(*db, sql);
+	SQLite::Statement statement(*db, sql.toString());
 	return statement.exec();
 }
 
 int DB::execUnsafe(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args) {
-	SQLite::Statement statement(*db, sql);
+	SQLite::Statement statement(*db, sql.toString());
 	bindValues(statement, args);
 	return statement.exec();
 }
 
 int DB::execUnsafe(SQLite::Database* db, String sql, const std::deque<std::vector<Own<Value>>>& rows) {
-	SQLite::Statement statement(*db, sql);
+	SQLite::Statement statement(*db, sql.toString());
 	if (rows.empty()) {
 		return statement.exec();
 	}
@@ -254,7 +254,7 @@ int DB::execUnsafe(SQLite::Database* db, String sql, const std::deque<std::vecto
 }
 
 void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(std::deque<std::vector<DB::Col>>&)>& callback) {
-	std::string sqlStr(sql);
+	std::string sqlStr(sql.toString());
 	auto argsPtr = std::make_shared<std::vector<Own<Value>>>(std::move(args));
 	_thread->run(
 		[sqlStr, argsPtr = std::move(argsPtr), withColumns]() {
@@ -274,7 +274,7 @@ void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns
 }
 
 void DB::insertAsync(String tableName, std::deque<std::vector<Own<Value>>>&& rows, const std::function<void(bool)>& callback) {
-	std::string tableStr(tableName);
+	std::string tableStr(tableName.toString());
 	auto rowsPtr = std::make_shared<std::deque<std::vector<Own<Value>>>>(std::move(rows));
 	_thread->run(
 		[tableStr, rowsPtr = std::move(rowsPtr)]() {
@@ -298,7 +298,7 @@ void DB::execAsync(String sql, std::vector<Own<Value>>&& args, const std::functi
 }
 
 void DB::execAsync(String sql, std::deque<std::vector<Own<Value>>>&& rows, const std::function<void(int)>& callback) {
-	std::string sqlStr(sql);
+	std::string sqlStr(sql.toString());
 	auto rowsPtr = std::make_shared<std::deque<std::vector<Own<Value>>>>(std::move(rows));
 	_thread->run(
 		[sqlStr, rowsPtr = std::move(rowsPtr)]() {

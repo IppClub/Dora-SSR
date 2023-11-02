@@ -32,11 +32,11 @@ const std::unordered_map<std::string, Own<Value>>& Dictionary::data() const {
 }
 
 bool Dictionary::has(String key) const {
-	return _dict.find(key) != _dict.end();
+	return _dict.find(key.toString()) != _dict.end();
 }
 
 const Own<Value>& Dictionary::get(String key) const {
-	auto it = _dict.find(key);
+	auto it = _dict.find(key.toString());
 	if (it != _dict.end()) {
 		return it->second;
 	}
@@ -45,13 +45,13 @@ const Own<Value>& Dictionary::get(String key) const {
 
 void Dictionary::set(String key, Own<Value>&& value) {
 	if (value) {
-		_dict[key] = std::move(value);
+		_dict[key.toString()] = std::move(value);
 	} else
 		remove(key);
 }
 
 bool Dictionary::remove(String key) {
-	auto it = _dict.find(key);
+	auto it = _dict.find(key.toString());
 	if (it != _dict.end()) {
 		_dict.erase(it);
 		return true;

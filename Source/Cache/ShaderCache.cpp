@@ -71,29 +71,30 @@ std::string ShaderCache::getShaderPath() const {
 }
 
 Shader* ShaderCache::load(String filename) {
+	auto filenameStr = filename.toString();
 	auto items = filename.split(":"_slice);
 	if (!items.empty() && items.front() == "builtin"_slice) {
-		auto it = _shaders.find(filename);
+		auto it = _shaders.find(filenameStr);
 		if (it != _shaders.end()) {
 			return it->second;
 		}
 		bgfx::RendererType::Enum type = bgfx::getRendererType();
 		bgfx::ShaderHandle handle = bgfx::createEmbeddedShader(DoraShaders, type, items.back().c_str());
-		AssertUnless(bgfx::isValid(handle), "failed to load builtin shader named: \"{}\".", items.back());
+		AssertUnless(bgfx::isValid(handle), "failed to load builtin shader named: \"{}\".", items.back().toString());
 		Shader* shader = Shader::create(handle);
-		_shaders[filename] = shader;
+		_shaders[filenameStr] = shader;
 		return shader;
 	}
 	std::string shaderFile;
-	if (SharedContent.exist(filename)) {
-		shaderFile = SharedContent.getFullPath(filename);
+	if (SharedContent.exist(filenameStr)) {
+		shaderFile = SharedContent.getFullPath(filenameStr);
 	} else {
-		auto path = Path::concat({getShaderPath(), filename});
+		auto path = Path::concat({getShaderPath(), filenameStr});
 		if (SharedContent.exist(path)) {
 			shaderFile = SharedContent.getFullPath(path);
 		}
 	}
-	AssertIf(shaderFile.empty(), "shader file \"{}\" not exist.", filename);
+	AssertIf(shaderFile.empty(), "shader file \"{}\" not exist.", filenameStr);
 	auto it = _shaders.find(shaderFile);
 	if (it != _shaders.end()) {
 		return it->second;

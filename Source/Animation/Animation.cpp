@@ -18,7 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DOROTHY_BEGIN
 
 inline std::string s(float var) {
-	return Slice(fmt::format("{:.2f}", var)).trimZero();
+	return Slice(fmt::format("{:.2f}", var)).trimZero().toString();
 }
 
 /* KeyFrameDef */
@@ -361,7 +361,7 @@ Action* FrameAnimationDef::toAction() {
 }
 
 void FrameAnimationDef::setFile(String filename) {
-	_file = filename;
+	_file = filename.toString();
 	_def = SharedFrameCache.loadFrame(filename);
 }
 

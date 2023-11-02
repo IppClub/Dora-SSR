@@ -68,7 +68,7 @@ db::DragonBonesData* DragonBoneCache::loadDragonBonesData(String filename) {
 	if (existedData) return existedData;
 	auto data = SharedContent.load(filename);
 	if (!data.first) {
-		Error("failed to load bone \"{}\".", filename);
+		Error("failed to load bone \"{}\".", filename.toString());
 		return nullptr;
 	}
 	auto str = Slice(r_cast<char*>(data.first.get()), data.second).toString();
@@ -82,7 +82,7 @@ DBTextureAtlasData* DragonBoneCache::loadTextureAtlasData(String filename) {
 	if (atlasData) return s_cast<DBTextureAtlasData*>(atlasData->front());
 	auto data = SharedContent.load(filename);
 	if (!data.first) {
-		Error("failed to load atlas \"{}\".", filename);
+		Error("failed to load atlas \"{}\".", filename.toString());
 		return nullptr;
 	}
 	auto str = Slice(r_cast<char*>(data.first.get()), data.second).toString();
@@ -93,7 +93,7 @@ DBTextureAtlasData* DragonBoneCache::loadTextureAtlasData(String filename) {
 DragonBone* DragonBoneCache::buildDragonBoneNode(String boneFile, String atlasFile, String armatureName) {
 	auto fullBonePath = SharedContent.getFullPath(boneFile);
 	auto fullAtlasFile = SharedContent.getFullPath(atlasFile);
-	const auto armature = buildArmature(armatureName, fullBonePath, Slice::Empty, fullAtlasFile);
+	const auto armature = buildArmature(armatureName.toString(), fullBonePath, Slice::Empty, fullAtlasFile);
 	if (armature != nullptr) {
 		_atlasRefs[fullAtlasFile] += 1;
 		_boneRefs[fullBonePath] += 1;
@@ -112,7 +112,7 @@ DragonBone* DragonBoneCache::buildDragonBoneNode(String boneFile, String atlasFi
 		});
 		return dragonBoneNode;
 	} else {
-		Error("failed to build DragonBone from \"{}\" and \"{}\" with armature \"{}\".", boneFile, atlasFile, armatureName);
+		Error("failed to build DragonBone from \"{}\" and \"{}\" with armature \"{}\".", boneFile.toString(), atlasFile.toString(), armatureName.toString());
 	}
 	return nullptr;
 }
@@ -140,52 +140,52 @@ std::tuple<std::string, std::string, std::string> DragonBoneCache::getFileFromSt
 	std::string armatureName;
 	auto tokens = boneStr.split(";"_slice);
 	if (tokens.size() == 2) {
-		armatureName = tokens.back();
+		armatureName = tokens.back().toString();
 	} else if (tokens.size() != 1) {
-		Error("invalid boneStr for \"{}\".", boneStr);
+		Error("invalid boneStr for \"{}\".", boneStr.toString());
 		return {};
 	}
 	std::string boneFilename, atlasFilename;
 	tokens = tokens.front().split("|"_slice);
 	if (tokens.size() == 2) {
 		if (tokens.front().right(9).toLower() == "_tex.json"sv) {
-			atlasFilename = tokens.front();
+			atlasFilename = tokens.front().toString();
 			if (tokens.back().right(9).toLower() == "_ske.json"sv) {
-				boneFilename = tokens.back();
+				boneFilename = tokens.back().toString();
 			} else {
-				Error("invalid boneStr for \"{}\".", boneStr);
+				Error("invalid boneStr for \"{}\".", boneStr.toString());
 				return {};
 			}
 		} else if (tokens.front().right(9).toLower() == "_ske.json"sv) {
-			boneFilename = tokens.front();
+			boneFilename = tokens.front().toString();
 			if (tokens.back().right(9).toLower() == "_tex.json"sv) {
-				atlasFilename = tokens.back();
+				atlasFilename = tokens.back().toString();
 			} else {
-				Error("invalid boneStr for \"{}\".", boneStr);
+				Error("invalid boneStr for \"{}\".", boneStr.toString());
 				return {};
 			}
 		} else {
-			boneFilename = tokens.front();
+			boneFilename = tokens.front().toString();
 			if (Path::getExt(boneFilename) != "json"_slice) {
 				boneFilename += ".json"s;
 			}
-			atlasFilename = tokens.back();
+			atlasFilename = tokens.back().toString();
 			if (Path::getExt(atlasFilename) != "json"_slice) {
 				atlasFilename += ".json"s;
 			}
 		}
 	} else if (tokens.size() == 1) {
-		boneFilename = tokens.front() + "_ske.json"s;
-		atlasFilename = tokens.front() + "_tex.json"s;
+		boneFilename = tokens.front().toString() + "_ske.json"s;
+		atlasFilename = tokens.front().toString() + "_tex.json"s;
 	} else {
-		Error("invalid boneStr for \"{}\".", boneStr);
+		Error("invalid boneStr for \"{}\".", boneStr.toString());
 	}
 	return {boneFilename, atlasFilename, armatureName};
 }
 
 std::pair<db::DragonBonesData*, std::string> DragonBoneCache::load(String boneStr) {
 	if (_asyncLoadCount > 0) {
-		Error("can not get DragonBone data from \"{}\" during async loading.", boneStr);
+		Error("can not get DragonBone data from \"{}\" during async loading.", boneStr.toString());
 		return {nullptr, Slice::Empty};
 	}
 	std::string boneFile, atlasFile, armatureName;
@@ -199,7 +199,7 @@ std::pair<db::DragonBonesData*, std::string> DragonBoneCache::load(String boneSt
 
 std::pair<db::DragonBonesData*, std::string> DragonBoneCache::load(String boneFile, String atlasFile) {
 	if (_asyncLoadCount > 0) {
-		Error("can not get DragonBone data from \"{}\" and \"{}\" during async loading.", boneFile, atlasFile);
+		Error("can not get DragonBone data from \"{}\" and \"{}\" during async loading.", boneFile.toString(), atlasFile.toString());
 		return {nullptr, Slice::Empty};
 	}
 	auto boneFilename = boneFile.toString();
@@ -311,7 +311,7 @@ DragonBone* DragonBoneCache::loadDragonBone(String boneStr) {
 	if (boneFile.empty() || atlasFile.empty()) return nullptr;
 	auto result = load(boneFile, atlasFile);
 	if (!result.first) {
-		Error("failed to load DragonBone from \"{}\".", boneStr);
+		Error("failed to load DragonBone from \"{}\".", boneStr.toString());
 		return nullptr;
 	}
 	if (armatureName.empty()) {
@@ -323,7 +323,7 @@ DragonBone* DragonBoneCache::loadDragonBone(String boneStr) {
 DragonBone* DragonBoneCache::loadDragonBone(String boneFile, String atlasFile) {
 	auto result = load(boneFile, atlasFile);
 	if (!result.first) {
-		Error("failed to load DragonBone from \"{}\" and \"{}\".", boneFile, atlasFile);
+		Error("failed to load DragonBone from \"{}\" and \"{}\".", boneFile.toString(), atlasFile.toString());
 		return nullptr;
 	}
 	return buildDragonBoneNode(boneFile, atlasFile, result.second);

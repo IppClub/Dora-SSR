@@ -77,7 +77,7 @@ static ImGuiSliderFlags_ getSliderFlag(String flag) {
 			return ImGuiSliderFlags_NoInput;
 		case ""_hash: return ImGuiSliderFlags_None;
 		default:
-			Issue("ImGui slider flag named \"{}\" is invalid.", flag);
+			Issue("ImGui slider flag named \"{}\" is invalid.", flag.toString());
 			break;
 	}
 	return ImGuiSliderFlags_None;
@@ -121,7 +121,7 @@ static ImGuiWindowFlags_ getWindowFlag(String style) {
 		case "AlwaysUseWindowPadding"_hash: return ImGuiWindowFlags_AlwaysUseWindowPadding;
 		case ""_hash: return ImGuiWindowFlags_(0);
 		default:
-			Issue("ImGui window flag named \"{}\" is invalid.", style);
+			Issue("ImGui window flag named \"{}\" is invalid.", style.toString());
 			break;
 	}
 	return ImGuiWindowFlags_(0);
@@ -163,7 +163,7 @@ static ImGuiInputTextFlags_ getInputTextFlag(String flag) {
 		case "Password"_hash: return ImGuiInputTextFlags_Password;
 		case ""_hash: return ImGuiInputTextFlags_(0);
 		default:
-			Issue("ImGui input text flag named \"{}\" is invalid.", flag);
+			Issue("ImGui input text flag named \"{}\" is invalid.", flag.toString());
 			return ImGuiInputTextFlags_(0);
 	}
 }
@@ -199,7 +199,7 @@ static ImGuiTreeNodeFlags_ getTreeNodeFlag(String flag) {
 		case "CollapsingHeader"_hash: return ImGuiTreeNodeFlags_CollapsingHeader;
 		case ""_hash: return ImGuiTreeNodeFlags_(0);
 		default:
-			Issue("ImGui tree node flag named \"{}\" is invalid.", flag);
+			Issue("ImGui tree node flag named \"{}\" is invalid.", flag.toString());
 			return ImGuiTreeNodeFlags_(0);
 	}
 }
@@ -229,7 +229,7 @@ static ImGuiSelectableFlags_ getSelectableFlag(String flag) {
 		case "AllowOverlap"_hash: return ImGuiSelectableFlags_AllowOverlap;
 		case ""_hash: return ImGuiSelectableFlags_None;
 		default:
-			Issue("ImGui selectable flag named \"{}\" is invalid.", flag);
+			Issue("ImGui selectable flag named \"{}\" is invalid.", flag.toString());
 			return ImGuiSelectableFlags_None;
 	}
 }
@@ -305,7 +305,7 @@ static uint32_t ColorIndex(String col) {
 		case "NavWindowingDimBg"_hash: return ImGuiCol_NavWindowingDimBg;
 		case "ModalWindowDimBg"_hash: return ImGuiCol_ModalWindowDimBg;
 		default:
-			Issue("ImGui color index named \"{}\" is invalid.", col);
+			Issue("ImGui color index named \"{}\" is invalid.", col.toString());
 			return ImGuiCol_(0);
 	}
 }
@@ -317,7 +317,7 @@ static uint32_t ColorEditFlag(String mode) {
 		case "HEX"_hash: return ImGuiColorEditFlags_DisplayHex;
 		case ""_hash: return ImGuiColorEditFlags_None;
 		default:
-			Issue("ImGui color edit flag named \"{}\" is invalid.", mode);
+			Issue("ImGui color edit flag named \"{}\" is invalid.", mode.toString());
 			return ImGuiColorEditFlags_None;
 	}
 }
@@ -330,7 +330,7 @@ static uint32_t SetCondFlag(String cond) {
 		case "Appearing"_hash: return ImGuiCond_Appearing;
 		case ""_hash: return ImGuiCond_(0);
 		default:
-			Issue("ImGui set cond named \"{}\" is invalid.", cond);
+			Issue("ImGui set cond named \"{}\" is invalid.", cond.toString());
 			return ImGuiCond_(0);
 	}
 }
@@ -347,7 +347,7 @@ static ImGuiPopupFlags getPopupFlag(String flag) {
 		case "AnyPopup"_hash: return ImGuiPopupFlags_AnyPopup;
 		case ""_hash: return ImGuiPopupFlags_None;
 		default:
-			Issue("ImGui popup flag named \"{}\" is invalid.", flag);
+			Issue("ImGui popup flag named \"{}\" is invalid.", flag.toString());
 			return ImGuiPopupFlags_None;
 	}
 }
@@ -405,7 +405,7 @@ static ImGuiTableFlags_ getTableFlags(String flag) {
 		case "SortMulti"_hash: return ImGuiTableFlags_SortMulti;
 		case ""_hash: return ImGuiTableFlags_None;
 		default:
-			Issue("ImGui table flag named \"{}\" is invalid.", flag);
+			Issue("ImGui table flag named \"{}\" is invalid.", flag.toString());
 			return ImGuiTableFlags_None;
 	}
 	return ImGuiTableFlags_None;
@@ -432,7 +432,7 @@ static uint32_t TableRowFlag(String flag) {
 		case "Headers"_hash: return ImGuiTableRowFlags_Headers;
 		case ""_hash: return ImGuiTableRowFlags_None;
 		default:
-			Issue("ImGui table row flag named \"{}\" is invalid.", flag);
+			Issue("ImGui table row flag named \"{}\" is invalid.", flag.toString());
 			return ImGuiTableRowFlags_None;
 	}
 	return ImGuiTableRowFlags_None;
@@ -462,7 +462,7 @@ static ImGuiTableColumnFlags_ getTableColumnFlags(String flag) {
 		case "IsHovered"_hash: return ImGuiTableColumnFlags_IsHovered;
 		case ""_hash: return ImGuiTableColumnFlags_None;
 		default:
-			Issue("ImGui table column flag named \"{}\" is invalid.", flag);
+			Issue("ImGui table column flag named \"{}\" is invalid.", flag.toString());
 			return ImGuiTableColumnFlags_None;
 	}
 	return ImGuiTableColumnFlags_None;
@@ -623,7 +623,7 @@ void PushStyleVar(String name, const Vec2& val) {
 		case "ButtonTextAlign"_hash: styleVar = ImGuiStyleVar_ButtonTextAlign; break;
 		case "SelectableTextAlign"_hash: styleVar = ImGuiStyleVar_SelectableTextAlign; break;
 		default:
-			Issue("ImGui style var name \"{}\" is invalid.", name);
+			Issue("ImGui style var name \"{}\" is invalid.", name.toString());
 			break;
 	}
 	ImGui::PushStyleVar(styleVar, val);
@@ -648,7 +648,7 @@ void PushStyleVar(String name, float val) {
 		case "GrabRounding"_hash: styleVar = ImGuiStyleVar_GrabRounding; break;
 		case "TabRounding"_hash: styleVar = ImGuiStyleVar_TabRounding; break;
 		default:
-			Issue("ImGui style var name \"{}\" is invalid.", name);
+			Issue("ImGui style var name \"{}\" is invalid.", name.toString());
 			break;
 	}
 	ImGui::PushStyleVar(styleVar, val);
@@ -883,7 +883,7 @@ void SetStyleVar(String name, const Vec2& var) {
 		case "DisplayWindowPadding"_hash: style.DisplayWindowPadding = var; break;
 		case "DisplaySafeAreaPadding"_hash: style.DisplaySafeAreaPadding = var; break;
 		default:
-			Issue("ImGui style var name \"{}\" is invalid.", name);
+			Issue("ImGui style var name \"{}\" is invalid.", name.toString());
 			break;
 	}
 }
@@ -910,7 +910,7 @@ void SetStyleVar(String name, float var) {
 		case "TabBorderSize"_hash: style.TabBorderSize = var; break;
 		case "CurveTessellationTol"_hash: style.CurveTessellationTol = var; break;
 		default:
-			Issue("ImGui style var name \"{}\" is invalid.", name);
+			Issue("ImGui style var name \"{}\" is invalid.", name.toString());
 			break;
 	}
 }
@@ -922,7 +922,7 @@ void SetStyleVar(String name, bool var) {
 		case "AntiAliasedLinesUseTex"_hash: style.AntiAliasedLinesUseTex = var; break;
 		case "AntiAliasedFill"_hash: style.AntiAliasedFill = var; break;
 		default:
-			Issue("ImGui style var name \"{}\" is invalid.", name);
+			Issue("ImGui style var name \"{}\" is invalid.", name.toString());
 			break;
 	}
 }

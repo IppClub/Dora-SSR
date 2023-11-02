@@ -49,14 +49,14 @@ void Event::reg(Listener* listener) {
 }
 
 void Event::send(Event* e) {
-	auto it = _eventMap.find(e->getName());
+	auto it = _eventMap.find(e->getName().toString());
 	if (it != _eventMap.end()) {
 		it->second->handle(e);
 	}
 }
 
 Listener* Event::addListener(String name, const EventHandler& handler) {
-	Listener* listener = Listener::create(name, handler);
+	Listener* listener = Listener::create(name.toString(), handler);
 	return listener;
 }
 

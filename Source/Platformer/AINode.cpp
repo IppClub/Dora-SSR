@@ -146,7 +146,7 @@ bool DynamicActNode::doAction(Unit* self) {
 	auto actionName = _handler(self);
 	if (self->start(actionName)) {
 		if (self->isReceivingDecisionTrace()) {
-			SharedAI.getDecisionNodes().push_back("[dynamic] "_slice + (actionName.empty() ? std::string("none"_slice) : actionName));
+			SharedAI.getDecisionNodes().push_back("[dynamic] "s + (actionName.empty() ? "none"s : actionName));
 		}
 		return true;
 	}
@@ -262,7 +262,7 @@ double Blackboard::getDeltaTime() const {
 }
 
 void Blackboard::set(String name, Own<Value>&& value) {
-	_values[name] = std::move(value);
+	_values[name.toString()] = std::move(value);
 }
 
 void Blackboard::set(uint32_t key, Own<Value>&& value) {
@@ -270,7 +270,7 @@ void Blackboard::set(uint32_t key, Own<Value>&& value) {
 }
 
 Value* Blackboard::get(String name) {
-	auto it = _values.find(name);
+	auto it = _values.find(name.toString());
 	if (it != _values.end()) {
 		return it->second.get();
 	}
@@ -286,7 +286,7 @@ Value* Blackboard::get(uint32_t key) {
 }
 
 void Blackboard::remove(String name) {
-	auto it = _values.find(name);
+	auto it = _values.find(name.toString());
 	if (it != _values.end()) {
 		_values.erase(it);
 	}

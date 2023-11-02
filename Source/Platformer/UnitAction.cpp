@@ -109,7 +109,7 @@ void UnitAction::stop() {
 }
 
 void UnitAction::add(String name, Own<UnitActionDef>&& actionDef) {
-	_actionDefs[name] = std::move(actionDef);
+	_actionDefs[name.toString()] = std::move(actionDef);
 }
 
 void UnitAction::clear() {
@@ -603,22 +603,22 @@ Own<UnitAction> Fall::alloc(Unit* unit) {
 	return MakeOwn(action);
 }
 
-const Slice ActionSetting::AnimationWalk = "walk"_slice;
-const Slice ActionSetting::AnimationAttack = "attack"_slice;
-const Slice ActionSetting::AnimationIdle = "idle"_slice;
-const Slice ActionSetting::AnimationJump = "jump"_slice;
-const Slice ActionSetting::AnimationHit = "hit"_slice;
-const Slice ActionSetting::AnimationFall = "fall"_slice;
+const std::string ActionSetting::AnimationWalk = "walk"s;
+const std::string ActionSetting::AnimationAttack = "attack"s;
+const std::string ActionSetting::AnimationIdle = "idle"s;
+const std::string ActionSetting::AnimationJump = "jump"s;
+const std::string ActionSetting::AnimationHit = "hit"s;
+const std::string ActionSetting::AnimationFall = "fall"s;
 
-const Slice ActionSetting::UnitActionWalk = "walk"_slice;
-const Slice ActionSetting::UnitActionTurn = "turn"_slice;
-const Slice ActionSetting::UnitActionMeleeAttack = "meleeAttack"_slice;
-const Slice ActionSetting::UnitActionRangeAttack = "rangeAttack"_slice;
-const Slice ActionSetting::UnitActionIdle = "idle"_slice;
-const Slice ActionSetting::UnitActionCancel = "cancel"_slice;
-const Slice ActionSetting::UnitActionJump = "jump"_slice;
-const Slice ActionSetting::UnitActionHit = "hit"_slice;
-const Slice ActionSetting::UnitActionFall = "fall"_slice;
+const std::string ActionSetting::UnitActionWalk = "walk"s;
+const std::string ActionSetting::UnitActionTurn = "turn"s;
+const std::string ActionSetting::UnitActionMeleeAttack = "meleeAttack"s;
+const std::string ActionSetting::UnitActionRangeAttack = "rangeAttack"s;
+const std::string ActionSetting::UnitActionIdle = "idle"s;
+const std::string ActionSetting::UnitActionCancel = "cancel"s;
+const std::string ActionSetting::UnitActionJump = "jump"s;
+const std::string ActionSetting::UnitActionHit = "hit"s;
+const std::string ActionSetting::UnitActionFall = "fall"s;
 
 typedef Own<UnitAction> (*UnitActionFunc)(Unit* unit);
 static const std::unordered_map<std::string, UnitActionFunc> g_createFuncs = {
@@ -633,11 +633,12 @@ static const std::unordered_map<std::string, UnitActionFunc> g_createFuncs = {
 	{ActionSetting::UnitActionFall, &Fall::alloc}};
 
 Own<UnitAction> UnitAction::alloc(String name, Unit* unit) {
-	auto it = _actionDefs.find(name);
+	auto nameStr = name.toString();
+	auto it = _actionDefs.find(nameStr);
 	if (it != _actionDefs.end()) {
 		return it->second->toAction(unit);
 	} else {
-		auto it = g_createFuncs.find(name);
+		auto it = g_createFuncs.find(nameStr);
 		if (it != g_createFuncs.end()) {
 			return it->second(unit);
 		}

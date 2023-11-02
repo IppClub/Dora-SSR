@@ -83,7 +83,7 @@ std::pair<std::string, int> FontCache::getArgsFromStr(String fontStr) {
 		int fontSize = Slice::stoi(*(++it));
 		return {fontName.toString(), fontSize};
 	} else {
-		Error("invalid fontStr for \"{}\".", fontStr);
+		Error("invalid fontStr for \"{}\".", fontStr.toString());
 		return {Slice::Empty, 0};
 	}
 }
@@ -101,7 +101,7 @@ bool FontCache::unload(String fontStr) {
 	std::string fontName;
 	int fontSize;
 	std::tie(fontName, fontSize) = getArgsFromStr(fontStr);
-	auto fontIt = _fonts.find(fontStr);
+	auto fontIt = _fonts.find(fontStr.toString());
 	if (fontIt != _fonts.end()) {
 		TrueTypeFile* fontFile = fontIt->second->getFile();
 		_fonts.erase(fontIt);
@@ -117,13 +117,14 @@ bool FontCache::unload(String fontStr) {
 }
 
 bool FontCache::unload(String fontName, uint32_t fontSize) {
-	std::string fontFaceName = fmt::format("{};{}", fontName.toString(), fontSize);
+	auto fontNameStr = fontName.toString();
+	std::string fontFaceName = fmt::format("{};{}", fontNameStr, fontSize);
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end()) {
 		TrueTypeFile* fontFile = fontIt->second->getFile();
 		_fonts.erase(fontIt);
 		if (fontFile->isSingleReferenced()) {
-			auto fileIt = _fontFiles.find(fontName);
+			auto fileIt = _fontFiles.find(fontNameStr);
 			if (fileIt != _fontFiles.end()) {
 				_fontFiles.erase(fileIt);
 			}
@@ -157,12 +158,13 @@ Font* FontCache::load(String fontStr) {
 }
 
 Font* FontCache::load(String fontName, uint32_t fontSize) {
-	std::string fontFaceName = fmt::format("{};{}", fontName.toString(), fontSize);
+	auto fontNameStr = fontName.toString();
+	std::string fontFaceName = fmt::format("{};{}", fontNameStr, fontSize);
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end()) {
 		return fontIt->second;
 	} else {
-		auto fileIt = _fontFiles.find(fontName);
+		auto fileIt = _fontFiles.find(fontNameStr);
 		if (fileIt != _fontFiles.end()) {
 			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), fontSize);
 			Font* font = Font::create(fileIt->second, fontHandle);
@@ -171,23 +173,23 @@ Font* FontCache::load(String fontName, uint32_t fontSize) {
 		} else {
 			std::string fontFile;
 			BLOCK_START {
-				fontFile = "Font/" + fontName.toString() + ".ttf";
+				fontFile = "Font/"s + fontNameStr + ".ttf"s;
 				BREAK_IF(SharedContent.exist(fontFile));
-				fontFile = "Font/" + fontName.toString() + ".otf";
+				fontFile = "Font/"s + fontNameStr + ".otf"s;
 				BREAK_IF(SharedContent.exist(fontFile));
-				fontFile = fontName.toString();
+				fontFile = fontNameStr;
 				BREAK_IF(SharedContent.exist(fontFile));
 			}
 			BLOCK_END
 			if (fontFile.empty()) {
-				Error("can not load font file named \"{}\".", fontName);
+				Error("can not load font file named \"{}\".", fontNameStr);
 				return nullptr;
 			}
 			auto data = SharedContent.load(fontFile);
-			AssertUnless(data.first, "failed to load font \"{}\".", fontName);
+			AssertUnless(data.first, "failed to load font \"{}\".", fontNameStr);
 			bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data.first.get(), s_cast<uint32_t>(data.second));
 			TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
-			_fontFiles[fontName] = file;
+			_fontFiles[fontNameStr] = file;
 			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontSize);
 			Font* font = Font::create(file, fontHandle);
 			_fonts[fontFaceName] = font;
@@ -208,12 +210,13 @@ void FontCache::loadAync(String fontStr, const std::function<void(Font* fontHand
 }
 
 void FontCache::loadAync(String fontName, uint32_t fontSize, const std::function<void(Font* fontHandle)>& callback) {
-	std::string fontFaceName = fmt::format("{};{}", fontName.toString(), fontSize);
+	auto fontNameStr = fontName.toString();
+	std::string fontFaceName = fmt::format("{};{}", fontNameStr, fontSize);
 	auto faceIt = _fonts.find(fontFaceName);
 	if (faceIt != _fonts.end()) {
 		callback(faceIt->second);
 	} else {
-		auto fileIt = _fontFiles.find(fontName);
+		auto fileIt = _fontFiles.find(fontNameStr);
 		if (fileIt != _fontFiles.end()) {
 			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), fontSize);
 			Font* font = Font::create(fileIt->second, fontHandle);
@@ -222,22 +225,22 @@ void FontCache::loadAync(String fontName, uint32_t fontSize, const std::function
 		} else {
 			std::string fontFile;
 			BLOCK_START {
-				fontFile = "Font/" + fontName.toString() + ".ttf";
+				fontFile = "Font/"s + fontNameStr + ".ttf"s;
 				BREAK_IF(SharedContent.exist(fontFile));
-				fontFile = "Font/" + fontName.toString() + ".otf";
+				fontFile = "Font/"s + fontNameStr + ".otf"s;
 				BREAK_IF(SharedContent.exist(fontFile));
-				fontFile = fontName.toString();
+				fontFile = fontNameStr;
 				BREAK_IF(SharedContent.exist(fontFile));
 			}
 			BLOCK_END
 			if (fontFile.empty()) {
-				Error("can not load font file named \"{}\".", fontName);
+				Error("can not load font file named \"{}\".", fontNameStr);
 				callback(nullptr);
 			}
-			SharedContent.loadAsyncUnsafe(fontFile, [this, fontFaceName, fontName, fontSize, callback](uint8_t* data, int64_t size) {
+			SharedContent.loadAsyncUnsafe(fontFile, [this, fontFaceName, fontNameStr, fontSize, callback](uint8_t* data, int64_t size) {
 				bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data, s_cast<uint32_t>(size));
 				TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
-				_fontFiles[fontName] = file;
+				_fontFiles[fontNameStr] = file;
 				bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontSize);
 				Font* font = Font::create(file, fontHandle);
 				_fonts[fontFaceName] = font;
@@ -362,7 +365,7 @@ TextAlign Label::getAlignment() const {
 }
 
 void Label::setText(String var) {
-	_textUTF8 = var;
+	_textUTF8 = var.toString();
 	updateLabel();
 }
 
