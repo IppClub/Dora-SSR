@@ -34,10 +34,10 @@ FrameActionDef* FrameCache::loadFrame(String frameStr) {
 		auto tokens = parts.back().split(","_slice);
 		BREAK_IF(tokens.size() != 4);
 		auto it = tokens.begin();
-		float width = Slice::stof(*it);
-		float height = Slice::stof(*++it);
-		int count = Slice::stoi(*++it);
-		def->duration = Slice::stof(*++it);
+		float width = it->toFloat();
+		float height = (++it)->toFloat();
+		int count = (++it)->toInt();
+		def->duration = (++it)->toFloat();
 		for (int i = 0; i < count; i++) {
 			def->rects.push_back(New<Rect>(origin.x + i * width, origin.y, width, height));
 		}
@@ -90,10 +90,10 @@ void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						auto tokens = attr.split(",");
 						AssertUnless(tokens.size() == 4, "invalid clip rect str for: \"{}\"", attr.toString());
 						auto it = tokens.begin();
-						float x = Slice::stof(*it);
-						float y = Slice::stof(*++it);
-						float w = Slice::stof(*++it);
-						float h = Slice::stof(*++it);
+						float x = it->toFloat();
+						float y = (++it)->toFloat();
+						float w = (++it)->toFloat();
+						float h = (++it)->toFloat();
 						_item->rects.push_back(New<Rect>(x, y, w, h));
 						break;
 					}

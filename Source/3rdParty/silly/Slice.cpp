@@ -74,12 +74,12 @@ std::list<Slice> Slice::split(Slice delims) const {
 	return tokens;
 }
 
-float Slice::stof(Slice str) {
-	return static_cast<float>(std::atof(str.c_str()));
+float Slice::toFloat() const {
+	return static_cast<float>(std::atof(c_str()));
 }
 
-int Slice::stoi(Slice str, int base) {
-	return std::stoi(str.toString(), 0, base);
+int Slice::toInt(int base) const {
+	return std::stoi(toString(), 0, base);
 }
 
 std::string Slice::join(const std::list<std::string>& list, Slice delimer) {

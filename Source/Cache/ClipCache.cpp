@@ -140,10 +140,10 @@ void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const 
 						auto tokens = attr.split(",");
 						AssertUnless(tokens.size() == 4, "invalid clip rect str for: \"{}\"", attr.toString());
 						auto it = tokens.begin();
-						float x = Slice::stof(*it);
-						float y = Slice::stof(*++it);
-						float w = Slice::stof(*++it);
-						float h = Slice::stof(*++it);
+						float x = it->toFloat();
+						float y = (++it)->toFloat();
+						float w = (++it)->toFloat();
+						float h = (++it)->toFloat();
 						_item->rects[name.toString()] = New<Rect>(x, y, w, h);
 						break;
 					}
