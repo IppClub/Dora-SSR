@@ -43,10 +43,10 @@ static void get(String value, Rect& rect) {
 	auto tokens = value.split(" ");
 	AssertUnless(tokens.size() == 4, "invalid vec4 str for: \"{}\"", value.toString());
 	auto it = tokens.begin();
-	rect.origin.x = Slice::stof(*it);
-	rect.origin.y = Slice::stof(*++it);
-	rect.size.width = Slice::stof(*++it);
-	rect.size.height = Slice::stof(*++it);
+	rect.origin.x = it->toFloat();
+	rect.origin.y = (++it)->toFloat();
+	rect.size.width = (++it)->toFloat();
+	rect.size.height = (++it)->toFloat();
 }
 
 static void get(String value, Color& color) {
@@ -56,9 +56,9 @@ static void get(String value, Color& color) {
 		uint32_t rgb = 0;
 		try {
 			if (str.size() == 3) {
-				rgb = Slice::stoi(std::string("0x") + str[0] + str[0] + str[1] + str[1] + str[2] + str[2], 16);
+				rgb = Slice("0x"s + str[0] + str[0] + str[1] + str[1] + str[2] + str[2]).toInt(16);
 			} else {
-				rgb = Slice::stoi("0x" + str.toString(), 16);
+				rgb = Slice("0x"s + str.toString()).toInt(16);
 			}
 		} catch (std::invalid_argument&) {
 			Error("got invalid color string for VG render: {}", str.toString());
@@ -126,12 +126,12 @@ static void attribFillStroke(FillStrokeData& data, String name, String value) {
 			break;
 		}
 		case "fill-opacity"_hash: {
-			float opacity = Slice::stof(value);
+			float opacity = value.toFloat();
 			data.color.setOpacity(opacity * data.color.getOpacity());
 			break;
 		}
 		case "opacity"_hash: {
-			float opacity = Slice::stof(value);
+			float opacity = value.toFloat();
 			data.color.setOpacity(opacity * data.color.getOpacity());
 			break;
 		}
@@ -144,15 +144,15 @@ static void attribFillStroke(FillStrokeData& data, String name, String value) {
 			break;
 		}
 		case "stroke-opacity"_hash: {
-			float opacity = Slice::stof(value);
+			float opacity = value.toFloat();
 			if (!data.strokeColor) data.strokeColor = Color(0x0);
 			data.strokeColor.value().setOpacity(opacity);
 			break;
 		}
 		case "stroke-linecap"_hash: data.lineCap = getLineCap(value); break;
 		case "stroke-linejoin"_hash: data.lineJoin = getLineCap(value); break;
-		case "stroke-miterlimit"_hash: data.miterLimit = Slice::stof(value); break;
-		case "stroke-width"_hash: data.strokeWidth = Slice::stof(value); break;
+		case "stroke-miterlimit"_hash: data.miterLimit = value.toFloat(); break;
+		case "stroke-width"_hash: data.strokeWidth = value.toFloat(); break;
 	}
 }
 
@@ -259,7 +259,7 @@ static bool getTransform(std::optional<nvg::Transform>& transform, Slice v) {
 			nvg::Transform trans = {};
 			int i = 0;
 			for (const auto& token : tokens) {
-				trans.t[i] = Slice::stof(token);
+				trans.t[i] = token.toFloat();
 				++i;
 			}
 			transform = trans;
@@ -279,8 +279,8 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 	switch (Switch::hash(name)) {
 		case "svg"_hash: {
 			ATTR_START
-			case "width"_hash: def->_width = Slice::stof(v); break;
-			case "height"_hash: def->_height = Slice::stof(v); break;
+			case "width"_hash: def->_width = v.toFloat(); break;
+			case "height"_hash: def->_height = v.toFloat(); break;
 			case "viewBox"_hash: {
 				Rect rc;
 				get(v, rc);
@@ -294,9 +294,9 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 		case "circle"_hash: {
 			CircleData data;
 			ATTR_START
-			case "cx"_hash: data.cx = Slice::stof(v); break;
-			case "cy"_hash: data.cy = Slice::stof(v); break;
-			case "r"_hash: data.r = Slice::stof(v); break;
+			case "cx"_hash: data.cx = v.toFloat(); break;
+			case "cy"_hash: data.cy = v.toFloat(); break;
+			case "r"_hash: data.r = v.toFloat(); break;
 			default:
 				attribFillStroke(data.fillStroke, k, v);
 				break;
@@ -311,10 +311,10 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 		case "ellipse"_hash: {
 			EllipseData data;
 			ATTR_START
-			case "cx"_hash: data.cx = Slice::stof(v); break;
-			case "cy"_hash: data.cy = Slice::stof(v); break;
-			case "rx"_hash: data.rx = Slice::stof(v); break;
-			case "ry"_hash: data.ry = Slice::stof(v); break;
+			case "cx"_hash: data.cx = v.toFloat(); break;
+			case "cy"_hash: data.cy = v.toFloat(); break;
+			case "rx"_hash: data.rx = v.toFloat(); break;
+			case "ry"_hash: data.ry = v.toFloat(); break;
 			default:
 				attribFillStroke(data.fillStroke, k, v);
 				break;
@@ -336,10 +336,10 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 		case "line"_hash: {
 			LineData data;
 			ATTR_START
-			case "x1"_hash: data.x1 = Slice::stof(v); break;
-			case "y1"_hash: data.y1 = Slice::stof(v); break;
-			case "x2"_hash: data.x2 = Slice::stof(v); break;
-			case "y2"_hash: data.y2 = Slice::stof(v); break;
+			case "x1"_hash: data.x1 = v.toFloat(); break;
+			case "y1"_hash: data.y1 = v.toFloat(); break;
+			case "x2"_hash: data.x2 = v.toFloat(); break;
+			case "y2"_hash: data.y2 = v.toFloat(); break;
 			default:
 				attribFillStroke(data.fillStroke, k, v);
 				break;
@@ -354,10 +354,10 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 		}
 		case "lineargradient"_hash: {
 			ATTR_START
-			case "x1"_hash: _currentLinearGradient.x1 = Slice::stof(v); break;
-			case "y1"_hash: _currentLinearGradient.y1 = Slice::stof(v); break;
-			case "x2"_hash: _currentLinearGradient.x2 = Slice::stof(v); break;
-			case "y2"_hash: _currentLinearGradient.y2 = Slice::stof(v); break;
+			case "x1"_hash: _currentLinearGradient.x1 = v.toFloat(); break;
+			case "y1"_hash: _currentLinearGradient.y1 = v.toFloat(); break;
+			case "x2"_hash: _currentLinearGradient.x2 = v.toFloat(); break;
+			case "y2"_hash: _currentLinearGradient.y2 = v.toFloat(); break;
 			case "id"_hash: _currentLinearGradient.id = v.toString(); break;
 			case "gradientTransform"_hash: {
 				if (!getTransform(_currentLinearGradient.transform, v)) {
@@ -372,10 +372,10 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 			float offset = 0.0f;
 			Color stopColor;
 			ATTR_START
-			case "offset"_hash: offset = Slice::stof(v); break;
+			case "offset"_hash: offset = v.toFloat(); break;
 			case "stop-color"_hash: get(v, stopColor); break;
 			case "stop-opacity"_hash:
-				stopColor.setOpacity(Slice::stof(v));
+				stopColor.setOpacity(v.toFloat());
 				break;
 				ATTR_STOP
 				_currentLinearGradient.stops.emplace_back(offset, stopColor);
@@ -392,8 +392,8 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 					if (tokens.size() != 2) {
 						throw rapidxml::parse_error("<polygon> points format is invalid", r_cast<void*>(c_cast<char*>(name)));
 					}
-					float x = Slice::stof(tokens.front());
-					float y = Slice::stof(tokens.back());
+					float x = tokens.front().toFloat();
+					float y = tokens.back().toFloat();
 					data.points.push_back({x, y});
 				}
 				break;
@@ -418,10 +418,10 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 		case "rect"_hash: {
 			RectData data;
 			ATTR_START
-			case "x"_hash: data.x = Slice::stof(v); break;
-			case "y"_hash: data.y = Slice::stof(v); break;
-			case "width"_hash: data.width = Slice::stof(v); break;
-			case "height"_hash: data.height = Slice::stof(v); break;
+			case "x"_hash: data.x = v.toFloat(); break;
+			case "y"_hash: data.y = v.toFloat(); break;
+			case "width"_hash: data.width = v.toFloat(); break;
+			case "height"_hash: data.height = v.toFloat(); break;
 			case "transform"_hash: {
 				if (!getTransform(data.transform, v)) {
 					throw rapidxml::parse_error("transform is not supported", r_cast<void*>(c_cast<char*>(name)));
@@ -472,7 +472,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 						while (!parameters.empty()) {
 							std::vector<float> args;
 							for (int i = 0; i < parameterCount; ++i) {
-								args.push_back(Slice::stof(parameters.front()));
+								args.push_back(Slice(parameters.front()).toFloat());
 								parameters.pop_front();
 							}
 							data.commands.push_back({command.value(), std::move(args)});

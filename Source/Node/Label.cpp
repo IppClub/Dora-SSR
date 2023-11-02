@@ -80,7 +80,7 @@ std::pair<std::string, int> FontCache::getArgsFromStr(String fontStr) {
 	if (tokens.size() == 2) {
 		auto it = tokens.begin();
 		Slice fontName = *it;
-		int fontSize = Slice::stoi(*(++it));
+		int fontSize = (++it)->toInt();
 		return {fontName.toString(), fontSize};
 	} else {
 		Error("invalid fontStr for \"{}\".", fontStr.toString());

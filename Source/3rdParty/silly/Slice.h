@@ -179,9 +179,9 @@ public:
 
 	static const std::string Empty;
 
-	static float stof(Slice str);
+	float toFloat() const;
 
-	static int stoi(Slice str, int base = 10);
+	int toInt(int base = 10) const;
 
 	static std::string join(const std::list<std::string>& list, Slice delimer = Empty);
 
@@ -219,11 +219,6 @@ private:
 	const char* str_;
 	size_t len_;
 };
-
-inline Slice trimSpace(const Slice& s) {
-	Slice tmp = s;
-	return tmp.trimSpace();
-}
 
 inline bool operator==(const Slice& lhs, const Slice& rhs) {
 	return lhs.compare(rhs) == 0;

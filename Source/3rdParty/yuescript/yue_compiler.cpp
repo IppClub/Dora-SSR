@@ -9175,17 +9175,17 @@ private:
 						pushScope();
 						extraScope = true;
 					}
-					auto typeVar = getUnusedName("_type_");
+					auto typeVar = getUnusedName("_type_"sv);
 					forceAddToScope(typeVar);
-					tabCheckVar = getUnusedName("_tab_");
+					tabCheckVar = getUnusedName("_tab_"sv);
 					forceAddToScope(tabCheckVar);
-					temp.push_back(indent() + "local "s + typeVar + " = "s + globalVar("type", branch) + '(' + objVar + ')' + nll(branch));
+					temp.push_back(indent() + "local "s + typeVar + " = "s + globalVar("type"sv, branch) + '(' + objVar + ')' + nll(branch));
 					temp.push_back(indent() + "local "s + tabCheckVar + " = \"table\" == "s + typeVar + " or \"userdata\" == "s + typeVar + nll(branch));
 				}
 				std::string matchVar;
 				bool lastBranch = branches.back() == branch_ && !switchNode->lastBranch;
 				if (!lastBranch) {
-					matchVar = getUnusedName("_match_");
+					matchVar = getUnusedName("_match_"sv);
 					forceAddToScope(matchVar);
 					temp.push_back(indent() + "local "s + matchVar + " = false"s + nll(branch));
 				}

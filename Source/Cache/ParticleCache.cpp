@@ -158,28 +158,28 @@ void ParticleCache::Parser::get(String value, Vec4& vec) {
 	auto tokens = value.split(",");
 	AssertUnless(tokens.size() == 4, "invalid vec4 str for: \"{}\"", value.toString());
 	auto it = tokens.begin();
-	vec.x = Slice::stof(*it);
-	vec.y = Slice::stof(*++it);
-	vec.z = Slice::stof(*++it);
-	vec.w = Slice::stof(*++it);
+	vec.x = it->toFloat();
+	vec.y = (++it)->toFloat();
+	vec.z = (++it)->toFloat();
+	vec.w = (++it)->toFloat();
 }
 
 void ParticleCache::Parser::get(String value, Vec2& vec) {
 	auto tokens = value.split(",");
 	AssertUnless(tokens.size() == 2, "invalid vec2 str for: \"{}\"", value.toString());
 	auto it = tokens.begin();
-	vec.x = Slice::stof(*it);
-	vec.y = Slice::stof(*++it);
+	vec.x = it->toFloat();
+	vec.y = (++it)->toFloat();
 }
 
 void ParticleCache::Parser::get(String value, Rect& rect) {
 	auto tokens = value.split(",");
 	AssertUnless(tokens.size() == 4, "invalid vec4 str for: \"{}\"", value.toString());
 	auto it = tokens.begin();
-	rect.origin.x = Slice::stof(*it);
-	rect.origin.y = Slice::stof(*++it);
-	rect.size.width = Slice::stof(*++it);
-	rect.size.height = Slice::stof(*++it);
+	rect.origin.x = it->toFloat();
+	rect.origin.y = (++it)->toFloat();
+	rect.size.width = (++it)->toFloat();
+	rect.size.height = (++it)->toFloat();
 }
 
 NS_DOROTHY_END

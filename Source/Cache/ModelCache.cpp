@@ -37,8 +37,8 @@ void ModelCache::Parser::getPosFromStr(String str, float& x, float& y) {
 	auto tokens = str.split(",");
 	AssertUnless(tokens.size() == 2, "invalid pos str for: \"{}\"", str.toString());
 	auto it = tokens.begin();
-	x = Slice::stof(*it);
-	y = Slice::stof(*++it);
+	x = it->toFloat();
+	y = (++it)->toFloat();
 }
 
 void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) {
@@ -218,7 +218,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						Slice attr(attrs[++i]);
 						auto tokens = attr.split(",");
 						for (const auto& token : tokens) {
-							nodeDef->looks.push_back(Slice::stoi(token));
+							nodeDef->looks.push_back(token.toInt());
 						}
 					} break;
 				}
