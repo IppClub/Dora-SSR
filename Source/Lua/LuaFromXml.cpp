@@ -812,7 +812,7 @@ static const char* _toBoolean(const char* str) {
 	fmt::format_to(std::back_inserter(stream), "local {} = ClipNode(){}"sv, self, nl());
 #define ClipNode_Handle \
 	Node_Handle if (alphaThreshold) fmt::format_to(std::back_inserter(stream), "{}.alphaThreshold = {}{}"sv, self, Val(alphaThreshold), nl()); \
-	if (inverted) fmt::format_to(std::back_inserter(stream), "{}.inverted = {}{}"sv, toBoolean(inverted), nl());
+	if (inverted) fmt::format_to(std::back_inserter(stream), "{}.inverted = {}{}"sv, self, toBoolean(inverted), nl());
 #define ClipNode_Finish \
 	Add_To_Parent
 
@@ -1364,7 +1364,7 @@ public:
 	std::string nl();
 	void begin() {
 		errors.clear();
-		fmt::format_to(std::back_inserter(stream),
+		fmt::format_to(std::back_inserter(stream), "{}"sv,
 			"return function(args)"s + nl() + "local _ENV = Dorothy(args)"s + nl());
 	}
 	void end() {
@@ -1434,7 +1434,7 @@ private:
 	std::stack<oItem> elementStack;
 	std::unordered_set<std::string> names;
 	std::unordered_set<std::string> imported;
-	std::unordered_map<std::string, std::string> attributes;
+	StringMap<std::string> attributes;
 	fmt::memory_buffer stream;
 	fmt::memory_buffer imports;
 };
@@ -1829,7 +1829,11 @@ void XmlDelegator::endElement(const char* name) {
 			oFunc func = funcs.top();
 			funcs.pop();
 			if (parentIsAction) {
-				fmt::format_to(std::back_inserter(stream), func.type == oFuncType::ActionDef ? "local {} = {}{}"sv : "local {} = Action({}){}"sv, currentData.name, func.begin, nl());
+				if (func.type == oFuncType::ActionDef) {
+					fmt::format_to(std::back_inserter(stream), "local {} = {}{}"sv, currentData.name, func.begin, nl());
+				} else {
+					fmt::format_to(std::back_inserter(stream), "local {} = Action({}){}"sv, currentData.name, func.begin, nl());
+				}
 			} else {
 				items.push(func.begin);
 				auto it = names.find(currentData.name);
@@ -1855,7 +1859,11 @@ void XmlDelegator::endElement(const char* name) {
 			}
 			tempItem += ")";
 			if (parentIsAction) {
-				fmt::format_to(std::back_inserter(stream), func.type == oFuncType::ActionDef ? "local {} = {}{}"sv : "local {} = Action({}){}"sv, currentData.name, tempItem, nl());
+				if (func.type == oFuncType::ActionDef) {
+					fmt::format_to(std::back_inserter(stream), "local {} = {}{}"sv, currentData.name, tempItem, nl());
+				} else {
+					fmt::format_to(std::back_inserter(stream), "local {} = Action({}){}"sv, currentData.name, tempItem, nl());
+				}
 			} else {
 				items.push(tempItem);
 				auto it = names.find(currentData.name);

@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-std::unordered_map<std::string, Own<EventType>> Event::_eventMap;
+StringMap<Own<EventType>> Event::_eventMap;
 
 Event::Event(String name)
 	: _name(name) { }
@@ -49,7 +49,7 @@ void Event::reg(Listener* listener) {
 }
 
 void Event::send(Event* e) {
-	auto it = _eventMap.find(e->getName().toString());
+	auto it = _eventMap.find(e->getName());
 	if (it != _eventMap.end()) {
 		it->second->handle(e);
 	}

@@ -26,7 +26,7 @@ public:
 	/** Name of the texture file. Name only, not file path. */
 	std::string textureFile;
 	/** Different areas on this texture. */
-	std::unordered_map<std::string, Own<Rect>> rects;
+	StringMap<Own<Rect>> rects;
 	/** Get a sprite instance with an name. */
 	Sprite* toSprite(String name);
 	std::string toXml();

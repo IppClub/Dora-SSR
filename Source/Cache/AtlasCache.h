@@ -37,7 +37,7 @@ public:
 	void removeUnused();
 
 private:
-	std::unordered_map<std::string, Ref<Atlas>> _atlas;
+	StringMap<Ref<Atlas>> _atlas;
 	SINGLETON_REF(AtlasCache, Director, AsyncThread);
 };
 

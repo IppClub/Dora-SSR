@@ -74,8 +74,8 @@ private:
 	int _asyncLoadCount;
 	Own<db::DragonBones> _dragonBoneInstance;
 	std::tuple<std::string, std::string, std::string> getFileFromStr(String boneStr);
-	std::unordered_map<std::string, int> _atlasRefs;
-	std::unordered_map<std::string, int> _boneRefs;
+	StringMap<int> _atlasRefs;
+	StringMap<int> _boneRefs;
 	SINGLETON_REF(DragonBoneCache, Director, AsyncThread);
 };
 

@@ -151,7 +151,7 @@ bool ShaderCache::unload() {
 }
 
 void ShaderCache::removeUnused() {
-	std::vector<std::unordered_map<std::string, Ref<Shader>>::iterator> targets;
+	std::vector<StringMap<Ref<Shader>>::iterator> targets;
 	for (auto it = _shaders.begin(); it != _shaders.end(); ++it) {
 		if (it->second->isSingleReferenced()) {
 			targets.push_back(it);

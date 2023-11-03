@@ -108,7 +108,7 @@ static void content_zip_async(int64_t zip_file, int64_t folder_path, int32_t fun
 		SharedWasmRuntime.invoke(func1);
 	});
 }
-static void linkContent(wasm3::module& mod) {
+static void linkContent(wasm3::module3& mod) {
 	mod.link_optional("*", "content_set_search_paths", content_set_search_paths);
 	mod.link_optional("*", "content_get_search_paths", content_get_search_paths);
 	mod.link_optional("*", "content_get_asset_path", content_get_asset_path);

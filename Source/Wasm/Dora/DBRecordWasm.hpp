@@ -4,7 +4,7 @@ static void dbrecord_release(int64_t raw) {
 static int32_t dbrecord_read(int64_t self, int64_t record) {
 	return r_cast<DBRecord*>(self)->read(r_cast<Array*>(record)) ? 1 : 0;
 }
-static void linkDBRecord(wasm3::module& mod) {
+static void linkDBRecord(wasm3::module3& mod) {
 	mod.link_optional("*", "dbrecord_release", dbrecord_release);
 	mod.link_optional("*", "dbrecord_read", dbrecord_read);
 }

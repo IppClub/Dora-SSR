@@ -30,7 +30,7 @@ protected:
 	SoundCache() { }
 
 private:
-	std::unordered_map<std::string, Ref<SoundFile>> _soundFiles;
+	StringMap<Ref<SoundFile>> _soundFiles;
 	SINGLETON_REF(SoundCache, Audio);
 };
 

@@ -29,7 +29,7 @@ static int64_t mlqlearner_unpack(int64_t hints, int64_t state) {
 static int64_t mlqlearner_new(double gamma, double alpha, double max_q) {
 	return from_object(MLQLearner::create(gamma, alpha, max_q));
 }
-static void linkMLQLearner(wasm3::module& mod) {
+static void linkMLQLearner(wasm3::module3& mod) {
 	mod.link_optional("*", "qlearner_type", qlearner_type);
 	mod.link_optional("*", "mlqlearner_update", mlqlearner_update);
 	mod.link_optional("*", "mlqlearner_get_best_action", mlqlearner_get_best_action);

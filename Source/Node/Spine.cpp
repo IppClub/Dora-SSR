@@ -261,16 +261,15 @@ void Spine::stop() {
 
 void Spine::setSlot(String name, Node* item) {
 	if (!_slots) {
-		_slots = New<std::unordered_map<std::string, Ref<Node>>>();
+		_slots = New<StringMap<Ref<Node>>>();
 	}
-	auto nameStr = name.toString();
-	auto it = _slots->find(nameStr);
+	auto it = _slots->find(name);
 	if (it != _slots->end()) {
 		it->second->removeFromParent();
 		_slots->erase(it);
 	}
 	if (item) {
-		(*_slots)[nameStr] = item;
+		(*_slots)[name.toString()] = item;
 		item->setVisible(false);
 		addChild(item);
 	}
@@ -278,7 +277,7 @@ void Spine::setSlot(String name, Node* item) {
 
 Node* Spine::getSlot(String name) {
 	if (_slots) {
-		auto it = _slots->find(name.toString());
+		auto it = _slots->find(name);
 		if (it != _slots->end()) {
 			return it->second;
 		}

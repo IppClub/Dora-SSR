@@ -244,7 +244,7 @@ bool TextureCache::unload() {
 }
 
 void TextureCache::removeUnused() {
-	std::vector<std::unordered_map<std::string, Ref<Texture2D>>::iterator> targets;
+	std::vector<StringMap<Ref<Texture2D>>::iterator> targets;
 	for (auto it = _textures.begin(); it != _textures.end(); ++it) {
 		if (it->second->isSingleReferenced()) {
 			targets.push_back(it);

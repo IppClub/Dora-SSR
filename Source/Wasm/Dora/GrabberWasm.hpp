@@ -40,7 +40,7 @@ static int32_t grabber_get_color(int64_t self, int32_t x, int32_t y) {
 static void grabber_move_uv(int64_t self, int32_t x, int32_t y, int64_t offset) {
 	r_cast<Grabber*>(self)->moveUV(s_cast<int>(x), s_cast<int>(y), vec2_from(offset));
 }
-static void linkGrabber(wasm3::module& mod) {
+static void linkGrabber(wasm3::module3& mod) {
 	mod.link_optional("*", "grabber_type", grabber_type);
 	mod.link_optional("*", "grabber_set_camera", grabber_set_camera);
 	mod.link_optional("*", "grabber_get_camera", grabber_get_camera);

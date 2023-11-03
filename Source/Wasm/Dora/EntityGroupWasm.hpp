@@ -19,7 +19,7 @@ static int64_t entitygroup_find(int64_t self, int32_t func, int64_t stack) {
 static int64_t entitygroup_new(int64_t components) {
 	return from_object(EntityGroup::create(from_str_vec(components)));
 }
-static void linkEntityGroup(wasm3::module& mod) {
+static void linkEntityGroup(wasm3::module3& mod) {
 	mod.link_optional("*", "group_type", group_type);
 	mod.link_optional("*", "entitygroup_get_count", entitygroup_get_count);
 	mod.link_optional("*", "entitygroup_find", entitygroup_find);

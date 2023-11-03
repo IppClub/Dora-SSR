@@ -26,12 +26,12 @@
 #include <math.h>
 #include "nanovg.h"
 
-#include "bgfx/bgfx.h"
-#include "bgfx/embedded_shader.h"
-
 #include "bx/bx.h"
 #include "bx/allocator.h"
 #include "bx/uint32_t.h"
+
+#include "bgfx/bgfx.h"
+#include "bgfx/embedded_shader.h"
 
 BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4244); // warning C4244: '=' : conversion from '' to '', possible loss of data
 

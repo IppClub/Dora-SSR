@@ -15,7 +15,7 @@ static int64_t platformer_wasmactionupdate_new(int32_t func, int64_t stack) {
 		return std::get<bool>(args->pop());
 	}});
 }
-static void linkPlatformerWasmActionUpdate(wasm3::module& mod) {
+static void linkPlatformerWasmActionUpdate(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_actionupdate_release", platformer_actionupdate_release);
 	mod.link_optional("*", "platformer_wasmactionupdate_new", platformer_wasmactionupdate_new);
 }

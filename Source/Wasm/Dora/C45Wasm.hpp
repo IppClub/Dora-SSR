@@ -12,6 +12,6 @@ static void c45_build_decision_tree_async(int64_t data, int32_t max_depth, int32
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static void linkC45(wasm3::module& mod) {
+static void linkC45(wasm3::module3& mod) {
 	mod.link_optional("*", "c45_build_decision_tree_async", c45_build_decision_tree_async);
 }

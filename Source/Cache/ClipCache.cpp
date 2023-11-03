@@ -19,7 +19,7 @@ NS_DOROTHY_BEGIN
 ClipDef::ClipDef() { }
 
 Sprite* ClipDef::toSprite(String name) {
-	auto it = rects.find(name.toString());
+	auto it = rects.find(name);
 	if (it != rects.end()) {
 		Texture2D* texture = SharedTextureCache.load(textureFile);
 		Sprite* sprite = Sprite::create(texture, *it->second);

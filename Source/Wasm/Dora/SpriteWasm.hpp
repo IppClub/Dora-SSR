@@ -67,7 +67,7 @@ static int64_t sprite_with_texture(int64_t texture) {
 static int64_t sprite_with_file(int64_t clip_str) {
 	return from_object(Sprite::from(*str_from(clip_str)));
 }
-static void linkSprite(wasm3::module& mod) {
+static void linkSprite(wasm3::module3& mod) {
 	mod.link_optional("*", "sprite_type", sprite_type);
 	mod.link_optional("*", "sprite_set_depth_write", sprite_set_depth_write);
 	mod.link_optional("*", "sprite_is_depth_write", sprite_is_depth_write);

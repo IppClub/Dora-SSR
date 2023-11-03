@@ -27,7 +27,7 @@ static void cache_remove_unused() {
 static void cache_remove_unused_by_type(int64_t type_name) {
 	Cache::removeUnused(*str_from(type_name));
 }
-static void linkCache(wasm3::module& mod) {
+static void linkCache(wasm3::module3& mod) {
 	mod.link_optional("*", "cache_load", cache_load);
 	mod.link_optional("*", "cache_load_async", cache_load_async);
 	mod.link_optional("*", "cache_update_item", cache_update_item);

@@ -143,7 +143,7 @@ private:
 	void setLook(int index);
 	float play(uint32_t index, bool loop);
 	void resume(uint32_t index, bool loop);
-	typedef std::unordered_map<std::string, Node*> NodeMap;
+	typedef StringMap<Node*> NodeMap;
 	void visit(SpriteDef* parentDef, Node* parentNode, ClipDef* clipDef);
 	void onResetAnimationEnd();
 	void addLook(int index, Node* node);

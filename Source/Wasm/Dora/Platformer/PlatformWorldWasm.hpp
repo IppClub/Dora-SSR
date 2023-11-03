@@ -34,7 +34,7 @@ static void platformer_platformworld_remove_all_layers(int64_t self) {
 static int64_t platformer_platformworld_new() {
 	return from_object(Platformer::PlatformWorld::create());
 }
-static void linkPlatformerPlatformWorld(wasm3::module& mod) {
+static void linkPlatformerPlatformWorld(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_platformworld_type", platformer_platformworld_type);
 	mod.link_optional("*", "platformer_platformworld_get_camera", platformer_platformworld_get_camera);
 	mod.link_optional("*", "platformer_platformworld_move_child", platformer_platformworld_move_child);

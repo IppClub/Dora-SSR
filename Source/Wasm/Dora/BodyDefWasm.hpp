@@ -115,7 +115,7 @@ static void bodydef_attach_disk_sensor(int64_t self, int32_t tag, float radius) 
 static int64_t bodydef_new() {
 	return from_object(BodyDef::create());
 }
-static void linkBodyDef(wasm3::module& mod) {
+static void linkBodyDef(wasm3::module3& mod) {
 	mod.link_optional("*", "bodydef_type", bodydef_type);
 	mod.link_optional("*", "bodydef_set_position", bodydef_set_position);
 	mod.link_optional("*", "bodydef_get_position", bodydef_get_position);

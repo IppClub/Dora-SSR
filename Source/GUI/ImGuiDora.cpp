@@ -181,9 +181,9 @@ public:
 			ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
 			ImGui::Begin(title, p_open);
 		}
-		if (ImGui::Button(useChinese ? u8"清空" : "Clear")) clear();
+		if (ImGui::Button(useChinese ? r_cast<const char*>(u8"清空") : "Clear")) clear();
 		ImGui::SameLine();
-		if (ImGui::Button(useChinese ? u8"复制" : "Copy") && !_logs.empty()) {
+		if (ImGui::Button(useChinese ? r_cast<const char*>(u8"复制") : "Copy") && !_logs.empty()) {
 			std::string logText;
 			for (const auto& line : _logs) {
 				logText.append(line);
@@ -200,7 +200,7 @@ public:
 			_fullScreen = !_fullScreen;
 		}
 		ImGui::SameLine();
-		_filter.Draw(useChinese ? u8"筛选" : "Filter", -60.0f);
+		_filter.Draw(useChinese ? r_cast<const char*>(u8"筛选") : "Filter", -60.0f);
 		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
 		ImGui::BeginChild(_fullScreen ? "scrolling_full" : "scrolling", ImVec2(0, -footer_height_to_reserve), false);
 		if (_forceScroll == 0 && _scrollToBottom && ImGui::GetScrollY() + footer_height_to_reserve < ImGui::GetScrollMaxY()) {
@@ -247,7 +247,7 @@ public:
 		bool reclaimFocus = false;
 		ImGuiInputTextFlags inputTextFlags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
 		ImGui::PushItemWidth(-60);
-		if (ImGui::InputText(useChinese ? u8"命令行" : "REPL", _buf.data(), _buf.size(), inputTextFlags, &TextEditCallbackStub, r_cast<void*>(this))) {
+		if (ImGui::InputText(useChinese ? r_cast<const char*>(u8"命令行") : "REPL", _buf.data(), _buf.size(), inputTextFlags, &TextEditCallbackStub, r_cast<void*>(this))) {
 			_historyPos = -1;
 			for (int i = s_cast<int>(_history.size()) - 1; i >= 0; i--) {
 				if (_history[i] == _buf.data()) {
@@ -258,7 +258,7 @@ public:
 			std::string codes = _buf.data();
 			_buf.fill('\0');
 			_history.push_back(codes);
-			LogPrint(codes + '\n');
+			LogPrintInThread(codes + '\n');
 			codes.insert(0,
 				"rawset builtin, '_REPL', <index>: builtin unless builtin._REPL\n"
 				"_ENV = builtin._REPL\n"
@@ -666,9 +666,9 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 	bool useChinese = _useChinese && _isChineseSupported;
 	auto themeColor = SharedApplication.getThemeColor().toVec4();
 	bool itemHovered = false;
-	if (ImGui::Begin(useChinese ? u8"Dorothy 状态###DorothyStats" : "Dorothy Stats###DorothyStats", nullptr,
+	if (ImGui::Begin(useChinese ? r_cast<const char*>(u8"Dorothy 状态###DorothyStats") : "Dorothy Stats###DorothyStats", nullptr,
 			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
-		if (ImGui::CollapsingHeader(useChinese ? u8"基础" : "Basic")) {
+		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"基础") : "Basic")) {
 			const char* rendererNames[] = {
 				"Noop", //!< No rendering.
 				"Agc", //!< AGC
@@ -683,57 +683,57 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 				"Vulkan", //!< Vulkan
 				"WebGPU", //!< WebGPU
 			};
-			ImGui::TextColored(themeColor, useChinese ? u8"渲染器：" : "Renderer:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"渲染器：") : "Renderer:");
 			itemHovered |= ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::TextUnformatted(rendererNames[bgfx::getCaps()->rendererType]);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"当前使用的渲染底层的图形接口，可能是OpenGL、OpenGLES、DirectX11、Metal和Vulkan之一"_slice :
+				u8"当前使用的渲染底层的图形接口，可能是OpenGL、OpenGLES、DirectX11、Metal和Vulkan之一"sv :
 				"the current rendering graphics interface which can be OpenGL, OpenGLES, DirectX11, Metal or Vulkan"_slice);
-			ImGui::TextColored(themeColor, useChinese ? u8"多线程渲染：" : "Multi Threaded:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"多线程渲染：") : "Multi Threaded:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::TextUnformatted((bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) ? "true" : "false");
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"显示当前环境是否使用多线程渲染"_slice :
+				u8"显示当前环境是否使用多线程渲染"sv :
 				"whether the current environment uses multi-threaded rendering"_slice);
-			ImGui::TextColored(themeColor, useChinese ? u8"渲染缓冲区：" : "Back Buffer:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"渲染缓冲区：") : "Back Buffer:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			Size size = SharedView.getSize();
 			ImGui::Text("%d x %d", s_cast<int>(size.width), s_cast<int>(size.height));
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"主渲染缓冲区的大小，渲染缓冲区越大会越发明显的增加GPU渲染的开销"_slice :
+				u8"主渲染缓冲区的大小，渲染缓冲区越大会越发明显的增加GPU渲染的开销"sv :
 				"the size of the main rendering buffer, larger rendering buffer will increase GPU rendering overhead"_slice);
-			ImGui::TextColored(themeColor, useChinese ? u8"渲染调用：" : "Draw Call:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"渲染调用：") : "Draw Call:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numDraw);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"底层图形接口的调用次数，图形接口的调用，包括设置渲染状态，传输渲染数据之类的操作。这些操作调用的次数减少对改善性能会有一定的帮助"_slice :
+				u8"底层图形接口的调用次数，图形接口的调用，包括设置渲染状态，传输渲染数据之类的操作。这些操作调用的次数减少对改善性能会有一定的帮助"sv :
 				"the number of calls to the low-level graphics interface, including operations such as setting rendering states and transferring rendering data, a reduction of these operations can improve performance"_slice);
-			ImGui::TextColored(themeColor, useChinese ? u8"三角形：" : "Tri:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"三角形：") : "Tri:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::TriStrip] + bgfx::getStats()->numPrims[bgfx::Topology::TriList]);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"当前提交到GPU进行渲染的三角形的数量"_slice :
+				u8"当前提交到GPU进行渲染的三角形的数量"sv :
 				"the number of triangles submitted to the GPU for rendering"_slice);
 			ImGui::SameLine();
-			ImGui::TextColored(themeColor, useChinese ? u8"线段：" : "Line:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"线段：") : "Line:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::LineStrip] + bgfx::getStats()->numPrims[bgfx::Topology::LineList]);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"当前提交到GPU进行渲染的线段的数量"_slice :
+				u8"当前提交到GPU进行渲染的线段的数量"sv :
 				"the number of line segments submitted to the GPU for rendering"_slice);
-			ImGui::TextColored(themeColor, useChinese ? u8"可视区尺寸：" : "Visual Size:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"可视区尺寸：") : "Visual Size:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			auto visualSize = SharedApplication.getVisualSize();
@@ -745,7 +745,7 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 			}
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"当前进行渲染的图形窗口的逻辑尺寸，通常等于渲染缓冲区大小除以显示屏的像素密度"_slice :
+				u8"当前进行渲染的图形窗口的逻辑尺寸，通常等于渲染缓冲区大小除以显示屏的像素密度"sv :
 				"the logical size of the graphics window currently being rendered, equals to the renderbuffer size divided by the pixel density of the display"_slice);
 			static Size sizes[] = {
 				{4096, 2160},
@@ -756,7 +756,7 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 				{640, 480},
 				{320, 240}};
 			if (ImGui::BeginPopup("WindowSizeSelector")) {
-				if (ImGui::Selectable(useChinese ? u8"全屏模式" : "Full Screen")) {
+				if (ImGui::Selectable(useChinese ? r_cast<const char*>(u8"全屏模式") : "Full Screen")) {
 					SharedApplication.setWinSize(Size::zero);
 				}
 				for (const auto& size : sizes) {
@@ -770,21 +770,21 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 			}
 #endif
 			bool vsync = SharedView.isVSync();
-			if (ImGui::Checkbox(useChinese ? u8"垂直同步" : "VSync", &vsync)) {
+			if (ImGui::Checkbox(useChinese ? r_cast<const char*>(u8"垂直同步") : "VSync", &vsync)) {
 				SharedView.setVSync(vsync);
 			}
 			if (ImGui::IsItemHovered()) HelpMarker(useChinese ?
-				u8"垂直同步用于使GPU将在显示屏每次刷新之前进行等待，防止图形渲染过快导致的画面撕裂的现象"_slice :
+				u8"垂直同步用于使GPU将在显示屏每次刷新之前进行等待，防止图形渲染过快导致的画面撕裂的现象"sv :
 				"vertical synchronization is used to make the GPU wait before each refresh of the display to prevent screen tearing caused by too fast graphics rendering"_slice);
 			ImGui::SameLine();
 			bool fpsLimited = SharedApplication.isFPSLimited();
-			if (ImGui::Checkbox(useChinese ? u8"限制帧数" : "FPS Limited", &fpsLimited)) {
+			if (ImGui::Checkbox(useChinese ? r_cast<const char*>(u8"限制帧数") : "FPS Limited", &fpsLimited)) {
 				SharedApplication.setFPSLimited(fpsLimited);
 			}
 			if (ImGui::IsItemHovered()) HelpMarker(useChinese ?
-				u8"帧数限制会使引擎通过执行一个忙等待的死循环以获取更加精准的机器时间，并计算切换到下一帧的时间点。这是在PC机Windows系统上的通常做法，以提升CPU占用率来提升游戏的性能。但这也会导致额外的芯片热量产生和电力消耗"_slice :
+				u8"帧数限制会使引擎通过执行一个忙等待的死循环以获取更加精准的机器时间，并计算切换到下一帧的时间点。这是在PC机Windows系统上的通常做法，以提升CPU占用率来提升游戏的性能。但这也会导致额外的芯片热量产生和电力消耗"sv :
 				"FPS limiting will make engine run in a busy loop to track the  precise frame time to switch to the next frame. And this behavior can lead to 100% CPU usage. This is usually common practice on Windows PCs for better CPU usage occupation. But it also results in extra heat and power consumption"_slice);
-			ImGui::TextColored(themeColor, useChinese ? u8"帧数：" : "FPS:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"帧数：") : "FPS:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			int targetFPS = SharedApplication.getTargetFPS();
@@ -807,19 +807,19 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 				itemHovered |= ImGui::IsItemHovered();
 			}
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"游戏引擎应该运行的每秒目标帧数，仅在“限制帧数”选项被勾选时有效"_slice :
+				u8"游戏引擎应该运行的每秒目标帧数，仅在“限制帧数”选项被勾选时有效"sv :
 				"the target frames per second the game engine is supposed to run at, only works when 'FPS Limited' is checked"_slice);
 			int fixedFPS = SharedDirector.getScheduler()->getFixedFPS();
 			ImGui::PushItemWidth(100.0f);
-			if (ImGui::DragInt(useChinese ? u8"固定更新帧数" : "Fixed FPS", &fixedFPS, 1, 30, SharedApplication.getMaxFPS())) {
+			if (ImGui::DragInt(useChinese ? r_cast<const char*>(u8"固定更新帧数") : "Fixed FPS", &fixedFPS, 1, 30, SharedApplication.getMaxFPS())) {
 				SharedDirector.getScheduler()->setFixedFPS(fixedFPS);
 			}
 			if (ImGui::IsItemHovered()) HelpMarker(useChinese ?
-				u8"固定更新模式下的目标帧速率（以每秒帧数为单位），固定更新将确保更新函数以恒定的帧速率被调度，使用恒定的更新时间间隔值，用于防止物理引擎产生奇怪行为或是用于通过网络通信同步一些状态"_slice :
+				u8"固定更新模式下的目标帧速率（以每秒帧数为单位），固定更新将确保更新函数以恒定的帧速率被调度，使用恒定的更新时间间隔值，用于防止物理引擎产生奇怪行为或是用于通过网络通信同步一些状态"sv :
 				"the target frame rate (in frames per second) for a fixed update mode and the fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value, it is used for preventing weird behavior of a physics engine or synchronizing some states via network communications"_slice);
 			ImGui::PopItemWidth();
 		}
-		if (ImGui::CollapsingHeader(useChinese ? u8"时间" : "Time")) {
+		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"时间") : "Time")) {
 			_timeFrames++;
 			_cpuTime += SharedApplication.getCPUTime();
 			_gpuTime += SharedApplication.getGPUTime();
@@ -831,19 +831,19 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 				_cpuTime = _gpuTime = _deltaTime = 0.0;
 				_timeFrames = 0;
 			}
-			ImGui::Checkbox(useChinese ? u8"显示图表" : "Show Plot", &_showPlot);
+			ImGui::Checkbox(useChinese ? r_cast<const char*>(u8"显示图表") : "Show Plot", &_showPlot);
 			if (ImGui::IsItemHovered()) HelpMarker(useChinese ?
-				u8"显示每秒内的帧耗时峰值和CPU时间的占比的图表"_slice :
+				u8"显示每秒内的帧耗时峰值和CPU时间的占比的图表"sv :
 				"display the graphs showing the peak frame time spent per second and the percentage of CPU time"_slice);
-			ImGui::TextColored(themeColor, useChinese ? u8"当前帧数：" : "Current FPS:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"当前帧数：") : "Current FPS:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%.1f", 1000.0f / _avgDeltaTime);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"最近一秒内过去的游戏帧数"_slice :
+				u8"最近一秒内过去的游戏帧数"sv :
 				"the passd frames in the last second"_slice);
-			ImGui::TextColored(themeColor, useChinese ? u8"平均CPU耗时：" : "AVG CPU:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"平均CPU耗时：") : "AVG CPU:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			if (_avgCPUTime == 0)
@@ -852,9 +852,9 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 				ImGui::Text("%.1f ms", _avgCPUTime);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"最近一秒内每帧平均CPU耗时"_slice :
+				u8"最近一秒内每帧平均CPU耗时"sv :
 				"average CPU time per frame in the last second"_slice);
-			ImGui::TextColored(themeColor, useChinese ? u8"平均GPU耗时：" : "AVG GPU:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"平均GPU耗时：") : "AVG GPU:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			if (_avgGPUTime == 0)
@@ -863,44 +863,44 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 				ImGui::Text("%.1f ms", _avgGPUTime);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"最近一秒内每帧平均GPU耗时"_slice :
+				u8"最近一秒内每帧平均GPU耗时"sv :
 				"average GPU time per frame in the last second"_slice);
 		}
-		if (ImGui::CollapsingHeader(useChinese ? u8"对象" : "Object")) {
+		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"对象") : "Object")) {
 			_objectFrames++;
 			_objectEclapsed += SharedApplication.getDeltaTime();
-			ImGui::TextColored(themeColor, useChinese ? u8"C++对象：" : "C++ Object:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"C++对象：") : "C++ Object:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			_maxCppObjects = std::max(_maxCppObjects, Object::getCount());
 			ImGui::Text("%d", _maxCppObjects);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"所有现存的C++对象的数量"_slice :
+				u8"所有现存的C++对象的数量"sv :
 				"the number of total existing C++ objects"_slice);
-			ImGui::TextColored(themeColor, useChinese ? u8"Lua对象" : "Lua Object:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"Lua对象") : "Lua Object:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			_maxLuaObjects = std::max(_maxLuaObjects, Object::getLuaRefCount());
 			ImGui::Text("%d", _maxLuaObjects);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"所有现存的Lua引用的C++对象的计数"_slice :
+				u8"所有现存的Lua引用的C++对象的计数"sv :
 				"the number of total existing Lua references to C++ objects"_slice);
-			ImGui::TextColored(themeColor, useChinese ? u8"Lua回调：" : "Lua Callback:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"Lua回调：") : "Lua Callback:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			_maxCallbacks = std::max(_maxCallbacks, Object::getLuaCallbackCount());
 			ImGui::Text("%d", _maxCallbacks);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"Lua引用的C++函数对象的数量"_slice :
+				u8"Lua引用的C++函数对象的数量"sv :
 				"the number of C++ function call objects referenced by Lua"_slice);
 			if (_objectEclapsed >= 1.0) {
 				_objectFrames = _maxCppObjects = _maxLuaObjects = _maxCallbacks = _objectEclapsed = 0;
 			}
 		}
-		if (ImGui::CollapsingHeader(useChinese ? u8"内存" : "Memory")) {
+		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"内存") : "Memory")) {
 			_memFrames++;
 			_memEclapsed += SharedApplication.getDeltaTime();
 			_memPoolSize = std::max(MemoryPool::getTotalCapacity(), _memPoolSize);
@@ -915,48 +915,48 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 				_memPoolSize = _memLua = _memWASM = 0;
 				_memFrames = _memEclapsed = 0;
 			}
-			ImGui::TextColored(themeColor, useChinese ? u8"内存池：" : "Memory Pool:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"内存池：") : "Memory Pool:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%d kb", _lastMemPoolSize / 1024);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"引擎用于频繁分配小数据对象的内存池大小"_slice :
+				u8"引擎用于频繁分配小数据对象的内存池大小"sv :
 				"the size of the memory pool used by the engine to frequently allocate small data objects"_slice);
-			ImGui::TextColored(themeColor, useChinese ? u8"Lua内存：" : "Lua Memory:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"Lua内存：") : "Lua Memory:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%.2f mb", _lastMemLua / 1024.0f / 1024.0f);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"正在运行Lua虚拟机所分配的内存大小"_slice :
+				u8"正在运行Lua虚拟机所分配的内存大小"sv :
 				"the size of memory allocated by the running Lua virtual machine"_slice);
 			if (Singleton<WasmRuntime>::isInitialized()) {
-				ImGui::TextColored(themeColor, useChinese ? u8"WASM内存：" : "WASM Memory:");
+				ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"WASM内存：") : "WASM Memory:");
 				itemHovered = ImGui::IsItemHovered();
 				ImGui::SameLine();
 				ImGui::Text("%.2f mb", _lastMemWASM / 1024.0f / 1024.0f);
 				itemHovered |= ImGui::IsItemHovered();
 				if (itemHovered) HelpMarker(useChinese ?
-					u8"正在运行WASM虚拟机所分配的内存大小"_slice :
+					u8"正在运行WASM虚拟机所分配的内存大小"sv :
 					"the size of memory allocated by the running WASM virtual machine"_slice);
 			}
-			ImGui::TextColored(themeColor, useChinese ? u8"纹理内存：" : "Texture Size:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"纹理内存：") : "Texture Size:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%.2f mb", Texture2D::getStorageSize() / 1024.0f / 1024.0f);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ?
-				u8"引擎已加载的纹理占用的内存大小"_slice :
+				u8"引擎已加载的纹理占用的内存大小"sv :
 				"the memory footprint used by loaded textures"_slice);
 		}
-		if (ImGui::CollapsingHeader(useChinese ? u8"加载脚本" : "Loader")) {
-			if (ImGui::Button(useChinese ? u8"清除" : "Clear")) {
+		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"加载脚本") : "Loader")) {
+			if (ImGui::Button(useChinese ? r_cast<const char*>(u8"清除") : "Clear")) {
 				_loaderCosts.clear();
 				_loaderTotalTime = 0;
 			}
 			ImGui::SameLine();
-			ImGui::TextColored(themeColor, useChinese ? u8"耗时：" : "Time Cost:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"耗时：") : "Time Cost:");
 			ImGui::SameLine();
 			ImGui::Text("%.4f s", _loaderTotalTime);
 			const ImGuiTableFlags flags = ImGuiTableFlags_Resizable
@@ -968,18 +968,18 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 										| ImGuiTableFlags_NoBordersInBody
 										| ImGuiTableFlags_ScrollY
 										| ImGuiTableFlags_SizingFixedFit;
-			if (ImGui::BeginTable(useChinese ? u8"加载器" : "Loaders", 4, flags, ImVec2(0.0f, 400.0f))) {
-				ImGui::TableSetupColumn(useChinese ? u8"序号" : "Order",
+			if (ImGui::BeginTable(useChinese ? r_cast<const char*>(u8"加载器") : "Loaders", 4, flags, ImVec2(0.0f, 400.0f))) {
+				ImGui::TableSetupColumn(useChinese ? r_cast<const char*>(u8"序号") : "Order",
 					ImGuiTableColumnFlags_DefaultSort
 						| ImGuiTableColumnFlags_PreferSortDescending
 						| ImGuiTableColumnFlags_WidthFixed);
-				ImGui::TableSetupColumn(useChinese ? u8"时间" : "Time",
+				ImGui::TableSetupColumn(useChinese ? r_cast<const char*>(u8"时间") : "Time",
 					ImGuiTableColumnFlags_PreferSortDescending
 						| ImGuiTableColumnFlags_WidthFixed);
-				ImGui::TableSetupColumn(useChinese ? u8"层级" : "Depth",
+				ImGui::TableSetupColumn(useChinese ? r_cast<const char*>(u8"层级") : "Depth",
 					ImGuiTableColumnFlags_PreferSortAscending
 						| ImGuiTableColumnFlags_WidthFixed);
-				ImGui::TableSetupColumn(useChinese ? u8"模块名" : "Module",
+				ImGui::TableSetupColumn(useChinese ? r_cast<const char*>(u8"模块名") : "Module",
 					ImGuiTableColumnFlags_NoSort
 						| ImGuiTableColumnFlags_WidthStretch);
 				ImGui::TableSetupScrollFreeze(0, 1);
@@ -1047,28 +1047,28 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 				ImGui::EndTable();
 			}
 		}
-		if (ImGui::CollapsingHeader(useChinese ? u8"杂项" : "Misc")) {
+		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"杂项") : "Misc")) {
 			ImGui::PushItemWidth(150);
-			ImGui::TextColored(themeColor, useChinese ? u8"版本号：" : "Version:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"版本号：") : "Version:");
 			ImGui::SameLine();
 			auto version = SharedApplication.getVersion();
 			ImGui::TextUnformatted(&version.front(), &version.back() + 1);
-			ImGui::TextColored(themeColor, useChinese ? u8"调试模式：" : "Debug Mode:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"调试模式：") : "Debug Mode:");
 			ImGui::SameLine();
 			auto isDebugging = SharedApplication.isDebugging();
 			if (useChinese) {
-				ImGui::TextUnformatted(isDebugging ? u8"开启" : u8"关闭");
+				ImGui::TextUnformatted(r_cast<const char*>(isDebugging ? u8"开启" : u8"关闭"));
 			} else {
 				ImGui::TextUnformatted(isDebugging ? "true" : "false");
 			}
-			if (ImGui::ColorEdit3(useChinese ? u8"主题色" : "Theme Color", themeColor, ImGuiColorEditFlags_DisplayHex)) {
+			if (ImGui::ColorEdit3(useChinese ? r_cast<const char*>(u8"主题色") : "Theme Color", themeColor, ImGuiColorEditFlags_DisplayHex)) {
 				SharedApplication.setThemeColor(Color(themeColor));
 			}
 			static const char* languages[] = {
 				"English",
-				u8"简体中文"};
+				r_cast<const char*>(u8"简体中文")};
 			int index = useChinese ? 1 : 0;
-			if (ImGui::Combo(useChinese ? u8"语言" : "Language", &index, languages, _isChineseSupported ? 2 : 1)) {
+			if (ImGui::Combo(useChinese ? r_cast<const char*>(u8"语言") : "Language", &index, languages, _isChineseSupported ? 2 : 1)) {
 				SharedApplication.setLocale(index == 0 ? "en"_slice : "zh-Hans"_slice);
 			}
 			if (extra) extra();
@@ -1120,7 +1120,7 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 		}
 		Size size = SharedApplication.getVisualSize();
 		ImGui::SetNextWindowPos(Vec2{size.width / 2 - 160.0f, 10.0f}, ImGuiCond_FirstUseEver);
-		if (ImGui::Begin(useChinese ? u8"每秒内帧耗时峰值(ms)" : "Frame Time Peaks(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
+		if (ImGui::Begin(useChinese ? r_cast<const char*>(u8"每秒内帧耗时峰值(ms)") : "Frame Time Peaks(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 			ImPlot::SetNextAxesLimits(0, PlotCount, 0, std::max(_yLimit, targetTime) + 1.0, ImGuiCond_Always);
 			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0, 0, 0, 0));
 			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0, 0, 0, 0));
@@ -1128,12 +1128,12 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 					ImPlotFlags_NoChild | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoTitle | ImPlotFlags_NoInputs)) {
 				ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoTickLabels);
 				ImPlot::SetupLegend(ImPlotLocation_South, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
-				ImPlot::PlotInfLines(useChinese ? u8"基准" : "Base", &targetTime, 1, ImPlotInfLinesFlags_Horizontal);
+				ImPlot::PlotInfLines(useChinese ? r_cast<const char*>(u8"基准") : "Base", &targetTime, 1, ImPlotInfLinesFlags_Horizontal);
 				ImPlot::PlotLine("CPU", _times.data(), _cpuValues.data(),
 					s_cast<int>(_cpuValues.size()));
 				ImPlot::PlotLine("GPU", _times.data(), _gpuValues.data(),
 					s_cast<int>(_gpuValues.size()));
-				ImPlot::PlotLine(useChinese ? u8"帧间隔" : "Delta", _times.data(), _dtValues.data(),
+				ImPlot::PlotLine(useChinese ? r_cast<const char*>(u8"帧间隔") : "Delta", _times.data(), _dtValues.data(),
 					s_cast<int>(_dtValues.size()));
 				ImPlot::EndPlot();
 			}
@@ -1142,7 +1142,7 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 		ImGui::End();
 		if (!_updateCosts.empty()) {
 			ImGui::SetNextWindowPos(Vec2{size.width / 2 + 170.0f, 10.0f}, ImGuiCond_FirstUseEver);
-			if (ImGui::Begin(useChinese ? u8"每秒内CPU耗时(ms)" : "Total CPU Time(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
+			if (ImGui::Begin(useChinese ? r_cast<const char*>(u8"每秒内CPU耗时(ms)") : "Total CPU Time(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 				ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0, 0, 0, 0));
 				ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0, 0, 0, 0));
 				ImPlot::PushStyleColor(ImPlotCol_LegendBg, ImVec4(0, 0, 0, 0.3f));
@@ -1171,7 +1171,7 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 
 void ImGuiDora::showConsole() {
 	bool useChinese = _useChinese && _isChineseSupported;
-	_console->Draw(useChinese ? u8"Dorothy 控制台###DorothyConsole" : "Dorothy Console###DorothyConsole", useChinese);
+	_console->Draw(useChinese ? r_cast<const char*>(u8"Dorothy 控制台###DorothyConsole") : "Dorothy Console###DorothyConsole", useChinese);
 }
 
 static void SetPlatformImeDataFn(ImGuiViewport*, ImGuiPlatformImeData* data) {

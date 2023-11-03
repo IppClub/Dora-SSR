@@ -391,7 +391,7 @@ static int32_t node_gslot(int64_t self, int64_t name, int32_t func, int64_t stac
 static int64_t node_new() {
 	return from_object(Node::create());
 }
-static void linkNode(wasm3::module& mod) {
+static void linkNode(wasm3::module3& mod) {
 	mod.link_optional("*", "node_type", node_type);
 	mod.link_optional("*", "node_set_order", node_set_order);
 	mod.link_optional("*", "node_get_order", node_get_order);

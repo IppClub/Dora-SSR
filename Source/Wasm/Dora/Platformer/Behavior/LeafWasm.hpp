@@ -46,7 +46,7 @@ static int64_t platformer_behavior_leaf_retry(int32_t times, int64_t node) {
 static int64_t platformer_behavior_leaf_retry_until_pass(int64_t node) {
 	return from_object(BRetry(r_cast<Platformer::Behavior::Leaf*>(node)));
 }
-static void linkPlatformerBehaviorLeaf(wasm3::module& mod) {
+static void linkPlatformerBehaviorLeaf(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_behavior_tree_type", platformer_behavior_tree_type);
 	mod.link_optional("*", "platformer_behavior_leaf_seq", platformer_behavior_leaf_seq);
 	mod.link_optional("*", "platformer_behavior_leaf_sel", platformer_behavior_leaf_sel);

@@ -131,8 +131,8 @@ struct LifeCycler {
 	};
 	std::list<Reference> refs;
 	std::unordered_set<std::string> names;
-	std::unordered_map<std::string, Own<Life>> lives;
-	std::unordered_map<std::string, Own<std::vector<Reference*>>> itemRefs;
+	StringMap<Own<Life>> lives;
+	StringMap<Own<std::vector<Reference*>>> itemRefs;
 };
 
 Own<LifeCycler> globalCycler;

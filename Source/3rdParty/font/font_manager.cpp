@@ -11,8 +11,6 @@ using namespace Dorothy;
 #define STBTT_DEF extern
 #include "stb/stb_truetype.h"
 
-#include "bgfx/bgfx.h"
-
 #include "tinystl/allocator.h"
 #include "tinystl/unordered_map.h"
 namespace stl = tinystl;

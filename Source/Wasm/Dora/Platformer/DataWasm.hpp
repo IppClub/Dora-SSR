@@ -67,7 +67,7 @@ static int32_t platformer_data_is_terrain(int64_t body) {
 static void platformer_data_clear() {
 	SharedData.clear();
 }
-static void linkPlatformerData(wasm3::module& mod) {
+static void linkPlatformerData(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_data_get_group_first_player", platformer_data_get_group_first_player);
 	mod.link_optional("*", "platformer_data_get_group_last_player", platformer_data_get_group_last_player);
 	mod.link_optional("*", "platformer_data_get_group_hide", platformer_data_get_group_hide);

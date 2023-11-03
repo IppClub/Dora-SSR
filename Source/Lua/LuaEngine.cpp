@@ -46,7 +46,7 @@ static int dora_print(lua_State* L) {
 	}
 	t += '\n';
 	lua_settop(L, nargs);
-	LogPrint(t);
+	LogPrintInThread(t);
 	return 0;
 }
 
@@ -57,7 +57,7 @@ static int dora_trace_back(lua_State* L) {
 	lua_pushvalue(L, -3); // err debug traceback err
 	lua_pushinteger(L, 1); // err debug traceback err 1
 	lua_call(L, 2, 1); // traceback(err, 1), err debug msg
-	LogPrint(tolua_toslice(L, -1, nullptr));
+	LogPrintInThread(tolua_toslice(L, -1, nullptr).toString());
 	lua_pop(L, 3); // empty
 	return 0;
 }

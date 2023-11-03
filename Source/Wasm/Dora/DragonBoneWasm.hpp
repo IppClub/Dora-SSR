@@ -31,7 +31,7 @@ static int64_t dragonbone_get_looks(int64_t bone_str) {
 static int64_t dragonbone_get_animations(int64_t bone_str) {
 	return to_vec(dragon_bone_get_animation_names(*str_from(bone_str)));
 }
-static void linkDragonBone(wasm3::module& mod) {
+static void linkDragonBone(wasm3::module3& mod) {
 	mod.link_optional("*", "dragonbone_type", dragonbone_type);
 	mod.link_optional("*", "dragonbone_set_show_debug", dragonbone_set_show_debug);
 	mod.link_optional("*", "dragonbone_is_show_debug", dragonbone_is_show_debug);

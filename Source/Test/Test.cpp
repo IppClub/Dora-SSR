@@ -25,14 +25,14 @@ std::list<std::string> Test::getNames() {
 	return names;
 }
 
-std::unordered_map<std::string, TestEntry*>& Test::getTests() {
-	static std::unordered_map<std::string, TestEntry*> tests;
+StringMap<TestEntry*>& Test::getTests() {
+	static StringMap<TestEntry*> tests;
 	return tests;
 }
 
 bool Test::runTest(String name) {
 	try {
-		if (auto it = getTests().find(name.toString()); it != getTests().end()) {
+		if (auto it = getTests().find(name); it != getTests().end()) {
 			return it->second->run();
 		} else {
 			return false;

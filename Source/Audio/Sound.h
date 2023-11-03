@@ -68,9 +68,7 @@ protected:
 	Audio();
 
 private:
-	Ref<SystemTimer> _timer;
 	uint32_t _currentVoice;
-	Ref<SoundStream> _lastStream;
 	Ref<SoundStream> _currentStream;
 	SoLoud::Soloud* _soloud;
 	SINGLETON_REF(Audio, Application);

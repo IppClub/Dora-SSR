@@ -88,7 +88,7 @@ static int32_t application_is_idled() {
 static void application_shutdown() {
 	SharedApplication.shutdown();
 }
-static void linkApplication(wasm3::module& mod) {
+static void linkApplication(wasm3::module3& mod) {
 	mod.link_optional("*", "application_get_frame", application_get_frame);
 	mod.link_optional("*", "application_get_buffer_size", application_get_buffer_size);
 	mod.link_optional("*", "application_get_visual_size", application_get_visual_size);

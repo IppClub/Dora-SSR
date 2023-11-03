@@ -214,7 +214,7 @@ std::string Content::getFullPath(String filename) {
 	{
 		std::lock_guard<std::mutex> lock(pathMutex);
 
-		auto it = _fullPathCache.find(targetFile.toString());
+		auto it = _fullPathCache.find(targetFile);
 		if (it != _fullPathCache.end()) {
 			return it->second;
 		}

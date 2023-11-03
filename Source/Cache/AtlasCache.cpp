@@ -149,7 +149,7 @@ bool AtlasCache::unload() {
 }
 
 void AtlasCache::removeUnused() {
-	std::vector<std::unordered_map<std::string, Ref<Atlas>>::iterator> targets;
+	std::vector<StringMap<Ref<Atlas>>::iterator> targets;
 	for (auto it = _atlas.begin(); it != _atlas.end(); ++it) {
 		if (it->second->isSingleReferenced()) {
 			targets.push_back(it);

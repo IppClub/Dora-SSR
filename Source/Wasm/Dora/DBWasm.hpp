@@ -66,7 +66,7 @@ static void db_exec_async(int64_t sql, int64_t params, int32_t func, int64_t sta
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static void linkDB(wasm3::module& mod) {
+static void linkDB(wasm3::module3& mod) {
 	mod.link_optional("*", "db_exist", db_exist);
 	mod.link_optional("*", "db_exist_schema", db_exist_schema);
 	mod.link_optional("*", "db_exec", db_exec);

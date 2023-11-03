@@ -34,7 +34,7 @@ static void platformer_bullet_destroy(int64_t self) {
 static int64_t platformer_bullet_new(int64_t def, int64_t owner) {
 	return from_object(Platformer::Bullet::create(r_cast<Platformer::BulletDef*>(def), r_cast<Platformer::Unit*>(owner)));
 }
-static void linkPlatformerBullet(wasm3::module& mod) {
+static void linkPlatformerBullet(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_bullet_type", platformer_bullet_type);
 	mod.link_optional("*", "platformer_bullet_set_target_allow", platformer_bullet_set_target_allow);
 	mod.link_optional("*", "platformer_bullet_get_target_allow", platformer_bullet_get_target_allow);

@@ -25,7 +25,7 @@ public:
 		std::vector<Vec2> previousPathXY;
 		std::vector<int> transformCounts;
 	};
-	using GradientMap = std::unordered_map<std::string, std::function<void(Context*)>>;
+	using GradientMap = StringMap<std::function<void(Context*)>>;
 	using CommandList = std::list<std::function<void(Context*)>>;
 	PROPERTY_READONLY_CREF(GradientMap, Gradients);
 	PROPERTY_READONLY_CREF(CommandList, Commands);

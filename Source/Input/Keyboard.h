@@ -44,8 +44,8 @@ private:
 	std::vector<bool> _newCodeStates;
 	std::vector<std::string> _keyNames;
 	std::vector<std::string> _codeNames;
-	std::unordered_map<std::string, int> _keyMap;
-	std::unordered_map<std::string, int> _codeMap;
+	StringMap<int> _keyMap;
+	StringMap<int> _codeMap;
 	KeyboardHandler _imeHandler;
 	SINGLETON_REF(Keyboard, Director);
 };

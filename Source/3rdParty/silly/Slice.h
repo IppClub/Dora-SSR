@@ -25,8 +25,8 @@
 #include <cassert>
 #include <cstring>
 #include <list>
-#include <string>
 #include <memory>
+#include <string>
 
 namespace silly {
 
@@ -37,6 +37,7 @@ namespace slice {
 class Slice {
 private:
 	struct TrustedInitTag { };
+
 	constexpr Slice(const char* s, size_t n, TrustedInitTag)
 		: str_(s)
 		, len_(n) { }
@@ -56,6 +57,14 @@ public:
 	Slice(std::pair<const char*, size_t> sp)
 		: str_(sp.first)
 		, len_(sp.second) { }
+
+	Slice(std::string_view sv)
+		: str_(sv.data())
+		, len_(sv.size()) { }
+
+	Slice(std::u8string_view sv)
+		: str_(reinterpret_cast<const char*>(sv.data()))
+		, len_(sv.size()) { }
 
 	constexpr Slice(std::nullptr_t p = nullptr)
 		: str_(nullptr)
@@ -185,7 +194,7 @@ public:
 
 	static std::string join(const std::list<std::string>& list, Slice delimer = Empty);
 
-	constexpr friend Slice operator"" _slice(const char* s, size_t n);
+	constexpr friend Slice operator""_slice(const char* s, size_t n);
 
 	class CStr {
 	public:
@@ -198,7 +207,7 @@ public:
 				}
 			}
 		}
-		inline operator const char* () const { return get(); }
+		inline operator const char*() const { return get(); }
 		inline const char* get() const {
 			if (_cstr) {
 				return _cstr;
@@ -206,6 +215,7 @@ public:
 				return _str.c_str();
 			}
 		}
+
 	private:
 		const char* _cstr = nullptr;
 		std::string _str;
@@ -232,7 +242,7 @@ inline std::string operator+(const std::string& lhs, const Slice& rhs) {
 	return lhs + rhs.toString();
 }
 
-constexpr Slice operator"" _slice(const char* s, size_t n) {
+constexpr Slice operator""_slice(const char* s, size_t n) {
 	return Slice(s, n, Slice::TrustedInitTag{});
 }
 

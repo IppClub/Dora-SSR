@@ -19,7 +19,7 @@ static int64_t platformer_decision_ai_get_units_in_attack_range() {
 static int64_t platformer_decision_ai_get_bodies_in_attack_range() {
 	return from_object(SharedAI.getBodiesInAttackRange());
 }
-static void linkPlatformerDecisionAI(wasm3::module& mod) {
+static void linkPlatformerDecisionAI(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_decision_ai_get_units_by_relation", platformer_decision_ai_get_units_by_relation);
 	mod.link_optional("*", "platformer_decision_ai_get_detected_units", platformer_decision_ai_get_detected_units);
 	mod.link_optional("*", "platformer_decision_ai_get_detected_bodies", platformer_decision_ai_get_detected_bodies);

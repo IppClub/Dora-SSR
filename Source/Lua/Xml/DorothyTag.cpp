@@ -45,7 +45,7 @@ DorothyTag::LineType DorothyTag::getType(const std::string& line) {
 }
 
 void DorothyTag::load() {
-	std::unordered_map<std::string, std::shared_ptr<std::list<std::string>>> lists;
+	StringMap<std::shared_ptr<std::list<std::string>>> lists;
 	std::string elementName;
 	std::shared_ptr<Element> element;
 

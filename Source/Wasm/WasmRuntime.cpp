@@ -567,7 +567,7 @@ static void push_value(CallStack* stack, Value* v) {
 }
 
 static void dora_print(int64_t var) {
-	LogPrint(*str_from(var));
+	LogPrintInThread(*str_from(var));
 }
 
 /* Array */
@@ -1183,7 +1183,7 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/VertexColorWasm.hpp"
 #include "Dora/ViewWasm.hpp"
 
-static void linkAutoModule(wasm3::module& mod) {
+static void linkAutoModule(wasm3::module3& mod) {
 	linkArray(mod);
 	linkDictionary(mod);
 	linkRect(mod);
@@ -1260,7 +1260,7 @@ static void linkAutoModule(wasm3::module& mod) {
 	linkImGui(mod);
 }
 
-static void linkDoraModule(wasm3::module& mod) {
+static void linkDoraModule(wasm3::module3& mod) {
 	linkAutoModule(mod);
 
 	mod.link_optional("*", "str_new", str_new);
@@ -1412,7 +1412,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 		SharedAsyncThread.run(
 			[file, this] {
 				try {
-					auto mod = New<wasm3::module>(_env->parse_module(_wasm.first.get(), _wasm.second));
+					auto mod = New<wasm3::module3>(_env->parse_module(_wasm.first.get(), _wasm.second));
 					_runtime->load(*mod);
 					mod->link_default();
 					linkDoraModule(*mod);
@@ -1422,13 +1422,13 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 					return Values::alloc(std::move(mod), std::move(mainFn));
 				} catch (std::runtime_error& e) {
 					Error("failed to load wasm module: {}, due to: {}{}", file, e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
-					return Values::alloc(Own<wasm3::module>(), Own<wasm3::function>());
+					return Values::alloc(Own<wasm3::module3>(), Own<wasm3::function>());
 				}
 			},
 			[file, handler, this](Own<Values> values) {
 				try {
 					PROFILE("Loader"_slice, file);
-					Own<wasm3::module> mod;
+					Own<wasm3::module3> mod;
 					Own<wasm3::function> mainFn;
 					values->get(mod, mainFn);
 					if (mod) {
