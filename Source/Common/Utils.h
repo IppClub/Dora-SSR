@@ -384,4 +384,23 @@ public:
 })
 #define DEFER(code) _DEFER(code, __LINE__)
 
+struct StringHash {
+	using is_transparent = void;
+	[[nodiscard]] inline size_t operator()(const char* txt) const {
+		return std::hash<std::string_view>{}(txt);
+	}
+	[[nodiscard]] inline size_t operator()(std::string_view txt) const {
+		return std::hash<std::string_view>{}(txt);
+	}
+	[[nodiscard]] inline size_t operator()(String txt) const {
+		return std::hash<std::string_view>{}({txt.rawData(), txt.size()});
+	}
+	[[nodiscard]] inline size_t operator()(const std::string& txt) const {
+		return std::hash<std::string>{}(txt);
+	}
+};
+
+template <class T>
+using StringMap = std::unordered_map<std::string, T, StringHash, std::equal_to<>>;
+
 NS_DOROTHY_END

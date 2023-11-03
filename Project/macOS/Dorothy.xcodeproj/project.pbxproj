@@ -3770,7 +3770,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_WARN_VEXING_PARSE = YES;
 				CODE_SIGN_IDENTITY = "-";
@@ -3835,7 +3835,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_WARN_VEXING_PARSE = YES;
 				CODE_SIGN_IDENTITY = "-";

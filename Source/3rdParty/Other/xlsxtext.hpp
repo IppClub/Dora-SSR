@@ -248,7 +248,7 @@ namespace xlsxtext
 				 */
 				tinyxml2::XMLDocument doc;
 				auto xml = Slice(r_cast<char*>(buffer.first.get()), buffer.second).toString();
-				auto result = doc.Parse(xml.c_str());
+				auto result = doc.Parse(xml.c_str(), xml.size());
 				if (result != tinyxml2::XML_SUCCESS)
 				{
 					errors[_name] = "workseet open failed";

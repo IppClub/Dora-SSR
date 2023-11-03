@@ -388,7 +388,7 @@ public:
 	static const size_t MaxSlotArraySize;
 
 private:
-	Own<std::unordered_map<std::string, Own<Slot>>> _slots;
+	Own<StringMap<Own<Slot>>> _slots;
 	Own<std::vector<std::pair<std::string, Own<Slot>>>> _slotsArray;
 	RefVector<Listener> _gslots;
 };

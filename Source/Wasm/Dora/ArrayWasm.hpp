@@ -34,7 +34,7 @@ static int32_t array_fast_remove_at(int64_t self, int32_t index) {
 static int64_t array_new() {
 	return from_object(Array::create());
 }
-static void linkArray(wasm3::module& mod) {
+static void linkArray(wasm3::module3& mod) {
 	mod.link_optional("*", "array_type", array_type);
 	mod.link_optional("*", "array_get_count", array_get_count);
 	mod.link_optional("*", "array_is_empty", array_is_empty);

@@ -22,7 +22,7 @@ static int64_t camera2d_get_position(int64_t self) {
 static int64_t camera2d_new(int64_t name) {
 	return from_object(Camera2D::create(*str_from(name)));
 }
-static void linkCamera2D(wasm3::module& mod) {
+static void linkCamera2D(wasm3::module3& mod) {
 	mod.link_optional("*", "camera2d_type", camera2d_type);
 	mod.link_optional("*", "camera2d_set_rotation", camera2d_set_rotation);
 	mod.link_optional("*", "camera2d_get_rotation", camera2d_get_rotation);

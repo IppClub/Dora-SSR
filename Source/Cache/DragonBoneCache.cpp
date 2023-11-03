@@ -259,7 +259,7 @@ void DragonBoneCache::loadAsync(String boneFilename, String atlasFilename, const
 	auto parseData = [loaded, result, boneFile, atlasFile, handler, this]() {
 		// force parsing works run in the same thread
 		SharedAsyncThread.getProcess(0).run(
-			[=]() {
+			[=, this]() {
 				if (loaded->first && !loaded->first->empty()) {
 					result->first = this->parseDragonBonesData(loaded->first->c_str(), boneFile);
 				}
@@ -268,7 +268,7 @@ void DragonBoneCache::loadAsync(String boneFilename, String atlasFilename, const
 				}
 				return nullptr;
 			},
-			[=](Own<Values>) {
+			[=, this](Own<Values>) {
 				if (result->first.value()) {
 					_boneRefs[boneFile] = 0;
 				}

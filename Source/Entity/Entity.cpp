@@ -62,15 +62,14 @@ public:
 	}
 	virtual ~EntityPool() { }
 	int tryGetIndex(String name) const {
-		auto it = comIndices.find(name.toString());
+		auto it = comIndices.find(name);
 		return it == comIndices.end() ? -1 : it->second;
 	}
 	int getIndex(String name) {
-		auto nameStr = name.toString();
-		auto it = comIndices.find(nameStr);
+		auto it = comIndices.find(name);
 		if (it == comIndices.end()) {
 			int index = s_cast<int>(comIndices.size());
-			comIndices[nameStr] = index;
+			comIndices[name.toString()] = index;
 			return index;
 		}
 		return it->second;
@@ -93,7 +92,7 @@ public:
 	RefVector<Entity> entities;
 	std::vector<Acf::Delegate<void()>> triggers;
 	std::unordered_set<int> usedIndices;
-	std::unordered_map<std::string, int> comIndices;
+	StringMap<int> comIndices;
 	std::unordered_set<WRef<Entity>, WRefEntityHasher> updatedEntities;
 	std::vector<EntityHandler> addHandlers;
 	std::vector<EntityHandler> changeHandlers;
@@ -101,8 +100,8 @@ public:
 	std::vector<EntityHandler> groupAddHandlers;
 	std::vector<EntityHandler> groupRemoveHandlers;
 	std::unordered_map<uint64_t, Own<Value>> nextValues;
-	std::unordered_map<std::string, Ref<EntityGroup>> groups;
-	std::unordered_map<std::string, Ref<EntityObserver>> observers;
+	StringMap<Ref<EntityGroup>> groups;
+	StringMap<Ref<EntityObserver>> observers;
 	EntityHandler& getAddHandler(int index) {
 		while (s_cast<int>(addHandlers.size()) <= index) addHandlers.emplace_back();
 		return addHandlers[index];
@@ -184,7 +183,7 @@ int Entity::getIndex(String name) {
 
 bool Entity::has(String name) const {
 	auto& comIndices = SharedEntityPool.comIndices;
-	auto it = comIndices.find(name.toString());
+	auto it = comIndices.find(name);
 	if (it != comIndices.end()) {
 		return has(it->second);
 	}

@@ -64,7 +64,7 @@ static int64_t grid_with_texture(int64_t texture, int32_t grid_x, int32_t grid_y
 static int64_t grid_with_file(int64_t clip_str, int32_t grid_x, int32_t grid_y) {
 	return from_object(Grid::from(*str_from(clip_str), s_cast<uint32_t>(grid_x), s_cast<uint32_t>(grid_y)));
 }
-static void linkGrid(wasm3::module& mod) {
+static void linkGrid(wasm3::module3& mod) {
 	mod.link_optional("*", "grid_type", grid_type);
 	mod.link_optional("*", "grid_get_grid_x", grid_get_grid_x);
 	mod.link_optional("*", "grid_get_grid_y", grid_get_grid_y);

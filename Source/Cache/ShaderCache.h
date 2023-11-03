@@ -40,7 +40,7 @@ protected:
 	std::string getShaderPath() const;
 
 private:
-	std::unordered_map<std::string, Ref<Shader>> _shaders;
+	StringMap<Ref<Shader>> _shaders;
 	SINGLETON_REF(ShaderCache, BGFXDora);
 };
 

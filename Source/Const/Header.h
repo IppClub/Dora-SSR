@@ -29,7 +29,7 @@ using namespace std::string_literals;
 #include <string_view>
 using namespace std::string_view_literals;
 
-#include "bx/platform.h"
+#include "bx/bx.h"
 
 #include "bgfx/platform.h"
 

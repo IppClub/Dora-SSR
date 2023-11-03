@@ -75,22 +75,22 @@ public:
 		const Size& size,
 		String clipFile,
 		Own<SpriteDef>&& root,
-		const std::unordered_map<std::string, Vec2>& keys,
-		const std::unordered_map<std::string, int>& animationIndex,
-		const std::unordered_map<std::string, int>& lookIndex);
+		const StringMap<Vec2>& keys,
+		const StringMap<int>& animationIndex,
+		const StringMap<int>& lookIndex);
 	const std::string& getClipFile() const;
 	SpriteDef* getRoot();
 	void addKeyPoint(String key, const Vec2& point);
 	Vec2 getKeyPoint(String key) const;
-	std::unordered_map<std::string, Vec2>& getKeyPoints();
+	StringMap<Vec2>& getKeyPoints();
 	const Size& getSize() const;
 	void setActionName(int index, String name);
 	void setLookName(int index, String name);
 	int getAnimationIndexByName(String name);
 	const std::string& getAnimationNameByIndex(int index);
 	int getLookIndexByName(String name);
-	const std::unordered_map<std::string, int>& getAnimationIndexMap() const;
-	const std::unordered_map<std::string, int>& getLookIndexMap() const;
+	const StringMap<int>& getAnimationIndexMap() const;
+	const StringMap<int>& getLookIndexMap() const;
 	std::vector<std::string> getLookNames() const;
 	std::vector<std::string> getAnimationNames() const;
 	std::string getTextureFile() const;
@@ -102,9 +102,9 @@ private:
 	Size _size;
 	Own<SpriteDef> _root;
 	std::string _clip;
-	std::unordered_map<std::string, int> _animationIndex;
-	std::unordered_map<std::string, int> _lookIndex;
-	std::unordered_map<std::string, Vec2> _keys;
+	StringMap<int> _animationIndex;
+	StringMap<int> _lookIndex;
+	StringMap<Vec2> _keys;
 	friend class ModelCache;
 };
 

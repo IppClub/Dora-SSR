@@ -662,7 +662,7 @@ else
 				for inherit in *inherits
 					rustBinding[] = "use crate::dora::#{inherit};"
 					rustBinding[] = "impl #{inherit} for #{clsNewName} { }"
-		cppLink[] = "static void link#{table.concat moduleScopes}#{cppModuleName}(wasm3::module& mod) {"
+		cppLink[] = "static void link#{table.concat moduleScopes}#{cppModuleName}(wasm3::module3& mod) {"
 		rustBinding[] = if isTrait
 			if isObject
 				rustBinding[] = "pub struct #{clsNewName} { raw: i64 }

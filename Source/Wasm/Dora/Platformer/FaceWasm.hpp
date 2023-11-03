@@ -21,7 +21,7 @@ static int64_t platformer_face_with_func(int32_t func, int64_t stack, int64_t po
 		return s_cast<Node*>(std::get<Object*>(args->pop()));
 	}, vec2_from(point), scale, angle));
 }
-static void linkPlatformerFace(wasm3::module& mod) {
+static void linkPlatformerFace(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_face_type", platformer_face_type);
 	mod.link_optional("*", "platformer_face_add_child", platformer_face_add_child);
 	mod.link_optional("*", "platformer_face_to_node", platformer_face_to_node);

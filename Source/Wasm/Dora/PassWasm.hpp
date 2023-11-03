@@ -19,7 +19,7 @@ static void pass_set_color(int64_t self, int64_t name, int32_t var) {
 static int64_t pass_new(int64_t vert_shader, int64_t frag_shader) {
 	return from_object(Pass::create(*str_from(vert_shader), *str_from(frag_shader)));
 }
-static void linkPass(wasm3::module& mod) {
+static void linkPass(wasm3::module3& mod) {
 	mod.link_optional("*", "pass_type", pass_type);
 	mod.link_optional("*", "pass_set_grab_pass", pass_set_grab_pass);
 	mod.link_optional("*", "pass_is_grab_pass", pass_is_grab_pass);

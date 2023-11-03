@@ -270,7 +270,7 @@ void Blackboard::set(uint32_t key, Own<Value>&& value) {
 }
 
 Value* Blackboard::get(String name) {
-	auto it = _values.find(name.toString());
+	auto it = _values.find(name);
 	if (it != _values.end()) {
 		return it->second.get();
 	}
@@ -286,7 +286,7 @@ Value* Blackboard::get(uint32_t key) {
 }
 
 void Blackboard::remove(String name) {
-	auto it = _values.find(name.toString());
+	auto it = _values.find(name);
 	if (it != _values.end()) {
 		_values.erase(it);
 	}

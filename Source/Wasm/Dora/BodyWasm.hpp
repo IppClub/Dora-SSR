@@ -91,7 +91,7 @@ static int64_t body_attach_sensor(int64_t self, int32_t tag, int64_t fixture_def
 static int64_t body_new(int64_t def, int64_t world, int64_t pos, float rot) {
 	return from_object(Body::create(r_cast<BodyDef*>(def), r_cast<PhysicsWorld*>(world), vec2_from(pos), rot));
 }
-static void linkBody(wasm3::module& mod) {
+static void linkBody(wasm3::module3& mod) {
 	mod.link_optional("*", "body_type", body_type);
 	mod.link_optional("*", "body_get_world", body_get_world);
 	mod.link_optional("*", "body_get_body_def", body_get_body_def);

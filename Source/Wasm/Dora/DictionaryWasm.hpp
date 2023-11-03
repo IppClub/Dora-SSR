@@ -13,7 +13,7 @@ static void dictionary_clear(int64_t self) {
 static int64_t dictionary_new() {
 	return from_object(Dictionary::create());
 }
-static void linkDictionary(wasm3::module& mod) {
+static void linkDictionary(wasm3::module3& mod) {
 	mod.link_optional("*", "dictionary_type", dictionary_type);
 	mod.link_optional("*", "dictionary_get_count", dictionary_get_count);
 	mod.link_optional("*", "dictionary_get_keys", dictionary_get_keys);

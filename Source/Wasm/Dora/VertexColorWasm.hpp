@@ -16,7 +16,7 @@ static int32_t vertexcolor_get_color(int64_t self) {
 static int64_t vertexcolor_new(int64_t vec, int32_t color) {
 	return r_cast<int64_t>(new VertexColor{vec2_from(vec), Color(s_cast<uint32_t>(color))});
 }
-static void linkVertexColor(wasm3::module& mod) {
+static void linkVertexColor(wasm3::module3& mod) {
 	mod.link_optional("*", "vertexcolor_release", vertexcolor_release);
 	mod.link_optional("*", "vertexcolor_set_vertex", vertexcolor_set_vertex);
 	mod.link_optional("*", "vertexcolor_get_vertex", vertexcolor_get_vertex);

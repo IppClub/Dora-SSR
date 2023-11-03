@@ -78,7 +78,7 @@ private:
 	std::string _apkFilter;
 #endif
 	std::vector<std::string> _searchPaths;
-	std::unordered_map<std::string, std::string> _fullPathCache;
+	StringMap<std::string> _fullPathCache;
 	Async* _thread;
 	SINGLETON_REF(Content, Application);
 };

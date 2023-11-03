@@ -101,7 +101,7 @@ bool FontCache::unload(String fontStr) {
 	std::string fontName;
 	int fontSize;
 	std::tie(fontName, fontSize) = getArgsFromStr(fontStr);
-	auto fontIt = _fonts.find(fontStr.toString());
+	auto fontIt = _fonts.find(fontStr);
 	if (fontIt != _fonts.end()) {
 		TrueTypeFile* fontFile = fontIt->second->getFile();
 		_fonts.erase(fontIt);

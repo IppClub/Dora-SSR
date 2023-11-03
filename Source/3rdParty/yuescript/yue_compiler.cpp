@@ -1042,7 +1042,7 @@ private:
 		for (auto it = uname->m_begin.m_it; it != uname->m_end.m_it; ++it) {
 			auto ch = *it;
 			if (ch > 255) {
-				buf << "_u"sv << std::hex << ch;
+				buf << "_u"sv << std::hex << static_cast<int>(ch);
 			} else {
 				buf << static_cast<char>(ch);
 			}

@@ -106,7 +106,8 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 			case bgfx::RendererType::Direct3D9:
 			case bgfx::RendererType::Direct3D11:
 			case bgfx::RendererType::Direct3D12:
-			case bgfx::RendererType::Metal: {
+			case bgfx::RendererType::Metal:
+			case bgfx::RendererType::Vulkan: {
 				if (_camera) {
 					if (_camera->hasProjection())
 						viewProj = _camera->getView();

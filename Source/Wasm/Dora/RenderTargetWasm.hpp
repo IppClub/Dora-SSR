@@ -39,7 +39,7 @@ static void rendertarget_save_async(int64_t self, int64_t filename, int32_t func
 static int64_t rendertarget_new(int32_t width, int32_t height) {
 	return from_object(RenderTarget::create(s_cast<uint16_t>(width), s_cast<uint16_t>(height)));
 }
-static void linkRenderTarget(wasm3::module& mod) {
+static void linkRenderTarget(wasm3::module3& mod) {
 	mod.link_optional("*", "rendertarget_type", rendertarget_type);
 	mod.link_optional("*", "rendertarget_get_width", rendertarget_get_width);
 	mod.link_optional("*", "rendertarget_get_height", rendertarget_get_height);

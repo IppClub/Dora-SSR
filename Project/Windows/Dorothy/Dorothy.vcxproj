@@ -1940,11 +1940,12 @@
       <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderFile>Const/Header.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <ObjectFileName>$(IntDir)\_1\_2\_3\%(RelativeDir)\</ObjectFileName>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus /wd4244 /wd4996 %(AdditionalOptions)</AdditionalOptions>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1985,10 +1986,11 @@
       <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <PrecompiledHeaderFile>Const/Header.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <ObjectFileName>$(IntDir)\_1\_2\_3\%(RelativeDir)\</ObjectFileName>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
       <AdditionalOptions>/Zc:__cplusplus /wd4244 /wd4996 %(AdditionalOptions)</AdditionalOptions>
+      <UseStandardPreprocessor>true</UseStandardPreprocessor>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

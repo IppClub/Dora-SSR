@@ -142,9 +142,9 @@ ModelDef::ModelDef(
 	const Size& size,
 	String clipFile,
 	Own<SpriteDef>&& root,
-	const std::unordered_map<std::string, Vec2>& keys,
-	const std::unordered_map<std::string, int>& animationIndex,
-	const std::unordered_map<std::string, int>& lookIndex)
+	const StringMap<Vec2>& keys,
+	const StringMap<int>& animationIndex,
+	const StringMap<int>& lookIndex)
 	: _clip(clipFile)
 	, _size(size)
 	, _keys(keys)
@@ -188,7 +188,7 @@ std::string ModelDef::toXml() {
 }
 
 int ModelDef::getAnimationIndexByName(String name) {
-	auto it = _animationIndex.find(name.toString());
+	auto it = _animationIndex.find(name);
 	if (it != _animationIndex.end()) {
 		return it->second;
 	}
@@ -205,18 +205,18 @@ const std::string& ModelDef::getAnimationNameByIndex(int index) {
 }
 
 int ModelDef::getLookIndexByName(String name) {
-	auto it = _lookIndex.find(name.toString());
+	auto it = _lookIndex.find(name);
 	if (it != _lookIndex.end()) {
 		return it->second;
 	}
 	return Look::None;
 }
 
-const std::unordered_map<std::string, int>& ModelDef::getAnimationIndexMap() const {
+const StringMap<int>& ModelDef::getAnimationIndexMap() const {
 	return _animationIndex;
 }
 
-const std::unordered_map<std::string, int>& ModelDef::getLookIndexMap() const {
+const StringMap<int>& ModelDef::getLookIndexMap() const {
 	return _lookIndex;
 }
 
@@ -233,11 +233,11 @@ void ModelDef::addKeyPoint(String key, const Vec2& point) {
 }
 
 Vec2 ModelDef::getKeyPoint(String key) const {
-	auto it = _keys.find(key.toString());
+	auto it = _keys.find(key);
 	return it != _keys.end() ? it->second : Vec2::zero;
 }
 
-std::unordered_map<std::string, Vec2>& ModelDef::getKeyPoints() {
+StringMap<Vec2>& ModelDef::getKeyPoints() {
 	return _keys;
 }
 

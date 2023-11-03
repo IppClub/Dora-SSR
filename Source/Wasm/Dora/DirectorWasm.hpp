@@ -49,7 +49,7 @@ static void director_clear_camera() {
 static void director_cleanup() {
 	SharedDirector.cleanup();
 }
-static void linkDirector(wasm3::module& mod) {
+static void linkDirector(wasm3::module3& mod) {
 	mod.link_optional("*", "director_set_clear_color", director_set_clear_color);
 	mod.link_optional("*", "director_get_clear_color", director_get_clear_color);
 	mod.link_optional("*", "director_set_scheduler", director_set_scheduler);

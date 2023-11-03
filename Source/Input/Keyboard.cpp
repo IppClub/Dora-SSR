@@ -305,44 +305,41 @@ void Keyboard::handleEvent(const SDL_Event& event) {
 }
 
 bool Keyboard::isKeyDown(String name) const {
-	auto nameStr = name.toString();
-	auto it = _keyMap.find(nameStr);
+	auto it = _keyMap.find(name);
 	if (it != _keyMap.end()) {
 		return !_oldKeyStates[it->second] && _newKeyStates[it->second];
 	}
-	it = _codeMap.find(nameStr);
+	it = _codeMap.find(name);
 	if (it != _codeMap.end()) {
 		return !_oldCodeStates[it->second] && _newCodeStates[it->second];
 	}
-	Warn("invalid keyboard button name for \"{}\"", nameStr);
+	Warn("invalid keyboard button name for \"{}\"", name.toString());
 	return false;
 }
 
 bool Keyboard::isKeyUp(String name) const {
-	auto nameStr = name.toString();
-	auto it = _keyMap.find(nameStr);
+	auto it = _keyMap.find(name);
 	if (it != _keyMap.end()) {
 		return _oldKeyStates[it->second] && !_newKeyStates[it->second];
 	}
-	it = _codeMap.find(nameStr);
+	it = _codeMap.find(name);
 	if (it != _codeMap.end()) {
 		return _oldCodeStates[it->second] && !_newCodeStates[it->second];
 	}
-	Warn("invalid keyboard button name for \"{}\"", nameStr);
+	Warn("invalid keyboard button name for \"{}\"", name.toString());
 	return false;
 }
 
 bool Keyboard::isKeyPressed(String name) const {
-	auto nameStr = name.toString();
-	auto it = _keyMap.find(nameStr);
+	auto it = _keyMap.find(name);
 	if (it != _keyMap.end()) {
 		return _newKeyStates[it->second];
 	}
-	it = _codeMap.find(nameStr);
+	it = _codeMap.find(name);
 	if (it != _codeMap.end()) {
 		return _newCodeStates[it->second];
 	}
-	Warn("invalid keyboard button name for \"{}\"", nameStr);
+	Warn("invalid keyboard button name for \"{}\"", name.toString());
 	return false;
 }
 

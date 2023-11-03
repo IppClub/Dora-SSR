@@ -366,7 +366,7 @@ static int32_t imgui__color_edit3(int64_t label, int64_t stack) {
 static int32_t imgui__color_edit4(int64_t label, int64_t stack, int32_t show_alpha) {
 	return ImGui::Binding::ColorEdit4(*str_from(label), r_cast<CallStack*>(stack), show_alpha != 0) ? 1 : 0;
 }
-static void linkImGui(wasm3::module& mod) {
+static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_load_font_ttf_async", imgui_load_font_ttf_async);
 	mod.link_optional("*", "imgui_is_font_loaded", imgui_is_font_loaded);
 	mod.link_optional("*", "imgui_show_stats", imgui_show_stats);

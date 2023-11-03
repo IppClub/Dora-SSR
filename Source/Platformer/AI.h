@@ -50,7 +50,7 @@ private:
 	float _nearestFriendDistance;
 	float _nearestEnemyDistance;
 	float _nearestNeutralDistance;
-	std::unordered_map<std::string, Ref<Decision::Leaf>> _decisionTrees;
+	StringMap<Ref<Decision::Leaf>> _decisionTrees;
 	std::vector<Slice> _decisionNodes;
 	friend class Instinct;
 };

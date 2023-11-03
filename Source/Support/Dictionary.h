@@ -17,7 +17,7 @@ class Dictionary : public Object {
 public:
 	PROPERTY_READONLY(int, Count);
 	PROPERTY_READONLY(std::vector<Slice>, Keys);
-	const std::unordered_map<std::string, Own<Value>>& data() const;
+	const StringMap<Own<Value>>& data() const;
 
 	bool has(String key) const;
 	const Own<Value>& get(String key) const;
@@ -53,7 +53,7 @@ public:
 	CREATE_FUNC(Dictionary);
 
 private:
-	std::unordered_map<std::string, Own<Value>> _dict;
+	StringMap<Own<Value>> _dict;
 	DORA_TYPE_OVERRIDE(Dictionary);
 };
 

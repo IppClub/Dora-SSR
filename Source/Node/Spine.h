@@ -67,7 +67,7 @@ private:
 	Own<spine::SkeletonBounds> _bounds;
 	Own<spine::SkeletonClipping> _clipper;
 	Ref<Line> _debugLine;
-	Own<std::unordered_map<std::string, Ref<Node>>> _slots;
+	Own<StringMap<Ref<Node>>> _slots;
 	enum {
 		DepthWrite = Node::UserFlag,
 		HitTest = Node::UserFlag << 1,

@@ -54,7 +54,7 @@ private:
 	Ref<Shader> _fragShader;
 	Ref<Shader> _vertShader;
 	bgfx::ProgramHandle _program;
-	std::unordered_map<std::string, Ref<Uniform>> _uniforms;
+	StringMap<Ref<Uniform>> _uniforms;
 	DORA_TYPE_OVERRIDE(Pass);
 };
 

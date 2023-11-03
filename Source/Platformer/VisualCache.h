@@ -104,7 +104,7 @@ private:
 	virtual void xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) override;
 	virtual void xmlSAX2EndElement(const char* name, size_t len) override;
 	virtual void xmlSAX2Text(const char* s, size_t len) override;
-	std::unordered_map<std::string, Own<VisualType>> _visuals;
+	StringMap<Own<VisualType>> _visuals;
 	std::string _path;
 	rapidxml::xml_sax3_parser<> _parser;
 	SINGLETON_REF(VisualCache, Director);

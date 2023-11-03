@@ -512,7 +512,7 @@ static TextureWrap toTextureWrap(lua_State* L, String value) {
 		case "Clamp"_hash: return TextureWrap::Clamp;
 		case "Border"_hash: return TextureWrap::Border;
 		default:
-			luaL_error(L, LogFormat("Texture wrap \"{}\" is invalid, only \"None\", \"Mirror\", \"Clamp\", \"Border\" are allowed.", value.toString()).c_str());
+			luaL_error(L, fmt::format("Texture wrap \"{}\" is invalid, only \"None\", \"Mirror\", \"Clamp\", \"Border\" are allowed.", value.toString()).c_str());
 			break;
 	}
 	return TextureWrap::None;
@@ -591,7 +591,7 @@ int Sprite_SetTextureFilter(lua_State* L) {
 		case "Point"_hash: self->setFilter(TextureFilter::Point); break;
 		case "Anisotropic"_hash: self->setFilter(TextureFilter::Anisotropic); break;
 		default:
-			luaL_error(L, LogFormat("Texture filter \"{}\" is invalid, only \"None\", \"Point\", \"Anisotropic\" are allowed.", value.toString()).c_str());
+			luaL_error(L, fmt::format("Texture filter \"{}\" is invalid, only \"None\", \"Point\", \"Anisotropic\" are allowed.", value.toString()).c_str());
 			break;
 	}
 	return 0;
@@ -624,7 +624,7 @@ int Label_SetTextAlign(lua_State* L) {
 		case "Center"_hash: self->setAlignment(TextAlign::Center); break;
 		case "Right"_hash: self->setAlignment(TextAlign::Right); break;
 		default:
-			luaL_error(L, LogFormat("Label text alignment \"{}\" is invalid, only \"Left\", \"Center\", \"Right\" are allowed.", value.toString()).c_str());
+			luaL_error(L, fmt::format("Label text alignment \"{}\" is invalid, only \"Left\", \"Center\", \"Right\" are allowed.", value.toString()).c_str());
 			break;
 	}
 	return 0;
@@ -1180,7 +1180,7 @@ int BodyDef_SetType(lua_State* L) {
 		case "Dynamic"_hash: self->setType(pr::BodyType::Dynamic); break;
 		case "Kinematic"_hash: self->setType(pr::BodyType::Kinematic); break;
 		default:
-			luaL_error(L, LogFormat("Body type \"{}\" is invalid, only \"Static\", \"Dynamic\", \"Kinematic\" are allowed.", value.toString()).c_str());
+			luaL_error(L, fmt::format("Body type \"{}\" is invalid, only \"Static\", \"Dynamic\", \"Kinematic\" are allowed.", value.toString()).c_str());
 			break;
 	}
 	return 0;

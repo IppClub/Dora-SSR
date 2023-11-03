@@ -43,7 +43,7 @@ static void joint_destroy(int64_t self) {
 static int64_t joint_new(int64_t def, int64_t item_dict) {
 	return from_object(Joint::create(r_cast<JointDef*>(def), r_cast<Dictionary*>(item_dict)));
 }
-static void linkJoint(wasm3::module& mod) {
+static void linkJoint(wasm3::module3& mod) {
 	mod.link_optional("*", "joint_type", joint_type);
 	mod.link_optional("*", "joint_distance", joint_distance);
 	mod.link_optional("*", "joint_friction", joint_friction);

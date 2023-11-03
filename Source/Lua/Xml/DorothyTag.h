@@ -47,7 +47,7 @@ private:
 		std::list<std::shared_ptr<Attribute>> attributes;
 	};
 
-	std::unordered_map<std::string, std::shared_ptr<Element>> _elements;
+	StringMap<std::shared_ptr<Element>> _elements;
 	std::list<std::string> elementNames;
 };
 
