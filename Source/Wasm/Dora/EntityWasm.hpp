@@ -19,7 +19,7 @@ static void entity_destroy(int64_t self) {
 static int64_t entity_new() {
 	return from_object(Entity::create());
 }
-static void linkEntity(wasm3::module& mod) {
+static void linkEntity(wasm3::module3& mod) {
 	mod.link_optional("*", "entity_type", entity_type);
 	mod.link_optional("*", "entity_get_count", entity_get_count);
 	mod.link_optional("*", "entity_get_index", entity_get_index);

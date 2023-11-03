@@ -91,7 +91,7 @@ bool SoundCache::unload() {
 }
 
 void SoundCache::removeUnused() {
-	std::vector<std::unordered_map<std::string, Ref<SoundFile>>::iterator> targets;
+	std::vector<StringMap<Ref<SoundFile>>::iterator> targets;
 	for (auto it = _soundFiles.begin(); it != _soundFiles.end(); ++it) {
 		if (it->second->isSingleReferenced()) {
 			targets.push_back(it);

@@ -35,7 +35,7 @@ class Blackboard;
 typedef Acf::Delegate<void(UnitAction* action)> UnitActionHandler;
 
 class Unit : public Body {
-	typedef std::unordered_map<std::string, Own<UnitAction>> ActionMap;
+	typedef StringMap<Own<UnitAction>> ActionMap;
 
 public:
 	enum { GroundSensorTag = 0,

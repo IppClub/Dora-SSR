@@ -16,7 +16,7 @@ static void buffer_set_string(int64_t self, int64_t str) {
 static int64_t buffer_to_string(int64_t self) {
 	return str_retain(r_cast<Buffer*>(self)->toString());
 }
-static void linkBuffer(wasm3::module& mod) {
+static void linkBuffer(wasm3::module3& mod) {
 	mod.link_optional("*", "buffer_type", buffer_type);
 	mod.link_optional("*", "buffer_resize", buffer_resize);
 	mod.link_optional("*", "buffer_zero_memory", buffer_zero_memory);

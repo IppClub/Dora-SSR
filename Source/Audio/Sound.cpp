@@ -84,8 +84,7 @@ SoundStream::~SoundStream() {
 
 Audio::Audio()
 	: _soloud(nullptr)
-	, _currentVoice(0)
-	, _timer(SystemTimer::create()) { }
+	, _currentVoice(0) { }
 
 SoLoud::Soloud* Audio::getSoLoud() {
 	return _soloud;
@@ -131,12 +130,6 @@ void Audio::stop(uint32_t handle) {
 
 void Audio::playStream(String filename, bool loop, float crossFadeTime) {
 	if (!_soloud) return;
-	if (_lastStream) {
-		if (auto stream = _lastStream->getStream()) {
-			stream->stop();
-		}
-		_lastStream = nullptr;
-	}
 	stopStream(crossFadeTime);
 	std::string file(filename);
 	SharedContent.loadAsyncUnsafe(filename, [file, this, crossFadeTime, loop](uint8_t* data, int64_t size) {
@@ -164,15 +157,6 @@ void Audio::stopStream(float fadeTime) {
 		if (_currentVoice && _soloud->isValidVoiceHandle(_currentVoice)) {
 			_soloud->fadeVolume(_currentVoice, 0.0f, fadeTime);
 			_soloud->scheduleStop(_currentVoice, fadeTime);
-			_lastStream = _currentStream;
-			_timer->start(fadeTime, [this]() {
-				if (_lastStream) {
-					if (auto stream = _lastStream->getStream()) {
-						stream->stop();
-					}
-					_lastStream = nullptr;
-				}
-			});
 		}
 	} else if (_currentStream) {
 		if (auto stream = _currentStream->getStream()) {

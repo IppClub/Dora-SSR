@@ -34,7 +34,7 @@ static int64_t spine_get_looks(int64_t spine_str) {
 static int64_t spine_get_animations(int64_t spine_str) {
 	return to_vec(spine_get_animation_names(*str_from(spine_str)));
 }
-static void linkSpine(wasm3::module& mod) {
+static void linkSpine(wasm3::module3& mod) {
 	mod.link_optional("*", "spine_type", spine_type);
 	mod.link_optional("*", "spine_set_show_debug", spine_set_show_debug);
 	mod.link_optional("*", "spine_is_show_debug", spine_is_show_debug);

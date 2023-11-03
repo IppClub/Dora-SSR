@@ -102,7 +102,7 @@ static int64_t platformer_unit_new(int64_t unit_def, int64_t physicsworld, int64
 static int64_t platformer_unit_with_store(int64_t def_name, int64_t world_name, int64_t entity, int64_t pos, float rot) {
 	return from_object(Platformer::Unit::create(*str_from(def_name), *str_from(world_name), r_cast<Entity*>(entity), vec2_from(pos), rot));
 }
-static void linkPlatformerUnit(wasm3::module& mod) {
+static void linkPlatformerUnit(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_unit_type", platformer_unit_type);
 	mod.link_optional("*", "platformer_unit_set_playable", platformer_unit_set_playable);
 	mod.link_optional("*", "platformer_unit_get_playable", platformer_unit_get_playable);

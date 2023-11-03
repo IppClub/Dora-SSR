@@ -27,16 +27,16 @@ std::vector<Slice> Dictionary::getKeys() const {
 	return keys;
 }
 
-const std::unordered_map<std::string, Own<Value>>& Dictionary::data() const {
+const StringMap<Own<Value>>& Dictionary::data() const {
 	return _dict;
 }
 
 bool Dictionary::has(String key) const {
-	return _dict.find(key.toString()) != _dict.end();
+	return _dict.find(key) != _dict.end();
 }
 
 const Own<Value>& Dictionary::get(String key) const {
-	auto it = _dict.find(key.toString());
+	auto it = _dict.find(key);
 	if (it != _dict.end()) {
 		return it->second;
 	}
@@ -51,7 +51,7 @@ void Dictionary::set(String key, Own<Value>&& value) {
 }
 
 bool Dictionary::remove(String key) {
-	auto it = _dict.find(key.toString());
+	auto it = _dict.find(key);
 	if (it != _dict.end()) {
 		_dict.erase(it);
 		return true;

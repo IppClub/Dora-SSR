@@ -278,13 +278,12 @@ Entity* Unit::getEntity() const {
 }
 
 UnitAction* Unit::attachAction(String name) {
-	auto nameStr = name.toString();
-	auto it = _actions.find(nameStr);
+	auto it = _actions.find(name);
 	if (it == _actions.end()) {
-		Own<UnitAction> action = UnitAction::alloc(nameStr, this);
+		Own<UnitAction> action = UnitAction::alloc(name, this);
 		UnitAction* temp = action.get();
 		if (action) {
-			_actions[nameStr] = std::move(action);
+			_actions[name.toString()] = std::move(action);
 		}
 		return temp;
 	}
@@ -292,7 +291,7 @@ UnitAction* Unit::attachAction(String name) {
 }
 
 void Unit::removeAction(String name) {
-	auto it = _actions.find(name.toString());
+	auto it = _actions.find(name);
 	if (it != _actions.end()) {
 		_actions.erase(it);
 	}
@@ -303,7 +302,7 @@ void Unit::removeAllActions() {
 }
 
 UnitAction* Unit::getAction(String name) const {
-	auto it = _actions.find(name.toString());
+	auto it = _actions.find(name);
 	return it == _actions.end() ? nullptr : it->second.get();
 }
 
@@ -314,7 +313,7 @@ void Unit::eachAction(const UnitActionHandler& func) {
 }
 
 bool Unit::start(String name) {
-	auto it = _actions.find(name.toString());
+	auto it = _actions.find(name);
 	if (it != _actions.end()) {
 		UnitAction* action = it->second.get();
 		if (action->isDoing()) return true;

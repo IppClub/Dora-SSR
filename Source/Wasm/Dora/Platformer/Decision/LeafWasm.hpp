@@ -43,7 +43,7 @@ static int64_t platformer_decision_leaf_reject() {
 static int64_t platformer_decision_leaf_behave(int64_t name, int64_t root) {
 	return from_object(DBehave(*str_from(name), r_cast<Platformer::Behavior::Leaf*>(root)));
 }
-static void linkPlatformerDecisionLeaf(wasm3::module& mod) {
+static void linkPlatformerDecisionLeaf(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_decision_tree_type", platformer_decision_tree_type);
 	mod.link_optional("*", "platformer_decision_leaf_sel", platformer_decision_leaf_sel);
 	mod.link_optional("*", "platformer_decision_leaf_seq", platformer_decision_leaf_seq);

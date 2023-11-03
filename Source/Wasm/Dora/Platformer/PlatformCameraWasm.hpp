@@ -49,7 +49,7 @@ static void platformer_platformcamera_set_follow_target_null(int64_t self) {
 static int64_t platformer_platformcamera_new(int64_t name) {
 	return from_object(Platformer::PlatformCamera::create(*str_from(name)));
 }
-static void linkPlatformerPlatformCamera(wasm3::module& mod) {
+static void linkPlatformerPlatformCamera(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_platformcamera_type", platformer_platformcamera_type);
 	mod.link_optional("*", "platformer_platformcamera_set_position", platformer_platformcamera_set_position);
 	mod.link_optional("*", "platformer_platformcamera_get_position", platformer_platformcamera_get_position);

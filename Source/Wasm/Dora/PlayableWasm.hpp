@@ -49,7 +49,7 @@ static int64_t playable_get_slot(int64_t self, int64_t name) {
 static int64_t playable_new(int64_t filename) {
 	return from_object(Playable::create(*str_from(filename)));
 }
-static void linkPlayable(wasm3::module& mod) {
+static void linkPlayable(wasm3::module3& mod) {
 	mod.link_optional("*", "playable_type", playable_type);
 	mod.link_optional("*", "playable_set_look", playable_set_look);
 	mod.link_optional("*", "playable_get_look", playable_get_look);

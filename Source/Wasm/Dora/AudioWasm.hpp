@@ -10,7 +10,7 @@ static void audio_play_stream(int64_t filename, int32_t looping, float cross_fad
 static void audio_stop_stream(float fade_time) {
 	SharedAudio.stopStream(fade_time);
 }
-static void linkAudio(wasm3::module& mod) {
+static void linkAudio(wasm3::module3& mod) {
 	mod.link_optional("*", "audio_play", audio_play);
 	mod.link_optional("*", "audio_stop", audio_stop);
 	mod.link_optional("*", "audio_play_stream", audio_play_stream);

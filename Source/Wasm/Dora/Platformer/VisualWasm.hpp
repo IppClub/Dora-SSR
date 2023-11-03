@@ -16,7 +16,7 @@ static int64_t platformer_visual_auto_remove(int64_t self) {
 static int64_t platformer_visual_new(int64_t name) {
 	return from_object(Platformer::Visual::create(*str_from(name)));
 }
-static void linkPlatformerVisual(wasm3::module& mod) {
+static void linkPlatformerVisual(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_visual_type", platformer_visual_type);
 	mod.link_optional("*", "platformer_visual_is_playing", platformer_visual_is_playing);
 	mod.link_optional("*", "platformer_visual_start", platformer_visual_start);

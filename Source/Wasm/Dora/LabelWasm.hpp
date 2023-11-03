@@ -73,7 +73,7 @@ static float label_get_automatic_width(int64_t self) {
 static int64_t label_new(int64_t font_name, int32_t font_size) {
 	return from_object(Label::create(*str_from(font_name), s_cast<uint32_t>(font_size)));
 }
-static void linkLabel(wasm3::module& mod) {
+static void linkLabel(wasm3::module3& mod) {
 	mod.link_optional("*", "label_type", label_type);
 	mod.link_optional("*", "label_set_alignment", label_set_alignment);
 	mod.link_optional("*", "label_get_alignment", label_get_alignment);

@@ -44,7 +44,7 @@ public:
 
 private:
 	static std::pair<std::string, std::string> getFileFromStr(String spineStr);
-	std::unordered_map<std::string, Ref<SkeletonData>> _skeletons;
+	StringMap<Ref<SkeletonData>> _skeletons;
 	SINGLETON_REF(SkeletonCache, Director, AsyncThread);
 };
 

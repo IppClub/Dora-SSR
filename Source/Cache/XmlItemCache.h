@@ -147,7 +147,7 @@ public:
 
 protected:
 	XmlItemCache() { }
-	std::unordered_map<std::string, Ref<T>> _dict;
+	StringMap<Ref<T>> _dict;
 
 private:
 	/** Implement it to get prepare for specific xml parse. */

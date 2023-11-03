@@ -58,7 +58,7 @@ static void platformer_bulletdef_set_velocity(int64_t self, float angle, float s
 static int64_t platformer_bulletdef_new() {
 	return from_object(Platformer::BulletDef::create());
 }
-static void linkPlatformerBulletDef(wasm3::module& mod) {
+static void linkPlatformerBulletDef(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_bulletdef_type", platformer_bulletdef_type);
 	mod.link_optional("*", "platformer_bulletdef_set_tag", platformer_bulletdef_set_tag);
 	mod.link_optional("*", "platformer_bulletdef_get_tag", platformer_bulletdef_get_tag);

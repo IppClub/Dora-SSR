@@ -10,7 +10,7 @@ static int64_t cameraotho_get_position(int64_t self) {
 static int64_t cameraotho_new(int64_t name) {
 	return from_object(CameraOtho::create(*str_from(name)));
 }
-static void linkCameraOtho(wasm3::module& mod) {
+static void linkCameraOtho(wasm3::module3& mod) {
 	mod.link_optional("*", "cameraotho_type", cameraotho_type);
 	mod.link_optional("*", "cameraotho_set_position", cameraotho_set_position);
 	mod.link_optional("*", "cameraotho_get_position", cameraotho_get_position);

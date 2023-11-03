@@ -22,7 +22,7 @@ static int32_t clipnode_is_inverted(int64_t self) {
 static int64_t clipnode_new(int64_t stencil) {
 	return from_object(ClipNode::create(r_cast<Node*>(stencil)));
 }
-static void linkClipNode(wasm3::module& mod) {
+static void linkClipNode(wasm3::module3& mod) {
 	mod.link_optional("*", "clipnode_type", clipnode_type);
 	mod.link_optional("*", "clipnode_set_stencil", clipnode_set_stencil);
 	mod.link_optional("*", "clipnode_get_stencil", clipnode_get_stencil);

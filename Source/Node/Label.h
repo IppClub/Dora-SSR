@@ -80,8 +80,8 @@ protected:
 private:
 	std::pair<std::string, int> getArgsFromStr(String fontStr);
 	Ref<SpriteEffect> _defaultEffect;
-	std::unordered_map<std::string, Ref<TrueTypeFile>> _fontFiles;
-	std::unordered_map<std::string, Ref<Font>> _fonts;
+	StringMap<Ref<TrueTypeFile>> _fontFiles;
+	StringMap<Ref<Font>> _fonts;
 	SINGLETON_REF(FontCache, FontManager, BGFXDora);
 };
 

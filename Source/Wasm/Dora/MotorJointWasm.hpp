@@ -19,7 +19,7 @@ static void motorjoint_set_speed(int64_t self, float var) {
 static float motorjoint_get_speed(int64_t self) {
 	return r_cast<MotorJoint*>(self)->getSpeed();
 }
-static void linkMotorJoint(wasm3::module& mod) {
+static void linkMotorJoint(wasm3::module3& mod) {
 	mod.link_optional("*", "motorjoint_type", motorjoint_type);
 	mod.link_optional("*", "motorjoint_set_enabled", motorjoint_set_enabled);
 	mod.link_optional("*", "motorjoint_is_enabled", motorjoint_is_enabled);

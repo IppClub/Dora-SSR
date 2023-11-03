@@ -199,7 +199,7 @@ bool SkeletonCache::unload() {
 }
 
 void SkeletonCache::removeUnused() {
-	std::vector<std::unordered_map<std::string, Ref<SkeletonData>>::iterator> targets;
+	std::vector<StringMap<Ref<SkeletonData>>::iterator> targets;
 	for (auto it = _skeletons.begin(); it != _skeletons.end(); ++it) {
 		if (it->second->isSingleReferenced()) {
 			targets.push_back(it);

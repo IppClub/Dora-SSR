@@ -23,6 +23,7 @@
 #include "Slice.h"
 #include <cstdlib>
 #include <sstream>
+#include <limits>
 
 namespace silly {
 

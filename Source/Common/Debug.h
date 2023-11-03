@@ -12,42 +12,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-template <typename T>
-inline typename std::enable_if_t<!std::is_same<T, Slice>::value, T> Argument(T value) {
-	return value;
-}
-
-inline const char* Argument(const std::string& value) {
-	return value.empty() ? "" : value.c_str();
-}
-
-template <typename... Args>
-std::string LogFormat(const char* format, const Args&... args) {
-	return fmt::format(format, Argument(args)...);
-}
-
 extern Acf::Delegate<void(const std::string&)> LogHandler;
 
 void LogError(const std::string& str);
 void LogPrintInThread(const std::string& str);
 
-/** @brief The print function for debugging output. */
-template <typename... Args>
-void LogPrint(const char* format, const Args&... args) noexcept {
-	LogPrintInThread(LogFormat(format, args...));
-}
-inline void LogPrint(const Slice& str) {
-	LogPrintInThread(str.toString());
-}
-template <typename... Args>
-void println(const char* format, const Args&... args) noexcept {
-	LogPrintInThread(LogFormat(format, args...) + '\n');
-}
-inline void println(const Slice& str) {
-	LogPrintInThread(str.toString() + '\n');
-}
-
 bool IsInLua();
+
+#define LogPrint(...) \
+	Dorothy::LogPrintInThread(fmt::format(__VA_ARGS__))
+
+#define println LogPrint
 
 #if DORA_DISABLE_LOG
 #define Info(...) DORA_DUMMY
@@ -58,22 +33,22 @@ bool IsInLua();
 #define ErrorIf(...) DORA_DUMMY
 #else
 #define Info(format, ...) \
-	Dorothy::LogPrint("[Dorothy Info] " format "\n", ##__VA_ARGS__)
+	LogPrint("[Dorothy Info] " format "\n", ##__VA_ARGS__)
 #define Warn(format, ...) \
-	Dorothy::LogPrint("[Dorothy Warning] " format "\n", ##__VA_ARGS__)
+	LogPrint("[Dorothy Warning] " format "\n", ##__VA_ARGS__)
 #define Error(format, ...) \
-	Dorothy::LogPrint("[Dorothy Error] " format "\n", ##__VA_ARGS__)
+	LogPrint("[Dorothy Error] " format "\n", ##__VA_ARGS__)
 #define InfoIf(format, ...) \
 	if (cond) { \
-		Dorothy::LogPrint("[Dorothy Info] " format "\n", ##__VA_ARGS__); \
+		LogPrint("[Dorothy Info] " format "\n", ##__VA_ARGS__); \
 	}
 #define WarnIf(cond, format, ...) \
 	if (cond) { \
-		Dorothy::LogPrint("[Dorothy Warning] " format "\n", ##__VA_ARGS__); \
+		LogPrint("[Dorothy Warning] " format "\n", ##__VA_ARGS__); \
 	}
 #define ErrorIf(cond, format, ...) \
 	if (cond) { \
-		Dorothy::LogPrint("[Dorothy Error] " format "\n", ##__VA_ARGS__); \
+		LogPrint("[Dorothy Error] " format "\n", ##__VA_ARGS__); \
 	}
 #endif
 
@@ -87,7 +62,7 @@ bool IsInLua();
 		if (cond) { \
 			auto msg = fmt::format("[Dorothy Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
 				__FILE__, __FUNCTION__, __LINE__, \
-				Dorothy::LogFormat(__VA_ARGS__)); \
+				fmt::format(__VA_ARGS__)); \
 			if (Dorothy::IsInLua()) { \
 				throw std::runtime_error(msg); \
 			} else { \
@@ -101,7 +76,7 @@ bool IsInLua();
 		if (!(cond)) { \
 			auto msg = fmt::format("[Dorothy Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
 				__FILE__, __FUNCTION__, __LINE__, \
-				Dorothy::LogFormat(__VA_ARGS__)); \
+				fmt::format(__VA_ARGS__)); \
 			if (Dorothy::IsInLua()) { \
 				throw std::runtime_error(msg); \
 			} else { \
@@ -114,7 +89,7 @@ bool IsInLua();
 	do { \
 		auto msg = fmt::format("[Dorothy Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
 			__FILE__, __FUNCTION__, __LINE__, \
-			Dorothy::LogFormat(__VA_ARGS__)); \
+			fmt::format(__VA_ARGS__)); \
 		if (Dorothy::IsInLua()) { \
 			throw std::runtime_error(msg); \
 		} else { \

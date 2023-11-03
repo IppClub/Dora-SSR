@@ -64,7 +64,7 @@ static int64_t action_move_to(float duration, int64_t start, int64_t stop, int32
 static int64_t action_scale(float duration, float start, float stop, int32_t easing) {
 	return r_cast<int64_t>(new ActionDef{action_def_scale(duration, start, stop, s_cast<Ease::Enum>(easing))});
 }
-static void linkAction(wasm3::module& mod) {
+static void linkAction(wasm3::module3& mod) {
 	mod.link_optional("*", "action_type", action_type);
 	mod.link_optional("*", "action_get_duration", action_get_duration);
 	mod.link_optional("*", "action_is_running", action_is_running);

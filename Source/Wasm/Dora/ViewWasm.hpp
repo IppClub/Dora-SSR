@@ -46,7 +46,7 @@ static void view_set_vsync(int32_t var) {
 static int32_t view_is_vsync() {
 	return SharedView.isVSync() ? 1 : 0;
 }
-static void linkView(wasm3::module& mod) {
+static void linkView(wasm3::module3& mod) {
 	mod.link_optional("*", "view_get_size", view_get_size);
 	mod.link_optional("*", "view_get_standard_distance", view_get_standard_distance);
 	mod.link_optional("*", "view_get_aspect_ratio", view_get_aspect_ratio);

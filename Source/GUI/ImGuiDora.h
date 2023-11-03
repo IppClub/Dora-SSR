@@ -119,8 +119,8 @@ private:
 	Own<ImFontAtlas> _defaultFonts;
 	Own<ImFontAtlas> _fonts;
 	std::shared_ptr<ImGuiTouchHandler> _touchHandler;
-	std::unordered_map<std::string, double> _timeCosts;
-	std::unordered_map<std::string, double> _updateCosts;
+	StringMap<double> _timeCosts;
+	StringMap<double> _updateCosts;
 	struct LoaderCost {
 		int id;
 		int level;

@@ -57,7 +57,7 @@ static void platformer_unitaction_add(int64_t name, int32_t priority, float reac
 		SharedWasmRuntime.invoke(func2);
 	});
 }
-static void linkPlatformerUnitAction(wasm3::module& mod) {
+static void linkPlatformerUnitAction(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_unitaction_set_reaction", platformer_unitaction_set_reaction);
 	mod.link_optional("*", "platformer_unitaction_get_reaction", platformer_unitaction_get_reaction);
 	mod.link_optional("*", "platformer_unitaction_set_recovery", platformer_unitaction_set_recovery);

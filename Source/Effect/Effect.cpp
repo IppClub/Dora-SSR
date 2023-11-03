@@ -114,18 +114,18 @@ void Pass::set(String name, Color var) {
 }
 
 void Pass::set(String name, const Matrix& var) {
-	std::string uname(name);
-	auto it = _uniforms.find(uname);
+	auto it = _uniforms.find(name);
 	if (it != _uniforms.end()) {
 		it->second->getValue()->set(var);
 	} else {
+		std::string uname(name.toString());
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Mat4);
 		_uniforms[uname] = Uniform::create(handle, Value::alloc(var));
 	}
 }
 
 Value* Pass::get(String name) const {
-	auto it = _uniforms.find(name.toString());
+	auto it = _uniforms.find(name);
 	if (it != _uniforms.end()) {
 		return it->second->getValue();
 	}

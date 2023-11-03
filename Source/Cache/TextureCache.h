@@ -71,7 +71,7 @@ protected:
 
 private:
 	bx::DefaultAllocator _allocator;
-	std::unordered_map<std::string, Ref<Texture2D>> _textures;
+	StringMap<Ref<Texture2D>> _textures;
 	SINGLETON_REF(TextureCache, BGFXDora);
 };
 

@@ -103,7 +103,7 @@ bool VisualCache::unload() {
 }
 
 Visual* VisualCache::create(String name) {
-	auto it = _visuals.find(name.toString());
+	auto it = _visuals.find(name);
 	if (it != _visuals.end()) {
 		return it->second->toVisual();
 	}
@@ -116,7 +116,7 @@ Visual* VisualCache::create(String name) {
 }
 
 const std::string& VisualCache::getFileByName(String name) {
-	auto it = _visuals.find(name.toString());
+	auto it = _visuals.find(name);
 	if (it != _visuals.end()) {
 		return it->second->getFilename();
 	}

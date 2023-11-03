@@ -157,7 +157,7 @@ private:
 	Unit* _owner;
 	double _deltaTime = 0.0;
 	std::unordered_map<uint32_t, Own<Value>> _nodeValues;
-	std::unordered_map<std::string, Own<Value>> _values;
+	StringMap<Own<Value>> _values;
 	DORA_TYPE_BASE(Blackboard);
 };
 

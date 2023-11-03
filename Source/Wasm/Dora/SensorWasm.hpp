@@ -22,7 +22,7 @@ static int64_t sensor_get_sensed_bodies(int64_t self) {
 static int32_t sensor_contains(int64_t self, int64_t body) {
 	return r_cast<Sensor*>(self)->contains(r_cast<Body*>(body)) ? 1 : 0;
 }
-static void linkSensor(wasm3::module& mod) {
+static void linkSensor(wasm3::module3& mod) {
 	mod.link_optional("*", "sensor_type", sensor_type);
 	mod.link_optional("*", "sensor_set_enabled", sensor_set_enabled);
 	mod.link_optional("*", "sensor_is_enabled", sensor_is_enabled);

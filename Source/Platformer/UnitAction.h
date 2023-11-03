@@ -75,7 +75,7 @@ private:
 	int _priority;
 	float _decisionDelay;
 	std::string _name;
-	static std::unordered_map<std::string, Own<UnitActionDef>> _actionDefs;
+	static StringMap<Own<UnitActionDef>> _actionDefs;
 	friend class Unit;
 };
 

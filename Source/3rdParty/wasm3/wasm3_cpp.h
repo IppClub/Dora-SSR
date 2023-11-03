@@ -124,7 +124,7 @@ namespace wasm3 {
     } // namespace detail
     /** @endcond */
 
-    class module;
+    class module3;
     class runtime;
     class function;
 
@@ -178,9 +178,9 @@ namespace wasm3 {
          * load the module after parsing it.
          *
          * @param in  file (WASM binary)
-         * @return module object
+         * @return module3 object
          */
-        module parse_module(std::istream &in);
+        module3 parse_module(std::istream &in);
 
         /**
          * Parse a WASM module from binary data
@@ -189,7 +189,7 @@ namespace wasm3 {
          * @param size  size of the binary
          * @return module object
          */
-        module parse_module(const uint8_t *data, size_t size);
+        module3 parse_module(const uint8_t *data, size_t size);
 
     protected:
         std::shared_ptr<struct M3Environment> m_env;
@@ -204,7 +204,7 @@ namespace wasm3 {
          * Load the module into runtime
          * @param mod  module parsed by environment::parse_module
          */
-        void load(module &mod);
+        void load(module3 &mod);
 
         /**
          * Get a function handle by name
@@ -242,7 +242,7 @@ namespace wasm3 {
      * Functions can be linked to the loaded module.
      * Once constructed, modules can be loaded into the runtime.
      */
-    class module {
+    class module3 {
     public:
         /**
          * Link an external function.
@@ -269,7 +269,7 @@ namespace wasm3 {
         friend class environment;
         friend class runtime;
 
-        module(const std::shared_ptr<M3Environment> &env, const uint8_t *data, size_t size) : m_env(env) {
+        module3(const std::shared_ptr<M3Environment> &env, const uint8_t *data, size_t size) : m_env(env) {
             parse(env.get(), data, size);
         }
 
@@ -380,11 +380,11 @@ namespace wasm3 {
         return runtime(m_env, stack_size_bytes);
     }
 
-    inline module environment::parse_module(const uint8_t *data, size_t size) {
-        return module(m_env, data, size);
+    inline module3 environment::parse_module(const uint8_t *data, size_t size) {
+        return module3(m_env, data, size);
     }
 
-    inline void runtime::load(module &mod) {
+    inline void runtime::load(module3 &mod) {
         mod.load_into(m_runtime.get());
     }
 
@@ -403,13 +403,13 @@ namespace wasm3 {
     }
 
     template<typename Func>
-    void module::link(const char *module, const char *function_name, Func *function) {
+    void module3::link(const char *module, const char *function_name, Func *function) {
         M3Result ret = detail::m3_wrapper<Func>::link(m_module.get(), module, function_name, function);
         detail::check_error(ret);
     }
 
     template<typename Func>
-    void module::link_optional(const char *module, const char *function_name, Func *function) {
+    void module3::link_optional(const char *module, const char *function_name, Func *function) {
         M3Result ret = detail::m3_wrapper<Func>::link(m_module.get(), module, function_name, function);
         if (ret == m3Err_functionLookupFailed) {
             return;
@@ -417,7 +417,7 @@ namespace wasm3 {
         detail::check_error(ret);
     }
 
-    inline void module::link_default()
+    inline void module3::link_default()
     {
         M3Result ret = m3_LinkLibC(m_module.get());
         detail::check_error(ret);

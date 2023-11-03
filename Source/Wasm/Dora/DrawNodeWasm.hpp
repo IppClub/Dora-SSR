@@ -31,7 +31,7 @@ static void drawnode_clear(int64_t self) {
 static int64_t drawnode_new() {
 	return from_object(DrawNode::create());
 }
-static void linkDrawNode(wasm3::module& mod) {
+static void linkDrawNode(wasm3::module3& mod) {
 	mod.link_optional("*", "drawnode_type", drawnode_type);
 	mod.link_optional("*", "drawnode_set_depth_write", drawnode_set_depth_write);
 	mod.link_optional("*", "drawnode_is_depth_write", drawnode_is_depth_write);

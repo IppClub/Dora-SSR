@@ -51,7 +51,7 @@ static float physicsworld_get_scale_factor(int64_t self) {
 static int64_t physicsworld_new() {
 	return from_object(PhysicsWorld::create());
 }
-static void linkPhysicsWorld(wasm3::module& mod) {
+static void linkPhysicsWorld(wasm3::module3& mod) {
 	mod.link_optional("*", "physicsworld_type", physicsworld_type);
 	mod.link_optional("*", "physicsworld_set_show_debug", physicsworld_set_show_debug);
 	mod.link_optional("*", "physicsworld_is_show_debug", physicsworld_is_show_debug);

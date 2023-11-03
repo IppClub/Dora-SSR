@@ -25,7 +25,7 @@ static int64_t touch_get_location(int64_t self) {
 static int64_t touch_get_world_location(int64_t self) {
 	return vec2_retain(r_cast<Touch*>(self)->getWorldLocation());
 }
-static void linkTouch(wasm3::module& mod) {
+static void linkTouch(wasm3::module3& mod) {
 	mod.link_optional("*", "touch_type", touch_type);
 	mod.link_optional("*", "touch_set_enabled", touch_set_enabled);
 	mod.link_optional("*", "touch_is_enabled", touch_is_enabled);

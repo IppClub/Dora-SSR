@@ -13,7 +13,7 @@ static void svgdef_render(int64_t self) {
 static int64_t svgdef_new(int64_t filename) {
 	return from_object(SVGDef::from(*str_from(filename)));
 }
-static void linkSVGDef(wasm3::module& mod) {
+static void linkSVGDef(wasm3::module3& mod) {
 	mod.link_optional("*", "svg_type", svg_type);
 	mod.link_optional("*", "svgdef_get_width", svgdef_get_width);
 	mod.link_optional("*", "svgdef_get_height", svgdef_get_height);

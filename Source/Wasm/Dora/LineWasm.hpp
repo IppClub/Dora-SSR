@@ -28,7 +28,7 @@ static int64_t line_new() {
 static int64_t line_with_vec_color(int64_t verts, int32_t color) {
 	return from_object(Line::create(from_vec2_vec(verts), Color(s_cast<uint32_t>(color))));
 }
-static void linkLine(wasm3::module& mod) {
+static void linkLine(wasm3::module3& mod) {
 	mod.link_optional("*", "line_type", line_type);
 	mod.link_optional("*", "line_set_depth_write", line_set_depth_write);
 	mod.link_optional("*", "line_is_depth_write", line_is_depth_write);

@@ -6,7 +6,6 @@
 #ifndef FONT_MANAGER_H_HEADER_GUARD
 #define FONT_MANAGER_H_HEADER_GUARD
 
-#include "bgfx/bgfx.h"
 #include "bx/handlealloc.h"
 
 namespace bgfx {

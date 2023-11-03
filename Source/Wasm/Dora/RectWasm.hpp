@@ -103,7 +103,7 @@ static int64_t rect_new(int64_t origin, int64_t size) {
 static int64_t rect_zero() {
 	return r_cast<int64_t>(new Rect{rect_get_zero()});
 }
-static void linkRect(wasm3::module& mod) {
+static void linkRect(wasm3::module3& mod) {
 	mod.link_optional("*", "rect_release", rect_release);
 	mod.link_optional("*", "rect_set_origin", rect_set_origin);
 	mod.link_optional("*", "rect_get_origin", rect_get_origin);

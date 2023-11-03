@@ -13,7 +13,7 @@ static void effect_clear(int64_t self) {
 static int64_t effect_new(int64_t vert_shader, int64_t frag_shader) {
 	return from_object(Effect::create(*str_from(vert_shader), *str_from(frag_shader)));
 }
-static void linkEffect(wasm3::module& mod) {
+static void linkEffect(wasm3::module3& mod) {
 	mod.link_optional("*", "effect_type", effect_type);
 	mod.link_optional("*", "effect_add", effect_add);
 	mod.link_optional("*", "effect_get", effect_get);

@@ -418,7 +418,7 @@ Node* Model::getNodeByName(String name) const {
 	if (!_nodeMap) {
 		return nullptr;
 	} else {
-		auto it = _nodeMap->find(name.toString());
+		auto it = _nodeMap->find(name);
 		if (it != _nodeMap->end()) {
 			return it->second;
 		}
@@ -447,7 +447,7 @@ const std::string& Model::getLastCompleted() const {
 
 Vec2 Model::getKeyPoint(String name) const {
 	auto& keyPoints = _modelDef->getKeyPoints();
-	auto it = keyPoints.find(name.toString());
+	auto it = keyPoints.find(name);
 	if (it != keyPoints.end()) {
 		auto keyPoint = it->second;
 		if (isFliped()) {

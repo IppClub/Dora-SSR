@@ -49,7 +49,7 @@ static int64_t jointdef_weld(int32_t collision, int64_t body_a, int64_t body_b, 
 static int64_t jointdef_wheel(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float axis_angle, float max_motor_torque, float motor_speed, float frequency, float damping) {
 	return from_object(JointDef::wheel(collision != 0, *str_from(body_a), *str_from(body_b), vec2_from(world_pos), axis_angle, max_motor_torque, motor_speed, frequency, damping));
 }
-static void linkJointDef(wasm3::module& mod) {
+static void linkJointDef(wasm3::module3& mod) {
 	mod.link_optional("*", "jointdef_type", jointdef_type);
 	mod.link_optional("*", "jointdef_set_center", jointdef_set_center);
 	mod.link_optional("*", "jointdef_get_center", jointdef_get_center);

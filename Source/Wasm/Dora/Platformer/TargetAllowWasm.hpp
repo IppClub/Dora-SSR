@@ -22,7 +22,7 @@ static int64_t platformer_targetallow_new() {
 static int64_t platformer_targetallow_with_value(int32_t value) {
 	return r_cast<int64_t>(new Platformer::TargetAllow{s_cast<uint32_t>(value)});
 }
-static void linkPlatformerTargetAllow(wasm3::module& mod) {
+static void linkPlatformerTargetAllow(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_targetallow_release", platformer_targetallow_release);
 	mod.link_optional("*", "platformer_targetallow_set_terrain_allowed", platformer_targetallow_set_terrain_allowed);
 	mod.link_optional("*", "platformer_targetallow_is_terrain_allowed", platformer_targetallow_is_terrain_allowed);

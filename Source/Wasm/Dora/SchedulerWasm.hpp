@@ -28,7 +28,7 @@ static void scheduler_schedule(int64_t self, int32_t func, int64_t stack) {
 static int64_t scheduler_new() {
 	return from_object(Scheduler::create());
 }
-static void linkScheduler(wasm3::module& mod) {
+static void linkScheduler(wasm3::module3& mod) {
 	mod.link_optional("*", "scheduler_type", scheduler_type);
 	mod.link_optional("*", "scheduler_set_time_scale", scheduler_set_time_scale);
 	mod.link_optional("*", "scheduler_get_time_scale", scheduler_get_time_scale);

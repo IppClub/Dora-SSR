@@ -34,7 +34,7 @@ NS_DOROTHY_PLATFORMER_BEGIN
 
 // UnitAction
 
-std::unordered_map<std::string, Own<UnitActionDef>> UnitAction::_actionDefs;
+StringMap<Own<UnitActionDef>> UnitAction::_actionDefs;
 
 UnitAction::UnitAction(String name, int priority, bool queued, Unit* owner)
 	: _name(name)
@@ -621,7 +621,7 @@ const std::string ActionSetting::UnitActionHit = "hit"s;
 const std::string ActionSetting::UnitActionFall = "fall"s;
 
 typedef Own<UnitAction> (*UnitActionFunc)(Unit* unit);
-static const std::unordered_map<std::string, UnitActionFunc> g_createFuncs = {
+static const StringMap<UnitActionFunc> g_createFuncs = {
 	{ActionSetting::UnitActionWalk, &Walk::alloc},
 	{ActionSetting::UnitActionTurn, &Turn::alloc},
 	{ActionSetting::UnitActionMeleeAttack, &MeleeAttack::alloc},
@@ -633,12 +633,11 @@ static const std::unordered_map<std::string, UnitActionFunc> g_createFuncs = {
 	{ActionSetting::UnitActionFall, &Fall::alloc}};
 
 Own<UnitAction> UnitAction::alloc(String name, Unit* unit) {
-	auto nameStr = name.toString();
-	auto it = _actionDefs.find(nameStr);
+	auto it = _actionDefs.find(name);
 	if (it != _actionDefs.end()) {
 		return it->second->toAction(unit);
 	} else {
-		auto it = g_createFuncs.find(nameStr);
+		auto it = g_createFuncs.find(name);
 		if (it != g_createFuncs.end()) {
 			return it->second(unit);
 		}

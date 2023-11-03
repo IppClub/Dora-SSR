@@ -61,7 +61,7 @@ static int64_t model_get_looks(int64_t filename) {
 static int64_t model_get_animations(int64_t filename) {
 	return to_vec(model_get_animation_names(*str_from(filename)));
 }
-static void linkModel(wasm3::module& mod) {
+static void linkModel(wasm3::module3& mod) {
 	mod.link_optional("*", "model_type", model_type);
 	mod.link_optional("*", "model_get_duration", model_get_duration);
 	mod.link_optional("*", "model_set_reversed", model_set_reversed);

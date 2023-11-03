@@ -14,13 +14,13 @@ using namespace Dorothy;
 DORA_TEST_ENTRY(HelloWorldCpp) {
 	auto node = Node::create();
 	node->slot("Enter"_slice, [](Event*) {
-		println("on enter event"_slice);
+		println("on enter event");
 	});
 	node->slot("Exit"_slice, [](Event*) {
-		println("on exit event"_slice);
+		println("on exit event");
 	});
 	node->slot("Cleanup"_slice, [](Event*) {
-		println("on node destoyed event"_slice);
+		println("on node destoyed event");
 	});
 	auto time = std::make_shared<double>(0);
 	auto countDown = std::make_shared<int>(5);
@@ -34,7 +34,7 @@ DORA_TEST_ENTRY(HelloWorldCpp) {
 			--*countDown;
 		}
 		if (*countDown < 0) {
-			println("Hello World!"_slice);
+			println("Hello World!");
 			return true;
 		}
 		return false;
