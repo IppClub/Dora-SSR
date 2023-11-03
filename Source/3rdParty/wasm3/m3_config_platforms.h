@@ -82,7 +82,7 @@
 #  endif
 # endif
 
-# if M3_COMPILER_HAS_ATTRIBUTE(musttail)
+# if 0 // M3_COMPILER_HAS_ATTRIBUTE(musttail)
 #   define M3_MUSTTAIL __attribute__((musttail))
 # else
 #   define M3_MUSTTAIL
