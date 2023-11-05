@@ -215,7 +215,8 @@ class Content
 	void loadAsync(String filename, tolua_function_void handler);
 	void saveAsync(String filename, String content, tolua_function_void handler);
 	void copyAsync(String src, String dst, tolua_function_void handler);
-	void zipAsync(String zipFile, String folderPath, tolua_function_bool filter, tolua_function_void callback);
+	void zipAsync(String folderPath, String zipFile, tolua_function_bool filter, tolua_function_void callback);
+	void unzipAsync(String zipFile, String folderPath, tolua_function_bool filter, tolua_function_void callback);
 	void clearPathCache();
 	tolua_outside void Content_getDirs @ getDirs(String path);
 	tolua_outside void Content_getFiles @ getFiles(String path);

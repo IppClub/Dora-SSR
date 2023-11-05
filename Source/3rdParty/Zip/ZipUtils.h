@@ -86,7 +86,7 @@ public:
 	bool getFileDataByChunks(const std::string& fileName, const std::function<bool(unsigned char*, int)>& handler);
 
 	std::list<std::string> getDirEntries(const std::string& path, bool isFolder);
-	std::list<std::string> getAllFiles(const std::string& path);
+	std::list<std::string> getAllFiles(const std::string& path = Slice::Empty);
 
 private:
 	/* Internal data like zip file pointer / file list array and so on */

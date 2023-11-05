@@ -118,11 +118,18 @@ local record Content
 	copyAsync: function(self: Content, src: string, dst: string): boolean
 
 	-- Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
+	-- @param folderPath (string) The path of the folder to compress, should be under the asset writable path.
 	-- @param zipFile (string) The name of the ZIP archive to create.
-	-- @param folderPath (string) The path of the folder to compress, should be under the content writable path.
 	-- @param filter (function) [optional] A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
 	-- @return (boolean) `true` if the folder was compressed successfully, `false` otherwise.
-	zipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
+	zipAsync: function(self: Content, folderPath: string, zipFile: string, filter?: function(string): boolean): boolean
+
+	-- Asynchronously decompresses a ZIP archive to the specified folder.
+	-- @param zipFile (string) The name of the ZIP archive to decompress, should be a file under the asset writable path.
+	-- @param folderPath (string) The path of the folder to decompress to, should be under the asset writable path.
+	-- @param filter (function) [optional] A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
+	-- @return (boolean) `true` if the folder was decompressed successfully, `false` otherwise.
+	unzipAsync: function(self: Content, folderPath: string, zipFile: string, filter?: function(string): boolean): boolean
 
 	-- Gets the names of all subdirectories in the specified directory.
 	-- @param path (string) The path of the directory to search.

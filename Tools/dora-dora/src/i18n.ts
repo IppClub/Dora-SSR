@@ -44,7 +44,10 @@ i18n
 						stopFailed: "failed to stop running",
 						runNoTarget: "please select a file to run",
 						run: "{{title}} is running",
-						runFailed: "failed to run {{title}}"
+						runFailed: "failed to run {{title}}",
+						startUnzip: "start to unzip file {{title}}",
+						doneUnzip: "finished unziping file {{title}}",
+						failedUnzip: "failed to unzip file {{title}}, make sure no same named folder exist",
 					},
 					popup: {
 						goToFile: "Go to File",
@@ -104,6 +107,7 @@ i18n
 						runThis: "Run This",
 						stop: "Stop",
 						goToFile: "Go to File",
+						extract: "Unzip",
 					}
 				}
 			},
@@ -146,7 +150,10 @@ i18n
 						stopFailed: "停止运行失败",
 						runNoTarget: "请选择要运行的文件或项目",
 						run: "{{title}} 正在运行",
-						runFailed: "运行 {{title}} 失败"
+						runFailed: "运行 {{title}} 失败",
+						startUnzip: "开始解压缩 {{title}}",
+						doneUnzip: "完成解压缩 {{title}}",
+						failedUnzip: "解压缩 {{title}} 未成功，请确保目录下无同名文件夹",
 					},
 					popup: {
 						goToFile: "跳转到文件",
@@ -206,6 +213,7 @@ i18n
 						runThis: "运行文件",
 						stop: "停止",
 						goToFile: "跳转到文件",
+						extract: "解压缩",
 					}
 				}
 			},

@@ -88,7 +88,7 @@ static void content_save_async(int64_t filename, int64_t content, int32_t func, 
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static void content_zip_async(int64_t zip_file, int64_t folder_path, int32_t func, int64_t stack, int32_t func1, int64_t stack1) {
+static void content_zip_async(int64_t folder_path, int64_t zip_file, int32_t func, int64_t stack, int32_t func1, int64_t stack1) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
@@ -97,7 +97,27 @@ static void content_zip_async(int64_t zip_file, int64_t folder_path, int32_t fun
 		SharedWasmRuntime.deref(func1);
 	});
 	auto args1 = r_cast<CallStack*>(stack1);
-	SharedContent.zipAsync(*str_from(zip_file), *str_from(folder_path), [func, args, deref](String file) {
+	SharedContent.zipAsync(*str_from(folder_path), *str_from(zip_file), [func, args, deref](String file) {
+		args->clear();
+		args->push(file);
+		SharedWasmRuntime.invoke(func);
+		return std::get<bool>(args->pop());
+	}, [func1, args1, deref1](bool success) {
+		args1->clear();
+		args1->push(success);
+		SharedWasmRuntime.invoke(func1);
+	});
+}
+static void content_unzip_async(int64_t zip_file, int64_t folder_path, int32_t func, int64_t stack, int32_t func1, int64_t stack1) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	std::shared_ptr<void> deref1(nullptr, [func1](auto) {
+		SharedWasmRuntime.deref(func1);
+	});
+	auto args1 = r_cast<CallStack*>(stack1);
+	SharedContent.unzipAsync(*str_from(zip_file), *str_from(folder_path), [func, args, deref](String file) {
 		args->clear();
 		args->push(file);
 		SharedWasmRuntime.invoke(func);
@@ -132,4 +152,5 @@ static void linkContent(wasm3::module3& mod) {
 	mod.link_optional("*", "content_copy_async", content_copy_async);
 	mod.link_optional("*", "content_save_async", content_save_async);
 	mod.link_optional("*", "content_zip_async", content_zip_async);
+	mod.link_optional("*", "content_unzip_async", content_unzip_async);
 }

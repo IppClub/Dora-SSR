@@ -566,12 +566,12 @@ HttpServer\post "/assets", ->
 		key: Content.writablePath,
 		dir: true,
 		title: "Assets",
-		children: {
+		children: [
 			visitAssets Path Content.assetPath, "Script", "Lib", "Dora"
 			visitAssets Path Content.assetPath, "Script", "Example"
 			visitAssets Path Content.assetPath, "Script", "Test"
 			...visitAssets Content.writablePath, true
-		}
+		]
 	}
 
 HttpServer\postSchedule "/run", (req)->
@@ -597,8 +597,14 @@ HttpServer\postSchedule "/stop", ->
 HttpServer\postSchedule "/zip", (req)->
 	switch req when {body: {:path, :zipFile}}
 		Content\mkdir Path\getPath zipFile
-		return success: Content\zipAsync zipFile, path, (file)->
+		return success: Content\zipAsync path, zipFile, (file)->
 			not (file\match('^%.') or file\match "[\\/]%.")
+	success: false
+
+HttpServer\postSchedule "/unzip", (req)->
+	switch req when {body: {:zipFile, :path}}
+		return success: Content\unzipAsync zipFile, path, (file)->
+			not (file\match('^%.') or file\match("[\\/]%.") or file\match "__MACOSX")
 	success: false
 
 HttpServer\post "/editingInfo", (req)->
