@@ -127,7 +127,8 @@ singleton class Content
 	void loadAsync(string filename, function<void(string content)> callback);
 	void copyAsync(string srcFile, string targetFile, function<void(bool success)> callback);
 	void saveAsync(string filename, string content, function<void(bool success)> callback);
-	void zipAsync(string zipFile, string folderPath, function<bool(string file)> filter, function<void(bool success)> callback);
+	void zipAsync(string folderPath, string zipFile, function<bool(string file)> filter, function<void(bool success)> callback);
+	void unzipAsync(string zipFile, string folderPath, function<bool(string file)> filter, function<void(bool success)> callback);
 };
 
 object class Scheduler

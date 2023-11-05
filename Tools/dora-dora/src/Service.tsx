@@ -231,6 +231,19 @@ export const zip = (req: ZipRequest) => {
 	return post<ZipResponse>("/zip", req);
 };
 
+// Unzip
+
+export interface UnzipRequest {
+	zipFile: string;
+	path: string;
+}
+export interface UnzipResponse {
+	success: boolean;
+}
+export const unzip = (req: UnzipRequest) => {
+	return post<UnzipResponse>("/unzip", req);
+};
+
 // EditingInfo
 
 export interface EditingInfo {

@@ -117,11 +117,18 @@ local record Content
 	copyAsync: function(self: Content, src: string, dst: string): boolean
 
 	-- 异步将指定文件夹压缩为具有指定文件名的 ZIP 归档文件。
+	-- @param folderPath (string) 要压缩的文件夹的路径，应在可写资源路径下。
 	-- @param zipFile (string) 要创建的 ZIP 归档文件的名称。
-	-- @param folderPath (string) 要压缩的文件夹的路径，应在内容可写路径下。
 	-- @param filter (function, 可选) 用于过滤要包含在归档中的文件的函数。该函数以文件名作为输入，并返回一个布尔值，表示是否包含文件。如果未提供，则包含所有文件。
 	-- @return (boolean) 如果成功压缩了文件夹，则为 `true`，否则为 `false`。
-	zipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
+	zipAsync: function(self: Content, folderPath: string, zipFile: string, filter?: function(string): boolean): boolean
+
+	-- 异步将指定 ZIP 归档文件解压缩到指定的文件夹目录。
+	-- @param zipFile (string) 要做解压的 ZIP 归档文件的名称，该文件必须在可写资源路径下。
+	-- @param folderPath (string) 要解压缩到的文件夹的路径，应在可写资源路径下。
+	-- @param filter (function, 可选) 用于过滤要做解压的 ZIP 归档包中的文件的函数。该函数以文件名作为输入，并返回一个布尔值，表示是否解压文件。如果未提供，则解压所有文件。
+	-- @return (boolean) 如果成功解压缩了文件，则为 `true`，否则为 `false`。
+	unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
 
 	-- 获取指定目录中所有子目录的名称。
 	-- @param path (string) 要搜索的目录的路径。

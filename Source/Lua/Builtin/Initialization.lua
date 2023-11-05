@@ -319,13 +319,30 @@ do
 	end
 
 	local Content_zipAsync = Content.zipAsync
-	Content.zipAsync = function(self, zipFile, folderPath, filter)
+	Content.zipAsync = function(self, folderPath, zipFile, filter)
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "Content.zipAsync should be run in a thread")
 		filter = filter or function() return true end
 		local result
 		local done = false
-		Content_zipAsync(self, zipFile, folderPath, filter, function(success)
+		Content_zipAsync(self, folderPath, zipFile, filter, function(success)
+			result = success
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		return result
+	end
+
+	local Content_unzipAsync = Content.unzipAsync
+	Content.unzipAsync = function(self, zipFile, folderPath, filter)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "Content.unzipAsync should be run in a thread")
+		filter = filter or function() return true end
+		local result
+		local done = false
+		Content_unzipAsync(self, zipFile, folderPath, filter, function(success)
 			result = success
 			done = true
 		end)

@@ -806,6 +806,24 @@ export default function PersistentDrawerLeft() {
 				deleteFile(data);
 				break;
 			}
+			case "Unzip": {
+				const rootNode = treeData.at(0);
+				if (rootNode === undefined) break;
+				const {key, title} = data;
+				const extname = path.extname(key);
+				const name = path.basename(key, extname);
+				const dir = path.dirname(key);
+				addAlert(t("alert.startUnzip", {title}), "info");
+				Service.unzip({zipFile: key, path: path.join(dir, name)}).then((res)=> {
+					if (res.success) {
+						addAlert(t("alert.doneUnzip", {title}), "success");
+					} else {
+						addAlert(t("alert.failedUnzip", {title}), "error");
+					}
+					loadAssets();
+				})
+				break;
+			}
 		}
 	};
 
