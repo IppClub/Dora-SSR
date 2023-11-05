@@ -30,9 +30,7 @@ namespace fs = ghc::filesystem;
 namespace fs = std::filesystem;
 #endif // BX_PLATFORM_LINUX
 
-#if BX_PLATFORM_ANDROID
 #include "ZipUtils.h"
-#endif
 
 #include "miniz.h"
 
@@ -433,25 +431,32 @@ void Content::saveAsync(String filename, OwnArray<uint8_t> content, size_t size,
 		});
 }
 
-void Content::zipAsync(String zipFile, String folderPath, const std::function<bool(String)>& filter, const std::function<void(bool)>& callback) {
+void Content::zipAsync(String folderPath, String zipFile, const std::function<bool(String)>& filter, const std::function<void(bool)>& callback) {
 	std::error_code err;
-	if (!fs::exists(folderPath.toString(), err)) {
+	auto fullFolderPath = Content::getFullPath(folderPath);
+	if (!fs::exists(fullFolderPath, err)) {
 		Error("\"{}\" must be a local disk folder to zip", folderPath.toString());
 		callback(false);
 		return;
 	}
-	if (!Content::isFolder(folderPath)) {
+	if (!Content::isFolder(fullFolderPath)) {
+		Error("\"{}\" must be a folder to zip", folderPath.toString());
 		callback(false);
 		return;
 	}
-	auto files = Content::getAllFiles(folderPath);
+	if (!Content::isAbsolutePath(zipFile)) {
+		Error("target zip file must be of an absolute path instead of \"{}\"", zipFile.toString());
+		callback(false);
+		return;
+	}
+	auto files = Content::getAllFiles(fullFolderPath);
 	std::list<std::pair<std::string, std::string>> filePairs;
 	for (auto& file : files) {
 		if (!filter(file)) continue;
 		for (auto& ch : file) {
 			if (ch == '\\') ch = '/';
 		}
-		auto fullPath = Content::getFullPath(Path::concat({folderPath, file}));
+		auto fullPath = Path::concat({fullFolderPath, file});
 		filePairs.push_back({fullPath, file});
 	}
 	SharedAsyncThread.run([files = std::move(filePairs), zipFile = zipFile.toString()]() {
@@ -473,6 +478,84 @@ void Content::zipAsync(String zipFile, String folderPath, const std::function<bo
 			mz_zip_writer_end(&archive);
 			return Values::alloc(false);
 		}
+	},
+		[callback](Own<Values> values) {
+			bool success = false;
+			values->get(success);
+			callback(success);
+		});
+}
+
+void Content::unzipAsync(String zipFile, String folderPath, const std::function<bool(String)>& filter, const std::function<void(bool)>& callback) {
+	std::error_code err;
+	auto fullZipPath = getFullPath(zipFile);
+	if (!fs::exists(fullZipPath, err)) {
+		Error("\"{}\" must be a local disk zip file to unzip", zipFile.toString());
+		callback(false);
+		return;
+	}
+	if (Content::exist(folderPath)) {
+		Error("unzip target \"{}\" existed", folderPath.toString());
+		callback(false);
+		return;
+	}
+	if (!Content::isAbsolutePath(folderPath)) {
+		Error("target unzip folder must be of an absolute path instead of \"{}\"", folderPath.toString());
+		callback(false);
+		return;
+	}
+	auto zip = std::make_shared<ZipFile>(fullZipPath);
+	std::string rootDir;
+	BLOCK_START
+	auto entries = zip->getDirEntries(""s, false);
+	for (const auto& file : entries) {
+		if (filter(file)) {
+			break;
+		}
+	}
+	auto dirs = zip->getDirEntries(""s, true);
+	std::list<std::string> rootDirs;
+	for (const auto& dir : dirs) {
+		if (filter(dir)) {
+			rootDirs.push_back(dir);
+		}
+	}
+	BREAK_IF(rootDirs.size() != 1);
+	rootDir = Path::getName(fullZipPath);
+	if (rootDirs.front() != rootDir) {
+		rootDir.clear();
+	}
+	BLOCK_END
+	auto files = zip->getAllFiles();
+	std::list<std::string> filtered;
+	for (const auto& file : files) {
+		if (filter(file)) {
+			filtered.push_back(file);
+		}
+	}
+	SharedAsyncThread.run([zip = std::move(zip), folderPath = folderPath.toString(), files = std::move(filtered), zipFile = zipFile.toString(), rootDir, this]() {
+		for (const auto& file : files) {
+			auto path = Path::concat({folderPath, rootDir.empty() ? file : Path::getRelative(file, rootDir)});
+			if (auto parent = Path::getPath(path); !exist(parent)) {
+				createFolder(parent);
+			}
+			std::ofstream stream(path);
+			if (stream) {
+				if (!zip->getFileDataByChunks(file, [&stream](uint8_t* data, size_t size) {
+						if (stream.write(r_cast<const char*>(data), size)) {
+							return false;
+						}
+						return true;
+					})) {
+					Error("failed to unzip file \"{}\" from \"{}\"", file, zipFile);
+					return Values::alloc(false);
+				}
+			} else {
+				Error("failed to unzip file \"{}\" from \"{}\"", file, zipFile);
+				return Values::alloc(false);
+			}
+		}
+		return Values::alloc(true);
 	},
 		[callback](Own<Values> values) {
 			bool success = false;

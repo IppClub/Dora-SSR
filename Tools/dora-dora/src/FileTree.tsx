@@ -14,6 +14,7 @@ import {
 	AiOutlineEdit,
 	AiOutlineUpload,
 	AiOutlineDownload,
+	AiFillFileZip,
 } from 'react-icons/ai';
 import { FcImageFile } from 'react-icons/fc';
 import { SiWebassembly } from 'react-icons/si';
@@ -98,6 +99,8 @@ const fileIcon = (props: TreeNodeProps) => {
 					return <img src="yarn-editor/icon_96x96.png" alt="yarn" width="14px" height="14px"/>;
 				case ".vs":
 					return <SiNodered size={12}/>;
+				case ".zip":
+					return <AiFillFileZip color='fbc400'/>;
 			}
 		}
 	}
@@ -124,7 +127,7 @@ const motion = {
 	onLeaveActive: () => ({ height: 0 }),
 };
 
-export type TreeMenuEvent = "New" | "Rename" | "Upload" | "Delete" | "Download" | "Cancel";
+export type TreeMenuEvent = "New" | "Rename" | "Upload" | "Delete" | "Download" | "Cancel" | "Unzip";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
@@ -220,6 +223,14 @@ export default function FileTree(props: FileTreeProps) {
 					</ListItemIcon>
 					<ListItemText primary={ t("menu.download") }/>
 				</StyledMenuItem>
+				{anchorItem && Info.path.extname(anchorItem.data.key).toLowerCase() === ".zip" ?
+					<StyledMenuItem onClick={() => handleClose("Unzip", anchorItem?.data)}>
+						<ListItemIcon>
+							<AiOutlineFolderOpen/>
+						</ListItemIcon>
+						<ListItemText primary={ t("menu.extract") }/>
+					</StyledMenuItem>	: null
+				}
 			</StyledMenu>
 			<Tree
 				onRightClick={onRightClick}
