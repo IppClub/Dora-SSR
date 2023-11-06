@@ -8,7 +8,7 @@
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
 
-#define CPPHTTPLIB_VERSION "0.13.3"
+#define CPPHTTPLIB_VERSION "0.14.1"
 
 /*
  * Configuration
@@ -487,8 +487,7 @@ struct Request {
 
   bool has_header(const std::string &key) const;
   std::string get_header_value(const std::string &key, size_t id = 0) const;
-  template <typename T>
-  T get_header_value(const std::string &key, size_t id = 0) const;
+  uint64_t get_header_value_u64(const std::string &key, size_t id = 0) const;
   size_t get_header_value_count(const std::string &key) const;
   void set_header(const std::string &key, const std::string &val);
 
@@ -520,8 +519,7 @@ struct Response {
 
   bool has_header(const std::string &key) const;
   std::string get_header_value(const std::string &key, size_t id = 0) const;
-  template <typename T>
-  T get_header_value(const std::string &key, size_t id = 0) const;
+  uint64_t get_header_value_u64(const std::string &key, size_t id = 0) const;
   size_t get_header_value_count(const std::string &key) const;
   void set_header(const std::string &key, const std::string &val);
 
@@ -739,11 +737,15 @@ private:
   std::regex regex_;
 };
 
+ssize_t write_headers(Stream &strm, const Headers &headers);
+
 } // namespace detail
 
 class Server {
 public:
   using Handler = std::function<void(const Request &, Response &)>;
+
+  using HandlerWithAccept = std::function<bool(const Request &, Response &)>;
 
   using ExceptionHandler =
       std::function<void(const Request &, Response &, std::exception_ptr ep)>;
@@ -786,7 +788,7 @@ public:
   Server &set_file_extension_and_mimetype_mapping(const std::string &ext,
                                                   const std::string &mime);
   Server &set_default_file_mimetype(const std::string &mime);
-  Server &set_file_request_handler(Handler handler);
+  Server &set_file_request_handler(HandlerWithAccept handler);
 
   Server &set_error_handler(HandlerWithResponse handler);
   Server &set_error_handler(Handler handler);
@@ -802,6 +804,8 @@ public:
   Server &set_socket_options(SocketOptions socket_options);
 
   Server &set_default_headers(Headers headers);
+  Server &
+  set_header_writer(std::function<ssize_t(Stream &, Headers &)> const &writer);
 
   Server &set_keep_alive_max_count(size_t count);
   Server &set_keep_alive_timeout(time_t sec);
@@ -911,7 +915,7 @@ private:
   std::vector<MountPointEntry> base_dirs_;
   std::map<std::string, std::string> file_extension_and_mimetype_map_;
   std::string default_file_mimetype_ = "application/octet-stream";
-  Handler file_request_handler_;
+  HandlerWithAccept file_request_handler_;
 
   Handlers get_handlers_;
   Handlers post_handlers_;
@@ -937,6 +941,8 @@ private:
   SocketOptions socket_options_ = default_socket_options;
 
   Headers default_headers_;
+  std::function<ssize_t(Stream &, Headers &)> header_writer_ =
+      detail::write_headers;
 };
 
 enum class Error {
@@ -989,8 +995,8 @@ public:
   bool has_request_header(const std::string &key) const;
   std::string get_request_header_value(const std::string &key,
                                        size_t id = 0) const;
-  template <typename T>
-  T get_request_header_value(const std::string &key, size_t id = 0) const;
+  uint64_t get_request_header_value_u64(const std::string &key,
+                                        size_t id = 0) const;
   size_t get_request_header_value_count(const std::string &key) const;
 
 private:
@@ -1167,6 +1173,9 @@ public:
 
   void set_default_headers(Headers headers);
 
+  void
+  set_header_writer(std::function<ssize_t(Stream &, Headers &)> const &writer);
+
   void set_address_family(int family);
   void set_tcp_nodelay(bool on);
   void set_socket_options(SocketOptions socket_options);
@@ -1275,6 +1284,10 @@ protected:
 
   // Default headers
   Headers default_headers_;
+
+  // Header writer
+  std::function<ssize_t(Stream &, Headers &)> header_writer_ =
+      detail::write_headers;
 
   // Settings
   std::string client_cert_path_;
@@ -1542,6 +1555,9 @@ public:
 
   void set_default_headers(Headers headers);
 
+  void
+  set_header_writer(std::function<ssize_t(Stream &, Headers &)> const &writer);
+
   void set_address_family(int family);
   void set_tcp_nodelay(bool on);
   void set_socket_options(SocketOptions socket_options);
@@ -1711,15 +1727,9 @@ inline void duration_to_sec_and_usec(const T &duration, U callback) {
   callback(static_cast<time_t>(sec), static_cast<time_t>(usec));
 }
 
-template <typename T>
-inline T get_header_value(const Headers & /*headers*/,
-                          const std::string & /*key*/, size_t /*id*/ = 0,
-                          uint64_t /*def*/ = 0) {}
-
-template <>
-inline uint64_t get_header_value<uint64_t>(const Headers &headers,
-                                           const std::string &key, size_t id,
-                                           uint64_t def) {
+inline uint64_t get_header_value_u64(const Headers &headers,
+                                     const std::string &key, size_t id,
+                                     uint64_t def) {
   auto rng = headers.equal_range(key);
   auto it = rng.first;
   std::advance(it, static_cast<ssize_t>(id));
@@ -1731,14 +1741,14 @@ inline uint64_t get_header_value<uint64_t>(const Headers &headers,
 
 } // namespace detail
 
-template <typename T>
-inline T Request::get_header_value(const std::string &key, size_t id) const {
-  return detail::get_header_value<T>(headers, key, id, 0);
+inline uint64_t Request::get_header_value_u64(const std::string &key,
+                                              size_t id) const {
+  return detail::get_header_value_u64(headers, key, id, 0);
 }
 
-template <typename T>
-inline T Response::get_header_value(const std::string &key, size_t id) const {
-  return detail::get_header_value<T>(headers, key, id, 0);
+inline uint64_t Response::get_header_value_u64(const std::string &key,
+                                               size_t id) const {
+  return detail::get_header_value_u64(headers, key, id, 0);
 }
 
 template <typename... Args>
@@ -1907,10 +1917,9 @@ inline std::ostream &operator<<(std::ostream &os, const Error &obj) {
   return os;
 }
 
-template <typename T>
-inline T Result::get_request_header_value(const std::string &key,
-                                          size_t id) const {
-  return detail::get_header_value<T>(request_headers_, key, id, 0);
+inline uint64_t Result::get_request_header_value_u64(const std::string &key,
+                                                     size_t id) const {
+  return detail::get_header_value_u64(request_headers_, key, id, 0);
 }
 
 template <class Rep, class Period>
@@ -2557,7 +2566,7 @@ inline mmap::mmap(const char *path)
 #endif
       ,
       size_(0), addr_(nullptr) {
-  if (!open(path)) { std::runtime_error(""); }
+  open(path);
 }
 
 inline mmap::~mmap() { close(); }
@@ -3320,7 +3329,7 @@ find_content_type(const std::string &path,
   auto ext = file_extension(path);
 
   auto it = user_data.find(ext);
-  if (it != user_data.end()) { return it->second.c_str(); }
+  if (it != user_data.end()) { return it->second; }
 
   using udl::operator""_t;
 
@@ -3895,7 +3904,7 @@ bool read_content(Stream &strm, T &x, size_t payload_max_length, int &status,
         } else if (!has_header(x.headers, "Content-Length")) {
           ret = read_content_without_length(strm, out);
         } else {
-          auto len = get_header_value<uint64_t>(x.headers, "Content-Length");
+          auto len = get_header_value_u64(x.headers, "Content-Length", 0, 0);
           if (len > payload_max_length) {
             exceed_payload_max_length = true;
             skip_content_with_length(strm, len);
@@ -4987,7 +4996,7 @@ inline bool parse_www_authenticate(const Response &res,
         s = s.substr(pos + 1);
         auto beg = std::sregex_iterator(s.begin(), s.end(), re);
         for (auto i = beg; i != std::sregex_iterator(); ++i) {
-          auto m = *i;
+          const auto &m = *i;
           auto key = s.substr(static_cast<size_t>(m.position(1)),
                               static_cast<size_t>(m.length(1)));
           auto val = m.length(2) > 0
@@ -5618,7 +5627,7 @@ inline Server &Server::set_default_file_mimetype(const std::string &mime) {
   return *this;
 }
 
-inline Server &Server::set_file_request_handler(Handler handler) {
+inline Server &Server::set_file_request_handler(HandlerWithAccept handler) {
   file_request_handler_ = std::move(handler);
   return *this;
 }
@@ -5679,6 +5688,12 @@ inline Server &Server::set_socket_options(SocketOptions socket_options) {
 
 inline Server &Server::set_default_headers(Headers headers) {
   default_headers_ = std::move(headers);
+  return *this;
+}
+
+inline Server &Server::set_header_writer(
+    std::function<ssize_t(Stream &, Headers &)> const &writer) {
+  header_writer_ = writer;
   return *this;
 }
 
@@ -5749,6 +5764,7 @@ inline void Server::stop() {
     std::atomic<socket_t> sock(svr_sock_.exchange(INVALID_SOCKET));
     detail::shutdown_socket(sock);
     detail::close_socket(sock);
+    is_running_ = false;
   }
 }
 
@@ -5882,7 +5898,7 @@ inline bool Server::write_response_core(Stream &strm, bool close_connection,
       return false;
     }
 
-    if (!detail::write_headers(bstrm, res.headers)) { return false; }
+    if (!header_writer_(bstrm, res.headers)) { return false; }
 
     // Flush buffer
     auto &data = bstrm.get_buffer();
@@ -6076,7 +6092,7 @@ inline bool Server::handle_file_request(const Request &req, Response &res,
 
         if (detail::is_file(path)) {
           for (const auto &kv : entry.headers) {
-            res.set_header(kv.first.c_str(), kv.second);
+            res.set_header(kv.first, kv.second);
           }
 
           auto mm = std::make_shared<detail::mmap>(path.c_str());
@@ -6091,15 +6107,18 @@ inline bool Server::handle_file_request(const Request &req, Response &res,
                 return true;
               });
 
-          if (!head && file_request_handler_) {
-            file_request_handler_(req, res);
-          }
-
           return true;
         }
       }
     }
   }
+
+  if (!head && file_request_handler_) {
+    if (file_request_handler_(req, res)) {
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -6986,7 +7005,7 @@ inline bool ClientImpl::redirect(Request &req, Response &res, Error &error) {
   } else {
     if (next_scheme == "https") {
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
-      SSLClient cli(next_host.c_str(), next_port);
+      SSLClient cli(next_host, next_port);
       cli.copy_settings(*this);
       if (ca_cert_store_) { cli.set_ca_cert_store(ca_cert_store_); }
       return detail::redirect(cli, req, res, path, location, error);
@@ -6994,7 +7013,7 @@ inline bool ClientImpl::redirect(Request &req, Response &res, Error &error) {
       return false;
 #endif
     } else {
-      ClientImpl cli(next_host.c_str(), next_port);
+      ClientImpl cli(next_host, next_port);
       cli.copy_settings(*this);
       return detail::redirect(cli, req, res, path, location, error);
     }
@@ -7121,7 +7140,7 @@ inline bool ClientImpl::write_request(Stream &strm, Request &req,
     const auto &path = url_encode_ ? detail::encode_url(req.path) : req.path;
     bstrm.write_format("%s %s HTTP/1.1\r\n", req.method.c_str(), path.c_str());
 
-    detail::write_headers(bstrm, req.headers);
+    header_writer_(bstrm, req.headers);
 
     // Flush buffer
     auto &data = bstrm.get_buffer();
@@ -7472,7 +7491,7 @@ inline Result ClientImpl::Get(const std::string &path, const Params &params,
   if (params.empty()) { return Get(path, headers); }
 
   std::string path_with_query = append_query_params(path, params);
-  return Get(path_with_query.c_str(), headers, progress);
+  return Get(path_with_query, headers, progress);
 }
 
 inline Result ClientImpl::Get(const std::string &path, const Params &params,
@@ -7492,7 +7511,7 @@ inline Result ClientImpl::Get(const std::string &path, const Params &params,
   }
 
   std::string path_with_query = append_query_params(path, params);
-  return Get(path_with_query.c_str(), headers, response_handler,
+  return Get(path_with_query, headers, response_handler,
              content_receiver, progress);
 }
 
@@ -7595,7 +7614,7 @@ inline Result ClientImpl::Post(const std::string &path, const Headers &headers,
   const auto &content_type =
       detail::serialize_multipart_formdata_get_content_type(boundary);
   const auto &body = detail::serialize_multipart_formdata(items, boundary);
-  return Post(path, headers, body, content_type.c_str());
+  return Post(path, headers, body, content_type);
 }
 
 inline Result ClientImpl::Post(const std::string &path, const Headers &headers,
@@ -7608,7 +7627,7 @@ inline Result ClientImpl::Post(const std::string &path, const Headers &headers,
   const auto &content_type =
       detail::serialize_multipart_formdata_get_content_type(boundary);
   const auto &body = detail::serialize_multipart_formdata(items, boundary);
-  return Post(path, headers, body, content_type.c_str());
+  return Post(path, headers, body, content_type);
 }
 
 inline Result
@@ -7930,6 +7949,11 @@ ClientImpl::set_hostname_addr_map(std::map<std::string, std::string> addr_map) {
 
 inline void ClientImpl::set_default_headers(Headers headers) {
   default_headers_ = std::move(headers);
+}
+
+inline void ClientImpl::set_header_writer(
+    std::function<ssize_t(Stream &, Headers &)> const &writer) {
+  header_writer_ = writer;
 }
 
 inline void ClientImpl::set_address_family(int family) {
@@ -8648,8 +8672,8 @@ SSLClient::verify_host_with_subject_alt_name(X509 *server_cert) const {
 
   auto type = GEN_DNS;
 
-  struct in6_addr addr6;
-  struct in_addr addr;
+  struct in6_addr addr6 {};
+  struct in_addr addr {};
   size_t addr_len = 0;
 
 #ifndef __MINGW32__
@@ -9124,6 +9148,11 @@ Client::set_hostname_addr_map(std::map<std::string, std::string> addr_map) {
 
 inline void Client::set_default_headers(Headers headers) {
   cli_->set_default_headers(std::move(headers));
+}
+
+inline void Client::set_header_writer(
+    std::function<ssize_t(Stream &, Headers &)> const &writer) {
+  cli_->set_header_writer(writer);
 }
 
 inline void Client::set_address_family(int family) {

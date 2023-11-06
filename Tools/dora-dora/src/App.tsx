@@ -1809,6 +1809,12 @@ export default function PersistentDrawerLeft() {
 						}
 						const markdown = language === "markdown";
 						const readOnly = !file.key.startsWith(treeData.at(0)?.key ?? "");
+						let parentPath;
+						if (readOnly) {
+							parentPath = treeData.at(0)?.children?.at(0)?.key ?? "";
+						} else {
+							parentPath = treeData.at(0)?.key ?? "";
+						}
 						return <Main
 							open={drawerOpen}
 							key={file.key}
@@ -1852,7 +1858,7 @@ export default function PersistentDrawerLeft() {
 							{markdown ?
 								<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: window.innerHeight - 64}}>
 									<Markdown
-										path={readOnly ? "" : Service.addr("/" + path.relative(treeData.at(0)?.key ?? "", path.dirname(file.key)).replace("\\", "/"))}
+										path={Service.addr("/" + path.relative(parentPath, path.dirname(file.key)).replace("\\", "/"))}
 										content={file.contentModified ?? file.content}
 										onClick={(link) => onJumpLink(link, file.key)}
 									/>
@@ -1864,7 +1870,7 @@ export default function PersistentDrawerLeft() {
 										<DrawerHeader/>
 										<Image src={
 											Service.addr("/" + path
-												.relative(treeData.at(0)?.key ?? "", file.key)
+												.relative(parentPath, file.key)
 												.replace("\\", "/"))
 											} preview={false}/>
 									</Container>
@@ -1872,7 +1878,7 @@ export default function PersistentDrawerLeft() {
 							}
 							{(() => {
 								if (spine && tabIndex === index) {
-									const skelFile = path.relative(treeData.at(0)?.key ?? "", file.key);
+									const skelFile = path.relative(parentPath, file.key);
 									const coms = path.parse(skelFile);
 									const atlasFile = path.join(coms.dir, coms.name + ".atlas");
 									return (
