@@ -8,7 +8,6 @@ import { Button, App, Upload } from 'antd';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import { useState } from 'react';
 import { Color } from './Frame';
-import Info from './Info';
 
 const { Dragger } = Upload;
 
@@ -35,7 +34,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 				});
 				return Upload.LIST_IGNORE;
 			}
-			if (file.name == ".DS_Store") {
+			if (file.name === ".DS_Store") {
 				return Upload.LIST_IGNORE;
 			}
 			return new File([file], file.webkitRelativePath !== "" ? file.webkitRelativePath : file.name);
