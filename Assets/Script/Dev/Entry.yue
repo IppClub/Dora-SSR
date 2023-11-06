@@ -95,7 +95,7 @@ if not config.editingInfo?
 		\"index\":0,
 		\"files\":[
 			{
-				\"key\":\"#{Path Content.assetPath, 'Doc', App.locale, 'welcome.md'}\",
+				\"key\":\"#{Path Content.assetPath, 'Doc', (App.locale\match('^zh')? and 'zh-Hans' or 'en'), 'welcome.md'}\",
 				\"title\":\"welcome.md\"
 			}
 		]
