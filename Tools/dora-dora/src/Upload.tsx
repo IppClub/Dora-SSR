@@ -8,6 +8,7 @@ import { Button, App, Upload } from 'antd';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import { useState } from 'react';
 import { Color } from './Frame';
+import Info from './Info';
 
 const { Dragger } = Upload;
 
@@ -18,12 +19,25 @@ export interface DoraUploadProp {
 };
 
 const DoraUploadInner = (prop: DoraUploadProp) => {
+	const { t } = useTranslation();
+	const { message, notification } = App.useApp();
 	const props: UploadProps = {
 		name: 'file',
 		directory: true,
 		multiple: true,
 		action: addr(`/upload?path=${prop.path}`),
-		beforeUpload(file) {
+		beforeUpload(file: RcFile, fileList: RcFile[]) {
+			if (fileList.length > 100) {
+				notification.error({
+					key: "upload-exceeded-error",
+					message: t('upload.exceeded'),
+					placement: "top"
+				});
+				return Upload.LIST_IGNORE;
+			}
+			if (file.name == ".DS_Store") {
+				return Upload.LIST_IGNORE;
+			}
 			return new File([file], file.webkitRelativePath !== "" ? file.webkitRelativePath : file.name);
 		},
 		onChange(info) {
@@ -33,10 +47,8 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 			}
 		},
 	};
-	const {t} = useTranslation();
 	const [fileList, setFileList] = useState<UploadFile[]>([]);
 	const [uploading, setUploading] = useState(false);
-	const { message } = App.useApp();
 
 	const handleUpload = () => {
 		const formData = new FormData();
