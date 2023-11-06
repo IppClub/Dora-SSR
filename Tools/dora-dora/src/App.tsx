@@ -673,6 +673,18 @@ export default function PersistentDrawerLeft() {
 			confirmed: () => {
 				Service.deleteFile({path: data.key}).then((res) => {
 					if (!res.success) return;
+					const filesNotInTabs = new Set<string>();
+					if (data.dir) {
+						const getEveryFileUnder = (node: TreeDataType) => {
+							filesNotInTabs.add(node.key);
+							if (node.children !== undefined) {
+								for (let i = 0; i < node.children.length; i++) {
+									getEveryFileUnder(node.children[i]);
+								}
+							}
+						};
+						getEveryFileUnder(data);
+					}
 					const visitData = (node: TreeDataType) => {
 						if (data.key === node.key) return "find";
 						if (node.children !== undefined) {
@@ -697,8 +709,8 @@ export default function PersistentDrawerLeft() {
 						}];
 						setExpandedKeys([]);
 					}
-					if (files.find(f => path.relative(f.key, data.key) === "") !== undefined) {
-						const newFiles = files.filter(f => path.relative(f.key, data.key) !== "");
+					const newFiles = files.filter(f => path.relative(f.key, data.key) !== "" && !filesNotInTabs.has(f.key));
+					if (newFiles.length !== files.length) {
 						setFiles(newFiles);
 						if (tabIndex !== null && tabIndex >= newFiles.length) {
 							switchTab(newFiles.length - 1, newFiles[newFiles.length - 1]);
