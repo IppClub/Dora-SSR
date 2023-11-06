@@ -263,6 +263,22 @@ export default function PersistentDrawerLeft() {
 			case ".vs": {
 				break;
 			}
+			case "": {
+				if (checkFileReadonly(key)) {
+					return;
+				}
+				const index = files.push({
+					key,
+					title,
+					content: "",
+					contentModified: null,
+					uploading: true,
+					status: "normal",
+				}) - 1;
+				setFiles([...files]);
+				switchTab(index, files[index]);
+				return;
+			}
 			default: return;
 		}
 		let index: number | null = null;
@@ -705,35 +721,6 @@ export default function PersistentDrawerLeft() {
 		switch (event) {
 			case "New": {
 				setOpenNewFile(data);
-				break;
-			}
-			case "Upload": {
-				const rootNode = treeData.at(0);
-				if (rootNode === undefined) break;
-				let {key, title} = data;
-				if (!data.dir) {
-					key = path.dirname(key);
-					title = path.basename(key);
-					if (path.relative(key, rootNode.key) === "") {
-						title = t("tree.assets");
-					}
-				}
-				const file = files.find(f => path.relative(f.key, key) === "");
-				if (file !== undefined) {
-					const index = files.indexOf(file);
-					switchTab(index, file);
-					break;
-				}
-				const index = files.push({
-					key,
-					title,
-					content: "",
-					contentModified: null,
-					uploading: true,
-					status: "normal",
-				}) - 1;
-				setFiles([...files]);
-				switchTab(index, files[index]);
 				break;
 			}
 			case "Download": {
