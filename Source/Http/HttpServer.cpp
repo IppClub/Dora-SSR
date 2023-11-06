@@ -134,6 +134,30 @@ bool HttpServer::start(int port) {
 	if (server.is_running()) return false;
 	server.set_default_headers({{"Access-Control-Allow-Origin"s, "*"s},
 		{"Access-Control-Allow-Headers"s, "*"s}});
+	server.set_file_request_handler([](const httplib::Request& req, httplib::Response& res) {
+		std::string path = req.path;
+		if (path.size() > 0 && path[0] == '/') {
+			path.erase(path.begin());
+		}
+		if (httplib::detail::is_valid_path(path)) {
+			if (!SharedContent.exist(path)) {
+				return false;
+			}
+		} else {
+			return false;
+		}
+		auto content_type = httplib::detail::find_content_type(path, {}, "application/octet-stream"s);
+		auto data = SharedContent.load(path);
+		if (data.second > 0) {
+			auto sd = std::make_shared<OwnArray<uint8_t>>(std::move(data.first));
+			res.set_content_provider(data.second, content_type, [sd = std::move(sd)](size_t offset, size_t length, httplib::DataSink &sink) -> bool {
+					sink.write(r_cast<const char*>((*sd).get()) + offset, length);
+					return true;
+				});
+			return true;
+		}
+		return false;
+	});
 	server.Options(".*", [](const httplib::Request& req, httplib::Response& res) {});
 	bool success = server.bind_to_port("0.0.0.0", port);
 	if (success) {

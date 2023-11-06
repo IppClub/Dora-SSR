@@ -48,28 +48,28 @@ disabledCheckForLua =
 yueCheck = (file, content)->
 	searchPath = getSearchPath file
 	checkResult, luaCodes = yue.checkAsync content, searchPath
-	info = {}
-	globals = {}
-	for {t, msg, line, col} in *checkResult
+	info = []
+	globals = []
+	for [t, msg, line, col] in *checkResult
 		switch t when "error"
-			info[] = {"syntax", file, line, col, msg}
+			info[] = ["syntax", file, line, col, msg]
 		when "global"
-			globals[] = {msg, line, col}
+			globals[] = [msg, line, col]
 	if luaCodes
 		success, lintResult = LintYueGlobals luaCodes, globals, false
 		if success
 			luaCodes = luaCodes\gsub "%s*local%s*_ENV%s*=%s*Dorothy%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
 			lintResult ..= "\n" unless lintResult == ""
 			luaCodes = "-- [yue]: #{file}\n#{lintResult}" .. luaCodes
-		else for {name, line, col} in *lintResult
-			info[] = {"syntax", file, line, col, "invalid global variable"}
+		else for [name, line, col] in *lintResult
+			info[] = ["syntax", file, line, col, "invalid global variable"]
 	luaCodes, info
 
 luaCheck = (file, content)->
 	res, err = load content, "check"
 	if not res
 		line, msg = err\match ".*:(%d+):%s*(.*)"
-		return success: false, info: {{"syntax", file, tonumber(line), 0, msg}}
+		return success: false, info: [ ["syntax", file, tonumber(line), 0, msg],]
 	success, info = teal.checkAsync content, file, true, ""
 	if info
 		info = for item in *info
@@ -144,7 +144,7 @@ HttpServer\postSchedule "/check", (req)->
 			success = false
 			if luaCodes
 				luaSuccess, luaInfo = luaCheckWithLineInfo file, luaCodes
-				info = {...info, ...luaInfo}
+				info = [...info, ...luaInfo]
 				success and= luaSuccess
 			return if #info > 0
 				:success, :info
@@ -159,8 +159,8 @@ HttpServer\postSchedule "/check", (req)->
 				else
 					:success
 			else
-				info = for {row, err} in *result
-					{"syntax", file, row, 0, err}
+				info = for [row, err] in *result
+					["syntax", file, row, 0, err]
 				return success: false, :info
 	success: true
 
@@ -168,7 +168,7 @@ updateInferedDesc = (infered)->
 	return if not infered.key or infered.key == "" or infered.desc\match "^polymorphic function %(with types "
 	:key, :row = infered
 	if codes = Content\loadAsync key
-		comments = {}
+		comments = []
 		line = 0
 		skipping = false
 		for lineCode in codes\gmatch "[^\n\r]*"
@@ -207,10 +207,10 @@ HttpServer\postSchedule "/infer", (req)->
 
 getParamDocs = (signatures)->
 	if codes = Content\loadAsync signatures[1].file
-		comments = {}
-		params = {}
+		comments = []
+		params = []
 		line = 0
-		docs = {}
+		docs = []
 		returnType = nil
 		for lineCode in codes\gmatch "[^\n\r]*"
 			line += 1
@@ -245,10 +245,10 @@ getParamDocs = (signatures)->
 						else
 							typ
 			elseif #comments > 0
-				comments = {}
-				params = {}
+				comments = []
+				params = []
 				returnType = nil
-		results = {}
+		results = []
 		for doc in *docs
 			continue unless doc
 			doc.desc = if doc.params
@@ -280,7 +280,7 @@ HttpServer\postSchedule "/signature", (req)->
 					return success: true, :signatures
 	success: false
 
-luaKeywords = {
+luaKeywords = [
 	'and'
 	'break'
 	'do'
@@ -303,9 +303,9 @@ luaKeywords = {
 	'true'
 	'until'
 	'while'
-}
+]
 
-tealKeywords = {
+tealKeywords = [
 	'record'
 	'as'
 	'is'
@@ -319,9 +319,9 @@ tealKeywords = {
 	'number'
 	'string'
 	'thread'
-}
+]
 
-yueKeywords = {
+yueKeywords = [
 	"and"
 	"break"
 	"do"
@@ -357,7 +357,7 @@ yueKeywords = {
 	"using"
 	"when"
 	"with"
-}
+]
 
 HttpServer\postSchedule "/complete", (req)->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
@@ -379,7 +379,7 @@ HttpServer\postSchedule "/complete", (req)->
 				searchPaths[] = folder
 			searchPaths[] = Content.assetPath if searchImage
 			tokens = [mod for mod in item\gmatch "([%w%d-_ ]+)[%./]"]
-			suggestions = {}
+			suggestions = []
 			for path in *searchPaths
 				sPath = Path path, table.unpack tokens
 				continue unless Content\exist sPath
@@ -387,19 +387,19 @@ HttpServer\postSchedule "/complete", (req)->
 					if searchImage
 						switch Path\getExt f when "clip", "jpg", "png", "dds", "pvr", "ktx"
 							continue if "." == f\sub 1, 1
-							suggestions[] = {f, "image", "field"}
+							suggestions[] = [f, "image", "field"]
 						continue
 					switch Path\getExt f when "lua", "tl", "yue", "xml"
 						name = Path\getName f
 						continue if "d" == Path\getExt name
 						continue if "." == name\sub 1, 1
-						suggestions[] = {name, "module", "field"}
+						suggestions[] = [name, "module", "field"]
 				for dir in *Content\getDirs sPath
 					continue if "." == dir\sub 1, 1
-					suggestions[] = {dir, "folder", "variable"}
+					suggestions[] = [dir, "folder", "variable"]
 			if item == "" and not searchImage
-				for {name} in *teal.completeAsync "", "builtin.", 1, searchPath
-					suggestions[] = {name, "builtin module", "function"}
+				for [name,] in *teal.completeAsync "", "builtin.", 1, searchPath
+					suggestions[] = [name, "builtin module", "function"]
 			if #suggestions > 0
 				return success: true, :suggestions
 			else
@@ -409,14 +409,14 @@ HttpServer\postSchedule "/complete", (req)->
 			suggestions = teal.completeAsync content, line, row, searchPath
 			if not line\match("[%.:][%w_]+[%.:]?$") and not line\match "[%w_]+[%.:]$"
 				for word in *luaKeywords
-					suggestions[] = {word, "keyword", "keyword"}
+					suggestions[] = [word, "keyword", "keyword"]
 				if lang == "tl"
 					for word in *tealKeywords
-						suggestions[] = {word, "keyword", "keyword"}
+						suggestions[] = [word, "keyword", "keyword"]
 			if #suggestions > 0
 				return success: true, :suggestions
 		when "yue"
-			suggestions = {}
+			suggestions = []
 			gotGlobals = false
 			if luaCodes, targetLine, targetRow = getCompiledYueLine content, line, row, file
 				gotGlobals = true
@@ -432,14 +432,14 @@ HttpServer\postSchedule "/complete", (req)->
 						suggestions[] = item if not checkSet[item[1]]
 				for word in *yueKeywords
 					if not checkSet[word]
-						suggestions[] = {word, "keyword", "keyword"}
+						suggestions[] = [word, "keyword", "keyword"]
 			if #suggestions > 0
 				return success: true, :suggestions
 		when "xml"
 			items = xml.complete content
 			if #items > 0
-				suggestions = for {label, insertText} in *items
-					{label, insertText, "field"}
+				suggestions = for [label, insertText] in *items
+					[label, insertText, "field"]
 				return success: true, :suggestions
 	success: false
 
@@ -541,12 +541,12 @@ HttpServer\post "/assets", ->
 				continue
 			elseif dir == ".git"
 				continue
-			children = {} unless children
+			children = [] unless children
 			children[] = visitAssets Path path, dir
 		files = Content\getFiles path
 		for file in *files
 			continue if file\match "^%."
-			children = {} unless children
+			children = [] unless children
 			children[] = {
 				key: Path path, file
 				dir: false
@@ -563,13 +563,22 @@ HttpServer\post "/assets", ->
 				:children
 			}
 	{
-		key: Content.writablePath,
-		dir: true,
-		title: "Assets",
+		key: Content.writablePath
+		dir: true
+		title: "Assets"
 		children: [
-			visitAssets Path Content.assetPath, "Script", "Lib", "Dora"
-			visitAssets Path Content.assetPath, "Script", "Example"
-			visitAssets Path Content.assetPath, "Script", "Test"
+			{
+				key: Path Content.assetPath
+				dir: true
+				title: App.locale\match("^zh")? and "内置资源" or "Built-in"
+				children: [
+					visitAssets Path Content.assetPath, "Image"
+					visitAssets Path Content.assetPath, "Doc"
+					visitAssets Path Content.assetPath, "Script", "Lib", "Dora"
+					visitAssets Path Content.assetPath, "Script", "Example"
+					visitAssets Path Content.assetPath, "Script", "Test"
+				]
+			}
 			...visitAssets Content.writablePath, true
 		]
 	}
@@ -581,12 +590,12 @@ HttpServer\postSchedule "/run", (req)->
 			if proj = getProjectDirFromFile file
 				Entry.allClear!
 				target = Path proj, "init"
-				success, err = Entry.enterEntryAsync {"Project", target}
+				success, err = Entry.enterEntryAsync ["Project", target]
 				target = target |> Path\getPath |> Path\getName
 				return :success, :target, :err
 		Entry.allClear!
 		file = Path\replaceExt file, ""
-		success, err = Entry.enterEntryAsync {Path\getName(file), file}
+		success, err = Entry.enterEntryAsync [Path\getName(file), file]
 		return :success, :err
 	success: false
 
@@ -617,8 +626,6 @@ HttpServer\post "/editingInfo", (req)->
 		success: true, editingInfo: config.editingInfo
 
 thread ->
-	import "Dev.Entry"
-	wait -> not Entry.isDocPreparing!
 	doraWeb = Path Content.assetPath, "www", "index.html"
 	doraReady = Path Content.writablePath, ".www", "dora-ready"
 	if Content\exist doraWeb
