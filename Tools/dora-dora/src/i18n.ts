@@ -57,13 +57,14 @@ i18n
 						movingInfo: "move {{from}} to folder {{to}}",
 					},
 					upload: {
-						text: "Click to select a folder or drag files to this area to upload.",
-						hint: "Uploading will start automatically.",
+						text: "Click to select a folder or drag files to this area to upload automatically.",
+						hint: "For files exceeding 100, upload a ZIP then do decompressing instead.",
 						selectFile: "Select File",
 						uploading: "Uploading",
 						startUpload: "Start Upload",
 						success: "Upload successfully.",
-						failed: "Upload failed."
+						failed: "Upload failed.",
+						exceeded: "Files to upload exceeded 100.",
 					},
 					action: {
 						"ok": "OK",
@@ -96,7 +97,6 @@ i18n
 						new: "New",
 						delete: "Delete",
 						rename: "Rename",
-						upload: "Upload",
 						download: "Download",
 						save: "Save",
 						saveAll: "Save All",
@@ -163,13 +163,14 @@ i18n
 						movingInfo: "将移动 {{from}} 到目录 {{to}}",
 					},
 					upload: {
-						text: "点击上传文件夹或拖拽文件到这里进行批量上传。",
-						hint: "文件上传会自动开始。",
+						text: "点击选择上传的文件夹，或拖拽文件到这里进行自动批量上传。",
+						hint: "超过100个文件的批量上传，请上传 ZIP 包再做解压。",
 						selectFile: "选择文件",
 						uploading: "上传中",
 						startUpload: "开始上传",
 						success: "上传成功。",
-						failed: "上传失败。"
+						failed: "上传失败。",
+						exceeded: "批量上传文件一次不能超过100个。",
 					},
 					action: {
 						"ok": "确定",
@@ -202,7 +203,6 @@ i18n
 						new: "新建",
 						delete: "删除",
 						rename: "重命名",
-						upload: "上传",
 						download: "下载",
 						save: "保存",
 						saveAll: "全部保存",

@@ -12,7 +12,6 @@ import {
 	AiOutlineFileAdd,
 	AiOutlineDelete,
 	AiOutlineEdit,
-	AiOutlineUpload,
 	AiOutlineDownload,
 	AiFillFileZip,
 } from 'react-icons/ai';
@@ -127,7 +126,7 @@ const motion = {
 	onLeaveActive: () => ({ height: 0 }),
 };
 
-export type TreeMenuEvent = "New" | "Rename" | "Upload" | "Delete" | "Download" | "Cancel" | "Unzip";
+export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Download" | "Cancel" | "Unzip";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
@@ -210,12 +209,6 @@ export default function FileTree(props: FileTreeProps) {
 						<AiOutlineEdit/>
 					</ListItemIcon>
 					<ListItemText primary={ t("menu.rename") }/>
-				</StyledMenuItem>
-				<StyledMenuItem onClick={() => handleClose("Upload", anchorItem?.data)}>
-					<ListItemIcon>
-						<AiOutlineUpload/>
-					</ListItemIcon>
-					<ListItemText primary={ t("menu.upload") }/>
 				</StyledMenuItem>
 				<StyledMenuItem onClick={() => handleClose("Download", anchorItem?.data)}>
 					<ListItemIcon>
