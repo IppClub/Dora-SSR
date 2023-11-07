@@ -150,6 +150,9 @@ local record __GSLOT__
 	-- Triggers when the application window enters or exits full-screen mode.
 	["AppFullScreen"]: function(fullScreen: boolean)
 
+	-- Triggers when the application window position changes.
+	["AppMoved"]: function()
+
 	-- Triggers when the application theme color changes.
 	["AppTheme"]: function(themeColor: Color)
 end
