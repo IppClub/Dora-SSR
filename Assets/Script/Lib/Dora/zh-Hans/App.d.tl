@@ -151,6 +151,9 @@ local record __GSLOT__
 	-- 应用进入或退出全屏窗口模式时触发。
 	["AppFullScreen"]: function(fullScreen: boolean)
 
+	-- 应用窗口位置发生变化时触发。
+	["AppMoved"]: function()
+
 	-- 应用改变主题颜色时触发。
 	["AppTheme"]: function(themeColor: Color)
 end
