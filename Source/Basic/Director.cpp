@@ -515,6 +515,9 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 					SharedView.reset();
 					Event::send("AppSizeChanged"_slice);
 					break;
+				case SDL_WINDOWEVENT_MOVED:
+					Event::send("AppMoved"_slice);
+					break;
 			}
 		} break;
 		case SDL_MOUSEMOTION:

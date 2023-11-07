@@ -625,6 +625,9 @@ HttpServer\post "/editingInfo", (req)->
 	else
 		success: true, editingInfo: config.editingInfo
 
+status = url: nil
+export default status
+
 thread ->
 	doraWeb = Path Content.assetPath, "www", "index.html"
 	doraReady = Path Content.writablePath, ".www", "dora-ready"
@@ -643,6 +646,8 @@ thread ->
 		if HttpServer\start 8866
 			:localIP = HttpServer
 			localIP = "localhost" if localIP == ""
-			print "Web IDE at http://#{localIP}:8866"
+			status.url = "http://#{localIP}:8866"
+			print "Web IDE started!"
 		else
+			status.url = nil
 			print "8866 Port not available!"

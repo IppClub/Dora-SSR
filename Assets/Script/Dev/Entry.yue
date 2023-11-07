@@ -40,11 +40,16 @@ config = Config(
 	"fixedFPS"
 	"vsync"
 	"fullScreen"
+	"winX"
+	"winY"
 	"winWidth"
 	"winHeight"
 	"themeColor"
 	"locale"
 	"editingInfo"
+	"showStats"
+	"showConsole"
+	"showFooter"
 )
 config\load!
 if config.fpsLimited?
@@ -69,7 +74,7 @@ else
 
 showEntry = true
 
-switch App.platform when "Linux", "Windows", "macOS"
+if App.platform in ["Linux", "Windows", "macOS"]
 	if config.fullScreen? and config.fullScreen == 1
 		App.winSize = Size.zero
 	elseif config.winWidth? and config.winHeight?
@@ -81,6 +86,16 @@ switch App.platform when "Linux", "Windows", "macOS"
 				sleep!
 				sleep!
 				showEntry = true
+	winX = winY = 0
+	if config.winX?
+		winX = config.winX
+	else
+		config.winX = 0
+	if config.winY?
+		winY = config.winY
+	else
+		config.winY = 0
+	App.winPosition = Vec2 winX, winY
 
 if config.themeColor?
 	App.themeColor = Color config.themeColor
@@ -100,6 +115,24 @@ if not config.editingInfo?
 			}
 		]
 	}"
+
+showStats = false
+if config.showStats?
+	showStats = config.showStats > 0
+else
+	config.showStats = showStats and 1 or 0
+
+showConsole = true
+if config.showConsole?
+	showConsole = config.showConsole > 0
+else
+	config.showConsole = showConsole and 1 or 0
+
+showFooter = true
+if config.showFooter?
+	showFooter = config.showFooter > 0
+else
+	config.showFooter = showFooter and 1 or 0
 
 export.getConfig = -> config
 
@@ -296,6 +329,8 @@ setupEventHandlers = ->
 				config.winHeight = height
 			\gslot "AppFullScreen", (fullScreen)->
 				config.fullScreen = fullScreen and 1 or 0
+			\gslot "AppMoved", ->
+				x: config.winX, y: config.winY = App.winPosition
 
 setupEventHandlers!
 
@@ -494,9 +529,6 @@ extraOperations = ->
 	if changed, scaleContent = Checkbox string.format("%.1fx #{zh and '屏幕缩放' or 'Screen'}", screenScale), scaleContent
 		View.scale = scaleContent and screenScale or 1
 
-showStats = false
-showConsole = true
-showFooter = true
 windowFlags =
 	* "NoTitleBar"
 	* "NoResize"
@@ -516,11 +548,16 @@ footerWindow = threadLoop ->
 		if ctrl and Keyboard\isKeyDown ","
 			showFooter = true
 			showStats = not showStats
+			config.showFooter = showFooter and 1 or 0
+			config.showStats = showStats and 1 or 0
 		if ctrl and Keyboard\isKeyDown "."
 			showFooter = true
 			showConsole = not showConsole
+			config.showFooter = showFooter and 1 or 0
+			config.showConsole = showConsole and 1 or 0
 		if ctrl and Keyboard\isKeyDown "/"
 			showFooter = not showFooter
+			config.showFooter = showFooter and 1 or 0
 		left = ctrl and Keyboard\isKeyDown "Left"
 		right = ctrl and Keyboard\isKeyDown "Right"
 		currentIndex = nil
@@ -553,7 +590,13 @@ footerWindow = threadLoop ->
 		if width >= 600
 			Columns 2, false
 			NextColumn!
-			_, showFooter = Checkbox zh and "开发" or "Dev", showFooter
+			if changed, showFooter = Checkbox zh and "开发" or "Dev", showFooter
+				config.showFooter = showFooter and 1 or 0
+
+	if isInEntry and
+		Keyboard\isKeyPressed("LCtrl") and
+		Keyboard\isKeyDown "Z"
+		reloadDevEntry!
 	if initFooter
 		initFooter = false
 	else
@@ -564,13 +607,12 @@ footerWindow = threadLoop ->
 	SetNextWindowBgAlpha 0.35
 	PushStyleVar "WindowPadding", Vec2(10, 0), -> Begin "Footer", windowFlags, ->
 		Dummy Vec2 width, 0
-		_, showStats = Checkbox zh and "状态" or "Stats", showStats
+		if changed, showStats = Checkbox zh and "状态" or "Stats", showStats
+			config.showStats = showStats and 1 or 0
 		SameLine!
-		_, showConsole = Checkbox zh and "控制台" or "Log", showConsole
+		if changed, showConsole = Checkbox zh and "控制台" or "Log", showConsole
+			config.showConsole = showConsole and 1 or 0
 		if isInEntry
-			if Keyboard\isKeyPressed("LCtrl") and
-				Keyboard\isKeyDown "Z"
-				reloadDevEntry!
 			SameLine!
 			reloadDevEntry! if Button zh and "刷新" or "Reload", Vec2 70, 30
 		else
@@ -607,6 +649,17 @@ footerWindow = threadLoop ->
 
 const MaxWidth = 800
 
+urlWindowFlags =
+	* "NoDecoration"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+	* "NoScrollWithMouse"
+
+webStatus = nil
+descColor = Color 0xffa1a1a1
+
 entryWindow = threadLoop ->
 	if App.fpsLimited ~= (config.fpsLimited == 1)
 		config.fpsLimited = App.fpsLimited and 1 or 0
@@ -621,6 +674,15 @@ entryWindow = threadLoop ->
 	zh = useChinese and isChineseSupported
 	:themeColor = App
 	width:fullWidth, :height = App.visualSize
+
+	SetNextWindowBgAlpha 0.5
+	SetNextWindowPos Vec2(5, height - 120), "Always", Vec2 0, 0
+	SetNextWindowSize Vec2(235, 0), "Always"
+	Begin "Web IDE", urlWindowFlags, ->
+		TextColored themeColor, "#{zh and '网页' or 'Web'} IDE"
+		url = webStatus?.url ?? zh and '不可用' or 'not available'
+		TextColored descColor, url
+
 	width = math.min MaxWidth, fullWidth
 	paddingX = math.max 10, fullWidth / 2 - width / 2 - 10
 	maxColumns = math.max math.floor(width / 200), 1
@@ -708,4 +770,4 @@ entryWindow = threadLoop ->
 			Columns 1, false
 			Dummy Vec2 100, 40
 
-require "WebServer"
+webStatus = require "WebServer"

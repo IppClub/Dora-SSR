@@ -25,7 +25,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <ctime>
 #include <thread>
 
-#define DORA_VERSION "1.0.41"_slice
+#define DORA_VERSION "1.0.42"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -83,6 +83,7 @@ Application::Application()
 	, _frequency(double(bx::getHPFrequency()))
 	, _sdlWindow(nullptr)
 	, _themeColor(0xfffbc400)
+	, _winPosition{s_cast<float>(SDL_WINDOWPOS_CENTERED), s_cast<float>(SDL_WINDOWPOS_CENTERED)}
 	, _platformData{} {
 	_lastTime = bx::getHPCounter() / _frequency;
 #if !BX_PLATFORM_LINUX
@@ -211,12 +212,28 @@ void Application::setWinSize(Size var) {
 			SDL_SetWindowSize(_sdlWindow, s_cast<int>(var.width), s_cast<int>(var.height));
 			SDL_SetWindowPosition(_sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 		});
+		_winPosition = {s_cast<float>(SDL_WINDOWPOS_CENTERED), s_cast<float>(SDL_WINDOWPOS_CENTERED)};
+		Event::send("AppMoved"_slice);
 		Event::send("AppFullScreen"_slice, false);
 	}
 }
 
 Size Application::getWinSize() const {
 	return Size{s_cast<float>(_winWidth), s_cast<float>(_winHeight)};
+}
+
+void Application::setWinPosition(const Vec2& var) {
+	AssertIf(getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice,
+		"changing window position is not available on {}.", getPlatform().toString());
+	_winPosition = var;
+	invokeInRender([&, var]() {
+		SDL_SetWindowFullscreen(_sdlWindow, 0);
+		SDL_SetWindowPosition(_sdlWindow, s_cast<int>(var.x), s_cast<int>(var.y));
+	});
+}
+
+const Vec2& Application::getWinPosition() const {
+	return _winPosition;
 }
 
 uint32_t Application::getFrame() const {
@@ -307,6 +324,9 @@ int Application::run() {
 							}
 #endif // BX_PLATFORM_ANDROID
 							updateWindowSize();
+							break;
+						case SDL_WINDOWEVENT_MOVED:
+							_winPosition = Vec2{s_cast<float>(event.window.data1), s_cast<float>(event.window.data2)};
 							break;
 					}
 					break;

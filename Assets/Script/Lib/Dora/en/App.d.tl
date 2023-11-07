@@ -1,4 +1,5 @@
 local Size = require("Size").Type
+local Vec2 = require("Vec2").Type
 local Color = require("Color").Type
 
 -- A record representing an application singleton instance.
@@ -100,6 +101,10 @@ local record App
 	-- Set `winSize` to `Size.zero` to toggle application window into full screen mode,
 	-- It is not available to set this property on platform Android and iOS.
 	winSize: Size
+
+	-- The application window position.
+	-- It is not available to set this property on platform Android and iOS.
+	winPosition: Vec2
 
 	-- A function that runs an specific C++ test included in the engine.
 	-- @param name (string) The name of the test to run.

@@ -121,6 +121,7 @@ class Application
 	tolua_property__common unsigned int seed;
 	tolua_property__common uint32_t targetFPS;
 	tolua_property__common Size winSize;
+	tolua_property__common Vec2 winPosition;
 	tolua_property__bool bool fPSLimited @ fpsLimited;
 	tolua_property__bool bool idled;
 	void shutdown();
