@@ -315,7 +315,7 @@ int Application::run() {
 				case SDL_WINDOWEVENT: {
 					switch (event.window.event) {
 						case SDL_WINDOWEVENT_RESIZED:
-						case SDL_WINDOWEVENT_SIZE_CHANGED:
+						case SDL_WINDOWEVENT_SIZE_CHANGED: {
 #if BX_PLATFORM_ANDROID
 							bgfx::PlatformData pd{};
 							pd.nwh = Android_JNI_GetNativeWindow();
@@ -325,6 +325,7 @@ int Application::run() {
 #endif // BX_PLATFORM_ANDROID
 							updateWindowSize();
 							break;
+						}
 						case SDL_WINDOWEVENT_MOVED:
 							_winPosition = Vec2{s_cast<float>(event.window.data1), s_cast<float>(event.window.data2)};
 							break;
@@ -711,16 +712,16 @@ int CALLBACK WinMain(
 }
 #endif // BX_PLATFORM_WINDOWS
 
+#include "Http/HttpServer.h"
 #include "Lua/LuaEngine.h"
-#include "playrho/Defines.hpp"
 #include "SQLiteCpp/SQLiteCpp.h"
 #include "imgui.h"
 #include "implot.h"
+#include "playrho/Defines.hpp"
 #include "soloud.h"
 #include "sqlite3.h"
 #include "wasm3.h"
 #include "yuescript/yue_compiler.h"
-#include "Http/HttpServer.h"
 
 std::string Dorothy::Application::getDeps() const {
 	return fmt::format(
