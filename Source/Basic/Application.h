@@ -59,6 +59,7 @@ public:
 	PROPERTY(uint32_t, TargetFPS);
 	PROPERTY(uint32_t, Seed);
 	PROPERTY(Size, WinSize);
+	PROPERTY_CREF(Vec2, WinPosition);
 	PROPERTY_BOOL(FPSLimited);
 	PROPERTY_BOOL(Idled);
 	SDLEventHandler eventHandler;
@@ -110,6 +111,7 @@ private:
 	double _totalTime;
 	double _logicTime;
 	double _renderTime;
+	Vec2 _winPosition;
 	std::string _locale;
 	std::string _orientation;
 	bx::Thread _logicThread;

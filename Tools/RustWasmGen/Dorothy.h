@@ -66,6 +66,7 @@ singleton class Application @ App
 	common uint32_t seed;
 	common uint32_t targetFPS @ target_fps;
 	common Size winSize;
+	common Vec2 winPosition;
 	boolean bool fPSLimited @ fpsLimited;
 	boolean bool idled;
 	void shutdown();
