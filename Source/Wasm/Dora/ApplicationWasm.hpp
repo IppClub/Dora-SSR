@@ -73,6 +73,12 @@ static void application_set_win_size(int64_t var) {
 static int64_t application_get_win_size() {
 	return size_retain(SharedApplication.getWinSize());
 }
+static void application_set_win_position(int64_t var) {
+	SharedApplication.setWinPosition(vec2_from(var));
+}
+static int64_t application_get_win_position() {
+	return vec2_retain(SharedApplication.getWinPosition());
+}
 static void application_set_fps_limited(int32_t var) {
 	SharedApplication.setFPSLimited(var != 0);
 }
@@ -114,6 +120,8 @@ static void linkApplication(wasm3::module3& mod) {
 	mod.link_optional("*", "application_get_target_fps", application_get_target_fps);
 	mod.link_optional("*", "application_set_win_size", application_set_win_size);
 	mod.link_optional("*", "application_get_win_size", application_get_win_size);
+	mod.link_optional("*", "application_set_win_position", application_set_win_position);
+	mod.link_optional("*", "application_get_win_position", application_get_win_position);
 	mod.link_optional("*", "application_set_fps_limited", application_set_fps_limited);
 	mod.link_optional("*", "application_is_fps_limited", application_is_fps_limited);
 	mod.link_optional("*", "application_set_idled", application_set_idled);

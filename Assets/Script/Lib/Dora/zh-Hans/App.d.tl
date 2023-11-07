@@ -1,4 +1,5 @@
 local Size = require("Size").Type
+local Vec2 = require("Vec2").Type
 local Color = require("Color").Type
 
 -- 管理应用程序信息的单例类。
@@ -101,6 +102,10 @@ local record App
 	-- 将`winSize`设置为`Size.zero`，可以将应用程序窗口切换到全屏模式。
 	-- 在Android和iOS平台上无法设置此属性。
 	winSize: Size
+
+	-- 应用程序窗口位置。
+	-- 在Android和iOS平台上无法设置此属性。
+	winPosition: Vec2
 
 	-- 运行特定的包含在引擎中的C++测试函数。
 	-- @param name (string) 要运行的测试的名称。

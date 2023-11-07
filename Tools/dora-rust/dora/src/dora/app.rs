@@ -24,6 +24,8 @@ extern "C" {
 	fn application_get_target_fps() -> i32;
 	fn application_set_win_size(var: i64);
 	fn application_get_win_size() -> i64;
+	fn application_set_win_position(var: i64);
+	fn application_get_win_position() -> i64;
 	fn application_set_fps_limited(var: i32);
 	fn application_is_fps_limited() -> i32;
 	fn application_set_idled(var: i32);
@@ -106,6 +108,12 @@ impl App {
 	}
 	pub fn get_win_size() -> crate::dora::Size {
 		return unsafe { crate::dora::Size::from(application_get_win_size()) };
+	}
+	pub fn set_win_position(var: &crate::dora::Vec2) {
+		unsafe { application_set_win_position(var.into_i64()) };
+	}
+	pub fn get_win_position() -> crate::dora::Vec2 {
+		return unsafe { crate::dora::Vec2::from(application_get_win_position()) };
 	}
 	pub fn set_fps_limited(var: bool) {
 		unsafe { application_set_fps_limited(if var { 1 } else { 0 }) };
