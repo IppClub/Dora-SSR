@@ -295,6 +295,7 @@ interface object class Node
 	boolean bool swallowTouches;
 	boolean bool swallowMouseWheel;
 	boolean bool keyboardEnabled;
+	boolean bool controllerEnabled;
 	boolean bool renderGroup;
 	common int renderOrder;
 
@@ -935,6 +936,14 @@ singleton class Keyboard
 	bool isKeyUp(string name);
 	bool isKeyPressed(string name);
 	void updateIMEPosHint(Vec2 winPos);
+};
+
+singleton class Controller
+{
+	bool isButtonDown(int controllerId, string name);
+	bool isButtonUp(int controllerId, string name);
+	bool isButtonPressed(int controllerId, string name);
+	float getAxis(int controllerId, string name);
 };
 
 object class SVGDef @ SVG

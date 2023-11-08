@@ -1,6 +1,6 @@
 local Vec2 = require("Vec2").Type
 
--- An interface for handling keyboard events.
+-- An interface for handling keyboard inputs.
 local record Keyboard
 	userdata
 

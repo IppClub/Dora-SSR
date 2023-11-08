@@ -11,12 +11,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Application.h"
 
 #include "Basic/AutoreleasePool.h"
+#include "Basic/Content.h"
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
 #include "Basic/View.h"
 #include "Common/Async.h"
-#include "Other/utf8.h"
+#include "Input/Controller.h"
 #include "Physics/PhysicsWorld.h"
+
+#include "Other/utf8.h"
+
 #include "SDL.h"
 #include "SDL_syswm.h"
 #include "bx/timer.h"
@@ -252,14 +256,16 @@ bool Application::isLogicRunning() const {
 	return _logicRunning;
 }
 
-// This function runs in main thread, and do render work
+// This function runs in main (render) thread, and do render work
 int Application::run() {
 	Application::setSeed(s_cast<uint32_t>(std::time(nullptr)));
 
-	if (SDL_Init(SDL_INIT_TIMER) != 0) {
+	if (SDL_Init(SDL_INIT_GAMECONTROLLER) != 0) {
 		Error("SDL failed to initialize! {}", SDL_GetError());
 		return 1;
 	}
+
+	SharedController.initInRender();
 
 #if !BX_PLATFORM_LINUX
 	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
@@ -338,6 +344,11 @@ int Application::run() {
 					break;
 				}
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
+				case SDL_CONTROLLERAXISMOTION:
+				case SDL_CONTROLLERBUTTONDOWN:
+				case SDL_CONTROLLERBUTTONUP:
+					SharedController.handleEventInRender(event);
+					break;
 				default:
 					break;
 			}

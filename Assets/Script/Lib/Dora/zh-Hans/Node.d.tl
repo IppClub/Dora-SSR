@@ -17,6 +17,7 @@ local Camera = require("Camera").Type
 local SpriteEffect = require("SpriteEffect").Type
 local BlendFunc = require("BlendFunc").Type
 local Keyboard = require("Keyboard")
+local Controller = require("Controller")
 
 -- 用于构建游戏场景树的层次结构的类。
 local record Node
@@ -537,6 +538,30 @@ local record __SLOT__
 	-- @param text (string) 正在编辑的文本。
 	-- @param startPos (integer) 正在编辑的文本的起始位置。
 	["TextEditing"]: function(text: string, startPos: integer)
+
+	-- 当游戏控制器按钮被按下时触发ButtonDown事件。
+	-- 在设置`node.controllerEnabled = true`之后触发。
+	-- @param controllerId (integer) 控制器ID，当有多个控制器连接时从0开始递增。
+	-- @param buttonName (Keyboard.KeyName) 被按下的按钮名称。
+	["ButtonDown"]: function(controllerId: integer, buttonName: Controller.ButtonName)
+
+	-- 当游戏控制器按钮被释放时触发ButtonUp事件。
+	-- 在设置`node.controllerEnabled = true`之后触发。
+	-- @param controllerId (integer) 控制器ID，当有多个控制器连接时从0开始递增。
+	-- @param buttonName (Keyboard.KeyName) 被释放的按钮名称。
+	["ButtonUp"]: function(controllerId: integer, buttonName: Controller.ButtonName)
+
+	-- 当游戏控制器按钮被按压时触发ButtonPressed事件。
+	-- 在设置`node.controllerEnabled = true`之后触发。
+	-- @param controllerId (integer) 控制器ID，当有多个控制器连接时从0开始递增。
+	-- @param buttonName (Keyboard.KeyName) 被按压的按钮名称。
+	["ButtonPressed"]: function(controllerId: integer, buttonName: Keyboard.KeyName)
+
+	-- 当游戏控制器轴发生变化时触发Axis事件。
+	-- 在设置`node.controllerEnabled = true`之后触发。
+	-- @param controllerId (integer) 控制器ID，当有多个控制器连接时从0开始递增。
+	-- @param axisValue (number) 控制器轴的值，范围从 -1.0 到 1.0。
+	["Axis"]: function(controllerId: integer, axisValue: number)
 end
 
 -- 用于创建场景节点实例的类。

@@ -37,10 +37,10 @@ float rand1to1() {
 }
 } // namespace Math
 
-Flag::Flag(IntType flags)
+Flag::Flag(ValueType flags)
 	: _flags(flags) { }
 
-void Flag::set(IntType type, bool value) {
+void Flag::set(ValueType type, bool value) {
 	if (value) {
 		_flags |= type;
 	} else {
@@ -48,7 +48,7 @@ void Flag::set(IntType type, bool value) {
 	}
 }
 
-void Flag::toggle(IntType type) {
+void Flag::toggle(ValueType type) {
 	set(type, !isOn(type));
 }
 

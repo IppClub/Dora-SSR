@@ -26,12 +26,9 @@ Keyboard::Keyboard()
 	, _newKeyStates(SDL_NUM_SCANCODES, false)
 	, _keyNames(SDL_NUM_SCANCODES)
 	, _codeNames(SDL_NUM_SCANCODES) {
-	SharedApplication.eventHandler += std::make_pair(this, &Keyboard::handleEvent);
 }
 
-Keyboard::~Keyboard() {
-	SharedApplication.eventHandler -= std::make_pair(this, &Keyboard::handleEvent);
-}
+Keyboard::~Keyboard() { }
 
 bool Keyboard::init() {
 	_keyNames[SDLK_RETURN] = "Return"s;
@@ -258,10 +255,10 @@ void Keyboard::handleEvent(const SDL_Event& event) {
 			if (!oldDown) {
 				_changedKeys.push_back(event.key.keysym.sym);
 				EventArgs<Slice> keyDown("KeyDown"_slice, name.toString());
-				KeyHandler(&keyDown);
+				handler(&keyDown);
 			}
 			EventArgs<Slice> keyPressed("KeyPressed"_slice, name);
-			KeyHandler(&keyPressed);
+			handler(&keyPressed);
 			break;
 		}
 		case SDL_KEYUP: {
@@ -283,7 +280,7 @@ void Keyboard::handleEvent(const SDL_Event& event) {
 			if (oldDown) {
 				_changedKeys.push_back(event.key.keysym.sym);
 				EventArgs<Slice> keyUp("KeyUp"_slice, name);
-				KeyHandler(&keyUp);
+				handler(&keyUp);
 			}
 			break;
 		}

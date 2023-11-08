@@ -75,6 +75,7 @@ add_library(main SHARED
 	src/main/cpp/Cache/SoundCache.cpp
 	src/main/cpp/Cache/FrameCache.cpp
 	src/main/cpp/Cache/SVGCache.cpp
+	src/main/cpp/Input/Controller.cpp
 	src/main/cpp/Input/Keyboard.cpp
 	src/main/cpp/Input/TouchDispather.cpp
 	src/main/cpp/Entity/Entity.cpp

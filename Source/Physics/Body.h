@@ -73,7 +73,7 @@ protected:
 	pr::BodyID _prBody; // weak reference
 	PhysicsWorld* _pWorld;
 	uint8_t _group;
-	enum {
+	enum: Flag::ValueType {
 		ReceivingContact = UserFlag,
 		EmittingEvent = UserFlag << 1,
 		BodyUserFlag = UserFlag << 2
