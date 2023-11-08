@@ -79,7 +79,7 @@ private:
 	std::vector<DrawVertex> _vertices;
 	std::vector<PosColor> _posColors;
 	std::vector<uint16_t> _indices;
-	enum {
+	enum: Flag::ValueType {
 		VertexColorDirty = Node::UserFlag,
 		VertexPosDirty = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,
@@ -157,7 +157,7 @@ private:
 	BlendFunc _blendFunc;
 	std::vector<PosColor> _posColors;
 	std::vector<PosColorVertex> _vertices;
-	enum {
+	enum: Flag::ValueType {
 		VertexColorDirty = Node::UserFlag,
 		VertexPosDirty = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,

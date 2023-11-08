@@ -34,7 +34,7 @@ private:
 	std::vector<SpriteRenderer::IndexType> _indices;
 	Matrix _matrix;
 	AffineTransform _transform;
-	enum {
+	enum: Flag::ValueType {
 		TransformDirty = Node::UserFlag,
 	};
 	friend class DBSlot;
@@ -126,7 +126,7 @@ private:
 	Own<DBArmatureProxy> _armatureProxy;
 	Ref<SpriteEffect> _effect;
 	Ref<Line> _debugLine;
-	enum {
+	enum: Flag::ValueType {
 		DepthWrite = Node::UserFlag,
 		HitTest = Node::UserFlag << 1,
 	};

@@ -489,15 +489,15 @@ copyAsync: function(self: Content, src: string, dst: string): boolean
 
 **Signature:**
 ```tl
-zipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
+zipAsync: function(self: Content, folderPath: string, zipFile: string, filter?: function(string): boolean): boolean
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
+| folderPath | string | The path of the folder to compress, should be under the asset writable path. |
 | zipFile | string | The name of the ZIP archive to create. |
-| folderPath | string | The path of the folder to compress, should be under the content writable path. |
 | filter | function | [optional] A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included. |
 
 **Returns:**
@@ -505,6 +505,33 @@ zipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: 
 | Return Type | Description |
 | --- | --- |
 | boolean | `true` if the folder was compressed successfully, `false` otherwise. |
+
+## unzipAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Asynchronously decompresses a ZIP archive to the specified folder.
+
+**Signature:**
+```tl
+unzipAsync: function(self: Content, folderPath: string, zipFile: string, filter?: function(string): boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| zipFile | string | The name of the ZIP archive to decompress, should be a file under the asset writable path. |
+| folderPath | string | The path of the folder to decompress to, should be under the asset writable path. |
+| filter | function | [optional] A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the folder was decompressed successfully, `false` otherwise. |
 
 ## getDirs
 

@@ -328,6 +328,8 @@
 		3CE7D3761EADF594008EADB3 /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3741EADF594008EADB3 /* libbimg.a */; };
 		3CE916DA2581B9250008130C /* SVGCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE916D82581B9250008130C /* SVGCache.cpp */; };
 		3CE9509820F30A65002FFC18 /* Builtin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9509620F30A65002FFC18 /* Builtin.cpp */; };
+		3CE994622AFA32F70073A973 /* Controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE994612AFA32F70073A973 /* Controller.cpp */; };
+		3CE994642AFA43680073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994632AFA43680073A973 /* gamecontrollerdb.txt */; };
 		3CE9D7F41E7FC2A6003AAECB /* Body.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7E81E7FC2A6003AAECB /* Body.cpp */; };
 		3CE9D7F51E7FC2A6003AAECB /* BodyDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7EA1E7FC2A6003AAECB /* BodyDef.cpp */; };
 		3CE9D7F61E7FC2A6003AAECB /* Joint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9D7EC1E7FC2A6003AAECB /* Joint.cpp */; };
@@ -1165,6 +1167,9 @@
 		3CE916D92581B9250008130C /* SVGCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SVGCache.h; path = ../../../Source/Cache/SVGCache.h; sourceTree = "<group>"; };
 		3CE9509620F30A65002FFC18 /* Builtin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Builtin.cpp; path = ../../../Source/Shader/Builtin.cpp; sourceTree = "<group>"; };
 		3CE9509720F30A65002FFC18 /* Builtin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Builtin.h; path = ../../../Source/Shader/Builtin.h; sourceTree = "<group>"; };
+		3CE994602AFA32F70073A973 /* Controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Controller.h; path = ../../Source/Input/Controller.h; sourceTree = "<group>"; };
+		3CE994612AFA32F70073A973 /* Controller.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Controller.cpp; path = ../../Source/Input/Controller.cpp; sourceTree = "<group>"; };
+		3CE994632AFA43680073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gamecontrollerdb.txt; sourceTree = "<group>"; };
 		3CE9D7E81E7FC2A6003AAECB /* Body.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Body.cpp; path = ../../../Source/Physics/Body.cpp; sourceTree = "<group>"; };
 		3CE9D7E91E7FC2A6003AAECB /* Body.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Body.h; path = ../../../Source/Physics/Body.h; sourceTree = "<group>"; };
 		3CE9D7EA1E7FC2A6003AAECB /* BodyDef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BodyDef.cpp; path = ../../../Source/Physics/BodyDef.cpp; sourceTree = "<group>"; };
@@ -1507,6 +1512,7 @@
 		3C030CD824CAD9670074786E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3CE994632AFA43680073A973 /* gamecontrollerdb.txt */,
 				3CA780A02AEB82B100B7BADA /* LICENSES */,
 				3C60DE122A2069CE007D7865 /* Doc */,
 				3CA8DF0C2A0CE6FD0022CC90 /* www */,
@@ -1539,6 +1545,8 @@
 		3C05BCA11E35948200CC6986 /* Input */ = {
 			isa = PBXGroup;
 			children = (
+				3CE994612AFA32F70073A973 /* Controller.cpp */,
+				3CE994602AFA32F70073A973 /* Controller.h */,
 				3CEA71B21ECB8ECA00EFFD63 /* Keyboard.cpp */,
 				3CEA71B31ECB8ECA00EFFD63 /* Keyboard.h */,
 				3C05BCA21E3594C500CC6986 /* TouchDispather.cpp */,
@@ -3197,6 +3205,7 @@
 				3CA780A12AEB82B100B7BADA /* LICENSES in Resources */,
 				3CBC784C24CE7528003C9E83 /* Audio in Resources */,
 				3CFEBDAB268EFC62006D9974 /* DragonBones in Resources */,
+				3CE994642AFA43680073A973 /* gamecontrollerdb.txt in Resources */,
 				3CBC784B24CE7528003C9E83 /* Image in Resources */,
 				3CBC785224CE7528003C9E83 /* Font in Resources */,
 				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
@@ -3402,6 +3411,7 @@
 				3C6E7F09272A30E700E9F115 /* soloud_echofilter.cpp in Sources */,
 				3C1A3B05272A850F003A2829 /* lapi.c in Sources */,
 				3CB487131E16398700D51749 /* tolua_event.cpp in Sources */,
+				3CE994622AFA32F70073A973 /* Controller.cpp in Sources */,
 				3C42B0A120FECB0A00186F9C /* Unit.cpp in Sources */,
 				3CF10EE52874AE7E00940268 /* RegionAttachment.cpp in Sources */,
 				3CFEB85B268DA65C006D9974 /* BoundingBoxData.cpp in Sources */,

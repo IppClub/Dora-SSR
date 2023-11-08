@@ -22,10 +22,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Effect/Effect.h"
 #include "Entity/Entity.h"
 #include "GUI/ImGuiDora.h"
+#include "Input/Controller.h"
 #include "Input/Keyboard.h"
 #include "Input/TouchDispather.h"
 #include "Node/Node.h"
 #include "Node/Sprite.h"
+
 #include "bx/timer.h"
 
 #include "SDL.h"
@@ -231,6 +233,7 @@ void Director::doLogic() {
 		SharedImGui.end();
 
 		SharedKeyboard.clearChanges();
+		SharedController.clearChanges();
 
 		/* handle ImGui touch */
 		SharedTouchDispatcher.add(SharedImGui.getTarget()->getTouchHandler()->ref());
@@ -519,76 +522,29 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 					Event::send("AppMoved"_slice);
 					break;
 			}
-		} break;
-		case SDL_MOUSEMOTION:
+			break;
+		}
 		case SDL_MOUSEBUTTONDOWN:
-		case SDL_MOUSEBUTTONUP:
 		case SDL_FINGERDOWN:
+			SharedKeyboard.handleEvent(event);
+			[[fallthrough]];
+		case SDL_MOUSEMOTION:
+		case SDL_MOUSEBUTTONUP:
 		case SDL_FINGERUP:
 		case SDL_FINGERMOTION:
 			SharedTouchDispatcher.add(event);
 			break;
-		case SDL_SYSWMEVENT:
-			break;
-		case SDL_KEYDOWN:
-			break;
-		case SDL_KEYUP:
-			break;
-		case SDL_TEXTEDITING:
-			break;
-		case SDL_TEXTINPUT:
-			break;
-		case SDL_KEYMAPCHANGED:
-			break;
 		case SDL_MOUSEWHEEL:
 			SharedTouchDispatcher.add(event);
-			break;
-		case SDL_JOYAXISMOTION:
-			break;
-		case SDL_JOYBALLMOTION:
-			break;
-		case SDL_JOYHATMOTION:
-			break;
-		case SDL_JOYBUTTONDOWN:
-			break;
-		case SDL_JOYBUTTONUP:
-			break;
-		case SDL_JOYDEVICEADDED:
-			break;
-		case SDL_JOYDEVICEREMOVED:
-			break;
-		case SDL_CONTROLLERAXISMOTION:
-			break;
-		case SDL_CONTROLLERBUTTONDOWN:
-			break;
-		case SDL_CONTROLLERBUTTONUP:
-			break;
-		case SDL_CONTROLLERDEVICEADDED:
-			break;
-		case SDL_CONTROLLERDEVICEREMOVED:
-			break;
-		case SDL_CONTROLLERDEVICEREMAPPED:
-			break;
-		case SDL_DOLLARGESTURE:
-			break;
-		case SDL_DOLLARRECORD:
 			break;
 		case SDL_MULTIGESTURE:
 			SharedTouchDispatcher.add(event);
 			break;
-		case SDL_CLIPBOARDUPDATE:
-			break;
-		case SDL_DROPFILE:
-			break;
-		case SDL_DROPTEXT:
-			break;
-		case SDL_DROPBEGIN:
-			break;
-		case SDL_DROPCOMPLETE:
-			break;
-		case SDL_AUDIODEVICEADDED:
-			break;
-		case SDL_AUDIODEVICEREMOVED:
+		case SDL_KEYDOWN:
+		case SDL_KEYUP:
+		case SDL_TEXTINPUT:
+		case SDL_TEXTEDITING:
+			SharedKeyboard.handleEvent(event);
 			break;
 		default:
 			break;

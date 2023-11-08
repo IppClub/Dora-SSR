@@ -8,53 +8,51 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Physics/Body.h"
+union SDL_Event;
 
 NS_DOROTHY_BEGIN
-class World;
-NS_DOROTHY_END
 
-NS_DOROTHY_PLATFORMER_BEGIN
-class Unit;
-class BulletDef;
-class Bullet;
+class Event;
 
-typedef Acf::Delegate<bool(Bullet* bullet, Unit* target, Vec2 point)> BulletHandler;
+typedef Acf::Delegate<void(Event*)> ControllerHandler;
 
-class Bullet : public Body {
+class Controller {
 public:
-	PROPERTY_READONLY(Unit*, Owner);
-	PROPERTY(uint32_t, TargetAllow);
-	PROPERTY_BOOL(FaceRight);
-	PROPERTY_BOOL(HitStop);
-	PROPERTY(Node*, Face);
-	virtual bool init() override;
-	virtual bool update(double deltaTime) override;
-	void onBodyContact(Body* body, Vec2 point, Vec2 normal);
-	BulletDef* getBulletDef();
-	TargetAllow targetAllow;
-	BulletHandler hitTarget;
-	void destroy();
-	CREATE_FUNC(Bullet);
-	struct Def {
-		static const Slice BulletKey;
-	};
+	virtual ~Controller();
+	bool initInRender();
+	bool isButtonDown(int controllerId, String name) const;
+	bool isButtonUp(int controllerId, String name) const;
+	bool isButtonPressed(int controllerId, String name) const;
+	float getAxis(int controllerId, String name) const;
+	ControllerHandler handler;
+	void clearChanges();
+	void handleEventInRender(const SDL_Event& event);
 
 protected:
-	Bullet(BulletDef* def, Unit* unit);
-	virtual void updatePhysics() override;
+	Controller();
+	void addControllerInRender(int deviceIndex);
 
 private:
-	enum: Flag::ValueType {
-		FaceRight = BodyUserFlag,
-		HitStop = BodyUserFlag << 1,
+	using DeviceID = int32_t;
+	struct Device {
+		Device(int id, void* controller)
+			: id(id)
+			, controller(controller) { }
+		int id;
+		void* controller;
+		StringMap<float> axisMap;
+		struct ButtonState {
+			bool oldState;
+			bool newState;
+		};
+		StringMap<ButtonState> buttonMap;
 	};
-	Node* _face;
-	Ref<BulletDef> _bulletDef;
-	Ref<Unit> _owner;
-	float _lifeTime;
-	float _current;
-	DORA_TYPE_OVERRIDE(Bullet)
+	std::unordered_map<DeviceID, Own<Device>> _deviceMap;
+	std::stack<int> _availableDeviceIds;
+	SINGLETON_REF(Controller, Director);
 };
 
-NS_DOROTHY_PLATFORMER_END
+#define SharedController \
+	Dorothy::Singleton<Dorothy::Controller>::shared()
+
+NS_DOROTHY_END

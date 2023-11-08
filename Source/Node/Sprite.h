@@ -100,7 +100,7 @@ private:
 	SpriteQuad _quad;
 	BlendFunc _blendFunc;
 	uint64_t _renderState;
-	enum {
+	enum: Flag::ValueType {
 		VertexColorDirty = Node::UserFlag,
 		VertexPosDirty = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,

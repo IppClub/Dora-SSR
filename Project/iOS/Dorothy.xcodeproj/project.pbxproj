@@ -662,6 +662,10 @@
 		3CE534761E5A9BD500F017AE /* Singleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE534741E5A9BD500F017AE /* Singleton.cpp */; };
 		3CE9509D20F33DA9002FFC18 /* stb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9509B20F33DA9002FFC18 /* stb.cpp */; };
 		3CE950A120F33DD6002FFC18 /* Builtin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9509F20F33DD5002FFC18 /* Builtin.cpp */; };
+		3CE994672AFB1CFA0073A973 /* Controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE994662AFB1CFA0073A973 /* Controller.cpp */; };
+		3CE994682AFB1CFA0073A973 /* Controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE994662AFB1CFA0073A973 /* Controller.cpp */; };
+		3CE9946A2AFB26820073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994692AFB26820073A973 /* gamecontrollerdb.txt */; };
+		3CE9946B2AFB26820073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994692AFB26820073A973 /* gamecontrollerdb.txt */; };
 		3CEDF7811E83BADB008839A3 /* ParticleCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF77F1E83BADB008839A3 /* ParticleCache.cpp */; };
 		3CF00E39258B475A00898F4B /* SVGCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF00E37258B475A00898F4B /* SVGCache.cpp */; };
 		3CF10F962874C81C00940268 /* PathConstraint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10F042874C81700940268 /* PathConstraint.cpp */; };
@@ -1621,6 +1625,9 @@
 		3CE9509C20F33DA9002FFC18 /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = ../../../Source/3rdParty/stb/stb_rect_pack.h; sourceTree = "<group>"; };
 		3CE9509F20F33DD5002FFC18 /* Builtin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Builtin.cpp; path = ../../../Source/Shader/Builtin.cpp; sourceTree = "<group>"; };
 		3CE950A020F33DD5002FFC18 /* Builtin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Builtin.h; path = ../../../Source/Shader/Builtin.h; sourceTree = "<group>"; };
+		3CE994652AFB1CFA0073A973 /* Controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Controller.h; path = ../../../Source/Input/Controller.h; sourceTree = "<group>"; };
+		3CE994662AFB1CFA0073A973 /* Controller.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Controller.cpp; path = ../../../Source/Input/Controller.cpp; sourceTree = "<group>"; };
+		3CE994692AFB26820073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = gamecontrollerdb.txt; path = ../../Assets/gamecontrollerdb.txt; sourceTree = "<group>"; };
 		3CEDF77F1E83BADB008839A3 /* ParticleCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ParticleCache.cpp; path = ../../../Source/Cache/ParticleCache.cpp; sourceTree = "<group>"; };
 		3CEDF7801E83BADB008839A3 /* ParticleCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ParticleCache.h; path = ../../../Source/Cache/ParticleCache.h; sourceTree = "<group>"; };
 		3CF00E37258B475A00898F4B /* SVGCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SVGCache.cpp; path = ../../../Source/Cache/SVGCache.cpp; sourceTree = "<group>"; };
@@ -2224,6 +2231,7 @@
 		3C1F87CD1DF7B68C005F1B4D /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3CE994692AFB26820073A973 /* gamecontrollerdb.txt */,
 				3CA780A22AEB88B600B7BADA /* LICENSES */,
 				3C60DE142A2069FE007D7865 /* Doc */,
 				3CA8DF0E2A0CE83D0022CC90 /* www */,
@@ -3269,6 +3277,8 @@
 		3CD328471E4C43040036906C /* Input */ = {
 			isa = PBXGroup;
 			children = (
+				3CE994662AFB1CFA0073A973 /* Controller.cpp */,
+				3CE994652AFB1CFA0073A973 /* Controller.h */,
 				3C6577461ECC2C9D00C5FB09 /* Keyboard.cpp */,
 				3C6577471ECC2C9D00C5FB09 /* Keyboard.h */,
 				3CD328481E4C431B0036906C /* TouchDispather.cpp */,
@@ -3672,6 +3682,7 @@
 				3C59DA802703037C0096813A /* Assets.xcassets in Resources */,
 				3CBE0F0326087F7B003F4F45 /* Model in Resources */,
 				3C60DE162A2069FE007D7865 /* Doc in Resources */,
+				3CE9946B2AFB26820073A973 /* gamecontrollerdb.txt in Resources */,
 				3CBE0F0526087F7B003F4F45 /* Spine in Resources */,
 				3CBE0F0626087F7B003F4F45 /* Image in Resources */,
 				3CFEBE4426930B91006D9974 /* DragonBones in Resources */,
@@ -3694,6 +3705,7 @@
 				3C59DA7D270303750096813A /* Assets.xcassets in Resources */,
 				3C030CF724CAE6580074786E /* Model in Resources */,
 				3C60DE152A2069FE007D7865 /* Doc in Resources */,
+				3CE9946A2AFB26820073A973 /* gamecontrollerdb.txt in Resources */,
 				3C030CF524CAE6580074786E /* Spine in Resources */,
 				3C030CFA24CAE6580074786E /* Image in Resources */,
 				3CFEBE4326930B91006D9974 /* DragonBones in Resources */,
@@ -3864,6 +3876,7 @@
 				3CFEBE4026930B36006D9974 /* DragonBoneCache.cpp in Sources */,
 				3C6E8002272A404900E9F115 /* sndrender.cpp in Sources */,
 				3CFEBE4126930B36006D9974 /* DragonBone.cpp in Sources */,
+				3CE994682AFB1CFA0073A973 /* Controller.cpp in Sources */,
 				3CFEBE3926930AD3006D9974 /* os.cpp in Sources */,
 				3CA780192AE66FB000B7BADA /* SeparationScenario.cpp in Sources */,
 				3CFEBE1A26930AA1006D9974 /* Animation.cpp in Sources */,
@@ -4281,6 +4294,7 @@
 				3C6E8031272A404A00E9F115 /* soloud.cpp in Sources */,
 				3CFEBE3C26930AF9006D9974 /* DragonBoneCache.cpp in Sources */,
 				3C59730B1E7F74E900BFD00F /* ModelCache.cpp in Sources */,
+				3CE994672AFB1CFA0073A973 /* Controller.cpp in Sources */,
 				3C6E8033272A404A00E9F115 /* soloud_audiosource.cpp in Sources */,
 				3CA780182AE66FB000B7BADA /* SeparationScenario.cpp in Sources */,
 				3CB410291E05B0C500A8804D /* Slice.cpp in Sources */,
