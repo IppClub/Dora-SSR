@@ -48,6 +48,7 @@ const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang)
 						available = available || line.match(/\bimport\b/) !== null;
 					}
 					available = available || line.match(/\bSprite\b/) !== null;
+					available = available || line.match(/\bLabel\b/) !== null;
 					if (!available) {
 						return {suggestions:[]};
 					}
