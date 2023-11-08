@@ -239,7 +239,7 @@ Triggers after setting `node.keyboardEnabled = true`.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| keyName | string | The name of the key that was pressed. |
+| keyName | Keyboard.KeyName | The name of the key that was pressed. |
 
 ## KeyUp
 
@@ -259,7 +259,7 @@ Triggers after setting `node.keyboardEnabled = true`.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| keyName | string | The name of the key that was released. |
+| keyName | Keyboard.KeyName | The name of the key that was released. |
 
 ## KeyPressed
 
@@ -279,7 +279,7 @@ Triggers after setting `node.keyboardEnabled = true`.
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| keyName | string | The name of the key that was pressed. |
+| keyName | Keyboard.KeyName | The name of the key that was pressed. |
 
 ## AttachIME
 
@@ -347,3 +347,87 @@ Triggers after calling `node:attachIME()`.
 | --- | --- | --- |
 | text | string | The text that is being edited. |
 | startPos | integer | The starting position of the text being edited. |
+
+## ButtonDown
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The ButtonDown slot is triggered when a game controller button is pressed down.
+Triggers after setting `node.controllerEnabled = true`.
+
+**Signature:**
+```tl
+["ButtonDown"]: function(controllerId: integer, buttonName: Controller.ButtonName)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| controllerId | integer | The controller id, incrementing from 0 when multiple controllers connected. |
+| buttonName | Keyboard.KeyName | The name of the button that was pressed. |
+
+## ButtonUp
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The ButtonUp slot is triggered when a game controller button is released.
+Triggers after setting `node.controllerEnabled = true`.
+
+**Signature:**
+```tl
+["ButtonUp"]: function(controllerId: integer, buttonName: Controller.ButtonName)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| controllerId | integer | The controller id, incrementing from 0 when multiple controllers connected. |
+| buttonName | Keyboard.KeyName | The name of the button that was released. |
+
+## ButtonPressed
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The ButtonPressed slot is triggered when a game controller button is pressed.
+Triggers after setting `node.controllerEnabled = true`.
+
+**Signature:**
+```tl
+["ButtonPressed"]: function(controllerId: integer, buttonName: Keyboard.KeyName)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| controllerId | integer | The controller id, incrementing from 0 when multiple controllers connected. |
+| buttonName | Keyboard.KeyName | The name of the button that was pressed. |
+
+## Axis
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The Axis slot is triggered when a game controller axis changed.
+Triggers after setting `node.controllerEnabled = true`.
+
+**Signature:**
+```tl
+["Axis"]: function(controllerId: integer, axisValue: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| controllerId | integer | The controller id, incrementing from 0 when multiple controllers connected. |
+| axisValue | number | The controller axis value ranging from -1.0 to 1.0. |

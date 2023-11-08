@@ -29,12 +29,12 @@ public:
 	bool isKeyDown(String name) const;
 	bool isKeyUp(String name) const;
 	bool isKeyPressed(String name) const;
-	KeyboardHandler KeyHandler;
+	KeyboardHandler handler;
 	void clearChanges();
+	void handleEvent(const SDL_Event& event);
 
 protected:
 	Keyboard();
-	void handleEvent(const SDL_Event& event);
 
 private:
 	std::vector<int> _changedKeys;

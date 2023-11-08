@@ -157,7 +157,7 @@ private:
 	OwnVector<CharItem> _characters;
 	std::vector<SpriteQuad::Position> _quadPos;
 	std::vector<SpriteQuad> _quads;
-	enum {
+	enum: Flag::ValueType {
 		DepthWrite = Node::UserFlag,
 		TextBatched = Node::UserFlag << 1,
 		QuadDirty = Node::UserFlag << 2,

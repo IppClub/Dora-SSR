@@ -65,6 +65,8 @@ extern "C" {
 	fn node_is_swallow_mouse_wheel(slf: i64) -> i32;
 	fn node_set_keyboard_enabled(slf: i64, var: i32);
 	fn node_is_keyboard_enabled(slf: i64) -> i32;
+	fn node_set_controller_enabled(slf: i64, var: i32);
+	fn node_is_controller_enabled(slf: i64) -> i32;
 	fn node_set_render_group(slf: i64, var: i32);
 	fn node_is_render_group(slf: i64) -> i32;
 	fn node_set_render_order(slf: i64, var: i32);
@@ -310,6 +312,12 @@ pub trait INode: IObject {
 	}
 	fn is_keyboard_enabled(&self) -> bool {
 		return unsafe { node_is_keyboard_enabled(self.raw()) != 0 };
+	}
+	fn set_controller_enabled(&mut self, var: bool) {
+		unsafe { node_set_controller_enabled(self.raw(), if var { 1 } else { 0 }) };
+	}
+	fn is_controller_enabled(&self) -> bool {
+		return unsafe { node_is_controller_enabled(self.raw()) != 0 };
 	}
 	fn set_render_group(&mut self, var: bool) {
 		unsafe { node_set_render_group(self.raw(), if var { 1 } else { 0 }) };

@@ -79,6 +79,7 @@ public:
 	PROPERTY_BOOL(SwallowMouseWheel);
 	PROPERTY_READONLY(TouchHandler*, TouchHandler);
 	PROPERTY_BOOL(KeyboardEnabled);
+	PROPERTY_BOOL(ControllerEnabled);
 	PROPERTY_VIRTUAL(int, RenderOrder);
 	PROPERTY_BOOL(RenderGroup);
 	PROPERTY_READONLY(uint32_t, NodeCount);
@@ -286,7 +287,7 @@ protected:
 	void pauseActionInList(Action* action);
 	void resumeActionInList(Action* action);
 	void stopActionInList(Action* action);
-	void handleKeyboard(Event* event);
+	void handleKeyboardAndController(Event* event);
 
 protected:
 	Flag _flags;
@@ -329,7 +330,7 @@ protected:
 	Own<UpdateItem> _updateItem;
 	UpdateItem* getUpdateItem();
 	ScheduledItem* getFixedScheduledItem();
-	enum {
+	enum: Flag::ValueType {
 		Visible = 1,
 		SelfVisible = 1 << 1,
 		ChildrenVisible = 1 << 2,
@@ -344,12 +345,13 @@ protected:
 		SwallowTouches = 1 << 11,
 		SwallowMouseWheel = 1 << 12,
 		KeyboardEnabled = 1 << 13,
-		TraverseEnabled = 1 << 14,
-		RenderGrouped = 1 << 15,
-		IgnoreLocalTransform = 1 << 16,
-		Updating = 1 << 17,
-		FixedUpdating = 1 << 18,
-		UserFlag = 1 << 19,
+		ControllerEnabled = 1 << 14,
+		TraverseEnabled = 1 << 15,
+		RenderGrouped = 1 << 16,
+		IgnoreLocalTransform = 1 << 17,
+		Updating = 1 << 18,
+		FixedUpdating = 1 << 19,
+		UserFlag = 1 << 20,
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

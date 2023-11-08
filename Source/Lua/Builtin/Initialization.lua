@@ -37,6 +37,9 @@ builtin.View = View()
 local Audio = builtin.Audio
 builtin.Audio = Audio()
 
+local Controller = builtin.Controller
+builtin.Controller = Controller()
+
 local Keyboard = builtin.Keyboard
 builtin.Keyboard = Keyboard()
 

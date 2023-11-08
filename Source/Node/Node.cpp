@@ -20,6 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/View.h"
 #include "Effect/Effect.h"
 #include "Event/Listener.h"
+#include "Input/Controller.h"
 #include "Input/Keyboard.h"
 #include "Input/TouchDispather.h"
 #include "Node/Grid.h"
@@ -563,6 +564,9 @@ void Node::cleanup() {
 		}
 		if (_flags.isOn(Node::KeyboardEnabled)) {
 			setKeyboardEnabled(false);
+		}
+		if (_flags.isOn(Node::ControllerEnabled)) {
+			setControllerEnabled(false);
 		}
 		_parent = nullptr;
 	}
@@ -1241,7 +1245,7 @@ void Node::moveAndCullItems(const Vec2& delta) {
 	ARRAY_END
 }
 
-void Node::handleKeyboard(Event* event) {
+void Node::handleKeyboardAndController(Event* event) {
 	emit(event);
 }
 
@@ -1249,14 +1253,28 @@ void Node::setKeyboardEnabled(bool var) {
 	if (var == _flags.isOn(Node::KeyboardEnabled)) return;
 	_flags.set(Node::KeyboardEnabled, var);
 	if (var) {
-		SharedKeyboard.KeyHandler += std::make_pair(this, &Node::handleKeyboard);
+		SharedKeyboard.handler += std::make_pair(MakeRef(this), &Node::handleKeyboardAndController);
 	} else {
-		SharedKeyboard.KeyHandler -= std::make_pair(this, &Node::handleKeyboard);
+		SharedKeyboard.handler -= std::make_pair(MakeRef(this), &Node::handleKeyboardAndController);
 	}
 }
 
 bool Node::isKeyboardEnabled() const {
 	return _flags.isOn(Node::KeyboardEnabled);
+}
+
+void Node::setControllerEnabled(bool var) {
+	if (var == _flags.isOn(Node::ControllerEnabled)) return;
+	_flags.set(Node::ControllerEnabled, var);
+	if (var) {
+		SharedController.handler += std::make_pair(MakeRef(this), &Node::handleKeyboardAndController);
+	} else {
+		SharedController.handler -= std::make_pair(MakeRef(this), &Node::handleKeyboardAndController);
+	}
+}
+
+bool Node::isControllerEnabled() const {
+	return _flags.isOn(Node::ControllerEnabled);
 }
 
 void Node::attachIME() {

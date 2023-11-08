@@ -17,6 +17,7 @@ local Camera = require("Camera").Type
 local SpriteEffect = require("SpriteEffect").Type
 local BlendFunc = require("BlendFunc").Type
 local Keyboard = require("Keyboard")
+local Controller = require("Controller")
 
 -- Class used for building a hierarchical tree structure of game objects.
 local record Node
@@ -506,17 +507,17 @@ local record __SLOT__
 
 	-- The KeyDown slot is triggered when a key is pressed down.
 	-- Triggers after setting `node.keyboardEnabled = true`.
-	-- @param keyName (string) The name of the key that was pressed.
+	-- @param keyName (Keyboard.KeyName) The name of the key that was pressed.
 	["KeyDown"]: function(keyName: Keyboard.KeyName)
 
 	-- The KeyUp slot is triggered when a key is released.
 	-- Triggers after setting `node.keyboardEnabled = true`.
-	-- @param keyName (string) The name of the key that was released.
+	-- @param keyName (Keyboard.KeyName) The name of the key that was released.
 	["KeyUp"]: function(keyName: Keyboard.KeyName)
 
 	-- The KeyPressed slot is triggered when a key is pressed.
 	-- Triggers after setting `node.keyboardEnabled = true`.
-	-- @param keyName (string) The name of the key that was pressed.
+	-- @param keyName (Keyboard.KeyName) The name of the key that was pressed.
 	["KeyPressed"]: function(keyName: Keyboard.KeyName)
 
 	-- The AttachIME slot is triggered when the input method editor (IME) is attached (calling `node:attachIME()`).
@@ -535,6 +536,30 @@ local record __SLOT__
 	-- @param text (string) The text that is being edited.
 	-- @param startPos (integer) The starting position of the text being edited.
 	["TextEditing"]: function(text: string, startPos: integer)
+
+	-- The ButtonDown slot is triggered when a game controller button is pressed down.
+	-- Triggers after setting `node.controllerEnabled = true`.
+	-- @param controllerId (integer) The controller id, incrementing from 0 when multiple controllers connected.
+	-- @param buttonName (Keyboard.KeyName) The name of the button that was pressed.
+	["ButtonDown"]: function(controllerId: integer, buttonName: Controller.ButtonName)
+
+	-- The ButtonUp slot is triggered when a game controller button is released.
+	-- Triggers after setting `node.controllerEnabled = true`.
+	-- @param controllerId (integer) The controller id, incrementing from 0 when multiple controllers connected.
+	-- @param buttonName (Keyboard.KeyName) The name of the button that was released.
+	["ButtonUp"]: function(controllerId: integer, buttonName: Controller.ButtonName)
+
+	-- The ButtonPressed slot is triggered when a game controller button is pressed.
+	-- Triggers after setting `node.controllerEnabled = true`.
+	-- @param controllerId (integer) The controller id, incrementing from 0 when multiple controllers connected.
+	-- @param buttonName (Keyboard.KeyName) The name of the button that was pressed.
+	["ButtonPressed"]: function(controllerId: integer, buttonName: Keyboard.KeyName)
+
+	-- The Axis slot is triggered when a game controller axis changed.
+	-- Triggers after setting `node.controllerEnabled = true`.
+	-- @param controllerId (integer) The controller id, incrementing from 0 when multiple controllers connected.
+	-- @param axisValue (number) The controller axis value ranging from -1.0 to 1.0.
+	["Axis"]: function(controllerId: integer, axisValue: number)
 end
 
 -- A class object for the `Node` class.

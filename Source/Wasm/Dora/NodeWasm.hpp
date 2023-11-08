@@ -196,6 +196,12 @@ static void node_set_keyboard_enabled(int64_t self, int32_t var) {
 static int32_t node_is_keyboard_enabled(int64_t self) {
 	return r_cast<Node*>(self)->isKeyboardEnabled() ? 1 : 0;
 }
+static void node_set_controller_enabled(int64_t self, int32_t var) {
+	r_cast<Node*>(self)->setControllerEnabled(var != 0);
+}
+static int32_t node_is_controller_enabled(int64_t self) {
+	return r_cast<Node*>(self)->isControllerEnabled() ? 1 : 0;
+}
 static void node_set_render_group(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setRenderGroup(var != 0);
 }
@@ -458,6 +464,8 @@ static void linkNode(wasm3::module3& mod) {
 	mod.link_optional("*", "node_is_swallow_mouse_wheel", node_is_swallow_mouse_wheel);
 	mod.link_optional("*", "node_set_keyboard_enabled", node_set_keyboard_enabled);
 	mod.link_optional("*", "node_is_keyboard_enabled", node_is_keyboard_enabled);
+	mod.link_optional("*", "node_set_controller_enabled", node_set_controller_enabled);
+	mod.link_optional("*", "node_is_controller_enabled", node_is_controller_enabled);
 	mod.link_optional("*", "node_set_render_group", node_set_render_group);
 	mod.link_optional("*", "node_is_render_group", node_is_render_group);
 	mod.link_optional("*", "node_set_render_order", node_set_render_order);

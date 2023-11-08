@@ -80,6 +80,7 @@ add_executable(dorothy-ssr
 	../../../Source/Cache/SoundCache.cpp
 	../../../Source/Cache/FrameCache.cpp
 	../../../Source/Cache/SVGCache.cpp
+	../../../Source/Input/Controller.cpp
 	../../../Source/Input/Keyboard.cpp
 	../../../Source/Input/TouchDispather.cpp
 	../../../Source/Entity/Entity.cpp

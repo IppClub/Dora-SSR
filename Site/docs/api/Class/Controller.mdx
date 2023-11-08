@@ -1,0 +1,159 @@
+import "@site/src/languages/highlight";
+
+# Controller
+
+**Description:**
+
+&emsp;&emsp;An interface for handling game controller inputs.
+
+## Controller.AxisName
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Enumeration for defining the controller axis names.
+
+**Signature:**
+```tl
+enum AxisName
+	"leftx"
+	"lefty"
+	"rightx"
+	"righty"
+end
+```
+
+## Controller.ButtonName
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Enumeration for defining the controller button names.
+
+**Signature:**
+```tl
+enum ButtonName
+	"a"
+	"b"
+	"back"
+	"dpdown"
+	"dpleft"
+	"dpright"
+	"dpup"
+	"leftshoulder"
+	"leftstick"
+	"lefttrigger"
+	"rightshoulder"
+	"rightstick"
+	"righttrigger"
+	"start"
+	"x"
+	"y"
+end
+```
+
+## isButtonDown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Check whether a button is pressed down in current frame.
+
+**Signature:**
+```tl
+isButtonDown: function(self: Controller, controllerId: integer, name: ButtonName): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| controllerId | integer | The controller id, incrementing from 0 when multiple controllers connected. |
+| name | ButtonName | The name of the button to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the button is pressed down. |
+
+## isButtonUp
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Check whether a button is released in current frame.
+
+**Signature:**
+```tl
+isButtonUp: function(self: Controller, controllerId: integer, name: ButtonName): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| controllerId | integer | The controller id, incrementing from 0 when multiple controllers connected. |
+| name | ButtonName | The name of the button to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the button is released. |
+
+## isButtonPressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Check whether a button is in pressed state.
+
+**Signature:**
+```tl
+isButtonPressed: function(self: Controller, controllerId: integer, name: ButtonName): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| controllerId | integer | The controller id, incrementing from 0 when multiple controllers connected. |
+| name | ButtonName | The name of the button to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the button is in pressed state. |
+
+## getAxis
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Get the axis value from a given controller.
+
+**Signature:**
+```tl
+getAxis: function(self: Controller, controllerId: integer, name: AxisName): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| controllerId | integer | The controller id, incrementing from 0 when multiple controllers connected. |
+| name | AxisName | The name of the controller axis to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The axis value ranging from -1.0 to 1.0. |

@@ -1455,6 +1455,9 @@
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\pmr\StatsResource.cpp">
       <Filter>3rdParty\playrho\pmr</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Input\Controller.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
@@ -3071,6 +3074,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\ThreadLocalAllocator.hpp">
       <Filter>3rdParty\playrho\pmr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Input\Controller.h">
+      <Filter>Input</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

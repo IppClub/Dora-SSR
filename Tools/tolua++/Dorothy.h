@@ -354,6 +354,7 @@ class Node : public Object
 	tolua_property__bool bool swallowTouches;
 	tolua_property__bool bool swallowMouseWheel;
 	tolua_property__bool bool keyboardEnabled;
+	tolua_property__bool bool controllerEnabled;
 	tolua_property__bool bool renderGroup;
 	tolua_property__common int renderOrder;
 
@@ -1073,6 +1074,15 @@ class Keyboard
 	bool isKeyPressed(String name);
 	void updateIMEPosHint(Vec2 winPos);
 	static tolua_outside Keyboard* Keyboard_shared @ create();
+};
+
+class Controller
+{
+	bool isButtonDown(int controllerId, String name);
+	bool isButtonUp(int controllerId, String name);
+	bool isButtonPressed(int controllerId, String name);
+	float getAxis(int controllerId, String name);
+	static tolua_outside Controller* Controller_shared @ create();
 };
 
 class SVGDef @ SVG : public Object

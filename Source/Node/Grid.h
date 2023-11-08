@@ -57,7 +57,7 @@ private:
 	std::vector<Point> _points;
 	std::vector<SpriteVertex> _vertices;
 	std::vector<SpriteRenderer::IndexType> _indices;
-	enum {
+	enum: Flag::ValueType {
 		VertexPosDirty = Node::UserFlag,
 		VertexColorDirty = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,

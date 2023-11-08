@@ -202,6 +202,9 @@ inline bool Array_each(Array* self, const LuaFunction<bool>& handler) {
 /* Audio */
 inline Audio* Audio_shared() { return &SharedAudio; }
 
+/* Controller */
+inline Controller* Controller_shared() { return &SharedController; }
+
 /* Keyboard */
 inline Keyboard* Keyboard_shared() { return &SharedKeyboard; }
 
