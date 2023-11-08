@@ -367,27 +367,44 @@ HttpServer\postSchedule "/complete", (req)->
 			if lang == "yue"
 				item = line\match "require%s*['\"]([%w%d-_%./ ]*)$" unless item
 				item = line\match "import%s*['\"]([%w%d-_%.]*)$" unless item
-			searchImage = false
+			searchType = nil
 			if not item
 				item = line\match "Sprite%s*%(%s*['\"]([%w%d-_/ ]*)$"
 				if lang == "yue"
 					item = line\match "Sprite%s*['\"]([%w%d-_/ ]*)$"
-				searchImage = item?
+				searchType = "Image" if item?
+			if not item
+				item = line\match "Label%s*%(%s*['\"]([%w%d-_/ ]*)$"
+				if lang == "yue"
+					item = line\match "Label%s*['\"]([%w%d-_/ ]*)$"
+				searchType = "Font" if item?
 			break unless item
 			:searchPaths = Content
 			for folder in *getSearchFolders file
 				searchPaths[] = folder
-			searchPaths[] = Content.assetPath if searchImage
+			searchPaths[] = Content.assetPath if searchType
 			tokens = [mod for mod in item\gmatch "([%w%d-_ ]+)[%./]"]
 			suggestions = []
 			for path in *searchPaths
 				sPath = Path path, table.unpack tokens
 				continue unless Content\exist sPath
+				if searchType == "Font"
+					fontPath = Path sPath, "Font"
+					if Content\exist fontPath
+						for f in *Content\getFiles fontPath
+							if Path\getExt(f) in ["ttf", "otf"]
+								continue if "." == f\sub 1, 1
+								suggestions[] = [Path\getName(f), "font", "field"]
 				for f in *Content\getFiles sPath
-					if searchImage
+					switch searchType when "Image"
 						switch Path\getExt f when "clip", "jpg", "png", "dds", "pvr", "ktx"
 							continue if "." == f\sub 1, 1
 							suggestions[] = [f, "image", "field"]
+						continue
+					when "Font"
+						switch Path\getExt f when "ttf", "otf"
+							continue if "." == f\sub 1, 1
+							suggestions[] = [f, "font", "field"]
 						continue
 					switch Path\getExt f when "lua", "tl", "yue", "xml"
 						name = Path\getName f
@@ -397,10 +414,11 @@ HttpServer\postSchedule "/complete", (req)->
 				for dir in *Content\getDirs sPath
 					continue if "." == dir\sub 1, 1
 					suggestions[] = [dir, "folder", "variable"]
-			if item == "" and not searchImage
+			if item == "" and not searchType
 				for [name,] in *teal.completeAsync "", "builtin.", 1, searchPath
 					suggestions[] = [name, "builtin module", "function"]
 			if #suggestions > 0
+				suggestions = [v for _, v in pairs {item[1] .. item[2], item for item in *suggestions}]
 				return success: true, :suggestions
 			else
 				return success: false
@@ -572,8 +590,10 @@ HttpServer\post "/assets", ->
 				dir: true
 				title: App.locale\match("^zh")? and "内置资源" or "Built-in"
 				children: [
-					visitAssets Path Content.assetPath, "Image"
 					visitAssets Path Content.assetPath, "Doc"
+					visitAssets Path Content.assetPath, "Image"
+					visitAssets Path Content.assetPath, "Spine"
+					visitAssets Path Content.assetPath, "Font"
 					visitAssets Path Content.assetPath, "Script", "Lib", "Dora"
 					visitAssets Path Content.assetPath, "Script", "Example"
 					visitAssets Path Content.assetPath, "Script", "Test"
