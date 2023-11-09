@@ -50,14 +50,14 @@ const Markdown = (props: MarkdownProps) => {
 				// eslint-disable-next-line
 				return <a href='#!' onClick={(e)=> {
 					e.preventDefault();
-					if (node.properties !== undefined && node.properties.href !== undefined && typeof(node.properties.href) === "string") {
+					if (node?.properties !== undefined && node.properties.href !== undefined && typeof(node.properties.href) === "string") {
 						props.onClick(node.properties.href);
 					}
 				}} {...aprops}/>;
 			},
-			code({node, inline, className, children, ...props}) {
+			code({node, className, children, ...props}) {
 				const match = /language-(\w+)/.exec(className || '');
-				return !inline && match ? (
+				return match ? (
 					<SyntaxHighlighter
 						children={String(children).replace(/\n$/, '')}
 						style={vscDarkPlus as any}
@@ -66,7 +66,6 @@ const Markdown = (props: MarkdownProps) => {
 						}}
 						language={match[1]}
 						PreTag="div"
-						{...props}
 					/>
 				) : (
 					<code className={className} {...props}>

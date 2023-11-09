@@ -62,6 +62,12 @@ local record SpriteClass
 	type Type = Sprite
 
 	-- A metamethod for creating Sprite object.
+	-- @param clipStr (string) The string containing format for loading a texture file.
+	-- Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
+	-- @return (Sprite) A new instance of the Sprite class.
+	metamethod __call: function(self: SpriteClass, clipStr: string): Sprite
+
+	-- A metamethod for creating Sprite object.
 	-- @return (Sprite) A new instance of the Sprite class.
 	metamethod __call: function(self: SpriteClass): Sprite
 
@@ -70,12 +76,6 @@ local record SpriteClass
 	-- @param textureRect (Rect) [optional] The rectangle defining the portion of the texture to use for the sprite, if not provided, the whole texture will be used for rendering.
 	-- @return (Sprite) A new instance of the Sprite class.
 	metamethod __call: function(self: SpriteClass, texture: Texture2D, textureRect?: Rect): Sprite
-
-	-- A metamethod for creating Sprite object.
-	-- @param clipStr (string) The string containing format for loading a texture file.
-	-- Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
-	-- @return (Sprite) A new instance of the Sprite class.
-	metamethod __call: function(self: SpriteClass, clipStr: string): Sprite
 end
 
 local spriteClass: SpriteClass
