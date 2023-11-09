@@ -239,12 +239,13 @@ getParamDocs = (signatures)->
 						desc: "**#{name}**: #{desc}"
 					}
 				else
-					comments[] = result
 					if typ = result\match "^@return%s*%(([^%)]-)%)"
 						returnType = if returnType
 							returnType .. ", " .. typ
 						else
 							typ
+						result = result\gsub "@return", "**return:**"
+					comments[] = result
 			elseif #comments > 0
 				comments = []
 				params = []
