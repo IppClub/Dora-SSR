@@ -67,7 +67,7 @@ local record SpriteClass
 
 	-- 用于创建新的图元对象的元方法。
 	-- @param texture (Texture2D) 要渲染的纹理。
-	-- @param textureRect (Rect) [optional] 用于渲染的纹理矩形区域，没有提供则设置为渲染所有纹理区域。
+	-- @param textureRect (Rect) [可选] 用于渲染的纹理矩形区域，没有提供则设置为渲染所有纹理区域。
 	-- @return (Sprite) 新的图元对象.
 	metamethod __call: function(self: SpriteClass, texture: Texture2D, textureRect?: Rect): Sprite
 
