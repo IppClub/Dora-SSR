@@ -35,7 +35,7 @@ local record PlatformCameraClass
 	type Type = PlatformCamera
 
 	-- 创建2D平台游戏相机的新实例。
-	-- @param name (string) [optional] 新实例的名称，默认为空字符串。
+	-- @param name (string) [可选] 新实例的名称，默认为空字符串。
 	-- @return (PlatformCamera) 新的2D平台游戏相机实例。
 	metamethod __call: function(
 		self: PlatformCameraClass,
