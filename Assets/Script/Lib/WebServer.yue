@@ -232,10 +232,11 @@ getParamDocs = (signatures)->
 				if not name
 					name, typ, desc = result\match "^@param%s*(%.%.%.)%s*%(([^%)]-)%)%s*(.+)"
 				if name
-					name ..= "?" if desc\match("%[optional%]") or desc\match "%[可选%]"
+					pname = name
+					pname ..= "?" if desc\match("%[optional%]") or desc\match "%[可选%]"
 					params[] = {
-						:name
-						desc: "**#{typ}**: #{desc}"
+						name: "#{pname}: #{typ}"
+						desc: "**#{name}**: #{desc}"
 					}
 				else
 					comments[] = result

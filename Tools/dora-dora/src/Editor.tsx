@@ -307,6 +307,21 @@ const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: S
 						}
 					}
 				}
+				if (signatures[activeSignature].parameters.length >= activeParameter) {
+					let minParam = -1, sig = activeSignature;
+					for (let i = 0; i < signatures.length; i++) {
+						if (signatures[i].parameters.length > activeParameter) {
+							if (minParam < 0) {
+								minParam = signatures[i].parameters.length;
+								sig = i;
+							} else if (signatures[i].parameters.length < minParam) {
+								minParam = signatures[i].parameters.length;
+								sig = i;
+							}
+						}
+					}
+					activeSignature = sig;
+				}
 				return {
 					dispose: () => {},
 					value: {
