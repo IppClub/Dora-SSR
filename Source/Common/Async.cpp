@@ -187,6 +187,12 @@ void AsyncThread::run(const std::function<Own<Values>()>& worker, const std::fun
 	_nextProcess = (_nextProcess + 1) % _process.size();
 }
 
+void AsyncThread::run(const std::function<void()>& worker) {
+	Async* async = _process[_nextProcess].get();
+	async->run(worker);
+	_nextProcess = (_nextProcess + 1) % _process.size();
+}
+
 Async* AsyncThread::newThread() {
 	_userThreads.push_back(New<Async>());
 	return _userThreads.back().get();

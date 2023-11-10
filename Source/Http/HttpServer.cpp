@@ -81,6 +81,14 @@ static std::string get_local_ip() {
 
 NS_DOROTHY_BEGIN
 
+class DoraTaskQueue : public httplib::TaskQueue {
+public:
+	virtual void enqueue(std::function<void()> fn) override {
+		SharedAsyncThread.run(std::move(fn));
+	}
+	virtual void shutdown() override { }
+};
+
 HttpServer::Response::Response(HttpServer::Response&& res)
 	: content(std::move(res.content))
 	, contentType(std::move(res.contentType))
@@ -132,6 +140,9 @@ void HttpServer::upload(String pattern, const FileAcceptHandler& acceptHandler, 
 bool HttpServer::start(int port) {
 	auto& server = getServer();
 	if (server.is_running()) return false;
+	server.new_task_queue = []() {
+		return new DoraTaskQueue{};
+	};
 	server.set_default_headers({{"Access-Control-Allow-Origin"s, "*"s},
 		{"Access-Control-Allow-Headers"s, "*"s}});
 	server.set_file_request_handler([](const httplib::Request& req, httplib::Response& res) {
@@ -150,10 +161,10 @@ bool HttpServer::start(int port) {
 		auto data = SharedContent.load(path);
 		if (data.second > 0) {
 			auto sd = std::make_shared<OwnArray<uint8_t>>(std::move(data.first));
-			res.set_content_provider(data.second, content_type, [sd = std::move(sd)](size_t offset, size_t length, httplib::DataSink &sink) -> bool {
-					sink.write(r_cast<const char*>((*sd).get()) + offset, length);
-					return true;
-				});
+			res.set_content_provider(data.second, content_type, [sd = std::move(sd)](size_t offset, size_t length, httplib::DataSink& sink) -> bool {
+				sink.write(r_cast<const char*>((*sd).get()) + offset, length);
+				return true;
+			});
 			return true;
 		}
 		return false;
