@@ -4,7 +4,7 @@ HttpServer\stop!
 
 HttpServer.wwwPath = Path Content.writablePath, ".www"
 
-import "Utils" as :LintYueGlobals
+from "Utils" import LintYueGlobals
 
 getProjectDirFromFile = (file)->
 	:writablePath = Content
@@ -428,6 +428,9 @@ HttpServer\postSchedule "/complete", (req)->
 		switch lang when "tl", "lua"
 			suggestions = teal.completeAsync content, line, row, searchPath
 			if not line\match("[%.:][%w_]+[%.:]?$") and not line\match "[%w_]+[%.:]$"
+				checkSet = {name, true for {name} in *suggestions}
+				for item in *teal.completeAsync "", "builtin.", 1, searchPath
+					suggestions[] = item if not checkSet[item[1]]
 				for word in *luaKeywords
 					suggestions[] = [word, "keyword", "keyword"]
 				if lang == "tl"
