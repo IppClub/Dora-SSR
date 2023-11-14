@@ -102,7 +102,7 @@ const LogView = (props: LogViewProps) => {
 						}}
 					>
 						<TextField
-							label="Commandline"
+							label={t("log.command")}
 							id="commandline"
 							value={command}
 							onChange={e => setCommand(e.target.value)}
