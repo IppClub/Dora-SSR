@@ -113,9 +113,10 @@ i18n
 						viewLog: "View Log",
 					},
 					log: {
-						wait: "wait for logging messages ...",
+						wait: "Wait for logging messages ...",
 						open: "Dorothy SSR connected!",
-						close: "Dorothy SSR disconnected!"
+						close: "Dorothy SSR disconnected!",
+						command: "Commandline"
 					},
 				}
 			},
@@ -229,7 +230,8 @@ i18n
 					log: {
 						wait: "接收日志消息中……",
 						open: "Dorothy SSR 已连接！",
-						close: "Dorothy SSR 断开连接！"
+						close: "Dorothy SSR 断开连接！",
+						command: "命令行"
 					},
 				}
 			},
