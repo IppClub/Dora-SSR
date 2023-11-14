@@ -1,4 +1,54 @@
+import EventEmitter from "events";
 import { TreeDataType } from "./FileTree";
+
+let webSocket: WebSocket;
+export const webSocketEmitter = new EventEmitter();
+
+export function wsUrl() {
+	let url: string;
+	if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+		url = "ws://localhost:8868";
+	} else {
+		url = `ws://${window.location.hostname}:8868`;
+	}
+	return url;
+}
+
+export const Log = {
+	text: ""
+};
+
+export function openWebSocket() {
+	let connected = false;
+	const connect = () => {
+		connected = false;
+		webSocket = new WebSocket(wsUrl());
+		webSocket.onmessage = function(evt: MessageEvent<string>) {
+			const result = JSON.parse(evt.data);
+			if (result !== null && result.name !== undefined) {
+				if (result.name === "Log") {
+					Log.text += result.text as string;
+				}
+				webSocketEmitter.emit(result.name, result);
+			}
+		};
+		webSocket.onopen = () => {
+			connected = true;
+			webSocketEmitter.emit("Open");
+		};
+		webSocket.onclose = () => {
+			if (connected) {
+				connected = false;
+				webSocketEmitter.emit("Close");
+			}
+			setTimeout(connect, 1000);
+		};
+		webSocket.onerror = () => {
+			webSocket.close();
+		};
+	};
+	connect();
+};
 
 export function addr(url: string) {
 	if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
@@ -267,4 +317,14 @@ export interface EditingInfoResponse {
 };
 export const editingInfo = (req?: EditingInfoRequest) => {
 	return post<EditingInfoResponse>("/editingInfo", req ?? {});
+};
+
+export interface CommandRequest {
+	code: string;
+};
+export interface CommandResponse {
+	success: boolean;
+};
+export const command = (req: CommandRequest) => {
+	return post<CommandResponse>("/command", req);
 };

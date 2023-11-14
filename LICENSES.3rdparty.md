@@ -31,3 +31,5 @@
 - [utf8](http://bjoern.hoehrmann.de/utf-8/decoder/dfa): [MIT License](http://bjoern.hoehrmann.de/utf-8/decoder/dfa)
 - [septbr/xlsxtext](https://github.com/septbr/xlsxtext): [MIT License](Source/3rdParty/Other/LICENSE-xlsxtext)
 - [timniederhausen/rapidxml](https://github.com/timniederhausen/rapidxml): [MIT License](Source/3rdParty/Other/LICENSE-rapidxml)
+- [asio](https://github.com/chriskohlhoff/asio): [Boost Software License](Source/3rdParty/asio/LICENSE_1_0.txt)
+- [websocketpp](https://github.com/zaphoyd/websocketpp): [BSD-3 License](Source/3rdParty/websocketpp/COPYING.txt)

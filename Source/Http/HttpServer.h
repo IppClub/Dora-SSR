@@ -10,13 +10,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
+class WebSocketServer;
 class Async;
+class Listener;
 
 class HttpServer {
 public:
 	virtual ~HttpServer();
 	PROPERTY_STRING(WWWPath);
 	PROPERTY_READONLY(std::string, LocalIP);
+	PROPERTY_READONLY(int, WSConnectionCount);
 	struct Request {
 		std::list<Slice> params;
 		Slice contentType;
@@ -57,6 +60,7 @@ public:
 
 	void upload(String pattern, const FileAcceptHandler& acceptHandler, const FileDoneHandler& doneHandler);
 	bool start(int port);
+	bool startWS(int port);
 	void stop();
 
 	static const char* getVersion();
@@ -70,6 +74,8 @@ private:
 	std::list<PostScheduled> _postScheduled;
 	std::list<File> _files;
 	Async* _thread;
+	Own<WebSocketServer> _webSocketServer;
+	Ref<Listener> _webSocketListener;
 	SINGLETON_REF(HttpServer, AsyncThread, Director);
 };
 

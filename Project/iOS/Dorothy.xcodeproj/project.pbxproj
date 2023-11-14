@@ -4678,6 +4678,7 @@
 					../../Source/3rdParty/Zip,
 					../../Source/3rdParty/dragonBones,
 					../../Source/3rdParty/wasm3,
+					../../Source/3rdParty/asio,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -4742,6 +4743,7 @@
 					../../Source/3rdParty/Zip,
 					../../Source/3rdParty/dragonBones,
 					../../Source/3rdParty/wasm3,
+					../../Source/3rdParty/asio,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -4950,6 +4952,7 @@
 					../../Source/3rdParty/Zip,
 					../../Source/3rdParty/dragonBones,
 					../../Source/3rdParty/wasm3,
+					../../Source/3rdParty/asio,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -5015,6 +5018,7 @@
 					../../Source/3rdParty/Zip,
 					../../Source/3rdParty/dragonBones,
 					../../Source/3rdParty/wasm3,
+					../../Source/3rdParty/asio,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};

@@ -70,6 +70,8 @@ i18n
 						"ok": "OK",
 						"cancel": "Cancel",
 						"confirm": "Confirm",
+						"clear": "Clear",
+						"close": "Close",
 					},
 					file: {
 						new: "New File",
@@ -108,7 +110,13 @@ i18n
 						stop: "Stop",
 						goToFile: "Go to File",
 						extract: "Unzip",
-					}
+						viewLog: "View Log",
+					},
+					log: {
+						wait: "wait for logging messages ...",
+						open: "Dorothy SSR connected!",
+						close: "Dorothy SSR disconnected!"
+					},
 				}
 			},
 			zh: {
@@ -176,6 +184,8 @@ i18n
 						"ok": "确定",
 						"cancel": "取消",
 						"confirm": "确认",
+						"clear": "清空",
+						"close": "关闭",
 					},
 					file: {
 						new: "新建文件",
@@ -214,7 +224,13 @@ i18n
 						stop: "停止",
 						goToFile: "跳转到文件",
 						extract: "解压缩",
-					}
+						viewLog: "查看日志",
+					},
+					log: {
+						wait: "接收日志消息中……",
+						open: "Dorothy SSR 已连接！",
+						close: "Dorothy SSR 断开连接！"
+					},
 				}
 			},
 		},

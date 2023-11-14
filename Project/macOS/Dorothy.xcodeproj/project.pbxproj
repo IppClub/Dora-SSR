@@ -3836,6 +3836,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/sqlite",
 					"$(SRCROOT)/../../Source/3rdParty/dragonBones",
 					"$(SRCROOT)/../../Source/3rdParty/wasm3",
+					"$(SRCROOT)/../../Source/3rdParty/asio",
 				);
 				VALID_ARCHS = "x86_64 arm64";
 			};
@@ -3900,6 +3901,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/sqlite",
 					"$(SRCROOT)/../../Source/3rdParty/dragonBones",
 					"$(SRCROOT)/../../Source/3rdParty/wasm3",
+					"$(SRCROOT)/../../Source/3rdParty/asio",
 				);
 				VALID_ARCHS = "x86_64 arm64";
 			};

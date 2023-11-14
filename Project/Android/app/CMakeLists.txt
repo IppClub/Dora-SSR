@@ -16,6 +16,7 @@ include_directories(
 	src/main/cpp/3rdParty/sqlite
 	src/main/cpp/3rdParty/dragonBones
 	src/main/cpp/3rdParty/wasm3
+	src/main/cpp/3rdParty/asio
 )
 
 add_library(SDL2-lib SHARED IMPORTED)
