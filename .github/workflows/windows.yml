@@ -45,6 +45,8 @@ jobs:
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Script && cd ..)
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Spine && cd ..)
           (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Doc && cd ..)
+          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z gamecontrollerdb.txt && cd ..)
+          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z LICENSES && cd ..)
           (cd Project\Windows\build\Release && 7z a ..\..\..\..\dorothy-ssr-windows-x86.7z Dorothy.exe && cd ..\..\..\..)
           ren dorothy-ssr-windows-x86.7z dorothy-ssr-${{ github.ref_name }}-windows-x86.7z
       - name: Release
