@@ -380,7 +380,7 @@ static int dora_teal_check_async(lua_State* L) {
 		if (result) {
 			lua_pushboolean(L, 0);
 			lua_createtable(L, result.value().size(), 0);
-			int index = 0;
+			int index = 1;
 			for (const auto& err : result.value()) {
 				lua_createtable(L, 5, 0);
 				tolua_pushslice(L, err.type);
@@ -393,7 +393,8 @@ static int dora_teal_check_async(lua_State* L) {
 				lua_rawseti(L, -2, 4);
 				tolua_pushslice(L, err.msg);
 				lua_rawseti(L, -2, 5);
-				lua_rawseti(L, -2, ++index);
+				lua_rawseti(L, -2, index);
+				index++;
 			}
 			LuaEngine::invoke(L, handler->get(), 2, 0);
 		} else {
@@ -1230,7 +1231,7 @@ static std::optional<std::list<LuaEngine::TealError>> check_teal_async(lua_State
 				lua_pop(L, 1);
 				lua_rawgeti(L, -1, 5);
 				Slice msg = tolua_toslice(L, -1, nullptr);
-				lua_pop(L, 1);
+				lua_pop(L, 2);
 				errors.push_back({type.toString(), filename.toString(), row, col, msg.toString()});
 			}
 		}
@@ -1251,7 +1252,7 @@ void LuaEngine::checkTealAsync(String tlCodes, String moduleName, bool lax, Stri
 		[callback](Own<Values> values) {
 			std::optional<std::list<LuaEngine::TealError>> res;
 			values->get(res);
-			callback(res);
+			callback(std::move(res));
 		});
 }
 
