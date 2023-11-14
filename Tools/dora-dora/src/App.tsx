@@ -285,11 +285,21 @@ export default function PersistentDrawerLeft() {
 	const openFileInTab = (key: string, title: string, position?: monaco.IPosition, mdEditing?: boolean, sortIndex?: number, targetIndex?: number) => {
 		const sortedFiles = (prev: EditingFile[], index: number) => {
 			if (sortIndex !== undefined) {
-				const result = [...prev].sort((a, b) => (a.sortIndex ?? 0) - (b.sortIndex ?? 0));
+				const result = prev.sort((a, b) => {
+					const indexA = a.sortIndex ?? 0;
+					const indexB = b.sortIndex ?? 0;
+					if (indexA < indexB) {
+						return -1;
+					} else if (indexA > indexB) {
+						return 1;
+					} else {
+						return 0;
+					}
+				});
 				if (targetIndex !== undefined && result.length > targetIndex && result[targetIndex].sortIndex === targetIndex) {
 					switchTab(targetIndex, result[targetIndex]);
 				}
-				return result;
+				return [...result];
 			} else {
 				switchTab(index, prev[index]);
 				return [...prev];
@@ -314,7 +324,8 @@ export default function PersistentDrawerLeft() {
 					return;
 				}
 				setFiles(prev => {
-					const index = prev.push({
+					const index = prev.length;
+					return sortedFiles([...prev, {
 						key,
 						title,
 						content: "",
@@ -322,8 +333,7 @@ export default function PersistentDrawerLeft() {
 						uploading: true,
 						sortIndex,
 						status: "normal",
-					}) - 1;
-					return sortedFiles(prev, index);
+					}], index);
 				});
 				return;
 			}
@@ -354,7 +364,8 @@ export default function PersistentDrawerLeft() {
 				case ".jpg":
 				case ".skel": {
 					setFiles(prev => {
-						const index = prev.push({
+						const index = prev.length;
+						return sortedFiles([...prev, {
 							key,
 							title,
 							content: "",
@@ -364,8 +375,7 @@ export default function PersistentDrawerLeft() {
 							mdEditing,
 							sortIndex,
 							status: "normal",
-						}) - 1;
-						return sortedFiles(prev, index);
+						}], index);
 					});
 					break;
 				}
@@ -374,7 +384,8 @@ export default function PersistentDrawerLeft() {
 						if (res.success && res.content !== undefined) {
 							const content = res.content;
 							setFiles(prev => {
-								const index = prev.push({
+								const index = prev.length;
+								return sortedFiles([...prev, {
 									key,
 									title,
 									content,
@@ -384,8 +395,7 @@ export default function PersistentDrawerLeft() {
 									mdEditing,
 									sortIndex,
 									status: "normal",
-								}) - 1;
-								return sortedFiles(prev, index);
+								}], index);
 							});
 						}
 					}).catch(() => {
@@ -1048,7 +1058,11 @@ export default function PersistentDrawerLeft() {
 					setSelectedKeys([newFile]);
 					setSelectedNode(newNode);
 					if (ext !== '') {
-						const index = files.push({
+						const index = files.length;
+						if (ext === ".md") {
+							files[index].mdEditing = true;
+						}
+						const newItem: EditingFile = {
 							key: newFile,
 							title: newName,
 							position,
@@ -1056,12 +1070,9 @@ export default function PersistentDrawerLeft() {
 							contentModified: null,
 							uploading: false,
 							status: "normal",
-						}) - 1;
-						if (ext === ".md") {
-							files[index].mdEditing = true;
-						}
-						setFiles([...files]);
-						switchTab(index, files[index]);
+						};
+						setFiles([...files, newItem]);
+						switchTab(index, newItem);
 					}
 				}).catch(() => {
 					addAlert(t("alert.newFailed"), "error");
