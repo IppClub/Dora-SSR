@@ -75,6 +75,11 @@ public:
 			  "import"}) {
 		_buf.fill('\0');
 		LogHandler += std::make_pair(this, &ConsolePanel::addLog);
+		_commandListener = Listener::create("AppCommand"s, [this](Event* event) {
+			std::string codes;
+			event->get(codes);
+			runCodes(std::move(codes));
+		});
 	}
 
 	~ConsolePanel() {
@@ -95,6 +100,9 @@ public:
 		}
 		for (auto line : lines) {
 			_logs.push_back(line.toString());
+		}
+		if (_logs.size() > DORA_MAX_IMGUI_LOG) {
+			_logs.erase(_logs.begin(), _logs.begin() + _logs.size() - DORA_MAX_IMGUI_LOG);
 		}
 		_scrollToBottom = true;
 	}
@@ -258,59 +266,7 @@ public:
 			std::string codes = _buf.data();
 			_buf.fill('\0');
 			_history.push_back(codes);
-			LogPrintInThread(codes + '\n');
-			codes.insert(0,
-				"rawset builtin, '_REPL', <index>: builtin unless builtin._REPL\n"
-				"_ENV = builtin._REPL\n"
-				"global *\n"s);
-			lua_State* L = SharedLuaEngine.getState();
-			int top = lua_gettop(L);
-			DEFER(lua_settop(L, top));
-			pushYue(L, "loadstring"_slice);
-			lua_pushlstring(L, codes.c_str(), codes.size());
-			lua_pushliteral(L, "=(repl)");
-			pushOptions(L, -3);
-			BLOCK_START
-			if (lua_pcall(L, 3, 2, 0) != 0) {
-				LogPrint("{}\n", lua_tostring(L, -1));
-				break;
-			}
-			if (lua_isnil(L, -2) != 0) {
-				std::string err = lua_tostring(L, -1);
-				auto modName = "(repl):"_slice;
-				if (err.substr(0, modName.size()) == modName) {
-					err = err.substr(modName.size());
-				}
-				auto pos = err.find(':');
-				if (pos != std::string::npos) {
-					int lineNum = std::stoi(err.substr(0, pos));
-					err = std::to_string(lineNum - 1) + err.substr(pos);
-				}
-				LogPrint("{}\n", err);
-				break;
-			}
-			lua_pop(L, 1);
-			pushYue(L, "pcall"_slice);
-			lua_insert(L, -2);
-			int last = lua_gettop(L) - 2;
-			if (lua_pcall(L, 1, LUA_MULTRET, 0) != 0) {
-				LogPrint("{}\n", lua_tostring(L, -1));
-				break;
-			}
-			int cur = lua_gettop(L);
-			int retCount = cur - last;
-			bool success = lua_toboolean(L, -retCount) != 0;
-			if (success) {
-				if (retCount > 1) {
-					for (int i = 1; i < retCount; ++i) {
-						LogPrint("{}\n", luaL_tolstring(L, -retCount + i, nullptr));
-						lua_pop(L, 1);
-					}
-				}
-			} else {
-				LogPrint("{}\n", lua_tostring(L, -1));
-			}
-			BLOCK_END
+			runCodes(std::move(codes));
 			_scrollToBottom = true;
 			reclaimFocus = true;
 		}
@@ -318,6 +274,62 @@ public:
 		ImGui::SetItemDefaultFocus();
 		if (reclaimFocus) ImGui::SetKeyboardFocusHere(-1);
 		ImGui::End();
+	}
+
+	void runCodes(std::string codes) {
+		LogPrintInThread(codes + '\n');
+		codes.insert(0,
+			"rawset builtin, '_REPL', <index>: builtin unless builtin._REPL\n"
+			"_ENV = builtin._REPL\n"
+			"global *\n"s);
+		lua_State* L = SharedLuaEngine.getState();
+		int top = lua_gettop(L);
+		DEFER(lua_settop(L, top));
+		pushYue(L, "loadstring"_slice);
+		lua_pushlstring(L, codes.c_str(), codes.size());
+		lua_pushliteral(L, "=(repl)");
+		pushOptions(L, -3);
+		BLOCK_START
+		if (lua_pcall(L, 3, 2, 0) != 0) {
+			LogPrint("{}\n", lua_tostring(L, -1));
+			break;
+		}
+		if (lua_isnil(L, -2) != 0) {
+			std::string err = lua_tostring(L, -1);
+			auto modName = "(repl):"_slice;
+			if (err.substr(0, modName.size()) == modName) {
+				err = err.substr(modName.size());
+			}
+			auto pos = err.find(':');
+			if (pos != std::string::npos) {
+				int lineNum = std::stoi(err.substr(0, pos));
+				err = std::to_string(lineNum - 1) + err.substr(pos);
+			}
+			LogPrint("{}\n", err);
+			break;
+		}
+		lua_pop(L, 1);
+		pushYue(L, "pcall"_slice);
+		lua_insert(L, -2);
+		int last = lua_gettop(L) - 2;
+		if (lua_pcall(L, 1, LUA_MULTRET, 0) != 0) {
+			LogPrint("{}\n", lua_tostring(L, -1));
+			break;
+		}
+		int cur = lua_gettop(L);
+		int retCount = cur - last;
+		bool success = lua_toboolean(L, -retCount) != 0;
+		if (success) {
+			if (retCount > 1) {
+				for (int i = 1; i < retCount; ++i) {
+					LogPrint("{}\n", luaL_tolstring(L, -retCount + i, nullptr));
+					lua_pop(L, 1);
+				}
+			}
+		} else {
+			LogPrint("{}\n", lua_tostring(L, -1));
+		}
+		BLOCK_END
 	}
 
 private:
@@ -331,6 +343,7 @@ private:
 	std::deque<std::string> _logs;
 	std::deque<Slice> _filteredLogs;
 	ImGuiTextFilter _filter;
+	Ref<Listener> _commandListener;
 };
 
 static void DoraSetupTheme(Color color) {

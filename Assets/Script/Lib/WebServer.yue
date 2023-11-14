@@ -650,6 +650,11 @@ HttpServer\post "/editingInfo", (req)->
 	else
 		success: true, editingInfo: config.editingInfo
 
+HttpServer\post "/command", (req)->
+	switch req when {body: {:code}}
+		emit "AppCommand", code
+	success: true
+
 status = url: nil
 export default status
 
@@ -672,7 +677,7 @@ thread ->
 			:localIP = HttpServer
 			localIP = "localhost" if localIP == ""
 			status.url = "http://#{localIP}:8866"
-			print "Web IDE started!"
+			HttpServer\startWS 8868
 		else
 			status.url = nil
 			print "8866 Port not available!"

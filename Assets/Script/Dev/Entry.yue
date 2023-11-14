@@ -538,6 +538,9 @@ windowFlags =
 	* "NoBringToFrontOnFocus"
 initFooter = true
 footerWindow = threadLoop ->
+	zh = useChinese and isChineseSupported
+	if HttpServer.wsConnectionCount > 0
+		return
 	App\shutdown! if Keyboard\isKeyDown "Escape"
 	do
 		ctrl = Keyboard\isKeyPressed "LCtrl"
@@ -579,7 +582,7 @@ footerWindow = threadLoop ->
 			else
 				allEntries[1]
 	return unless showEntry
-	zh = useChinese and isChineseSupported
+
 	:width, :height = App.visualSize
 	SetNextWindowSize Vec2 170, 50
 	SetNextWindowPos if width >= 600
@@ -672,6 +675,18 @@ entryWindow = threadLoop ->
 	return unless showEntry
 	return unless isInEntry
 	zh = useChinese and isChineseSupported
+	if HttpServer.wsConnectionCount > 0
+		:themeColor = App
+		:width, :height = App.visualSize
+		SetNextWindowBgAlpha 0.5
+		SetNextWindowPos Vec2(width / 2, height / 2), "Always", Vec2 0.5, 0.5
+		SetNextWindowSize Vec2(235, 0), "Always"
+		Begin "Web IDE Connected", urlWindowFlags, ->
+			TextColored themeColor, "#{zh and '网页 IDE 已连接……' or 'Web IDE connected ...'}"
+			slogon = zh and 'Dorothy 启动！' or 'Dorothy Launch!'
+			TextColored descColor, slogon
+		return
+
 	:themeColor = App
 	width:fullWidth, :height = App.visualSize
 

@@ -4,7 +4,7 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Stack from '@mui/system/Stack';
 import { IconButton, ListItemIcon, ListItemText, Toolbar } from '@mui/material';
 import SportsEsports from '@mui/icons-material/SportsEsports';
-import { BsFillFileEarmarkPlayFill, BsPlayCircle, BsStopCircle, BsSearch } from 'react-icons/bs';
+import { BsFillFileEarmarkPlayFill, BsPlayCircle, BsStopCircle, BsSearch, BsTerminal } from 'react-icons/bs';
 import { StyledMenu, StyledMenuItem } from './Menu';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,8 +14,8 @@ export namespace Color {
 	export const Background = '#3a3a3a';
 	export const BackgroundSecondary = '#2a2a2a';
 
-	export const Primary = '#eee';
-	export const Secondary = '#eeea';
+	export const Primary = '#ccc';
+	export const Secondary = '#ccca';
 
 	export const TextPrimary = '#eee';
 	export const TextSecondary = '#eee8';
@@ -128,15 +128,17 @@ export const DrawerHeader = styled('div')(({ theme }) => ({
 	justifyContent: 'flex-end',
 }));
 
-export type PlayControlMode = "Run" | "Run This" | "Stop" | "Go to File";
+export type PlayControlMode = "Run" | "Run This" | "Stop" | "Go to File" | "View Log";
 
 export interface PlayControlProp {
+	width: number;
 	onClick: (mode: PlayControlMode) => void;
 }
 
 export const PlayControl = (prop: PlayControlProp) => {
 	const [open, setOpen] = useState(false);
 	const [anchorEl, setAnchorEl] = useState<Element | null>(null);
+	const [playButtonDisabled, setPlayButtonDisabled] = useState(false);
 	const {t} = useTranslation();
 
 	const onClose = (mode?: PlayControlMode) => () => {
@@ -144,10 +146,16 @@ export const PlayControl = (prop: PlayControlProp) => {
 		if (mode !== undefined) {
 			prop.onClick(mode);
 		}
+		setTimeout(() => {
+			setPlayButtonDisabled(false);
+		}, 500);
 	};
 	const onClick = (e: React.MouseEvent) => {
-		setOpen(true);
-		setAnchorEl(e.currentTarget);
+		if (!playButtonDisabled) {
+			setOpen(true);
+			setAnchorEl(e.currentTarget);
+			setPlayButtonDisabled(true);
+		}
 	};
 	return <Toolbar style={{
 		backgroundColor: "#0000",
@@ -155,34 +163,37 @@ export const PlayControl = (prop: PlayControlProp) => {
 		height: "65px",
 		color: Color.Primary,
 		bottom: 0,
-		right: 120,
+		right: prop.width * 0.1,
 		flexGrow: 1,
 		position: 'fixed',
 	}}>
 		<StyledMenu
 			keepMounted
 			anchorOrigin={{
-				vertical: 'top',
-				horizontal: 'left',
+				vertical: 'bottom',
+				horizontal: 'right',
 			}}
 			anchorEl={anchorEl}
 			autoFocus={false}
 			open={open}
 			onClose={onClose()}
 		>
-			<StyledMenuItem onClick={onClose("Run")}>
+			{Info.version ?
+				<p style={{textAlign: "center", opacity: 0.6, fontSize: "12px", margin: '5px'}}>{t("menu.version", {version: Info.version})}</p> : null
+			}
+			<StyledMenuItem onClick={onClose("Go to File")}>
 				<ListItemIcon>
-					<BsPlayCircle/>
+					<BsSearch/>
 				</ListItemIcon>
-				<ListItemText primary={ t("menu.run") }/>
-				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+R</div>
+				<ListItemText primary={ t("menu.goToFile") }/>
+				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+P</div>
 			</StyledMenuItem>
-			<StyledMenuItem onClick={onClose("Run This")}>
+			<StyledMenuItem onClick={onClose("View Log")}>
 				<ListItemIcon>
-					<BsFillFileEarmarkPlayFill/>
+					<BsTerminal/>
 				</ListItemIcon>
-				<ListItemText primary={ t("menu.runThis") }/>
-				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+R</div>
+				<ListItemText primary={ t("menu.viewLog") }/>
+				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+P</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Stop")}>
 				<ListItemIcon>
@@ -191,21 +202,26 @@ export const PlayControl = (prop: PlayControlProp) => {
 				<ListItemText primary={ t("menu.stop") }/>
 				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Q</div>
 			</StyledMenuItem>
-			<StyledMenuItem onClick={onClose("Go to File")}>
+			<StyledMenuItem onClick={onClose("Run This")}>
 				<ListItemIcon>
-					<BsSearch/>
+					<BsFillFileEarmarkPlayFill/>
 				</ListItemIcon>
-				<ListItemText primary={ t("menu.goToFile") }/>
-				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+P</div>
+				<ListItemText primary={ t("menu.runThis") }/>
+				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+R</div>
 			</StyledMenuItem>
-			{Info.version ?
-				<p style={{textAlign: "center", opacity: 0.6, fontSize: "12px", margin: '5px'}}>{t("menu.version", {version: Info.version})}</p> : null
-			}
+			<StyledMenuItem onClick={onClose("Run")}>
+				<ListItemIcon>
+					<BsPlayCircle/>
+				</ListItemIcon>
+				<ListItemText primary={ t("menu.run") }/>
+				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+R</div>
+			</StyledMenuItem>
 		</StyledMenu>
 		<IconButton
 			color="secondary"
 			aria-label="execute"
 			onClick={onClick}
+			onMouseEnter={onClick}
 			edge="start"
 		>
 			<SportsEsports fontSize='medium'/>

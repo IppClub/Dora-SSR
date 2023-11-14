@@ -15,10 +15,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
 #include "Common/Async.h"
+#include "Event/Event.h"
+#include "Event/Listener.h"
 
 #include "httplib/httplib.h"
 
-#include "SDL.h"
+#define ASIO_STANDALONE
+#include "asio.hpp"
+
+#include "websocketpp/config/asio_no_tls.hpp"
+
+#include "websocketpp/server.hpp"
+
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+
+#include "yuescript/parser.hpp"
+
+namespace ws = websocketpp;
+namespace wsl = websocketpp::lib;
 
 #if BX_PLATFORM_WINDOWS
 static std::string get_local_ip() {
@@ -81,12 +96,125 @@ static std::string get_local_ip() {
 
 NS_DOROTHY_BEGIN
 
-class DoraTaskQueue : public httplib::TaskQueue {
+class WebSocketServer {
+	using Server = websocketpp::server<websocketpp::config::asio>;
+	using ConnectionSet = std::set<ws::connection_hdl, std::owner_less<ws::connection_hdl>>;
+
 public:
-	virtual void enqueue(std::function<void()> fn) override {
-		SharedAsyncThread.run(std::move(fn));
+	WebSocketServer()
+		: _thread(SharedAsyncThread.newThread()) { }
+
+	~WebSocketServer() {
+		stop();
 	}
-	virtual void shutdown() override { }
+
+	int getConnectionCount() const {
+		return s_cast<int>(_connections.size());
+	}
+
+	bool init() {
+		try {
+			_server.set_access_channels(ws::log::alevel::none);
+			_server.set_error_channels(ws::log::elevel::none);
+			_server.init_asio();
+		} catch (const std::exception& e) {
+			Error("failed to init asio! {}", e.what());
+			return false;
+		}
+		return true;
+	}
+
+	void send(const std::string& msg) {
+		wsl::lock_guard<wsl::mutex> guard(_connectionLock);
+		wsl::error_code ec;
+		for (const auto& hdl : _connections) {
+			_server.send(hdl, msg, ws::frame::opcode::TEXT, ec);
+			if (ec) {
+				Error("failed to send message to websocket connection! {}", ec.message());
+			}
+		}
+	}
+
+	void sendLog(const std::string& log) {
+		rapidjson::StringBuffer buf;
+		rapidjson::Writer<rapidjson::StringBuffer> writer(buf);
+		writer.StartObject();
+		writer.Key("name");
+		writer.String("Log");
+		writer.Key("text");
+		writer.String(log.c_str(), log.size());
+		writer.EndObject();
+		Event::send("AppWSSend"sv, std::string{buf.GetString(), buf.GetLength()});
+	}
+
+	bool start(int port) {
+		try {
+			_server.set_message_handler([this](ws::connection_hdl hdl, Server::message_ptr msg) {
+				if (ws::frame::opcode::TEXT == msg->get_opcode()) {
+					auto message = std::make_shared<std::string>(msg->get_payload());
+					SharedApplication.invokeInLogic([message = std::move(message)]() {
+						Event::send("AppWSMessage"sv, std::move(*message));
+					});
+				}
+			});
+			_server.set_open_handler([this](ws::connection_hdl hdl) {
+				wsl::lock_guard<wsl::mutex> guard(_connectionLock);
+				_connections.insert(hdl);
+			});
+			_server.set_close_handler([this](ws::connection_hdl hdl) {
+				wsl::lock_guard<wsl::mutex> guard(_connectionLock);
+				_connections.erase(hdl);
+			});
+			_server.set_reuse_addr(true);
+			_server.listen(port);
+			_server.start_accept();
+			_thread->run([this]() {
+				_server.run();
+				_waitForShutdown.notify_all();
+			});
+			LogHandler += std::make_pair(this, &WebSocketServer::sendLog);
+			return true;
+		} catch (const websocketpp::exception& e) {
+			Error("failed to start websocket server! {}", e.what());
+			return false;
+		} catch (const std::exception& e) {
+			Error("unexpected exception from websocket! {}", e.what());
+			return false;
+		}
+	}
+
+	void stop() {
+		if (_server.is_listening()) {
+			wsl::unique_lock<wsl::mutex> lock(_shutdownLock);
+			wsl::error_code ec;
+			_server.stop_listening(ec);
+			if (ec) {
+				Error("failed to stop websocket listening! {}", ec.message());
+			}
+			{
+				wsl::lock_guard<wsl::mutex> guard(_connectionLock);
+				for (auto hdl : _connections) {
+					if (!hdl.expired()) {
+						_server.close(hdl, websocketpp::close::status::going_away, "shutting down"s, ec);
+						if (ec) {
+							Error("failed to close websocket connection! {}", ec.message());
+						}
+					}
+				}
+				_connections.clear();
+			}
+			_waitForShutdown.wait(lock);
+		}
+		LogHandler -= std::make_pair(this, &WebSocketServer::sendLog);
+	}
+
+private:
+	Async* _thread;
+	Server _server;
+	ConnectionSet _connections;
+	wsl::mutex _connectionLock;
+	wsl::mutex _shutdownLock;
+	wsl::condition_variable _waitForShutdown;
 };
 
 HttpServer::Response::Response(HttpServer::Response&& res)
@@ -106,11 +234,17 @@ static httplib::Server& getServer() {
 }
 
 HttpServer::HttpServer()
-	: _thread(SharedAsyncThread.newThread()) {
-}
+	: _thread(SharedAsyncThread.newThread()) { }
 
 HttpServer::~HttpServer() {
-	getServer().stop();
+	stop();
+}
+
+int HttpServer::getWSConnectionCount() const {
+	if (_webSocketServer) {
+		return _webSocketServer->getConnectionCount();
+	}
+	return 0;
 }
 
 std::string HttpServer::getLocalIP() const {
@@ -140,9 +274,6 @@ void HttpServer::upload(String pattern, const FileAcceptHandler& acceptHandler, 
 bool HttpServer::start(int port) {
 	auto& server = getServer();
 	if (server.is_running()) return false;
-	server.new_task_queue = []() {
-		return new DoraTaskQueue{};
-	};
 	server.set_default_headers({{"Access-Control-Allow-Origin"s, "*"s},
 		{"Access-Control-Allow-Headers"s, "*"s}});
 	server.set_file_request_handler([](const httplib::Request& req, httplib::Response& res) {
@@ -301,12 +432,37 @@ bool HttpServer::start(int port) {
 	return success;
 }
 
+bool HttpServer::startWS(int port) {
+	_webSocketServer = New<WebSocketServer>();
+	if (!_webSocketServer->init()) {
+		_webSocketServer = nullptr;
+		return false;
+	}
+	if (!_webSocketServer->start(port)) {
+		_webSocketServer = nullptr;
+		return false;
+	}
+	_webSocketListener = Listener::create("AppWSSend"s, [this](Event* event) {
+		if (_webSocketServer) {
+			std::string msg;
+			event->get(msg);
+			_webSocketServer->send(msg);
+		}
+	});
+	return true;
+}
+
 void HttpServer::stop() {
 	getServer().stop();
 	getServer().clear_posts();
 	_posts.clear();
 	_postScheduled.clear();
 	_files.clear();
+
+	if (_webSocketServer) {
+		_webSocketServer = nullptr;
+	}
+	_webSocketListener = nullptr;
 }
 
 const char* HttpServer::getVersion() {

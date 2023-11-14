@@ -23,6 +23,7 @@ include_directories(
 	../../../Source/3rdParty/sqlite
 	../../../Source/3rdParty/dragonBones
 	../../../Source/3rdParty/wasm3
+	../../../Source/3rdParty/asio
 )
 
 add_library(BGFX-lib STATIC IMPORTED)
