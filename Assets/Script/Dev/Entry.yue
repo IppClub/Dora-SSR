@@ -86,7 +86,7 @@ if App.platform in ["Linux", "Windows", "macOS"]
 				sleep!
 				sleep!
 				showEntry = true
-	winX = winY = 0
+	x: winX, y: winY = App.winPosition
 	if config.winX?
 		winX = config.winX
 	else
@@ -499,8 +499,9 @@ extraOperations = ->
 				ossLicenses = []
 				licenseText = Content\load "LICENSES"
 				if ossLicenseOpen = licenseText?
+					licenseText = licenseText\gsub "\r\n", "\n"
 					for license in GSplit licenseText, "\n--------\n", true
-						if name, text = license\match "[%s\n\r]*([^\n\r]*)[\n\r]*(.*)"
+						if name, text = license\match "[%s\n]*([^\n]*)[\n]*(.*)"
 							ossLicenses[] = [name, text]
 			else
 				ossLicenseOpen = true
@@ -690,9 +691,9 @@ entryWindow = threadLoop ->
 	:themeColor = App
 	width:fullWidth, :height = App.visualSize
 
-	SetNextWindowBgAlpha 0.5
+	SetNextWindowBgAlpha 0.85
 	SetNextWindowPos Vec2(5, height - 120), "Always", Vec2 0, 0
-	SetNextWindowSize Vec2(235, 0), "Always"
+	SetNextWindowSize Vec2(245, 0), "Always"
 	Begin "Web IDE", urlWindowFlags, ->
 		TextColored themeColor, "#{zh and '网页' or 'Web'} IDE"
 		url = webStatus?.url ?? zh and '不可用' or 'not available'
