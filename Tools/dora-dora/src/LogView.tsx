@@ -89,6 +89,7 @@ const LogView = (props: LogViewProps) => {
 						fontFamily: "Roboto,Helvetica,Arial,sans-serif",
 						color: Color.TextSecondary
 					}}
+					rowHeight={22}
 					enableSearch stream follow/>
 			</DialogContent>
 			<DialogActions>
