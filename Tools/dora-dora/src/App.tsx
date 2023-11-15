@@ -181,7 +181,6 @@ export default function PersistentDrawerLeft() {
 			Service.editingInfo().then((res: {success: boolean, editingInfo?: string}) => {
 				if (res.success && res.editingInfo) {
 					const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
-					console.log(editingInfo);
 					editingInfo.files.forEach((file, i) => {
 						openFileInTab(file.key, file.title, file.position, file.mdEditing, i, editingInfo.index);
 					});
@@ -197,7 +196,8 @@ export default function PersistentDrawerLeft() {
 					case 'W': case 'w':
 					case 'R': case 'r':
 					case 'P': case 'p':
-					case 'Q': case 'q': {
+					case 'Q': case 'q':
+					case '.': {
 						event.preventDefault();
 						setKeyEvent(event);
 						break;
@@ -1481,10 +1481,13 @@ export default function PersistentDrawerLeft() {
 			setOpenFilter(true);
 			return;
 		} else if (mode === "View Log") {
-			setOpenLog({
-				title: t("menu.viewLog"),
-				stopOnClose: false
-			});
+			if (openLog === null) {
+				setOpenLog({
+					title: t("menu.viewLog"),
+					stopOnClose: false
+				});
+			}
+			return;
 		}
 		saveAllTabs().then((success) => {
 			if (!success) {
@@ -1620,6 +1623,10 @@ export default function PersistentDrawerLeft() {
 				}
 				case 'Q': case 'q': {
 					onStopRunning();
+					break;
+				}
+				case '.': {
+					onPlayControlClick("View Log");
 					break;
 				}
 			}

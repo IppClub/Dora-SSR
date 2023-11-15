@@ -193,7 +193,7 @@ export const PlayControl = (prop: PlayControlProp) => {
 					<BsTerminal/>
 				</ListItemIcon>
 				<ListItemText primary={ t("menu.viewLog") }/>
-				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+P</div>
+				<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+.</div>
 			</StyledMenuItem>
 			<StyledMenuItem onClick={onClose("Stop")}>
 				<ListItemIcon>
