@@ -1138,7 +1138,7 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0, 0, 0, 0));
 			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0, 0, 0, 0));
 			if (ImPlot::BeginPlot("Time Profiler", Vec2{300.0f, 130.0f},
-					ImPlotFlags_NoChild | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoTitle | ImPlotFlags_NoInputs)) {
+					ImPlotFlags_NoFrame | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoTitle | ImPlotFlags_NoInputs)) {
 				ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_NoTickLabels);
 				ImPlot::SetupLegend(ImPlotLocation_South, ImPlotLegendFlags_Horizontal | ImPlotLegendFlags_Outside);
 				ImPlot::PlotInfLines(useChinese ? r_cast<const char*>(u8"基准") : "Base", &targetTime, 1, ImPlotInfLinesFlags_Horizontal);
@@ -1160,7 +1160,7 @@ void ImGuiDora::showStats(const std::function<void()>& extra) {
 				ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0, 0, 0, 0));
 				ImPlot::PushStyleColor(ImPlotCol_LegendBg, ImVec4(0, 0, 0, 0.3f));
 				ImPlot::SetNextAxesLimits(0, 1, 0, 1, ImGuiCond_Always);
-				if (ImPlot::BeginPlot("Update Pie", ImVec2(200.0f, 200.0f), ImPlotFlags_NoTitle | ImPlotFlags_Equal | ImPlotFlags_NoInputs | ImPlotFlags_NoChild)) {
+				if (ImPlot::BeginPlot("Update Pie", ImVec2(200.0f, 200.0f), ImPlotFlags_NoTitle | ImPlotFlags_Equal | ImPlotFlags_NoInputs | ImPlotFlags_NoFrame)) {
 					std::vector<const char*> pieLabels(_updateCosts.size());
 					std::vector<double> pieValues(_updateCosts.size());
 					int i = 0;

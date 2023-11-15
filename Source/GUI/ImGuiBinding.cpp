@@ -118,7 +118,6 @@ static ImGuiWindowFlags_ getWindowFlag(String style) {
 		case "NoBringToFrontOnFocus"_hash: return ImGuiWindowFlags_NoBringToFrontOnFocus;
 		case "AlwaysVerticalScrollbar"_hash: return ImGuiWindowFlags_AlwaysVerticalScrollbar;
 		case "AlwaysHorizontalScrollbar"_hash: return ImGuiWindowFlags_AlwaysHorizontalScrollbar;
-		case "AlwaysUseWindowPadding"_hash: return ImGuiWindowFlags_AlwaysUseWindowPadding;
 		case ""_hash: return ImGuiWindowFlags_(0);
 		default:
 			Issue("ImGui window flag named \"{}\" is invalid.", style.toString());
@@ -139,6 +138,40 @@ static uint32_t WindowFlags(const std::vector<std::string>& flags) {
 	uint32_t result = 0;
 	for (const auto& flag : flags) {
 		result |= getWindowFlag(flag);
+	}
+	return result;
+}
+
+static ImGuiChildFlags_ getChildFlag(String style) {
+	switch (Switch::hash(style)) {
+		case "Border"_hash: return ImGuiChildFlags_Border;
+		case "AlwaysUseWindowPadding"_hash: return ImGuiChildFlags_AlwaysUseWindowPadding;
+		case "ResizeX"_hash: return ImGuiChildFlags_ResizeX;
+		case "ResizeY"_hash: return ImGuiChildFlags_ResizeY;
+		case "AutoResizeX"_hash: return ImGuiChildFlags_AutoResizeX;
+		case "AutoResizeY"_hash: return ImGuiChildFlags_AutoResizeY;
+		case "AlwaysAutoResize"_hash: return ImGuiChildFlags_AlwaysAutoResize;
+		case "FrameStyle"_hash: return ImGuiChildFlags_FrameStyle;
+		case ""_hash: return ImGuiChildFlags_None;
+		default:
+			Issue("ImGui child flag named \"{}\" is invalid.", style.toString());
+			break;
+	}
+	return ImGuiChildFlags_(0);
+}
+
+static uint32_t ChildFlags(Slice* flags, int count) {
+	uint32_t result = 0;
+	for (int i = 0; i < count; i++) {
+		result |= getChildFlag(flags[i]);
+	}
+	return result;
+}
+
+static uint32_t ChildFlags(const std::vector<std::string>& flags) {
+	uint32_t result = 0;
+	for (const auto& flag : flags) {
+		result |= getChildFlag(flag);
 	}
 	return result;
 }
@@ -500,20 +533,32 @@ void ShowConsole() {
 	SharedImGui.showConsole();
 }
 
-bool Begin(const char* name, Slice* windowsFlags, int flagCount) {
-	return ImGui::Begin(name, nullptr, WindowFlags(windowsFlags, flagCount));
+bool Begin(const char* name, Slice* windowFlags, int flagCount) {
+	return ImGui::Begin(name, nullptr, WindowFlags(windowFlags, flagCount));
 }
 
-bool Begin(const char* name, bool* p_open, Slice* windowsFlags, int flagCount) {
-	return ImGui::Begin(name, p_open, WindowFlags(windowsFlags, flagCount));
+bool Begin(const char* name, bool* p_open, Slice* windowFlags, int flagCount) {
+	return ImGui::Begin(name, p_open, WindowFlags(windowFlags, flagCount));
 }
 
-bool BeginChild(const char* str_id, const Vec2& size, bool border, Slice* windowsFlags, int flagCount) {
-	return ImGui::BeginChild(str_id, size, border, WindowFlags(windowsFlags, flagCount));
+bool BeginChild(
+	const char* str_id,
+	const Vec2& size,
+	Slice* childFlags,
+	int childFlagCount,
+	Slice* windowFlags,
+	int windowFlagCount) {
+	return ImGui::BeginChild(str_id, size, ChildFlags(childFlags, childFlagCount), WindowFlags(windowFlags, windowFlagCount));
 }
 
-bool BeginChild(ImGuiID id, const Vec2& size, bool border, Slice* windowsFlags, int flagCount) {
-	return ImGui::BeginChild(id, size, border, WindowFlags(windowsFlags, flagCount));
+bool BeginChild(
+	ImGuiID id,
+	const Vec2& size,
+	Slice* childFlags,
+	int childFlagCount,
+	Slice* windowFlags,
+	int windowFlagCount) {
+	return ImGui::BeginChild(id, size, ChildFlags(childFlags, childFlagCount), WindowFlags(windowFlags, windowFlagCount));
 }
 
 void SetNextWindowPos(const Vec2& pos, String setCond, const Vec2& pivot) {
@@ -582,16 +627,12 @@ bool Selectable(const char* label, bool* p_selected, const Vec2& size, Slice* se
 	return ImGui::Selectable(label, p_selected, SelectableFlags(selectableFlags, flagCount), size);
 }
 
-bool BeginPopupModal(const char* name, Slice* windowsFlags, int flagCount) {
-	return ImGui::BeginPopupModal(name, nullptr, WindowFlags(windowsFlags, flagCount));
+bool BeginPopupModal(const char* name, Slice* windowFlags, int flagCount) {
+	return ImGui::BeginPopupModal(name, nullptr, WindowFlags(windowFlags, flagCount));
 }
 
-bool BeginPopupModal(const char* name, bool* p_open, Slice* windowsFlags, int flagCount) {
-	return ImGui::BeginPopupModal(name, p_open, WindowFlags(windowsFlags, flagCount));
-}
-
-bool BeginChildFrame(ImGuiID id, const Vec2& size, Slice* windowsFlags, int flagCount) {
-	return ImGui::BeginChildFrame(id, size, WindowFlags(windowsFlags, flagCount));
+bool BeginPopupModal(const char* name, bool* p_open, Slice* windowFlags, int flagCount) {
+	return ImGui::BeginPopupModal(name, p_open, WindowFlags(windowFlags, flagCount));
 }
 
 bool BeginPopupContextItem(const char* name, Slice* popupFlags, int flagCount) {
@@ -935,16 +976,16 @@ void SetStyleColor(String name, Color color) {
 
 bool Begin(
 	const std::string& name,
-	const std::vector<std::string>& windowsFlags) {
-	return ImGui::Begin(name.c_str(), nullptr, WindowFlags(windowsFlags));
+	const std::vector<std::string>& windowFlags) {
+	return ImGui::Begin(name.c_str(), nullptr, WindowFlags(windowFlags));
 }
 
 bool Begin(
 	const std::string& name,
 	CallStack* stack, // p_open
-	const std::vector<std::string>& windowsFlags) {
+	const std::vector<std::string>& windowFlags) {
 	bool p_open = std::get<bool>(stack->pop());
-	bool changed = ImGui::Begin(name.c_str(), &p_open, WindowFlags(windowsFlags));
+	bool changed = ImGui::Begin(name.c_str(), &p_open, WindowFlags(windowFlags));
 	stack->push(p_open);
 	return changed;
 }
@@ -952,17 +993,17 @@ bool Begin(
 bool BeginChild(
 	const std::string& str_id,
 	const Vec2& size,
-	bool border,
-	const std::vector<std::string>& windowsFlags) {
-	return ImGui::BeginChild(str_id.c_str(), size, border, WindowFlags(windowsFlags));
+	const std::vector<std::string>& childFlags,
+	const std::vector<std::string>& windowFlags) {
+	return ImGui::BeginChild(str_id.c_str(), size, ChildFlags(childFlags), WindowFlags(windowFlags));
 }
 
 bool BeginChild(
 	ImGuiID id,
 	const Vec2& size,
-	bool border,
-	const std::vector<std::string>& windowsFlags) {
-	return ImGui::BeginChild(id, size, border, WindowFlags(windowsFlags));
+	const std::vector<std::string>& childFlags,
+	const std::vector<std::string>& windowFlags) {
+	return ImGui::BeginChild(id, size, ChildFlags(childFlags), WindowFlags(windowFlags));
 }
 
 void SetWindowPos(
@@ -1049,25 +1090,18 @@ bool Selectable(
 
 bool BeginPopupModal(
 	const std::string& name,
-	const std::vector<std::string>& windowsFlags) {
-	return ImGui::BeginPopupModal(name.c_str(), nullptr, PopupFlags(windowsFlags));
+	const std::vector<std::string>& windowFlags) {
+	return ImGui::BeginPopupModal(name.c_str(), nullptr, WindowFlags(windowFlags));
 }
 
 bool BeginPopupModal(
 	const std::string& name,
 	CallStack* stack, // p_open
-	const std::vector<std::string>& windowsFlags) {
+	const std::vector<std::string>& windowFlags) {
 	bool p_open = std::get<bool>(stack->pop());
-	bool changed = ImGui::BeginPopupModal(name.c_str(), &p_open, PopupFlags(windowsFlags));
+	bool changed = ImGui::BeginPopupModal(name.c_str(), &p_open, WindowFlags(windowFlags));
 	stack->push(p_open);
 	return changed;
-}
-
-bool BeginChildFrame(
-	ImGuiID id,
-	const Vec2& size,
-	const std::vector<std::string>& windowsFlags) {
-	return ImGui::BeginChildFrame(id, size, WindowFlags(windowsFlags));
 }
 
 bool BeginPopupContextItem(
