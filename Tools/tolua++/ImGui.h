@@ -21,10 +21,10 @@ namespace ImGui
 	bool Binding::Begin @ Begin(CString name, String windowsFlags[tolua_len]);
 	bool Binding::Begin @ Begin(CString name, bool* p_open);
 	bool Binding::Begin @ Begin(CString name, bool* p_open, String windowsFlags[tolua_len]);
-	bool Binding::BeginChild @ BeginChild(CString str_id, Vec2 size = Vec2::zero, bool border = false);
-	bool Binding::BeginChild @ BeginChild(CString str_id, Vec2 size, bool border, String windowsFlags[tolua_len]);
-	bool Binding::BeginChild @ BeginChild(ImGuiID id, Vec2 size = Vec2::zero, bool border = false);
-	bool Binding::BeginChild @ BeginChild(ImGuiID id, Vec2 size, bool border, String windowsFlags[tolua_len]);
+	bool Binding::BeginChild @ BeginChild(CString str_id, Vec2 size = Vec2::zero);
+	bool Binding::BeginChild @ BeginChild(CString str_id, Vec2 size, String childFlags[tolua_len], String windowFlags[tolua_len_1]);
+	bool Binding::BeginChild @ BeginChild(ImGuiID id, Vec2 size = Vec2::zero);
+	bool Binding::BeginChild @ BeginChild(ImGuiID id, Vec2 size, String childFlags[tolua_len], String windowFlags[tolua_len_1]);
 	void Binding::SetNextWindowPos @ SetNextWindowPos(Vec2 pos, String setCond = nullptr, Vec2 pivot = Vec2::zero);
 	void Binding::SetNextWindowPosCenter @ SetNextWindowPosCenter(String setCond = nullptr, Vec2 pivot = Vec2::zero);
 	void Binding::SetNextWindowSize @ SetNextWindowSize(Vec2 size, String setCond = nullptr);
@@ -54,8 +54,6 @@ namespace ImGui
 	bool Binding::BeginPopupModal @ BeginPopupModal(CString name, String windowsFlags[tolua_len]);
 	bool Binding::BeginPopupModal @ BeginPopupModal(CString name, bool* p_open);
 	bool Binding::BeginPopupModal @ BeginPopupModal(CString name, bool* p_open, String windowsFlags[tolua_len]);
-	bool Binding::BeginChildFrame @ BeginChildFrame(ImGuiID id, Vec2 size);
-	bool Binding::BeginChildFrame @ BeginChildFrame(ImGuiID id, Vec2 size, String windowsFlags[tolua_len]);
 
 	void Binding::PushStyleColor @ PushStyleColor(String name, Color color);
 	void Binding::PushStyleVar @ PushStyleVar(String name, float val);
@@ -279,7 +277,6 @@ namespace ImGui
 	bool IsWindowFocused();
 	bool IsRectVisible(Vec2 size);
 	bool IsRectVisible(Vec2 rect_min, Vec2 rect_max);
-	void EndChildFrame();
 	bool IsMouseDown(int button);
 	bool IsMouseClicked(int button, bool repeat = false);
 	bool IsMouseDoubleClicked(int button);
