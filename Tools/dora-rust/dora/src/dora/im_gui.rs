@@ -5,10 +5,12 @@ extern "C" {
 	fn imgui_show_console();
 	fn imgui_begin(name: i64) -> i32;
 	fn imgui_begin_opts(name: i64, windows_flags: i64) -> i32;
+	fn imgui_end();
 	fn imgui_begin_child(str_id: i64) -> i32;
-	fn imgui_begin_child_opts(str_id: i64, size: i64, border: i32, windows_flags: i64) -> i32;
+	fn imgui_begin_child_opts(str_id: i64, size: i64, child_flags: i64, window_flags: i64) -> i32;
 	fn imgui_begin_child_with_id(id: i32) -> i32;
-	fn imgui_begin_child_with_id_opts(id: i32, size: i64, border: i32, windows_flags: i64) -> i32;
+	fn imgui_begin_child_with_id_opts(id: i32, size: i64, child_flags: i64, window_flags: i64) -> i32;
+	fn imgui_end_child();
 	fn imgui_set_next_window_pos_center();
 	fn imgui_set_next_window_pos_center_with_cond(set_cond: i64);
 	fn imgui_set_next_window_size(size: i64);
@@ -38,8 +40,6 @@ extern "C" {
 	fn imgui_selectable_opts(label: i64, selectable_flags: i64) -> i32;
 	fn imgui_begin_popup_modal(name: i64) -> i32;
 	fn imgui_begin_popup_modal_opts(name: i64, windows_flags: i64) -> i32;
-	fn imgui_begin_child_frame(id: i32, size: i64) -> i32;
-	fn imgui_begin_child_frame_opts(id: i32, size: i64, windows_flags: i64) -> i32;
 	fn imgui_begin_popup_context_item(name: i64) -> i32;
 	fn imgui_begin_popup_context_item_opts(name: i64, popup_flags: i64) -> i32;
 	fn imgui_begin_popup_context_window(name: i64) -> i32;
@@ -146,17 +146,23 @@ impl ImGui {
 	pub fn begin_opts(name: &str, windows_flags: &Vec<&str>) -> bool {
 		unsafe { return imgui_begin_opts(crate::dora::from_string(name), crate::dora::Vector::from_str(windows_flags)) != 0; }
 	}
+	pub fn end() {
+		unsafe { imgui_end(); }
+	}
 	pub fn begin_child(str_id: &str) -> bool {
 		unsafe { return imgui_begin_child(crate::dora::from_string(str_id)) != 0; }
 	}
-	pub fn begin_child_opts(str_id: &str, size: &crate::dora::Vec2, border: bool, windows_flags: &Vec<&str>) -> bool {
-		unsafe { return imgui_begin_child_opts(crate::dora::from_string(str_id), size.into_i64(), if border { 1 } else { 0 }, crate::dora::Vector::from_str(windows_flags)) != 0; }
+	pub fn begin_child_opts(str_id: &str, size: &crate::dora::Vec2, child_flags: &Vec<&str>, window_flags: &Vec<&str>) -> bool {
+		unsafe { return imgui_begin_child_opts(crate::dora::from_string(str_id), size.into_i64(), crate::dora::Vector::from_str(child_flags), crate::dora::Vector::from_str(window_flags)) != 0; }
 	}
 	pub fn begin_child_with_id(id: i32) -> bool {
 		unsafe { return imgui_begin_child_with_id(id) != 0; }
 	}
-	pub fn begin_child_with_id_opts(id: i32, size: &crate::dora::Vec2, border: bool, windows_flags: &Vec<&str>) -> bool {
-		unsafe { return imgui_begin_child_with_id_opts(id, size.into_i64(), if border { 1 } else { 0 }, crate::dora::Vector::from_str(windows_flags)) != 0; }
+	pub fn begin_child_with_id_opts(id: i32, size: &crate::dora::Vec2, child_flags: &Vec<&str>, window_flags: &Vec<&str>) -> bool {
+		unsafe { return imgui_begin_child_with_id_opts(id, size.into_i64(), crate::dora::Vector::from_str(child_flags), crate::dora::Vector::from_str(window_flags)) != 0; }
+	}
+	pub fn end_child() {
+		unsafe { imgui_end_child(); }
 	}
 	pub fn set_next_window_pos_center() {
 		unsafe { imgui_set_next_window_pos_center(); }
@@ -244,12 +250,6 @@ impl ImGui {
 	}
 	pub fn begin_popup_modal_opts(name: &str, windows_flags: &Vec<&str>) -> bool {
 		unsafe { return imgui_begin_popup_modal_opts(crate::dora::from_string(name), crate::dora::Vector::from_str(windows_flags)) != 0; }
-	}
-	pub fn begin_child_frame(id: i32, size: &crate::dora::Vec2) -> bool {
-		unsafe { return imgui_begin_child_frame(id, size.into_i64()) != 0; }
-	}
-	pub fn begin_child_frame_opts(id: i32, size: &crate::dora::Vec2, windows_flags: &Vec<&str>) -> bool {
-		unsafe { return imgui_begin_child_frame_opts(id, size.into_i64(), crate::dora::Vector::from_str(windows_flags)) != 0; }
 	}
 	pub fn begin_popup_context_item(name: &str) -> bool {
 		unsafe { return imgui_begin_popup_context_item(crate::dora::from_string(name)) != 0; }

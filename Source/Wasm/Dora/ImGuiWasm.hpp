@@ -24,17 +24,23 @@ static int32_t imgui_begin(int64_t name) {
 static int32_t imgui_begin_opts(int64_t name, int64_t windows_flags) {
 	return ImGui::Binding::Begin(*str_from(name), from_str_vec(windows_flags)) ? 1 : 0;
 }
+static void imgui_end() {
+	ImGui::End();
+}
 static int32_t imgui_begin_child(int64_t str_id) {
 	return ImGui::Binding::BeginChild(*str_from(str_id)) ? 1 : 0;
 }
-static int32_t imgui_begin_child_opts(int64_t str_id, int64_t size, int32_t border, int64_t windows_flags) {
-	return ImGui::Binding::BeginChild(*str_from(str_id), vec2_from(size), border != 0, from_str_vec(windows_flags)) ? 1 : 0;
+static int32_t imgui_begin_child_opts(int64_t str_id, int64_t size, int64_t child_flags, int64_t window_flags) {
+	return ImGui::Binding::BeginChild(*str_from(str_id), vec2_from(size), from_str_vec(child_flags), from_str_vec(window_flags)) ? 1 : 0;
 }
 static int32_t imgui_begin_child_with_id(int32_t id) {
 	return ImGui::Binding::BeginChild(s_cast<uint32_t>(id)) ? 1 : 0;
 }
-static int32_t imgui_begin_child_with_id_opts(int32_t id, int64_t size, int32_t border, int64_t windows_flags) {
-	return ImGui::Binding::BeginChild(s_cast<uint32_t>(id), vec2_from(size), border != 0, from_str_vec(windows_flags)) ? 1 : 0;
+static int32_t imgui_begin_child_with_id_opts(int32_t id, int64_t size, int64_t child_flags, int64_t window_flags) {
+	return ImGui::Binding::BeginChild(s_cast<uint32_t>(id), vec2_from(size), from_str_vec(child_flags), from_str_vec(window_flags)) ? 1 : 0;
+}
+static void imgui_end_child() {
+	ImGui::EndChild();
 }
 static void imgui_set_next_window_pos_center() {
 	ImGui::Binding::SetNextWindowPosCenter();
@@ -122,12 +128,6 @@ static int32_t imgui_begin_popup_modal(int64_t name) {
 }
 static int32_t imgui_begin_popup_modal_opts(int64_t name, int64_t windows_flags) {
 	return ImGui::Binding::BeginPopupModal(*str_from(name), from_str_vec(windows_flags)) ? 1 : 0;
-}
-static int32_t imgui_begin_child_frame(int32_t id, int64_t size) {
-	return ImGui::Binding::BeginChildFrame(s_cast<uint32_t>(id), vec2_from(size)) ? 1 : 0;
-}
-static int32_t imgui_begin_child_frame_opts(int32_t id, int64_t size, int64_t windows_flags) {
-	return ImGui::Binding::BeginChildFrame(s_cast<uint32_t>(id), vec2_from(size), from_str_vec(windows_flags)) ? 1 : 0;
 }
 static int32_t imgui_begin_popup_context_item(int64_t name) {
 	return ImGui::Binding::BeginPopupContextItem(*str_from(name)) ? 1 : 0;
@@ -373,10 +373,12 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_show_console", imgui_show_console);
 	mod.link_optional("*", "imgui_begin", imgui_begin);
 	mod.link_optional("*", "imgui_begin_opts", imgui_begin_opts);
+	mod.link_optional("*", "imgui_end", imgui_end);
 	mod.link_optional("*", "imgui_begin_child", imgui_begin_child);
 	mod.link_optional("*", "imgui_begin_child_opts", imgui_begin_child_opts);
 	mod.link_optional("*", "imgui_begin_child_with_id", imgui_begin_child_with_id);
 	mod.link_optional("*", "imgui_begin_child_with_id_opts", imgui_begin_child_with_id_opts);
+	mod.link_optional("*", "imgui_end_child", imgui_end_child);
 	mod.link_optional("*", "imgui_set_next_window_pos_center", imgui_set_next_window_pos_center);
 	mod.link_optional("*", "imgui_set_next_window_pos_center_with_cond", imgui_set_next_window_pos_center_with_cond);
 	mod.link_optional("*", "imgui_set_next_window_size", imgui_set_next_window_size);
@@ -406,8 +408,6 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_selectable_opts", imgui_selectable_opts);
 	mod.link_optional("*", "imgui_begin_popup_modal", imgui_begin_popup_modal);
 	mod.link_optional("*", "imgui_begin_popup_modal_opts", imgui_begin_popup_modal_opts);
-	mod.link_optional("*", "imgui_begin_child_frame", imgui_begin_child_frame);
-	mod.link_optional("*", "imgui_begin_child_frame_opts", imgui_begin_child_frame_opts);
 	mod.link_optional("*", "imgui_begin_popup_context_item", imgui_begin_popup_context_item);
 	mod.link_optional("*", "imgui_begin_popup_context_item_opts", imgui_begin_popup_context_item_opts);
 	mod.link_optional("*", "imgui_begin_popup_context_window", imgui_begin_popup_context_window);

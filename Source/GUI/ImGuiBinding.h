@@ -56,49 +56,51 @@ void ShowConsole();
 
 bool Begin(
 	const char* name,
-	Slice* windowsFlags = nullptr,
+	Slice* windowFlags = nullptr,
 	int flagCount = 0);
 
 bool Begin(
 	const char* name,
 	bool* p_open,
-	Slice* windowsFlags = nullptr,
+	Slice* windowFlags = nullptr,
 	int flagCount = 0);
 
 bool Begin(
 	const std::string& name,
-	const std::vector<std::string>& windowsFlags = EmptyOptions); //
+	const std::vector<std::string>& windowFlags = EmptyOptions); //
 
 bool Begin(
 	const std::string& name,
 	CallStack* stack, // p_open
-	const std::vector<std::string>& windowsFlags = EmptyOptions); //
+	const std::vector<std::string>& windowFlags = EmptyOptions); //
 
 bool BeginChild(
 	const char* str_id,
 	const Vec2& size = Vec2::zero,
-	bool border = false,
-	Slice* windowsFlags = nullptr,
-	int flagCount = 0);
+	Slice* childFlags = nullptr,
+	int childFlagCount = 0,
+	Slice* windowFlags = nullptr,
+	int windowFlagCount = 0);
 
 bool BeginChild(
 	ImGuiID id,
 	const Vec2& size = Vec2::zero,
-	bool border = false,
-	Slice* windowsFlags = nullptr,
-	int flagCount = 0);
+	Slice* childFlags = nullptr,
+	int childFlagCount = 0,
+	Slice* windowFlags = nullptr,
+	int windowFlagCount = 0);
 
 bool BeginChild(
 	const std::string& str_id,
 	const Vec2& size = Vec2::zero,
-	bool border = false,
-	const std::vector<std::string>& windowsFlags = EmptyOptions); //
+	const std::vector<std::string>& childFlags = EmptyOptions,
+	const std::vector<std::string>& windowFlags = EmptyOptions); //
 
 bool BeginChild(
 	ImGuiID id,
 	const Vec2& size,
-	bool border,
-	const std::vector<std::string>& windowsFlags); //
+	const std::vector<std::string>& childFlags,
+	const std::vector<std::string>& windowFlags); //
 
 void SetNextWindowPos(
 	const Vec2& pos,
@@ -241,34 +243,23 @@ bool Selectable(
 
 bool BeginPopupModal(
 	const char* name,
-	Slice* windowsFlags = nullptr,
+	Slice* windowFlags = nullptr,
 	int flagCount = 0);
 
 bool BeginPopupModal(
 	const char* name,
 	bool* p_open,
-	Slice* windowsFlags = nullptr,
+	Slice* windowFlags = nullptr,
 	int flagCount = 0);
 
 bool BeginPopupModal(
 	const std::string& name,
-	const std::vector<std::string>& windowsFlags = EmptyOptions); //
+	const std::vector<std::string>& windowFlags = EmptyOptions); //
 
 bool BeginPopupModal(
 	const std::string& name,
 	CallStack* stack, // p_open
-	const std::vector<std::string>& windowsFlags = EmptyOptions); //
-
-bool BeginChildFrame(
-	ImGuiID id,
-	const Vec2& size,
-	Slice* windowsFlags = nullptr,
-	int flagCount = 0);
-
-bool BeginChildFrame(
-	ImGuiID id,
-	const Vec2& size,
-	const std::vector<std::string>& windowsFlags); //
+	const std::vector<std::string>& windowFlags = EmptyOptions); //
 
 bool BeginPopupContextItem(
 	const char* name,

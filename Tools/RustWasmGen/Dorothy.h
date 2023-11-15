@@ -1245,21 +1245,25 @@ static bool Binding::Begin @ beginOpts(
 	string name,
 	VecStr windowsFlags);
 
+static void End @ end();
+
 static bool Binding::BeginChild @ beginChild(string str_id);
 
 static bool Binding::BeginChild @ beginChildOpts(
 	string str_id,
 	Vec2 size,
-	bool border,
-	VecStr windowsFlags);
+	VecStr childFlags,
+	VecStr windowFlags);
 
 static bool Binding::BeginChild @ beginChildWith_id(uint32_t id);
 
 static bool Binding::BeginChild @ beginChildWith_idOpts(
 	uint32_t id,
 	Vec2 size,
-	bool border,
-	VecStr windowsFlags);
+	VecStr childFlags,
+	VecStr windowFlags);
+
+static void EndChild @ endChild();
 
 static void Binding::SetNextWindowPosCenter @ setNextWindowPosCenter();
 
@@ -1360,13 +1364,6 @@ static bool Binding::BeginPopupModal @ beginPopupModal(string name);
 
 static bool Binding::BeginPopupModal @ beginPopupModalOpts(
 	string name,
-	VecStr windowsFlags);
-
-static bool Binding::BeginChildFrame @ beginChildFrame(uint32_t id, Vec2 size);
-
-static bool Binding::BeginChildFrame @ beginChildFrameOpts(
-	uint32_t id,
-	Vec2 size,
 	VecStr windowsFlags);
 
 static bool Binding::BeginPopupContextItem @ beginPopupContextItem(string name);

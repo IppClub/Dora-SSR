@@ -109,7 +109,17 @@ local record ImGui
 		"NoBringToFrontOnFocus"
 		"AlwaysVerticalScrollbar"
 		"AlwaysHorizontalScrollbar"
+	end
+	enum ChildFlag
+		""
+		"Border"
 		"AlwaysUseWindowPadding"
+		"ResizeX"
+		"ResizeY"
+		"AutoResizeX"
+		"AutoResizeY"
+		"AlwaysAutoResize"
+		"FrameStyle"
 	end
 	enum SetCond
 		""
@@ -288,14 +298,14 @@ local record ImGui
 	BeginChild: function(
 		str_id: string,
 		size: Vec2,
-		border: boolean,
-		windowsFlags: {WindowFlag},
+		childFlags: {ChildFlag},
+		windowFlags: {WindowFlag},
 		inside: function()
 	)
 	BeginChild: function(
 		str_id: string,
 		size: Vec2,
-		border: boolean,
+		childFlags: {ChildFlag},
 		inside: function()
 	)
 	BeginChild: function(
@@ -310,14 +320,14 @@ local record ImGui
 	BeginChild: function(
 		id: integer,
 		size: Vec2,
-		border: boolean,
+		childFlags: {ChildFlag},
 		windowsFlags: {WindowFlag},
 		inside: function()
 	)
 	BeginChild: function(
 		id: integer,
 		size: Vec2,
-		border: boolean,
+		childFlags: {ChildFlag},
 		inside: function()
 	)
 	BeginChild: function(
@@ -437,17 +447,6 @@ local record ImGui
 		p_open: boolean,
 		inside: function()
 	): boolean
-	BeginChildFrame: function(
-		id: integer,
-		size: Vec2,
-		windowsFlags: {WindowFlag} --[[nil]],
-		inside: function()
-	)
-	BeginChildFrame: function(
-		id: integer,
-		size: Vec2,
-		inside: function()
-	)
 
 	PushStyleColor: function(name: StyleColor, color: Color, inside: function())
 	PushStyleVar: function(name: StyleVarNum, val: number, inside: function())

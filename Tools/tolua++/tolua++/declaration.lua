@@ -284,7 +284,7 @@ function classDeclaration:builddeclaration(narg, cplusplus)
 			line = concatparam(line, "[", self.dim, "];")
 		else
 			if cplusplus then
-				output("  int tolua_len = static_cast<int>(lua_rawlen(tolua_S,", narg, "));")
+				output("  int " .. self.dim .. " = static_cast<int>(lua_rawlen(tolua_S,", narg, "));")
 				line = concatparam(line, " = Mtolua_new_dim(", type, ptr, ", " .. self.dim .. ");")
 			else
 				line = concatparam(line, " = (", type, ptr, "*)", "malloc((", self.dim, ")*sizeof(", type, ptr, "));")
@@ -454,8 +454,8 @@ function classDeclaration:passpar()
 	else
 		output(self.name)
 	end
-	if self.dim == "tolua_len" then
-		output(",tolua_len")
+	if self.dim:sub(1,9) == "tolua_len" then
+		output("," .. self.dim)
 	end
 end
 
