@@ -2459,7 +2459,7 @@ local function GetYueLineMap(luaCodes)
 	local current = 1
 	local lastLine = 1
 	local lineMap = { }
-	for lineCode in luaCodes:gmatch("[^\n\r]*") do
+	for lineCode in luaCodes:gmatch("([^\r\n]*)\r?\n?") do
 		local num = lineCode:match("--%s*(%d+)%s*$")
 		if num then
 			local line = tonumber(num)

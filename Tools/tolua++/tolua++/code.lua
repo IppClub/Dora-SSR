@@ -34,7 +34,7 @@ function classCode:register(pre)
 	end
 
 	-- get first line
-	local _, _, first_line = string.find(self.text, "^([^\n\r]*)")
+	local _, _, first_line = string.find(self.text, "^([^\n\r]+)")
 	if string.find(first_line, "^%s*%-%-") then
 		if string.find(first_line, "^%-%-##") then
 			first_line = string.gsub(first_line, "^%-%-##", "")

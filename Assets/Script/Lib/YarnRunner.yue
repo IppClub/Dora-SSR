@@ -8,7 +8,7 @@ rewriteError = (err, luaCode, title)->
 	current = 1
 	lastLine = 1
 	lineMap = {}
-	for lineCode in luaCode\gmatch "[^\n\r]*"
+	for lineCode in luaCode\gmatch "([^\r\n]*)\r?\n?"
 		num = lineCode\match "--%s*(%d+)%s*$"
 		lastLine = tonumber num if num
 		lineMap[current] = lastLine
