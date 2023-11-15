@@ -231,7 +231,7 @@ doCompile = (minify)->
 				for [name, line, col] in *result
 					countLine = 1
 					code = ""
-					for lineCode in yueCodes\gmatch "[^\r\n]*"
+					for lineCode in yueCodes\gmatch "([^\r\n]*)\r?\n?"
 						if countLine == line
 							code = lineCode
 							break

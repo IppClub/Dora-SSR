@@ -834,6 +834,7 @@ local record ImGui
 		float_format?: string --[[""]]
 	)
 
+	BeginDisabled: function(inside: function())
 	BeginTooltip: function(inside: function())
 
 	BeginMainMenuBar: function(inside: function())
