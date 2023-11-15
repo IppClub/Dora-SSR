@@ -106,15 +106,16 @@ if not config.locale?
 	config.locale = App.locale
 
 if not config.editingInfo?
-	config.editingInfo = "{
-		\"index\":0,
-		\"files\":[
+	import "json"
+	config.editingInfo = json.dump {
+		index: 0
+		files: [
 			{
-				\"key\":\"#{Path Content.assetPath, 'Doc', (App.locale\match('^zh')? and 'zh-Hans' or 'en'), 'welcome.md'}\",
-				\"title\":\"welcome.md\"
+				key: Path Content.assetPath, 'Doc', (App.locale\match('^zh')? and 'zh-Hans' or 'en'), 'welcome.md'
+				title: "welcome.md"
 			}
 		]
-	}"
+	}
 
 showStats = false
 if config.showStats?
