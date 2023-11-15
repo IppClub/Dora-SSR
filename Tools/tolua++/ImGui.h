@@ -236,6 +236,9 @@ namespace ImGui
 	void Value(CString prefix, int v);
 	void Value(CString prefix, float v, CString float_format = nullptr);
 
+	void BeginDisabled();
+	void EndDisabled();
+
 	void BeginTooltip();
 	void EndTooltip();
 

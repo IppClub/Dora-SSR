@@ -899,6 +899,8 @@ do
 	ImGui.EndPopup = nil
 	ImGui.BeginGroup = pairCallC(ImGui.BeginGroup, ImGui.EndGroup)
 	ImGui.EndGroup = nil
+	ImGui.BeginDisabled = pairCallC(ImGui.BeginDisabled, ImGui.EndDisabled)
+	ImGui.EndDisabled = nil
 	ImGui.BeginTooltip = pairCallC(ImGui.BeginTooltip, ImGui.EndTooltip)
 	ImGui.EndTooltip = nil
 	ImGui.BeginMainMenuBar = pairCallC(ImGui.BeginMainMenuBar, ImGui.EndMainMenuBar)
