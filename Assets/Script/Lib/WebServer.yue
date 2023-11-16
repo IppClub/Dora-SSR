@@ -575,6 +575,12 @@ HttpServer\post "/assets", ->
 				dir: false
 				title: file
 			}
+		if children
+			table.sort children, (a, b)->
+				if a.dir == b.dir
+					a.title < b.title
+				else
+					a.dir
 		title = Path\getFilename path
 		if title == ""
 			children
@@ -585,6 +591,7 @@ HttpServer\post "/assets", ->
 				:title
 				:children
 			}
+	zh = App.locale\match("^zh")?
 	{
 		key: Content.writablePath
 		dir: true
@@ -593,15 +600,19 @@ HttpServer\post "/assets", ->
 			{
 				key: Path Content.assetPath
 				dir: true
-				title: App.locale\match("^zh")? and "内置资源" or "Built-in"
+				title: zh and "内置资源" or "Built-in"
 				children: [
-					visitAssets Path Content.assetPath, "Doc"
+					with visitAssets Path Content.assetPath, "Doc", zh and "zh-Hans" or "en"
+						.title = zh and "说明文档" or "Readme"
+					with visitAssets Path Content.assetPath, "Script", "Lib", "Dora", zh and "zh-Hans" or "en"
+						.title = zh and "接口文档" or "API Doc"
+					with visitAssets Path Content.assetPath, "Script", "Example"
+						.title = zh and "代码示例" or "Example"
+					with visitAssets Path Content.assetPath, "Script", "Test"
+						.title = zh and "功能测试" or "Test"
 					visitAssets Path Content.assetPath, "Image"
 					visitAssets Path Content.assetPath, "Spine"
 					visitAssets Path Content.assetPath, "Font"
-					visitAssets Path Content.assetPath, "Script", "Lib", "Dora"
-					visitAssets Path Content.assetPath, "Script", "Example"
-					visitAssets Path Content.assetPath, "Script", "Test"
 				]
 			}
 			...visitAssets Content.writablePath, true

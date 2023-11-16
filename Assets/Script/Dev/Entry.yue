@@ -153,7 +153,79 @@ getAllFiles = (path, exts)->
 		continue if not filters[Path\getExt file]
 		file
 
-local gamesInDev
+getFileEntries = (path)->
+	entries = {}
+	for file in *getAllFiles path, ["xml", "lua", yueext, "tl"]
+		entryName = Path\getName file
+		file = Path\replaceExt file, ""
+		file = Path Path\getName(path), file
+		entry = [entryName, file]
+		entries[] = entry
+	table.sort entries, (a, b)-> a[1] < b[1]
+	entries
+
+getProjectEntries = (path)->
+	entries = []
+	for dir in *Content\getDirs path
+		continue if dir\match "^%."
+		for file in *getAllFiles Path(path, dir), ["xml", "lua", yueext, "tl", "wasm"]
+			if "init" == Path\getName(file)\lower!
+				examples = []
+				tests = []
+				examplePath = Path path, dir, Path\getPath(file), "Example"
+				if Content\exist examplePath
+					for [name, ePath] in *getFileEntries examplePath
+						entry = [name, Path(dir, Path\getPath(file), ePath)]
+						examples[] = entry
+				testPath = Path path, dir, Path\getPath(file), "Test"
+				if Content\exist testPath
+					for [name, tPath] in *getFileEntries testPath
+						entry = [name, Path(dir, Path\getPath(file), tPath)]
+						tests[] = entry
+				file = Path\replaceExt file, ""
+				file = Path dir, file
+				entryName = Path\getName Path\getPath file
+				entry = [entryName, file, examples, tests]
+				entries[] = entry
+	table.sort entries, (a, b)-> a[1] < b[1]
+	entries
+
+local gamesInDev, games
+local doraExamples, doraTests
+local cppTests, cppTestSet
+local allEntries
+
+updateEntries = ->
+	gamesInDev = getProjectEntries Content.writablePath
+	games = getProjectEntries Path Content.assetPath, "Script"
+
+	doraExamples = getFileEntries Path Content.assetPath, "Script", "Example"
+	doraTests = getFileEntries Path Content.assetPath, "Script", "Test"
+
+	cppTests = []
+	for name in *App.testNames
+		entry = [name,]
+		cppTests[] = entry
+	cppTestSet = Set cppTests
+
+	allEntries = []
+	for game in *gamesInDev
+		allEntries[] = game
+		[_, _, examples, tests] = game
+		for example in *examples
+			allEntries[] = example
+		for test in *tests
+			allEntries[] = test
+	for group in *[
+			games
+			doraExamples
+			doraTests
+			cppTests
+		]
+		for entry in *group
+			allEntries[] = entry
+
+updateEntries!
 
 doCompile = (minify)->
 	return if building
@@ -323,6 +395,9 @@ setupEventHandlers = ->
 			config.locale = locale
 			updateLocale!
 			teal.clear true
+		\gslot "AppWSClose", ->
+			if HttpServer.wsConnectionCount == 0
+				updateEntries!
 		switch App.platform when "Linux", "Windows", "macOS"
 			\gslot "AppSizeChanged", ->
 				:width, :height = App.winSize
@@ -373,72 +448,6 @@ export stop = ->
 	currentEntry = nil
 	true
 
-getFileEntries = (path)->
-	entries = {}
-	for file in *getAllFiles path, ["xml", "lua", yueext, "tl"]
-		entryName = Path\getName file
-		file = Path\replaceExt file, ""
-		file = Path Path\getName(path), file
-		entry = [entryName, file]
-		entries[] = entry
-	table.sort entries, (a, b)-> a[1] < b[1]
-	entries
-
-getProjectEntries = (path)->
-	entries = []
-	for dir in *Content\getDirs path
-		continue if dir\match "^%."
-		for file in *getAllFiles Path(path, dir), ["xml", "lua", yueext, "tl", "wasm"]
-			if "init" == Path\getName(file)\lower!
-				examples = []
-				tests = []
-				examplePath = Path path, dir, Path\getPath(file), "Example"
-				if Content\exist examplePath
-					for [name, ePath] in *getFileEntries examplePath
-						entry = [name, Path(dir, Path\getPath(file), ePath)]
-						examples[] = entry
-				testPath = Path path, dir, Path\getPath(file), "Test"
-				if Content\exist testPath
-					for [name, tPath] in *getFileEntries testPath
-						entry = [name, Path(dir, Path\getPath(file), tPath)]
-						tests[] = entry
-				file = Path\replaceExt file, ""
-				file = Path dir, file
-				entryName = Path\getName Path\getPath file
-				entry = [entryName, file, examples, tests]
-				entries[] = entry
-	table.sort entries, (a, b)-> a[1] < b[1]
-	entries
-
-gamesInDev = getProjectEntries Content.writablePath
-games = getProjectEntries Path Content.assetPath, "Script"
-
-doraExamples = getFileEntries Path Content.assetPath, "Script", "Example"
-doraTests = getFileEntries Path Content.assetPath, "Script", "Test"
-
-cppTests = []
-for name in *App.testNames
-	entry = [name,]
-	cppTests[] = entry
-cppTestSet = Set cppTests
-
-allEntries = []
-for game in *gamesInDev
-	allEntries[] = game
-	[_, _, examples, tests] = game
-	for example in *examples
-		allEntries[] = example
-	for test in *tests
-		allEntries[] = test
-for group in *[
-		games
-		doraExamples
-		doraTests
-		cppTests
-	]
-	for entry in *group
-		allEntries[] = entry
-
 export enterEntryAsync = (entry)->
 	isInEntry = false
 	App.idled = false
@@ -477,7 +486,13 @@ reloadCurrentEntry = ->
 
 Director.clearColor = Color 0xff1a1a1a
 
+waitForWebStart = true
+thread ->
+	sleep 2
+	waitForWebStart = false
+
 reloadDevEntry = ->
+	waitForWebStart = true
 	doClean!
 	allClear!
 	_G.require = oldRequire
@@ -521,13 +536,18 @@ extraOperations = ->
 					TreeNode "#{license}####{name}", -> TextWrapped text
 			)
 	<- TreeNode zh and "开发操作" or "Development"
-	OpenPopup "build" if Button zh and "脚本编译" or "Script Build"
+	OpenPopup "build" if Button zh and "脚本编译测试" or "Script Build Test"
 	PushStyleVar "WindowPadding", Vec2(10, 10), -> BeginPopup "build", ->
 		doCompile false if Selectable zh and "编译" or "Compile"
 		Separator!
 		doCompile true if Selectable zh and "压缩" or "Minify"
 		Separator!
 		doClean! if Selectable zh and "清理" or "Clean"
+	if isInEntry
+		if waitForWebStart
+			BeginDisabled -> Button zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)"
+		elseif Button zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)"
+			reloadDevEntry!
 	if changed, scaleContent = Checkbox string.format("%.1fx #{zh and '屏幕缩放' or 'Screen'}", screenScale), scaleContent
 		View.scale = scaleContent and screenScale or 1
 
@@ -551,13 +571,13 @@ footerWindow = threadLoop ->
 		if ctrl and Keyboard\isKeyDown "Z"
 			reloadCurrentEntry!
 		if ctrl and Keyboard\isKeyDown ","
+			showStats = if showFooter then not showStats else true
 			showFooter = true
-			showStats = not showStats
 			config.showFooter = showFooter and 1 or 0
 			config.showStats = showStats and 1 or 0
 		if ctrl and Keyboard\isKeyDown "."
+			showConsole = if showFooter then not showConsole else true
 			showFooter = true
-			showConsole = not showConsole
 			config.showFooter = showFooter and 1 or 0
 			config.showConsole = showConsole and 1 or 0
 		if ctrl and Keyboard\isKeyDown "/"
@@ -599,6 +619,7 @@ footerWindow = threadLoop ->
 				config.showFooter = showFooter and 1 or 0
 
 	if isInEntry and
+		not waitForWebStart and
 		Keyboard\isKeyPressed("LCtrl") and
 		Keyboard\isKeyDown "Z"
 		reloadDevEntry!
@@ -617,10 +638,7 @@ footerWindow = threadLoop ->
 		SameLine!
 		if changed, showConsole = Checkbox zh and "控制台" or "Log", showConsole
 			config.showConsole = showConsole and 1 or 0
-		if isInEntry
-			SameLine!
-			reloadDevEntry! if Button zh and "刷新" or "Reload", Vec2 70, 30
-		else
+		unless isInEntry
 			SameLine!
 			if Button zh and "主页" or "Home", Vec2 70, 30
 				allClear!
@@ -654,7 +672,7 @@ footerWindow = threadLoop ->
 
 const MaxWidth = 800
 
-urlWindowFlags =
+displayWindowFlags =
 	* "NoDecoration"
 	* "NoSavedSettings"
 	* "NoFocusOnAppearing"
@@ -684,7 +702,7 @@ entryWindow = threadLoop ->
 		:width, :height = App.visualSize
 		SetNextWindowBgAlpha 0.5
 		SetNextWindowPos Vec2(width / 2, height / 2), "Always", Vec2 0.5, 0.5
-		Begin "Web IDE Connected", urlWindowFlags, ->
+		Begin "Web IDE Connected", displayWindowFlags, ->
 			TextColored themeColor, "#{zh and '网页 IDE 已连接 ……' or 'Web IDE connected ...'}"
 			slogon = zh and 'Dorothy 启动！' or 'Dorothy Launch!'
 			TextColored descColor, slogon
@@ -695,7 +713,7 @@ entryWindow = threadLoop ->
 
 	SetNextWindowBgAlpha 0.85
 	SetNextWindowPos Vec2(5, height - 120), "Always", Vec2 0, 0
-	Begin "Web IDE", urlWindowFlags, ->
+	Begin "Web IDE", displayWindowFlags, ->
 		TextColored themeColor, "#{zh and '网页' or 'Web'} IDE"
 		url = webStatus?.url ?? zh and '不可用' or 'not available'
 		TextColored descColor, url
@@ -706,7 +724,7 @@ entryWindow = threadLoop ->
 	SetNextWindowPos Vec2.zero
 	SetNextWindowBgAlpha 0
 	PushStyleVar "WindowPadding", Vec2(10, 0), ->
-		Begin "Dorothy Dev", urlWindowFlags, ->
+		Begin "Dorothy Dev", displayWindowFlags, ->
 			Dummy Vec2 fullWidth - 20, 2
 			TextColored themeColor, "DOROTHY SSR #{zh and '开发' or 'DEV'}"
 	SetNextWindowPos Vec2 0, 45
