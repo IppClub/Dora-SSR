@@ -145,3 +145,60 @@ end)
 ```tl
 ["AppTheme"]: function(themeColor: Color)
 ```
+
+## AppWSOpen
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when a websocket connection is open.
+
+**Signature:**
+```tl
+["AppWSOpen"]: function()
+```
+
+## AppWSClose
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when a websocket connection is closed.
+
+**Signature:**
+```tl
+["AppWSClose"]: function()
+```
+
+## AppWSMessage
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when received text message from a websocket connection.
+
+**Signature:**
+```tl
+["AppWSMessage"]: function(msg: string)
+```
+
+## AppWSSend
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;A gobal event for broadcasting massage to all websocket connections.
+
+**Signature:**
+```tl
+["AppWSSend"]: function(msg: string)
+```
+
+**Usage:**
+```tl
+emit "AppWSSend", "A message"
+```

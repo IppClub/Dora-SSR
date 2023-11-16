@@ -156,6 +156,20 @@ local record __GSLOT__
 
 	-- 应用改变主题颜色时触发。
 	["AppTheme"]: function(themeColor: Color)
+
+	-- 当一个客户端和应用建立 Websocket 连接时触发。
+	["AppWSOpen"]: function()
+
+	-- 当一个客户端和应用断开 Websocket 连接时触发。
+	["AppWSClose"]: function()
+
+	-- 当一个客户端向应用发送 Websocket 文本消息时触发。
+	["AppWSMessage"]: function(msg: string)
+
+	-- 用于向所有已建立 Websocket 连接的客户端广播发送文本消息的事件。
+	-- @usage
+	-- emit "AppWSSend", "A message"
+	["AppWSSend"]: function(msg: string)
 end
 
 local app: App
