@@ -158,12 +158,22 @@ public:
 				}
 			});
 			_server.set_open_handler([this](ws::connection_hdl hdl) {
-				wsl::lock_guard<wsl::mutex> guard(_connectionLock);
-				_connections.insert(hdl);
+				{
+					wsl::lock_guard<wsl::mutex> guard(_connectionLock);
+					_connections.insert(hdl);
+				}
+				SharedApplication.invokeInLogic([]() {
+					Event::send("AppWSOpen"sv);
+				});
 			});
 			_server.set_close_handler([this](ws::connection_hdl hdl) {
-				wsl::lock_guard<wsl::mutex> guard(_connectionLock);
-				_connections.erase(hdl);
+				{
+					wsl::lock_guard<wsl::mutex> guard(_connectionLock);
+					_connections.erase(hdl);
+				}
+				SharedApplication.invokeInLogic([]() {
+					Event::send("AppWSClose"sv);
+				});
 			});
 			_server.set_reuse_addr(true);
 			_server.listen(port);
