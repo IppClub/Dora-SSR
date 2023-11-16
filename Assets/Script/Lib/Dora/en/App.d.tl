@@ -155,6 +155,20 @@ local record __GSLOT__
 
 	-- Triggers when the application theme color changes.
 	["AppTheme"]: function(themeColor: Color)
+
+	-- Triggers when a websocket connection is open.
+	["AppWSOpen"]: function()
+
+	-- Triggers when a websocket connection is closed.
+	["AppWSClose"]: function()
+
+	-- Triggers when received text message from a websocket connection.
+	["AppWSMessage"]: function(msg: string)
+
+	-- A gobal event for broadcasting massage to all websocket connections.
+	-- @usage
+	-- emit "AppWSSend", "A message"
+	["AppWSSend"]: function(msg: string)
 end
 
 local app: App
