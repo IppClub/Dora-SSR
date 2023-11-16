@@ -90,7 +90,7 @@ transaction: function(self: DB, sqls: {SQL}): boolean
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| sqls | {SQL} | A list of SQL statements to execute. |
+| sqls | \{SQL} | A list of SQL statements to execute. |
 
 **Returns:**
 
@@ -115,7 +115,7 @@ transactionAsync: function(self: DB, sqls: {SQL}): boolean
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| sqls | {SQL} | A list of SQL statements to execute. |
+| sqls | \{SQL} | A list of SQL statements to execute. |
 
 **Returns:**
 
@@ -153,7 +153,7 @@ query: function(
 
 | Return Type | Description |
 | --- | --- |
-| {Row} | A list of rows returned by the query. |
+| \{Row} | A list of rows returned by the query. |
 
 ## query
 
@@ -183,7 +183,7 @@ query: function(
 
 | Return Type | Description |
 | --- | --- |
-| {Row} | A list of rows returned by the query. |
+| \{Row} | A list of rows returned by the query. |
 
 ## insert
 
@@ -280,7 +280,7 @@ exec: function(self: DB, sql: string, values: {Row}): integer
 | Parameter | Type | Description |
 | --- | --- | --- |
 | sql | string | The SQL statement to execute. |
-| values | {Row} | A list of lists of values to substitute into the SQL statement. |
+| values | \{Row} | A list of lists of values to substitute into the SQL statement. |
 
 **Returns:**
 
@@ -306,7 +306,7 @@ insertAsync: function(self: DB, tableName: string, values: {Row}): boolean
 | Parameter | Type | Description |
 | --- | --- | --- |
 | tableName | string | The name of the table to insert into. |
-| values | {Row} | The values to insert into the table. |
+| values | \{Row} | The values to insert into the table. |
 
 **Returns:**
 
@@ -331,7 +331,7 @@ insertAsync: function(self: DB, tableSheets: {string}, excelFile: string, startR
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| tableSheets | {string} | the names of the tables to insert into. |
+| tableSheets | \{string} | the names of the tables to insert into. |
 | excelFile | string | The path to the Excel file containing the data. |
 | startRow | integer | The row number to start inserting data from. The row number start with 1. |
 
@@ -358,7 +358,7 @@ insertAsync: function(self: DB, tableSheets: {{string, string}}, excelFile: stri
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| tableSheets | {{string, string}} | A list of table names and corresponding sheet names to insert into. |
+| tableSheets | \{\{string, string}} | A list of table names and corresponding sheet names to insert into. |
 | excelFile | string | The path to the Excel file containing the data. |
 | startRow | integer | The row number to start inserting data from. The row number start with 1. |
 
@@ -398,7 +398,7 @@ queryAsync: function(
 
 | Return Type | Description |
 | --- | --- |
-| {Row} | A list of rows returned by the query. |
+| \{Row} | A list of rows returned by the query. |
 
 ## queryAsync
 
@@ -428,7 +428,7 @@ queryAsync: function(
 
 | Return Type | Description |
 | --- | --- |
-| {Row} | A list of rows returned by the query. |
+| \{Row} | A list of rows returned by the query. |
 
 ## execAsync
 
@@ -448,7 +448,7 @@ execAsync: function(self: DB, sql: string, values: {Row}): integer
 | Parameter | Type | Description |
 | --- | --- | --- |
 | sql | string | The SQL statement to execute. |
-| values | {Row} | A list of values to substitute into the SQL statement. |
+| values | \{Row} | A list of values to substitute into the SQL statement. |
 
 **Returns:**
 
