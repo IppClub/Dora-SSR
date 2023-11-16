@@ -4,7 +4,9 @@ local record Request
 end
 local record HttpServer
 	wwwPath: string
+	wsConnectionCount: integer
 	start: function(self: HttpServer, port: integer): boolean
+	startWS: function(self: HttpServer, port: integer): boolean
 	post: function(
 		self: HttpServer,
 		pattern: string,
