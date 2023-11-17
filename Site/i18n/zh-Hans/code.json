@@ -295,7 +295,7 @@
     "description": "The title of the tag list page"
   },
   "dorothy_enter_tutorial_button": {
-    "message": "快速上手",
+    "message": "启动",
     "description": "The tutorial button in front page"
   },
   "theme.SearchPage.existingResultsTitle": {
