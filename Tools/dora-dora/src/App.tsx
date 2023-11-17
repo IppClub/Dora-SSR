@@ -206,9 +206,12 @@ export default function PersistentDrawerLeft() {
 			}
 		}, false);
 		window.addEventListener("resize", () => {
-			setWinSize({
-				width: window.innerWidth - (drawerOpen ? drawerWidth : 0),
-				height: window.innerHeight - 64
+			setDrawerOpen(open => {
+				setWinSize({
+					width: window.innerWidth - (open ? drawerWidth : 0),
+					height: window.innerHeight - 64
+				});
+				return open;
 			});
 		});
 		Service.webSocketEmitter.addListener("Open", () => {
