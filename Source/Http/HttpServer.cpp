@@ -299,10 +299,22 @@ bool HttpServer::start(int port) {
 			return false;
 		}
 		auto content_type = httplib::detail::find_content_type(path, {}, "application/octet-stream"s);
-		auto data = SharedContent.load(path);
-		if (data.second > 0) {
-			auto sd = std::make_shared<OwnArray<uint8_t>>(std::move(data.first));
-			res.set_content_provider(data.second, content_type, [sd = std::move(sd)](size_t offset, size_t length, httplib::DataSink& sink) -> bool {
+		OwnArray<uint8_t> data;
+		size_t dataSize = 0;
+		bx::Semaphore waitForLoaded;
+		SharedContent.getThread()->run([&]() {
+			int64_t size;
+			auto result = SharedContent.loadUnsafe(path, size);
+			if (size > 0) {
+				data = MakeOwnArray(result);
+				dataSize = s_cast<size_t>(size);
+			}
+			waitForLoaded.post();
+		});
+		waitForLoaded.wait();
+		if (dataSize > 0) {
+			auto sd = std::make_shared<OwnArray<uint8_t>>(std::move(data));
+			res.set_content_provider(dataSize, content_type, [sd = std::move(sd)](size_t offset, size_t length, httplib::DataSink& sink) -> bool {
 				sink.write(r_cast<const char*>((*sd).get()) + offset, length);
 				return true;
 			});
