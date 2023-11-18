@@ -18,7 +18,7 @@
 }
 
 .footer {
-	--ifm-footer-background-color: #2a2a2a;
+	--ifm-footer-background-color: rgba(36, 37, 38, 1.0);
  }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */

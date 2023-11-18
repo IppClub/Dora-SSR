@@ -704,7 +704,7 @@ entryWindow = threadLoop ->
 		SetNextWindowPos Vec2(width / 2, height / 2), "Always", Vec2 0.5, 0.5
 		Begin "Web IDE Connected", displayWindowFlags, ->
 			TextColored themeColor, "#{zh and '网页 IDE 已连接 ……' or 'Web IDE connected ...'}"
-			slogon = zh and 'Dorothy 启动！' or 'Dorothy Launch!'
+			slogon = zh and 'Dorothy 启动！' or 'Dorothy Start!'
 			TextColored descColor, slogon
 		return
 
