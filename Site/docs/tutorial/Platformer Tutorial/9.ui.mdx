@@ -56,9 +56,10 @@ local alignNode = AlignNode{
 Director.ui:addChild(alignNode)
 ```
 
-Next, we create a left-aligned node called `leftAlign` and add it to `alignNode`. Then, within `leftAlign`, we create a menu called `leftMenu`.
+Next, we created a left-aligned node called `leftAlign` and added it to `alignNode`. Then, within `leftAlign`, we created a menu called `leftMenu` to house the action buttons on the left side of the screen. Similarly, we created a right-aligned menu for placing the action buttons on the right side of the screen.
 
 ```tl title="Script/UI.tl"
+-- Create a left-aligned menu
 local leftAlign = AlignNode{
   hAlign = "Left",
   vAlign = "Bottom"
@@ -67,6 +68,19 @@ alignNode:addChild(leftAlign)
 
 local leftMenu = Menu()
 leftAlign:addChild(leftMenu)
+
+-- Create a right-aligned menu
+local rightAlign = AlignNode {
+	hAlign = "Right",
+	vAlign = "Bottom"
+}
+alignNode:addChild(rightAlign)
+
+local rightMenu = Menu()
+rightAlign:addChild(rightMenu)
+
+-- Perform initial node alignment
+alignNode:alignLayout()
 ```
 
 Inside `leftMenu`, we create three circular buttons: `leftButton`, `rightButton`, and `jumpButton`. These buttons are used to control the player's left movement, right movement, and jumping actions, respectively. Each button has a [TapBegan](/docs/api/Node%20Event/Node#tapbegan) event and a [TapEnded](/docs/api/Node%20Event/Node#tapended) event, which are triggered when the button is pressed and released, respectively.
