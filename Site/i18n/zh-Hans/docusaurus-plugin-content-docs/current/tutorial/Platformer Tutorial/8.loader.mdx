@@ -6,7 +6,7 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;首先，我们需要引入一些必要的模块：
 
-```tl title=Script/Loader.tl
+```tl title="Script/Loader.tl"
 local Content <const> = require("Content")
 local Group <const> = require("Group")
 local Entity <const> = require("Entity")
@@ -27,7 +27,7 @@ local Struct <const> = Utils.Struct
 
 &emsp;&emsp;在使用Teal语言的时候，我们可以先定义一个当加载Excel数据后要转换为的Lua对象的结构。
 
-```tl title=Script/Loader.tl
+```tl title="Script/Loader.tl"
 local record ItemEntity
   name: string
   no: number
@@ -41,7 +41,7 @@ end
 
 &emsp;&emsp;然后我们就可以开始编写Excel文件加载的处理函数，执行加载主要是使用[Content:loadExcel()](/docs/api/Class/Content#loadexcel)函数。
 
-```tl title=Script/Loader.tl
+```tl title="Script/Loader.tl"
 function loadExcel()
   local xlsx = Content:loadExcel("Data/items.xlsx", {"items"})
   if not xlsx is nil then
@@ -78,7 +78,7 @@ end
 
 &emsp;&emsp;最后我们定义一个Loader对象作为模块返回的结果，供其它模块访问调用。
 
-```tl title=Script/Loader.tl
+```tl title="Script/Loader.tl"
 local record Loader
   type ItemEntity = ItemEntity
   loadExcel: function()

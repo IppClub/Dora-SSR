@@ -533,10 +533,9 @@ void ResetAnimation::add(SpriteDef* spriteDef, Node* node, Action* action, Actio
 	if (_group.size() == 1) {
 		Action* action = _group[0]->action;
 		_group[0]->node->slot("ActionEnd"_slice, [this, action](Event* event) {
-			Action* eventAction;
-			Node* target;
-			event->get(eventAction, target);
-			if (action == eventAction) {
+			Action* eventAction = nullptr;
+			Node* target = nullptr;
+			if (event->get(eventAction, target) && action == eventAction) {
 				onActionEnd();
 			}
 		});
@@ -610,10 +609,9 @@ void Model::setupCallback() {
 		}
 		Node* node = animationGroup->animations[0]->getNode();
 		node->slot("ActionEnd"_slice, [this, action](Event* event) {
-			Action* eventAction;
-			Node* target;
-			event->get(eventAction, target);
-			if (action == eventAction) {
+			Action* eventAction = nullptr;
+			Node* target = nullptr;
+			if (event->get(eventAction, target) && action == eventAction) {
 				onActionEnd();
 			}
 		});

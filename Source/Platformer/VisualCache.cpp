@@ -221,10 +221,9 @@ SpriteVisual::SpriteVisual(String filename)
 		*frameActionDef->rects[0]);
 	Action* action = Action::create(FrameAction::alloc(frameActionDef));
 	_sprite->slot("ActionEnd"_slice, [self, action](Event* event) {
-		Action* eventAction;
-		Node* target;
-		event->get(eventAction, target);
-		if (action == eventAction) {
+		Action* eventAction = nullptr;
+		Node* target = nullptr;
+		if (event->get(eventAction, target) && action == eventAction) {
 			if (self) {
 				self->_sprite->setVisible(false);
 				if (self->_isAutoRemoved) {
