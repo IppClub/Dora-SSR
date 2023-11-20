@@ -435,9 +435,18 @@ rightButton:slot("TapEnded", function()
 end)
 leftMenu:addChild(rightButton)
 
+local rightAlign = AlignNode {
+	hAlign = "Right",
+	vAlign = "Bottom"
+}
+alignNode:addChild(rightAlign)
+
+local rightMenu = Menu()
+rightAlign:addChild(rightMenu)
+
 local jumpButton = CircleButton {
 	text = "跳(j)",
-	x = 160 * uiScale,
+	x = -80 * uiScale,
 	y = 60 * uiScale,
 	radius = 30 * uiScale,
 	fontSize = math.floor(18 * uiScale)
@@ -449,7 +458,9 @@ end)
 jumpButton:slot("TapEnded", function()
 	updatePlayerControl("keyJump", false, true)
 end)
-leftMenu:addChild(jumpButton)
+rightMenu:addChild(jumpButton)
+
+alignNode:alignLayout()
 
 alignNode:schedule(function(): boolean
 	local keyA = Keyboard:isKeyPressed "A"
