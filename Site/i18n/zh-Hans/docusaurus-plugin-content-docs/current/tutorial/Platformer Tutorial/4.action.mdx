@@ -6,7 +6,7 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;首先，我们需要引入一些必要的模块：
 
-```tl title=Script/Action.tl
+```tl title="Script/Action.tl"
 local once <const> = require("once")
 local loop <const> = require("loop")
 local sleep <const> = require("sleep")
@@ -18,7 +18,7 @@ local type UnitType = Platformer.Unit.Type
 
 &emsp;&emsp;接着，我们使用UnitAction的[add](/docs/api/Class%20Object/Platformer/UnitAction#add)方法来添加新的动作。每个动作都有一个名称和一组[参数](/docs/api/Class/Platformer/UnitActionParam)，这些参数定义了动作的行为。例如，我们可以定义一个"idle"动作，表示角色在空闲状态下的行为：
 
-```tl title=Script/Action.tl
+```tl title="Script/Action.tl"
 UnitAction:add("idle", {
   priority = 1,
   reaction = 2.0,
@@ -65,7 +65,7 @@ UnitAction:add("idle", {
 
 &emsp;&emsp;首先，我们来看"move"动作：
 
-```tl title=Script/Action.tl
+```tl title="Script/Action.tl"
 UnitAction:add("move", {
   priority = 1,
   reaction = 2.0,
@@ -102,7 +102,7 @@ UnitAction:add("move", {
 
 &emsp;&emsp;接下来是"jump"动作：
 
-```tl title=Script/Action.tl
+```tl title="Script/Action.tl"
 UnitAction:add("jump", {
   priority = 3,
   reaction = 2.0,
@@ -117,7 +117,7 @@ UnitAction:add("jump", {
     )
     -- 在动作开始执行时改变角色的Y轴移动速度
     self.velocityY = self.unitDef.jump as number
-    
+
     -- 在后续动作更新时播放跳跃动画并等待动画播放结束
     return once(function()
       local playable = self.playable
@@ -132,7 +132,7 @@ UnitAction:add("jump", {
 
 &emsp;&emsp;最后是"fallOff"动作：
 
-```tl title=Script/Action.tl
+```tl title="Script/Action.tl"
 UnitAction:add("fallOff", {
   priority = 2,
   reaction = -1,

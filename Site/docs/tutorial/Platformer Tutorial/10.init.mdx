@@ -6,20 +6,20 @@ Welcome to the last tutorial of the Dorothy SSR Game Engine side-scrolling 2D ga
 
 Firstly, we need to import some necessary modules:
 
-```lua title=init.lua
+```lua title="init.lua"
 local Content <const> = require("Content")
 local Path <const> = require("Path")
 ```
 
 Next, we will [add](/docs/api/Class/Content#insertsearchpath) the path of the current script to the resource search paths:
 
-```lua title=init.lua
+```lua title="init.lua"
 Content:insertSearchPath(1, Path:getScriptPath(...))
 ```
 
 Then, we import other game modules, including all the program modules we have written in our previous tutorials. Generally, modules defining simple game functionalities are loaded first, while modules that perform immediate initialization processing, such as creating scenes and UI elements, are loaded later. If the code modules are well-designed, it is possible to avoid directly referencing other program modules through the `require()` function in the code. Therefore, when there are many code files in the future, we can even delay loading many code modules and dynamically load and execute them promptly only when they are needed.
 
-```lua title=init.lua
+```lua title="init.lua"
 require("Script.Unit")
 require("Script.Action")
 require("Script.AI")

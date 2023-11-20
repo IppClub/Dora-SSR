@@ -6,7 +6,7 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;首先，我们需要引入一些必要的模块：
 
-```tl title=Script/Unit.tl
+```tl title="Script/Unit.tl"
 local Dictionary <const> = require("Dictionary")
 local Vec2 <const> = require("Vec2")
 local Size <const> = require("Size")
@@ -16,7 +16,7 @@ local Platformer <const> = require("Platformer")
 
 &emsp;&emsp;接着，我们创建了一个[Dictionary](/docs/api/Class/Dictionary)对象，并设置了各种游戏角色的属性：
 
-```tl title=Script/Unit.tl
+```tl title="Script/Unit.tl"
 local unitDef = Dictionary()
 unitDef.linearAcceleration = Vec2(0, -15)
 unitDef.bodyType = "Dynamic"
@@ -49,7 +49,7 @@ unitDef.actions = Array {
 
 &emsp;&emsp;最后，我们将这个字典对象保存到[Platformer.Data.store](/docs/api/Class/Platformer/Data#store)中，这样其他模块就可以访问这个对象了：
 
-```tl title=Script/Unit.tl
+```tl title="Script/Unit.tl"
 Platformer.Data.store["Unit:player"] = unitDef
 ```
 

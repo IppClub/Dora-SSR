@@ -77,8 +77,9 @@ public:
 		LogHandler += std::make_pair(this, &ConsolePanel::addLog);
 		_commandListener = Listener::create("AppCommand"s, [this](Event* event) {
 			std::string codes;
-			event->get(codes);
-			runCodes(std::move(codes));
+			if (event->get(codes)) {
+				runCodes(std::move(codes));
+			}
 		});
 	}
 

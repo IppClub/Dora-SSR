@@ -6,7 +6,7 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;首先，我们需要引入一些必要的模块：
 
-```tl title=Script/AI.tl
+```tl title="Script/AI.tl"
 local Platformer <const> = require("Platformer")
 local Decision <const> = Platformer.Decision
 local Sel <const> = Decision.Sel
@@ -19,7 +19,7 @@ local type UnitType = Platformer.Unit.Type
 
 &emsp;&emsp;接着，我们使用[决策树框架](/docs/api/Class/Platformer/Decision)来创建AI。决策树是一种常用的AI设计模式，它可以根据一系列条件来决定执行哪个动作。在这个例子中，我们使用了[Sel](/docs/api/Class/Platformer/Decision#sel)（选择器节点）和[Seq](/docs/api/Class/Platformer/Decision#seq)（序列节点）来组织决策树，[Con](/docs/api/Class/Platformer/Decision#con)（条件节点）来检查条件，[Act](/docs/api/Class/Platformer/Decision#act)（动作节点）来执行动作。
 
-```tl title=Script/AI.tl
+```tl title="Script/AI.tl"
 Data.store["AI:playerControl"] = Sel {
   Seq {
     Con("move key down", function(self: UnitType): boolean

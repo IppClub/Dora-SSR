@@ -6,7 +6,7 @@ In this tutorial, we will explain how to create a UI module for a game using the
 
 Firstly, we need to import the required modules and libraries:
 
-```tl title=Script/UI.tl
+```tl title="Script/UI.tl"
 local Platformer <const> = require("Platformer")
 local ImGui <const> = require("ImGui")
 local Vec2 <const> = require("Vec2")
@@ -28,7 +28,7 @@ local type UnitType = Platformer.Unit.Type
 
 Next, we define a function called `updatePlayerControl` that is used to update the player's control state. This function takes a key name and a boolean value indicating whether the key is pressed. If the key is pressed, the state of that key for the player will be set to `true`, otherwise it will be set to `false`.
 
-```tl title=Script/UI.tl
+```tl title="Script/UI.tl"
 local keyboardEnabled = true
 
 local playerGroup = Group{"player"}
@@ -46,7 +46,7 @@ end
 
 Then, we create a root node for the UI called `alignNode` and add it to [Director.ui](/docs/api/Class/Director#ui). This node serves as the parent node for all other UI nodes.
 
-```tl title=Script/UI.tl
+```tl title="Script/UI.tl"
 -- Get the DPI scaling value of the device to ensure consistent display size of UI on different devices
 local uiScale = App.devicePixelRatio
 local alignNode = AlignNode{
@@ -58,7 +58,7 @@ Director.ui:addChild(alignNode)
 
 Next, we create a left-aligned node called `leftAlign` and add it to `alignNode`. Then, within `leftAlign`, we create a menu called `leftMenu`.
 
-```tl title=Script/UI.tl
+```tl title="Script/UI.tl"
 local leftAlign = AlignNode{
   hAlign = "Left",
   vAlign = "Bottom"
@@ -71,7 +71,7 @@ leftAlign:addChild(leftMenu)
 
 Inside `leftMenu`, we create three circular buttons: `leftButton`, `rightButton`, and `jumpButton`. These buttons are used to control the player's left movement, right movement, and jumping actions, respectively. Each button has a [TapBegan](/docs/api/Node%20Event/Node#tapbegan) event and a [TapEnded](/docs/api/Node%20Event/Node#tapended) event, which are triggered when the button is pressed and released, respectively.
 
-```tl title=Script/UI.tl
+```tl title="Script/UI.tl"
 -- Create the left movement button
 local leftButton = CircleButton{
   text = "左(a)",
@@ -126,7 +126,7 @@ leftMenu:addChild(jumpButton)
 
 Next, we use ImGui to create an inventory window. In this window, we can see all the items in the player's inventory, along with the quantity and description of each item. When a player clicks on an item, its quantity decreases by 1, and a corresponding sprite is generated on the player's character.
 
-```tl title=Script/UI.tl
+```tl title="Script/UI.tl"
 local pickedItemGroup = Group{"picked"}
 local windowFlags = {
   "NoDecoration",

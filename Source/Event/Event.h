@@ -27,8 +27,9 @@ typedef Acf::Delegate<void(Event* event)> EventHandler;
  Event::addListener("UserEvent", [](Event* event)
  {
 	Slice msg;
-	event->get(msg);
-	Log("Received Event with msg: {}", msg);
+	if (event->get(msg)) {
+		Log("Received Event with msg: {}", msg);
+	}
  });
 
  // Send event with all types of arguments, then the callback function will be invoked.

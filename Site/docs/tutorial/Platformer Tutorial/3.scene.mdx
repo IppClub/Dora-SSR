@@ -6,7 +6,7 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;First, we need to import some necessary modules:
 
-```tl title=Script/Scene.tl
+```tl title="Script/Scene.tl"
 local Platformer <const> = require("Platformer")
 local Vec2 <const> = require("Vec2")
 local Rect <const> = require("Rect")
@@ -24,7 +24,7 @@ local Loader <const> = require("Script.Loader")
 
 &emsp;&emsp;Next, we define some color and design width parameters:
 
-```tl title=Script/Scene.tl
+```tl title="Script/Scene.tl"
 local themeColor = App.themeColor
 local fillColor = Color(themeColor:toColor3(), 0x66):toARGB()
 local borderColor = themeColor:toARGB()
@@ -33,7 +33,7 @@ local DesignWidth <const> = 1000
 
 &emsp;&emsp;Then, we create a [PlatformWorld](/docs/api/Class/Platformer/PlatformWorld) object and set the camera's boundary, follow ratio, and zoom. Here, [world.camera](/docs/api/Class/Platformer/PlatformWorld#camera) is a [PlatformCamera](/docs/api/Class/Platformer/PlatformCamera) object, which is a camera for 2D platform games that can track the movement of game units and keep them within the camera's view. [boundary](/docs/api/Class/Platformer/PlatformCamera#boundary) is the rectangular region of the camera's visible area, [followRatio](/docs/api/Class/Platformer/PlatformCamera#followratio) is the rate at which the camera moves to follow the target position, and [zoom](/docs/api/Class/Platformer/PlatformCamera#zoom) is the scaling factor of the camera. A value of 1.0 represents normal size, and 2.0 represents a zoomed-in view that is twice the normal size.
 
-```tl title=Script/Scene.tl
+```tl title="Script/Scene.tl"
 local world = Platformer.PlatformWorld()
 world.camera.boundary = Rect(-1250, -500, 2500, 1000)
 world.camera.followRatio = Vec2(0.02, 0.02)
@@ -45,7 +45,7 @@ end)
 
 &emsp;&emsp;Next, we create a [BodyDef](/docs/api/Class/BodyDef) object, which is used to describe the definition of physical objects in the game scene. We attach four polygons that will serve as the collision boundaries for the game scene:
 
-```tl title=Script/Scene.tl
+```tl title="Script/Scene.tl"
 local terrainDef = BodyDef()
 terrainDef.type = "Static"
 terrainDef:attachPolygon(Vec2(0, -500), 2500, 10, 0, 1, 1, 0)
@@ -56,7 +56,7 @@ terrainDef:attachPolygon(Vec2(-1250, 0), 10, 1000, 0, 1, 1, 0)
 
 &emsp;&emsp;Then, we create a [Body](/docs/api/Class/Body) object, which is a physical entity created from the terrainDef object and also a type of scene node that can be attached to the game scene. We set its order and group, and then add four Rectangle objects as visual objects for the scene. These Rectangle objects are graphic nodes used to display the physical scene:
 
-```tl title=Script/Scene.tl
+```tl title="Script/Scene.tl"
 local terrain = Body(terrainDef, world, Vec2.zero)
 terrain.order = Config.TerrainLayer
 terrain.group = Config.TerrainGroup
@@ -93,20 +93,20 @@ terrain:addChild(Rectangle{
 
 &emsp;&emsp;Next, we add the terrain object to the world object and then add the world object to [Director.entry](/docs/api/Class/Director#entry). Here, Director.entry is the interface provided by the engine to create the root node of the game scene tree:
 
-```tl title=Script/Scene.tl
+```tl title="Script/Scene.tl"
 world:addChild(terrain)
 Director.entry:addChild(world)
 ```
 
 &emsp;&emsp;Then, we save the world object in [Platformer.Data.store](/docs/api/Class/Platformer/Data#store) so that other modules can access it:
 
-```tl title=Script/Scene.tl
+```tl title="Script/Scene.tl"
 Platformer.Data.store["Scene:world"] = world
 ```
 
 &emsp;&emsp;Finally, we create an [Entity](/docs/api/Class/Entity) object and call the `Loader.loadExcel()` function. The specific purposes of these two lines of code will be explained in subsequent tutorials:
 
-```tl title=Script/Scene.tl
+```tl title="Script/Scene.tl"
 Entity{player = true}
 Loader.loadExcel()
 ```
