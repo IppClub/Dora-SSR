@@ -6,7 +6,7 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;首先，我们需要引入所需的模块和库：
 
-```tl title=Script/UI.tl
+```tl title="Script/UI.tl"
 local Platformer <const> = require("Platformer")
 local ImGui <const> = require("ImGui")
 local Vec2 <const> = require("Vec2")
@@ -28,7 +28,7 @@ local type UnitType = Platformer.Unit.Type
 
 &emsp;&emsp;接下来，我们定义了一个函数`updatePlayerControl`，用于更新玩家的控制状态。这个函数接收一个键名和一个布尔值，表示是否按下了这个键。如果按下了这个键，那么玩家的这个键的状态就会被设置为`true`，否则就会被设置为`false`。
 
-```tl title=Script/UI.tl
+```tl title="Script/UI.tl"
 local keyboardEnabled = true
 
 local playerGroup = Group{"player"}
@@ -46,7 +46,7 @@ end
 
 &emsp;&emsp;然后，我们创建了一个UI的根节点`alignNode`，并将其添加到[Director.ui](/docs/api/Class/Director#ui)中。这个节点是所有其他UI节点的父节点。
 
-```tl title=Script/UI.tl
+```tl title="Script/UI.tl"
 -- 获取设备的DPI缩放值使UI在各种设备上的显示大小一致
 local uiScale = App.devicePixelRatio
 local alignNode = AlignNode{
@@ -58,7 +58,7 @@ Director.ui:addChild(alignNode)
 
 &emsp;&emsp;接着，我们创建了一个左对齐的节点`leftAlign`，并将其添加到`alignNode`中。然后，我们在`leftAlign`中创建了一个菜单`leftMenu`。
 
-```tl title=Script/UI.tl
+```tl title="Script/UI.tl"
 local leftAlign = AlignNode{
   hAlign = "Left",
   vAlign = "Bottom"
@@ -71,7 +71,7 @@ leftAlign:addChild(leftMenu)
 
 &emsp;&emsp;在`leftMenu`中，我们创建了三个圆形按钮：`leftButton`、`rightButton`和`jumpButton`。这三个按钮分别用于控制玩家的左移、右移和跳跃操作。每个按钮都有一个[TapBegan](/docs/api/Node%20Event/Node#tapbegan)事件和一个[TapEnded](/docs/api/Node%20Event/Node#tapended)事件，分别在按钮被按下和按钮被释放时触发。
 
-```tl title=Script/UI.tl
+```tl title="Script/UI.tl"
 -- 创建左移按钮
 local leftButton = CircleButton{
   text = "左(a)",
@@ -126,7 +126,7 @@ leftMenu:addChild(jumpButton)
 
 &emsp;&emsp;接下来，我们使用ImGui创建了一个背包窗口。在这个窗口中，我们可以看到玩家的背包中的所有物品，以及每个物品的数量和描述。当玩家点击一个物品时，这个物品的数量就会减少1，同时在玩家的角色上生成一个对应的精灵。
 
-```tl title=Script/UI.tl
+```tl title="Script/UI.tl"
 local pickedItemGroup = Group{"picked"}
 local windowFlags = {
   "NoDecoration",

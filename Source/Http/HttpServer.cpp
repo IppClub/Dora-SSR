@@ -467,8 +467,9 @@ bool HttpServer::startWS(int port) {
 	_webSocketListener = Listener::create("AppWSSend"s, [this](Event* event) {
 		if (_webSocketServer) {
 			std::string msg;
-			event->get(msg);
-			_webSocketServer->send(msg);
+			if (event->get(msg)) {
+				_webSocketServer->send(msg);
+			}
 		}
 	});
 	return true;

@@ -6,7 +6,7 @@ Welcome to the sixth tutorial of the Dorothy SSR Game Engine 2D Side-Scrolling G
 
 Firstly, we need to import some necessary modules:
 
-```tl title=Script/Unit.tl
+```tl title="Script/Unit.tl"
 local Dictionary <const> = require("Dictionary")
 local Vec2 <const> = require("Vec2")
 local Size <const> = require("Size")
@@ -16,7 +16,7 @@ local Platformer <const> = require("Platformer")
 
 Next, we create a [Dictionary](/docs/api/Class/Dictionary) object and set attributes for various game characters:
 
-```tl title=Script/Unit.tl
+```tl title="Script/Unit.tl"
 local unitDef = Dictionary()
 unitDef.linearAcceleration = Vec2(0, -15)
 unitDef.bodyType = "Dynamic"
@@ -49,7 +49,7 @@ In the above code, we define various attributes for game characters, including l
 
 Finally, we save this dictionary object to [Platformer.Data.store](/docs/api/Class/Platformer/Data#store), so that other modules can access this object:
 
-```tl title=Script/Unit.tl
+```tl title="Script/Unit.tl"
 Platformer.Data.store["Unit:player"] = unitDef
 ```
 

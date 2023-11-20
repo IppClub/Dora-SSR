@@ -6,7 +6,7 @@ Welcome to the eighth tutorial of the Dorothy SSR game engine's side-scrolling 2
 
 First, we need to import some necessary modules:
 
-```tl title=Script/Loader.tl
+```tl title="Script/Loader.tl"
 local Content <const> = require("Content")
 local Group <const> = require("Group")
 local Entity <const> = require("Entity")
@@ -27,7 +27,7 @@ Next, we will load an Excel file named "Data/items.xlsx," which contains a table
 
 When using the Teal language, we can first define a structure for the Lua object to which the Excel data will be converted.
 
-```tl title=Script/Loader.tl
+```tl title="Script/Loader.tl"
 local record ItemEntity
   name: string
   no: number
@@ -41,7 +41,7 @@ end
 
 Now we can start writing the processing function for loading the Excel file, which will be executed using the [Content:loadExcel()](/docs/api/Class/Content#loadexcel) function.
 
-```tl title=Script/Loader.tl
+```tl title="Script/Loader.tl"
 function loadExcel()
   local xlsx = Content:loadExcel("Data/items.xlsx", {"items"})
   if not xlsx is nil then
@@ -78,7 +78,7 @@ end
 
 Finally, we define a Loader object as the result returned by the module, which can be accessed and called by other modules.
 
-```tl title=Script/Loader.tl
+```tl title="Script/Loader.tl"
 local record Loader
   type ItemEntity = ItemEntity
   loadExcel: function()

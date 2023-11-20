@@ -6,7 +6,7 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;Firstly, we need to import some necessary modules:
 
-```tl title=Script/AI.tl
+```tl title="Script/AI.tl"
 local Platformer <const> = require("Platformer")
 local Decision <const> = Platformer.Decision
 local Sel <const> = Decision.Sel
@@ -19,7 +19,7 @@ local type UnitType = Platformer.Unit.Type
 
 &emsp;&emsp;Next, we use the [decision tree framework](/docs/api/Class/Platformer/Decision) to create the AI. A decision tree is a commonly used AI design pattern that determines which action to execute based on a series of conditions. In this example, we utilize [Sel](/docs/api/Class/Platformer/Decision#sel) (selector node) and [Seq](/docs/api/Class/Platformer/Decision#seq) (sequence node) to organize the decision tree, [Con](/docs/api/Class/Platformer/Decision#con) (condition node) to check conditions, and [Act](/docs/api/Class/Platformer/Decision#act) (action node) to execute actions.
 
-```tl title=Script/AI.tl
+```tl title="Script/AI.tl"
 Data.store["AI:playerControl"] = Sel {
   Seq {
     Con("move key down", function(self: UnitType): boolean

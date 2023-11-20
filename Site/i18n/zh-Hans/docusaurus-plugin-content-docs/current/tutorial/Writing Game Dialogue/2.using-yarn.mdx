@@ -13,21 +13,21 @@ import TabItem from '@theme/TabItem';
 
 &emsp;&emsp;首先确保您已经导入所有必需的模块。
 
-```yue title=init.yue
+```yue title="init.yue"
 _ENV = Dorothy!
 import "YarnRunner"
 ```
 
 &emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
 
-```yue title=init.yue
+```yue title="init.yue"
 path = Path\getScriptPath ...
 Content\insertSearchPath 1, path
 ```
 
 &emsp;&emsp;接下来，假设我们要加载的 Yarn 文件名为 "tutorial.yarn"，起始节点的标题名称为 "Start"，则编写如下代码：
 
-```yue title=init.yue
+```yue title="init.yue"
 runner = YarnRunner "tutorial.yarn", "Start"
 ```
 
@@ -36,7 +36,7 @@ runner = YarnRunner "tutorial.yarn", "Start"
 
 &emsp;&emsp;首先确保您已正确地导入所有必需的模块。以下是本教程示例中我们需要的模块：
 
-```tl title=init.tl
+```tl title="init.tl"
 local Content <const> = require("Content")
 local Path <const> = require("Path")
 local Node <const> = require("Node")
@@ -46,14 +46,14 @@ local YarnRunner <const> = require("YarnRunner")
 
 &emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
 
-```tl title=init.tl
+```tl title="init.tl"
 local path = Path:getScriptPath(...)
 Content:insertSearchPath(1, path)
 ```
 
 &emsp;&emsp;接下来，假设我们要加载的 Yarn 文件名为 "tutorial.yarn"，起始节点的标题名称为 "Start"，则编写如下代码：
 
-```tl title=init.tl
+```tl title="init.tl"
 local runner = YarnRunner("tutorial.yarn", "Start")
 ```
 
@@ -62,7 +62,7 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 
 &emsp;&emsp;首先确保您已正确地导入所有必需的模块。以下是本教程示例中我们需要的模块：
 
-```lua title=init.lua
+```lua title="init.lua"
 local Content <const> = require("Content")
 local Path <const> = require("Path")
 local Node <const> = require("Node")
@@ -72,14 +72,14 @@ local YarnRunner <const> = require("YarnRunner")
 
 &emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
 
-```lua title=init.lua
+```lua title="init.lua"
 local path = Path:getScriptPath(...)
 Content:insertSearchPath(1, path)
 ```
 
 &emsp;&emsp;接下来，假设我们要加载的 Yarn 文件名为 "tutorial.yarn"，起始节点的标题名称为 "Start"，则编写如下代码：
 
-```lua title=init.lua
+```lua title="init.lua"
 local runner = YarnRunner("tutorial.yarn", "Start")
 ```
 
@@ -93,7 +93,7 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 <Tabs>
 <TabItem value="yue" label="Yuescript">
 
-```yue title=init.yue
+```yue title="init.yue"
 -- advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
 -- 当第一次调用此函数或在不需要选择时，我们将传递 nil
 advance = (option)->
@@ -101,7 +101,7 @@ advance = (option)->
   -- 函数首先调用 runner\advance 来获取 Yarn 脚本的下一部分内容。
   -- 这将返回两个值：一个动作类型和一个结果。
   action, result = runner\advance option
-  
+
   -- 根据动作类型，选择如何处理结果。
   switch action when "Text"
 
@@ -132,7 +132,7 @@ advance = (option)->
 </TabItem>
 <TabItem value="tl" label="Teal">
 
-```tl title=init.tl
+```tl title="init.tl"
 -- advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
 -- 当第一次调用此函数或在不需要选择时，我们将传递 nil
 local function advance(option?: integer)
@@ -147,7 +147,7 @@ local function advance(option?: integer)
     -- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
     -- 其中包含文本内容和任何相关的标记（例如角色名）。
     local textResult = result as YarnRunner.TextResult
-    
+
     -- 检查标记，提取角色名（如果存在）并打印出文本内容。
     local characterName = ""
     local marks = textResult.marks
@@ -185,7 +185,7 @@ end
 </TabItem>
 <TabItem value="lua" label="Lua">
 
-```lua title=init.lua
+```lua title="init.lua"
 -- advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
 -- 当第一次调用此函数或在不需要选择时，我们将传递 nil
 local function advance(option)
@@ -242,21 +242,21 @@ end
 <Tabs>
 <TabItem value="yue" label="Yuescript">
 
-```yue title=init.yue
+```yue title="init.yue"
 advance!
 ```
 
 </TabItem>
 <TabItem value="tl" label="Teal">
 
-```tl title=init.tl
+```tl title="init.tl"
 advance()
 ```
 
 </TabItem>
 <TabItem value="lua" label="Lua">
 
-```lua title=init.lua
+```lua title="init.lua"
 advance()
 ```
 
@@ -270,7 +270,7 @@ advance()
 <Tabs>
 <TabItem value="yue" label="Yuescript">
 
-```yue title=init.yue
+```yue title="init.yue"
 with Node!
   \gslot "go", (option)-> advance option
   \addTo Director.entry
@@ -279,7 +279,7 @@ with Node!
 </TabItem>
 <TabItem value="tl" label="Teal">
 
-```tl title=init.tl
+```tl title="init.tl"
 local node = Node()
 node:gslot("go", function(option: nil | integer)
     advance(option)
@@ -290,7 +290,7 @@ node:addTo(Director.entry)
 </TabItem>
 <TabItem value="lua" label="Lua">
 
-```lua title=init.lua
+```lua title="init.lua"
 local node = Node()
 node:gslot("go", function(option)
     advance(option)
