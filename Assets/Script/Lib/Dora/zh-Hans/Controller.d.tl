@@ -8,6 +8,8 @@ local record Controller
 		"lefty"
 		"rightx"
 		"righty"
+		"lefttrigger"
+		"righttrigger"
 	end
 
 	-- 用于定义控制器按钮名称的枚举。
@@ -21,10 +23,8 @@ local record Controller
 		"dpup"
 		"leftshoulder"
 		"leftstick"
-		"lefttrigger"
 		"rightshoulder"
 		"rightstick"
-		"righttrigger"
 		"start"
 		"x"
 		"y"

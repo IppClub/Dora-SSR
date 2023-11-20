@@ -113,7 +113,7 @@ void Controller::addControllerInRender(int deviceIndex) {
 			_deviceMap[joystickId] = New<Device>(deviceId, controller);
 		});
 	} else {
-		Error("failed to open a new controller! {}", SDL_GetError());
+		Warn("failed to open a new controller! {}", SDL_GetError());
 	}
 }
 
@@ -156,10 +156,13 @@ void Controller::handleEventInRender(const SDL_Event& event) {
 			bool isDown = event.cbutton.state > 0;
 			SharedApplication.invokeInLogic([buttonName, joystickId, isDown, this]() {
 				if (auto it = _deviceMap.find(joystickId); it != _deviceMap.end()) {
-					Device::ButtonState state;
+					Device::ButtonState state{.oldState = false, .newState = false};
 					if (auto bit = it->second->buttonMap.find(buttonName); bit != it->second->buttonMap.end()) {
 						bit->second.newState = isDown;
 						state = bit->second;
+					} else {
+						state.newState = isDown;
+						it->second->buttonMap[buttonName] = state;
 					}
 					if (!state.oldState && state.newState) {
 						EventArgs<int, Slice> button("ButtonDown"_slice, it->second->id, buttonName);
