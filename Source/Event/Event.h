@@ -56,7 +56,7 @@ public:
 	/** @brief Helper function to retrieve the passed event arguments.
 	 */
 	template <class... Args>
-	void get(Args&... args);
+	bool get(Args&... args);
 
 protected:
 	static void reg(Listener* listener);
@@ -199,23 +199,27 @@ inline bool logicAnd(std::initializer_list<bool> values) {
 }
 
 template <class... Args>
-void Event::get(Args&... args) {
+bool Event::get(Args&... args) {
 	if (auto event = DoraAs<LuaEventArgs>(this)) {
 		lua_State* L = SharedLuaEngine.getState();
 		int i = lua_gettop(L) - event->getParamCount();
 		if (!logicAnd({SharedLuaEngine.to(args, ++i)...})) {
-			Issue("lua event arguments mismatch.");
+			Error("lua event arguments mismatch.");
+			return false;
 		}
 	} else if (auto event = DoraAs<EventArgs<Args...>>(this)) {
 		std::tie(args...) = event->arguments;
 	} else if (auto event = DoraAs<WasmEventArgs>(this)) {
 		int i = -1;
 		if (!logicAnd({event->to(args, ++i)...})) {
-			Issue("wasm event arguments mismatch.");
+			Error("wasm event arguments mismatch.");
+			return false;
 		}
 	} else {
-		Issue("event arguments mismatch.");
+		Error("event arguments mismatch.");
+		return false;
 	}
+	return true;
 }
 
 NS_DOROTHY_END
