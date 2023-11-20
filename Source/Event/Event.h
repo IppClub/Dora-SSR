@@ -204,7 +204,7 @@ bool Event::get(Args&... args) {
 		lua_State* L = SharedLuaEngine.getState();
 		int i = lua_gettop(L) - event->getParamCount();
 		if (!logicAnd({SharedLuaEngine.to(args, ++i)...})) {
-			Error("lua event arguments mismatch.");
+			Error("lua event \"{}\" argument type mismatch.", getName().toString());
 			return false;
 		}
 	} else if (auto event = DoraAs<EventArgs<Args...>>(this)) {
@@ -212,11 +212,11 @@ bool Event::get(Args&... args) {
 	} else if (auto event = DoraAs<WasmEventArgs>(this)) {
 		int i = -1;
 		if (!logicAnd({event->to(args, ++i)...})) {
-			Error("wasm event arguments mismatch.");
+			Error("wasm event \"{}\" argument type mismatch.", getName().toString());
 			return false;
 		}
 	} else {
-		Error("event arguments mismatch.");
+		Error("event \"{}\" argument type mismatch.", getName().toString());
 		return false;
 	}
 	return true;
