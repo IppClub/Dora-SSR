@@ -56,9 +56,10 @@ local alignNode = AlignNode{
 Director.ui:addChild(alignNode)
 ```
 
-&emsp;&emsp;接着，我们创建了一个左对齐的节点`leftAlign`，并将其添加到`alignNode`中。然后，我们在`leftAlign`中创建了一个菜单`leftMenu`。
+&emsp;&emsp;接着，我们创建了一个左对齐的节点`leftAlign`，并将其添加到`alignNode`中。然后，我们在`leftAlign`中创建了一个菜单`leftMenu`，用于放置屏幕左边的操作按钮。然后同样创建一个右对齐的菜单用于放置屏幕右边的操作按钮。
 
 ```tl title="Script/UI.tl"
+-- 创建左对齐的菜单
 local leftAlign = AlignNode{
   hAlign = "Left",
   vAlign = "Bottom"
@@ -67,6 +68,19 @@ alignNode:addChild(leftAlign)
 
 local leftMenu = Menu()
 leftAlign:addChild(leftMenu)
+
+-- 创建右对齐的菜单
+local rightAlign = AlignNode {
+	hAlign = "Right",
+	vAlign = "Bottom"
+}
+alignNode:addChild(rightAlign)
+
+local rightMenu = Menu()
+rightAlign:addChild(rightMenu)
+
+-- 做一下初始化的节点对齐
+alignNode:alignLayout()
 ```
 
 &emsp;&emsp;在`leftMenu`中，我们创建了三个圆形按钮：`leftButton`、`rightButton`和`jumpButton`。这三个按钮分别用于控制玩家的左移、右移和跳跃操作。每个按钮都有一个[TapBegan](/docs/api/Node%20Event/Node#tapbegan)事件和一个[TapEnded](/docs/api/Node%20Event/Node#tapended)事件，分别在按钮被按下和按钮被释放时触发。
@@ -107,21 +121,21 @@ end)
 leftMenu:addChild(rightButton)
 
 -- 创建跳跃按钮
-local jumpButton = CircleButton{
-  text = "跳(j)",
-  x = 160 * uiScale,
-  y = 60 * uiScale,
-  radius = 30 * uiScale,
-  fontSize = math.floor(18 * uiScale)
+local jumpButton = CircleButton {
+	text = "跳(j)",
+	x = -80 * uiScale,
+	y = 60 * uiScale,
+	radius = 30 * uiScale,
+	fontSize = math.floor(18 * uiScale)
 }
 jumpButton.anchor = Vec2.zero
 jumpButton:slot("TapBegan", function()
-  updatePlayerControl("keyJump", true, true)
+	updatePlayerControl("keyJump", true, true)
 end)
 jumpButton:slot("TapEnded", function()
-  updatePlayerControl("keyJump", false, true)
+	updatePlayerControl("keyJump", false, true)
 end)
-leftMenu:addChild(jumpButton)
+rightMenu:addChild(jumpButton)
 ```
 
 &emsp;&emsp;接下来，我们使用ImGui创建了一个背包窗口。在这个窗口中，我们可以看到玩家的背包中的所有物品，以及每个物品的数量和描述。当玩家点击一个物品时，这个物品的数量就会减少1，同时在玩家的角色上生成一个对应的精灵。
