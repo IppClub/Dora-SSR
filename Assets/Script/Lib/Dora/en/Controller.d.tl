@@ -8,6 +8,8 @@ local record Controller
 		"lefty"
 		"rightx"
 		"righty"
+		"lefttrigger"
+		"righttrigger"
 	end
 
 	-- Enumeration for defining the controller button names.
@@ -21,10 +23,8 @@ local record Controller
 		"dpup"
 		"leftshoulder"
 		"leftstick"
-		"lefttrigger"
 		"rightshoulder"
 		"rightstick"
-		"righttrigger"
 		"start"
 		"x"
 		"y"
