@@ -20,6 +20,7 @@ class Listener;
 class Signal;
 class Slot;
 class ScheduledItem;
+class FixedScheduledItem;
 class Scheduler;
 class TouchHandler;
 class NodeTouchHandler;
@@ -130,8 +131,8 @@ public:
 
 	virtual void visit();
 	virtual void render();
-	virtual bool fixedUpdate(double deltaTime) override;
-	virtual bool update(double deltaTime) override;
+	virtual bool fixedUpdate(double deltaTime);
+	virtual bool update(double deltaTime);
 
 	const AffineTransform& getLocalTransform();
 
@@ -322,14 +323,14 @@ protected:
 	struct UpdateItem {
 		std::function<bool(double)> scheduledFunc;
 		Own<ScheduledItem> scheduledItem;
-		Own<ScheduledItem> fixedScheduledItem;
+		Own<FixedScheduledItem> fixedScheduledItem;
 		bool hasFunc() const;
 		bool fixedScheduled() const;
 		bool scheduled() const;
 	};
 	Own<UpdateItem> _updateItem;
 	UpdateItem* getUpdateItem();
-	ScheduledItem* getFixedScheduledItem();
+	FixedScheduledItem* getFixedScheduledItem();
 	enum: Flag::ValueType {
 		Visible = 1,
 		SelfVisible = 1 << 1,

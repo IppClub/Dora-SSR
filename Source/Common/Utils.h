@@ -161,7 +161,7 @@ typedef Slice String;
 		MyItem();
 		MyItem(int value);
 		virtual bool init() override;
-		CREATE_FUNC(MyItem)
+		CREATE_FUNC(MyItem);
  };
 
  // Use the create functions

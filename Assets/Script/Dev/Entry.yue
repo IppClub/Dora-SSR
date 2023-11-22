@@ -216,8 +216,14 @@ updateEntries = ->
 			allEntries[] = example
 		for test in *tests
 			allEntries[] = test
+	for game in *games
+		allEntries[] = game
+		[_, _, examples, tests] = game
+		for example in *examples
+			doraExamples[] = example
+		for test in *tests
+			doraTests[] = test
 	for group in *[
-			games
 			doraExamples
 			doraTests
 			cppTests
