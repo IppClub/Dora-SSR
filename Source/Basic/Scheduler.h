@@ -16,36 +16,88 @@ class Array;
 
 class ScheduledItem;
 
-typedef std::list<ScheduledItem*> UpdateList;
-typedef std::optional<std::list<ScheduledItem*>::iterator> UpdateIter;
+using UpdateList = std::list<ScheduledItem*>;
+using UpdateIter = std::optional<std::list<ScheduledItem*>::iterator>;
 
 class ScheduledItem {
 public:
 	ScheduledItem(Object* target)
 		: target(target) { }
+	virtual ~ScheduledItem() { }
 	Object* target;
 	UpdateIter iter;
+
+	virtual bool update(double deltaTime) = 0;
+};
+
+template <class T>
+concept Updatable = requires(T t) {
+	std::is_base_of_v<Object, T>;
+	{ t.update(double()) } -> std::same_as<bool>;
+};
+
+template <Updatable T>
+class ScheduledItemWrapper : public ScheduledItem {
+public:
+	ScheduledItemWrapper(Updatable auto* item)
+		: ScheduledItem(item) { }
+
+	virtual bool update(double deltaTime) override {
+		return static_cast<T*>(target)->update(deltaTime);
+	}
+};
+
+class FixedScheduledItem;
+
+using FixedUpdateList = std::list<FixedScheduledItem*>;
+using FixedUpdateIter = std::optional<std::list<FixedScheduledItem*>::iterator>;
+
+class FixedScheduledItem {
+public:
+	FixedScheduledItem(Object* target)
+		: target(target) { }
+	virtual ~FixedScheduledItem() { }
+	Object* target;
+	FixedUpdateIter iter;
+
+	virtual bool fixedUpdate(double deltaTime) = 0;
+};
+
+template <class T>
+concept FixedUpdatable = requires(T t) {
+	std::is_base_of_v<Object, T>;
+	{ t.fixedUpdate(double()) } -> std::same_as<bool>;
+};
+
+template <Updatable T>
+class FixedScheduledItemWrapper : public FixedScheduledItem {
+public:
+	FixedScheduledItemWrapper(Updatable auto* item)
+		: FixedScheduledItem(item) { }
+
+	virtual bool fixedUpdate(double deltaTime) override {
+		return static_cast<T*>(target)->fixedUpdate(deltaTime);
+	}
 };
 
 class Scheduler : public Object {
-
 public:
+	virtual ~Scheduler();
 	PROPERTY(float, TimeScale);
 	PROPERTY(int, FixedFPS);
 	PROPERTY_READONLY(double, DeltaTime);
 	void schedule(ScheduledItem* item);
-	void scheduleFixed(ScheduledItem* item);
+	void scheduleFixed(FixedScheduledItem* item);
 	void schedule(const std::function<bool(double)>& handler);
 	void schedule(Action* action);
 	void unschedule(ScheduledItem* item);
-	void unscheduleFixed(ScheduledItem* item);
+	void unscheduleFixed(FixedScheduledItem* item);
 	void unschedule(Action* action);
-	virtual bool update(double deltaTime) override;
+	bool update(double deltaTime);
 	CREATE_FUNC(Scheduler);
 
 protected:
 	Scheduler();
-	virtual ~Scheduler();
 
 private:
 	int _fixedFPS;
@@ -53,30 +105,36 @@ private:
 	double _deltaTime;
 	double _leftTime;
 	UpdateList _updateList;
-	UpdateList _fixedUpdateList;
+	FixedUpdateList _fixedUpdateList;
 	Ref<Array> _actionList;
 
 private:
-	static std::vector<std::pair<Ref<Object>, ScheduledItem*>> _updateObjects;
 	DORA_TYPE_OVERRIDE(Scheduler);
 };
 
-class SystemTimer : public Object {
+class SystemTimerBase : public Object {
 public:
 	PROPERTY_BOOL(Running);
-	virtual bool update(double deltaTime) override;
-	void start(float duration, const std::function<void()>& callback);
+	bool update(double deltaTime);
 	void stop();
+
+protected:
+	SystemTimerBase();
+	float _time;
+	float _duration;
+	std::function<void()> _callback;
+};
+
+class SystemTimer : public SystemTimerBase {
+public:
+	void start(float duration, const std::function<void()>& callback);
 	CREATE_FUNC(SystemTimer);
 
 protected:
-	SystemTimer();
-
-private:
-	float _time;
-	float _duration;
-	ScheduledItem _scheduledItem;
-	std::function<void()> _callback;
+	SystemTimer()
+		: SystemTimerBase()
+		, _scheduledItem(this) { }
+	ScheduledItemWrapper<SystemTimerBase> _scheduledItem;
 	DORA_TYPE_OVERRIDE(SystemTimer);
 };
 

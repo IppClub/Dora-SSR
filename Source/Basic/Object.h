@@ -39,8 +39,6 @@ public:
 	virtual ~Object();
 	virtual bool init();
 	/** @brief return true to stop updating, false to continue. */
-	virtual bool update(double deltaTime);
-	virtual bool fixedUpdate(double deltaTime);
 	virtual void cleanup();
 	void release();
 	void retain();

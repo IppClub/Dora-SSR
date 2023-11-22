@@ -665,15 +665,15 @@ TouchHandler* Node::getTouchHandler() const {
 Node::UpdateItem* Node::getUpdateItem() {
 	if (!_updateItem) {
 		_updateItem = New<Node::UpdateItem>();
-		_updateItem->scheduledItem = New<ScheduledItem>(this);
+		_updateItem->scheduledItem = New<ScheduledItemWrapper<Node>>(this);
 	}
 	return _updateItem.get();
 }
 
-ScheduledItem* Node::getFixedScheduledItem() {
+FixedScheduledItem* Node::getFixedScheduledItem() {
 	auto updateItem = getUpdateItem();
 	if (!updateItem->fixedScheduledItem) {
-		updateItem->fixedScheduledItem = New<ScheduledItem>(this);
+		updateItem->fixedScheduledItem = New<FixedScheduledItemWrapper<Node>>(this);
 	}
 	return updateItem->fixedScheduledItem.get();
 }
