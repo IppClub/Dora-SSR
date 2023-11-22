@@ -19,23 +19,25 @@ NS_DOROTHY_BEGIN
 
 /* Scheduler */
 
-class FuncWrapper : public Object {
+class FuncWrapperBase : public Object {
 public:
-	virtual bool update(double deltaTime) override {
+	FuncWrapperBase(const std::function<bool(double)>& func)
+		: func(func) { }
+	bool update(double deltaTime) {
 		return func(deltaTime);
 	}
 	std::function<bool(double)> func;
-	ScheduledItem item;
-	CREATE_FUNC(FuncWrapper);
-
-protected:
-	FuncWrapper(const std::function<bool(double)>& func)
-		: func(func)
-		, item(this) { }
-	DORA_TYPE_OVERRIDE(FuncWrapper);
 };
 
-std::vector<std::pair<Ref<Object>, ScheduledItem*>> Scheduler::_updateObjects;
+class FuncWrapper : public FuncWrapperBase {
+public:
+	FuncWrapper(const std::function<bool(double)>& func)
+		: FuncWrapperBase(func)
+		, item(this) { }
+	ScheduledItemWrapper<FuncWrapperBase> item;
+	CREATE_FUNC(FuncWrapper)
+	DORA_TYPE_OVERRIDE(FuncWrapper);
+};
 
 Scheduler::Scheduler()
 	: _fixedFPS(60)
@@ -79,7 +81,7 @@ void Scheduler::schedule(ScheduledItem* item) {
 	item->iter = _updateList.emplace(_updateList.end(), item);
 }
 
-void Scheduler::scheduleFixed(ScheduledItem* item) {
+void Scheduler::scheduleFixed(FixedScheduledItem* item) {
 	AssertIf(item->iter, "target item is already scheduled");
 	item->target->retain();
 	item->iter = _fixedUpdateList.emplace(_fixedUpdateList.end(), item);
@@ -99,7 +101,7 @@ void Scheduler::unschedule(ScheduledItem* item) {
 	}
 }
 
-void Scheduler::unscheduleFixed(ScheduledItem* item) {
+void Scheduler::unscheduleFixed(FixedScheduledItem* item) {
 	if (item->iter) {
 		_fixedUpdateList.erase(item->iter.value());
 		item->target->release();
@@ -139,19 +141,20 @@ bool Scheduler::update(double deltaTime) {
 	_deltaTime = deltaTime * _timeScale;
 	_leftTime += deltaTime;
 
+	static std::vector<std::pair<Ref<Object>, FixedScheduledItem*>> fixedUpdateObjects;
 	double fixedDelta = 1.0 / _fixedFPS;
 	double fixedDeltaTime = fixedDelta * _timeScale;
 	while (_leftTime > fixedDelta) {
-		_updateObjects.reserve(_fixedUpdateList.size());
+		fixedUpdateObjects.reserve(_fixedUpdateList.size());
 		for (auto item : _fixedUpdateList) {
-			_updateObjects.emplace_back(item->target, item);
+			fixedUpdateObjects.emplace_back(item->target, item);
 		}
-		for (const auto& updateObject : _updateObjects) {
-			if (updateObject.first->fixedUpdate(fixedDeltaTime)) {
-				unscheduleFixed(updateObject.second);
+		for (const auto& fixedUpdateObject : fixedUpdateObjects) {
+			if (fixedUpdateObject.second->fixedUpdate(fixedDeltaTime)) {
+				unscheduleFixed(fixedUpdateObject.second);
 			}
 		}
-		_updateObjects.clear();
+		fixedUpdateObjects.clear();
 		_leftTime -= fixedDelta;
 	}
 
@@ -190,31 +193,31 @@ bool Scheduler::update(double deltaTime) {
 	}
 
 	/* update scheduled items */
-	_updateObjects.reserve(_updateList.size());
+	static std::vector<std::pair<Ref<Object>, ScheduledItem*>> updateObjects;
+	updateObjects.reserve(_updateList.size());
 	for (auto item : _updateList) {
-		_updateObjects.emplace_back(item->target, item);
+		updateObjects.emplace_back(item->target, item);
 	}
-	for (const auto& updateObject : _updateObjects) {
-		if (updateObject.first->update(deltaTime)) {
+	for (const auto& updateObject : updateObjects) {
+		if (updateObject.second->update(deltaTime)) {
 			unschedule(updateObject.second);
 		}
 	}
-	_updateObjects.clear();
+	updateObjects.clear();
 	return false;
 }
 
 /* SystemTimer */
 
-SystemTimer::SystemTimer()
+SystemTimerBase::SystemTimerBase()
 	: _time(0)
-	, _duration(0)
-	, _scheduledItem(this) { }
+	, _duration(0) { }
 
-bool SystemTimer::isRunning() const {
+bool SystemTimerBase::isRunning() const {
 	return _time < _duration;
 }
 
-bool SystemTimer::update(double deltaTime) {
+bool SystemTimerBase::update(double deltaTime) {
 	_time += s_cast<float>(deltaTime);
 	if (_time >= _duration) {
 		if (_callback) {
@@ -233,7 +236,7 @@ void SystemTimer::start(float duration, const std::function<void()>& callback) {
 	SharedDirector.getSystemScheduler()->schedule(&_scheduledItem);
 }
 
-void SystemTimer::stop() {
+void SystemTimerBase::stop() {
 	_time = _duration = 0.0f;
 	_callback = nullptr;
 }

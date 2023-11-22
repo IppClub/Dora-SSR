@@ -111,16 +111,6 @@ uint32_t Object::getRefCount() const {
 	return _refCount;
 }
 
-bool Object::update(double deltaTime) {
-	DORA_UNUSED_PARAM(deltaTime);
-	return true;
-}
-
-bool Object::fixedUpdate(double deltaTime) {
-	DORA_UNUSED_PARAM(deltaTime);
-	return true;
-}
-
 void Object::cleanup() {
 	if (_weak) _weak->target = nullptr;
 }
