@@ -109,6 +109,7 @@ class Application
 	tolua_readonly tolua_property__common String platform;
 	tolua_readonly tolua_property__common String version;
 	tolua_readonly tolua_property__common String deps;
+	tolua_readonly tolua_property__common double deltaTime;
 	tolua_readonly tolua_property__common double eclapsedTime;
 	tolua_readonly tolua_property__common double totalTime;
 	tolua_readonly tolua_property__common double runningTime;
@@ -270,7 +271,6 @@ class Director
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
 	tolua_readonly tolua_property__common Scheduler* postScheduler;
 	tolua_readonly tolua_property__common Camera* currentCamera;
-	tolua_readonly tolua_property__common double deltaTime;
 	void pushCamera(Camera* camera);
 	void popCamera();
 	bool removeCamera(Camera* camera);

@@ -22,7 +22,8 @@ bool IsInLua();
 #define LogPrint(...) \
 	Dorothy::LogPrintInThread(fmt::format(__VA_ARGS__))
 
-#define println LogPrint
+#define println(format, ...) \
+	LogPrint(format "\n", ##__VA_ARGS__)
 
 #if DORA_DISABLE_LOG
 #define Info(...) DORA_DUMMY

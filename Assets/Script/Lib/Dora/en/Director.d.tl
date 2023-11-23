@@ -37,9 +37,6 @@ local record Director
 	-- The current active camera in Director's camera stack.
 	const currentCamera: Camera
 
-	-- The time in seconds since the last frame update.
-	const deltaTime: number
-
 	-- Adds a new camera to Director's camera stack and sets it to the current camera.
 	-- @param camera (Camera) The camera to add.
 	pushCamera: function(self: Director, camera: Camera)

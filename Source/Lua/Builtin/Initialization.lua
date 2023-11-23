@@ -1,9 +1,17 @@
-local table_insert = table.insert
-local table_remove = table.remove
-local type = type
-local unpack = table.unpack
-local builtin = builtin
-local package = package
+local table_insert <const> = table.insert
+local table_remove <const> = table.remove
+local type <const> = type
+local unpack <const> = table.unpack
+local builtin <const> = builtin
+local package <const> = package
+local coroutine <const> = coroutine
+local assert <const> = assert
+local xpcall <const> = xpcall
+local rawset <const> = rawset
+local setmetatable <const> = setmetatable
+local tostring <const> = tostring
+local select <const> = select
+local pairs <const>, ipairs <const> = pairs, ipairs
 
 -- setup Yuescript loader
 package.path = "?.lua"
@@ -20,43 +28,26 @@ local function traceback(err)
 end
 
 -- prepare singletons
-local App = builtin.Application()
-package.cpath = App.platform == "Windows" and "?.dll" or "?.so"
-builtin.App = App
-builtin.Application = nil
+do
+	builtin.App = builtin.Application()
+	builtin.Application = nil
+	package.cpath = builtin.App.platform == "Windows" and "?.dll" or "?.so"
 
-local Content = builtin.Content
-builtin.Content = Content()
-
-local Director = builtin.Director
-builtin.Director = Director()
-
-local View = builtin.View
-builtin.View = View()
-
-local Audio = builtin.Audio
-builtin.Audio = Audio()
-
-local Controller = builtin.Controller
-builtin.Controller = Controller()
-
-local Keyboard = builtin.Keyboard
-builtin.Keyboard = Keyboard()
-
-local DB = builtin.DB
-builtin.DB = DB()
-
-local HttpServer = builtin.HttpServer
-builtin.HttpServer = HttpServer()
-
-local AI = builtin.Platformer.Decision.AI
-builtin.Platformer.Decision.AI = AI()
-
-local Data = builtin.Platformer.Data
-builtin.Platformer.Data = Data()
+	builtin.Content = builtin.Content()
+	builtin.Director = builtin.Director()
+	builtin.View = builtin.View()
+	builtin.Audio = builtin.Audio()
+	builtin.Controller = builtin.Controller()
+	builtin.Keyboard = builtin.Keyboard()
+	builtin.DB = builtin.DB()
+	builtin.HttpServer = builtin.HttpServer()
+	builtin.Platformer.Decision.AI = builtin.Platformer.Decision.AI()
+	builtin.Platformer.Data = builtin.Platformer.Data()
+end
 
 -- setup loader profilers
 do
+	local App = builtin.App
 	local Profiler = builtin.Profiler
 	local EventName = Profiler.EventName
 	local loaders = package.loaders or package.searchers
@@ -113,8 +104,7 @@ do
 	local coroutine_resume = coroutine.resume
 	local coroutine_close = coroutine.close
 	local coroutine_status = coroutine.status
-	local xpcall = xpcall
-	local DirectorInst = Director()
+	local App = builtin.App
 
 	local function wait(cond)
 		repeat
@@ -145,7 +135,7 @@ do
 	local function cycle(duration, work)
 		local time = 0
 		local function worker()
-			local deltaTime = DirectorInst.deltaTime
+			local deltaTime = App.deltaTime
 			time = time + deltaTime
 			if time < duration then
 				work(time / duration)
@@ -197,7 +187,7 @@ do
 		end
 	})
 
-	DirectorInst.postScheduler:schedule(function()
+	builtin.Director.postScheduler:schedule(function()
 		local i, count = 1, #Routine
 		while i <= count do
 			local routine = Routine[i]
@@ -239,7 +229,7 @@ do
 			local time = 0
 			repeat
 				coroutine_yield(false)
-				time = time + DirectorInst.deltaTime
+				time = time + App.deltaTime
 			until time >= duration
 		else
 			coroutine_yield(false)
@@ -249,6 +239,7 @@ end
 
 -- async functions
 do
+	local Content = builtin.Content
 	local wait = builtin.wait
 	local Content_loadAsync = Content.loadAsync
 	Content.loadAsync = function(self, filename)
@@ -400,6 +391,7 @@ do
 		return saved
 	end
 
+	local DB = builtin.DB
 	local DB_queryAsync = DB.queryAsync
 	DB.queryAsync = function(self, ...)
 		local _, mainThread = coroutine.running()
@@ -497,6 +489,7 @@ do
 		return result
 	end
 
+	local HttpServer = builtin.HttpServer
 	local HttpServer_postSchedule = HttpServer.postSchedule
 	HttpServer.postSchedule = function(self, pattern, scheduleFunc)
 		HttpServer_postSchedule(self, pattern, function(req)
@@ -785,7 +778,6 @@ do
 
 	local Entity_index = Entity.__index
 	local Entity_get = Entity.get
-	local rawset = rawset
 	Entity.__index = function(self, key)
 		if key == "oldValues" then
 			rawset(Entity_oldValues, 1, self)

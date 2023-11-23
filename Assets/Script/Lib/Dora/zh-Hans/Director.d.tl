@@ -37,9 +37,6 @@ local record Director
 	-- 当前在应用的相机。
 	const currentCamera: Camera
 
-	-- 自从上一帧更新以来间隔的时间（以秒为单位）。
-	const deltaTime: number
-
 	-- 添加新相机到相机堆栈中，并设置为当前应用的相机。
 	-- @param camera (Camera) 要添加的相机。
 	pushCamera: function(self: Director, camera: Camera)

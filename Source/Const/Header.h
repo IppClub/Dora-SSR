@@ -28,6 +28,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 using namespace std::string_literals;
 #include <string_view>
 using namespace std::string_view_literals;
+#include <concepts>
 
 #include "bx/bx.h"
 

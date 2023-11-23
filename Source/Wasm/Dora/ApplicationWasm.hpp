@@ -19,6 +19,9 @@ static int64_t application_get_version() {
 static int64_t application_get_deps() {
 	return str_retain(SharedApplication.getDeps());
 }
+static double application_get_delta_time() {
+	return SharedApplication.getDeltaTime();
+}
 static double application_get_eclapsed_time() {
 	return SharedApplication.getEclapsedTime();
 }
@@ -102,6 +105,7 @@ static void linkApplication(wasm3::module3& mod) {
 	mod.link_optional("*", "application_get_platform", application_get_platform);
 	mod.link_optional("*", "application_get_version", application_get_version);
 	mod.link_optional("*", "application_get_deps", application_get_deps);
+	mod.link_optional("*", "application_get_delta_time", application_get_delta_time);
 	mod.link_optional("*", "application_get_eclapsed_time", application_get_eclapsed_time);
 	mod.link_optional("*", "application_get_total_time", application_get_total_time);
 	mod.link_optional("*", "application_get_running_time", application_get_running_time);

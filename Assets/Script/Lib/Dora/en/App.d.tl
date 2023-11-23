@@ -38,6 +38,9 @@ local record App
 	-- Should be in format of "v0.0.0".
 	const version: string
 
+	-- The time in seconds since the last frame update.
+	const deltaTime: number
+
 	-- The elapsed time since current frame was started, in seconds.
 	const eclapsedTime: number
 
