@@ -50,10 +50,12 @@ let waitingForDownload = false;
 let beforeUnload: () => void = () => {};
 
 window.onbeforeunload = (event: BeforeUnloadEvent) => {
-	beforeUnload();
-	if (contentModified) {
-		event.returnValue = "Please save before leaving!";
-		return "Please save before leaving!";
+	if (Info.version !== undefined) {
+		beforeUnload();
+		if (contentModified) {
+			event.returnValue = "Please save before leaving!";
+			return "Please save before leaving!";
+		}
 	}
 };
 
@@ -372,9 +374,6 @@ export default function PersistentDrawerLeft() {
 				case ".yue":
 				case ".xml":
 				case ".md":
-				case ".png":
-				case ".jpg":
-				case ".skel":
 				case ".yarn":
 				case ".vs": {
 					Service.read({path: key}).then((res) => {
