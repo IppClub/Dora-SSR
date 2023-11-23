@@ -13,21 +13,21 @@ using namespace Dorothy;
 
 DORA_TEST_ENTRY(HelloWorldCpp) {
 	auto node = Node::create();
-	node->slot("Enter"_slice, [](Event*) {
-		println("on enter event");
+	node->slot("Enter"sv, [](Event*) {
+		println("on enter event"sv);
 	});
-	node->slot("Exit"_slice, [](Event*) {
-		println("on exit event");
+	node->slot("Exit"sv, [](Event*) {
+		println("on exit event"sv);
 	});
-	node->slot("Cleanup"_slice, [](Event*) {
-		println("on node destoyed event");
+	node->slot("Cleanup"sv, [](Event*) {
+		println("on node destoyed event"sv);
 	});
 	node->schedule(once([]() -> Job {
-		for (int i = 3; i > 0; i--) {
+		for (int i = 5; i > 0; i--) {
 			println("{}", i);
 			co_sleep(1);
 		}
-		println("Hello World!");
+		println("Hello World!"sv);
 	}));
 	SharedDirector.getEntry()->addChild(node);
 

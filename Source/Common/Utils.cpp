@@ -11,6 +11,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Utils.h"
 
 #include "Basic/Application.h"
+#include "Basic/Director.h"
+#include "Basic/Scheduler.h"
 #include "Event/Event.h"
 #include "Lua/ToLua/tolua++.h"
 
@@ -164,6 +166,14 @@ std::function<bool(double)> loop(const std::function<Job()>& work) {
 		}
 		return false;
 	});
+}
+
+void thread(const std::function<Job()>& work) {
+	SharedDirector.getScheduler()->schedule(once(work));
+}
+
+void threadLoop(const std::function<Job()>& work) {
+	SharedDirector.getScheduler()->schedule(loop(work));
 }
 
 NS_DOROTHY_END
