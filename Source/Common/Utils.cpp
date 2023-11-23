@@ -114,4 +114,56 @@ std::string Path::replaceFilename(String path, String newFile) {
 	return fs::path(path.toString()).replace_filename(newFile.toString()).string();
 }
 
+std::function<bool(double)> once(const std::function<Job()>& work) {
+	auto co = std::make_shared<std::optional<Job>>();
+	return std::function<bool(double)>([co, work](double) {
+		if (!*co) {
+			*co = work();
+			const auto& coroutine = co->value();
+			if (coroutine.promise().value || coroutine.done()) {
+				return true;
+			}
+		} else {
+			const auto& coroutine = co->value();
+			coroutine.resume();
+			if (coroutine.promise().exception) {
+				std::rethrow_exception(coroutine.promise().exception);
+			}
+			if (coroutine.promise().value) {
+				return true;
+			}
+			if (coroutine.done()) {
+				return true;
+			}
+		}
+		return false;
+	});
+}
+
+std::function<bool(double)> loop(const std::function<Job()>& work) {
+	auto co = std::make_shared<std::optional<Job>>();
+	return std::function<bool(double)>([co, work](double) {
+		if (!*co) {
+			*co = work();
+			const auto& coroutine = co->value();
+			if (coroutine.promise().value || coroutine.done()) {
+				return true;
+			}
+		} else {
+			const auto& coroutine = co->value();
+			coroutine.resume();
+			if (coroutine.promise().exception) {
+				std::rethrow_exception(coroutine.promise().exception);
+			}
+			if (coroutine.promise().value) {
+				return true;
+			}
+			if (coroutine.done()) {
+				*co = std::nullopt;
+			}
+		}
+		return false;
+	});
+}
+
 NS_DOROTHY_END

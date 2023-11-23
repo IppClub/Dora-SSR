@@ -8,6 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include <coroutine>
+
 NS_DOROTHY_BEGIN
 
 /** @brief Helper macros to define setters and getters */
@@ -401,5 +403,64 @@ struct StringHash {
 
 template <class T>
 using StringMap = std::unordered_map<std::string, T, StringHash, std::equal_to<>>;
+
+/** @brief C++ 20 coroutine helper */
+template <typename T>
+struct Promise;
+
+template <typename T>
+struct Coroutine : std::coroutine_handle<Promise<T>> {
+	using promise_type = Promise<T>;
+};
+
+template <typename T>
+struct Promise {
+	T value;
+	std::exception_ptr exception;
+	Coroutine<T> get_return_object() { return {Coroutine<T>::from_promise(*this)}; }
+	std::suspend_always initial_suspend() noexcept { return {}; }
+	std::suspend_always final_suspend() noexcept { return {}; }
+	template <std::convertible_to<T> From>
+	std::suspend_always yield_value(From&& from) {
+		value = std::forward<From>(from);
+		return {};
+	}
+	void return_void() { }
+	void unhandled_exception() { exception = std::current_exception(); }
+};
+
+using Job = Coroutine<bool>;
+
+#define co_sleep(duration) \
+	{ \
+		double __time = 0.0; \
+		double __duration = s_cast<double>(duration); \
+		do { \
+			co_yield false; \
+			__time += SharedApplication.getDeltaTime(); \
+		} while (__time < __duration); \
+	}
+
+#define co_wait(condition) \
+	while (!(condition)) { \
+		co_yield false; \
+	}
+
+#define co_cycle(duration, work) \
+	{ \
+		double __time = 0.0; \
+		double __duration = s_cast<double>(duration); \
+		auto __work = work; \
+		do { \
+			__work(s_cast<float>(std::min(1.0, __time / __duration))); \
+			if (__time >= __duration) break; \
+			co_yield false; \
+			__time += SharedApplication.getDeltaTime(); \
+		} while (true); \
+	}
+
+std::function<bool(double)> once(const std::function<Job()>& work);
+
+std::function<bool(double)> loop(const std::function<Job()>& work);
 
 NS_DOROTHY_END
