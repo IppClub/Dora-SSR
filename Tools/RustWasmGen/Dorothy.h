@@ -54,6 +54,7 @@ singleton class Application @ App
 	readonly common string platform;
 	readonly common string version;
 	readonly common string deps;
+	readonly common double deltaTime;
 	readonly common double eclapsedTime;
 	readonly common double totalTime;
 	readonly common double runningTime;
@@ -192,7 +193,6 @@ singleton class Director
 	readonly common Scheduler* systemScheduler;
 	readonly common Scheduler* postScheduler;
 	readonly common Camera* currentCamera;
-	readonly common double deltaTime;
 	void pushCamera(Camera* camera);
 	void popCamera();
 	bool removeCamera(Camera* camera);

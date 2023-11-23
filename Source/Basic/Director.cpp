@@ -118,10 +118,6 @@ Scheduler* Director::getPostScheduler() const {
 	return _postScheduler;
 }
 
-double Director::getDeltaTime() const {
-	return SharedApplication.getDeltaTime();
-}
-
 void Director::pushCamera(Camera* var) {
 	Camera* lastCamera = getCurrentCamera();
 	lastCamera->Updated -= std::make_pair(this, &Director::markDirty);
@@ -213,8 +209,10 @@ bool Director::init() {
 void Director::doLogic() {
 	if (_stoped) return;
 
+	double deltaTime = SharedApplication.getDeltaTime();
+
 	/* update system logic */
-	_systemScheduler->update(getDeltaTime());
+	_systemScheduler->update(deltaTime);
 
 	if (_paused) return;
 
@@ -228,8 +226,8 @@ void Director::doLogic() {
 	pushViewProjection(_defaultViewProj, [&]() {
 		/* update game logic */
 		SharedImGui.begin();
-		_scheduler->update(getDeltaTime());
-		_postScheduler->update(getDeltaTime());
+		_scheduler->update(deltaTime);
+		_postScheduler->update(deltaTime);
 		SharedImGui.end();
 
 		SharedKeyboard.clearChanges();

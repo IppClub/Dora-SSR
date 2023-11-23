@@ -10,7 +10,6 @@ extern "C" {
 	fn director_get_system_scheduler() -> i64;
 	fn director_get_post_scheduler() -> i64;
 	fn director_get_current_camera() -> i64;
-	fn director_get_delta_time() -> f64;
 	fn director_push_camera(camera: i64);
 	fn director_pop_camera();
 	fn director_remove_camera(camera: i64) -> i32;
@@ -52,9 +51,6 @@ impl Director {
 	}
 	pub fn get_current_camera() -> crate::dora::Camera {
 		return unsafe { crate::dora::Camera::from(director_get_current_camera()).unwrap() };
-	}
-	pub fn get_delta_time() -> f64 {
-		return unsafe { director_get_delta_time() };
 	}
 	pub fn push_camera(camera: &dyn crate::dora::ICamera) {
 		unsafe { director_push_camera(camera.raw()); }

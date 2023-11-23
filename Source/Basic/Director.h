@@ -38,7 +38,6 @@ public:
 	PROPERTY_READONLY(Camera*, PrevCamera);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(Scheduler*, PostScheduler);
-	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(const Matrix&, ViewProjection);
 	bool init();
 	void doLogic();

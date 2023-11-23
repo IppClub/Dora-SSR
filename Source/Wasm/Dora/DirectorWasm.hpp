@@ -31,9 +31,6 @@ static int64_t director_get_post_scheduler() {
 static int64_t director_get_current_camera() {
 	return from_object(SharedDirector.getCurrentCamera());
 }
-static double director_get_delta_time() {
-	return SharedDirector.getDeltaTime();
-}
 static void director_push_camera(int64_t camera) {
 	SharedDirector.pushCamera(r_cast<Camera*>(camera));
 }
@@ -61,7 +58,6 @@ static void linkDirector(wasm3::module3& mod) {
 	mod.link_optional("*", "director_get_system_scheduler", director_get_system_scheduler);
 	mod.link_optional("*", "director_get_post_scheduler", director_get_post_scheduler);
 	mod.link_optional("*", "director_get_current_camera", director_get_current_camera);
-	mod.link_optional("*", "director_get_delta_time", director_get_delta_time);
 	mod.link_optional("*", "director_push_camera", director_push_camera);
 	mod.link_optional("*", "director_pop_camera", director_pop_camera);
 	mod.link_optional("*", "director_remove_camera", director_remove_camera);

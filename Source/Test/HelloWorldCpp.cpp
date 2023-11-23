@@ -22,24 +22,32 @@ DORA_TEST_ENTRY(HelloWorldCpp) {
 	node->slot("Cleanup"_slice, [](Event*) {
 		println("on node destoyed event");
 	});
-	auto time = std::make_shared<double>(0);
-	auto countDown = std::make_shared<int>(5);
-	node->schedule([time, countDown](double deltaTime) {
-		*time += deltaTime;
-		if (*time >= 1.0) {
-			*time = 0;
-			if (*countDown > 0) {
-				println("{}", *countDown);
-			}
-			--*countDown;
+	node->schedule(once([]() -> Job {
+		for (int i = 3; i > 0; i--) {
+			println("{}", i);
+			co_sleep(1);
 		}
-		if (*countDown < 0) {
-			println("Hello World!");
-			return true;
-		}
-		return false;
-	});
+		println("Hello World!");
+	}));
 	SharedDirector.getEntry()->addChild(node);
+
+//	auto time = std::make_shared<double>(0);
+//	auto countDown = std::make_shared<int>(5);
+//	node->schedule([time, countDown](double deltaTime) {
+//		*time += deltaTime;
+//		if (*time >= 1.0) {
+//			*time = 0;
+//			if (*countDown > 0) {
+//				println("{}", *countDown);
+//			}
+//			--*countDown;
+//		}
+//		if (*countDown < 0) {
+//			println("Hello World!");
+//			return true;
+//		}
+//		return false;
+//	});
 
 	auto ui = Node::create();
 	ui->schedule([](double) {

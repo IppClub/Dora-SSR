@@ -37,6 +37,9 @@ local record App
 	-- 格式为“v0.0.0”。
 	const version: string
 
+	-- 自从上一帧游戏更新以来间隔的时间（以秒为单位）。
+	const deltaTime: number
+
 	-- 从当前游戏帧开始到本次API调用经过的时间（以秒为单位）。
 	const eclapsedTime: number
 
