@@ -69,7 +69,7 @@ concept FixedUpdatable = requires(T t) {
 	{ t.fixedUpdate(double()) } -> std::same_as<bool>;
 };
 
-template <Updatable T>
+template <FixedUpdatable T>
 class FixedScheduledItemWrapper : public FixedScheduledItem {
 public:
 	FixedScheduledItemWrapper(Updatable auto* item)
