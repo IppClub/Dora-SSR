@@ -286,62 +286,6 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const openFileInTab = (key: string, title: string, position?: monaco.IPosition, mdEditing?: boolean, sortIndex?: number, targetIndex?: number) => {
-		const sortedFiles = (prev: EditingFile[], index: number) => {
-			if (sortIndex !== undefined) {
-				const result = prev.sort((a, b) => {
-					const indexA = a.sortIndex ?? 0;
-					const indexB = b.sortIndex ?? 0;
-					if (indexA < indexB) {
-						return -1;
-					} else if (indexA > indexB) {
-						return 1;
-					} else {
-						return 0;
-					}
-				});
-				if (targetIndex !== undefined && result.length > targetIndex && result[targetIndex].sortIndex === targetIndex) {
-					switchTab(targetIndex, result[targetIndex]);
-				}
-				return [...result];
-			} else {
-				switchTab(index, prev[index]);
-				return [...prev];
-			}
-		};
-		const ext = path.extname(title).toLowerCase();
-		switch (ext) {
-			case ".lua":
-			case ".tl":
-			case ".yue":
-			case ".xml":
-			case ".md":
-			case ".png":
-			case ".jpg":
-			case ".skel":
-			case ".yarn":
-			case ".vs": {
-				break;
-			}
-			case "": {
-				if (checkFileReadonly(key)) {
-					return;
-				}
-				setFiles(prev => {
-					const index = prev.length;
-					return sortedFiles([...prev, {
-						key,
-						title,
-						content: "",
-						contentModified: null,
-						uploading: true,
-						sortIndex,
-						status: "normal",
-					}], index);
-				});
-				return;
-			}
-			default: return;
-		}
 		let index: number | null = null;
 		const file = files.find((file, i) => {
 			if (path.relative(file.key, key) === "") {
@@ -362,7 +306,48 @@ export default function PersistentDrawerLeft() {
 			}
 		}
 		if (index === null) {
+			const sortedFiles = (prev: EditingFile[], index: number) => {
+				if (sortIndex !== undefined) {
+					const result = prev.sort((a, b) => {
+						const indexA = a.sortIndex ?? 0;
+						const indexB = b.sortIndex ?? 0;
+						if (indexA < indexB) {
+							return -1;
+						} else if (indexA > indexB) {
+							return 1;
+						} else {
+							return 0;
+						}
+					});
+					if (targetIndex !== undefined && result.length > targetIndex && result[targetIndex].sortIndex === targetIndex) {
+						switchTab(targetIndex, result[targetIndex]);
+					}
+					return [...result];
+				} else {
+					switchTab(index, prev[index]);
+					return [...prev];
+				}
+			};
+			const ext = path.extname(title).toLowerCase();
 			switch (ext) {
+				case "": {
+					if (checkFileReadonly(key)) {
+						break;
+					}
+					setFiles(prev => {
+						const index = prev.length;
+						return sortedFiles([...prev, {
+							key,
+							title,
+							content: "",
+							contentModified: null,
+							uploading: true,
+							sortIndex,
+							status: "normal",
+						}], index);
+					});
+					break;
+				}
 				case ".png":
 				case ".jpg":
 				case ".skel": {
@@ -382,7 +367,16 @@ export default function PersistentDrawerLeft() {
 					});
 					break;
 				}
-				default: {
+				case ".lua":
+				case ".tl":
+				case ".yue":
+				case ".xml":
+				case ".md":
+				case ".png":
+				case ".jpg":
+				case ".skel":
+				case ".yarn":
+				case ".vs": {
 					Service.read({path: key}).then((res) => {
 						if (res.success && res.content !== undefined) {
 							const content = res.content;
