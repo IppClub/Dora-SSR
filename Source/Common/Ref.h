@@ -10,9 +10,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-/** @brief Used with Aggregation Relationship.
- @param T Object
-*/
 template <class T = Object>
 class Ref {
 public:
@@ -57,8 +54,8 @@ public:
 		return item;
 	}
 	const Ref& operator=(const Ref& ref) {
-		if (this == &ref) // handle self assign
-		{
+		// handle self assign
+		if (this == &ref) {
 			return *this;
 		}
 		if (ref._item) {
@@ -71,8 +68,8 @@ public:
 		return *this;
 	}
 	const Ref& operator=(Ref&& ref) noexcept {
-		if (this == &ref) // handle self assign
-		{
+		// handle self assign
+		if (this == &ref) {
 			return *this;
 		}
 		if (_item) {
@@ -121,9 +118,6 @@ inline Ref<T> NewRef(Args&&... args) {
 	return Ref<T>(T::create(std::forward<Args>(args)...));
 }
 
-/** @brief Used with Aggregation Relationship.
- @param T Object
-*/
 template <class T = Object>
 class RefVector : public std::vector<Ref<T>> {
 	typedef std::vector<Ref<T>> RefV;

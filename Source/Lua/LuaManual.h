@@ -253,7 +253,7 @@ void WasmRuntime_clear();
 
 /* Test */
 int Test_getNames(lua_State* L);
-int Test_runTest(lua_State* L);
+int Test_run(lua_State* L);
 
 NS_DOROTHY_END
 
