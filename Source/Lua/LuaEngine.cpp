@@ -852,7 +852,7 @@ LuaEngine::LuaEngine()
 		tolua_beginmodule(L, "Application");
 		{
 			tolua_variable(L, "testNames", Test_getNames, nullptr);
-			tolua_function(L, "runTest", Test_runTest);
+			tolua_function(L, "runTest", Test_run);
 		}
 		tolua_endmodule(L);
 

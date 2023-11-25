@@ -30,7 +30,7 @@ StringMap<TestEntry*>& Test::getTests() {
 	return tests;
 }
 
-bool Test::runTest(String name) {
+bool Test::run(String name) {
 	try {
 		if (auto it = getTests().find(name); it != getTests().end()) {
 			return it->second->run();
@@ -49,7 +49,7 @@ std::list<std::string> Test::getNames() {
 	return {};
 }
 
-bool Test::runTest(String) {
+bool Test::run(String) {
 	return true;
 }
 
