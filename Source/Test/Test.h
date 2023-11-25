@@ -21,7 +21,7 @@ public:
 class Test {
 public:
 	static std::list<std::string> getNames();
-	static bool runTest(String name);
+	static bool run(String name);
 #if DORA_TEST
 private:
 	static StringMap<TestEntry*>& getTests();
