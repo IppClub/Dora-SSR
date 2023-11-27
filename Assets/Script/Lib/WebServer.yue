@@ -78,8 +78,11 @@ luaCheck = (file, content)->
 				if not item[5]\match("unused") and item[5]\match check
 					useCheck = false
 			continue unless useCheck
-			if item[1] == "type"
-				item[1] = "warning"
+			switch item[1]
+				when "type"
+					item[1] = "warning"
+				when "parsing", "syntax"
+					continue
 			item
 		if #info == 0
 			info = nil
@@ -560,7 +563,7 @@ HttpServer\post "/assets", ->
 		children = nil
 		dirs = Content\getDirs path
 		for dir in *dirs
-			if root then switch dir when ".upload", ".download", ".www"
+			if root then switch dir when ".upload", ".download", ".www", ".build"
 				continue
 			elseif dir == ".git"
 				continue
