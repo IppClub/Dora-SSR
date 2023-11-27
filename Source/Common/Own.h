@@ -64,7 +64,7 @@ public:
 	bool fast_remove(const Own<T>& item) {
 		size_t index = std::distance(OwnV::begin(), OwnVector::index(item));
 		if (index < OwnV::size()) {
-			OwnV::at(index) = OwnV::back();
+			OwnV::at(index) = std::move(OwnV::back());
 			OwnV::pop_back();
 			return true;
 		}
