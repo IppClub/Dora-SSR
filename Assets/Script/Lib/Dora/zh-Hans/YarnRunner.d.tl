@@ -57,6 +57,9 @@ local record YarnRunner
 
 		-- 文本的可选标记。
 		marks: nil | {Markup}
+
+		-- 表示下一个叙事推进得到的结果将为选项的标志。
+		optionsFollowed: nil | boolean
 	end
 
 	-- 在叙述中定义选项的记录。

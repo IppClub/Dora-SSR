@@ -84,7 +84,10 @@ advance = (option)->
 				switch mark when {name: attr, attrs: {:name}}
 					charName = "#{name}: " if attr == "char"
 		texts[] = charName .. result.text
-		setButtons!
+		if result.optionsFollowed
+			advance!
+		else
+			setButtons!
 	when "Option"
 		for i, op in ipairs result
 			texts[] = "[#{i}]: #{op.text}"
