@@ -1309,6 +1309,9 @@ local function ParseLua(src)
 				if not tok:ConsumeKeyword('then', tokenList) then
 					return false, GenerateError("`then` expected.")
 				end
+				if tok:IsSymbol(';') then
+					tok:Get()
+				end
 				local st, nodeBody = ParseStatementList(scope)
 				if not st then return false, nodeBody end
 				nodeIfStat.Clauses[#nodeIfStat.Clauses+1] = {
