@@ -868,10 +868,14 @@ public:
 			return;
 		}
 		str_list temp;
-		for (auto stmt : block->statements.objects()) {
+		const auto& stmts = block->statements.objects();
+		for (auto it = stmts.begin(); it != stmts.end(); ++it) {
+			auto stmt = *it;
 			switch (stmt->get_id()) {
 				case id<Dialog_t>(): {
-					transformDialog(static_cast<Dialog_t*>(stmt), temp);
+					auto next = it;
+					++next;
+					transformDialog(static_cast<Dialog_t*>(stmt), temp, next != stmts.end() && (*next)->get_id() == id<OptionGroup_t>());
 					temp.back() = indent() + "coroutine.yield(\"Dialog\", "s + temp.back() + ')' + nl(stmt);
 					break;
 				}
@@ -917,7 +921,7 @@ public:
 		}
 	}
 
-	void transformDialog(Dialog_t* dialog, str_list& out) {
+	void transformDialog(Dialog_t* dialog, str_list& out, bool optionsFollowed) {
 		auto x = dialog;
 		str_list texts;
 		std::list<MarkupItem> markups;
@@ -1032,6 +1036,9 @@ public:
 			decIndentOffset();
 			_buf << indent() << "},"sv << nl(x);
 		}
+		if (optionsFollowed) {
+			_buf << indent() << "optionsFollowed = true,"sv << nl(x);
+		}
 		decIndentOffset();
 		_buf << indent() << '}';
 		if (ifTags.empty()) {
@@ -1071,7 +1078,7 @@ public:
 		incIndentOffset();
 		for (auto group : group->options.objects()) {
 			auto option = static_cast<Option_t*>(group);
-			transformDialog(option->dialog, options);
+			transformDialog(option->dialog, options, false);
 			options.back() = indent() + options.back() + ',' + nl(x);
 			branches.push_back(indent() + "function()"s + nl(x));
 			if (option->block) {

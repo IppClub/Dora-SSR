@@ -57,6 +57,9 @@ local record YarnRunner
 
 		-- Optional markup for the text.
 		marks: nil | {Markup}
+
+		-- A flag indicating that advancing will yield an OptionResult as the next result.
+		optionsFollowed: nil | boolean
 	end
 
 	-- Record to define options in the narrative.
@@ -70,9 +73,9 @@ local record YarnRunner
 	-- @param choice (integer) [optional] Index of the choice if presented with options.
 	-- @return (nil | ResultType) Returns nil if the narrative ended. Returns enum string result when YarnRunner is still running.
 	-- @return (string | table) Depending on the narrative, it can return a type of result and the associated content:
-	-- "Text" and a TextResult
-	-- "Option" and an OptionResult
-	-- "Error" and a string error message
+	-- "Text" and a TextResult.
+	-- "Option" and an OptionResult.
+	-- "Error" and a string error message.
 	-- nil and a string indecating the narrative ends.
 	advance: function(self: YarnRunner, choice?: integer): nil | ResultType, string | table
 end
