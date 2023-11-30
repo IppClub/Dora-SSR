@@ -678,6 +678,12 @@ displayWindowFlags =
 
 webStatus = nil
 descColor = Color 0xffa1a1a1
+inputBuf = Buffer 20
+gameOpen = false
+exampleOpen = false
+testOpen = false
+filterText = nil
+match = (name)-> not filterText or name\lower!\match filterText
 
 entryWindow = threadLoop ->
 	if App.fpsLimited ~= (config.fpsLimited == 1)
@@ -721,79 +727,136 @@ entryWindow = threadLoop ->
 		Begin "Dorothy Dev", displayWindowFlags, ->
 			Dummy Vec2 fullWidth - 20, 2
 			TextColored themeColor, "DOROTHY SSR #{zh and '开发' or 'DEV'}"
+			SameLine!
+			if fullWidth >= 320
+				Dummy Vec2 fullWidth - 320, 0
+				SameLine!
+				SetNextItemWidth -50
+				InputText zh and '筛选' or 'Filter', inputBuf, ["AutoSelectAll",]
 	SetNextWindowPos Vec2 0, 45
 	SetNextWindowSize Vec2 fullWidth, height - 95
 	PushStyleColor "WindowBg", Color(0x0), -> PushStyleVar "WindowPadding", Vec2(paddingX, 10), ->
 		Begin "Content", windowFlags, ->
+			filterText = inputBuf\toString!\match "[^%%%.%[]+"
+			filterText = filterText\lower! if filterText
 			if #gamesInDev > 0
 				for game in *gamesInDev
 					[gameName, _, examples, tests] = game
-					Columns 1, false
-					TextColored themeColor, zh and "项目：" or "Project:"
-					SameLine!
-					Text gameName
-					Separator!
-					PushID gameName, ->
-						if Button zh and "开始运行" or "Game Start", Vec2 -1, 40
-							enterDemoEntry game
+					showSep = false
+					if match gameName
+						Columns 1, false
+						TextColored themeColor, zh and "项目：" or "Project:"
+						SameLine!
+						Text gameName
+						Separator!
+						PushID gameName, ->
+							if Button zh and "开始运行" or "Game Start", Vec2 -1, 40
+								enterDemoEntry game
 						NextColumn!
-						if #examples > 0
+						showSep = true
+					if #examples > 0
+						showExample = false
+						for example in *examples
+							if match example[1]
+								showExample = true
+								break
+						if showExample
 							Columns 1, false
 							TextColored themeColor, zh and "示例：" or "Example:"
 							SameLine!
 							Text gameName
 							Columns maxColumns, false
 							for example in *examples
+								continue unless match example[1]
 								PushID "#{gameName} #{example[1]} example", ->
 									if Button example[1], Vec2 -1, 40
 										enterDemoEntry example
 									NextColumn!
-						if #tests > 0
+								showSep = true
+					if #tests > 0
+						showTest = false
+						for test in *tests
+							if match test[1]
+								showTest = true
+								break
+						if showTest
 							Columns 1, false
 							TextColored themeColor, zh and "测试：" or "Test:"
 							SameLine!
 							Text gameName
 							Columns maxColumns, false
 							for test in *tests
+								continue unless match test[1]
 								PushID "#{gameName} #{test[1]} test", ->
 									if Button test[1], Vec2 -1, 40
 										enterDemoEntry test
 									NextColumn!
+								showSep = true
+					if showSep
 						Columns 1, false
 						Separator!
 			if #games > 0 or #doraExamples > 0 or #doraTests > 0
+				showGame = false
+				for [name,] in *games
+					showGame = true if match name
+				showExample = false
+				for [name,] in *doraExamples
+					showExample = true if match name
+				showTest = false
+				for [name,] in *doraTests
+					showTest = true if match name
+				for [name,] in *cppTests
+					showTest = true if match name
+				goto endEntry unless showGame or showExample or showTest
 				Columns 1, false
 				TextColored themeColor, "Dorothy SSR:"
 				SameLine!
 				Text zh and "开发示例" or "Development Showcase"
 				Separator!
-				if #games > 0
-					<- TreeNode zh and "游戏演示" or "Game Demo"
-					Columns maxColumns, false
-					for game in *games
-						if Button game[1], Vec2 -1, 40
-							enterDemoEntry game
-						NextColumn!
-					Columns 1, false
-				if #doraExamples > 0
-					<- TreeNode zh and "引擎示例" or "Engine Example"
-					Columns maxColumns, false
-					for example in *doraExamples
-						if Button example[1], Vec2 -1, 40
-							enterDemoEntry example
-						NextColumn!
-					Columns 1, false
-				if #doraTests > 0
-					<- TreeNode zh and "引擎测试" or "Engine Test"
-					Columns maxColumns, false
-					for test in *doraTests
-						if Button test[1], Vec2 -1, 40
-							enterDemoEntry test
-						NextColumn!
-					for test in *cppTests
-						if Button test[1], Vec2 -1, 40
-							enterDemoEntry test
-						NextColumn!
+				if #games > 0 and showGame
+					opened = if filterText? then showGame else false
+					SetNextItemOpen gameOpen
+					TreeNode zh and "游戏演示" or "Game Demo", ->
+						Columns maxColumns, false
+						for game in *games
+							continue unless match game[1]
+							if Button game[1], Vec2 -1, 40
+								enterDemoEntry game
+							NextColumn!
+						Columns 1, false
+						opened = true
+					gameOpen = opened
+				if #doraExamples > 0 and showExample
+					opened = if filterText? then showExample else false
+					SetNextItemOpen exampleOpen
+					TreeNode zh and "引擎示例" or "Engine Example", ->
+						Columns maxColumns, false
+						for example in *doraExamples
+							continue unless match example[1]
+							if Button example[1], Vec2 -1, 40
+								enterDemoEntry example
+							NextColumn!
+						Columns 1, false
+						opened = true
+					exampleOpen = opened
+				if (#doraTests > 0 or #cppTests > 0) and showTest
+					opened = if filterText? then showTest else false
+					SetNextItemOpen testOpen
+					TreeNode zh and "引擎测试" or "Engine Test", ->
+						Columns maxColumns, false
+						for test in *doraTests
+							continue unless match test[1]
+							if Button test[1], Vec2 -1, 40
+								enterDemoEntry test
+							NextColumn!
+						for test in *cppTests
+							continue unless match test[1]
+							if Button test[1], Vec2 -1, 40
+								enterDemoEntry test
+							NextColumn!
+						opened = true
+					testOpen = opened
+			::endEntry::
 			Columns 1, false
 			Dummy Vec2 100, 40
 
