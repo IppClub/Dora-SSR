@@ -14,7 +14,7 @@ width, height = viewWidth - 200, viewHeight - 20
 
 fontSize = math.floor 20 * App.devicePixelRatio
 
-texts = {}
+texts = []
 
 local root, label, scroll, control
 
@@ -104,8 +104,8 @@ advance = (option)->
 
 advance!
 
-testFiles = {"tutorial.yarn"}
-files = {"tutorial.yarn"}
+testFiles = ["tutorial.yarn",]
+files = ["tutorial.yarn",]
 for file in *Content\getAllFiles Content.writablePath
 	continue if "yarn" ~= Path\getExt file
 	testFiles[] = Path Content.writablePath, file
@@ -129,7 +129,7 @@ Director.entry\addChild with Node!
 			changed, currentFile = Combo "File", currentFile, files
 			if changed
 				runner = YarnRunner testFiles[currentFile], "Start", {}, commands, true
-				texts = {}
+				texts = []
 				advance!
 			Text "Variables"
 			Separator!
