@@ -662,6 +662,18 @@ HttpServer\post "/editingInfo", (req)->
 		config.editingInfo = editingInfo
 		success: true
 	else
+		if not config.editingInfo?
+			import "json"
+			folder = if App.locale\match '^zh' then 'zh-Hans' else 'en'
+			config.editingInfo = json.dump {
+				index: 0
+				files: [
+					{
+						key: Path Content.assetPath, 'Doc', folder, 'welcome.md'
+						title: "welcome.md"
+					}
+				]
+			}
 		success: true, editingInfo: config.editingInfo
 
 HttpServer\post "/command", (req)->
