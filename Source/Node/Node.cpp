@@ -549,7 +549,6 @@ void Node::moveToParent(Node* parent) {
 void Node::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
 		_flags.setOn(Node::Cleanup);
-		Object::cleanup();
 		emit("Cleanup"_slice);
 		_signal = nullptr;
 		ARRAY_START(Node, child, _children) {
@@ -569,6 +568,7 @@ void Node::cleanup() {
 			setControllerEnabled(false);
 		}
 		_parent = nullptr;
+		Object::cleanup();
 	}
 }
 
