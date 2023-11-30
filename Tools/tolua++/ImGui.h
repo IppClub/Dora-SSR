@@ -156,6 +156,7 @@ namespace ImGui
 	void PopStyleColor(int count = 1);
 	void PopStyleVar(int count = 1);
 
+	void SetNextItemWidth(float item_width);
 	void PushItemWidth(float item_width);
 	void PopItemWidth();
 	float CalcItemWidth();

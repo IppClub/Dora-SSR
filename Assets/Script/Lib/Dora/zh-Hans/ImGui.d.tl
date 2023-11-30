@@ -714,6 +714,7 @@ local record ImGui
 	)
 	SetKeyboardFocusHere: function(offset?: integer --[[0]])
 
+	SetNextItemWidth: function(item_width: number)
 	PushItemWidth: function(item_width: number, inside: function())
 	CalcItemWidth: function(): number
 	PushTextWrapPos: function(wrap_pos_x: number --[[0.0]], inside: function())
