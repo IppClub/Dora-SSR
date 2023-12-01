@@ -50,6 +50,7 @@ config = Config(
 	"showStats"
 	"showConsole"
 	"showFooter"
+	"filter"
 )
 config\load!
 if config.fpsLimited?
@@ -122,6 +123,12 @@ if config.showFooter?
 	showFooter = config.showFooter > 0
 else
 	config.showFooter = showFooter and 1 or 0
+
+filterBuf = Buffer 20
+if config.filter?
+	filterBuf\setString config.filter
+else
+	config.filter = ""
 
 export.getConfig = -> config
 
@@ -659,10 +666,12 @@ footerWindow = threadLoop ->
 		PushStyleVar "WindowPadding", Vec2(10, 10), ->
 			if showStats
 				SetNextWindowPos Vec2(10, 50), "FirstUseEver"
-				ShowStats extraOperations
+				showStats = ShowStats showStats, extraOperations
+				config.showStats = showStats and 1 or 0
 			if showConsole
 				SetNextWindowPos Vec2(width - 425, height - 375), "FirstUseEver"
-				ShowConsole!
+				showConsole = ShowConsole showConsole
+				config.showConsole = showConsole and 1 or 0
 
 const MaxWidth = 800
 
@@ -678,7 +687,6 @@ displayWindowFlags =
 
 webStatus = nil
 descColor = Color 0xffa1a1a1
-inputBuf = Buffer 20
 gameOpen = false
 exampleOpen = false
 testOpen = false
@@ -703,20 +711,25 @@ entryWindow = threadLoop ->
 		SetNextWindowBgAlpha 0.5
 		SetNextWindowPos Vec2(width / 2, height / 2), "Always", Vec2 0.5, 0.5
 		Begin "Web IDE Connected", displayWindowFlags, ->
+			Separator!
 			TextColored themeColor, "#{zh and '网页 IDE 已连接 ……' or 'Web IDE connected ...'}"
 			slogon = zh and 'Dorothy 启动！' or 'Dorothy Start!'
 			TextColored descColor, slogon
+			Separator!
 		return
 
 	:themeColor = App
 	width:fullWidth, :height = App.visualSize
 
 	SetNextWindowBgAlpha 0.85
-	SetNextWindowPos Vec2(5, height - 120), "Always", Vec2 0, 0
-	Begin "Web IDE", displayWindowFlags, ->
-		TextColored themeColor, "#{zh and '网页' or 'Web'} IDE"
-		url = webStatus?.url ?? zh and '不可用' or 'not available'
-		TextColored descColor, url
+	SetNextWindowPos Vec2(5, height - 130), "Always", Vec2 0, 0
+	PushStyleVar "WindowPadding", Vec2(10, 5), ->
+		Begin "Web IDE", displayWindowFlags, ->
+			Separator!
+			TextColored themeColor, "#{zh and '网页' or 'Web'} IDE"
+			url = webStatus?.url ?? zh and '不可用' or 'not available'
+			TextColored descColor, url
+			Separator!
 
 	width = math.min MaxWidth, fullWidth
 	paddingX = math.max 10, fullWidth / 2 - width / 2 - 10
@@ -725,19 +738,22 @@ entryWindow = threadLoop ->
 	SetNextWindowBgAlpha 0
 	PushStyleVar "WindowPadding", Vec2(10, 0), ->
 		Begin "Dorothy Dev", displayWindowFlags, ->
-			Dummy Vec2 fullWidth - 20, 2
+			Dummy Vec2 fullWidth - 20, 0
 			TextColored themeColor, "DOROTHY SSR #{zh and '开发' or 'DEV'}"
 			SameLine!
 			if fullWidth >= 320
 				Dummy Vec2 fullWidth - 320, 0
 				SameLine!
 				SetNextItemWidth -50
-				InputText zh and '筛选' or 'Filter', inputBuf, ["AutoSelectAll",]
-	SetNextWindowPos Vec2 0, 45
-	SetNextWindowSize Vec2 fullWidth, height - 95
+				if InputText zh and '筛选' or 'Filter', filterBuf, ["AutoSelectAll",]
+					config.filter = filterBuf\toString!
+			Separator!
+			Dummy Vec2 fullWidth - 20, 0
+	SetNextWindowPos Vec2 0, 50
+	SetNextWindowSize Vec2 fullWidth, height - 100
 	PushStyleColor "WindowBg", Color(0x0), -> PushStyleVar "WindowPadding", Vec2(paddingX, 10), ->
 		Begin "Content", windowFlags, ->
-			filterText = inputBuf\toString!\match "[^%%%.%[]+"
+			filterText = filterBuf\toString!\match "[^%%%.%[]+"
 			filterText = filterText\lower! if filterText
 			if #gamesInDev > 0
 				for game in *gamesInDev
