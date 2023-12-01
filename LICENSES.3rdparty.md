@@ -34,3 +34,5 @@
 - [asio](https://github.com/chriskohlhoff/asio): [Boost Software License](Source/3rdParty/asio/LICENSE_1_0.txt)
 - [websocketpp](https://github.com/zaphoyd/websocketpp): [BSD-3 License](Source/3rdParty/websocketpp/COPYING.txt)
 - [ZipUtils](https://github.com/cocos2d/cocos2d-x/tree/v2/cocos2dx/support/zip_support): [MIT License](Source/3rdParty/Zip/LICENSE-ZipUtils)
+- [AcfDelegate](https://www.codeproject.com/articles/11464/yet-another-c-style-delegate-class-in-standard-c): [AcfDelegate License](Source/3rdParty/Other/LICENSE-AcfDelegate)
+- [teal-language](https://github.com/teal-language/tl): [MIT License](Source/Lua/Builtin/LICENSE-tl)
