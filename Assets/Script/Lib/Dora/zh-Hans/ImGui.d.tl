@@ -273,8 +273,10 @@ local record ImGui
 		callback: function()
 	): boolean
 	IsFontLoaded: function(): boolean
-	ShowStats: function()
+	ShowStats: function(extra?: function())
+	ShowStats: function(open: boolean, extra?: function()): boolean
 	ShowConsole: function()
+	ShowConsole: function(open: boolean): boolean
 	Begin: function(
 		name: string,
 		windowsFlags: {WindowFlag},
