@@ -525,12 +525,20 @@ bool IsFontLoaded() {
 	return SharedImGui.isFontLoaded();
 }
 
+void ShowStats(bool* pOpen, const std::function<void()>& extra) {
+	SharedImGui.showStats(pOpen, extra);
+}
+
 void ShowStats(const std::function<void()>& extra) {
-	SharedImGui.showStats(extra);
+	SharedImGui.showStats(nullptr, extra);
+}
+
+void ShowConsole(bool* pOpen) {
+	SharedImGui.showConsole(pOpen);
 }
 
 void ShowConsole() {
-	SharedImGui.showConsole();
+	SharedImGui.showConsole(nullptr);
 }
 
 bool Begin(const char* name, Slice* windowFlags, int flagCount) {
