@@ -136,6 +136,9 @@ local record Node
 	-- 是否启用键盘事件。
 	keyboardEnabled: boolean
 
+	-- 是否启用游戏手柄事件。
+	controllerEnabled: boolean
+
 	-- 是否将所有层级的子节点按分组编号做分组渲染。
 	renderGroup: boolean
 
