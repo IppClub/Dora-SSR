@@ -11,8 +11,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/Controller.h"
 
 #include "Basic/Application.h"
-#include "Event/Event.h"
 #include "Basic/Content.h"
+#include "Event/Event.h"
 
 #include "SDL.h"
 
@@ -26,12 +26,46 @@ Controller::~Controller() { }
 
 bool Controller::initInRender() {
 	SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
+	auto time = SharedApplication.getCurrentTime();
 	if (SharedContent.exist("gamecontrollerdb.txt"_slice)) {
 		auto data = SharedContent.load("gamecontrollerdb.txt"_slice);
 		if (data.second > 0) {
-			if (SDL_GameControllerAddMapping(Slice{r_cast<const char*>(data.first.get()), data.second}.c_str()) < 0) {
-				Error("SDL failed to load controller mapping! {}", SDL_GetError());
+			const char* platform = SDL_GetPlatform();
+			auto str = std::string{r_cast<const char*>(data.first.get()), data.second};
+			char *line, *line_end, *tmp, *comma, line_platform[64];
+			size_t db_size = str.size(), platform_len;
+			char* buf = &str[0];
+			line = buf;
+			auto platformStr = "platform:"sv;
+			while (line < buf + db_size) {
+				line_end = SDL_strchr(line, '\n');
+				if (line_end != nullptr) {
+					*line_end = '\0';
+				} else {
+					line_end = buf + db_size;
+				}
+				tmp = SDL_strstr(line, platformStr.data());
+				if (tmp != nullptr) {
+					tmp += platformStr.size();
+					comma = SDL_strchr(tmp, ',');
+					if (comma != nullptr) {
+						platform_len = comma - tmp + 1;
+						if (platform_len + 1 < SDL_arraysize(line_platform)) {
+							SDL_strlcpy(line_platform, tmp, platform_len);
+							if (SDL_strncasecmp(line_platform, platform, platform_len) == 0) {
+								if (SDL_GameControllerAddMapping(line) < 0) {
+									Error("failed to load controller mapping: {}", line);
+								}
+							}
+						}
+					}
+				}
+				line = line_end + 1;
 			}
+			auto deltaTime = SharedApplication.getCurrentTime() - time;
+			SharedApplication.invokeInLogic([deltaTime]() {
+				Event::send(Profiler::EventName, "Loader"s, "gamecontrollerdb.txt"s, 0, deltaTime);
+			});
 		}
 	}
 	for (int i = 0; i < SDL_NumJoysticks(); ++i) {

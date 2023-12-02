@@ -136,6 +136,9 @@ local record Node
 	-- Whether keyboard events are enabled on the node.
 	keyboardEnabled: boolean
 
+	-- Whether controller events are enabled on the node.
+	controllerEnabled: boolean
+
 	-- Whether to group the node's rendering with all its recursive children.
 	renderGroup: boolean
 
