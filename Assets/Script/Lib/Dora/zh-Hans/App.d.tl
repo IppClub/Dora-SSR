@@ -68,17 +68,6 @@ local record App
 	-- 当前系统的语言环境字符串，格式例如：`zh-Hans`，`en`.
 	locale: string
 
-	-- 屏幕显示方向的模式。
-	enum Orientation
-		"LandscapeLeft"
-		"LandscapeRight"
-		"Portrait"
-		"PortraitUpsideDown"
-	end
-
-	-- 当前设备的屏幕显示方向设定，只在iOS和Android系统上生效。
-	orientation: Orientation
-
 	-- Dorothy SSR的主题颜色。
 	themeColor: Color
 

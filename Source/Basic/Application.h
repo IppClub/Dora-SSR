@@ -54,7 +54,6 @@ public:
 	PROPERTY_READONLY(std::thread::id, LogicThread);
 	PROPERTY_READONLY(uint32_t, MaxFPS);
 	PROPERTY_STRING(Locale);
-	PROPERTY_STRING(Orientation);
 	PROPERTY(Color, ThemeColor);
 	PROPERTY(uint32_t, TargetFPS);
 	PROPERTY(uint32_t, Seed);

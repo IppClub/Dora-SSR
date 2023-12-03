@@ -108,30 +108,6 @@ void Application::setLocale(String var) {
 	Event::send("AppLocale"_slice, _locale);
 }
 
-const std::string& Application::getOrientation() const {
-	return _orientation;
-}
-
-void Application::setOrientation(String var) {
-	AssertUnless(getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice,
-		"changing application orientation is not available on {}.", getPlatform().toString());
-	_orientation = var.toString();
-	switch (Switch::hash(var)) {
-		case "LandscapeLeft"_hash:
-		case "LandscapeRight"_hash:
-		case "Portrait"_hash:
-		case "PortraitUpsideDown"_hash:
-			break;
-		default:
-			Issue("application orientation \"{}\" is invalid.", var.toString());
-			break;
-	}
-	invokeInRender([orientation = _orientation]() {
-		SDL_SetHint(SDL_HINT_ORIENTATIONS, orientation.c_str());
-	});
-	Event::send("AppOrientation", _orientation);
-}
-
 Size Application::getBufferSize() const {
 	return Size{s_cast<float>(_bufferWidth), s_cast<float>(_bufferHeight)};
 }

@@ -15,8 +15,6 @@ extern "C" {
 	fn application_is_debugging() -> i32;
 	fn application_set_locale(var: i64);
 	fn application_get_locale() -> i64;
-	fn application_set_orientation(var: i64);
-	fn application_get_orientation() -> i64;
 	fn application_set_theme_color(var: i32);
 	fn application_get_theme_color() -> i32;
 	fn application_set_seed(var: i32);
@@ -82,12 +80,6 @@ impl App {
 	}
 	pub fn get_locale() -> String {
 		return unsafe { crate::dora::to_string(application_get_locale()) };
-	}
-	pub fn set_orientation(var: &str) {
-		unsafe { application_set_orientation(crate::dora::from_string(var)) };
-	}
-	pub fn get_orientation() -> String {
-		return unsafe { crate::dora::to_string(application_get_orientation()) };
 	}
 	pub fn set_theme_color(var: &crate::dora::Color) {
 		unsafe { application_set_theme_color(var.to_argb() as i32) };
