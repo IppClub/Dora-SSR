@@ -69,17 +69,6 @@ local record App
 	-- The system locale string, in format like: `zh-Hans`, `en`.
 	locale: string
 
-	-- The display orientation modes.
-	enum Orientation
-		"LandscapeLeft"
-		"LandscapeRight"
-		"Portrait"
-		"PortraitUpsideDown"
-	end
-
-	-- The display orientation setting of the current device only takes effect on iOS and Android systems.
-	orientation: Orientation
-
 	-- A theme color for Dorothy SSR.
 	themeColor: Color
 
