@@ -454,7 +454,7 @@ local record lua
 
 		-- Returns "integer" or "float" based on the type of x, or fails if not a number.
 		-- @param x (number | integer) The input number.
-		-- @return The type of x.
+		-- @return (NumberType | nil) The type of x.
 		type: function(x: number | integer): NumberType | nil
 
 		-- Returns true if integer m is below n as unsigned integers.
@@ -537,7 +537,7 @@ local record lua
 		move: function<A>(a1: {A}, f: number, e: number, t: number, a2?: {A}): {A}
 
 		-- Packs arguments into a table.
-		-- @param ... The arguments to pack.
+		-- @param ... (any) The arguments to pack.
 		-- @return (table) The table with arguments and a field "n" for the total number of arguments.
 		pack: function(...: any): table
 
@@ -774,11 +774,6 @@ local record lua
 	-- Care should be taken when using this library, as several functions can compromise secure code.
 	record debug
 
-		-- Enters interactive mode, allowing inspection and modification of variables.
-		-- A line with 'cont' finishes the function.
-		-- @return void
-		debug: function()
-
 		-- Enumeration for debug hook event.
 		enum DebugHookEvent
 			"call"
@@ -942,7 +937,7 @@ local record lua
 		setuservalue: function(udata: Userdata, value: any, n: number): Userdata
 
 		-- Returns a traceback of the call stack.
-		-- @param thread [optional] The thread to operate over.
+		-- @param thread (thread) [optional] The thread to operate over.
 		-- @param message (string) [optional] The message to prepend.
 		-- @param level (number) [optional] The stack level to start at.
 		-- @return (string) The traceback string.

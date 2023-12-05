@@ -1,7 +1,13 @@
 
 local VERSION = "0.15.3+dora"
 
-local tl = {TypeCheckOptions = {}, Env = {}, Symbol = {}, Result = {}, Error = {}, TypeInfo = {}, TypeReport = {}, TypeReportEnv = {}, }
+local tl = {PrettyPrintOptions = {}, TypeCheckOptions = {}, Env = {}, Symbol = {}, Result = {}, Error = {}, TypeInfo = {}, TypeReport = {}, TypeReportEnv = {}, }
+
+
+
+
+
+
 
 
 
@@ -220,6 +226,7 @@ tl.typecodes = {
 
 
 
+
 function tl.canonicalize_path(filename, sep)
 	if not filename then
 		return nil
@@ -256,6 +263,7 @@ function tl.canonicalize_path(filename, sep)
 
 	return filename
 end
+
 
 
 
@@ -596,10 +604,12 @@ do
 
 		local len = #input
 		if input:sub(1, 2) == "#!" then
+			begin_token()
 			i = input:find("\n")
 			if not i then
 				i = len + 1
 			end
+			end_token_here("hashbang")
 			y = 2
 			x = 0
 		end
@@ -1246,6 +1256,7 @@ local attributes <const> = {
 	["total"] = true,
 }
 local is_attribute <const> = attributes
+
 
 
 
@@ -3241,7 +3252,16 @@ function tl.parse_program(tokens, errs, filename)
 		filename = filename or "",
 		required_modules = {},
 	}
-	local _, node = parse_statements(ps, 1, true)
+	local i = 1
+	local hashbang
+	if ps.tokens[i].kind == "hashbang" then
+		hashbang = ps.tokens[i].tk
+		i = i + 1
+	end
+	local _, node = parse_statements(ps, i, true)
+	if hashbang then
+		node.hashbang = hashbang
+	end
 
 	clear_redundant_errors(errs)
 	return node, ps.required_modules
@@ -3688,18 +3708,16 @@ local spaced_op = {
 }
 
 
-
-
-
-
 local default_pretty_print_ast_opts = {
 	preserve_indent = true,
 	preserve_newlines = true,
+	preserve_hashbang = false,
 }
 
 local fast_pretty_print_ast_opts = {
 	preserve_indent = false,
 	preserve_newlines = true,
+	preserve_hashbang = false,
 }
 
 local primitive = {
@@ -3836,6 +3854,9 @@ function tl.pretty_print_ast(ast, gen_target, mode)
 		["statements"] = {
 			after = function(node, children)
 				local out = { y = node.y, h = 0 }
+				if opts.preserve_hashbang and node.hashbang then
+					table.insert(out, node.hashbang)
+				end
 				local space
 				for i, child in ipairs(children) do
 					add_child(out, child, space, indent)
@@ -9283,8 +9304,13 @@ tl.type_check = function(ast, opts)
 								assert_is_a(node[i], cvtype, decltype.elements, in_context(node.expected_context, "expected an array"), "at index " .. tostring(n))
 							end
 						elseif node[i].key_parsed == "implicit" then
+							if is_map then
+								assert_is_a(node[i], INTEGER, decltype.keys, in_context(node.expected_context, "in map key"))
+								assert_is_a(node[i], cvtype, decltype.values, in_context(node.expected_context, "in map value"))
+							end
 							force_array = expand_type(node[i], force_array, child.vtype)
 						elseif is_map then
+							force_array = nil
 							assert_is_a(node[i], child.ktype, decltype.keys, in_context(node.expected_context, "in map key"))
 							assert_is_a(node[i], cvtype, decltype.values, in_context(node.expected_context, "in map value"))
 						else
@@ -9587,9 +9613,18 @@ tl.type_check = function(ast, opts)
 						if node.expected then
 							is_a(node.e1.type.rets, node.expected)
 						end
-						for i, typ in ipairs(node.e1.type.args) do
-							if node.e2[i + argdelta] then
-								node.e2[i + argdelta].expected = typ
+						local e1args = node.e1.type.args
+						local at = argdelta
+						for _, typ in ipairs(e1args) do
+							at = at + 1
+							if node.e2[at] then
+								node.e2[at].expected = typ
+							end
+						end
+						if e1args.is_va then
+							local typ = e1args[#e1args]
+							for i = at + 1, #node.e2 do
+								node.e2[i].expected = typ
 							end
 						end
 					end
@@ -10542,7 +10577,7 @@ function tl.process_string(input, is_lua, env, filename, module_name)
 	return result
 end
 
-tl.gen = function(input, env)
+tl.gen = function(input, env, pp)
 	env = env or assert(tl.init_env(), "Default environment initialization failed")
 	local result = tl.process_string(input, false, env)
 
@@ -10551,7 +10586,7 @@ tl.gen = function(input, env)
 	end
 
 	local code
-	code, result.gen_error = tl.pretty_print_ast(result.ast, env.gen_target)
+	code, result.gen_error = tl.pretty_print_ast(result.ast, env.gen_target, pp)
 	return code, result
 end
 
