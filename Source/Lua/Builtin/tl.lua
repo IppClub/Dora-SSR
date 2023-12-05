@@ -4371,10 +4371,8 @@ local CIRCULAR_REQUIRE = a_type({ typename = "circular_require" })
 
 local FUNCTION = a_type({ typename = "function", args = VARARG({ ANY }), rets = VARARG({ ANY }) })
 
-local NOMINAL_FILE = a_type({ typename = "nominal", names = { "FILE" } })
 local XPCALL_MSGH_FUNCTION = a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({}) })
 
-local USERDATA = ANY
 
 local numeric_binop = {
 	["number"] = {
@@ -5030,7 +5028,6 @@ local fresh_typevar_ctr = 1
 
 local function init_globals(lax)
 	local globals = {}
-	local stdlib_compat = get_stdlib_compat(lax)
 
 
 	local is_first_init = globals_typeid == nil
@@ -5084,78 +5081,6 @@ local function init_globals(lax)
 
 
 
-	local file_reader_poly_types = {
-		{ ctor = VARARG, args = { UNION({ NUMBER, an_enum({ "*a", "a", "*l", "l", "*L", "L" }) }) }, rets = { STRING } },
-		{ ctor = TUPLE, args = { an_enum({ "*n", "n" }) }, rets = { NUMBER, STRING } },
-		{ ctor = VARARG, args = { UNION({ NUMBER, an_enum({ "*a", "a", "*l", "l", "*L", "L", "*n", "n" }) }) }, rets = { UNION({ STRING, NUMBER }) } },
-		{ ctor = VARARG, args = { UNION({ NUMBER, STRING }) }, rets = { STRING } },
-	}
-
-	local function a_file_reader(fn)
-		local t = a_type({
-			typename = "poly",
-			types = {},
-		})
-		for _, entry in ipairs(file_reader_poly_types) do
-			local args = shallow_copy_type(entry.args)
-			local rets = shallow_copy_type(entry.rets)
-			table.insert(t.types, fn(entry.ctor, args, rets))
-		end
-		return t
-	end
-
-	local LOAD_FUNCTION = a_type({ typename = "function", args = {}, rets = TUPLE({ STRING }) })
-
-	local OS_DATE_TABLE = a_type({
-		typename = "record",
-		fields = {
-			["year"] = INTEGER,
-			["month"] = INTEGER,
-			["day"] = INTEGER,
-			["hour"] = INTEGER,
-			["min"] = INTEGER,
-			["sec"] = INTEGER,
-			["wday"] = INTEGER,
-			["yday"] = INTEGER,
-			["isdst"] = BOOLEAN,
-		},
-	})
-
-	local DEBUG_GETINFO_TABLE = a_type({
-		typename = "record",
-		fields = {
-			["name"] = STRING,
-			["namewhat"] = STRING,
-			["source"] = STRING,
-			["short_src"] = STRING,
-			["linedefined"] = INTEGER,
-			["lastlinedefined"] = INTEGER,
-			["what"] = STRING,
-			["currentline"] = INTEGER,
-			["istailcall"] = BOOLEAN,
-			["nups"] = INTEGER,
-			["nparams"] = INTEGER,
-			["isvararg"] = BOOLEAN,
-			["func"] = ANY,
-			["activelines"] = a_type({ typename = "map", keys = INTEGER, values = BOOLEAN }),
-		},
-	})
-
-	local DEBUG_HOOK_EVENT = an_enum({ "call", "tail call", "return", "line", "count" })
-
-	local DEBUG_HOOK_FUNCTION = a_type({
-		typename = "function",
-		args = TUPLE({ DEBUG_HOOK_EVENT, INTEGER }),
-		rets = TUPLE({}),
-	})
-
-	local metatable_nominals = {}
-
-	local function METATABLE(a)
-		local t = a_type({ typename = "nominal", names = { "metatable" }, typevals = { a } })
-		table.insert(metatable_nominals, t)
-		return t
-	end
 
 	local function ARRAY(t)
 		return a_type({
@@ -5164,125 +5089,14 @@ local function init_globals(lax)
 		})
 	end
 
-	local function MAP(k, v)
-		return a_type({
-			typename = "map",
-			keys = k,
-			values = v,
-		})
-	end
-
-	local function OPT(x)
-		x.opt = true
-		return x
-	end
-
-	local OPT_TABLE = simple_opt_types["table"]
-	local OPT_NUMBER = simple_opt_types["number"]
-	local OPT_STRING = simple_opt_types["string"]
-	local OPT_THREAD = simple_opt_types["thread"]
-	local OPT_BOOLEAN = simple_opt_types["boolean"]
-	local OPT_NOMINAL_FILE = a_type({ opt = true, typename = "nominal", names = { "FILE" } })
-	local OPT_TABLE_SORT_FUNCTION = a_gfunction(1, function(a) return { args = TUPLE({ a, a }), rets = TUPLE({ BOOLEAN }) } end, true)
-
-	local function OPT_UNION(t)
-		return a_type({ opt = true, typename = "union", types = t })
-	end
 
 	local standard_library = {
 		["..."] = VARARG({ STRING }),
 		["any"] = a_type({ typename = "typetype", def = ANY }),
 		["arg"] = ARRAY(STRING),
-		["assert"] = a_gfunction(2, function(a, b) return { args = TUPLE({ a, OPT(b) }), rets = TUPLE({ a }) } end),
-		["collectgarbage"] = a_type({
-			typename = "poly",
-			types = {
-				a_type({ typename = "function", args = TUPLE({ an_enum({ "collect", "count", "stop", "restart" }) }), rets = TUPLE({ NUMBER }) }),
-				a_type({ typename = "function", args = TUPLE({ an_enum({ "step", "setpause", "setstepmul" }), NUMBER }), rets = TUPLE({ NUMBER }) }),
-				a_type({ typename = "function", args = TUPLE({ an_enum({ "isrunning" }) }), rets = TUPLE({ BOOLEAN }) }),
-				a_type({ typename = "function", args = TUPLE({ STRING, OPT_NUMBER }), rets = TUPLE({ a_type({ typename = "union", types = { BOOLEAN, NUMBER } }) }) }),
-			},
-		}),
-		["dofile"] = a_type({ typename = "function", args = TUPLE({ OPT_STRING }), rets = VARARG({ ANY }) }),
-		["error"] = a_type({ typename = "function", args = TUPLE({ ANY, OPT_NUMBER }), rets = TUPLE({}) }),
-		["getmetatable"] = a_gfunction(1, function(a) return { args = TUPLE({ a }), rets = TUPLE({ METATABLE(a) }) } end),
-		["ipairs"] = a_gfunction(1, function(a) return { args = TUPLE({ ARRAY(a) }), rets = TUPLE({
-	a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ INTEGER, a }) }),
-}), } end),
-		["load"] = a_type({ typename = "function", args = TUPLE({ UNION({ STRING, LOAD_FUNCTION }), OPT_STRING, OPT_STRING, OPT_TABLE }), rets = TUPLE({ FUNCTION, STRING }) }),
-		["loadfile"] = a_type({ typename = "function", args = TUPLE({ OPT_STRING, OPT_STRING, OPT_TABLE }), rets = TUPLE({ FUNCTION, STRING }) }),
-		["next"] = a_type({
-			typename = "poly",
-			types = {
-				a_gfunction(2, function(a, b) return { args = TUPLE({ MAP(a, b), OPT(a) }), rets = TUPLE({ a, b }) } end),
-				a_gfunction(1, function(a) return { args = TUPLE({ ARRAY(a), OPT(a) }), rets = TUPLE({ INTEGER, a }) } end),
-			},
-		}),
-		["pairs"] = a_gfunction(2, function(a, b) return { args = TUPLE({ a_type({ typename = "map", keys = a, values = b }) }), rets = TUPLE({
-	a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ a, b }) }),
-}), } end),
-		["pcall"] = a_type({ typename = "function", args = VARARG({ FUNCTION, ANY }), rets = VARARG({ BOOLEAN, ANY }) }),
-		["xpcall"] = a_type({ typename = "function", args = VARARG({ FUNCTION, XPCALL_MSGH_FUNCTION, ANY }), rets = VARARG({ BOOLEAN, ANY }) }),
-		["print"] = a_type({ typename = "function", args = VARARG({ ANY }), rets = TUPLE({}) }),
-		["rawequal"] = a_type({ typename = "function", args = TUPLE({ ANY, ANY }), rets = TUPLE({ BOOLEAN }) }),
-		["rawget"] = a_type({ typename = "function", args = TUPLE({ TABLE, ANY }), rets = TUPLE({ ANY }) }),
-		["rawlen"] = a_type({ typename = "function", args = TUPLE({ UNION({ TABLE, STRING }) }), rets = TUPLE({ INTEGER }) }),
-		["rawset"] = a_type({
-			typename = "poly",
-			types = {
-				a_gfunction(2, function(a, b) return { args = TUPLE({ MAP(a, b), a, b }), rets = TUPLE({}) } end),
-				a_gfunction(1, function(a) return { args = TUPLE({ ARRAY(a), NUMBER, a }), rets = TUPLE({}) } end),
-			},
-		}),
-		["require"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({}) }),
-		["select"] = a_type({
-			typename = "poly",
-			types = {
-				a_gfunction(1, function(a) return { args = VARARG({ NUMBER, a }), rets = TUPLE({ a }) } end),
-				a_type({ typename = "function", args = VARARG({ NUMBER, ANY }), rets = TUPLE({ ANY }) }),
-				a_type({ typename = "function", args = VARARG({ STRING, ANY }), rets = TUPLE({ INTEGER }) }),
-			},
-		}),
-		["setmetatable"] = a_gfunction(1, function(a) return { args = TUPLE({ a, METATABLE(a) }), rets = TUPLE({ a }) } end),
-		["tonumber"] = a_type({
-			typename = "poly",
-			types = {
-				a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({ NUMBER }) }),
-				a_type({ typename = "function", args = TUPLE({ ANY, NUMBER }), rets = TUPLE({ INTEGER }) }),
-			},
-		}),
-		["tostring"] = a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({ STRING }) }),
-		["type"] = a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({ STRING }) }),
-		["FILE"] = a_type({
-			typename = "typetype",
-			def = a_type({
-				typename = "record",
-				is_userdata = true,
-				fields = {
-					["close"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE }), rets = TUPLE({ BOOLEAN, STRING, INTEGER }) }),
-					["flush"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE }), rets = TUPLE({}) }),
-					["lines"] = a_file_reader(function(ctor, args, rets)
-						table.insert(args, 1, NOMINAL_FILE)
-						return a_type({ typename = "function", args = ctor(args), rets = TUPLE({
-							a_type({ typename = "function", args = TUPLE({}), rets = ctor(rets) }),
-						}), })
-					end),
-					["read"] = a_file_reader(function(ctor, args, rets)
-						table.insert(args, 1, NOMINAL_FILE)
-						return a_type({ typename = "function", args = ctor(args), rets = ctor(rets) })
-					end),
-					["seek"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE, OPT_STRING, OPT_NUMBER }), rets = TUPLE({ INTEGER, STRING }) }),
-					["setvbuf"] = a_type({ typename = "function", args = TUPLE({ NOMINAL_FILE, STRING, OPT_NUMBER }), rets = TUPLE({}) }),
-					["write"] = a_type({ typename = "function", args = VARARG({ NOMINAL_FILE, UNION({ STRING, NUMBER }) }), rets = TUPLE({ NOMINAL_FILE, STRING }) }),
-
-				},
-				meta_fields = { ["__close"] = FUNCTION },
-				meta_field_order = { "__close" },
-			}),
-		}),
 		["metatable"] = a_type({
 			typename = "typetype",
-			def = a_grecord(1, function(a)			 return {
+			def = a_grecord(1, function(a) return {
 				fields = {
 					["__call"] = a_type({ typename = "function", args = TUPLE({ a }), rets = VARARG({ ANY }) }),
 					["__gc"] = a_type({ typename = "function", args = TUPLE({ a }), rets = TUPLE({}) }),
@@ -5320,317 +5134,6 @@ local function init_globals(lax)
 				},
 			} end),
 		}),
-		["coroutine"] = a_type({
-			typename = "record",
-			fields = {
-				["create"] = a_type({ typename = "function", args = TUPLE({ FUNCTION }), rets = TUPLE({ THREAD }) }),
-				["close"] = a_type({ typename = "function", args = TUPLE({ THREAD }), rets = TUPLE({ BOOLEAN, STRING }) }),
-				["isyieldable"] = a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ BOOLEAN }) }),
-				["resume"] = a_type({ typename = "function", args = VARARG({ THREAD, ANY }), rets = VARARG({ BOOLEAN, ANY }) }),
-				["running"] = a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ THREAD, BOOLEAN }) }),
-				["status"] = a_type({ typename = "function", args = TUPLE({ THREAD }), rets = TUPLE({ STRING }) }),
-				["wrap"] = a_type({ typename = "function", args = TUPLE({ FUNCTION }), rets = TUPLE({ FUNCTION }) }),
-				["yield"] = a_type({ typename = "function", args = VARARG({ ANY }), rets = VARARG({ ANY }) }),
-			},
-		}),
-		["debug"] = a_type({
-			typename = "record",
-			fields = {
-				["Info"] = a_type({
-					typename = "typetype",
-					def = DEBUG_GETINFO_TABLE,
-				}),
-				["Hook"] = a_type({
-					typename = "typetype",
-					def = DEBUG_HOOK_FUNCTION,
-				}),
-				["HookEvent"] = a_type({
-					typename = "typetype",
-					def = DEBUG_HOOK_EVENT,
-				}),
-
-				["debug"] = a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({}) }),
-				["gethook"] = a_type({ typename = "function", args = TUPLE({ OPT_THREAD }), rets = TUPLE({ DEBUG_HOOK_FUNCTION, INTEGER }) }),
-				["getlocal"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = TUPLE({ THREAD, FUNCTION, NUMBER }), rets = STRING }),
-						a_type({ typename = "function", args = TUPLE({ THREAD, NUMBER, NUMBER }), rets = TUPLE({ STRING, ANY }) }),
-						a_type({ typename = "function", args = TUPLE({ FUNCTION, NUMBER }), rets = STRING }),
-						a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER }), rets = TUPLE({ STRING, ANY }) }),
-					},
-				}),
-				["getmetatable"] = a_gfunction(1, function(a) return { args = TUPLE({ a }), rets = TUPLE({ METATABLE(a) }) } end),
-				["getregistry"] = a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ TABLE }) }),
-				["getupvalue"] = a_type({ typename = "function", args = TUPLE({ FUNCTION, NUMBER }), rets = TUPLE({ ANY }) }),
-				["getuservalue"] = a_type({ typename = "function", args = TUPLE({ USERDATA, NUMBER }), rets = TUPLE({ ANY }) }),
-				["sethook"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = TUPLE({ THREAD, DEBUG_HOOK_FUNCTION, STRING, NUMBER }), rets = TUPLE({}) }),
-						a_type({ typename = "function", args = TUPLE({ DEBUG_HOOK_FUNCTION, STRING, NUMBER }), rets = TUPLE({}) }),
-					},
-				}),
-				["setlocal"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = TUPLE({ THREAD, NUMBER, NUMBER, ANY }), rets = TUPLE({ STRING }) }),
-						a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER, ANY }), rets = TUPLE({ STRING }) }),
-					},
-				}),
-				["setmetatable"] = a_gfunction(1, function(a) return { args = TUPLE({ a, METATABLE(a) }), rets = TUPLE({ a }) } end),
-				["setupvalue"] = a_type({ typename = "function", args = TUPLE({ FUNCTION, NUMBER, ANY }), rets = TUPLE({ STRING }) }),
-				["setuservalue"] = a_type({ typename = "function", args = TUPLE({ USERDATA, ANY, NUMBER }), rets = TUPLE({ USERDATA }) }),
-				["traceback"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = TUPLE({ THREAD, STRING, NUMBER }), rets = TUPLE({ STRING }) }),
-						a_type({ typename = "function", args = TUPLE({ STRING, NUMBER }), rets = TUPLE({ STRING }) }),
-					},
-				}),
-				["upvalueid"] = a_type({ typename = "function", args = TUPLE({ FUNCTION, NUMBER }), rets = TUPLE({ USERDATA }) }),
-				["upvaluejoin"] = a_type({ typename = "function", args = TUPLE({ FUNCTION, NUMBER, FUNCTION, NUMBER }), rets = TUPLE({}) }),
-				["getinfo"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({ DEBUG_GETINFO_TABLE }) }),
-						a_type({ typename = "function", args = TUPLE({ ANY, STRING }), rets = TUPLE({ DEBUG_GETINFO_TABLE }) }),
-						a_type({ typename = "function", args = TUPLE({ ANY, ANY, STRING }), rets = TUPLE({ DEBUG_GETINFO_TABLE }) }),
-					},
-				}),
-			},
-		}),
-		["io"] = a_type({
-			typename = "record",
-			fields = {
-				["close"] = a_type({ typename = "function", args = TUPLE({ OPT_NOMINAL_FILE }), rets = TUPLE({ BOOLEAN, STRING }) }),
-				["flush"] = a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({}) }),
-				["input"] = a_type({ typename = "function", args = TUPLE({ OPT_UNION({ STRING, NOMINAL_FILE }) }), rets = TUPLE({ NOMINAL_FILE }) }),
-				["lines"] = a_file_reader(function(ctor, args, rets)
-					return a_type({ typename = "function", args = ctor(args), rets = TUPLE({
-						a_type({ typename = "function", args = TUPLE({}), rets = ctor(rets) }),
-					}), })
-				end),
-				["open"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_STRING }), rets = TUPLE({ NOMINAL_FILE, STRING }) }),
-				["output"] = a_type({ typename = "function", args = TUPLE({ OPT_UNION({ STRING, NOMINAL_FILE }) }), rets = TUPLE({ NOMINAL_FILE }) }),
-				["popen"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_STRING }), rets = TUPLE({ NOMINAL_FILE, STRING }) }),
-				["read"] = a_file_reader(function(ctor, args, rets)
-					return a_type({ typename = "function", args = ctor(args), rets = ctor(rets) })
-				end),
-				["stderr"] = NOMINAL_FILE,
-				["stdin"] = NOMINAL_FILE,
-				["stdout"] = NOMINAL_FILE,
-				["tmpfile"] = a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ NOMINAL_FILE }) }),
-				["type"] = a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({ STRING }) }),
-				["write"] = a_type({ typename = "function", args = VARARG({ UNION({ STRING, NUMBER }) }), rets = TUPLE({ NOMINAL_FILE, STRING }) }),
-			},
-		}),
-		["math"] = a_type({
-			typename = "record",
-			fields = {
-				["abs"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = TUPLE({ INTEGER }), rets = TUPLE({ INTEGER }) }),
-						a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-					},
-				}),
-				["acos"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["asin"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["atan"] = a_type({ typename = "function", args = TUPLE({ NUMBER, OPT_NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["atan2"] = a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["ceil"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ INTEGER }) }),
-				["cos"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["cosh"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["deg"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["exp"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["floor"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ INTEGER }) }),
-				["fmod"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = TUPLE({ INTEGER, INTEGER }), rets = TUPLE({ INTEGER }) }),
-						a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER }), rets = TUPLE({ NUMBER }) }),
-					},
-				}),
-				["frexp"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER, NUMBER }) }),
-				["huge"] = NUMBER,
-				["ldexp"] = a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["log"] = a_type({ typename = "function", args = TUPLE({ NUMBER, OPT_NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["log10"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["max"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = VARARG({ INTEGER }), rets = TUPLE({ INTEGER }) }),
-						a_gfunction(1, function(a) return { args = VARARG({ a }), rets = TUPLE({ a }) } end),
-						a_type({ typename = "function", args = VARARG({ a_type({ typename = "union", types = { NUMBER, INTEGER } }) }), rets = TUPLE({ NUMBER }) }),
-						a_type({ typename = "function", args = VARARG({ ANY }), rets = TUPLE({ ANY }) }),
-					},
-				}),
-				["maxinteger"] = a_type({ typename = "integer", needs_compat = true }),
-				["min"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = VARARG({ INTEGER }), rets = TUPLE({ INTEGER }) }),
-						a_gfunction(1, function(a) return { args = VARARG({ a }), rets = TUPLE({ a }) } end),
-						a_type({ typename = "function", args = VARARG({ a_type({ typename = "union", types = { NUMBER, INTEGER } }) }), rets = TUPLE({ NUMBER }) }),
-						a_type({ typename = "function", args = VARARG({ ANY }), rets = TUPLE({ ANY }) }),
-					},
-				}),
-				["mininteger"] = a_type({ typename = "integer", needs_compat = true }),
-				["modf"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ INTEGER, NUMBER }) }),
-				["pi"] = NUMBER,
-				["pow"] = a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["rad"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["random"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = TUPLE({ NUMBER, OPT_NUMBER }), rets = TUPLE({ INTEGER }) }),
-						a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ NUMBER }) }),
-					},
-				}),
-				["randomseed"] = a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER }), rets = TUPLE({ INTEGER, INTEGER }) }),
-				["sin"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["sinh"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["sqrt"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["tan"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["tanh"] = a_type({ typename = "function", args = TUPLE({ NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["tointeger"] = a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({ INTEGER }) }),
-				["type"] = a_type({ typename = "function", args = TUPLE({ ANY }), rets = TUPLE({ STRING }) }),
-				["ult"] = a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER }), rets = TUPLE({ BOOLEAN }) }),
-			},
-		}),
-		["os"] = a_type({
-			typename = "record",
-			fields = {
-				["clock"] = a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ NUMBER }) }),
-				["date"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ STRING }) }),
-						a_type({ typename = "function", args = TUPLE({ an_enum({ "!*t", "*t" }), OPT_NUMBER }), rets = TUPLE({ OS_DATE_TABLE }) }),
-						a_type({ typename = "function", args = TUPLE({ OPT_STRING, OPT_NUMBER }), rets = TUPLE({ STRING }) }),
-					},
-				}),
-				["difftime"] = a_type({ typename = "function", args = TUPLE({ NUMBER, NUMBER }), rets = TUPLE({ NUMBER }) }),
-				["execute"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ BOOLEAN, STRING, INTEGER }) }),
-				["exit"] = a_type({ typename = "function", args = TUPLE({ OPT_UNION({ NUMBER, BOOLEAN }), OPT_BOOLEAN }), rets = TUPLE({}) }),
-				["getenv"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ STRING }) }),
-				["remove"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ BOOLEAN, STRING }) }),
-				["rename"] = a_type({ typename = "function", args = TUPLE({ STRING, STRING }), rets = TUPLE({ BOOLEAN, STRING }) }),
-				["setlocale"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_STRING }), rets = TUPLE({ STRING }) }),
-				["time"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ INTEGER }) }),
-						a_type({ typename = "function", args = TUPLE({ OS_DATE_TABLE }), rets = TUPLE({ INTEGER }) }),
-					},
-				}),
-				["tmpname"] = a_type({ typename = "function", args = TUPLE({}), rets = TUPLE({ STRING }) }),
-			},
-		}),
-		["package"] = a_type({
-			typename = "record",
-			fields = {
-				["config"] = STRING,
-				["cpath"] = STRING,
-				["loaded"] = a_type({
-					typename = "map",
-					keys = STRING,
-					values = ANY,
-				}),
-				["loaders"] = a_type({
-					typename = "array",
-					elements = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ ANY, ANY }) }),
-				}),
-				["loadlib"] = a_type({ typename = "function", args = TUPLE({ STRING, STRING }), rets = TUPLE({ FUNCTION }) }),
-				["path"] = STRING,
-				["preload"] = TABLE,
-				["searchers"] = a_type({
-					typename = "array",
-					elements = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ ANY, ANY }) }),
-				}),
-				["searchpath"] = a_type({ typename = "function", args = TUPLE({ STRING, STRING, OPT_STRING, OPT_STRING }), rets = TUPLE({ STRING, STRING }) }),
-			},
-		}),
-		["string"] = a_type({
-			typename = "record",
-			fields = {
-				["byte"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = TUPLE({ STRING, OPT_NUMBER }), rets = TUPLE({ INTEGER }) }),
-						a_type({ typename = "function", args = TUPLE({ STRING, NUMBER, NUMBER }), rets = VARARG({ INTEGER }) }),
-					},
-				}),
-				["char"] = a_type({ typename = "function", args = VARARG({ NUMBER }), rets = TUPLE({ STRING }) }),
-				["dump"] = a_type({ typename = "function", args = TUPLE({ FUNCTION, OPT_BOOLEAN }), rets = TUPLE({ STRING }) }),
-				["find"] = a_type({ typename = "function", args = TUPLE({ STRING, STRING, OPT_NUMBER, OPT_BOOLEAN }), rets = VARARG({ INTEGER, INTEGER, STRING }) }),
-				["format"] = a_type({ typename = "function", args = VARARG({ STRING, ANY }), rets = TUPLE({ STRING }) }),
-				["gmatch"] = a_type({ typename = "function", args = TUPLE({ STRING, STRING }), rets = TUPLE({
-					a_type({ typename = "function", args = TUPLE({}), rets = VARARG({ STRING }) }),
-				}), }),
-				["gsub"] = a_type({
-					typename = "poly",
-					types = {
-						a_type({ typename = "function", args = TUPLE({ STRING, STRING, OPT_STRING, OPT_NUMBER }), rets = TUPLE({ STRING, INTEGER }) }),
-						a_type({ typename = "function", args = TUPLE({ STRING, STRING, a_type({ typename = "map", keys = STRING, values = STRING }), OPT_NUMBER }), rets = TUPLE({ STRING, INTEGER }) }),
-						a_type({ typename = "function", args = TUPLE({ STRING, STRING, a_type({ typename = "function", args = VARARG({ STRING }), rets = TUPLE({ STRING }) }) }), rets = TUPLE({ STRING, INTEGER }) }),
-						a_type({ typename = "function", args = TUPLE({ STRING, STRING, a_type({ typename = "function", args = VARARG({ STRING }), rets = TUPLE({ NUMBER }) }) }), rets = TUPLE({ STRING, INTEGER }) }),
-						a_type({ typename = "function", args = TUPLE({ STRING, STRING, a_type({ typename = "function", args = VARARG({ STRING }), rets = TUPLE({ BOOLEAN }) }) }), rets = TUPLE({ STRING, INTEGER }) }),
-						a_type({ typename = "function", args = TUPLE({ STRING, STRING, a_type({ typename = "function", args = VARARG({ STRING }), rets = TUPLE({}) }) }), rets = TUPLE({ STRING, INTEGER }) }),
-
-					},
-				}),
-				["len"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ INTEGER }) }),
-				["lower"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ STRING }) }),
-				["match"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_STRING, OPT_NUMBER }), rets = VARARG({ STRING }) }),
-				["pack"] = a_type({ typename = "function", args = VARARG({ STRING, ANY }), rets = TUPLE({ STRING }) }),
-				["packsize"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ INTEGER }) }),
-				["rep"] = a_type({ typename = "function", args = TUPLE({ STRING, NUMBER, OPT_STRING }), rets = TUPLE({ STRING }) }),
-				["reverse"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ STRING }) }),
-				["sub"] = a_type({ typename = "function", args = TUPLE({ STRING, NUMBER, OPT_NUMBER }), rets = TUPLE({ STRING }) }),
-				["unpack"] = a_type({ typename = "function", args = TUPLE({ STRING, STRING, OPT_NUMBER }), rets = VARARG({ ANY }) }),
-				["upper"] = a_type({ typename = "function", args = TUPLE({ STRING }), rets = TUPLE({ STRING }) }),
-			},
-		}),
-		["table"] = a_type({
-			typename = "record",
-			fields = {
-				["concat"] = a_type({ typename = "function", args = TUPLE({ ARRAY(UNION({ STRING, NUMBER })), OPT_STRING, OPT_NUMBER, OPT_NUMBER }), rets = TUPLE({ STRING }) }),
-				["insert"] = a_type({
-					typename = "poly",
-					types = {
-						a_gfunction(1, function(a) return { args = TUPLE({ ARRAY(a), NUMBER, a }), rets = TUPLE({}) } end),
-						a_gfunction(1, function(a) return { args = TUPLE({ ARRAY(a), a }), rets = TUPLE({}) } end),
-					},
-				}),
-				["move"] = a_type({
-					typename = "poly",
-					types = {
-						a_gfunction(1, function(a) return { args = TUPLE({ ARRAY(a), NUMBER, NUMBER, NUMBER }), rets = TUPLE({ ARRAY(a) }) } end),
-						a_gfunction(1, function(a) return { args = TUPLE({ ARRAY(a), NUMBER, NUMBER, NUMBER, ARRAY(a) }), rets = TUPLE({ ARRAY(a) }) } end),
-					},
-				}),
-				["pack"] = a_type({ typename = "function", args = VARARG({ ANY }), rets = TUPLE({ TABLE }) }),
-				["remove"] = a_gfunction(1, function(a) return { args = TUPLE({ ARRAY(a), OPT_NUMBER }), rets = TUPLE({ a }) } end),
-				["sort"] = a_gfunction(1, function(a) return { args = TUPLE({ ARRAY(a), OPT_TABLE_SORT_FUNCTION }), rets = TUPLE({}) } end),
-				["unpack"] = a_gfunction(1, function(a) return { needs_compat = true, args = TUPLE({ ARRAY(a), OPT_NUMBER, OPT_NUMBER }), rets = VARARG({ a }) } end),
-			},
-		}),
-		["utf8"] = a_type({
-			typename = "record",
-			fields = {
-				["char"] = a_type({ typename = "function", args = VARARG({ NUMBER }), rets = TUPLE({ STRING }) }),
-				["charpattern"] = STRING,
-				["codepoint"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_NUMBER, OPT_NUMBER, OPT_BOOLEAN }), rets = VARARG({ INTEGER }) }),
-				["codes"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_BOOLEAN }), rets = TUPLE({
-					a_type({ typename = "function", args = TUPLE({ STRING, OPT_NUMBER }), rets = TUPLE({ NUMBER, NUMBER }) }),
-				}), }),
-				["len"] = a_type({ typename = "function", args = TUPLE({ STRING, OPT_NUMBER, OPT_NUMBER, OPT_BOOLEAN }), rets = TUPLE({ INTEGER }) }),
-				["offset"] = a_type({ typename = "function", args = TUPLE({ STRING, NUMBER, OPT_NUMBER }), rets = TUPLE({ INTEGER }) }),
-			},
-		}),
-		["_VERSION"] = STRING,
 	}
 
 	for _, t in pairs(standard_library) do
@@ -5639,16 +5142,9 @@ local function init_globals(lax)
 			fill_field_order(t.def)
 		end
 	end
-	fill_field_order(OS_DATE_TABLE)
-	fill_field_order(DEBUG_GETINFO_TABLE)
-
-	NOMINAL_FILE.found = standard_library["FILE"]
-	for _, m in ipairs(metatable_nominals) do
-		m.found = standard_library["metatable"]
-	end
 
 	for name, typ in pairs(standard_library) do
-		globals[name] = { t = typ, needs_compat = stdlib_compat[name], attribute = "const" }
+		globals[name] = { t = typ, attribute = "const" }
 	end
 
 
@@ -11511,7 +11007,7 @@ tl.dora_infer = function(codes, line, row, search_path)
 			if str:match("^polymorphic") then
 				for _, id in ipairs(current_type.types) do
 					local tp = type_report.types[id]
-					if tp.y < current_type.y then
+					if tp.y and current_type.y and tp.y < current_type.y then
 						current_type = tp
 					end
 				end
@@ -11575,6 +11071,7 @@ tl.dora_signature = function(codes, line, row, search_path)
 		local first = true
 		local current_type = nil
 		for i, item in ipairs(chains) do
+			local matched = false
 			if first then
 				first = false
 				local id = symbols[item]
@@ -11587,6 +11084,7 @@ tl.dora_signature = function(codes, line, row, search_path)
 					else
 						current_type = get_real_type(type_report, id)
 					end
+					matched = true
 				end
 			elseif current_type.fields then
 				local id = current_type.fields[item]
@@ -11596,7 +11094,11 @@ tl.dora_signature = function(codes, line, row, search_path)
 					else
 						current_type = get_real_type(type_report, id)
 					end
+					matched = true
 				end
+			end
+			if not matched then
+				return nil
 			end
 			if current_type == nil then
 				break
@@ -11653,6 +11155,18 @@ tl.dora_init = function()
 		tl.target_from_lua_version(_VERSION)
 	)
 	if env then
+		if require_module("lua", false, env) == INVALID then
+			print(string.format("Error: could not predefine module 'builtin'"))
+		else
+			for name, typ in pairs(env.modules["lua"].def.fields) do
+				env.globals[name] = { t = typ, attribute = "const" }
+				if typ.typename == "record" then
+					env.modules[name] = typ
+				end
+			end
+			env.modules["lua"] = nil
+			env.loaded = {}
+		end
 		if require_module("builtin", false, env) == INVALID then
 			print(string.format("Error: could not predefine module 'builtin'"))
 		end
