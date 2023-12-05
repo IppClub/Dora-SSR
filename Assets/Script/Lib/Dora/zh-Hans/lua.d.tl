@@ -453,7 +453,7 @@ local record lua
 
 		-- 根据x的类型返回"integer"或"float"，如果不是数字则失败。
 		-- @param x (number | integer) 输入数字。
-		-- @return x的类型。
+		-- @return (NumberType | nil) x的类型。
 		type: function(x: number | integer): NumberType | nil
 
 		-- 如果无符号整数m低于n，则返回true。
@@ -536,7 +536,7 @@ local record lua
 		move: function<A>(a1: {A}, f: number, e: number, t: number, a2?: {A}): {A}
 
 		-- 将参数打包成表格。
-		-- @param ... 要打包的参数。
+		-- @param ... (any) 要打包的参数。
 		-- @return (table) 带参数的表格和字段"n"表示参数总数。
 		pack: function(...: any): table
 
@@ -773,11 +773,6 @@ local record lua
 	-- 使用此库时应十分小心，因为一些函数可能会破坏安全代码。
 	record debug
 
-		-- 进入交互模式，允许检查和修改变量。
-		-- 使用'cont'一行结束该函数。
-		-- @return void
-		debug: function()
-
 		-- 调试钩子事件的枚举。
 		enum DebugHookEvent
 			"call"
@@ -941,7 +936,7 @@ local record lua
 		setuservalue: function(udata: Userdata, value: any, n: number): Userdata
 
 		-- 返回调用栈的回溯。
-		-- @param thread [optional] 要操作的线程。
+		-- @param thread (thread) [optional] 要操作的线程。
 		-- @param message (string) [optional] 预置的消息。
 		-- @param level (number) [optional] 起始的栈层级。
 		-- @return (string) 回溯字符串。

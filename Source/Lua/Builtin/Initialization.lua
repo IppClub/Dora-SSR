@@ -23,6 +23,8 @@ debug.traceback = function(err, level)
 	return yue.traceback(err, (level or 1) + 1)
 end
 
+debug.debug = nil
+
 local function traceback(err)
 	print(yue.traceback(err))
 end
