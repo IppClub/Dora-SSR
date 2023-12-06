@@ -6,7 +6,7 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;首先，我们需要引入[Platformer](/docs/api/Module/Platformer)和[Data](/docs/api/Class/Platformer/Data)模块。Platformer模块是Dorothy SSR游戏引擎提供的一个包含了2D平台游戏相关功能的模块，而Data模块则是一个单例对象，提供了存储和访问游戏全局定义数据的统一位置。
 
-```tl" title="Script/Config.tl"
+```tl title="Script/Config.tl"
 local Platformer <const> = require("Platformer")
 local Data <const> = Platformer.Data
 ```
@@ -37,13 +37,13 @@ Data:setShouldContact(PlayerGroup, ItemGroup, true)
 
 ```tl title="Script/Config.tl"
 return {
-  TerrainLayer = TerrainLayer,
-  PlayerLayer = PlayerLayer,
-  ItemLayer = ItemLayer,
+	TerrainLayer = TerrainLayer,
+	PlayerLayer = PlayerLayer,
+	ItemLayer = ItemLayer,
 
-  PlayerGroup = PlayerGroup,
-  ItemGroup = ItemGroup,
-  TerrainGroup = TerrainGroup
+	PlayerGroup = PlayerGroup,
+	ItemGroup = ItemGroup,
+	TerrainGroup = TerrainGroup
 }
 ```
 

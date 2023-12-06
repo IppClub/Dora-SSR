@@ -21,35 +21,35 @@ local type UnitType = Platformer.Unit.Type
 
 ```tl title="Script/AI.tl"
 Data.store["AI:playerControl"] = Sel {
-  Seq {
-    Con("move key down", function(self: UnitType): boolean
-      return not (self.entity.keyLeft and self.entity.keyRight) and
-      (
-        (self.entity.keyLeft and self.faceRight) or
-        (self.entity.keyRight and not self.faceRight)
-      )
-    end),
-    Act("turn")
-  },
-  Seq {
-    Con("is falling", function(self: UnitType): boolean
-      return not self.onSurface
-    end),
-    Act("fallOff")
-  },
-  Seq {
-    Con("jump key down", function(self: UnitType): boolean
-      return self.entity.keyJump as boolean
-    end),
-    Act("jump")
-  },
-  Seq {
-    Con("fmove key down", function(self: UnitType): boolean
-      return (self.entity.keyLeft or self.entity.keyRight) as boolean
-    end),
-    Act("move")
-  },
-  Act("idle")
+	Seq {
+		Con("move key down", function(self: UnitType): boolean
+			return not (self.entity.keyLeft and self.entity.keyRight) and
+			(
+				(self.entity.keyLeft and self.faceRight) or
+				(self.entity.keyRight and not self.faceRight)
+			)
+		end),
+		Act("turn")
+	},
+	Seq {
+		Con("is falling", function(self: UnitType): boolean
+			return not self.onSurface
+		end),
+		Act("fallOff")
+	},
+	Seq {
+		Con("jump key down", function(self: UnitType): boolean
+			return self.entity.keyJump as boolean
+		end),
+		Act("jump")
+	},
+	Seq {
+		Con("fmove key down", function(self: UnitType): boolean
+			return (self.entity.keyLeft or self.entity.keyRight) as boolean
+		end),
+		Act("move")
+	},
+	Act("idle")
 }
 ```
 

@@ -20,40 +20,40 @@ local type UnitType = Platformer.Unit.Type
 
 ```tl title="Script/Action.tl"
 UnitAction:add("idle", {
-  priority = 1,
-  reaction = 2.0,
-  recovery = 0.2,
-  available = function(self: UnitType): boolean
-    return self.onSurface
-  end,
-  create = function(self: UnitType): (
-      function(owner: UnitType, action: UnitAction.Type, deltaTime: number): (boolean)
-      | Routine.Job
-    )
-    -- Play a normal idle animation when the action is initially executed
-    local playable = self.playable
-    playable.speed = 1.0
-    playable:play("idle", true)
+	priority = 1,
+	reaction = 2.0,
+	recovery = 0.2,
+	available = function(self: UnitType): boolean
+		return self.onSurface
+	end,
+	create = function(self: UnitType): (
+			function(owner: UnitType, action: UnitAction.Type, deltaTime: number): (boolean)
+			| Routine.Job
+		)
+		-- Play a normal idle animation when the action is initially executed
+		local playable = self.playable
+		playable.speed = 1.0
+		playable:play("idle", true)
 
-    -- Create a coroutine to play a special idle animation every 3 seconds
-    local playIdleSpecial = loop(function(): boolean
-      sleep(3)
-      sleep(playable:play("idle1"))
-      playable:play("idle", true)
-    end)
+		-- Create a coroutine to play a special idle animation every 3 seconds
+		local playIdleSpecial = loop(function(): boolean
+			sleep(3)
+			sleep(playable:play("idle1"))
+			playable:play("idle", true)
+		end)
 
-    -- Assign the newly created coroutine object to the engine for lifecycle management
-    -- Since Lua 5.4 introduced the __close metamethod, coroutines that are not in the `dead` state
-    -- will not be automatically released by Lua. Therefore, it is recommended to use the following
-    -- method to assign self-built coroutine objects to the engine for management
-    self.data.playIdleSpecial = playIdleSpecial
+		-- Assign the newly created coroutine object to the engine for lifecycle management
+		-- Since Lua 5.4 introduced the __close metamethod, coroutines that are not in the `dead` state
+		-- will not be automatically released by Lua. Therefore, it is recommended to use the following
+		-- method to assign self-built coroutine objects to the engine for management
+		self.data.playIdleSpecial = playIdleSpecial
 
-    -- Return a function that continuously handles the logic of the action
-    return function(owner: UnitType): boolean
-      coroutine.resume(playIdleSpecial)
-      return not owner.onSurface
-    end
-  end
+		-- Return a function that continuously handles the logic of the action
+		return function(owner: UnitType): boolean
+			coroutine.resume(playIdleSpecial)
+			return not owner.onSurface
+		end
+	end
 })
 ```
 
@@ -67,34 +67,34 @@ UnitAction:add("idle", {
 
 ```tl title="Script/Action.tl"
 UnitAction:add("move", {
-  priority = 1,
-  reaction = 2.0,
-  recovery = 0.2,
-  available = function(self: UnitType): boolean
-    return self.onSurface
-  end,
-  create = function(self: UnitType): (
-      function(owner: UnitType, action: UnitAction.Type, deltaTime: number): (boolean)
-      | Routine.Job
-    )
-    -- Play a walking animation when the action is initially executed
-    local playable = self.playable
-    playable.speed = 1
-    playable:play("fmove", true)
+	priority = 1,
+	reaction = 2.0,
+	recovery = 0.2,
+	available = function(self: UnitType): boolean
+		return self.onSurface
+	end,
+	create = function(self: UnitType): (
+			function(owner: UnitType, action: UnitAction.Type, deltaTime: number): (boolean)
+			| Routine.Job
+		)
+		-- Play a walking animation when the action is initially executed
+		local playable = self.playable
+		playable.speed = 1
+		playable:play("fmove", true)
 
-    -- Return a function that continuously handles the logic of the action
-    return function(self: UnitType, action: UnitAction.Type): boolean
-      local elapsedTime = action.elapsedTime
-      local recovery = action.recovery * 2
-      local move = self.unitDef.move as number
-      local moveSpeed: number = 1.0
-      if elapsedTime < recovery then
-        moveSpeed = math.min(elapsedTime / recovery, 1.0)
-      end
-      self.velocityX = moveSpeed * (self.faceRight and move or -move)
-      return not self.onSurface
-    end
-  end
+		-- Return a function that continuously handles the logic of the action
+		return function(self: UnitType, action: UnitAction.Type): boolean
+			local elapsedTime = action.elapsedTime
+			local recovery = action.recovery * 2
+			local move = self.unitDef.move as number
+			local moveSpeed: number = 1.0
+			if elapsedTime < recovery then
+				moveSpeed = math.min(elapsedTime / recovery, 1.0)
+			end
+			self.velocityX = moveSpeed * (self.faceRight and move or -move)
+			return not self.onSurface
+		end
+	end
 })
 ```
 
@@ -104,27 +104,27 @@ UnitAction:add("move", {
 
 ```tl title="Script/Action.tl"
 UnitAction:add("jump", {
-  priority = 3,
-  reaction = 2.0,
-  recovery = 0.1,
-  queued = true,
-  available = function(self: UnitType): boolean
-    return self.onSurface
-  end,
-  create = function(self: UnitType): (
-      function(owner: UnitType, action: UnitAction.Type, deltaTime: number): (boolean)
-      | Routine.Job
-    )
-    -- Set the character's vertical velocity when the action starts executing
-    self.velocityY = self.unitDef.jump as number
+	priority = 3,
+	reaction = 2.0,
+	recovery = 0.1,
+	queued = true,
+	available = function(self: UnitType): boolean
+		return self.onSurface
+	end,
+	create = function(self: UnitType): (
+			function(owner: UnitType, action: UnitAction.Type, deltaTime: number): (boolean)
+			| Routine.Job
+		)
+		-- Set the character's vertical velocity when the action starts executing
+		self.velocityY = self.unitDef.jump as number
 
-    -- Play the jump animation and wait for the animation to finish in subsequent action updates
-    return once(function()
-      local playable = self.playable
-      playable.speed = 1
-      sleep(playable:play("jump", false))
-    end)
-  end
+		-- Play the jump animation and wait for the animation to finish in subsequent action updates
+		return once(function()
+			local playable = self.playable
+			playable.speed = 1
+			sleep(playable:play("jump", false))
+		end)
+	end
 })
 ```
 
@@ -136,35 +136,35 @@ UnitAction:add("jump", {
 
 ```tl title="Script/Action.tl"
 UnitAction:add("fallOff", {
-  priority = 2,
-  reaction = -1,
-  recovery = 0.3,
-  available = function(self: UnitType): boolean
-    return not self.onSurface
-  end,
-  create = function(self: UnitType): (
-      function(owner: UnitType, action: UnitAction.Type, deltaTime: number): (boolean)
-      | Routine.Job
-    )
-    -- Check and play the falling animation
-    if self.playable.current ~= "jumping" then
-      local playable = self.playable
-      playable.speed = 1
-      playable:play("jumping", true)
-    end
+	priority = 2,
+	reaction = -1,
+	recovery = 0.3,
+	available = function(self: UnitType): boolean
+		return not self.onSurface
+	end,
+	create = function(self: UnitType): (
+			function(owner: UnitType, action: UnitAction.Type, deltaTime: number): (boolean)
+			| Routine.Job
+		)
+		-- Check and play the falling animation
+		if self.playable.current ~= "jumping" then
+			local playable = self.playable
+			playable.speed = 1
+			playable:play("jumping", true)
+		end
 
-    -- Check the character's landing status and end the action after playing the landing animation
-    return loop(function(self: UnitType): boolean
-      if self.onSurface then
-          local playable = self.playable
-          playable.speed = 1
-          sleep(playable:play("landing", false))
-          return true
-        else
-          return false
-        end
-    end)
-  end
+		-- Check the character's landing status and end the action after playing the landing animation
+		return loop(function(self: UnitType): boolean
+			if self.onSurface then
+				local playable = self.playable
+				playable.speed = 1
+				sleep(playable:play("landing", false))
+				return true
+			else
+				return false
+			end
+		end)
+	end
 })
 ```
 

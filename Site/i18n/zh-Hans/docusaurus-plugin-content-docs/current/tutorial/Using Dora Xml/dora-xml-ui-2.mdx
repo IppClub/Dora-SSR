@@ -9,21 +9,21 @@ import TabItem from '@theme/TabItem';
 ```xml title="ButtonView.xml"
 <!-- params: X, Y, Radius, Text, FontSize -->
 <Node X="{ x }" Y="{ y }" Width="{ radius * 2 }" Height="{ radius * 2 }"
-  TouchEnabled="True">
-  <Action>
-    <Opacity Name="fadeIn" Start="1"/>
-    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
-  </Action>
+	TouchEnabled="True">
+	<Action>
+		<Opacity Name="fadeIn" Start="1"/>
+		<Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+	</Action>
 
-  <DrawNode Name="dot" X="{ radius }" Y="{ radius }" Opacity="0.4">
-    <Dot Radius="{ radius }" Color="0xfffbc400"/>
-  </DrawNode>
-  <Label Name="label" X="{ radius }" Y="{ radius }" Text="{ text }"
-    FontName="sarasa-mono-sc-regular"
-    FontSize="{ fontSize }" Ref="True"/>
+	<DrawNode Name="dot" X="{ radius }" Y="{ radius }" Opacity="0.4">
+		<Dot Radius="{ radius }" Color="0xfffbc400"/>
+	</DrawNode>
+	<Label Name="label" X="{ radius }" Y="{ radius }" Text="{ text }"
+		FontName="sarasa-mono-sc-regular"
+		FontSize="{ fontSize }" Ref="True"/>
 
-  <Slot Name="TapBegan" Target="dot" Perform="fadeIn"/>
-  <Slot Name="TapEnded" Target="dot" Perform="fadeOut"/>
+	<Slot Name="TapBegan" Target="dot" Perform="fadeIn"/>
+	<Slot Name="TapEnded" Target="dot" Perform="fadeOut"/>
 </Node>
 ```
 
@@ -35,37 +35,37 @@ local ButtonView = require("ButtonView")
 
 -- params: x, y, radius, text, fontSize
 local Button = Class({
-  -- 继承C++对象的方法
-  __partial = function(self, args)
-    return ButtonView(args)
-  end,
+	-- 继承C++对象的方法
+	__partial = function(self, args)
+		return ButtonView(args)
+	end,
 
-  -- 构造函数
-  __init = function(self, args)
-    self._text = args.text -- 存储按钮上的文本
+	-- 构造函数
+	__init = function(self, args)
+		self._text = args.text -- 存储按钮上的文本
 
-    self._clickCount = 0 -- 记录按钮被点击次数
-    
-    self:slot("Tapped", function() -- 监听点击事件
-      self._clickCount = self._clickCount + 1 -- 点击次数 +1
-    end)
-  end,
+		self._clickCount = 0 -- 记录按钮被点击次数
 
-  -- 添加text属性
-  text = property(
-    function(self) -- getter
-      return self._text
-    end,
-    function(self, value) -- setter
-      self._text = value
-      self.label.text = value -- 获取并设置label组件的text
-    end),
+		self:slot("Tapped", function() -- 监听点击事件
+			self._clickCount = self._clickCount + 1 -- 点击次数 +1
+		end)
+	end,
 
-  -- 添加clickCount属性
-  clickCount = property(
-    function(self) -- getter only
-      return self._clickCount -- 获取点击次数
-    end),
+	-- 添加text属性
+	text = property(
+		function(self) -- getter
+			return self._text
+		end,
+		function(self, value) -- setter
+			self._text = value
+			self.label.text = value -- 获取并设置label组件的text
+		end),
+
+	-- 添加clickCount属性
+	clickCount = property(
+		function(self) -- getter only
+			return self._clickCount -- 获取点击次数
+		end),
 })
 
 return Button
@@ -75,12 +75,12 @@ return Button
 
 ```xml title="MainSceneView.xml"
 <Node>
-  <Import Module="Button"/><!-- 直接在Xml中导入Lua模块 -->
+	<Import Module="Button"/><!-- 直接在Xml中导入Lua模块 -->
 
-  <Menu X="100" Y="100" Width="100" Height="100">
-    <Button X="25" Y="25" Radius="50" Text="Click"
-      FontSize="28" Ref="True"/><!-- 创建并导出对象 -->
-  </Menu>
+	<Menu X="100" Y="100" Width="100" Height="100">
+		<Button X="25" Y="25" Radius="50" Text="Click"
+			FontSize="28" Ref="True"/><!-- 创建并导出对象 -->
+	</Menu>
 </Node>
 ```
 
@@ -91,17 +91,17 @@ local _ENV = Dorothy()
 local MainSceneView = require("MainSceneView")
 
 local MainScene = class({
-  __partial = function(self, args)
-    return MainSceneView(args)
-  end,
+	__partial = function(self, args)
+		return MainSceneView(args)
+	end,
 
-  __init = function(self, args)
-    self.button.text = "Button"
+	__init = function(self, args)
+		self.button.text = "Button"
 
-    self.button:slots("Tapped", function(button)
-      print("Button click count:", button.clickCount)
-    end)
-  end,
+		self.button:slots("Tapped", function(button)
+			print("Button click count:", button.clickCount)
+		end)
+	end,
 })
 
 return MainScene
@@ -124,18 +124,18 @@ import "ButtonView"
 
 -- params: x, y, radius, text, fontSize
 Class
-  __partial: (args)=> ButtonView args
-  __init: (args)=>
-    @_text = args.text
-    @_clickCount = 0
-    @slots "Tapped", -> @_clickCount += 1
+	__partial: (args)=> ButtonView args
+	__init: (args)=>
+		@_text = args.text
+		@_clickCount = 0
+		@slots "Tapped", -> @_clickCount += 1
 
-  text: property => @_text,
-    (value)=>
-      @_text = value
-      @label.text = value
+	text: property => @_text,
+		(value)=>
+			@_text = value
+			@label.text = value
 
-  clickCount: property => @_clickCount
+	clickCount: property => @_clickCount
 ```
 
 ```yue title="MainScene.yue"
@@ -143,12 +143,12 @@ _ENV = Dorothy!
 import "MainSceneView"
 
 Class
-  __partial: (args)=> MainSceneView args
-  __init: (args)=>
-    @button.text = "Button"
+	__partial: (args)=> MainSceneView args
+	__init: (args)=>
+		@button.text = "Button"
 
-    @button\slots "Tapped",(button)->
-      print "Button click count: #{button.clickCount}"
+		@button\slots "Tapped",(button)->
+			print "Button click count: #{button.clickCount}"
 ```
 
 ```yue title="init.yue"

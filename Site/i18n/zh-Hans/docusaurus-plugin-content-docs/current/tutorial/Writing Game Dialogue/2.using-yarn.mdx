@@ -98,35 +98,35 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 -- 当第一次调用此函数或在不需要选择时，我们将传递 nil
 advance = (option)->
 
-  -- 函数首先调用 runner\advance 来获取 Yarn 脚本的下一部分内容。
-  -- 这将返回两个值：一个动作类型和一个结果。
-  action, result = runner\advance option
+	-- 函数首先调用 runner\advance 来获取 Yarn 脚本的下一部分内容。
+	-- 这将返回两个值：一个动作类型和一个结果。
+	action, result = runner\advance option
 
-  -- 根据动作类型，选择如何处理结果。
-  switch action when "Text"
+	-- 根据动作类型，选择如何处理结果。
+	switch action when "Text"
 
-    -- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
-    -- 其中包含文本内容和任何相关的标记（例如角色名）。
-    -- 检查标记，提取角色名（如果存在）并打印出文本内容。
-    charName = ""
-    if result.marks
-      for mark in *result.marks
-        switch mark when {name: attr, attrs: {:name}}
-          charName = "#{name}: " if attr == "char"
-    print charName .. result.text
+		-- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
+		-- 其中包含文本内容和任何相关的标记（例如角色名）。
+		-- 检查标记，提取角色名（如果存在）并打印出文本内容。
+		charName = ""
+		if result.marks
+			for mark in *result.marks
+				switch mark when {name: attr, attrs: {:name}}
+					charName = "#{name}: " if attr == "char"
+		print charName .. result.text
 
-  when "Option"
+	when "Option"
 
-    -- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
-    -- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
-    -- 玩家稍后可以选择它们。
-    for i, op in ipairs result
-      print "[#{i}]: #{op.text}" if op
+		-- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
+		-- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
+		-- 玩家稍后可以选择它们。
+		for i, op in ipairs result
+			print "[#{i}]: #{op.text}" if op
 
-  else
+	else
 
-    -- 对于其他动作（例如错误），函数将直接打印结果。
-    print result
+		-- 对于其他动作（例如错误），函数将直接打印结果。
+		print result
 ```
 
 </TabItem>
@@ -137,48 +137,48 @@ advance = (option)->
 -- 当第一次调用此函数或在不需要选择时，我们将传递 nil
 local function advance(option?: integer)
 
-  -- 函数首先调用 runner:advance(option) 来获取 Yarn 脚本的下一部分内容。
-  -- 这将返回两个值：一个动作类型和一个结果。
-  local action, result = runner:advance(option)
+	-- 函数首先调用 runner:advance(option) 来获取 Yarn 脚本的下一部分内容。
+	-- 这将返回两个值：一个动作类型和一个结果。
+	local action, result = runner:advance(option)
 
-  -- 根据动作类型，选择如何处理结果。
-  if action == "Text" then
+	-- 根据动作类型，选择如何处理结果。
+	if action == "Text" then
 
-    -- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
-    -- 其中包含文本内容和任何相关的标记（例如角色名）。
-    local textResult = result as YarnRunner.TextResult
+		-- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
+		-- 其中包含文本内容和任何相关的标记（例如角色名）。
+		local textResult = result as YarnRunner.TextResult
 
-    -- 检查标记，提取角色名（如果存在）并打印出文本内容。
-    local characterName = ""
-    local marks = textResult.marks
-    if not (marks is nil) then
-      for i = 1, #marks do
-        local mark = marks[i]
-        if mark.name == "char" then
-          characterName = tostring(mark.attrs.name) .. ": "
-        end
-      end
-    end
-    print(characterName .. textResult.text)
+		-- 检查标记，提取角色名（如果存在）并打印出文本内容。
+		local characterName = ""
+		local marks = textResult.marks
+		if not (marks is nil) then
+			for i = 1, #marks do
+				local mark = marks[i]
+				if mark.name == "char" then
+					characterName = tostring(mark.attrs.name) .. ": "
+				end
+			end
+		end
+		print(characterName .. textResult.text)
 
-  elseif action == "Option" then
+	elseif action == "Option" then
 
-    -- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
-    -- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
-    -- 玩家稍后可以选择它们。
-    local optionResult = result as YarnRunner.OptionResult
-    for i, op in ipairs(optionResult) do
-      if op and not (op is boolean) then
-        print("[" .. tostring(i) .. "]: " .. op.text)
-      end
-    end
+		-- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
+		-- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
+		-- 玩家稍后可以选择它们。
+		local optionResult = result as YarnRunner.OptionResult
+		for i, op in ipairs(optionResult) do
+			if op and not (op is boolean) then
+				print("[" .. tostring(i) .. "]: " .. op.text)
+			end
+		end
 
-  else
+	else
 
-    -- 对于其他动作（例如错误），函数将直接打印结果。
-    print(result)
+		-- 对于其他动作（例如错误），函数将直接打印结果。
+		print(result)
 
-  end
+	end
 end
 ```
 
@@ -190,45 +190,45 @@ end
 -- 当第一次调用此函数或在不需要选择时，我们将传递 nil
 local function advance(option)
 
-  -- 函数首先调用 runner:advance(option) 来获取 Yarn 脚本的下一部分内容。
-  -- 这将返回两个值：一个动作类型和一个结果。
-  local action, result = runner:advance(option)
+	-- 函数首先调用 runner:advance(option) 来获取 Yarn 脚本的下一部分内容。
+	-- 这将返回两个值：一个动作类型和一个结果。
+	local action, result = runner:advance(option)
 
-  -- 根据动作类型，选择如何处理结果。
-  if action == "Text" then
+	-- 根据动作类型，选择如何处理结果。
+	if action == "Text" then
 
-    -- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
-    -- 其中包含文本内容和任何相关的标记（例如角色名）。
-    -- 检查标记，提取角色名（如果存在）并打印出文本内容。
-    local characterName = ""
-    local marks = result.marks
-    if marks then
-      for i = 1, #marks do
-        local mark = marks[i]
-        if mark.name == "char" then
-          characterName = mark.attrs.name .. ": "
-        end
-      end
-    end
-    print(characterName .. result.text)
+		-- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
+		-- 其中包含文本内容和任何相关的标记（例如角色名）。
+		-- 检查标记，提取角色名（如果存在）并打印出文本内容。
+		local characterName = ""
+		local marks = result.marks
+		if marks then
+			for i = 1, #marks do
+				local mark = marks[i]
+				if mark.name == "char" then
+					characterName = mark.attrs.name .. ": "
+				end
+			end
+		end
+		print(characterName .. result.text)
 
-  elseif action == "Option" then
+	elseif action == "Option" then
 
-    -- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
-    -- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
-    -- 玩家稍后可以选择它们。
-    for i, op in ipairs(result) do
-      if op then
-        print("[" .. tostring(i) .. "]: " .. op.text)
-      end
-    end
+		-- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
+		-- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
+		-- 玩家稍后可以选择它们。
+		for i, op in ipairs(result) do
+			if op then
+				print("[" .. tostring(i) .. "]: " .. op.text)
+			end
+		end
 
-  else
+	else
 
-    -- 对于其他动作（例如错误），函数将直接打印结果。
-    print(result)
+		-- 对于其他动作（例如错误），函数将直接打印结果。
+		print(result)
 
-  end
+	end
 end
 ```
 
@@ -272,8 +272,8 @@ advance()
 
 ```yue title="init.yue"
 with Node!
-  \gslot "go", (option)-> advance option
-  \addTo Director.entry
+	\gslot "go", (option)-> advance option
+	\addTo Director.entry
 ```
 
 </TabItem>
@@ -282,7 +282,7 @@ with Node!
 ```tl title="init.tl"
 local node = Node()
 node:gslot("go", function(option: nil | integer)
-    advance(option)
+	advance(option)
 end)
 node:addTo(Director.entry)
 ```
@@ -293,7 +293,7 @@ node:addTo(Director.entry)
 ```lua title="init.lua"
 local node = Node()
 node:gslot("go", function(option)
-    advance(option)
+	advance(option)
 end)
 node:addTo(Director.entry)
 ```

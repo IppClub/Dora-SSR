@@ -66,13 +66,13 @@ Next, we use Observers to listen for changes in entities. Sometimes, you need to
 
 ```yue
 with Observer "Add", {"scene"}
-  \watch (_entity, scene)->
-    Director.entry\addChild with scene
-      .touchEnabled = true
-      \slot "TapEnded", (touch)->
-        :location = touch
-        positionGroup\each (entity)->
-          entity.target = location
+	\watch (_entity, scene)->
+		Director.entry\addChild with scene
+			.touchEnabled = true
+			\slot "TapEnded", (touch)->
+				:location = touch
+				positionGroup\each (entity)->
+					entity.target = location
 ```
 
 First, we create an Observer object using the `Observer` class. We specify the event type as "Add" to listen for entity addition events. Additionally, we pass a list containing the string "scene" as the parameter to specify the component types to monitor.
@@ -115,7 +115,7 @@ Finally, we use `positionGroup\each (entity)->` to iterate over all entities in 
 
 ```yue
 positionGroup\each (entity)->
-  entity.target = location
+	entity.target = location
 ```
 
 In this way, when a new entity with the "scene" component is added, this observer will be triggered, and the defined operations will be executed. The scene node will be added to the game scene, touch events will be enabled, and the target property of entities in the positionGroup will be set to the touch location.
@@ -124,31 +124,31 @@ Next, we create additional observers to handle other types of entity changes, su
 
 ```yue
 with Observer "Add", {"sprite"}
-  \watch (sprite)=>
-    sceneGroup\each (e)->
-      e.scene\addChild with sprite
-        \runAction Scale 0.5, 0, 0.5, Ease.OutBack
+	\watch (sprite)=>
+		sceneGroup\each (e)->
+			e.scene\addChild with sprite
+				\runAction Scale 0.5, 0, 0.5, Ease.OutBack
 
 with Observer "Remove", {"sprite"}
-  \watch =>
-    sceneGroup\each (e)->
-      e.scene\removeChild @oldValues.sprite
+	\watch =>
+		sceneGroup\each (e)->
+			e.scene\removeChild @oldValues.sprite
 ```
 
 Then, we create an entity group with the components "position", "direction", "speed", and "target". We define an observer to handle changes in these components and update the rotation angle and position properties of the entities based on their speed and the elapsed time.
 
 ```yue
 with Group {"position", "direction", "speed", "target"}
-  \watch (entity, position, direction, speed, target)=>
-    return if target == position
-    dir = target - position
-    dir = dir\normalize!
-    newPos = position + dir * speed
-    newPos = newPos\clamp position, target
-    entity.position = newPos
-    entity.target = nil if newPos == target
-    angle = math.deg math.atan dir.x, dir.y
-    entity.direction = angle
+	\watch (entity, position, direction, speed, target)=>
+		return if target == position
+		dir = target - position
+		dir = dir\normalize!
+		newPos = position + dir * speed
+		newPos = newPos\clamp position, target
+		entity.position = newPos
+		entity.target = nil if newPos == target
+		angle = math.deg math.atan dir.x, dir.y
+		entity.direction = angle
 ```
 
 In this code snippet, we first create a group object using the `Group` class and specify the component types as "position", "direction", "speed", and "target".
@@ -208,32 +208,32 @@ After completing the data calculation and update, we also need to update the dat
 
 ```yue
 with Observer "AddOrChange", {"position", "direction", "sprite"}
-  \watch (position, direction, sprite)=>
-    -- Update the display position of the image
-    sprite.position = position
-    lastDirection = @oldValues.direction or sprite.angle
-    -- When the rotation angle of the image changes, we play a rotation animation
-    if math.abs(direction - lastDirection) > 1
-      sprite\runAction Roll 0.3, lastDirection, direction
+	\watch (position, direction, sprite)=>
+		-- Update the display position of the image
+		sprite.position = position
+		lastDirection = @oldValues.direction or sprite.angle
+		-- When the rotation angle of the image changes, we play a rotation animation
+		if math.abs(direction - lastDirection) > 1
+			sprite\runAction Roll 0.3, lastDirection, direction
 ```
 
 Lastly, we create three entities and add different components to them. This is where the game system begins to run.
 
 ```yue
 Entity
-  sprite: Sprite "Image/logo.png"
-  position: Vec2.zero
-  direction: 45.0
-  speed: 4.0
+	sprite: Sprite "Image/logo.png"
+	position: Vec2.zero
+	direction: 45.0
+	speed: 4.0
 
 Entity
-  sprite: Sprite "Image/logo.png"
-  position: Vec2 -100, 200
-  direction: 90.0
-  speed: 10.0
+	sprite: Sprite "Image/logo.png"
+	position: Vec2 -100, 200
+	direction: 90.0
+	speed: 10.0
 
 Entity
-  scene: Node!
+	scene: Node!
 ```
 
 </TabItem>
@@ -266,17 +266,17 @@ Next, we use Observers to listen for changes in entities. Sometimes, you need to
 
 ```tl
 Observer("Add", {"scene"})
-  :watch(function(_entity: Entity.Type, scene: Node.Type)
-    Director.entry:addChild(scene)
-    scene.touchEnabled = true
-    scene:slot("TapEnded", function(touch: Touch.Type)
-      local location = touch.location
-      positionGroup:each(function(entity: Entity.Type): boolean
-        entity.target = location
-        return false
-      end)
-    end)
-  end)
+	:watch(function(_entity: Entity.Type, scene: Node.Type)
+		Director.entry:addChild(scene)
+		scene.touchEnabled = true
+		scene:slot("TapEnded", function(touch: Touch.Type)
+			local location = touch.location
+			positionGroup:each(function(entity: Entity.Type): boolean
+				entity.target = location
+				return false
+			end)
+		end)
+	end)
 ```
 
 First, we create an Observer object using the `Observer` class. We specify the event type as "Add" to listen for entity addition events. Additionally, we pass a list containing the string "scene" as the parameter to specify the component types to monitor.
@@ -319,8 +319,8 @@ Finally, we use `positionGroup:each()` to iterate over all entities in the `posi
 
 ```tl
 positionGroup:each(function(entity: Entity.Type): boolean
-  entity.target = location
-  return false
+	entity.target = location
+	return false
 end)
 ```
 
@@ -330,21 +330,21 @@ Next, we create additional observers to handle other types of entity changes, su
 
 ```tl
 Observer("Add", {"sprite"}):watch(function(_entity: Entity.Type, sprite: Sprite.Type)
-  sceneGroup:each(function(e: Entity.Type): boolean
-    local scene = e.scene as Node.Type
-    sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
-    scene:addChild(sprite)
-    return true
-  end)
+	sceneGroup:each(function(e: Entity.Type): boolean
+		local scene = e.scene as Node.Type
+		sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
+		scene:addChild(sprite)
+		return true
+	end)
 end)
 
 Observer("Remove", {"sprite"}):watch(function(self: Entity.Type)
-  sceneGroup:each(function(e: Entity.Type): boolean
-    local scene = e.scene as Node.Type
-    local sprite = self.oldValues.sprite as Node.Type
-    scene:removeChild(sprite)
-    return true
-  end)
+	sceneGroup:each(function(e: Entity.Type): boolean
+		local scene = e.scene as Node.Type
+		local sprite = self.oldValues.sprite as Node.Type
+		scene:removeChild(sprite)
+		return true
+	end)
 end)
 ```
 
@@ -352,20 +352,20 @@ Then, we create an entity group with the components "position", "direction", "sp
 
 ```tl
 Group({"position", "direction", "speed", "target"}):watch(
-  function(entity: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
-  if target == position then
-    return
-  end
-  local dir = target - position
-  dir = dir:normalize()
-  local newPos = position + dir * speed
-  newPos = newPos:clamp(position, target)
-  entity.position = newPos
-  if newPos == target then
-    entity.target = nil
-  end
-  local angle = math.deg(math.atan(dir.x, dir.y))
-  entity.direction = angle
+	function(entity: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
+	if target == position then
+		return
+	end
+	local dir = target - position
+	dir = dir:normalize()
+	local newPos = position + dir * speed
+	newPos = newPos:clamp(position, target)
+	entity.position = newPos
+	if newPos == target then
+		entity.target = nil
+	end
+	local angle = math.deg(math.atan(dir.x, dir.y))
+	entity.direction = angle
 end)
 ```
 
@@ -379,14 +379,14 @@ Then, we use the `watch` method of the entity group to iterate over all entities
 
 ```tl
 :watch(
-  function(entity: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
+	function(entity: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
 ```
 
 Inside the callback function, we start with some conditional checks. We use `return if target == position` to check if the target position is the same as the current position. If they are the same, we return and skip the update operations.
 
 ```tl
 if target == position then
-  return
+	return
 end
 ```
 
@@ -414,7 +414,7 @@ Additionally, if the new position is equal to the target position, we clear the 
 
 ```tl
 if newPos == target then
-  entity.target = nil
+	entity.target = nil
 end
 ```
 
@@ -431,32 +431,32 @@ After completing the data calculation and update, we also need to update the dat
 
 ```tl
 Observer("AddOrChange", {"position", "direction", "sprite"})
-  :watch(function(entity: Entity.Type, position: Vec2.Type, direction: number, sprite: Sprite.Type)
-    -- Update the display position of the image
-    sprite.position = position
-    local lastDirection = entity.oldValues.direction as number or sprite.angle
-    -- When the rotation angle of the image changes, we play a rotation animation
-    if math.abs(direction - lastDirection) > 1 then
-      sprite:runAction(Roll(0.3, lastDirection, direction))
-    end
-  end)
+	:watch(function(entity: Entity.Type, position: Vec2.Type, direction: number, sprite: Sprite.Type)
+		-- Update the display position of the image
+		sprite.position = position
+		local lastDirection = entity.oldValues.direction as number or sprite.angle
+		-- When the rotation angle of the image changes, we play a rotation animation
+		if math.abs(direction - lastDirection) > 1 then
+			sprite:runAction(Roll(0.3, lastDirection, direction))
+		end
+	end)
 ```
 
 Lastly, we create three entities and add different components to them. This is where the game system begins to run.
 
 ```tl
 Entity {
-  sprite = Sprite("Image/logo.png"),
-  position = Vec2.zero,
-  direction = 45.0,
-  speed = 4.0
+	sprite = Sprite("Image/logo.png"),
+	position = Vec2.zero,
+	direction = 45.0,
+	speed = 4.0
 }
 
 Entity {
-  sprite = Sprite("Image/logo.png"),
-  position = Vec2(-100, 200),
-  direction = 90.0,
-  speed = 10.0
+	sprite = Sprite("Image/logo.png"),
+	position = Vec2(-100, 200),
+	direction = 90.0,
+	speed = 10.0
 }
 
 Entity { scene = Node() }
@@ -492,16 +492,16 @@ Next, we use Observers to listen for changes in entities. Sometimes, you need to
 
 ```lua
 Observer("Add", {"scene"})
-  :watch(function(_entity, scene)
-    Director.entry:addChild(scene)
-    scene.touchEnabled = true
-    scene:slot("TapEnded", function(touch)
-      local location = touch.location
-      positionGroup:each(function(entity)
-        entity.target = location
-      end)
-    end)
-  end)
+	:watch(function(_entity, scene)
+		Director.entry:addChild(scene)
+		scene.touchEnabled = true
+		scene:slot("TapEnded", function(touch)
+			local location = touch.location
+			positionGroup:each(function(entity)
+				entity.target = location
+			end)
+		end)
+	end)
 ```
 
 First, we create an Observer object using the `Observer` class. We specify the event type as "Add" to listen for entity addition events. Additionally, we pass a list containing the string "scene" as the parameter to specify the component types to monitor.
@@ -544,7 +544,7 @@ Finally, we use `positionGroup:each()` to iterate over all entities in the `posi
 
 ```lua
 positionGroup:each(function(entity)
-  entity.target = location
+	entity.target = location
 end)
 ```
 
@@ -554,21 +554,21 @@ Next, we create additional observers to handle other types of entity changes, su
 
 ```lua
 Observer("Add", {"sprite"}):watch(function(_entity, sprite)
-  sceneGroup:each(function(e)
-    local scene = e.scene
-    sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
-    scene:addChild(sprite)
-    return true
-  end)
+	sceneGroup:each(function(e)
+		local scene = e.scene
+		sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
+		scene:addChild(sprite)
+		return true
+	end)
 end)
 
 Observer("Remove", {"sprite"}):watch(function(entity)
-  sceneGroup:each(function(e)
-    local scene = e.scene
-    local sprite = entity.oldValues.sprite
-    scene:removeChild(sprite)
-    return true
-  end)
+	sceneGroup:each(function(e)
+		local scene = e.scene
+		local sprite = entity.oldValues.sprite
+		scene:removeChild(sprite)
+		return true
+	end)
 end)
 ```
 
@@ -576,21 +576,21 @@ Then, we create an entity group with the components "position", "direction", "sp
 
 ```lua
 Group({"position", "direction", "speed", "target"}):watch(
-  function(entity, position, _direction, speed, target)
-  if target == position then
-    return
-  end
-  local dir = target - position
-  dir = dir:normalize()
-  local newPos = position + dir * speed
-  newPos = newPos:clamp(position, target)
-  entity.position = newPos
-  if newPos == target then
-    entity.target = nil
-  end
-  local angle = math.deg(math.atan(dir.x, dir.y))
-  entity.direction = angle
-end)
+	function(entity, position, _direction, speed, target)
+		if target == position then
+			return
+		end
+		local dir = target - position
+		dir = dir:normalize()
+		local newPos = position + dir * speed
+		newPos = newPos:clamp(position, target)
+		entity.position = newPos
+		if newPos == target then
+			entity.target = nil
+		end
+		local angle = math.deg(math.atan(dir.x, dir.y))
+		entity.direction = angle
+	end)
 ```
 
 In this code snippet, we first create a group object using the `Group` class and specify the component types as "position", "direction", "speed", and "target".
@@ -603,14 +603,14 @@ Then, we use the `watch` method of the entity group to iterate over all entities
 
 ```lua
 :watch(
-  function(entity, position, _direction, speed, target)
+	function(entity, position, _direction, speed, target)
 ```
 
 Inside the callback function, we start with some conditional checks. We use `return if target == position` to check if the target position is the same as the current position. If they are the same, we return and skip the update operations.
 
 ```lua
 if target == position then
-  return
+	return
 end
 ```
 
@@ -638,7 +638,7 @@ Additionally, if the new position is equal to the target position, we clear the 
 
 ```lua
 if newPos == target then
-  entity.target = nil
+	entity.target = nil
 end
 ```
 
@@ -655,32 +655,32 @@ After completing the data calculation and update, we also need to update the dat
 
 ```lua
 Observer("AddOrChange", {"position", "direction", "sprite"})
-  :watch(function(entity, position, direction, sprite)
-    -- Update the display position of the image
-    sprite.position = position
-    local lastDirection = entity.oldValues.direction or sprite.angle
-    -- When the rotation angle of the image changes, we play a rotation animation
-    if math.abs(direction - lastDirection) > 1 then
-      sprite:runAction(Roll(0.3, lastDirection, direction))
-    end
-  end)
+	:watch(function(entity, position, direction, sprite)
+		-- Update the display position of the image
+		sprite.position = position
+		local lastDirection = entity.oldValues.direction or sprite.angle
+		-- When the rotation angle of the image changes, we play a rotation animation
+		if math.abs(direction - lastDirection) > 1 then
+			sprite:runAction(Roll(0.3, lastDirection, direction))
+		end
+	end)
 ```
 
 Lastly, we create three entities and add different components to them. This is where the game system begins to run.
 
 ```lua
 Entity {
-  sprite = Sprite("Image/logo.png"),
-  position = Vec2.zero,
-  direction = 45.0,
-  speed = 4.0
+	sprite = Sprite("Image/logo.png"),
+	position = Vec2.zero,
+	direction = 45.0,
+	speed = 4.0
 }
 
 Entity {
-  sprite = Sprite("Image/logo.png"),
-  position = Vec2(-100, 200),
-  direction = 90.0,
-  speed = 10.0
+	sprite = Sprite("Image/logo.png"),
+	position = Vec2(-100, 200),
+	direction = 90.0,
+	speed = 10.0
 }
 
 Entity { scene = Node() }

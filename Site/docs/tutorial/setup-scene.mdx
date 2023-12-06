@@ -57,11 +57,11 @@ Here's an example of how to set these properties in Lua:
 
 ```yue
 with node
-  .x = 100
-  .y = 200
-  .width = 50
-  .height = 50
-  .visible = true
+	.x = 100
+	.y = 200
+	.width = 50
+	.height = 50
+	.visible = true
 ```
 
 </TabItem>
@@ -133,9 +133,9 @@ Here's an example of how to check these properties in Lua:
 
 ```yue
 with node
-  print .hasChildren -- Print whether the node has child nodes
-  print .children -- Print the list of child nodes
-  print .parent -- Print the parent node of the current node
+	print .hasChildren -- Print whether the node has child nodes
+	print .children -- Print the list of child nodes
+	print .parent -- Print the parent node of the current node
 ```
 
 </TabItem>
@@ -172,7 +172,7 @@ The basic steps to register and handle events are as follows:
 
 ```yue
 node\slot "EventName", (...)->
-  -- Add your code here
+	-- Add your code here
 ```
 
 </TabItem>
@@ -180,7 +180,7 @@ node\slot "EventName", (...)->
 
 ```teal
 node:slot("EventName", function(...)
-  -- Add your code here
+	-- Add your code here
 end)
 ```
 
@@ -189,7 +189,7 @@ end)
 
 ```lua
 node:slot("EventName", function(...)
-  -- Add your code here
+	-- Add your code here
 end)
 ```
 
@@ -203,7 +203,7 @@ end)
 
 ```yue
 node\slot "ActionEnd", (action, target)->
-  print "Action completed: #{action} Target node: #{target}"
+	print "Action completed: #{action} Target node: #{target}"
 ```
 
 </TabItem>
@@ -211,7 +211,7 @@ node\slot "ActionEnd", (action, target)->
 
 ```teal
 node:slot("ActionEnd", function(action: Action.Type, target: Node.Type)
-  print("Action completed: " .. action .. " Target node: " .. target)
+	print("Action completed: " .. action .. " Target node: " .. target)
 end)
 ```
 
@@ -220,7 +220,7 @@ end)
 
 ```lua
 node:slot("ActionEnd", function(action, target)
-  print("Action completed: " .. action .. " Target node: " .. target)
+	print("Action completed: " .. action .. " Target node: " .. target)
 end)
 ```
 
@@ -229,9 +229,9 @@ end)
 
 The commonly used node event types related to game interactions and their corresponding callback function signatures are as follows. Before using these events, you also need to enable the node to receive touch events:
 
-   ```lua
-   node.touchEnabled = true
-   ```
+```lua
+node.touchEnabled = true
+```
 
 - **Tap Filter**: Triggered before the tap begins, can be used to filter certain tap events. Callback function signature: `function(touch: Touch)`
 - **Tap Began**: Triggered when a tap is detected. Callback function signature: `function(touch: Touch)`
@@ -348,8 +348,8 @@ node:perform(rotateAction)
 
 ```yue
 node\perform Sequence(
-  Move duration, startPosition, stopPosition
-  Angle duration, startAngle, stopAngle
+	Move duration, startPosition, stopPosition
+	Angle duration, startAngle, stopAngle
 )
 ```
 
@@ -358,8 +358,8 @@ node\perform Sequence(
 
 ```teal
 node:perform(Sequence(
-  Move(duration, startPosition, stopPosition),
-  Angle(duration, startAngle, stopAngle)
+	Move(duration, startPosition, stopPosition),
+	Angle(duration, startAngle, stopAngle)
 ))
 ```
 
@@ -368,8 +368,8 @@ node:perform(Sequence(
 
 ```lua
 node:perform(Sequence(
-  Move(duration, startPosition, stopPosition),
-  Angle(duration, startAngle, stopAngle)
+	Move(duration, startPosition, stopPosition),
+	Angle(duration, startAngle, stopAngle)
 ))
 ```
 
@@ -385,8 +385,8 @@ node:perform(Sequence(
 
 ```yue
 node\perform Spawn(
-  Move duration, startPosition, stopPosition
-  Scale duration, startScale, stopScale
+	Move duration, startPosition, stopPosition
+	Scale duration, startScale, stopScale
 )
 ```
 
@@ -395,8 +395,8 @@ node\perform Spawn(
 
 ```teal
 node:perform(Spawn(
-  Move(duration, startPosition, stopPosition),
-  Scale(duration, startScale, stopScale)
+	Move(duration, startPosition, stopPosition),
+	Scale(duration, startScale, stopScale)
 ))
 ```
 
@@ -405,8 +405,8 @@ node:perform(Spawn(
 
 ```lua
 node:perform(Spawn(
-  Move(duration, startPosition, stopPosition),
-  Scale(duration, startScale, stopScale)
+	Move(duration, startPosition, stopPosition),
+	Scale(duration, startScale, stopScale)
 ))
 ```
 
@@ -437,10 +437,10 @@ node:perform(Spawn(
 
 ```yue
 moveAction = Move(
-  duration
-  startPosition
-  stopPosition
-  Ease.InOutQuad
+	duration
+	startPosition
+	stopPosition
+	Ease.InOutQuad
 )
 node\perform moveAction
 ```
@@ -450,10 +450,10 @@ node\perform moveAction
 
 ```teal
 local moveAction = Move(
-  duration,
-  startPosition,
-  stopPosition,
-  Ease.InOutQuad
+	duration,
+	startPosition,
+	stopPosition,
+	Ease.InOutQuad
 )
 node:perform(moveAction)
 ```
@@ -463,10 +463,10 @@ node:perform(moveAction)
 
 ```lua
 local moveAction = Move(
-  duration,
-  startPosition,
-  stopPosition,
-  Ease.InOutQuad
+	duration,
+	startPosition,
+	stopPosition,
+	Ease.InOutQuad
 )
 node:perform(moveAction)
 ```

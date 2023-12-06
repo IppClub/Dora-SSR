@@ -39,7 +39,7 @@ world.camera.boundary = Rect(-1250, -500, 2500, 1000)
 world.camera.followRatio = Vec2(0.02, 0.02)
 world.camera.zoom = View.size.width / DesignWidth
 world:gslot("AppSizeChanged", function()
-  world.camera.zoom = View.size.width / DesignWidth
+	world.camera.zoom = View.size.width / DesignWidth
 end)
 ```
 
@@ -61,33 +61,33 @@ local terrain = Body(terrainDef, world, Vec2.zero)
 terrain.order = Config.TerrainLayer
 terrain.group = Config.TerrainGroup
 terrain:addChild(Rectangle{
-  y = -500,
-  width = 2500,
-  height = 10,
-  fillColor = fillColor,
-  borderColor = borderColor,
-  fillOrder = 1,
-  lineOrder = 2
+	y = -500,
+	width = 2500,
+	height = 10,
+	fillColor = fillColor,
+	borderColor = borderColor,
+	fillOrder = 1,
+	lineOrder = 2
 })
 terrain:addChild(Rectangle{
-  x = 1250,
-  y = 0,
-  width = 10,
-  height = 1000,
-  fillColor = fillColor,
-  borderColor = borderColor,
-  fillOrder = 1,
-  lineOrder = 2
+	x = 1250,
+	y = 0,
+	width = 10,
+	height = 1000,
+	fillColor = fillColor,
+	borderColor = borderColor,
+	fillOrder = 1,
+	lineOrder = 2
 })
 terrain:addChild(Rectangle{
-  x = -1250,
-  y = 0,
-  width = 10,
-  height = 1000,
-  fillColor = fillColor,
-  borderColor = borderColor,
-  fillOrder = 1,
-  lineOrder = 2
+	x = -1250,
+	y = 0,
+	width = 10,
+	height = 1000,
+	fillColor = fillColor,
+	borderColor = borderColor,
+	fillOrder = 1,
+	lineOrder = 2
 })
 ```
 

@@ -33,14 +33,14 @@ local keyboardEnabled = true
 
 local playerGroup = Group{"player"}
 local function updatePlayerControl(key: string, flag: boolean, vpad: boolean)
-  -- 如果按下屏幕虚拟按键就不再检测键盘按键
-  if keyboardEnabled and vpad then
-    keyboardEnabled = false
-  end
-  -- 把按键状态数据分发到玩家数据实体上等待处理
-  playerGroup:each(function(self: Entity.Type): boolean
-    self[key] = flag
-  end)
+	-- 如果按下屏幕虚拟按键就不再检测键盘按键
+	if keyboardEnabled and vpad then
+		keyboardEnabled = false
+	end
+	-- 把按键状态数据分发到玩家数据实体上等待处理
+	playerGroup:each(function(self: Entity.Type): boolean
+		self[key] = flag
+	end)
 end
 ```
 
@@ -50,8 +50,8 @@ end
 -- 获取设备的DPI缩放值使UI在各种设备上的显示大小一致
 local uiScale = App.devicePixelRatio
 local alignNode = AlignNode{
-  isRoot = true,
-  inUI = true
+	isRoot = true,
+	inUI = true
 }
 Director.ui:addChild(alignNode)
 ```
@@ -61,8 +61,8 @@ Director.ui:addChild(alignNode)
 ```tl title="Script/UI.tl"
 -- 创建左对齐的菜单
 local leftAlign = AlignNode{
-  hAlign = "Left",
-  vAlign = "Bottom"
+	hAlign = "Left",
+	vAlign = "Bottom"
 }
 alignNode:addChild(leftAlign)
 
@@ -88,35 +88,35 @@ alignNode:alignLayout()
 ```tl title="Script/UI.tl"
 -- 创建左移按钮
 local leftButton = CircleButton{
-  text = "左(a)",
-  x = 20 * uiScale,
-  y = 60 * uiScale,
-  radius = 30 * uiScale,
-  fontSize = math.floor(18 * uiScale)
+	text = "左(a)",
+	x = 20 * uiScale,
+	y = 60 * uiScale,
+	radius = 30 * uiScale,
+	fontSize = math.floor(18 * uiScale)
 }
 leftButton.anchor = Vec2.zero
 leftButton:slot("TapBegan", function()
-  updatePlayerControl("keyLeft", true, true)
+	updatePlayerControl("keyLeft", true, true)
 end)
 leftButton:slot("TapEnded", function()
-  updatePlayerControl("keyLeft", false, true)
+	updatePlayerControl("keyLeft", false, true)
 end)
 leftMenu:addChild(leftButton)
 
 -- 创建右移按钮
 local rightButton = CircleButton{
-  text = "右(d)",
-  x = 90 * uiScale,
-  y = 60 * uiScale,
-  radius = 30 * uiScale,
-  fontSize = math.floor(18 * uiScale)
+	text = "右(d)",
+	x = 90 * uiScale,
+	y = 60 * uiScale,
+	radius = 30 * uiScale,
+	fontSize = math.floor(18 * uiScale)
 }
 rightButton.anchor = Vec2.zero
 rightButton:slot("TapBegan", function()
-  updatePlayerControl("keyRight", true, true)
+	updatePlayerControl("keyRight", true, true)
 end)
 rightButton:slot("TapEnded", function()
-  updatePlayerControl("keyRight", false, true)
+	updatePlayerControl("keyRight", false, true)
 end)
 leftMenu:addChild(rightButton)
 
@@ -143,65 +143,65 @@ rightMenu:addChild(jumpButton)
 ```tl title="Script/UI.tl"
 local pickedItemGroup = Group{"picked"}
 local windowFlags = {
-  "NoDecoration",
-  "AlwaysAutoResize",
-  "NoSavedSettings",
-  "NoFocusOnAppearing",
-  "NoNav",
-  "NoMove"
+	"NoDecoration",
+	"AlwaysAutoResize",
+	"NoSavedSettings",
+	"NoFocusOnAppearing",
+	"NoNav",
+	"NoMove"
 }
 local themeColor = App.themeColor
 Director.ui:schedule(function(): boolean
-  local size = App.visualSize
-  ImGui.SetNextWindowBgAlpha(0.35)
-  ImGui.SetNextWindowPos(Vec2(size.width - 10, 10), "Always", Vec2(1, 0))
-  ImGui.SetNextWindowSize(Vec2(100, 300), "FirstUseEver")
-  ImGui.Begin("BackPack", windowFlags, function()
-    if ImGui.Button("重新加载Excel") then
-      Loader.loadExcel()
-    end
-    ImGui.Separator()
-    ImGui.Dummy(Vec2(100, 10))
-    ImGui.Text("背包")
-    ImGui.Separator()
-    ImGui.Columns(3, false)
+	local size = App.visualSize
+	ImGui.SetNextWindowBgAlpha(0.35)
+	ImGui.SetNextWindowPos(Vec2(size.width - 10, 10), "Always", Vec2(1, 0))
+	ImGui.SetNextWindowSize(Vec2(100, 300), "FirstUseEver")
+	ImGui.Begin("BackPack", windowFlags, function()
+		if ImGui.Button("重新加载Excel") then
+			Loader.loadExcel()
+		end
+		ImGui.Separator()
+		ImGui.Dummy(Vec2(100, 10))
+		ImGui.Text("背包")
+		ImGui.Separator()
+		ImGui.Columns(3, false)
 
-    -- 遍历有被标记拾取状态picked组件的道具实体
-    pickedItemGroup:each(function(e: Entity.Type): boolean
-      local item = e as Loader.ItemEntity
-      if item.num > 0 then
-        -- 当按下道具按钮时进行处理
-        if ImGui.ImageButton("item" .. tostring(item.no), item.icon, Vec2(50, 50)) then
-          item.num = item.num - 1
-          local sprite = Sprite(item.icon)
-          sprite.scaleX = 0.5
-          sprite.scaleY = 0.5
-          sprite:perform(Spawn(
-            Opacity(1, 1, 0),
-            Y(1, 150, 250)
-          ))
-          local player = playerGroup:find(function(): boolean return true end)
-          local unit = player.unit as UnitType
-          unit:addChild(sprite)
-        end
+		-- 遍历有被标记拾取状态picked组件的道具实体
+		pickedItemGroup:each(function(e: Entity.Type): boolean
+			local item = e as Loader.ItemEntity
+			if item.num > 0 then
+				-- 当按下道具按钮时进行处理
+				if ImGui.ImageButton("item" .. tostring(item.no), item.icon, Vec2(50, 50)) then
+					item.num = item.num - 1
+					local sprite = Sprite(item.icon)
+					sprite.scaleX = 0.5
+					sprite.scaleY = 0.5
+					sprite:perform(Spawn(
+						Opacity(1, 1, 0),
+						Y(1, 150, 250)
+					))
+					local player = playerGroup:find(function(): boolean return true end)
+					local unit = player.unit as UnitType
+					unit:addChild(sprite)
+				end
 
-        -- 当指针在道具按钮上悬浮时进行处理
-        if ImGui.IsItemHovered() then
-          ImGui.BeginTooltip(function()
-            ImGui.Text(item.name)
-            ImGui.TextColored(themeColor, "数量：")
-            ImGui.SameLine()
-            ImGui.Text(tostring(item.num))
-            ImGui.TextColored(themeColor, "描述：")
-            ImGui.SameLine()
-            ImGui.Text(tostring(item.desc))
-          end)
-        end
-        ImGui.NextColumn()
-      end
-    end)
-  end)
-  return false
+				-- 当指针在道具按钮上悬浮时进行处理
+				if ImGui.IsItemHovered() then
+					ImGui.BeginTooltip(function()
+						ImGui.Text(item.name)
+						ImGui.TextColored(themeColor, "数量：")
+						ImGui.SameLine()
+						ImGui.Text(tostring(item.num))
+						ImGui.TextColored(themeColor, "描述：")
+						ImGui.SameLine()
+						ImGui.Text(tostring(item.desc))
+					end)
+				end
+				ImGui.NextColumn()
+			end
+		end)
+	end)
+	return false
 end)
 ```
 
