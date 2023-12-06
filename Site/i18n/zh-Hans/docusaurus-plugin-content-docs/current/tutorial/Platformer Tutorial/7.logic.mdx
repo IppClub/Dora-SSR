@@ -35,19 +35,19 @@ local Unit <const> = Platformer.Unit
 
 ```tl title="Script/Logic.tl"
 Observer("Add", {"player"}):watch(function(self: Entity.Type)
-  local unitDef = Data.store["Unit:player"] as Dictionary.Type
-  local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
-  if unitDef is nil or world is nil then
-    return
-  end
+	local unitDef = Data.store["Unit:player"] as Dictionary.Type
+	local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
+	if unitDef is nil or world is nil then
+		return
+	end
 
-  local unit = Unit(unitDef, world, self, Vec2(300, -350))
-  unit.order = Config.PlayerLayer
-  unit.group = Config.PlayerGroup
-  unit.playable.position = Vec2(0, -150)
-  unit.playable:play("idle", true)
-  world:addChild(unit)
-  world.camera.followTarget = unit
+	local unit = Unit(unitDef, world, self, Vec2(300, -350))
+	unit.order = Config.PlayerLayer
+	unit.group = Config.PlayerGroup
+	unit.playable.position = Vec2(0, -150)
+	unit.playable:play("idle", true)
+	world:addChild(unit)
+	world.camera.followTarget = unit
 end)
 ```
 
@@ -55,53 +55,53 @@ end)
 
 ```tl title="Script/Logic.tl"
 Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon: string)
-  local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
-  if world is nil then
-    return
-  end
+	local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
+	if world is nil then
+		return
+	end
 
-  -- 创建道具在场景中的显示图形和动画
-  local sprite = Sprite(icon)
-  sprite:schedule(loop(function(): boolean
-    sleep(sprite:runAction(Spawn(
-      AngleY(5, 0, 360),
-      Sequence(
-        Y(2.5, 0, 40, Ease.OutQuad),
-        Y(2.5, 40, 0, Ease.InQuad)
-      )
-    )))
-  end))
+	-- 创建道具在场景中的显示图形和动画
+	local sprite = Sprite(icon)
+	sprite:schedule(loop(function(): boolean
+		sleep(sprite:runAction(Spawn(
+			AngleY(5, 0, 360),
+			Sequence(
+				Y(2.5, 0, 40, Ease.OutQuad),
+				Y(2.5, 40, 0, Ease.InQuad)
+			)
+		)))
+	end))
 
-  -- 创建道具物理碰撞体的定义
-  local bodyDef = BodyDef()
-  bodyDef.type = "Dynamic"
-  bodyDef.linearAcceleration = Vec2(0, -10)
-  bodyDef:attachPolygon(sprite.width * 0.5, sprite.height)
-  bodyDef:attachPolygonSensor(0, sprite.width, sprite.height)
+	-- 创建道具物理碰撞体的定义
+	local bodyDef = BodyDef()
+	bodyDef.type = "Dynamic"
+	bodyDef.linearAcceleration = Vec2(0, -10)
+	bodyDef:attachPolygon(sprite.width * 0.5, sprite.height)
+	bodyDef:attachPolygonSensor(0, sprite.width, sprite.height)
 
-  -- 创建道具的在场景中的物理体节点
-  local body = Body(bodyDef, world, Vec2(x, 0))
-  body.order = Config.ItemLayer
-  body.group = Config.ItemGroup
-  body:addChild(sprite)
-  body:slot("BodyEnter", function(item: Body.Type)
-    if tolua.type(item) == "Platformer::Unit" then
-      self.picked = true
-      body.group = Data.groupHide
-      body:schedule(once(function()
-        sleep(sprite:runAction(Spawn(
-          Scale(0.2, 1, 1.3, Ease.OutBack),
-          Opacity(0.2, 1, 0)
-        )))
-        self.body = nil
-      end))
-    end
-  end)
-  world:addChild(body)
+	-- 创建道具的在场景中的物理体节点
+	local body = Body(bodyDef, world, Vec2(x, 0))
+	body.order = Config.ItemLayer
+	body.group = Config.ItemGroup
+	body:addChild(sprite)
+	body:slot("BodyEnter", function(item: Body.Type)
+		if tolua.type(item) == "Platformer::Unit" then
+			self.picked = true
+			body.group = Data.groupHide
+			body:schedule(once(function()
+				sleep(sprite:runAction(Spawn(
+					Scale(0.2, 1, 1.3, Ease.OutBack),
+					Opacity(0.2, 1, 0)
+				)))
+				self.body = nil
+			end))
+		end
+	end)
+	world:addChild(body)
 
-  -- 将道具在场景中的节点对象存储为一个实体（Entity）上的组件
-  -- 用于触发后续的处理逻辑
-  self.body = body
+	-- 将道具在场景中的节点对象存储为一个实体（Entity）上的组件
+	-- 用于触发后续的处理逻辑
+	self.body = body
 end)
 ```
 
@@ -109,7 +109,7 @@ end)
 
 ```tl title="Script/Logic.tl"
 Observer("Remove", {"body"}):watch(function(self: Entity.Type)
-  (self.oldValues.body as Body.Type):removeFromParent()
+	(self.oldValues.body as Body.Type):removeFromParent()
 end)
 ```
 

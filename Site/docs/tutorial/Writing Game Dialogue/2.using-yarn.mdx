@@ -98,35 +98,35 @@ We have defined an `advance` function that can read and display text content or 
 -- When calling this function for the first time or when no choice is needed, we pass nil.
 advance = (option)->
 
-  -- The function first calls `runner\advance` to fetch the next part of the Yarn script.
-  -- This returns two values: an action type and a result.
-  action, result = runner\advance option
+	-- The function first calls `runner\advance` to fetch the next part of the Yarn script.
+	-- This returns two values: an action type and a result.
+	action, result = runner\advance option
 
-  -- Based on the action type, we choose how to handle the result.
-  switch action when "Text"
+	-- Based on the action type, we choose how to handle the result.
+	switch action when "Text"
 
-    -- If the action is "Text," the result will be a TextResult object,
-    -- which contains the text content and any associated marks (e.g., character names).
-    -- We check for marks, extract the character name (if present), and print the text content.
-    charName = ""
-    if result.marks
-      for mark in *result.marks
-        switch mark when {name: attr, attrs: {:name}}
-          charName = "#{name}: " if attr == "char"
-    print charName .. result.text
+		-- If the action is "Text," the result will be a TextResult object,
+		-- which contains the text content and any associated marks (e.g., character names).
+		-- We check for marks, extract the character name (if present), and print the text content.
+		charName = ""
+		if result.marks
+			for mark in *result.marks
+				switch mark when {name: attr, attrs: {:name}}
+					charName = "#{name}: " if attr == "char"
+		print charName .. result.text
 
-  when "Option"
+	when "Option"
 
-    -- If the action is "Option," the result will be an OptionResult object,
-    -- which contains one or more options. The function iterates through these options and prints them,
-    -- which the player can choose later.
-    for i, op in ipairs result
-      print "[#{i}]: #{op.text}" if op
+		-- If the action is "Option," the result will be an OptionResult object,
+		-- which contains one or more options. The function iterates through these options and prints them,
+		-- which the player can choose later.
+		for i, op in ipairs result
+			print "[#{i}]: #{op.text}" if op
 
-  else
+	else
 
-    -- For other actions (e.g., errors), the function directly prints the result.
-    print result
+		-- For other actions (e.g., errors), the function directly prints the result.
+		print result
 ```
 
 </TabItem>
@@ -137,51 +137,49 @@ advance = (option)->
 -- When calling this function for the first time or when no choice is needed, we pass nil.
 local function advance(option?: integer)
 
-  -- The function first calls `runner:advance(option)` to fetch the next part of the Yarn script.
-  -- This returns two values: an action type and a result.
-  local action, result = runner:advance(option)
+	-- The function first calls `runner:advance(option)` to fetch the next part of the Yarn script.
+	-- This returns two values: an action type and a result.
+	local action, result = runner:advance(option)
 
-  -- Based on the action type, we choose how to handle the result.
-  if action == "Text" then
+	-- Based on the action type, we choose how to handle the result.
+	if action == "Text" then
 
-    -- If the action is "Text," the result will be a TextResult object,
-    -- which contains the text content and any associated marks (e.g., character names).
-    -- We check for marks, extract the character name (if present), and print the text content.
-    local textResult = result as YarnRunner.TextResult
+		-- If the action is "Text," the result will be a TextResult object,
+		-- which contains the text content and any associated marks (e.g., character names).
+		-- We check for marks, extract the character name (if present), and print the text content.
+		local textResult = result as YarnRunner.TextResult
 
-    -- Check for marks, extract character name (if present), and print text content.
-    local characterName = ""
-    local marks = textResult.marks
-    if not (marks is nil) then
-      for i = 1, #marks do
-        local mark = marks[i]
-        if mark.name == "char" then
-          characterName = tostring(mark.attrs.name) .. ": "
-        end
-      end
-    end
-    print(characterName .. textResult.text)
+		-- Check for marks, extract character name (if present), and print text content.
+		local characterName = ""
+		local marks = textResult.marks
+		if not (marks is nil) then
+			for i = 1, #marks do
+				local mark = marks[i]
+				if mark.name == "char" then
+					characterName = tostring(mark.attrs.name) .. ": "
+				end
+			end
+		end
+		print(characterName .. textResult.text)
 
-  elseif action == "Option" then
+	elseif action == "Option" then
 
-    -- If the action is "Option," the result will be an OptionResult object,
-    -- which contains one or more options. The function iterates through these options and prints them,
-    -- which the player can choose later.
-    local optionResult = result as YarnRunner.OptionResult
-    for i, op in ipairs(optionResult) do
-      if op and not (op is boolean) then
-        print("[" .. tostring(i) .. "]: " ..
+		-- If the action is "Option," the result will be an OptionResult object,
+		-- which contains one or more options. The function iterates through these options and prints them,
+		-- which the player can choose later.
+		local optionResult = result as YarnRunner.OptionResult
+		for i, op in ipairs(optionResult) do
+			if op and not (op is boolean) then
+				print("[" .. tostring(i) .. "]: " .. op.text)
+			end
+		end
 
- op.text)
-      end
-    end
+	else
 
-  else
+		-- For other actions (e.g., errors), the function directly prints the result.
+		print(result)
 
-    -- For other actions (e.g., errors), the function directly prints the result.
-    print(result)
-
-  end
+	end
 end
 ```
 
@@ -193,45 +191,45 @@ end
 -- When calling this function for the first time or when no choice is needed, we pass nil.
 local function advance(option)
 
-  -- The function first calls `runner:advance(option)` to fetch the next part of the Yarn script.
-  -- This returns two values: an action type and a result.
-  local action, result = runner:advance(option)
+	-- The function first calls `runner:advance(option)` to fetch the next part of the Yarn script.
+	-- This returns two values: an action type and a result.
+	local action, result = runner:advance(option)
 
-  -- Based on the action type, we choose how to handle the result.
-  if action == "Text" then
+	-- Based on the action type, we choose how to handle the result.
+	if action == "Text" then
 
-    -- If the action is "Text," the result will be a TextResult object,
-    -- which contains the text content and any associated marks (e.g., character names).
-    -- We check for marks, extract the character name (if present), and print the text content.
-    local characterName = ""
-    local marks = result.marks
-    if marks then
-      for i = 1, #marks do
-        local mark = marks[i]
-        if mark.name == "char" then
-          characterName = mark.attrs.name .. ": "
-        end
-      end
-    end
-    print(characterName .. result.text)
+		-- If the action is "Text," the result will be a TextResult object,
+		-- which contains the text content and any associated marks (e.g., character names).
+		-- We check for marks, extract the character name (if present), and print the text content.
+		local characterName = ""
+		local marks = result.marks
+		if marks then
+			for i = 1, #marks do
+				local mark = marks[i]
+				if mark.name == "char" then
+					characterName = mark.attrs.name .. ": "
+				end
+			end
+		end
+		print(characterName .. result.text)
 
-  elseif action == "Option" then
+	elseif action == "Option" then
 
-    -- If the action is "Option," the result will be an OptionResult object,
-    -- which contains one or more options. The function iterates through these options and prints them,
-    -- which the player can choose later.
-    for i, op in ipairs(result) do
-      if op then
-        print("[" .. tostring(i) .. "]: " .. op.text)
-      end
-    end
+		-- If the action is "Option," the result will be an OptionResult object,
+		-- which contains one or more options. The function iterates through these options and prints them,
+		-- which the player can choose later.
+		for i, op in ipairs(result) do
+			if op then
+				print("[" .. tostring(i) .. "]: " .. op.text)
+			end
+		end
 
-  else
+	else
 
-    -- For other actions (e.g., errors), the function directly prints the result.
-    print(result)
+		-- For other actions (e.g., errors), the function directly prints the result.
+		print(result)
 
-  end
+	end
 end
 ```
 
@@ -275,8 +273,8 @@ To allow player interaction with the narrative, we need a node to capture and re
 
 ```yue title="init.yue"
 with Node!
-  \gslot "go", (option)-> advance option
-  \addTo Director.entry
+	\gslot "go", (option)-> advance option
+	\addTo Director.entry
 ```
 
 </TabItem>
@@ -285,7 +283,7 @@ with Node!
 ```tl title="init.tl"
 local node = Node()
 node:gslot("go", function(option: nil | integer)
-    advance(option)
+	advance(option)
 end)
 node:addTo(Director.entry)
 ```
@@ -296,7 +294,7 @@ node:addTo(Director.entry)
 ```lua title="init.lua"
 local node = Node()
 node:gslot("go", function(option)
-    advance(option)
+	advance(option)
 end)
 node:addTo(Director.entry)
 ```

@@ -31,7 +31,7 @@ First, we create a scene node object with size properties and enable the recepti
 
 ```xml title="Button.xml"
 <Node Width="60" Height="60" TouchEnabled="True">
-  <Label X="30" Y="30" Text="Click Me" FontName="sarasa-mono-sc-regular" FontSize="16"/>
+	<Label X="30" Y="30" Text="Click Me" FontName="sarasa-mono-sc-regular" FontSize="16"/>
 </Node>
 ```
 
@@ -41,18 +41,18 @@ We add a Label as a child node of the button component and complete some basic p
 
 ```xml title="Button.xml"
 <Node Width="60" Height="60">
-  <Action>
-    <Opacity Name="fadeIn" Start="1"/>
-    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
-  </Action>
+	<Action>
+		<Opacity Name="fadeIn" Start="1"/>
+		<Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+	</Action>
 
-  <DrawNode X="30" Y="30" Opacity="0.4">
-    <Dot Radius="30" Color="0xff00ffff"/>
-  </DrawNode>
+	<DrawNode X="30" Y="30" Opacity="0.4">
+		<Dot Radius="30" Color="0xff00ffff"/>
+	</DrawNode>
 
-  <Label X="30" Y="30" Text="Click Me"
-    FontName="sarasa-mono-sc-regular"
-    FontSize="16"/>
+	<Label X="30" Y="30" Text="Click Me"
+		FontName="sarasa-mono-sc-regular"
+		FontSize="16"/>
 </Node>
 ```
 
@@ -64,24 +64,24 @@ We create a semi-transparent solid circle with a radius of 30 as the appearance 
 
 ```xml title="Button.xml"
 <Node Width="60" Height="60" TouchEnabled="True">
-  <Action>
-    <Opacity Name="fadeIn" Start="1"/>
-    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
-  </Action>
+	<Action>
+		<Opacity Name="fadeIn" Start="1"/>
+		<Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+	</Action>
 
-  <DrawNode Name="dot" X="30" Y="30" Opacity="0.4">
-    <Dot Radius="30" Color="0xfffbc400"/>
-  </DrawNode>
-  <Label X="30" Y="30" Text="Click Me"
-    FontName="sarasa-mono-sc-regular"
-    FontSize="16"/>
+	<DrawNode Name="dot" X="30" Y="30" Opacity="0.4">
+		<Dot Radius="30" Color="0xfffbc400"/>
+	</DrawNode>
+	<Label X="30" Y="30" Text="Click Me"
+		FontName="sarasa-mono-sc-regular"
+		FontSize="16"/>
 
-  <Slot Name="TapBegan" Target="dot" Perform="fadeIn"/>
-  <Slot Name="TapEnded">
-    <Lua>
-      dot:perform(fadeOut)
-    </Lua>
-  </Slot>
+	<Slot Name="TapBegan" Target="dot" Perform="fadeIn"/>
+	<Slot Name="TapEnded">
+		<Lua>
+			dot:perform(fadeOut)
+		</Lua>
+	</Slot>
 </Node>
 ```
 
@@ -92,24 +92,24 @@ We use the `<Slot>` tag to add a listener for the button click event and perform
 ```xml title="Button.xml"
 <!-- params: X, Y, Radius, Text, FontSize -->
 <Node X="{ x }" Y="{ y }" Width="{ radius * 2 }" Height="{ radius * 2 }" TouchEnabled="True">
-  <Action>
-    <Opacity Name="fadeIn" Start="1"/>
-    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
-  </Action>
+	<Action>
+		<Opacity Name="fadeIn" Start="1"/>
+		<Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+	</Action>
 
-  <DrawNode Name="dot" X="{ radius }" Y="{ radius }" Opacity="0.4">
-    <Dot Radius="{ radius }" Color="0xfffbc400"/>
-  </DrawNode>
-  <Label X="{ radius }" Y="{ radius }" Text="{ text }"
-    FontName="sarasa-mono-sc-regular"
-    FontSize="{ fontSize }"/>
+	<DrawNode Name="dot" X="{ radius }" Y="{ radius }" Opacity="0.4">
+		<Dot Radius="{ radius }" Color="0xfffbc400"/>
+	</DrawNode>
+	<Label X="{ radius }" Y="{ radius }" Text="{ text }"
+		FontName="sarasa-mono-sc-regular"
+		FontSize="{ fontSize }"/>
 
-  <Slot Name="TapBegan" Target="dot" Perform="fadeIn"/>
-  <Slot Name="TapEnded">
-    <Lua>
-      dot:perform(fadeOut)
-    </Lua>
-  </Slot>
+	<Slot Name="TapBegan" Target="dot" Perform="fadeIn"/>
+	<Slot Name="TapEnded">
+		<Lua>
+			dot:perform(fadeOut)
+		</Lua>
+	</Slot>
 </Node>
 ```
 
@@ -119,11 +119,11 @@ We replace the fixed parameters with Lua expressions wrapped in curly braces `{ 
 
 ```xml title="MainScene.xml"
 <Node>
-  <Import Module="Button"/>
+	<Import Module="Button"/>
 
-  <Menu X="100" Y="100" Width="50" Height="50">
-    <Button X="25" Y="25" Radius="50" Text="Click" FontSize="28"/>
-  </Menu>
+	<Menu X="100" Y="100" Width="50" Height="50">
+		<Button X="25" Y="25" Radius="50" Text="Click" FontSize="28"/>
+	</Menu>
 </Node>
 ```
 
@@ -147,23 +147,23 @@ local _ENV = Dorothy()
 local Button = require("Button")
 
 return function()
-  local scene = Node()
+	local scene = Node()
 
-  local menu = Menu()
-  menu.position = Vec2(100,100)
-  menu.size = Size(50,50)
-  scene:addChild(menu)
+	local menu = Menu()
+	menu.position = Vec2(100,100)
+	menu.size = Size(50,50)
+	scene:addChild(menu)
 
-  local button = Button {
-    x = 25,
-    y = 25,
-    radius = 50,
-    text = "Click",
-    fontSize = 28
-  }
-  menu:addChild(button)
+	local button = Button {
+		x = 25,
+		y = 25,
+		radius = 50,
+		text = "Click",
+		fontSize = 28
+	}
+	menu:addChild(button)
 
-  return scene
+	return scene
 end
 ```
 
@@ -176,18 +176,18 @@ If we want to create buttons with different appearances but similar functionalit
 ```xml title="ButtonBase.xml"
 <!-- params: X, Y, Width, Height, Text, FontSize -->
 <Node X="{ x }" Y="{ y }" Width="{ width }" Height="{ height }" TouchEnabled="True">
-  <Action>
-    <Opacity Name="fadeIn" Start="1"/>
-    <Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
-  </Action>
+	<Action>
+		<Opacity Name="fadeIn" Start="1"/>
+		<Opacity Name="fadeOut" Time="0.2" Start="1" Stop="0.4"/>
+	</Action>
 
-  <Node Name="face" X="{ $X }" Y="{ $Y }" Opacity="0.4" Ref="True"/>
-  <Label X="{ $X }" Y="{ $Y }" Text="{ text }"
-    FontName="sarasa-mono-sc-regular"
-    FontSize="{ fontSize }"/>
+	<Node Name="face" X="{ $X }" Y="{ $Y }" Opacity="0.4" Ref="True"/>
+	<Label X="{ $X }" Y="{ $Y }" Text="{ text }"
+		FontName="sarasa-mono-sc-regular"
+		FontSize="{ fontSize }"/>
 
-  <Slot Name="TapBegan" Target="face" Perform="fadeIn"/>
-  <Slot Name="TapEnded" Target="face" Perform="fadeOut"/>
+	<Slot Name="TapBegan" Target="face" Perform="fadeIn"/>
+	<Slot Name="TapEnded" Target="face" Perform="fadeOut"/>
 </Node>
 ```
 
@@ -206,23 +206,23 @@ Next, we can use this template in Dora Xml:
 ```xml title="SpriteButton.xml"
 <!-- params: X, Y, Text -->
 <Dorothy>
-  <Import Module="ButtonBase"/>
+	<Import Module="ButtonBase"/>
 
-  <ButtonBase X="{ x }" Y="{ y }" Width="120" Height="120" Text="{ text }" FontSize="28">
-    <Item Name="face">
-      <Sprite File="Image/logo.png" ScaleX="0.2" ScaleY="0.2"/>
-    </Item>
-  </ButtonBase>
+	<ButtonBase X="{ x }" Y="{ y }" Width="120" Height="120" Text="{ text }" FontSize="28">
+		<Item Name="face">
+			<Sprite File="Image/logo.png" ScaleX="0.2" ScaleY="0.2"/>
+		</Item>
+	</ButtonBase>
 </Dorothy>
 ```
 
 ```xml title="MainScene.xml"
 <Node>
-  <Import Module="SpriteButton"/>
+	<Import Module="SpriteButton"/>
 
-  <Menu>
-    <SpriteButton X="50" Y="100" Text="Click"/>
-  </Menu>
+	<Menu>
+		<SpriteButton X="50" Y="100" Text="Click"/>
+	</Menu>
 </Node>
 ```
 

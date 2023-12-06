@@ -57,11 +57,11 @@ Director.entry:addChild(node)
 
 ```yue
 with node
-  .x = 100
-  .y = 200
-  .width = 50
-  .height = 50
-  .visible = true
+	.x = 100
+	.y = 200
+	.width = 50
+	.height = 50
+	.visible = true
 ```
 
 </TabItem>
@@ -133,9 +133,9 @@ node:addChild(childNode)
 
 ```yue
 with node
-  print .hasChildren -- 打印是否有子节点
-  print .children -- 打印子节点的列表
-  print .parent -- 打印节点的父节点
+	print .hasChildren -- 打印是否有子节点
+	print .children -- 打印子节点的列表
+	print .parent -- 打印节点的父节点
 ```
 
 </TabItem>
@@ -172,7 +172,7 @@ print(node.parent) -- 打印节点的父节点
 
 ```yue
 node\slot "事件的名称", (...)->
-  -- 在这里添加你的代码
+	-- 在这里添加你的代码
 ```
 
 </TabItem>
@@ -180,7 +180,7 @@ node\slot "事件的名称", (...)->
 
 ```teal
 node:slot("事件的名称", function(...)
-  -- 在这里添加你的代码
+	-- 在这里添加你的代码
 end)
 ```
 
@@ -189,7 +189,7 @@ end)
 
 ```lua
 node:slot("事件的名称", function(...)
-  -- 在这里添加你的代码
+	-- 在这里添加你的代码
 end)
 ```
 
@@ -203,7 +203,7 @@ end)
 
 ```yue
 node\slot "ActionEnd", (action, target)->
-  print "完成动作：#{action} 目标节点：#{target}"
+	print "完成动作：#{action} 目标节点：#{target}"
 ```
 
 </TabItem>
@@ -211,7 +211,7 @@ node\slot "ActionEnd", (action, target)->
 
 ```teal
 node:slot("ActionEnd", function(action: Action.Type, target: Node.Type)
-  print("完成动作：" .. action .. " 目标节点：" .. target)
+	print("完成动作：" .. action .. " 目标节点：" .. target)
 end)
 ```
 
@@ -220,7 +220,7 @@ end)
 
 ```lua
 node:slot("ActionEnd", function(action, target)
-  print("完成动作：" .. action .. " 目标节点：" .. target)
+	print("完成动作：" .. action .. " 目标节点：" .. target)
 end)
 ```
 
@@ -229,9 +229,9 @@ end)
 
 &emsp;&emsp;常用的游戏交互相关的节点事件类型和对应的回调函数签名如下，在使用这些事件之前还需要打开节点接收点击事件的开关：
 
-   ```lua
-   node.touchEnabled = true
-   ```
+```lua
+node.touchEnabled = true
+```
 
 - **点击过滤（TapFilter）**：在点击开始之前触发，可以用于过滤某些点击事件。回调函数签名：`function(touch: Touch)`
 - **点击开始（TapBegan）**：在检测到点击时触发。回调函数签名：`function(touch: Touch)`
@@ -348,8 +348,8 @@ node:perform(rotateAction)
 
 ```yue
 node\perform Sequence(
-  Move duration, startPosition, stopPosition
-  Angle duration, startAngle, stopAngle
+	Move duration, startPosition, stopPosition
+	Angle duration, startAngle, stopAngle
 )
 ```
 
@@ -358,8 +358,8 @@ node\perform Sequence(
 
 ```teal
 node:perform(Sequence(
-  Move(duration, startPosition, stopPosition),
-  Angle(duration, startAngle, stopAngle)
+	Move(duration, startPosition, stopPosition),
+	Angle(duration, startAngle, stopAngle)
 ))
 ```
 
@@ -368,8 +368,8 @@ node:perform(Sequence(
 
 ```lua
 node:perform(Sequence(
-  Move(duration, startPosition, stopPosition),
-  Angle(duration, startAngle, stopAngle)
+	Move(duration, startPosition, stopPosition),
+	Angle(duration, startAngle, stopAngle)
 ))
 ```
 
@@ -385,8 +385,8 @@ node:perform(Sequence(
 
 ```yue
 node\perform Spawn(
-  Move duration, startPosition, stopPosition
-  Scale duration, startScale, stopScale
+	Move duration, startPosition, stopPosition
+	Scale duration, startScale, stopScale
 )
 ```
 
@@ -395,8 +395,8 @@ node\perform Spawn(
 
 ```teal
 node:perform(Spawn(
-  Move(duration, startPosition, stopPosition),
-  Scale(duration, startScale, stopScale)
+	Move(duration, startPosition, stopPosition),
+	Scale(duration, startScale, stopScale)
 ))
 ```
 
@@ -405,8 +405,8 @@ node:perform(Spawn(
 
 ```lua
 node:perform(Spawn(
-  Move(duration, startPosition, stopPosition),
-  Scale(duration, startScale, stopScale)
+	Move(duration, startPosition, stopPosition),
+	Scale(duration, startScale, stopScale)
 ))
 ```
 
@@ -437,10 +437,10 @@ node:perform(Spawn(
 
 ```yue
 moveAction = Move(
-  duration
-  startPosition
-  stopPosition
-  Ease.InOutQuad
+	duration
+	startPosition
+	stopPosition
+	Ease.InOutQuad
 )
 node\perform moveAction
 ```
@@ -450,10 +450,10 @@ node\perform moveAction
 
 ```teal
 local moveAction = Move(
-  duration,
-  startPosition,
-  stopPosition,
-  Ease.InOutQuad
+	duration,
+	startPosition,
+	stopPosition,
+	Ease.InOutQuad
 )
 node:perform(moveAction)
 ```
@@ -463,10 +463,10 @@ node:perform(moveAction)
 
 ```lua
 local moveAction = Move(
-  duration,
-  startPosition,
-  stopPosition,
-  Ease.InOutQuad
+	duration,
+	startPosition,
+	stopPosition,
+	Ease.InOutQuad
 )
 node:perform(moveAction)
 ```

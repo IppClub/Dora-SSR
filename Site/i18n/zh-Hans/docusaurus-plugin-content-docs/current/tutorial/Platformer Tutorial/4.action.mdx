@@ -104,27 +104,27 @@ UnitAction:add("move", {
 
 ```tl title="Script/Action.tl"
 UnitAction:add("jump", {
-  priority = 3,
-  reaction = 2.0,
-  recovery = 0.1,
-  queued = true,
-  available = function(self: UnitType): boolean
-    return self.onSurface
-  end,
-  create = function(self: UnitType): (
-      function(owner: UnitType, action: UnitAction.Type, deltaTime: number): (boolean)
-      | Routine.Job
-    )
-    -- 在动作开始执行时改变角色的Y轴移动速度
-    self.velocityY = self.unitDef.jump as number
+	priority = 3,
+	reaction = 2.0,
+	recovery = 0.1,
+	queued = true,
+	available = function(self: UnitType): boolean
+		return self.onSurface
+	end,
+	create = function(self: UnitType): (
+			function(owner: UnitType, action: UnitAction.Type, deltaTime: number): (boolean)
+			| Routine.Job
+		)
+		-- 在动作开始执行时改变角色的Y轴移动速度
+		self.velocityY = self.unitDef.jump as number
 
-    -- 在后续动作更新时播放跳跃动画并等待动画播放结束
-    return once(function()
-      local playable = self.playable
-      playable.speed = 1
-      sleep(playable:play("jump", false))
-    end)
-  end
+		-- 在后续动作更新时播放跳跃动画并等待动画播放结束
+		return once(function()
+			local playable = self.playable
+			playable.speed = 1
+			sleep(playable:play("jump", false))
+		end)
+	end
 })
 ```
 
@@ -134,35 +134,35 @@ UnitAction:add("jump", {
 
 ```tl title="Script/Action.tl"
 UnitAction:add("fallOff", {
-  priority = 2,
-  reaction = -1,
-  recovery = 0.3,
-  available = function(self: UnitType): boolean
-    return not self.onSurface
-  end,
-  create = function(self: UnitType): (
-      function(owner: UnitType, action: UnitAction.Type, deltaTime: number): (boolean)
-      | Routine.Job
-    )
-    -- 检查并播放下落动画
-    if self.playable.current ~= "jumping" then
-      local playable = self.playable
-      playable.speed = 1
-      playable:play("jumping", true)
-    end
+	priority = 2,
+	reaction = -1,
+	recovery = 0.3,
+	available = function(self: UnitType): boolean
+		return not self.onSurface
+	end,
+	create = function(self: UnitType): (
+			function(owner: UnitType, action: UnitAction.Type, deltaTime: number): (boolean)
+			| Routine.Job
+		)
+		-- 检查并播放下落动画
+		if self.playable.current ~= "jumping" then
+			local playable = self.playable
+			playable.speed = 1
+			playable:play("jumping", true)
+		end
 
-    -- 检测角色落地状态并在播放落地动画后结束动作
-    return loop(function(self: UnitType): boolean
-      if self.onSurface then
-          local playable = self.playable
-          playable.speed = 1
-          sleep(playable:play("landing", false))
-          return true
-        else
-          return false
-        end
-    end)
-  end
+		-- 检测角色落地状态并在播放落地动画后结束动作
+		return loop(function(self: UnitType): boolean
+			if self.onSurface then
+				local playable = self.playable
+				playable.speed = 1
+				sleep(playable:play("landing", false))
+				return true
+			else
+				return false
+			end
+		end)
+	end
 })
 ```
 

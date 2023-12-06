@@ -35,19 +35,19 @@ Next, we create an [Observer](/docs/api/Class/Observer) to monitor the creation 
 
 ```tl title="Script/Logic.tl"
 Observer("Add", {"player"}):watch(function(self: Entity.Type)
-  local unitDef = Data.store["Unit:player"] as Dictionary.Type
-  local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
-  if unitDef is nil or world is nil then
-    return
-  end
+	local unitDef = Data.store["Unit:player"] as Dictionary.Type
+	local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
+	if unitDef is nil or world is nil then
+		return
+	end
 
-  local unit = Unit(unitDef, world, self, Vec2(300, -350))
-  unit.order = Config.PlayerLayer
-  unit.group = Config.PlayerGroup
-  unit.playable.position = Vec2(0, -150)
-  unit.playable:play("idle", true)
-  world:addChild(unit)
-  world.camera.followTarget = unit
+	local unit = Unit(unitDef, world, self, Vec2(300, -350))
+	unit.order = Config.PlayerLayer
+	unit.group = Config.PlayerGroup
+	unit.playable.position = Vec2(0, -150)
+	unit.playable:play("idle", true)
+	world:addChild(unit)
+	world.camera.followTarget = unit
 end)
 ```
 
@@ -55,53 +55,53 @@ Then, we create another Observer to monitor the creation behavior of game item e
 
 ```tl title="Script/Logic.tl"
 Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon: string)
-  local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
-  if world is nil then
-    return
-  end
+	local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
+	if world is nil then
+		return
+	end
 
-  -- Create the display graphics and animation for the item in the scene
-  local sprite = Sprite(icon)
-  sprite:schedule(loop(function(): boolean
-    sleep(sprite:runAction(Spawn(
-      AngleY(5, 0, 360),
-      Sequence(
-        Y(2.5, 0, 40, Ease.OutQuad),
-        Y(2.5, 40, 0, Ease.InQuad)
-      )
-    )))
-  end))
+	-- Create the display graphics and animation for the item in the scene
+	local sprite = Sprite(icon)
+	sprite:schedule(loop(function(): boolean
+		sleep(sprite:runAction(Spawn(
+			AngleY(5, 0, 360),
+			Sequence(
+				Y(2.5, 0, 40, Ease.OutQuad),
+				Y(2.5, 40, 0, Ease.InQuad)
+			)
+		)))
+	end))
 
-  -- Create the definition of the physical collision body for the item
-  local bodyDef = BodyDef()
-  bodyDef.type = "Dynamic"
-  bodyDef.linearAcceleration = Vec2(0, -10)
-  bodyDef:attachPolygon(sprite.width * 0.5, sprite.height)
-  bodyDef:attachPolygonSensor(0, sprite.width, sprite.height)
+	-- Create the definition of the physical collision body for the item
+	local bodyDef = BodyDef()
+	bodyDef.type = "Dynamic"
+	bodyDef.linearAcceleration = Vec2(0, -10)
+	bodyDef:attachPolygon(sprite.width * 0.5, sprite.height)
+	bodyDef:attachPolygonSensor(0, sprite.width, sprite.height)
 
-  -- Create the physical body node for the item in the scene
-  local body = Body(bodyDef, world, Vec2(x, 0))
-  body.order = Config.ItemLayer
-  body.group = Config.ItemGroup
-  body:addChild(sprite)
-  body:slot("BodyEnter", function(item: Body.Type)
-    if tolua.type(item) == "Platformer::Unit" then
-      self.picked = true
-      body.group = Data.groupHide
-      body:schedule(once(function()
-        sleep(sprite:runAction(Spawn(
-          Scale(0.2, 1, 1.3, Ease.OutBack),
-          Opacity(0.2, 1, 0)
-        )))
-        self.body = nil
-      end))
-    end
-  end)
-  world:addChild(body)
+	-- Create the physical body node for the item in the scene
+	local body = Body(bodyDef, world, Vec2(x, 0))
+	body.order = Config.ItemLayer
+	body.group = Config.ItemGroup
+	body:addChild(sprite)
+	body:slot("BodyEnter", function(item: Body.Type)
+		if tolua.type(item) == "Platformer::Unit" then
+			self.picked = true
+			body.group = Data.groupHide
+			body:schedule(once(function()
+				sleep(sprite:runAction(Spawn(
+					Scale(0.2, 1, 1.3, Ease.OutBack),
+					Opacity(0.2, 1, 0)
+				)))
+				self.body = nil
+			end))
+		end
+	end)
+	world:addChild(body)
 
-  -- Store the node object of the item in the scene as a component on an entity
-  -- for triggering subsequent processing logic
-  self.body = body
+	-- Store the node object of the item in the scene as a component on an entity
+	-- for triggering subsequent processing logic
+	self.body = body
 end)
 ```
 
@@ -109,7 +109,7 @@ Finally, we create an Observer to monitor the deletion behavior of the body comp
 
 ```tl title="Script/Logic.tl"
 Observer("Remove", {"body"}):watch(function(self: Entity.Type)
-  (self.oldValues.body as Body.Type):removeFromParent()
+	(self.oldValues.body as Body.Type):removeFromParent()
 end)
 ```
 

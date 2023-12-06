@@ -29,13 +29,13 @@ local Struct <const> = Utils.Struct
 
 ```tl title="Script/Loader.tl"
 local record ItemEntity
-  name: string
-  no: number
-  x: number
-  icon: string
-  num: number
-  desc: string
-  item: boolean
+	name: string
+	no: number
+	x: number
+	icon: string
+	num: number
+	desc: string
+	item: boolean
 end
 ```
 
@@ -43,36 +43,36 @@ end
 
 ```tl title="Script/Loader.tl"
 function loadExcel()
-  local xlsx = Content:loadExcel("Data/items.xlsx", {"items"})
-  if not xlsx is nil then
-    local its = xlsx["items"]
-    -- 从第二行数据获取到程序访问的字段名称数组
-    local names = its[2] as {string}
-    -- 从字段名称数组中删除不包含字段名称的第一列数据
-    table.remove(names, 1)
-    -- 创建名称为Item的Struct数据对象定义
-    if not Struct:has("Item") then
-      Struct.Item(names)
-    end
-    -- 从ECS系统中删除所有包含item组件的实体
-    Group{"item"}:each(function(e: Entity.Type): boolean
-      e:destroy()
-    end)
-    -- 从第三行开始遍历Excel数据
-    for i = 3, #its do
-      local st = Struct:load(its[i])
-      local item <total>: ItemEntity = {
-        name = st.Name as string,
-        no = st.No as number,
-        x = st.X as number,
-        num = st.Num as number,
-        icon = st.Icon as string,
-        desc = st.Desc as string,
-        item = true
-      }
-      Entity(item)
-    end
-  end
+	local xlsx = Content:loadExcel("Data/items.xlsx", {"items"})
+	if not xlsx is nil then
+		local its = xlsx["items"]
+		-- 从第二行数据获取到程序访问的字段名称数组
+		local names = its[2] as {string}
+		-- 从字段名称数组中删除不包含字段名称的第一列数据
+		table.remove(names, 1)
+		-- 创建名称为Item的Struct数据对象定义
+		if not Struct:has("Item") then
+			Struct.Item(names)
+		end
+		-- 从ECS系统中删除所有包含item组件的实体
+		Group{"item"}:each(function(e: Entity.Type): boolean
+			e:destroy()
+		end)
+		-- 从第三行开始遍历Excel数据
+		for i = 3, #its do
+			local st = Struct:load(its[i])
+			local item <total>: ItemEntity = {
+				name = st.Name as string,
+				no = st.No as number,
+				x = st.X as number,
+				num = st.Num as number,
+				icon = st.Icon as string,
+				desc = st.Desc as string,
+				item = true
+			}
+			Entity(item)
+		end
+	end
 end
 ```
 
@@ -80,8 +80,8 @@ end
 
 ```tl title="Script/Loader.tl"
 local record Loader
-  type ItemEntity = ItemEntity
-  loadExcel: function()
+	type ItemEntity = ItemEntity
+	loadExcel: function()
 end
 Loader.loadExcel = loadExcel
 return Loader

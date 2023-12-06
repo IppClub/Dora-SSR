@@ -66,13 +66,13 @@ positionGroup = Group {"position"}
 
 ```yue
 with Observer "Add", {"scene"}
-  \watch (_entity, scene)->
-    Director.entry\addChild with scene
-      .touchEnabled = true
-      \slot "TapEnded", (touch)->
-        :location = touch
-        positionGroup\each (entity)->
-          entity.target = location
+	\watch (_entity, scene)->
+		Director.entry\addChild with scene
+			.touchEnabled = true
+			\slot "TapEnded", (touch)->
+				:location = touch
+				positionGroup\each (entity)->
+					entity.target = location
 ```
 
 &emsp;&emsp;首先，使用 `Observer` 类创建一个观察器对象，并指定观察器监测的事件类型为 "Add"，表示监听实体的添加事件。同时，通过传入一个包含字符串 "scene" 的列表作为参数，指定观察器要监测的组件类型包括 "scene"。
@@ -115,7 +115,7 @@ Director.entry\addChild with scene
 
 ```yue
 positionGroup\each (entity)->
-  entity.target = location
+	entity.target = location
 ```
 
 &emsp;&emsp;这样，当有新的实体添加了 "scene" 组件时，该观察器会触发并执行以上操作，并将场景节点添加到游戏中，并完成一系列的初始化操作。
@@ -124,31 +124,31 @@ positionGroup\each (entity)->
 
 ```yue
 with Observer "Add", {"sprite"}
-  \watch (sprite)=>
-    sceneGroup\each (e)->
-      e.scene\addChild with sprite
-        \runAction Scale 0.5, 0, 0.5, Ease.OutBack
+	\watch (sprite)=>
+		sceneGroup\each (e)->
+			e.scene\addChild with sprite
+				\runAction Scale 0.5, 0, 0.5, Ease.OutBack
 
 with Observer "Remove", {"sprite"}
-  \watch =>
-    sceneGroup\each (e)->
-      e.scene\removeChild @oldValues.sprite
+	\watch =>
+		sceneGroup\each (e)->
+			e.scene\removeChild @oldValues.sprite
 ```
 
 &emsp;&emsp;然后，我们创建一个具有 "position", "direction", "speed", "target" 组件的实体组，并定义了观察器来处理实体组内组件的变化，并在每一帧游戏更新时对一组特定的实体进行遍历，并根据实体的速度、更新时间等信息来更新实体的旋转角度和位置属性。
 
 ```yue
 with Group {"position", "direction", "speed", "target"}
-  \watch (entity, position, direction, speed, target)->
-    return if target == position
-    dir = target - position
-    dir = dir\normalize!
-    newPos = position + dir * speed
-    newPos = newPos\clamp position, target
-    entity.position = newPos
-    entity.target = nil if newPos == target
-    angle = math.deg math.atan dir.x, dir.y
-    entity.direction = angle
+	\watch (entity, position, direction, speed, target)->
+		return if target == position
+		dir = target - position
+		dir = dir\normalize!
+		newPos = position + dir * speed
+		newPos = newPos\clamp position, target
+		entity.position = newPos
+		entity.target = nil if newPos == target
+		angle = math.deg math.atan dir.x, dir.y
+		entity.direction = angle
 ```
 
 &emsp;&emsp;在这段代码中，首先，我们使用 `Group` 类创建了一个实体组对象，并指定了组中包含的组件类型为 "position"、"direction"、"speed" 和 "target"。
@@ -208,32 +208,32 @@ entity.direction = angle
 
 ```yue
 with Observer "AddOrChange", {"position", "direction", "sprite"}
-  \watch (position, direction, sprite)=>
-    -- 更新图片的显示位置
-    sprite.position = position
-    lastDirection = @oldValues.direction or sprite.angle
-    -- 当图片的旋转角度变化时，我们就播放一个旋转的动画
-    if math.abs(direction - lastDirection) > 1
-      sprite\runAction Roll 0.3, lastDirection, direction
+	\watch (position, direction, sprite)=>
+		-- 更新图片的显示位置
+		sprite.position = position
+		lastDirection = @oldValues.direction or sprite.angle
+		-- 当图片的旋转角度变化时，我们就播放一个旋转的动画
+		if math.abs(direction - lastDirection) > 1
+			sprite\runAction Roll 0.3, lastDirection, direction
 ```
 
 &emsp;&emsp;最后，我们创建三个实体，并为它们添加不同的组件。这时游戏系统将开始正式运行。
 
 ```yue
 Entity
-  sprite: Sprite "Image/logo.png"
-  position: Vec2.zero
-  direction: 45.0
-  speed: 4.0
+	sprite: Sprite "Image/logo.png"
+	position: Vec2.zero
+	direction: 45.0
+	speed: 4.0
 
 Entity
-  sprite: Sprite "Image/logo.png"
-  position: Vec2 -100, 200
-  direction: 90.0
-  speed: 10.0
+	sprite: Sprite "Image/logo.png"
+	position: Vec2 -100, 200
+	direction: 90.0
+	speed: 10.0
 
 Entity
-  scene: Node!
+	scene: Node!
 ```
 
 </TabItem>
@@ -266,17 +266,17 @@ local positionGroup = Group {"position"}
 
 ```tl
 Observer("Add", {"scene"})
-  :watch(function(_entity: Entity.Type, scene: Node.Type)
-    Director.entry:addChild(scene)
-    scene.touchEnabled = true
-    scene:slot("TapEnded", function(touch: Touch.Type)
-      local location = touch.location
-      positionGroup:each(function(entity: Entity.Type): boolean
-        entity.target = location
-        return false
-      end)
-    end)
-  end)
+	:watch(function(_entity: Entity.Type, scene: Node.Type)
+		Director.entry:addChild(scene)
+		scene.touchEnabled = true
+		scene:slot("TapEnded", function(touch: Touch.Type)
+			local location = touch.location
+			positionGroup:each(function(entity: Entity.Type): boolean
+				entity.target = location
+				return false
+			end)
+		end)
+	end)
 ```
 
 &emsp;&emsp;首先，使用 `Observer` 类创建一个观察器对象，并指定观察器监测的事件类型为 "Add"，表示监听实体的添加事件。同时，通过传入一个包含字符串 "scene" 的列表作为参数，指定观察器要监测的组件类型包括 "scene"。
@@ -319,8 +319,8 @@ local location = touch.location
 
 ```tl
 positionGroup:each(function(entity: Entity.Type): boolean
-  entity.target = location
-  return false
+	entity.target = location
+	return false
 end)
 ```
 
@@ -330,21 +330,21 @@ end)
 
 ```tl
 Observer("Add", {"sprite"}):watch(function(_entity: Entity.Type, sprite: Sprite.Type)
-  sceneGroup:each(function(e: Entity.Type): boolean
-    local scene = e.scene as Node.Type
-    sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
-    scene:addChild(sprite)
-    return true
-  end)
+	sceneGroup:each(function(e: Entity.Type): boolean
+		local scene = e.scene as Node.Type
+		sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
+		scene:addChild(sprite)
+		return true
+	end)
 end)
 
 Observer("Remove", {"sprite"}):watch(function(self: Entity.Type)
-  sceneGroup:each(function(e: Entity.Type): boolean
-    local scene = e.scene as Node.Type
-    local sprite = self.oldValues.sprite as Node.Type
-    scene:removeChild(sprite)
-    return true
-  end)
+	sceneGroup:each(function(e: Entity.Type): boolean
+		local scene = e.scene as Node.Type
+		local sprite = self.oldValues.sprite as Node.Type
+		scene:removeChild(sprite)
+		return true
+	end)
 end)
 ```
 
@@ -352,20 +352,20 @@ end)
 
 ```tl
 Group({"position", "direction", "speed", "target"}):watch(
-  function(entity: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
-  if target == position then
-    return
-  end
-  local dir = target - position
-  dir = dir:normalize()
-  local newPos = position + dir * speed
-  newPos = newPos:clamp(position, target)
-  entity.position = newPos
-  if newPos == target then
-    entity.target = nil
-  end
-  local angle = math.deg(math.atan(dir.x, dir.y))
-  entity.direction = angle
+	function(entity: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
+	if target == position then
+		return
+	end
+	local dir = target - position
+	dir = dir:normalize()
+	local newPos = position + dir * speed
+	newPos = newPos:clamp(position, target)
+	entity.position = newPos
+	if newPos == target then
+		entity.target = nil
+	end
+	local angle = math.deg(math.atan(dir.x, dir.y))
+	entity.direction = angle
 end)
 ```
 
@@ -379,14 +379,14 @@ Group({"position", "direction", "speed", "target"})
 
 ```tl
 :watch(
-  function(entity: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
+	function(entity: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
 ```
 
 &emsp;&emsp;在回调函数内部，我们首先进行了一些条件判断。通过 `return if target == position` 判断实体的目标位置和当前位置是否相等，如果相等则直接返回，不进行后续的更新操作。
 
 ```tl
 if target == position then
-  return
+	return
 end
 ```
 
@@ -414,7 +414,7 @@ entity.position = newPos
 
 ```tl
 if newPos == target then
-  entity.target = nil
+	entity.target = nil
 end
 ```
 
@@ -431,32 +431,32 @@ entity.direction = angle
 
 ```tl
 Observer("AddOrChange", {"position", "direction", "sprite"})
-  :watch(function(entity: Entity.Type, position: Vec2.Type, direction: number, sprite: Sprite.Type)
-    -- 更新图片的显示位置
-    sprite.position = position
-    local lastDirection = entity.oldValues.direction as number or sprite.angle
-    -- 当图片的旋转角度变化时，我们就播放一个旋转的动画
-    if math.abs(direction - lastDirection) > 1 then
-      sprite:runAction(Roll(0.3, lastDirection, direction))
-    end
-  end)
+	:watch(function(entity: Entity.Type, position: Vec2.Type, direction: number, sprite: Sprite.Type)
+		-- 更新图片的显示位置
+		sprite.position = position
+		local lastDirection = entity.oldValues.direction as number or sprite.angle
+		-- 当图片的旋转角度变化时，我们就播放一个旋转的动画
+		if math.abs(direction - lastDirection) > 1 then
+			sprite:runAction(Roll(0.3, lastDirection, direction))
+		end
+	end)
 ```
 
 &emsp;&emsp;最后，我们创建三个实体，并为它们添加不同的组件。这时游戏系统将开始正式运行。
 
 ```tl
 Entity {
-  sprite = Sprite("Image/logo.png"),
-  position = Vec2.zero,
-  direction = 45.0,
-  speed = 4.0
+	sprite = Sprite("Image/logo.png"),
+	position = Vec2.zero,
+	direction = 45.0,
+	speed = 4.0
 }
 
 Entity {
-  sprite = Sprite("Image/logo.png"),
-  position = Vec2(-100, 200),
-  direction = 90.0,
-  speed = 10.0
+	sprite = Sprite("Image/logo.png"),
+	position = Vec2(-100, 200),
+	direction = 90.0,
+	speed = 10.0
 }
 
 Entity { scene = Node() }
@@ -493,16 +493,16 @@ local positionGroup = Group {"position"}
 
 ```lua
 Observer("Add", {"scene"})
-  :watch(function(_entity, scene)
-    Director.entry:addChild(scene)
-    scene.touchEnabled = true
-    scene:slot("TapEnded", function(touch)
-      local location = touch.location
-      positionGroup:each(function(entity)
-        entity.target = location
-      end)
-    end)
-  end)
+	:watch(function(_entity, scene)
+		Director.entry:addChild(scene)
+		scene.touchEnabled = true
+		scene:slot("TapEnded", function(touch)
+			local location = touch.location
+			positionGroup:each(function(entity)
+				entity.target = location
+			end)
+		end)
+	end)
 ```
 
 &emsp;&emsp;首先，使用 `Observer` 类创建一个观察器对象，并指定观察器监测的事件类型为 "Add"，表示监听实体的添加事件。同时，通过传入一个包含字符串 "scene" 的列表作为参数，指定观察器要监测的组件类型包括 "scene"。
@@ -545,7 +545,7 @@ local location = touch.location
 
 ```lua
 positionGroup:each(function(entity)
-  entity.target = location
+	entity.target = location
 end)
 ```
 
@@ -555,21 +555,21 @@ end)
 
 ```lua
 Observer("Add", {"sprite"}):watch(function(_entity, sprite)
-  sceneGroup:each(function(e)
-    local scene = e.scene
-    sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
-    scene:addChild(sprite)
-    return true
-  end)
+	sceneGroup:each(function(e)
+		local scene = e.scene
+		sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
+		scene:addChild(sprite)
+		return true
+	end)
 end)
 
 Observer("Remove", {"sprite"}):watch(function(entity)
-  sceneGroup:each(function(e)
-    local scene = e.scene
-    local sprite = entity.oldValues.sprite
-    scene:removeChild(sprite)
-    return true
-  end)
+	sceneGroup:each(function(e)
+		local scene = e.scene
+		local sprite = entity.oldValues.sprite
+		scene:removeChild(sprite)
+		return true
+	end)
 end)
 ```
 
@@ -577,20 +577,20 @@ end)
 
 ```lua
 Group({"position", "direction", "speed", "target"}):watch(
-  function(entity, position, _direction, speed, target)
-  if target == position then
-    return
-  end
-  local dir = target - position
-  dir = dir:normalize()
-  local newPos = position + dir * speed
-  newPos = newPos:clamp(position, target)
-  entity.position = newPos
-  if newPos == target then
-    entity.target = nil
-  end
-  local angle = math.deg(math.atan(dir.x, dir.y))
-  entity.direction = angle
+	function(entity, position, _direction, speed, target)
+	if target == position then
+		return
+	end
+	local dir = target - position
+	dir = dir:normalize()
+	local newPos = position + dir * speed
+	newPos = newPos:clamp(position, target)
+	entity.position = newPos
+	if newPos == target then
+		entity.target = nil
+	end
+	local angle = math.deg(math.atan(dir.x, dir.y))
+	entity.direction = angle
 end)
 ```
 
@@ -604,14 +604,14 @@ Group({"position", "direction", "speed", "target"})
 
 ```lua
 :watch(
-  function(entity, position, _direction, speed, target)
+	function(entity, position, _direction, speed, target)
 ```
 
 &emsp;&emsp;在回调函数内部，我们首先进行了一些条件判断。通过 `return if target == position` 判断实体的目标位置和当前位置是否相等，如果相等则直接返回，不进行后续的更新操作。
 
 ```lua
 if target == position then
-  return
+	return
 end
 ```
 
@@ -639,7 +639,7 @@ entity.position = newPos
 
 ```lua
 if newPos == target then
-  entity.target = nil
+	entity.target = nil
 end
 ```
 
@@ -656,32 +656,32 @@ entity.direction = angle
 
 ```lua
 Observer("AddOrChange", {"position", "direction", "sprite"})
-  :watch(function(entity, position, direction, sprite)
-    -- 更新图片的显示位置
-    sprite.position = position
-    local lastDirection = entity.oldValues.direction or sprite.angle
-    -- 当图片的旋转角度变化时，我们就播放一个旋转的动画
-    if math.abs(direction - lastDirection) > 1 then
-      sprite:runAction(Roll(0.3, lastDirection, direction))
-    end
-  end)
+	:watch(function(entity, position, direction, sprite)
+		-- 更新图片的显示位置
+		sprite.position = position
+		local lastDirection = entity.oldValues.direction or sprite.angle
+		-- 当图片的旋转角度变化时，我们就播放一个旋转的动画
+		if math.abs(direction - lastDirection) > 1 then
+			sprite:runAction(Roll(0.3, lastDirection, direction))
+		end
+	end)
 ```
 
 &emsp;&emsp;最后，我们创建三个实体，并为它们添加不同的组件。这时游戏系统将开始正式运行。
 
 ```lua
 Entity {
-  sprite = Sprite("Image/logo.png"),
-  position = Vec2.zero,
-  direction = 45.0,
-  speed = 4.0
+	sprite = Sprite("Image/logo.png"),
+	position = Vec2.zero,
+	direction = 45.0,
+	speed = 4.0
 }
 
 Entity {
-  sprite = Sprite("Image/logo.png"),
-  position = Vec2(-100, 200),
-  direction = 90.0,
-  speed = 10.0
+	sprite = Sprite("Image/logo.png"),
+	position = Vec2(-100, 200),
+	direction = 90.0,
+	speed = 10.0
 }
 
 Entity { scene = Node() }
