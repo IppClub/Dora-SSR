@@ -30,8 +30,12 @@
 	--ifm-toc-border-color: rgba(0, 0, 0, 0);
 }
 
-.docSidebarContainer_node_modules-\@docusaurus-theme-classic-lib-theme-DocRoot-Layout-Sidebar-styles-module {
+.theme-doc-sidebar-container {
 	--ifm-toc-border-color: rgba(0, 0, 0, 0);
+}
+
+.navbar-sidebar {
+	min-height:100vh;
 }
 
 .navbar {
@@ -42,7 +46,7 @@
 
 .footer {
 	--ifm-footer-background-color: rgba(36, 37, 38, 1.0);
- }
+}
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
