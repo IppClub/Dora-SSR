@@ -206,6 +206,8 @@ const config = {
 					editUrl:
 						'https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Site',
 					// sidebarCollapsed: false,
+					showLastUpdateAuthor: true,
+					showLastUpdateTime: true,
 				},
 				blog: {
 					showReadingTime: true,
