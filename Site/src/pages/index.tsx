@@ -23,7 +23,7 @@ function HomepageHeader() {
 						<Translate
 							id='dorothy_enter_tutorial_button'
 							description='The tutorial button in front page'>
-							Launch
+							Start
 						</Translate>
 					</Link>
 				</div>
