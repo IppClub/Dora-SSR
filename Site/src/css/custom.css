@@ -26,6 +26,20 @@
 	--docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
+.table-of-contents__left-border {
+	--ifm-toc-border-color: rgba(0, 0, 0, 0);
+}
+
+.docSidebarContainer_node_modules-\@docusaurus-theme-classic-lib-theme-DocRoot-Layout-Sidebar-styles-module {
+	--ifm-toc-border-color: rgba(0, 0, 0, 0);
+}
+
+.navbar {
+	-webkit-backdrop-filter: blur(10px);
+	backdrop-filter: blur(10px);
+	background-color: #ffffff1a
+}
+
 .footer {
 	--ifm-footer-background-color: rgba(36, 37, 38, 1.0);
  }
