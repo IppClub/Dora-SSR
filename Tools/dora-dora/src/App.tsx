@@ -459,6 +459,11 @@ export default function PersistentDrawerLeft() {
 		const file = files[tabIndex];
 		const saveFile = () => {
 			if (file.contentModified !== null) {
+				const readOnly = !file.key.startsWith(treeData.at(0)?.key ?? "");
+				if (readOnly) {
+					addAlert(t("alert.builtin"), "warning");
+					return;
+				}
 				const {contentModified} = file;
 				Service.write({path: file.key, content: contentModified}).then((res) => {
 					if (res.success) {
@@ -546,6 +551,11 @@ export default function PersistentDrawerLeft() {
 					if (count === fileCount) {
 						resolve(true);
 					}
+					return;
+				}
+				const readOnly = !file.key.startsWith(treeData.at(0)?.key ?? "");
+				if (readOnly) {
+					addAlert(t("alert.builtin"), "warning");
 					return;
 				}
 				const saveFile = (content: string) => {
