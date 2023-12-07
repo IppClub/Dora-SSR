@@ -7,7 +7,7 @@ import "lulpeg" as :Cmt, :P, :S, :C, :Ct, :B, :match
 
 lastPos = 1
 
-Newline = Cmt P"\n", (str, pos)->
+Newline = Cmt P"\n", (_str, pos)->
 	lastPos = pos
 	true
 
@@ -51,18 +51,18 @@ generate = (path, file, cn)->
 					newGroup[] = group[i]
 				lastComment = comment
 			last = newGroup[#newGroup]
-			className = last\match "^%s*local%s*record%s*([%w_]+)"
+			className = last\match "^%s*local%s+record%s*([%w_]+)"
 			className or= last\match "^%s*record%s*([%w_]+)"
 			if className
 				newGroup[#newGroup] = className
 				newGroup[] = false
 			elseif #newGroup == 1 and newGroup[1] == "end"
 				newGroup[] = false
-			elseif typeDef = last\match "^%s*local%s*type%s*([%w_]+)"
+			elseif typeDef = last\match "^%s*local%s+type%s*([%w_]+)"
 				newGroup[] = "__ITEM__"
 				newGroup[] = false
-			elseif last\match "^%s*local"
-				newGroup[#newGroup] = last\gsub "^%s*local%s*[%w_]+:%s*", "#{modName}: "
+			elseif last\match "^%s*local%s+"
+				newGroup[#newGroup] = last\gsub "^%s*local%s+[%w_]+:%s*", "#{modName}: "
 				newGroup[] = "__ITEM__"
 				newGroup[] = false
 			elseif last\match "^%s*global"
@@ -243,7 +243,7 @@ gen = (docPath, target, cn)->
 	files = Content\getAllFiles docPath
 	for file in *files
 		switch file
-			when "teal.d.tl"
+			when "teal.d.tl", "lua.d.tl"
 				continue
 		switch Path\getExt file
 			when "tl"
@@ -260,7 +260,10 @@ gen = (docPath, target, cn)->
 		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
 		namePath = Path(targetPath, namePath .. ".mdx")
 		Content\mkdir Path\getPath namePath
-		Content\save namePath, mdPrefix .. table.concat(doc, "\n\n")
+		for i = 1, #doc
+			if not doc[i]\match "```tl"
+				doc[i] = doc[i]\gsub "{", "\\{"
+		Content\save namePath, mdPrefix .. table.concat doc, "\n\n"
 
 	targetPath = Path Content.writablePath, target, "Class Object"
 
@@ -268,7 +271,10 @@ gen = (docPath, target, cn)->
 		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
 		namePath = Path(targetPath, namePath .. ".mdx")
 		Content\mkdir Path\getPath namePath
-		Content\save namePath, mdPrefix .. table.concat(doc, "\n\n")
+		for i = 1, #doc
+			if not doc[i]\match "```tl"
+				doc[i] = doc[i]\gsub "{", "\\{"
+		Content\save namePath, mdPrefix .. table.concat doc, "\n\n"
 
 	targetPath = Path Content.writablePath, target, "Module"
 
@@ -276,7 +282,10 @@ gen = (docPath, target, cn)->
 		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
 		namePath = Path(targetPath, namePath .. ".mdx")
 		Content\mkdir Path\getPath namePath
-		Content\save namePath, mdPrefix .. table.concat(doc, "\n\n")
+		for i = 1, #doc
+			if not doc[i]\match "```tl"
+				doc[i] = doc[i]\gsub "{", "\\{"
+		Content\save namePath, mdPrefix .. table.concat doc, "\n\n"
 
 	targetPath = Path Content.writablePath, target, "Node Event"
 
@@ -284,7 +293,10 @@ gen = (docPath, target, cn)->
 		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
 		namePath = Path(targetPath, namePath .. ".mdx")
 		Content\mkdir Path\getPath namePath
-		Content\save namePath, mdPrefix .. table.concat(doc, "\n\n")
+		for i = 1, #doc
+			if not doc[i]\match "```tl"
+				doc[i] = doc[i]\gsub "{", "\\{"
+		Content\save namePath, mdPrefix .. table.concat doc, "\n\n"
 
 	targetPath = Path Content.writablePath, target, "Global Event"
 
@@ -292,7 +304,10 @@ gen = (docPath, target, cn)->
 		namePath = Path table.unpack [part for part in name\gmatch "([%w_]+)%.?"]
 		namePath = Path(targetPath, namePath .. ".mdx")
 		Content\mkdir Path\getPath namePath
-		Content\save namePath, mdPrefix .. table.concat(doc, "\n\n")
+		for i = 1, #doc
+			if not doc[i]\match "```tl"
+				doc[i] = doc[i]\gsub "{", "\\{"
+		Content\save namePath, mdPrefix .. table.concat doc, "\n\n"
 
 docPath = Path Content.assetPath, "Script", "Lib", "Dora", "en"
 gen docPath, ".doc", false
