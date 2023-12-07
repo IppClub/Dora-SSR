@@ -197,7 +197,7 @@ getEffect = (tags, action)->
 		if eff[1] == "取消伤害"
 			cancelHarm = true
 		else
-			if e = eset[eff[1]]
+			if e := eset[eff[1]]
 				e[1] += eff[2]
 				e[2] = math.max e[2],eff[3]
 			else

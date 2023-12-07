@@ -83,10 +83,10 @@ Director.entry\addChild with Node!
 			Text "Clip Node"
 			Separator!
 			TextWrapped "Render children nodes with mask!"
-			if changed, inverted = Checkbox "Inverted", inverted
+			if changed, inverted := Checkbox "Inverted", inverted
 				clipNodeA.inverted = inverted
 				clipNodeB.inverted = inverted
 				frame.visible = not inverted
-			if changed, withAlphaThreshold = Checkbox "With alphaThreshold", withAlphaThreshold
+			if changed, withAlphaThreshold := Checkbox "With alphaThreshold", withAlphaThreshold
 				exampleB.visible = withAlphaThreshold
 				exampleA.visible = not withAlphaThreshold

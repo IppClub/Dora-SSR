@@ -81,7 +81,7 @@ with Observer "Change", {"hp", "unit"}
 					unit\runAction Opacity 0.5, 1, 0, Ease.OutQuad
 					sleep 0.5
 					if Store.world.camera.followTarget == unit
-						if player = Group({"player", "unit"})\find => @player
+						if player := Group({"player", "unit"})\find => @player
 							Store.world.camera.followTarget = player.unit
 					unit\removeFromParent!
 

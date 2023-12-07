@@ -25,14 +25,14 @@ model\schedule ->
 	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 	SetNextWindowSize Vec2(240,325), "FirstUseEver"
 	Begin "Model", windowFlags, ->
-		if changed, currentLook = Combo "Look", currentLook, looks
+		if changed, currentLook := Combo "Look", currentLook, looks
 			model.look = looks[currentLook]
-		if changed, currentAnim = Combo "Anim", currentAnim, animations
+		if changed, currentAnim := Combo "Anim", currentAnim, animations
 			model\play animations[currentAnim], loop
-		if changed, loop = Checkbox "Loop", loop
+		if changed, loop := Checkbox "Loop", loop
 			model\play animations[currentAnim], loop
 		SameLine!
-		if changed, model.reversed = Checkbox "Reversed", model.reversed
+		if changed, model.reversed := Checkbox "Reversed", model.reversed
 			model\play animations[currentAnim], loop
 		PushItemWidth -70, ->
 			_, model.speed = DragFloat "Speed", model.speed, 0.01, 0, 10, "%.2f"

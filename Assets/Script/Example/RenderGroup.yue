@@ -61,5 +61,5 @@ Director.entry\addChild with Node!
 			Text "Render Group"
 			Separator!
 			TextWrapped "When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window."
-			if changed, renderGroup = Checkbox "Grouped", renderGroup
+			if changed, renderGroup := Checkbox "Grouped", renderGroup
 				currentEntry.renderGroup = renderGroup

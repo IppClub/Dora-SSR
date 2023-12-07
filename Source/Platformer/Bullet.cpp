@@ -31,16 +31,17 @@ const Slice Bullet::Def::BulletKey = "bullet"_slice;
 Bullet::Bullet(BulletDef* bulletDef, Unit* unit)
 	: Body(bulletDef->getBodyDef(), unit->getPhysicsWorld())
 	, _bulletDef(bulletDef)
-	, _owner(unit)
+	, _emitter(unit)
 	, _current(0)
 	, _lifeTime(bulletDef->lifeTime)
 	, _face(nullptr) { }
 
 bool Bullet::init() {
 	if (!Body::init()) return false;
-	Bullet::setFaceRight(_owner->isFaceRight());
+	Bullet::setFaceRight(_emitter->isFaceRight());
 	Bullet::setTag(_bulletDef->tag);
 	Body::setReceivingContact(true);
+	Body::setOwner(_emitter);
 	filterContact = [](Body*) {
 		return false;
 	};
@@ -53,11 +54,11 @@ bool Bullet::init() {
 		Node* node = face->toNode();
 		Bullet::setFace(node);
 	}
-	Playable* playable = _owner->getPlayable();
+	Playable* playable = _emitter->getPlayable();
 	Vec2 offset = (playable ? playable->getKeyPoint(Def::BulletKey) : Vec2::zero);
-	Bullet::setPosition(_owner->getPosition() + offset);
+	Bullet::setPosition(_emitter->getPosition() + offset);
 	if (Body::getBodyDef()->getLinearAcceleration() != Vec2::zero) {
-		Bullet::setAngle(-bx::toDeg(std::atan2(v.y, _owner->isFaceRight() ? v.x : -v.x)));
+		Bullet::setAngle(-bx::toDeg(std::atan2(v.y, _emitter->isFaceRight() ? v.x : -v.x)));
 	}
 	hitTarget += [](Bullet* bullet, Unit* target, Vec2 point) {
 		bullet->emit("HitTarget"_slice, bullet, target, point);
@@ -91,8 +92,8 @@ bool Bullet::update(double deltaTime) {
 	return Body::update(deltaTime);
 }
 
-Unit* Bullet::getOwner() const {
-	return _owner;
+Unit* Bullet::getEmitter() const {
+	return _emitter;
 }
 
 void Bullet::setFaceRight(bool var) {
@@ -120,12 +121,12 @@ uint32_t Bullet::getTargetAllow() const {
 }
 
 void Bullet::onBodyContact(Body* body, Vec2 point, Vec2 normal) {
-	if (body == _owner) {
+	if (body == _emitter) {
 		return;
 	}
 	Unit* unit = DoraAs<Unit>(body->getOwner());
 	bool isHitTerrain = SharedData.isTerrain(body) && targetAllow.isTerrainAllowed();
-	bool isHitUnit = unit && targetAllow.isAllow(SharedData.getRelation(_owner, unit));
+	bool isHitUnit = unit && targetAllow.isAllow(SharedData.getRelation(_emitter, unit));
 	bool isHit = isHitTerrain || isHitUnit;
 	if (isHit && hitTarget) {
 		bool isRangeDamage = _bulletDef->damageRadius > 0.0f;
@@ -138,7 +139,7 @@ void Bullet::onBodyContact(Body* body, Vec2 point, Vec2 normal) {
 				_bulletDef->damageRadius * 2);
 			_pWorld->query(rect, [&](Body* body) {
 				Unit* unit = DoraAs<Unit>(body->getOwner());
-				if (unit && targetAllow.isAllow(SharedData.getRelation(_owner, unit))) {
+				if (unit && targetAllow.isAllow(SharedData.getRelation(_emitter, unit))) {
 					hitTarget(this, unit, unit->getPosition());
 				}
 				return false;

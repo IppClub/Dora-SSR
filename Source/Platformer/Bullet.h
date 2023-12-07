@@ -23,7 +23,7 @@ typedef Acf::Delegate<bool(Bullet* bullet, Unit* target, Vec2 point)> BulletHand
 
 class Bullet : public Body {
 public:
-	PROPERTY_READONLY(Unit*, Owner);
+	PROPERTY_READONLY(Unit*, Emitter);
 	PROPERTY(uint32_t, TargetAllow);
 	PROPERTY_BOOL(FaceRight);
 	PROPERTY_BOOL(HitStop);
@@ -51,7 +51,7 @@ private:
 	};
 	Node* _face;
 	Ref<BulletDef> _bulletDef;
-	Ref<Unit> _owner;
+	Ref<Unit> _emitter;
 	float _lifeTime;
 	float _current;
 	DORA_TYPE_OVERRIDE(Bullet)

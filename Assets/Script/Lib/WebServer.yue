@@ -20,12 +20,12 @@ getProjectDirFromFile = (file)->
 	nil
 
 getSearchPath = (file)->
-	if dir = getProjectDirFromFile file
+	if dir := getProjectDirFromFile file
 		return Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
 	""
 
 getSearchFolders = (file)->
-	if dir = getProjectDirFromFile file
+	if dir := getProjectDirFromFile file
 		return
 			* Path dir, "Script"
 			* dir
@@ -170,7 +170,7 @@ HttpServer\postSchedule "/check", (req)->
 updateInferedDesc = (infered)->
 	return if not infered.key or infered.key == "" or infered.desc\match "^polymorphic function %(with types "
 	:key, :row = infered
-	if codes = Content\loadAsync key
+	if codes := Content\loadAsync key
 		comments = []
 		line = 0
 		skipping = false
@@ -180,7 +180,7 @@ updateInferedDesc = (infered)->
 			if lineCode\match "^%s*%-%- @"
 				skipping = true
 				continue
-			if result = lineCode\match "%s*%-%- (.+)"
+			if result := lineCode\match "%s*%-%- (.+)"
 				comments[] = result unless skipping
 			elseif #comments > 0
 				comments = {}
@@ -209,7 +209,7 @@ HttpServer\postSchedule "/infer", (req)->
 	success: false
 
 getParamDocs = (signatures)->
-	if codes = Content\loadAsync signatures[1].file
+	if codes := Content\loadAsync signatures[1].file
 		comments = []
 		params = []
 		line = 0
@@ -230,7 +230,7 @@ getParamDocs = (signatures)->
 						docs[i] = false
 				needBreak = false if not docs[i]
 			break if needBreak
-			if result = lineCode\match "%s*%-%- (.+)"
+			if result := lineCode\match "%s*%-%- (.+)"
 				name, typ, desc = result\match "^@param%s*([%w_]+)%s*%(([^%)]-)%)%s*(.+)"
 				if not name
 					name, typ, desc = result\match "^@param%s*(%.%.%.)%s*%(([^%)]-)%)%s*(.+)"
@@ -242,7 +242,7 @@ getParamDocs = (signatures)->
 						desc: "**#{name}**: #{desc}"
 					}
 				else
-					if typ = result\match "^@return%s*%(([^%)]-)%)"
+					if typ := result\match "^@return%s*%(([^%)]-)%)"
 						returnType = if returnType
 							returnType .. ", " .. typ
 						else
@@ -271,17 +271,17 @@ HttpServer\postSchedule "/signature", (req)->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
 		searchPath = getSearchPath file
 		switch lang when "tl", "lua"
-			if signatures = teal.getSignatureAsync content, line, row, searchPath
-				if signatures = getParamDocs signatures
+			if signatures := teal.getSignatureAsync content, line, row, searchPath
+				if signatures := getParamDocs signatures
 					return success: true, :signatures
 		when "yue"
 			luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine content, line, row, file
 			return success: false unless luaCodes
-			if signatures = teal.getSignatureAsync luaCodes, targetLine, targetRow, searchPath
-				if signatures = getParamDocs signatures
+			if signatures := teal.getSignatureAsync luaCodes, targetLine, targetRow, searchPath
+				if signatures := getParamDocs signatures
 					return success: true, :signatures
-			elseif signatures = teal.getSignatureAsync luaCodes, "builtin.#{targetLine}", targetRow, searchPath
-				if signatures = getParamDocs signatures
+			elseif signatures := teal.getSignatureAsync luaCodes, "builtin.#{targetLine}", targetRow, searchPath
+				if signatures := getParamDocs signatures
 					return success: true, :signatures
 	success: false
 
@@ -444,7 +444,7 @@ HttpServer\postSchedule "/complete", (req)->
 		when "yue"
 			suggestions = []
 			gotGlobals = false
-			if luaCodes, targetLine, targetRow = getCompiledYueLine content, line, row, file
+			if luaCodes, targetLine, targetRow := getCompiledYueLine content, line, row, file
 				gotGlobals = true
 				suggestions[] = item for item in *teal.completeAsync luaCodes, targetLine, targetRow, searchPath
 				if #suggestions == 0
@@ -548,7 +548,7 @@ HttpServer\post "/rename", (req)->
 HttpServer\postSchedule "/read", (req)->
 	switch req when {body: {:path}}
 		if Content\exist path
-			if content = Content\loadAsync path
+			if content := Content\loadAsync path
 				return :content, success: true
 	success: false
 
@@ -626,7 +626,7 @@ HttpServer\postSchedule "/run", (req)->
 	switch req when {body: {:file, :asProj}}
 		import "Dev.Entry"
 		if asProj
-			if proj = getProjectDirFromFile file
+			if proj := getProjectDirFromFile file
 				Entry.allClear!
 				target = Path proj, "init"
 				success, err = Entry.enterEntryAsync ["Project", target]

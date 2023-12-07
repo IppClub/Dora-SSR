@@ -16,8 +16,8 @@ static void platformer_bullet_set_hit_stop(int64_t self, int32_t var) {
 static int32_t platformer_bullet_is_hit_stop(int64_t self) {
 	return r_cast<Platformer::Bullet*>(self)->isHitStop() ? 1 : 0;
 }
-static int64_t platformer_bullet_get_owner(int64_t self) {
-	return from_object(r_cast<Platformer::Bullet*>(self)->getOwner());
+static int64_t platformer_bullet_get_emitter(int64_t self) {
+	return from_object(r_cast<Platformer::Bullet*>(self)->getEmitter());
 }
 static int64_t platformer_bullet_get_bullet_def(int64_t self) {
 	return from_object(r_cast<Platformer::Bullet*>(self)->getBulletDef());
@@ -41,7 +41,7 @@ static void linkPlatformerBullet(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_bullet_is_face_right", platformer_bullet_is_face_right);
 	mod.link_optional("*", "platformer_bullet_set_hit_stop", platformer_bullet_set_hit_stop);
 	mod.link_optional("*", "platformer_bullet_is_hit_stop", platformer_bullet_is_hit_stop);
-	mod.link_optional("*", "platformer_bullet_get_owner", platformer_bullet_get_owner);
+	mod.link_optional("*", "platformer_bullet_get_emitter", platformer_bullet_get_emitter);
 	mod.link_optional("*", "platformer_bullet_get_bullet_def", platformer_bullet_get_bullet_def);
 	mod.link_optional("*", "platformer_bullet_set_face", platformer_bullet_set_face);
 	mod.link_optional("*", "platformer_bullet_get_face", platformer_bullet_get_face);

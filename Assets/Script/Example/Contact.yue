@@ -66,6 +66,6 @@ Director.entry\addChild with Node!
 			Text "Contact"
 			Separator!
 			TextWrapped "Receive events when physics bodies contact."
-			if changed, receivingContact = Checkbox "Receiving Contact", receivingContact
+			if changed, receivingContact := Checkbox "Receiving Contact", receivingContact
 				disk.receivingContact = receivingContact
 				label.text = ""

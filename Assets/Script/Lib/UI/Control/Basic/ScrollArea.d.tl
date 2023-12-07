@@ -19,8 +19,8 @@ local record ScrollArea
 		"Vertical"
 		"Horizontal"
 	end
-	scrollToPosY: function(posY: number, time?: number --[[0.3]])
-	adjustSizeWithAlign: function(alignMode?: AlignMode, padding?: number--[[10]], size?: Size, viewSize?: Size)
+	scrollToPosY: function(self: ScrollArea, posY: number, time?: number --[[0.3]])
+	adjustSizeWithAlign: function(self: ScrollArea, alignMode?: AlignMode, padding?: number--[[10]], size?: Size, viewSize?: Size)
 end
 local record ScrollAreaClass
 	type Type = ScrollArea
