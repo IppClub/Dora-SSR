@@ -247,7 +247,7 @@ loadFuncs =
 				data.center, width, height, 0,
 				data.density, data.friction, data.restitution
 			)
-		if subShapes = data.subShapes
+		if subShapes := data.subShapes
 			for i = 1, subShapes\count!
 				loadData subShapes\get(i), bodyDef
 		itemDict[data.name] = bodyDef
@@ -261,7 +261,7 @@ loadFuncs =
 				data.center, data.radius,
 				data.density, data.friction, data.restitution
 			)
-		if subShapes = data.subShapes
+		if subShapes := data.subShapes
 			for i = 1, subShapes\count!
 				loadData subShapes\get(i), bodyDef
 		itemDict[data.name] = bodyDef
@@ -275,7 +275,7 @@ loadFuncs =
 				data.vertices\toArray!
 				data.density, data.friction, data.restitution
 			)
-		if subShapes = data.subShapes
+		if subShapes := data.subShapes
 			for i = 1, subShapes\count!
 				loadData subShapes\get(i), bodyDef
 		itemDict[data.name] = bodyDef
@@ -283,7 +283,7 @@ loadFuncs =
 	"Phyx.Chain": (data, itemDict)->
 		bodyDef = toDef data
 		bodyDef\attachChain data.vertices\toArray!, data.friction, data.restitution
-		if subShapes = data.subShapes
+		if subShapes := data.subShapes
 			for i = 1, subShapes\count!
 				loadData subShapes\get(i), bodyDef
 		itemDict[data.name] = bodyDef
@@ -455,6 +455,6 @@ export default (bodyData, world, pos, angle)->
 				itemDef.center = center
 				itemDef.position = pos
 				itemDef.angle = angle
-			if joint = Joint itemDef, items
+			if joint := Joint itemDef, items
 				items[key] = joint
 	root

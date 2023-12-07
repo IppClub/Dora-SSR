@@ -1041,7 +1041,7 @@ object class Bullet : public IBody
 	common uint32_t targetAllow;
 	readonly boolean bool faceRight;
 	boolean bool hitStop;
-	readonly common Platformer::Unit* owner;
+	readonly common Platformer::Unit* emitter;
 	readonly common Platformer::BulletDef* bulletDef;
 	common Node* face;
 	void destroy();

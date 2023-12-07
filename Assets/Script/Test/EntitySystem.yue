@@ -37,11 +37,11 @@ entity1.hp -= 99
 
 observer
 	\watch (hp, mp)=>
-		if oldHP = @oldValues.hp
+		if oldHP := @oldValues.hp
 			assert @oldValues.hp == 100
 			assert hp == 86
 			print "hp change [from #{oldHP} to #{hp}]: entity #{@id}"
-		if oldMP = @oldValues.mp
+		if oldMP := @oldValues.mp
 			print "mp change [from #{oldMP} to #{mp}]: entity #{@id}"
 
 observer1

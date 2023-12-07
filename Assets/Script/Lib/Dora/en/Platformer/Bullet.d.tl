@@ -20,7 +20,7 @@ local record Bullet
 	hitStop: boolean
 
 	-- The `Unit` object that fired the bullet.
-	const owner: Unit
+	const emitter: Unit
 
 	-- The `BulletDef` object that defines the bullet's properties and behavior.
 	const bulletDef: BulletDef

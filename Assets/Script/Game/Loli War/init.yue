@@ -1,6 +1,6 @@
 _ENV = Dorothy!
 
-if scriptPath = Path\getScriptPath ...
+if scriptPath := Path\getScriptPath ...
 	Content\insertSearchPath 1, scriptPath
 	require Path scriptPath, mod for mod in *{
 		"Constant"

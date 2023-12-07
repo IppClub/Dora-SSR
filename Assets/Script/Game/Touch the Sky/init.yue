@@ -373,5 +373,5 @@ Director.entry\addChild with Node!
 			Text "Touch The Sky"
 			Separator!
 			TextWrapped "Click to grab!"
-			if changed, isHardMode = Checkbox "Hard Mode", hardMode
+			if changed, isHardMode := Checkbox "Hard Mode", hardMode
 				hardMode = isHardMode

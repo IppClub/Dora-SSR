@@ -14,7 +14,7 @@ spine = with Spine spineStr
 	.touchEnabled = true
 	\slot "TapBegan", (touch)->
 		:x, :y = touch.location
-		if name = \containsPoint x, y
+		if name := \containsPoint x, y
 			\addChild with Label "sarasa-mono-sc-regular", 30
 				.text = name
 				.color = App.themeColor
@@ -50,5 +50,5 @@ Director.entry\addChild with Node!
 			Text "Spine"
 			Separator!
 			TextWrapped "Basic usage to create spine! Tap it for a hit test."
-			if changed, showDebug = Checkbox "BoundingBox", showDebug
+			if changed, showDebug := Checkbox "BoundingBox", showDebug
 				spine.showDebug = showDebug

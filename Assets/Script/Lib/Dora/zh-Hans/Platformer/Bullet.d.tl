@@ -20,7 +20,7 @@ local record Bullet
 	hitStop: boolean
 
 	-- 发射子弹的单位对象。
-	const owner: Unit
+	const emitter: Unit
 
 	-- 定义子弹属性和行为的对象。
 	const bulletDef: BulletDef

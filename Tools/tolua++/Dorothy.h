@@ -1172,7 +1172,7 @@ class Bullet : public Body
 	tolua_property__common uint32_t targetAllow;
 	tolua_readonly tolua_property__bool bool faceRight;
 	tolua_property__bool bool hitStop;
-	tolua_readonly tolua_property__common Unit* owner;
+	tolua_readonly tolua_property__common Unit* emitter;
 	tolua_readonly tolua_property__common BulletDef* bulletDef;
 	tolua_property__common Node* face;
 	void destroy();

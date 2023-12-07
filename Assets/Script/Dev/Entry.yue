@@ -434,7 +434,7 @@ export allClear = ->
 	teal.clear!
 	yue.clear!
 	for _, item in pairs ubox!
-		node\cleanup! if node = tolua.cast item, "Node"
+		node\cleanup! if node := tolua.cast item, "Node"
 	collectgarbage!
 	collectgarbage!
 	setupEventHandlers!
@@ -515,10 +515,10 @@ extraOperations = ->
 			unless ossLicenses
 				ossLicenses = []
 				licenseText = Content\load "LICENSES"
-				if ossLicenseOpen = licenseText?
+				if ossLicenseOpen := licenseText?
 					licenseText = licenseText\gsub "\r\n", "\n"
 					for license in GSplit licenseText, "\n--------\n", true
-						if name, text = license\match "[%s\n]*([^\n]*)[\n]*(.*)"
+						if name, text := license\match "[%s\n]*([^\n]*)[\n]*(.*)"
 							ossLicenses[] = [name, text]
 			else
 				ossLicenseOpen = true
@@ -549,7 +549,7 @@ extraOperations = ->
 			BeginDisabled -> Button zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)"
 		elseif Button zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)"
 			reloadDevEntry!
-	if changed, scaleContent = Checkbox string.format("%.1fx #{zh and '屏幕缩放' or 'Screen'}", screenScale), scaleContent
+	if changed, scaleContent := Checkbox string.format("%.1fx #{zh and '屏幕缩放' or 'Screen'}", screenScale), scaleContent
 		View.scale = scaleContent and screenScale or 1
 
 windowFlags =
@@ -616,7 +616,7 @@ footerWindow = threadLoop ->
 		if width >= 600
 			Columns 2, false
 			NextColumn!
-			if changed, showFooter = Checkbox zh and "开发" or "Dev", showFooter
+			if changed, showFooter := Checkbox zh and "开发" or "Dev", showFooter
 				config.showFooter = showFooter and 1 or 0
 
 	if isInEntry and
@@ -634,10 +634,10 @@ footerWindow = threadLoop ->
 	SetNextWindowBgAlpha 0.35
 	PushStyleVar "WindowPadding", Vec2(10, 0), -> Begin "Footer", windowFlags, ->
 		Dummy Vec2 width - 20, 0
-		if changed, showStats = Checkbox zh and "状态" or "Stats", showStats
+		if changed, showStats := Checkbox zh and "状态" or "Stats", showStats
 			config.showStats = showStats and 1 or 0
 		SameLine!
-		if changed, showConsole = Checkbox zh and "控制台" or "Log", showConsole
+		if changed, showConsole := Checkbox zh and "控制台" or "Log", showConsole
 			config.showConsole = showConsole and 1 or 0
 		unless isInEntry
 			SameLine!

@@ -521,9 +521,9 @@ GetBoss = (entity, pos, black)->
 	with Unit unitDef,world,entity,pos
 		if black
 			for i = 1,7
-				if node = .playable\getNodeByName "w#{i}"
+				if node := .playable\getNodeByName "w#{i}"
 					node.color = Color 0xff666666
-		if node = .playable\getNodeByName "mask"
+		if node := .playable\getNodeByName "mask"
 			node\addChild Sprite "Model/patreon.clip|#{masks[math.random 1, #masks]}"
 
 GetUnit = (entity, pos, black)->
@@ -543,7 +543,7 @@ GetUnit = (entity, pos, black)->
 	attackPower = bonusPower + (itemSettings[items.rhand].attackPower or Vec2 100,100)
 	sndAttack = itemSettings[items.rhand].sndAttack or ""
 	skills = Set for _, v in pairs items
-		if skill = itemSettings[v].skill
+		if skill := itemSettings[v].skill
 			entity["#{skill}Skill"] = true
 			skill
 	actions = Array {
@@ -604,9 +604,9 @@ GetUnit = (entity, pos, black)->
 	with Unit unitDef,world,entity,pos
 		for slot in *itemSlots
 			node = .playable\getNodeByName slot
-			if item = character[slot]
+			if item := character[slot]
 				node\addChild Sprite "Model/patreon.clip|#{item}"
-			if item = items[slot]
+			if item := items[slot]
 				node\addChild with Sprite "Model/patreon.clip|#{item}"
 					.color = Color 0xff666666 if black
 					.position = itemSettings[item].offset

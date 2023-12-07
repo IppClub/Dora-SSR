@@ -71,18 +71,18 @@ export default class YarnRunner
 		}
 		@startTitle = startTitle
 		if testing
-			if variables = jsonObject.header?.pluginStorage?.Runner?.variables
+			if variables := jsonObject.header?.pluginStorage?.Runner?.variables
 				for {:key, :value} in *variables
 					switch value when "true"
 						state[key] = true
 					when "false"
 						state[key] = false
 					else
-						if num = tonumber value
+						if num := tonumber value
 							state[key] = num
 						else
 							state[key] = value
-		if nodes = jsonObject.nodes
+		if nodes := jsonObject.nodes
 			for node in *nodes
 				:title, :body = node
 				@codes[title] = body
@@ -104,7 +104,7 @@ export default class YarnRunner
 		elseif @option
 			return "Error", "required a choice to continue"
 		local title
-		success, resultType, body, branches = if storyItem = @stories[#@stories]
+		success, resultType, body, branches = if storyItem := @stories[#@stories]
 			{title, story} = storyItem
 			coroutine.resume story
 		if not success and #@stories > 0
