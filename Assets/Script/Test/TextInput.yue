@@ -121,7 +121,7 @@ TextInput = Class ((args)->
 				@content\updateDisplayText value
 	}
 
-Director.entry\addChild with TextInput {
+with TextInput {
 		hint: "点这里进行输入"
 		width: 300
 		height: 60

@@ -29,7 +29,6 @@ with Observer "Add",{"world"}
 				.followRatio = Vec2 0.03,0.03
 				.boundary = Rect 0,-110,4096,1004
 				.position = Vec2 1024,274
-			\addTo Director.entry
 			\setIterations 2,3
 			\gslot "BlockValue",(group,value)-> heroes\each (hero)->
 				hero.blocks = value if hero.group == group

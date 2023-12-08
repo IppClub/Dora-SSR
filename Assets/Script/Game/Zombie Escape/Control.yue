@@ -75,5 +75,5 @@ keyboardControl = ->
 	updatePlayerControl "keyUp", Keyboard\isKeyPressed "K"
 	updatePlayerControl "keyShoot", Keyboard\isKeyPressed "J"
 
-Director.entry\addChild with Node!
+with Node!
 	\schedule keyboardControl

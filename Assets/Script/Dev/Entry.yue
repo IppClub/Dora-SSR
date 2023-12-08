@@ -464,14 +464,7 @@ export enterEntryAsync = (entry)->
 		for path in *runningPaths
 			Content\insertSearchPath 1, path
 		result = require file
-		if "function" == type result
-			result = result!
-			Director.entry\addChild if tolua.cast result, "Node"
-				result
-			else
-				Node!
-		else
-			Director.entry\addChild Node!
+		result! if "function" == type result
 	catch msg
 		err = debug.traceback msg
 		print err

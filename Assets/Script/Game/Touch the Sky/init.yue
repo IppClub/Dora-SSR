@@ -9,7 +9,6 @@ const gravity = Vec2 0, -10
 updateViewScale = ->
 	Director.currentCamera.zoom = View.size.width / 1620
 root = with Node!
-	\addTo Director.entry
 	\gslot "AppSizeChanged", updateViewScale
 
 ui = with Node!
@@ -185,7 +184,6 @@ cameraFollow = (body)->
 	with Node!
 		\schedule ->
 			camera.position = Vec2 0, (body.position.y - camera.position.y) * 0.1 + camera.position.y + 30
-		\addTo Director.entry
 
 addCube = ->
 	cube = with Node!
@@ -330,7 +328,6 @@ buildWorld = ->
 				with grabBlock
 					\schedule ->
 						body\applyLinearImpulse getGrabForce(body, location), body.position
-					\addTo Director.entry
 		\slot "TapEnded", ->
 			isGrabbing = false
 			isGrabbed = false
@@ -357,21 +354,20 @@ restartGame = ->
 		heartNode\removeFromParent!
 	addHeartUI!
 
-Director.entry\addChild with Node!
-	windowFlags =
-		* "NoDecoration"
-		* "NoSavedSettings"
-		* "NoFocusOnAppearing"
-		* "NoNav"
-		* "NoMove"
-	\schedule ->
-		const :width, :height = App.visualSize
-		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width - 140, height - 170), "Always", Vec2.zero
-		SetNextWindowSize Vec2(140, 0), "Always"
-		Begin "Touch The Sky", windowFlags, ->
-			Text "Touch The Sky"
-			Separator!
-			TextWrapped "Click to grab!"
-			if changed, isHardMode := Checkbox "Hard Mode", hardMode
-				hardMode = isHardMode
+windowFlags =
+	* "NoDecoration"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+threadLoop ->
+	const :width, :height = App.visualSize
+	SetNextWindowBgAlpha 0.35
+	SetNextWindowPos Vec2(width - 140, height - 170), "Always", Vec2.zero
+	SetNextWindowSize Vec2(140, 0), "Always"
+	Begin "Touch The Sky", windowFlags, ->
+		Text "Touch The Sky"
+		Separator!
+		TextWrapped "Click to grab!"
+		if changed, isHardMode := Checkbox "Hard Mode", hardMode
+			hardMode = isHardMode

@@ -23,7 +23,11 @@ int ClipNode::_layer = -1;
 
 ClipNode::ClipNode(Node* stencil)
 	: _alphaThreshold(1.0f)
-	, _stencil(stencil) { }
+	, _stencil(stencil) {
+	if (stencil) {
+		stencil->setAsManaged();
+	}
+}
 
 ClipNode::~ClipNode() { }
 
@@ -34,6 +38,7 @@ void ClipNode::setStencil(Node* var) {
 	}
 	_stencil = var;
 	if (_stencil) {
+		_stencil->setAsManaged();
 		_stencil->setTransformTarget(this);
 		setupAlphaTest();
 		if (isRunning()) {
@@ -89,7 +94,9 @@ void ClipNode::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
 		Node::cleanup();
 		if (_stencil) {
-			_stencil->cleanup();
+			if (!_stencil->getParent()) {
+				_stencil->cleanup();
+			}
 			_stencil = nullptr;
 		}
 	}

@@ -29,7 +29,6 @@ DORA_TEST_ENTRY(HelloWorldCpp) {
 		}
 		println("Hello World!"sv);
 	}));
-	SharedDirector.getEntry()->addChild(node);
 
 //	auto time = std::make_shared<double>(0);
 //	auto countDown = std::make_shared<int>(5);
@@ -64,6 +63,5 @@ DORA_TEST_ENTRY(HelloWorldCpp) {
 		ImGui::End();
 		return false;
 	});
-	SharedDirector.getEntry()->addChild(ui);
 	return true;
 }

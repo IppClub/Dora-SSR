@@ -2,7 +2,6 @@ _ENV = Dorothy!
 
 svg = SVG "Image/Dorothy.svg"
 
-Director.entry\addChild with Node!
-	\schedule ->
-		nvg.Translate -100, -100
-		svg\render!
+threadLoop ->
+	nvg.Translate -100, -100
+	svg\render!

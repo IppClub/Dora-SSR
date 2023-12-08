@@ -74,7 +74,6 @@ terrain:addChild(Rectangle{
 	lineOrder = 2
 })
 world:addChild(terrain)
-Director.entry:addChild(world)
 
 local once <const> = require("once")
 local loop <const> = require("loop")

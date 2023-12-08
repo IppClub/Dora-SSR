@@ -18,7 +18,7 @@ texts = []
 
 local root, label, scroll, control
 
-Director.entry\addChild with AlignNode isRoot: true, inUI: false
+with AlignNode isRoot: true, inUI: false
 	\addChild with root = AlignNode alignWidth: "w", alignHeight: "h"
 		\addChild with scroll = ScrollArea {
 				width: width
@@ -111,27 +111,26 @@ for file in *Content\getAllFiles Content.writablePath
 	testFiles[] = Path Content.writablePath, file
 	files[] = Path\getFilename file
 
-Director.entry\addChild with Node!
-	currentFile = 1
-	windowFlags =
-		* "NoDecoration"
-		* "NoSavedSettings"
-		* "NoFocusOnAppearing"
-		* "NoNav"
-		* "NoMove"
-	\schedule ->
-		const :width = App.visualSize
-		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-		SetNextWindowSize Vec2(200, 0), "Always"
-		Begin "Yarn Test", windowFlags, ->
-			Text "Yarn Tester"
-			Separator!
-			changed, currentFile = Combo "File", currentFile, files
-			if changed
-				runner = YarnRunner testFiles[currentFile], "Start", {}, commands, true
-				texts = []
-				advance!
-			Text "Variables"
-			Separator!
-			for k, v in pairs runner.state
-				Text "#{k}: #{v}"
+currentFile = 1
+windowFlags =
+	* "NoDecoration"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+threadLoop ->
+	const :width = App.visualSize
+	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	SetNextWindowSize Vec2(200, 0), "Always"
+	Begin "Yarn Test", windowFlags, ->
+		Text "Yarn Tester"
+		Separator!
+		changed, currentFile = Combo "File", currentFile, files
+		if changed
+			runner = YarnRunner testFiles[currentFile], "Start", {}, commands, true
+			texts = []
+			advance!
+		Text "Variables"
+		Separator!
+		for k, v in pairs runner.state
+			Text "#{k}: #{v}"

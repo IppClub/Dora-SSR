@@ -1,4 +1,4 @@
-local Director <const> = require("Director")
+local threadLoop <const> = require("threadLoop")
 local Node <const> = require("Node")
 local once <const> = require("once")
 local sleep <const> = require("sleep")
@@ -20,7 +20,6 @@ node:schedule(once(function()
 	end
 	print("Hello World!")
 end))
-node:addTo(Director.entry)
 
 -- example codes ends here, some test ui below --
 
@@ -28,7 +27,6 @@ local ImGui = require("ImGui")
 local Vec2 = require("Vec2")
 local App = require("App")
 
-local ui = Node()
 local windowFlags = {
 	"NoDecoration",
 	"AlwaysAutoResize",
@@ -37,7 +35,7 @@ local windowFlags = {
 	"NoNav",
 	"NoMove"
 }
-ui:schedule(function(): boolean
+threadLoop(function(): boolean
 	local size = App.visualSize
 	ImGui.SetNextWindowBgAlpha(0.35)
 	ImGui.SetNextWindowPos(Vec2(size.width - 10, 10), "Always", Vec2(1, 0))
@@ -48,4 +46,3 @@ ui:schedule(function(): boolean
 		ImGui.TextWrapped("Basic Dorothy schedule and signal function usage. Written in Teal. View outputs in log window!")
 	end)
 end)
-Director.entry:addChild(ui)

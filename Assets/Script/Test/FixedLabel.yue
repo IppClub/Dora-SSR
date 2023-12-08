@@ -13,7 +13,7 @@ createLabel = (textAlign)->
 				.text = utf8.sub text, 1, i
 				sleep 0.3
 
-Director.entry\addChild with Node!
+with Node!
 	\addChild createLabel "Center"
 	\addChild with createLabel "Left"
 		.y = 40

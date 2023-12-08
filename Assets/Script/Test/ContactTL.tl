@@ -5,15 +5,13 @@ local BodyDef <const> = require("BodyDef")
 local Body <const> = require("Body")
 local Line <const> = require("Line")
 local App <const> = require("App")
-local Director <const> = require("Director")
-local Node <const> = require("Node")
+local threadLoop <const> = require("threadLoop")
 
 local gravity <const> = Vec2(0, -10)
 
 local world = PhysicsWorld()
 world:setShouldContact(0, 0, true)
 world.showDebug = true
-Director.entry:addChild(world)
 
 local label = Label("sarasa-mono-sc-regular", 30)
 label:addTo(world)
@@ -62,7 +60,6 @@ end)
 
 local ImGui <const> = require("ImGui")
 
-local ui = Node()
 local windowFlags = {
 	"NoDecoration",
 	"AlwaysAutoResize",
@@ -72,7 +69,7 @@ local windowFlags = {
 	"NoMove"
 }
 local receivingContact = disk.receivingContact
-ui:schedule(function(): boolean
+threadLoop(function(): boolean
 	local width = App.visualSize.width
 	ImGui.SetNextWindowBgAlpha(0.35)
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
@@ -89,4 +86,3 @@ ui:schedule(function(): boolean
 		end
 	end)
 end)
-Director.entry:addChild(ui)

@@ -37,7 +37,6 @@ frame = with Line StarVertices(160, true), App.themeColor
 exampleA = with Node!
 	\addChild clipNodeA
 	\addChild frame
-	\addTo Director.entry
 	.visible = false
 
 -- example B
@@ -61,32 +60,30 @@ clipNodeB = with ClipNode maskB
 	.alphaThreshold = 0.3
 exampleB = with Node!
 	\addChild clipNodeB
-	\addTo Director.entry
 
 -- example codes ends here, some test ui below --
 
 inverted = true
 withAlphaThreshold = true
-Director.entry\addChild with Node!
-	windowFlags =
-		* "NoDecoration"
-		* "AlwaysAutoResize"
-		* "NoSavedSettings"
-		* "NoFocusOnAppearing"
-		* "NoNav"
-		* "NoMove"
-	\schedule ->
-		const :width = App.visualSize
-		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-		Begin "Clip Node", windowFlags, ->
-			Text "Clip Node"
-			Separator!
-			TextWrapped "Render children nodes with mask!"
-			if changed, inverted := Checkbox "Inverted", inverted
-				clipNodeA.inverted = inverted
-				clipNodeB.inverted = inverted
-				frame.visible = not inverted
-			if changed, withAlphaThreshold := Checkbox "With alphaThreshold", withAlphaThreshold
-				exampleB.visible = withAlphaThreshold
-				exampleA.visible = not withAlphaThreshold
+windowFlags =
+	* "NoDecoration"
+	* "AlwaysAutoResize"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+threadLoop ->
+	const :width = App.visualSize
+	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	Begin "Clip Node", windowFlags, ->
+		Text "Clip Node"
+		Separator!
+		TextWrapped "Render children nodes with mask!"
+		if changed, inverted := Checkbox "Inverted", inverted
+			clipNodeA.inverted = inverted
+			clipNodeB.inverted = inverted
+			frame.visible = not inverted
+		if changed, withAlphaThreshold := Checkbox "With alphaThreshold", withAlphaThreshold
+			exampleB.visible = withAlphaThreshold
+			exampleA.visible = not withAlphaThreshold

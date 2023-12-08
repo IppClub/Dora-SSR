@@ -9,7 +9,7 @@ width, height = viewWidth - 200, viewHeight - 20
 
 fontSize = math.floor 20 * App.devicePixelRatio
 
-Director.entry\addChild with AlignNode isRoot: true, inUI: false
+with AlignNode isRoot: true, inUI: false
 	\addChild with AlignNode alignWidth: "w", alignHeight: "h"
 		\addChild with ScrollArea {
 				width: width

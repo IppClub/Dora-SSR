@@ -28,7 +28,7 @@ root = with AlignNode isRoot:true
 				\slot "KeyUpUp", -> updatePlayerControl "keyUp", false
 				\slot "KeyUpDown", -> updatePlayerControl "keyUp", true
 		when "macOS","Windows","Linux"
-			Director.entry\addChild with Node!
+			with Node!
 				\schedule ->
 					updatePlayerControl "keyLeft", Keyboard\isKeyPressed "A"
 					updatePlayerControl "keyRight", Keyboard\isKeyPressed "D"

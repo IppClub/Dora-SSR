@@ -1,4 +1,4 @@
-local Director <const> = require("Director")
+local threadLoop <const> = require("threadLoop")
 local Node <const> = require("Node")
 local Label <const> = require("Label")
 local Sequence <const> = require("Sequence")
@@ -9,7 +9,6 @@ local Vec2 <const> = require("Vec2")
 local Opacity <const> = require("Opacity")
 
 local node = Node()
-node:addTo(Director.entry)
 
 local label = Label("sarasa-mono-sc-regular", 40)
 label.batched = false
@@ -53,8 +52,7 @@ local windowFlags = {
 	"NoNav",
 	"NoMove"
 }
-local ui = Node()
-ui:schedule(function(): boolean
+threadLoop(function(): boolean
 	local width = App.visualSize.width
 	ImGui.SetNextWindowBgAlpha(0.35)
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
@@ -65,4 +63,3 @@ ui:schedule(function(): boolean
 		ImGui.TextWrapped("Render labels with unbatched and batched methods!")
 	end)
 end)
-ui:addTo(Director.entry)

@@ -2,7 +2,7 @@ local Vec2 <const> = require("Vec2")
 local BodyDef <const> = require("BodyDef")
 local Body <const> = require("Body")
 local PhysicsWorld <const> = require("PhysicsWorld")
-local Director <const> = require("Director")
+local threadLoop <const> = require("threadLoop")
 
 local gravity <const> = Vec2(0, -10)
 local groupZero <const> = 0
@@ -50,15 +50,11 @@ body.group = groupZero
 body.angularRate = 90
 world:addChild(body)
 
-Director.entry:addChild(world)
-
 -- example codes ends here, some test ui below --
 
 local ImGui <const> = require("ImGui")
 local App <const> = require("App")
-local Node <const> = require("Node")
 
-local node = Node()
 local windowFlags = {
 	"NoDecoration",
 	"AlwaysAutoResize",
@@ -67,7 +63,7 @@ local windowFlags = {
 	"NoNav",
 	"NoMove"
 }
-node:schedule(function(): boolean
+threadLoop(function(): boolean
 	local width = App.visualSize.width
 	ImGui.SetNextWindowBgAlpha(0.35)
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
@@ -78,4 +74,3 @@ node:schedule(function(): boolean
 		ImGui.TextWrapped("Basic usage to create physics bodies!")
 	end)
 end)
-Director.entry:addChild(node)

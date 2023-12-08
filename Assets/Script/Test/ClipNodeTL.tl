@@ -8,7 +8,7 @@ local Node <const> = require("Node")
 local ClipNode <const> = require("ClipNode")
 local Line <const> = require("Line")
 local App <const> = require("App")
-local Director <const> = require("Director")
+local threadLoop <const> = require("threadLoop")
 local Action <const> = require("Action")
 
 local function StarVertices(radius: number, line: boolean): {Vec2.Type}
@@ -59,7 +59,6 @@ exampleA:addChild(clipNodeA)
 local frame = Line(StarVertices(160, true), App.themeColor)
 frame.visible = false
 exampleA:addChild(frame)
-exampleA:addTo(Director.entry)
 exampleA.visible = false
 
 local maskB = Model("Model/xiaoli.model")
@@ -85,7 +84,6 @@ clipNodeB:addChild(targetB)
 clipNodeB.inverted = true
 clipNodeB.alphaThreshold = 0.3
 exampleB:addChild(clipNodeB)
-exampleB:addTo(Director.entry)
 
 -- example codes ends here, some test ui below --
 
@@ -93,7 +91,6 @@ local ImGui <const> = require("ImGui")
 
 local inverted = true
 local withAlphaThreshold = true
-local ui = Node()
 local windowFlags = {
 	"NoDecoration",
 	"AlwaysAutoResize",
@@ -102,7 +99,7 @@ local windowFlags = {
 	"NoNav",
 	"NoMove"
 }
-ui:schedule(function(): boolean
+threadLoop(function(): boolean
 	local width = App.visualSize.width
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
@@ -124,4 +121,3 @@ ui:schedule(function(): boolean
 		end
 	end)
 end)
-Director.entry:addChild(ui)

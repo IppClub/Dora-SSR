@@ -4,13 +4,12 @@ sceneGroup = Group {"scene"}
 positionGroup = Group {"position"}
 
 with Observer "Add", {"scene"}
-	\watch (scene)=>
-		Director.entry\addChild with scene
-			.touchEnabled = true
-			\slot "TapEnded", (touch)->
-				:location = touch
-				positionGroup\each (entity)->
-					entity.target = location
+	\watch (scene)=> with scene
+		.touchEnabled = true
+		\slot "TapEnded", (touch)->
+			:location = touch
+			positionGroup\each (entity)->
+				entity.target = location
 
 with Observer "Add", {"sprite"}
 	\watch (sprite)=>

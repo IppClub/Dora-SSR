@@ -20,7 +20,7 @@ drawHeart = -> with nvg
 
 stopRendering = false
 
-Director.entry\addChild with VGNode 60, 50, 5
+with VGNode 60, 50, 5
 	\render drawHeart
 	\slot "Cleanup", -> stopRendering = true
 	\runAction Sequence(
@@ -47,20 +47,19 @@ threadLoop ->
 
 -- example codes ends here, some test ui below --
 
-Director.entry\addChild with Node!
-	windowFlags =
-		* "NoDecoration"
-		* "AlwaysAutoResize"
-		* "NoSavedSettings"
-		* "NoFocusOnAppearing"
-		* "NoNav"
-		* "NoMove"
-	\schedule ->
-		const :width = App.visualSize
-		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-		Begin "Vector Graphic Rendering", windowFlags, ->
-			Text "Vector Graphic Rendering"
-			Separator!
-			TextWrapped "Use nanoVG lib to do vector graphic rendering, render to a texture or do instant render!"
+windowFlags =
+	* "NoDecoration"
+	* "AlwaysAutoResize"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+threadLoop ->
+	const :width = App.visualSize
+	SetNextWindowBgAlpha 0.35
+	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	Begin "Vector Graphic Rendering", windowFlags, ->
+		Text "Vector Graphic Rendering"
+		Separator!
+		TextWrapped "Use nanoVG lib to do vector graphic rendering, render to a texture or do instant render!"

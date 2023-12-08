@@ -1,5 +1,4 @@
 local Sprite = require("Sprite")
-local Director = require("Director")
 local type Touch = require("TouchType")
 
 local sprite = Sprite("Image/logo.png")
@@ -10,22 +9,18 @@ sprite:slot("TapMoved", function(touch: Touch)
 	end
 	sprite.position = sprite.position + touch.delta
 end)
-sprite:addTo(Director.entry)
 
 local ImGui = require("ImGui")
 local Vec2 = require("Vec2")
 local Size = require("Size")
 local App = require("App")
-local Node = require("Node")
-
-local ui = Node()
-ui:addTo(Director.entry)
+local threadLoop = require("threadLoop")
 
 local windowFlags = {
 	"NoResize",
 	"NoSavedSettings"
 }
-ui:schedule(function(): boolean
+threadLoop(function(): boolean
 	local width = App.visualSize.width
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 520), "FirstUseEver")

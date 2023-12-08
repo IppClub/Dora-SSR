@@ -71,7 +71,6 @@ GameWorld = Class PlatformWorld,
 				.children\each (child)->
 					with Visual "Particle/heart.par"
 						.position = child\convertToWorldSpace Vec2.zero
-						\addTo Director.entry
 						\autoRemove!
 						\start!
 				\removeFromParent!

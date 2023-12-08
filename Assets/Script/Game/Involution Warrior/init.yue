@@ -193,9 +193,9 @@ background = -> with DrawNode!
 				Vec2 size,i*grid
 			}, Color 0xff000000
 
-Director.entry\addChild with background!
+with background!
 	.z = 600
-Director.entry\addChild with background!
+with background!
 	.angleX = 45
 
 -- Scene
@@ -239,9 +239,6 @@ with Body terrainDef,world,Vec2.zero
 	.order = TerrainLayer
 	.group = Data.groupTerrain
 	\addTo world
-
-with Director.entry
-	\addChild world
 
 -- action
 
@@ -796,7 +793,6 @@ WaitForSignal = (text,duration)->
 			Scale 0.5,0.3,1,Ease.OutBack
 			Opacity 0.3,0,1
 		)
-		\addTo Director.entry
 		sleep duration-0.3
 		\runAction Spawn(
 			Scale 0.3,1,1.5,Ease.OutQuad

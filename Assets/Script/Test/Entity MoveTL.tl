@@ -1,6 +1,5 @@
 local Group <const> = require("Group")
 local Observer <const> = require("Observer")
-local Director <const> = require("Director")
 local Scale <const> = require("Scale")
 local Ease <const> = require("Ease")
 local Roll <const> = require("Roll")
@@ -32,7 +31,6 @@ Observer("Add", { "scene" }):watch(function(_entity: Entity.Type, scene: Node.Ty
 			return false
 		end)
 	end)
-	scene:addTo(Director.entry)
 end)
 
 Observer("Add", { "sprite" }):watch(function(_self: Entity.Type, sprite: Sprite.Type)

@@ -30,27 +30,24 @@ bone = with DragonBone boneStr
 				.order = 100
 				\slot "Stop", -> \removeFromParent!
 
-Director.entry\addChild bone
-
 -- example codes ends here, some test ui below --
 
-Director.entry\addChild with Node!
-	windowFlags =
-		* "NoDecoration"
-		* "AlwaysAutoResize"
-		* "NoSavedSettings"
-		* "NoFocusOnAppearing"
-		* "NoNav"
-		* "NoMove"
-	:showDebug = bone
-	\schedule ->
-		const :width = App.visualSize
-		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-		Begin "DragonBones", windowFlags, ->
-			Text "DragonBones"
-			Separator!
-			TextWrapped "Basic usage to create dragonBones! Tap it for a hit test."
-			if changed, showDebug := Checkbox "BoundingBox", showDebug
-				bone.showDebug = showDebug
+windowFlags =
+	* "NoDecoration"
+	* "AlwaysAutoResize"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+:showDebug = bone
+threadLoop ->
+	const :width = App.visualSize
+	SetNextWindowBgAlpha 0.35
+	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	Begin "DragonBones", windowFlags, ->
+		Text "DragonBones"
+		Separator!
+		TextWrapped "Basic usage to create dragonBones! Tap it for a hit test."
+		if changed, showDebug := Checkbox "BoundingBox", showDebug
+			bone.showDebug = showDebug

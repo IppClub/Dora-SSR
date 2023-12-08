@@ -90,7 +90,7 @@ with Observer "Change", {"hp", "zombie"}
 	\watch (hp)=> Store.zombieKilled += 1 if hp <= 0
 
 zombieGroup = Group {"zombie"}
-spawnZombies = ->
+threadLoop ->
 	{
 		:ZombieLayer,
 		:ZombieGroup,
@@ -114,6 +114,3 @@ spawnZombies = ->
 				zombie: true
 			sleep 0.1 * App.rand % 5
 	sleep ZombieWaveDelay
-
-Director.entry\addChild with Node!
-	\schedule loop spawnZombies

@@ -1,5 +1,5 @@
 local Vec2 <const> = require("Vec2")
-local Director <const> = require("Director")
+local threadLoop <const> = require("threadLoop")
 local Node <const> = require("Node")
 local DrawNode <const> = require("DrawNode")
 local Color <const> = require("Color")
@@ -41,7 +41,6 @@ local function StarVertices(radius: number): {Vec2.Type}
 end
 
 local node = Node()
-node:addTo(Director.entry)
 
 local star = DrawNode()
 star.position = Vec2(200, 200)
@@ -106,7 +105,6 @@ cameraLine:addTo(camera)
 
 local ImGui <const> = require("ImGui")
 
-local ui = Node()
 local windowFlags = {
 	"NoDecoration",
 	"AlwaysAutoResize",
@@ -115,7 +113,7 @@ local windowFlags = {
 	"NoNav",
 	"NoMove"
 }
-ui:schedule(function(): boolean
+threadLoop(function(): boolean
 	local width = App.visualSize.width
 	ImGui.SetNextWindowBgAlpha(0.35)
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
@@ -126,4 +124,3 @@ ui:schedule(function(): boolean
 		ImGui.TextWrapped("Draw shapes and lines!")
 	end)
 end)
-ui:addTo(Director.entry)

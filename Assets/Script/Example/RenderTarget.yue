@@ -1,6 +1,7 @@
 _ENV = Dorothy builtin.ImGui
 
 node = with Node!
+	.order = 2
 	\addChild with Model "Model/xiaoli.model"
 		.y = -80
 		.fliped = true
@@ -19,6 +20,7 @@ renderTarget = with RenderTarget 300, 400
 	\renderWithClear Color 0xff8a8a8a
 
 surface = with Sprite renderTarget.texture
+	.order = 1
 	.z = 300
 	.angleY = 25
 	\addChild Line {
@@ -33,26 +35,21 @@ surface = with Sprite renderTarget.texture
 		renderTarget\renderWithClear node, Color 0xff8a8a8a
 		node.y = 0
 
-Director.entry\addChild with Node!
-	\addChild surface
-	\addChild node
-
 -- example codes ends here, some test ui below --
 
-Director.entry\addChild with Node!
-	windowFlags =
-		* "NoDecoration"
-		* "AlwaysAutoResize"
-		* "NoSavedSettings"
-		* "NoFocusOnAppearing"
-		* "NoNav"
-		* "NoMove"
-	\schedule ->
-		const :width = App.visualSize
-		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-		Begin "Render Target", windowFlags, ->
-			Text "Render Target"
-			Separator!
-			TextWrapped "Use render target node as a mirror!"
+windowFlags =
+	* "NoDecoration"
+	* "AlwaysAutoResize"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+threadLoop ->
+	const :width = App.visualSize
+	SetNextWindowBgAlpha 0.35
+	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	Begin "Render Target", windowFlags, ->
+		Text "Render Target"
+		Separator!
+		TextWrapped "Use render target node as a mirror!"

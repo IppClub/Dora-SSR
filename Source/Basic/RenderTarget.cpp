@@ -29,7 +29,7 @@ RenderTarget::RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat:
 	, _textureHeight(height)
 	, _format(format)
 	, _frameBufferHandle(BGFX_INVALID_HANDLE)
-	, _dummy(Node::create()) {
+	, _dummy(Node::create(false)) {
 }
 
 RenderTarget::~RenderTarget() {

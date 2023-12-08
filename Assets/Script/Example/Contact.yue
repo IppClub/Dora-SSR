@@ -44,28 +44,25 @@ disk = with Body diskDef, world, Vec2 100, 200
 		drawNode.position = point
 		label.text = string.format "Contact: [%.0f,%.0f]", point.x, point.y
 
-Director.entry\addChild world
-
 -- example codes ends here, some test ui below --
 
-Director.entry\addChild with Node!
-	windowFlags =
-		* "NoDecoration"
-		* "AlwaysAutoResize"
-		* "NoSavedSettings"
-		* "NoFocusOnAppearing"
-		* "NoNav"
-		* "NoMove"
-	:receivingContact = disk
-	\schedule ->
-		const :width = App.visualSize
-		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-		Begin "Contact", windowFlags, ->
-			Text "Contact"
-			Separator!
-			TextWrapped "Receive events when physics bodies contact."
-			if changed, receivingContact := Checkbox "Receiving Contact", receivingContact
-				disk.receivingContact = receivingContact
-				label.text = ""
+windowFlags =
+	* "NoDecoration"
+	* "AlwaysAutoResize"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+:receivingContact = disk
+threadLoop ->
+	const :width = App.visualSize
+	SetNextWindowBgAlpha 0.35
+	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	Begin "Contact", windowFlags, ->
+		Text "Contact"
+		Separator!
+		TextWrapped "Receive events when physics bodies contact."
+		if changed, receivingContact := Checkbox "Receiving Contact", receivingContact
+			disk.receivingContact = receivingContact
+			label.text = ""

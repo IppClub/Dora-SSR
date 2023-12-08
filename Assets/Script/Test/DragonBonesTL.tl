@@ -9,8 +9,7 @@ local Delay <const> = require("Delay")
 local Opacity <const> = require("Opacity")
 local Event <const> = require("Event")
 local Vec2 <const> = require("Vec2")
-local Director <const> = require("Director")
-local Node <const> = require("Node")
+local threadLoop <const> = require("threadLoop")
 local type Touch = require("TouchType")
 
 local boneStr <const> = "DragonBones/NewDragon"
@@ -56,13 +55,11 @@ bone:slot("TapBegan", function(touch: Touch)
 		bone:addChild(label)
 	end
 end)
-Director.entry:addChild(bone)
 
 -- example codes ends here, some test ui below --
 
 local ImGui <const> = require("ImGui")
 
-local ui = Node()
 local windowFlags = {
 	"NoDecoration",
 	"AlwaysAutoResize",
@@ -72,7 +69,7 @@ local windowFlags = {
 	"NoMove"
 }
 local showDebug = bone.showDebug
-ui:schedule(function(): boolean
+threadLoop(function(): boolean
 	local width = App.visualSize.width
 	ImGui.SetNextWindowBgAlpha(0.35)
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
@@ -88,4 +85,3 @@ ui:schedule(function(): boolean
 		end
 	end)
 end)
-Director.entry:addChild(ui)

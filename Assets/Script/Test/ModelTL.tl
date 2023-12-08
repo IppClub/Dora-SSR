@@ -1,5 +1,5 @@
 local Model <const> = require("Model")
-local Director <const> = require("Director")
+local threadLoop <const> = require("threadLoop")
 
 local modelFile = "Model/xiaoli.model"
 local model = Model(modelFile)
@@ -9,7 +9,6 @@ model:play("walk", true)
 model:slot("AnimationEnd", function(name: string)
 	print(name, "end")
 end)
-model:addTo(Director.entry)
 
 -- example codes ends here, some test ui below --
 
@@ -32,7 +31,7 @@ local windowFlags = {
 	"NoResize",
 	"NoSavedSettings"
 }
-model:schedule(function(): boolean
+threadLoop(function(): boolean
 	local width = App.visualSize.width
 	ImGui.SetNextWindowPos(Vec2(width - 250, 10), "FirstUseEver")
 	ImGui.SetNextWindowSize(Vec2(240, 325), "FirstUseEver")

@@ -54,7 +54,7 @@ bool Model::init() {
 	if (!Node::init()) return false;
 	if (!_modelDef) return false;
 	_resetAnimation.end = std::make_pair(this, &Model::onResetAnimationEnd);
-	_root = Node::create();
+	_root = Node::create(false);
 	const std::string& clipFile = _modelDef->getClipFile();
 	if (!clipFile.empty()) {
 		ClipDef* clipDef = SharedClipCache.load(_modelDef->getClipFile());

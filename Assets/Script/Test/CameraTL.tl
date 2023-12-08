@@ -7,9 +7,9 @@ local Sprite <const> = require("Sprite")
 local Vec2 <const> = require("Vec2")
 local Ease <const> = require("Ease")
 local Camera2D <const> = require("Camera2D")
+local threadLoop <const> = require("threadLoop")
 
 local node = Node()
-Director.entry:addChild(node)
 
 local model = Model("Model/xiaoli.model")
 model.look = "happy"
@@ -52,7 +52,6 @@ end))
 local App <const> = require("App")
 local ImGui <const> = require("ImGui")
 
-local ui = Node()
 local windowFlags = {
 	"NoDecoration",
 	"AlwaysAutoResize",
@@ -61,7 +60,7 @@ local windowFlags = {
 	"NoNav",
 	"NoMove"
 }
-ui:schedule(function(): boolean
+threadLoop(function(): boolean
 	local width = App.visualSize.width
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
@@ -71,4 +70,3 @@ ui:schedule(function(): boolean
 		ImGui.TextWrapped("View camera motions, use 3D camera as default!")
 	end)
 end)
-Director.entry:addChild(ui)
