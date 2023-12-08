@@ -38,7 +38,6 @@ public:
 	PROPERTY_READONLY_CLASS(uint32_t, MaxLuaCallbackCount);
 	virtual ~Object();
 	virtual bool init();
-	/** @brief return true to stop updating, false to continue. */
 	virtual void cleanup();
 	void release();
 	void retain();

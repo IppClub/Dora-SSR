@@ -9,11 +9,10 @@ local App <const> = require("App")
 local Sprite <const> = require("Sprite")
 local Line <const> = require("Line")
 local Vec2 <const> = require("Vec2")
-local Director <const> = require("Director")
+local threadLoop <const> = require("threadLoop")
 local Action <const> = require("Action")
 
 local root = Node()
-root:addTo(Director.entry)
 
 local node = Node()
 node:addTo(root, 1)
@@ -65,7 +64,6 @@ surface:addTo(root)
 
 local ImGui <const> = require("ImGui")
 
-local ui = Node()
 local windowFlags = {
 	"NoDecoration",
 	"AlwaysAutoResize",
@@ -74,7 +72,7 @@ local windowFlags = {
 	"NoNav",
 	"NoMove"
 }
-ui:schedule(function(): boolean
+threadLoop(function(): boolean
 	local width = App.visualSize.width
 	ImGui.SetNextWindowBgAlpha(0.35)
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
@@ -85,4 +83,3 @@ ui:schedule(function(): boolean
 		ImGui.TextWrapped("Use render target node as a mirror!")
 	end)
 end)
-ui:addTo(Director.entry)

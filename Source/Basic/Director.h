@@ -61,6 +61,9 @@ public:
 		popViewProjection();
 	}
 
+	void addUnManagedNode(Node* node);
+	void removeUnManagedNode(Node* node);
+
 protected:
 	Director();
 	void pushViewProjection(const Matrix& viewProj);
@@ -82,6 +85,7 @@ private:
 	Ref<Scheduler> _systemScheduler;
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _postScheduler;
+	RefVector<Node> _unManagedNodes;
 	Own<UITouchHandler> _uiTouchHandler;
 	std::stack<Own<Matrix>> _viewProjs;
 	Matrix _defaultViewProj;

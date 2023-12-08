@@ -65,9 +65,6 @@ with Body terrainDef, world, Vec2.zero
 	}
 	\addTo world
 
-with Director.entry
-	\addChild world
-
 Entity
 	obstacleDef: "Body_ObstacleS"
 	size: Size 100, 60

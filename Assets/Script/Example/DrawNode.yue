@@ -17,7 +17,7 @@ StarVertices = (radius)->
 		cr = i % 2 == 1 and r or R
 		Vec2 cr * math.sin(angle), cr * math.cos angle
 
-Director.entry\addChild with Node!
+with Node!
 	\addChild with DrawNode!
 		.position = Vec2 200, 200
 		\drawPolygon StarVertices(60), Color(0x80ff0080), 1, Color 0xffff0080
@@ -68,20 +68,19 @@ Director.entry\addChild with Node!
 
 -- example codes ends here, some test ui below --
 
-Director.entry\addChild with Node!
-	windowFlags =
-		* "NoDecoration"
-		* "AlwaysAutoResize"
-		* "NoSavedSettings"
-		* "NoFocusOnAppearing"
-		* "NoNav"
-		* "NoMove"
-	\schedule ->
-		const :width = App.visualSize
-		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-		Begin "Draw Node", windowFlags, ->
-			Text "Draw Node"
-			Separator!
-			TextWrapped "Draw shapes and lines!"
+windowFlags =
+	* "NoDecoration"
+	* "AlwaysAutoResize"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+threadLoop ->
+	const :width = App.visualSize
+	SetNextWindowBgAlpha 0.35
+	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	Begin "Draw Node", windowFlags, ->
+		Text "Draw Node"
+		Separator!
+		TextWrapped "Draw shapes and lines!"

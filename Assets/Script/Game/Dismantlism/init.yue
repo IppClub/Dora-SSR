@@ -35,7 +35,7 @@ switchScene = nil
 spaceBack = nil
 dailyBack = nil
 center = AlignNode hAlign: "Center", vAlign: "Center"
-Director.entry\addChild with AlignNode isRoot: true, inUI: false
+with AlignNode isRoot: true, inUI: false
 	\slot "AlignLayout", (w, h)->
 		worldScale = w / 2970
 		root.scaleX = worldScale
@@ -53,7 +53,6 @@ Director.entry\addChild with AlignNode isRoot: true, inUI: false
 				\moveUV 2, 2, Vec2 -1, -1
 				.scaleX = w / 8
 				.scaleY = h / 1078
-			\addTo Director.entry
 			\addChild with Node!
 				.scaleX = worldScale
 				.scaleY = worldScale
@@ -74,7 +73,6 @@ Director.entry\addChild with AlignNode isRoot: true, inUI: false
 			\moveUV 2, 2, Vec2 -1, -1
 			.scaleX = w / 8
 			.scaleY = h / 1078
-			\addTo Director.entry
 	\addChild with AlignNode hAlign: "Center", vAlign: "Bottom"
 		\addChild root
 	\addChild with AlignNode hAlign: "Right", vAlign: "Top"
@@ -100,7 +98,7 @@ Director.entry\addChild with AlignNode isRoot: true, inUI: false
 
 moveJoint = nil
 movingBody = nil
-Director.entry\addChild with Node!
+with Node!
 	.touchEnabled = true
 	\slot "TapBegan", (touch)->
 		worldPos = \convertToWorldSpace touch.location

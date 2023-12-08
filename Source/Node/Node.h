@@ -75,6 +75,7 @@ public:
 	PROPERTY_READONLY_BOOL(Updating);
 	PROPERTY_READONLY_BOOL(FixedUpdating);
 	PROPERTY_READONLY_BOOL(Scheduled);
+	PROPERTY_READONLY_BOOL(UnManaged);
 	PROPERTY_BOOL(TouchEnabled);
 	PROPERTY_BOOL(SwallowTouches);
 	PROPERTY_BOOL(SwallowMouseWheel);
@@ -151,6 +152,8 @@ public:
 	void gslot(String name, std::nullptr_t);
 	void gslot(Listener* listener, std::nullptr_t);
 	RefVector<Listener> gslot(String name);
+
+	void setAsManaged();
 
 	CREATE_FUNC(Node);
 
@@ -279,7 +282,7 @@ public:
 	Grabber* grab(uint32_t gridX, uint32_t gridY);
 
 protected:
-	Node();
+	Node(bool unManaged = true);
 	virtual ~Node();
 	virtual void updateRealColor3();
 	virtual void updateRealOpacity();
@@ -352,7 +355,8 @@ protected:
 		IgnoreLocalTransform = 1 << 17,
 		Updating = 1 << 18,
 		FixedUpdating = 1 << 19,
-		UserFlag = 1 << 20,
+		UnManaged = 1 << 20,
+		UserFlag = 1 << 21,
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

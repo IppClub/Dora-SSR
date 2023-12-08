@@ -8,8 +8,6 @@ model = with Model modelFile
 	\play "walk", true
 	\slot "AnimationEnd", (name)-> print name, "end"
 
-Director.entry\addChild model
-
 -- example codes ends here, some test ui below --
 
 looks = Model\getLooks modelFile
@@ -20,7 +18,7 @@ currentLook = #looks
 currentAnim = #animations
 loop = true
 windowFlags = {"NoResize","NoSavedSettings"}
-model\schedule ->
+threadLoop ->
 	const :width = App.visualSize
 	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 	SetNextWindowSize Vec2(240,325), "FirstUseEver"

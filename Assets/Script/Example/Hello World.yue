@@ -1,6 +1,6 @@
 _ENV = Dorothy builtin.ImGui
 
-Director.entry\addChild with Node!
+with Node!
 	\slot "Enter", -> print "on enter event"
 	\slot "Exit", -> print "on exit event"
 	\slot "Cleanup", -> print "on node destoyed event"
@@ -12,20 +12,19 @@ Director.entry\addChild with Node!
 
 -- example codes ends here, some test ui below --
 
-Director.entry\addChild with Node!
-	windowFlags =
-		* "NoDecoration"
-		* "AlwaysAutoResize"
-		* "NoSavedSettings"
-		* "NoFocusOnAppearing"
-		* "NoNav"
-		* "NoMove"
-	\schedule ->
-		const :width = App.visualSize
-		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-		Begin "Hello World", windowFlags, ->
-			Text "Hello World"
-			Separator!
-			TextWrapped "Basic Dorothy schedule and signal function usage. Written in Yuescript. View outputs in log window!"
+windowFlags =
+	* "NoDecoration"
+	* "AlwaysAutoResize"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+threadLoop ->
+	const :width = App.visualSize
+	SetNextWindowBgAlpha 0.35
+	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	Begin "Hello World", windowFlags, ->
+		Text "Hello World"
+		Separator!
+		TextWrapped "Basic Dorothy schedule and signal function usage. Written in Yuescript. View outputs in log window!"

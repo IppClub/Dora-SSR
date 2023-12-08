@@ -269,7 +269,7 @@ rowTypes = {
 	'C'
 }
 
-Director.entry\addChild with Node!
+with Node!
 	\gslot "TrainAI", (charSet)->
 		csvData = for row in *data
 			rd = for name in *rowNames
@@ -672,9 +672,9 @@ background = -> with DrawNode!
 				Vec2 size,i*grid
 			}, Color 0xff000000
 
-Director.entry\addChild with background!
+with background!
 	.z = 600
-Director.entry\addChild with background!
+with background!
 	.angleX = 45
 
 -- Scene
@@ -713,9 +713,6 @@ with Body terrainDef,world,Vec2.zero
 	.order = TerrainLayer
 	.group = Data.groupTerrain
 	\addTo world
-
-with Director.entry
-	\addChild world
 
 updateModel = (model, currentSet)->
 	node = model\getNodeByName "body"
@@ -1007,7 +1004,7 @@ Director.ui\addChild with AlignNode isRoot:true
 						\slot "TapBegan", -> updatePlayerControl "keyF",true
 						\slot "TapEnded", -> updatePlayerControl "keyF",false
 		when "macOS","Windows","Linux"
-			Director.entry\addChild with Node!
+			with Node!
 				\schedule ->
 					updatePlayerControl "keyLeft", Keyboard\isKeyPressed "A"
 					updatePlayerControl "keyRight", Keyboard\isKeyPressed "D"
@@ -1015,7 +1012,7 @@ Director.ui\addChild with AlignNode isRoot:true
 					updatePlayerControl "keyF", Keyboard\isKeyPressed "J"
 					updatePlayerControl "keyE", Keyboard\isKeyPressed "E"
 
-Director.entry\addChild with Node!
+with Node!
 	\schedule ->
 		:width, :height = App.visualSize
 		panel! for panel in *fighterPanels

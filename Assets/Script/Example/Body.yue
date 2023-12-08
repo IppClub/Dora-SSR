@@ -27,14 +27,14 @@ diskDef = with BodyDef!
 	.linearAcceleration = gravity
 	\attachDisk 60, 1, 0.4, 0.4
 
-world = with PhysicsWorld!
+with world = PhysicsWorld!
 	.y = -200
+	.showDebug = true
+
 	\setShouldContact groupZero, groupOne, false
 	\setShouldContact groupZero, groupTwo, true
 	\setShouldContact groupOne, groupTwo, true
-	.showDebug = true
 
-Director.entry\addChild with world
 	\addChild with Body terrainDef, world, Vec2.zero
 		.group = groupTwo
 
@@ -47,20 +47,19 @@ Director.entry\addChild with world
 
 -- example codes ends here, some test ui below --
 
-Director.entry\addChild with Node!
-	windowFlags =
-		* "NoDecoration"
-		* "AlwaysAutoResize"
-		* "NoSavedSettings"
-		* "NoFocusOnAppearing"
-		* "NoNav"
-		* "NoMove"
-	\schedule ->
-		const :width = App.visualSize
-		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-		Begin "Body", windowFlags, ->
-			Text "Body"
-			Separator!
-			TextWrapped "Basic usage to create physics bodies!"
+windowFlags =
+	* "NoDecoration"
+	* "AlwaysAutoResize"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+threadLoop ->
+	const :width = App.visualSize
+	SetNextWindowBgAlpha 0.35
+	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	Begin "Body", windowFlags, ->
+		Text "Body"
+		Separator!
+		TextWrapped "Basic usage to create physics bodies!"

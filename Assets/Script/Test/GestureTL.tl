@@ -2,7 +2,7 @@ local nvg <const> = require("nvg")
 local Sprite <const> = require("Sprite")
 local Vec2 <const> = require("Vec2")
 local View <const> = require("View")
-local Director <const> = require("Director")
+local threadLoop <const> = require("threadLoop")
 local Node <const> = require("Node")
 
 local texture = nvg.GetDorothySSRWhite()
@@ -22,14 +22,12 @@ node:slot("Gesture", function(center: Vec2.Type, _numFingers: integer, deltaDist
 	sprite.scaleX = scaledSize / size
 	sprite.scaleY = scaledSize / size
 end)
-Director.entry:addChild(node)
 
 -- example codes ends here, some test ui below --
 
 local App <const> = require("App")
 local ImGui <const> = require("ImGui")
 
-local ui = Node()
 local windowFlags = {
 	"NoDecoration",
 	"AlwaysAutoResize",
@@ -38,7 +36,7 @@ local windowFlags = {
 	"NoNav",
 	"NoMove"
 }
-ui:schedule(function(): boolean
+threadLoop(function(): boolean
 	local w = App.visualSize.width
 	ImGui.SetNextWindowBgAlpha(0.35)
 	ImGui.SetNextWindowPos(Vec2(w - 10, 10), "Always", Vec2(1, 0))
@@ -49,4 +47,3 @@ ui:schedule(function(): boolean
 		ImGui.TextWrapped("Interact with multi-touches!")
 	end)
 end)
-Director.entry:addChild(ui)

@@ -7,7 +7,7 @@ length = Vec2(View.size).length
 size = Vec2(width, height).length
 scaledSize = size
 
-Director.entry\addChild with Node!
+with Node!
 	\addChild sprite
 	.touchEnabled = true
 	\slot "Gesture", (center, _numTouches, delta, angle)->
@@ -22,20 +22,19 @@ Director.entry\addChild with Node!
 
 -- example codes ends here, some test ui below --
 
-Director.entry\addChild with Node!
-	windowFlags =
-		* "NoDecoration"
-		* "AlwaysAutoResize"
-		* "NoSavedSettings"
-		* "NoFocusOnAppearing"
-		* "NoNav"
-		* "NoMove"
-	\schedule ->
-		const :width = App.visualSize
-		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0
-		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-		Begin "Gesture", windowFlags, ->
-			Text "Gesture"
-			Separator!
-			TextWrapped "Interact with multi-touches!"
+windowFlags =
+	* "NoDecoration"
+	* "AlwaysAutoResize"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+threadLoop ->
+	const :width = App.visualSize
+	SetNextWindowBgAlpha 0.35
+	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0
+	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	Begin "Gesture", windowFlags, ->
+		Text "Gesture"
+		Separator!
+		TextWrapped "Interact with multi-touches!"

@@ -59,7 +59,7 @@ Scheduler* Director::getScheduler() const {
 
 Node* Director::getUI() {
 	if (!_ui) {
-		_ui = Node::create();
+		_ui = Node::create(false);
 		_ui->onEnter();
 		_uiCamera = CameraUI::create("UI"_slice);
 	}
@@ -68,7 +68,7 @@ Node* Director::getUI() {
 
 Node* Director::getUI3D() {
 	if (!_ui3D) {
-		_ui3D = Node::create();
+		_ui3D = Node::create(false);
 		_ui3D->onEnter();
 		_ui3DCamera = CameraUI3D::create("UI3D"_slice);
 	}
@@ -77,10 +77,10 @@ Node* Director::getUI3D() {
 
 Node* Director::getEntry() {
 	if (!_entry) {
-		_root = Node::create();
+		_root = Node::create(false);
 		_root->setAnchor(Vec2::zero);
 		_root->onEnter();
-		_entry = Node::create();
+		_entry = Node::create(false);
 		_root->addChild(_entry);
 		markDirty();
 	}
@@ -89,7 +89,7 @@ Node* Director::getEntry() {
 
 Node* Director::getPostNode() {
 	if (!_postNode) {
-		_postNode = Node::create();
+		_postNode = Node::create(false);
 		_postNode->onEnter();
 	}
 	return _postNode;
@@ -208,6 +208,15 @@ bool Director::init() {
 
 void Director::doLogic() {
 	if (_stoped) return;
+
+	if (!_unManagedNodes.empty()) {
+		for (Node* node : _unManagedNodes) {
+			if (node->isUnManaged()) {
+				node->addTo(getEntry());
+			}
+		}
+		_unManagedNodes.clear();
+	}
 
 	double deltaTime = SharedApplication.getDeltaTime();
 
@@ -444,6 +453,14 @@ void Director::cleanup() {
 		_nvgContext = nullptr;
 	}
 	_camStack->clear();
+}
+
+void Director::addUnManagedNode(Node* node) {
+	_unManagedNodes.push_back(node);
+}
+
+void Director::removeUnManagedNode(Node* node) {
+	_unManagedNodes.fast_remove(node);
 }
 
 void Director::markDirty() {

@@ -7,7 +7,7 @@ local App <const> = require("App")
 local Line <const> = require("Line")
 local Angle <const> = require("Angle")
 local Size <const> = require("Size")
-local Director <const> = require("Director")
+local threadLoop <const> = require("threadLoop")
 local Action <const> = require("Action")
 
 local function Item(): Node.Type
@@ -58,7 +58,6 @@ for _i = 1, 16 do
 	currentEntry:addChild(Item())
 end
 currentEntry:alignItems()
-currentEntry:addTo(Director.entry)
 
 -- example codes ends here, some test ui below --
 
@@ -73,8 +72,7 @@ local windowFlags = {
 	"NoNav",
 	"NoMove"
 }
-local ui = Node()
-ui:schedule(function(): boolean
+threadLoop(function(): boolean
 	local width = App.visualSize.width
 	ImGui.SetNextWindowBgAlpha(0.35)
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
@@ -90,4 +88,3 @@ ui:schedule(function(): boolean
 		end
 	end)
 end)
-ui:addTo(Director.entry)

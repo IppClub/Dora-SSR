@@ -29,7 +29,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DOROTHY_BEGIN
 
-Node::Node()
+Node::Node(bool unManaged)
 	: _flags(
 		Node::Visible | Node::SelfVisible | Node::ChildrenVisible | Node::PassOpacity | Node::PassColor3 | Node::TraverseEnabled)
 	, _order(0)
@@ -52,9 +52,15 @@ Node::Node()
 	, _parent(nullptr)
 	, _touchHandler(nullptr) {
 	bx::mtxIdentity(_world);
+	if (unManaged) {
+		_flags.setOn(Node::UnManaged);
+		SharedDirector.addUnManagedNode(this);
+	}
 }
 
-Node::~Node() { }
+Node::~Node() {
+	setAsManaged();
+}
 
 void Node::setOrder(int var) {
 	if (_order != var) {
@@ -429,8 +435,14 @@ bool Node::isRunning() const {
 }
 
 void Node::addChild(Node* child, int order, String tag) {
-	AssertIf(child == nullptr, "add invalid child(nullptr) to node.");
+	AssertIf(child == nullptr, "add invalid child (nullptr) to node.");
 	AssertIf(child->_parent, "child already added. It can't be added again.");
+	AssertIf(child->_flags.isOn(Node::Cleanup), "add invalid child (disposed) to node.");
+
+	if (child->_flags.isOn(Node::UnManaged)) {
+		child->_flags.setOff(Node::UnManaged);
+	}
+
 	child->setTag(tag);
 	child->setOrder(order);
 	if (!_children) {
@@ -567,6 +579,10 @@ void Node::cleanup() {
 		if (_flags.isOn(Node::ControllerEnabled)) {
 			setControllerEnabled(false);
 		}
+		if (_grabber) {
+			_grabber->cleanup();
+			_grabber = nullptr;
+		}
 		_parent = nullptr;
 		Object::cleanup();
 	}
@@ -622,6 +638,10 @@ Vec3 Node::convertToWorldSpace3(const Vec3& nodePoint) {
 
 bool Node::isScheduled() const {
 	return _updateItem && _updateItem->hasFunc();
+}
+
+bool Node::isUnManaged() const {
+	return _flags.isOn(Node::UnManaged);
 }
 
 void Node::setTouchEnabled(bool var) {
@@ -1355,7 +1375,9 @@ void Node::convertToWindowSpace(const Vec2& nodePoint, const std::function<void(
 Node::Grabber::Grabber(const Size& size, uint32_t gridX, uint32_t gridY)
 	: _clearColor(0x0)
 	, _blendFunc(BlendFunc::Default)
-	, _grid(Grid::create(size.width, size.height, gridX, gridY)) { }
+	, _grid(Grid::create(size.width, size.height, gridX, gridY)) {
+	_grid->setAsManaged();
+}
 
 uint32_t Node::Grabber::getGridX() const {
 	return _grid->getGridX();
@@ -1402,6 +1424,7 @@ Node::Grabber::RenderPair Node::Grabber::newRenderPair(float width, float height
 		s_cast<uint16_t>(width),
 		s_cast<uint16_t>(height));
 	auto surface = Sprite::create(renderTarget->getTexture());
+	surface->setAsManaged();
 	surface->setPosition({width / 2.0f, height / 2.0f});
 	surface->setBlendFunc({BlendFunc::One, BlendFunc::Zero});
 	surface->setEffect(SpriteEffect::create());
@@ -1763,6 +1786,15 @@ bool Node::UpdateItem::scheduled() const {
 
 bool Node::UpdateItem::fixedScheduled() const {
 	return fixedScheduledItem && fixedScheduledItem->iter.has_value();
+}
+
+void Node::setAsManaged() {
+	if (_flags.isOn(Node::UnManaged)) {
+		_flags.setOff(Node::UnManaged);
+		if (!Singleton<Director>::isDisposed()) {
+			SharedDirector.removeUnManagedNode(this);
+		}
+	}
 }
 
 NS_DOROTHY_END
