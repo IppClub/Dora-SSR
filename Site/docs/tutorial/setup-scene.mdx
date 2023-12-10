@@ -17,10 +17,12 @@ Here's an example of how to create a new Node instance in script code:
 <TabItem value="yue" label="Yuescript">
 
 ```yue
+-- Create a new Node instance, and it will be automatically
+-- mounted to the root node of the game scene
 node = Node!
 
--- Mount the newly created Node instance to the root node of the game scene
-Director.entry\addChild node
+-- Or you can mount it to the root node of the game scene manually
+-- Director.entry\addChild node
 ```
 
 </TabItem>
