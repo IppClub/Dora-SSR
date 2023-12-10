@@ -443,6 +443,11 @@ void Node::addChild(Node* child, int order, String tag) {
 		child->_flags.setOff(Node::UnManaged);
 	}
 
+	if (child->_flags.isOn(Node::InWaitingList)) {
+		child->_flags.setOff(Node::InWaitingList);
+		SharedDirector.removeFromWaitingList(child);
+	}
+
 	child->setTag(tag);
 	child->setOrder(order);
 	if (!_children) {
@@ -501,6 +506,9 @@ void Node::removeChild(Node* child, bool cleanup) {
 		}
 		if (cleanup) {
 			child->cleanup();
+		} else {
+			child->_flags.setOn(Node::InWaitingList);
+			SharedDirector.addToWaitingList(child);
 		}
 		child->_parent = nullptr;
 		child->autorelease();
@@ -518,6 +526,9 @@ void Node::removeAllChildren(bool cleanup) {
 		}
 		if (cleanup) {
 			child->cleanup();
+		} else {
+			child->_flags.setOn(Node::InWaitingList);
+			SharedDirector.addToWaitingList(child);
 		}
 		child->_parent = nullptr;
 	}
@@ -641,7 +652,7 @@ bool Node::isScheduled() const {
 }
 
 bool Node::isUnManaged() const {
-	return _flags.isOn(Node::UnManaged);
+	return _flags.isOn(Node::UnManaged) && _flags.isOff(Node::Cleanup) && _flags.isOff(Node::InWaitingList);
 }
 
 void Node::setTouchEnabled(bool var) {
@@ -1791,9 +1802,6 @@ bool Node::UpdateItem::fixedScheduled() const {
 void Node::setAsManaged() {
 	if (_flags.isOn(Node::UnManaged)) {
 		_flags.setOff(Node::UnManaged);
-		if (!Singleton<Director>::isDisposed()) {
-			SharedDirector.removeUnManagedNode(this);
-		}
 	}
 }
 

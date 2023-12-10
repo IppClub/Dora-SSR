@@ -77,15 +77,7 @@ cameraFill:drawDot(Vec2(-11, 20), 10)
 cameraFill:drawDot(Vec2(11, 20), 10)
 cameraFill:addTo(camera)
 
-local cameraLine = Line{
-	Vec2(0, 0),
-	Vec2(40, 0),
-	Vec2(40, 20),
-	Vec2(0, 20),
-	Vec2(0, 0)
-}
-cameraLine.position = Vec2(-20, -10)
-cameraLine = Line(CircleVertices(10))
+local cameraLine = Line(CircleVertices(10))
 cameraLine.position = Vec2(-21, 10)
 cameraLine:addTo(camera)
 

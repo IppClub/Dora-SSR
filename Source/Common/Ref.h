@@ -157,16 +157,6 @@ public:
 		}
 		return false;
 	}
-	bool fast_reverse_remove(T* item) {
-		int diff = s_cast<int>(std::distance(RefV::rbegin(), std::find(RefV::rbegin(), RefV::rend(), MakeRef(item))));
-		int index = s_cast<int>(RefV::size()) - diff;
-		if (index > 0) {
-			RefV::at(index - 1) = RefV::back();
-			RefV::pop_back();
-			return true;
-		}
-		return false;
-	}
 };
 
 NS_DOROTHY_END
