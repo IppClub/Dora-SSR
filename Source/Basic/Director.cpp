@@ -210,12 +210,16 @@ void Director::doLogic() {
 	if (_stoped) return;
 
 	if (!_unManagedNodes.empty()) {
+		RefVector<Node> nodes;
 		for (Node* node : _unManagedNodes) {
 			if (node->isUnManaged()) {
-				node->addTo(getEntry());
+				nodes.push_back(node);
 			}
 		}
 		_unManagedNodes.clear();
+		for (Node* node : nodes) {
+			getEntry()->addChild(node);
+		}
 	}
 
 	double deltaTime = SharedApplication.getDeltaTime();
@@ -272,8 +276,9 @@ void Director::doLogic() {
 		if (_entry) {
 			registerTouchHandler(_entry);
 			SharedTouchDispatcher.dispatch();
-			SharedTouchDispatcher.clearEvents();
 		}
+
+		SharedTouchDispatcher.clearEvents();
 	});
 }
 
@@ -421,6 +426,20 @@ void Director::popViewProjection() {
 }
 
 void Director::cleanup() {
+	if (!_unManagedNodes.empty()) {
+		for (Node* node : _unManagedNodes) {
+			node->cleanup();
+		}
+	}
+	_unManagedNodes.clear();
+	if (!_waitingList.empty()) {
+		for (Node* node : _waitingList) {
+			if (node) {
+				node->cleanup();
+			}
+		}
+	}
+	_waitingList.clear();
 	if (_ui3D) {
 		_ui3D->removeAllChildren();
 		_ui3D->onExit();
@@ -459,8 +478,16 @@ void Director::addUnManagedNode(Node* node) {
 	_unManagedNodes.push_back(node);
 }
 
-void Director::removeUnManagedNode(Node* node) {
-	_unManagedNodes.fast_remove(node);
+void Director::addToWaitingList(Node* node) {
+	WRef<Node> wref(node);
+	_waitingList.push_back(wref);
+}
+
+void Director::removeFromWaitingList(Node* node) {
+	_waitingList.erase(std::remove_if(_waitingList.begin(), _waitingList.end(), [node](const auto& wref) {
+		return wref == node;
+	}),
+		_waitingList.end());
 }
 
 void Director::markDirty() {

@@ -356,7 +356,8 @@ protected:
 		Updating = 1 << 18,
 		FixedUpdating = 1 << 19,
 		UnManaged = 1 << 20,
-		UserFlag = 1 << 21,
+		InWaitingList = 1 << 21,
+		UserFlag = 1 << 22,
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

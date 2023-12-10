@@ -137,13 +137,13 @@ blockTypes =
 
 blockBodies = {}
 
-ropeNode = DrawNode!
+ropeNode = with DrawNode!
+	\addTo root
 isGrabbing = false
 isGrabbed = false
 grabBlock = Node!
 
 emitRope = (cubeBody, endPoint)->
-	ropeNode\removeAllChildren!
 	startPoint = cubeBody.position
 	isBlock = false
 	isSelf = true
@@ -168,7 +168,6 @@ emitRope = (cubeBody, endPoint)->
 				-- if curDis > 40
 				--	 curEndPoint = curEndPoint + dir * dis
 				\drawSegment cubeBody.position, grabPoint, 10, Color 0xaaffffff
-		\addTo root
 
 getGrabForce = (body, target)->
 	prePos = body.position
@@ -331,9 +330,9 @@ buildWorld = ->
 		\slot "TapEnded", ->
 			isGrabbing = false
 			isGrabbed = false
-			grabBlock\removeFromParent!
+			grabBlock\unschedule!
 			ropeNode\clear!
-			ropeNode\removeFromParent!
+			ropeNode\unschedule!
 		\addTo root
 
 addCube!

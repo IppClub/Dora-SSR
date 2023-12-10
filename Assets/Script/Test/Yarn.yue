@@ -100,7 +100,7 @@ advance = (option)->
 		texts[] = result
 	label.text = table.concat texts, "\n"
 	root\alignLayout!
-	scroll\scrollToPosY label.y - label.height / 2
+	scroll\scrollToPosY label.y - label.height / 2 + 122
 
 advance!
 

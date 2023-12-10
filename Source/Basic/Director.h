@@ -62,7 +62,9 @@ public:
 	}
 
 	void addUnManagedNode(Node* node);
-	void removeUnManagedNode(Node* node);
+
+	void addToWaitingList(Node* node);
+	void removeFromWaitingList(Node* node);
 
 protected:
 	Director();
@@ -86,6 +88,7 @@ private:
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _postScheduler;
 	RefVector<Node> _unManagedNodes;
+	std::vector<WRef<Node>> _waitingList;
 	Own<UITouchHandler> _uiTouchHandler;
 	std::stack<Own<Matrix>> _viewProjs;
 	Matrix _defaultViewProj;

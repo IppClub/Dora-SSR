@@ -24,7 +24,7 @@ int ClipNode::_layer = -1;
 ClipNode::ClipNode(Node* stencil)
 	: _alphaThreshold(1.0f)
 	, _stencil(stencil) {
-	if (stencil) {
+	if (stencil && !stencil->getParent()) {
 		stencil->setAsManaged();
 	}
 }
@@ -32,13 +32,14 @@ ClipNode::ClipNode(Node* stencil)
 ClipNode::~ClipNode() { }
 
 void ClipNode::setStencil(Node* var) {
-	AssertIf(var && var->getParent(), "stencil node already added. It can't be added again.");
 	if (_stencil) {
 		_stencil->onExit();
 	}
 	_stencil = var;
 	if (_stencil) {
-		_stencil->setAsManaged();
+		if (!_stencil->getParent()) {
+			_stencil->setAsManaged();
+		}
 		_stencil->setTransformTarget(this);
 		setupAlphaTest();
 		if (isRunning()) {
