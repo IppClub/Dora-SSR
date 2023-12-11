@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dorothy!
 
 CircleVertices = (radius, verts = 20)->
 	newV = (index, radius)->
@@ -77,10 +77,10 @@ windowFlags =
 	* "NoMove"
 threadLoop ->
 	const :width = App.visualSize
-	SetNextWindowBgAlpha 0.35
-	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-	Begin "Draw Node", windowFlags, ->
-		Text "Draw Node"
-		Separator!
-		TextWrapped "Draw shapes and lines!"
+	ImGui.SetNextWindowBgAlpha 0.35
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	ImGui.Begin "Draw Node", windowFlags, ->
+		ImGui.Text "Draw Node"
+		ImGui.Separator!
+		ImGui.TextWrapped "Draw shapes and lines!"

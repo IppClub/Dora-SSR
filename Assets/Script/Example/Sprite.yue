@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dorothy!
 
 sprite = Sprite "Image/logo.png"
 
@@ -16,49 +16,48 @@ windowFlags =
 	* "NoSavedSettings"
 threadLoop ->
 	const :width = App.visualSize
-	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0
-	SetNextWindowSize Vec2(240, 520), "FirstUseEver"
-	Begin "Sprite", windowFlags, ->
-		BeginChild "SpriteSetting", Vec2(-1, -40), ->
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0
+	ImGui.SetNextWindowSize Vec2(240, 520), "FirstUseEver"
+	ImGui.Begin "Sprite", windowFlags, ->
+		ImGui.BeginChild "SpriteSetting", Vec2(-1, -40), ->
 			:z = sprite
-			if changed, z := DragFloat "Z", z, 1, -1000, 1000, "%.2f"
+			if changed, z := ImGui.DragFloat "Z", z, 1, -1000, 1000, "%.2f"
 				sprite.z = z
 			:x, :y = sprite.anchor
-			if changed, x, y := DragFloat2 "Anchor", x, y, 0.01, 0, 1, "%.2f"
+			if changed, x, y := ImGui.DragFloat2 "Anchor", x, y, 0.01, 0, 1, "%.2f"
 				sprite.anchor = Vec2 x, y
 			width: spriteW, :height = sprite.size
-			if changed, spriteW, height := DragFloat2 "Size", spriteW, height, 0.1, 0, 1000, "%.f"
+			if changed, spriteW, height := ImGui.DragFloat2 "Size", spriteW, height, 0.1, 0, 1000, "%.f"
 				sprite.size = Size spriteW, height
 			:scaleX, :scaleY = sprite
-			if changed, scaleX, scaleY := DragFloat2 "Scale", scaleX, scaleY, 0.01, -2, 2, "%.2f"
+			if changed, scaleX, scaleY := ImGui.DragFloat2 "Scale", scaleX, scaleY, 0.01, -2, 2, "%.2f"
 				sprite.scaleX, sprite.scaleY = scaleX, scaleY
-			PushItemWidth -60, ->
+			ImGui.PushItemWidth -60, ->
 				:angle = sprite
-				if changed, angle := DragInt "Angle", math.floor(angle), 1, -360, 360
+				if changed, angle := ImGui.DragInt "Angle", math.floor(angle), 1, -360, 360
 					sprite.angle = angle
-			PushItemWidth -60, ->
+			ImGui.PushItemWidth -60, ->
 				:angleX = sprite
-				if changed, angleX := DragInt "AngleX", math.floor(angleX), 1, -360, 360
+				if changed, angleX := ImGui.DragInt "AngleX", math.floor(angleX), 1, -360, 360
 					sprite.angleX = angleX
-			PushItemWidth -60, ->
+			ImGui.PushItemWidth -60, ->
 				:angleY = sprite
-				if changed, angleY := DragInt "AngleY", math.floor(angleY), 1, -360, 360
+				if changed, angleY := ImGui.DragInt "AngleY", math.floor(angleY), 1, -360, 360
 					sprite.angleY = angleY
 			:skewX, :skewY = sprite
-			if changed, skewX, skewY := DragInt2 "Skew", math.floor(skewX), math.floor(skewY), 1, -360, 360
+			if changed, skewX, skewY := ImGui.DragInt2 "Skew", math.floor(skewX), math.floor(skewY), 1, -360, 360
 				sprite.skewX, sprite.skewY = skewX, skewY
-			PushItemWidth -70, ->
+			ImGui.PushItemWidth -70, ->
 				:opacity = sprite
-				if changed, opacity := DragFloat "Opacity", opacity, 0.01, 0, 1, "%.2f"
+				if changed, opacity := ImGui.DragFloat "Opacity", opacity, 0.01, 0, 1, "%.2f"
 					sprite.opacity = opacity
-			PushItemWidth -1, ->
+			ImGui.PushItemWidth -1, ->
 				:color3 = sprite
-				SetColorEditOptions "RGB"
-				if ColorEdit3 "", color3
+				ImGui.SetColorEditOptions "RGB"
+				if ImGui.ColorEdit3 "", color3
 					sprite.color3 = color3
-		if Button "Reset", Vec2 140, 30
+		if ImGui.Button "Reset", Vec2 140, 30
 			with sprite.parent
 				\removeChild sprite
 				sprite = Sprite "Image/logo.png"
 				\addChild sprite
-

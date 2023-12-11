@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dorothy!
 
 Item = Class Node,
 	__init: =>
@@ -52,12 +52,12 @@ windowFlags =
 	* "NoMove"
 threadLoop ->
 	const :width = App.visualSize
-	SetNextWindowBgAlpha 0.35
-	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-	Begin "Render Group", windowFlags, ->
-		Text "Render Group"
-		Separator!
-		TextWrapped "When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window."
-		if changed, renderGroup := Checkbox "Grouped", renderGroup
+	ImGui.SetNextWindowBgAlpha 0.35
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	ImGui.Begin "Render Group", windowFlags, ->
+		ImGui.Text "Render Group"
+		ImGui.Separator!
+		ImGui.TextWrapped "When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window."
+		if changed, renderGroup := ImGui.Checkbox "Grouped", renderGroup
 			currentEntry.renderGroup = renderGroup

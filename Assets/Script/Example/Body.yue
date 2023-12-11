@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dorothy!
 
 const gravity = Vec2 0, -10
 
@@ -56,10 +56,10 @@ windowFlags =
 	* "NoMove"
 threadLoop ->
 	const :width = App.visualSize
-	SetNextWindowBgAlpha 0.35
-	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-	Begin "Body", windowFlags, ->
-		Text "Body"
-		Separator!
-		TextWrapped "Basic usage to create physics bodies!"
+	ImGui.SetNextWindowBgAlpha 0.35
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	ImGui.Begin "Body", windowFlags, ->
+		ImGui.Text "Body"
+		ImGui.Separator!
+		ImGui.TextWrapped "Basic usage to create physics bodies!"

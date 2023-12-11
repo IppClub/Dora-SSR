@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dorothy!
 
 thread ->
 	print "thread 1"
@@ -41,10 +41,10 @@ windowFlags =
 	* "NoMove"
 threadLoop ->
 	const :width = App.visualSize
-	SetNextWindowBgAlpha 0.35
-	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-	Begin "Multi-tasking", windowFlags, ->
-		Text "Multi-tasking"
-		Separator!
-		TextWrapped "Basic Dorothy multi-tasking usage. Powered by View outputs in log window!"
+	ImGui.SetNextWindowBgAlpha 0.35
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	ImGui.Begin "Multi-tasking", windowFlags, ->
+		ImGui.Text "Multi-tasking"
+		ImGui.Separator!
+		ImGui.TextWrapped "Basic Dorothy multi-tasking usage. Powered by View outputs in log window!"
