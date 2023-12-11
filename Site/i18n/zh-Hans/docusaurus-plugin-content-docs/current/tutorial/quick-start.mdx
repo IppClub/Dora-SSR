@@ -47,7 +47,9 @@ _ENV = Dorothy!
 -- 创建图片精灵
 sprite = Sprite "Image/logo.png"
 
-with Director.entry
+-- 创建游戏场景树根节点
+with Node!
+
 	-- 挂载图片精灵到游戏场景树根节点
 	\addChild sprite
 
@@ -68,23 +70,23 @@ with Director.entry
 ```teal title="Hello/init.tl"
 -- 导入功能模块
 local Sprite <const> = require("Sprite")
-local Director <const> = require("Director")
+local Node <const> = require("Node")
 local Move <const> = require("Move")
 local Ease <const> = require("Ease")
 local type Touch = require("TouchType")
 
--- 获取游戏场景树根节点
-local entry = Director.entry
-
 -- 创建图片精灵
 local sprite = Sprite("Image/logo.png")
 
+-- 创建游戏场景树根节点
+local root = Node()
+
 -- 挂载图片精灵到游戏场景树根节点
-entry:addChild(sprite)
+root:addChild(sprite)
 
 -- 接收并处理点击事件移动图片精灵
-entry.touchEnabled = true
-entry:slot("Tapped", function(touch: Touch)
+root.touchEnabled = true
+root:slot("Tapped", function(touch: Touch)
 	sprite:perform(Move(
 		1, -- 持续时间，单位为秒
 		sprite.position, -- 开始位置
@@ -100,22 +102,22 @@ end)
 ```lua title="Hello/init.lua"
 -- 导入功能模块
 local Sprite <const> = require("Sprite")
-local Director <const> = require("Director")
+local Node <const> = require("Node")
 local Move <const> = require("Move")
 local Ease <const> = require("Ease")
-
--- 获取游戏场景树根节点
-local entry = Director.entry
 
 -- 创建图片精灵
 local sprite = Sprite("Image/logo.png")
 
+-- 创建游戏场景树根节点
+local root = Node()
+
 -- 挂载图片精灵到游戏场景树根节点
-entry:addChild(sprite)
+root:addChild(sprite)
 
 -- 接收并处理点击事件移动图片精灵
-entry.touchEnabled = true
-entry:slot("Tapped", function(touch)
+root.touchEnabled = true
+root:slot("Tapped", function(touch)
 	sprite:perform(Move(
 		1, -- 持续时间，单位为秒
 		sprite.position, -- 开始位置

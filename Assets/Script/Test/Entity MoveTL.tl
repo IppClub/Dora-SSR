@@ -38,27 +38,19 @@ Observer("Add", { "image" }):watch(function(self: Entity.Type, image: string)
 		local scene = toNode(e.scene)
 		if not scene is nil then
 			local sprite = Sprite(image)
+			sprite:addTo(scene)
 			sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
-			scene:addChild(sprite)
 			self.sprite = sprite
 			return true
 		end
-		return false
 	end)
 end)
 
 Observer("Remove", { "sprite" }):watch(function(self: Entity.Type)
-	sceneGroup:each(function(e: Entity.Type): boolean
-		local scene = toNode(e.scene)
-		if not scene is nil then
-			local sprite = toNode(self.oldValues.sprite)
-			if not sprite is nil then
-				scene:removeChild(sprite)
-				return true
-			end
-		end
-		return false
-	end)
+	local sprite = toNode(self.oldValues.sprite)
+	if not sprite is nil then
+		sprite:removeFromParent()
+	end
 end)
 
 Observer("Remove", { "target" }):watch(function(self: Entity.Type)

@@ -43,8 +43,10 @@ _ENV = Dorothy!
 -- Create a sprite
 sprite = Sprite "Image/logo.png"
 
-with Director.entry
-	-- Mount the sprite to the root node of the game scene tree
+-- Create the root node of the game scene tree
+with Node!
+
+	-- Mount the sprite to the root node
 	\addChild sprite
 
 	-- Receive and process click events to move the sprite
@@ -64,23 +66,23 @@ with Director.entry
 ```tl title="Hello/init.tl"
 -- Import functional modules
 local Sprite <const> = require("Sprite")
-local Director <const> = require("Director")
+local Node <const> = require("Node")
 local Move <const> = require("Move")
 local Ease <const> = require("Ease")
 local type Touch = require("TouchType")
 
--- Get the root node of the game scene tree
-local entry = Director.entry
-
--- Create a sprite
+-- Create a sprite and mount it to the root node
 local sprite = Sprite("Image/logo.png")
 
--- Mount the sprite to the root node of the game scene tree
-entry:addChild(sprite)
+-- Create the root node of the game scene tree
+local root = Node!
+
+-- Mount the sprite to the root node
+root:addChild(sprite)
 
 -- Receive and process click events to move the sprite
-entry.touchEnabled = true
-entry:slot("Tapped", function(touch: Touch)
+root.touchEnabled = true
+root:slot("Tapped", function(touch: Touch)
 	sprite:perform(Move(
 		1, -- duration in seconds
 		sprite.position, -- start position
@@ -96,22 +98,22 @@ end)
 ```lua title="Hello/init.lua"
 -- Import functional modules
 local Sprite <const> = require("Sprite")
-local Director <const> = require("Director")
+local Node <const> = require("Node")
 local Move <const> = require("Move")
 local Ease <const> = require("Ease")
 
--- Get the root node of the game scene tree
-local entry = Director.entry
-
--- Create a sprite
+-- Create a sprite and mount it to the root node
 local sprite = Sprite("Image/logo.png")
 
--- Mount the sprite to the root node of the game scene tree
-entry:addChild(sprite)
+-- Create the root node of the game scene tree
+local root = Node!
+
+-- Mount the sprite to the root node
+root:addChild(sprite)
 
 -- Receive and process click events to move the sprite
-entry.touchEnabled = true
-entry:slot("Tapped", function(touch)
+root.touchEnabled = true
+root:slot("Tapped", function(touch)
 	sprite:perform(Move(
 		1, -- duration in seconds
 		sprite.position, -- start position
