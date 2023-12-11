@@ -24,9 +24,8 @@ LuaHandler::LuaHandler(int handler)
 LuaHandler::~LuaHandler() {
 	if (!Dorothy::Singleton<LuaEngine>::isDisposed()) {
 		SharedLuaEngine.removeScriptHandler(_handler);
-		return;
 	}
-	Warn("lua handler {} leaks.", _handler);
+	// else Warn("lua handler {} leaks.", _handler);
 }
 
 bool LuaHandler::equals(LuaHandler* other) const {

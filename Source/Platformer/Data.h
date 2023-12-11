@@ -27,6 +27,7 @@ public:
 	PROPERTY_READONLY(uint8_t, GroupTerrain);
 	PROPERTY_READONLY(uint8_t, GroupDetection);
 	PROPERTY_READONLY(Dictionary*, Store);
+	~Data();
 	void apply(PhysicsWorld* world);
 	void setRelation(uint8_t groupA, uint8_t groupB, Relation relation);
 	Relation getRelation(uint8_t groupA, uint8_t groupB) const;

@@ -50,7 +50,6 @@ private:
 	float _nearestFriendDistance;
 	float _nearestEnemyDistance;
 	float _nearestNeutralDistance;
-	StringMap<Ref<Decision::Leaf>> _decisionTrees;
 	std::vector<Slice> _decisionNodes;
 	friend class Instinct;
 };
