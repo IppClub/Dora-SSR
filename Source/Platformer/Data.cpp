@@ -29,6 +29,10 @@ Data::Data()
 	};
 }
 
+Data::~Data() {
+	clear();
+}
+
 #define Hide 0
 #define FP 1
 #define LP PhysicsWorld::TotalGroups - 4

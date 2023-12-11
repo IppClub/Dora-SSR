@@ -22,12 +22,10 @@ public:
 		, maxLuaRefCount(0)
 		, luaRefCount(0) { }
 	virtual ~ObjectBase() {
-#if DORA_DEBUG
 		int count = s_cast<int>(maxIdCount) - s_cast<int>(availableIds.size());
 		if (count > 0) {
 			Warn("{} C++ objects leaks.", count);
 		}
-#endif // DORA_DEBUG
 	}
 	uint32_t maxIdCount;
 	uint32_t maxLuaRefCount;
