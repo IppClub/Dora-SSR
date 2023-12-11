@@ -12,19 +12,17 @@ with Observer "Add", ["scene",]
 				entity.target = location
 
 with Observer "Add", ["image",]
-	\watch (image)=>
-		sceneGroup\each (e)->
-			e.scene\addChild with @sprite = Sprite image
-				\runAction Scale 0.5, 0, 0.5, Ease.OutBack
+	\watch (image)=> sceneGroup\each (e)->
+		with @sprite = Sprite image
+			\addTo e.scene
+			\runAction Scale 0.5, 0, 0.5, Ease.OutBack
+		true
 
 with Observer "Remove", ["sprite",]
-	\watch =>
-		sceneGroup\each (e)->
-			e.scene\removeChild @oldValues.sprite
+	\watch => @oldValues.sprite\removeFromParent!
 
 with Observer "Remove", ["target",]
-	\watch =>
-		print "remove target from entity #{@index}"
+	\watch => print "remove target from entity #{@index}"
 
 with Group ["position", "direction", "speed", "target"]
 	\watch (position, direction, speed, target)=>

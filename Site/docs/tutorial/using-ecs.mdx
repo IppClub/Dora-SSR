@@ -58,14 +58,14 @@ _ENV = Dorothy!
 First, we create two entity groups, `sceneGroup` and `positionGroup`, which are used to access and manage entities with the "scene" and "position" component names, respectively.
 
 ```yue
-sceneGroup = Group {"scene"}
-positionGroup = Group {"position"}
+sceneGroup = Group ["scene",]
+positionGroup = Group ["position",]
 ```
 
 Next, we use Observers to listen for changes in entities. Sometimes, you need to perform certain actions when specific components are added to entities. In such cases, you can use Observers to listen for entity addition events and execute corresponding logic when these events occur. Here's an example code snippet on how to use an Observer to listen for entity addition events:
 
 ```yue
-with Observer "Add", {"scene"}
+with Observer "Add", ["scene",]
 	\watch (_entity, scene)->
 		Director.entry\addChild with scene
 			.touchEnabled = true
@@ -78,7 +78,7 @@ with Observer "Add", {"scene"}
 First, we create an Observer object using the `Observer` class. We specify the event type as "Add" to listen for entity addition events. Additionally, we pass a list containing the string "scene" as the parameter to specify the component types to monitor.
 
 ```yue
-with Observer "Add", {"scene"}
+with Observer "Add", ["scene",]
 ```
 
 Inside the `watch` method of the Observer object, we define a callback function `(_entity, scene)->`. This callback function is triggered when an entity addition event occurs. The first parameter represents the entity object that triggered the event, followed by the parameters corresponding to the monitored components.
@@ -120,25 +120,24 @@ positionGroup\each (entity)->
 
 In this way, when a new entity with the "scene" component is added, this observer will be triggered, and the defined operations will be executed. The scene node will be added to the game scene, touch events will be enabled, and the target property of entities in the positionGroup will be set to the touch location.
 
-Next, we create additional observers to handle other types of entity changes, such as "Add" and "Remove" events, for the "sprite" component.
+Next, we create additional observers to handle other types of entity changes, such as "Add" and "Remove" events, for the "image" and "sprite" components.
 
 ```yue
-with Observer "Add", {"sprite"}
-	\watch (sprite)=>
-		sceneGroup\each (e)->
-			e.scene\addChild with sprite
-				\runAction Scale 0.5, 0, 0.5, Ease.OutBack
+with Observer "Add", ["image",]
+	\watch (image)=> sceneGroup\each (e)->
+		with @sprite = Sprite image
+			\addTo e.scene
+			\runAction Scale 0.5, 0, 0.5, Ease.OutBack
+		true
 
-with Observer "Remove", {"sprite"}
-	\watch =>
-		sceneGroup\each (e)->
-			e.scene\removeChild @oldValues.sprite
+with Observer "Remove", ["sprite",]
+	\watch => @oldValues.sprite\removeFromParent!
 ```
 
 Then, we create an entity group with the components "position", "direction", "speed", and "target". We define an observer to handle changes in these components and update the rotation angle and position properties of the entities based on their speed and the elapsed time.
 
 ```yue
-with Group {"position", "direction", "speed", "target"}
+with Group ["position", "direction", "speed", "target"]
 	\watch (entity, position, direction, speed, target)=>
 		return if target == position
 		dir = target - position
@@ -154,7 +153,7 @@ with Group {"position", "direction", "speed", "target"}
 In this code snippet, we first create a group object using the `Group` class and specify the component types as "position", "direction", "speed", and "target".
 
 ```yue
-with Group {"position", "direction", "speed", "target"}
+with Group ["position", "direction", "speed", "target"]
 ```
 
 Then, we use the `watch` method of the entity group to iterate over all entities in the group every frame and execute the defined callback function to handle the components on each entity.
@@ -207,7 +206,7 @@ By using this code, the defined callback function will be executed for each enti
 After completing the data calculation and update, we also need to update the data results to the rendered graphics.
 
 ```yue
-with Observer "AddOrChange", {"position", "direction", "sprite"}
+with Observer "AddOrChange", ["position", "direction", "sprite"]
 	\watch (position, direction, sprite)=>
 		-- Update the display position of the image
 		sprite.position = position
@@ -221,19 +220,19 @@ Lastly, we create three entities and add different components to them. This is w
 
 ```yue
 Entity
-	sprite: Sprite "Image/logo.png"
+	scene: Node!
+
+Entity
+	image: "Image/logo.png"
 	position: Vec2.zero
 	direction: 45.0
 	speed: 4.0
 
 Entity
-	sprite: Sprite "Image/logo.png"
+	image: "Image/logo.png"
 	position: Vec2 -100, 200
 	direction: 90.0
 	speed: 10.0
-
-Entity
-	scene: Node!
 ```
 
 </TabItem>
@@ -326,25 +325,23 @@ end)
 
 In this way, when a new entity with the "scene" component is added, this observer will be triggered, and the defined operations will be executed. The scene node will be added to the game scene, touch events will be enabled, and the target property of entities in the positionGroup will be set to the touch location.
 
-Next, we create additional observers to handle other types of entity changes, such as "Add" and "Remove" events, for the "sprite" component.
+Next, we create additional observers to handle other types of entity changes, such as "Add" and "Remove" events, for the "image" and "sprite" components.
 
 ```tl
-Observer("Add", {"sprite"}):watch(function(_entity: Entity.Type, sprite: Sprite.Type)
+Observer("Add", {"image"}):watch(function(entity: Entity.Type, image: string)
 	sceneGroup:each(function(e: Entity.Type): boolean
 		local scene = e.scene as Node.Type
+		local sprite = Sprite(image)
 		sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
-		scene:addChild(sprite)
+		sprite:addTo(scene)
+		entity.sprite = sprite
 		return true
 	end)
 end)
 
 Observer("Remove", {"sprite"}):watch(function(self: Entity.Type)
-	sceneGroup:each(function(e: Entity.Type): boolean
-		local scene = e.scene as Node.Type
-		local sprite = self.oldValues.sprite as Node.Type
-		scene:removeChild(sprite)
-		return true
-	end)
+	local sprite = self.oldValues.sprite as Node.Type
+	sprite:removeFromParent()
 end)
 ```
 
@@ -445,21 +442,21 @@ Observer("AddOrChange", {"position", "direction", "sprite"})
 Lastly, we create three entities and add different components to them. This is where the game system begins to run.
 
 ```tl
+Entity { scene = Node() }
+
 Entity {
-	sprite = Sprite("Image/logo.png"),
+	image = "Image/logo.png",
 	position = Vec2.zero,
 	direction = 45.0,
 	speed = 4.0
 }
 
 Entity {
-	sprite = Sprite("Image/logo.png"),
+	image = "Image/logo.png",
 	position = Vec2(-100, 200),
 	direction = 90.0,
 	speed = 10.0
 }
-
-Entity { scene = Node() }
 ```
 
 </TabItem>
@@ -550,25 +547,21 @@ end)
 
 In this way, when a new entity with the "scene" component is added, this observer will be triggered, and the defined operations will be executed. The scene node will be added to the game scene, touch events will be enabled, and the target property of entities in the positionGroup will be set to the touch location.
 
-Next, we create additional observers to handle other types of entity changes, such as "Add" and "Remove" events, for the "sprite" component.
+Next, we create additional observers to handle other types of entity changes, such as "Add" and "Remove" events, for the "image" and "sprite" components.
 
 ```lua
-Observer("Add", {"sprite"}):watch(function(_entity, sprite)
+Observer("Add", {"image"}):watch(function(entity, image)
 	sceneGroup:each(function(e)
-		local scene = e.scene
+		local sprite = Sprite(image)
 		sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
-		scene:addChild(sprite)
+		sprite:addTo(e.scene)
+		entity.sprite = sprite
 		return true
 	end)
 end)
 
 Observer("Remove", {"sprite"}):watch(function(entity)
-	sceneGroup:each(function(e)
-		local scene = e.scene
-		local sprite = entity.oldValues.sprite
-		scene:removeChild(sprite)
-		return true
-	end)
+	entity.oldValues.sprite:removeFromParent()
 end)
 ```
 
@@ -669,21 +662,21 @@ Observer("AddOrChange", {"position", "direction", "sprite"})
 Lastly, we create three entities and add different components to them. This is where the game system begins to run.
 
 ```lua
+Entity { scene = Node() }
+
 Entity {
-	sprite = Sprite("Image/logo.png"),
+	image = "Image/logo.png",
 	position = Vec2.zero,
 	direction = 45.0,
 	speed = 4.0
 }
 
 Entity {
-	sprite = Sprite("Image/logo.png"),
+	image = "Image/logo.png",
 	position = Vec2(-100, 200),
 	direction = 90.0,
 	speed = 10.0
 }
-
-Entity { scene = Node() }
 ```
 
 </TabItem>

@@ -58,14 +58,14 @@ _ENV = Dorothy!
 &emsp;&emsp;首先，我们创建两个实体组 `sceneGroup` 和 `positionGroup`，分别用于访问和管理所有具有 "scene" 和 "position" 组件名称的实体。
 
 ```yue
-sceneGroup = Group {"scene"}
-positionGroup = Group {"position"}
+sceneGroup = Group ["scene",]
+positionGroup = Group ["position",]
 ```
 
 &emsp;&emsp;接下来，我们使用观察器（Observer）来监听实体的变化。当你在使用ECS框架开发游戏时，有时你需要在实体添加特定组件时触发一些操作。这时，你可以使用观察器（Observer）来监听实体的添加事件，并在添加事件发生时执行相应的逻辑。接下来是关于如何使用观察器监听实体添加事件的示例代码段：
 
 ```yue
-with Observer "Add", {"scene"}
+with Observer "Add", ["scene",]
 	\watch (_entity, scene)->
 		Director.entry\addChild with scene
 			.touchEnabled = true
@@ -78,7 +78,7 @@ with Observer "Add", {"scene"}
 &emsp;&emsp;首先，使用 `Observer` 类创建一个观察器对象，并指定观察器监测的事件类型为 "Add"，表示监听实体的添加事件。同时，通过传入一个包含字符串 "scene" 的列表作为参数，指定观察器要监测的组件类型包括 "scene"。
 
 ```yue
-with Observer "Add", {"scene"}
+with Observer "Add", ["scene",]
 ```
 
 &emsp;&emsp;接下来，在观察器对象的 `watch` 方法中，定义了一个回调函数 `(_entity, scene)->`。这个回调函数在实体添加事件发生时被触发。它接收的第一个参数为触发事件的实体对象，后面的参数与监测的组件列表相对应。
@@ -120,25 +120,24 @@ positionGroup\each (entity)->
 
 &emsp;&emsp;这样，当有新的实体添加了 "scene" 组件时，该观察器会触发并执行以上操作，并将场景节点添加到游戏中，并完成一系列的初始化操作。
 
-&emsp;&emsp;接下来，我们还要再创建一些观察器，分别处理其它 "Add" 和 "Remove" 类型的实体变化，并指定要监测的组件为`sprite`。
+&emsp;&emsp;接下来，我们还要再创建一些观察器，分别处理其它 "Add" 和 "Remove" 类型的实体变化，并指定要监测的组件为 `image` 和 `sprite`。
 
 ```yue
-with Observer "Add", {"sprite"}
-	\watch (sprite)=>
-		sceneGroup\each (e)->
-			e.scene\addChild with sprite
-				\runAction Scale 0.5, 0, 0.5, Ease.OutBack
+with Observer "Add", ["image",]
+	\watch (image)=> sceneGroup\each (e)->
+		with @sprite = Sprite image
+			\addTo e.scene
+			\runAction Scale 0.5, 0, 0.5, Ease.OutBack
+		true
 
-with Observer "Remove", {"sprite"}
-	\watch =>
-		sceneGroup\each (e)->
-			e.scene\removeChild @oldValues.sprite
+with Observer "Remove", ["sprite",]
+	\watch => @oldValues.sprite\removeFromParent!
 ```
 
 &emsp;&emsp;然后，我们创建一个具有 "position", "direction", "speed", "target" 组件的实体组，并定义了观察器来处理实体组内组件的变化，并在每一帧游戏更新时对一组特定的实体进行遍历，并根据实体的速度、更新时间等信息来更新实体的旋转角度和位置属性。
 
 ```yue
-with Group {"position", "direction", "speed", "target"}
+with Group ["position", "direction", "speed", "target"]
 	\watch (entity, position, direction, speed, target)->
 		return if target == position
 		dir = target - position
@@ -154,7 +153,7 @@ with Group {"position", "direction", "speed", "target"}
 &emsp;&emsp;在这段代码中，首先，我们使用 `Group` 类创建了一个实体组对象，并指定了组中包含的组件类型为 "position"、"direction"、"speed" 和 "target"。
 
 ```yue
-with Group {"position", "direction", "speed", "target"}
+with Group ["position", "direction", "speed", "target"]
 ```
 
 &emsp;&emsp;然后，我们使用了实体组的 `watch` 方法来每帧遍历所有组内的实体，执行我们定义的回调函数来处理实体上的组件。
@@ -207,7 +206,7 @@ entity.direction = angle
 &emsp;&emsp;在完成数据计算和更新后，我们还需要把数据结果更新到渲染图形上。
 
 ```yue
-with Observer "AddOrChange", {"position", "direction", "sprite"}
+with Observer "AddOrChange", ["position", "direction", "sprite"]
 	\watch (position, direction, sprite)=>
 		-- 更新图片的显示位置
 		sprite.position = position
@@ -221,19 +220,19 @@ with Observer "AddOrChange", {"position", "direction", "sprite"}
 
 ```yue
 Entity
-	sprite: Sprite "Image/logo.png"
+	scene: Node!
+
+Entity
+	image: "Image/logo.png"
 	position: Vec2.zero
 	direction: 45.0
 	speed: 4.0
 
 Entity
-	sprite: Sprite "Image/logo.png"
+	image: "Image/logo.png"
 	position: Vec2 -100, 200
 	direction: 90.0
 	speed: 10.0
-
-Entity
-	scene: Node!
 ```
 
 </TabItem>
@@ -329,22 +328,20 @@ end)
 &emsp;&emsp;接下来，我们还要再创建一些观察器，分别处理其它 "Add" 和 "Remove" 类型的实体变化，并指定要监测的组件为`sprite`。
 
 ```tl
-Observer("Add", {"sprite"}):watch(function(_entity: Entity.Type, sprite: Sprite.Type)
+Observer("Add", {"sprite"}):watch(function(entity: Entity.Type, image: string)
 	sceneGroup:each(function(e: Entity.Type): boolean
 		local scene = e.scene as Node.Type
+		local sprite = Sprite(image)
+		sprite:addTo(scene)
 		sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
-		scene:addChild(sprite)
+		entity.sprite = sprite
 		return true
 	end)
 end)
 
 Observer("Remove", {"sprite"}):watch(function(self: Entity.Type)
-	sceneGroup:each(function(e: Entity.Type): boolean
-		local scene = e.scene as Node.Type
-		local sprite = self.oldValues.sprite as Node.Type
-		scene:removeChild(sprite)
-		return true
-	end)
+	local sprite = self.oldValues.sprite as Node.Type
+	sprite:removeFromParent()
 end)
 ```
 
@@ -445,21 +442,21 @@ Observer("AddOrChange", {"position", "direction", "sprite"})
 &emsp;&emsp;最后，我们创建三个实体，并为它们添加不同的组件。这时游戏系统将开始正式运行。
 
 ```tl
+Entity { scene = Node() }
+
 Entity {
-	sprite = Sprite("Image/logo.png"),
+	image = "Image/logo.png",
 	position = Vec2.zero,
 	direction = 45.0,
 	speed = 4.0
 }
 
 Entity {
-	sprite = Sprite("Image/logo.png"),
+	image = "Image/logo.png",
 	position = Vec2(-100, 200),
 	direction = 90.0,
 	speed = 10.0
 }
-
-Entity { scene = Node() }
 ```
 
 </TabItem>
@@ -554,22 +551,18 @@ end)
 &emsp;&emsp;接下来，我们还要再创建一些观察器，分别处理其它 "Add" 和 "Remove" 类型的实体变化，并指定要监测的组件为`sprite`。
 
 ```lua
-Observer("Add", {"sprite"}):watch(function(_entity, sprite)
+Observer("Add", {"image"}):watch(function(entity, image)
 	sceneGroup:each(function(e)
-		local scene = e.scene
+		local sprite = Sprite(image)
+		sprite:addTo(e.scene)
 		sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
-		scene:addChild(sprite)
 		return true
 	end)
 end)
 
 Observer("Remove", {"sprite"}):watch(function(entity)
-	sceneGroup:each(function(e)
-		local scene = e.scene
-		local sprite = entity.oldValues.sprite
-		scene:removeChild(sprite)
-		return true
-	end)
+	local sprite = entity.oldValues.sprite
+	sprite:removeFromParent()
 end)
 ```
 
@@ -670,21 +663,21 @@ Observer("AddOrChange", {"position", "direction", "sprite"})
 &emsp;&emsp;最后，我们创建三个实体，并为它们添加不同的组件。这时游戏系统将开始正式运行。
 
 ```lua
+Entity { scene = Node() }
+
 Entity {
-	sprite = Sprite("Image/logo.png"),
+	image = "Image/logo.png",
 	position = Vec2.zero,
 	direction = 45.0,
 	speed = 4.0
 }
 
 Entity {
-	sprite = Sprite("Image/logo.png"),
+	image = "Image/logo.png",
 	position = Vec2(-100, 200),
 	direction = 90.0,
 	speed = 10.0
 }
-
-Entity { scene = Node() }
 ```
 
 </TabItem>
