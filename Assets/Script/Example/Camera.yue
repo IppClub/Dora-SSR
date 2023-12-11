@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dorothy!
 
 with Node!
 	\addChild with Model "Model/xiaoli.model"
@@ -32,9 +32,9 @@ windowFlags =
 	* "NoMove"
 threadLoop ->
 	const :width = App.visualSize
-	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-	Begin "Camera", windowFlags, ->
-		Text "Camera"
-		Separator!
-		TextWrapped "View camera motions, use 3D camera as default!"
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	ImGui.Begin "Camera", windowFlags, ->
+		ImGui.Text "Camera"
+		ImGui.Separator!
+		ImGui.TextWrapped "View camera motions, use 3D camera as default!"

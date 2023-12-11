@@ -33,12 +33,14 @@ Observer("Add", { "scene" }):watch(function(_entity: Entity.Type, scene: Node.Ty
 	end)
 end)
 
-Observer("Add", { "sprite" }):watch(function(_self: Entity.Type, sprite: Sprite.Type)
+Observer("Add", { "image" }):watch(function(self: Entity.Type, image: string)
 	sceneGroup:each(function(e: Entity.Type): boolean
 		local scene = toNode(e.scene)
 		if not scene is nil then
+			local sprite = Sprite(image)
 			sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
 			scene:addChild(sprite)
+			self.sprite = sprite
 			return true
 		end
 		return false
@@ -92,15 +94,17 @@ Observer("AddOrChange", { "position", "direction", "sprite" }):watch(
 end)
 
 local record EntityDef
-	sprite: Sprite.Type
+	image: string
 	position: Vec2.Type
 	direction: number
 	speed: number
 end
 
+Entity { scene = Node() }
+
 do
 	local def <total>: EntityDef = {
-		sprite = Sprite("Image/logo.png"),
+		image = "Image/logo.png",
 		position = Vec2.zero,
 		direction = 45.0,
 		speed = 4.0
@@ -110,15 +114,13 @@ end
 
 do
 	local def <total>: EntityDef = {
-		sprite = Sprite("Image/logo.png"),
+		image = "Image/logo.png",
 		position = Vec2(-100, 200),
 		direction = 90.0,
 		speed = 10.0
 	}
 	Entity(def)
 end
-
-Entity { scene = Node() }
 
 -- example codes ends here, some test ui below --
 
@@ -146,12 +148,13 @@ Observer("Add", { "scene" }):watch(function(entity: Entity.Type)
 				ImGui.Separator()
 				ImGui.TextWrapped("Tap any place to move entities.")
 				if ImGui.Button("Create Random Entity") then
-					Entity {
-						sprite = Sprite("Image/logo.png"),
+					local def <total>: EntityDef = {
+						image = "Image/logo.png",
 						position = Vec2(6 * math.random(1, 100), 6 * math.random(1, 100)),
 						direction = 1.0 * math.random(0, 360),
 						speed = 1.0 * math.random(1, 20)
 					}
+					Entity(def)
 				end
 				if ImGui.Button("Destroy An Entity") then
 					Group({ "sprite", "position" }):each(function(e: Entity.Type): boolean

@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dorothy!
 
 modelFile = "Model/xiaoli.model"
 
@@ -20,23 +20,23 @@ loop = true
 windowFlags = {"NoResize","NoSavedSettings"}
 threadLoop ->
 	const :width = App.visualSize
-	SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
-	SetNextWindowSize Vec2(240,325), "FirstUseEver"
-	Begin "Model", windowFlags, ->
-		if changed, currentLook := Combo "Look", currentLook, looks
+	ImGui.SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
+	ImGui.SetNextWindowSize Vec2(240,325), "FirstUseEver"
+	ImGui.Begin "Model", windowFlags, ->
+		if changed, currentLook := ImGui.Combo "Look", currentLook, looks
 			model.look = looks[currentLook]
-		if changed, currentAnim := Combo "Anim", currentAnim, animations
+		if changed, currentAnim := ImGui.Combo "Anim", currentAnim, animations
 			model\play animations[currentAnim], loop
-		if changed, loop := Checkbox "Loop", loop
+		if changed, loop := ImGui.Checkbox "Loop", loop
 			model\play animations[currentAnim], loop
-		SameLine!
-		if changed, model.reversed := Checkbox "Reversed", model.reversed
+		ImGui.SameLine!
+		if changed, model.reversed := ImGui.Checkbox "Reversed", model.reversed
 			model\play animations[currentAnim], loop
-		PushItemWidth -70, ->
-			_, model.speed = DragFloat "Speed", model.speed, 0.01, 0, 10, "%.2f"
-			_, model.recovery = DragFloat "Recovery", model.recovery, 0.01, 0, 10, "%.2f"
+		ImGui.PushItemWidth -70, ->
+			_, model.speed = ImGui.DragFloat "Speed", model.speed, 0.01, 0, 10, "%.2f"
+			_, model.recovery = ImGui.DragFloat "Recovery", model.recovery, 0.01, 0, 10, "%.2f"
 		scale = model.scaleX
-		_, scale = DragFloat "Scale", scale, 0.01, 0.5, 2, "%.2f"
+		_, scale = ImGui.DragFloat "Scale", scale, 0.01, 0.5, 2, "%.2f"
 		model.scaleX, model.scaleY = scale, scale
-		if Button "Play", Vec2 140, 30
+		if ImGui.Button "Play", Vec2 140, 30
 			model\play animations[currentAnim], loop

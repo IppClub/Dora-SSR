@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dorothy!
 
 texture = nvg.GetDorothySSRWhite!
 sprite = Sprite texture
@@ -31,10 +31,10 @@ windowFlags =
 	* "NoMove"
 threadLoop ->
 	const :width = App.visualSize
-	SetNextWindowBgAlpha 0.35
-	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0
-	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-	Begin "Gesture", windowFlags, ->
-		Text "Gesture"
-		Separator!
-		TextWrapped "Interact with multi-touches!"
+	ImGui.SetNextWindowBgAlpha 0.35
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0
+	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	ImGui.Begin "Gesture", windowFlags, ->
+		ImGui.Text "Gesture"
+		ImGui.Separator!
+		ImGui.TextWrapped "Interact with multi-touches!"

@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dorothy!
 
 spineStr = "Spine/dragon-ess"
 
@@ -40,12 +40,12 @@ windowFlags =
 :showDebug = spine
 threadLoop ->
 	const :width = App.visualSize
-	SetNextWindowBgAlpha 0.35
-	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-	Begin "Spine", windowFlags, ->
-		Text "Spine"
-		Separator!
-		TextWrapped "Basic usage to create spine! Tap it for a hit test."
-		if changed, showDebug := Checkbox "BoundingBox", showDebug
+	ImGui.SetNextWindowBgAlpha 0.35
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	ImGui.Begin "Spine", windowFlags, ->
+		ImGui.Text "Spine"
+		ImGui.Separator!
+		ImGui.TextWrapped "Basic usage to create spine! Tap it for a hit test."
+		if changed, showDebug := ImGui.Checkbox "BoundingBox", showDebug
 			spine.showDebug = showDebug

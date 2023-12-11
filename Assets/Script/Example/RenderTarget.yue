@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dorothy!
 
 node = with Node!
 	.order = 2
@@ -46,10 +46,10 @@ windowFlags =
 	* "NoMove"
 threadLoop ->
 	const :width = App.visualSize
-	SetNextWindowBgAlpha 0.35
-	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-	Begin "Render Target", windowFlags, ->
-		Text "Render Target"
-		Separator!
-		TextWrapped "Use render target node as a mirror!"
+	ImGui.SetNextWindowBgAlpha 0.35
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	ImGui.Begin "Render Target", windowFlags, ->
+		ImGui.Text "Render Target"
+		ImGui.Separator!
+		ImGui.TextWrapped "Use render target node as a mirror!"

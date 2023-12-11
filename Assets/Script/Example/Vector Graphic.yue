@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dorothy!
 
 drawHeart = -> with nvg
 	.BeginPath!
@@ -56,10 +56,10 @@ windowFlags =
 	* "NoMove"
 threadLoop ->
 	const :width = App.visualSize
-	SetNextWindowBgAlpha 0.35
-	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-	Begin "Vector Graphic Rendering", windowFlags, ->
-		Text "Vector Graphic Rendering"
-		Separator!
-		TextWrapped "Use nanoVG lib to do vector graphic rendering, render to a texture or do instant render!"
+	ImGui.SetNextWindowBgAlpha 0.35
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	ImGui.Begin "Vector Graphic Rendering", windowFlags, ->
+		ImGui.Text "Vector Graphic Rendering"
+		ImGui.Separator!
+		ImGui.TextWrapped "Use nanoVG lib to do vector graphic rendering, render to a texture or do instant render!"

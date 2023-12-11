@@ -1,9 +1,9 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dorothy!
 
-sceneGroup = Group {"scene"}
-positionGroup = Group {"position"}
+sceneGroup = Group ["scene",]
+positionGroup = Group ["position",]
 
-with Observer "Add", {"scene"}
+with Observer "Add", ["scene",]
 	\watch (scene)=> with scene
 		.touchEnabled = true
 		\slot "TapEnded", (touch)->
@@ -11,22 +11,22 @@ with Observer "Add", {"scene"}
 			positionGroup\each (entity)->
 				entity.target = location
 
-with Observer "Add", {"sprite"}
-	\watch (sprite)=>
+with Observer "Add", ["image",]
+	\watch (image)=>
 		sceneGroup\each (e)->
-			e.scene\addChild with sprite
+			e.scene\addChild with @sprite = Sprite image
 				\runAction Scale 0.5, 0, 0.5, Ease.OutBack
 
-with Observer "Remove", {"sprite"}
+with Observer "Remove", ["sprite",]
 	\watch =>
 		sceneGroup\each (e)->
 			e.scene\removeChild @oldValues.sprite
 
-with Observer "Remove", {"target"}
+with Observer "Remove", ["target",]
 	\watch =>
 		print "remove target from entity #{@index}"
 
-with Group {"position", "direction", "speed", "target"}
+with Group ["position", "direction", "speed", "target"]
 	\watch (position, direction, speed, target)=>
 		return if target == position
 		dir = target - position
@@ -38,7 +38,7 @@ with Group {"position", "direction", "speed", "target"}
 		@direction = angle
 		@target = nil if newPos == target
 
-with Observer "AddOrChange", {"position", "direction", "sprite"}
+with Observer "AddOrChange", ["position", "direction", "sprite"]
 	\watch (position, direction, sprite)=>
 		sprite.position = position
 		lastDirection = @oldValues.direction or sprite.angle
@@ -46,49 +46,48 @@ with Observer "AddOrChange", {"position", "direction", "sprite"}
 			sprite\runAction Roll 0.3, lastDirection, direction
 
 Entity
-	sprite: Sprite "Image/logo.png"
+	scene: Node!
+
+Entity
+	image: "Image/logo.png"
 	position: Vec2.zero
 	direction: 45.0
 	speed: 4.0
 
 Entity
-	sprite: Sprite "Image/logo.png"
+	image: "Image/logo.png"
 	position: Vec2 -100, 200
 	direction: 90.0
 	speed: 10.0
 
-Entity
-	scene: Node!
-
 -- example codes ends here, some test ui below --
 
-with Observer "Add", {"scene"}
-	windowFlags =
-		* "NoDecoration"
-		* "AlwaysAutoResize"
-		* "NoSavedSettings"
-		* "NoFocusOnAppearing"
-		* "NoNav"
-		* "NoMove"
-	\watch (entity)-> entity.scene\schedule ->
-		const :width = App.visualSize
-		SetNextWindowBgAlpha 0.35
-		SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-		SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-		Begin "ECS System", windowFlags, ->
-			Text "ECS System"
-			Separator!
-			TextWrapped "Tap any place to move entities."
-			if Button "Create Random Entity"
-				Entity
-					sprite: Sprite "Image/logo.png"
-					position: Vec2 6 * math.random(1, 100), 6 * math.random(1, 100)
-					direction: 1.0 * math.random 0, 360
-					speed: 1.0 * math.random 1, 20
-			if Button "Destroy An Entity"
-				Group({"sprite", "position"})\each (entity)->
-					entity.position = nil
-					with entity.sprite
-						\runAction Sequence Scale(0.5, 0.5, 0, Ease.InBack), Event("Destroy")
-						\slot "Destroy", -> entity\destroy!
-					true
+windowFlags =
+	* "NoDecoration"
+	* "AlwaysAutoResize"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+threadLoop ->
+	const :width = App.visualSize
+	ImGui.SetNextWindowBgAlpha 0.35
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	ImGui.Begin "ECS System", windowFlags, ->
+		ImGui.Text "ECS System"
+		ImGui.Separator!
+		ImGui.TextWrapped "Tap any place to move entities."
+		if ImGui.Button "Create Random Entity"
+			Entity
+				image: "Image/logo.png"
+				position: Vec2 6 * math.random(1, 100), 6 * math.random 1, 100
+				direction: 1.0 * math.random 0, 360
+				speed: 1.0 * math.random 1, 20
+		if ImGui.Button "Destroy An Entity"
+			Group(["sprite", "position"])\each (entity)->
+				entity.position = nil
+				with entity.sprite
+					\runAction Sequence Scale(0.5, 0.5, 0, Ease.InBack), Event "Destroy"
+					\slot "Destroy", -> entity\destroy!
+				true

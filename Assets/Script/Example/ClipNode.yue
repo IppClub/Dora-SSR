@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dorothy!
 
 StarVertices = (radius, line = false)->
 	a = math.rad 36
@@ -74,16 +74,16 @@ windowFlags =
 	* "NoMove"
 threadLoop ->
 	const :width = App.visualSize
-	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
-	SetNextWindowSize Vec2(240, 0), "FirstUseEver"
-	Begin "Clip Node", windowFlags, ->
-		Text "Clip Node"
-		Separator!
-		TextWrapped "Render children nodes with mask!"
-		if changed, inverted := Checkbox "Inverted", inverted
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	ImGui.Begin "Clip Node", windowFlags, ->
+		ImGui.Text "Clip Node"
+		ImGui.Separator!
+		ImGui.TextWrapped "Render children nodes with mask!"
+		if changed, inverted := ImGui.Checkbox "Inverted", inverted
 			clipNodeA.inverted = inverted
 			clipNodeB.inverted = inverted
 			frame.visible = not inverted
-		if changed, withAlphaThreshold := Checkbox "With alphaThreshold", withAlphaThreshold
+		if changed, withAlphaThreshold := ImGui.Checkbox "With alphaThreshold", withAlphaThreshold
 			exampleB.visible = withAlphaThreshold
 			exampleA.visible = not withAlphaThreshold
