@@ -9,7 +9,7 @@ import "UI.Control.StartPanel"
 store:Store = Data
 :GroupPlayer = Store
 
-playerGroup = Group {"hero", "unit"}
+playerGroup = Group ["hero", "unit"]
 updatePlayerControl = (key,flag)->
 	playerGroup\each => @unit.data[key] = flag if @group == GroupPlayer
 

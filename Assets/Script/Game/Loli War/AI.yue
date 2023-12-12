@@ -10,31 +10,31 @@ store:Store = Data
 	:GroupEnemyPoke
 } = Store
 
-heroes = Group {"hero"}
+heroes = Group ["hero",]
 
-gameEndWait = Seq {
+gameEndWait = Seq [
 	Con "game end", => Store.winner?
-	Sel {
-		Seq {
+	Sel [
+		Seq [
 			Con "need wait", => @onSurface and not @isDoing "wait"
 			Act "cancel"
 			Act "wait"
-		}
+		]
 		Accept!
-	}
-}
+	]
+]
 
-Store["PlayerControlAI"] = Sel {
-	Seq {
+Store["PlayerControlAI"] = Sel [
+	Seq [
 		Con "is dead", => @entity.hp <= 0
 		Accept!
-	}
-	Seq {
+	]
+	Seq [
 		Con "pushing switch", => @isDoing "pushSwitch"
 		Accept!
-	}
-	Seq {
-		Seq {
+	]
+	Seq [
+		Seq [
 			Con "move key down", =>
 				not (@data.keyLeft and @data.keyRight) and
 				(
@@ -42,52 +42,52 @@ Store["PlayerControlAI"] = Sel {
 					(@data.keyRight and not @faceRight)
 				)
 			Act "turn"
-		}
+		]
 		Reject!
-	}
-	Seq {
+	]
+	Seq [
 		Con "attack key down", => Store.winner == nil and @data.keyF
-		Sel {
-			Seq {
+		Sel [
+			Seq [
 				Con "at switch", =>
 					theSwitch = @data.atSwitch
 					theSwitch? and not theSwitch.data.pushed and
 					((@x < theSwitch.x) == @faceRight)
 				Act "pushSwitch"
-			}
+			]
 			Act "villyAttack"
 			Act "meleeAttack"
 			Act "rangeAttack"
-		}
-	}
-	Sel {
-		Seq {
+		]
+	]
+	Sel [
+		Seq [
 			Con "is falling", => not @onSurface
 			Act "fallOff"
-		}
-		Seq {
+		]
+		Seq [
 			Con "jump key down", => @data.keyUp
 			Act "jump"
-		}
-	}
-	Seq {
+		]
+	]
+	Seq [
 		Con "move key down", => @data.keyLeft or @data.keyRight
 		Act "walk"
-	}
+	]
 	Act "idle"
-}
+]
 
-Store["HeroAI"] = Sel {
-	Seq {
+Store["HeroAI"] = Sel [
+	Seq [
 		Con "is dead", => @entity.hp <= 0
 		Accept!
-	}
-	Seq {
+	]
+	Seq [
 		Con "is falling", => not @onSurface
 		Act "fallOff"
-	}
+	]
 	gameEndWait
-	Seq {
+	Seq [
 		Con "need attack", =>
 			attackUnits = AI\getUnitsInAttackRange!
 			for unit in *attackUnits
@@ -95,51 +95,51 @@ Store["HeroAI"] = Sel {
 					(@x < unit.x) == @faceRight
 					return true
 			false
-		Sel {
+		Sel [
 			Act "villyAttack"
 			Act "rangeAttack"
 			Act "meleeAttack"
-		}
-	}
-	Seq {
+		]
+	]
+	Seq [
 		Con "not facing enemy", => heroes\each (hero)->
 			:unit = hero
 			if Data\isEnemy unit,@
 				if (@x > unit.x) == @faceRight
 					return true
 		Act "turn"
-	}
-	Seq {
+	]
+	Seq [
 		Con "need turn", =>
 			(@x < 100 and not @faceRight) or (@x > 3990 and @faceRight)
 		Act "turn"
-	}
-	Seq {
+	]
+	Seq [
 		Con "wanna jump", => App.rand % 20 == 0
 		Act "jump"
-	}
-	Seq {
+	]
+	Seq [
 		Con "is at enemy side", => heroes\each (hero)->
 			:unit = hero
 			if Data\isEnemy unit,@
 				if math.abs(@x - unit.x) < 50
 					return true
 		Act "idle"
-	}
+	]
 	Act "walk"
-}
+]
 
-Store["BunnyForwardReturnAI"] = Sel {
-	Seq {
+Store["BunnyForwardReturnAI"] = Sel [
+	Seq [
 		Con "is dead", => @entity.hp <= 0
 		Accept!
-	}
-	Seq {
+	]
+	Seq [
 		Con "is falling", => not @onSurface
 		Act "fallOff"
-	}
+	]
 	gameEndWait
-	Seq {
+	Seq [
 		Con "need attack", =>
 			attackUnits = AI\getUnitsInAttackRange!
 			for unit in *attackUnits
@@ -148,42 +148,42 @@ Store["BunnyForwardReturnAI"] = Sel {
 					return App.rand % 5 ~= 0
 			false
 		Act "meleeAttack"
-	}
-	Seq {
+	]
+	Seq [
 		Con "need turn", =>
 			(@x < 100 and not @faceRight) or (@x > 3990 and @faceRight)
 		Act "turn"
-	}
+	]
 	Act "walk"
-}
+]
 
-Store["SwitchAI"] = Sel {
-	Seq {
+Store["SwitchAI"] = Sel [
+	Seq [
 		Con "is pushed", => @data.pushed
 		Act "pushed"
-	}
+	]
 	Act "waitUser"
-}
+]
 
-switches = Group {"switch"}
-turnToSwitch = Seq {
+switches = Group ["switch",]
+turnToSwitch = Seq [
 	Con "go to switch", => switches\each (item)->
 		if item.group == @group and @entity and @entity.targetSwitch == item.switch
 			return (@x > item.unit.x) == @faceRight
 	Act "turn"
 	Reject!
-}
-Store["BunnySwitcherAI"] = Sel {
-	Seq {
+]
+Store["BunnySwitcherAI"] = Sel [
+	Seq [
 		Con "is dead", => @entity.hp <= 0
 		Accept!
-	}
-	Seq {
+	]
+	Seq [
 		Con "is falling", => not @onSurface
 		Act "fallOff"
-	}
+	]
 	gameEndWait
-	Seq {
+	Seq [
 		Con "need attack", =>
 			attackUnits = AI\getUnitsInAttackRange!
 			for unit in *attackUnits
@@ -192,18 +192,18 @@ Store["BunnySwitcherAI"] = Sel {
 					return App.rand % 5 ~= 0
 			false
 		Act "meleeAttack"
-	}
-	Seq {
+	]
+	Seq [
 		Con "at switch", => with @data
 			return .atSwitch? and .atSwitch.entity.switch == @entity.targetSwitch
-		Sel {
-			Seq {
+		Sel [
+			Seq [
 				Con "switch available", => heroes\each (hero)->
 					return false if @group ~= hero.group
 					needEP,available = switch @entity.targetSwitch
 						when "Switch"
 							bunnyCount = 0
-							Group({"bunny"})\each (bunny)->
+							Group(["bunny",])\each (bunny)->
 								bunnyCount += 1 if bunny.group == @group
 							1,bunnyCount < MaxBunnies
 						when "SwitchG"
@@ -214,16 +214,16 @@ Store["BunnySwitcherAI"] = Sel {
 							return true
 					false
 				Act "pushSwitch"
-			}
+			]
 			turnToSwitch
 			Act "idle"
-		}
-	}
-	Seq {
+		]
+	]
+	Seq [
 		Con "need turn", =>
 			(@x < 100 and not @faceRight) or (@x > 3990 and @faceRight)
 		Act "turn"
-	}
+	]
 	turnToSwitch
 	Act "walk"
-}
+]

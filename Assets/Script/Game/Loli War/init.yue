@@ -2,7 +2,7 @@ _ENV = Dorothy!
 
 if scriptPath := Path\getScriptPath ...
 	Content\insertSearchPath 1, scriptPath
-	require Path scriptPath, mod for mod in *{
+	require Path scriptPath, mod for mod in *[
 		"Constant"
 		"Bullet"
 		"Unit"
@@ -11,4 +11,4 @@ if scriptPath := Path\getScriptPath ...
 		"Logic"
 		"Control"
 		"Scene"
-	}
+	]

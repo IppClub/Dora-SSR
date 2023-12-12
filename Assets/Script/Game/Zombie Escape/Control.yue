@@ -8,7 +8,7 @@ import "UI.Control.Basic.CircleButton"
 store:Store = Data
 
 Store.controlPlayer = "KidW"
-playerGroup = Group {"player"}
+playerGroup = Group ["player",]
 updatePlayerControl = (key, flag)->
 	if player := playerGroup\find => @unit.tag == Store.controlPlayer
 		player.unit.data[key] = flag

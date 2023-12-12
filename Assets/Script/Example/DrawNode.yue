@@ -33,38 +33,38 @@ with Node!
 		.scaleY = 2
 		\addChild with DrawNode!
 			.opacity = 0.5
-			\drawPolygon {
+			\drawPolygon [
 				Vec2 -20, -10
 				Vec2 20, -10
 				Vec2 20, 10
 				Vec2 -20, 10
-			}
-			\drawPolygon {
+			]
+			\drawPolygon [
 				Vec2 20, 3
 				Vec2 32, 10
 				Vec2 32, -10
 				Vec2 20, -3
-			}
+			]
 			\drawDot Vec2(-11, 20), 10
 			\drawDot Vec2(11, 20), 10
-		\addChild with Line {
+		\addChild with Line [
 				Vec2 0, 0
 				Vec2 40, 0
 				Vec2 40, 20
 				Vec2 0, 20
 				Vec2 0, 0
-			}
+			]
 			.position = Vec2 -20, -10
 		\addChild with Line CircleVertices 10
 			.position = Vec2 -21, 10
 		\addChild with Line CircleVertices 10
 			.position = Vec2 1, 10
-		\addChild Line {
+		\addChild Line [
 			Vec2 20, 3
 			Vec2 32, 10
 			Vec2 32, -10
 			Vec2 20, -3
-		}
+		]
 
 -- example codes ends here, some test ui below --
 

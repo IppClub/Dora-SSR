@@ -29,7 +29,7 @@ getSearchFolders = (file)->
 		return
 			* Path dir, "Script"
 			* dir
-	{}
+	[]
 
 disabledCheckForLua =
 	* "incompatible number of returns"
@@ -91,7 +91,7 @@ luaCheck = (file, content)->
 
 luaCheckWithLineInfo = (file, luaCodes)->
 	res = luaCheck file, luaCodes
-	info = {}
+	info = []
 	if not res.success
 		current = 1
 		lastLine = 1
@@ -183,7 +183,7 @@ updateInferedDesc = (infered)->
 			if result := lineCode\match "%s*%-%- (.+)"
 				comments[] = result unless skipping
 			elseif #comments > 0
-				comments = {}
+				comments = []
 				skipping = false
 		infered.doc = table.concat comments, "\n"
 

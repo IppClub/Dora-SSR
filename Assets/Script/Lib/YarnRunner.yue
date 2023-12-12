@@ -41,9 +41,9 @@ export default class YarnRunner
 			@funcs[title] = storyFunc
 		visitedCount = @visited[title] ?? 0
 		@visited[title] = 1 + visitedCount
-		@stories[] = {title, coroutine.create ->
+		@stories[] = [title, coroutine.create ->
 			storyFunc title, @state, @command, @yarn, @\gotoStory
-		}
+		]
 		true
 
 	new: (filename, startTitle, state = {}, command = {}, testing = false)=>
@@ -60,7 +60,7 @@ export default class YarnRunner
 			...command
 		}
 		@command.<> = command.<>
-		@stories = {}
+		@stories = []
 		@visited = {}
 		@yarn = {
 			dice: (num)-> math.random num
@@ -100,15 +100,15 @@ export default class YarnRunner
 				return "Error", "choice #{choice} is out of range"
 			optionBranch = branches[choice]
 			@option = nil
-			@stories[] = {title, coroutine.create optionBranch}
+			@stories[] = [title, coroutine.create optionBranch]
 		elseif @option
 			return "Error", "required a choice to continue"
 		local title
 		success, resultType, body, branches = if storyItem := @stories[#@stories]
-			{title, story} = storyItem
+			[title, story] = storyItem
 			coroutine.resume story
 		if not success and #@stories > 0
-			@stories = {}
+			@stories = []
 			err = rewriteError resultType, @codes[title], title
 			return "Error", err
 		unless resultType
@@ -126,7 +126,7 @@ export default class YarnRunner
 			when "Command"
 				"Command", body
 			when "Error", "Stop"
-				@stories = {}
+				@stories = []
 				"Error", body
 			else
 				nil, "end of the story"

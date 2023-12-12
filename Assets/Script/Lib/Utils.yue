@@ -12,7 +12,7 @@ StructUpdated = =>
 			rawset @, "__update", nil
 StructToString = =>
 	structDef = getmetatable @
-	content = {}
+	content = []
 	ordered = true
 	count = if #structDef == 0 then #@ else #structDef + 1
 	for i = 1, count
@@ -23,9 +23,9 @@ StructToString = =>
 		else
 			value = (type(value) == 'string' and "\"#{value}\"" or tostring value)
 			if ordered
-				insert content, value
+				content[] = value
 			else
-				insert content, "[#{i}]=#{value}"
+				content[] = "[#{i}]=#{value}"
 	"{" .. (concat content, ',') .. "}"
 StructDefMeta = {
 	set: (index, item)=>
@@ -227,7 +227,7 @@ export Struct = setmetatable {
 		if count > 1
 			name = select 1, ...
 			data = select 2, ...
-			table.insert data, 1, name
+			insert data, 1, name
 			StructLoad data
 			data
 		else
@@ -259,16 +259,16 @@ export Struct = setmetatable {
 export Set = (list)-> {item, true for item in *list}
 
 export CompareTable = (olds, news)->
-	itemsToDel = {}
+	itemsToDel = []
 	itemSet = Set news
 	for item in *olds
 		if not itemSet[item]
-			insert itemsToDel, item
-	itemsToAdd = {}
+			itemsToDel[] = item
+	itemsToAdd = []
 	itemSet = Set olds
 	for item in *news
 		if not itemSet[item]
-			insert itemsToAdd, item
+			itemsToAdd[] = item
 	return itemsToAdd, itemsToDel
 
 export Round = (val)->
@@ -289,8 +289,8 @@ allowedUseOfGlobals = Set
 	* "_G"
 
 export LintYueGlobals = (luaCodes, globals, globalInLocal = true)->
-	errors = {}
-	requireModules = {}
+	errors = []
+	requireModules = []
 	luaCodes = luaCodes\gsub "^local _module_[^\r\n]*[^\r\n]+", ""
 	importCodes = luaCodes\match "^%s*local%s*_ENV%s*=%s*Dorothy%(([^%)]-)%)"
 	importItems = if importCodes
@@ -298,11 +298,11 @@ export LintYueGlobals = (luaCodes, globals, globalInLocal = true)->
 			getImport = load "return #{item}"
 			importItem = getImport?!
 			continue if not importItem or "table" ~= type importItem
-			{importItem, item}
-	else {}
+			[importItem, item]
+	else []
 	importSet = {}
 	for globalVar in *globals
-		{name, line, col} = globalVar
+		[name, line, col] = globalVar
 		continue if allowedUseOfGlobals[name]
 		if _G[name]
 			if globalInLocal
@@ -314,7 +314,7 @@ export LintYueGlobals = (luaCodes, globals, globalInLocal = true)->
 				requireModules[] = "local #{name} = builtin.#{name} -- 1"
 				findModule = true
 			else
-				for i, {mod, modName} in ipairs importItems
+				for i, [mod, modName] in ipairs importItems
 					if mod[name]?
 						moduleName = "_module_#{i - 1}"
 						if not importSet[mod]

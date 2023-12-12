@@ -1,4 +1,4 @@
-<Node Name="entry">
+<Node Name="root">
 	<Action>
 		<Spawn Name="rotate">
 			<Sequence>
@@ -31,7 +31,7 @@
 			* "NoFocusOnAppearing"
 			* "NoNav"
 			* "NoMove"
-		entry\schedule ->
+		root\schedule ->
 			:width = App.visualSize
 			ImGui.SetNextWindowBgAlpha 0.35
 			ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0

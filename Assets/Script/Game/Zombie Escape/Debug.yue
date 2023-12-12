@@ -8,22 +8,22 @@ store:Store = Data
 	:PlayerGroup
 } = Store
 
-playerGroup = Group {"player", "unit"}
-zombieGroup = Group {"zombie", "unit"}
+playerGroup = Group ["player", "unit"]
+zombieGroup = Group ["zombie", "unit"]
 userControl = false
 playerChoice = 1
 controlChoice = switch App.platform
 	when "iOS", "Android" then 0
 	else 1
 camZoom = world.camera.zoom
-decisions = {}
+decisions = []
 showDecisionTrace = false
 lastDecisionTree = ""
 world\schedule ->
 	:width,:height = App.visualSize
 	SetNextWindowPos Vec2(width - 250, 10), "FirstUseEver"
 	SetNextWindowSize Vec2(240, userControl and 500 or 300)
-	Begin "Zombie Game Demo", {"NoResize", "NoSavedSettings"}, ->
+	Begin "Zombie Game Demo", ["NoResize", "NoSavedSettings"], ->
 		TextWrapped "Zombie Killed: #{Store.zombieKilled}"
 		SameLine!
 		if Button "Army"
@@ -153,7 +153,7 @@ world\schedule ->
 		decisionTrace = player.decisionTrace
 		lastDecision = decisions[#decisions]
 		if lastDecision ~= decisionTrace
-			table.insert decisions,decisionTrace
+			decisions[] = decisionTrace
 		table.remove decisions,1 if #decisions > 5
 		lastDecisionTree = target.decisionTree
 
@@ -174,5 +174,5 @@ with Observer "Add", {"group", "unit", "player", "stared"}
 			lineOrder: 2
 		}
 
-with Observer "Add", {"unit", "player"}
+with Observer "Add", ["unit", "player"]
 	\watch (unit)=> unit.receivingDecisionTrace = true

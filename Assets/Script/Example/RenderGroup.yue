@@ -12,22 +12,22 @@ Item = Class Node,
 			.renderOrder = 1
 
 		@addChild with DrawNode!
-			\drawPolygon {
+			\drawPolygon [
 				Vec2 -60, -60
 				Vec2 60, -60
 				Vec2 60, 60
 				Vec2 -60, 60
-			}, Color App.themeColor\toColor3!, 0x30
+			], Color App.themeColor\toColor3!, 0x30
 			.renderOrder = 2
 			.angle = 45
 
-		@addChild with Line {
+		@addChild with Line [
 				Vec2 -60, -60
 				Vec2 60, -60
 				Vec2 60, 60
 				Vec2 -60, 60
 				Vec2 -60, -60
-			}, Color 0xffff0080
+			], Color 0xffff0080
 			.renderOrder = 3
 			.angle = 45
 

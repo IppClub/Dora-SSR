@@ -23,13 +23,13 @@ surface = with Sprite renderTarget.texture
 	.order = 1
 	.z = 300
 	.angleY = 25
-	\addChild Line {
+	\addChild Line [
 		Vec2.zero
 		Vec2 300, 0
 		Vec2 300, 400
 		Vec2 0, 400
 		Vec2.zero
-	}, App.themeColor
+	], App.themeColor
 	\schedule ->
 		node.y = 200
 		renderTarget\renderWithClear node, Color 0xff8a8a8a

@@ -22,13 +22,13 @@ terrainDef = with BodyDef!
 terrain = with Body terrainDef, world
 	\addTo world
 
-drawNode = with Line {
+drawNode = with Line [
 		Vec2 -20, 0
 		Vec2 20, 0
 		Vec2.zero
 		Vec2 0, -20
 		Vec2 0, 20
-	}, App.themeColor
+	], App.themeColor
 	\addTo world
 
 diskDef = with BodyDef!
