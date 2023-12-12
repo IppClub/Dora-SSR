@@ -75,19 +75,19 @@ GameWorld = Class PlatformWorld,
 						\start!
 				\removeFromParent!
 
-		for item in *{
-				{"war",Vec2(pos.x-512+369,1004-413-200)}
-				{"use",Vec2(pos.x-512+459,1004-575-200)}
-				{"key",Vec2(pos.x-512+521,1004-499-200)}
-				{"loli",Vec2(pos.x-512+655,1004-423-200)}
-				{"select",Vec2(pos.x-512+709,1004-509-200)}
-				{"mosic",Vec2(pos.x-512+599,1004-339-200)}
-				{"breakblocks",Vec2(pos.x-512+578,1004-626-200)}
-				{"search",Vec2(pos.x-512+746,1004-604-200)}
-				{"quit",Vec2(pos.x-512+363,1004-566-200)}
-				{"pushSwitch",Vec2(pos.x-512+494,1004-631-200)}
-				{"attack",Vec2(pos.x-512+630,1004-631-200)}
-			}
+		for item in *[
+				["war",Vec2(pos.x-512+369,1004-413-200)]
+				["use",Vec2(pos.x-512+459,1004-575-200)]
+				["key",Vec2(pos.x-512+521,1004-499-200)]
+				["loli",Vec2(pos.x-512+655,1004-423-200)]
+				["select",Vec2(pos.x-512+709,1004-509-200)]
+				["mosic",Vec2(pos.x-512+599,1004-339-200)]
+				["breakblocks",Vec2(pos.x-512+578,1004-626-200)]
+				["search",Vec2(pos.x-512+746,1004-604-200)]
+				["quit",Vec2(pos.x-512+363,1004-566-200)]
+				["pushSwitch",Vec2(pos.x-512+494,1004-631-200)]
+				["attack",Vec2(pos.x-512+630,1004-631-200)]
+			]
 			sp = with Sprite "Model/misc.clip|#{item[1]}"
 				.scaleX = 2
 				.scaleY = 2
@@ -169,7 +169,7 @@ GameWorld = Class PlatformWorld,
 
 		playerBlockHP = 0
 		enemyBlockHP = 0
-		with Group {"block"}
+		with Group ["block",]
 			\each => switch @group
 				when GroupPlayerBlock
 					playerBlockHP += Store[@block].hp
@@ -195,7 +195,7 @@ GameWorld = Class PlatformWorld,
 	addBunnySwither: (group)=>
 		switchGExist = false
 		switchNExist = false
-		bunnySwitchers = Group {"bunny","targetSwitch"}
+		bunnySwitchers = Group ["bunny","targetSwitch"]
 		bunnySwitchers\each (switcher)->
 			if switcher.group == group
 				switch switcher.targetSwitch

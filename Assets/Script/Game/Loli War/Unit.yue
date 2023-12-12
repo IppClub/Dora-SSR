@@ -40,7 +40,7 @@ Store["Flandre"] = with Dictionary!
 	.sndFallen = ""
 	.decisionTree = ""
 	.usePreciseHit = true
-	.actions = Array {
+	.actions = Array [
 		"walk"
 		"turn"
 		"meleeAttack"
@@ -53,7 +53,7 @@ Store["Flandre"] = with Dictionary!
 		"pushSwitch"
 		"strike"
 		"wait"
-	}
+	]
 
 Store["Dorothy"] = with Dictionary!
 	.linearAcceleration = Vec2 0,-10
@@ -93,7 +93,7 @@ Store["Dorothy"] = with Dictionary!
 	.sndFallen = ""
 	.decisionTree = "HeroAI"
 	.usePreciseHit = true
-	.actions = Array {
+	.actions = Array [
 		"walk"
 		"turn"
 		"rangeAttack"
@@ -106,7 +106,7 @@ Store["Dorothy"] = with Dictionary!
 		"pushSwitch"
 		"strike"
 		"wait"
-	}
+	]
 
 Store["Villy"] = with Dictionary!
 	.linearAcceleration = Vec2 0,-10
@@ -146,7 +146,7 @@ Store["Villy"] = with Dictionary!
 	.sndFallen = ""
 	.decisionTree = ""
 	.usePreciseHit = true
-	.actions = Array {
+	.actions = Array [
 		"walk"
 		"turn"
 		"villyAttack"
@@ -159,7 +159,7 @@ Store["Villy"] = with Dictionary!
 		"pushSwitch"
 		"strike"
 		"wait"
-	}
+	]
 
 Store["BunnyP"] = with Dictionary!
 	.linearAcceleration = Vec2 0,-10
@@ -199,7 +199,7 @@ Store["BunnyP"] = with Dictionary!
 	.sndFallen = ""
 	.decisionTree = ""
 	.usePreciseHit = true
-	.actions = Array {
+	.actions = Array [
 		"walk"
 		"turn"
 		"meleeAttack"
@@ -212,7 +212,7 @@ Store["BunnyP"] = with Dictionary!
 		"pushSwitch"
 		"strike"
 		"wait"
-	}
+	]
 
 Store["BunnyG"] = with Dictionary!
 	.linearAcceleration = Vec2 0,-10
@@ -252,7 +252,7 @@ Store["BunnyG"] = with Dictionary!
 	.sndFallen = ""
 	.decisionTree = ""
 	.usePreciseHit = true
-	.actions = Array {
+	.actions = Array [
 		"walk"
 		"turn"
 		"meleeAttack"
@@ -265,7 +265,7 @@ Store["BunnyG"] = with Dictionary!
 		"pushSwitch"
 		"strike"
 		"wait"
-	}
+	]
 
 Store["BlockA"] = with Dictionary!
 	.scale = 2
@@ -277,9 +277,9 @@ Store["BlockA"] = with Dictionary!
 	.tag = "Block"
 	.hp = 2.0
 	.hitEffect = "Particle/heart.par"
-	.actions = Array {
+	.actions = Array [
 		"hit"
-	}
+	]
 
 Store["BlockB"] = with Dictionary!
 	.scale = 2
@@ -291,9 +291,9 @@ Store["BlockB"] = with Dictionary!
 	.tag = "Block"
 	.hp = 3.0
 	.hitEffect = "Particle/heart.par"
-	.actions = Array {
+	.actions = Array [
 		"hit"
-	}
+	]
 
 Store["BlockC"] = with Dictionary!
 	.scale = 2
@@ -305,9 +305,9 @@ Store["BlockC"] = with Dictionary!
 	.tag = "Block"
 	.hp = 4.0
 	.hitEffect = "Particle/heart.par"
-	.actions = Array {
+	.actions = Array [
 		"hit"
-	}
+	]
 
 Store["Switch"] = with Dictionary!
 	.bodyType = "Static"
@@ -315,10 +315,10 @@ Store["Switch"] = with Dictionary!
 	.attackRange = Size 80,126
 	.tag = "Switch"
 	.decisionTree = "SwitchAI"
-	.actions = Array {
+	.actions = Array [
 		"waitUser"
 		"pushed"
-	}
+	]
 
 Store["SwitchG"] = with Dictionary!
 	.bodyType = "Static"
@@ -326,7 +326,7 @@ Store["SwitchG"] = with Dictionary!
 	.attackRange = Size 80,126
 	.tag = "Switch"
 	.decisionTree = "SwitchAI"
-	.actions = Array {
+	.actions = Array [
 		"waitUser"
 		"pushed"
-	}
+	]

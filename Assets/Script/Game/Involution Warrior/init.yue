@@ -13,7 +13,7 @@ themeColor = App.themeColor
 
 -- settings
 
-mutables = {
+mutables = [
 	"hp"
 	"moveSpeed"
 	"move"
@@ -27,7 +27,7 @@ mutables = {
 	"attackFactor"
 	"attackTarget"
 	"defenceType"
-}
+]
 
 elementTypes =
 	Green: 1
@@ -74,7 +74,7 @@ characterColors =
 	* "Red"
 	* "Yellow"
 
-masks = {
+masks = [
 	"bear"
 	"buffalo"
 	"chick"
@@ -105,7 +105,7 @@ masks = {
 	"walrus"
 	"whale"
 	"zebra"
-}
+]
 
 itemSettings =
 	item_hat:
@@ -174,24 +174,24 @@ size,grid = 1500,150
 
 background = -> with DrawNode!
 	.depthWrite = true
-	\drawPolygon {
+	\drawPolygon [
 		Vec2 -size,size
 		Vec2 size,size
 		Vec2 size,-size
 		Vec2 -size,-size
-	}, Color 0xff888888
+	], Color 0xff888888
 	\addChild with Line!
 		.depthWrite = true
 		.z = -10
 		for i = -size/grid,size/grid
-			\add {
+			\add [
 				Vec2 i*grid,size
 				Vec2 i*grid,-size
-			}, Color 0xff000000
-			\add {
+			], Color 0xff000000
+			\add [
 				Vec2 -size,i*grid
 				Vec2 size,i*grid
-			}, Color 0xff000000
+			], Color 0xff000000
 
 with background!
 	.z = 600
@@ -210,12 +210,12 @@ EnemyGroup = 2
 Data\setRelation PlayerGroup, EnemyGroup, "Enemy"
 Data\setShouldContact PlayerGroup, EnemyGroup, true
 
-unitGroup = Group {"unit"}
+unitGroup = Group ["unit",]
 
 world = with PlatformWorld!
 	\schedule ->
 		origin = Vec2.zero
-		locs = {origin}
+		locs = [origin,]
 		unitGroup\each => table.insert locs, @unit.position
 		dist = 0
 		for loc in *locs
@@ -501,7 +501,7 @@ GetBoss = (entity, pos, black)->
 		.sndFallen = ""
 		.decisionTree = "AI_Boss"
 		.usePreciseHit = true
-		.actions = Array {
+		.actions = Array [
 			"walk"
 			"turn"
 			"meleeAttack"
@@ -512,7 +512,7 @@ GetBoss = (entity, pos, black)->
 			"jump"
 			"fall"
 			"fallOff"
-		}
+		]
 	for var in *mutables
 		entity[var] = unitDef[var]
 	with Unit unitDef,world,entity,pos
@@ -543,7 +543,7 @@ GetUnit = (entity, pos, black)->
 		if skill := itemSettings[v].skill
 			entity["#{skill}Skill"] = true
 			skill
-	actions = Array {
+	actions = Array [
 		"walk"
 		"turn"
 		"idle"
@@ -551,7 +551,7 @@ GetUnit = (entity, pos, black)->
 		"hit"
 		"fall"
 		"fallOff"
-	}
+	]
 	for k in pairs skills
 		actions\add k
 	unitDef = with Dictionary!
@@ -610,20 +610,20 @@ GetUnit = (entity, pos, black)->
 
 -- AI
 
-Store["AI_Common"] = Sel {
-	Seq {
+Store["AI_Common"] = Sel [
+	Seq [
 		Con "is dead", => @entity.hp <= 0
 		Accept!
-	}
-	Seq {
+	]
+	Seq [
 		Con "is falling", => not @onSurface
 		Act "fallOff"
-	}
-	Seq {
+	]
+	Seq [
 		Con "game paused", -> GamePaused
 		Act "idle"
-	}
-	Seq {
+	]
+	Seq [
 		Con "is not attacking", =>
 			not @isDoing("melee") and
 			not @isDoing("range")
@@ -634,22 +634,22 @@ Store["AI_Common"] = Sel {
 					(@x < unit.x) == @faceRight
 					return true
 			false
-		Sel {
-			Seq {
+		Sel [
+			Seq [
 				Con "attack", => App.rand % 10 == 0
-				Sel {
+				Sel [
 					Act "meleeAttack"
 					Act "range"
-				}
-			}
+				]
+			]
 			Act "idle"
-		}
-	}
-	Seq {
+		]
+	]
+	Seq [
 		Con "rush or evade", =>
 			not @isDoing("rush") and not @isDoing("evade") and App.rand % 300 == 0
-		Sel {
-			Seq {
+		Sel [
+			Seq [
 				Con "too far away", =>
 					if @entity.rushSkill
 						units = AI\getDetectedUnits!
@@ -659,8 +659,8 @@ Store["AI_Common"] = Sel {
 								return true
 					false
 				Act "rush"
-			}
-			Seq {
+			]
+			Seq [
 				Con "too close", =>
 					if @entity.evadeSkill
 						units = AI\getDetectedUnits!
@@ -670,32 +670,31 @@ Store["AI_Common"] = Sel {
 								return true
 					false
 				Act "evade"
-			}
-		}
-	}
-	Seq {
+			]
+		]
+	]
+	Seq [
 		Con "need turn", =>
 			(@x < -750 and not @faceRight) or (@x > 750 and @faceRight)
 		Act "turn"
-	}
+	]
 	Act "walk"
-}
+]
 
-
-Store["AI_Boss"] = Sel {
-	Seq {
+Store["AI_Boss"] = Sel [
+	Seq [
 		Con "is dead", => @entity.hp <= 0
 		Accept!
-	}
-	Seq {
+	]
+	Seq [
 		Con "is falling", => not @onSurface
 		Act "fallOff"
-	}
-	Seq {
+	]
+	Seq [
 		Con "game paused", -> GamePaused
 		Act "idle"
-	}
-	Seq {
+	]
+	Seq [
 		Con "is not attacking", =>
 			not @isDoing("meleeAttack") and
 			not @isDoing("multiArrow") and
@@ -707,31 +706,31 @@ Store["AI_Boss"] = Sel {
 					(@x < unit.x) == @faceRight
 					return true
 			false
-		Sel {
-			Seq {
+		Sel [
+			Seq [
 				Con "melee attack", => App.rand % 40 == 0
 				Act "meleeAttack"
-			}
-			Seq {
+			]
+			Seq [
 				Con "multi Arrow", => App.rand % 40 == 0
 				Act "multiArrow"
-			}
-			Seq {
+			]
+			Seq [
 				Con "spear attack", => App.rand % 40 == 0
 				Act "spearAttack"
-			}
+			]
 			Act "idle"
-		}
-	}
-	Seq {
+		]
+	]
+	Seq [
 		Con "need turn", =>
 			(@x < -750 and not @faceRight) or (@x > 750 and @faceRight)
 		Act "turn"
-	}
+	]
 	Act "walk"
-}
+]
 
-with Observer "Add", {"position","order","group","faceRight"}
+with Observer "Add", ["position","order","group","faceRight"]
 	\watch (position,order,group,faceRight)=>
 		:world = Store
 		@player = true if group == PlayerGroup
@@ -746,7 +745,7 @@ with Observer "Add", {"position","order","group","faceRight"}
 			.faceRight = faceRight
 			\addTo world
 
-with Observer "Change", {"hp","unit"}
+with Observer "Change", ["hp","unit"]
 	\watch (hp,unit)=>
 		:boss = @
 		hp:lastHp = @oldValues
@@ -780,9 +779,9 @@ with Observer "Change", {"hp","unit"}
 				unit\schedule once =>
 					sleep 3
 					unit\removeFromParent!
-					if not Group({"unit"})\each => @group == PlayerGroup
+					if not Group(["unit",])\each => @group == PlayerGroup
 						emit "Lost"
-					elseif not Group({"unit"})\each => @group == EnemyGroup
+					elseif not Group(["unit",])\each => @group == EnemyGroup
 						emit "Win"
 
 WaitForSignal = (text,duration)->
@@ -892,7 +891,7 @@ Director.ui\addChild with AlignNode isRoot:true
 				emit "Start"
 		\gslot "Win", ->
 			\schedule once ->
-				score = 5*Group({"player"}).count
+				score = 5*Group(["player",]).count
 				emit "AddScore", score
 				Audio\play "Audio/hero_win.wav"
 				WaitForSignal "WIN!", 1.5
@@ -914,7 +913,7 @@ Director.ui\addChild with AlignNode isRoot:true
 				if @text ~= "STRIKE\nBACK"
 					@touchEnabled = true
 					@visible = true
-			Group({"unit"})\each => @unit\removeFromParent!
+			Group(["unit",])\each => @unit\removeFromParent!
 			unitCount = if GameScore < 40
 				1 + math.min(2,math.floor math.max(0,GameScore-20)/5)
 			else
@@ -951,10 +950,10 @@ Director.ui\addChild with AlignNode isRoot:true
 				time = 2
 				cycle time, (dt)->
 					:width,:height = App.visualSize
-					SetNextWindowPos Vec2(width/2-150,height/2+30)
+					SetNextWindowPos Vec2 width/2-150,height/2+30
 					SetNextWindowSize Vec2(300,50), "FirstUseEver"
-					Begin "CountDown", {"NoResize","NoSavedSettings","NoTitleBar","NoMove"}, ->
-						ProgressBar 1.0-dt, Vec2(-1,30), string.format("%.2fs", (1-dt)*time)
+					Begin "CountDown", ["NoResize","NoSavedSettings","NoTitleBar","NoMove"], ->
+						ProgressBar 1.0-dt, Vec2(-1,30), string.format "%.2fs", (1-dt)*time
 				emit "Wasted"
 				return if GameScore == 0
 				Audio\play "Audio/choose.wav"
@@ -963,10 +962,10 @@ Director.ui\addChild with AlignNode isRoot:true
 		\addChild with Node!
 			\schedule ->
 				:width,:height = App.visualSize
-				SetNextWindowPos Vec2(20,20)
+				SetNextWindowPos Vec2 20,20
 				SetNextWindowSize Vec2(120,280), "FirstUseEver"
 				PushStyleVar "ItemSpacing",Vec2.zero, ->
-					Begin "Stats", {"NoResize","NoSavedSettings","NoTitleBar","NoMove"}, ->
+					Begin "Stats", ["NoResize","NoSavedSettings","NoTitleBar","NoMove"], ->
 						Text "VALUE: #{GameScore}"
 						Image "Model/patreon.clip|character_handGreen", Vec2 30,30
 						SameLine!

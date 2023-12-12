@@ -6,8 +6,8 @@ import "Platformer" as Behavior:BT
 
 store:Store = Data
 
-rangeAttack = Sel {
-	Seq {
+rangeAttack = Sel [
+	Seq [
 		Con "attack path blocked", =>
 			sensor = @getSensorByTag Unit.AttackSensorTag
 			if sensor.sensedBodies\each (body)->
@@ -25,12 +25,12 @@ rangeAttack = Sel {
 			else false
 		Act "jump"
 		Reject!
-	}
+	]
 	Act "rangeAttack"
-}
+]
 
-walk = Sel {
-	Seq {
+walk = Sel [
+	Seq [
 		Con "obstacles ahead", =>
 			start = @position
 			stop = Vec2 start.x + (@faceRight and 140 or -140), start.y
@@ -39,30 +39,30 @@ walk = Sel {
 					@data.obstacleDistance = math.abs p.x - start.x
 					true
 				else false
-		Sel {
-			Seq {
+		Sel [
+			Seq [
 				Con "obstacle distance <= 80", => @data.obstacleDistance <= 80
-				Behave "backJump", BT.Seq {
+				Behave "backJump", BT.Seq [
 					BT.Act "turn"
 					BT.Countdown 0.3, BT.Act "walk"
 					BT.Act "turn"
 					BT.Countdown 0.1, BT.Act "walk"
 					BT.Act "jump"
-				}
-			}
-			Seq {
+				]
+			]
+			Seq [
 				Con "has forward speed", => math.abs(@velocityX) > 0
 				Act "jump"
-			}
-		}
-	}
+			]
+		]
+	]
 	Act "walk"
-}
+]
 
-fightDecision = Seq {
+fightDecision = Seq [
 	Con "see enemy", => AI\getNearestUnit("Enemy")?
-	Sel {
-		Seq {
+	Sel [
+		Seq [
 			Con "need evade", =>
 				return false if not @getAction "rangeAttack" or not @onSurface
 				evadeLeftEnemy = false
@@ -81,117 +81,117 @@ fightDecision = Seq {
 				needEvade = not (evadeLeftEnemy == evadeRightEnemy) and math.abs(@x) < 1000
 				@data.evadeRight = evadeRightEnemy if needEvade
 				needEvade
-			Sel {
-				Seq {
+			Sel [
+				Seq [
 					Con "face enemy", => @data.evadeRight == @faceRight
 					Act "turn"
 					walk
-				}
+				]
 				walk
-			}
-		}
-		Seq {
+			]
+		]
+		Seq [
 			Con "not facing nearest enemy", =>
 				enemy = AI\getNearestUnit "Enemy"
 				(@x > enemy.x) == @faceRight
 			Act "turn"
-		}
-		Seq {
+		]
+		Seq [
 			Con "enemy in attack range", =>
 				enemy = AI\getNearestUnit "Enemy"
 				attackUnits = AI\getUnitsInAttackRange!
 				attackUnits and attackUnits\contains(enemy) or false
-			Sel {
+			Sel [
 				rangeAttack
 				Act "meleeAttack"
-			}
-		}
-		Seq {
+			]
+		]
+		Seq [
 			Con "wanna jump", => App.rand % 5 == 0
 			Act "jump"
-		}
+		]
 		walk
-	}
-}
+	]
+]
 
-Store["AI_Zombie"] = Sel {
-	Seq {
+Store["AI_Zombie"] = Sel [
+	Seq [
 		Con "is dead", => @entity.hp <= 0
 		Accept!
-	}
-	Seq {
+	]
+	Seq [
 		Con "not entered", => not @data.entered
 		Act "groundEntrance"
-	}
+	]
 	fightDecision
-	Seq {
+	Seq [
 		Con "need stop", => not @isDoing "idle"
 		Act "cancel"
 		Act "idle"
-	}
-}
+	]
+]
 
-playerGroup = Group {"player"}
+playerGroup = Group ["player",]
 
-Store["AI_KidFollow"] = Sel {
-	Seq {
+Store["AI_KidFollow"] = Sel [
+	Seq [
 		Con "is dead", => @entity.hp <= 0
 		Accept!
-	}
+	]
 	fightDecision
-	Seq {
+	Seq [
 		Con "is falling", => not @onSurface
 		Act "fallOff"
-	}
-	Seq {
+	]
+	Seq [
 		Con "follow target is away", =>
 			if target := playerGroup\find (e)-> e.unit ~= @
 				@data.followTarget = target.unit
 				math.abs(@x - target.unit.x) > 50
 			else false
-		Sel {
-			Seq {
+		Sel [
+			Seq [
 				Con "not facing target", => (@x > @data.followTarget.x) == @faceRight
 				Act "turn"
-			}
+			]
 			Accept!
-		}
+		]
 		walk
-	}
-	Seq {
+	]
+	Seq [
 		Con "need stop", => not @isDoing "idle"
 		Act "cancel"
 		Act "idle"
-	}
-}
+	]
+]
 
-Store["AI_KidSearch"] = Sel {
-	Seq {
+Store["AI_KidSearch"] = Sel [
+	Seq [
 		Con "is dead", => @entity.hp <= 0
 		Accept!
-	}
+	]
 	fightDecision
-	Seq {
+	Seq [
 		Con "is falling", => not @onSurface
 		Act "fallOff"
-	}
-	Seq {
+	]
+	Seq [
 		Con "reach search limit", => math.abs(@x) > 1150 and ((@x > 0) == @faceRight)
 		Act "turn"
-	}
-	Seq {
+	]
+	Seq [
 		Con "continue search", -> true
 		walk
-	}
-}
+	]
+]
 
-Store["AI_PlayerControl"] = Sel {
-	Seq {
+Store["AI_PlayerControl"] = Sel [
+	Seq [
 		Con "is dead", => @entity.hp <= 0
 		Accept!
-	}
-	Seq {
-		Seq {
+	]
+	Seq [
+		Seq [
 			Con "move key down", =>
 				not (@data.keyLeft and @data.keyRight) and
 				(
@@ -199,33 +199,33 @@ Store["AI_PlayerControl"] = Sel {
 					(@data.keyRight and not @faceRight)
 				)
 			Act "turn"
-		}
+		]
 		Reject!
-	}
-	Seq {
+	]
+	Seq [
 		Con "attack key down", => @data.keyShoot
-		Sel {
+		Sel [
 			Act "meleeAttack"
 			Act "rangeAttack"
-		}
-	}
-	Sel {
-		Seq {
+		]
+	]
+	Sel [
+		Seq [
 			Con "is falling", => not @onSurface
 			Act "fallOff"
-		}
-		Seq {
+		]
+		Seq [
 			Con "jump key down", => @data.keyUp
 			Act "jump"
-		}
-	}
-	Seq {
+		]
+	]
+	Seq [
 		Con "move key down", => @data.keyLeft or @data.keyRight
 		Act "walk"
-	}
-	Seq {
+	]
+	Seq [
 		Con "need stop", => not @isDoing "idle"
 		Act "cancel"
 		Act "idle"
-	}
-}
+	]
+]

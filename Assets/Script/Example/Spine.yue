@@ -18,13 +18,13 @@ spine = with Spine spineStr
 			\addChild with Label "sarasa-mono-sc-regular", 30
 				.text = name
 				.color = App.themeColor
-				\perform Sequence(Spawn(
+				\perform Sequence Spawn(
 					Scale 1, 0, 2, Ease.OutQuad
 					Sequence(
 						Delay 0.5
 						Opacity 0.5, 1, 0
 					)
-				), Event "Stop")
+				), Event "Stop"
 				.position = Vec2 x, y
 				\slot "Stop", -> \removeFromParent!
 

@@ -178,13 +178,13 @@ characters =
 		color: 3
 		learnedAI: -> "unknown"
 
-bossGroup = Group {"boss"}
+bossGroup = Group ["boss",]
 
 lastAction = "idle"
 lastActionFrame = App.frame
-data = {}
+data = []
 row = nil
-Do = (name)-> Seq {
+Do = (name)-> Seq [
 	Con "Collect data", =>
 		if @isDoing name
 			row = nil
@@ -236,23 +236,23 @@ Do = (name)-> Seq {
 			action:name
 		}
 		true
-	Sel {
+	Sel [
 		Con "is doing", => @isDoing name
-		Seq {
+		Seq [
 			Act name
 			Con "action succeeded", =>
 				lastAction = name
 				lastActionFrame = App.frame
 				true
-		}
-	}
+		]
+	]
 	Con "Save data", =>
 		return true if row == nil
-		table.insert data,row
+		data[] = row
 		true
-}
+]
 
-rowNames = {
+rowNames = [
 	"not_facing_enemy"
 	"enemy_in_attack_range"
 
@@ -261,13 +261,13 @@ rowNames = {
 	"nearest_enemy_distance"
 
 	"action"
-}
+]
 
-rowTypes = {
+rowTypes = [
 	'C','C'
 	'C','C','N'
 	'C'
-}
+]
 
 with Node!
 	\gslot "TrainAI", (charSet)->
@@ -280,15 +280,15 @@ with Node!
 			table.concat rd,","
 		names = "#{table.concat rowNames,','}\n"
 		dataStr = "#{names}#{table.concat rowTypes,','}\n#{table.concat csvData,'\n'}"
-		data = {}
+		data = []
 		thread ->
-			lines = {"(_ENV)->"}
+			lines = ["(_ENV)->",]
 			accuracy = ML.BuildDecisionTreeAsync dataStr,0,(depth,name,op,value)->
 				line = string.rep("\t",depth+1) .. if name ~= "" then
 					"if #{name} #{op} #{op=='==' and "\"#{value}\"" or value}"
 				else
 					"#{op} \"#{value}\""
-				lines[#lines+1] = line
+				lines[] = line
 			codes = table.concat lines,"\n"
 			print "learning accuracy: #{accuracy}"
 			print codes
@@ -299,16 +299,16 @@ with Node!
 			characters[charSet].learnedAI = learnedAI
 			emit "LearnedAI", learnedAI
 
-Store["AI_Learned"] = Sel {
-	Seq {
+Store["AI_Learned"] = Sel [
+	Seq [
 		Con "is dead", => @entity.hp <= 0
 		Accept!
-	}
-	Seq {
+	]
+	Seq [
 		Con "is falling", => not @onSurface
 		Act "fallOff"
-	}
-	Seq {
+	]
+	Seq [
 		Con "run learned AI", =>
 			@data.lastActionTime or= 0.0
 
@@ -363,40 +363,40 @@ Store["AI_Learned"] = Sel {
 				:nearest_enemy_distance
 			}) or "unknown"
 			true
-		Sel {
+		Sel [
 			Con "is doing", => @isDoing @entity.learnedAction
-			Seq {
+			Seq [
 				Act => @entity.learnedAction
 				Con "Succeeded prediction", =>
 					emit "Prediction",true
 					true
-			}
+			]
 			Con "Failed prediction", =>
 				emit "Prediction",false
 				false
-		}
-	}
-	Seq {
+		]
+	]
+	Seq [
 		Con "not facing enemy", => bossGroup\each (boss)->
 			{:unit} = boss
 			if Data\isEnemy unit,@
 				if (@x > unit.x) == @faceRight
 					return true
 		Act "turn"
-	}
-	Seq {
+	]
+	Seq [
 		Con "need turn", =>
 			(@x < -1000 and not @faceRight) or (@x > 1000 and @faceRight)
 		Act "turn"
-	}
-	Sel {
-		Seq {
+	]
+	Sel [
+		Seq [
 			Con "take a break", => App.rand % 60 == 0
 			Act "idle"
-		}
+		]
 		Act "walk"
-	}
-}
+	]
+]
 
 Store["Bullet_Arrow"] = with BulletDef!
 	.tag = ""
@@ -409,16 +409,16 @@ Store["Bullet_Arrow"] = with BulletDef!
 	\setAsCircle 10
 	\setVelocity 25,800
 
-Store["AI_Boss"] = Sel {
-	Seq {
+Store["AI_Boss"] = Sel [
+	Seq [
 		Con "is dead", => @entity.hp <= 0
 		Accept!
-	}
-	Seq {
+	]
+	Seq [
 		Con "is falling", => not @onSurface
 		Act "fallOff"
-	}
-	Seq {
+	]
+	Seq [
 		Con "is not attacking", =>
 			not @isDoing("meleeAttack") and
 			not @isDoing("multiArrow") and
@@ -430,37 +430,37 @@ Store["AI_Boss"] = Sel {
 					(@x < unit.x) == @faceRight
 					return true
 			false
-		Sel {
-			Seq {
+		Sel [
+			Seq [
 				Con "melee attack", => App.rand % 250 == 0
 				Act "meleeAttack"
-			}
-			Seq {
+			]
+			Seq [
 				Con "range attack", => App.rand % 250 == 0
 				Act "multiArrow"
-			}
-			Seq {
+			]
+			Seq [
 				Con "spear attack", => App.rand % 250 == 0
 				Act "spearAttack"
-			}
+			]
 			Act "idle"
-		}
-	}
-	Seq {
+		]
+	]
+	Seq [
 		Con "need turn", =>
 			(@x < -1000 and not @faceRight) or (@x > 1000 and @faceRight)
 		Act "turn"
-	}
+	]
 	Act "walk"
-}
+]
 
-Store["AI_PlayerControl"] = Sel {
-	Seq {
+Store["AI_PlayerControl"] = Sel [
+	Seq [
 		Con "is dead", => @entity.hp <= 0
 		Accept!
-	}
-	Seq {
-		Seq {
+	]
+	Seq [
+		Seq [
 			Con "move key down", =>
 				not (@data.keyLeft and @data.keyRight) and
 				(
@@ -468,36 +468,36 @@ Store["AI_PlayerControl"] = Sel {
 					(@data.keyRight and not @faceRight)
 				)
 			Act "turn"
-		}
+		]
 		Reject!
-	}
-	Seq {
+	]
+	Seq [
 		Con "evade key down", => @data.keyE
 		Do "evade"
-	}
-	Seq {
+	]
+	Seq [
 		Con "attack key down", => @data.keyF
-		Sel {
+		Sel [
 			Do "meleeAttack"
 			Do "range"
-		}
-	}
-	Sel {
-		Seq {
+		]
+	]
+	Sel [
+		Seq [
 			Con "is falling", => not @onSurface and not @isDoing "evade"
 			Act "fallOff"
-		}
-		Seq {
+		]
+		Seq [
 			Con "jump key down", => @data.keyUp
 			Do "jump"
-		}
-	}
-	Seq {
+		]
+	]
+	Seq [
 		Con "move key down", => @data.keyLeft or @data.keyRight
 		Do "walk"
-	}
+	]
 	Act "idle"
-}
+]
 
 NewFighterDef = -> with Dictionary!
 	.linearAcceleration = Vec2 0,-10
@@ -540,7 +540,7 @@ NewFighterDef = -> with Dictionary!
 	.sndFallen = ""
 	.decisionTree = "AI_PlayerControl"
 	.usePreciseHit = true
-	.actions = Array {
+	.actions = Array [
 		"walk"
 		"turn"
 		"idle"
@@ -548,7 +548,7 @@ NewFighterDef = -> with Dictionary!
 		"hit"
 		"fall"
 		"fallOff"
-	}
+	]
 
 NewBossDef = -> with Dictionary!
 	.linearAcceleration = Vec2 0,-10
@@ -589,7 +589,7 @@ NewBossDef = -> with Dictionary!
 	.sndFallen = ""
 	.decisionTree = "AI_Boss"
 	.usePreciseHit = true
-	.actions = Array {
+	.actions = Array [
 		"walk"
 		"turn"
 		"meleeAttack"
@@ -600,7 +600,7 @@ NewBossDef = -> with Dictionary!
 		"jump"
 		"fall"
 		"fallOff"
-	}
+	]
 
 UnitDefFuncs = {
 	fighter: NewFighterDef
@@ -618,13 +618,13 @@ NewItemPanel = (displayName, itemName, itemOptions, currentSet)->
 		if selectItems
 			Columns #itemOptions + 1, false
 			PushID "#{itemName}x", ->
-				if Button "x", Vec2(itemSize+10, itemSize+10)
+				if Button "x", Vec2 itemSize+10, itemSize+10
 					currentSet[itemName] = nil
 					selectItems = false
 			NextColumn!
 			for i = 1, #itemOptions
 				item = itemOptions[i]
-				if ImageButton "#{itemName}#{i}", "Model/patreon.clip|#{item}", Vec2(itemSize,itemSize)
+				if ImageButton "#{itemName}#{i}", "Model/patreon.clip|#{item}", Vec2 itemSize,itemSize
 					currentSet[itemName] = item
 					selectItems = false
 				NextColumn!
@@ -632,7 +632,7 @@ NewItemPanel = (displayName, itemName, itemOptions, currentSet)->
 			if not currentSet[itemName]
 				Columns 3, false
 				PushID "#{itemName}c1", ->
-					selectItems = true if Button "x", Vec2(itemSize+10, itemSize+10)
+					selectItems = true if Button "x", Vec2 itemSize+10, itemSize+10
 				NextColumn!
 				Text "未装备"
 			else
@@ -653,24 +653,24 @@ size,grid = 2000,150
 
 background = -> with DrawNode!
 	.depthWrite = true
-	\drawPolygon {
+	\drawPolygon [
 		Vec2 -size,size
 		Vec2 size,size
 		Vec2 size,-size
 		Vec2 -size,-size
-	}, Color 0xff888888
+	], Color 0xff888888
 	\addChild with Line!
 		.depthWrite = true
 		.z = -10
 		for i = -size/grid,size/grid
-			\add {
+			\add [
 				Vec2 i*grid,size
 				Vec2 i*grid,-size
-			}, Color 0xff000000
-			\add {
+			], Color 0xff000000
+			\add [
 				Vec2 -size,i*grid
 				Vec2 size,i*grid
-			}, Color 0xff000000
+			], Color 0xff000000
 
 with background!
 	.z = 600
@@ -762,7 +762,7 @@ NewFighter = (name, currentSet)->
 		if assembleFighter
 			assembleFighter = false
 			OpenPopup "战士#{name}"
-		BeginPopupModal "战士#{name}", {"NoResize","NoSavedSettings"}, ->
+		BeginPopupModal "战士#{name}", ["NoResize","NoSavedSettings"], ->
 			HeadItemPanel!
 			RHandItemPanel!
 			LHandItemPanel!
@@ -827,7 +827,7 @@ for i = 1, #characters
 	table.insert fighterFigures, fighter
 	table.insert fighterPanels, fighterPanel
 
-playerGroup = Group {"player","unit"}
+playerGroup = Group ["player","unit"]
 updatePlayerControl = (key,flag)-> playerGroup\each => @unit.data[key] = flag
 
 uiScale = App.devicePixelRatio
@@ -837,7 +837,7 @@ Director.ui\addChild with AlignNode isRoot:true
 		:width,:height = App.visualSize
 		SetNextWindowPos Vec2(10,10), "FirstUseEver"
 		SetNextWindowSize Vec2(350,160), "FirstUseEver"
-		Begin "AI军团", {"NoResize","NoSavedSettings"}, ->
+		Begin "AI军团", ["NoResize","NoSavedSettings"], ->
 			isPC = switch App.platform
 				when "macOS","Windows","Linux" then true
 				else false
@@ -860,11 +860,11 @@ Director.ui\addChild with AlignNode isRoot:true
 					}
 					\slot "Tapped", ->
 						emit "ShowTraining", false
-						Group({"player"})\each (e)->
+						Group(["player",])\each (e)->
 							if e.charSet
 								emit "TrainAI", e.charSet
 								e.unit\removeFromParent!
-						Group({"boss"})\each (e)->
+						Group(["boss",])\each (e)->
 							e.unit\removeFromParent!
 						emit "ShowSetting", true
 			else
@@ -880,7 +880,7 @@ Director.ui\addChild with AlignNode isRoot:true
 						fontSize:48
 					}
 					\slot "Tapped", ->
-						Group({"unitDef"})\each (e)->
+						Group(["unitDef",])\each (e)->
 							e.unit?\removeFromParent!
 						emit "ShowSetting", true
 						thread -> emit "ShowFight", false
@@ -1197,7 +1197,7 @@ UnitAction\add "spearAttack",
 	stop: =>
 		@playable\slot("AnimationEnd")\remove spearAttackEnd
 
-mutables = {
+mutables = [
 	"hp"
 	"moveSpeed"
 	"move"
@@ -1211,9 +1211,9 @@ mutables = {
 	"attackFactor"
 	"attackTarget"
 	"defenceType"
-}
+]
 
-with Observer "Add", {"unitDef","position","order","group","faceRight"}
+with Observer "Add", ["unitDef","position","order","group","faceRight"]
 	\watch (unitDef,position,order,group)=>
 		{:player,:faceRight,:charSet,:decisionTree} = @
 		{:world} = Store
@@ -1243,10 +1243,10 @@ with Observer "Add", {"unitDef","position","order","group","faceRight"}
 		if player
 			world.camera.followTarget = unit
 
-with Observer "Change", {"hp","unit"}
+with Observer "Change", ["hp","unit"]
 	\watch (hp,unit)=>
 		:boss = @
-		{hp:lastHp} = @oldValues
+		hp: lastHp = @oldValues
 		if hp < lastHp
 			unit\start "cancel" if not boss and unit\isDoing "hit"
 			if boss

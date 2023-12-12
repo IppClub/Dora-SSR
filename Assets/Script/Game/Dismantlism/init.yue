@@ -142,8 +142,8 @@ dailyItems = Set
 	* "tv"
 	* "pizza"
 
-spaceBodies = {}
-dailyBodies = {}
+spaceBodies = []
+dailyBodies = []
 
 switchScene = ->
 	if isSpace
@@ -215,12 +215,12 @@ buildScene = ->
 			node.data\each =>
 				@tag = "space"
 				@children[1].tag = file
-				table.insert spaceBodies, @
+				spaceBodies[] = @
 		elseif dailyItems[file]
 			node.data\each =>
 				@tag = "daily"
 				@children[1].tag = file
-				table.insert dailyBodies, @
+				dailyBodies[] = @
 		else
 			node.data\each =>
 				@children[1].tag = file if @children and #@children > 0

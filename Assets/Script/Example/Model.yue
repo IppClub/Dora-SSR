@@ -17,7 +17,7 @@ animations[] = "" if #animations == 0
 currentLook = #looks
 currentAnim = #animations
 loop = true
-windowFlags = {"NoResize","NoSavedSettings"}
+windowFlags = ["NoResize","NoSavedSettings"]
 threadLoop ->
 	const :width = App.visualSize
 	ImGui.SetNextWindowPos Vec2(width-250,10), "FirstUseEver"

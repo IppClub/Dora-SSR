@@ -93,7 +93,7 @@ UnitAction\add "pushed",
 								.AI = "BunnyForwardReturnAI"
 								.layer = LayerBunny
 								bunnyCount = 0
-								Group({"bunny"})\each (bunny)->
+								Group(["bunny",])\each (bunny)->
 									bunnyCount += 1 if bunny.group == @group
 								.hp = 0.0 if bunnyCount > MaxBunnies
 							emit "EPChange", @group, -1

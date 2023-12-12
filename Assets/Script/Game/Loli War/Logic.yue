@@ -20,9 +20,9 @@ store:Store = Data
 	:MaxHP
 } = Store
 
-heroes = Group {"hero"}
+heroes = Group ["hero",]
 
-with Observer "Add",{"world"}
+with Observer "Add",["world",]
 	\watch (world)=>
 		Store.world = with world
 			with .camera
@@ -74,7 +74,7 @@ with Observer "Add",{"world"}
 		world\buildGameReadme!
 		Audio\playStream "Audio/LOOP13.ogg",true
 
-mutables = {
+mutables = [
 	"hp"
 	"moveSpeed"
 	"move"
@@ -88,9 +88,9 @@ mutables = {
 	"attackFactor"
 	"attackTarget"
 	"defenceType"
-}
+]
 
-with Observer "Add",{"hero","group","layer","position","faceRight","AI"}
+with Observer "Add",["hero","group","layer","position","faceRight","AI"]
 	\watch (hero,group,layer,position,faceRight,AI)=>
 		:world = Store
 		def = Store[hero]
@@ -115,7 +115,7 @@ with Observer "Add",{"hero","group","layer","position","faceRight","AI"}
 			world.camera.followTarget = unit
 		emit "HPChange",@group,@hp
 
-with Observer "Add",{"bunny","group","layer","position","faceRight","AI"}
+with Observer "Add",["bunny","group","layer","position","faceRight","AI"]
 	\watch (bunny,group,layer,position,faceRight,AI)=>
 		:world = Store
 		def = Store[bunny]
@@ -132,7 +132,7 @@ with Observer "Add",{"bunny","group","layer","position","faceRight","AI"}
 			\addTo world
 			@hp -= 1.0 if @hp == 0.0
 
-with Observer "Add",{"switch","group","layer","look","position"}
+with Observer "Add",["switch","group","layer","look","position"]
 	\watch (switchType,group,layer,look,position)=>
 		:world = Store
 		unit = with Unit Store[switchType],world,@,position
@@ -173,7 +173,7 @@ with Observer "Add",{"switch","group","layer","look","position"}
 							\slot("ActionEnd")\set -> \removeFromParent!
 						@data.tip = nil
 
-with Observer "Add",{"block","group","layer","look","position"}
+with Observer "Add",["block","group","layer","look","position"]
 	\watch (block,group,layer,look,position)=>
 		:world = Store
 		def = Store[block]
@@ -185,7 +185,7 @@ with Observer "Add",{"block","group","layer","look","position"}
 			.playable.look = look
 			\addTo world
 
-with Observer "Add",{"poke","group","layer","position"}
+with Observer "Add",["poke","group","layer","position"]
 	\watch (poke,group,layer,position)=>
 		:world = Store
 		pokeDef = with BodyDef!
@@ -249,7 +249,7 @@ with Observer "Add",{"poke","group","layer","position"}
 			\addTo world,layer
 		Audio\play "Audio/quake.wav"
 
-with Observer "Change", {"hp","unit","block"}
+with Observer "Change", ["hp","unit","block"]
 	\watch (hp,unit)=>
 		hp:lastHp = @oldValues
 		if hp < lastHp
@@ -277,7 +277,7 @@ with Observer "Change", {"hp","unit","block"}
 				when GroupEnemyBlock then GroupEnemy
 			emit "BlockChange",group,math.max(hp,0)-lastHp
 
-with Observer "Change", {"hp","bunny"}
+with Observer "Change", ["hp","bunny"]
 	\watch (hp)=>
 		:unit = @
 		hp:lastHp = @oldValues
@@ -297,7 +297,7 @@ with Observer "Change", {"hp","bunny"}
 					sleep 5
 					unit\removeFromParent!
 
-with Observer "Change", {"hp","hero"}
+with Observer "Change", ["hp","hero"]
 	\watch (hp)=>
 		:unit = @
 		hp:lastHp = @oldValues
@@ -359,7 +359,7 @@ with Observer "Change", {"hp","hero"}
 				emit "EPChange",group,1
 		emit "HPChange",@group,math.max(hp,0)-lastHp
 
-with Observer "Change", {"blocks","group"}
+with Observer "Change", ["blocks","group"]
 	\watch (blocks,group)=>
 		:world = Store
 		return unless world.playing
