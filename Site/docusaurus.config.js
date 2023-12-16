@@ -13,62 +13,62 @@ const darkCodeTheme = {
 		{
 			types: ['title'],
 			style: {
-			color: '#569CD6',
-			fontWeight: 'bold',
+				color: '#569CD6',
+				fontWeight: 'bold',
 			},
 		},
 		{
 			types: ['property', 'parameter'],
 			style: {
-			color: '#9CDCFE',
+				color: '#9CDCFE',
 			},
 		},
 		{
 			types: ['script'],
 			style: {
-			color: '#D4D4D4',
+				color: '#D4D4D4',
 			},
 		},
 		{
 			types: ['boolean', 'arrow', 'atrule', 'tag'],
 			style: {
-			color: '#569CD6',
+				color: '#569CD6',
 			},
 		},
 		{
 			types: ['number', 'color', 'unit'],
 			style: {
-			color: '#B5CEA8',
+				color: '#B5CEA8',
 			},
 		},
 		{
 			types: ['font-matter'],
 			style: {
-			color: '#CE9178',
+				color: '#CE9178',
 			},
 		},
 		{
 			types: ['keyword', 'rule'],
 			style: {
-			color: '#C586C0',
+				color: '#C586C0',
 			},
 		},
 		{
 			types: ['regex'],
 			style: {
-			color: '#D16969',
+				color: '#D16969',
 			},
 		},
 		{
 			types: ['maybe-class-name'],
 			style: {
-			color: '#4EC9B0',
+				color: '#4EC9B0',
 			},
 		},
 		{
 			types: ['constant'],
 			style: {
-			color: '#4FC1FF',
+				color: '#4FC1FF',
 			},
 		},
 	],
@@ -259,49 +259,53 @@ const config = {
 			],
 		},
 		footer: {
-		style: 'dark',
-		links: [
-			{
-				title: 'Docs',
-				items: [
-					{
-						label: 'Tutorial',
-						to: '/docs/tutorial/quick-start',
-					},
-					{
-						label: 'API Reference',
-						to: '/docs/api/intro',
-					},
-				],
-			},
-			{
-				title: 'Community',
-				items: [
-					{
-						label: 'Discord',
-						href: 'https://discord.gg/ydJVuZhh',
-					},
-					{
-						label: 'QQ Group: 512620381',
-						href: 'https://qm.qq.com/cgi-bin/qm/qr?k=7siAhjlLaSMGLHIbNctO-9AJQ0bn0G7i&jump_from=webapi&authKey=Kb6tXlvcJ2LgyTzHQzKwkMxdsQ7sjERXMJ3g10t6b+716pdKClnXqC9bAfrFUEWa',
-					},
-				],
-			},
-			{
-				title: 'More',
-				items: [
-					{
-						label: 'Blog',
-						to: '/blog',
-					},
-					{
-						label: 'GitHub',
-						href: 'https://github.com/pigpigyyy/Dorothy-SSR',
-					},
-				],
-			},
-		],
-		copyright: `Copyright © ${new Date().getFullYear()} Dorothy SSR Community. Built with Docusaurus.`,
+			style: 'dark',
+			links: [
+				{
+					title: 'Docs',
+					items: [
+						{
+							label: 'Tutorial',
+							to: '/docs/tutorial/quick-start',
+						},
+						{
+							label: 'API Reference',
+							to: '/docs/api/intro',
+						},
+					],
+				},
+				{
+					title: 'Community',
+					items: [
+						{
+							label: 'Discord',
+							href: 'https://discord.gg/ydJVuZhh',
+						},
+						{
+							label: 'QQ Group: 512620381',
+							href: 'https://qm.qq.com/cgi-bin/qm/qr?k=7siAhjlLaSMGLHIbNctO-9AJQ0bn0G7i&jump_from=webapi&authKey=Kb6tXlvcJ2LgyTzHQzKwkMxdsQ7sjERXMJ3g10t6b+716pdKClnXqC9bAfrFUEWa',
+						},
+					],
+				},
+				{
+					title: 'More',
+					items: [
+						{
+							label: 'Blog',
+							to: '/blog',
+						},
+						{
+							label: 'GitHub',
+							href: 'https://github.com/pigpigyyy/Dorothy-SSR',
+						},
+					],
+				},
+			],
+			copyright: `Copyright © ${new Date().getFullYear()} Dorothy SSR Community. Built with Docusaurus.`,
+		},
+		colorMode: {
+			defaultMode: 'dark',
+			disableSwitch: false,
 		},
 		prism: {
 			theme: lightCodeTheme,

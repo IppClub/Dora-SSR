@@ -1,6 +1,6 @@
 _ENV = Dorothy!
 
-if path = Path\getScriptPath ...
+if path := Path\getScriptPath ...
 	Content\insertSearchPath 1, path
 
 import "lulpeg" as :Cmt, :P, :S, :C, :Ct, :B, :match
@@ -35,7 +35,7 @@ generate = (path, file, cn)->
 	codes = Content\load Path path, file
 	modName = file\gsub("%.d%.tl", "")\gsub "[\\//]", "."
 	path = Path\getPath(file)\gsub "[\\//]", "."
-	if res = match Doc, codes
+	if res := match Doc, codes
 		for x = 1, #res
 			group = res[x]
 			newGroup = {}
@@ -58,7 +58,7 @@ generate = (path, file, cn)->
 				newGroup[] = false
 			elseif #newGroup == 1 and newGroup[1] == "end"
 				newGroup[] = false
-			elseif typeDef = last\match "^%s*local%s+type%s*([%w_]+)"
+			elseif typeDef := last\match "^%s*local%s+type%s*([%w_]+)"
 				newGroup[] = "__ITEM__"
 				newGroup[] = false
 			elseif last\match "^%s*local%s+"
@@ -156,7 +156,7 @@ generate = (path, file, cn)->
 						currentType = "Item"
 						modules[] = {prefix .. modName, doc}
 					else
-						if className = name\match "([%w_]+)Class"
+						if className := name\match "([%w_]+)Class"
 							currentType = "Class"
 							mods[] = className
 							classes[] = {prefix .. className, doc}

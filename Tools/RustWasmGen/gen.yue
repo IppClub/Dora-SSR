@@ -658,7 +658,7 @@ else
 		elseif isObject
 			clsParent = "IObject"
 		if clsParent
-			if inherits = inheritances[clsParent]
+			if inherits := inheritances[clsParent]
 				for inherit in *inherits
 					rustBinding[] = "use crate::dora::#{inherit};"
 					rustBinding[] = "impl #{inherit} for #{clsNewName} { }"
@@ -949,7 +949,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 											"Box<#{callbackType} -> #{frtTypeOut}>"
 										else
 											"Box<#{callbackType}>"
-										if frCppType = cppTypes[frt]
+										if frCppType := cppTypes[frt]
 											callbackReturn = switch freturnType
 												when "Node"
 													"\t\treturn s_cast<Node*>(std::get<Object*>(args#{fnArgId}->pop()));\n"
