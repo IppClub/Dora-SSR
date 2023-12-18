@@ -21,14 +21,14 @@ local root, label, scroll, control
 with AlignNode isRoot: true, inUI: false
 	\addChild with root = AlignNode alignWidth: "w", alignHeight: "h"
 		\addChild with scroll = ScrollArea {
-				width: width
-				height: height
+				:width
+				:height
 				paddingX: 0
 				paddingY: 50
 				viewWidth: height
 				viewHeight: height
 			}
-			.border = LineRect width: width, height: height, color: 0xffffffff
+			.border = LineRect :width, :height, color: 0xffffffff
 			.area\addChild .border
 			\slot "AlignLayout", (w, h)->
 				.position = Vec2 w / 2, h / 2
