@@ -124,8 +124,6 @@ getCompiledYueLine = (content, line, row, file)->
 		if row == lastLine and not targetLine
 			targetRow = current
 			targetLine = line\gsub("::", "\\")\gsub(":", "=")\gsub("\\", ":")\match "[%w_%.:]+$"
-			if targetLine and targetLine\match "^[%.:]"
-				targetLine = lineCode\match "[%w_%.:]+[%.:]#{targetLine\sub 2, -1}"
 			break if targetLine
 		current += 1
 	if targetLine and targetRow
@@ -277,6 +275,9 @@ HttpServer\postSchedule "/signature", (req)->
 		when "yue"
 			luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine content, line, row, file
 			return success: false unless luaCodes
+			if chainOp, chainCall := line\match "[^%w_]([%.\\])([^%.\\]+)$"
+				withVar = luaCodes\match "([%w_]+)%.___DUMMY_CALL___%(%)"
+				targetLine = withVar .. (chainOp == '\\' and ':' or '.') .. chainCall
 			if signatures := teal.getSignatureAsync luaCodes, targetLine, targetRow, searchPath
 				if signatures := getParamDocs signatures
 					return success: true, :signatures
@@ -446,10 +447,16 @@ HttpServer\postSchedule "/complete", (req)->
 			gotGlobals = false
 			if luaCodes, targetLine, targetRow := getCompiledYueLine content, line, row, file
 				gotGlobals = true
+				if chainOp := line\match "[^%w_]([%.\\])$"
+					withVar = luaCodes\match "([%w_]+)%.___DUMMY_CALL___%(%)"
+					return success: false unless withVar
+					targetLine = "#{withVar}#{chainOp == '\\' and ':' or '.'}"
+				elseif line\match "^([%.\\])$"
+					return success: false
 				suggestions[] = item for item in *teal.completeAsync luaCodes, targetLine, targetRow, searchPath
 				if #suggestions == 0
 					suggestions[] = item for item in *teal.completeAsync luaCodes, "builtin.#{targetLine}", targetRow, searchPath
-			if not line\match("[%.:\\][%w_]+[%.\\]?$") and not line\match "[%w_]+[%.\\]$"
+			if not line\match("[%.:\\][%w_]+[%.\\]?$") and not line\match "[%.\\]$"
 				checkSet = {name, true for {name} in *suggestions}
 				for item in *teal.completeAsync "", "builtin.", 1, searchPath
 					suggestions[] = item if not checkSet[item[1]]

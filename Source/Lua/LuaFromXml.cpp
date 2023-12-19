@@ -514,6 +514,7 @@ static const char* _toBoolean(const char* str) {
 	const char* transformTarget = nullptr; \
 	const char* visible = nullptr; \
 	const char* touchEnabled = nullptr; \
+	const char* controllerEnabled = nullptr; \
 	const char* swallowTouches = nullptr; \
 	const char* swallowMouseWheel = nullptr; \
 	const char* renderGroup = nullptr; \
@@ -612,6 +613,10 @@ static const char* _toBoolean(const char* str) {
 		touchEnabled = atts[++i]; \
 		break; \
 	} \
+	CASE_STR(ControllerEnabled) { \
+		controllerEnabled = atts[++i]; \
+		break; \
+	} \
 	CASE_STR(SwallowTouches) { \
 		swallowTouches = atts[++i]; \
 		break; \
@@ -662,6 +667,7 @@ static const char* _toBoolean(const char* str) {
 	else if (!width && height) \
 		fmt::format_to(std::back_inserter(stream), "{}.height = {}{}"sv, self, Val(height), nl()); \
 	if (touchEnabled) fmt::format_to(std::back_inserter(stream), "{}.touchEnabled = {}{}"sv, self, toBoolean(touchEnabled), nl()); \
+	if (controllerEnabled) fmt::format_to(std::back_inserter(stream), "{}.controllerEnabled = {}{}"sv, self, toBoolean(controllerEnabled), nl()); \
 	if (swallowTouches) fmt::format_to(std::back_inserter(stream), "{}.swallowTouches = {}{}"sv, self, toBoolean(swallowTouches), nl()); \
 	if (swallowMouseWheel) fmt::format_to(std::back_inserter(stream), "{}.swallowMouseWheel = {}{}"sv, self, toBoolean(swallowMouseWheel), nl()); \
 	if (renderGroup) fmt::format_to(std::back_inserter(stream), "{}.renderGroup = {}{}"sv, self, toBoolean(renderGroup), nl()); \
