@@ -415,7 +415,7 @@ monaco.languages.registerSignatureHelpProvider("lua", signatureHelpProvider(["("
 monaco.languages.register({id: 'yue'});
 monaco.languages.setLanguageConfiguration("yue", yuescript.config);
 monaco.languages.setMonarchTokensProvider("yue", yuescript.language);
-const yueComplete = completionItemProvider([".", "::", "\\", "/", "\"", "'"], "yue");
+const yueComplete = completionItemProvider([".", "\\", "/", "\"", "'"], "yue");
 monaco.languages.registerCompletionItemProvider("yue", yueComplete);
 monaco.languages.registerHoverProvider("yue", hoverProvider("yue"));
 monaco.languages.registerSignatureHelpProvider("yue", signatureHelpProvider(["(", ",", " "], "yue"));

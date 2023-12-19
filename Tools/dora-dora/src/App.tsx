@@ -454,6 +454,48 @@ export default function PersistentDrawerLeft() {
 		setExpandedKeys(keys);
 	};
 
+	const addNewFileNodeInTree = (parentFullPath: string, newFile: string, newName: string) => {
+		const rootNode = treeData.at(0);
+		if (rootNode === undefined) return;
+		const newNode: TreeDataType = {
+			key: newFile,
+			title: newName,
+			dir: false,
+		};
+		const visitData = (node: TreeDataType) => {
+			if (node.key === parentFullPath) return "find";
+			if (node.children) {
+				for (let i = 0; i < node.children.length; i++) {
+					const res = visitData(node.children[i]);
+					if (res === "find") {
+						let parent = node.children[i];
+						if (parent.dir) {
+							if (parent.children === undefined) {
+								parent.children = [];
+							}
+						} else {
+							parent = node;
+						}
+						if (parent.children !== undefined && parent.children.find(n => n.key === newFile) === undefined) {
+							parent.children.push(newNode);
+						}
+						return "stop";
+					} else if (res === "stop") {
+						return "stop";
+					}
+				}
+			}
+			return "continue";
+		};
+		if (visitData(rootNode) === "find") {
+			if (rootNode.children === undefined) {
+				rootNode.children = [];
+			}
+			rootNode.children.push(newNode);
+		}
+		setTreeData([rootNode]);
+	};
+
 	const saveCurrentTab = () => {
 		if (tabIndex === null) return;
 		const file = files[tabIndex];
@@ -498,13 +540,21 @@ export default function PersistentDrawerLeft() {
 				Service.write({path: tlFile, content: tealCode}).then((res) => {
 					if (res.success) {
 						if (fileInTab !== undefined) {
-							setFiles(prev => prev.filter(f => f.key !== fileInTab.key));
+							setFiles(prev => {
+								const newTabs = prev.filter(f => f.key !== fileInTab.key);
+								const newIndex = newTabs.findIndex(t => t.key === file.key);
+								if (newIndex >= 0) {
+									setTabIndex(newIndex);
+								}
+								return newTabs;
+							});
 						}
 					} else {
 						addAlert(t("alert.saveCurrent"), "error");
 					}
 				}).then(() => {
 					saveFile();
+					addNewFileNodeInTree(path.dirname(tlFile), tlFile, path.basename(tlFile));
 					Service.check({file: tlFile, content: tealCode}).then((res) => {
 						if (res.success && tealCode !== "") {
 							codeWireData.reportVisualScriptError("");
@@ -601,13 +651,21 @@ export default function PersistentDrawerLeft() {
 						Service.write({path: tlFile, content: tealCode}).then((res) => {
 							if (res.success) {
 								if (fileInTab !== undefined) {
-									setFiles(prev => prev.filter(f => f.key !== fileInTab.key));
+									setFiles(prev => {
+										const newTabs = prev.filter(f => f.key !== fileInTab.key);
+										const newIndex = newTabs.findIndex(t => t.key === file.key);
+										if (newIndex >= 0) {
+											setTabIndex(newIndex);
+										}
+										return newTabs;
+									});
 								}
 							} else {
 								addAlert(t("alert.save", {title: file.title}), "error");
 							}
 						}).then(() => {
 							saveFile(vscript);
+							addNewFileNodeInTree(path.dirname(tlFile), tlFile, path.basename(tlFile));
 							Service.check({file: tlFile, content: tealCode}).then((res) => {
 								if (res.success) {
 									codeWireData.reportVisualScriptError("");
