@@ -73,7 +73,22 @@ const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang)
 				} else {
 					content = "";
 				}
-				content += "\n" + "\t".repeat(Math.max(0, model.getLineFirstNonWhitespaceColumn(position.lineNumber) - 1)) + "print()\n" + model.getValueInRange({
+				let whiteSpace = "";
+				const start = model.getLineFirstNonWhitespaceColumn(position.lineNumber);
+				if (start > 0) {
+					whiteSpace = model.getValueInRange({
+						startLineNumber: position.lineNumber,
+						startColumn: 1,
+						endLineNumber: position.lineNumber,
+						endColumn: start,
+					});
+				}
+				if (line.match(/\W[\.\\]$/g)) {
+					content += "\n" + whiteSpace + ".___DUMMY_CALL___()\n";
+				} else {
+					content += "\n" + whiteSpace + "print()\n";
+				}
+				content += model.getValueInRange({
 					startLineNumber: position.lineNumber + 1,
 					startColumn: 1,
 					endLineNumber: model.getLineCount(),
@@ -263,7 +278,22 @@ const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: S
 					} else {
 						content = "";
 					}
-					content += "\n" + "\t".repeat(Math.max(0, model.getLineFirstNonWhitespaceColumn(position.lineNumber) - 1)) + "print()\n" + model.getValueInRange({
+					let whiteSpace = "";
+					const start = model.getLineFirstNonWhitespaceColumn(position.lineNumber);
+					if (start > 0) {
+						whiteSpace = model.getValueInRange({
+							startLineNumber: position.lineNumber,
+							startColumn: 1,
+							endLineNumber: position.lineNumber,
+							endColumn: start,
+						});
+					}
+					if (line.match(/\W[\.\\][^\.\\]+$/g)) {
+						content += "\n" + whiteSpace + ".___DUMMY_CALL___()\n";
+					} else {
+						content += "\n" + whiteSpace + "print()\n";
+					}
+					content += model.getValueInRange({
 						startLineNumber: position.lineNumber + 1,
 						startColumn: 1,
 						endLineNumber: model.getLineCount(),

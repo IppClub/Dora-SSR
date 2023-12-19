@@ -34,10 +34,10 @@ local type = type
 	-- or
 	local MyClass = Class(function(args)
 		return Node()
-	end,{ ... })
+	end, { ... })
 
 	-- or
-	local MyClass = Class(Node,{ ... })
+	local MyClass = Class(Node, { ... })
 
 4.To add class member function
 
@@ -159,7 +159,7 @@ local function __newindex(self, name, value)
 end
 
 local function assignReadOnly()
-	error("Try to assign to a readonly property!")
+	error("try to assign to a readonly property!")
 end
 
 local function Class(arg1, arg2)

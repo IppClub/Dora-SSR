@@ -15,7 +15,7 @@ Boolean:True,False
 
 LayerParent:Menu
 
-BuiltInSlots:AnimationEnd,ActionEnd,TapFilter,TapBegan,TapEnded,Tapped,TapMoved,MouseWheel,Gesture,Enter,Exit,Cleanup,KeyDown,KeyUp,KeyPressed,AttachIME,DetachIME,TextInput,TextEditing
+BuiltInSlots:AnimationEnd,ActionEnd,TapFilter,TapBegan,TapEnded,Tapped,TapMoved,MouseWheel,Gesture,Enter,Exit,Cleanup,KeyDown,KeyUp,KeyPressed,AttachIME,DetachIME,TextInput,TextEditing,ButtonDown,ButtonUp,ButtonPressed,Axis
 
 Import
 	Base:No
@@ -199,6 +199,7 @@ Node
 	TransformTarget
 	Visible:Boolean
 	TouchEnabled:Boolean
+	ControllerEnabled:Boolean
 	SwallowTouches:Boolean
 	SwallowMouseWheel:Boolean
 	RenderGroup:Boolean
