@@ -83,7 +83,7 @@ const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang)
 						endColumn: start,
 					});
 				}
-				if (line.match(/\W[\.\\]$/g)) {
+				if (line.match(/\W[.\\]$/g)) {
 					content += "\n" + whiteSpace + ".___DUMMY_CALL___()\n";
 				} else {
 					content += "\n" + whiteSpace + "print()\n";
@@ -288,7 +288,7 @@ const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: S
 							endColumn: start,
 						});
 					}
-					if (line.match(/\W[\.\\][^\.\\]+$/g)) {
+					if (line.match(/\W[.\\][^.\\]+$/g)) {
 						content += "\n" + whiteSpace + ".___DUMMY_CALL___()\n";
 					} else {
 						content += "\n" + whiteSpace + "print()\n";
