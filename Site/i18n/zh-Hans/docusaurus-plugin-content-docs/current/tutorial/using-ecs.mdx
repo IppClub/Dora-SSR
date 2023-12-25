@@ -9,7 +9,7 @@ import TabItem from '@theme/TabItem';
 
 ### 一、框架介绍
 
-&emsp;&emsp;Dorothy SSR 的 ECS 框架是受 [Entitas](https://github.com/sschmid/Entitas) 启发而来，并做了功能上的略微改动，其基本概念可以借助 Entitas 的原理图进行理解。
+&emsp;&emsp;Dora SSR 的 ECS 框架是受 [Entitas](https://github.com/sschmid/Entitas) 启发而来，并做了功能上的略微改动，其基本概念可以借助 Entitas 的原理图进行理解。
 
 ```
 Entitas ECS
@@ -40,11 +40,11 @@ Entitas ECS
                  +------------+
 ```
 
-&emsp;&emsp;与Entitas不同的是，在 Dorothy SSR 的 ECS 框架中，我们以实体对象上的一个字段就作为一个系统组件进行管理。这样会导致一些额外的性能损耗，但是能大幅简化逻辑代码的编写。
+&emsp;&emsp;与Entitas不同的是，在 Dora SSR 的 ECS 框架中，我们以实体对象上的一个字段就作为一个系统组件进行管理。这样会导致一些额外的性能损耗，但是能大幅简化逻辑代码的编写。
 
 ### 二、代码示例
 
-&emsp;&emsp;在这个教程中，我们会通过一个代码示例，展示如何使用 Dorothy SSR 的 ECS（Entity Component System）框架进行游戏逻辑的编写。
+&emsp;&emsp;在这个教程中，我们会通过一个代码示例，展示如何使用 Dora SSR 的 ECS（Entity Component System）框架进行游戏逻辑的编写。
 
 <Tabs>
 <TabItem value="yue" label="Yuescript">
@@ -52,7 +52,7 @@ Entitas ECS
 &emsp;&emsp;在编写实际的代码之前，我们先为Yuescript语言引入这篇教程中要用到的功能模块。
 
 ```yue
-_ENV = Dorothy!
+_ENV = Dora!
 ```
 
 &emsp;&emsp;首先，我们创建两个实体组 `sceneGroup` 和 `positionGroup`，分别用于访问和管理所有具有 "scene" 和 "position" 组件名称的实体。
@@ -695,4 +695,4 @@ Entity {
 4. 在实体组观察器的处理函数中每帧根据实体的变化执行相应的逻辑操作。
 5. 根据游戏需求设计和实现其他的组件、系统等功能。
 
-&emsp;&emsp;通过按照上述流程使用 Dorothy SSR 的 ECS 框架，你可以更好地组织和管理游戏逻辑，提高代码的可维护性和扩展性，实现复杂的游戏功能和行为。
+&emsp;&emsp;通过按照上述流程使用 Dora SSR 的 ECS 框架，你可以更好地组织和管理游戏逻辑，提高代码的可维护性和扩展性，实现复杂的游戏功能和行为。

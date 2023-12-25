@@ -4,9 +4,9 @@ import TabItem from '@theme/TabItem';
 
 # Using Dora Xml for UI Development I
 
-Dorothy SSR provides a functionality called Dora Xml, which helps separate the graphical presentation and logical processing code. The core functionality of Dora Xml is to write code for graphical presentation and interaction, especially code focused on user display in game UI interfaces, using an XML markup language, similar to HTML in web pages. Creating UI components, setting layout dimensions and appearance colors, creating interactive animations, and UI animations triggered by events can all be organized and written in the Dora Xml language. Dora Xml mostly complies with the XML specification, but with some modifications and additions, including many predefined tags and the ability to create custom tags.
+Dora SSR provides a functionality called Dora Xml, which helps separate the graphical presentation and logical processing code. The core functionality of Dora Xml is to write code for graphical presentation and interaction, especially code focused on user display in game UI interfaces, using an XML markup language, similar to HTML in web pages. Creating UI components, setting layout dimensions and appearance colors, creating interactive animations, and UI animations triggered by events can all be organized and written in the Dora Xml language. Dora Xml mostly complies with the XML specification, but with some modifications and additions, including many predefined tags and the ability to create custom tags.
 
-To write Dora Xml, you can create and edit code files in the web IDE provided by Dorothy SSR to benefit from features such as syntax highlighting, code completion, and error checking, which make the writing process much more easier. Now let's see how to use Dora Xml to write a custom button component.
+To write Dora Xml, you can create and edit code files in the web IDE provided by Dora SSR to benefit from features such as syntax highlighting, code completion, and error checking, which make the writing process much more easier. Now let's see how to use Dora Xml to write a custom button component.
 
 First, let's design our button:
 
@@ -143,7 +143,7 @@ Director.entry:addChild(scene)
 We can also create buttons using Lua code, for example, by replacing MainScene.xml with MainScene.lua.
 
 ```lua title="MainScene.lua"
-local _ENV = Dorothy()
+local _ENV = Dora()
 local Button = require("Button")
 
 return function()
@@ -205,7 +205,7 @@ Next, we can use this template in Dora Xml:
 
 ```xml title="SpriteButton.xml"
 <!-- params: X, Y, Text -->
-<Dorothy>
+<Dora>
 	<Import Module="ButtonBase"/>
 
 	<ButtonBase X="{ x }" Y="{ y }" Width="120" Height="120" Text="{ text }" FontSize="28">
@@ -213,7 +213,7 @@ Next, we can use this template in Dora Xml:
 			<Sprite File="Image/logo.png" ScaleX="0.2" ScaleY="0.2"/>
 		</Item>
 	</ButtonBase>
-</Dorothy>
+</Dora>
 ```
 
 ```xml title="MainScene.xml"
@@ -226,4 +226,4 @@ Next, we can use this template in Dora Xml:
 </Node>
 ```
 
-We import and reuse the template module and use the `<Item>` tag to obtain the exported child component from the template. The Name attribute of the Item tag is set to the same name as the exported child node, "face", and we add a graphic node as a child of this component. The `<Import>` tag must appear before the referenced external component. If the external component is to be used as the root node, it can be wrapped with a top-level `<Dorothy>` tag. With this approach, we can customize buttons with different appearances while using the button template functionality.
+We import and reuse the template module and use the `<Item>` tag to obtain the exported child component from the template. The Name attribute of the Item tag is set to the same name as the exported child node, "face", and we add a graphic node as a child of this component. The `<Import>` tag must appear before the referenced external component. If the external component is to be used as the root node, it can be wrapped with a top-level `<Dora>` tag. With this approach, we can customize buttons with different appearances while using the button template functionality.

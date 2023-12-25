@@ -4,7 +4,7 @@
     "description": "The feature title one in front page"
   },
   "feature_description_one": {
-    "message": "Dorothy SSR的理念：开发游戏是一种更有深度地玩游戏的方式。",
+    "message": "Dora SSR的理念：开发游戏是一种更有深度地玩游戏的方式。",
     "description": "The feature description one in front page"
   },
   "feature_title_two": {
@@ -12,7 +12,7 @@
     "description": "The feature title two in front page"
   },
   "feature_description_two": {
-    "message": "Dorothy SSR的目标：在任何电子设备上极速提供开箱即用的2D游戏开发环境。",
+    "message": "Dora SSR的目标：在任何电子设备上极速提供开箱即用的2D游戏开发环境。",
     "description": "The feature description two in front page"
   },
   "feature_title_three": {
@@ -20,7 +20,7 @@
     "description": "The feature title three in front page"
   },
   "feature_description_three": {
-    "message": "Dorothy SSR提供多元的编程语言支持，满足你多样的编程口味！",
+    "message": "Dora SSR提供多元的编程语言支持，满足你多样的编程口味！",
     "description": "The feature description three in front page"
   },
   "theme.ErrorPageContent.title": {

@@ -4,9 +4,9 @@ import TabItem from '@theme/TabItem';
 
 # 使用 Dora Xml 编写 UI 1
 
-&emsp;&emsp;Dorothy SSR 提供了一个可以帮助做图形展示与逻辑处理代码做一些开发分离的功能框架，叫做Dora Xml。Dora Xml的核心功能就是把图形展示和交互的代码，特别是一些游戏UI界面中的关注于用户展示的代码用Xml标记语言来编写，就像Web网页中的HTML语言类似的定位。像创建UI组件，设置布局尺寸、颜色外观，创建交互动画和UI动画响应消息事件，都可以只用Dora Xml语言来组织和完成编写。Dora Xml基本符合Xml规范，但也稍微做了些修改，有很多预定义的标签，也可以自定义新的标签。
+&emsp;&emsp;Dora SSR 提供了一个可以帮助做图形展示与逻辑处理代码做一些开发分离的功能框架，叫做Dora Xml。Dora Xml的核心功能就是把图形展示和交互的代码，特别是一些游戏UI界面中的关注于用户展示的代码用Xml标记语言来编写，就像Web网页中的HTML语言类似的定位。像创建UI组件，设置布局尺寸、颜色外观，创建交互动画和UI动画响应消息事件，都可以只用Dora Xml语言来组织和完成编写。Dora Xml基本符合Xml规范，但也稍微做了些修改，有很多预定义的标签，也可以自定义新的标签。
 
-&emsp;&emsp;编写Dora Xml，只要在 Dorothy SSR 自带的 Web IDE 中创建和编辑代码文件，就可以获得语法高亮、代码补全和一些错误检查的功能，写起来就能省力一些。下面我们来看看怎么用 Dora Xml 写一个自定义的按钮组件吧。
+&emsp;&emsp;编写Dora Xml，只要在 Dora SSR 自带的 Web IDE 中创建和编辑代码文件，就可以获得语法高亮、代码补全和一些错误检查的功能，写起来就能省力一些。下面我们来看看怎么用 Dora Xml 写一个自定义的按钮组件吧。
 
 &emsp;&emsp;先简单地设计一下我们的按钮：
 
@@ -141,7 +141,7 @@ Director.entry:addChild(scene)
 &emsp;&emsp;我们也可以用Lua代码来创建按钮，比如把MainScene.xml换成MainScene.lua。
 
 ```lua title="MainScene.lua"
-local _ENV = Dorothy()
+local _ENV = Dora()
 local Button = require("Button")
 
 return function()
@@ -201,7 +201,7 @@ print(buttonBase.face) -- 这里就可以获取到face节点
 
 ```xml title="SpriteButton.xml"
 <!-- params: X, Y, Text -->
-<Dorothy>
+<Dora>
 	<Import Module="ButtonBase"/>
 
 	<ButtonBase X="{ x }" Y="{ y }" Width="120" Height="120" Text="{ text }" FontSize="28">
@@ -209,7 +209,7 @@ print(buttonBase.face) -- 这里就可以获取到face节点
 			<Sprite File="Image/logo.png" ScaleX="0.2" ScaleY="0.2"/>
 		</Item>
 	</ButtonBase>
-</Dorothy>
+</Dora>
 ```
 
 ```xml title="MainScene.xml"
@@ -222,4 +222,4 @@ print(buttonBase.face) -- 这里就可以获取到face节点
 </Node>
 ```
 
-&emsp;&emsp;我们导入并复用了这个模板模块，并通过`<Item>`标签获取模板中导出的子组件，把Item标签中的Name属性设置为与导出的子节点相同的名字face，并在这个子组件下添加了一个图元节点。Dora Xml 中`<Import>`标签必须出现在引用的外部组件之前，如果引用的外部组件要用作根节点，可以通过添加一个顶层的`<Dorothy>`将所有实际的代码包裹起来。通过这样的写法，我们就可以在套用按钮模板功能之下，定制不同外观的按钮了。
+&emsp;&emsp;我们导入并复用了这个模板模块，并通过`<Item>`标签获取模板中导出的子组件，把Item标签中的Name属性设置为与导出的子节点相同的名字face，并在这个子组件下添加了一个图元节点。Dora Xml 中`<Import>`标签必须出现在引用的外部组件之前，如果引用的外部组件要用作根节点，可以通过添加一个顶层的`<Dora>`将所有实际的代码包裹起来。通过这样的写法，我们就可以在套用按钮模板功能之下，定制不同外观的按钮了。

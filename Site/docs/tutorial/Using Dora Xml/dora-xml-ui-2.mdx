@@ -4,7 +4,7 @@ import TabItem from '@theme/TabItem';
 
 # Using Dora Xml for UI Development II
 
-After defining the graphical UI using Dora Xml, the next problem to solve is how to add handling logic for UI interactions. We can use the class mechanism of Dorothy SSR to write a new class that inherits from the Xml UI component and contains the interface logic for the UI. For example, we have a button Xml component.
+After defining the graphical UI using Dora Xml, the next problem to solve is how to add handling logic for UI interactions. We can use the class mechanism of Dora SSR to write a new class that inherits from the Xml UI component and contains the interface logic for the UI. For example, we have a button Xml component.
 
 ```xml title="ButtonView.xml"
 <!-- params: X, Y, Radius, Text, FontSize -->
@@ -30,7 +30,7 @@ After defining the graphical UI using Dora Xml, the next problem to solve is how
 Note that we export the access interface to the label by setting the Name and Ref attributes. Then we write a class to inherit from this component and add some business logic:
 
 ```lua title="Button.lua"
-local _ENV = Dorothy()
+local _ENV = Dora()
 local ButtonView = require("ButtonView")
 
 -- params: x, y, radius, text, fontSize
@@ -87,7 +87,7 @@ The business logic we added to the button mainly includes a feature to count the
 Next, add the corresponding business logic to `MainSceneView.xml`.
 
 ```lua title="MainScene.lua"
-local _ENV = Dorothy()
+local _ENV = Dora()
 local MainSceneView = require("MainSceneView")
 
 local MainScene = class({
@@ -119,7 +119,7 @@ This way, the organization of our program logic for UI development is more compl
 With Dora Xml simplifying the UI code, we can further introduce a new language called Yuescript for development. Yuescript is a language that compiles into Lua and can seamlessly integrate with Lua. Its main feature is concise and easy-to-maintain code. Let's see how to use Yuescript together with Dora Xml to write business logic. The code from the previous section can be written in Yuescript as follows:
 
 ```yue title="Button.yue"
-_ENV = Dorothy!
+_ENV = Dora!
 import "ButtonView"
 
 -- params: x, y, radius, text, fontSize
@@ -139,7 +139,7 @@ Class
 ```
 
 ```yue title="MainScene.yue"
-_ENV = Dorothy!
+_ENV = Dora!
 import "MainSceneView"
 
 Class
@@ -156,4 +156,4 @@ import "MainScene"
 Director.entry\addChild MainScene!
 ```
 
-The code is much more concise than the previous version, but it achieves the same functionality. Therefore, I recommend readers to try using Yuescript to write UI logic code. Yuescript adopts the code style of Python with indentation controlling code blocks, and it incorporates excellent syntax features from many languages, including Python. Currently, the Dorothy SSR Web IDE also supports Yuescript code writing, including features like syntax highlighting, autocompletion, and error checking. If you want to learn Yuescript, you can start [here](https://yuescript.org/doc).
+The code is much more concise than the previous version, but it achieves the same functionality. Therefore, I recommend readers to try using Yuescript to write UI logic code. Yuescript adopts the code style of Python with indentation controlling code blocks, and it incorporates excellent syntax features from many languages, including Python. Currently, the Dora SSR Web IDE also supports Yuescript code writing, including features like syntax highlighting, autocompletion, and error checking. If you want to learn Yuescript, you can start [here](https://yuescript.org/doc).

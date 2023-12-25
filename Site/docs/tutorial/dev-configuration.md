@@ -3,7 +3,7 @@
 ## 1. Get the Source
 
 ```sh
-git clone https://github.com/ippclub/Dorothy-SSR.git
+git clone https://github.com/ippclub/Dora-SSR.git
 ```
 
 ## 2. Game Engine Development
@@ -11,19 +11,19 @@ git clone https://github.com/ippclub/Dorothy-SSR.git
 ### Windows
 
 1. Install **Visual Studio Community 2022**.
-2. Open the project file in the IDE: **Project/Windows/Dorothy.sln**.
+2. Open the project file in the IDE: **Project/Windows/Dora.sln**.
 3. Compile, debug, and run the project.
 
 ### macOS
 
 1. Install latest **Xcode**.
-2. Open the project file in the IDE: **Project/macOS/Dorothy.xcodeproj**.
+2. Open the project file in the IDE: **Project/macOS/Dora.xcodeproj**.
 3. Compile, debug, and run the project.
 
 ### iOS
 
 1. Install latest **Xcode**.
-2. Open the project file in the IDE: **Project/iOS/Dorothy.xcodeproj**.
+2. Open the project file in the IDE: **Project/iOS/Dora.xcodeproj**.
 3. Compile, debug, and run the project.
 
 ### Android
@@ -36,11 +36,11 @@ git clone https://github.com/ippclub/Dorothy-SSR.git
    sudo luarocks install luafilesystem
    cd Tools/tolua++
    lua tolua++.lua
-   
+
    # macOS
    cd Tools/tolua++
    ./build.sh
-   
+
    # Windows
    cd Tools\tolua++
    build.bat
@@ -48,7 +48,7 @@ git clone https://github.com/ippclub/Dorothy-SSR.git
 
 
 2. Install latest **Android Studio**.
-3. Open the project directory in the IDE: **Project/Android**.
+3. Open the project directory in the IDE: **Project/Android/Dora**.
 4. Compile, debug, and run the project.
 
 ### Linux
@@ -73,7 +73,7 @@ git clone https://github.com/ippclub/Dorothy-SSR.git
    # For arm architecture
    cd Project/Linux
    make arm
-   
+
    # For x86_64 architecture
    cd Project/Linux
    make x86_64
@@ -91,7 +91,7 @@ git clone https://github.com/ippclub/Dorothy-SSR.git
 
 ## 3. Dora Dora Editor Development
 
-1. Compile and run the Dorothy SSR engine.
+1. Compile and run the Dora SSR engine.
 2. Install the latest version of **Node.js**.
 3. Initialize the project and enter the Dora Dora editor development mode.
    ```sh
