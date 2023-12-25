@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dora!
 
 HttpServer\stop!
 
@@ -58,7 +58,7 @@ yueCheck = (file, content)->
 	if luaCodes
 		success, lintResult = LintYueGlobals luaCodes, globals, false
 		if success
-			luaCodes = luaCodes\gsub "%s*local%s*_ENV%s*=%s*Dorothy%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
+			luaCodes = luaCodes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
 			lintResult ..= "\n" unless lintResult == ""
 			luaCodes = "-- [yue]: #{file}\n#{lintResult}" .. luaCodes
 		else for [name, line, col] in *lintResult
@@ -281,7 +281,7 @@ HttpServer\postSchedule "/signature", (req)->
 			if signatures := teal.getSignatureAsync luaCodes, targetLine, targetRow, searchPath
 				if signatures := getParamDocs signatures
 					return success: true, :signatures
-			elseif signatures := teal.getSignatureAsync luaCodes, "builtin.#{targetLine}", targetRow, searchPath
+			elseif signatures := teal.getSignatureAsync luaCodes, "dora.#{targetLine}", targetRow, searchPath
 				if signatures := getParamDocs signatures
 					return success: true, :signatures
 	success: false
@@ -421,8 +421,8 @@ HttpServer\postSchedule "/complete", (req)->
 					continue if "." == dir\sub 1, 1
 					suggestions[] = [dir, "folder", "variable"]
 			if item == "" and not searchType
-				for [name,] in *teal.completeAsync "", "builtin.", 1, searchPath
-					suggestions[] = [name, "builtin module", "function"]
+				for [name,] in *teal.completeAsync "", "dora.", 1, searchPath
+					suggestions[] = [name, "dora module", "function"]
 			if #suggestions > 0
 				suggestions = [v for _, v in pairs {item[1] .. item[2], item for item in *suggestions}]
 				return success: true, :suggestions
@@ -433,7 +433,7 @@ HttpServer\postSchedule "/complete", (req)->
 			suggestions = teal.completeAsync content, line, row, searchPath
 			if not line\match("[%.:][%w_]+[%.:]?$") and not line\match "[%w_]+[%.:]$"
 				checkSet = {name, true for {name} in *suggestions}
-				for item in *teal.completeAsync "", "builtin.", 1, searchPath
+				for item in *teal.completeAsync "", "dora.", 1, searchPath
 					suggestions[] = item if not checkSet[item[1]]
 				for word in *luaKeywords
 					suggestions[] = [word, "keyword", "keyword"]
@@ -455,10 +455,10 @@ HttpServer\postSchedule "/complete", (req)->
 					return success: false
 				suggestions[] = item for item in *teal.completeAsync luaCodes, targetLine, targetRow, searchPath
 				if #suggestions == 0
-					suggestions[] = item for item in *teal.completeAsync luaCodes, "builtin.#{targetLine}", targetRow, searchPath
+					suggestions[] = item for item in *teal.completeAsync luaCodes, "dora.#{targetLine}", targetRow, searchPath
 			if not line\match("[%.:\\][%w_]+[%.\\]?$") and not line\match "[%.\\]$"
 				checkSet = {name, true for {name} in *suggestions}
-				for item in *teal.completeAsync "", "builtin.", 1, searchPath
+				for item in *teal.completeAsync "", "dora.", 1, searchPath
 					suggestions[] = item if not checkSet[item[1]]
 				if not gotGlobals
 					for item in *teal.completeAsync "", "x", 1, searchPath
@@ -531,6 +531,12 @@ HttpServer\post "/info", -> return
 HttpServer\post "/new", (req)->
 	switch req when {body: {:path, :content}}
 		if not Content\exist path
+			parent = Path\getPath path
+			files = Content\getFiles parent
+			name = Path\getName path
+			for file in *files
+				if name == Path\getName file
+					return success: false
 			if "" == Path\getExt path
 				if Content\mkdir path
 					return success: true
@@ -565,6 +571,14 @@ HttpServer\postSchedule "/write", (req)->
 			return success: true
 	success: false
 
+extentionLevels =
+	vs: 5
+	ts: 4
+	tsx: 3
+	tl: 2
+	yue: 1
+	lua: 0
+
 HttpServer\post "/assets", ->
 	visitAssets = (path, root)->
 		children = nil
@@ -577,8 +591,19 @@ HttpServer\post "/assets", ->
 			children = [] unless children
 			children[] = visitAssets Path path, dir
 		files = Content\getFiles path
+		names = {}
 		for file in *files
 			continue if file\match "^%."
+			name = Path\getName file
+			if ext := names[name]
+				lv1 = extentionLevels[ext] ?? -1
+				ext = Path\getExt file
+				lv2 = extentionLevels[ext] ?? -1
+				names[name] = ext if lv2 > lv1
+			else
+				names[name] = Path\getExt file
+		files = [ext == '' and name or name .. '.' .. ext for name, ext in pairs names]
+		for file in *files
 			children = [] unless children
 			children[] = {
 				key: Path path, file
@@ -687,6 +712,12 @@ HttpServer\post "/command", (req)->
 	switch req when {body: {:code}}
 		emit "AppCommand", code
 	success: true
+
+HttpServer\post "/exist", (req)->
+	switch req when {body: {:file}}
+		success: Content\exist file
+	else
+		success: false
 
 status = url: nil
 export default status

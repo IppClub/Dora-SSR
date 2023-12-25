@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dora!
 
 CircleVertices = (radius, verts = 20)->
 	newV = (index, radius)->

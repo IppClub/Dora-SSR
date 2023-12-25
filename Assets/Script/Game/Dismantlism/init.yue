@@ -1,5 +1,5 @@
 -- GGJ2022
-_ENV = Dorothy!
+_ENV = Dora!
 
 scriptPath = Path\getScriptPath ...
 return unless scriptPath

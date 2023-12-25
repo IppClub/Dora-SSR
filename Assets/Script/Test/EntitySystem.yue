@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dora!
 
 hpGroup = Group {"hp"}
 spGroup = Group {"sp"}

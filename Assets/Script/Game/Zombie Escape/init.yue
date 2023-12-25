@@ -1,5 +1,5 @@
 -- Ludum Dare 42
-_ENV = Dorothy!
+_ENV = Dora!
 
 if scriptPath := Path\getScriptPath ...
 	Content\insertSearchPath 1, scriptPath

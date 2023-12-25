@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dora dora.ImGui
 import "UI.Control.Basic.CircleButton"
 import "YarnRunner"
 import "UI.View.Shape.LineRect"

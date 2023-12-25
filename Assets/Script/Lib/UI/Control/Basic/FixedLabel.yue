@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dora!
 import "utf-8" as utf8
 
 Class Node,

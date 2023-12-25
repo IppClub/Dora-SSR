@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dora!
 
 node = with Node!
 	.order = 2

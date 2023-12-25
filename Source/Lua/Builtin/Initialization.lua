@@ -2,7 +2,7 @@ local table_insert <const> = table.insert
 local table_remove <const> = table.remove
 local type <const> = type
 local unpack <const> = table.unpack
-local builtin <const> = builtin
+local dora <const> = dora
 local package <const> = package
 local coroutine <const> = coroutine
 local assert <const> = assert
@@ -31,26 +31,26 @@ end
 
 -- prepare singletons
 do
-	builtin.App = builtin.Application()
-	builtin.Application = nil
-	package.cpath = builtin.App.platform == "Windows" and "?.dll" or "?.so"
+	dora.App = dora.Application()
+	dora.Application = nil
+	package.cpath = dora.App.platform == "Windows" and "?.dll" or "?.so"
 
-	builtin.Content = builtin.Content()
-	builtin.Director = builtin.Director()
-	builtin.View = builtin.View()
-	builtin.Audio = builtin.Audio()
-	builtin.Controller = builtin.Controller()
-	builtin.Keyboard = builtin.Keyboard()
-	builtin.DB = builtin.DB()
-	builtin.HttpServer = builtin.HttpServer()
-	builtin.Platformer.Decision.AI = builtin.Platformer.Decision.AI()
-	builtin.Platformer.Data = builtin.Platformer.Data()
+	dora.Content = dora.Content()
+	dora.Director = dora.Director()
+	dora.View = dora.View()
+	dora.Audio = dora.Audio()
+	dora.Controller = dora.Controller()
+	dora.Keyboard = dora.Keyboard()
+	dora.DB = dora.DB()
+	dora.HttpServer = dora.HttpServer()
+	dora.Platformer.Decision.AI = dora.Platformer.Decision.AI()
+	dora.Platformer.Data = dora.Platformer.Data()
 end
 
 -- setup loader profilers
 do
-	local App = builtin.App
-	local Profiler = builtin.Profiler
+	local App = dora.App
+	local Profiler = dora.Profiler
 	local EventName = Profiler.EventName
 	local loaders = package.loaders or package.searchers
 	for i = 1, #loaders do
@@ -63,7 +63,7 @@ do
 				__close = function()
 					if type(loaded) ~= "string" then
 						local deltaTime = App.eclapsedTime - lastTime
-						builtin.emit(EventName, "Loader", name .. " [Compile]", Profiler.level, deltaTime)
+						dora.emit(EventName, "Loader", name .. " [Compile]", Profiler.level, deltaTime)
 					end
 					Profiler.level = Profiler.level - 1
 				end
@@ -91,7 +91,7 @@ do
 		local _ <close> = setmetatable({}, {
 			__close = function()
 				local deltaTime = App.eclapsedTime - lastTime
-				builtin.emit(EventName, "Loader", name, Profiler.level, deltaTime)
+				dora.emit(EventName, "Loader", name, Profiler.level, deltaTime)
 				Profiler.level = Profiler.level - 1
 			end
 		})
@@ -106,7 +106,7 @@ do
 	local coroutine_resume = coroutine.resume
 	local coroutine_close = coroutine.close
 	local coroutine_status = coroutine.status
-	local App = builtin.App
+	local App = dora.App
 
 	local function wait(cond)
 		repeat
@@ -189,7 +189,7 @@ do
 		end
 	})
 
-	builtin.Director.postScheduler:schedule(function()
+	dora.Director.postScheduler:schedule(function()
 		local i, count = 1, #Routine
 		while i <= count do
 			local routine = Routine[i]
@@ -212,21 +212,21 @@ do
 		return false
 	end)
 
-	builtin.Routine = Routine
-	builtin.wait = wait
-	builtin.once = once
-	builtin.loop = loop
-	builtin.cycle = cycle
+	dora.Routine = Routine
+	dora.wait = wait
+	dora.once = once
+	dora.loop = loop
+	dora.cycle = cycle
 
-	builtin.thread = function(routine)
+	dora.thread = function(routine)
 		return Routine(once(routine))
 	end
 
-	builtin.threadLoop = function(routine)
+	dora.threadLoop = function(routine)
 		return Routine(loop(routine))
 	end
 
-	builtin.sleep = function(duration)
+	dora.sleep = function(duration)
 		if duration then
 			local time = 0
 			repeat
@@ -241,8 +241,8 @@ end
 
 -- async functions
 do
-	local Content = builtin.Content
-	local wait = builtin.wait
+	local Content = dora.Content
+	local wait = dora.wait
 	local Content_loadAsync = Content.loadAsync
 	Content.loadAsync = function(self, filename)
 		local _, mainThread = coroutine.running()
@@ -348,7 +348,7 @@ do
 		return result
 	end
 
-	local Cache = builtin.Cache
+	local Cache = dora.Cache
 	local Cache_loadAsync = Cache.loadAsync
 	Cache.loadAsync = function(self, target, handler)
 		local _, mainThread = coroutine.running()
@@ -376,7 +376,7 @@ do
 		end)
 	end
 
-	local RenderTarget = builtin.RenderTarget
+	local RenderTarget = dora.RenderTarget
 	local RenderTarget_saveAsync = RenderTarget.saveAsync
 	RenderTarget.saveAsync = function(self, filename)
 		local _, mainThread = coroutine.running()
@@ -393,7 +393,7 @@ do
 		return saved
 	end
 
-	local DB = builtin.DB
+	local DB = dora.DB
 	local DB_queryAsync = DB.queryAsync
 	DB.queryAsync = function(self, ...)
 		local _, mainThread = coroutine.running()
@@ -474,7 +474,7 @@ do
 		return result
 	end
 
-	local Wasm = builtin.Wasm
+	local Wasm = dora.Wasm
 	local Wasm_executeMainFileAsync = Wasm.executeMainFileAsync
 	Wasm.executeMainFileAsync = function(self, filename)
 		local _, mainThread = coroutine.running()
@@ -491,7 +491,7 @@ do
 		return result
 	end
 
-	local HttpServer = builtin.HttpServer
+	local HttpServer = dora.HttpServer
 	local HttpServer_postSchedule = HttpServer.postSchedule
 	HttpServer.postSchedule = function(self, pattern, scheduleFunc)
 		HttpServer_postSchedule(self, pattern, function(req)
@@ -517,7 +517,7 @@ do
 		return result, lcodes
 	end
 
-	local teal = builtin.teal
+	local teal = dora.teal
 	local teal_toluaAsync = teal.toluaAsync
 	teal.toluaAsync = function(codes, moduleName, searchPath)
 		local _, mainThread = coroutine.running()
@@ -601,8 +601,8 @@ end
 
 -- node actions
 do
-	local Action = builtin.Action
-	local Node = builtin.Node
+	local Action = dora.Action
+	local Node = dora.Node
 	local Node_runAction = Node.runAction
 	Node.runAction = function(self, action)
 		if type(action) == "table" then
@@ -645,7 +645,7 @@ do
 		"Spawn",
 		"Sequence"
 	} do
-		builtin[actionName] = function(...)
+		dora[actionName] = function(...)
 			return {
 				actionName,
 				...
@@ -653,20 +653,20 @@ do
 		end
 	end
 
-	local Spawn = builtin.Spawn
-	local X = builtin.X
-	local Y = builtin.Y
-	local ScaleX = builtin.ScaleX
-	local ScaleY = builtin.ScaleY
+	local Spawn = dora.Spawn
+	local X = dora.X
+	local Y = dora.Y
+	local ScaleX = dora.ScaleX
+	local ScaleY = dora.ScaleY
 
-	builtin.Move = function(duration, start, stop, ease)
+	dora.Move = function(duration, start, stop, ease)
 		return Spawn(
 			X(duration, start.x, stop.x, ease),
 			Y(duration, start.y, stop.y, ease)
 		)
 	end
 
-	builtin.Scale = function(duration, start, stop, ease)
+	dora.Scale = function(duration, start, stop, ease)
 		return Spawn(
 			ScaleX(duration, start, stop, ease),
 			ScaleY(duration, start, stop, ease)
@@ -676,7 +676,7 @@ end
 
 -- fix array indicing
 do
-	local Array = builtin.Array
+	local Array = dora.Array
 	local Array_index = Array.__index
 	local Array_get = Array.get
 	Array.__index = function(self, key)
@@ -703,7 +703,7 @@ end
 
 -- mock dictionary as Lua table
 do
-	local Dictionary = builtin.Dictionary
+	local Dictionary = dora.Dictionary
 	local Dictionary_index = Dictionary.__index
 	local Dictionary_get = Dictionary.get
 	Dictionary.__index = function(self, key)
@@ -723,7 +723,7 @@ end
 
 -- entity cache and old value accessing sugar
 do
-	local Entity = builtin.Entity
+	local Entity = dora.Entity
 
 	local Entity_create = Entity[2]
 	local Entity_cache = {}
@@ -802,7 +802,7 @@ end
 
 -- unit action creation
 do
-	local UnitAction = builtin.Platformer.UnitAction
+	local UnitAction = dora.Platformer.UnitAction
 	local UnitAction_add = UnitAction.add
 	local function dummy() end
 	UnitAction.add = function(self, name, params)
@@ -821,7 +821,7 @@ end
 
 -- ImGui pair call wrappers
 do
-	local ImGui = builtin.ImGui
+	local ImGui = dora.ImGui
 
 	local closeVar = setmetatable({}, {
 		__close = function(self)
@@ -930,9 +930,9 @@ end
 
 -- ML
 do
-	local wait = builtin.wait
-	local BuildDecisionTreeAsync = builtin.ML.BuildDecisionTreeAsync
-	builtin.ML.BuildDecisionTreeAsync = function(data, maxDepth, handler)
+	local wait = dora.wait
+	local BuildDecisionTreeAsync = dora.ML.BuildDecisionTreeAsync
+	dora.ML.BuildDecisionTreeAsync = function(data, maxDepth, handler)
 		local accuracy, err
 		local done = false
 		BuildDecisionTreeAsync(data, maxDepth, function(...)
@@ -956,7 +956,7 @@ end
 
 -- blackboard accessing sugar
 do
-	local Blackboard = builtin.Platformer.Behavior.Blackboard
+	local Blackboard = dora.Platformer.Behavior.Blackboard
 	local Blackboard_index = Blackboard.__index
 	local Blackboard_get = Blackboard.get
 	Blackboard.__index = function(self, key)
@@ -972,11 +972,11 @@ end
 
 -- to string debugging helper
 do
-	builtin.Vec2.__tostring = function(self)
+	dora.Vec2.__tostring = function(self)
 		return "Vec2(" .. tostring(self.x) .. ", " .. tostring(self.y) .. ")"
 	end
 
-	builtin.Rect.__tostring = function(self)
+	dora.Rect.__tostring = function(self)
 		return "Rect("
 			.. tostring(self.x) .. ", "
 			.. tostring(self.y) .. ", "
@@ -984,15 +984,15 @@ do
 			.. tostring(self.height) .. ")"
 	end
 
-	builtin.Size.__tostring = function(self)
+	dora.Size.__tostring = function(self)
 		return "Size(" .. tostring(self.width) .. ", " .. tostring(self.height) .. ")"
 	end
 
-	builtin.Color.__tostring = function(self)
+	dora.Color.__tostring = function(self)
 		return "Color(" .. string.format("0x%x", self:toARGB()) .. ")"
 	end
 
-	builtin.Color3.__tostring = function(self)
+	dora.Color3.__tostring = function(self)
 		return "Color3(" .. string.format("0x%x", self:toRGB()) .. ")"
 	end
 end
@@ -1000,9 +1000,9 @@ end
 -- dora helpers
 do
 	_G.p = yue.p
-	builtin.p = yue.p
+	dora.p = yue.p
 
-	local Path = builtin.Path
+	local Path = dora.Path
 
 	local loadfile = _G.loadfile
 	_G.loadfile = function(file, ...)
@@ -1034,9 +1034,9 @@ do
 		error("disallow creating global variable \"" .. name .. "\".")
 	end
 
-	local function Dorothy(...)
+	local function Dora(...)
 		if select("#", ...) == 0 then
-			return builtin
+			return dora
 		else
 			local envs
 			envs = {
@@ -1050,27 +1050,27 @@ do
 					return nil
 				end,
 				__newindex = disallowCreateGlobal,
-				builtin,
+				dora,
 				...
 			}
 			return setmetatable(envs, envs)
 		end
 	end
-	_G.Dorothy = Dorothy
-	builtin.Dorothy = Dorothy
+	_G.Dora = Dora
+	dora.Dora = Dora
 
 	for k, v in pairs(_G) do
-		builtin[k] = v
+		dora[k] = v
 	end
-	setmetatable(package.loaded, { __index = builtin })
+	setmetatable(package.loaded, { __index = dora })
 
 	local globals = {} -- available global value storage
 	_G.globals = globals
-	builtin.globals = globals
+	dora.globals = globals
 
-	local builtinMeta = { __newindex = disallowCreateGlobal }
-	setmetatable(_G, builtinMeta)
-	setmetatable(builtin, builtinMeta)
+	local doraMeta = { __newindex = disallowCreateGlobal }
+	setmetatable(_G, doraMeta)
+	setmetatable(dora, doraMeta)
 end
 
 -- default GC setting

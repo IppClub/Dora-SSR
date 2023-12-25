@@ -1,5 +1,5 @@
 -- GGJ2023 by Bao Yicheng from https://github.com/thisisbadBao/TouchTheSky
-_ENV = Dorothy builtin.ImGui
+_ENV = Dora dora.ImGui
 
 scriptPath = Path\getScriptPath ...
 Content\insertSearchPath 1, scriptPath

@@ -1011,6 +1011,32 @@ const mod1 = {
     fromFileUrl: fromFileUrl1,
     toFileUrl: toFileUrl1
 };
-export { mod as win32, mod1 as posix };
-const { basename: basename3 , delimiter: delimiter3 , dirname: dirname3 , extname: extname3 , format: format3 , fromFileUrl: fromFileUrl3 , isAbsolute: isAbsolute3 , join: join4 , normalize: normalize4 , parse: parse3 , relative: relative3 , resolve: resolve3 , sep: sep3 , toFileUrl: toFileUrl3 , toNamespacedPath: toNamespacedPath3  } = mod1;
-export { basename3 as basename, delimiter3 as delimiter, dirname3 as dirname, extname3 as extname, format3 as format, fromFileUrl3 as fromFileUrl, isAbsolute3 as isAbsolute, join4 as join, normalize4 as normalize, parse3 as parse, relative3 as relative, resolve3 as resolve, sep3 as sep, toFileUrl3 as toFileUrl, toNamespacedPath3 as toNamespacedPath };
+
+const currentPath = {
+	win32: mod,
+	posix: mod1
+};
+
+function setPath(path) {
+	currentPath.basename = path.basename;
+	currentPath.delimiter = path.delimiter;
+	currentPath.dirname = path.dirname;
+	currentPath.extname = path.extname;
+	currentPath.format = path.format;
+	currentPath.fromFileUrl = path.fromFileUrl;
+	currentPath.isAbsolute = path.isAbsolute;
+	currentPath.join = path.join;
+	currentPath.normalize = path.normalize;
+	currentPath.parse = path.parse;
+	currentPath.relative = path.relative;
+	currentPath.resolve = path.resolve;
+	currentPath.sep = path.sep;
+	currentPath.toFileUrl = path.toFileUrl;
+	currentPath.toNamespacedPath = path.toNamespacedPath;
+};
+
+setPath(mod1);
+
+currentPath.setPath = setPath;
+
+export default currentPath;

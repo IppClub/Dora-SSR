@@ -7,6 +7,7 @@ import Dialog from '@mui/material/Dialog';
 import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
+import typescriptLogo from './typescript.png';
 import { AiFillFolderAdd } from 'react-icons/ai';
 import { SiNodered } from 'react-icons/si';
 import { DiCode } from 'react-icons/di';
@@ -14,7 +15,7 @@ import { VscMarkdown } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
 import { DialogActions, Grid } from '@mui/material';
 
-export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Dora Xml" | "Markdown" | "Yarn" | "Visual Script" | "Folder"
+export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Typescript" | "Dora Xml" | "Markdown" | "Yarn" | "Visual Script" | "Folder"
 
 interface FileType {
 	icon: React.ReactNode;
@@ -31,7 +32,7 @@ const fileTypes: FileType[] = [
 		padding: '20px'
 	},
 	{
-		icon: <img src={yueLogo} alt="Yuescript" width="60px" height="60px" style={{marginLeft: '0px'}}/>,
+		icon: <img src={yueLogo} alt="Yuescript" width="60px" height="60px" style={{marginLeft: '-5px'}}/>,
 		name: "Yuescript",
 		desc: "file.yuescript",
 		padding: '10px'
@@ -43,28 +44,34 @@ const fileTypes: FileType[] = [
 		padding: '20px'
 	},
 	{
-		icon: <DiCode size={60} style={{marginLeft: '0px'}}/>,
+		icon: <img src={typescriptLogo} alt="Typescript" width="40px" height="40px" style={{marginLeft: '5px'}}/>,
+		name: "Typescript",
+		desc: "file.typescript",
+		padding: '20px'
+	},
+	{
+		icon: <DiCode size={65} style={{marginLeft: '-3px'}}/>,
 		name: "Dora Xml",
 		desc: "file.xml",
-		padding: '15px'
+		padding: '13px'
 	},
 	{
 		icon: <img src="yarn-editor/icon_512x512.png" alt="Yuescript" width="50px" height="50px" style={{marginLeft: '0px'}}/>,
 		name: "Yarn",
 		desc: "file.yarn",
-		padding: '20px'
+		padding: '15px'
 	},
 	{
-		icon: <VscMarkdown size={45} style={{marginLeft: '10px'}}/>,
+		icon: <VscMarkdown size={50} style={{marginLeft: '5px'}}/>,
 		name: "Markdown",
 		desc: "file.markdown",
 		padding: '15px'
 	},
 	{
-		icon: <SiNodered size={60} style={{marginLeft: '5px'}}/>,
+		icon: <SiNodered size={60} style={{marginLeft: '5px', width: '60px'}}/>,
 		name: "Visual Script",
 		desc: "file.visualScript",
-		padding: '30px'
+		padding: '25px'
 	},
 	{
 		icon: <AiFillFolderAdd size={50} style={{marginLeft: '0px'}}/>,

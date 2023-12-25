@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dora dora.ImGui
 
 actions = ["观察","侦查","攀爬","挥舞","攻击","破坏","投掷","采集","挖掘","采收","沟通","鼓舞","恐吓"]
 

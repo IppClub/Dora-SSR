@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dora!
 
 thread ->
 	print "thread 1"

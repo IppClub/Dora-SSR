@@ -1,7 +1,7 @@
-_ENV = Dorothy!
+_ENV = Dora!
 
-svg = SVG "Image/Dorothy.svg"
+svg = SVG "Image/dora.svg"
 
 threadLoop ->
-	nvg.Translate -100, -100
+	nvg.Scale 0.5, 0.5
 	svg\render!

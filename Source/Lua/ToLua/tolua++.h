@@ -48,6 +48,8 @@ NS_DOROTHY_BEGIN
 
 #define TOLUA_UBOX_START_SIZE 4096
 
+#define BUILTIN_ENV "dora"
+
 typedef int lua_Object;
 
 struct tolua_Error {

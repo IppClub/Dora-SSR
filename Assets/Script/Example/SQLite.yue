@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dora!
 
 result = DB\transaction [
 	"DROP TABLE IF EXISTS test"

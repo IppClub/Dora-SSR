@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.ImGui
+_ENV = Dora dora.ImGui
 
 App.idled = true
 
@@ -11,7 +11,7 @@ require = (path)->
 		return oldRequire path
 	loaded
 _G.require = require
-builtin.require = require
+dora.require = require
 
 :searchPaths = Content
 
@@ -296,7 +296,7 @@ doCompile = (minify)->
 				return
 			success, result = LintYueGlobals codes, globals
 			if success
-				codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dorothy%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
+				codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
 				result ..= "\n" unless result == ""
 				"-- [yue]: #{file}\n#{result}" .. codes
 			else
@@ -490,7 +490,7 @@ reloadDevEntry = ->
 	doClean!
 	allClear!
 	_G.require = oldRequire
-	builtin.require = oldRequire
+	dora.require = oldRequire
 	package.loaded["Dev.Entry"] = nil
 	Director.systemScheduler\schedule ->
 		Routine\clear!
@@ -877,7 +877,7 @@ entryWindow = threadLoop ->
 				SetNextWindowPos Vec2(fullWidth / 2, height / 2), "Always", Vec2 0.5, 0.5
 				Begin "Entries Not Found", displayWindowFlags, ->
 					Separator!
-					TextColored themeColor, zh and "桃乐丝：" or "Dorothy:"
+					TextColored themeColor, zh and "多萝西：" or "Dorothy:"
 					TextColored descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!'
 					Separator!
 			Columns 1, false

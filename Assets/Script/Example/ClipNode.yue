@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dora!
 
 StarVertices = (radius, line = false)->
 	a = math.rad 36

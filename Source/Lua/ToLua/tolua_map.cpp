@@ -230,12 +230,12 @@ void tolua_beginmodule(lua_State* L, const char* name) {
 		lua_pushstring(L, name);
 		lua_rawget(L, -2);
 	} else {
-		lua_getglobal(L, "builtin"); // builtin
+		lua_getglobal(L, BUILTIN_ENV); // builtin
 		if (!lua_istable(L, -1)) {
 			lua_pop(L, 1);
 			lua_newtable(L); // builtin
 			lua_pushvalue(L, -1); // builtin builtin
-			lua_setglobal(L, "builtin"); // _G["builtin"] = builtin, builtin
+			lua_setglobal(L, BUILTIN_ENV); // _G[BUILTIN_ENV] = builtin, builtin
 		}
 	}
 }
@@ -266,8 +266,7 @@ void tolua_module(lua_State* L, const char* name, int hasvar) {
 		}
 	} else {
 		/* get global table */
-		// lua_pushvalue(L, LUA_GLOBALSINDEX);
-		lua_getglobal(L, "builtin"); // builtin
+		lua_getglobal(L, BUILTIN_ENV); // builtin
 	}
 	if (hasvar) {
 		/* check if it already has a module metatable */

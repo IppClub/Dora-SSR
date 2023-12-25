@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dora!
 LineRect = require "UI.View.Shape.LineRect"
 FixedLabel = require "UI.Control.Basic.FixedLabel"
 import "utf-8" as utf8
