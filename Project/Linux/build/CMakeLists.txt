@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4.1)
-project(Dorothy-SSR)
+project(Dora-SSR)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -56,7 +56,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_definitions(-Wno-psabi)
 endif()
 
-add_executable(dorothy-ssr
+add_executable(dora-ssr
 	../../../Source/Platformer/AINode.cpp
 	../../../Source/Platformer/Define.cpp
 	../../../Source/Platformer/AI.cpp
@@ -157,7 +157,7 @@ add_executable(dorothy-ssr
 	../../../Source/Lua/ToLua/tolua_fix.cpp
 	../../../Source/Lua/ToLua/tolua_to.cpp
 	../../../Source/Lua/ToLua/tolua_is.cpp
-	../../../Source/Lua/Xml/DorothyTag.cpp
+	../../../Source/Lua/Xml/DoraTag.cpp
 	../../../Source/Lua/Xml/XmlResolver.cpp
 	../../../Source/Lua/Yarn/YarnCompiler.cpp
 	../../../Source/Test/Test.cpp
@@ -474,5 +474,5 @@ add_executable(dorothy-ssr
 	../../../Source/3rdParty/playrho/d2/part/Compositor.cpp
 )
 
-target_link_libraries(dorothy-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11)
+target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11)
 

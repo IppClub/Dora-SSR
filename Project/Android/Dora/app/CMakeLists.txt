@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4.1)
-project(Dorothy-SSR)
+project(Dora-SSR)
 
 include_directories(
 	src/main/cpp
@@ -152,7 +152,7 @@ add_library(main SHARED
 	src/main/cpp/Lua/ToLua/tolua_fix.cpp
 	src/main/cpp/Lua/ToLua/tolua_to.cpp
 	src/main/cpp/Lua/ToLua/tolua_is.cpp
-	src/main/cpp/Lua/Xml/DorothyTag.cpp
+	src/main/cpp/Lua/Xml/DoraTag.cpp
 	src/main/cpp/Lua/Xml/XmlResolver.cpp
 	src/main/cpp/Lua/Yarn/YarnCompiler.cpp
 	src/main/cpp/Test/Test.cpp
