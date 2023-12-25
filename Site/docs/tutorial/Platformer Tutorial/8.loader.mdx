@@ -2,7 +2,7 @@ import "@site/src/languages/highlight";
 
 # Writing Excel Configuration File Loading Module
 
-Welcome to the eighth tutorial of the Dorothy SSR game engine's side-scrolling 2D game development series! In this tutorial, we will learn how to load Excel formatted configuration files. This module primarily does one thing: loads an Excel spreadsheet into a Lua table, processes it, creates corresponding game item entity objects in the ECS system, and hands them over to the ECS system mentioned in the previous tutorials for logic processing.
+Welcome to the eighth tutorial of the Dora SSR game engine's side-scrolling 2D game development series! In this tutorial, we will learn how to load Excel formatted configuration files. This module primarily does one thing: loads an Excel spreadsheet into a Lua table, processes it, creates corresponding game item entity objects in the ECS system, and hands them over to the ECS system mentioned in the previous tutorials for logic processing.
 
 First, we need to import some necessary modules:
 
@@ -89,4 +89,4 @@ return Loader
 
 In the above code, we first load the Excel file and obtain a Lua table object containing the file data directly. Then, we retrieve the table header from the table and use it to create a definition for a Struct data object named "Item." Next, we iterate over all existing item entities in the ECS system with the "item" component and destroy them. Finally, we iterate over each row of data in the Excel table, convert each row's data into a Struct object, create a new game item entity using this object to access various data fields, and trigger the subsequent logic processing of game entities in the ECS system.
 
-With this, our Excel configuration file loading module is complete. In the upcoming tutorials, we will use this loaded data to create game characters and implement game logic. We hope you can keep up with us and learn how to use the Dorothy SSR game engine together!
+With this, our Excel configuration file loading module is complete. In the upcoming tutorials, we will use this loaded data to create game characters and implement game logic. We hope you can keep up with us and learn how to use the Dora SSR game engine together!

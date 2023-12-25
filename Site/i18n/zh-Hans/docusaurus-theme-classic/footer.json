@@ -25,10 +25,10 @@
   },
   "link.item.label.GitHub": {
     "message": "GitHub",
-    "description": "The label of footer link with label=GitHub linking to https://github.com/pigpigyyy/Dorothy-SSR"
+    "description": "The label of footer link with label=GitHub linking to https://github.com/pigpigyyy/Dora-SSR"
   },
   "copyright": {
-    "message": "Copyright © 2023 Dorothy SSR, Inc. Built with Docusaurus.",
+    "message": "Copyright © 2023 Dora SSR, Inc. Built with Docusaurus.",
     "description": "The footer copyright"
   },
   "link.item.label.API Reference": {

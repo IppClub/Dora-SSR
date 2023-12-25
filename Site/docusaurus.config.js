@@ -168,12 +168,12 @@ const lightCodeTheme = {
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-	title: 'Dorothy SSR',
-	tagline: 'The Dorothy project, Special Super Rare edition.',
+	title: 'Dora SSR',
+	tagline: 'The Dora project, Special Super Rare edition.',
 	favicon: 'img/favicon.ico',
 
 	// Set the production url of your site here
-	url: 'https://dorothy-ssr.net',
+	url: 'https://dora-ssr.net',
 	// Set the /<baseUrl>/ pathname under which your site is served
 	// For GitHub pages deployment, it is often '/<projectName>/'
 	baseUrl: '/',
@@ -181,7 +181,7 @@ const config = {
 	// GitHub pages deployment config.
 	// If you aren't using GitHub pages, you don't need these.
 	organizationName: 'ippclub', // Usually your GitHub org/user name.
-	projectName: 'Dorothy-SSR', // Usually your repo name.
+	projectName: 'Dora-SSR', // Usually your repo name.
 
 	onBrokenLinks: 'throw',
 	onBrokenMarkdownLinks: 'warn',
@@ -204,7 +204,7 @@ const config = {
 					// Please change this to your repo.
 					// Remove this to remove the "edit this page" links.
 					editUrl:
-						'https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Site',
+						'https://github.com/pigpigyyy/Dora-SSR/tree/main/Site',
 					// sidebarCollapsed: false,
 					showLastUpdateAuthor: true,
 					showLastUpdateTime: true,
@@ -214,7 +214,7 @@ const config = {
 					// Please change this to your repo.
 					// Remove this to remove the "edit this page" links.
 					editUrl:
-						'https://github.com/pigpigyyy/Dorothy-SSR/tree/main/Site',
+						'https://github.com/ippclub/Dora-SSR/tree/main/Site',
 				},
 				theme: {
 					customCss: require.resolve('./src/css/custom.css'),
@@ -229,9 +229,9 @@ const config = {
 		// Replace with your project's social card
 		image: 'img/dorothy-ssr-social-card.jpg',
 		navbar: {
-			title: 'Dorothy SSR',
+			title: 'Dora SSR',
 			logo: {
-				alt: 'Dorothy SSR Logo',
+				alt: 'Dora SSR Logo',
 				src: 'img/logo.svg',
 			},
 			items: [
@@ -252,7 +252,7 @@ const config = {
 				},
 				{to: '/blog', label: 'Blog', position: 'left'},
 				{
-					href: 'https://github.com/pigpigyyy/Dorothy-SSR',
+					href: 'https://github.com/ippclub/Dora-SSR',
 					label: 'GitHub',
 					position: 'right',
 				},
@@ -296,12 +296,12 @@ const config = {
 						},
 						{
 							label: 'GitHub',
-							href: 'https://github.com/pigpigyyy/Dorothy-SSR',
+							href: 'https://github.com/pigpigyyy/Dora-SSR',
 						},
 					],
 				},
 			],
-			copyright: `Copyright © ${new Date().getFullYear()} Dorothy SSR Community. Built with Docusaurus.`,
+			copyright: `Copyright © ${new Date().getFullYear()} Dora SSR Community. Built with Docusaurus.`,
 		},
 		colorMode: {
 			defaultMode: 'dark',

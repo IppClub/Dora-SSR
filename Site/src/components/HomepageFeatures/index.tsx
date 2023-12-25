@@ -28,7 +28,7 @@ const FeatureList: FeatureItem[] = [
 			<Translate
 				id="feature_description_one"
 				description='The feature description one in front page'>
-				What Dorothy SSR is for: Making Game Development a New Gaming.
+				What Dora SSR is for: Making Game Development a New Gaming.
 			</Translate>
 		),
 	},
@@ -60,7 +60,7 @@ const FeatureList: FeatureItem[] = [
 			<Translate
 				id='feature_description_three'
 				description='The feature description three in front page'>
-				Satisfy your coding cravings with Dorothy SSR's versatile language support!
+				Satisfy your coding cravings with Dora SSR's versatile language support!
 			</Translate>
 		),
 	},

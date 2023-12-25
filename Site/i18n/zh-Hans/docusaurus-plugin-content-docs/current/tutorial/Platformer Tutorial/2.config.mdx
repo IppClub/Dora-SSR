@@ -2,9 +2,9 @@ import "@site/src/languages/highlight";
 
 # 编写配置参数模块
 
-&emsp;&emsp;欢迎来到Dorothy SSR游戏引擎横版2D游戏开发教程的第二篇！在这篇教程中，我们将介绍如何编写配置参数模块。这个模块是游戏开发中的基础部分，它定义了游戏中的一些基本参数，包括图形的遮挡顺序（Layer编号）和物理对象碰撞关系的管理（Group编号）。
+&emsp;&emsp;欢迎来到Dora SSR游戏引擎横版2D游戏开发教程的第二篇！在这篇教程中，我们将介绍如何编写配置参数模块。这个模块是游戏开发中的基础部分，它定义了游戏中的一些基本参数，包括图形的遮挡顺序（Layer编号）和物理对象碰撞关系的管理（Group编号）。
 
-&emsp;&emsp;首先，我们需要引入[Platformer](/docs/api/Module/Platformer)和[Data](/docs/api/Class/Platformer/Data)模块。Platformer模块是Dorothy SSR游戏引擎提供的一个包含了2D平台游戏相关功能的模块，而Data模块则是一个单例对象，提供了存储和访问游戏全局定义数据的统一位置。
+&emsp;&emsp;首先，我们需要引入[Platformer](/docs/api/Module/Platformer)和[Data](/docs/api/Class/Platformer/Data)模块。Platformer模块是Dora SSR游戏引擎提供的一个包含了2D平台游戏相关功能的模块，而Data模块则是一个单例对象，提供了存储和访问游戏全局定义数据的统一位置。
 
 ```tl title="Script/Config.tl"
 local Platformer <const> = require("Platformer")
@@ -47,4 +47,4 @@ return {
 }
 ```
 
-&emsp;&emsp;至此，我们的配置参数模块就编写完成了。在接下来的教程中，我们将使用这些参数来创建游戏场景和游戏角色。希望你能跟上我们的步伐，一起学习Dorothy SSR游戏引擎的使用方法！
+&emsp;&emsp;至此，我们的配置参数模块就编写完成了。在接下来的教程中，我们将使用这些参数来创建游戏场景和游戏角色。希望你能跟上我们的步伐，一起学习Dora SSR游戏引擎的使用方法！

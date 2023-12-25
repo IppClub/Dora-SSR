@@ -9,7 +9,7 @@ import TabItem from '@theme/TabItem';
 
 ## 1. Framework Introduction
 
-The ECS (Entity Component System) framework in Dorothy SSR is inspired by [Entitas](https://github.com/sschmid/Entitas) with some minor modifications in functionality. The basic concepts can be understood using Entitas' principle diagram.
+The ECS (Entity Component System) framework in Dora SSR is inspired by [Entitas](https://github.com/sschmid/Entitas) with some minor modifications in functionality. The basic concepts can be understood using Entitas' principle diagram.
 
 ```
 Entitas ECS
@@ -40,11 +40,11 @@ Entitas ECS
                  +------------+
 ```
 
-Unlike Entitas, in the Dorothy SSR ECS framework, we manage each field on the entity object as a system component. This introduces some additional performance overhead but greatly simplifies the logic code.
+Unlike Entitas, in the Dora SSR ECS framework, we manage each field on the entity object as a system component. This introduces some additional performance overhead but greatly simplifies the logic code.
 
 ## 2. Code Example
 
-In this tutorial, we will demonstrate how to use the ECS (Entity Component System) framework in Dorothy SSR to develop game logic through a code example.
+In this tutorial, we will demonstrate how to use the ECS (Entity Component System) framework in Dora SSR to develop game logic through a code example.
 
 <Tabs>
 <TabItem value="yue" label="Yuescript">
@@ -52,7 +52,7 @@ In this tutorial, we will demonstrate how to use the ECS (Entity Component Syste
 Before writing the actual code, we require the modules we will use in this tutorial for Yuescript language.
 
 ```yue
-_ENV = Dorothy!
+_ENV = Dora!
 ```
 
 First, we create two entity groups, `sceneGroup` and `positionGroup`, which are used to access and manage entities with the "scene" and "position" component names, respectively.
@@ -686,7 +686,7 @@ This example code demonstrates the basic workflow of using the ECS framework in 
 
 By organizing the relationships between entities and components effectively and leveraging the listening and processing capabilities of observers, you can build complex game logic and behaviors. In real-world development, you can design and define your own component types based on your game requirements and utilize the provided interfaces of the ECS framework to implement various functionalities and behaviors in your game.
 
-To summarize, the basic workflow of using the Dorothy SSR ECS framework in game development includes:
+To summarize, the basic workflow of using the Dora SSR ECS framework in game development includes:
 
 1. Defining component types for entities and creating entity objects based on your requirements.
 2. Creating entity groups and adding entities to the corresponding groups for grouping and management purposes.
@@ -694,4 +694,4 @@ To summarize, the basic workflow of using the Dorothy SSR ECS framework in game 
 4. In the callback functions of entity group observers, performing logic operations based on entity changes every frame.
 5. Designing and implementing other components, systems, and functionalities based on your game requirements.
 
-By following the above workflow using the Dorothy SSR ECS framework, you can better organize and manage your game logic, improve code maintainability and extensibility, and implement complex game features and behaviors.
+By following the above workflow using the Dora SSR ECS framework, you can better organize and manage your game logic, improve code maintainability and extensibility, and implement complex game features and behaviors.
