@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Physics/Soft/World.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 NS_BEGIN(Soft)
 
 Material Particle::defaultMaterial;
@@ -157,4 +157,4 @@ void Particle::Restrain() {
 }
 
 NS_END(Soft)
-NS_DOROTHY_END
+NS_DORA_END

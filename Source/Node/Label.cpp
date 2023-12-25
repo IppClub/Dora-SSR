@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Other/utf8.h"
 #include "font/font_manager.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /* TrueTypeFont */
 
@@ -964,4 +964,4 @@ void Label::render() {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

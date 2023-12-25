@@ -69,7 +69,7 @@ local record App
 	-- The system locale string, in format like: `zh-Hans`, `en`.
 	locale: string
 
-	-- A theme color for Dorothy SSR.
+	-- A theme color for Dora SSR.
 	themeColor: Color
 
 	-- A random number seed.

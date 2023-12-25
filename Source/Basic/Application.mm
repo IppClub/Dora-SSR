@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #import <QuartzCore/CAMetalLayer.h>
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 void Application::updateWindowSize() {
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
@@ -60,6 +60,6 @@ void Application::setupSdlWindow() {
 	_platformData.backBufferDS = NULL;
 	updateWindowSize();
 }
-NS_DOROTHY_END
+NS_DORA_END
 
 #endif // BX_PLATFORM_IOS

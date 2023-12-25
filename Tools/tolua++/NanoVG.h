@@ -86,14 +86,8 @@ namespace nvg
 	void TextAlign(String align);
 	void FontFaceId(int font);
 	void FontFace(String font);
-	void DorothySSR();
-	void DorothySSRWhite();
-	void DorothySSRHappy();
-	void DorothySSRHappyWhite();
-	Texture2D* GetDorothySSR(float scale = 1.0f);
-	Texture2D* GetDorothySSRWhite(float scale = 1.0f);
-	Texture2D* GetDorothySSRHappy(float scale = 1.0f);
-	Texture2D* GetDorothySSRHappyWhite(float scale = 1.0f);
+	void DoraSSR();
+	Texture2D* GetDoraSSR(float scale = 1.0f);
 };
 
 class VGNode : public Node

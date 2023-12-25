@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Support/Array.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 Array::Array() { }
 
@@ -169,4 +169,4 @@ std::vector<Own<Value>>& Array::data() {
 	return _data;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

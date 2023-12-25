@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "SDL.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /* Touch */
 
@@ -532,4 +532,4 @@ void TouchDispatcher::clearEvents() {
 	_events.clear();
 }
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Lua/LuaEngine.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class LuaHandler : public Object {
 public:
@@ -123,4 +123,4 @@ private:
 	Ref<LuaHandler> _handler;
 };
 
-NS_DOROTHY_END
+NS_DORA_END

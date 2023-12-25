@@ -44,7 +44,7 @@ static void releaseFileData(void* _ptr, void* _userData) {
 	}
 }
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 #if BX_PLATFORM_ANDROID
 
@@ -850,4 +850,4 @@ std::string Content::getFullPathForDirectoryAndFilename(String directory, String
 }
 #endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -70,7 +70,7 @@ local record PlayableClass
 
 	-- Creates a new instance of 'Playable' from the specified animation file.
 	-- @param filename (string) the filename of the animation file to load.
-	-- Supports DragonBone, Spine2D and Dorothy Model files.
+	-- Supports DragonBone, Spine2D and Dora Model files.
 	-- Should be one of the formats below:
 	-- 	"model:" + modelFile
 	-- 	"spine:" + spineStr

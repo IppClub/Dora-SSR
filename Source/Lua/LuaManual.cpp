@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 
-#include "Dorothy.h"
+#include "Dora.h"
 
 #include "Lua/LuaManual.h"
 
@@ -22,7 +22,7 @@ int colibc_json_load(lua_State* L);
 int colibc_json_dump(lua_State* L);
 }
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /* Event */
 
@@ -2931,7 +2931,7 @@ int Test_run(lua_State* L) {
 	return 1;
 }
 
-NS_DOROTHY_END
+NS_DORA_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 

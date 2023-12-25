@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class PoolManager {
 public:
@@ -25,6 +25,6 @@ private:
 };
 
 #define SharedPoolManager \
-	Dorothy::Singleton<Dorothy::PoolManager>::shared()
+	Dora::Singleton<Dora::PoolManager>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

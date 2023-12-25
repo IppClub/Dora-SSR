@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "SDL.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 Keyboard::Keyboard()
 	: _oldCodeStates(SDL_NUM_SCANCODES, false)
@@ -340,4 +340,4 @@ bool Keyboard::isKeyPressed(String name) const {
 	return false;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

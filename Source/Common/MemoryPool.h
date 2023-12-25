@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <new>
 #include <utility>
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 #ifndef DEFAULT_CHUNK_CAPACITY
 #define DEFAULT_CHUNK_CAPACITY 4096 // 4KB
@@ -86,4 +86,4 @@ private: \
 #define MEMORY_POOL(type) \
 	MemoryPoolImpl<type> type::_memory
 
-NS_DOROTHY_END
+NS_DORA_END

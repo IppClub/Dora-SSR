@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Node.h"
 #include "Support/Array.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /* Scheduler */
 
@@ -241,4 +241,4 @@ void SystemTimerBase::stop() {
 	_callback = nullptr;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 // clang-format off
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 #define SWITCH_STR_START(str) switch (Switch::hash(str))
 #define CASE_STR(str) case #str##_hash:
@@ -1371,7 +1371,7 @@ public:
 	void begin() {
 		errors.clear();
 		fmt::format_to(std::back_inserter(stream), "{}"sv,
-			"return function(args)"s + nl() + "local _ENV = Dorothy(args)"s + nl());
+			"return function(args)"s + nl() + "local _ENV = Dora(args)"s + nl());
 	}
 	void end() {
 		fmt::format_to(std::back_inserter(stream), "return {}{}end"sv, firstItem, nl());
@@ -1636,7 +1636,7 @@ void XmlDelegator::startElement(const char* element, const char** atts) {
 	SWITCH_STR_END
 
 	SWITCH_STR_START(element) {
-		CASE_STR(Dorothy) {
+		CASE_STR(Dora) {
 			break;
 		}
 		Item(Node, node)
@@ -1987,4 +1987,4 @@ std::variant<std::string, XmlLoader::XmlErrors> XmlLoader::loadXml(String xmlDat
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

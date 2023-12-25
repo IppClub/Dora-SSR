@@ -11,11 +11,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Node.h"
 #include "Other/rapidxml_sax3.hpp"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 class ParticleNode;
 class Sprite;
 class Action;
-NS_DOROTHY_END
+NS_DORA_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
@@ -111,6 +111,6 @@ private:
 };
 
 #define SharedVisualCache \
-	Dorothy::Singleton<Dorothy::Platformer::VisualCache>::shared()
+	Dora::Singleton<Dora::Platformer::VisualCache>::shared()
 
 NS_DOROTHY_PLATFORMER_END

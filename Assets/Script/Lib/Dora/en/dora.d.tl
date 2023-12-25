@@ -109,7 +109,7 @@ local Class: function(...: any): any
 local classmethod: function(...: any): any
 local property: function(...: any): any
 
--- A global variable containing all the Dorothy SSR builtin functions.
+-- A global variable containing all the Dora SSR builtin functions.
 global dora = {
 	Class = Class,
 	classmethod = classmethod,

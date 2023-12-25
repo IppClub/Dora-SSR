@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/ModelCache.h"
 #include "Node/Sprite.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 void Look::add(Node* node) {
 	_nodes.push_back(node);
@@ -620,4 +620,4 @@ void Model::setupCallback() {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

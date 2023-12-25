@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #include "Test/Test.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 #if DORA_TEST
 
@@ -55,4 +55,4 @@ bool Test::run(String) {
 
 #endif // DORA_TEST
 
-NS_DOROTHY_END
+NS_DORA_END

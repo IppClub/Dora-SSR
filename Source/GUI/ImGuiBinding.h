@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Support/Common.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class CallStack;
 
@@ -35,11 +35,11 @@ private:
 	DORA_TYPE_OVERRIDE(Buffer);
 };
 
-NS_DOROTHY_END
+NS_DORA_END
 
 NS_BEGIN(ImGui::Binding)
 
-using namespace Dorothy;
+using namespace Dora;
 
 extern std::vector<std::string> EmptyOptions;
 

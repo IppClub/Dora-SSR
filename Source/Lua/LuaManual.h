@@ -8,9 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Dorothy.h"
+#include "Dora.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /* Application */
 inline Application* Application_shared() { return &SharedApplication; }
@@ -255,7 +255,7 @@ void WasmRuntime_clear();
 int Test_getNames(lua_State* L);
 int Test_run(lua_State* L);
 
-NS_DOROTHY_END
+NS_DORA_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 

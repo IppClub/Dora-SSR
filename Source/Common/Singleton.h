@@ -8,9 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
-/** Dorothy singleton helper.
+/** Dora singleton helper.
  @example
 
  class Application
@@ -22,7 +22,7 @@ public:
 	SINGLETON_REF(Application);
  };
  #define SharedApplication \
-	Dorothy::Singleton<Dorothy::Application>::shared()
+	Dora::Singleton<Dora::Application>::shared()
 
  class Log
  {
@@ -32,7 +32,7 @@ public:
 	SINGLETON_REF(Log, Application);
  };
  #define SharedLog \
-	Dorothy::Singleton<Dorothy::Log>::shared()
+	Dora::Singleton<Dora::Log>::shared()
 
  class Console
  {
@@ -44,7 +44,7 @@ public:
 	SINGLETON_REF(Log, Console);
  };
  #define SharedConsole \
-	Dorothy::Singleton<Dorothy::Console>::shared()
+	Dora::Singleton<Dora::Console>::shared()
 
  Singleton instances will be destroyed in orders of:
 	Log
@@ -135,4 +135,4 @@ private: \
 		} \
 	} __##type##_initializer__
 
-NS_DOROTHY_END
+NS_DORA_END

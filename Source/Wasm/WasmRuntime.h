@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Geometry.h"
 #include "wasm3_cpp.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 using dora_val_t = std::variant<
 	int64_t,
@@ -64,6 +64,6 @@ private:
 };
 
 #define SharedWasmRuntime \
-	Dorothy::Singleton<Dorothy::WasmRuntime>::shared()
+	Dora::Singleton<Dora::WasmRuntime>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

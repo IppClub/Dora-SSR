@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Input/TouchDispather.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 Menu::Menu()
 	: _enabled(true)
@@ -120,4 +120,4 @@ Node* Menu::itemForTouch(Touch* touch) {
 	return nullptr;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

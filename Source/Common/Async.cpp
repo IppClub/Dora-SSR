@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 // Async
 
@@ -198,4 +198,4 @@ Async* AsyncThread::newThread() {
 	return _userThreads.back().get();
 }
 
-NS_DOROTHY_END
+NS_DORA_END

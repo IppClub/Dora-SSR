@@ -32,7 +32,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "SDL.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 Director::Director()
 	: _systemScheduler(Scheduler::create())
@@ -201,7 +201,7 @@ bool Director::init() {
 			}
 			return false;
 		})) {
-		Info("Dorothy SSR started without script entry.");
+		Info("Dora SSR started without script entry.");
 	}
 	return true;
 }
@@ -593,4 +593,4 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

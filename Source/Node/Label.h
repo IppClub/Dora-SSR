@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Geometry.h"
 #include "font/font_manager.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class TrueTypeFile : public Object {
 public:
@@ -52,7 +52,7 @@ protected:
 };
 
 #define SharedFontManager \
-	Dorothy::Singleton<Dorothy::FontManager>::shared()
+	Dora::Singleton<Dora::FontManager>::shared()
 
 class FontCache {
 public:
@@ -86,7 +86,7 @@ private:
 };
 
 #define SharedFontCache \
-	Dorothy::Singleton<Dorothy::FontCache>::shared()
+	Dora::Singleton<Dora::FontCache>::shared()
 
 enum struct TextAlign {
 	Left = 0,
@@ -167,4 +167,4 @@ private:
 	DORA_TYPE_OVERRIDE(Label);
 };
 
-NS_DOROTHY_END
+NS_DORA_END

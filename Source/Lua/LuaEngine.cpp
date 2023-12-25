@@ -18,7 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Node.h"
 #include "Support/Value.h"
 
-#include "Lua/Xml/DorothyTag.h"
+#include "Lua/Xml/DoraTag.h"
 #include "Lua/Xml/XmlResolver.h"
 #include "Lua/Yarn/YarnCompiler.h"
 
@@ -27,7 +27,7 @@ int luaopen_yue(lua_State* L);
 int luaopen_colibc_json(lua_State* L);
 }
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 int LuaEngine::_callFromLua = 0;
 
@@ -1438,18 +1438,18 @@ std::list<LuaEngine::XmlToken> LuaEngine::completeXml(String xmlCodes) {
 	auto input = xmlCodes.right(1);
 	if (input == "<"_slice) {
 		if (resolver.getCurrentElement().empty()) {
-			auto words = DorothyTag::shared().getSubElements("Dorothy"s);
+			auto words = DoraTag::shared().getSubElements("Dora"s);
 			const auto& imports = resolver.getImports();
 			words.insert(words.end(), imports.begin(), imports.end());
-			words.push_back("Dorothy"s);
+			words.push_back("Dora"s);
 			std::list<LuaEngine::XmlToken> list;
 			for (const auto& word : words) {
 				list.push_back({word, word});
 			}
 			return list;
 		} else {
-			auto words = DorothyTag::shared().getSubElements(resolver.getCurrentElement());
-			if (DorothyTag::shared().isElementNode(resolver.getCurrentElement()) || resolver.getCurrentElement() == "Stencil"sv) {
+			auto words = DoraTag::shared().getSubElements(resolver.getCurrentElement());
+			if (DoraTag::shared().isElementNode(resolver.getCurrentElement()) || resolver.getCurrentElement() == "Stencil"sv) {
 				const auto& imports = resolver.getImports();
 				words.insert(words.end(), imports.begin(), imports.end());
 			}
@@ -1470,7 +1470,7 @@ std::list<LuaEngine::XmlToken> LuaEngine::completeXml(String xmlCodes) {
 		}
 	} else if (input == " "_slice || input == "\t"_slice || input == "\n"_slice) {
 		if (resolver.isCurrentInTag() && !resolver.getCurrentElement().empty() && resolver.getCurrentAttribute().empty()) {
-			auto words = DorothyTag::shared().getAttributes(resolver.getCurrentElement());
+			auto words = DoraTag::shared().getAttributes(resolver.getCurrentElement());
 			if (words.empty()) {
 				bool importedTag = false;
 				for (const auto& item : resolver.getImports()) {
@@ -1492,7 +1492,7 @@ std::list<LuaEngine::XmlToken> LuaEngine::completeXml(String xmlCodes) {
 		}
 	} else if (input == "="_slice) {
 		if (resolver.isCurrentInTag() && !resolver.getCurrentAttribute().empty()) {
-			auto words = DorothyTag::shared().getAttributeHints(resolver.getCurrentElement(), resolver.getCurrentAttribute());
+			auto words = DoraTag::shared().getAttributeHints(resolver.getCurrentElement(), resolver.getCurrentAttribute());
 			if (!words.empty()) {
 				std::list<LuaEngine::XmlToken> list;
 				for (const auto& word : words) {
@@ -1520,7 +1520,7 @@ std::list<LuaEngine::XmlToken> LuaEngine::completeXml(String xmlCodes) {
 		}
 	} else {
 		if (resolver.isCurrentInTag() && !resolver.getCurrentElement().empty() && resolver.getCurrentAttribute().empty()) {
-			auto words = DorothyTag::shared().getAttributes(resolver.getCurrentElement());
+			auto words = DoraTag::shared().getAttributes(resolver.getCurrentElement());
 			if (words.empty()) {
 				bool importedTag = false;
 				for (const auto& item : resolver.getImports()) {
@@ -1787,4 +1787,4 @@ bool LuaEngine::invoke(lua_State* L, int handler, int numArgs, int numRets) {
 	return LuaEngine::call(L, numArgs, numRets);
 }
 
-NS_DOROTHY_END
+NS_DORA_END

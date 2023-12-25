@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Geometry.h"
 #include "Support/Value.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Shader;
 
@@ -93,6 +93,6 @@ private:
 };
 
 #define SharedDefaultEffect \
-	Dorothy::Singleton<Dorothy::DefaultEffect>::shared()
+	Dora::Singleton<Dora::DefaultEffect>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

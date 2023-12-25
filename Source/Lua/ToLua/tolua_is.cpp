@@ -16,7 +16,7 @@
 
 #include "Lua/ToLua/tolua++.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /* a fast check if a is b, without parameter validation
  i.e. if b is equal to a or a superclass of a. */
@@ -380,4 +380,4 @@ int tolua_isusertypearray(lua_State* L, int lo, String type, int dim, int def, t
 	return 1;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

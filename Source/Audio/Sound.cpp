@@ -18,7 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "soloud_wav.h"
 #include "soloud_wavstream.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /* SoundFile */
 SoLoud::Wav* SoundFile::getWav() {
@@ -167,4 +167,4 @@ void Audio::stopStream(float fadeTime) {
 	_currentStream = nullptr;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -1,6 +1,6 @@
 _ENV = Dora!
 
-texture = nvg.GetDorothySSRWhite!
+texture = nvg.GetDoraSSR!
 sprite = Sprite texture
 length = Vec2(View.size).length
 :width, :height = sprite

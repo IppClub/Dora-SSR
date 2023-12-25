@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Model.h"
 #include "Node/Spine.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 Playable::Playable()
 	: _fliped(false)
@@ -70,4 +70,4 @@ Playable* Playable::create(String filename) {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

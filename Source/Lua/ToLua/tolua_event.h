@@ -16,10 +16,10 @@
 
 #include "Lua/ToLua/tolua++.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 void tolua_moduleevents(lua_State* L);
 int tolua_ismodulemetatable(lua_State* L);
 void tolua_classevents(lua_State* L);
 
-NS_DOROTHY_END
+NS_DORA_END

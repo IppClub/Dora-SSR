@@ -16,7 +16,7 @@ class WavStream;
 class Soloud;
 } // namespace SoLoud
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class SystemTimer;
 
@@ -75,6 +75,6 @@ private:
 };
 
 #define SharedAudio \
-	Dorothy::Singleton<Dorothy::Audio>::shared()
+	Dora::Singleton<Dora::Audio>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

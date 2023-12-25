@@ -24,7 +24,7 @@ namespace fs = ghc::filesystem;
 namespace fs = std::filesystem;
 #endif // BX_PLATFORM_LINUX
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 int doraType = TOLUA_REG_INDEX_TYPE; // UBOX, CALLBACK, LUA_TYPE
 
@@ -176,4 +176,4 @@ void threadLoop(const std::function<Job()>& work) {
 	SharedDirector.getScheduler()->schedule(loop(work));
 }
 
-NS_DOROTHY_END
+NS_DORA_END

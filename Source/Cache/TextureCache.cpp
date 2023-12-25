@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Async.h"
 #include "bimg/decode.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 uint32_t Texture2D::_storageSize = 0;
 uint32_t Texture2D::_count = 0;
@@ -255,4 +255,4 @@ void TextureCache::removeUnused() {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

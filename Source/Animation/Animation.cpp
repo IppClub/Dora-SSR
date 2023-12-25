@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/XmlTag.h"
 #include "Node/Node.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 inline std::string s(float var) {
 	return Slice(fmt::format("{:.2f}", var)).trimZero().toString();
@@ -379,4 +379,4 @@ std::string FrameAnimationDef::toXml() {
 	return fmt::to_string(out);
 }
 
-NS_DOROTHY_END
+NS_DORA_END

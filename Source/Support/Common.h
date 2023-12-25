@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Support/Geometry.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 struct Color3 {
 	uint8_t r;
@@ -71,4 +71,4 @@ private:
 	uint64_t _value;
 };
 
-NS_DOROTHY_END
+NS_DORA_END

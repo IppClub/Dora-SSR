@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 struct SDL_Window;
 union SDL_Event;
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 typedef Acf::Delegate<void(const SDL_Event&)> SDLEventHandler;
 typedef Acf::Delegate<void()> QuitHandler;
@@ -124,7 +124,7 @@ private:
 };
 
 #define SharedApplication \
-	Dorothy::Singleton<Dorothy::Application>::shared()
+	Dora::Singleton<Dora::Application>::shared()
 
 class BGFXDora {
 public:
@@ -134,6 +134,6 @@ public:
 };
 
 #define SharedBGFX \
-	Dorothy::Singleton<Dorothy::BGFXDora>::shared()
+	Dora::Singleton<Dora::BGFXDora>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

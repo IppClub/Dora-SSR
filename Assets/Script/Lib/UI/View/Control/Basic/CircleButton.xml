@@ -1,5 +1,5 @@
 <!-- params: X, Y, Radius, FontSize, Text -->
-<Dorothy>
+<Dora>
 	<Import Module="UI.View.Control.Basic.ButtonBase"/>
 	<Import Module="UI.View.Shape.SolidCircle"/>
 	<Import Module="UI.View.Shape.LineCircle"/>
@@ -34,4 +34,4 @@
 		<Slot Name="TapBegan" Target="light" Perform="show"/>
 		<Slot Name="TapEnded" Target="light" Perform="hide"/>
 	</ButtonBase>
-</Dorothy>
+</Dora>

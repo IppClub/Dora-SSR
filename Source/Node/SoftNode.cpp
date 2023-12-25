@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/PhysicsWorld.h"
 #include "Physics/Soft/Constraint.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 SoftNode::SoftNode(float minX, float maxX, float minY, float maxY, float step)
 	: _minX(minX / PhysicsWorld::scaleFactor)
@@ -74,4 +74,4 @@ bool SoftNode::update(double deltaTime) {
 	return false;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

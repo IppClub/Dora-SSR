@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <mutex>
 #include <numeric>
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 struct LifeCycler {
 	std::string getRefTree() {
@@ -182,4 +182,4 @@ std::string Life::getRefTree() {
 	return cycler->getRefTree();
 }
 
-NS_DOROTHY_END
+NS_DORA_END

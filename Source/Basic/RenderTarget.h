@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Object.h"
 #include "Support/Common.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Camera;
 class Node;
@@ -49,4 +49,4 @@ private:
 	DORA_TYPE_OVERRIDE(RenderTarget);
 };
 
-NS_DOROTHY_END
+NS_DORA_END

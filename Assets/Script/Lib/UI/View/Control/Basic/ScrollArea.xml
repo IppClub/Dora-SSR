@@ -1,5 +1,5 @@
 <!-- params: X=0, Y=0, Width, Height -->
-<Dorothy>
+<Dora>
 	<Import Module="UI.View.Shape.SolidRect"/>
 
 	<Node Name="panel" X="{ x or 0 }" Y="{ y or 0 }" TouchEnabled="True" SwallowTouches="True" Visible="{ visible == nil or visible }">
@@ -16,4 +16,4 @@
 			</Node>
 		<Lua>end</Lua>
 	</Node>
-</Dorothy>
+</Dora>

@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/XmlTag.h"
 #include "Node/Sprite.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 FrameActionDef* FrameCache::loadFrame(String frameStr) {
 	if (Path::getExt(frameStr.toString()) == "frame"_slice) return load(frameStr);
@@ -106,4 +106,4 @@ void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 
 void FrameCache::Parser::xmlSAX2EndElement(const char* name, size_t len) { }
 
-NS_DOROTHY_END
+NS_DORA_END

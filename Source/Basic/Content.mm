@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #import <Foundation/Foundation.h>
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 bool Content::isFileExist(String filePath) {
 	if (filePath[0] != '/') {
@@ -65,4 +65,4 @@ bool Content::isAbsolutePath(String strPath) {
 	return [path isAbsolutePath] ? true : false;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

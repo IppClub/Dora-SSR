@@ -11,7 +11,7 @@
 		3C020DCC1E75476600307E4F /* Action.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C020DCA1E75476600307E4F /* Action.cpp */; };
 		3C030CA124CABDFE0074786E /* DecisionTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030C9F24CABDFD0074786E /* DecisionTree.cpp */; };
 		3C030CA424CAC02E0074786E /* Playable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030CA324CAC02E0074786E /* Playable.cpp */; };
-		3C03CBF42A18966600383FAE /* DorothyTag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C03CBF02A18966600383FAE /* DorothyTag.cpp */; };
+		3C03CBF42A18966600383FAE /* DoraTag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C03CBF02A18966600383FAE /* DoraTag.cpp */; };
 		3C03CBF52A18966600383FAE /* XmlResolver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C03CBF12A18966600383FAE /* XmlResolver.cpp */; };
 		3C05BCA41E3594C500CC6986 /* TouchDispather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C05BCA21E3594C500CC6986 /* TouchDispather.cpp */; };
 		3C0C77132753343D0030BDCD /* ZipUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C77062753343D0030BDCD /* ZipUtils.cpp */; };
@@ -465,11 +465,11 @@
 		3C030CA024CABDFD0074786E /* DecisionTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DecisionTree.h; path = ../../../Source/3rdParty/ml/DecisionTree.h; sourceTree = "<group>"; };
 		3C030CA224CAC02D0074786E /* Playable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Playable.h; path = ../../../Source/Node/Playable.h; sourceTree = "<group>"; };
 		3C030CA324CAC02E0074786E /* Playable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Playable.cpp; path = ../../../Source/Node/Playable.cpp; sourceTree = "<group>"; };
-		3C03CBF02A18966600383FAE /* DorothyTag.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DorothyTag.cpp; path = ../../../Source/Lua/Xml/DorothyTag.cpp; sourceTree = "<group>"; };
+		3C03CBF02A18966600383FAE /* DoraTag.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DoraTag.cpp; path = ../../../Source/Lua/Xml/DoraTag.cpp; sourceTree = "<group>"; };
 		3C03CBF12A18966600383FAE /* XmlResolver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = XmlResolver.cpp; path = ../../../Source/Lua/Xml/XmlResolver.cpp; sourceTree = "<group>"; };
-		3C03CBF22A18966600383FAE /* DorothyTag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DorothyTag.h; path = ../../../Source/Lua/Xml/DorothyTag.h; sourceTree = "<group>"; };
+		3C03CBF22A18966600383FAE /* DoraTag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DoraTag.h; path = ../../../Source/Lua/Xml/DoraTag.h; sourceTree = "<group>"; };
 		3C03CBF32A18966600383FAE /* XmlResolver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XmlResolver.h; path = ../../../Source/Lua/Xml/XmlResolver.h; sourceTree = "<group>"; };
-		3C03CBF62A19045100383FAE /* DorothyTagText.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DorothyTagText.hpp; path = ../../../Source/Lua/Xml/DorothyTagText.hpp; sourceTree = "<group>"; };
+		3C03CBF62A19045100383FAE /* DoraTagText.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DoraTagText.hpp; path = ../../../Source/Lua/Xml/DoraTagText.hpp; sourceTree = "<group>"; };
 		3C05BCA21E3594C500CC6986 /* TouchDispather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TouchDispather.cpp; path = ../../Source/Input/TouchDispather.cpp; sourceTree = "<group>"; };
 		3C05BCA31E3594C500CC6986 /* TouchDispather.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TouchDispather.h; path = ../../Source/Input/TouchDispather.h; sourceTree = "<group>"; };
 		3C0C77062753343D0030BDCD /* ZipUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ZipUtils.cpp; path = ../../../Source/3rdParty/Zip/ZipUtils.cpp; sourceTree = "<group>"; };
@@ -816,7 +816,7 @@
 		3C8805761E5EDCE100B52D4B /* Debug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Debug.cpp; path = ../../../Source/Common/Debug.cpp; sourceTree = "<group>"; };
 		3C883AF721E0896A00BFD758 /* VGNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VGNode.cpp; path = ../../../Source/Node/VGNode.cpp; sourceTree = "<group>"; };
 		3C883AF821E0896A00BFD758 /* VGNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VGNode.h; path = ../../../Source/Node/VGNode.h; sourceTree = "<group>"; };
-		3C8934B320F3094A00124463 /* Dorothy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dorothy.h; path = ../../../Source/Dorothy.h; sourceTree = "<group>"; };
+		3C8934B320F3094A00124463 /* Dora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dora.h; path = ../../../Source/Dora.h; sourceTree = "<group>"; };
 		3C8CD74727267A5A0045B362 /* RenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderTarget.cpp; path = ../../../Source/Basic/RenderTarget.cpp; sourceTree = "<group>"; };
 		3C8CD74827267A5A0045B362 /* RenderTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderTarget.h; path = ../../../Source/Basic/RenderTarget.h; sourceTree = "<group>"; };
 		3C9A7D711E5428A200205094 /* Label.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Label.cpp; path = ../../../Source/Node/Label.cpp; sourceTree = "<group>"; };
@@ -1117,7 +1117,7 @@
 		3CC7945A2579F9B000042394 /* yue_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yue_parser.h; path = ../../../Source/3rdParty/yuescript/yue_parser.h; sourceTree = "<group>"; };
 		3CC7945B2579F9B000042394 /* yuescript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yuescript.cpp; path = ../../../Source/3rdParty/yuescript/yuescript.cpp; sourceTree = "<group>"; };
 		3CC7945C2579F9B000042394 /* yue_compiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yue_compiler.cpp; path = ../../../Source/3rdParty/yuescript/yue_compiler.cpp; sourceTree = "<group>"; };
-		3CC81FE61D966770008C8B77 /* Dorothy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dorothy.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3CC81FE61D966770008C8B77 /* Dora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dora.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CC81FF51D966770008C8B77 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3CC81FFA1D966770008C8B77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3CCA8445263668AE00AA9B44 /* implot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = implot.cpp; path = ../../../Source/3rdParty/implot/implot.cpp; sourceTree = "<group>"; };
@@ -1533,9 +1533,9 @@
 		3C03CBE02A18953400383FAE /* Xml */ = {
 			isa = PBXGroup;
 			children = (
-				3C03CBF62A19045100383FAE /* DorothyTagText.hpp */,
-				3C03CBF02A18966600383FAE /* DorothyTag.cpp */,
-				3C03CBF22A18966600383FAE /* DorothyTag.h */,
+				3C03CBF62A19045100383FAE /* DoraTagText.hpp */,
+				3C03CBF02A18966600383FAE /* DoraTag.cpp */,
+				3C03CBF22A18966600383FAE /* DoraTag.h */,
 				3C03CBF12A18966600383FAE /* XmlResolver.cpp */,
 				3C03CBF32A18966600383FAE /* XmlResolver.h */,
 			);
@@ -2668,7 +2668,7 @@
 			isa = PBXGroup;
 			children = (
 				3C030CD824CAD9670074786E /* Resources */,
-				3CC81FE81D966770008C8B77 /* Dorothy */,
+				3CC81FE81D966770008C8B77 /* Dora */,
 				3CC81FE71D966770008C8B77 /* Products */,
 				3C17D58D1D9C401F008758E8 /* Frameworks */,
 			);
@@ -2677,15 +2677,15 @@
 		3CC81FE71D966770008C8B77 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				3CC81FE61D966770008C8B77 /* Dorothy.app */,
+				3CC81FE61D966770008C8B77 /* Dora.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		3CC81FE81D966770008C8B77 /* Dorothy */ = {
+		3CC81FE81D966770008C8B77 /* Dora */ = {
 			isa = PBXGroup;
 			children = (
-				3C8934B320F3094A00124463 /* Dorothy.h */,
+				3C8934B320F3094A00124463 /* Dora.h */,
 				3C291D371E0264510098C860 /* 3rdParty */,
 				3C020DC91E75474C00307E4F /* Animation */,
 				3C2DFE151E95C5770077B67D /* Audio */,
@@ -2711,7 +2711,7 @@
 				3CC81FF51D966770008C8B77 /* Assets.xcassets */,
 				3CC81FFA1D966770008C8B77 /* Info.plist */,
 			);
-			path = Dorothy;
+			path = Dora;
 			sourceTree = "<group>";
 		};
 		3CCA84442636688F00AA9B44 /* implot */ = {
@@ -3143,9 +3143,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		3CC81FE51D966770008C8B77 /* Dorothy */ = {
+		3CC81FE51D966770008C8B77 /* Dora */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 3CC81FFD1D966770008C8B77 /* Build configuration list for PBXNativeTarget "Dorothy" */;
+			buildConfigurationList = 3CC81FFD1D966770008C8B77 /* Build configuration list for PBXNativeTarget "Dora" */;
 			buildPhases = (
 				3C1676B322115A3F00892CD4 /* ShellScript */,
 				3CC81FE21D966770008C8B77 /* Sources */,
@@ -3156,9 +3156,9 @@
 			);
 			dependencies = (
 			);
-			name = Dorothy;
+			name = Dora;
 			productName = Dorothy;
-			productReference = 3CC81FE61D966770008C8B77 /* Dorothy.app */;
+			productReference = 3CC81FE61D966770008C8B77 /* Dora.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -3168,7 +3168,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = Dorothy;
 				TargetAttributes = {
 					3CC81FE51D966770008C8B77 = {
@@ -3176,7 +3176,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 3CC81FE11D966770008C8B77 /* Build configuration list for PBXProject "Dorothy" */;
+			buildConfigurationList = 3CC81FE11D966770008C8B77 /* Build configuration list for PBXProject "Dora" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -3189,7 +3189,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				3CC81FE51D966770008C8B77 /* Dorothy */,
+				3CC81FE51D966770008C8B77 /* Dora */,
 			);
 		};
 /* End PBXProject section */
@@ -3349,7 +3349,7 @@
 				3CFEB82D268DA599006D9974 /* DragonBone.cpp in Sources */,
 				3CA77EFF2AE665C100B7BADA /* ContactSolver.cpp in Sources */,
 				3CF10ECD2874AE7E00940268 /* Json.cpp in Sources */,
-				3C03CBF42A18966600383FAE /* DorothyTag.cpp in Sources */,
+				3C03CBF42A18966600383FAE /* DoraTag.cpp in Sources */,
 				3C6E7F23272A30E700E9F115 /* soloud_core_3d.cpp in Sources */,
 				3C6E7F3A272A30E700E9F115 /* ted.cpp in Sources */,
 				3CF10EED2874AE7E00940268 /* Triangulator.cpp in Sources */,
@@ -3801,7 +3801,7 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
-				INFOPLIST_FILE = Dorothy/Info.plist;
+				INFOPLIST_FILE = Dora/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -3820,7 +3820,7 @@
 				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = IppClub.Dorothy;
+				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source",
@@ -3866,7 +3866,7 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
-				INFOPLIST_FILE = Dorothy/Info.plist;
+				INFOPLIST_FILE = Dora/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -3885,7 +3885,7 @@
 				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = IppClub.Dorothy;
+				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source",
@@ -3910,7 +3910,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		3CC81FE11D966770008C8B77 /* Build configuration list for PBXProject "Dorothy" */ = {
+		3CC81FE11D966770008C8B77 /* Build configuration list for PBXProject "Dora" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3CC81FFB1D966770008C8B77 /* Debug */,
@@ -3919,7 +3919,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		3CC81FFD1D966770008C8B77 /* Build configuration list for PBXNativeTarget "Dorothy" */ = {
+		3CC81FFD1D966770008C8B77 /* Build configuration list for PBXNativeTarget "Dora" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3CC81FFE1D966770008C8B77 /* Debug */,

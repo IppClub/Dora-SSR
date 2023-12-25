@@ -137,10 +137,10 @@ namespace ImGui
 	do { \
 		if (!(_EXPR)) \
 		{ \
-			auto msg = fmt::format("[Dorothy Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
+			auto msg = fmt::format("[Dora Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
 				__FILE__, __FUNCTION__, __LINE__, \
 				#_EXPR); \
-			Dorothy::LogError(msg); \
+			Dora::LogError(msg); \
 			std::abort(); \
 		} \
 	} while (false)
@@ -159,12 +159,12 @@ namespace ImGui
 #define IMGUI_DISABLE_STB_RECT_PACK_IMPLEMENTATION
 
 #define IM_VEC2_CLASS_EXTRA \
-	ImVec2(const Dorothy::Vec2& f) { x = f.x; y = f.y; } \
-	operator Dorothy::Vec2() const { return Dorothy::Vec2{x,y}; }
+	ImVec2(const Dora::Vec2& f) { x = f.x; y = f.y; } \
+	operator Dora::Vec2() const { return Dora::Vec2{x,y}; }
 
 #define IM_VEC4_CLASS_EXTRA \
-	ImVec4(const Dorothy::Vec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; } \
-	operator Dorothy::Vec4() const { return Dorothy::Vec4{x,y,z,w}; }
+	ImVec4(const Dora::Vec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; } \
+	operator Dora::Vec4() const { return Dora::Vec4{x,y,z,w}; }
 
 #define IMGUI_DISABLE_OBSOLETE_KEYIO
 #define IMGUI_DEFINE_MATH_OPERATORS

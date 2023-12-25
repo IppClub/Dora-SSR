@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/XmlTag.h"
 #include "Node/Particle.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 std::shared_ptr<XmlParser<ParticleDef>> ParticleCache::prepareParser(String filename) {
 	return std::shared_ptr<XmlParser<ParticleDef>>(new Parser(ParticleDef::create()));
@@ -182,4 +182,4 @@ void ParticleCache::Parser::get(String value, Rect& rect) {
 	rect.size.height = (++it)->toFloat();
 }
 
-NS_DOROTHY_END
+NS_DORA_END

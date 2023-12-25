@@ -43,6 +43,6 @@ threadLoop(function(): boolean
 	ImGui.Begin("Hello World", windowFlags, function()
 		ImGui.Text("Hello World")
 		ImGui.Separator()
-		ImGui.TextWrapped("Basic Dorothy schedule and signal function usage. Written in Teal. View outputs in log window!")
+		ImGui.TextWrapped("Basic Dora schedule and signal function usage. Written in Teal. View outputs in log window!")
 	end)
 end)

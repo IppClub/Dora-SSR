@@ -1,12 +1,12 @@
-# Welcome to Dorothy SSR!
+# Welcome to Dora SSR!
 
 ![logo:250](../image/dora-toto.png)
 
-&emsp;&emsp;Congratulations on discovering this treasure! Dorothy SSR is a software dedicated to fast game development on various mobile devices. The game development toolkit is included, requiring only a running device (such as a smartphone or open-source game handheld) and any coding tool (such as a PC or tablet). With the software and a browser open, you can start making games immediately.
+&emsp;&emsp;Congratulations on discovering this treasure! Dora SSR is a software dedicated to fast game development on various mobile devices. The game development toolkit is included, requiring only a running device (such as a smartphone or open-source game handheld) and any coding tool (such as a PC or tablet). With the software and a browser open, you can start making games immediately.
 
 ## Key Features
 
-&emsp;&emsp;The Dorothy SSR engine offers a rich set of features, including:
+&emsp;&emsp;The Dora SSR engine offers a rich set of features, including:
 
 * Game scene management based on a tree-like node structure
 * ECS module for simplified game entity management
@@ -26,8 +26,8 @@
 
 ## Community Participation
 
-&emsp;&emsp;We hope you can utilize the Dorothy SSR game engine to unleash your creativity and create amazing games. During this process, if you encounter any problems or have any suggestions, please feel free to contact us. We will do our best to provide support.
+&emsp;&emsp;We hope you can utilize the Dora SSR game engine to unleash your creativity and create amazing games. During this process, if you encounter any problems or have any suggestions, please feel free to contact us. We will do our best to provide support.
 
-&emsp;&emsp;Thank you for choosing the Dorothy SSR game engine. Let's create infinite possibilities together!
+&emsp;&emsp;Thank you for choosing the Dora SSR game engine. Let's create infinite possibilities together!
 
 * [Discord](https://discord.gg/ydJVuZhh)

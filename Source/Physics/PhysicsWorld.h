@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Node.h"
 #include "playrho/d2/RayCastOutput.hpp"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 namespace pr = playrho;
 namespace pd = playrho::d2;
@@ -128,4 +128,4 @@ private:
 	DORA_TYPE_OVERRIDE(PhysicsWorld);
 };
 
-NS_DOROTHY_END
+NS_DORA_END

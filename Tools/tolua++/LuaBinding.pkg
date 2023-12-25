@@ -2,11 +2,11 @@ $#include "Const/Header.h"
 $#include "Lua/ToLua/tolua++.h"
 $#include "Lua/LuaManual.h"
 $#include "GUI/ImGuiBinding.h"
-$using namespace Dorothy;
+$using namespace Dora;
 $using string = std::string;
 $#define NewVec2(x,y) Vec2{x,y}
 
-$pfile "Dorothy.h"
+$pfile "Dora.h"
 $pfile "ImGui.h"
 $pfile "NanoVG.h"
 

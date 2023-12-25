@@ -29,7 +29,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Shader/Sprite/fs_spritewhite.bin.h"
 #include "Shader/Sprite/vs_sprite.bin.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 static const bgfx::EmbeddedShader doraShaders[] = {
 	BGFX_EMBEDDED_SHADER(vs_draw),
@@ -51,4 +51,4 @@ static const bgfx::EmbeddedShader doraShaders[] = {
 
 const bgfx::EmbeddedShader* DoraShaders = doraShaders;
 
-NS_DOROTHY_END
+NS_DORA_END

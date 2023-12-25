@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/DrawNode.h"
 #include "Node/Node.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class ClipNode : public Node {
 public:
@@ -42,4 +42,4 @@ private:
 	DORA_TYPE_OVERRIDE(ClipNode);
 };
 
-NS_DOROTHY_END
+NS_DORA_END

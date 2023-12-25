@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#define NS_DOROTHY_PLATFORMER_BEGIN namespace Dorothy::Platformer {
+#define NS_DOROTHY_PLATFORMER_BEGIN namespace Dora::Platformer {
 #define NS_DOROTHY_PLATFORMER_END }
 
 #define NS_DECISION_BEGIN namespace Decision {

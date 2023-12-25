@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 union SDL_Event;
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Event;
 
@@ -51,6 +51,6 @@ private:
 };
 
 #define SharedKeyboard \
-	Dorothy::Singleton<Dorothy::Keyboard>::shared()
+	Dora::Singleton<Dora::Keyboard>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

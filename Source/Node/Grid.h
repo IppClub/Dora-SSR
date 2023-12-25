@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Node/Sprite.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Grid : public Node {
 public:
@@ -65,4 +65,4 @@ private:
 	DORA_TYPE_OVERRIDE(Grid);
 };
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/TextureCache.h"
 #include "Node/Node.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 struct SpriteVertex {
 	float x;
@@ -139,6 +139,6 @@ private:
 };
 
 #define SharedSpriteRenderer \
-	Dorothy::Singleton<Dorothy::SpriteRenderer>::shared()
+	Dora::Singleton<Dora::SpriteRenderer>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

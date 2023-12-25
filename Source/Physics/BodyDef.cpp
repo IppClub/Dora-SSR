@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/Body.h"
 #include "Physics/PhysicsWorld.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 BodyDef::BodyDef()
 	: angleOffset(0)
@@ -439,4 +439,4 @@ pd::BodyConf* BodyDef::getConf() {
 	return &_conf;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

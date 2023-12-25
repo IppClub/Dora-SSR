@@ -70,7 +70,7 @@ local record PlayableClass
 
 	-- 从指定的动画模型文件创建动画模型的新实例。
 	-- @param filename (string) 要加载的动画文件的文件名。
-	-- 支持 DragonBone、Spine2D 和 Dorothy Model 文件。
+	-- 支持 DragonBone、Spine2D 和 Dora Model 文件。
 	-- 必须是以下格式之一：
 	-- 	"model:" + modelFile
 	-- 	"spine:" + spineStr

@@ -124,14 +124,8 @@ local record nvg
 	TextAlign: function(align: TextAlignMode)
 	FontFaceId: function(font: integer)
 	FontFace: function(font: string)
-	DorothySSR: function()
-	DorothySSRWhite: function()
-	DorothySSRHappy: function()
-	DorothySSRHappyWhite: function()
-	GetDorothySSR: function(scale?: number --[[1.0]]): Texture2D
-	GetDorothySSRWhite: function(scale?: number --[[1.0]]): Texture2D
-	GetDorothySSRHappy: function(scale?: number --[[1.0]]): Texture2D
-	GetDorothySSRHappyWhite: function(scale?: number --[[1.0]]): Texture2D
+	DoraSSR: function()
+	GetDoraSSR: function(scale?: number --[[1.0]]): Texture2D
 end
 local nvg_: nvg
 return nvg_

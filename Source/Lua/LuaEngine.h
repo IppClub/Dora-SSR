@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/ToLua/tolua++.h"
 #include "yuescript/yue_compiler.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Value;
 class Node;
@@ -231,6 +231,6 @@ protected:
 };
 
 #define SharedLuaEngine \
-	Dorothy::Singleton<Dorothy::LuaEngine>::shared()
+	Dora::Singleton<Dora::LuaEngine>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

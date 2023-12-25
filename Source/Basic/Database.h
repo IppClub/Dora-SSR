@@ -14,7 +14,7 @@ namespace SQLite {
 class Database;
 } // namespace SQLite
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Value;
 class Async;
@@ -57,6 +57,6 @@ private:
 };
 
 #define SharedDB \
-	Dorothy::Singleton<Dorothy::DB>::shared()
+	Dora::Singleton<Dora::DB>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

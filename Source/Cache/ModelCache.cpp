@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/ClipCache.h"
 #include "Const/XmlTag.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 std::shared_ptr<XmlParser<ModelDef>> ModelCache::prepareParser(String filename) {
 	return std::shared_ptr<XmlParser<ModelDef>>(new Parser(ModelDef::create(), Path::getPath(filename.toString())));
@@ -303,4 +303,4 @@ void ModelCache::Parser::xmlSAX2EndElement(const char* name, size_t len) {
 
 void ModelCache::Parser::xmlSAX2Text(const char* s, size_t len) { }
 
-NS_DOROTHY_END
+NS_DORA_END

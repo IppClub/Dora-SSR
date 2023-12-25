@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Common.h"
 #include "Support/Dictionary.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class SpineExtension : public spine::DefaultSpineExtension {
 public:
@@ -537,8 +537,8 @@ void Spine::cleanup() {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END
 
 spine::SpineExtension* spine::getDefaultExtension() {
-	return new Dorothy::SpineExtension();
+	return new Dora::SpineExtension();
 }

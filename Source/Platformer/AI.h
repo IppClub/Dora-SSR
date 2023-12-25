@@ -10,9 +10,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Platformer/AINode.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 class Array;
-NS_DOROTHY_END
+NS_DORA_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 class Unit;
@@ -55,7 +55,7 @@ private:
 };
 
 #define SharedAI \
-	Dorothy::Singleton<Dorothy::Platformer::Decision::AI>::shared()
+	Dora::Singleton<Dora::Platformer::Decision::AI>::shared()
 
 NS_DECISION_END
 

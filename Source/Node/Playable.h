@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Node/Node.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Playable : public Node {
 public:
@@ -36,4 +36,4 @@ protected:
 	DORA_TYPE_OVERRIDE(Playable);
 };
 
-NS_DOROTHY_END
+NS_DORA_END

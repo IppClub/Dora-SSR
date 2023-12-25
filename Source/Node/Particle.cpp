@@ -18,7 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/XmlTag.h"
 #include "Effect/Effect.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 static const uint8_t __defaultParticleTexturePng[] = {
 	0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
@@ -546,4 +546,4 @@ void ParticleNode::render() {
 	SharedSpriteRenderer.push(_quads[0], _quads.size() * 4, _effect, _texture, _renderState);
 }
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "lua.hpp"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 int Dictionary::getCount() const {
 	return s_cast<int>(_dict.size());
@@ -63,4 +63,4 @@ void Dictionary::clear() {
 	_dict.clear();
 }
 
-NS_DOROTHY_END
+NS_DORA_END

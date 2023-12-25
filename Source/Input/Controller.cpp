@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "SDL.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 Controller::Controller() {
 	static_assert(sizeof(SDL_JoystickID) <= sizeof(DeviceID), "can not hold SDL_JoystickID in DeviceID");
@@ -218,4 +218,4 @@ void Controller::handleEventInRender(const SDL_Event& event) {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

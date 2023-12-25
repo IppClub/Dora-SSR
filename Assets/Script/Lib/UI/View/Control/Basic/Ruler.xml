@@ -1,5 +1,5 @@
 <!-- params: X, Y, Width, Height -->
-<Dorothy>
+<Dora>
 	<Import Module="UI.View.Shape.LineRect"/>
 	<Import Module="UI.View.Shape.SolidRect"/>
 
@@ -20,4 +20,4 @@
 			<Vec2 X="0" Y="{ height/2 }"/>
 		</Line>
 	</Node>
-</Dorothy>
+</Dora>

@@ -68,10 +68,10 @@ local record App
 	-- 当前系统的语言环境字符串，格式例如：`zh-Hans`，`en`.
 	locale: string
 
-	-- Dorothy SSR的主题颜色。
+	-- Dora SSR的主题颜色。
 	themeColor: Color
 
-	-- Dorothy SSR的随机数种子。
+	-- Dora SSR的随机数种子。
 	seed: integer
 
 	-- 游戏引擎应该运行的目标帧率。

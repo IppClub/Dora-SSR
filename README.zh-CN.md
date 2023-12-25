@@ -1,14 +1,14 @@
-<img src='Assets/Image/logo.png' alt='Dorothy SSR' width='200px'/>
+<img src='Assets/Image/logo.png' alt='Dora SSR' width='200px'/>
 
-# Dorothy SSR
+# Dora SSR
 
 #### [English](README.md)  | 中文
 
-&emsp;&emsp;Dorothy SSR是一个用于多种设备上快速开发2D游戏的游戏引擎。它内置易用的开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
+&emsp;&emsp;Dora SSR是一个用于多种设备上快速开发2D游戏的游戏引擎。它内置易用的开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
 
 |Android|Linux|Windows|macOS|iOS|
 |:-:|:-:|:-:|:-:|:-:|
-|[![Android](https://github.com/ippclub/Dorothy-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/android.yml)|[![Linux](https://github.com/ippclub/Dorothy-SSR/actions/workflows/linux.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/linux.yml)|[![Windows](https://github.com/ippclub/Dorothy-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/windows.yml)|[![macOS](https://github.com/ippclub/Dorothy-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/macos.yml)|[![iOS](https://github.com/ippclub/Dorothy-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/ios.yml)|
+|[![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml)|[![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml)|[![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml)|[![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml)|[![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml)|
 
 <img src='Site/static/img/3.png' alt='Playground' width='600px'/>
 
@@ -61,18 +61,18 @@
 - 快速上手
 
   - Android
-    - 1、在游戏的运行终端下载并安装[APK](https://github.com/ippclub/Dorothy-SSR/releases/latest)包。
+    - 1、在游戏的运行终端下载并安装[APK](https://github.com/ippclub/Dora-SSR/releases/latest)包。
 
     - 2、运行软件，通过局域网内的PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
 
     - 3、开始游戏开发。
 
   - Windows、macOS
-    - 1、下载并运行[软件](https://github.com/ippclub/Dorothy-SSR/releases/latest)。
+    - 1、下载并运行[软件](https://github.com/ippclub/Dora-SSR/releases/latest)。
       - 在macOS上也可以通过 Homebrew 进行软件安装。
           ```sh
-          brew tap ippclub/dorothy-ssr 
-          brew install --cask dorothy-ssr
+          brew tap ippclub/dora-ssr 
+          brew install --cask dora-ssr
           ```
 
     - 2、运行软件，通过浏览器访问软件显示的服务器地址。
@@ -81,7 +81,7 @@
 
 - 引擎项目开发
 
-  进行Dorothy SSR项目开发的安装配置，详见[官方文档](https://dorothy-ssr.net/zh-Hans/docs/tutorial/dev-configuration)。
+  进行Dora SSR项目开发的安装配置，详见[官方文档](https://Dora-ssr.net/zh-Hans/docs/tutorial/dev-configuration)。
 
 <br>
 
@@ -100,7 +100,7 @@
    - 编写Hello World代码：
 
 ```moonscript
-_ENV = Dorothy!
+_ENV = Dora!
 
 with Sprite "Image/logo.png"
   \addTo Director.entry
@@ -126,25 +126,25 @@ with Sprite "Image/logo.png"
    - 等待浏览器弹出已打包项目文件的下载提示。
 
 
-更详细的教程，请查看[官方文档](https://dorothy-ssr.net/zh-Hans/docs/tutorial/quick-start)。
+更详细的教程，请查看[官方文档](https://Dora-ssr.net/zh-Hans/docs/tutorial/quick-start)。
 
 <br>
 
 ## 示例项目
 
-- [示例项目 - Loli War](https://github.com/ippclub/Dorothy-SSR/tree/main/Assets/Script/Game/Loli%20War)
+- [示例项目 - Loli War](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Loli%20War)
 
 ![Loli War](Assets/Image/LoliWar.gif)
 
 <br>
 
-- [示例项目 - Zombie Escape](https://github.com/ippclub/Dorothy-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
+- [示例项目 - Zombie Escape](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
 
 <img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/>
 
 <br>
 
-- [示例项目 - Dismentalism](https://github.com/ippclub/Dorothy-SSR/tree/main/Assets/Script/Game/Dismantlism)
+- [示例项目 - Dismentalism](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Dismantlism)
 
 <img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/>
 
@@ -158,8 +158,8 @@ with Sprite "Image/logo.png"
 
 ## 文档
 
-- [API参考](https://dorothy-ssr.net/zh-Hans/docs/api/intro)
-- [教程](https://dorothy-ssr.net/zh-Hans/docs/tutorial/quick-start)
+- [API参考](https://Dora-ssr.net/zh-Hans/docs/api/intro)
+- [教程](https://Dora-ssr.net/zh-Hans/docs/tutorial/quick-start)
 
 <br>
 
@@ -172,10 +172,10 @@ with Sprite "Image/logo.png"
 
 ## 贡献
 
-欢迎参与Dorothy SSR的开发和维护。请查看[贡献指南](CONTRIBUTING.zh-CN.md)了解如何提交Issue和Pull Request。
+欢迎参与Dora SSR的开发和维护。请查看[贡献指南](CONTRIBUTING.zh-CN.md)了解如何提交Issue和Pull Request。
 
 <br>
 
 ## 许可证
 
-Dorothy SSR使用[MIT许可证](LICENSE)。
+Dora SSR使用[MIT许可证](LICENSE)。

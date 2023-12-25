@@ -15,7 +15,7 @@ i18n
 					},
 					alert: {
 						assetLoad: "failed to load assets",
-						platform: "Dorothy SSR is running on {{platform}}",
+						platform: "Dora SSR is running on {{platform}}",
 						getInfo: "failed to get basic info",
 						builtin: "can not operate on built-in assets",
 						read: "failed to read {{title}}",
@@ -96,7 +96,7 @@ i18n
 						require: "Import this module",
 					},
 					menu: {
-						version: "Dorothy SSR version {{version}}",
+						version: "Dora SSR version {{version}}",
 						new: "New",
 						delete: "Delete",
 						rename: "Rename",
@@ -115,8 +115,8 @@ i18n
 					},
 					log: {
 						wait: "Wait for logging messages ...",
-						open: "Dorothy SSR connected!",
-						close: "Dorothy SSR disconnected!",
+						open: "Dora SSR connected!",
+						close: "Dora SSR disconnected!",
 						command: "Commandline"
 					},
 				}
@@ -131,7 +131,7 @@ i18n
 					},
 					alert: {
 						assetLoad: "资源加载失败",
-						platform: "Dorothy SSR 正运行于 {{platform}} 平台",
+						platform: "Dora SSR 正运行于 {{platform}} 平台",
 						getInfo: "获取基本信息失败",
 						builtin: "无法操作内置资源",
 						read: "读取 {{title}} 失败",
@@ -212,7 +212,7 @@ i18n
 						require: "导入该模块",
 					},
 					menu: {
-						version: "Dorothy SSR 版本号 {{version}}",
+						version: "Dora SSR 版本号 {{version}}",
 						new: "新建",
 						delete: "删除",
 						rename: "重命名",
@@ -231,8 +231,8 @@ i18n
 					},
 					log: {
 						wait: "接收日志消息中……",
-						open: "Dorothy SSR 已连接！",
-						close: "Dorothy SSR 断开连接！",
+						open: "Dora SSR 已连接！",
+						close: "Dora SSR 断开连接！",
 						command: "命令行"
 					},
 				}

@@ -519,7 +519,7 @@ ModStop = White * P"}" * Cc false
 File = Ct (ModStart + Class + ModStop)^1 * White * -1
 
 codes = ""
-with io.open "Dorothy.h", "r"
+with io.open "Dora.h", "r"
 	codes = \read "*a"
 	\close!
 

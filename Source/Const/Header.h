@@ -44,7 +44,7 @@ using namespace silly::slice;
 #include "Common/Debug.h"
 
 #include "Common/Utils.h"
-using namespace Dorothy::Switch::Literals;
+using namespace Dora::Switch::Literals;
 
 #include "Common/Singleton.h"
 

@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "tinyxml2/SAXParser.h"
 
 #include "Basic/Content.h"
-using namespace Dorothy;
+using namespace Dora;
 
 class XmlSaxHander : public tinyxml2::XMLVisitor {
 public:

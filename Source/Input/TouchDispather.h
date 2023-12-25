@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 union SDL_Event;
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class TouchHandler : public std::enable_shared_from_this<TouchHandler> {
 public:
@@ -139,6 +139,6 @@ private:
 };
 
 #define SharedTouchDispatcher \
-	Dorothy::Singleton<Dorothy::TouchDispatcher>::shared()
+	Dora::Singleton<Dora::TouchDispatcher>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

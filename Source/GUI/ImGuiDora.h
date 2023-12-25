@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 struct ImDrawData;
 struct ImFontAtlas;
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Listener;
 class Texture2D;
@@ -138,6 +138,6 @@ private:
 };
 
 #define SharedImGui \
-	Dorothy::Singleton<Dorothy::ImGuiDora>::shared()
+	Dora::Singleton<Dora::ImGuiDora>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

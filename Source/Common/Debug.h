@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <cassert>
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 extern Acf::Delegate<void(const std::string&)> LogHandler;
 
@@ -20,7 +20,7 @@ void LogPrintInThread(const std::string& str);
 bool IsInLua();
 
 #define LogPrint(...) \
-	Dorothy::LogPrintInThread(fmt::format(__VA_ARGS__))
+	Dora::LogPrintInThread(fmt::format(__VA_ARGS__))
 
 #define println(format, ...) \
 	LogPrint(format "\n", ##__VA_ARGS__)
@@ -34,22 +34,22 @@ bool IsInLua();
 #define ErrorIf(...) DORA_DUMMY
 #else
 #define Info(format, ...) \
-	LogPrint("[Dorothy Info] " format "\n", ##__VA_ARGS__)
+	LogPrint("[Dora Info] " format "\n", ##__VA_ARGS__)
 #define Warn(format, ...) \
-	LogPrint("[Dorothy Warning] " format "\n", ##__VA_ARGS__)
+	LogPrint("[Dora Warning] " format "\n", ##__VA_ARGS__)
 #define Error(format, ...) \
-	LogPrint("[Dorothy Error] " format "\n", ##__VA_ARGS__)
+	LogPrint("[Dora Error] " format "\n", ##__VA_ARGS__)
 #define InfoIf(format, ...) \
 	if (cond) { \
-		LogPrint("[Dorothy Info] " format "\n", ##__VA_ARGS__); \
+		LogPrint("[Dora Info] " format "\n", ##__VA_ARGS__); \
 	}
 #define WarnIf(cond, format, ...) \
 	if (cond) { \
-		LogPrint("[Dorothy Warning] " format "\n", ##__VA_ARGS__); \
+		LogPrint("[Dora Warning] " format "\n", ##__VA_ARGS__); \
 	}
 #define ErrorIf(cond, format, ...) \
 	if (cond) { \
-		LogPrint("[Dorothy Error] " format "\n", ##__VA_ARGS__); \
+		LogPrint("[Dora Error] " format "\n", ##__VA_ARGS__); \
 	}
 #endif
 
@@ -61,13 +61,13 @@ bool IsInLua();
 #define AssertIf(cond, ...) \
 	do { \
 		if (cond) { \
-			auto msg = fmt::format("[Dorothy Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
+			auto msg = fmt::format("[Dora Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
 				__FILE__, __FUNCTION__, __LINE__, \
 				fmt::format(__VA_ARGS__)); \
-			if (Dorothy::IsInLua()) { \
+			if (Dora::IsInLua()) { \
 				throw std::runtime_error(msg); \
 			} else { \
-				Dorothy::LogError(msg + '\n'); \
+				Dora::LogError(msg + '\n'); \
 				std::abort(); \
 			} \
 		} \
@@ -75,29 +75,29 @@ bool IsInLua();
 #define AssertUnless(cond, ...) \
 	do { \
 		if (!(cond)) { \
-			auto msg = fmt::format("[Dorothy Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
+			auto msg = fmt::format("[Dora Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
 				__FILE__, __FUNCTION__, __LINE__, \
 				fmt::format(__VA_ARGS__)); \
-			if (Dorothy::IsInLua()) { \
+			if (Dora::IsInLua()) { \
 				throw std::runtime_error(msg); \
 			} else { \
-				Dorothy::LogError(msg + '\n'); \
+				Dora::LogError(msg + '\n'); \
 				std::abort(); \
 			} \
 		} \
 	} while (false)
 #define Issue(...) \
 	do { \
-		auto msg = fmt::format("[Dorothy Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
+		auto msg = fmt::format("[Dora Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
 			__FILE__, __FUNCTION__, __LINE__, \
 			fmt::format(__VA_ARGS__)); \
-		if (Dorothy::IsInLua()) { \
+		if (Dora::IsInLua()) { \
 			throw std::runtime_error(msg); \
 		} else { \
-			Dorothy::LogError(msg + '\n'); \
+			Dora::LogError(msg + '\n'); \
 			std::abort(); \
 		} \
 	} while (false)
 #endif
 
-NS_DOROTHY_END
+NS_DORA_END

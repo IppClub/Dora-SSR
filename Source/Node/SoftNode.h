@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/Soft/Particle.h"
 #include "Physics/Soft/World.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Line;
 
@@ -39,4 +39,4 @@ private:
 	DORA_TYPE_OVERRIDE(SoftNode);
 };
 
-NS_DOROTHY_END
+NS_DORA_END

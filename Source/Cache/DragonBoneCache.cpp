@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Async.h"
 #include "Node/DragonBone.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 void DBTextureAtlasData::_onClear() {
 	db::TextureAtlasData::_onClear();
@@ -366,4 +366,4 @@ void DragonBoneCache::removeUnused() {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

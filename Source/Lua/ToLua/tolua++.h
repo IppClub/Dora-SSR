@@ -18,7 +18,7 @@
 
 #include "Support/Common.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 #ifndef TEMPLATE_BIND
 #define TEMPLATE_BIND(p)
@@ -220,4 +220,4 @@ LightValue tolua_tolight(lua_State* L, int narg);
 LightValue tolua_tofieldlight(lua_State* L, int lo, int index, LightValue def);
 LightValue tolua_tofieldlight(lua_State* L, int lo, int index);
 
-NS_DOROTHY_END
+NS_DORA_END

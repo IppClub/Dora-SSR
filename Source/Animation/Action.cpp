@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Node.h"
 #include "Node/Sprite.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 static void SetX(Node* target, float value) { target->setX(value); }
 static void SetY(Node* target, float value) { target->setY(value); }
@@ -574,4 +574,4 @@ bool Action::updateProgress() {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -23,7 +23,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaEngine.h"
 #endif // !DORA_DISABLE_ASSERT_IN_LUA
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 Acf::Delegate<void(const std::string&)> LogHandler;
 
@@ -33,7 +33,7 @@ void LogError(const std::string& str) {
 #else
 	fmt::print(stderr, "{}", str);
 #endif // BX_PLATFORM_ANDROID
-	if (!Singleton<Dorothy::Application>::isDisposed() && SharedApplication.isLogicRunning()) {
+	if (!Singleton<Dora::Application>::isDisposed() && SharedApplication.isLogicRunning()) {
 		SharedApplication.invokeInLogic([str]() {
 			LogHandler(str);
 		});
@@ -41,7 +41,7 @@ void LogError(const std::string& str) {
 }
 
 void LogPrintInThread(const std::string& str) {
-	if (Singleton<Dorothy::Application>::isDisposed() || Singleton<Dorothy::AsyncLogThread>::isDisposed() || !SharedApplication.isLogicRunning()) {
+	if (Singleton<Dora::Application>::isDisposed() || Singleton<Dora::AsyncLogThread>::isDisposed() || !SharedApplication.isLogicRunning()) {
 #if DORA_DEBUG
 #if BX_PLATFORM_ANDROID
 		__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
@@ -66,7 +66,7 @@ void LogPrintInThread(const std::string& str) {
 }
 
 bool IsInLua() {
-	return !Dorothy::Singleton<Dorothy::LuaEngine>::isDisposed() && SharedLuaEngine.isInLua();
+	return !Dora::Singleton<Dora::LuaEngine>::isDisposed() && SharedLuaEngine.isInLua();
 }
 
-NS_DOROTHY_END
+NS_DORA_END

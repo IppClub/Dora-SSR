@@ -21,14 +21,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 namespace SQLite {
 
 void assertion_failed(const char* apFile, const int apLine, const char* apFunc, const char* apExpr, const char* apMsg) {
-	auto msg = fmt::format("[Dorothy Error]\n[File] {},\n[Func] {}, [Line] {},\n[Condition] {},\n[Message] {}", apFile, apFunc, apLine, apExpr, apMsg);
+	auto msg = fmt::format("[Dora Error]\n[File] {},\n[Func] {}, [Line] {},\n[Condition] {},\n[Message] {}", apFile, apFunc, apLine, apExpr, apMsg);
 	throw std::runtime_error(msg);
 }
 
 } // namespace SQLite
 #endif // SQLITECPP_ENABLE_ASSERT_HANDLER
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 DB::DB()
 	: _thread(SharedAsyncThread.newThread()) {
@@ -44,8 +44,8 @@ DB::DB()
 			_database = New<SQLite::Database>(dbFile,
 				SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE | SQLite::OPEN_NOMUTEX);
 		} catch (std::exception& e) {
-			Dorothy::LogError(
-				fmt::format("[Dorothy Error] failed to open database: {}\n", e.what()));
+			Dora::LogError(
+				fmt::format("[Dora Error] failed to open database: {}\n", e.what()));
 			std::abort();
 		}
 	}
@@ -327,4 +327,4 @@ Own<Value> DB::col(const Col& c) {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

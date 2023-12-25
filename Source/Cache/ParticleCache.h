@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Singleton.h"
 #include "Support/Geometry.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class ParticleNode;
 class ParticleDef;
@@ -43,6 +43,6 @@ private:
 };
 
 #define SharedParticleCache \
-	Dorothy::Singleton<Dorothy::ParticleCache>::shared()
+	Dora::Singleton<Dora::ParticleCache>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

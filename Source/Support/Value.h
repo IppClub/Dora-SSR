@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaEngine.h"
 #include "Support/Geometry.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 template <class T>
 struct unwrap_refwrapper {
@@ -377,4 +377,4 @@ void Values::get(Args&... args) {
 	std::tie(args...) = std::move(values->values);
 }
 
-NS_DOROTHY_END
+NS_DORA_END

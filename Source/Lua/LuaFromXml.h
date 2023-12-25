@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "tinyxml2/SAXParser.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class XmlDelegator;
 
@@ -35,6 +35,6 @@ private:
 };
 
 #define SharedXmlLoader \
-	Dorothy::Singleton<Dorothy::XmlLoader>::shared()
+	Dora::Singleton<Dora::XmlLoader>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

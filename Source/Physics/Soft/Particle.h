@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 #include "Support/Geometry.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 NS_BEGIN(Soft)
 
 /** @brief Each simulated particle has a unique material. The material specifies physical properties about
@@ -95,4 +95,4 @@ private:
 };
 
 NS_END(Soft)
-NS_DOROTHY_END
+NS_DORA_END

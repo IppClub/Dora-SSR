@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /** @brief Used with Composition Relationship. */
 template <class Item, class Del = std::default_delete<Item>>
@@ -72,4 +72,4 @@ public:
 	}
 };
 
-NS_DOROTHY_END
+NS_DORA_END
