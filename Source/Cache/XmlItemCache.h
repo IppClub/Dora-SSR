@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Async.h"
 #include "Other/rapidxml_sax3.hpp"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 template <class T>
 class XmlParser {
@@ -154,4 +154,4 @@ private:
 	virtual std::shared_ptr<XmlParser<T>> prepareParser(String filename) = 0;
 };
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Singleton.h"
 #include "spine/spine.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Atlas : public Object {
 public:
@@ -42,6 +42,6 @@ private:
 };
 
 #define SharedAtlasCache \
-	Dorothy::Singleton<Dorothy::AtlasCache>::shared()
+	Dora::Singleton<Dora::AtlasCache>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

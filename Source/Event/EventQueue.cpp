@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Event/EventQueue.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 QEvent::QEvent(String name)
 	: _name(name) { }
@@ -30,4 +30,4 @@ Own<QEvent> EventQueue::poll() {
 	return MakeOwn(event);
 }
 
-NS_DOROTHY_END
+NS_DORA_END

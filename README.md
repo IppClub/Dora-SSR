@@ -1,14 +1,14 @@
-<img src='Assets/Image/logo.png' alt='Dorothy SSR' width='200px'/>
+<img src='Assets/Image/logo.png' alt='Dora SSR' width='200px'/>
 
-# Dorothy SSR
+# Dora SSR
 
 #### English | [中文](README.zh-CN.md)
 
-&emsp;&emsp;Dorothy SSR is a game engine for rapid development of 2D games on various devices. It has a built-in easy-to-use development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
+&emsp;&emsp;Dora SSR is a game engine for rapid development of 2D games on various devices. It has a built-in easy-to-use development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
 
 |Android|Linux|Windows|macOS|iOS|
 |:-:|:-:|:-:|:-:|:-:|
-|[![Android](https://github.com/ippclub/Dorothy-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/android.yml)|[![Linux](https://github.com/ippclub/Dorothy-SSR/actions/workflows/linux.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/linux.yml)|[![Windows](https://github.com/ippclub/Dorothy-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/windows.yml)|[![macOS](https://github.com/ippclub/Dorothy-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/macos.yml)|[![iOS](https://github.com/ippclub/Dorothy-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/ippclub/Dorothy-SSR/actions/workflows/ios.yml)|
+|[![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml)|[![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml)|[![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml)|[![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml)|[![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml)|
 
 <img src='Site/static/img/3.png' alt='Playground' width='600px'/>
 
@@ -61,7 +61,7 @@
 - Quick start
 
   - Android
-     - 1. Download and install the [APK](https://github.com/ippclub/Dorothy-SSR/releases/latest) package on the running terminal for games.
+     - 1. Download and install the [APK](https://github.com/ippclub/Dora-SSR/releases/latest) package on the running terminal for games.
 
      - 2. Run the software, and access the server address displayed by the software through the browser of a PC (tablet or other development device) on the LAN.
 
@@ -69,11 +69,11 @@
 
   - Windows, macOS
 
-     - 1. Download and run the [software](https://github.com/ippclub/Dorothy-SSR/releases/latest).
+     - 1. Download and run the [software](https://github.com/ippclub/Dora-SSR/releases/latest).
           - Get software on macOS with Homebrew using 
           ```sh
-          brew tap ippclub/dorothy-ssr 
-          brew install --cask dorothy-ssr
+          brew tap ippclub/dora-ssr 
+          brew install --cask dora-ssr
           ```
 
      - 2. Run the software and access the server address displayed by the software through a browser.
@@ -82,7 +82,7 @@
 
 - Engine project development
 
-   For the installation and configuration of Dorothy SSR project development, see [Official Documents](https://dorothy-ssr.net/docs/tutorial/dev-configuration) for details.
+   For the installation and configuration of Dora SSR project development, see [Official Documents](https://Dora-ssr.net/docs/tutorial/dev-configuration) for details.
 
 <br>
 
@@ -101,7 +101,7 @@
     - Write Hello World code:
 
 ```moonscript
-_ENV = Dorothy!
+_ENV = Dora!
 
 with Sprite "Image/logo.png"
    \addTo Director.entry
@@ -127,25 +127,25 @@ with Sprite "Image/logo.png"
     - Wait for the browser to pop up a download prompt for the packaged project file.
 
 
-For more detailed tutorials, please check [official documents](https://dorothy-ssr.net/docs/tutorial/quick-start).
+For more detailed tutorials, please check [official documents](https://Dora-ssr.net/docs/tutorial/quick-start).
 
 <br>
 
 ## Example Projects
 
-- [Sample Project - Loli War](https://github.com/ippclub/Dorothy-SSR/tree/main/Assets/Script/Game/Loli%20War)
+- [Sample Project - Loli War](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Loli%20War)
 
 ![Loli War](Assets/Image/LoliWar.gif)
 
 <br>
 
-- [Sample Project - Zombie Escape](https://github.com/ippclub/Dorothy-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
+- [Sample Project - Zombie Escape](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
 
 <img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/>
 
 <br>
 
-- [Example Project - Dismentalism](https://github.com/ippclub/Dorothy-SSR/tree/main/Assets/Script/Game/Dismantlism)
+- [Example Project - Dismentalism](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Dismantlism)
 
 <img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/>
 
@@ -159,8 +159,8 @@ For more detailed tutorials, please check [official documents](https://dorothy-s
 
 ## Documentation
 
-- [API Reference](https://dorothy-ssr.net/docs/api/intro)
-- [Tutorial](https://dorothy-ssr.net/docs/tutorial/quick-start)
+- [API Reference](https://Dora-ssr.net/docs/api/intro)
+- [Tutorial](https://Dora-ssr.net/docs/tutorial/quick-start)
 
 <br>
 
@@ -173,10 +173,10 @@ For more detailed tutorials, please check [official documents](https://dorothy-s
 
 ## Contribute
 
-Welcome to participate in the development and maintenance of Dorothy SSR. Please see [Contributing Guidelines](CONTRIBUTING.md) to learn how to submit Issues and Pull Requests.
+Welcome to participate in the development and maintenance of Dora SSR. Please see [Contributing Guidelines](CONTRIBUTING.md) to learn how to submit Issues and Pull Requests.
 
 <br>
 
 ## License
 
-Dorothy SSR uses the [MIT License](LICENSE).
+Dora SSR uses the [MIT License](LICENSE).

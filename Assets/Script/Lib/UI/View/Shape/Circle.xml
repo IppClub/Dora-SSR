@@ -1,5 +1,5 @@
 <!-- params: X=0, Y=0, Radius, FillColor, BorderColor -->
-<Dorothy>
+<Dora>
 	<Import Module="UI.View.Shape.SolidCircle"/>
 	<Import Module="UI.View.Shape.LineCircle"/>
 
@@ -12,4 +12,4 @@
 			<LineCircle Radius="{ radius }" Color="{ borderColor }" RenderOrder="{ lineGroup or 0 }"/>
 		<Lua>end</Lua>
 	</Node>
-</Dorothy>
+</Dora>

@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Texture2D;
 
@@ -23,4 +23,4 @@ struct Cache {
 	static void removeUnused(String type);
 };
 
-NS_DOROTHY_END
+NS_DORA_END

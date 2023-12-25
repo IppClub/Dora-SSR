@@ -7,24 +7,24 @@ with io.open "../../Source/Basic/Application.cpp", "rb"
 	version = content\match "#define DORA_VERSION \"([^\"]+)\""
 
 for platform in *{"macOS", "iOS"}
-	with io.open "../../Project/#{platform}/Dorothy/Info.plist", "rb"
+	with io.open "../../Project/#{platform}/Dora/Info.plist", "rb"
 		content = \read "*a"
 		\close!
 		content = content\gsub "(<key>CFBundleShortVersionString</key>%s+<string>)[^<]+(</string>)", "%1#{version}%2"
 		bundleVersion = tonumber content\match "<key>CFBundleVersion</key>%s+<string>([^<]+)</string>"
 		content = content\gsub "(<key>CFBundleVersion</key>%s+<string>)[^<]+(</string>)", "%1#{bundleVersion + 1}%2"
-		with io.open "../../Project/#{platform}/Dorothy/Info.plist", "w+"
+		with io.open "../../Project/#{platform}/Dora/Info.plist", "w+"
 			\write content
 			\close!
 
-with io.open "../../Project/Windows/Dorothy/Resource.rc", "rb"
+with io.open "../../Project/Windows/Dora/Resource.rc", "rb"
 	content = \read "*a"
 	\close!
 	content = content\gsub "(FILEVERSION )[^\n]+(\n)", "%1#{version\gsub '%.', ','},0%2"
 	content = content\gsub "(PRODUCTVERSION )[^\n]+(\n)", "%1#{version\gsub '%.', ','},0%2"
 	content = content\gsub "(VALUE \"FileVersion\", \")[^\"]+(\")", "%1#{version}.0%2"
 	content = content\gsub "(VALUE \"ProductVersion\", \")[^\"]+(\")", "%1#{version}.0%2"
-	with io.open "../../Project/Windows/Dorothy/Resource.rc", "w+"
+	with io.open "../../Project/Windows/Dora/Resource.rc", "w+"
 		\write content
 		\close!
 

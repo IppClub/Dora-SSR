@@ -2,7 +2,7 @@ _ENV = Dora!
 
 with Label "sarasa-mono-sc-regular",40
 	.batched = false
-	.text = "你好，Dorothy！"
+	.text = "你好，Dora SSR！"
 	for i = 1, .characterCount
 		char = \getCharacter i
 		char?\runAction Sequence(

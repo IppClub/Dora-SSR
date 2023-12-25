@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <coroutine>
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /** @brief Helper macros to define setters and getters */
 #define PROPERTY(varType, funName) \
@@ -274,7 +274,7 @@ float rand0to1();
 float rand1to1();
 } // namespace Math
 
-/** @brief Dorothy`s type system for lua and
+/** @brief Dora`s type system for lua and
  it`s an alternative for dynamic_cast.
  */
 extern int doraType;
@@ -464,4 +464,4 @@ std::function<bool(double)> loop(const std::function<Job()>& work);
 void thread(const std::function<Job()>& work);
 void threadLoop(const std::function<Job()>& work);
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -7,34 +7,34 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
-#include "Lua/Xml/DorothyTag.h"
+#include "Lua/Xml/DoraTag.h"
 
 #include <sstream>
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
-static const char dorothy_tag_text[] =
-#include "Lua/Xml/DorothyTagText.hpp"
+static const char dora_tag_text[] =
+#include "Lua/Xml/DoraTagText.hpp"
 	;
 
-DorothyTag& DorothyTag::shared() {
-	static DorothyTag tag;
+DoraTag& DoraTag::shared() {
+	static DoraTag tag;
 	return tag;
 }
 
-DorothyTag::Attribute::Attribute(const std::string& name, std::shared_ptr<std::list<std::string>> hints)
+DoraTag::Attribute::Attribute(const std::string& name, std::shared_ptr<std::list<std::string>> hints)
 	: name(name)
 	, hints(hints) { }
 
-DorothyTag::Attribute::~Attribute() { }
+DoraTag::Attribute::~Attribute() { }
 
-DorothyTag::DorothyTag() {
-	DorothyTag::load();
+DoraTag::DoraTag() {
+	DoraTag::load();
 }
 
-DorothyTag::~DorothyTag() { }
+DoraTag::~DoraTag() { }
 
-DorothyTag::LineType DorothyTag::getType(const std::string& line) {
+DoraTag::LineType DoraTag::getType(const std::string& line) {
 	auto lineStr = Slice(line).trimSpace();
 	if (lineStr.empty()) {
 		return LineType::None;
@@ -44,13 +44,13 @@ DorothyTag::LineType DorothyTag::getType(const std::string& line) {
 		return LineType::Attribute;
 }
 
-void DorothyTag::load() {
+void DoraTag::load() {
 	StringMap<std::shared_ptr<std::list<std::string>>> lists;
 	std::string elementName;
 	std::shared_ptr<Element> element;
 
 	std::stringstream stream;
-	stream << dorothy_tag_text;
+	stream << dora_tag_text;
 
 	for (std::string line; std::getline(stream, line);) {
 		auto lineType = getType(line);
@@ -154,7 +154,7 @@ void DorothyTag::load() {
 	}
 }
 
-std::list<std::string> DorothyTag::getAttributes(const std::string& elementName) {
+std::list<std::string> DoraTag::getAttributes(const std::string& elementName) {
 	std::list<std::string> attrs;
 	auto it = _elements.find(elementName);
 	if (it != _elements.end()) {
@@ -165,7 +165,7 @@ std::list<std::string> DorothyTag::getAttributes(const std::string& elementName)
 	return attrs;
 }
 
-std::list<std::string> DorothyTag::getAttributeHints(const std::string& elementName, const std::string& attrName) {
+std::list<std::string> DoraTag::getAttributeHints(const std::string& elementName, const std::string& attrName) {
 	auto it = _elements.find(elementName);
 	if (it != _elements.end()) {
 		for (const std::shared_ptr<Attribute>& attr : it->second->attributes) {
@@ -179,7 +179,7 @@ std::list<std::string> DorothyTag::getAttributeHints(const std::string& elementN
 	return std::list<std::string>();
 }
 
-std::list<std::string> DorothyTag::getSubElements(const std::string& elementName) {
+std::list<std::string> DoraTag::getSubElements(const std::string& elementName) {
 	auto it = _elements.find(elementName);
 	if (it != _elements.end()) {
 		return it->second->subElements;
@@ -192,7 +192,7 @@ std::list<std::string> DorothyTag::getSubElements(const std::string& elementName
 	return std::list<std::string>();
 }
 
-bool DorothyTag::isElementNode(const std::string& elementName) {
+bool DoraTag::isElementNode(const std::string& elementName) {
 	auto it = _elements.find(elementName);
 	if (it != _elements.end()) {
 		return it->second->isNode;
@@ -200,4 +200,4 @@ bool DorothyTag::isElementNode(const std::string& elementName) {
 	return true;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

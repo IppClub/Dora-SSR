@@ -28,8 +28,6 @@
 		3C030CFA24CAE6580074786E /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF224CAE6570074786E /* Image */; };
 		3C030CFB24CAE6580074786E /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF324CAE6570074786E /* Font */; };
 		3C030CFC24CAE6580074786E /* Particle in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF424CAE6580074786E /* Particle */; };
-		3C03CBFF2A1B6A6700383FAE /* DorothyTag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C03CBFB2A1B6A6700383FAE /* DorothyTag.cpp */; };
-		3C03CC002A1B6A6700383FAE /* DorothyTag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C03CBFB2A1B6A6700383FAE /* DorothyTag.cpp */; };
 		3C03CC012A1B6A6700383FAE /* XmlResolver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C03CBFC2A1B6A6700383FAE /* XmlResolver.cpp */; };
 		3C03CC022A1B6A6700383FAE /* XmlResolver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C03CBFC2A1B6A6700383FAE /* XmlResolver.cpp */; };
 		3C0AD7BB1E0CE95F0033AD59 /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7B31E0CE95F0033AD59 /* Event.cpp */; };
@@ -138,6 +136,8 @@
 		3C25B874257A7F8B002DD8E1 /* parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C25B86F257A7F8B002DD8E1 /* parser.cpp */; };
 		3C28C0A22772CFE4007FC76E /* Grid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C28C0A12772CFE4007FC76E /* Grid.cpp */; };
 		3C28C0A32772CFE4007FC76E /* Grid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C28C0A12772CFE4007FC76E /* Grid.cpp */; };
+		3C329DDB2B39D896002BC023 /* DoraTag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C329DDA2B39D896002BC023 /* DoraTag.cpp */; };
+		3C329DDC2B39D896002BC023 /* DoraTag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C329DDA2B39D896002BC023 /* DoraTag.cpp */; };
 		3C33A3CA2A3AF3C300E60A14 /* YarnCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C33A3C92A3AF3C300E60A14 /* YarnCompiler.cpp */; };
 		3C33A3CB2A3AF3C300E60A14 /* YarnCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C33A3C92A3AF3C300E60A14 /* YarnCompiler.cpp */; };
 		3C41D60321490BE6003FDDFE /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FB21490BE5003FDDFE /* imgui.cpp */; };
@@ -933,11 +933,8 @@
 		3C030CF224CAE6570074786E /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Image; path = ../../Assets/Image; sourceTree = "<group>"; };
 		3C030CF324CAE6570074786E /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Font; path = ../../Assets/Font; sourceTree = "<group>"; };
 		3C030CF424CAE6580074786E /* Particle */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Particle; path = ../../Assets/Particle; sourceTree = "<group>"; };
-		3C03CBF92A1B6A6700383FAE /* DorothyTag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DorothyTag.h; path = ../../../Source/Lua/Xml/DorothyTag.h; sourceTree = "<group>"; };
 		3C03CBFA2A1B6A6700383FAE /* XmlResolver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XmlResolver.h; path = ../../../Source/Lua/Xml/XmlResolver.h; sourceTree = "<group>"; };
-		3C03CBFB2A1B6A6700383FAE /* DorothyTag.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DorothyTag.cpp; path = ../../../Source/Lua/Xml/DorothyTag.cpp; sourceTree = "<group>"; };
 		3C03CBFC2A1B6A6700383FAE /* XmlResolver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = XmlResolver.cpp; path = ../../../Source/Lua/Xml/XmlResolver.cpp; sourceTree = "<group>"; };
-		3C03CBFD2A1B6A6700383FAE /* DorothyTagText.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DorothyTagText.hpp; path = ../../../Source/Lua/Xml/DorothyTagText.hpp; sourceTree = "<group>"; };
 		3C0AD7B31E0CE95F0033AD59 /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Event.cpp; path = ../../../Source/Event/Event.cpp; sourceTree = "<group>"; };
 		3C0AD7B41E0CE95F0033AD59 /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = ../../../Source/Event/Event.h; sourceTree = "<group>"; };
 		3C0AD7B51E0CE95F0033AD59 /* EventQueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventQueue.cpp; path = ../../../Source/Event/EventQueue.cpp; sourceTree = "<group>"; };
@@ -1086,6 +1083,10 @@
 		3C25B86F257A7F8B002DD8E1 /* parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = parser.cpp; path = ../../../Source/3rdParty/yuescript/parser.cpp; sourceTree = "<group>"; };
 		3C28C0A02772CFE4007FC76E /* Grid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Grid.h; path = ../../../Source/Node/Grid.h; sourceTree = "<group>"; };
 		3C28C0A12772CFE4007FC76E /* Grid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Grid.cpp; path = ../../../Source/Node/Grid.cpp; sourceTree = "<group>"; };
+		3C329DD82B39D895002BC023 /* DoraTag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DoraTag.h; path = ../../../Source/Lua/Xml/DoraTag.h; sourceTree = "<group>"; };
+		3C329DD92B39D896002BC023 /* DoraTagText.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DoraTagText.hpp; path = ../../../Source/Lua/Xml/DoraTagText.hpp; sourceTree = "<group>"; };
+		3C329DDA2B39D896002BC023 /* DoraTag.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DoraTag.cpp; path = ../../../Source/Lua/Xml/DoraTag.cpp; sourceTree = "<group>"; };
+		3C329DDD2B39D8AC002BC023 /* Dora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dora.h; path = ../../../Source/Dora.h; sourceTree = "<group>"; };
 		3C33A3C82A3AF3C300E60A14 /* YarnCompiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YarnCompiler.h; path = ../../../Source/Lua/Yarn/YarnCompiler.h; sourceTree = "<group>"; };
 		3C33A3C92A3AF3C300E60A14 /* YarnCompiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = YarnCompiler.cpp; path = ../../../Source/Lua/Yarn/YarnCompiler.cpp; sourceTree = "<group>"; };
 		3C41D5FB21490BE5003FDDFE /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = ../../../Source/3rdParty/imgui/imgui.cpp; sourceTree = "<group>"; };
@@ -1115,7 +1116,6 @@
 		3C4BC6611E17F1B500292200 /* tolua_push.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_push.cpp; path = ../../../Source/Lua/ToLua/tolua_push.cpp; sourceTree = "<group>"; };
 		3C4BC6621E17F1B500292200 /* tolua_to.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tolua_to.cpp; path = ../../../Source/Lua/ToLua/tolua_to.cpp; sourceTree = "<group>"; };
 		3C4BC6631E17F1B500292200 /* tolua++.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "tolua++.h"; path = "../../../Source/Lua/ToLua/tolua++.h"; sourceTree = "<group>"; };
-		3C50976D1E65B92F00896971 /* Dorothy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dorothy.h; path = ../../../Source/Dorothy.h; sourceTree = "<group>"; };
 		3C5399F52998DEF800E9125C /* ljson.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ljson.c; path = ../../../Source/3rdParty/colib/ljson.c; sourceTree = "<group>"; };
 		3C5399F92998DF4900E9125C /* HttpServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HttpServer.cpp; path = ../../../Source/Http/HttpServer.cpp; sourceTree = "<group>"; };
 		3C5399FA2998DF4900E9125C /* HttpServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HttpServer.h; path = ../../../Source/Http/HttpServer.h; sourceTree = "<group>"; };
@@ -1587,7 +1587,7 @@
 		3CBFB707264376D4006348C8 /* implot_items.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = implot_items.cpp; path = ../../../Source/3rdParty/implot/implot_items.cpp; sourceTree = "<group>"; };
 		3CBFB708264376D4006348C8 /* implot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = implot.h; path = ../../../Source/3rdParty/implot/implot.h; sourceTree = "<group>"; };
 		3CC05B6C1E7171D600F2BA1B /* Value.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Value.h; path = ../../../Source/Support/Value.h; sourceTree = "<group>"; };
-		3CC820091D96680C008C8B77 /* Dorothy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dorothy.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3CC820091D96680C008C8B77 /* Dora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dora.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CCEDD481E1D589500F32295 /* Utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Utils.cpp; path = ../../../Source/Common/Utils.cpp; sourceTree = "<group>"; };
 		3CCEDD4A1E1D58D500F32295 /* Array.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Array.cpp; path = ../../../Source/Support/Array.cpp; sourceTree = "<group>"; };
 		3CCEDD4B1E1D58D500F32295 /* Array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Array.h; path = ../../../Source/Support/Array.h; sourceTree = "<group>"; };
@@ -1980,9 +1980,9 @@
 		3C03CBF82A1B6A4E00383FAE /* Xml */ = {
 			isa = PBXGroup;
 			children = (
-				3C03CBFB2A1B6A6700383FAE /* DorothyTag.cpp */,
-				3C03CBF92A1B6A6700383FAE /* DorothyTag.h */,
-				3C03CBFD2A1B6A6700383FAE /* DorothyTagText.hpp */,
+				3C329DDA2B39D896002BC023 /* DoraTag.cpp */,
+				3C329DD82B39D895002BC023 /* DoraTag.h */,
+				3C329DD92B39D896002BC023 /* DoraTagText.hpp */,
 				3C03CBFC2A1B6A6700383FAE /* XmlResolver.cpp */,
 				3C03CBFA2A1B6A6700383FAE /* XmlResolver.h */,
 			);
@@ -3211,7 +3211,7 @@
 		3CC8200A1D96680C008C8B77 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				3CC820091D96680C008C8B77 /* Dorothy.app */,
+				3CC820091D96680C008C8B77 /* Dora.app */,
 				3CBE0F1226087F7B003F4F45 /* Simulator.app */,
 			);
 			name = Products;
@@ -3220,7 +3220,7 @@
 		3CC8200B1D96680C008C8B77 /* Dorothy */ = {
 			isa = PBXGroup;
 			children = (
-				3C50976D1E65B92F00896971 /* Dorothy.h */,
+				3C329DDD2B39D8AC002BC023 /* Dora.h */,
 				3CB410221E05B08B00A8804D /* 3rdParty */,
 				3C1520291E762A3F001BC057 /* Animation */,
 				3C01B6C31E96435A00A0CC1C /* Audio */,
@@ -3613,9 +3613,9 @@
 			productReference = 3CBE0F1226087F7B003F4F45 /* Simulator.app */;
 			productType = "com.apple.product-type.application";
 		};
-		3CC820081D96680C008C8B77 /* Dorothy */ = {
+		3CC820081D96680C008C8B77 /* Dora */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 3CC820231D96680C008C8B77 /* Build configuration list for PBXNativeTarget "Dorothy" */;
+			buildConfigurationList = 3CC820231D96680C008C8B77 /* Build configuration list for PBXNativeTarget "Dora" */;
 			buildPhases = (
 				3C6411FF21D4D337000D3968 /* ShellScript */,
 				3CC820051D96680C008C8B77 /* Sources */,
@@ -3626,9 +3626,9 @@
 			);
 			dependencies = (
 			);
-			name = Dorothy;
+			name = Dora;
 			productName = Dorothy;
-			productReference = 3CC820091D96680C008C8B77 /* Dorothy.app */;
+			productReference = 3CC820091D96680C008C8B77 /* Dora.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -3652,7 +3652,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 3CC820041D96680C008C8B77 /* Build configuration list for PBXProject "Dorothy" */;
+			buildConfigurationList = 3CC820041D96680C008C8B77 /* Build configuration list for PBXProject "Dora" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -3665,7 +3665,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				3CC820081D96680C008C8B77 /* Dorothy */,
+				3CC820081D96680C008C8B77 /* Dora */,
 				3CBE0DF526087F7B003F4F45 /* Simulator */,
 			);
 		};
@@ -3965,7 +3965,6 @@
 				3CA780372AE66FB000B7BADA /* TimeOfImpact.cpp in Sources */,
 				3CAA2D392615605A004443A6 /* Transaction.cpp in Sources */,
 				3CFEA163285B873B002D106F /* m3_api_libc.c in Sources */,
-				3C03CC002A1B6A6700383FAE /* DorothyTag.cpp in Sources */,
 				3CAA2D312615603A004443A6 /* Database.cpp in Sources */,
 				3C6E7FEC272A404900E9F115 /* soloud_sdl2_static.cpp in Sources */,
 				3C6E7FD0272A404900E9F115 /* soloud_eqfilter.cpp in Sources */,
@@ -4147,6 +4146,7 @@
 				3CBE0EBC26087F7B003F4F45 /* ClipNode.cpp in Sources */,
 				3CBE0EBD26087F7B003F4F45 /* VisualCache.cpp in Sources */,
 				3CBE0EBE26087F7B003F4F45 /* Sound.cpp in Sources */,
+				3C329DDC2B39D896002BC023 /* DoraTag.cpp in Sources */,
 				3CF10F992874C81C00940268 /* MeshAttachment.cpp in Sources */,
 				3CBE0EC426087F7B003F4F45 /* SoundCache.cpp in Sources */,
 				3CF10FA32874C81C00940268 /* TranslateTimeline.cpp in Sources */,
@@ -4429,7 +4429,6 @@
 				3CF10FFC2874C81C00940268 /* SkeletonBinary.cpp in Sources */,
 				3C25B874257A7F8B002DD8E1 /* parser.cpp in Sources */,
 				3C5972FE1E7F74CB00BFD00F /* Animation.cpp in Sources */,
-				3C03CBFF2A1B6A6700383FAE /* DorothyTag.cpp in Sources */,
 				3C6E8007272A404900E9F115 /* tts.cpp in Sources */,
 				3CA780462AE66FB000B7BADA /* Shape.cpp in Sources */,
 				3CAA2D1826155DB3004443A6 /* Database.cpp in Sources */,
@@ -4565,6 +4564,7 @@
 				3CF10FD62874C81C00940268 /* Bone.cpp in Sources */,
 				3C1A3C06272A8820003A2829 /* ltm.c in Sources */,
 				3CFEBDD3269309D5006D9974 /* Constraint.cpp in Sources */,
+				3C329DDB2B39D896002BC023 /* DoraTag.cpp in Sources */,
 				3C131FFF21011BB60087154A /* AINode.cpp in Sources */,
 				3C4BC6651E17F1B500292200 /* tolua_fix.cpp in Sources */,
 				3C6E7FE1272A404900E9F115 /* soloud_biquadresonantfilter.cpp in Sources */,
@@ -4660,7 +4660,7 @@
 				);
 				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
 				OTHER_LDFLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
+				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USER_HEADER_SEARCH_PATHS = (
@@ -4725,7 +4725,7 @@
 				);
 				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
 				OTHER_LDFLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
+				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USER_HEADER_SEARCH_PATHS = (
@@ -4934,7 +4934,7 @@
 				);
 				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
 				OTHER_LDFLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
+				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USER_HEADER_SEARCH_PATHS = (
@@ -5000,7 +5000,7 @@
 				);
 				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
 				OTHER_LDFLAGS = "";
-				PRODUCT_BUNDLE_IDENTIFIER = Jin.Dorothy;
+				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				USER_HEADER_SEARCH_PATHS = (
@@ -5036,7 +5036,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		3CC820041D96680C008C8B77 /* Build configuration list for PBXProject "Dorothy" */ = {
+		3CC820041D96680C008C8B77 /* Build configuration list for PBXProject "Dora" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3CC820211D96680C008C8B77 /* Debug */,
@@ -5045,7 +5045,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		3CC820231D96680C008C8B77 /* Build configuration list for PBXNativeTarget "Dorothy" */ = {
+		3CC820231D96680C008C8B77 /* Build configuration list for PBXNativeTarget "Dora" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3CC820241D96680C008C8B77 /* Debug */,

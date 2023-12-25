@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 template <class T = Object>
 class Ref {
@@ -159,4 +159,4 @@ public:
 	}
 };
 
-NS_DOROTHY_END
+NS_DORA_END

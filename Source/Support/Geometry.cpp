@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Support/Geometry.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 const Vec2 Vec2::zero{0.0f, 0.0f};
 
@@ -423,4 +423,4 @@ const Matrix Matrix::Indentity = {
 	0, 0, 1, 0,
 	0, 0, 0, 1};
 
-NS_DOROTHY_END
+NS_DORA_END

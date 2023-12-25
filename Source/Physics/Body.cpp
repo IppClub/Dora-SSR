@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/PhysicsWorld.h"
 #include "Physics/Sensor.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 Body::Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos, float rot)
 	: _prBody(pr::InvalidBodyID)
@@ -335,4 +335,4 @@ void Body::updatePhysics() {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

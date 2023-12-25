@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/Event.h"
 #include "Event/Listener.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 EventType::EventType(const std::string& name)
 	: _name(name) { }
@@ -53,4 +53,4 @@ bool EventType::isEmpty() const {
 	return _listeners.empty();
 }
 
-NS_DOROTHY_END
+NS_DORA_END

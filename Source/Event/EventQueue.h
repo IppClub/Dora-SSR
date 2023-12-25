@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Other/concurrentqueue.h"
 #include "Support/Value.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class QEvent {
 public:
@@ -115,4 +115,4 @@ private:
 	moodycamel::ConcurrentQueue<QEvent*> _queue;
 };
 
-NS_DOROTHY_END
+NS_DORA_END

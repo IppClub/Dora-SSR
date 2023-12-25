@@ -12,7 +12,7 @@ local node = Node()
 
 local label = Label("sarasa-mono-sc-regular", 40)
 label.batched = false
-label.text = "你好，Dorothy！"
+label.text = "你好，Dora SSR！"
 label:addTo(node)
 for i = 1, label.characterCount do
 	local char = label:getCharacter(i)

@@ -4,7 +4,7 @@
  */
 
 #include "Const/Header.h"
-using namespace Dorothy;
+using namespace Dora;
 
 #include "font/font_manager.h"
 

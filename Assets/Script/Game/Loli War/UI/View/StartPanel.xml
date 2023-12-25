@@ -1,4 +1,4 @@
-<Dorothy>
+<Dora>
 	<Import Module="UI.Control.Basic.AlignNode"/>
 	<Import Module="UI.Control.ButtonGlow"/>
 
@@ -44,4 +44,4 @@
 			</Lua>
 		</Slot>
 	</AlignNode>
-</Dorothy>
+</Dora>

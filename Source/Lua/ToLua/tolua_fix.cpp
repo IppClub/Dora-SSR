@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaEngine.h"
 #include "Lua/ToLua/tolua++.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 static int g_ref_id = 0;
 static std::stack<int> g_available_ref_ids;
@@ -259,4 +259,4 @@ LightValue tolua_tofieldlight(lua_State* L, int lo, int index) {
 	return v;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Content.h"
 #include "Shader/Builtin.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /* Shader */
 
@@ -162,4 +162,4 @@ void ShaderCache::removeUnused() {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -5,7 +5,7 @@ local View <const> = require("View")
 local threadLoop <const> = require("threadLoop")
 local Node <const> = require("Node")
 
-local texture = nvg.GetDorothySSRWhite()
+local texture = nvg.GetDoraSSR()
 local sprite = Sprite(texture)
 local length = Vec2(View.size).length
 local width, height = sprite.width, sprite.height

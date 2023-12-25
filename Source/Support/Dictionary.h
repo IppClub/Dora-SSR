@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Object.h"
 #include "Support/Value.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Dictionary : public Object {
 public:
@@ -57,4 +57,4 @@ private:
 	DORA_TYPE_OVERRIDE(Dictionary);
 };
 
-NS_DOROTHY_END
+NS_DORA_END

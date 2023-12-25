@@ -1886,13 +1886,14 @@
     <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Dorothy SSR.ico" />
+    <Image Include="Dora SSR.ico" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{340C4AB9-29B3-4591-B8AA-CF532ADE77AA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Dorothy</RootNamespace>
+    <RootNamespace>Dora</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Dora</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

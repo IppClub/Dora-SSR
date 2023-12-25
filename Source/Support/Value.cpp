@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Lua/LuaHandler.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 const Own<Value> Value::None;
 
@@ -118,4 +118,4 @@ bool ValueObject::equals(Value* other) const {
 
 MEMORY_POOL(ValueObject);
 
-NS_DOROTHY_END
+NS_DORA_END

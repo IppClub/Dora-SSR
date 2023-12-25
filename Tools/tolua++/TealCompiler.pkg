@@ -1,5 +1,5 @@
 $#include "Const/Header.h"
 $#include "Lua/ToLua/tolua++.h"
-$using namespace Dorothy;
+$using namespace Dora;
 
 $lfile "../../Source/Lua/Builtin/tl.lua"

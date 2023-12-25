@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 struct NVGLUframebuffer;
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 inline NVGcolor nvgColor(Color color) {
 	return nvgRGBA(color.r, color.g, color.b, color.a);
@@ -49,7 +49,7 @@ struct nvg {
 	static void Reset();
 	static int CreateImage(int w, int h, String filename, Slice* imageFlags = nullptr, int flagCount = 0);
 	static int CreateFont(String name);
-	static float TextBounds(float x, float y, String text, Dorothy::Rect& bounds);
+	static float TextBounds(float x, float y, String text, Dora::Rect& bounds);
 	static Rect TextBoxBounds(float x, float y, float breakRowWidth, String text);
 	static float Text(float x, float y, String text);
 	static void TextBox(float x, float y, float breakRowWidth, String text);
@@ -106,25 +106,15 @@ struct nvg {
 	static void FontFaceId(int font);
 	static void FontFace(String font);
 	static void BindContext(NVGcontext* context);
-	static void DorothySSR();
-	static void DorothySSRWhite();
-	static void DorothySSRHappy();
-	static void DorothySSRHappyWhite();
-	static Texture2D* GetDorothySSR(float scale = 1.0f);
-	static Texture2D* GetDorothySSRWhite(float scale = 1.0f);
-	static Texture2D* GetDorothySSRHappy(float scale = 1.0f);
-	static Texture2D* GetDorothySSRHappyWhite(float scale = 1.0f);
+	static void DoraSSR();
+	static Texture2D* GetDoraSSR(float scale = 1.0f);
 	static NVGcontext* Context();
 
 private:
 	static NVGcontext* _currentContext;
 };
 
-void RenderDorothySSR(NVGcontext* context);
-void RenderDorothySSRWhite(NVGcontext* context);
-
-void RenderDorothySSRHappy(NVGcontext* context);
-void RenderDorothySSRHappyWhite(NVGcontext* context);
+void RenderDoraSSR(NVGcontext* context);
 
 class VGTexture : public Texture2D {
 public:
@@ -139,4 +129,4 @@ protected:
 	NVGcontext* _context;
 };
 
-NS_DOROTHY_END
+NS_DORA_END

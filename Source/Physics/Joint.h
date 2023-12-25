@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Support/Geometry.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 namespace pr = playrho;
 namespace pd = playrho::d2;
@@ -154,4 +154,4 @@ public:
 	DORA_TYPE_OVERRIDE(MotorJoint);
 };
 
-NS_DOROTHY_END
+NS_DORA_END

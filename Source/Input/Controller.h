@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 union SDL_Event;
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Event;
 
@@ -53,6 +53,6 @@ private:
 };
 
 #define SharedController \
-	Dorothy::Singleton<Dorothy::Controller>::shared()
+	Dora::Singleton<Dora::Controller>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

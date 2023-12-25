@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Animation/Action.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Object;
 class Node;
@@ -129,4 +129,4 @@ private:
 	std::string _file;
 };
 
-NS_DOROTHY_END
+NS_DORA_END

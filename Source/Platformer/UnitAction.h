@@ -11,11 +11,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "playrho/d2/Shape.hpp"
 #include "Support/Geometry.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 class Model;
 class Body;
 class Event;
-NS_DOROTHY_END
+NS_DORA_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 

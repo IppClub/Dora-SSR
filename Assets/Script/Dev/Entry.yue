@@ -710,7 +710,7 @@ entryWindow = threadLoop ->
 		Begin "Web IDE Connected", displayWindowFlags, ->
 			Separator!
 			TextColored themeColor, "#{zh and '网页 IDE 已连接 ……' or 'Web IDE connected ...'}"
-			slogon = zh and 'Dorothy 启动！' or 'Dorothy Start!'
+			slogon = zh and 'Dora 启动！' or 'Dora Start!'
 			TextColored descColor, slogon
 			Separator!
 		return
@@ -734,9 +734,9 @@ entryWindow = threadLoop ->
 	SetNextWindowPos Vec2.zero
 	SetNextWindowBgAlpha 0
 	PushStyleVar "WindowPadding", Vec2(10, 0), ->
-		Begin "Dorothy Dev", displayWindowFlags, ->
+		Begin "Dora Dev", displayWindowFlags, ->
 			Dummy Vec2 fullWidth - 20, 0
-			TextColored themeColor, "DOROTHY SSR #{zh and '开发' or 'DEV'}"
+			TextColored themeColor, "DORA SSR #{zh and '开发' or 'DEV'}"
 			SameLine!
 			if fullWidth >= 320
 				Dummy Vec2 fullWidth - 320, 0
@@ -824,7 +824,7 @@ entryWindow = threadLoop ->
 					showTest = true if match name
 				goto endEntry unless showGame or showExample or showTest
 				Columns 1, false
-				TextColored themeColor, "Dorothy SSR:"
+				TextColored themeColor, "Dora SSR:"
 				SameLine!
 				Text zh and "开发示例" or "Development Showcase"
 				Separator!
@@ -877,7 +877,7 @@ entryWindow = threadLoop ->
 				SetNextWindowPos Vec2(fullWidth / 2, height / 2), "Always", Vec2 0.5, 0.5
 				Begin "Entries Not Found", displayWindowFlags, ->
 					Separator!
-					TextColored themeColor, zh and "多萝西：" or "Dorothy:"
+					TextColored themeColor, zh and "多萝西：" or "Dora:"
 					TextColored descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!'
 					Separator!
 			Columns 1, false

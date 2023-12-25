@@ -1089,7 +1089,7 @@ export default function PersistentDrawerLeft() {
 				let position: monaco.IPosition | undefined = undefined;
 				switch (ext) {
 					case ".yue":
-						content = "_ENV = Dorothy!\n\n";
+						content = "_ENV = Dora!\n\n";
 						position = {
 							lineNumber: 3,
 							column: 1

@@ -344,7 +344,7 @@ namespace xlsxtext
 		workbook(const std::string &path) noexcept : _package(std::make_shared<worksheet::package>()) {
 			_package->archive = std::make_unique<ZipFile>(SharedContent.getFullPath(path));
 		}
-		workbook(std::pair<Dorothy::OwnArray<uint8_t>,size_t>&& data) noexcept : _package(std::make_shared<worksheet::package>()) {
+		workbook(std::pair<Dora::OwnArray<uint8_t>,size_t>&& data) noexcept : _package(std::make_shared<worksheet::package>()) {
 			_package->archive = std::make_unique<ZipFile>(std::move(data));
 		}
 

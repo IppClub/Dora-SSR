@@ -1,13 +1,13 @@
-R"dorothy_tag(
+R"dora_tag(
 Ease:Linear,InQuad,OutQuad,InOutQuad,OutInQuad,InCubic,OutCubic,InOutCubic,OutInCubic,InQuart,OutQuart,InOutQuart,OutInQuart,InQuint,OutQuint,InOutQuint,OutInQuint,InSine,OutSine,InOutSine,OutInSine,InExpo,OutExpo,InOutExpo,OutInExpo,InCirc,OutCirc,InOutCirc,OutInCirc,InElastic,OutElastic,InOutElastic,OutInElastic,InBack,OutBack,InOutBack,OutInBack,InBounce,OutBounce,InOutBounce,OutInBounce
 
 ActionParent:Action,Sequence,Spawn
 
-NodeParent:Node,DrawNode,Line,Sprite,Grid,ClipNode,Label,Menu,Playable,Item,Dorothy
+NodeParent:Node,DrawNode,Line,Sprite,Grid,ClipNode,Label,Menu,Playable,Item,Dora
 
-BaseParent:Node,DrawNode,Line,Sprite,Grid,ClipNode,Label,Menu,Playable,Item,Dorothy,Stencil
+BaseParent:Node,DrawNode,Line,Sprite,Grid,ClipNode,Label,Menu,Playable,Item,Dora,Stencil
 
-ScriptParent:Node,DrawNode,Line,Sprite,Grid,ClipNode,Label,Menu,Playable,Item,Dorothy,Slot
+ScriptParent:Node,DrawNode,Line,Sprite,Grid,ClipNode,Label,Menu,Playable,Item,Dora,Slot
 
 Blend:One,Zero,SrcColor,SrcAlpha,DstColor,DstAlpha,InvSrcColor,InvSrcAlpha,InvDstColor,InvDstAlpha
 
@@ -204,7 +204,7 @@ Node
 	SwallowMouseWheel:Boolean
 	RenderGroup:Boolean
 	RenderOrder
-Dorothy
+Dora
 	Base:Node
 	Parent:No
 DrawNode
@@ -280,4 +280,4 @@ Playable
 	Play
 	Fliped:Boolean
 	Speed
-)dorothy_tag";
+)dora_tag";

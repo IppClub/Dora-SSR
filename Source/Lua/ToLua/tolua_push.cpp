@@ -16,7 +16,7 @@
 
 #include "Lua/ToLua/tolua++.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 void tolua_pushvalue(lua_State* L, int lo) {
 	lua_pushvalue(L, lo);
@@ -104,4 +104,4 @@ void tolua_pushfieldusertype(lua_State* L, int lo, int index, void* v, int typeI
 	lua_settable(L, lo);
 }
 
-NS_DOROTHY_END
+NS_DORA_END

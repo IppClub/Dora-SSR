@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/ClipCache.h"
 #include "Effect/Effect.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 Grid::Grid(float width, float height, uint32_t gridX, uint32_t gridY)
 	: Grid(nullptr, {width, height}, Rect(0, 0, width, height), gridX, gridY) { }
@@ -261,4 +261,4 @@ Grid* Grid::from(String clipStr, uint32_t gridX, uint32_t gridY) {
 	return nullptr;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

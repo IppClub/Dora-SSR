@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "bx/thread.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /** @brief get a worker runs in another thread and returns a result,
  get a finisher receives the result and runs in main thread. */
@@ -66,7 +66,7 @@ private:
 };
 
 #define SharedAsyncThread \
-	Dorothy::Singleton<Dorothy::AsyncThread>::shared()
+	Dora::Singleton<Dora::AsyncThread>::shared()
 
 class AsyncLogThread : public Async {
 public:
@@ -85,6 +85,6 @@ public:
 };
 
 #define SharedAsyncLogThread \
-	Dorothy::Singleton<Dorothy::AsyncLogThread>::shared()
+	Dora::Singleton<Dora::AsyncLogThread>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

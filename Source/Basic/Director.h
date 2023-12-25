@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 union SDL_Event;
 struct NVGcontext;
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Scheduler;
 class Node;
@@ -97,6 +97,6 @@ private:
 };
 
 #define SharedDirector \
-	Dorothy::Singleton<Dorothy::Director>::shared()
+	Dora::Singleton<Dora::Director>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

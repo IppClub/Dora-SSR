@@ -48,7 +48,7 @@ public:
 	 *               For example, "assets/". Other files will be missed.
 	 */
 	ZipFile(const std::string& zipFile, const std::string& filter = Slice::Empty);
-	ZipFile(std::pair<Dorothy::OwnArray<uint8_t>, size_t>&& data, const std::string& filter = Slice::Empty);
+	ZipFile(std::pair<Dora::OwnArray<uint8_t>, size_t>&& data, const std::string& filter = Slice::Empty);
 	virtual ~ZipFile();
 
 	/**
@@ -81,7 +81,7 @@ public:
 	 */
 	uint8_t* getFileDataUnsafe(const std::string& filename, size_t* size);
 
-	std::pair<Dorothy::OwnArray<uint8_t>, size_t> getFileData(const std::string& filename);
+	std::pair<Dora::OwnArray<uint8_t>, size_t> getFileData(const std::string& filename);
 
 	bool getFileDataByChunks(const std::string& fileName, const std::function<bool(unsigned char*, int)>& handler);
 
@@ -90,8 +90,8 @@ public:
 
 private:
 	/* Internal data like zip file pointer / file list array and so on */
-	Dorothy::Own<ZipFilePrivate> _file;
+	Dora::Own<ZipFilePrivate> _file;
 
 	/* In memory zip file data */
-	std::pair<Dorothy::OwnArray<uint8_t>, size_t> _data;
+	std::pair<Dora::OwnArray<uint8_t>, size_t> _data;
 };

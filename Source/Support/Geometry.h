@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "playrho/d2/BasicAPI.hpp"
 #include "bx/math.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 namespace pr = playrho;
 
@@ -166,4 +166,4 @@ struct Matrix {
 	static const Matrix Indentity;
 };
 
-NS_DOROTHY_END
+NS_DORA_END

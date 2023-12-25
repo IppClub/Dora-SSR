@@ -1,4 +1,4 @@
-<Dorothy>
+<Dora>
 	<Import Module="UI.Control.Basic.AlignNode"/>
 	<Import Module="UI.View.Button"/>
 
@@ -14,5 +14,5 @@
 			</Button>
 		</Menu>
 	</AlignNode>
-</Dorothy>
+</Dora>
 

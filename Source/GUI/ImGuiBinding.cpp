@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Wasm/WasmRuntime.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /* Buffer */
 
@@ -59,7 +59,7 @@ Slice Buffer::toString() {
 	return Slice(_data.data(), size);
 }
 
-NS_DOROTHY_END
+NS_DORA_END
 
 NS_BEGIN(ImGui::Binding)
 

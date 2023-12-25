@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Support/Common.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 Color3::Color3()
 	: r(255)
@@ -140,4 +140,4 @@ uint64_t BlendFunc::toValue() const {
 	return _value;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

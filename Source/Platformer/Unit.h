@@ -10,14 +10,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Physics/Body.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 class Sensor;
 class PhysicsWorld;
 class Entity;
 class EntityWorld;
 class Playable;
 class Dictionary;
-NS_DOROTHY_END
+NS_DORA_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 class UnitAction;

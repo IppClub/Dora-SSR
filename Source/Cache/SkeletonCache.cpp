@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/AtlasCache.h"
 #include "Common/Async.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 SkeletonData::SkeletonData(spine::SkeletonData* skeletonData, Atlas* atlas)
 	: _atlas(atlas)
@@ -210,4 +210,4 @@ void SkeletonCache::removeUnused() {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

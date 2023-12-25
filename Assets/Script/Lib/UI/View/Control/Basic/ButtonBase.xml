@@ -1,5 +1,5 @@
 <!-- params: X, Y, Width, Height, Tag -->
-<Dorothy>
+<Dora>
 	<Node X="{ x or 0 }" Y="{ y or 0 }" Width="{ width }" Height="{ height }" Color3="{ App.themeColor:toARGB() }" Tag="{ tag or '' }" TouchEnabled="True">
 		<!-- Animations -->
 		<Action>
@@ -15,4 +15,4 @@
 		<!-- Tap Event -->
 		<Slot Name="Tapped" Target="face" Perform="scaleAction"/>
 	</Node>
-</Dorothy>
+</Dora>

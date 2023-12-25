@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 #if DORA_TEST
 class TestEntry {
@@ -43,4 +43,4 @@ private:
 #define DORA_TEST_ENTRY(name) inline bool _##name()
 #endif // DORA_TEST
 
-NS_DOROTHY_END
+NS_DORA_END

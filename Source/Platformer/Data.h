@@ -8,11 +8,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 class PhysicsWorld;
 class Dictionary;
 class Body;
-NS_DOROTHY_END
+NS_DORA_END
 
 NS_DOROTHY_PLATFORMER_BEGIN
 
@@ -58,6 +58,6 @@ private:
 };
 
 #define SharedData \
-	Dorothy::Singleton<Dorothy::Platformer::Data>::shared()
+	Dora::Singleton<Dora::Platformer::Data>::shared()
 
 NS_DOROTHY_PLATFORMER_END

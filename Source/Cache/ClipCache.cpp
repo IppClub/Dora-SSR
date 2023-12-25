@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/XmlTag.h"
 #include "Node/Sprite.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 ClipDef::ClipDef() { }
 
@@ -156,4 +156,4 @@ void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const 
 
 void ClipCache::Parser::xmlSAX2EndElement(const char* name, size_t len) { }
 
-NS_DOROTHY_END
+NS_DORA_END

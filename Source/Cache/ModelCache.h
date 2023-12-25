@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/XmlItemCache.h"
 #include "Common/Singleton.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class SpriteDef;
 class AnimationDef;
@@ -45,6 +45,6 @@ private:
 };
 
 #define SharedModelCache \
-	Dorothy::Singleton<Dorothy::ModelCache>::shared()
+	Dora::Singleton<Dora::ModelCache>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

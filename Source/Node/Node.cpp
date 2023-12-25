@@ -27,7 +27,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Sprite.h"
 #include "Support/Dictionary.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 Node::Node(bool unManaged)
 	: _flags(
@@ -1805,4 +1805,4 @@ void Node::setAsManaged() {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

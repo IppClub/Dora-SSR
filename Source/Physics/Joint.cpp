@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/Sensor.h"
 #include "playrho/d2/Joint.hpp"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 Joint::~Joint() {
 	Joint::destroy();
@@ -402,4 +402,4 @@ void MotorJoint::reversePower() {
 	MotorJoint::setSpeed(-MotorJoint::getSpeed());
 }
 
-NS_DOROTHY_END
+NS_DORA_END

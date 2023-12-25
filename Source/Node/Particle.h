@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Node.h"
 #include "Node/Sprite.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 enum struct EmitterMode {
 	Gravity,
@@ -144,4 +144,4 @@ private:
 	DORA_TYPE_OVERRIDE(ParticleNode);
 };
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/Joint.h"
 #include "Support/Dictionary.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 JointDef::JointDef()
 	: angle(0) { }
@@ -305,4 +305,4 @@ Joint* WheelDef::toJoint(Dictionary* itemDict) {
 	return Joint::wheel(collision, targetA->to<Body>(), targetB->to<Body>(), t(worldPos), axisAngle, maxMotorTorque, motorSpeed, frequency, damping);
 }
 
-NS_DOROTHY_END
+NS_DORA_END

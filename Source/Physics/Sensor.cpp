@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/PhysicsWorld.h"
 #include "Support/Array.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 Sensor::Sensor(Body* owner, int tag, pr::ShapeID fixture)
 	: _owner(owner)
@@ -101,4 +101,4 @@ bool Sensor::isSensed() const {
 	return _sensedBodies->getCount() > 0;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

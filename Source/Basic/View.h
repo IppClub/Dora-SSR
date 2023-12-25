@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Support/Geometry.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class SpriteEffect;
 
@@ -89,6 +89,6 @@ private:
 };
 
 #define SharedView \
-	Dorothy::Singleton<Dorothy::View>::shared()
+	Dora::Singleton<Dora::View>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

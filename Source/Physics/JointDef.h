@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 struct b2JointDef;
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Joint;
 class Dictionary;
@@ -234,4 +234,4 @@ public:
 	virtual Joint* toJoint(Dictionary* itemDict) override;
 };
 
-NS_DOROTHY_END
+NS_DORA_END

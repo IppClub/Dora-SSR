@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/XmlItemCache.h"
 #include "Common/Singleton.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class FrameAction;
 struct Rect;
@@ -56,6 +56,6 @@ private:
 };
 
 #define SharedFrameCache \
-	Dorothy::Singleton<Dorothy::FrameCache>::shared()
+	Dora::Singleton<Dora::FrameCache>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

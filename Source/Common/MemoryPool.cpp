@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Common/MemoryPool.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 MemoryPool::MemoryPool(int itemSize, int chunkCapacity)
 	: _itemSize(itemSize)
@@ -160,4 +160,4 @@ int MemoryPool::collectAll() {
 	return collected;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Shader : public Object {
 public:
@@ -45,6 +45,6 @@ private:
 };
 
 #define SharedShaderCache \
-	Dorothy::Singleton<Dorothy::ShaderCache>::shared()
+	Dora::Singleton<Dora::ShaderCache>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

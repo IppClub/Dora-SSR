@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "lodepng.h"
 using namespace lodepnglib;
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 RenderTarget::RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format)
 	: _textureWidth(width)
@@ -226,4 +226,4 @@ void RenderTarget::saveAsync(String filename, const std::function<void(bool)>& c
 	});
 }
 
-NS_DOROTHY_END
+NS_DORA_END

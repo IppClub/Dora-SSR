@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Event/Event.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 bool Listener::init() {
 	if (!Object::init()) return false;
@@ -63,4 +63,4 @@ Listener::~Listener() {
 	Listener::setEnabled(false);
 }
 
-NS_DOROTHY_END
+NS_DORA_END

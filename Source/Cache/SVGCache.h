@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Common.h"
 #include "Support/Geometry.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class SVGDef : public Object {
 public:
@@ -81,6 +81,6 @@ private:
 };
 
 #define SharedSVGCache \
-	Dorothy::Singleton<Dorothy::SVGCache>::shared()
+	Dora::Singleton<Dora::SVGCache>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

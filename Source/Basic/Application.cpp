@@ -54,7 +54,7 @@ extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 #define DEFAULT_WIN_DPI 96
 #endif // BX_PLATFORM_WINDOWS
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 bool BGFXDora::init(const bgfx::PlatformData& data) {
 	bgfx::Init init{};
@@ -257,7 +257,7 @@ int Application::run() {
 	windowFlags |= SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS;
 #endif // BX_PLATFORM
 
-	_sdlWindow = SDL_CreateWindow("Dorothy SSR",
+	_sdlWindow = SDL_CreateWindow("Dora SSR",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		_winWidth, _winHeight, windowFlags);
 	if (!_sdlWindow) {
@@ -649,7 +649,7 @@ void Application::setupSdlWindow() {
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
 
-NS_DOROTHY_END
+NS_DORA_END
 
 // Entry functions needed by SDL2
 #if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
@@ -664,7 +664,7 @@ extern "C" int main(int argc, char* argv[]) {
 
 #include "Common/Async.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Console {
 public:
@@ -682,9 +682,9 @@ public:
 	SINGLETON_REF(AsyncLogThread, Console);
 };
 #define SharedConsole \
-	Dorothy::Singleton<Dorothy::Console>::shared()
+	Dora::Singleton<Dora::Console>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END
 #endif // DORA_WIN_CONSOLE
 
 int CALLBACK WinMain(
@@ -710,7 +710,7 @@ int CALLBACK WinMain(
 #include "wasm3.h"
 #include "yuescript/yue_compiler.h"
 
-std::string Dorothy::Application::getDeps() const {
+std::string Dora::Application::getDeps() const {
 	return fmt::format(
 		"- SDL2 {}.{}.{}\n"
 		"- bgfx {}\n"

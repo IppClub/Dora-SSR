@@ -1,14 +1,14 @@
 [package]
-name = "dorothy-ssr"
+name = "dora-ssr"
 version = "0.1.4"
 authors = ["Li Jin <dragon-fly@qq.com>"]
 edition = "2021"
 license = "MIT"
-homepage = "https://dorothy-ssr.net"
-repository = "https://github.com/pigpigyyy/Dorothy-SSR"
+homepage = "https://dora-ssr.net"
+repository = "https://github.com/pigpigyyy/Dora-SSR"
 keywords = ["gamedev", "WASM"]
-documentation = "https://dorothy-ssr.net/docs/api/intro"
-description = "The lib for building Dorothy SSR games in Rust running on target wasm32-wasi."
+documentation = "https://dora-ssr.net/docs/api/intro"
+description = "The lib for building Dora SSR games in Rust running on target wasm32-wasi."
 crate-type = "lib"
 
 [dependencies]

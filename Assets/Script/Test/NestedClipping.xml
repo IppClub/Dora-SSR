@@ -1,4 +1,4 @@
-<Dorothy>
+<Dora>
 	<ClipNode>
 		<Stencil>
 			<Sprite File="Image/logo.png"/>
@@ -11,4 +11,4 @@
 			<Sprite File="Image/logo.png"/>
 		</ClipNode>
 	</ClipNode>
-</Dorothy>
+</Dora>

@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/Body.h"
 #include "Physics/PhysicsWorld.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 DrawNode* DebugDraw::getRenderer() const {
 	return _drawNode;
@@ -158,12 +158,12 @@ static void Draw(DebugDraw* drawer, const pd::World& world, pr::ShapeID fixture,
 	}
 }
 
-const static Color disabledColor(Dorothy::Vec4{0.5f, 0.5f, 0.3f, 1.0f});
-const static Color staticColor(Dorothy::Vec4{0.5f, 0.9f, 0.5f, 1.0f});
-const static Color kinematicColor(Dorothy::Vec4{0.5f, 0.5f, 0.9f, 1.0f});
-const static Color sleepColor(Dorothy::Vec4{0.6f, 0.6f, 0.6f, 1.0f});
-const static Color activeColor(Dorothy::Vec4{0.9f, 0.7f, 0.7f, 1.0f});
-const static Color sensorColor(Dorothy::Vec4{1.0f, 0.9f, 0.0f, 1.0f});
+const static Color disabledColor(Dora::Vec4{0.5f, 0.5f, 0.3f, 1.0f});
+const static Color staticColor(Dora::Vec4{0.5f, 0.9f, 0.5f, 1.0f});
+const static Color kinematicColor(Dora::Vec4{0.5f, 0.5f, 0.9f, 1.0f});
+const static Color sleepColor(Dora::Vec4{0.6f, 0.6f, 0.6f, 1.0f});
+const static Color activeColor(Dora::Vec4{0.9f, 0.7f, 0.7f, 1.0f});
+const static Color sensorColor(Dora::Vec4{1.0f, 0.9f, 0.0f, 1.0f});
 
 static const Color& GetColor(const pd::World& world, pr::BodyID body) {
 	if (!pd::IsEnabled(world, body)) {
@@ -188,7 +188,7 @@ static void Draw(DebugDraw* drawer, const pd::World& world, pr::BodyID body) {
 	}
 }
 
-static const Color jointColor(Dorothy::Vec4{0.5f, 0.8f, 0.8f, 1.0f});
+static const Color jointColor(Dora::Vec4{0.5f, 0.8f, 0.8f, 1.0f});
 
 static void Draw(DebugDraw* drawer, const pd::World& world, pr::JointID joint) {
 	const auto p1 = pd::GetAnchorA(world, joint);
@@ -230,4 +230,4 @@ void DebugDraw::DrawWorld(PhysicsWorld* pworld) {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

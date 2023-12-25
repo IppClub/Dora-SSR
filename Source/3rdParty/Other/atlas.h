@@ -17,7 +17,7 @@
 
 #include "bgfx/bgfx.h"
 
-namespace Dorothy {
+namespace Dora {
 class Texture2D;
 }
 
@@ -52,7 +52,7 @@ public:
 	void updateRegion(const AtlasRegion& _region, const uint8_t* _bitmapBuffer);
 
 	/// return the TextureHandle (cube) of the atlas
-	Dorothy::Texture2D* getTexture() const
+	Dora::Texture2D* getTexture() const
 	{
 		return m_texture;
 	}
@@ -106,7 +106,7 @@ private:
 	AtlasRegion* m_regions;
 	uint8_t* m_textureBuffer;
 
-	Dorothy::Ref<Dorothy::Texture2D> m_texture;
+	Dora::Ref<Dora::Texture2D> m_texture;
 	uint16_t m_textureSize;
 	float m_texelSize;
 	float m_texelOffset[2];

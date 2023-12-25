@@ -140,7 +140,7 @@ public:
 private:
 	struct CachedFont;
 	struct CachedFile {
-		Dorothy::OwnArray<uint8_t> buffer;
+		Dora::OwnArray<uint8_t> buffer;
 		uint32_t bufferSize;
 	};
 
@@ -148,18 +148,18 @@ private:
 	bool addBitmap(GlyphInfo& _glyphInfo, const uint8_t* _data);
 
 	Atlas* m_currentAtlas;
-	Dorothy::OwnVector<Atlas> m_atlases;
+	Dora::OwnVector<Atlas> m_atlases;
 
 	uint16_t m_textureWidth;
 
 	bx::HandleAllocT<MAX_OPENED_FONT> m_fontHandles;
-	Dorothy::OwnArray<CachedFont> m_cachedFonts;
+	Dora::OwnArray<CachedFont> m_cachedFonts;
 
 	bx::HandleAllocT<MAX_OPENED_FILES> m_filesHandles;
-	Dorothy::OwnArray<CachedFile> m_cachedFiles;
+	Dora::OwnArray<CachedFile> m_cachedFiles;
 
 	// temporary buffer to raster glyph
-	Dorothy::OwnArray<uint8_t> m_buffer;
+	Dora::OwnArray<uint8_t> m_buffer;
 
 	GlyphInfo m_fallbackGlyph;
 };

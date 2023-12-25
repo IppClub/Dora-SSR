@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 class ZipFile;
 #endif
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Async;
 
@@ -85,6 +85,6 @@ private:
 };
 
 #define SharedContent \
-	Dorothy::Singleton<Dorothy::Content>::shared()
+	Dora::Singleton<Dora::Content>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

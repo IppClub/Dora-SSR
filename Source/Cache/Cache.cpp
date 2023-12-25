@@ -25,7 +25,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Label.h"
 #include "Node/Particle.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 bool Cache::load(String filename) {
 	auto tokens = filename.split(":"_slice);
@@ -340,4 +340,4 @@ void Cache::removeUnused(String name) {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

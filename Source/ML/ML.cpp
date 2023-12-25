@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Async.h"
 #include "ml/DecisionTree.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 NS_BEGIN(ML)
 
 void BuildDecisionTreeAsync(String data, int maxDepth,
@@ -138,4 +138,4 @@ double QLearner::getMaxQ(QState state) const {
 }
 
 NS_END(ML)
-NS_DOROTHY_END
+NS_DORA_END

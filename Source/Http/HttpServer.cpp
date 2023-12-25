@@ -94,7 +94,7 @@ static std::string get_local_ip() {
 }
 #endif // BX_PLATFORM_WINDOWS
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class WebSocketServer {
 	using Server = websocketpp::server<websocketpp::config::asio>;
@@ -492,4 +492,4 @@ const char* HttpServer::getVersion() {
 	return CPPHTTPLIB_VERSION;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

@@ -20,7 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "playrho/d2/DynamicTree.hpp"
 #include "playrho/d2/Manifold.hpp"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 void PhysicsWorld::SensorPair::retain() {
 	sensor->getOwner()->retain();
@@ -450,4 +450,4 @@ void PhysicsWorld::solveContacts() {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

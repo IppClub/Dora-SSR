@@ -14,9 +14,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Yard/yard_error.hpp"
 #include "Yard/yard_text_grammar.hpp"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
-namespace dorothy_xml_grammar {
+namespace dora_xml_grammar {
 using namespace yard;
 using namespace text_grammar;
 
@@ -951,7 +951,7 @@ struct PublicID :
 { };
 
 // clang-format on
-} // namespace dorothy_xml_grammar
+} // namespace dora_xml_grammar
 
 XmlResolver::XmlResolver()
 	: _isInTag(false)
@@ -964,8 +964,8 @@ void XmlResolver::resolve(String text) {
 }
 
 bool XmlResolver::parse(const char* codes, int length) {
-	dorothy_xml_grammar::DoraSimpleTextParser parser(codes, codes + length);
-	bool result = parser.Parse<yard::Seq<dorothy_xml_grammar::Document, yard::EndOfInput>>();
+	dora_xml_grammar::DoraSimpleTextParser parser(codes, codes + length);
+	bool result = parser.Parse<yard::Seq<dora_xml_grammar::Document, yard::EndOfInput>>();
 	_isInTag = parser.isInTag;
 	_currentPadding = parser.currentPadding;
 	_currentElement = parser.elements.empty() ? std::string() : parser.elements.top();
@@ -995,4 +995,4 @@ const std::list<std::string>& XmlResolver::getImports() {
 	return _imports;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

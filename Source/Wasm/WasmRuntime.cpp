@@ -10,10 +10,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Wasm/WasmRuntime.h"
 
-#include "Dorothy.h"
+#include "Dora.h"
 #include "GUI/ImGuiBinding.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 union LightWasmValue {
 	Vec2 vec2;
@@ -1475,4 +1475,4 @@ void WasmRuntime::clear() {
 	_wasm = {nullptr, 0};
 }
 
-NS_DOROTHY_END
+NS_DORA_END

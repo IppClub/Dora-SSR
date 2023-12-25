@@ -16,7 +16,7 @@
 
 #include "Lua/ToLua/tolua++.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 lua_Number tolua_tonumber(lua_State* L, int narg, lua_Number def) {
 	return lua_gettop(L) < abs(narg) ? def : lua_tonumber(L, narg);
@@ -114,4 +114,4 @@ int tolua_tofieldboolean(lua_State* L, int lo, int index, int def) {
 	return v;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

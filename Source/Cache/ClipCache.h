@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/XmlItemCache.h"
 #include "Common/Singleton.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Sprite;
 class Texture2D;
@@ -69,6 +69,6 @@ private:
 };
 
 #define SharedClipCache \
-	Dorothy::Singleton<Dorothy::ClipCache>::shared()
+	Dora::Singleton<Dora::ClipCache>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

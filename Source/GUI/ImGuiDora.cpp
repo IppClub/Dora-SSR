@@ -30,7 +30,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "SDL.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 void pushYue(lua_State* L, String name) {
 	lua_getglobal(L, "package"); // package
@@ -185,7 +185,7 @@ public:
 		if (_fullScreen) {
 			ImGui::SetNextWindowPos(Vec2::zero);
 			ImGui::SetNextWindowSize(Vec2{1, 1} * SharedApplication.getVisualSize(), ImGuiCond_Always);
-			ImGui::Begin("DorothyConsole_full", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
+			ImGui::Begin("DoraConsole_full", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
 		} else {
 			ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
 			ImGui::Begin(title, pOpen);
@@ -678,7 +678,7 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 	bool useChinese = _useChinese && _isChineseSupported;
 	auto themeColor = SharedApplication.getThemeColor().toVec4();
 	bool itemHovered = false;
-	if (ImGui::Begin(useChinese ? r_cast<const char*>(u8"Dorothy 状态###DorothyStats") : "Dorothy Stats###DorothyStats", pOpen,
+	if (ImGui::Begin(useChinese ? r_cast<const char*>(u8"Dora 状态###DoraStats") : "Dora Stats###DoraStats", pOpen,
 			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"基础") : "Basic")) {
 			const char* rendererNames[] = {
@@ -1139,7 +1139,7 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 
 void ImGuiDora::showConsole(bool* pOpen) {
 	bool useChinese = _useChinese && _isChineseSupported;
-	_console->Draw(useChinese ? r_cast<const char*>(u8"Dorothy 控制台###DorothyConsole") : "Dorothy Console###DorothyConsole", useChinese, pOpen);
+	_console->Draw(useChinese ? r_cast<const char*>(u8"Dora 控制台###DoraConsole") : "Dora Console###DoraConsole", useChinese, pOpen);
 }
 
 static void SetPlatformImeDataFn(ImGuiViewport*, ImGuiPlatformImeData* data) {
@@ -1634,4 +1634,4 @@ bool ImGuiDora::ImGuiTouchHandler::handle(const SDL_Event& event) {
 	return false;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

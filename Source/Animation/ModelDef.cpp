@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Model.h"
 #include "Node/Sprite.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 inline std::string s2(float var) {
 	return Slice(fmt::format("{:.2f}", var)).trimZero().toString();
@@ -267,4 +267,4 @@ std::vector<std::string> ModelDef::getAnimationNames() const {
 	return names;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

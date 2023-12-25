@@ -17,7 +17,7 @@
 #include "Lua/ToLua/tolua++.h"
 #include "Lua/ToLua/tolua_event.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /* Create metatable
  * Create and register new metatable
@@ -399,4 +399,4 @@ void tolua_variable(lua_State* L, const char* name, lua_CFunction get, lua_CFunc
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

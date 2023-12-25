@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 #include "Const/Header.h"
-using namespace Dorothy;
+using namespace Dora;
 
 #include "ZipUtils.h"
 #include "miniz.h"
@@ -220,7 +220,7 @@ uint8_t* ZipFile::getFileDataUnsafe(const std::string& filename, size_t* size) {
 	return buffer;
 }
 
-std::pair<Dorothy::OwnArray<uint8_t>, size_t> ZipFile::getFileData(const std::string& filename) {
+std::pair<Dora::OwnArray<uint8_t>, size_t> ZipFile::getFileData(const std::string& filename) {
 	size_t size = 0;
 	uint8_t* buf = getFileDataUnsafe(filename, &size);
 	return {MakeOwnArray(buf), size};

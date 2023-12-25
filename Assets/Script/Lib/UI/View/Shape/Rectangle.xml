@@ -1,5 +1,5 @@
 <!-- params: X=0, Y=0, Width, Height, FillColor, BorderColor -->
-<Dorothy>
+<Dora>
 	<Import Module="UI.View.Shape.SolidRect"/>
 	<Import Module="UI.View.Shape.LineRect"/>
 
@@ -12,4 +12,4 @@
 			<LineRect Width="{ width }" Height="{ height }" Color="{ borderColor }" RenderOrder="{ lineGroup or 0 }"/>
 		<Lua>end</Lua>
 	</Node>
-</Dorothy>
+</Dora>

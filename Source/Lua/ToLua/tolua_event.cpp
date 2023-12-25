@@ -16,7 +16,7 @@
 
 #include "Lua/ToLua/tolua++.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /* Store at ubox
  * It stores, creating the corresponding table if needed,
@@ -417,4 +417,4 @@ void tolua_classevents(lua_State* L) {
 	lua_rawset(L, -3);
 }
 
-NS_DOROTHY_END
+NS_DORA_END

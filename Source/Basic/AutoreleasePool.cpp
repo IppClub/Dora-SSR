@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Basic/AutoreleasePool.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 PoolManager::~PoolManager() {
 	clear();
@@ -36,4 +36,4 @@ void PoolManager::addObject(Object* object) {
 	_releasePoolStack.top()->push_back(object);
 }
 
-NS_DOROTHY_END
+NS_DORA_END

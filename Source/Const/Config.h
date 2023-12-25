@@ -9,10 +9,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #define DORA_DEFAULT_ORG_NAME "IppClub"
-#define DORA_DEFAULT_APP_NAME "DorothySSR"
+#define DORA_DEFAULT_APP_NAME "DoraSSR"
 
-#define NS_DOROTHY_BEGIN namespace Dorothy {
-#define NS_DOROTHY_END }
+#define NS_DORA_BEGIN namespace Dora {
+#define NS_DORA_END }
 
 #define NS_BEGIN(name) namespace name {
 #define NS_END(name) }

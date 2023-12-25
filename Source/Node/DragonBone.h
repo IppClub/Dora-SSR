@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 namespace db = dragonBones;
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class DBSlotNode : public Node {
 public:
@@ -134,4 +134,4 @@ private:
 	DORA_TYPE_OVERRIDE(DragonBone);
 };
 
-NS_DOROTHY_END
+NS_DORA_END

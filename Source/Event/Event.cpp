@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/EventType.h"
 #include "Event/Listener.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 StringMap<Own<EventType>> Event::_eventMap;
 
@@ -169,4 +169,4 @@ void WasmEventArgs::send(String name, CallStack* stack) {
 	Event::send(&event);
 }
 
-NS_DOROTHY_END
+NS_DORA_END

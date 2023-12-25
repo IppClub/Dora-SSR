@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Playable.h"
 #include "spine/spine.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class SkeletonData;
 class SpriteEffect;
@@ -75,4 +75,4 @@ private:
 	DORA_TYPE_OVERRIDE(Spine);
 };
 
-NS_DOROTHY_END
+NS_DORA_END

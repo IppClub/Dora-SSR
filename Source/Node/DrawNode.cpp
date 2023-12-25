@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/ShaderCache.h"
 #include "Effect/Effect.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /* DrawNode */
 
@@ -587,4 +587,4 @@ void LineRenderer::render() {
 	}
 }
 
-NS_DOROTHY_END
+NS_DORA_END

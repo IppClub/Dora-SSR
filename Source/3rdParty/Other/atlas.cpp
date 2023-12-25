@@ -5,7 +5,7 @@
 
 #include "Const/Header.h"
 #include "Cache/TextureCache.h"
-using namespace Dorothy;
+using namespace Dora;
 
 #include "bx/timer.h"
 #include "bx/math.h"

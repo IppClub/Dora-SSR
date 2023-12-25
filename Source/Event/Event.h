@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaHandler.h"
 #include "Wasm/WasmRuntime.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class Listener;
 class EventType;
@@ -223,4 +223,4 @@ bool Event::get(Args&... args) {
 	return true;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

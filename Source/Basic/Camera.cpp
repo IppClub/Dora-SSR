@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/View.h"
 #include "Node/Node.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 /* Camera */
 
@@ -268,4 +268,4 @@ bool CameraUI3D::hasProjection() const {
 	return true;
 }
 
-NS_DOROTHY_END
+NS_DORA_END

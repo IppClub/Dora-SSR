@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Common/Singleton.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class SoundFile;
 
@@ -35,6 +35,6 @@ private:
 };
 
 #define SharedSoundCache \
-	Dorothy::Singleton<Dorothy::SoundCache>::shared()
+	Dora::Singleton<Dora::SoundCache>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

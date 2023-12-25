@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Sprite.h"
 #include "nanovg/nanovg_bgfx.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 VGNode::VGNode(float width, float height, float scale, int edgeAA)
 	: _frameWidth(width)
@@ -80,4 +80,4 @@ void VGNode::render(const std::function<void()>& func) {
 	});
 }
 
-NS_DOROTHY_END
+NS_DORA_END

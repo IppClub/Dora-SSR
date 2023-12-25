@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 class WebSocketServer;
 class Async;
@@ -80,6 +80,6 @@ private:
 };
 
 #define SharedHttpServer \
-	Dorothy::Singleton<Dorothy::HttpServer>::shared()
+	Dora::Singleton<Dora::HttpServer>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

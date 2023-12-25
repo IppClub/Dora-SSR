@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Singleton.h"
 #include "Node/Node.h"
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
 struct DrawVertex {
 	float x;
@@ -106,7 +106,7 @@ private:
 };
 
 #define SharedDrawRenderer \
-	Dorothy::Singleton<Dorothy::DrawRenderer>::shared()
+	Dora::Singleton<Dora::DrawRenderer>::shared()
 
 struct PosColorVertex {
 	float x;
@@ -183,6 +183,6 @@ private:
 };
 
 #define SharedLineRenderer \
-	Dorothy::Singleton<Dorothy::LineRenderer>::shared()
+	Dora::Singleton<Dora::LineRenderer>::shared()
 
-NS_DOROTHY_END
+NS_DORA_END

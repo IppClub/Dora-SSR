@@ -8,17 +8,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-NS_DOROTHY_BEGIN
+NS_DORA_BEGIN
 
-class DorothyTag {
+class DoraTag {
 public:
-	DorothyTag();
-	~DorothyTag();
+	DoraTag();
+	~DoraTag();
 	std::list<std::string> getAttributes(const std::string& elementName);
 	std::list<std::string> getAttributeHints(const std::string& elementName, const std::string& attrName);
 	std::list<std::string> getSubElements(const std::string& elementName);
 	bool isElementNode(const std::string& elementName);
-	static DorothyTag& shared();
+	static DoraTag& shared();
 
 private:
 	void load();
@@ -51,4 +51,4 @@ private:
 	std::list<std::string> elementNames;
 };
 
-NS_DOROTHY_END
+NS_DORA_END
