@@ -151,7 +151,7 @@ static int dora_load_file(lua_State* L, String filename, String moduleName = nul
 			break;
 		}
 		case "wasm"_hash: {
-			codes = "builtin.Wasm:executeMainFile(\""s + targetFile + "\")"s;
+			codes = "dora.Wasm:executeMainFile(\""s + targetFile + "\")"s;
 			codeBuffer = codes.c_str();
 			codeBufferSize = codes.size();
 			break;
@@ -843,7 +843,7 @@ LuaEngine::LuaEngine()
 	tolua_LuaBinding_open(L);
 
 	// add manual binding
-	tolua_beginmodule(L, nullptr); // stack: builtin
+	tolua_beginmodule(L, nullptr); // stack: dora
 	{
 		tolua_function(L, "ubox", dora_ubox);
 		tolua_function(L, "emit", dora_emit);
@@ -1014,10 +1014,10 @@ LuaEngine::LuaEngine()
 		}
 		tolua_endmodule(L);
 
-		lua_getglobal(L, "package"); // builtin package
-		lua_getfield(L, -1, "loaded"); // builtin package loaded
-		lua_getfield(L, -1, "yue"); // builtin package loaded yue
-		lua_setfield(L, -4, "yue"); // builtin["yue"] = yue, builtin package loaded
+		lua_getglobal(L, "package"); // dora package
+		lua_getfield(L, -1, "loaded"); // dora package loaded
+		lua_getfield(L, -1, "yue"); // dora package loaded yue
+		lua_setfield(L, -4, "yue"); // dora["yue"] = yue, dora package loaded
 		lua_pop(L, 2);
 		tolua_beginmodule(L, "yue");
 		{

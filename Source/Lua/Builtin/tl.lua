@@ -11191,7 +11191,7 @@ tl.dora_init = function()
 	)
 	if env then
 		if require_module("lua", false, env) == INVALID then
-			print(string.format("Error: could not predefine module 'builtin'"))
+			print(string.format("Error: could not predefine module 'lua'"))
 		else
 			for name, typ in pairs(env.modules["lua"].def.fields) do
 				env.globals[name] = { t = typ, attribute = "const" }
@@ -11202,8 +11202,8 @@ tl.dora_init = function()
 			env.modules["lua"] = nil
 			env.loaded = {}
 		end
-		if require_module("builtin", false, env) == INVALID then
-			print(string.format("Error: could not predefine module 'builtin'"))
+		if require_module("dora", false, env) == INVALID then
+			print(string.format("Error: could not predefine module 'dora'"))
 		end
 		local dora_loaded = {}
 		local dora_globals = {}

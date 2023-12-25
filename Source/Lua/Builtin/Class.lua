@@ -1,4 +1,4 @@
-local tolua = builtin.tolua
+local tolua = dora.tolua
 local setmetatable = setmetatable
 local getmetatable = getmetatable
 local pairs = pairs
@@ -286,7 +286,7 @@ local function classmethod(method)
 	return method
 end
 
-builtin.Class = Class
-builtin.property = property
-builtin.classfield = classfield
-builtin.classmethod = classmethod
+dora.Class = Class
+dora.property = property
+dora.classfield = classfield
+dora.classmethod = classmethod

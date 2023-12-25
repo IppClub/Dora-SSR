@@ -1,8 +1,8 @@
 -- Da Bongo Game Jam
-_ENV = Dorothy(
-	builtin.ImGui
-	builtin.Platformer
-	builtin.Platformer.Decision
+_ENV = Dora(
+	dora.ImGui
+	dora.Platformer
+	dora.Platformer.Decision
 )
 import "UI.Control.Basic.AlignNode"
 import "UI.Control.Basic.CircleButton"

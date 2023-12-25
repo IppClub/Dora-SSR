@@ -25,6 +25,7 @@ import { NodeDragEventParams } from 'rc-tree/lib/contextTypes';
 import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
+import typescriptLogo from './typescript.png';
 import spineLogo from './spine.png';
 import { DiCode } from 'react-icons/di';
 import { TbSql } from 'react-icons/tb';
@@ -81,6 +82,9 @@ const fileIcon = (props: TreeNodeProps) => {
 					return <img src={tealLogo} alt="teal" width="12px" height="12px"/>;
 				case ".yue":
 					return <img src={yueLogo} alt="yue" width="14px" height="14px"/>;
+				case ".tsx":
+				case ".ts":
+					return <img src={typescriptLogo} alt="typescript" width="12px" height="12px"/>;
 				case ".xml":
 					return <DiCode size={14}/>;
 				case ".db":

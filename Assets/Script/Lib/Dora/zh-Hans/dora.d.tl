@@ -110,7 +110,7 @@ local classmethod: function(...: any): any
 local property: function(...: any): any
 
 -- 包含所有Dorothy SSR内置功能的一个全局变量。
-global builtin = {
+global dora = {
 	Class = Class,
 	classmethod = classmethod,
 	property = property,

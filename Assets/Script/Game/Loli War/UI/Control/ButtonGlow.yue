@@ -1,4 +1,4 @@
-_ENV = Dorothy builtin.Platformer
+_ENV = Dora dora.Platformer
 import "UI.View.ButtonGlow"
 
 export default Class ButtonGlow,

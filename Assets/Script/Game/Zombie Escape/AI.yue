@@ -1,6 +1,6 @@
-_ENV = Dorothy(
-	builtin.Platformer
-	builtin.Platformer.Decision
+_ENV = Dora(
+	dora.Platformer
+	dora.Platformer.Decision
 )
 import "Platformer" as Behavior:BT
 

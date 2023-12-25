@@ -42,8 +42,9 @@
     "react-refresh": "^0.14.0",
     "react-syntax-highlighter": "^15.5.0",
     "remark-gfm": "^4.0.0",
+    "source-map": "0.7.3",
     "tailwindcss": "^3.0.2",
-    "typescript": "^5.3.3"
+    "typescript": "5.2.2"
   },
   "scripts": {
     "start": "node scripts/start.js",
@@ -152,7 +153,6 @@
     "mini-css-extract-plugin": "^2.7.6",
     "monaco-editor-webpack-plugin": "^7.0.1",
     "react-dev-utils": "^12.0.1",
-    "resolve": "^1.22.8",
     "resolve-url-loader": "^5.0.0",
     "sass-loader": "^13.3.2",
     "semver": "^7.5.4",
@@ -163,6 +163,7 @@
     "web-vitals": "^3.5.0",
     "webpack": "^5.89.0",
     "webpack-dev-server": "^4.15.1",
+    "webpack-filter-warnings-plugin": "^1.2.1",
     "webpack-manifest-plugin": "^5.0.0",
     "workbox-webpack-plugin": "^7.0.0"
   }

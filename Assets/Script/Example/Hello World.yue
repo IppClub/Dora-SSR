@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dora!
 
 with Node!
 	\slot "Enter", -> print "on enter event"
@@ -27,4 +27,4 @@ threadLoop ->
 	ImGui.Begin "Hello World", windowFlags, ->
 		ImGui.Text "Hello World"
 		ImGui.Separator!
-		ImGui.TextWrapped "Basic Dorothy schedule and signal function usage. Written in Yuescript. View outputs in log window!"
+		ImGui.TextWrapped "Basic Dora schedule and signal function usage. Written in Yuescript. View outputs in log window!"

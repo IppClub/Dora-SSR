@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dora!
 
 export default Class Node,
 	__init: (args)=>
@@ -41,10 +41,10 @@ export default Class Node,
 				env = :w,:h
 				oldSize = @size
 				if @alignWidth
-					widthFunc = load "local _ENV = " .. "Dorothy(...)\nreturn #{@alignWidth}"
+					widthFunc = load "local _ENV = " .. "Dora(...)\nreturn #{@alignWidth}"
 					@width = widthFunc env
 				if @alignHeight
-					heightFunc = load "local _ENV = " .. "Dorothy(...)\nreturn #{@alignHeight}"
+					heightFunc = load "local _ENV = " .. "Dora(...)\nreturn #{@alignHeight}"
 					@height = heightFunc env
 				@x = switch @hAlign
 					when "Left" then @width / 2 + @alignOffset.x

@@ -20,7 +20,7 @@ import DoraUpload from './Upload';
 import { TransitionGroup } from 'react-transition-group';
 import * as monaco from 'monaco-editor';
 import * as Service from './Service';
-import './Editor';
+import { transpileTypescript } from './Editor';
 import { AppBar, DrawerHeader, drawerWidth, Entry, Main, PlayControl, PlayControlMode, StyledStack, Color } from './Frame';
 import { MacScrollbar } from 'mac-scrollbar';
 import 'mac-scrollbar/dist/mac-scrollbar.css';
@@ -30,11 +30,13 @@ import { Image } from 'antd';
 import YarnEditor, { YarnEditorData } from './YarnEditor';
 import CodeWire, { CodeWireData } from './CodeWire';
 import LogView from './LogView';
+import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
+import { TbSwitchVertical } from "react-icons/tb";
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
 
-const {path} = Info;
+const { path } = Info;
 
 loader.config({ monaco });
 
@@ -223,6 +225,22 @@ export default function PersistentDrawerLeft() {
 			addAlert(t("log.close"), "error");
 		});
 		Service.openWebSocket();
+		monaco.languages.typescript.typescriptDefaults.setExtraLibs([]);
+		Service.read({path: "lib.es6-subset.d.ts"}).then(res => {
+			if (res.content !== undefined) {
+				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "lib.es6-subset.d.ts");
+			}
+		});
+		Service.read({path: "lib.lua.d.ts"}).then(res => {
+			if (res.content !== undefined) {
+				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "lib.lua.d.ts");
+			}
+		});
+		Service.read({path: "lib.dora.d.ts"}).then(res => {
+			if (res.content !== undefined) {
+				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "lib.dora.d.ts");
+			}
+		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
@@ -375,7 +393,9 @@ export default function PersistentDrawerLeft() {
 				case ".xml":
 				case ".md":
 				case ".yarn":
-				case ".vs": {
+				case ".vs":
+				case ".ts":
+				case ".tsx": {
 					Service.read({path: key}).then((res) => {
 						if (res.success && res.content !== undefined) {
 							const content = res.content;
@@ -400,7 +420,7 @@ export default function PersistentDrawerLeft() {
 					break;
 				}
 			}
-		} else if (!targetIndex) {
+		} else if (targetIndex === undefined) {
 			switchTab(index, file);
 		}
 	};
@@ -452,48 +472,6 @@ export default function PersistentDrawerLeft() {
 			return;
 		}
 		setExpandedKeys(keys);
-	};
-
-	const addNewFileNodeInTree = (parentFullPath: string, newFile: string, newName: string) => {
-		const rootNode = treeData.at(0);
-		if (rootNode === undefined) return;
-		const newNode: TreeDataType = {
-			key: newFile,
-			title: newName,
-			dir: false,
-		};
-		const visitData = (node: TreeDataType) => {
-			if (node.key === parentFullPath) return "find";
-			if (node.children) {
-				for (let i = 0; i < node.children.length; i++) {
-					const res = visitData(node.children[i]);
-					if (res === "find") {
-						let parent = node.children[i];
-						if (parent.dir) {
-							if (parent.children === undefined) {
-								parent.children = [];
-							}
-						} else {
-							parent = node;
-						}
-						if (parent.children !== undefined && parent.children.find(n => n.key === newFile) === undefined) {
-							parent.children.push(newNode);
-						}
-						return "stop";
-					} else if (res === "stop") {
-						return "stop";
-					}
-				}
-			}
-			return "continue";
-		};
-		if (visitData(rootNode) === "find") {
-			if (rootNode.children === undefined) {
-				rootNode.children = [];
-			}
-			rootNode.children.push(newNode);
-		}
-		setTreeData([rootNode]);
 	};
 
 	const saveCurrentTab = () => {
@@ -554,7 +532,6 @@ export default function PersistentDrawerLeft() {
 					}
 				}).then(() => {
 					saveFile();
-					addNewFileNodeInTree(path.dirname(tlFile), tlFile, path.basename(tlFile));
 					Service.check({file: tlFile, content: tealCode}).then((res) => {
 						if (res.success && tealCode !== "") {
 							codeWireData.reportVisualScriptError("");
@@ -580,7 +557,36 @@ export default function PersistentDrawerLeft() {
 				});
 			}
 		} else {
-			saveFile();
+			const ext = path.extname(file.key).toLowerCase();
+			if (file.contentModified !== null && (ext === '.ts' || ext === '.tsx')) {
+				saveFile();
+				transpileTypescript(file.key, file.contentModified).then(luaCode => {
+					if (luaCode !== undefined) {
+						const extname = path.extname(file.key);
+						const name = path.basename(file.key, extname);
+						const luaFile = path.join(path.dirname(file.key), name + ".lua");
+						const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+						Service.write({path: luaFile, content: luaCode}).then((res) => {
+							if (res.success) {
+								if (fileInTab !== undefined) {
+									setFiles(prev => {
+										const newTabs = prev.filter(f => f.key !== fileInTab.key);
+										const newIndex = newTabs.findIndex(t => t.key === file.key);
+										if (newIndex >= 0) {
+											setTabIndex(newIndex);
+										}
+										return newTabs;
+									});
+								}
+							} else {
+								addAlert(t("alert.saveCurrent"), "error");
+							}
+						});
+					}
+				});
+			} else {
+				saveFile();
+			}
 		}
 	};
 
@@ -665,7 +671,6 @@ export default function PersistentDrawerLeft() {
 							}
 						}).then(() => {
 							saveFile(vscript);
-							addNewFileNodeInTree(path.dirname(tlFile), tlFile, path.basename(tlFile));
 							Service.check({file: tlFile, content: tealCode}).then((res) => {
 								if (res.success) {
 									codeWireData.reportVisualScriptError("");
@@ -692,7 +697,36 @@ export default function PersistentDrawerLeft() {
 						});
 					}
 				} else {
-					saveFile(contentModified);
+					const ext = path.extname(file.key).toLowerCase();
+					if (ext === '.ts' || ext === '.tsx') {
+						saveFile(contentModified);
+						transpileTypescript(file.key, contentModified ?? file.content).then(luaCode => {
+							if (luaCode !== undefined) {
+								const extname = path.extname(file.key);
+								const name = path.basename(file.key, extname);
+								const luaFile = path.join(path.dirname(file.key), name + ".lua");
+								const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+								Service.write({path: luaFile, content: luaCode}).then((res) => {
+									if (res.success) {
+										if (fileInTab !== undefined) {
+											setFiles(prev => {
+												const newTabs = prev.filter(f => f.key !== fileInTab.key);
+												const newIndex = newTabs.findIndex(t => t.key === file.key);
+												if (newIndex >= 0) {
+													setTabIndex(newIndex);
+												}
+												return newTabs;
+											});
+										}
+									} else {
+										addAlert(t("alert.saveCurrent"), "error");
+									}
+								});
+							}
+						});
+					} else {
+						saveFile(contentModified);
+					}
 				}
 			});
 		});
@@ -964,6 +998,7 @@ export default function PersistentDrawerLeft() {
 			case "Yarn": ext = ".yarn"; break;
 			case "Visual Script": ext = ".vs"; break;
 			case "Folder": ext = ""; break;
+			case "Typescript": ext = ".ts"; break;
 		}
 		if (ext !== null) {
 			setFileInfo({
@@ -1394,7 +1429,7 @@ export default function PersistentDrawerLeft() {
 		});
 	};
 
-	const onEditorDidMount = (file: EditingFile) => (editor: monaco.editor.IStandaloneCodeEditor) => {
+	const onEditorDidMount = (file: EditingFile) => async (editor: monaco.editor.IStandaloneCodeEditor) => {
 		file.editor = editor;
 		if (file.position !== undefined) {
 			editor.setPosition(file.position);
@@ -1506,6 +1541,20 @@ export default function PersistentDrawerLeft() {
 				});
 			});
 		}
+		if (ext === "tsx" || ext === "ts") {
+			await AutoTypings.create(editor, {
+				sourceCache: {
+					isFileAvailable: async (uri: string) => {
+						const res = await Service.exist({file: monaco.Uri.parse(uri).fsPath});
+						return res.success;
+					},
+					getFile: async (uri: string) => {
+						const res = await Service.read({path: monaco.Uri.parse(uri).fsPath});
+						return res.content;
+					}
+				}
+			});
+		}
 	};
 
 	const onStopRunning = () => {
@@ -1594,6 +1643,8 @@ export default function PersistentDrawerLeft() {
 						case ".lua":
 						case ".yue":
 						case ".tl":
+						case ".ts":
+						case ".tsx":
 						case ".xml":
 						case ".wasm":
 						case ".yarn":
@@ -1852,7 +1903,25 @@ export default function PersistentDrawerLeft() {
 						InputProps={{
 							endAdornment:
 								<InputAdornment position="end">
-									{fileInfo?.ext}
+									{fileInfo?.ext === undefined
+									? undefined
+									: (fileInfo.ext !== ".ts" && fileInfo.ext !== ".tsx")
+									? fileInfo.ext
+									: <div style={{color: Color.Secondary}}>
+											{fileInfo.ext}
+											<IconButton
+												size='small'
+												aria-label="toggle tsx"
+												edge="end"
+												color='primary'
+												onClick={() => {
+													setFileInfo({...fileInfo, ext: fileInfo.ext === '.ts' ? '.tsx' : '.ts'});
+												}}
+											>
+												<TbSwitchVertical/>
+											</IconButton>
+										</div>
+									}
 								</InputAdornment>,
 						}}
 						onChange={onFilenameChange}
@@ -1914,7 +1983,7 @@ export default function PersistentDrawerLeft() {
 						src={logo}
 						alt="logo"
 						width="100%"
-						height="200px"
+						height="180px"
 						style={{
 							padding: "20px",
 							textAlign: "center"
@@ -1943,6 +2012,7 @@ export default function PersistentDrawerLeft() {
 							case ".lua": language = "lua"; break;
 							case ".tl": language = "tl"; break;
 							case ".yue": language = "yue"; break;
+							case ".ts": case ".tsx": language = "typescript"; break;
 							case ".xml": language = "xml"; break;
 							case ".md": language = "markdown"; break;
 							case ".jpg": image = true; break;

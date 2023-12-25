@@ -5,7 +5,7 @@ import React from 'react';
 import * as Service from './Service';
 import i18n from './i18n';
 import Info from './Info';
-import * as Path from './Path';
+import Path from './Path';
 
 const App = React.lazy(() => Service.info().then((res) => {
 	const {locale} = res;
@@ -13,6 +13,8 @@ const App = React.lazy(() => Service.info().then((res) => {
 	Info.platform = res.platform;
 	Info.path = res.platform === "Windows" ? Path.win32 : Path.posix;
 	Info.version = res.version;
+
+	Path.setPath(Info.path);
 
 	(window as any).getLanguageSetting = () => {
 		if (locale.match(/^zh/)) {

@@ -23,6 +23,8 @@ declare namespace path {
 		readonly delimiter: string;
 		readonly win32: Path;
 		readonly posix: Path;
+
+		setPath(path: Path);
 	}
 }
 

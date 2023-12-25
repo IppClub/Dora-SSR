@@ -1,4 +1,4 @@
-_ENV = Dorothy!
+_ENV = Dora!
 import insert, remove, concat, sort from table
 import floor, ceil from math
 import type, tostring, setmetatable, table, rawset, rawget from _G
@@ -283,8 +283,8 @@ export Round = (val)->
 export IsValidPath = (filename)-> not filename\match "[\\/|:*?<>\"]"
 
 allowedUseOfGlobals = Set
-	* "Dorothy"
-	* "builtin"
+	* "Dora"
+	* "dora"
 	* "require"
 	* "_G"
 
@@ -292,7 +292,7 @@ export LintYueGlobals = (luaCodes, globals, globalInLocal = true)->
 	errors = []
 	requireModules = []
 	luaCodes = luaCodes\gsub "^local _module_[^\r\n]*[^\r\n]+", ""
-	importCodes = luaCodes\match "^%s*local%s*_ENV%s*=%s*Dorothy%(([^%)]-)%)"
+	importCodes = luaCodes\match "^%s*local%s*_ENV%s*=%s*Dora%(([^%)]-)%)"
 	importItems = if importCodes
 		for item in importCodes\gmatch "%s*([^,\n\r]+)%s*"
 			getImport = load "return #{item}"
@@ -310,8 +310,8 @@ export LintYueGlobals = (luaCodes, globals, globalInLocal = true)->
 			continue
 		findModule = false
 		if importCodes
-			if builtin[name]
-				requireModules[] = "local #{name} = builtin.#{name} -- 1"
+			if dora[name]
+				requireModules[] = "local #{name} = dora.#{name} -- 1"
 				findModule = true
 			else
 				for i, [mod, modName] in ipairs importItems

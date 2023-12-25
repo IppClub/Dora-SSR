@@ -3,7 +3,7 @@ return {
 		"Lib",
 		"Lib/Dora/en"
 	},
-	global_env_def = "builtin",
+	global_env_def = "dora",
 	gen_compat = "off",
 	gen_target = "5.4"
 }

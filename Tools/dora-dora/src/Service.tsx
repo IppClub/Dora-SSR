@@ -69,6 +69,24 @@ async function post<T>(url: string, data: any = {}) {
 	return json;
 };
 
+function postSync<T>(url: string, data: any): T | null {
+	let xhr = new XMLHttpRequest();
+	xhr.open('POST', addr(url), false);
+	xhr.setRequestHeader('Content-Type', 'application/json');
+	xhr.send(JSON.stringify(data));
+	if (xhr.status === 200) {
+		try {
+			let json = JSON.parse(xhr.responseText);
+			return json;
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
+	} else {
+		throw new Error('请求失败: ' + xhr.status);
+	}
+}
+
 // Infer
 
 export interface InferRequest {
@@ -178,6 +196,9 @@ export interface ReadResponse {
 }
 export const read = (req: ReadRequest) => {
 	return post<ReadResponse>("/read", req);
+};
+export const readSync = (req: ReadRequest) => {
+	return postSync<ReadResponse>("/read", req);
 };
 
 // Write
@@ -319,6 +340,8 @@ export const editingInfo = (req?: EditingInfoRequest) => {
 	return post<EditingInfoResponse>("/editingInfo", req ?? {});
 };
 
+// Command
+
 export interface CommandRequest {
 	code: string;
 };
@@ -327,4 +350,19 @@ export interface CommandResponse {
 };
 export const command = (req: CommandRequest) => {
 	return post<CommandResponse>("/command", req);
+};
+
+// exist
+
+export interface FileExistRequest {
+	file: string;
+};
+export interface FileExistResponse {
+	success: boolean;
+};
+export const exist = (req: FileExistRequest) => {
+	return post<FileExistResponse>("/exist", req);
+};
+export const existSync = (req: FileExistRequest) => {
+	return postSync<FileExistResponse>("/exist", req);
 };

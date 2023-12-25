@@ -68,6 +68,24 @@ static void get(String value, Color& color) {
 		color.r = c.r;
 		color.g = c.g;
 		color.b = c.b;
+	} else if (str.left(4) == "rgb("_slice) {
+		str.skip(4);
+		auto coms = str.left(str.size() - 1).split(","_slice);
+		if (coms.size() == 3) {
+			auto it = coms.begin();
+			try {
+				color.r = s_cast<uint8_t>(it->toInt());
+				++it;
+				color.g = s_cast<uint8_t>(it->toInt());
+				++it;
+				color.b = s_cast<uint8_t>(it->toInt());
+			} catch (std::invalid_argument&) {
+				Error("got invalid color string for VG render: {}", str.toString());
+				return;
+			}
+		}
+	} else if (str == "white"_slice) {
+		color = Color::White;
 	}
 }
 
@@ -155,6 +173,16 @@ static void attribFillStroke(FillStrokeData& data, String name, String value) {
 		case "stroke-width"_hash: data.strokeWidth = value.toFloat(); break;
 	}
 }
+
+static void attribStyle(FillStrokeData& data, String style) {
+	auto attrs = style.split(";"sv);
+	for (const auto& attr : attrs) {
+		if (attr.empty()) continue;
+		auto tokens = attr.split(":"sv);
+		if (tokens.size() != 2) continue;
+		attribFillStroke(data, tokens.front(), tokens.back());
+	}
+};
 
 static void drawFillStroke(SVGDef::Context* ctx, const FillStrokeData& data) {
 	if (data.definition) {
@@ -297,6 +325,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 			case "cx"_hash: data.cx = v.toFloat(); break;
 			case "cy"_hash: data.cy = v.toFloat(); break;
 			case "r"_hash: data.r = v.toFloat(); break;
+			case "style"_hash: attribStyle(data.fillStroke, v); break;
 			default:
 				attribFillStroke(data.fillStroke, k, v);
 				break;
@@ -315,6 +344,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 			case "cy"_hash: data.cy = v.toFloat(); break;
 			case "rx"_hash: data.rx = v.toFloat(); break;
 			case "ry"_hash: data.ry = v.toFloat(); break;
+			case "style"_hash: attribStyle(data.fillStroke, v); break;
 			default:
 				attribFillStroke(data.fillStroke, k, v);
 				break;
@@ -340,6 +370,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 			case "y1"_hash: data.y1 = v.toFloat(); break;
 			case "x2"_hash: data.x2 = v.toFloat(); break;
 			case "y2"_hash: data.y2 = v.toFloat(); break;
+			case "style"_hash: attribStyle(data.fillStroke, v); break;
 			default:
 				attribFillStroke(data.fillStroke, k, v);
 				break;
@@ -398,6 +429,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 				}
 				break;
 			}
+			case "style"_hash: attribStyle(data.fillStroke, v); break;
 			default:
 				attribFillStroke(data.fillStroke, k, v);
 				break;
@@ -428,6 +460,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 				}
 				break;
 			}
+			case "style"_hash: attribStyle(data.fillStroke, v); break;
 			default:
 				attribFillStroke(data.fillStroke, k, v);
 				break;
@@ -556,6 +589,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 				executeCommand();
 				break;
 			}
+			case "style"_hash: attribStyle(data.fillStroke, v); break;
 			default:
 				attribFillStroke(data.fillStroke, k, v);
 				break;
