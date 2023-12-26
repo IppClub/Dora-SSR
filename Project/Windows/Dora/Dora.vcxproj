@@ -1281,7 +1281,7 @@
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_map.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_push.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_to.cpp" />
-    <ClCompile Include="..\..\..\Source\Lua\Xml\DorothyTag.cpp" />
+    <ClCompile Include="..\..\..\Source\Lua\Xml\DoraTag.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\Xml\XmlResolver.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\Yarn\YarnCompiler.cpp" />
     <ClCompile Include="..\..\..\Source\ML\ML.cpp" />
@@ -1814,7 +1814,7 @@
     <ClInclude Include="..\..\..\Source\Const\Config.h" />
     <ClInclude Include="..\..\..\Source\Const\Header.h" />
     <ClInclude Include="..\..\..\Source\Const\XmlTag.h" />
-    <ClInclude Include="..\..\..\Source\Dorothy.h" />
+    <ClInclude Include="..\..\..\Source\Dora.h" />
     <ClInclude Include="..\..\..\Source\Effect\Effect.h" />
     <ClInclude Include="..\..\..\Source\Entity\Entity.h" />
     <ClInclude Include="..\..\..\Source\Event\Event.h" />
@@ -1832,8 +1832,8 @@
     <ClInclude Include="..\..\..\Source\Lua\LuaManual.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h" />
-    <ClInclude Include="..\..\..\Source\Lua\Xml\DorothyTag.h" />
-    <ClInclude Include="..\..\..\Source\Lua\Xml\DorothyTagText.hpp" />
+    <ClInclude Include="..\..\..\Source\Lua\Xml\DoraTag.h" />
+    <ClInclude Include="..\..\..\Source\Lua\Xml\DoraTagText.hpp" />
     <ClInclude Include="..\..\..\Source\Lua\Xml\XmlResolver.h" />
     <ClInclude Include="..\..\..\Source\Lua\Yarn\YarnCompiler.h" />
     <ClInclude Include="..\..\..\Source\ML\ML.h" />

@@ -1227,9 +1227,6 @@
     <ClCompile Include="..\..\..\Source\Http\HttpServer.cpp">
       <Filter>Http</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Lua\Xml\DorothyTag.cpp">
-      <Filter>Lua\Xml</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Lua\Xml\XmlResolver.cpp">
       <Filter>Lua\Xml</Filter>
     </ClCompile>
@@ -1458,6 +1455,9 @@
     <ClCompile Include="..\..\..\Source\Input\Controller.cpp">
       <Filter>Input</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\Xml\DoraTag.cpp">
+      <Filter>Lua\Xml</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
@@ -1589,7 +1589,6 @@
     <ClInclude Include="..\..\..\Source\Common\Singleton.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\Dorothy.h" />
     <ClInclude Include="..\..\..\Source\Node\Particle.h">
       <Filter>Node</Filter>
     </ClInclude>
@@ -2610,12 +2609,6 @@
     <ClInclude Include="..\..\..\Source\Http\HttpServer.h">
       <Filter>Http</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\Lua\Xml\DorothyTag.h">
-      <Filter>Lua\Xml</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Lua\Xml\DorothyTagText.hpp">
-      <Filter>Lua\Xml</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\Lua\Xml\XmlResolver.h">
       <Filter>Lua\Xml</Filter>
     </ClInclude>
@@ -3078,6 +3071,13 @@
     <ClInclude Include="..\..\..\Source\Input\Controller.h">
       <Filter>Input</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\Xml\DoraTag.h">
+      <Filter>Lua\Xml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\Xml\DoraTagText.hpp">
+      <Filter>Lua\Xml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Dora.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
