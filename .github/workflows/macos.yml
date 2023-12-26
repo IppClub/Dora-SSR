@@ -33,7 +33,7 @@ jobs:
           xcodebuild archive -project Project/macOS/Dora.xcodeproj -scheme Dora -configuration release -archivePath dora.xcarchive
           cd dora.xcarchive/Products/Applications
           zip -vr Dora.zip Dora.app
-          mv Dorothy.zip $GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip
+          mv Dora.zip $GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
