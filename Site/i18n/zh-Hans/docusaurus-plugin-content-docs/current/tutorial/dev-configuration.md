@@ -88,7 +88,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
 4. 运行生成的软件。
    ```sh
    cd Assets
-   ../Project/Linux/build/dorothy-ssr
+   ../Project/Linux/build/dora-ssr
    ```
 
 
