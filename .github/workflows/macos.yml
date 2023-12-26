@@ -21,7 +21,7 @@ jobs:
         if: "!startsWith(github.ref, 'refs/tags/')"
         run: |
           Tools/tolua++/build.sh
-          xcodebuild ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO -project Project/macOS/Dorothy.xcodeproj -target Dorothy
+          xcodebuild ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO -project Project/macOS/Dora.xcodeproj -target Dora
       - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |
@@ -30,15 +30,15 @@ jobs:
           cd Tools/dora-dora && yarn && yarn build && cd ../.. && mv Tools/dora-dora/build Assets/www
           cd $GITHUB_WORKSPACE
           Tools/tolua++/build.sh
-          xcodebuild archive -project Project/macOS/Dorothy.xcodeproj -scheme Dorothy -configuration release -archivePath dorothy.xcarchive
-          cd dorothy.xcarchive/Products/Applications
-          zip -vr Dorothy.zip Dorothy.app
-          mv Dorothy.zip $GITHUB_WORKSPACE/dorothy-ssr-${{ github.ref_name }}-macos-universal.zip
+          xcodebuild archive -project Project/macOS/Dora.xcodeproj -scheme Dora -configuration release -archivePath dora.xcarchive
+          cd dora.xcarchive/Products/Applications
+          zip -vr Dora.zip Dora.app
+          mv Dorothy.zip $GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            dorothy-ssr-${{ github.ref_name }}-macos-universal.zip
+            dora-ssr-${{ github.ref_name }}-macos-universal.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
