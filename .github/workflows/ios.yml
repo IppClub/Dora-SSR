@@ -19,5 +19,5 @@ jobs:
       - name: iOS build
         run: |
           Tools/tolua++/build.sh
-          xcodebuild -project Project/iOS/Dorothy.xcodeproj -configuration Debug -target Simulator -arch x86_64 -sdk iphonesimulator
+          xcodebuild -project Project/iOS/Dora.xcodeproj -configuration Debug -target Simulator -arch x86_64 -sdk iphonesimulator
       
