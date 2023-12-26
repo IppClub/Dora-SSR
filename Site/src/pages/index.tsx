@@ -21,7 +21,7 @@ function HomepageHeader() {
 						className="button button--secondary button--lg"
 						to="/docs/tutorial/quick-start">
 						<Translate
-							id='dorothy_enter_tutorial_button'
+							id='dora_enter_tutorial_button'
 							description='The tutorial button in front page'>
 							Start
 						</Translate>

@@ -86,7 +86,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
 4. Run the generated software.
    ```sh
    cd Assets
-   ../Project/Linux/build/dorothy-ssr
+   ../Project/Linux/build/dora-ssr
    ```
 
 ## 3. Dora Dora Editor Development
