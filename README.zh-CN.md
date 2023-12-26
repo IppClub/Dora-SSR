@@ -1,4 +1,6 @@
-<img src='Assets/Image/logo.png' alt='Dora SSR' width='300px'/>
+<p align="center">
+  <img src='Assets/Image/logo.png' alt='Dora SSR' width='300px'/>
+</p>
 
 # Dora SSR
 
