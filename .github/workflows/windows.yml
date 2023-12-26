@@ -17,7 +17,7 @@ jobs:
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Windows build
-        run: msbuild Project\Windows\Dorothy.sln -p:Configuration=release
+        run: msbuild Project\Windows\Dora.sln -p:Configuration=release
       - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |
@@ -25,7 +25,7 @@ jobs:
           yarn install --network-timeout 1000000
           yarn build
           ren build www
-          7z a ..\..\dorothy-ssr-windows-x86.7z www
+          7z a ..\..\dora-ssr-windows-x86.7z www
           cd ..\..
           cd Tools\YarnEditor
           yarn
@@ -33,27 +33,27 @@ jobs:
           ren dist yarn-editor
           mkdir www
           move yarn-editor www
-          7z a ..\..\dorothy-ssr-windows-x86.7z www\yarn-editor
+          7z a ..\..\dora-ssr-windows-x86.7z www\yarn-editor
           cd ..\..
-          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Audio && cd ..)
-          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z DragonBones && cd ..)
-          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Font && cd ..)
-          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Image\Dorothy.svg && cd ..)
-          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Image\logo.png && cd ..)
-          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Model && cd ..)
-          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Particle && cd ..)
-          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Script && cd ..)
-          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Spine && cd ..)
-          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z Doc && cd ..)
-          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z gamecontrollerdb.txt && cd ..)
-          (cd Assets && 7z a ..\dorothy-ssr-windows-x86.7z LICENSES && cd ..)
-          (cd Project\Windows\build\Release && 7z a ..\..\..\..\dorothy-ssr-windows-x86.7z Dorothy.exe && cd ..\..\..\..)
-          ren dorothy-ssr-windows-x86.7z dorothy-ssr-${{ github.ref_name }}-windows-x86.7z
+          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Audio && cd ..)
+          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z DragonBones && cd ..)
+          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Font && cd ..)
+          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Image\dora.svg && cd ..)
+          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Image\logo.png && cd ..)
+          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Model && cd ..)
+          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Particle && cd ..)
+          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Script && cd ..)
+          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Spine && cd ..)
+          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Doc && cd ..)
+          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z gamecontrollerdb.txt && cd ..)
+          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z LICENSES && cd ..)
+          (cd Project\Windows\build\Release && 7z a ..\..\..\..\dora-ssr-windows-x86.7z Dora.exe && cd ..\..\..\..)
+          ren dora-ssr-windows-x86.7z dora-ssr-${{ github.ref_name }}-windows-x86.7z
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            dorothy-ssr-${{ github.ref_name }}-windows-x86.7z
+            dora-ssr-${{ github.ref_name }}-windows-x86.7z
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
