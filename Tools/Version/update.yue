@@ -28,13 +28,13 @@ with io.open "../../Project/Windows/Dora/Resource.rc", "rb"
 		\write content
 		\close!
 
-with io.open "../../Project/Android/app/build.gradle", "r"
+with io.open "../../Project/Android/Dora/app/build.gradle", "r"
 	content = \read "*a"
 	\close!
 	content = content\gsub "(versionName \")[^\"]+(\")", "%1#{version}%2"
 	bundleVersion = tonumber content\match "versionCode ([^\n]+)\n"
 	content = content\gsub "(versionCode )[^\n]+(\n)", "%1#{bundleVersion + 1}%2"
-	with io.open "../../Project/Android/app/build.gradle", "w+"
+	with io.open "../../Project/Android/Dora/app/build.gradle", "w+"
 		\write content
 		\close!
 

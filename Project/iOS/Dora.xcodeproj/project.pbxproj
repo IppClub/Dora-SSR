@@ -1062,7 +1062,7 @@
 		3C1D40F62702FFBC00202534 /* Class.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Class.lua; path = ../../../Source/Lua/Builtin/Class.lua; sourceTree = "<group>"; };
 		3C1D40F72702FFBC00202534 /* tl.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = tl.lua; path = ../../../Source/Lua/Builtin/tl.lua; sourceTree = "<group>"; };
 		3C1D40FB2703001F00202534 /* TealCompiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TealCompiler.cpp; path = ../../../Source/Lua/TealCompiler.cpp; sourceTree = "<group>"; };
-		3C1D41002703019800202534 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Dorothy/Assets.xcassets; sourceTree = "<group>"; };
+		3C1D41002703019800202534 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Dora/Assets.xcassets; sourceTree = "<group>"; };
 		3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		3C1FDB991E6041C800F38A26 /* Debug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Debug.cpp; path = ../../../Source/Common/Debug.cpp; sourceTree = "<group>"; };
 		3C20F3E0248F774600BBA830 /* AtlasCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtlasCache.h; path = ../../../Source/Cache/AtlasCache.h; sourceTree = "<group>"; };
@@ -1134,9 +1134,9 @@
 		3C5973061E7F74E900BFD00F /* ModelCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelCache.cpp; path = ../../../Source/Cache/ModelCache.cpp; sourceTree = "<group>"; };
 		3C5973071E7F74E900BFD00F /* ModelCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ModelCache.h; path = ../../../Source/Cache/ModelCache.h; sourceTree = "<group>"; };
 		3C5973081E7F74E900BFD00F /* XmlItemCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XmlItemCache.h; path = ../../../Source/Cache/XmlItemCache.h; sourceTree = "<group>"; };
-		3C59DA78270303590096813A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = "Dorothy/Base.lproj/Launch Screen.storyboard"; sourceTree = "<group>"; };
-		3C59DA7A270303590096813A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Dorothy/Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		3C59DA82270305A10096813A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Dorothy/Info.plist; sourceTree = "<group>"; };
+		3C59DA78270303590096813A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = "Dora/Base.lproj/Launch Screen.storyboard"; sourceTree = "<group>"; };
+		3C59DA7A270303590096813A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Dora/Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		3C59DA82270305A10096813A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Dora/Info.plist; sourceTree = "<group>"; };
 		3C5B33D62A4D2B470080049B /* yue_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yue_ast.cpp; path = ../../../Source/3rdParty/yuescript/yue_ast.cpp; sourceTree = "<group>"; };
 		3C60DE142A2069FE007D7865 /* Doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Doc; path = ../../Assets/Doc; sourceTree = "<group>"; };
 		3C64DF891E161A600030489C /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Utils.h; path = ../../../Source/Common/Utils.h; sourceTree = "<group>"; };
@@ -3202,7 +3202,7 @@
 				3C59DA79270303590096813A /* Main.storyboard */,
 				3C1D41002703019800202534 /* Assets.xcassets */,
 				3C1F87CD1DF7B68C005F1B4D /* Resources */,
-				3CC8200B1D96680C008C8B77 /* Dorothy */,
+				3CC8200B1D96680C008C8B77 /* Dora */,
 				3CC8200A1D96680C008C8B77 /* Products */,
 				3C98626E1D9CA4500056A045 /* Frameworks */,
 			);
@@ -3217,7 +3217,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		3CC8200B1D96680C008C8B77 /* Dorothy */ = {
+		3CC8200B1D96680C008C8B77 /* Dora */ = {
 			isa = PBXGroup;
 			children = (
 				3C329DDD2B39D8AC002BC023 /* Dora.h */,
@@ -3244,7 +3244,7 @@
 				3C4BC6541E17F15C00292200 /* Support */,
 				3C853F8628E3ED760012C0D0 /* Test */,
 			);
-			path = Dorothy;
+			path = Dora;
 			sourceTree = "<group>";
 		};
 		3CD328341E4C428E0036906C /* imgui */ = {
@@ -3609,7 +3609,7 @@
 			dependencies = (
 			);
 			name = Simulator;
-			productName = Dorothy;
+			productName = Dora;
 			productReference = 3CBE0F1226087F7B003F4F45 /* Simulator.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -3627,7 +3627,7 @@
 			dependencies = (
 			);
 			name = Dora;
-			productName = Dorothy;
+			productName = Dora;
 			productReference = 3CC820091D96680C008C8B77 /* Dora.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -3639,7 +3639,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1500;
-				ORGANIZATIONNAME = Dorothy;
+				ORGANIZATIONNAME = IppClub;
 				TargetAttributes = {
 					3CBE0DF526087F7B003F4F45 = {
 						DevelopmentTeam = M44UFM3UW4;
@@ -4644,7 +4644,7 @@
 					LUA_USE_IOS,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
-				INFOPLIST_FILE = Dorothy/Info.plist;
+				INFOPLIST_FILE = Dora/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -4709,7 +4709,7 @@
 					LUA_USE_IOS,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
-				INFOPLIST_FILE = Dorothy/Info.plist;
+				INFOPLIST_FILE = Dora/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -4917,7 +4917,7 @@
 					LUA_USE_IOS,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
-				INFOPLIST_FILE = Dorothy/Info.plist;
+				INFOPLIST_FILE = Dora/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -4983,7 +4983,7 @@
 					LUA_USE_IOS,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
-				INFOPLIST_FILE = Dorothy/Info.plist;
+				INFOPLIST_FILE = Dora/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
