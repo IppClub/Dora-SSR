@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "dorothy-ssr"
+name = "dora-ssr"
 version = "0.1.4"
 dependencies = [
  "once_cell",
@@ -14,7 +14,7 @@ dependencies = [
 name = "init"
 version = "0.1.0"
 dependencies = [
- "dorothy-ssr",
+ "dora-ssr",
 ]
 
 [[package]]

@@ -1,4 +1,4 @@
-use dorothy_ssr::*;
+use dora_ssr::*;
 
 fn main() {
 	platformer::UnitAction::add(
