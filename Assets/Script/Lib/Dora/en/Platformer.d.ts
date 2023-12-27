@@ -81,7 +81,7 @@ export interface UnitActionParam {
 	 * @param deltaTime (number) The time elapsed since the last frame.
 	 * @returns (function or Routine.Job) A function or a "Routine.Job" that returns or yields true if the "UnitAction" is complete.
 	 */
-	create(owner: Unit, action: UnitAction, deltaTime: number): (deltaTime: number) => boolean | Job;
+	create(owner: Unit, action: UnitAction, deltaTime: number): (this: void, deltaTime: number) => boolean | Job;
 
 	/**
 	 * A function that gets invoked when the specified "Unit" stops performing the "UnitAction".
@@ -224,7 +224,7 @@ class Unit extends Body {
 	 * Calls the specified function for each "UnitAction" attached to the "Unit".
 	 * @param func A function to call for each "UnitAction".
 	 */
-	eachAction(func: (action: UnitAction) => void): void;
+	eachAction(func: (this: void, action: UnitAction) => void): void;
 
 	/**
 	 * Starts the "UnitAction" with the specified name, and returns true if the "UnitAction" was started successfully.
@@ -724,7 +724,7 @@ interface FaceClass {
 	 */
 	(
 		this: void,
-		createFunc: () => Node,
+		createFunc: (this: void) => Node,
 		point?: Vec2,
 		scale?: number,
 		angle?: number
@@ -837,7 +837,7 @@ export function Sel(nodes: Leaf[]): Leaf;
  * @param check A function that takes a blackboard object and returns a boolean value.
  * @returns A new condition node.
  */
-export function Con(name: string, check: (board: Blackboard) => boolean): Leaf;
+export function Con(name: string, check: (this: void, board: Blackboard) => boolean): Leaf;
 
 /**
  * Creates a new action node that executes an action when executed.
@@ -995,7 +995,7 @@ export function Seq(nodes: Leaf[]): Leaf;
  * @param check The check function that takes a `Unit` parameter and returns a boolean result.
  * @returns A `Leaf` node that represents a condition check.
  */
-export function Con(name: string, check: (self: Unit) => boolean): Leaf;
+export function Con(name: string, check: (this: void, self: Unit) => boolean): Leaf;
 
 /**
  * Creates an action node with the specified action name.
@@ -1009,7 +1009,7 @@ export function Act(actionName: string): Leaf;
  * @param handler The handler function that takes a `Unit` parameter which is the running AI agent and returns an action.
  * @returns A `Leaf` node that represents an action.
  */
-export function Act(handler: (self: Unit) => string): Leaf;
+export function Act(handler: (this: void, self: Unit) => string): Leaf;
 
 /**
  * Creates a leaf node that represents accepting the current behavior tree.
