@@ -1191,7 +1191,7 @@ export function Sequence(...actions: ActionDef[]): ActionDef;
  * The supported array data types.
  * This can be an integer, number, boolean, string, thread, ContainerItem.
  */
-type Item = number | boolean | string | LuaThread | ContainerItem;
+export type Item = number | boolean | string | LuaThread | ContainerItem;
 
 /**
  * An array data structure that supports various operations.
@@ -1489,7 +1489,7 @@ export {blendFuncClass as BlendFunc};
 /**
 * The Job type, representing a coroutine thread.
 */
-type Job = BasicType<"Job", LuaThread>;
+export type Job = BasicType<"Job", LuaThread>;
 
 /**
  * A singleton record for managing coroutines.
@@ -4303,6 +4303,8 @@ class Sensor extends Object {
 	contains(body: Body): boolean;
 }
 
+export type {Sensor as SensorType};
+
 /**
  * A record called "BodyDef" to describe the properties of a physics body.
  * Inherits from `Object`.
@@ -4541,7 +4543,7 @@ export {bodyDefClass as BodyDef};
  */
 class Body extends Node {
 
-	private constructor();
+	protected constructor();
 
 	/**
 	 * The physics world that the body belongs to.
