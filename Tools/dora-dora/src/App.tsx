@@ -226,19 +226,19 @@ export default function PersistentDrawerLeft() {
 		});
 		Service.openWebSocket();
 		monaco.languages.typescript.typescriptDefaults.setExtraLibs([]);
-		Service.read({path: "lib.es6-subset.d.ts"}).then(res => {
+		Service.read({path: "es6-subset.d.ts"}).then(res => {
 			if (res.content !== undefined) {
-				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "lib.es6-subset.d.ts");
+				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "es6-subset.d.ts");
 			}
 		});
-		Service.read({path: "lib.lua.d.ts"}).then(res => {
+		Service.read({path: "lua.d.ts"}).then(res => {
 			if (res.content !== undefined) {
-				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "lib.lua.d.ts");
+				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "lua.d.ts");
 			}
 		});
-		Service.read({path: "lib.dora.d.ts"}).then(res => {
+		Service.read({path: "dora.d.ts"}).then(res => {
 			if (res.content !== undefined) {
-				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "lib.dora.d.ts");
+				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "dora.d.ts");
 			}
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1545,11 +1545,11 @@ export default function PersistentDrawerLeft() {
 			await AutoTypings.create(editor, {
 				sourceCache: {
 					isFileAvailable: async (uri: string) => {
-						const res = await Service.exist({file: monaco.Uri.parse(uri).fsPath});
+						const res = await Service.exist({file: uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri});
 						return res.success;
 					},
 					getFile: async (uri: string) => {
-						const res = await Service.read({path: monaco.Uri.parse(uri).fsPath});
+						const res = await Service.read({path: uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri});
 						return res.content;
 					}
 				}

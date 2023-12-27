@@ -1,0 +1,5794 @@
+/// <reference path="es6-subset.d.ts" />
+/// <reference path="lua.d.ts" />
+
+declare module "dora" {
+
+interface BasicTyping<TypeName> {
+	__basic__: TypeName;
+}
+type BasicType<TypeName, T = {}> = T & BasicTyping<TypeName>;
+
+/** A base class for items that can be stored in Array and Dictionary. */
+class ContainerItem {
+	protected constructor();
+}
+
+/**
+ * A size object with a given width and height.
+ */
+class Size extends ContainerItem {
+
+	private constructor();
+
+	/**
+	 * The width of the size.
+	 */
+	width: number;
+
+	/**
+	 * The height of the size.
+	 */
+	height: number;
+
+	/**
+	 * Set the width and height of the size.
+	 * @param width The new width of the size.
+	 * @param height The new height of the size.
+	 */
+	set(width: number, height: number): void;
+
+	/**
+	 * Check if two sizes are equal.
+	 * @param other The other size to compare to.
+	 * @returns Whether or not the two sizes are equal.
+	 */
+	equals(other: Size): boolean;
+
+	/**
+	 * Multiply the size by a vector.
+	 * @param vec The vector to multiply by.
+	 * @returns The result of multiplying the size by the vector.
+	 * @example
+	 * ```
+	 * const halfSize = size.mul(Vec2(0.5, 0.5));
+	 * ```
+	 */
+	mul(vec: Vec2): Size;
+}
+
+export type {Size as SizeType};
+
+/**
+ * A class for creating Size objects.
+ */
+interface SizeClass {
+
+	/**
+	 * Create a new Size object with the given width and height.
+	 *
+	 * @param width The width of the new size (default 0).
+	 * @param height The height of the new size (default 0).
+	 * @returns The new Size object.
+	 * @example
+	 * ```
+	 * let size = Size(10, 20);
+	 * ```
+	 */
+	(this: void, width?: number, height?: number): Size;
+
+	/**
+	 * Create a new Size object from an existing Size object.
+	 *
+	 * @param other The existing Size object to create the new object from.
+	 * @returns The new Size object.
+	 * @example
+	 * ```
+	 * let newSize = Size(existingSize);
+	 * ```
+	 */
+	(this: void, other: Size): Size;
+
+	/**
+	 * Create a new Size object from a Vec2 object.
+	 *
+	 * @param vec The vector to create the new size from, represented by a Vec2 object.
+	 * @returns The new Size object.
+	 * @example
+	 * ```
+	 * let size = Size(Vec2(10, 20));
+	 * ```
+	 */
+	(this: void, vec: Vec2): Size;
+
+	/**
+	 * Gets zero-size object.
+	 */
+	readonly zero: Size;
+}
+
+const sizeClass: SizeClass;
+export {sizeClass as Size};
+
+/**
+ * A record representing a 2D vector with an x and y component.
+ */
+class Vec2 extends ContainerItem {
+
+	private constructor();
+
+	/** The x-component of the vector. */
+	readonly x: number;
+
+	/** The y-component of the vector. */
+	readonly y: number;
+
+	/** The length of the vector. */
+	readonly length: number;
+
+	/** The squared length of the vector. */
+	readonly lengthSquared: number;
+
+	/** The angle between the vector and the x-axis. */
+	readonly angle: number;
+
+	/**
+	 * Calculates the distance between two vectors.
+	 * @param vec The other vector to calculate the distance to.
+	 * @returns The distance between the two vectors.
+	 */
+	distance(vec: Vec2): number;
+
+	/**
+	 * Calculates the squared distance between two vectors.
+	 * @param vec The other vector to calculate the squared distance to.
+	 * @returns The squared distance between the two vectors.
+	 */
+	distanceSquared(vec: Vec2): number;
+
+	/**
+	 * Normalizes the vector to have a length of 1.
+	 * @returns The normalized vector.
+	 */
+	normalize(): Vec2;
+
+	/**
+	 * Gets the perpendicular vector of this vector.
+	 * @returns The perpendicular vector.
+	 */
+	perp(): Vec2;
+
+	/**
+	 * Clamps the vector to a range between two other vectors.
+	 * @param from The lower bound of the range.
+	 * @param to The upper bound of the range.
+	 * @returns The clamped vector.
+	 */
+	clamp(from: Vec2, to: Vec2): Vec2;
+
+	/**
+	 * Adds two vectors together.
+	 * @param other The other vector to add.
+	 * @returns The sum of the two vectors.
+	 */
+	add(other: Vec2): Vec2;
+
+	/**
+	 * Subtracts one vector from another.
+	 * @param other The vector to subtract.
+	 * @returns The difference between the two vectors.
+	 */
+	sub(other: Vec2): Vec2;
+
+	/**
+	 * Multiplies two vectors component-wise.
+	 * @param other The other vector to multiply by.
+	 * @returns The result of multiplying the two vectors component-wise.
+	 */
+	mul(other: Vec2): Vec2;
+
+	/**
+	 * Multiplies a vector by a scalar.
+	 * @param other The scalar to multiply by.
+	 * @returns The result of multiplying the vector by the scalar.
+	 */
+	mul(other: number): Vec2;
+
+	/**
+	 * Multiplies a vector by a Size object.
+	 * @param other The Size object to multiply by.
+	 * @returns The result of multiplying the vector by the Size object.
+	 */
+	mul(other: Size): Vec2;
+
+	/**
+	 * Divide a vector by a scalar.
+	 * @param other The scalar to divide by.
+	 * @returns The result of dividing the vector by the scalar.
+	 */
+	div(other: number): Vec2;
+
+	/**
+	 * Compare two vectors for equality.
+	 * @param other The other vector to compare to.
+	 * @returns Whether or not the two vectors are equal.
+	 */
+	equals(other: Vec2): boolean;
+}
+
+export type {Vec2 as Vec2Type};
+
+/**
+ * A class for creating Vec2 objects.
+ */
+interface Vec2Class {
+
+	/**
+	 * Creates a new Vec2 object from an existing Vec2 object.
+	 *
+	 * @param other The existing Vec2 object to create the new object from.
+	 * @returns The new Vec2 object.
+	 * @example
+	 * ```
+	 * const newVec = Vec2(existingVec);
+	 * ```
+	 */
+	(this: void, other: Vec2): Vec2;
+
+	/**
+	 * Creates a new Vec2 object with the given x and y components.
+	 *
+	 * @param x The x-component of the new vector.
+	 * @param y The y-component of the new vector.
+	 * @returns The new Vec2 object.
+	 * @example
+	 * ```
+	 * const newVec = Vec2(10, 20);
+	 * ```
+	 */
+	(this: void, x: number, y: number): Vec2;
+
+	/**
+	 * Creates a new Vec2 object from a Size object.
+	 *
+	 * @param size The Size object to create the new vector from.
+	 * @returns The new Vec2 object.
+	 * @example
+	 * ```
+	 * const newVec = Vec2(Size(10, 20));
+	 * ```
+	 */
+	(this: void, size: Size): Vec2;
+
+	/**
+	 * Gets zero-vector object.
+	 */
+	readonly zero: Vec2;
+}
+
+const vec2: Vec2Class;
+export {vec2 as Vec2};
+
+/**
+ * A rectangle object with a left-bottom origin position and a size.
+ * Inherits from `ContainerItem`.
+ */
+class Rect extends ContainerItem {
+
+	private constructor();
+
+	// The position of the origin of the rectangle.
+	origin: Vec2;
+
+	// The dimensions of the rectangle.
+	size: Size;
+
+	// The x-coordinate of the origin of the rectangle.
+	x: number;
+
+	// The y-coordinate of the origin of the rectangle.
+	y: number;
+
+	// The width of the rectangle.
+	width: number;
+
+	// The height of the rectangle.
+	height: number;
+
+	// The top edge in y-axis of the rectangle.
+	top: number;
+
+	// The bottom edge in y-axis of the rectangle.
+	bottom: number;
+
+	// The left edge in x-axis of the rectangle.
+	left: number;
+
+	// The right edge in x-axis of the rectangle.
+	right: number;
+
+	// The x-coordinate of the center of the rectangle.
+	centerX: number;
+
+	// The y-coordinate of the center of the rectangle.
+	centerY: number;
+
+	// The lower bound (left-bottom) of the rectangle.
+	lowerBound: Vec2;
+
+	// The upper bound (right-top) of the rectangle.
+	upperBound: Vec2;
+
+	/**
+	 * Set the properties of the rectangle.
+	 * @param x The x-coordinate of the origin of the rectangle.
+	 * @param y The y-coordinate of the origin of the rectangle.
+	 * @param width The width of the rectangle.
+	 * @param height The height of the rectangle.
+	 */
+	set(x: number, y: number, width: number, height: number): void;
+
+	/**
+	 * Check if a point is inside the rectangle.
+	 * @param point The point to check, represented by a Vec2 object.
+	 * @returns Whether or not the point is inside the rectangle.
+	 */
+	containsPoint(point: Vec2): boolean;
+
+	/**
+	 * Check if the rectangle intersects with another rectangle.
+	 * @param rect The other rectangle to check for intersection with, represented by a Rect object.
+	 * @returns Whether or not the rectangles intersect.
+	 */
+	intersectsRect(rect: Rect): boolean;
+
+	/**
+	 * Check if two rectangles are equal.
+	 * @param other The other rectangle to compare to, represented by a Rect object.
+	 * @returns Whether or not the two rectangles are equal.
+	 */
+	equals(other: Rect): boolean;
+}
+
+export type {Rect as RectType};
+
+/**
+ * A class for creating rectangle objects.
+ */
+interface RectClass {
+
+	/**
+	 * A rectangle object with all properties set to 0.
+	 */
+	readonly zero: Rect;
+
+	/**
+	 * Create a new rectangle object using another rectangle object.
+	 * @param other The other rectangle object to create a new rectangle object from.
+	 * @returns A new rectangle object.
+	 */
+	(this: void, other: Rect): Rect;
+
+	/**
+	 * Create a new rectangle object using individual properties.
+	 * @param x The x-coordinate of the origin of the rectangle.
+	 * @param y The y-coordinate of the origin of the rectangle.
+	 * @param width The width of the rectangle.
+	 * @param height The height of the rectangle.
+	 * @returns A new rectangle object.
+	 */
+	(this: void, x: number, y: number, width: number, height: number): Rect;
+
+	/**
+	 * Create a new rectangle object using a Vec2 object for the origin and a Size object for the size.
+	 * @param origin The origin of the rectangle, represented by a Vec2 object.
+	 * @param size The size of the rectangle, represented by a Size object.
+	 * @returns A new rectangle object.
+	 */
+	(this: void, origin: Vec2, size: Size): Rect;
+
+	/**
+	 * Create a new rectangle object with all properties set to 0.
+	 * @returns A new rectangle object.
+	 */
+	(this: void): Rect;
+}
+
+const rectClass: RectClass;
+export {rectClass as Rect};
+
+/** A color with red, green, and blue channels. */
+class Color3 {
+
+	private constructor();
+
+	/** The red channel of the color, should be 0 to 255. */
+	r: number;
+
+	/** The green channel of the color, should be 0 to 255. */
+	g: number;
+
+	/** The blue channel of the color, should be 0 to 255. */
+	b: number;
+
+	/**
+	 * Converts the color to an RGB integer value.
+	 * @returns Converted RGB integer.
+	 */
+	toRGB(): number;
+}
+
+export type {Color3 as Color3Type};
+
+/** A class for creating Color3 objects. */
+interface Color3Class {
+
+	/**
+	 * Creates a color with all channels set to 0.
+	 * @returns A new `Color3` object.
+	 */
+	(this: void): Color3;
+
+	/**
+	 * Creates a new `Color3` object from an RGB integer value.
+	 * @param rgb The RGB integer value to create the color from.
+	 * For example 0xffffff (white), 0xff0000 (red).
+	 * @returns A new `Color3` object.
+	 */
+	(this: void, rgb: number): Color3;
+
+	/**
+	 * Creates a new `Color3` object from RGB color channel values.
+	 * @param r The red channel value (0-255).
+	 * @param g The green channel value (0-255).
+	 * @param b The blue channel value (0-255).
+	 * @returns A new `Color3` object.
+	 */
+	(this: void, r: number, g: number, b: number): Color3;
+}
+
+const color3Class: Color3Class;
+export {color3Class as Color3};
+
+/**
+ * Represents a color with red, green, blue, and alpha channels.
+ */
+class Color {
+
+	private constructor();
+
+	// The red channel of the color, should be 0 to 255.
+	r: number;
+
+	// The green channel of the color, should be 0 to 255.
+	g: number;
+
+	// The blue channel of the color, should be 0 to 255.
+	b: number;
+
+	// The alpha channel of the color, should be 0 to 255.
+	a: number;
+
+	/**
+	 * Another representation for alpha channel.
+	 * The opacity of the color, ranging from 0 to 1.
+	 */
+	opacity: number;
+
+	/**
+	 * Converts the color to a Color3 value without alpha channel.
+	 * @returns Converted Color3 value.
+	 */
+	toColor3(): Color3;
+
+	/**
+	 * Converts the color to an ARGB integer value.
+	 * @returns Converted ARGB integer.
+	 */
+	toARGB(): number;
+}
+
+export type {Color as ColorType};
+
+/**
+ * Provides methods for creating Color objects.
+ */
+interface ColorClass {
+
+	/**
+	 * Creates a color with all channels set to 0.
+	 * @returns A new Color object.
+	 */
+	(this: void): Color;
+
+	/**
+	 * Creates a new Color object with a Color3 object and alpha value.
+	 * @param color The color as a Color3 object.
+	 * @param a [optional] The alpha value of the color ranging from 0 to 255.
+	 * @returns A new Color object.
+	 */
+	(this: void, color: Color3, a?: number): Color;
+
+	/**
+	 * Creates a new `Color` object from an ARGB integer value.
+	 * @param argb The ARGB integer value to create the color from.
+	 * For example 0xffffffff (opaque white), 0x88ff0000 (half transparent red)
+	 * @returns A new `Color` object.
+	 */
+	(this: void, argb: number): Color;
+
+	/**
+	 * Creates a new `Color` object from RGBA color channel values.
+	 * @param r The red channel value (0-255).
+	 * @param g The green channel value (0-255).
+	 * @param b The blue channel value (0-255).
+	 * @param a The alpha channel value (0-255).
+	 * @returns A new `Color` object.
+	 */
+	(this: void, r: number, g: number, b: number, a: number): Color;
+}
+
+const colorClass: ColorClass;
+export {colorClass as Color};
+
+/**
+ * A record representing an application singleton instance.
+ */
+interface App {
+
+	/** The current passed frame number. */
+	readonly frame: number;
+
+	/** The size of the main frame buffer texture used for rendering. */
+	readonly bufferSize: Size;
+
+	/**
+	 * The logical visual size of the screen.
+	 * The visual size only changes when application window size changes.
+	 * And it won't be affected by the view buffer scaling factor.
+	 */
+	readonly visualSize: Size;
+
+	/**
+	 * The ratio of the pixel density displayed by the device.
+	 * Can be calculated as the size of the rendering buffer divided by the size of the application window.
+	 */
+	readonly devicePixelRatio: number;
+
+	/** An enumerated type representing the platform the game engine is running on. */
+	readonly platform: "Windows" | "Android" | "macOS" | "iOS" | "Linux" | "Unknown";
+
+	/** The version string of the game engine. Should be in format of "v0.0.0". */
+	readonly version: string;
+
+	/** The time in seconds since the last frame update. */
+	readonly deltaTime: number;
+
+	/** The elapsed time since current frame was started, in seconds. */
+	readonly eclapsedTime: number;
+
+	/**
+	 * The total time the game engine has been running until last frame ended, in seconds.
+	 * Should be a constant number when invoked in the same frame for multiple times.
+	 */
+	readonly totalTime: number;
+
+	/**
+	 * The total time the game engine has been running until this field being accessed, in seconds.
+	 * Should be an increasing number when invoked in the same frame for multiple times.
+	 */
+	readonly runningTime: number;
+
+	/**
+	 * A random number generated by a random number engine based on Mersenne Twister algorithm.
+	 * So that the random number generated by the same seed should be consistent on every platform.
+	 */
+	readonly rand: number;
+
+	/**
+	 * The maximum valid frames per second the game engine is allowed to run at.
+	 * The max FPS is being inferred by the device screen max refresh rate.
+	 */
+	readonly maxFPS: number;
+
+	/** Whether the game engine is running in debug mode. */
+	readonly debugging: boolean;
+
+	/** An array of test names of engine included C++ tests. */
+	readonly testNames: string[];
+
+	/** The system locale string, in format like: `zh-Hans`, `en`. */
+	locale: string;
+
+	/** A theme color for Dora SSR. */
+	themeColor: Color;
+
+	/** A random number seed. */
+	seed: number;
+
+	/**
+	 * The target frames per second the game engine is supposed to run at.
+	 * Only works when `fpsLimited` is set to true.
+	 */
+	targetFPS: number;
+
+	/**
+	 * Whether the game engine is limiting the frames per second.
+	 * Set `fpsLimited` to true, will make engine run in a busy loop to track the precise frame time to switch to the next frame.
+	 * This behavior can lead to 100% CPU usage. This is usually common practice on Windows PCs for better CPU usage occupation.
+	 * But it also results in extra heat and power consumption.
+	 */
+	fpsLimited: boolean;
+
+	/**
+	 * Whether the game engine is currently idled.
+	 * Set `idled` to true, will make game logic thread use a sleep time and going idled for next frame to come.
+	 * This idled state may cause game engine over slept for a few frames to lost.
+	 * `idled` state can reduce some CPU usage.
+	 */
+	idled: boolean;
+
+	/**
+	 * The application window size.
+	 * May differ from visual size due to the different DPIs of display devices.
+	 * Set `winSize` to `Size.zero` to toggle application window into full screen mode,
+	 * It is not available to set this property on platform Android and iOS.
+	 */
+	winSize: Size;
+
+	/**
+	 * The application window position.
+	 * It is not available to set this property on platform Android and iOS.
+	 */
+	winPosition: Vec2;
+
+	/**
+	 * A function that runs a specific C++ test included in the engine.
+	 * @param name The name of the test to run.
+	 * @returns Whether the test ran successfully.
+	 */
+	runTest(name: string): boolean;
+
+	/** A function that shuts down the game engine. */
+	shutdown(): void;
+}
+
+const app: App;
+export {app as App};
+
+/** A class that is a base class for many C++ objects managed by Lua VM. */
+class Object extends ContainerItem {
+
+	protected constructor();
+
+	/** The ID of the C++ object. */
+	readonly id: number;
+
+	/** The Lua reference ID for this C++ object. */
+	readonly ref: number;
+}
+
+export type {Object as ObjectType};
+
+/** The static class for accessing object class attributes. */
+interface ObjectClass {
+
+	/** The number of total existing C++ objects. */
+	readonly count: number;
+
+	/** The maximum number of C++ objects that were ever created. */
+	readonly maxCount: number;
+
+	/** The number of total existing Lua references to C++ objects. */
+	readonly luaRefCount: number;
+
+	/** The maximum number of Lua references that were ever created. */
+	readonly maxLuaRefCount: number;
+
+	/** The number of C++ function call objects referenced by Lua. */
+	readonly callRefCount: number;
+
+	/** The maximum number of C++ function call references that were ever created. */
+	readonly maxCallRefCount: number;
+}
+
+const objectClass: ObjectClass;
+export {objectClass as Object};
+
+/** An empty interface as action definition instance. */
+type ActionDef = BasicType<'ActionDef'>;
+
+export type {ActionDef};
+
+/** Represents an action that can be run on a node */
+interface Action extends Object {
+
+	/** The duration of the action */
+	readonly duration: number;
+
+	/** Whether the action is currently running */
+	readonly running: boolean;
+
+	/** Whether the action is currently paused */
+	readonly paused: boolean;
+
+	/** Whether the action should be run in reverse */
+	reversed: boolean;
+
+	/**
+	 * The speed at which the action should be run
+	 * Set to 1.0 to get normal speed, Set to 2.0 to get two times faster
+	 */
+	speed: number;
+
+	/** Pauses the action */
+	pause(): void;
+
+	/** Resumes the action */
+	resume(): void;
+
+	/**
+	 * Updates the state of the Action
+	 * @param elapsed The amount of time in seconds that has elapsed to update action to
+	 * @param reversed Whether or not to update the Action in reverse (default is false)
+	 */
+	updateTo(elapsed: number, reversed?: boolean): void;
+}
+
+export type {Action};
+
+/** A class for creating an action that can be run on a Node */
+interface ActionClass {
+
+	/**
+	 * Creates a new Action from the given definition
+	 * @param actionDef The definition of the Action
+	 * @returns The new Action object
+	 */
+	(this: void, actionDef: ActionDef): Action;
+}
+
+export const Action: ActionClass;
+
+/** Type for each easing function. */
+type EaseFunc = BasicType<'EaseFunc', number>;
+
+/** Interface for the Ease object containing easing functions. */
+interface EaseClass {
+
+	/** An easing function that applies a linear rate of change. */
+	Linear: EaseFunc;
+
+	/** An easing function that starts slow and accelerates quickly. */
+	InQuad: EaseFunc;
+
+	/** An easing function that starts fast and decelerates quickly. */
+	OutQuad: EaseFunc;
+
+	/** An easing function that starts slow, accelerates, then decelerates. */
+	InOutQuad: EaseFunc;
+
+	/** An easing function that starts fast, decelerates, then accelerates. */
+	OutInQuad: EaseFunc;
+
+	/** An easing function that starts slow and accelerates gradually. */
+	InCubic: EaseFunc;
+
+	/** An easing function that starts fast and decelerates gradually. */
+	OutCubic: EaseFunc;
+
+	/** An easing function that starts slow, accelerates, then decelerates. */
+	InOutCubic: EaseFunc;
+
+	/** An easing function that starts fast, decelerates, then accelerates. */
+	OutInCubic: EaseFunc;
+
+	/** An easing function that starts slow and accelerates sharply. */
+	InQuart: EaseFunc;
+
+	/** An easing function that starts fast and decelerates sharply. */
+	OutQuart: EaseFunc;
+
+	/** An easing function that starts slow, accelerates sharply, then decelerates sharply. */
+	InOutQuart: EaseFunc;
+
+	/** An easing function that starts fast, decelerates sharply, then accelerates sharply. */
+	OutInQuart: EaseFunc;
+
+	/** An easing function that starts slow and accelerates extremely quickly. */
+	InQuint: EaseFunc;
+
+	/** An easing function that starts fast and decelerates extremely quickly. */
+	OutQuint: EaseFunc;
+
+	/** An easing function that starts slow, accelerates extremely quickly, then decelerates extremely quickly. */
+	InOutQuint: EaseFunc;
+
+	/** An easing function that starts fast, decelerates extremely quickly, then accelerates extremely quickly. */
+	OutInQuint: EaseFunc;
+
+	/** An easing function that starts slow and accelerates gradually, then slows down again. */
+	InSine: EaseFunc;
+
+	/** An easing function that starts fast and decelerates gradually, then slows down again. */
+	OutSine: EaseFunc;
+
+	/** An easing function that starts slow, accelerates gradually, then decelerates gradually. */
+	InOutSine: EaseFunc;
+
+	/** An easing function that starts fast, decelerates gradually, then accelerates gradually. */
+	OutInSine: EaseFunc;
+
+	/** An easing function that starts extremely slow and accelerates exponentially. */
+	InExpo: EaseFunc;
+
+	/** An easing function that starts extremely fast and decelerates exponentially. */
+	OutExpo: EaseFunc;
+
+	/** An easing function that starts extremely slow, accelerates exponentially, then decelerates exponentially. */
+	InOutExpo: EaseFunc;
+
+	/** An easing function that starts extremely fast, decelerates exponentially, then accelerates exponentially. */
+	OutInExpo: EaseFunc;
+
+	/** An easing function that starts slow and accelerates gradually in a circular fashion. */
+	InCirc: EaseFunc;
+
+	/** An easing function that starts fast and decelerates gradually in a circular fashion. */
+	OutCirc: EaseFunc;
+
+	/** An easing function that starts slow, accelerates gradually in a circular fashion, then decelerates gradually in a circular fashion. */
+	InOutCirc: EaseFunc;
+
+	/** An easing function that starts fast, decelerates gradually in a circular fashion, then accelerates gradually in a circular fashion. */
+	OutInCirc: EaseFunc;
+
+	/** An easing function that starts slow and accelerates exponentially, overshooting the target and then returning to it. */
+	InElastic: EaseFunc;
+
+	/** An easing function that starts fast and decelerates exponentially, overshooting the target and then returning to it. */
+	OutElastic: EaseFunc;
+
+	/** An easing function that starts slow, accelerates exponentially, overshooting the target and then returning to it, then decelerates exponentially, overshooting the target and then returning to it again. */
+	InOutElastic: EaseFunc;
+
+	/** An easing function that starts fast, decelerates exponentially, overshooting the target and then returning to it, then accelerates exponentially, overshooting the target and then returning to it again. */
+	OutInElastic: EaseFunc;
+
+	/** An easing function that starts slow and accelerates sharply backward before returning to the target. */
+	InBack: EaseFunc;
+
+	/** An easing function that starts fast and decelerates sharply backward before returning to the target. */
+	OutBack: EaseFunc;
+
+	/** An easing function that starts slow, accelerates sharply backward, then decelerates sharply forward before returning to the target. */
+	InOutBack: EaseFunc;
+
+	/** An easing function that starts fast, decelerates sharply backward, then accelerates sharply forward before returning to the target. */
+	OutInBack: EaseFunc;
+
+	/** An easing function that starts slow and accelerates in a bouncing motion before settling on the target. */
+	InBounce: EaseFunc;
+
+	/** An easing function that starts fast and decelerates in a bouncing motion before settling on the target. */
+	OutBounce: EaseFunc;
+
+	/** An easing function that starts slow, accelerates in a bouncing motion, then decelerates in a bouncing motion before settling on the target. */
+	InOutBounce: EaseFunc;
+
+	/** An easing function that starts fast, decelerates in a bouncing motion, then accelerates in a bouncing motion before settling on the target. */
+	OutInBounce: EaseFunc;
+
+	/**
+	 * Applies an easing function to a given value over a given amount of time.
+	 * @param easing The easing function to apply.
+	 * @param time The amount of time to apply the easing function over, should be between 0 and 1.
+	 * @returns The result of applying the easing function to the value.
+	 */
+	func(easing: EaseFunc, time: number): number;
+}
+
+export const Ease: EaseClass;
+
+/**
+ * Creates a definition for an action that animates the x anchor point of a Node from one value to another.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting value of the anchor point.
+ * @param to The ending value of the anchor point.
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export function AnchorX(
+	this: void,
+	duration: number,
+	from: number,
+	to: number,
+	easing?: EaseFunc // Default to Ease.Linear
+): ActionDef;
+
+/**
+ * Creates a definition for an action that animates the y anchor point of a Node from one value to another.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting value of the anchor point.
+ * @param to The ending value of the anchor point.
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export function AnchorY(
+	this: void,
+	duration: number,
+	from: number,
+	to: number,
+	easing?: EaseFunc // Default to Ease.Linear
+): ActionDef;
+
+/**
+ * Creates a definition for an action that animates the angle of a Node from one value to another.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting value of the angle in degrees.
+ * @param to The ending value of the angle in degrees.
+ * @param easing [optional] The easing function to use for the animation. Defaults to Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export function Angle(
+	this: void,
+	duration: number,
+	from: number,
+	to: number,
+	easing?: EaseFunc // Defaults to Linear
+): ActionDef;
+
+/**
+ * Creates a definition for an action that animates the x-axis rotation angle of a Node from one value to another.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting value of the x-axis rotation angle in degrees.
+ * @param to The ending value of the x-axis rotation angle in degrees.
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export function AngleX(
+	this: void,
+	duration: number,
+	from: number,
+	to: number,
+	easing?: EaseFunc // Ease.Linear
+): ActionDef;
+
+/**
+ * Creates a definition for an action that animates the y-axis rotation angle of a Node from one value to another.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting value of the y-axis rotation angle in degrees.
+ * @param to The ending value of the y-axis rotation angle in degrees.
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export function AngleY(
+	this: void,
+	duration: number,
+	from: number,
+	to: number,
+	easing?: EaseFunc // Ease.Linear
+): ActionDef;
+
+/**
+ * Creates a definition for an action that makes a delay in the animation timeline.
+ * @param duration The duration of the delay in seconds.
+ * @returns An ActionDef object that represents a delay in the animation timeline.
+ */
+export const Delay: (duration: number) => ActionDef;
+
+/**
+ * Creates a definition for an action that emits an event.
+ * @param name The name of the event to be triggered.
+ * @param param The parameter to pass to the event. (default: "")
+ * @returns The created `ActionDef`.
+ * @example
+ * Get this event by register event from the action performing node.
+ * ```
+ * node.slot("EventName", function(param: string) {
+ * 	print("EventName triggered with param", param);
+ * });
+ * node.perform(Sequence(
+ * 	Delay(3),
+ * 	Event("EventName", "Hello")
+ * ));
+ * ```
+ */
+export const Event: (name: string, param?: string) => ActionDef;
+
+/**
+* Creates a definition for an action that animates the width of a Node.
+* @param duration The duration of the animation in seconds.
+* @param from The starting width value of the Node.
+* @param to The ending width value of the Node.
+* @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+* @returns An ActionDef object that can be used to run the animation on a Node.
+*/
+export function Width(
+	duration: number,
+	from: number,
+	to: number,
+	easing?: EaseFunc
+): ActionDef;
+
+/**
+ * Creates a definition for an action that animates the height of a Node.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting height value of the Node.
+ * @param to The ending height value of the Node.
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export const Height: (duration: number, from: number, to: number, easing?: EaseFunc) => ActionDef;
+
+/**
+ * Creates a definition for an action that hides a Node.
+ * @returns An ActionDef object that can be used to hide a Node.
+ */
+export const Hide: () => ActionDef;
+
+/**
+* Creates a definition for an action that shows a Node.
+* @returns An ActionDef object that can be used to show a Node.
+*/
+export function Show(): ActionDef;
+
+/**
+ * Creates a definition for an action that animates the position of a Node from one Vec2 value to another.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting position of the Node.
+ * @param to The ending position of the Node.
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export const Move: (duration: number, from: Vec2, to: Vec2, easing?: EaseFunc) => ActionDef;
+
+/**
+ * Creates a definition for an action that animates the opacity of a Node from one value to another.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting opacity value of the Node (0-1.0).
+ * @param to The ending opacity value of the Node (0-1.0).
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export const Opacity: (duration: number, from: number, to: number, easing?: EaseFunc) => ActionDef;
+
+/**
+ * Creates a definition for an action that animates the rotation of a Node from one value to another.
+ * The roll animation will make sure the node is rotated to the target angle by the minimum rotation angle.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting roll value of the Node (in degrees).
+ * @param to The ending roll value of the Node (in degrees).
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export const Roll: (duration: number, from: number, to: number, easing?: EaseFunc) => ActionDef;
+
+/**
+ * Creates a definition for an action that animates the x-axis and y-axis scale of a Node from one value to another.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting value of the x-axis and y-axis scale.
+ * @param to The ending value of the x-axis and y-axis scale.
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export const Scale: (duration: number, from: number, to: number, easing?: EaseFunc) => ActionDef;
+
+/**
+ * Creates a definition for an action that animates the x-axis scale of a Node from one value to another.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting value of the x-axis scale.
+ * @param to The ending value of the x-axis scale.
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export const ScaleX: (duration: number, from: number, to: number, easing?: EaseFunc) => ActionDef;
+
+/**
+ * Creates a definition for an action that animates the y-axis scale of a Node from one value to another.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting value of the y-axis scale.
+ * @param to The ending value of the y-axis scale.
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export function ScaleY(
+	duration: number,
+	from: number,
+	to: number,
+	easing?: EaseFunc
+): ActionDef;
+
+/**
+* Creates a definition for an action that animates the skew of a Node along the x-axis.
+* @param duration The duration of the animation in seconds.
+* @param from The starting skew value of the Node on the x-axis (in degrees).
+* @param to The ending skew value of the Node on the x-axis (in degrees).
+* @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+* @returns An ActionDef object that can be used to run the animation on a Node.
+*/
+export function SkewX(
+	duration: number,
+	from: number,
+	to: number,
+	easing?: EaseFunc
+): ActionDef;
+
+/**
+* Creates a definition for an action that animates the skew of a Node along the y-axis.
+* @param duration The duration of the animation in seconds.
+* @param from The starting skew value of the Node on the y-axis (in degrees).
+* @param to The ending skew value of the Node on the y-axis (in degrees).
+* @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+* @returns An ActionDef object that can be used to run the animation on a Node.
+*/
+export function SkewY(
+	duration: number,
+	from: number,
+	to: number,
+	easing?: EaseFunc
+): ActionDef;
+
+/**
+ * Creates a definition for an action that animates the x-position of a Node.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting x-position of the Node.
+ * @param to The ending x-position of the Node.
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export function X(
+	duration: number,
+	from: number,
+	to: number,
+	easing?: EaseFunc // Default: Ease.Linear
+): ActionDef;
+
+/**
+ * Creates a definition for an action that animates the y-position of a Node.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting y-position of the Node.
+ * @param to The ending y-position of the Node.
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export function Y(
+	duration: number,
+	from: number,
+	to: number,
+	easing?: EaseFunc // Default: Ease.Linear
+): ActionDef;
+
+/**
+ * Creates a definition for an action that animates the z-position of a Node.
+ * @param duration The duration of the animation in seconds.
+ * @param from The starting z-position of the Node.
+ * @param to The ending z-position of the Node.
+ * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
+ * @returns An ActionDef object that can be used to run the animation on a Node.
+ */
+export function Z(
+	duration: number,
+	from: number,
+	to: number,
+	easing?: EaseFunc // Default: Ease.Linear
+): ActionDef;
+
+/**
+* Creates a definition for an action that runs a group of ActionDefs in parallel.
+* @param actions A variable number of ActionDef objects to run in parallel.
+* @returns An ActionDef object that can be used to run the group of actions on a Node.
+*/
+export function Spawn(...actions: ActionDef[]): ActionDef;
+
+/**
+ * Creates a definition for an action that plays a sequence of other ActionDefs.
+ * @param actions A variable number of ActionDef objects to play in sequence.
+ * @returns An ActionDef object that can be used to run the sequence of actions on a Node.
+ */
+export function Sequence(...actions: ActionDef[]): ActionDef;
+
+/**
+ * The supported array data types.
+ * This can be an integer, number, boolean, string, thread, ContainerItem.
+ */
+type Item = number | boolean | string | LuaThread | ContainerItem;
+
+/**
+ * An array data structure that supports various operations.
+ * The Array class is designed to be 1-based indexing, which means that the first item in the array has an index of 1.
+ * This is the same behavior of Lua table used as an array.
+ */
+class Array extends Object {
+
+	private constructor();
+
+	/** The number of items in the array. */
+	readonly count: number;
+
+	/** Whether the array is empty or not. */
+	readonly empty: boolean;
+
+	/**
+	 * Adds all items from another array to the end of this array.
+	 * @param other Another array object.
+	 */
+	addRange(other: Array): void;
+
+	/**
+	 * Removes all items from this array that are also in another array.
+	 * @param other Another array object.
+	 */
+	removeFrom(other: Array): void;
+
+	/** Removes all items from the array. */
+	clear(): void;
+
+	/** Reverses the order of the items in the array. */
+	reverse(): void;
+
+	/** Removes any empty slots from the end of the array. Used for releasing the unused memory this array holds. */
+	shrink(): void;
+
+	/**
+	 * Swaps the items at two given indices.
+	 * @param indexA The first index.
+	 * @param indexB The second index.
+	 */
+	swap(indexA: number, indexB: number): void;
+
+	/**
+	 * Removes the item at the given index.
+	 * @param index The index to remove.
+	 * @returns True if an item was removed, false otherwise.
+	 */
+	removeAt(index: number): boolean;
+
+	/**
+	 * Removes the item at the given index without preserving the order of the array.
+	 * @param index The index to remove.
+	 * @returns True if an item was removed, false otherwise.
+	 */
+	fastRemoveAt(index: number): boolean;
+
+	/**
+	 * Calls a given function for each item in the array.
+	 * Should return false to continue iteration, true to stop.
+	 * @param func The function to call for each item.
+	 * @returns False if the iteration completed, true if it was interrupted by the function.
+	 */
+	each(func: (item: Item) => boolean): boolean;
+
+	/** The first item in the array. */
+	readonly first: Item;
+
+	/** The last item in the array. */
+	readonly last: Item;
+
+	/** A random item from the array. */
+	readonly randomObject: Item;
+
+	/**
+	 * Sets the item at the given index.
+	 * @param index The index to set, should be 1 based.
+	 * @param item The new item value.
+	 */
+	set(index: number, item: Item): void;
+
+	/**
+	 * Gets the item at the given index.
+	 * @param index The index to get, should be 1 based.
+	 * @returns The item value.
+	 */
+	get(index: number): Item;
+
+	/**
+	 * Adds an item to the end of the array.
+	 * @param item The item to add.
+	 */
+	add(item: Item): void;
+
+	/**
+	 * Inserts an item at the given index, shifting other items to the right.
+	 * @param index The index to insert at.
+	 * @param item The item to insert.
+	 */
+	insert(index: number, item: Item): void;
+
+	/**
+	 * Checks whether the array contains a given item.
+	 * @param item The item to check.
+	 * @returns True if the item is found, false otherwise.
+	 */
+	contains(item: Item): boolean;
+
+	/**
+	 * Gets the index of a given item.
+	 * @param item The item to search for.
+	 * @returns The index of the item, or 0 if it is not found.
+	 */
+	index(item: Item): number;
+
+	/**
+	 * Removes and returns the last item in the array.
+	 * @returns The last item in the array.
+	 */
+	removeLast(): Item;
+
+	/**
+	 * Removes the first occurrence of a given item from the array without preserving order.
+	 * @param item The item to remove.
+	 * @returns True if the item was found and removed, false otherwise.
+	 */
+	fastRemove(item: Item): boolean;
+}
+
+export type {Array as ArrayType};
+
+/**
+ * A class that creates Array objects.
+ */
+interface ArrayClass {
+	(this: void): Array;
+	(this: void, items: Item[]): Array;
+}
+
+const arrayClass: ArrayClass;
+export {arrayClass as Array};
+
+/**
+ * Represents an audio player singleton object.
+ */
+class Audio {
+
+	private constructor();
+
+	/**
+	 * Plays a sound effect and returns a handler for the audio.
+	 *
+	 * @param filename The path to the sound effect file (must be a WAV file).
+	 * @param loop Whether to loop the sound effect. Default is false.
+	 * @returns A handler for the audio that can be used to stop the sound effect.
+	 */
+	play(filename: string, loop?: boolean): number;
+
+	/**
+	 * Stops a sound effect that is currently playing.
+	 *
+	 * @param handler The handler for the audio that is returned by the `play` function.
+	 */
+	stop(handler: number): void;
+
+	/**
+	 * Plays a streaming audio file.
+	 *
+	 * @param filename The path to the streaming audio file (can be OGG, WAV, MP3, or FLAC).
+	 * @param loop Whether to loop the streaming audio. Default is false.
+	 * @param crossFadeTime The time (in seconds) to crossfade between the previous and new streaming audio. Default is 0.0.
+	 */
+	playStream(filename: string, loop?: boolean, crossFadeTime?: number): void;
+
+	/**
+	 * Stops a streaming audio file that is currently playing.
+	 *
+	 * @param fadeTime The time (in seconds) to fade out the streaming audio. Default is 0.0.
+	 */
+	stopStream(fadeTime?: number): void;
+}
+
+const audio: Audio;
+export {audio as Audio};
+
+/**
+ * A blend function object used for rendering.
+ */
+type BlendFunc = BasicType<'BlendFunc'>;
+
+/**
+ * An enum defining blend functions.
+ */
+export const enum Func {
+
+	/**
+	 * The source color is multiplied by 1 and added to the destination color
+	 * (essentially, the source color is drawn on top of the destination color).
+	 */
+	One = "One",
+
+	/**
+	 * The source color is multiplied by 0 and added to the destination color
+	 * (essentially, the source color has no effect on the destination color).
+	 */
+	Zero = "Zero",
+
+	/**
+	 * The source color is multiplied by the source alpha, and added to the
+	 * destination color multiplied by the inverse of the source alpha.
+	 */
+	SrcColor = "SrcColor",
+
+	/**
+	 * The source alpha is multiplied by the source color, and added to the
+	 * destination alpha multiplied by the inverse of the source alpha.
+	 */
+	SrcAlpha = "SrcAlpha",
+
+	/**
+	 * The destination color is multiplied by the destination alpha, and added to
+	 * the source color multiplied by the inverse of the destination alpha.
+	 */
+	DstColor = "DstColor",
+
+	/**
+	 * The destination alpha is multiplied by the source alpha, and added to the
+	 * source alpha multiplied by the inverse of the destination alpha.
+	 */
+	DstAlpha = "DstAlpha",
+
+	/**
+	 * Same as "SrcColor", but with the source and destination colors swapped.
+	 */
+	InvSrcColor = "InvSrcColor",
+
+	/**
+	 * Same as "SrcAlpha", but with the source and destination alphas swapped.
+	 */
+	InvSrcAlpha = "InvSrcAlpha",
+
+	/**
+	 * Same as "DstColor", but with the source and destination colors swapped.
+	 */
+	InvDstColor = "InvDstColor",
+
+	/**
+	 * Same as "DstAlpha", but with the source and destination alphas swapped.
+	 */
+	InvDstAlpha = "InvDstAlpha"
+}
+
+export type {BlendFunc as BlendFuncType};
+
+/**
+ * A class for creating BlendFunc objects.
+ */
+interface BlendFuncClass {
+	/**
+	 * Gets the integer value of a blend function.
+	 * @param func The blend function to get the value of.
+	 * @returns The integer value of the specified blend function.
+	 */
+	get(func: Func): number;
+
+	/**
+	 * Creates a new BlendFunc instance with the specified source and destination factors.
+	 * @param src The source blend factor.
+	 * @param dst The destination blend factor.
+	 * @returns The new BlendFunc instance.
+	 */
+	(this: void, src: Func, dst: Func): BlendFunc;
+
+	/**
+	 * Creates a new BlendFunc instance with the specified source and destination factors for color and alpha channels.
+	 * @param srcColor The source blend factor for the color channel.
+	 * @param dstColor The destination blend factor for the color channel.
+	 * @param srcAlpha The source blend factor for the alpha channel.
+	 * @param dstAlpha The destination blend factor for the alpha channel.
+	 * @returns The new BlendFunc instance.
+	 */
+	(this: void, srcColor: Func, dstColor: Func, srcAlpha: Func, dstAlpha: Func): BlendFunc;
+
+	/**
+	 * The default blend function.
+	 * Equals to BlendFunc("SrcAlpha", "InvSrcAlpha", "One", "InvSrcAlpha")
+	 */
+	readonly default: BlendFunc;
+}
+
+const blendFuncClass: BlendFuncClass;
+export {blendFuncClass as BlendFunc};
+
+/**
+* The Job type, representing a coroutine thread.
+*/
+type Job = BasicType<"Job", LuaThread>;
+
+/**
+ * A singleton record for managing coroutines.
+ */
+interface Routine {
+
+	/**
+	 * Remove a coroutine job from the set and close it if it is still running.
+	 * @param job The Job instance to remove.
+	 * @returns True if the job was removed, false otherwise.
+	 */
+	remove(job: Job): boolean;
+
+	/**
+	 * Remove all coroutine jobs and close them if they are still running.
+	 */
+	clear(): void;
+
+	/**
+	 * Metamethod to add a new Job to the Routine.
+	 * @param job The Job instance to add.
+	 * @returns The Job instance that was added.
+	 */
+	(this: void, job: Job): Job;
+}
+
+const routine: Routine;
+export {routine as Routine};
+
+/**
+ * Creates a new coroutine from a function and executes it.
+ * @param routine A function to execute as a coroutine.
+ * @returns A handle to the coroutine that was created.
+ */
+export function thread(routine: () => boolean): Job;
+
+/**
+ * Create a new coroutine from a function that runs repeatedly.
+ * @param routine A function to execute repeatedly as a coroutine.
+ * @returns A handle to the coroutine that was created.
+ */
+export function threadLoop(routine: () => boolean): Job;
+
+/**
+ * A function that keeps another function to run repeatedly for a duration of time.
+ * @param duration The duration of the cycle, in seconds.
+ * @param work A function to execute repeatedly during the cycle, receiving a time value from 0 to 1 to indicate the execution progress.
+ */
+export function cycle(this: void, duration: number, work: (time: number) => void): void;
+
+/**
+ * Create a coroutine job that runs once.
+ * @param routine A routine function to execute once when the coroutine is resumed.
+ * Yield true or just return inside the routine function to stop the job execution half way.
+ * @returns A coroutine that runs the given routine function once.
+ */
+export function once(routine: () => void): Job;
+
+/**
+ * Create a coroutine job that runs repeatedly until a condition is met.
+ * @param routine A routine function to execute repeatedly until it returns non-nil or non-false.
+ * Yield or return true inside the routine function to stop the job execution.
+ * @returns A coroutine that runs the given routine function repeatedly.
+ */
+export function loop(routine: () => boolean): Job;
+
+/**
+ * Wait until a condition is true in a coroutine.
+ * @param condition A function that returns true when the condition is met.
+ */
+export function wait(condition: () => boolean): void;
+
+/**
+ * Yield the coroutine for a specified duration.
+ * @param duration The duration to yield for, in seconds. If undefined, the coroutine will be yielded for one frame.
+ */
+export function sleep(duration?: number): void;
+
+/**
+ * A scheduler that manages the execution of scheduled tasks.
+ * Inherits from `Object`.
+ */
+class Scheduler extends Object {
+
+	private constructor();
+
+	/**
+	 * The time scale factor for the scheduler.
+	 * This factor is applied to deltaTime that the scheduled functions will receive.
+	 */
+	timeScale: number;
+
+	/**
+	 * The target frame rate (in frames per second) for a fixed update mode.
+	 * The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
+	 * It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
+	 */
+	fixedFPS: number;
+
+	/**
+	 * Schedules a function to be called every frame.
+	 * @param handler The function to be called. It should take a single argument of type number, which represents the delta time since the last frame.
+	 * If the function returns true, it will not be called again.
+	 */
+	schedule(handler: (deltaTime: number) => boolean): void;
+
+	/**
+	 * Schedules a coroutine job to be resumed every frame.
+	 * @param job The coroutine job to be resumed.
+	 */
+	schedule(job: Job): void;
+}
+
+export type {Scheduler as SchedulerType};
+
+/**
+* A class for creating Scheduler objects.
+*/
+interface SchedulerClass {
+
+	/**
+	 * Creates a new Scheduler object.
+	 * @returns The newly created Scheduler object.
+	 */
+	(this: void): Scheduler;
+}
+
+const scheduler: SchedulerClass;
+export {scheduler as Scheduler};
+
+/**
+ * A record type for storing pairs of string keys and various values.
+ * Inherits from `Object`.
+ */
+class Dictionary extends Object {
+
+	private constructor();
+
+	/**
+	 * The number of items in the dictionary.
+	 */
+	readonly count: number;
+
+	/**
+	 * The keys of the items in the dictionary.
+	 */
+	readonly keys: string[];
+
+	/**
+	 * A method for accessing items in the dictionary.
+	 * @param key The key of the item to retrieve.
+	 * @returns The Item with the given key, or undefined if it does not exist.
+	 */
+	get(key: string): Item | undefined;
+
+	/**
+	 * A method for setting items in the dictionary.
+	 * @param key The key of the item to set.
+	 * @param item The Item to set for the given key, set to undefined to delete this key-value pair.
+	 */
+	set(key: string, item: Item): void;
+
+	/**
+	 * A function that iterates over each item in the dictionary and calls a given function with the item and its key.
+	 * This function should take an Item and a string as arguments and return a boolean. Returns true to stop iteration, false to continue.
+	 * @param func The function to call for each item in the dictionary.
+	 * @returns Returns false if the iteration completed successfully, true otherwise.
+	 */
+	each(func: (item: Item, key: string) => boolean): boolean;
+
+	/**
+	 * A function that removes all the items from the dictionary.
+	 */
+	clear(): void;
+
+	/**
+	 * Allows accessing items in the dictionary using the index notation, e.g. "dict['key']".
+	 * @param key The key of the item to retrieve.
+	 * @returns The Item with the given key, or undefined if it does not exist.
+	 */
+	[key: string]: Item | undefined;
+}
+
+export type {Dictionary as DictionaryType};
+
+/**
+ * A class for creating Dictionary
+ * @example
+ * ```
+ * import { Dictionary } from "dora";
+ * const dict = Dictionary();
+ * ```
+ */
+interface DictionaryClass {
+	/**
+	 * A metamethod that allows creating instances of the "Dictionary" type.
+	 * @returns A new instance of the Dictionary type.
+	 */
+	(this: void): Dictionary;
+}
+
+const dictionaryClass: DictionaryClass;
+export {dictionaryClass as Dictionary};
+
+/**
+ * A Slot object that represents a single event slot with handlers.
+ */
+class Slot extends Object {
+
+	private constructor();
+
+	/**
+	 * Adds a new handler function to this slot.
+	 * @param handler The handler function to add.
+	 */
+	add(handler: (...args: any[]) => void): void;
+
+	/**
+	 * Sets a new handler function for this slot, replacing any existing handlers.
+	 * @param handler The handler function to set.
+	 */
+	set(handler: (...args: any[]) => void): void;
+
+	/**
+	 * Removes a previously added handler function from this slot.
+	 * @param handler The handler function to remove.
+	 */
+	remove(handler: (...args: any[]) => void): void;
+
+	/**
+	 * Clears all handler functions from this slot.
+	 */
+	clear(): void;
+}
+
+/**
+ * A global signal slot object that can be used to handle global events
+ */
+class GSlot extends Object {
+
+	private constructor();
+
+	/** The name of the GSlot */
+	readonly name: string;
+
+	/** Whether the GSlot is currently enabled or disabled */
+	enabled: boolean;
+}
+
+/**
+ * Represents a touch input or mouse click event.
+ */
+class Touch extends Object {
+
+	private constructor();
+
+	/**
+	 * Whether touch input is enabled or not.
+	 */
+	enabled: boolean;
+
+	/**
+	 * Whether the touch event originated from a mouse click.
+	 */
+	fromMouse: boolean;
+
+	/**
+	 * Whether this is the first touch event when multi-touches exist.
+	 */
+	readonly first: boolean;
+
+	/**
+	 * The unique identifier assigned to this touch event.
+	 */
+	readonly id: number;
+
+	/**
+	 * The amount and direction of movement since the last touch event.
+	 */
+	readonly delta: Vec2;
+
+	/**
+	 * The location of the touch event in the node's local coordinate system.
+	 */
+	readonly location: Vec2;
+
+	/**
+	 * The location of the touch event in world coordinate system.
+	 */
+	readonly worldLocation: Vec2;
+}
+
+/**
+ * A class for the Camera object in the game engine.
+ */
+class Camera extends Object {
+
+	protected constructor();
+
+	/**
+	 * The name of the Camera.
+	 */
+	readonly name: string;
+}
+
+export type {Camera as CameraType};
+
+/**
+ * A class for 2D camera object in the game engine.
+ */
+class Camera2D extends Camera {
+
+	private constructor();
+
+	/**
+	 * The rotation angle of the camera in degrees.
+	 */
+	rotation: number;
+
+	/**
+	 * The factor by which to zoom the camera. If set to 1.0, the view is normal sized. If set to 2.0, items will appear double in size.
+	 */
+	zoom: number;
+
+	/**
+	 * The position of the camera in the game world.
+	 */
+	position: Vec2;
+}
+
+export type {Camera2D as Camera2DType};
+
+/**
+* A class for creating Camera2D objects.
+*/
+interface Camera2DClass {
+
+	/**
+	 * Creates a new Camera2D object with the given name.
+	 * @param name The name of the Camera2D object. Defaults to an empty string.
+	 * @returns A new instance of the Camera2D object.
+	 */
+	(this: void, name?: string): Camera2D;
+}
+
+const camera2DClass: Camera2DClass;
+export {camera2DClass as Camera2D};
+
+/**
+ * A class of an orthographic camera object in the game engine.
+ */
+class CameraOtho extends Camera {
+
+	private constructor();
+
+	/**
+	 * The position of the camera in the game world.
+	 */
+	position: Vec2;
+}
+
+export type {CameraOtho as CameraOthoType};
+
+/**
+* A class for creating CameraOtho objects.
+*/
+interface CameraOthoClass {
+
+	/**
+	 * Creates a new CameraOtho object with the given name.
+	 * @param name The name of the CameraOtho object. Defaults to an empty string.
+	 * @returns A new instance of the CameraOtho object.
+	 */
+	(this: void, name?: string): CameraOtho;
+}
+
+const cameraOthoClass: CameraOthoClass;
+export {cameraOthoClass as CameraOtho};
+
+/**
+ * A record representing a shader pass.
+ */
+class Pass extends Object {
+
+	private constructor();
+
+	/**
+	 * Whether this Pass should be a grab pass.
+	 * A grab pass will render a portion of the game scene into a texture frame buffer.
+	 * Then use this texture frame buffer as an input for the next render pass.
+	 */
+	grabPass: boolean;
+
+	/**
+	 * A function that sets the values of shader parameters.
+	 *
+	 * @param name The name of the parameter to set.
+	 * @param var1 The first numeric value to set.
+	 * @param var2 An optional second numeric value to set (default is 0).
+	 * @param var3 An optional third numeric value to set (default is 0).
+	 * @param var4 An optional fourth numeric value to set (default is 0).
+	 */
+	set(name: string, var1: number, var2?: number, var3?: number, var4?: number): void;
+
+	/**
+	 * Another function that sets the values of shader parameters.
+	 * Works the same as: pass.set("varName", color.r / 255.0, color.g / 255.0, color.b / 255.0, color.opacity)
+	 *
+	 * @param name The name of the parameter to set.
+	 * @param cvar The Color object to set.
+	 */
+	set(name: string, cvar: Color): void;
+}
+
+export type {Pass as PassType};
+
+/**
+* A class for creating Pass objects.
+*/
+interface PassClass {
+	/**
+	 * A metamethod that allows you to create a new Pass object.
+	 *
+	 * @param vertShader The vertex shader in binary form file string.
+	 * @param fragShader The fragment shader file string.
+	 * A shader file string must be one of the formats:
+	 * 	"builtin:" + theBuiltinShaderName
+	 * 	"Shader/compiled_shader_file.bin"
+	 * @returns A new Pass object.
+	 */
+	(this: void, vertShader: string, fragShader: string): Pass;
+}
+
+const passClass: PassClass;
+export {passClass as Pass};
+
+/**
+ * A class for managing multiple render pass objects.
+ * Effect objects allow you to combine multiple passes to create more complex shader effects.
+ */
+class Effect extends Object {
+
+	protected constructor();
+
+	/**
+	 * A function that adds a Pass object to this Effect.
+	 * @param pass The Pass object to add.
+	 */
+	add(pass: Pass): void;
+
+	/**
+	 * A function that retrieves a Pass object from this Effect by index.
+	 * @param index The index of the Pass object to retrieve.
+	 * @returns The Pass object at the given index.
+	 */
+	get(index: number): Pass;
+
+	/**
+	 * A function that removes all Pass objects from this Effect.
+	 */
+	clear(): void;
+}
+
+export type {Effect as EffectType};
+
+/**
+* A class for creating Effect objects.
+*/
+interface EffectClass {
+
+	/**
+	 * A metamethod that allows you to create a new Effect object.
+	 * @param vertShader The vertex shader file string.
+	 * @param fragShader The fragment shader file string.
+	 * A shader file string must be one of the formats:
+	 * 	"builtin:" + theBuiltinShaderName
+	 * 	"Shader/compiled_shader_file.bin"
+	 * @returns A new Effect object.
+	 */
+	(this: void, vertShader: string, fragShader: string): Effect;
+
+	/**
+	 * Another metamethod that allows you to create a new empty Effect object.
+	 * @returns A new empty Effect object.
+	 */
+	(this: void): Effect;
+}
+
+const effectClass: EffectClass;
+export {effectClass as Effect};
+
+/**
+ * A record that is a specialization of Effect for rendering 2D sprites.
+ */
+class SpriteEffect extends Effect {}
+
+export type {SpriteEffect as SpriteEffectType};
+
+/**
+ * A class for creating SpriteEffect objects.
+ */
+interface SpriteEffectClass {
+	/**
+	 * A metamethod that allows you to create a new SpriteEffect object.
+	 * @param vertShader The vertex shader file string. A shader file string must be one of the formats:
+	 * "builtin:" + theBuiltinShaderName
+	 * "Shader/compiled_shader_file.bin"
+	 * @param fragShader The fragment shader file string.
+	 * @returns A new SpriteEffect object.
+	 */
+	(this: void, vertShader: string, fragShader: string): SpriteEffect;
+
+	/**
+	 * A metamethod for creating a new empty SpriteEffect object.
+	 * @returns A new SpriteEffect object.
+	 */
+	(this: void): SpriteEffect;
+}
+
+const spriteEffectClass: SpriteEffectClass;
+export {spriteEffectClass as SpriteEffect};
+
+/**
+ * Enumeration for defining the keys.
+ */
+export const enum KeyName {
+	Return = "Return",
+	Escape = "Escape",
+	BackSpace = "BackSpace",
+	Tab = "Tab",
+	Space = "Space",
+	Exclamation = "!",
+	DoubleQuote = "\"",
+	Hash = "#",
+	Percent = "%",
+	Dollar = "$",
+	Ampersand = "&",
+	SingleQuote = "'",
+	LeftParenthesis = "(",
+	RightParenthesis = ")",
+	Asterisk = "*",
+	Plus = "+",
+	Comma = ",",
+	Minus = "-",
+	Dot = ".",
+	Slash = "/",
+	Num1 = "1",
+	Num2 = "2",
+	Num3 = "3",
+	Num4 = "4",
+	Num5 = "5",
+	Num6 = "6",
+	Num7 = "7",
+	Num8 = "8",
+	Num9 = "9",
+	Num0 = "0",
+	Colon = ":",
+	Semicolon = ";",
+	LessThan = "<",
+	Equal = "=",
+	GreaterThan = ">",
+	Question = "?",
+	At = "@",
+	LeftBracket = "[",
+	Backslash = "\\",
+	RightBracket = "]",
+	Caret = "^",
+	Underscore = "_",
+	Backquote = "`",
+	A = "A",
+	B = "B",
+	C = "C",
+	D = "D",
+	E = "E",
+	F = "F",
+	G = "G",
+	H = "H",
+	I = "I",
+	J = "J",
+	K = "K",
+	L = "L",
+	M = "M",
+	N = "N",
+	O = "O",
+	P = "P",
+	Q = "Q",
+	R = "R",
+	S = "S",
+	T = "T",
+	U = "U",
+	V = "V",
+	W = "W",
+	X = "X",
+	Y = "Y",
+	Z = "Z",
+	Delete = "Delete",
+	CapsLock = "CapsLock",
+	F1 = "F1",
+	F2 = "F2",
+	F3 = "F3",
+	F4 = "F4",
+	F5 = "F5",
+	F6 = "F6",
+	F7 = "F7",
+	F8 = "F8",
+	F9 = "F9",
+	F10 = "F10",
+	F11 = "F11",
+	F12 = "F12",
+	PrintScreen = "PrintScreen",
+	ScrollLock = "ScrollLock",
+	Pause = "Pause",
+	Insert = "Insert",
+	Home = "Home",
+	PageUp = "PageUp",
+	End = "End",
+	PageDown = "PageDown",
+	Right = "Right",
+	Left = "Left",
+	Down = "Down",
+	Up = "Up",
+	Application = "Application",
+	LCtrl = "LCtrl",
+	LShift = "LShift",
+	LAlt = "LAlt",
+	LGui = "LGui",
+	RCtrl = "RCtrl",
+	RShift = "RShift",
+	RAlt = "RAlt",
+	RGui = "RGui"
+}
+
+/**
+ * An interface for handling keyboard inputs.
+ */
+interface Keyboard {
+
+	/**
+	 * Check whether a key is pressed down in the current frame.
+	 * @param name The name of the key to check.
+	 * @returns Whether the key is pressed down.
+	 */
+	isKeyDown(name: KeyName): boolean;
+
+	/**
+	 * Check whether a key is released in the current frame.
+	 * @param name The name of the key to check.
+	 * @returns Whether the key is released.
+	 */
+	isKeyUp(name: KeyName): boolean;
+
+	/**
+	 * Check whether a key is in pressed state.
+	 * @param name The name of the key to check.
+	 * @returns Whether the key is in pressed state.
+	 */
+	isKeyPressed(name: KeyName): boolean;
+
+	/**
+	 * Update the input method editor (IME) position hint.
+	 * @param winPos The position of the keyboard window.
+	 */
+	updateIMEPosHint(winPos: Vec2): void;
+}
+
+const keyboard: Keyboard;
+export {keyboard as Keyboard};
+
+/**
+ * Enumeration for defining the controller axis names.
+ */
+export const enum AxisName {
+	leftx = "leftx",
+	lefty = "lefty",
+	rightx = "rightx",
+	righty = "righty",
+	lefttrigger = "lefttrigger",
+	righttrigger = "righttrigger"
+}
+
+/**
+* Enumeration for defining the controller button names.
+*/
+export const enum ButtonName {
+	a = "a",
+	b = "b",
+	back = "back",
+	dpdown = "dpdown",
+	dpleft = "dpleft",
+	dpright = "dpright",
+	dpup = "dpup",
+	leftshoulder = "leftshoulder",
+	leftstick = "leftstick",
+	rightshoulder = "rightshoulder",
+	rightstick = "rightstick",
+	start = "start",
+	x = "x",
+	y = "y"
+}
+
+/**
+ * An interface for handling game controller inputs.
+ */
+interface Controller {
+
+	/**
+	 * Check whether a button is pressed down in current frame.
+	 * @param controllerId The controller id, incrementing from 0 when multiple controllers are connected.
+	 * @param name The name of the button to check.
+	 * @returns Whether the button is pressed down.
+	 */
+	isButtonDown(controllerId: number, name: ButtonName): boolean;
+
+	/**
+	 * Check whether a button is released in current frame.
+	 * @param controllerId The controller id, incrementing from 0 when multiple controllers are connected.
+	 * @param name The name of the button to check.
+	 * @returns Whether the button is released.
+	 */
+	isButtonUp(controllerId: number, name: ButtonName): boolean;
+
+	/**
+	 * Check whether a button is in pressed state.
+	 * @param controllerId The controller id, incrementing from 0 when multiple controllers are connected.
+	 * @param name The name of the button to check.
+	 * @returns Whether the button is in pressed state.
+	 */
+	isButtonPressed(controllerId: number, name: ButtonName): boolean;
+
+	/**
+	 * Get the axis value from a given controller.
+	 * @param controllerId The controller id, incrementing from 0 when multiple controllers are connected.
+	 * @param name The name of the controller axis to check.
+	 * @returns The axis value ranging from -1.0 to 1.0.
+	 */
+	getAxis(controllerId: number, name: AxisName): number;
+}
+
+const controller: Controller;
+export {controller as Controller};
+
+/**
+ * A grabber which is used to render a part of the scene to a texture by a grid of vertices.
+ */
+class Grabber extends Object {
+
+	private constructor();
+
+	/**
+	* The camera used to render the texture.
+	*/
+	camera: Camera;
+
+	/**
+	* The sprite effect applied to the texture.
+	*/
+	effect: SpriteEffect;
+
+	/**
+	* The blend function applied to the texture.
+	*/
+	blendFunc: BlendFunc;
+
+	/**
+	* The clear color used to clear the texture.
+	*/
+	clearColor: Color;
+
+	/**
+	* Sets the position of a vertex in the grabber grid.
+	* @param x The x-index of the vertex in the grabber grid.
+	* @param y The y-index of the vertex in the grabber grid.
+	* @param pos The new position of the vertex.
+	* @param z [optional] The new z-coordinate of the vertex (default: 0.0).
+	*/
+	setPos(x: number, y: number, pos: Vec2, z?: number): void;
+
+	/**
+	* Gets the position of a vertex in the grabber grid.
+	* @param x The x-index of the vertex in the grabber grid.
+	* @param y The y-index of the vertex in the grabber grid.
+	* @returns The position of the vertex.
+	*/
+	getPos(x: number, y: number): Vec2;
+
+	/**
+	* Gets the color of a vertex in the grabber grid.
+	* @param x The x-index of the vertex in the grabber grid.
+	* @param y The y-index of the vertex in the grabber grid.
+	* @returns The color of the vertex.
+	*/
+	getColor(x: number, y: number): Color;
+
+	/**
+	* Sets the color of a vertex in the grabber grid.
+	* @param x The x-index of the vertex in the grabber grid.
+	* @param y The y-index of the vertex in the grabber grid.
+	* @param color The new color of the vertex.
+	*/
+	setColor(x: number, y: number, color: Color): void;
+}
+
+const enum NodeEvent {
+	ActionEnd = "ActionEnd",
+	TapFilter = "TapFilter",
+	TapBegan = "TapBegan",
+	TapEnded = "TapEnded",
+	Tapped = "Tapped",
+	TapMoved = "TapMoved",
+	MouseWheel = "MouseWheel",
+	Gesture = "Gesture",
+	Enter = "Enter",
+	Exit = "Exit",
+	Cleanup = "Cleanup",
+	KeyDown = "KeyDown",
+	KeyUp = "KeyUp",
+	KeyPressed = "KeyPressed",
+	AttachIME = "AttachIME",
+	DetachIME = "DetachIME",
+	TextInput = "TextInput",
+	TextEditing = "TextEditing",
+	ButtonDown = "ButtonDown",
+	ButtonUp = "ButtonUp",
+	ButtonPressed = "ButtonPressed",
+	Axis = "Axis",
+	AnimationEnd = "AnimationEnd",
+	BodyEnter = "BodyEnter",
+	BodyLeave = "BodyLeave",
+	ContactStart = "ContactStart",
+	ContactEnd = "ContactEnd",
+	Finished = "Finished",
+}
+
+export {NodeEvent as Slot};
+
+interface NodeEventHandlerMap {
+	ActionEnd: (action: Action, target: Node) => void;
+	TapFilter: (touch: Touch) => void;
+	TapBegan: (touch: Touch) => void;
+	TapEnded: (touch: Touch) => void;
+	Tapped: (touch: Touch) => void;
+	TapMoved: (touch: Touch) => void;
+	MouseWheel: (delta: Vec2) => void;
+	Gesture: (center: Vec2, numFingers: number, deltaDist: number, deltaAngle: number) => void;
+	Enter: () => void;
+	Exit: () => void;
+	Cleanup: () => void;
+	KeyDown: (keyName: KeyName) => void;
+	KeyUp: (keyName: KeyName) => void;
+	KeyPressed: (keyName: KeyName) => void;
+	AttachIME: () => void;
+	DetachIME: () => void;
+	TextInput: (text: string) => void;
+	TextEditing: (text: string, startPos: number) => void;
+	ButtonDown: (controllerId: number, buttonName: ButtonName) => void;
+	ButtonUp: (controllerId: number, buttonName: ButtonName) => void;
+	ButtonPressed: (controllerId: number, buttonName: KeyName) => void;
+	Axis: (controllerId: number, axisValue: number) => void;
+	AnimationEnd: (animationName: string, target: Playable) => void;
+	BodyEnter: (other: Body, sensorTag: number) => void;
+	BodyLeave: (other: Body, sensorTag: number) => void;
+	ContactStart: (other: Body, point: Vec2, normal: Vec2) => void;
+	ContactEnd: (other: Body, point: Vec2, normal: Vec2) => void;
+	Finished: () => void;
+}
+
+const enum GlobalEvent {
+	AppQuit = "AppQuit",
+	AppLowMemory = "AppLowMemory",
+	AppWillEnterBackground = "AppWillEnterBackground",
+	AppDidEnterBackground = "AppDidEnterBackground",
+	AppWillEnterForeground = "AppWillEnterForeground",
+	AppDidEnterForeground = "AppDidEnterForeground",
+	AppSizeChanged = "AppSizeChanged",
+	AppFullScreen = "AppFullScreen",
+	AppMoved = "AppMoved",
+	AppTheme = "AppTheme",
+	AppWSOpen = "AppWSOpen",
+	AppWSClose = "AppWSClose",
+	AppWSMessage = "AppWSMessage",
+	AppWSSend = "AppWSSend"
+}
+
+export {GlobalEvent as GSlot};
+
+type GlobalEventHandlerMap = {
+	AppQuit: () => void;
+	AppLowMemory: () => void;
+	AppWillEnterBackground: () => void;
+	AppDidEnterBackground: () => void;
+	AppWillEnterForeground: () => void;
+	AppDidEnterForeground: () => void;
+	AppSizeChanged: () => void;
+	AppFullScreen: (fullScreen: boolean) => void;
+	AppMoved: () => void;
+	AppTheme: (themeColor: Color) => void;
+	AppWSOpen: () => void;
+	AppWSClose: () => void;
+	AppWSMessage: (msg: string) => void;
+	AppWSSend: (msg: string) => void;
+};
+
+/**
+ * Class used for building a hierarchical tree structure of game objects.
+ */
+class Node extends Object {
+
+	protected constructor();
+
+	/** The order of the node in the parent's children array. */
+	order: number;
+
+	/** The rotation angle of the node in degrees. */
+	angle: number;
+
+	/** The X-axis rotation angle of the node in degrees. */
+	angleX: number;
+
+	/** The Y-axis rotation angle of the node in degrees. */
+	angleY: number;
+
+	/** The X-axis scale factor of the node. */
+	scaleX: number;
+
+	/** The Y-axis scale factor of the node. */
+	scaleY: number;
+
+	/** The X-axis position of the node. */
+	x: number;
+
+	/** The Y-axis position of the node. */
+	y: number;
+
+	/** The Z-axis position of the node. */
+	z: number;
+
+	/** The position of the node as a Vec2 object. */
+	position: Vec2;
+
+	/** The X-axis skew angle of the node in degrees. */
+	skewX: number;
+
+	/** The Y-axis skew angle of the node in degrees. */
+	skewY: number;
+
+	/** Whether the node is visible. */
+	visible: boolean;
+
+	/** The anchor point of the node as a Vec2 object. */
+	anchor: Vec2;
+
+	/** The width of the node. */
+	width: number;
+
+	/** The height of the node. */
+	height: number;
+
+	/** The size of the node as a Size object. */
+	size: Size;
+
+	/** The tag of the node as a string. */
+	tag: string;
+
+	/** The opacity of the node, should be 0 to 1.0. */
+	opacity: number;
+
+	/** The color of the node as a Color object. */
+	color: Color;
+
+	/** The color of the node as a Color3 object. */
+	color3: Color3;
+
+	/** Whether to pass the opacity value to child nodes. */
+	passOpacity: boolean;
+
+	/** Whether to pass the color value to child nodes. */
+	passColor3: boolean;
+
+	/** The target node acts as a parent node for transforming this node. */
+	transformTarget: Node;
+
+	/** The scheduler used for scheduling update and action callbacks. */
+	scheduler: Scheduler;
+
+	/** Whether the node has children. */
+	readonly hasChildren: boolean;
+
+	/** The children of the node as an Array object, could be nil. */
+	readonly children: Array;
+
+	/** The parent node of the node. */
+	readonly parent: Node;
+
+	/** The bounding box of the node as a Rect object. */
+	readonly boundingBox: Rect;
+
+	/** Whether the node is currently running in a scene tree. */
+	readonly running: boolean;
+
+	/** Whether the node is currently scheduling a function or a coroutine for updates. */
+	readonly scheduled: boolean;
+
+	/** The number of actions currently running on the node. */
+	readonly actionCount: number;
+
+	/** Additional data stored on the node as a Dictionary object. */
+	readonly data: Dictionary;
+
+	/** Whether touch events are enabled on the node. */
+	touchEnabled: boolean;
+
+	/** Whether the node should swallow touch events. */
+	swallowTouches: boolean;
+
+	/** Whether the node should swallow mouse wheel events. */
+	swallowMouseWheel: boolean;
+
+	/** Whether keyboard events are enabled on the node. */
+	keyboardEnabled: boolean;
+
+	/** Whether controller events are enabled on the node. */
+	controllerEnabled: boolean;
+
+	/** Whether to group the node's rendering with all its recursive children. */
+	renderGroup: boolean;
+
+	/** The rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier. */
+	renderOrder: number;
+
+	/**
+	 * Adds a child node to the current node.
+	 * @param child The child node to add.
+	 * @param order [optional] The drawing order of the child node. Default is 0.
+	 * @param tag [optional] The tag of the child node. Default is an empty string.
+	 */
+	addChild(child: Node, order?: number, tag?: string): void;
+
+	/**
+	 * Adds the current node to a parent node.
+	 * @param parent The parent node to add the current node to.
+	 * @param order [optional] The drawing order of the current node. Default is 0.
+	 * @param tag [optional] The tag of the current node. Default is an empty string.
+	 * @returns The current node.
+	 */
+	addTo(parent: Node, order?: number, tag?: string): Node;
+
+	/**
+	 * Removes a child node from the current node.
+	 * @param child The child node to remove.
+	 * @param cleanup [optional] Whether to cleanup the child node. Default is true.
+	 */
+	removeChild(child: Node, cleanup?: boolean): void;
+
+	/**
+	 * Removes a child node from the current node by tag.
+	 * @param tag The tag of the child node to remove.
+	 * @param cleanup [optional] Whether to cleanup the child node. Default is true.
+	 */
+	removeChildByTag(tag: string, cleanup?: boolean): void;
+
+	/**
+	 * Removes all child nodes from the current node.
+	 * @param cleanup [optional] Whether to cleanup the child nodes. Default is true.
+	 */
+	removeAllChildren(cleanup?: boolean): void;
+
+	/**
+	 * Removes the current node from its parent node.
+	 * @param cleanup [optional] Whether to cleanup the current node. Default is true.
+	 */
+	removeFromParent(cleanup?: boolean): void;
+
+	/**
+	 * Moves the current node to a new parent node without triggering node events.
+	 * @param parent The new parent node to move the current node to.
+	 */
+	moveToParent(parent: Node): void;
+
+	/**
+	 * Cleans up the current node.
+	 */
+	cleanup(): void;
+
+	/**
+	 * Gets a child node by tag.
+	 * @param tag The tag of the child node to get.
+	 * @returns The child node, or nil if not found.
+	 */
+	getChildByTag(tag: string): Node | null;
+
+	/**
+	 * Schedules a function to run every frame.
+	 * @param func The function to run, return true to stop.
+	 */
+	schedule(func: (deltaTime: number) => boolean): void;
+
+	/**
+	 * Schedules a coroutine to run.
+	 * @param job The coroutine to run, return or yield true to stop.
+	 */
+	schedule(job: Job): void;
+
+	/**
+	 * Unschedules the current node's scheduled function or coroutine.
+	 */
+	unschedule(): void;
+
+	/**
+	 * Converts a point in world space to node space.
+	 * @param worldPoint The point to convert.
+	 * @returns The converted point.
+	 */
+	convertToNodeSpace(worldPoint: Vec2): Vec2;
+
+	/**
+	 * Converts a point in world space to node space.
+	 * @param worldPoint The point to convert.
+	 * @param z The z-coordinate of the point.
+	 * @returns The converted point and z-coordinate.
+	 */
+	convertToNodeSpace(worldPoint: Vec2, z: number): LuaMultiReturn<[Vec2, number]>;
+
+	/**
+	 * Converts a point from node space to world space.
+	 * @param nodePoint The point in node space.
+	 * @returns The converted point in world space.
+	 */
+	convertToWorldSpace(nodePoint: Vec2): Vec2;
+
+	/**
+	 * Converts a point from node space to world space.
+	 * @param nodePoint The point in node space.
+	 * @param z The z coordinate in node space.
+	 * @returns The converted point and z coordinate in world space.
+	 */
+	convertToWorldSpace(nodePoint: Vec2, z: number): LuaMultiReturn<[Vec2, number]>;
+
+	/**
+	 * Converts a point from node space to window space.
+	 * @param nodePoint The point in node space.
+	 * @param callback The callback function to receive the converted point in window space.
+	 */
+	convertToWindowSpace(nodePoint: Vec2, callback: (windowPoint: Vec2) => void): void;
+
+	/**
+	 * Calls the given function for each child node of this node.
+	 * @param func The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
+	 * @returns False if all children have been visited, true if the iteration was interrupted by the function.
+	 */
+	eachChild(func: (child: Node) => boolean): boolean;
+
+	/**
+	 * Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
+	 * @param func The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
+	 * @returns False if all nodes have been visited, true if the traversal was interrupted by the function.
+	 */
+	traverse(func: (node: Node) => boolean): boolean;
+
+	/**
+	 * Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
+	 * @param func The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
+	 * @returns True if all nodes have been visited, false if the traversal was interrupted by the function.
+	 */
+	traverseAll(func: (node: Node) => boolean): boolean;
+
+	/**
+	 * Runs the given action on this node.
+	 * @param action The action to run.
+	 * @returns The duration of the newly running action in seconds.
+	 */
+	runAction(action: Action): number;
+
+	/**
+	 * Runs an action defined by the given action definition on this node.
+	 * @param actionDef The action definition to run.
+	 * @returns The duration of the newly running action in seconds.
+	 */
+	runAction(actionDef: ActionDef): number;
+
+	/**
+	 * Stops all actions running on this node.
+	 */
+	stopAllActions(): void;
+
+	/**
+	 * Runs the given action immediately without adding it to the action queue.
+	 * @param action The action to run.
+	 * @returns The duration of the newly running action.
+	 */
+	perform(action: Action): number;
+
+	/**
+	 * Runs an action defined by the given action definition right after clearing all the previous running actions.
+	 * @param actionDef The action definition to run.
+	 * @returns The duration of the newly running action.
+	 */
+	perform(actionDef: ActionDef): number;
+
+	/**
+	 * Stops the given action running on this node.
+	 * @param action The action to stop.
+	 */
+	stopAction(action: Action): void;
+
+	/**
+	 * Vertically aligns all child nodes of this node.
+	 * @param padding [optional] The padding between child nodes. Defaults to 10.
+	 * @returns The size of the aligned child nodes.
+	 */
+	alignItemsVertically(padding?: number): Size;
+
+	/**
+	 * Vertically aligns all child nodes within the node using the given size and padding.
+	 * @param size The size to use for alignment.
+	 * @param padding [optional] The amount of padding to use between each child node (default is 10).
+	 * @returns The size of the node after alignment.
+	 */
+	alignItemsVertically(size: Size, padding?: number): Size;
+
+	/**
+	 * Horizontally aligns all child nodes within the node using the given padding.
+	 * @param padding [optional] The amount of padding to use between each child node (default is 10).
+	 * @returns The size of the node after alignment.
+	 */
+	alignItemsHorizontally(padding?: number): Size;
+
+	/**
+	 * Horizontally aligns all child nodes within the node using the given size and padding.
+	 * @param size The size to hint for alignment.
+	 * @param padding [optional] The amount of padding to use between each child node (default is 10).
+	 * @returns The size of the node after alignment.
+	 */
+	alignItemsHorizontally(size: Size, padding?: number): Size;
+
+	/**
+	 * Aligns all child nodes within the node using the given size and padding.
+	 * @param padding [optional] The amount of padding to use between each child node (default is 10).
+	 * @returns The size of the node after alignment.
+	 */
+	alignItems(padding?: number): Size;
+
+	/**
+	 * Aligns all child nodes within the node using the given size and padding.
+	 * @param size The size to use for alignment.
+	 * @param padding [optional] The amount of padding to use between each child node (default is 10).
+	 * @returns The size of the node after alignment.
+	 */
+	alignItems(size: Size, padding?: number): Size;
+
+	/**
+	 * Moves and changes child nodes' visibility based on their position in parent's area.
+	 * @param delta The distance to move its children.
+	 */
+	moveAndCullItems(delta: Vec2): void;
+
+	/**
+	 * Attaches the input method editor (IME) to the node.
+	 * Makes node receiving "AttachIME", "DetachIME", "TextInput", "TextEditing" events.
+	 */
+	attachIME(): void;
+
+	/**
+	 * Detaches the input method editor (IME) from the node.
+	 */
+	detachIME(): void;
+
+	/**
+	 * Gets the global event listener associated with the given event name in this node.
+	 * @param eventName The name of the global event.
+	 * @returns All the global event listeners associated with the event.
+	 */
+	gslot(eventName: string): GSlot[];
+
+	/**
+	 * Associates the given event handler function with a global event.
+	 * @param eventName The name of the global event.
+	 * @param handler The handler function to associate with the event.
+	 * @returns The global event listener associated with the event in this node.
+	 * @example
+	 * Register for builtin global events:
+	 * ```
+	 * const node = Node()
+	 * node.gslot(GSlot.AppQuit, () => {
+	 * 	print("Application is shuting down!");
+	 * });
+	 * ```
+	 */
+	gslot<K extends keyof GlobalEventHandlerMap>(eventName: K, handler: GlobalEventHandlerMap[K]): void;
+
+	/**
+	 * Associates the given event handler function with a global event.
+	 * @param eventName The name of the global event.
+	 * @param handler The handler function to associate with the event.
+	 * @returns The global event listener associated with the event in this node.
+	 */
+	gslot(eventName: string, handler: () => void): GSlot;
+
+	/**
+	 * Gets the node event listener associated with the given node event name.
+	 * @param eventName The name of the node event.
+	 * @returns The node event listener associated with the node event.
+	 */
+	slot(eventName: string): Slot;
+
+	/**
+	 * Associates the given handler function with the node event.
+	 * @param eventName The name of the node event.
+	 * @param handler The handler function to associate with the node event.
+	 */
+	slot<K extends keyof NodeEventHandlerMap>(eventName: K, handler: NodeEventHandlerMap[K]): void;
+
+	/**
+	 * Associates the given handler function with the node event.
+	 * @param eventName The name of the node event.
+	 * @param handler The handler function to associate with the node event.
+	 */
+	slot(eventName: string, handler: (...args: any[]) => void): void;
+
+	/**
+	 * Emits a node event with a given event name and arguments.
+	 * @param eventName The name of the node event.
+	 * @param args The arguments to pass to the node event handler functions.
+	 */
+	emit(eventName: string, ...args: any[]): void;
+
+	/**
+	 * Creates or removes a texture grabber for the specified node.
+	 * @param enabled [optional] Whether to enable or disable the grabber. Default is true.
+	 * @returns A Grabber object when enabled.
+	 */
+	grab(enabled?: boolean): Grabber;
+
+	/**
+	 * Creates a texture grabber for the specified node with a specified grid size.
+	 * @param gridX The number of horizontal grid cells to divide the grabber into.
+	 * @param gridY The number of vertical grid cells to divide the grabber into.
+	 * @returns A Grabber object.
+	 */
+	grab(gridX: number, gridY: number): Grabber;
+}
+
+export type {Node as NodeType};
+
+/**
+ * A class object for the `Node` class.
+ */
+interface NodeClass {
+	/**
+	 * Creates a new instance of the `Node` class.
+	 *
+	 * @example
+	 * ```
+	 * import {Node} from 'dora';
+	 * const node = Node();
+	 * ```
+	 * @returns A new instance of the `Node` class.
+	 */
+	(this: void): Node;
+}
+
+const nodeClass: NodeClass;
+export {nodeClass as Node};
+
+/**
+ * A buffer of string for the use of ImGui widget.
+ */
+class Buffer extends Object {
+
+	private constructor();
+
+	/** The size of the buffer. */
+	readonly size: number;
+
+	/**
+	 * Changing the size of the buffer.
+	 * @param size The new size of the buffer.
+	 */
+	resize(size: number): void;
+
+	/** Setting all bytes in the buffer to zero. */
+	zeroMemory(): void;
+
+	/**
+	 * Converting the buffer to a string.
+	 * @returns The buffer contents as a string.
+	 */
+	toString(): string;
+
+	/**
+	 * Setting the contents of the buffer with a string.
+	 * @param str The new contents of the buffer.
+	 */
+	setString(str: string): void;
+}
+
+export type {Buffer as BufferType};
+
+/**
+* A class for creating Buffer objects.
+*/
+interface BufferClass {
+
+	/**
+	 * Creates a new buffer instance.
+	 * @param size The size of the buffer to create.
+	 * @returns A new instance of the "Buffer" type with the given size.
+	 */
+	(this: void, size: number): Buffer;
+}
+
+const bufferClass: BufferClass;
+export {bufferClass as Buffer};
+
+/**
+ * A Node that can clip its children based on the alpha values of its stencil.
+ */
+class ClipNode extends Node {
+
+	private constructor();
+
+	/**
+	 * The stencil Node that defines the clipping shape.
+	 */
+	stencil: Node;
+
+	/**
+	 * The minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
+	 */
+	alphaThreshold: number;
+
+	/**
+	 * Whether to invert the clipping area.
+	 */
+	inverted: boolean;
+}
+
+export type {ClipNode as ClipNodeType};
+
+/**
+* A class for creating ClipNode objects.
+*/
+interface ClipNodeClass {
+
+	/**
+	 * Creates a new ClipNode object.
+	 * @param stencil The stencil Node that defines the clipping shape. Defaults to undefined.
+	 * @returns A new ClipNode object.
+	 */
+	(this: void, stencil?: Node): ClipNode;
+}
+
+const clipNodeClass: ClipNodeClass;
+export {clipNodeClass as ClipNode};
+
+/**
+ * The `Content` object manages file searching, loading, and other operations related to resources.
+ *
+ * @example
+ * ```
+ * import {Content} from "dora";
+ * const text = Content.load("filename.txt");
+ * ```
+ */
+class Content {
+
+	private constructor();
+
+	/** An array of directories to search for resource files. */
+	searchPaths: string[];
+
+	/** The path to the directory containing read-only resources. */
+	readonly assetPath: string;
+
+	/** The path to the directory where files can be written. */
+	readonly writablePath: string;
+
+	/**
+	 * Loads the content of the file with the specified filename.
+	 * @param filename The name of the file to load.
+	 * @returns The content of the loaded file.
+	 */
+	load(filename: string): string;
+
+	/**
+	 * Loads the content of an Excel file with the specified filename and optional sheet names.
+	 * @param filename The name of the Excel file to load.
+	 * @param sheetNames An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded.
+	 * @returns A table containing the data in the Excel file. The keys are the sheet names and the values are tables containing the rows and columns of the sheet.
+	 */
+	loadExcel(filename: string, sheetNames?: string[]): {
+		[sheetName: string]: [column: string | number][]
+	} | null;
+
+	/**
+	 * Saves the specified content to a file with the specified filename.
+	 * @param filename The name of the file to save.
+	 * @param content The content to save to the file.
+	 * @returns `true` if the content saves to file successfully, `false` otherwise.
+	 */
+	save(filename: string, content: string): boolean;
+
+	/**
+	 * Checks if a file with the specified filename exists.
+	 * @param filename The name of the file to check.
+	 * @returns `true` if the file exists, `false` otherwise.
+	 */
+	exist(filename: string): boolean;
+
+	/**
+	 * Creates a new directory with the specified path.
+	 * @param path The path of the directory to create.
+	 * @returns `true` if the directory was created, `false` otherwise.
+	 */
+	mkdir(path: string): boolean;
+
+	/**
+	 * Checks if the specified path is a directory.
+	 * @param path The path to check.
+	 * @returns `true` if the path is a directory, `false` otherwise.
+	 */
+	isdir(path: string): boolean;
+
+	/**
+	 * Removes the file or directory with the specified path.
+	 * @param path The path of the file or directory to remove.
+	 * @returns `true` if the file or directory was removed, `false` otherwise.
+	 */
+	remove(path: string): boolean;
+
+	/**
+	 * Copies the file or directory in the specified path to target path.
+	 * @param srcPath The path of the file or directory to copy.
+	 * @param dstPath The path to copy files to.
+	 * @returns `true` if the file or directory was copied to target path, `false` otherwise.
+	 */
+	copy(srcPath: string, dstPath: string): boolean;
+
+	/**
+	 * Moves the file or directory in the specified path to target path.
+	 * @param srcPath The path of the file or directory to move.
+	 * @param dstPath The path to move files to.
+	 * @returns `true` if the file or directory was moved to target path, `false` otherwise.
+	 */
+	move(srcPath: string, dstPath: string): boolean;
+
+	/**
+	 * Gets the full path of a file with the specified filename.
+	 * @param filename The name of the file to get the full path of.
+	 * @returns The full path of the file.
+	 */
+	getFullPath(filename: string): string;
+
+	/**
+	 * Inserts a search path at the specified index.
+	 * @param index The index at which to insert the search path.
+	 * @param path The search path to insert.
+	 */
+	insertSearchPath(index: number, path: string): void;
+
+	/**
+	 * Adds a new search path to the end of the list.
+	 * @param path The search path to add.
+	 */
+	addSearchPath(path: string): void;
+
+	/**
+	 * Removes the specified search path from the list.
+	 * @param path The search path to remove.
+	 */
+	removeSearchPath(path: string): void;
+
+	/**
+	 * Asynchronously loads the content of the file with the specified filename.
+	 * @param filename The name of the file to load.
+	 * @returns The content of the loaded file.
+	 */
+	loadAsync(filename: string): string;
+
+	/**
+	 * Asynchronously loads the content of an Excel file with the specified filename and optional sheet names.
+	 * @param filename The name of the Excel file to load.
+	 * @param sheetNames An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded.
+	 * @returns A table containing the data in the Excel file. The keys are the sheet names and the values are tables containing the rows and columns of the sheet.
+	 */
+	loadExcelAsync(filename: string, sheetNames?: string[]): {
+		[sheetName: string]: [column: string | number][]
+	} | null;
+
+	/**
+	 * Asynchronously saves the specified content to a file with the specified filename.
+	 * @param filename The name of the file to save.
+	 * @param content The content to save to the file.
+	 * @returns `true` if the content was saved successfully, `false` otherwise.
+	 */
+	saveAsync(filename: string, content: string): boolean;
+
+	/**
+	 * Asynchronously copies a file or a folder from the source path to the destination path.
+	 * @param src The path of the file or folder to copy.
+	 * @param dst The destination path of the copied files.
+	 * @returns `true` if the file or folder was copied successfully, `false` otherwise.
+	 */
+	copyAsync(src: string, dst: string): boolean;
+
+	/**
+	 * Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
+	 * @param folderPath The path of the folder to compress, should be under the asset writable path.
+	 * @param zipFile The name of the ZIP archive to create.
+	 * @param filter A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
+	 * @returns `true` if the folder was compressed successfully, `false` otherwise.
+	 */
+	zipAsync(folderPath: string, zipFile: string, filter?: (filename: string) => boolean): boolean;
+
+	/**
+	 * Asynchronously decompresses a ZIP archive to the specified folder.
+	 * @param zipFile The name of the ZIP archive to decompress, should be a file under the asset writable path.
+	 * @param folderPath The path of the folder to decompress to, should be under the asset writable path.
+	 * @param filter A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
+	 * @returns `true` if the folder was decompressed successfully, `false` otherwise.
+	 */
+	unzipAsync(folderPath: string, zipFile: string, filter?: (filename: string) => boolean): boolean;
+
+	/**
+	 * Gets the names of all subdirectories in the specified directory.
+	 * @param path The path of the directory to search.
+	 * @returns An array of the names of all subdirectories in the specified directory.
+	 */
+	getDirs(path: string): string[];
+
+	/**
+	 * Gets the names of all files in the specified directory.
+	 * @param path The path of the directory to search.
+	 * @returns An array of the names of all files in the specified directory.
+	 */
+	getFiles(path: string): string[];
+
+	/**
+	 * Gets the names of all files in the specified directory and its subdirectories.
+	 * @param path The path of the directory to search.
+	 * @returns An array of the names of all files in the specified directory and its subdirectories.
+	 */
+	getAllFiles(path: string): string[];
+
+	/**
+	 * Clears the search path cache of the map of relative paths to full paths.
+	 */
+	clearPathCache(): void;
+}
+
+const content: Content;
+export {content as Content};
+
+/**
+ * Logs a message to the console.
+ * @param msg The message to be logged.
+ */
+export const Log: (msg: string) => void;
+
+/**
+ * Type definition for a database column.
+ * The boolean type is only used for representing the database NULL value with the boolean false value.
+ */
+type DBColumn = number | string | boolean;
+
+/**
+ * Type definition for a database row.
+ */
+type DBRow = DBColumn[];
+
+/**
+ * Type definition for an SQL query.
+ * Can be SQL string or a pair of SQL string and an array of parameters.
+ */
+type SQL = string | [string, DBRow[]];
+
+/**
+ * A record that represents a database.
+ */
+interface DB {
+
+	/**
+	 * Checks whether a table exists in the database.
+	 * @param tableName The name of the table to check.
+	 * @param schema [optional] The name of the schema to check in.
+	 * @returns Whether the table exists or not.
+	 */
+	exist(tableName: string, schema?: string): boolean;
+
+	/**
+	 * Executes a list of SQL statements as a single transaction.
+	 * @param sqls A list of SQL statements to execute.
+	 * @returns Whether the transaction was successful or not.
+	 */
+	transaction(sqls: SQL[]): boolean;
+
+	/**
+	 * Executes a list of SQL statements as a single transaction asynchronously.
+	 * @param sqls A list of SQL statements to execute.
+	 * @returns Whether the transaction was successful or not.
+	 */
+	transactionAsync(sqls: SQL[]): boolean;
+
+	/**
+	 * Executes an SQL query and returns the results as a list of rows.
+	 * @param sql The SQL statement to execute.
+	 * @param args [optional] A list of values to substitute into the SQL statement.
+	 * @param withColumn [optional] Whether to include column names in the result (default false).
+	 * @returns A list of rows returned by the query.
+	 */
+	query(sql: string, args?: DBRow, withColumn?: boolean): DBRow[];
+
+	/**
+	 * Executes an SQL query and returns the results as a list of rows.
+	 * @param sql The SQL statement to execute.
+	 * @param withColumn [optional] Whether to include column names in the result (default false).
+	 * @returns A list of rows returned by the query.
+	 */
+	query(sql: string, withColumn?: boolean): DBRow[];
+
+	/**
+	 * Inserts a row of data into a table within a transaction.
+	 * @param tableName The name of the table to insert into.
+	 * @param values The values to insert into the table.
+	 * @returns Whether the insertion was successful or not.
+	 */
+	insert(tableName: string, values: DBRow[]): boolean;
+
+	/**
+	 * Executes an SQL statement and returns the number of rows affected.
+	 * @param sql The SQL statement to execute.
+	 * @returns The number of rows affected by the statement.
+	 */
+	exec(sql: string): number;
+
+	/**
+	 * Executes an SQL statement and returns the number of rows affected.
+	 * @param sql The SQL statement to execute.
+	 * @param values A list of values to substitute into the SQL statement.
+	 * @returns The number of rows affected by the statement.
+	 */
+	exec(sql: string, values: DBRow): number;
+
+	/**
+	 * Executes an SQL statement with list of values and returns the number of rows affected within a transaction.
+	 * @param sql The SQL statement to execute.
+	 * @param values A list of lists of values to substitute into the SQL statement.
+	 * @returns The number of rows affected by the statement.
+	 */
+	exec(sql: string, values: DBRow[]): number;
+
+	/**
+	 * Inserts a row of data into a table within a transaction asynchronously.
+	 * @param tableName The name of the table to insert into.
+	 * @param values The values to insert into the table.
+	 * @returns Whether the insert was successful or not.
+	 */
+	insertAsync(tableName: string, values: DBRow[]): boolean;
+
+	/**
+	 * Inserts data from an Excel file into a table within a transaction asynchronously.
+	 * @param tableSheets The names of the tables to insert into.
+	 * @param excelFile The path to the Excel file containing the data.
+	 * @param startRow The row number to start inserting data from. The row number starts with 1.
+	 * @returns Whether the insert was successful or not.
+	 */
+	insertAsync(tableSheets: string[], excelFile: string, startRow: number): boolean;
+
+	/**
+	 * Inserts data from an Excel file into a table within a transaction asynchronously.
+	 * @param tableSheets A list of table names and corresponding sheet names to insert into.
+	 * @param excelFile The path to the Excel file containing the data.
+	 * @param startRow The row number to start inserting data from. The row number starts with 1.
+	 * @returns Whether the insert was successful or not.
+	 */
+	insertAsync(tableSheets: [string, string][], excelFile: string, startRow: number): boolean;
+
+	/**
+	 * Executes an SQL query asynchronously and returns the results as a list of rows.
+	 * @param sql The SQL statement to execute.
+	 * @param args [optional] A list of values to substitute into the SQL statement.
+	 * @param withColumn [optional] Whether to include column names in the result (default false).
+	 * @returns A list of rows returned by the query.
+	 */
+	queryAsync(sql: string, args?: DBRow, withColumn?: boolean): DBRow[];
+
+	/**
+	 * Executes an SQL query asynchronously and returns the results as a list of rows.
+	 * @param sql The SQL statement to execute.
+	 * @param withColumn [optional] Whether to include column names in the result (default false).
+	 * @returns A list of rows returned by the query.
+	 */
+	queryAsync(sql: string, withColumn?: boolean): DBRow[];
+
+	/**
+	 * Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
+	 * @param sql The SQL statement to execute.
+	 * @param values A list of values to substitute into the SQL statement.
+	 * @returns The number of rows affected by the statement.
+	 */
+	execAsync(sql: string, values: DBRow[]): number;
+
+	/**
+	 * Executes an SQL statement asynchronously and returns the number of rows affected.
+	 * @param sql The SQL statement to execute.
+	 * @returns The number of rows affected by the statement.
+	 */
+	execAsync(sql: string): number;
+}
+
+const db: DB;
+export {db as DB};
+
+/**
+ * A singleton class that manages the game scene trees and provides access to root scene nodes for different game uses.
+ *
+ * @example
+ * ```
+ * import {Director} from "dora";
+ * Director.entry.addChild(node);
+ * ```
+ */
+class Director {
+
+	private constructor();
+
+	/**
+	 * The background color for the game world.
+	 */
+	clearColor: Color;
+
+	/**
+	 * Provides access to the game scheduler, which is used for scheduling tasks like animations and gameplay events.
+	 */
+	scheduler: Scheduler;
+
+	/**
+	 * The root node for 2D user interface elements like buttons and labels.
+	 */
+	readonly ui: Node;
+
+	/**
+	 * The root node for 3D user interface elements with 3D projection effect.
+	 */
+	readonly ui3D: Node;
+
+	/**
+	 * The root node for the starting point of a game.
+	 */
+	readonly entry: Node;
+
+	/**
+	 * The root node for post-rendering scene tree.
+	 */
+	readonly postNode: Node;
+
+	/**
+	 * Provides access to the system scheduler, which is used for low-level system tasks. Should not put any game logic in it.
+	 */
+	readonly systemScheduler: Scheduler;
+
+	/**
+	 * Provides access to the scheduler used for processing post game logic.
+	 */
+	readonly postScheduler: Scheduler;
+
+	/**
+	 * The current active camera in Director's camera stack.
+	 */
+	readonly currentCamera: Camera;
+
+	/**
+	 * Adds a new camera to Director's camera stack and sets it to the current camera.
+	 * @param camera The camera to add.
+	 */
+	pushCamera(camera: Camera): void;
+
+	/**
+	 * Removes the current camera from Director's camera stack.
+	 */
+	popCamera(): void;
+
+	/**
+	 * Removes a specified camera from Director's camera stack.
+	 * @param camera The camera to remove.
+	 * @returns True if the camera was removed, false otherwise.
+	 */
+	removeCamera(camera: Camera): boolean;
+
+	/**
+	 * Removes all cameras from Director's camera stack.
+	 */
+	clearCamera(): void;
+
+	/**
+	 * Cleans up all resources managed by the Director, including scene trees and cameras.
+	 */
+	cleanup(): void;
+}
+
+const director: Director;
+export {director as Director};
+
+/**
+ * A base class for an animation model system.
+ */
+class Playable extends Node {
+
+	protected constructor();
+
+	/**
+	 * The look of the animation.
+	 */
+	look: string;
+
+	/**
+	 * The play speed of the animation.
+	 */
+	speed: number;
+
+	/**
+	 * The recovery time of the animation, in seconds.
+	 * Used for doing transitions from one animation to another animation.
+	 */
+	recovery: number;
+
+	/**
+	 * Whether the animation is flipped horizontally.
+	 */
+	fliped: boolean;
+
+	/**
+	 * The current playing animation name.
+	 */
+	readonly current: string;
+
+	/**
+	 * The last completed animation name.
+	 */
+	readonly lastCompleted: string;
+
+	/**
+	 * Get a key point on the animation model by its name.
+	 * @param name The name of the key point to get.
+	 * @returns The key point value as a Vec2.
+	 */
+	getKey(name: string): Vec2;
+
+	/**
+	 * Plays an animation from the model.
+	 * @param name The name of the animation to play.
+	 * @param loop Whether to loop the animation or not (default is false).
+	 * @returns The duration of the animation in seconds.
+	 */
+	play(name: string, loop?: boolean): number;
+
+	/**
+	 * Stops the currently playing animation.
+	 */
+	stop(): void;
+
+	/**
+	 * Attaches a child node to a slot on the animation model.
+	 * @param name The name of the slot to set.
+	 * @param item The node to set the slot to.
+	 */
+	setSlot(name: string, item: Node): void;
+
+	/**
+	 * Gets the child node attached to the animation model.
+	 * @param name The name of the slot to get.
+	 * @returns The node in the slot, or null if there is no node in the slot.
+	 */
+	getSlot(name: string): Node | null;
+}
+
+export type {Playable as PlayableType};
+
+/**
+* A class for creating instances of the 'Playable' record.
+*/
+interface PlayableClass {
+
+	/**
+	 * Creates a new instance of 'Playable' from the specified animation file.
+	 * @param filename the filename of the animation file to load.
+	 * Supports DragonBone, Spine2D, and Dora Model files.
+	 * Should be one of the formats below:
+	 *  "model:" + modelFile
+	 *  "spine:" + spineStr
+	 *  "bone:" + dragonBoneStr
+	 * @returns a new instance of 'Playable'.
+	 */
+	(this: void, filename: string): Playable;
+}
+
+const playableClass: PlayableClass;
+export {playableClass as Playable};
+
+/**
+ * An implementation of the 'Playable' record using the DragonBones animation system.
+ */
+class DragonBone extends Playable {
+
+	private constructor();
+
+	/**
+	 * Whether to show debug graphics.
+	 */
+	showDebug: boolean;
+
+	/**
+	 * Whether hit testing is enabled.
+	 */
+	hitTestEnabled: boolean;
+
+	/**
+	 * Checks if a point is inside the boundaries of the instance and returns the name of the bone or slot at that point, or undefined if no bone or slot is found.
+	 * @param x The x-coordinate of the point to check.
+	 * @param y The y-coordinate of the point to check.
+	 * @returns The name of the bone or slot at the point, or undefined if no bone or slot is found.
+	 */
+	containsPoint(x: number, y: number): string | undefined;
+
+	/**
+	 * Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or undefined if no bone or slot is found.
+	 * @param x1 The x-coordinate of the start point of the line segment.
+	 * @param y1 The y-coordinate of the start point of the line segment.
+	 * @param x2 The x-coordinate of the end point of the line segment.
+	 * @param y2 The y-coordinate of the end point of the line segment.
+	 * @returns The name of the bone or slot at the intersection point, or undefined if no bone or slot is found.
+	 */
+	intersectsSegment(x1: number, y1: number, x2: number, y2: number): string | undefined;
+}
+
+export type {DragonBone as DragonBoneType};
+
+/**
+* A class for creating instances of the 'DragonBone' record.
+*/
+interface DragonBoneClass {
+
+	/**
+	 * Returns a list of available looks for the specified DragonBone file string.
+	 * @param boneStr The DragonBone file string to get the looks for.
+	 * @returns A list of strings representing the available looks.
+	 */
+	getLooks(boneStr: string): string[];
+
+	/**
+	 * Returns a list of available animations for the specified DragonBone file string.
+	 * @param boneStr The DragonBone file string to get the animations for.
+	 * @returns A list of strings representing the available animations.
+	 */
+	getAnimations(boneStr: string): string[];
+
+	/**
+	 * Creates a new instance of 'DragonBone' using the specified bone string.
+	 * @param boneStr The DragonBone file string for the new instance.
+	 * @returns A new instance of 'DragonBone'.
+	 */
+	(this: void, boneStr: string): DragonBone;
+
+	/**
+	 * Creates a new instance of 'DragonBone' using the specified bone file and atlas file. This function only loads the first armature.
+	 * @param boneFile The filename of the bone file to load.
+	 * @param atlasFile The filename of the atlas file to load.
+	 * @returns A new instance of 'DragonBone' with the specified bone file and atlas file.
+	 */
+	(this: void, boneFile: string, atlasFile: string): DragonBone;
+}
+
+const dragonBoneClass: DragonBoneClass;
+export {dragonBoneClass as DragonBone};
+
+/**
+ * An implementation of an animation system using the Spine engine.
+ */
+class Spine extends Playable {
+
+	private constructor();
+
+	/** Whether to show debug graphics. */
+	showDebug: boolean;
+
+	/** Whether hit testing is enabled. */
+	hitTestEnabled: boolean;
+
+	/**
+	 * Sets the rotation of a bone in the Spine skeleton.
+	 * @param name The name of the bone to rotate.
+	 * @param rotation The amount to rotate the bone, in degrees.
+	 * @returns Whether the rotation was successfully set or not.
+	 */
+	setBoneRotation(name: string, rotation: number): boolean;
+
+	/**
+	 * Checks if a point in space is inside the boundaries of the Spine skeleton.
+	 * @param x The x-coordinate of the point to check.
+	 * @param y The y-coordinate of the point to check.
+	 * @returns The name of the bone at the point, or null if there is no bone at the point.
+	 */
+	containsPoint(x: number, y: number): string | null;
+
+	/**
+	 * Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or null if no bone or slot is found.
+	 * @param x1 The x-coordinate of the start point of the line segment.
+	 * @param y1 The y-coordinate of the start point of the line segment.
+	 * @param x2 The x-coordinate of the end point of the line segment.
+	 * @param y2 The y-coordinate of the end point of the line segment.
+	 * @returns The name of the bone or slot at the intersection point, or null if no bone or slot is found.
+	 */
+	intersectsSegment(x1: number, y1: number, x2: number, y2: number): string | null;
+}
+
+export type {Spine as SpineType};
+
+/**
+* A class for creating instances of the 'Spine' record.
+*/
+interface SpineClass {
+
+	/**
+	 * Returns a list of available looks for the specified Spine2D file string.
+	 * @param spineStr The Spine2D file string to get the looks for.
+	 * @returns A list of strings representing the available looks.
+	 */
+	getLooks(spineStr: string): string[];
+
+	/**
+	 * Returns a list of available animations for the specified Spine2D file string.
+	 * @param spineStr The Spine2D file string to get the animations for.
+	 * @returns A list of strings representing the available animations.
+	 */
+	getAnimations(spineStr: string): string[];
+
+	/**
+	 * Creates a new instance of 'Spine' using the specified Spine string.
+	 * @param spineStr The Spine file string for the new instance.
+	 * @returns A new instance of 'Spine'.
+	 */
+	(this: void, spineStr: string): Spine;
+
+	/**
+	 * Creates a new instance of 'Spine' using the specified skeleton file and atlas file.
+	 * @param skelFile The filename of the skeleton file to load.
+	 * @param atlasFile The filename of the atlas file to load.
+	 * @returns A new instance of 'Spine' with the specified skeleton file and atlas file.
+	 */
+	(this: void, skelFile: string, atlasFile: string): Spine;
+}
+
+const spineClass: SpineClass;
+export {spineClass as Spine};
+
+/**
+ * Another implementation of the 'Playable' record.
+ */
+class Model extends Playable {
+
+	protected constructor();
+
+	/**
+	 * The duration of the current animation.
+	 */
+	duration: number;
+
+	/**
+	 * Whether the animation model will be played in reverse.
+	 */
+	reversed: boolean;
+
+	/**
+	 * Whether the animation model is currently playing.
+	 */
+	playing: boolean;
+
+	/**
+	 * Whether the animation model is currently paused.
+	 */
+	paused: boolean;
+
+	/**
+	 * Check if an animation exists in the model.
+	 * @param name The name of the animation to check.
+	 * @returns Whether the animation exists in the model or not.
+	 */
+	hasAnimation(name: string): boolean;
+
+	/**
+	 * Pauses the currently playing animation.
+	 */
+	pause(): void;
+
+	/**
+	 * Resumes the currently paused animation, or plays a new animation if specified.
+	 * @param name [optional] The name of the animation to play.
+	 * @param loop [optional] Whether to loop the animation or not (default is false).
+	 */
+	resume(name?: string, loop?: boolean): void;
+
+	/**
+	 * Resets the current animation to its initial state.
+	 */
+	reset(): void;
+
+	/**
+	 * Updates the animation to the specified time, and optionally in reverse.
+	 * @param elapsed The time to update to.
+	 * @param reversed [optional] Whether to play the animation in reverse (default is false).
+	 */
+	updateTo(elapsed: number, reversed?: boolean): void;
+
+	/**
+	 * Gets the node with the specified name.
+	 * @param name The name of the node to get.
+	 * @returns The node with the specified name.
+	 */
+	getNodeByName(name: string): Node;
+
+	/**
+	 * Calls the specified function for each node in the model, and stops if the function returns false.
+	 * @param func The function to call for each node.
+	 * @returns Whether the function was called for all nodes or not.
+	 */
+	eachNode(func: (node: Node) => boolean): boolean;
+}
+
+export type {Model as ModelType}
+
+/**
+ * A class for creating instances of the 'Model' record.
+ */
+interface ModelClass {
+
+	/**
+	 * A method that returns a new dummy instance of 'Model' that can do nothing.
+	 * @returns A new dummy instance of 'Model'.
+	 */
+	dummy(): Model;
+
+	/**
+	 * Gets the clip file from the specified model file.
+	 * @param filename The filename of the model file to search.
+	 * @returns The name of the clip file.
+	 */
+	getClipFile(filename: string): string;
+
+	/**
+	 * Gets an array of look names from the specified model file.
+	 * @param filename The filename of the model file to search.
+	 * @returns An array of look names found in the model file.
+	 */
+	getLooks(filename: string): string[];
+
+	/**
+	 * Gets an array of animation names from the specified model file.
+	 * @param filename The filename of the model file to search.
+	 * @returns An array of animation names found in the model file.
+	 */
+	getAnimations(filename: string): string[];
+
+	/**
+	 * Creates a new instance of 'Model' from the specified model file.
+	 * @param filename The filename of the model file to load.
+	 * Can be filename with or without extension like: "Model/item" or "Model/item.model".
+	 * @returns A new instance of 'Model'.
+	 */
+	(filename: string): Model;
+}
+
+const modelClass: ModelClass;
+export {modelClass as Model};
+
+/**
+ * A record for scene node that draws simple shapes such as dots, lines, and polygons.
+ */
+class DrawNode extends Node {
+
+	private constructor();
+
+	/**
+	 * Whether to write to the depth buffer when drawing (default is false).
+	 */
+	depthWrite: boolean;
+
+	/**
+	 * The blend function used to draw the shape.
+	 */
+	blendFunc: BlendFunc;
+
+	/**
+	 * Draws a dot at a specified position with a specified radius and color.
+	 * @param pos The position of the dot.
+	 * @param radius The radius of the dot.
+	 * @param color The color of the dot (default is white).
+	 */
+	drawDot(this: DrawNode, pos: Vec2, radius: number, color?: Color): void;
+
+	/**
+	 * Draws a line segment between two points with a specified radius and color.
+	 * @param from The starting point of the line.
+	 * @param to The ending point of the line.
+	 * @param radius The radius of the line.
+	 * @param color The color of the line (default is white).
+	 */
+	drawSegment(this: DrawNode, from: Vec2, to: Vec2, radius: number, color?: Color): void;
+
+	/**
+	 * Draws a polygon defined by a list of vertices with a specified fill color and border.
+	 * @param verts The vertices of the polygon.
+	 * @param fillColor The fill color of the polygon (default is white).
+	 * @param borderWidth The width of the border (default is 0).
+	 * @param borderColor The color of the border (default is white).
+	 */
+	drawPolygon(this: DrawNode, verts: Vec2[], fillColor?: Color, borderWidth?: number, borderColor?: Color): void;
+
+	/**
+	 * Draws a set of vertices as triangles, each vertex with its own color.
+	 * @param verts The list of vertices and their colors.
+	 */
+	drawVertices(this: DrawNode, verts: [Vec2, Color][]): void;
+
+	/**
+	 * Clears all previously drawn shapes from the node.
+	 */
+	clear(this: DrawNode): void;
+}
+
+export type {DrawNode as DrawNodeType};
+
+/**
+* A class for creating DrawNode objects.
+*/
+interface DrawNodeClass {
+	/**
+	 * Creates a new DrawNode object.
+	 * @returns The new DrawNode object.
+	 */
+	(this: void): DrawNode;
+}
+
+const drawNodeClass: DrawNodeClass;
+export {drawNodeClass as DrawNode};
+
+/**
+ * Emits a global event with the given name and arguments to all listeners registered by node:gslot() function.
+ * @param eventName The name of the event to emit.
+ * @param args The data to pass to the global event listeners.
+ */
+export function emit(eventName: string, ...args: any[]): void;
+
+type Component = number | boolean | string | ContainerItem;
+
+/**
+ * A record type representing an entity for an ECS game system.
+ */
+class Entity extends Object {
+
+	private constructor();
+
+	/** The index of the entity. */
+	readonly index: number;
+
+	/**
+	 * A syntax shortcut for accessing the old values of the entity's properties.
+	 * The old values are values before last change of the component values of the Entity.
+	 * Don't keep a reference to it for it is not an actual table.
+	 */
+	readonly oldValues: Record<string, Component>;
+
+	/**
+	 * A function that destroys the entity.
+	 */
+	destroy(): void;
+
+	/**
+	 * A function that sets a property of the entity to a given value.
+	 * This function will trigger events for Observer objects.
+	 * @param key The name of the property to set.
+	 * @param item The value to set the property to.
+	 */
+	set(key: string, item: Component): void;
+
+	/**
+	 * A function that retrieves the value of a property of the entity
+	 * @param key The name of the property to retrieve the value of.
+	 * @returns The value of the specified property.
+	 */
+	get(key: string): Component;
+
+	/**
+	 * A function that retrieves the previous value of a property of the entity
+	 * The old values are values before last change of the component values of the Entity.
+	 * @param key The name of the property to retrieve the previous value of.
+	 * @returns The previous value of the specified property
+	 */
+	getOld(key: string): Component;
+
+	/**
+	 * A metamethod that retrieves the value of a property of the entity.
+	 * @param key The name of the property to retrieve the value of.
+	 * @returns The value of the specified property.
+	 */
+	[key: string]: Component;
+}
+
+export type {Entity as EntityType};
+
+/**
+ * A class for creating and managing entities in the ECS game systems.
+ */
+interface EntityClass {
+
+	/** The number of all running entities. */
+	readonly count: number;
+
+	/**
+	 * A function that clears all entities.
+	 */
+	clear(): void;
+
+	/**
+	 * A metamethod that creates a new entity with the specified components.
+	 * And you can then get the newly created Entity object from groups and observers.
+	 * @param coms A table mapping component names (strings) to component values (Items).
+	 * @example
+	 * Entity({ a: 1, b: "abc", c: Node() });
+	 */
+	(this: void, coms: Record<string, Component>): Entity;
+}
+
+const entity: EntityClass;
+export {entity as Entity};
+
+/**
+ * A record representing an observer of entity changes in the game systems.
+ */
+class Observer {
+
+	private constructor();
+
+	/**
+	 * Watches the components changes to entities that match the observer's component filter.
+	 * @param func The function to call when a change occurs.
+	 * @returns The same observer, for method chaining.
+	 */
+	watch(func: (entity: Entity) => void): Observer;
+}
+
+/**
+ * The types of actions that an observer can watch for.
+ */
+export const enum ObserverAction {
+
+	/** The addition of a new entity. */
+	Add = "Add",
+
+	/** The modification of an existing entity. */
+	Change = "Change",
+
+	/** The addition or modification of an entity. */
+	AddOrChange = "AddOrChange",
+
+	/** The removal of an existing entity. */
+	Remove = "Remove"
+}
+
+/**
+* A class for creating Observer objects.
+*/
+interface ObserverClass {
+
+	/**
+	 * A metamethod that creates a new observer with the specified component filter and action to watch for.
+	 * @param action The type of action to watch for.
+	 * @param components A list of the names of the components to filter entities by.
+	 * @returns The new observer.
+	 */
+	(this: void, action: ObserverAction, components: string[]): Observer;
+}
+
+const observerClass: ObserverClass;
+export {observerClass as Observer};
+
+/**
+ * A record representing a group of entities in the ECS game systems.
+ */
+class Group extends Object {
+
+	private constructor();
+
+	/** The number of entities in the group. */
+	readonly count: number;
+
+	/**
+	 * Calls a function for each entity in the group.
+	 * @param func The function to call for each entity. Returning true inside the function to stop iteration.
+	 * @returns False if all entities were processed, True if the iteration was interrupted.
+	 */
+	each(func: (entity: Entity) => boolean): boolean;
+
+	/**
+	 * Finds the first entity in the group that satisfies a predicate function.
+	 * @param func The predicate function to test each entity with.
+	 * @returns The first entity that satisfies the predicate, or undefined if no entity does.
+	 */
+	find(func: (entity: Entity) => boolean): Entity | undefined;
+
+	/**
+	 * Watches the group for changes to its entities, calling a function whenever an entity is added or changed.
+	 * @param func The function to call when an entity is added or changed.
+	 * @returns The same group, for method chaining.
+	 */
+	watch(func: (entity: Entity) => void): Group;
+}
+
+export type {Group as GroupType};
+
+/**
+* A class for creating Group objects.
+*/
+interface GroupClass {
+
+	/**
+	 * A metamethod that creates a new group with the specified component names.
+	 * @param components A list of the names of the components to include in the group.
+	 * @returns The new group.
+	 */
+	(this: void, components: string[]): Group;
+}
+
+const groupClass: GroupClass;
+export {groupClass as Group};
+
+/**
+ * Represents a 2D texture.
+ * Inherits from `Object`.
+ */
+class Texture2D extends Object {
+
+	private constructor();
+
+	/** The width of the texture, in pixels. */
+	readonly width: number;
+
+	/** The height of the texture, in pixels. */
+	readonly height: number;
+}
+
+export type {Texture2D as Texture2DType};
+
+/**
+ * A class used to render a texture as a grid of sprites, where each sprite can be positioned,
+ * colored, and have its UV coordinates manipulated.
+ */
+class Grid extends Node {
+
+	private constructor();
+
+	/** The number of columns in the grid. There are `gridX + 1` vertices horizontally for rendering. */
+	readonly gridX: number;
+
+	/** The number of rows in the grid. There are `gridY + 1` vertices vertically for rendering. */
+	readonly gridY: number;
+
+	/** Whether depth writes are enabled (default is false). */
+	depthWrite: boolean;
+
+	/** The texture used for the grid. */
+	texture: Texture2D;
+
+	/** The rectangle within the texture that is used for the grid. */
+	textureRect: Rect;
+
+	/** The blending function used for the grid. */
+	blendFunc: BlendFunc;
+
+	/** The sprite effect applied to the grid. Default is `SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")`. */
+	effect: SpriteEffect;
+
+	/**
+	 * Sets the position of a vertex in the grid.
+	 * @param x The x-coordinate of the vertex in the grid.
+	 * @param y The y-coordinate of the vertex in the grid.
+	 * @param pos The new position of the vertex.
+	 */
+	setPos(x: number, y: number, pos: Vec2): void;
+
+	/**
+	 * Gets the position of a vertex in the grid.
+	 * @param x The x-coordinate of the vertex in the grid.
+	 * @param y The y-coordinate of the vertex in the grid.
+	 * @returns The current position of the vertex.
+	 */
+	getPos(x: number, y: number): Vec2;
+
+	/**
+	 * Gets the color of a vertex in the grid.
+	 * @param x The x-coordinate of the vertex in the grid.
+	 * @param y The y-coordinate of the vertex in the grid.
+	 * @returns The current color of the vertex.
+	 */
+	getColor(x: number, y: number): Color;
+
+	/**
+	 * Sets the color of a vertex in the grid.
+	 * @param x The x-coordinate of the vertex in the grid.
+	 * @param y The y-coordinate of the vertex in the grid.
+	 * @param color The new color of the vertex.
+	 */
+	setColor(x: number, y: number, color: Color): void;
+
+	/**
+	 * Moves the UV coordinates of a vertex in the grid.
+	 * @param x The x-coordinate of the vertex in the grid.
+	 * @param y The y-coordinate of the vertex in the grid.
+	 * @param offset The offset by which to move the UV coordinates.
+	 */
+	moveUV(x: number, y: number, offset: Vec2): void;
+}
+
+export type {Grid as GridType};
+
+/**
+* A class for creating Grid objects.
+*/
+interface GridClass {
+
+	/**
+	 * Creates a new Grid with the specified texture rectangle and grid size.
+	 * @param textureRect The rectangle within the texture to use for the grid.
+	 * @param gridX The number of columns in the grid.
+	 * @param gridY The number of rows in the grid.
+	 * @returns The new Grid instance.
+	 */
+	(this: void, textureRect: Rect, gridX: number, gridY: number): Grid;
+
+	/**
+	 * Creates a new Grid with the specified texture, texture rectangle, and grid size.
+	 * @param texture The texture to use for the grid.
+	 * @param textureRect The rectangle within the texture to use for the grid.
+	 * @param gridX The number of columns in the grid.
+	 * @param gridY The number of rows in the grid.
+	 * @returns The new Grid instance.
+	 */
+	(this: void, texture: Texture2D, textureRect: Rect, gridX: number, gridY: number): Grid;
+
+	/**
+	 * Creates a new Grid with the specified texture and grid size.
+	 * @param texture The texture to use for the grid.
+	 * @param gridX The number of columns in the grid.
+	 * @param gridY The number of rows in the grid.
+	 * @returns The new Grid instance.
+	 */
+	(this: void, texture: Texture2D, gridX: number, gridY: number): Grid;
+
+	/**
+	 * Creates a new Grid with the specified clip string and grid size.
+	 * @param clipStr The clip string to use for the grid. Can be "Image/file.png" and "Image/items.clip|itemA".
+	 * @param gridX The number of columns in the grid.
+	 * @param gridY The number of rows in the grid.
+	 * @returns The new Grid instance.
+	 */
+	(this: void, clipStr: string, gridX: number, gridY: number): Grid;
+}
+
+const gridClass: GridClass;
+export {gridClass as Grid};
+
+/**
+ * An enum that defines the various types of resources that can be loaded into the cache.
+ */
+export const enum CacheResourceType {
+	Bone = "Bone",
+	Spine = "Spine",
+	Texture = "Texture",
+	SVG = "SVG",
+	Clip = "Clip",
+	Frame = "Frame",
+	Model = "Model",
+	Particle = "Particle",
+	Shader = "Shader",
+	Font = "Font",
+	Sound = "Sound",
+}
+
+/**
+ * An enum that defines the various types of resources that can be safely unloaded from the cache.
+ */
+export const enum CacheResourceTypeSafeUnload {
+	Texture = "Texture",
+	SVG = "SVG",
+	Clip = "Clip",
+	Frame = "Frame",
+	Model = "Model",
+	Particle = "Particle",
+	Shader = "Shader",
+	Font = "Font",
+	Sound = "Sound",
+	Spine = "Spine",
+}
+
+/**
+ * A singleton cache instance for various game resources.
+ */
+class Cache {
+
+	private constructor();
+
+	/**
+	 * Loads a file into the cache with a blocking operation.
+	 * @param filename The name of the file to load.
+	 * @returns True if the file was loaded successfully, false otherwise.
+	 */
+	load(filename: string): boolean;
+
+	/**
+	 * Loads a file into the cache asynchronously.
+	 * @param filename The name of the file to load.
+	 * @returns True if the file was loaded successfully, false otherwise.
+	 */
+	loadAsync(filename: string): boolean;
+
+	/**
+	 * Updates the content of a file loaded in the cache.
+	 * If the item of filename does not exist in the cache, a new file content will be added into the cache.
+	 * @param filename The name of the file to update.
+	 * @param content The new content for the file.
+	 */
+	update(filename: string, content: string): void;
+
+	/**
+	 * Updates the texture object of the specific filename loaded in the cache.
+	 * If the texture object of filename does not exist in the cache, it will be added into the cache.
+	 * @param filename The name of the texture to update.
+	 * @param texture The new texture object for the file.
+	 */
+	update(filename: string, texture: Texture2D): void;
+
+	/**
+	 * Unloads a resource from the cache.
+	 * @param type The type of resource to unload.
+	 * @returns True if the resource was unloaded successfully, false otherwise.
+	 */
+	unload(type: CacheResourceTypeSafeUnload): boolean;
+
+	/**
+	 * Unloads a resource from the cache.
+	 * @param filename The name of the file to unload.
+	 * @returns True if the resource was unloaded successfully, false otherwise.
+	 */
+	unload(filename: string): boolean;
+
+	/**
+	 * Removes all unused resources (not being referenced) of the given type from the cache.
+	 * @param type The type of resource to remove.
+	 */
+	removeUnused(type: CacheResourceType): void;
+
+	/**
+	 * Removes all unused resources (not being referenced) from the cache.
+	 */
+	removeUnused(): void;
+}
+
+const cache: Cache;
+export {cache as Cache};
+
+/** A definition object for fixtures added to physics bodies. */
+class FixtureDef extends Object {
+	private constructor();
+}
+
+/**
+ * A class to represent a physics sensor object in the game world.
+ */
+class Sensor extends Object {
+
+	private constructor();
+
+	/**
+	 * Whether the sensor is currently enabled or not.
+	 */
+	enabled: boolean;
+
+	/**
+	 * The tag for the sensor.
+	 */
+	readonly tag: number;
+
+	/**
+	 * The "Body" object that owns the sensor.
+	 */
+	readonly owner: Body;
+
+	/**
+	 * Whether the sensor is currently sensing any other "Body" objects in the game world.
+	 */
+	readonly sensed: boolean;
+
+	/**
+	 * An array of "Body" objects that are currently being sensed by the sensor.
+	 */
+	readonly sensedBodies: Array;
+
+	/**
+	 * Determines whether the specified "Body" object is currently being sensed by the sensor.
+	 * @param body The "Body" object to check if it is being sensed.
+	 * @returns True if the "Body" object is being sensed by the sensor, false otherwise.
+	 */
+	contains(body: Body): boolean;
+}
+
+/**
+ * A record called "BodyDef" to describe the properties of a physics body.
+ * Inherits from `Object`.
+ */
+class BodyDef extends Object {
+
+	private constructor();
+
+	/**
+	 * An enumeration for the different types of bodies.
+	 */
+	type: "Static" | "Dynamic" | "Kinematic";
+
+	/** Position of the body. */
+	position: Vec2;
+
+	/** Angle of the body. */
+	angle: number;
+
+	/** Face image or other items for the body. */
+	face: string;
+
+	/** Position of the face on the body. */
+	facePos: Vec2;
+
+	/** Linear damping of the body. */
+	linearDamping: number;
+
+	/** Angular damping of the body. */
+	angularDamping: number;
+
+	/** Initial linear acceleration of the body. */
+	linearAcceleration: Vec2;
+
+	/** Whether the body's rotation is fixed. */
+	fixedRotation: boolean;
+
+	/**
+	 * Whether the body is a bullet. Set to true for extra bullet movement check.
+	 */
+	bullet: boolean;
+
+	/**
+	 * Attaches a polygon fixture definition to the body.
+	 * @param center The center point of the polygon.
+	 * @param width The width of the polygon.
+	 * @param height The height of the polygon.
+	 * @param angle The angle of the polygon (default is 0.0) (optional).
+	 * @param density The density of the polygon (default is 0.0) (optional).
+	 * @param friction The friction of the polygon (default is 0.4, should be 0 to 1.0) (optional).
+	 * @param restitution The restitution of the polygon (default is 0.0, should be 0 to 1.0) (optional).
+	 */
+	attachPolygon(center: Vec2, width: number, height: number, angle?: number, density?: number, friction?: number, restitution?: number): void;
+
+	/**
+	 * Attaches a polygon fixture definition to the body using only width and height.
+	 * @param width The width of the polygon.
+	 * @param height The height of the polygon.
+	 * @param density The density of the polygon (default is 0.0) (optional).
+	 * @param friction The friction of the polygon (default is 0.4, should be 0 to 1.0) (optional).
+	 * @param restitution The restitution of the polygon (default is 0.0, should be 0 to 1.0) (optional).
+	 */
+	attachPolygon(width: number, height: number, density?: number, friction?: number, restitution?: number): void;
+
+	/**
+	 * Attaches a polygon fixture definition to the body using vertices.
+	 * @param vertices The vertices of the polygon.
+	 * @param density The density of the polygon (default is 0.0) (optional).
+	 * @param friction The friction of the polygon (default is 0.4, should be 0 to 1.0) (optional).
+	 * @param restitution The restitution of the polygon (default is 0.0, should be 0 to 1.0) (optional).
+	 */
+	attachPolygon(vertices: Vec2[], density?: number, friction?: number, restitution?: number): void;
+
+	/**
+	 * Attaches a concave shape definition made of multiple convex shapes to the body.
+	 * @param vertices A table containing the vertices of each convex shape that makes up the concave shape.
+	 * @param density The density of the concave shape (default is 0.0) (optional).
+	 * @param friction The friction of the concave shape (default is 0.4, should be 0 to 1.0) (optional).
+	 * @param restitution The restitution of the concave shape (default is 0.0, should be 0 to 1.0) (optional).
+	 */
+	attachMulti(vertices: Vec2[], density?: number, friction?: number, restitution?: number): void;
+
+	/**
+	 * Attaches a disk fixture definition to the body.
+	 * @param center The center point of the disk.
+	 * @param radius The radius of the disk.
+	 * @param density The density of the disk (default is 0.0) (optional).
+	 * @param friction The friction of the disk (default is 0.4, should be 0 to 1.0) (optional).
+	 * @param restitution The restitution of the disk (default is 0.0, should be 0 to 1.0) (optional).
+	 */
+	attachDisk(center: Vec2, radius: number, density?: number, friction?: number, restitution?: number): void;
+
+	/**
+	 * Attaches a disk fixture to the body using only radius.
+	 * @param radius The radius of the disk.
+	 * @param density The density of the disk (default is 0.0) (optional).
+	 * @param friction The friction of the disk (default is 0.4) (optional).
+	 * @param restitution The restitution of the disk (default is 0.0) (optional).
+	 */
+	attachDisk(radius: number, density?: number, friction?: number, restitution?: number): void;
+
+	/**
+	 * Attaches a chain fixture definition to the body. The Chain fixture is a free form sequence of line segments that has two-sided collision.
+	 * @param vertices The vertices of the chain.
+	 * @param friction The friction of the chain (default is 0.4) (optional).
+	 * @param restitution The restitution of the chain (default is 0.0) (optional).
+	 */
+	attachChain(vertices: Vec2[], friction?: number, restitution?: number): void;
+
+	/**
+	 * Attaches a polygon sensor fixture definition to the body.
+	 * @param tag An integer tag for the sensor.
+	 * @param width The width of the polygon (optional).
+	 * @param height The height of the polygon (optional).
+	 * @param center The center point of the polygon (optional).
+	 * @param angle The angle of the polygon (default is 0.0) (optional).
+	 */
+	attachPolygonSensor(tag: number, width?: number, height?: number, center?: Vec2, angle?: number): void;
+
+	/**
+	 * Attaches a polygon sensor fixture definition to the body using vertices.
+	 * @param tag An integer tag for the sensor.
+	 * @param vertices A table containing the vertices of the polygon.
+	 */
+	attachPolygonSensor(tag: number, vertices: Vec2[]): void;
+
+	/**
+	 * Attaches a disk sensor fixture definition to the body.
+	 * @param tag An integer tag for the sensor.
+	 * @param center The center of the disk.
+	 * @param radius The radius of the disk.
+	 */
+	attachDiskSensor(tag: number, center: Vec2, radius: number): void;
+
+	/**
+	 * Attaches a disk sensor fixture to the body using only radius.
+	 * @param tag An integer tag for the sensor.
+	 * @param radius The radius of the disk.
+	 */
+	attachDiskSensor(tag: number, radius: number): void;
+}
+
+export type {BodyDef as BodyDefType};
+
+/**
+ * A class for creating BodyDef and FixtureDef.
+ */
+interface BodyDefClass {
+
+	/**
+	 * Creates a polygon fixture definition with the specified dimensions.
+	 * @param width The width of the polygon.
+	 * @param height The height of the polygon.
+	 * @param density The density of the polygon (default is 0.0) (optional).
+	 * @param friction The friction of the polygon (default is 0.4, should be 0.0 to 1.0) (optional).
+	 * @param restitution The restitution of the polygon (default is 0.0, should be  0.0 to 1.0) (optional).
+	 * @returns A FixtureDef object for the created polygon fixture.
+	 */
+	polygon(width: number, height: number, density?: number, friction?: number, restitution?: number): FixtureDef;
+
+	/**
+	 * Creates a polygon fixture definition with the specified dimensions and center position.
+	 * @param center The center position of the polygon.
+	 * @param width The width of the polygon.
+	 * @param height The height of the polygon.
+	 * @param angle The angle of the polygon in radians (default is 0.0) (optional).
+	 * @param density The density of the polygon (default is 0.0) (optional).
+	 * @param friction The friction of the polygon (default is 0.4, should be 0.0 to 1.0) (optional).
+	 * @param restitution The restitution of the polygon (default is 0.0, should be 0.0 to 1.0) (optional).
+	 * @returns A FixtureDef object for the created polygon fixture.
+	 */
+	polygon(center: Vec2, width: number, height: number, angle?: number, density?: number, friction?: number, restitution?: number): FixtureDef;
+
+	/**
+	 * Creates a polygon fixture definition with the specified vertices.
+	 * @param vertices The vertices of the polygon.
+	 * @param density The density of the polygon (default is 0.0) (optional).
+	 * @param friction The friction of the polygon (default is 0.4, should be 0.0 to 1.0) (optional).
+	 * @param restitution The restitution of the polygon (default is 0.0, should be 0.0 to 1.0) (optional).
+	 * @returns A FixtureDef object for the created polygon fixture.
+	 */
+	polygon(vertices: Vec2[], density?: number, friction?: number, restitution?: number): FixtureDef;
+
+	/**
+     * Create a concave shape definition made of multiple convex shapes.
+     * @param vertices Array of Vec2 representing vertices of each convex shape that makes up the concave shape. Each convex shape in the vertices array should end with a Vec2(0.0, 0.0) as a separator.
+     * @param density The density of the shape (optional, default 0.0).
+     * @param friction The friction coefficient of the shape (optional, default 0.4, should be 0.0 to 1.0).
+     * @param restitution The restitution (elasticity) of the shape (optional, default 0.0, should be 0.0 to 1.0).
+     * @returns The resulting fixture definition.
+     */
+	multi(vertices: Vec2[], density?: number, friction?: number, restitution?: number): FixtureDef;
+
+	/**
+	 * Create a Disk-shape fixture definition.
+	 * @param center The center of the circle as Vec2.
+	 * @param radius The radius of the circle.
+	 * @param density The density of the circle (optional, default 0.0).
+	 * @param friction The friction coefficient of the circle (optional, default 0.4, should be 0.0 to 1.0).
+	 * @param restitution The restitution (elasticity) of the circle (optional, default 0.0, should be 0.0 to 1.0).
+	 * @returns The resulting fixture definition.
+	 */
+	disk(center: Vec2, radius: number, density?: number, friction?: number, restitution?: number): FixtureDef;
+
+	/**
+	 * Create a Disk-shape fixture definition with center at origin.
+	 * @param radius The radius of the circle.
+	 * @param density The density of the circle (optional, default 0.0).
+	 * @param friction The friction coefficient of the circle (optional, default 0.4, should be 0.0 to 1.0).
+	 * @param restitution The restitution (elasticity) of the circle (optional, default 0.0, should be 0.0 to 1.0).
+	 * @returns The resulting fixture definition.
+	 */
+	disk(radius: number, density?: number, friction?: number, restitution?: number): FixtureDef;
+
+	/**
+	 * Create a Chain-shape fixture definition. This fixture is a free form sequence of line segments that has two-sided collision.
+	 * @param vertices The vertices of the chain as an array of Vec2.
+	 * @param friction The friction coefficient of the chain (optional, default 0.4, should be 0.0 to 1.0).
+	 * @param restitution The restitution (elasticity) of the chain (optional, default 0.0, should be 0.0 to 1.0).
+	 * @returns The resulting fixture definition.
+	 */
+	chain(vertices: Vec2[], friction?: number, restitution?: number): FixtureDef;
+
+	/**
+	 * Create a new instance of BodyDef class.
+	 * @returns a new BodyDef object.
+	 */
+	(this: void): BodyDef;
+}
+
+const bodyDefClass: BodyDefClass;
+export {bodyDefClass as BodyDef};
+
+/**
+ * A class represents a physics body in the world.
+ */
+class Body extends Node {
+
+	private constructor();
+
+	/**
+	 * The physics world that the body belongs to.
+	 */
+	readonly world: PhysicsWorld;
+
+	/**
+	 * The definition of the body.
+	 */
+	readonly bodyDef: BodyDef;
+
+	/**
+	 * The mass of the body.
+	 */
+	readonly mass: number;
+
+	/**
+	 * Whether the body is used as a sensor or not.
+	 */
+	readonly sensor: boolean;
+
+	/**
+	 * The x-axis velocity of the body.
+	 */
+	velocityX: number;
+
+	/**
+	 * The y-axis velocity of the body.
+	 */
+	velocityY: number;
+
+	/**
+	 * The velocity of the body as a `Vec2`.
+	 */
+	velocity: Vec2;
+
+	/**
+	 * The angular rate of the body.
+	 */
+	angularRate: number;
+
+	/**
+	 * The collision group that the body belongs to.
+	 */
+	group: number;
+
+	/**
+	 * The linear damping of the body.
+	 */
+	linearDamping: number;
+
+	/**
+	 * The angular damping of the body.
+	 */
+	angularDamping: number;
+
+	/**
+	 * The reference for an owner of the body.
+	 */
+	owner: Object;
+
+	/**
+	 * Whether the body is currently receiving contact events or not.
+	 */
+	receivingContact: boolean;
+
+	/**
+	 * Applies a linear impulse to the body at a specified position.
+	 * @param impulse The linear impulse to apply.
+	 * @param pos The position at which to apply the impulse.
+	 */
+	applyLinearImpulse(self: Body, impulse: Vec2, pos: Vec2): void;
+
+	/**
+	 * Applies an angular impulse to the body.
+	 * @param impulse The angular impulse to apply.
+	 */
+	applyAngularImpulse(self: Body, impulse: number): void;
+
+	/**
+	 * Removes the sensor with the specified tag from the body.
+	 * @param tag The tag of the sensor to remove.
+	 * @returns Whether a sensor with the specified tag was found and removed.
+	 */
+	removeSensorByTag(self: Body, tag: number): boolean;
+
+	/**
+	 * Attaches a fixture to the body.
+	 * @param fixtureDef The fixture definition for the fixture to attach.
+	 */
+	attach(self: Body, fixtureDef: FixtureDef): void;
+
+	/**
+	 * Returns the sensor with the given tag.
+	 * @param tag The tag of the sensor to get.
+	 * @returns The sensor with the given tag.
+	 */
+	getSensorByTag(self: Body, tag: number): Sensor;
+
+	/**
+	 * Removes the given sensor from the body's sensor list.
+	 * @param sensor The sensor to remove.
+	 * @returns True if the sensor was successfully removed, false otherwise.
+	 */
+	removeSensor(self: Body, sensor: Sensor): boolean;
+
+	/**
+	 * Attaches a new sensor with the given tag and fixture definition to the body.
+	 * @param tag The tag of the sensor to attach.
+	 * @param fixtureDef The fixture definition of the sensor.
+	 * @returns The newly attached sensor.
+	 */
+	attachSensor(self: Body, tag: number, fixtureDef: FixtureDef): Sensor;
+}
+
+export type {Body as BodyType};
+
+/**
+ * A class for creating Body objects.
+ */
+interface BodyClass {
+	/**
+	 * Creates a new instance of `Body`.
+	 * @param def The definition for the body to be created.
+	 * @param world The physics world where the body belongs.
+	 * @param pos [optional] The initial position of the body. Defaults to zero vector.
+	 * @param rot [optional] The initial rotation angle of the body in degrees. Defaults to 0.
+	 * @returns The newly created `Body` instance.
+	 */
+	(
+		this: void,
+		def: BodyDef,
+		world: PhysicsWorld,
+		pos?: Vec2, // Vec2.zero
+		rot?: number // 0
+	): Body;
+}
+
+const bodyClass: BodyClass;
+export {bodyClass as Body};
+
+/**
+ * Represents a physics world in the game.
+ */
+class PhysicsWorld extends Node {
+
+	protected constructor();
+
+	/**
+	 * Whether debug graphic should be displayed for the physics world.
+	 */
+	showDebug: boolean;
+
+	/**
+	 * Queries the physics world for all bodies that intersect with the specified rectangle.
+	 *
+	 * @param rect The rectangle to query for bodies.
+	 * @param handler A function that is called for each body found in the query.
+	 * @returns Whether the query was interrupted, true means interrupted, false otherwise.
+	 */
+	query(rect: Rect, handler: (body: Body) => boolean): boolean;
+
+	/**
+	 * Casts a ray through the physics world and finds the first body that intersects with the ray.
+	 *
+	 * @param start The starting point of the ray.
+	 * @param stop The ending point of the ray.
+	 * @param closest Whether to stop ray casting upon the closest body that intersects with the ray. Set closest to true to get a faster ray casting search.
+	 * @param handler A function that is called for each body found in the raycast.
+	 * @returns Whether the raycast was interrupted, true means interrupted, false otherwise.
+	 */
+	raycast(start: Vec2, stop: Vec2, closest: boolean, handler: (body: Body, point: Vec2, normal: Vec2) => boolean): boolean;
+
+	/**
+	 * Sets the number of velocity and position iterations to perform in the physics world.
+	 *
+	 * @param velocityIter The number of velocity iterations to perform.
+	 * @param positionIter The number of position iterations to perform.
+	 */
+	setIterations(velocityIter: number, positionIter: number): void;
+
+	/**
+	 * Sets whether two physics groups should make contact with each other or not.
+	 *
+	 * @param groupA The first physics group.
+	 * @param groupB The second physics group.
+	 * @param contact Whether the two groups should make contact with each other.
+	 */
+	setShouldContact(groupA: number, groupB: number, contact: boolean): void;
+
+	/**
+	 * Gets whether two physics groups should make contact with each other or not.
+	 *
+	 * @param groupA The first physics group.
+	 * @param groupB The second physics group.
+	 * @returns Whether the two groups should make contact with each other.
+	 */
+	getShouldContact(groupA: number, groupB: number): boolean;
+}
+
+export type {PhysicsWorld as PhysicsWorldType};
+
+/**
+ * A class for creating PhysicsWorld objects.
+ */
+interface PhysicsWorldClass {
+
+	/**
+	 * A factor used for converting physics engine meters value to pixel value.
+	 * Default 100.0 is a good value since the physics engine can well simulate real life objects
+	 * between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
+	 * between 10 to 1000 pixels that suite most games.
+	 * You can change this value before any physics body creation.
+	 */
+	scaleFactor: number;
+
+	/**
+	 * Creates a new "PhysicsWorld" object.
+	 * @returns The new "PhysicsWorld" object.
+	 */
+	(this: void, self: PhysicsWorldClass): PhysicsWorld;
+}
+
+const physicsWorldClass: PhysicsWorldClass;
+export {physicsWorldClass as PhysicsWorld};
+
+/**
+ * A class that can be used to connect physics bodies together.
+ */
+class Joint extends Object {
+
+	protected constructor();
+
+	/**
+	 * The physics world that the joint belongs to.
+	 */
+	readonly world: PhysicsWorld;
+
+	/**
+	 * Destroys the joint and removes it from the physics simulation.
+	 */
+	destroy(): void;
+}
+
+export type {Joint as JointType};
+
+/**
+ * A joint that applies a rotational or linear force to a physics body.
+ */
+class MotorJoint extends Joint {
+
+	private constructor();
+
+	/**
+	 * Whether or not the motor joint is enabled.
+	 */
+	enabled: boolean;
+
+	/**
+	 * The force applied to the motor joint.
+	 */
+	force: number;
+
+	/**
+	 * The speed of the motor joint.
+	 */
+	speed: number;
+}
+
+export type {MotorJoint as MotorJointType};
+
+/**
+* A type of joint that allows a physics body to move to a specific position.
+*/
+class MoveJoint extends Joint {
+
+	private constructor();
+
+	/**
+	 * The current position of the move joint in the game world.
+	 */
+	position: Vec2;
+}
+
+export type {MoveJoint as MoveJointType};
+
+/**
+ * A record that defines the properties of a joint to be created.
+ */
+class JointDef extends Object {
+
+	private constructor();
+
+	/** The center point of the joint, in local coordinates. */
+	center: Vec2;
+
+	/** The position of the joint, in world coordinates. */
+	position: Vec2;
+
+	/** The angle of the joint, in degrees. */
+	angle: number;
+}
+
+/**
+ * A record for creating JointDef objects.
+ */
+interface JointDefClass {
+
+	/**
+	 * Creates a distance joint definition.
+	 * @param canCollide Whether the physics body connected to joint will collide with each other.
+	 * @param bodyA The name of first physics body to connect with the joint.
+	 * @param bodyB The name of second physics body to connect with the joint.
+	 * @param anchorA The position of the joint on the first physics body.
+	 * @param anchorB The position of the joint on the second physics body.
+	 * @param frequency The frequency of the joint, in Hertz (default is 0.0).
+	 * @param damping The damping ratio of the joint (default is 0.0).
+	 * @returns The new joint definition.
+	 */
+	distance(
+		canCollide: boolean,
+		bodyA: string,
+		bodyB: string,
+		anchorA: Vec2,
+		anchorB: Vec2,
+		frequency?: number,
+		damping?: number
+	): JointDef;
+
+	/**
+	 * Creates a friction joint definition.
+	 * @param canCollide Whether or not the physics body connected to the joint will collide with each other.
+	 * @param bodyA The name of the first physics body to connect with the joint.
+	 * @param bodyB The name of the second physics body to connect with the joint.
+	 * @param worldPos The position of the joint in the game world.
+	 * @param maxForce The maximum force that can be applied to the joint.
+	 * @param maxTorque The maximum torque that can be applied to the joint.
+	 * @returns The new friction joint definition.
+	 */
+	friction(
+		canCollide: boolean,
+		bodyA: string,
+		bodyB: string,
+		worldPos: Vec2,
+		maxForce: number,
+		maxTorque: number
+	): JointDef;
+
+	/**
+	 * Creates a gear joint definition.
+	 * @param canCollide Whether or not the physics bodies connected to the joint can collide with each other.
+	 * @param jointA The name of the first joint to connect with the gear joint.
+	 * @param jointB The name of the second joint to connect with the gear joint.
+	 * @param ratio The gear ratio (default is 1.0).
+	 * @returns The new gear joint definition.
+	 */
+	gear(
+		canCollide: boolean,
+		jointA: string,
+		jointB: string,
+		ratio?: number
+	): JointDef;
+
+	/**
+	 * Creates a new spring joint definition.
+	 * @param canCollide Whether the connected bodies should collide with each other.
+	 * @param bodyA The name of the first body connected to the joint.
+	 * @param bodyB The name of the second body connected to the joint.
+	 * @param linearOffset Position of body-B minus the position of body-A, in body-A's frame.
+	 * @param angularOffset Angle of body-B minus angle of body-A.
+	 * @param maxForce The maximum force the joint can exert.
+	 * @param maxTorque The maximum torque the joint can exert.
+	 * @param correctionFactor Optional correction factor, defaults to 1.0.
+	 * @returns The created joint definition.
+	 */
+	spring(
+		canCollide: boolean,
+		bodyA: string,
+		bodyB: string,
+		linearOffset: Vec2,
+		angularOffset: number,
+		maxForce: number,
+		maxTorque: number,
+		correctionFactor?: number
+	): JointDef;
+
+	/**
+	 * Creates a new prismatic joint definition.
+	 * @param canCollide Whether the connected bodies should collide with each other.
+	 * @param bodyA The name of the first body connected to the joint.
+	 * @param bodyB The name of the second body connected to the joint.
+	 * @param worldPos The world position of the joint.
+	 * @param axisAngle The axis angle of the joint.
+	 * @param lowerTranslation Optional lower translation limit, defaults to 0.0.
+	 * @param upperTranslation Optional upper translation limit, defaults to 0.0.
+	 * @param maxMotorForce Optional maximum motor force, defaults to 0.0.
+	 * @param motorSpeed Optional motor speed, defaults to 0.0.
+	 * @returns The created prismatic joint definition.
+	 */
+	prismatic(
+		canCollide: boolean,
+		bodyA: string,
+		bodyB: string,
+		worldPos: Vec2,
+		axisAngle: number,
+		lowerTranslation?: number,
+		upperTranslation?: number,
+		maxMotorForce?: number,
+		motorSpeed?: number
+	): JointDef;
+
+	/**
+	 * Create a pulley joint definition.
+	 * @param canCollide Whether or not the connected bodies will collide with each other.
+	 * @param bodyA The name of the first physics body to connect.
+	 * @param bodyB The name of the second physics body to connect.
+	 * @param anchorA The position of the anchor point on the first body in world coordinates.
+	 * @param anchorB The position of the anchor point on the second body in world coordinates.
+	 * @param groundAnchorA The position of the ground anchor point on the first body in world coordinates.
+	 * @param groundAnchorB The position of the ground anchor point on the second body in world coordinates.
+	 * @param ratio Optional The pulley ratio (default 1.0).
+	 * @returns The pulley joint definition.
+	 */
+	pulley(
+		canCollide: boolean,
+		bodyA: string,
+		bodyB: string,
+		anchorA: Vec2,
+		anchorB: Vec2,
+		groundAnchorA: Vec2,
+		groundAnchorB: Vec2,
+		ratio?: number
+	): JointDef;
+
+	/**
+	 * Create a revolute joint definition.
+	 * @param canCollide Whether or not the connected bodies will collide with each other.
+	 * @param bodyA The name of the first physics body to connect.
+	 * @param bodyB The name of the second physics body to connect.
+	 * @param worldPos The position in world coordinates where the joint will be created.
+	 * @param lowerAngle Optional The lower angle limit (radians) (default 0.0).
+	 * @param upperAngle Optional The upper angle limit (radians) (default 0.0).
+	 * @param maxMotorTorque Optional The maximum torque that can be applied to the joint to achieve the target speed (default 0.0).
+	 * @param motorSpeed Optional The desired speed of the joint (default 0.0).
+	 * @returns The revolute joint definition.
+	 */
+	revolute(
+		canCollide: boolean,
+		bodyA: string,
+		bodyB: string,
+		worldPos: Vec2,
+		lowerAngle?: number,
+		upperAngle?: number,
+		maxMotorTorque?: number,
+		motorSpeed?: number
+	): JointDef;
+
+	/**
+	 * Create a rope joint definition.
+	 * @param canCollide Whether or not the connected bodies will collide with each other.
+	 * @param bodyA The name of the first physics body to connect.
+	 * @param bodyB The name of the second physics body to connect.
+	 * @param anchorA The position of the anchor point on the first body in world coordinates.
+	 * @param anchorB The position of the anchor point on the second body in world coordinates.
+	 * @param maxLength Optional The maximum distance between the anchor points (default 0.0).
+	 * @returns The rope joint definition.
+	 */
+	rope(
+		canCollide: boolean,
+		bodyA: string,
+		bodyB: string,
+		anchorA: Vec2,
+		anchorB: Vec2,
+		maxLength: number
+	): JointDef;
+
+	/**
+	 * Creates a weld joint definition.
+	 * @param canCollide Whether or not the bodies connected to the joint can collide with each other.
+	 * @param bodyA The name of the first body to be connected by the joint.
+	 * @param bodyB The name of the second body to be connected by the joint.
+	 * @param worldPos The position in the world to connect the bodies together.
+	 * @param frequency Optional The frequency at which the joint should be stiff, defaults to 0.0.
+	 * @param damping Optional The damping rate of the joint, defaults to 0.0.
+	 * @returns The newly created weld joint definition.
+	 */
+	weld(
+		canCollide: boolean,
+		bodyA: string,
+		bodyB: string,
+		worldPos: Vec2,
+		frequency?: number,
+		damping?: number
+	): JointDef;
+
+	/**
+	 * Creates a wheel joint definition.
+	 * @param canCollide Whether or not the bodies connected to the joint can collide with each other.
+	 * @param bodyA The name of the first body to be connected by the joint.
+	 * @param bodyB The name of the second body to be connected by the joint.
+	 * @param worldPos The position in the world to connect the bodies together.
+	 * @param axisAngle The angle of the joint axis in radians.
+	 * @param maxMotorTorque Optional The maximum torque the joint motor can exert, defaults to 0.0.
+	 * @param motorSpeed Optional The target speed of the joint motor, defaults to 0.0.
+	 * @param frequency Optional The frequency at which the joint should be stiff, defaults to 2.0.
+	 * @param damping Optional The damping rate of the joint, defaults to 0.7.
+	 * @returns The newly created wheel joint definition.
+	 */
+	wheel(
+		canCollide: boolean,
+		bodyA: string,
+		bodyB: string,
+		worldPos: Vec2,
+		axisAngle: number,
+		maxMotorTorque?: number,
+		motorSpeed?: number,
+		frequency?: number,
+		damping?: number
+	): JointDef;
+}
+
+const jointDefClass: JointDefClass;
+export {jointDefClass as JointDef};
+
+/**
+ * An enumeration for texture wrapping modes.
+ */
+export const enum TextureWrap {
+	None = "None",
+	Mirror = "Mirror",
+	Clamp = "Clamp",
+	Border = "Border",
+}
+
+/**
+ * An enumeration for texture filtering modes.
+ */
+export const enum TextureFilter {
+	None = "None",
+	Point = "Point",
+	Anisotropic = "Anisotropic",
+}
+
+/** The Sprite class to render texture in game scene tree hierarchy. */
+class Sprite extends Node {
+
+	private constructor();
+
+	/**
+	 * Whether the depth buffer should be written to when rendering the sprite (default is false).
+	 */
+	depthWrite: boolean;
+
+	/**
+	 * The alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
+	 * Only works with `sprite.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+	 */
+	alphaRef: number;
+
+	/**
+	 * The texture rectangle for the sprite.
+	 */
+	textureRect: Rect;
+
+	/**
+	 * The blend function for the sprite.
+	 */
+	blendFunc: BlendFunc;
+
+	/**
+	 * The sprite shader effect.
+	 */
+	effect: SpriteEffect;
+
+	/**
+	 * The texture for the sprite.
+	 */
+	texture: Texture2D;
+
+	/**
+	 * The texture wrapping mode for the U (horizontal) axis.
+	 */
+	uwrap: TextureWrap;
+
+	/**
+	 * The texture wrapping mode for the V (vertical) axis.
+	 */
+	vwrap: TextureWrap;
+
+	/**
+	 * The texture filtering mode for the sprite.
+	 */
+	filter: TextureFilter;
+}
+
+export type {Sprite as SpriteType};
+
+/**
+ * A class used for creating `Sprite` object.
+ */
+interface SpriteClass {
+
+	/**
+	 * A metamethod for creating Sprite object.
+	 * @param clipStr The string containing format for loading a texture file.
+	 * Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
+	 * @returns A new instance of the Sprite class.
+	 */
+	(this: void, clipStr: string): Sprite;
+
+	/**
+	 * A metamethod for creating Sprite object.
+	 * @returns A new instance of the Sprite class.
+	 */
+	(this: void): Sprite;
+
+	/**
+	 * A metamethod for creating Sprite object.
+	 * @param texture The texture to be used for the sprite.
+	 * @param textureRect [optional] The rectangle defining the portion of the texture to use for the sprite, if not provided, the whole texture will be used for rendering.
+	 * @returns A new instance of the Sprite class.
+	 */
+	(this: void, texture: Texture2D, textureRect?: Rect): Sprite;
+}
+
+const spriteClass: SpriteClass;
+export {spriteClass as Sprite};
+
+/**
+ * Enumeration for text alignment setting.
+ */
+export const enum TextAlign {
+
+	/**
+	 * Text alignment to the left.
+	 */
+	Left = "Left",
+
+	/**
+	 * Text alignment to the center.
+	 */
+	Center = "Center",
+
+	/**
+	 * Text alignment to the right.
+	 */
+	Right = "Right",
+}
+
+/**
+ * A node for rendering text using a TrueType font.
+ */
+class Label extends Node {
+
+	private constructor();
+
+	/**
+	 * The alpha threshold value. Pixels with alpha values below this value will not be drawn.
+	 * Only works with `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+	 */
+	alphaRef: number;
+
+	/**
+	 * The width of the text used for text wrapping.
+	 * Set to `Label.AutomaticWidth` to disable wrapping.
+	 * Default is `Label.AutomaticWidth`.
+	 */
+	textWidth: number;
+
+	/**
+	 * The gap in pixels between lines of text.
+	 */
+	lineGap: number;
+
+	/**
+	 * The text to be rendered.
+	 */
+	text: string;
+
+	/**
+	 * The blend function used to render the text.
+	 */
+	blendFunc: BlendFunc;
+
+	/**
+	 * Whether depth writing is enabled. (Default is false)
+	 */
+	depthWrite: boolean;
+
+	/**
+	 * Whether the label is using batched rendering.
+	 * When using batched rendering, the `label.getCharacter()` function will no longer work, and getting better rendering performance. (Default is true)
+	 */
+	batched: boolean;
+
+	/**
+	 * The sprite effect used to render the text.
+	 */
+	effect: SpriteEffect;
+
+	/**
+	 * The text alignment setting.
+	 */
+	alignment: TextAlign;
+
+	/**
+	 * The number of characters in the label.
+	 */
+	readonly characterCount: number;
+
+	/**
+	 * Returns the sprite for the character at the specified index.
+	 * @param index The index of the character sprite to retrieve.
+	 * @returns The sprite for the character, or `null` if the index is out of range.
+	 */
+	getCharacter(index: number): Sprite | null;
+}
+
+export type {Label as LabelType};
+
+/**
+* A class for creating Label object.
+*/
+interface LabelClass {
+
+	/**
+	 * The value to use for automatic width calculation.
+	 */
+	readonly AutomaticWidth: number;
+
+	/**
+	 * Creates a new Label object with the specified font name and font size.
+	 * @param fontName The name of the font to use for the label. Can be a font file path with or without a file extension.
+	 * @param fontSize The size of the font to use for the label.
+	 * @returns The new Label object.
+	 */
+	(this: void, fontName: string, fontSize: number): Label;
+}
+
+const labelClass: LabelClass;
+export {labelClass as Label};
+
+/**
+ * A class provides functionality for drawing lines using vertices.
+ */
+class Line extends Node {
+
+	private constructor();
+
+	/**
+	 * Whether the depth should be written. (Default is false)
+	 */
+	depthWrite: boolean;
+
+	/**
+	 * Blend function used for rendering the line.
+	 */
+	blendFunc: BlendFunc;
+
+	/**
+	 * Adds vertices to the line.
+	 * @param verts Table of vertices to add to the line.
+	 * @param color Color of the line (default is opaque white).
+	 */
+	add(verts: Vec2[], color?: Color): void;
+
+	/**
+	 * Sets vertices of the line.
+	 * @param verts Table of vertices to set.
+	 * @param color Color of the line (default is opaque white).
+	 */
+	set(verts: Vec2[], color?: Color): void;
+
+	/**
+	 * Clears all the vertices of the line.
+	 */
+	clear(): void;
+}
+
+export type {Line as LineType};
+
+// A class for creating Line object.
+interface LineClass {
+	/**
+	 * Creates and returns a new Line object.
+	 * @param verts Table of vertices to add to the line.
+	 * @param color Color of the line (default is opaque white).
+	 * @returns Line object.
+	 */
+	(this: void, verts: Vec2[], color?: Color): Line;
+
+	/**
+	 * Creates and returns a new empty Line object.
+	 * @returns Line object.
+	 */
+	(this: void): Line;
+}
+
+const lineClass: LineClass;
+export {lineClass as Line}
+
+/**
+ * This interface is used for managing touch events for children nodes in a given area.
+ * The menu will swallow touches that hit children nodes.
+ * Only one child node can receive the first touch event; multi-touches that come later for other children nodes will be ignored.
+ */
+class Menu extends Node {
+
+	private constructor();
+
+	/**
+	 * Whether the menu is currently enabled or disabled.
+	 */
+	enabled: boolean;
+}
+
+export type {Menu as MenuType};
+
+/**
+* A class for creating Menu objects.
+*/
+interface MenuClass {
+
+	/**
+	 * Creates a new instance of `Menu` with the specified width and height.
+	 * @param width The width of the Menu node.
+	 * @param height The height of the Menu node.
+	 * @returns A new Menu node object.
+	 */
+	(this: void, width: number, height: number): Menu;
+
+	/**
+	 * Creates a new instance of `Menu` with 0 width and 0 height.
+	 * A menu with zero size will handle full screen touches for children nodes.
+	 * @returns A new Menu node object.
+	 */
+	(this: void);
+}
+
+const menuClass: MenuClass;
+export {menuClass as Menu};
+
+/**
+ * A simple reinforcement learning framework that can be used to learn optimal policies for Markov decision processes using Q-learning.
+ * Q-learning is a model-free reinforcement learning algorithm that learns an optimal action-value function from experience by repeatedly updating estimates of the Q-value of state-action pairs.
+ */
+class QLearner extends Object {
+
+	private constructor();
+
+	/**
+	 * The matrix that stores state, action, and Q-value.
+	 */
+	matrix: [state: number, action: number, QValue: number][];
+
+	/**
+	 * Update Q-value for a state-action pair based on received reward.
+	 * @param state Representing the state.
+	 * @param action Representing the action.
+	 * @param reward Representing the reward received for the action in the state.
+	 */
+	update(state: number, action: number, reward: number): void;
+
+	/**
+	 * Returns the best action for a given state based on the current Q-values.
+	 * @param state The current state.
+	 * @returns The action with the highest Q-value for the given state.
+	 */
+	getBestAction(state: number): number;
+
+	/**
+	 * Load Q-values from a matrix of state-action pairs.
+	 * @param values The matrix of state-action pairs to load.
+	 */
+	load(values: [state: number, action: number, QValue: number][]): void;
+}
+
+export type {QLearner as QLearnerType};
+
+/**
+ * A class for creating QLearner objects.
+ */
+interface QLearnerClass {
+
+	/**
+	 * Construct a state from given hints and condition values.
+	 * @param hints Representing the byte length of provided values.
+	 * @param values The condition values as discrete values.
+	 * @returns The packed state value.
+	 */
+	pack(hints: number[], values: number[]): number;
+
+	/**
+	 * Deconstruct a state from given hints to get condition values.
+	 * @param hints Representing the byte length of provided values.
+	 * @param state The state integer to unpack.
+	 * @returns The condition values as discrete values.
+	 */
+	unpack(hints: number[], state: number): number[];
+
+	/**
+	 * Create a new QLearner object with optional parameters for gamma, alpha, and maxQ.
+	 * @param gamma The discount factor for future rewards. Defaults to 0.5.
+	 * @param alpha The learning rate for updating Q-values. Defaults to 0.5.
+	 * @param maxQ The maximum Q-value. Defaults to 100.0.
+	 * @returns The newly created QLearner object.
+	 */
+	(
+		this: void,
+		gamma?: number,
+		alpha?: number,
+		maxQ?: number
+	): QLearner;
+}
+
+/**
+ * Enumeration for comparison operators.
+ */
+type MLOperator = "return" | "<=" | ">" | "==";
+
+/**
+ * A record for machine learning algorithms.
+ */
+class ML {
+
+	/**
+	 * A function that takes CSV data as input and applies the C4.5 machine learning algorithm to build a decision tree model asynchronously.
+	 * C4.5 is a decision tree algorithm that uses information gain to select the best attribute to split the data at each node of the tree. The resulting decision tree can be used to make predictions on new data.
+	 * @param csvData The CSV training data for building the decision tree using delimiter `,`.
+	 * @param maxDepth The maximum depth of the generated decision tree. Set to 0 to prevent limiting the generated tree depth.
+	 * @param handler The callback function to be called for each node of the generated decision tree.
+	 * @returns The accuracy of the decision tree on the training data. And an error message if an error occurred during building of the decision tree.
+	 */
+	BuildDecisionTreeAsync(
+		csvData: string,
+		maxDepth: number,
+		handler: (
+			depth: number,
+			name: string,
+			op: MLOperator,
+			value: string
+		) => void
+	): LuaMultiReturn<[number, null]> | LuaMultiReturn<[null, string]>;
+
+	/**
+	 * A field for accessing QLearner class.
+	 */
+	QLearner: QLearnerClass;
+}
+
+const ml: ML;
+export {ml as ML};
+
+/**
+ * Represents a particle system node that emits and animates particles.
+ */
+class Particle extends Node {
+
+	private constructor();
+
+	/** Whether the particle system is active. */
+	readonly active: boolean;
+
+	/** Starts emitting particles. */
+	start(): void;
+
+	/**
+	 * Stops emitting particles and waits for all active particles to end their lives.
+	 */
+	stop(): void;
+}
+
+export type {Particle as ParticleType};
+
+/**
+ * A class that can create new Particle objects.
+ */
+interface ParticleClass {
+
+	/**
+	 * Creates a new Particle object from a particle system file.
+	 * @param filename The file path of the particle system file.
+	 * @returns A new Particle object.
+	 */
+	(this: void, filename: string): Particle;
+}
+
+const particleClass: ParticleClass;
+export {particleClass as Particle};
+
+/** Helper class for file path operations. */
+interface Path {
+
+	/**
+	 * Gets script running path from a module name.
+	 * @param moduleName The input module name.
+	 * @returns The module path for script searching.
+	 */
+	getScriptPath(moduleName: string): string;
+
+	/**
+	 * Input: /a/b/c.TXT output: txt
+	 * @param path The input file path.
+	 * @returns The input file's extension.
+	 */
+	getExt(path: string): string;
+
+	/**
+	 * Input: /a/b/c.TXT output: /a/b
+	 * @param path The input file path.
+	 * @returns The input file's parent path.
+	 */
+	getPath(path: string): string;
+
+	/**
+	 * Input: /a/b/c.TXT output: c
+	 * @param path The input file path.
+	 * @returns The input file's name without extension.
+	 */
+	getName(path: string): string;
+
+	/**
+	 * Input: /a/b/c.TXT output: c.TXT
+	 * @param path The input file path.
+	 * @returns The input file's name.
+	 */
+	getFilename(path: string): string;
+
+	/**
+	 * Input: /a/b/c.TXT, base: /a output: b/c.TXT
+	 * @param path The input file path.
+	 * @param base The target file path.
+	 * @returns The relative from input file to target file.
+	 */
+	getRelative(path: string, base: string): string;
+
+	/** Input: /a/b/c.TXT, lua output: /a/b/c.lua
+	 * @param path The input file path.
+	 * @param newExt The new file extension to add to file path.
+	 * @returns The new file path.
+	 */
+	replaceExt(path: string, newExt: string): string;
+
+	/** Input: /a/b/c.TXT, d output: /a/b/d.TXT
+	 * @param path The input file path.
+	 * @param newFile The new filename to replace.
+	 * @returns The new file path.
+	 */
+	replaceFilename(path: string, newFile: string): string;
+
+	/** Input: a, b, c.TXT output: a/b/c.TXT
+	 * @param segments The segments to be joined as a new file path.
+	 * @returns The new file path.
+	 */
+	(...segments: string[]): string;
+}
+
+const path: Path;
+export {path as Path};
+
+/**
+ * A class for profiling functions.
+ */
+interface ProfilerClass {
+
+	/**
+	 * The name of the profiling event.
+	 */
+	EventName: string;
+
+	/**
+	 * The current level of profiling.
+	 */
+	level: number;
+
+	/**
+	 * Calls a function and returns the amount of time it took to execute.
+	 * @param funcForProfiling The function to profile.
+	 * @returns The amount of time it took to execute the function.
+	 * @example
+	 * const time = profiler(funcForProfiling);
+	 */
+	(this: void, funcForProfiling: () => number): number;
+}
+
+const profiler: ProfilerClass;
+export {profiler as Profiler};
+
+/**
+ * A RenderTarget is a node with a buffer that allows you to render a Node into a texture.
+ */
+class RenderTarget {
+
+	private constructor();
+
+	/**
+	 * The width of the rendering target.
+	 */
+	readonly width: number;
+
+	/**
+	 * The height of the rendering target.
+	 */
+	readonly height: number;
+
+	/**
+	 * The texture generated by the rendering target.
+	 */
+	readonly texture: Texture2D;
+
+	/**
+	 * The camera used for rendering the scene.
+	 */
+	camera: Camera;
+
+	/**
+	 * Renders a node to the target without replacing its previous contents.
+	 * @param target The node to be rendered onto the render target.
+	 */
+	render(target: Node): void;
+
+	/**
+	 * Clears the previous color, depth, and stencil values on the render target.
+	 * @param color The clear color used to clear the render target.
+	 * @param depth (optional) The value used to clear the depth buffer of the render target. Default is 1.
+	 * @param stencil (optional) The value used to clear the stencil buffer of the render target. Default is 0.
+	 */
+	renderWithClear(color: Color, depth?: number, stencil?: number): void;
+
+	/**
+	 * Renders a node to the target after clearing the previous color, depth, and stencil values on it.
+	 * @param target The node to be rendered onto the render target.
+	 * @param color The clear color used to clear the render target.
+	 * @param depth (optional) The value used to clear the depth buffer of the render target. Default is 1.
+	 * @param stencil (optional) The value used to clear the stencil buffer of the render target. Default is 0.
+	 */
+	renderWithClear(target: Node, color: Color, depth?: number, stencil?: number): void;
+
+	/**
+	 * Saves the contents of the render target to a PNG file asynchronously.
+	 * @param filename The name of the file to save the contents to.
+	 */
+	saveAsync(filename: string): void;
+}
+
+/**
+ * A class for creating RenderTarget objects.
+ */
+interface RenderTargetClass {
+	/**
+	 * Creates a new RenderTarget object with the given width and height.
+	 * @param width The width of the render target.
+	 * @param height The height of the render target.
+	 * @returns The created render target.
+	 */
+	(this: void, width: number, height: number): RenderTarget;
+}
+
+const renderTargetClass: RenderTargetClass;
+export {renderTargetClass as RenderTarget};
+
+/**
+ * A record used for Scalable Vector Graphics rendering.
+ */
+class SVG extends Object {
+
+	private constructor();
+
+	/**
+	 * The width of the SVG object.
+	 */
+	readonly width: number;
+
+	/**
+	 * The height of the SVG object.
+	 */
+	readonly height: number;
+
+	/**
+	 * Renders the SVG object, should be called every frame for the render result to appear.
+	 */
+	render(): void;
+}
+
+/**
+ * A class for creating SVG objects.
+ */
+interface SVGClass {
+	/**
+	 * Creates a new SVG object from the specified SVG file.
+	 * @param filename The path to the SVG format file.
+	 * @returns The created SVG object.
+	 */
+	(this: void, filename: string): SVG;
+}
+
+const svgClass: SVGClass;
+export {svgClass as SVG};
+
+class VGNode extends Node {
+	private constructor();
+	surface: Sprite;
+	render(func: () => void): void;
+}
+
+interface VGNodeClass {
+	(this: void, width: number, height: number, scale?: number, edgeAA?: number): VGNode;
+}
+
+const vgNodeClass: VGNodeClass;
+export {vgNodeClass as VGNode};
+
+class View {
+
+	private constructor();
+
+	/** The size of the view in pixels. */
+	size: Size;
+
+	/** The standard distance of the view from the origin. */
+	standardDistance: number;
+
+	/** The aspect ratio of the view. */
+	aspectRatio: number;
+
+	/** The distance to the near clipping plane. */
+	nearPlaneDistance: number;
+
+	/** The distance to the far clipping plane. */
+	farPlaneDistance: number;
+
+	/** The field of view of the view in degrees. */
+	fieldOfView: number;
+
+	/** The scale factor of the view. */
+	scale: number;
+
+	/** The post effect applied to the view. */
+	postEffect: SpriteEffect;
+
+	/** Whether or not vertical sync is enabled. */
+	vsync: boolean;
+}
+
+const view: View;
+export {view as View};
+
+export type VGPaintType = BasicType<"VGPaint">;
+
+} // module "dora"

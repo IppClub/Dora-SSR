@@ -31,7 +31,6 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 	const compilerHost: ts.CompilerHost = {
 		fileExists: fileName => {
 			if (fileName.search("node_modules") > 0) return false;
-			console.log("fileExists", fileName);
 			const uri = monaco.Uri.parse(fileName);
 			const model = monaco.editor.getModel(uri);
 			if (model !== null) {
@@ -41,9 +40,8 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 		},
 		getCanonicalFileName: fileName => Info.path.normalize(fileName),
 		getCurrentDirectory: () => currentDirectory,
-		getDefaultLibFileName: () => "lib.dora.d.ts",
+		getDefaultLibFileName: () => "dora.d.ts",
 		readFile: fileName => {
-			console.log("readFile", fileName);
 			const uri = monaco.Uri.parse(fileName);
 			const model = monaco.editor.getModel(uri);
 			if (model !== null) {
@@ -59,7 +57,6 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 		useCaseSensitiveFileNames: () => true,
 		writeFile: () => { },
 		getSourceFile(fileName) {
-			console.log("getSourceFile", fileName);
 			const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[fileName];
 			if (lib) {
 				return ts.createSourceFile(fileName, lib.content, ts.ScriptTarget.Latest, false);
