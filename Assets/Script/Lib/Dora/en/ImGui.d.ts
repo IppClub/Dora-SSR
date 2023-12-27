@@ -289,24 +289,24 @@ export const enum GlyphRange {
 }
 
 interface ImGui {
-	LoadFontTTF(this: void, ttfFontFile: string, fontSize: number, glyphRanges: GlyphRange, callback: () => void): boolean;
+	LoadFontTTF(this: void, ttfFontFile: string, fontSize: number, glyphRanges: GlyphRange, callback: (this: void) => void): boolean;
 	IsFontLoaded(this: void): boolean;
-	ShowStats(this: void, extra?: () => void): void;
-	ShowStats(this: void, open: boolean, extra?: () => void): boolean;
+	ShowStats(this: void, extra?: (this: void) => void): void;
+	ShowStats(this: void, open: boolean, extra?: (this: void) => void): boolean;
 	ShowConsole(this: void): void;
 	ShowConsole(this: void, open: boolean): boolean;
-	Begin(this: void, name: string, windowsFlags: WindowFlag[], inside: () => void): void;
-	Begin(this: void, name: string, inside: () => void): void;
-	Begin(this: void, name: string, p_open: boolean, windowsFlags: WindowFlag[], inside: () => void): boolean;
-	Begin(this: void, name: string, p_open: boolean, inside: () => void): boolean;
-	BeginChild(this: void, str_id: string, size: Vec2, childFlags: ChildFlag[], windowFlags: WindowFlag[], inside: () => void): void;
-	BeginChild(this: void, str_id: string, size: Vec2, childFlags: ChildFlag[], inside: () => void): void;
-	BeginChild(this: void, str_id: string, size: Vec2, inside: () => void): void;
-	BeginChild(this: void, str_id: string, inside: () => void): void;
-	BeginChild(this: void, id: number, size: Vec2, childFlags: ChildFlag[], windowsFlags: WindowFlag[], inside: () => void): void;
-	BeginChild(this: void, id: number, size: Vec2, childFlags: ChildFlag[], inside: () => void): void;
-	BeginChild(this: void, id: number, size: Vec2, inside: () => void): void;
-	BeginChild(this: void, id: number, inside: () => void): void;
+	Begin(this: void, name: string, windowsFlags: WindowFlag[], inside: (this: void) => void): void;
+	Begin(this: void, name: string, inside: (this: void) => void): void;
+	Begin(this: void, name: string, p_open: boolean, windowsFlags: WindowFlag[], inside: (this: void) => void): boolean;
+	Begin(this: void, name: string, p_open: boolean, inside: (this: void) => void): boolean;
+	BeginChild(this: void, str_id: string, size: Vec2, childFlags: ChildFlag[], windowFlags: WindowFlag[], inside: (this: void) => void): void;
+	BeginChild(this: void, str_id: string, size: Vec2, childFlags: ChildFlag[], inside: (this: void) => void): void;
+	BeginChild(this: void, str_id: string, size: Vec2, inside: (this: void) => void): void;
+	BeginChild(this: void, str_id: string, inside: (this: void) => void): void;
+	BeginChild(this: void, id: number, size: Vec2, childFlags: ChildFlag[], windowsFlags: WindowFlag[], inside: (this: void) => void): void;
+	BeginChild(this: void, id: number, size: Vec2, childFlags: ChildFlag[], inside: (this: void) => void): void;
+	BeginChild(this: void, id: number, size: Vec2, inside: (this: void) => void): void;
+	BeginChild(this: void, id: number, inside: (this: void) => void): void;
 	SetNextWindowBgAlpha(this: void, alpha: number): void;
 	SetNextWindowPos(this: void, pos: Vec2, setCond?: SetCond, pivot?: Vec2): void;
 	SetNextWindowPosCenter(this: void, setCond?: SetCond, pivot?: Vec2): void;
@@ -318,22 +318,22 @@ interface ImGui {
 	SetColorEditOptions(this: void, colorEditMode: ColorEditMode): void;
 	InputText(this: void, label: string, buffer: Buffer, inputTextFlags?: InputTextFlag): boolean;
 	InputTextMultiline(this: void, label: string, buffer: Buffer, size?: Vec2, inputTextFlags?: InputTextFlag): boolean;
-	TreeNodeEx(this: void, label: string, treeNodeFlags: TreeNodeFlag, inside: () => void): boolean;
-	TreeNodeEx(this: void, label: string, inside: () => void): boolean;
-	TreeNodeEx(this: void, str_id: string, text: string, treeNodeFlags: TreeNodeFlag, inside: () => void): boolean;
-	TreeNodeEx(this: void, str_id: string, text: string, inside: () => void): boolean;
+	TreeNodeEx(this: void, label: string, treeNodeFlags: TreeNodeFlag, inside: (this: void) => void): boolean;
+	TreeNodeEx(this: void, label: string, inside: (this: void) => void): boolean;
+	TreeNodeEx(this: void, str_id: string, text: string, treeNodeFlags: TreeNodeFlag, inside: (this: void) => void): boolean;
+	TreeNodeEx(this: void, str_id: string, text: string, inside: (this: void) => void): boolean;
 	SetNextItemOpen(this: void, is_open: boolean, setCond?: SetCond): boolean;
 	CollapsingHeader(this: void, label: string, treeNodeFlags?: TreeNodeFlag): boolean;
 	CollapsingHeader(this: void, label: string, p_open: boolean, treeNodeFlags?: TreeNodeFlag): boolean;
 	Selectable(this: void, label: string, selectableFlags?: SelectableFlag): boolean;
 	Selectable(this: void, label: string, p_selected: boolean, size?: Vec2, selectableFlags?: SelectableFlag): boolean;
-	BeginPopupModal(this: void, name: string, windowsFlags: WindowFlag, inside: () => void): void;
-	BeginPopupModal(this: void, name: string, inside: () => void): void;
-	BeginPopupModal(this: void, name: string, p_open: boolean, windowsFlags: WindowFlag, inside: () => void): boolean;
-	BeginPopupModal(this: void, name: string, p_open: boolean, inside: () => void): boolean;
-	PushStyleColor(this: void, name: StyleColor, color: Color, inside: () => void): void;
-	PushStyleVar(this: void, name: StyleVarNum, val: number, inside: () => void): void;
-	PushStyleVar(this: void, name: StyleVarVec, val: Vec2, inside: () => void): void;
+	BeginPopupModal(this: void, name: string, windowsFlags: WindowFlag, inside: (this: void) => void): void;
+	BeginPopupModal(this: void, name: string, inside: (this: void) => void): void;
+	BeginPopupModal(this: void, name: string, p_open: boolean, windowsFlags: WindowFlag, inside: (this: void) => void): boolean;
+	BeginPopupModal(this: void, name: string, p_open: boolean, inside: (this: void) => void): boolean;
+	PushStyleColor(this: void, name: StyleColor, color: Color, inside: (this: void) => void): void;
+	PushStyleVar(this: void, name: StyleVarNum, val: number, inside: (this: void) => void): void;
+	PushStyleVar(this: void, name: StyleVarVec, val: Vec2, inside: (this: void) => void): void;
 	Text(this: void, text: string): void;
 	TextColored(this: void, color: Color, text: string): void;
 	TextDisabled(this: void, text: string): void;
@@ -352,10 +352,10 @@ interface ImGui {
 
 	Columns(this: void, count?: number, border?: boolean, id?: string): void;
 
-	BeginTable(this: void, str_id: string, column: number, inside: () => void): boolean;
-	BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inside: () => void): boolean;
-	BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, inside: () => void): boolean;
-	BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, flags: TableFlag[], inside: () => void): boolean;
+	BeginTable(this: void, str_id: string, column: number, inside: (this: void) => void): boolean;
+	BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inside: (this: void) => void): boolean;
+	BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, inside: (this: void) => void): boolean;
+	BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, flags: TableFlag[], inside: (this: void) => void): boolean;
 	TableNextRow(this: void, min_row_height?: number, row_flags?: TableRowFlag[]): void;
 	TableSetupColumn(this: void, label: string, init_width_or_weight?: number, user_id?: number, flags?: TableColumnFlag[]): void;
 
@@ -414,14 +414,14 @@ interface ImGui {
 	VSliderInt(label: string, size: Vec2, p_v: number, v_min: number, v_max: number, format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
 
 	SetNextItemWidth(item_width: number): void;
-	PushItemWidth(item_width: number, inside: () => void): void;
+	PushItemWidth(item_width: number, inside: (this: void) => void): void;
 	CalcItemWidth(): number;
-	PushTextWrapPos(wrap_pos_x: number, inside: () => void): void; // Default: 0.0
-	PushTextWrapPos(inside: () => void): void; // Default: 0.0
-	PushAllowKeyboardFocus(v: boolean, inside: () => void): void;
-	PushButtonRepeat(repeated: boolean, inside: () => void): void;
+	PushTextWrapPos(wrap_pos_x: number, inside: (this: void) => void): void; // Default: 0.0
+	PushTextWrapPos(inside: (this: void) => void): void; // Default: 0.0
+	PushAllowKeyboardFocus(v: boolean, inside: (this: void) => void): void;
+	PushButtonRepeat(repeated: boolean, inside: (this: void) => void): void;
 
-	ShowDemoWindow: () => void;
+	ShowDemoWindow: (this: void) => void;
 	GetContentRegionMax: () => Vec2;
 	GetContentRegionAvail: () => Vec2;
 	GetWindowContentRegionMin: () => Vec2;
@@ -435,7 +435,7 @@ interface ImGui {
 	SetWindowFontScale: (scale: number) => void;
 	SetNextWindowSizeConstraints: (size_min: Vec2, size_max: Vec2) => void;
 	SetNextWindowContentSize: (size: Vec2) => void;
-	SetNextWindowFocus: () => void;
+	SetNextWindowFocus: (this: void) => void;
 	SetWindowFocus: (name: string) => void;
 	GetScrollX: () => number;
 	GetScrollY: () => number;
@@ -447,15 +447,15 @@ interface ImGui {
 	SetScrollFromPosY: (pos_y: number, center_y_ratio?: number) => void;
 	SetKeyboardFocusHere: (offset?: number) => void;
 
-	Separator: () => void;
+	Separator: (this: void) => void;
 	SeparatorText: (text: string) => void;
 	SameLine: (pos_x?: number, spacing_w?: number) => void;
-	NewLine: () => void;
-	Spacing: () => void;
+	NewLine: (this: void) => void;
+	Spacing: (this: void) => void;
 	Dummy: (size: Vec2) => void;
 	Indent: (indent_w?: number) => void;
 	Unindent: (indent_w?: number) => void;
-	BeginGroup: (inside: () => void) => void;
+	BeginGroup: (inside: (this: void) => void) => void;
 	GetCursorPos: () => Vec2;
 	GetCursorPosX: () => number;
 	GetCursorPosY: () => number;
@@ -465,7 +465,7 @@ interface ImGui {
 	GetCursorStartPos: () => Vec2;
 	GetCursorScreenPos: () => Vec2;
 	SetCursorScreenPos: (pos: Vec2) => void;
-	AlignTextToFramePadding: () => void;
+	AlignTextToFramePadding: (this: void) => void;
 	GetTextLineHeight: () => number;
 	GetTextLineHeightWithSpacing: () => number;
 
@@ -482,8 +482,8 @@ interface ImGui {
 	TableHeadersRow(): void;
 	TableHeader(label: string): void;
 
-	PushID(str_id: string, inside: () => void): void;
-	PushID(int_id: number, inside: () => void): void;
+	PushID(str_id: string, inside: (this: void) => void): void;
+	PushID(int_id: number, inside: (this: void) => void): void;
 	GetID(str_id: string): number;
 
 	BulletItem(): void;
@@ -533,8 +533,8 @@ interface ImGui {
 
 	TreeNode(label: string, inside: () => boolean): boolean;
 	TreeNode(str_id: string, text: string, inside: () => boolean): boolean;
-	TreePush(str_id: string, inside: () => void): void;
-	TreePush(inside: () => void): void;
+	TreePush(str_id: string, inside: (this: void) => void): void;
+	TreePush(inside: (this: void) => void): void;
 	GetTreeNodeToLabelSpacing(): number;
 	BeginListBox(label: string, size?: Vec2): boolean;
 	EndListBox(): void;
@@ -543,32 +543,32 @@ interface ImGui {
 	Value(prefix: string, v: number): void;
 	Value(prefix: string, v: number, float_format?: string): void;
 
-	BeginDisabled(inside: () => void): void;
-	BeginTooltip(inside: () => void): void;
+	BeginDisabled(inside: (this: void) => void): void;
+	BeginTooltip(inside: (this: void) => void): void;
 
-	BeginMainMenuBar(inside: () => void): void;
-	BeginMenuBar(inside: () => void): void;
-	BeginMenu(label: string, enabled: boolean, inside: () => void): void;
-	BeginMenu(label: string, inside: () => void): void;
+	BeginMainMenuBar(inside: (this: void) => void): void;
+	BeginMenuBar(inside: (this: void) => void): void;
+	BeginMenu(label: string, enabled: boolean, inside: (this: void) => void): void;
+	BeginMenu(label: string, inside: (this: void) => void): void;
 	MenuItem(label: string, shortcut?: string, selected?: boolean, enabled?: boolean): boolean;
 	MenuItemToggle(label: string, shortcut: string, p_selected: boolean, enabled?: boolean): [boolean, boolean];
 
 	OpenPopup(str_id: string): void;
-	BeginPopup(str_id: string, inside: () => void): void;
-	BeginPopupContextItem(str_id: string, popupFlags: PopupFlag[], inside: () => void): void;
-	BeginPopupContextItem(str_id: string, inside: () => void): void;
-	BeginPopupContextWindow(str_id: string, popupFlags: PopupFlag[], inside: () => void): void;
-	BeginPopupContextWindow(str_id: string, inside: () => void): void;
-	BeginPopupContextVoid(str_id: string, popupFlags: PopupFlag[], inside: () => void): void;
-	BeginPopupContextVoid(str_id: string, inside: () => void): void;
-	BeginPopupContextVoid(inside: () => void): void;
+	BeginPopup(str_id: string, inside: (this: void) => void): void;
+	BeginPopupContextItem(str_id: string, popupFlags: PopupFlag[], inside: (this: void) => void): void;
+	BeginPopupContextItem(str_id: string, inside: (this: void) => void): void;
+	BeginPopupContextWindow(str_id: string, popupFlags: PopupFlag[], inside: (this: void) => void): void;
+	BeginPopupContextWindow(str_id: string, inside: (this: void) => void): void;
+	BeginPopupContextVoid(str_id: string, popupFlags: PopupFlag[], inside: (this: void) => void): void;
+	BeginPopupContextVoid(str_id: string, inside: (this: void) => void): void;
+	BeginPopupContextVoid(inside: (this: void) => void): void;
 	CloseCurrentPopup(): void;
 
 	PushClipRect: (
 		clip_rect_min: Vec2,
 		clip_rect_max: Vec2,
 		intersect_with_current_clip_rect: boolean,
-		inside: () => void
+		inside: (this: void) => void
 	) => void;
 
 	IsItemHovered: () => boolean;

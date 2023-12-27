@@ -1814,6 +1814,35 @@ export default function PersistentDrawerLeft() {
 		setOpenLog(null);
 	};
 
+	const onValidate = (markers: monaco.editor.IMarker[]) => {
+		if (tabIndex === null) return;
+		let severity = 0;
+		for (const marker of markers) {
+			if (marker.severity > severity) {
+				severity = marker.severity;
+			}
+		}
+		if (severity > 0) {
+			const file = files[tabIndex];
+			let status: TabStatus = "normal";
+			switch (severity) {
+				case monaco.MarkerSeverity.Error:
+					status = "error";
+					break;
+				case monaco.MarkerSeverity.Warning:
+					status = "warning";
+					break;
+				default:
+					status = "normal";
+					break;
+			}
+			if (file.status !== status) {
+				file.status = status;
+				setFiles([...files]);
+			}
+		}
+	};
+
 	return (
 		<Entry>
 			<Dialog
@@ -2132,6 +2161,7 @@ export default function PersistentDrawerLeft() {
 													if (content === undefined) return;
 													setModified({key: file.key, content});
 												}}
+												onValidate={language === "typescript" ? onValidate : undefined}
 												path={monaco.Uri.file(file.key).toString()}
 												options={{
 													readOnly,

@@ -974,7 +974,7 @@ export function AngleY(
  * @param duration The duration of the delay in seconds.
  * @returns An ActionDef object that represents a delay in the animation timeline.
  */
-export const Delay: (duration: number) => ActionDef;
+export function Delay(this: void, duration: number): ActionDef;
 
 /**
  * Creates a definition for an action that emits an event.
@@ -993,7 +993,7 @@ export const Delay: (duration: number) => ActionDef;
  * ));
  * ```
  */
-export const Event: (name: string, param?: string) => ActionDef;
+export function Event(this: void, name: string, param?: string): ActionDef;
 
 /**
 * Creates a definition for an action that animates the width of a Node.
@@ -1018,19 +1018,19 @@ export function Width(
  * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
  * @returns An ActionDef object that can be used to run the animation on a Node.
  */
-export const Height: (duration: number, from: number, to: number, easing?: EaseFunc) => ActionDef;
+export function Height(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
  * Creates a definition for an action that hides a Node.
  * @returns An ActionDef object that can be used to hide a Node.
  */
-export const Hide: () => ActionDef;
+export function Hide(this: void): ActionDef;
 
 /**
 * Creates a definition for an action that shows a Node.
 * @returns An ActionDef object that can be used to show a Node.
 */
-export function Show(): ActionDef;
+export function Show(this: void): ActionDef;
 
 /**
  * Creates a definition for an action that animates the position of a Node from one Vec2 value to another.
@@ -1040,7 +1040,7 @@ export function Show(): ActionDef;
  * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
  * @returns An ActionDef object that can be used to run the animation on a Node.
  */
-export const Move: (duration: number, from: Vec2, to: Vec2, easing?: EaseFunc) => ActionDef;
+export function Move(this: void, duration: number, from: Vec2, to: Vec2, easing?: EaseFunc): ActionDef;
 
 /**
  * Creates a definition for an action that animates the opacity of a Node from one value to another.
@@ -1050,7 +1050,7 @@ export const Move: (duration: number, from: Vec2, to: Vec2, easing?: EaseFunc) =
  * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
  * @returns An ActionDef object that can be used to run the animation on a Node.
  */
-export const Opacity: (duration: number, from: number, to: number, easing?: EaseFunc) => ActionDef;
+export function Opacity(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
  * Creates a definition for an action that animates the rotation of a Node from one value to another.
@@ -1061,7 +1061,7 @@ export const Opacity: (duration: number, from: number, to: number, easing?: Ease
  * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
  * @returns An ActionDef object that can be used to run the animation on a Node.
  */
-export const Roll: (duration: number, from: number, to: number, easing?: EaseFunc) => ActionDef;
+export function Roll(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
  * Creates a definition for an action that animates the x-axis and y-axis scale of a Node from one value to another.
@@ -1071,7 +1071,7 @@ export const Roll: (duration: number, from: number, to: number, easing?: EaseFun
  * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
  * @returns An ActionDef object that can be used to run the animation on a Node.
  */
-export const Scale: (duration: number, from: number, to: number, easing?: EaseFunc) => ActionDef;
+export function Scale(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
  * Creates a definition for an action that animates the x-axis scale of a Node from one value to another.
@@ -1081,7 +1081,7 @@ export const Scale: (duration: number, from: number, to: number, easing?: EaseFu
  * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
  * @returns An ActionDef object that can be used to run the animation on a Node.
  */
-export const ScaleX: (duration: number, from: number, to: number, easing?: EaseFunc) => ActionDef;
+export function ScaleX(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
  * Creates a definition for an action that animates the y-axis scale of a Node from one value to another.
@@ -1092,6 +1092,7 @@ export const ScaleX: (duration: number, from: number, to: number, easing?: EaseF
  * @returns An ActionDef object that can be used to run the animation on a Node.
  */
 export function ScaleY(
+	this: void,
 	duration: number,
 	from: number,
 	to: number,
@@ -1107,6 +1108,7 @@ export function ScaleY(
 * @returns An ActionDef object that can be used to run the animation on a Node.
 */
 export function SkewX(
+	this: void,
 	duration: number,
 	from: number,
 	to: number,
@@ -1122,6 +1124,7 @@ export function SkewX(
 * @returns An ActionDef object that can be used to run the animation on a Node.
 */
 export function SkewY(
+	this: void,
 	duration: number,
 	from: number,
 	to: number,
@@ -1137,6 +1140,7 @@ export function SkewY(
  * @returns An ActionDef object that can be used to run the animation on a Node.
  */
 export function X(
+	this: void,
 	duration: number,
 	from: number,
 	to: number,
@@ -1152,6 +1156,7 @@ export function X(
  * @returns An ActionDef object that can be used to run the animation on a Node.
  */
 export function Y(
+	this: void,
 	duration: number,
 	from: number,
 	to: number,
@@ -1167,6 +1172,7 @@ export function Y(
  * @returns An ActionDef object that can be used to run the animation on a Node.
  */
 export function Z(
+	this: void,
 	duration: number,
 	from: number,
 	to: number,
@@ -1178,14 +1184,14 @@ export function Z(
 * @param actions A variable number of ActionDef objects to run in parallel.
 * @returns An ActionDef object that can be used to run the group of actions on a Node.
 */
-export function Spawn(...actions: ActionDef[]): ActionDef;
+export function Spawn(this: void, ...actions: ActionDef[]): ActionDef;
 
 /**
  * Creates a definition for an action that plays a sequence of other ActionDefs.
  * @param actions A variable number of ActionDef objects to play in sequence.
  * @returns An ActionDef object that can be used to run the sequence of actions on a Node.
  */
-export function Sequence(...actions: ActionDef[]): ActionDef;
+export function Sequence(this: void, ...actions: ActionDef[]): ActionDef;
 
 /**
  * The supported array data types.
@@ -1256,7 +1262,7 @@ class Array extends Object {
 	 * @param func The function to call for each item.
 	 * @returns False if the iteration completed, true if it was interrupted by the function.
 	 */
-	each(func: (item: Item) => boolean): boolean;
+	each(func: (this: void, item: Item) => boolean): boolean;
 
 	/** The first item in the array. */
 	readonly first: Item;
@@ -1524,21 +1530,21 @@ export {routine as Routine};
  * @param routine A function to execute as a coroutine.
  * @returns A handle to the coroutine that was created.
  */
-export function thread(routine: () => boolean): Job;
+export function thread(routine: (this: void) => boolean): Job;
 
 /**
  * Create a new coroutine from a function that runs repeatedly.
  * @param routine A function to execute repeatedly as a coroutine.
  * @returns A handle to the coroutine that was created.
  */
-export function threadLoop(routine: () => boolean): Job;
+export function threadLoop(routine: (this: void) => boolean): Job;
 
 /**
  * A function that keeps another function to run repeatedly for a duration of time.
  * @param duration The duration of the cycle, in seconds.
  * @param work A function to execute repeatedly during the cycle, receiving a time value from 0 to 1 to indicate the execution progress.
  */
-export function cycle(this: void, duration: number, work: (time: number) => void): void;
+export function cycle(this: void, duration: number, work: (this: void, time: number) => void): void;
 
 /**
  * Create a coroutine job that runs once.
@@ -1546,7 +1552,7 @@ export function cycle(this: void, duration: number, work: (time: number) => void
  * Yield true or just return inside the routine function to stop the job execution half way.
  * @returns A coroutine that runs the given routine function once.
  */
-export function once(routine: () => void): Job;
+export function once(routine: (this: void) => void): Job;
 
 /**
  * Create a coroutine job that runs repeatedly until a condition is met.
@@ -1554,13 +1560,13 @@ export function once(routine: () => void): Job;
  * Yield or return true inside the routine function to stop the job execution.
  * @returns A coroutine that runs the given routine function repeatedly.
  */
-export function loop(routine: () => boolean): Job;
+export function loop(routine: (this: void) => boolean): Job;
 
 /**
  * Wait until a condition is true in a coroutine.
  * @param condition A function that returns true when the condition is met.
  */
-export function wait(condition: () => boolean): void;
+export function wait(condition: (this: void) => boolean): void;
 
 /**
  * Yield the coroutine for a specified duration.
@@ -1594,7 +1600,7 @@ class Scheduler extends Object {
 	 * @param handler The function to be called. It should take a single argument of type number, which represents the delta time since the last frame.
 	 * If the function returns true, it will not be called again.
 	 */
-	schedule(handler: (deltaTime: number) => boolean): void;
+	schedule(handler: (this: void, deltaTime: number) => boolean): void;
 
 	/**
 	 * Schedules a coroutine job to be resumed every frame.
@@ -1658,7 +1664,7 @@ class Dictionary extends Object {
 	 * @param func The function to call for each item in the dictionary.
 	 * @returns Returns false if the iteration completed successfully, true otherwise.
 	 */
-	each(func: (item: Item, key: string) => boolean): boolean;
+	each(func: (this: void, item: Item, key: string) => boolean): boolean;
 
 	/**
 	 * A function that removes all the items from the dictionary.
@@ -1705,19 +1711,19 @@ class Slot extends Object {
 	 * Adds a new handler function to this slot.
 	 * @param handler The handler function to add.
 	 */
-	add(handler: (...args: any[]) => void): void;
+	add(handler: (this: void, ...args: any[]) => void): void;
 
 	/**
 	 * Sets a new handler function for this slot, replacing any existing handlers.
 	 * @param handler The handler function to set.
 	 */
-	set(handler: (...args: any[]) => void): void;
+	set(handler: (this: void, ...args: any[]) => void): void;
 
 	/**
 	 * Removes a previously added handler function from this slot.
 	 * @param handler The handler function to remove.
 	 */
-	remove(handler: (...args: any[]) => void): void;
+	remove(handler: (this: void, ...args: any[]) => void): void;
 
 	/**
 	 * Clears all handler functions from this slot.
@@ -2326,34 +2332,34 @@ const enum NodeEvent {
 export {NodeEvent as Slot};
 
 interface NodeEventHandlerMap {
-	ActionEnd: (action: Action, target: Node) => void;
-	TapFilter: (touch: Touch) => void;
-	TapBegan: (touch: Touch) => void;
-	TapEnded: (touch: Touch) => void;
-	Tapped: (touch: Touch) => void;
-	TapMoved: (touch: Touch) => void;
-	MouseWheel: (delta: Vec2) => void;
-	Gesture: (center: Vec2, numFingers: number, deltaDist: number, deltaAngle: number) => void;
-	Enter: () => void;
-	Exit: () => void;
-	Cleanup: () => void;
-	KeyDown: (keyName: KeyName) => void;
-	KeyUp: (keyName: KeyName) => void;
-	KeyPressed: (keyName: KeyName) => void;
-	AttachIME: () => void;
-	DetachIME: () => void;
-	TextInput: (text: string) => void;
-	TextEditing: (text: string, startPos: number) => void;
-	ButtonDown: (controllerId: number, buttonName: ButtonName) => void;
-	ButtonUp: (controllerId: number, buttonName: ButtonName) => void;
-	ButtonPressed: (controllerId: number, buttonName: KeyName) => void;
-	Axis: (controllerId: number, axisValue: number) => void;
-	AnimationEnd: (animationName: string, target: Playable) => void;
-	BodyEnter: (other: Body, sensorTag: number) => void;
-	BodyLeave: (other: Body, sensorTag: number) => void;
-	ContactStart: (other: Body, point: Vec2, normal: Vec2) => void;
-	ContactEnd: (other: Body, point: Vec2, normal: Vec2) => void;
-	Finished: () => void;
+	ActionEnd: (this: void, action: Action, target: Node) => void;
+	TapFilter: (this: void, touch: Touch) => void;
+	TapBegan: (this: void, touch: Touch) => void;
+	TapEnded: (this: void, touch: Touch) => void;
+	Tapped: (this: void, touch: Touch) => void;
+	TapMoved: (this: void, touch: Touch) => void;
+	MouseWheel: (this: void, delta: Vec2) => void;
+	Gesture: (this: void, center: Vec2, numFingers: number, deltaDist: number, deltaAngle: number) => void;
+	Enter: (this: void) => void;
+	Exit: (this: void) => void;
+	Cleanup: (this: void) => void;
+	KeyDown: (this: void, keyName: KeyName) => void;
+	KeyUp: (this: void, keyName: KeyName) => void;
+	KeyPressed: (this: void, keyName: KeyName) => void;
+	AttachIME: (this: void) => void;
+	DetachIME: (this: void) => void;
+	TextInput: (this: void, text: string) => void;
+	TextEditing: (this: void, text: string, startPos: number) => void;
+	ButtonDown: (this: void, controllerId: number, buttonName: ButtonName) => void;
+	ButtonUp: (this: void, controllerId: number, buttonName: ButtonName) => void;
+	ButtonPressed: (this: void, controllerId: number, buttonName: KeyName) => void;
+	Axis: (this: void, controllerId: number, axisValue: number) => void;
+	AnimationEnd: (this: void, animationName: string, target: Playable) => void;
+	BodyEnter: (this: void, other: Body, sensorTag: number) => void;
+	BodyLeave: (this: void, other: Body, sensorTag: number) => void;
+	ContactStart: (this: void, other: Body, point: Vec2, normal: Vec2) => void;
+	ContactEnd: (this: void, other: Body, point: Vec2, normal: Vec2) => void;
+	Finished: (this: void) => void;
 }
 
 const enum GlobalEvent {
@@ -2376,20 +2382,20 @@ const enum GlobalEvent {
 export {GlobalEvent as GSlot};
 
 type GlobalEventHandlerMap = {
-	AppQuit: () => void;
-	AppLowMemory: () => void;
-	AppWillEnterBackground: () => void;
-	AppDidEnterBackground: () => void;
-	AppWillEnterForeground: () => void;
-	AppDidEnterForeground: () => void;
-	AppSizeChanged: () => void;
-	AppFullScreen: (fullScreen: boolean) => void;
-	AppMoved: () => void;
-	AppTheme: (themeColor: Color) => void;
-	AppWSOpen: () => void;
-	AppWSClose: () => void;
-	AppWSMessage: (msg: string) => void;
-	AppWSSend: (msg: string) => void;
+	AppQuit: (this: void) => void;
+	AppLowMemory: (this: void) => void;
+	AppWillEnterBackground: (this: void) => void;
+	AppDidEnterBackground: (this: void) => void;
+	AppWillEnterForeground: (this: void) => void;
+	AppDidEnterForeground: (this: void) => void;
+	AppSizeChanged: (this: void) => void;
+	AppFullScreen: (this: void, fullScreen: boolean) => void;
+	AppMoved: (this: void) => void;
+	AppTheme: (this: void, themeColor: Color) => void;
+	AppWSOpen: (this: void) => void;
+	AppWSClose: (this: void) => void;
+	AppWSMessage: (this: void, msg: string) => void;
+	AppWSSend: (this: void, msg: string) => void;
 };
 
 /**
@@ -2584,7 +2590,7 @@ class Node extends Object {
 	 * Schedules a function to run every frame.
 	 * @param func The function to run, return true to stop.
 	 */
-	schedule(func: (deltaTime: number) => boolean): void;
+	schedule(func: (this: void, deltaTime: number) => boolean): void;
 
 	/**
 	 * Schedules a coroutine to run.
@@ -2632,28 +2638,28 @@ class Node extends Object {
 	 * @param nodePoint The point in node space.
 	 * @param callback The callback function to receive the converted point in window space.
 	 */
-	convertToWindowSpace(nodePoint: Vec2, callback: (windowPoint: Vec2) => void): void;
+	convertToWindowSpace(nodePoint: Vec2, callback: (this: void, windowPoint: Vec2) => void): void;
 
 	/**
 	 * Calls the given function for each child node of this node.
 	 * @param func The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
 	 * @returns False if all children have been visited, true if the iteration was interrupted by the function.
 	 */
-	eachChild(func: (child: Node) => boolean): boolean;
+	eachChild(func: (this: void, child: Node) => boolean): boolean;
 
 	/**
 	 * Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
 	 * @param func The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
 	 * @returns False if all nodes have been visited, true if the traversal was interrupted by the function.
 	 */
-	traverse(func: (node: Node) => boolean): boolean;
+	traverse(func: (this: void, node: Node) => boolean): boolean;
 
 	/**
 	 * Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
 	 * @param func The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
 	 * @returns True if all nodes have been visited, false if the traversal was interrupted by the function.
 	 */
-	traverseAll(func: (node: Node) => boolean): boolean;
+	traverseAll(func: (this: void, node: Node) => boolean): boolean;
 
 	/**
 	 * Runs the given action on this node.
@@ -2785,7 +2791,7 @@ class Node extends Object {
 	 * @param handler The handler function to associate with the event.
 	 * @returns The global event listener associated with the event in this node.
 	 */
-	gslot(eventName: string, handler: () => void): GSlot;
+	gslot(eventName: string, handler: (this: void, ...args: any[]) => void): GSlot;
 
 	/**
 	 * Gets the node event listener associated with the given node event name.
@@ -2806,7 +2812,7 @@ class Node extends Object {
 	 * @param eventName The name of the node event.
 	 * @param handler The handler function to associate with the node event.
 	 */
-	slot(eventName: string, handler: (...args: any[]) => void): void;
+	slot(eventName: string, handler: (this: void, ...args: any[]) => void): void;
 
 	/**
 	 * Emits a node event with a given event name and arguments.
@@ -3101,7 +3107,7 @@ class Content {
 	 * @param filter A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
 	 * @returns `true` if the folder was compressed successfully, `false` otherwise.
 	 */
-	zipAsync(folderPath: string, zipFile: string, filter?: (filename: string) => boolean): boolean;
+	zipAsync(folderPath: string, zipFile: string, filter?: (this: void, filename: string) => boolean): boolean;
 
 	/**
 	 * Asynchronously decompresses a ZIP archive to the specified folder.
@@ -3110,7 +3116,7 @@ class Content {
 	 * @param filter A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
 	 * @returns `true` if the folder was decompressed successfully, `false` otherwise.
 	 */
-	unzipAsync(folderPath: string, zipFile: string, filter?: (filename: string) => boolean): boolean;
+	unzipAsync(folderPath: string, zipFile: string, filter?: (this: void, filename: string) => boolean): boolean;
 
 	/**
 	 * Gets the names of all subdirectories in the specified directory.
@@ -3146,7 +3152,7 @@ export {content as Content};
  * Logs a message to the console.
  * @param msg The message to be logged.
  */
-export const Log: (msg: string) => void;
+export function Log(this: void, msg: string);
 
 /**
  * Type definition for a database column.
@@ -3714,7 +3720,7 @@ class Model extends Playable {
 	 * @param func The function to call for each node.
 	 * @returns Whether the function was called for all nodes or not.
 	 */
-	eachNode(func: (node: Node) => boolean): boolean;
+	eachNode(func: (this: void, node: Node) => boolean): boolean;
 }
 
 export type {Model as ModelType}
@@ -3936,7 +3942,7 @@ class Observer {
 	 * @param func The function to call when a change occurs.
 	 * @returns The same observer, for method chaining.
 	 */
-	watch(func: (entity: Entity) => void): Observer;
+	watch(func: (this: void, entity: Entity) => void): Observer;
 }
 
 /**
@@ -3989,21 +3995,21 @@ class Group extends Object {
 	 * @param func The function to call for each entity. Returning true inside the function to stop iteration.
 	 * @returns False if all entities were processed, True if the iteration was interrupted.
 	 */
-	each(func: (entity: Entity) => boolean): boolean;
+	each(func: (this: void, entity: Entity) => boolean): boolean;
 
 	/**
 	 * Finds the first entity in the group that satisfies a predicate function.
 	 * @param func The predicate function to test each entity with.
 	 * @returns The first entity that satisfies the predicate, or undefined if no entity does.
 	 */
-	find(func: (entity: Entity) => boolean): Entity | undefined;
+	find(func: (this: void, entity: Entity) => boolean): Entity | undefined;
 
 	/**
 	 * Watches the group for changes to its entities, calling a function whenever an entity is added or changed.
 	 * @param func The function to call when an entity is added or changed.
 	 * @returns The same group, for method chaining.
 	 */
-	watch(func: (entity: Entity) => void): Group;
+	watch(func: (this: void, entity: Entity) => void): Group;
 }
 
 export type {Group as GroupType};
@@ -4704,7 +4710,7 @@ class PhysicsWorld extends Node {
 	 * @param handler A function that is called for each body found in the query.
 	 * @returns Whether the query was interrupted, true means interrupted, false otherwise.
 	 */
-	query(rect: Rect, handler: (body: Body) => boolean): boolean;
+	query(rect: Rect, handler: (this: void, body: Body) => boolean): boolean;
 
 	/**
 	 * Casts a ray through the physics world and finds the first body that intersects with the ray.
@@ -4715,7 +4721,7 @@ class PhysicsWorld extends Node {
 	 * @param handler A function that is called for each body found in the raycast.
 	 * @returns Whether the raycast was interrupted, true means interrupted, false otherwise.
 	 */
-	raycast(start: Vec2, stop: Vec2, closest: boolean, handler: (body: Body, point: Vec2, normal: Vec2) => boolean): boolean;
+	raycast(start: Vec2, stop: Vec2, closest: boolean, handler: (this: void, body: Body, point: Vec2, normal: Vec2) => boolean): boolean;
 
 	/**
 	 * Sets the number of velocity and position iterations to perform in the physics world.
@@ -5481,6 +5487,7 @@ class ML {
 		csvData: string,
 		maxDepth: number,
 		handler: (
+			this: void,
 			depth: number,
 			name: string,
 			op: MLOperator,
@@ -5626,7 +5633,7 @@ interface ProfilerClass {
 	 * @example
 	 * const time = profiler(funcForProfiling);
 	 */
-	(this: void, funcForProfiling: () => number): number;
+	(this: void, funcForProfiling: (this: void) => number): number;
 }
 
 const profiler: ProfilerClass;
@@ -5746,7 +5753,7 @@ export {svgClass as SVG};
 class VGNode extends Node {
 	private constructor();
 	surface: Sprite;
-	render(func: () => void): void;
+	render(func: (this: void) => void): void;
 }
 
 interface VGNodeClass {
