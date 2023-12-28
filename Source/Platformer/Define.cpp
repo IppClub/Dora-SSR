@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Platformer/Define.h"
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 TargetAllow::TargetAllow(uint32_t flag)
 	: _flag(flag) { }
@@ -51,4 +51,4 @@ uint32_t TargetAllow::toValue() const {
 	return _flag;
 }
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

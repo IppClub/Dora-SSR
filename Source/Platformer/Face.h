@@ -14,7 +14,7 @@ NS_DORA_BEGIN
 class Node;
 NS_DORA_END
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 /** @brief A face is a combination of sprites and particles.
  When a face is removing, its particles stop emitting and its sprites are all hide.
@@ -70,4 +70,4 @@ private:
 	DORA_TYPE_OVERRIDE(Face);
 };
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

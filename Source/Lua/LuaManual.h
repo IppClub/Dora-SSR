@@ -257,7 +257,7 @@ int Test_run(lua_State* L);
 
 NS_DORA_END
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 /* TargetAllow */
 void TargetAllow_allow(TargetAllow* self, String flag, bool allow);
@@ -318,4 +318,4 @@ void Data_setRelation(Data* self, uint8_t groupA, uint8_t groupB, String relatio
 Slice Data_getRelation(Data* self, uint8_t groupA, uint8_t groupB);
 Slice Data_getRelation(Data* self, Body* bodyA, Body* bodyB);
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

@@ -14,7 +14,7 @@ NS_DORA_BEGIN
 class Node;
 NS_DORA_END
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 typedef Acf::Delegate<void(float deltaX, float deltaY)> CameraMoveHandler;
 typedef Acf::Delegate<void()> CameraResetHandler;
@@ -53,4 +53,4 @@ private:
 	DORA_TYPE_OVERRIDE(PlatformCamera);
 };
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

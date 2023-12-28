@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/View.h"
 #include "Node/Node.h"
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 PlatformCamera::PlatformCamera(String name)
 	: Camera(name)
@@ -150,4 +150,4 @@ Node* PlatformCamera::getFollowTarget() const {
 	return _followTarget;
 }
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

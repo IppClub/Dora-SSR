@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/UnitAction.h"
 #include "Support/Dictionary.h"
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 Data::Data()
 	: _store(Dictionary::create()) {
@@ -181,4 +181,4 @@ void Data::clear() {
 	_store->clear();
 }
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

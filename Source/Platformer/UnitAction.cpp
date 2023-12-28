@@ -30,7 +30,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "playrho/d2/Distance.hpp"
 #include "Support/Dictionary.h"
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 // UnitAction
 
@@ -699,4 +699,4 @@ const Slice ActionSetting::HitFromRight = "hitFromRight"_slice;
 const Slice ActionSetting::HitPower = "hitPower"_slice;
 const Slice ActionSetting::AttackTarget = "attackTarget"_slice;
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

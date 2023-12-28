@@ -27,7 +27,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Physics/Sensor.h"
 #include "Support/Dictionary.h"
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 static const float BOTTOM_OFFSET = 5.0f;
 static const float GROUND_SENSOR_HEIGHT = 1.0f;
@@ -439,4 +439,4 @@ Behavior::Leaf* Unit::getBehaviorTree() const {
 	return _behaviorTree;
 }
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

@@ -17,7 +17,7 @@ class Sprite;
 class Action;
 NS_DORA_END
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 class Visual : public Node {
 public:
@@ -113,4 +113,4 @@ private:
 #define SharedVisualCache \
 	Dora::Singleton<Dora::Platformer::VisualCache>::shared()
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

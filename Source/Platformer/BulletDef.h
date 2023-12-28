@@ -15,7 +15,7 @@ class World;
 class BodyDef;
 NS_DORA_END
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 class Face;
 
 class BulletDef : public Object {
@@ -44,4 +44,4 @@ private:
 	DORA_TYPE_OVERRIDE(BulletDef);
 };
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

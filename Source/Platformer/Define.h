@@ -8,8 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#define NS_DOROTHY_PLATFORMER_BEGIN namespace Dora::Platformer {
-#define NS_DOROTHY_PLATFORMER_END }
+#define NS_DORA_PLATFORMER_BEGIN namespace Dora::Platformer {
+#define NS_DORA_PLATFORMER_END }
 
 #define NS_DECISION_BEGIN namespace Decision {
 #define NS_DECISION_END }
@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define NS_BEHAVIOR_BEGIN namespace Behavior {
 #define NS_BEHAVIOR_END }
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 enum struct Relation {
 	Unknown = 0,
@@ -52,4 +52,4 @@ protected:
 	uint32_t _flag;
 };
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END
