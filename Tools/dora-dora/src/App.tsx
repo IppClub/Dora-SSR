@@ -699,8 +699,8 @@ export default function PersistentDrawerLeft() {
 				} else {
 					const ext = path.extname(file.key).toLowerCase();
 					if (ext === '.ts' || ext === '.tsx') {
-						saveFile(contentModified);
-						transpileTypescript(file.key, contentModified ?? file.content).then(luaCode => {
+						const content = contentModified;
+						transpileTypescript(file.key, content).then(luaCode => {
 							if (luaCode !== undefined) {
 								const extname = path.extname(file.key);
 								const name = path.basename(file.key, extname);
@@ -708,6 +708,7 @@ export default function PersistentDrawerLeft() {
 								const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
 								Service.write({path: luaFile, content: luaCode}).then((res) => {
 									if (res.success) {
+										saveFile(content);
 										if (fileInTab !== undefined) {
 											setFiles(prev => {
 												const newTabs = prev.filter(f => f.key !== fileInTab.key);
