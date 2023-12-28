@@ -1,4 +1,4 @@
-package org.ippclub.dorothyssr;
+package org.ippclub.dorassr;
 
 import org.libsdl.app.SDLActivity;
 

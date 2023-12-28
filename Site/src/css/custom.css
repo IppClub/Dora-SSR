@@ -13,7 +13,7 @@
 	'Segoe UI Emoji', 'Segoe UI Symbol';
 	--ifm-font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas,
 	'Liberation Mono', 'Courier New', monospace;
-	--ifm-color-primary: #e1b000;
+	--ifm-color-primary: #e1ad03;
 	--ifm-color-primary-dark: #d5a64c;
 	--ifm-color-primary-darker: #c89c48;
 	--ifm-color-primary-darkest: #af893b;
@@ -50,12 +50,12 @@
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-	--ifm-color-primary: #fbc400;
+	--ifm-color-primary: #fac03d;
 	--ifm-color-primary-dark: #f5c000;
 	--ifm-color-primary-darker: #e0b000;
 	--ifm-color-primary-darkest: #cca000;
 	--ifm-color-primary-light: #d5a64c;
 	--ifm-color-primary-lighter: #e1b000;
-	--ifm-color-primary-lightest: #fbc400;
+	--ifm-color-primary-lightest: #fac03d;
 	--docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }

@@ -471,7 +471,7 @@ void RenderDoraSSR(NVGcontext* context) {
 	nvgLineTo(context, 544.01f, 2.425f);
 	nvgClosePath(context);
 	nvgPathWinding(context, NVG_HOLE);
-	nvgFillColor(context, nvgRGBA(251, 196, 0, 255));
+	nvgFillColor(context, nvgRGBA(250, 192, 61, 255));
 	nvgFill(context);
 	nvgBeginPath(context);
 	nvgMoveTo(context, 1036.92f, 51.895f);
@@ -545,7 +545,7 @@ void RenderDoraSSR(NVGcontext* context) {
 	nvgLineTo(context, 880.32f, 379.855f);
 	nvgLineTo(context, 880.32f, 379.865f);
 	nvgClosePath(context);
-	nvgFillColor(context, nvgRGBA(251, 196, 0, 255));
+	nvgFillColor(context, nvgRGBA(250, 192, 61, 255));
 	nvgFill(context);
 	nvgBeginPath(context);
 	nvgMoveTo(context, 895.49f, 281.155f);
@@ -564,7 +564,7 @@ void RenderDoraSSR(NVGcontext* context) {
 	nvgLineTo(context, 895.49f, 281.175f);
 	nvgLineTo(context, 895.49f, 281.155f);
 	nvgClosePath(context);
-	nvgFillColor(context, nvgRGBA(251, 196, 0, 255));
+	nvgFillColor(context, nvgRGBA(250, 192, 61, 255));
 	nvgFill(context);
 	nvgBeginPath(context);
 	nvgMoveTo(context, 934.16f, 118.605f);
@@ -619,7 +619,7 @@ void RenderDoraSSR(NVGcontext* context) {
 	nvgBezierTo(context, 179.568f, 195.029f, 204.498f, 219.959f, 242.938f, 231.399f);
 	nvgBezierTo(context, 204.498f, 242.839f, 179.568f, 267.769f, 168.128f, 306.209f);
 	nvgClosePath(context);
-	nvgFillColor(context, nvgRGBA(251, 196, 0, 255));
+	nvgFillColor(context, nvgRGBA(250, 192, 61, 255));
 	nvgFill(context);
 	nvgBeginPath(context);
 	nvgMoveTo(context, 430.64f, 352.505f);
@@ -666,7 +666,7 @@ void RenderDoraSSR(NVGcontext* context) {
 	nvgBezierTo(context, 202.52f, 812.035f, 190.21f, 799.965f, 174.88f, 800.205f);
 	nvgLineTo(context, 174.9f, 800.195f);
 	nvgClosePath(context);
-	nvgFillColor(context, nvgRGBA(251, 196, 0, 255));
+	nvgFillColor(context, nvgRGBA(250, 192, 61, 255));
 	nvgFill(context);
 	nvgBeginPath(context);
 	nvgMoveTo(context, 165.45f, 955.685f);
@@ -692,7 +692,7 @@ void RenderDoraSSR(NVGcontext* context) {
 	nvgLineTo(context, 305.22f, 798.375f);
 	nvgLineTo(context, 305.22f, 798.365f);
 	nvgClosePath(context);
-	nvgFillColor(context, nvgRGBA(251, 196, 0, 255));
+	nvgFillColor(context, nvgRGBA(250, 192, 61, 255));
 	nvgFill(context);
 	nvgBeginPath(context);
 	nvgMoveTo(context, 295.69f, 941.465f);
@@ -717,7 +717,7 @@ void RenderDoraSSR(NVGcontext* context) {
 	nvgBezierTo(context, 593.65f, 807.905f, 581.26f, 797.025f, 565.94f, 797.025f);
 	nvgLineTo(context, 565.93f, 797.015f);
 	nvgClosePath(context);
-	nvgFillColor(context, nvgRGBA(251, 196, 0, 255));
+	nvgFillColor(context, nvgRGBA(250, 192, 61, 255));
 	nvgFill(context);
 	nvgBeginPath(context);
 	nvgMoveTo(context, 514.31f, 823.145f);
@@ -793,7 +793,7 @@ void RenderDoraSSR(NVGcontext* context) {
 	nvgLineTo(context, 462.3f, 871.665f);
 	nvgLineTo(context, 462.29f, 871.665f);
 	nvgClosePath(context);
-	nvgFillColor(context, nvgRGBA(251, 196, 0, 255));
+	nvgFillColor(context, nvgRGBA(250, 192, 61, 255));
 	nvgFill(context);
 	nvgBeginPath(context);
 	nvgMoveTo(context, 1001.1f, 893.185f);
@@ -827,7 +827,7 @@ void RenderDoraSSR(NVGcontext* context) {
 	nvgLineTo(context, 41.41f, 1077.64f);
 	nvgLineTo(context, 41.41f, 1077.65f);
 	nvgClosePath(context);
-	nvgFillColor(context, nvgRGBA(251, 196, 0, 255));
+	nvgFillColor(context, nvgRGBA(250, 192, 61, 255));
 	nvgFill(context);
 	nvgBeginPath(context);
 	nvgMoveTo(context, 624.69f, 1023.19f);
@@ -837,7 +837,7 @@ void RenderDoraSSR(NVGcontext* context) {
 	nvgLineTo(context, 624.7f, 1023.2f);
 	nvgLineTo(context, 624.69f, 1023.19f);
 	nvgClosePath(context);
-	nvgFillColor(context, nvgRGBA(251, 196, 0, 255));
+	nvgFillColor(context, nvgRGBA(250, 192, 61, 255));
 	nvgFill(context);
 }
 

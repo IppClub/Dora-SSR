@@ -20,7 +20,7 @@ export namespace Color {
 	export const TextPrimary = '#eee';
 	export const TextSecondary = '#eee8';
 
-	export const Theme = '#fbc400';
+	export const Theme = '#fac03d';
 };
 
 const theme = createTheme({
