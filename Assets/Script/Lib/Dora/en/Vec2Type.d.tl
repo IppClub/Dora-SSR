@@ -49,6 +49,42 @@ local record Vec2
 	-- Adds two vectors together.
 	-- @param other (Vec2) The other vector to add, represented by a Vec2 object.
 	-- @return (Vec2) The sum of the two vectors.
+	add: function(self: Vec2, other: Vec2): Vec2
+
+	-- Subtracts one vector from another.
+	-- @param other (Vec2) The vector to subtract, represented by a Vec2 object.
+	-- @return (Vec2) The difference between the two vectors.
+	sub: function(self: Vec2, other: Vec2): Vec2
+
+	-- Multiplies two vectors component-wise.
+	-- @param other (Vec2) The other vector to multiply by, represented by a Vec2 object.
+	-- @return (Vec2) The result of multiplying the two vectors component-wise.
+	mul: function(self: Vec2, other: Vec2): Vec2
+
+	-- Multiplies a vector by a scalar.
+	-- @param other (Vec2) The scalar to multiply by, represented by a number.
+	-- @return (Vec2) The result of multiplying the vector by the scalar.
+	mul: function(self: Vec2, other: number): Vec2
+
+	-- Multiplies a vector by a Size object.
+	-- @param other (Size) The Size object to multiply by.
+	-- @return (Vec2) The result of multiplying the vector by the Size object.
+	-- @usage local halfVec = vec * Size(0.5, 0.5)
+	mul: function(self: Vec2, other: Size): Vec2
+
+	-- Divide a vector by a scalar.
+	-- @param other (number) The scalar to divide by, represented by a number.
+	-- @return (Vec2) The result of dividing the vector by the scalar.
+	div: function(self: Vec2, other: number): Vec2
+
+	-- Compare two vectors for equality.
+	-- @param other (Vec2) The other vector to compare to, represented by a Vec2 object.
+	-- @return (boolean) Whether or not the two vectors are equal.
+	equals: function(self: Vec2, other: Vec2): boolean
+
+	-- Adds two vectors together.
+	-- @param other (Vec2) The other vector to add, represented by a Vec2 object.
+	-- @return (Vec2) The sum of the two vectors.
 	metamethod __add: function(self: Vec2, other: Vec2): Vec2
 
 	-- Subtracts one vector from another.

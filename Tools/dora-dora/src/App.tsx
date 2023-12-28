@@ -1816,6 +1816,7 @@ export default function PersistentDrawerLeft() {
 
 	const onValidate = (markers: monaco.editor.IMarker[]) => {
 		if (tabIndex === null) return;
+		let status: TabStatus = "normal";
 		let severity = 0;
 		for (const marker of markers) {
 			if (marker.severity > severity) {
@@ -1823,8 +1824,6 @@ export default function PersistentDrawerLeft() {
 			}
 		}
 		if (severity > 0) {
-			const file = files[tabIndex];
-			let status: TabStatus = "normal";
 			switch (severity) {
 				case monaco.MarkerSeverity.Error:
 					status = "error";
@@ -1836,10 +1835,11 @@ export default function PersistentDrawerLeft() {
 					status = "normal";
 					break;
 			}
-			if (file.status !== status) {
-				file.status = status;
-				setFiles([...files]);
-			}
+		}
+		const file = files[tabIndex];
+		if (file.status !== status) {
+			file.status = status;
+			setFiles([...files]);
 		}
 	};
 

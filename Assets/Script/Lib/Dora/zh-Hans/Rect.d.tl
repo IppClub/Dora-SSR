@@ -70,6 +70,11 @@ local record Rect
 	-- 检查两个矩形是否相等。
 	-- @param other (Rect) 要比较的另一个矩形，用`Rect`对象表示。
 	-- @return (boolean) 两个矩形是否相等。
+	equals: function(self: Rect, other: Rect): boolean
+
+	-- 检查两个矩形是否相等。
+	-- @param other (Rect) 要比较的另一个矩形，用`Rect`对象表示。
+	-- @return (boolean) 两个矩形是否相等。
 	metamethod __eq: function(self: Rect, other: Rect): boolean
 end
 

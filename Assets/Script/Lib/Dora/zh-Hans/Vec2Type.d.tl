@@ -49,6 +49,41 @@ local record Vec2
 	-- 将两个向量相加的元方法。
 	-- @param other (Vec2) 要相加的另一个向量。
 	-- @return (Vec2) 两个向量之和。
+	add: function(self: Vec2, other: Vec2): Vec2
+
+	-- 从一个向量中减去另一个向量的元方法。
+	-- @param other (Vec2) 要减去的向量。
+	-- @return (Vec2) 两个向量之间的差。
+	sub: function(self: Vec2, other: Vec2): Vec2
+
+	-- 逐分量相乘两个向量的元方法。
+	-- @param other (Vec2) 要相乘的另一个向量。
+	-- @return (Vec2) 逐分量相乘两个向量的结果。
+	mul: function(self: Vec2, other: Vec2): Vec2
+
+	-- 将向量乘以标量的元方法。
+	-- @param other (number) 要乘以的标量，用数字表示。
+	mul: function(self: Vec2, other: number): Vec2
+
+	-- 将向量乘以尺寸对象的元方法。
+	-- @param other (Size) 要乘以的尺寸对象。
+	-- @return (Vec2) 将向量乘以尺寸对象的结果。
+	-- @usage local halfVec = vec * Size(0.5, 0.5)
+	mul: function(self: Vec2, other: Size): Vec2
+
+	-- 将向量除以标量的元方法。
+	-- @param other (number) 要除以的标量。
+	-- @return (Vec2) 将向量除以标量的结果。
+	div: function(self: Vec2, other: number): Vec2
+
+	-- 比较两个向量是否相等的元方法。
+	-- @param other (Vec2) 要进行比较的另一个向量。
+	-- @return (boolean) 两个向量是否相等。
+	equals: function(self: Vec2, other: Vec2): boolean
+
+	-- 将两个向量相加的元方法。
+	-- @param other (Vec2) 要相加的另一个向量。
+	-- @return (Vec2) 两个向量之和。
 	metamethod __add: function(self: Vec2, other: Vec2): Vec2
 
 	-- 从一个向量中减去另一个向量的元方法。

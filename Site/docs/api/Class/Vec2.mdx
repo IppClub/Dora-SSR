@@ -189,6 +189,186 @@ clamp: function(self: Vec2, from: Vec2, to: Vec2): Vec2
 | --- | --- |
 | Vec2 | The clamped vector. |
 
+## add
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds two vectors together.
+
+**Signature:**
+```tl
+add: function(self: Vec2, other: Vec2): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Vec2 | The other vector to add, represented by a Vec2 object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The sum of the two vectors. |
+
+## sub
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Subtracts one vector from another.
+
+**Signature:**
+```tl
+sub: function(self: Vec2, other: Vec2): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Vec2 | The vector to subtract, represented by a Vec2 object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The difference between the two vectors. |
+
+## mul
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Multiplies two vectors component-wise.
+
+**Signature:**
+```tl
+mul: function(self: Vec2, other: Vec2): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Vec2 | The other vector to multiply by, represented by a Vec2 object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The result of multiplying the two vectors component-wise. |
+
+## mul
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Multiplies a vector by a scalar.
+
+**Signature:**
+```tl
+mul: function(self: Vec2, other: number): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Vec2 | The scalar to multiply by, represented by a number. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The result of multiplying the vector by the scalar. |
+
+## mul
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Multiplies a vector by a Size object.
+
+**Signature:**
+```tl
+mul: function(self: Vec2, other: Size): Vec2
+```
+
+**Usage:**
+```tl
+local halfVec = vec * Size(0.5, 0.5)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Size | The Size object to multiply by. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The result of multiplying the vector by the Size object. |
+
+## div
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Divide a vector by a scalar.
+
+**Signature:**
+```tl
+div: function(self: Vec2, other: number): Vec2
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | number | The scalar to divide by, represented by a number. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec2 | The result of dividing the vector by the scalar. |
+
+## equals
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Compare two vectors for equality.
+
+**Signature:**
+```tl
+equals: function(self: Vec2, other: Vec2): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Vec2 | The other vector to compare to, represented by a Vec2 object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether or not the two vectors are equal. |
+
 ## __add
 
 **Type:** Metamethod.

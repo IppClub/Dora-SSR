@@ -56,6 +56,66 @@ set: function(self: Size, width: number, height: number)
 | width | number | The new width of the size. |
 | height | number | The new height of the size. |
 
+## equals
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Check if two sizes are equal.
+
+**Signature:**
+```tl
+equals: function(self: Size, other: Size): boolean
+```
+
+**Usage:**
+```tl
+sizeA == sizeB or sizeC ~= sizeD
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Size | The other size to compare to. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether or not the two sizes are equal. |
+
+## mul
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Multiply the size by a vector.
+
+**Signature:**
+```tl
+mul: function(self: Size, vec: Vec2): Size
+```
+
+**Usage:**
+```tl
+local halfSize = size * Vec2(0.5, 0.5)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vec | Vec2 | The vector to multiply by. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Size | The result of multiplying the size by the vector. |
+
 ## __eq
 
 **Type:** Metamethod.
