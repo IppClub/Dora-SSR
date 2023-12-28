@@ -836,7 +836,7 @@ LuaEngine::LuaEngine()
 	luaL_setfuncs(L, global_functions, 0);
 	lua_pop(L, 1);
 
-	// add dorothy loader
+	// add dora loader
 	LuaEngine::insertLuaLoader(dora_loader, 2);
 
 	// load cpp binding

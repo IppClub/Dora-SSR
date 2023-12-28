@@ -24,7 +24,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/VisualCache.h"
 #include "Support/Dictionary.h"
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 const Slice Bullet::Def::BulletKey = "bullet"_slice;
 
@@ -195,4 +195,4 @@ void Bullet::destroy() {
 	}
 }
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

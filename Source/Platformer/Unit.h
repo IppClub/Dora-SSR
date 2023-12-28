@@ -19,7 +19,7 @@ class Playable;
 class Dictionary;
 NS_DORA_END
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 class UnitAction;
 class Property;
 class Instinct;
@@ -126,4 +126,4 @@ private:
 	DORA_TYPE_OVERRIDE(Unit);
 };
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

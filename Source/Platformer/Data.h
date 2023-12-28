@@ -14,7 +14,7 @@ class Dictionary;
 class Body;
 NS_DORA_END
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 class Unit;
 
@@ -60,4 +60,4 @@ private:
 #define SharedData \
 	Dora::Singleton<Dora::Platformer::Data>::shared()
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

@@ -17,7 +17,7 @@ class Body;
 class Event;
 NS_DORA_END
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 NS_BEHAVIOR_BEGIN
 enum class Status;
@@ -270,4 +270,4 @@ protected:
 	Fall(Unit* unit);
 };
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END

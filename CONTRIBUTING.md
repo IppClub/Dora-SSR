@@ -39,7 +39,7 @@ If you would like to contribute code to Dora SSR, please follow these steps:
 
 3. **Build from Source**:
 
-   Familiarize yourself with the project's compile-from-source process by referring to the [Build-from-Source Documentation](https://dorothy-ssr.net/docs/tutorial/dev-configuration).
+   Familiarize yourself with the project's compile-from-source process by referring to the [Build-from-Source Documentation](https://dora-ssr.net/docs/tutorial/dev-configuration).
 
 4. **Coding**:
 

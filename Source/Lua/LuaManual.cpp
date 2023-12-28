@@ -2933,7 +2933,7 @@ int Test_run(lua_State* L) {
 
 NS_DORA_END
 
-NS_DOROTHY_PLATFORMER_BEGIN
+NS_DORA_PLATFORMER_BEGIN
 
 static Relation toRelation(String value) {
 	switch (Switch::hash(value)) {
@@ -3121,4 +3121,4 @@ Slice Data_getRelation(Data* self, Body* bodyA, Body* bodyB) {
 	return getRelation(self->getRelation(bodyA, bodyB));
 }
 
-NS_DOROTHY_PLATFORMER_END
+NS_DORA_PLATFORMER_END
