@@ -970,6 +970,41 @@ do
 	Blackboard.__newindex = Blackboard.set
 end
 
+-- API for Typescript without operator overloading
+do
+	dora.Size.equals = function(self, var)
+		return self == var
+	end
+
+	dora.Size.mul = function(self, var)
+		return self * var
+	end
+
+	dora.Vec2.add = function(self, var)
+		return self + var
+	end
+
+	dora.Vec2.sub = function(self, var)
+		return self - var
+	end
+
+	dora.Vec2.mul = function(self, var)
+		return self * var
+	end
+
+	dora.Vec2.div = function(self, var)
+		return self / var
+	end
+
+	dora.Vec2.equals = funcion(self, var)
+		return self == var
+	end
+
+	dora.Rect.equals = function(self, var)
+		return self == var
+	end
+end
+
 -- to string debugging helper
 do
 	dora.Vec2.__tostring = function(self)

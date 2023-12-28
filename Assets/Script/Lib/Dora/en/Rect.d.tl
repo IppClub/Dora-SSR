@@ -70,6 +70,11 @@ local record Rect
 	-- Check if two rectangles are equal.
 	-- @param other (Rect) The other rectangle to compare to, represented by a Rect object.
 	-- @return (boolean) Whether or not the two rectangles are equal.
+	equals: function(self: Rect, other: Rect): boolean
+
+	-- Check if two rectangles are equal.
+	-- @param other (Rect) The other rectangle to compare to, represented by a Rect object.
+	-- @return (boolean) Whether or not the two rectangles are equal.
 	metamethod __eq: function(self: Rect, other: Rect): boolean
 end
 
