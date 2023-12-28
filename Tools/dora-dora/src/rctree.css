@@ -30,11 +30,11 @@
   right: 0;
   bottom: 0;
   left: 0;
-  box-shadow: inset 0 0 0 2px #fbc400;
+  box-shadow: inset 0 0 0 2px #fac03d;
   content: '';
 }
 .rc-tree .rc-tree-treenode.drop-container ~ .rc-tree-treenode {
-  border-left: 2px solid #fbc400;
+  border-left: 2px solid #fac03d;
 }
 .rc-tree .rc-tree-treenode.drop-target {
   background-color: #8a8a8a;
@@ -43,7 +43,7 @@
   border-left: none;
 }
 .rc-tree .rc-tree-treenode.filter-node > .rc-tree-node-content-wrapper {
-  color: #fbc400 !important;
+  color: #fac03d !important;
   font-weight: bold !important;
 }
 .rc-tree .rc-tree-treenode ul {
@@ -160,8 +160,8 @@
   background: rgba(0, 0, 0, 0.1);
 }
 .rc-tree-node-selected {
-  background-color: #fbc40066;
-  border: 1px solid #fbc40088;
+  background-color: #fac03d66;
+  border: 1px solid #fac03d88;
 }
 .rc-tree-icon__open {
   margin-right: 2px;

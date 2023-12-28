@@ -715,7 +715,6 @@ HttpServer\post "/command", (req)->
 
 HttpServer\post "/exist", (req)->
 	switch req when {body: {:file}}
-		print file, Content\exist file
 		success: Content\exist file
 	else
 		success: false

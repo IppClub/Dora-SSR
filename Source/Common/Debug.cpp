@@ -29,7 +29,7 @@ Acf::Delegate<void(const std::string&)> LogHandler;
 
 void LogError(const std::string& str) {
 #if BX_PLATFORM_ANDROID
-	__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
+	__android_log_print(ANDROID_LOG_DEBUG, "dora debug info", "%s", str.c_str());
 #else
 	fmt::print(stderr, "{}", str);
 #endif // BX_PLATFORM_ANDROID
@@ -44,7 +44,7 @@ void LogPrintInThread(const std::string& str) {
 	if (Singleton<Dora::Application>::isDisposed() || Singleton<Dora::AsyncLogThread>::isDisposed() || !SharedApplication.isLogicRunning()) {
 #if DORA_DEBUG
 #if BX_PLATFORM_ANDROID
-		__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
+		__android_log_print(ANDROID_LOG_DEBUG, "dora debug info", "%s", str.c_str());
 #else
 		fmt::print("{}", str);
 #endif // BX_PLATFORM_ANDROID
@@ -57,7 +57,7 @@ void LogPrintInThread(const std::string& str) {
 	SharedAsyncLogThread.run([str] {
 #if DORA_DEBUG
 #if BX_PLATFORM_ANDROID
-		__android_log_print(ANDROID_LOG_DEBUG, "dorothy debug info", "%s", str.c_str());
+		__android_log_print(ANDROID_LOG_DEBUG, "dora debug info", "%s", str.c_str());
 #else
 		fmt::print("{}", str);
 #endif // BX_PLATFORM_ANDROID

@@ -103,7 +103,7 @@ const fileIcon = (props: TreeNodeProps) => {
 				case ".vs":
 					return <SiNodered size={12}/>;
 				case ".zip":
-					return <AiFillFileZip color='fbc400'/>;
+					return <AiFillFileZip color='fac03d'/>;
 			}
 		}
 	}

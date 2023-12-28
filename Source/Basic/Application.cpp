@@ -35,7 +35,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <jni.h>
 static std::string g_androidAPKPath;
 extern "C" {
-JNIEXPORT void JNICALL Java_org_ippclub_dorothyssr_MainActivity_nativeSetPath(JNIEnv* env, jclass cls, jstring apkPath) {
+JNIEXPORT void JNICALL Java_org_ippclub_dorassr_MainActivity_nativeSetPath(JNIEnv* env, jclass cls, jstring apkPath) {
 	const char* pathString = env->GetStringUTFChars(apkPath, NULL);
 	g_androidAPKPath = pathString;
 	env->ReleaseStringUTFChars(apkPath, pathString);
@@ -43,7 +43,7 @@ JNIEXPORT void JNICALL Java_org_ippclub_dorothyssr_MainActivity_nativeSetPath(JN
 }
 static float g_androidScreenDensity;
 extern "C" {
-JNIEXPORT void JNICALL Java_org_ippclub_dorothyssr_MainActivity_nativeSetScreenDensity(JNIEnv* env, jclass cls, jfloat screenDensity) {
+JNIEXPORT void JNICALL Java_org_ippclub_dorassr_MainActivity_nativeSetScreenDensity(JNIEnv* env, jclass cls, jfloat screenDensity) {
 	g_androidScreenDensity = s_cast<float>(screenDensity);
 }
 }
@@ -86,7 +86,7 @@ Application::Application()
 	, _totalTime(0)
 	, _frequency(double(bx::getHPFrequency()))
 	, _sdlWindow(nullptr)
-	, _themeColor(0xfffbc400)
+	, _themeColor(0xfffac03d)
 	, _winPosition{s_cast<float>(SDL_WINDOWPOS_CENTERED), s_cast<float>(SDL_WINDOWPOS_CENTERED)}
 	, _platformData{} {
 	_lastTime = bx::getHPCounter() / _frequency;
