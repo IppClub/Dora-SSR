@@ -996,7 +996,7 @@ do
 		return self / var
 	end
 
-	dora.Vec2.equals = funcion(self, var)
+	dora.Vec2.equals = function(self, var)
 		return self == var
 	end
 
