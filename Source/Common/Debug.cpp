@@ -14,6 +14,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Async.h"
 #include "Common/Singleton.h"
 
+#include <iostream>
+
 #if BX_PLATFORM_ANDROID
 #include <android/log.h>
 #include <jni.h>
@@ -31,7 +33,7 @@ void LogError(const std::string& str) {
 #if BX_PLATFORM_ANDROID
 	__android_log_print(ANDROID_LOG_DEBUG, "dora debug info", "%s", str.c_str());
 #else
-	fmt::print(stderr, "{}", str);
+	std::cerr << str;
 #endif // BX_PLATFORM_ANDROID
 	if (!Singleton<Dora::Application>::isDisposed() && SharedApplication.isLogicRunning()) {
 		SharedApplication.invokeInLogic([str]() {
@@ -46,7 +48,7 @@ void LogPrintInThread(const std::string& str) {
 #if BX_PLATFORM_ANDROID
 		__android_log_print(ANDROID_LOG_DEBUG, "dora debug info", "%s", str.c_str());
 #else
-		fmt::print("{}", str);
+		std::cout << str;
 #endif // BX_PLATFORM_ANDROID
 #endif // DORA_DEBUG
 		return;
@@ -59,7 +61,7 @@ void LogPrintInThread(const std::string& str) {
 #if BX_PLATFORM_ANDROID
 		__android_log_print(ANDROID_LOG_DEBUG, "dora debug info", "%s", str.c_str());
 #else
-		fmt::print("{}", str);
+		std::cout << str;
 #endif // BX_PLATFORM_ANDROID
 #endif // DORA_DEBUG
 	});

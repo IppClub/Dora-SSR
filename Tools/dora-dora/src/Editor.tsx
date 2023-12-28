@@ -31,6 +31,7 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 	const compilerHost: ts.CompilerHost = {
 		fileExists: fileName => {
 			if (fileName.search("node_modules") > 0) return false;
+			fileName = Info.path.normalize(fileName);
 			const uri = monaco.Uri.parse(fileName);
 			const model = monaco.editor.getModel(uri);
 			if (model !== null) {
@@ -42,6 +43,7 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 		getCurrentDirectory: () => currentDirectory,
 		getDefaultLibFileName: () => "dora.d.ts",
 		readFile: fileName => {
+			fileName = Info.path.normalize(fileName);
 			const uri = monaco.Uri.parse(fileName);
 			const model = monaco.editor.getModel(uri);
 			if (model !== null) {
@@ -57,11 +59,12 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 		useCaseSensitiveFileNames: () => true,
 		writeFile: () => { },
 		getSourceFile(fileName) {
+			fileName = Info.path.normalize(fileName);
 			const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[fileName];
 			if (lib) {
 				return ts.createSourceFile(fileName, lib.content, ts.ScriptTarget.Latest, false);
 			}
-			if (rootFileName === fileName) {
+			if (Info.path.relative(rootFileName, fileName) === "") {
 				return ts.createSourceFile(fileName, content, ts.ScriptTarget.Latest, false);
 			} else {
 				const uri = monaco.Uri.parse(fileName);
@@ -97,6 +100,7 @@ export async function transpileTypescript(
 			fileExists: () => false,
 			getCurrentDirectory: () => Info.path.dirname(fileName),
 			readFile: fileName => {
+				fileName = Info.path.normalize(fileName);
 				const uri = monaco.Uri.parse(fileName);
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
@@ -114,7 +118,9 @@ export async function transpileTypescript(
 		program,
 		writeFile: collector.writeFile
 	});
-	const file = collector.files.find(({ sourceFiles }) => sourceFiles.some(f => f.fileName === fileName))
+	const file = collector.files.find(({ sourceFiles }) => sourceFiles.some(f => {
+		return Info.path.relative(f.fileName, fileName) === "";
+	}));
 	if (file !== undefined) {
 		const luaSourceMap = file.luaSourceMap;
 		if (luaSourceMap !== undefined && file.lua !== undefined) {
@@ -490,11 +496,7 @@ const signatureHelpProvider = (signatureHelpTriggerCharacters: string[], lang: S
 };
 
 const codeActionProvider = {
-	resolveCodeAction(codeAction, token) {
-		console.log(codeAction, token);
-		return undefined;
-	},
-	provideCodeActions(model, range, context) {
+	provideCodeActions(model, _range, context) {
 		if (context.only !== "quickfix") {
 			return undefined;
 		}
