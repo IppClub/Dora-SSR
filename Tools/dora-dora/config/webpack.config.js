@@ -338,7 +338,7 @@ module.exports = function (webpackEnv) {
           babelRuntimeRegenerator,
         ]),
       ],
-      fallback: { "path": require.resolve("../src/Path"), 'fs': false, 'perf_hooks': false },
+      fallback: { "path": require.resolve("../src/3rdParty/Path"), 'fs': false, 'perf_hooks': false },
     },
     module: {
       strictExportPresence: true,

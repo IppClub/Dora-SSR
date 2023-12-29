@@ -1,3 +1,11 @@
+/* Copyright (c) 2023 Jin Li, dragon-fly@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 import React, { ChangeEvent, Suspense, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
@@ -20,7 +28,6 @@ import DoraUpload from './Upload';
 import { TransitionGroup } from 'react-transition-group';
 import * as monaco from 'monaco-editor';
 import * as Service from './Service';
-import { transpileTypescript } from './Editor';
 import { AppBar, DrawerHeader, drawerWidth, Entry, Main, PlayControl, PlayControlMode, StyledStack, Color } from './Frame';
 import { MacScrollbar } from 'mac-scrollbar';
 import 'mac-scrollbar/dist/mac-scrollbar.css';
@@ -32,6 +39,7 @@ import CodeWire, { CodeWireData } from './CodeWire';
 import LogView from './LogView';
 import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
 import { TbSwitchVertical } from "react-icons/tb";
+import './Editor';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -559,30 +567,33 @@ export default function PersistentDrawerLeft() {
 		} else {
 			const ext = path.extname(file.key).toLowerCase();
 			if (file.contentModified !== null && (ext === '.ts' || ext === '.tsx')) {
-				saveFile();
-				transpileTypescript(file.key, file.contentModified).then(luaCode => {
-					if (luaCode !== undefined) {
-						const extname = path.extname(file.key);
-						const name = path.basename(file.key, extname);
-						const luaFile = path.join(path.dirname(file.key), name + ".lua");
-						const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
-						Service.write({path: luaFile, content: luaCode}).then((res) => {
-							if (res.success) {
-								if (fileInTab !== undefined) {
-									setFiles(prev => {
-										const newTabs = prev.filter(f => f.key !== fileInTab.key);
-										const newIndex = newTabs.findIndex(t => t.key === file.key);
-										if (newIndex >= 0) {
-											setTabIndex(newIndex);
-										}
-										return newTabs;
-									});
+				const {key, contentModified} = file;
+				import('./TranspileTS').then(({transpileTypescript}) => {
+					transpileTypescript(key, contentModified).then(luaCode => {
+						if (luaCode !== undefined) {
+							const extname = path.extname(file.key);
+							const name = path.basename(file.key, extname);
+							const luaFile = path.join(path.dirname(file.key), name + ".lua");
+							const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+							Service.write({path: luaFile, content: luaCode}).then((res) => {
+								if (res.success) {
+									saveFile();
+									if (fileInTab !== undefined) {
+										setFiles(prev => {
+											const newTabs = prev.filter(f => f.key !== fileInTab.key);
+											const newIndex = newTabs.findIndex(t => t.key === file.key);
+											if (newIndex >= 0) {
+												setTabIndex(newIndex);
+											}
+											return newTabs;
+										});
+									}
+								} else {
+									addAlert(t("alert.saveCurrent"), "error");
 								}
-							} else {
-								addAlert(t("alert.saveCurrent"), "error");
-							}
-						});
-					}
+							});
+						}
+					});
 				});
 			} else {
 				saveFile();
@@ -700,30 +711,32 @@ export default function PersistentDrawerLeft() {
 					const ext = path.extname(file.key).toLowerCase();
 					if (ext === '.ts' || ext === '.tsx') {
 						const content = contentModified;
-						transpileTypescript(file.key, content).then(luaCode => {
-							if (luaCode !== undefined) {
-								const extname = path.extname(file.key);
-								const name = path.basename(file.key, extname);
-								const luaFile = path.join(path.dirname(file.key), name + ".lua");
-								const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
-								Service.write({path: luaFile, content: luaCode}).then((res) => {
-									if (res.success) {
-										saveFile(content);
-										if (fileInTab !== undefined) {
-											setFiles(prev => {
-												const newTabs = prev.filter(f => f.key !== fileInTab.key);
-												const newIndex = newTabs.findIndex(t => t.key === file.key);
-												if (newIndex >= 0) {
-													setTabIndex(newIndex);
-												}
-												return newTabs;
-											});
+						import('./TranspileTS').then(({transpileTypescript}) => {
+							transpileTypescript(file.key, content).then(luaCode => {
+								if (luaCode !== undefined) {
+									const extname = path.extname(file.key);
+									const name = path.basename(file.key, extname);
+									const luaFile = path.join(path.dirname(file.key), name + ".lua");
+									const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+									Service.write({path: luaFile, content: luaCode}).then((res) => {
+										if (res.success) {
+											saveFile(content);
+											if (fileInTab !== undefined) {
+												setFiles(prev => {
+													const newTabs = prev.filter(f => f.key !== fileInTab.key);
+													const newIndex = newTabs.findIndex(t => t.key === file.key);
+													if (newIndex >= 0) {
+														setTabIndex(newIndex);
+													}
+													return newTabs;
+												});
+											}
+										} else {
+											addAlert(t("alert.saveCurrent"), "error");
 										}
-									} else {
-										addAlert(t("alert.saveCurrent"), "error");
-									}
-								});
-							}
+									});
+								}
+							});
 						});
 					} else {
 						saveFile(contentModified);
