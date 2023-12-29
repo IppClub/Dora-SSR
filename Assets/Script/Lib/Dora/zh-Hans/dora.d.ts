@@ -110,7 +110,7 @@ const sizeClass: SizeClass;
 export {sizeClass as Size};
 
 /**
- * A record representing a 2D vector with an x and y component.
+ * A class representing a 2D vector with an x and y component.
  */
 class Vec2 extends ContainerItem {
 
@@ -531,7 +531,7 @@ const colorClass: ColorClass;
 export {colorClass as Color};
 
 /**
- * A record representing an application singleton instance.
+ * An interface representing an application singleton instance.
  */
 interface App {
 
@@ -1498,7 +1498,7 @@ export {blendFuncClass as BlendFunc};
 export type Job = BasicType<"Job", LuaThread>;
 
 /**
- * A singleton record for managing coroutines.
+ * A singleton interface for managing coroutines.
  */
 interface Routine {
 
@@ -1627,7 +1627,7 @@ const scheduler: SchedulerClass;
 export {scheduler as Scheduler};
 
 /**
- * A record type for storing pairs of string keys and various values.
+ * A class type for storing pairs of string keys and various values.
  * Inherits from `Object`.
  */
 class Dictionary extends Object {
@@ -1876,7 +1876,7 @@ const cameraOthoClass: CameraOthoClass;
 export {cameraOthoClass as CameraOtho};
 
 /**
- * A record representing a shader pass.
+ * A class representing a shader pass.
  */
 class Pass extends Object {
 
@@ -1988,7 +1988,7 @@ const effectClass: EffectClass;
 export {effectClass as Effect};
 
 /**
- * A record that is a specialization of Effect for rendering 2D sprites.
+ * A classe that is a specialization of Effect for rendering 2D sprites.
  */
 class SpriteEffect extends Effect {}
 
@@ -3172,7 +3172,7 @@ type DBRow = DBColumn[];
 type SQL = string | [string, DBRow[]];
 
 /**
- * A record that represents a database.
+ * An interface that represents a database.
  */
 interface DB {
 
@@ -3474,7 +3474,7 @@ class Playable extends Node {
 export type {Playable as PlayableType};
 
 /**
-* A class for creating instances of the 'Playable' record.
+* A class for creating instances of the 'Playable' object.
 */
 interface PlayableClass {
 
@@ -3495,7 +3495,7 @@ const playableClass: PlayableClass;
 export {playableClass as Playable};
 
 /**
- * An implementation of the 'Playable' record using the DragonBones animation system.
+ * An implementation of the 'Playable' class using the DragonBones animation system.
  */
 class DragonBone extends Playable {
 
@@ -3533,7 +3533,7 @@ class DragonBone extends Playable {
 export type {DragonBone as DragonBoneType};
 
 /**
-* A class for creating instances of the 'DragonBone' record.
+* A class for creating instances of the 'DragonBone' object.
 */
 interface DragonBoneClass {
 
@@ -3613,7 +3613,7 @@ class Spine extends Playable {
 export type {Spine as SpineType};
 
 /**
-* A class for creating instances of the 'Spine' record.
+* A class for creating instances of the 'Spine' object.
 */
 interface SpineClass {
 
@@ -3651,7 +3651,7 @@ const spineClass: SpineClass;
 export {spineClass as Spine};
 
 /**
- * Another implementation of the 'Playable' record.
+ * Another implementation of the 'Playable' class.
  */
 class Model extends Playable {
 
@@ -3726,7 +3726,7 @@ class Model extends Playable {
 export type {Model as ModelType}
 
 /**
- * A class for creating instances of the 'Model' record.
+ * A class for creating instances of the 'Model' object.
  */
 interface ModelClass {
 
@@ -3770,7 +3770,7 @@ const modelClass: ModelClass;
 export {modelClass as Model};
 
 /**
- * A record for scene node that draws simple shapes such as dots, lines, and polygons.
+ * A class for scene node that draws simple shapes such as dots, lines, and polygons.
  */
 class DrawNode extends Node {
 
@@ -3850,7 +3850,7 @@ export function emit(eventName: string, ...args: any[]): void;
 type Component = number | boolean | string | ContainerItem;
 
 /**
- * A record type representing an entity for an ECS game system.
+ * A class type representing an entity for an ECS game system.
  */
 class Entity extends Object {
 
@@ -3931,7 +3931,7 @@ const entity: EntityClass;
 export {entity as Entity};
 
 /**
- * A record representing an observer of entity changes in the game systems.
+ * A class representing an observer of entity changes in the game systems.
  */
 class Observer {
 
@@ -3981,7 +3981,7 @@ const observerClass: ObserverClass;
 export {observerClass as Observer};
 
 /**
- * A record representing a group of entities in the ECS game systems.
+ * A class representing a group of entities in the ECS game systems.
  */
 class Group extends Object {
 
@@ -4312,7 +4312,7 @@ class Sensor extends Object {
 export type {Sensor as SensorType};
 
 /**
- * A record called "BodyDef" to describe the properties of a physics body.
+ * A class called "BodyDef" to describe the properties of a physics body.
  * Inherits from `Object`.
  */
 class BodyDef extends Object {
@@ -4837,7 +4837,7 @@ class MoveJoint extends Joint {
 export type {MoveJoint as MoveJointType};
 
 /**
- * A record that defines the properties of a joint to be created.
+ * A class that defines the properties of a joint to be created.
  */
 class JointDef extends Object {
 
@@ -4854,7 +4854,7 @@ class JointDef extends Object {
 }
 
 /**
- * A record for creating JointDef objects.
+ * An interface for creating JointDef objects.
  */
 interface JointDefClass {
 
@@ -5471,7 +5471,7 @@ interface QLearnerClass {
 type MLOperator = "return" | "<=" | ">" | "==";
 
 /**
- * A record for machine learning algorithms.
+ * A class for machine learning algorithms.
  */
 class ML {
 
@@ -5605,7 +5605,7 @@ interface Path {
 	 * @param segments The segments to be joined as a new file path.
 	 * @returns The new file path.
 	 */
-	(...segments: string[]): string;
+	(this: void, ...segments: string[]): string;
 }
 
 const path: Path;
@@ -5713,7 +5713,7 @@ const renderTargetClass: RenderTargetClass;
 export {renderTargetClass as RenderTarget};
 
 /**
- * A record used for Scalable Vector Graphics rendering.
+ * A class used for Scalable Vector Graphics rendering.
  */
 class SVG extends Object {
 

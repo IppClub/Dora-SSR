@@ -51,7 +51,7 @@ class UnitAction {
 
 export type {UnitAction as UnitActionType};
 
-/** A record that defines the parameters for a "UnitAction". */
+/** An interface that defines the parameters for a "UnitAction". */
 export interface UnitActionParam {
 
 	/** The priority level for the "UnitAction". Higher priority (larger number) replaces lower priority "UnitActions". */
@@ -91,7 +91,7 @@ export interface UnitActionParam {
 }
 
 /**
- * A record that defines and stores the behavior and properties of the "UnitAction" class.
+ * An interface that defines and stores the behavior and properties of the "UnitAction" class.
  * It is a singleton object that manages all "UnitAction" objects.
  */
 interface UnitActionClass {
@@ -682,8 +682,10 @@ class Face extends Node {
 	toNode(): Node;
 }
 
+export type {Face as FaceType};
+
 /**
- * A record provides functions for creating instances of the `Face` component with different configurations.
+ * An interface provides functions for creating instances of the `Face` component with different configurations.
  * @example
  * ```
  * import { Face } from "Platformer";
@@ -822,14 +824,14 @@ class Leaf extends Object {
  * @param nodes An array of child nodes.
  * @returns A new sequence node.
  */
-export function Seq(nodes: Leaf[]): Leaf;
+export function Seq(this: void, nodes: Leaf[]): Leaf;
 
 /**
  * Creates a new selector node that selects and executes one of its child nodes that will succeed.
  * @param nodes An array of child nodes.
  * @returns A new selector node.
  */
-export function Sel(nodes: Leaf[]): Leaf;
+export function Sel(this: void, nodes: Leaf[]): Leaf;
 
 /**
  * Creates a new condition node that executes a check handler function when executed.
@@ -837,7 +839,7 @@ export function Sel(nodes: Leaf[]): Leaf;
  * @param check A function that takes a blackboard object and returns a boolean value.
  * @returns A new condition node.
  */
-export function Con(name: string, check: (this: void, board: Blackboard) => boolean): Leaf;
+export function Con(this: void, name: string, check: (this: void, board: Blackboard) => boolean): Leaf;
 
 /**
  * Creates a new action node that executes an action when executed.
@@ -845,7 +847,7 @@ export function Con(name: string, check: (this: void, board: Blackboard) => bool
  * @param actionName The name of the action to execute.
  * @returns A new action node.
  */
-export function Act(actionName: string): Leaf;
+export function Act(this: void, actionName: string): Leaf;
 
 /**
  * Creates a new command node that executes a command when executed.
@@ -853,14 +855,14 @@ export function Act(actionName: string): Leaf;
  * @param actionName The name of the command to execute.
  * @returns A new command node.
  */
-export function Command(actionName: string): Leaf;
+export function Command(this: void, actionName: string): Leaf;
 
 /**
  * Creates a new wait node that waits for a specified duration when executed.
  * @param duration The duration to wait in seconds.
  * @returns A new wait node.
  */
-export function Wait(duration: number): Leaf;
+export function Wait(this: void, duration: number): Leaf;
 
 /**
  * Creates a new countdown node that executes a child node continuously until a timer runs out.
@@ -868,7 +870,7 @@ export function Wait(duration: number): Leaf;
  * @param node The child node to execute.
  * @returns A new countdown node.
  */
-export function Countdown(time: number, node: Leaf): Leaf;
+export function Countdown(this: void, time: number, node: Leaf): Leaf;
 
 /**
  * Creates a new timeout node that executes a child node until a timer runs out.
@@ -876,7 +878,7 @@ export function Countdown(time: number, node: Leaf): Leaf;
  * @param node The child node to execute.
  * @returns A new timeout node.
  */
-export function Timeout(time: number, node: Leaf): Leaf;
+export function Timeout(this: void, time: number, node: Leaf): Leaf;
 
 /**
  * Creates a new repeat node that executes a child node a specified number of times.
@@ -884,14 +886,14 @@ export function Timeout(time: number, node: Leaf): Leaf;
  * @param node The child node to execute.
  * @returns A new repeat node.
  */
-export function Repeat(times: number, node: Leaf): Leaf;
+export function Repeat(this: void, times: number, node: Leaf): Leaf;
 
 /**
  * Creates a new repeat node that executes a child node repeatedly.
  * @param node The child node to execute.
  * @returns A new repeat node.
  */
-export function Repeat(node: Leaf): Leaf;
+export function Repeat(this: void, node: Leaf): Leaf;
 
 /**
  * Creates a new retry node that executes a child node repeatedly until it succeeds or a maximum number of retries is reached.
@@ -899,19 +901,19 @@ export function Repeat(node: Leaf): Leaf;
  * @param node The child node to execute.
  * @returns A new retry node.
  */
-export function Retry(times: number, node: Leaf): Leaf;
+export function Retry(this: void, times: number, node: Leaf): Leaf;
 
 /**
  * Creates a new retry node that executes a child node repeatedly until it succeeds.
  * @param node The child node to execute.
  * @returns A new retry node.
  */
-export function Retry(node: Leaf): Leaf;
+export function Retry(this: void, node: Leaf): Leaf;
 
 } // namespace Behavior
 
 /**
- * The singleton record to retrieve information when executing the decision tree.
+ * The singleton interface to retrieve information when executing the decision tree.
  */
 interface AI {
 
@@ -939,7 +941,7 @@ interface AI {
 	 * @param relation The relation to filter the units by.
 	 * @returns The nearest unit with the specified relation.
 	 */
-	getNearestUnit(relation: Relation): Unit;
+	getNearestUnit(oid, relation: Relation): Unit;
 
 	/**
 	 * Gets the distance to the nearest unit that has the specified relation to the AI agent.
@@ -979,7 +981,7 @@ class Leaf extends Object {
  * @param nodes An array of `Leaf` nodes.
  * @returns A `Leaf` node that represents a selector.
  */
-export function Sel(nodes: Leaf[]): Leaf;
+export function Sel(this: void, nodes: Leaf[]): Leaf;
 
 /**
  * Creates a sequence node with the specified child nodes.
@@ -987,7 +989,7 @@ export function Sel(nodes: Leaf[]): Leaf;
  * @param nodes An array of `Leaf` nodes.
  * @returns A `Leaf` node that represents a sequence.
  */
-export function Seq(nodes: Leaf[]): Leaf;
+export function Seq(this: void, nodes: Leaf[]): Leaf;
 
 /**
  * Creates a condition node with the specified name and handler function.
@@ -995,35 +997,35 @@ export function Seq(nodes: Leaf[]): Leaf;
  * @param check The check function that takes a `Unit` parameter and returns a boolean result.
  * @returns A `Leaf` node that represents a condition check.
  */
-export function Con(name: string, check: (this: void, self: Unit) => boolean): Leaf;
+export function Con(this: void, name: string, check: (this: void, self: Unit) => boolean): Leaf;
 
 /**
  * Creates an action node with the specified action name.
  * @param actionName The name of the action to perform.
  * @returns A `Leaf` node that represents an action.
  */
-export function Act(actionName: string): Leaf;
+export function Act(this: void, actionName: string): Leaf;
 
 /**
  * Creates an action node with the specified handler function.
  * @param handler The handler function that takes a `Unit` parameter which is the running AI agent and returns an action.
  * @returns A `Leaf` node that represents an action.
  */
-export function Act(handler: (this: void, self: Unit) => string): Leaf;
+export function Act(this: void, handler: (this: void, self: Unit) => string): Leaf;
 
 /**
  * Creates a leaf node that represents accepting the current behavior tree.
  * Always get a success result from this node.
  * @returns A `Leaf` node.
  */
-export function Accept(): Leaf;
+export function Accept(this: void): Leaf;
 
 /**
  * Creates a leaf node that represents rejecting the current behavior tree.
  * Always get a failure result from this node.
  * @returns A `Leaf` node.
  */
-export function Reject(): Leaf;
+export function Reject(this: void): Leaf;
 
 /**
  * Creates a leaf node with the specified behavior tree as its root.
@@ -1033,7 +1035,7 @@ export function Reject(): Leaf;
  * @param root The root node of the behavior tree.
  * @returns A `Leaf` node.
  */
-export function Behave(name: string, root: Behavior.Leaf): Leaf;
+export function Behave(this: void, name: string, root: Behavior.Leaf): Leaf;
 
 /**
  * The singleton instance to retrieve information while executing the decision tree. */
@@ -1042,7 +1044,7 @@ export const AI: AI;
 } // namespace Decision
 
 /**
- * A record type that specifies the properties and behaviors of a bullet object in the game.
+ * A class type that specifies the properties and behaviors of a bullet object in the game.
  */
 class BulletDef extends Object {
 
@@ -1122,7 +1124,7 @@ const bulletDefClass: BulletDefClass;
 export {bulletDefClass as BulletDef};
 
 /**
- * A record type that defines the properties and behavior of a bullet object instance in the game.
+ * A class type that defines the properties and behavior of a bullet object instance in the game.
  */
 class Bullet extends Body {
 
@@ -1164,8 +1166,10 @@ class Bullet extends Body {
 	destroy(): void;
 }
 
+export type {Bullet as BulletType};
+
 /**
-* A record type that creates new `Bullet` object instances.
+* An interface type that creates new `Bullet` object instances.
 */
 interface BulletClass {
 
