@@ -1,5 +1,7 @@
 /// <reference path="dora.d.ts" />
 
+declare module "Platformer" {
+
 import {
 	BodyType as Body,
 	PlayableType as Playable,
@@ -16,8 +18,6 @@ import {
 	Job,
 	Item,
 } from 'dora';
-
-declare module "Platformer" {
 
 /** A class that represents an action that can be performed by a "Unit". */
 class UnitAction {
@@ -941,7 +941,7 @@ interface AI {
 	 * @param relation The relation to filter the units by.
 	 * @returns The nearest unit with the specified relation.
 	 */
-	getNearestUnit(oid, relation: Relation): Unit;
+	getNearestUnit(relation: Relation): Unit;
 
 	/**
 	 * Gets the distance to the nearest unit that has the specified relation to the AI agent.

@@ -1,13 +1,13 @@
 /// <reference path="dora.d.ts" />
 
+declare module 'ImGui' {
+
 import {
 	Vec2Type as Vec2,
 	BufferType as Buffer,
 	ColorType as Color,
 	Color3Type as Color3
 } from "dora";
-
-declare module "ImGui" {
 
 export const enum StyleColor {
 	Text = "Text",
@@ -288,91 +288,91 @@ export const enum GlyphRange {
 	Vietnamese = "Vietnamese"
 }
 
-interface ImGui {
-	LoadFontTTF(this: void, ttfFontFile: string, fontSize: number, glyphRanges: GlyphRange, callback: (this: void) => void): boolean;
-	IsFontLoaded(this: void): boolean;
-	ShowStats(this: void, extra?: (this: void) => void): void;
-	ShowStats(this: void, open: boolean, extra?: (this: void) => void): boolean;
-	ShowConsole(this: void): void;
-	ShowConsole(this: void, open: boolean): boolean;
-	Begin(this: void, name: string, windowsFlags: WindowFlag[], inside: (this: void) => void): void;
-	Begin(this: void, name: string, inside: (this: void) => void): void;
-	Begin(this: void, name: string, p_open: boolean, windowsFlags: WindowFlag[], inside: (this: void) => void): boolean;
-	Begin(this: void, name: string, p_open: boolean, inside: (this: void) => void): boolean;
-	BeginChild(this: void, str_id: string, size: Vec2, childFlags: ChildFlag[], windowFlags: WindowFlag[], inside: (this: void) => void): void;
-	BeginChild(this: void, str_id: string, size: Vec2, childFlags: ChildFlag[], inside: (this: void) => void): void;
-	BeginChild(this: void, str_id: string, size: Vec2, inside: (this: void) => void): void;
-	BeginChild(this: void, str_id: string, inside: (this: void) => void): void;
-	BeginChild(this: void, id: number, size: Vec2, childFlags: ChildFlag[], windowsFlags: WindowFlag[], inside: (this: void) => void): void;
-	BeginChild(this: void, id: number, size: Vec2, childFlags: ChildFlag[], inside: (this: void) => void): void;
-	BeginChild(this: void, id: number, size: Vec2, inside: (this: void) => void): void;
-	BeginChild(this: void, id: number, inside: (this: void) => void): void;
-	SetNextWindowBgAlpha(this: void, alpha: number): void;
-	SetNextWindowPos(this: void, pos: Vec2, setCond?: SetCond, pivot?: Vec2): void;
-	SetNextWindowPosCenter(this: void, setCond?: SetCond, pivot?: Vec2): void;
-	SetNextWindowSize(this: void, size: Vec2, setCond?: SetCond): void;
-	SetNextWindowCollapsed(this: void, collapsed: boolean, setCond?: SetCond): void;
-	SetWindowPos(this: void, name: string, pos: Vec2, setCond?: SetCond): void;
-	SetWindowSize(this: void, name: string, size: Vec2, setCond?: SetCond): void;
-	SetWindowCollapsed(this: void, name: string, collapsed: boolean, setCond?: SetCond): void;
-	SetColorEditOptions(this: void, colorEditMode: ColorEditMode): void;
-	InputText(this: void, label: string, buffer: Buffer, inputTextFlags?: InputTextFlag): boolean;
-	InputTextMultiline(this: void, label: string, buffer: Buffer, size?: Vec2, inputTextFlags?: InputTextFlag): boolean;
-	TreeNodeEx(this: void, label: string, treeNodeFlags: TreeNodeFlag, inside: (this: void) => void): boolean;
-	TreeNodeEx(this: void, label: string, inside: (this: void) => void): boolean;
-	TreeNodeEx(this: void, str_id: string, text: string, treeNodeFlags: TreeNodeFlag, inside: (this: void) => void): boolean;
-	TreeNodeEx(this: void, str_id: string, text: string, inside: (this: void) => void): boolean;
-	SetNextItemOpen(this: void, is_open: boolean, setCond?: SetCond): boolean;
-	CollapsingHeader(this: void, label: string, treeNodeFlags?: TreeNodeFlag): boolean;
-	CollapsingHeader(this: void, label: string, p_open: boolean, treeNodeFlags?: TreeNodeFlag): boolean;
-	Selectable(this: void, label: string, selectableFlags?: SelectableFlag): boolean;
-	Selectable(this: void, label: string, p_selected: boolean, size?: Vec2, selectableFlags?: SelectableFlag): boolean;
-	BeginPopupModal(this: void, name: string, windowsFlags: WindowFlag, inside: (this: void) => void): void;
-	BeginPopupModal(this: void, name: string, inside: (this: void) => void): void;
-	BeginPopupModal(this: void, name: string, p_open: boolean, windowsFlags: WindowFlag, inside: (this: void) => void): boolean;
-	BeginPopupModal(this: void, name: string, p_open: boolean, inside: (this: void) => void): boolean;
-	PushStyleColor(this: void, name: StyleColor, color: Color, inside: (this: void) => void): void;
-	PushStyleVar(this: void, name: StyleVarNum, val: number, inside: (this: void) => void): void;
-	PushStyleVar(this: void, name: StyleVarVec, val: Vec2, inside: (this: void) => void): void;
-	Text(this: void, text: string): void;
-	TextColored(this: void, color: Color, text: string): void;
-	TextDisabled(this: void, text: string): void;
-	TextWrapped(this: void, text: string): void;
-	LabelText(this: void, label: string, text: string): void;
-	BulletText(this: void, text: string): void;
-	SetTooltip(this: void, text: string): void;
+export function LoadFontTTF(this: void, ttfFontFile: string, fontSize: number, glyphRanges: GlyphRange, callback: (this: void) => void): boolean;
+export function IsFontLoaded(this: void): boolean;
+export function ShowStats(this: void, extra?: (this: void) => void): void;
+export function ShowStats(this: void, open: boolean, extra?: (this: void) => void): boolean;
+export function ShowConsole(this: void): void;
+export function ShowConsole(this: void, open: boolean): boolean;
+export function Begin(this: void, name: string, windowsFlags: WindowFlag[], inside: (this: void) => void): void;
+export function Begin(this: void, name: string, inside: (this: void) => void): void;
+export function Begin(this: void, name: string, p_open: boolean, windowsFlags: WindowFlag[], inside: (this: void) => void): boolean;
+export function Begin(this: void, name: string, p_open: boolean, inside: (this: void) => void): boolean;
+export function BeginChild(this: void, str_id: string, size: Vec2, childFlags: ChildFlag[], windowFlags: WindowFlag[], inside: (this: void) => void): void;
+export function BeginChild(this: void, str_id: string, size: Vec2, childFlags: ChildFlag[], inside: (this: void) => void): void;
+export function BeginChild(this: void, str_id: string, size: Vec2, inside: (this: void) => void): void;
+export function BeginChild(this: void, str_id: string, inside: (this: void) => void): void;
+export function BeginChild(this: void, id: number, size: Vec2, childFlags: ChildFlag[], windowsFlags: WindowFlag[], inside: (this: void) => void): void;
+export function BeginChild(this: void, id: number, size: Vec2, childFlags: ChildFlag[], inside: (this: void) => void): void;
+export function BeginChild(this: void, id: number, size: Vec2, inside: (this: void) => void): void;
+export function BeginChild(this: void, id: number, inside: (this: void) => void): void;
+export function SetNextWindowBgAlpha(this: void, alpha: number): void;
+export function SetNextWindowPos(this: void, pos: Vec2, setCond?: SetCond, pivot?: Vec2): void;
+export function SetNextWindowPosCenter(this: void, setCond?: SetCond, pivot?: Vec2): void;
+export function SetNextWindowSize(this: void, size: Vec2, setCond?: SetCond): void;
+export function SetNextWindowCollapsed(this: void, collapsed: boolean, setCond?: SetCond): void;
+export function SetWindowPos(this: void, name: string, pos: Vec2, setCond?: SetCond): void;
+export function SetWindowSize(this: void, name: string, size: Vec2, setCond?: SetCond): void;
+export function SetWindowCollapsed(this: void, name: string, collapsed: boolean, setCond?: SetCond): void;
+export function SetColorEditOptions(this: void, colorEditMode: ColorEditMode): void;
+export function InputTextMultiline(this: void, label: string, buffer: Buffer, inputTextFlags?: InputTextFlag): boolean;
+export function InputTextMultiline(this: void, label: string, buffer: Buffer, size?: Vec2, inputTextFlags?: InputTextFlag): boolean;
+export function TreeNodeEx(this: void, label: string, treeNodeFlags: TreeNodeFlag, inside: (this: void) => void): boolean;
+export function TreeNodeEx(this: void, label: string, inside: (this: void) => void): boolean;
+export function TreeNodeEx(this: void, str_id: string, text: string, treeNodeFlags: TreeNodeFlag, inside: (this: void) => void): boolean;
+export function TreeNodeEx(this: void, str_id: string, text: string, inside: (this: void) => void): boolean;
+export function SetNextItemOpen(this: void, is_open: boolean, setCond?: SetCond): boolean;
+export function CollapsingHeader(this: void, label: string, treeNodeFlags?: TreeNodeFlag): boolean;
+export function CollapsingHeader(this: void, label: string, p_open: boolean, treeNodeFlags?: TreeNodeFlag): boolean;
+export function Selectable(this: void, label: string, selectableFlags?: SelectableFlag): boolean;
+export function Selectable(this: void, label: string, p_selected: boolean, size?: Vec2, selectableFlags?: SelectableFlag): boolean;
+export function BeginPopupModal(this: void, name: string, windowsFlags: WindowFlag, inside: (this: void) => void): void;
+export function BeginPopupModal(this: void, name: string, inside: (this: void) => void): void;
+export function BeginPopupModal(this: void, name: string, p_open: boolean, windowsFlags: WindowFlag, inside: (this: void) => void): boolean;
+export function BeginPopupModal(this: void, name: string, p_open: boolean, inside: (this: void) => void): boolean;
+export function PushStyleColor(this: void, name: StyleColor, color: Color, inside: (this: void) => void): void;
+export function PushStyleVar(this: void, name: StyleVarNum, val: number, inside: (this: void) => void): void;
+export function PushStyleVar(this: void, name: StyleVarVec, val: Vec2, inside: (this: void) => void): void;
+export function Text(this: void, text: string): void;
+export function TextColored(this: void, color: Color, text: string): void;
+export function TextDisabled(this: void, text: string): void;
+export function TextWrapped(this: void, text: string): void;
+export function LabelText(this: void, label: string, text: string): void;
+export function BulletText(this: void, text: string): void;
+export function SetTooltip(this: void, text: string): void;
 
-	ColorEdit3(this: void, label: string, color3: Color3): boolean;
-	ColorEdit4(this: void, label: string, color: Color, show_alpha?: boolean): boolean;
+export function ColorEdit3(this: void, label: string, color3: Color3): boolean;
+export function ColorEdit4(this: void, label: string, color: Color, show_alpha?: boolean): boolean;
 
-	Image(this: void, clipStr: string, size: Vec2, tint_col?: Color, border_col?: Color): void;
-	ImageButton(this: void, str_id: string, clipStr: string, size: Vec2, frame_padding?: number, bg_col?: Color, tint_col?: Color): boolean;
+export function Image(this: void, clipStr: string, size: Vec2, tint_col?: Color, border_col?: Color): void;
+export function ImageButton(this: void, str_id: string, clipStr: string, size: Vec2, frame_padding?: number, bg_col?: Color, tint_col?: Color): boolean;
 
-	ColorButton(this: void, desc_id: string, col: Color, flags?: ColorEditMode, size?: Vec2): boolean;
+export function ColorButton(this: void, desc_id: string, col: Color, flags?: ColorEditMode, size?: Vec2): boolean;
 
-	Columns(this: void, count?: number, border?: boolean, id?: string): void;
+export function Columns(this: void, count?: number, border?: boolean, id?: string): void;
 
-	BeginTable(this: void, str_id: string, column: number, inside: (this: void) => void): boolean;
-	BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inside: (this: void) => void): boolean;
-	BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, inside: (this: void) => void): boolean;
-	BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, flags: TableFlag[], inside: (this: void) => void): boolean;
-	TableNextRow(this: void, min_row_height?: number, row_flags?: TableRowFlag[]): void;
-	TableSetupColumn(this: void, label: string, init_width_or_weight?: number, user_id?: number, flags?: TableColumnFlag[]): void;
+export function BeginTable(this: void, str_id: string, column: number, inside: (this: void) => void): boolean;
+export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inside: (this: void) => void): boolean;
+export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, inside: (this: void) => void): boolean;
+export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, flags: TableFlag[], inside: (this: void) => void): boolean;
+export function TableNextRow(this: void, min_row_height?: number, row_flags?: TableRowFlag[]): void;
+export function TableSetupColumn(this: void, label: string, init_width_or_weight?: number, user_id?: number, flags?: TableColumnFlag[]): void;
 
-	SetStyleVar(this: void, name: StyleVarBool, value: boolean): void;
-	SetStyleVar(this: void, name: StyleVarNum, value: number): void;
-	SetStyleVar(this: void, name: StyleVarVec, value: Vec2): void;
+export function SetStyleVar(this: void, name: StyleVarBool, value: boolean): void;
+export function SetStyleVar(this: void, name: StyleVarNum, value: number): void;
+export function SetStyleVar(this: void, name: StyleVarVec, value: Vec2): void;
 
-	SetStyleColor(this: void, name: StyleColor, color: Color): void;
+export function SetStyleColor(this: void, name: StyleColor, color: Color): void;
 
-	Combo(this: void, label: string, p_current_item: number, items: string[], height_in_items?: number): LuaMultiReturn<[boolean, number]>;
+export function Combo(this: void, label: string, p_current_item: number, items: string[], height_in_items?: number): LuaMultiReturn<[boolean, number]>;
 
-	DragFloat(this: void, label: string, p_v: number, v_speed: number, v_min: number, v_max: number, display_format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
-	DragFloat2(this: void, label: string, p_v1: number, p_v2: number, v_speed?: number, v_min?: number, v_max?: number, display_format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number, number]>;
-	DragInt(this: void, label: string, p_v: number, v_speed: number, v_min: number, v_max: number, display_format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
-	DragInt2(this: void, label: string, v1: number, v2: number, v_speed?: number, v_min?: number, v_max?: number, display_format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number, number]>;
+export function DragFloat(this: void, label: string, p_v: number, v_speed: number, v_min: number, v_max: number, display_format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
+export function DragFloat2(this: void, label: string, p_v1: number, p_v2: number, v_speed?: number, v_min?: number, v_max?: number, display_format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number, number]>;
+export function DragInt(this: void, label: string, p_v: number, v_speed: number, v_min: number, v_max: number, display_format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
+export function DragInt2(this: void, label: string, v1: number, v2: number, v_speed?: number, v_min?: number, v_max?: number, display_format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number, number]>;
 
-	InputFloat(
+export function InputFloat(
+		this: void,
 		label: string,
 		p_v: number,
 		step?: number, // Default: 0.0
@@ -381,7 +381,8 @@ interface ImGui {
 		flags?: SliderFlag // Default: nil
 	): LuaMultiReturn<[boolean, number]>;
 
-	InputFloat2(
+export function InputFloat2(
+		this: void,
 		label: string,
 		p_v1: number,
 		p_v2: number,
@@ -389,111 +390,115 @@ interface ImGui {
 		flags?: SliderFlag
 	): LuaMultiReturn<[boolean, number, number]>;
 
-	InputInt(
-			label: string,
-			p_v: number,
-			step?: number, // Default: 1
-			step_fast?: number, // Default: 100
-			flags?: SliderFlag
+export function InputInt(
+		this: void,
+		label: string,
+		p_v: number,
+		step?: number, // Default: 1
+		step_fast?: number, // Default: 100
+		flags?: SliderFlag
 	): LuaMultiReturn<[boolean, number]>;
 
-	InputInt2(
-			label: string,
-			p_v1: number,
-			p_v2: number,
-			flags?: SliderFlag
+export function InputInt2(
+		this: void,
+		label: string,
+		p_v1: number,
+		p_v2: number,
+		flags?: SliderFlag
 	): LuaMultiReturn<[boolean, number, number]>;
 
-	SliderFloat(label: string, p_v: number, v_min: number, v_max: number, format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
-	SliderFloat2(label: string, p_v1: number, p_v2: number, v_min: number, v_max: number, display_format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number, number]>;
-	SliderInt(label: string, p_v: number, v_min: number, v_max: number, format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
-	SliderInt2(label: string, p_v1: number, p_v2: number, v_min: number, v_max: number, display_format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number, number]>;
-	DragFloatRange2(label: string, p_current_min: number, p_current_max: number, v_speed?: number, v_min?: number, v_max?: number, format?: string, format_max?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number, number]>;
-	DragIntRange2(label: string, p_current_min: number, p_current_max: number, v_speed?: number, v_min?: number, v_max?: number, format?: string, format_max?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number, number]>;
-	VSliderFloat(label: string, size: Vec2, p_v: number, v_min: number, v_max: number, format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
-	VSliderInt(label: string, size: Vec2, p_v: number, v_min: number, v_max: number, format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
+export function SliderFloat(this: void, label: string, p_v: number, v_min: number, v_max: number, format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
+export function SliderFloat2(this: void, label: string, p_v1: number, p_v2: number, v_min: number, v_max: number, display_format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number, number]>;
+export function SliderInt(this: void, label: string, p_v: number, v_min: number, v_max: number, format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
+export function SliderInt2(this: void, label: string, p_v1: number, p_v2: number, v_min: number, v_max: number, display_format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number, number]>;
+export function DragFloatRange2(this: void, label: string, p_current_min: number, p_current_max: number, v_speed?: number, v_min?: number, v_max?: number, format?: string, format_max?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number, number]>;
+export function DragIntRange2(this: void, label: string, p_current_min: number, p_current_max: number, v_speed?: number, v_min?: number, v_max?: number, format?: string, format_max?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number, number]>;
+export function VSliderFloat(this: void, label: string, size: Vec2, p_v: number, v_min: number, v_max: number, format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
+export function VSliderInt(this: void, label: string, size: Vec2, p_v: number, v_min: number, v_max: number, format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
 
-	SetNextItemWidth(item_width: number): void;
-	PushItemWidth(item_width: number, inside: (this: void) => void): void;
-	CalcItemWidth(): number;
-	PushTextWrapPos(wrap_pos_x: number, inside: (this: void) => void): void; // Default: 0.0
-	PushTextWrapPos(inside: (this: void) => void): void; // Default: 0.0
-	PushAllowKeyboardFocus(v: boolean, inside: (this: void) => void): void;
-	PushButtonRepeat(repeated: boolean, inside: (this: void) => void): void;
+export function SetNextItemWidth(this: void, item_width: number): void;
+export function PushItemWidth(this: void, item_width: number, inside: (this: void) => void): void;
+export function CalcItemWidth(this: void): number;
+export function PushTextWrapPos(this: void, wrap_pos_x: number, inside: (this: void) => void): void; // Default: 0.0
+export function PushTextWrapPos(this: void, inside: (this: void) => void): void; // Default: 0.0
+export function PushAllowKeyboardFocus(this: void, v: boolean, inside: (this: void) => void): void;
+export function PushButtonRepeat(this: void, repeated: boolean, inside: (this: void) => void): void;
 
-	ShowDemoWindow: (this: void) => void;
-	GetContentRegionMax: () => Vec2;
-	GetContentRegionAvail: () => Vec2;
-	GetWindowContentRegionMin: () => Vec2;
-	GetWindowContentRegionMax: () => Vec2;
-	GetWindowContentRegionWidth: () => number;
-	GetWindowPos: () => Vec2;
-	GetWindowSize: () => Vec2;
-	GetWindowWidth: () => number;
-	GetWindowHeight: () => number;
-	IsWindowCollapsed: () => boolean;
-	SetWindowFontScale: (scale: number) => void;
-	SetNextWindowSizeConstraints: (size_min: Vec2, size_max: Vec2) => void;
-	SetNextWindowContentSize: (size: Vec2) => void;
-	SetNextWindowFocus: (this: void) => void;
-	SetWindowFocus: (name: string) => void;
-	GetScrollX: () => number;
-	GetScrollY: () => number;
-	GetScrollMaxX: () => number;
-	GetScrollMaxY: () => number;
-	SetScrollX: (scroll_x: number) => void;
-	SetScrollY: (scroll_y: number) => void;
-	SetScrollHereY: (center_y_ratio?: number) => void;
-	SetScrollFromPosY: (pos_y: number, center_y_ratio?: number) => void;
-	SetKeyboardFocusHere: (offset?: number) => void;
+export function ShowDemoWindow(this: void): void;
+export function GetContentRegionMax(this: void): Vec2;
+export function GetContentRegionAvail(this: void): Vec2;
+export function GetWindowContentRegionMin(this: void): Vec2;
+export function GetWindowContentRegionMax(this: void): Vec2;
+export function GetWindowContentRegionWidth(this: void): number;
+export function GetWindowPos(this: void): Vec2;
+export function GetWindowSize(this: void): Vec2;
+export function GetWindowWidth(this: void): number;
+export function GetWindowHeight(this: void): number;
+export function IsWindowCollapsed(this: void): boolean;
+export function SetWindowFontScale(this: void, scale: number): void;
+export function SetNextWindowSizeConstraints(this: void, size_min: Vec2, size_max: Vec2): void;
+export function SetNextWindowContentSize(this: void, size: Vec2): void;
+export function SetNextWindowFocus(this: void): void;
+export function SetWindowFocus(this: void, name: string): void;
+export function GetScrollX(this: void): number;
+export function GetScrollY(this: void): number;
+export function GetScrollMaxX(this: void): number;
+export function GetScrollMaxY(this: void): number;
+export function SetScrollX(this: void, scroll_x: number): void;
+export function SetScrollY(this: void, scroll_y: number): void;
+export function SetScrollHereY(this: void, center_y_ratio?: number): void;
+export function SetScrollFromPosY(this: void, pos_y: number, center_y_ratio?: number): void;
+export function SetKeyboardFocusHere(this: void, offset?: number): void;
 
-	Separator: (this: void) => void;
-	SeparatorText: (text: string) => void;
-	SameLine: (pos_x?: number, spacing_w?: number) => void;
-	NewLine: (this: void) => void;
-	Spacing: (this: void) => void;
-	Dummy: (size: Vec2) => void;
-	Indent: (indent_w?: number) => void;
-	Unindent: (indent_w?: number) => void;
-	BeginGroup: (inside: (this: void) => void) => void;
-	GetCursorPos: () => Vec2;
-	GetCursorPosX: () => number;
-	GetCursorPosY: () => number;
-	SetCursorPos: (local_pos: Vec2) => void;
-	SetCursorPosX: (x: number) => void;
-	SetCursorPosY: (y: number) => void;
-	GetCursorStartPos: () => Vec2;
-	GetCursorScreenPos: () => Vec2;
-	SetCursorScreenPos: (pos: Vec2) => void;
-	AlignTextToFramePadding: (this: void) => void;
-	GetTextLineHeight: () => number;
-	GetTextLineHeightWithSpacing: () => number;
+export function Separator(this: void): void;
+export function SeparatorText(this: void, text: string): void;
+export function SameLine(this: void, pos_x?: number, spacing_w?: number): void;
+export function NewLine(this: void): void;
+export function Spacing(this: void): void;
+export function Dummy(this: void, size: Vec2): void;
+export function Indent(this: void, indent_w?: number): void;
+export function Unindent(this: void, indent_w?: number): void;
+export function BeginGroup(this: void, inside: (this: void) => void): void;
+export function GetCursorPos(this: void): Vec2;
+export function GetCursorPosX(this: void): number;
+export function GetCursorPosY(this: void): number;
+export function SetCursorPos(this: void, local_pos: Vec2): void;
+export function SetCursorPosX(this: void, x: number): void;
+export function SetCursorPosY(this: void, y: number): void;
+export function GetCursorStartPos(this: void): Vec2;
+export function GetCursorScreenPos(this: void): Vec2;
+export function SetCursorScreenPos(this: void, pos: Vec2): void;
+export function AlignTextToFramePadding(this: void): void;
+export function GetTextLineHeight(this: void): number;
+export function GetTextLineHeightWithSpacing(this: void): number;
 
-	NextColumn(): void;
-	GetColumnIndex(): number;
-	GetColumnOffset(column_index?: number): number;
-	SetColumnOffset(column_index: number, offset_x: number): void;
-	GetColumnWidth(column_index?: number): number;
-	GetColumnsCount(): number;
 
-	TableNextColumn(): boolean;
-	TableSetColumnIndex(column_n: number): boolean;
-	TableSetupScrollFreeze(cols: number, rows: number): void;
-	TableHeadersRow(): void;
-	TableHeader(label: string): void;
+export function NextColumn(this: void): void;
+export function GetColumnIndex(this: void): number;
+export function GetColumnOffset(this: void, column_index?: number): number;
+export function SetColumnOffset(this: void, column_index: number, offset_x: number): void;
+export function GetColumnWidth(this: void, column_index?: number): number;
+export function GetColumnsCount(this: void): number;
 
-	PushID(str_id: string, inside: (this: void) => void): void;
-	PushID(int_id: number, inside: (this: void) => void): void;
-	GetID(str_id: string): number;
+export function TableNextColumn(this: void): boolean;
+export function TableSetColumnIndex(this: void, column_n: number): boolean;
+export function TableSetupScrollFreeze(this: void, cols: number, rows: number): void;
+export function TableHeadersRow(this: void): void;
+export function TableHeader(this: void, label: string): void;
 
-	BulletItem(): void;
-	Button(label: string, size?: Vec2): boolean;
-	SmallButton(label: string): boolean;
-	InvisibleButton(str_id: string, size: Vec2): boolean;
-	Checkbox(label: string, p_v: boolean): [boolean, boolean];
-	RadioButton(label: string, p_v: number, v_button: number): [boolean, number];
-	RadioButton(label: string, active: boolean): boolean;
-	PlotLines(
+export function PushID(this: void, str_id: string, inside: (this: void) => void): void;
+export function PushID(this: void, int_id: number, inside: (this: void) => void): void;
+export function GetID(this: void, str_id: string): number;
+
+export function BulletItem(this: void): void;
+export function Button(this: void, label: string, size?: Vec2): boolean;
+export function SmallButton(this: void, label: string): boolean;
+export function InvisibleButton(this: void, str_id: string, size: Vec2): boolean;
+export function Checkbox(this: void, label: string, p_v: boolean): [boolean, boolean];
+export function RadioButton(this: void, label: string, p_v: number, v_button: number): [boolean, number];
+export function RadioButton(this: void, label: string, active: boolean): boolean;
+export function PlotLines(
+		this: void,
 		label: string,
 		values: number[],
 		values_offset?: number,
@@ -502,7 +507,8 @@ interface ImGui {
 		scale_max?: number,
 		graph_size?: Vec2
 	): void;
-	PlotHistogram(
+export function PlotHistogram(
+		this: void,
 		label: string,
 		values: number[],
 		values_offset?: number,
@@ -511,106 +517,110 @@ interface ImGui {
 		scale_max?: number,
 		graph_size?: Vec2
 	): void;
-	ProgressBar(
+export function ProgressBar(
+		this: void,
 		fraction: number,
 		size_arg?: Vec2,
 		overlay?: string
 	): void;
 
-	ListBox(
+export function ListBox(
+		this: void,
 		label: string,
 		current_item: number,
 		items: string[],
 		height_in_items?: number
 	): [boolean, number];
 
-	SliderAngle(
+export function SliderAngle(
+		this: void,
 		label: string,
 		p_rad: number,
 		v_degrees_min?: number,
 		v_degrees_max?: number
 	): [boolean, number];
 
-	TreeNode(label: string, inside: () => boolean): boolean;
-	TreeNode(str_id: string, text: string, inside: () => boolean): boolean;
-	TreePush(str_id: string, inside: (this: void) => void): void;
-	TreePush(inside: (this: void) => void): void;
-	GetTreeNodeToLabelSpacing(): number;
-	BeginListBox(label: string, size?: Vec2): boolean;
-	EndListBox(): void;
+export function TreeNode(this: void, label: string, inside: () => boolean): boolean;
+export function TreeNode(this: void, str_id: string, text: string, inside: () => boolean): boolean;
+export function TreePush(this: void, str_id: string, inside: (this: void) => void): void;
+export function TreePush(this: void, inside: (this: void) => void): void;
+export function GetTreeNodeToLabelSpacing(this: void): number;
+export function BeginListBox(this: void, label: string, size?: Vec2): boolean;
+export function EndListBox(this: void): void;
 
-	Value(prefix: string, b: boolean): void;
-	Value(prefix: string, v: number): void;
-	Value(prefix: string, v: number, float_format?: string): void;
+export function Value(this: void, prefix: string, b: boolean): void;
+export function Value(this: void, prefix: string, v: number): void;
+export function Value(this: void, prefix: string, v: number, float_format?: string): void;
 
-	BeginDisabled(inside: (this: void) => void): void;
-	BeginTooltip(inside: (this: void) => void): void;
+export function BeginDisabled(this: void, inside: (this: void) => void): void;
+export function BeginTooltip(this: void, inside: (this: void) => void): void;
 
-	BeginMainMenuBar(inside: (this: void) => void): void;
-	BeginMenuBar(inside: (this: void) => void): void;
-	BeginMenu(label: string, enabled: boolean, inside: (this: void) => void): void;
-	BeginMenu(label: string, inside: (this: void) => void): void;
-	MenuItem(label: string, shortcut?: string, selected?: boolean, enabled?: boolean): boolean;
-	MenuItemToggle(label: string, shortcut: string, p_selected: boolean, enabled?: boolean): [boolean, boolean];
+export function BeginMainMenuBar(this: void, inside: (this: void) => void): void;
+export function BeginMenuBar(this: void, inside: (this: void) => void): void;
+export function BeginMenu(this: void, label: string, enabled: boolean, inside: (this: void) => void): void;
+export function BeginMenu(this: void, label: string, inside: (this: void) => void): void;
+export function MenuItem(this: void, label: string, shortcut?: string, selected?: boolean, enabled?: boolean): boolean;
+export function MenuItemToggle(this: void, label: string, shortcut: string, p_selected: boolean, enabled?: boolean): LuaMultiReturn<[boolean, boolean]>;
 
-	OpenPopup(str_id: string): void;
-	BeginPopup(str_id: string, inside: (this: void) => void): void;
-	BeginPopupContextItem(str_id: string, popupFlags: PopupFlag[], inside: (this: void) => void): void;
-	BeginPopupContextItem(str_id: string, inside: (this: void) => void): void;
-	BeginPopupContextWindow(str_id: string, popupFlags: PopupFlag[], inside: (this: void) => void): void;
-	BeginPopupContextWindow(str_id: string, inside: (this: void) => void): void;
-	BeginPopupContextVoid(str_id: string, popupFlags: PopupFlag[], inside: (this: void) => void): void;
-	BeginPopupContextVoid(str_id: string, inside: (this: void) => void): void;
-	BeginPopupContextVoid(inside: (this: void) => void): void;
-	CloseCurrentPopup(): void;
+export function OpenPopup(this: void, str_id: string): void;
+export function BeginPopup(this: void, str_id: string, inside: (this: void) => void): void;
+export function BeginPopupContextItem(this: void, str_id: string, popupFlags: PopupFlag[], inside: (this: void) => void): void;
+export function BeginPopupContextItem(this: void, str_id: string, inside: (this: void) => void): void;
+export function BeginPopupContextWindow(this: void, str_id: string, popupFlags: PopupFlag[], inside: (this: void) => void): void;
+export function BeginPopupContextWindow(this: void, str_id: string, inside: (this: void) => void): void;
+export function BeginPopupContextVoid(this: void, str_id: string, popupFlags: PopupFlag[], inside: (this: void) => void): void;
+export function BeginPopupContextVoid(this: void, str_id: string, inside: (this: void) => void): void;
+export function BeginPopupContextVoid(this: void, inside: (this: void) => void): void;
+export function CloseCurrentPopup(this: void): void;
 
-	PushClipRect: (
+export function PushClipRect(
+		this: void,
 		clip_rect_min: Vec2,
 		clip_rect_max: Vec2,
 		intersect_with_current_clip_rect: boolean,
 		inside: (this: void) => void
-	) => void;
+	): void;
 
-	IsItemHovered: () => boolean;
-	IsItemActive: () => boolean;
-	IsItemClicked: (mouse_button?: number) => boolean;
-	IsItemVisible: () => boolean;
-	IsAnyItemHovered: () => boolean;
-	IsAnyItemActive: () => boolean;
-	GetItemRectMin: () => Vec2;
-	GetItemRectMax: () => Vec2;
-	GetItemRectSize: () => Vec2;
-	SetItemAllowOverlap: () => boolean;
-	IsWindowHovered: () => boolean;
-	IsWindowFocused: () => boolean;
-	IsRectVisible: (size_or_rect_min: Vec2, rect_max?: Vec2) => boolean;
+export function IsItemHovered(this: void): boolean;
+export function IsItemActive(this: void): boolean;
+export function IsItemClicked(this: void, mouse_button?: number): boolean;
+export function IsItemVisible(this: void): boolean;
+export function IsAnyItemHovered(this: void): boolean;
+export function IsAnyItemActive(this: void): boolean;
+export function GetItemRectMin(this: void): Vec2;
+export function GetItemRectMax(this: void): Vec2;
+export function GetItemRectSize(this: void): Vec2;
+export function SetItemAllowOverlap(this: void): boolean;
+export function IsWindowHovered(this: void): boolean;
+export function IsWindowFocused(this: void): boolean;
+export function IsRectVisible(this: void, size_or_rect_min: Vec2, rect_max?: Vec2): boolean;
 
-	IsMouseDown(button: number): boolean;
-	IsMouseClicked(
+export function IsMouseDown(this: void, button: number): boolean;
+export function IsMouseClicked(
+		this: void,
 		button: number,
 		repeated?: boolean // Default: false
 	): boolean;
-	IsMouseDoubleClicked(button: number): boolean;
-	IsMouseReleased(button: number): boolean;
-	IsMouseHoveringRect(
+export function IsMouseDoubleClicked(this: void, button: number): boolean;
+export function IsMouseReleased(this: void, button: number): boolean;
+export function IsMouseHoveringRect(
+		this: void,
 		r_min: Vec2,
 		r_max: Vec2,
 		clip?: boolean // Default: true
 	): boolean;
-	IsMouseDragging(
+export function IsMouseDragging(
+		this: void,
 		button?: number, // Default: 0
 		lock_threshold?: number // Default: -1.0
 	): boolean;
-	GetMousePos(): Vec2;
-	GetMousePosOnOpeningCurrentPopup(): Vec2;
-	GetMouseDragDelta(
+export function GetMousePos(this: void): Vec2;
+export function GetMousePosOnOpeningCurrentPopup(this: void): Vec2;
+export function GetMouseDragDelta(
+		this: void,
 		button?: number, // Default: 0
 		lock_threshold?: number // Default: -1.0
 	): Vec2;
-	ResetMouseDragDelta(button?: number): void; // Default: 0
-}
+export function ResetMouseDragDelta(this: void, button?: number): void; // Default: 0
 
-const imgui: ImGui;
-export = imgui;
-
-} // module "ImGui"
+} // module 'ImGui'
