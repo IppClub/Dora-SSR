@@ -1004,6 +1004,7 @@ export function Event(this: void, name: string, param?: string): ActionDef;
 * @returns An ActionDef object that can be used to run the animation on a Node.
 */
 export function Width(
+	this: void,
 	duration: number,
 	from: number,
 	to: number,
@@ -1530,14 +1531,14 @@ export {routine as Routine};
  * @param routine A function to execute as a coroutine.
  * @returns A handle to the coroutine that was created.
  */
-export function thread(routine: (this: void) => boolean): Job;
+export function thread(this: void, routine: (this: void) => boolean): Job;
 
 /**
  * Create a new coroutine from a function that runs repeatedly.
  * @param routine A function to execute repeatedly as a coroutine.
  * @returns A handle to the coroutine that was created.
  */
-export function threadLoop(routine: (this: void) => boolean): Job;
+export function threadLoop(this: void, routine: (this: void) => boolean): Job;
 
 /**
  * A function that keeps another function to run repeatedly for a duration of time.
@@ -1552,7 +1553,7 @@ export function cycle(this: void, duration: number, work: (this: void, time: num
  * Yield true or just return inside the routine function to stop the job execution half way.
  * @returns A coroutine that runs the given routine function once.
  */
-export function once(routine: (this: void) => void): Job;
+export function once(this: void, routine: (this: void) => void): Job;
 
 /**
  * Create a coroutine job that runs repeatedly until a condition is met.
@@ -1560,19 +1561,19 @@ export function once(routine: (this: void) => void): Job;
  * Yield or return true inside the routine function to stop the job execution.
  * @returns A coroutine that runs the given routine function repeatedly.
  */
-export function loop(routine: (this: void) => boolean): Job;
+export function loop(this: void, routine: (this: void) => boolean): Job;
 
 /**
  * Wait until a condition is true in a coroutine.
  * @param condition A function that returns true when the condition is met.
  */
-export function wait(condition: (this: void) => boolean): void;
+export function wait(this: void, condition: (this: void) => boolean): void;
 
 /**
  * Yield the coroutine for a specified duration.
  * @param duration The duration to yield for, in seconds. If undefined, the coroutine will be yielded for one frame.
  */
-export function sleep(duration?: number): void;
+export function sleep(this: void, duration?: number): void;
 
 /**
  * A scheduler that manages the execution of scheduled tasks.
@@ -3152,7 +3153,7 @@ export {content as Content};
  * Logs a message to the console.
  * @param msg The message to be logged.
  */
-export function Log(this: void, msg: string);
+export function Log(this: void, msg: string): void;
 
 /**
  * Type definition for a database column.
@@ -3845,7 +3846,7 @@ export {drawNodeClass as DrawNode};
  * @param eventName The name of the event to emit.
  * @param args The data to pass to the global event listeners.
  */
-export function emit(eventName: string, ...args: any[]): void;
+export function emit(this: void, eventName: string, ...args: any[]): void;
 
 type Component = number | boolean | string | ContainerItem;
 
@@ -4621,40 +4622,40 @@ class Body extends Node {
 	 * @param impulse The linear impulse to apply.
 	 * @param pos The position at which to apply the impulse.
 	 */
-	applyLinearImpulse(self: Body, impulse: Vec2, pos: Vec2): void;
+	applyLinearImpulse(impulse: Vec2, pos: Vec2): void;
 
 	/**
 	 * Applies an angular impulse to the body.
 	 * @param impulse The angular impulse to apply.
 	 */
-	applyAngularImpulse(self: Body, impulse: number): void;
+	applyAngularImpulse(impulse: number): void;
 
 	/**
 	 * Removes the sensor with the specified tag from the body.
 	 * @param tag The tag of the sensor to remove.
 	 * @returns Whether a sensor with the specified tag was found and removed.
 	 */
-	removeSensorByTag(self: Body, tag: number): boolean;
+	removeSensorByTag(tag: number): boolean;
 
 	/**
 	 * Attaches a fixture to the body.
 	 * @param fixtureDef The fixture definition for the fixture to attach.
 	 */
-	attach(self: Body, fixtureDef: FixtureDef): void;
+	attach(fixtureDef: FixtureDef): void;
 
 	/**
 	 * Returns the sensor with the given tag.
 	 * @param tag The tag of the sensor to get.
 	 * @returns The sensor with the given tag.
 	 */
-	getSensorByTag(self: Body, tag: number): Sensor;
+	getSensorByTag(tag: number): Sensor;
 
 	/**
 	 * Removes the given sensor from the body's sensor list.
 	 * @param sensor The sensor to remove.
 	 * @returns True if the sensor was successfully removed, false otherwise.
 	 */
-	removeSensor(self: Body, sensor: Sensor): boolean;
+	removeSensor(sensor: Sensor): boolean;
 
 	/**
 	 * Attaches a new sensor with the given tag and fixture definition to the body.
@@ -4662,7 +4663,7 @@ class Body extends Node {
 	 * @param fixtureDef The fixture definition of the sensor.
 	 * @returns The newly attached sensor.
 	 */
-	attachSensor(self: Body, tag: number, fixtureDef: FixtureDef): Sensor;
+	attachSensor(tag: number, fixtureDef: FixtureDef): Sensor;
 }
 
 export type {Body as BodyType};
@@ -4770,7 +4771,7 @@ interface PhysicsWorldClass {
 	 * Creates a new "PhysicsWorld" object.
 	 * @returns The new "PhysicsWorld" object.
 	 */
-	(this: void, self: PhysicsWorldClass): PhysicsWorld;
+	(this: void): PhysicsWorld;
 }
 
 const physicsWorldClass: PhysicsWorldClass;
@@ -5386,7 +5387,7 @@ interface MenuClass {
 	 * A menu with zero size will handle full screen touches for children nodes.
 	 * @returns A new Menu node object.
 	 */
-	(this: void);
+	(this: void): Menu;
 }
 
 const menuClass: MenuClass;
