@@ -98,7 +98,8 @@ export class AutoTypingsCore implements monaco.IDisposable {
 
     const model = this.editor.getModel();
     if (!model) {
-      throw Error('No model');
+      // throw Error('No model');
+      return;
     }
 
     const content = model.getLinesContent();
