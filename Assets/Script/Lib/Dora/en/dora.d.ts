@@ -3848,7 +3848,7 @@ export {drawNodeClass as DrawNode};
  */
 export function emit(this: void, eventName: string, ...args: any[]): void;
 
-type Component = number | boolean | string | ContainerItem;
+export type Component = number | boolean | string | ContainerItem;
 
 /**
  * A class type representing an entity for an ECS game system.
@@ -3865,7 +3865,7 @@ class Entity extends Object {
 	 * The old values are values before last change of the component values of the Entity.
 	 * Don't keep a reference to it for it is not an actual table.
 	 */
-	readonly oldValues: Record<string, Component>;
+	readonly oldValues: Record<string, Component | undefined>;
 
 	/**
 	 * A function that destroys the entity.
@@ -3878,14 +3878,14 @@ class Entity extends Object {
 	 * @param key The name of the property to set.
 	 * @param item The value to set the property to.
 	 */
-	set(key: string, item: Component): void;
+	set(key: string, item: Component | undefined): void;
 
 	/**
 	 * A function that retrieves the value of a property of the entity
 	 * @param key The name of the property to retrieve the value of.
 	 * @returns The value of the specified property.
 	 */
-	get(key: string): Component;
+	get(key: string): Component | undefined;
 
 	/**
 	 * A function that retrieves the previous value of a property of the entity
@@ -3893,14 +3893,14 @@ class Entity extends Object {
 	 * @param key The name of the property to retrieve the previous value of.
 	 * @returns The previous value of the specified property
 	 */
-	getOld(key: string): Component;
+	getOld(key: string): Component | undefined;
 
 	/**
 	 * A metamethod that retrieves the value of a property of the entity.
 	 * @param key The name of the property to retrieve the value of.
 	 * @returns The value of the specified property.
 	 */
-	[key: string]: Component;
+	[key: string]: Component | undefined;
 }
 
 export type {Entity as EntityType};
@@ -3921,11 +3921,11 @@ interface EntityClass {
 	/**
 	 * A metamethod that creates a new entity with the specified components.
 	 * And you can then get the newly created Entity object from groups and observers.
-	 * @param coms A table mapping component names (strings) to component values (Items).
+	 * @param components A table mapping component names (strings) to component values (Items).
 	 * @example
 	 * Entity({ a: 1, b: "abc", c: Node() });
 	 */
-	(this: void, coms: Record<string, Component>): Entity;
+	(this: void, components: Record<string, Component>): Entity;
 }
 
 const entity: EntityClass;
@@ -3943,13 +3943,13 @@ class Observer {
 	 * @param func The function to call when a change occurs.
 	 * @returns The same observer, for method chaining.
 	 */
-	watch(func: (this: void, entity: Entity) => void): Observer;
+	watch(func: (this: void, entity: Entity, ...components: any[]) => void): Observer;
 }
 
 /**
- * The types of actions that an observer can watch for.
+ * The types of events that an observer can watch for.
  */
-export const enum ObserverAction {
+export const enum ObserverEvent {
 
 	/** The addition of a new entity. */
 	Add = "Add",
@@ -3975,7 +3975,7 @@ interface ObserverClass {
 	 * @param components A list of the names of the components to filter entities by.
 	 * @returns The new observer.
 	 */
-	(this: void, action: ObserverAction, components: string[]): Observer;
+	(this: void, action: ObserverEvent, components: string[]): Observer;
 }
 
 const observerClass: ObserverClass;
@@ -4010,7 +4010,7 @@ class Group extends Object {
 	 * @param func The function to call when an entity is added or changed.
 	 * @returns The same group, for method chaining.
 	 */
-	watch(func: (this: void, entity: Entity) => void): Group;
+	watch(func: (this: void, entity: Entity, ...components: any[]) => void): Group;
 }
 
 export type {Group as GroupType};
@@ -5800,6 +5800,50 @@ const view: View;
 export {view as View};
 
 export type VGPaintType = BasicType<"VGPaint">;
+
+/**
+ * The `tolua` object provides utilities for interfacing between C++ and Lua.
+ */
+interface tolua {
+	/**
+	 * Returns the C++ object type of a Lua object.
+	 * @param item The Lua object to get the type of.
+	 * @returns The C++ object type.
+	 */
+	type(this: void, item: any): string;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name The name of the C++ type to cast to.
+	 * @returns The cast object, or `null` if the cast fails.
+	 */
+	cast<T>(this: void, item: any, name: string): T | null;
+
+	/**
+	 * Gets the class object for a given class name.
+	 * @param className The name of the class to get the table for.
+	 * @returns The class table, or `null` if the class does not exist.
+	 */
+	class(this: void, className: string): { [key: string | number]: any } | null;
+
+	/**
+	 * Sets the peer table for an object. A peer table is a table referenced by a Lua userdata providing custom fields for this userdata object.
+	 * @param obj The object to set the peer table for.
+	 * @param data The table to use as the peer table.
+	 */
+	setpeer(this: void, obj: Object, data: { [key: string | number]: any }): void;
+
+	/**
+	 * Gets the peer table for an object. A peer table is a table referenced by a Lua userdata providing custom fields for this userdata object.
+	 * @param obj The object to get the peer table for.
+	 * @returns The peer table, or `null` if the object has no peer table.
+	 */
+	getpeer(this: void, obj: Object): { [key: string | number]: any } | null;
+}
+
+const toluaInst: tolua;
+export {toluaInst as tolua};
 
 } // module "dora"
 
