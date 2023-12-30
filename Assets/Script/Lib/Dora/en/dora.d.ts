@@ -3764,7 +3764,7 @@ interface ModelClass {
 	 * Can be filename with or without extension like: "Model/item" or "Model/item.model".
 	 * @returns A new instance of 'Model'.
 	 */
-	(filename: string): Model;
+	(this: void, filename: string): Model;
 }
 
 const modelClass: ModelClass;
@@ -5802,3 +5802,5 @@ export {view as View};
 export type VGPaintType = BasicType<"VGPaint">;
 
 } // module "dora"
+
+declare function p(this: void, ...args: any[]): void;

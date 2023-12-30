@@ -494,8 +494,8 @@ export function BulletItem(this: void): void;
 export function Button(this: void, label: string, size?: Vec2): boolean;
 export function SmallButton(this: void, label: string): boolean;
 export function InvisibleButton(this: void, str_id: string, size: Vec2): boolean;
-export function Checkbox(this: void, label: string, p_v: boolean): [boolean, boolean];
-export function RadioButton(this: void, label: string, p_v: number, v_button: number): [boolean, number];
+export function Checkbox(this: void, label: string, p_v: boolean): LuaMultiReturn<[boolean, boolean]>;
+export function RadioButton(this: void, label: string, p_v: number, v_button: number): LuaMultiReturn<[boolean, number]>;
 export function RadioButton(this: void, label: string, active: boolean): boolean;
 export function PlotLines(
 		this: void,
@@ -530,7 +530,7 @@ export function ListBox(
 		current_item: number,
 		items: string[],
 		height_in_items?: number
-	): [boolean, number];
+	): LuaMultiReturn<[boolean, number]>;
 
 export function SliderAngle(
 		this: void,
@@ -538,7 +538,7 @@ export function SliderAngle(
 		p_rad: number,
 		v_degrees_min?: number,
 		v_degrees_max?: number
-	): [boolean, number];
+	): LuaMultiReturn<[boolean, number]>;
 
 export function TreeNode(this: void, label: string, inside: () => boolean): boolean;
 export function TreeNode(this: void, str_id: string, text: string, inside: () => boolean): boolean;
