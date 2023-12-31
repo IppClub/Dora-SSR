@@ -10,10 +10,10 @@ local record tolua
 	type: function(item: any): string
 
 	-- 尝试将 Lua 对象动态转换为特定的 C++ 类型对象。
-	-- @param item (ContainerItem) 要转换的 Lua 对象。
+	-- @param item (any) 要转换的 Lua 对象。
 	-- @param name (string) 要转换为的 C++ 类型的名称。
 	-- @return (T|nil) 转换后的对象，如果转换失败则返回 `nil`。
-	cast: function<T>(item: ContainerItem, name: string): T | nil
+	cast: function<T>(item: any, name: string): T | nil
 
 	-- 获取给定类名的类对象。
 	-- @param className (string) 要获取的类对象的名称。

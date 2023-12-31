@@ -166,7 +166,7 @@ bool Scheduler::update(double deltaTime) {
 			Ref<Action> action(temp->as<Action>());
 			if (!action->isPaused()) {
 				int lastIndex = action->_order;
-				action->_eclapsed += s_cast<float>(_deltaTime) * action->_speed;
+				action->_elapsed += s_cast<float>(_deltaTime) * action->_speed;
 				if (action->updateProgress()) {
 					if (action->_order == lastIndex) {
 						Ref<Node> target(action->_target);

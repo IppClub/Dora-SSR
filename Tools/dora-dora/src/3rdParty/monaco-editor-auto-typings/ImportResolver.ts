@@ -82,7 +82,7 @@ export class ImportResolver {
       const resource: ImportResourcePathRelativeInPackage = {
         kind: 'relative-in-package',
         packageName: "",
-        importPath: importResource.packageName,
+        importPath: importResource.packageName + (importResource.importPath ? "/" + importResource.importPath : ""),
         sourcePath: ""
       };
       return await this.resolveImportInPackage(resource, depth.nextFile());

@@ -410,7 +410,7 @@ const std::string& Application::getAPKPath() const {
 }
 #endif // BX_PLATFORM_ANDROID
 
-double Application::getEclapsedTime() const {
+double Application::getElapsedTime() const {
 	double currentTime = getCurrentTime();
 	return std::max(currentTime - _lastTime, 0.0);
 }
@@ -501,7 +501,7 @@ int Application::mainLogic(Application* app) {
 	SharedPoolManager.pop();
 
 	while (app->_logicRunning) {
-		auto startTime = app->getEclapsedTime();
+		auto startTime = app->getElapsedTime();
 
 		SharedPoolManager.push();
 
@@ -540,12 +540,12 @@ int Application::mainLogic(Application* app) {
 
 		SharedDirector.doLogic();
 
-		app->_logicTime = app->getEclapsedTime() - startTime;
+		app->_logicTime = app->getElapsedTime() - startTime;
 
 		SharedDirector.doRender();
 		SharedPoolManager.pop();
 
-		app->_cpuTime = app->getEclapsedTime() - startTime;
+		app->_cpuTime = app->getElapsedTime() - startTime;
 		app->_renderTime = app->_cpuTime - app->_logicTime;
 
 		// advance to next frame. rendering thread will be kicked to

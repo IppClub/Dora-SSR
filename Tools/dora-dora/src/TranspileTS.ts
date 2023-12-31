@@ -21,8 +21,10 @@ const tstlOptions: tstl.CompilerOptions = {
 	luaLibImport: tstl.LuaLibImportKind.Require,
 	noHeader: true,
 	sourceMap: true,
-	target: ts.ScriptTarget.Latest,
 	moduleResolution: ts.ModuleResolutionKind.Classic,
+	allowSyntheticDefaultImports: true,
+	target: ts.ScriptTarget.ES2015,
+	module: ts.ModuleKind.ES2015,
 };
 
 function createTypescriptProgram(rootFileName: string, content: string): ts.Program {
@@ -41,11 +43,13 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 				return true;
 			}
 			if (Info.path.isAbsolute(fileName)) {
-				if (Info.path.relative(Info.path.dirname(fileName), currentDirectory) === "") {
-					const ext = Info.path.extname(fileName);
-					let baseName = Info.path.basename(fileName, ext);
-					baseName += ".d.ts";
-					const uri = monaco.Uri.parse(baseName);
+				const relativePath = Info.path.relative(currentDirectory, fileName);
+				if (!relativePath.startsWith('..')) {
+					const ext = Info.path.extname(relativePath);
+					const baseName = Info.path.basename(relativePath, ext) + ".d.ts";
+					const dirName = Info.path.dirname(relativePath);
+					const path = Info.path.join(dirName, baseName);
+					const uri = monaco.Uri.parse(path);
 					const model = monaco.editor.getModel(uri);
 					if (model !== null) {
 						return true;
@@ -92,38 +96,46 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 			fileName = Info.path.normalize(fileName);
 			const baseName = Info.path.basename(fileName).toLowerCase();
 			if (baseName.startsWith('dora.')) {
-				return ts.createSourceFile("dummy.d.ts", "", ts.ScriptTarget.Latest, false);
+				return ts.createSourceFile("dummy.d.ts", "", ts.ScriptTarget.ES2015, false);
 			}
 			if (baseName === 'lib.dora.d.ts') {
 				const uri = monaco.Uri.parse("dora.d.ts");
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
-					return ts.createSourceFile("dora.d.ts", model.getValue(), ts.ScriptTarget.Latest, false);
+					return ts.createSourceFile("dora.d.ts", model.getValue(), ts.ScriptTarget.ES2015, false);
+				} else {
+					const res = Service.readSync({path: "dora.d.ts"});
+					if (res?.content !== undefined) {
+						monaco.editor.createModel(res.content, 'typescript', uri);
+						return ts.createSourceFile("dora.d.ts", res.content, ts.ScriptTarget.ES2015, false);
+					}
 				}
 			}
 			if (Info.path.isAbsolute(fileName)) {
-				if (Info.path.relative(Info.path.dirname(fileName), currentDirectory) === "") {
-					const ext = Info.path.extname(fileName);
-					let baseName = Info.path.basename(fileName, ext);
-					baseName += ".d.ts";
-					const uri = monaco.Uri.parse(baseName);
+				const relativePath = Info.path.relative(currentDirectory, fileName);
+				if (!relativePath.startsWith('..')) {
+					const ext = Info.path.extname(relativePath);
+					const baseName = Info.path.basename(relativePath, ext) + ".d.ts";
+					const dirName = Info.path.dirname(relativePath);
+					const path = Info.path.join(dirName, baseName);
+					const uri = monaco.Uri.parse(path);
 					const model = monaco.editor.getModel(uri);
 					if (model !== null) {
-						return ts.createSourceFile(baseName, model.getValue(), ts.ScriptTarget.Latest, false);
+						return ts.createSourceFile(baseName, model.getValue(), ts.ScriptTarget.ES2015, false);
 					}
 				}
 			}
 			const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[fileName];
 			if (lib) {
-				return ts.createSourceFile(fileName, lib.content, ts.ScriptTarget.Latest, false);
+				return ts.createSourceFile(fileName, lib.content, ts.ScriptTarget.ES2015, false);
 			}
 			if (!Info.path.isAbsolute(fileName) || Info.path.relative(rootFileName, fileName) === "") {
-				return ts.createSourceFile(fileName, content, ts.ScriptTarget.Latest, false);
+				return ts.createSourceFile(fileName, content, ts.ScriptTarget.ES2015, false);
 			} else {
 				const uri = monaco.Uri.parse(fileName);
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
-					return ts.createSourceFile(fileName, model.getValue(), ts.ScriptTarget.Latest, false);
+					return ts.createSourceFile(fileName, model.getValue(), ts.ScriptTarget.ES2015, false);
 				}
 				return undefined;
 			}
@@ -141,6 +153,7 @@ export async function transpileTypescript(
 	content: string
 ) {
 	const program = createTypescriptProgram(fileName, content);
+	console.log(ts.getPreEmitDiagnostics(program));
 	const collector = createEmitOutputCollector();
 	new tstl.Transpiler({
 		emitHost: {

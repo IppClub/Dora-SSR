@@ -33,7 +33,7 @@ public:
 	PROPERTY_READONLY(float, DevicePixelRatio);
 	PROPERTY_READONLY(double, LastTime);
 	PROPERTY_READONLY(double, DeltaTime);
-	PROPERTY_READONLY(double, EclapsedTime);
+	PROPERTY_READONLY(double, ElapsedTime);
 	PROPERTY_READONLY(double, CurrentTime);
 	PROPERTY_READONLY(double, RunningTime);
 	PROPERTY_READONLY(double, CPUTime);

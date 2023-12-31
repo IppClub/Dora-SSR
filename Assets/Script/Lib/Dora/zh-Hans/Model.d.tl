@@ -44,7 +44,7 @@ local record Model
 	-- @param reversed (boolean) [可选] 是否反向播放动画（默认为 false）。
 	updateTo: function(
 		self: Model,
-		eclapsed: number,
+		elapsed: number,
 		reversed?: boolean --[[false]]
 	)
 

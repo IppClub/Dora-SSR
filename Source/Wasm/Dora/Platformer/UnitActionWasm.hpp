@@ -19,8 +19,8 @@ static int32_t platformer_unitaction_is_doing(int64_t self) {
 static int64_t platformer_unitaction_get_owner(int64_t self) {
 	return from_object(r_cast<Platformer::UnitAction*>(self)->getOwner());
 }
-static float platformer_unitaction_get_eclapsed_time(int64_t self) {
-	return r_cast<Platformer::UnitAction*>(self)->getEclapsedTime();
+static float platformer_unitaction_get_elapsed_time(int64_t self) {
+	return r_cast<Platformer::UnitAction*>(self)->getElapsedTime();
 }
 static void platformer_unitaction_clear() {
 	Platformer::UnitAction::clear();
@@ -65,7 +65,7 @@ static void linkPlatformerUnitAction(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_unitaction_get_name", platformer_unitaction_get_name);
 	mod.link_optional("*", "platformer_unitaction_is_doing", platformer_unitaction_is_doing);
 	mod.link_optional("*", "platformer_unitaction_get_owner", platformer_unitaction_get_owner);
-	mod.link_optional("*", "platformer_unitaction_get_eclapsed_time", platformer_unitaction_get_eclapsed_time);
+	mod.link_optional("*", "platformer_unitaction_get_elapsed_time", platformer_unitaction_get_elapsed_time);
 	mod.link_optional("*", "platformer_unitaction_clear", platformer_unitaction_clear);
 	mod.link_optional("*", "platformer_unitaction_add", platformer_unitaction_add);
 }

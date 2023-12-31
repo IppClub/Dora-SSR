@@ -63,8 +63,8 @@ export interface UnitActionParam {
 	/** The length of the recovery time for the "UnitAction", in seconds. */
 	recovery: number;
 
-	/** Whether the "UnitAction" is currently queued or not. */
-	queued: boolean;
+	/** Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority. */
+	queued?: boolean;
 
 	/**
 	 * A function that determines whether the "UnitAction" is currently available for the specified "Unit".
@@ -72,7 +72,7 @@ export interface UnitActionParam {
 	 * @param action (UnitAction) The "UnitAction" to check availability for.
 	 * @returns (boolean) True if the "UnitAction" is available for the "Unit", false otherwise.
 	 */
-	available(owner: Unit, action: UnitAction): boolean;
+	available(this: void, owner: Unit, action: UnitAction): boolean;
 
 	/**
 	 * A function that creates a new function or "Routine.Job" that represents the processing of the "UnitAction".
@@ -81,13 +81,13 @@ export interface UnitActionParam {
 	 * @param deltaTime (number) The time elapsed since the last frame.
 	 * @returns (function or Routine.Job) A function or a "Routine.Job" that returns or yields true if the "UnitAction" is complete.
 	 */
-	create(owner: Unit, action: UnitAction, deltaTime: number): (this: void, deltaTime: number) => boolean | Job;
+	create(this: void, owner: Unit, action: UnitAction, deltaTime: number): ((this: void, owner: Unit, action: UnitAction, deltaTime: number) => boolean) | Job;
 
 	/**
 	 * A function that gets invoked when the specified "Unit" stops performing the "UnitAction".
 	 * @param owner (Unit) The "Unit" that is stopping the "UnitAction".
 	 */
-	stop(owner: Unit): void;
+	stop?(this: void, owner: Unit): void;
 }
 
 /**

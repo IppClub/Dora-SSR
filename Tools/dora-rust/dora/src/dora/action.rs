@@ -9,7 +9,7 @@ extern "C" {
 	fn action_get_speed(slf: i64) -> f32;
 	fn action_pause(slf: i64);
 	fn action_resume(slf: i64);
-	fn action_update_to(slf: i64, eclapsed: f32, reversed: i32);
+	fn action_update_to(slf: i64, elapsed: f32, reversed: i32);
 	fn action_prop(duration: f32, start: f32, stop: f32, prop: i32, easing: i32) -> i64;
 	fn action_tint(duration: f32, start: i32, stop: i32, easing: i32) -> i64;
 	fn action_roll(duration: f32, start: f32, stop: f32, easing: i32) -> i64;
@@ -61,8 +61,8 @@ impl Action {
 	pub fn resume(&mut self) {
 		unsafe { action_resume(self.raw()); }
 	}
-	pub fn update_to(&mut self, eclapsed: f32, reversed: bool) {
-		unsafe { action_update_to(self.raw(), eclapsed, if reversed { 1 } else { 0 }); }
+	pub fn update_to(&mut self, elapsed: f32, reversed: bool) {
+		unsafe { action_update_to(self.raw(), elapsed, if reversed { 1 } else { 0 }); }
 	}
 	pub fn prop(duration: f32, start: f32, stop: f32, prop: crate::dora::Property, easing: crate::dora::EaseType) -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(action_prop(duration, start, stop, prop as i32, easing as i32)); }

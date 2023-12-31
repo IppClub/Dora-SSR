@@ -7,7 +7,7 @@ extern "C" {
 	fn application_get_version() -> i64;
 	fn application_get_deps() -> i64;
 	fn application_get_delta_time() -> f64;
-	fn application_get_eclapsed_time() -> f64;
+	fn application_get_elapsed_time() -> f64;
 	fn application_get_total_time() -> f64;
 	fn application_get_running_time() -> f64;
 	fn application_get_rand() -> i32;
@@ -57,8 +57,8 @@ impl App {
 	pub fn get_delta_time() -> f64 {
 		return unsafe { application_get_delta_time() };
 	}
-	pub fn get_eclapsed_time() -> f64 {
-		return unsafe { application_get_eclapsed_time() };
+	pub fn get_elapsed_time() -> f64 {
+		return unsafe { application_get_elapsed_time() };
 	}
 	pub fn get_total_time() -> f64 {
 		return unsafe { application_get_total_time() };

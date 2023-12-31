@@ -31,8 +31,8 @@ static void model_resume_animation(int64_t self, int64_t name, int32_t looping) 
 static void model_reset(int64_t self) {
 	r_cast<Model*>(self)->reset();
 }
-static void model_update_to(int64_t self, float eclapsed, int32_t reversed) {
-	r_cast<Model*>(self)->updateTo(eclapsed, reversed != 0);
+static void model_update_to(int64_t self, float elapsed, int32_t reversed) {
+	r_cast<Model*>(self)->updateTo(elapsed, reversed != 0);
 }
 static int64_t model_get_node_by_name(int64_t self, int64_t name) {
 	return from_object(r_cast<Model*>(self)->getNodeByName(*str_from(name)));

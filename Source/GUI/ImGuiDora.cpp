@@ -457,9 +457,9 @@ ImGuiDora::ImGuiDora()
 	, _timeFrames(0)
 	, _memFrames(0)
 	, _profileFrames(0)
-	, _objectEclapsed(0)
-	, _memEclapsed(0)
-	, _profileEclapsed(0)
+	, _objectElapsed(0)
+	, _memElapsed(0)
+	, _profileElapsed(0)
 	, _cpuTime(0)
 	, _gpuTime(0)
 	, _deltaTime(0)
@@ -850,7 +850,7 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 		}
 		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"对象") : "Object")) {
 			_objectFrames++;
-			_objectEclapsed += SharedApplication.getDeltaTime();
+			_objectElapsed += SharedApplication.getDeltaTime();
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"C++对象：") : "C++ Object:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
@@ -872,24 +872,24 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 			ImGui::Text("%d", _maxCallbacks);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ? u8"Lua引用的C++函数对象的数量"sv : "the number of C++ function call objects referenced by Lua"_slice);
-			if (_objectEclapsed >= 1.0) {
-				_objectFrames = _maxCppObjects = _maxLuaObjects = _maxCallbacks = _objectEclapsed = 0;
+			if (_objectElapsed >= 1.0) {
+				_objectFrames = _maxCppObjects = _maxLuaObjects = _maxCallbacks = _objectElapsed = 0;
 			}
 		}
 		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"内存") : "Memory")) {
 			_memFrames++;
-			_memEclapsed += SharedApplication.getDeltaTime();
+			_memElapsed += SharedApplication.getDeltaTime();
 			_memPoolSize = std::max(MemoryPool::getTotalCapacity(), _memPoolSize);
 			_memLua = std::max(SharedLuaEngine.getMemoryCount(), _memLua);
 			if (Singleton<WasmRuntime>::isInitialized()) {
 				_memWASM = std::max(s_cast<int>(SharedWasmRuntime.getMemorySize()), _memWASM);
 			}
-			if (_memEclapsed >= 1.0) {
+			if (_memElapsed >= 1.0) {
 				_lastMemPoolSize = _memPoolSize;
 				_lastMemLua = _memLua;
 				_lastMemWASM = _memWASM;
 				_memPoolSize = _memLua = _memWASM = 0;
-				_memFrames = _memEclapsed = 0;
+				_memFrames = _memElapsed = 0;
 			}
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"内存池：") : "Memory Pool:");
 			itemHovered = ImGui::IsItemHovered();
@@ -1049,14 +1049,14 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 	if (_showPlot) {
 		const int PlotCount = 30;
 		_profileFrames++;
-		_profileEclapsed += SharedApplication.getDeltaTime();
+		_profileElapsed += SharedApplication.getDeltaTime();
 		_maxCPU = std::max(_maxCPU, SharedApplication.getCPUTime());
 		_maxGPU = std::max(_maxGPU, SharedApplication.getGPUTime());
 		_maxDelta = std::max(_maxDelta, SharedApplication.getDeltaTime());
 		double targetTime = 1000.0 / SharedApplication.getTargetFPS();
 		_logicTime += SharedApplication.getLogicTime();
 		_renderTime += SharedApplication.getRenderTime();
-		if (_profileEclapsed >= 1.0) {
+		if (_profileElapsed >= 1.0) {
 			_cpuValues.push_back(_maxCPU * 1000.0);
 			_gpuValues.push_back(_maxGPU * 1000.0);
 			_dtValues.push_back(_maxDelta * 1000.0);
@@ -1084,7 +1084,7 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 			_updateCosts["Logic"s] = std::max(0.0, (_logicTime - time) * 1000.0 / _profileFrames);
 			_updateCosts["Render"s] = std::max(0.0, _renderTime * 1000.0 / _profileFrames);
 			_logicTime = _renderTime = 0;
-			_profileFrames = _profileEclapsed = 0;
+			_profileFrames = _profileElapsed = 0;
 		}
 		Size size = SharedApplication.getVisualSize();
 		ImGui::SetNextWindowPos(Vec2{size.width / 2 - 160.0f, 10.0f}, ImGuiCond_FirstUseEver);

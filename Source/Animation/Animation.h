@@ -49,7 +49,7 @@ public:
 class KeyReset : public ActionDuration {
 public:
 	virtual float getDuration() const override;
-	virtual bool update(Node* target, float eclapsed) override;
+	virtual bool update(Node* target, float elapsed) override;
 	static Own<ActionDuration> alloc(KeyFrameDef* def);
 	static Action* create(KeyFrameDef* def);
 
@@ -74,7 +74,7 @@ public:
 	void prepareWith(Node* target);
 	void updateEndValues(KeyFrameDef* def);
 	void updateEndValues(SpriteDef* def);
-	virtual bool update(Node* target, float eclapsed) override;
+	virtual bool update(Node* target, float elapsed) override;
 	static Own<ActionDuration> alloc(float duration, SpriteDef* def, Ease::Enum easing);
 	static Action* create(float duration, SpriteDef* def, Ease::Enum easing);
 

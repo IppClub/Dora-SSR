@@ -34,7 +34,7 @@ local record Action
 	-- @param reversed (boolean) 是否倒放动作（默认为false）。
 	updateTo: function(
 		self: Action,
-		eclapsed: number,
+		elapsed: number,
 		reversed?: boolean --[[false]]
 	)
 end

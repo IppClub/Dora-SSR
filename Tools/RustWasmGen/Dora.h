@@ -55,7 +55,7 @@ singleton class Application @ App
 	readonly common string version;
 	readonly common string deps;
 	readonly common double deltaTime;
-	readonly common double eclapsedTime;
+	readonly common double elapsedTime;
 	readonly common double totalTime;
 	readonly common double runningTime;
 	readonly common uint32_t rand;
@@ -224,7 +224,7 @@ object class Action
 	common float speed;
 	void pause();
 	void resume();
-	void updateTo(float eclapsed, bool reversed);
+	void updateTo(float elapsed, bool reversed);
 	static outside ActionDef action_def_prop @ prop(float duration, float start, float stop,
 		Property prop, EaseType easing);
 	static outside ActionDef action_def_tint @ tint(float duration, Color3 start, Color3 stop,
@@ -519,7 +519,7 @@ object class Model : public IPlayable
 	void resume();
 	void resume @ resumeAnimation(string name, bool looping);
 	void reset();
-	void updateTo(float eclapsed, bool reversed);
+	void updateTo(float elapsed, bool reversed);
 	Node* getNodeByName(string name);
 	bool eachNode(function<bool(Node* node)> func);
 	static Model* create(string filename);
@@ -1122,7 +1122,7 @@ class UnitAction
 	readonly common string name;
 	readonly boolean bool doing;
 	readonly common Platformer::Unit* owner;
-	readonly common float eclapsedTime;
+	readonly common float elapsedTime;
 	static void clear();
 	static outside void platformer_wasm_unit_action_add @ add(
 		string name, int priority, float reaction, float recovery, bool queued,

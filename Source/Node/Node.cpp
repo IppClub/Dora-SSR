@@ -1082,7 +1082,7 @@ float Node::runAction(Action* action) {
 		action->_next = nullptr;
 		_action = action;
 	}
-	_action->_eclapsed = 0.0f;
+	_action->_elapsed = 0.0f;
 	_action->resume();
 	if (isRunning()) {
 		_scheduler->schedule(action);

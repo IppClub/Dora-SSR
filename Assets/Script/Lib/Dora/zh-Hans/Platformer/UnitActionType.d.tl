@@ -19,7 +19,7 @@ local record UnitAction
 	const doing: boolean
 
 	-- 自游戏单位动作开始执行后经过的时间，以秒为单位。
-	const eclapsedTime: number
+	const elapsedTime: number
 
 	-- 该动作所属的游戏单位。
 	const owner: Unit
