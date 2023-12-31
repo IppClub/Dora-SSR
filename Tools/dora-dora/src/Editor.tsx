@@ -16,8 +16,6 @@ import Info from './Info';
 const options = monaco.languages.typescript.typescriptDefaults.getCompilerOptions();
 options.noLib = true;
 options.strict = true;
-options.rootDir = undefined;
-options.rootDirs = undefined;
 options.jsx = monaco.languages.typescript.JsxEmit.React;
 options.allowSyntheticDefaultImports = true;
 options.target = monaco.languages.typescript.ScriptTarget.ES2015;
