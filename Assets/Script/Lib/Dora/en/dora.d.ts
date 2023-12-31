@@ -564,7 +564,7 @@ interface App {
 	readonly deltaTime: number;
 
 	/** The elapsed time since current frame was started, in seconds. */
-	readonly eclapsedTime: number;
+	readonly elapsedTime: number;
 
 	/**
 	 * The total time the game engine has been running until last frame ended, in seconds.
@@ -1327,6 +1327,13 @@ class Array extends Object {
 	 * @returns True if the item was found and removed, false otherwise.
 	 */
 	fastRemove(item: Item): boolean;
+
+	/**
+	 * Metamethod to access the item at the given index using the [] operator.
+	 * @param index The index to get, should be 0 based.
+	 * @return The item value.
+	 */
+	[index: number]: Item | undefined;
 }
 
 export type {Array as ArrayType};
@@ -1673,7 +1680,7 @@ class Dictionary extends Object {
 	clear(): void;
 
 	/**
-	 * Allows accessing items in the dictionary using the index notation, e.g. "dict['key']".
+	 * Allows accessing items in the dictionary using the index notation, e.g. "dict['key']" or "dict.key".
 	 * @param key The key of the item to retrieve.
 	 * @returns The Item with the given key, or undefined if it does not exist.
 	 */
@@ -4312,6 +4319,18 @@ class Sensor extends Object {
 
 export type {Sensor as SensorType};
 
+export const enum BodyMoveType {
+
+	/** A body that does not move. */
+	Static = "Static",
+
+	/** A body that can move and be affected by forces. */
+	Dynamic = "Dynamic",
+
+	/** A body that can move but is not affected by forces. */
+	Kinematic = "Kinematic",
+}
+
 /**
  * A class called "BodyDef" to describe the properties of a physics body.
  * Inherits from `Object`.
@@ -4321,9 +4340,9 @@ class BodyDef extends Object {
 	private constructor();
 
 	/**
-	 * An enumeration for the different types of bodies.
+	 * An enumeration for the different moving types of bodies.
 	 */
-	type: "Static" | "Dynamic" | "Kinematic";
+	type: BodyMoveType;
 
 	/** Position of the body. */
 	position: Vec2;

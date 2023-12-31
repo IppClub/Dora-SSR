@@ -89,8 +89,8 @@ float KeyReset::getDuration() const {
 	return 0.0f;
 }
 
-bool KeyReset::update(Node* target, float eclapsed) {
-	if (_ended && eclapsed > 0.0f) return true;
+bool KeyReset::update(Node* target, float elapsed) {
+	if (_ended && elapsed > 0.0f) return true;
 	target->setPosition(Vec2{_x, _y});
 	target->setScaleX(_scaleX);
 	target->setScaleY(_scaleY);
@@ -99,7 +99,7 @@ bool KeyReset::update(Node* target, float eclapsed) {
 	target->setAngle(_rotation);
 	if (!_visible) target->setVisible(false);
 	target->setOpacity(_opacity);
-	_ended = eclapsed > 0.0f;
+	_ended = elapsed > 0.0f;
 	return true;
 }
 
@@ -196,9 +196,9 @@ void ResetAction::updateEndValues(SpriteDef* def) {
 	_opacityDelta = def->opacity - _opacityStart;
 }
 
-bool ResetAction::update(Node* target, float eclapsed) {
-	if (_ended && eclapsed > _duration) return true;
-	float time = std::max(std::min(eclapsed / _duration, 1.0f), 0.0f);
+bool ResetAction::update(Node* target, float elapsed) {
+	if (_ended && elapsed > _duration) return true;
+	float time = std::max(std::min(elapsed / _duration, 1.0f), 0.0f);
 	_ended = time == 1.0f;
 	time = _ended ? 1.0f : _ease(time);
 	target->setX(_xStart + _xDelta * time);

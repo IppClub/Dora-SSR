@@ -127,9 +127,9 @@ float PropertyAction::getDuration() const {
 	return _duration;
 }
 
-bool PropertyAction::update(Node* target, float eclapsed) {
-	if (_ended && eclapsed > _duration) return true;
-	float time = std::max(std::min(eclapsed / _duration, 1.0f), 0.0f);
+bool PropertyAction::update(Node* target, float elapsed) {
+	if (_ended && elapsed > _duration) return true;
+	float time = std::max(std::min(elapsed / _duration, 1.0f), 0.0f);
 	_ended = time == 1.0f;
 	_setFunc(target, _start + _delta * (_ended ? 1.0f : _ease(time)));
 	return _ended;
@@ -157,9 +157,9 @@ float Tint::getDuration() const {
 	return _duration;
 }
 
-bool Tint::update(Node* target, float eclapsed) {
-	if (_ended && eclapsed > _duration) return true;
-	float time = std::max(std::min(eclapsed / _duration, 1.0f), 0.0f);
+bool Tint::update(Node* target, float elapsed) {
+	if (_ended && elapsed > _duration) return true;
+	float time = std::max(std::min(elapsed / _duration, 1.0f), 0.0f);
 	_ended = time == 1.0f;
 	float change = _ended ? 1.0f : _ease(time);
 	target->setColor3(Color3(Vec3{_start.x + _delta.x * change, _start.y + _delta.y * change, _start.z + _delta.z * change}));
@@ -195,9 +195,9 @@ float Roll::getDuration() const {
 	return _duration;
 }
 
-bool Roll::update(Node* target, float eclapsed) {
-	if (_ended && eclapsed > _duration) return true;
-	float time = std::max(std::min(eclapsed / _duration, 1.0f), 0.0f);
+bool Roll::update(Node* target, float elapsed) {
+	if (_ended && elapsed > _duration) return true;
+	float time = std::max(std::min(elapsed / _duration, 1.0f), 0.0f);
 	_ended = time == 1.0f;
 	target->setAngle(_start + _delta * (_ended ? 1.0f : _ease(time)));
 	return _ended;
@@ -209,10 +209,10 @@ float Spawn::getDuration() const {
 	return _duration;
 }
 
-bool Spawn::update(Node* target, float eclapsed) {
-	if (_ended && eclapsed > _duration) return true;
-	bool resultA = !_first || _first->update(target, eclapsed);
-	bool resultB = !_second || _second->update(target, eclapsed);
+bool Spawn::update(Node* target, float elapsed) {
+	if (_ended && elapsed > _duration) return true;
+	bool resultA = !_first || _first->update(target, elapsed);
+	bool resultB = !_second || _second->update(target, elapsed);
 	_ended = resultA && resultB;
 	return _ended;
 }
@@ -276,13 +276,13 @@ float Sequence::getDuration() const {
 	return _duration;
 }
 
-bool Sequence::update(Node* target, float eclapsed) {
-	if (_ended && eclapsed > _duration) return true;
-	if (_ended && _second && _first && eclapsed < _first->getDuration()) {
+bool Sequence::update(Node* target, float elapsed) {
+	if (_ended && elapsed > _duration) return true;
+	if (_ended && _second && _first && elapsed < _first->getDuration()) {
 		_second->update(target, 0.0f);
 	}
-	if (!_first || _first->update(target, eclapsed)) {
-		_ended = !_second || _second->update(target, eclapsed - _first->getDuration());
+	if (!_first || _first->update(target, elapsed)) {
+		_ended = !_second || _second->update(target, elapsed - _first->getDuration());
 		return _ended;
 	}
 	_ended = false;
@@ -348,9 +348,9 @@ float Delay::getDuration() const {
 	return _duration;
 }
 
-bool Delay::update(Node* target, float eclapsed) {
+bool Delay::update(Node* target, float elapsed) {
 	DORA_UNUSED_PARAM(target);
-	return eclapsed >= _duration;
+	return elapsed >= _duration;
 }
 
 Own<ActionDuration> Delay::alloc(float duration) {
@@ -369,10 +369,10 @@ float Show::getDuration() const {
 	return 0.0f;
 }
 
-bool Show::update(Node* target, float eclapsed) {
-	if (_ended && eclapsed > 0.0f) return true;
+bool Show::update(Node* target, float elapsed) {
+	if (_ended && elapsed > 0.0f) return true;
 	target->setVisible(true);
-	_ended = eclapsed > 0.0f;
+	_ended = elapsed > 0.0f;
 	return true;
 }
 
@@ -392,10 +392,10 @@ float Hide::getDuration() const {
 	return 0.0f;
 }
 
-bool Hide::update(Node* target, float eclapsed) {
-	if (_ended && eclapsed > 0.0f) return true;
+bool Hide::update(Node* target, float elapsed) {
+	if (_ended && elapsed > 0.0f) return true;
 	target->setVisible(false);
-	_ended = eclapsed > 0.0f;
+	_ended = elapsed > 0.0f;
 	return true;
 }
 
@@ -417,8 +417,8 @@ float Emit::getDuration() const {
 	return 0.0f;
 }
 
-bool Emit::update(Node* target, float eclapsed) {
-	if (_ended && eclapsed > 0.0f) return true;
+bool Emit::update(Node* target, float elapsed) {
+	if (_ended && elapsed > 0.0f) return true;
 	if (Emit::available) {
 		if (_argument.empty()) {
 			target->emit(_event, target);
@@ -426,7 +426,7 @@ bool Emit::update(Node* target, float eclapsed) {
 			target->emit(_event, target, _argument);
 		}
 	}
-	_ended = eclapsed > 0.0f;
+	_ended = elapsed > 0.0f;
 	return true;
 }
 
@@ -448,12 +448,12 @@ float FrameAction::getDuration() const {
 	return _def->duration;
 }
 
-bool FrameAction::update(Node* target, float eclapsed) {
-	if (_ended && eclapsed > _def->duration) return true;
+bool FrameAction::update(Node* target, float elapsed) {
+	if (_ended && elapsed > _def->duration) return true;
 	Sprite* sprite = DoraAs<Sprite>(target);
 	if (sprite) {
 		int frames = s_cast<int>(_def->rects.size());
-		float time = std::max(0.0f, eclapsed / std::max(_def->duration, FLT_EPSILON));
+		float time = std::max(0.0f, elapsed / std::max(_def->duration, FLT_EPSILON));
 		int current = s_cast<int>(time * frames + 0.5f);
 		if (current < frames) {
 			if (sprite->getTexture() != _texture) {
@@ -464,7 +464,7 @@ bool FrameAction::update(Node* target, float eclapsed) {
 			}
 		}
 	}
-	_ended = eclapsed > _def->duration;
+	_ended = elapsed > _def->duration;
 	return _ended;
 }
 
@@ -487,21 +487,21 @@ const int Action::InvalidOrder = -1;
 Action::Action(Own<ActionDuration>&& actionDuration)
 	: _order(Action::InvalidOrder)
 	, _speed(1.0f)
-	, _eclapsed(0)
+	, _elapsed(0)
 	, _target(nullptr)
 	, _action(std::move(actionDuration))
 	, _reversed(false)
 	, _paused(false) { }
 
-void Action::updateTo(float eclapsed, bool reversed) {
-	float oldEclapsed = _eclapsed;
+void Action::updateTo(float elapsed, bool reversed) {
+	float oldElapsed = _elapsed;
 	bool oldReversed = _reversed;
-	_eclapsed = eclapsed;
+	_elapsed = elapsed;
 	_reversed = reversed;
 	if (_target) {
 		updateProgress();
 	}
-	_eclapsed = oldEclapsed;
+	_elapsed = oldElapsed;
 	_reversed = oldReversed;
 }
 
@@ -509,8 +509,8 @@ float Action::getDuration() const {
 	return _action->getDuration();
 }
 
-float Action::getEclapsed() const {
-	return _eclapsed;
+float Action::getElapsed() const {
+	return _elapsed;
 }
 
 bool Action::isPaused() const {
@@ -551,7 +551,7 @@ void Action::resume() {
 
 bool Action::updateProgress() {
 	if (!_action) return true;
-	if (_eclapsed == 0.0f) {
+	if (_elapsed == 0.0f) {
 		float start = _reversed ? _action->getDuration() : 0.0f;
 		/* reset actions to initial state */
 		Emit::available = false; // disable event callbacks while reseting
@@ -563,12 +563,12 @@ bool Action::updateProgress() {
 			return true;
 		}
 		return false;
-	} else if (_eclapsed >= _action->getDuration()) {
-		float stop = _reversed ? 0.0f : _eclapsed;
+	} else if (_elapsed >= _action->getDuration()) {
+		float stop = _reversed ? 0.0f : _elapsed;
 		_action->update(_target, stop);
 		return true;
 	} else {
-		float current = _reversed ? _action->getDuration() - _eclapsed : _eclapsed;
+		float current = _reversed ? _action->getDuration() - _elapsed : _elapsed;
 		_action->update(_target, current);
 		return false;
 	}

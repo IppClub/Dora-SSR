@@ -44,7 +44,7 @@ UnitAction::UnitAction(String name, int priority, bool queued, Unit* owner)
 	, _status(Behavior::Status::Failure)
 	, _owner(owner)
 	, reaction(0.0f)
-	, _eclapsedTime(0.0f)
+	, _elapsedTime(0.0f)
 	, _sensity(_owner->getUnitDef()->get(ActionSetting::Sensity, 0.0f)) { }
 
 UnitAction::~UnitAction() {
@@ -75,8 +75,8 @@ bool UnitAction::isAvailable() {
 	return true;
 }
 
-float UnitAction::getEclapsedTime() const {
-	return _eclapsedTime;
+float UnitAction::getElapsedTime() const {
+	return _elapsedTime;
 }
 
 Behavior::Status UnitAction::getStatus() const {
@@ -86,11 +86,11 @@ Behavior::Status UnitAction::getStatus() const {
 void UnitAction::run() {
 	_doing = true;
 	_decisionDelay = 0.0f;
-	_eclapsedTime = 0.0f;
+	_elapsedTime = 0.0f;
 }
 
 void UnitAction::update(float dt) {
-	_eclapsedTime += dt;
+	_elapsedTime += dt;
 	float reactionTime = _sensity * UnitAction::reaction;
 	if (reactionTime >= 0) {
 		_decisionDelay += dt;
@@ -104,7 +104,7 @@ void UnitAction::update(float dt) {
 
 void UnitAction::stop() {
 	_doing = false;
-	_eclapsedTime = 0.0f;
+	_elapsedTime = 0.0f;
 	_decisionDelay = 0.0f;
 }
 
@@ -143,8 +143,8 @@ void Walk::update(float dt) {
 		auto move = _owner->getEntity()->get(ActionSetting::Move, 0.0f);
 		auto moveSpeed = _owner->getEntity()->get(ActionSetting::MoveSpeed, 1.0f);
 		move *= moveSpeed;
-		if (_eclapsedTime < UnitAction::recovery) {
-			move *= std::min(_eclapsedTime / UnitAction::recovery, 1.0f);
+		if (_elapsedTime < UnitAction::recovery) {
+			move *= std::min(_elapsedTime / UnitAction::recovery, 1.0f);
 		}
 		_owner->setVelocityX(_owner->isFaceRight() ? move : -move);
 	} else {
@@ -260,7 +260,7 @@ void Jump::run() {
 
 void Jump::update(float dt) {
 	if (_duration == 0.0f) {
-		if (_eclapsedTime > 0.2f) // don`t do update for a while, for actor won`t lift immediately.
+		if (_elapsedTime > 0.2f) // don`t do update for a while, for actor won`t lift immediately.
 		{
 			Jump::stop();
 		} else
@@ -324,8 +324,8 @@ void Attack::run() {
 }
 
 void Attack::update(float dt) {
-	_eclapsedTime += dt;
-	if (_attackDelay >= 0 && _eclapsedTime >= _attackDelay) {
+	_elapsedTime += dt;
+	if (_attackDelay >= 0 && _elapsedTime >= _attackDelay) {
 		_attackDelay = -1;
 		auto sndAttack = _owner->getUnitDef()->get(ActionSetting::SndAttack, Slice::Empty);
 		if (!sndAttack.empty()) {
@@ -333,7 +333,7 @@ void Attack::update(float dt) {
 		}
 		this->onAttack();
 	}
-	if (_attackEffectDelay >= 0 && _eclapsedTime >= _attackEffectDelay) {
+	if (_attackEffectDelay >= 0 && _elapsedTime >= _attackEffectDelay) {
 		_attackEffectDelay = -1;
 		auto attackEffect = _owner->getUnitDef()->get(ActionSetting::AttackEffect, Slice::Empty);
 		if (!attackEffect.empty()) {

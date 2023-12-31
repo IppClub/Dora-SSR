@@ -110,7 +110,7 @@ class Application
 	tolua_readonly tolua_property__common String version;
 	tolua_readonly tolua_property__common String deps;
 	tolua_readonly tolua_property__common double deltaTime;
-	tolua_readonly tolua_property__common double eclapsedTime;
+	tolua_readonly tolua_property__common double elapsedTime;
 	tolua_readonly tolua_property__common double totalTime;
 	tolua_readonly tolua_property__common double runningTime;
 	tolua_readonly tolua_property__common uint32_t rand;
@@ -311,7 +311,7 @@ class Action : public Object
 	tolua_property__common float speed;
 	void pause();
 	void resume();
-	void updateTo(float eclapsed, bool reversed = false);
+	void updateTo(float elapsed, bool reversed = false);
 };
 
 class Node : public Object
@@ -650,7 +650,7 @@ class Model : public Playable
 	void resume();
 	void resume(String name, bool loop = false);
 	void reset();
-	void updateTo(float eclapsed, bool reversed = false);
+	void updateTo(float elapsed, bool reversed = false);
 	Node* getNodeByName(String name);
 	bool eachNode(tolua_function_bool func);
 	static Model* create(String filename);
@@ -1247,7 +1247,7 @@ class UnitAction
 	tolua_readonly tolua_property__common string name;
 	tolua_readonly tolua_property__bool bool doing;
 	tolua_readonly tolua_property__common Unit* owner;
-	tolua_readonly tolua_property__common float eclapsedTime;
+	tolua_readonly tolua_property__common float elapsedTime;
 	static tolua_outside void Platformer::LuaUnitAction_add @ add(
 		String name,
 		int priority,

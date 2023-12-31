@@ -16,10 +16,8 @@ local sceneGroup = Group { "scene" }
 local positionGroup = Group { "position" }
 
 -- doing safe type conversions instead of using 'as' keyword
-local function toNode(item: Entity.Item): Node.Type | nil
-	if item is Entity.ContainerItem then
-		return tolua.cast(item, "Node")
-	end
+local function toNode(item: any): Node.Type | nil
+	return tolua.cast(item, "Node")
 end
 
 Observer("Add", { "scene" }):watch(function(_entity: Entity.Type, scene: Node.Type)

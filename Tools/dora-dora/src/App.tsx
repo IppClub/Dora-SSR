@@ -244,11 +244,6 @@ export default function PersistentDrawerLeft() {
 				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "lua.d.ts");
 			}
 		});
-		Service.read({path: "dora.d.ts"}).then(res => {
-			if (res.content !== undefined) {
-				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "dora.d.ts");
-			}
-		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
@@ -1332,6 +1327,10 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const checkFile = (file: EditingFile, content: string, model: monaco.editor.ITextModel, lastChange?: monaco.editor.IModelContentChange) => {
+		switch (path.extname(file.key).toLowerCase()) {
+			case ".lua": case ".tl": case ".yue": case ".xml": break;
+			default: return;
+		}
 		Service.check({file: file.key, content}).then((res) => {
 			let status: TabStatus = "normal";
 			const markers: monaco.editor.IMarkerData[] = [];
@@ -1539,10 +1538,6 @@ export default function PersistentDrawerLeft() {
 		const model = editor.getModel();
 		if (model) {
 			model.onDidChangeContent((e) => {
-				switch (path.extname(file.key).toLowerCase()) {
-					case ".lua": case ".tl": case ".yue": case ".xml": break;
-					default: return;
-				}
 				lastEditorActionTime = Date.now();
 				const modified = model.getValue();
 				const lastChange = e.changes.at(-1);
@@ -1828,33 +1823,47 @@ export default function PersistentDrawerLeft() {
 		setOpenLog(null);
 	};
 
-	const onValidate = (markers: monaco.editor.IMarker[]) => {
-		if (tabIndex === null) return;
-		let status: TabStatus = "normal";
-		let severity = 0;
-		for (const marker of markers) {
-			if (marker.severity > severity) {
-				severity = marker.severity;
+	const onValidate = (markers: monaco.editor.IMarker[], key: string) => {
+		setFiles(files => {
+			const file = files.find(f => f.key === key);
+			if (file === undefined) return files;
+			let status: TabStatus = "normal";
+			let severity = 0;
+			for (const marker of markers) {
+				if (marker.severity > severity) {
+					severity = marker.severity;
+				}
 			}
-		}
-		if (severity > 0) {
-			switch (severity) {
-				case monaco.MarkerSeverity.Error:
-					status = "error";
-					break;
-				case monaco.MarkerSeverity.Warning:
-					status = "warning";
-					break;
-				default:
-					status = "normal";
-					break;
+			if (severity > 0) {
+				switch (severity) {
+					case monaco.MarkerSeverity.Error:
+						status = "error";
+						break;
+					case monaco.MarkerSeverity.Warning:
+						status = "warning";
+						break;
+					default:
+						status = "normal";
+						break;
+				}
 			}
-		}
-		const file = files[tabIndex];
-		if (file.status !== status) {
-			file.status = status;
-			setFiles([...files]);
-		}
+			if (file.editor !== undefined) {
+				const filtered = markers.filter(marker => {
+					return marker.message !== "This module can only be referenced with ECMAScript imports/exports by turning on the 'allowSyntheticDefaultImports' flag and referencing its default export.";
+				});
+				if (filtered.length !== markers.length) {
+					const model = file.editor.getModel();
+					if (model) {
+						monaco.editor.setModelMarkers(model, "typescript", filtered);
+					}
+				}
+			}
+			if (file.status !== status) {
+				file.status = status;
+				return [...files];
+			}
+			return files;
+		});
 	};
 
 	return (
@@ -2046,7 +2055,7 @@ export default function PersistentDrawerLeft() {
 				{
 					files.map((file, index) => {
 						const ext = path.extname(file.title);
-						let language = null;
+						let language: "lua" | "tl" | "yue" | "typescript" | "xml" | "markdown" | null = null;
 						let image = false;
 						let spine = false;
 						let yarn = false;
@@ -2175,7 +2184,7 @@ export default function PersistentDrawerLeft() {
 													if (content === undefined) return;
 													setModified({key: file.key, content});
 												}}
-												onValidate={language === "typescript" ? onValidate : undefined}
+												onValidate={language === "typescript" ? (markers) => {onValidate(markers, file.key);} : undefined}
 												path={monaco.Uri.file(file.key).toString()}
 												options={{
 													readOnly,

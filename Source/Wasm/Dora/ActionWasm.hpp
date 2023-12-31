@@ -28,8 +28,8 @@ static void action_pause(int64_t self) {
 static void action_resume(int64_t self) {
 	r_cast<Action*>(self)->resume();
 }
-static void action_update_to(int64_t self, float eclapsed, int32_t reversed) {
-	r_cast<Action*>(self)->updateTo(eclapsed, reversed != 0);
+static void action_update_to(int64_t self, float elapsed, int32_t reversed) {
+	r_cast<Action*>(self)->updateTo(elapsed, reversed != 0);
 }
 static int64_t action_prop(float duration, float start, float stop, int32_t prop, int32_t easing) {
 	return r_cast<int64_t>(new ActionDef{action_def_prop(duration, start, stop, s_cast<Property::Enum>(prop), s_cast<Ease::Enum>(easing))});

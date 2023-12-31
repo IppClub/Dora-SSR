@@ -44,7 +44,7 @@ local record Model
 	-- @param reversed (boolean) [optional] Whether to play the animation in reverse (default is false).
 	updateTo: function(
 		self: Model,
-		eclapsed: number,
+		elapsed: number,
 		reversed?: boolean --[[false]]
 	)
 

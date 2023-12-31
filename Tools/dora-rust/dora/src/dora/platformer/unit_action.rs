@@ -6,7 +6,7 @@ extern "C" {
 	fn platformer_unitaction_get_name(slf: i64) -> i64;
 	fn platformer_unitaction_is_doing(slf: i64) -> i32;
 	fn platformer_unitaction_get_owner(slf: i64) -> i64;
-	fn platformer_unitaction_get_eclapsed_time(slf: i64) -> f32;
+	fn platformer_unitaction_get_elapsed_time(slf: i64) -> f32;
 	fn platformer_unitaction_clear();
 	fn platformer_unitaction_add(name: i64, priority: i32, reaction: f32, recovery: f32, queued: i32, func: i32, stack: i64, func1: i32, stack1: i64, func2: i32, stack2: i64);
 }
@@ -40,8 +40,8 @@ impl UnitAction {
 	pub fn get_owner(&self) -> crate::dora::platformer::Unit {
 		return unsafe { crate::dora::platformer::Unit::from(platformer_unitaction_get_owner(self.raw())).unwrap() };
 	}
-	pub fn get_eclapsed_time(&self) -> f32 {
-		return unsafe { platformer_unitaction_get_eclapsed_time(self.raw()) };
+	pub fn get_elapsed_time(&self) -> f32 {
+		return unsafe { platformer_unitaction_get_elapsed_time(self.raw()) };
 	}
 	pub fn clear() {
 		unsafe { platformer_unitaction_clear(); }

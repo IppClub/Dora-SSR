@@ -19,7 +19,7 @@ local record UnitAction
 	const doing: boolean
 
 	-- The elapsed time since the "UnitAction" was started, in seconds.
-	const eclapsedTime: number
+	const elapsedTime: number
 
 	-- The "Unit" that owns this "UnitAction".
 	const owner: Unit

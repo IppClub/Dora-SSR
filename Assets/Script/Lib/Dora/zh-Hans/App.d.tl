@@ -41,7 +41,7 @@ local record App
 	const deltaTime: number
 
 	-- 从当前游戏帧开始到本次API调用经过的时间（以秒为单位）。
-	const eclapsedTime: number
+	const elapsedTime: number
 
 	-- 游戏引擎直到上一帧结束为止，已经运行的总时间（以秒为单位）。
 	-- 在同一个游戏帧中多次调用时得到的是一个常数。

@@ -10,10 +10,10 @@ local record tolua
 	type: function(item: any): string
 
 	-- Attempts to cast a Lua object to a C++ type object.
-	-- @param item (ContainerItem) The Lua object to cast.
+	-- @param item (any) The Lua object to cast.
 	-- @param name (string) The name of the C++ type to cast to.
 	-- @return (T|nil) The cast object, or `nil` if the cast fails.
-	cast: function<T>(item: ContainerItem, name: string): T | nil
+	cast: function<T>(item: any, name: string): T | nil
 
 	-- Gets the class object for a given class name.
 	-- @param className (string) The name of the class to get the table for.

@@ -19,6 +19,9 @@ options.strict = true;
 options.rootDir = undefined;
 options.rootDirs = undefined;
 options.jsx = monaco.languages.typescript.JsxEmit.React;
+options.allowSyntheticDefaultImports = true;
+options.target = monaco.languages.typescript.ScriptTarget.ES2015;
+options.module = monaco.languages.typescript.ModuleKind.ES2015;
 monaco.languages.typescript.typescriptDefaults.setCompilerOptions(options);
 
 monaco.editor.defineTheme("dora-dark", {

@@ -1,5 +1,7 @@
 /// <reference path="dora.d.ts" />
 
+declare module "nvg" {
+
 import {
 	Vec2Type as Vec2,
 	ColorType as Color,
@@ -8,8 +10,6 @@ import {
 	SizeType as Size,
 	Texture2DType as Texture2D
 } from "dora";
-
-declare module "nvg" {
 
 class Transform {
 	private constructor();
@@ -76,118 +76,119 @@ export const enum ImageFlag {
 	Nearest = "Nearest",
 }
 
-interface nvg {
-	TouchPos(): Vec2;
-	LeftButtonPressed(): boolean;
-	RightButtonPressed(): boolean;
-	MiddleButtonPressed(): boolean;
-	MouseWheel(): number;
-	Save(): void;
-	Restore(): void;
-	Reset(): void;
-	CreateImage(w: number, h: number, filename: string, imageFlags?: ImageFlag[]): number;
-	CreateFont(name: string): number;
-	TextBounds(x: number, y: number, text: string, bounds: Rect): number;
-	TextBoxBounds(x: number, y: number, breakRowWidth: number, text: string): Rect;
-	Text(x: number, y: number, text: string): number;
-	TextBox(x: number, y: number, breakRowWidth: number, text: string): void;
-	StrokeColor(color: Color): void;
-	StrokePaint(paint: VGPaint): void;
-	FillColor(color: Color): void;
-	FillPaint(paint: VGPaint): void;
-	MiterLimit(limit: number): void;
-	StrokeWidth(size: number): void;
-	LineCap(cap: LineCapMode): void;
-	LineJoin(join: LineJoinMode): void;
-	GlobalAlpha(alpha: number): void;
-	ResetTransform(): void;
-	ApplyTransform(t: Transform): void;
-	CurrentTransform(t: Transform): void;
-	Translate(x: number, y: number): void;
-	Rotate(angle: number): void;
-	SkewX(angle: number): void;
-	SkewY(angle: number): void;
-	Scale(x: number, y: number): void;
-	ImageSize(image: number): Size;
-	DeleteImage(image: number): void;
-	NVGpaLinearGradient(
-		sx: number,
-		sy: number,
-		ex: number,
-		ey: number,
-		icol: Color,
-		ocol: Color
-	): VGPaint;
-	NVGpaBoxGradient(
-		x: number,
-		y: number,
-		w: number,
-		h: number,
-		r: number,
-		f: number,
-		icol: Color,
-		ocol: Color
-	): VGPaint;
-	NVGpaRadialGradient(
-		cx: number,
-		cy: number,
-		inr: number,
-		outr: number,
-		icol: Color,
-		ocol: Color
-	): VGPaint;
-	NVGpaImagePattern(
-		ox: number,
-		oy: number,
-		ex: number,
-		ey: number,
-		angle: number,
-		image: number,
-		alpha: number
-	): VGPaint;
-	Scissor(x: number, y: number, w: number, h: number): void;
-	IntersectScissor(x: number, y: number, w: number, h: number): void;
-	ResetScissor(): void;
-	BeginPath(): void;
-	MoveTo(x: number, y: number): void;
-	LineTo(x: number, y: number): void;
-	BezierTo(c1x: number, c1y: number, c2x: number, c2y: number, x: number, y: number): void;
-	QuadTo(cx: number, cy: number, x: number, y: number): void;
-	ArcTo(x1: number, y1: number, x2: number, y2: number, radius: number): void;
-	ClosePath(): void;
-	PathWinding(dir: WindingMode): void;
-	Arc(cx: number, cy: number, r: number, a0: number, a1: number, dir: ArcDir): void;
-	Rect(x: number, y: number, w: number, h: number): void;
-	RoundedRect(x: number, y: number, w: number, h: number, r: number): void;
-	RoundedRectVarying(
-		x: number,
-		y: number,
-		w: number,
-		h: number,
-		radTopLeft: number,
-		radTopRight: number,
-		radBottomRight: number,
-		radBottomLeft: number
-	): void;
-	Ellipse(cx: number, cy: number, rx: number, ry: number): void;
-	Circle(cx: number, cy: number, r: number): void;
-	Fill(): void;
-	Stroke(): void;
-	FindFont(name: string): number;
-	AddFallbackFontId(baseFont: number, fallbackFont: number): number;
-	AddFallbackFont(baseFont: string, fallbackFont: string): number;
-	FontSize(size: number): void;
-	FontBlur(blur: number): void;
-	TextLetterSpacing(spacing: number): void;
-	TextLineHeight(lineHeight: number): void;
-	TextAlign(align: TextAlignMode): void;
-	FontFaceId(font: number): void;
-	FontFace(font: string): void;
-	DoraSSR(): void;
-	GetDoraSSR(scale?: number): Texture2D;
-}
-
-const nvg: nvg;
-export = nvg;
+export function TouchPos(this: void): Vec2;
+export function LeftButtonPressed(this: void): boolean;
+export function RightButtonPressed(this: void): boolean;
+export function MiddleButtonPressed(this: void): boolean;
+export function MouseWheel(this: void): number;
+export function Save(this: void): void;
+export function Restore(this: void): void;
+export function Reset(this: void): void;
+export function CreateImage(this: void, w: number, h: number, filename: string, imageFlags?: ImageFlag[]): number;
+export function CreateFont(this: void, name: string): number;
+export function TextBounds(this: void, x: number, y: number, text: string, bounds: Rect): number;
+export function TextBoxBounds(this: void, x: number, y: number, breakRowWidth: number, text: string): Rect;
+export function Text(this: void, x: number, y: number, text: string): number;
+export function TextBox(this: void, x: number, y: number, breakRowWidth: number, text: string): void;
+export function StrokeColor(this: void, color: Color): void;
+export function StrokePaint(this: void, paint: VGPaint): void;
+export function FillColor(this: void, color: Color): void;
+export function FillPaint(this: void, paint: VGPaint): void;
+export function MiterLimit(this: void, limit: number): void;
+export function StrokeWidth(this: void, size: number): void;
+export function LineCap(this: void, cap: LineCapMode): void;
+export function LineJoin(this: void, join: LineJoinMode): void;
+export function GlobalAlpha(this: void, alpha: number): void;
+export function ResetTransform(this: void): void;
+export function ApplyTransform(this: void, t: Transform): void;
+export function CurrentTransform(this: void, t: Transform): void;
+export function Translate(this: void, x: number, y: number): void;
+export function Rotate(this: void, angle: number): void;
+export function SkewX(this: void, angle: number): void;
+export function SkewY(this: void, angle: number): void;
+export function Scale(this: void, x: number, y: number): void;
+export function ImageSize(this: void, image: number): Size;
+export function DeleteImage(this: void, image: number): void;
+export function NVGpaLinearGradient(
+	this: void,
+	sx: number,
+	sy: number,
+	ex: number,
+	ey: number,
+	icol: Color,
+	ocol: Color
+): VGPaint;
+export function NVGpaBoxGradient(
+	this: void,
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	r: number,
+	f: number,
+	icol: Color,
+	ocol: Color
+): VGPaint;
+export function NVGpaRadialGradient(
+	this: void,
+	cx: number,
+	cy: number,
+	inr: number,
+	outr: number,
+	icol: Color,
+	ocol: Color
+): VGPaint;
+export function NVGpaImagePattern(
+	this: void,
+	ox: number,
+	oy: number,
+	ex: number,
+	ey: number,
+	angle: number,
+	image: number,
+	alpha: number
+): VGPaint;
+export function Scissor(this: void, x: number, y: number, w: number, h: number): void;
+export function IntersectScissor(this: void, x: number, y: number, w: number, h: number): void;
+export function ResetScissor(this: void): void;
+export function BeginPath(this: void): void;
+export function MoveTo(this: void, x: number, y: number): void;
+export function LineTo(this: void, x: number, y: number): void;
+export function BezierTo(this: void, c1x: number, c1y: number, c2x: number, c2y: number, x: number, y: number): void;
+export function QuadTo(this: void, cx: number, cy: number, x: number, y: number): void;
+export function ArcTo(this: void, x1: number, y1: number, x2: number, y2: number, radius: number): void;
+export function ClosePath(this: void): void;
+export function PathWinding(this: void, dir: WindingMode): void;
+export function Arc(this: void, cx: number, cy: number, r: number, a0: number, a1: number, dir: ArcDir): void;
+function Rectangle(this: void, x: number, y: number, w: number, h: number): void;
+export {Rectangle as Rect};
+export function RoundedRect(this: void, x: number, y: number, w: number, h: number, r: number): void;
+export function RoundedRectVarying(
+	this: void,
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	radTopLeft: number,
+	radTopRight: number,
+	radBottomRight: number,
+	radBottomLeft: number
+): void;
+export function Ellipse(this: void, cx: number, cy: number, rx: number, ry: number): void;
+export function Circle(this: void, cx: number, cy: number, r: number): void;
+export function Fill(this: void): void;
+export function Stroke(this: void): void;
+export function FindFont(this: void, name: string): number;
+export function AddFallbackFontId(this: void, baseFont: number, fallbackFont: number): number;
+export function AddFallbackFont(this: void, baseFont: string, fallbackFont: string): number;
+export function FontSize(this: void, size: number): void;
+export function FontBlur(this: void, blur: number): void;
+export function TextLetterSpacing(this: void, spacing: number): void;
+export function TextLineHeight(this: void, lineHeight: number): void;
+export function TextAlign(this: void, align: TextAlignMode): void;
+export function FontFaceId(this: void, font: number): void;
+export function FontFace(this: void, font: string): void;
+export function DoraSSR(this: void): void;
+export function GetDoraSSR(this: void, scale?: number): Texture2D;
 
 } // module "nvg"

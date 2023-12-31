@@ -89,7 +89,7 @@ class ActionDuration {
 public:
 	virtual ~ActionDuration() { }
 	virtual float getDuration() const = 0;
-	virtual bool update(Node* target, float eclapsed) = 0;
+	virtual bool update(Node* target, float elapsed) = 0;
 	DORA_TYPE_BASE(ActionDuration);
 };
 
@@ -98,7 +98,7 @@ class Action;
 class PropertyAction : public ActionDuration {
 public:
 	virtual float getDuration() const override;
-	virtual bool update(Node* target, float eclapsed) override;
+	virtual bool update(Node* target, float elapsed) override;
 	static Own<ActionDuration> alloc(float duration, float start, float stop,
 		Property::Enum prop, Ease::Enum easing = Ease::Linear);
 	static Action* create(float duration, float start, float stop,
@@ -119,7 +119,7 @@ private:
 class Tint : public ActionDuration {
 public:
 	virtual float getDuration() const override;
-	virtual bool update(Node* target, float eclapsed) override;
+	virtual bool update(Node* target, float elapsed) override;
 	static Own<ActionDuration> alloc(float duration, Color3 start, Color3 stop, Ease::Enum easing = Ease::Linear);
 	static Action* create(float duration, Color3 start, Color3 stop,
 		Ease::Enum easing = Ease::Linear);
@@ -138,7 +138,7 @@ private:
 class Roll : public ActionDuration {
 public:
 	virtual float getDuration() const override;
-	virtual bool update(Node* target, float eclapsed) override;
+	virtual bool update(Node* target, float elapsed) override;
 	static Own<ActionDuration> alloc(float duration, float start, float stop, Ease::Enum easing = Ease::Linear);
 	static Action* create(float duration, float start, float stop, Ease::Enum easing = Ease::Linear);
 
@@ -156,7 +156,7 @@ private:
 class Spawn : public ActionDuration {
 public:
 	virtual float getDuration() const override;
-	virtual bool update(Node* target, float eclapsed) override;
+	virtual bool update(Node* target, float elapsed) override;
 	static Own<ActionDuration> alloc(Own<ActionDuration>&& first, Own<ActionDuration>&& second);
 	static Own<ActionDuration> alloc(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions);
 	static Own<ActionDuration> alloc(const std::vector<Own<ActionDuration>>& actions);
@@ -177,7 +177,7 @@ private:
 class Sequence : public ActionDuration {
 public:
 	virtual float getDuration() const override;
-	virtual bool update(Node* target, float eclapsed) override;
+	virtual bool update(Node* target, float elapsed) override;
 	static Own<ActionDuration> alloc(Own<ActionDuration>&& first, Own<ActionDuration>&& second);
 	static Own<ActionDuration> alloc(std::initializer_list<RRefCapture<Own<ActionDuration>>> actions);
 	static Own<ActionDuration> alloc(std::vector<Own<ActionDuration>>&& actions);
@@ -198,7 +198,7 @@ private:
 class Delay : public ActionDuration {
 public:
 	virtual float getDuration() const override;
-	virtual bool update(Node* target, float eclapsed) override;
+	virtual bool update(Node* target, float elapsed) override;
 	static Own<ActionDuration> alloc(float duration);
 	static Action* create(float duration);
 
@@ -212,7 +212,7 @@ private:
 class Show : public ActionDuration {
 public:
 	virtual float getDuration() const override;
-	virtual bool update(Node* target, float eclapsed) override;
+	virtual bool update(Node* target, float elapsed) override;
 	static Own<ActionDuration> alloc();
 	static Action* create();
 
@@ -226,7 +226,7 @@ private:
 class Hide : public ActionDuration {
 public:
 	virtual float getDuration() const override;
-	virtual bool update(Node* target, float eclapsed) override;
+	virtual bool update(Node* target, float elapsed) override;
 	static Own<ActionDuration> alloc();
 	static Action* create();
 
@@ -240,7 +240,7 @@ private:
 class Emit : public ActionDuration {
 public:
 	virtual float getDuration() const override;
-	virtual bool update(Node* target, float eclapsed) override;
+	virtual bool update(Node* target, float elapsed) override;
 	static Own<ActionDuration> alloc(String event, String arg = Slice::Empty);
 	static Action* create(String event, String arg = Slice::Empty);
 	static bool available;
@@ -260,7 +260,7 @@ class FrameActionDef;
 class FrameAction : public ActionDuration {
 public:
 	virtual float getDuration() const override;
-	virtual bool update(Node* target, float eclapsed) override;
+	virtual bool update(Node* target, float elapsed) override;
 	static Own<ActionDuration> alloc(FrameActionDef* def);
 	static Action* create(FrameActionDef* def);
 
@@ -305,7 +305,7 @@ struct Scale {
 
 class Action : public Object {
 public:
-	PROPERTY_READONLY(float, Eclapsed);
+	PROPERTY_READONLY(float, Elapsed);
 	PROPERTY_READONLY(float, Duration);
 	PROPERTY_READONLY_BOOL(Running);
 	PROPERTY_READONLY_BOOL(Paused);
@@ -314,7 +314,7 @@ public:
 	PROPERTY_READONLY_CALL(Own<ActionDuration>&, Action);
 	void pause();
 	void resume();
-	void updateTo(float eclapsed, bool reversed = false);
+	void updateTo(float elapsed, bool reversed = false);
 	CREATE_FUNC(Action);
 
 protected:
@@ -328,7 +328,7 @@ private:
 	bool _reversed;
 	int _order;
 	float _speed;
-	float _eclapsed;
+	float _elapsed;
 	Node* _target;
 	Own<ActionDuration> _action;
 	static const int InvalidOrder;

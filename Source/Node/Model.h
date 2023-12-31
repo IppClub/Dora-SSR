@@ -43,7 +43,7 @@ public:
 	PROPERTY(float, Speed);
 	PROPERTY(Action*, Action);
 	PROPERTY_READONLY(float, Duration);
-	PROPERTY_READONLY(float, Eclapsed);
+	PROPERTY_READONLY(float, Elapsed);
 	PROPERTY_BOOL(Reversed);
 	PROPERTY_READONLY(Node*, Node);
 	Animation(Node* node, Action* action);
@@ -51,7 +51,7 @@ public:
 	void pause();
 	void resume();
 	void stop();
-	void updateTo(float eclapsed, bool reversed = false);
+	void updateTo(float elapsed, bool reversed = false);
 
 private:
 	Node* _node;
@@ -113,7 +113,7 @@ public:
 	void resume();
 	void resume(String name, bool loop = false);
 	void reset();
-	void updateTo(float eclapsed, bool reversed = false);
+	void updateTo(float elapsed, bool reversed = false);
 	int getCurrentAnimationIndex() const;
 	ModelDef* getModelDef() const;
 	Node* getNodeByName(String name) const;

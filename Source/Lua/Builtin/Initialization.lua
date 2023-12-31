@@ -64,13 +64,13 @@ do
 	for i = 1, #loaders do
 		local loader = loaders[i]
 		loaders[i] = function(name)
-			local lastTime = App.eclapsedTime
+			local lastTime = App.elapsedTime
 			local loaded
 			Profiler.level = Profiler.level + 1
 			local _ <close> = setmetatable({}, {
 				__close = function()
 					if type(loaded) ~= "string" then
-						local deltaTime = App.eclapsedTime - lastTime
+						local deltaTime = App.elapsedTime - lastTime
 						dora.emit(EventName, "Loader", name .. " [Compile]", Profiler.level, deltaTime)
 					end
 					Profiler.level = Profiler.level - 1
@@ -82,9 +82,9 @@ do
 	end
 
 	Profiler[2] = function(_, func)
-		local lastTime = App.eclapsedTime
+		local lastTime = App.elapsedTime
 		xpcall(func, traceback)
-		local deltaTime = App.eclapsedTime - lastTime
+		local deltaTime = App.elapsedTime - lastTime
 		return deltaTime
 	end
 
@@ -94,11 +94,11 @@ do
 		if result then
 			return result
 		end
-		local lastTime = App.eclapsedTime
+		local lastTime = App.elapsedTime
 		Profiler.level = Profiler.level + 1
 		local _ <close> = setmetatable({}, {
 			__close = function()
-				local deltaTime = App.eclapsedTime - lastTime
+				local deltaTime = App.elapsedTime - lastTime
 				dora.emit(EventName, "Loader", name, Profiler.level, deltaTime)
 				Profiler.level = Profiler.level - 1
 			end

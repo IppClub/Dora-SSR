@@ -10,7 +10,7 @@ extern "C" {
 	fn model_resume(slf: i64);
 	fn model_resume_animation(slf: i64, name: i64, looping: i32);
 	fn model_reset(slf: i64);
-	fn model_update_to(slf: i64, eclapsed: f32, reversed: i32);
+	fn model_update_to(slf: i64, elapsed: f32, reversed: i32);
 	fn model_get_node_by_name(slf: i64, name: i64) -> i64;
 	fn model_each_node(slf: i64, func: i32, stack: i64) -> i32;
 	fn model_new(filename: i64) -> i64;
@@ -64,8 +64,8 @@ impl Model {
 	pub fn reset(&mut self) {
 		unsafe { model_reset(self.raw()); }
 	}
-	pub fn update_to(&mut self, eclapsed: f32, reversed: bool) {
-		unsafe { model_update_to(self.raw(), eclapsed, if reversed { 1 } else { 0 }); }
+	pub fn update_to(&mut self, elapsed: f32, reversed: bool) {
+		unsafe { model_update_to(self.raw(), elapsed, if reversed { 1 } else { 0 }); }
 	}
 	pub fn get_node_by_name(&mut self, name: &str) -> crate::dora::Node {
 		unsafe { return crate::dora::Node::from(model_get_node_by_name(self.raw(), crate::dora::from_string(name))).unwrap(); }

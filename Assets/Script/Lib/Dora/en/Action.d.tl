@@ -34,7 +34,7 @@ local record Action
 	-- @param reversed (boolean) Whether or not to update the Action in reverse (default is false).
 	updateTo: function(
 		self: Action,
-		eclapsed: number,
+		elapsed: number,
 		reversed?: boolean --[[false]]
 	)
 end

@@ -42,7 +42,7 @@ local record App
 	const deltaTime: number
 
 	-- The elapsed time since current frame was started, in seconds.
-	const eclapsedTime: number
+	const elapsedTime: number
 
 	-- The total time the game engine has been running until last frame ended, in seconds.
 	-- Should be a contant number when invoked in a same frame for multiple times.

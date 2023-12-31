@@ -124,12 +124,12 @@ UnitAction:add("move", {
 		playable.speed = 1
 		playable:play("fmove", true)
 		return function(self: UnitType, action: UnitAction.Type): boolean
-			local eclapsedTime = action.eclapsedTime
+			local elapsedTime = action.elapsedTime
 			local recovery = action.recovery * 2
 			local move = self.unitDef.move as number
 			local moveSpeed: number = 1.0
-			if eclapsedTime < recovery then
-				moveSpeed = math.min(eclapsedTime / recovery, 1.0)
+			if elapsedTime < recovery then
+				moveSpeed = math.min(elapsedTime / recovery, 1.0)
 			end
 			self.velocityX = moveSpeed * (self.faceRight and move or -move)
 			return not self.onSurface

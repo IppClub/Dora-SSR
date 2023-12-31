@@ -48,7 +48,7 @@ public:
 	PROPERTY_READONLY_CREF(std::string, Name);
 	PROPERTY_READONLY(int, Priority);
 	PROPERTY_READONLY(Unit*, Owner);
-	PROPERTY_READONLY(float, EclapsedTime);
+	PROPERTY_READONLY(float, ElapsedTime);
 	PROPERTY_READONLY_BOOL(Queued);
 	PROPERTY_READONLY_BOOL(Doing);
 	virtual ~UnitAction();
@@ -66,7 +66,7 @@ protected:
 	UnitAction(String name, int priority, bool queued, Unit* owner);
 	Unit* _owner;
 	float _sensity;
-	float _eclapsedTime;
+	float _elapsedTime;
 
 private:
 	bool _doing;
