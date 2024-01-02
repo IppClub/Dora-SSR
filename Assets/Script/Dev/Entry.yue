@@ -300,16 +300,20 @@ doCompile = (minify)->
 				result ..= "\n" unless result == ""
 				"-- [yue]: #{file}\n#{result}" .. codes
 			else
-				yueCodes = Content\load file
-				for [name, line, col] in *result
-					countLine = 1
-					code = ""
-					for lineCode in yueCodes\gmatch "([^\r\n]*)\r?\n?"
-						if countLine == line
-							code = lineCode
-							break
-						countLine += 1
-					errors[] = "invalid global variable \"#{name}\"\nin \"#{file}\", at line #{line}, col #{col}.\n#{code\gsub("\t", " ") .. '\n' .. string.rep(" ", col - 1) .. "^"}"
+				if yueCodes := Content\load input
+					globalErrors = []
+					for [name, line, col] in *result
+						countLine = 1
+						code = ""
+						for lineCode in yueCodes\gmatch "([^\r\n]*)\r?\n?"
+							if countLine == line
+								code = lineCode
+								break
+							countLine += 1
+						globalErrors[] = "invalid global variable \"#{name}\"\nin \"#{file}\", at line #{line}, col #{col}.\n#{code\gsub("\t", " ") .. '\n' .. string.rep(" ", col - 1) .. "^"}"
+					errors[] = table.concat globalErrors, "\n"
+				else
+					errors[] = "failed to load file #{input}"
 		print "Yue compiled: #{file}" if success
 		fileCount += 1
 
@@ -361,7 +365,8 @@ doCompile = (minify)->
 			package.loaded["luaminify.ParseLua"] = nil
 			package.loaded["luaminify.Scope"] = nil
 			package.loaded["luaminify.Util"] = nil
-		print err for err in *errors
+		errorMessage = table.concat errors, "\n"
+		print "\n" .. errorMessage if errorMessage ~= ""
 		builtFiles = totalFiles + (minify and #luaFiles or 0) - #errors
 		print "\n#{builtFiles} #{builtFiles == 1 and 'file' or 'files'} built! Cost #{string.format '%.2f', App.runningTime - startTime}s"
 		print "#{#errors} #{#errors == 1 and 'file fails' or 'files fail'} to build."
