@@ -1,5 +1,6 @@
 local Size = require("Size").Type
 local Node = require("Node").Type
+local Menu = require("Menu").Type
 local record Param
 	x: number
 	y: number
@@ -7,6 +8,8 @@ local record Param
 	height: number
 	viewWidth: number
 	viewHeight: number
+	paddingX: number
+	paddingY: number
 	visible: boolean
 	scrollBar: boolean
 	scrollBarColor3: boolean
@@ -19,6 +22,8 @@ local record ScrollArea
 		"Vertical"
 		"Horizontal"
 	end
+	const area: Node
+	const view: Menu
 	scrollToPosY: function(self: ScrollArea, posY: number, time?: number --[[0.3]])
 	adjustSizeWithAlign: function(self: ScrollArea, alignMode?: AlignMode, padding?: number--[[10]], size?: Size, viewSize?: Size)
 end

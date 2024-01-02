@@ -17,6 +17,9 @@ local record YarnRunner
 		"Command"
 	end
 
+	-- Field for accessing Yarn script runtime variables.
+	const state: {string: string | number | boolean}
+
 	-- The metamethod to create a Yarn script runner.
 	-- @param filename (string) The name of the Yarn file to load and execute.
 	-- @param startTitle (string) The starting node/title in the Yarn script.
@@ -28,7 +31,7 @@ local record YarnRunner
 		self: YarnRunner,
 		filename: string,
 		startTitle: string,
-		state?: table, --[[{}]]
+		state?: {string: string | number | boolean}, --[[{}]]
 		command?: {string: function}, --[[{}]]
 		testing?: boolean --[[false]]
 	): YarnRunner
@@ -46,7 +49,7 @@ local record YarnRunner
 		stop: integer
 
 		-- Attributes associated with the markup.
-		attrs: {string: boolean | number | string}
+		attrs: {string: boolean | number | string} | nil
 	end
 
 	-- Record to define textual results with optional markup.

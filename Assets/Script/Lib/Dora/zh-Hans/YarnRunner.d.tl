@@ -17,6 +17,9 @@ local record YarnRunner
 		"Command"
 	end
 
+	-- 用于获取 Yarn 脚本的运行状态变量的属性
+	const state: {string: string | number | boolean}
+
 	-- 用于创建 Yarn 脚本运行器的元方法。
 	-- @param filename (string) 要加载和执行的 Yarn 文件的名称。
 	-- @param startTitle (string) Yarn 脚本中的起始节点/标题。
@@ -28,7 +31,7 @@ local record YarnRunner
 		self: YarnRunner,
 		filename: string,
 		startTitle: string,
-		state?: table, --[[{}]]
+		state?: {string: string | number | boolean}, --[[{}]]
 		command?: {string: function}, --[[{}]]
 		testing?: boolean --[[false]]
 	): YarnRunner
@@ -46,7 +49,7 @@ local record YarnRunner
 		stop: integer
 
 		-- 与标记相关的属性。
-		attrs: {string: boolean | number | string}
+		attrs: {string: boolean | number | string} | nil
 	end
 
 	-- 定义带有可选标记的文本结果的类。
