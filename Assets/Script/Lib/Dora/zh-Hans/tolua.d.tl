@@ -1,4 +1,3 @@
-local ContainerItem = require("ContainerItemType")
 local Object = require("Object").Type
 
 -- 提供了用于 C++ 和 Lua 之间进行对象转换和处理的工具类。

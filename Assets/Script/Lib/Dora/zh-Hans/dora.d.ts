@@ -2548,7 +2548,7 @@ class Node extends Object {
 	 * @param tag [optional] The tag of the current node. Default is an empty string.
 	 * @returns The current node.
 	 */
-	addTo(parent: Node, order?: number, tag?: string): Node;
+	addTo<T>(this: T, parent: Node, order?: number, tag?: string): T;
 
 	/**
 	 * Removes a child node from the current node.
@@ -3177,7 +3177,7 @@ type DBRow = DBColumn[];
  * Type definition for an SQL query.
  * Can be SQL string or a pair of SQL string and an array of parameters.
  */
-type SQL = string | [string, DBRow[]];
+export type SQL = string | [string, DBRow[]];
 
 /**
  * An interface that represents a database.

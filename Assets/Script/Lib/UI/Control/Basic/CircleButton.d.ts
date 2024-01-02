@@ -4,8 +4,8 @@ declare module 'CircleButton' {
 
 interface Param {
 	text: string;
-	x: number;
-	y: number;
+	x?: number;
+	y?: number;
 	radius: number;
 	fontName?: string;
 	fontSize?: number;

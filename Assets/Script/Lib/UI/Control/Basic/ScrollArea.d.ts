@@ -1,21 +1,23 @@
-import { SizeType as Size, NodeType as Node } from "dora";
+import { SizeType as Size, NodeType as Node, NodeType, MenuType } from "dora";
 
 declare module 'ScrollArea' {
 
 interface Param {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-	viewWidth: number;
-	viewHeight: number;
-	visible: boolean;
-	scrollBar: boolean;
-	scrollBarColor3: boolean;
-	clipping: boolean;
+	x?: number; // default 0
+	y?: number; // default 0
+	width?: number; // default 0
+	height?: number; // default 0
+	viewWidth?: number; // default 0
+	viewHeight?: number; // default 0
+	paddingX?: number; // default 200
+	paddingY?: number; // default 200
+	visible?: boolean; // default true
+	scrollBar?: boolean; // default true
+	scrollBarColor3?: boolean; // default App.themeColor
+	clipping?: boolean; // default true
 }
 
-const enum AlignMode {
+export const enum AlignMode {
 	Auto = "Auto",
 	Vertical = "Vertical",
 	Horizontal = "Horizontal",
@@ -23,6 +25,8 @@ const enum AlignMode {
 
 class ScrollArea extends Node {
 	private constructor();
+	readonly area: NodeType;
+	readonly view: MenuType;
 	scrollToPosY(posY: number, time?: number): void; // Default time is 0.3
 	adjustSizeWithAlign(alignMode?: AlignMode, padding?: number, size?: Size, viewSize?: Size): void; // Default padding is 10
 }

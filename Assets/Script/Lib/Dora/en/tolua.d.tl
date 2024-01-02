@@ -1,4 +1,3 @@
-local ContainerItem = require("ContainerItemType")
 local Object = require("Object").Type
 
 -- The `tolua` record provides utilities for interfacing between C++ and Lua.

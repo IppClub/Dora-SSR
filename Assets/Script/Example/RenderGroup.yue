@@ -7,8 +7,8 @@ Item = Class Node,
 		@anchor = Vec2.zero
 
 		@addChild with Sprite "Image/logo.png"
-			.scaleX = 0.3
-			.scaleY = 0.3
+			.scaleX = 0.1
+			.scaleY = 0.1
 			.renderOrder = 1
 
 		@addChild with DrawNode!

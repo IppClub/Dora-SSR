@@ -45,6 +45,7 @@ with AlignNode isRoot: true, inUI: false
 				.text = ""
 	\addChild with control = AlignNode hAlign: "Center", vAlign: "Bottom"
 		.alignOffset = Vec2 0, 200
+	\alignLayout!
 
 commands = <index>: (name)=> (...)->
 	msg = "[command]: " .. name .. " " .. table.concat [tostring select i, ... for i = 1, select '#', ...], ", "

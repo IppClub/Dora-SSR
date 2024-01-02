@@ -17,8 +17,8 @@ local function Item(): Node.Type
 	node.anchor = Vec2.zero
 
 	local sprite = Sprite("Image/logo.png")
-	sprite.scaleX = 0.3
-	sprite.scaleY = 0.3
+	sprite.scaleX = 0.1
+	sprite.scaleY = 0.1
 	sprite.renderOrder = 1
 	sprite:addTo(node)
 
