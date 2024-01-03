@@ -262,6 +262,16 @@ int Application::run() {
 		return 1;
 	}
 
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
+	int displayIndex = SDL_GetWindowDisplayIndex(_sdlWindow);
+	SDL_Rect rect;
+	if (SDL_GetDisplayBounds(displayIndex, &rect) == 0 && (_winWidth > rect.w || _winHeight > rect.h)) {
+		_winWidth = rect.w;
+		_winHeight = rect.h;
+		SDL_SetWindowSize(_sdlWindow, _winWidth, _winHeight);
+	}
+#endif // BX_PLATFORM
+
 	Application::setupSdlWindow();
 
 	// call this function here to disable default render threads creation of bgfx
