@@ -39,13 +39,13 @@ class Size extends ContainerItem {
 
 	/**
 	 * 检查两个尺寸是否相等。
-	 * @param other 要比较的另一个尺寸。
+	 * @param other 要比较的另尺寸。
 	 * @returns 两个尺寸是否相等。
 	 */
 	equals(other: Size): boolean;
 
 	/**
-	 * 将尺寸乘以一个向量。
+	 * 将尺寸乘以向量。
 	 * @param vec 要乘以的向量。
 	 * @returns 将尺寸乘以向量的结果。
 	 * @example
@@ -64,7 +64,7 @@ export type {Size as SizeType};
 interface SizeClass {
 
 	/**
-	 * 创建一个新的Size对象，给定宽度和高度。
+	 * 创建新的Size对象，给定宽度和高度。
 	 *
 	 * @param width 新尺寸的宽度（默认为0）。
 	 * @param height 新尺寸的高度（默认为0）。
@@ -77,7 +77,7 @@ interface SizeClass {
 	(this: void, width?: number, height?: number): Size;
 
 	/**
-	 * 从现有的Size对象创建一个新的Size对象。
+	 * 从现有的Size对象创建新的Size对象。
 	 *
 	 * @param other 用于创建新对象的现有Size对象。
 	 * @returns 新的Size对象。
@@ -89,7 +89,7 @@ interface SizeClass {
 	(this: void, other: Size): Size;
 
 	/**
-	 * 从Vec2对象创建一个新的Size对象。
+	 * 从Vec2对象创建新的Size对象。
 	 *
 	 * @param vec 用于创建新尺寸的向量，由Vec2对象表示。
 	 * @returns 新的Size对象。
@@ -133,14 +133,14 @@ class Vec2 extends ContainerItem {
 
 	/**
 	 * 计算两个向量之间的距离。
-	 * @param vec 要计算距离的另一个向量。
+	 * @param vec 要计算距离的另向量。
 	 * @returns 两个向量之间的距离。
 	 */
 	distance(vec: Vec2): number;
 
 	/**
 	 * 计算两个向量之间的平方距离。
-	 * @param vec 要计算平方距离的另一个向量。
+	 * @param vec 要计算平方距离的另向量。
 	 * @returns 两个向量之间的平方距离。
 	 */
 	distanceSquared(vec: Vec2): number;
@@ -167,13 +167,13 @@ class Vec2 extends ContainerItem {
 
 	/**
 	 * 将两个向量相加。
-	 * @param other 要添加的另一个向量。
+	 * @param other 要添加的另向量。
 	 * @returns 两个向量的和。
 	 */
 	add(other: Vec2): Vec2;
 
 	/**
-	 * 从一个向量中减去另一个向量。
+	 * 从向量中减去另向量。
 	 * @param other 要减去的向量。
 	 * @returns 两个向量的差。
 	 */
@@ -181,27 +181,27 @@ class Vec2 extends ContainerItem {
 
 	/**
 	 * 逐元素地将两个向量相乘。
-	 * @param other 要乘以的另一个向量。
+	 * @param other 要乘以的另向量。
 	 * @returns 两个向量逐元素相乘的结果。
 	 */
 	mul(other: Vec2): Vec2;
 
 	/**
-	 * 将向量乘以一个标量。
+	 * 将向量乘以标量。
 	 * @param other 要乘以的标量。
 	 * @returns 将向量乘以标量的结果。
 	 */
 	mul(other: number): Vec2;
 
 	/**
-	 * 将向量乘以一个Size对象。
+	 * 将向量乘以Size对象。
 	 * @param other 要乘以的Size对象。
 	 * @returns 将向量乘以Size对象的结果。
 	 */
 	mul(other: Size): Vec2;
 
 	/**
-	 * 将向量除以一个标量。
+	 * 将向量除以标量。
 	 * @param other 要除以的标量。
 	 * @returns 将向量除以标量的结果。
 	 */
@@ -209,7 +209,7 @@ class Vec2 extends ContainerItem {
 
 	/**
 	 * 比较两个向量是否相等。
-	 * @param other 要比较的另一个向量。
+	 * @param other 要比较的另向量。
 	 * @returns 两个向量是否相等。
 	 */
 	equals(other: Vec2): boolean;
@@ -223,7 +223,7 @@ export type {Vec2 as Vec2Type};
 interface Vec2Class {
 
 	/**
-	 * 从现有的Vec2对象创建一个新的Vec2对象。
+	 * 从现有的Vec2对象创建新的Vec2对象。
 	 *
 	 * @param other 用于创建新对象的现有Vec2对象。
 	 * @returns 新的Vec2对象。
@@ -235,7 +235,7 @@ interface Vec2Class {
 	(this: void, other: Vec2): Vec2;
 
 	/**
-	 * 使用给定的x和y分量创建一个新的Vec2对象。
+	 * 使用给定的x和y分量创建新的Vec2对象。
 	 *
 	 * @param x 新向量的x分量。
 	 * @param y 新向量的y分量。
@@ -248,7 +248,7 @@ interface Vec2Class {
 	(this: void, x: number, y: number): Vec2;
 
 	/**
-	 * 从Size对象创建一个新的Vec2对象。
+	 * 从Size对象创建新的Vec2对象。
 	 *
 	 * @param size 用于创建新向量的Size对象。
 	 * @returns 新的Vec2对象。
@@ -269,7 +269,7 @@ const vec2: Vec2Class;
 export {vec2 as Vec2};
 
 /**
- * 一个矩形对象，具有左下角原点位置和大小。
+ * 矩形对象，具有左下角原点位置和大小。
  * 继承自 `ContainerItem`。
  */
 class Rect extends ContainerItem {
@@ -328,22 +328,22 @@ class Rect extends ContainerItem {
 	set(x: number, y: number, width: number, height: number): void;
 
 	/**
-	 * 检查一个点是否在矩形内。
-	 * @param point 要检查的点，由一个Vec2对象表示。
+	 * 检查点是否在矩形内。
+	 * @param point 要检查的点，由Vec2对象表示。
 	 * @returns 点是否在矩形内。
 	 */
 	containsPoint(point: Vec2): boolean;
 
 	/**
-	 * 检查矩形是否与另一个矩形相交。
-	 * @param rect 要检查相交的另一个矩形，由一个Rect对象表示。
+	 * 检查矩形是否与另矩形相交。
+	 * @param rect 要检查相交的另矩形，由Rect对象表示。
 	 * @returns 矩形是否相交。
 	 */
 	intersectsRect(rect: Rect): boolean;
 
 	/**
 	 * 检查两个矩形是否相等。
-	 * @param other 要比较的另一个矩形，由一个Rect对象表示。
+	 * @param other 要比较的另矩形，由Rect对象表示。
 	 * @returns 两个矩形是否相等。
 	 */
 	equals(other: Rect): boolean;
@@ -362,8 +362,8 @@ interface RectClass {
 	readonly zero: Rect;
 
 	/**
-	 * 使用另一个矩形对象创建新的矩形对象。
-	 * @param other 用于创建新矩形对象的另一个矩形对象。
+	 * 使用另矩形对象创建新的矩形对象。
+	 * @param other 用于创建新矩形对象的另矩形对象。
 	 * @returns 新的矩形对象。
 	 */
 	(this: void, other: Rect): Rect;
@@ -380,8 +380,8 @@ interface RectClass {
 
 	/**
 	 * 使用Vec2对象作为原点和Size对象作为大小创建新的矩形对象。
-	 * @param origin 矩形的原点，由一个Vec2对象表示。
-	 * @param size 矩形的大小，由一个Size对象表示。
+	 * @param origin 矩形的原点，由Vec2对象表示。
+	 * @param size 矩形的大小，由Size对象表示。
 	 * @returns 新的矩形对象。
 	 */
 	(this: void, origin: Vec2, size: Size): Rect;
@@ -396,7 +396,7 @@ interface RectClass {
 const rectClass: RectClass;
 export {rectClass as Rect};
 
-/** 一个具有红色、绿色和蓝色通道的颜色。 */
+/** 具有红色、绿色和蓝色通道的颜色。 */
 class Color3 {
 
 	private constructor();
@@ -424,24 +424,24 @@ interface Color3Class {
 
 	/**
 	 * 创建所有通道都设置为0的颜色。
-	 * @returns 一个新的`Color3`对象。
+	 * @returns 新的`Color3`对象。
 	 */
 	(this: void): Color3;
 
 	/**
-	 * 从RGB整数值创建一个新的`Color3`对象。
+	 * 从RGB整数值创建新的`Color3`对象。
 	 * @param rgb 用于创建颜色的RGB整数值。
 	 * 例如 0xffffff（白色），0xff0000（红色）。
-	 * @returns 一个新的`Color3`对象。
+	 * @returns 新的`Color3`对象。
 	 */
 	(this: void, rgb: number): Color3;
 
 	/**
-	 * 从RGB颜色通道值创建一个新的`Color3`对象。
+	 * 从RGB颜色通道值创建新的`Color3`对象。
 	 * @param r 红色通道值（0-255）。
 	 * @param g 绿色通道值（0-255）。
 	 * @param b 蓝色通道值（0-255）。
-	 * @returns 一个新的`Color3`对象。
+	 * @returns 新的`Color3`对象。
 	 */
 	(this: void, r: number, g: number, b: number): Color3;
 }
@@ -496,33 +496,33 @@ interface ColorClass {
 
 	/**
 	 * 创建所有通道都设置为0的颜色。
-	 * @returns 一个新的Color对象。
+	 * @returns 新的Color对象。
 	 */
 	(this: void): Color;
 
 	/**
-	 * 使用Color3对象和alpha值创建一个新的Color对象。
+	 * 使用Color3对象和alpha值创建新的Color对象。
 	 * @param color 作为Color3对象的颜色。
 	 * @param a [可选] 颜色的alpha值，范围从0到255。
-	 * @returns 一个新的Color对象。
+	 * @returns 新的Color对象。
 	 */
 	(this: void, color: Color3, a?: number): Color;
 
 	/**
-	 * 从ARGB整数值创建一个新的`Color`对象。
+	 * 从ARGB整数值创建新的`Color`对象。
 	 * @param argb 用于创建颜色的ARGB整数值。
 	 * 例如 0xffffffff（不透明的白色），0x88ff0000（半透明的红色）
-	 * @returns 一个新的`Color`对象。
+	 * @returns 新的`Color`对象。
 	 */
 	(this: void, argb: number): Color;
 
 	/**
-	 * 从RGBA颜色通道值创建一个新的`Color`对象。
+	 * 从RGBA颜色通道值创建新的`Color`对象。
 	 * @param r 红色通道值（0-255）。
 	 * @param g 绿色通道值（0-255）。
 	 * @param b 蓝色通道值（0-255）。
 	 * @param a alpha通道值（0-255）。
-	 * @returns 一个新的`Color`对象。
+	 * @returns 新的`Color`对象。
 	 */
 	(this: void, r: number, g: number, b: number, a: number): Color;
 }
@@ -574,7 +574,7 @@ interface App {
 
 	/**
 	 * 自从上一帧游戏更新以来间隔的时间（以秒为单位）。
-	 * 在同一个游戏帧中多次调用时得到的是一个常数。
+	 * 在同游戏帧中多次调用时得到的是常数。
 	*/
 	readonly deltaTime: number;
 
@@ -583,13 +583,13 @@ interface App {
 
 	/**
 	 * 游戏引擎直到上一帧结束为止，已经运行的总时间（以秒为单位）。
-	 * 在同一个游戏帧中多次调用时得到的是一个常数。
+	 * 在同游戏帧中多次调用时得到的是常数。
 	 */
 	readonly totalTime: number;
 
 	/**
 	 * 直到调用该API为止，游戏引擎已经运行的总时间（以秒为单位）。
-	 * 在同一个游戏帧中多次调用时得到一个递增的数字。
+	 * 在同游戏帧中多次调用时得到递增的数字。
 	 */
 	readonly runningTime: number;
 
@@ -628,7 +628,7 @@ interface App {
 
 	/**
 	 * 游戏引擎是否自动限制帧率。
-	 * 将`fpsLimited`设置为true，会使引擎通过执行一个忙等待的死循环以获取更加精准的机器时间，并计算切换到下一帧的时间点。
+	 * 将`fpsLimited`设置为true，会使引擎通过执行忙等待的死循环以获取更加精准的机器时间，并计算切换到下一帧的时间点。
 	 * 这是在PC机Windows系统上的通常做法，以提升CPU占用率来提升游戏的性能。但这也会导致额外的芯片热量产生和电力消耗。
 	 */
 	fpsLimited: boolean;
@@ -757,7 +757,7 @@ export type {Action};
 interface ActionClass {
 
 	/**
-	 * 根据给定的定义创建一个新的动作
+	 * 根据给定的定义创建新的动作
 	 * @param actionDef 动作的定义
 	 * @returns 新的动作对象
 	 */
@@ -772,127 +772,127 @@ type EaseFunc = BasicType<'EaseFunc', number>;
 /** 获取缓动函数对象的接口。 */
 interface EaseClass {
 
-	/** 一个应用线性变化率的缓动函数。 */
+	/** 应用线性变化率的缓动函数。 */
 	Linear: EaseFunc;
 
-	/** 一个开始慢，然后快速加速的缓动函数。 */
+	/** 开始慢，然后快速加速的缓动函数。 */
 	InQuad: EaseFunc;
 
-	/** 一个缓动函数，开始快，然后快速减速。 */
+	/** 缓动函数，开始快，然后快速减速。 */
 	OutQuad: EaseFunc;
 
-	/** 一个缓动函数，开始慢，然后加速，然后减速。 */
+	/** 缓动函数，开始慢，然后加速，然后减速。 */
 	InOutQuad: EaseFunc;
 
-	/** 一个缓动函数，开始快，然后减速，然后加速。 */
+	/** 缓动函数，开始快，然后减速，然后加速。 */
 	OutInQuad: EaseFunc;
 
-	/** 一个缓动函数，开始慢，然后逐渐加速。 */
+	/** 缓动函数，开始慢，然后逐渐加速。 */
 	InCubic: EaseFunc;
 
-	/** 一个缓动函数，开始快，然后逐渐减速。 */
+	/** 缓动函数，开始快，然后逐渐减速。 */
 	OutCubic: EaseFunc;
 
-	/** 一个缓动函数，开始慢，然后加速，然后减速。 */
+	/** 缓动函数，开始慢，然后加速，然后减速。 */
 	InOutCubic: EaseFunc;
 
-	/** 一个缓动函数，开始快，然后减速，然后加速。 */
+	/** 缓动函数，开始快，然后减速，然后加速。 */
 	OutInCubic: EaseFunc;
 
-	/** 一个缓动函数，开始慢，然后急剧加速。 */
+	/** 缓动函数，开始慢，然后急剧加速。 */
 	InQuart: EaseFunc;
 
-	/** 一个缓动函数，开始快，然后急剧减速。 */
+	/** 缓动函数，开始快，然后急剧减速。 */
 	OutQuart: EaseFunc;
 
-	/** 一个缓动函数，开始慢，然后急剧加速，然后急剧减速。 */
+	/** 缓动函数，开始慢，然后急剧加速，然后急剧减速。 */
 	InOutQuart: EaseFunc;
 
-	/** 一个缓动函数，开始快，然后急剧减速，然后急剧加速。 */
+	/** 缓动函数，开始快，然后急剧减速，然后急剧加速。 */
 	OutInQuart: EaseFunc;
 
-	/** 一个缓动函数，开始慢，然后极快地加速。 */
+	/** 缓动函数，开始慢，然后极快地加速。 */
 	InQuint: EaseFunc;
 
-	/** 一个缓动函数，开始快，然后极快地减速。 */
+	/** 缓动函数，开始快，然后极快地减速。 */
 	OutQuint: EaseFunc;
 
-	/** 一个缓动函数，开始慢，然后极快地加速，然后极快地减速。 */
+	/** 缓动函数，开始慢，然后极快地加速，然后极快地减速。 */
 	InOutQuint: EaseFunc;
 
-	/** 一个缓动函数，开始快，然后极快地减速，然后极快地加速。 */
+	/** 缓动函数，开始快，然后极快地减速，然后极快地加速。 */
 	OutInQuint: EaseFunc;
 
-	/** 一个缓动函数，开始慢，然后逐渐加速，然后再次减速。 */
+	/** 缓动函数，开始慢，然后逐渐加速，然后再次减速。 */
 	InSine: EaseFunc;
 
-	/** 一个缓动函数，开始快，然后逐渐减速，然后再次减速。 */
+	/** 缓动函数，开始快，然后逐渐减速，然后再次减速。 */
 	OutSine: EaseFunc;
 
-	/** 一个缓动函数，开始慢，然后逐渐加速，然后逐渐减速。 */
+	/** 缓动函数，开始慢，然后逐渐加速，然后逐渐减速。 */
 	InOutSine: EaseFunc;
 
-	/** 一个缓动函数，开始快，逐渐减速，然后逐渐加速。 */
+	/** 缓动函数，开始快，逐渐减速，然后逐渐加速。 */
 	OutInSine: EaseFunc;
 
-	/** 一个缓动函数，开始极慢，然后以指数方式加速。 */
+	/** 缓动函数，开始极慢，然后以指数方式加速。 */
 	InExpo: EaseFunc;
 
-	/** 一个缓动函数，开始极快，然后以指数方式减速。 */
+	/** 缓动函数，开始极快，然后以指数方式减速。 */
 	OutExpo: EaseFunc;
 
-	/** 一个缓动函数，开始极慢，以指数方式加速，然后以指数方式减速。 */
+	/** 缓动函数，开始极慢，以指数方式加速，然后以指数方式减速。 */
 	InOutExpo: EaseFunc;
 
-	/** 一个缓动函数，开始极快，以指数方式减速，然后以指数方式加速。 */
+	/** 缓动函数，开始极快，以指数方式减速，然后以指数方式加速。 */
 	OutInExpo: EaseFunc;
 
-	/** 一个缓动函数，开始慢，以圆形方式逐渐加速。 */
+	/** 缓动函数，开始慢，以圆形方式逐渐加速。 */
 	InCirc: EaseFunc;
 
-	/** 一个缓动函数，开始快，以圆形方式逐渐减速。 */
+	/** 缓动函数，开始快，以圆形方式逐渐减速。 */
 	OutCirc: EaseFunc;
 
-	/** 一个缓动函数，开始慢，以圆形方式逐渐加速，然后以圆形方式逐渐减速。 */
+	/** 缓动函数，开始慢，以圆形方式逐渐加速，然后以圆形方式逐渐减速。 */
 	InOutCirc: EaseFunc;
 
-	/** 一个缓动函数，开始快，以圆形方式逐渐减速，然后以圆形方式逐渐加速。 */
+	/** 缓动函数，开始快，以圆形方式逐渐减速，然后以圆形方式逐渐加速。 */
 	OutInCirc: EaseFunc;
 
-	/** 一个缓动函数，开始慢，以指数方式加速，超过目标然后返回。 */
+	/** 缓动函数，开始慢，以指数方式加速，超过目标然后返回。 */
 	InElastic: EaseFunc;
 
-	/** 一个缓动函数，开始快，以指数方式减速，超过目标然后返回。 */
+	/** 缓动函数，开始快，以指数方式减速，超过目标然后返回。 */
 	OutElastic: EaseFunc;
 
-	/** 一个缓动函数，开始慢，以指数方式加速，超过目标然后返回，然后以指数方式减速，再次超过目标然后返回。 */
+	/** 缓动函数，开始慢，以指数方式加速，超过目标然后返回，然后以指数方式减速，再次超过目标然后返回。 */
 	InOutElastic: EaseFunc;
 
-	/** 一个缓动函数，开始快速，指数级地减速，超过目标然后返回，然后指数级地加速，再次超过目标然后返回。 */
+	/** 缓动函数，开始快速，指数级地减速，超过目标然后返回，然后指数级地加速，再次超过目标然后返回。 */
 	OutInElastic: EaseFunc;
 
-	/** 一个缓动函数，开始慢，然后急剧向后加速，最后返回到目标。 */
+	/** 缓动函数，开始慢，然后急剧向后加速，最后返回到目标。 */
 	InBack: EaseFunc;
 
-	/** 一个缓动函数，开始快，然后急剧向后减速，最后返回到目标。 */
+	/** 缓动函数，开始快，然后急剧向后减速，最后返回到目标。 */
 	OutBack: EaseFunc;
 
-	/** 一个缓动函数，开始慢，急剧向后加速，然后急剧向前减速，最后返回到目标。 */
+	/** 缓动函数，开始慢，急剧向后加速，然后急剧向前减速，最后返回到目标。 */
 	InOutBack: EaseFunc;
 
-	/** 一个缓动函数，开始快，急剧向后减速，然后急剧向前加速，最后返回到目标。 */
+	/** 缓动函数，开始快，急剧向后减速，然后急剧向前加速，最后返回到目标。 */
 	OutInBack: EaseFunc;
 
-	/** 一个缓动函数，开始慢，然后在一个弹跳的动作中加速，最后在目标上稳定下来。 */
+	/** 缓动函数，开始慢，然后在弹跳的动作中加速，最后在目标上稳定下来。 */
 	InBounce: EaseFunc;
 
-	/** 一个缓动函数，开始快，然后在一个弹跳的动作中减速，最后在目标上稳定下来。 */
+	/** 缓动函数，开始快，然后在弹跳的动作中减速，最后在目标上稳定下来。 */
 	OutBounce: EaseFunc;
 
-	/** 一个缓动函数，开始慢，在一个弹跳的动作中加速，然后在一个弹跳的动作中减速，最后在目标上稳定下来。 */
+	/** 缓动函数，开始慢，在弹跳的动作中加速，然后在弹跳的动作中减速，最后在目标上稳定下来。 */
 	InOutBounce: EaseFunc;
 
-	/** 一个缓动函数，开始快，在一个弹跳的动作中减速，然后在一个弹跳的动作中加速，最后在目标上稳定下来。 */
+	/** 缓动函数，开始快，在弹跳的动作中减速，然后在弹跳的动作中加速，最后在目标上稳定下来。 */
 	OutInBounce: EaseFunc;
 
 	/**
@@ -907,7 +907,7 @@ interface EaseClass {
 export const Ease: EaseClass;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的x锚点从一个值到另一个值。
+ * 创建动作定义，该动作将持续改变节点的x锚点从值到另值。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 锚点的起始值。
  * @param to 锚点的结束值。
@@ -923,7 +923,7 @@ export function AnchorX(
 ): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的y锚点从一个值到另一个值。
+ * 创建动作定义，该动作将持续改变节点的y锚点从值到另值。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 锚点的起始值。
  * @param to 锚点的结束值。
@@ -939,7 +939,7 @@ export function AnchorY(
 ): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的角度从一个值到另一个值。
+ * 创建动作定义，该动作将持续改变节点的角度从值到另值。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 角度的起始值（以度为单位）。
  * @param to 角度的结束值（以度为单位）。
@@ -955,7 +955,7 @@ export function Angle(
 ): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的x轴旋转角度从一个值到另一个值。
+ * 创建动作定义，该动作将持续改变节点的x轴旋转角度从值到另值。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from x轴旋转角度的起始值（以度为单位）。
  * @param to x轴旋转角度的结束值（以度为单位）。
@@ -971,7 +971,7 @@ export function AngleX(
 ): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的y轴旋转角度从一个值到另一个值。
+ * 创建动作定义，该动作将持续改变节点的y轴旋转角度从值到另值。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from y轴旋转角度的起始值（以度为单位）。
  * @param to y轴旋转角度的结束值（以度为单位）。
@@ -987,14 +987,14 @@ export function AngleY(
 ): ActionDef;
 
 /**
- * 创建一个动作定义，该动作在动画时间线中产生延迟。
+ * 创建动作定义，该动作在动画时间线中产生延迟。
  * @param duration 延迟的持续时间（以秒为单位）。
  * @returns 代表动画时间线中延迟的动作定义对象。
  */
 export function Delay(this: void, duration: number): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将触发一个事件。
+ * 创建动作定义，该动作将触发事件。
  * @param name 要触发的事件的名称。
  * @param param 传递给事件的参数。 (默认: "")
  * @returns 创建的 `ActionDef`。
@@ -1013,7 +1013,7 @@ export function Delay(this: void, duration: number): ActionDef;
 export function Event(this: void, name: string, param?: string): ActionDef;
 
 /**
-* 创建一个动作定义，该动作将持续改变节点的宽度。
+* 创建动作定义，该动作将持续改变节点的宽度。
 * @param duration 动画的持续时间（以秒为单位）。
 * @param from 节点的起始宽度值。
 * @param to 节点的结束宽度值。
@@ -1029,7 +1029,7 @@ export function Width(
 ): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的高度。
+ * 创建动作定义，该动作将持续改变节点的高度。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 节点的起始高度值。
  * @param to 节点的结束高度值。
@@ -1039,19 +1039,19 @@ export function Width(
 export function Height(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将隐藏一个节点。
+ * 创建动作定义，该动作将隐藏节点。
  * @returns 可用于隐藏节点的动作定义对象。
  */
 export function Hide(this: void): ActionDef;
 
 /**
-* 创建一个动作定义，该动作将显示一个节点。
+* 创建动作定义，该动作将显示节点。
 * @returns 可用于显示节点的动作定义对象。
 */
 export function Show(this: void): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的位置从一个Vec2值到另一个值。
+ * 创建动作定义，该动作将持续改变节点的位置从Vec2值到另值。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 节点的起始位置。
  * @param to 节点的结束位置。
@@ -1061,7 +1061,7 @@ export function Show(this: void): ActionDef;
 export function Move(this: void, duration: number, from: Vec2, to: Vec2, easing?: EaseFunc): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的不透明度从一个值到另一个值。
+ * 创建动作定义，该动作将持续改变节点的不透明度从值到另值。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 节点的起始不透明度值（0-1.0）。
  * @param to 节点的结束不透明度值（0-1.0）。
@@ -1071,7 +1071,7 @@ export function Move(this: void, duration: number, from: Vec2, to: Vec2, easing?
 export function Opacity(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的旋转从一个值到另一个值。
+ * 创建动作定义，该动作将持续改变节点的旋转从值到另值。
  * 滚动动画将确保节点通过最小旋转角度旋转到目标角度。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 节点的起始滚动值（以度为单位）。
@@ -1082,7 +1082,7 @@ export function Opacity(this: void, duration: number, from: number, to: number, 
 export function Roll(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的x轴和y轴缩放从一个值到另一个值。
+ * 创建动作定义，该动作将持续改变节点的x轴和y轴缩放从值到另值。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from x轴和y轴缩放的起始值。
  * @param to x轴和y轴缩放的结束值。
@@ -1092,7 +1092,7 @@ export function Roll(this: void, duration: number, from: number, to: number, eas
 export function Scale(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的x轴缩放从一个值到另一个值。
+ * 创建动作定义，该动作将持续改变节点的x轴缩放从值到另值。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from x轴缩放的起始值。
  * @param to x轴缩放的结束值。
@@ -1102,7 +1102,7 @@ export function Scale(this: void, duration: number, from: number, to: number, ea
 export function ScaleX(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的y轴缩放从一个值到另一个值。
+ * 创建动作定义，该动作将持续改变节点的y轴缩放从值到另值。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from y轴缩放的起始值。
  * @param to y轴缩放的结束值。
@@ -1118,7 +1118,7 @@ export function ScaleY(
 ): ActionDef;
 
 /**
-* 创建一个动作定义，该动作将持续改变节点沿x轴的倾斜。
+* 创建动作定义，该动作将持续改变节点沿x轴的倾斜。
 * @param duration 动画的持续时间（以秒为单位）。
 * @param from 节点在x轴上的起始倾斜值（以度为单位）。
 * @param to 节点在x轴上的结束倾斜值（以度为单位）。
@@ -1134,7 +1134,7 @@ export function SkewX(
 ): ActionDef;
 
 /**
-* 创建一个动作定义，该动作将持续改变节点沿y轴的倾斜。
+* 创建动作定义，该动作将持续改变节点沿y轴的倾斜。
 * @param duration 动画的持续时间（以秒为单位）。
 * @param from 节点在y轴上的起始倾斜值（以度为单位）。
 * @param to 节点在y轴上的结束倾斜值（以度为单位）。
@@ -1150,7 +1150,7 @@ export function SkewY(
 ): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的x位置。
+ * 创建动作定义，该动作将持续改变节点的x位置。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 节点的起始x位置。
  * @param to 节点的结束x位置。
@@ -1166,7 +1166,7 @@ export function X(
 ): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的y位置。
+ * 创建动作定义，该动作将持续改变节点的y位置。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 节点的起始y位置。
  * @param to 节点的结束y位置。
@@ -1182,7 +1182,7 @@ export function Y(
 ): ActionDef;
 
 /**
- * 创建一个动作定义，该动作将持续改变节点的z位置。
+ * 创建动作定义，该动作将持续改变节点的z位置。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 节点的起始z位置。
  * @param to 节点的结束z位置。
@@ -1198,14 +1198,14 @@ export function Z(
 ): ActionDef;
 
 /**
-* 创建一个动作定义，该动作并行运行一组ActionDefs。
+* 创建动作定义，该动作并行运行一组ActionDefs。
 * @param actions 要并行运行的一组ActionDef对象。
 * @returns 可用于在节点上运行动作组的动作定义对象。
 */
 export function Spawn(this: void, ...actions: ActionDef[]): ActionDef;
 
 /**
- * 创建一个动作定义，该动作播放一系列其他ActionDefs。
+ * 创建动作定义，该动作播放一系列其他ActionDefs。
  * @param actions 要按顺序播放的一组ActionDef对象。
  * @returns 可用于在节点上运行动作序列的动作定义对象。
  */
@@ -1233,14 +1233,14 @@ class Array extends Object {
 	readonly empty: boolean;
 
 	/**
-	 * 将另一个数组中的所有元素添加到此数组的末尾。
-	 * @param other 另一个数组对象。
+	 * 将另数组中的所有元素添加到此数组的末尾。
+	 * @param other 另数组对象。
 	 */
 	addRange(other: Array): void;
 
 	/**
-	 * 从此数组中移除所有也在另一个数组中的元素。
-	 * @param other 另一个数组对象。
+	 * 从此数组中移除所有也在另数组中的元素。
+	 * @param other 另数组对象。
 	 */
 	removeFrom(other: Array): void;
 
@@ -1361,13 +1361,13 @@ export type {Array as ArrayType};
 interface ArrayClass {
 
 	/**
-	 * 创建一个新的空数组对象的元方法。
+	 * 创建新的空数组对象。
 	 * @returns 新的数组对象。
 	*/
 	(this: void): Array;
 
 	/**
-	 * 以一个Lua数组表初始化创建一个新的数组对象。
+	 * 以Lua数组表初始化创建新的数组对象。
 	 * @param items 用于初始化数组对象的数组表。
 	 * @returns 新的数组对象。
 	*/
@@ -1378,41 +1378,41 @@ const arrayClass: ArrayClass;
 export {arrayClass as Array};
 
 /**
- * Represents an audio player singleton object.
+ * 表示音频播放器单例对象。
  */
 class Audio {
 
 	private constructor();
 
 	/**
-	 * Plays a sound effect and returns a handler for the audio.
+	 * 播放音效并返回音频的处理器。
 	 *
-	 * @param filename The path to the sound effect file (must be a WAV file).
-	 * @param loop Whether to loop the sound effect. Default is false.
-	 * @returns A handler for the audio that can be used to stop the sound effect.
+	 * @param filename 音效文件的路径（必须是WAV文件）。
+	 * @param loop 是否循环播放音效。默认为false。
+	 * @returns 音频的处理器，可以用来停止音效。
 	 */
 	play(filename: string, loop?: boolean): number;
 
 	/**
-	 * Stops a sound effect that is currently playing.
+	 * 停止当前正在播放的音效。
 	 *
-	 * @param handler The handler for the audio that is returned by the `play` function.
+	 * @param handler 由 `play` 函数返回的音频处理器。
 	 */
 	stop(handler: number): void;
 
 	/**
-	 * Plays a streaming audio file.
+	 * 播放流式音频文件。
 	 *
-	 * @param filename The path to the streaming audio file (can be OGG, WAV, MP3, or FLAC).
-	 * @param loop Whether to loop the streaming audio. Default is false.
-	 * @param crossFadeTime The time (in seconds) to crossfade between the previous and new streaming audio. Default is 0.0.
+	 * @param filename 流式音频文件的路径（可以是OGG、WAV、MP3或FLAC）。
+	 * @param loop 是否循环播放流式音频。默认为false。
+	 * @param crossFadeTime 在前和新的流式音频之间交叉淡入淡出的时间（以秒为单位）。默认为0.0。
 	 */
 	playStream(filename: string, loop?: boolean, crossFadeTime?: number): void;
 
 	/**
-	 * Stops a streaming audio file that is currently playing.
+	 * 停止当前正在播放的流式音频文件。
 	 *
-	 * @param fadeTime The time (in seconds) to fade out the streaming audio. Default is 0.0.
+	 * @param fadeTime 淡出流式音频的时间（以秒为单位）。默认为0.0。
 	 */
 	stopStream(fadeTime?: number): void;
 }
@@ -1534,19 +1534,19 @@ export type Job = BasicType<"Job", LuaThread>;
 interface Routine {
 
 	/**
-	 * 从集合中移除一个协程作业，并在它仍在运行时关闭它。
+	 * 从集合中移除协程作业，并关闭仍在运行状态的作业。
 	 * @param job 要移除的Job实例。
 	 * @returns 如果作业被移除，则返回true，否则返回false。
 	 */
 	remove(job: Job): boolean;
 
 	/**
-	 * 移除所有协程作业，并在它们仍在运行时关闭它们。
+	 * 移除所有协程作业，并关闭仍在运行状态的作业。
 	 */
 	clear(): void;
 
 	/**
-	 * 元方法，用于添加一个新的协程作业。
+	 * 用于添加新的协程作业。
 	 * @param job 要添加的协程作业实例。
 	 * @returns 被添加的协程作业实例。
 	 */
@@ -1557,14 +1557,14 @@ const routine: Routine;
 export {routine as Routine};
 
 /**
- * 从函数创建一个新的协程并执行它。
+ * 从函数创建新的协程并执行它。
  * @param routine 作为协程执行的函数。
  * @returns 创建的协程作业对象。
  */
 export function thread(this: void, routine: (this: void) => boolean): Job;
 
 /**
- * 从函数创建一个新的协程，该函数会反复运行。
+ * 从函数创建新的协程，该函数会反复运行。
  * @param routine 作为协程反复执行的函数。
  * @returns 创建的协程作业对象。
  */
@@ -1573,12 +1573,12 @@ export function threadLoop(this: void, routine: (this: void) => boolean): Job;
 /**
  * 使另一个函数在一段时间内每帧重复执行。
  * @param duration 周期的持续时间，以秒为单位。
- * @param work 在周期内每帧反复执行的函数，接收一个从0到1的时间值，表示执行进度。
+ * @param work 在周期内每帧反复执行的函数，接收从0到1的时间值，表示执行进度。
  */
 export function cycle(this: void, duration: number, work: (this: void, time: number) => void): void;
 
 /**
- * 创建一个只运行一次的协程作业。
+ * 创建只运行一次的协程作业。
  * @param routine 当协程恢复时执行一次的例程函数。
  * 在例程函数内部产生或返回true以在半途停止作业执行。
  * @returns 运行给定例程函数一次的协程。
@@ -1586,9 +1586,9 @@ export function cycle(this: void, duration: number, work: (this: void, time: num
 export function once(this: void, routine: (this: void) => void): Job;
 
 /**
- * 创建一个协程作业，该作业将重复运行，直到满足某个条件为止。
- * @param routine 一个作业处理函数，将重复执行，直到它返回true以停止作业执行。
- * @returns 一个重复运行给定例程函数的协程。
+ * 创建协程作业，该作业将重复运行，直到满足某个条件为止。
+ * @param routine 作业处理函数，将重复执行，直到它返回true以停止作业执行。
+ * @returns 重复运行给定例程函数的协程。
  */
 export function loop(this: void, routine: (this: void) => boolean): Job;
 
@@ -1626,14 +1626,14 @@ class Scheduler extends Object {
 	fixedFPS: number;
 
 	/**
-	 * 安排一个函数在每一帧被调用。
-	 * @param handler 要调用的函数。它应该接受一个数值的参数，表示自上一帧以来的时间间隔。
+	 * 安排函数在每一帧被调用。
+	 * @param handler 要调用的函数。它应该接受数值的参数，表示自上一帧以来的时间间隔。
 	 * 如果函数返回true，它将不再被调度。
 	 */
 	schedule(handler: (this: void, deltaTime: number) => boolean): void;
 
 	/**
-	 * 安排一个协程作业在每一帧被调度。
+	 * 安排协程作业在每一帧被调度。
 	 * @param job 要调度的协程作业。
 	 */
 	schedule(job: Job): void;
@@ -1647,7 +1647,7 @@ export type {Scheduler as SchedulerType};
 interface SchedulerClass {
 
 	/**
-	 * 创建一个新的调度器对象。
+	 * 创建新的调度器对象。
 	 * @returns 新创建的调度器对象。
 	 */
 	(this: void): Scheduler;
@@ -1690,7 +1690,7 @@ class Dictionary extends Object {
 	/**
 	 * 遍历字典中每个键值对并调用处理函数。
 	 * @param func 对字典中每个键值对调用的函数。
-	-- 此函数会接收一个值对象Item和一个字符串的键作为参数，并需要返回一个布尔值。返回true停止遍历，false继续。
+	-- 此函数会接收值对象Item和字符串的键作为参数，并需要返回布尔值。返回true停止遍历，false继续。
 	-- @returns 如果遍历成功完成，则返回false，否则返回true。
 	 */
 	each(func: (this: void, item: Item, key: string) => boolean): boolean;
@@ -1719,8 +1719,9 @@ export type {Dictionary as DictionaryType};
  * ```
  */
 interface DictionaryClass {
+
 	/**
-	 * 一个元方法，允许创建"Dictionary"类型的实例。
+	 * 创建"Dictionary"类型的实例。
 	 * @returns Dictionary类型的新实例。
 	 */
 	(this: void): Dictionary;
@@ -1737,13 +1738,13 @@ class Slot extends Object {
 	private constructor();
 
 	/**
-	 * 向此信号槽添加一个新的处理函数。
+	 * 向此信号槽添加新的处理函数。
 	 * @param handler 要添加的处理函数。
 	 */
 	add(handler: (this: void, ...args: any[]) => void): void;
 
 	/**
-	 * 为此信号槽设置一个新的处理函数，替换任何现有的处理程序。
+	 * 为此信号槽设置新的处理函数，替换任何现有的处理程序。
 	 * @param handler 要设置的处理函数。
 	 */
 	set(handler: (this: void, ...args: any[]) => void): void;
@@ -1863,7 +1864,7 @@ export type {Camera2D as Camera2DType};
 interface Camera2DClass {
 
 	/**
-	 * 使用给定的名称创建一个新的2D摄像机对象。
+	 * 使用给定的名称创建新的2D摄像机对象。
 	 * @param name 2D摄像机对象的名称。默认为空字符串。
 	 * @returns 2D摄像机对象的新实例。
 	 */
@@ -1894,7 +1895,7 @@ export type {CameraOtho as CameraOthoType};
 interface CameraOthoClass {
 
 	/**
-	 * 使用给定的名称创建一个新的正交摄像机对象。
+	 * 使用给定的名称创建新的正交摄像机对象。
 	 * @param name 正交摄像机对象的名称。默认为空字符串。
 	 * @returns 正交摄像机对象的新实例。
 	 */
@@ -1912,8 +1913,8 @@ class Pass extends Object {
 	private constructor();
 
 	/**
-	 * 是否应该是一个采样流程。
-	 * 一个采样流程将会把游戏场景渲染到一个纹理缓存中。
+	 * 是否应该是采样流程。
+	 * 采样流程将会把游戏场景渲染到纹理缓存中。
 	 * 然后将该纹理帧缓存用作下一次渲染流程的输入。
 	 */
 	grabPass: boolean;
@@ -1945,8 +1946,9 @@ export type {Pass as PassType};
 * 用于创建着色器渲染流程对象的类。
 */
 interface PassClass {
+
 	/**
-	 * 用于创建一个新的渲染流程对象的元方法。
+	 * 用于创建新的渲染流程对象的方法。
 	 *
 	 * @param vertShader 顶点着色器的二进制形式文件字符串。
 	 * @param fragShader 片段着色器文件字符串。
@@ -1970,20 +1972,20 @@ class Effect extends Object {
 	protected constructor();
 
 	/**
-	 * 一个函数，将Pass对象添加到此Effect。
+	 * 函数，将Pass对象添加到此Effect。
 	 * @param pass 要添加的Pass对象。
 	 */
 	add(pass: Pass): void;
 
 	/**
-	 * 一个函数，通过索引从此Effect中检索Pass对象。
+	 * 函数，通过索引从此Effect中检索Pass对象。
 	 * @param index 要检索的Pass对象的索引。
 	 * @returns 给定索引处的Pass对象。
 	 */
 	get(index: number): Pass;
 
 	/**
-	 * 一个函数，从此Effect中移除所有Pass对象。
+	 * 函数，从此Effect中移除所有Pass对象。
 	 */
 	clear(): void;
 }
@@ -1996,19 +1998,19 @@ export type {Effect as EffectType};
 interface EffectClass {
 
 	/**
-	 * 一个元方法，允许你创建一个新的Effect对象。
+	 * 创建新的Effect对象。
 	 * @param vertShader 顶点着色器文件字符串。
 	 * @param fragShader 片段着色器文件字符串。
 	 * 着色器文件字符串必须是以下格式之一：
 	 * 	"builtin:" + 内置着色器名称
 	 * 	"Shader/compiled_shader_file.bin"
-	 * @returns 一个新的Effect对象。
+	 * @returns 新的Effect对象。
 	 */
 	(this: void, vertShader: string, fragShader: string): Effect;
 
 	/**
-	 * 另一个元方法，允许你创建一个新的空Effect对象。
-	 * @returns 一个新的空Effect对象。
+	 * 创建新的空Effect对象。
+	 * @returns 新的空Effect对象。
 	 */
 	(this: void): Effect;
 }
@@ -2028,7 +2030,7 @@ export type {SpriteEffect as SpriteEffectType};
  */
 interface SpriteEffectClass {
 	/**
-	 * 用于创建一个新的2D图元着色器特效对象的元方法。
+	 * 创建新的2D图元着色器特效对象。
 	 * @param vertShader 顶点着色器文件字符串。
 	 * 着色器文件名字符串必须是以下格式之一：
 	 * 	"builtin:" + theBuiltinShaderName
@@ -2039,7 +2041,7 @@ interface SpriteEffectClass {
 	(this: void, vertShader: string, fragShader: string): SpriteEffect;
 
 	/**
-	 * 用于创建一个空的2D图元着色器特效对象的元方法。
+	 * 创建空的2D图元着色器特效对象。
 	 * @returns 新的2D图元着色器特效对象。
 	 */
 	(this: void): SpriteEffect;
@@ -2164,21 +2166,21 @@ export const enum KeyName {
 interface Keyboard {
 
 	/**
-	 * 检查在当前帧中是否按下了一个键。
+	 * 检查在当前帧中是否按下了键。
 	 * @param name 要检查的键的名称。
 	 * @returns 键是否被按下。
 	 */
 	isKeyDown(name: KeyName): boolean;
 
 	/**
-	 * 检查在当前帧中是否释放了一个键。
+	 * 检查在当前帧中是否释放了键。
 	 * @param name 要检查的键的名称。
 	 * @returns 键是否被释放。
 	 */
 	isKeyUp(name: KeyName): boolean;
 
 	/**
-	 * 检查一个键是否处于按下状态。
+	 * 检查键是否处于按下状态。
 	 * @param name 要检查的键的名称。
 	 * @returns 键是否处于按下状态。
 	 */
@@ -2232,7 +2234,7 @@ export const enum ButtonName {
 interface Controller {
 
 	/**
-	 * 检查在当前帧中是否按下了一个按钮。
+	 * 检查在当前帧中是否按下了按钮。
 	 * @param controllerId 控制器id，当连接多个控制器时从0开始递增。
 	 * @param name 要检查的按钮的名称。
 	 * @returns 按钮是否被按下。
@@ -2240,7 +2242,7 @@ interface Controller {
 	isButtonDown(controllerId: number, name: ButtonName): boolean;
 
 	/**
-	 * 检查在当前帧中是否释放了一个按钮。
+	 * 检查在当前帧中是否释放了按钮。
 	 * @param controllerId 控制器id，当连接多个控制器时从0开始递增。
 	 * @param name 要检查的按钮的名称。
 	 * @returns 按钮是否被释放。
@@ -2248,7 +2250,7 @@ interface Controller {
 	isButtonUp(controllerId: number, name: ButtonName): boolean;
 
 	/**
-	 * 检查一个按钮是否处于按下状态。
+	 * 检查按钮是否处于按下状态。
 	 * @param controllerId 控制器id，当连接多个控制器时从0开始递增。
 	 * @param name 要检查的按钮的名称。
 	 * @returns 按钮是否处于按下状态。
@@ -2364,7 +2366,7 @@ export {NodeEvent as Slot};
 interface NodeEventHandlerMap {
 
 	/**
-	 * ActionEnd事件会在节点执行完一个动作时触发。
+	 * ActionEnd事件会在节点执行完动作时触发。
 	 * 在`node.runAction()`和`node.perform()`之后触发。
 	 * @param action 执行完成的动作。
 	 * @param target 执行完成动作的节点。
@@ -2520,7 +2522,7 @@ interface NodeEventHandlerMap {
 	Axis(this: void, controllerId: number, axisValue: number): void;
 
 	/**
-	 * 当Playable动画模型播放结束一个动画后触发。
+	 * 当Playable动画模型播放结束动画后触发。
 	 * @param animationName 播放结束的动画名称。
 	 * @param target 播放该动画的动画模型实例。
 	*/
@@ -2543,7 +2545,7 @@ interface NodeEventHandlerMap {
 	BodyLeave(this: void, other: Body, sensorTag: number): void;
 
 	/**
-	 * 当一个物理体对象开始与另一个物理体碰撞时触发。
+	 * 当物理体对象开始与另物理体碰撞时触发。
 	 * 在设置`body.receivingContact = true`之后触发。
 	 * @param other 被碰撞的物理体对象。
 	 * @param point 世界坐标系中的碰撞点。
@@ -2764,7 +2766,7 @@ class Node extends Object {
 	renderOrder: number;
 
 	/**
-	 * 向当前节点添加一个子节点。
+	 * 向当前节点添加子节点。
 	 * @param child 要添加的子节点。
 	 * @param order [可选] 子节点的绘制顺序。默认为0。
 	 * @param tag [可选] 子节点的标签。默认为空字符串。
@@ -2781,14 +2783,14 @@ class Node extends Object {
 	addTo<T>(this: T, parent: Node, order?: number, tag?: string): T;
 
 	/**
-	 * 从当前节点中移除一个子节点。
+	 * 从当前节点中移除子节点。
 	 * @param child 要移除的子节点。
 	 * @param cleanup [可选] 是否清理子节点。默认为true。
 	 */
 	removeChild(child: Node, cleanup?: boolean): void;
 
 	/**
-	 * 通过标签从当前节点中移除一个子节点。
+	 * 通过标签从当前节点中移除子节点。
 	 * @param tag 要移除的子节点的标签。
 	 * @param cleanup [可选] 是否清理子节点。默认为true。
 	 */
@@ -2825,13 +2827,13 @@ class Node extends Object {
 	getChildByTag(tag: string): Node | null;
 
 	/**
-	 * 安排一个函数在每一帧运行。
+	 * 安排函数在每一帧运行。
 	 * @param func 要运行的函数，返回true以停止。
 	 */
 	schedule(func: (this: void, deltaTime: number) => boolean): void;
 
 	/**
-	 * 安排一个协程开始运行。
+	 * 安排协程开始运行。
 	 * @param job 要运行的协程，返回或产出true以停止。
 	 */
 	schedule(job: Job): void;
@@ -2842,14 +2844,14 @@ class Node extends Object {
 	unschedule(): void;
 
 	/**
-	 * 将世界空间中的一个坐标点转换为节点空间的坐标。
+	 * 将世界空间中的坐标点转换为节点空间的坐标。
 	 * @param worldPoint 要转换的点。
 	 * @returns 转换后的点。
 	 */
 	convertToNodeSpace(worldPoint: Vec2): Vec2;
 
 	/**
-	 * 将世界空间中的一个坐标点转换为节点空间的坐标。
+	 * 将世界空间中的坐标点转换为节点空间的坐标。
 	 * @param worldPoint 要转换的点。
 	 * @param z 点的z坐标。
 	 * @returns 转换后的点和z坐标。
@@ -2857,14 +2859,14 @@ class Node extends Object {
 	convertToNodeSpace(worldPoint: Vec2, z: number): LuaMultiReturn<[Vec2, number]>;
 
 	/**
-	 * 将节点空间中的一个坐标点转换为世界空间的坐标。
+	 * 将节点空间中的坐标点转换为世界空间的坐标。
 	 * @param nodePoint 节点空间中的点。
 	 * @returns 转换后的世界空间中的点。
 	 */
 	convertToWorldSpace(nodePoint: Vec2): Vec2;
 
 	/**
-	 * 将一个坐标点从节点空间转换到世界空间。
+	 * 将坐标点从节点空间转换到世界空间。
 	 * @param nodePoint 节点空间中的点。
 	 * @param z 节点空间中的z坐标。
 	 * @returns 转换后的点和世界空间中的z坐标。
@@ -2872,7 +2874,7 @@ class Node extends Object {
 	convertToWorldSpace(nodePoint: Vec2, z: number): LuaMultiReturn<[Vec2, number]>;
 
 	/**
-	 * 将一个坐标点从节点空间转换到窗口空间。
+	 * 将坐标点从节点空间转换到窗口空间。
 	 * @param nodePoint 节点空间中的点。
 	 * @param callback 接收窗口空间中转换后的点的回调函数。
 	 */
@@ -2880,21 +2882,21 @@ class Node extends Object {
 
 	/**
 	 * 为此节点的每个子节点调用给定的函数。
-	 * @param func 为每个子节点调用的函数。该函数应返回一个布尔值，表示是否继续迭代。返回true以停止迭代。
+	 * @param func 为每个子节点调用的函数。该函数应返回布尔值，表示是否继续迭代。返回true以停止迭代。
 	 * @returns 如果所有子节点都已访问，则为False，如果函数中断了迭代，则为true。
 	 */
 	eachChild(func: (this: void, child: Node) => boolean): boolean;
 
 	/**
 	 * 从此节点开始遍历节点层次结构，并为每个访问的节点调用给定的函数。没有`TraverseEnabled`标志的节点不会被访问。
-	 * @param func 为每个访问的节点调用的函数。该函数应返回一个布尔值，表示是否继续遍历。返回true以停止迭代。
+	 * @param func 为每个访问的节点调用的函数。该函数应返回布尔值，表示是否继续遍历。返回true以停止迭代。
 	 * @returns 如果所有节点都已访问，则为False，如果函数中断了遍历，则为true。
 	 */
 	traverse(func: (this: void, node: Node) => boolean): boolean;
 
 	/**
 	 * 遍历从此节点开始的整个节点层次结构，并为每个访问的节点调用给定的函数。
-	 * @param func 为每个访问的节点调用的函数。该函数应返回一个布尔值，表示是否继续遍历。
+	 * @param func 为每个访问的节点调用的函数。该函数应返回布尔值，表示是否继续遍历。
 	 * @returns 如果所有节点都已访问，则为True，如果函数中断了遍历，则为false。
 	 */
 	traverseAll(func: (this: void, node: Node) => boolean): boolean;
@@ -3146,9 +3148,9 @@ export type {Buffer as BufferType};
 interface BufferClass {
 
 	/**
-	 * 创建一个新的缓冲区实例。
+	 * 创建新的缓冲区实例。
 	 * @param size 要创建的缓冲区的大小。
-	 * @returns 一个具有特定大小的新的"Buffer"类型的实例。
+	 * @returns 具有特定大小的新的"Buffer"类型的实例。
 	 */
 	(this: void, size: number): Buffer;
 }
@@ -3187,9 +3189,9 @@ export type {ClipNode as ClipNodeType};
 interface ClipNodeClass {
 
 	/**
-	 * 创建一个新的ClipNode对象。
+	 * 创建新的ClipNode对象。
 	 * @param stencil 剪切形状的蒙版节点。
-	 * @returns 一个新的ClipNode对象。
+	 * @returns 新的ClipNode对象。
 	 */
 	(this: void, stencil?: Node): ClipNode;
 }
@@ -3351,7 +3353,7 @@ class Content {
 	 * 异步地将指定的文件夹压缩为具有指定文件名的ZIP存档。
 	 * @param folderPath 要压缩的文件夹的路径，应在资产可写路径下。
 	 * @param zipFile 要创建的ZIP存档的名称。
-	 * @param filter 一个过滤器函数，用于过滤包含在存档中的文件。该函数接受一个文件名作为输入，并返回一个布尔值，表示是否包含该文件。如果未提供，将包含所有文件。
+	 * @param filter 过滤器函数，用于过滤包含在存档中的文件。该函数接受文件名作为输入，并返回布尔值，表示是否包含该文件。如果未提供，将包含所有文件。
 	 * @returns 如果文件夹成功压缩，则返回`true`，否则返回`false`。
 	 */
 	zipAsync(folderPath: string, zipFile: string, filter?: (this: void, filename: string) => boolean): boolean;
@@ -3360,7 +3362,7 @@ class Content {
 	 * 异步地将ZIP存档解压缩到指定的文件夹。
 	 * @param zipFile 要解压缩的ZIP存档的名称，应该是资产可写路径下的文件。
 	 * @param folderPath 要解压缩到的文件夹的路径，应在资产可写路径下。
-	 * @param filter 一个过滤器函数，用于过滤包含在存档中的文件。该函数接受一个文件名作为输入，并返回一个布尔值，表示是否包含该文件。如果未提供，将包含所有文件。
+	 * @param filter 过滤器函数，用于过滤包含在存档中的文件。该函数接受文件名作为输入，并返回布尔值，表示是否包含该文件。如果未提供，将包含所有文件。
 	 * @returns 如果文件夹成功解压缩，则返回`true`，否则返回`false`。
 	 */
 	unzipAsync(folderPath: string, zipFile: string, filter?: (this: void, filename: string) => boolean): boolean;
@@ -3556,7 +3558,7 @@ const db: DB;
 export {db as DB};
 
 /**
- * 一个单例类，管理游戏场景树并提供不同游戏用途的多种场景根节点。
+ * 单例类，管理游戏场景树并提供不同游戏用途的多种场景根节点。
  *
  * @example
  * ```
@@ -3704,7 +3706,7 @@ class Playable extends Node {
 	stop(): void;
 
 	/**
-	 * 将子节点附加到动画模型上的一个插槽。
+	 * 将子节点附加到动画模型上的插槽。
 	 * @param name 要设置的插槽的名称。
 	 * @param item 要设置插槽的节点。
 	 */
@@ -3726,14 +3728,14 @@ export type {Playable as PlayableType};
 interface PlayableClass {
 
 	/**
-	 * 从指定的动画文件创建一个新的'Playable'实例。
+	 * 从指定的动画文件创建新的'Playable'实例。
 	 * @param filename 要加载的动画文件的文件名。
 	 * 支持DragonBone，Spine2D和Dora Model文件。
 	 * 应为以下格式之一：
 	 *  "model:" + modelFile
 	 *  "spine:" + spineStr
 	 *  "bone:" + dragonBoneStr
-	 * @returns 一个新的'Playable'实例。
+	 * @returns 新的'Playable'实例。
 	 */
 	(this: void, filename: string): Playable;
 }
@@ -3759,7 +3761,7 @@ class DragonBone extends Playable {
 	hitTestEnabled: boolean;
 
 	/**
-	 * 检查一个点是否在实例的边界内，并返回该点处的骨骼或插槽的名称，如果没有找到骨骼或插槽，则返回undefined。
+	 * 检查点是否在实例的边界内，并返回该点处的骨骼或插槽的名称，如果没有找到骨骼或插槽，则返回undefined。
 	 * @param x 要检查的点的x坐标。
 	 * @param y 要检查的点的y坐标。
 	 * @returns 该点处的骨骼或插槽的名称，如果没有找到骨骼或插槽，则返回undefined。
@@ -3799,17 +3801,17 @@ interface DragonBoneClass {
 	getAnimations(boneStr: string): string[];
 
 	/**
-	 * 使用指定的骨骼字符串创建一个新的'DragonBone'实例。
+	 * 使用指定的骨骼字符串创建新的'DragonBone'实例。
 	 * @param boneStr 新实例的DragonBone文件字符串。
-	 * @returns 一个新的'DragonBone'实例。
+	 * @returns 新的'DragonBone'实例。
 	 */
 	(this: void, boneStr: string): DragonBone;
 
 	/**
-	 * 使用指定的骨骼文件和图集文件创建一个新的'DragonBone'实例。此函数只加载第一个骨架。
+	 * 使用指定的骨骼文件和图集文件创建新的'DragonBone'实例。此函数只加载一个骨架。
 	 * @param boneFile 要加载的骨骼文件的文件名。
 	 * @param atlasFile 要加载的图集文件的文件名。
-	 * @returns 一个具有指定骨骼文件和图集文件的新的'DragonBone'实例。
+	 * @returns 具有指定骨骼文件和图集文件的新的'DragonBone'实例。
 	 */
 	(this: void, boneFile: string, atlasFile: string): DragonBone;
 }
@@ -3839,7 +3841,7 @@ class Spine extends Playable {
 	setBoneRotation(name: string, rotation: number): boolean;
 
 	/**
-	 * 检查空间中的一个点是否在Spine骨架的边界内。
+	 * 检查空间中的点是否在Spine骨架的边界内。
 	 * @param x 要检查的点的x坐标。
 	 * @param y 要检查的点的y坐标。
 	 * @returns 点处的骨骼的名称，如果点处没有骨骼，则返回null。
@@ -3879,17 +3881,17 @@ interface SpineClass {
 	getAnimations(spineStr: string): string[];
 
 	/**
-	 * 使用指定的Spine字符串创建一个新的'Spine'实例。
+	 * 使用指定的Spine字符串创建新的'Spine'实例。
 	 * @param spineStr 新实例的Spine文件字符串。
-	 * @returns 一个新的'Spine'实例。
+	 * @returns 新的'Spine'实例。
 	 */
 	(this: void, spineStr: string): Spine;
 
 	/**
-	 * 使用指定的骨架文件和图集文件创建一个新的'Spine'实例。
+	 * 使用指定的骨架文件和图集文件创建新的'Spine'实例。
 	 * @param skelFile 要加载的骨架文件的文件名。
 	 * @param atlasFile 要加载的图集文件的文件名。
-	 * @returns 一个具有指定骨架文件和图集文件的新的'Spine'实例。
+	 * @returns 具有指定骨架文件和图集文件的新的'Spine'实例。
 	 */
 	(this: void, skelFile: string, atlasFile: string): Spine;
 }
@@ -3978,8 +3980,8 @@ export type {Model as ModelType}
 interface ModelClass {
 
 	/**
-	 * 返回一个占位使用的'Model'实例，该实例无法执行任何操作。
-	 * @returns 一个占位用的'Model'实例。
+	 * 返回占位使用的'Model'实例，该实例无法执行任何操作。
+	 * @returns 占位用的'Model'实例。
 	 */
 	dummy(): Model;
 
@@ -4005,10 +4007,10 @@ interface ModelClass {
 	getAnimations(filename: string): string[];
 
 	/**
-	 * 从指定的模型文件创建一个新的'Model'实例。
+	 * 从指定的模型文件创建新的'Model'实例。
 	 * @param filename 要加载的模型文件的文件名。
 	 * 可以是带有或不带有扩展名的文件名，例如："Model/item" 或 "Model/item.model"。
-	 * @returns 一个新的'Model'实例。
+	 * @returns 新的'Model'实例。
 	 */
 	(this: void, filename: string): Model;
 }
@@ -4034,7 +4036,7 @@ class DrawNode extends Node {
 	blendFunc: BlendFunc;
 
 	/**
-	 * 在指定位置绘制一个指定半径和颜色的点。
+	 * 在指定位置绘制指定半径和颜色的点。
 	 * @param pos 点的位置。
 	 * @param radius 点的半径。
 	 * @param color 点的颜色（默认为白色）。
@@ -4051,7 +4053,7 @@ class DrawNode extends Node {
 	drawSegment(this: DrawNode, from: Vec2, to: Vec2, radius: number, color?: Color): void;
 
 	/**
-	 * 绘制一个由顶点列表定义的多边形，具有指定的填充颜色和边框。
+	 * 绘制由顶点列表定义的多边形，具有指定的填充颜色和边框。
 	 * @param verts 多边形的顶点。
 	 * @param fillColor 多边形的填充颜色（默认为白色）。
 	 * @param borderWidth 边框的宽度（默认为0）。
@@ -4152,7 +4154,7 @@ class Entity extends Object {
 export type {Entity as EntityType};
 
 /**
- * 一个用于在ECS游戏系统中创建和管理实体的类。
+ * 用于在ECS游戏系统中创建和管理实体的类。
  */
 interface EntityClass {
 
@@ -4238,7 +4240,7 @@ class Group extends Object {
 	readonly count: number;
 
 	/**
-	 * 对组中的每个实体调用一个函数。
+	 * 对组中的每个实体调用函数。
 	 * @param func 对每个实体调用的函数。在函数内部返回true以停止迭代。
 	 * @returns 如果所有实体都被处理，返回False；如果迭代被中断，返回True。
 	 */
@@ -4262,14 +4264,14 @@ class Group extends Object {
 export type {Group as GroupType};
 
 /**
-* 用于创建Group对象的类。
+* 用于创建实体组对象的类。
 */
 interface GroupClass {
 
 	/**
-	 * 一个元方法，用于创建包含指定组件名称的新组。
-	 * @param components 要包含在组中的组件的名称列表。
-	 * @returns 新的组。
+	 * 创建包含指定组件名称的新实体组。
+	 * @param components 要包含在实体组中的组件的名称列表。
+	 * @returns 新的实体组。
 	 */
 	(this: void, components: string[]): Group;
 }
@@ -4278,7 +4280,7 @@ const groupClass: GroupClass;
 export {groupClass as Group};
 
 /**
- * 表示一个2D纹理。
+ * 表示2D纹理。
  * 继承自 `Object`。
  */
 class Texture2D extends Object {
@@ -4371,7 +4373,7 @@ export type {Grid as GridType};
 interface GridClass {
 
 	/**
-	 * 使用指定的纹理矩形和网格大小创建一个新的Grid。
+	 * 使用指定的纹理矩形和网格大小创建新的Grid。
 	 * @param textureRect 用于网格的纹理内的矩形。
 	 * @param gridX 网格中的列数。
 	 * @param gridY 网格中的行数。
@@ -4380,7 +4382,7 @@ interface GridClass {
 	(this: void, textureRect: Rect, gridX: number, gridY: number): Grid;
 
 	/**
-	 * 使用指定的纹理，纹理矩形和网格大小创建一个新的Grid。
+	 * 使用指定的纹理，纹理矩形和网格大小创建新的Grid。
 	 * @param texture 用于网格的纹理。
 	 * @param textureRect 用于网格的纹理内的矩形。
 	 * @param gridX 网格中的列数。
@@ -4390,7 +4392,7 @@ interface GridClass {
 	(this: void, texture: Texture2D, textureRect: Rect, gridX: number, gridY: number): Grid;
 
 	/**
-	 * 使用指定的纹理和网格大小创建一个新的Grid。
+	 * 使用指定的纹理和网格大小创建新的Grid。
 	 * @param texture 用于网格的纹理。
 	 * @param gridX 网格中的列数。
 	 * @param gridY 网格中的行数。
@@ -4399,7 +4401,7 @@ interface GridClass {
 	(this: void, texture: Texture2D, gridX: number, gridY: number): Grid;
 
 	/**
-	 * 使用指定的剪辑字符串和网格大小创建一个新的Grid。
+	 * 使用指定的剪辑字符串和网格大小创建新的Grid。
 	 * @param clipStr 用于网格的剪辑字符串。可以是 "Image/file.png" 和 "Image/items.clip|itemA"。
 	 * @param gridX 网格中的列数。
 	 * @param gridY 网格中的行数。
@@ -4467,7 +4469,7 @@ class Cache {
 
 	/**
 	 * 更新缓存中已加载文件的内容。
-	 * 如果文件名的项在缓存中不存在，将会添加一个新的文件内容到缓存中。
+	 * 如果文件名的项在缓存中不存在，将会添加新的文件内容到缓存中。
 	 * @param filename 要更新的文件的名称。
 	 * @param content 文件的新内容。
 	 */
@@ -4559,18 +4561,18 @@ export type {Sensor as SensorType};
 
 export const enum BodyMoveType {
 
-	/** 一个不会移动的物理体。 */
+	/** 不会移动的物理体。 */
 	Static = "Static",
 
-	/** 一个可以移动并受力影响的物理体。 */
+	/** 可以移动并受力影响的物理体。 */
 	Dynamic = "Dynamic",
 
-	/** 一个可以移动但不受力影响的物理体。 */
+	/** 可以移动但不受力影响的物理体。 */
 	Kinematic = "Kinematic",
 }
 
 /**
- * 一个名为 "BodyDef" 的类，用于描述物理体的属性。
+ * 名为 "BodyDef" 的类，用于描述物理体的属性。
  * 继承自 `Object`。
  */
 class BodyDef extends Object {
@@ -4612,7 +4614,7 @@ class BodyDef extends Object {
 	bullet: boolean;
 
 	/**
-	 * 将一个多边形形状定义附加到物理体上。
+	 * 将多边形形状定义附加到物理体上。
 	 * @param center 多边形的中心点。
 	 * @param width 多边形的宽度。
 	 * @param height 多边形的高度。
@@ -4624,7 +4626,7 @@ class BodyDef extends Object {
 	attachPolygon(center: Vec2, width: number, height: number, angle?: number, density?: number, friction?: number, restitution?: number): void;
 
 	/**
-	 * 仅使用宽度和高度将一个多边形形状定义附加到物理体上。
+	 * 仅使用宽度和高度将多边形形状定义附加到物理体上。
 	 * @param width 多边形的宽度。
 	 * @param height 多边形的高度。
 	 * @param density 多边形的密度（默认为0.0）（可选）。
@@ -4634,7 +4636,7 @@ class BodyDef extends Object {
 	attachPolygon(width: number, height: number, density?: number, friction?: number, restitution?: number): void;
 
 	/**
-	 * 使用顶点将一个多边形形状定义附加到物理体上。
+	 * 使用顶点将多边形形状定义附加到物理体上。
 	 * @param vertices 多边形的顶点。
 	 * @param density 多边形的密度（默认为0.0）（可选）。
 	 * @param friction 多边形的摩擦系数（默认为0.4，应为0.0到1.0）（可选）。
@@ -4652,7 +4654,7 @@ class BodyDef extends Object {
 	attachMulti(vertices: Vec2[], density?: number, friction?: number, restitution?: number): void;
 
 	/**
-	 * 将一个圆盘形状定义附加到物理体上。
+	 * 将圆盘形状定义附加到物理体上。
 	 * @param center 圆盘的中心点。
 	 * @param radius 圆盘的半径。
 	 * @param density 圆盘的密度（默认为0.0）（可选）。
@@ -4662,7 +4664,7 @@ class BodyDef extends Object {
 	attachDisk(center: Vec2, radius: number, density?: number, friction?: number, restitution?: number): void;
 
 	/**
-	 * 仅使用半径将一个圆盘形状附加到物理体上。
+	 * 仅使用半径将圆盘形状附加到物理体上。
 	 * @param radius 圆盘的半径。
 	 * @param density 圆盘的密度（默认为0.0）（可选）。
 	 * @param friction 圆盘的摩擦系数（默认为0.4）（可选）。
@@ -4671,7 +4673,7 @@ class BodyDef extends Object {
 	attachDisk(radius: number, density?: number, friction?: number, restitution?: number): void;
 
 	/**
-	 * 将一个链形状定义附加到物理体上。链形状是一个自由形式的线段序列，具有双面碰撞。
+	 * 将链形状定义附加到物理体上。链形状是自由形式的线段序列，具有双面碰撞。
 	 * @param vertices 链的顶点。
 	 * @param friction 链的摩擦系数（默认为0.4）（可选）。
 	 * @param restitution 链的弹性系数（默认为0.0）（可选）。
@@ -4679,7 +4681,7 @@ class BodyDef extends Object {
 	attachChain(vertices: Vec2[], friction?: number, restitution?: number): void;
 
 	/**
-	 * 将一个多边形感应器形状定义附加到物理体上。
+	 * 将多边形感应器形状定义附加到物理体上。
 	 * @param tag 感应器的整数标签。
 	 * @param width 多边形的宽度（可选）。
 	 * @param height 多边形的高度（可选）。
@@ -4689,14 +4691,14 @@ class BodyDef extends Object {
 	attachPolygonSensor(tag: number, width?: number, height?: number, center?: Vec2, angle?: number): void;
 
 	/**
-	 * 使用顶点将一个多边形感应器形状定义附加到物理体上。
+	 * 使用顶点将多边形感应器形状定义附加到物理体上。
 	 * @param tag 感应器的整数标签。
 	 * @param vertices 包含多边形顶点的表。
 	 */
 	attachPolygonSensor(tag: number, vertices: Vec2[]): void;
 
 	/**
-	 * 将一个圆盘感应器形状定义附加到物理体上。
+	 * 将圆盘感应器形状定义附加到物理体上。
 	 * @param tag 感应器的整数标签。
 	 * @param center 圆盘的中心。
 	 * @param radius 圆盘的半径。
@@ -4704,7 +4706,7 @@ class BodyDef extends Object {
 	attachDiskSensor(tag: number, center: Vec2, radius: number): void;
 
 	/**
-	 * 仅使用半径将一个圆盘感应器形状附加到物理体上。
+	 * 仅使用半径将圆盘感应器形状附加到物理体上。
 	 * @param tag 感应器的整数标签。
 	 * @param radius 圆盘的半径。
 	 */
@@ -4719,7 +4721,7 @@ export type {BodyDef as BodyDefType};
 interface BodyDefClass {
 
 	/**
-	 * 使用指定的尺寸创建一个多边形定义。
+	 * 使用指定的尺寸创建多边形定义。
 	 * @param width 多边形的宽度。
 	 * @param height 多边形的高度。
 	 * @param density 多边形的密度（默认为0.0）（可选）。
@@ -4730,7 +4732,7 @@ interface BodyDefClass {
 	polygon(width: number, height: number, density?: number, friction?: number, restitution?: number): FixtureDef;
 
 	/**
-	 * 使用指定的尺寸和中心位置创建一个多边形定义。
+	 * 使用指定的尺寸和中心位置创建多边形定义。
 	 * @param center 多边形的中心位置。
 	 * @param width 多边形的宽度。
 	 * @param height 多边形的高度。
@@ -4743,7 +4745,7 @@ interface BodyDefClass {
 	polygon(center: Vec2, width: number, height: number, angle?: number, density?: number, friction?: number, restitution?: number): FixtureDef;
 
 	/**
-	 * 使用指定的顶点创建一个多边形定义。
+	 * 使用指定的顶点创建多边形定义。
 	 * @param vertices 多边形的顶点。
 	 * @param density 多边形的密度（默认为0.0）（可选）。
 	 * @param friction 多边形的摩擦系数（默认为0.4，应为0.0到1.0）（可选）。
@@ -4763,7 +4765,7 @@ interface BodyDefClass {
 	multi(vertices: Vec2[], density?: number, friction?: number, restitution?: number): FixtureDef;
 
 	/**
-	 * 创建一个圆盘形状的定义。
+	 * 创建圆盘形状的定义。
 	 * @param center 圆的中心，为Vec2。
 	 * @param radius 圆的半径。
 	 * @param density 圆的密度（可选，默认0.0）。
@@ -4774,7 +4776,7 @@ interface BodyDefClass {
 	disk(center: Vec2, radius: number, density?: number, friction?: number, restitution?: number): FixtureDef;
 
 	/**
-	 * 创建一个以原点为中心的圆盘形状的定义。
+	 * 创建以原点为中心的圆盘形状的定义。
 	 * @param radius 圆的半径。
 	 * @param density 圆的密度（可选，默认0.0）。
 	 * @param friction 圆的摩擦系数（可选，默认0.4，应为0.0到1.0）。
@@ -4784,7 +4786,7 @@ interface BodyDefClass {
 	disk(radius: number, density?: number, friction?: number, restitution?: number): FixtureDef;
 
 	/**
-	 * 创建一个链形状的定义。这个形状是一个自由形式的线段序列，具有双面碰撞。
+	 * 创建链形状的定义。这个形状是自由形式的线段序列，具有双面碰撞。
 	 * @param vertices 链的顶点，为Vec2数组。
 	 * @param friction 链的摩擦系数（可选，默认0.4，应为0.0到1.0）。
 	 * @param restitution 链的弹性系数（可选，默认0.0，应为0.0到1.0）。
@@ -4793,8 +4795,8 @@ interface BodyDefClass {
 	chain(vertices: Vec2[], friction?: number, restitution?: number): FixtureDef;
 
 	/**
-	 * 创建一个新的BodyDef类的实例。
-	 * @returns 一个新的BodyDef对象。
+	 * 创建新的BodyDef类的实例。
+	 * @returns 新的BodyDef对象。
 	 */
 	(this: void): BodyDef;
 }
@@ -4840,7 +4842,7 @@ class Body extends Node {
 	velocityY: number;
 
 	/**
-	 * 物理体的速度，作为一个`Vec2`。
+	 * 物理体的速度，作为`Vec2`。
 	 */
 	velocity: Vec2;
 
@@ -4895,7 +4897,7 @@ class Body extends Node {
 	removeSensorByTag(tag: number): boolean;
 
 	/**
-	 * 将一个形状附加到物理体上。
+	 * 将形状附加到物理体上。
 	 * @param fixtureDef 要附加的形状的定义。
 	 */
 	attach(fixtureDef: FixtureDef): void;
@@ -4931,7 +4933,7 @@ export type {Body as BodyType};
 interface BodyClass {
 
 	/**
-	 * 创建一个新的`Body`实例。
+	 * 创建新的`Body`实例。
 	 * @param def 要创建的物理体的定义。
 	 * @param world 物理体所属的物理世界。
 	 * @param pos [可选] 物理体的初始位置。默认为零向量。
@@ -4951,7 +4953,7 @@ const bodyClass: BodyClass;
 export {bodyClass as Body};
 
 /**
- * 在游戏中代表一个物理世界。
+ * 在游戏中代表物理世界。
  */
 class PhysicsWorld extends Node {
 
@@ -4966,7 +4968,7 @@ class PhysicsWorld extends Node {
 	 * 查询与指定矩形相交的物理世界中的所有物体。
 	 *
 	 * @param rect 要查询物体的矩形。
-	 * @param handler 一个函数，对在查询中找到的每个物体调用。
+	 * @param handler 函数，对在查询中找到的每个物体调用。
 	 * @returns 查询是否被中断，true表示中断，否则为false。
 	 */
 	query(rect: Rect, handler: (this: void, body: Body) => boolean): boolean;
@@ -4977,7 +4979,7 @@ class PhysicsWorld extends Node {
 	 * @param start 射线的起点。
 	 * @param stop 射线的终点。
 	 * @param closest 是否在找到与射线相交的最近的物体时停止射线投射。将closest设置为true可以更快地进行射线投射搜索。
-	 * @param handler 一个函数，对在射线投射中找到的每个物体调用。
+	 * @param handler 函数，对在射线投射中找到的每个物体调用。
 	 * @returns 射线投射是否被中断，true表示中断，否则为false。
 	 */
 	raycast(start: Vec2, stop: Vec2, closest: boolean, handler: (this: void, body: Body, point: Vec2, normal: Vec2) => boolean): boolean;
@@ -5025,7 +5027,7 @@ interface PhysicsWorldClass {
 	scaleFactor: number;
 
 	/**
-	 * 创建一个新的"PhysicsWorld"对象。
+	 * 创建新的"PhysicsWorld"对象。
 	 * @returns 新的"PhysicsWorld"对象。
 	 */
 	(this: void): PhysicsWorld;
@@ -5080,7 +5082,7 @@ class MotorJoint extends Joint {
 export type {MotorJoint as MotorJointType};
 
 /**
- * 一个允许物理体移动到特定位置的关节类型。
+ * 允许物理体移动到特定位置的关节类型。
  */
 class MoveJoint extends Joint {
 
@@ -5095,7 +5097,7 @@ class MoveJoint extends Joint {
 export type {MoveJoint as MoveJointType};
 
 /**
- * 一个定义创建关节的属性的类。
+ * 定义创建关节的属性的类。
  */
 class JointDef extends Object {
 
@@ -5117,7 +5119,7 @@ class JointDef extends Object {
 interface JointDefClass {
 
 	/**
-	 * 创建一个距离关节定义。
+	 * 创建距离关节定义。
 	 * @param canCollide 连接的物体是否应该相互碰撞。
 	 * @param bodyA 连接到关节的第一个物体的名称。
 	 * @param bodyB 连接到关节的第二个物体的名称。
@@ -5138,7 +5140,7 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * 创建一个摩擦关节定义。
+	 * 创建摩擦关节定义。
 	 * @param canCollide 连接的物体是否应该相互碰撞。
 	 * @param bodyA 连接到关节的第一个物体的名称。
 	 * @param bodyB 连接到关节的第二个物体的名称。
@@ -5157,7 +5159,7 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * 创建一个齿轮关节定义。
+	 * 创建齿轮关节定义。
 	 * @param canCollide 是否允许连接的物体相互碰撞。
 	 * @param jointA 要连接到齿轮关节的第一个关节的名称。
 	 * @param jointB 要连接到齿轮关节的第二个关节的名称。
@@ -5172,7 +5174,7 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * 创建一个新的弹簧关节定义。
+	 * 创建新的弹簧关节定义。
 	 * @param canCollide 连接的物体是否应该相互碰撞。
 	 * @param bodyA 连接到关节的第一个物体的名称。
 	 * @param bodyB 连接到关节的第二个物体的名称。
@@ -5195,7 +5197,7 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * 创建一个新的平移关节定义。
+	 * 创建新的平移关节定义。
 	 * @param canCollide 连接的物体是否应该相互碰撞。
 	 * @param bodyA 连接到关节的第一个物体的名称。
 	 * @param bodyB 连接到关节的第二个物体的名称。
@@ -5220,7 +5222,7 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * 创建一个滑轮关节定义。
+	 * 创建滑轮关节定义。
 	 * @param canCollide 连接的物体是否应该相互碰撞。
 	 * @param bodyA 要连接的第一个物理体的名称。
 	 * @param bodyB 要连接的第二个物理体的名称。
@@ -5243,7 +5245,7 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * 创建一个旋转关节定义。
+	 * 创建旋转关节定义。
 	 * @param canCollide 是否允许连接的物体相互碰撞。
 	 * @param bodyA 第一个要连接的物体的名称。
 	 * @param bodyB 第二个要连接的物体的名称。
@@ -5266,7 +5268,7 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * 创建一个绳子关节定义。
+	 * 创建绳子关节定义。
 	 * @param canCollide 是否允许连接的物体相互碰撞。
 	 * @param bodyA 第一个要连接的物体的名称。
 	 * @param bodyB 第二个要连接的物体的名称。
@@ -5285,7 +5287,7 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * 创建一个焊接关节定义。
+	 * 创建焊接关节定义。
 	 * @param canCollide 连接的物体是否可以相互碰撞。
 	 * @param bodyA 要连接的第一个物体的名称。
 	 * @param bodyB 要连接的第二个物体的名称。
@@ -5304,7 +5306,7 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * 创建一个轮子关节定义。
+	 * 创建轮子关节定义。
 	 * @param canCollide 是否允许连接的物体相互碰撞。
 	 * @param bodyA 第一个要连接的物体的名称。
 	 * @param bodyB 第二个要连接的物体的名称。
@@ -5541,7 +5543,7 @@ interface LabelClass {
 	readonly AutomaticWidth: number;
 
 	/**
-	 * 使用指定的字体名称和字体大小创建一个新的 Label 对象。
+	 * 使用指定的字体名称和字体大小创建新的 Label 对象。
 	 * @param fontName 用于 Label 的字体名称。可以是带有或不带有文件扩展名的字体文件路径。
 	 * @param fontSize 用于 Label 的字体大小。
 	 * @returns 新的 Label 对象。
@@ -5595,7 +5597,7 @@ export type {Line as LineType};
 interface LineClass {
 
 	/**
-	 * 创建并返回一个新的 Line 对象。
+	 * 创建并返回新的 Line 对象。
 	 * @param verts 要添加到线条的顶点表。
 	 * @param color 线条的颜色（默认为不透明白色）。
 	 * @returns Line 对象。
@@ -5603,7 +5605,7 @@ interface LineClass {
 	(this: void, verts: Vec2[], color?: Color): Line;
 
 	/**
-	 * 创建并返回一个新的空 Line 对象。
+	 * 创建并返回新的空 Line 对象。
 	 * @returns Line 对象。
 	 */
 	(this: void): Line;
@@ -5635,7 +5637,7 @@ export type {Menu as MenuType};
 interface MenuClass {
 
 	/**
-	 * 使用指定的宽度和高度创建一个新的 `Menu` 实例。
+	 * 使用指定的宽度和高度创建新的 `Menu` 实例。
 	 * @param width 菜单节点的宽度。
 	 * @param height 菜单节点的高度。
 	 * @returns 一个新的菜单节点对象。
@@ -5643,9 +5645,9 @@ interface MenuClass {
 	(this: void, width: number, height: number): Menu;
 
 	/**
-	 * 使用0宽度和0高度创建一个新的 `Menu` 实例。
+	 * 使用0宽度和0高度创建新的 `Menu` 实例。
 	 * 尺寸为0的菜单将在全屏范围处理子节点的触摸事件。
-	 * @returns 一个新的菜单节点对象。
+	 * @returns 新的菜单节点对象。
 	 */
 	(this: void): Menu;
 }
@@ -5712,7 +5714,7 @@ interface QLearnerClass {
 	unpack(hints: number[], state: number): number[];
 
 	/**
-	 * 使用可选参数 gamma、alpha 和 maxQ 创建一个新的 QLearner 对象。
+	 * 使用可选参数 gamma、alpha 和 maxQ 创建新的 QLearner 对象。
 	 * @param gamma 未来奖励的折扣因子。默认为 0.5。
 	 * @param alpha 更新 Q 值的学习率。默认为 0.5。
 	 * @param maxQ 最大 Q 值。默认为 100.0。
@@ -5792,7 +5794,7 @@ export type {Particle as ParticleType};
 interface ParticleClass {
 
 	/**
-	 * 从粒子系统文件创建一个新的 Particle 对象。
+	 * 从粒子系统文件创建新的 Particle 对象。
 	 * @param filename 粒子系统文件的文件路径。
 	 * @returns 新的 Particle 对象。
 	 */
@@ -5901,7 +5903,7 @@ const profiler: ProfilerClass;
 export {profiler as Profiler};
 
 /**
- * RenderTarget 是一个带有缓冲区的节点，允许将 Node 渲染到纹理中。
+ * RenderTarget 是带有缓冲区的节点，允许将 Node 渲染到纹理中。
  */
 class RenderTarget {
 
@@ -5963,7 +5965,7 @@ class RenderTarget {
 interface RenderTargetClass {
 
 	/**
-	 * 使用特定的宽度和高度创建一个新的 RenderTarget 对象。
+	 * 使用特定的宽度和高度创建新的 RenderTarget 对象。
 	 * @param width 渲染目标的宽度。
 	 * @param height 渲染目标的高度。
 	 * @returns 创建的渲染目标。
@@ -6003,7 +6005,7 @@ class SVG extends Object {
 interface SVGClass {
 
 	/**
-	 * 从指定的 SVG 文件创建一个新的 SVG 对象。
+	 * 从指定的 SVG 文件创建新的 SVG 对象。
 	 * @param filename SVG 格式文件的路径。
 	 * @returns 创建的 SVG 对象。
 	 */
