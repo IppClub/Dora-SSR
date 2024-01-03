@@ -19,92 +19,92 @@ import {
 	Item,
 } from 'dora';
 
-/** A class that represents an action that can be performed by a "Unit". */
+/** 代表游戏单位可以执行的动作的类。 */
 class UnitAction {
 
 	private constructor();
 
 	/**
-	 * The length of the reaction time for the "UnitAction", in seconds.
-	 * The reaction time will affect the AI check cycling time.
+	 * 游戏单位动作的反应时间间隔，单位为秒。
+	 * 反应时间会影响AI循环检查的频率。
 	 */
 	reaction: number;
 
 	/**
-	 * The length of the recovery time for the "UnitAction", in seconds.
-	 * The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
+	 * 游戏单位动作的恢复时间长度，单位为秒。
+	 * 恢复时间主要影响`Playable`动画模型在不同动作之间切换动画的时间。
 	 */
 	recovery: number;
 
-	/** The name of the "UnitAction". */
+	/** 游戏单位动作的名称。 */
 	readonly name: string;
 
-	/** Whether the "Unit" is currently performing the "UnitAction" or not. */
+	/** 游戏单位是否正在执行游戏单位动作。 */
 	readonly doing: boolean;
 
-	/** The elapsed time since the "UnitAction" was started, in seconds. */
+	/** 自游戏单位动作开始执行以来的经过时间，单位为秒。 */
 	readonly elapsedTime: number;
 
-	/** The "Unit" that owns this "UnitAction". */
+	/** 执行此单位动作的游戏单位。 */
 	readonly owner: Unit;
 }
 
 export type {UnitAction as UnitActionType};
 
-/** An interface that defines the parameters for a "UnitAction". */
+/** 定义游戏单位动作参数的接口。 */
 export interface UnitActionParam {
 
-	/** The priority level for the "UnitAction". Higher priority (larger number) replaces lower priority "UnitActions". */
+	/** 单位动作的优先级。优先级更高（数值更大）的单位动作会替换优先级较低的单位动作。 */
 	priority: number;
 
-	/** The length of the reaction time for the "UnitAction", in seconds. */
+	/** 单位动作的反应时间长度，单位为秒。 */
 	reaction: number;
 
-	/** The length of the recovery time for the "UnitAction", in seconds. */
+	/** 单位动作的恢复时间长度，单位为秒。 */
 	recovery: number;
 
-	/** Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority. */
+	/** 表示单位动作是否在队列中。在队列中的单位动作不会替换具有相同优先级的正在运行的单位动作。 */
 	queued?: boolean;
 
 	/**
-	 * A function that determines whether the "UnitAction" is currently available for the specified "Unit".
-	 * @param owner (Unit) The "Unit" that owns the "UnitAction".
-	 * @param action (UnitAction) The "UnitAction" to check availability for.
-	 * @returns (boolean) True if the "UnitAction" is available for the "Unit", false otherwise.
+	 * 用于判断指定游戏单位当前是否可以执行单位动作的函数。
+	 * @param owner 执行该单位动作的游戏单位。
+	 * @param action 需要检查可用性的单位动作。
+	 * @returns 如果单位动作对游戏单位可用，则返回true，否则返回false。
 	 */
 	available(this: void, owner: Unit, action: UnitAction): boolean;
 
 	/**
-	 * A function that creates a new function or "Routine.Job" that represents the processing of the "UnitAction".
-	 * @param owner (Unit) The "Unit" that will own the "UnitAction".
-	 * @param action (UnitAction) The "UnitAction" to create the processing function or "Routine.Job" for.
-	 * @param deltaTime (number) The time elapsed since the last frame.
-	 * @returns (function or Routine.Job) A function or a "Routine.Job" that returns or yields true if the "UnitAction" is complete.
+	 * 创建新函数或协程作业以代表单位动作的处理过程的函数。
+	 * @param owner 将拥有单位动作的游戏单位。
+	 * @param action 需要创建处理函数或协程作业的单位动作。
+	 * @param deltaTime 自上一帧以来的经过时间。
+	 * @returns 返回或产生true如果单位动作已完成的函数或协程作业。
 	 */
 	create(this: void, owner: Unit, action: UnitAction, deltaTime: number): ((this: void, owner: Unit, action: UnitAction, deltaTime: number) => boolean) | Job;
 
 	/**
-	 * A function that gets invoked when the specified "Unit" stops performing the "UnitAction".
-	 * @param owner (Unit) The "Unit" that is stopping the "UnitAction".
+	 * 当指定的游戏单位停止执行单位动作时调用的函数。
+	 * @param owner 正在停止单位动作的游戏单位。
 	 */
 	stop?(this: void, owner: Unit): void;
 }
 
 /**
- * An interface that defines and stores the behavior and properties of the "UnitAction" class.
- * It is a singleton object that manages all "UnitAction" objects.
+ * 定义并存储游戏单位动作类的行为和属性的接口。
+ * 这是管理所有游戏单位动作对象的单例对象。
  */
 interface UnitActionClass {
 
 	/**
-	 * Adds a new "UnitAction" to the "UnitActionClass" with the specified name and parameters.
-	 * @param name The name of the new "UnitAction".
-	 * @param param The parameters for the new "UnitAction".
+	 * 添加具有指定名称和参数的新单位动作定义。
+	 * @param name 新单位动作的名称。
+	 * @param param 新单位动作的参数。
 	 */
 	add(name: string, param: UnitActionParam): void;
 
 	/**
-	 * Removes all "UnitAction" objects from the "UnitActionClass".
+	 * 移除所有单位动作定义对象。
 	 */
 	clear(): void;
 }
@@ -113,135 +113,135 @@ const unitActionClass: UnitActionClass;
 export {unitActionClass as UnitAction};
 
 /**
- * A class represents a character or other interactive item in a game scene.
+ * 代表游戏场景中的角色或其他交互项目的类。
  */
 class Unit extends Body {
 
 	private constructor();
 
 	/**
-	 * A property that references a "Playable" object for managing the animation state and playback of the "Unit".
+	 * 引用动画模型对象的属性，用于管理游戏对象的动画状态和播放。
 	 */
 	playable: Playable;
 
 	/**
-	 * A property that specifies the maximum distance at which the "Unit" can detect other "Unit" or objects.
+	 * 指定游戏对象能够检测到其他游戏对象或物理体的最大距离的属性。
 	 */
 	detectDistance: number;
 
 	/**
-	 * A property that specifies the size of the attack range for the "Unit".
+	 * 指定游戏对象攻击范围大小的属性。
 	 */
 	attackRange: Size;
 
 	/**
-	 * A boolean property that specifies whether the "Unit" is facing right or not.
+	 * 布尔属性，指定游戏对象是否面向右侧。
 	 */
 	faceRight: boolean;
 
 	/**
-	 * A boolean property that specifies whether the "Unit" is receiving a trace of the decision tree for debugging purposes.
+	 * 布尔属性，指定游戏对象是否正在接收决策树的追踪信息，用于调试目的。
 	 */
 	receivingDecisionTrace: boolean;
 
 	/**
-	 * A string property that specifies the decision tree to use for the "Unit's" AI behavior.
-	 * The decision tree object will be searched in The singleton instance Data.store.
+	 * 字符串属性，指定用于游戏对象的AI行为的决策树。
+	 * 决策树对象将在单例实例`Data.store`中搜索。
 	 */
 	decisionTree: string;
 
 	/**
-	 * Whether the "Unit" is currently on a surface or not.
+	 * 游戏对象当前是否在表面上。
 	 */
 	readonly onSurface: boolean;
 
 	/**
-	 * A "Sensor" object for detecting ground surfaces.
+	 * 用于检测地面表面的物理感应器对象。
 	 */
 	readonly groundSensor: Sensor;
 
 	/**
-	 * A "Sensor" object for detecting other "Unit" objects or physics bodies in the game world.
+	 * 用于检测游戏世界中的其他游戏对象或物理体的感应器对象。
 	 */
 	readonly detectSensor: Sensor;
 
 	/**
-	 * A "Sensor" object for detecting other "Unit" objects within the attack sensor area.
+	 * 用于检测攻击区域内的其他游戏对象的感应器对象。
 	 */
 	readonly attackSensor: Sensor;
 
 	/**
-	 * A "Dictionary" object for defining the properties and behavior of the "Unit".
+	 * 字典对象，用于定义游戏单位的属性和行为。
 	 */
 	readonly unitDef: Dictionary;
 
 	/**
-	 * A property that specifies the current action being performed by the "Unit".
+	 * 指定游戏单位当前正在执行的单位动作的属性。
 	 */
 	readonly currentAction: UnitAction;
 
 	/**
-	 * The width of the "Unit".
+	 * 游戏单位的宽度。
 	 */
 	readonly width: number;
 
 	/**
-	 * The height of the "Unit".
+	 * 游戏单位的高度。
 	 */
 	readonly height: number;
 
 	/**
-	 * An "Entity" object for representing the "Unit" in the ECS system.
+	 * 用于在ECS系统中表示游戏单位的数据实体对象。
 	 */
 	readonly entity: Entity;
 
 	/**
-	 * Adds a new "UnitAction" to the "Unit" with the specified name, and returns the new "UnitAction".
-	 * @param name The name of the new "UnitAction".
-	 * @returns The newly created "UnitAction".
+	 * 向游戏单位添加具有指定名称的新单位动作，并返回新的单位动作。
+	 * @param name 新单位动作的名称。
+	 * @returns 新创建的单位动作。
 	 */
 	attachAction(name: string): UnitAction;
 
 	/**
-	 * Removes the "UnitAction" with the specified name from the "Unit".
-	 * @param name The name of the "UnitAction" to remove.
+	 * 从游戏单位中移除具有指定名称的单位动作。
+	 * @param name 需要移除的单位动作的名称。
 	 */
 	removeAction(name: string): void;
 
 	/**
-	 * Removes all "UnitAction" objects from the "Unit".
+	 * 从游戏单位中移除所有单位动作对象。
 	 */
 	removeAllActions(): void;
 
 	/**
-	 * Returns the "UnitAction" with the specified name, or null if the "UnitAction" does not exist.
-	 * @param name The name of the "UnitAction" to retrieve.
-	 * @returns The "UnitAction" with the specified name, or null.
+	 * 返回具有指定名称的单位动作，如果单位动作不存在，则返回null。
+	 * @param name 需要检索的单位动作的名称。
+	 * @returns 具有指定名称的单位动作，或null。
 	 */
 	getAction(name: string): UnitAction | null;
 
 	/**
-	 * Calls the specified function for each "UnitAction" attached to the "Unit".
-	 * @param func A function to call for each "UnitAction".
+	 * 对附加到游戏单位的每个单位动作调用指定的函数。
+	 * @param func 需要为每个单位动作调用的函数。
 	 */
 	eachAction(func: (this: void, action: UnitAction) => void): void;
 
 	/**
-	 * Starts the "UnitAction" with the specified name, and returns true if the "UnitAction" was started successfully.
-	 * @param name The name of the "UnitAction" to start.
-	 * @returns True if the "UnitAction" was started successfully, false otherwise.
+	 * 开始具有指定名称的单位动作，并返回是否成功开始单位动作。
+	 * @param name 需要开始的单位动作的名称。
+	 * @returns 如果单位动作成功开始，则返回true，否则返回false。
 	 */
 	start(name: string): boolean;
 
 	/**
-	 * Stops the currently running "UnitAction".
+	 * 停止当前正在运行的单位动作。
 	 */
 	stop(): void;
 
 	/**
-	 * Returns true if the "Unit" is currently performing the specified "UnitAction", false otherwise.
-	 * @param name The name of the "UnitAction" to check.
-	 * @returns True if the "Unit" is currently performing the specified "UnitAction", false otherwise.
+	 * 如果游戏单位当前正在执行指定的单位动作，则返回true，否则返回false。
+	 * @param name 需要检查的单位动作的名称。
+	 * @returns 如果游戏单位当前正在执行指定的单位动作，则返回true，否则返回false。
 	 */
 	isDoing(name: string): boolean;
 }
@@ -249,33 +249,33 @@ class Unit extends Body {
 export type {Unit as UnitType};
 
 /**
- * A class for creating instances of Unit.
+ * 用于创建游戏单位实例的类。
  */
 interface UnitClass {
 
 	/**
-	 * The tag for the "GroundSensor" attached to each "Unit".
+	 * 附加到游戏单位的"GroundSensor"的标签。
 	 */
 	readonly GroundSensorTag: number;
 
 	/**
-	 * The tag for the "DetectSensor" attached to each "Unit".
+	 * 附加到游戏单位的"DetectSensor"的标签。
 	 */
 	readonly DetectSensorTag: number;
 
 	/**
-	 * The tag for the "AttackSensor" attached to each "Unit".
+	 * 附加到游戏单位的"AttackSensor"的标签。
 	 */
 	readonly AttackSensorTag: number;
 
 	/**
-	 * A metamethod that creates a new "Unit" object.
-	 * @param unitDef A "Dictionary" object that defines the properties and behavior of the "Unit".
-	 * @param physicsworld A "PhysicsWorld" object that represents the physics simulation world.
-	 * @param entity An "Entity" object that represents the "Unit" in the ECS system.
-	 * @param pos A "Vec2" object that specifies the initial position of the "Unit".
-	 * @param rot An optional number that specifies the initial rotation of the "Unit" (default is 0.0).
-	 * @returns The newly created "Unit" object.
+	 * 创建新的游戏单位对象的元方法。
+	 * @param unitDef 定义游戏单位属性和行为的字典对象。
+	 * @param physicsworld 表示物理模拟世界的物理世界对象。
+	 * @param entity 在ECS系统中代表游戏单位的数据实体对象。
+	 * @param pos 指定游戏单位初始位置的"Vec2"对象。
+	 * @param rot 可选的数字，指定游戏单位的初始旋转（默认为0.0）。
+	 * @returns 新创建的游戏单位对象。
 	 */
 	(
 		this: void,
@@ -291,7 +291,7 @@ const unitClass: UnitClass;
 export {unitClass as Unit};
 
 /**
- * An enum representing the possible relations between two groups.
+ * 表示两个游戏单位分组之间可能的关系的枚举。
  */
 export const enum Relation {
 	Enemy = "Enemy",
@@ -302,166 +302,166 @@ export const enum Relation {
 }
 
 /**
- * A singleton object that provides a centralized location for storing and accessing game-related data.
+ * 提供集中存储和访问游戏相关数据的单例对象。
  */
 interface Data {
 
 	/**
-	 * A group key representing the first index for a player group.
+	 * 表示游戏单位分组的第一个编号。
 	 */
 	readonly groupFirstPlayer: number;
 
 	/**
-	 * A group key representing the last index for a player group.
+	 * 表示游戏单位分组的最后一个编号。
 	 */
 	readonly groupLastPlayer: number;
 
 	/**
-	 * A group key that won't have any contact with other groups by default.
+	 * 默认不会与其他游戏单位分组有任何接触的组编号。
 	 */
 	readonly groupHide: number;
 
 	/**
-	 * A group key that will have contacts with player groups by default.
+	 * 默认会与游戏单位分组有接触的组编号。
 	 */
 	readonly groupDetectPlayer: number;
 
 	/**
-	 * A group key representing terrain that will have contacts with other groups by default.
+	 * 表示默认会与其他游戏单位分组有接触的地形的组编号。
 	 */
 	readonly groupTerrain: number;
 
 	/**
-	 * A group key that will have contacts with other groups by default.
+	 * 默认会与其他游戏单位分组有接触的组编号。
 	 */
 	readonly groupDetection: number;
 
 	/**
-	 * A dictionary that can be used to store arbitrary data associated with string keys and various values globally.
+	 * 可用于全局存储任意共享数据的字典。
 	 */
 	readonly store: Dictionary;
 
 	/**
-	 * A function that can be used to set a boolean value indicating whether two groups should be in contact or not.
-	 * @param groupA An integer representing the first group.
-	 * @param groupB An integer representing the second group.
-	 * @param contact A boolean indicating whether the two groups should be in contact.
+	 * 可用于设置两个游戏单位分组是否应有接触的布尔值的函数。
+	 * @param groupA 表示第一组的整数。
+	 * @param groupB 表示第二组的整数。
+	 * @param contact 表示两个游戏单位分组是否应有接触的布尔值。
 	 */
 	setShouldContact(groupA: number, groupB: number, contact: boolean): void;
 
 	/**
-	 * A function that can be used to get a boolean value indicating whether two groups should be in contact or not.
-	 * @param groupA An integer representing the first group.
-	 * @param groupB An integer representing the second group.
-	 * @returns Whether the two groups should be in contact.
+	 * 可用于获取两个游戏单位分组是否应有接触的布尔值的函数。
+	 * @param groupA 表示第一组的整数。
+	 * @param groupB 表示第二组的整数。
+	 * @returns 两个游戏单位分组是否应有接触。
 	 */
 	getShouldContact(groupA: number, groupB: number): boolean;
 
 	/**
-	 * A function that can be used to set the relation between two groups.
-	 * @param groupA An integer representing the first group.
-	 * @param groupB An integer representing the second group.
-	 * @param relation The relation between the two groups.
+	 * 可用于设置两个游戏单位分组之间关系的函数。
+	 * @param groupA 表示第一组的整数。
+	 * @param groupB 表示第二组的整数。
+	 * @param relation 两个分组之间的关系。
 	 */
 	setRelation(groupA: number, groupB: number, relation: Relation): void;
 
 	/**
-	 * A function that can be used to get the relation between two groups.
-	 * @param groupA An integer representing the first group.
-	 * @param groupB An integer representing the second group.
-	 * @returns The relation between the two groups.
+	 * 可用于获取两个游戏单位分组之间关系的函数。
+	 * @param groupA 表示第一组的整数。
+	 * @param groupB 表示第二组的整数。
+	 * @returns 两个分组之间的关系。
 	 */
 	getRelation(groupA: number, groupB: number): Relation;
 
 	/**
-	 * A function that can be used to get the relation between two bodies.
-	 * @param bodyA The first body.
-	 * @param bodyB The second body.
-	 * @returns The relation between the two bodies.
+	 * 可用于获取两个物体之间关系的函数。
+	 * @param bodyA 第一个物体。
+	 * @param bodyB 第二个物体。
+	 * @returns 两个物体之间的关系。
 	 */
 	getBodyRelation(bodyA: Body, bodyB: Body): Relation;
 
 	/**
-	 * A function that returns whether two groups have an "Enemy" relation.
-	 * @param groupA An integer representing the first group.
-	 * @param groupB An integer representing the second group.
-	 * @returns Whether the two groups have an "Enemy" relation.
+	 * 返回两个游戏单位分组是否具有"Enemy"关系的函数。
+	 * @param groupA 表示第一组的整数。
+	 * @param groupB 表示第二组的整数。
+	 * @returns 两个分组是否具有"Enemy"关系。
 	 */
 	isEnemy(groupA: number, groupB: number): boolean;
 
 	/**
-	 * A function that returns whether two bodies have an "Enemy" relation.
-	 * @param bodyA The first body.
-	 * @param bodyB The second body.
-	 * @returns Whether the two bodies have an "Enemy" relation.
+	 * 返回两个物体是否具有"Enemy"关系的函数。
+	 * @param bodyA 第一个物体。
+	 * @param bodyB 第二个物体。
+	 * @returns 两个物体是否具有"Enemy"关系。
 	 */
 	isBodyEnemy(bodyA: Body, bodyB: Body): boolean;
 
 	/**
-	 * A function that returns whether two groups have a "Friend" relation.
-	 * @param groupA An integer representing the first group.
-	 * @param groupB An integer representing the second group.
-	 * @returns Whether the two groups have a "Friend" relation.
+	 * 返回两个游戏单位分组是否具有"Friend"关系的函数。
+	 * @param groupA 表示第一组的整数。
+	 * @param groupB 表示第二组的整数。
+	 * @returns 两个分组是否具有"Friend"关系。
 	 */
 	isFriend(groupA: number, groupB: number): boolean;
 
 	/**
-	 * A function that returns whether two bodies have a "Friend" relation.
-	 * @param bodyA The first body.
-	 * @param bodyB The second body.
-	 * @returns Whether the two bodies have a "Friend" relation.
+	 * 函数返回两个物体是否具有"Friend"关系。
+	 * @param bodyA 第一个物体。
+	 * @param bodyB 第二个物体。
+	 * @returns 两个物体是否具有"Friend"关系。
 	 */
 	isBodyFriend(bodyA: Body, bodyB: Body): boolean;
 
 	/**
-	 * A function that returns whether two groups have a "Neutral" relation.
-	 * @param groupA An integer representing the first group.
-	 * @param groupB An integer representing the second group.
-	 * @returns Whether the two groups have a "Neutral" relation.
+	 * 函数返回两个游戏单位分组是否具有"Neutral"关系。
+	 * @param groupA 表示第一组的整数。
+	 * @param groupB 表示第二组的整数。
+	 * @returns 两个分组是否具有"Neutral"关系。
 	 */
 	isNeutral(groupA: number, groupB: number): boolean;
 
 	/**
-	 * A function that returns whether two bodies have a "Neutral" relation.
-	 * @param bodyA The first body.
-	 * @param bodyB The second body.
-	 * @returns Whether the two bodies have a "Neutral" relation.
+	 * 函数返回两个物体是否具有"Neutral"关系。
+	 * @param bodyA 第一个物体。
+	 * @param bodyB 第二个物体。
+	 * @returns 两个物体是否具有"Neutral"关系。
 	 */
 	isBodyNeutral(bodyA: Body, bodyB: Body): boolean;
 
 	/**
-	 * A function that sets the bonus factor for a particular type of damage against a particular type of defense.
-	 * @param damageType An integer representing the type of damage.
-	 * @param defenseType An integer representing the type of defense.
-	 * @param bonus A number representing the bonus.
+	 * 函数设置特定类型的伤害对特定类型的防御的奖励因子。
+	 * @param damageType 表示伤害类型的整数。
+	 * @param defenseType 表示防御类型的整数。
+	 * @param bonus 表示奖励因子的数字。
 	 */
 	setDamageFactor(damageType: number, defenseType: number, bonus: number): void;
 
 	/**
-	 * A function that gets the bonus factor for a particular type of damage against a particular type of defense.
-	 * @param damageType An integer representing the type of damage.
-	 * @param defenseType An integer representing the type of defense.
-	 * @returns A number representing the bonus factor.
+	 * 函数获取特定类型的伤害对特定类型的防御的奖励因子。
+	 * @param damageType 表示伤害类型的整数。
+	 * @param defenseType 表示防御类型的整数。
+	 * @returns 表示奖励因子的数字。
 	 */
 	getDamageFactor(damageType: number, defenseType: number): number;
 
 	/**
-	 * A function that returns whether a body is a player or not.
-	 * @param body The body to check.
-	 * @returns Whether the body is a player.
+	 * 函数返回一个物体是否为玩家分组。
+	 * @param body 需要检查的物体。
+	 * @returns 物体是否为玩家分组。
 	 */
 	isPlayer(body: Body): boolean;
 
 	/**
-	 * A function that returns whether a body is terrain or not.
-	 * @param body The body to check.
-	 * @returns Whether the body is terrain.
+	 * 函数返回一个物体是否为地形。
+	 * @param body 需要检查的物体。
+	 * @returns 物体是否为地形。
 	 */
 	isTerrain(body: Body): boolean;
 
 	/**
-	 * A function that clears all data stored in the "Data" object, including user data in Data.store field.
-	 * And reset some data to default values.
+	 * 函数清除存储在"Data"对象中的所有数据，包括`Data.store`字段中的用户数据。
+	 * 并将一些数据重置为默认值。
 	 */
 	clear(): void;
 }
@@ -470,42 +470,42 @@ const data: Data;
 export {data as Data};
 
 /**
- * A class that specifies how a bullet object should interact with other game objects or units based on their relationship.
+ * 定义子弹对象如何根据其与其他游戏对象或游戏单位的根据不同关系进行交互的类。
  */
 class TargetAllow {
 
 	/**
-	 * Whether the bullet object can collide with terrain.
+	 * 子弹对象是否可以与地形碰撞。
 	 */
 	terrainAllowed: boolean;
 
 	/**
-	 * A function that allows or disallows the bullet object to interact with a game object or unit, based on their relationship.
-	 * @param relation The relationship between the bullet object and the other game object or unit.
-	 * @param allow Whether the bullet object should be allowed to interact.
+	 * 根据子弹对象与游戏对象或游戏单位的关系，允许或禁止子弹对象进行交互。
+	 * @param relation 子弹对象与其他游戏对象或游戏单位的关系。
+	 * @param allow 是否应允许子弹对象进行交互。
 	 */
 	allow(relation: Relation, allow: boolean): void;
 
 	/**
-	 * A function that determines whether the bullet object is allowed to interact with a game object or unit, based on their relationship.
-	 * @param relation The relationship between the bullet object and the other game object or unit.
-	 * @returns Whether the bullet object is allowed to interact.
+	 * 根据子弹对象与游戏对象或游戏单位的关系，确定是否允许子弹对象进行交互。
+	 * @param relation 子弹对象与其他游戏对象或游戏单位的关系。
+	 * @returns 子弹对象是否被允许进行交互。
 	 */
 	isAllow(relation: Relation): boolean;
 }
 
 /**
- * A class that specifies how a bullet object should interact with other game objects or units based on their relationship.
- * @usage
- * const targetAllow = new TargetAllow();
+ * 定义子弹对象如何根据其与其他游戏对象或游戏单位的关系进行交互的类。
+ * @example
+ * const targetAllow = TargetAllow();
  * targetAllow.terrainAllowed = true;
  * targetAllow.allow("Enemy", true);
  */
 interface TargetAllowClass {
 
 	/**
-	 * Call this function to create an instance of TargetAllow.
-	 * @returns An instance of TargetAllow.
+	 * 调用此函数以创建TargetAllow的实例。
+	 * @returns TargetAllow的实例。
 	 */
 	(this: void): TargetAllow;
 }
@@ -514,54 +514,54 @@ const targetAllowClass: TargetAllowClass;
 export {targetAllowClass as TargetAllow};
 
 /**
- * A platform camera for 2D platformer games that can track a game unit's movement and keep it within the camera's view.
+ * 2D平台游戏的相机，可以跟踪游戏单位的移动并将其保持在相机的视野内。
  */
 class PlatformCamera extends Camera {
 
 	private constructor();
 
 	/**
-	 * The camera's position.
+	 * 相机的位置。
 	 */
 	position: Vec2;
 
 	/**
-	 * The camera's rotation in degrees.
+	 * 相机的旋转角度。
 	 */
 	rotation: number;
 
 	/**
-	 * The camera's zoom factor, 1.0 means the normal size, 2.0 mean zoom to doubled size.
+	 * 相机的缩放因子，1.0表示正常大小，2.0表示放大到双倍大小。
 	 */
 	zoom: number;
 
 	/**
-	 * The rectangular area within which the camera is allowed to view.
+	 * 相机允许查看的矩形区域。
 	 */
 	boundary: Rect;
 
 	/**
-	 * The ratio at which the camera should move to keep up with the target's position.
-	 * For example, set to `Vec2(1.0, 1.0)`, then the camera will keep up to the target's position right away.
-	 * Set to Vec2(0.5, 0.5) or smaller value, then the camera will move halfway to the target's position each frame, resulting in a smooth and gradual movement.
+	 * 相机应以何种比率跟随目标的位置移动。
+	 * 例如，设置为`Vec2(1.0, 1.0)`，则相机将立即跟随到目标的位置。
+	 * 设置为Vec2(0.5, 0.5)或更小的值，那么相机每帧将移动到目标位置的一半，从而产生平滑且逐渐的移动。
 	 */
 	followRatio: Vec2;
 
 	/**
-	 * The game unit that the camera should track.
+	 * 相机应跟踪的游戏单位。
 	 */
 	followTarget: Node;
 }
 
 /**
- * A class that defines how to create instances of PlatformCamera.
+ * 定义如何创建2D平台游戏的相机实例的类。
  */
 interface PlatformCameraClass {
 
 	/**
-	 * Creates a new instance of PlatformCamera.
-	 * @param name [optional] The name of the new instance, default is an empty string.
-	 * @returns The new PlatformCamera instance.
+	 * 创建一个新的2D平台游戏的相机实例。
+	 * @param name [可选] 新实例的名称，默认为空字符串。
+	 * @returns 新的2D平台游戏的相机实例。
 	 */
 	(this: void, name?: string): PlatformCamera;
 }
@@ -570,74 +570,74 @@ const platformCameraClass: PlatformCameraClass;
 export {platformCameraClass as PlatformCamera};
 
 /**
- * A class representing a 2D platformer game world with physics simulations.
+ * 代表一个具有物理模拟的2D平台游戏世界的类。
  */
 class PlatformWorld extends PhysicsWorld {
 
 	private constructor();
 
 	/**
-	 * The camera used to control the view of the game world.
+	 * 用于控制游戏世界可视区域的相机。
 	 */
 	readonly camera: PlatformCamera;
 
 	/**
-	 * Moves a child node to a new order for a different layer.
-	 * @param child The child node to be moved.
-	 * @param newOrder The new order of the child node.
+	 * 将子节点移动到不同层级的新顺序。
+	 * @param child 需要移动的子节点。
+	 * @param newOrder 子节点的新层级顺序。
 	 */
 	moveChild(child: Node, newOrder: number): void;
 
 	/**
-	 * Gets the layer node at a given order.
-	 * @param order The order of the layer node to get.
-	 * @returns The layer node at the given order.
+	 * 获取给定顺序的层级节点。
+	 * @param order 需要获取的层级节点的顺序。
+	 * @returns 给定顺序的层级节点。
 	 */
 	getLayer(order: number): Node;
 
 	/**
-	 * Sets the parallax moving ratio for a given layer to simulate 3D projection effect.
-	 * @param order The order of the layer to set the ratio for.
-	 * @param ratio The new parallax ratio for the layer.
+	 * 为给定层级设置视差移动比例，以模拟3D投影效果。
+	 * @param order 需要设置移动比例的层级的顺序。
+	 * @param ratio 层级的新视差比例。
 	 */
 	setLayerRatio(order: number, ratio: Vec2): void;
 
 	/**
-	 * Gets the parallax moving ratio for a given layer.
-	 * @param order The order of the layer to get the ratio for.
-	 * @returns The parallax ratio for the layer.
+	 * 获取给定层级的视差移动比例。
+	 * @param order 需要获取比例的层级的顺序。
+	 * @returns 层级的视差比例。
 	 */
 	getLayerRatio(order: number): Vec2;
 
 	/**
-	 * Sets the position offset for a given layer.
-	 * @param order The order of the layer to set the offset for.
-	 * @param offset The new position offset for the layer.
+	 * 为给定层级设置位置偏移。
+	 * @param order 需要设置偏移的层级的顺序。
+	 * @param offset 层级的新位置偏移。
 	 */
 	setLayerOffset(order: number, offset: Vec2): void;
 
 	/**
-	 * Gets the position offset for a given layer.
-	 * @param order The order of the layer to get the offset for.
-	 * @returns The position offset for the layer.
+	 * 获取给定层级的位置偏移。
+	 * @param order 需要获取偏移的层级的顺序。
+	 * @returns 层级的位置偏移。
 	 */
 	getLayerOffset(order: number): Vec2;
 
 	/**
-	 * Swaps the positions of two layers.
-	 * @param orderA The order of the first layer to swap.
-	 * @param orderB The order of the second layer to swap.
+	 * 交换两个层级的位置。
+	 * @param orderA 需要交换的第一个层级的顺序。
+	 * @param orderB 需要交换的第二个层级的顺序。
 	 */
 	swapLayer(orderA: number, orderB: number): void;
 
 	/**
-	 * Removes a layer from the game world.
-	 * @param order The order of the layer to remove.
+	 * 从游戏世界中移除一个层级。
+	 * @param order 需要移除的层级的顺序。
 	 */
 	removeLayer(order: number): void;
 
 	/**
-	 * Removes all layers from the game world.
+	 * 从游戏世界中移除所有层级。
 	 */
 	removeAllLayers(): void;
 }
@@ -645,18 +645,18 @@ class PlatformWorld extends PhysicsWorld {
 export type {PlatformWorld as PlatformWorldType};
 
 /**
- * A class for instantiating instances of PlatformWorld.
+ * 用于实例化PlatformWorld实例的类。
  * @example
  * ```
- * const world = PlatformWorldClass();
+ * const world = PlatformWorld();
  * world.addTo(entry);
  * ```
  */
 interface PlatformWorldClass {
 
 	/**
-	 * The metamethod to create a new instance of PlatformWorld.
-	 * @returns A new instance of PlatformWorld.
+	 * 创建PlatformWorld新实例的元方法。
+	 * @returns PlatformWorld的新实例。
 	 */
 	(this: void): PlatformWorld;
 }
@@ -665,19 +665,19 @@ const platformWorldClass: PlatformWorldClass;
 export {platformWorldClass as PlatformWorld};
 
 /**
- * Represents a definition for a visual component of a game bullet or other visual item.
+ * 代表游戏子弹或其他视觉项目的可视组件的定义。
  */
 class Face extends Node {
 
 	/**
-	 * Adds a child `Face` definition to it.
-	 * @param face The child `Face` to add.
+	 * 添加子可视组件定义。
+	 * @param face 要添加的子可视组件。
 	 */
 	addChild(face: Face): void;
 
 	/**
-	 * Returns a node that can be added to a scene tree for rendering.
-	 * @returns The `Node` representing this `Face`.
+	 * 返回可以添加到场景树进行渲染的节点。
+	 * @returns 通过此可视组件创建的节点对象。
 	 */
 	toNode(): Node;
 }
@@ -685,7 +685,7 @@ class Face extends Node {
 export type {Face as FaceType};
 
 /**
- * An interface provides functions for creating instances of the `Face` component with different configurations.
+ * 提供创建具有不同配置的可视组件实例的函数的接口。
  * @example
  * ```
  * import { Face } from "Platformer";
@@ -700,13 +700,13 @@ export type {Face as FaceType};
 interface FaceClass {
 
 	/**
-	 * Creates a new `Face` definition using the specified attributes.
-	 * @param faceStr A string for creating the `Face` component.
-	 * Could be 'Image/file.png' and 'Image/items.clip|itemA'.
-	 * @param point The position of the `Face` component, default is `Vec2.zero`.
-	 * @param scale The scale of the `Face` component, default is 1.0.
-	 * @param angle The angle of the `Face` component, default is 0.0.
-	 * @returns The new `Face` component.
+	 * 使用指定的属性创建新的可视组件定义。
+	 * @param faceStr 用于创建可视组件的字符串。
+	 * 可以是'Image/file.png'和'Image/items.clip|itemA'。
+	 * @param point 可视组件的位置，默认为`Vec2.zero`。
+	 * @param scale 可视组件的缩放，默认为1.0。
+	 * @param angle 可视组件的角度，默认为0.0。
+	 * @returns 新的可视组件。
 	 */
 	(
 		this: void,
@@ -717,12 +717,12 @@ interface FaceClass {
 	): Face;
 
 	/**
-	 * Creates a new `Face` definition using the specified attributes.
-	 * @param createFunc A function that returns a `Node` representing the `Face` component.
-	 * @param point The position of the `Face` component, default is `Vec2.zero`.
-	 * @param scale The scale of the `Face` component, default is 1.0.
-	 * @param angle The angle of the `Face` component, default is 0.0.
-	 * @returns The new `Face` component.
+	 * 使用指定的属性创建新的可视组件定义。
+	 * @param createFunc 返回表示可视组件的`Node`对象的函数。
+	 * @param point 可视组件的位置，默认为`Vec2.zero`。
+	 * @param scale 可视组件的缩放，默认为1.0。
+	 * @param angle 可视组件的角度，默认为0.0。
+	 * @returns 新的可视组件。
 	 */
 	(
 		this: void,
@@ -737,30 +737,30 @@ const faceClass: FaceClass;
 export {faceClass as Face};
 
 /**
- * A class to represent a visual effect object like Particle, Frame Animation, or just a Sprite.
+ * 用于表示粒子、帧动画或仅仅是精灵的视觉效果对象的类。
  */
 class Visual extends Node {
 
 	private constructor();
 
 	/**
-	 * Whether the visual effect is currently playing or not.
+	 * 视觉效果是否正在播放。
 	 */
 	playing: boolean;
 
 	/**
-	 * Starts playing the visual effect.
+	 * 开始播放视觉效果。
 	 */
 	start(): void;
 
 	/**
-	 * Stops playing the visual effect.
+	 * 停止播放视觉效果。
 	 */
 	stop(): void;
 
 	/**
-	 * Automatically removes the visual effect from the game world when it finishes playing.
-	 * @returns The same "Visual" object that was passed in as a parameter.
+	 * 当视觉效果播放完毕时，自动从游戏世界中移除。
+	 * @returns 作为参数传入的同一个视觉效果对象。
 	 */
 	autoRemove(): Visual;
 }
@@ -768,15 +768,15 @@ class Visual extends Node {
 export type {Visual as VisualType};
 
 /**
-* A class for creating "Visual" objects.
+* 用于创建视觉效果对象的类。
 */
 interface VisualClass {
 
 	/**
-	 * Creates a new "Visual" object with the specified name.
-	 * @param name The name of the new "Visual" object.
-	 * Could be a particle file, a frame animation file, or an image file.
-	 * @returns The new "Visual" object.
+	 * 使用指定的名称创建新的视觉效果对象。
+	 * @param name 新视觉效果对象的名称。
+	 * 可以是粒子文件、帧动画文件或图像文件。
+	 * @returns 新的视觉效果对象。
 	 */
 	(this: void, name: string): Visual;
 }
@@ -784,327 +784,328 @@ interface VisualClass {
 const visualClass: VisualClass;
 export {visualClass as Visual};
 
-/** A behavior tree framework for creating game AI structures. */
+/** 用于创建游戏AI结构的行为树框架。 */
 export namespace Behavior {
 
 /**
- * A blackboard object that can be used to store data for behavior tree nodes.
+ * 可用于存储行为树节点数据的黑板对象。
  */
 class Blackboard {
 
 	private constructor();
 
 	/**
-	 * The time since the last frame update in seconds.
+	 * 自上次帧更新以来的时间（以秒为单位）。
 	 */
 	deltaTime: number;
 
 	/**
-	 * The unit that the AI agent belongs to.
+	 * 当前执行AI所属的游戏单位。
 	 */
 	owner: Unit;
 
 	/**
-	 * A method to index the blackboard properties.
-	 * @param key The key to index.
-	 * @returns The value associated with the key.
+	 * 用于索引黑板属性的方法。
+	 * @param key 要索引的键。
+	 * @returns 与键关联的值。
 	 */
 	[key: string]: Item;
 }
 
 /**
- * A leaf node in a behavior tree.
+ * 行为树中的叶节点。
  */
 class Leaf extends Object {
 	private constructor();
 }
 
 /**
- * Creates a new sequence node that executes an array of child nodes in order.
- * @param nodes An array of child nodes.
- * @returns A new sequence node.
+ * 创建一个新的序列节点，按顺序执行一组子节点。
+ * @param nodes 子节点数组。
+ * @returns 新的序列节点。
  */
 export function Seq(this: void, nodes: Leaf[]): Leaf;
 
 /**
- * Creates a new selector node that selects and executes one of its child nodes that will succeed.
- * @param nodes An array of child nodes.
- * @returns A new selector node.
+ * 创建一个新的选择器节点，选择并执行将成功的子节点之一。
+ * @param nodes 子节点数组。
+ * @returns 新的选择器节点。
  */
 export function Sel(this: void, nodes: Leaf[]): Leaf;
 
 /**
- * Creates a new condition node that executes a check handler function when executed.
- * @param name The name of the condition.
- * @param check A function that takes a blackboard object and returns a boolean value.
- * @returns A new condition node.
+ * 创建一个新的条件节点，当执行时执行检查处理函数。
+ * @param name 条件的名称。
+ * @param check 接收一个黑板对象并返回布尔值的函数。
+ * @returns 新的条件节点。
  */
 export function Con(this: void, name: string, check: (this: void, board: Blackboard) => boolean): Leaf;
 
 /**
- * Creates a new action node that executes an action when executed.
- * This node will block the execution until the action finishes.
- * @param actionName The name of the action to execute.
- * @returns A new action node.
+ * 创建一个新的动作节点，当执行时执行一个动作。
+ * 此节点将阻止执行，直到动作完成。
+ * @param actionName 要执行的动作的名称。
+ * @returns 新的动作节点。
  */
 export function Act(this: void, actionName: string): Leaf;
 
 /**
- * Creates a new command node that executes a command when executed.
- * This node will return right after the action starts.
- * @param actionName The name of the command to execute.
- * @returns A new command node.
+ * 创建一个新的命令节点，当执行时执行一个命令。
+ * 此节点将在动作开始后立即返回。
+ * @param actionName 要执行的命令的名称。
+ * @returns 新的命令节点。
  */
 export function Command(this: void, actionName: string): Leaf;
 
 /**
- * Creates a new wait node that waits for a specified duration when executed.
- * @param duration The duration to wait in seconds.
- * @returns A new wait node.
+ * 创建一个新的等待节点，当执行时等待指定的持续时间。
+ * @param duration 以秒为单位的等待时间。
+ * @returns 新的等待节点。
  */
 export function Wait(this: void, duration: number): Leaf;
 
 /**
- * Creates a new countdown node that executes a child node continuously until a timer runs out.
- * @param time The time limit in seconds.
- * @param node The child node to execute.
- * @returns A new countdown node.
+ * 创建一个新的倒计时节点，执行子节点直到计时器用完。
+ * @param time 以秒为单位的时间限制。
+ * @param node 要执行的子节点。
+ * @returns 新的倒计时节点。
  */
 export function Countdown(this: void, time: number, node: Leaf): Leaf;
 
 /**
- * Creates a new timeout node that executes a child node until a timer runs out.
- * @param time The time limit in seconds.
- * @param node The child node to execute.
- * @returns A new timeout node.
+ * 创建一个新的超时节点，执行子节点直到计时器用完。
+ * @param time 以秒为单位的时间限制。
+ * @param node 要执行的子节点。
+ * @returns 新的超时节点。
  */
 export function Timeout(this: void, time: number, node: Leaf): Leaf;
 
 /**
- * Creates a new repeat node that executes a child node a specified number of times.
- * @param times The number of times to execute the child node.
- * @param node The child node to execute.
- * @returns A new repeat node.
+ * 创建一个新的重复节点，执行子节点指定的次数。
+ * @param times 执行子节点的次数。
+ * @param node 要执行的子节点。
+ * @returns 新的重复节点。
  */
 export function Repeat(this: void, times: number, node: Leaf): Leaf;
 
 /**
- * Creates a new repeat node that executes a child node repeatedly.
- * @param node The child node to execute.
- * @returns A new repeat node.
+ * 创建一个新的重复节点，反复执行子节点。
+ * @param node 要执行的子节点。
+ * @returns 新的重复节点。
  */
 export function Repeat(this: void, node: Leaf): Leaf;
 
 /**
- * Creates a new retry node that executes a child node repeatedly until it succeeds or a maximum number of retries is reached.
- * @param times The maximum number of retries.
- * @param node The child node to execute.
- * @returns A new retry node.
+ * 创建一个新的重试节点，反复执行子节点，直到它成功或达到最大重试次数。
+ * @param times 最大重试次数。
+ * @param node 要执行的子节点。
+ * @returns 新的重试节点。
  */
 export function Retry(this: void, times: number, node: Leaf): Leaf;
 
 /**
- * Creates a new retry node that executes a child node repeatedly until it succeeds.
- * @param node The child node to execute.
- * @returns A new retry node.
+ * 创建一个新的重试节点，反复执行子节点，直到它成功。
+ * @param node 要执行的子节点。
+ * @returns 新的重试节点。
  */
 export function Retry(this: void, node: Leaf): Leaf;
 
 } // namespace Behavior
 
 /**
- * The singleton interface to retrieve information when executing the decision tree.
+ * 单例接口，用于在执行决策树时获取信息。
  */
 interface AI {
 
 	/**
-	 * Gets an array of units in detection range that have the specified relation to current AI agent.
-	 * @param relation The relation to filter the units by.
-	 * @returns An array of units with the specified relation.
+	 * 获取在检测范围内与当前执行AI具有指定关系的游戏单位数组。
+	 * @param relation 用于过滤游戏单位的关系。
+	 * @returns 具有指定关系的游戏单位数组。
 	 */
 	getUnitsByRelation(relation: Relation): Unit[];
 
 	/**
-	 * Gets an array of units that the AI has detected.
-	 * @returns An array of detected units.
+	 * 获取AI检测到的游戏单位数组。
+	 * @returns 检测到的游戏单位数组。
 	 */
 	getDetectedUnits(): Unit[];
 
 	/**
-	 * Gets an array of bodies that the AI has detected.
-	 * @returns An array of detected bodies.
+	 * 获取AI检测到的物体数组。
+	 * @returns 检测到的物体数组。
 	 */
 	getDetectedBodies(): Body[];
 
 	/**
-	 * Gets the nearest unit that has the specified relation to the AI.
-	 * @param relation The relation to filter the units by.
-	 * @returns The nearest unit with the specified relation.
+	 * 获取与AI具有指定关系的最近的游戏单位。
+	 * @param relation 用于过滤游戏单位的关系。
+	 * @returns 具有指定关系的最近的游戏单位。
 	 */
 	getNearestUnit(relation: Relation): Unit;
 
 	/**
-	 * Gets the distance to the nearest unit that has the specified relation to the AI agent.
-	 * @param relation The relation to filter the units by.
-	 * @returns The distance to the nearest unit with the specified relation.
+	 * 获取到与AI代理具有指定关系的最近游戏单位的距离。
+	 * @param relation 用于过滤游戏单位的关系。
+	 * @returns 到具有指定关系的最近游戏单位的距离。
 	 */
 	getNearestUnitDistance(relation: Relation): number;
 
 	/**
-	 * Gets an array of units that are within attack range.
-	 * @returns An array of units in attack range.
+	 * 获取在攻击范围内的游戏单位数组。
+	 * @returns 在攻击范围内的游戏单位数组。
 	 */
 	getUnitsInAttackRange(): Unit[];
 
 	/**
-	 * Gets an array of bodies that are within attack range.
-	 * @returns An array of bodies in attack range.
+	 * 获取在攻击范围内的物体数组。
+	 * @returns 在攻击范围内的物体数组。
 	 */
 	getBodiesInAttackRange(): Body[];
 }
 
 /**
- * A decision tree framework for creating game AI structures.
+ * 用于创建游戏AI结构的决策树框架。
  */
 export namespace Decision {
 
 /**
- * A leaf node in a decision tree.
+ * 决策树中的叶节点。
  */
 class Leaf extends Object {
 	private constructor();
 }
 
 /**
- * Creates a selector node with the specified child nodes.
- * A selector node will go through the child nodes until one succeeds.
- * @param nodes An array of `Leaf` nodes.
- * @returns A `Leaf` node that represents a selector.
+ * 创建一个带有指定子节点的选择器节点。
+ * 选择器节点将遍历子节点，直到其中一个成功。
+ * @param nodes 一个AI节点的数组。
+ * @returns 代表选择器的AI节点。
  */
 export function Sel(this: void, nodes: Leaf[]): Leaf;
 
 /**
- * Creates a sequence node with the specified child nodes.
- * A sequence node will go through the child nodes until all nodes succeed.
- * @param nodes An array of `Leaf` nodes.
- * @returns A `Leaf` node that represents a sequence.
+ * 创建一个带有指定子节点的序列节点。
+ * 序列节点将遍历子节点，直到所有节点成功。
+ * @param nodes 一个AI节点的数组。
+ * @returns 代表序列的AI节点。
  */
 export function Seq(this: void, nodes: Leaf[]): Leaf;
 
 /**
- * Creates a condition node with the specified name and handler function.
- * @param name The name of the condition.
- * @param check The check function that takes a `Unit` parameter and returns a boolean result.
- * @returns A `Leaf` node that represents a condition check.
+ * 创建一个带有指定名称和处理函数的条件节点。
+ * @param name 条件的名称。
+ * @param check 接收一个`游戏单位`参数并返回布尔结果的检查函数。
+ * @returns 代表条件检查的AI节点。
  */
 export function Con(this: void, name: string, check: (this: void, self: Unit) => boolean): Leaf;
 
 /**
- * Creates an action node with the specified action name.
- * @param actionName The name of the action to perform.
- * @returns A `Leaf` node that represents an action.
+ * 创建一个带有指定动作名称的动作节点。
+ * @param actionName 要执行的动作的名称。
+ * @returns 代表动作的AI节点。
  */
 export function Act(this: void, actionName: string): Leaf;
 
 /**
- * Creates an action node with the specified handler function.
- * @param handler The handler function that takes a `Unit` parameter which is the running AI agent and returns an action.
- * @returns A `Leaf` node that represents an action.
+ * 创建一个带有指定处理函数的动作节点。
+ * @param handler 接收一个`游戏单位`参数（即正在运行AI的对象）并返回动作的处理函数。
+ * @returns 代表动作的AI节点。
  */
 export function Act(this: void, handler: (this: void, self: Unit) => string): Leaf;
 
 /**
- * Creates a leaf node that represents accepting the current behavior tree.
- * Always get a success result from this node.
- * @returns A `Leaf` node.
+ * 创建一个代表接受当前行为树的叶节点。
+ * 该节点总是返回成功结果。
+ * @returns 一个AI节点。
  */
 export function Accept(this: void): Leaf;
 
 /**
- * Creates a leaf node that represents rejecting the current behavior tree.
- * Always get a failure result from this node.
- * @returns A `Leaf` node.
+ * 创建一个代表拒绝当前行为树的叶节点。
+ * 该节点总是返回失败结果。
+ * @returns 一个AI节点。
  */
 export function Reject(this: void): Leaf;
 
 /**
- * Creates a leaf node with the specified behavior tree as its root.
- * It is possible to include a Behavior Tree as a node in a Decision Tree by using the Behave() function.
- * This allows the AI to use a combination of decision-making and behavior execution to achieve its goals.
- * @param name The name of the behavior tree.
- * @param root The root node of the behavior tree.
- * @returns A `Leaf` node.
+ * 创建一个带有指定行为树作为其根的叶节点。
+ * 通过使用Behave()函数，可以将行为树作为决策树中的一个节点。
+ * 这允许AI使用决策和行为执行的组合来实现其目标。
+ * @param name 行为树的名称。
+ * @param root 行为树的根节点。
+ * @returns 一个AI节点。
  */
 export function Behave(this: void, name: string, root: Behavior.Leaf): Leaf;
 
 /**
- * The singleton instance to retrieve information while executing the decision tree. */
+ * 单例实例，用于在执行决策树时获取信息。
+ */
 export const AI: AI;
 
 } // namespace Decision
 
 /**
- * A class type that specifies the properties and behaviors of a bullet object in the game.
+ * 该类定义了游戏中子弹对象的属性和行为。
  */
 class BulletDef extends Object {
 
 	private constructor();
 
 	/**
-	 * The tag for the bullet object.
+	 * 子弹对象的标签。
 	 */
 	tag: string;
 
 	/**
-	 * The effect that occurs when the bullet object ends its life.
+	 * 子弹对象生命周期结束时发生的效果。
 	 */
 	endEffect: string;
 
 	/**
-	 * The amount of time in seconds that the bullet object remains active.
+	 * 子弹对象保持存活状态的时间（以秒为单位）。
 	 */
 	lifeTime: number;
 
 	/**
-	 * The radius of the bullet object's damage area.
+	 * 子弹对象的伤害区域半径。
 	 */
 	damageRadius: number;
 
 	/**
-	 * Whether the bullet object should be fixed for high speeds.
+	 * 是否应为做高速运动检测的子弹对象。
 	 */
 	highSpeedFix: boolean;
 
 	/**
-	 * The gravity vector that applies to the bullet object.
+	 * 应用于子弹对象的重力向量。
 	 */
 	gravity: Vec2;
 
 	/**
-	 * The visual item of the bullet object.
+	 * 子弹对象的可视组件。
 	 */
 	face: Face;
 
 	/**
-	 * The physics body definition for the bullet object.
+	 * 子弹对象的物理体定义。
 	 */
 	bodyDef: BodyDef;
 
 	/**
-	 * The velocity vector of the bullet object.
+	 * 子弹对象的速度向量。
 	 */
 	velocity: Vec2;
 
 	/**
-	 * Sets the bullet object's physics body as a circle.
-	 * @param radius The radius of the circle.
+	 * 将子弹对象的物理体设为圆形。
+	 * @param radius 圆的半径。
 	 */
 	setAsCircle(radius: number): void;
 
 	/**
-	 * Sets the velocity of the bullet object.
-	 * @param angle The angle of the velocity in degrees.
-	 * @param speed The speed of the velocity.
+	 * 设置子弹对象的速度。
+	 * @param angle 速度的角度（以度为单位）。
+	 * @param speed 速度的速度。
 	 */
 	setVelocity(angle: number, speed: number): void;
 }
@@ -1124,44 +1125,44 @@ const bulletDefClass: BulletDefClass;
 export {bulletDefClass as BulletDef};
 
 /**
- * A class type that defines the properties and behavior of a bullet object instance in the game.
+ * 该类定义了游戏中子弹对象实例的属性和行为。
  */
 class Bullet extends Body {
 
 	private constructor();
 
 	/**
-	 * The `TargetAllow` object for the bullet object.
+	 * 子弹对象的`TargetAllow`对象。
 	 */
 	targetAllow: TargetAllow;
 
 	/**
-	 * Whether the bullet object is facing right.
+	 * 子弹对象是否朝右。
 	 */
 	readonly faceRight: boolean;
 
 	/**
-	 * Whether the bullet object should stop on impact.
+	 * 子弹对象是否应在碰撞时停止。
 	 */
 	hitStop: boolean;
 
 	/**
-	 * The `Unit` object that fired the bullet.
+	 * 发射子弹的游戏单位对象。
 	 */
 	readonly emitter: Unit;
 
 	/**
-	 * The `BulletDef` object that defines the bullet's properties and behavior.
+	 * 定义子弹属性和行为的对象。
 	 */
 	readonly bulletDef: BulletDef;
 
 	/**
-	 * The `Node` object that appears as the bullet's visual item.
+	 * 作为子弹可视组件的`Node`对象。
 	 */
 	face: Node;
 
 	/**
-	 * Destroys the bullet object instance.
+	 * 销毁子弹对象实例。
 	 */
 	destroy(): void;
 }
@@ -1169,15 +1170,15 @@ class Bullet extends Body {
 export type {Bullet as BulletType};
 
 /**
-* An interface type that creates new `Bullet` object instances.
+* 创建新的子弹对象实例的接口类型。
 */
 interface BulletClass {
 
 	/**
-	 * A metamethod that creates a new `Bullet` object instance with the specified `BulletDef` and `Unit` objects.
-	 * @param def The `BulletDef` object that defines the bullet's properties and behavior.
-	 * @param owner The `Unit` object that fired the bullet.
-	 * @returns The new `Bullet` object instance.
+	 * 创建一个新的子弹对象实例，具有指定的子弹定义和所属游戏单位对象。
+	 * @param def 定义子弹的属性和行为的对象。
+	 * @param owner 发射子弹的游戏单位对象。
+	 * @returns 新的子弹对象实例。
 	 */
 	(this: void, def: BulletDef, owner: Unit): Bullet;
 }
