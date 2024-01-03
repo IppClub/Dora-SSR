@@ -11,7 +11,7 @@ local record Touch
 	enabled: boolean
 
 	-- Whether the touch event originated from a mouse click.
-	fromMouse: boolean
+	const fromMouse: boolean
 
 	-- Whether this is the first touch event when multi-touches exist.
 	const first: boolean

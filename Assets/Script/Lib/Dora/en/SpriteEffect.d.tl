@@ -21,6 +21,7 @@ local record SpriteEffectClass
 	metamethod __call: function(self: SpriteEffectClass, vertShader: string, fragShader: string): SpriteEffect
 
 	-- A metamethod for creating a new empty SpriteEffect object.
+	-- @return (SpriteEffect) A new SpriteEffect object.
 	metamethod __call: function(self: SpriteEffectClass): SpriteEffect
 end
 
