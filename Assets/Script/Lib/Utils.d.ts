@@ -2,7 +2,7 @@ import { Vec2Type as Vec2 } from "dora";
 
 declare module 'Utils' {
 
-interface Struct {
+type Struct<T = {}> = {
 	set(index: number, item: any): void;
 	get(index: number): any;
 	insert(item: any): void;
@@ -17,14 +17,15 @@ interface Struct {
 	contains(item: any): boolean;
 	count(): number;
 	sort(comparer: (a: any, b: any) => boolean): void;
-	__notify(event: RecordEvent, key: string, value: any): void;
-	__notify(event: ArrayEvent, index: number, value: any): void;
-	[key: string | number]: any;
+	__notify(event: RecordEvent | ArrayEvent | StructEvent, key?: string | number, value?: any): void;
+} & T;
+
+export const enum StructEvent {
+	Updated = "Updated"
 }
 
 export const enum RecordEvent {
 	Modified = "Modified",
-	Updated = "Updated"
 }
 
 export const enum ArrayEvent {
@@ -34,22 +35,24 @@ export const enum ArrayEvent {
 	Updated = "Updated"
 }
 
-interface StructClass {
-	(this: void, values?: Record<string, any>): Struct;
+interface StructClass<T> {
+	(this: void, values?: T): Struct<T>;
+	(this: void, ...items: any[]): Struct<T>;
 }
 
 interface StructModule {
 	[name: string]: StructModule;
-	(this: void, name: string, ...args: Array<string | string[]>): StructClass;
+	<T = {}>(this: void, ...fieldNames: string[]): StructClass<T>;
+	<T = {}>(this: void, fieldNames: string[]): StructClass<T>;
 }
 
 type StructHelper = {
-	load(input: string | Record<string, any>, name?: string): Struct;
-	loadfile(filename: string): Struct;
+	load<T = {}>(input: string | Record<string, any>, name?: string): Struct<T>;
+	loadfile<T = {}>(filename: string): Struct<T>;
 	clear(): void;
 	has(name: string): boolean;
 } & {
-	[name: string]: StructClass
+	[name: string]: StructModule
 };
 
 export const Struct: StructHelper;
