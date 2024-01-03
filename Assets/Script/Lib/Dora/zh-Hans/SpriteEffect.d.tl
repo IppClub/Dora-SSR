@@ -21,6 +21,7 @@ local record SpriteEffectClass
 	metamethod __call: function(self: SpriteEffectClass, vertShader: string, fragShader: string): SpriteEffect
 
 	-- 用于创建一个空的2D图元着色器特效对象的元方法。
+	-- @return (SpriteEffect) 新的2D图元着色器特效对象。
 	metamethod __call: function(self: SpriteEffectClass): SpriteEffect
 end
 

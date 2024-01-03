@@ -530,6 +530,16 @@ interface ColorClass {
 const colorClass: ColorClass;
 export {colorClass as Color};
 
+/** An enumerated type representing the platform the game engine is running on. */
+export const enum PlatformType {
+	Windows = "Windows",
+	Android = "Android",
+	macOS = "macOS",
+	iOS = "iOS",
+	Linux = "Linux",
+	Unknown = "Unknown"
+}
+
 /**
  * An interface representing an application singleton instance.
  */
@@ -555,7 +565,7 @@ interface App {
 	readonly devicePixelRatio: number;
 
 	/** An enumerated type representing the platform the game engine is running on. */
-	readonly platform: "Windows" | "Android" | "macOS" | "iOS" | "Linux" | "Unknown";
+	readonly platform: PlatformType;
 
 	/** The version string of the game engine. Should be in format of "v0.0.0". */
 	readonly version: string;
@@ -648,7 +658,10 @@ interface App {
 	 */
 	runTest(name: string): boolean;
 
-	/** A function that shuts down the game engine. */
+	/**
+	 * A function that shuts down the game engine.
+	 * It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
+	 */
 	shutdown(): void;
 }
 
@@ -1329,9 +1342,9 @@ class Array extends Object {
 	fastRemove(item: Item): boolean;
 
 	/**
-	 * Metamethod to access the item at the given index using the [] operator.
+	 * Access the item at the given index using the [] operator.
 	 * @param index The index to get, should be 0 based.
-	 * @return The item value.
+	 * @returns The item value.
 	 */
 	[index: number]: Item | undefined;
 }
@@ -1342,7 +1355,18 @@ export type {Array as ArrayType};
  * A class that creates Array objects.
  */
 interface ArrayClass {
+
+	/**
+	 * Create a new, empty array object.
+	 * @returns A new Array object.
+	*/
 	(this: void): Array;
+
+	/**
+	 * Create a new array object initialized with a list of items.
+	 * @param items Items to initialize the array with.
+	 * @returns A new Array object.
+	*/
 	(this: void, items: Item[]): Array;
 }
 
@@ -1400,7 +1424,7 @@ type BlendFunc = BasicType<'BlendFunc'>;
 /**
  * An enum defining blend functions.
  */
-export const enum Func {
+export const enum BlendOp {
 
 	/**
 	 * The source color is multiplied by 1 and added to the destination color
@@ -1465,12 +1489,13 @@ export type {BlendFunc as BlendFuncType};
  * A class for creating BlendFunc objects.
  */
 interface BlendFuncClass {
+
 	/**
 	 * Gets the integer value of a blend function.
 	 * @param func The blend function to get the value of.
 	 * @returns The integer value of the specified blend function.
 	 */
-	get(func: Func): number;
+	get(func: BlendOp): number;
 
 	/**
 	 * Creates a new BlendFunc instance with the specified source and destination factors.
@@ -1478,7 +1503,7 @@ interface BlendFuncClass {
 	 * @param dst The destination blend factor.
 	 * @returns The new BlendFunc instance.
 	 */
-	(this: void, src: Func, dst: Func): BlendFunc;
+	(this: void, src: BlendOp, dst: BlendOp): BlendFunc;
 
 	/**
 	 * Creates a new BlendFunc instance with the specified source and destination factors for color and alpha channels.
@@ -1488,11 +1513,11 @@ interface BlendFuncClass {
 	 * @param dstAlpha The destination blend factor for the alpha channel.
 	 * @returns The new BlendFunc instance.
 	 */
-	(this: void, srcColor: Func, dstColor: Func, srcAlpha: Func, dstAlpha: Func): BlendFunc;
+	(this: void, srcColor: BlendOp, dstColor: BlendOp, srcAlpha: BlendOp, dstAlpha: BlendOp): BlendFunc;
 
 	/**
 	 * The default blend function.
-	 * Equals to BlendFunc("SrcAlpha", "InvSrcAlpha", "One", "InvSrcAlpha")
+	 * Equals to `BlendFunc(BlendOp.SrcAlpha, BlendOp.InvSrcAlpha, BlendOp.One, BlendOp.InvSrcAlpha)`.
 	 */
 	readonly default: BlendFunc;
 }
@@ -1523,7 +1548,7 @@ interface Routine {
 	clear(): void;
 
 	/**
-	 * Metamethod to add a new Job to the Routine.
+	 * Add a new Job to the Routine.
 	 * @param job The Job instance to add.
 	 * @returns The Job instance that was added.
 	 */
@@ -1699,7 +1724,7 @@ export type {Dictionary as DictionaryType};
  */
 interface DictionaryClass {
 	/**
-	 * A metamethod that allows creating instances of the "Dictionary" type.
+	 * A method that allows creating instances of the "Dictionary" type.
 	 * @returns A new instance of the Dictionary type.
 	 */
 	(this: void): Dictionary;
@@ -1768,7 +1793,7 @@ class Touch extends Object {
 	/**
 	 * Whether the touch event originated from a mouse click.
 	 */
-	fromMouse: boolean;
+	readonly fromMouse: boolean;
 
 	/**
 	 * Whether this is the first touch event when multi-touches exist.
@@ -1925,7 +1950,7 @@ export type {Pass as PassType};
 */
 interface PassClass {
 	/**
-	 * A metamethod that allows you to create a new Pass object.
+	 * A method that allows you to create a new Pass object.
 	 *
 	 * @param vertShader The vertex shader in binary form file string.
 	 * @param fragShader The fragment shader file string.
@@ -1975,7 +2000,7 @@ export type {Effect as EffectType};
 interface EffectClass {
 
 	/**
-	 * A metamethod that allows you to create a new Effect object.
+	 * A method that allows you to create a new Effect object.
 	 * @param vertShader The vertex shader file string.
 	 * @param fragShader The fragment shader file string.
 	 * A shader file string must be one of the formats:
@@ -1986,7 +2011,7 @@ interface EffectClass {
 	(this: void, vertShader: string, fragShader: string): Effect;
 
 	/**
-	 * Another metamethod that allows you to create a new empty Effect object.
+	 * Another method that allows you to create a new empty Effect object.
 	 * @returns A new empty Effect object.
 	 */
 	(this: void): Effect;
@@ -2007,7 +2032,7 @@ export type {SpriteEffect as SpriteEffectType};
  */
 interface SpriteEffectClass {
 	/**
-	 * A metamethod that allows you to create a new SpriteEffect object.
+	 * A method that allows you to create a new SpriteEffect object.
 	 * @param vertShader The vertex shader file string. A shader file string must be one of the formats:
 	 * "builtin:" + theBuiltinShaderName
 	 * "Shader/compiled_shader_file.bin"
@@ -2017,7 +2042,7 @@ interface SpriteEffectClass {
 	(this: void, vertShader: string, fragShader: string): SpriteEffect;
 
 	/**
-	 * A metamethod for creating a new empty SpriteEffect object.
+	 * A method for creating a new empty SpriteEffect object.
 	 * @returns A new SpriteEffect object.
 	 */
 	(this: void): SpriteEffect;
@@ -2340,34 +2365,208 @@ const enum NodeEvent {
 export {NodeEvent as Slot};
 
 interface NodeEventHandlerMap {
-	ActionEnd: (this: void, action: Action, target: Node) => void;
-	TapFilter: (this: void, touch: Touch) => void;
-	TapBegan: (this: void, touch: Touch) => void;
-	TapEnded: (this: void, touch: Touch) => void;
-	Tapped: (this: void, touch: Touch) => void;
-	TapMoved: (this: void, touch: Touch) => void;
-	MouseWheel: (this: void, delta: Vec2) => void;
-	Gesture: (this: void, center: Vec2, numFingers: number, deltaDist: number, deltaAngle: number) => void;
-	Enter: (this: void) => void;
-	Exit: (this: void) => void;
-	Cleanup: (this: void) => void;
-	KeyDown: (this: void, keyName: KeyName) => void;
-	KeyUp: (this: void, keyName: KeyName) => void;
-	KeyPressed: (this: void, keyName: KeyName) => void;
-	AttachIME: (this: void) => void;
-	DetachIME: (this: void) => void;
-	TextInput: (this: void, text: string) => void;
-	TextEditing: (this: void, text: string, startPos: number) => void;
-	ButtonDown: (this: void, controllerId: number, buttonName: ButtonName) => void;
-	ButtonUp: (this: void, controllerId: number, buttonName: ButtonName) => void;
-	ButtonPressed: (this: void, controllerId: number, buttonName: KeyName) => void;
-	Axis: (this: void, controllerId: number, axisValue: number) => void;
-	AnimationEnd: (this: void, animationName: string, target: Playable) => void;
-	BodyEnter: (this: void, other: Body, sensorTag: number) => void;
-	BodyLeave: (this: void, other: Body, sensorTag: number) => void;
-	ContactStart: (this: void, other: Body, point: Vec2, normal: Vec2) => void;
-	ContactEnd: (this: void, other: Body, point: Vec2, normal: Vec2) => void;
-	Finished: (this: void) => void;
+
+	/**
+	 * The ActionEnd slot is triggered when an action is finished.
+	 * Triggers after `node.runAction()` and `node.perform()`.
+	 * @param action The finished action.
+	 * @param target The node that finished the action.
+	 */
+	ActionEnd(this: void, action: Action, target: Node): void;
+
+	/**
+	 * The TapFilter slot is triggered before the TapBegan slot and can be used to filter out certain taps.
+	 * Triggers after setting `node.touchEnabled = true`.
+	 * @param touch The touch that triggered the tap.
+	*/
+	TapFilter(this: void, touch: Touch): void;
+
+	/**
+	 * The TapBegan slot is triggered when a tap is detected.
+	 * Triggers after setting `node.touchEnabled = true`.
+	 * @param touch The touch that triggered the tap.
+	*/
+	TapBegan(this: void, touch: Touch): void;
+
+	/**
+	 * The TapEnded slot is triggered when a tap ends.
+	 * Triggers after setting `node.touchEnabled = true`.
+	 * @param touch The touch that triggered the tap.
+	*/
+	TapEnded(this: void, touch: Touch): void;
+
+	/**
+	 * The Tapped slot is triggered when a tap is detected and has ended.
+	 * Triggers after setting `node.touchEnabled = true`.
+	 * @param touch The touch that triggered the tap.
+	*/
+	Tapped(this: void, touch: Touch): void;
+
+	/**
+	 * The TapMoved slot is triggered when a tap moves.
+	 * Triggers after setting `node.touchEnabled = true`.
+	 * @param touch The touch that triggered the tap.
+	*/
+	TapMoved(this: void, touch: Touch): void;
+
+	/**
+	 * The MouseWheel slot is triggered when the mouse wheel is scrolled.
+	 * Triggers after setting `node.touchEnabled = true`.
+	 * @param delta The amount of scrolling that occurred.
+	*/
+	MouseWheel(this: void, delta: Vec2): void;
+
+	/**
+	 * The Gesture slot is triggered when a gesture is recognized.
+	 * Triggers after setting `node.touchEnabled = true`.
+	 * @param center The center of the gesture.
+	 * @param numFingers The number of fingers involved in the gesture.
+	 * @param deltaDist The distance the gesture has moved.
+	 * @param deltaAngle The angle of the gesture.
+	*/
+	Gesture(this: void, center: Vec2, numFingers: number, deltaDist: number, deltaAngle: number): void;
+
+	/**
+	 * The Enter slot is triggered when a node is added to the scene graph.
+	 * Triggers when doing `node.addChild()`.
+	*/
+	Enter(this: void): void;
+
+	/**
+	 * The Exit slot is triggered when a node is removed from the scene graph.
+	 * Triggers when doing `node.removeChild()`.
+	*/
+	Exit(this: void): void;
+
+	/**
+	 * The Cleanup slot is triggered when a node is cleaned up.
+	 * Triggers only when doing `parent.removeChild(node, true)`.
+	*/
+	Cleanup(this: void): void;
+
+	/**
+	 * The KeyDown slot is triggered when a key is pressed down.
+	 * Triggers after setting `node.keyboardEnabled = true`.
+	 * @param keyName The name of the key that was pressed.
+	*/
+	KeyDown(this: void, keyName: KeyName): void;
+
+	/**
+	 * The KeyUp slot is triggered when a key is released.
+	 * Triggers after setting `node.keyboardEnabled = true`.
+	 * @param keyName The name of the key that was released.
+	*/
+	KeyUp(this: void, keyName: KeyName): void;
+
+	/**
+	 * The KeyPressed slot is triggered when a key is pressed.
+	 * Triggers after setting `node.keyboardEnabled = true`.
+	 * @param keyName The name of the key that was pressed.
+	*/
+	KeyPressed(this: void, keyName: KeyName): void;
+
+	/**
+	 * The AttachIME slot is triggered when the input method editor (IME) is attached (calling `node.attachIME()`).
+	*/
+	AttachIME(this: void): void;
+
+	/**
+	 * The DetachIME slot is triggered when the input method editor (IME) is detached (calling `node.detachIME()` or manually closing IME).
+	*/
+	DetachIME(this: void): void;
+
+	/**
+	 * The TextInput slot is triggered when text input is received.
+	-- Triggers after calling `node.attachIME()`.
+	-- @param text The text that was input.
+	*/
+	TextInput(this: void, text: string): void;
+
+	/**
+	 * The TextEditing slot is triggered when text is being edited.
+	 * Triggers after calling `node.attachIME()`.
+	 * @param text The text that is being edited.
+	 * @param startPos The starting position of the text being edited.
+	*/
+	TextEditing(this: void, text: string, startPos: number): void;
+
+	/**
+	 * The ButtonDown slot is triggered when a game controller button is pressed down.
+	 * Triggers after setting `node.controllerEnabled = true`.
+	 * @param controllerId The controller id, incrementing from 0 when multiple controllers connected.
+	 * @param buttonName The name of the button that was pressed.
+	*/
+	ButtonDown(this: void, controllerId: number, buttonName: ButtonName): void;
+
+	/**
+	 * The ButtonUp slot is triggered when a game controller button is released.
+	 * Triggers after setting `node.controllerEnabled = true`.
+	 * @param controllerId The controller id, incrementing from 0 when multiple controllers connected.
+	 * @param buttonName The name of the button that was released.
+	*/
+	ButtonUp(this: void, controllerId: number, buttonName: ButtonName): void;
+
+	/**
+	 * The ButtonPressed slot is triggered when a game controller button is pressed.
+	 * Triggers after setting `node.controllerEnabled = true`.
+	 * @param controllerId The controller id, incrementing from 0 when multiple controllers connected.
+	 * @param buttonName The name of the button that was pressed.
+	*/
+	ButtonPressed(this: void, controllerId: number, buttonName: KeyName): void;
+
+	/**
+	 * The Axis slot is triggered when a game controller axis changed.
+	 * Triggers after setting `node.controllerEnabled = true`.
+	 * @param controllerId The controller id, incrementing from 0 when multiple controllers connected.
+	 * @param axisValue The controller axis value ranging from -1.0 to 1.0.
+	*/
+	Axis(this: void, controllerId: number, axisValue: number): void;
+
+	/**
+	 * Triggers after an animation has ended on a Playable instance.
+	 * @param animationName The name of the animation that ended.
+	 * @param target The Playable instance that the animation was played on.
+	*/
+	AnimationEnd(this: void, animationName: string, target: Playable): void;
+
+	/**
+	 * Triggers when a Body object collides with a sensor object.
+	 * Triggers after setting `body.receivingContact = true`.
+	 * @param other The other Body object that the current Body is colliding with.
+	 * @param sensorTag The tag of the sensor that triggered this collision.
+	*/
+	BodyEnter(this: void, other: Body, sensorTag: number): void;
+
+	/**
+	 * Triggers when a `Body` object is no longer colliding with a sensor object.
+	 * Triggers after setting `body.receivingContact = true`.
+	 * @param other The other `Body` object that the current `Body` is no longer colliding with.
+	 * @param sensorTag The tag of the sensor that triggered this collision.
+	*/
+	BodyLeave(this: void, other: Body, sensorTag: number): void;
+
+	/**
+	 * Triggers when a `Body` object starts to collide with another object.
+	 * Triggers after setting `body.receivingContact = true`.
+	 * @param other The other `Body` object that the current `Body` is colliding with.
+	 * @param point The point of collision in world coordinates.
+	 * @param normal The normal vector of the contact surface in world coordinates.
+	*/
+	ContactStart(this: void, other: Body, point: Vec2, normal: Vec2): void;
+
+	/**
+	 * Triggers when a `Body` object stops colliding with another object.
+	 * Triggers after setting `body.receivingContact = true`.
+	 * @param other The other `Body` object that the current `Body` is no longer colliding with.
+	 * @param point The point of collision in world coordinates.
+	 * @param normal The normal vector of the contact surface in world coordinates.
+	*/
+	ContactEnd(this: void, other: Body, point: Vec2, normal: Vec2): void;
+
+	/**
+	 * Triggered after a Particle node started a stop action and then all the active particles end their lives.
+	*/
+	Finished(this: void): void;
 }
 
 const enum GlobalEvent {
@@ -2390,20 +2589,52 @@ const enum GlobalEvent {
 export {GlobalEvent as GSlot};
 
 type GlobalEventHandlerMap = {
-	AppQuit: (this: void) => void;
-	AppLowMemory: (this: void) => void;
-	AppWillEnterBackground: (this: void) => void;
-	AppDidEnterBackground: (this: void) => void;
-	AppWillEnterForeground: (this: void) => void;
-	AppDidEnterForeground: (this: void) => void;
-	AppSizeChanged: (this: void) => void;
-	AppFullScreen: (this: void, fullScreen: boolean) => void;
-	AppMoved: (this: void) => void;
-	AppTheme: (this: void, themeColor: Color) => void;
-	AppWSOpen: (this: void) => void;
-	AppWSClose: (this: void) => void;
-	AppWSMessage: (this: void, msg: string) => void;
-	AppWSSend: (this: void, msg: string) => void;
+
+	/** Triggers when the application is about to quit. */
+	AppQuit(this: void): void;
+
+	/** Triggers when the application receives a low memory warning. */
+	AppLowMemory(this: void): void;
+
+	/** Triggers when the application is about to enter the background. */
+	AppWillEnterBackground(this: void): void;
+
+	/** Triggers when the application has entered the background. */
+	AppDidEnterBackground(this: void): void;
+
+	/** Triggers when the application is about to enter the foreground. */
+	AppWillEnterForeground(this: void): void;
+
+	/** Triggers when the application has entered the foreground. */
+	AppDidEnterForeground(this: void): void;
+
+	/** Triggers when the application window size changes. */
+	AppSizeChanged(this: void): void;
+
+	/** Triggers when the application window enters or exits full-screen mode. */
+	AppFullScreen(this: void, fullScreen: boolean): void;
+
+	/** Triggers when the application window position changes. */
+	AppMoved(this: void): void;
+
+	/** Triggers when the application theme color changes. */
+	AppTheme(this: void, themeColor: Color): void;
+
+	/** Triggers when a websocket connection is open. */
+	AppWSOpen(this: void): void;
+
+	/** Triggers when a websocket connection is closed. */
+	AppWSClose(this: void): void;
+
+	/** Triggers when received text message from a websocket connection. */
+	AppWSMessage(this: void, msg: string): void;
+
+	/**
+	 * A gobal event for broadcasting massage to all websocket connections.
+	 * @example
+	 * emit("AppWSSend", "A message")
+	 */
+	AppWSSend(this: void, msg: string): void;
 };
 
 /**
@@ -2761,7 +2992,7 @@ class Node extends Object {
 
 	/**
 	 * Attaches the input method editor (IME) to the node.
-	 * Makes node receiving "AttachIME", "DetachIME", "TextInput", "TextEditing" events.
+	 * Makes node receiving Slot.AttachIME，Slot.DetachIME，Slot.TextInput，Slot.TextEditing events.
 	 */
 	attachIME(): void;
 
@@ -2812,6 +3043,13 @@ class Node extends Object {
 	 * Associates the given handler function with the node event.
 	 * @param eventName The name of the node event.
 	 * @param handler The handler function to associate with the node event.
+	 * Register for builtin node events:
+	 * ```
+	 * const node = Node()
+	 * node.slot(Slot.Cleanup, () => {
+	 * 	print("Node is cleaning up!");
+	 * });
+	 * ```
 	 */
 	slot<K extends keyof NodeEventHandlerMap>(eventName: K, handler: NodeEventHandlerMap[K]): void;
 
@@ -2851,6 +3089,7 @@ export type {Node as NodeType};
  * A class object for the `Node` class.
  */
 interface NodeClass {
+
 	/**
 	 * Creates a new instance of the `Node` class.
 	 *
@@ -3849,7 +4088,7 @@ const drawNodeClass: DrawNodeClass;
 export {drawNodeClass as DrawNode};
 
 /**
- * Emits a global event with the given name and arguments to all listeners registered by node:gslot() function.
+ * Emits a global event with the given name and arguments to all listeners registered by `node.gslot()` function.
  * @param eventName The name of the event to emit.
  * @param args The data to pass to the global event listeners.
  */
@@ -3903,7 +4142,7 @@ class Entity extends Object {
 	getOld(key: string): Component | undefined;
 
 	/**
-	 * A metamethod that retrieves the value of a property of the entity.
+	 * A method that retrieves the value of a property of the entity.
 	 * @param key The name of the property to retrieve the value of.
 	 * @returns The value of the specified property.
 	 */
@@ -3926,7 +4165,7 @@ interface EntityClass {
 	clear(): void;
 
 	/**
-	 * A metamethod that creates a new entity with the specified components.
+	 * A method that creates a new entity with the specified components.
 	 * And you can then get the newly created Entity object from groups and observers.
 	 * @param components A table mapping component names (strings) to component values (Items).
 	 * @example
@@ -3977,7 +4216,7 @@ export const enum ObserverEvent {
 interface ObserverClass {
 
 	/**
-	 * A metamethod that creates a new observer with the specified component filter and action to watch for.
+	 * A method that creates a new observer with the specified component filter and action to watch for.
 	 * @param action The type of action to watch for.
 	 * @param components A list of the names of the components to filter entities by.
 	 * @returns The new observer.
@@ -4028,7 +4267,7 @@ export type {Group as GroupType};
 interface GroupClass {
 
 	/**
-	 * A metamethod that creates a new group with the specified component names.
+	 * A method that creates a new group with the specified component names.
 	 * @param components A list of the names of the components to include in the group.
 	 * @returns The new group.
 	 */
@@ -4691,6 +4930,7 @@ export type {Body as BodyType};
  * A class for creating Body objects.
  */
 interface BodyClass {
+
 	/**
 	 * Creates a new instance of `Body`.
 	 * @param def The definition for the body to be created.
@@ -5173,7 +5413,7 @@ export type {Sprite as SpriteType};
 interface SpriteClass {
 
 	/**
-	 * A metamethod for creating Sprite object.
+	 * A method for creating Sprite object.
 	 * @param clipStr The string containing format for loading a texture file.
 	 * Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
 	 * @returns A new instance of the Sprite class.
@@ -5181,13 +5421,13 @@ interface SpriteClass {
 	(this: void, clipStr: string): Sprite;
 
 	/**
-	 * A metamethod for creating Sprite object.
+	 * A method for creating Sprite object.
 	 * @returns A new instance of the Sprite class.
 	 */
 	(this: void): Sprite;
 
 	/**
-	 * A metamethod for creating Sprite object.
+	 * A method for creating Sprite object.
 	 * @param texture The texture to be used for the sprite.
 	 * @param textureRect [optional] The rectangle defining the portion of the texture to use for the sprite, if not provided, the whole texture will be used for rendering.
 	 * @returns A new instance of the Sprite class.
@@ -5351,8 +5591,9 @@ class Line extends Node {
 
 export type {Line as LineType};
 
-// A class for creating Line object.
+/** A class for creating Line object. */
 interface LineClass {
+
 	/**
 	 * Creates and returns a new Line object.
 	 * @param verts Table of vertices to add to the line.
@@ -5720,6 +5961,7 @@ class RenderTarget {
  * A class for creating RenderTarget objects.
  */
 interface RenderTargetClass {
+
 	/**
 	 * Creates a new RenderTarget object with the given width and height.
 	 * @param width The width of the render target.
@@ -5759,6 +6001,7 @@ class SVG extends Object {
  * A class for creating SVG objects.
  */
 interface SVGClass {
+
 	/**
 	 * Creates a new SVG object from the specified SVG file.
 	 * @param filename The path to the SVG format file.
@@ -5824,6 +6067,7 @@ export type VGPaintType = BasicType<"VGPaint">;
  * The `tolua` object provides utilities for interfacing between C++ and Lua.
  */
 interface tolua {
+
 	/**
 	 * Returns the C++ object type of a Lua object.
 	 * @param item The Lua object to get the type of.

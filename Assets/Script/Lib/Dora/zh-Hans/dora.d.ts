@@ -8,46 +8,46 @@ interface BasicTyping<TypeName> {
 }
 type BasicType<TypeName, T = {}> = T & BasicTyping<TypeName>;
 
-/** A base class for items that can be stored in Array and Dictionary. */
+/** 可以存储在Array和Dictionary中的元素对象的基类。 */
 class ContainerItem {
 	protected constructor();
 }
 
 /**
- * A size object with a given width and height.
+ * 具有给定宽度和高度的尺寸对象。
  */
 class Size extends ContainerItem {
 
 	private constructor();
 
 	/**
-	 * The width of the size.
+	 * 尺寸的宽度。
 	 */
 	width: number;
 
 	/**
-	 * The height of the size.
+	 * 尺寸的高度。
 	 */
 	height: number;
 
 	/**
-	 * Set the width and height of the size.
-	 * @param width The new width of the size.
-	 * @param height The new height of the size.
+	 * 设置尺寸的宽度和高度。
+	 * @param width 尺寸的新宽度。
+	 * @param height 尺寸的新高度。
 	 */
 	set(width: number, height: number): void;
 
 	/**
-	 * Check if two sizes are equal.
-	 * @param other The other size to compare to.
-	 * @returns Whether or not the two sizes are equal.
+	 * 检查两个尺寸是否相等。
+	 * @param other 要比较的另一个尺寸。
+	 * @returns 两个尺寸是否相等。
 	 */
 	equals(other: Size): boolean;
 
 	/**
-	 * Multiply the size by a vector.
-	 * @param vec The vector to multiply by.
-	 * @returns The result of multiplying the size by the vector.
+	 * 将尺寸乘以一个向量。
+	 * @param vec 要乘以的向量。
+	 * @returns 将尺寸乘以向量的结果。
 	 * @example
 	 * ```
 	 * const halfSize = size.mul(Vec2(0.5, 0.5));
@@ -59,16 +59,16 @@ class Size extends ContainerItem {
 export type {Size as SizeType};
 
 /**
- * A class for creating Size objects.
+ * 用于创建Size对象的类。
  */
 interface SizeClass {
 
 	/**
-	 * Create a new Size object with the given width and height.
+	 * 创建一个新的Size对象，给定宽度和高度。
 	 *
-	 * @param width The width of the new size (default 0).
-	 * @param height The height of the new size (default 0).
-	 * @returns The new Size object.
+	 * @param width 新尺寸的宽度（默认为0）。
+	 * @param height 新尺寸的高度（默认为0）。
+	 * @returns 新的Size对象。
 	 * @example
 	 * ```
 	 * let size = Size(10, 20);
@@ -77,10 +77,10 @@ interface SizeClass {
 	(this: void, width?: number, height?: number): Size;
 
 	/**
-	 * Create a new Size object from an existing Size object.
+	 * 从现有的Size对象创建一个新的Size对象。
 	 *
-	 * @param other The existing Size object to create the new object from.
-	 * @returns The new Size object.
+	 * @param other 用于创建新对象的现有Size对象。
+	 * @returns 新的Size对象。
 	 * @example
 	 * ```
 	 * let newSize = Size(existingSize);
@@ -89,10 +89,10 @@ interface SizeClass {
 	(this: void, other: Size): Size;
 
 	/**
-	 * Create a new Size object from a Vec2 object.
+	 * 从Vec2对象创建一个新的Size对象。
 	 *
-	 * @param vec The vector to create the new size from, represented by a Vec2 object.
-	 * @returns The new Size object.
+	 * @param vec 用于创建新尺寸的向量，由Vec2对象表示。
+	 * @returns 新的Size对象。
 	 * @example
 	 * ```
 	 * let size = Size(Vec2(10, 20));
@@ -101,7 +101,7 @@ interface SizeClass {
 	(this: void, vec: Vec2): Size;
 
 	/**
-	 * Gets zero-size object.
+	 * 获取零尺寸对象。
 	 */
 	readonly zero: Size;
 }
@@ -110,107 +110,107 @@ const sizeClass: SizeClass;
 export {sizeClass as Size};
 
 /**
- * A class representing a 2D vector with an x and y component.
+ * 表示具有x和y分量的2D向量的类。
  */
 class Vec2 extends ContainerItem {
 
 	private constructor();
 
-	/** The x-component of the vector. */
+	/** 向量的x分量。 */
 	readonly x: number;
 
-	/** The y-component of the vector. */
+	/** 向量的y分量。 */
 	readonly y: number;
 
-	/** The length of the vector. */
+	/** 向量的长度。 */
 	readonly length: number;
 
-	/** The squared length of the vector. */
+	/** 向量的平方长度。 */
 	readonly lengthSquared: number;
 
-	/** The angle between the vector and the x-axis. */
+	/** 向量与x轴之间的角度。 */
 	readonly angle: number;
 
 	/**
-	 * Calculates the distance between two vectors.
-	 * @param vec The other vector to calculate the distance to.
-	 * @returns The distance between the two vectors.
+	 * 计算两个向量之间的距离。
+	 * @param vec 要计算距离的另一个向量。
+	 * @returns 两个向量之间的距离。
 	 */
 	distance(vec: Vec2): number;
 
 	/**
-	 * Calculates the squared distance between two vectors.
-	 * @param vec The other vector to calculate the squared distance to.
-	 * @returns The squared distance between the two vectors.
+	 * 计算两个向量之间的平方距离。
+	 * @param vec 要计算平方距离的另一个向量。
+	 * @returns 两个向量之间的平方距离。
 	 */
 	distanceSquared(vec: Vec2): number;
 
 	/**
-	 * Normalizes the vector to have a length of 1.
-	 * @returns The normalized vector.
+	 * 将向量标准化为长度为1。
+	 * @returns 标准化的向量。
 	 */
 	normalize(): Vec2;
 
 	/**
-	 * Gets the perpendicular vector of this vector.
-	 * @returns The perpendicular vector.
+	 * 获取此向量的垂直向量。
+	 * @returns 垂直向量。
 	 */
 	perp(): Vec2;
 
 	/**
-	 * Clamps the vector to a range between two other vectors.
-	 * @param from The lower bound of the range.
-	 * @param to The upper bound of the range.
-	 * @returns The clamped vector.
+	 * 将向量限制在两个其他向量之间的范围内。
+	 * @param from 范围的下限。
+	 * @param to 范围的上限。
+	 * @returns 限制后的向量。
 	 */
 	clamp(from: Vec2, to: Vec2): Vec2;
 
 	/**
-	 * Adds two vectors together.
-	 * @param other The other vector to add.
-	 * @returns The sum of the two vectors.
+	 * 将两个向量相加。
+	 * @param other 要添加的另一个向量。
+	 * @returns 两个向量的和。
 	 */
 	add(other: Vec2): Vec2;
 
 	/**
-	 * Subtracts one vector from another.
-	 * @param other The vector to subtract.
-	 * @returns The difference between the two vectors.
+	 * 从一个向量中减去另一个向量。
+	 * @param other 要减去的向量。
+	 * @returns 两个向量的差。
 	 */
 	sub(other: Vec2): Vec2;
 
 	/**
-	 * Multiplies two vectors component-wise.
-	 * @param other The other vector to multiply by.
-	 * @returns The result of multiplying the two vectors component-wise.
+	 * 逐元素地将两个向量相乘。
+	 * @param other 要乘以的另一个向量。
+	 * @returns 两个向量逐元素相乘的结果。
 	 */
 	mul(other: Vec2): Vec2;
 
 	/**
-	 * Multiplies a vector by a scalar.
-	 * @param other The scalar to multiply by.
-	 * @returns The result of multiplying the vector by the scalar.
+	 * 将向量乘以一个标量。
+	 * @param other 要乘以的标量。
+	 * @returns 将向量乘以标量的结果。
 	 */
 	mul(other: number): Vec2;
 
 	/**
-	 * Multiplies a vector by a Size object.
-	 * @param other The Size object to multiply by.
-	 * @returns The result of multiplying the vector by the Size object.
+	 * 将向量乘以一个Size对象。
+	 * @param other 要乘以的Size对象。
+	 * @returns 将向量乘以Size对象的结果。
 	 */
 	mul(other: Size): Vec2;
 
 	/**
-	 * Divide a vector by a scalar.
-	 * @param other The scalar to divide by.
-	 * @returns The result of dividing the vector by the scalar.
+	 * 将向量除以一个标量。
+	 * @param other 要除以的标量。
+	 * @returns 将向量除以标量的结果。
 	 */
 	div(other: number): Vec2;
 
 	/**
-	 * Compare two vectors for equality.
-	 * @param other The other vector to compare to.
-	 * @returns Whether or not the two vectors are equal.
+	 * 比较两个向量是否相等。
+	 * @param other 要比较的另一个向量。
+	 * @returns 两个向量是否相等。
 	 */
 	equals(other: Vec2): boolean;
 }
@@ -218,15 +218,15 @@ class Vec2 extends ContainerItem {
 export type {Vec2 as Vec2Type};
 
 /**
- * A class for creating Vec2 objects.
+ * 用于创建Vec2对象的类。
  */
 interface Vec2Class {
 
 	/**
-	 * Creates a new Vec2 object from an existing Vec2 object.
+	 * 从现有的Vec2对象创建一个新的Vec2对象。
 	 *
-	 * @param other The existing Vec2 object to create the new object from.
-	 * @returns The new Vec2 object.
+	 * @param other 用于创建新对象的现有Vec2对象。
+	 * @returns 新的Vec2对象。
 	 * @example
 	 * ```
 	 * const newVec = Vec2(existingVec);
@@ -235,11 +235,11 @@ interface Vec2Class {
 	(this: void, other: Vec2): Vec2;
 
 	/**
-	 * Creates a new Vec2 object with the given x and y components.
+	 * 使用给定的x和y分量创建一个新的Vec2对象。
 	 *
-	 * @param x The x-component of the new vector.
-	 * @param y The y-component of the new vector.
-	 * @returns The new Vec2 object.
+	 * @param x 新向量的x分量。
+	 * @param y 新向量的y分量。
+	 * @returns 新的Vec2对象。
 	 * @example
 	 * ```
 	 * const newVec = Vec2(10, 20);
@@ -248,10 +248,10 @@ interface Vec2Class {
 	(this: void, x: number, y: number): Vec2;
 
 	/**
-	 * Creates a new Vec2 object from a Size object.
+	 * 从Size对象创建一个新的Vec2对象。
 	 *
-	 * @param size The Size object to create the new vector from.
-	 * @returns The new Vec2 object.
+	 * @param size 用于创建新向量的Size对象。
+	 * @returns 新的Vec2对象。
 	 * @example
 	 * ```
 	 * const newVec = Vec2(Size(10, 20));
@@ -260,7 +260,7 @@ interface Vec2Class {
 	(this: void, size: Size): Vec2;
 
 	/**
-	 * Gets zero-vector object.
+	 * 获取零向量对象。
 	 */
 	readonly zero: Vec2;
 }
@@ -269,82 +269,82 @@ const vec2: Vec2Class;
 export {vec2 as Vec2};
 
 /**
- * A rectangle object with a left-bottom origin position and a size.
- * Inherits from `ContainerItem`.
+ * 一个矩形对象，具有左下角原点位置和大小。
+ * 继承自 `ContainerItem`。
  */
 class Rect extends ContainerItem {
 
 	private constructor();
 
-	// The position of the origin of the rectangle.
+	// 矩形的原点位置。
 	origin: Vec2;
 
-	// The dimensions of the rectangle.
+	// 矩形的尺寸。
 	size: Size;
 
-	// The x-coordinate of the origin of the rectangle.
+	// 矩形原点的x坐标。
 	x: number;
 
-	// The y-coordinate of the origin of the rectangle.
+	// 矩形原点的y坐标。
 	y: number;
 
-	// The width of the rectangle.
+	// 矩形的宽度。
 	width: number;
 
-	// The height of the rectangle.
+	// 矩形的高度。
 	height: number;
 
-	// The top edge in y-axis of the rectangle.
+	// 矩形的上边缘的y轴坐标值。
 	top: number;
 
-	// The bottom edge in y-axis of the rectangle.
+	// 矩形的下边缘的y轴坐标值。
 	bottom: number;
 
-	// The left edge in x-axis of the rectangle.
+	// 矩形的左边缘的x轴坐标值。
 	left: number;
 
-	// The right edge in x-axis of the rectangle.
+	// 矩形的右边缘的x轴坐标值。
 	right: number;
 
-	// The x-coordinate of the center of the rectangle.
+	// 矩形中心的x坐标。
 	centerX: number;
 
-	// The y-coordinate of the center of the rectangle.
+	// 矩形中心的y坐标。
 	centerY: number;
 
-	// The lower bound (left-bottom) of the rectangle.
+	// 矩形的下界（左下角坐标）。
 	lowerBound: Vec2;
 
-	// The upper bound (right-top) of the rectangle.
+	// 矩形的上界（右上角坐标）。
 	upperBound: Vec2;
 
 	/**
-	 * Set the properties of the rectangle.
-	 * @param x The x-coordinate of the origin of the rectangle.
-	 * @param y The y-coordinate of the origin of the rectangle.
-	 * @param width The width of the rectangle.
-	 * @param height The height of the rectangle.
+	 * 设置矩形的属性。
+	 * @param x 矩形原点的x坐标。
+	 * @param y 矩形原点的y坐标。
+	 * @param width 矩形的宽度。
+	 * @param height 矩形的高度。
 	 */
 	set(x: number, y: number, width: number, height: number): void;
 
 	/**
-	 * Check if a point is inside the rectangle.
-	 * @param point The point to check, represented by a Vec2 object.
-	 * @returns Whether or not the point is inside the rectangle.
+	 * 检查一个点是否在矩形内。
+	 * @param point 要检查的点，由一个Vec2对象表示。
+	 * @returns 点是否在矩形内。
 	 */
 	containsPoint(point: Vec2): boolean;
 
 	/**
-	 * Check if the rectangle intersects with another rectangle.
-	 * @param rect The other rectangle to check for intersection with, represented by a Rect object.
-	 * @returns Whether or not the rectangles intersect.
+	 * 检查矩形是否与另一个矩形相交。
+	 * @param rect 要检查相交的另一个矩形，由一个Rect对象表示。
+	 * @returns 矩形是否相交。
 	 */
 	intersectsRect(rect: Rect): boolean;
 
 	/**
-	 * Check if two rectangles are equal.
-	 * @param other The other rectangle to compare to, represented by a Rect object.
-	 * @returns Whether or not the two rectangles are equal.
+	 * 检查两个矩形是否相等。
+	 * @param other 要比较的另一个矩形，由一个Rect对象表示。
+	 * @returns 两个矩形是否相等。
 	 */
 	equals(other: Rect): boolean;
 }
@@ -352,43 +352,43 @@ class Rect extends ContainerItem {
 export type {Rect as RectType};
 
 /**
- * A class for creating rectangle objects.
+ * 用于创建矩形对象的类。
  */
 interface RectClass {
 
 	/**
-	 * A rectangle object with all properties set to 0.
+	 * 所有属性都设置为0的矩形对象。
 	 */
 	readonly zero: Rect;
 
 	/**
-	 * Create a new rectangle object using another rectangle object.
-	 * @param other The other rectangle object to create a new rectangle object from.
-	 * @returns A new rectangle object.
+	 * 使用另一个矩形对象创建新的矩形对象。
+	 * @param other 用于创建新矩形对象的另一个矩形对象。
+	 * @returns 新的矩形对象。
 	 */
 	(this: void, other: Rect): Rect;
 
 	/**
-	 * Create a new rectangle object using individual properties.
-	 * @param x The x-coordinate of the origin of the rectangle.
-	 * @param y The y-coordinate of the origin of the rectangle.
-	 * @param width The width of the rectangle.
-	 * @param height The height of the rectangle.
-	 * @returns A new rectangle object.
+	 * 使用单独的属性创建新的矩形对象。
+	 * @param x 矩形原点的x坐标。
+	 * @param y 矩形原点的y坐标。
+	 * @param width 矩形的宽度。
+	 * @param height 矩形的高度。
+	 * @returns 新的矩形对象。
 	 */
 	(this: void, x: number, y: number, width: number, height: number): Rect;
 
 	/**
-	 * Create a new rectangle object using a Vec2 object for the origin and a Size object for the size.
-	 * @param origin The origin of the rectangle, represented by a Vec2 object.
-	 * @param size The size of the rectangle, represented by a Size object.
-	 * @returns A new rectangle object.
+	 * 使用Vec2对象作为原点和Size对象作为大小创建新的矩形对象。
+	 * @param origin 矩形的原点，由一个Vec2对象表示。
+	 * @param size 矩形的大小，由一个Size对象表示。
+	 * @returns 新的矩形对象。
 	 */
 	(this: void, origin: Vec2, size: Size): Rect;
 
 	/**
-	 * Create a new rectangle object with all properties set to 0.
-	 * @returns A new rectangle object.
+	 * 创建所有属性都设置为0的新矩形对象。
+	 * @returns 新的矩形对象。
 	 */
 	(this: void): Rect;
 }
@@ -396,52 +396,52 @@ interface RectClass {
 const rectClass: RectClass;
 export {rectClass as Rect};
 
-/** A color with red, green, and blue channels. */
+/** 一个具有红色、绿色和蓝色通道的颜色。 */
 class Color3 {
 
 	private constructor();
 
-	/** The red channel of the color, should be 0 to 255. */
+	/** 颜色的红色通道，应为0到255。 */
 	r: number;
 
-	/** The green channel of the color, should be 0 to 255. */
+	/** 颜色的绿色通道，应为0到255。 */
 	g: number;
 
-	/** The blue channel of the color, should be 0 to 255. */
+	/** 颜色的蓝色通道，应为0到255。 */
 	b: number;
 
 	/**
-	 * Converts the color to an RGB integer value.
-	 * @returns Converted RGB integer.
+	 * 将颜色转换为RGB整数值。
+	 * @returns 转换后的RGB整数。
 	 */
 	toRGB(): number;
 }
 
 export type {Color3 as Color3Type};
 
-/** A class for creating Color3 objects. */
+/** 用于创建Color3对象的类。 */
 interface Color3Class {
 
 	/**
-	 * Creates a color with all channels set to 0.
-	 * @returns A new `Color3` object.
+	 * 创建所有通道都设置为0的颜色。
+	 * @returns 一个新的`Color3`对象。
 	 */
 	(this: void): Color3;
 
 	/**
-	 * Creates a new `Color3` object from an RGB integer value.
-	 * @param rgb The RGB integer value to create the color from.
-	 * For example 0xffffff (white), 0xff0000 (red).
-	 * @returns A new `Color3` object.
+	 * 从RGB整数值创建一个新的`Color3`对象。
+	 * @param rgb 用于创建颜色的RGB整数值。
+	 * 例如 0xffffff（白色），0xff0000（红色）。
+	 * @returns 一个新的`Color3`对象。
 	 */
 	(this: void, rgb: number): Color3;
 
 	/**
-	 * Creates a new `Color3` object from RGB color channel values.
-	 * @param r The red channel value (0-255).
-	 * @param g The green channel value (0-255).
-	 * @param b The blue channel value (0-255).
-	 * @returns A new `Color3` object.
+	 * 从RGB颜色通道值创建一个新的`Color3`对象。
+	 * @param r 红色通道值（0-255）。
+	 * @param g 绿色通道值（0-255）。
+	 * @param b 蓝色通道值（0-255）。
+	 * @returns 一个新的`Color3`对象。
 	 */
 	(this: void, r: number, g: number, b: number): Color3;
 }
@@ -450,39 +450,39 @@ const color3Class: Color3Class;
 export {color3Class as Color3};
 
 /**
- * Represents a color with red, green, blue, and alpha channels.
+ * 表示具有红色、绿色、蓝色和alpha通道的颜色。
  */
 class Color {
 
 	private constructor();
 
-	// The red channel of the color, should be 0 to 255.
+	// 颜色的红色通道，应为0到255。
 	r: number;
 
-	// The green channel of the color, should be 0 to 255.
+	// 颜色的绿色通道，应为0到255。
 	g: number;
 
-	// The blue channel of the color, should be 0 to 255.
+	// 颜色的蓝色通道，应为0到255。
 	b: number;
 
-	// The alpha channel of the color, should be 0 to 255.
+	// 颜色的alpha通道，应为0到255。
 	a: number;
 
 	/**
-	 * Another representation for alpha channel.
-	 * The opacity of the color, ranging from 0 to 1.
+	 * alpha通道的另一种表示方式。
+	 * 颜色的不透明度，范围从0到1。
 	 */
 	opacity: number;
 
 	/**
-	 * Converts the color to a Color3 value without alpha channel.
-	 * @returns Converted Color3 value.
+	 * 将颜色转换为没有alpha通道的Color3值。
+	 * @returns 转换后的Color3值。
 	 */
 	toColor3(): Color3;
 
 	/**
-	 * Converts the color to an ARGB integer value.
-	 * @returns Converted ARGB integer.
+	 * 将颜色转换为ARGB整数值。
+	 * @returns 转换后的ARGB整数。
 	 */
 	toARGB(): number;
 }
@@ -490,39 +490,39 @@ class Color {
 export type {Color as ColorType};
 
 /**
- * Provides methods for creating Color objects.
+ * 提供创建Color对象的方法。
  */
 interface ColorClass {
 
 	/**
-	 * Creates a color with all channels set to 0.
-	 * @returns A new Color object.
+	 * 创建所有通道都设置为0的颜色。
+	 * @returns 一个新的Color对象。
 	 */
 	(this: void): Color;
 
 	/**
-	 * Creates a new Color object with a Color3 object and alpha value.
-	 * @param color The color as a Color3 object.
-	 * @param a [optional] The alpha value of the color ranging from 0 to 255.
-	 * @returns A new Color object.
+	 * 使用Color3对象和alpha值创建一个新的Color对象。
+	 * @param color 作为Color3对象的颜色。
+	 * @param a [可选] 颜色的alpha值，范围从0到255。
+	 * @returns 一个新的Color对象。
 	 */
 	(this: void, color: Color3, a?: number): Color;
 
 	/**
-	 * Creates a new `Color` object from an ARGB integer value.
-	 * @param argb The ARGB integer value to create the color from.
-	 * For example 0xffffffff (opaque white), 0x88ff0000 (half transparent red)
-	 * @returns A new `Color` object.
+	 * 从ARGB整数值创建一个新的`Color`对象。
+	 * @param argb 用于创建颜色的ARGB整数值。
+	 * 例如 0xffffffff（不透明的白色），0x88ff0000（半透明的红色）
+	 * @returns 一个新的`Color`对象。
 	 */
 	(this: void, argb: number): Color;
 
 	/**
-	 * Creates a new `Color` object from RGBA color channel values.
-	 * @param r The red channel value (0-255).
-	 * @param g The green channel value (0-255).
-	 * @param b The blue channel value (0-255).
-	 * @param a The alpha channel value (0-255).
-	 * @returns A new `Color` object.
+	 * 从RGBA颜色通道值创建一个新的`Color`对象。
+	 * @param r 红色通道值（0-255）。
+	 * @param g 绿色通道值（0-255）。
+	 * @param b 蓝色通道值（0-255）。
+	 * @param a alpha通道值（0-255）。
+	 * @returns 一个新的`Color`对象。
 	 */
 	(this: void, r: number, g: number, b: number, a: number): Color;
 }
@@ -530,359 +530,376 @@ interface ColorClass {
 const colorClass: ColorClass;
 export {colorClass as Color};
 
+/** 游戏引擎运行的平台类型。 */
+export const enum PlatformType {
+	Windows = "Windows",
+	Android = "Android",
+	macOS = "macOS",
+	iOS = "iOS",
+	Linux = "Linux",
+	Unknown = "Unknown"
+}
+
 /**
- * An interface representing an application singleton instance.
+ * 管理应用程序信息的单例类。
  */
 interface App {
 
-	/** The current passed frame number. */
+	/** 引擎运行到当前时间经过的帧数。 */
 	readonly frame: number;
 
-	/** The size of the main frame buffer texture used for rendering. */
+	/** 渲染主帧的缓冲纹理的大小。 */
 	readonly bufferSize: Size;
 
 	/**
-	 * The logical visual size of the screen.
-	 * The visual size only changes when application window size changes.
-	 * And it won't be affected by the view buffer scaling factor.
+	 * 屏幕的逻辑视觉大小。
+	 * 视觉大小仅在应用程序窗口大小更改时更改。
 	 */
 	readonly visualSize: Size;
 
 	/**
-	 * The ratio of the pixel density displayed by the device.
-	 * Can be calculated as the size of the rendering buffer divided by the size of the application window.
+	 * 设备显示的像素密度比。
+	 * 等于渲染缓冲纹理的像素大小除以应用程序窗口的大小。
 	 */
 	readonly devicePixelRatio: number;
 
-	/** An enumerated type representing the platform the game engine is running on. */
-	readonly platform: "Windows" | "Android" | "macOS" | "iOS" | "Linux" | "Unknown";
+	/** 游戏引擎当前运行的平台。 */
+	readonly platform: PlatformType;
 
-	/** The version string of the game engine. Should be in format of "v0.0.0". */
+	/**
+	 * 游戏引擎的版本字符串。
+	 * 格式为“v0.0.0”。
+	*/
 	readonly version: string;
 
-	/** The time in seconds since the last frame update. */
+	/**
+	 * 自从上一帧游戏更新以来间隔的时间（以秒为单位）。
+	 * 在同一个游戏帧中多次调用时得到的是一个常数。
+	*/
 	readonly deltaTime: number;
 
-	/** The elapsed time since current frame was started, in seconds. */
+	/** 从当前游戏帧开始到本次API调用经过的时间（以秒为单位）。 */
 	readonly elapsedTime: number;
 
 	/**
-	 * The total time the game engine has been running until last frame ended, in seconds.
-	 * Should be a constant number when invoked in the same frame for multiple times.
+	 * 游戏引擎直到上一帧结束为止，已经运行的总时间（以秒为单位）。
+	 * 在同一个游戏帧中多次调用时得到的是一个常数。
 	 */
 	readonly totalTime: number;
 
 	/**
-	 * The total time the game engine has been running until this field being accessed, in seconds.
-	 * Should be an increasing number when invoked in the same frame for multiple times.
+	 * 直到调用该API为止，游戏引擎已经运行的总时间（以秒为单位）。
+	 * 在同一个游戏帧中多次调用时得到一个递增的数字。
 	 */
 	readonly runningTime: number;
 
 	/**
-	 * A random number generated by a random number engine based on Mersenne Twister algorithm.
-	 * So that the random number generated by the same seed should be consistent on every platform.
+	 * 基于Mersenne Twister算法生成的随机数。
+	 * 由同一种子生成的随机数在每个平台上会保持一致。
 	 */
 	readonly rand: number;
 
 	/**
-	 * The maximum valid frames per second the game engine is allowed to run at.
-	 * The max FPS is being inferred by the device screen max refresh rate.
+	 * 游戏引擎可以运行的最大有效帧率。
+	 * 最大有效帧率是通过设备屏幕的最大刷新率推断出来的。
 	 */
 	readonly maxFPS: number;
 
-	/** Whether the game engine is running in debug mode. */
+	/** 游戏引擎是否运行在调试模式下。 */
 	readonly debugging: boolean;
 
-	/** An array of test names of engine included C++ tests. */
+	/** 引擎内置的C++测试的测试名称（用于辅助引擎本身开发）。 */
 	readonly testNames: string[];
 
-	/** The system locale string, in format like: `zh-Hans`, `en`. */
+	/** 当前系统的语言环境字符串，格式例如：`zh-Hans`，`en`. */
 	locale: string;
 
-	/** A theme color for Dora SSR. */
+	/** Dora SSR的主题颜色。 */
 	themeColor: Color;
 
-	/** A random number seed. */
+	/** 随机数种子。 */
 	seed: number;
 
 	/**
-	 * The target frames per second the game engine is supposed to run at.
-	 * Only works when `fpsLimited` is set to true.
+	 * 游戏引擎应该运行的目标帧率。
+	 * 仅在`fpsLimited`设置为true时有效。
 	 */
 	targetFPS: number;
 
 	/**
-	 * Whether the game engine is limiting the frames per second.
-	 * Set `fpsLimited` to true, will make engine run in a busy loop to track the precise frame time to switch to the next frame.
-	 * This behavior can lead to 100% CPU usage. This is usually common practice on Windows PCs for better CPU usage occupation.
-	 * But it also results in extra heat and power consumption.
+	 * 游戏引擎是否自动限制帧率。
+	 * 将`fpsLimited`设置为true，会使引擎通过执行一个忙等待的死循环以获取更加精准的机器时间，并计算切换到下一帧的时间点。
+	 * 这是在PC机Windows系统上的通常做法，以提升CPU占用率来提升游戏的性能。但这也会导致额外的芯片热量产生和电力消耗。
 	 */
 	fpsLimited: boolean;
 
 	/**
-	 * Whether the game engine is currently idled.
-	 * Set `idled` to true, will make game logic thread use a sleep time and going idled for next frame to come.
-	 * This idled state may cause game engine over slept for a few frames to lost.
-	 * `idled` state can reduce some CPU usage.
+	 * 游戏引擎当前是否处于闲置状态。
+	 * 将`idled`设置为true，将使游戏逻辑线程使用`sleep`系统调用来等待进入下一个游戏帧的时间点。
+	 * 由于操作系统定时器存在一定程度的误差，可能导致游戏引擎睡眠过头而错过几个游戏帧。
+	 * 闲置状态可以减少额外的CPU占用。
 	 */
 	idled: boolean;
 
 	/**
-	 * The application window size.
-	 * May differ from visual size due to the different DPIs of display devices.
-	 * Set `winSize` to `Size.zero` to toggle application window into full screen mode,
-	 * It is not available to set this property on platform Android and iOS.
+	 * 应用程序窗口大小。
+	 * 由于显示设备的DPI不同，可能会与实际的可视大小有差异。
+	 * 将`winSize`设置为`Size.zero`，可以将应用程序窗口切换到全屏模式。
+	 * 在Android和iOS平台上无法设置此属性。
 	 */
 	winSize: Size;
 
 	/**
-	 * The application window position.
-	 * It is not available to set this property on platform Android and iOS.
+	 * 应用程序窗口的位置。
+	 * 在Android和iOS平台上无法设置此属性。
 	 */
 	winPosition: Vec2;
 
 	/**
-	 * A function that runs a specific C++ test included in the engine.
-	 * @param name The name of the test to run.
-	 * @returns Whether the test ran successfully.
+	 * 运行特定的包含在引擎中的C++测试函数。
+	 * @param name 要运行的测试的名称。
+	 * @return 测试是否成功运行。
 	 */
 	runTest(name: string): boolean;
 
-	/** A function that shuts down the game engine. */
+	/**
+	 * 关闭游戏引擎。
+	 * 该函数在Android和iOS平台不会生效，以遵循移动平台上应用程序规范。
+	 */
 	shutdown(): void;
 }
 
 const app: App;
 export {app as App};
 
-/** A class that is a base class for many C++ objects managed by Lua VM. */
+/** 被Lua虚拟机管理的C++对象的基类。 */
 class Object extends ContainerItem {
 
 	protected constructor();
 
-	/** The ID of the C++ object. */
+	/** C++对象的ID。 */
 	readonly id: number;
 
-	/** The Lua reference ID for this C++ object. */
+	/** C++对象的Lua引用ID。 */
 	readonly ref: number;
 }
 
 export type {Object as ObjectType};
 
-/** The static class for accessing object class attributes. */
+/** 用于访问C++对象管理相关信息的静态类。 */
 interface ObjectClass {
 
-	/** The number of total existing C++ objects. */
+	/** 现存的C++对象的总数。 */
 	readonly count: number;
 
-	/** The maximum number of C++ objects that were ever created. */
+	/** 曾经创建的C++对象的最大数量。 */
 	readonly maxCount: number;
 
-	/** The number of total existing Lua references to C++ objects. */
+	/** 现存的对C++对象的Lua引用的总数。 */
 	readonly luaRefCount: number;
 
-	/** The maximum number of Lua references that were ever created. */
+	/** 曾经创建的Lua引用的最大数量。 */
 	readonly maxLuaRefCount: number;
 
-	/** The number of C++ function call objects referenced by Lua. */
+	/** Lua引用的C++函数调用对象的数量。 */
 	readonly callRefCount: number;
 
-	/** The maximum number of C++ function call references that were ever created. */
+	/** 曾经创建的C++函数调用引用的最大数量。 */
 	readonly maxCallRefCount: number;
 }
 
 const objectClass: ObjectClass;
 export {objectClass as Object};
 
-/** An empty interface as action definition instance. */
+/** 动作定义对象的类型。 */
 type ActionDef = BasicType<'ActionDef'>;
 
 export type {ActionDef};
 
-/** Represents an action that can be run on a node */
+/** 表示可以在节点上运行的动作对象的类 */
 interface Action extends Object {
 
-	/** The duration of the action */
+	/** 动作的持续时间 */
 	readonly duration: number;
 
-	/** Whether the action is currently running */
+	/** 动作是否正在运行 */
 	readonly running: boolean;
 
-	/** Whether the action is currently paused */
+	/** 动作是否当前已暂停 */
 	readonly paused: boolean;
 
-	/** Whether the action should be run in reverse */
+	/** 动作是否应该反向运行 */
 	reversed: boolean;
 
 	/**
-	 * The speed at which the action should be run
-	 * Set to 1.0 to get normal speed, Set to 2.0 to get two times faster
+	 * 动作应该以何种速度运行
+	 * 设置为1.0以获得正常速度，设置为2.0以获得两倍的速度
 	 */
 	speed: number;
 
-	/** Pauses the action */
+	/** 暂停动作 */
 	pause(): void;
 
-	/** Resumes the action */
+	/** 恢复动作 */
 	resume(): void;
 
 	/**
-	 * Updates the state of the Action
-	 * @param elapsed The amount of time in seconds that has elapsed to update action to
-	 * @param reversed Whether or not to update the Action in reverse (default is false)
+	 * 更新动作的状态
+	 * @param elapsed 更新动作所需的已过去的时间（以秒为单位）
+	 * @param reversed 是否应该反向更新动作（默认为false）
 	 */
 	updateTo(elapsed: number, reversed?: boolean): void;
 }
 
 export type {Action};
 
-/** A class for creating an action that can be run on a Node */
+/** 用于创建可以在节点上运行的动作的类 */
 interface ActionClass {
 
 	/**
-	 * Creates a new Action from the given definition
-	 * @param actionDef The definition of the Action
-	 * @returns The new Action object
+	 * 根据给定的定义创建一个新的动作
+	 * @param actionDef 动作的定义
+	 * @returns 新的动作对象
 	 */
 	(this: void, actionDef: ActionDef): Action;
 }
 
 export const Action: ActionClass;
 
-/** Type for each easing function. */
+/** 缓动函数对象的类型。 */
 type EaseFunc = BasicType<'EaseFunc', number>;
 
-/** Interface for the Ease object containing easing functions. */
+/** 获取缓动函数对象的接口。 */
 interface EaseClass {
 
-	/** An easing function that applies a linear rate of change. */
+	/** 一个应用线性变化率的缓动函数。 */
 	Linear: EaseFunc;
 
-	/** An easing function that starts slow and accelerates quickly. */
+	/** 一个开始慢，然后快速加速的缓动函数。 */
 	InQuad: EaseFunc;
 
-	/** An easing function that starts fast and decelerates quickly. */
+	/** 一个缓动函数，开始快，然后快速减速。 */
 	OutQuad: EaseFunc;
 
-	/** An easing function that starts slow, accelerates, then decelerates. */
+	/** 一个缓动函数，开始慢，然后加速，然后减速。 */
 	InOutQuad: EaseFunc;
 
-	/** An easing function that starts fast, decelerates, then accelerates. */
+	/** 一个缓动函数，开始快，然后减速，然后加速。 */
 	OutInQuad: EaseFunc;
 
-	/** An easing function that starts slow and accelerates gradually. */
+	/** 一个缓动函数，开始慢，然后逐渐加速。 */
 	InCubic: EaseFunc;
 
-	/** An easing function that starts fast and decelerates gradually. */
+	/** 一个缓动函数，开始快，然后逐渐减速。 */
 	OutCubic: EaseFunc;
 
-	/** An easing function that starts slow, accelerates, then decelerates. */
+	/** 一个缓动函数，开始慢，然后加速，然后减速。 */
 	InOutCubic: EaseFunc;
 
-	/** An easing function that starts fast, decelerates, then accelerates. */
+	/** 一个缓动函数，开始快，然后减速，然后加速。 */
 	OutInCubic: EaseFunc;
 
-	/** An easing function that starts slow and accelerates sharply. */
+	/** 一个缓动函数，开始慢，然后急剧加速。 */
 	InQuart: EaseFunc;
 
-	/** An easing function that starts fast and decelerates sharply. */
+	/** 一个缓动函数，开始快，然后急剧减速。 */
 	OutQuart: EaseFunc;
 
-	/** An easing function that starts slow, accelerates sharply, then decelerates sharply. */
+	/** 一个缓动函数，开始慢，然后急剧加速，然后急剧减速。 */
 	InOutQuart: EaseFunc;
 
-	/** An easing function that starts fast, decelerates sharply, then accelerates sharply. */
+	/** 一个缓动函数，开始快，然后急剧减速，然后急剧加速。 */
 	OutInQuart: EaseFunc;
 
-	/** An easing function that starts slow and accelerates extremely quickly. */
+	/** 一个缓动函数，开始慢，然后极快地加速。 */
 	InQuint: EaseFunc;
 
-	/** An easing function that starts fast and decelerates extremely quickly. */
+	/** 一个缓动函数，开始快，然后极快地减速。 */
 	OutQuint: EaseFunc;
 
-	/** An easing function that starts slow, accelerates extremely quickly, then decelerates extremely quickly. */
+	/** 一个缓动函数，开始慢，然后极快地加速，然后极快地减速。 */
 	InOutQuint: EaseFunc;
 
-	/** An easing function that starts fast, decelerates extremely quickly, then accelerates extremely quickly. */
+	/** 一个缓动函数，开始快，然后极快地减速，然后极快地加速。 */
 	OutInQuint: EaseFunc;
 
-	/** An easing function that starts slow and accelerates gradually, then slows down again. */
+	/** 一个缓动函数，开始慢，然后逐渐加速，然后再次减速。 */
 	InSine: EaseFunc;
 
-	/** An easing function that starts fast and decelerates gradually, then slows down again. */
+	/** 一个缓动函数，开始快，然后逐渐减速，然后再次减速。 */
 	OutSine: EaseFunc;
 
-	/** An easing function that starts slow, accelerates gradually, then decelerates gradually. */
+	/** 一个缓动函数，开始慢，然后逐渐加速，然后逐渐减速。 */
 	InOutSine: EaseFunc;
 
-	/** An easing function that starts fast, decelerates gradually, then accelerates gradually. */
+	/** 一个缓动函数，开始快，逐渐减速，然后逐渐加速。 */
 	OutInSine: EaseFunc;
 
-	/** An easing function that starts extremely slow and accelerates exponentially. */
+	/** 一个缓动函数，开始极慢，然后以指数方式加速。 */
 	InExpo: EaseFunc;
 
-	/** An easing function that starts extremely fast and decelerates exponentially. */
+	/** 一个缓动函数，开始极快，然后以指数方式减速。 */
 	OutExpo: EaseFunc;
 
-	/** An easing function that starts extremely slow, accelerates exponentially, then decelerates exponentially. */
+	/** 一个缓动函数，开始极慢，以指数方式加速，然后以指数方式减速。 */
 	InOutExpo: EaseFunc;
 
-	/** An easing function that starts extremely fast, decelerates exponentially, then accelerates exponentially. */
+	/** 一个缓动函数，开始极快，以指数方式减速，然后以指数方式加速。 */
 	OutInExpo: EaseFunc;
 
-	/** An easing function that starts slow and accelerates gradually in a circular fashion. */
+	/** 一个缓动函数，开始慢，以圆形方式逐渐加速。 */
 	InCirc: EaseFunc;
 
-	/** An easing function that starts fast and decelerates gradually in a circular fashion. */
+	/** 一个缓动函数，开始快，以圆形方式逐渐减速。 */
 	OutCirc: EaseFunc;
 
-	/** An easing function that starts slow, accelerates gradually in a circular fashion, then decelerates gradually in a circular fashion. */
+	/** 一个缓动函数，开始慢，以圆形方式逐渐加速，然后以圆形方式逐渐减速。 */
 	InOutCirc: EaseFunc;
 
-	/** An easing function that starts fast, decelerates gradually in a circular fashion, then accelerates gradually in a circular fashion. */
+	/** 一个缓动函数，开始快，以圆形方式逐渐减速，然后以圆形方式逐渐加速。 */
 	OutInCirc: EaseFunc;
 
-	/** An easing function that starts slow and accelerates exponentially, overshooting the target and then returning to it. */
+	/** 一个缓动函数，开始慢，以指数方式加速，超过目标然后返回。 */
 	InElastic: EaseFunc;
 
-	/** An easing function that starts fast and decelerates exponentially, overshooting the target and then returning to it. */
+	/** 一个缓动函数，开始快，以指数方式减速，超过目标然后返回。 */
 	OutElastic: EaseFunc;
 
-	/** An easing function that starts slow, accelerates exponentially, overshooting the target and then returning to it, then decelerates exponentially, overshooting the target and then returning to it again. */
+	/** 一个缓动函数，开始慢，以指数方式加速，超过目标然后返回，然后以指数方式减速，再次超过目标然后返回。 */
 	InOutElastic: EaseFunc;
 
-	/** An easing function that starts fast, decelerates exponentially, overshooting the target and then returning to it, then accelerates exponentially, overshooting the target and then returning to it again. */
+	/** 一个缓动函数，开始快速，指数级地减速，超过目标然后返回，然后指数级地加速，再次超过目标然后返回。 */
 	OutInElastic: EaseFunc;
 
-	/** An easing function that starts slow and accelerates sharply backward before returning to the target. */
+	/** 一个缓动函数，开始慢，然后急剧向后加速，最后返回到目标。 */
 	InBack: EaseFunc;
 
-	/** An easing function that starts fast and decelerates sharply backward before returning to the target. */
+	/** 一个缓动函数，开始快，然后急剧向后减速，最后返回到目标。 */
 	OutBack: EaseFunc;
 
-	/** An easing function that starts slow, accelerates sharply backward, then decelerates sharply forward before returning to the target. */
+	/** 一个缓动函数，开始慢，急剧向后加速，然后急剧向前减速，最后返回到目标。 */
 	InOutBack: EaseFunc;
 
-	/** An easing function that starts fast, decelerates sharply backward, then accelerates sharply forward before returning to the target. */
+	/** 一个缓动函数，开始快，急剧向后减速，然后急剧向前加速，最后返回到目标。 */
 	OutInBack: EaseFunc;
 
-	/** An easing function that starts slow and accelerates in a bouncing motion before settling on the target. */
+	/** 一个缓动函数，开始慢，然后在一个弹跳的动作中加速，最后在目标上稳定下来。 */
 	InBounce: EaseFunc;
 
-	/** An easing function that starts fast and decelerates in a bouncing motion before settling on the target. */
+	/** 一个缓动函数，开始快，然后在一个弹跳的动作中减速，最后在目标上稳定下来。 */
 	OutBounce: EaseFunc;
 
-	/** An easing function that starts slow, accelerates in a bouncing motion, then decelerates in a bouncing motion before settling on the target. */
+	/** 一个缓动函数，开始慢，在一个弹跳的动作中加速，然后在一个弹跳的动作中减速，最后在目标上稳定下来。 */
 	InOutBounce: EaseFunc;
 
-	/** An easing function that starts fast, decelerates in a bouncing motion, then accelerates in a bouncing motion before settling on the target. */
+	/** 一个缓动函数，开始快，在一个弹跳的动作中减速，然后在一个弹跳的动作中加速，最后在目标上稳定下来。 */
 	OutInBounce: EaseFunc;
 
 	/**
-	 * Applies an easing function to a given value over a given amount of time.
-	 * @param easing The easing function to apply.
-	 * @param time The amount of time to apply the easing function over, should be between 0 and 1.
-	 * @returns The result of applying the easing function to the value.
+	 * 在给定的时间内对给定的值应用缓动函数。
+	 * @param easing 要应用的缓动函数。
+	 * @param time 要应用缓动函数的时间，应在0和1之间。
+	 * @returns 将缓动函数应用于值的结果。
 	 */
 	func(easing: EaseFunc, time: number): number;
 }
@@ -890,60 +907,60 @@ interface EaseClass {
 export const Ease: EaseClass;
 
 /**
- * Creates a definition for an action that animates the x anchor point of a Node from one value to another.
- * @param duration The duration of the animation in seconds.
- * @param from The starting value of the anchor point.
- * @param to The ending value of the anchor point.
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的x锚点从一个值到另一个值。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from 锚点的起始值。
+ * @param to 锚点的结束值。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function AnchorX(
 	this: void,
 	duration: number,
 	from: number,
 	to: number,
-	easing?: EaseFunc // Default to Ease.Linear
+	easing?: EaseFunc // 默认为Ease.Linear
 ): ActionDef;
 
 /**
- * Creates a definition for an action that animates the y anchor point of a Node from one value to another.
- * @param duration The duration of the animation in seconds.
- * @param from The starting value of the anchor point.
- * @param to The ending value of the anchor point.
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的y锚点从一个值到另一个值。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from 锚点的起始值。
+ * @param to 锚点的结束值。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function AnchorY(
 	this: void,
 	duration: number,
 	from: number,
 	to: number,
-	easing?: EaseFunc // Default to Ease.Linear
+	easing?: EaseFunc // 默认为Ease.Linear
 ): ActionDef;
 
 /**
- * Creates a definition for an action that animates the angle of a Node from one value to another.
- * @param duration The duration of the animation in seconds.
- * @param from The starting value of the angle in degrees.
- * @param to The ending value of the angle in degrees.
- * @param easing [optional] The easing function to use for the animation. Defaults to Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的角度从一个值到另一个值。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from 角度的起始值（以度为单位）。
+ * @param to 角度的结束值（以度为单位）。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function Angle(
 	this: void,
 	duration: number,
 	from: number,
 	to: number,
-	easing?: EaseFunc // Defaults to Linear
+	easing?: EaseFunc // 默认为Linear
 ): ActionDef;
 
 /**
- * Creates a definition for an action that animates the x-axis rotation angle of a Node from one value to another.
- * @param duration The duration of the animation in seconds.
- * @param from The starting value of the x-axis rotation angle in degrees.
- * @param to The ending value of the x-axis rotation angle in degrees.
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的x轴旋转角度从一个值到另一个值。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from x轴旋转角度的起始值（以度为单位）。
+ * @param to x轴旋转角度的结束值（以度为单位）。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function AngleX(
 	this: void,
@@ -954,12 +971,12 @@ export function AngleX(
 ): ActionDef;
 
 /**
- * Creates a definition for an action that animates the y-axis rotation angle of a Node from one value to another.
- * @param duration The duration of the animation in seconds.
- * @param from The starting value of the y-axis rotation angle in degrees.
- * @param to The ending value of the y-axis rotation angle in degrees.
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的y轴旋转角度从一个值到另一个值。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from y轴旋转角度的起始值（以度为单位）。
+ * @param to y轴旋转角度的结束值（以度为单位）。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function AngleY(
 	this: void,
@@ -970,19 +987,19 @@ export function AngleY(
 ): ActionDef;
 
 /**
- * Creates a definition for an action that makes a delay in the animation timeline.
- * @param duration The duration of the delay in seconds.
- * @returns An ActionDef object that represents a delay in the animation timeline.
+ * 创建一个动作定义，该动作在动画时间线中产生延迟。
+ * @param duration 延迟的持续时间（以秒为单位）。
+ * @returns 代表动画时间线中延迟的动作定义对象。
  */
 export function Delay(this: void, duration: number): ActionDef;
 
 /**
- * Creates a definition for an action that emits an event.
- * @param name The name of the event to be triggered.
- * @param param The parameter to pass to the event. (default: "")
- * @returns The created `ActionDef`.
+ * 创建一个动作定义，该动作将触发一个事件。
+ * @param name 要触发的事件的名称。
+ * @param param 传递给事件的参数。 (默认: "")
+ * @returns 创建的 `ActionDef`。
  * @example
- * Get this event by register event from the action performing node.
+ * 通过从执行动作的节点注册事件来获取此事件。
  * ```
  * node.slot("EventName", function(param: string) {
  * 	print("EventName triggered with param", param);
@@ -996,12 +1013,12 @@ export function Delay(this: void, duration: number): ActionDef;
 export function Event(this: void, name: string, param?: string): ActionDef;
 
 /**
-* Creates a definition for an action that animates the width of a Node.
-* @param duration The duration of the animation in seconds.
-* @param from The starting width value of the Node.
-* @param to The ending width value of the Node.
-* @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
-* @returns An ActionDef object that can be used to run the animation on a Node.
+* 创建一个动作定义，该动作将持续改变节点的宽度。
+* @param duration 动画的持续时间（以秒为单位）。
+* @param from 节点的起始宽度值。
+* @param to 节点的结束宽度值。
+* @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+* @returns 可用于在节点上运行动画的动作定义对象。
 */
 export function Width(
 	this: void,
@@ -1012,85 +1029,85 @@ export function Width(
 ): ActionDef;
 
 /**
- * Creates a definition for an action that animates the height of a Node.
- * @param duration The duration of the animation in seconds.
- * @param from The starting height value of the Node.
- * @param to The ending height value of the Node.
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的高度。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from 节点的起始高度值。
+ * @param to 节点的结束高度值。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function Height(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * Creates a definition for an action that hides a Node.
- * @returns An ActionDef object that can be used to hide a Node.
+ * 创建一个动作定义，该动作将隐藏一个节点。
+ * @returns 可用于隐藏节点的动作定义对象。
  */
 export function Hide(this: void): ActionDef;
 
 /**
-* Creates a definition for an action that shows a Node.
-* @returns An ActionDef object that can be used to show a Node.
+* 创建一个动作定义，该动作将显示一个节点。
+* @returns 可用于显示节点的动作定义对象。
 */
 export function Show(this: void): ActionDef;
 
 /**
- * Creates a definition for an action that animates the position of a Node from one Vec2 value to another.
- * @param duration The duration of the animation in seconds.
- * @param from The starting position of the Node.
- * @param to The ending position of the Node.
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的位置从一个Vec2值到另一个值。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from 节点的起始位置。
+ * @param to 节点的结束位置。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function Move(this: void, duration: number, from: Vec2, to: Vec2, easing?: EaseFunc): ActionDef;
 
 /**
- * Creates a definition for an action that animates the opacity of a Node from one value to another.
- * @param duration The duration of the animation in seconds.
- * @param from The starting opacity value of the Node (0-1.0).
- * @param to The ending opacity value of the Node (0-1.0).
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的不透明度从一个值到另一个值。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from 节点的起始不透明度值（0-1.0）。
+ * @param to 节点的结束不透明度值（0-1.0）。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function Opacity(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * Creates a definition for an action that animates the rotation of a Node from one value to another.
- * The roll animation will make sure the node is rotated to the target angle by the minimum rotation angle.
- * @param duration The duration of the animation in seconds.
- * @param from The starting roll value of the Node (in degrees).
- * @param to The ending roll value of the Node (in degrees).
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的旋转从一个值到另一个值。
+ * 滚动动画将确保节点通过最小旋转角度旋转到目标角度。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from 节点的起始滚动值（以度为单位）。
+ * @param to 节点的结束滚动值（以度为单位）。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function Roll(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * Creates a definition for an action that animates the x-axis and y-axis scale of a Node from one value to another.
- * @param duration The duration of the animation in seconds.
- * @param from The starting value of the x-axis and y-axis scale.
- * @param to The ending value of the x-axis and y-axis scale.
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的x轴和y轴缩放从一个值到另一个值。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from x轴和y轴缩放的起始值。
+ * @param to x轴和y轴缩放的结束值。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function Scale(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * Creates a definition for an action that animates the x-axis scale of a Node from one value to another.
- * @param duration The duration of the animation in seconds.
- * @param from The starting value of the x-axis scale.
- * @param to The ending value of the x-axis scale.
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的x轴缩放从一个值到另一个值。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from x轴缩放的起始值。
+ * @param to x轴缩放的结束值。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function ScaleX(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * Creates a definition for an action that animates the y-axis scale of a Node from one value to another.
- * @param duration The duration of the animation in seconds.
- * @param from The starting value of the y-axis scale.
- * @param to The ending value of the y-axis scale.
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的y轴缩放从一个值到另一个值。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from y轴缩放的起始值。
+ * @param to y轴缩放的结束值。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function ScaleY(
 	this: void,
@@ -1101,12 +1118,12 @@ export function ScaleY(
 ): ActionDef;
 
 /**
-* Creates a definition for an action that animates the skew of a Node along the x-axis.
-* @param duration The duration of the animation in seconds.
-* @param from The starting skew value of the Node on the x-axis (in degrees).
-* @param to The ending skew value of the Node on the x-axis (in degrees).
-* @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
-* @returns An ActionDef object that can be used to run the animation on a Node.
+* 创建一个动作定义，该动作将持续改变节点沿x轴的倾斜。
+* @param duration 动画的持续时间（以秒为单位）。
+* @param from 节点在x轴上的起始倾斜值（以度为单位）。
+* @param to 节点在x轴上的结束倾斜值（以度为单位）。
+* @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+* @returns 可用于在节点上运行动画的动作定义对象。
 */
 export function SkewX(
 	this: void,
@@ -1117,12 +1134,12 @@ export function SkewX(
 ): ActionDef;
 
 /**
-* Creates a definition for an action that animates the skew of a Node along the y-axis.
-* @param duration The duration of the animation in seconds.
-* @param from The starting skew value of the Node on the y-axis (in degrees).
-* @param to The ending skew value of the Node on the y-axis (in degrees).
-* @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
-* @returns An ActionDef object that can be used to run the animation on a Node.
+* 创建一个动作定义，该动作将持续改变节点沿y轴的倾斜。
+* @param duration 动画的持续时间（以秒为单位）。
+* @param from 节点在y轴上的起始倾斜值（以度为单位）。
+* @param to 节点在y轴上的结束倾斜值（以度为单位）。
+* @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+* @returns 可用于在节点上运行动画的动作定义对象。
 */
 export function SkewY(
 	this: void,
@@ -1133,205 +1150,205 @@ export function SkewY(
 ): ActionDef;
 
 /**
- * Creates a definition for an action that animates the x-position of a Node.
- * @param duration The duration of the animation in seconds.
- * @param from The starting x-position of the Node.
- * @param to The ending x-position of the Node.
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的x位置。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from 节点的起始x位置。
+ * @param to 节点的结束x位置。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function X(
 	this: void,
 	duration: number,
 	from: number,
 	to: number,
-	easing?: EaseFunc // Default: Ease.Linear
+	easing?: EaseFunc // 默认值: Ease.Linear
 ): ActionDef;
 
 /**
- * Creates a definition for an action that animates the y-position of a Node.
- * @param duration The duration of the animation in seconds.
- * @param from The starting y-position of the Node.
- * @param to The ending y-position of the Node.
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的y位置。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from 节点的起始y位置。
+ * @param to 节点的结束y位置。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function Y(
 	this: void,
 	duration: number,
 	from: number,
 	to: number,
-	easing?: EaseFunc // Default: Ease.Linear
+	easing?: EaseFunc // 默认值: Ease.Linear
 ): ActionDef;
 
 /**
- * Creates a definition for an action that animates the z-position of a Node.
- * @param duration The duration of the animation in seconds.
- * @param from The starting z-position of the Node.
- * @param to The ending z-position of the Node.
- * @param easing [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified.
- * @returns An ActionDef object that can be used to run the animation on a Node.
+ * 创建一个动作定义，该动作将持续改变节点的z位置。
+ * @param duration 动画的持续时间（以秒为单位）。
+ * @param from 节点的起始z位置。
+ * @param to 节点的结束z位置。
+ * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
+ * @returns 可用于在节点上运行动画的动作定义对象。
  */
 export function Z(
 	this: void,
 	duration: number,
 	from: number,
 	to: number,
-	easing?: EaseFunc // Default: Ease.Linear
+	easing?: EaseFunc // 默认值: Ease.Linear
 ): ActionDef;
 
 /**
-* Creates a definition for an action that runs a group of ActionDefs in parallel.
-* @param actions A variable number of ActionDef objects to run in parallel.
-* @returns An ActionDef object that can be used to run the group of actions on a Node.
+* 创建一个动作定义，该动作并行运行一组ActionDefs。
+* @param actions 要并行运行的一组ActionDef对象。
+* @returns 可用于在节点上运行动作组的动作定义对象。
 */
 export function Spawn(this: void, ...actions: ActionDef[]): ActionDef;
 
 /**
- * Creates a definition for an action that plays a sequence of other ActionDefs.
- * @param actions A variable number of ActionDef objects to play in sequence.
- * @returns An ActionDef object that can be used to run the sequence of actions on a Node.
+ * 创建一个动作定义，该动作播放一系列其他ActionDefs。
+ * @param actions 要按顺序播放的一组ActionDef对象。
+ * @returns 可用于在节点上运行动作序列的动作定义对象。
  */
 export function Sequence(this: void, ...actions: ActionDef[]): ActionDef;
 
 /**
- * The supported array data types.
- * This can be an integer, number, boolean, string, thread, ContainerItem.
+ * 支持在数组对象存储数据类型。
+ * 可以是整数，数字，布尔值，字符串，线程，继承自`ContainerItem`的对象。
  */
 export type Item = number | boolean | string | LuaThread | ContainerItem;
 
 /**
- * An array data structure that supports various operations.
- * The Array class is designed to be 1-based indexing, which means that the first item in the array has an index of 1.
- * This is the same behavior of Lua table used as an array.
+ * 支持各种操作的数组数据结构。
+ * 数组类设计为基于1的索引，这意味着数组中的第一个项目的索引为1。
+ * 这与作为数组使用的Lua表容器的行为相同。
  */
 class Array extends Object {
 
 	private constructor();
 
-	/** The number of items in the array. */
+	/** 数组中的元素数量。 */
 	readonly count: number;
 
-	/** Whether the array is empty or not. */
+	/** 数组是否为空。 */
 	readonly empty: boolean;
 
 	/**
-	 * Adds all items from another array to the end of this array.
-	 * @param other Another array object.
+	 * 将另一个数组中的所有元素添加到此数组的末尾。
+	 * @param other 另一个数组对象。
 	 */
 	addRange(other: Array): void;
 
 	/**
-	 * Removes all items from this array that are also in another array.
-	 * @param other Another array object.
+	 * 从此数组中移除所有也在另一个数组中的元素。
+	 * @param other 另一个数组对象。
 	 */
 	removeFrom(other: Array): void;
 
-	/** Removes all items from the array. */
+	/** 从数组中移除所有元素。 */
 	clear(): void;
 
-	/** Reverses the order of the items in the array. */
+	/** 反转数组中元素的顺序。 */
 	reverse(): void;
 
-	/** Removes any empty slots from the end of the array. Used for releasing the unused memory this array holds. */
+	/** 从数组末尾移除预留内存空间。用于释放此数组持有的未使用的内存。 */
 	shrink(): void;
 
 	/**
-	 * Swaps the items at two given indices.
-	 * @param indexA The first index.
-	 * @param indexB The second index.
+	 * 交换两个给定索引处的元素。
+	 * @param indexA 第一个索引。
+	 * @param indexB 第二个索引。
 	 */
 	swap(indexA: number, indexB: number): void;
 
 	/**
-	 * Removes the item at the given index.
-	 * @param index The index to remove.
-	 * @returns True if an item was removed, false otherwise.
+	 * 移除给定索引处的元素。
+	 * @param index 要移除的索引。
+	 * @returns 如果移除了元素，则返回true，否则返回false。
 	 */
 	removeAt(index: number): boolean;
 
 	/**
-	 * Removes the item at the given index without preserving the order of the array.
-	 * @param index The index to remove.
-	 * @returns True if an item was removed, false otherwise.
+	 * 移除给定索引处的元素，可能会改变剩余元素的顺序。
+	 * @param index 要移除的索引。
+	 * @returns 如果移除了元素，则返回true，否则返回false。
 	 */
 	fastRemoveAt(index: number): boolean;
 
 	/**
-	 * Calls a given function for each item in the array.
-	 * Should return false to continue iteration, true to stop.
-	 * @param func The function to call for each item.
-	 * @returns False if the iteration completed, true if it was interrupted by the function.
+	 * 对数组中的每个元素调用给定的函数。
+	 * 应返回false以继续迭代，返回true以停止。
+	 * @param func 要为每个元素调用的函数。
+	 * @returns 如果迭代完成，则返回false，如果被函数中断，则返回true。
 	 */
 	each(func: (this: void, item: Item) => boolean): boolean;
 
-	/** The first item in the array. */
+	/** 数组中的第一个元素。 */
 	readonly first: Item;
 
-	/** The last item in the array. */
+	/** 数组中的最后一个元素。 */
 	readonly last: Item;
 
-	/** A random item from the array. */
+	/** 数组中的随机元素。 */
 	readonly randomObject: Item;
 
 	/**
-	 * Sets the item at the given index.
-	 * @param index The index to set, should be 1 based.
-	 * @param item The new item value.
+	 * 设置给定索引处的元素。
+	 * @param index 要设置的索引，从1开始。
+	 * @param item 新的元素值。
 	 */
 	set(index: number, item: Item): void;
 
 	/**
-	 * Gets the item at the given index.
-	 * @param index The index to get, should be 1 based.
-	 * @returns The item value.
+	 * 获取给定索引处的元素。
+	 * @param index 要获取的索引，从1开始。
+	 * @returns 元素的值。
 	 */
 	get(index: number): Item;
 
 	/**
-	 * Adds an item to the end of the array.
-	 * @param item The item to add.
+	 * 将元素添加到数组的末尾。
+	 * @param item 要添加的元素。
 	 */
 	add(item: Item): void;
 
 	/**
-	 * Inserts an item at the given index, shifting other items to the right.
-	 * @param index The index to insert at.
-	 * @param item The item to insert.
+	 * 在给定索引处插入元素，将其他元素向右移动。
+	 * @param index 要插入的索引。
+	 * @param item 要插入的元素。
 	 */
 	insert(index: number, item: Item): void;
 
 	/**
-	 * Checks whether the array contains a given item.
-	 * @param item The item to check.
-	 * @returns True if the item is found, false otherwise.
+	 * 检查数组是否包含给定的元素。
+	 * @param item 要检查的元素。
+	 * @returns 如果找到元素，则返回true，否则返回false。
 	 */
 	contains(item: Item): boolean;
 
 	/**
-	 * Gets the index of a given item.
-	 * @param item The item to search for.
-	 * @returns The index of the item, or 0 if it is not found.
+	 * 获取给定元素的索引。
+	 * @param item 要搜索的元素。
+	 * @returns 元素的索引，如果未找到，则为0。
 	 */
 	index(item: Item): number;
 
 	/**
-	 * Removes and returns the last item in the array.
-	 * @returns The last item in the array.
+	 * 移除并返回数组中的最后一个元素。
+	 * @returns 数组中的最后一个元素。
 	 */
 	removeLast(): Item;
 
 	/**
-	 * Removes the first occurrence of a given item from the array without preserving order.
-	 * @param item The item to remove.
-	 * @returns True if the item was found and removed, false otherwise.
+	 * 从数组中移除第一次出现的特定元素，会改变剩余元素的顺序。
+	 * @param item 要移除的元素。
+	 * @returns 如果找到并移除了元素，则返回true，否则返回false。
 	 */
 	fastRemove(item: Item): boolean;
 
 	/**
-	 * Metamethod to access the item at the given index using the [] operator.
-	 * @param index The index to get, should be 0 based.
-	 * @return The item value.
+	 * 使用[]运算符获取给定索引处的元素。
+	 * @param index 要访问的索引，从0开始。
+	 * @returns 元素的值。
 	 */
 	[index: number]: Item | undefined;
 }
@@ -1339,10 +1356,21 @@ class Array extends Object {
 export type {Array as ArrayType};
 
 /**
- * A class that creates Array objects.
+ * 用于创建数组对象的类。
  */
 interface ArrayClass {
+
+	/**
+	 * 创建一个新的空数组对象的元方法。
+	 * @returns 新的数组对象。
+	*/
 	(this: void): Array;
+
+	/**
+	 * 以一个Lua数组表初始化创建一个新的数组对象。
+	 * @param items 用于初始化数组对象的数组表。
+	 * @returns 新的数组对象。
+	*/
 	(this: void, items: Item[]): Array;
 }
 
@@ -1393,68 +1421,62 @@ const audio: Audio;
 export {audio as Audio};
 
 /**
- * A blend function object used for rendering.
+ * 用于渲染的混合函数对象。
  */
 type BlendFunc = BasicType<'BlendFunc'>;
 
 /**
- * An enum defining blend functions.
+ * 定义混合函数的枚举。
  */
-export const enum Func {
+export const enum BlendOp {
 
 	/**
-	 * The source color is multiplied by 1 and added to the destination color
-	 * (essentially, the source color is drawn on top of the destination color).
+	 * 源颜色乘以 1 并加到目标颜色上（源颜色绘制在目标颜色之上）。
 	 */
 	One = "One",
 
 	/**
-	 * The source color is multiplied by 0 and added to the destination color
-	 * (essentially, the source color has no effect on the destination color).
+	 * 源颜色乘以 0 并加到目标颜色上（源颜色对目标颜色没有影响）。
 	 */
 	Zero = "Zero",
 
 	/**
-	 * The source color is multiplied by the source alpha, and added to the
-	 * destination color multiplied by the inverse of the source alpha.
+	 * 源颜色乘以源 alpha 值，加到目标颜色乘以（1 - 源 alpha 值）上。
 	 */
 	SrcColor = "SrcColor",
 
 	/**
-	 * The source alpha is multiplied by the source color, and added to the
-	 * destination alpha multiplied by the inverse of the source alpha.
+	 * 源 alpha 值乘以源颜色，加到目标 alpha 值乘以（1 - 源 alpha 值）上。
 	 */
 	SrcAlpha = "SrcAlpha",
 
 	/**
-	 * The destination color is multiplied by the destination alpha, and added to
-	 * the source color multiplied by the inverse of the destination alpha.
+	 * 目标颜色乘以目标 alpha 值，加到源颜色乘以（1 - 目标 alpha 值）上。
 	 */
 	DstColor = "DstColor",
 
 	/**
-	 * The destination alpha is multiplied by the source alpha, and added to the
-	 * source alpha multiplied by the inverse of the destination alpha.
+	 * 目标 alpha 值乘以源 alpha 值，加到源 alpha 值乘以（1 - 目标 alpha 值）上。
 	 */
 	DstAlpha = "DstAlpha",
 
 	/**
-	 * Same as "SrcColor", but with the source and destination colors swapped.
+	 * 类似于 "SrcColor"，但是交换源颜色和目标颜色做计算。
 	 */
 	InvSrcColor = "InvSrcColor",
 
 	/**
-	 * Same as "SrcAlpha", but with the source and destination alphas swapped.
+	 * 类似于 "SrcAlpha"，但是交换源 alpha 值和目标 alpha 值做计算。
 	 */
 	InvSrcAlpha = "InvSrcAlpha",
 
 	/**
-	 * Same as "DstColor", but with the source and destination colors swapped.
+	 * 类似于 "DstColor"，但是交换源颜色和目标颜色做计算。
 	 */
 	InvDstColor = "InvDstColor",
 
 	/**
-	 * Same as "DstAlpha", but with the source and destination alphas swapped.
+	 * 类似于 "DstAlpha"，但是交换源 alpha 值和目标 alpha 值做计算。
 	 */
 	InvDstAlpha = "InvDstAlpha"
 }
@@ -1462,37 +1484,38 @@ export const enum Func {
 export type {BlendFunc as BlendFuncType};
 
 /**
- * A class for creating BlendFunc objects.
+ * 用于创建混合函数对象的类。
  */
 interface BlendFuncClass {
-	/**
-	 * Gets the integer value of a blend function.
-	 * @param func The blend function to get the value of.
-	 * @returns The integer value of the specified blend function.
-	 */
-	get(func: Func): number;
 
 	/**
-	 * Creates a new BlendFunc instance with the specified source and destination factors.
-	 * @param src The source blend factor.
-	 * @param dst The destination blend factor.
-	 * @returns The new BlendFunc instance.
+	 * 获取混合函数的参数值。
+	 * @param func 要获取参数值的混合函数。
+	 * @returns 混合函数的参数值。
 	 */
-	(this: void, src: Func, dst: Func): BlendFunc;
+	get(func: BlendOp): number;
 
 	/**
-	 * Creates a new BlendFunc instance with the specified source and destination factors for color and alpha channels.
-	 * @param srcColor The source blend factor for the color channel.
-	 * @param dstColor The destination blend factor for the color channel.
-	 * @param srcAlpha The source blend factor for the alpha channel.
-	 * @param dstAlpha The destination blend factor for the alpha channel.
-	 * @returns The new BlendFunc instance.
+	 * 创建新的混合函数对象。
+	 * @param src 源混合函数。
+	 * @param dst 目标混合函数。
+	 * @returns 新的混合函数对象。
 	 */
-	(this: void, srcColor: Func, dstColor: Func, srcAlpha: Func, dstAlpha: Func): BlendFunc;
+	(this: void, src: BlendOp, dst: BlendOp): BlendFunc;
 
 	/**
-	 * The default blend function.
-	 * Equals to BlendFunc("SrcAlpha", "InvSrcAlpha", "One", "InvSrcAlpha")
+	 * 创建新的混合函数对象。
+	 * @param srcColor 颜色通道的源混合因子。
+	 * @param dstColor 颜色通道的目标混合因子。
+	 * @param srcAlpha alpha通道的源混合因子。
+	 * @param dstAlpha alpha通道的目标混合因子。
+	 * @returns 新的混合函数对象。
+	 */
+	(this: void, srcColor: BlendOp, dstColor: BlendOp, srcAlpha: BlendOp, dstAlpha: BlendOp): BlendFunc;
+
+	/**
+	 * 默认的混合函数。
+	 * 等于 `BlendFunc(BlendOp.SrcAlpha, BlendOp.InvSrcAlpha, BlendOp.One, BlendOp.InvSrcAlpha)`。
 	 */
 	readonly default: BlendFunc;
 }
@@ -1501,31 +1524,31 @@ const blendFuncClass: BlendFuncClass;
 export {blendFuncClass as BlendFunc};
 
 /**
-* The Job type, representing a coroutine thread.
+* 表示协程作业类型。
 */
 export type Job = BasicType<"Job", LuaThread>;
 
 /**
- * A singleton interface for managing coroutines.
+ * 用于管理协程作业的单例接口。
  */
 interface Routine {
 
 	/**
-	 * Remove a coroutine job from the set and close it if it is still running.
-	 * @param job The Job instance to remove.
-	 * @returns True if the job was removed, false otherwise.
+	 * 从集合中移除一个协程作业，并在它仍在运行时关闭它。
+	 * @param job 要移除的Job实例。
+	 * @returns 如果作业被移除，则返回true，否则返回false。
 	 */
 	remove(job: Job): boolean;
 
 	/**
-	 * Remove all coroutine jobs and close them if they are still running.
+	 * 移除所有协程作业，并在它们仍在运行时关闭它们。
 	 */
 	clear(): void;
 
 	/**
-	 * Metamethod to add a new Job to the Routine.
-	 * @param job The Job instance to add.
-	 * @returns The Job instance that was added.
+	 * 元方法，用于添加一个新的协程作业。
+	 * @param job 要添加的协程作业实例。
+	 * @returns 被添加的协程作业实例。
 	 */
 	(this: void, job: Job): Job;
 }
@@ -1534,85 +1557,84 @@ const routine: Routine;
 export {routine as Routine};
 
 /**
- * Creates a new coroutine from a function and executes it.
- * @param routine A function to execute as a coroutine.
- * @returns A handle to the coroutine that was created.
+ * 从函数创建一个新的协程并执行它。
+ * @param routine 作为协程执行的函数。
+ * @returns 创建的协程作业对象。
  */
 export function thread(this: void, routine: (this: void) => boolean): Job;
 
 /**
- * Create a new coroutine from a function that runs repeatedly.
- * @param routine A function to execute repeatedly as a coroutine.
- * @returns A handle to the coroutine that was created.
+ * 从函数创建一个新的协程，该函数会反复运行。
+ * @param routine 作为协程反复执行的函数。
+ * @returns 创建的协程作业对象。
  */
 export function threadLoop(this: void, routine: (this: void) => boolean): Job;
 
 /**
- * A function that keeps another function to run repeatedly for a duration of time.
- * @param duration The duration of the cycle, in seconds.
- * @param work A function to execute repeatedly during the cycle, receiving a time value from 0 to 1 to indicate the execution progress.
+ * 使另一个函数在一段时间内每帧重复执行。
+ * @param duration 周期的持续时间，以秒为单位。
+ * @param work 在周期内每帧反复执行的函数，接收一个从0到1的时间值，表示执行进度。
  */
 export function cycle(this: void, duration: number, work: (this: void, time: number) => void): void;
 
 /**
- * Create a coroutine job that runs once.
- * @param routine A routine function to execute once when the coroutine is resumed.
- * Yield true or just return inside the routine function to stop the job execution half way.
- * @returns A coroutine that runs the given routine function once.
+ * 创建一个只运行一次的协程作业。
+ * @param routine 当协程恢复时执行一次的例程函数。
+ * 在例程函数内部产生或返回true以在半途停止作业执行。
+ * @returns 运行给定例程函数一次的协程。
  */
 export function once(this: void, routine: (this: void) => void): Job;
 
 /**
- * Create a coroutine job that runs repeatedly until a condition is met.
- * @param routine A routine function to execute repeatedly until it returns non-nil or non-false.
- * Yield or return true inside the routine function to stop the job execution.
- * @returns A coroutine that runs the given routine function repeatedly.
+ * 创建一个协程作业，该作业将重复运行，直到满足某个条件为止。
+ * @param routine 一个作业处理函数，将重复执行，直到它返回true以停止作业执行。
+ * @returns 一个重复运行给定例程函数的协程。
  */
 export function loop(this: void, routine: (this: void) => boolean): Job;
 
 /**
- * Wait until a condition is true in a coroutine.
- * @param condition A function that returns true when the condition is met.
+ * 在协程中等待，直到条件为真。
+ * @param condition 当条件满足时返回true的函数。
  */
 export function wait(this: void, condition: (this: void) => boolean): void;
 
 /**
- * Yield the coroutine for a specified duration.
- * @param duration The duration to yield for, in seconds. If undefined, the coroutine will be yielded for one frame.
+ * 使协程暂停指定的持续时间。
+ * @param duration 要暂停的持续时间，以秒为单位。如果未提供，协程将暂停到下一帧。
  */
 export function sleep(this: void, duration?: number): void;
 
 /**
- * A scheduler that manages the execution of scheduled tasks.
- * Inherits from `Object`.
+ * 用于管理调度任务执行的调度器类。
+ * 继承自 `Object`。
  */
 class Scheduler extends Object {
 
 	private constructor();
 
 	/**
-	 * The time scale factor for the scheduler.
-	 * This factor is applied to deltaTime that the scheduled functions will receive.
+	 * 调度器的时间缩放因子。
+	 * 此因子应用于调度函数将接收的deltaTime。
 	 */
 	timeScale: number;
 
 	/**
-	 * The target frame rate (in frames per second) for a fixed update mode.
-	 * The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
-	 * It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
+	 * 固定更新模式的目标帧率（以每秒帧数表示）。
+	 * 固定更新将确保恒定的帧率，处理在固定更新中的操作可以使用恒定的delta时间值。
+	 * 它用于防止物理引擎产生奇怪的行为或者通过网络通信来同步一些状态。
 	 */
 	fixedFPS: number;
 
 	/**
-	 * Schedules a function to be called every frame.
-	 * @param handler The function to be called. It should take a single argument of type number, which represents the delta time since the last frame.
-	 * If the function returns true, it will not be called again.
+	 * 安排一个函数在每一帧被调用。
+	 * @param handler 要调用的函数。它应该接受一个数值的参数，表示自上一帧以来的时间间隔。
+	 * 如果函数返回true，它将不再被调度。
 	 */
 	schedule(handler: (this: void, deltaTime: number) => boolean): void;
 
 	/**
-	 * Schedules a coroutine job to be resumed every frame.
-	 * @param job The coroutine job to be resumed.
+	 * 安排一个协程作业在每一帧被调度。
+	 * @param job 要调度的协程作业。
 	 */
 	schedule(job: Job): void;
 }
@@ -1620,13 +1642,13 @@ class Scheduler extends Object {
 export type {Scheduler as SchedulerType};
 
 /**
-* A class for creating Scheduler objects.
+* 用于创建调度器对象的类。
 */
 interface SchedulerClass {
 
 	/**
-	 * Creates a new Scheduler object.
-	 * @returns The newly created Scheduler object.
+	 * 创建一个新的调度器对象。
+	 * @returns 新创建的调度器对象。
 	 */
 	(this: void): Scheduler;
 }
@@ -1635,54 +1657,53 @@ const scheduler: SchedulerClass;
 export {scheduler as Scheduler};
 
 /**
- * A class type for storing pairs of string keys and various values.
- * Inherits from `Object`.
+ * 用字符串键和对应值存储数据的字典类。
  */
 class Dictionary extends Object {
 
 	private constructor();
 
 	/**
-	 * The number of items in the dictionary.
+	 * 字典储存的键值对总数。
 	 */
 	readonly count: number;
 
 	/**
-	 * The keys of the items in the dictionary.
+	 * 字典中所有键的列表。
 	 */
 	readonly keys: string[];
 
 	/**
-	 * A method for accessing items in the dictionary.
-	 * @param key The key of the item to retrieve.
-	 * @returns The Item with the given key, or undefined if it does not exist.
+	 * 访问字典数据的方法。
+	 * @param key 要检索的字典的键。
+	 * @returns 字典里存储的值，如果不存在则为undefined。
 	 */
 	get(key: string): Item | undefined;
 
 	/**
-	 * A method for setting items in the dictionary.
-	 * @param key The key of the item to set.
-	 * @param item The Item to set for the given key, set to undefined to delete this key-value pair.
+	 * 设置字典里的值的方法。
+	 * @param key 要设置的字典的键。
+	 * @param item 要在字典里存储的值，设置为undefined以删除此键值对。
 	 */
 	set(key: string, item: Item): void;
 
 	/**
-	 * A function that iterates over each item in the dictionary and calls a given function with the item and its key.
-	 * This function should take an Item and a string as arguments and return a boolean. Returns true to stop iteration, false to continue.
-	 * @param func The function to call for each item in the dictionary.
-	 * @returns Returns false if the iteration completed successfully, true otherwise.
+	 * 遍历字典中每个键值对并调用处理函数。
+	 * @param func 对字典中每个键值对调用的函数。
+	-- 此函数会接收一个值对象Item和一个字符串的键作为参数，并需要返回一个布尔值。返回true停止遍历，false继续。
+	-- @returns 如果遍历成功完成，则返回false，否则返回true。
 	 */
 	each(func: (this: void, item: Item, key: string) => boolean): boolean;
 
 	/**
-	 * A function that removes all the items from the dictionary.
+	 * 从字典中删除所有键值对。
 	 */
 	clear(): void;
 
 	/**
-	 * Allows accessing items in the dictionary using the index notation, e.g. "dict['key']" or "dict.key".
-	 * @param key The key of the item to retrieve.
-	 * @returns The Item with the given key, or undefined if it does not exist.
+	 * 允许使用索引表示法访问字典中的项目，例如 "dict['key']" 或 "dict.key"。
+	 * @param key 要检索的字典的键。
+	 * @returns 字典里存储的值，如果不存在则为undefined。
 	 */
 	[key: string]: Item | undefined;
 }
@@ -1690,7 +1711,7 @@ class Dictionary extends Object {
 export type {Dictionary as DictionaryType};
 
 /**
- * A class for creating Dictionary
+ * 用于创建Dictionary的类
  * @example
  * ```
  * import { Dictionary } from "dora";
@@ -1699,8 +1720,8 @@ export type {Dictionary as DictionaryType};
  */
 interface DictionaryClass {
 	/**
-	 * A metamethod that allows creating instances of the "Dictionary" type.
-	 * @returns A new instance of the Dictionary type.
+	 * 一个元方法，允许创建"Dictionary"类型的实例。
+	 * @returns Dictionary类型的新实例。
 	 */
 	(this: void): Dictionary;
 }
@@ -1709,102 +1730,102 @@ const dictionaryClass: DictionaryClass;
 export {dictionaryClass as Dictionary};
 
 /**
- * A Slot object that represents a single event slot with handlers.
+ * 用于监听处理节点事件的信号槽对象类。
  */
 class Slot extends Object {
 
 	private constructor();
 
 	/**
-	 * Adds a new handler function to this slot.
-	 * @param handler The handler function to add.
+	 * 向此信号槽添加一个新的处理函数。
+	 * @param handler 要添加的处理函数。
 	 */
 	add(handler: (this: void, ...args: any[]) => void): void;
 
 	/**
-	 * Sets a new handler function for this slot, replacing any existing handlers.
-	 * @param handler The handler function to set.
+	 * 为此信号槽设置一个新的处理函数，替换任何现有的处理程序。
+	 * @param handler 要设置的处理函数。
 	 */
 	set(handler: (this: void, ...args: any[]) => void): void;
 
 	/**
-	 * Removes a previously added handler function from this slot.
-	 * @param handler The handler function to remove.
+	 * 从此信号槽中移除先前添加的处理函数。
+	 * @param handler 要移除的处理函数。
 	 */
 	remove(handler: (this: void, ...args: any[]) => void): void;
 
 	/**
-	 * Clears all handler functions from this slot.
+	 * 清除此信号槽中的所有处理函数。
 	 */
 	clear(): void;
 }
 
 /**
- * A global signal slot object that can be used to handle global events
+ * 用于监听处理全局事件信号槽对象
  */
 class GSlot extends Object {
 
 	private constructor();
 
-	/** The name of the GSlot */
+	/** 全局事件信号槽的名称 */
 	readonly name: string;
 
-	/** Whether the GSlot is currently enabled or disabled */
+	/** 全局事件信号槽当前是否启用或禁用 */
 	enabled: boolean;
 }
 
 /**
- * Represents a touch input or mouse click event.
+ * 代表触摸输入或鼠标点击事件的类。
  */
 class Touch extends Object {
 
 	private constructor();
 
 	/**
-	 * Whether touch input is enabled or not.
+	 * 是否启用该触摸输入。
 	 */
 	enabled: boolean;
 
 	/**
-	 * Whether the touch event originated from a mouse click.
+	 * 触摸事件是否源自鼠标点击。
 	 */
-	fromMouse: boolean;
+	readonly fromMouse: boolean;
 
 	/**
-	 * Whether this is the first touch event when multi-touches exist.
+	 * 当存在多个触摸时，此触摸事件是否为第一个。
 	 */
 	readonly first: boolean;
 
 	/**
-	 * The unique identifier assigned to this touch event.
+	 * 分配给此触摸事件的唯一标识符。
 	 */
 	readonly id: number;
 
 	/**
-	 * The amount and direction of movement since the last touch event.
+	 * 自上次触摸事件以来的移动量和方向。
 	 */
 	readonly delta: Vec2;
 
 	/**
-	 * The location of the touch event in the node's local coordinate system.
+	 * 触摸事件在节点的本地坐标系统中的位置。
 	 */
 	readonly location: Vec2;
 
 	/**
-	 * The location of the touch event in world coordinate system.
+	 * 触摸事件在世界坐标系统中的位置。
 	 */
 	readonly worldLocation: Vec2;
 }
 
 /**
- * A class for the Camera object in the game engine.
+ * 游戏引擎中的摄像机对象的类。
  */
 class Camera extends Object {
 
 	protected constructor();
 
 	/**
-	 * The name of the Camera.
+	 * 摄像机的名称。
 	 */
 	readonly name: string;
 }
@@ -1812,24 +1833,24 @@ class Camera extends Object {
 export type {Camera as CameraType};
 
 /**
- * A class for 2D camera object in the game engine.
+ * 游戏引擎中的2D摄像机对象的类。
  */
 class Camera2D extends Camera {
 
 	private constructor();
 
 	/**
-	 * The rotation angle of the camera in degrees.
+	 * 摄像机的旋转角度，单位为度。
 	 */
 	rotation: number;
 
 	/**
-	 * The factor by which to zoom the camera. If set to 1.0, the view is normal sized. If set to 2.0, items will appear double in size.
+	 * 缩放摄像机的因子。如果设置为1.0，视图大小为正常。如果设置为2.0，物品将以双倍大小显示。
 	 */
 	zoom: number;
 
 	/**
-	 * The position of the camera in the game world.
+	 * 摄像机在游戏世界中的位置。
 	 */
 	position: Vec2;
 }
@@ -1837,14 +1858,14 @@ class Camera2D extends Camera {
 export type {Camera2D as Camera2DType};
 
 /**
-* A class for creating Camera2D objects.
+* 用于创建2D摄像机对象的类。
 */
 interface Camera2DClass {
 
 	/**
-	 * Creates a new Camera2D object with the given name.
-	 * @param name The name of the Camera2D object. Defaults to an empty string.
-	 * @returns A new instance of the Camera2D object.
+	 * 使用给定的名称创建一个新的2D摄像机对象。
+	 * @param name 2D摄像机对象的名称。默认为空字符串。
+	 * @returns 2D摄像机对象的新实例。
 	 */
 	(this: void, name?: string): Camera2D;
 }
@@ -1853,14 +1874,14 @@ const camera2DClass: Camera2DClass;
 export {camera2DClass as Camera2D};
 
 /**
- * A class of an orthographic camera object in the game engine.
+ * 游戏引擎中的正交摄像机对象的类。
  */
 class CameraOtho extends Camera {
 
 	private constructor();
 
 	/**
-	 * The position of the camera in the game world.
+	 * 摄像机在游戏世界中的位置。
 	 */
 	position: Vec2;
 }
@@ -1868,14 +1889,14 @@ class CameraOtho extends Camera {
 export type {CameraOtho as CameraOthoType};
 
 /**
-* A class for creating CameraOtho objects.
+* 用于创建正交摄像机对象的类。
 */
 interface CameraOthoClass {
 
 	/**
-	 * Creates a new CameraOtho object with the given name.
-	 * @param name The name of the CameraOtho object. Defaults to an empty string.
-	 * @returns A new instance of the CameraOtho object.
+	 * 使用给定的名称创建一个新的正交摄像机对象。
+	 * @param name 正交摄像机对象的名称。默认为空字符串。
+	 * @returns 正交摄像机对象的新实例。
 	 */
 	(this: void, name?: string): CameraOtho;
 }
@@ -1884,36 +1905,36 @@ const cameraOthoClass: CameraOthoClass;
 export {cameraOthoClass as CameraOtho};
 
 /**
- * A class representing a shader pass.
+ * 代表着色器渲染流程的类。
  */
 class Pass extends Object {
 
 	private constructor();
 
 	/**
-	 * Whether this Pass should be a grab pass.
-	 * A grab pass will render a portion of the game scene into a texture frame buffer.
-	 * Then use this texture frame buffer as an input for the next render pass.
+	 * 是否应该是一个采样流程。
+	 * 一个采样流程将会把游戏场景渲染到一个纹理缓存中。
+	 * 然后将该纹理帧缓存用作下一次渲染流程的输入。
 	 */
 	grabPass: boolean;
 
 	/**
-	 * A function that sets the values of shader parameters.
+	 * 用于设置着色器参数值的函数。
 	 *
-	 * @param name The name of the parameter to set.
-	 * @param var1 The first numeric value to set.
-	 * @param var2 An optional second numeric value to set (default is 0).
-	 * @param var3 An optional third numeric value to set (default is 0).
-	 * @param var4 An optional fourth numeric value to set (default is 0).
+	 * @param name 要设置的参数的名称。
+	 * @param var1 要设置的第一个数值。
+	 * @param var2 可选的要设置的第二个数值（默认为0）。
+	 * @param var3 可选的要设置的第三个数值（默认为0）。
+	 * @param var4 可选的要设置的第四个数值（默认为0）。
 	 */
 	set(name: string, var1: number, var2?: number, var3?: number, var4?: number): void;
 
 	/**
-	 * Another function that sets the values of shader parameters.
-	 * Works the same as: pass.set("varName", color.r / 255.0, color.g / 255.0, color.b / 255.0, color.opacity)
+	 * 另一个设置着色器参数值的函数。
+	 * 等同于 `pass.set("varName", color.r / 255.0, color.g / 255.0, color.b / 255.0, color.opacity)`
 	 *
-	 * @param name The name of the parameter to set.
-	 * @param cvar The Color object to set.
+	 * @param name 要设置的参数的名称。
+	 * @param cvar 要设置的Color对象。
 	 */
 	set(name: string, cvar: Color): void;
 }
@@ -1921,18 +1942,18 @@ class Pass extends Object {
 export type {Pass as PassType};
 
 /**
-* A class for creating Pass objects.
+* 用于创建着色器渲染流程对象的类。
 */
 interface PassClass {
 	/**
-	 * A metamethod that allows you to create a new Pass object.
+	 * 用于创建一个新的渲染流程对象的元方法。
 	 *
-	 * @param vertShader The vertex shader in binary form file string.
-	 * @param fragShader The fragment shader file string.
-	 * A shader file string must be one of the formats:
-	 * 	"builtin:" + theBuiltinShaderName
+	 * @param vertShader 顶点着色器的二进制形式文件字符串。
+	 * @param fragShader 片段着色器文件字符串。
+	 * 着色器文件字符串必须是以下格式之一：
+	 * 	"builtin:" + 内置着色器名称
 	 * 	"Shader/compiled_shader_file.bin"
-	 * @returns A new Pass object.
+	 * @returns 新的着色器渲染流程对象。
 	 */
 	(this: void, vertShader: string, fragShader: string): Pass;
 }
@@ -1941,28 +1962,28 @@ const passClass: PassClass;
 export {passClass as Pass};
 
 /**
- * A class for managing multiple render pass objects.
- * Effect objects allow you to combine multiple passes to create more complex shader effects.
+ * 用于管理多个渲染通道对象的类。
+ * Effect对象允许你组合多个通道以创建更复杂的着色器效果。
  */
 class Effect extends Object {
 
 	protected constructor();
 
 	/**
-	 * A function that adds a Pass object to this Effect.
-	 * @param pass The Pass object to add.
+	 * 一个函数，将Pass对象添加到此Effect。
+	 * @param pass 要添加的Pass对象。
 	 */
 	add(pass: Pass): void;
 
 	/**
-	 * A function that retrieves a Pass object from this Effect by index.
-	 * @param index The index of the Pass object to retrieve.
-	 * @returns The Pass object at the given index.
+	 * 一个函数，通过索引从此Effect中检索Pass对象。
+	 * @param index 要检索的Pass对象的索引。
+	 * @returns 给定索引处的Pass对象。
 	 */
 	get(index: number): Pass;
 
 	/**
-	 * A function that removes all Pass objects from this Effect.
+	 * 一个函数，从此Effect中移除所有Pass对象。
 	 */
 	clear(): void;
 }
@@ -1970,24 +1991,24 @@ class Effect extends Object {
 export type {Effect as EffectType};
 
 /**
-* A class for creating Effect objects.
+* 用于创建Effect对象的类。
 */
 interface EffectClass {
 
 	/**
-	 * A metamethod that allows you to create a new Effect object.
-	 * @param vertShader The vertex shader file string.
-	 * @param fragShader The fragment shader file string.
-	 * A shader file string must be one of the formats:
-	 * 	"builtin:" + theBuiltinShaderName
+	 * 一个元方法，允许你创建一个新的Effect对象。
+	 * @param vertShader 顶点着色器文件字符串。
+	 * @param fragShader 片段着色器文件字符串。
+	 * 着色器文件字符串必须是以下格式之一：
+	 * 	"builtin:" + 内置着色器名称
 	 * 	"Shader/compiled_shader_file.bin"
-	 * @returns A new Effect object.
+	 * @returns 一个新的Effect对象。
 	 */
 	(this: void, vertShader: string, fragShader: string): Effect;
 
 	/**
-	 * Another metamethod that allows you to create a new empty Effect object.
-	 * @returns A new empty Effect object.
+	 * 另一个元方法，允许你创建一个新的空Effect对象。
+	 * @returns 一个新的空Effect对象。
 	 */
 	(this: void): Effect;
 }
@@ -1996,29 +2017,30 @@ const effectClass: EffectClass;
 export {effectClass as Effect};
 
 /**
- * A classe that is a specialization of Effect for rendering 2D sprites.
+ * 专门用于渲染2D图元的着色器特效类。
  */
 class SpriteEffect extends Effect {}
 
 export type {SpriteEffect as SpriteEffectType};
 
 /**
- * A class for creating SpriteEffect objects.
+ * 用于创建新的2D图元着色器特效的类。
  */
 interface SpriteEffectClass {
 	/**
-	 * A metamethod that allows you to create a new SpriteEffect object.
-	 * @param vertShader The vertex shader file string. A shader file string must be one of the formats:
-	 * "builtin:" + theBuiltinShaderName
-	 * "Shader/compiled_shader_file.bin"
-	 * @param fragShader The fragment shader file string.
-	 * @returns A new SpriteEffect object.
+	 * 用于创建一个新的2D图元着色器特效对象的元方法。
+	 * @param vertShader 顶点着色器文件字符串。
+	 * 着色器文件名字符串必须是以下格式之一：
+	 * 	"builtin:" + theBuiltinShaderName
+	 * 	"Shader/compiled_shader_file.bin"
+	 * @param fragShader 片段着色器文件字符串。
+	 * @returns 新的2D图元着色器特效对象。
 	 */
 	(this: void, vertShader: string, fragShader: string): SpriteEffect;
 
 	/**
-	 * A metamethod for creating a new empty SpriteEffect object.
-	 * @returns A new SpriteEffect object.
+	 * 用于创建一个空的2D图元着色器特效对象的元方法。
+	 * @returns 新的2D图元着色器特效对象。
 	 */
 	(this: void): SpriteEffect;
 }
@@ -2027,7 +2049,7 @@ const spriteEffectClass: SpriteEffectClass;
 export {spriteEffectClass as SpriteEffect};
 
 /**
- * Enumeration for defining the keys.
+ * 定义键盘按键的枚举。
  */
 export const enum KeyName {
 	Return = "Return",
@@ -2137,34 +2159,34 @@ export const enum KeyName {
 }
 
 /**
- * An interface for handling keyboard inputs.
+ * 用于处理键盘输入的单例类接口。
  */
 interface Keyboard {
 
 	/**
-	 * Check whether a key is pressed down in the current frame.
-	 * @param name The name of the key to check.
-	 * @returns Whether the key is pressed down.
+	 * 检查在当前帧中是否按下了一个键。
+	 * @param name 要检查的键的名称。
+	 * @returns 键是否被按下。
 	 */
 	isKeyDown(name: KeyName): boolean;
 
 	/**
-	 * Check whether a key is released in the current frame.
-	 * @param name The name of the key to check.
-	 * @returns Whether the key is released.
+	 * 检查在当前帧中是否释放了一个键。
+	 * @param name 要检查的键的名称。
+	 * @returns 键是否被释放。
 	 */
 	isKeyUp(name: KeyName): boolean;
 
 	/**
-	 * Check whether a key is in pressed state.
-	 * @param name The name of the key to check.
-	 * @returns Whether the key is in pressed state.
+	 * 检查一个键是否处于按下状态。
+	 * @param name 要检查的键的名称。
+	 * @returns 键是否处于按下状态。
 	 */
 	isKeyPressed(name: KeyName): boolean;
 
 	/**
-	 * Update the input method editor (IME) position hint.
-	 * @param winPos The position of the keyboard window.
+	 * 更新输入法编辑器（IME）位置提示。
+	 * @param winPos 键盘窗口的位置。
 	 */
 	updateIMEPosHint(winPos: Vec2): void;
 }
@@ -2173,7 +2195,7 @@ const keyboard: Keyboard;
 export {keyboard as Keyboard};
 
 /**
- * Enumeration for defining the controller axis names.
+ * 用于定义控制器轴名称的枚举。
  */
 export const enum AxisName {
 	leftx = "leftx",
@@ -2185,7 +2207,7 @@ export const enum AxisName {
 }
 
 /**
-* Enumeration for defining the controller button names.
+* 用于定义控制器按钮名称的枚举。
 */
 export const enum ButtonName {
 	a = "a",
@@ -2205,39 +2227,39 @@ export const enum ButtonName {
 }
 
 /**
- * An interface for handling game controller inputs.
+ * 用于处理游戏控制器输入的单例类接口。
  */
 interface Controller {
 
 	/**
-	 * Check whether a button is pressed down in current frame.
-	 * @param controllerId The controller id, incrementing from 0 when multiple controllers are connected.
-	 * @param name The name of the button to check.
-	 * @returns Whether the button is pressed down.
+	 * 检查在当前帧中是否按下了一个按钮。
+	 * @param controllerId 控制器id，当连接多个控制器时从0开始递增。
+	 * @param name 要检查的按钮的名称。
+	 * @returns 按钮是否被按下。
 	 */
 	isButtonDown(controllerId: number, name: ButtonName): boolean;
 
 	/**
-	 * Check whether a button is released in current frame.
-	 * @param controllerId The controller id, incrementing from 0 when multiple controllers are connected.
-	 * @param name The name of the button to check.
-	 * @returns Whether the button is released.
+	 * 检查在当前帧中是否释放了一个按钮。
+	 * @param controllerId 控制器id，当连接多个控制器时从0开始递增。
+	 * @param name 要检查的按钮的名称。
+	 * @returns 按钮是否被释放。
 	 */
 	isButtonUp(controllerId: number, name: ButtonName): boolean;
 
 	/**
-	 * Check whether a button is in pressed state.
-	 * @param controllerId The controller id, incrementing from 0 when multiple controllers are connected.
-	 * @param name The name of the button to check.
-	 * @returns Whether the button is in pressed state.
+	 * 检查一个按钮是否处于按下状态。
+	 * @param controllerId 控制器id，当连接多个控制器时从0开始递增。
+	 * @param name 要检查的按钮的名称。
+	 * @returns 按钮是否处于按下状态。
 	 */
 	isButtonPressed(controllerId: number, name: ButtonName): boolean;
 
 	/**
-	 * Get the axis value from a given controller.
-	 * @param controllerId The controller id, incrementing from 0 when multiple controllers are connected.
-	 * @param name The name of the controller axis to check.
-	 * @returns The axis value ranging from -1.0 to 1.0.
+	 * 从给定的控制器获取轴值。
+	 * @param controllerId 控制器id，当连接多个控制器时从0开始递增。
+	 * @param name 要检查的控制器轴的名称。
+	 * @returns 轴值的范围从-1.0到1.0。
 	 */
 	getAxis(controllerId: number, name: AxisName): number;
 }
@@ -2246,62 +2268,62 @@ const controller: Controller;
 export {controller as Controller};
 
 /**
- * A grabber which is used to render a part of the scene to a texture by a grid of vertices.
+ * 将场景的一部分节点渲染到一张绑定到网格的纹理上的抓取器类。
  */
 class Grabber extends Object {
 
 	private constructor();
 
 	/**
-	* The camera used to render the texture.
+	* 用于渲染网格的相机。
 	*/
 	camera: Camera;
 
 	/**
-	* The sprite effect applied to the texture.
+	* 应用于网格的图元着色器特效。
 	*/
 	effect: SpriteEffect;
 
 	/**
-	* The blend function applied to the texture.
+	* 应用于网格的混合函数。
 	*/
 	blendFunc: BlendFunc;
 
 	/**
-	* The clear color used to clear the texture.
+	* 用于清空纹理的清除颜色。
 	*/
 	clearColor: Color;
 
 	/**
-	* Sets the position of a vertex in the grabber grid.
-	* @param x The x-index of the vertex in the grabber grid.
-	* @param y The y-index of the vertex in the grabber grid.
-	* @param pos The new position of the vertex.
-	* @param z [optional] The new z-coordinate of the vertex (default: 0.0).
+	* 设置抓取器网格中顶点的位置。
+	* @param x 抓取器网格中顶点的x索引。
+	* @param y 抓取器网格中顶点的y索引。
+	* @param pos 顶点的新位置。
+	* @param z [可选] 顶点的新z坐标（默认：0.0）。
 	*/
 	setPos(x: number, y: number, pos: Vec2, z?: number): void;
 
 	/**
-	* Gets the position of a vertex in the grabber grid.
-	* @param x The x-index of the vertex in the grabber grid.
-	* @param y The y-index of the vertex in the grabber grid.
-	* @returns The position of the vertex.
+	* 获取抓取器网格中顶点的位置。
+	* @param x 抓取器网格中顶点的x索引。
+	* @param y 抓取器网格中顶点的y索引。
+	* @returns 顶点的位置。
 	*/
 	getPos(x: number, y: number): Vec2;
 
 	/**
-	* Gets the color of a vertex in the grabber grid.
-	* @param x The x-index of the vertex in the grabber grid.
-	* @param y The y-index of the vertex in the grabber grid.
-	* @returns The color of the vertex.
+	* 获取抓取器网格中顶点的颜色。
+	* @param x 抓取器网格中顶点的x索引。
+	* @param y 抓取器网格中顶点的y索引。
+	* @returns 顶点的颜色。
 	*/
 	getColor(x: number, y: number): Color;
 
 	/**
-	* Sets the color of a vertex in the grabber grid.
-	* @param x The x-index of the vertex in the grabber grid.
-	* @param y The y-index of the vertex in the grabber grid.
-	* @param color The new color of the vertex.
+	* 设置抓取器网格中顶点的颜色。
+	* @param x 抓取器网格中顶点的x索引。
+	* @param y 抓取器网格中顶点的y索引。
+	* @param color 顶点的新颜色。
 	*/
 	setColor(x: number, y: number, color: Color): void;
 }
@@ -2340,34 +2362,208 @@ const enum NodeEvent {
 export {NodeEvent as Slot};
 
 interface NodeEventHandlerMap {
-	ActionEnd: (this: void, action: Action, target: Node) => void;
-	TapFilter: (this: void, touch: Touch) => void;
-	TapBegan: (this: void, touch: Touch) => void;
-	TapEnded: (this: void, touch: Touch) => void;
-	Tapped: (this: void, touch: Touch) => void;
-	TapMoved: (this: void, touch: Touch) => void;
-	MouseWheel: (this: void, delta: Vec2) => void;
-	Gesture: (this: void, center: Vec2, numFingers: number, deltaDist: number, deltaAngle: number) => void;
-	Enter: (this: void) => void;
-	Exit: (this: void) => void;
-	Cleanup: (this: void) => void;
-	KeyDown: (this: void, keyName: KeyName) => void;
-	KeyUp: (this: void, keyName: KeyName) => void;
-	KeyPressed: (this: void, keyName: KeyName) => void;
-	AttachIME: (this: void) => void;
-	DetachIME: (this: void) => void;
-	TextInput: (this: void, text: string) => void;
-	TextEditing: (this: void, text: string, startPos: number) => void;
-	ButtonDown: (this: void, controllerId: number, buttonName: ButtonName) => void;
-	ButtonUp: (this: void, controllerId: number, buttonName: ButtonName) => void;
-	ButtonPressed: (this: void, controllerId: number, buttonName: KeyName) => void;
-	Axis: (this: void, controllerId: number, axisValue: number) => void;
-	AnimationEnd: (this: void, animationName: string, target: Playable) => void;
-	BodyEnter: (this: void, other: Body, sensorTag: number) => void;
-	BodyLeave: (this: void, other: Body, sensorTag: number) => void;
-	ContactStart: (this: void, other: Body, point: Vec2, normal: Vec2) => void;
-	ContactEnd: (this: void, other: Body, point: Vec2, normal: Vec2) => void;
-	Finished: (this: void) => void;
+
+	/**
+	 * ActionEnd事件会在节点执行完一个动作时触发。
+	 * 在`node.runAction()`和`node.perform()`之后触发。
+	 * @param action 执行完成的动作。
+	 * @param target 执行完成动作的节点。
+	 */
+	ActionEnd(this: void, action: Action, target: Node): void;
+
+	/**
+	 * TapFilter事件在TapBegan插槽之前触发，可用于过滤某些点击事件。
+	 * 在设置`node.touchEnabled = true`之后才会触发。
+	 * @param touch 点击事件的消息对象。
+	*/
+	TapFilter(this: void, touch: Touch): void;
+
+	/**
+	 * TapBegan事件在检测到点击时触发。
+	 * 在设置`node.touchEnabled = true`之后才会触发。
+	 * @param touch 点击事件的消息对象。
+	*/
+	TapBegan(this: void, touch: Touch): void;
+
+	/**
+	 * TapEnded事件在点击结束时触发。
+	 * 在设置`node.touchEnabled = true`之后才会触发。
+	 * @param touch 点击事件的消息对象。
+	*/
+	TapEnded(this: void, touch: Touch): void;
+
+	/**
+	 * Tapped事件在检测到并结束点击时触发。
+	 * 在设置`node.touchEnabled = true`之后才会触发。
+	 * @param touch 点击事件的消息对象。
+	*/
+	Tapped(this: void, touch: Touch): void;
+
+	/**
+	 * TapMoved事件在点击移动时触发。
+	 * 在设置`node.touchEnabled = true`之后才会触发。
+	 * @param touch 点击事件的消息对象。
+	*/
+	TapMoved(this: void, touch: Touch): void;
+
+	/**
+	 * MouseWheel事件在滚动鼠标滚轮时触发。
+	 * 在设置`node.touchEnabled = true`之后才会触发。
+	 * @param delta 滚动的向量。
+	*/
+	MouseWheel(this: void, delta: Vec2): void;
+
+	/**
+	 * Gesture事件在识别到多点手势时触发。
+	 * 在设置`node.touchEnabled = true`之后才会触发。
+	 * @param center 手势的中心点。
+	 * @param numFingers 手势涉及的触摸点数量。
+	 * @param deltaDist 手势移动的距离。
+	 * @param deltaAngle 手势的变动角度。
+	*/
+	Gesture(this: void, center: Vec2, numFingers: number, deltaDist: number, deltaAngle: number): void;
+
+	/**
+	 * 当节点被添加到场景树中时，触发Enter事件。
+	 * 当执行`node.addChild()`时触发。
+	*/
+	Enter(this: void): void;
+
+	/**
+	 * 当节点从场景树中移除时，触发Exit事件。
+	 * 当执行`parent.removeChild()`时触发。
+	*/
+	Exit(this: void): void;
+
+	/**
+	 * 当节点被清理时，触发Cleanup事件。
+	 * 仅当执行`parent.removeChild(node, true)`时触发。
+	*/
+	Cleanup(this: void): void;
+
+	/**
+	 * 当按下某个键盘按键时，触发KeyDown事件。
+	 * 在设置`node.keyboardEnabled = true`后才会触发。
+	 * @param keyName 被按下的键的名称。
+	*/
+	KeyDown(this: void, keyName: KeyName): void;
+
+	/**
+	 * 当释放某个键盘按键时，触发KeyUp事件。
+	 * 在设置`node.keyboardEnabled = true`后才会触发。
+	 * @param keyName 被释放的键的名称。
+	*/
+	KeyUp(this: void, keyName: KeyName): void;
+
+	/**
+	 * 当持续按下某个键时，触发KeyPressed事件。
+	 * 在设置`node.keyboardEnabled = true`后才会触发。
+	 * @param keyName 被持续按下的键的名称。
+	*/
+	KeyPressed(this: void, keyName: KeyName): void;
+
+	/**
+	 * 当系统输入法（IME）开启到节点（调用`node: attachIME()`）时，会触发AttachIME事件。
+	*/
+	AttachIME(this: void): void;
+
+	/**
+	 * 当系统输入法（IME）关闭（调用`node: detachIME()`或手动关闭IME）时，会触发DetachIME事件。
+	*/
+	DetachIME(this: void): void;
+
+	/**
+	 * 当接收到系统输入法文本输入时，会触发TextInput事件。
+	 * 在调用`node.attachIME()`之后触发。
+	 * @param text 输入的文本。
+	*/
+	TextInput(this: void, text: string): void;
+
+	/**
+	 * 当系统输入法文本正在被编辑时，会触发TextEditing事件。
+	 * 在调用`node:attachIME()`之后触发。
+	 * @param text 正在编辑的文本。
+	 * @param startPos 正在编辑的文本的起始位置。
+	*/
+	TextEditing(this: void, text: string, startPos: number): void;
+
+	/**
+	 * 当游戏控制器按钮被按下时触发ButtonDown事件。
+	 * 在设置`node.controllerEnabled = true`之后触发。
+	 * @param controllerId 控制器ID，当有多个控制器连接时从0开始递增。
+	 * @param buttonName 被按下的按钮名称。
+	*/
+	ButtonDown(this: void, controllerId: number, buttonName: ButtonName): void;
+
+	/**
+	 * 当游戏控制器按钮被释放时触发ButtonUp事件。
+	 * 在设置`node.controllerEnabled = true`之后触发。
+	 * @param controllerId 控制器ID，当有多个控制器连接时从0开始递增。
+	 * @param buttonName 被释放的按钮名称。
+	*/
+	ButtonUp(this: void, controllerId: number, buttonName: ButtonName): void;
+
+	/**
+	 * 当游戏控制器按钮被按压时触发ButtonPressed事件。
+	 * 在设置`node.controllerEnabled = true`之后触发。
+	 * @param controllerId 控制器ID，当有多个控制器连接时从0开始递增。
+	 * @param buttonName 被按压的按钮名称。
+	*/
+	ButtonPressed(this: void, controllerId: number, buttonName: KeyName): void;
+
+	/**
+	 * 当游戏控制器轴发生变化时触发Axis事件。
+	 * 在设置`node.controllerEnabled = true`之后触发。
+	 * @param controllerId 控制器ID，当有多个控制器连接时从0开始递增。
+	 * @param axisValue 控制器轴的值，范围从 -1.0 到 1.0。
+	*/
+	Axis(this: void, controllerId: number, axisValue: number): void;
+
+	/**
+	 * 当Playable动画模型播放结束一个动画后触发。
+	 * @param animationName 播放结束的动画名称。
+	 * @param target 播放该动画的动画模型实例。
+	*/
+	AnimationEnd(this: void, animationName: string, target: Playable): void;
+
+	/**
+	 * 当物理体对象与传感器对象碰撞时触发。
+	 * 在设置`body.receivingContact = true`之后触发。
+	 * @param other 当前发生碰撞的物理体对象。
+	 * @param sensorTag 触发此碰撞事件的传感器的标签编号。
+	*/
+	BodyEnter(this: void, other: Body, sensorTag: number): void;
+
+	/**
+	 * 当物理体对象不再与传感器对象碰撞时触发。
+	 * 在设置`body.receivingContact = true`之后触发。
+	 * @param other 当前结束碰撞的物理体对象。
+	 * @param sensorTag 触发此碰撞事件的传感器的标签。
+	*/
+	BodyLeave(this: void, other: Body, sensorTag: number): void;
+
+	/**
+	 * 当一个物理体对象开始与另一个物理体碰撞时触发。
+	 * 在设置`body.receivingContact = true`之后触发。
+	 * @param other 被碰撞的物理体对象。
+	 * @param point 世界坐标系中的碰撞点。
+	 * @param normal 世界坐标系中的接触表面法向量。
+	*/
+	ContactStart(this: void, other: Body, point: Vec2, normal: Vec2): void;
+
+	/**
+	 * 当一个物理体对象停止与另一个物理体碰撞时触发。
+	 * 在设置`body.receivingContact = true`之后触发。
+	 * @param other 结束碰撞的物理体对象。
+	 * @param point 世界坐标系中的碰撞点。
+	 * @param normal 世界坐标系中的接触表面法向量。
+	*/
+	ContactEnd(this: void, other: Body, point: Vec2, normal: Vec2): void;
+
+	/**
+	 * 当粒子系统节点在启动之后又停止发射粒子，并等待所有已发射的粒子结束它们的生命周期时触发。
+	*/
+	Finished(this: void): void;
 }
 
 const enum GlobalEvent {
@@ -2390,400 +2586,434 @@ const enum GlobalEvent {
 export {GlobalEvent as GSlot};
 
 type GlobalEventHandlerMap = {
-	AppQuit: (this: void) => void;
-	AppLowMemory: (this: void) => void;
-	AppWillEnterBackground: (this: void) => void;
-	AppDidEnterBackground: (this: void) => void;
-	AppWillEnterForeground: (this: void) => void;
-	AppDidEnterForeground: (this: void) => void;
-	AppSizeChanged: (this: void) => void;
-	AppFullScreen: (this: void, fullScreen: boolean) => void;
-	AppMoved: (this: void) => void;
-	AppTheme: (this: void, themeColor: Color) => void;
-	AppWSOpen: (this: void) => void;
-	AppWSClose: (this: void) => void;
-	AppWSMessage: (this: void, msg: string) => void;
-	AppWSSend: (this: void, msg: string) => void;
+
+	/** 应用即将退出时触发。 */
+	AppQuit(this: void): void;
+
+	/** 应用接收到低内存警告时触发。 */
+	AppLowMemory(this: void): void;
+
+	/** 应用即将进入后台时触发。 */
+	AppWillEnterBackground(this: void): void;
+
+	/** 应用已经进入后台时触发。 */
+	AppDidEnterBackground(this: void): void;
+
+	/** 应用即将进入前台时触发。 */
+	AppWillEnterForeground(this: void): void;
+
+	/** 应用已经进入前台时触发。 */
+	AppDidEnterForeground(this: void): void;
+
+	/** 应用窗口大小发生变化时触发。 */
+	AppSizeChanged(this: void): void;
+
+	/** 应用进入或退出全屏窗口模式时触发。 */
+	AppFullScreen(this: void, fullScreen: boolean): void;
+
+	/** 应用窗口位置发生变化时触发。 */
+	AppMoved(this: void): void;
+
+	/** 应用改变主题颜色时触发。 */
+	AppTheme(this: void, themeColor: Color): void;
+
+	/** 当一个客户端和应用建立 Websocket 连接时触发。 */
+	AppWSOpen(this: void): void;
+
+	/** 当一个客户端和应用断开 Websocket 连接时触发。 */
+	AppWSClose(this: void): void;
+
+	/** 当一个客户端向应用发送 Websocket 文本消息时触发。 */
+	AppWSMessage(this: void, msg: string): void;
+
+	/**
+	 * 用于向所有已建立 Websocket 连接的客户端广播发送文本消息的事件。
+	 * @example
+	 * ```
+	 * emit("AppWSSend", "A message");
+	 * ```
+	 */
+	AppWSSend(this: void, msg: string): void;
 };
 
 /**
- * Class used for building a hierarchical tree structure of game objects.
+ * 用于构建游戏对象的层级树结构的类。
  */
 class Node extends Object {
 
 	protected constructor();
 
-	/** The order of the node in the parent's children array. */
+	/** 节点在父节点的子节点数组中的顺序。 */
 	order: number;
 
-	/** The rotation angle of the node in degrees. */
+	/** 节点的旋转角度，单位为度。 */
 	angle: number;
 
-	/** The X-axis rotation angle of the node in degrees. */
+	/** 节点的X轴旋转角度，单位为度。 */
 	angleX: number;
 
-	/** The Y-axis rotation angle of the node in degrees. */
+	/** 节点的Y轴旋转角度，单位为度。 */
 	angleY: number;
 
-	/** The X-axis scale factor of the node. */
+	/** 节点的X轴缩放因子。 */
 	scaleX: number;
 
-	/** The Y-axis scale factor of the node. */
+	/** 节点的Y轴缩放因子。 */
 	scaleY: number;
 
-	/** The X-axis position of the node. */
+	/** 节点的X轴位置。 */
 	x: number;
 
-	/** The Y-axis position of the node. */
+	/** 节点的Y轴位置。 */
 	y: number;
 
-	/** The Z-axis position of the node. */
+	/** 节点的Z轴位置。 */
 	z: number;
 
-	/** The position of the node as a Vec2 object. */
+	/** 节点的位置，为Vec2对象。 */
 	position: Vec2;
 
-	/** The X-axis skew angle of the node in degrees. */
+	/** 节点的X轴倾斜角度，单位为度。 */
 	skewX: number;
 
-	/** The Y-axis skew angle of the node in degrees. */
+	/** 节点的Y轴倾斜角度，单位为度。 */
 	skewY: number;
 
-	/** Whether the node is visible. */
+	/** 节点是否可见。 */
 	visible: boolean;
 
-	/** The anchor point of the node as a Vec2 object. */
+	/** 节点的锚点，为Vec2对象。 */
 	anchor: Vec2;
 
-	/** The width of the node. */
+	/** 节点的宽度。 */
 	width: number;
 
-	/** The height of the node. */
+	/** 节点的高度。 */
 	height: number;
 
-	/** The size of the node as a Size object. */
+	/** 节点的大小，为Size对象。 */
 	size: Size;
 
-	/** The tag of the node as a string. */
+	/** 节点的标签，为字符串类型。 */
 	tag: string;
 
-	/** The opacity of the node, should be 0 to 1.0. */
+	/** 节点的透明度，应在0到1.0之间。 */
 	opacity: number;
 
-	/** The color of the node as a Color object. */
+	/** 节点的颜色，为Color对象。 */
 	color: Color;
 
-	/** The color of the node as a Color3 object. */
+	/** 节点的颜色，为Color3对象。 */
 	color3: Color3;
 
-	/** Whether to pass the opacity value to child nodes. */
+	/** 是否将透明度值传递给子节点。 */
 	passOpacity: boolean;
 
-	/** Whether to pass the color value to child nodes. */
+	/** 是否将颜色值传递给子节点。 */
 	passColor3: boolean;
 
-	/** The target node acts as a parent node for transforming this node. */
+	/** 用于继承矩阵变换的目标节点。 */
 	transformTarget: Node;
 
-	/** The scheduler used for scheduling update and action callbacks. */
+	/** 用于调度更新和动作回调的调度器。 */
 	scheduler: Scheduler;
 
-	/** Whether the node has children. */
+	/** 节点是否有子节点。 */
 	readonly hasChildren: boolean;
 
-	/** The children of the node as an Array object, could be nil. */
+	/** 节点的子节点，为Array对象，可能为nil。 */
 	readonly children: Array;
 
-	/** The parent node of the node. */
+	/** 节点的父节点。 */
 	readonly parent: Node;
 
-	/** The bounding box of the node as a Rect object. */
+	/** 节点的边界框，为Rect对象。 */
 	readonly boundingBox: Rect;
 
-	/** Whether the node is currently running in a scene tree. */
+	/** 节点当前是否在场景树中运行。 */
 	readonly running: boolean;
 
-	/** Whether the node is currently scheduling a function or a coroutine for updates. */
+	/** 节点当前是否正在调度函数或协程进行更新。 */
 	readonly scheduled: boolean;
 
-	/** The number of actions currently running on the node. */
+	/** 当前在节点上运行的动作的数量。 */
 	readonly actionCount: number;
 
-	/** Additional data stored on the node as a Dictionary object. */
+	/** 以Dictionary对象形式存储在节点上的附加数据。 */
 	readonly data: Dictionary;
 
-	/** Whether touch events are enabled on the node. */
+	/** 节点上是否启用触摸事件。 */
 	touchEnabled: boolean;
 
-	/** Whether the node should swallow touch events. */
+	/** 节点是否独占触摸事件。 */
 	swallowTouches: boolean;
 
-	/** Whether the node should swallow mouse wheel events. */
+	/** 节点是否独占鼠标滚轮事件。 */
 	swallowMouseWheel: boolean;
 
-	/** Whether keyboard events are enabled on the node. */
+	/** 节点上是否启用键盘事件。 */
 	keyboardEnabled: boolean;
 
-	/** Whether controller events are enabled on the node. */
+	/** 节点上是否启用控制器事件。 */
 	controllerEnabled: boolean;
 
-	/** Whether to group the node's rendering with all its recursive children. */
+	/** 是否将节点的渲染与其所有递归子项分组。 */
 	renderGroup: boolean;
 
-	/** The rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier. */
+	/** 组渲染的渲染顺序号。渲染顺序较低的节点将更早渲染。 */
 	renderOrder: number;
 
 	/**
-	 * Adds a child node to the current node.
-	 * @param child The child node to add.
-	 * @param order [optional] The drawing order of the child node. Default is 0.
-	 * @param tag [optional] The tag of the child node. Default is an empty string.
+	 * 向当前节点添加一个子节点。
+	 * @param child 要添加的子节点。
+	 * @param order [可选] 子节点的绘制顺序。默认为0。
+	 * @param tag [可选] 子节点的标签。默认为空字符串。
 	 */
 	addChild(child: Node, order?: number, tag?: string): void;
 
 	/**
-	 * Adds the current node to a parent node.
-	 * @param parent The parent node to add the current node to.
-	 * @param order [optional] The drawing order of the current node. Default is 0.
-	 * @param tag [optional] The tag of the current node. Default is an empty string.
-	 * @returns The current node.
+	 * 将当前节点添加到父节点。
+	 * @param parent 要添加当前节点的父节点。
+	 * @param order [可选] 当前节点的绘制顺序。默认为0。
+	 * @param tag [可选] 当前节点的标签。默认为空字符串。
+	 * @returns 当前节点。
 	 */
 	addTo<T>(this: T, parent: Node, order?: number, tag?: string): T;
 
 	/**
-	 * Removes a child node from the current node.
-	 * @param child The child node to remove.
-	 * @param cleanup [optional] Whether to cleanup the child node. Default is true.
+	 * 从当前节点中移除一个子节点。
+	 * @param child 要移除的子节点。
+	 * @param cleanup [可选] 是否清理子节点。默认为true。
 	 */
 	removeChild(child: Node, cleanup?: boolean): void;
 
 	/**
-	 * Removes a child node from the current node by tag.
-	 * @param tag The tag of the child node to remove.
-	 * @param cleanup [optional] Whether to cleanup the child node. Default is true.
+	 * 通过标签从当前节点中移除一个子节点。
+	 * @param tag 要移除的子节点的标签。
+	 * @param cleanup [可选] 是否清理子节点。默认为true。
 	 */
 	removeChildByTag(tag: string, cleanup?: boolean): void;
 
 	/**
-	 * Removes all child nodes from the current node.
-	 * @param cleanup [optional] Whether to cleanup the child nodes. Default is true.
+	 * 从当前节点中移除所有子节点。
+	 * @param cleanup [可选] 是否清理子节点。默认为true。
 	 */
 	removeAllChildren(cleanup?: boolean): void;
 
 	/**
-	 * Removes the current node from its parent node.
-	 * @param cleanup [optional] Whether to cleanup the current node. Default is true.
+	 * 从其父节点中移除当前节点。
+	 * @param cleanup [可选] 是否清理当前节点。默认为true。
 	 */
 	removeFromParent(cleanup?: boolean): void;
 
 	/**
-	 * Moves the current node to a new parent node without triggering node events.
-	 * @param parent The new parent node to move the current node to.
+	 * 将当前节点移动到新的父节点，而不触发节点事件。
+	 * @param parent 要移动当前节点的新父节点。
 	 */
 	moveToParent(parent: Node): void;
 
 	/**
-	 * Cleans up the current node.
+	 * 清理当前节点。
 	 */
 	cleanup(): void;
 
 	/**
-	 * Gets a child node by tag.
-	 * @param tag The tag of the child node to get.
-	 * @returns The child node, or nil if not found.
+	 * 通过标签获取子节点。
+	 * @param tag 要获取的子节点的标签。
+	 * @returns 子节点，如果未找到则为null。
 	 */
 	getChildByTag(tag: string): Node | null;
 
 	/**
-	 * Schedules a function to run every frame.
-	 * @param func The function to run, return true to stop.
+	 * 安排一个函数在每一帧运行。
+	 * @param func 要运行的函数，返回true以停止。
 	 */
 	schedule(func: (this: void, deltaTime: number) => boolean): void;
 
 	/**
-	 * Schedules a coroutine to run.
-	 * @param job The coroutine to run, return or yield true to stop.
+	 * 安排一个协程开始运行。
+	 * @param job 要运行的协程，返回或产出true以停止。
 	 */
 	schedule(job: Job): void;
 
 	/**
-	 * Unschedules the current node's scheduled function or coroutine.
+	 * 取消当前节点在调度的函数或协程。
 	 */
 	unschedule(): void;
 
 	/**
-	 * Converts a point in world space to node space.
-	 * @param worldPoint The point to convert.
-	 * @returns The converted point.
+	 * 将世界空间中的一个坐标点转换为节点空间的坐标。
+	 * @param worldPoint 要转换的点。
+	 * @returns 转换后的点。
 	 */
 	convertToNodeSpace(worldPoint: Vec2): Vec2;
 
 	/**
-	 * Converts a point in world space to node space.
-	 * @param worldPoint The point to convert.
-	 * @param z The z-coordinate of the point.
-	 * @returns The converted point and z-coordinate.
+	 * 将世界空间中的一个坐标点转换为节点空间的坐标。
+	 * @param worldPoint 要转换的点。
+	 * @param z 点的z坐标。
+	 * @returns 转换后的点和z坐标。
 	 */
 	convertToNodeSpace(worldPoint: Vec2, z: number): LuaMultiReturn<[Vec2, number]>;
 
 	/**
-	 * Converts a point from node space to world space.
-	 * @param nodePoint The point in node space.
-	 * @returns The converted point in world space.
+	 * 将节点空间中的一个坐标点转换为世界空间的坐标。
+	 * @param nodePoint 节点空间中的点。
+	 * @returns 转换后的世界空间中的点。
 	 */
 	convertToWorldSpace(nodePoint: Vec2): Vec2;
 
 	/**
-	 * Converts a point from node space to world space.
-	 * @param nodePoint The point in node space.
-	 * @param z The z coordinate in node space.
-	 * @returns The converted point and z coordinate in world space.
+	 * 将一个坐标点从节点空间转换到世界空间。
+	 * @param nodePoint 节点空间中的点。
+	 * @param z 节点空间中的z坐标。
+	 * @returns 转换后的点和世界空间中的z坐标。
 	 */
 	convertToWorldSpace(nodePoint: Vec2, z: number): LuaMultiReturn<[Vec2, number]>;
 
 	/**
-	 * Converts a point from node space to window space.
-	 * @param nodePoint The point in node space.
-	 * @param callback The callback function to receive the converted point in window space.
+	 * 将一个坐标点从节点空间转换到窗口空间。
+	 * @param nodePoint 节点空间中的点。
+	 * @param callback 接收窗口空间中转换后的点的回调函数。
 	 */
 	convertToWindowSpace(nodePoint: Vec2, callback: (this: void, windowPoint: Vec2) => void): void;
 
 	/**
-	 * Calls the given function for each child node of this node.
-	 * @param func The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
-	 * @returns False if all children have been visited, true if the iteration was interrupted by the function.
+	 * 为此节点的每个子节点调用给定的函数。
+	 * @param func 为每个子节点调用的函数。该函数应返回一个布尔值，表示是否继续迭代。返回true以停止迭代。
+	 * @returns 如果所有子节点都已访问，则为False，如果函数中断了迭代，则为true。
 	 */
 	eachChild(func: (this: void, child: Node) => boolean): boolean;
 
 	/**
-	 * Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
-	 * @param func The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
-	 * @returns False if all nodes have been visited, true if the traversal was interrupted by the function.
+	 * 从此节点开始遍历节点层次结构，并为每个访问的节点调用给定的函数。没有`TraverseEnabled`标志的节点不会被访问。
+	 * @param func 为每个访问的节点调用的函数。该函数应返回一个布尔值，表示是否继续遍历。返回true以停止迭代。
+	 * @returns 如果所有节点都已访问，则为False，如果函数中断了遍历，则为true。
 	 */
 	traverse(func: (this: void, node: Node) => boolean): boolean;
 
 	/**
-	 * Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
-	 * @param func The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
-	 * @returns True if all nodes have been visited, false if the traversal was interrupted by the function.
+	 * 遍历从此节点开始的整个节点层次结构，并为每个访问的节点调用给定的函数。
+	 * @param func 为每个访问的节点调用的函数。该函数应返回一个布尔值，表示是否继续遍历。
+	 * @returns 如果所有节点都已访问，则为True，如果函数中断了遍历，则为false。
 	 */
 	traverseAll(func: (this: void, node: Node) => boolean): boolean;
 
 	/**
-	 * Runs the given action on this node.
-	 * @param action The action to run.
-	 * @returns The duration of the newly running action in seconds.
+	 * 在此节点上执行给定的动作。
+	 * @param action 要执行的动作。
+	 * @returns 新执行的动作的持续时间（以秒为单位）。
 	 */
 	runAction(action: Action): number;
 
 	/**
-	 * Runs an action defined by the given action definition on this node.
-	 * @param actionDef The action definition to run.
-	 * @returns The duration of the newly running action in seconds.
+	 * 在此节点上执行由给定动作定义的动作。
+	 * @param actionDef 要执行的动作定义。
+	 * @returns 新执行的动作的持续时间（以秒为单位）。
 	 */
 	runAction(actionDef: ActionDef): number;
 
 	/**
-	 * Stops all actions running on this node.
+	 * 停止在此节点上执行的所有动作。
 	 */
 	stopAllActions(): void;
 
 	/**
-	 * Runs the given action immediately without adding it to the action queue.
-	 * @param action The action to run.
-	 * @returns The duration of the newly running action.
+	 * 立即执行给定的动作，而不将其添加到动作队列中。
+	 * @param action 要执行的动作。
+	 * @returns 新执行的动作的持续时间。
 	 */
 	perform(action: Action): number;
 
 	/**
-	 * Runs an action defined by the given action definition right after clearing all the previous running actions.
-	 * @param actionDef The action definition to run.
-	 * @returns The duration of the newly running action.
+	 * 在清除所有之前执行的动作后，立即执行由给定动作定义的动作。
+	 * @param actionDef 要执行的动作定义。
+	 * @returns 新执行的动作的持续时间。
 	 */
 	perform(actionDef: ActionDef): number;
 
 	/**
-	 * Stops the given action running on this node.
-	 * @param action The action to stop.
+	 * 停止在此节点上执行的特定动作。
+	 * @param action 要停止的动作。
 	 */
 	stopAction(action: Action): void;
 
 	/**
-	 * Vertically aligns all child nodes of this node.
-	 * @param padding [optional] The padding between child nodes. Defaults to 10.
-	 * @returns The size of the aligned child nodes.
+	 * 使用特定的填充间隔垂直对齐排布此节点的所有子节点。
+	 * @param padding [可选] 子节点之间的填充间隔。默认为10。
+	 * @returns 排布后的区域大小。
 	 */
 	alignItemsVertically(padding?: number): Size;
 
 	/**
-	 * Vertically aligns all child nodes within the node using the given size and padding.
-	 * @param size The size to use for alignment.
-	 * @param padding [optional] The amount of padding to use between each child node (default is 10).
-	 * @returns The size of the node after alignment.
+	 * 使用特定的区域大小填充和垂直对齐排布节点内的所有子节点。
+	 * @param size 填充区域的大小。
+	 * @param padding [可选] 每个子节点之间使用的填充间隔（默认为10）。
+	 * @returns 排布后的区域大小。
 	 */
 	alignItemsVertically(size: Size, padding?: number): Size;
 
 	/**
-	 * Horizontally aligns all child nodes within the node using the given padding.
-	 * @param padding [optional] The amount of padding to use between each child node (default is 10).
-	 * @returns The size of the node after alignment.
+	 * 使用特定的填充间隔横向对齐节点内的所有子节点。
+	 * @param padding [可选] 每个子节点之间使用的填充间隔（默认为10）。
+	 * @returns 排布后的区域大小。
 	 */
 	alignItemsHorizontally(padding?: number): Size;
 
 	/**
-	 * Horizontally aligns all child nodes within the node using the given size and padding.
-	 * @param size The size to hint for alignment.
-	 * @param padding [optional] The amount of padding to use between each child node (default is 10).
-	 * @returns The size of the node after alignment.
+	 * 使用特定的区域大小来填充并水平对齐排布节点内的所有子节点。
+	 * @param size 填充区域的大小。
+	 * @param padding [可选] 每个子节点之间使用的填充间隔（默认为10）。
+	 * @returns 排布后的区域大小。
 	 */
 	alignItemsHorizontally(size: Size, padding?: number): Size;
 
 	/**
-	 * Aligns all child nodes within the node using the given size and padding.
-	 * @param padding [optional] The amount of padding to use between each child node (default is 10).
-	 * @returns The size of the node after alignment.
+	 * 使用特定的间隔来对齐排布节点内的所有子节点。
+	 * @param padding [可选] 每个子节点之间使用的填充间隔（默认为10）。
+	 * @returns 排布后的区域大小。
 	 */
 	alignItems(padding?: number): Size;
 
 	/**
-	 * Aligns all child nodes within the node using the given size and padding.
-	 * @param size The size to use for alignment.
-	 * @param padding [optional] The amount of padding to use between each child node (default is 10).
-	 * @returns The size of the node after alignment.
+	 * 使用特定的区域大小来对齐和填充排布节点内的所有子节点。
+	 * @param size 填充区域的大小。
+	 * @param padding [可选] 每个子节点之间使用的填充间隔（默认为10）。
+	 * @returns 排布后的区域大小。
 	 */
 	alignItems(size: Size, padding?: number): Size;
 
 	/**
-	 * Moves and changes child nodes' visibility based on their position in parent's area.
-	 * @param delta The distance to move its children.
+	 * 移动子节点，并根据它们是否超出父节点区域更改可见性。
+	 * @param delta 移动其子节点的距离。
 	 */
 	moveAndCullItems(delta: Vec2): void;
 
 	/**
-	 * Attaches the input method editor (IME) to the node.
-	 * Makes node receiving "AttachIME", "DetachIME", "TextInput", "TextEditing" events.
+	 * 将输入法编辑器（IME）附加到节点。
+	 * 使节点接收 Slot.AttachIME，Slot.DetachIME，Slot.TextInput，Slot.TextEditing 事件。
 	 */
 	attachIME(): void;
 
 	/**
-	 * Detaches the input method editor (IME) from the node.
+	 * 从节点分离输入法编辑器（IME）。
 	 */
 	detachIME(): void;
 
 	/**
-	 * Gets the global event listener associated with the given event name in this node.
-	 * @param eventName The name of the global event.
-	 * @returns All the global event listeners associated with the event.
+	 * 获取与此节点中特定事件名称关联的全局事件监听器。
+	 * @param eventName 全局事件的名称。
+	 * @returns 与事件关联的所有全局事件监听器。
 	 */
 	gslot(eventName: string): GSlot[];
 
 	/**
-	 * Associates the given event handler function with a global event.
-	 * @param eventName The name of the global event.
-	 * @param handler The handler function to associate with the event.
-	 * @returns The global event listener associated with the event in this node.
+	 * 将特定的事件处理函数与全局事件关联。
+	 * @param eventName 全局事件的名称。
+	 * @param handler 要与事件关联的处理函数。
+	 * @returns 与此节点中的事件关联的全局事件监听器。
 	 * @example
-	 * Register for builtin global events:
+	 * 注册内置全局事件：
 	 * ```
 	 * const node = Node()
 	 * node.gslot(GSlot.AppQuit, () => {
@@ -2794,53 +3024,61 @@ class Node extends Object {
 	gslot<K extends keyof GlobalEventHandlerMap>(eventName: K, handler: GlobalEventHandlerMap[K]): void;
 
 	/**
-	 * Associates the given event handler function with a global event.
-	 * @param eventName The name of the global event.
-	 * @param handler The handler function to associate with the event.
-	 * @returns The global event listener associated with the event in this node.
+	 * 将特定的事件处理函数与全局事件关联。
+	 * @param eventName 全局事件的名称。
+	 * @param handler 要与事件关联的处理函数。
+	 * @returns 与此节点中的事件关联的全局事件监听器。
 	 */
 	gslot(eventName: string, handler: (this: void, ...args: any[]) => void): GSlot;
 
 	/**
-	 * Gets the node event listener associated with the given node event name.
-	 * @param eventName The name of the node event.
-	 * @returns The node event listener associated with the node event.
+	 * 获取与特定节点事件名称关联的节点事件监听器。
+	 * @param eventName 节点事件的名称。
+	 * @returns 与节点事件关联的节点事件监听器。
 	 */
 	slot(eventName: string): Slot;
 
 	/**
-	 * Associates the given handler function with the node event.
-	 * @param eventName The name of the node event.
-	 * @param handler The handler function to associate with the node event.
+	 * 将特定的处理函数与节点事件关联。
+	 * @param eventName 节点事件的名称。
+	 * @param handler 要与节点事件关联的处理函数。
+	 * @example
+	 * 注册内置节点事件：
+	 * ```
+	 * const node = Node()
+	 * node.slot(Slot.Cleanup, () => {
+	 * 	print("Node is cleaning up!");
+	 * });
+	 * ```
 	 */
 	slot<K extends keyof NodeEventHandlerMap>(eventName: K, handler: NodeEventHandlerMap[K]): void;
 
 	/**
-	 * Associates the given handler function with the node event.
-	 * @param eventName The name of the node event.
-	 * @param handler The handler function to associate with the node event.
+	 * 将特定的处理函数与节点事件关联。
+	 * @param eventName 节点事件的名称。
+	 * @param handler 要与节点事件关联的处理函数。
 	 */
 	slot(eventName: string, handler: (this: void, ...args: any[]) => void): void;
 
 	/**
-	 * Emits a node event with a given event name and arguments.
-	 * @param eventName The name of the node event.
-	 * @param args The arguments to pass to the node event handler functions.
+	 * 发出具有特定事件名称和参数的节点事件。
+	 * @param eventName 节点事件的名称。
+	 * @param args 要传递给节点事件处理函数的参数。
 	 */
 	emit(eventName: string, ...args: any[]): void;
 
 	/**
-	 * Creates or removes a texture grabber for the specified node.
-	 * @param enabled [optional] Whether to enable or disable the grabber. Default is true.
-	 * @returns A Grabber object when enabled.
+	 * 为指定节点创建或删除纹理抓取器。
+	 * @param enabled [可选] 是否启用或禁用抓取器。默认为true。
+	 * @returns 启用时的Grabber对象。
 	 */
 	grab(enabled?: boolean): Grabber;
 
 	/**
-	 * Creates a texture grabber for the specified node with a specified grid size.
-	 * @param gridX The number of horizontal grid cells to divide the grabber into.
-	 * @param gridY The number of vertical grid cells to divide the grabber into.
-	 * @returns A Grabber object.
+	 * 为指定节点创建具有指定网格大小的纹理抓取器。
+	 * @param gridX 将抓取器划分为的水平网格单元数。
+	 * @param gridY 将抓取器划分为的垂直网格单元数。
+	 * @returns Grabber对象。
 	 */
 	grab(gridX: number, gridY: number): Grabber;
 }
@@ -2848,18 +3086,19 @@ class Node extends Object {
 export type {Node as NodeType};
 
 /**
- * A class object for the `Node` class.
+ * 用于创建`Node`类的类对象。
  */
 interface NodeClass {
+
 	/**
-	 * Creates a new instance of the `Node` class.
+	 * 创建`Node`类的新实例。
 	 *
 	 * @example
 	 * ```
 	 * import {Node} from 'dora';
 	 * const node = Node();
 	 * ```
-	 * @returns A new instance of the `Node` class.
+	 * @returns `Node`类的新实例。
 	 */
 	(this: void): Node;
 }
@@ -2868,33 +3107,33 @@ const nodeClass: NodeClass;
 export {nodeClass as Node};
 
 /**
- * A buffer of string for the use of ImGui widget.
+ * ImGui控件使用的字符串缓冲区类。
  */
 class Buffer extends Object {
 
 	private constructor();
 
-	/** The size of the buffer. */
+	/** 缓冲区的大小。 */
 	readonly size: number;
 
 	/**
-	 * Changing the size of the buffer.
-	 * @param size The new size of the buffer.
+	 * 更改缓冲区的大小。
+	 * @param size 缓冲区的新大小。
 	 */
 	resize(size: number): void;
 
-	/** Setting all bytes in the buffer to zero. */
+	/** 将缓冲区中的所有字节设置为零。 */
 	zeroMemory(): void;
 
 	/**
-	 * Converting the buffer to a string.
-	 * @returns The buffer contents as a string.
+	 * 将缓冲区转换为字符串。
+	 * @returns 缓冲区内容作为字符串。
 	 */
 	toString(): string;
 
 	/**
-	 * Setting the contents of the buffer with a string.
-	 * @param str The new contents of the buffer.
+	 * 使用字符串设置缓冲区的内容。
+	 * @param str 缓冲区的新内容。
 	 */
 	setString(str: string): void;
 }
@@ -2902,14 +3141,14 @@ class Buffer extends Object {
 export type {Buffer as BufferType};
 
 /**
-* A class for creating Buffer objects.
+* 用于创建Buffer对象的类。
 */
 interface BufferClass {
 
 	/**
-	 * Creates a new buffer instance.
-	 * @param size The size of the buffer to create.
-	 * @returns A new instance of the "Buffer" type with the given size.
+	 * 创建一个新的缓冲区实例。
+	 * @param size 要创建的缓冲区的大小。
+	 * @returns 一个具有特定大小的新的"Buffer"类型的实例。
 	 */
 	(this: void, size: number): Buffer;
 }
@@ -2918,24 +3157,24 @@ const bufferClass: BufferClass;
 export {bufferClass as Buffer};
 
 /**
- * A Node that can clip its children based on the alpha values of its stencil.
+ * 可以根据其蒙版的alpha值剪切其子节点渲染结果的节点。
  */
 class ClipNode extends Node {
 
 	private constructor();
 
 	/**
-	 * The stencil Node that defines the clipping shape.
+	 * 定义剪切形状的蒙版节点。
 	 */
 	stencil: Node;
 
 	/**
-	 * The minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
+	 * 使像素可见的最小alpha阈值。值的范围从0到1。
 	 */
 	alphaThreshold: number;
 
 	/**
-	 * Whether to invert the clipping area.
+	 * 是否反转剪切区域。
 	 */
 	inverted: boolean;
 }
@@ -2943,14 +3182,14 @@ class ClipNode extends Node {
 export type {ClipNode as ClipNodeType};
 
 /**
-* A class for creating ClipNode objects.
+* 用于创建ClipNode对象的类。
 */
 interface ClipNodeClass {
 
 	/**
-	 * Creates a new ClipNode object.
-	 * @param stencil The stencil Node that defines the clipping shape. Defaults to undefined.
-	 * @returns A new ClipNode object.
+	 * 创建一个新的ClipNode对象。
+	 * @param stencil 剪切形状的蒙版节点。
+	 * @returns 一个新的ClipNode对象。
 	 */
 	(this: void, stencil?: Node): ClipNode;
 }
@@ -2959,7 +3198,7 @@ const clipNodeClass: ClipNodeClass;
 export {clipNodeClass as ClipNode};
 
 /**
- * The `Content` object manages file searching, loading, and other operations related to resources.
+ * 用于管理文件搜索、加载和其他与资源相关的操作的单例对象。
  *
  * @example
  * ```
@@ -2971,184 +3210,184 @@ class Content {
 
 	private constructor();
 
-	/** An array of directories to search for resource files. */
+	/** 用于搜索资源文件的目录数组。 */
 	searchPaths: string[];
 
-	/** The path to the directory containing read-only resources. */
+	/** 包含只读资源的目录的路径。 */
 	readonly assetPath: string;
 
-	/** The path to the directory where files can be written. */
+	/** 可以写入文件的目录的路径。 */
 	readonly writablePath: string;
 
 	/**
-	 * Loads the content of the file with the specified filename.
-	 * @param filename The name of the file to load.
-	 * @returns The content of the loaded file.
+	 * 加载具有指定文件名的文件的内容。
+	 * @param filename 要加载的文件的名称。
+	 * @returns 加载的文件的内容。
 	 */
 	load(filename: string): string;
 
 	/**
-	 * Loads the content of an Excel file with the specified filename and optional sheet names.
-	 * @param filename The name of the Excel file to load.
-	 * @param sheetNames An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded.
-	 * @returns A table containing the data in the Excel file. The keys are the sheet names and the values are tables containing the rows and columns of the sheet.
+	 * 加载具有指定文件名和可选表名的Excel文件的内容。
+	 * @param filename 要加载的Excel文件的名称。
+	 * @param sheetNames 表示要加载的表的名称的字符串数组。如果未提供，将加载所有表。
+	 * @returns 包含Excel文件中数据的表。键是表名，值是包含表的行和列的表。
 	 */
 	loadExcel(filename: string, sheetNames?: string[]): {
 		[sheetName: string]: [column: string | number][]
 	} | null;
 
 	/**
-	 * Saves the specified content to a file with the specified filename.
-	 * @param filename The name of the file to save.
-	 * @param content The content to save to the file.
-	 * @returns `true` if the content saves to file successfully, `false` otherwise.
+	 * 将指定的内容保存到具有指定文件名的文件中。
+	 * @param filename 要保存的文件的名称。
+	 * @param content 要保存到文件的内容。
+	 * @returns 如果内容成功保存到文件，则为`true`，否则为`false`。
 	 */
 	save(filename: string, content: string): boolean;
 
 	/**
-	 * Checks if a file with the specified filename exists.
-	 * @param filename The name of the file to check.
-	 * @returns `true` if the file exists, `false` otherwise.
+	 * 检查是否存在具有指定文件名的文件。
+	 * @param filename 要检查的文件的名称。
+	 * @returns 如果文件存在，则为`true`，否则为`false`。
 	 */
 	exist(filename: string): boolean;
 
 	/**
-	 * Creates a new directory with the specified path.
-	 * @param path The path of the directory to create.
-	 * @returns `true` if the directory was created, `false` otherwise.
+	 * 创建具有指定路径的新目录。
+	 * @param path 要创建的目录的路径。
+	 * @returns 如果目录已创建，则为`true`，否则为`false`。
 	 */
 	mkdir(path: string): boolean;
 
 	/**
-	 * Checks if the specified path is a directory.
-	 * @param path The path to check.
-	 * @returns `true` if the path is a directory, `false` otherwise.
+	 * 检查指定的路径是否为目录。
+	 * @param path 要检查的路径。
+	 * @returns 如果路径是目录，则为`true`，否则为`false`。
 	 */
 	isdir(path: string): boolean;
 
 	/**
-	 * Removes the file or directory with the specified path.
-	 * @param path The path of the file or directory to remove.
-	 * @returns `true` if the file or directory was removed, `false` otherwise.
+	 * 删除具有指定路径的文件或目录。
+	 * @param path 要删除的文件或目录的路径。
+	 * @returns 如果文件或目录已删除，则为`true`，否则为`false`。
 	 */
 	remove(path: string): boolean;
 
 	/**
-	 * Copies the file or directory in the specified path to target path.
-	 * @param srcPath The path of the file or directory to copy.
-	 * @param dstPath The path to copy files to.
-	 * @returns `true` if the file or directory was copied to target path, `false` otherwise.
+	 * 将指定路径中的文件或目录复制到目标路径。
+	 * @param srcPath 要复制的文件或目录的路径。
+	 * @param dstPath 要复制文件的路径。
+	 * @returns 如果文件或目录已复制到目标路径，则为`true`，否则为`false`。
 	 */
 	copy(srcPath: string, dstPath: string): boolean;
 
 	/**
-	 * Moves the file or directory in the specified path to target path.
-	 * @param srcPath The path of the file or directory to move.
-	 * @param dstPath The path to move files to.
-	 * @returns `true` if the file or directory was moved to target path, `false` otherwise.
+	 * 将指定路径中的文件或目录移动到目标路径。
+	 * @param srcPath 要移动的文件或目录的路径。
+	 * @param dstPath 要移动文件的路径。
+	 * @returns 如果文件或目录已移动到目标路径，则为`true`，否则为`false`。
 	 */
 	move(srcPath: string, dstPath: string): boolean;
 
 	/**
-	 * Gets the full path of a file with the specified filename.
-	 * @param filename The name of the file to get the full path of.
-	 * @returns The full path of the file.
+	 * 获取具有指定文件名的文件的完整路径。
+	 * @param filename 要获取其完整路径的文件的名称。
+	 * @returns 文件的完整路径。
 	 */
 	getFullPath(filename: string): string;
 
 	/**
-	 * Inserts a search path at the specified index.
-	 * @param index The index at which to insert the search path.
-	 * @param path The search path to insert.
+	 * 在指定索引处插入搜索路径。
+	 * @param index 要插入搜索路径的索引。
+	 * @param path 要插入的搜索路径。
 	 */
 	insertSearchPath(index: number, path: string): void;
 
 	/**
-	 * Adds a new search path to the end of the list.
-	 * @param path The search path to add.
+	 * 在列表的末尾添加新的搜索路径。
+	 * @param path 要添加的搜索路径。
 	 */
 	addSearchPath(path: string): void;
 
 	/**
-	 * Removes the specified search path from the list.
-	 * @param path The search path to remove.
+	 * 从列表中删除指定的搜索路径。
+	 * @param path 要删除的搜索路径。
 	 */
 	removeSearchPath(path: string): void;
 
 	/**
-	 * Asynchronously loads the content of the file with the specified filename.
-	 * @param filename The name of the file to load.
-	 * @returns The content of the loaded file.
+	 * 异步加载具有指定文件名的文件的内容。
+	 * @param filename 要加载的文件的名称。
+	 * @returns 加载的文件的内容。
 	 */
 	loadAsync(filename: string): string;
 
 	/**
-	 * Asynchronously loads the content of an Excel file with the specified filename and optional sheet names.
-	 * @param filename The name of the Excel file to load.
-	 * @param sheetNames An array of strings representing the names of the sheets to load. If not provided, all sheets will be loaded.
-	 * @returns A table containing the data in the Excel file. The keys are the sheet names and the values are tables containing the rows and columns of the sheet.
+	 * 异步加载具有指定文件名和可选表名的Excel文件的内容。
+	 * @param filename 要加载的Excel文件的名称。
+	 * @param sheetNames 表示要加载的表的名称的字符串数组。如果未提供，将加载所有表。
+	 * @returns 包含Excel文件中数据的表。键是表名，值是包含表的行和列的表。
 	 */
 	loadExcelAsync(filename: string, sheetNames?: string[]): {
 		[sheetName: string]: [column: string | number][]
 	} | null;
 
 	/**
-	 * Asynchronously saves the specified content to a file with the specified filename.
-	 * @param filename The name of the file to save.
-	 * @param content The content to save to the file.
-	 * @returns `true` if the content was saved successfully, `false` otherwise.
+	 * 异步将指定的内容保存到具有指定文件名的文件中。
+	 * @param filename 要保存的文件的名称。
+	 * @param content 要保存到文件的内容。
+	 * @returns 如果内容成功保存到文件，则为`true`，否则为`false`。
 	 */
 	saveAsync(filename: string, content: string): boolean;
 
 	/**
-	 * Asynchronously copies a file or a folder from the source path to the destination path.
-	 * @param src The path of the file or folder to copy.
-	 * @param dst The destination path of the copied files.
-	 * @returns `true` if the file or folder was copied successfully, `false` otherwise.
+	 * 异步地将源路径的文件或文件夹复制到目标路径。
+	 * @param src 要复制的文件或文件夹的路径。
+	 * @param dst 复制文件的目标路径。
+	 * @returns 如果文件或文件夹成功复制，则返回`true`，否则返回`false`。
 	 */
 	copyAsync(src: string, dst: string): boolean;
 
 	/**
-	 * Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
-	 * @param folderPath The path of the folder to compress, should be under the asset writable path.
-	 * @param zipFile The name of the ZIP archive to create.
-	 * @param filter A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
-	 * @returns `true` if the folder was compressed successfully, `false` otherwise.
+	 * 异步地将指定的文件夹压缩为具有指定文件名的ZIP存档。
+	 * @param folderPath 要压缩的文件夹的路径，应在资产可写路径下。
+	 * @param zipFile 要创建的ZIP存档的名称。
+	 * @param filter 一个过滤器函数，用于过滤包含在存档中的文件。该函数接受一个文件名作为输入，并返回一个布尔值，表示是否包含该文件。如果未提供，将包含所有文件。
+	 * @returns 如果文件夹成功压缩，则返回`true`，否则返回`false`。
 	 */
 	zipAsync(folderPath: string, zipFile: string, filter?: (this: void, filename: string) => boolean): boolean;
 
 	/**
-	 * Asynchronously decompresses a ZIP archive to the specified folder.
-	 * @param zipFile The name of the ZIP archive to decompress, should be a file under the asset writable path.
-	 * @param folderPath The path of the folder to decompress to, should be under the asset writable path.
-	 * @param filter A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
-	 * @returns `true` if the folder was decompressed successfully, `false` otherwise.
+	 * 异步地将ZIP存档解压缩到指定的文件夹。
+	 * @param zipFile 要解压缩的ZIP存档的名称，应该是资产可写路径下的文件。
+	 * @param folderPath 要解压缩到的文件夹的路径，应在资产可写路径下。
+	 * @param filter 一个过滤器函数，用于过滤包含在存档中的文件。该函数接受一个文件名作为输入，并返回一个布尔值，表示是否包含该文件。如果未提供，将包含所有文件。
+	 * @returns 如果文件夹成功解压缩，则返回`true`，否则返回`false`。
 	 */
 	unzipAsync(folderPath: string, zipFile: string, filter?: (this: void, filename: string) => boolean): boolean;
 
 	/**
-	 * Gets the names of all subdirectories in the specified directory.
-	 * @param path The path of the directory to search.
-	 * @returns An array of the names of all subdirectories in the specified directory.
+	 * 获取指定目录中所有子目录的名称。
+	 * @param path 要搜索的目录的路径。
+	 * @returns 指定目录中所有子目录的名称的数组。
 	 */
 	getDirs(path: string): string[];
 
 	/**
-	 * Gets the names of all files in the specified directory.
-	 * @param path The path of the directory to search.
-	 * @returns An array of the names of all files in the specified directory.
+	 * 获取指定目录中所有文件的名称。
+	 * @param path 要搜索的目录的路径。
+	 * @returns 指定目录中所有文件的名称的数组。
 	 */
 	getFiles(path: string): string[];
 
 	/**
-	 * Gets the names of all files in the specified directory and its subdirectories.
-	 * @param path The path of the directory to search.
-	 * @returns An array of the names of all files in the specified directory and its subdirectories.
+	 * 获取指定目录及其子目录中所有文件的名称。
+	 * @param path 要搜索的目录的路径。
+	 * @returns 指定目录及其子目录中所有文件的名称的数组。
 	 */
 	getAllFiles(path: string): string[];
 
 	/**
-	 * Clears the search path cache of the map of relative paths to full paths.
+	 * 清除相对路径到完整路径的映射的搜索路径缓存。
 	 */
 	clearPathCache(): void;
 }
@@ -3157,158 +3396,158 @@ const content: Content;
 export {content as Content};
 
 /**
- * Logs a message to the console.
- * @param msg The message to be logged.
+ * 将日志消息打印到控制台。
+ * @param msg 要打印的日志消息。
  */
 export function Log(this: void, msg: string): void;
 
 /**
- * Type definition for a database column.
- * The boolean type is only used for representing the database NULL value with the boolean false value.
+ * 数据库列的类型定义。
+ * 布尔类型仅使用布尔值false表示数据库NULL值。
  */
 type DBColumn = number | string | boolean;
 
 /**
- * Type definition for a database row.
+ * 数据库行的类型定义。
  */
 type DBRow = DBColumn[];
 
 /**
- * Type definition for an SQL query.
- * Can be SQL string or a pair of SQL string and an array of parameters.
+ * SQL查询的类型定义。
+ * 可以是SQL命令或SQL命令和对应的参数数组。
  */
 export type SQL = string | [string, DBRow[]];
 
 /**
- * An interface that represents a database.
+ * 代表数据库的接口。
  */
 interface DB {
 
 	/**
-	 * Checks whether a table exists in the database.
-	 * @param tableName The name of the table to check.
-	 * @param schema [optional] The name of the schema to check in.
-	 * @returns Whether the table exists or not.
+	 * 检查数据库中是否存在表。
+	 * @param tableName 要检查的表的名称。
+	 * @param schema [可选] 要检查的模式的名称。
+	 * @returns 表是否存在。
 	 */
 	exist(tableName: string, schema?: string): boolean;
 
 	/**
-	 * Executes a list of SQL statements as a single transaction.
-	 * @param sqls A list of SQL statements to execute.
-	 * @returns Whether the transaction was successful or not.
+	 * 执行一系列SQL语句作为一个单独的事务。
+	 * @param sqls 要执行的SQL语句列表。
+	 * @returns 事务是否成功。
 	 */
 	transaction(sqls: SQL[]): boolean;
 
 	/**
-	 * Executes a list of SQL statements as a single transaction asynchronously.
-	 * @param sqls A list of SQL statements to execute.
-	 * @returns Whether the transaction was successful or not.
+	 * 异步地执行一系列SQL语句作为一个单独的事务。
+	 * @param sqls 要执行的SQL语句列表。
+	 * @returns 事务是否成功。
 	 */
 	transactionAsync(sqls: SQL[]): boolean;
 
 	/**
-	 * Executes an SQL query and returns the results as a list of rows.
-	 * @param sql The SQL statement to execute.
-	 * @param args [optional] A list of values to substitute into the SQL statement.
-	 * @param withColumn [optional] Whether to include column names in the result (default false).
-	 * @returns A list of rows returned by the query.
+	 * 执行SQL查询并将结果返回为行列表。
+	 * @param sql 要执行的SQL语句。
+	 * @param args [可选] 要替换到SQL语句中的值列表。
+	 * @param withColumn [可选] 是否在结果中包含列名（默认为false）。
+	 * @returns 查询返回的行列表。
 	 */
 	query(sql: string, args?: DBRow, withColumn?: boolean): DBRow[];
 
 	/**
-	 * Executes an SQL query and returns the results as a list of rows.
-	 * @param sql The SQL statement to execute.
-	 * @param withColumn [optional] Whether to include column names in the result (default false).
-	 * @returns A list of rows returned by the query.
+	 * 执行SQL查询并将结果返回为行列表。
+	 * @param sql 要执行的SQL语句。
+	 * @param withColumn [可选] 是否在结果中包含列名（默认为false）。
+	 * @returns 查询返回的行列表。
 	 */
 	query(sql: string, withColumn?: boolean): DBRow[];
 
 	/**
-	 * Inserts a row of data into a table within a transaction.
-	 * @param tableName The name of the table to insert into.
-	 * @param values The values to insert into the table.
-	 * @returns Whether the insertion was successful or not.
+	 * 在一个事务中将数据行插入到表中。
+	 * @param tableName 要插入的表的名称。
+	 * @param values 要插入到表中的值。
+	 * @returns 插入是否成功。
 	 */
 	insert(tableName: string, values: DBRow[]): boolean;
 
 	/**
-	 * Executes an SQL statement and returns the number of rows affected.
-	 * @param sql The SQL statement to execute.
-	 * @returns The number of rows affected by the statement.
+	 * 执行SQL语句并返回受影响的行数。
+	 * @param sql 要执行的SQL语句。
+	 * @returns 语句影响的行数。
 	 */
 	exec(sql: string): number;
 
 	/**
-	 * Executes an SQL statement and returns the number of rows affected.
-	 * @param sql The SQL statement to execute.
-	 * @param values A list of values to substitute into the SQL statement.
-	 * @returns The number of rows affected by the statement.
+	 * 执行SQL语句并返回受影响的行数。
+	 * @param sql 要执行的SQL语句。
+	 * @param values 要替换到SQL语句中的值列表。
+	 * @returns 语句影响的行数。
 	 */
 	exec(sql: string, values: DBRow): number;
 
 	/**
-	 * Executes an SQL statement with list of values and returns the number of rows affected within a transaction.
-	 * @param sql The SQL statement to execute.
-	 * @param values A list of lists of values to substitute into the SQL statement.
-	 * @returns The number of rows affected by the statement.
+	 * 在一个事务中执行SQL语句并返回受影响的行数。
+	 * @param sql 要执行的SQL语句。
+	 * @param values 要替换到SQL语句中的值列表。
+	 * @returns 语句影响的行数。
 	 */
 	exec(sql: string, values: DBRow[]): number;
 
 	/**
-	 * Inserts a row of data into a table within a transaction asynchronously.
-	 * @param tableName The name of the table to insert into.
-	 * @param values The values to insert into the table.
-	 * @returns Whether the insert was successful or not.
+	 * 异步地在一个事务中将数据行插入到表中。
+	 * @param tableName 要插入的表的名称。
+	 * @param values 要插入到表中的值。
+	 * @returns 插入是否成功。
 	 */
 	insertAsync(tableName: string, values: DBRow[]): boolean;
 
 	/**
-	 * Inserts data from an Excel file into a table within a transaction asynchronously.
-	 * @param tableSheets The names of the tables to insert into.
-	 * @param excelFile The path to the Excel file containing the data.
-	 * @param startRow The row number to start inserting data from. The row number starts with 1.
-	 * @returns Whether the insert was successful or not.
+	 * 异步地在一个事务中将Excel文件中的数据插入到表中。
+	 * @param tableSheets 要插入的表的名称。
+	 * @param excelFile 包含数据的Excel文件的路径。
+	 * @param startRow 开始插入数据的行号。行号从1开始。
+	 * @returns 插入是否成功。
 	 */
 	insertAsync(tableSheets: string[], excelFile: string, startRow: number): boolean;
 
 	/**
-	 * Inserts data from an Excel file into a table within a transaction asynchronously.
-	 * @param tableSheets A list of table names and corresponding sheet names to insert into.
-	 * @param excelFile The path to the Excel file containing the data.
-	 * @param startRow The row number to start inserting data from. The row number starts with 1.
-	 * @returns Whether the insert was successful or not.
+	 * 异步地在一个事务中将Excel文件中的数据插入到表中。
+	 * @param tableSheets 要插入的表名和相应的表名列表。
+	 * @param excelFile 包含数据的Excel文件的路径。
+	 * @param startRow 开始插入数据的行号。行号从1开始。
+	 * @returns 插入是否成功。
 	 */
 	insertAsync(tableSheets: [string, string][], excelFile: string, startRow: number): boolean;
 
 	/**
-	 * Executes an SQL query asynchronously and returns the results as a list of rows.
-	 * @param sql The SQL statement to execute.
-	 * @param args [optional] A list of values to substitute into the SQL statement.
-	 * @param withColumn [optional] Whether to include column names in the result (default false).
-	 * @returns A list of rows returned by the query.
+	 * 异步地执行SQL查询并将结果返回为行列表。
+	 * @param sql 要执行的SQL语句。
+	 * @param args [可选] 要替换到SQL语句中的值列表。
+	 * @param withColumn [可选] 是否在结果中包含列名（默认为false）。
+	 * @returns 查询返回的行列表。
 	 */
 	queryAsync(sql: string, args?: DBRow, withColumn?: boolean): DBRow[];
 
 	/**
-	 * Executes an SQL query asynchronously and returns the results as a list of rows.
-	 * @param sql The SQL statement to execute.
-	 * @param withColumn [optional] Whether to include column names in the result (default false).
-	 * @returns A list of rows returned by the query.
+	 * 异步地执行SQL查询并将结果返回为行列表。
+	 * @param sql 要执行的SQL语句。
+	 * @param withColumn [可选] 是否在结果中包含列名（默认为false）。
+	 * @returns 查询返回的行列表。
 	 */
 	queryAsync(sql: string, withColumn?: boolean): DBRow[];
 
 	/**
-	 * Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
-	 * @param sql The SQL statement to execute.
-	 * @param values A list of values to substitute into the SQL statement.
-	 * @returns The number of rows affected by the statement.
+	 * 异步地在一个事务中执行SQL语句并返回受影响的行数。
+	 * @param sql 要执行的SQL语句。
+	 * @param values 要替换到SQL语句中的值列表。
+	 * @returns 语句影响的行数。
 	 */
 	execAsync(sql: string, values: DBRow[]): number;
 
 	/**
-	 * Executes an SQL statement asynchronously and returns the number of rows affected.
-	 * @param sql The SQL statement to execute.
-	 * @returns The number of rows affected by the statement.
+	 * 异步地执行SQL语句并返回受影响的行数。
+	 * @param sql 要执行的SQL语句。
+	 * @returns 语句影响的行数。
 	 */
 	execAsync(sql: string): number;
 }
@@ -3317,7 +3556,7 @@ const db: DB;
 export {db as DB};
 
 /**
- * A singleton class that manages the game scene trees and provides access to root scene nodes for different game uses.
+ * 一个单例类，管理游戏场景树并提供不同游戏用途的多种场景根节点。
  *
  * @example
  * ```
@@ -3330,75 +3569,75 @@ class Director {
 	private constructor();
 
 	/**
-	 * The background color for the game world.
+	 * 游戏世界的背景颜色。
 	 */
 	clearColor: Color;
 
 	/**
-	 * Provides access to the game scheduler, which is used for scheduling tasks like animations and gameplay events.
+	 * 提供对游戏调度器的访问，用于调度任务，如动画和游戏事件。
 	 */
 	scheduler: Scheduler;
 
 	/**
-	 * The root node for 2D user interface elements like buttons and labels.
+	 * 2D用户界面元素（如按钮和标签）的根节点。
 	 */
 	readonly ui: Node;
 
 	/**
-	 * The root node for 3D user interface elements with 3D projection effect.
+	 * 具有3D投影效果的3D用户界面元素的根节点。
 	 */
 	readonly ui3D: Node;
 
 	/**
-	 * The root node for the starting point of a game.
+	 * 游戏起点的根节点。
 	 */
 	readonly entry: Node;
 
 	/**
-	 * The root node for post-rendering scene tree.
+	 * 后渲染场景树的根节点。
 	 */
 	readonly postNode: Node;
 
 	/**
-	 * Provides access to the system scheduler, which is used for low-level system tasks. Should not put any game logic in it.
+	 * 提供对系统调度器的访问，用于低级系统任务。不应在其中放置任何游戏逻辑。
 	 */
 	readonly systemScheduler: Scheduler;
 
 	/**
-	 * Provides access to the scheduler used for processing post game logic.
+	 * 提供对用于处理后游戏逻辑的调度器的访问。
 	 */
 	readonly postScheduler: Scheduler;
 
 	/**
-	 * The current active camera in Director's camera stack.
+	 * Director的摄像机堆栈中当前活动的摄像机。
 	 */
 	readonly currentCamera: Camera;
 
 	/**
-	 * Adds a new camera to Director's camera stack and sets it to the current camera.
-	 * @param camera The camera to add.
+	 * 向Director的摄像机堆栈添加新摄像机，并将其设置为当前摄像机。
+	 * @param camera 要添加的摄像机。
 	 */
 	pushCamera(camera: Camera): void;
 
 	/**
-	 * Removes the current camera from Director's camera stack.
+	 * 从Director的摄像机堆栈中移除当前摄像机。
 	 */
 	popCamera(): void;
 
 	/**
-	 * Removes a specified camera from Director's camera stack.
-	 * @param camera The camera to remove.
-	 * @returns True if the camera was removed, false otherwise.
+	 * 从Director的摄像机堆栈中移除指定的摄像机。
+	 * @param camera 要移除的摄像机。
+	 * @returns 如果摄像机被移除，则返回True，否则返回False。
 	 */
 	removeCamera(camera: Camera): boolean;
 
 	/**
-	 * Removes all cameras from Director's camera stack.
+	 * 从Director的摄像机堆栈中移除所有摄像机。
 	 */
 	clearCamera(): void;
 
 	/**
-	 * Cleans up all resources managed by the Director, including scene trees and cameras.
+	 * 清理Director管理的所有资源，包括场景树和摄像机。
 	 */
 	cleanup(): void;
 }
@@ -3407,74 +3646,74 @@ const director: Director;
 export {director as Director};
 
 /**
- * A base class for an animation model system.
+ * 动画模型系统的基类。
  */
 class Playable extends Node {
 
 	protected constructor();
 
 	/**
-	 * The look of the animation.
+	 * 动画的外观。
 	 */
 	look: string;
 
 	/**
-	 * The play speed of the animation.
+	 * 动画的播放速度。
 	 */
 	speed: number;
 
 	/**
-	 * The recovery time of the animation, in seconds.
-	 * Used for doing transitions from one animation to another animation.
+	 * 动画的恢复时间，以秒为单位。
+	 * 用于从一个动画过渡到另一个动画。
 	 */
 	recovery: number;
 
 	/**
-	 * Whether the animation is flipped horizontally.
+	 * 动画是否水平翻转。
 	 */
 	fliped: boolean;
 
 	/**
-	 * The current playing animation name.
+	 * 当前播放的动画名称。
 	 */
 	readonly current: string;
 
 	/**
-	 * The last completed animation name.
+	 * 最后完成的动画名称。
 	 */
 	readonly lastCompleted: string;
 
 	/**
-	 * Get a key point on the animation model by its name.
-	 * @param name The name of the key point to get.
-	 * @returns The key point value as a Vec2.
+	 * 通过其名称获取动画模型上的关键点。
+	 * @param name 要获取的关键点的名称。
+	 * @returns 关键点值作为Vec2。
 	 */
 	getKey(name: string): Vec2;
 
 	/**
-	 * Plays an animation from the model.
-	 * @param name The name of the animation to play.
-	 * @param loop Whether to loop the animation or not (default is false).
-	 * @returns The duration of the animation in seconds.
+	 * 播放模型中的动画。
+	 * @param name 要播放的动画的名称。
+	 * @param loop 是否循环播放动画（默认为false）。
+	 * @returns 动画的持续时间，以秒为单位。
 	 */
 	play(name: string, loop?: boolean): number;
 
 	/**
-	 * Stops the currently playing animation.
+	 * 停止当前播放的动画。
 	 */
 	stop(): void;
 
 	/**
-	 * Attaches a child node to a slot on the animation model.
-	 * @param name The name of the slot to set.
-	 * @param item The node to set the slot to.
+	 * 将子节点附加到动画模型上的一个插槽。
+	 * @param name 要设置的插槽的名称。
+	 * @param item 要设置插槽的节点。
 	 */
 	setSlot(name: string, item: Node): void;
 
 	/**
-	 * Gets the child node attached to the animation model.
-	 * @param name The name of the slot to get.
-	 * @returns The node in the slot, or null if there is no node in the slot.
+	 * 获取附加到动画模型的子节点。
+	 * @param name 要获取的插槽的名称。
+	 * @returns 插槽中的节点，如果插槽中没有节点，则返回null。
 	 */
 	getSlot(name: string): Node | null;
 }
@@ -3482,19 +3721,19 @@ class Playable extends Node {
 export type {Playable as PlayableType};
 
 /**
-* A class for creating instances of the 'Playable' object.
+* 用于创建'Playable'对象实例的类。
 */
 interface PlayableClass {
 
 	/**
-	 * Creates a new instance of 'Playable' from the specified animation file.
-	 * @param filename the filename of the animation file to load.
-	 * Supports DragonBone, Spine2D, and Dora Model files.
-	 * Should be one of the formats below:
+	 * 从指定的动画文件创建一个新的'Playable'实例。
+	 * @param filename 要加载的动画文件的文件名。
+	 * 支持DragonBone，Spine2D和Dora Model文件。
+	 * 应为以下格式之一：
 	 *  "model:" + modelFile
 	 *  "spine:" + spineStr
 	 *  "bone:" + dragonBoneStr
-	 * @returns a new instance of 'Playable'.
+	 * @returns 一个新的'Playable'实例。
 	 */
 	(this: void, filename: string): Playable;
 }
@@ -3503,37 +3742,37 @@ const playableClass: PlayableClass;
 export {playableClass as Playable};
 
 /**
- * An implementation of the 'Playable' class using the DragonBones animation system.
+ * 使用DragonBones动画系统实现的'Playable'动画模型类。
  */
 class DragonBone extends Playable {
 
 	private constructor();
 
 	/**
-	 * Whether to show debug graphics.
+	 * 是否显示调试图形。
 	 */
 	showDebug: boolean;
 
 	/**
-	 * Whether hit testing is enabled.
+	 * 是否启用命中测试。
 	 */
 	hitTestEnabled: boolean;
 
 	/**
-	 * Checks if a point is inside the boundaries of the instance and returns the name of the bone or slot at that point, or undefined if no bone or slot is found.
-	 * @param x The x-coordinate of the point to check.
-	 * @param y The y-coordinate of the point to check.
-	 * @returns The name of the bone or slot at the point, or undefined if no bone or slot is found.
+	 * 检查一个点是否在实例的边界内，并返回该点处的骨骼或插槽的名称，如果没有找到骨骼或插槽，则返回undefined。
+	 * @param x 要检查的点的x坐标。
+	 * @param y 要检查的点的y坐标。
+	 * @returns 该点处的骨骼或插槽的名称，如果没有找到骨骼或插槽，则返回undefined。
 	 */
 	containsPoint(x: number, y: number): string | undefined;
 
 	/**
-	 * Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or undefined if no bone or slot is found.
-	 * @param x1 The x-coordinate of the start point of the line segment.
-	 * @param y1 The y-coordinate of the start point of the line segment.
-	 * @param x2 The x-coordinate of the end point of the line segment.
-	 * @param y2 The y-coordinate of the end point of the line segment.
-	 * @returns The name of the bone or slot at the intersection point, or undefined if no bone or slot is found.
+	 * 检查一条线段是否与实例的边界相交，并返回交点处的骨骼或插槽的名称，如果没有找到骨骼或插槽，则返回undefined。
+	 * @param x1 线段起点的x坐标。
+	 * @param y1 线段起点的y坐标。
+	 * @param x2 线段终点的x坐标。
+	 * @param y2 线段终点的y坐标。
+	 * @returns 交点处的骨骼或插槽的名称，如果没有找到骨骼或插槽，则返回undefined。
 	 */
 	intersectsSegment(x1: number, y1: number, x2: number, y2: number): string | undefined;
 }
@@ -3541,36 +3780,36 @@ class DragonBone extends Playable {
 export type {DragonBone as DragonBoneType};
 
 /**
-* A class for creating instances of the 'DragonBone' object.
+* 用于创建'DragonBone'对象实例的类。
 */
 interface DragonBoneClass {
 
 	/**
-	 * Returns a list of available looks for the specified DragonBone file string.
-	 * @param boneStr The DragonBone file string to get the looks for.
-	 * @returns A list of strings representing the available looks.
+	 * 返回指定DragonBone文件字符串的可用外观列表。
+	 * @param boneStr 要获取外观的DragonBone文件字符串。
+	 * @returns 代表可用外观的字符串列表。
 	 */
 	getLooks(boneStr: string): string[];
 
 	/**
-	 * Returns a list of available animations for the specified DragonBone file string.
-	 * @param boneStr The DragonBone file string to get the animations for.
-	 * @returns A list of strings representing the available animations.
+	 * 返回指定DragonBone文件字符串的可用动画列表。
+	 * @param boneStr 要获取动画的DragonBone文件字符串。
+	 * @returns 代表可用动画的字符串列表。
 	 */
 	getAnimations(boneStr: string): string[];
 
 	/**
-	 * Creates a new instance of 'DragonBone' using the specified bone string.
-	 * @param boneStr The DragonBone file string for the new instance.
-	 * @returns A new instance of 'DragonBone'.
+	 * 使用指定的骨骼字符串创建一个新的'DragonBone'实例。
+	 * @param boneStr 新实例的DragonBone文件字符串。
+	 * @returns 一个新的'DragonBone'实例。
 	 */
 	(this: void, boneStr: string): DragonBone;
 
 	/**
-	 * Creates a new instance of 'DragonBone' using the specified bone file and atlas file. This function only loads the first armature.
-	 * @param boneFile The filename of the bone file to load.
-	 * @param atlasFile The filename of the atlas file to load.
-	 * @returns A new instance of 'DragonBone' with the specified bone file and atlas file.
+	 * 使用指定的骨骼文件和图集文件创建一个新的'DragonBone'实例。此函数只加载第一个骨架。
+	 * @param boneFile 要加载的骨骼文件的文件名。
+	 * @param atlasFile 要加载的图集文件的文件名。
+	 * @returns 一个具有指定骨骼文件和图集文件的新的'DragonBone'实例。
 	 */
 	(this: void, boneFile: string, atlasFile: string): DragonBone;
 }
@@ -3579,41 +3818,41 @@ const dragonBoneClass: DragonBoneClass;
 export {dragonBoneClass as DragonBone};
 
 /**
- * An implementation of an animation system using the Spine engine.
+ * 使用Spine引擎实现的动画系统。
  */
 class Spine extends Playable {
 
 	private constructor();
 
-	/** Whether to show debug graphics. */
+	/** 是否显示调试图形。 */
 	showDebug: boolean;
 
-	/** Whether hit testing is enabled. */
+	/** 是否启用命中测试。 */
 	hitTestEnabled: boolean;
 
 	/**
-	 * Sets the rotation of a bone in the Spine skeleton.
-	 * @param name The name of the bone to rotate.
-	 * @param rotation The amount to rotate the bone, in degrees.
-	 * @returns Whether the rotation was successfully set or not.
+	 * 设置Spine骨架中骨骼的旋转。
+	 * @param name 要旋转的骨骼的名称。
+	 * @param rotation 旋转骨骼的量，以度为单位。
+	 * @returns 旋转是否成功设置。
 	 */
 	setBoneRotation(name: string, rotation: number): boolean;
 
 	/**
-	 * Checks if a point in space is inside the boundaries of the Spine skeleton.
-	 * @param x The x-coordinate of the point to check.
-	 * @param y The y-coordinate of the point to check.
-	 * @returns The name of the bone at the point, or null if there is no bone at the point.
+	 * 检查空间中的一个点是否在Spine骨架的边界内。
+	 * @param x 要检查的点的x坐标。
+	 * @param y 要检查的点的y坐标。
+	 * @returns 点处的骨骼的名称，如果点处没有骨骼，则返回null。
 	 */
 	containsPoint(x: number, y: number): string | null;
 
 	/**
-	 * Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or null if no bone or slot is found.
-	 * @param x1 The x-coordinate of the start point of the line segment.
-	 * @param y1 The y-coordinate of the start point of the line segment.
-	 * @param x2 The x-coordinate of the end point of the line segment.
-	 * @param y2 The y-coordinate of the end point of the line segment.
-	 * @returns The name of the bone or slot at the intersection point, or null if no bone or slot is found.
+	 * 检查一条线段是否与实例的边界相交，并返回交点处的骨骼或插槽的名称，如果没有找到骨骼或插槽，则返回null。
+	 * @param x1 线段起点的x坐标。
+	 * @param y1 线段起点的y坐标。
+	 * @param x2 线段终点的x坐标。
+	 * @param y2 线段终点的y坐标。
+	 * @returns 交点处的骨骼或插槽的名称，如果没有找到骨骼或插槽，则返回null。
 	 */
 	intersectsSegment(x1: number, y1: number, x2: number, y2: number): string | null;
 }
@@ -3621,36 +3860,36 @@ class Spine extends Playable {
 export type {Spine as SpineType};
 
 /**
-* A class for creating instances of the 'Spine' object.
+* 用于创建'Spine'动画模型对象实例的类。
 */
 interface SpineClass {
 
 	/**
-	 * Returns a list of available looks for the specified Spine2D file string.
-	 * @param spineStr The Spine2D file string to get the looks for.
-	 * @returns A list of strings representing the available looks.
+	 * 返回指定Spine2D文件字符串的可用外观列表。
+	 * @param spineStr 要获取外观的Spine2D文件字符串。
+	 * @returns 代表可用外观的字符串列表。
 	 */
 	getLooks(spineStr: string): string[];
 
 	/**
-	 * Returns a list of available animations for the specified Spine2D file string.
-	 * @param spineStr The Spine2D file string to get the animations for.
-	 * @returns A list of strings representing the available animations.
+	 * 返回指定Spine2D文件字符串的可用动画列表。
+	 * @param spineStr 要获取动画的Spine2D文件字符串。
+	 * @returns 代表可用动画的字符串列表。
 	 */
 	getAnimations(spineStr: string): string[];
 
 	/**
-	 * Creates a new instance of 'Spine' using the specified Spine string.
-	 * @param spineStr The Spine file string for the new instance.
-	 * @returns A new instance of 'Spine'.
+	 * 使用指定的Spine字符串创建一个新的'Spine'实例。
+	 * @param spineStr 新实例的Spine文件字符串。
+	 * @returns 一个新的'Spine'实例。
 	 */
 	(this: void, spineStr: string): Spine;
 
 	/**
-	 * Creates a new instance of 'Spine' using the specified skeleton file and atlas file.
-	 * @param skelFile The filename of the skeleton file to load.
-	 * @param atlasFile The filename of the atlas file to load.
-	 * @returns A new instance of 'Spine' with the specified skeleton file and atlas file.
+	 * 使用指定的骨架文件和图集文件创建一个新的'Spine'实例。
+	 * @param skelFile 要加载的骨架文件的文件名。
+	 * @param atlasFile 要加载的图集文件的文件名。
+	 * @returns 一个具有指定骨架文件和图集文件的新的'Spine'实例。
 	 */
 	(this: void, skelFile: string, atlasFile: string): Spine;
 }
@@ -3659,74 +3898,74 @@ const spineClass: SpineClass;
 export {spineClass as Spine};
 
 /**
- * Another implementation of the 'Playable' class.
+ * 'Playable'动画模型类的另一种实现。
  */
 class Model extends Playable {
 
 	protected constructor();
 
 	/**
-	 * The duration of the current animation.
+	 * 当前动画的持续时间。
 	 */
 	duration: number;
 
 	/**
-	 * Whether the animation model will be played in reverse.
+	 * 是否将动画模型反向播放。
 	 */
 	reversed: boolean;
 
 	/**
-	 * Whether the animation model is currently playing.
+	 * 动画模型当前是否正在播放。
 	 */
 	playing: boolean;
 
 	/**
-	 * Whether the animation model is currently paused.
+	 * 动画模型当前是否已暂停。
 	 */
 	paused: boolean;
 
 	/**
-	 * Check if an animation exists in the model.
-	 * @param name The name of the animation to check.
-	 * @returns Whether the animation exists in the model or not.
+	 * 检查模型中是否存在动画。
+	 * @param name 要检查的动画的名称。
+	 * @returns 动画是否存在于模型中。
 	 */
 	hasAnimation(name: string): boolean;
 
 	/**
-	 * Pauses the currently playing animation.
+	 * 暂停当前正在播放的动画。
 	 */
 	pause(): void;
 
 	/**
-	 * Resumes the currently paused animation, or plays a new animation if specified.
-	 * @param name [optional] The name of the animation to play.
-	 * @param loop [optional] Whether to loop the animation or not (default is false).
+	 * 恢复当前已暂停的动画，或者如果指定，则播放新动画。
+	 * @param name [可选] 要播放的动画的名称。
+	 * @param loop [可选] 是否循环播放动画（默认为false）。
 	 */
 	resume(name?: string, loop?: boolean): void;
 
 	/**
-	 * Resets the current animation to its initial state.
+	 * 将当前动画重置为其初始状态。
 	 */
 	reset(): void;
 
 	/**
-	 * Updates the animation to the specified time, and optionally in reverse.
-	 * @param elapsed The time to update to.
-	 * @param reversed [optional] Whether to play the animation in reverse (default is false).
+	 * 将动画更新到指定的时间，并可选择反向播放。
+	 * @param elapsed 要更新到的时间。
+	 * @param reversed [可选] 是否反向播放动画（默认为false）。
 	 */
 	updateTo(elapsed: number, reversed?: boolean): void;
 
 	/**
-	 * Gets the node with the specified name.
-	 * @param name The name of the node to get.
-	 * @returns The node with the specified name.
+	 * 获取具有指定名称的节点。
+	 * @param name 要获取的节点的名称。
+	 * @returns 具有指定名称的节点。
 	 */
 	getNodeByName(name: string): Node;
 
 	/**
-	 * Calls the specified function for each node in the model, and stops if the function returns false.
-	 * @param func The function to call for each node.
-	 * @returns Whether the function was called for all nodes or not.
+	 * 对模型中的每个节点调用指定的函数，并在函数返回false时停止。
+	 * @param func 要对每个节点调用的函数。
+	 * @returns 函数是否被调用了所有节点。
 	 */
 	eachNode(func: (this: void, node: Node) => boolean): boolean;
 }
@@ -3734,42 +3973,42 @@ class Model extends Playable {
 export type {Model as ModelType}
 
 /**
- * A class for creating instances of the 'Model' object.
+ * 用于创建'Model'对象实例的类。
  */
 interface ModelClass {
 
 	/**
-	 * A method that returns a new dummy instance of 'Model' that can do nothing.
-	 * @returns A new dummy instance of 'Model'.
+	 * 返回一个占位使用的'Model'实例，该实例无法执行任何操作。
+	 * @returns 一个占位用的'Model'实例。
 	 */
 	dummy(): Model;
 
 	/**
-	 * Gets the clip file from the specified model file.
-	 * @param filename The filename of the model file to search.
-	 * @returns The name of the clip file.
+	 * 从指定的模型文件中获取切片文件。
+	 * @param filename 要搜索的模型文件的文件名。
+	 * @returns 切片文件的名称。
 	 */
 	getClipFile(filename: string): string;
 
 	/**
-	 * Gets an array of look names from the specified model file.
-	 * @param filename The filename of the model file to search.
-	 * @returns An array of look names found in the model file.
+	 * 从指定的模型文件中获取一组外观名称。
+	 * @param filename 要搜索的模型文件的文件名。
+	 * @returns 在模型文件中找到的外观名称数组。
 	 */
 	getLooks(filename: string): string[];
 
 	/**
-	 * Gets an array of animation names from the specified model file.
-	 * @param filename The filename of the model file to search.
-	 * @returns An array of animation names found in the model file.
+	 * 从指定的模型文件中获取一组动画名称。
+	 * @param filename 要搜索的模型文件的文件名。
+	 * @returns 在模型文件中找到的动画名称数组。
 	 */
 	getAnimations(filename: string): string[];
 
 	/**
-	 * Creates a new instance of 'Model' from the specified model file.
-	 * @param filename The filename of the model file to load.
-	 * Can be filename with or without extension like: "Model/item" or "Model/item.model".
-	 * @returns A new instance of 'Model'.
+	 * 从指定的模型文件创建一个新的'Model'实例。
+	 * @param filename 要加载的模型文件的文件名。
+	 * 可以是带有或不带有扩展名的文件名，例如："Model/item" 或 "Model/item.model"。
+	 * @returns 一个新的'Model'实例。
 	 */
 	(this: void, filename: string): Model;
 }
@@ -3778,56 +4017,56 @@ const modelClass: ModelClass;
 export {modelClass as Model};
 
 /**
- * A class for scene node that draws simple shapes such as dots, lines, and polygons.
+ * 用于绘制简单形状（如点、线和多边形）的场景节点类。
  */
 class DrawNode extends Node {
 
 	private constructor();
 
 	/**
-	 * Whether to write to the depth buffer when drawing (default is false).
+	 * 绘制时是否写入深度缓冲区（默认为false）。
 	 */
 	depthWrite: boolean;
 
 	/**
-	 * The blend function used to draw the shape.
+	 * 用于绘制形状的混合函数。
 	 */
 	blendFunc: BlendFunc;
 
 	/**
-	 * Draws a dot at a specified position with a specified radius and color.
-	 * @param pos The position of the dot.
-	 * @param radius The radius of the dot.
-	 * @param color The color of the dot (default is white).
+	 * 在指定位置绘制一个指定半径和颜色的点。
+	 * @param pos 点的位置。
+	 * @param radius 点的半径。
+	 * @param color 点的颜色（默认为白色）。
 	 */
 	drawDot(this: DrawNode, pos: Vec2, radius: number, color?: Color): void;
 
 	/**
-	 * Draws a line segment between two points with a specified radius and color.
-	 * @param from The starting point of the line.
-	 * @param to The ending point of the line.
-	 * @param radius The radius of the line.
-	 * @param color The color of the line (default is white).
+	 * 用指定的半径和颜色绘制两点之间的线段。
+	 * @param from 线的起点。
+	 * @param to 线的终点。
+	 * @param radius 线的半径。
+	 * @param color 线的颜色（默认为白色）。
 	 */
 	drawSegment(this: DrawNode, from: Vec2, to: Vec2, radius: number, color?: Color): void;
 
 	/**
-	 * Draws a polygon defined by a list of vertices with a specified fill color and border.
-	 * @param verts The vertices of the polygon.
-	 * @param fillColor The fill color of the polygon (default is white).
-	 * @param borderWidth The width of the border (default is 0).
-	 * @param borderColor The color of the border (default is white).
+	 * 绘制一个由顶点列表定义的多边形，具有指定的填充颜色和边框。
+	 * @param verts 多边形的顶点。
+	 * @param fillColor 多边形的填充颜色（默认为白色）。
+	 * @param borderWidth 边框的宽度（默认为0）。
+	 * @param borderColor 边框的颜色（默认为白色）。
 	 */
 	drawPolygon(this: DrawNode, verts: Vec2[], fillColor?: Color, borderWidth?: number, borderColor?: Color): void;
 
 	/**
-	 * Draws a set of vertices as triangles, each vertex with its own color.
-	 * @param verts The list of vertices and their colors.
+	 * 绘制一组顶点作为三角形，每个顶点都有自己的颜色。
+	 * @param verts 顶点及其颜色的列表。
 	 */
 	drawVertices(this: DrawNode, verts: [Vec2, Color][]): void;
 
 	/**
-	 * Clears all previously drawn shapes from the node.
+	 * 清除节点上所有之前绘制的形状。
 	 */
 	clear(this: DrawNode): void;
 }
@@ -3835,12 +4074,12 @@ class DrawNode extends Node {
 export type {DrawNode as DrawNodeType};
 
 /**
-* A class for creating DrawNode objects.
+* 用于创建DrawNode对象的类。
 */
 interface DrawNodeClass {
 	/**
-	 * Creates a new DrawNode object.
-	 * @returns The new DrawNode object.
+	 * 创建新的DrawNode对象。
+	 * @returns 新的DrawNode对象。
 	 */
 	(this: void): DrawNode;
 }
@@ -3849,63 +4088,63 @@ const drawNodeClass: DrawNodeClass;
 export {drawNodeClass as DrawNode};
 
 /**
- * Emits a global event with the given name and arguments to all listeners registered by node:gslot() function.
- * @param eventName The name of the event to emit.
- * @param args The data to pass to the global event listeners.
+ * 发送具有特定名称和参数的全局事件，传递给所有由`node.gslot()`函数注册的事件监听器。
+ * @param eventName 要发出的事件的名称。
+ * @param args 要传递给全局事件监听器的数据。
  */
 export function emit(this: void, eventName: string, ...args: any[]): void;
 
 export type Component = number | boolean | string | ContainerItem;
 
 /**
- * A class type representing an entity for an ECS game system.
+ * 代表ECS游戏系统中的实体的类。
  */
 class Entity extends Object {
 
 	private constructor();
 
-	/** The index of the entity. */
+	/** 实体的索引。 */
 	readonly index: number;
 
 	/**
-	 * A syntax shortcut for accessing the old values of the entity's properties.
-	 * The old values are values before last change of the component values of the Entity.
-	 * Don't keep a reference to it for it is not an actual table.
+	 * 访问实体属性旧值的快捷语法变量。
+	 * 旧值是指Entity的组件值上次更改之前的值。
+	 * 不要对这个对象做引用，引用它会导致未定义的行为。
 	 */
 	readonly oldValues: Record<string, Component | undefined>;
 
 	/**
-	 * A function that destroys the entity.
+	 * 用于销毁实体的函数。
 	 */
 	destroy(): void;
 
 	/**
-	 * A function that sets a property of the entity to a given value.
-	 * This function will trigger events for Observer objects.
-	 * @param key The name of the property to set.
-	 * @param item The value to set the property to.
+	 * 将实体的属性设置为特定值的函数。
+	 * 此函数将触发Observer对象的监听事件。
+	 * @param key 要设置的属性的名称。
+	 * @param item 要设置的属性值。
 	 */
 	set(key: string, item: Component | undefined): void;
 
 	/**
-	 * A function that retrieves the value of a property of the entity
-	 * @param key The name of the property to retrieve the value of.
-	 * @returns The value of the specified property.
+	 * 获取实体的属性值的函数。
+	 * @param key 要检索值的属性的名称。
+	 * @returns 指定属性的值。
 	 */
 	get(key: string): Component | undefined;
 
 	/**
-	 * A function that retrieves the previous value of a property of the entity
-	 * The old values are values before last change of the component values of the Entity.
-	 * @param key The name of the property to retrieve the previous value of.
-	 * @returns The previous value of the specified property
+	 * 获取实体属性的前一个值。
+	 * 为Entity的组件值上次更改之前的值。
+	 * @param key 要检索前一个值的属性的名称。
+	 * @returns 指定属性的前一个值。
 	 */
 	getOld(key: string): Component | undefined;
 
 	/**
-	 * A metamethod that retrieves the value of a property of the entity.
-	 * @param key The name of the property to retrieve the value of.
-	 * @returns The value of the specified property.
+	 * 检索实体的属性值的便捷方法。
+	 * @param key 要检索值的属性的名称。
+	 * @returns 指定属性的值。
 	 */
 	[key: string]: Component | undefined;
 }
@@ -3913,22 +4152,22 @@ class Entity extends Object {
 export type {Entity as EntityType};
 
 /**
- * A class for creating and managing entities in the ECS game systems.
+ * 一个用于在ECS游戏系统中创建和管理实体的类。
  */
 interface EntityClass {
 
-	/** The number of all running entities. */
+	/** 所有正在运行的实体的数量。 */
 	readonly count: number;
 
 	/**
-	 * A function that clears all entities.
+	 * 用于清除所有实体对象的函数。
 	 */
 	clear(): void;
 
 	/**
-	 * A metamethod that creates a new entity with the specified components.
-	 * And you can then get the newly created Entity object from groups and observers.
-	 * @param components A table mapping component names (strings) to component values (Items).
+	 * 用于创建具有指定组件的新实体。
+	 * 在新实体创建以后，可以从实体组和观察者中访问新创建的Entity对象。
+	 * @param components 将组件名称（字符串）映射到组件值的数值字典。
 	 * @example
 	 * Entity({ a: 1, b: "abc", c: Node() });
 	 */
@@ -3939,48 +4178,48 @@ const entity: EntityClass;
 export {entity as Entity};
 
 /**
- * A class representing an observer of entity changes in the game systems.
+ * 代表游戏系统中监听实体变化的观察者的类。
  */
 class Observer {
 
 	private constructor();
 
 	/**
-	 * Watches the components changes to entities that match the observer's component filter.
-	 * @param func The function to call when a change occurs.
-	 * @returns The same observer, for method chaining.
+	 * 监听目标的实体对象的特定组件变化。
+	 * @param func 当实体发生变化时调用的函数。
+	 * @returns 用于链式调用方法的同一个观察者。
 	 */
 	watch(func: (this: void, entity: Entity, ...components: any[]) => void): Observer;
 }
 
 /**
- * The types of events that an observer can watch for.
+ * 观察者可以监听的事件类型。
  */
 export const enum ObserverEvent {
 
-	/** The addition of a new entity. */
+	/** 新实体的添加。 */
 	Add = "Add",
 
-	/** The modification of an existing entity. */
+	/** 现有实体的修改。 */
 	Change = "Change",
 
-	/** The addition or modification of an entity. */
+	/** 实体的添加或修改。 */
 	AddOrChange = "AddOrChange",
 
-	/** The removal of an existing entity. */
+	/** 现有实体的移除。 */
 	Remove = "Remove"
 }
 
 /**
-* A class for creating Observer objects.
+* 用于创建Observer对象的类。
 */
 interface ObserverClass {
 
 	/**
-	 * A metamethod that creates a new observer with the specified component filter and action to watch for.
-	 * @param action The type of action to watch for.
-	 * @param components A list of the names of the components to filter entities by.
-	 * @returns The new observer.
+	 * 创建具有指定组件过滤器和要监听的动作的新观察者。
+	 * @param action 要监听的动作类型。
+	 * @param components 用于过滤实体的组件的名称列表。
+	 * @returns 新的观察者。
 	 */
 	(this: void, action: ObserverEvent, components: string[]): Observer;
 }
@@ -3989,33 +4228,33 @@ const observerClass: ObserverClass;
 export {observerClass as Observer};
 
 /**
- * A class representing a group of entities in the ECS game systems.
+ * 代表ECS游戏系统中的实体组的类。
  */
 class Group extends Object {
 
 	private constructor();
 
-	/** The number of entities in the group. */
+	/** 实体组中的实体数量。 */
 	readonly count: number;
 
 	/**
-	 * Calls a function for each entity in the group.
-	 * @param func The function to call for each entity. Returning true inside the function to stop iteration.
-	 * @returns False if all entities were processed, True if the iteration was interrupted.
+	 * 对组中的每个实体调用一个函数。
+	 * @param func 对每个实体调用的函数。在函数内部返回true以停止迭代。
+	 * @returns 如果所有实体都被处理，返回False；如果迭代被中断，返回True。
 	 */
 	each(func: (this: void, entity: Entity) => boolean): boolean;
 
 	/**
-	 * Finds the first entity in the group that satisfies a predicate function.
-	 * @param func The predicate function to test each entity with.
-	 * @returns The first entity that satisfies the predicate, or undefined if no entity does.
+	 * 查找满足检查函数的实体组中的第一个实体。
+	 * @param func 用于检查每个实体的函数。
+	 * @returns 满足检查函数的第一个实体，如果没有实体满足，则返回undefined。
 	 */
 	find(func: (this: void, entity: Entity) => boolean): Entity | undefined;
 
 	/**
-	 * Watches the group for changes to its entities, calling a function whenever an entity is added or changed.
-	 * @param func The function to call when an entity is added or changed.
-	 * @returns The same group, for method chaining.
+	 * 监听实体组的实体变化，每当实体被添加或更改时，触发回调函数。
+	 * @param func 当实体被添加或更改时调用的函数。
+	 * @returns 用于链式调用方法的同一个实体组。
 	 */
 	watch(func: (this: void, entity: Entity, ...components: any[]) => void): Group;
 }
@@ -4023,14 +4262,14 @@ class Group extends Object {
 export type {Group as GroupType};
 
 /**
-* A class for creating Group objects.
+* 用于创建Group对象的类。
 */
 interface GroupClass {
 
 	/**
-	 * A metamethod that creates a new group with the specified component names.
-	 * @param components A list of the names of the components to include in the group.
-	 * @returns The new group.
+	 * 一个元方法，用于创建包含指定组件名称的新组。
+	 * @param components 要包含在组中的组件的名称列表。
+	 * @returns 新的组。
 	 */
 	(this: void, components: string[]): Group;
 }
@@ -4039,88 +4278,87 @@ const groupClass: GroupClass;
 export {groupClass as Group};
 
 /**
- * Represents a 2D texture.
- * Inherits from `Object`.
+ * 表示一个2D纹理。
+ * 继承自 `Object`。
  */
 class Texture2D extends Object {
 
 	private constructor();
 
-	/** The width of the texture, in pixels. */
+	/** 纹理的宽度，以像素为单位。 */
 	readonly width: number;
 
-	/** The height of the texture, in pixels. */
+	/** 纹理的高度，以像素为单位。 */
 	readonly height: number;
 }
 
 export type {Texture2D as Texture2DType};
 
 /**
- * A class used to render a texture as a grid of sprites, where each sprite can be positioned,
- * colored, and have its UV coordinates manipulated.
+ * 用于将纹理渲染为图元网格的类，每个图元都可以定位、着色，并可以操作其UV坐标。
  */
 class Grid extends Node {
 
 	private constructor();
 
-	/** The number of columns in the grid. There are `gridX + 1` vertices horizontally for rendering. */
+	/** 网格中的列数。渲染时，水平方向上有 `gridX + 1` 个顶点。 */
 	readonly gridX: number;
 
-	/** The number of rows in the grid. There are `gridY + 1` vertices vertically for rendering. */
+	/** 网格中的行数。渲染时，垂直方向上有 `gridY + 1` 个顶点。 */
 	readonly gridY: number;
 
-	/** Whether depth writes are enabled (default is false). */
+	/** 是否启用深度写入（默认为false）。 */
 	depthWrite: boolean;
 
-	/** The texture used for the grid. */
+	/** 用于网格的纹理。 */
 	texture: Texture2D;
 
-	/** The rectangle within the texture that is used for the grid. */
+	/** 用于网格的纹理内的矩形。 */
 	textureRect: Rect;
 
-	/** The blending function used for the grid. */
+	/** 用于网格的混合函数。 */
 	blendFunc: BlendFunc;
 
-	/** The sprite effect applied to the grid. Default is `SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")`. */
+	/** 应用于网格图元上的着色器特效。默认为 `SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")`。 */
 	effect: SpriteEffect;
 
 	/**
-	 * Sets the position of a vertex in the grid.
-	 * @param x The x-coordinate of the vertex in the grid.
-	 * @param y The y-coordinate of the vertex in the grid.
-	 * @param pos The new position of the vertex.
+	 * 设置网格中顶点的位置。
+	 * @param x 顶点在网格中的x坐标。
+	 * @param y 顶点在网格中的y坐标。
+	 * @param pos 顶点的新位置。
 	 */
 	setPos(x: number, y: number, pos: Vec2): void;
 
 	/**
-	 * Gets the position of a vertex in the grid.
-	 * @param x The x-coordinate of the vertex in the grid.
-	 * @param y The y-coordinate of the vertex in the grid.
-	 * @returns The current position of the vertex.
+	 * 获取网格中顶点的位置。
+	 * @param x 顶点在网格中的x坐标。
+	 * @param y 顶点在网格中的y坐标。
+	 * @returns 顶点的当前位置。
 	 */
 	getPos(x: number, y: number): Vec2;
 
 	/**
-	 * Gets the color of a vertex in the grid.
-	 * @param x The x-coordinate of the vertex in the grid.
-	 * @param y The y-coordinate of the vertex in the grid.
-	 * @returns The current color of the vertex.
+	 * 获取网格中顶点的颜色。
+	 * @param x 顶点在网格中的x坐标。
+	 * @param y 顶点在网格中的y坐标。
+	 * @returns 顶点的当前颜色。
 	 */
 	getColor(x: number, y: number): Color;
 
 	/**
-	 * Sets the color of a vertex in the grid.
-	 * @param x The x-coordinate of the vertex in the grid.
-	 * @param y The y-coordinate of the vertex in the grid.
-	 * @param color The new color of the vertex.
+	 * 设置网格中顶点的颜色。
+	 * @param x 顶点在网格中的x坐标。
+	 * @param y 顶点在网格中的y坐标。
+	 * @param color 顶点的新颜色。
 	 */
 	setColor(x: number, y: number, color: Color): void;
 
 	/**
-	 * Moves the UV coordinates of a vertex in the grid.
-	 * @param x The x-coordinate of the vertex in the grid.
-	 * @param y The y-coordinate of the vertex in the grid.
-	 * @param offset The offset by which to move the UV coordinates.
+	 * 移动网格中顶点的UV坐标。
+	 * @param x 顶点在网格中的x坐标。
+	 * @param y 顶点在网格中的y坐标。
+	 * @param offset 移动UV坐标的偏移量。
 	 */
 	moveUV(x: number, y: number, offset: Vec2): void;
 }
@@ -4128,44 +4366,44 @@ class Grid extends Node {
 export type {Grid as GridType};
 
 /**
-* A class for creating Grid objects.
+* 用于创建Grid对象的类。
 */
 interface GridClass {
 
 	/**
-	 * Creates a new Grid with the specified texture rectangle and grid size.
-	 * @param textureRect The rectangle within the texture to use for the grid.
-	 * @param gridX The number of columns in the grid.
-	 * @param gridY The number of rows in the grid.
-	 * @returns The new Grid instance.
+	 * 使用指定的纹理矩形和网格大小创建一个新的Grid。
+	 * @param textureRect 用于网格的纹理内的矩形。
+	 * @param gridX 网格中的列数。
+	 * @param gridY 网格中的行数。
+	 * @returns 新的Grid实例。
 	 */
 	(this: void, textureRect: Rect, gridX: number, gridY: number): Grid;
 
 	/**
-	 * Creates a new Grid with the specified texture, texture rectangle, and grid size.
-	 * @param texture The texture to use for the grid.
-	 * @param textureRect The rectangle within the texture to use for the grid.
-	 * @param gridX The number of columns in the grid.
-	 * @param gridY The number of rows in the grid.
-	 * @returns The new Grid instance.
+	 * 使用指定的纹理，纹理矩形和网格大小创建一个新的Grid。
+	 * @param texture 用于网格的纹理。
+	 * @param textureRect 用于网格的纹理内的矩形。
+	 * @param gridX 网格中的列数。
+	 * @param gridY 网格中的行数。
+	 * @returns 新的Grid实例。
 	 */
 	(this: void, texture: Texture2D, textureRect: Rect, gridX: number, gridY: number): Grid;
 
 	/**
-	 * Creates a new Grid with the specified texture and grid size.
-	 * @param texture The texture to use for the grid.
-	 * @param gridX The number of columns in the grid.
-	 * @param gridY The number of rows in the grid.
-	 * @returns The new Grid instance.
+	 * 使用指定的纹理和网格大小创建一个新的Grid。
+	 * @param texture 用于网格的纹理。
+	 * @param gridX 网格中的列数。
+	 * @param gridY 网格中的行数。
+	 * @returns 新的Grid实例。
 	 */
 	(this: void, texture: Texture2D, gridX: number, gridY: number): Grid;
 
 	/**
-	 * Creates a new Grid with the specified clip string and grid size.
-	 * @param clipStr The clip string to use for the grid. Can be "Image/file.png" and "Image/items.clip|itemA".
-	 * @param gridX The number of columns in the grid.
-	 * @param gridY The number of rows in the grid.
-	 * @returns The new Grid instance.
+	 * 使用指定的剪辑字符串和网格大小创建一个新的Grid。
+	 * @param clipStr 用于网格的剪辑字符串。可以是 "Image/file.png" 和 "Image/items.clip|itemA"。
+	 * @param gridX 网格中的列数。
+	 * @param gridY 网格中的行数。
+	 * @returns 新的Grid实例。
 	 */
 	(this: void, clipStr: string, gridX: number, gridY: number): Grid;
 }
@@ -4174,7 +4412,7 @@ const gridClass: GridClass;
 export {gridClass as Grid};
 
 /**
- * An enum that defines the various types of resources that can be loaded into the cache.
+ * 定义了可以加载到缓存中的各种类型的资源的枚举。
  */
 export const enum CacheResourceType {
 	Bone = "Bone",
@@ -4191,7 +4429,7 @@ export const enum CacheResourceType {
 }
 
 /**
- * An enum that defines the various types of resources that can be safely unloaded from the cache.
+ * 定义了可以从缓存中安全卸载的各种类型的资源的枚举。
  */
 export const enum CacheResourceTypeSafeUnload {
 	Texture = "Texture",
@@ -4207,64 +4445,64 @@ export const enum CacheResourceTypeSafeUnload {
 }
 
 /**
- * A singleton cache instance for various game resources.
+ * 用于管理各种游戏资源缓存的单例实例。
  */
 class Cache {
 
 	private constructor();
 
 	/**
-	 * Loads a file into the cache with a blocking operation.
-	 * @param filename The name of the file to load.
-	 * @returns True if the file was loaded successfully, false otherwise.
+	 * 通过阻塞操作将文件加载到缓存中。
+	 * @param filename 要加载的文件的名称。
+	 * @returns 如果文件成功加载，则返回true，否则返回false。
 	 */
 	load(filename: string): boolean;
 
 	/**
-	 * Loads a file into the cache asynchronously.
-	 * @param filename The name of the file to load.
-	 * @returns True if the file was loaded successfully, false otherwise.
+	 * 异步将文件加载到缓存中。
+	 * @param filename 要加载的文件的名称。
+	 * @returns 如果文件成功加载，则返回true，否则返回false。
 	 */
 	loadAsync(filename: string): boolean;
 
 	/**
-	 * Updates the content of a file loaded in the cache.
-	 * If the item of filename does not exist in the cache, a new file content will be added into the cache.
-	 * @param filename The name of the file to update.
-	 * @param content The new content for the file.
+	 * 更新缓存中已加载文件的内容。
+	 * 如果文件名的项在缓存中不存在，将会添加一个新的文件内容到缓存中。
+	 * @param filename 要更新的文件的名称。
+	 * @param content 文件的新内容。
 	 */
 	update(filename: string, content: string): void;
 
 	/**
-	 * Updates the texture object of the specific filename loaded in the cache.
-	 * If the texture object of filename does not exist in the cache, it will be added into the cache.
-	 * @param filename The name of the texture to update.
-	 * @param texture The new texture object for the file.
+	 * 更新缓存中已加载的特定文件名的纹理对象。
+	 * 如果文件名的纹理对象在缓存中不存在，它将被添加到缓存中。
+	 * @param filename 要更新的纹理的名称。
+	 * @param texture 文件的新纹理对象。
 	 */
 	update(filename: string, texture: Texture2D): void;
 
 	/**
-	 * Unloads a resource from the cache.
-	 * @param type The type of resource to unload.
-	 * @returns True if the resource was unloaded successfully, false otherwise.
+	 * 从缓存中卸载资源。
+	 * @param type 要卸载的资源类型。
+	 * @returns 如果资源成功卸载，则返回true，否则返回false。
 	 */
 	unload(type: CacheResourceTypeSafeUnload): boolean;
 
 	/**
-	 * Unloads a resource from the cache.
-	 * @param filename The name of the file to unload.
-	 * @returns True if the resource was unloaded successfully, false otherwise.
+	 * 从缓存中卸载资源。
+	 * @param filename 要卸载的文件的名称。
+	 * @returns 如果资源成功卸载，则返回true，否则返回false。
 	 */
 	unload(filename: string): boolean;
 
 	/**
-	 * Removes all unused resources (not being referenced) of the given type from the cache.
-	 * @param type The type of resource to remove.
+	 * 从缓存中移除特定类型的所有未使用的资源（未被引用）。
+	 * @param type 要移除的资源类型。
 	 */
 	removeUnused(type: CacheResourceType): void;
 
 	/**
-	 * Removes all unused resources (not being referenced) from the cache.
+	 * 从缓存中移除所有未使用的资源（未被引用）。
 	 */
 	removeUnused(): void;
 }
@@ -4272,47 +4510,47 @@ class Cache {
 const cache: Cache;
 export {cache as Cache};
 
-/** A definition object for fixtures added to physics bodies. */
+/** 用于添加到物理体的形状定义类。 */
 class FixtureDef extends Object {
 	private constructor();
 }
 
 /**
- * A class to represent a physics sensor object in the game world.
+ * 用于表示游戏世界中的物理感应器的类。
  */
 class Sensor extends Object {
 
 	private constructor();
 
 	/**
-	 * Whether the sensor is currently enabled or not.
+	 * 感应器当前是否启用。
 	 */
 	enabled: boolean;
 
 	/**
-	 * The tag for the sensor.
+	 * 感应器的标签。
 	 */
 	readonly tag: number;
 
 	/**
-	 * The "Body" object that owns the sensor.
+	 * 拥有感应器的物理体对象。
 	 */
 	readonly owner: Body;
 
 	/**
-	 * Whether the sensor is currently sensing any other "Body" objects in the game world.
+	 * 感应器当前是否正在感知游戏世界中的其他物理体对象。
 	 */
 	readonly sensed: boolean;
 
 	/**
-	 * An array of "Body" objects that are currently being sensed by the sensor.
+	 * 当前被感应器感知的物理体对象的数组。
 	 */
 	readonly sensedBodies: Array;
 
 	/**
-	 * Determines whether the specified "Body" object is currently being sensed by the sensor.
-	 * @param body The "Body" object to check if it is being sensed.
-	 * @returns True if the "Body" object is being sensed by the sensor, false otherwise.
+	 * 确定感应器是否当前正在感知指定的物理体对象。
+	 * @param body 要检查是否被感知的物理体对象。
+	 * @returns 如果物理体对象被感应器感知，则返回true，否则返回false。
 	 */
 	contains(body: Body): boolean;
 }
@@ -4321,154 +4559,154 @@ export type {Sensor as SensorType};
 
 export const enum BodyMoveType {
 
-	/** A body that does not move. */
+	/** 一个不会移动的物理体。 */
 	Static = "Static",
 
-	/** A body that can move and be affected by forces. */
+	/** 一个可以移动并受力影响的物理体。 */
 	Dynamic = "Dynamic",
 
-	/** A body that can move but is not affected by forces. */
+	/** 一个可以移动但不受力影响的物理体。 */
 	Kinematic = "Kinematic",
 }
 
 /**
- * A class called "BodyDef" to describe the properties of a physics body.
- * Inherits from `Object`.
+ * 一个名为 "BodyDef" 的类，用于描述物理体的属性。
+ * 继承自 `Object`。
  */
 class BodyDef extends Object {
 
 	private constructor();
 
 	/**
-	 * An enumeration for the different moving types of bodies.
+	 * 物理体的不同移动类型的枚举。
 	 */
 	type: BodyMoveType;
 
-	/** Position of the body. */
+	/** 物理体的位置。 */
 	position: Vec2;
 
-	/** Angle of the body. */
+	/** 物理体的角度。 */
 	angle: number;
 
-	/** Face image or other items for the body. */
+	/** 物理体的图形显示组件。 */
 	face: string;
 
-	/** Position of the face on the body. */
+	/** 显示组件在物理体上的位置。 */
 	facePos: Vec2;
 
-	/** Linear damping of the body. */
+	/** 物理体的线性阻尼。 */
 	linearDamping: number;
 
-	/** Angular damping of the body. */
+	/** 物理体的角阻尼。 */
 	angularDamping: number;
 
-	/** Initial linear acceleration of the body. */
+	/** 物理体的初始线性加速度。 */
 	linearAcceleration: Vec2;
 
-	/** Whether the body's rotation is fixed. */
+	/** 物理体的旋转是否固定。 */
 	fixedRotation: boolean;
 
 	/**
-	 * Whether the body is a bullet. Set to true for extra bullet movement check.
+	 * 物理体是否为子弹。设置为true以进行额外的子弹移动检查。
 	 */
 	bullet: boolean;
 
 	/**
-	 * Attaches a polygon fixture definition to the body.
-	 * @param center The center point of the polygon.
-	 * @param width The width of the polygon.
-	 * @param height The height of the polygon.
-	 * @param angle The angle of the polygon (default is 0.0) (optional).
-	 * @param density The density of the polygon (default is 0.0) (optional).
-	 * @param friction The friction of the polygon (default is 0.4, should be 0 to 1.0) (optional).
-	 * @param restitution The restitution of the polygon (default is 0.0, should be 0 to 1.0) (optional).
+	 * 将一个多边形形状定义附加到物理体上。
+	 * @param center 多边形的中心点。
+	 * @param width 多边形的宽度。
+	 * @param height 多边形的高度。
+	 * @param angle 多边形的角度（默认为0.0）（可选）。
+	 * @param density 多边形的密度（默认为0.0）（可选）。
+	 * @param friction 多边形的摩擦系数（默认为0.4，应为0.0到1.0）（可选）。
+	 * @param restitution 多边形的弹性系数（默认为0.0，应为0.0到1.0）（可选）。
 	 */
 	attachPolygon(center: Vec2, width: number, height: number, angle?: number, density?: number, friction?: number, restitution?: number): void;
 
 	/**
-	 * Attaches a polygon fixture definition to the body using only width and height.
-	 * @param width The width of the polygon.
-	 * @param height The height of the polygon.
-	 * @param density The density of the polygon (default is 0.0) (optional).
-	 * @param friction The friction of the polygon (default is 0.4, should be 0 to 1.0) (optional).
-	 * @param restitution The restitution of the polygon (default is 0.0, should be 0 to 1.0) (optional).
+	 * 仅使用宽度和高度将一个多边形形状定义附加到物理体上。
+	 * @param width 多边形的宽度。
+	 * @param height 多边形的高度。
+	 * @param density 多边形的密度（默认为0.0）（可选）。
+	 * @param friction 多边形的摩擦系数（默认为0.4，应为0.0到1.0）（可选）。
+	 * @param restitution 多边形的弹性系数（默认为0.0，应为0.0到1.0）（可选）。
 	 */
 	attachPolygon(width: number, height: number, density?: number, friction?: number, restitution?: number): void;
 
 	/**
-	 * Attaches a polygon fixture definition to the body using vertices.
-	 * @param vertices The vertices of the polygon.
-	 * @param density The density of the polygon (default is 0.0) (optional).
-	 * @param friction The friction of the polygon (default is 0.4, should be 0 to 1.0) (optional).
-	 * @param restitution The restitution of the polygon (default is 0.0, should be 0 to 1.0) (optional).
+	 * 使用顶点将一个多边形形状定义附加到物理体上。
+	 * @param vertices 多边形的顶点。
+	 * @param density 多边形的密度（默认为0.0）（可选）。
+	 * @param friction 多边形的摩擦系数（默认为0.4，应为0.0到1.0）（可选）。
+	 * @param restitution 多边形的弹性系数（默认为0.0，应为0.0到1.0）（可选）。
 	 */
 	attachPolygon(vertices: Vec2[], density?: number, friction?: number, restitution?: number): void;
 
 	/**
-	 * Attaches a concave shape definition made of multiple convex shapes to the body.
-	 * @param vertices A table containing the vertices of each convex shape that makes up the concave shape.
-	 * @param density The density of the concave shape (default is 0.0) (optional).
-	 * @param friction The friction of the concave shape (default is 0.4, should be 0 to 1.0) (optional).
-	 * @param restitution The restitution of the concave shape (default is 0.0, should be 0 to 1.0) (optional).
+	 * 将由多个凸形状组成的凹形状定义附加到物理体上。
+	 * @param vertices 表示组成凹形状的每个凸形状的顶点的Vec2数组。
+	 * @param density 形状的密度（默认为0.0）（可选）。
+	 * @param friction 形状的摩擦系数（默认为0.4，应为0.0到1.0）（可选）。
+	 * @param restitution 形状的弹性系数（默认为0.0，应为0.0到1.0）（可选）。
 	 */
 	attachMulti(vertices: Vec2[], density?: number, friction?: number, restitution?: number): void;
 
 	/**
-	 * Attaches a disk fixture definition to the body.
-	 * @param center The center point of the disk.
-	 * @param radius The radius of the disk.
-	 * @param density The density of the disk (default is 0.0) (optional).
-	 * @param friction The friction of the disk (default is 0.4, should be 0 to 1.0) (optional).
-	 * @param restitution The restitution of the disk (default is 0.0, should be 0 to 1.0) (optional).
+	 * 将一个圆盘形状定义附加到物理体上。
+	 * @param center 圆盘的中心点。
+	 * @param radius 圆盘的半径。
+	 * @param density 圆盘的密度（默认为0.0）（可选）。
+	 * @param friction 圆盘的摩擦系数（默认为0.4，应为0.0到1.0）（可选）。
+	 * @param restitution 圆盘的弹性系数（默认为0.0，应为0.0到1.0）（可选）。
 	 */
 	attachDisk(center: Vec2, radius: number, density?: number, friction?: number, restitution?: number): void;
 
 	/**
-	 * Attaches a disk fixture to the body using only radius.
-	 * @param radius The radius of the disk.
-	 * @param density The density of the disk (default is 0.0) (optional).
-	 * @param friction The friction of the disk (default is 0.4) (optional).
-	 * @param restitution The restitution of the disk (default is 0.0) (optional).
+	 * 仅使用半径将一个圆盘形状附加到物理体上。
+	 * @param radius 圆盘的半径。
+	 * @param density 圆盘的密度（默认为0.0）（可选）。
+	 * @param friction 圆盘的摩擦系数（默认为0.4）（可选）。
+	 * @param restitution 圆盘的弹性系数（默认为0.0）（可选）。
 	 */
 	attachDisk(radius: number, density?: number, friction?: number, restitution?: number): void;
 
 	/**
-	 * Attaches a chain fixture definition to the body. The Chain fixture is a free form sequence of line segments that has two-sided collision.
-	 * @param vertices The vertices of the chain.
-	 * @param friction The friction of the chain (default is 0.4) (optional).
-	 * @param restitution The restitution of the chain (default is 0.0) (optional).
+	 * 将一个链形状定义附加到物理体上。链形状是一个自由形式的线段序列，具有双面碰撞。
+	 * @param vertices 链的顶点。
+	 * @param friction 链的摩擦系数（默认为0.4）（可选）。
+	 * @param restitution 链的弹性系数（默认为0.0）（可选）。
 	 */
 	attachChain(vertices: Vec2[], friction?: number, restitution?: number): void;
 
 	/**
-	 * Attaches a polygon sensor fixture definition to the body.
-	 * @param tag An integer tag for the sensor.
-	 * @param width The width of the polygon (optional).
-	 * @param height The height of the polygon (optional).
-	 * @param center The center point of the polygon (optional).
-	 * @param angle The angle of the polygon (default is 0.0) (optional).
+	 * 将一个多边形感应器形状定义附加到物理体上。
+	 * @param tag 感应器的整数标签。
+	 * @param width 多边形的宽度（可选）。
+	 * @param height 多边形的高度（可选）。
+	 * @param center 多边形的中心点（可选）。
+	 * @param angle 多边形的角度（默认为0.0）（可选）。
 	 */
 	attachPolygonSensor(tag: number, width?: number, height?: number, center?: Vec2, angle?: number): void;
 
 	/**
-	 * Attaches a polygon sensor fixture definition to the body using vertices.
-	 * @param tag An integer tag for the sensor.
-	 * @param vertices A table containing the vertices of the polygon.
+	 * 使用顶点将一个多边形感应器形状定义附加到物理体上。
+	 * @param tag 感应器的整数标签。
+	 * @param vertices 包含多边形顶点的表。
 	 */
 	attachPolygonSensor(tag: number, vertices: Vec2[]): void;
 
 	/**
-	 * Attaches a disk sensor fixture definition to the body.
-	 * @param tag An integer tag for the sensor.
-	 * @param center The center of the disk.
-	 * @param radius The radius of the disk.
+	 * 将一个圆盘感应器形状定义附加到物理体上。
+	 * @param tag 感应器的整数标签。
+	 * @param center 圆盘的中心。
+	 * @param radius 圆盘的半径。
 	 */
 	attachDiskSensor(tag: number, center: Vec2, radius: number): void;
 
 	/**
-	 * Attaches a disk sensor fixture to the body using only radius.
-	 * @param tag An integer tag for the sensor.
-	 * @param radius The radius of the disk.
+	 * 仅使用半径将一个圆盘感应器形状附加到物理体上。
+	 * @param tag 感应器的整数标签。
+	 * @param radius 圆盘的半径。
 	 */
 	attachDiskSensor(tag: number, radius: number): void;
 }
@@ -4476,87 +4714,87 @@ class BodyDef extends Object {
 export type {BodyDef as BodyDefType};
 
 /**
- * A class for creating BodyDef and FixtureDef.
+ * 用于创建BodyDef和FixtureDef的类。
  */
 interface BodyDefClass {
 
 	/**
-	 * Creates a polygon fixture definition with the specified dimensions.
-	 * @param width The width of the polygon.
-	 * @param height The height of the polygon.
-	 * @param density The density of the polygon (default is 0.0) (optional).
-	 * @param friction The friction of the polygon (default is 0.4, should be 0.0 to 1.0) (optional).
-	 * @param restitution The restitution of the polygon (default is 0.0, should be  0.0 to 1.0) (optional).
-	 * @returns A FixtureDef object for the created polygon fixture.
+	 * 使用指定的尺寸创建一个多边形定义。
+	 * @param width 多边形的宽度。
+	 * @param height 多边形的高度。
+	 * @param density 多边形的密度（默认为0.0）（可选）。
+	 * @param friction 多边形的摩擦系数（默认为0.4，应为0.0到1.0）（可选）。
+	 * @param restitution 多边形的弹性系数（默认为0.0，应为0.0到1.0）（可选）。
+	 * @returns 为创建的多边形创建的FixtureDef对象。
 	 */
 	polygon(width: number, height: number, density?: number, friction?: number, restitution?: number): FixtureDef;
 
 	/**
-	 * Creates a polygon fixture definition with the specified dimensions and center position.
-	 * @param center The center position of the polygon.
-	 * @param width The width of the polygon.
-	 * @param height The height of the polygon.
-	 * @param angle The angle of the polygon in radians (default is 0.0) (optional).
-	 * @param density The density of the polygon (default is 0.0) (optional).
-	 * @param friction The friction of the polygon (default is 0.4, should be 0.0 to 1.0) (optional).
-	 * @param restitution The restitution of the polygon (default is 0.0, should be 0.0 to 1.0) (optional).
-	 * @returns A FixtureDef object for the created polygon fixture.
+	 * 使用指定的尺寸和中心位置创建一个多边形定义。
+	 * @param center 多边形的中心位置。
+	 * @param width 多边形的宽度。
+	 * @param height 多边形的高度。
+	 * @param angle 多边形的角度，以弧度为单位（默认为0.0）（可选）。
+	 * @param density 多边形的密度（默认为0.0）（可选）。
+	 * @param friction 多边形的摩擦系数（默认为0.4，应为0.0到1.0）（可选）。
+	 * @param restitution 多边形的弹性系数（默认为0.0，应为0.0到1.0）（可选）。
+	 * @returns 为创建的多边形创建的FixtureDef对象。
 	 */
 	polygon(center: Vec2, width: number, height: number, angle?: number, density?: number, friction?: number, restitution?: number): FixtureDef;
 
 	/**
-	 * Creates a polygon fixture definition with the specified vertices.
-	 * @param vertices The vertices of the polygon.
-	 * @param density The density of the polygon (default is 0.0) (optional).
-	 * @param friction The friction of the polygon (default is 0.4, should be 0.0 to 1.0) (optional).
-	 * @param restitution The restitution of the polygon (default is 0.0, should be 0.0 to 1.0) (optional).
-	 * @returns A FixtureDef object for the created polygon fixture.
+	 * 使用指定的顶点创建一个多边形定义。
+	 * @param vertices 多边形的顶点。
+	 * @param density 多边形的密度（默认为0.0）（可选）。
+	 * @param friction 多边形的摩擦系数（默认为0.4，应为0.0到1.0）（可选）。
+	 * @param restitution 多边形的弹性系数（默认为0.0，应为0.0到1.0）（可选）。
+	 * @returns 为创建的多边形创建的FixtureDef对象。
 	 */
 	polygon(vertices: Vec2[], density?: number, friction?: number, restitution?: number): FixtureDef;
 
 	/**
-     * Create a concave shape definition made of multiple convex shapes.
-     * @param vertices Array of Vec2 representing vertices of each convex shape that makes up the concave shape. Each convex shape in the vertices array should end with a Vec2(0.0, 0.0) as a separator.
-     * @param density The density of the shape (optional, default 0.0).
-     * @param friction The friction coefficient of the shape (optional, default 0.4, should be 0.0 to 1.0).
-     * @param restitution The restitution (elasticity) of the shape (optional, default 0.0, should be 0.0 to 1.0).
-     * @returns The resulting fixture definition.
-     */
+	 * 创建由多个凸形状组成的凹形状定义。
+	 * @param vertices 表示组成凹形状的每个凸形状的顶点的Vec2数组。顶点数组中的每个凸形状应以Vec2(0.0, 0.0)作为分隔符结束。
+	 * @param density 形状的密度（可选，默认0.0）。
+	 * @param friction 形状的摩擦系数（可选，默认0.4，应为0.0到1.0）。
+	 * @param restitution 形状的弹性系数（可选，默认0.0，应为0.0到1.0）。
+	 * @returns 多边形定义对象。
+	 */
 	multi(vertices: Vec2[], density?: number, friction?: number, restitution?: number): FixtureDef;
 
 	/**
-	 * Create a Disk-shape fixture definition.
-	 * @param center The center of the circle as Vec2.
-	 * @param radius The radius of the circle.
-	 * @param density The density of the circle (optional, default 0.0).
-	 * @param friction The friction coefficient of the circle (optional, default 0.4, should be 0.0 to 1.0).
-	 * @param restitution The restitution (elasticity) of the circle (optional, default 0.0, should be 0.0 to 1.0).
-	 * @returns The resulting fixture definition.
+	 * 创建一个圆盘形状的定义。
+	 * @param center 圆的中心，为Vec2。
+	 * @param radius 圆的半径。
+	 * @param density 圆的密度（可选，默认0.0）。
+	 * @param friction 圆的摩擦系数（可选，默认0.4，应为0.0到1.0）。
+	 * @param restitution 圆的弹性系数（可选，默认0.0，应为0.0到1.0）。
+	 * @returns 圆盘形状定义对象。
 	 */
 	disk(center: Vec2, radius: number, density?: number, friction?: number, restitution?: number): FixtureDef;
 
 	/**
-	 * Create a Disk-shape fixture definition with center at origin.
-	 * @param radius The radius of the circle.
-	 * @param density The density of the circle (optional, default 0.0).
-	 * @param friction The friction coefficient of the circle (optional, default 0.4, should be 0.0 to 1.0).
-	 * @param restitution The restitution (elasticity) of the circle (optional, default 0.0, should be 0.0 to 1.0).
-	 * @returns The resulting fixture definition.
+	 * 创建一个以原点为中心的圆盘形状的定义。
+	 * @param radius 圆的半径。
+	 * @param density 圆的密度（可选，默认0.0）。
+	 * @param friction 圆的摩擦系数（可选，默认0.4，应为0.0到1.0）。
+	 * @param restitution 圆的弹性系数（可选，默认0.0，应为0.0到1.0）。
+	 * @returns 圆盘形状定义对象。
 	 */
 	disk(radius: number, density?: number, friction?: number, restitution?: number): FixtureDef;
 
 	/**
-	 * Create a Chain-shape fixture definition. This fixture is a free form sequence of line segments that has two-sided collision.
-	 * @param vertices The vertices of the chain as an array of Vec2.
-	 * @param friction The friction coefficient of the chain (optional, default 0.4, should be 0.0 to 1.0).
-	 * @param restitution The restitution (elasticity) of the chain (optional, default 0.0, should be 0.0 to 1.0).
-	 * @returns The resulting fixture definition.
+	 * 创建一个链形状的定义。这个形状是一个自由形式的线段序列，具有双面碰撞。
+	 * @param vertices 链的顶点，为Vec2数组。
+	 * @param friction 链的摩擦系数（可选，默认0.4，应为0.0到1.0）。
+	 * @param restitution 链的弹性系数（可选，默认0.0，应为0.0到1.0）。
+	 * @returns 链形状的定义对象。
 	 */
 	chain(vertices: Vec2[], friction?: number, restitution?: number): FixtureDef;
 
 	/**
-	 * Create a new instance of BodyDef class.
-	 * @returns a new BodyDef object.
+	 * 创建一个新的BodyDef类的实例。
+	 * @returns 一个新的BodyDef对象。
 	 */
 	(this: void): BodyDef;
 }
@@ -4565,122 +4803,122 @@ const bodyDefClass: BodyDefClass;
 export {bodyDefClass as BodyDef};
 
 /**
- * A class represents a physics body in the world.
+ * 代表物理世界中的物理体的类。
  */
 class Body extends Node {
 
 	protected constructor();
 
 	/**
-	 * The physics world that the body belongs to.
+	 * 该物理体所属的物理世界。
 	 */
 	readonly world: PhysicsWorld;
 
 	/**
-	 * The definition of the body.
+	 * 物理体的定义。
 	 */
 	readonly bodyDef: BodyDef;
 
 	/**
-	 * The mass of the body.
+	 * 物理体的质量。
 	 */
 	readonly mass: number;
 
 	/**
-	 * Whether the body is used as a sensor or not.
+	 * 物理体是否被用作感应器。
 	 */
 	readonly sensor: boolean;
 
 	/**
-	 * The x-axis velocity of the body.
+	 * 物理体的x轴速度。
 	 */
 	velocityX: number;
 
 	/**
-	 * The y-axis velocity of the body.
+	 * 物理体的y轴速度。
 	 */
 	velocityY: number;
 
 	/**
-	 * The velocity of the body as a `Vec2`.
+	 * 物理体的速度，作为一个`Vec2`。
 	 */
 	velocity: Vec2;
 
 	/**
-	 * The angular rate of the body.
+	 * 物理体的角速度。
 	 */
 	angularRate: number;
 
 	/**
-	 * The collision group that the body belongs to.
+	 * 物理体所属的碰撞组。
 	 */
 	group: number;
 
 	/**
-	 * The linear damping of the body.
+	 * 物理体的线性阻尼。
 	 */
 	linearDamping: number;
 
 	/**
-	 * The angular damping of the body.
+	 * 物理体的角阻尼。
 	 */
 	angularDamping: number;
 
 	/**
-	 * The reference for an owner of the body.
+	 * 物理体的所有者的引用。
 	 */
 	owner: Object;
 
 	/**
-	 * Whether the body is currently receiving contact events or not.
+	 * 物理体是否正在接收接触事件。
 	 */
 	receivingContact: boolean;
 
 	/**
-	 * Applies a linear impulse to the body at a specified position.
-	 * @param impulse The linear impulse to apply.
-	 * @param pos The position at which to apply the impulse.
+	 * 在指定位置对物理体施加线性冲量。
+	 * @param impulse 要施加的线性冲量。
+	 * @param pos 施加冲量的位置。
 	 */
 	applyLinearImpulse(impulse: Vec2, pos: Vec2): void;
 
 	/**
-	 * Applies an angular impulse to the body.
-	 * @param impulse The angular impulse to apply.
+	 * 对物理体施加角冲量。
+	 * @param impulse 要施加的角冲量。
 	 */
 	applyAngularImpulse(impulse: number): void;
 
 	/**
-	 * Removes the sensor with the specified tag from the body.
-	 * @param tag The tag of the sensor to remove.
-	 * @returns Whether a sensor with the specified tag was found and removed.
+	 * 从物理体中移除指定标签的感应器。
+	 * @param tag 要移除的感应器的标签。
+	 * @returns 是否找到并移除了指定标签的感应器。
 	 */
 	removeSensorByTag(tag: number): boolean;
 
 	/**
-	 * Attaches a fixture to the body.
-	 * @param fixtureDef The fixture definition for the fixture to attach.
+	 * 将一个形状附加到物理体上。
+	 * @param fixtureDef 要附加的形状的定义。
 	 */
 	attach(fixtureDef: FixtureDef): void;
 
 	/**
-	 * Returns the sensor with the given tag.
-	 * @param tag The tag of the sensor to get.
-	 * @returns The sensor with the given tag.
+	 * 返回具有特定标签的感应器。
+	 * @param tag 要获取的感应器的标签。
+	 * @returns 具有特定标签的感应器。
 	 */
 	getSensorByTag(tag: number): Sensor;
 
 	/**
-	 * Removes the given sensor from the body's sensor list.
-	 * @param sensor The sensor to remove.
-	 * @returns True if the sensor was successfully removed, false otherwise.
+	 * 从物理体的感应器列表中移除特定的感应器。
+	 * @param sensor 要移除的感应器。
+	 * @returns 如果感应器成功被移除，则返回true，否则返回false。
 	 */
 	removeSensor(sensor: Sensor): boolean;
 
 	/**
-	 * Attaches a new sensor with the given tag and fixture definition to the body.
-	 * @param tag The tag of the sensor to attach.
-	 * @param fixtureDef The fixture definition of the sensor.
-	 * @returns The newly attached sensor.
+	 * 将具有特定标签和形状定义的新感应器附加到物理体上。
+	 * @param tag 要附加的感应器的标签。
+	 * @param fixtureDef 感应器的形状定义。
+	 * @returns 新附加的感应器。
 	 */
 	attachSensor(tag: number, fixtureDef: FixtureDef): Sensor;
 }
@@ -4688,16 +4926,17 @@ class Body extends Node {
 export type {Body as BodyType};
 
 /**
- * A class for creating Body objects.
+ * 用于创建Body对象的类。
  */
 interface BodyClass {
+
 	/**
-	 * Creates a new instance of `Body`.
-	 * @param def The definition for the body to be created.
-	 * @param world The physics world where the body belongs.
-	 * @param pos [optional] The initial position of the body. Defaults to zero vector.
-	 * @param rot [optional] The initial rotation angle of the body in degrees. Defaults to 0.
-	 * @returns The newly created `Body` instance.
+	 * 创建一个新的`Body`实例。
+	 * @param def 要创建的物理体的定义。
+	 * @param world 物理体所属的物理世界。
+	 * @param pos [可选] 物理体的初始位置。默认为零向量。
+	 * @param rot [可选] 物理体的初始旋转角度，以度为单位。默认为0。
+	 * @returns 新创建的`Body`实例。
 	 */
 	(
 		this: void,
@@ -4712,60 +4951,60 @@ const bodyClass: BodyClass;
 export {bodyClass as Body};
 
 /**
- * Represents a physics world in the game.
+ * 在游戏中代表一个物理世界。
  */
 class PhysicsWorld extends Node {
 
 	protected constructor();
 
 	/**
-	 * Whether debug graphic should be displayed for the physics world.
+	 * 是否应为物理世界显示调试图形。
 	 */
 	showDebug: boolean;
 
 	/**
-	 * Queries the physics world for all bodies that intersect with the specified rectangle.
+	 * 查询与指定矩形相交的物理世界中的所有物体。
 	 *
-	 * @param rect The rectangle to query for bodies.
-	 * @param handler A function that is called for each body found in the query.
-	 * @returns Whether the query was interrupted, true means interrupted, false otherwise.
+	 * @param rect 要查询物体的矩形。
+	 * @param handler 一个函数，对在查询中找到的每个物体调用。
+	 * @returns 查询是否被中断，true表示中断，否则为false。
 	 */
 	query(rect: Rect, handler: (this: void, body: Body) => boolean): boolean;
 
 	/**
-	 * Casts a ray through the physics world and finds the first body that intersects with the ray.
+	 * 通过物理世界投射一条射线，并找到与射线相交的第一个物体。
 	 *
-	 * @param start The starting point of the ray.
-	 * @param stop The ending point of the ray.
-	 * @param closest Whether to stop ray casting upon the closest body that intersects with the ray. Set closest to true to get a faster ray casting search.
-	 * @param handler A function that is called for each body found in the raycast.
-	 * @returns Whether the raycast was interrupted, true means interrupted, false otherwise.
+	 * @param start 射线的起点。
+	 * @param stop 射线的终点。
+	 * @param closest 是否在找到与射线相交的最近的物体时停止射线投射。将closest设置为true可以更快地进行射线投射搜索。
+	 * @param handler 一个函数，对在射线投射中找到的每个物体调用。
+	 * @returns 射线投射是否被中断，true表示中断，否则为false。
 	 */
 	raycast(start: Vec2, stop: Vec2, closest: boolean, handler: (this: void, body: Body, point: Vec2, normal: Vec2) => boolean): boolean;
 
 	/**
-	 * Sets the number of velocity and position iterations to perform in the physics world.
+	 * 设置在物理世界中执行的速度和位置迭代的次数。
 	 *
-	 * @param velocityIter The number of velocity iterations to perform.
-	 * @param positionIter The number of position iterations to perform.
+	 * @param velocityIter 要执行的速度迭代次数。
+	 * @param positionIter 要执行的位置迭代次数。
 	 */
 	setIterations(velocityIter: number, positionIter: number): void;
 
 	/**
-	 * Sets whether two physics groups should make contact with each other or not.
+	 * 设置两个物理组是否应该相互接触。
 	 *
-	 * @param groupA The first physics group.
-	 * @param groupB The second physics group.
-	 * @param contact Whether the two groups should make contact with each other.
+	 * @param groupA 第一个物理组。
+	 * @param groupB 第二个物理组。
+	 * @param contact 两个组是否应该相互接触。
 	 */
 	setShouldContact(groupA: number, groupB: number, contact: boolean): void;
 
 	/**
-	 * Gets whether two physics groups should make contact with each other or not.
+	 * 获取两个物理组是否应该相互接触。
 	 *
-	 * @param groupA The first physics group.
-	 * @param groupB The second physics group.
-	 * @returns Whether the two groups should make contact with each other.
+	 * @param groupA 第一个物理组。
+	 * @param groupB 第二个物理组。
+	 * @returns 两个组是否应该相互接触。
 	 */
 	getShouldContact(groupA: number, groupB: number): boolean;
 }
@@ -4773,22 +5012,21 @@ class PhysicsWorld extends Node {
 export type {PhysicsWorld as PhysicsWorldType};
 
 /**
- * A class for creating PhysicsWorld objects.
+ * 用于创建PhysicsWorld对象的类。
  */
 interface PhysicsWorldClass {
 
 	/**
-	 * A factor used for converting physics engine meters value to pixel value.
-	 * Default 100.0 is a good value since the physics engine can well simulate real life objects
-	 * between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
-	 * between 10 to 1000 pixels that suite most games.
-	 * You can change this value before any physics body creation.
+	 * 用于将物理引擎的米值转换为像素值的因子。
+	 * 默认值100.0是一个好的值，因为物理引擎可以很好地模拟0.1到10米的真实物体。
+	 * 使用值100.0，我们可以模拟10到1000像素的游戏对象，这适合大多数游戏。
+	 * 你可以在创建任何物理体之前更改此值。
 	 */
 	scaleFactor: number;
 
 	/**
-	 * Creates a new "PhysicsWorld" object.
-	 * @returns The new "PhysicsWorld" object.
+	 * 创建一个新的"PhysicsWorld"对象。
+	 * @returns 新的"PhysicsWorld"对象。
 	 */
 	(this: void): PhysicsWorld;
 }
@@ -4797,19 +5035,19 @@ const physicsWorldClass: PhysicsWorldClass;
 export {physicsWorldClass as PhysicsWorld};
 
 /**
- * A class that can be used to connect physics bodies together.
+ * 可用于将物理体连接在一起的类。
  */
 class Joint extends Object {
 
 	protected constructor();
 
 	/**
-	 * The physics world that the joint belongs to.
+	 * 关节所属的物理世界。
 	 */
 	readonly world: PhysicsWorld;
 
 	/**
-	 * Destroys the joint and removes it from the physics simulation.
+	 * 销毁关节并将其从物理模拟中移除。
 	 */
 	destroy(): void;
 }
@@ -4824,17 +5062,17 @@ class MotorJoint extends Joint {
 	private constructor();
 
 	/**
-	 * Whether or not the motor joint is enabled.
+	 * 是否启用电机关节。
 	 */
 	enabled: boolean;
 
 	/**
-	 * The force applied to the motor joint.
+	 * 施加在电机关节上的力。
 	 */
 	force: number;
 
 	/**
-	 * The speed of the motor joint.
+	 * 电机关节的速度。
 	 */
 	speed: number;
 }
@@ -4842,14 +5080,14 @@ class MotorJoint extends Joint {
 export type {MotorJoint as MotorJointType};
 
 /**
-* A type of joint that allows a physics body to move to a specific position.
-*/
+ * 一个允许物理体移动到特定位置的关节类型。
+ */
 class MoveJoint extends Joint {
 
 	private constructor();
 
 	/**
-	 * The current position of the move joint in the game world.
+	 * 移动关节在游戏世界中的当前位置。
 	 */
 	position: Vec2;
 }
@@ -4857,37 +5095,37 @@ class MoveJoint extends Joint {
 export type {MoveJoint as MoveJointType};
 
 /**
- * A class that defines the properties of a joint to be created.
+ * 一个定义创建关节的属性的类。
  */
 class JointDef extends Object {
 
 	private constructor();
 
-	/** The center point of the joint, in local coordinates. */
+	/** 关节的中心点，以本地坐标表示。 */
 	center: Vec2;
 
-	/** The position of the joint, in world coordinates. */
+	/** 关节的位置，以世界坐标表示。 */
 	position: Vec2;
 
-	/** The angle of the joint, in degrees. */
+	/** 关节的角度，以度为单位。 */
 	angle: number;
 }
 
 /**
- * An interface for creating JointDef objects.
+ * 用于创建 JointDef 对象的接口。
  */
 interface JointDefClass {
 
 	/**
-	 * Creates a distance joint definition.
-	 * @param canCollide Whether the physics body connected to joint will collide with each other.
-	 * @param bodyA The name of first physics body to connect with the joint.
-	 * @param bodyB The name of second physics body to connect with the joint.
-	 * @param anchorA The position of the joint on the first physics body.
-	 * @param anchorB The position of the joint on the second physics body.
-	 * @param frequency The frequency of the joint, in Hertz (default is 0.0).
-	 * @param damping The damping ratio of the joint (default is 0.0).
-	 * @returns The new joint definition.
+	 * 创建一个距离关节定义。
+	 * @param canCollide 连接的物体是否应该相互碰撞。
+	 * @param bodyA 连接到关节的第一个物体的名称。
+	 * @param bodyB 连接到关节的第二个物体的名称。
+	 * @param anchorA 关节在第一个物体上的位置。
+	 * @param anchorB 关节在第二个物体上的位置。
+	 * @param frequency 关节的频率，以赫兹为单位（默认为0.0）。
+	 * @param damping 关节的阻尼比（默认为0.0）。
+	 * @returns 新的关节定义。
 	 */
 	distance(
 		canCollide: boolean,
@@ -4900,14 +5138,14 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * Creates a friction joint definition.
-	 * @param canCollide Whether or not the physics body connected to the joint will collide with each other.
-	 * @param bodyA The name of the first physics body to connect with the joint.
-	 * @param bodyB The name of the second physics body to connect with the joint.
-	 * @param worldPos The position of the joint in the game world.
-	 * @param maxForce The maximum force that can be applied to the joint.
-	 * @param maxTorque The maximum torque that can be applied to the joint.
-	 * @returns The new friction joint definition.
+	 * 创建一个摩擦关节定义。
+	 * @param canCollide 连接的物体是否应该相互碰撞。
+	 * @param bodyA 连接到关节的第一个物体的名称。
+	 * @param bodyB 连接到关节的第二个物体的名称。
+	 * @param worldPos 关节在游戏世界中的位置。
+	 * @param maxForce 可以施加到关节上的最大力。
+	 * @param maxTorque 可以施加到关节上的最大扭矩。
+	 * @returns 新的摩擦关节定义。
 	 */
 	friction(
 		canCollide: boolean,
@@ -4919,12 +5157,12 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * Creates a gear joint definition.
-	 * @param canCollide Whether or not the physics bodies connected to the joint can collide with each other.
-	 * @param jointA The name of the first joint to connect with the gear joint.
-	 * @param jointB The name of the second joint to connect with the gear joint.
-	 * @param ratio The gear ratio (default is 1.0).
-	 * @returns The new gear joint definition.
+	 * 创建一个齿轮关节定义。
+	 * @param canCollide 是否允许连接的物体相互碰撞。
+	 * @param jointA 要连接到齿轮关节的第一个关节的名称。
+	 * @param jointB 要连接到齿轮关节的第二个关节的名称。
+	 * @param ratio 齿轮比率（默认为1.0）。
+	 * @returns 齿轮关节定义。
 	 */
 	gear(
 		canCollide: boolean,
@@ -4934,16 +5172,16 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * Creates a new spring joint definition.
-	 * @param canCollide Whether the connected bodies should collide with each other.
-	 * @param bodyA The name of the first body connected to the joint.
-	 * @param bodyB The name of the second body connected to the joint.
-	 * @param linearOffset Position of body-B minus the position of body-A, in body-A's frame.
-	 * @param angularOffset Angle of body-B minus angle of body-A.
-	 * @param maxForce The maximum force the joint can exert.
-	 * @param maxTorque The maximum torque the joint can exert.
-	 * @param correctionFactor Optional correction factor, defaults to 1.0.
-	 * @returns The created joint definition.
+	 * 创建一个新的弹簧关节定义。
+	 * @param canCollide 连接的物体是否应该相互碰撞。
+	 * @param bodyA 连接到关节的第一个物体的名称。
+	 * @param bodyB 连接到关节的第二个物体的名称。
+	 * @param linearOffset 在物理体A的坐标系中，物理体B减去物理体A的位置。
+	 * @param angularOffset 物理体B的角度减去物理体A的角度。
+	 * @param maxForce 关节可以施加的最大力。
+	 * @param maxTorque 关节可以施加的最大扭矩。
+	 * @param correctionFactor 可选的校正因子，默认为1.0。
+	 * @returns 创建的关节定义。
 	 */
 	spring(
 		canCollide: boolean,
@@ -4957,17 +5195,17 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * Creates a new prismatic joint definition.
-	 * @param canCollide Whether the connected bodies should collide with each other.
-	 * @param bodyA The name of the first body connected to the joint.
-	 * @param bodyB The name of the second body connected to the joint.
-	 * @param worldPos The world position of the joint.
-	 * @param axisAngle The axis angle of the joint.
-	 * @param lowerTranslation Optional lower translation limit, defaults to 0.0.
-	 * @param upperTranslation Optional upper translation limit, defaults to 0.0.
-	 * @param maxMotorForce Optional maximum motor force, defaults to 0.0.
-	 * @param motorSpeed Optional motor speed, defaults to 0.0.
-	 * @returns The created prismatic joint definition.
+	 * 创建一个新的平移关节定义。
+	 * @param canCollide 连接的物体是否应该相互碰撞。
+	 * @param bodyA 连接到关节的第一个物体的名称。
+	 * @param bodyB 连接到关节的第二个物体的名称。
+	 * @param worldPos 关节的世界位置。
+	 * @param axisAngle 关节的轴角度。
+	 * @param lowerTranslation 可选的较小平移限制，默认为0.0。
+	 * @param upperTranslation 可选的较大平移限制，默认为0.0。
+	 * @param maxMotorForce 可选的最大电机力，默认为0.0。
+	 * @param motorSpeed 可选的电机速度，默认为0.0。
+	 * @returns 创建的平移关节定义。
 	 */
 	prismatic(
 		canCollide: boolean,
@@ -4982,16 +5220,16 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * Create a pulley joint definition.
-	 * @param canCollide Whether or not the connected bodies will collide with each other.
-	 * @param bodyA The name of the first physics body to connect.
-	 * @param bodyB The name of the second physics body to connect.
-	 * @param anchorA The position of the anchor point on the first body in world coordinates.
-	 * @param anchorB The position of the anchor point on the second body in world coordinates.
-	 * @param groundAnchorA The position of the ground anchor point on the first body in world coordinates.
-	 * @param groundAnchorB The position of the ground anchor point on the second body in world coordinates.
-	 * @param ratio Optional The pulley ratio (default 1.0).
-	 * @returns The pulley joint definition.
+	 * 创建一个滑轮关节定义。
+	 * @param canCollide 连接的物体是否应该相互碰撞。
+	 * @param bodyA 要连接的第一个物理体的名称。
+	 * @param bodyB 要连接的第二个物理体的名称。
+	 * @param anchorA 第一个物体上的锚点位置，以世界坐标表示。
+	 * @param anchorB 第二个物体上的锚点位置，以世界坐标表示。
+	 * @param groundAnchorA 第一个物体上的地面锚点位置，以世界坐标表示。
+	 * @param groundAnchorB 第二个物体上的地面锚点位置，以世界坐标表示。
+	 * @param ratio 可选的滑轮比率（默认为1.0）。
+	 * @returns 滑轮关节定义。
 	 */
 	pulley(
 		canCollide: boolean,
@@ -5005,16 +5243,16 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * Create a revolute joint definition.
-	 * @param canCollide Whether or not the connected bodies will collide with each other.
-	 * @param bodyA The name of the first physics body to connect.
-	 * @param bodyB The name of the second physics body to connect.
-	 * @param worldPos The position in world coordinates where the joint will be created.
-	 * @param lowerAngle Optional The lower angle limit (radians) (default 0.0).
-	 * @param upperAngle Optional The upper angle limit (radians) (default 0.0).
-	 * @param maxMotorTorque Optional The maximum torque that can be applied to the joint to achieve the target speed (default 0.0).
-	 * @param motorSpeed Optional The desired speed of the joint (default 0.0).
-	 * @returns The revolute joint definition.
+	 * 创建一个旋转关节定义。
+	 * @param canCollide 是否允许连接的物体相互碰撞。
+	 * @param bodyA 第一个要连接的物体的名称。
+	 * @param bodyB 第二个要连接的物体的名称。
+	 * @param worldPos 关节将被创建的世界坐标位置。
+	 * @param lowerAngle 可选，较小的角度限制（弧度）（默认为0.0）。
+	 * @param upperAngle 可选，较大的角度限制（弧度）（默认为0.0）。
+	 * @param maxMotorTorque 可选，可以施加到关节上以达到目标速度的最大扭矩（默认为0.0）。
+	 * @param motorSpeed 可选，关节的期望速度（默认为0.0）。
+	 * @returns 旋转关节定义。
 	 */
 	revolute(
 		canCollide: boolean,
@@ -5028,14 +5266,14 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * Create a rope joint definition.
-	 * @param canCollide Whether or not the connected bodies will collide with each other.
-	 * @param bodyA The name of the first physics body to connect.
-	 * @param bodyB The name of the second physics body to connect.
-	 * @param anchorA The position of the anchor point on the first body in world coordinates.
-	 * @param anchorB The position of the anchor point on the second body in world coordinates.
-	 * @param maxLength Optional The maximum distance between the anchor points (default 0.0).
-	 * @returns The rope joint definition.
+	 * 创建一个绳子关节定义。
+	 * @param canCollide 是否允许连接的物体相互碰撞。
+	 * @param bodyA 第一个要连接的物体的名称。
+	 * @param bodyB 第二个要连接的物体的名称。
+	 * @param anchorA 第一个物体上锚点的位置（世界坐标）。
+	 * @param anchorB 第二个物体上锚点的位置（世界坐标）。
+	 * @param maxLength 可选，锚点之间的最大距离（默认为0.0）。
+	 * @returns 绳子关节定义。
 	 */
 	rope(
 		canCollide: boolean,
@@ -5047,14 +5285,14 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * Creates a weld joint definition.
-	 * @param canCollide Whether or not the bodies connected to the joint can collide with each other.
-	 * @param bodyA The name of the first body to be connected by the joint.
-	 * @param bodyB The name of the second body to be connected by the joint.
-	 * @param worldPos The position in the world to connect the bodies together.
-	 * @param frequency Optional The frequency at which the joint should be stiff, defaults to 0.0.
-	 * @param damping Optional The damping rate of the joint, defaults to 0.0.
-	 * @returns The newly created weld joint definition.
+	 * 创建一个焊接关节定义。
+	 * @param canCollide 连接的物体是否可以相互碰撞。
+	 * @param bodyA 要连接的第一个物体的名称。
+	 * @param bodyB 要连接的第二个物体的名称。
+	 * @param worldPos 在世界中连接物体的位置。
+	 * @param frequency 可选，关节的频率，默认为0.0。
+	 * @param damping 可选，关节的阻尼率，默认为0.0。
+	 * @returns 新创建的焊接关节定义。
 	 */
 	weld(
 		canCollide: boolean,
@@ -5066,17 +5304,17 @@ interface JointDefClass {
 	): JointDef;
 
 	/**
-	 * Creates a wheel joint definition.
-	 * @param canCollide Whether or not the bodies connected to the joint can collide with each other.
-	 * @param bodyA The name of the first body to be connected by the joint.
-	 * @param bodyB The name of the second body to be connected by the joint.
-	 * @param worldPos The position in the world to connect the bodies together.
-	 * @param axisAngle The angle of the joint axis in radians.
-	 * @param maxMotorTorque Optional The maximum torque the joint motor can exert, defaults to 0.0.
-	 * @param motorSpeed Optional The target speed of the joint motor, defaults to 0.0.
-	 * @param frequency Optional The frequency at which the joint should be stiff, defaults to 2.0.
-	 * @param damping Optional The damping rate of the joint, defaults to 0.7.
-	 * @returns The newly created wheel joint definition.
+	 * 创建一个轮子关节定义。
+	 * @param canCollide 是否允许连接的物体相互碰撞。
+	 * @param bodyA 第一个要连接的物体的名称。
+	 * @param bodyB 第二个要连接的物体的名称。
+	 * @param worldPos 连接物体的世界坐标位置。
+	 * @param axisAngle 关节轴的角度（弧度）。
+	 * @param maxMotorTorque 可选，关节马达可以施加的最大扭矩，默认为0.0。
+	 * @param motorSpeed 可选，关节马达的目标速度，默认为0.0。
+	 * @param frequency 可选，关节的频率，默认为2.0。
+	 * @param damping 可选，关节的阻尼率，默认为0.7。
+	 * @returns 新创建的轮子关节定义。
 	 */
 	wheel(
 		canCollide: boolean,
@@ -5095,7 +5333,7 @@ const jointDefClass: JointDefClass;
 export {jointDefClass as JointDef};
 
 /**
- * An enumeration for texture wrapping modes.
+ * 纹理包裹模式的枚举。
  */
 export const enum TextureWrap {
 	None = "None",
@@ -5105,7 +5343,7 @@ export const enum TextureWrap {
 }
 
 /**
- * An enumeration for texture filtering modes.
+ * 纹理过滤模式的枚举。
  */
 export const enum TextureFilter {
 	None = "None",
@@ -5113,54 +5351,56 @@ export const enum TextureFilter {
 	Anisotropic = "Anisotropic",
 }
 
-/** The Sprite class to render texture in game scene tree hierarchy. */
+/**
+ * 用于在游戏场景树层次结构中渲染纹理的Sprite类。
+ */
 class Sprite extends Node {
 
 	private constructor();
 
 	/**
-	 * Whether the depth buffer should be written to when rendering the sprite (default is false).
+	 * 当渲染图元时，是否应该写入深度缓冲区（默认为false）。
 	 */
 	depthWrite: boolean;
 
 	/**
-	 * The alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
-	 * Only works with `sprite.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+	 * 用于 alpha 测试的 alpha 参考值。小于或等于该值的像素将被丢弃。
+	 * 仅在 `sprite.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")` 时有效。
 	 */
 	alphaRef: number;
 
 	/**
-	 * The texture rectangle for the sprite.
+	 * 图元的纹理矩形。
 	 */
 	textureRect: Rect;
 
 	/**
-	 * The blend function for the sprite.
+	 * 图元的混合函数。
 	 */
 	blendFunc: BlendFunc;
 
 	/**
-	 * The sprite shader effect.
+	 * 图元的着色器特效。
 	 */
 	effect: SpriteEffect;
 
 	/**
-	 * The texture for the sprite.
+	 * 图元的纹理。
 	 */
 	texture: Texture2D;
 
 	/**
-	 * The texture wrapping mode for the U (horizontal) axis.
+	 * U（水平）轴的纹理包裹模式。
 	 */
 	uwrap: TextureWrap;
 
 	/**
-	 * The texture wrapping mode for the V (vertical) axis.
+	 * V（垂直）轴的纹理包裹模式。
 	 */
 	vwrap: TextureWrap;
 
 	/**
-	 * The texture filtering mode for the sprite.
+	 * 图元的纹理过滤模式。
 	 */
 	filter: TextureFilter;
 }
@@ -5168,29 +5408,29 @@ class Sprite extends Node {
 export type {Sprite as SpriteType};
 
 /**
- * A class used for creating `Sprite` object.
+ * 用于创建 `Sprite` 对象的类。
  */
 interface SpriteClass {
 
 	/**
-	 * A metamethod for creating Sprite object.
-	 * @param clipStr The string containing format for loading a texture file.
-	 * Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
-	 * @returns A new instance of the Sprite class.
+	 * 创建 Sprite 对象的构造函数。
+	 * @param clipStr 包含加载纹理文件格式的字符串。
+	 * 可以是 "Image/file.png" 和 "Image/items.clip|itemA"。支持的图片文件格式有：jpg、png、dds、pvr、ktx。
+	 * @returns Sprite 类的新实例。
 	 */
 	(this: void, clipStr: string): Sprite;
 
 	/**
-	 * A metamethod for creating Sprite object.
-	 * @returns A new instance of the Sprite class.
+	 * 创建 Sprite 对象的构造函数。
+	 * @returns Sprite 类的新实例。
 	 */
 	(this: void): Sprite;
 
 	/**
-	 * A metamethod for creating Sprite object.
-	 * @param texture The texture to be used for the sprite.
-	 * @param textureRect [optional] The rectangle defining the portion of the texture to use for the sprite, if not provided, the whole texture will be used for rendering.
-	 * @returns A new instance of the Sprite class.
+	 * 创建 Sprite 对象的构造函数。
+	 * @param texture 用于 Sprite 的纹理。
+	 * @param textureRect [可选] 定义用于 Sprite 的纹理部分的矩形区域，如果未提供，则整个纹理将用于渲染。
+	 * @returns Sprite 类的新实例。
 	 */
 	(this: void, texture: Texture2D, textureRect?: Rect): Sprite;
 }
@@ -5199,91 +5439,91 @@ const spriteClass: SpriteClass;
 export {spriteClass as Sprite};
 
 /**
- * Enumeration for text alignment setting.
+ * 用于文本对齐设置的枚举。
  */
 export const enum TextAlign {
 
 	/**
-	 * Text alignment to the left.
+	 * 文本左对齐。
 	 */
 	Left = "Left",
 
 	/**
-	 * Text alignment to the center.
+	 * 文本居中对齐。
 	 */
 	Center = "Center",
 
 	/**
-	 * Text alignment to the right.
+	 * 文本右对齐。
 	 */
 	Right = "Right",
 }
 
 /**
- * A node for rendering text using a TrueType font.
+ * 用于使用 TrueType 字体渲染文本的节点。
  */
 class Label extends Node {
 
 	private constructor();
 
 	/**
-	 * The alpha threshold value. Pixels with alpha values below this value will not be drawn.
-	 * Only works with `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+	 * Alpha 阈值。透明度低于此值的像素将不会被绘制。
+	 * 仅在 `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")` 时有效。
 	 */
 	alphaRef: number;
 
 	/**
-	 * The width of the text used for text wrapping.
-	 * Set to `Label.AutomaticWidth` to disable wrapping.
-	 * Default is `Label.AutomaticWidth`.
+	 * 用于文本换行的文本宽度。
+	 * 将其设置为 `Label.AutomaticWidth` 可禁用换行。
+	 * 默认值为 `Label.AutomaticWidth`。
 	 */
 	textWidth: number;
 
 	/**
-	 * The gap in pixels between lines of text.
+	 * 文本行之间的间距（以像素为单位）。
 	 */
 	lineGap: number;
 
 	/**
-	 * The text to be rendered.
+	 * 要渲染的文本。
 	 */
 	text: string;
 
 	/**
-	 * The blend function used to render the text.
+	 * 用于渲染文本的混合函数。
 	 */
 	blendFunc: BlendFunc;
 
 	/**
-	 * Whether depth writing is enabled. (Default is false)
+	 * 是否启用深度写入。（默认为 false）
 	 */
 	depthWrite: boolean;
 
 	/**
-	 * Whether the label is using batched rendering.
-	 * When using batched rendering, the `label.getCharacter()` function will no longer work, and getting better rendering performance. (Default is true)
+	 * 标签是否使用批量渲染。
+	 * 使用批量渲染时，`label.getCharacter()` 函数将不再起作用，并获得更好的渲染性能。（默认为 true）
 	 */
 	batched: boolean;
 
 	/**
-	 * The sprite effect used to render the text.
+	 * 用于渲染文本的图元着色器特效。
 	 */
 	effect: SpriteEffect;
 
 	/**
-	 * The text alignment setting.
+	 * 文本对齐设置。
 	 */
 	alignment: TextAlign;
 
 	/**
-	 * The number of characters in the label.
+	 * 标签中的字符数。
 	 */
 	readonly characterCount: number;
 
 	/**
-	 * Returns the sprite for the character at the specified index.
-	 * @param index The index of the character sprite to retrieve.
-	 * @returns The sprite for the character, or `null` if the index is out of range.
+	 * 返回指定索引处字符的图元。
+	 * @param index 要检索的字符图元的索引。
+	 * @returns 字符的图元，如果索引超出范围则返回 `null`。
 	 */
 	getCharacter(index: number): Sprite | null;
 }
@@ -5291,20 +5531,20 @@ class Label extends Node {
 export type {Label as LabelType};
 
 /**
-* A class for creating Label object.
-*/
+ * 用于创建 Label 对象的类。
+ */
 interface LabelClass {
 
 	/**
-	 * The value to use for automatic width calculation.
+	 * 用于自动计算宽度的值。
 	 */
 	readonly AutomaticWidth: number;
 
 	/**
-	 * Creates a new Label object with the specified font name and font size.
-	 * @param fontName The name of the font to use for the label. Can be a font file path with or without a file extension.
-	 * @param fontSize The size of the font to use for the label.
-	 * @returns The new Label object.
+	 * 使用指定的字体名称和字体大小创建一个新的 Label 对象。
+	 * @param fontName 用于 Label 的字体名称。可以是带有或不带有文件扩展名的字体文件路径。
+	 * @param fontSize 用于 Label 的字体大小。
+	 * @returns 新的 Label 对象。
 	 */
 	(this: void, fontName: string, fontSize: number): Label;
 }
@@ -5313,57 +5553,58 @@ const labelClass: LabelClass;
 export {labelClass as Label};
 
 /**
- * A class provides functionality for drawing lines using vertices.
+ * 用于使用顶点绘制线条的类。
  */
 class Line extends Node {
 
 	private constructor();
 
 	/**
-	 * Whether the depth should be written. (Default is false)
+	 * 是否写入深度。（默认为 false）
 	 */
 	depthWrite: boolean;
 
 	/**
-	 * Blend function used for rendering the line.
+	 * 用于渲染线条的混合函数。
 	 */
 	blendFunc: BlendFunc;
 
 	/**
-	 * Adds vertices to the line.
-	 * @param verts Table of vertices to add to the line.
-	 * @param color Color of the line (default is opaque white).
+	 * 添加顶点到线条中。
+	 * @param verts 要添加到线条的顶点表。
+	 * @param color 线条的颜色（默认为不透明白色）。
 	 */
 	add(verts: Vec2[], color?: Color): void;
 
 	/**
-	 * Sets vertices of the line.
-	 * @param verts Table of vertices to set.
-	 * @param color Color of the line (default is opaque white).
+	 * 设置线条的顶点。
+	 * @param verts 要设置的顶点表。
+	 * @param color 线条的颜色（默认为不透明白色）。
 	 */
 	set(verts: Vec2[], color?: Color): void;
 
 	/**
-	 * Clears all the vertices of the line.
+	 * 清除线条的所有顶点。
 	 */
 	clear(): void;
 }
 
 export type {Line as LineType};
 
-// A class for creating Line object.
+/** 用于创建 Line 对象的类。 */
 interface LineClass {
+
 	/**
-	 * Creates and returns a new Line object.
-	 * @param verts Table of vertices to add to the line.
-	 * @param color Color of the line (default is opaque white).
-	 * @returns Line object.
+	 * 创建并返回一个新的 Line 对象。
+	 * @param verts 要添加到线条的顶点表。
+	 * @param color 线条的颜色（默认为不透明白色）。
+	 * @returns Line 对象。
 	 */
 	(this: void, verts: Vec2[], color?: Color): Line;
 
 	/**
-	 * Creates and returns a new empty Line object.
-	 * @returns Line object.
+	 * 创建并返回一个新的空 Line 对象。
+	 * @returns Line 对象。
 	 */
 	(this: void): Line;
 }
@@ -5372,16 +5613,16 @@ const lineClass: LineClass;
 export {lineClass as Line}
 
 /**
- * This interface is used for managing touch events for children nodes in a given area.
- * The menu will swallow touches that hit children nodes.
- * Only one child node can receive the first touch event; multi-touches that come later for other children nodes will be ignored.
+ * 用于管理特定区域内子节点的触摸事件的接口。
+ * 菜单会拦截触摸事件并传递给子节点。
+ * 只有一个子节点可以接收第一个触摸事件；后续的多点触摸事件将被忽略。
  */
 class Menu extends Node {
 
 	private constructor();
 
 	/**
-	 * Whether the menu is currently enabled or disabled.
+	 * 菜单当前是否启用。
 	 */
 	enabled: boolean;
 }
@@ -5389,22 +5630,22 @@ class Menu extends Node {
 export type {Menu as MenuType};
 
 /**
-* A class for creating Menu objects.
-*/
+ * 用于创建菜单对象的类。
+ */
 interface MenuClass {
 
 	/**
-	 * Creates a new instance of `Menu` with the specified width and height.
-	 * @param width The width of the Menu node.
-	 * @param height The height of the Menu node.
-	 * @returns A new Menu node object.
+	 * 使用指定的宽度和高度创建一个新的 `Menu` 实例。
+	 * @param width 菜单节点的宽度。
+	 * @param height 菜单节点的高度。
+	 * @returns 一个新的菜单节点对象。
 	 */
 	(this: void, width: number, height: number): Menu;
 
 	/**
-	 * Creates a new instance of `Menu` with 0 width and 0 height.
-	 * A menu with zero size will handle full screen touches for children nodes.
-	 * @returns A new Menu node object.
+	 * 使用0宽度和0高度创建一个新的 `Menu` 实例。
+	 * 尺寸为0的菜单将在全屏范围处理子节点的触摸事件。
+	 * @returns 一个新的菜单节点对象。
 	 */
 	(this: void): Menu;
 }
@@ -5413,36 +5654,36 @@ const menuClass: MenuClass;
 export {menuClass as Menu};
 
 /**
- * A simple reinforcement learning framework that can be used to learn optimal policies for Markov decision processes using Q-learning.
- * Q-learning is a model-free reinforcement learning algorithm that learns an optimal action-value function from experience by repeatedly updating estimates of the Q-value of state-action pairs.
+ * 用于学习马尔可夫决策过程的最优策略的简单强化学习框架。
+ * Q-learning 是一种无模型的强化学习算法，通过反复更新状态-动作对的 Q 值估计来学习最优的动作值函数。
  */
 class QLearner extends Object {
 
 	private constructor();
 
 	/**
-	 * The matrix that stores state, action, and Q-value.
+	 * 存储状态、动作和 Q 值的矩阵。
 	 */
 	matrix: [state: number, action: number, QValue: number][];
 
 	/**
-	 * Update Q-value for a state-action pair based on received reward.
-	 * @param state Representing the state.
-	 * @param action Representing the action.
-	 * @param reward Representing the reward received for the action in the state.
+	 * 根据接收到的奖励更新状态-动作对的 Q 值。
+	 * @param state 表示状态的值。
+	 * @param action 表示动作的值。
+	 * @param reward 表示在状态中执行动作所获得的奖励。
 	 */
 	update(state: number, action: number, reward: number): void;
 
 	/**
-	 * Returns the best action for a given state based on the current Q-values.
-	 * @param state The current state.
-	 * @returns The action with the highest Q-value for the given state.
+	 * 根据当前的 Q 值返回特定状态的最佳动作。
+	 * @param state 当前状态。
+	 * @returns 特定状态下具有最高 Q 值的动作。
 	 */
 	getBestAction(state: number): number;
 
 	/**
-	 * Load Q-values from a matrix of state-action pairs.
-	 * @param values The matrix of state-action pairs to load.
+	 * 从状态-动作对的矩阵中加载 Q 值。
+	 * @param values 要加载的状态-动作对矩阵。
 	 */
 	load(values: [state: number, action: number, QValue: number][]): void;
 }
@@ -5450,32 +5691,32 @@ class QLearner extends Object {
 export type {QLearner as QLearnerType};
 
 /**
- * A class for creating QLearner objects.
+ * 用于创建 QLearner 对象的类。
  */
 interface QLearnerClass {
 
 	/**
-	 * Construct a state from given hints and condition values.
-	 * @param hints Representing the byte length of provided values.
-	 * @param values The condition values as discrete values.
-	 * @returns The packed state value.
+	 * 根据特定的提示和条件值构造状态。
+	 * @param hints 提供的值的字节长度。
+	 * @param values 离散值的条件值。
+	 * @returns 打包后的状态值。
 	 */
 	pack(hints: number[], values: number[]): number;
 
 	/**
-	 * Deconstruct a state from given hints to get condition values.
-	 * @param hints Representing the byte length of provided values.
-	 * @param state The state integer to unpack.
-	 * @returns The condition values as discrete values.
+	 * 解包函数，将状态整数解包为离散值。
+	 * @param hints 提供的值的字节长度。
+	 * @param state 要解包的状态整数。
+	 * @returns 离散值的条件值。
 	 */
 	unpack(hints: number[], state: number): number[];
 
 	/**
-	 * Create a new QLearner object with optional parameters for gamma, alpha, and maxQ.
-	 * @param gamma The discount factor for future rewards. Defaults to 0.5.
-	 * @param alpha The learning rate for updating Q-values. Defaults to 0.5.
-	 * @param maxQ The maximum Q-value. Defaults to 100.0.
-	 * @returns The newly created QLearner object.
+	 * 使用可选参数 gamma、alpha 和 maxQ 创建一个新的 QLearner 对象。
+	 * @param gamma 未来奖励的折扣因子。默认为 0.5。
+	 * @param alpha 更新 Q 值的学习率。默认为 0.5。
+	 * @param maxQ 最大 Q 值。默认为 100.0。
+	 * @returns 新创建的 QLearner 对象。
 	 */
 	(
 		this: void,
@@ -5486,22 +5727,22 @@ interface QLearnerClass {
 }
 
 /**
- * Enumeration for comparison operators.
+ * 比较运算符的枚举。
  */
 type MLOperator = "return" | "<=" | ">" | "==";
 
 /**
- * A class for machine learning algorithms.
+ * 机器学习算法的类。
  */
 class ML {
 
 	/**
-	 * A function that takes CSV data as input and applies the C4.5 machine learning algorithm to build a decision tree model asynchronously.
-	 * C4.5 is a decision tree algorithm that uses information gain to select the best attribute to split the data at each node of the tree. The resulting decision tree can be used to make predictions on new data.
-	 * @param csvData The CSV training data for building the decision tree using delimiter `,`.
-	 * @param maxDepth The maximum depth of the generated decision tree. Set to 0 to prevent limiting the generated tree depth.
-	 * @param handler The callback function to be called for each node of the generated decision tree.
-	 * @returns The accuracy of the decision tree on the training data. And an error message if an error occurred during building of the decision tree.
+	 * 将 CSV 数据作为输入，并异步应用 C4.5 机器学习算法构建决策树模型。
+	 * C4.5 是一种决策树算法，它使用信息增益来选择最佳属性在树的每个节点上拆分数据。生成的决策树可以用于对新数据进行预测。
+	 * @param csvData 用于构建决策树的 CSV 训练数据，使用逗号 `,` 作为分隔符。
+	 * @param maxDepth 生成的决策树的最大深度。设置为 0 以防止限制生成的树的深度。
+	 * @param handler 生成的决策树的每个节点调用的回调函数。
+	 * @returns 决策树在训练数据上的准确度。如果在构建决策树过程中发生错误，则返回错误消息。
 	 */
 	BuildDecisionTreeAsync(
 		csvData: string,
@@ -5516,7 +5757,7 @@ class ML {
 	): LuaMultiReturn<[number, null]> | LuaMultiReturn<[null, string]>;
 
 	/**
-	 * A field for accessing QLearner class.
+	 * 用于访问 QLearner 类的字段。
 	 */
 	QLearner: QLearnerClass;
 }
@@ -5525,20 +5766,20 @@ const ml: ML;
 export {ml as ML};
 
 /**
- * Represents a particle system node that emits and animates particles.
+ * 表示发射和动画粒子的粒子系统节点。
  */
 class Particle extends Node {
 
 	private constructor();
 
-	/** Whether the particle system is active. */
+	/** 粒子系统是否处于活动状态。 */
 	readonly active: boolean;
 
-	/** Starts emitting particles. */
+	/** 开始发射粒子。 */
 	start(): void;
 
 	/**
-	 * Stops emitting particles and waits for all active particles to end their lives.
+	 * 停止发射粒子，并等待所有活动粒子结束生命周期。
 	 */
 	stop(): void;
 }
@@ -5546,14 +5787,14 @@ class Particle extends Node {
 export type {Particle as ParticleType};
 
 /**
- * A class that can create new Particle objects.
+ * 可以创建新的 Particle 对象的类。
  */
 interface ParticleClass {
 
 	/**
-	 * Creates a new Particle object from a particle system file.
-	 * @param filename The file path of the particle system file.
-	 * @returns A new Particle object.
+	 * 从粒子系统文件创建一个新的 Particle 对象。
+	 * @param filename 粒子系统文件的文件路径。
+	 * @returns 新的 Particle 对象。
 	 */
 	(this: void, filename: string): Particle;
 }
@@ -5561,69 +5802,69 @@ interface ParticleClass {
 const particleClass: ParticleClass;
 export {particleClass as Particle};
 
-/** Helper class for file path operations. */
+/** 文件路径操作的辅助类。 */
 interface Path {
 
 	/**
-	 * Gets script running path from a module name.
-	 * @param moduleName The input module name.
-	 * @returns The module path for script searching.
+	 * 从模块名称获取脚本运行路径。
+	 * @param moduleName 输入的模块名称。
+	 * @returns 用于脚本搜索的模块路径。
 	 */
 	getScriptPath(moduleName: string): string;
 
 	/**
-	 * Input: /a/b/c.TXT output: txt
-	 * @param path The input file path.
-	 * @returns The input file's extension.
+	 * 输入: /a/b/c.TXT 输出: txt
+	 * @param path 输入的文件路径。
+	 * @returns 输入文件的扩展名。
 	 */
 	getExt(path: string): string;
 
 	/**
-	 * Input: /a/b/c.TXT output: /a/b
-	 * @param path The input file path.
-	 * @returns The input file's parent path.
+	 * 输入: /a/b/c.TXT 输出: /a/b
+	 * @param path 输入的文件路径。
+	 * @returns 输入文件的父路径。
 	 */
 	getPath(path: string): string;
 
 	/**
-	 * Input: /a/b/c.TXT output: c
-	 * @param path The input file path.
-	 * @returns The input file's name without extension.
+	 * 输入: /a/b/c.TXT 输出: c
+	 * @param path 输入的文件路径。
+	 * @returns 不带扩展名的输入文件名。
 	 */
 	getName(path: string): string;
 
 	/**
-	 * Input: /a/b/c.TXT output: c.TXT
-	 * @param path The input file path.
-	 * @returns The input file's name.
+	 * 输入: /a/b/c.TXT 输出: c.TXT
+	 * @param path 输入的文件路径。
+	 * @returns 输入文件的名称。
 	 */
 	getFilename(path: string): string;
 
 	/**
-	 * Input: /a/b/c.TXT, base: /a output: b/c.TXT
-	 * @param path The input file path.
-	 * @param base The target file path.
-	 * @returns The relative from input file to target file.
+	 * 输入: /a/b/c.TXT, base: /a 输出: b/c.TXT
+	 * @param path 输入的文件路径。
+	 * @param base 目标文件路径。
+	 * @returns 从输入文件到目标文件的相对路径。
 	 */
 	getRelative(path: string, base: string): string;
 
-	/** Input: /a/b/c.TXT, lua output: /a/b/c.lua
-	 * @param path The input file path.
-	 * @param newExt The new file extension to add to file path.
-	 * @returns The new file path.
+	/** 输入: /a/b/c.TXT, lua 输出: /a/b/c.lua
+	 * @param path 输入的文件路径。
+	 * @param newExt 要添加到文件路径的新文件扩展名。
+	 * @returns 新的文件路径。
 	 */
 	replaceExt(path: string, newExt: string): string;
 
-	/** Input: /a/b/c.TXT, d output: /a/b/d.TXT
-	 * @param path The input file path.
-	 * @param newFile The new filename to replace.
-	 * @returns The new file path.
+	/** 输入: /a/b/c.TXT, d 输出: /a/b/d.TXT
+	 * @param path 输入的文件路径。
+	 * @param newFile 要替换的新文件名。
+	 * @returns 新的文件路径。
 	 */
 	replaceFilename(path: string, newFile: string): string;
 
-	/** Input: a, b, c.TXT output: a/b/c.TXT
-	 * @param segments The segments to be joined as a new file path.
-	 * @returns The new file path.
+	/** 输入: a, b, c.TXT 输出: a/b/c.TXT
+	 * @param segments 要连接为新文件路径的段。
+	 * @returns 新的文件路径。
 	 */
 	(this: void, ...segments: string[]): string;
 }
@@ -5632,24 +5873,24 @@ const path: Path;
 export {path as Path};
 
 /**
- * A class for profiling functions.
+ * 用于函数性能分析的类。
  */
 interface ProfilerClass {
 
 	/**
-	 * The name of the profiling event.
+	 * 分析事件的名称。
 	 */
 	EventName: string;
 
 	/**
-	 * The current level of profiling.
+	 * 分析的当前级别。
 	 */
 	level: number;
 
 	/**
-	 * Calls a function and returns the amount of time it took to execute.
-	 * @param funcForProfiling The function to profile.
-	 * @returns The amount of time it took to execute the function.
+	 * 调用函数并返回执行所需的时间。
+	 * @param funcForProfiling 要分析的函数。
+	 * @returns 执行函数所需的时间。
 	 * @example
 	 * const time = profiler(funcForProfiling);
 	 */
@@ -5660,109 +5901,111 @@ const profiler: ProfilerClass;
 export {profiler as Profiler};
 
 /**
- * A RenderTarget is a node with a buffer that allows you to render a Node into a texture.
+ * RenderTarget 是一个带有缓冲区的节点，允许将 Node 渲染到纹理中。
  */
 class RenderTarget {
 
 	private constructor();
 
 	/**
-	 * The width of the rendering target.
+	 * 渲染目标的宽度。
 	 */
 	readonly width: number;
 
 	/**
-	 * The height of the rendering target.
+	 * 渲染目标的高度。
 	 */
 	readonly height: number;
 
 	/**
-	 * The texture generated by the rendering target.
+	 * 渲染目标生成的纹理。
 	 */
 	readonly texture: Texture2D;
 
 	/**
-	 * The camera used for rendering the scene.
+	 * 用于渲染场景的相机。
 	 */
 	camera: Camera;
 
 	/**
-	 * Renders a node to the target without replacing its previous contents.
-	 * @param target The node to be rendered onto the render target.
+	 * 渲染节点到目标，而不替换其先前的内容。
+	 * @param target 要渲染到渲染目标的节点。
 	 */
 	render(target: Node): void;
 
 	/**
-	 * Clears the previous color, depth, and stencil values on the render target.
-	 * @param color The clear color used to clear the render target.
-	 * @param depth (optional) The value used to clear the depth buffer of the render target. Default is 1.
-	 * @param stencil (optional) The value used to clear the stencil buffer of the render target. Default is 0.
+	 * 清除渲染目标上先前的颜色、深度和模板值。
+	 * @param color 用于清除渲染目标的清除颜色。
+	 * @param depth （可选）用于清除渲染目标的深度缓冲区的值。默认为 1。
+	 * @param stencil （可选）用于清除渲染目标的模板缓冲区的值。默认为 0。
 	 */
 	renderWithClear(color: Color, depth?: number, stencil?: number): void;
 
 	/**
-	 * Renders a node to the target after clearing the previous color, depth, and stencil values on it.
-	 * @param target The node to be rendered onto the render target.
-	 * @param color The clear color used to clear the render target.
-	 * @param depth (optional) The value used to clear the depth buffer of the render target. Default is 1.
-	 * @param stencil (optional) The value used to clear the stencil buffer of the render target. Default is 0.
+	 * 渲染节点到目标之前清除渲染目标上先前的颜色、深度和模板值。
+	 * @param target 要渲染到渲染目标的节点。
+	 * @param color 用于清除渲染目标的清除颜色。
+	 * @param depth （可选）用于清除渲染目标的深度缓冲区的值。默认为 1。
+	 * @param stencil （可选）用于清除渲染目标的模板缓冲区的值。默认为 0。
 	 */
 	renderWithClear(target: Node, color: Color, depth?: number, stencil?: number): void;
 
 	/**
-	 * Saves the contents of the render target to a PNG file asynchronously.
-	 * @param filename The name of the file to save the contents to.
+	 * 异步将渲染目标的内容保存为 PNG 文件。
+	 * @param filename 要保存内容的文件名。
 	 */
 	saveAsync(filename: string): void;
 }
 
 /**
- * A class for creating RenderTarget objects.
+ * 用于创建 RenderTarget 对象的类。
  */
 interface RenderTargetClass {
+
 	/**
-	 * Creates a new RenderTarget object with the given width and height.
-	 * @param width The width of the render target.
-	 * @param height The height of the render target.
-	 * @returns The created render target.
+	 * 使用特定的宽度和高度创建一个新的 RenderTarget 对象。
+	 * @param width 渲染目标的宽度。
+	 * @param height 渲染目标的高度。
+	 * @returns 创建的渲染目标。
 	 */
 	(this: void, width: number, height: number): RenderTarget;
 }
 
 const renderTargetClass: RenderTargetClass;
-export {renderTargetClass as RenderTarget};
+export { renderTargetClass as RenderTarget };
 
 /**
- * A class used for Scalable Vector Graphics rendering.
+ * 用于可缩放矢量图形渲染的类。
  */
 class SVG extends Object {
 
 	private constructor();
 
 	/**
-	 * The width of the SVG object.
+	 * SVG 对象的宽度。
 	 */
 	readonly width: number;
 
 	/**
-	 * The height of the SVG object.
+	 * SVG 对象的高度。
 	 */
 	readonly height: number;
 
 	/**
-	 * Renders the SVG object, should be called every frame for the render result to appear.
+	 * 渲染 SVG 对象，应该在每帧调用以显示渲染结果。
 	 */
 	render(): void;
 }
 
 /**
- * A class for creating SVG objects.
+ * 用于创建 SVG 对象的类。
  */
 interface SVGClass {
+
 	/**
-	 * Creates a new SVG object from the specified SVG file.
-	 * @param filename The path to the SVG format file.
-	 * @returns The created SVG object.
+	 * 从指定的 SVG 文件创建一个新的 SVG 对象。
+	 * @param filename SVG 格式文件的路径。
+	 * @returns 创建的 SVG 对象。
 	 */
 	(this: void, filename: string): SVG;
 }
@@ -5787,31 +6030,31 @@ class View {
 
 	private constructor();
 
-	/** The size of the view in pixels. */
+	/** 视图的像素大小。 */
 	size: Size;
 
-	/** The standard distance of the view from the origin. */
+	/** 视图与原点的标准距离。 */
 	standardDistance: number;
 
-	/** The aspect ratio of the view. */
+	/** 视图的宽高比。 */
 	aspectRatio: number;
 
-	/** The distance to the near clipping plane. */
+	/** 近裁剪平面的距离。 */
 	nearPlaneDistance: number;
 
-	/** The distance to the far clipping plane. */
+	/** 远裁剪平面的距离。 */
 	farPlaneDistance: number;
 
-	/** The field of view of the view in degrees. */
+	/** 视图的视野角度（以度为单位）。 */
 	fieldOfView: number;
 
-	/** The scale factor of the view. */
+	/** 视图的缩放因子。 */
 	scale: number;
 
-	/** The post effect applied to the view. */
+	/** 应用于视图的后期着色器特效。 */
 	postEffect: SpriteEffect;
 
-	/** Whether or not vertical sync is enabled. */
+	/** 是否启用垂直同步。 */
 	vsync: boolean;
 }
 
@@ -5821,42 +6064,42 @@ export {view as View};
 export type VGPaintType = BasicType<"VGPaint">;
 
 /**
- * The `tolua` object provides utilities for interfacing between C++ and Lua.
+ * `tolua` 对象提供了在 C++ 和 Lua 之间进行接口交互的实用工具。
  */
 interface tolua {
 	/**
-	 * Returns the C++ object type of a Lua object.
-	 * @param item The Lua object to get the type of.
-	 * @returns The C++ object type.
+	 * 返回 Lua 对象的 C++ 对象类型。
+	 * @param item 要获取类型的 Lua 对象。
+	 * @returns C++ 对象类型。
 	 */
 	type(this: void, item: any): string;
 
 	/**
-	 * Attempts to cast a Lua object to a C++ type object.
-	 * @param item The Lua object to cast.
-	 * @param name The name of the C++ type to cast to.
-	 * @returns The cast object, or `null` if the cast fails.
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name 要转换为的 C++ 类型的名称。
+	 * @returns 转换后的对象，如果转换失败则返回 `null`。
 	 */
 	cast<T>(this: void, item: any, name: string): T | null;
 
 	/**
-	 * Gets the class object for a given class name.
-	 * @param className The name of the class to get the table for.
-	 * @returns The class table, or `null` if the class does not exist.
+	 * 获取特定类名的类对象。
+	 * @param className 要获取表格的类名。
+	 * @returns 类表格，如果类不存在则返回 `null`。
 	 */
 	class(this: void, className: string): { [key: string | number]: any } | null;
 
 	/**
-	 * Sets the peer table for an object. A peer table is a table referenced by a Lua userdata providing custom fields for this userdata object.
-	 * @param obj The object to set the peer table for.
-	 * @param data The table to use as the peer table.
+	 * 为对象设置对等表。对等表是由 Lua userdata 引用的表，为该 userdata 对象提供自定义字段。
+	 * @param obj 要设置对等表的对象。
+	 * @param data 要用作对等表的表。
 	 */
 	setpeer(this: void, obj: Object, data: { [key: string | number]: any }): void;
 
 	/**
-	 * Gets the peer table for an object. A peer table is a table referenced by a Lua userdata providing custom fields for this userdata object.
-	 * @param obj The object to get the peer table for.
-	 * @returns The peer table, or `null` if the object has no peer table.
+	 * 获取对象的对等表。对等表是由 Lua userdata 引用的表，为该 userdata 对象提供自定义字段。
+	 * @param obj 要获取对等表的对象。
+	 * @returns 对等表，如果对象没有对等表则返回 `null`。
 	 */
 	getpeer(this: void, obj: Object): { [key: string | number]: any } | null;
 }
