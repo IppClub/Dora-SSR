@@ -1,5 +1,5 @@
 import { Data, Decision, PlatformWorld, Unit, UnitAction, UnitType } from 'Platformer';
-import { App, Body, BodyDef, BodyMoveType, Color, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, ObserverEvent, Sprite, Spawn, AngleY, Sequence, Ease, Y, Slot, tolua, Scale, Opacity, BodyType, Content, Group, Entity, Component, Director, Menu, Keyboard, KeyName } from 'dora'
+import { App, Body, BodyDef, BodyMoveType, Color, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, ObserverEvent, Sprite, Spawn, AngleY, Sequence, Ease, Y, Slot, tolua, Scale, Opacity, BodyType, Content, Group, Entity, Component, Director, Menu, Keyboard, KeyName } from 'dora';
 import * as Rectangle from 'UI/View/Shape/Rectangle';
 
 const TerrainLayer = 0;
@@ -89,7 +89,7 @@ UnitAction.add("idle", {
 			return !owner.onSurface;
 		};
 	}
-})
+});
 
 UnitAction.add("move", {
 	priority: 1,
@@ -111,7 +111,7 @@ UnitAction.add("move", {
 				moveSpeed = math.min(elapsedTime / recovery, 1.0);
 			}
 			self.velocityX = moveSpeed * (self.faceRight ? move : -move);
-			return !self.onSurface
+			return !self.onSurface;
 		}
 	}
 });
@@ -156,7 +156,7 @@ UnitAction.add("fallOff", {
 				return true;
 			}
 			return false;
-		})
+		});
 	}
 });
 
@@ -171,7 +171,7 @@ Data.store["AI:playerControl"] = Sel([
 			(
 				(keyLeft && self.faceRight) ||
 				(keyRight && !self.faceRight)
-			)
+			);
 		}),
 		Act("turn")
 	]),
@@ -242,7 +242,7 @@ Observer(ObserverEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string)
 				Y(2.5, 0, 40, Ease.OutQuad),
 				Y(2.5, 40, 0, Ease.InQuad)
 			)
-		)))
+		)));
 		return false;
 	}));
 
@@ -281,6 +281,15 @@ Observer(ObserverEvent.Remove, ["body"]).watch(self => {
 
 import { Struct } from 'Utils';
 
+interface ItemStruct {
+	Name: string;
+	No: number;
+	X: number;
+	Icon: string;
+	Num: number;
+	Desc: string;
+}
+
 interface ItemEntity extends Record<string, Component> {
 	name: string;
 	no: number;
@@ -298,21 +307,21 @@ function loadExcel(this: void) {
 		const names = its[1] as [string];
 		table.remove(names, 1);
 		if (!Struct.has("Item")) {
-			Struct.Item(names);
+			Struct.Item<ItemStruct>(names);
 		}
 		Group(["item"]).each(e => {
 			e.destroy();
 			return false;
 		});
 		for (let i = 2; i < its.length; i++) {
-			const st = Struct.load(its[i]);
+			const st = Struct.load<ItemStruct>(its[i]);
 			const item: ItemEntity = {
-				name: st.Name as string,
-				no: st.No as number,
-				x: st.X as number,
-				num: st.Num as number,
-				icon: st.Icon as string,
-				desc: st.Desc as string,
+				name: st.Name,
+				no: st.No,
+				x: st.X,
+				num: st.Num,
+				icon: st.Icon,
+				desc: st.Desc,
 				item: true
 			}
 			Entity(item);
@@ -464,7 +473,7 @@ Director.ui.schedule(() => {
 					sprite.perform(Spawn(
 						Opacity(1, 1, 0),
 						Y(1, 150, 250)
-					))
+					));
 					const player = playerGroup.find(() => true);
 					if (player !== undefined) {
 						const unit = player.unit as UnitType;
