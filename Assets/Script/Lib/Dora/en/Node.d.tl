@@ -552,12 +552,6 @@ local record __SLOT__
 	-- @param buttonName (Keyboard.KeyName) The name of the button that was released.
 	["ButtonUp"]: function(controllerId: integer, buttonName: Controller.ButtonName)
 
-	-- The ButtonPressed slot is triggered when a game controller button is pressed.
-	-- Triggers after setting `node.controllerEnabled = true`.
-	-- @param controllerId (integer) The controller id, incrementing from 0 when multiple controllers connected.
-	-- @param buttonName (Keyboard.KeyName) The name of the button that was pressed.
-	["ButtonPressed"]: function(controllerId: integer, buttonName: Keyboard.KeyName)
-
 	-- The Axis slot is triggered when a game controller axis changed.
 	-- Triggers after setting `node.controllerEnabled = true`.
 	-- @param controllerId (integer) The controller id, incrementing from 0 when multiple controllers connected.
