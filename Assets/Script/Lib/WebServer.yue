@@ -601,7 +601,11 @@ HttpServer\post "/assets", ->
 				lv2 = extentionLevels[ext] ?? -1
 				names[name] = ext if lv2 > lv1
 			else
-				names[name] = Path\getExt file
+				ext = Path\getExt file
+				if not extentionLevels[ext]
+					names[file] = ""
+				else
+					names[name] = ext
 		files = [ext == '' and name or name .. '.' .. ext for name, ext in pairs names]
 		for file in *files
 			children = [] unless children
