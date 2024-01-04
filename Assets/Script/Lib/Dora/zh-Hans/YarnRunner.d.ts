@@ -1,74 +1,71 @@
 /// <reference path="dora.d.ts" />
 
 /**
- * Record to define markup attributes.
+ * 用于定义标记属性的接口。
  */
 interface Markup {
-
 	/**
-	 * Name of the markup.
+	 * 标记的名称。
 	 */
 	name: string;
 
 	/**
-	 * Starting position of the markup.
+	 * 标记的起始位置。
 	 */
 	start: number;
 
 	/**
-	 * Ending position of the markup.
+	 * 标记的结束位置。
 	 */
 	stop: number;
 
 	/**
-	 * Attributes associated with the markup.
+	 * 与标记相关联的属性。
 	 */
 	attrs: Record<string, boolean | number | string> | undefined;
 }
 
 /**
- * Record to define textual results with optional markup.
+ * 用于定义带有可选标记的文本结果的接口。
  */
 interface TextResult {
-
 	/**
-	 * Textual content.
+	 * 文本内容。
 	 */
 	text: string;
 
 	/**
-	 * Optional markup for the text.
+	 * 文本的可选标记。
 	 */
 	marks: Markup[] | null;
 
 	/**
-	 * A flag indicating that advancing will yield an OptionResult as the next result.
+	 * 标志，指示前进将产生 OptionResult 作为下个结果。
 	 */
 	optionsFollowed: boolean | null;
 }
 
 /**
- * Record to define options in the narrative.
- * Gets element as TextResult when the option is available, gets boolean false when the option is unavailable.
+ * 用于定义叙述中的选项的类型。
+ * 当选项可用时，获取元素作为 TextResult，当选项不可用时，获取布尔值 false。
  */
 type OptionResult = [option: TextResult | boolean];
 
 declare class YarnRunner {
-
 	private constructor();
 
-	/** Field for accessing Yarn script runtime variables. */
+	/** 用于访问 Yarn 脚本运行时变量的字段。 */
 	readonly state: Record<string, string | number | boolean>;
 
 	/**
-	 * Method to advance the narrative.
-	 * @param choice Index of the choice if presented with options. (optional)
-	 * @return Returns nil if the narrative ended. Returns enum string result when YarnRunner is still running.
-	 * @return Depending on the narrative, it can return a type of result and the associated content:
-	 * "Text" and a TextResult.
-	 * "Option" and an OptionResult.
-	 * "Error" and a string error message.
-	 * nil and a string indicating the narrative ends.
+	 * 用于推进叙述的方法。
+	 * @param choice 如果提供了选项，则为选项的索引。 (可选)
+	 * @return 如果叙述结束，则返回 nil。当 YarnRunner 仍在运行时，返回枚举字符串结果。
+	 * @return 根据叙述，它可以返回结果的类型和相关内容：
+	 * "Text" 和 TextResult。
+	 * "Option" 和 OptionResult。
+	 * "Error" 和字符串错误消息。
+	 * nil 和表示叙述结束的字符串。
 	 */
 	advance(choice?: number):
 		LuaMultiReturn<[null, string]> |
@@ -79,15 +76,14 @@ declare class YarnRunner {
 }
 
 interface YarnRunnerClass {
-
 	/**
-	 * The metamethod to create a Yarn script runner.
-	 * @param filename The name of the Yarn file to load and execute.
-	 * @param startTitle The starting node/title in the Yarn script.
-	 * @param state Table for providing predefined variables. (optional)
-	 * @param command Table of commands to execute. (optional)
-	 * @param testing Boolean flag for testing mode. When in testing mode, the testing variables from Web IDE will be loaded. Defaults to `false`. (optional)
-	 * @returns Returns the YarnRunner object.
+	 * 创建 Yarn 脚本运行器。
+	 * @param filename 要加载和执行的 Yarn 文件的名称。
+	 * @param startTitle Yarn 脚本中的起始节点/标题。
+	 * @param state 用于提供预定义变量的表格。（可选）
+	 * @param command 执行的命令表格。（可选）
+	 * @param testing 用于测试模式的布尔标志。处于测试模式时，将加载来自 Web IDE 的测试变量。默认为 `false`。（可选）
+	 * @returns 返回 YarnRunner 对象。
 	 */
 	(
 		this: void,

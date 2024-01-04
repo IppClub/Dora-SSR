@@ -6,6 +6,7 @@ declare module "dora" {
 interface BasicTyping<TypeName> {
 	__basic__: TypeName;
 }
+
 type BasicType<TypeName, T = {}> = T & BasicTyping<TypeName>;
 
 /** 可以存储在Array和Dictionary中的元素对象的基类。 */
@@ -17,7 +18,6 @@ class ContainerItem {
  * 具有给定宽度和高度的尺寸对象。
  */
 class Size extends ContainerItem {
-
 	private constructor();
 
 	/**
@@ -62,7 +62,6 @@ export type {Size as SizeType};
  * 用于创建Size对象的类。
  */
 interface SizeClass {
-
 	/**
 	 * 创建新的Size对象，给定宽度和高度。
 	 *
@@ -113,7 +112,6 @@ export {sizeClass as Size};
  * 表示具有x和y分量的2D向量的类。
  */
 class Vec2 extends ContainerItem {
-
 	private constructor();
 
 	/** 向量的x分量。 */
@@ -221,7 +219,6 @@ export type {Vec2 as Vec2Type};
  * 用于创建Vec2对象的类。
  */
 interface Vec2Class {
-
 	/**
 	 * 从现有的Vec2对象创建新的Vec2对象。
 	 *
@@ -273,7 +270,6 @@ export {vec2 as Vec2};
  * 继承自 `ContainerItem`。
  */
 class Rect extends ContainerItem {
-
 	private constructor();
 
 	// 矩形的原点位置。
@@ -355,7 +351,6 @@ export type {Rect as RectType};
  * 用于创建矩形对象的类。
  */
 interface RectClass {
-
 	/**
 	 * 所有属性都设置为0的矩形对象。
 	 */
@@ -398,7 +393,6 @@ export {rectClass as Rect};
 
 /** 具有红色、绿色和蓝色通道的颜色。 */
 class Color3 {
-
 	private constructor();
 
 	/** 颜色的红色通道，应为0到255。 */
@@ -421,7 +415,6 @@ export type {Color3 as Color3Type};
 
 /** 用于创建Color3对象的类。 */
 interface Color3Class {
-
 	/**
 	 * 创建所有通道都设置为0的颜色。
 	 * @returns 新的`Color3`对象。
@@ -453,7 +446,6 @@ export {color3Class as Color3};
  * 表示具有红色、绿色、蓝色和alpha通道的颜色。
  */
 class Color {
-
 	private constructor();
 
 	// 颜色的红色通道，应为0到255。
@@ -493,7 +485,6 @@ export type {Color as ColorType};
  * 提供创建Color对象的方法。
  */
 interface ColorClass {
-
 	/**
 	 * 创建所有通道都设置为0的颜色。
 	 * @returns 新的Color对象。
@@ -544,7 +535,6 @@ export const enum PlatformType {
  * 管理应用程序信息的单例类。
  */
 interface App {
-
 	/** 引擎运行到当前时间经过的帧数。 */
 	readonly frame: number;
 
@@ -674,7 +664,6 @@ export {app as App};
 
 /** 被Lua虚拟机管理的C++对象的基类。 */
 class Object extends ContainerItem {
-
 	protected constructor();
 
 	/** C++对象的ID。 */
@@ -688,7 +677,6 @@ export type {Object as ObjectType};
 
 /** 用于访问C++对象管理相关信息的静态类。 */
 interface ObjectClass {
-
 	/** 现存的C++对象的总数。 */
 	readonly count: number;
 
@@ -718,7 +706,6 @@ export type {ActionDef};
 
 /** 表示可以在节点上运行的动作对象的类 */
 interface Action extends Object {
-
 	/** 动作的持续时间 */
 	readonly duration: number;
 
@@ -755,7 +742,6 @@ export type {Action};
 
 /** 用于创建可以在节点上运行的动作的类 */
 interface ActionClass {
-
 	/**
 	 * 根据给定的定义创建新的动作
 	 * @param actionDef 动作的定义
@@ -771,7 +757,6 @@ type EaseFunc = BasicType<'EaseFunc', number>;
 
 /** 获取缓动函数对象的接口。 */
 interface EaseClass {
-
 	/** 应用线性变化率的缓动函数。 */
 	Linear: EaseFunc;
 
@@ -1223,7 +1208,6 @@ export type Item = number | boolean | string | LuaThread | ContainerItem;
  * 这与作为数组使用的Lua表容器的行为相同。
  */
 class Array extends Object {
-
 	private constructor();
 
 	/** 数组中的元素数量。 */
@@ -1359,7 +1343,6 @@ export type {Array as ArrayType};
  * 用于创建数组对象的类。
  */
 interface ArrayClass {
-
 	/**
 	 * 创建新的空数组对象。
 	 * @returns 新的数组对象。
@@ -1381,7 +1364,6 @@ export {arrayClass as Array};
  * 表示音频播放器单例对象。
  */
 class Audio {
-
 	private constructor();
 
 	/**
@@ -1429,7 +1411,6 @@ type BlendFunc = BasicType<'BlendFunc'>;
  * 定义混合函数的枚举。
  */
 export const enum BlendOp {
-
 	/**
 	 * 源颜色乘以 1 并加到目标颜色上（源颜色绘制在目标颜色之上）。
 	 */
@@ -1487,7 +1468,6 @@ export type {BlendFunc as BlendFuncType};
  * 用于创建混合函数对象的类。
  */
 interface BlendFuncClass {
-
 	/**
 	 * 获取混合函数的参数值。
 	 * @param func 要获取参数值的混合函数。
@@ -1532,7 +1512,6 @@ export type Job = BasicType<"Job", LuaThread>;
  * 用于管理协程作业的单例接口。
  */
 interface Routine {
-
 	/**
 	 * 从集合中移除协程作业，并关闭仍在运行状态的作业。
 	 * @param job 要移除的Job实例。
@@ -1609,7 +1588,6 @@ export function sleep(this: void, duration?: number): void;
  * 继承自 `Object`。
  */
 class Scheduler extends Object {
-
 	private constructor();
 
 	/**
@@ -1645,7 +1623,6 @@ export type {Scheduler as SchedulerType};
 * 用于创建调度器对象的类。
 */
 interface SchedulerClass {
-
 	/**
 	 * 创建新的调度器对象。
 	 * @returns 新创建的调度器对象。
@@ -1660,7 +1637,6 @@ export {scheduler as Scheduler};
  * 用字符串键和对应值存储数据的字典类。
  */
 class Dictionary extends Object {
-
 	private constructor();
 
 	/**
@@ -1719,7 +1695,6 @@ export type {Dictionary as DictionaryType};
  * ```
  */
 interface DictionaryClass {
-
 	/**
 	 * 创建"Dictionary"类型的实例。
 	 * @returns Dictionary类型的新实例。
@@ -1734,7 +1709,6 @@ export {dictionaryClass as Dictionary};
  * 用于监听处理节点事件的信号槽对象类。
  */
 class Slot extends Object {
-
 	private constructor();
 
 	/**
@@ -1765,7 +1739,6 @@ class Slot extends Object {
  * 用于监听处理全局事件信号槽对象
  */
 class GSlot extends Object {
-
 	private constructor();
 
 	/** 全局事件信号槽的名称 */
@@ -1779,7 +1752,6 @@ class GSlot extends Object {
  * 代表触摸输入或鼠标点击事件的类。
  */
 class Touch extends Object {
-
 	private constructor();
 
 	/**
@@ -1822,7 +1794,6 @@ class Touch extends Object {
  * 游戏引擎中的摄像机对象的类。
  */
 class Camera extends Object {
-
 	protected constructor();
 
 	/**
@@ -1837,7 +1808,6 @@ export type {Camera as CameraType};
  * 游戏引擎中的2D摄像机对象的类。
  */
 class Camera2D extends Camera {
-
 	private constructor();
 
 	/**
@@ -1862,7 +1832,6 @@ export type {Camera2D as Camera2DType};
 * 用于创建2D摄像机对象的类。
 */
 interface Camera2DClass {
-
 	/**
 	 * 使用给定的名称创建新的2D摄像机对象。
 	 * @param name 2D摄像机对象的名称。默认为空字符串。
@@ -1878,7 +1847,6 @@ export {camera2DClass as Camera2D};
  * 游戏引擎中的正交摄像机对象的类。
  */
 class CameraOtho extends Camera {
-
 	private constructor();
 
 	/**
@@ -1893,7 +1861,6 @@ export type {CameraOtho as CameraOthoType};
 * 用于创建正交摄像机对象的类。
 */
 interface CameraOthoClass {
-
 	/**
 	 * 使用给定的名称创建新的正交摄像机对象。
 	 * @param name 正交摄像机对象的名称。默认为空字符串。
@@ -1909,7 +1876,6 @@ export {cameraOthoClass as CameraOtho};
  * 代表着色器渲染流程的类。
  */
 class Pass extends Object {
-
 	private constructor();
 
 	/**
@@ -1946,7 +1912,6 @@ export type {Pass as PassType};
 * 用于创建着色器渲染流程对象的类。
 */
 interface PassClass {
-
 	/**
 	 * 用于创建新的渲染流程对象的方法。
 	 *
@@ -1968,7 +1933,6 @@ export {passClass as Pass};
  * Effect对象允许你组合多个通道以创建更复杂的着色器效果。
  */
 class Effect extends Object {
-
 	protected constructor();
 
 	/**
@@ -1996,7 +1960,6 @@ export type {Effect as EffectType};
 * 用于创建Effect对象的类。
 */
 interface EffectClass {
-
 	/**
 	 * 创建新的Effect对象。
 	 * @param vertShader 顶点着色器文件字符串。
@@ -2164,7 +2127,6 @@ export const enum KeyName {
  * 用于处理键盘输入的单例类接口。
  */
 interface Keyboard {
-
 	/**
 	 * 检查在当前帧中是否按下了键。
 	 * @param name 要检查的键的名称。
@@ -2232,7 +2194,6 @@ export const enum ButtonName {
  * 用于处理游戏控制器输入的单例类接口。
  */
 interface Controller {
-
 	/**
 	 * 检查在当前帧中是否按下了按钮。
 	 * @param controllerId 控制器id，当连接多个控制器时从0开始递增。
@@ -2273,7 +2234,6 @@ export {controller as Controller};
  * 将场景的一部分节点渲染到一张绑定到网格的纹理上的抓取器类。
  */
 class Grabber extends Object {
-
 	private constructor();
 
 	/**
@@ -2364,7 +2324,6 @@ const enum NodeEvent {
 export {NodeEvent as Slot};
 
 interface NodeEventHandlerMap {
-
 	/**
 	 * ActionEnd事件会在节点执行完动作时触发。
 	 * 在`node.runAction()`和`node.perform()`之后触发。
@@ -2588,7 +2547,6 @@ const enum GlobalEvent {
 export {GlobalEvent as GSlot};
 
 type GlobalEventHandlerMap = {
-
 	/** 应用即将退出时触发。 */
 	AppQuit(this: void): void;
 
@@ -2642,7 +2600,6 @@ type GlobalEventHandlerMap = {
  * 用于构建游戏对象的层级树结构的类。
  */
 class Node extends Object {
-
 	protected constructor();
 
 	/** 节点在父节点的子节点数组中的顺序。 */
@@ -3091,7 +3048,6 @@ export type {Node as NodeType};
  * 用于创建`Node`类的类对象。
  */
 interface NodeClass {
-
 	/**
 	 * 创建`Node`类的新实例。
 	 *
@@ -3112,7 +3068,6 @@ export {nodeClass as Node};
  * ImGui控件使用的字符串缓冲区类。
  */
 class Buffer extends Object {
-
 	private constructor();
 
 	/** 缓冲区的大小。 */
@@ -3146,7 +3101,6 @@ export type {Buffer as BufferType};
 * 用于创建Buffer对象的类。
 */
 interface BufferClass {
-
 	/**
 	 * 创建新的缓冲区实例。
 	 * @param size 要创建的缓冲区的大小。
@@ -3162,7 +3116,6 @@ export {bufferClass as Buffer};
  * 可以根据其蒙版的alpha值剪切其子节点渲染结果的节点。
  */
 class ClipNode extends Node {
-
 	private constructor();
 
 	/**
@@ -3187,7 +3140,6 @@ export type {ClipNode as ClipNodeType};
 * 用于创建ClipNode对象的类。
 */
 interface ClipNodeClass {
-
 	/**
 	 * 创建新的ClipNode对象。
 	 * @param stencil 剪切形状的蒙版节点。
@@ -3209,7 +3161,6 @@ export {clipNodeClass as ClipNode};
  * ```
  */
 class Content {
-
 	private constructor();
 
 	/** 用于搜索资源文件的目录数组。 */
@@ -3424,7 +3375,6 @@ export type SQL = string | [string, DBRow[]];
  * 代表数据库的接口。
  */
 interface DB {
-
 	/**
 	 * 检查数据库中是否存在表。
 	 * @param tableName 要检查的表的名称。
@@ -3567,7 +3517,6 @@ export {db as DB};
  * ```
  */
 class Director {
-
 	private constructor();
 
 	/**
@@ -3651,7 +3600,6 @@ export {director as Director};
  * 动画模型系统的基类。
  */
 class Playable extends Node {
-
 	protected constructor();
 
 	/**
@@ -3726,7 +3674,6 @@ export type {Playable as PlayableType};
 * 用于创建'Playable'对象实例的类。
 */
 interface PlayableClass {
-
 	/**
 	 * 从指定的动画文件创建新的'Playable'实例。
 	 * @param filename 要加载的动画文件的文件名。
@@ -3747,7 +3694,6 @@ export {playableClass as Playable};
  * 使用DragonBones动画系统实现的'Playable'动画模型类。
  */
 class DragonBone extends Playable {
-
 	private constructor();
 
 	/**
@@ -3785,7 +3731,6 @@ export type {DragonBone as DragonBoneType};
 * 用于创建'DragonBone'对象实例的类。
 */
 interface DragonBoneClass {
-
 	/**
 	 * 返回指定DragonBone文件字符串的可用外观列表。
 	 * @param boneStr 要获取外观的DragonBone文件字符串。
@@ -3823,7 +3768,6 @@ export {dragonBoneClass as DragonBone};
  * 使用Spine引擎实现的动画系统。
  */
 class Spine extends Playable {
-
 	private constructor();
 
 	/** 是否显示调试图形。 */
@@ -3865,7 +3809,6 @@ export type {Spine as SpineType};
 * 用于创建'Spine'动画模型对象实例的类。
 */
 interface SpineClass {
-
 	/**
 	 * 返回指定Spine2D文件字符串的可用外观列表。
 	 * @param spineStr 要获取外观的Spine2D文件字符串。
@@ -3903,7 +3846,6 @@ export {spineClass as Spine};
  * 'Playable'动画模型类的另一种实现。
  */
 class Model extends Playable {
-
 	protected constructor();
 
 	/**
@@ -3978,7 +3920,6 @@ export type {Model as ModelType}
  * 用于创建'Model'对象实例的类。
  */
 interface ModelClass {
-
 	/**
 	 * 返回占位使用的'Model'实例，该实例无法执行任何操作。
 	 * @returns 占位用的'Model'实例。
@@ -4022,7 +3963,6 @@ export {modelClass as Model};
  * 用于绘制简单形状（如点、线和多边形）的场景节点类。
  */
 class DrawNode extends Node {
-
 	private constructor();
 
 	/**
@@ -4102,7 +4042,6 @@ export type Component = number | boolean | string | ContainerItem;
  * 代表ECS游戏系统中的实体的类。
  */
 class Entity extends Object {
-
 	private constructor();
 
 	/** 实体的索引。 */
@@ -4157,7 +4096,6 @@ export type {Entity as EntityType};
  * 用于在ECS游戏系统中创建和管理实体的类。
  */
 interface EntityClass {
-
 	/** 所有正在运行的实体的数量。 */
 	readonly count: number;
 
@@ -4183,7 +4121,6 @@ export {entity as Entity};
  * 代表游戏系统中监听实体变化的观察者的类。
  */
 class Observer {
-
 	private constructor();
 
 	/**
@@ -4198,7 +4135,6 @@ class Observer {
  * 观察者可以监听的事件类型。
  */
 export const enum ObserverEvent {
-
 	/** 新实体的添加。 */
 	Add = "Add",
 
@@ -4216,7 +4152,6 @@ export const enum ObserverEvent {
 * 用于创建Observer对象的类。
 */
 interface ObserverClass {
-
 	/**
 	 * 创建具有指定组件过滤器和要监听的动作的新观察者。
 	 * @param action 要监听的动作类型。
@@ -4233,7 +4168,6 @@ export {observerClass as Observer};
  * 代表ECS游戏系统中的实体组的类。
  */
 class Group extends Object {
-
 	private constructor();
 
 	/** 实体组中的实体数量。 */
@@ -4267,7 +4201,6 @@ export type {Group as GroupType};
 * 用于创建实体组对象的类。
 */
 interface GroupClass {
-
 	/**
 	 * 创建包含指定组件名称的新实体组。
 	 * @param components 要包含在实体组中的组件的名称列表。
@@ -4284,7 +4217,6 @@ export {groupClass as Group};
  * 继承自 `Object`。
  */
 class Texture2D extends Object {
-
 	private constructor();
 
 	/** 纹理的宽度，以像素为单位。 */
@@ -4300,7 +4232,6 @@ export type {Texture2D as Texture2DType};
  * 用于将纹理渲染为图元网格的类，每个图元都可以定位、着色，并可以操作其UV坐标。
  */
 class Grid extends Node {
-
 	private constructor();
 
 	/** 网格中的列数。渲染时，水平方向上有 `gridX + 1` 个顶点。 */
@@ -4371,7 +4302,6 @@ export type {Grid as GridType};
 * 用于创建Grid对象的类。
 */
 interface GridClass {
-
 	/**
 	 * 使用指定的纹理矩形和网格大小创建新的Grid。
 	 * @param textureRect 用于网格的纹理内的矩形。
@@ -4450,7 +4380,6 @@ export const enum CacheResourceTypeSafeUnload {
  * 用于管理各种游戏资源缓存的单例实例。
  */
 class Cache {
-
 	private constructor();
 
 	/**
@@ -4521,7 +4450,6 @@ class FixtureDef extends Object {
  * 用于表示游戏世界中的物理感应器的类。
  */
 class Sensor extends Object {
-
 	private constructor();
 
 	/**
@@ -4560,7 +4488,6 @@ class Sensor extends Object {
 export type {Sensor as SensorType};
 
 export const enum BodyMoveType {
-
 	/** 不会移动的物理体。 */
 	Static = "Static",
 
@@ -4576,7 +4503,6 @@ export const enum BodyMoveType {
  * 继承自 `Object`。
  */
 class BodyDef extends Object {
-
 	private constructor();
 
 	/**
@@ -4719,7 +4645,6 @@ export type {BodyDef as BodyDefType};
  * 用于创建BodyDef和FixtureDef的类。
  */
 interface BodyDefClass {
-
 	/**
 	 * 使用指定的尺寸创建多边形定义。
 	 * @param width 多边形的宽度。
@@ -4808,7 +4733,6 @@ export {bodyDefClass as BodyDef};
  * 代表物理世界中的物理体的类。
  */
 class Body extends Node {
-
 	protected constructor();
 
 	/**
@@ -4931,7 +4855,6 @@ export type {Body as BodyType};
  * 用于创建Body对象的类。
  */
 interface BodyClass {
-
 	/**
 	 * 创建新的`Body`实例。
 	 * @param def 要创建的物理体的定义。
@@ -4956,7 +4879,6 @@ export {bodyClass as Body};
  * 在游戏中代表物理世界。
  */
 class PhysicsWorld extends Node {
-
 	protected constructor();
 
 	/**
@@ -5017,7 +4939,6 @@ export type {PhysicsWorld as PhysicsWorldType};
  * 用于创建PhysicsWorld对象的类。
  */
 interface PhysicsWorldClass {
-
 	/**
 	 * 用于将物理引擎的米值转换为像素值的因子。
 	 * 默认值100.0是一个好的值，因为物理引擎可以很好地模拟0.1到10米的真实物体。
@@ -5040,7 +4961,6 @@ export {physicsWorldClass as PhysicsWorld};
  * 可用于将物理体连接在一起的类。
  */
 class Joint extends Object {
-
 	protected constructor();
 
 	/**
@@ -5060,7 +4980,6 @@ export type {Joint as JointType};
  * A joint that applies a rotational or linear force to a physics body.
  */
 class MotorJoint extends Joint {
-
 	private constructor();
 
 	/**
@@ -5085,7 +5004,6 @@ export type {MotorJoint as MotorJointType};
  * 允许物理体移动到特定位置的关节类型。
  */
 class MoveJoint extends Joint {
-
 	private constructor();
 
 	/**
@@ -5100,7 +5018,6 @@ export type {MoveJoint as MoveJointType};
  * 定义创建关节的属性的类。
  */
 class JointDef extends Object {
-
 	private constructor();
 
 	/** 关节的中心点，以本地坐标表示。 */
@@ -5117,7 +5034,6 @@ class JointDef extends Object {
  * 用于创建 JointDef 对象的接口。
  */
 interface JointDefClass {
-
 	/**
 	 * 创建距离关节定义。
 	 * @param canCollide 连接的物体是否应该相互碰撞。
@@ -5357,7 +5273,6 @@ export const enum TextureFilter {
  * 用于在游戏场景树层次结构中渲染纹理的Sprite类。
  */
 class Sprite extends Node {
-
 	private constructor();
 
 	/**
@@ -5413,7 +5328,6 @@ export type {Sprite as SpriteType};
  * 用于创建 `Sprite` 对象的类。
  */
 interface SpriteClass {
-
 	/**
 	 * 创建 Sprite 对象的构造函数。
 	 * @param clipStr 包含加载纹理文件格式的字符串。
@@ -5444,7 +5358,6 @@ export {spriteClass as Sprite};
  * 用于文本对齐设置的枚举。
  */
 export const enum TextAlign {
-
 	/**
 	 * 文本左对齐。
 	 */
@@ -5465,7 +5378,6 @@ export const enum TextAlign {
  * 用于使用 TrueType 字体渲染文本的节点。
  */
 class Label extends Node {
-
 	private constructor();
 
 	/**
@@ -5536,7 +5448,6 @@ export type {Label as LabelType};
  * 用于创建 Label 对象的类。
  */
 interface LabelClass {
-
 	/**
 	 * 用于自动计算宽度的值。
 	 */
@@ -5558,7 +5469,6 @@ export {labelClass as Label};
  * 用于使用顶点绘制线条的类。
  */
 class Line extends Node {
-
 	private constructor();
 
 	/**
@@ -5595,7 +5505,6 @@ export type {Line as LineType};
 
 /** 用于创建 Line 对象的类。 */
 interface LineClass {
-
 	/**
 	 * 创建并返回新的 Line 对象。
 	 * @param verts 要添加到线条的顶点表。
@@ -5620,7 +5529,6 @@ export {lineClass as Line}
  * 只有一个子节点可以接收第一个触摸事件；后续的多点触摸事件将被忽略。
  */
 class Menu extends Node {
-
 	private constructor();
 
 	/**
@@ -5635,7 +5543,6 @@ export type {Menu as MenuType};
  * 用于创建菜单对象的类。
  */
 interface MenuClass {
-
 	/**
 	 * 使用指定的宽度和高度创建新的 `Menu` 实例。
 	 * @param width 菜单节点的宽度。
@@ -5660,7 +5567,6 @@ export {menuClass as Menu};
  * Q-learning 是一种无模型的强化学习算法，通过反复更新状态-动作对的 Q 值估计来学习最优的动作值函数。
  */
 class QLearner extends Object {
-
 	private constructor();
 
 	/**
@@ -5696,7 +5602,6 @@ export type {QLearner as QLearnerType};
  * 用于创建 QLearner 对象的类。
  */
 interface QLearnerClass {
-
 	/**
 	 * 根据特定的提示和条件值构造状态。
 	 * @param hints 提供的值的字节长度。
@@ -5737,7 +5642,6 @@ type MLOperator = "return" | "<=" | ">" | "==";
  * 机器学习算法的类。
  */
 class ML {
-
 	/**
 	 * 将 CSV 数据作为输入，并异步应用 C4.5 机器学习算法构建决策树模型。
 	 * C4.5 是一种决策树算法，它使用信息增益来选择最佳属性在树的每个节点上拆分数据。生成的决策树可以用于对新数据进行预测。
@@ -5771,7 +5675,6 @@ export {ml as ML};
  * 表示发射和动画粒子的粒子系统节点。
  */
 class Particle extends Node {
-
 	private constructor();
 
 	/** 粒子系统是否处于活动状态。 */
@@ -5792,7 +5695,6 @@ export type {Particle as ParticleType};
  * 可以创建新的 Particle 对象的类。
  */
 interface ParticleClass {
-
 	/**
 	 * 从粒子系统文件创建新的 Particle 对象。
 	 * @param filename 粒子系统文件的文件路径。
@@ -5806,7 +5708,6 @@ export {particleClass as Particle};
 
 /** 文件路径操作的辅助类。 */
 interface Path {
-
 	/**
 	 * 从模块名称获取脚本运行路径。
 	 * @param moduleName 输入的模块名称。
@@ -5878,7 +5779,6 @@ export {path as Path};
  * 用于函数性能分析的类。
  */
 interface ProfilerClass {
-
 	/**
 	 * 分析事件的名称。
 	 */
@@ -5906,7 +5806,6 @@ export {profiler as Profiler};
  * RenderTarget 是带有缓冲区的节点，允许将 Node 渲染到纹理中。
  */
 class RenderTarget {
-
 	private constructor();
 
 	/**
@@ -5963,7 +5862,6 @@ class RenderTarget {
  * 用于创建 RenderTarget 对象的类。
  */
 interface RenderTargetClass {
-
 	/**
 	 * 使用特定的宽度和高度创建新的 RenderTarget 对象。
 	 * @param width 渲染目标的宽度。
@@ -5980,7 +5878,6 @@ export { renderTargetClass as RenderTarget };
  * 用于可缩放矢量图形渲染的类。
  */
 class SVG extends Object {
-
 	private constructor();
 
 	/**
@@ -6003,7 +5900,6 @@ class SVG extends Object {
  * 用于创建 SVG 对象的类。
  */
 interface SVGClass {
-
 	/**
 	 * 从指定的 SVG 文件创建新的 SVG 对象。
 	 * @param filename SVG 格式文件的路径。
@@ -6029,7 +5925,6 @@ const vgNodeClass: VGNodeClass;
 export {vgNodeClass as VGNode};
 
 class View {
-
 	private constructor();
 
 	/** 视图的像素大小。 */
