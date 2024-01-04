@@ -2,6 +2,8 @@ local Sprite = require("Sprite")
 local type Touch = require("TouchType")
 
 local sprite = Sprite("Image/logo.png")
+sprite.scaleX = 0.5
+sprite.scaleY = 0.5
 sprite.touchEnabled = true
 sprite:slot("TapMoved", function(touch: Touch)
 	if not touch.first then

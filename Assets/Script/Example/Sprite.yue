@@ -1,6 +1,7 @@
 _ENV = Dora!
 
-sprite = Sprite "Image/logo.png"
+sprite = with Sprite "Image/logo.png"
+	.scaleX = .scaleY = 0.5
 
 with Node!
 	.touchEnabled = true
