@@ -554,12 +554,6 @@ local record __SLOT__
 	-- @param buttonName (Keyboard.KeyName) 被释放的按钮名称。
 	["ButtonUp"]: function(controllerId: integer, buttonName: Controller.ButtonName)
 
-	-- 当游戏控制器按钮被按压时触发ButtonPressed事件。
-	-- 在设置`node.controllerEnabled = true`之后触发。
-	-- @param controllerId (integer) 控制器ID，当有多个控制器连接时从0开始递增。
-	-- @param buttonName (Keyboard.KeyName) 被按压的按钮名称。
-	["ButtonPressed"]: function(controllerId: integer, buttonName: Keyboard.KeyName)
-
 	-- 当游戏控制器轴发生变化时触发Axis事件。
 	-- 在设置`node.controllerEnabled = true`之后触发。
 	-- @param controllerId (integer) 控制器ID，当有多个控制器连接时从0开始递增。

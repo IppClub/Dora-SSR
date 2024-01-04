@@ -205,10 +205,6 @@ void Controller::handleEventInRender(const SDL_Event& event) {
 						EventArgs<int, Slice> button("ButtonUp"_slice, it->second->id, buttonName);
 						handler(&button);
 					}
-					if (state.newState) {
-						EventArgs<int, Slice> button("ButtonPressed"_slice, it->second->id, buttonName);
-						handler(&button);
-					}
 				}
 			});
 			break;

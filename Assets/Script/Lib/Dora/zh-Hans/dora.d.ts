@@ -2311,7 +2311,6 @@ const enum NodeEvent {
 	TextEditing = "TextEditing",
 	ButtonDown = "ButtonDown",
 	ButtonUp = "ButtonUp",
-	ButtonPressed = "ButtonPressed",
 	Axis = "Axis",
 	AnimationEnd = "AnimationEnd",
 	BodyEnter = "BodyEnter",
@@ -2463,14 +2462,6 @@ interface NodeEventHandlerMap {
 	 * @param buttonName 被释放的按钮名称。
 	*/
 	ButtonUp(this: void, controllerId: number, buttonName: ButtonName): void;
-
-	/**
-	 * 当游戏控制器按钮被按压时触发ButtonPressed事件。
-	 * 在设置`node.controllerEnabled = true`之后触发。
-	 * @param controllerId 控制器ID，当有多个控制器连接时从0开始递增。
-	 * @param buttonName 被按压的按钮名称。
-	*/
-	ButtonPressed(this: void, controllerId: number, buttonName: KeyName): void;
 
 	/**
 	 * 当游戏控制器轴发生变化时触发Axis事件。

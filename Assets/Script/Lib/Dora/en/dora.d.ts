@@ -2314,7 +2314,6 @@ const enum NodeEvent {
 	TextEditing = "TextEditing",
 	ButtonDown = "ButtonDown",
 	ButtonUp = "ButtonUp",
-	ButtonPressed = "ButtonPressed",
 	Axis = "Axis",
 	AnimationEnd = "AnimationEnd",
 	BodyEnter = "BodyEnter",
@@ -2466,14 +2465,6 @@ interface NodeEventHandlerMap {
 	 * @param buttonName The name of the button that was released.
 	*/
 	ButtonUp(this: void, controllerId: number, buttonName: ButtonName): void;
-
-	/**
-	 * The ButtonPressed slot is triggered when a game controller button is pressed.
-	 * Triggers after setting `node.controllerEnabled = true`.
-	 * @param controllerId The controller id, incrementing from 0 when multiple controllers connected.
-	 * @param buttonName The name of the button that was pressed.
-	*/
-	ButtonPressed(this: void, controllerId: number, buttonName: KeyName): void;
 
 	/**
 	 * The Axis slot is triggered when a game controller axis changed.
