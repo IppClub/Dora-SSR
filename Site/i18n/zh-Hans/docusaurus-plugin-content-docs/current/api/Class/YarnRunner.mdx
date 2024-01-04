@@ -32,6 +32,19 @@ enum ResultType
 end
 ```
 
+## state
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于获取 Yarn 脚本的运行状态变量的属性
+
+**签名：**
+```tl
+const state: {string: string | number | boolean}
+```
+
 ## __call
 
 **类型：** 元方法。
@@ -46,7 +59,7 @@ metamethod __call: function(
 		self: YarnRunner,
 		filename: string,
 		startTitle: string,
-		state?: table, --[[{}]]
+		state?: {string: string | number | boolean}, --[[{}]]
 		command?: {string: function}, --[[{}]]
 		testing?: boolean --[[false]]
 	): YarnRunner

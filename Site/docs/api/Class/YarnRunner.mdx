@@ -32,6 +32,19 @@ enum ResultType
 end
 ```
 
+## state
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;Field for accessing Yarn script runtime variables.
+
+**Signature:**
+```tl
+const state: {string: string | number | boolean}
+```
+
 ## __call
 
 **Type:** Metamethod.
@@ -46,7 +59,7 @@ metamethod __call: function(
 		self: YarnRunner,
 		filename: string,
 		startTitle: string,
-		state?: table, --[[{}]]
+		state?: {string: string | number | boolean}, --[[{}]]
 		command?: {string: function}, --[[{}]]
 		testing?: boolean --[[false]]
 	): YarnRunner
