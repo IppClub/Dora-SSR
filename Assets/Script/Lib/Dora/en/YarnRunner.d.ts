@@ -1,10 +1,9 @@
 /// <reference path="dora.d.ts" />
 
 /**
- * Record to define markup attributes.
+ * Interface to define markup attributes.
  */
 interface Markup {
-
 	/**
 	 * Name of the markup.
 	 */
@@ -27,10 +26,9 @@ interface Markup {
 }
 
 /**
- * Record to define textual results with optional markup.
+ * Interface to define textual results with optional markup.
  */
 interface TextResult {
-
 	/**
 	 * Textual content.
 	 */
@@ -48,13 +46,12 @@ interface TextResult {
 }
 
 /**
- * Record to define options in the narrative.
+ * Type to define options in the narrative.
  * Gets element as TextResult when the option is available, gets boolean false when the option is unavailable.
  */
 type OptionResult = [option: TextResult | boolean];
 
 declare class YarnRunner {
-
 	private constructor();
 
 	/** Field for accessing Yarn script runtime variables. */
@@ -79,9 +76,8 @@ declare class YarnRunner {
 }
 
 interface YarnRunnerClass {
-
 	/**
-	 * The metamethod to create a Yarn script runner.
+	 * Create a Yarn script runner.
 	 * @param filename The name of the Yarn file to load and execute.
 	 * @param startTitle The starting node/title in the Yarn script.
 	 * @param state Table for providing predefined variables. (optional)

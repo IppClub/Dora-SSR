@@ -8,319 +8,318 @@ declare var NaN: number;
 declare var Infinity: number;
 
 /**
- * Converts a string to an integer.
- * @param string A string to convert into a number.
- * @param radix A value between 2 and 36 that specifies the base of the number in `string`.
- * If this argument is not supplied, strings with a prefix of '0x' are considered hexadecimal.
- * All other strings are considered decimal.
+ * 将字符串转换为整数。
+ * @param string 需要转换为数字的字符串。
+ * @param radix 指定`string`中数字的基数，取值范围为2到36。
+ * 如果不提供此参数，以'0x'开头的字符串被视为十六进制，其它所有字符串被视为十进制。
  */
 declare function parseInt(string: string, radix?: number): number;
 
 /**
- * Converts a string to a floating-point number.
- * @param string A string that contains a floating-point number.
+ * 将字符串转换为浮点数。
+ * @param string 包含浮点数的字符串。
  */
 declare function parseFloat(string: string): number;
 
 /**
- * Returns a Boolean value that indicates whether a value is the reserved value NaN (not a number).
- * @param number A numeric value.
+ * 返回一个布尔值，表示值是否为保留值NaN（非数字）。
+ * @param number 数字值。
  */
 declare function isNaN(number: number): boolean;
 
 /**
- * Determines whether a supplied number is finite.
- * @param number Any numeric value.
+ * 判断提供的数字是否有限。
+ * @param number 任意数字值。
  */
 declare function isFinite(number: number): boolean;
 
 interface Symbol {
-    /** Returns a string representation of an object. */
-    toString(): string;
+	/** 返回对象的字符串表示形式。 */
+	toString(): string;
 
-    /** Returns the primitive value of the specified object. */
-    valueOf(): symbol;
+	/** 返回指定对象的原始值。 */
+	valueOf(): symbol;
 }
 
 declare type PropertyKey = string | number | symbol;
 
 interface PropertyDescriptor {
-    configurable?: boolean;
-    enumerable?: boolean;
-    value?: any;
-    writable?: boolean;
-    get?(): any;
-    set?(v: any): void;
+	configurable?: boolean;
+	enumerable?: boolean;
+	value?: any;
+	writable?: boolean;
+	get?(): any;
+	set?(v: any): void;
 }
 
 interface PropertyDescriptorMap {
-    [key: PropertyKey]: PropertyDescriptor;
+	[key: PropertyKey]: PropertyDescriptor;
 }
 
 interface Object {
-    /** The initial value of Object.prototype.constructor is the standard built-in Object constructor. */
-    constructor: Function;
+	/** Object.prototype.constructor的初始值是标准内置的Object构造函数。 */
+	constructor: Function;
 
-    /** Returns a string representation of an object. */
-    toString(): string;
+	/** 返回对象的字符串表示形式。 */
+	toString(): string;
 
-    /**
-     * Determines whether an object has a property with the specified name.
-     * @param v A property name.
-     */
-    hasOwnProperty(v: PropertyKey): boolean;
+	/**
+	 * 确定对象是否具有指定名称的属性。
+	 * @param v 属性名称。
+	 */
+	hasOwnProperty(v: PropertyKey): boolean;
 }
 
 interface ObjectConstructor {
-    new (value?: any): Object;
-    (): any;
-    (value: any): any;
+	new (value?: any): Object;
+	(): any;
+	(value: any): any;
 
-    /**
-     * Gets the own property descriptor of the specified object.
-     * An own property descriptor is one that is defined directly on the object and is not inherited from the object's prototype.
-     * @param o Object that contains the property.
-     * @param p Name of the property.
-     */
-    getOwnPropertyDescriptor(o: any, p: PropertyKey): PropertyDescriptor | undefined;
+	/**
+	 * 获取指定对象的自有属性描述符。
+	 * 自有属性描述符是直接在对象上定义的，而不是从对象的原型继承的。
+	 * @param o 包含属性的对象。
+	 * @param p 属性的名称。
+	 */
+	getOwnPropertyDescriptor(o: any, p: PropertyKey): PropertyDescriptor | undefined;
 
-    /**
-     * Adds a property to an object, or modifies attributes of an existing property.
-     * @param o Object on which to add or modify the property. This can be a native JavaScript object (that is, a user-defined object or a built in object) or a DOM object.
-     * @param p The property name.
-     * @param attributes Descriptor for the property. It can be for a data property or an accessor property.
-     */
-    defineProperty<T>(o: T, p: PropertyKey, attributes: PropertyDescriptor & ThisType<any>): T;
+	/**
+	 * 向对象添加属性，或修改现有属性的属性。
+	 * @param o 要添加或修改属性的对象。这可以是原生JavaScript对象（即用户定义的对象或内置对象）或DOM对象。
+	 * @param p 属性名称。
+	 * @param attributes 属性的描述符。它可以是数据属性或访问器属性。
+	 */
+	defineProperty<T>(o: T, p: PropertyKey, attributes: PropertyDescriptor & ThisType<any>): T;
 
-    /**
-     * Returns the names of the enumerable string properties and methods of an object.
-     * @param o Object that contains the properties and methods. This can be an object that you created or an existing Document Object Model (DOM) object.
-     */
-    keys(o: object): string[];
+	/**
+	 * 返回对象的可枚举字符串属性和方法的名称。
+	 * @param o 包含属性和方法的对象。这可以是您创建的对象或现有的文档对象模型（DOM）对象。
+	 */
+	keys(o: object): string[];
 }
 
 /**
- * Provides functionality common to all JavaScript objects.
+ * 提供所有JavaScript对象通用的功能。
  */
 declare var Object: ObjectConstructor;
 
 /**
- * Creates a new function.
+ * 创建新的函数。
  */
 interface Function {
-    /**
-     * Calls the function, substituting the specified object for the this value of the function, and the specified array for the arguments of the function.
-     * @param thisArg The object to be used as the this object.
-     * @param argArray A set of arguments to be passed to the function.
-     */
-    apply(this: Function, thisArg: any, argArray?: any): any;
+	/**
+	 * 调用函数，将指定对象替换为函数的this值，将指定数组替换为函数的参数。
+	 * @param thisArg 用作this对象的对象。
+	 * @param argArray 传递给函数的一组参数。
+	 */
+	apply(this: Function, thisArg: any, argArray?: any): any;
 
-    /**
-     * Calls a method of an object, substituting another object for the current object.
-     * @param thisArg The object to be used as the current object.
-     * @param argArray A list of arguments to be passed to the method.
-     */
-    call(this: Function, thisArg: any, ...argArray: any[]): any;
+	/**
+	 * 调用对象的方法，将另一对象替换为当前对象。
+	 * @param thisArg 用作当前对象的对象。
+	 * @param argArray 传递给方法的参数列表。
+	 */
+	call(this: Function, thisArg: any, ...argArray: any[]): any;
 
-    /**
-     * For a given function, creates a bound function that has the same body as the original function.
-     * The this object of the bound function is associated with the specified object, and has the specified initial parameters.
-     * @param thisArg An object to which the this keyword can refer inside the new function.
-     * @param argArray A list of arguments to be passed to the new function.
-     */
-    bind(this: Function, thisArg: any, ...argArray: any[]): any;
+	/**
+	 * 对于给定的函数，创建绑定函数，该函数具有与原函数相同的主体。
+	 * 绑定函数的this对象与指定对象关联，并具有指定的初始参数。
+	 * @param thisArg 新函数中this关键字可以引用的对象。
+	 * @param argArray 传递给新函数的参数列表。
+	 */
+	bind(this: Function, thisArg: any, ...argArray: any[]): any;
 
-    /** Returns a string representation of a function. */
-    toString(): string;
+	/** 返回函数的字符串表示形式。 */
+	toString(): string;
 
-    readonly length: number;
+	readonly length: number;
 }
 
 /**
- * Extracts the type of the 'this' parameter of a function type, or 'unknown' if the function type has no 'this' parameter.
+ * 提取函数类型的 'this' 参数的类型，如果函数类型没有 'this' 参数，则为 'unknown'。
  */
 type ThisParameterType<T> = T extends (this: infer U, ...args: never) => any ? U : unknown;
 
 /**
- * Removes the 'this' parameter from a function type.
+ * 从函数类型中移除 'this' 参数。
  */
 type OmitThisParameter<T> = unknown extends ThisParameterType<T> ? T : T extends (...args: infer A) => infer R ? (...args: A) => R : T;
 
 interface CallableFunction extends Function {
-    /**
-     * Calls the function with the specified object as the this value and the elements of specified array as the arguments.
-     * @param thisArg The object to be used as the this object.
-     */
-    apply<T, R>(this: (this: T) => R, thisArg: T): R;
+	/**
+	 * 以指定对象作为 this 值，指定数组的元素作为参数，调用函数。
+	 * @param thisArg 用作 this 对象的对象。
+	 */
+	apply<T, R>(this: (this: T) => R, thisArg: T): R;
 
-    /**
-     * Calls the function with the specified object as the this value and the elements of specified array as the arguments.
-     * @param thisArg The object to be used as the this object.
-     * @param args An array of argument values to be passed to the function.
-     */
-    apply<T, A extends any[], R>(this: (this: T, ...args: A) => R, thisArg: T, args: A): R;
+	/**
+	 * 以指定对象作为 this 值，指定数组的元素作为参数，调用函数。
+	 * @param thisArg 用作 this 对象的对象。
+	 * @param args 要传递给函数的参数值数组。
+	 */
+	apply<T, A extends any[], R>(this: (this: T, ...args: A) => R, thisArg: T, args: A): R;
 
-    /**
-     * Calls the function with the specified object as the this value and the specified rest arguments as the arguments.
-     * @param thisArg The object to be used as the this object.
-     * @param args Argument values to be passed to the function.
-     */
-    call<T, A extends any[], R>(this: (this: T, ...args: A) => R, thisArg: T, ...args: A): R;
+	/**
+	 * 以指定对象作为 this 值，指定的剩余参数作为参数，调用函数。
+	 * @param thisArg 用作 this 对象的对象。
+	 * @param args 要传递给函数的参数值。
+	 */
+	call<T, A extends any[], R>(this: (this: T, ...args: A) => R, thisArg: T, ...args: A): R;
 
-    /**
-     * For a given function, creates a bound function that has the same body as the original function.
-     * The this object of the bound function is associated with the specified object, and has the specified initial parameters.
-     * @param thisArg The object to be used as the this object.
-     */
-    bind<T>(this: T, thisArg: ThisParameterType<T>): OmitThisParameter<T>;
+	/**
+	 * 对于给定的函数，创建具有与原函数相同主体的绑定函数。
+	 * 绑定函数的 this 对象与指定对象关联，并具有指定的初始参数。
+	 * @param thisArg 用作 this 对象的对象。
+	 */
+	bind<T>(this: T, thisArg: ThisParameterType<T>): OmitThisParameter<T>;
 
-    /**
-     * For a given function, creates a bound function that has the same body as the original function.
-     * The this object of the bound function is associated with the specified object, and has the specified initial parameters.
-     * @param thisArg The object to be used as the this object.
-     * @param args Arguments to bind to the parameters of the function.
-     */
-    bind<T, A extends any[], B extends any[], R>(this: (this: T, ...args: [...A, ...B]) => R, thisArg: T, ...args: A): (...args: B) => R;
+	/**
+	 * 对于给定的函数，创建具有与原函数相同主体的绑定函数。
+	 * 绑定函数的 this 对象与指定对象关联，并具有指定的初始参数。
+	 * @param thisArg 用作 this 对象的对象。
+	 * @param args 要绑定到函数参数的参数。
+	 */
+	bind<T, A extends any[], B extends any[], R>(this: (this: T, ...args: [...A, ...B]) => R, thisArg: T, ...args: A): (...args: B) => R;
 }
 
 interface NewableFunction extends Function {
-    /**
-     * Calls the function with the specified object as the this value and the elements of specified array as the arguments.
-     * @param thisArg The object to be used as the this object.
-     */
-    apply<T>(this: new () => T, thisArg: T): void;
-    /**
-     * Calls the function with the specified object as the this value and the elements of specified array as the arguments.
-     * @param thisArg The object to be used as the this object.
-     * @param args An array of argument values to be passed to the function.
-     */
-    apply<T, A extends any[]>(this: new (...args: A) => T, thisArg: T, args: A): void;
+	/**
+	 * 以指定对象作为 this 值，指定数组的元素作为参数，调用函数。
+	 * @param thisArg 用作 this 对象的对象。
+	 */
+	apply<T>(this: new () => T, thisArg: T): void;
+	/**
+	 * 以指定对象作为 this 值，指定数组的元素作为参数，调用函数。
+	 * @param thisArg 用作 this 对象的对象。
+	 * @param args 要传递给函数的参数值数组。
+	 */
+	apply<T, A extends any[]>(this: new (...args: A) => T, thisArg: T, args: A): void;
 
-    /**
-     * Calls the function with the specified object as the this value and the specified rest arguments as the arguments.
-     * @param thisArg The object to be used as the this object.
-     * @param args Argument values to be passed to the function.
-     */
-    call<T, A extends any[]>(this: new (...args: A) => T, thisArg: T, ...args: A): void;
+	/**
+	 * 以指定对象作为 this 值，指定的剩余参数作为参数，调用函数。
+	 * @param thisArg 用作 this 对象的对象。
+	 * @param args 要传递给函数的参数值。
+	 */
+	call<T, A extends any[]>(this: new (...args: A) => T, thisArg: T, ...args: A): void;
 
-    /**
-     * For a given function, creates a bound function that has the same body as the original function.
-     * The this object of the bound function is associated with the specified object, and has the specified initial parameters.
-     * @param thisArg The object to be used as the this object.
-     */
-    bind<T>(this: T, thisArg: any): T;
+	/**
+	 * 对于给定的函数，创建具有与原函数相同主体的绑定函数。
+	 * 绑定函数的 this 对象与指定对象关联，并具有指定的初始参数。
+	 * @param thisArg 用作 this 对象的对象。
+	 */
+	bind<T>(this: T, thisArg: any): T;
 
-    /**
-     * For a given function, creates a bound function that has the same body as the original function.
-     * The this object of the bound function is associated with the specified object, and has the specified initial parameters.
-     * @param thisArg The object to be used as the this object.
-     * @param args Arguments to bind to the parameters of the function.
-     */
-    bind<A extends any[], B extends any[], R>(this: new (...args: [...A, ...B]) => R, thisArg: any, ...args: A): new (...args: B) => R;
+	/**
+	 * 对于给定的函数，创建具有与原函数相同主体的绑定函数。
+	 * 绑定函数的 this 对象与指定对象关联，并具有指定的初始参数。
+	 * @param thisArg 用作 this 对象的对象。
+	 * @param args 要绑定到函数参数的参数。
+	 */
+	bind<A extends any[], B extends any[], R>(this: new (...args: [...A, ...B]) => R, thisArg: any, ...args: A): new (...args: B) => R;
 }
 
 interface IArguments {
-    [index: number]: any;
-    length: number;
-    callee: Function;
+	[index: number]: any;
+	length: number;
+	callee: Function;
 }
 
 interface String {
-    /** Returns a string representation of a string. */
-    toString(): string;
+	/** 返回字符串的字符串表示形式。 */
+	toString(): string;
 
-    /**
-     * Returns the character at the specified index.
-     * @param pos The zero-based index of the desired character.
-     */
-    charAt(pos: number): string;
+	/**
+	 * 返回指定索引处的字符。
+	 * @param pos 需要获取字符的索引（从0开始）。
+	 */
+	charAt(pos: number): string;
 
-    /**
-     * Returns the Unicode value of the character at the specified location.
-     * @param index The zero-based index of the desired character. If there is no character at the specified index, NaN is returned.
-     */
-    charCodeAt(index: number): number;
+	/**
+	 * 返回指定位置的字符的Unicode值。
+	 * @param index 需要获取字符Unicode值的索引（从0开始）。如果指定索引处没有字符，返回NaN。
+	 */
+	charCodeAt(index: number): number;
 
-    /**
-     * Returns a string that contains the concatenation of two or more strings.
-     * @param strings The strings to append to the end of the string.
-     */
-    concat(...strings: string[]): string;
+	/**
+	 * 返回包含两个或多个字符串连接的字符串。
+	 * @param strings 需要添加到字符串末尾的字符串。
+	 */
+	concat(...strings: string[]): string;
 
-    /**
-     * Returns the position of the first occurrence of a substring.
-     * @param searchString The substring to search for in the string
-     * @param position The index at which to begin searching the String object. If omitted, search starts at the beginning of the string.
-     */
-    indexOf(searchString: string, position?: number): number;
+	/**
+	 * 返回子字符串首次出现的位置。
+	 * @param searchString 需要在字符串中查找的子字符串
+	 * @param position 开始在String对象中进行搜索的索引。如果省略，搜索从字符串的开始处开始。
+	 */
+	indexOf(searchString: string, position?: number): number;
 
-    /**
-     * Replaces text in a string, using a regular expression or search string.
-     * @param searchValue A string to search for.
-     * @param replaceValue A string containing the text to replace.
-     */
-    replace(searchValue: string, replaceValue: string): string;
+	/**
+	 * 使用正则表达式或搜索字符串替换字符串中的文本。
+	 * @param searchValue 需要搜索的字符串。
+	 * @param replaceValue 包含替换文本的字符串。
+	 */
+	replace(searchValue: string, replaceValue: string): string;
 
-    /**
-     * Replaces text in a string, using a regular expression or search string.
-     * @param searchValue A string to search for.
-     * @param replacer A function that returns the replacement text.
-     */
-    replace(searchValue: string, replacer: (substring: string, ...args: any[]) => string): string;
+	/**
+	 * 使用正则表达式或搜索字符串替换字符串中的文本。
+	 * @param searchValue 需要搜索的字符串。
+	 * @param replacer 返回替换文本的函数。
+	 */
+	replace(searchValue: string, replacer: (substring: string, ...args: any[]) => string): string;
 
-    /**
-     * Returns a section of a string.
-     * @param start The index to the beginning of the specified portion of stringObj.
-     * @param end The index to the end of the specified portion of stringObj. The substring includes the characters up to, but not including, the character indicated by end.
-     * If this value is not specified, the substring continues to the end of stringObj.
-     */
-    slice(start?: number, end?: number): string;
+	/**
+	 * 返回字符串的部分内容。
+	 * @param start 指定部分字符串开始的索引。
+	 * @param end 指定部分字符串结束的索引。子字符串包括开始到结束（但不包括结束）的字符。
+	 * 如果未指定此值，则子字符串会继续到字符串的末尾。
+	 */
+	slice(start?: number, end?: number): string;
 
-    /**
-     * Split a string into substrings using the specified separator and return them as an array.
-     * @param separator A string that identifies character or characters to use in separating the string. If omitted, a single-element array containing the entire string is returned.
-     * @param limit A value used to limit the number of elements returned in the array.
-     */
-    split(separator: string, limit?: number): string[];
+	/**
+	 * 使用指定的分隔符将字符串分割成子字符串，并将它们作为数组返回。
+	 * @param separator 用于分隔字符串的字符或字符组。如果省略，返回包含整个字符串的单元素数组。
+	 * @param limit 用于限制返回数组中的元素数量的值。
+	 */
+	split(separator: string, limit?: number): string[];
 
-    /**
-     * Returns the substring at the specified location within a String object.
-     * @param start The zero-based index number indicating the beginning of the substring.
-     * @param end Zero-based index number indicating the end of the substring. The substring includes the characters up to, but not including, the character indicated by end.
-     * If end is omitted, the characters from start through the end of the original string are returned.
-     */
-    substring(start: number, end?: number): string;
+	/**
+	 * 返回String对象中指定位置的子字符串。
+	 * @param start 指定子字符串开始的索引（从0开始）。
+	 * @param end 指定子字符串结束的索引。子字符串包括开始到结束（但不包括结束）的字符。
+	 * 如果省略结束，从开始到原始字符串的结束的字符都会被返回。
+	 */
+	substring(start: number, end?: number): string;
 
-    /** Converts all the alphabetic characters in a string to lowercase. */
-    toLowerCase(): string;
+	/** 将字符串中的所有字母字符转换为小写。 */
+	toLowerCase(): string;
 
-    /** Converts all the alphabetic characters in a string to uppercase. */
-    toUpperCase(): string;
+	/** 将字符串中的所有字母字符转换为大写。 */
+	toUpperCase(): string;
 
-    /** Removes the leading and trailing white space and line terminator characters from a string. */
-    trim(): string;
+	/** 从字符串中移除前导和尾随的空格和行终止符。 */
+	trim(): string;
 
-    /** Returns the length of a String object. */
-    readonly length: number;
+	/** 返回String对象的长度。 */
+	readonly length: number;
 
-    // IE extensions
-    /**
-     * Gets a substring beginning at the specified location and having the specified length.
-     * @deprecated A legacy feature for browser compatibility
-     * @param from The starting position of the desired substring. The index of the first character in the string is zero.
-     * @param length The number of characters to include in the returned substring.
-     */
-    substr(from: number, length?: number): string;
+	// IE扩展
+	/**
+	 * 获取从指定位置开始且具有指定长度的子字符串。
+	 * @deprecated 为了浏览器兼容性而保留的旧特性
+	 * @param from 需要获取子字符串的开始位置。字符串中第一个字符的索引为零。
+	 * @param length 返回的子字符串中应包含的字符数量。
+	 */
+	substr(from: number, length?: number): string;
 
-    readonly [index: number]: string;
+	readonly [index: number]: string;
 }
 
 interface StringConstructor {
-    fromCharCode(...codes: number[]): string;
+	fromCharCode(...codes: number[]): string;
 }
 
 /**
- * Allows manipulation and formatting of text strings and determination and location of substrings within strings.
+ * 允许操作和格式化文本字符串，并确定和定位字符串内的子字符串。
  */
 declare var String: StringConstructor;
 
@@ -333,197 +332,197 @@ interface BooleanConstructor {
 declare var Boolean: BooleanConstructor;
 
 interface Number {
-    /**
-     * Returns a string representation of an object.
-     * @param radix Specifies a radix for converting numeric values to strings. This value is only used for numbers.
-     */
-    toString(radix?: number): string;
+	/**
+	 * 返回对象的字符串表示形式。
+	 * @param radix 用于将数字值转换为字符串的基数。此值仅用于数字。
+	 */
+	toString(radix?: number): string;
 
-    /**
-     * Returns a string representing a number in fixed-point notation.
-     * @param fractionDigits Number of digits after the decimal point. Must be in the range 0 - 20, inclusive.
-     */
-    toFixed(fractionDigits?: number): string;
+	/**
+	 * 返回以定点表示法表示的数字的字符串。
+	 * @param fractionDigits 小数点后的位数。必须在0 - 20范围内，包含两端。
+	 */
+	toFixed(fractionDigits?: number): string;
 }
 
 interface NumberConstructor {
-    (value?: any): number;
+	(value?: any): number;
 
-    /** The largest number that can be represented in JavaScript. Equal to approximately 1.79E+308. */
-    readonly MAX_VALUE: number;
+	/** JavaScript中可以表示的最大数字。等于大约1.79E+308。 */
+	readonly MAX_VALUE: number;
 
-    /** The closest number to zero that can be represented in JavaScript. Equal to approximately 5.00E-324. */
-    readonly MIN_VALUE: number;
+	/** JavaScript中可以表示的最接近零的数字。等于大约5.00E-324。 */
+	readonly MIN_VALUE: number;
 
-    /**
-     * A value that is not a number.
-     * In equality comparisons, NaN does not equal any value, including itself. To test whether a value is equivalent to NaN, use the isNaN function.
-     */
-    readonly NaN: number;
+	/**
+	 * 不是数字的值。
+	 * 在等式比较中，NaN不等于任何值，包括其自身。要测试一个值是否等于NaN，使用isNaN函数。
+	 */
+	readonly NaN: number;
 
-    /**
-     * A value that is less than the largest negative number that can be represented in JavaScript.
-     * JavaScript displays NEGATIVE_INFINITY values as -infinity.
-     */
-    readonly NEGATIVE_INFINITY: number;
+	/**
+	 * 小于JavaScript中可以表示的最大负数的值。
+	 * JavaScript将NEGATIVE_INFINITY值显示为-infinity。
+	 */
+	readonly NEGATIVE_INFINITY: number;
 
-    /**
-     * A value greater than the largest number that can be represented in JavaScript.
-     * JavaScript displays POSITIVE_INFINITY values as infinity.
-     */
-    readonly POSITIVE_INFINITY: number;
+	/**
+	 * 大于JavaScript中可以表示的最大数字的值。
+	 * JavaScript将POSITIVE_INFINITY值显示为infinity。
+	 */
+	readonly POSITIVE_INFINITY: number;
 }
 
-/** An object that represents a number of any kind. All JavaScript numbers are 64-bit floating-point numbers. */
+/** 表示任何类型数字的对象。所有JavaScript数字都是64位浮点数。 */
 declare var Number: NumberConstructor;
 
 interface TemplateStringsArray extends ReadonlyArray<string> {
-    readonly raw: readonly string[];
+	readonly raw: readonly string[];
 }
 
 /**
- * The type of `import.meta`.
+ * `import.meta`的类型。
  *
- * If you need to declare that a given property exists on `import.meta`,
- * this type may be augmented via interface merging.
+ * 如果需要声明给定属性存在于`import.meta`上，
+ * 可以通过接口合并来增强此类型。
  */
 interface ImportMeta {
 }
 
 /**
- * The type for the optional second argument to `import()`.
+ * `import()`的可选第二个参数的类型。
  *
- * If your host environment supports additional options, this type may be
- * augmented via interface merging.
+ * 如果您的主机环境支持额外的选项，此类型可能会
+ * 通过接口合并进行增强。
  */
 interface ImportCallOptions {
-    /** @deprecated*/ assert?: ImportAssertions;
-    with?: ImportAttributes;
+	/** @deprecated*/ assert?: ImportAssertions;
+	with?: ImportAttributes;
 }
 
 /**
- * The type for the `assert` property of the optional second argument to `import()`.
+ * `import()`的可选第二个参数的`assert`属性的类型。
  */
 interface ImportAssertions {
-    [key: string]: string;
+	[key: string]: string;
 }
 
 /**
- * The type for the `with` property of the optional second argument to `import()`.
+ * `import()`的可选第二个参数的`with`属性的类型。
  */
 interface ImportAttributes {
-    [key: string]: string;
+	[key: string]: string;
 }
 
 interface Math {
-    /** The mathematical constant e. This is Euler's number, the base of natural logarithms. */
-    readonly E: number;
-    /** The natural logarithm of 10. */
-    readonly LN10: number;
-    /** The natural logarithm of 2. */
-    readonly LN2: number;
-    /** The base-2 logarithm of e. */
-    readonly LOG2E: number;
-    /** The base-10 logarithm of e. */
-    readonly LOG10E: number;
-    /** Pi. This is the ratio of the circumference of a circle to its diameter. */
-    readonly PI: number;
-    /** The square root of 0.5, or, equivalently, one divided by the square root of 2. */
-    readonly SQRT1_2: number;
-    /** The square root of 2. */
-    readonly SQRT2: number;
-    /**
-     * Returns the absolute value of a number (the value without regard to whether it is positive or negative).
-     * For example, the absolute value of -5 is the same as the absolute value of 5.
-     * @param x A numeric expression for which the absolute value is needed.
-     */
-    abs(x: number): number;
-    /**
-     * Returns the arc cosine (or inverse cosine) of a number.
-     * @param x A numeric expression.
-     */
-    acos(x: number): number;
-    /**
-     * Returns the arcsine of a number.
-     * @param x A numeric expression.
-     */
-    asin(x: number): number;
-    /**
-     * Returns the arctangent of a number.
-     * @param x A numeric expression for which the arctangent is needed.
-     */
-    atan(x: number): number;
-    /**
-     * Returns the angle (in radians) from the X axis to a point.
-     * @param y A numeric expression representing the cartesian y-coordinate.
-     * @param x A numeric expression representing the cartesian x-coordinate.
-     */
-    atan2(y: number, x: number): number;
-    /**
-     * Returns the smallest integer greater than or equal to its numeric argument.
-     * @param x A numeric expression.
-     */
-    ceil(x: number): number;
-    /**
-     * Returns the cosine of a number.
-     * @param x A numeric expression that contains an angle measured in radians.
-     */
-    cos(x: number): number;
-    /**
-     * Returns e (the base of natural logarithms) raised to a power.
-     * @param x A numeric expression representing the power of e.
-     */
-    exp(x: number): number;
-    /**
-     * Returns the greatest integer less than or equal to its numeric argument.
-     * @param x A numeric expression.
-     */
-    floor(x: number): number;
-    /**
-     * Returns the natural logarithm (base e) of a number.
-     * @param x A numeric expression.
-     */
-    log(x: number): number;
-    /**
-     * Returns the larger of a set of supplied numeric expressions.
-     * @param values Numeric expressions to be evaluated.
-     */
-    max(...values: number[]): number;
-    /**
-     * Returns the smaller of a set of supplied numeric expressions.
-     * @param values Numeric expressions to be evaluated.
-     */
-    min(...values: number[]): number;
-    /**
-     * Returns the value of a base expression taken to a specified power.
-     * @param x The base value of the expression.
-     * @param y The exponent value of the expression.
-     */
-    pow(x: number, y: number): number;
-    /** Returns a pseudorandom number between 0 and 1. */
-    random(): number;
-    /**
-     * Returns a supplied numeric expression rounded to the nearest integer.
-     * @param x The value to be rounded to the nearest integer.
-     */
-    round(x: number): number;
-    /**
-     * Returns the sine of a number.
-     * @param x A numeric expression that contains an angle measured in radians.
-     */
-    sin(x: number): number;
-    /**
-     * Returns the square root of a number.
-     * @param x A numeric expression.
-     */
-    sqrt(x: number): number;
-    /**
-     * Returns the tangent of a number.
-     * @param x A numeric expression that contains an angle measured in radians.
-     */
-    tan(x: number): number;
+	/** 数学常数e。这是欧拉数，自然对数的底数。 */
+	readonly E: number;
+	/** 10的自然对数。 */
+	readonly LN10: number;
+	/** 2的自然对数。 */
+	readonly LN2: number;
+	/** e的以2为底的对数。 */
+	readonly LOG2E: number;
+	/** e的以10为底的对数。 */
+	readonly LOG10E: number;
+	/** 圆周率。这是圆的周长与直径的比值。 */
+	readonly PI: number;
+	/** 0.5的平方根，或等效地，1除以2的平方根。 */
+	readonly SQRT1_2: number;
+	/** 2的平方根。 */
+	readonly SQRT2: number;
+	/**
+	 * 返回数字的绝对值（不考虑正负）。
+	 * 例如，-5的绝对值与5的绝对值相同。
+	 * @param x 需要求绝对值的数字表达式。
+	 */
+	abs(x: number): number;
+	/**
+	 * 返回数字的反余弦值。
+	 * @param x 数字表达式。
+	 */
+	acos(x: number): number;
+	/**
+	 * 返回数字的反正弦值。
+	 * @param x 数字表达式。
+	 */
+	asin(x: number): number;
+	/**
+	 * 返回数字的反正切值。
+	 * @param x 需要求反正切的数字表达式。
+	 */
+	atan(x: number): number;
+	/**
+	 * 返回从X轴到点的角度（以弧度为单位）。
+	 * @param y 表示笛卡尔y坐标的数字表达式。
+	 * @param x 表示笛卡尔x坐标的数字表达式。
+	 */
+	atan2(y: number, x: number): number;
+	/**
+	 * 返回大于或等于其数字参数的最小整数。
+	 * @param x 数字表达式。
+	 */
+	ceil(x: number): number;
+	/**
+	 * 返回数字的余弦值。
+	 * @param x 包含以弧度测量的角度的数字表达式。
+	 */
+	cos(x: number): number;
+	/**
+	 * 返回e（自然对数的底数）的幂。
+	 * @param x 表示e的幂的数字表达式。
+	 */
+	exp(x: number): number;
+	/**
+	 * 返回小于或等于其数字参数的最大整数。
+	 * @param x 数字表达式。
+	 */
+	floor(x: number): number;
+	/**
+	 * 返回数字的自然对数（底数为e）。
+	 * @param x 数字表达式。
+	 */
+	log(x: number): number;
+	/**
+	 * 返回一组提供的数字表达式中的最大值。
+	 * @param values 待评估的数字表达式。
+	 */
+	max(...values: number[]): number;
+	/**
+	 * 返回一组提供的数字表达式中的最小值。
+	 * @param values 待评估的数字表达式。
+	 */
+	min(...values: number[]): number;
+	/**
+	 * 返回基数表达式的指定幂的值。
+	 * @param x 表达式的基数值。
+	 * @param y 表达式的指数值。
+	 */
+	pow(x: number, y: number): number;
+	/** 返回0和1之间的伪随机数。 */
+	random(): number;
+	/**
+	 * 返回四舍五入到最接近的整数的提供的数字表达式。
+	 * @param x 需要四舍五入到最接近的整数的值。
+	 */
+	round(x: number): number;
+	/**
+	 * 返回数字的正弦值。
+	 * @param x 包含以弧度测量的角度的数字表达式。
+	 */
+	sin(x: number): number;
+	/**
+	 * 返回数字的平方根。
+	 * @param x 数字表达式。
+	 */
+	sqrt(x: number): number;
+	/**
+	 * 返回数字的正切值。
+	 * @param x 包含以弧度测量的角度的数字表达式。
+	 */
+	tan(x: number): number;
 }
-/** An intrinsic object that provides basic mathematics functionality and constants. */
+/** 提供基本数学功能和常数的内置对象。 */
 declare var Math: Math;
 
 interface RegExp {
@@ -535,15 +534,15 @@ interface RegExpConstructor {
 declare var RegExp: RegExpConstructor;
 
 interface Error {
-    name: string;
-    message: string;
-    stack?: string;
+	name: string;
+	message: string;
+	stack?: string;
 }
 
 interface ErrorConstructor {
-    new (message?: string): Error;
-    (message?: string): Error;
-    readonly prototype: Error;
+	new (message?: string): Error;
+	(message?: string): Error;
+	readonly prototype: Error;
 }
 
 declare var Error: ErrorConstructor;
@@ -552,9 +551,9 @@ interface RangeError extends Error {
 }
 
 interface RangeErrorConstructor extends ErrorConstructor {
-    new (message?: string): RangeError;
-    (message?: string): RangeError;
-    readonly prototype: RangeError;
+	new (message?: string): RangeError;
+	(message?: string): RangeError;
+	readonly prototype: RangeError;
 }
 
 declare var RangeError: RangeErrorConstructor;
@@ -563,9 +562,9 @@ interface ReferenceError extends Error {
 }
 
 interface ReferenceErrorConstructor extends ErrorConstructor {
-    new (message?: string): ReferenceError;
-    (message?: string): ReferenceError;
-    readonly prototype: ReferenceError;
+	new (message?: string): ReferenceError;
+	(message?: string): ReferenceError;
+	readonly prototype: ReferenceError;
 }
 
 declare var ReferenceError: ReferenceErrorConstructor;
@@ -574,9 +573,9 @@ interface SyntaxError extends Error {
 }
 
 interface SyntaxErrorConstructor extends ErrorConstructor {
-    new (message?: string): SyntaxError;
-    (message?: string): SyntaxError;
-    readonly prototype: SyntaxError;
+	new (message?: string): SyntaxError;
+	(message?: string): SyntaxError;
+	readonly prototype: SyntaxError;
 }
 
 declare var SyntaxError: SyntaxErrorConstructor;
@@ -585,9 +584,9 @@ interface TypeError extends Error {
 }
 
 interface TypeErrorConstructor extends ErrorConstructor {
-    new (message?: string): TypeError;
-    (message?: string): TypeError;
-    readonly prototype: TypeError;
+	new (message?: string): TypeError;
+	(message?: string): TypeError;
+	readonly prototype: TypeError;
 }
 
 declare var TypeError: TypeErrorConstructor;
@@ -596,9 +595,9 @@ interface URIError extends Error {
 }
 
 interface URIErrorConstructor extends ErrorConstructor {
-    new (message?: string): URIError;
-    (message?: string): URIError;
-    readonly prototype: URIError;
+	new (message?: string): URIError;
+	(message?: string): URIError;
+	readonly prototype: URIError;
 }
 
 declare var URIError: URIErrorConstructor;
@@ -608,462 +607,462 @@ declare var URIError: URIErrorConstructor;
 /////////////////////////////
 
 interface ReadonlyArray<T> {
-    /**
-     * Gets the length of the array. This is a number one higher than the highest element defined in an array.
-     */
-    readonly length: number;
-    /**
-     * Combines two or more arrays.
-     * @param items Additional items to add to the end of array1.
-     */
-    concat(...items: ConcatArray<T>[]): T[];
-    /**
-     * Combines two or more arrays.
-     * @param items Additional items to add to the end of array1.
-     */
-    concat(...items: (T | ConcatArray<T>)[]): T[];
-    /**
-     * Adds all the elements of an array separated by the specified separator string.
-     * @param separator A string used to separate one element of an array from the next in the resulting String. If omitted, the array elements are separated with a comma.
-     */
-    join(separator?: string): string;
-    /**
-     * Returns a section of an array.
-     * @param start The beginning of the specified portion of the array.
-     * @param end The end of the specified portion of the array. This is exclusive of the element at the index 'end'.
-     */
-    slice(start?: number, end?: number): T[];
-    /**
-     * Returns the index of the first occurrence of a value in an array.
-     * @param searchElement The value to locate in the array.
-     * @param fromIndex The array index at which to begin the search. If fromIndex is omitted, the search starts at index 0.
-     */
-    indexOf(searchElement: T, fromIndex?: number): number;
-    /**
-     * Determines whether all the members of an array satisfy the specified test.
-     * @param predicate A function that accepts up to three arguments. The every method calls
-     * the predicate function for each element in the array until the predicate returns a value
-     * which is coercible to the Boolean value false, or until the end of the array.
-     * @param thisArg An object to which the this keyword can refer in the predicate function.
-     * If thisArg is omitted, undefined is used as the this value.
-     */
-    every<S extends T>(predicate: (value: T, index: number, array: readonly T[]) => value is S, thisArg?: any): this is readonly S[];
-    /**
-     * Determines whether all the members of an array satisfy the specified test.
-     * @param predicate A function that accepts up to three arguments. The every method calls
-     * the predicate function for each element in the array until the predicate returns a value
-     * which is coercible to the Boolean value false, or until the end of the array.
-     * @param thisArg An object to which the this keyword can refer in the predicate function.
-     * If thisArg is omitted, undefined is used as the this value.
-     */
-    every(predicate: (value: T, index: number, array: readonly T[]) => unknown, thisArg?: any): boolean;
-    /**
-     * Determines whether the specified callback function returns true for any element of an array.
-     * @param predicate A function that accepts up to three arguments. The some method calls
-     * the predicate function for each element in the array until the predicate returns a value
-     * which is coercible to the Boolean value true, or until the end of the array.
-     * @param thisArg An object to which the this keyword can refer in the predicate function.
-     * If thisArg is omitted, undefined is used as the this value.
-     */
-    some(predicate: (value: T, index: number, array: readonly T[]) => unknown, thisArg?: any): boolean;
-    /**
-     * Performs the specified action for each element in an array.
-     * @param callbackfn  A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the array.
-     * @param thisArg  An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
-     */
-    forEach(callbackfn: (value: T, index: number, array: readonly T[]) => void, thisArg?: any): void;
-    /**
-     * Calls a defined callback function on each element of an array, and returns an array that contains the results.
-     * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
-     * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
-     */
-    map<U>(callbackfn: (value: T, index: number, array: readonly T[]) => U, thisArg?: any): U[];
-    /**
-     * Returns the elements of an array that meet the condition specified in a callback function.
-     * @param predicate A function that accepts up to three arguments. The filter method calls the predicate function one time for each element in the array.
-     * @param thisArg An object to which the this keyword can refer in the predicate function. If thisArg is omitted, undefined is used as the this value.
-     */
-    filter<S extends T>(predicate: (value: T, index: number, array: readonly T[]) => value is S, thisArg?: any): S[];
-    /**
-     * Returns the elements of an array that meet the condition specified in a callback function.
-     * @param predicate A function that accepts up to three arguments. The filter method calls the predicate function one time for each element in the array.
-     * @param thisArg An object to which the this keyword can refer in the predicate function. If thisArg is omitted, undefined is used as the this value.
-     */
-    filter(predicate: (value: T, index: number, array: readonly T[]) => unknown, thisArg?: any): T[];
-    /**
-     * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
-     * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
-     * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
-     */
-    reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: readonly T[]) => T): T;
-    reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: readonly T[]) => T, initialValue: T): T;
-    /**
-     * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
-     * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
-     * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
-     */
-    reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: readonly T[]) => U, initialValue: U): U;
-    /**
-     * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
-     * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
-     * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
-     */
-    reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: readonly T[]) => T): T;
-    reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: readonly T[]) => T, initialValue: T): T;
-    /**
-     * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
-     * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
-     * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
-     */
-    reduceRight<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: readonly T[]) => U, initialValue: U): U;
+	/**
+	 * 获取数组的长度。这是数组中定义的最高元素的索引加一的数字。
+	 */
+	readonly length: number;
+	/**
+	 * 合并两个或更多的数组。
+	 * @param items 需要添加到数组1末尾的额外项。
+	 */
+	concat(...items: ConcatArray<T>[]): T[];
+	/**
+	 * 合并两个或更多的数组。
+	 * @param items 需要添加到数组1末尾的额外项。
+	 */
+	concat(...items: (T | ConcatArray<T>)[]): T[];
+	/**
+	 * 将数组的所有元素添加到由指定分隔符字符串分隔的字符串中。
+	 * @param separator 用于在结果字符串中将一个数组元素与下一个元素分隔的字符串。如果省略，数组元素用逗号分隔。
+	 */
+	join(separator?: string): string;
+	/**
+	 * 返回数组的一个部分。
+	 * @param start 指定数组部分的开始。
+	 * @param end 指定数组部分的结束。这是索引 'end' 处的元素的排他性。
+	 */
+	slice(start?: number, end?: number): T[];
+	/**
+	 * 返回数组中值首次出现的索引。
+	 * @param searchElement 需要在数组中定位的值。
+	 * @param fromIndex 开始搜索的数组索引。如果省略 fromIndex，搜索从索引 0 开始。
+	 */
+	indexOf(searchElement: T, fromIndex?: number): number;
+	/**
+	 * 确定数组的所有成员是否满足指定的测试。
+	 * @param predicate 接受最多三个参数的函数。every 方法为数组中的每个元素调用
+	 * predicate 函数，直到 predicate 返回一个可以强制转换为布尔值 false 的值，
+	 * 或直到数组的结束。
+	 * @param thisArg 在 predicate 函数中可以引用的 this 关键字的对象。
+	 * 如果省略 thisArg，undefined 用作 this 值。
+	 */
+	every<S extends T>(predicate: (value: T, index: number, array: readonly T[]) => value is S, thisArg?: any): this is readonly S[];
+	/**
+	 * 确定数组的所有成员是否满足指定的测试。
+	 * @param predicate 接受最多三个参数的函数。every 方法为数组中的每个元素调用
+	 * predicate 函数，直到 predicate 返回一个可以强制转换为布尔值 false 的值，
+	 * 或直到数组的结束。
+	 * @param thisArg 在 predicate 函数中可以引用的 this 关键字的对象。
+	 * 如果省略 thisArg，undefined 用作 this 值。
+	 */
+	every(predicate: (value: T, index: number, array: readonly T[]) => unknown, thisArg?: any): boolean;
+	/**
+	 * 确定指定的回调函数是否对数组的任何元素返回 true。
+	 * @param predicate 接受最多三个参数的函数。some 方法为数组中的每个元素调用
+	 * predicate 函数，直到 predicate 返回一个可以强制转换为布尔值 true 的值，
+	 * 或直到数组的结束。
+	 * @param thisArg 在 predicate 函数中可以引用的 this 关键字的对象。
+	 * 如果省略 thisArg，undefined 用作 this 值。
+	 */
+	some(predicate: (value: T, index: number, array: readonly T[]) => unknown, thisArg?: any): boolean;
+	/**
+	 * 对数组的每个元素执行指定的操作。
+	 * @param callbackfn 接受最多三个参数的函数。forEach 为数组中的每个元素调用一次 callbackfn 函数。
+	 * @param thisArg 在 callbackfn 函数中可以引用的 this 关键字的对象。如果省略 thisArg，undefined 用作 this 值。
+	 */
+	forEach(callbackfn: (value: T, index: number, array: readonly T[]) => void, thisArg?: any): void;
+	/**
+	 * 调用定义的回调函数处理数组的每个元素，并返回包含结果的数组。
+	 * @param callbackfn 接受最多三个参数的函数。map 方法为数组中的每个元素调用一次 callbackfn 函数。
+	 * @param thisArg 在 callbackfn 函数中可以引用的 this 关键字的对象。如果省略 thisArg，undefined 用作 this 值。
+	 */
+	map<U>(callbackfn: (value: T, index: number, array: readonly T[]) => U, thisArg?: any): U[];
+	/**
+	 * 返回数组中满足指定回调函数条件的元素。
+	 * @param predicate 接受最多三个参数的函数。filter方法为数组中的每个元素调用一次predicate函数。
+	 * @param thisArg 在predicate函数中可以引用的this关键字的对象。如果省略thisArg，undefined用作this值。
+	 */
+	filter<S extends T>(predicate: (value: T, index: number, array: readonly T[]) => value is S, thisArg?: any): S[];
+	/**
+	 * 返回数组中满足指定回调函数条件的元素。
+	 * @param predicate 接受最多三个参数的函数。filter方法为数组中的每个元素调用一次predicate函数。
+	 * @param thisArg 在predicate函数中可以引用的this关键字的对象。如果省略thisArg，undefined用作this值。
+	 */
+	filter(predicate: (value: T, index: number, array: readonly T[]) => unknown, thisArg?: any): T[];
+	/**
+	 * 为数组中的所有元素调用指定的回调函数。回调函数的返回值是累积结果，并在下一次调用回调函数时作为参数提供。
+	 * @param callbackfn 接受最多四个参数的函数。reduce方法为数组中的每个元素调用一次callbackfn函数。
+	 * @param initialValue 如果指定了initialValue，它将用作开始累积的初始值。第一次调用callbackfn函数时，将此值而不是数组值作为参数提供。
+	 */
+	reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: readonly T[]) => T): T;
+	reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: readonly T[]) => T, initialValue: T): T;
+	/**
+	 * 为数组中的所有元素调用指定的回调函数。回调函数的返回值是累积结果，并在下一次调用回调函数时作为参数提供。
+	 * @param callbackfn 接受最多四个参数的函数。reduce方法为数组中的每个元素调用一次callbackfn函数。
+	 * @param initialValue 如果指定了initialValue，它将用作开始累积的初始值。第一次调用callbackfn函数时，将此值而不是数组值作为参数提供。
+	 */
+	reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: readonly T[]) => U, initialValue: U): U;
+	/**
+	 * 以降序为数组中的所有元素调用指定的回调函数。回调函数的返回值是累积结果，并在下一次调用回调函数时作为参数提供。
+	 * @param callbackfn 接受最多四个参数的函数。reduceRight方法为数组中的每个元素调用一次callbackfn函数。
+	 * @param initialValue 如果指定了initialValue，它将用作开始累积的初始值。第一次调用callbackfn函数时，将此值而不是数组值作为参数提供。
+	 */
+	reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: readonly T[]) => T): T;
+	reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: readonly T[]) => T, initialValue: T): T;
+	/**
+	 * 以降序为数组中的所有元素调用指定的回调函数。回调函数的返回值是累积结果，并在下一次调用回调函数时作为参数提供。
+	 * @param callbackfn 接受最多四个参数的函数。reduceRight方法为数组中的每个元素调用一次callbackfn函数。
+	 * @param initialValue 如果指定了initialValue，它将用作开始累积的初始值。第一次调用callbackfn函数时，将此值而不是数组值作为参数提供。
+	 */
+	reduceRight<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: readonly T[]) => U, initialValue: U): U;
 
-    readonly [n: number]: T;
+	readonly [n: number]: T;
 }
 
 interface ConcatArray<T> {
-    readonly length: number;
-    readonly [n: number]: T;
-    join(separator?: string): string;
-    slice(start?: number, end?: number): T[];
+	readonly length: number;
+	readonly [n: number]: T;
+	join(separator?: string): string;
+	slice(start?: number, end?: number): T[];
 }
 
 interface Array<T> {
-    /**
-     * Gets or sets the length of the array. This is a number one higher than the highest index in the array.
-     */
-    length: number;
-    /**
-     * Removes the last element from an array and returns it.
-     * If the array is empty, undefined is returned and the array is not modified.
-     */
-    pop(): T | undefined;
-    /**
-     * Appends new elements to the end of an array, and returns the new length of the array.
-     * @param items New elements to add to the array.
-     */
-    push(...items: T[]): number;
-    /**
-     * Combines two or more arrays.
-     * This method returns a new array without modifying any existing arrays.
-     * @param items Additional arrays and/or items to add to the end of the array.
-     */
-    concat(...items: ConcatArray<T>[]): T[];
-    /**
-     * Combines two or more arrays.
-     * This method returns a new array without modifying any existing arrays.
-     * @param items Additional arrays and/or items to add to the end of the array.
-     */
-    concat(...items: (T | ConcatArray<T>)[]): T[];
-    /**
-     * Adds all the elements of an array into a string, separated by the specified separator string.
-     * @param separator A string used to separate one element of the array from the next in the resulting string. If omitted, the array elements are separated with a comma.
-     */
-    join(separator?: string): string;
-    /**
-     * Reverses the elements in an array in place.
-     * This method mutates the array and returns a reference to the same array.
-     */
-    reverse(): T[];
-    /**
-     * Removes the first element from an array and returns it.
-     * If the array is empty, undefined is returned and the array is not modified.
-     */
-    shift(): T | undefined;
-    /**
-     * Returns a copy of a section of an array.
-     * For both start and end, a negative index can be used to indicate an offset from the end of the array.
-     * For example, -2 refers to the second to last element of the array.
-     * @param start The beginning index of the specified portion of the array.
-     * If start is undefined, then the slice begins at index 0.
-     * @param end The end index of the specified portion of the array. This is exclusive of the element at the index 'end'.
-     * If end is undefined, then the slice extends to the end of the array.
-     */
-    slice(start?: number, end?: number): T[];
-    /**
-     * Sorts an array in place.
-     * This method mutates the array and returns a reference to the same array.
-     * @param compareFn Function used to determine the order of the elements. It is expected to return
-     * a negative value if the first argument is less than the second argument, zero if they're equal, and a positive
-     * value otherwise. If omitted, the elements are sorted in ascending, ASCII character order.
-     * ```ts
-     * [11,2,22,1].sort((a, b) => a - b)
-     * ```
-     */
-    sort(compareFn?: (a: T, b: T) => number): this;
-    /**
-     * Removes elements from an array and, if necessary, inserts new elements in their place, returning the deleted elements.
-     * @param start The zero-based location in the array from which to start removing elements.
-     * @param deleteCount The number of elements to remove.
-     * @returns An array containing the elements that were deleted.
-     */
-    splice(start: number, deleteCount?: number): T[];
-    /**
-     * Removes elements from an array and, if necessary, inserts new elements in their place, returning the deleted elements.
-     * @param start The zero-based location in the array from which to start removing elements.
-     * @param deleteCount The number of elements to remove.
-     * @param items Elements to insert into the array in place of the deleted elements.
-     * @returns An array containing the elements that were deleted.
-     */
-    splice(start: number, deleteCount: number, ...items: T[]): T[];
-    /**
-     * Inserts new elements at the start of an array, and returns the new length of the array.
-     * @param items Elements to insert at the start of the array.
-     */
-    unshift(...items: T[]): number;
-    /**
-     * Returns the index of the first occurrence of a value in an array, or -1 if it is not present.
-     * @param searchElement The value to locate in the array.
-     * @param fromIndex The array index at which to begin the search. If fromIndex is omitted, the search starts at index 0.
-     */
-    indexOf(searchElement: T, fromIndex?: number): number;
-    /**
-     * Determines whether all the members of an array satisfy the specified test.
-     * @param predicate A function that accepts up to three arguments. The every method calls
-     * the predicate function for each element in the array until the predicate returns a value
-     * which is coercible to the Boolean value false, or until the end of the array.
-     * @param thisArg An object to which the this keyword can refer in the predicate function.
-     * If thisArg is omitted, undefined is used as the this value.
-     */
-    every<S extends T>(predicate: (value: T, index: number, array: T[]) => value is S, thisArg?: any): this is S[];
-    /**
-     * Determines whether all the members of an array satisfy the specified test.
-     * @param predicate A function that accepts up to three arguments. The every method calls
-     * the predicate function for each element in the array until the predicate returns a value
-     * which is coercible to the Boolean value false, or until the end of the array.
-     * @param thisArg An object to which the this keyword can refer in the predicate function.
-     * If thisArg is omitted, undefined is used as the this value.
-     */
-    every(predicate: (value: T, index: number, array: T[]) => unknown, thisArg?: any): boolean;
-    /**
-     * Determines whether the specified callback function returns true for any element of an array.
-     * @param predicate A function that accepts up to three arguments. The some method calls
-     * the predicate function for each element in the array until the predicate returns a value
-     * which is coercible to the Boolean value true, or until the end of the array.
-     * @param thisArg An object to which the this keyword can refer in the predicate function.
-     * If thisArg is omitted, undefined is used as the this value.
-     */
-    some(predicate: (value: T, index: number, array: T[]) => unknown, thisArg?: any): boolean;
-    /**
-     * Performs the specified action for each element in an array.
-     * @param callbackfn  A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the array.
-     * @param thisArg  An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
-     */
-    forEach(callbackfn: (value: T, index: number, array: T[]) => void, thisArg?: any): void;
-    /**
-     * Calls a defined callback function on each element of an array, and returns an array that contains the results.
-     * @param callbackfn A function that accepts up to three arguments. The map method calls the callbackfn function one time for each element in the array.
-     * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
-     */
-    map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[];
-    /**
-     * Returns the elements of an array that meet the condition specified in a callback function.
-     * @param predicate A function that accepts up to three arguments. The filter method calls the predicate function one time for each element in the array.
-     * @param thisArg An object to which the this keyword can refer in the predicate function. If thisArg is omitted, undefined is used as the this value.
-     */
-    filter<S extends T>(predicate: (value: T, index: number, array: T[]) => value is S, thisArg?: any): S[];
-    /**
-     * Returns the elements of an array that meet the condition specified in a callback function.
-     * @param predicate A function that accepts up to three arguments. The filter method calls the predicate function one time for each element in the array.
-     * @param thisArg An object to which the this keyword can refer in the predicate function. If thisArg is omitted, undefined is used as the this value.
-     */
-    filter(predicate: (value: T, index: number, array: T[]) => unknown, thisArg?: any): T[];
-    /**
-     * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
-     * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
-     * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
-     */
-    reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T): T;
-    reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue: T): T;
-    /**
-     * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
-     * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
-     * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
-     */
-    reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
-    /**
-     * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
-     * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
-     * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
-     */
-    reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T): T;
-    reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue: T): T;
-    /**
-     * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
-     * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
-     * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
-     */
-    reduceRight<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
+	/**
+	 * 获取或设置数组的长度。这是数组中最高索引加一的数字。
+	 */
+	length: number;
+	/**
+	 * 从数组中移除最后元素并返回它。
+	 * 如果数组为空，返回undefined且数组不会被修改。
+	 */
+	pop(): T | undefined;
+	/**
+	 * 将新元素添加到数组的末尾，并返回新的数组长度。
+	 * @param items 要添加到数组的新元素。
+	 */
+	push(...items: T[]): number;
+	/**
+	 * 合并两个或更多的数组。
+	 * 此方法返回新数组，不会修改任何现有数组。
+	 * @param items 额外的数组和/或要添加到数组末尾的元素。
+	 */
+	concat(...items: ConcatArray<T>[]): T[];
+	/**
+	 * 合并两个或更多的数组。
+	 * 此方法返回新数组，不会修改任何现有数组。
+	 * @param items 额外的数组和/或要添加到数组末尾的元素。
+	 */
+	concat(...items: (T | ConcatArray<T>)[]): T[];
+	/**
+	 * 将数组的所有元素添加到由指定分隔符字符串分隔的字符串中。
+	 * @param separator 用于在结果字符串中将数组的元素与下一个元素分隔的字符串。如果省略，数组元素用逗号分隔。
+	 */
+	join(separator?: string): string;
+	/**
+	 * 就地反转数组中的元素。
+	 * 此方法会改变数组并返回相同的数组引用。
+	 */
+	reverse(): T[];
+	/**
+	 * 从数组中移除第一元素并返回它。
+	 * 如果数组为空，返回undefined且数组不会被修改。
+	 */
+	shift(): T | undefined;
+	/**
+	 * 返回数组的部分副本。
+	 * 对于start和end，可以使用负索引表示从数组末尾的偏移。
+	 * 例如，-2表示数组的倒数第二元素。
+	 * @param start 指定数组部分的开始索引。
+	 * 如果start未定义，则切片从索引0开始。
+	 * @param end 指定数组部分的结束索引。这是索引 'end' 处的元素的排他性。
+	 * 如果end未定义，则切片扩展到数组的末尾。
+	 */
+	slice(start?: number, end?: number): T[];
+	/**
+	 * 就地对数组进行排序。
+	 * 此方法会改变数组并返回相同的数组引用。
+	 * @param compareFn 用于确定元素顺序的函数。预期返回
+	 * 如果第一参数小于第二参数，则返回负值，如果它们相等，则返回零，否则返回正值。
+	 * 如果省略，元素按升序，ASCII字符顺序排序。
+	 * ```ts
+	 * [11,2,22,1].sort((a, b) => a - b)
+	 * ```
+	 */
+	sort(compareFn?: (a: T, b: T) => number): this;
+	/**
+	 * 从数组中移除元素，并在必要时插入新元素，返回被删除的元素。
+	 * @param start 从数组中开始移除元素的零基位置。
+	 * @param deleteCount 要移除的元素数量。
+	 * @returns 包含被删除元素的数组。
+	 */
+	splice(start: number, deleteCount?: number): T[];
+	/**
+	 * 从数组中移除元素，并在必要时插入新元素，返回被删除的元素。
+	 * @param start 从数组中开始移除元素的零基位置。
+	 * @param deleteCount 要移除的元素数量。
+	 * @param items 要插入到被删除元素位置的元素。
+	 * @returns 包含被删除元素的数组。
+	 */
+	splice(start: number, deleteCount: number, ...items: T[]): T[];
+	/**
+	 * 在数组的开始处插入新元素，并返回新的数组长度。
+	 * @param items 要在数组开始处插入的元素。
+	 */
+	unshift(...items: T[]): number;
+	/**
+	 * 返回数组中值首次出现的索引，如果未找到则返回-1。
+	 * @param searchElement 要在数组中定位的值。
+	 * @param fromIndex 开始搜索的数组索引。如果省略fromIndex，搜索从索引0开始。
+	 */
+	indexOf(searchElement: T, fromIndex?: number): number;
+	/**
+	 * 判断数组的所有成员是否满足指定的测试。
+	 * @param predicate 接受最多三个参数的函数。every方法对数组中的每个元素调用
+	 * predicate函数，直到predicate返回可以强制转换为布尔值false的值，
+	 * 或直到数组的结束。
+	 * @param thisArg 在predicate函数中可以引用的this关键字的对象。
+	 * 如果省略thisArg，undefined用作this值。
+	 */
+	every<S extends T>(predicate: (value: T, index: number, array: T[]) => value is S, thisArg?: any): this is S[];
+	/**
+	 * 判断数组的所有成员是否满足指定的测试。
+	 * @param predicate 接受最多三个参数的函数。every方法对数组中的每个元素调用
+	 * predicate函数，直到predicate返回可以强制转换为布尔值false的值，
+	 * 或直到数组的结束。
+	 * @param thisArg 在predicate函数中可以引用的this关键字的对象。
+	 * 如果省略thisArg，undefined用作this值。
+	 */
+	every(predicate: (value: T, index: number, array: T[]) => unknown, thisArg?: any): boolean;
+	/**
+	 * 判断指定的回调函数是否对数组的任何元素返回true。
+	 * @param predicate 接受最多三个参数的函数。some方法对数组中的每个元素调用
+	 * predicate函数，直到predicate返回可以强制转换为布尔值true的值，
+	 * 或直到数组的结束。
+	 * @param thisArg 在predicate函数中可以引用的this关键字的对象。
+	 * 如果省略thisArg，undefined用作this值。
+	 */
+	some(predicate: (value: T, index: number, array: T[]) => unknown, thisArg?: any): boolean;
+	/**
+	 * 对数组的每个元素执行指定的操作。
+	 * @param callbackfn 接受最多三个参数的函数。forEach为数组中的每个元素调用一次callbackfn函数。
+	 * @param thisArg 在callbackfn函数中可以引用的this关键字的对象。如果省略thisArg，undefined用作this值。
+	 */
+	forEach(callbackfn: (value: T, index: number, array: T[]) => void, thisArg?: any): void;
+	/**
+	 * 调用定义的回调函数处理数组的每个元素，并返回包含结果的数组。
+	 * @param callbackfn 接受最多三个参数的函数。map方法为数组中的每个元素调用一次callbackfn函数。
+	 * @param thisArg 在callbackfn函数中可以引用的this关键字的对象。如果省略thisArg，undefined用作this值。
+	 */
+	map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): U[];
+	/**
+	 * 返回数组中满足指定回调函数条件的元素。
+	 * @param predicate 接受最多三个参数的函数。filter方法为数组中的每个元素调用一次predicate函数。
+	 * @param thisArg 在predicate函数中可以引用的this关键字的对象。如果省略thisArg，undefined用作this值。
+	 */
+	filter<S extends T>(predicate: (value: T, index: number, array: T[]) => value is S, thisArg?: any): S[];
+	/**
+	 * 返回数组中满足指定回调函数条件的元素。
+	 * @param predicate 接受最多三个参数的函数。filter方法为数组中的每个元素调用一次predicate函数。
+	 * @param thisArg 在predicate函数中可以引用的this关键字的对象。如果省略thisArg，undefined用作this值。
+	 */
+	filter(predicate: (value: T, index: number, array: T[]) => unknown, thisArg?: any): T[];
+	/**
+	 * 调用指定的回调函数处理数组的所有元素。回调函数的返回值是累积结果，并在下一次调用回调函数时作为参数提供。
+	 * @param callbackfn 接受最多四个参数的函数。reduce方法为数组中的每个元素调用一次callbackfn函数。
+	 * @param initialValue 如果指定了initialValue，它将用作开始累积的初始值。第一次调用callbackfn函数时，将此值而不是数组值作为参数提供。
+	 */
+	reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T): T;
+	reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue: T): T;
+	/**
+	 * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
+	 * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
+	 * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
+	 */
+	reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
+	/**
+	 * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
+	 * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
+	 * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
+	 */
+	reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T): T;
+	reduceRight(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue: T): T;
+	/**
+	 * 为数组中的所有元素调用指定的回调函数，顺序为降序。回调函数的返回值是累积结果，并在下一次调用回调函数时作为参数提供。
+	 * @param callbackfn 接受最多四个参数的函数。reduceRight方法为数组中的每个元素调用一次callbackfn函数。
+	 * @param initialValue 如果指定了initialValue，它将用作开始累积的初始值。第一次调用callbackfn函数时，将此值而不是数组值作为参数提供。
+	 */
+	reduceRight<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
 
-    [n: number]: T;
+	[n: number]: T;
 }
 
 interface ArrayConstructor {
-    isArray(arg: any): arg is any[];
+	isArray(arg: any): arg is any[];
 }
 
 declare var Array: ArrayConstructor;
 
 interface TypedPropertyDescriptor<T> {
-    enumerable?: boolean;
-    configurable?: boolean;
-    writable?: boolean;
-    value?: T;
-    get?: () => T;
-    set?: (value: T) => void;
+	enumerable?: boolean;
+	configurable?: boolean;
+	writable?: boolean;
+	value?: T;
+	get?: () => T;
+	set?: (value: T) => void;
 }
 
 declare type PromiseConstructorLike = new <T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) => PromiseLike<T>;
 
 interface PromiseLike<T> {
-    /**
-     * Attaches callbacks for the resolution and/or rejection of the Promise.
-     * @param onfulfilled The callback to execute when the Promise is resolved.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of which ever callback is executed.
-     */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): PromiseLike<TResult1 | TResult2>;
+	/**
+	 * 为 Promise 的解决和/或拒绝附加回调函数。
+	 * @param onfulfilled 当 Promise 解决时执行的回调函数。
+	 * @param onrejected 当 Promise 被拒绝时执行的回调函数。
+	 * @returns 一个 Promise，用于完成执行的任何回调函数。
+	 */
+	then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): PromiseLike<TResult1 | TResult2>;
 }
 
 /**
- * Represents the completion of an asynchronous operation
+ * 表示异步操作的完成
  */
 interface Promise<T> {
-    /**
-     * Attaches callbacks for the resolution and/or rejection of the Promise.
-     * @param onfulfilled The callback to execute when the Promise is resolved.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of which ever callback is executed.
-     */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+	/**
+	 * 为 Promise 的解决和/或拒绝附加回调函数。
+	 * @param onfulfilled 当 Promise 解决时执行的回调函数。
+	 * @param onrejected 当 Promise 被拒绝时执行的回调函数。
+	 * @returns 一个 Promise，用于完成执行的任何回调函数。
+	 */
+	then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
 
-    /**
-     * Attaches a callback for only the rejection of the Promise.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of the callback.
-     */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
+	/**
+	 * 仅为 Promise 的拒绝附加回调函数。
+	 * @param onrejected 当 Promise 被拒绝时执行的回调函数。
+	 * @returns 一个 Promise，用于完成回调函数。
+	 */
+	catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
 }
 
 /**
- * Recursively unwraps the "awaited type" of a type. Non-promise "thenables" should resolve to `never`. This emulates the behavior of `await`.
+ * 递归地解包类型的 "等待类型"。非 promise 的 "thenable" 应解析为 `never`。这模拟了 `await` 的行为。
  */
-type Awaited<T> = T extends null | undefined ? T : // special case for `null | undefined` when not in `--strictNullChecks` mode
-    T extends object & { then(onfulfilled: infer F, ...args: infer _): any; } ? // `await` only unwraps object types with a callable `then`. Non-object types are not unwrapped
-        F extends ((value: infer V, ...args: infer _) => any) ? // if the argument to `then` is callable, extracts the first argument
-            Awaited<V> : // recursively unwrap the value
-        never : // the argument to `then` was not callable
-    T; // non-object or non-thenable
+type Awaited<T> = T extends null | undefined ? T : // 对于 `null | undefined` 的特殊情况，当不在 `--strictNullChecks` 模式时
+	T extends object & { then(onfulfilled: infer F, ...args: infer _): any; } ? // `await` 只解包具有可调用 `then` 的对象类型。非对象类型不会被解包
+		F extends ((value: infer V, ...args: infer _) => any) ? // 如果 `then` 的参数是可调用的，提取第一个参数
+			Awaited<V> : // 递归地解包值
+		never : // `then` 的参数不可调用
+	T; // 非对象或非 thenable
 
 interface ArrayLike<T> {
-    readonly length: number;
-    readonly [n: number]: T;
+	readonly length: number;
+	readonly [n: number]: T;
 }
 
 /**
- * Make all properties in T optional
+ * 使 T 中的所有属性变为可选
  */
 type Partial<T> = {
-    [P in keyof T]?: T[P];
+	[P in keyof T]?: T[P];
 };
 
 /**
- * Make all properties in T required
+ * 使 T 中的所有属性都为必需
  */
 type Required<T> = {
-    [P in keyof T]-?: T[P];
+	[P in keyof T]-?: T[P];
 };
 
 /**
- * Make all properties in T readonly
+ * 使 T 中的所有属性都为只读
  */
 type Readonly<T> = {
-    readonly [P in keyof T]: T[P];
+	readonly [P in keyof T]: T[P];
 };
 
 /**
- * From T, pick a set of properties whose keys are in the union K
+ * 从 T 中挑选一组属性，其键在联合 K 中
  */
 type Pick<T, K extends keyof T> = {
-    [P in K]: T[P];
+	[P in K]: T[P];
 };
 
 /**
- * Construct a type with a set of properties K of type T
+ * 构造一个类型，该类型具有一组属性 K，类型为 T
  */
 type Record<K extends keyof any, T> = {
-    [P in K]: T;
+	[P in K]: T;
 };
 
 /**
- * Exclude from T those types that are assignable to U
+ * 从 T 中排除那些可以分配给 U 的类型
  */
 type Exclude<T, U> = T extends U ? never : T;
 
 /**
- * Extract from T those types that are assignable to U
+ * 从 T 中提取那些可以分配给 U 的类型
  */
 type Extract<T, U> = T extends U ? T : never;
 
 /**
- * Construct a type with the properties of T except for those in type K.
+ * 构造一个类型，该类型具有 T 的属性，除了类型 K 中的属性。
  */
 type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
 
 /**
- * Exclude null and undefined from T
+ * 从 T 中排除 null 和 undefined
  */
 type NonNullable<T> = T & {};
 
 /**
- * Obtain the parameters of a function type in a tuple
+ * 获取函数类型的参数，以元组形式
  */
 type Parameters<T extends (...args: any) => any> = T extends (...args: infer P) => any ? P : never;
 
 /**
- * Obtain the parameters of a constructor function type in a tuple
+ * 获取构造函数类型的参数，以元组形式
  */
 type ConstructorParameters<T extends abstract new (...args: any) => any> = T extends abstract new (...args: infer P) => any ? P : never;
 
 /**
- * Obtain the return type of a function type
+ * 获取函数类型的返回类型
  */
 type ReturnType<T extends (...args: any) => any> = T extends (...args: any) => infer R ? R : any;
 
 /**
- * Obtain the return type of a constructor function type
+ * 获取构造函数类型的返回类型
  */
 type InstanceType<T extends abstract new (...args: any) => any> = T extends abstract new (...args: any) => infer R ? R : any;
 
 /**
- * Convert string literal type to uppercase
+ * 将字符串字面量类型转换为大写
  */
 type Uppercase<S extends string> = intrinsic;
 
 /**
- * Convert string literal type to lowercase
+ * 将字符串字面量类型转换为小写
  */
 type Lowercase<S extends string> = intrinsic;
 
 /**
- * Convert first character of string literal type to uppercase
+ * 将字符串字面量类型的首字母转换为大写
  */
 type Capitalize<S extends string> = intrinsic;
 
 /**
- * Convert first character of string literal type to lowercase
+ * 将字符串字面量类型的首字母转换为小写
  */
 type Uncapitalize<S extends string> = intrinsic;
 
 /**
- * Marker for contextual 'this' type
+ * 标记上下文中的 'this' 类型
  */
 interface ThisType<T> {}
 
 /**
- * Stores types to be used with WeakSet, WeakMap, WeakRef, and FinalizationRegistry
+ * 存储用于 WeakSet，WeakMap，WeakRef 和 FinalizationRegistry 的类型
  */
 interface WeakKeyTypes {
-    object: object;
+	object: object;
 }
 
 type WeakKey = WeakKeyTypes[keyof WeakKeyTypes];
@@ -1074,243 +1073,231 @@ type WeakKey = WeakKeyTypes[keyof WeakKeyTypes];
 
 interface Array<T> {
 	/**
-	 * Returns the value of the first element in the array where predicate is true, and undefined
-	 * otherwise.
-	 * @param predicate find calls predicate once for each element of the array, in ascending
-	 * order, until it finds one where predicate returns true. If such an element is found, find
-	 * immediately returns that element value. Otherwise, find returns undefined.
-	 * @param thisArg If provided, it will be used as the this value for each invocation of
-	 * predicate. If it is not provided, undefined is used instead.
+	 * 返回数组中第一个满足条件的元素的值，否则返回 undefined。
+	 * @param predicate find 函数会为数组中的每个元素调用一次 predicate 函数，按升序，
+	 * 直到找到一个 predicate 返回 true 的元素。如果找到这样的元素，find
+	 * 立即返回该元素的值。否则，find 返回 undefined。
+	 * @param thisArg 如果提供，它将被用作每次调用 predicate 的 this 值。
+	 * 如果未提供，将使用 undefined 代替。
 	 */
 	find<S extends T>(predicate: (value: T, index: number, obj: T[]) => value is S, thisArg?: any): S | undefined;
 	find(predicate: (value: T, index: number, obj: T[]) => unknown, thisArg?: any): T | undefined;
 
 	/**
-	 * Returns the index of the first element in the array where predicate is true, and -1
-	 * otherwise.
-	 * @param predicate find calls predicate once for each element of the array, in ascending
-	 * order, until it finds one where predicate returns true. If such an element is found,
-	 * findIndex immediately returns that element index. Otherwise, findIndex returns -1.
-	 * @param thisArg If provided, it will be used as the this value for each invocation of
-	 * predicate. If it is not provided, undefined is used instead.
+	 * 返回数组中第一个满足条件的元素的索引，否则返回 -1。
+	 * @param predicate find 函数会为数组中的每个元素调用一次 predicate 函数，按升序，
+	 * 直到找到一个 predicate 返回 true 的元素。如果找到这样的元素，
+	 * findIndex 立即返回该元素的索引。否则，findIndex 返回 -1。
+	 * @param thisArg 如果提供，它将被用作每次调用 predicate 的 this 值。
+	 * 如果未提供，将使用 undefined 代替。
 	 */
 	findIndex(predicate: (value: T, index: number, obj: T[]) => unknown, thisArg?: any): number;
 
 	/**
-	 * Changes all array elements from `start` to `end` index to a static `value` and returns the modified array
-	 * @param value value to fill array section with
-	 * @param start index to start filling the array at. If start is negative, it is treated as
-	 * length+start where length is the length of the array.
-	 * @param end index to stop filling the array at. If end is negative, it is treated as
-	 * length+end.
+	 * 将数组中从 `start` 到 `end` 索引的所有元素更改为静态 `value`，并返回修改后的数组
+	 * @param value 用于填充数组部分的值
+	 * @param start 开始填充数组的索引。如果 start 为负数，则将其视为
+	 * 长度+start，其中长度为数组的长度。
+	 * @param end 停止填充数组的索引。如果 end 为负数，将其视为
+	 * 长度+end。
 	 */
 	fill(value: T, start?: number, end?: number): this;
 }
 
 interface ArrayConstructor {
 	/**
-	 * Creates an array from an array-like object.
-	 * @param arrayLike An array-like object to convert to an array.
+	 * 从类数组对象创建数组。
+	 * @param arrayLike 要转换为数组的类数组对象。
 	 */
 	from<T>(arrayLike: ArrayLike<T>): T[];
 
 	/**
-	 * Creates an array from an iterable object.
-	 * @param arrayLike An array-like object to convert to an array.
-	 * @param mapfn A mapping function to call on every element of the array.
-	 * @param thisArg Value of 'this' used to invoke the mapfn.
+	 * 从可迭代对象创建数组。
+	 * @param arrayLike 要转换为数组的类数组对象。
+	 * @param mapfn 在数组的每个元素上调用的映射函数。
+	 * @param thisArg 用于调用 mapfn 的 'this' 值。
 	 */
 	from<T, U>(arrayLike: ArrayLike<T>, mapfn: (v: T, k: number) => U, thisArg?: any): U[];
 
 	/**
-	 * Returns a new array from a set of elements.
-	 * @param items A set of elements to include in the new array object.
+	 * 从一组元素返回新数组。
+	 * @param items 要包含在新数组对象中的一组元素。
 	 */
 	of<T>(...items: T[]): T[];
 }
 
 interface Math {
 	/**
-	 * Returns the sign of the x, indicating whether x is positive, negative or zero.
-	 * @param x The numeric expression to test
+	 * 返回 x 的符号，指示 x 是正数、负数还是零。
+	 * @param x 要测试的数值表达式
 	 */
 	sign(x: number): number;
 
 	/**
-	 * Returns the base 10 logarithm of a number.
-	 * @param x A numeric expression.
+	 * 返回数字的以 10 为底的对数。
+	 * @param x 数值表达式。
 	 */
 	log10(x: number): number;
 
 	/**
-	 * Returns the base 2 logarithm of a number.
-	 * @param x A numeric expression.
+	 * 返回数字的以 2 为底的对数。
+	 * @param x 数值表达式。
 	 */
 	log2(x: number): number;
 
 	/**
-	 * Returns the natural logarithm of 1 + x.
-	 * @param x A numeric expression.
+	 * 返回 1 + x 的自然对数。
+	 * @param x 数值表达式。
 	 */
 	log1p(x: number): number;
 }
 
 interface NumberConstructor {
 	/**
-	 * The value of Number.EPSILON is the difference between 1 and the smallest value greater than 1
-	 * that is representable as a Number value, which is approximately:
-	 * 2.2204460492503130808472633361816 x 10‍−‍16.
+	 * Number.EPSILON 的值是 1 和大于 1 的最小可表示为 Number 值的差，
+	 * 大约为：2.2204460492503130808472633361816 x 10‍−‍16。
 	 */
 	readonly EPSILON: number;
 
 	/**
-	 * Returns true if passed value is finite.
-	 * Unlike the global isFinite, Number.isFinite doesn't forcibly convert the parameter to a
-	 * number. Only finite values of the type number, result in true.
-	 * @param number A numeric value.
+	 * 如果传入的值是有限的，则返回 true。
+	 * 与全局 isFinite 不同，Number.isFinite 不强制将参数转换为
+	 * 数字。只有类型为 number 的有限值，结果为 true。
+	 * @param number 数值。
 	 */
 	isFinite(number: unknown): boolean;
 
 	/**
-	 * Returns true if the value passed is an integer, false otherwise.
-	 * @param number A numeric value.
+	 * 如果传入的值是整数，则返回 true，否则返回 false。
+	 * @param number 数值。
 	 */
 	isInteger(number: unknown): boolean;
 
 	/**
-	 * Returns a Boolean value that indicates whether a value is the reserved value NaN (not a
-	 * number). Unlike the global isNaN(), Number.isNaN() doesn't forcefully convert the parameter
-	 * to a number. Only values of the type number, that are also NaN, result in true.
-	 * @param number A numeric value.
+	 * 返回一个布尔值，该值指示值是否为保留值 NaN（非数字）。
+	 * 与全局 isNaN() 不同，Number.isNaN() 不强制将参数
+	 * 转换为数字。只有类型为 number，且也是 NaN 的值，结果为 true。
+	 * @param number 数值。
 	 */
 	isNaN(number: unknown): boolean;
 
 	/**
-	 * The value of the largest integer n such that n and n + 1 are both exactly representable as
-	 * a Number value.
-	 * The value of Number.MAX_SAFE_INTEGER is 9007199254740991 2^53 − 1.
+	 * 最大整数 n 的值，使得 n 和 n + 1 都可以精确表示为
+	 * Number 值。
+	 * Number.MAX_SAFE_INTEGER 的值为 9007199254740991 2^53 - 1。
 	 */
 	readonly MAX_SAFE_INTEGER: number;
 
 	/**
-	 * The value of the smallest integer n such that n and n − 1 are both exactly representable as
-	 * a Number value.
-	 * The value of Number.MIN_SAFE_INTEGER is −9007199254740991 (−(2^53 − 1)).
+	 * 最小整数 n 的值，使得 n 和 n - 1 都可以精确表示为
+	 * Number 值。
+	 * Number.MIN_SAFE_INTEGER 的值为 -9007199254740991 (-2^53 + 1)。
 	 */
 	readonly MIN_SAFE_INTEGER: number;
 
 	/**
-	 * Converts a string to a floating-point number.
-	 * @param string A string that contains a floating-point number.
+	 * 将字符串转换为浮点数。
+	 * @param string 包含浮点数的字符串。
 	 */
 	parseFloat(string: string): number;
 
 	/**
-	 * Converts A string to an integer.
-	 * @param string A string to convert into a number.
-	 * @param radix A value between 2 and 36 that specifies the base of the number in `string`.
-	 * If this argument is not supplied, strings with a prefix of '0x' are considered hexadecimal.
-	 * All other strings are considered decimal.
+	 * 将字符串转换为整数。
+	 * @param string 要转换为数字的字符串。
+	 * @param radix 一个介于 2 和 36 之间的值，指定 `string` 中数字的基数。
+	 * 如果未提供此参数，带有 '0x' 前缀的字符串被视为十六进制。
+	 * 所有其他字符串被视为十进制。
 	 */
 	parseInt(string: string, radix?: number): number;
 }
 
 interface ObjectConstructor {
 	/**
-	 * Copy the values of all of the enumerable own properties from one or more source objects to a
-	 * target object. Returns the target object.
-	 * @param target The target object to copy to.
-	 * @param source The source object from which to copy properties.
+	 * 将一个或多个源对象的所有可枚举自有属性的值复制到目标对象。返回目标对象。
+	 * @param target 要复制到的目标对象。
+	 * @param source 要复制属性的源对象。
 	 */
 	assign<T extends {}, U>(target: T, source: U): T & U;
 
 	/**
-	 * Copy the values of all of the enumerable own properties from one or more source objects to a
-	 * target object. Returns the target object.
-	 * @param target The target object to copy to.
-	 * @param source1 The first source object from which to copy properties.
-	 * @param source2 The second source object from which to copy properties.
+	 * 将一个或多个源对象的所有可枚举自有属性的值复制到目标对象。返回目标对象。
+	 * @param target 要复制到的目标对象。
+	 * @param source1 要复制属性的第一源对象。
+	 * @param source2 要复制属性的第二源对象。
 	 */
 	assign<T extends {}, U, V>(target: T, source1: U, source2: V): T & U & V;
 
 	/**
-	 * Copy the values of all of the enumerable own properties from one or more source objects to a
-	 * target object. Returns the target object.
-	 * @param target The target object to copy to.
-	 * @param source1 The first source object from which to copy properties.
-	 * @param source2 The second source object from which to copy properties.
-	 * @param source3 The third source object from which to copy properties.
+	 * 将一个或多个源对象的所有可枚举自有属性的值复制到目标对象。返回目标对象。
+	 * @param target 要复制到的目标对象。
+	 * @param source1 要复制属性的第一源对象。
+	 * @param source2 要复制属性的第二源对象。
+	 * @param source3 要复制属性的第三源对象。
 	 */
 	assign<T extends {}, U, V, W>(target: T, source1: U, source2: V, source3: W): T & U & V & W;
 
 	/**
-	 * Copy the values of all of the enumerable own properties from one or more source objects to a
-	 * target object. Returns the target object.
-	 * @param target The target object to copy to.
-	 * @param sources One or more source objects from which to copy properties
+	 * 将一个或多个源对象的所有可枚举自有属性的值复制到目标对象。返回目标对象。
+	 * @param target 要复制到的目标对象。
+	 * @param sources 要复制属性的一个或多个源对象
 	 */
 	assign(target: object, ...sources: any[]): any;
 
 	/**
-	 * Returns the names of the enumerable string properties and methods of an object.
-	 * @param o Object that contains the properties and methods. This can be an object that you created or an existing Document Object Model (DOM) object.
+	 * 返回对象的可枚举字符串属性和方法的名称。
+	 * @param o 包含属性和方法的对象。这可以是您创建的对象或现有的 Document Object Model (DOM) 对象。
 	 */
 	keys(o: {}): string[];
 }
 
 interface ReadonlyArray<T> {
 	/**
-	 * Returns the value of the first element in the array where predicate is true, and undefined
-	 * otherwise.
-	 * @param predicate find calls predicate once for each element of the array, in ascending
-	 * order, until it finds one where predicate returns true. If such an element is found, find
-	 * immediately returns that element value. Otherwise, find returns undefined.
-	 * @param thisArg If provided, it will be used as the this value for each invocation of
-	 * predicate. If it is not provided, undefined is used instead.
+	 * 返回数组中第一满足条件的元素的值，否则返回 undefined。
+	 * @param predicate find 函数会为数组中的每个元素调用一次 predicate 函数，按升序，
+	 * 直到找到一个 predicate 返回 true 的元素。如果找到这样的元素，find
+	 * 立即返回该元素值。否则，find 返回 undefined。
+	 * @param thisArg 如果提供，它将被用作每次调用 predicate 的 this 值。
+	 * 如果未提供，将使用 undefined 代替。
 	 */
 	find<S extends T>(predicate: (value: T, index: number, obj: readonly T[]) => value is S, thisArg?: any): S | undefined;
 	find(predicate: (value: T, index: number, obj: readonly T[]) => unknown, thisArg?: any): T | undefined;
 
 	/**
-	 * Returns the index of the first element in the array where predicate is true, and -1
-	 * otherwise.
-	 * @param predicate find calls predicate once for each element of the array, in ascending
-	 * order, until it finds one where predicate returns true. If such an element is found,
-	 * findIndex immediately returns that element index. Otherwise, findIndex returns -1.
-	 * @param thisArg If provided, it will be used as the this value for each invocation of
-	 * predicate. If it is not provided, undefined is used instead.
+	 * 返回数组中第一满足条件的元素的索引，否则返回 -1。
+	 * @param predicate find 函数会为数组中的每个元素调用一次 predicate 函数，按升序，
+	 * 直到找到一个 predicate 返回 true 的元素。如果找到这样的元素，
+	 * findIndex 立即返回该元素索引。否则，findIndex 返回 -1。
+	 * @param thisArg 如果提供，它将被用作每次调用 predicate 的 this 值。
+	 * 如果未提供，将使用 undefined 代替。
 	 */
 	findIndex(predicate: (value: T, index: number, obj: readonly T[]) => unknown, thisArg?: any): number;
 }
 
 interface String {
 	/**
-	 * Returns true if searchString appears as a substring of the result of converting this
-	 * object to a String, at one or more positions that are
-	 * greater than or equal to position; otherwise, returns false.
-	 * @param searchString search string
-	 * @param position If position is undefined, 0 is assumed, so as to search all of the String.
+	 * 如果 searchString 作为此对象转换为 String 的结果的子字符串出现在一个或多个位置上，
+	 * 并且这些位置大于或等于 position，则返回 true；否则，返回 false。
+	 * @param searchString 搜索字符串
+	 * @param position 如果 position 未定义，则假定为 0，以便搜索整个 String。
 	 */
 	includes(searchString: string, position?: number): boolean;
 
 	/**
-	 * Returns true if the sequence of elements of searchString converted to a String is the
-	 * same as the corresponding elements of this object (converted to a String) starting at
-	 * endPosition – length(this). Otherwise returns false.
+	 * 如果 searchString 转换为 String 的元素序列与此对象（转换为 String）的相应元素序列相同，
+	 * 并且起始位置为 endPosition - length(this)，则返回 true。否则返回 false。
 	 */
 	endsWith(searchString: string, endPosition?: number): boolean;
 
 	/**
-	 * Returns a String value that is made from count copies appended together. If count is 0,
-	 * the empty string is returned.
-	 * @param count number of copies to append
+	 * 返回由 count 个副本连接在一起的 String 值。如果 count 为 0，
+	 * 则返回空字符串。
+	 * @param count 要附加的副本数
 	 */
 	repeat(count: number): string;
 
 	/**
-	 * Returns true if the sequence of elements of searchString converted to a String is the
-	 * same as the corresponding elements of this object (converted to a String) starting at
-	 * position. Otherwise returns false.
+	 * 如果 searchString 转换为 String 的元素序列与此对象（转换为 String）的相应元素序列相同，
+	 * 并且起始位置为 position，则返回 true。否则返回 false。
 	 */
 	startsWith(searchString: string, position?: number): boolean;
 }
@@ -1322,28 +1309,28 @@ interface String {
 interface Map<K, V> {
 	clear(): void;
 	/**
-	 * @returns true if an element in the Map existed and has been removed, or false if the element does not exist.
+	 * @returns 如果 Map 中存在元素并已被删除，则返回 true，否则返回 false。
 	 */
 	delete(key: K): boolean;
 	/**
-	 * Executes a provided function once per each key/value pair in the Map, in insertion order.
+	 * 对 Map 中的每个键/值对执行一次提供的函数，按插入顺序。
 	 */
 	forEach(callbackfn: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any): void;
 	/**
-	 * Returns a specified element from the Map object. If the value that is associated to the provided key is an object, then you will get a reference to that object and any change made to that object will effectively modify it inside the Map.
-	 * @returns Returns the element associated with the specified key. If no element is associated with the specified key, undefined is returned.
+	 * 从 Map 对象返回指定的元素。如果与提供的键关联的值是对象，则将获取该对象的引用，并且对该对象所做的任何更改都将有效地在 Map 中修改它。
+	 * @returns 返回与指定键关联的元素。如果没有与指定键关联的元素，则返回 undefined。
 	 */
 	get(key: K): V | undefined;
 	/**
-	 * @returns boolean indicating whether an element with the specified key exists or not.
+	 * @returns 指示是否存在具有指定键的元素的布尔值。
 	 */
 	has(key: K): boolean;
 	/**
-	 * Adds a new element with a specified key and value to the Map. If an element with the same key already exists, the element will be updated.
+	 * 向 Map 添加具有指定键和值的新元素。如果已存在具有相同键的元素，则将更新该元素。
 	 */
 	set(key: K, value: V): this;
 	/**
-	 * @returns the number of elements in the Map.
+	 * @returns Map 中的元素数量。
 	 */
 	readonly size: number;
 }
@@ -1363,21 +1350,21 @@ interface ReadonlyMap<K, V> {
 
 interface WeakMap<K extends WeakKey, V> {
 	/**
-	 * Removes the specified element from the WeakMap.
-	 * @returns true if the element was successfully removed, or false if it was not present.
+	 * 从 WeakMap 中删除指定的元素。
+	 * @returns 如果元素已成功删除，则返回 true，否则返回 false。
 	 */
 	delete(key: K): boolean;
 	/**
-	 * @returns a specified element.
+	 * @returns 指定的元素。
 	 */
 	get(key: K): V | undefined;
 	/**
-	 * @returns a boolean indicating whether an element with the specified key exists or not.
+	 * @returns 指示是否存在具有指定键的元素的布尔值。
 	 */
 	has(key: K): boolean;
 	/**
-	 * Adds a new element with a specified key and value.
-	 * @param key Must be an object or symbol.
+	 * 添加具有指定键和值的新元素。
+	 * @param key 必须是对象或符号。
 	 */
 	set(key: K, value: V): this;
 }
@@ -1389,26 +1376,26 @@ declare var WeakMap: WeakMapConstructor;
 
 interface Set<T> {
 	/**
-	 * Appends a new element with a specified value to the end of the Set.
+	 * 将具有指定值的新元素追加到 Set 的末尾。
 	 */
 	add(value: T): this;
 
 	clear(): void;
 	/**
-	 * Removes a specified value from the Set.
-	 * @returns Returns true if an element in the Set existed and has been removed, or false if the element does not exist.
+	 * 从 Set 中删除指定的值。
+	 * @returns 如果 Set 中存在元素并已被删除，则返回 true，否则返回 false。
 	 */
 	delete(value: T): boolean;
 	/**
-	 * Executes a provided function once per each value in the Set object, in insertion order.
+	 * 对 Set 对象中的每个值执行一次提供的函数，按插入顺序。
 	 */
 	forEach(callbackfn: (value: T, value2: T, set: Set<T>) => void, thisArg?: any): void;
 	/**
-	 * @returns a boolean indicating whether an element with the specified value exists in the Set or not.
+	 * @returns 指示是否存在具有指定值的元素的布尔值。
 	 */
 	has(value: T): boolean;
 	/**
-	 * @returns the number of (unique) elements in Set.
+	 * @returns Set 中的（唯一）元素数量。
 	 */
 	readonly size: number;
 }
@@ -1426,16 +1413,16 @@ interface ReadonlySet<T> {
 
 interface WeakSet<T extends WeakKey> {
 	/**
-	 * Appends a new value to the end of the WeakSet.
+	 * 在 WeakSet 的末尾添加新值。
 	 */
 	add(value: T): this;
 	/**
-	 * Removes the specified element from the WeakSet.
-	 * @returns Returns true if the element existed and has been removed, or false if the element does not exist.
+	 * 从 WeakSet 中删除指定的元素。
+	 * @returns 如果元素存在并已被删除，则返回 true，否则返回 false。
 	 */
 	delete(value: T): boolean;
 	/**
-	 * @returns a boolean indicating whether a value exists in the WeakSet or not.
+	 * @returns 指示 WeakSet 中是否存在值的布尔值。
 	 */
 	has(value: T): boolean;
 }
@@ -1452,22 +1439,22 @@ declare var WeakSet: WeakSetConstructor;
 
 interface SymbolConstructor {
 	/**
-	 * Returns a new unique Symbol value.
-	 * @param  description Description of the new Symbol object.
+	 * 返回新的唯一 Symbol 值。
+	 * @param  description 新 Symbol 对象的描述。
 	 */
 	(description?: string | number): symbol;
 
 	/**
-	 * Returns a Symbol object from the global symbol registry matching the given key if found.
-	 * Otherwise, returns a new symbol with this key.
-	 * @param key key to search for.
+	 * 如果找到，从全局 symbol 注册表中返回与给定键匹配的 Symbol 对象。
+	 * 否则，返回带有此键的新 symbol。
+	 * @param key 要搜索的键。
 	 */
 	for(key: string): symbol;
 
 	/**
-	 * Returns a key from the global symbol registry matching the given Symbol if found.
-	 * Otherwise, returns a undefined.
-	 * @param sym Symbol to find the key for.
+	 * 如果找到，返回与给定 Symbol 匹配的全局 symbol 注册表中的键。
+	 * 否则，返回 undefined。
+	 * @param sym 要找到键的 Symbol。
 	 */
 	keyFor(sym: symbol): string | undefined;
 }
@@ -1476,8 +1463,7 @@ declare var Symbol: SymbolConstructor;
 
 interface SymbolConstructor {
 	/**
-	 * A method that returns the default iterator for an object. Called by the semantics of the
-	 * for-of statement.
+	 * 返回对象的默认迭代器的方法。由 for-of 语句的语义调用。
 	 */
 	readonly iterator: unique symbol;
 }
@@ -1495,7 +1481,7 @@ interface IteratorReturnResult<TReturn> {
 type IteratorResult<T, TReturn = any> = IteratorYieldResult<T> | IteratorReturnResult<TReturn>;
 
 interface Iterator<T, TReturn = any, TNext = undefined> {
-	// NOTE: 'next' is defined using a tuple to ensure we report the correct assignability errors in all places.
+	// 注意：'next' 是使用元组定义的，以确保我们在所有地方报告正确的可分配性错误。
 	next(...args: [] | [TNext]): IteratorResult<T, TReturn>;
 	return?(value?: TReturn): IteratorResult<T, TReturn>;
 	throw?(e?: any): IteratorResult<T, TReturn>;
@@ -1510,27 +1496,27 @@ interface IterableIterator<T> extends Iterator<T> {
 }
 
 interface Array<T> {
-	/** Iterator */
+	/** 迭代器 */
 	[Symbol.iterator](): IterableIterator<T>;
 
 	/**
-	 * Returns an iterable of key, value pairs for every entry in the array
+	 * 返回数组中每个条目的键值对的可迭代对象
 	 */
 	entries(): IterableIterator<[number, T]>;
 }
 
 interface ArrayConstructor {
 	/**
-	 * Creates an array from an iterable object.
-	 * @param iterable An iterable object to convert to an array.
+	 * 从可迭代对象创建数组。
+	 * @param iterable 要转换为数组的可迭代对象。
 	 */
 	from<T>(iterable: Iterable<T> | ArrayLike<T>): T[];
 
 	/**
-	 * Creates an array from an iterable object.
-	 * @param iterable An iterable object to convert to an array.
-	 * @param mapfn A mapping function to call on every element of the array.
-	 * @param thisArg Value of 'this' used to invoke the mapfn.
+	 * 从可迭代对象创建数组。
+	 * @param iterable 要转换为数组的可迭代对象。
+	 * @param mapfn 在数组的每个元素上调用的映射函数。
+	 * @param thisArg 用于调用 mapfn 的 'this' 值。
 	 */
 	from<T, U>(iterable: Iterable<T> | ArrayLike<T>, mapfn: (v: T, k: number) => U, thisArg?: any): U[];
 }
@@ -1541,51 +1527,51 @@ interface IArguments {
 }
 
 interface ReadonlyArray<T> {
-	/** Iterator of values in the array. */
+	/** 数组中值的迭代器。 */
 	[Symbol.iterator](): IterableIterator<T>;
 
 	/**
-	 * Returns an iterable of key, value pairs for every entry in the array
+	 * 返回数组中每个条目的键值对的可迭代对象。
 	 */
 	entries(): IterableIterator<[number, T]>;
 }
 
 interface Map<K, V> {
-	/** Returns an iterable of entries in the map. */
+	/** 返回映射中条目的迭代器。 */
 	[Symbol.iterator](): IterableIterator<[K, V]>;
 
 	/**
-	 * Returns an iterable of key, value pairs for every entry in the map.
+	 * 返回映射中每个条目的键值对的可迭代对象。
 	 */
 	entries(): IterableIterator<[K, V]>;
 
 	/**
-	 * Returns an iterable of keys in the map
+	 * 返回映射中键的可迭代对象。
 	 */
 	keys(): IterableIterator<K>;
 
 	/**
-	 * Returns an iterable of values in the map
+	 * 返回映射中值的可迭代对象。
 	 */
 	values(): IterableIterator<V>;
 }
 
 interface ReadonlyMap<K, V> {
-	/** Returns an iterable of entries in the map. */
+	/** 返回映射中条目的迭代器。 */
 	[Symbol.iterator](): IterableIterator<[K, V]>;
 
 	/**
-	 * Returns an iterable of key, value pairs for every entry in the map.
+	 * 返回映射中每个条目的键值对的可迭代对象。
 	 */
 	entries(): IterableIterator<[K, V]>;
 
 	/**
-	 * Returns an iterable of keys in the map
+	 * 返回映射中键的可迭代对象。
 	 */
 	keys(): IterableIterator<K>;
 
 	/**
-	 * Returns an iterable of values in the map
+	 * 返回映射中值的可迭代对象。
 	 */
 	values(): IterableIterator<V>;
 }
@@ -1602,39 +1588,39 @@ interface WeakMapConstructor {
 }
 
 interface Set<T> {
-	/** Iterates over values in the set. */
+	/** 遍历集合中的值。 */
 	[Symbol.iterator](): IterableIterator<T>;
 	/**
-	 * Returns an iterable of [v,v] pairs for every value `v` in the set.
+	 * 返回集合中每个值 `v` 的 [v,v] 对的可迭代对象。
 	 */
 	entries(): IterableIterator<[T, T]>;
 	/**
-	 * Despite its name, returns an iterable of the values in the set.
+	 * 尽管名字如此，但返回集合中值的可迭代对象。
 	 */
 	keys(): IterableIterator<T>;
 
 	/**
-	 * Returns an iterable of values in the set.
+	 * 返回集合中值的可迭代对象。
 	 */
 	values(): IterableIterator<T>;
 }
 
 interface ReadonlySet<T> {
-	/** Iterates over values in the set. */
+	/** 遍历集合中的值。 */
 	[Symbol.iterator](): IterableIterator<T>;
 
 	/**
-	 * Returns an iterable of [v,v] pairs for every value `v` in the set.
+	 * 返回集合中每个值 `v` 的 [v,v] 对的可迭代对象。
 	 */
 	entries(): IterableIterator<[T, T]>;
 
 	/**
-	 * Despite its name, returns an iterable of the values in the set.
+	 * 尽管名字如此，但返回集合中值的可迭代对象。
 	 */
 	keys(): IterableIterator<T>;
 
 	/**
-	 * Returns an iterable of values in the set.
+	 * 返回集合中值的可迭代对象。
 	 */
 	values(): IterableIterator<T>;
 }
@@ -1653,18 +1639,16 @@ interface Promise<T> {}
 
 interface PromiseConstructor {
 	/**
-	 * Creates a Promise that is resolved with an array of results when all of the provided Promises
-	 * resolve, or rejected when any Promise is rejected.
-	 * @param values An iterable of Promises.
-	 * @returns A new Promise.
+	 * 创建一个 Promise，当所有提供的 Promise 都解析时，该 Promise 会以结果数组的形式解析，当任何一个 Promise 被拒绝时，它会被拒绝。
+	 * @param values 一个 Promise 的可迭代对象。
+	 * @returns 新的 Promise。
 	 */
 	all<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>[]>;
 
 	/**
-	 * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
-	 * or rejected.
-	 * @param values An iterable of Promises.
-	 * @returns A new Promise.
+	 * 创建一个 Promise，当任何一个提供的 Promise 被解析或拒绝时，该 Promise 会被解析或拒绝。
+	 * @param values 一个 Promise 的可迭代对象。
+	 * @returns 新的 Promise。
 	 */
 	race<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>>;
 }
@@ -1680,57 +1664,49 @@ interface String {
 
 interface PromiseConstructor {
 	/**
-	 * Creates a new Promise.
-	 * @param executor A callback used to initialize the promise. This callback is passed two arguments:
-	 * a resolve callback used to resolve the promise with a value or the result of another promise,
-	 * and a reject callback used to reject the promise with a provided reason or error.
+	 * 创建新的 Promise。
+	 * @param executor 用于初始化 promise 的回调。此回调传递两个参数：
+	 * 用于以值或另一 promise 的结果解析 promise 的 resolve 回调，
+	 * 以及用于以提供的原因或错误拒绝 promise 的 reject 回调。
 	 */
 	new <T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void): Promise<T>;
 
 	/**
-	 * Creates a Promise that is resolved with an array of results when all of the provided Promises
-	 * resolve, or rejected when any Promise is rejected.
-	 * @param values An array of Promises.
-	 * @returns A new Promise.
+	 * 创建一个 Promise，当所有提供的 Promise 都解析时，该 Promise 会以结果数组的形式解析，当任何 Promise 被拒绝时，它会被拒绝。
+	 * @param values 一个 Promise 数组。
+	 * @returns 新的 Promise。
 	 */
 	all<T extends readonly unknown[] | []>(values: T): Promise<{ -readonly [P in keyof T]: Awaited<T[P]>; }>;
 
-	// see: lib.es2015.iterable.d.ts
-	// all<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>[]>;
-
 	/**
-	 * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
-	 * or rejected.
-	 * @param values An array of Promises.
-	 * @returns A new Promise.
+	 * 创建一个 Promise，当任何一个提供的 Promise 被解析或拒绝时，该 Promise 会被解析或拒绝。
+	 * @param values 一个 Promise 数组。
+	 * @returns 新的 Promise。
 	 */
 	race<T extends readonly unknown[] | []>(values: T): Promise<Awaited<T[number]>>;
 
-	// see: lib.es2015.iterable.d.ts
-	// race<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>>;
-
 	/**
-	 * Creates a new rejected promise for the provided reason.
-	 * @param reason The reason the promise was rejected.
-	 * @returns A new rejected Promise.
+	 * 为提供的原因创建新的拒绝 promise。
+	 * @param reason 拒绝 promise 的原因。
+	 * @returns 新的拒绝 Promise。
 	 */
 	reject<T = never>(reason?: any): Promise<T>;
 
 	/**
-	 * Creates a new resolved promise.
-	 * @returns A resolved promise.
+	 * 创建新的已解析 promise。
+	 * @returns 已解析的 promise。
 	 */
 	resolve(): Promise<void>;
 	/**
-	 * Creates a new resolved promise for the provided value.
-	 * @param value A promise.
-	 * @returns A promise whose internal state matches the provided promise.
+	 * 为提供的值创建新的已解析 promise。
+	 * @param value promise。
+	 * @returns 其内部状态与提供的 promise 匹配的 promise。
 	 */
 	resolve<T>(value: T): Promise<Awaited<T>>;
 	/**
-	 * Creates a new resolved promise for the provided value.
-	 * @param value A promise.
-	 * @returns A promise whose internal state matches the provided promise.
+	 * 为提供的值创建新的已解析 promise。
+	 * @param value promise。
+	 * @returns 其内部状态与提供的 promise 匹配的 promise。
 	 */
 	resolve<T>(value: T | PromiseLike<T>): Promise<Awaited<T>>;
 }
@@ -1743,20 +1719,17 @@ declare var Promise: PromiseConstructor;
 
 interface SymbolConstructor {
 	/**
-	 * A method that determines if a constructor object recognizes an object as one of the
-	 * constructor’s instances. Called by the semantics of the instanceof operator.
+	 * 一种方法，用于确定构造函数对象是否将对象识别为构造函数的实例之一。由 instanceof 操作符的语义调用。
 	 */
 	readonly hasInstance: unique symbol;
 
 	/**
-	 * A function valued property that is the constructor function that is used to create
-	 * derived objects.
+	 * 一个函数值属性，该属性是用于创建派生对象的构造函数。
 	 */
 	readonly species: unique symbol;
 
 	/**
-	 * A String value that is used in the creation of the default string description of an object.
-	 * Called by the built-in method Object.prototype.toString.
+	 * 一个字符串值，用于创建对象默认字符串描述。由内置方法 Object.prototype.toString 调用。
 	 */
 	readonly toStringTag: unique symbol;
 }

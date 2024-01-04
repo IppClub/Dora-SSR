@@ -9,1182 +9,1050 @@ type AnyTable = Record<any, any>;
 type AnyNotNil = {};
 
 /**
- * Indicates a type is a language extension provided by TypescriptToLua when used as a value or function call.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 该类型是TypescriptToLua提供的语言扩展，当作为值或函数调用时使用。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TBrand A string used to uniquely identify the language extension type
+ * @param TBrand 用于唯一标识语言扩展类型的字符串
  */
 declare interface LuaExtension<TBrand extends string> {
-    readonly __tstlExtension: TBrand;
+	readonly __tstlExtension: TBrand;
 }
 
 /**
- * Indicates a type is a language extension provided by TypescriptToLua when used in a for-of loop.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 该类型是TypescriptToLua提供的语言扩展，在for-of循环中使用。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TBrand A string used to uniquely identify the language extension type
+ * @param TBrand 用于唯一标识语言扩展类型的字符串
  */
 declare interface LuaIterationExtension<TBrand extends string> {
-    readonly __tstlIterable: TBrand;
+	readonly __tstlIterable: TBrand;
 }
 
 /**
- * Returns multiple values from a function, by wrapping them in a LuaMultiReturn tuple.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 通过使用LuaMultiReturn元组，可以从函数中返回多个值。
+ * 你可以在这个链接中找到更多相关信息：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param T A tuple type with each element type representing a return value's type.
- * @param values Return values.
+ * @param T 元组类型，其中每个元素的类型代表一个返回值的类型。
+ * @param values 函数返回的值。
  */
 declare const $multi: (<T extends any[]>(...values: T) => LuaMultiReturn<T>) & LuaExtension<"MultiFunction">;
 
 /**
- * Represents multiple return values as a tuple.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 将多个返回值表示为元组。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param T A tuple type with each element type representing a return value's type.
+ * @param T 每个元素类型代表返回值类型的元组类型。
  */
 declare type LuaMultiReturn<T extends any[]> = T & {
-    readonly __tstlMultiReturn: any;
+	readonly __tstlMultiReturn: any;
 };
 
 /**
- * Creates a Lua-style numeric for loop (for i=start,limit,step) when used in for...of. Not valid in any other context.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 在for...of中使用时创建Lua风格的数字for循环（for i=start,limit,step）。在任何其他上下文中都无效。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param start The first number in the sequence to iterate over.
- * @param limit The last number in the sequence to iterate over.
- * @param step The amount to increment each iteration.
+ * @param start 要遍历的序列中的第一个数字。
+ * @param limit 要遍历的序列中的最后一个数字。
+ * @param step 每次迭代的增量。
  */
 declare const $range: ((start: number, limit: number, step?: number) => Iterable<number>) &
-    LuaExtension<"RangeFunction">;
+	LuaExtension<"RangeFunction">;
 
 /**
- * Transpiles to the global vararg (`...`)
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 转译为全局变量参数（`...`）
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  */
 declare const $vararg: string[] & LuaExtension<"VarargConstant">;
 
 /**
- * Represents a Lua-style iterator which is returned from a LuaIterable.
- * For simple iterators (with no state), this is just a function.
- * For complex iterators that use a state, this is a LuaMultiReturn tuple containing a function, the state, and the initial value to pass to the function.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 从LuaIterable返回的Lua风格迭代器。
+ * 对于简单的迭代器（无状态），这只是一个函数。
+ * 对于使用状态的复杂迭代器，这是一个LuaMultiReturn元组，包含一个函数、状态对象和传递给函数的初始值。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param state The state object returned from the LuaIterable.
- * @param lastValue The last value returned from this function. If iterating LuaMultiReturn values, this is the first value of the tuple.
+ * @param state 从LuaIterable返回的状态对象。
+ * @param lastValue 从此函数返回的最后一个值。如果迭代LuaMultiReturn值，这是元组的第一个值。
  */
 declare type LuaIterator<TValue, TState> = TState extends undefined
-    ? (this: void) => TValue
-    : LuaMultiReturn<
-          [
-              (
-                  this: void,
-                  state: TState,
-                  lastValue: TValue extends LuaMultiReturn<infer TTuple> ? TTuple[0] : TValue
-              ) => TValue,
-              TState,
-              TValue extends LuaMultiReturn<infer TTuple> ? TTuple[0] : TValue
-          ]
-      >;
+	? (this: void) => TValue
+	: LuaMultiReturn<
+		  [
+			  (
+				  this: void,
+				  state: TState,
+				  lastValue: TValue extends LuaMultiReturn<infer TTuple> ? TTuple[0] : TValue
+			  ) => TValue,
+			  TState,
+			  TValue extends LuaMultiReturn<infer TTuple> ? TTuple[0] : TValue
+		  ]
+	  >;
 
 /**
- * Represents a Lua-style iteratable which iterates single values in a `for...in` loop (ex. `for x in iter() do`).
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * Lua风格的可迭代对象，它在`for...in`循环中迭代单个值（例如`for x in iter() do`）。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TValue The type of value returned each iteration. If this is LuaMultiReturn, multiple values will be returned each iteration.
- * @param TState The type of the state value passed back to the iterator function each iteration.
+ * @param TValue 每次迭代返回的值的类型。如果这是LuaMultiReturn，每次迭代将返回多个值。
+ * @param TState 每次迭代传回迭代器函数的状态值的类型。
  */
 declare type LuaIterable<TValue, TState = undefined> = Iterable<TValue> &
-    LuaIterator<TValue, TState> &
-    LuaIterationExtension<"Iterable">;
+	LuaIterator<TValue, TState> &
+	LuaIterationExtension<"Iterable">;
 
 /**
- * Represents an object that can be iterated with pairs()
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 可以使用pairs()进行迭代的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TKey The type of the key returned each iteration.
- * @param TValue The type of the value returned each iteration.
+ * @param TKey 每次迭代返回的键的类型。
+ * @param TValue 每次迭代返回的值的类型。
  */
 declare type LuaPairsIterable<TKey extends AnyNotNil, TValue> = Iterable<[TKey, TValue]> &
-    LuaIterationExtension<"Pairs">;
+	LuaIterationExtension<"Pairs">;
 
 /**
- * Represents an object that can be iterated with pairs(), where only the key value is used.
+ * 可以使用pairs()进行迭代的对象，其中只使用键值。
  *
- * @param TKey The type of the key returned each iteration.
+ * @param TKey 每次迭代返回的键的类型。
  */
 declare type LuaPairsKeyIterable<TKey extends AnyNotNil> = Iterable<TKey> & LuaIterationExtension<"PairsKey">;
 
 /**
- * Calls to functions with this type are translated to `left + right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left + right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaAddition<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) & LuaExtension<"Addition">;
 
 /**
- * Calls to methods with this type are translated to `left + right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left + right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaAdditionMethod<TRight, TReturn> = ((right: TRight) => TReturn) & LuaExtension<"AdditionMethod">;
 
 /**
- * Calls to functions with this type are translated to `left - right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left - right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaSubtraction<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"Subtraction">;
+	LuaExtension<"Subtraction">;
 
 /**
- * Calls to methods with this type are translated to `left - right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left - right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaSubtractionMethod<TRight, TReturn> = ((right: TRight) => TReturn) & LuaExtension<"SubtractionMethod">;
 
 /**
- * Calls to functions with this type are translated to `left * right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left * right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaMultiplication<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"Multiplication">;
+	LuaExtension<"Multiplication">;
 
 /**
- * Calls to methods with this type are translated to `left * right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left * right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaMultiplicationMethod<TRight, TReturn> = ((right: TRight) => TReturn) &
-    LuaExtension<"MultiplicationMethod">;
+	LuaExtension<"MultiplicationMethod">;
 
 /**
- * Calls to functions with this type are translated to `left / right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left / right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaDivision<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) & LuaExtension<"Division">;
 
 /**
- * Calls to methods with this type are translated to `left / right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left / right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaDivisionMethod<TRight, TReturn> = ((right: TRight) => TReturn) & LuaExtension<"DivisionMethod">;
 
 /**
- * Calls to functions with this type are translated to `left % right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left % right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaModulo<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) & LuaExtension<"Modulo">;
 
 /**
- * Calls to methods with this type are translated to `left % right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left % right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaModuloMethod<TRight, TReturn> = ((right: TRight) => TReturn) & LuaExtension<"ModuloMethod">;
 
 /**
- * Calls to functions with this type are translated to `left ^ right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left ^ right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaPower<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) & LuaExtension<"Power">;
 
 /**
- * Calls to methods with this type are translated to `left ^ right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left ^ right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaPowerMethod<TRight, TReturn> = ((right: TRight) => TReturn) & LuaExtension<"PowerMethod">;
 
 /**
- * Calls to functions with this type are translated to `left // right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left // right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaFloorDivision<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"FloorDivision">;
+	LuaExtension<"FloorDivision">;
 
 /**
- * Calls to methods with this type are translated to `left // right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left // right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaFloorDivisionMethod<TRight, TReturn> = ((right: TRight) => TReturn) &
-    LuaExtension<"FloorDivisionMethod">;
+	LuaExtension<"FloorDivisionMethod">;
 
 /**
- * Calls to functions with this type are translated to `left & right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left & right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaBitwiseAnd<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"BitwiseAnd">;
+	LuaExtension<"BitwiseAnd">;
 
 /**
- * Calls to methods with this type are translated to `left & right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left & right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaBitwiseAndMethod<TRight, TReturn> = ((right: TRight) => TReturn) & LuaExtension<"BitwiseAndMethod">;
 
 /**
- * Calls to functions with this type are translated to `left | right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left | right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaBitwiseOr<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"BitwiseOr">;
+	LuaExtension<"BitwiseOr">;
 
 /**
- * Calls to methods with this type are translated to `left | right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left | right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaBitwiseOrMethod<TRight, TReturn> = ((right: TRight) => TReturn) & LuaExtension<"BitwiseOrMethod">;
 
 /**
- * Calls to functions with this type are translated to `left ~ right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left ~ right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaBitwiseExclusiveOr<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"BitwiseExclusiveOr">;
+	LuaExtension<"BitwiseExclusiveOr">;
 
 /**
- * Calls to methods with this type are translated to `left ~ right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left ~ right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaBitwiseExclusiveOrMethod<TRight, TReturn> = ((right: TRight) => TReturn) &
-    LuaExtension<"BitwiseExclusiveOrMethod">;
+	LuaExtension<"BitwiseExclusiveOrMethod">;
 
 /**
- * Calls to functions with this type are translated to `left << right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left << right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaBitwiseLeftShift<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"BitwiseLeftShift">;
+	LuaExtension<"BitwiseLeftShift">;
 
 /**
- * Calls to methods with this type are translated to `left << right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left << right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaBitwiseLeftShiftMethod<TRight, TReturn> = ((right: TRight) => TReturn) &
-    LuaExtension<"BitwiseLeftShiftMethod">;
+	LuaExtension<"BitwiseLeftShiftMethod">;
 
 /**
- * Calls to functions with this type are translated to `left >> right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left >> right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaBitwiseRightShift<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"BitwiseRightShift">;
+	LuaExtension<"BitwiseRightShift">;
 
 /**
- * Calls to methods with this type are translated to `left >> right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left >> right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaBitwiseRightShiftMethod<TRight, TReturn> = ((right: TRight) => TReturn) &
-    LuaExtension<"BitwiseRightShiftMethod">;
+	LuaExtension<"BitwiseRightShiftMethod">;
 
 /**
- * Calls to functions with this type are translated to `left .. right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left .. right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaConcat<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) & LuaExtension<"Concat">;
 
 /**
- * Calls to methods with this type are translated to `left .. right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left .. right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaConcatMethod<TRight, TReturn> = ((right: TRight) => TReturn) & LuaExtension<"ConcatMethod">;
 
 /**
- * Calls to functions with this type are translated to `left < right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left < right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaLessThan<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) & LuaExtension<"LessThan">;
 
 /**
- * Calls to methods with this type are translated to `left < right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left < right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaLessThanMethod<TRight, TReturn> = ((right: TRight) => TReturn) & LuaExtension<"LessThanMethod">;
 
 /**
- * Calls to functions with this type are translated to `left > right`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`left > right`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TLeft The type of the left-hand-side of the operation.
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TLeft 操作的左侧的类型。
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaGreaterThan<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"GreaterThan">;
+	LuaExtension<"GreaterThan">;
 
 /**
- * Calls to methods with this type are translated to `left > right`, where `left` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`left > right`，其中`left`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TRight The type of the right-hand-side of the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TRight 操作的右侧的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaGreaterThanMethod<TRight, TReturn> = ((right: TRight) => TReturn) & LuaExtension<"GreaterThanMethod">;
 
 /**
- * Calls to functions with this type are translated to `-operand`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`-operand`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TOperand The type of the value in the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TOperand 操作数的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaNegation<TOperand, TReturn> = ((operand: TOperand) => TReturn) & LuaExtension<"Negation">;
 
 /**
- * Calls to method with this type are translated to `-operand`, where `operand` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`-operand`，其中`operand`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TReturn The resulting (return) type of the operation.
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaNegationMethod<TReturn> = (() => TReturn) & LuaExtension<"NegationMethod">;
 
 /**
- * Calls to functions with this type are translated to `~operand`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`~operand`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TOperand The type of the value in the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TOperand 操作数的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaBitwiseNot<TOperand, TReturn> = ((operand: TOperand) => TReturn) & LuaExtension<"BitwiseNot">;
 
 /**
- * Calls to method with this type are translated to `~operand`, where `operand` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`~operand`，其中`operand`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TReturn The resulting (return) type of the operation.
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaBitwiseNotMethod<TReturn> = (() => TReturn) & LuaExtension<"BitwiseNotMethod">;
 
 /**
- * Calls to functions with this type are translated to `#operand`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`#operand`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TOperand The type of the value in the operation.
- * @param TReturn The resulting (return) type of the operation.
+ * @param TOperand 操作数的类型。
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaLength<TOperand, TReturn> = ((operand: TOperand) => TReturn) & LuaExtension<"Length">;
 
 /**
- * Calls to method with this type are translated to `#operand`, where `operand` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`#operand`，其中`operand`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TReturn The resulting (return) type of the operation.
+ * @param TReturn 操作的结果（返回）类型。
  */
 declare type LuaLengthMethod<TReturn> = (() => TReturn) & LuaExtension<"LengthMethod">;
 
 /**
- * Calls to functions with this type are translated to `table[key]`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`table[key]`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TTable The type to access as a Lua table.
- * @param TKey The type of the key to use to access the table.
- * @param TValue The type of the value stored in the table.
+ * @param TTable 作为Lua表访问的类型。
+ * @param TKey 用于访问表的键的类型。
+ * @param TValue 存储在表中的值的类型。
  */
 declare type LuaTableGet<TTable extends AnyTable, TKey extends AnyNotNil, TValue> = ((
-    table: TTable,
-    key: TKey
+	table: TTable,
+	key: TKey
 ) => TValue) &
-    LuaExtension<"TableGet">;
+	LuaExtension<"TableGet">;
 
 /**
- * Calls to methods with this type are translated to `table[key]`, where `table` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`table[key]`，其中`table`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TKey The type of the key to use to access the table.
- * @param TValue The type of the value stored in the table.
+ * @param TKey 用于访问表的键的类型。
+ * @param TValue 存储在表中的值的类型。
  */
 declare type LuaTableGetMethod<TKey extends AnyNotNil, TValue> = ((key: TKey) => TValue) &
-    LuaExtension<"TableGetMethod">;
+	LuaExtension<"TableGetMethod">;
 
 /**
- * Calls to functions with this type are translated to `table[key] = value`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`table[key] = value`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TTable The type to access as a Lua table.
- * @param TKey The type of the key to use to access the table.
- * @param TValue The type of the value to assign to the table.
+ * @param TTable 作为Lua表访问的类型。
+ * @param TKey 用于访问表的键的类型。
+ * @param TValue 要分配给表的值的类型。
  */
 declare type LuaTableSet<TTable extends AnyTable, TKey extends AnyNotNil, TValue> = ((
-    table: TTable,
-    key: TKey,
-    value: TValue
+	table: TTable,
+	key: TKey,
+	value: TValue
 ) => void) &
-    LuaExtension<"TableSet">;
+	LuaExtension<"TableSet">;
 
 /**
- * Calls to methods with this type are translated to `table[key] = value`, where `table` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`table[key] = value`，其中`table`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TKey The type of the key to use to access the table.
- * @param TValue The type of the value to assign to the table.
+ * @param TKey 用于访问表的键的类型。
+ * @param TValue 要分配给表的值的类型。
  */
 declare type LuaTableSetMethod<TKey extends AnyNotNil, TValue> = ((key: TKey, value: TValue) => void) &
-    LuaExtension<"TableSetMethod">;
+	LuaExtension<"TableSetMethod">;
 
 /**
- * Calls to functions with this type are translated to `table[key] = true`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`table[key] = true`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TTable The type to access as a Lua table.
- * @param TKey The type of the key to use to access the table.
+ * @param TTable 作为Lua表访问的类型。
+ * @param TKey 用于访问表的键的类型。
  */
 declare type LuaTableAddKey<TTable extends AnyTable, TKey extends AnyNotNil> = ((table: TTable, key: TKey) => void) &
-    LuaExtension<"TableAddKey">;
+	LuaExtension<"TableAddKey">;
 
 /**
- * Calls to methods with this type are translated to `table[key] = true`, where `table` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
- * @param TKey The type of the key to use to access the table.
+ * 对此类型的方法的调用将转译为`table[key] = true`，其中`table`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
+ * @param TKey 用于访问表的键的类型。
  */
 declare type LuaTableAddKeyMethod<TKey extends AnyNotNil> = ((key: TKey) => void) & LuaExtension<"TableAddKeyMethod">;
 
 /**
- * Calls to functions with this type are translated to `table[key] ~= nil`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`table[key] ~= nil`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TTable The type to access as a Lua table.
- * @param TKey The type of the key to use to access the table.
+ * @param TTable 作为Lua表访问的类型。
+ * @param TKey 用于访问表的键的类型。
  */
 declare type LuaTableHas<TTable extends AnyTable, TKey extends AnyNotNil> = ((table: TTable, key: TKey) => boolean) &
-    LuaExtension<"TableHas">;
+	LuaExtension<"TableHas">;
 
 /**
- * Calls to methods with this type are translated to `table[key] ~= nil`, where `table` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`table[key] ~= nil`，其中`table`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TKey The type of the key to use to access the table.
+ * @param TKey 用于访问表的键的类型。
  */
 declare type LuaTableHasMethod<TKey extends AnyNotNil> = ((key: TKey) => boolean) & LuaExtension<"TableHasMethod">;
 
 /**
- * Calls to functions with this type are translated to `table[key] = nil`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`table[key] = nil`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TTable The type to access as a Lua table.
- * @param TKey The type of the key to use to access the table.
+ * @param TTable 作为Lua表访问的类型。
+ * @param TKey 用于访问表的键的类型。
  */
 declare type LuaTableDelete<TTable extends AnyTable, TKey extends AnyNotNil> = ((table: TTable, key: TKey) => boolean) &
-    LuaExtension<"TableDelete">;
+	LuaExtension<"TableDelete">;
 
 /**
- * Calls to methods with this type are translated to `table[key] = nil`, where `table` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`table[key] = nil`，其中`table`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TKey The type of the key to use to access the table.
+ * @param TKey 用于访问表的键的类型。
  */
 declare type LuaTableDeleteMethod<TKey extends AnyNotNil> = ((key: TKey) => boolean) &
-    LuaExtension<"TableDeleteMethod">;
+	LuaExtension<"TableDeleteMethod">;
 
 /**
- * Calls to functions with this type are translated to `next(myTable) == nil`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的函数的调用将转译为`next(myTable) == nil`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TTable The type to access as a Lua table.
+ * @param TTable 作为Lua表访问的类型。
  */
 declare type LuaTableIsEmpty<TTable extends AnyTable> = ((table: TTable) => boolean) & LuaExtension<"TableIsEmpty">;
 
 /**
- * Calls to methods with this type are translated to `next(myTable) == nil`, where `table` is the object with the method.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 对此类型的方法的调用将转译为`next(myTable) == nil`，其中`table`是具有该方法的对象。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  */
 declare type LuaTableIsEmptyMethod = (() => boolean) & LuaExtension<"TableIsEmptyMethod">;
 
 /**
- * A convenience type for working directly with a Lua table.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 方便直接操作Lua表的类型。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TKey The type of the keys used to access the table.
- * @param TValue The type of the values stored in the table.
+ * @param TKey 用于访问表的键的类型。
+ * @param TValue 存储在表中的值的类型。
  */
 declare interface LuaTable<TKey extends AnyNotNil = AnyNotNil, TValue = any> extends LuaPairsIterable<TKey, TValue> {
-    length: LuaLengthMethod<number>;
-    get: LuaTableGetMethod<TKey, TValue>;
-    set: LuaTableSetMethod<TKey, TValue>;
-    has: LuaTableHasMethod<TKey>;
-    delete: LuaTableDeleteMethod<TKey>;
-    isEmpty: LuaTableIsEmptyMethod;
+	length: LuaLengthMethod<number>;
+	get: LuaTableGetMethod<TKey, TValue>;
+	set: LuaTableSetMethod<TKey, TValue>;
+	has: LuaTableHasMethod<TKey>;
+	delete: LuaTableDeleteMethod<TKey>;
+	isEmpty: LuaTableIsEmptyMethod;
 }
 
 /**
- * A convenience type for working directly with a Lua table.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 方便直接操作Lua表的类型。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TKey The type of the keys used to access the table.
- * @param TValue The type of the values stored in the table.
+ * @param TKey 用于访问表的键的类型。
+ * @param TValue 存储在表中的值的类型。
  */
 declare type LuaTableConstructor = (new <TKey extends AnyNotNil = AnyNotNil, TValue = any>() => LuaTable<
-    TKey,
-    TValue
+	TKey,
+	TValue
 >) &
-    LuaExtension<"TableNew">;
+	LuaExtension<"TableNew">;
 
 /**
- * A convenience type for working directly with a Lua table.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
+ * 方便直接操作Lua表的类型。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
  *
- * @param TKey The type of the keys used to access the table.
- * @param TValue The type of the values stored in the table.
+ * @param TKey 用于访问表的键的类型。
+ * @param TValue 存储在表中的值的类型。
  */
 declare const LuaTable: LuaTableConstructor;
 
 /**
- * A convenience type for working directly with a Lua table, used as a map.
+ * 方便直接操作Lua表的类型，用作映射。
  *
- * This differs from LuaTable in that the `get` method may return `nil`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
- * @param K The type of the keys used to access the table.
- * @param V The type of the values stored in the table.
+ * 这与LuaTable不同，`get`方法可能返回`nil`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
+ * @param K 用于访问表的键的类型。
+ * @param V 存储在表中的值的类型。
  */
 declare interface LuaMap<K extends AnyNotNil = AnyNotNil, V = any> extends LuaPairsIterable<K, V> {
-    get: LuaTableGetMethod<K, V | undefined>;
-    set: LuaTableSetMethod<K, V>;
-    has: LuaTableHasMethod<K>;
-    delete: LuaTableDeleteMethod<K>;
-    isEmpty: LuaTableIsEmptyMethod;
+	get: LuaTableGetMethod<K, V | undefined>;
+	set: LuaTableSetMethod<K, V>;
+	has: LuaTableHasMethod<K>;
+	delete: LuaTableDeleteMethod<K>;
+	isEmpty: LuaTableIsEmptyMethod;
 }
 
 /**
- * A convenience type for working directly with a Lua table, used as a map.
+ * 方便直接操作Lua表的类型，用作映射。
  *
- * This differs from LuaTable in that the `get` method may return `nil`.
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
- * @param K The type of the keys used to access the table.
- * @param V The type of the values stored in the table.
+ * 这与LuaTable不同，`get`方法可能返回`nil`。
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
+ * @param K 用于访问表的键的类型。
+ * @param V 存储在表中的值的类型。
  */
 declare const LuaMap: (new <K extends AnyNotNil = AnyNotNil, V = any>() => LuaMap<K, V>) & LuaExtension<"TableNew">;
 
 /**
- * Readonly version of {@link LuaMap}.
+ * {@link LuaMap}的只读版本。
  *
- * @param K The type of the keys used to access the table.
- * @param V The type of the values stored in the table.
+ * @param K 用于访问表的键的类型。
+ * @param V 存储在表中的值的类型。
  */
 declare interface ReadonlyLuaMap<K extends AnyNotNil = AnyNotNil, V = any> extends LuaPairsIterable<K, V> {
-    get: LuaTableGetMethod<K, V | undefined>;
-    has: LuaTableHasMethod<K>;
-    isEmpty: LuaTableIsEmptyMethod;
+	get: LuaTableGetMethod<K, V | undefined>;
+	has: LuaTableHasMethod<K>;
+	isEmpty: LuaTableIsEmptyMethod;
 }
 
 /**
- * A convenience type for working directly with a Lua table, used as a set.
+ * 方便直接操作Lua表的类型，用作集合。
  *
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
- * @param T The type of the keys used to access the table.
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
+ * @param T 用于访问表的键的类型。
  */
 declare interface LuaSet<T extends AnyNotNil = AnyNotNil> extends LuaPairsKeyIterable<T> {
-    add: LuaTableAddKeyMethod<T>;
-    has: LuaTableHasMethod<T>;
-    delete: LuaTableDeleteMethod<T>;
-    isEmpty: LuaTableIsEmptyMethod;
+	add: LuaTableAddKeyMethod<T>;
+	has: LuaTableHasMethod<T>;
+	delete: LuaTableDeleteMethod<T>;
+	isEmpty: LuaTableIsEmptyMethod;
 }
 
 /**
- * A convenience type for working directly with a Lua table, used as a set.
+ * 方便直接操作Lua表的类型，用作集合。
  *
- * For more information see: https://typescripttolua.github.io/docs/advanced/language-extensions
- * @param T The type of the keys used to access the table.
+ * 更多信息请参见：https://typescripttolua.github.io/docs/advanced/language-extensions
+ * @param T 用于访问表的键的类型。
  */
 declare const LuaSet: (new <T extends AnyNotNil = AnyNotNil>() => LuaSet<T>) & LuaExtension<"TableNew">;
 
 /**
- * Readonly version of {@link LuaSet}.
+ * {@link LuaSet}的只读版本。
  *
- * @param T The type of the keys used to access the table.
+ * @param T 用于访问表的键的类型。
  */
 declare interface ReadonlyLuaSet<T extends AnyNotNil = AnyNotNil> extends LuaPairsKeyIterable<T> {
-    has: LuaTableHasMethod<T>;
-    isEmpty: LuaTableIsEmptyMethod;
+	has: LuaTableHasMethod<T>;
+	isEmpty: LuaTableIsEmptyMethod;
 }
 
 interface ObjectConstructor {
-    /** Returns an array of keys of an object, when iterated with `pairs`. */
-    keys<K extends AnyNotNil>(o: LuaPairsIterable<K, any> | LuaPairsKeyIterable<K>): K[];
+	/** 返回对象的键数组，当使用`pairs`迭代时。 */
+	keys<K extends AnyNotNil>(o: LuaPairsIterable<K, any> | LuaPairsKeyIterable<K>): K[];
 
-    /** Returns an array of values of an object, when iterated with `pairs`. */
-    values<V>(o: LuaPairsIterable<any, V>): V[];
+	/** 返回对象的值数组，当使用`pairs`迭代时。 */
+	values<V>(o: LuaPairsIterable<any, V>): V[];
 
-    /** Returns an array of key/values of an object, when iterated with `pairs`. */
-    entries<K extends AnyNotNil, V>(o: LuaPairsIterable<K, V>): Array<[K, V]>;
+	/** 返回对象的键/值数组，当使用`pairs`迭代时。 */
+	entries<K extends AnyNotNil, V>(o: LuaPairsIterable<K, V>): Array<[K, V]>;
 }
 
-// Based on https://www.lua.org/manual/5.3/manual.html#2.4
+// 基于 https://www.lua.org/manual/5.3/manual.html#2.4
 
 interface LuaMetatable<
-    T,
-    TIndex extends object | ((this: T, key: any) => any) | undefined =
-        | object
-        | ((this: T, key: any) => any)
-        | undefined
+	T,
+	TIndex extends object | ((this: T, key: any) => any) | undefined =
+		| object
+		| ((this: T, key: any) => any)
+		| undefined
 > {
-    /**
-     * the addition (+) operation. If any operand for an addition is not a number
-     * (nor a string coercible to a number), Lua will try to call a metamethod.
-     * First, Lua will check the first operand (even if it is valid). If that
-     * operand does not define a metamethod for __add, then Lua will check the
-     * second operand. If Lua can find a metamethod, it calls the metamethod with
-     * the two operands as arguments, and the result of the call (adjusted to one
-     * value) is the result of the operation. Otherwise, it raises an error.
-     */
-    __add?(this: T, operand: any): any;
+	/**
+	 * 加法 (+) 操作。如果加法的任何操作数不是数字
+	 * （也不是可以强制转换为数字的字符串），Lua将尝试调用元方法。
+	 * 首先，Lua会检查第一个操作数（即使它是有效的）。如果该
+	 * 操作数没有为 __add 定义元方法，那么 Lua 将检查
+	 * 第二个操作数。如果 Lua 可以找到元方法，它会用两个操作数作为参数调用元方法，
+	 * 调用的结果（调整为一个值）就是操作的结果。否则，它会引发错误。
+	 */
+	__add?(this: T, operand: any): any;
 
-    /**
-     * the subtraction (-) operation. Behavior similar to the addition operation.
-     */
-    __sub?(this: T, operand: any): any;
+	/**
+	 * 减法 (-) 操作。其调用行为类似于加法操作。
+	 */
+	__sub?(this: T, operand: any): any;
 
-    /**
-     * the multiplication (*) operation. Behavior similar to the addition
-     * operation.
-     */
-    __mul?(this: T, operand: any): any;
+	/**
+	 * 乘法 (*) 操作。其调用行为类似于加法操作。
+	 */
+	__mul?(this: T, operand: any): any;
 
-    /**
-     * the division (/) operation. Behavior similar to the addition operation.
-     */
-    __div?(this: T, operand: any): any;
+	/**
+	 * 除法 (/) 操作。其调用行为类似于加法操作。
+	 */
+	__div?(this: T, operand: any): any;
 
-    /**
-     * the modulo (%) operation. Behavior similar to the addition operation.
-     */
-    __mod?(this: T, operand: any): any;
+	/**
+	 * 取模 (%) 操作。其调用行为类似于加法操作。
+	 */
+	__mod?(this: T, operand: any): any;
 
-    /**
-     * the exponentiation (^) operation. Behavior similar to the addition
-     * operation.
-     */
-    __pow?(this: T, operand: any): any;
+	/**
+	 * 幂运算 (^) 操作。其调用行为类似于加法操作。
+	 */
+	__pow?(this: T, operand: any): any;
 
-    /**
-     * the negation (unary -) operation. Behavior similar to the addition
-     * operation.
-     */
-    __unm?(this: T, operand: any): any;
+	/**
+	 * 取反（一元 -）操作。其调用行为类似于加法操作。
+	 */
+	__unm?(this: T, operand: any): any;
 
-    /**
-     * the concatenation (..) operation. Behavior similar to the addition
-     * operation, except that Lua will try a metamethod if any operand is neither
-     * a string nor a number (which is always coercible to a string).
-     */
-    __concat?(this: T, operand: any): any;
+	/**
+	 * 连接 (..) 操作。其调用行为类似于加法操作，除了当任何操作数既不是字符串也不是数字时（总是可以强制转换为字符串），Lua 将尝试该元方法。
+	 */
+	__concat?(this: T, operand: any): any;
 
-    /**
-     * the length (#) operation. If the object is not a string, Lua will try its
-     * metamethod. If there is a metamethod, Lua calls it with the object as
-     * argument, and the result of the call (always adjusted to one value) is the
-     * result of the operation. If there is no metamethod but the object is a
-     * table, then Lua uses the table length operation (see §3.4.7). Otherwise,
-     * Lua raises an error.
-     */
-    __len?(this: T): any;
+	/**
+	 * 长度 (#) 操作。如果对象不是字符串，Lua 将尝试该元方法。
+	 * 如果有元方法，Lua 会用对象作为参数调用它，调用的结果（总是调整为一个值）就是操作的结果。
+	 * 如果没有元方法但对象是表，则 Lua 使用表长度操作（参见 §3.4.7）。否则，Lua 引发错误。
+	 */
+	__len?(this: T): any;
 
-    /**
-     * the equal (==) operation. Behavior similar to the addition operation,
-     * except that Lua will try a metamethod only when the values being compared
-     * are either both tables or both full userdata and they are not primitively
-     * equal. The result of the call is always converted to a boolean.
-     */
-    __eq?(this: T, operand: any): boolean;
+	/**
+	 * 等于 (==) 操作。其调用行为类似于加法操作，除了当被比较的值要么都是表，要么都是完全的用户数据，并且它们在原始上不相等时，Lua 才会尝试元方法。调用的结果总是转换为布尔值。
+	 */
+	__eq?(this: T, operand: any): boolean;
 
-    /**
-     * the less than (<) operation. Behavior similar to the addition operation,
-     * except that Lua will try a metamethod only when the values being compared
-     * are neither both numbers nor both strings. The result of the call is always
-     * converted to a boolean.
-     */
-    __lt?(this: T, operand: any): boolean;
+	/**
+	 * 小于 (<) 操作。其调用行为类似于加法操作，除了当被比较的值既不都是数字也不都是字符串时，Lua 才会尝试元方法。调用的结果总是转换为布尔值。
+	 */
+	__lt?(this: T, operand: any): boolean;
 
-    /**
-     * the less equal (<=) operation. Unlike other operations, the less-equal
-     * operation can use two different events. First, Lua looks for the __le
-     * metamethod in both operands, like in the less than operation. If it cannot
-     * find such a metamethod, then it will try the __lt metamethod, assuming that
-     * a <= b is equivalent to not (b < a). As with the other comparison
-     * operators, the result is always a boolean. (This use of the __lt event can
-     * be removed in future versions; it is also slower than a real __le
-     * metamethod.)
-     */
-    __le?(this: T, operand: any): boolean;
+	/**
+	 * 小于等于 (<=) 操作。与其他操作不同，小于等于操作可以使用两个不同的事件。首先，Lua 在两个操作数中查找 __le 元方法，就像在小于操作中一样。如果找不到这样的元方法，那么它将尝试 __lt 元方法，假设 a <= b 等价于 not (b < a)。与其他比较运算符一样，结果总是布尔值。 （这种使用 __lt 事件的方式可能会在未来的版本中被移除；它也比真正的 __le 元方法慢。）
+	 */
+	__le?(this: T, operand: any): boolean;
 
-    /**
-     * The indexing access table[key]. This event happens when table is not a
-     * table or when key is not present in table. The metamethod is looked up in
-     * table.
-     *
-     * Despite the name, the metamethod for this event can be either a function or
-     * a table. If it is a function, it is called with table and key as arguments,
-     * and the result of the call (adjusted to one value) is the result of the
-     * operation. If it is a table, the final result is the result of indexing
-     * this table with key. (This indexing is regular, not raw, and therefore can
-     * trigger another metamethod.)
-     */
-    __index?: TIndex;
+	/**
+	 * 索引访问 table[key]。当 table 不是表或 key 不在 table 中时，会触发此事件。通过调用该元方法做查找访问。
+	 *
+	 * 尽管名字如此，此事件的元方法可以是函数或表。如果它是函数，它会被调用，参数是 table 和 key，调用的结果（调整为一个值）就是操作的结果。如果它是表，最终结果是用 key 对此表进行索引的结果。（这种索引是常规的，不是原始的，因此可以触发另一个元方法。）
+	 */
+	__index?: TIndex;
 
-    /**
-     * The indexing assignment table[key] = value. Like the index event, this
-     * event happens when table is not a table or when key is not present in
-     * table. The metamethod is looked up in table.
-     *
-     * Like with indexing, the metamethod for this event can be either a function
-     * or a table. If it is a function, it is called with table, key, and value as
-     * arguments. If it is a table, Lua does an indexing assignment to this table
-     * with the same key and value. (This assignment is regular, not raw, and
-     * therefore can trigger another metamethod.)
-     *
-     * Whenever there is a __newindex metamethod, Lua does not perform the
-     * primitive assignment. (If necessary, the metamethod itself can call rawset
-     * to do the assignment.)
-     */
-    __newindex?: object | ((this: T, key: any, value: any) => void);
+	/**
+	 * 索引赋值操作 table[key] = value。类似于索引事件，当 table 不是表或 key 不在 table 中时，会发生此事件。元方法在 table 中查找。
+	 *
+	 * 与索引一样，此事件的元方法可以是函数或表。如果是函数，它会被调用，参数是 table、key 和 value。如果是表，Lua 会对此表进行索引赋值，键和值与原来的相同。（这种赋值是常规的，不是原始的，因此可以触发另一个元方法。）
+	 *
+	 * 只要有 __newindex 元方法，Lua 就不会执行原始赋值。（如果需要，元方法本身可以调用 rawset 来执行赋值。）
+	 */
+	__newindex?: object | ((this: T, key: any, value: any) => void);
 
-    /**
-     * The call operation func(args). This event happens when Lua tries to call a
-     * non-function value (that is, func is not a function). The metamethod is
-     * looked up in func. If present, the metamethod is called with func as its
-     * first argument, followed by the arguments of the original call (args). All
-     * results of the call are the result of the operation. (This is the only
-     * metamethod that allows multiple results.)
-     */
-    __call?(this: T, ...args: any[]): any;
+	/**
+	 * 调用操作 func(args)。当 Lua 尝试调用非函数值时（即，func 不是函数），会发生此事件。元方法在 func 中查找。如果存在，元方法会被调用，func 作为其第一个参数，后面跟着原始调用的参数（args）。调用的所有结果都是操作的结果。（这是唯一允许多个结果的元方法。）
+	 */
+	__call?(this: T, ...args: any[]): any;
 
-    /**
-     * If the metatable of v has a __tostring field, then tostring calls the
-     * corresponding value with v as argument, and uses the result of the call as
-     * its result.
-     */
-    __tostring?(this: T): string;
+	/**
+	 * 如果 v 的元表有一个 __tostring 字段，那么 tostring 会调用相应的值，参数为 v，并使用调用的结果作为其结果。
+	 */
+	__tostring?(this: T): string;
 
-    /**
-     * If this field is a string containing the character 'k', the keys in the
-     * table are weak. If it contains 'v', the values in the table are weak.
-     */
-    __mode?: 'k' | 'v' | 'kv';
+	/**
+	 * 如果此字段是一个包含字符 'k' 的字符串，那么表中的键是弱引用的。如果包含 'v'，表中的值是弱引用的。
+	 */
+	__mode?: 'k' | 'v' | 'kv';
 
-    /**
-     * If the object's metatable has this field, `getmetatable` returns the
-     * associated value.
-     */
-    __metatable?: any;
+	/**
+	 * 如果对象的元表有此字段，`getmetatable` 返回关联的值。
+	 */
+	__metatable?: any;
 
-    /**
-     * Userdata finalizer code. When userdata is set to be garbage collected, if
-     * the metatable has a __gc field pointing to a function, that function is
-     * first invoked, passing the userdata to it. The __gc metamethod is not
-     * called for tables.
-     */
-    __gc?(this: T): void;
+	/**
+	 * 用户数据的终结器代码。当用户数据被设置为垃圾收集时，如果元表有一个指向函数的 __gc 字段，那么首先会调用该函数，将用户数据传递给它。__gc 元方法不会被调用表。
+	 */
+	__gc?(this: T): void;
 }
 
-// Based on https://www.lua.org/manual/5.3/manual.html#6.1
+// 基于 https://www.lua.org/manual/5.3/manual.html#6.1
 
 type LuaThread = { readonly __internal__: unique symbol };
 type LuaUserdata = { readonly __internal__: unique symbol };
 
 /**
- * A global variable (not a function) that holds a string containing the running
- * Lua version.
+ * 全局变量（非函数），包含运行中的 Lua 版本的字符串。
  */
 declare const _VERSION:
-    | ('Lua 5.0' | 'Lua 5.0.1' | 'Lua 5.0.2' | 'Lua 5.0.3')
-    | 'Lua 5.1'
-    | 'Lua 5.2'
-    | 'Lua 5.3'
-    | 'Lua 5.4';
+	| ('Lua 5.0' | 'Lua 5.0.1' | 'Lua 5.0.2' | 'Lua 5.0.3')
+	| 'Lua 5.1'
+	| 'Lua 5.2'
+	| 'Lua 5.3'
+	| 'Lua 5.4';
 
 /**
- * A global variable (not a function) that holds the global environment (see
- * §2.2). Lua itself does not use this variable; changing its value does not
- * affect any environment, nor vice versa.
+ * 全局变量（非函数），持有全局环境（参见 §2.2）。Lua 本身不使用此变量；改变其值不会影响任何环境，反之亦然。
  */
 declare const _G: typeof globalThis;
 
 /**
- * Calls error if the value of its argument `v` is false (i.e., nil or false);
- * otherwise, returns all its arguments. In case of error, `message` is the
- * error object; when absent, it defaults to "assertion failed!"
+ * 如果其参数 `v` 的值为假（即，nil 或 false）则调用 error；否则，返回所有参数。出错时，`message` 是错误对象；如果缺失，它默认为 "assertion failed!"。
  */
 declare function assert<V>(v: V): Exclude<V, undefined | null | false>;
 declare function assert<V, A extends any[]>(
-    v: V,
-    ...args: A
+	v: V,
+	...args: A
 ): LuaMultiReturn<[Exclude<V, undefined | null | false>, ...A]>;
 
 /**
- * This function is a generic interface to the garbage collector. It performs
- * different functions according to its first argument, opt.
+ * 此函数是垃圾收集器的通用接口。根据其第一个参数，opt，执行不同的功能。
  *
- * Performs a full garbage-collection cycle. This is the default option.
+ * 执行完整的垃圾收集周期。这是默认选项。
  */
 declare function collectgarbage(opt?: 'collect'): void;
 
 /**
- * This function is a generic interface to the garbage collector. It performs
- * different functions according to its first argument, opt.
+ * 此函数是垃圾收集器的通用接口。根据其第一个参数，opt，执行不同的功能。
  *
- * Stops automatic execution of the garbage collector. The collector will run
- * only when explicitly invoked, until a call to restart it.
+ * 停止垃圾收集器的自动执行。收集器只会在明确调用时运行，直到重新启动它的调用。
  */
 declare function collectgarbage(opt: 'stop'): void;
 
 /**
- * This function is a generic interface to the garbage collector. It performs
- * different functions according to its first argument, opt.
+ * 此函数是垃圾收集器的通用接口。根据其第一个参数，opt，执行不同的功能。
  *
- * Restarts automatic execution of the garbage collector.
+ * 重新启动垃圾收集器的自动执行。
  */
 declare function collectgarbage(opt: 'restart'): void;
 
 /**
- * This function is a generic interface to the garbage collector. It performs
- * different functions according to its first argument, opt.
+ * 此函数是垃圾收集器的通用接口。根据其第一个参数，opt，执行不同的功能。
  *
- * Sets arg as the new value for the pause of the collector (see §2.5). Returns
- * the previous value for pause.
+ * 将 arg 设置为收集器暂停的新值（参见 §2.5）。返回暂停的前一个值。
  */
 declare function collectgarbage(opt: 'setpause', arg: number): number;
 
 /**
- * This function is a generic interface to the garbage collector. It performs
- * different functions according to its first argument, opt.
+ * 此函数是垃圾收集器的通用接口。根据其第一个参数，opt，执行不同的功能。
  *
- * Sets arg as the new value for the step multiplier of the collector (see
- * §2.5). Returns the previous value for step.
+ * 将 arg 设置为收集器步进乘数的新值（参见 §2.5）。返回步进的前一个值。
  */
 declare function collectgarbage(opt: 'setstepmul', arg: number): number;
 
 /**
- * This function is a generic interface to the garbage collector. It performs
- * different functions according to its first argument, opt.
+ * 此函数是垃圾收集器的通用接口。根据其第一个参数，opt，执行不同的功能。
  *
- * Performs a garbage-collection step. The step "size" is controlled by arg.
- * With a zero value, the collector will perform one basic (indivisible) step.
- * For non-zero values, the collector will perform as if that amount of memory
- * (in KBytes) had been allocated by Lua. Returns true if the step finished a
- * collection cycle.
+ * 执行垃圾收集步骤。步骤的 "大小" 由 arg 控制。
+ * 对于零值，收集器将执行一个基本（不可分割）步骤。
+ * 对于非零值，收集器将执行，就像 Lua 分配了该数量的内存（以 KBytes 为单位）。
+ * 如果步骤完成了收集周期，则返回 true。
  */
 declare function collectgarbage(opt: 'step', arg: number): boolean;
 
 /**
- * Opens the named file and executes its contents as a Lua chunk. When called
- * without arguments, dofile executes the contents of the standard input
- * (stdin). Returns all values returned by the chunk. In case of errors, dofile
- * propagates the error to its caller (that is, dofile does not run in protected
- * mode).
+ * 打开指定的文件并执行其内容作为 Lua 块。当没有参数调用时，dofile 执行标准输入（stdin）的内容。
+ * 返回块返回的所有值。如果有错误，dofile 将错误传播给其调用者（即，dofile 不在保护模式下运行）。
  */
 declare function dofile(filename?: string): any;
 
 /**
- * Terminates the last protected function called and returns message as the
- * error object. Function error never returns.
+ * 终止最后调用的保护函数并返回 message 作为错误对象。函数 error 永不返回。
  *
- * Usually, error adds some information about the error position at the
- * beginning of the message, if the message is a string. The level argument
- * specifies how to get the error position. With level 1 (the default), the
- * error position is where the error function was called. Level 2 points the
- * error to where the function that called error was called; and so on. Passing
- * a level 0 avoids the addition of error position information to the message.
+ * 通常，error 在消息的开始处添加一些关于错误位置的信息，如果消息是字符串。level 参数指定如何获取错误位置。
+ * 使用 level 1（默认），错误位置是调用 error 函数的地方。Level 2 指向调用 error 的函数被调用的地方；依此类推。
+ * 传递 level 0 避免在消息中添加错误位置信息。
  */
 declare function error(message: string, level?: number): never;
 
 /**
- * If object does not have a metatable, returns nil. Otherwise, if the object's
- * metatable has a __metatable field, returns the associated value. Otherwise,
- * returns the metatable of the given object.
+ * 如果对象没有元表，返回 undefined。否则，如果对象的元表有一个 __metatable 字段，返回关联的值。否则，返回给定对象的元表。
  */
 declare function getmetatable<T>(object: T): LuaMetatable<T> | undefined;
 
 /**
- * Returns three values (an iterator function, the table t, and 0) so that the
- * construction
+ * 返回三个值（迭代器函数，表 t 和 0），以便构造
  *
  * `for i,v in ipairs(t) do body end`
  *
- * will iterate over the key–value pairs (1,t[1]), (2,t[2]), ..., up to the
- * first nil value.
+ * 将遍历键值对 (1,t[1])，(2,t[2])，...，直到第一个 nil 值。
  */
 declare function ipairs<T>(
-    t: Record<number, T>
+	t: Record<number, T>
 ): LuaIterable<LuaMultiReturn<[number, NonNullable<T>]>>;
 
 /**
- * Allows a program to traverse all fields of a table. Its first argument is a
- * table and its second argument is an index in this table. next returns the
- * next index of the table and its associated value. When called with nil as its
- * second argument, next returns an initial index and its associated value. When
- * called with the last index, or with nil in an empty table, next returns nil.
- * If the second argument is absent, then it is interpreted as nil. In
- * particular, you can use next(t) to check whether a table is empty.
+ * 允许程序遍历表的所有字段。它的第一个参数是表，第二个参数是这个表中的索引。next 返回表的下一个索引及其关联的值。当用 nil 作为第二个参数调用时，next 返回一个初始索引及其关联的值。当在空表中用 nil 调用，或者在最后一个索引上调用时，next 返回 nil。
+ * 如果第二个参数缺失，则将其解释为 nil。特别地，你可以使用 next(t) 来检查表是否为空。
  *
- * The order in which the indices are enumerated is not specified, even for
- * numeric indices. (To traverse a table in numerical order, use a numerical
- * for.)
+ * 索引的枚举顺序并未指定，即使对于数字索引。（要按数字顺序遍历表，使用数字 for。）
  *
- * The behavior of next is undefined if, during the traversal, you assign any
- * value to a non-existent field in the table. You may however modify existing
- * fields. In particular, you may clear existing fields.
+ * 如果在遍历过程中，你给表中不存在的字段赋值，next 的行为是未定义的。然而，你可以修改现有的字段。特别地，你可以清除现有的字段。
  */
 declare function next(table: object, index?: any): LuaMultiReturn<[any, any] | []>;
 
 /**
- * If t has a metamethod __pairs, calls it with t as argument and returns the
- * first three results from the call. Otherwise, returns three values: the next
- * function, the table t, and nil, so that the construction
+ * 如果 t 有一个 __pairs 的元方法，调用它，参数为 t，并返回调用的前三个结果。否则，返回三个值：next 函数，表 t 和 nil，以便构造
  *
  * `for k,v in pairs(t) do body end`
  *
- * will iterate over all key–value pairs of table t.
+ * 将遍历表 t 的所有键值对。
  *
- * See function next for the caveats of modifying the table during its
- * traversal.
+ * 查看 next 函数以了解在遍历过程中修改表的注意事项。
  */
 declare function pairs<TKey extends AnyNotNil, TValue>(
-    t: LuaTable<TKey, TValue>
+	t: LuaTable<TKey, TValue>
 ): LuaIterable<LuaMultiReturn<[TKey, NonNullable<TValue>]>>;
 declare function pairs<T>(t: T): LuaIterable<LuaMultiReturn<[keyof T, NonNullable<T[keyof T]>]>>;
 
 /**
- * Calls function f with the given arguments in protected mode. This means that
- * any error inside f is not propagated; instead, pcall catches the error and
- * returns a status code. Its first result is the status code (a boolean), which
- * is true if the call succeeds without errors. In such case, pcall also returns
- * all results from the call, after this first result. In case of any error,
- * pcall returns false plus the error message.
+ * 以保护模式调用函数 f，带有给定的参数。这意味着 f 内的任何错误都不会传播；相反，pcall 捕获错误并返回一个状态码。它的第一个结果是状态码（一个布尔值），如果调用成功并且没有错误，那么就是 true。在这种情况下，pcall 还返回调用的所有结果，这些结果在第一个结果之后。如果有任何错误，pcall 返回 false 加上错误消息。
  */
 declare function pcall<This, Args extends any[], R>(
-    f: (this: This, ...args: Args) => R,
-    context: This,
-    ...args: Args
+	f: (this: This, ...args: Args) => R,
+	context: This,
+	...args: Args
 ): LuaMultiReturn<[true, R] | [false, string]>;
 
 declare function pcall<A extends any[], R>(
-    f: (this: void, ...args: A) => R,
-    ...args: A
+	f: (this: void, ...args: A) => R,
+	...args: A
 ): LuaMultiReturn<[true, R] | [false, string]>;
 
 /**
- * Receives any number of arguments and prints their values to stdout, using the
- * tostring function to convert each argument to a string. print is not intended
- * for formatted output, but only as a quick way to show a value, for instance
- * for debugging. For complete control over the output, use string.format and
- * io.write.
+ * 接收任意数量的参数，并将它们的值打印到 stdout，使用 tostring 函数将每个参数转换为字符串。print 不是用于格式化输出，而只是作为快速显示值的方式，例如用于调试。要完全控制输出，请使用 string.format 和 io.write。
  */
 declare function print(...args: any[]): void;
 
 /**
- * Checks whether v1 is equal to v2, without invoking the __eq metamethod.
- * Returns a boolean.
+ * 检查 v1 是否等于 v2，不调用 __eq 元方法。返回一个布尔值。
  */
 declare function rawequal<T>(v1: T, v2: T): boolean;
 
 /**
- * Gets the real value of table[index], without invoking the __index metamethod.
- * table must be a table; index may be any value.
+ * 获取 table[index] 的实际值，不调用 __index 元方法。table 必须是一个表；index 可以是任何值。
  */
 declare function rawget<T extends object, K extends keyof T>(table: T, index: K): T[K];
 
 /**
- * Returns the length of the object v, which must be a table or a string,
- * without invoking the __len metamethod. Returns an integer.
+ * 返回对象 v 的长度，该对象必须是表或字符串，不调用 __len 元方法。返回一个整数。
  */
 declare function rawlen(v: object | string): number;
 
 /**
- * Sets the real value of table[index] to value, without invoking the __newindex
- * metamethod. table must be a table, index any value different from nil and
- * NaN, and value any Lua value.
+ * 将 table[index] 的实际值设置为 value，不调用 __newindex 元方法。table 必须是一个表，index 是除 nil 和 NaN 以外的任何值，value 是任何 Lua 值。
  *
- * This function returns table.
+ * 此函数返回 table。
  */
 declare function rawset<T extends object, K extends keyof T>(table: T, index: K, value: T[K]): T;
 
 /**
- * If index is a number, returns all arguments after argument number index; a
- * negative number indexes from the end (-1 is the last argument). Otherwise,
- * index must be the string "#", and select returns the total number of extra
- * arguments it received.
+ * 如果索引是数字，返回参数列表中索引之后的所有参数；负数索引表示从末尾开始（-1 是最后一个参数）。否则，索引必须是字符串 "#"，并且 select 返回它接收到的额外参数的总数。
  */
 declare function select<T>(index: number, ...args: T[]): LuaMultiReturn<T[]>;
 
 /**
- * If index is a number, returns all arguments after argument number index; a
- * negative number indexes from the end (-1 is the last argument). Otherwise,
- * index must be the string "#", and select returns the total number of extra
- * arguments it received.
+ * 如果索引是数字，返回参数列表中索引之后的所有参数；负数索引表示从末尾开始（-1 是最后一个参数）。否则，索引必须是字符串 "#"，并且 select 返回它接收到的额外参数的总数。
  */
 declare function select<T>(index: '#', ...args: T[]): number;
 
 /**
- * Sets the metatable for the given table. (To change the metatable of other
- * types from Lua code, you must use the debug library (§6.10).) If metatable is
- * nil, removes the metatable of the given table. If the original metatable has
- * a __metatable field, raises an error.
+ * 为给定的表设置元表。（要从 Lua 代码更改其他类型的元表，必须使用 debug 库（§6.10））。如果元表是 nil，则移除给定表的元表。如果原始元表有一个 __metatable 字段，会引发错误。
  *
- * This function returns table.
+ * 此函数返回表。
  */
 declare function setmetatable<
-    T extends object,
-    TIndex extends object | ((this: T, key: any) => any) | undefined = undefined
+	T extends object,
+	TIndex extends object | ((this: T, key: any) => any) | undefined = undefined
 >(
-    table: T,
-    metatable?: LuaMetatable<T, TIndex> | null
+	table: T,
+	metatable?: LuaMetatable<T, TIndex> | null
 ): TIndex extends (this: T, key: infer TKey) => infer TValue
-    ? T & { [K in TKey & string]: TValue }
-    : TIndex extends object
-    ? T & TIndex
-    : T;
+	? T & { [K in TKey & string]: TValue }
+	: TIndex extends object
+	? T & TIndex
+	: T;
 
 /**
- * When called with no base, tonumber tries to convert its argument to a number.
- * If the argument is already a number or a string convertible to a number, then
- * tonumber returns this number; otherwise, it returns nil.
+ * 当没有基数时，tonumber 尝试将其参数转换为数字。如果参数已经是数字或可转换为数字的字符串，则 tonumber 返回此数字；否则，返回 nil。
  *
- * The conversion of strings can result in integers or floats, according to the
- * lexical conventions of Lua (see §3.1). (The string may have leading and
- * trailing spaces and a sign.)
+ * 字符串的转换可能导致整数或浮点数，根据 Lua 的词法约定（参见 §3.1）。（字符串可能有前导和尾随空格以及符号。）
  *
- * When called with base, then e must be a string to be interpreted as an
- * integer numeral in that base. The base may be any integer between 2 and 36,
- * inclusive. In bases above 10, the letter 'A' (in either upper or lower case)
- * represents 10, 'B' represents 11, and so forth, with 'Z' representing 35. If
- * the string e is not a valid numeral in the given base, the function returns
- * nil.
+ * 当有基数时，e 必须是一个字符串，将被解释为该基数中的整数数值。基数可以是 2 到 36 之间的任何整数，包括。在大于 10 的基数中，字母 'A'（无论大小写）代表 10，'B' 代表 11，依此类推，'Z' 代表 35。如果字符串 e 不是给定基数中的有效数值，函数返回 nil。
  */
 declare function tonumber(e: any, base?: number): number | undefined;
 
 /**
- * Receives a value of any type and converts it to a string in a human-readable
- * format. (For complete control of how numbers are converted, use
- * string.format.)
+ * 接收任意类型的值，并将其转换为人类可读的格式的字符串。（要完全控制数字的转换方式，使用 string.format。）
  *
- * If the metatable of v has a __tostring field, then tostring calls the
- * corresponding value with v as argument, and uses the result of the call as
- * its result.
+ * 如果 v 的元表有一个 __tostring 字段，那么 tostring 调用相应的值，参数为 v，并使用调用的结果作为其结果。
  */
 declare function tostring(v: any): string;
 
 /**
- * Returns the type of its only argument, coded as a string.
+ * 返回其唯一参数的类型，编码为字符串。
  */
 declare function type(
-    v: any
+	v: any
 ): 'nil' | 'number' | 'string' | 'boolean' | 'table' | 'function' | 'thread' | 'userdata';
 
-// Based on https://www.lua.org/manual/5.3/manual.html#6.2
+// 基于 https://www.lua.org/manual/5.3/manual.html#6.2
 
 /**
- * This library comprises the operations to manipulate coroutines, which come
- * inside the table coroutine.
+ * 此库包括操作协程的操作，这些操作位于表 coroutine 中。
  */
 declare namespace coroutine {
 	/**
-	 * Creates a new coroutine, with body f. f must be a function. Returns this
-	 * new coroutine, an object with type "thread".
+	 * 创建新的协程，其主体为 f。f 必须是函数。返回这个新的协程，一个类型为 "thread" 的对象。
 	 */
 	function create(f: (...args: any[]) => any): LuaThread;
 
 	/**
-	 * Starts or continues the execution of coroutine co. The first time you
-	 * resume a coroutine, it starts running its body. The values val1, ... are
-	 * passed as the arguments to the body function. If the coroutine has yielded,
-	 * resume restarts it; the values val1, ... are passed as the results from the
-	 * yield.
+	 * 启动或继续执行协程 co。你第一次恢复协程时，它开始运行其主体。值 val1, ... 作为主体函数的参数传递。如果协程已经挂起，resume 会重启它；值 val1, ... 作为 yield 的结果传递。
 	 *
-	 * If the coroutine runs without any errors, resume returns true plus any
-	 * values passed to yield (when the coroutine yields) or any values returned
-	 * by the body function (when the coroutine terminates). If there is any
-	 * error, resume returns false plus the error message.
+	 * 如果协程无错误运行，resume 返回 true 加上任何传递给 yield 的值（当协程挂起时）或主体函数返回的任何值（当协程终止时）。如果有任何错误，resume 返回 false 加上错误消息。
 	 */
 	function resume(
 		 co: LuaThread,
@@ -1192,125 +1060,84 @@ declare namespace coroutine {
 	): LuaMultiReturn<[true, ...any[]] | [false, string]>;
 
 	/**
-	 * Returns the status of coroutine co, as a string: "running", if the
-	 * coroutine is running (that is, it called status); "suspended", if the
-	 * coroutine is suspended in a call to yield, or if it has not started running
-	 * yet; "normal" if the coroutine is active but not running (that is, it has
-	 * resumed another coroutine); and "dead" if the coroutine has finished its
-	 * body function, or if it has stopped with an error.
+	 * 返回协程 co 的状态，作为字符串："running"，如果协程正在运行（即，它调用了 status）；"suspended"，如果协程在调用 yield 中挂起，或者如果它还没有开始运行；"normal" 如果协程是活动的但不在运行（即，它已经恢复了另一个协程）；和 "dead" 如果协程已经完成了其主体函数，或者如果它因错误而停止。
 	 */
 	function status(co: LuaThread): 'running' | 'suspended' | 'normal' | 'dead';
 
 	/**
-	 * Creates a new coroutine, with body f. f must be a function. Returns a
-	 * function that resumes the coroutine each time it is called. Any arguments
-	 * passed to the function behave as the extra arguments to resume. Returns the
-	 * same values returned by resume, except the first boolean. In case of error,
-	 * propagates the error.
+	 * 创建新的协程，主体为函数f。f必须是函数。返回的函数每次被调用时都会恢复协程的执行。传递给函数的任何参数都会作为resume的额外参数。返回由resume返回的相同值，除了第一个布尔值。在出现错误的情况下，会传播错误。
 	 */
 	function wrap(f: (...args: any[]) => any): (...args: any[]) => LuaMultiReturn<any[]>;
 
 	/**
-	 * Suspends the execution of the calling coroutine. Any arguments to yield are
-	 * passed as extra results to resume.
+	 * 暂停调用协程的执行。传递给yield的任何参数都会作为resume的额外结果。
 	 */
 	function yield(...args: any[]): LuaMultiReturn<any[]>;
 }
 
-// Based on https://www.lua.org/manual/5.3/manual.html#6.10
+// 基于 https://www.lua.org/manual/5.3/manual.html#6.10
 
 /**
- * This library provides the functionality of the debug interface (§4.9) to Lua
- * programs. You should exert care when using this library. Several of its
- * functions violate basic assumptions about Lua code (e.g., that variables
- * local to a function cannot be accessed from outside; that userdata metatables
- * cannot be changed by Lua code; that Lua programs do not crash) and therefore
- * can compromise otherwise secure code. Moreover, some functions in this
- * library may be slow.
+ * 此库为Lua程序提供了调试接口（§4.9）的功能。使用此库时应谨慎。其多个函数违反了Lua代码的基本假设（例如，函数的局部变量不能从外部访问；用户数据元表不能由Lua代码更改；Lua程序不会崩溃），因此可能会破坏原本安全的代码。此外，此库中的一些函数可能会较慢。
  *
- * All functions in this library are provided inside the debug table. All
- * functions that operate over a thread have an optional first argument which is
- * the thread to operate over. The default is always the current thread.
+ * 此库中的所有函数都在debug表中提供。所有操作线程的函数都有一个可选的第一个参数，该参数是要操作的线程。默认值始终是当前线程。
  */
 declare namespace debug {
 	/**
-	 * Enters an interactive mode with the user, running each string that the user
-	 * enters. Using simple commands and other debug facilities, the user can
-	 * inspect global and local variables, change their values, evaluate
-	 * expressions, and so on. A line containing only the word cont finishes this
-	 * function, so that the caller continues its execution.
+	 * 与用户进入交互模式，每次用户输入字符串时都会执行。通过简单的命令和其他调试工具，用户可以查看全局和局部变量，更改它们的值，评估表达式等。只包含单词cont的行会结束此函数，使调用者继续执行。
 	 *
-	 * Note that commands for debug.debug are not lexically nested within any
-	 * function and so have no direct access to local variables.
+	 * 注意，debug.debug的命令不在任何函数中词法嵌套，因此无法直接访问局部变量。
 	 */
 	function debug(): void;
 
 	/**
-	 * Returns the current hook settings of the thread, as three values: the
-	 * current hook function, the current hook mask, and the current hook count
-	 * (as set by the debug.sethook function).
+	 * 返回线程的当前钩子设置，作为三个值：当前钩子函数，当前钩子掩码，和当前钩子计数（由debug.sethook函数设置）。
 	 */
 	function gethook(
-		 thread?: LuaThread
+		thread?: LuaThread
 	): LuaMultiReturn<[undefined, 0] | [Function, number, string?]>;
 
 	interface FunctionInfo<T extends Function = Function> {
-		 /**
-		  * The function itself.
-		  */
-		 func: T;
+		/**
+		 * 函数本身。
+		 */
+		func: T;
 
-		 /**
-		  * A reasonable name for the function.
-		  */
-		 name?: string;
-		 /**
-		  * What the `name` field means. The empty string means that Lua did not find
-		  * a name for the function.
-		  */
-		 namewhat: 'global' | 'local' | 'method' | 'field' | '';
+		/**
+		 * 函数的合理名称。
+		 */
+		name?: string;
+		/**
+		 * `name`字段的含义。空字符串表示Lua没有为函数找到名称。
+		 */
+		namewhat: 'global' | 'local' | 'method' | 'field' | '';
 
-		 source: string;
-		 /**
-		  * A short version of source (up to 60 characters), useful for error
-		  * messages.
-		  */
-		 short_src: string;
-		 linedefined: number;
-		 lastlinedefined: number;
-		 /**
-		  * What this function is.
-		  */
-		 what: 'Lua' | 'C' | 'main';
+		source: string;
+		/**
+		 * source的简短版本（最多60个字符），用于错误消息。
+		 */
+		short_src: string;
+		linedefined: number;
+		lastlinedefined: number;
+		/**
+		 * 此函数的类型。
+		 */
+		what: 'Lua' | 'C' | 'main';
 
-		 currentline: number;
+		currentline: number;
 
-		 /**
-		  * Number of upvalues of that function.
-		  */
-		 nups: number;
+		/**
+		 * 该函数的upvalue数量。
+		 */
+		nups: number;
 	}
 
 	/**
-	 * Returns a table with information about a function. You can give the
-	 * function directly or you can give a number as the value of f, which means
-	 * the function running at level f of the call stack of the given thread:
-	 * level 0 is the current function (getinfo itself); level 1 is the function
-	 * that called getinfo (except for tail calls, which do not count on the
-	 * stack); and so on. If f is a number larger than the number of active
-	 * functions, then getinfo returns nil.
+	 * 返回关于函数的信息的表。你可以直接给出函数，或者你可以给出一个数字作为f的值，该数字表示给定线程的调用堆栈中级别f处运行的函数：级别0是当前函数（getinfo本身）；级别1是调用getinfo的函数（除了尾调用，它们在堆栈上不计数）；依此类推。如果f是大于活动函数数量的数字，那么getinfo返回nil。
 	 *
-	 * The returned table can contain all the fields returned by lua_getinfo, with
-	 * the string what describing which fields to fill in. The default for what is
-	 * to get all information available, except the table of valid lines. If
-	 * present, the option 'f' adds a field named func with the function itself.
-	 * If present, the option 'L' adds a field named activelines with the table of
-	 * valid lines.
+	 * 返回的表可以包含lua_getinfo返回的所有字段，字符串what描述要填充哪些字段。what的默认值是获取所有可用的信息，除了有效行的表。如果存在，选项'f'会添加一个名为func的字段，其中包含函数本身。如果存在，选项'L'会添加一个名为activelines的字段，其中包含有效行的表。
 	 *
-	 * For instance, the expression debug.getinfo(1,"n").name returns a name for
-	 * the current function, if a reasonable name can be found, and the expression
-	 * debug.getinfo(print) returns a table with all available information about
-	 * the print function.
+	 * 例如，表达式debug.getinfo(1,"n").name返回当前函数的名称（如果可以找到合理的名称），表达式debug.getinfo(print)返回包含关于print函数的所有可用信息的表。
 	 */
 	function getinfo<T extends Function>(f: T): FunctionInfo<T>;
 	function getinfo<T extends Function>(f: T, what: string): Partial<FunctionInfo<T>>;
@@ -1326,123 +1153,100 @@ declare namespace debug {
 	function getinfo(thread: LuaThread, f: number, what: string): Partial<FunctionInfo> | undefined;
 
 	/**
-	 * Returns the metatable of the given value or nil if it does not have a
-	 * metatable.
+	 * 返回给定值的元表，如果它没有元表，则返回 nil。
 	 */
 	function getmetatable<T extends any>(value: T): LuaMetatable<T> | undefined;
 
 	/**
-	 * Returns the registry table (see §4.5).
+	 * 返回注册表（参见 §4.5）。
 	 */
 	function getregistry(): Record<string, any>;
 
 	/**
-	 * This function returns the name and the value of the upvalue with index up
-	 * of the function f. The function returns nil if there is no upvalue with the
-	 * given index.
+	 * 此函数返回函数f的索引为up的上值的名称和值。如果没有给定索引的上值，函数返回 nil。
 	 *
-	 * Variable names starting with '(' (open parenthesis) represent variables
-	 * with no known names (variables from chunks saved without debug
-	 * information).
+	 * 以'('（开括号）开头的变量名代表没有已知名称的变量（来自未保存调试信息的块的变量）。
 	 */
 	function getupvalue(f: Function, up: number): LuaMultiReturn<[string, any] | []>;
 
 	/**
-	 * Returns the Lua value associated to u. If u is not a full userdata, returns
-	 * nil.
+	 * 返回与u关联的Lua值。如果u不是完整的用户数据，返回 nil。
 	 */
 	function getuservalue(u: LuaUserdata): any;
 
 	/**
-	 * Sets the given function as a hook. The string mask and the number count
-	 * describe when the hook will be called. The string mask may have any
-	 * combination of the following characters, with the given meaning:
+	 * 将给定函数设置为钩子。字符串mask和数字count描述何时调用钩子。字符串mask可以包含以下字符的任何组合，含义如下：
 	 *
-	 * * 'c': the hook is called every time Lua calls a function;
-	 * * 'r': the hook is called every time Lua returns from a function;
-	 * * 'l': the hook is called every time Lua enters a new line of code.
+	 * * 'c': 每次Lua调用函数时，都会调用钩子；
+	 * * 'r': 每次Lua从函数返回时，都会调用钩子；
+	 * * 'l': 每次Lua进入新的代码行时，都会调用钩子。
 	 *
-	 * Moreover, with a count different from zero, the hook is called also after
-	 * every count instructions.
+	 * 此外，如果count不为零，每执行count条指令后，也会调用钩子。
 	 *
-	 * When called without arguments, debug.sethook turns off the hook.
+	 * 当不带参数调用时，debug.sethook关闭钩子。
 	 *
-	 * When the hook is called, its first parameter is a string describing the
-	 * event that has triggered its call: "call" (or "tail call"), "return",
-	 * "line", and "count". For line events, the hook also gets the new line
-	 * number as its second parameter. Inside a hook, you can call getinfo with
-	 * level 2 to get more information about the running function (level 0 is the
-	 * getinfo function, and level 1 is the hook function).
+	 * 当钩子被调用时，其第一个参数是一个字符串，描述触发其调用的事件："call"（或"tail call"），"return"，"line"，和"count"。对于行事件，钩子还获取新行号作为其第二个参数。在钩子内部，你可以调用getinfo，级别为2，以获取有关正在运行的函数的更多信息（级别0是getinfo函数，级别1是钩子函数）。
 	 */
 	function sethook(): void;
 	function sethook(
-		 hook: (event: 'call' | 'return' | 'line' | 'count', line?: number) => any,
-		 mask: string,
-		 count?: number
+		hook: (event: 'call' | 'return' | 'line' | 'count', line?: number) => any,
+		mask: string,
+		count?: number
 	): void;
 	function sethook(
-		 thread: LuaThread,
-		 hook: (event: 'call' | 'return' | 'line' | 'count', line?: number) => any,
-		 mask: string,
-		 count?: number
+		thread: LuaThread,
+		hook: (event: 'call' | 'return' | 'line' | 'count', line?: number) => any,
+		mask: string,
+		count?: number
 	): void;
 
 	/**
-	 * This function assigns the value value to the local variable with index
-	 * local of the function at level level of the stack. The function returns nil
-	 * if there is no local variable with the given index, and raises an error
-	 * when called with a level out of range. (You can call getinfo to check
-	 * whether the level is valid.) Otherwise, it returns the name of the local
-	 * variable.
+	 * 此函数将值value分配给堆栈级别level的函数的索引为local的局部变量。如果没有给定索引的局部变量，函数返回 nil，并在级别超出范围时引发错误。（你可以调用getinfo检查级别是否有效。）否则，它返回局部变量的名称。
 	 *
-	 * See debug.getlocal for more information about variable indices and names.
+	 * 有关变量索引和名称的更多信息，请参见debug.getlocal。
 	 */
 	function setlocal(level: number, local: number, value: any): string | undefined;
 	function setlocal(
-		 thread: LuaThread,
-		 level: number,
-		 local: number,
-		 value: any
+		thread: LuaThread,
+		level: number,
+		local: number,
+		value: any
 	): string | undefined;
 
 	/**
-	 * Sets the metatable for the given value to the given table (which can be
-	 * nil). Returns value.
+	 * 为给定值设置元表，元表为给定表（可以为 nil）。返回值。
 	 */
 	function setmetatable<
-		 T extends object,
-		 TIndex extends object | ((this: T, key: any) => any) | undefined = undefined
+		T extends object,
+		TIndex extends object | ((this: T, key: any) => any) | undefined = undefined
 	>(
-		 value: T,
-		 table?: LuaMetatable<T, TIndex> | null
+		value: T,
+		table?: LuaMetatable<T, TIndex> | null
 	): TIndex extends (this: T, key: infer TKey) => infer TValue
-		 ? T & { [K in TKey & string]: TValue }
-		 : TIndex extends object
-		 ? T & TIndex
-		 : T;
+		? T & { [K in TKey & string]: TValue }
+		: TIndex extends object
+		? T & TIndex
+		: T;
 
 	/**
-	 * This function assigns the value value to the upvalue with index up of the
-	 * function f. The function returns nil if there is no upvalue with the given
-	 * index. Otherwise, it returns the name of the upvalue.
+	 * 此函数将值value分配给函数f的索引为up的上值。如果没有给定索引的上值，函数返回 nil。否则，它返回上值的名称。
 	 */
 	function setupvalue(f: Function, up: number, value: any): string | undefined;
 
 	/**
-	 * Sets the given value as the Lua value associated to the given udata. udata
-	 * must be a full userdata.
+	 * 将指定的值设置为与给定的udata关联的Lua值。udata
+	 * 必须是完整的用户数据。
 	 *
-	 * Returns udata.
+	 * 返回udata。
 	 */
 	function setuservalue(udata: LuaUserdata, value: any): LuaUserdata;
 
 	/**
-	 * If message is present but is neither a string nor nil, this function
-	 * returns message without further processing. Otherwise, it returns a string
-	 * with a traceback of the call stack. The optional message string is appended
-	 * at the beginning of the traceback. An optional level number tells at which
-	 * level to start the traceback (default is 1, the function calling
-	 * traceback).
+	 * 如果message存在，但不是字符串也不是null，此函数
+	 * 不进行进一步处理，直接返回message。否则，返回
+	 * 包含调用堆栈跟踪的字符串。可选的message字符串会被添加到
+	 * 跟踪的开始处。可选的level数字表示从哪个级别开始跟踪
+	 * （默认为1，即调用traceback的函数）。
 	 */
 	function traceback(message?: string | null, level?: number | null): string;
 	function traceback(thread?: LuaThread, message?: string | null, level?: number | null): string;
@@ -1450,352 +1254,259 @@ declare namespace debug {
 	function traceback<T>(thread: LuaThread, message: T): T;
 }
 
-// Based on https://www.lua.org/manual/5.3/manual.html#6.7
+// 基于 https://www.lua.org/manual/5.3/manual.html#6.7
 
 /**
- * This library provides basic mathematical functions. It provides all its
- * functions and constants inside the table math. Functions with the annotation
- * "integer/float" give integer results for integer arguments and float results
- * for float (or mixed) arguments. Rounding functions (math.ceil, math.floor,
- * and math.modf) return an integer when the result fits in the range of an
- * integer, or a float otherwise.
+ * 此库提供基本的数学函数。所有函数和常量都在 math 表中提供。带有 "整数/浮点数" 注释的函数对整数参数返回整数结果，对浮点数（或混合）参数返回浮点数结果。取整函数（math.ceil，math.floor 和 math.modf）在结果适合整数范围时返回整数，否则返回浮点数。
  */
 declare namespace math {
 	/**
-	 * Returns the absolute value of x. (integer/float)
+	 * 返回 x 的绝对值。（整数/浮点数）
 	 */
 	function abs(x: number): number;
 
 	/**
-	 * Returns the arc cosine of x (in radians).
+	 * 返回 x 的反余弦值（以弧度为单位）。
 	 */
 	function acos(x: number): number;
 
 	/**
-	 * Returns the arc sine of x (in radians).
+	 * 返回 x 的反正弦值（以弧度为单位）。
 	 */
 	function asin(x: number): number;
 
 	/**
-	 * Returns the smallest integral value larger than or equal to x.
+	 * 返回大于或等于 x 的最小整数值。
 	 */
 	function ceil(x: number): number;
 
 	/**
-	 * Returns the cosine of x (assumed to be in radians).
+	 * 返回 x 的余弦值（假定以弧度为单位）。
 	 */
 	function cos(x: number): number;
 
 	/**
-	 * Converts the angle x from radians to degrees.
+	 * 将角度 x 从弧度转换为度。
 	 */
 	function deg(x: number): number;
 
 	/**
-	 * Returns the value ex (where e is the base of natural logarithms).
+	 * 返回值为 e^x（其中 e 是自然对数的底数）。
 	 */
 	function exp(x: number): number;
 
 	/**
-	 * Returns the largest integral value smaller than or equal to x.
+	 * 返回小于或等于 x 的最大整数值。
 	 */
 	function floor(x: number): number;
 
 	/**
-	 * Returns the remainder of the division of x by y that rounds the quotient
-	 * towards zero. (integer/float)
+	 * 返回 x 除以 y 的余数，该余数将商向零舍入。（整数/浮点数）
 	 */
 	function fmod(x: number, y: number): number;
 
 	/**
-	 * The float value HUGE_VAL, a value larger than any other numeric value.
+	 * 浮点值 HUGE_VAL，比任何其他数值都大。
 	 */
 	const huge: number;
 
 	/**
-	 * Returns the argument with the maximum value, according to the Lua operator
-	 * <. (integer/float)
+	 * 根据 Lua 操作符 < 返回具有最大值的参数。（整数/浮点数）
 	 */
 	function max(x: number, ...numbers: number[]): number;
 
 	/**
-	 * Returns the argument with the minimum value, according to the Lua operator
-	 * <. (integer/float)
+	 * 根据 Lua 操作符 < 返回具有最小值的参数。（整数/浮点数）
 	 */
 	function min(x: number, ...numbers: number[]): number;
 
 	/**
-	 * Returns the integral part of x and the fractional part of x. Its second
-	 * result is always a float.
+	 * 返回 x 的整数部分和小数部分。其第二个结果始终为浮点数。
 	 */
 	function modf(x: number): LuaMultiReturn<[number, number]>;
 
 	/**
-	 * The value of π.
+	 * π 的值。
 	 */
 	const pi: number;
 
 	/**
-	 * Converts the angle x from degrees to radians.
+	 * 将角度 x 从度转换为弧度。
 	 */
 	function rad(x: number): number;
 
 	/**
-	 * Returns the sine of x (assumed to be in radians).
+	 * 返回 x 的正弦值（假定以弧度为单位）。
 	 */
 	function sin(x: number): number;
 
 	/**
-	 * Returns the square root of x. (You can also use the expression x^0.5 to
-	 * compute this value.)
+	 * 返回 x 的平方根。（也可以使用表达式 x^0.5 来计算此值。）
 	 */
 	function sqrt(x: number): number;
 
 	/**
-	 * Returns the tangent of x (assumed to be in radians).
+	 * 返回 x 的正切值（假定以弧度为单位）。
 	 */
 	function tan(x: number): number;
 }
 
-// Based on https://www.lua.org/manual/5.3/manual.html#6.3
+// 基于 https://www.lua.org/manual/5.3/manual.html#6.3
 
 /**
- * Loads the given module. The function starts by looking into the
- * package.loaded table to determine whether modname is already loaded. If it
- * is, then require returns the value stored at package.loaded[modname].
- * Otherwise, it tries to find a loader for the module.
+ * 加载指定模块。此函数首先查看 package.loaded 表以确定 modname 是否已经加载。如果已加载，
+ * 则 require 返回存储在 package.loaded[modname] 的值。否则，它会尝试找到模块的加载器。
  *
- * To find a loader, require is guided by the package.searchers sequence. By
- * changing this sequence, we can change how require looks for a module. The
- * following explanation is based on the default configuration for
- * package.searchers.
+ * 在寻找加载器时，require 由 package.searchers 序列指导。通过更改此序列，我们可以改变 require 查找模块的方式。
+ * 下面的解释基于 package.searchers 的默认配置。
  *
- * First require queries package.preload[modname]. If it has a value, this value
- * (which must be a function) is the loader. Otherwise require searches for a
- * Lua loader using the path stored in package.path. If that also fails, it
- * searches for a C loader using the path stored in package.cpath. If that also
- * fails, it tries an all-in-one loader (see package.searchers).
+ * 首先，require 查询 package.preload[modname]。如果有值（必须是函数），则此值就是加载器。
+ * 否则，require 使用存储在 package.path 中的路径搜索 Lua 加载器。如果还是失败，它会使用存储在 package.cpath 中的路径搜索 C 加载器。
+ * 如果还是失败，它会尝试全能加载器（参见 package.searchers）。
  *
- * Once a loader is found, require calls the loader with two arguments: modname
- * and an extra value dependent on how it got the loader. (If the loader came
- * from a file, this extra value is the file name.) If the loader returns any
- * non-nil value, require assigns the returned value to package.loaded[modname].
- * If the loader does not return a non-nil value and has not assigned any value
- * to package.loaded[modname], then require assigns true to this entry. In any
- * case, require returns the final value of package.loaded[modname].
+ * 一旦找到加载器，require 就会用两个参数调用加载器：modname 和取决于如何获取加载器的额外值。（如果加载器来自文件，此额外值就是文件名。）
+ * 如果加载器返回任何非 nil 值，require 就会将返回的值分配给 package.loaded[modname]。
+ * 如果加载器没有返回非 nil 值，并且没有给 package.loaded[modname] 分配任何值，那么 require 就会给此项分配 true。
+ * 无论如何，require 都会返回 package.loaded[modname] 的最终值。
  *
- * If there is any error loading or running the module, or if it cannot find any
- * loader for the module, then require raises an error.
+ * 如果加载或运行模块出现任何错误，或者找不到模块的加载器，那么 require 就会引发错误。
  */
 declare function require(modname: string): any;
 
 /**
- * The package library provides basic facilities for loading modules in Lua. It
- * exports one function directly in the global environment: require. Everything
- * else is exported in a table package.
+ * package 库为在 Lua 中加载模块提供了基本设施。它在全局环境中直接导出了一个函数：require。其他所有内容都在 package 表中导出。
  */
 declare namespace package {
-    /**
-     * A string describing some compile-time configurations for packages. This
-     * string is a sequence of lines:
-     * * The first line is the directory separator string. Default is '\' for
-     *   Windows and '/' for all other systems.
-     * * The second line is the character that separates templates in a path.
-     *   Default is ';'.
-     * * The third line is the string that marks the substitution points in a
-     *   template. Default is '?'.
-     * * The fourth line is a string that, in a path in Windows, is replaced by
-     *   the executable's directory. Default is '!'.
-     * * The fifth line is a mark to ignore all text after it when building the
-     *   luaopen_ function name. Default is '-'.
-     */
-    var config: string;
+	/**
+	 * 描述一些包的编译时配置的字符串。此字符串是行的序列：
+	 * * 第一行是目录分隔符字符串。默认为 '\'（Windows）和 '/'（其他所有系统）。
+	 * * 第二行是路径中模板分隔符的字符。默认为 ';'。
+	 * * 第三行是模板中替换点标记的字符串。默认为 '?'。
+	 * * 第四行是在 Windows 路径中被替换为可执行文件目录的字符串。默认为 '!'。
+	 * * 第五行是在构建 luaopen_ 函数名时忽略其后所有文本的标记。默认为 '-'。
+	 */
+	var config: string;
 
-    /**
-     * The path used by require to search for a C loader.
-     *
-     * Lua initializes the C path package.cpath in the same way it initializes the
-     * Lua path package.path, using the environment variable LUA_CPATH_5_3, or the
-     * environment variable LUA_CPATH, or a default path defined in luaconf.h.
-     */
-    var cpath: string;
+	/**
+	 * require 用于搜索 C 加载器的路径。
+	 *
+	 * Lua 以与初始化 Lua 路径 package.path 相同的方式初始化 C 路径 package.cpath，使用环境变量 LUA_CPATH_5_3，或环境变量 LUA_CPATH，或在 luaconf.h 中定义的默认路径。
+	 */
+	var cpath: string;
 
-    /**
-     * A table used by require to control which modules are already loaded. When
-     * you require a module modname and package.loaded[modname] is not false,
-     * require simply returns the value stored there.
-     *
-     * This variable is only a reference to the real table; assignments to this
-     * variable do not change the table used by require.
-     */
-    const loaded: Record<string, any>;
+	/**
+	 * require 用于控制哪些模块已经加载的表。当你需要模块 modname 且 package.loaded[modname] 不为 false 时，require 简单地返回存储在那里的值。
+	 *
+	 * 此变量只是实际表的引用；对此变量的赋值不会改变 require 使用的表。
+	 */
+	const loaded: Record<string, any>;
 
-    /**
-     * Dynamically links the host program with the C library libname.
-     *
-     * If funcname is "*", then it only links with the library, making the symbols
-     * exported by the library available to other dynamically linked libraries.
-     * Otherwise, it looks for a function funcname inside the library and returns
-     * this function as a C function. So, funcname must follow the lua_CFunction
-     * prototype (see lua_CFunction).
-     *
-     * This is a low-level function. It completely bypasses the package and module
-     * system. Unlike require, it does not perform any path searching and does not
-     * automatically adds extensions. libname must be the complete file name of
-     * the C library, including if necessary a path and an extension. funcname
-     * must be the exact name exported by the C library (which may depend on the C
-     * compiler and linker used).
-     *
-     * This function is not supported by Standard C. As such, it is only available
-     * on some platforms (Windows, Linux, Mac OS X, Solaris, BSD, plus other Unix
-     * systems that support the dlfcn standard).
-     */
-    function loadlib(
-        libname: string,
-        funcname: string
-    ): [Function] | [undefined, string, 'open' | 'init'];
+	/**
+	 * 将主程序与 C 库 libname 动态链接。
+	 *
+	 * 如果 funcname 是 "*"，那么它只链接库，使库导出的符号对其他动态链接的库可用。否则，它在库内查找函数 funcname 并将此函数作为 C 函数返回。因此，funcname 必须遵循 lua_CFunction 原型（参见 lua_CFunction）。
+	 *
+	 * 这是低级函数。它完全绕过了包和模块系统。与 require 不同，它不执行任何路径搜索，也不自动添加扩展。libname 必须是 C 库的完整文件名，包括必要的路径和扩展。funcname 必须是 C 库导出的确切名称（可能取决于使用的 C 编译器和链接器）。
+	 *
+	 * 此函数不受标准 C 支持。因此，它只在某些平台上可用（Windows，Linux，Mac OS X，Solaris，BSD，以及支持 dlfcn 标准的其他 Unix 系统）。
+	 */
+	function loadlib(
+		libname: string,
+		funcname: string
+	): [Function] | [undefined, string, 'open' | 'init'];
 
-    /**
-     * The path used by require to search for a Lua loader.
-     *
-     * At start-up, Lua initializes this variable with the value of the
-     * environment variable LUA_PATH_5_3 or the environment variable LUA_PATH or
-     * with a default path defined in luaconf.h, if those environment variables
-     * are not defined. Any ";;" in the value of the environment variable is
-     * replaced by the default path.
-     */
-    var path: string;
+	/**
+	 * require 用于搜索 Lua 加载器的路径。
+	 *
+	 * 在启动时，Lua 使用环境变量 LUA_PATH_5_3 或环境变量 LUA_PATH 的值，或者如果这些环境变量未定义，则使用 luaconf.h 中定义的默认路径初始化此变量。环境变量的值中的任何 ";;" 都被替换为默认路径。
+	 */
+	var path: string;
 
-    /**
-     * A table to store loaders for specific modules (see require).
-     *
-     * This variable is only a reference to the real table; assignments to this
-     * variable do not change the table used by require.
-     */
-    const preload: Record<string, (modname: string, fileName?: string) => any>;
+	/**
+	 * 存储特定模块加载器的表（参见 require）。
+	 *
+	 * 此变量只是实际表的引用；对此变量的赋值不会改变 require 使用的表。
+	 */
+	const preload: Record<string, (modname: string, fileName?: string) => any>;
 
-    /**
-     * Searches for the given name in the given path.
-     *
-     * A path is a string containing a sequence of templates separated by
-     * semicolons. For each template, the function replaces each interrogation
-     * mark (if any) in the template with a copy of name wherein all occurrences
-     * of sep (a dot, by default) were replaced by rep (the system's directory
-     * separator, by default), and then tries to open the resulting file name.
-     *
-     * For instance, if the path is the string
-     *
-     * `./?.lua;./?.lc;/usr/local/?/init.lua`
-     *
-     * the search for the name foo.a will try to open the files ./foo/a.lua,
-     * ./foo/a.lc, and /usr/local/foo/a/init.lua, in that order.
-     *
-     * Returns the resulting name of the first file that it can open in read mode
-     * (after closing the file), or nil plus an error message if none succeeds.
-     * (This error message lists all file names it tried to open.)
-     */
-    function searchpath(name: string, path: string, sep?: string, rep?: string): string;
+	/**
+	 * 在给定路径中搜索给定名称。
+	 *
+	 * 路径是包含由分号分隔的模板序列的字符串。对于每个模板，函数将模板中的每个问号（如果有）替换为名称的副本，其中所有 sep 出现（默认为点）都被 rep 替换（默认为系统的目录分隔符），然后尝试打开结果文件名。
+	 *
+	 * 例如，如果路径是字符串
+	 *
+	 * `./?.lua;./?.lc;/usr/local/?/init.lua`
+	 *
+	 * 那么搜索名称 foo.a 将尝试按顺序打开文件 ./foo/a.lua，./foo/a.lc 和 /usr/local/foo/a/init.lua。
+	 *
+	 * 返回可以在读模式下打开的第一个文件的结果名称（关闭文件后），或者如果没有成功，则返回 nil 加上错误消息。（此错误消息列出了尝试打开的所有文件名。）
+	 */
+	function searchpath(name: string, path: string, sep?: string, rep?: string): string;
 }
 
-// Based on https://www.lua.org/manual/5.3/manual.html#6.4
+// 基于 https://www.lua.org/manual/5.3/manual.html#6.4
 
 /**
- * This library provides generic functions for string manipulation, such as
- * finding and extracting substrings, and pattern matching. When indexing a
- * string in Lua, the first character is at position 1 (not at 0, as in C).
- * Indices are allowed to be negative and are interpreted as indexing backwards,
- * from the end of the string. Thus, the last character is at position -1, and
- * so on.
+ * 此库提供了通用的字符串操作函数，如查找和提取子字符串，以及模式匹配。在 Lua 中索引字符串时，第一个字符位于位置 1（而不是像在 C 中那样位于 0）。允许使用负索引，解释为从字符串的末尾向后索引。因此，最后一个字符位于位置 -1，依此类推。
  *
- * The string library provides all its functions inside the table string. It
- * also sets a metatable for strings where the __index field points to the
- * string table. Therefore, you can use the string functions in object-oriented
- * style. For instance, string.byte(s,i) can be written as s:byte(i).
+ * 字符串库将所有函数都提供在 string 表中。它还为字符串设置了元表，其中 __index 字段指向 string 表。因此，你可以以面向对象的风格使用字符串函数。例如，string.byte(s,i) 可以写成 s:byte(i)。
  *
- * The string library assumes one-byte character encodings.
+ * 字符串库假定一字节字符编码。
  */
 declare namespace string {
 	/**
-	 * Returns the internal numeric codes of the characters s[i], s[i+1], ...,
-	 * s[j]. The default value for i is 1; the default value for j is i. These
-	 * indices are corrected following the same rules of function string.sub.
+	 * 返回字符 s[i]，s[i+1]，...，s[j] 的内部数字代码。i 的默认值为 1；j 的默认值为 i。这些索引根据 string.sub 函数的规则进行修正。
 	 *
-	 * Numeric codes are not necessarily portable across platforms.
+	 * 数字代码在不同平台上可能不可移植。
 	 */
 	function byte(s: string, i?: number): number;
 	function byte(s: string, i?: number, j?: number): LuaMultiReturn<number[]>;
 
 	/**
-	 * Receives zero or more integers. Returns a string with length equal to the
-	 * number of arguments, in which each character has the internal numeric code
-	 * equal to its corresponding argument.
+	 * 接收零个或多个整数。返回长度等于参数数量的字符串，其中每个字符的内部数字代码等于其对应的参数。
 	 *
-	 * Numeric codes are not necessarily portable across platforms.
+	 * 数字代码在不同平台上可能不可移植。
 	 */
 	function char(...args: number[]): string;
 
 	/**
-	 * Returns a string containing a binary representation of the given function,
-	 * so that a later load on this string returns a copy of the function (but
-	 * with new upvalues).
+	 * 返回包含给定函数的二进制表示的字符串，以便稍后在此字符串上加载返回函数的副本（但具有新的上值）。
 	 */
 	function dump(func: Function): string;
 
 	/**
-	 * Looks for the first match of pattern (see §6.4.1) in the string s. If it
-	 * finds a match, then find returns the indices of s where this occurrence
-	 * starts and ends; otherwise, it returns nil. A third, optional numeric
-	 * argument init specifies where to start the search; its default value is 1
-	 * and can be negative. A value of true as a fourth, optional argument plain
-	 * turns off the pattern matching facilities, so the function does a plain
-	 * "find substring" operation, with no characters in pattern being considered
-	 * magic. Note that if plain is given, then init must be given as well.
+	 * 在字符串 s 中查找模式（参见 §6.4.1）的第一次匹配。如果找到匹配，find 就返回此次出现在 s 中的开始和结束的索引；否则，返回 nil。第三个可选的数字参数 init 指定开始搜索的位置；其默认值为 1，可以为负。第四个可选参数 plain 为 true 时关闭模式匹配功能，因此函数执行纯“查找子字符串”操作，模式中的字符都不被视为魔术字符。注意，如果给出了 plain，那么也必须给出 init。
 	 *
-	 * If the pattern has captures, then in a successful match the captured values
-	 * are also returned, after the two indices.
+	 * 如果模式有捕获，那么在成功匹配时，也会返回捕获的值，放在两个索引之后。
 	 */
 	function find(
-		 s: string,
-		 pattern: string,
-		 init?: number,
-		 plain?: boolean
+		s: string,
+		pattern: string,
+		init?: number,
+		plain?: boolean
 	): LuaMultiReturn<[number, number, ...string[]] | []>;
 
 	/**
-	 * Returns a formatted version of its variable number of arguments following
-	 * the description given in its first argument (which must be a string). The
-	 * format string follows the same rules as the ISO C function sprintf. The
-	 * only differences are that the options/modifiers *, h, L, l, n, and p are
-	 * not supported and that there is an extra option, q.
+	 * 返回其可变数量的参数的格式化版本，该版本遵循其第一个参数（必须为字符串）中给出的描述。格式字符串遵循 ISO C 函数 sprintf 的相同规则。唯一的区别是选项/修饰符 *, h, L, l, n, 和 p 不受支持，并且有一个额外的选项，q。
 	 *
-	 * The q option formats a string between double quotes, using escape sequences
-	 * when necessary to ensure that it can safely be read back by the Lua
-	 * interpreter. For instance, the call
+	 * q 选项将字符串格式化为双引号之间，必要时使用转义序列，以确保可以通过 Lua 解释器安全地读回。例如，调用
 	 *
 	 * `string.format('%q', 'a string with "quotes" and \n new line')`
 	 *
-	 * may produce the string:
+	 * 可能会产生字符串：
 	 *
 	 * `"a string with \"quotes\" and \
-	 *  new line"` Options A, a, E, e, f, G, and g all expect a number as
-	 * argument. Options c, d, i, o, u, X, and x expect an integer. When Lua is
-	 * compiled with a C89 compiler, options A and a (hexadecimal floats) do not
-	 * support any modifier (flags, width, length).
+	 *  new line"` 选项 A, a, E, e, f, G, 和 g 都期望数字作为参数。选项 c, d, i, o, u, X, 和 x 期望整数。当 Lua 使用 C89 编译器编译时，选项 A 和 a（十六进制浮点数）不支持任何修饰符（标志，宽度，长度）。
 	 *
-	 * Option s expects a string; if its argument is not a string, it is converted
-	 * to one following the same rules of tostring. If the option has any modifier
-	 * (flags, width, length), the string argument should not contain embedded
-	 * zeros.
+	 * 选项 s 期望字符串；如果其参数不是字符串，那么将其转换为字符串，遵循 tostring 的相同规则。如果选项有任何修饰符（标志，宽度，长度），字符串参数不应包含嵌入的零。
 	 */
 	function format(formatstring: string, ...args: any[]): string;
 
 	/**
-	 * Returns an iterator function that, each time it is called, returns the next
-	 * captures from pattern (see §6.4.1) over the string s. If pattern specifies
-	 * no captures, then the whole match is produced in each call.
+	 * 返回一个迭代器函数，每次调用它时，都会返回字符串 s 上的模式（参见 §6.4.1）的下一次捕获。如果模式未指定捕获，那么在每次调用中都会产生整个匹配。
 	 *
-	 * As an example, the following loop will iterate over all the words from
-	 * string s, printing one per line:
+	 * 作为示例，以下循环将遍历字符串 s 中的所有单词，每行打印一个：
 	 *
 	 * ```
 	 * s = "hello world from Lua"
@@ -1804,8 +1515,7 @@ declare namespace string {
 	 * end
 	 * ```
 	 *
-	 * The next example collects all pairs key=value from the given string into a
-	 * table:
+	 * 下一个示例将给定字符串中的所有键值对收集到表中：
 	 *
 	 * ```
 	 * t = {}
@@ -1815,152 +1525,100 @@ declare namespace string {
 	 * end
 	 * ```
 	 *
-	 * For this function, a caret '^' at the start of a pattern does not work as
-	 * an anchor, as this would prevent the iteration.
+	 * 对于此函数，模式的开头的插入符号 '^' 不作为锚点，因为这会阻止迭代。
 	 */
 	function gmatch(s: string, pattern: string): LuaIterable<LuaMultiReturn<string[]>>;
 
 	/**
-	 * Returns a copy of s in which all (or the first n, if given) occurrences of
-	 * the pattern (see §6.4.1) have been replaced by a replacement string
-	 * specified by repl, which can be a string, a table, or a function. gsub also
-	 * returns, as its second value, the total number of matches that occurred.
-	 * The name gsub comes from Global SUBstitution.
+	 * 返回字符串 s 的副本，其中所有（或前 n 个，如果给定）出现的模式（参见 §6.4.1）都被 repl 指定的替换字符串替换，该替换字符串可以是字符串，表或函数。gsub 还返回其第二个值，即发生的匹配总数。gsub 的名称来自全局替换。
 	 *
-	 * If repl is a string, then its value is used for replacement. The character
-	 * % works as an escape character: any sequence in repl of the form %d, with d
-	 * between 1 and 9, stands for the value of the d-th captured substring. The
-	 * sequence %0 stands for the whole match. The sequence %% stands for a single
-	 * %.
+	 * 如果 repl 是字符串，那么其值用于替换。字符 % 作为转义字符：repl 中的任何形式为 %d 的序列，其中 d 介于 1 和 9 之间，代表第 d 个捕获子字符串的值。序列 %0 代表整个匹配。序列 %% 代表单个 %。
 	 *
-	 * If repl is a table, then the table is queried for every match, using the
-	 * first capture as the key.
+	 * 如果 repl 是表，那么每次匹配时都会查询该表，使用第一次捕获作为键。
 	 *
-	 * If repl is a function, then this function is called every time a match
-	 * occurs, with all captured substrings passed as arguments, in order.
+	 * 如果 repl 是函数，那么每次匹配时都会调用此函数，所有捕获的子字符串按顺序作为参数传递。
 	 *
-	 * In any case, if the pattern specifies no captures, then it behaves as if
-	 * the whole pattern was inside a capture.
+	 * 无论如何，如果模式未指定捕获，那么它的行为就好像整个模式都在捕获内部。
 	 *
-	 * If the value returned by the table query or by the function call is a
-	 * string or a number, then it is used as the replacement string; otherwise,
-	 * if it is false or nil, then there is no replacement (that is, the original
-	 * match is kept in the string).
+	 * 如果表查询或函数调用返回的值是字符串或数字，那么它将用作替换字符串；否则，如果它是 false 或 nil，那么没有替换（也就是说，原始匹配保留在字符串中）。
 	 */
 	function gsub(
-		 s: string,
-		 pattern: string,
-		 repl: string | Record<string, string> | ((...matches: string[]) => string),
-		 n?: number
+		s: string,
+		pattern: string,
+		repl: string | Record<string, string> | ((...matches: string[]) => string),
+		n?: number
 	): LuaMultiReturn<[string, number]>;
 
 	/**
-	 * Receives a string and returns its length. The empty string "" has length 0.
-	 * Embedded zeros are counted, so "a\000bc\000" has length 5.
+	 * 接收字符串并返回其长度。空字符串 "" 的长度为 0。计数嵌入的零，因此 "a\000bc\000" 的长度为 5。
 	 */
 	function len(s: string): number;
 
 	/**
-	 * Receives a string and returns a copy of this string with all uppercase
-	 * letters changed to lowercase. All other characters are left unchanged. The
-	 * definition of what an uppercase letter is depends on the current locale.
+	 * 接收字符串并返回此字符串的副本，其中所有大写字母都变为小写。所有其他字符保持不变。大写字母的定义取决于当前的区域设置。
 	 */
 	function lower(s: string): string;
 
 	/**
-	 * Looks for the first match of pattern (see §6.4.1) in the string s. If it
-	 * finds one, then match returns the captures from the pattern; otherwise it
-	 * returns nil. If pattern specifies no captures, then the whole match is
-	 * returned. A third, optional numeric argument init specifies where to start
-	 * the search; its default value is 1 and can be negative.
+	 * 在字符串 s 中查找模式（参见 §6.4.1）的第一次匹配。如果找到匹配，match 就返回模式的捕获；否则返回 nil。如果模式未指定捕获，那么返回整个匹配。第三个可选的数字参数 init 指定开始搜索的位置；其默认值为 1，可以为负。
 	 */
 	function match(s: string, pattern: string, init?: number): LuaMultiReturn<string[]>;
 
 	/**
-	 * Returns a string that is the concatenation of `n` copies of the string `s`.
+	 * 返回字符串 s 的 n 个副本的串联。
 	 */
 	function rep(s: string, n: number): string;
 
 	/**
-	 * Returns a string that is the string s reversed.
+	 * 返回字符串 s 的反转副本。
 	 */
 	function reverse(s: string): string;
 
 	/**
-	 * Returns the substring of s that starts at i and continues until j; i and j
-	 * can be negative. If j is absent, then it is assumed to be equal to -1
-	 * (which is the same as the string length). In particular, the call
-	 * string.sub(s,1,j) returns a prefix of s with length j, and string.sub(s,
-	 * -i) (for a positive i) returns a suffix of s with length i.
+	 * 返回从 i 开始并继续到 j 的 s 的子字符串；i 和 j 可以为负。如果 j 不存在，则假定等于 -1（与字符串长度相同）。特别地，调用 string.sub(s,1,j) 返回长度为 j 的 s 的前缀，string.sub(s, -i)（对于正数 i）返回长度为 i 的 s 的后缀。
 	 *
-	 * If, after the translation of negative indices, i is less than 1, it is
-	 * corrected to 1. If j is greater than the string length, it is corrected to
-	 * that length. If, after these corrections, i is greater than j, the function
-	 * returns the empty string.
+	 * 如果在负索引的转换后，i 小于 1，它将被修正为 1。如果 j 大于字符串长度，它将被修正为该长度。如果在这些修正后，i 大于 j，函数返回空字符串。
 	 */
 	function sub(s: string, i: number, j?: number): string;
 
 	/**
-	 * Receives a string and returns a copy of this string with all lowercase
-	 * letters changed to uppercase. All other characters are left unchanged. The
-	 * definition of what a lowercase letter is depends on the current locale.
+	 * 接收字符串并返回此字符串的副本，其中所有小写字母都变为大写。所有其他字符保持不变。小写字母的定义取决于当前的区域设置。
 	 */
 	function upper(s: string): string;
 }
 
-// Based on https://www.lua.org/manual/5.3/manual.html#6.6
+// 基于 https://www.lua.org/manual/5.3/manual.html#6.6
 
 /**
- * This library provides generic functions for table manipulation. It provides
- * all its functions inside the table table.
+ * 此库提供了通用的表操作函数。所有函数都在 table 表中提供。
  *
- * Remember that, whenever an operation needs the length of a table, all caveats
- * about the length operator apply (see §3.4.7). All functions ignore
- * non-numeric keys in the tables given as arguments.
+ * 请记住，每当操作需要表的长度时，都适用有关长度运算符的所有注意事项（参见 §3.4.7）。所有函数都忽略给定表中的非数字键。
  */
 declare namespace table {
 	/**
-	 * Given a list where all elements are strings or numbers, returns the string
-	 * list[i]..sep..list[i+1] ··· sep..list[j]. The default value for sep is the
-	 * empty string, the default for i is 1, and the default for j is #list. If i
-	 * is greater than j, returns the empty string.
+	 * 给定一个所有元素都是字符串或数字的列表，返回字符串 list[i]..sep..list[i+1] ··· sep..list[j]。sep 的默认值为空字符串，i 的默认值为 1，j 的默认值为 #list。如果 i 大于 j，则返回空字符串。
 	 */
 	function concat(list: (string | number)[], sep?: string, i?: number, j?: number): string;
 
 	/**
-	 * Inserts element value at position pos in list, shifting up the elements
-	 * list[pos], list[pos+1], ···, list[#list]. The default value for pos is
-	 * #list+1, so that a call table.insert(t,x) inserts x at the end of list t.
+	 * 在列表的位置 pos 插入元素 value，将元素 list[pos]，list[pos+1]，···，list[#list] 向上移动。pos 的默认值为 #list+1，因此调用 table.insert(t,x) 将 x 插入到列表 t 的末尾。
 	 */
 	function insert<T>(list: T[], value: T): void;
 	function insert<T>(list: T[], pos: number, value: T): void;
 
 	/**
-	 * Removes from list the element at position pos, returning the value of the
-	 * removed element. When pos is an integer between 1 and #list, it shifts down
-	 * the elements list[pos+1], list[pos+2], ···, list[#list] and erases element
-	 * list[#list]; The index pos can also be 0 when #list is 0, or #list + 1; in
-	 * those cases, the function erases the element list[pos].
+	 * 从列表中移除位置 pos 的元素，返回被移除元素的值。当 pos 是 1 和 #list 之间的整数时，它将元素 list[pos+1]，list[pos+2]，···，list[#list] 向下移动并删除元素 list[#list]；索引 pos 也可以在 #list 为 0 时为 0，或为 #list + 1；在这些情况下，函数删除元素 list[pos]。
 	 *
-	 * The default value for pos is #list, so that a call table.remove(l) removes
-	 * the last element of list l.
+	 * pos 的默认值为 #list，因此调用 table.remove(l) 会移除列表 l 的最后一个元素。
 	 */
 	function remove<T>(list: T[], pos?: number): T | undefined;
 
 	/**
-	 * Sorts list elements in a given order, in-place, from list[1] to
-	 * list[#list]. If comp is given, then it must be a function that receives two
-	 * list elements and returns true when the first element must come before the
-	 * second in the final order (so that, after the sort, i < j implies not
-	 * comp(list[j],list[i])). If comp is not given, then the standard Lua
-	 * operator < is used instead.
+	 * 按给定顺序对列表元素进行排序，从 list[1] 到 list[#list]。如果给出了 comp，则它必须是接收两个列表元素并在第一个元素在最终顺序中应位于第二个元素之前时返回 true 的函数（因此，在排序后，i < j 意味着不 comp(list[j],list[i])）。如果未给出 comp，则使用标准 Lua 运算符 <。
 	 *
-	 * Note that the comp function must define a strict partial order over the
-	 * elements in the list; that is, it must be asymmetric and transitive.
-	 * Otherwise, no valid sort may be possible.
+	 * 请注意，comp 函数必须在列表中的元素上定义严格的偏序；也就是说，它必须是不对称且可传递的。否则，可能无法进行有效的排序。
 	 *
-	 * The sort algorithm is not stable: elements considered equal by the given
-	 * order may have their relative positions changed by the sort.
+	 * 排序算法不稳定：被给定顺序认为相等的元素可能会因排序而改变其相对位置。
 	 */
 	function sort<T>(list: T[], comp?: (a: T, b: T) => boolean): void;
 }
@@ -1970,168 +1628,118 @@ declare namespace table {
 declare let _ENV: Record<string, any>;
 
 /**
- * This function is a generic interface to the garbage collector. It performs
- * different functions according to its first argument, opt.
+ * 此函数是对垃圾收集器的通用接口。根据其第一个参数 opt，它执行不同的功能。
  *
- * Returns a boolean that tells whether the collector is running (i.e., not
- * stopped).
+ * 返回一个布尔值，表示收集器是否正在运行（即，未停止）。
  */
 declare function collectgarbage(opt: 'isrunning'): boolean;
 
 /**
- * Creates a module. If there is a table in package.loaded[name], this table is
- * the module. Otherwise, if there is a global table t with the given name, this
- * table is the module. Otherwise creates a new table t and sets it as the value
- * of the global name and the value of package.loaded[name]. This function also
- * initializes t._NAME with the given name, t._M with the module (t itself), and
- * t._PACKAGE with the package name (the full module name minus last component;
- * see below). Finally, module sets t as the new environment of the current
- * function and the new value of package.loaded[name], so that require returns
- * t.
+ * 创建模块。如果在 package.loaded[name] 中有表，此表就是模块。否则，如果有全局表 t 与给定名称相同，此表就是模块。否则创建新表 t，并将其设置为全局名称的值和 package.loaded[name] 的值。此函数还用给定名称初始化 t._NAME，用模块（t 本身）初始化 t._M，并用包名（完整模块名减去最后组件；参见下文）初始化 t._PACKAGE。最后，module 将 t 设置为当前函数的新环境和 package.loaded[name] 的新值，因此 require 返回 t。
  *
- * If name is a compound name (that is, one with components separated by dots),
- * module creates (or reuses, if they already exist) tables for each component.
- * For instance, if name is a.b.c, then module stores the module table in field
- * c of field b of global a.
+ * 如果 name 是复合名称（即，由点分隔的组件），module 为每个组件创建（或重用，如果它们已经存在）表。例如，如果 name 是 a.b.c，那么 module 在全局 a 的字段 b 的字段 c 中存储模块表。
  *
- * This function can receive optional options after the module name, where each
- * option is a function to be applied over the module.
+ * 此函数可以在模块名称后接收可选选项，其中每个选项都是要应用于模块的函数。
  */
 declare function module(name: string, ...options: Function[]): void;
 
 declare namespace package {
-    /**
-     * A table used by require to control how to load modules.
-     *
-     * Each entry in this table is a searcher function. When looking for a module,
-     * require calls each of these searchers in ascending order, with the module
-     * name (the argument given to require) as its sole parameter. The function
-     * can return another function (the module loader) plus an extra value that
-     * will be passed to that loader, or a string explaining why it did not find
-     * that module (or nil if it has nothing to say).
-     *
-     * Lua initializes this table with four searcher functions.
-     *
-     * The first searcher simply looks for a loader in the package.preload table.
-     *
-     * The second searcher looks for a loader as a Lua library, using the path
-     * stored at package.path. The search is done as described in function
-     * package.searchpath.
-     *
-     * The third searcher looks for a loader as a C library, using the path given
-     * by the variable package.cpath. Again, the search is done as described in
-     * function package.searchpath. For instance, if the C path is the string
-     *
-     * `./?.so;./?.dll;/usr/local/?/init.so`
-     *
-     * the searcher for module foo will try to open the files ./foo.so, ./foo.dll,
-     * and /usr/local/foo/init.so, in that order. Once it finds a C library, this
-     * searcher first uses a dynamic link facility to link the application with
-     * the library. Then it tries to find a C function inside the library to be
-     * used as the loader. The name of this C function is the string "luaopen_"
-     * concatenated with a copy of the module name where each dot is replaced by
-     * an underscore. Moreover, if the module name has a hyphen, its suffix after
-     * (and including) the first hyphen is removed. For instance, if the module
-     * name is a.b.c-v2.1, the function name will be luaopen_a_b_c.
-     *
-     * The fourth searcher tries an all-in-one loader. It searches the C path for
-     * a library for the root name of the given module. For instance, when
-     * requiring a.b.c, it will search for a C library for a. If found, it looks
-     * into it for an open function for the submodule; in our example, that would
-     * be luaopen_a_b_c. With this facility, a package can pack several C
-     * submodules into one single library, with each submodule keeping its
-     * original open function.
-     *
-     * All searchers except the first one (preload) return as the extra value the
-     * file name where the module was found, as returned by package.searchpath.
-     * The first searcher returns no extra value.
-     */
-    var searchers: (
-        | ((modname: string) => LuaMultiReturn<[(modname: string) => void]>)
-        | (<T>(modname: string) => LuaMultiReturn<[(modname: string, extra: T) => T, T]>)
-        | string
-    )[];
+	/**
+	 * 由 require 使用的表，用于控制如何加载模块。
+	 *
+	 * 此表中的每个条目都是搜索器函数。在寻找模块时，require 按升序调用这些搜索器，其唯一参数为模块名称（给 require 的参数）。函数可以返回另一个函数（模块加载器）以及将传递给该加载器的额外值，或者一个字符串，解释为什么找不到该模块（或者如果它无话可说，则为 nil）。
+	 *
+	 * Lua 使用四个搜索器函数初始化此表。
+	 *
+	 * 第一个搜索器只是在 package.preload 表中寻找加载器。
+	 *
+	 * 第二个搜索器以 Lua 库的形式寻找加载器，使用存储在 package.path 中的路径。搜索按照函数 package.searchpath 中的描述进行。
+	 *
+	 * 第三个搜索器以 C 库的形式寻找加载器，使用变量 package.cpath 给出的路径。同样，搜索按照函数 package.searchpath 中的描述进行。例如，如果 C 路径是字符串
+	 *
+	 * `./?.so;./?.dll;/usr/local/?/init.so`
+	 *
+	 * 那么搜索模块 foo 的搜索器将尝试按顺序打开文件 ./foo.so，./foo.dll 和 /usr/local/foo/init.so。一旦找到 C 库，此搜索器首先使用动态链接设施将应用程序与库链接。然后，它尝试在库内找到一个 C 函数，用作加载器。此 C 函数的名称是字符串 "luaopen_" 与模块名称的副本连接，其中每个点都被下划线替换。此外，如果模块名称有连字符，其后（包括）第一个连字符后的后缀将被删除。例如，如果模块名称是 a.b.c-v2.1，函数名称将是 luaopen_a_b_c。
+	 *
+	 * 第四个搜索器尝试全能加载器。它在 C 路径中搜索给定模块的根名称的库。例如，当需要 a.b.c 时，它将搜索 a 的 C 库。如果找到，它会在其中寻找子模块的打开函数；在我们的示例中，那将是 luaopen_a_b_c。有了这个设施，包可以将几个 C 子模块打包到单个库中，每个子模块保持其原始打开函数。
+	 *
+	 * 除第一个（预加载）之外的所有搜索器都返回作为额外值的模块找到的文件名，由 package.searchpath 返回。第一个搜索器不返回额外值。
+	 */
+	var searchers: (
+		| ((modname: string) => LuaMultiReturn<[(modname: string) => void]>)
+		| (<T>(modname: string) => LuaMultiReturn<[(modname: string, extra: T) => T, T]>)
+		| string
+	)[];
 }
 
 declare namespace table {
-    /**
-     * Returns the elements from the given list. This function is equivalent to
-     *
-     * `return list[i], list[i+1], ···, list[j]`
-     *
-     * By default, i is 1 and j is #list.
-     */
-    function unpack<T extends any[]>(list: T): LuaMultiReturn<T>;
-    function unpack<T>(list: T[], i: number, j?: number): LuaMultiReturn<T[]>;
+	/**
+	 * 返回给定列表中的元素。此函数等同于
+	 *
+	 * `return list[i], list[i+1], ···, list[j]`
+	 *
+	 * 默认情况下，i 是 1，j 是 #list。
+	 */
+	function unpack<T extends any[]>(list: T): LuaMultiReturn<T>;
+	function unpack<T>(list: T[], i: number, j?: number): LuaMultiReturn<T[]>;
 
-    /**
-     * Returns a new table with all parameters stored into keys 1, 2, etc. and
-     * with a field "n" with the total number of parameters. Note that the
-     * resulting table may not be a sequence.
-     */
-    function pack<T extends any[]>(...args: T): T & { n: number };
+	/**
+	 * 返回新表，所有参数存储在键 1, 2, 等等，并带有字段 "n" 表示参数的总数。注意，结果表可能不是序列。
+	 */
+	function pack<T extends any[]>(...args: T): T & { n: number };
 }
 
 declare namespace debug {
-    interface FunctionInfo<T extends Function> {
-        istailcall: boolean;
-    }
+	interface FunctionInfo<T extends Function> {
+		istailcall: boolean;
+	}
 }
 
 interface LuaMetatable<T> {
-    /**
-     * Handle iteration through table pairs when `for k,v in pairs(tbl) do ...
-     * end` is called.
-     */
-    __pairs?<T>(t: T): [(t: T, index?: any) => [any, any], T];
+	/**
+	 * 当调用 `for k,v in pairs(tbl) do ... end` 时，处理通过表对进行迭代。
+	 */
+	__pairs?<T>(t: T): [(t: T, index?: any) => [any, any], T];
 
-    /**
-     * Handle iteration through table pairs when `for k,v in ipairs(tbl) do ...
-     * end` is called.
-     */
-    __ipairs?<T extends object>(t: T): [(t: T, index?: number) => [number, any], T, 0];
+	/**
+	 * 当调用 `for k,v in ipairs(tbl) do ... end` 时，处理通过表对进行迭代。
+	 */
+	__ipairs?<T extends object>(t: T): [(t: T, index?: number) => [number, any], T, 0];
 }
 
 declare namespace coroutine {
-    /**
-     * Returns the running coroutine plus a boolean, true when the running
-     * coroutine is the main one.
-     */
-    function running(): LuaMultiReturn<[LuaThread, boolean]>;
+	/**
+	 * 返回正在运行的协程以及布尔值，当正在运行的协程是主协程时为 true。
+	 */
+	function running(): LuaMultiReturn<[LuaThread, boolean]>;
 }
 
 // Lua 5.2 plus or jit
 
 /**
- * Loads a chunk.
+ * 加载代码块。
  *
- * If chunk is a string, the chunk is this string. If chunk is a function, load
- * calls it repeatedly to get the chunk pieces. Each call to chunk must return a
- * string that concatenates with previous results. A return of an empty string,
- * nil, or no value signals the end of the chunk.
+ * 如果 chunk 是字符串，那么代码块就是此字符串。如果 chunk 是函数，load
+ * 会反复调用它以获取代码块片段。每次对 chunk 的调用都必须返回
+ * 与前面结果连接的字符串。返回空字符串、nil 或无值表示代码块的结束。
  *
- * If there are no syntactic errors, returns the compiled chunk as a function;
- * otherwise, returns nil plus the error message.
+ * 如果没有语法错误，返回编译后的代码块作为函数；
+ * 否则，返回 nil 加上错误消息。
  *
- * If the resulting function has upvalues, the first upvalue is set to the value
- * of env, if that parameter is given, or to the value of the global
- * environment. Other upvalues are initialized with nil. (When you load a main
- * chunk, the resulting function will always have exactly one upvalue, the _ENV
- * variable (see §2.2). However, when you load a binary chunk created from a
- * function (see string.dump), the resulting function can have an arbitrary
- * number of upvalues.) All upvalues are fresh, that is, they are not shared
- * with any other function.
+ * 如果结果函数有上值，第一个上值设置为 env 的值（如果给出了该参数），
+ * 或设置为全局环境的值。其他上值用 nil 初始化。 （当你加载主代码块时，
+ * 结果函数将始终有一个上值，即 _ENV 变量（参见 §2.2）。然而，当你加载由函数
+ * 创建的二进制代码块（参见 string.dump）时，结果函数可以有任意数量的上值。）
+ * 所有上值都是新的，也就是说，它们不与任何其他函数共享。
  *
- * chunkname is used as the name of the chunk for error messages and debug
- * information (see §4.9). When absent, it defaults to chunk, if chunk is a
- * string, or to "=(load)" otherwise.
+ * chunkname 用作错误消息和调试信息的代码块名称（参见 §4.9）。如果缺席，
+ * 则默认为 chunk（如果 chunk 是字符串），否则为 "=(load)"。
  *
- * The string mode controls whether the chunk can be text or binary (that is, a
- * precompiled chunk). It may be the string "b" (only binary chunks), "t" (only
- * text chunks), or "bt" (both binary and text). The default is "bt".
+ * 字符串 mode 控制代码块可以是文本还是二进制（即，预编译的代码块）。
+ * 它可能是字符串 "b"（仅二进制代码块），"t"（仅文本代码块），
+ * 或 "bt"（二进制和文本）。默认为 "bt"。
  *
- * Lua does not check the consistency of binary chunks. Maliciously crafted
- * binary chunks can crash the interpreter.
+ * Lua 不检查二进制代码块的一致性。恶意制作的二进制代码块可能会使解释器崩溃。
  */
 declare function load(
 	chunk: string | (() => string | null | undefined),
@@ -2141,8 +1749,8 @@ declare function load(
 ): LuaMultiReturn<[() => any] | [undefined, string]>;
 
 /**
-* Similar to load, but gets the chunk from file filename or from the standard
-* input, if no file name is given.
+* 类似于 load，但是从文件 filename 获取代码块，或者从标准输入获取，
+* 如果没有给出文件名。
 */
 declare function loadfile(
 	filename?: string,
@@ -2151,8 +1759,7 @@ declare function loadfile(
 ): LuaMultiReturn<[() => any] | [undefined, string]>;
 
 /**
-* This function is similar to pcall, except that it sets a new message handler
-* msgh.
+* 此函数类似于 pcall，只是它设置了新的消息处理程序 msgh。
 */
 declare function xpcall<This, Args extends any[], R, E>(
 	f: (this: This, ...args: Args) => R,
@@ -2169,71 +1776,51 @@ declare function xpcall<Args extends any[], R, E>(
 
 declare namespace debug {
 	interface FunctionInfo<T extends Function = Function> {
-		 nparams: number;
-		 isvararg: boolean;
+		nparams: number;
+		isvararg: boolean;
 	}
 
 	/**
-	 * This function returns the name and the value of the local variable with
-	 * index local of the function at level f of the stack. This function accesses
-	 * not only explicit local variables, but also parameters, temporaries, etc.
+	 * 此函数返回堆栈中级别 f 的函数的索引为 local 的局部变量的名称和值。此函数不仅访问显式局部变量，还访问参数，临时变量等。
 	 *
-	 * The first parameter or local variable has index 1, and so on, following the
-	 * order that they are declared in the code, counting only the variables that
-	 * are active in the current scope of the function. Negative indices refer to
-	 * vararg parameters; -1 is the first vararg parameter. The function returns
-	 * nil if there is no variable with the given index, and raises an error when
-	 * called with a level out of range. (You can call debug.getinfo to check
-	 * whether the level is valid.)
+	 * 第一个参数或局部变量的索引为 1，以此类推，按照它们在代码中声明的顺序，只计算函数当前作用域中的活动变量。负索引指的是 vararg 参数；-1 是第一个 vararg 参数。如果没有给定索引的变量，函数返回 nil，并在级别超出范围时引发错误。（你可以调用 debug.getinfo 检查级别是否有效。）
 	 *
-	 * Variable names starting with '(' (open parenthesis) represent variables
-	 * with no known names (internal variables such as loop control variables, and
-	 * variables from chunks saved without debug information).
+	 * 以 '('（开括号）开头的变量名代表没有已知名称的变量（例如循环控制变量，以及没有调试信息的块保存的变量）。
 	 *
-	 * The parameter f may also be a function. In that case, getlocal returns only
-	 * the name of function parameters.
+	 * 参数 f 也可以是函数。在这种情况下，getlocal 只返回函数参数的名称。
 	 */
 	function getlocal(f: Function | number, local: number): LuaMultiReturn<[string, any]>;
 	function getlocal(
-		 thread: LuaThread,
-		 f: Function | number,
-		 local: number
+		thread: LuaThread,
+		f: Function | number,
+		local: number
 	): LuaMultiReturn<[string, any]>;
 
 	/**
-	 * Returns a unique identifier (as a light userdata) for the upvalue numbered
-	 * n from the given function.
+	 * 返回给定函数的编号为 n 的上值的唯一标识符（作为轻量级用户数据）。
 	 *
-	 * These unique identifiers allow a program to check whether different
-	 * closures share upvalues. Lua closures that share an upvalue (that is, that
-	 * access a same external local variable) will return identical ids for those
-	 * upvalue indices.
+	 * 这些唯一标识符允许程序检查不同的闭包是否共享上值。共享上值的 Lua 闭包（即，访问相同的外部局部变量）将为这些上值索引返回相同的 id。
 	 */
 	function upvalueid(f: Function, n: number): LuaUserdata;
 
 	/**
-	 * Make the n1-th upvalue of the Lua closure f1 refer to the n2-th upvalue of
-	 * the Lua closure f2.
+	 * 使 Lua 闭包 f1 的第 n1 个上值引用 Lua 闭包 f2 的第 n2 个上值。
 	 */
 	function upvaluejoin(f1: Function, n1: number, f2: Function, n2: number): void;
 }
 
 declare namespace math {
 	/**
-	 * Returns the logarithm of x in the given base. The default for base is e (so
-	 * that the function returns the natural logarithm of x).
+	 * 返回 x 在给定基数中的对数。基数的默认值为 e（因此该函数返回 x 的自然对数）。
 	 */
 	function log(x: number, base?: number): number;
 }
 
 declare namespace string {
 	/**
-	 * Returns a string that is the concatenation of n copies of the string s
-	 * separated by the string sep. The default value for sep is the empty string
-	 * (that is, no separator). Returns the empty string if n is not positive.
+	 * 返回字符串，该字符串是由字符串 s 的 n 份副本组成，这些副本由字符串 sep 分隔。sep 的默认值为空字符串（即，没有分隔符）。如果 n 不是正数，则返回空字符串。
 	 *
-	 * (Note that it is very easy to exhaust the memory of your machine with a
-	 * single call to this function.)
+	 * （请注意，单次调用此函数就可以很容易地耗尽机器的内存。）
 	 */
 	function rep(s: string, n: number, sep?: string): string;
 }
@@ -2241,260 +1828,202 @@ declare namespace string {
 // Lua 5.3 plus
 
 /**
- * This function is a generic interface to the garbage collector. It performs
- * different functions according to its first argument, opt.
+ * 此函数是对垃圾收集器的通用接口。根据其第一个参数 opt，它执行不同的功能。
  *
- * Returns the total memory in use by Lua in Kbytes. The value has a fractional
- * part, so that it multiplied by 1024 gives the exact number of bytes in use by
- * Lua (except for overflows).
+ * 返回 Lua 使用的总内存（以 Kbytes 为单位）。该值有小数部分，因此乘以 1024 可以得到 Lua 实际使用的字节数（除非溢出）。
  */
 declare function collectgarbage(opt: 'count'): number;
 
 declare namespace math {
-    /**
-     * Returns the arc tangent of y/x (in radians), but uses the signs of both
-     * parameters to find the quadrant of the result. (It also handles correctly
-     * the case of x being zero.)
-     *
-     * The default value for x is 1, so that the call math.atan(y) returns the arc
-     * tangent of y.
-     */
-    function atan(y: number, x?: number): number;
+	/**
+	 * 返回 y/x 的反正切值（以弧度为单位），但使用两个参数的符号来确定结果的象限。（当 x 为零时，也能正确处理。）
+	 *
+	 * x 的默认值为 1，因此调用 math.atan(y) 返回 y 的反正切值。
+	 */
+	function atan(y: number, x?: number): number;
 
-    /**
-     * An integer with the minimum value for an integer.
-     */
-    const mininteger: number;
+	/**
+	 * 具有整数最小值的整数。
+	 */
+	const mininteger: number;
 
-    /**
-     * An integer with the maximum value for an integer.
-     */
-    const maxinteger: number;
+	/**
+	 * 具有整数最大值的整数。
+	 */
+	const maxinteger: number;
 
-    /**
-     * If the value x is convertible to an integer, returns that integer.
-     * Otherwise, returns nil.
-     */
-    function tointeger(x: number): number;
+	/**
+	 * 如果值 x 可转换为整数，则返回该整数。否则，返回 nil。
+	 */
+	function tointeger(x: number): number;
 
-    /**
-     * Returns "integer" if x is an integer, "float" if it is a float, or nil if x
-     * is not a number.
-     */
-    function type(x: number): 'integer' | 'float' | undefined;
+	/**
+	 * 如果 x 是整数，则返回 "integer"，如果是浮点数，则返回 "float"，如果 x 不是数字，则返回 nil。
+	 */
+	function type(x: number): 'integer' | 'float' | undefined;
 
-    /**
-     * Returns a boolean, true if and only if integer m is below integer n when
-     * they are compared as unsigned integers.
-     */
-    function ult(m: number, n: number): boolean;
+	/**
+	 * 返回布尔值，当且仅当整数 m 在作为无符号整数比较时低于整数 n。
+	 */
+	function ult(m: number, n: number): boolean;
 }
 
 declare namespace table {
-    /**
-     * Moves elements from table a1 to table a2, performing the equivalent to the
-     * following multiple assignment: a2[t],··· = a1[f],···,a1[e]. The default for
-     * a2 is a1. The destination range can overlap with the source range. The
-     * number of elements to be moved must fit in a Lua integer.
-     *
-     * Returns the destination table a2.
-     */
-    function move<T1, T2 = T1>(a1: T1[], f: number, e: number, t: number, a2?: T2[]): (T2 | T1)[];
+	/**
+	 * 将元素从表 a1 移动到表 a2，执行等效于以下多重赋值：a2[t],··· = a1[f],···,a1[e]。a2 的默认值为 a1。目标范围可以与源范围重叠。要移动的元素数量必须适合 Lua 整数。
+	 *
+	 * 返回目标表 a2。
+	 */
+	function move<T1, T2 = T1>(a1: T1[], f: number, e: number, t: number, a2?: T2[]): (T2 | T1)[];
 }
 
 declare namespace string {
-    /**
-     * Returns a string containing a binary representation (a binary chunk) of the
-     * given function, so that a later load on this string returns a copy of the
-     * function (but with new upvalues). If strip is a true value, the binary
-     * representation may not include all debug information about the function, to
-     * save space.
-     *
-     * Functions with upvalues have only their number of upvalues saved. When
-     * (re)loaded, those upvalues receive fresh instances containing nil. (You can
-     * use the debug library to serialize and reload the upvalues of a function in
-     * a way adequate to your needs.)
-     */
-    function dump(func: Function, strip?: boolean): string;
+	/**
+	 * 返回包含给定函数的二进制表示（二进制块）的字符串，以便稍后在此字符串上加载返回函数的副本（但具有新的上值）。如果 strip 是真值，二进制表示可能不包含有关函数的所有调试信息，以节省空间。
+	 *
+	 * 具有上值的函数只保存其上值的数量。重新加载时，这些上值接收包含 nil 的新实例。（你可以使用调试库以适合你的需求的方式序列化和重新加载函数的上值。）
+	 */
+	function dump(func: Function, strip?: boolean): string;
 
-    /**
-     * Returns a binary string containing the values v1, v2, etc. packed (that is,
-     * serialized in binary form) according to the format string fmt (see §6.4.2).
-     */
-    function pack(fmt: string, ...values: any[]): string;
+	/**
+	 * 返回包含值 v1，v2 等的二进制字符串，这些值根据格式字符串 fmt 打包（即，以二进制形式序列化）。
+	 */
+	function pack(fmt: string, ...values: any[]): string;
 
-    /**
-     * Returns the values packed in string s (see string.pack) according to the
-     * format string fmt (see §6.4.2). An optional pos marks where to start
-     * reading in s (default is 1). After the read values, this function also
-     * returns the index of the first unread byte in s.
-     */
-    function unpack(fmt: string, s: string, pos?: number): LuaMultiReturn<any[]>;
+	/**
+	 * 根据格式字符串 fmt 返回在字符串 s 中打包的值（参见 string.pack）。可选的 pos 标记在 s 中开始读取的位置（默认为 1）。在读取的值之后，此函数还返回 s 中第一个未读字节的索引。
+	 */
+	function unpack(fmt: string, s: string, pos?: number): LuaMultiReturn<any[]>;
 
-    /**
-     * Returns the size of a string resulting from string.pack with the given
-     * format. The format string cannot have the variable-length options 's' or
-     * 'z' (see §6.4.2).
-     */
-    function packsize(fmt: string): number;
+	/**
+	 * 返回由 string.pack 生成的字符串的大小。格式字符串不能有可变长度的选项 's' 或 'z'（参见 §6.4.2）。
+	 */
+	function packsize(fmt: string): number;
 }
 
 declare namespace coroutine {
-    /**
-     * Returns true when the running coroutine can yield.
-     *
-     * A running coroutine is yieldable if it is not the main thread and it is not
-     * inside a non-yieldable C function.
-     */
-    function isyieldable(): boolean;
+	/**
+	 * 当运行的协程可以挂起时返回 true。
+	 *
+	 * 如果运行的协程不是主线程并且不在不可挂起的 C 函数内，则该协程是可挂起的。
+	 */
+	function isyieldable(): boolean;
 }
 
 // https://www.lua.org/manual/5.3/manual.html#6.5
 
 /**
- * This library provides basic support for UTF-8 encoding. It provides all its
- * functions inside the table utf8. This library does not provide any support
- * for Unicode other than the handling of the encoding. Any operation that needs
- * the meaning of a character, such as character classification, is outside its
- * scope.
+ * 此库提供对 UTF-8 编码的基本支持。它在 utf8 表中提供所有的函数。
+ * 除了处理编码外，此库不提供对 Unicode 的任何其他支持。任何需要字符含义的操作，
+ * 如字符分类，都超出了其范围。
  *
- * Unless stated otherwise, all functions that expect a byte position as a
- * parameter assume that the given position is either the start of a byte
- * sequence or one plus the length of the subject string. As in the string
- * library, negative indices count from the end of the string.
+ * 除非另有说明，所有期望字节位置作为参数的函数都假定给定位置是字节序列的开头，
+ * 或者是主题字符串的长度加一。与字符串库一样，负索引从字符串的末尾开始计数。
  */
 declare namespace utf8 {
-    /**
-     * Receives zero or more integers, converts each one to its corresponding
-     * UTF-8 byte sequence and returns a string with the concatenation of all
-     * these sequences
-     */
-    function char(...args: number[]): string;
+	/**
+	 * 接收零个或多个整数，将每个整数转换为其对应的 UTF-8 字节序列，
+	 * 并返回所有这些序列的连接字符串
+	 */
+	function char(...args: number[]): string;
 
-    /**
-     * The pattern (a string, not a function) "[\0-\x7F\xC2-\xF4][\x80-\xBF]*"
-     * (see §6.4.1), which matches exactly one UTF-8 byte sequence, assuming that
-     * the subject is a valid UTF-8 string.
-     */
-    var charpattern: string;
+	/**
+	 * 模式（字符串，而不是函数）"[\0-\x7F\xC2-\xF4][\x80-\xBF]*"（参见 §6.4.1），
+	 * 它精确匹配一个 UTF-8 字节序列，假设主题是有效的 UTF-8 字符串。
+	 */
+	var charpattern: string;
 
-    /**
-     * Returns values so that the construction
-     *
-     * `for p, c in utf8.codes(s) do body end`
-     *
-     * will iterate over all characters in string s, with p being the position (in
-     * bytes) and c the code point of each character. It raises an error if it
-     * meets any invalid byte sequence.
-     */
-    function codes<S extends string>(
-        s: S
-    ): [(s: S, index?: number) => LuaMultiReturn<[number, number]>, S, 0];
+	/**
+	 * 返回值，使得构造
+	 *
+	 * `for p, c in utf8.codes(s) do body end`
+	 *
+	 * 将遍历字符串 s 中的所有字符，其中 p 是位置（以字节为单位），
+	 * c 是每个字符的代码点。如果遇到任何无效的字节序列，它会引发错误。
+	 */
+	function codes<S extends string>(
+		s: S
+	): [(s: S, index?: number) => LuaMultiReturn<[number, number]>, S, 0];
 
-    /**
-     * Returns the codepoints (as integers) from all characters in s that start
-     * between byte position i and j (both included). The default for i is 1 and
-     * for j is i. It raises an error if it meets any invalid byte sequence.
-     */
-    function codepoint(s: string, i?: number, j?: number): LuaMultiReturn<number[]>;
+	/**
+	 * 返回从字符串 s 中开始在字节位置 i 和 j（都包括在内）的所有字符的代码点（作为整数）。
+	 * i 的默认值为 1，j 的默认值为 i。如果遇到任何无效的字节序列，它会引发错误。
+	 */
+	function codepoint(s: string, i?: number, j?: number): LuaMultiReturn<number[]>;
 
-    /**
-     * Returns the number of UTF-8 characters in string s that start between
-     * positions i and j (both inclusive). The default for i is 1 and for j is -1.
-     * If it finds any invalid byte sequence, returns a false value plus the
-     * position of the first invalid byte.
-     */
-    function len(s: string, i?: number, j?: number): number;
+	/**
+	 * 返回字符串 s 中开始在位置 i 和 j（都包括在内）的 UTF-8 字符的数量。
+	 * i 的默认值为 1，j 的默认值为 -1。如果找到任何无效的字节序列，返回一个 false 值加上第一个无效字节的位置。
+	 */
+	function len(s: string, i?: number, j?: number): number;
 
-    /**
-     * Returns the position (in bytes) where the encoding of the n-th character of
-     * s (counting from position i) starts. A negative n gets characters before
-     * position i. The default for i is 1 when n is non-negative and #s + 1
-     * otherwise, so that utf8.offset(s, -n) gets the offset of the n-th character
-     * from the end of the string. If the specified character is neither in the
-     * subject nor right after its end, the function returns nil.
-     *
-     * As a special case, when n is 0 the function returns the start of the
-     * encoding of the character that contains the i-th byte of s.
-     *
-     * This function assumes that s is a valid UTF-8 string.
-     */
-    function offset(s: string, n?: number, i?: number): number;
+	/**
+	 * 返回 s 中第 n 个字符的编码开始的位置（以字节为单位）。
+	 * 负数 n 获取位置 i 之前的字符。当 n 为非负数时，i 的默认值为 1，否则为 #s + 1，
+	 * 因此 utf8.offset(s, -n) 获取字符串末尾第 n 个字符的偏移量。如果指定的字符既不在主题中，
+	 * 也不在其结束后，函数返回 nil。
+	 *
+	 * 作为特殊情况，当 n 为 0 时，函数返回包含 s 的第 i 个字节的字符的编码的开始。
+	 *
+	 * 此函数假定 s 是有效的 UTF-8 字符串。
+	 */
+	function offset(s: string, n?: number, i?: number): number;
 }
 
 interface LuaMetatable<T> {
-    /**
-     * the floor division (//) operation. Behavior similar to the addition
-     * operation.
-     */
-    __idiv?(this: T, operand: any): any;
+	/**
+	 * 地板除法（//）操作。其调用行为类似于加法操作。
+	 */
+	__idiv?(this: T, operand: any): any;
 
-    /**
-     * the bitwise AND (&) operation. Behavior similar to the addition operation,
-     * except that Lua will try a metamethod if any operand is neither an integer
-     * nor a value coercible to an integer (see §3.4.3).
-     */
-    __band?(this: T, operand: any): any;
+	/**
+	 * 按位与（&）操作。其调用行为类似于加法操作，除了当任何操作数既不是整数也不是可强制转换为整数的值时，Lua 将尝试元方法（参见 §3.4.3）。
+	 */
+	__band?(this: T, operand: any): any;
 
-    /**
-     * the bitwise OR (|) operation. Behavior similar to the bitwise AND
-     * operation.
-     */
-    __bor?(this: T, operand: any): any;
+	/**
+	 * 按位或（|）操作。其调用行为类似于按位与操作。
+	 */
+	__bor?(this: T, operand: any): any;
 
-    /**
-     * the bitwise exclusive OR (binary ~) operation. Behavior similar to the
-     * bitwise AND operation.
-     */
-    __bxor?(this: T, operand: any): any;
+	/**
+	 * 按位异或（二进制 ~）操作。其调用行为类似于按位与操作。
+	 */
+	__bxor?(this: T, operand: any): any;
 
-    /**
-     * the bitwise NOT (unary ~) operation. Behavior similar to the bitwise AND
-     * operation.
-     */
-    __bnot?(this: T, operand: any): any;
+	/**
+	 * 按位非（一元 ~）操作。其调用行为类似于按位与操作。
+	 */
+	__bnot?(this: T, operand: any): any;
 
-    /**
-     * the bitwise left shift (<<) operation. Behavior similar to the bitwise AND
-     * operation.
-     */
-    __shl?(this: T, operand: any): any;
+	/**
+	 * 按位左移（<<）操作。其调用行为类似于按位与操作。
+	 */
+	__shl?(this: T, operand: any): any;
 
-    /**
-     * the bitwise right shift (>>) operation. Behavior similar to the bitwise AND
-     * operation.
-     */
-    __shr?(this: T, operand: any): any;
+	/**
+	 * 按位右移（>>）操作。其调用行为类似于按位与操作。
+	 */
+	__shr?(this: T, operand: any): any;
 }
 
 // Lua 5.4 only
 
 declare namespace math {
 	/**
-	 * When called without arguments, returns a pseudo-random float with uniform
-	 * distribution in the range [0,1). When called with two integers m and n,
-	 * math.random returns a pseudo-random integer with uniform distribution in
-	 * the range [m, n]. The call math.random(n), for a positive n, is equivalent
-	 * to math.random(1,n). The call math.random(0) produces an integer with all
-	 * bits (pseudo)random.
+	 * 当没有参数调用时，返回在范围 [0,1) 内具有均匀分布的伪随机浮点数。当使用两个整数 m 和 n 调用时，
+	 * math.random 返回在范围 [m, n] 内具有均匀分布的伪随机整数。调用 math.random(n)，对于正整数 n，
+	 * 等同于 math.random(1,n)。调用 math.random(0) 会产生所有位都是（伪）随机的整数。
 	 *
-	 * Lua initializes its pseudo-random generator with a weak attempt for
-	 * "randomness", so that math.random should generate different sequences of
-	 * results each time the program runs. To ensure a required level of
-	 * randomness to the initial state (or contrarily, to have a deterministic
-	 * sequence, for instance when debugging a program), you should call
-	 * math.randomseed explicitly.
+	 * Lua 用对 "随机性" 的弱尝试初始化其伪随机生成器，因此 math.random 应在每次运行程序时生成不同的结果序列。
+	 * 为了确保初始状态的所需随机性级别（或相反，为了有确定的序列，例如在调试程序时），你应该显式地调用 math.randomseed。
 	 *
-	 * The results from this function have good statistical qualities, but they
-	 * are not cryptographically secure. (For instance, there are no garanties
-	 * that it is hard to predict future results based on the observation of some
-	 * number of previous results.)
+	 * 此函数的结果具有良好的统计特性，但它们不具有密码学安全性。（例如，没有保证基于观察一些数量的先前结果就很难预测未来的结果。）
 	 */
 	function random(m?: number, n?: number): number;
 
 	/**
-	 * Sets x and y as the "seed" for the pseudo-random generator: equal seeds
-	 * produce equal sequences of numbers. The default for y is zero.
+	 * 将 x 和 y 设置为伪随机生成器的 "种子"：相等的种子产生相等的数字序列。y 的默认值为零。
 	 */
 	function randomseed(x: number, y?: number): number;
 }

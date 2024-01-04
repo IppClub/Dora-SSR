@@ -6,6 +6,7 @@ declare module "dora" {
 interface BasicTyping<TypeName> {
 	__basic__: TypeName;
 }
+
 type BasicType<TypeName, T = {}> = T & BasicTyping<TypeName>;
 
 /** A base class for items that can be stored in Array and Dictionary. */
@@ -17,7 +18,6 @@ class ContainerItem {
  * A size object with a given width and height.
  */
 class Size extends ContainerItem {
-
 	private constructor();
 
 	/**
@@ -62,7 +62,6 @@ export type {Size as SizeType};
  * A class for creating Size objects.
  */
 interface SizeClass {
-
 	/**
 	 * Create a new Size object with the given width and height.
 	 *
@@ -113,7 +112,6 @@ export {sizeClass as Size};
  * A class representing a 2D vector with an x and y component.
  */
 class Vec2 extends ContainerItem {
-
 	private constructor();
 
 	/** The x-component of the vector. */
@@ -221,7 +219,6 @@ export type {Vec2 as Vec2Type};
  * A class for creating Vec2 objects.
  */
 interface Vec2Class {
-
 	/**
 	 * Creates a new Vec2 object from an existing Vec2 object.
 	 *
@@ -273,7 +270,6 @@ export {vec2 as Vec2};
  * Inherits from `ContainerItem`.
  */
 class Rect extends ContainerItem {
-
 	private constructor();
 
 	// The position of the origin of the rectangle.
@@ -355,7 +351,6 @@ export type {Rect as RectType};
  * A class for creating rectangle objects.
  */
 interface RectClass {
-
 	/**
 	 * A rectangle object with all properties set to 0.
 	 */
@@ -398,7 +393,6 @@ export {rectClass as Rect};
 
 /** A color with red, green, and blue channels. */
 class Color3 {
-
 	private constructor();
 
 	/** The red channel of the color, should be 0 to 255. */
@@ -421,7 +415,6 @@ export type {Color3 as Color3Type};
 
 /** A class for creating Color3 objects. */
 interface Color3Class {
-
 	/**
 	 * Creates a color with all channels set to 0.
 	 * @returns A new `Color3` object.
@@ -453,7 +446,6 @@ export {color3Class as Color3};
  * Represents a color with red, green, blue, and alpha channels.
  */
 class Color {
-
 	private constructor();
 
 	// The red channel of the color, should be 0 to 255.
@@ -493,7 +485,6 @@ export type {Color as ColorType};
  * Provides methods for creating Color objects.
  */
 interface ColorClass {
-
 	/**
 	 * Creates a color with all channels set to 0.
 	 * @returns A new Color object.
@@ -544,7 +535,6 @@ export const enum PlatformType {
  * An interface representing an application singleton instance.
  */
 interface App {
-
 	/** The current passed frame number. */
 	readonly frame: number;
 
@@ -670,7 +660,6 @@ export {app as App};
 
 /** A class that is a base class for many C++ objects managed by Lua VM. */
 class Object extends ContainerItem {
-
 	protected constructor();
 
 	/** The ID of the C++ object. */
@@ -684,7 +673,6 @@ export type {Object as ObjectType};
 
 /** The static class for accessing object class attributes. */
 interface ObjectClass {
-
 	/** The number of total existing C++ objects. */
 	readonly count: number;
 
@@ -714,7 +702,6 @@ export type {ActionDef};
 
 /** Represents an action that can be run on a node */
 interface Action extends Object {
-
 	/** The duration of the action */
 	readonly duration: number;
 
@@ -751,7 +738,6 @@ export type {Action};
 
 /** A class for creating an action that can be run on a Node */
 interface ActionClass {
-
 	/**
 	 * Creates a new Action from the given definition
 	 * @param actionDef The definition of the Action
@@ -767,7 +753,6 @@ type EaseFunc = BasicType<'EaseFunc', number>;
 
 /** Interface for the Ease object containing easing functions. */
 interface EaseClass {
-
 	/** An easing function that applies a linear rate of change. */
 	Linear: EaseFunc;
 
@@ -1219,7 +1204,6 @@ export type Item = number | boolean | string | LuaThread | ContainerItem;
  * This is the same behavior of Lua table used as an array.
  */
 class Array extends Object {
-
 	private constructor();
 
 	/** The number of items in the array. */
@@ -1355,7 +1339,6 @@ export type {Array as ArrayType};
  * A class that creates Array objects.
  */
 interface ArrayClass {
-
 	/**
 	 * Create a new, empty array object.
 	 * @returns A new Array object.
@@ -1377,7 +1360,6 @@ export {arrayClass as Array};
  * Represents an audio player singleton object.
  */
 class Audio {
-
 	private constructor();
 
 	/**
@@ -1425,7 +1407,6 @@ type BlendFunc = BasicType<'BlendFunc'>;
  * An enum defining blend functions.
  */
 export const enum BlendOp {
-
 	/**
 	 * The source color is multiplied by 1 and added to the destination color
 	 * (essentially, the source color is drawn on top of the destination color).
@@ -1489,7 +1470,6 @@ export type {BlendFunc as BlendFuncType};
  * A class for creating BlendFunc objects.
  */
 interface BlendFuncClass {
-
 	/**
 	 * Gets the integer value of a blend function.
 	 * @param func The blend function to get the value of.
@@ -1534,7 +1514,6 @@ export type Job = BasicType<"Job", LuaThread>;
  * A singleton interface for managing coroutines.
  */
 interface Routine {
-
 	/**
 	 * Remove a coroutine job from the set and close it if it is still running.
 	 * @param job The Job instance to remove.
@@ -1612,7 +1591,6 @@ export function sleep(this: void, duration?: number): void;
  * Inherits from `Object`.
  */
 class Scheduler extends Object {
-
 	private constructor();
 
 	/**
@@ -1648,7 +1626,6 @@ export type {Scheduler as SchedulerType};
 * A class for creating Scheduler objects.
 */
 interface SchedulerClass {
-
 	/**
 	 * Creates a new Scheduler object.
 	 * @returns The newly created Scheduler object.
@@ -1664,7 +1641,6 @@ export {scheduler as Scheduler};
  * Inherits from `Object`.
  */
 class Dictionary extends Object {
-
 	private constructor();
 
 	/**
@@ -1737,7 +1713,6 @@ export {dictionaryClass as Dictionary};
  * A Slot object that represents a single event slot with handlers.
  */
 class Slot extends Object {
-
 	private constructor();
 
 	/**
@@ -1768,7 +1743,6 @@ class Slot extends Object {
  * A global signal slot object that can be used to handle global events
  */
 class GSlot extends Object {
-
 	private constructor();
 
 	/** The name of the GSlot */
@@ -1782,7 +1756,6 @@ class GSlot extends Object {
  * Represents a touch input or mouse click event.
  */
 class Touch extends Object {
-
 	private constructor();
 
 	/**
@@ -1825,7 +1798,6 @@ class Touch extends Object {
  * A class for the Camera object in the game engine.
  */
 class Camera extends Object {
-
 	protected constructor();
 
 	/**
@@ -1840,7 +1812,6 @@ export type {Camera as CameraType};
  * A class for 2D camera object in the game engine.
  */
 class Camera2D extends Camera {
-
 	private constructor();
 
 	/**
@@ -1865,7 +1836,6 @@ export type {Camera2D as Camera2DType};
 * A class for creating Camera2D objects.
 */
 interface Camera2DClass {
-
 	/**
 	 * Creates a new Camera2D object with the given name.
 	 * @param name The name of the Camera2D object. Defaults to an empty string.
@@ -1881,7 +1851,6 @@ export {camera2DClass as Camera2D};
  * A class of an orthographic camera object in the game engine.
  */
 class CameraOtho extends Camera {
-
 	private constructor();
 
 	/**
@@ -1896,7 +1865,6 @@ export type {CameraOtho as CameraOthoType};
 * A class for creating CameraOtho objects.
 */
 interface CameraOthoClass {
-
 	/**
 	 * Creates a new CameraOtho object with the given name.
 	 * @param name The name of the CameraOtho object. Defaults to an empty string.
@@ -1912,7 +1880,6 @@ export {cameraOthoClass as CameraOtho};
  * A class representing a shader pass.
  */
 class Pass extends Object {
-
 	private constructor();
 
 	/**
@@ -1970,7 +1937,6 @@ export {passClass as Pass};
  * Effect objects allow you to combine multiple passes to create more complex shader effects.
  */
 class Effect extends Object {
-
 	protected constructor();
 
 	/**
@@ -1998,7 +1964,6 @@ export type {Effect as EffectType};
 * A class for creating Effect objects.
 */
 interface EffectClass {
-
 	/**
 	 * A method that allows you to create a new Effect object.
 	 * @param vertShader The vertex shader file string.
@@ -2165,7 +2130,6 @@ export const enum KeyName {
  * An interface for handling keyboard inputs.
  */
 interface Keyboard {
-
 	/**
 	 * Check whether a key is pressed down in the current frame.
 	 * @param name The name of the key to check.
@@ -2233,7 +2197,6 @@ export const enum ButtonName {
  * An interface for handling game controller inputs.
  */
 interface Controller {
-
 	/**
 	 * Check whether a button is pressed down in current frame.
 	 * @param controllerId The controller id, incrementing from 0 when multiple controllers are connected.
@@ -2274,7 +2237,6 @@ export {controller as Controller};
  * A grabber which is used to render a part of the scene to a texture by a grid of vertices.
  */
 class Grabber extends Object {
-
 	private constructor();
 
 	/**
@@ -2365,7 +2327,6 @@ const enum NodeEvent {
 export {NodeEvent as Slot};
 
 interface NodeEventHandlerMap {
-
 	/**
 	 * The ActionEnd slot is triggered when an action is finished.
 	 * Triggers after `node.runAction()` and `node.perform()`.
@@ -2589,7 +2550,6 @@ const enum GlobalEvent {
 export {GlobalEvent as GSlot};
 
 type GlobalEventHandlerMap = {
-
 	/** Triggers when the application is about to quit. */
 	AppQuit(this: void): void;
 
@@ -2641,7 +2601,6 @@ type GlobalEventHandlerMap = {
  * Class used for building a hierarchical tree structure of game objects.
  */
 class Node extends Object {
-
 	protected constructor();
 
 	/** The order of the node in the parent's children array. */
@@ -3089,7 +3048,6 @@ export type {Node as NodeType};
  * A class object for the `Node` class.
  */
 interface NodeClass {
-
 	/**
 	 * Creates a new instance of the `Node` class.
 	 *
@@ -3110,7 +3068,6 @@ export {nodeClass as Node};
  * A buffer of string for the use of ImGui widget.
  */
 class Buffer extends Object {
-
 	private constructor();
 
 	/** The size of the buffer. */
@@ -3144,7 +3101,6 @@ export type {Buffer as BufferType};
 * A class for creating Buffer objects.
 */
 interface BufferClass {
-
 	/**
 	 * Creates a new buffer instance.
 	 * @param size The size of the buffer to create.
@@ -3160,7 +3116,6 @@ export {bufferClass as Buffer};
  * A Node that can clip its children based on the alpha values of its stencil.
  */
 class ClipNode extends Node {
-
 	private constructor();
 
 	/**
@@ -3185,7 +3140,6 @@ export type {ClipNode as ClipNodeType};
 * A class for creating ClipNode objects.
 */
 interface ClipNodeClass {
-
 	/**
 	 * Creates a new ClipNode object.
 	 * @param stencil The stencil Node that defines the clipping shape. Defaults to undefined.
@@ -3207,7 +3161,6 @@ export {clipNodeClass as ClipNode};
  * ```
  */
 class Content {
-
 	private constructor();
 
 	/** An array of directories to search for resource files. */
@@ -3422,7 +3375,6 @@ export type SQL = string | [string, DBRow[]];
  * An interface that represents a database.
  */
 interface DB {
-
 	/**
 	 * Checks whether a table exists in the database.
 	 * @param tableName The name of the table to check.
@@ -3565,7 +3517,6 @@ export {db as DB};
  * ```
  */
 class Director {
-
 	private constructor();
 
 	/**
@@ -3649,7 +3600,6 @@ export {director as Director};
  * A base class for an animation model system.
  */
 class Playable extends Node {
-
 	protected constructor();
 
 	/**
@@ -3724,7 +3674,6 @@ export type {Playable as PlayableType};
 * A class for creating instances of the 'Playable' object.
 */
 interface PlayableClass {
-
 	/**
 	 * Creates a new instance of 'Playable' from the specified animation file.
 	 * @param filename the filename of the animation file to load.
@@ -3745,7 +3694,6 @@ export {playableClass as Playable};
  * An implementation of the 'Playable' class using the DragonBones animation system.
  */
 class DragonBone extends Playable {
-
 	private constructor();
 
 	/**
@@ -3783,7 +3731,6 @@ export type {DragonBone as DragonBoneType};
 * A class for creating instances of the 'DragonBone' object.
 */
 interface DragonBoneClass {
-
 	/**
 	 * Returns a list of available looks for the specified DragonBone file string.
 	 * @param boneStr The DragonBone file string to get the looks for.
@@ -3821,7 +3768,6 @@ export {dragonBoneClass as DragonBone};
  * An implementation of an animation system using the Spine engine.
  */
 class Spine extends Playable {
-
 	private constructor();
 
 	/** Whether to show debug graphics. */
@@ -3863,7 +3809,6 @@ export type {Spine as SpineType};
 * A class for creating instances of the 'Spine' object.
 */
 interface SpineClass {
-
 	/**
 	 * Returns a list of available looks for the specified Spine2D file string.
 	 * @param spineStr The Spine2D file string to get the looks for.
@@ -3901,7 +3846,6 @@ export {spineClass as Spine};
  * Another implementation of the 'Playable' class.
  */
 class Model extends Playable {
-
 	protected constructor();
 
 	/**
@@ -3976,7 +3920,6 @@ export type {Model as ModelType}
  * A class for creating instances of the 'Model' object.
  */
 interface ModelClass {
-
 	/**
 	 * A method that returns a new dummy instance of 'Model' that can do nothing.
 	 * @returns A new dummy instance of 'Model'.
@@ -4020,7 +3963,6 @@ export {modelClass as Model};
  * A class for scene node that draws simple shapes such as dots, lines, and polygons.
  */
 class DrawNode extends Node {
-
 	private constructor();
 
 	/**
@@ -4100,7 +4042,6 @@ export type Component = number | boolean | string | ContainerItem;
  * A class type representing an entity for an ECS game system.
  */
 class Entity extends Object {
-
 	private constructor();
 
 	/** The index of the entity. */
@@ -4155,7 +4096,6 @@ export type {Entity as EntityType};
  * A class for creating and managing entities in the ECS game systems.
  */
 interface EntityClass {
-
 	/** The number of all running entities. */
 	readonly count: number;
 
@@ -4181,7 +4121,6 @@ export {entity as Entity};
  * A class representing an observer of entity changes in the game systems.
  */
 class Observer {
-
 	private constructor();
 
 	/**
@@ -4196,7 +4135,6 @@ class Observer {
  * The types of events that an observer can watch for.
  */
 export const enum ObserverEvent {
-
 	/** The addition of a new entity. */
 	Add = "Add",
 
@@ -4214,7 +4152,6 @@ export const enum ObserverEvent {
 * A class for creating Observer objects.
 */
 interface ObserverClass {
-
 	/**
 	 * A method that creates a new observer with the specified component filter and action to watch for.
 	 * @param action The type of action to watch for.
@@ -4231,7 +4168,6 @@ export {observerClass as Observer};
  * A class representing a group of entities in the ECS game systems.
  */
 class Group extends Object {
-
 	private constructor();
 
 	/** The number of entities in the group. */
@@ -4265,7 +4201,6 @@ export type {Group as GroupType};
 * A class for creating Group objects.
 */
 interface GroupClass {
-
 	/**
 	 * A method that creates a new group with the specified component names.
 	 * @param components A list of the names of the components to include in the group.
@@ -4282,7 +4217,6 @@ export {groupClass as Group};
  * Inherits from `Object`.
  */
 class Texture2D extends Object {
-
 	private constructor();
 
 	/** The width of the texture, in pixels. */
@@ -4299,7 +4233,6 @@ export type {Texture2D as Texture2DType};
  * colored, and have its UV coordinates manipulated.
  */
 class Grid extends Node {
-
 	private constructor();
 
 	/** The number of columns in the grid. There are `gridX + 1` vertices horizontally for rendering. */
@@ -4370,7 +4303,6 @@ export type {Grid as GridType};
 * A class for creating Grid objects.
 */
 interface GridClass {
-
 	/**
 	 * Creates a new Grid with the specified texture rectangle and grid size.
 	 * @param textureRect The rectangle within the texture to use for the grid.
@@ -4449,7 +4381,6 @@ export const enum CacheResourceTypeSafeUnload {
  * A singleton cache instance for various game resources.
  */
 class Cache {
-
 	private constructor();
 
 	/**
@@ -4520,7 +4451,6 @@ class FixtureDef extends Object {
  * A class to represent a physics sensor object in the game world.
  */
 class Sensor extends Object {
-
 	private constructor();
 
 	/**
@@ -4559,7 +4489,6 @@ class Sensor extends Object {
 export type {Sensor as SensorType};
 
 export const enum BodyMoveType {
-
 	/** A body that does not move. */
 	Static = "Static",
 
@@ -4575,7 +4504,6 @@ export const enum BodyMoveType {
  * Inherits from `Object`.
  */
 class BodyDef extends Object {
-
 	private constructor();
 
 	/**
@@ -4718,7 +4646,6 @@ export type {BodyDef as BodyDefType};
  * A class for creating BodyDef and FixtureDef.
  */
 interface BodyDefClass {
-
 	/**
 	 * Creates a polygon fixture definition with the specified dimensions.
 	 * @param width The width of the polygon.
@@ -4807,7 +4734,6 @@ export {bodyDefClass as BodyDef};
  * A class represents a physics body in the world.
  */
 class Body extends Node {
-
 	protected constructor();
 
 	/**
@@ -4930,7 +4856,6 @@ export type {Body as BodyType};
  * A class for creating Body objects.
  */
 interface BodyClass {
-
 	/**
 	 * Creates a new instance of `Body`.
 	 * @param def The definition for the body to be created.
@@ -4955,7 +4880,6 @@ export {bodyClass as Body};
  * Represents a physics world in the game.
  */
 class PhysicsWorld extends Node {
-
 	protected constructor();
 
 	/**
@@ -5016,7 +4940,6 @@ export type {PhysicsWorld as PhysicsWorldType};
  * A class for creating PhysicsWorld objects.
  */
 interface PhysicsWorldClass {
-
 	/**
 	 * A factor used for converting physics engine meters value to pixel value.
 	 * Default 100.0 is a good value since the physics engine can well simulate real life objects
@@ -5040,7 +4963,6 @@ export {physicsWorldClass as PhysicsWorld};
  * A class that can be used to connect physics bodies together.
  */
 class Joint extends Object {
-
 	protected constructor();
 
 	/**
@@ -5060,7 +4982,6 @@ export type {Joint as JointType};
  * A joint that applies a rotational or linear force to a physics body.
  */
 class MotorJoint extends Joint {
-
 	private constructor();
 
 	/**
@@ -5085,7 +5006,6 @@ export type {MotorJoint as MotorJointType};
 * A type of joint that allows a physics body to move to a specific position.
 */
 class MoveJoint extends Joint {
-
 	private constructor();
 
 	/**
@@ -5100,7 +5020,6 @@ export type {MoveJoint as MoveJointType};
  * A class that defines the properties of a joint to be created.
  */
 class JointDef extends Object {
-
 	private constructor();
 
 	/** The center point of the joint, in local coordinates. */
@@ -5117,7 +5036,6 @@ class JointDef extends Object {
  * An interface for creating JointDef objects.
  */
 interface JointDefClass {
-
 	/**
 	 * Creates a distance joint definition.
 	 * @param canCollide Whether the physics body connected to joint will collide with each other.
@@ -5355,7 +5273,6 @@ export const enum TextureFilter {
 
 /** The Sprite class to render texture in game scene tree hierarchy. */
 class Sprite extends Node {
-
 	private constructor();
 
 	/**
@@ -5411,7 +5328,6 @@ export type {Sprite as SpriteType};
  * A class used for creating `Sprite` object.
  */
 interface SpriteClass {
-
 	/**
 	 * A method for creating Sprite object.
 	 * @param clipStr The string containing format for loading a texture file.
@@ -5442,7 +5358,6 @@ export {spriteClass as Sprite};
  * Enumeration for text alignment setting.
  */
 export const enum TextAlign {
-
 	/**
 	 * Text alignment to the left.
 	 */
@@ -5463,7 +5378,6 @@ export const enum TextAlign {
  * A node for rendering text using a TrueType font.
  */
 class Label extends Node {
-
 	private constructor();
 
 	/**
@@ -5534,7 +5448,6 @@ export type {Label as LabelType};
 * A class for creating Label object.
 */
 interface LabelClass {
-
 	/**
 	 * The value to use for automatic width calculation.
 	 */
@@ -5556,7 +5469,6 @@ export {labelClass as Label};
  * A class provides functionality for drawing lines using vertices.
  */
 class Line extends Node {
-
 	private constructor();
 
 	/**
@@ -5593,7 +5505,6 @@ export type {Line as LineType};
 
 /** A class for creating Line object. */
 interface LineClass {
-
 	/**
 	 * Creates and returns a new Line object.
 	 * @param verts Table of vertices to add to the line.
@@ -5618,7 +5529,6 @@ export {lineClass as Line}
  * Only one child node can receive the first touch event; multi-touches that come later for other children nodes will be ignored.
  */
 class Menu extends Node {
-
 	private constructor();
 
 	/**
@@ -5633,7 +5543,6 @@ export type {Menu as MenuType};
 * A class for creating Menu objects.
 */
 interface MenuClass {
-
 	/**
 	 * Creates a new instance of `Menu` with the specified width and height.
 	 * @param width The width of the Menu node.
@@ -5658,7 +5567,6 @@ export {menuClass as Menu};
  * Q-learning is a model-free reinforcement learning algorithm that learns an optimal action-value function from experience by repeatedly updating estimates of the Q-value of state-action pairs.
  */
 class QLearner extends Object {
-
 	private constructor();
 
 	/**
@@ -5694,7 +5602,6 @@ export type {QLearner as QLearnerType};
  * A class for creating QLearner objects.
  */
 interface QLearnerClass {
-
 	/**
 	 * Construct a state from given hints and condition values.
 	 * @param hints Representing the byte length of provided values.
@@ -5735,7 +5642,6 @@ type MLOperator = "return" | "<=" | ">" | "==";
  * A class for machine learning algorithms.
  */
 class ML {
-
 	/**
 	 * A function that takes CSV data as input and applies the C4.5 machine learning algorithm to build a decision tree model asynchronously.
 	 * C4.5 is a decision tree algorithm that uses information gain to select the best attribute to split the data at each node of the tree. The resulting decision tree can be used to make predictions on new data.
@@ -5769,7 +5675,6 @@ export {ml as ML};
  * Represents a particle system node that emits and animates particles.
  */
 class Particle extends Node {
-
 	private constructor();
 
 	/** Whether the particle system is active. */
@@ -5790,7 +5695,6 @@ export type {Particle as ParticleType};
  * A class that can create new Particle objects.
  */
 interface ParticleClass {
-
 	/**
 	 * Creates a new Particle object from a particle system file.
 	 * @param filename The file path of the particle system file.
@@ -5804,7 +5708,6 @@ export {particleClass as Particle};
 
 /** Helper class for file path operations. */
 interface Path {
-
 	/**
 	 * Gets script running path from a module name.
 	 * @param moduleName The input module name.
@@ -5876,7 +5779,6 @@ export {path as Path};
  * A class for profiling functions.
  */
 interface ProfilerClass {
-
 	/**
 	 * The name of the profiling event.
 	 */
@@ -5904,7 +5806,6 @@ export {profiler as Profiler};
  * A RenderTarget is a node with a buffer that allows you to render a Node into a texture.
  */
 class RenderTarget {
-
 	private constructor();
 
 	/**
@@ -5961,7 +5862,6 @@ class RenderTarget {
  * A class for creating RenderTarget objects.
  */
 interface RenderTargetClass {
-
 	/**
 	 * Creates a new RenderTarget object with the given width and height.
 	 * @param width The width of the render target.
@@ -5978,7 +5878,6 @@ export {renderTargetClass as RenderTarget};
  * A class used for Scalable Vector Graphics rendering.
  */
 class SVG extends Object {
-
 	private constructor();
 
 	/**
@@ -6001,7 +5900,6 @@ class SVG extends Object {
  * A class for creating SVG objects.
  */
 interface SVGClass {
-
 	/**
 	 * Creates a new SVG object from the specified SVG file.
 	 * @param filename The path to the SVG format file.
@@ -6027,7 +5925,6 @@ const vgNodeClass: VGNodeClass;
 export {vgNodeClass as VGNode};
 
 class View {
-
 	private constructor();
 
 	/** The size of the view in pixels. */
@@ -6067,7 +5964,6 @@ export type VGPaintType = BasicType<"VGPaint">;
  * The `tolua` object provides utilities for interfacing between C++ and Lua.
  */
 interface tolua {
-
 	/**
 	 * Returns the C++ object type of a Lua object.
 	 * @param item The Lua object to get the type of.
