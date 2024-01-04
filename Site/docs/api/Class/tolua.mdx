@@ -41,14 +41,14 @@ type: function(item: any): string
 
 **Signature:**
 ```tl
-cast: function<T>(item: ContainerItem, name: string): T | nil
+cast: function<T>(item: any, name: string): T | nil
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| item | ContainerItem | The Lua object to cast. |
+| item | any | The Lua object to cast. |
 | name | string | The name of the C++ type to cast to. |
 
 **Returns:**

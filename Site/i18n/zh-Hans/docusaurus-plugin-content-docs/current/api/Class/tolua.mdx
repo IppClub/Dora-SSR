@@ -41,14 +41,14 @@ type: function(item: any): string
 
 **签名：**
 ```tl
-cast: function<T>(item: ContainerItem, name: string): T | nil
+cast: function<T>(item: any, name: string): T | nil
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| item | ContainerItem | 要转换的 Lua 对象。 |
+| item | any | 要转换的 Lua 对象。 |
 | name | string | 要转换为的 C++ 类型的名称。 |
 
 **返回值：**
