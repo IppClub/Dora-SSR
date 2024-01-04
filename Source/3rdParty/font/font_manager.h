@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Jeremie Roy, modified by Jin Li 2022. All rights reserved.
+ * Copyright 2013 Jeremie Roy, modified by Li Jin 2022. All rights reserved.
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
 
