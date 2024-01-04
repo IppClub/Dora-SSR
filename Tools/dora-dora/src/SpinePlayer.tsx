@@ -45,7 +45,7 @@ const SpinePlayer = (props: SpinePlayerProps) => {
 			}).then((atlas) => {
 				return new Promise(() => {
 					assetManager.loadBinary(skelUrl, (_path, binaryData) => {
-						let binary = new SkeletonBinary(new AtlasAttachmentLoader(atlas));
+						const binary = new SkeletonBinary(new AtlasAttachmentLoader(atlas));
 						try {
 							const skeletonData = binary.readSkeletonData(binaryData);
 							const animations = skeletonData.animations.map(a => a.name);
@@ -63,16 +63,19 @@ const SpinePlayer = (props: SpinePlayerProps) => {
 								premultipliedAlpha: false,
 								showControls: true,
 							});
-						} catch {
+						} catch (error) {
+							console.error(error);
 							props.onLoadFailed(t("spine.load", {file: Info.path.basename(skelFile)}));
 						} finally {
 							assetManager.dispose();
 						}
-					}, (_path, _message) => {
+					}, (_path, message) => {
+						console.error(message);
 						props.onLoadFailed(t("spine.load", {file: Info.path.basename(skelFile)}));
 					});
 				});
-			}).catch((_message) => {
+			}).catch((message) => {
+				console.error(message);
 				props.onLoadFailed(t("spine.load", {file: Info.path.basename(atlasFile)}));
 			})
 		}
