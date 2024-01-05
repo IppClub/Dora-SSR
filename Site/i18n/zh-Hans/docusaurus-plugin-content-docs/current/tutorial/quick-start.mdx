@@ -65,6 +65,37 @@ with Node!
 ```
 
 </TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="Hello/init.lua"
+-- 导入功能模块
+local Sprite <const> = require("Sprite")
+local Node <const> = require("Node")
+local Move <const> = require("Move")
+local Ease <const> = require("Ease")
+
+-- 创建图片精灵
+local sprite = Sprite("Image/logo.png")
+
+-- 创建游戏场景树根节点
+local root = Node()
+
+-- 挂载图片精灵到游戏场景树根节点
+root:addChild(sprite)
+
+-- 接收并处理点击事件移动图片精灵
+root.touchEnabled = true
+root:slot("Tapped", function(touch)
+	sprite:perform(Move(
+		1, -- 持续时间，单位为秒
+		sprite.position, -- 开始位置
+		touch.location, -- 结束位置
+		Ease.OutBack -- 缓动函数
+	))
+end)
+```
+
+</TabItem>
 <TabItem value="tl" label="Teal">
 
 ```teal title="Hello/init.tl"
@@ -97,34 +128,33 @@ end)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="ts" label="Typescript">
 
-```lua title="Hello/init.lua"
--- 导入功能模块
-local Sprite <const> = require("Sprite")
-local Node <const> = require("Node")
-local Move <const> = require("Move")
-local Ease <const> = require("Ease")
+```ts title="Hello/init.ts"
+// 导入功能模块
+import {Ease, Move, Node, Slot, Sprite} from 'dora';
 
--- 创建图片精灵
-local sprite = Sprite("Image/logo.png")
+// 创建图片精灵
+const sprite = Sprite("Image/logo.png");
 
--- 创建游戏场景树根节点
-local root = Node()
+// 创建游戏场景树根节点
+const root = Node();
 
--- 挂载图片精灵到游戏场景树根节点
-root:addChild(sprite)
+// 挂载图片精灵到游戏场景树根节点
+root.addChild(sprite);
 
--- 接收并处理点击事件移动图片精灵
-root.touchEnabled = true
-root:slot("Tapped", function(touch)
-	sprite:perform(Move(
-		1, -- 持续时间，单位为秒
-		sprite.position, -- 开始位置
-		touch.location, -- 结束位置
-		Ease.OutBack -- 缓动函数
-	))
-end)
+// 接收并处理点击事件移动图片精灵
+root.touchEnabled = true;
+root.slot(Slot.Tapped, touch => {
+	sprite.perform(
+		Move(
+			1, // 持续时间，单位为秒
+			sprite.position, // 开始位置
+			touch.location, // 结束位置
+			Ease.OutBack // 缓动函数
+		)
+	);
+});
 ```
 
 </TabItem>
