@@ -4,30 +4,41 @@ sidebar_position: 0
 
 # Dora SSR API 参考手册
 
-&emsp;&emsp;欢迎来到Dora SSR API参考手册！本文档为您提供关于Dora SSR游戏引擎内的API和功能的详细信息。您可以使用以下指南浏览不同主题并探索引擎的功能。
+&emsp;&emsp;欢迎来到 Dora SSR API 参考手册！本文档为您提供关于 Dora SSR 游戏引擎内的 API 和功能的详细信息。您可以使用以下指南浏览不同主题并探索引擎的功能。
 
 ## 基础功能
 
 &emsp;&emsp;这个类别提供了一些引擎的通用基础工具和服务。
 
 * [App](/docs/api/Class/App)
-* [Content](/docs/api/Class/Content)
-* [Path](/docs/api/Class/Path)
-* [Director](/docs/api/Class/Director)
-* [Camera](/docs/api/Class/Camera)
-* [Camera2D](/docs/api/Class/Camera2D)
-* [CameraOtho](/docs/api/Class/CameraOtho)
 * [View](/docs/api/Class/View)
-* [Audio](/docs/api/Class/Audio)
-* [DB](/docs/api/Class/DB)
-* [Cache](/docs/api/Class/Cache)
-* [Object](/docs/api/Class/Object)
 * [Scheduler](/docs/api/Class/Scheduler)
 * [Profiler](/docs/api/Class%20Object/Profiler)
+* [Object](/docs/api/Class/Object)
+
+### 音频管理
+
+&emsp;&emsp;这个类别提供了管理和播放游戏音乐和声效的功能。
+
+* [Audio](/docs/api/Class/Audio)
+
+### 资产管理
+
+&emsp;&emsp;这个类别提供了管理各种游戏资产（包括文件和数据）的功能。
+
+* [Content](/docs/api/Class/Content)
+* [Path](/docs/api/Class/Path)
+* [Cache](/docs/api/Class/Cache)
+* [DB](/docs/api/Class/DB)
+
+### 输入管理
+
+&emsp;&emsp;这个类别提供了一部分游戏输入处理的功能。另外的输入处理如点击/触摸事件可以在节点事件中进行注册和处理。
+
 * [Keyboard](/docs/api/Class/Keyboard)
 * [Controller](/docs/api/Class/Controller)
 
-### 数据对象
+### 数据结构
 
 &emsp;&emsp;这个类别提供了一系列数据结构和类型。
 
@@ -39,9 +50,22 @@ sidebar_position: 0
 * [Color](/docs/api/Class/Color)
 * [Color3](/docs/api/Class/Color3)
 
-## 场景和事件管理
+## 场景树和事件管理
 
-&emsp;&emsp;这个类别负责游戏场景和事件的管理。
+&emsp;&emsp;这个类别负责游戏场景树和事件的管理。
+
+### 场景树管理
+
+&emsp;&emsp;这里提供游戏场景树根节点和摄像机的管理。
+
+* [Director](/docs/api/Class/Director)
+* [Camera](/docs/api/Class/Camera)
+* [Camera2D](/docs/api/Class/Camera2D)
+* [CameraOtho](/docs/api/Class/CameraOtho)
+
+### 场景节点
+
+&emsp;&emsp;这里提供游戏场景节点和节点事件的管理。
 
 * [Node](/docs/api/Class/Node)
 * [Menu](/docs/api/Class/Menu)
@@ -69,6 +93,10 @@ sidebar_position: 0
 
 &emsp;&emsp;这个类别负责游戏图形的渲染。
 
+### 基础渲染组件
+
+&emsp;&emsp;这个类别提供一些基础通用游戏图形渲染功能。
+
 * [Sprite](/docs/api/Class/Sprite)
 * [Texture2D](/docs/api/Class/Texture2D)
 * [BlendFunc](/docs/api/Class/BlendFunc)
@@ -83,9 +111,9 @@ sidebar_position: 0
 * [Particle](/docs/api/Class/Particle)
 * [SVG](/docs/api/Class/SVG)
 
-### 动画功能
+### 动画模型功能
 
-&emsp;&emsp;这个子类别提供了创建和处理2D动画模型的功能。
+&emsp;&emsp;这个子类别提供了加载创建和处理2D动画模型的功能。
 
 * [Playable](/docs/api/Class/Playable)
 * [Model](/docs/api/Class/Model)

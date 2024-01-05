@@ -8,26 +8,37 @@ Welcome to the Dora SSR API Reference! This documentation provides detailed info
 
 ## Basic Functionality
 
-This category provides some general basic tools and services of the engine.
+This category provides general functions and services of the engine.
 
 * [App](/docs/api/Class/App)
-* [Content](/docs/api/Class/Content)
-* [Path](/docs/api/Class/Path)
-* [Director](/docs/api/Class/Director)
-* [Camera](/docs/api/Class/Camera)
-* [Camera2D](/docs/api/Class/Camera2D)
-* [CameraOtho](/docs/api/Class/CameraOtho)
 * [View](/docs/api/Class/View)
-* [Audio](/docs/api/Class/Audio)
-* [DB](/docs/api/Class/DB)
-* [Cache](/docs/api/Class/Cache)
-* [Object](/docs/api/Class/Object)
 * [Scheduler](/docs/api/Class/Scheduler)
 * [Profiler](/docs/api/Class%20Object/Profiler)
+* [Object](/docs/api/Class/Object)
+
+### Audio Menagement
+
+This category provides features for managing and playing game music and sound effects.
+
+* [Audio](/docs/api/Class/Audio)
+
+### Assets Management
+
+This category offers the ability to manage various game assets, including files and data.
+
+* [Content](/docs/api/Class/Content)
+* [Path](/docs/api/Class/Path)
+* [Cache](/docs/api/Class/Cache)
+* [DB](/docs/api/Class/DB)
+
+### Input Management
+
+This category provides part of the game's input processing capabilities. The rest input handling, such as tap/touch events, can be registered and handled in node events.
+
 * [Keyboard](/docs/api/Class/Keyboard)
 * [Controller](/docs/api/Class/Controller)
 
-### Data Object
+### Data Structure
 
 This category provides a range of data structures and types.
 
@@ -41,7 +52,20 @@ This category provides a range of data structures and types.
 
 ## Scene and Event Management
 
-This category is responsible for managing game scenes and events.
+This category is for managing game scene trees and events.
+
+### Tree Management
+
+This category provides the management of the root nodes and cameras of the game scene.
+
+* [Director](/docs/api/Class/Director)
+* [Camera](/docs/api/Class/Camera)
+* [Camera2D](/docs/api/Class/Camera2D)
+* [CameraOtho](/docs/api/Class/CameraOtho)
+
+### Tree Nodes
+
+This category provides the management of game scene nodes and node events.
 
 * [Node](/docs/api/Class/Node)
 * [Menu](/docs/api/Class/Menu)
@@ -69,6 +93,10 @@ This subcategory handles scene node-level events.
 
 This category is about functions for rendering game graphics.
 
+### Render Functions
+
+This category provides some basic and general game graphics rendering functions.
+
 * [Sprite](/docs/api/Class/Sprite)
 * [Texture2D](/docs/api/Class/Texture2D)
 * [BlendFunc](/docs/api/Class/BlendFunc)
@@ -83,7 +111,7 @@ This category is about functions for rendering game graphics.
 * [Particle](/docs/api/Class/Particle)
 * [SVG](/docs/api/Class/SVG)
 
-### Animation Features
+### Animation Models
 
 This subcategory provides functionality for creating and manipulating 2D animation models.
 
@@ -94,7 +122,7 @@ This subcategory provides functionality for creating and manipulating 2D animati
 
 ## Node Actions
 
-This category is responsible for creating and managing actions that can be performed on scene nodes.
+This category is for creating and managing actions that can be performed on scene nodes.
 
 * [Action](/docs/api/Class/Action)
 * [Ease](/docs/api/Class/Ease)

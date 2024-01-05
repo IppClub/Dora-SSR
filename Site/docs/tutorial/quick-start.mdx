@@ -37,7 +37,7 @@ import TabItem from '@theme/TabItem';
 <TabItem value="yue" label="Yuescript">
 
 ```yue title="Hello/init.yue"
--- Import functional modules
+-- Import modules
 _ENV = Dora!
 
 -- Create a sprite
@@ -61,17 +61,48 @@ with Node!
 ```
 
 </TabItem>
+<TabItem value="lua" label="Lua">
+
+```lua title="Hello/init.lua"
+-- Import modules
+local Sprite <const> = require("Sprite")
+local Node <const> = require("Node")
+local Move <const> = require("Move")
+local Ease <const> = require("Ease")
+
+-- Create a sprite
+local sprite = Sprite("Image/logo.png")
+
+-- Create the root node of the game scene tree
+local root = Node!
+
+-- Mount the sprite to the root node
+root:addChild(sprite)
+
+-- Receive and process click events to move the sprite
+root.touchEnabled = true
+root:slot("Tapped", function(touch)
+	sprite:perform(Move(
+		1, -- duration in seconds
+		sprite.position, -- start position
+		touch.location, -- end position
+		Ease.OutBack -- easing function
+	))
+end)
+```
+
+</TabItem>
 <TabItem value="tl" label="Teal">
 
 ```tl title="Hello/init.tl"
--- Import functional modules
+-- Import modules
 local Sprite <const> = require("Sprite")
 local Node <const> = require("Node")
 local Move <const> = require("Move")
 local Ease <const> = require("Ease")
 local type Touch = require("TouchType")
 
--- Create a sprite and mount it to the root node
+-- Create a sprite
 local sprite = Sprite("Image/logo.png")
 
 -- Create the root node of the game scene tree
@@ -93,36 +124,33 @@ end)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="ts" label="Typescript">
+```ts title="Hello/init.ts"
+// Import modules
+import {Ease, Move, Node, Slot, Sprite} from 'dora';
 
-```lua title="Hello/init.lua"
--- Import functional modules
-local Sprite <const> = require("Sprite")
-local Node <const> = require("Node")
-local Move <const> = require("Move")
-local Ease <const> = require("Ease")
+// Create a sprite
+const sprite = Sprite("Image/logo.png");
 
--- Create a sprite and mount it to the root node
-local sprite = Sprite("Image/logo.png")
+// Create the root node of the game scene tree
+const root = Node();
 
--- Create the root node of the game scene tree
-local root = Node!
+// Mount the sprite to the root node
+root.addChild(sprite);
 
--- Mount the sprite to the root node
-root:addChild(sprite)
-
--- Receive and process click events to move the sprite
-root.touchEnabled = true
-root:slot("Tapped", function(touch)
-	sprite:perform(Move(
-		1, -- duration in seconds
-		sprite.position, -- start position
-		touch.location, -- end position
-		Ease.OutBack -- easing function
-	))
-end)
+// Receive and process click events to move the sprite
+root.touchEnabled = true;
+root.slot(Slot.Tapped, touch => {
+	sprite.perform(
+		Move(
+			1, // duration in seconds
+			sprite.position, // start position
+			touch.location, // end position
+			Ease.OutBack // easing function
+		)
+	);
+});
 ```
-
 </TabItem>
 </Tabs>
 
