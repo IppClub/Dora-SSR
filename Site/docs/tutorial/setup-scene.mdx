@@ -217,7 +217,7 @@ node\slot "ActionEnd", (action, target)->
 
 ```teal
 node:slot("ActionEnd", function(action: Action.Type, target: Node.Type)
-	print("Action completed: " .. action .. " Target node: " .. target)
+	print("Action completed: " .. tostring(action) .. " Target node: " .. tostring(target))
 end)
 ```
 
@@ -226,7 +226,7 @@ end)
 
 ```lua
 node:slot("ActionEnd", function(action, target)
-	print("Action completed: " .. action .. " Target node: " .. target)
+	print("Action completed: " .. tostring(action) .. " Target node: " .. tostring(target))
 end)
 ```
 
