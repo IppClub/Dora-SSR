@@ -103,7 +103,6 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 		}
 		Matrix viewProj;
 		switch (bgfx::getCaps()->rendererType) {
-			case bgfx::RendererType::Direct3D9:
 			case bgfx::RendererType::Direct3D11:
 			case bgfx::RendererType::Direct3D12:
 			case bgfx::RendererType::Metal:
@@ -168,7 +167,6 @@ void RenderTarget::saveAsync(String filename, const std::function<void(bool)>& c
 
 	uint64_t extraFlags = 0;
 	switch (bgfx::getCaps()->rendererType) {
-		case bgfx::RendererType::Direct3D9:
 		case bgfx::RendererType::Direct3D11:
 		case bgfx::RendererType::Direct3D12:
 		case bgfx::RendererType::OpenGLES:
