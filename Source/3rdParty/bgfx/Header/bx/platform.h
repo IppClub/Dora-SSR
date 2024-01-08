@@ -42,7 +42,6 @@
 #endif // BX_CRT_NONE
 
 // Language standard version
-#define BX_LANGUAGE_CPP14 201402L
 #define BX_LANGUAGE_CPP17 201703L
 #define BX_LANGUAGE_CPP20 202002L
 #define BX_LANGUAGE_CPP23 202207L
@@ -201,8 +200,9 @@
 #	undef  BX_PLATFORM_OSX
 #	define BX_PLATFORM_OSX __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__
 #elif defined(__EMSCRIPTEN__)
+#	include <emscripten/version.h>
 #	undef  BX_PLATFORM_EMSCRIPTEN
-#	define BX_PLATFORM_EMSCRIPTEN 1
+#	define BX_PLATFORM_EMSCRIPTEN (__EMSCRIPTEN_major__ * 10000 + __EMSCRIPTEN_minor__ * 100 + __EMSCRIPTEN_tiny__)
 #elif defined(__ORBIS__)
 #	undef  BX_PLATFORM_PS4
 #	define BX_PLATFORM_PS4 1
@@ -366,11 +366,11 @@
 
 #if BX_PLATFORM_ANDROID
 #	define BX_PLATFORM_NAME "Android " \
-				BX_STRINGIZE(BX_PLATFORM_ANDROID)
+		BX_STRINGIZE(BX_PLATFORM_ANDROID)
 #elif BX_PLATFORM_BSD
 #	define BX_PLATFORM_NAME "BSD"
 #elif BX_PLATFORM_EMSCRIPTEN
-#	define BX_PLATFORM_NAME "asm.js "          \
+#	define BX_PLATFORM_NAME "Emscripten "      \
 		BX_STRINGIZE(__EMSCRIPTEN_major__) "." \
 		BX_STRINGIZE(__EMSCRIPTEN_minor__) "." \
 		BX_STRINGIZE(__EMSCRIPTEN_tiny__)
@@ -445,10 +445,12 @@
 #endif // BX_ARCH_
 
 #if defined(__cplusplus)
-#	if   __cplusplus < BX_LANGUAGE_CPP14
-#		error "C++14 standard support is required to build."
-#	elif __cplusplus < BX_LANGUAGE_CPP17
-#		define BX_CPP_NAME "C++14"
+#	if defined(_MSVC_LANG) && _MSVC_LANG != __cplusplus
+#			error "When using MSVC you must set /Zc:__cplusplus compiler option."
+#	endif // defined(_MSVC_LANG) && _MSVC_LANG != __cplusplus
+
+#	if   __cplusplus < BX_LANGUAGE_CPP17
+#		error "C++17 standard support is required to build."
 #	elif __cplusplus < BX_LANGUAGE_CPP20
 #		define BX_CPP_NAME "C++17"
 #	elif __cplusplus < BX_LANGUAGE_CPP23
@@ -460,6 +462,19 @@
 #else
 #	define BX_CPP_NAME "C++Unknown"
 #endif // defined(__cplusplus)
+
+#if BX_PLATFORM_OSX && BX_PLATFORM_OSX < 130000
+//#error "Minimum supported macOS version is 13.00.\n"
+#elif BX_PLATFORM_IOS && BX_PLATFORM_IOS < 160000
+//#error "Minimum supported macOS version is 16.00.\n"
+#endif // BX_PLATFORM_OSX < 130000
+
+#if BX_CPU_ENDIAN_BIG
+static_assert(false, "\n\n"
+	"\t** IMPORTANT! **\n\n"
+	"\tThe code was not tested for big endian, and big endian CPU is considered unsupported.\n"
+	"\t\n");
+#endif // BX_CPU_ENDIAN_BIG
 
 #if BX_PLATFORM_BSD   \
  || BX_PLATFORM_HAIKU \

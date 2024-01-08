@@ -184,7 +184,7 @@ namespace bx
 	///
 	/// @returns `true` if `_a` is less than zero, otherwise returns `false`.
 	///
-	BX_CONSTEXPR_FUNC bool signbit(float _a);
+	BX_CONSTEXPR_FUNC bool signBit(float _a);
 
 	/// Returns value with the magnitude `_value`, and the sign of `_sign`.
 	///
@@ -193,7 +193,7 @@ namespace bx
 	///
 	/// @returns Value with the magnitude `_value`, and the sign of `_sign`.
 	///
-	BX_CONSTEXPR_FUNC float copysign(float _value, float _sign);
+	BX_CONSTEXPR_FUNC float copySign(float _value, float _sign);
 
 	/// Returns the absolute of _a.
 	///
@@ -203,7 +203,7 @@ namespace bx
 	///
 	BX_CONSTEXPR_FUNC float square(float _a);
 
-	/// Returns the cosine of the argument _a.
+	/// Returns the sine of the argument _a.
 	///
 	BX_CONST_FUNC float sin(float _a);
 
@@ -270,8 +270,42 @@ namespace bx
 
 	/// Returns the base 2 logarithm of _a.
 	///
+	BX_CONST_FUNC float log2(float _a);
+
+	/// Count number of bits set.
+	///
 	template<typename Ty>
-	BX_CONST_FUNC Ty log2(Ty _a);
+	BX_CONSTEXPR_FUNC uint8_t countBits(Ty _val);
+
+	/// Count number of leading zeros.
+	///
+	template<typename Ty>
+	BX_CONSTEXPR_FUNC uint8_t countLeadingZeros(Ty _val);
+
+	/// Count number of trailing zeros.
+	///
+	template<typename Ty>
+	BX_CONSTEXPR_FUNC uint8_t countTrailingZeros(Ty _val);
+
+	/// Find first set.
+	///
+	template<typename Ty>
+	BX_CONSTEXPR_FUNC uint8_t findFirstSet(Ty _val);
+
+	/// Returns the next smallest integer base 2 logarithm of _a.
+	///
+	template<typename Ty>
+	BX_CONSTEXPR_FUNC uint8_t ceilLog2(Ty _a);
+
+	/// Returns the next biggest integer base 2 logarithm of _a.
+	///
+	template<typename Ty>
+	BX_CONSTEXPR_FUNC uint8_t floorLog2(Ty _a);
+
+	/// Returns the next smallest power of two value.
+	///
+	template<typename Ty>
+	BX_CONSTEXPR_FUNC Ty nextPow2(Ty _a);
 
 	/// Returns the square root of _a.
 	///

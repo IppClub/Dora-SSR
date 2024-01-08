@@ -36,7 +36,6 @@
 	|| BX_PLATFORM_WINDOWS              \
 	)
 #define BGFX_PLATFORM_SUPPORTS_GLSL (0  \
-	|| BX_PLATFORM_BSD                  \
 	|| BX_PLATFORM_LINUX                \
 	|| BX_PLATFORM_OSX                  \
 	|| BX_PLATFORM_WINDOWS              \
@@ -105,7 +104,6 @@
 			BGFX_EMBEDDED_SHADER_ESSL (bgfx::RendererType::OpenGLES,   _name)              \
 			BGFX_EMBEDDED_SHADER_GLSL (bgfx::RendererType::OpenGL,     _name)              \
 			BGFX_EMBEDDED_SHADER_SPIRV(bgfx::RendererType::Vulkan,     _name)              \
-			BGFX_EMBEDDED_SHADER_SPIRV(bgfx::RendererType::WebGPU,     _name)              \
 			{ bgfx::RendererType::Noop,  (const uint8_t*)"VSH\x5\x0\x0\x0\x0\x0\x0", 10 }, \
 			{ bgfx::RendererType::Count, NULL, 0 }                                         \
 		}                                                                                  \

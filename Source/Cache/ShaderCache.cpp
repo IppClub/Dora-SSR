@@ -42,9 +42,6 @@ void ShaderCache::update(String name, Shader* shader) {
 std::string ShaderCache::getShaderPath() const {
 	std::string shaderPath;
 	switch (bgfx::getRendererType()) {
-		case bgfx::RendererType::Direct3D9:
-			shaderPath = "dx9";
-			break;
 		case bgfx::RendererType::Direct3D11:
 		case bgfx::RendererType::Direct3D12:
 			shaderPath = "dx11";
