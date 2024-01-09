@@ -15,6 +15,7 @@ import {vscDarkPlus} from 'react-syntax-highlighter/dist/esm/styles/prism';
 import prismYuescript from './languages/yuescript-prism';
 import prismTeal from './languages/teal-prism';
 import prismLua from './languages/lua-prism';
+import { memo } from 'react';
 
 SyntaxHighlighter.registerLanguage('yuescript', prismYuescript);
 SyntaxHighlighter.registerLanguage('lua', prismLua);
@@ -23,12 +24,13 @@ SyntaxHighlighter.registerLanguage('tl', prismTeal);
 vscDarkPlus["code[class*=\"language-\"]"].fontSize = '16px';
 
 export interface MarkdownProps {
+	fileKey: string;
 	content: string;
 	path: string;
-	onClick: (link: string) => void;
+	onClick: (link: string, key: string) => void;
 };
 
-const Markdown = (props: MarkdownProps) => {
+const Markdown = memo((props: MarkdownProps) => {
 	return <ReactMarkdown
 		className='markdown-body'
 		children={props.content}
@@ -59,7 +61,7 @@ const Markdown = (props: MarkdownProps) => {
 				return <a href='#!' onClick={(e)=> {
 					e.preventDefault();
 					if (node?.properties !== undefined && node.properties.href !== undefined && typeof(node.properties.href) === "string") {
-						props.onClick(node.properties.href);
+						props.onClick(node.properties.href, props.fileKey);
 					}
 				}} {...aprops}/>;
 			},
@@ -83,6 +85,6 @@ const Markdown = (props: MarkdownProps) => {
 			}
 		}}
 	/>;
-};
+});
 
 export default Markdown;

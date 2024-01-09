@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import { LazyLog } from 'react-lazylog';
 import * as Service from './Service';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, memo, useEffect, useState } from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, TextField } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { Color, Entry } from './Frame';
@@ -19,7 +19,7 @@ export interface LogViewProps {
 	onClose: () => void;
 };
 
-const LogView = (props: LogViewProps) => {
+const LogView = memo((props: LogViewProps) => {
 	const {t} = useTranslation();
 	const [text, setText] = useState(t("log.wait"));
 	const [command, setCommand] = useState("");
@@ -128,6 +128,6 @@ const LogView = (props: LogViewProps) => {
 			</DialogActions>
 		</Dialog>
 	</Entry>;
-};
+});
 
 export default LogView;
