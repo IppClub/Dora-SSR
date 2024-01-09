@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { UploadOutlined } from '@ant-design/icons';
 import { Button, App, Upload } from 'antd';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { Color } from './Frame';
 
 const { Dragger } = Upload;
@@ -130,7 +130,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 	);
 };
 
-const DoraUpload = (prop: DoraUploadProp) => {
+const DoraUpload = memo((prop: DoraUploadProp) => {
 	return (
 		<ConfigProvider
 			theme={{
@@ -146,6 +146,6 @@ const DoraUpload = (prop: DoraUploadProp) => {
 			</App>
 		</ConfigProvider>
 	);
-};
+});
 
 export default DoraUpload;

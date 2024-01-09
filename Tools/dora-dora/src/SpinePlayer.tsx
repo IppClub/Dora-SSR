@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 import { SpinePlayer as Spine, SkeletonBinary, ManagedWebGLRenderingContext, AssetManager, AtlasAttachmentLoader, TextureAtlas } from '@esotericsoftware/spine-player';
-import { useLayoutEffect, useRef } from 'react';
+import { memo, useLayoutEffect, useRef } from 'react';
 import '@esotericsoftware/spine-player/dist/spine-player.css';
 import { Color } from './Frame';
 import * as Service from './Service';
@@ -20,7 +20,7 @@ export interface SpinePlayerProps {
 	onLoadFailed: (message: string) => void;
 };
 
-const SpinePlayer = (props: SpinePlayerProps) => {
+const SpinePlayer = memo((props: SpinePlayerProps) => {
 	const {skelFile, atlasFile} = props;
 	const skelUrl = Service.addr("/" + skelFile.replace("\\", "/"));
 	const atlasUrl = Service.addr("/" + atlasFile.replace("\\", "/"));
@@ -90,6 +90,6 @@ const SpinePlayer = (props: SpinePlayerProps) => {
 	return <div ref={playerRef} style={{height: '80vh'}}>
 		<canvas ref={canvasRef} hidden/>
 	</div>;
-};
+});
 
 export default SpinePlayer;

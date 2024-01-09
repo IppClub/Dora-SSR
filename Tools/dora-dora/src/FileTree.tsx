@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { StyledMenu, StyledMenuItem } from './Menu';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
@@ -150,7 +150,7 @@ export interface FileTreeProps {
 	onDrop: (self: TreeDataType, target: TreeDataType) => void;
 };
 
-export default function FileTree(props: FileTreeProps) {
+export default memo(function FileTree(props: FileTreeProps) {
 	const {treeData, expandedKeys, selectedKeys} = props;
 	const [anchorItem, setAnchorItem] = useState<null | {target: Element, data: TreeDataType}>(null);
 	const {t} = useTranslation();
@@ -256,4 +256,4 @@ export default function FileTree(props: FileTreeProps) {
 			/>
 		</MacScrollbar>
 	);
-};
+});

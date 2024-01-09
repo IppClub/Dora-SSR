@@ -14,7 +14,7 @@ import { IconButton, ListItemIcon, ListItemText, Toolbar } from '@mui/material';
 import SportsEsports from '@mui/icons-material/SportsEsports';
 import { BsFillFileEarmarkPlayFill, BsPlayCircle, BsStopCircle, BsSearch, BsTerminal } from 'react-icons/bs';
 import { StyledMenu, StyledMenuItem } from './Menu';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Info from './Info';
 
@@ -143,7 +143,7 @@ export interface PlayControlProp {
 	onClick: (mode: PlayControlMode) => void;
 }
 
-export const PlayControl = (prop: PlayControlProp) => {
+export const PlayControl = memo((prop: PlayControlProp) => {
 	const [open, setOpen] = useState(false);
 	const [anchorEl, setAnchorEl] = useState<Element | null>(null);
 	const [playButtonDisabled, setPlayButtonDisabled] = useState(false);
@@ -234,5 +234,5 @@ export const PlayControl = (prop: PlayControlProp) => {
 		>
 			<SportsEsports fontSize='medium'/>
 		</IconButton>
-	</Toolbar>
-};
+	</Toolbar>;
+});
