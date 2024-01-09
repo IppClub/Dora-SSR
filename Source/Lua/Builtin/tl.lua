@@ -609,7 +609,7 @@ do
 			if not i then
 				i = len + 1
 			end
-			end_token_here("hashbang")
+			end_token_prev("hashbang")
 			y = 2
 			x = 0
 		end
@@ -3853,9 +3853,12 @@ function tl.pretty_print_ast(ast, gen_target, mode)
 	visit_node.cbs = {
 		["statements"] = {
 			after = function(node, children)
-				local out = { y = node.y, h = 0 }
+				local out
 				if opts.preserve_hashbang and node.hashbang then
+					out = { y = 1, h = 0 }
 					table.insert(out, node.hashbang)
+				else
+					out = { y = node.y, h = 0 }
 				end
 				local space
 				for i, child in ipairs(children) do
@@ -7612,7 +7615,7 @@ tl.type_check = function(ast, opts)
 	end
 
 	local function add_function_definition_for_recursion(node)
-		local args = a_type({ typename = "tuple" })
+		local args = a_type({ typename = "tuple", is_va = node.args.type.is_va })
 		for _, fnarg in ipairs(node.args) do
 			table.insert(args, fnarg.type)
 		end
