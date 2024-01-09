@@ -6,6 +6,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+import { memo } from "react";
+
 export interface CodeWireData {
 	getScript: () => string;
 	getVisualScript: () => string;
@@ -23,7 +25,7 @@ export interface CodeWireProps {
 	onKeydown: (event: KeyboardEvent) => void;
 };
 
-const CodeWire = (props: CodeWireProps) => {
+const CodeWire = memo((props: CodeWireProps) => {
 	return <iframe
 		width={props.width}
 		height={props.height}
@@ -65,6 +67,10 @@ const CodeWire = (props: CodeWireProps) => {
 			border: 'none',
 			overflowY: 'hidden',
 		}}/>;
-};
+}, (prevProps, nextProps) => {
+	return prevProps.width === nextProps.width &&
+		prevProps.height === nextProps.height &&
+		prevProps.title === nextProps.title;
+});
 
 export default CodeWire;

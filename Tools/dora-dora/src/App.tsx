@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import React, { ChangeEvent, Suspense, useEffect, useState } from 'react';
+import React, { ChangeEvent, Suspense, memo, useCallback, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Toolbar from '@mui/material/Toolbar';
@@ -75,6 +75,7 @@ interface EditingFile {
 	content: string;
 	contentModified: string | null;
 	uploading: boolean;
+	onMount: (editor: monaco.editor.IStandaloneCodeEditor) => void;
 	editor?: monaco.editor.IStandaloneCodeEditor;
 	position?: monaco.IPosition;
 	mdEditing?: boolean;
@@ -88,6 +89,62 @@ interface Modified {
 	key: string;
 	content: string;
 };
+
+const editorBackground = <div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>;
+
+const Editor = memo((props: {
+	hidden: boolean,
+	width: number, height: number,
+	language: string,
+	fileKey: string,
+	file: EditingFile,
+	readOnly: boolean,
+	onMount: (editor: monaco.editor.IStandaloneCodeEditor) => void,
+	onModified: (key: string, content: string) => void,
+	onValidate: (markers: monaco.editor.IMarker[], key: string) => void,
+}) => {
+	const {
+		hidden,
+		width,
+		height,
+		language,
+		fileKey,
+		file,
+		readOnly,
+		onMount,
+		onModified,
+		onValidate
+	} = props;
+	return <div hidden={hidden}>
+		<MonacoEditor
+			width={width}
+			height={height}
+			language={language}
+			theme="dora-dark"
+			defaultValue={file.content}
+			onMount={onMount}
+			loading={editorBackground}
+			onChange={(content: string | undefined) => {
+				if (content === undefined) return;
+				onModified(fileKey, content);
+			}}
+			onValidate={language === "typescript" ? (markers) => {onValidate(markers, fileKey);} : undefined}
+			path={monaco.Uri.file(fileKey).toString()}
+			options={{
+				readOnly,
+				wordWrap: 'on',
+				wordBreak: 'keepAll',
+				selectOnLineNumbers: true,
+				matchBrackets: 'near',
+				fontSize: 18,
+				useTabStops: false,
+				insertSpaces: false,
+				renderWhitespace: 'all',
+				tabSize: 2,
+			}}
+		/>
+	</div>;
+});
 
 export default function PersistentDrawerLeft() {
 	const {t} = useTranslation();
@@ -263,6 +320,10 @@ export default function PersistentDrawerLeft() {
 
 	contentModified = files.find(file => file.contentModified !== null) !== undefined;
 
+	const onModified = useCallback((key: string, content: string) => {
+		setModified({key, content});
+	}, []);
+
 	const checkFileReadonly = (key: string) => {
 		if (!key.startsWith(treeData.at(0)?.key ?? "")) {
 			addAlert(t("alert.builtin"), "info");
@@ -309,123 +370,135 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const openFileInTab = (key: string, title: string, position?: monaco.IPosition, mdEditing?: boolean, sortIndex?: number, targetIndex?: number) => {
-		let index: number | null = null;
-		const file = files.find((file, i) => {
-			if (path.relative(file.key, key) === "") {
-				index = i;
-				return true;
-			}
-			return false;
-		});
-		if (file) {
-			file.mdEditing = mdEditing;
-			if (file.editor && position) {
-				const editor = file.editor;
-				setTimeout(() => {
-					editor.focus();
-					editor.setPosition(position);
-					editor.revealPositionInCenter(position);
-				}, 100);
-			}
-		}
-		if (index === null) {
-			const sortedFiles = (prev: EditingFile[], index: number) => {
-				if (sortIndex !== undefined) {
-					const result = prev.sort((a, b) => {
-						const indexA = a.sortIndex ?? 0;
-						const indexB = b.sortIndex ?? 0;
-						if (indexA < indexB) {
-							return -1;
-						} else if (indexA > indexB) {
-							return 1;
-						} else {
-							return 0;
-						}
-					});
-					if (targetIndex !== undefined && result.length > targetIndex && result[targetIndex].sortIndex === targetIndex) {
-						switchTab(targetIndex, result[targetIndex]);
-					}
-					return [...result];
-				} else {
-					switchTab(index, prev[index]);
-					return [...prev];
+		setFiles(files => {
+			let index: number | null = null;
+			const file = files.find((file, i) => {
+				if (path.relative(file.key, key) === "") {
+					index = i;
+					return true;
 				}
-			};
-			const ext = path.extname(title).toLowerCase();
-			switch (ext) {
-				case "": {
-					if (checkFileReadonly(key)) {
+				return false;
+			});
+			if (file) {
+				file.mdEditing = mdEditing;
+				if (file.editor && position) {
+					const editor = file.editor;
+					setTimeout(() => {
+						editor.focus();
+						editor.setPosition(position);
+						editor.revealPositionInCenter(position);
+					}, 100);
+				}
+			}
+			if (index === null) {
+				const sortedFiles = (prev: EditingFile[], index: number) => {
+					if (sortIndex !== undefined) {
+						const result = prev.sort((a, b) => {
+							const indexA = a.sortIndex ?? 0;
+							const indexB = b.sortIndex ?? 0;
+							if (indexA < indexB) {
+								return -1;
+							} else if (indexA > indexB) {
+								return 1;
+							} else {
+								return 0;
+							}
+						});
+						if (targetIndex !== undefined && result.length > targetIndex && result[targetIndex].sortIndex === targetIndex) {
+							switchTab(targetIndex, result[targetIndex]);
+						}
+						return [...result];
+					} else {
+						switchTab(index, prev[index]);
+						return [...prev];
+					}
+				};
+				const ext = path.extname(title).toLowerCase();
+				switch (ext) {
+					case "": {
+						if (checkFileReadonly(key)) {
+							break;
+						}
+						setFiles(prev => {
+							const index = prev.length;
+							const newFile: EditingFile = {
+								key,
+								title,
+								content: "",
+								contentModified: null,
+								uploading: true,
+								sortIndex,
+								status: "normal",
+								onMount: () => {}
+							};
+							newFile.onMount = onEditorDidMount(newFile);
+							return sortedFiles([...prev, newFile], index);
+						});
 						break;
 					}
-					setFiles(prev => {
-						const index = prev.length;
-						return sortedFiles([...prev, {
-							key,
-							title,
-							content: "",
-							contentModified: null,
-							uploading: true,
-							sortIndex,
-							status: "normal",
-						}], index);
-					});
-					break;
+					case ".png":
+					case ".jpg":
+					case ".skel": {
+						setFiles(prev => {
+							const index = prev.length;
+							const newFile: EditingFile = {
+								key,
+								title,
+								content: "",
+								contentModified: null,
+								uploading: false,
+								position,
+								mdEditing,
+								sortIndex,
+								status: "normal",
+								onMount: () => {},
+							};
+							newFile.onMount = onEditorDidMount(newFile);
+							return sortedFiles([...prev, newFile], index);
+						});
+						break;
+					}
+					case ".lua":
+					case ".tl":
+					case ".yue":
+					case ".xml":
+					case ".md":
+					case ".yarn":
+					case ".vs":
+					case ".ts":
+					case ".tsx": {
+						Service.read({path: key}).then((res) => {
+							if (res.success && res.content !== undefined) {
+								const content = res.content;
+								setFiles(prev => {
+									const index = prev.length;
+									const newFile: EditingFile = {
+										key,
+										title,
+										content,
+										contentModified: null,
+										uploading: false,
+										position,
+										mdEditing,
+										sortIndex,
+										status: "normal",
+										onMount: () => {},
+									};
+									newFile.onMount = onEditorDidMount(newFile);
+									return sortedFiles([...prev, newFile], index);
+								});
+							}
+						}).catch(() => {
+							addAlert(t("alert.read", {title}), "error");
+						});
+						break;
+					}
 				}
-				case ".png":
-				case ".jpg":
-				case ".skel": {
-					setFiles(prev => {
-						const index = prev.length;
-						return sortedFiles([...prev, {
-							key,
-							title,
-							content: "",
-							contentModified: null,
-							uploading: false,
-							position,
-							mdEditing,
-							sortIndex,
-							status: "normal",
-						}], index);
-					});
-					break;
-				}
-				case ".lua":
-				case ".tl":
-				case ".yue":
-				case ".xml":
-				case ".md":
-				case ".yarn":
-				case ".vs":
-				case ".ts":
-				case ".tsx": {
-					Service.read({path: key}).then((res) => {
-						if (res.success && res.content !== undefined) {
-							const content = res.content;
-							setFiles(prev => {
-								const index = prev.length;
-								return sortedFiles([...prev, {
-									key,
-									title,
-									content,
-									contentModified: null,
-									uploading: false,
-									position,
-									mdEditing,
-									sortIndex,
-									status: "normal",
-								}], index);
-							});
-						}
-					}).catch(() => {
-						addAlert(t("alert.read", {title}), "error");
-					});
-					break;
-				}
+			} else if (targetIndex === undefined) {
+				switchTab(index, file);
 			}
-		} else if (targetIndex === undefined) {
-			switchTab(index, file);
-		}
+			return files;
+		});
 	};
 
 	if (jumpToFile !== null) {
@@ -1178,7 +1251,9 @@ export default function PersistentDrawerLeft() {
 							contentModified: null,
 							uploading: false,
 							status: "normal",
+							onMount: () => {},
 						};
+						newItem.onMount = onEditorDidMount(newItem);
 						setFiles([...files, newItem]);
 						switchTab(index, newItem);
 					}
@@ -1304,27 +1379,30 @@ export default function PersistentDrawerLeft() {
 		});
 	};
 
-	const onUploaded = (dir: string, file: string) => {
-		const key = path.join(dir, file);
-		const newFiles = files.filter(f => path.relative(f.key, key) !== "");
-		if (file.length !== newFiles.length) {
-			setFiles(newFiles);
-			if (tabIndex && tabIndex > newFiles.length) {
-				const newIndex = newFiles.length > 0 ? newFiles.length - 1 : null;
-				if (newIndex === null) {
-					switchTab(newIndex);
-				} else {
-					switchTab(newIndex, newFiles[newIndex]);
+	const onUploaded = useCallback((dir: string, file: string) => {
+		setFiles(files => {
+			const key = path.join(dir, file);
+			const newFiles = files.filter(f => path.relative(f.key, key) !== "");
+			if (file.length !== newFiles.length) {
+				setFiles(newFiles);
+				if (tabIndex && tabIndex > newFiles.length) {
+					const newIndex = newFiles.length > 0 ? newFiles.length - 1 : null;
+					if (newIndex === null) {
+						switchTab(newIndex);
+					} else {
+						switchTab(newIndex, newFiles[newIndex]);
+					}
 				}
 			}
-		}
-		lastUploadedTime = Date.now();
-		setTimeout(() => {
-			if (Date.now() - lastUploadedTime >= 2000) {
-				loadAssets();
-			}
-		}, 2000);
-	};
+			lastUploadedTime = Date.now();
+			setTimeout(() => {
+				if (Date.now() - lastUploadedTime >= 2000) {
+					loadAssets();
+				}
+			}, 2000);
+			return files;
+		})
+	}, [tabIndex]);
 
 	const checkFile = (file: EditingFile, content: string, model: monaco.editor.ITextModel, lastChange?: monaco.editor.IModelContentChange) => {
 		switch (path.extname(file.key).toLowerCase()) {
@@ -1598,7 +1676,7 @@ export default function PersistentDrawerLeft() {
 		});
 	};
 
-	const onPlayControlClick = (mode: PlayControlMode) => {
+	const onPlayControlClick = useCallback((mode: PlayControlMode) => {
 		if (mode === "Go to File") {
 			setOpenFilter(true);
 			return;
@@ -1693,7 +1771,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		})
-	};
+	}, [tabIndex, selectedNode, files.length, openLog]);
 
 	const onKeyDown = (event: KeyboardEvent) => {
 		if (event.ctrlKey || event.altKey || event.metaKey) {
@@ -1762,11 +1840,11 @@ export default function PersistentDrawerLeft() {
 		onKeyDown(keyEvent);
 	}
 
-	const onJumpLink = (link: string, fromFile: string) => {
+	const onJumpLink = useCallback((link: string, fromFile: string) => {
 		const key = path.join(path.dirname(fromFile), ...link.split("[\\/]"));
 		const title = path.basename(key);
 		openFileInTab(key, title);
-	};
+	}, []);
 
 	if (openFilter) {
 		setOpenFilter(false);
@@ -1795,9 +1873,9 @@ export default function PersistentDrawerLeft() {
 		}
 	}
 
-	const spineLoadFailed = (message: string) => {
+	const spineLoadFailed = useCallback((message: string) => {
 		addAlert(message, 'error');
-	};
+	}, []);
 
 	beforeUnload = () => {
 		const editingInfo: Service.EditingInfo = {
@@ -1818,12 +1896,12 @@ export default function PersistentDrawerLeft() {
 		});
 	};
 
-	const onCloseLog = () => {
+	const onCloseLog = useCallback(() => {
 		if (openLog?.stopOnClose) onStopRunning();
 		setOpenLog(null);
-	};
+	}, [tabIndex, openLog, files.length]);
 
-	const onValidate = (markers: monaco.editor.IMarker[], key: string) => {
+	const onValidate = useCallback((markers: monaco.editor.IMarker[], key: string) => {
 		setFiles(files => {
 			const file = files.find(f => f.key === key);
 			if (file === undefined) return files;
@@ -1864,7 +1942,7 @@ export default function PersistentDrawerLeft() {
 			}
 			return files;
 		});
-	};
+	}, []);
 
 	return (
 		<Entry>
@@ -2052,7 +2130,7 @@ export default function PersistentDrawerLeft() {
 						onDrop={onDrop}
 					/>
 				</Drawer>
-				{
+				<>{
 					files.map((file, index) => {
 						const ext = path.extname(file.title);
 						let language: "lua" | "tl" | "yue" | "typescript" | "xml" | "markdown" | null = null;
@@ -2106,6 +2184,7 @@ export default function PersistentDrawerLeft() {
 							}
 							{visualScript ?
 								<CodeWire
+									key={file.key}
 									title={file.key}
 									defaultValue={file.content}
 									width={winSize.width}
@@ -2124,9 +2203,10 @@ export default function PersistentDrawerLeft() {
 							{markdown ?
 								<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: winSize.height}}>
 									<Markdown
+										fileKey={file.key}
 										path={Service.addr("/" + path.relative(parentPath, path.dirname(file.key)).replace("\\", "/"))}
 										content={file.contentModified ?? file.content}
-										onClick={(link) => onJumpLink(link, file.key)}
+										onClick={onJumpLink}
 									/>
 								</MacScrollbar> : null
 							}
@@ -2170,44 +2250,29 @@ export default function PersistentDrawerLeft() {
 									if (tabIndex === index) {
 										width = winSize.width;
 									}
-									return (
-										<div hidden={markdown && !file.mdEditing}>
-											<MonacoEditor
-												width={width}
-												height={winSize.height}
-												language={language}
-												theme="dora-dark"
-												defaultValue={file.content}
-												onMount={onEditorDidMount(file)}
-												loading={<div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>}
-												onChange={(content: string | undefined) => {
-													if (content === undefined) return;
-													setModified({key: file.key, content});
-												}}
-												onValidate={language === "typescript" ? (markers) => {onValidate(markers, file.key);} : undefined}
-												path={monaco.Uri.file(file.key).toString()}
-												options={{
-													readOnly,
-													wordWrap: 'on',
-													wordBreak: 'keepAll',
-													selectOnLineNumbers: true,
-													matchBrackets: 'near',
-													fontSize: 18,
-													useTabStops: false,
-													insertSpaces: false,
-													renderWhitespace: 'all',
-													tabSize: 2,
-												}}
-											/>
-										</div>
-									);
+									if (file.key === undefined) {
+										return null;
+									}
+									return <Editor
+										key={file.key}
+										hidden={markdown && !file.mdEditing}
+										fileKey={file.key}
+										width={width}
+										height={winSize.height}
+										file={file}
+										language={language}
+										onMount={file.onMount}
+										onModified={onModified}
+										onValidate={onValidate}
+										readOnly={readOnly}
+									/>;
 								} else if (file.uploading) {
 									const rootNode = treeData.at(0);
 									if (rootNode === undefined) return null;
 									let target = path.relative(rootNode.key, file.key);
 									target = path.join(t("tree.assets"), target);
 									return (
-										<MacScrollbar skin='dark' style={{height: winSize.height}}>
+										<MacScrollbar key={file.key} skin='dark' style={{height: winSize.height}}>
 											<DrawerHeader/>
 											<DoraUpload onUploaded={onUploaded} title={target + path.sep} path={file.key}/>
 										</MacScrollbar>
@@ -2218,6 +2283,7 @@ export default function PersistentDrawerLeft() {
 						</Main>
 					})
 				}
+				</>
 				<PlayControl width={winSize.width} onClick={onPlayControlClick}/>
 				<StyledStack open={drawerOpen}>
 					<TransitionGroup>
