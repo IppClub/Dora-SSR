@@ -1703,11 +1703,11 @@ export default function PersistentDrawerLeft() {
 			}
 			switch (mode) {
 				case "Run": case "Run This": {
-					let key: string | null = null;
-					let title: string | null = null;
-					let dir = false;
-					if (tabIndex !== null) {
-						setFiles(files => {
+					setFiles(files => {
+						let key: string | null = null;
+						let title: string | null = null;
+						let dir = false;
+						if (tabIndex !== null) {
 							const file = files.at(tabIndex);
 							if (file !== undefined) {
 								key = file.key;
@@ -1718,61 +1718,62 @@ export default function PersistentDrawerLeft() {
 									return [...files];
 								}
 							}
-							return files;
-						});
-					}
-					if (key === null || title === null) {
-						if (selectedNode === null) {
-							addAlert(t("alert.runNoTarget"), "info");
-							return;
 						}
-						key = selectedNode.key;
-						title = selectedNode.title;
-						dir = selectedNode.dir;
-					}
-					let asProj = mode === "Run";
-					if (dir) {
-						key = path.join(key, "init");
-						asProj = true;
-					}
-					const ext = path.extname(key).toLowerCase();
-					switch (ext) {
-						case ".lua":
-						case ".yue":
-						case ".tl":
-						case ".ts":
-						case ".tsx":
-						case ".xml":
-						case ".wasm":
-						case ".yarn":
-						case ".vs":
-						case "":
-							if (ext === ".yarn" && !asProj) {
-								break;
+						if (key === null || title === null) {
+							if (selectedNode === null) {
+								addAlert(t("alert.runNoTarget"), "info");
+								return files;
 							}
-							Service.run({file: key, asProj}).then((res) => {
-								if (res.success) {
-									addAlert(t("alert.run", {title: res.target ?? title}), "success");
-									setOpenLog({
-										title: res.target ?? title ?? "Running",
-										stopOnClose: true
-									});
-								} else {
-									addAlert(t("alert.runFailed", {title: res.target ?? title}), "error");
+							key = selectedNode.key;
+							title = selectedNode.title;
+							dir = selectedNode.dir;
+						}
+						let asProj = mode === "Run";
+						if (dir) {
+							key = path.join(key, "init");
+							asProj = true;
+						}
+						const ext = path.extname(key).toLowerCase();
+						switch (ext) {
+							case ".lua":
+							case ".yue":
+							case ".tl":
+							case ".ts":
+							case ".tsx":
+							case ".xml":
+							case ".wasm":
+							case ".yarn":
+							case ".vs":
+							case "": {
+								if (ext === ".yarn" && !asProj) {
+									break;
 								}
-								if (res.err !== undefined) {
-									setPopupInfo({
-										title: res.target ?? title ?? "",
-										msg: res.err,
-										raw: true
-									});
-								}
-							}).catch(() => {
-								addAlert(t("alert.runFailed", {title}), "error");
-							})
-							return;
-					}
-					addAlert(t("alert.runFailed", {title}), "info");
+								Service.run({file: key, asProj}).then((res) => {
+									if (res.success) {
+										addAlert(t("alert.run", {title: res.target ?? title}), "success");
+										setOpenLog({
+											title: res.target ?? title ?? "Running",
+											stopOnClose: true
+										});
+									} else {
+										addAlert(t("alert.runFailed", {title: res.target ?? title}), "error");
+									}
+									if (res.err !== undefined) {
+										setPopupInfo({
+											title: res.target ?? title ?? "",
+											msg: res.err,
+											raw: true
+										});
+									}
+								}).catch(() => {
+									addAlert(t("alert.runFailed", {title}), "error");
+								})
+								return files;
+							}
+						}
+						addAlert(t("alert.runFailed", {title}), "info");
+						return files;
+					});
 					return;
 				}
 				case "Stop": {

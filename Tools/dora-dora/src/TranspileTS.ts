@@ -153,9 +153,9 @@ export async function transpileTypescript(
 	content: string
 ) {
 	const program = createTypescriptProgram(fileName, content);
-	console.log(ts.getPreEmitDiagnostics(program));
+	let diagnostics = ts.getPreEmitDiagnostics(program);
 	const collector = createEmitOutputCollector();
-	new tstl.Transpiler({
+	const res = new tstl.Transpiler({
 		emitHost: {
 			directoryExists: () => false,
 			fileExists: () => true,
@@ -167,6 +167,15 @@ export async function transpileTypescript(
 		program,
 		writeFile: collector.writeFile
 	});
+	diagnostics = [...diagnostics, ...res.diagnostics];
+	if (diagnostics.length > 0) {
+		Service.Log.text += (Service.Log.text !== "" ? "\n" : "") + `Compiling ${fileName}\n` + ts.formatDiagnostics(diagnostics, {
+			getCanonicalFileName: fileName => Info.path.normalize(fileName),
+			getCurrentDirectory: () => Info.path.dirname(fileName),
+			getNewLine: () => "\n"
+		});
+		Service.webSocketEmitter.emit("Log");
+	}
 	const file = collector.files.find(({ sourceFiles }) => sourceFiles.some(f => {
 		return Info.path.relative(f.fileName, fileName) === "";
 	}));
