@@ -28,6 +28,7 @@ jobs:
           rm -rf Assets/www
           cd Tools/YarnEditor && unset NODE_OPTIONS && yarn && yarn build-linux && rm -rf ../dora-dora/public/yarn-editor && mv dist ../dora-dora/public/yarn-editor && cd ../..
           cd Tools/dora-dora && yarn && yarn build && cd ../.. && mv Tools/dora-dora/build Assets/www
+          cd Assets/www && zip -vr ../../web-ide-files.zip . && cd ../..
           cd $GITHUB_WORKSPACE
           Tools/tolua++/build.sh
           xcodebuild archive -project Project/macOS/Dora.xcodeproj -scheme Dora -configuration release -archivePath dora.xcarchive
@@ -40,5 +41,6 @@ jobs:
         with:
           files: |
             dora-ssr-${{ github.ref_name }}-macos-universal.zip
+            web-ide-files.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
