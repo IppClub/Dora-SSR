@@ -283,10 +283,13 @@ export default function PersistentDrawerLeft() {
 				return open;
 			});
 		});
-		Service.webSocketEmitter.addListener("Open", () => {
+		Service.addAlertListener((label: string, type: AlertColor) => {
+			addAlert(t(label), type);
+		});
+		Service.addWSOpenListener(() => {
 			addAlert(t("log.open"), "success");
 		});
-		Service.webSocketEmitter.addListener("Close", () => {
+		Service.addWSCloseListener(() => {
 			addAlert(t("log.close"), "error");
 		});
 		Service.openWebSocket();

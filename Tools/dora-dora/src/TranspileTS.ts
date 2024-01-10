@@ -169,12 +169,16 @@ export async function transpileTypescript(
 	});
 	diagnostics = [...diagnostics, ...res.diagnostics];
 	if (diagnostics.length > 0) {
-		Service.Log.text += (Service.Log.text !== "" ? "\n" : "") + `Compiling ${fileName}\n` + ts.formatDiagnostics(diagnostics, {
-			getCanonicalFileName: fileName => Info.path.normalize(fileName),
-			getCurrentDirectory: () => Info.path.dirname(fileName),
-			getNewLine: () => "\n"
-		});
-		Service.webSocketEmitter.emit("Log");
+		Service.addLog(
+			(Service.getLog() !== "" ? "\n" : "") +
+			`Compiling error: ${fileName}\n` +
+			ts.formatDiagnostics(diagnostics, {
+				getCanonicalFileName: fileName => Info.path.normalize(fileName),
+				getCurrentDirectory: () => Info.path.dirname(fileName),
+				getNewLine: () => "\n"
+			})
+		);
+		Service.alert("alert.failedTS", "error");
 	}
 	const file = collector.files.find(({ sourceFiles }) => sourceFiles.some(f => {
 		return Info.path.relative(f.fileName, fileName) === "";
