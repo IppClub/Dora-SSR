@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { styled } from '@mui/material/styles';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -110,7 +110,7 @@ export type TabMenuEvent =
 	"CloseOthers" |
 	"CloseAll";
 
-export default function FileTabBar(props: FileTabBarProps) {
+export default memo(function FileTabBar(props: FileTabBarProps) {
 	const {index, items = [], onChange, onMenuClick} = props;
 	const [anchorEl, setAnchorEl] = useState<Element | null>(null);
 	const [value, setValue] = useState<number | false>(false);
@@ -199,5 +199,17 @@ export default function FileTabBar(props: FileTabBarProps) {
 			</StyledMenu>
 		</Box>
 	);
-}
+}, (prevProps, nextProps) => {
+	return prevProps.index === nextProps.index &&
+		prevProps.items.length === nextProps.items.length &&
+		prevProps.onChange === nextProps.onChange &&
+		prevProps.onMenuClick === nextProps.onMenuClick &&
+		prevProps.items.every((item, index) => {
+			const nextItem = nextProps.items[index];
+			return item.key === nextItem.key &&
+				item.title === nextItem.title &&
+				item.contentModified === nextItem.contentModified &&
+				item.status === nextItem.status;
+		});
+});
 
