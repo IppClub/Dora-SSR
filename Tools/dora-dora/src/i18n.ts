@@ -56,6 +56,7 @@ i18n
 						startUnzip: "start to unzip file {{title}}",
 						doneUnzip: "finished unziping file {{title}}",
 						failedUnzip: "failed to unzip file {{title}}, make sure no same named folder exist",
+						failedTS: "TypeScript compile error, check log for details",
 					},
 					popup: {
 						goToFile: "Go to File",
@@ -172,6 +173,7 @@ i18n
 						startUnzip: "开始解压缩 {{title}}",
 						doneUnzip: "完成解压缩 {{title}}",
 						failedUnzip: "解压缩 {{title}} 未成功，请确保目录下无同名文件夹",
+						failedTS: "TypeScript 编译报错，请查看日志",
 					},
 					popup: {
 						goToFile: "跳转到文件",

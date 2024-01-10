@@ -8,11 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import EventEmitter from "events";
 import { TreeDataType } from "./FileTree";
+import { AlertColor } from '@mui/material';
 
 let webSocket: WebSocket;
-export const webSocketEmitter = new EventEmitter();
+const eventEmitter = new EventEmitter();
 
-export function wsUrl() {
+function wsUrl() {
 	let url: string;
 	if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
 		url = "ws://localhost:8868";
@@ -22,8 +23,49 @@ export function wsUrl() {
 	return url;
 }
 
-export const Log = {
-	text: ""
+const wsOpenEvent = "Open";
+const wsCloseEvent = "Close";
+const logEventName = "Log";
+const alertEventName = "Alert";
+
+let logText = "";
+
+export const addLog = (text: string) => {
+	logText += text;
+	eventEmitter.emit(logEventName, text, logText);
+};
+
+export const clearLog = () => {
+	logText = "";
+	eventEmitter.emit(logEventName, "", logText);
+};
+
+export const getLog = () => {
+	return logText;
+};
+
+export const addLogListener = (listener: (newItem: string, allText: string) => void) => {
+	eventEmitter.on(logEventName, listener);
+};
+
+export const removeLogListener = (listener: (newItem: string, allText: string) => void) => {
+	eventEmitter.removeListener(logEventName, listener);
+};
+
+export const addWSOpenListener = (listener: () => void) => {
+	eventEmitter.on(wsOpenEvent, listener);
+};
+
+export const addWSCloseListener = (listener: () => void) => {
+	eventEmitter.on(wsCloseEvent, listener);
+};
+
+export const addAlertListener = (listener: (message: string, color: AlertColor) => void) => {
+	eventEmitter.on(alertEventName, listener);
+};
+
+export const alert = (message: string, color: AlertColor) => {
+	eventEmitter.emit(alertEventName, message, color);
 };
 
 export function openWebSocket() {
@@ -34,20 +76,22 @@ export function openWebSocket() {
 		webSocket.onmessage = function(evt: MessageEvent<string>) {
 			const result = JSON.parse(evt.data);
 			if (result !== null && result.name !== undefined) {
-				if (result.name === "Log") {
-					Log.text += result.text as string;
+				if (result.name === logEventName) {
+					logText += result.text as string;
+					eventEmitter.emit(result.name, result.text, logText);
+				} else {
+					eventEmitter.emit(result.name, result);
 				}
-				webSocketEmitter.emit(result.name, result);
 			}
 		};
 		webSocket.onopen = () => {
 			connected = true;
-			webSocketEmitter.emit("Open");
+			eventEmitter.emit(wsOpenEvent);
 		};
 		webSocket.onclose = () => {
 			if (connected) {
 				connected = false;
-				webSocketEmitter.emit("Close");
+				eventEmitter.emit(wsCloseEvent);
 			}
 			setTimeout(connect, 1000);
 		};

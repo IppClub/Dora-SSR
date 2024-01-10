@@ -27,15 +27,17 @@ const LogView = memo((props: LogViewProps) => {
 	const [historyIndex, setHistoryIndex] = useState<number>(-1);
 
 	useEffect(() => {
-		Service.webSocketEmitter.addListener("Log", () => {
-			setText(Service.Log.text === "" ? t("log.wait") : Service.Log.text);
-		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+		const logListener = (newItem: string, allText: string) => {
+			setText(allText === "" ? t("log.wait") : allText);
+		};
+		Service.addLogListener(logListener);
+		return () => {
+			Service.removeLogListener(logListener);
+		};
+	}, [t]);
 
 	const onClear = () => {
-		Service.Log.text = "";
-		setText(t("log.wait"));
+		Service.clearLog();
 	};
 
 	const maxHistoryLength = 20;
