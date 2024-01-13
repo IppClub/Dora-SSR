@@ -1,4 +1,5 @@
-import { Vec2Type as Vec2 } from "dora";
+import { Vec2 } from "dora";
+type Vec2 = Vec2.Type;
 
 declare module 'Utils' {
 

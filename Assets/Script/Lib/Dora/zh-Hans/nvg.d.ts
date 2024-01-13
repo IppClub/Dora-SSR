@@ -1,15 +1,21 @@
 /// <reference path="dora.d.ts" />
 
 declare module "nvg" {
-
 import {
-	Vec2Type as Vec2,
-	ColorType as Color,
-	RectType as Rect,
-	VGPaintType as VGPaint,
-	SizeType as Size,
-	Texture2DType as Texture2D
+	Vec2,
+	Color,
+	Rect,
+	VGPaint,
+	Size,
+	Texture2D
 } from "dora";
+
+type Vec2 = Vec2.Type;
+type Color = Color.Type;
+type Rect = Rect.Type;
+type VGPaint = VGPaint.Type;
+type Size = Size.Type;
+type Texture2D = Texture2D.Type;
 
 class Transform {
 	private constructor();

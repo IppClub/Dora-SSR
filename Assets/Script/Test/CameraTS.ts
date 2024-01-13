@@ -1,6 +1,6 @@
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Camera2DType, Director, Ease, Model, Node, Sprite, Vec2, cycle, once, threadLoop } from "dora";
+import { App, Director, Ease, Model, Node, Sprite, TypeName, Vec2, cycle, once, threadLoop, tolua } from "dora";
 
 const node = Node();
 
@@ -18,7 +18,8 @@ sprite.z = -300;
 node.addChild(sprite);
 
 node.schedule(once(() => {
-	const camera = Director.currentCamera as Camera2DType;
+	const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
+	if (camera === null) return;
 	cycle(1.5, dt => {
 		camera.position = Vec2(200 * Ease.func(Ease.InOutQuad, dt), 0);
 	});

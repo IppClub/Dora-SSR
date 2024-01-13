@@ -3,20 +3,29 @@
 declare module "Platformer" {
 import {
 	BodyType as Body,
-	PlayableType as Playable,
-	SizeType as Size,
-	SensorType as Sensor,
-	DictionaryType as Dictionary,
-	EntityType as Entity,
 	PhysicsWorldType as PhysicsWorld,
-	Vec2Type as Vec2,
 	NodeType as Node,
 	CameraType as Camera,
-	RectType as Rect,
-	BodyDefType as BodyDef,
+	Playable,
+	Size,
+	Sensor,
+	Dictionary,
+	Entity,
+	Vec2,
+	Rect,
+	BodyDef,
 	Job,
-	Item,
+	Item
 } from 'dora';
+
+type Playable = Playable.Type;
+type Size = Size.Type;
+type Sensor = Sensor.Type;
+type Dictionary = Dictionary.Type;
+type Entity = Entity.Type;
+type Vec2 = Vec2.Type;
+type Rect = Rect.Type;
+type BodyDef = BodyDef.Type;
 
 /** A class that represents an action that can be performed by a "Unit". */
 class UnitAction {
@@ -47,7 +56,9 @@ class UnitAction {
 	readonly owner: Unit;
 }
 
-export type {UnitAction as UnitActionType};
+export namespace UnitAction {
+	export type Type = UnitAction;
+}
 
 /** An interface that defines the parameters for a "UnitAction". */
 export interface UnitActionParam {
@@ -241,7 +252,9 @@ class Unit extends Body {
 	isDoing(name: string): boolean;
 }
 
-export type {Unit as UnitType};
+export namespace Unit {
+	export type Type = Unit;
+}
 
 /**
  * A class for creating instances of Unit.
@@ -486,7 +499,9 @@ class TargetAllow {
 	isAllow(relation: Relation): boolean;
 }
 
-export type {TargetAllow as TargetAllowType};
+export namespace TargetAllow {
+	export type Type = TargetAllow;
+}
 
 /**
  * A class that specifies how a bullet object should interact with other game objects or units based on their relationship.
@@ -543,6 +558,10 @@ class PlatformCamera extends Camera {
 	 * The game unit that the camera should track.
 	 */
 	followTarget: Node;
+}
+
+export namespace PlatformCamera {
+	export type Type = PlatformCamera;
 }
 
 /**
@@ -632,7 +651,9 @@ class PlatformWorld extends PhysicsWorld {
 	removeAllLayers(): void;
 }
 
-export type {PlatformWorld as PlatformWorldType};
+export namespace PlatformWorld {
+	export type Type = PlatformWorld;
+}
 
 /**
  * A class for instantiating instances of PlatformWorld.
@@ -670,7 +691,9 @@ class Face extends Node {
 	toNode(): Node;
 }
 
-export type {Face as FaceType};
+export namespace Face {
+	export type Type = Face;
+}
 
 /**
  * An interface provides functions for creating instances of the `Face` component with different configurations.
@@ -751,7 +774,9 @@ class Visual extends Node {
 	autoRemove(): Visual;
 }
 
-export type {Visual as VisualType};
+export namespace Visual {
+	export type Type = Visual;
+}
 
 /**
 * A class for creating "Visual" objects.
@@ -1145,7 +1170,9 @@ class Bullet extends Body {
 	destroy(): void;
 }
 
-export type {Bullet as BulletType};
+export namespace Bullet {
+	export type Type = Bullet;
+}
 
 /**
 * An interface type that creates new `Bullet` object instances.
@@ -1168,96 +1195,48 @@ export {bulletClass as Bullet};
 declare module "dora" {
 import {
 	Behavior,
-	BulletType as Bullet,
+	Bullet,
 	Decision,
-	FaceType as Face,
-	PlatformWorldType as PlatformWorld,
-	TargetAllowType as TargetAllow,
-	UnitType as Unit,
-	UnitActionType as UnitAction,
-	VisualType as Visual,
+	Face,
+	PlatformWorld,
+	TargetAllow,
+	Unit,
+	UnitAction,
+	Visual,
 } from 'Platformer';
 
-export interface tolua {
-	/**
-	 * Attempts to cast a Lua object to a C++ type object.
-	 * @param item The Lua object to cast.
-	 * @param name "Platformer::PlatformWorld".
-	 * @returns The PlatformWorld object, or `null` if the cast fails.
-	 */
-	cast(this: void, item: any, name: "Platformer::PlatformWorld"): PlatformWorld | null;
+type Bullet = Bullet.Type;
+type Face = Face.Type;
+type PlatformWorld = PlatformWorld.Type;
+type TargetAllow = TargetAllow.Type;
+type Unit = Unit.Type;
+type UnitAction = UnitAction.Type;
+type Visual = Visual.Type;
 
-	/**
-	 * Attempts to cast a Lua object to a C++ type object.
-	 * @param item The Lua object to cast.
-	 * @param name "Platformer::Unit".
-	 * @returns The Unit object, or `null` if the cast fails.
-	 */
-	cast(this: void, item: any, name: "Platformer::Unit"): Unit | null;
+export const enum TypeName {
+	Bullet = "Platformer::Bullet",
+	Face = "Platformer::Face",
+	PlatformWorld = "Platformer::PlatformWorld",
+	TargetAllow = "Platformer::TargetAllow",
+	Unit = "Platformer::Unit",
+	UnitAction = "Platformer::UnitAction",
+	Visual = "Platformer::Visual",
+	BehaviorBlackboard = "Platformer::Behavior::Blackboard",
+	BehaviorLeaf = "Platformer::Behavior::Leaf",
+	DecisionLeaf = "Platformer::Decision::Leaf",
+}
 
-	/**
-	 * Attempts to cast a Lua object to a C++ type object.
-	 * @param item The Lua object to cast.
-	 * @param name "Platformer::UnitAction".
-	 * @returns The UnitAction object, or `null` if the cast fails.
-	 */
-	cast(this: void, item: any, name: "Platformer::UnitAction"): UnitAction | null;
-
-	/**
-	 * Attempts to cast a Lua object to a C++ type object.
-	 * @param item The Lua object to cast.
-	 * @param name "Platformer::Bullet".
-	 * @returns The Bullet object, or `null` if the cast fails.
-	 */
-	cast(this: void, item: any, name: "Platformer::Bullet"): Bullet | null;
-
-	/**
-	 * Attempts to cast a Lua object to a C++ type object.
-	 * @param item The Lua object to cast.
-	 * @param name "Platformer::Visual".
-	 * @returns The Visual object, or `null` if the cast fails.
-	 */
-	cast(this: void, item: any, name: "Platformer::Visual"): Visual | null;
-
-	/**
-	 * Attempts to cast a Lua object to a C++ type object.
-	 * @param item The Lua object to cast.
-	 * @param name "Platformer::Face".
-	 * @returns The Face object, or `null` if the cast fails.
-	 */
-	cast(this: void, item: any, name: "Platformer::Face"): Face | null;
-
-	/**
-	 * Attempts to cast a Lua object to a C++ type object.
-	 * @param item The Lua object to cast.
-	 * @param name "Platformer::Decision::Leaf".
-	 * @returns The Decision.Leaf object, or `null` if the cast fails.
-	 */
-	cast(this: void, item: any, name: "Platformer::Decision::Leaf"): Decision.Leaf | null;
-
-	/**
-	 * Attempts to cast a Lua object to a C++ type object.
-	 * @param item The Lua object to cast.
-	 * @param name "Platformer::Behavior::Leaf".
-	 * @returns The Behavior.Leaf object, or `null` if the cast fails.
-	 */
-	cast(this: void, item: any, name: "Platformer::Behavior::Leaf"): Behavior.Leaf | null;
-
-	/**
-	 * Attempts to cast a Lua object to a C++ type object.
-	 * @param item The Lua object to cast.
-	 * @param name "Platformer::Behavior::Blackboard".
-	 * @returns The Behavior.Blackboard object, or `null` if the cast fails.
-	 */
-	cast(this: void, item: any, name: "Platformer::Behavior::Blackboard"): Behavior.Blackboard | null;
-
-	/**
-	 * Attempts to cast a Lua object to a C++ type object.
-	 * @param item The Lua object to cast.
-	 * @param name "Platformer::TargetAllow".
-	 * @returns The TargetAllow object, or `null` if the cast fails.
-	 */
-	cast(this: void, item: any, name: "Platformer::TargetAllow"): TargetAllow | null;
+export interface TypeMap {
+	[TypeName.Bullet]: Bullet;
+	[TypeName.Face]: Face;
+	[TypeName.PlatformWorld]: PlatformWorld;
+	[TypeName.TargetAllow]: TargetAllow;
+	[TypeName.Unit]: Unit;
+	[TypeName.UnitAction]: UnitAction;
+	[TypeName.Visual]: Visual;
+	[TypeName.BehaviorBlackboard]: Behavior.Blackboard;
+	[TypeName.BehaviorLeaf]: Behavior.Leaf;
+	[TypeName.DecisionLeaf]: Decision.Leaf;
 }
 
 } // module "dora"

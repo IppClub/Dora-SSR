@@ -5,7 +5,7 @@ import * as ScrollArea from "UI/Control/Basic/ScrollArea";
 import { AlignMode } from "UI/Control/Basic/ScrollArea";
 import * as LineRect from 'UI/View/Shape/LineRect';
 import * as YarnRunner from "YarnRunner";
-import { App, Content, Label, LabelType, Menu, Path, Size, Slot, TextAlign, Vec2, View, thread, threadLoop, tolua } from "dora";
+import { App, Content, Label, Menu, Path, Size, Slot, TextAlign, TypeName, Vec2, View, thread, threadLoop, tolua } from "dora";
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 
@@ -38,7 +38,7 @@ scroll.slot("AlignLayout", (w: number, h: number) => {
 	scroll.position = Vec2(w / 2, h / 2);
 	w -= 200;
 	h -= 20;
-	const label = tolua.cast<LabelType>(scroll.view.children.first, "Label");
+	const label = tolua.cast(scroll.view.children.first, TypeName.Label);
 	if (label !== null) {
 		label.textWidth = w - fontSize;
 	}
