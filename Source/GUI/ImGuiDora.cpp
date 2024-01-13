@@ -684,7 +684,6 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 			const char* rendererNames[] = {
 				"Noop", //!< No rendering.
 				"Agc", //!< AGC
-				"Direct3D9", //!< Direct3D 9.0
 				"Direct3D11", //!< Direct3D 11.0
 				"Direct3D12", //!< Direct3D 12.0
 				"Gnm", //!< GNM
@@ -693,7 +692,6 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 				"OpenGLES", //!< OpenGL ES 2.0+
 				"OpenGL", //!< OpenGL 2.1+
 				"Vulkan", //!< Vulkan
-				"WebGPU", //!< WebGPU
 			};
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"渲染器：") : "Renderer:");
 			itemHovered |= ImGui::IsItemHovered();
