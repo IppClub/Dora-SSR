@@ -1,15 +1,15 @@
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Component, Ease, Entity, Event, Group, Node, NodeType, Observer, ObserverEvent, Roll, Scale, Sequence, Slot, Sprite, SpriteType, Vec2, Vec2Type, tolua } from "dora";
+import { App, Component, Ease, Entity, Event, Group, Node, Observer, ObserverEvent, Roll, Scale, Sequence, Slot, Sprite, TypeName, Vec2, tolua } from "dora";
 
 const sceneGroup = Group(["scene"]);
 const positionGroup = Group(["position"]);
 
-function toNode(item: any): NodeType | null {
-	return tolua.cast(item, "Node");
+function toNode(item: any) {
+	return tolua.cast(item, TypeName.Node);
 }
 
-Observer(ObserverEvent.Add, ["scene"]).watch((_, scene: NodeType) => {
+Observer(ObserverEvent.Add, ["scene"]).watch((_, scene: Node.Type) => {
 	scene.touchEnabled = true;
 	scene.slot(Slot.TapEnded, touch => {
 		const {location} = touch;
@@ -44,7 +44,7 @@ Observer(ObserverEvent.Remove, ["target"]).watch(entity => {
 });
 
 Group(["position", "direction", "speed", "target"]).watch(
-	(entity, position: Vec2Type, _direction: number, speed: number, target: Vec2Type) => {
+	(entity, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type) => {
 	if (target.equals(position)) return;
 	const dir = target.sub(position).normalize();
 	const angle = math.deg(math.atan(dir.x, dir.y));
@@ -58,7 +58,7 @@ Group(["position", "direction", "speed", "target"]).watch(
 });
 
 Observer(ObserverEvent.AddOrChange, ["position", "direction", "sprite"]).watch(
-	(entity, position: Vec2Type, direction: number, sprite: SpriteType) => {
+	(entity, position: Vec2.Type, direction: number, sprite: Sprite.Type) => {
 	sprite.position = position
 	const lastDirection = entity.oldValues.direction ?? sprite.angle;
 	if (typeof lastDirection === "number") {
@@ -70,7 +70,7 @@ Observer(ObserverEvent.AddOrChange, ["position", "direction", "sprite"]).watch(
 
 interface EntityDef extends Record<string, Component> {
 	image: string;
-	position: Vec2Type;
+	position: Vec2.Type;
 	direction: number;
 	speed: number;
 }

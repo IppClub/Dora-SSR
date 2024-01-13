@@ -1,5 +1,5 @@
-import { Data, Decision, PlatformWorld, Unit, UnitAction, UnitType } from 'Platformer';
-import { App, Body, BodyDef, BodyMoveType, Color, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, ObserverEvent, Sprite, Spawn, AngleY, Sequence, Ease, Y, Slot, tolua, Scale, Opacity, BodyType, Content, Group, Entity, Component, Director, Menu, Keyboard, KeyName } from 'dora';
+import { Data, Decision, PlatformWorld, Unit, UnitAction } from 'Platformer';
+import { App, Body, BodyDef, BodyMoveType, Color, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, ObserverEvent, Sprite, Spawn, AngleY, Sequence, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Menu, Keyboard, KeyName, TypeName } from 'dora';
 import * as Rectangle from 'UI/View/Shape/Rectangle';
 
 const TerrainLayer = 0;
@@ -276,7 +276,10 @@ Observer(ObserverEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string)
 });
 
 Observer(ObserverEvent.Remove, ["body"]).watch(self => {
-	(self.oldValues.body as BodyType).removeFromParent();
+	const body = tolua.cast(self.oldValues.body, TypeName.Body);
+	if (body !== null) {
+		body.removeFromParent();
+	}
 });
 
 import { Struct } from 'Utils';
@@ -476,7 +479,7 @@ Director.ui.schedule(() => {
 					));
 					const player = playerGroup.find(() => true);
 					if (player !== undefined) {
-						const unit = player.unit as UnitType;
+						const unit = player.unit as Unit.Type;
 						unit.addChild(sprite);
 					}
 				}

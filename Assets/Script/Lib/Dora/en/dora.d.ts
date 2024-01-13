@@ -56,7 +56,9 @@ class Size extends ContainerItem {
 	mul(vec: Vec2): Size;
 }
 
-export type {Size as SizeType};
+export namespace Size {
+	export type Type = Size;
+}
 
 /**
  * A class for creating Size objects.
@@ -213,7 +215,9 @@ class Vec2 extends ContainerItem {
 	equals(other: Vec2): boolean;
 }
 
-export type {Vec2 as Vec2Type};
+export namespace Vec2 {
+	export type Type = Vec2;
+}
 
 /**
  * A class for creating Vec2 objects.
@@ -345,7 +349,9 @@ class Rect extends ContainerItem {
 	equals(other: Rect): boolean;
 }
 
-export type {Rect as RectType};
+export namespace Rect {
+	export type Type = Rect;
+}
 
 /**
  * A class for creating rectangle objects.
@@ -411,7 +417,9 @@ class Color3 {
 	toRGB(): number;
 }
 
-export type {Color3 as Color3Type};
+export namespace Color3 {
+	export type Type = Color3;
+}
 
 /** A class for creating Color3 objects. */
 interface Color3Class {
@@ -479,7 +487,9 @@ class Color {
 	toARGB(): number;
 }
 
-export type {Color as ColorType};
+export namespace Color {
+	export type Type = Color;
+}
 
 /**
  * Provides methods for creating Color objects.
@@ -669,7 +679,9 @@ class Object extends ContainerItem {
 	readonly ref: number;
 }
 
-export type {Object as ObjectType};
+export namespace Object {
+	export type Type = Object;
+}
 
 /** The static class for accessing object class attributes. */
 interface ObjectClass {
@@ -698,7 +710,9 @@ export {objectClass as Object};
 /** An empty interface as action definition instance. */
 type ActionDef = BasicType<'ActionDef'>;
 
-export type {ActionDef as ActionDefType};
+export namespace ActionDef {
+	export type Type = ActionDef;
+}
 
 /** Represents an action that can be run on a node */
 interface Action extends Object {
@@ -734,7 +748,9 @@ interface Action extends Object {
 	updateTo(elapsed: number, reversed?: boolean): void;
 }
 
-export type {Action as ActionType};
+export namespace Action {
+	export type Type = Action;
+}
 
 /** A class for creating an action that can be run on a Node */
 interface ActionClass {
@@ -1334,7 +1350,9 @@ class Array extends Object {
 	[index: number]: Item | undefined;
 }
 
-export type {Array as ArrayType};
+export namespace Array {
+	export type Type = Array;
+}
 
 /**
  * A class that creates Array objects.
@@ -1465,7 +1483,9 @@ export const enum BlendOp {
 	InvDstAlpha = "InvDstAlpha"
 }
 
-export type {BlendFunc as BlendFuncType};
+export namespace BlendFunc {
+	export type Type = BlendFunc;
+}
 
 /**
  * A class for creating BlendFunc objects.
@@ -1621,7 +1641,9 @@ class Scheduler extends Object {
 	schedule(job: Job): void;
 }
 
-export type {Scheduler as SchedulerType};
+export namespace Scheduler {
+	export type Type = Scheduler;
+}
 
 /**
 * A class for creating Scheduler objects.
@@ -1689,7 +1711,9 @@ class Dictionary extends Object {
 	[key: string]: Item | undefined;
 }
 
-export type {Dictionary as DictionaryType};
+export namespace Dictionary {
+	export type Type = Dictionary;
+}
 
 /**
  * A class for creating Dictionary
@@ -1807,7 +1831,10 @@ class Camera extends Object {
 	readonly name: string;
 }
 
-export type {Camera as CameraType};
+export {Camera as CameraType};
+export namespace Camera {
+	export type Type = Camera;
+}
 
 /**
  * A class for 2D camera object in the game engine.
@@ -1831,7 +1858,9 @@ class Camera2D extends Camera {
 	position: Vec2;
 }
 
-export type {Camera2D as Camera2DType};
+export namespace Camera2D {
+	export type Type = Camera2D;
+}
 
 /**
 * A class for creating Camera2D objects.
@@ -1860,7 +1889,9 @@ class CameraOtho extends Camera {
 	position: Vec2;
 }
 
-export type {CameraOtho as CameraOthoType};
+export namespace CameraOtho {
+	export type Type = CameraOtho;
+}
 
 /**
 * A class for creating CameraOtho objects.
@@ -1911,7 +1942,9 @@ class Pass extends Object {
 	set(name: string, cvar: Color): void;
 }
 
-export type {Pass as PassType};
+export namespace Pass {
+	export type Type = Pass;
+}
 
 /**
 * A class for creating Pass objects.
@@ -1959,7 +1992,9 @@ class Effect extends Object {
 	clear(): void;
 }
 
-export type {Effect as EffectType};
+export namespace Effect {
+	export type Type = Effect;
+}
 
 /**
 * A class for creating Effect objects.
@@ -1991,7 +2026,9 @@ export {effectClass as Effect};
  */
 class SpriteEffect extends Effect {}
 
-export type {SpriteEffect as SpriteEffectType};
+export namespace SpriteEffect {
+	export type Type = SpriteEffect;
+}
 
 /**
  * A class for creating SpriteEffect objects.
@@ -3034,7 +3071,10 @@ class Node extends Object {
 	grab(gridX: number, gridY: number): Grabber;
 }
 
-export type {Node as NodeType};
+export {Node as NodeType};
+export namespace Node {
+	export type Type = Node;
+}
 
 /**
  * A class object for the `Node` class.
@@ -3087,7 +3127,9 @@ class Buffer extends Object {
 	setString(str: string): void;
 }
 
-export type {Buffer as BufferType};
+export namespace Buffer {
+	export type Type = Buffer;
+}
 
 /**
 * A class for creating Buffer objects.
@@ -3126,7 +3168,9 @@ class ClipNode extends Node {
 	inverted: boolean;
 }
 
-export type {ClipNode as ClipNodeType};
+export namespace ClipNode {
+	export type Type = ClipNode;
+}
 
 /**
 * A class for creating ClipNode objects.
@@ -3660,7 +3704,9 @@ class Playable extends Node {
 	getSlot(name: string): Node | null;
 }
 
-export type {Playable as PlayableType};
+export namespace Playable {
+	export type Type = Playable;
+}
 
 /**
 * A class for creating instances of the 'Playable' object.
@@ -3717,7 +3763,9 @@ class DragonBone extends Playable {
 	intersectsSegment(x1: number, y1: number, x2: number, y2: number): string | undefined;
 }
 
-export type {DragonBone as DragonBoneType};
+export namespace DragonBone {
+	export type Type = DragonBone;
+}
 
 /**
 * A class for creating instances of the 'DragonBone' object.
@@ -3795,7 +3843,9 @@ class Spine extends Playable {
 	intersectsSegment(x1: number, y1: number, x2: number, y2: number): string | null;
 }
 
-export type {Spine as SpineType};
+export namespace Spine {
+	export type Type = Spine;
+}
 
 /**
 * A class for creating instances of the 'Spine' object.
@@ -3906,7 +3956,9 @@ class Model extends Playable {
 	eachNode(func: (this: void, node: Node) => boolean): boolean;
 }
 
-export type {Model as ModelType}
+export namespace Model {
+	export type Type = Model;
+}
 
 /**
  * A class for creating instances of the 'Model' object.
@@ -4005,7 +4057,9 @@ class DrawNode extends Node {
 	clear(this: DrawNode): void;
 }
 
-export type {DrawNode as DrawNodeType};
+export namespace DrawNode {
+	export type Type = DrawNode;
+}
 
 /**
 * A class for creating DrawNode objects.
@@ -4082,7 +4136,9 @@ class Entity extends Object {
 	[key: string]: Component | undefined;
 }
 
-export type {Entity as EntityType};
+export namespace Entity {
+	export type Type = Entity;
+}
 
 /**
  * A class for creating and managing entities in the ECS game systems.
@@ -4187,7 +4243,9 @@ class Group extends Object {
 	watch(func: (this: void, entity: Entity, ...components: any[]) => void): Group;
 }
 
-export type {Group as GroupType};
+export namespace Group {
+	export type Type = Group;
+}
 
 /**
 * A class for creating Group objects.
@@ -4218,7 +4276,9 @@ class Texture2D extends Object {
 	readonly height: number;
 }
 
-export type {Texture2D as Texture2DType};
+export namespace Texture2D {
+	export type Type = Texture2D;
+}
 
 /**
  * A class used to render a texture as a grid of sprites, where each sprite can be positioned,
@@ -4289,7 +4349,9 @@ class Grid extends Node {
 	moveUV(x: number, y: number, offset: Vec2): void;
 }
 
-export type {Grid as GridType};
+export namespace Grid {
+	export type Type = Grid;
+}
 
 /**
 * A class for creating Grid objects.
@@ -4478,7 +4540,9 @@ class Sensor extends Object {
 	contains(body: Body): boolean;
 }
 
-export type {Sensor as SensorType};
+export namespace Sensor {
+	export type Type = Sensor;
+}
 
 export const enum BodyMoveType {
 	/** A body that does not move. */
@@ -4632,7 +4696,9 @@ class BodyDef extends Object {
 	attachDiskSensor(tag: number, radius: number): void;
 }
 
-export type {BodyDef as BodyDefType};
+export namespace BodyDef {
+	export type Type = BodyDef;
+}
 
 /**
  * A class for creating BodyDef and FixtureDef.
@@ -4842,7 +4908,10 @@ class Body extends Node {
 	attachSensor(tag: number, fixtureDef: FixtureDef): Sensor;
 }
 
-export type {Body as BodyType};
+export {Body as BodyType};
+export namespace Body {
+	export type Type = Body;
+}
 
 /**
  * A class for creating Body objects.
@@ -4926,7 +4995,10 @@ class PhysicsWorld extends Node {
 	getShouldContact(groupA: number, groupB: number): boolean;
 }
 
-export type {PhysicsWorld as PhysicsWorldType};
+export {PhysicsWorld as PhysicsWorldType};
+export namespace PhysicsWorld {
+	export type Type = PhysicsWorld;
+}
 
 /**
  * A class for creating PhysicsWorld objects.
@@ -4968,7 +5040,9 @@ class Joint extends Object {
 	destroy(): void;
 }
 
-export type {Joint as JointType};
+export namespace Joint {
+	export type Type = Joint;
+}
 
 /**
  * A joint that applies a rotational or linear force to a physics body.
@@ -4992,7 +5066,9 @@ class MotorJoint extends Joint {
 	speed: number;
 }
 
-export type {MotorJoint as MotorJointType};
+export namespace MotorJoint {
+	export type Type = MotorJoint;
+}
 
 /**
 * A type of joint that allows a physics body to move to a specific position.
@@ -5006,7 +5082,9 @@ class MoveJoint extends Joint {
 	position: Vec2;
 }
 
-export type {MoveJoint as MoveJointType};
+export namespace MoveJoint {
+	export type Type = MoveJoint;
+}
 
 /**
  * A class that defines the properties of a joint to be created.
@@ -5314,7 +5392,9 @@ class Sprite extends Node {
 	filter: TextureFilter;
 }
 
-export type {Sprite as SpriteType};
+export namespace Sprite {
+	export type Type = Sprite;
+}
 
 /**
  * A class used for creating `Sprite` object.
@@ -5434,7 +5514,9 @@ class Label extends Node {
 	getCharacter(index: number): Sprite | null;
 }
 
-export type {Label as LabelType};
+export namespace Label {
+	export type Type = Label;
+}
 
 /**
 * A class for creating Label object.
@@ -5493,7 +5575,9 @@ class Line extends Node {
 	clear(): void;
 }
 
-export type {Line as LineType};
+export namespace Line {
+	export type Type = Line;
+}
 
 /** A class for creating Line object. */
 interface LineClass {
@@ -5529,7 +5613,9 @@ class Menu extends Node {
 	enabled: boolean;
 }
 
-export type {Menu as MenuType};
+export namespace Menu {
+	export type Type = Menu;
+}
 
 /**
 * A class for creating Menu objects.
@@ -5588,7 +5674,9 @@ class QLearner extends Object {
 	load(values: [state: number, action: number, QValue: number][]): void;
 }
 
-export type {QLearner as QLearnerType};
+export namespace QLearner {
+	export type Type = QLearner;
+}
 
 /**
  * A class for creating QLearner objects.
@@ -5681,7 +5769,9 @@ class Particle extends Node {
 	stop(): void;
 }
 
-export type {Particle as ParticleType};
+export namespace Particle {
+	export type Type = Particle;
+}
 
 /**
  * A class that can create new Particle objects.
@@ -5888,7 +5978,9 @@ class SVG extends Object {
 	render(): void;
 }
 
-export type {SVG as SVGType};
+export namespace SVG {
+	export type Type = SVG;
+}
 
 /**
  * A class for creating SVG objects.
@@ -5911,7 +6003,9 @@ class VGNode extends Node {
 	render(func: (this: void) => void): void;
 }
 
-export type {VGNode as VGNodeType};
+export namespace VGNode {
+	export type Type = VGNode;
+}
 
 interface VGNodeClass {
 	(this: void, width: number, height: number, scale?: number, edgeAA?: number): VGNode;
@@ -5954,7 +6048,107 @@ class View {
 const view: View;
 export {view as View};
 
-export type VGPaintType = BasicType<"VGPaint">;
+type VGPaintType = BasicType<"VGPaint">;
+
+export namespace VGPaint {
+	export type Type = VGPaintType;
+}
+
+export const enum TypeName {
+	Size = "Size",
+	Vec2 = "Vec2",
+	Rect = "Rect",
+	Color3 = "Color3",
+	Color = "Color",
+	Object = "Object",
+	Action = "Action",
+	Array = "Array",
+	BlendFunc = "BlendFunc",
+	Scheduler = "Scheduler",
+	Dictionary = "Dictionary",
+	Camera = "Camera",
+	Camera2D = "Camera2D",
+	CameraOtho = "CameraOtho",
+	Pass = "Pass",
+	Effect = "Effect",
+	SpriteEffect = "SpriteEffect",
+	Node = "Node",
+	RenderTarget = "RenderTarget",
+	Buffer = "Buffer",
+	ClipNode = "ClipNode",
+	Playable = "Playable",
+	DragonBone = "DragonBone",
+	Spine = "Spine",
+	Model = "Model",
+	DrawNode = "DrawNode",
+	Entity = "Entity",
+	Group = "Group",
+	Texture2D = "Texture2D",
+	Grid = "Grid",
+	Sensor = "Sensor",
+	BodyDef = "BodyDef",
+	Body = "Body",
+	PhysicsWorld = "PhysicsWorld",
+	Joint = "Joint",
+	MotorJoint = "MotorJoint",
+	MoveJoint = "MoveJoint",
+	Sprite = "Sprite",
+	Label = "Label",
+	Line = "Line",
+	Menu = "Menu",
+	QLearner = "QLearner",
+	Particle = "Particle",
+	SVG = "SVG",
+	VGNode = "VGNode",
+}
+
+export interface TypeMap {
+	[TypeName.Size]: Size;
+	[TypeName.Vec2]: Vec2;
+	[TypeName.Rect]: Rect;
+	[TypeName.Color3]: Color3;
+	[TypeName.Color]: Color;
+	[TypeName.Object]: Object;
+	[TypeName.Action]: Action;
+	[TypeName.Array]: Array;
+	[TypeName.BlendFunc]: BlendFunc;
+	[TypeName.Scheduler]: Scheduler;
+	[TypeName.Dictionary]: Dictionary;
+	[TypeName.Camera]: Camera;
+	[TypeName.Camera2D]: Camera2D;
+	[TypeName.CameraOtho]: CameraOtho;
+	[TypeName.Pass]: Pass;
+	[TypeName.Effect]: Effect;
+	[TypeName.SpriteEffect]: SpriteEffect;
+	[TypeName.Node]: Node;
+	[TypeName.RenderTarget]: RenderTarget;
+	[TypeName.Buffer]: Buffer;
+	[TypeName.ClipNode]: ClipNode;
+	[TypeName.Playable]: Playable;
+	[TypeName.DragonBone]: DragonBone;
+	[TypeName.Spine]: Spine;
+	[TypeName.Model]: Model;
+	[TypeName.DrawNode]: DrawNode;
+	[TypeName.Entity]: Entity;
+	[TypeName.Group]: Group;
+	[TypeName.Texture2D]: Texture2D;
+	[TypeName.Grid]: Grid;
+	[TypeName.Sensor]: Sensor;
+	[TypeName.BodyDef]: BodyDef;
+	[TypeName.Body]: Body;
+	[TypeName.PhysicsWorld]: PhysicsWorld;
+	[TypeName.Joint]: Joint;
+	[TypeName.MotorJoint]: MotorJoint;
+	[TypeName.MoveJoint]: MoveJoint;
+	[TypeName.Sprite]: Sprite;
+	[TypeName.Label]: Label;
+	[TypeName.Line]: Line;
+	[TypeName.Menu]: Menu;
+	[TypeName.QLearner]: QLearner;
+	[TypeName.Particle]: Particle;
+	[TypeName.SVG]: SVG;
+	[TypeName.VGNode]: VGNode;
+}
 
 /**
  * The `tolua` object provides utilities for interfacing between C++ and Lua.
@@ -5970,10 +6164,10 @@ export interface tolua {
 	/**
 	 * Attempts to cast a Lua object to a C++ type object.
 	 * @param item The Lua object to cast.
-	 * @param name "Size".
-	 * @returns The Size object, or `null` if the cast fails.
+	 * @param name The C++ object type name .
+	 * @returns The target object, or `null` if the cast fails.
 	 */
-	cast(this: void, item: any, name: "Size"): Size | null;
+	cast<k extends TypeName>(this: void, item: any, name: k): TypeMap[typeof name] | null;
 
 	/**
 	 * Attempts to cast a Lua object to a C++ type object.

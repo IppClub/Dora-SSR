@@ -3,20 +3,29 @@
 declare module "Platformer" {
 import {
 	BodyType as Body,
-	PlayableType as Playable,
-	SizeType as Size,
-	SensorType as Sensor,
-	DictionaryType as Dictionary,
-	EntityType as Entity,
 	PhysicsWorldType as PhysicsWorld,
-	Vec2Type as Vec2,
 	NodeType as Node,
 	CameraType as Camera,
-	RectType as Rect,
-	BodyDefType as BodyDef,
+	Playable,
+	Size,
+	Sensor,
+	Dictionary,
+	Entity,
+	Vec2,
+	Rect,
+	BodyDef,
 	Job,
-	Item,
+	Item
 } from 'dora';
+
+type Playable = Playable.Type;
+type Size = Size.Type;
+type Sensor = Sensor.Type;
+type Dictionary = Dictionary.Type;
+type Entity = Entity.Type;
+type Vec2 = Vec2.Type;
+type Rect = Rect.Type;
+type BodyDef = BodyDef.Type;
 
 /** 代表游戏单位可以执行的动作的类。 */
 class UnitAction {
@@ -47,7 +56,9 @@ class UnitAction {
 	readonly owner: Unit;
 }
 
-export type {UnitAction as UnitActionType};
+export namespace UnitAction {
+	export type Type = UnitAction;
+}
 
 /** 定义游戏单位动作参数的接口。 */
 export interface UnitActionParam {
@@ -241,7 +252,9 @@ class Unit extends Body {
 	isDoing(name: string): boolean;
 }
 
-export type {Unit as UnitType};
+export namespace Unit {
+	export type Type = Unit;
+}
 
 /**
  * 用于创建游戏单位实例的类。
@@ -486,7 +499,9 @@ class TargetAllow {
 	isAllow(relation: Relation): boolean;
 }
 
-export type {TargetAllow as TargetAllowType};
+export namespace TargetAllow {
+	export type Type = TargetAllow;
+}
 
 /**
  * 定义子弹对象如何根据其与其他游戏对象或游戏单位的关系进行交互的类。
@@ -545,7 +560,9 @@ class PlatformCamera extends Camera {
 	followTarget: Node;
 }
 
-export type {PlatformCamera as PlatformCameraType};
+export namespace PlatformCamera {
+	export type Type = PlatformCamera;
+}
 
 /**
  * 定义如何创建2D平台游戏的相机实例的类。
@@ -634,7 +651,9 @@ class PlatformWorld extends PhysicsWorld {
 	removeAllLayers(): void;
 }
 
-export type {PlatformWorld as PlatformWorldType};
+export namespace PlatformWorld {
+	export type Type = PlatformWorld;
+}
 
 /**
  * 用于实例化PlatformWorld实例的类。
@@ -672,7 +691,9 @@ class Face extends Node {
 	toNode(): Node;
 }
 
-export type {Face as FaceType};
+export namespace Face {
+	export type Type = Face;
+}
 
 /**
  * 提供创建具有不同配置的可视组件实例的函数的接口。
@@ -753,7 +774,9 @@ class Visual extends Node {
 	autoRemove(): Visual;
 }
 
-export type {Visual as VisualType};
+export namespace Visual {
+	export type Type = Visual;
+}
 
 /**
 * 用于创建视觉效果对象的类。
@@ -1148,7 +1171,9 @@ class Bullet extends Body {
 	destroy(): void;
 }
 
-export type {Bullet as BulletType};
+export namespace Bullet {
+	export type Type = Bullet;
+}
 
 /**
 * 创建新的子弹对象实例的接口类型。
@@ -1171,96 +1196,48 @@ export {bulletClass as Bullet};
 declare module "dora" {
 import {
 	Behavior,
-	BulletType as Bullet,
+	Bullet,
 	Decision,
-	FaceType as Face,
-	PlatformWorldType as PlatformWorld,
-	TargetAllowType as TargetAllow,
-	UnitType as Unit,
-	UnitActionType as UnitAction,
-	VisualType as Visual,
+	Face,
+	PlatformWorld,
+	TargetAllow,
+	Unit,
+	UnitAction,
+	Visual,
 } from 'Platformer';
 
-export interface tolua {
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Platformer::PlatformWorld"。
-	 * @returns 转换后的 PlatformWorld 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Platformer::PlatformWorld"): PlatformWorld | null;
+type Bullet = Bullet.Type;
+type Face = Face.Type;
+type PlatformWorld = PlatformWorld.Type;
+type TargetAllow = TargetAllow.Type;
+type Unit = Unit.Type;
+type UnitAction = UnitAction.Type;
+type Visual = Visual.Type;
 
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Platformer::Unit"。
-	 * @returns 转换后的 Unit 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Platformer::Unit"): Unit | null;
+export const enum TypeName {
+	Bullet = "Platformer::Bullet",
+	Face = "Platformer::Face",
+	PlatformWorld = "Platformer::PlatformWorld",
+	TargetAllow = "Platformer::TargetAllow",
+	Unit = "Platformer::Unit",
+	UnitAction = "Platformer::UnitAction",
+	Visual = "Platformer::Visual",
+	BehaviorBlackboard = "Platformer::Behavior::Blackboard",
+	BehaviorLeaf = "Platformer::Behavior::Leaf",
+	DecisionLeaf = "Platformer::Decision::Leaf",
+}
 
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Platformer::UnitAction"。
-	 * @returns 转换后的 UnitAction 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Platformer::UnitAction"): UnitAction | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Platformer::Bullet"。
-	 * @returns 转换后的 Bullet 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Platformer::Bullet"): Bullet | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Platformer::Visual"。
-	 * @returns 转换后的 Visual 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Platformer::Visual"): Visual | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Platformer::Face"。
-	 * @returns 转换后的 Face 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Platformer::Face"): Face | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Platformer::Decision::Leaf"。
-	 * @returns 转换后的 Decision.Leaf 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Platformer::Decision::Leaf"): Decision.Leaf | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Platformer::Behavior::Leaf"。
-	 * @returns 转换后的 Behavior.Leaf 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Platformer::Behavior::Leaf"): Behavior.Leaf | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Platformer::Behavior::Blackboard"。
-	 * @returns 转换后的 Behavior.Blackboard 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Platformer::Behavior::Blackboard"): Behavior.Blackboard | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Platformer::TargetAllow"。
-	 * @returns 转换后的 TargetAllow 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Platformer::TargetAllow"): TargetAllow | null;
+export interface TypeMap {
+	[TypeName.Bullet]: Bullet;
+	[TypeName.Face]: Face;
+	[TypeName.PlatformWorld]: PlatformWorld;
+	[TypeName.TargetAllow]: TargetAllow;
+	[TypeName.Unit]: Unit;
+	[TypeName.UnitAction]: UnitAction;
+	[TypeName.Visual]: Visual;
+	[TypeName.BehaviorBlackboard]: Behavior.Blackboard;
+	[TypeName.BehaviorLeaf]: Behavior.Leaf;
+	[TypeName.DecisionLeaf]: Decision.Leaf;
 }
 
 } // module "dora"

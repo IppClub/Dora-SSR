@@ -1,4 +1,6 @@
-import { SizeType as Size, NodeType as Node, NodeType, MenuType } from "dora";
+import { Size, NodeType as Node, Menu } from "dora";
+type Size = Size.Type;
+type Menu = Menu.Type;
 
 declare module 'ScrollArea' {
 
@@ -25,8 +27,8 @@ export const enum AlignMode {
 
 class ScrollArea extends Node {
 	private constructor();
-	readonly area: NodeType;
-	readonly view: MenuType;
+	readonly area: Node;
+	readonly view: Menu;
 	scrollToPosY(posY: number, time?: number): void; // Default time is 0.3
 	adjustSizeWithAlign(alignMode?: AlignMode, padding?: number, size?: Size, viewSize?: Size): void; // Default padding is 10
 }

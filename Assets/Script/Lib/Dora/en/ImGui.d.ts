@@ -1,13 +1,17 @@
 /// <reference path="dora.d.ts" />
 
 declare module 'ImGui' {
-
 import {
-	Vec2Type as Vec2,
-	BufferType as Buffer,
-	ColorType as Color,
-	Color3Type as Color3
+	Vec2,
+	Buffer,
+	Color,
+	Color3
 } from "dora";
+
+type Vec2 = Vec2.Type;
+type Buffer = Buffer.Type;
+type Color = Color.Type;
+type Color3 = Color3.Type;
 
 export const enum StyleColor {
 	Text = "Text",

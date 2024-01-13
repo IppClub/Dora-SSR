@@ -56,7 +56,9 @@ class Size extends ContainerItem {
 	mul(vec: Vec2): Size;
 }
 
-export type {Size as SizeType};
+export namespace Size {
+	export type Type = Size;
+}
 
 /**
  * 用于创建Size对象的类。
@@ -213,7 +215,9 @@ class Vec2 extends ContainerItem {
 	equals(other: Vec2): boolean;
 }
 
-export type {Vec2 as Vec2Type};
+export namespace Vec2 {
+	export type Type = Vec2;
+}
 
 /**
  * 用于创建Vec2对象的类。
@@ -345,7 +349,9 @@ class Rect extends ContainerItem {
 	equals(other: Rect): boolean;
 }
 
-export type {Rect as RectType};
+export namespace Rect {
+	export type Type = Rect;
+}
 
 /**
  * 用于创建矩形对象的类。
@@ -411,7 +417,9 @@ class Color3 {
 	toRGB(): number;
 }
 
-export type {Color3 as Color3Type};
+export namespace Color3 {
+	export type Type = Color3;
+}
 
 /** 用于创建Color3对象的类。 */
 interface Color3Class {
@@ -479,7 +487,9 @@ class Color {
 	toARGB(): number;
 }
 
-export type {Color as ColorType};
+export namespace Color {
+	export type Type = Color;
+}
 
 /**
  * 提供创建Color对象的方法。
@@ -673,7 +683,9 @@ class Object extends ContainerItem {
 	readonly ref: number;
 }
 
-export type {Object as ObjectType};
+export namespace Object {
+	export type Type = Object;
+}
 
 /** 用于访问C++对象管理相关信息的静态类。 */
 interface ObjectClass {
@@ -702,7 +714,9 @@ export {objectClass as Object};
 /** 动作定义对象的类型。 */
 type ActionDef = BasicType<'ActionDef'>;
 
-export type {ActionDef as ActionDefType};
+export namespace ActionDef {
+	export type Type = ActionDef;
+}
 
 /** 表示可以在节点上运行的动作对象的类 */
 interface Action extends Object {
@@ -738,7 +752,9 @@ interface Action extends Object {
 	updateTo(elapsed: number, reversed?: boolean): void;
 }
 
-export type {Action as ActionType};
+export namespace Action {
+	export type Type = Action;
+}
 
 /** 用于创建可以在节点上运行的动作的类 */
 interface ActionClass {
@@ -1338,7 +1354,9 @@ class Array extends Object {
 	[index: number]: Item | undefined;
 }
 
-export type {Array as ArrayType};
+export namespace Array {
+	export type Type = Array;
+}
 
 /**
  * 用于创建数组对象的类。
@@ -1463,7 +1481,9 @@ export const enum BlendOp {
 	InvDstAlpha = "InvDstAlpha"
 }
 
-export type {BlendFunc as BlendFuncType};
+export namespace BlendFunc {
+	export type Type = BlendFunc;
+}
 
 /**
  * 用于创建混合函数对象的类。
@@ -1618,7 +1638,9 @@ class Scheduler extends Object {
 	schedule(job: Job): void;
 }
 
-export type {Scheduler as SchedulerType};
+export namespace Scheduler {
+	export type Type = Scheduler;
+}
 
 /**
 * 用于创建调度器对象的类。
@@ -1685,7 +1707,9 @@ class Dictionary extends Object {
 	[key: string]: Item | undefined;
 }
 
-export type {Dictionary as DictionaryType};
+export namespace Dictionary {
+	export type Type = Dictionary;
+}
 
 /**
  * 用于创建Dictionary的类
@@ -1791,6 +1815,10 @@ class Touch extends Object {
 	readonly worldLocation: Vec2;
 }
 
+export namespace Touch {
+	export type Type = Touch;
+}
+
 /**
  * 游戏引擎中的摄像机对象的类。
  */
@@ -1803,7 +1831,10 @@ class Camera extends Object {
 	readonly name: string;
 }
 
-export type {Camera as CameraType};
+export {Camera as CameraType};
+export namespace Camera {
+	export type Type = Camera;
+}
 
 /**
  * 游戏引擎中的2D摄像机对象的类。
@@ -1827,7 +1858,9 @@ class Camera2D extends Camera {
 	position: Vec2;
 }
 
-export type {Camera2D as Camera2DType};
+export namespace Camera2D {
+	export type Type = Camera2D;
+}
 
 /**
 * 用于创建2D摄像机对象的类。
@@ -1856,7 +1889,9 @@ class CameraOtho extends Camera {
 	position: Vec2;
 }
 
-export type {CameraOtho as CameraOthoType};
+export namespace CameraOtho {
+	export type Type = CameraOtho;
+}
 
 /**
 * 用于创建正交摄像机对象的类。
@@ -1907,7 +1942,9 @@ class Pass extends Object {
 	set(name: string, cvar: Color): void;
 }
 
-export type {Pass as PassType};
+export namespace Pass {
+	export type Type = Pass;
+}
 
 /**
 * 用于创建着色器渲染流程对象的类。
@@ -1955,7 +1992,9 @@ class Effect extends Object {
 	clear(): void;
 }
 
-export type {Effect as EffectType};
+export namespace Effect {
+	export type Type = Effect;
+}
 
 /**
 * 用于创建Effect对象的类。
@@ -1987,7 +2026,9 @@ export {effectClass as Effect};
  */
 class SpriteEffect extends Effect {}
 
-export type {SpriteEffect as SpriteEffectType};
+export namespace SpriteEffect {
+	export type Type = SpriteEffect;
+}
 
 /**
  * 用于创建新的2D图元着色器特效的类。
@@ -3034,7 +3075,10 @@ class Node extends Object {
 	grab(gridX: number, gridY: number): Grabber;
 }
 
-export type {Node as NodeType};
+export {Node as NodeType};
+export namespace Node {
+	export type Type = Node;
+}
 
 /**
  * 用于创建`Node`类的类对象。
@@ -3087,7 +3131,9 @@ class Buffer extends Object {
 	setString(str: string): void;
 }
 
-export type {Buffer as BufferType};
+export namespace Buffer {
+	export type Type = Buffer;
+}
 
 /**
 * 用于创建Buffer对象的类。
@@ -3126,7 +3172,9 @@ class ClipNode extends Node {
 	inverted: boolean;
 }
 
-export type {ClipNode as ClipNodeType};
+export namespace ClipNode {
+	export type Type = ClipNode;
+}
 
 /**
 * 用于创建ClipNode对象的类。
@@ -3660,7 +3708,9 @@ class Playable extends Node {
 	getSlot(name: string): Node | null;
 }
 
-export type {Playable as PlayableType};
+export namespace Playable {
+	export type Type = Playable;
+}
 
 /**
 * 用于创建'Playable'对象实例的类。
@@ -3717,7 +3767,9 @@ class DragonBone extends Playable {
 	intersectsSegment(x1: number, y1: number, x2: number, y2: number): string | undefined;
 }
 
-export type {DragonBone as DragonBoneType};
+export namespace DragonBone {
+	export type Type = DragonBone;
+}
 
 /**
 * 用于创建'DragonBone'对象实例的类。
@@ -3795,7 +3847,9 @@ class Spine extends Playable {
 	intersectsSegment(x1: number, y1: number, x2: number, y2: number): string | null;
 }
 
-export type {Spine as SpineType};
+export namespace Spine {
+	export type Type = Spine;
+}
 
 /**
 * 用于创建'Spine'动画模型对象实例的类。
@@ -3906,7 +3960,9 @@ class Model extends Playable {
 	eachNode(func: (this: void, node: Node) => boolean): boolean;
 }
 
-export type {Model as ModelType}
+export namespace Model {
+	export type Type = Model;
+}
 
 /**
  * 用于创建'Model'对象实例的类。
@@ -4005,7 +4061,9 @@ class DrawNode extends Node {
 	clear(this: DrawNode): void;
 }
 
-export type {DrawNode as DrawNodeType};
+export namespace DrawNode {
+	export type Type = DrawNode;
+}
 
 /**
 * 用于创建DrawNode对象的类。
@@ -4082,7 +4140,9 @@ class Entity extends Object {
 	[key: string]: Component | undefined;
 }
 
-export type {Entity as EntityType};
+export namespace Entity {
+	export type Type = Entity;
+}
 
 /**
  * 用于在ECS游戏系统中创建和管理实体的类。
@@ -4187,7 +4247,9 @@ class Group extends Object {
 	watch(func: (this: void, entity: Entity, ...components: any[]) => void): Group;
 }
 
-export type {Group as GroupType};
+export namespace Group {
+	export type Type = Group;
+}
 
 /**
 * 用于创建实体组对象的类。
@@ -4218,7 +4280,9 @@ class Texture2D extends Object {
 	readonly height: number;
 }
 
-export type {Texture2D as Texture2DType};
+export namespace Texture2D {
+	export type Type = Texture2D;
+}
 
 /**
  * 用于将纹理渲染为图元网格的类，每个图元都可以定位、着色，并可以操作其UV坐标。
@@ -4288,7 +4352,9 @@ class Grid extends Node {
 	moveUV(x: number, y: number, offset: Vec2): void;
 }
 
-export type {Grid as GridType};
+export namespace Grid {
+	export type Type = Grid;
+}
 
 /**
 * 用于创建Grid对象的类。
@@ -4477,7 +4543,9 @@ class Sensor extends Object {
 	contains(body: Body): boolean;
 }
 
-export type {Sensor as SensorType};
+export namespace Sensor {
+	export type Type = Sensor;
+}
 
 export const enum BodyMoveType {
 	/** 不会移动的物理体。 */
@@ -4631,7 +4699,9 @@ class BodyDef extends Object {
 	attachDiskSensor(tag: number, radius: number): void;
 }
 
-export type {BodyDef as BodyDefType};
+export namespace BodyDef {
+	export type Type = BodyDef;
+}
 
 /**
  * 用于创建BodyDef和FixtureDef的类。
@@ -4841,7 +4911,10 @@ class Body extends Node {
 	attachSensor(tag: number, fixtureDef: FixtureDef): Sensor;
 }
 
-export type {Body as BodyType};
+export {Body as BodyType};
+export namespace Body {
+	export type Type = Body;
+}
 
 /**
  * 用于创建Body对象的类。
@@ -4925,7 +4998,10 @@ class PhysicsWorld extends Node {
 	getShouldContact(groupA: number, groupB: number): boolean;
 }
 
-export type {PhysicsWorld as PhysicsWorldType};
+export {PhysicsWorld as PhysicsWorldType};
+export namespace PhysicsWorld {
+	export type Type = PhysicsWorld;
+}
 
 /**
  * 用于创建PhysicsWorld对象的类。
@@ -4966,7 +5042,9 @@ class Joint extends Object {
 	destroy(): void;
 }
 
-export type {Joint as JointType};
+export namespace Joint {
+	export type Type = Joint;
+}
 
 /**
  * A joint that applies a rotational or linear force to a physics body.
@@ -4990,7 +5068,9 @@ class MotorJoint extends Joint {
 	speed: number;
 }
 
-export type {MotorJoint as MotorJointType};
+export namespace MotorJoint {
+	export type Type = MotorJoint;
+}
 
 /**
  * 允许物理体移动到特定位置的关节类型。
@@ -5004,7 +5084,9 @@ class MoveJoint extends Joint {
 	position: Vec2;
 }
 
-export type {MoveJoint as MoveJointType};
+export namespace MoveJoint {
+	export type Type = MoveJoint;
+}
 
 /**
  * 定义创建关节的属性的类。
@@ -5314,7 +5396,9 @@ class Sprite extends Node {
 	filter: TextureFilter;
 }
 
-export type {Sprite as SpriteType};
+export namespace Sprite {
+	export type Type = Sprite;
+}
 
 /**
  * 用于创建 `Sprite` 对象的类。
@@ -5434,7 +5518,9 @@ class Label extends Node {
 	getCharacter(index: number): Sprite | null;
 }
 
-export type {Label as LabelType};
+export namespace Label {
+	export type Type = Label;
+}
 
 /**
  * 用于创建 Label 对象的类。
@@ -5493,7 +5579,9 @@ class Line extends Node {
 	clear(): void;
 }
 
-export type {Line as LineType};
+export namespace Line {
+	export type Type = Line;
+}
 
 /** 用于创建 Line 对象的类。 */
 interface LineClass {
@@ -5529,7 +5617,9 @@ class Menu extends Node {
 	enabled: boolean;
 }
 
-export type {Menu as MenuType};
+export namespace Menu {
+	export type Type = Menu;
+}
 
 /**
  * 用于创建菜单对象的类。
@@ -5588,7 +5678,9 @@ class QLearner extends Object {
 	load(values: [state: number, action: number, QValue: number][]): void;
 }
 
-export type {QLearner as QLearnerType};
+export namespace QLearner {
+	export type Type = QLearner;
+}
 
 /**
  * 用于创建 QLearner 对象的类。
@@ -5681,7 +5773,9 @@ class Particle extends Node {
 	stop(): void;
 }
 
-export type {Particle as ParticleType};
+export namespace Particle {
+	export type Type = Particle;
+}
 
 /**
  * 可以创建新的 Particle 对象的类。
@@ -5888,7 +5982,9 @@ class SVG extends Object {
 	render(): void;
 }
 
-export type {SVG as SVGType};
+export namespace SVG {
+	export type Type = SVG;
+}
 
 /**
  * 用于创建 SVG 对象的类。
@@ -5911,7 +6007,9 @@ class VGNode extends Node {
 	render(func: (this: void) => void): void;
 }
 
-export type {VGNode as VGNodeType};
+export namespace VGNode {
+	export type Type = VGNode;
+}
 
 interface VGNodeClass {
 	(this: void, width: number, height: number, scale?: number, edgeAA?: number): VGNode;
@@ -5954,7 +6052,107 @@ class View {
 const view: View;
 export {view as View};
 
-export type VGPaintType = BasicType<"VGPaint">;
+type VGPaintType = BasicType<"VGPaint">;
+
+export namespace VGPaint {
+	export type Type = VGPaintType;
+}
+
+export const enum TypeName {
+	Size = "Size",
+	Vec2 = "Vec2",
+	Rect = "Rect",
+	Color3 = "Color3",
+	Color = "Color",
+	Object = "Object",
+	Action = "Action",
+	Array = "Array",
+	BlendFunc = "BlendFunc",
+	Scheduler = "Scheduler",
+	Dictionary = "Dictionary",
+	Camera = "Camera",
+	Camera2D = "Camera2D",
+	CameraOtho = "CameraOtho",
+	Pass = "Pass",
+	Effect = "Effect",
+	SpriteEffect = "SpriteEffect",
+	Node = "Node",
+	RenderTarget = "RenderTarget",
+	Buffer = "Buffer",
+	ClipNode = "ClipNode",
+	Playable = "Playable",
+	DragonBone = "DragonBone",
+	Spine = "Spine",
+	Model = "Model",
+	DrawNode = "DrawNode",
+	Entity = "Entity",
+	Group = "Group",
+	Texture2D = "Texture2D",
+	Grid = "Grid",
+	Sensor = "Sensor",
+	BodyDef = "BodyDef",
+	Body = "Body",
+	PhysicsWorld = "PhysicsWorld",
+	Joint = "Joint",
+	MotorJoint = "MotorJoint",
+	MoveJoint = "MoveJoint",
+	Sprite = "Sprite",
+	Label = "Label",
+	Line = "Line",
+	Menu = "Menu",
+	QLearner = "QLearner",
+	Particle = "Particle",
+	SVG = "SVG",
+	VGNode = "VGNode",
+}
+
+export interface TypeMap {
+	[TypeName.Size]: Size;
+	[TypeName.Vec2]: Vec2;
+	[TypeName.Rect]: Rect;
+	[TypeName.Color3]: Color3;
+	[TypeName.Color]: Color;
+	[TypeName.Object]: Object;
+	[TypeName.Action]: Action;
+	[TypeName.Array]: Array;
+	[TypeName.BlendFunc]: BlendFunc;
+	[TypeName.Scheduler]: Scheduler;
+	[TypeName.Dictionary]: Dictionary;
+	[TypeName.Camera]: Camera;
+	[TypeName.Camera2D]: Camera2D;
+	[TypeName.CameraOtho]: CameraOtho;
+	[TypeName.Pass]: Pass;
+	[TypeName.Effect]: Effect;
+	[TypeName.SpriteEffect]: SpriteEffect;
+	[TypeName.Node]: Node;
+	[TypeName.RenderTarget]: RenderTarget;
+	[TypeName.Buffer]: Buffer;
+	[TypeName.ClipNode]: ClipNode;
+	[TypeName.Playable]: Playable;
+	[TypeName.DragonBone]: DragonBone;
+	[TypeName.Spine]: Spine;
+	[TypeName.Model]: Model;
+	[TypeName.DrawNode]: DrawNode;
+	[TypeName.Entity]: Entity;
+	[TypeName.Group]: Group;
+	[TypeName.Texture2D]: Texture2D;
+	[TypeName.Grid]: Grid;
+	[TypeName.Sensor]: Sensor;
+	[TypeName.BodyDef]: BodyDef;
+	[TypeName.Body]: Body;
+	[TypeName.PhysicsWorld]: PhysicsWorld;
+	[TypeName.Joint]: Joint;
+	[TypeName.MotorJoint]: MotorJoint;
+	[TypeName.MoveJoint]: MoveJoint;
+	[TypeName.Sprite]: Sprite;
+	[TypeName.Label]: Label;
+	[TypeName.Line]: Line;
+	[TypeName.Menu]: Menu;
+	[TypeName.QLearner]: QLearner;
+	[TypeName.Particle]: Particle;
+	[TypeName.SVG]: SVG;
+	[TypeName.VGNode]: VGNode;
+}
 
 /**
  * `tolua` 对象提供了在 C++ 和 Lua 之间进行接口交互的实用工具。
@@ -5968,356 +6166,12 @@ export interface tolua {
 	type(this: void, item: any): string;
 
 	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * 尝试将一个 Lua 对象转换为特定的 C++ 类型的对象。
 	 * @param item 要转换的 Lua 对象。
-	 * @param name "Size"。
-	 * @returns 转换后的 Size 对象，如果转换失败则返回 `null`。
+	 * @param name C++ 类型对象的名称枚举。
+	 * @returns 转换后的对象，如果转换失败则返回 `null`。
 	 */
-	cast(this: void, item: any, name: "Size"): Size | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Vec2"。
-	 * @returns 转换后的 Vec2 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Vec2"): Vec2 | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Rect"。
-	 * @returns 转换后的 Rect 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Rect"): Rect | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Color3"。
-	 * @returns 转换后的 Color3 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Color3"): Color3 | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Color"。
-	 * @returns 转换后的 Color 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Color"): Color | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Object"。
-	 * @returns 转换后的 Object 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Object"): Object | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Action"。
-	 * @returns 转换后的 Action 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Action"): Action | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Array"。
-	 * @returns 转换后的 Array 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Array"): Array | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "BlendFunc"。
-	 * @returns 转换后的 BlendFunc 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "BlendFunc"): BlendFunc | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Scheduler"。
-	 * @returns 转换后的 Scheduler 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Scheduler"): Scheduler | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Dictionary"。
-	 * @returns 转换后的 Dictionary 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Dictionary"): Dictionary | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Camera"。
-	 * @returns 转换后的 Camera 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Camera"): Camera | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Camera2D"。
-	 * @returns 转换后的 Camera2D 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Camera2D"): Camera2D | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "CameraOtho"。
-	 * @returns 转换后的 CameraOtho 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "CameraOtho"): CameraOtho | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Pass"。
-	 * @returns 转换后的 Pass 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Pass"): Pass | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Effect"。
-	 * @returns 转换后的 Effect 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Effect"): Effect | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "SpriteEffect"。
-	 * @returns 转换后的 SpriteEffect 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "SpriteEffect"): SpriteEffect | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Node"。
-	 * @returns 转换后的 Node 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Node"): Node | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Buffer"。
-	 * @returns 转换后的 Buffer 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Buffer"): Buffer | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "ClipNode"。
-	 * @returns 转换后的 ClipNode 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "ClipNode"): ClipNode | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Playable"。
-	 * @returns 转换后的 Playable 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Playable"): Playable | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "DragonBone"。
-	 * @returns 转换后的 DragonBone 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "DragonBone"): DragonBone | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Spine"。
-	 * @returns 转换后的 Spine 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Spine"): Spine | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Model"。
-	 * @returns 转换后的 Model 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Model"): Model | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "DrawNode"。
-	 * @returns 转换后的 DrawNode 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "DrawNode"): DrawNode | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Entity"。
-	 * @returns 转换后的 Entity 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Entity"): Entity | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Group"。
-	 * @returns 转换后的 Group 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Group"): Group | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Texture2D"。
-	 * @returns 转换后的 Texture2D 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Texture2D"): Texture2D | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Grid"。
-	 * @returns 转换后的 Grid 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Grid"): Grid | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Sensor"。
-	 * @returns 转换后的 Sensor 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Sensor"): Sensor | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "BodyDef"。
-	 * @returns 转换后的 BodyDef 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "BodyDef"): BodyDef | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Body"。
-	 * @returns 转换后的 Body 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Body"): Body | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "PhysicsWorld"。
-	 * @returns 转换后的 PhysicsWorld 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "PhysicsWorld"): PhysicsWorld | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Joint"。
-	 * @returns 转换后的 Joint 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Joint"): Joint | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "MotorJoint"。
-	 * @returns 转换后的 MotorJoint 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "MotorJoint"): MotorJoint | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "MoveJoint"。
-	 * @returns 转换后的 MoveJoint 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "MoveJoint"): MoveJoint | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Sprite"。
-	 * @returns 转换后的 Sprite 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Sprite"): Sprite | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Label"。
-	 * @returns 转换后的 Label 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Label"): Label | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Line"。
-	 * @returns 转换后的 Line 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Line"): Line | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Menu"。
-	 * @returns 转换后的 Menu 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Menu"): Menu | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "QLearner"。
-	 * @returns 转换后的 QLearner 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "QLearner"): QLearner | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "Particle"。
-	 * @returns 转换后的 Particle 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "Particle"): Particle | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "SVG"。
-	 * @returns 转换后的 SVG 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "SVG"): SVG | null;
-
-	/**
-	 * 尝试将 Lua 对象转换为 C++ 类型对象。
-	 * @param item 要转换的 Lua 对象。
-	 * @param name "VGNode"。
-	 * @returns 转换后的 VGNode 对象，如果转换失败则返回 `null`。
-	 */
-	cast(this: void, item: any, name: "VGNode"): VGNode | null;
+	cast<k extends TypeName>(this: void, item: any, name: k): TypeMap[typeof name] | null;
 
 	/**
 	 * 获取特定类名的类对象。
