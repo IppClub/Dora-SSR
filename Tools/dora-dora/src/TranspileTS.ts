@@ -167,7 +167,7 @@ export async function transpileTypescript(
 		program,
 		writeFile: collector.writeFile
 	});
-	diagnostics = [...diagnostics, ...res.diagnostics];
+	diagnostics = [...diagnostics, ...res.diagnostics].filter(d => d.code !== 2497 && d.code !== 2666);
 	if (diagnostics.length > 0) {
 		Service.addLog(
 			(Service.getLog() !== "" ? "\n" : "") +

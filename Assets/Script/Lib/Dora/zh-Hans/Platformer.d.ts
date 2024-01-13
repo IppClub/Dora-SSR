@@ -1,7 +1,6 @@
 /// <reference path="dora.d.ts" />
 
 declare module "Platformer" {
-
 import {
 	BodyType as Body,
 	PlayableType as Playable,
@@ -21,7 +20,6 @@ import {
 
 /** 代表游戏单位可以执行的动作的类。 */
 class UnitAction {
-
 	private constructor();
 
 	/**
@@ -53,7 +51,6 @@ export type {UnitAction as UnitActionType};
 
 /** 定义游戏单位动作参数的接口。 */
 export interface UnitActionParam {
-
 	/** 单位动作的优先级。优先级更高（数值更大）的单位动作会替换优先级较低的单位动作。 */
 	priority: number;
 
@@ -95,7 +92,6 @@ export interface UnitActionParam {
  * 这是管理所有游戏单位动作对象的单例对象。
  */
 interface UnitActionClass {
-
 	/**
 	 * 添加具有指定名称和参数的新单位动作定义。
 	 * @param name 新单位动作的名称。
@@ -116,7 +112,6 @@ export {unitActionClass as UnitAction};
  * 代表游戏场景中的角色或其他交互项目的类。
  */
 class Unit extends Body {
-
 	private constructor();
 
 	/**
@@ -252,7 +247,6 @@ export type {Unit as UnitType};
  * 用于创建游戏单位实例的类。
  */
 interface UnitClass {
-
 	/**
 	 * 附加到游戏单位的"GroundSensor"的标签。
 	 */
@@ -305,7 +299,6 @@ export const enum Relation {
  * 提供集中存储和访问游戏相关数据的单例对象。
  */
 interface Data {
-
 	/**
 	 * 表示游戏单位分组的第一个编号。
 	 */
@@ -473,7 +466,6 @@ export {data as Data};
  * 定义子弹对象如何根据其与其他游戏对象或游戏单位的根据不同关系进行交互的类。
  */
 class TargetAllow {
-
 	/**
 	 * 子弹对象是否可以与地形碰撞。
 	 */
@@ -494,6 +486,8 @@ class TargetAllow {
 	isAllow(relation: Relation): boolean;
 }
 
+export type {TargetAllow as TargetAllowType};
+
 /**
  * 定义子弹对象如何根据其与其他游戏对象或游戏单位的关系进行交互的类。
  * @example
@@ -502,7 +496,6 @@ class TargetAllow {
  * targetAllow.allow("Enemy", true);
  */
 interface TargetAllowClass {
-
 	/**
 	 * 调用此函数以创建TargetAllow的实例。
 	 * @returns TargetAllow的实例。
@@ -517,7 +510,6 @@ export {targetAllowClass as TargetAllow};
  * 2D平台游戏的相机，可以跟踪游戏单位的移动并将其保持在相机的视野内。
  */
 class PlatformCamera extends Camera {
-
 	private constructor();
 
 	/**
@@ -553,11 +545,12 @@ class PlatformCamera extends Camera {
 	followTarget: Node;
 }
 
+export type {PlatformCamera as PlatformCameraType};
+
 /**
  * 定义如何创建2D平台游戏的相机实例的类。
  */
 interface PlatformCameraClass {
-
 	/**
 	 * 创建一个新的2D平台游戏的相机实例。
 	 * @param name [可选] 新实例的名称，默认为空字符串。
@@ -573,7 +566,6 @@ export {platformCameraClass as PlatformCamera};
  * 代表一个具有物理模拟的2D平台游戏世界的类。
  */
 class PlatformWorld extends PhysicsWorld {
-
 	private constructor();
 
 	/**
@@ -653,7 +645,6 @@ export type {PlatformWorld as PlatformWorldType};
  * ```
  */
 interface PlatformWorldClass {
-
 	/**
 	 * 创建PlatformWorld新实例的元方法。
 	 * @returns PlatformWorld的新实例。
@@ -668,7 +659,6 @@ export {platformWorldClass as PlatformWorld};
  * 代表游戏子弹或其他视觉项目的可视组件的定义。
  */
 class Face extends Node {
-
 	/**
 	 * 添加子可视组件定义。
 	 * @param face 要添加的子可视组件。
@@ -698,7 +688,6 @@ export type {Face as FaceType};
  * ```
  */
 interface FaceClass {
-
 	/**
 	 * 使用指定的属性创建新的可视组件定义。
 	 * @param faceStr 用于创建可视组件的字符串。
@@ -740,7 +729,6 @@ export {faceClass as Face};
  * 用于表示粒子、帧动画或仅仅是精灵的视觉效果对象的类。
  */
 class Visual extends Node {
-
 	private constructor();
 
 	/**
@@ -771,7 +759,6 @@ export type {Visual as VisualType};
 * 用于创建视觉效果对象的类。
 */
 interface VisualClass {
-
 	/**
 	 * 使用指定的名称创建新的视觉效果对象。
 	 * @param name 新视觉效果对象的名称。
@@ -786,12 +773,10 @@ export {visualClass as Visual};
 
 /** 用于创建游戏AI结构的行为树框架。 */
 export namespace Behavior {
-
 /**
  * 可用于存储行为树节点数据的黑板对象。
  */
 class Blackboard {
-
 	private constructor();
 
 	/**
@@ -916,7 +901,6 @@ export function Retry(this: void, node: Leaf): Leaf;
  * 单例接口，用于在执行决策树时获取信息。
  */
 interface AI {
-
 	/**
 	 * 获取在检测范围内与当前执行AI具有指定关系的游戏单位数组。
 	 * @param relation 用于过滤游戏单位的关系。
@@ -967,7 +951,6 @@ interface AI {
  * 用于创建游戏AI结构的决策树框架。
  */
 export namespace Decision {
-
 /**
  * 决策树中的叶节点。
  */
@@ -1048,7 +1031,6 @@ export const AI: AI;
  * 该类定义了游戏中子弹对象的属性和行为。
  */
 class BulletDef extends Object {
-
 	private constructor();
 
 	/**
@@ -1128,7 +1110,6 @@ export {bulletDefClass as BulletDef};
  * 该类定义了游戏中子弹对象实例的属性和行为。
  */
 class Bullet extends Body {
-
 	private constructor();
 
 	/**
@@ -1173,7 +1154,6 @@ export type {Bullet as BulletType};
 * 创建新的子弹对象实例的接口类型。
 */
 interface BulletClass {
-
 	/**
 	 * 创建一个新的子弹对象实例，具有指定的子弹定义和所属游戏单位对象。
 	 * @param def 定义子弹的属性和行为的对象。
@@ -1187,3 +1167,100 @@ const bulletClass: BulletClass;
 export {bulletClass as Bullet};
 
 } // module "Platformer"
+
+declare module "dora" {
+import {
+	Behavior,
+	BulletType as Bullet,
+	Decision,
+	FaceType as Face,
+	PlatformWorldType as PlatformWorld,
+	TargetAllowType as TargetAllow,
+	UnitType as Unit,
+	UnitActionType as UnitAction,
+	VisualType as Visual,
+} from 'Platformer';
+
+export interface tolua {
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Platformer::PlatformWorld"。
+	 * @returns 转换后的 PlatformWorld 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Platformer::PlatformWorld"): PlatformWorld | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Platformer::Unit"。
+	 * @returns 转换后的 Unit 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Platformer::Unit"): Unit | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Platformer::UnitAction"。
+	 * @returns 转换后的 UnitAction 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Platformer::UnitAction"): UnitAction | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Platformer::Bullet"。
+	 * @returns 转换后的 Bullet 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Platformer::Bullet"): Bullet | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Platformer::Visual"。
+	 * @returns 转换后的 Visual 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Platformer::Visual"): Visual | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Platformer::Face"。
+	 * @returns 转换后的 Face 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Platformer::Face"): Face | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Platformer::Decision::Leaf"。
+	 * @returns 转换后的 Decision.Leaf 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Platformer::Decision::Leaf"): Decision.Leaf | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Platformer::Behavior::Leaf"。
+	 * @returns 转换后的 Behavior.Leaf 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Platformer::Behavior::Leaf"): Behavior.Leaf | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Platformer::Behavior::Blackboard"。
+	 * @returns 转换后的 Behavior.Blackboard 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Platformer::Behavior::Blackboard"): Behavior.Blackboard | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Platformer::TargetAllow"。
+	 * @returns 转换后的 TargetAllow 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Platformer::TargetAllow"): TargetAllow | null;
+}
+
+} // module "dora"

@@ -698,7 +698,7 @@ export {objectClass as Object};
 /** An empty interface as action definition instance. */
 type ActionDef = BasicType<'ActionDef'>;
 
-export type {ActionDef};
+export type {ActionDef as ActionDefType};
 
 /** Represents an action that can be run on a node */
 interface Action extends Object {
@@ -734,7 +734,7 @@ interface Action extends Object {
 	updateTo(elapsed: number, reversed?: boolean): void;
 }
 
-export type {Action};
+export type {Action as ActionType};
 
 /** A class for creating an action that can be run on a Node */
 interface ActionClass {
@@ -746,7 +746,8 @@ interface ActionClass {
 	(this: void, actionDef: ActionDef): Action;
 }
 
-export const Action: ActionClass;
+export const actionClass: ActionClass;
+export {actionClass as Action};
 
 /** Type for each easing function. */
 type EaseFunc = BasicType<'EaseFunc', number>;
@@ -5887,6 +5888,8 @@ class SVG extends Object {
 	render(): void;
 }
 
+export type {SVG as SVGType};
+
 /**
  * A class for creating SVG objects.
  */
@@ -5907,6 +5910,8 @@ class VGNode extends Node {
 	surface: Sprite;
 	render(func: (this: void) => void): void;
 }
+
+export type {VGNode as VGNodeType};
 
 interface VGNodeClass {
 	(this: void, width: number, height: number, scale?: number, edgeAA?: number): VGNode;
@@ -5954,7 +5959,7 @@ export type VGPaintType = BasicType<"VGPaint">;
 /**
  * The `tolua` object provides utilities for interfacing between C++ and Lua.
  */
-interface tolua {
+export interface tolua {
 	/**
 	 * Returns the C++ object type of a Lua object.
 	 * @param item The Lua object to get the type of.
@@ -5965,10 +5970,354 @@ interface tolua {
 	/**
 	 * Attempts to cast a Lua object to a C++ type object.
 	 * @param item The Lua object to cast.
-	 * @param name The name of the C++ type to cast to.
-	 * @returns The cast object, or `null` if the cast fails.
+	 * @param name "Size".
+	 * @returns The Size object, or `null` if the cast fails.
 	 */
-	cast<T>(this: void, item: any, name: string): T | null;
+	cast(this: void, item: any, name: "Size"): Size | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Vec2".
+	 * @returns The Vec2 object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Vec2"): Vec2 | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Rect".
+	 * @returns The Rect object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Rect"): Rect | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Color3".
+	 * @returns The Color3 object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Color3"): Color3 | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Color".
+	 * @returns The Color object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Color"): Color | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Object".
+	 * @returns The Object object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Object"): Object | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Action".
+	 * @returns The Action object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Action"): Action | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Array".
+	 * @returns The Array object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Array"): Array | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "BlendFunc".
+	 * @returns The BlendFunc object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "BlendFunc"): BlendFunc | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Scheduler".
+	 * @returns The Scheduler object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Scheduler"): Scheduler | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Dictionary".
+	 * @returns The Dictionary object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Dictionary"): Dictionary | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Camera".
+	 * @returns The Camera object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Camera"): Camera | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Camera2D".
+	 * @returns The Camera2D object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Camera2D"): Camera2D | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "CameraOtho".
+	 * @returns The CameraOtho object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "CameraOtho"): CameraOtho | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Pass".
+	 * @returns The Pass object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Pass"): Pass | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Effect".
+	 * @returns The Effect object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Effect"): Effect | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "SpriteEffect".
+	 * @returns The SpriteEffect object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "SpriteEffect"): SpriteEffect | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Node".
+	 * @returns The Node object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Node"): Node | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Buffer".
+	 * @returns The Buffer object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Buffer"): Buffer | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "ClipNode".
+	 * @returns The ClipNode object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "ClipNode"): ClipNode | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Playable".
+	 * @returns The Playable object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Playable"): Playable | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "DragonBone".
+	 * @returns The DragonBone object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "DragonBone"): DragonBone | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Spine".
+	 * @returns The Spine object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Spine"): Spine | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Model".
+	 * @returns The Model object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Model"): Model | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "DrawNode".
+	 * @returns The DrawNode object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "DrawNode"): DrawNode | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Entity".
+	 * @returns The Entity object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Entity"): Entity | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Group".
+	 * @returns The Group object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Group"): Group | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Texture2D".
+	 * @returns The Texture2D object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Texture2D"): Texture2D | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Grid".
+	 * @returns The Grid object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Grid"): Grid | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Sensor".
+	 * @returns The Sensor object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Sensor"): Sensor | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "BodyDef".
+	 * @returns The BodyDef object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "BodyDef"): BodyDef | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Body".
+	 * @returns The Body object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Body"): Body | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "PhysicsWorld".
+	 * @returns The PhysicsWorld object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "PhysicsWorld"): PhysicsWorld | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Joint".
+	 * @returns The Joint object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Joint"): Joint | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "MotorJoint".
+	 * @returns The MotorJoint object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "MotorJoint"): MotorJoint | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "MoveJoint".
+	 * @returns The MoveJoint object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "MoveJoint"): MoveJoint | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Sprite".
+	 * @returns The Sprite object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Sprite"): Sprite | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Label".
+	 * @returns The Label object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Label"): Label | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Line".
+	 * @returns The Line object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Line"): Line | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Menu".
+	 * @returns The Menu object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Menu"): Menu | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "QLearner".
+	 * @returns The QLearner object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "QLearner"): QLearner | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Particle".
+	 * @returns The Particle object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Particle"): Particle | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "SVG".
+	 * @returns The SVG object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "SVG"): SVG | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "VGNode".
+	 * @returns The VGNode object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "VGNode"): VGNode | null;
 
 	/**
 	 * Gets the class object for a given class name.
@@ -5992,8 +6341,7 @@ interface tolua {
 	getpeer(this: void, obj: Object): { [key: string | number]: any } | null;
 }
 
-const toluaInst: tolua;
-export {toluaInst as tolua};
+export const tolua: tolua;
 
 } // module "dora"
 
