@@ -87,16 +87,16 @@ if App.platform in ["Linux", "Windows", "macOS"]
 				sleep!
 				sleep!
 				showEntry = true
-	x: winX, y: winY = App.winPosition
-	if config.winX?
-		winX = config.winX
-	else
-		config.winX = 0
-	if config.winY?
-		winY = config.winY
-	else
-		config.winY = 0
-	App.winPosition = Vec2 winX, winY
+		x: winX, y: winY = App.winPosition
+		if config.winX?
+			winX = config.winX
+		else
+			config.winX = 0
+		if config.winY?
+			winY = config.winY
+		else
+			config.winY = 0
+		App.winPosition = Vec2 winX, winY
 
 if config.themeColor?
 	App.themeColor = Color config.themeColor

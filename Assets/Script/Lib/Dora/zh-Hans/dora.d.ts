@@ -702,7 +702,7 @@ export {objectClass as Object};
 /** 动作定义对象的类型。 */
 type ActionDef = BasicType<'ActionDef'>;
 
-export type {ActionDef};
+export type {ActionDef as ActionDefType};
 
 /** 表示可以在节点上运行的动作对象的类 */
 interface Action extends Object {
@@ -738,7 +738,7 @@ interface Action extends Object {
 	updateTo(elapsed: number, reversed?: boolean): void;
 }
 
-export type {Action};
+export type {Action as ActionType};
 
 /** 用于创建可以在节点上运行的动作的类 */
 interface ActionClass {
@@ -750,7 +750,8 @@ interface ActionClass {
 	(this: void, actionDef: ActionDef): Action;
 }
 
-export const Action: ActionClass;
+export const actionClass: ActionClass;
+export {actionClass as Action};
 
 /** 缓动函数对象的类型。 */
 type EaseFunc = BasicType<'EaseFunc', number>;
@@ -5887,6 +5888,8 @@ class SVG extends Object {
 	render(): void;
 }
 
+export type {SVG as SVGType};
+
 /**
  * 用于创建 SVG 对象的类。
  */
@@ -5907,6 +5910,8 @@ class VGNode extends Node {
 	surface: Sprite;
 	render(func: (this: void) => void): void;
 }
+
+export type {VGNode as VGNodeType};
 
 interface VGNodeClass {
 	(this: void, width: number, height: number, scale?: number, edgeAA?: number): VGNode;
@@ -5954,7 +5959,7 @@ export type VGPaintType = BasicType<"VGPaint">;
 /**
  * `tolua` 对象提供了在 C++ 和 Lua 之间进行接口交互的实用工具。
  */
-interface tolua {
+export interface tolua {
 	/**
 	 * 返回 Lua 对象的 C++ 对象类型。
 	 * @param item 要获取类型的 Lua 对象。
@@ -5965,10 +5970,354 @@ interface tolua {
 	/**
 	 * 尝试将 Lua 对象转换为 C++ 类型对象。
 	 * @param item 要转换的 Lua 对象。
-	 * @param name 要转换为的 C++ 类型的名称。
-	 * @returns 转换后的对象，如果转换失败则返回 `null`。
+	 * @param name "Size"。
+	 * @returns 转换后的 Size 对象，如果转换失败则返回 `null`。
 	 */
-	cast<T>(this: void, item: any, name: string): T | null;
+	cast(this: void, item: any, name: "Size"): Size | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Vec2"。
+	 * @returns 转换后的 Vec2 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Vec2"): Vec2 | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Rect"。
+	 * @returns 转换后的 Rect 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Rect"): Rect | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Color3"。
+	 * @returns 转换后的 Color3 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Color3"): Color3 | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Color"。
+	 * @returns 转换后的 Color 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Color"): Color | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Object"。
+	 * @returns 转换后的 Object 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Object"): Object | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Action"。
+	 * @returns 转换后的 Action 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Action"): Action | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Array"。
+	 * @returns 转换后的 Array 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Array"): Array | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "BlendFunc"。
+	 * @returns 转换后的 BlendFunc 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "BlendFunc"): BlendFunc | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Scheduler"。
+	 * @returns 转换后的 Scheduler 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Scheduler"): Scheduler | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Dictionary"。
+	 * @returns 转换后的 Dictionary 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Dictionary"): Dictionary | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Camera"。
+	 * @returns 转换后的 Camera 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Camera"): Camera | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Camera2D"。
+	 * @returns 转换后的 Camera2D 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Camera2D"): Camera2D | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "CameraOtho"。
+	 * @returns 转换后的 CameraOtho 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "CameraOtho"): CameraOtho | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Pass"。
+	 * @returns 转换后的 Pass 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Pass"): Pass | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Effect"。
+	 * @returns 转换后的 Effect 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Effect"): Effect | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "SpriteEffect"。
+	 * @returns 转换后的 SpriteEffect 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "SpriteEffect"): SpriteEffect | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Node"。
+	 * @returns 转换后的 Node 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Node"): Node | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Buffer"。
+	 * @returns 转换后的 Buffer 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Buffer"): Buffer | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "ClipNode"。
+	 * @returns 转换后的 ClipNode 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "ClipNode"): ClipNode | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Playable"。
+	 * @returns 转换后的 Playable 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Playable"): Playable | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "DragonBone"。
+	 * @returns 转换后的 DragonBone 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "DragonBone"): DragonBone | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Spine"。
+	 * @returns 转换后的 Spine 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Spine"): Spine | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Model"。
+	 * @returns 转换后的 Model 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Model"): Model | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "DrawNode"。
+	 * @returns 转换后的 DrawNode 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "DrawNode"): DrawNode | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Entity"。
+	 * @returns 转换后的 Entity 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Entity"): Entity | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Group"。
+	 * @returns 转换后的 Group 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Group"): Group | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Texture2D"。
+	 * @returns 转换后的 Texture2D 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Texture2D"): Texture2D | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Grid"。
+	 * @returns 转换后的 Grid 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Grid"): Grid | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Sensor"。
+	 * @returns 转换后的 Sensor 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Sensor"): Sensor | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "BodyDef"。
+	 * @returns 转换后的 BodyDef 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "BodyDef"): BodyDef | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Body"。
+	 * @returns 转换后的 Body 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Body"): Body | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "PhysicsWorld"。
+	 * @returns 转换后的 PhysicsWorld 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "PhysicsWorld"): PhysicsWorld | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Joint"。
+	 * @returns 转换后的 Joint 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Joint"): Joint | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "MotorJoint"。
+	 * @returns 转换后的 MotorJoint 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "MotorJoint"): MotorJoint | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "MoveJoint"。
+	 * @returns 转换后的 MoveJoint 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "MoveJoint"): MoveJoint | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Sprite"。
+	 * @returns 转换后的 Sprite 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Sprite"): Sprite | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Label"。
+	 * @returns 转换后的 Label 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Label"): Label | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Line"。
+	 * @returns 转换后的 Line 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Line"): Line | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Menu"。
+	 * @returns 转换后的 Menu 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Menu"): Menu | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "QLearner"。
+	 * @returns 转换后的 QLearner 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "QLearner"): QLearner | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "Particle"。
+	 * @returns 转换后的 Particle 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "Particle"): Particle | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "SVG"。
+	 * @returns 转换后的 SVG 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "SVG"): SVG | null;
+
+	/**
+	 * 尝试将 Lua 对象转换为 C++ 类型对象。
+	 * @param item 要转换的 Lua 对象。
+	 * @param name "VGNode"。
+	 * @returns 转换后的 VGNode 对象，如果转换失败则返回 `null`。
+	 */
+	cast(this: void, item: any, name: "VGNode"): VGNode | null;
 
 	/**
 	 * 获取特定类名的类对象。
@@ -5992,8 +6341,7 @@ interface tolua {
 	getpeer(this: void, obj: Object): { [key: string | number]: any } | null;
 }
 
-const toluaInst: tolua;
-export {toluaInst as tolua};
+export const tolua: tolua;
 
 } // module "dora"
 

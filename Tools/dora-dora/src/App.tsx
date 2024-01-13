@@ -487,6 +487,7 @@ export default function PersistentDrawerLeft() {
 		}
 		if (ext === "tsx" || ext === "ts") {
 			await AutoTypings.create(editor, {
+				debounceDuration: 2000,
 				sourceCache: {
 					isFileAvailable: async (uri: string) => {
 						const res = await Service.exist({file: uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri});
@@ -1947,7 +1948,7 @@ export default function PersistentDrawerLeft() {
 			}
 			if (file.editor !== undefined) {
 				const filtered = markers.filter(marker => {
-					return marker.message !== "This module can only be referenced with ECMAScript imports/exports by turning on the 'allowSyntheticDefaultImports' flag and referencing its default export.";
+					return marker.code !== "2497" && marker.code !== "2666";
 				});
 				if (filtered.length !== markers.length) {
 					const model = file.editor.getModel();

@@ -1,7 +1,6 @@
 /// <reference path="dora.d.ts" />
 
 declare module "Platformer" {
-
 import {
 	BodyType as Body,
 	PlayableType as Playable,
@@ -21,7 +20,6 @@ import {
 
 /** A class that represents an action that can be performed by a "Unit". */
 class UnitAction {
-
 	private constructor();
 
 	/**
@@ -53,7 +51,6 @@ export type {UnitAction as UnitActionType};
 
 /** An interface that defines the parameters for a "UnitAction". */
 export interface UnitActionParam {
-
 	/** The priority level for the "UnitAction". Higher priority (larger number) replaces lower priority "UnitActions". */
 	priority: number;
 
@@ -95,7 +92,6 @@ export interface UnitActionParam {
  * It is a singleton object that manages all "UnitAction" objects.
  */
 interface UnitActionClass {
-
 	/**
 	 * Adds a new "UnitAction" to the "UnitActionClass" with the specified name and parameters.
 	 * @param name The name of the new "UnitAction".
@@ -116,7 +112,6 @@ export {unitActionClass as UnitAction};
  * A class represents a character or other interactive item in a game scene.
  */
 class Unit extends Body {
-
 	private constructor();
 
 	/**
@@ -252,7 +247,6 @@ export type {Unit as UnitType};
  * A class for creating instances of Unit.
  */
 interface UnitClass {
-
 	/**
 	 * The tag for the "GroundSensor" attached to each "Unit".
 	 */
@@ -305,7 +299,6 @@ export const enum Relation {
  * A singleton object that provides a centralized location for storing and accessing game-related data.
  */
 interface Data {
-
 	/**
 	 * A group key representing the first index for a player group.
 	 */
@@ -473,7 +466,6 @@ export {data as Data};
  * A class that specifies how a bullet object should interact with other game objects or units based on their relationship.
  */
 class TargetAllow {
-
 	/**
 	 * Whether the bullet object can collide with terrain.
 	 */
@@ -494,6 +486,8 @@ class TargetAllow {
 	isAllow(relation: Relation): boolean;
 }
 
+export type {TargetAllow as TargetAllowType};
+
 /**
  * A class that specifies how a bullet object should interact with other game objects or units based on their relationship.
  * @usage
@@ -502,7 +496,6 @@ class TargetAllow {
  * targetAllow.allow("Enemy", true);
  */
 interface TargetAllowClass {
-
 	/**
 	 * Call this function to create an instance of TargetAllow.
 	 * @returns An instance of TargetAllow.
@@ -517,7 +510,6 @@ export {targetAllowClass as TargetAllow};
  * A platform camera for 2D platformer games that can track a game unit's movement and keep it within the camera's view.
  */
 class PlatformCamera extends Camera {
-
 	private constructor();
 
 	/**
@@ -557,7 +549,6 @@ class PlatformCamera extends Camera {
  * A class that defines how to create instances of PlatformCamera.
  */
 interface PlatformCameraClass {
-
 	/**
 	 * Creates a new instance of PlatformCamera.
 	 * @param name [optional] The name of the new instance, default is an empty string.
@@ -573,7 +564,6 @@ export {platformCameraClass as PlatformCamera};
  * A class representing a 2D platformer game world with physics simulations.
  */
 class PlatformWorld extends PhysicsWorld {
-
 	private constructor();
 
 	/**
@@ -653,7 +643,6 @@ export type {PlatformWorld as PlatformWorldType};
  * ```
  */
 interface PlatformWorldClass {
-
 	/**
 	 * The metamethod to create a new instance of PlatformWorld.
 	 * @returns A new instance of PlatformWorld.
@@ -668,7 +657,6 @@ export {platformWorldClass as PlatformWorld};
  * Represents a definition for a visual component of a game bullet or other visual item.
  */
 class Face extends Node {
-
 	/**
 	 * Adds a child `Face` definition to it.
 	 * @param face The child `Face` to add.
@@ -698,7 +686,6 @@ export type {Face as FaceType};
  * ```
  */
 interface FaceClass {
-
 	/**
 	 * Creates a new `Face` definition using the specified attributes.
 	 * @param faceStr A string for creating the `Face` component.
@@ -740,7 +727,6 @@ export {faceClass as Face};
  * A class to represent a visual effect object like Particle, Frame Animation, or just a Sprite.
  */
 class Visual extends Node {
-
 	private constructor();
 
 	/**
@@ -771,7 +757,6 @@ export type {Visual as VisualType};
 * A class for creating "Visual" objects.
 */
 interface VisualClass {
-
 	/**
 	 * Creates a new "Visual" object with the specified name.
 	 * @param name The name of the new "Visual" object.
@@ -786,12 +771,10 @@ export {visualClass as Visual};
 
 /** A behavior tree framework for creating game AI structures. */
 export namespace Behavior {
-
 /**
  * A blackboard object that can be used to store data for behavior tree nodes.
  */
 class Blackboard {
-
 	private constructor();
 
 	/**
@@ -916,7 +899,6 @@ export function Retry(this: void, node: Leaf): Leaf;
  * The singleton interface to retrieve information when executing the decision tree.
  */
 interface AI {
-
 	/**
 	 * Gets an array of units in detection range that have the specified relation to current AI agent.
 	 * @param relation The relation to filter the units by.
@@ -967,7 +949,6 @@ interface AI {
  * A decision tree framework for creating game AI structures.
  */
 export namespace Decision {
-
 /**
  * A leaf node in a decision tree.
  */
@@ -1047,7 +1028,6 @@ export const AI: AI;
  * A class type that specifies the properties and behaviors of a bullet object in the game.
  */
 class BulletDef extends Object {
-
 	private constructor();
 
 	/**
@@ -1127,7 +1107,6 @@ export {bulletDefClass as BulletDef};
  * A class type that defines the properties and behavior of a bullet object instance in the game.
  */
 class Bullet extends Body {
-
 	private constructor();
 
 	/**
@@ -1172,7 +1151,6 @@ export type {Bullet as BulletType};
 * An interface type that creates new `Bullet` object instances.
 */
 interface BulletClass {
-
 	/**
 	 * A metamethod that creates a new `Bullet` object instance with the specified `BulletDef` and `Unit` objects.
 	 * @param def The `BulletDef` object that defines the bullet's properties and behavior.
@@ -1186,3 +1164,100 @@ const bulletClass: BulletClass;
 export {bulletClass as Bullet};
 
 } // module "Platformer"
+
+declare module "dora" {
+import {
+	Behavior,
+	BulletType as Bullet,
+	Decision,
+	FaceType as Face,
+	PlatformWorldType as PlatformWorld,
+	TargetAllowType as TargetAllow,
+	UnitType as Unit,
+	UnitActionType as UnitAction,
+	VisualType as Visual,
+} from 'Platformer';
+
+export interface tolua {
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Platformer::PlatformWorld".
+	 * @returns The PlatformWorld object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Platformer::PlatformWorld"): PlatformWorld | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Platformer::Unit".
+	 * @returns The Unit object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Platformer::Unit"): Unit | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Platformer::UnitAction".
+	 * @returns The UnitAction object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Platformer::UnitAction"): UnitAction | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Platformer::Bullet".
+	 * @returns The Bullet object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Platformer::Bullet"): Bullet | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Platformer::Visual".
+	 * @returns The Visual object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Platformer::Visual"): Visual | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Platformer::Face".
+	 * @returns The Face object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Platformer::Face"): Face | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Platformer::Decision::Leaf".
+	 * @returns The Decision.Leaf object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Platformer::Decision::Leaf"): Decision.Leaf | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Platformer::Behavior::Leaf".
+	 * @returns The Behavior.Leaf object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Platformer::Behavior::Leaf"): Behavior.Leaf | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Platformer::Behavior::Blackboard".
+	 * @returns The Behavior.Blackboard object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Platformer::Behavior::Blackboard"): Behavior.Blackboard | null;
+
+	/**
+	 * Attempts to cast a Lua object to a C++ type object.
+	 * @param item The Lua object to cast.
+	 * @param name "Platformer::TargetAllow".
+	 * @returns The TargetAllow object, or `null` if the cast fails.
+	 */
+	cast(this: void, item: any, name: "Platformer::TargetAllow"): TargetAllow | null;
+}
+
+} // module "dora"
