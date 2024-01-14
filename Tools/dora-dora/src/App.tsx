@@ -768,7 +768,7 @@ export default function PersistentDrawerLeft() {
 				}
 			} else {
 				const ext = path.extname(file.key).toLowerCase();
-				if (file.contentModified !== null && (ext === '.ts' || ext === '.tsx')) {
+				if (file.contentModified !== null && (ext === '.ts' || ext === '.tsx') && !file.key.toLocaleLowerCase().endsWith(".d.ts")) {
 					const {key, contentModified} = file;
 					import('./TranspileTS').then(({transpileTypescript}) => {
 						transpileTypescript(key, contentModified).then(luaCode => {
