@@ -9,7 +9,7 @@ export class DependencyParser {
   public parseDependencies(source: string, parent: ImportResourcePath | string): ImportResourcePath[] {
     const cleaned = source; // source.replace(this.REGEX_CLEAN, '');
     return [...cleaned.matchAll(this.REGEX_DETECT_IMPORT)]
-      .map(x => x[1] ?? x[2] ?? x[3])
+      .map(x => x[1] ?? x[2] ?? x[3] ?? x[4])
       .filter(x => !!x)
       .map(imp => this.resolvePath(imp, parent));
   }
