@@ -7727,6 +7727,11 @@ monaco-editor@^0.45.0:
   resolved "https://registry.npmmirror.com/monaco-editor/-/monaco-editor-0.45.0.tgz#6939123a6254aea9fea2d647697f846306dd4448"
   integrity sha512-mjv1G1ZzfEE3k9HZN0dQ2olMdwIfaeAAjFiwNprLfYNRSz7ctv9XuCT7gPtBGrMUeV1/iZzYKj17Khu1hxoHOA==
 
+monaco-jsx-syntax-highlight@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.npmmirror.com/monaco-jsx-syntax-highlight/-/monaco-jsx-syntax-highlight-1.2.0.tgz#cc2e69fa9918693a4f1ceb18b972f662a51c454b"
+  integrity sha512-sKzfmNMxLp3Dcwndz0F/EdP3rqe+Z6FbDPazj+/ByNbqoXWkzgb/ocat8h3vpiTwPPiDtSHidT0BFMvLkMtG8A==
+
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.npmmirror.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"

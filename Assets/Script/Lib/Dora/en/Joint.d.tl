@@ -118,8 +118,8 @@ local record JointClass
 	-- @param canCollide (boolean) Whether or not the connected bodies will collide with each other.
 	-- @param bodyA (Body) The first physics body to connect.
 	-- @param bodyB (Body) The second physics body to connect.
-	-- @param anchorA (Vec2) The position of the anchor point on the first body in world coordinates.
-	-- @param anchorB (Vec2) The position of the anchor point on the second body in world coordinates.
+	-- @param anchorA (Vec2) The position of the anchor point on the first body.
+	-- @param anchorB (Vec2) The position of the anchor point on the second body.
 	-- @param groundAnchorA (Vec2) The position of the ground anchor point on the first body in world coordinates.
 	-- @param groundAnchorB (Vec2) The position of the ground anchor point on the second body in world coordinates.
 	-- @param ratio (number) [optinal] The pulley ratio (default 1.0).
