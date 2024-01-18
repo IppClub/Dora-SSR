@@ -235,6 +235,7 @@ Observer(ObserverEvent.Add, ["player"]).watch(self => {
 
 Observer(ObserverEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string) => {
 	const sprite = Sprite(icon);
+	if (!sprite) return;
 	sprite.schedule(loop(() => {
 		sleep(sprite.runAction(Spawn(
 			AngleY(5, 0, 360),
@@ -471,6 +472,7 @@ Director.ui.schedule(() => {
 				if (ImGui.ImageButton("item" + item.no, item.icon, Vec2(50, 50))) {
 					item.num -= 1;
 					const sprite = Sprite(item.icon);
+					if (!sprite) return false;
 					sprite.scaleX = 0.5;
 					sprite.scaleY = 0.5;
 					sprite.perform(Spawn(

@@ -8,8 +8,7 @@ const world = PhysicsWorld();
 world.setShouldContact(0, 0, true);
 world.showDebug = true;
 
-const label = Label("sarasa-mono-sc-regular", 30);
-label.addTo(world);
+const label = Label("sarasa-mono-sc-regular", 30)?.addTo(world);
 
 const terrainDef = BodyDef();
 const count = 50;
@@ -48,7 +47,9 @@ disk.angularRate = -1800;
 disk.receivingContact = true;
 disk.slot(Slot.ContactStart, (_, point) => {
 	drawNode.position = point
-	label.text = string.format("Contact: [%.0f,%.0f]", point.x, point.y);
+	if (label !== undefined) {
+		label.text = string.format("Contact: [%.0f,%.0f]", point.x, point.y);
+	}
 });
 const windowFlags = [
 	WindowFlag.NoDecoration,
@@ -72,7 +73,7 @@ threadLoop(() => {
 		[changed, receivingContact] = ImGui.Checkbox("Receiving Contact", receivingContact);
 		if (changed) {
 			disk.receivingContact = receivingContact;
-			label.text = "";
+			if (label !== undefined) label.text = "";
 		}
 	});
 	return false;

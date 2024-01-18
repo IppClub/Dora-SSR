@@ -40,9 +40,6 @@ import LogView from './LogView';
 import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
 import { TbSwitchVertical } from "react-icons/tb";
 import './Editor';
-import { MonacoJsxSyntaxHighlight } from 'monaco-jsx-syntax-highlight';
-
-const jsxSyntaxHighlight = new MonacoJsxSyntaxHighlight("/jsx-worker.js", monaco);
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -495,15 +492,17 @@ export default function PersistentDrawerLeft() {
 		}
 		if (ext === "tsx" || ext === "ts") {
 			if (ext === "tsx") {
-				const { highlighter, dispose } = jsxSyntaxHighlight.highlighterBuilder({
-					editor,
-				});
-				highlighter();
-				editor.onDidChangeModelContent(() => {
+				import('./languages/jsx-monaco').then(({jsxSyntaxHighlight}) => {
+					const { highlighter, dispose } = jsxSyntaxHighlight.highlighterBuilder({
+						editor,
+					});
 					highlighter();
-				})
-				editor.onDidDispose(() => {
-					dispose();
+					editor.onDidChangeModelContent(() => {
+						highlighter();
+					})
+					editor.onDidDispose(() => {
+						dispose();
+					});
 				});
 			}
 			await AutoTypings.create(editor, {

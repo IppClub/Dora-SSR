@@ -25,9 +25,11 @@ Observer(ObserverEvent.Add, ["image"]).watch((entity, image: string) => {
 		const scene = toNode(e.scene);
 		if (scene !== null) {
 			const sprite = Sprite(image);
-			sprite.addTo(scene);
-			sprite.runAction(Scale(0.5, 0, 0.5, Ease.OutBack));
-			entity.sprite = sprite;
+			if (sprite) {
+				sprite.addTo(scene);
+				sprite.runAction(Scale(0.5, 0, 0.5, Ease.OutBack));
+				entity.sprite = sprite;
+			}
 			return true;
 		}
 		return false;

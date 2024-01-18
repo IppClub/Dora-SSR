@@ -47,10 +47,12 @@ scroll.slot("AlignLayout", (w: number, h: number) => {
 	border = LineRect({width: w, height: h, color: 0xffffffff});
 	scroll.area.addChild(border);
 });
-const label = Label("sarasa-mono-sc-regular", fontSize).addTo(scroll.view);
-label.alignment = TextAlign.Left;
-label.textWidth = width - fontSize;
-label.text = "";
+const label = Label("sarasa-mono-sc-regular", fontSize)?.addTo(scroll.view);
+if (label) {
+	label.alignment = TextAlign.Left;
+	label.textWidth = width - fontSize;
+	label.text = "";
+}
 
 const control = AlignNode({
 	hAlign: HAlignMode.Center,
@@ -121,6 +123,7 @@ const advance = (option?: number) => {
 		menu.removeAllChildren();
 		texts.push(result);
 	}
+	if (!label) return;
 	label.text = table.concat(texts, "\n")
 	root.alignLayout();
 	thread(() => {
