@@ -113,8 +113,8 @@ local record JointDefClass
 	-- @param canCollide (boolean) 连接的物理体是否应该彼此碰撞。
 	-- @param bodyA (Body) 要连接的第一个物理体的名称。
 	-- @param bodyB (Body) 要连接的第二个物理体的名称。
-	-- @param anchorA (Vec2) 第一个物理体上的固定点的位置，以世界坐标表示。
-	-- @param anchorB (Vec2) 第二个物理体上的固定点的位置，以世界坐标表示。
+	-- @param anchorA (Vec2) 第一个物理体上的固定点的位置。
+	-- @param anchorB (Vec2) 第二个物理体上的固定点的位置。
 	-- @param groundAnchorA (Vec2) 第一个物理体上的地面固定点的位置，以世界坐标表示。
 	-- @param groundAnchorB (Vec2) 第二个物理体上的地面固定点的位置，以世界坐标表示。
 	-- @param ratio (number) [可选] 滑轮比率（默认为 1.0）。
@@ -153,8 +153,8 @@ local record JointDefClass
 	-- @param canCollide (boolean) 连接的物理体是否会相互碰撞。
 	-- @param bodyA (Body) 要连接的第一个物理体的名称。
 	-- @param bodyB (Body) 要连接的第二个物理体的名称。
-	-- @param anchorA (Vec2) 第一个物理体上锚点的位置（世界坐标系）。
-	-- @param anchorB (Vec2) 第二个物理体上锚点的位置（世界坐标系）。
+	-- @param anchorA (Vec2) 第一个物理体上锚点的位置。
+	-- @param anchorB (Vec2) 第二个物理体上锚点的位置。
 	-- @param maxLength (number) [可选] 锚点之间的最大距离（默认为0.0）。
 	-- @return (Joint) 绳索关节定义。
 	rope: function(self: JointDefClass,

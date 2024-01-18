@@ -20,3 +20,35 @@ code {
 	font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
 		monospace;
 }
+
+.jsx-expression-braces {
+	color: #58a1dd !important;
+}
+
+.jsx-tag-angle-bracket .jsx-tag-order-1 {
+	color: #12a182 !important;
+}
+
+.jsx-tag-angle-bracket .jsx-tag-order-2 {
+	color: #4e7ca1 !important;
+}
+
+.jsx-tag-angle-bracket .jsx-tag-order-3 {
+	color: #fb8b05 !important;
+}
+
+.jsx-tag-angle-bracket {
+	color: #808080 !important;
+}
+
+.jsx-tag-name {
+	color: #569cd6 !important;
+}
+
+.jsx-tag-attribute-key {
+	color: #9cdcfe !important;
+}
+
+.jsx-text {
+	color: #d4d4d4 !important;
+}

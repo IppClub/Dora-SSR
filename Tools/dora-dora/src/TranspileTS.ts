@@ -98,6 +98,19 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 			if (baseName.startsWith('dora.')) {
 				return ts.createSourceFile("dummy.d.ts", "", ts.ScriptTarget.ES2015, false);
 			}
+			if (baseName === 'jsx.d.ts' || baseName === 'dora-x.d.ts') {
+				const uri = monaco.Uri.parse(baseName);
+				const model = monaco.editor.getModel(uri);
+				if (model !== null) {
+					return ts.createSourceFile(baseName, model.getValue(), ts.ScriptTarget.ES2015, false);
+				} else {
+					const res = Service.readSync({path: baseName});
+					if (res?.content !== undefined) {
+						monaco.editor.createModel(res.content, 'typescript', uri);
+						return ts.createSourceFile(baseName, res.content, ts.ScriptTarget.ES2015, false);
+					}
+				}
+			}
 			if (baseName === 'lib.dora.d.ts') {
 				const uri = monaco.Uri.parse("dora.d.ts");
 				const model = monaco.editor.getModel(uri);

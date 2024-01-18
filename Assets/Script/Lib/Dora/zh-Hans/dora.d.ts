@@ -5228,8 +5228,8 @@ interface JointDefClass {
 	 * @param canCollide 连接的物体是否应该相互碰撞。
 	 * @param bodyA 要连接的第一个物理体的名称。
 	 * @param bodyB 要连接的第二个物理体的名称。
-	 * @param anchorA 第一个物体上的锚点位置，以世界坐标表示。
-	 * @param anchorB 第二个物体上的锚点位置，以世界坐标表示。
+	 * @param anchorA 第一个物体上的锚点位置。
+	 * @param anchorB 第二个物体上的锚点位置。
 	 * @param groundAnchorA 第一个物体上的地面锚点位置，以世界坐标表示。
 	 * @param groundAnchorB 第二个物体上的地面锚点位置，以世界坐标表示。
 	 * @param ratio 可选的滑轮比率（默认为1.0）。
@@ -5366,7 +5366,7 @@ interface JointClass {
 	 * @param canCollide 是否连接到关节的物理体会彼此碰撞。
 	 * @param bodyA 要连接到关节的第一个物理体。
 	 * @param bodyB 要连接到关节的第二个物理体。
-	 * @param worldPos 关节在游戏世界中的位置。
+	 * @param worldPos 关节在物理世界中的位置。
 	 * @param maxForce 可以施加到关节的最大力量。
 	 * @param maxTorque 可以施加到关节的最大扭矩。
 	 * @return 新的摩擦关节。
@@ -5467,8 +5467,8 @@ interface JointClass {
 	 * @param canCollide 连接的物体是否会相互碰撞。
 	 * @param bodyA 要连接的第一个物理体。
 	 * @param bodyB 要连接的第二个物理体。
-	 * @param anchorA 第一个物体上的锚点在世界坐标系中的位置。
-	 * @param anchorB 第二个物体上的锚点在世界坐标系中的位置。
+	 * @param anchorA 第一个物体上的锚点的位置。
+	 * @param anchorB 第二个物体上的锚点的位置。
 	 * @param groundAnchorA 第一个物体上的地面锚点在世界坐标系中的位置。
 	 * @param groundAnchorB 第二个物体上的地面锚点在世界坐标系中的位置。
 	 * @param ratio [可选] 滑轮比率（默认值为1.0）。
@@ -5513,8 +5513,8 @@ interface JointClass {
 	 * @param canCollide 连接的物体是否会相互碰撞。
 	 * @param bodyA 要连接的第一个物理体。
 	 * @param bodyB 要连接的第二个物理体。
-	 * @param anchorA 第一个物体上的锚点在世界坐标系中的位置。
-	 * @param anchorB 第二个物体上的锚点在世界坐标系中的位置。
+	 * @param anchorA 第一个物体上的锚点的位置。
+	 * @param anchorB 第二个物体上的锚点的位置。
 	 * @param maxLength [可选] 锚点之间的最大距离（默认为0.0）。
 	 * @return 绳子关节。
 	 */

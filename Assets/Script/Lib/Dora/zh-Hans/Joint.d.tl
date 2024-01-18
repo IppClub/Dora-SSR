@@ -118,8 +118,8 @@ local record JointClass
 	-- @param canCollide (boolean) 连接的物体是否会相互碰撞。
 	-- @param bodyA (Body) 要连接的第一个物理体。
 	-- @param bodyB (Body) 要连接的第二个物理体。
-	-- @param anchorA (Vec2) 第一个物体上的锚点在世界坐标系中的位置。
-	-- @param anchorB (Vec2) 第二个物体上的锚点在世界坐标系中的位置。
+	-- @param anchorA (Vec2) 第一个物体上的锚点的位置。
+	-- @param anchorB (Vec2) 第二个物体上的锚点的位置。
 	-- @param groundAnchorA (Vec2) 第一个物体上的地面锚点在世界坐标系中的位置。
 	-- @param groundAnchorB (Vec2) 第二个物体上的地面锚点在世界坐标系中的位置。
 	-- @param ratio (number) [可选] 滑轮比率（默认值为1.0）。

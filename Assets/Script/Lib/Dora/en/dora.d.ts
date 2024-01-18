@@ -5226,8 +5226,8 @@ interface JointDefClass {
 	 * @param canCollide Whether or not the connected bodies will collide with each other.
 	 * @param bodyA The name of the first physics body to connect.
 	 * @param bodyB The name of the second physics body to connect.
-	 * @param anchorA The position of the anchor point on the first body in world coordinates.
-	 * @param anchorB The position of the anchor point on the second body in world coordinates.
+	 * @param anchorA The position of the anchor point on the first body.
+	 * @param anchorB The position of the anchor point on the second body.
 	 * @param groundAnchorA The position of the ground anchor point on the first body in world coordinates.
 	 * @param groundAnchorB The position of the ground anchor point on the second body in world coordinates.
 	 * @param ratio Optional The pulley ratio (default 1.0).
@@ -5465,8 +5465,8 @@ interface JointClass {
 	 * @param canCollide Whether or not the connected bodies will collide with each other.
 	 * @param bodyA The first physics body to connect.
 	 * @param bodyB The second physics body to connect.
-	 * @param anchorA The position of the anchor point on the first body in world coordinates.
-	 * @param anchorB The position of the anchor point on the second body in world coordinates.
+	 * @param anchorA The position of the anchor point on the first body.
+	 * @param anchorB The position of the anchor point on the second body.
 	 * @param groundAnchorA The position of the ground anchor point on the first body in world coordinates.
 	 * @param groundAnchorB The position of the ground anchor point on the second body in world coordinates.
 	 * @param ratio Optional The pulley ratio, defaults to 1.0.

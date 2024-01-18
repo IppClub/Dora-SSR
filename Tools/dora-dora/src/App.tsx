@@ -40,6 +40,9 @@ import LogView from './LogView';
 import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
 import { TbSwitchVertical } from "react-icons/tb";
 import './Editor';
+import { MonacoJsxSyntaxHighlight } from 'monaco-jsx-syntax-highlight';
+
+const jsxSyntaxHighlight = new MonacoJsxSyntaxHighlight("/jsx-worker.js", monaco);
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -491,6 +494,18 @@ export default function PersistentDrawerLeft() {
 			});
 		}
 		if (ext === "tsx" || ext === "ts") {
+			if (ext === "tsx") {
+				const { highlighter, dispose } = jsxSyntaxHighlight.highlighterBuilder({
+					editor,
+				});
+				highlighter();
+				editor.onDidChangeModelContent(() => {
+					highlighter();
+				})
+				editor.onDidDispose(() => {
+					dispose();
+				});
+			}
 			await AutoTypings.create(editor, {
 				debounceDuration: 2000,
 				sourceCache: {
@@ -1061,6 +1076,11 @@ export default function PersistentDrawerLeft() {
 			confirmed: () => {
 				Service.deleteFile({path: data.key}).then((res) => {
 					if (!res.success) return;
+					const uri = monaco.Uri.parse(data.key);
+					const model = monaco.editor.getModel(uri);
+					if (model !== null) {
+						model.dispose();
+					}
 					const filesNotInTabs = new Set<string>();
 					if (data.dir) {
 						const getEveryFileUnder = (node: TreeDataType) => {
@@ -1225,7 +1245,7 @@ export default function PersistentDrawerLeft() {
 			case "Yarn": ext = ".yarn"; break;
 			case "Visual Script": ext = ".vs"; break;
 			case "Folder": ext = ""; break;
-			case "Typescript": ext = ".ts"; break;
+			case "Typescript": ext = ".tsx"; break;
 		}
 		if (ext !== null) {
 			setFileInfo({
@@ -1254,6 +1274,11 @@ export default function PersistentDrawerLeft() {
 						if (!res.success) {
 							addAlert(t("alert.renameFailed"), "error");
 							return;
+						}
+						const uri = monaco.Uri.parse(oldFile);
+						const model = monaco.editor.getModel(uri);
+						if (model !== null) {
+							model.dispose();
 						}
 						if (target.dir) {
 							loadAssets().then(() => {
@@ -1317,6 +1342,20 @@ export default function PersistentDrawerLeft() {
 				switch (ext) {
 					case ".yue":
 						content = "_ENV = Dora!\n\n";
+						position = {
+							lineNumber: 3,
+							column: 1
+						};
+						break;
+					case ".tsx":
+						content = "import { React, toNode, useRef } from 'dora-x';\nimport {} from 'dora';\n\n";
+						position = {
+							lineNumber: 4,
+							column: 1
+						};
+						break;
+					case ".ts":
+						content = "import {} from 'dora';\n\n";
 						position = {
 							lineNumber: 3,
 							column: 1
