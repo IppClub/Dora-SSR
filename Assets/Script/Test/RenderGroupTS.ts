@@ -8,10 +8,12 @@ function Item(this: void) {
 	node.height = 144;
 	node.anchor = Vec2.zero;
 
-	const sprite = Sprite("Image/logo.png").addTo(node);
-	sprite.scaleX = 0.1;
-	sprite.scaleY = 0.1;
-	sprite.renderOrder = 1;
+	const sprite = Sprite("Image/logo.png")?.addTo(node);
+	if (sprite) {
+		sprite.scaleX = 0.1;
+		sprite.scaleY = 0.1;
+		sprite.renderOrder = 1;
+	}
 
 	const drawNode = DrawNode().addTo(node);
 	drawNode.drawPolygon([

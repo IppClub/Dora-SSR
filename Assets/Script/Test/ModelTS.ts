@@ -20,12 +20,14 @@ let currentAnim = animations.indexOf("idle");
 currentAnim = math.max(currentAnim, 0);
 
 const model = Model(modelFile);
-model.recovery = 0.2;
-model.look = looks[currentLook];
-model.play(animations[currentAnim], true);
-model.slot(Slot.AnimationEnd, name => {
-	print(name, "end");
-});
+if (model) {
+	model.recovery = 0.2;
+	model.look = looks[currentLook];
+	model.play(animations[currentAnim], true);
+	model.slot(Slot.AnimationEnd, name => {
+		print(name, "end");
+	});
+}
 
 currentLook++;
 currentAnim++;
@@ -40,6 +42,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 250, 10), SetCond.FirstUseEver);
 	ImGui.SetNextWindowSize(Vec2(240, 325), SetCond.FirstUseEver);
 	ImGui.Begin("Model", windowFlags, () => {
+		if (!model) return;
 		let changed = false;
 		[changed, currentLook] = ImGui.Combo("Look", currentLook, looks);
 		if (changed) {

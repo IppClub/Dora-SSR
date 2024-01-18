@@ -5,17 +5,21 @@ import { App, Director, Ease, Model, Node, Sprite, TypeName, Vec2, cycle, once, 
 const node = Node();
 
 const model = Model("Model/xiaoli.model");
-model.look = "happy";
-model.play("idle", true);
-node.addChild(model);
+if (model !== null) {
+	model.look = "happy";
+	model.play("idle", true);
+	node.addChild(model);
+}
 
 const sprite = Sprite("Image/logo.png");
-sprite.scaleX = 0.4;
-sprite.scaleY = 0.4;
-sprite.position = Vec2(200, -100);
-sprite.angleY = 45;
-sprite.z = -300;
-node.addChild(sprite);
+if (sprite !== null) {
+	sprite.scaleX = 0.4;
+	sprite.scaleY = 0.4;
+	sprite.position = Vec2(200, -100);
+	sprite.angleY = 45;
+	sprite.z = -300;
+	node.addChild(sprite);
+}
 
 node.schedule(once(() => {
 	const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);

@@ -19,85 +19,93 @@ local animations = DragonBone:getAnimations(boneStr) -- 6
 local looks = DragonBone:getLooks(boneStr) -- 7
 p(animations, looks) -- 9
 local bone = DragonBone(boneStr) -- 11
-bone.look = looks[1] -- 12
-bone:play(animations[1], true) -- 13
-bone:slot( -- 14
-    "AnimationEnd", -- 14
-    function(name) -- 14
-        print(name .. " end!") -- 15
-    end -- 14
-) -- 14
-bone.y = -200 -- 18
-bone.touchEnabled = true -- 19
-bone:slot( -- 20
-    "TapBegan", -- 20
-    function(touch) -- 20
-        local ____touch_location_0 = touch.location -- 21
-        local x = ____touch_location_0.x -- 21
-        local y = ____touch_location_0.y -- 21
-        local name = bone:containsPoint(x, y) -- 22
-        if name ~= nil then -- 22
-            local label = Label("sarasa-mono-sc-regular", 30) -- 24
-            label.text = name -- 25
-            label.color = App.themeColor -- 26
-            label.position = Vec2(x, y) -- 27
-            label.order = 100 -- 28
-            label:perform(Sequence( -- 29
-                Spawn( -- 31
-                    Scale(1, 0, 2, Ease.OutQuad), -- 32
-                    Sequence( -- 33
-                        Delay(0.5), -- 34
-                        Opacity(0.5, 1, 0) -- 35
-                    ) -- 35
-                ), -- 35
-                Event("Stop") -- 38
-            )) -- 38
-            label:slot( -- 41
-                "Stop", -- 41
-                function() -- 41
-                    label:removeFromParent() -- 42
-                end -- 41
-            ) -- 41
-            bone:addChild(label) -- 44
-        end -- 44
-    end -- 20
-) -- 20
-local windowFlags = { -- 48
-    "NoDecoration", -- 49
-    "AlwaysAutoResize", -- 50
-    "NoSavedSettings", -- 51
-    "NoFocusOnAppearing", -- 52
-    "NoNav", -- 53
-    "NoMove" -- 54
-} -- 54
-local showDebug = bone.showDebug -- 56
-threadLoop(function() -- 57
-    local ____App_visualSize_1 = App.visualSize -- 58
-    local width = ____App_visualSize_1.width -- 58
-    ImGui.SetNextWindowBgAlpha(0.35) -- 59
-    ImGui.SetNextWindowPos( -- 60
-        Vec2(width - 10, 10), -- 60
-        "Always", -- 60
-        Vec2(1, 0) -- 60
-    ) -- 60
-    ImGui.SetNextWindowSize( -- 61
-        Vec2(240, 0), -- 61
-        "FirstUseEver" -- 61
-    ) -- 61
-    ImGui.Begin( -- 62
-        "DragonBones", -- 62
-        windowFlags, -- 62
-        function() -- 62
-            ImGui.Text("DragonBones") -- 63
-            ImGui.Separator() -- 64
-            ImGui.TextWrapped("Basic usage to create dragonBones! Tap it for a hit test.") -- 65
-            local changed = false -- 66
-            changed, showDebug = ImGui.Checkbox("BoundingBox", showDebug) -- 67
-            if changed then -- 67
-                bone.showDebug = showDebug -- 69
-            end -- 69
-        end -- 62
-    ) -- 62
-    return false -- 72
-end) -- 57
-return ____exports -- 57
+if bone ~= nil then -- 11
+    bone.look = looks[1] -- 13
+    bone:play(animations[1], true) -- 14
+    bone:slot( -- 15
+        "AnimationEnd", -- 15
+        function(name) -- 15
+            print(name .. " end!") -- 16
+        end -- 15
+    ) -- 15
+    bone.y = -200 -- 19
+    bone.touchEnabled = true -- 20
+    bone:slot( -- 21
+        "TapBegan", -- 21
+        function(touch) -- 21
+            local ____touch_location_0 = touch.location -- 22
+            local x = ____touch_location_0.x -- 22
+            local y = ____touch_location_0.y -- 22
+            local name = bone:containsPoint(x, y) -- 23
+            if name ~= nil then -- 23
+                local label = Label("sarasa-mono-sc-regular", 30) -- 25
+                if label ~= nil then -- 25
+                    label.text = name -- 27
+                    label.color = App.themeColor -- 28
+                    label.position = Vec2(x, y) -- 29
+                    label.order = 100 -- 30
+                    label:perform(Sequence( -- 31
+                        Spawn( -- 33
+                            Scale(1, 0, 2, Ease.OutQuad), -- 34
+                            Sequence( -- 35
+                                Delay(0.5), -- 36
+                                Opacity(0.5, 1, 0) -- 37
+                            ) -- 37
+                        ), -- 37
+                        Event("Stop") -- 40
+                    )) -- 40
+                    label:slot( -- 43
+                        "Stop", -- 43
+                        function() -- 43
+                            label:removeFromParent() -- 44
+                        end -- 43
+                    ) -- 43
+                    bone:addChild(label) -- 46
+                end -- 46
+            end -- 46
+        end -- 21
+    ) -- 21
+end -- 21
+local windowFlags = { -- 52
+    "NoDecoration", -- 53
+    "AlwaysAutoResize", -- 54
+    "NoSavedSettings", -- 55
+    "NoFocusOnAppearing", -- 56
+    "NoNav", -- 57
+    "NoMove" -- 58
+} -- 58
+local ____temp_3 = bone and bone.showDebug -- 60
+if ____temp_3 == nil then -- 60
+    ____temp_3 = false -- 60
+end -- 60
+local showDebug = ____temp_3 -- 60
+threadLoop(function() -- 61
+    local ____App_visualSize_4 = App.visualSize -- 62
+    local width = ____App_visualSize_4.width -- 62
+    ImGui.SetNextWindowBgAlpha(0.35) -- 63
+    ImGui.SetNextWindowPos( -- 64
+        Vec2(width - 10, 10), -- 64
+        "Always", -- 64
+        Vec2(1, 0) -- 64
+    ) -- 64
+    ImGui.SetNextWindowSize( -- 65
+        Vec2(240, 0), -- 65
+        "FirstUseEver" -- 65
+    ) -- 65
+    ImGui.Begin( -- 66
+        "DragonBones", -- 66
+        windowFlags, -- 66
+        function() -- 66
+            ImGui.Text("DragonBones") -- 67
+            ImGui.Separator() -- 68
+            ImGui.TextWrapped("Basic usage to create dragonBones! Tap it for a hit test.") -- 69
+            local changed = false -- 70
+            changed, showDebug = ImGui.Checkbox("BoundingBox", showDebug) -- 71
+            if changed and bone then -- 71
+                bone.showDebug = showDebug -- 73
+            end -- 73
+        end -- 66
+    ) -- 66
+    return false -- 76
+end) -- 61
+return ____exports -- 61

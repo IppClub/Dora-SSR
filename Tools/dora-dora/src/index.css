@@ -25,24 +25,16 @@ code {
 	color: #58a1dd !important;
 }
 
-.jsx-tag-angle-bracket .jsx-tag-order-1 {
-	color: #12a182 !important;
-}
-
-.jsx-tag-angle-bracket .jsx-tag-order-2 {
-	color: #4e7ca1 !important;
-}
-
-.jsx-tag-angle-bracket .jsx-tag-order-3 {
-	color: #fb8b05 !important;
-}
-
 .jsx-tag-angle-bracket {
 	color: #808080 !important;
 }
 
 .jsx-tag-name {
 	color: #569cd6 !important;
+}
+
+.mtk25.jsx-tag-name {
+	color: #3dc9b0 !important;
 }
 
 .jsx-tag-attribute-key {

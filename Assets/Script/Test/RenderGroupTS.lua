@@ -17,90 +17,93 @@ local function Item() -- 5
     node.width = 144 -- 7
     node.height = 144 -- 8
     node.anchor = Vec2.zero -- 9
-    local sprite = Sprite("Image/logo.png"):addTo(node) -- 11
-    sprite.scaleX = 0.1 -- 12
-    sprite.scaleY = 0.1 -- 13
-    sprite.renderOrder = 1 -- 14
-    local drawNode = DrawNode():addTo(node) -- 16
-    drawNode:drawPolygon( -- 17
-        { -- 17
-            Vec2(-60, -60), -- 18
-            Vec2(60, -60), -- 19
-            Vec2(60, 60), -- 20
-            Vec2(-60, 60) -- 21
-        }, -- 21
-        Color(822018176) -- 22
-    ) -- 22
-    drawNode.renderOrder = 2 -- 23
-    drawNode.angle = 45 -- 24
-    local line = Line( -- 26
-        { -- 26
-            Vec2(-60, -60), -- 27
-            Vec2(60, -60), -- 28
-            Vec2(60, 60), -- 29
-            Vec2(-60, 60), -- 30
-            Vec2(-60, -60) -- 31
-        }, -- 31
-        Color(4294901888) -- 32
-    ):addTo(node) -- 32
-    line.renderOrder = 3 -- 33
-    line.angle = 45 -- 34
-    node:runAction(Angle(5, 0, 360)) -- 36
-    node:slot( -- 37
-        "ActionEnd", -- 37
-        function(action) -- 37
-            node:runAction(action) -- 38
-        end -- 37
-    ) -- 37
-    return node -- 40
+    local ____opt_0 = Sprite("Image/logo.png") -- 9
+    local sprite = ____opt_0 and ____opt_0:addTo(node) -- 11
+    if sprite then -- 11
+        sprite.scaleX = 0.1 -- 13
+        sprite.scaleY = 0.1 -- 14
+        sprite.renderOrder = 1 -- 15
+    end -- 15
+    local drawNode = DrawNode():addTo(node) -- 18
+    drawNode:drawPolygon( -- 19
+        { -- 19
+            Vec2(-60, -60), -- 20
+            Vec2(60, -60), -- 21
+            Vec2(60, 60), -- 22
+            Vec2(-60, 60) -- 23
+        }, -- 23
+        Color(822018176) -- 24
+    ) -- 24
+    drawNode.renderOrder = 2 -- 25
+    drawNode.angle = 45 -- 26
+    local line = Line( -- 28
+        { -- 28
+            Vec2(-60, -60), -- 29
+            Vec2(60, -60), -- 30
+            Vec2(60, 60), -- 31
+            Vec2(-60, 60), -- 32
+            Vec2(-60, -60) -- 33
+        }, -- 33
+        Color(4294901888) -- 34
+    ):addTo(node) -- 34
+    line.renderOrder = 3 -- 35
+    line.angle = 45 -- 36
+    node:runAction(Angle(5, 0, 360)) -- 38
+    node:slot( -- 39
+        "ActionEnd", -- 39
+        function(action) -- 39
+            node:runAction(action) -- 40
+        end -- 39
+    ) -- 39
+    return node -- 42
 end -- 5
-local currentEntry = Node() -- 43
-currentEntry.renderGroup = true -- 44
-currentEntry.size = Size(750, 750) -- 45
-do -- 45
-    local _i = 1 -- 46
-    while _i <= 16 do -- 46
-        currentEntry:addChild(Item()) -- 47
-        _i = _i + 1 -- 46
-    end -- 46
-end -- 46
-currentEntry:alignItems() -- 50
-local renderGroup = currentEntry.renderGroup -- 52
-local windowFlags = { -- 53
-    "NoDecoration", -- 54
-    "AlwaysAutoResize", -- 55
-    "NoSavedSettings", -- 56
-    "NoFocusOnAppearing", -- 57
-    "NoNav", -- 58
-    "NoMove" -- 59
-} -- 59
-threadLoop(function() -- 61
-    local ____App_visualSize_0 = App.visualSize -- 62
-    local width = ____App_visualSize_0.width -- 62
-    ImGui.SetNextWindowBgAlpha(0.35) -- 63
-    ImGui.SetNextWindowPos( -- 64
-        Vec2(width - 10, 10), -- 64
-        "Always", -- 64
-        Vec2(1, 0) -- 64
-    ) -- 64
-    ImGui.SetNextWindowSize( -- 65
-        Vec2(240, 0), -- 65
-        "FirstUseEver" -- 65
-    ) -- 65
-    ImGui.Begin( -- 66
-        "Render Group", -- 66
-        windowFlags, -- 66
-        function() -- 66
-            ImGui.Text("Render Group") -- 67
-            ImGui.Separator() -- 68
-            ImGui.TextWrapped("When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window.") -- 69
-            local changed = false -- 70
-            changed, renderGroup = ImGui.Checkbox("Grouped", renderGroup) -- 71
-            if changed then -- 71
-                currentEntry.renderGroup = renderGroup -- 73
-            end -- 73
-        end -- 66
+local currentEntry = Node() -- 45
+currentEntry.renderGroup = true -- 46
+currentEntry.size = Size(750, 750) -- 47
+do -- 47
+    local _i = 1 -- 48
+    while _i <= 16 do -- 48
+        currentEntry:addChild(Item()) -- 49
+        _i = _i + 1 -- 48
+    end -- 48
+end -- 48
+currentEntry:alignItems() -- 52
+local renderGroup = currentEntry.renderGroup -- 54
+local windowFlags = { -- 55
+    "NoDecoration", -- 56
+    "AlwaysAutoResize", -- 57
+    "NoSavedSettings", -- 58
+    "NoFocusOnAppearing", -- 59
+    "NoNav", -- 60
+    "NoMove" -- 61
+} -- 61
+threadLoop(function() -- 63
+    local ____App_visualSize_2 = App.visualSize -- 64
+    local width = ____App_visualSize_2.width -- 64
+    ImGui.SetNextWindowBgAlpha(0.35) -- 65
+    ImGui.SetNextWindowPos( -- 66
+        Vec2(width - 10, 10), -- 66
+        "Always", -- 66
+        Vec2(1, 0) -- 66
     ) -- 66
-    return false -- 76
-end) -- 61
-return ____exports -- 61
+    ImGui.SetNextWindowSize( -- 67
+        Vec2(240, 0), -- 67
+        "FirstUseEver" -- 67
+    ) -- 67
+    ImGui.Begin( -- 68
+        "Render Group", -- 68
+        windowFlags, -- 68
+        function() -- 68
+            ImGui.Text("Render Group") -- 69
+            ImGui.Separator() -- 70
+            ImGui.TextWrapped("When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window.") -- 71
+            local changed = false -- 72
+            changed, renderGroup = ImGui.Checkbox("Grouped", renderGroup) -- 73
+            if changed then -- 73
+                currentEntry.renderGroup = renderGroup -- 75
+            end -- 75
+        end -- 68
+    ) -- 68
+    return false -- 78
+end) -- 63
+return ____exports -- 63

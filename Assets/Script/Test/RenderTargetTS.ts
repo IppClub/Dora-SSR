@@ -6,26 +6,28 @@ const root = Node();
 
 const node = Node().addTo(root, 1);
 
-const spine = Spine("Spine/moling").addTo(node);
-spine.y = -200;
-spine.scaleX = 1.2;
-spine.scaleY = 1.2;
-spine.fliped = false;
-spine.play("fmove", true);
-spine.runAction(
-	Sequence(
-		X(2, -150, 250),
-		Event("Turn"),
-		X(2, 250, -150),
-		Event("Turn")
-	)
-);
-spine.slot(Slot.ActionEnd, action => {
-	spine.runAction(action);
-});
-spine.slot("Turn", () => {
-	spine.fliped = !spine.fliped;
-});
+const spine = Spine("Spine/moling")?.addTo(node);
+if (spine) {
+	spine.y = -200;
+	spine.scaleX = 1.2;
+	spine.scaleY = 1.2;
+	spine.fliped = false;
+	spine.play("fmove", true);
+	spine.runAction(
+		Sequence(
+			X(2, -150, 250),
+			Event("Turn"),
+			X(2, 250, -150),
+			Event("Turn")
+		)
+	);
+	spine.slot(Slot.ActionEnd, action => {
+		spine.runAction(action);
+	});
+	spine.slot("Turn", () => {
+		spine.fliped = !spine.fliped;
+	});
+}
 
 const renderTarget = RenderTarget(300, 400);
 renderTarget.renderWithClear(Color(0xff8a8a8a));

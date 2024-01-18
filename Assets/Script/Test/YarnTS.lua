@@ -60,160 +60,166 @@ scroll:slot( -- 37
         scroll.area:addChild(border) -- 48
     end -- 37
 ) -- 37
-local label = Label("sarasa-mono-sc-regular", fontSize):addTo(scroll.view) -- 50
-label.alignment = "Left" -- 51
-label.textWidth = width - fontSize -- 52
-label.text = "" -- 53
-local control = AlignNode({ -- 55
-    hAlign = "Center", -- 56
-    vAlign = "Bottom", -- 57
-    alignOffset = Vec2(0, 200) -- 58
-}):addTo(alignNode) -- 58
-local commands = setmetatable( -- 61
-    {}, -- 61
-    {__index = function(____, name) return function(____, ...) -- 61
-        local args = {...} -- 61
-        local argStrs = {} -- 63
-        do -- 63
-            local i = 1 -- 64
-            while i <= select("#", args) do -- 64
-                argStrs[#argStrs + 1] = tostring({select(i, args)}) -- 65
-                i = i + 1 -- 64
-            end -- 64
-        end -- 64
-        local msg = (("[command]: " .. name) .. " ") .. table.concat(argStrs, ", ") -- 67
-        coroutine.yield("Command", msg) -- 68
-    end end} -- 62
-) -- 62
-local runner = YarnRunner( -- 72
-    testFile, -- 72
-    "Start", -- 72
-    {}, -- 72
-    commands, -- 72
-    true -- 72
-) -- 72
-local menu = Menu():addTo(control) -- 74
-local function setButtons(____, options) -- 76
-    menu:removeAllChildren() -- 77
-    local buttons = options or 1 -- 78
-    menu.size = Size(140 * buttons, 140) -- 79
-    do -- 79
-        local i = 1 -- 80
-        while i <= buttons do -- 80
-            local circleButton = CircleButton({ -- 81
-                text = options and tostring(i) or "Next", -- 82
-                radius = 60, -- 83
-                fontSize = 40 -- 84
-            }):addTo(menu) -- 84
-            circleButton:slot( -- 86
-                "Tapped", -- 86
-                function() -- 86
-                    advance(nil, options) -- 87
-                end -- 86
-            ) -- 86
-            i = i + 1 -- 80
-        end -- 80
-    end -- 80
-    menu:alignItems() -- 90
-end -- 76
-advance = function(____, option) -- 93
-    local action, result = runner:advance(option) -- 94
-    if action == "Text" then -- 94
-        local charName = "" -- 96
-        if result.marks ~= nil then -- 96
-            for ____, mark in ipairs(result.marks) do -- 98
-                if mark.name == "char" and mark.attrs ~= nil then -- 98
-                    charName = tostring(mark.attrs.name) .. ": " -- 100
-                end -- 100
-            end -- 100
-        end -- 100
-        texts[#texts + 1] = charName .. result.text -- 104
-        if result.optionsFollowed then -- 104
-            advance(nil) -- 106
-        else -- 106
-            setButtons(nil) -- 108
-        end -- 108
-    elseif action == "Option" then -- 108
-        for i, op in ipairs(result) do -- 111
-            if type(op) ~= "boolean" then -- 111
-                texts[#texts + 1] = (("[" .. tostring(i)) .. "]: ") .. op.text -- 113
-            end -- 113
-        end -- 113
-        setButtons(nil, #result) -- 116
-    elseif action == "Command" then -- 116
-        texts[#texts + 1] = result -- 118
-        setButtons(nil) -- 119
-    else -- 119
-        menu:removeAllChildren() -- 121
-        texts[#texts + 1] = result -- 122
-    end -- 122
-    label.text = table.concat(texts, "\n") -- 124
-    root:alignLayout() -- 125
-    thread(function() -- 126
-        scroll:scrollToPosY(label.y - label.height / 2) -- 127
-        return true -- 128
-    end) -- 126
-end -- 93
-alignNode:alignLayout() -- 132
-advance(nil) -- 133
-local testFiles = {testFile} -- 135
-local files = {testFile} -- 136
-for ____, file in ipairs(Content:getAllFiles(Content.writablePath)) do -- 137
-    do -- 137
-        if "yarn" ~= Path:getExt(file) then -- 137
-            goto __continue24 -- 139
-        end -- 139
-        testFiles[#testFiles + 1] = Path(Content.writablePath, file) -- 141
-        files[#files + 1] = Path:getFilename(file) -- 142
-    end -- 142
-    ::__continue24:: -- 142
-end -- 142
-local currentFile = 1 -- 145
-local windowFlags = { -- 146
-    "NoDecoration", -- 147
-    "NoSavedSettings", -- 148
-    "NoFocusOnAppearing", -- 149
-    "NoNav", -- 150
-    "NoMove" -- 151
-} -- 151
-threadLoop(function() -- 153
-    local ____App_visualSize_1 = App.visualSize -- 154
-    local width = ____App_visualSize_1.width -- 154
-    ImGui.SetNextWindowPos( -- 155
-        Vec2(width - 10, 10), -- 155
-        "Always", -- 155
-        Vec2(1, 0) -- 155
-    ) -- 155
-    ImGui.SetNextWindowSize( -- 156
-        Vec2(200, 0), -- 156
-        "Always" -- 156
-    ) -- 156
-    ImGui.Begin( -- 157
-        "Yarn Test", -- 157
-        windowFlags, -- 157
-        function() -- 157
-            ImGui.Text("Yarn Tester") -- 158
-            ImGui.Separator() -- 159
-            local changed = false -- 160
-            changed, currentFile = ImGui.Combo("File", currentFile, files) -- 161
-            if changed then -- 161
-                runner = YarnRunner( -- 163
-                    testFiles[currentFile + 1], -- 163
-                    "Start", -- 163
-                    {}, -- 163
-                    commands, -- 163
-                    true -- 163
-                ) -- 163
-                texts = {} -- 164
-                advance(nil) -- 165
-            end -- 165
-            ImGui.Text("Variables") -- 167
-            ImGui.Separator() -- 168
-            for k, v in pairs(runner.state) do -- 169
-                ImGui.Text((k .. ": ") .. tostring(v)) -- 170
-            end -- 170
-        end -- 157
-    ) -- 157
-    return false -- 173
-end) -- 153
-return ____exports -- 153
+local ____opt_1 = Label("sarasa-mono-sc-regular", fontSize) -- 37
+local label = ____opt_1 and ____opt_1:addTo(scroll.view) -- 50
+if label then -- 50
+    label.alignment = "Left" -- 52
+    label.textWidth = width - fontSize -- 53
+    label.text = "" -- 54
+end -- 54
+local control = AlignNode({ -- 57
+    hAlign = "Center", -- 58
+    vAlign = "Bottom", -- 59
+    alignOffset = Vec2(0, 200) -- 60
+}):addTo(alignNode) -- 60
+local commands = setmetatable( -- 63
+    {}, -- 63
+    {__index = function(____, name) return function(____, ...) -- 63
+        local args = {...} -- 63
+        local argStrs = {} -- 65
+        do -- 65
+            local i = 1 -- 66
+            while i <= select("#", args) do -- 66
+                argStrs[#argStrs + 1] = tostring({select(i, args)}) -- 67
+                i = i + 1 -- 66
+            end -- 66
+        end -- 66
+        local msg = (("[command]: " .. name) .. " ") .. table.concat(argStrs, ", ") -- 69
+        coroutine.yield("Command", msg) -- 70
+    end end} -- 64
+) -- 64
+local runner = YarnRunner( -- 74
+    testFile, -- 74
+    "Start", -- 74
+    {}, -- 74
+    commands, -- 74
+    true -- 74
+) -- 74
+local menu = Menu():addTo(control) -- 76
+local function setButtons(____, options) -- 78
+    menu:removeAllChildren() -- 79
+    local buttons = options or 1 -- 80
+    menu.size = Size(140 * buttons, 140) -- 81
+    do -- 81
+        local i = 1 -- 82
+        while i <= buttons do -- 82
+            local circleButton = CircleButton({ -- 83
+                text = options and tostring(i) or "Next", -- 84
+                radius = 60, -- 85
+                fontSize = 40 -- 86
+            }):addTo(menu) -- 86
+            circleButton:slot( -- 88
+                "Tapped", -- 88
+                function() -- 88
+                    advance(nil, options) -- 89
+                end -- 88
+            ) -- 88
+            i = i + 1 -- 82
+        end -- 82
+    end -- 82
+    menu:alignItems() -- 92
+end -- 78
+advance = function(____, option) -- 95
+    local action, result = runner:advance(option) -- 96
+    if action == "Text" then -- 96
+        local charName = "" -- 98
+        if result.marks ~= nil then -- 98
+            for ____, mark in ipairs(result.marks) do -- 100
+                if mark.name == "char" and mark.attrs ~= nil then -- 100
+                    charName = tostring(mark.attrs.name) .. ": " -- 102
+                end -- 102
+            end -- 102
+        end -- 102
+        texts[#texts + 1] = charName .. result.text -- 106
+        if result.optionsFollowed then -- 106
+            advance(nil) -- 108
+        else -- 108
+            setButtons(nil) -- 110
+        end -- 110
+    elseif action == "Option" then -- 110
+        for i, op in ipairs(result) do -- 113
+            if type(op) ~= "boolean" then -- 113
+                texts[#texts + 1] = (("[" .. tostring(i)) .. "]: ") .. op.text -- 115
+            end -- 115
+        end -- 115
+        setButtons(nil, #result) -- 118
+    elseif action == "Command" then -- 118
+        texts[#texts + 1] = result -- 120
+        setButtons(nil) -- 121
+    else -- 121
+        menu:removeAllChildren() -- 123
+        texts[#texts + 1] = result -- 124
+    end -- 124
+    if not label then -- 124
+        return -- 126
+    end -- 126
+    label.text = table.concat(texts, "\n") -- 127
+    root:alignLayout() -- 128
+    thread(function() -- 129
+        scroll:scrollToPosY(label.y - label.height / 2) -- 130
+        return true -- 131
+    end) -- 129
+end -- 95
+alignNode:alignLayout() -- 135
+advance(nil) -- 136
+local testFiles = {testFile} -- 138
+local files = {testFile} -- 139
+for ____, file in ipairs(Content:getAllFiles(Content.writablePath)) do -- 140
+    do -- 140
+        if "yarn" ~= Path:getExt(file) then -- 140
+            goto __continue26 -- 142
+        end -- 142
+        testFiles[#testFiles + 1] = Path(Content.writablePath, file) -- 144
+        files[#files + 1] = Path:getFilename(file) -- 145
+    end -- 145
+    ::__continue26:: -- 145
+end -- 145
+local currentFile = 1 -- 148
+local windowFlags = { -- 149
+    "NoDecoration", -- 150
+    "NoSavedSettings", -- 151
+    "NoFocusOnAppearing", -- 152
+    "NoNav", -- 153
+    "NoMove" -- 154
+} -- 154
+threadLoop(function() -- 156
+    local ____App_visualSize_3 = App.visualSize -- 157
+    local width = ____App_visualSize_3.width -- 157
+    ImGui.SetNextWindowPos( -- 158
+        Vec2(width - 10, 10), -- 158
+        "Always", -- 158
+        Vec2(1, 0) -- 158
+    ) -- 158
+    ImGui.SetNextWindowSize( -- 159
+        Vec2(200, 0), -- 159
+        "Always" -- 159
+    ) -- 159
+    ImGui.Begin( -- 160
+        "Yarn Test", -- 160
+        windowFlags, -- 160
+        function() -- 160
+            ImGui.Text("Yarn Tester") -- 161
+            ImGui.Separator() -- 162
+            local changed = false -- 163
+            changed, currentFile = ImGui.Combo("File", currentFile, files) -- 164
+            if changed then -- 164
+                runner = YarnRunner( -- 166
+                    testFiles[currentFile + 1], -- 166
+                    "Start", -- 166
+                    {}, -- 166
+                    commands, -- 166
+                    true -- 166
+                ) -- 166
+                texts = {} -- 167
+                advance(nil) -- 168
+            end -- 168
+            ImGui.Text("Variables") -- 170
+            ImGui.Separator() -- 171
+            for k, v in pairs(runner.state) do -- 172
+                ImGui.Text((k .. ": ") .. tostring(v)) -- 173
+            end -- 173
+        end -- 160
+    ) -- 160
+    return false -- 176
+end) -- 156
+return ____exports -- 156
