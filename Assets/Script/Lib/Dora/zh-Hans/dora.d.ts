@@ -770,7 +770,7 @@ export const actionClass: ActionClass;
 export {actionClass as Action};
 
 /** 缓动函数对象的类型。 */
-type EaseFunc = BasicType<'EaseFunc', number>;
+export type EaseFunc = BasicType<'EaseFunc', number>;
 
 /** 获取缓动函数对象的接口。 */
 interface EaseClass {
@@ -909,7 +909,7 @@ interface EaseClass {
 export const Ease: EaseClass;
 
 /**
- * 创建动作定义，该动作将持续改变节点的x锚点从值到另值。
+ * 创建动作定义，该动作将持续改变节点的X锚点。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 锚点的起始值。
  * @param to 锚点的结束值。
@@ -925,7 +925,7 @@ export function AnchorX(
 ): ActionDef;
 
 /**
- * 创建动作定义，该动作将持续改变节点的y锚点从值到另值。
+ * 创建动作定义，该动作将持续改变节点的Y锚点。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 锚点的起始值。
  * @param to 锚点的结束值。
@@ -941,7 +941,7 @@ export function AnchorY(
 ): ActionDef;
 
 /**
- * 创建动作定义，该动作将持续改变节点的角度从值到另值。
+ * 创建动作定义，该动作将持续改变节点的角度。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 角度的起始值（以度为单位）。
  * @param to 角度的结束值（以度为单位）。
@@ -957,10 +957,10 @@ export function Angle(
 ): ActionDef;
 
 /**
- * 创建动作定义，该动作将持续改变节点的x轴旋转角度从值到另值。
+ * 创建动作定义，该动作将持续改变节点的x轴旋转角度。
  * @param duration 动画的持续时间（以秒为单位）。
- * @param from x轴旋转角度的起始值（以度为单位）。
- * @param to x轴旋转角度的结束值（以度为单位）。
+ * @param from X轴旋转角度的起始值（以度为单位）。
+ * @param to X轴旋转角度的结束值（以度为单位）。
  * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
  * @returns 可用于在节点上运行动画的动作定义对象。
  */
@@ -973,10 +973,10 @@ export function AngleX(
 ): ActionDef;
 
 /**
- * 创建动作定义，该动作将持续改变节点的y轴旋转角度从值到另值。
+ * 创建动作定义，该动作将持续改变节点的y轴旋转角度。
  * @param duration 动画的持续时间（以秒为单位）。
- * @param from y轴旋转角度的起始值（以度为单位）。
- * @param to y轴旋转角度的结束值（以度为单位）。
+ * @param from Y轴旋转角度的起始值（以度为单位）。
+ * @param to Y轴旋转角度的结束值（以度为单位）。
  * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
  * @returns 可用于在节点上运行动画的动作定义对象。
  */
@@ -1053,7 +1053,7 @@ export function Hide(this: void): ActionDef;
 export function Show(this: void): ActionDef;
 
 /**
- * 创建动作定义，该动作将持续改变节点的位置从Vec2值到另值。
+ * 创建动作定义，该动作将持续改变节点的位置。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 节点的起始位置。
  * @param to 节点的结束位置。
@@ -1063,7 +1063,7 @@ export function Show(this: void): ActionDef;
 export function Move(this: void, duration: number, from: Vec2, to: Vec2, easing?: EaseFunc): ActionDef;
 
 /**
- * 创建动作定义，该动作将持续改变节点的不透明度从值到另值。
+ * 创建动作定义，该动作将持续改变节点的不透明度。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 节点的起始不透明度值（0-1.0）。
  * @param to 节点的结束不透明度值（0-1.0）。
@@ -1073,7 +1073,7 @@ export function Move(this: void, duration: number, from: Vec2, to: Vec2, easing?
 export function Opacity(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * 创建动作定义，该动作将持续改变节点的旋转从值到另值。
+ * 创建动作定义，该动作将持续改变节点的旋转。
  * 滚动动画将确保节点通过最小旋转角度旋转到目标角度。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from 节点的起始滚动值（以度为单位）。
@@ -1084,7 +1084,7 @@ export function Opacity(this: void, duration: number, from: number, to: number, 
 export function Roll(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * 创建动作定义，该动作将持续改变节点的x轴和y轴缩放从值到另值。
+ * 创建动作定义，该动作将持续改变节点的x轴和y轴缩放。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from x轴和y轴缩放的起始值。
  * @param to x轴和y轴缩放的结束值。
@@ -1094,7 +1094,7 @@ export function Roll(this: void, duration: number, from: number, to: number, eas
 export function Scale(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * 创建动作定义，该动作将持续改变节点的x轴缩放从值到另值。
+ * 创建动作定义，该动作将持续改变节点的X轴缩放。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from x轴缩放的起始值。
  * @param to x轴缩放的结束值。
@@ -1104,7 +1104,7 @@ export function Scale(this: void, duration: number, from: number, to: number, ea
 export function ScaleX(this: void, duration: number, from: number, to: number, easing?: EaseFunc): ActionDef;
 
 /**
- * 创建动作定义，该动作将持续改变节点的y轴缩放从值到另值。
+ * 创建动作定义，该动作将持续改变节点的Y轴缩放。
  * @param duration 动画的持续时间（以秒为单位）。
  * @param from y轴缩放的起始值。
  * @param to y轴缩放的结束值。
@@ -1120,7 +1120,7 @@ export function ScaleY(
 ): ActionDef;
 
 /**
-* 创建动作定义，该动作将持续改变节点沿x轴的倾斜。
+* 创建动作定义，该动作将持续改变节点沿X轴的倾斜。
 * @param duration 动画的持续时间（以秒为单位）。
 * @param from 节点在x轴上的起始倾斜值（以度为单位）。
 * @param to 节点在x轴上的结束倾斜值（以度为单位）。
@@ -1136,7 +1136,7 @@ export function SkewX(
 ): ActionDef;
 
 /**
-* 创建动作定义，该动作将持续改变节点沿y轴的倾斜。
+* 创建动作定义，该动作将持续改变节点沿Y轴的倾斜。
 * @param duration 动画的持续时间（以秒为单位）。
 * @param from 节点在y轴上的起始倾斜值（以度为单位）。
 * @param to 节点在y轴上的结束倾斜值（以度为单位）。
@@ -1152,10 +1152,10 @@ export function SkewY(
 ): ActionDef;
 
 /**
- * 创建动作定义，该动作将持续改变节点的x位置。
+ * 创建动作定义，该动作将持续改变节点的X坐标位置。
  * @param duration 动画的持续时间（以秒为单位）。
- * @param from 节点的起始x位置。
- * @param to 节点的结束x位置。
+ * @param from 节点的起始X坐标位置。
+ * @param to 节点的结束X坐标位置。
  * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
  * @returns 可用于在节点上运行动画的动作定义对象。
  */
@@ -1168,10 +1168,10 @@ export function X(
 ): ActionDef;
 
 /**
- * 创建动作定义，该动作将持续改变节点的y位置。
+ * 创建动作定义，该动作将持续改变节点的Y坐标位置。
  * @param duration 动画的持续时间（以秒为单位）。
- * @param from 节点的起始y位置。
- * @param to 节点的结束y位置。
+ * @param from 节点的起始Y坐标位置。
+ * @param to 节点的结束Y坐标位置。
  * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
  * @returns 可用于在节点上运行动画的动作定义对象。
  */
@@ -1184,10 +1184,10 @@ export function Y(
 ): ActionDef;
 
 /**
- * 创建动作定义，该动作将持续改变节点的z位置。
+ * 创建动作定义，该动作将持续改变节点的Z坐标位置。
  * @param duration 动画的持续时间（以秒为单位）。
- * @param from 节点的起始z位置。
- * @param to 节点的结束z位置。
+ * @param from 节点的起始Z坐标位置。
+ * @param to 节点的结束Z坐标位置。
  * @param easing [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。
  * @returns 可用于在节点上运行动画的动作定义对象。
  */
@@ -1200,15 +1200,15 @@ export function Z(
 ): ActionDef;
 
 /**
-* 创建动作定义，该动作并行运行一组ActionDefs。
-* @param actions 要并行运行的一组ActionDef对象。
+* 创建动作定义，该动作并行运行一组动作。
+* @param actions 要并行运行的一组动作定义对象。
 * @returns 可用于在节点上运行动作组的动作定义对象。
 */
 export function Spawn(this: void, ...actions: ActionDef[]): ActionDef;
 
 /**
- * 创建动作定义，该动作播放一系列其他ActionDefs。
- * @param actions 要按顺序播放的一组ActionDef对象。
+ * 创建动作定义，该动作顺序执行一系列其它动作。
+ * @param actions 要按顺序执行的一组动作定义对象。
  * @returns 可用于在节点上运行动作序列的动作定义对象。
  */
 export function Sequence(this: void, ...actions: ActionDef[]): ActionDef;
@@ -3159,7 +3159,7 @@ class ClipNode extends Node {
 	/**
 	 * 定义剪切形状的蒙版节点。
 	 */
-	stencil: Node;
+	stencil: Node | null;
 
 	/**
 	 * 使像素可见的最小alpha阈值。值的范围从0到1。
@@ -3637,7 +3637,7 @@ const director: Director;
 export {director as Director};
 
 /**
- * 动画模型系统的基类。
+ * 动画模型系统类。
  */
 class Playable extends Node {
 	protected constructor();
@@ -3724,9 +3724,9 @@ interface PlayableClass {
 	 *  "model:" + modelFile
 	 *  "spine:" + spineStr
 	 *  "bone:" + dragonBoneStr
-	 * @returns 新的'Playable'实例。
+	 * @returns 新的'Playable'实例，如果加载失败，则为null。
 	 */
-	(this: void, filename: string): Playable;
+	(this: void, filename: string): Playable | null;
 }
 
 const playableClass: PlayableClass;
@@ -3791,10 +3791,12 @@ interface DragonBoneClass {
 
 	/**
 	 * 使用指定的骨骼字符串创建新的'DragonBone'实例。
-	 * @param boneStr 新实例的DragonBone文件字符串。
+	 * @param boneStr 用于创建新实例的`DragonBone`文件名字符串。
+	 * `DragonBone`文件名字符串可以是不带扩展名的文件路径，例如 "DragonBone/item"，或包含所有相关扩展名的完整文件路径，例如："DragonBone/item_ske.json|DragonBone/item_tex.json"。
+	 * 并且可以在分号后添加骨架名称。例如 "DragonBone/item;mainArmature" 或 "DragonBone/item_ske.json|DragonBone/item_tex.json;mainArmature"。
 	 * @returns 新的'DragonBone'实例。
 	 */
-	(this: void, boneStr: string): DragonBone;
+	(this: void, boneStr: string): DragonBone | null;
 
 	/**
 	 * 使用指定的骨骼文件和图集文件创建新的'DragonBone'实例。此函数只加载一个骨架。
@@ -3802,7 +3804,7 @@ interface DragonBoneClass {
 	 * @param atlasFile 要加载的图集文件的文件名。
 	 * @returns 具有指定骨骼文件和图集文件的新的'DragonBone'实例。
 	 */
-	(this: void, boneFile: string, atlasFile: string): DragonBone;
+	(this: void, boneFile: string, atlasFile: string): DragonBone | null;
 }
 
 const dragonBoneClass: DragonBoneClass;
@@ -3871,10 +3873,11 @@ interface SpineClass {
 
 	/**
 	 * 使用指定的Spine字符串创建新的'Spine'实例。
-	 * @param spineStr 新实例的Spine文件字符串。
+	 * @param spineStr 用于创建新实例的`Spine2D`文件名字符串。
+	 * `Spine2D`文件名字符串可以是不带扩展名的文件路径，例如：“Spine/item”，也可以是带有所有相关文件的文件路径，例如 “Spine/item.skel|Spine/item.atlas” 或 “Spine/item.json|Spine/item.atlas”。
 	 * @returns 新的'Spine'实例。
 	 */
-	(this: void, spineStr: string): Spine;
+	(this: void, spineStr: string): Spine | null;
 
 	/**
 	 * 使用指定的骨架文件和图集文件创建新的'Spine'实例。
@@ -3882,7 +3885,7 @@ interface SpineClass {
 	 * @param atlasFile 要加载的图集文件的文件名。
 	 * @returns 具有指定骨架文件和图集文件的新的'Spine'实例。
 	 */
-	(this: void, skelFile: string, atlasFile: string): Spine;
+	(this: void, skelFile: string, atlasFile: string): Spine | null;
 }
 
 const spineClass: SpineClass;
@@ -3895,24 +3898,24 @@ class Model extends Playable {
 	protected constructor();
 
 	/**
-	 * 当前动画的持续时间。
-	 */
-	duration: number;
-
-	/**
 	 * 是否将动画模型反向播放。
 	 */
 	reversed: boolean;
 
 	/**
+	 * 当前动画的持续时间。
+	 */
+	readonly duration: number;
+
+	/**
 	 * 动画模型当前是否正在播放。
 	 */
-	playing: boolean;
+	readonly playing: boolean;
 
 	/**
 	 * 动画模型当前是否已暂停。
 	 */
-	paused: boolean;
+	readonly paused: boolean;
 
 	/**
 	 * 检查模型中是否存在动画。
@@ -4001,7 +4004,7 @@ interface ModelClass {
 	 * 可以是带有或不带有扩展名的文件名，例如："Model/item" 或 "Model/item.model"。
 	 * @returns 新的'Model'实例。
 	 */
-	(this: void, filename: string): Model;
+	(this: void, filename: string): Model | null;
 }
 
 const modelClass: ModelClass;
@@ -4029,7 +4032,7 @@ class DrawNode extends Node {
 	 * @param radius 点的半径。
 	 * @param color 点的颜色（默认为白色）。
 	 */
-	drawDot(this: DrawNode, pos: Vec2, radius: number, color?: Color): void;
+	drawDot(pos: Vec2, radius: number, color?: Color): void;
 
 	/**
 	 * 用指定的半径和颜色绘制两点之间的线段。
@@ -4038,7 +4041,7 @@ class DrawNode extends Node {
 	 * @param radius 线的半径。
 	 * @param color 线的颜色（默认为白色）。
 	 */
-	drawSegment(this: DrawNode, from: Vec2, to: Vec2, radius: number, color?: Color): void;
+	drawSegment(from: Vec2, to: Vec2, radius: number, color?: Color): void;
 
 	/**
 	 * 绘制由顶点列表定义的多边形，具有指定的填充颜色和边框。
@@ -4047,18 +4050,18 @@ class DrawNode extends Node {
 	 * @param borderWidth 边框的宽度（默认为0）。
 	 * @param borderColor 边框的颜色（默认为白色）。
 	 */
-	drawPolygon(this: DrawNode, verts: Vec2[], fillColor?: Color, borderWidth?: number, borderColor?: Color): void;
+	drawPolygon(verts: Vec2[], fillColor?: Color, borderWidth?: number, borderColor?: Color): void;
 
 	/**
-	 * 绘制一组顶点作为三角形，每个顶点都有自己的颜色。
-	 * @param verts 顶点及其颜色的列表。
+	 * 把一组顶点绘制为多个三角形，每个顶点都有自己的颜色。
+	 * @param verts 包含要绘制的顶点及其颜色的列表。
 	 */
-	drawVertices(this: DrawNode, verts: [Vec2, Color][]): void;
+	drawVertices(verts: [Vec2, Color][]): void;
 
 	/**
 	 * 清除节点上所有之前绘制的形状。
 	 */
-	clear(this: DrawNode): void;
+	clear(): void;
 }
 
 export namespace DrawNode {
@@ -4389,8 +4392,8 @@ interface GridClass {
 	(this: void, texture: Texture2D, gridX: number, gridY: number): Grid;
 
 	/**
-	 * 使用指定的剪辑字符串和网格大小创建新的Grid。
-	 * @param clipStr 用于网格的剪辑字符串。可以是 "Image/file.png" 和 "Image/items.clip|itemA"。
+	 * 使用指定的图片切片字符串和网格大小创建新的Grid。
+	 * @param clipStr 用于网格的图片切片字符串。可以是 "Image/file.png" 或者 "Image/items.clip|itemA"。
 	 * @param gridX 网格中的列数。
 	 * @param gridY 网格中的行数。
 	 * @returns 新的Grid实例。
@@ -4504,6 +4507,10 @@ class FixtureDef extends Object {
 	private constructor();
 }
 
+export namespace FixtureDef {
+	export type Type = FixtureDef;
+}
+
 /**
  * 用于表示游戏世界中的物理感应器的类。
  */
@@ -4588,7 +4595,12 @@ class BodyDef extends Object {
 	/** 物理体的角阻尼。 */
 	angularDamping: number;
 
-	/** 物理体的初始线性加速度。 */
+	/**
+	 * 在物理体上持续施加的线性加速度。
+	 * 可以用来模拟重力、推力或是风力。
+	 * @example
+	 * bodyDef.linearAcceleration = Vec2(0, -9.8);
+	 */
 	linearAcceleration: Vec2;
 
 	/** 物理体的旋转是否固定。 */
@@ -4659,7 +4671,7 @@ class BodyDef extends Object {
 	attachDisk(radius: number, density?: number, friction?: number, restitution?: number): void;
 
 	/**
-	 * 将链形状定义附加到物理体上。链形状是自由形式的线段序列，具有双面碰撞。
+	 * 将链形状定义附加到物理体上。链形状是自由形式的线段序列，具有双面碰撞的特性。
 	 * @param vertices 链的顶点。
 	 * @param friction 链的摩擦系数（默认为0.4）（可选）。
 	 * @param restitution 链的弹性系数（默认为0.0）（可选）。
@@ -4792,7 +4804,7 @@ const bodyDefClass: BodyDefClass;
 export {bodyDefClass as BodyDef};
 
 /**
- * 代表物理世界中的物理体的类。
+ * 在游戏中代表物理世界中的物理体的类。
  */
 class Body extends Node {
 	protected constructor();
@@ -4855,10 +4867,10 @@ class Body extends Node {
 	/**
 	 * 物理体的所有者的引用。
 	 */
-	owner: Object;
+	owner?: Object;
 
 	/**
-	 * 物理体是否正在接收接触事件。
+	 * 物理体是否正在接收碰撞事件。默认为 false。
 	 */
 	receivingContact: boolean;
 
@@ -4941,7 +4953,7 @@ const bodyClass: BodyClass;
 export {bodyClass as Body};
 
 /**
- * 在游戏中代表物理世界。
+ * 在游戏中代表物理世界的类。
  */
 class PhysicsWorld extends Node {
 	protected constructor();
@@ -5047,7 +5059,7 @@ export namespace Joint {
 }
 
 /**
- * A joint that applies a rotational or linear force to a physics body.
+ * 用于对物理体施加旋转或线性力的连接关节。
  */
 class MotorJoint extends Joint {
 	private constructor();
@@ -5105,7 +5117,7 @@ class JointDef extends Object {
 }
 
 /**
- * 用于创建 JointDef 对象的接口。
+ * 用于创建物理关节定义对象的接口。
  */
 interface JointDefClass {
 	/**
@@ -5262,8 +5274,8 @@ interface JointDefClass {
 	 * @param canCollide 是否允许连接的物体相互碰撞。
 	 * @param bodyA 第一个要连接的物体的名称。
 	 * @param bodyB 第二个要连接的物体的名称。
-	 * @param anchorA 第一个物体上锚点的位置（世界坐标）。
-	 * @param anchorB 第二个物体上锚点的位置（世界坐标）。
+	 * @param anchorA 第一个物体上锚点的位置。
+	 * @param anchorB 第二个物体上锚点的位置。
 	 * @param maxLength 可选，锚点之间的最大距离（默认为0.0）。
 	 * @returns 绳子关节定义。
 	 */
@@ -5325,6 +5337,253 @@ const jointDefClass: JointDefClass;
 export {jointDefClass as JointDef};
 
 /**
+ * 用于创建可以将物体连接在一起的多种关节的工厂类。
+ */
+interface JointClass {
+	/**
+	 * 创建两个物理体之间的距离关节。
+	 * @param canCollide 是否连接到关节的物理体会彼此碰撞。
+	 * @param bodyA 要连接到关节的第一个物理体。
+	 * @param bodyB 要连接到关节的第二个物理体。
+	 * @param anchorA 关节在第一个物理体上的位置。
+	 * @param anchorB 关节在第二个物理体上的位置。
+	 * @param frequency 关节的频率，单位为赫兹（默认值为 0.0）。
+	 * @param damping 关节的阻尼系数（默认值为 0.0）。
+	 * @return 新的距离关节。
+	 */
+	distance(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		anchorA: Vec2,
+		anchorB: Vec2,
+		frequency?: number, // Default: 0.0
+		damping?: number // Default: 0.0
+	): Joint;
+
+	/**
+	 * 创建两个物理体之间的摩擦关节。
+	 * @param canCollide 是否连接到关节的物理体会彼此碰撞。
+	 * @param bodyA 要连接到关节的第一个物理体。
+	 * @param bodyB 要连接到关节的第二个物理体。
+	 * @param worldPos 关节在游戏世界中的位置。
+	 * @param maxForce 可以施加到关节的最大力量。
+	 * @param maxTorque 可以施加到关节的最大扭矩。
+	 * @return 新的摩擦关节。
+	 */
+	friction(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		maxForce: number,
+		maxTorque: number
+	): Joint;
+
+	/**
+	 * 在两个其他关节之间创建齿轮关节。
+	 * @param canCollide 连接到关节的物理体是否可以彼此碰撞。
+	 * @param jointA 要连接到齿轮关节的第一个关节。
+	 * @param jointB 要连接到齿轮关节的第二个关节。
+	 * @param ratio 齿轮传动比率（默认值为 1.0）。
+	 * @return 新的齿轮关节。
+	 */
+	gear(
+		canCollide: boolean,
+		jointA: Joint,
+		jointB: Joint,
+		ratio?: number // Default: 1.0
+	): Joint;
+
+	/**
+	 * 创建两个指定物理体之间的新弹簧关节。
+	 * @param canCollide 指定连接的两个物理体是否应该相互碰撞。
+	 * @param bodyA 连接到关节的第一个物理体。
+	 * @param bodyB 连接到关节的第二个物理体。
+	 * @param linearOffset 在物理体A坐标系下，物理体B的位置减去物理体A的位置。
+	 * @param angularOffset 物理体B的角度减去物理体A的角度。
+	 * @param maxForce 关节能够施加的最大力。
+	 * @param maxTorque 关节能够施加的最大扭矩。
+	 * @param correctionFactor 可选的纠正系数，默认为1.0。
+	 * @return 创建的关节。
+	 */
+	spring(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		linearOffset: Vec2,
+		angularOffset: number,
+		maxForce: number,
+		maxTorque: number,
+		correctionFactor?: number // Default: 1.0
+	): Joint;
+
+	/**
+	 * 为指定的刚体创建一个新的拖拽关节。
+	 * @param canCollide 指定刚体是否可以与其他刚体碰撞。
+	 * @param body 关节连接的刚体。
+	 * @param targetPos 刚体应该拖拽到的目标位置。
+	 * @param maxForce 关节能够施加的最大力。
+	 * @param frequency 可选的频率比率，默认为5.0。
+	 * @param damping 可选的阻尼比率，默认为0.7。
+	 * @return 创建的拖拽关节。
+	 */
+	move(
+		canCollide: boolean,
+		body: Body,
+		targetPos: Vec2,
+		maxForce: number,
+		frequency?: number, // Default: 5.0
+		damping?: number // Default: 0.7
+	): MoveJoint;
+
+	/**
+	 * 创建两个指定刚体之间的新移动关节。
+	 * @param canCollide 指定连接的两个刚体是否应该相互碰撞。
+	 * @param bodyA 连接到关节的第一个刚体。
+	 * @param bodyB 连接到关节的第二个刚体。
+	 * @param worldPos 关节的世界坐标。
+	 * @param axisAngle 关节的轴角度。
+	 * @param lowerTranslation 可选的下限平移量，默认为0.0。
+	 * @param upperTranslation 可选的上限平移量，默认为0.0。
+	 * @param maxMotorForce 可选的最大电机力，默认为0.0。
+	 * @param motorSpeed 可选的电机速度，默认为0.0。
+	 * @return 创建的移动关节。
+	 */
+	prismatic(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		axisAngle: number,
+		lowerTranslation?: number, // Default: 0.0
+		upperTranslation?: number, // Default: 0.0
+		maxMotorForce?: number, // Default: 0.0
+		motorSpeed?: number // Default: 0.0
+	): MotorJoint;
+
+	/**
+	 * 在两个物理体之间创建一个滑轮关节。
+	 * @param canCollide 连接的物体是否会相互碰撞。
+	 * @param bodyA 要连接的第一个物理体。
+	 * @param bodyB 要连接的第二个物理体。
+	 * @param anchorA 第一个物体上的锚点在世界坐标系中的位置。
+	 * @param anchorB 第二个物体上的锚点在世界坐标系中的位置。
+	 * @param groundAnchorA 第一个物体上的地面锚点在世界坐标系中的位置。
+	 * @param groundAnchorB 第二个物体上的地面锚点在世界坐标系中的位置。
+	 * @param ratio [可选] 滑轮比率（默认值为1.0）。
+	 * @return 滑轮关节。
+	 */
+	pulley(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		anchorA: Vec2,
+		anchorB: Vec2,
+		groundAnchorA: Vec2,
+		groundAnchorB: Vec2,
+		ratio?: number // Default: 1.0
+	): Joint;
+
+	/**
+	 * 在两个物理体之间创建旋转关节。
+	 * @param canCollide 连接的物体是否会相互碰撞。
+	 * @param bodyA 要连接的第一个物理体。
+	 * @param bodyB 要连接的第二个物理体。
+	 * @param worldPos 关节将被创建的世界坐标位置。
+	 * @param lowerAngle [可选] 下限角度限制（弧度）（默认为0.0）。
+	 * @param upperAngle [可选] 上限角度限制（弧度）（默认为0.0）。
+	 * @param maxMotorTorque [可选] 关节施加的最大扭矩以达到目标速度（默认为0.0）。
+	 * @param motorSpeed [可选] 关节的期望速度（默认为0.0）。
+	 * @return 旋转关节。
+	 */
+	revolute(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		lowerAngle?: number, // Default: 0.0
+		upperAngle?: number, // Default: 0.0
+		maxMotorTorque?: number, // Default: 0.0
+		motorSpeed?: number // Default: 0.0
+	): MotorJoint;
+
+	/**
+	 * 在两个物理体之间创建绳子关节。
+	 * @param canCollide 连接的物体是否会相互碰撞。
+	 * @param bodyA 要连接的第一个物理体。
+	 * @param bodyB 要连接的第二个物理体。
+	 * @param anchorA 第一个物体上的锚点在世界坐标系中的位置。
+	 * @param anchorB 第二个物体上的锚点在世界坐标系中的位置。
+	 * @param maxLength [可选] 锚点之间的最大距离（默认为0.0）。
+	 * @return 绳子关节。
+	 */
+	rope(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		anchorA: Vec2,
+		anchorB: Vec2,
+		maxLength?: number // Default: 0.0
+	): Joint;
+
+	/**
+	 * 创建两个物体之间的焊接关节。
+	 * @param canCollide 是否允许连接的物体之间发生碰撞。
+	 * @param bodyA 第一个将被连接的物体。
+	 * @param bodyB 第二个将被连接的物体。
+	 * @param worldPos 连接物体的世界位置。
+	 * @param frequency [可选] 关节的刚度频率，默认为 0.0。
+	 * @param damping [可选] 关节的阻尼比率，默认为 0.0。
+	 * @return 新创建的焊接关节。
+	 */
+	weld(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		frequency?: number, // Default: 0.0
+		damping?: number // Default: 0.0
+	): Joint;
+
+	/**
+	 * 创建两个物体之间的轮子关节。
+	 * @param canCollide 是否允许连接的物体之间发生碰撞。
+	 * @param bodyA 第一个将被连接的物体。
+	 * @param bodyB 第二个将被连接的物体。
+	 * @param worldPos 连接物体的世界位置。
+	 * @param axisAngle 关节轴的角度，以弧度为单位。
+	 * @param maxMotorTorque [可选] 关节电机可以施加的最大力矩，默认为 0.0。
+	 * @param motorSpeed [可选] 关节电机的目标速度，默认为 0.0。
+	 * @param frequency [可选] 关节的刚度频率，默认为 2.0。
+	 * @param damping [可选] 关节的阻尼比率，默认为 0.7。
+	 * @return 新创建的轮子关节。
+	 */
+	wheel(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		axisAngle: number,
+		maxMotorTorque?: number, // Default: 0.0
+		motorSpeed?: number, // Default: 0.0
+		frequency?: number, // Default: 2.0
+		damping?: number // Default: 0.7
+	): MotorJoint;
+
+	/**
+	 * 根据给定的关节定义和物理体字典创建关节实例，字典中包含需要连接的物理体。
+	 * @param def 关节定义。
+	 * @param itemDict 包含创建关节相关的物理体和关节对象的字典。
+	 * @return 新创建的关节。
+	 */
+	(this: void, def: JointDef, itemDict: Dictionary): Joint;
+}
+
+const jointClass: JointClass;
+export {jointClass as Joint};
+
+/**
  * 纹理包裹模式的枚举。
  */
 export const enum TextureWrap {
@@ -5356,7 +5615,7 @@ class Sprite extends Node {
 
 	/**
 	 * 用于 alpha 测试的 alpha 参考值。小于或等于该值的像素将被丢弃。
-	 * 仅在 `sprite.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")` 时有效。
+	 * 仅在设置了 `sprite.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")` 时有效。
 	 */
 	alphaRef: number;
 
@@ -5407,10 +5666,10 @@ interface SpriteClass {
 	/**
 	 * 创建 Sprite 对象的构造函数。
 	 * @param clipStr 包含加载纹理文件格式的字符串。
-	 * 可以是 "Image/file.png" 和 "Image/items.clip|itemA"。支持的图片文件格式有：jpg、png、dds、pvr、ktx。
-	 * @returns Sprite 类的新实例。
+	 * 可以是 "Image/file.png" 或者 "Image/items.clip|itemA"。支持的图片文件格式有：jpg、png、dds、pvr、ktx。
+	 * @returns Sprite 类的新实例，如果创建失败则返回 `null`。
 	 */
-	(this: void, clipStr: string): Sprite;
+	(this: void, clipStr: string): Sprite | null;
 
 	/**
 	 * 创建 Sprite 对象的构造函数。
@@ -5501,7 +5760,7 @@ class Label extends Node {
 	effect: SpriteEffect;
 
 	/**
-	 * 文本对齐设置。
+	 * 文本对齐设置，默认为 `TextAlign.Center`。
 	 */
 	alignment: TextAlign;
 
@@ -5533,18 +5792,18 @@ interface LabelClass {
 
 	/**
 	 * 使用指定的字体名称和字体大小创建新的 Label 对象。
-	 * @param fontName 用于 Label 的字体名称。可以是带有或不带有文件扩展名的字体文件路径。
-	 * @param fontSize 用于 Label 的字体大小。
-	 * @returns 新的 Label 对象。
+	 * @param fontName 用于创建 Label 对象的字体名称。可以是带有或不带有文件扩展名的字体文件路径。
+	 * @param fontSize 用于创建 Label 对象的字体大小。
+	 * @returns 新的 Label 对象，如果创建失败则返回 `null`。
 	 */
-	(this: void, fontName: string, fontSize: number): Label;
+	(this: void, fontName: string, fontSize: number): Label | null;
 }
 
 const labelClass: LabelClass;
 export {labelClass as Label};
 
 /**
- * 用于使用顶点绘制线条的类。
+ * 使用一组顶点来绘制线条的类。
  */
 class Line extends Node {
 	private constructor();
@@ -5561,14 +5820,14 @@ class Line extends Node {
 
 	/**
 	 * 添加顶点到线条中。
-	 * @param verts 要添加到线条的顶点表。
+	 * @param verts 要添加到线条的顶点列表。
 	 * @param color 线条的颜色（默认为不透明白色）。
 	 */
 	add(verts: Vec2[], color?: Color): void;
 
 	/**
 	 * 设置线条的顶点。
-	 * @param verts 要设置的顶点表。
+	 * @param verts 组成线条的顶点列表。
 	 * @param color 线条的颜色（默认为不透明白色）。
 	 */
 	set(verts: Vec2[], color?: Color): void;
@@ -5606,13 +5865,13 @@ export {lineClass as Line}
 /**
  * 用于管理特定区域内子节点的触摸事件的接口。
  * 菜单会拦截触摸事件并传递给子节点。
- * 只有一个子节点可以接收第一个触摸事件；后续的多点触摸事件将被忽略。
+ * 只有一个子节点可以接收第一个触摸事件，后续的多点触摸事件将被忽略。
  */
 class Menu extends Node {
 	private constructor();
 
 	/**
-	 * 菜单当前是否启用。
+	 * 当前是否启用菜单节点。默认为 true。
 	 */
 	enabled: boolean;
 }
@@ -5756,7 +6015,7 @@ const ml: ML;
 export {ml as ML};
 
 /**
- * 表示发射和动画粒子的粒子系统节点。
+ * 用于发射和更新粒子动画的粒子系统节点。
  */
 class Particle extends Node {
 	private constructor();
@@ -5783,10 +6042,10 @@ export namespace Particle {
 interface ParticleClass {
 	/**
 	 * 从粒子系统文件创建新的 Particle 对象。
-	 * @param filename 粒子系统文件的文件路径。
-	 * @returns 新的 Particle 对象。
+	 * @param filename 加载粒子系统定义文件的文件路径。
+	 * @returns 新的 Particle 对象。如果加载失败，则返回 `null`。
 	 */
-	(this: void, filename: string): Particle;
+	(this: void, filename: string): Particle | null;
 }
 
 const particleClass: ParticleClass;

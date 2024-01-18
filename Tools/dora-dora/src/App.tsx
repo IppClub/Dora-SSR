@@ -304,6 +304,11 @@ export default function PersistentDrawerLeft() {
 				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "lua.d.ts");
 			}
 		});
+		Service.read({path: "dora.d.ts"}).then(res => {
+			if (res.content !== undefined) {
+				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "dora.d.ts");
+			}
+		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 

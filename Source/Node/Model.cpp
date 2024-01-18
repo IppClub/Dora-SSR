@@ -52,7 +52,10 @@ Model::Model(String filename)
 
 bool Model::init() {
 	if (!Node::init()) return false;
-	if (!_modelDef) return false;
+	if (!_modelDef) {
+		setAsManaged();
+		return false;
+	}
 	_resetAnimation.end = std::make_pair(this, &Model::onResetAnimationEnd);
 	_root = Node::create(false);
 	const std::string& clipFile = _modelDef->getClipFile();

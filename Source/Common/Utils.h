@@ -176,8 +176,10 @@ typedef Slice String;
 		type* item = new type(std::forward<Args>(args)...); \
 		if (item && item->init()) { \
 			item->autorelease(); \
-		} else { \
+		} else if (item->getRefCount() == 0) { \
 			delete item; \
+			item = nullptr; \
+		} else { \
 			item = nullptr; \
 		} \
 		return item; \

@@ -75,8 +75,8 @@ local record PlayableClass
 	-- 	"model:" + modelFile
 	-- 	"spine:" + spineStr
 	-- 	"bone:" + dragonBoneStr
-	-- @return (Playable) 新的动画模型实例.
-	metamethod __call: function(self: PlayableClass, filename: string): Playable
+	-- @return (Playable) 新的动画模型实例，如果加载失败，则返回 nil。
+	metamethod __call: function(self: PlayableClass, filename: string): Playable | nil
 end
 
 local playableClass: PlayableClass

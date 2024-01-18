@@ -7,11 +7,11 @@ local record Model
 	-- Inherits from `Playable`.
 	embed Playable
 
-	-- The duration of the current animation.
-	const duration: number
-
 	-- Whether the animation model will be played in reverse.
 	reversed: boolean
+
+	-- The duration of the current animation.
+	const duration: number
 
 	-- Whether the animation model is currently playing.
 	const playing: boolean

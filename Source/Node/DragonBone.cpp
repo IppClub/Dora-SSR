@@ -587,8 +587,10 @@ DragonBone* DragonBone::create() {
 	DragonBone* item = new DragonBone();
 	if (item && item->init()) {
 		item->autorelease();
-	} else {
+	} else if (item->getRefCount() == 0) {
 		delete item;
+		item = nullptr;
+	} else {
 		item = nullptr;
 	}
 	return item;

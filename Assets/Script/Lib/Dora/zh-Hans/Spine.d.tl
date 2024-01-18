@@ -50,14 +50,14 @@ local record SpineClass
 	-- 使用指定的`Spine2D`字符串创建`Spine`的新实例。
 	-- @param spineStr (string) 用于创建新实例的`Spine2D`文件名字符串。
 	-- `Spine2D`文件名字符串可以是不带扩展名的文件路径，例如：“Spine/item”，也可以是带有所有相关文件的文件路径，例如 “Spine/item.skel|Spine/item.atlas” 或 “Spine/item.json|Spine/item.atlas”。
-	-- @return (Spine) `Spine`的新实例。
-	metamethod __call: function(self: SpineClass, spineStr: string): Spine
+	-- @return (Spine) `Spine`的新实例。如果创建失败，则返回 nil。
+	metamethod __call: function(self: SpineClass, spineStr: string): Spine | nil
 
 	-- 使用指定的骨架文件和图集文件创建`Spine`的新实例。
 	-- @param skelFile (string) 要加载的骨架文件的文件名。
 	-- @param atlasFile (string) 要加载的图集文件的文件名。
-	-- @return (Spine) `Spine`的新实例，具有指定的骨架文件和图集文件。
-	metamethod __call: function(self: SpineClass, skelFile: string, atlasFile: string): Spine
+	-- @return (Spine) `Spine`的新实例，具有指定的骨架文件和图集文件。如果创建失败，则返回 nil。
+	metamethod __call: function(self: SpineClass, skelFile: string, atlasFile: string): Spine | nil
 end
 
 local spineClass: SpineClass

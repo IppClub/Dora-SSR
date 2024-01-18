@@ -64,8 +64,8 @@ local record SpriteClass
 	-- A metamethod for creating Sprite object.
 	-- @param clipStr (string) The string containing format for loading a texture file.
 	-- Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
-	-- @return (Sprite) A new instance of the Sprite class.
-	metamethod __call: function(self: SpriteClass, clipStr: string): Sprite
+	-- @return (Sprite) A new instance of the Sprite class. If the texture file is not found, it will return nil.
+	metamethod __call: function(self: SpriteClass, clipStr: string): Sprite | nil
 
 	-- A metamethod for creating Sprite object.
 	-- @return (Sprite) A new instance of the Sprite class.

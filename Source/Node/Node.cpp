@@ -656,6 +656,7 @@ bool Node::isUnManaged() const {
 }
 
 void Node::setTouchEnabled(bool var) {
+	if (_flags.isOn(Node::TouchEnabled) == var) return;
 	if (!_touchHandler) {
 		_touchHandler = std::make_shared<NodeTouchHandler>(this);
 		_touchHandler->setSwallowTouches(_flags.isOn(Node::SwallowTouches));
@@ -1281,7 +1282,7 @@ void Node::handleKeyboardAndController(Event* event) {
 }
 
 void Node::setKeyboardEnabled(bool var) {
-	if (var == _flags.isOn(Node::KeyboardEnabled)) return;
+	if (_flags.isOn(Node::KeyboardEnabled) == var) return;
 	_flags.set(Node::KeyboardEnabled, var);
 	if (var) {
 		SharedKeyboard.handler += std::make_pair(MakeRef(this), &Node::handleKeyboardAndController);
@@ -1295,7 +1296,7 @@ bool Node::isKeyboardEnabled() const {
 }
 
 void Node::setControllerEnabled(bool var) {
-	if (var == _flags.isOn(Node::ControllerEnabled)) return;
+	if (_flags.isOn(Node::ControllerEnabled) == var) return;
 	_flags.set(Node::ControllerEnabled, var);
 	if (var) {
 		SharedController.handler += std::make_pair(MakeRef(this), &Node::handleKeyboardAndController);
