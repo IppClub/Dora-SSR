@@ -7,11 +7,11 @@ local record Model
 	-- 继承自`Playable`。
 	embed Playable
 
-	-- 当前动画的持续时间模型。
-	const duration: number
-
 	-- 动画模型是否将倒着播放动画。
 	reversed: boolean
+
+	-- 当前动画的持续时间模型。
+	const duration: number
 
 	-- 动画模型当前是否正在播放。
 	const playing: boolean

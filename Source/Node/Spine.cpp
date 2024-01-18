@@ -77,26 +77,27 @@ Spine::Spine(String skelFile, String atlasFile)
 
 bool Spine::init() {
 	if (!Node::init()) return false;
-	if (_skeletonData) {
-		_animationStateData = New<spine::AnimationStateData>(_skeletonData->getSkel());
-		_animationState = New<spine::AnimationState>(_animationStateData.get());
-		_skeleton = New<spine::Skeleton>(_skeletonData->getSkel());
-		_clipper = New<spine::SkeletonClipping>();
-		auto& slots = _skeleton->getSlots();
-		for (size_t i = 0; i < slots.size(); i++) {
-			spine::Slot* slot = slots[i];
-			if (!slot->getBone().isActive()) continue;
-			spine::Attachment* attachment = slot->getAttachment();
-			if (attachment && !attachment->getRTTI().instanceOf(spine::BoundingBoxAttachment::rtti)) {
-				_bounds = New<spine::SkeletonBounds>();
-				setHitTestEnabled(true);
-				break;
-			}
-		}
-		this->scheduleUpdate();
-		return true;
+	if (!_skeletonData) {
+		setAsManaged();
+		return false;
 	}
-	return false;
+	_animationStateData = New<spine::AnimationStateData>(_skeletonData->getSkel());
+	_animationState = New<spine::AnimationState>(_animationStateData.get());
+	_skeleton = New<spine::Skeleton>(_skeletonData->getSkel());
+	_clipper = New<spine::SkeletonClipping>();
+	auto& slots = _skeleton->getSlots();
+	for (size_t i = 0; i < slots.size(); i++) {
+		spine::Slot* slot = slots[i];
+		if (!slot->getBone().isActive()) continue;
+		spine::Attachment* attachment = slot->getAttachment();
+		if (attachment && !attachment->getRTTI().instanceOf(spine::BoundingBoxAttachment::rtti)) {
+			_bounds = New<spine::SkeletonBounds>();
+			setHitTestEnabled(true);
+			break;
+		}
+	}
+	this->scheduleUpdate();
+	return true;
 }
 
 void Spine::setSpeed(float var) {

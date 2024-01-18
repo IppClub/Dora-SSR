@@ -45,15 +45,15 @@ local record DragonBoneClass
 	-- @param boneStr (string) 用于创建新实例的`DragonBone`文件名字符串。
 	-- `DragonBone`文件名字符串可以是不带扩展名的文件路径，例如 "DragonBone/item"，或包含所有相关扩展名的完整文件路径，例如："DragonBone/item_ske.json|DragonBone/item_tex.json"。
 	-- 并且可以在分号后添加骨架名称。例如 "DragonBone/item;mainArmature" 或 "DragonBone/item_ske.json|DragonBone/item_tex.json;mainArmature"。
-	-- @return (DragonBone) 'DragonBone' 的新实例。
-	metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone
+	-- @return (DragonBone) 'DragonBone' 的新实例。如果找不到指定的文件，则返回 nil。
+	metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone | nil
 
 	-- 使用指定的骨骼和图集文件创建`DragonBone`的新实例。
 	-- 此函数仅加载模型文件内的第一个骨架。
 	-- @param boneFile (string) 要加载的骨骼文件的文件名。
 	-- @param atlasFile (string) 要加载的图集文件的文件名。
-	-- @return (DragonBone) 带有指定骨骼文件和图集文件的`DragonBone`的新实例。
-	metamethod __call: function(self: DragonBoneClass, boneFile: string, atlasFile: string): DragonBone
+	-- @return (DragonBone) 带有指定骨骼文件和图集文件的`DragonBone`的新实例。如果找不到指定的文件，则返回 nil。
+	metamethod __call: function(self: DragonBoneClass, boneFile: string, atlasFile: string): DragonBone | nil
 end
 
 local dragonBoneClass: DragonBoneClass

@@ -50,14 +50,14 @@ local record SpineClass
 	-- Creates a new instance of 'Spine' using the specified Spine string.
 	-- @param spineStr (string) The Spine file string for the new instance.
 	-- A Spine file string can be a file path with the target file extention like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas".
-	-- @return (Spine) A new instance of 'Spine'.
-	metamethod __call: function(self: SpineClass, spineStr: string): Spine
+	-- @return (Spine) A new instance of 'Spine'. Returns nil if the Spine file could not be loaded.
+	metamethod __call: function(self: SpineClass, spineStr: string): Spine | nil
 
 	-- Creates a new instance of 'Spine' using the specified skeleton file and atlas file.
 	-- @param skelFile (string) the filename of the skeleton file to load.
 	-- @param atlasFile (string) the filename of the atlas file to load.
-	-- @return (Spine) a new instance of 'Spine' with the specified skeleton file and atlas file.
-	metamethod __call: function(self: SpineClass, skelFile: string, atlasFile: string): Spine
+	-- @return (Spine) a new instance of 'Spine' with the specified skeleton file and atlas file. Returns nil if the skeleton file or atlas file could not be loaded.
+	metamethod __call: function(self: SpineClass, skelFile: string, atlasFile: string): Spine | nil
 end
 
 local spineClass: SpineClass

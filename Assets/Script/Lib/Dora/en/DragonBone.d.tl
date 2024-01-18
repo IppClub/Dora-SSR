@@ -45,14 +45,14 @@ local record DragonBoneClass
 	-- @param boneStr (string) The DragonBone file string for the new instance.
 	-- A DragonBone file string can be a file path with the target file extention like "DragonBone/item" or file paths with all the related files like "DragonBone/item_ske.json|DragonBone/item_tex.json".
 	-- And the an armature name can be added following a seperator of ';'. like "DragonBone/item;mainArmature" or "DragonBone/item_ske.json|DragonBone/item_tex.json;mainArmature"
-	-- @return (DragonBone) A new instance of 'DragonBone'.
-	metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone
+	-- @return (DragonBone) A new instance of 'DragonBone'. Returns nil if the bone file or atlas file is not found.
+	metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone | nil
 
 	-- Creates a new instance of 'DragonBone' using the specified bone file and atlas file. This function only loads the first armature.
 	-- @param boneFile (string) the filename of the bone file to load.
 	-- @param atlasFile (string) the filename of the atlas file to load.
-	-- @return (DragonBone) a new instance of 'DragonBone' with the specified bone file and atlas file.
-	metamethod __call: function(self: DragonBoneClass, boneFile: string, atlasFile: string): DragonBone
+	-- @return (DragonBone) a new instance of 'DragonBone' with the specified bone file and atlas file. Returns nil if the bone file or atlas file is not found.
+	metamethod __call: function(self: DragonBoneClass, boneFile: string, atlasFile: string): DragonBone | nil
 end
 
 local dragonBoneClass: DragonBoneClass

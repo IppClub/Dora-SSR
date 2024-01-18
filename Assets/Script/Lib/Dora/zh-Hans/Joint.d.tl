@@ -158,8 +158,8 @@ local record JointClass
 	-- @param canCollide (boolean) 连接的物体是否会相互碰撞。
 	-- @param bodyA (Body) 要连接的第一个物理体。
 	-- @param bodyB (Body) 要连接的第二个物理体。
-	-- @param anchorA (Vec2) 第一个物体上的锚点在世界坐标系中的位置。
-	-- @param anchorB (Vec2) 第二个物体上的锚点在世界坐标系中的位置。
+	-- @param anchorA (Vec2) 第一个物体上的锚点的位置。
+	-- @param anchorB (Vec2) 第二个物体上的锚点的位置。
 	-- @param maxLength (number) [可选] 锚点之间的最大距离（默认为0.0）。
 	-- @return (Joint) 绳子关节。
 	rope: function(self: JointClass,

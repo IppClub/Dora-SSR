@@ -36,7 +36,7 @@
 // dragonBones assert
 #define DRAGONBONES_ASSERT(cond, msg) \
 do { \
-    assert(cond); \
+    if (!(cond)) throw std::runtime_error(std::string() + msg); \
 } while (0)
 
 // namespace dragonBones {}

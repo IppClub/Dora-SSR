@@ -1,5 +1,6 @@
 #include "Animation.h"
 #include "../model/DisplayData.h"
+#include "../model/DragonBonesData.h"
 #include "../model/AnimationConfig.h"
 #include "../model/AnimationData.h"
 #include "../armature/Armature.h"
@@ -240,8 +241,8 @@ AnimationState* Animation::playConfig(AnimationConfig* animationConfig)
         DRAGONBONES_ASSERT(
             false,
             "Non-existent animation.\n" +
-            " DragonBones name: " + this->_armature->getArmatureData().parent->name +
-            " Armature name: " + this->_armature->name +
+            " DragonBones name: " + this->_armature->getArmatureData()->parent->name +
+            " Armature name: " + this->_armature->getName() +
             " Animation name: " + animationName
         );
 

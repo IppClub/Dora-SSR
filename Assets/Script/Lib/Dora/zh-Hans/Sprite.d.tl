@@ -64,17 +64,17 @@ local record SpriteClass
 	-- 用于创建新的图元对象的元方法。
 	-- @param clipStr (string) 包含要加载的纹理文件名的字符串。
 	-- 可以是"Image/file.png"或"Image/items.clip|itemA"。支持的图片文件格式包括：jpg，png，dds，pvr，ktx。
-	-- @return (Sprite) 新的图元对象.
-	metamethod __call: function(self: SpriteClass, clipStr: string): Sprite
+	-- @return (Sprite) 新的图元对象。如果加载失败则返回nil。
+	metamethod __call: function(self: SpriteClass, clipStr: string): Sprite | nil
 
 	-- 用于创建新的图元对象的元方法。
-	-- @return (Sprite) 新的图元对象.
+	-- @return (Sprite) 新的图元对象。
 	metamethod __call: function(self: SpriteClass): Sprite
 
 	-- 用于创建新的图元对象的元方法。
 	-- @param texture (Texture2D) 要渲染的纹理。
 	-- @param textureRect (Rect) [可选] 用于渲染的纹理矩形区域，没有提供则设置为渲染所有纹理区域。
-	-- @return (Sprite) 新的图元对象.
+	-- @return (Sprite) 新的图元对象。
 	metamethod __call: function(self: SpriteClass, texture: Texture2D, textureRect?: Rect): Sprite
 end
 

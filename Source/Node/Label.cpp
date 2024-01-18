@@ -288,9 +288,11 @@ Label::Label(String fontName, uint32_t fontSize)
 	, _font(SharedFontCache.load(fontName, fontSize))
 	, _blendFunc(BlendFunc::Default)
 	, _effect(SharedFontCache.getDefaultEffect()) {
-	_lineGap = _font->getInfo().lineGap;
-	_flags.setOff(Node::TraverseEnabled);
-	_flags.setOn(Label::TextBatched);
+	if (_font) {
+		_lineGap = _font->getInfo().lineGap;
+		_flags.setOff(Node::TraverseEnabled);
+		_flags.setOn(Label::TextBatched);
+	}
 }
 
 Label::Label(String fontStr)
@@ -310,7 +312,11 @@ Label::~Label() { }
 
 bool Label::init() {
 	if (!Node::init()) return false;
-	return _font != nullptr;
+	if (!_font) {
+		setAsManaged();
+		return false;
+	}
+	return true;
 }
 
 void Label::setTextWidth(float var) {

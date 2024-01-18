@@ -75,8 +75,8 @@ local record PlayableClass
 	-- 	"model:" + modelFile
 	-- 	"spine:" + spineStr
 	-- 	"bone:" + dragonBoneStr
-	-- @return (Playable) a new instance of 'Playable'.
-	metamethod __call: function(self: PlayableClass, filename: string): Playable
+	-- @return (Playable) a new instance of 'Playable'. If the file could not be loaded, then nil is returned.
+	metamethod __call: function(self: PlayableClass, filename: string): Playable | nil
 end
 
 local playableClass: PlayableClass

@@ -714,36 +714,36 @@ export namespace ActionDef {
 	export type Type = ActionDef;
 }
 
-/** Represents an action that can be run on a node */
+/** Represents an action that can be run on a node. */
 interface Action extends Object {
-	/** The duration of the action */
+	/** The duration of the action. */
 	readonly duration: number;
 
-	/** Whether the action is currently running */
+	/** Whether the action is currently running. */
 	readonly running: boolean;
 
-	/** Whether the action is currently paused */
+	/** Whether the action is currently paused. */
 	readonly paused: boolean;
 
-	/** Whether the action should be run in reverse */
+	/** Whether the action should be run in reverse. */
 	reversed: boolean;
 
 	/**
-	 * The speed at which the action should be run
-	 * Set to 1.0 to get normal speed, Set to 2.0 to get two times faster
+	 * The speed at which the action should be run.
+	 * Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
 	 */
 	speed: number;
 
-	/** Pauses the action */
+	/** Pauses the action. */
 	pause(): void;
 
-	/** Resumes the action */
+	/** Resumes the action. */
 	resume(): void;
 
 	/**
-	 * Updates the state of the Action
-	 * @param elapsed The amount of time in seconds that has elapsed to update action to
-	 * @param reversed Whether or not to update the Action in reverse (default is false)
+	 * Updates the state of the Action.
+	 * @param elapsed The amount of time in seconds that has elapsed to update action to.
+	 * @param reversed Whether or not to update the Action in reverse (default is false).
 	 */
 	updateTo(elapsed: number, reversed?: boolean): void;
 }
@@ -766,7 +766,7 @@ export const actionClass: ActionClass;
 export {actionClass as Action};
 
 /** Type for each easing function. */
-type EaseFunc = BasicType<'EaseFunc', number>;
+export type EaseFunc = BasicType<'EaseFunc', number>;
 
 /** Interface for the Ease object containing easing functions. */
 interface EaseClass {
@@ -1196,15 +1196,15 @@ export function Z(
 ): ActionDef;
 
 /**
-* Creates a definition for an action that runs a group of ActionDefs in parallel.
-* @param actions A variable number of ActionDef objects to run in parallel.
+* Creates a definition for an action that runs a group of actions in parallel.
+* @param actions The ActionDef objects to run in parallel.
 * @returns An ActionDef object that can be used to run the group of actions on a Node.
 */
 export function Spawn(this: void, ...actions: ActionDef[]): ActionDef;
 
 /**
- * Creates a definition for an action that plays a sequence of other ActionDefs.
- * @param actions A variable number of ActionDef objects to play in sequence.
+ * Creates a definition for an action that runs a sequence of actions.
+ * @param actions The ActionDef objects to run in sequence.
  * @returns An ActionDef object that can be used to run the sequence of actions on a Node.
  */
 export function Sequence(this: void, ...actions: ActionDef[]): ActionDef;
@@ -2475,8 +2475,8 @@ interface NodeEventHandlerMap {
 
 	/**
 	 * The TextInput slot is triggered when text input is received.
-	-- Triggers after calling `node.attachIME()`.
-	-- @param text The text that was input.
+	 * Triggers after calling `node.attachIME()`.
+	 * @param text The text that was input.
 	*/
 	TextInput(this: void, text: string): void;
 
@@ -3155,7 +3155,7 @@ class ClipNode extends Node {
 	/**
 	 * The stencil Node that defines the clipping shape.
 	 */
-	stencil: Node;
+	stencil: Node | null;
 
 	/**
 	 * The minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
@@ -3714,7 +3714,7 @@ export namespace Playable {
 interface PlayableClass {
 	/**
 	 * Creates a new instance of 'Playable' from the specified animation file.
-	 * @param filename the filename of the animation file to load.
+	 * @param filename The filename of the animation file to load.
 	 * Supports DragonBone, Spine2D, and Dora Model files.
 	 * Should be one of the formats below:
 	 *  "model:" + modelFile
@@ -3788,9 +3788,11 @@ interface DragonBoneClass {
 	/**
 	 * Creates a new instance of 'DragonBone' using the specified bone string.
 	 * @param boneStr The DragonBone file string for the new instance.
+	 * A DragonBone file string can be a file path with the target file extention like "DragonBone/item" or file paths with all the related files like "DragonBone/item_ske.json|DragonBone/item_tex.json".
+	 * And the an armature name can be added following a seperator of ';'. like "DragonBone/item;mainArmature" or "DragonBone/item_ske.json|DragonBone/item_tex.json;mainArmature".
 	 * @returns A new instance of 'DragonBone'.
 	 */
-	(this: void, boneStr: string): DragonBone;
+	(this: void, boneStr: string): DragonBone | null;
 
 	/**
 	 * Creates a new instance of 'DragonBone' using the specified bone file and atlas file. This function only loads the first armature.
@@ -3798,7 +3800,7 @@ interface DragonBoneClass {
 	 * @param atlasFile The filename of the atlas file to load.
 	 * @returns A new instance of 'DragonBone' with the specified bone file and atlas file.
 	 */
-	(this: void, boneFile: string, atlasFile: string): DragonBone;
+	(this: void, boneFile: string, atlasFile: string): DragonBone | null;
 }
 
 const dragonBoneClass: DragonBoneClass;
@@ -3868,9 +3870,10 @@ interface SpineClass {
 	/**
 	 * Creates a new instance of 'Spine' using the specified Spine string.
 	 * @param spineStr The Spine file string for the new instance.
+	-- A Spine file string can be a file path with the target file extention like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas".
 	 * @returns A new instance of 'Spine'.
 	 */
-	(this: void, spineStr: string): Spine;
+	(this: void, spineStr: string): Spine | null;
 
 	/**
 	 * Creates a new instance of 'Spine' using the specified skeleton file and atlas file.
@@ -3878,7 +3881,7 @@ interface SpineClass {
 	 * @param atlasFile The filename of the atlas file to load.
 	 * @returns A new instance of 'Spine' with the specified skeleton file and atlas file.
 	 */
-	(this: void, skelFile: string, atlasFile: string): Spine;
+	(this: void, skelFile: string, atlasFile: string): Spine | null;
 }
 
 const spineClass: SpineClass;
@@ -3891,24 +3894,24 @@ class Model extends Playable {
 	protected constructor();
 
 	/**
-	 * The duration of the current animation.
-	 */
-	duration: number;
-
-	/**
 	 * Whether the animation model will be played in reverse.
 	 */
 	reversed: boolean;
 
 	/**
+	 * The duration of the current animation.
+	 */
+	readonly duration: number;
+
+	/**
 	 * Whether the animation model is currently playing.
 	 */
-	playing: boolean;
+	readonly playing: boolean;
 
 	/**
 	 * Whether the animation model is currently paused.
 	 */
-	paused: boolean;
+	readonly paused: boolean;
 
 	/**
 	 * Check if an animation exists in the model.
@@ -3997,7 +4000,7 @@ interface ModelClass {
 	 * Can be filename with or without extension like: "Model/item" or "Model/item.model".
 	 * @returns A new instance of 'Model'.
 	 */
-	(this: void, filename: string): Model;
+	(this: void, filename: string): Model | null;
 }
 
 const modelClass: ModelClass;
@@ -4025,7 +4028,7 @@ class DrawNode extends Node {
 	 * @param radius The radius of the dot.
 	 * @param color The color of the dot (default is white).
 	 */
-	drawDot(this: DrawNode, pos: Vec2, radius: number, color?: Color): void;
+	drawDot(pos: Vec2, radius: number, color?: Color): void;
 
 	/**
 	 * Draws a line segment between two points with a specified radius and color.
@@ -4034,7 +4037,7 @@ class DrawNode extends Node {
 	 * @param radius The radius of the line.
 	 * @param color The color of the line (default is white).
 	 */
-	drawSegment(this: DrawNode, from: Vec2, to: Vec2, radius: number, color?: Color): void;
+	drawSegment(from: Vec2, to: Vec2, radius: number, color?: Color): void;
 
 	/**
 	 * Draws a polygon defined by a list of vertices with a specified fill color and border.
@@ -4043,18 +4046,18 @@ class DrawNode extends Node {
 	 * @param borderWidth The width of the border (default is 0).
 	 * @param borderColor The color of the border (default is white).
 	 */
-	drawPolygon(this: DrawNode, verts: Vec2[], fillColor?: Color, borderWidth?: number, borderColor?: Color): void;
+	drawPolygon(verts: Vec2[], fillColor?: Color, borderWidth?: number, borderColor?: Color): void;
 
 	/**
 	 * Draws a set of vertices as triangles, each vertex with its own color.
 	 * @param verts The list of vertices and their colors.
 	 */
-	drawVertices(this: DrawNode, verts: [Vec2, Color][]): void;
+	drawVertices(verts: [Vec2, Color][]): void;
 
 	/**
 	 * Clears all previously drawn shapes from the node.
 	 */
-	clear(this: DrawNode): void;
+	clear(): void;
 }
 
 export namespace DrawNode {
@@ -4501,6 +4504,10 @@ class FixtureDef extends Object {
 	private constructor();
 }
 
+export namespace FixtureDef {
+	export type Type = FixtureDef;
+}
+
 /**
  * A class to represent a physics sensor object in the game world.
  */
@@ -4585,7 +4592,12 @@ class BodyDef extends Object {
 	/** Angular damping of the body. */
 	angularDamping: number;
 
-	/** Initial linear acceleration of the body. */
+	/**
+	 * A constant linear acceleration applied to the body.
+	 * Can be used for simulating gravity, wind, or other constant forces.
+	 * @example
+	 * bodyDef.linearAcceleration = Vec2(0, -9.8);
+	 */
 	linearAcceleration: Vec2;
 
 	/** Whether the body's rotation is fixed. */
@@ -4852,7 +4864,7 @@ class Body extends Node {
 	/**
 	 * The reference for an owner of the body.
 	 */
-	owner: Object;
+	owner?: Object;
 
 	/**
 	 * Whether the body is currently receiving contact events or not.
@@ -4938,7 +4950,7 @@ const bodyClass: BodyClass;
 export {bodyClass as Body};
 
 /**
- * Represents a physics world in the game.
+ * A class representing a physics world in the game.
  */
 class PhysicsWorld extends Node {
 	protected constructor();
@@ -5260,8 +5272,8 @@ interface JointDefClass {
 	 * @param canCollide Whether or not the connected bodies will collide with each other.
 	 * @param bodyA The name of the first physics body to connect.
 	 * @param bodyB The name of the second physics body to connect.
-	 * @param anchorA The position of the anchor point on the first body in world coordinates.
-	 * @param anchorB The position of the anchor point on the second body in world coordinates.
+	 * @param anchorA The position of the anchor point on the first body.
+	 * @param anchorB The position of the anchor point on the second body.
 	 * @param maxLength Optional The maximum distance between the anchor points (default 0.0).
 	 * @returns The rope joint definition.
 	 */
@@ -5321,6 +5333,253 @@ interface JointDefClass {
 
 const jointDefClass: JointDefClass;
 export {jointDefClass as JointDef};
+
+/**
+ * A factory class to create different types of joints that can be used to connect physics bodies together.
+ */
+interface JointClass {
+	/**
+	 * Creates a distance joint between two physics bodies.
+	 * @param canCollide Whether or not the physics body connected to joint will collide with each other.
+	 * @param bodyA The first physics body to connect with the joint.
+	 * @param bodyB The second physics body to connect with the joint.
+	 * @param anchorA The position of the joint on the first physics body.
+	 * @param anchorB The position of the joint on the second physics body.
+	 * @param frequency The frequency of the joint, in Hertz (default is 0.0).
+	 * @param damping The damping ratio of the joint (default is 0.0).
+	 * @returns The new distance joint.
+	 */
+	distance(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		anchorA: Vec2,
+		anchorB: Vec2,
+		frequency?: number,
+		damping?: number
+	): Joint;
+
+	/**
+	 * Creates a friction joint between two physics bodies.
+	 * @param canCollide Whether or not the physics body connected to joint will collide with each other.
+	 * @param bodyA The first physics body to connect with the joint.
+	 * @param bodyB The second physics body to connect with the joint.
+	 * @param worldPos The position of the joint in the game world.
+	 * @param maxForce The maximum force that can be applied to the joint.
+	 * @param maxTorque The maximum torque that can be applied to the joint.
+	 * @returns The new friction joint.
+	 */
+	friction(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		maxForce: number,
+		maxTorque: number
+	): Joint;
+
+	/**
+	 * Creates a gear joint between two other joints.
+	 * @param canCollide Whether or not the physics bodies connected to the joint can collide with each other.
+	 * @param jointA The first joint to connect with the gear joint.
+	 * @param jointB The second joint to connect with the gear joint.
+	 * @param ratio The gear ratio (default is 1.0).
+	 * @returns The new gear joint.
+	 */
+	gear(
+		canCollide: boolean,
+		jointA: Joint,
+		jointB: Joint,
+		ratio?: number
+	): Joint;
+
+	/**
+	 * Creates a new spring joint between the two specified bodies.
+	 * @param canCollide Whether the connected bodies should collide with each other.
+	 * @param bodyA The first body connected to the joint.
+	 * @param bodyB The second body connected to the joint.
+	 * @param linearOffset Position of body-B minus the position of body-A, in body-A's frame.
+	 * @param angularOffset Angle of body-B minus angle of body-A.
+	 * @param maxForce The maximum force the joint can exert.
+	 * @param maxTorque The maximum torque the joint can exert.
+	 * @param correctionFactor Optional correction factor, defaults to 1.0.
+	 * @returns The created joint.
+	 */
+	spring(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		linearOffset: Vec2,
+		angularOffset: number,
+		maxForce: number,
+		maxTorque: number,
+		correctionFactor?: number
+	): Joint;
+
+	/**
+	 * Creates a new move joint for the specified body.
+	 * @param canCollide Whether the body can collide with other bodies.
+	 * @param body The body that the joint is attached to.
+	 * @param targetPos The target position that the body should move towards.
+	 * @param maxForce The maximum force the joint can exert.
+	 * @param frequency Optional frequency ratio, defaults to 5.0.
+	 * @param damping Optional damping ratio, defaults to 0.7.
+	 * @returns The created move joint.
+	 */
+	move(
+		canCollide: boolean,
+		body: Body,
+		targetPos: Vec2,
+		maxForce: number,
+		frequency?: number,
+		damping?: number
+	): MoveJoint;
+
+	/**
+	 * Creates a new prismatic joint between the two specified bodies.
+	 * @param canCollide Whether the connected bodies should collide with each other.
+	 * @param bodyA The first body connected to the joint.
+	 * @param bodyB The second body connected to the joint.
+	 * @param worldPos The world position of the joint.
+	 * @param axisAngle The axis angle of the joint.
+	 * @param lowerTranslation Optional lower translation limit, defaults to 0.0.
+	 * @param upperTranslation Optional upper translation limit, defaults to 0.0.
+	 * @param maxMotorForce Optional maximum motor force, defaults to 0.0.
+	 * @param motorSpeed Optional motor speed, defaults to 0.0.
+	 * @returns The created prismatic joint.
+	 */
+	prismatic(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		axisAngle: number,
+		lowerTranslation?: number,
+		upperTranslation?: number,
+		maxMotorForce?: number,
+		motorSpeed?: number
+	): MotorJoint;
+
+	/**
+	 * Create a pulley joint between two physics bodies.
+	 * @param canCollide Whether or not the connected bodies will collide with each other.
+	 * @param bodyA The first physics body to connect.
+	 * @param bodyB The second physics body to connect.
+	 * @param anchorA The position of the anchor point on the first body in world coordinates.
+	 * @param anchorB The position of the anchor point on the second body in world coordinates.
+	 * @param groundAnchorA The position of the ground anchor point on the first body in world coordinates.
+	 * @param groundAnchorB The position of the ground anchor point on the second body in world coordinates.
+	 * @param ratio Optional The pulley ratio, defaults to 1.0.
+	 * @returns The created pulley joint.
+	 */
+	pulley(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		anchorA: Vec2,
+		anchorB: Vec2,
+		groundAnchorA: Vec2,
+		groundAnchorB: Vec2,
+		ratio?: number
+	): Joint;
+
+	/**
+	 * Create a revolute joint between two physics bodies.
+	 * @param canCollide Whether or not the connected bodies will collide with each other.
+	 * @param bodyA The first physics body to connect.
+	 * @param bodyB The second physics body to connect.
+	 * @param worldPos The position in world coordinates where the joint will be created.
+	 * @param lowerAngle Optional The lower angle limit (radians), defaults to 0.0.
+	 * @param upperAngle Optional The upper angle limit (radians), defaults to 0.0.
+	 * @param maxMotorTorque Optional The maximum torque that can be applied to the joint to achieve the target speed, defaults to 0.0.
+	 * @param motorSpeed Optional The desired speed of the joint, defaults to 0.0.
+	 * @returns The created revolute joint.
+	 */
+	revolute(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		lowerAngle?: number,
+		upperAngle?: number,
+		maxMotorTorque?: number,
+		motorSpeed?: number
+	): MotorJoint;
+
+	/**
+	 * Create a rope joint between two physics bodies.
+	 * @param canCollide Whether or not the connected bodies will collide with each other.
+	 * @param bodyA The first physics body to connect.
+	 * @param bodyB The second physics body to connect.
+	 * @param anchorA The position of the anchor point on the first body.
+	 * @param anchorB The position of the anchor point on the second body.
+	 * @param maxLength Optional The maximum distance between the anchor points, defaults to 0.0.
+	 * @returns The created rope joint.
+	 */
+	rope(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		anchorA: Vec2,
+		anchorB: Vec2,
+		maxLength?: number
+	): Joint;
+
+	/**
+	 * Creates a weld joint between two bodies.
+	 * @param canCollide Whether or not the bodies connected to the joint can collide with each other.
+	 * @param bodyA The first body to be connected by the joint.
+	 * @param bodyB The second body to be connected by the joint.
+	 * @param worldPos The position in the world to connect the bodies together.
+	 * @param frequency [optional] The frequency at which the joint should be stiff, defaults to 0.0.
+	 * @param damping [optional] The damping rate of the joint, defaults to 0.0.
+	 * @returns The newly created weld joint.
+	 */
+	weld(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		frequency?: number,
+		damping?: number
+	): Joint;
+
+	/**
+	 * Creates a wheel joint between two bodies.
+	 * @param canCollide Whether or not the bodies connected to the joint can collide with each other.
+	 * @param bodyA The first body to be connected by the joint.
+	 * @param bodyB The second body to be connected by the joint.
+	 * @param worldPos The position in the world to connect the bodies together.
+	 * @param axisAngle The angle of the joint axis in radians.
+	 * @param maxMotorTorque [optional] The maximum torque the joint motor can exert, defaults to 0.0.
+	 * @param motorSpeed [optional] The target speed of the joint motor, defaults to 0.0.
+	 * @param frequency [optional] The frequency at which the joint should be stiff, defaults to 2.0.
+	 * @param damping [optional] The damping rate of the joint, defaults to 0.7.
+	 * @returns The newly created wheel joint.
+	 */
+	wheel(
+		canCollide: boolean,
+		bodyA: Body,
+		bodyB: Body,
+		worldPos: Vec2,
+		axisAngle: number,
+		maxMotorTorque?: number,
+		motorSpeed?: number,
+		frequency?: number,
+		damping?: number
+	): MotorJoint;
+
+	/**
+	 * Creates a joint instance based on the given joint definition and item dictionary containing physics bodies to be connected by the joint.
+	 * @param def The joint definition.
+	 * @param itemDict The dictionary containing all the bodies and other required items.
+	 * @returns The newly created joint.
+	 */
+	(this: void, def: JointDef, itemDict: Dictionary): Joint;
+}
+
+const jointClass: JointClass;
+export {jointClass as Joint};
 
 /**
  * An enumeration for texture wrapping modes.
@@ -5406,7 +5665,7 @@ interface SpriteClass {
 	 * Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
 	 * @returns A new instance of the Sprite class.
 	 */
-	(this: void, clipStr: string): Sprite;
+	(this: void, clipStr: string): Sprite | null;
 
 	/**
 	 * A method for creating Sprite object.
@@ -5497,7 +5756,7 @@ class Label extends Node {
 	effect: SpriteEffect;
 
 	/**
-	 * The text alignment setting.
+	 * The text alignment setting. (Default is `TextAlign.Center`)
 	 */
 	alignment: TextAlign;
 
@@ -5531,9 +5790,9 @@ interface LabelClass {
 	 * Creates a new Label object with the specified font name and font size.
 	 * @param fontName The name of the font to use for the label. Can be a font file path with or without a file extension.
 	 * @param fontSize The size of the font to use for the label.
-	 * @returns The new Label object.
+	 * @returns The new Label object. Returns `null` if the font could not be loaded.
 	 */
-	(this: void, fontName: string, fontSize: number): Label;
+	(this: void, fontName: string, fontSize: number): Label | null;
 }
 
 const labelClass: LabelClass;
@@ -5557,14 +5816,14 @@ class Line extends Node {
 
 	/**
 	 * Adds vertices to the line.
-	 * @param verts Table of vertices to add to the line.
+	 * @param verts List of vertices to add to the line.
 	 * @param color Color of the line (default is opaque white).
 	 */
 	add(verts: Vec2[], color?: Color): void;
 
 	/**
 	 * Sets vertices of the line.
-	 * @param verts Table of vertices to set.
+	 * @param verts List of vertices to set to the line.
 	 * @param color Color of the line (default is opaque white).
 	 */
 	set(verts: Vec2[], color?: Color): void;
@@ -5579,7 +5838,9 @@ export namespace Line {
 	export type Type = Line;
 }
 
-/** A class for creating Line object. */
+/**
+ * A class for creating Line objects.
+ */
 interface LineClass {
 	/**
 	 * Creates and returns a new Line object.
@@ -5778,11 +6039,11 @@ export namespace Particle {
  */
 interface ParticleClass {
 	/**
-	 * Creates a new Particle object from a particle system file.
-	 * @param filename The file path of the particle system file.
-	 * @returns A new Particle object.
+	 * Creates a new Particle object from a particle system definition file.
+	 * @param filename The file path of the particle system definition file.
+	 * @returns A new Particle object. Returns `null` if the particle system file could not be loaded.
 	 */
-	(this: void, filename: string): Particle;
+	(this: void, filename: string): Particle | null;
 }
 
 const particleClass: ParticleClass;

@@ -204,6 +204,10 @@ ParticleNode::~ParticleNode() { }
 
 bool ParticleNode::init() {
 	if (!Node::init()) return false;
+	if (!_particleDef) {
+		setAsManaged();
+		return false;
+	}
 	_particles.reserve(_particleDef->maxParticles);
 	_quads.reserve(_particleDef->maxParticles);
 	Rect textureRect = _particleDef->textureRect;

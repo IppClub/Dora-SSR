@@ -641,8 +641,8 @@ class Playable : public Node
 
 class Model : public Playable
 {
-	tolua_readonly tolua_property__common float duration;
 	tolua_property__bool bool reversed;
+	tolua_readonly tolua_property__common float duration;
 	tolua_readonly tolua_property__bool bool playing;
 	tolua_readonly tolua_property__bool bool paused;
 	bool hasAnimation(String name);
