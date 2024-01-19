@@ -472,9 +472,36 @@ export enterEntryAsync = (entry)->
 		result! if "function" == type result
 	catch msg
 		err = debug.traceback msg
-		print err
 		allClear!
-		err
+		print err
+		import "UI.Control.Basic.ScrollArea"
+		import "UI.Control.Basic.AlignNode"
+		import "UI.View.Shape.LineRect"
+		width: viewWidth, height: viewHeight = View.size
+		width, height = viewWidth - 20, viewHeight - 20
+		fontSize = math.floor 20 * App.devicePixelRatio
+		with AlignNode isRoot: true, inUI: false
+			\addChild with root = AlignNode alignWidth: "w", alignHeight: "h"
+				\addChild with scroll = ScrollArea {
+						:width
+						:height
+						paddingX: 0
+						paddingY: 50
+						viewWidth: height
+						viewHeight: height
+					}
+					\slot "AlignLayout", (w, h)->
+						.position = Vec2 w / 2, h / 2
+						w -= 20
+						h -= 20
+						.view.children.first.textWidth = w - fontSize
+						\adjustSizeWithAlign "Auto", 10, Size w, h
+					.view\addChild with label = Label "sarasa-mono-sc-regular", fontSize
+						.alignment = "Left"
+						.textWidth = width - fontSize
+						.text = msg
+			\alignLayout!
+		return err
 
 enterDemoEntry = (entry)-> thread -> enterEntryAsync entry
 

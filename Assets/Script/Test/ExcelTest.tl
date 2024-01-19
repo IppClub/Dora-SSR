@@ -282,6 +282,10 @@ end)
 
 Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon: string)
 	local sprite = Sprite(icon)
+	if sprite is nil then
+		return
+	end
+
 	sprite:schedule(loop(function(): boolean
 		sleep(sprite:runAction(Spawn(
 			AngleY(5, 0, 360),
@@ -506,6 +510,9 @@ Director.ui:schedule(function(): boolean
 				if ImGui.ImageButton("item" .. tostring(item.no), item.icon, Vec2(50, 50)) then
 					item.num = item.num - 1
 					local sprite = Sprite(item.icon)
+					if sprite is nil then
+						return
+					end
 					sprite.scaleX = 0.5
 					sprite.scaleY = 0.5
 					sprite:perform(Spawn(

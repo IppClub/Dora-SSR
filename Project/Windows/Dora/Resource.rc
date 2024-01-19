@@ -61,8 +61,8 @@ IDI_ICON1               ICON                    "Dora SSR.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,2,9,0
- PRODUCTVERSION 1,2,9,0
+ FILEVERSION 1,3,0,0
+ PRODUCTVERSION 1,3,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -79,12 +79,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "IppClub"
             VALUE "FileDescription", "A game engine for rapid game development."
-            VALUE "FileVersion", "1.2.9.0"
+            VALUE "FileVersion", "1.3.0.0"
             VALUE "InternalName", "Dora.exe"
             VALUE "LegalCopyright", "Copyright (C) 2024"
             VALUE "OriginalFilename", "Dora.exe"
             VALUE "ProductName", "Dora SSR"
-            VALUE "ProductVersion", "1.2.9.0"
+            VALUE "ProductVersion", "1.3.0.0"
         END
     END
     BLOCK "VarFileInfo"

@@ -619,8 +619,9 @@ function addChild(this: void, nodeStack: dora.Node.Type[], cnode: dora.Node.Type
 		last.addChild(cnode);
 	}
 	nodeStack.push(cnode);
-	if (enode.children.length > 0) {
-		visitNode(nodeStack, enode.children, enode);
+	const {children} = enode;
+	for (let i of $range(1, children.length)) {
+		visitNode(nodeStack, children[i - 1], enode);
 	}
 	if (nodeStack.length > 1) {
 		nodeStack.pop();
@@ -1115,11 +1116,13 @@ function visitNode(this: void, nodeStack: dora.Node.Type[], node: React.Element 
 	const enode = node as React.Element;
 	if (enode.type === undefined) {
 		const list = node as React.Element[];
-		const stack: dora.Node.Type[] = [];
-		for (let i of $range(1, list.length)) {
-			visitNode(stack, list[i - 1], parent);
-			for (let i of $range(1, stack.length)) {
-				nodeStack.push(stack[i - 1]);
+		if (list.length > 0) {
+			for (let i of $range(1, list.length)) {
+				const stack: dora.Node.Type[] = [];
+				visitNode(stack, list[i - 1], parent);
+				for (let i of $range(1, stack.length)) {
+					nodeStack.push(stack[i - 1]);
+				}
 			}
 		}
 	} else {

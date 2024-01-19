@@ -17,6 +17,9 @@ model:play("idle", true)
 node:addChild(model)
 
 local sprite = Sprite("Image/logo.png")
+if sprite is nil then
+	return
+end
 sprite.scaleX = 0.4
 sprite.scaleY = 0.4
 sprite.position = Vec2(200, -100)

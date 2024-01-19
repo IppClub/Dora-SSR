@@ -18,6 +18,9 @@ local node = Node()
 node:addTo(root, 1)
 
 local spine = Spine("Spine/moling")
+if spine is nil then
+	return
+end
 spine.y = -200
 spine.scaleX = 1.2
 spine.scaleY = 1.2
