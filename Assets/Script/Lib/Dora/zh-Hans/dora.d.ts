@@ -2824,7 +2824,7 @@ class Node extends Object {
 
 	/**
 	 * 安排协程开始运行。
-	 * @param job 要运行的协程，返回或产出true以停止。
+	 * @param job 要运行的协程，用返回true或`coroutine.yield(true)`停止运行。
 	 */
 	schedule(job: Job): void;
 

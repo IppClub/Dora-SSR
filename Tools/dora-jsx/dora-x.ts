@@ -100,6 +100,8 @@ function getNode(enode: React.Element, cnode?: dora.Node.Type, attribHandler?: A
 				case 'anchorX': anchor = dora.Vec2(v, (anchor ?? cnode.anchor).y); break;
 				case 'anchorY': anchor = dora.Vec2((anchor ?? cnode.anchor).x, v); break;
 				case 'color3': color3 = dora.Color3(v); break;
+				case 'transformTarget': cnode.transformTarget = v.current; break;
+				case 'onUpdate': cnode.schedule(v); break;
 				case 'onActionEnd': cnode.slot(dora.Slot.ActionEnd, v); break;
 				case 'onTapFilter': cnode.slot(dora.Slot.TapFilter, v); break;
 				case 'onTapBegan': cnode.slot(dora.Slot.TapBegan, v); break;
