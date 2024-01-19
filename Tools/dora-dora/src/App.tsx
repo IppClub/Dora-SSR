@@ -563,7 +563,10 @@ export default function PersistentDrawerLeft() {
 							}
 						});
 						if (targetIndex !== undefined && result.length > targetIndex && result[targetIndex].sortIndex === targetIndex) {
-							switchTab(targetIndex, result[targetIndex]);
+							const tabFile = result[targetIndex];
+							setTimeout(() => {
+								switchTab(targetIndex, tabFile);
+							}, 10);
 						}
 						return [...result];
 					} else {
