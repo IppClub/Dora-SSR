@@ -22,7 +22,7 @@ local sprite = Sprite("Image/file.png")
 
 **签名：**
 ```tl
-metamethod __call: function(self: SpriteClass, clipStr: string): Sprite
+metamethod __call: function(self: SpriteClass, clipStr: string): Sprite | nil
 ```
 
 **参数：**
@@ -35,7 +35,7 @@ metamethod __call: function(self: SpriteClass, clipStr: string): Sprite
 
 | 返回类型 | 描述 |
 | --- | --- |
-| Sprite | 新的图元对象. |
+| Sprite | 新的图元对象。如果加载失败则返回nil。 |
 
 ## __call
 
@@ -54,7 +54,7 @@ metamethod __call: function(self: SpriteClass): Sprite
 
 | 返回类型 | 描述 |
 | --- | --- |
-| Sprite | 新的图元对象. |
+| Sprite | 新的图元对象。 |
 
 ## __call
 
@@ -80,4 +80,4 @@ metamethod __call: function(self: SpriteClass, texture: Texture2D, textureRect?:
 
 | 返回类型 | 描述 |
 | --- | --- |
-| Sprite | 新的图元对象. |
+| Sprite | 新的图元对象。 |

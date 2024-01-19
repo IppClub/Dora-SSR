@@ -66,7 +66,7 @@ getAnimations: function(self: DragonBoneClass, boneStr: string): {string}
 
 **Signature:**
 ```tl
-metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone
+metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone | nil
 ```
 
 **Parameters:**
@@ -79,7 +79,7 @@ metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone
 
 | Return Type | Description |
 | --- | --- |
-| DragonBone | A new instance of 'DragonBone'. |
+| DragonBone | A new instance of 'DragonBone'. Returns nil if the bone file or atlas file is not found. |
 
 ## __call
 
@@ -91,7 +91,7 @@ metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone
 
 **Signature:**
 ```tl
-metamethod __call: function(self: DragonBoneClass, boneFile: string, atlasFile: string): DragonBone
+metamethod __call: function(self: DragonBoneClass, boneFile: string, atlasFile: string): DragonBone | nil
 ```
 
 **Parameters:**
@@ -105,4 +105,4 @@ metamethod __call: function(self: DragonBoneClass, boneFile: string, atlasFile: 
 
 | Return Type | Description |
 | --- | --- |
-| DragonBone | a new instance of 'DragonBone' with the specified bone file and atlas file. |
+| DragonBone | a new instance of 'DragonBone' with the specified bone file and atlas file. Returns nil if the bone file or atlas file is not found. |

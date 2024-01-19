@@ -16,7 +16,7 @@ import "@site/src/languages/highlight";
 
 **Signature:**
 ```tl
-metamethod __call: function(self: PlayableClass, filename: string): Playable
+metamethod __call: function(self: PlayableClass, filename: string): Playable | nil
 ```
 
 **Parameters:**
@@ -29,4 +29,4 @@ metamethod __call: function(self: PlayableClass, filename: string): Playable
 
 | Return Type | Description |
 | --- | --- |
-| Playable | a new instance of 'Playable'. |
+| Playable | a new instance of 'Playable'. If the file could not be loaded, then nil is returned. |
