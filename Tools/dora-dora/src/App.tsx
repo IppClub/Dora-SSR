@@ -702,128 +702,6 @@ export default function PersistentDrawerLeft() {
 		setExpandedKeys(keys);
 	};
 
-	const saveCurrentTab = useCallback(() => {
-		if (tabIndex === null) return;
-		setFiles(files => {
-			const file = files[tabIndex];
-			const saveFile = () => {
-				if (file.contentModified !== null) {
-					const readOnly = !file.key.startsWith(assetPath);
-					if (readOnly) {
-						addAlert(t("alert.builtin"), "warning");
-						return;
-					}
-					const {contentModified} = file;
-					Service.write({path: file.key, content: contentModified}).then((res) => {
-						if (res.success) {
-							file.content = contentModified;
-							file.contentModified = null;
-							setFiles(prev => [...prev]);
-						} else {
-							addAlert(t("alert.saveCurrent"), "error");
-						}
-					}).catch(() => {
-						addAlert(t("alert.saveCurrent"), "error");
-					});
-				}
-			};
-			if (file.yarnData !== undefined) {
-				file.yarnData.getJSONData().then((value) => {
-					file.contentModified = value;
-					saveFile();
-				}).catch(() => {
-					addAlert(t("alert.saveCurrent"), "error");
-				})
-			} else if (file.codeWireData !== undefined) {
-				let {codeWireData} = file;
-				const vscript = codeWireData.getVisualScript();
-				if (file.contentModified !== null || file.content !== vscript) {
-					file.contentModified = vscript;
-					let tealCode = codeWireData.getScript();
-					const extname = path.extname(file.key);
-					const name = path.basename(file.key, extname);
-					const tlFile = path.join(path.dirname(file.key), name + ".tl");
-					const fileInTab = files.find(f => path.relative(f.key, tlFile) === "");
-					Service.write({path: tlFile, content: tealCode}).then((res) => {
-						if (res.success) {
-							if (fileInTab !== undefined) {
-								setFiles(prev => {
-									const newTabs = prev.filter(f => f.key !== fileInTab.key);
-									const newIndex = newTabs.findIndex(t => t.key === file.key);
-									if (newIndex >= 0) {
-										setTabIndex(newIndex);
-									}
-									return newTabs;
-								});
-							}
-						} else {
-							addAlert(t("alert.saveCurrent"), "error");
-						}
-					}).then(() => {
-						saveFile();
-						Service.check({file: tlFile, content: tealCode}).then((res) => {
-							if (res.success && tealCode !== "") {
-								codeWireData.reportVisualScriptError("");
-							} else if (res.info !== undefined) {
-								const lines = tealCode.split("\n");
-								const message = [];
-								for (let err of res.info) {
-									const [, filename, row, , msg] = err;
-									let node = "";
-									if (path.relative(filename, tlFile) === "" && 1 <= row && row <= lines.length) {
-										const ends = lines[row - 1].match(/-- (\d+)$/);
-										if (ends !== null) {
-											node = "node " + ends[1] + ", ";
-										}
-									}
-									message.push(node + "line " + row + ": " + msg);
-								}
-								codeWireData.reportVisualScriptError(message.join("<br>"));
-							}
-						});
-					}).catch(() => {
-						addAlert(t("alert.saveCurrent"), "error");
-					});
-				}
-			} else {
-				const ext = path.extname(file.key).toLowerCase();
-				if (file.contentModified !== null && (ext === '.ts' || ext === '.tsx') && !file.key.toLocaleLowerCase().endsWith(".d.ts")) {
-					const {key, contentModified} = file;
-					import('./TranspileTS').then(({transpileTypescript}) => {
-						transpileTypescript(key, contentModified).then(luaCode => {
-							if (luaCode !== undefined) {
-								const extname = path.extname(file.key);
-								const name = path.basename(file.key, extname);
-								const luaFile = path.join(path.dirname(file.key), name + ".lua");
-								const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
-								Service.write({path: luaFile, content: luaCode}).then((res) => {
-									if (res.success) {
-										saveFile();
-										if (fileInTab !== undefined) {
-											setFiles(prev => {
-												const newTabs = prev.filter(f => f.key !== fileInTab.key);
-												const newIndex = newTabs.findIndex(t => t.key === file.key);
-												if (newIndex >= 0) {
-													setTabIndex(newIndex);
-												}
-												return newTabs;
-											});
-										}
-									} else {
-										addAlert(t("alert.saveCurrent"), "error");
-									}
-								});
-							}
-						});
-					});
-				} else {
-					saveFile();
-				}
-			}
-			return files;
-		});
-	}, [t, tabIndex, assetPath]);
-
 	const saveAllTabs = useCallback(() => {
 		return new Promise<boolean>((resolve) => {
 			setFiles(files => {
@@ -1737,7 +1615,7 @@ export default function PersistentDrawerLeft() {
 		});
 	}, [openLog, t, tabIndex]);
 
-	const onPlayControlClick = useCallback((mode: PlayControlMode) => {
+	const onPlayControlClick = useCallback((mode: PlayControlMode, noLog?: boolean) => {
 		if (mode === "Go to File") {
 			setOpenFilter(true);
 			return;
@@ -1804,14 +1682,14 @@ export default function PersistentDrawerLeft() {
 								Service.run({file: key, asProj}).then((res) => {
 									if (res.success) {
 										addAlert(t("alert.run", {title: res.target ?? title}), "success");
-										setOpenLog({
+										if (!noLog) setOpenLog({
 											title: res.target ?? title ?? "Running",
 											stopOnClose: true
 										});
 									} else {
 										addAlert(t("alert.runFailed", {title: res.target ?? title}), "error");
 									}
-									if (res.err !== undefined) {
+									if (!noLog && res.err !== undefined) {
 										setPopupInfo({
 											title: res.target ?? title ?? "",
 											msg: res.err,
@@ -1836,6 +1714,139 @@ export default function PersistentDrawerLeft() {
 			}
 		})
 	}, [tabIndex, selectedNode, openLog, t, onStopRunning, saveAllTabs]);
+
+	const saveCurrentTab = useCallback(() => {
+		if (tabIndex === null) return;
+		setFiles(files => {
+			const file = files[tabIndex];
+			const saveFile = () => {
+				if (file.contentModified !== null) {
+					const readOnly = !file.key.startsWith(assetPath);
+					if (readOnly) {
+						addAlert(t("alert.builtin"), "warning");
+						return;
+					}
+					const {contentModified} = file;
+					Service.write({path: file.key, content: contentModified}).then((res) => {
+						if (res.success) {
+							file.content = contentModified;
+							file.contentModified = null;
+							setFiles(prev => [...prev]);
+							const ext = path.extname(file.key).toLowerCase();
+							switch (ext) {
+								case ".ts": case ".tsx": case ".lua": case ".tl": case ".yue": {
+									if (contentModified.search(/@preview-file on\b/) >= 0) {
+										onPlayControlClick("Run This", true);
+									} else if (contentModified.search(/@preview-project on\b/) >= 0) {
+										onPlayControlClick("Run", true);
+									}
+									break;
+								}
+							}
+						} else {
+							addAlert(t("alert.saveCurrent"), "error");
+						}
+					}).catch(() => {
+						addAlert(t("alert.saveCurrent"), "error");
+					});
+				}
+			};
+			if (file.yarnData !== undefined) {
+				file.yarnData.getJSONData().then((value) => {
+					file.contentModified = value;
+					saveFile();
+				}).catch(() => {
+					addAlert(t("alert.saveCurrent"), "error");
+				})
+			} else if (file.codeWireData !== undefined) {
+				let {codeWireData} = file;
+				const vscript = codeWireData.getVisualScript();
+				if (file.contentModified !== null || file.content !== vscript) {
+					file.contentModified = vscript;
+					let tealCode = codeWireData.getScript();
+					const extname = path.extname(file.key);
+					const name = path.basename(file.key, extname);
+					const tlFile = path.join(path.dirname(file.key), name + ".tl");
+					const fileInTab = files.find(f => path.relative(f.key, tlFile) === "");
+					Service.write({path: tlFile, content: tealCode}).then((res) => {
+						if (res.success) {
+							if (fileInTab !== undefined) {
+								setFiles(prev => {
+									const newTabs = prev.filter(f => f.key !== fileInTab.key);
+									const newIndex = newTabs.findIndex(t => t.key === file.key);
+									if (newIndex >= 0) {
+										setTabIndex(newIndex);
+									}
+									return newTabs;
+								});
+							}
+						} else {
+							addAlert(t("alert.saveCurrent"), "error");
+						}
+					}).then(() => {
+						saveFile();
+						Service.check({file: tlFile, content: tealCode}).then((res) => {
+							if (res.success && tealCode !== "") {
+								codeWireData.reportVisualScriptError("");
+							} else if (res.info !== undefined) {
+								const lines = tealCode.split("\n");
+								const message = [];
+								for (let err of res.info) {
+									const [, filename, row, , msg] = err;
+									let node = "";
+									if (path.relative(filename, tlFile) === "" && 1 <= row && row <= lines.length) {
+										const ends = lines[row - 1].match(/-- (\d+)$/);
+										if (ends !== null) {
+											node = "node " + ends[1] + ", ";
+										}
+									}
+									message.push(node + "line " + row + ": " + msg);
+								}
+								codeWireData.reportVisualScriptError(message.join("<br>"));
+							}
+						});
+					}).catch(() => {
+						addAlert(t("alert.saveCurrent"), "error");
+					});
+				}
+			} else {
+				const ext = path.extname(file.key).toLowerCase();
+				if (file.contentModified !== null && (ext === '.ts' || ext === '.tsx') && !file.key.toLocaleLowerCase().endsWith(".d.ts")) {
+					const {key, contentModified} = file;
+					import('./TranspileTS').then(({transpileTypescript}) => {
+						transpileTypescript(key, contentModified).then(luaCode => {
+							if (luaCode !== undefined) {
+								const extname = path.extname(file.key);
+								const name = path.basename(file.key, extname);
+								const luaFile = path.join(path.dirname(file.key), name + ".lua");
+								const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+								Service.write({path: luaFile, content: luaCode}).then((res) => {
+									if (res.success) {
+										saveFile();
+										if (fileInTab !== undefined) {
+											setFiles(prev => {
+												const newTabs = prev.filter(f => f.key !== fileInTab.key);
+												const newIndex = newTabs.findIndex(t => t.key === file.key);
+												if (newIndex >= 0) {
+													setTabIndex(newIndex);
+												}
+												return newTabs;
+											});
+										}
+									} else {
+										addAlert(t("alert.saveCurrent"), "error");
+									}
+								});
+							}
+						});
+					});
+				} else {
+					saveFile();
+				}
+			}
+			return files;
+		});
+	}, [t, tabIndex, assetPath, onPlayControlClick]);
 
 	const onKeyDown = (event: KeyboardEvent) => {
 		if (event.ctrlKey || event.altKey || event.metaKey) {

@@ -2,6 +2,9 @@ local Sprite = require("Sprite")
 local type Touch = require("TouchType")
 
 local sprite = Sprite("Image/logo.png")
+if sprite is nil then
+	return
+end
 sprite.scaleX = 0.5
 sprite.scaleY = 0.5
 sprite.touchEnabled = true
@@ -28,6 +31,9 @@ threadLoop(function(): boolean
 	ImGui.SetNextWindowSize(Vec2(240, 520), "FirstUseEver")
 	ImGui.Begin("Sprite", windowFlags, function()
 		ImGui.BeginChild("SpriteSetting", Vec2(-1, -40), function()
+			if sprite is nil then
+				return
+			end
 			local changed = false
 			local z = sprite.z
 			changed, z = ImGui.DragFloat("Z", z, 1, -1000, 1000, "%.2f")
@@ -93,6 +99,9 @@ threadLoop(function(): boolean
 			end)
 		end)
 		if ImGui.Button("Reset", Vec2(140, 30)) then
+			if sprite is nil then
+				return
+			end
 			local parent = sprite.parent
 			parent:removeChild(sprite)
 			sprite = Sprite("Image/logo.png")

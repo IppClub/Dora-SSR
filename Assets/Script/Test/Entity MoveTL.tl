@@ -36,6 +36,9 @@ Observer("Add", { "image" }):watch(function(self: Entity.Type, image: string)
 		local scene = toNode(e.scene)
 		if not scene is nil then
 			local sprite = Sprite(image)
+			if sprite is nil then
+				return false
+			end
 			sprite:addTo(scene)
 			sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
 			self.sprite = sprite

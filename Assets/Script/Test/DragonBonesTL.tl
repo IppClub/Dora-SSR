@@ -19,6 +19,9 @@ local looks = DragonBone:getLooks(boneStr)
 p(animations, looks)
 
 local bone = DragonBone(boneStr)
+if bone is nil then
+	return
+end
 bone.look = looks[1]
 bone:play(animations[1], true)
 bone:slot("AnimationEnd", function(name: string)
