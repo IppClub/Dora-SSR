@@ -72,6 +72,12 @@ class Node {
 	/** Whether to pass the color value to child nodes. */
 	passColor3?: boolean;
 
+	/** The target node acts as a parent node for transforming this node. */
+	transformTarget?: Ref<Node>;
+
+	/** The scheduler used for scheduling update and action callbacks. */
+	scheduler?: dora.Scheduler.Type;
+
 	/** Whether touch events are enabled on the node. */
 	touchEnabled?: boolean;
 
@@ -94,6 +100,12 @@ class Node {
 	renderOrder?: number;
 
 	children?: any[] | any
+
+	/**
+	 * Schedules a function to run every frame, or schedules a coroutine to start running.
+	 * @param funcOrJob The function to run, return true to stop. Or the coroutine to run, return or yield true to stop.
+	 */
+	onUpdate?(this: void, funcOrJob: ((this: void, deltaTime: number) => boolean) | dora.Job): void;
 
 	/**
 	 * The ActionEnd slot is triggered when an action is finished.
@@ -427,7 +439,7 @@ class Polygon {
 	 */
 	verts: dora.Vec2.Type[];
 
-	/* 
+	/*
 	 * The fill color of the polygon in format 0xffffffff (ARGB, default is white).
 	 */
 	fillColor?: number;

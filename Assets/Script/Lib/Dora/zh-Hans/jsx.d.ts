@@ -72,6 +72,12 @@ class Node {
 	/** 是否将颜色值传递给子节点。 */
 	passColor3?: boolean;
 
+	/** 用于继承矩阵变换的目标节点。 */
+	transformTarget?: Ref<Node>;
+
+	/** 用于调度更新和动作回调的调度器。 */
+	scheduler?: dora.Scheduler.Type;
+
 	/** 节点上是否启用触摸事件。 */
 	touchEnabled?: boolean;
 
@@ -94,6 +100,12 @@ class Node {
 	renderOrder?: number;
 
 	children?: any[] | any;
+
+	/**
+	 * 调用一个函数在每一帧运行，或是调度一个协程开始执行。
+	 * @param funcOrJob 要运行的函数，返回true以停止。或是要运行的协程，用返回true或`coroutine.yield(true)`停止运行。
+	 */
+	onUpdate?(this: void, funcOrJob: ((this: void, deltaTime: number) => boolean) | dora.Job): void;
 
 	/**
 	 * ActionEnd事件会在节点执行完动作时触发。
@@ -427,7 +439,7 @@ class Polygon {
 	 */
 	verts: dora.Vec2.Type[];
 
-	/* 
+	/*
 	 * 多边形的填充颜色（默认为白色）。
 	 */
 	fillColor?: number;
@@ -560,7 +572,7 @@ class Label extends Node {
 	 * 要渲染的文本。
 	 */
 	text?: string;
-	 
+
 	/**
 	 * Alpha 阈值。透明度低于此值的像素将不会被绘制。
 	 * 仅在 `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")` 时有效。
