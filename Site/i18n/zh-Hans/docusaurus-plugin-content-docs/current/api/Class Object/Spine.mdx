@@ -66,7 +66,7 @@ getAnimations: function(self: SpineClass, spineStr: string): {string}
 
 **签名：**
 ```tl
-metamethod __call: function(self: SpineClass, spineStr: string): Spine
+metamethod __call: function(self: SpineClass, spineStr: string): Spine | nil
 ```
 
 **参数：**
@@ -79,7 +79,7 @@ metamethod __call: function(self: SpineClass, spineStr: string): Spine
 
 | 返回类型 | 描述 |
 | --- | --- |
-| Spine | `Spine`的新实例。 |
+| Spine | `Spine`的新实例。如果创建失败，则返回 nil。 |
 
 ## __call
 
@@ -91,7 +91,7 @@ metamethod __call: function(self: SpineClass, spineStr: string): Spine
 
 **签名：**
 ```tl
-metamethod __call: function(self: SpineClass, skelFile: string, atlasFile: string): Spine
+metamethod __call: function(self: SpineClass, skelFile: string, atlasFile: string): Spine | nil
 ```
 
 **参数：**
@@ -105,4 +105,4 @@ metamethod __call: function(self: SpineClass, skelFile: string, atlasFile: strin
 
 | 返回类型 | 描述 |
 | --- | --- |
-| Spine | `Spine`的新实例，具有指定的骨架文件和图集文件。 |
+| Spine | `Spine`的新实例，具有指定的骨架文件和图集文件。如果创建失败，则返回 nil。 |

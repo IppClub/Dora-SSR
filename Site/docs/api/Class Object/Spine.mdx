@@ -66,7 +66,7 @@ getAnimations: function(self: SpineClass, spineStr: string): {string}
 
 **Signature:**
 ```tl
-metamethod __call: function(self: SpineClass, spineStr: string): Spine
+metamethod __call: function(self: SpineClass, spineStr: string): Spine | nil
 ```
 
 **Parameters:**
@@ -79,7 +79,7 @@ metamethod __call: function(self: SpineClass, spineStr: string): Spine
 
 | Return Type | Description |
 | --- | --- |
-| Spine | A new instance of 'Spine'. |
+| Spine | A new instance of 'Spine'. Returns nil if the Spine file could not be loaded. |
 
 ## __call
 
@@ -91,7 +91,7 @@ metamethod __call: function(self: SpineClass, spineStr: string): Spine
 
 **Signature:**
 ```tl
-metamethod __call: function(self: SpineClass, skelFile: string, atlasFile: string): Spine
+metamethod __call: function(self: SpineClass, skelFile: string, atlasFile: string): Spine | nil
 ```
 
 **Parameters:**
@@ -105,4 +105,4 @@ metamethod __call: function(self: SpineClass, skelFile: string, atlasFile: strin
 
 | Return Type | Description |
 | --- | --- |
-| Spine | a new instance of 'Spine' with the specified skeleton file and atlas file. |
+| Spine | a new instance of 'Spine' with the specified skeleton file and atlas file. Returns nil if the skeleton file or atlas file could not be loaded. |

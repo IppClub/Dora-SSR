@@ -22,7 +22,7 @@ local sprite = Sprite("Image/file.png")
 
 **Signature:**
 ```tl
-metamethod __call: function(self: SpriteClass, clipStr: string): Sprite
+metamethod __call: function(self: SpriteClass, clipStr: string): Sprite | nil
 ```
 
 **Parameters:**
@@ -35,7 +35,7 @@ metamethod __call: function(self: SpriteClass, clipStr: string): Sprite
 
 | Return Type | Description |
 | --- | --- |
-| Sprite | A new instance of the Sprite class. |
+| Sprite | A new instance of the Sprite class. If the texture file is not found, it will return nil. |
 
 ## __call
 

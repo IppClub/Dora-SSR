@@ -66,7 +66,7 @@ getAnimations: function(self: DragonBoneClass, boneStr: string): {string}
 
 **签名：**
 ```tl
-metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone
+metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone | nil
 ```
 
 **参数：**
@@ -79,7 +79,7 @@ metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone
 
 | 返回类型 | 描述 |
 | --- | --- |
-| DragonBone | 'DragonBone' 的新实例。 |
+| DragonBone | 'DragonBone' 的新实例。如果找不到指定的文件，则返回 nil。 |
 
 ## __call
 
@@ -92,7 +92,7 @@ metamethod __call: function(self: DragonBoneClass, boneStr: string): DragonBone
 
 **签名：**
 ```tl
-metamethod __call: function(self: DragonBoneClass, boneFile: string, atlasFile: string): DragonBone
+metamethod __call: function(self: DragonBoneClass, boneFile: string, atlasFile: string): DragonBone | nil
 ```
 
 **参数：**
@@ -106,4 +106,4 @@ metamethod __call: function(self: DragonBoneClass, boneFile: string, atlasFile: 
 
 | 返回类型 | 描述 |
 | --- | --- |
-| DragonBone | 带有指定骨骼文件和图集文件的`DragonBone`的新实例。 |
+| DragonBone | 带有指定骨骼文件和图集文件的`DragonBone`的新实例。如果找不到指定的文件，则返回 nil。 |

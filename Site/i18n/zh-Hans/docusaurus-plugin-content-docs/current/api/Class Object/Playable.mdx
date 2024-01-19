@@ -16,7 +16,7 @@ import "@site/src/languages/highlight";
 
 **签名：**
 ```tl
-metamethod __call: function(self: PlayableClass, filename: string): Playable
+metamethod __call: function(self: PlayableClass, filename: string): Playable | nil
 ```
 
 **参数：**
@@ -29,4 +29,4 @@ metamethod __call: function(self: PlayableClass, filename: string): Playable
 
 | 返回类型 | 描述 |
 | --- | --- |
-| Playable | 新的动画模型实例. |
+| Playable | 新的动画模型实例，如果加载失败，则返回 nil。 |
