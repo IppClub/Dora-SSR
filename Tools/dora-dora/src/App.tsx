@@ -368,6 +368,12 @@ export default function PersistentDrawerLeft() {
 						setFiles(prev => [...prev]);
 					}
 					checkFile(fileToFocus, fileToFocus.contentModified ?? fileToFocus.content, model);
+					const ext = path.extname(fileToFocus.key).toLowerCase();
+					if (ext === ".ts" || ext === ".tsx") {
+						import('./TranspileTS').then(({revalidateModel}) => {
+							revalidateModel(model);
+						});
+					}
 					return;
 				}
 				fileToFocus.yarnData?.warpToFocusedNode();
@@ -1575,7 +1581,7 @@ export default function PersistentDrawerLeft() {
 			}
 			file.status = status;
 			setFiles(prev => [...prev]);
-			monaco.editor.setModelMarkers(model, "owner", markers);
+			monaco.editor.setModelMarkers(model, model.getLanguageId(), markers);
 		}).catch((reason) => {
 			console.error(`failed to check file, due to: ${reason}`);
 		});
@@ -2007,7 +2013,7 @@ export default function PersistentDrawerLeft() {
 				if (filtered.length !== markers.length) {
 					const model = file.editor.getModel();
 					if (model) {
-						monaco.editor.setModelMarkers(model, "typescript", filtered);
+						monaco.editor.setModelMarkers(model, model.getLanguageId(), filtered);
 					}
 				}
 			}

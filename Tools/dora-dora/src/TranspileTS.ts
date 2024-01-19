@@ -224,3 +224,27 @@ export async function transpileTypescript(
 	}
 	return undefined as string | undefined;
 }
+
+export async function revalidateModel(model: monaco.editor.ITextModel) {
+	if (!model || model.isDisposed()) return;
+	const getWorker = await monaco.languages.typescript.getTypeScriptWorker();
+	const worker = await getWorker(model.uri);
+	const diagnostics = (await Promise.all([
+		worker.getSyntacticDiagnostics(model.uri.toString()),
+		worker.getSemanticDiagnostics(model.uri.toString())
+	])).reduce((a, it) => a.concat(it));
+	const markers = diagnostics.map(d => {
+		let {start = 0, length = 0} = d;
+		const startPos = model.getPositionAt(start);
+		const endPos = model.getPositionAt(start + length);
+		return {
+			severity: monaco.MarkerSeverity.Error,
+			startLineNumber: startPos.lineNumber,
+			startColumn: startPos.column,
+			endLineNumber: endPos.lineNumber,
+			endColumn: endPos.column,
+			message: ts.flattenDiagnosticMessageText(d.messageText, "\n")
+		};
+	});
+	monaco.editor.setModelMarkers(model, model.getLanguageId(), markers);
+}
