@@ -1231,9 +1231,9 @@ export default function PersistentDrawerLeft() {
 						};
 						break;
 					case ".tsx":
-						content = "import { React, toNode, useRef } from 'dora-x';\nimport {} from 'dora';\n\n";
+						content = "// @preview-file off\nimport { React, toNode, useRef } from 'dora-x';\nimport {} from 'dora';\n\n";
 						position = {
-							lineNumber: 4,
+							lineNumber: 5,
 							column: 1
 						};
 						break;
