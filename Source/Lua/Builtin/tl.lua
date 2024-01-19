@@ -10943,18 +10943,36 @@ tl.dora_complete = function(codes, line, row, search_path)
 					break
 				end
 			end
-			if current_type and current_type.fields then
-				for k, v in pairs(current_type.fields) do
-					local t = type_report.types[v]
-					if (t.args == nil and not t.str:match("^polymorphic")) and lastChar == ":" then
-						goto continue
+			if current_type then
+				local fields = current_type.fields
+				if not fields then
+					if current_type.types then
+						for i = 1, #current_type.types do
+							local t = get_real_type(type_report, current_type.types[i])
+							if t and t.fields then
+								if not fields then
+									fields = {}
+								end
+								for k, v in pairs(t.fields) do
+									fields[k] = v
+								end
+							end
+						end
 					end
-					local itemType = t.args ~= nil and "method" or "field"
-					if itemType == "field" and t.str:match("^polymorphic") then
-						itemType = "method"
+				end
+				if fields then
+					for k, v in pairs(fields) do
+						local t = type_report.types[v]
+						if (t.args == nil and not t.str:match("^polymorphic")) and lastChar == ":" then
+							goto continue
+						end
+						local itemType = t.args ~= nil and "method" or "field"
+						if itemType == "field" and t.str:match("^polymorphic") then
+							itemType = "method"
+						end
+						res[#res + 1] = {k, t.str, itemType}
+						::continue::
 					end
-					res[#res + 1] = {k, t.str, itemType}
-					::continue::
 				end
 			end
 		end
