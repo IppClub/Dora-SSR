@@ -335,4 +335,15 @@ void Body::updatePhysics() {
 	}
 }
 
+void Body::onContactFilter(const ContactFilterHandler& handler) {
+	filterContact = [handler](Body* body) {
+		try {
+			return handler(body);
+		} catch (const std::logic_error& err) {
+			Error("failed to filter contact due to: {}", err.what());
+			return false;
+		}
+	};
+}
+
 NS_DORA_END

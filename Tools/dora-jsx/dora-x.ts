@@ -43,11 +43,13 @@ export interface Element {
 }
 
 export function createElement(
+	this: void,
 	type: any,
 	props?: any,
 	...children: any[]
 ): Element | Element[] {
 	if (typeof type === 'function') {
+		props ??= {};
 		if (props.children) {
 			props.children = [...props.children, ...children];
 		} else {
@@ -487,6 +489,7 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 			case 'onBodyLeave': cnode.slot(dora.Slot.BodyLeave, v); return true;
 			case 'onContactStart': cnode.slot(dora.Slot.ContactStart, v); return true;
 			case 'onContactEnd': cnode.slot(dora.Slot.ContactEnd, v); return true;
+			case 'onContactFilter': cnode.onContactFilter(v); return true;
 		}
 		return false;
 	}
@@ -837,6 +840,15 @@ const elementMap: ElementMap = {
 	sequence: actionCheck,
 	'physics-world': (nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		addChild(nodeStack, getPhysicsWorld(enode), enode);
+	},
+	contact: (nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
+		const world = dora.tolua.cast(nodeStack[nodeStack.length - 1], dora.TypeName.PhysicsWorld);
+		if (world !== null) {
+			const contact = enode.props as JSX.Contact;
+			world.setShouldContact(contact.groupA, contact.groupB, contact.enabled);
+		} else {
+			print(`tag <${enode.type}> must be placed under <physics-world> or its derivatives to take effect`);
+		}
 	},
 	body: (nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const world = dora.tolua.cast(nodeStack[nodeStack.length - 1], dora.TypeName.PhysicsWorld);

@@ -4921,6 +4921,13 @@ class Body extends Node {
 	 * @returns 新附加的感应器。
 	 */
 	attachSensor(tag: number, fixtureDef: FixtureDef): Sensor;
+
+	/**
+	 * 注册一个函数，该函数在物理体与其他物理体发生碰撞时被调用。
+	 * 当注册的函数返回false时，物理体将不会触发本次的碰撞事件。
+	 * @param filter 碰撞过滤器函数。
+	 */
+	onContactFilter(filter: (this: void, body: Body) => boolean): void;
 }
 
 export {Body as BodyType};

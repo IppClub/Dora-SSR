@@ -84,6 +84,10 @@ local record Body
 	-- @param fixtureDef (FixtureDef) the fixture definition of the sensor.
 	-- @return (Sensor) the newly attached sensor.
 	attachSensor: function(self: Body, tag: integer, fixtureDef: FixtureDef): Sensor
+
+	-- Register a function to be called when the body begins to receive contact events. Return false from this function to prevent colliding.
+	-- @param filter (function) The filter function to set.
+	onContactFilter: function(self: Body, filter: function(other: Body): boolean)
 end
 
 return Body
