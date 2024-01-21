@@ -711,6 +711,7 @@ interface object class Body : public INode
 	bool removeSensor(Sensor* sensor);
 	void attach(FixtureDef* fixtureDef);
 	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
+	void onContactFilter(function<bool(Body* body)> filter);
 	static Body* create(BodyDef* def, PhysicsWorld* world, Vec2 pos, float rot);
 };
 

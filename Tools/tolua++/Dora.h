@@ -840,6 +840,7 @@ class Body : public Node
 	bool removeSensor(Sensor* sensor);
 	void attach(FixtureDef* fixtureDef);
 	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
+	void onContactFilter(tolua_function_bool handler);
 	static Body* create(BodyDef* def, PhysicsWorld* world, Vec2 pos = Vec2::zero, float rot = 0.0f);
 };
 

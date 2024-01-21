@@ -4918,6 +4918,12 @@ class Body extends Node {
 	 * @returns The newly attached sensor.
 	 */
 	attachSensor(tag: number, fixtureDef: FixtureDef): Sensor;
+
+	/**
+	 * Register a function to be called when the body begins to receive contact events. Return false from this function to prevent colliding.
+	 * @param filter The filter function to set.
+	 */
+	onContactFilter(filter: (this: void, other: Body) => boolean): void;
 }
 
 export {Body as BodyType};

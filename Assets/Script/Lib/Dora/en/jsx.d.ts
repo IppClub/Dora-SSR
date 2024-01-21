@@ -908,6 +908,23 @@ class PhysicsWorld extends Node {
 	showDebug?: boolean;
 }
 
+class Contact {
+	/**
+	 * The first body group.
+	 */
+	groupA: number;
+
+	/**
+	 * The second body group.
+	 */
+	groupB: number;
+
+	/**
+	 * Whether the two groups should collide.
+	 */
+	enabled: boolean;
+}
+
 class Body extends Node {
 	/**
 	 * An enumeration for the different moving types of bodies.
@@ -1005,6 +1022,12 @@ class Body extends Node {
 	 * @param normal The normal vector of the contact surface in world coordinates.
 	*/
 	onContactEnd?(this: void, other: dora.Body.Type, point: dora.Vec2.Type, normal: dora.Vec2.Type): void;
+
+	/**
+	 * Register a function to be called when the body begins to receive contact events. Return false from this function to prevent colliding.
+	 * @param filter The filter function to set.
+	 */
+	onContactFilter?(filter: (this: void, other: Body) => boolean): void;
 }
 
 class RectangleShape {
@@ -1457,6 +1480,10 @@ interface IntrinsicElements {
 	 * A class representing a physics world in the game.
 	 */
 	'physics-world': PhysicsWorld;
+	/**
+	 * The setting for whether two groups of bodies should collide.
+	 */
+	contact: Contact;
 	/**
 	 * A class represents a physics body in the world.
 	 */

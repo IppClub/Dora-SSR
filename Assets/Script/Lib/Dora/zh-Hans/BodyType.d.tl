@@ -84,6 +84,11 @@ local record Body
 	-- @param fixtureDef (FixtureDef) 传感器的混合物定义。
 	-- @return (Sensor) 新建的传感器。
 	attachSensor: function(self: Body, tag: integer, fixtureDef: FixtureDef): Sensor
+
+	-- 注册一个函数，该函数在物理体与其他物理体发生碰撞时被调用。
+	-- 当注册的函数返回false时，物理体将不会触发本次的碰撞事件。
+	-- @param filter (function) 碰撞过滤器函数。
+	onContactFilter: function(self: Body, filter: function(other: Body): boolean)
 end
 
 return Body

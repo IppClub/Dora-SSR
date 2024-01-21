@@ -63,6 +63,7 @@ public:
 	pr::ShapeID attach(FixtureDef* fixtureDef);
 	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
 	bool isSensor() const;
+	void onContactFilter(const ContactFilterHandler& handler);
 	CREATE_FUNC(Body);
 
 protected:

@@ -29,6 +29,7 @@ extern "C" {
 	fn body_remove_sensor(slf: i64, sensor: i64) -> i32;
 	fn body_attach(slf: i64, fixture_def: i64);
 	fn body_attach_sensor(slf: i64, tag: i32, fixture_def: i64) -> i64;
+	fn body_on_contact_filter(slf: i64, func: i32, stack: i64);
 	fn body_new(def: i64, world: i64, pos: i64, rot: f32) -> i64;
 }
 use crate::dora::IObject;
@@ -124,6 +125,15 @@ pub trait IBody: INode {
 	}
 	fn attach_sensor(&mut self, tag: i32, fixture_def: &crate::dora::FixtureDef) -> crate::dora::Sensor {
 		unsafe { return crate::dora::Sensor::from(body_attach_sensor(self.raw(), tag, fixture_def.raw())).unwrap(); }
+	}
+	fn on_contact_filter(&mut self, mut filter: Box<dyn FnMut(&dyn crate::dora::IBody) -> bool>) {
+		let mut stack = crate::dora::CallStack::new();
+		let stack_raw = stack.raw();
+		let func_id = crate::dora::push_function(Box::new(move || {
+			let result = filter(&stack.pop_cast::<crate::dora::Body>().unwrap());
+			stack.push_bool(result);
+		}));
+		unsafe { body_on_contact_filter(self.raw(), func_id, stack_raw); }
 	}
 }
 impl Body {

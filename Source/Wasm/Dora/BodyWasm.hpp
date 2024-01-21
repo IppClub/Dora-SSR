@@ -88,6 +88,18 @@ static void body_attach(int64_t self, int64_t fixture_def) {
 static int64_t body_attach_sensor(int64_t self, int32_t tag, int64_t fixture_def) {
 	return from_object(r_cast<Body*>(self)->attachSensor(s_cast<int>(tag), r_cast<FixtureDef*>(fixture_def)));
 }
+static void body_on_contact_filter(int64_t self, int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	r_cast<Body*>(self)->onContactFilter([func, args, deref](Body* body) {
+		args->clear();
+		args->push(body);
+		SharedWasmRuntime.invoke(func);
+		return std::get<bool>(args->pop());
+	});
+}
 static int64_t body_new(int64_t def, int64_t world, int64_t pos, float rot) {
 	return from_object(Body::create(r_cast<BodyDef*>(def), r_cast<PhysicsWorld*>(world), vec2_from(pos), rot));
 }
@@ -122,5 +134,6 @@ static void linkBody(wasm3::module3& mod) {
 	mod.link_optional("*", "body_remove_sensor", body_remove_sensor);
 	mod.link_optional("*", "body_attach", body_attach);
 	mod.link_optional("*", "body_attach_sensor", body_attach_sensor);
+	mod.link_optional("*", "body_on_contact_filter", body_on_contact_filter);
 	mod.link_optional("*", "body_new", body_new);
 }

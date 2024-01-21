@@ -21,7 +21,7 @@ export namespace React {
 	 * @param children 子元素。
 	 * @returns 创建的 React 元素。
 	 */
-	export function createElement(type: any, props?: any, ...children: any[]): Element | Element[];
+	export function createElement(this: void, type: any, props?: any, ...children: any[]): Element | Element[];
 }
 
 /**

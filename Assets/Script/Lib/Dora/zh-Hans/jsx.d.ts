@@ -910,6 +910,23 @@ class PhysicsWorld extends Node {
 	showDebug?: boolean;
 }
 
+class Contact {
+	/**
+	 * 物理体的分组A。
+	 */
+	groupA: number;
+
+	/**
+	 * 物理体的分组B。
+	 */
+	groupB: number;
+
+	/**
+	 * 是否允许碰撞。
+	 */
+	enabled: boolean;
+}
+
 class Body extends Node {
 	/**
 	 * 物理体的不同移动类型的枚举。
@@ -1007,6 +1024,13 @@ class Body extends Node {
 	 * @param normal 世界坐标系中的接触表面法向量。
 	*/
 	onContactEnd?(this: void, other: dora.Body.Type, point: dora.Vec2.Type, normal: dora.Vec2.Type): void;
+
+	/**
+	 * 注册一个函数，该函数在物理体与其他物理体发生碰撞时被调用。
+	 * 当注册的函数返回false时，物理体将不会触发本次的碰撞事件。
+	 * @param filter 碰撞过滤器函数。
+	 */
+	onContactFilter?(filter: (this: void, body: Body) => boolean): void;
 }
 
 class RectangleShape {
@@ -1454,6 +1478,10 @@ interface IntrinsicElements {
 	 * 在游戏中代表物理世界的类。
 	 */
 	'physics-world': PhysicsWorld;
+	/**
+	 * 设定物理体的分组之间的碰撞关系。
+	 */
+	contact: Contact;
 	/**
 	 * 在游戏中代表物理世界中的物理体的类。
 	 */
