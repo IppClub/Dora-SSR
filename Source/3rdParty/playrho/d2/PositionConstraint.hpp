@@ -25,10 +25,15 @@
 /// @file
 /// @brief Definition of the @c PositionConstraint class and closely related code.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/BodyID.hpp"
 #include "playrho/NonNegative.hpp"
+#include "playrho/Units.hpp"
 
 #include "playrho/d2/Manifold.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 

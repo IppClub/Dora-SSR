@@ -19,18 +19,20 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/BodyConf.hpp"
-
 #include "playrho/d2/Body.hpp"
+#include "playrho/d2/BodyConf.hpp"
+#include "playrho/d2/Transformation.hpp"
+#include "playrho/d2/UnitVec.hpp"
 
 namespace playrho::d2 {
 
-BodyConf GetBodyConf(const Body& body) noexcept
+BodyConf GetBodyConf(const Body& body)
 {
     auto def = BodyConf{};
     def.type = GetType(body);
-    def.location = GetLocation(body);
-    def.angle = GetAngle(body);
+    def.sweep = GetSweep(body);
+    def.invMass = GetInvMass(body);
+    def.invRotI = GetInvRotInertia(body);
     def.linearVelocity = GetLinearVelocity(body);
     def.angularVelocity = GetAngularVelocity(body);
     def.linearAcceleration = GetLinearAcceleration(body);
@@ -38,17 +40,14 @@ BodyConf GetBodyConf(const Body& body) noexcept
     def.linearDamping = GetLinearDamping(body);
     def.angularDamping = GetAngularDamping(body);
     def.underActiveTime = GetUnderActiveTime(body);
+    def.shapes = GetShapes(body);
     def.allowSleep = IsSleepingAllowed(body);
     def.awake = IsAwake(body);
     def.fixedRotation = IsFixedRotation(body);
     def.bullet = IsAccelerable(body) && IsImpenetrable(body);
     def.enabled = IsEnabled(body);
+    def.massDataDirty = IsMassDataDirty(body);
     return def;
-}
-
-Transformation GetTransformation(const BodyConf& conf) noexcept
-{
-    return {conf.location, UnitVec::Get(conf.angle)};
 }
 
 } // namespace playrho::d2

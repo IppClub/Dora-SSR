@@ -24,11 +24,16 @@
 /// @file
 /// @brief Declaration of the <code>ContactKey</code> class and closely related code.
 
+#include <cstdlib> // for std::size_t
 #include <algorithm>
 #include <functional>
 #include <utility>
 
+// IWYU pragma: begin_exports
+
 #include "playrho/Settings.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -67,40 +72,40 @@ private:
 };
 
 /// @brief Equality operator.
-constexpr bool operator==(const ContactKey lhs, const ContactKey rhs) noexcept
+constexpr bool operator==(const ContactKey& lhs, const ContactKey& rhs) noexcept
 {
-    return lhs.GetMin() == rhs.GetMin() && lhs.GetMax() == rhs.GetMax();
+    return (lhs.GetMin() == rhs.GetMin()) && (lhs.GetMax() == rhs.GetMax());
 }
 
 /// @brief Inequality operator.
-constexpr bool operator!=(const ContactKey lhs, const ContactKey rhs) noexcept
+constexpr bool operator!=(const ContactKey& lhs, const ContactKey& rhs) noexcept
 {
     return !(lhs == rhs);
 }
 
 /// @brief Less-than operator.
-constexpr bool operator<(const ContactKey lhs, const ContactKey rhs) noexcept
+constexpr bool operator<(const ContactKey& lhs, const ContactKey& rhs) noexcept
 {
     return (lhs.GetMin() < rhs.GetMin()) ||
            ((lhs.GetMin() == rhs.GetMin()) && (lhs.GetMax() < rhs.GetMax()));
 }
 
 /// @brief Less-than or equal-to operator.
-constexpr bool operator<=(const ContactKey lhs, const ContactKey rhs) noexcept
+constexpr bool operator<=(const ContactKey& lhs, const ContactKey& rhs) noexcept
 {
     return (lhs.GetMin() < rhs.GetMin()) ||
            ((lhs.GetMin() == rhs.GetMin()) && (lhs.GetMax() <= rhs.GetMax()));
 }
 
 /// @brief Greater-than operator.
-constexpr bool operator>(const ContactKey lhs, const ContactKey rhs) noexcept
+constexpr bool operator>(const ContactKey& lhs, const ContactKey& rhs) noexcept
 {
     return (lhs.GetMin() > rhs.GetMin()) ||
            ((lhs.GetMin() == rhs.GetMin()) && (lhs.GetMax() > rhs.GetMax()));
 }
 
 /// @brief Greater-than or equal-to operator.
-constexpr bool operator>=(const ContactKey lhs, const ContactKey rhs) noexcept
+constexpr bool operator>=(const ContactKey& lhs, const ContactKey& rhs) noexcept
 {
     return (lhs.GetMin() > rhs.GetMin()) ||
            ((lhs.GetMin() == rhs.GetMin()) && (lhs.GetMax() >= rhs.GetMax()));

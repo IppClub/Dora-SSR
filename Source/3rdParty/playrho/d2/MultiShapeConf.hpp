@@ -24,9 +24,11 @@
 /// @file
 /// @brief Definition of the @c MultiShapeConf class and closely related code.
 
-#include <utility> // for std::move
 #include <vector>
 
+// IWYU pragma: begin_exports
+
+#include "playrho/InvalidArgument.hpp"
 #include "playrho/TypeInfo.hpp"
 
 #include "playrho/d2/ConvexHull.hpp"
@@ -34,6 +36,8 @@
 #include "playrho/d2/DistanceProxy.hpp"
 #include "playrho/d2/MassData.hpp"
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 
@@ -99,7 +103,7 @@ inline bool operator!=(const MultiShapeConf& lhs, const MultiShapeConf& rhs) noe
 /// @brief Gets the "child" count for the given shape configuration.
 inline ChildCounter GetChildCount(const MultiShapeConf& arg) noexcept
 {
-    return static_cast<ChildCounter>(size(arg.children));
+    return static_cast<ChildCounter>(std::size(arg.children));
 }
 
 /// @brief Gets the "child" shape for the given shape configuration.

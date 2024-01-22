@@ -24,6 +24,8 @@
 /// @file
 /// @brief Definition of @c TypeInfo class template and related code.
 
+// IWYU pragma: private, include "playrho/TypeInfo.hpp"
+
 #include <regex>
 #include <string>
 

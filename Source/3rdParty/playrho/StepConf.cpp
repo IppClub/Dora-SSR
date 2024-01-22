@@ -19,7 +19,9 @@
  */
 
 #include "playrho/Math.hpp"
+#include "playrho/Real.hpp"
 #include "playrho/StepConf.hpp"
+#include "playrho/Units.hpp"
 
 namespace playrho {
 

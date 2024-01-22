@@ -24,6 +24,8 @@
 /// @file
 /// @brief Definition of the @c NonPositiveChecker class template.
 
+// IWYU pragma: private, include "playrho/NonPositive.hpp"
+
 namespace playrho::detail {
 
 /// @brief Non-positive constrained value checker.

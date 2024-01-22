@@ -25,16 +25,34 @@
 /// @file
 /// @brief Declarations of the Body class, and functions associated with it.
 
-#include <cassert>
-#include <utility>
+#include <cassert> // for assert
+
+#include <cstdint> // for std::uint16_t
+#include <limits> // for std::numeric_limits
+#include <type_traits> // for std::is_default_constructible_v, etc
+#include <utility> // for std::move
+#include <vector>
+
+// IWYU pragma: begin_exports
 
 #include "playrho/BodyType.hpp"
+#include "playrho/NonNegative.hpp"
+#include "playrho/Real.hpp"
 #include "playrho/ShapeID.hpp"
+#include "playrho/Units.hpp"
+#include "playrho/Vector2.hpp"
 #include "playrho/ZeroToUnderOne.hpp"
 
+#include "playrho/d2/Acceleration.hpp"
 #include "playrho/d2/BodyConf.hpp"
-#include "playrho/d2/MassData.hpp"
 #include "playrho/d2/Math.hpp"
+#include "playrho/d2/Position.hpp"
+#include "playrho/d2/Sweep.hpp"
+#include "playrho/d2/Transformation.hpp"
+#include "playrho/d2/UnitVec.hpp"
+#include "playrho/d2/Velocity.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 
@@ -61,43 +79,6 @@ namespace playrho::d2 {
 class Body
 {
 public:
-    /// @brief Flags type.
-    /// @note For internal use. Made public to facilitate unit testing.
-    using FlagsType = std::uint16_t;
-
-    /// @brief Flag enumeration.
-    /// @note For internal use. Made public to facilitate unit testing.
-    enum Flag : FlagsType {
-        /// @brief Awake flag.
-        e_awakeFlag = FlagsType(0x0002u),
-
-        /// @brief Auto sleep flag.
-        e_autoSleepFlag = FlagsType(0x0004u),
-
-        /// @brief Impenetrable flag.
-        /// @details Indicates whether CCD should be done for this body.
-        /// All static and kinematic bodies have this flag enabled.
-        e_impenetrableFlag = FlagsType(0x0008u),
-
-        /// @brief Fixed rotation flag.
-        e_fixedRotationFlag = FlagsType(0x0010u),
-
-        /// @brief Enabled flag.
-        e_enabledFlag = FlagsType(0x0020u),
-
-        /// @brief Velocity flag.
-        /// @details Set this to enable changes in position due to velocity.
-        /// Bodies with this set are "speedable" - either kinematic or dynamic bodies.
-        e_velocityFlag = FlagsType(0x0080u),
-
-        /// @brief Acceleration flag.
-        /// @details Set this to enable changes in velocity due to physical properties (like
-        /// forces). Bodies with this set are "accelerable" - dynamic bodies.
-        e_accelerationFlag = FlagsType(0x0100u),
-
-        /// @brief Mass data dirty flag.
-        e_massDataDirtyFlag = FlagsType(0x0200u),
-    };
 
     /// @brief Default linear damping.
     static constexpr auto DefaultLinearDamping = NonNegative<Frequency>{};
@@ -105,47 +86,41 @@ public:
     /// @brief Default angular damping.
     static constexpr auto DefaultAngularDamping = NonNegative<Frequency>{};
 
-    /// @brief Gets the flags for the given value.
-    static FlagsType GetFlags(BodyType type) noexcept;
-
-    /// @brief Gets the flags for the given value.
-    /// @return Value formed in part from calling <code>GetFlags(bd.type)</code>.
-    /// @see GetFlags(BodyType).
-    static FlagsType GetFlags(const BodyConf& bd) noexcept;
-
     /// @brief Initializing constructor.
     /// @note To create a body within a world, use <code>World::CreateBody</code>.
     /// @param bd Configuration data for the body to construct.
-    /// @post The internal <code>m_flags</code> state will be set to the value of
-    ///  <code>GetFlags(const BodyConf&)</code> given @a bd.
-    /// @post <code>GetLinearDamping()</code> will return the value of @a bd.linearDamping.
-    /// @post <code>GetAngularDamping()</code> will return the value of @a bd.angularDamping.
-    /// @post <code>GetInvMass()</code> will return <code>Real(0)/Kilogram</code> if
-    ///   <code>bd.type != BodyType::Dynamic</code>, otherwise it will return
-    ///   <code>Real(1)/Kilogram</code>.
-    /// @post <code>GetTransformation()</code> will return the value of
-    ///   <code>::playrho::d2::GetTransformation(const BodyConf&)</code> given @a bd.
+    /// @post <code>GetFlags()</code> will return the value of
+    ///  <code>GetFlags(const BodyConf&)</code> given by @a bd.
+    /// @post <code>GetLinearDamping()</code> returns value of @a bd.linearDamping.
+    /// @post <code>GetAngularDamping()</code> returns value of @a bd.angularDamping.
+    /// @post <code>GetInvMass()</code> returns <code>Real(0)/Kilogram</code> if
+    ///   <code>bd.type != BodyType::Dynamic</code>, otherwise it returns value of
+    ///   @a bd.invMass.
+    /// @post <code>GetInvRotI()</code> returns <code>InvRotInertia{}</code> if
+    ///   <code>bd.type != BodyType::Dynamic</code>, otherwise it returns value of
+    ///   @a bd.invRotI.
     /// @post <code>GetVelocity()</code> will return the value as if
     ///   <code>SetVelocity(const Velocity&)</code> had been called with the values of
     ///   @a bd.linearVelocity and @a bd.angularVelocity as the velocity.
     /// @post <code>GetAcceleration()</code> will return the value as if
-    ///   <code>SetAcceleration(LinearAcceleration2, AngularAcceleration)</code> had been called
-    ///   with the values of @a bd.linearAcceleration and @a bd.angularAcceleration.
+    ///   <code>SetAcceleration(LinearAcceleration2, AngularAcceleration)</code> had been
+    ///   called with values of @a bd.linearAcceleration and @a bd.angularAcceleration.
     /// @see GetFlags(const BodyConf&).
-    /// @see GetLinearDamping, GetAngularDamping, GetInvMass, GetTransformation, GetVelocity,
-    ///   GetAcceleration.
+    /// @see GetFlags, GetLinearDamping, GetAngularDamping, GetInvMass, GetTransformation,
+    ///   GetVelocity, GetAcceleration.
     /// @see World::CreateBody.
     explicit Body(const BodyConf& bd = GetDefaultBodyConf());
 
     /// @brief Gets the body transform for the body's origin.
-    /// @details This gets the translation/location and rotation/direction of the body relative to
-    ///   its world. The location and direction of the body after stepping the world's physics
-    ///   simulations is dependent on a number of factors:
+    /// @details This gets the translation/location and rotation/direction of the body
+    ///   relative to its world. The location and direction of the body after stepping
+    ///   the world's physics simulations is dependent on a number of factors:
     ///   1. Location and direction at the last time step.
     ///   2. Forces and torques acting on the body (applied force, applied impulse, etc.).
     ///   3. The mass and rotational inertia of the body.
     ///   4. Damping of the body.
-    ///   5. Restitutioen and friction values of body's shape parts when experiencing collisions.
+    ///   5. Restitutioen and friction values of body's shape parts when experiencing
+    ///      collisions.
     /// @return the world transform of the body's origin.
     /// @see SetSweep.
     const Transformation& GetTransformation() const noexcept;
@@ -160,19 +135,20 @@ public:
 
     /// @brief Sets the body's velocity (linear and angular velocity).
     /// @param value Value of the velocity to set.
-    /// @post If @p velocity is non-zero and <code>IsSpeedable()</code> is true,
-    ///   <code>IsAwake()</code> returns true and <code>GetUnderActiveTime()</code> returns 0.
-    /// @post If @p velocity is zero or <code>IsSpeedable()</code> is true,
+    /// @post If @p velocity is non-zero and <code>IsSpeedable(const Body&)</code> is true,
+    ///   <code>IsAwake(const Body&)</code> returns true and
+    ///   <code>GetUnderActiveTime()</code> returns 0.
+    /// @post If @p velocity is zero or <code>IsSpeedable(const Body&)</code> is true,
     ///   <code>GetVelocity()</code> returns the @p value set.
-    /// @see IsAwake, IsSpeedable, GetUnderActiveTime, GetVelocity.
+    /// @see IsAwake(const Body&), IsSpeedable(const Body&), GetUnderActiveTime, GetVelocity.
     void SetVelocity(const Velocity& value) noexcept;
 
     /// Sets the body's velocity.
     /// @note This sets what <code>GetVelocity()</code> returns.
     /// @param value Value of the velocity to set.
-    /// @pre <code>IsSpeedable()</code> is true or given velocity is zero.
+    /// @pre <code>IsSpeedable(const Body&)</code> is true or given velocity is zero.
     /// @post <code>GetVelocity()</code> returns the @p value set.
-    /// @see GetVelocity, IsSpeedable.
+    /// @see GetVelocity, IsSpeedable(const Body&).
     void JustSetVelocity(const Velocity& value) noexcept;
 
     /// @brief Sets the linear and rotational accelerations on this body.
@@ -238,11 +214,24 @@ public:
 
     /// @brief Sets the type of this body.
     /// @post <code>GetType()</code> returns type set.
+    /// @post <code>GetFlags()</code> returns a value reflective of the type set.
     /// @post <code>GetUnderActiveTime()</code> returns 0.
-    /// @post <code>IsAwake()</code> returns true for <code>BodyType::Dynamic</code> or
+    /// @post <code>IsAwake(const Body&)</code> returns true for <code>BodyType::Dynamic</code> or
     ///   <code>BodyType::Kinematic</code>, and returns false for <code>BodyType::Static</code>.
     /// @see GetType.
     void SetType(BodyType value) noexcept;
+
+    /// @brief Whether or not this was destroyed.
+    /// @see SetDestroyed, UnsetDestroyed.
+    constexpr bool IsDestroyed() const noexcept;
+
+    /// @brief Sets the destroyed property.
+    /// @note This is only meaningfully used by the world implementation.
+    constexpr void SetDestroyed() noexcept;
+
+    /// @brief Unsets the destroyed property.
+    /// @note This is only meaningfully used by the world implementation.
+    constexpr void UnsetDestroyed() noexcept;
 
     /// @brief Is "speedable".
     /// @details Is this body able to have a non-zero speed associated with it.
@@ -294,7 +283,7 @@ public:
     /// @brief Awakens this body.
     /// @details Sets this body to awake and resets its under-active time if it's a "speedable"
     ///   body. This function has no effect otherwise.
-    /// @post If this body is a "speedable" body, then this body's <code>IsAwake</code> function
+    /// @post If this body is a "speedable" body, then the <code>IsAwake()</code> function
     ///   returns true.
     /// @post If this body is a "speedable" body, then this body's <code>GetUnderActiveTime</code>
     ///   function returns zero.
@@ -305,10 +294,9 @@ public:
     /// @details If this body is allowed to sleep, this: sets the sleep state of the body to
     ///   asleep, resets this body's under active time, and resets this body's velocity (linear
     ///   and angular).
-    /// @post This body's <code>IsAwake</code> function returns false.
+    /// @post The <code>IsAwake()</code> function returns false.
     /// @post This body's <code>GetUnderActiveTime</code> function returns zero.
-    /// @post This body's <code>GetVelocity</code> function returns zero linear and zero angular
-    ///   speed.
+    /// @post This body's <code>GetVelocity</code> function returns zero linear & zero angular speed.
     /// @see IsAwake.
     void UnsetAwake() noexcept;
 
@@ -336,13 +324,13 @@ public:
 
     /// @brief Sets the body's awake flag.
     /// @details This is done unconditionally.
-    /// @note This should **not** be called unless the body is "speedable".
-    /// @pre <code>IsSpeedable()</code> is true.
+    /// @pre <code>IsSpeedable(const Body&)</code> is true.
     /// @see UnsetAwakeFlag.
     void SetAwakeFlag() noexcept;
 
     /// @brief Unsets the body's awake flag.
-    /// @pre Either <code>!IsSpeedable()</code> or <code>IsSleepingAllowed()</code>.
+    /// @pre Either <code>!IsSpeedable(const Body&)</code> or
+    ///   <code>IsSleepingAllowed(const Body&)</code>.
     /// @see SetAwakeFlag.
     void UnsetAwakeFlag() noexcept;
 
@@ -354,7 +342,7 @@ public:
     bool IsEnabled() const noexcept;
 
     /// @brief Sets the enabled state.
-    /// @see IsEnabled.
+    /// @see IsEnabled(const Body&).
     void SetEnabled() noexcept;
 
     /// @brief Unsets the enabled flag.
@@ -410,15 +398,61 @@ public:
     bool Detach(ShapeID shapeId);
 
 private:
+    /// @brief Flags type.
+    /// @note For internal use. Made public to facilitate unit testing.
+    using FlagsType = std::uint16_t;
+
+    /// @brief Flag enumeration.
+    /// @note For internal use. Made public to facilitate unit testing.
+    enum Flag : FlagsType {
+
+        /// Whether this entity was destroyed or not.
+        e_destroyed = FlagsType(0x0001u),
+
+        /// @brief Awake flag.
+        e_awakeFlag = FlagsType(0x0002u),
+
+        /// @brief Auto sleep flag.
+        e_autoSleepFlag = FlagsType(0x0004u),
+
+        /// @brief Impenetrable flag.
+        /// @details Indicates whether CCD should be done for this body.
+        /// All static and kinematic bodies have this flag enabled.
+        e_impenetrableFlag = FlagsType(0x0008u),
+
+        /// @brief Fixed rotation flag.
+        e_fixedRotationFlag = FlagsType(0x0010u),
+
+        /// @brief Enabled flag.
+        e_enabledFlag = FlagsType(0x0020u),
+
+        /// @brief Velocity flag.
+        /// @details Set this to enable changes in position due to velocity.
+        /// Bodies with this set are "speedable" - either kinematic or dynamic bodies.
+        e_velocityFlag = FlagsType(0x0080u),
+
+        /// @brief Acceleration flag.
+        /// @details Set this to enable changes in velocity due to physical properties
+        ///   (like forces). Bodies with this set are "accelerable" - dynamic bodies.
+        e_accelerationFlag = FlagsType(0x0100u),
+
+        /// @brief Mass data dirty flag.
+        e_massDataDirtyFlag = FlagsType(0x0200u),
+    };
+
+    /// @brief Gets the flags for the given value.
+    static FlagsType GetFlags(BodyType type) noexcept;
+
+    /// @brief Gets the flags for the given value.
+    /// @return Value formed in part from calling <code>GetFlags(bd.type)</code>.
+    /// @see GetFlags(BodyType).
+    static FlagsType GetFlags(const BodyConf& bd) noexcept;
+
     /// Transformation for body origin.
-    /// @note Also availble from <code>GetTransform1(m_sweep)</code>.
-    /// @note <code>m_xf.p == m_sweep.pos1.linear && m_xf.q ==
-    ///   UnitVec::Get(m_sweep.pos1.angular)</code>.
+    /// @note This is a cache of the result of <code>GetTransform1(m_sweep)</code>.
     Transformation m_xf;
 
     /// @brief Sweep motion for CCD.
-    /// @note <code>m_sweep.pos1.linear == m_xf.p && UnitVec::Get(m_sweep.pos1.angular) ==
-    ///   m_xf.q</code>.
     Sweep m_sweep;
 
     FlagsType m_flags = 0u; ///< Flags.
@@ -441,7 +475,7 @@ private:
 
     /// Inverse rotational inertia about the center of mass.
     /// @details A non-negative value. Zero for non rotationally-accelerable bodies.
-    NonNegativeFF<InvRotInertia> m_invRotI = {};
+    NonNegativeFF<InvRotInertia> m_invRotI;
 
     NonNegative<Frequency> m_linearDamping{DefaultLinearDamping}; ///< Linear damping.
     NonNegative<Frequency> m_angularDamping{DefaultAngularDamping}; ///< Angular damping.
@@ -454,6 +488,14 @@ private:
     /// @brief Identifiers of shapes attached/associated with this body.
     std::vector<ShapeID> m_shapes;
 };
+
+// Assert some expected traits...
+static_assert(std::is_default_constructible_v<Body>, "Body must be default constructible!");
+static_assert(std::is_copy_constructible_v<Body>, "Body must be copy constructible!");
+static_assert(std::is_move_constructible_v<Body>, "Body must be move constructible!");
+static_assert(std::is_copy_assignable_v<Body>, "Body must be copy assignable!");
+static_assert(std::is_move_assignable_v<Body>, "Body must be move assignable!");
+static_assert(std::is_nothrow_destructible_v<Body>, "Body must be nothrow destructible!");
 
 inline const Transformation& Body::GetTransformation() const noexcept
 {
@@ -508,6 +550,21 @@ inline void Body::SetAngularDamping(NonNegative<Frequency> angularDamping) noexc
     m_angularDamping = angularDamping;
 }
 
+constexpr bool Body::IsDestroyed() const noexcept
+{
+    return (m_flags & e_destroyed) != 0u;
+}
+
+constexpr void Body::SetDestroyed() noexcept
+{
+    m_flags |= e_destroyed;
+}
+
+constexpr void Body::UnsetDestroyed() noexcept
+{
+    m_flags &= ~e_destroyed;
+}
+
 inline bool Body::IsImpenetrable() const noexcept
 {
     return (m_flags & e_impenetrableFlag) != 0;
@@ -526,13 +583,14 @@ inline void Body::UnsetImpenetrable() noexcept
 inline void Body::SetAwakeFlag() noexcept
 {
     // Protect the body's invariant that only "speedable" bodies can be awake.
-    assert(IsSpeedable());
+    assert((m_flags & Body::e_velocityFlag) != 0);
     m_flags |= e_awakeFlag;
 }
 
 inline void Body::UnsetAwakeFlag() noexcept
 {
-    assert(!IsSpeedable() || IsSleepingAllowed());
+    assert(((m_flags & e_velocityFlag) == 0) ||
+           ((m_flags & e_autoSleepFlag) != 0));
     m_flags &= ~e_awakeFlag;
 }
 
@@ -548,7 +606,7 @@ inline Time Body::GetUnderActiveTime() const noexcept
 
 inline void Body::SetUnderActiveTime(Time value) noexcept
 {
-    if ((value == 0_s) || IsAccelerable()) {
+    if ((value == 0_s) || ((m_flags & e_accelerationFlag) != 0)) {
         m_underActiveTime = value;
     }
 }
@@ -605,22 +663,22 @@ inline void Body::UnsetEnabled() noexcept
 
 inline void Body::SetSweep(const Sweep& value) noexcept
 {
-    assert(IsSpeedable() || value.pos0 == value.pos1);
+    assert(((m_flags & Body::e_velocityFlag) != 0) || value.pos0 == value.pos1);
     m_sweep = value;
-    m_xf = GetTransform1(value);
+    m_xf = GetTransform1(m_sweep);
 }
 
 inline void Body::SetPosition0(const Position& value) noexcept
 {
-    assert(IsSpeedable() || m_sweep.pos0 == value);
+    assert(((m_flags & Body::e_velocityFlag) != 0) || m_sweep.pos0 == value);
     m_sweep.pos0 = value;
 }
 
 inline void Body::SetPosition1(const Position& value) noexcept
 {
-    assert(IsSpeedable() || m_sweep.pos1 == value);
+    assert(((m_flags & Body::e_velocityFlag) != 0) || m_sweep.pos1 == value);
     m_sweep.pos1 = value;
-    m_xf = ::playrho::d2::GetTransformation(value, m_sweep.localCenter);
+    m_xf = GetTransform1(m_sweep);
 }
 
 inline void Body::ResetAlpha0() noexcept
@@ -632,10 +690,10 @@ inline void Body::Advance0(ZeroToUnderOneFF<Real> value) noexcept
 {
     // Note: Static bodies must **never** have different sweep position values.
     // Confirm bodies don't have different sweep positions to begin with...
-    assert(IsSpeedable() || m_sweep.pos1 == m_sweep.pos0);
+    assert(((m_flags & Body::e_velocityFlag) != 0) || m_sweep.pos1 == m_sweep.pos0);
     m_sweep = ::playrho::d2::Advance0(m_sweep, value);
     // Confirm bodies don't have different sweep positions to end with...
-    assert(IsSpeedable() || m_sweep.pos1 == m_sweep.pos0);
+    assert(((m_flags & Body::e_velocityFlag) != 0) || m_sweep.pos1 == m_sweep.pos0);
 }
 
 inline const std::vector<ShapeID>& Body::GetShapes() const noexcept
@@ -667,6 +725,27 @@ inline void SetType(Body& body, BodyType value) noexcept
     body.SetType(value);
 }
 
+/// @brief Whether or not the given body was destroyed.
+/// @see SetDestroyed, UnsetDestroyed.
+constexpr auto IsDestroyed(const Body& body) noexcept -> bool
+{
+    return body.IsDestroyed();
+}
+
+/// @brief Sets the destroyed property of the given body.
+/// @note This is only meaningfully used by the world implementation.
+constexpr void SetDestroyed(Body& body) noexcept
+{
+    body.SetDestroyed();
+}
+
+/// @brief Unsets the destroyed property of the given body.
+/// @note This is only meaningfully used by the world implementation.
+constexpr void UnsetDestroyed(Body& body) noexcept
+{
+    body.UnsetDestroyed();
+}
+
 /// @brief Is "speedable".
 /// @details Is this body able to have a non-zero speed associated with it.
 /// Kinematic and Dynamic bodies are speedable. Static bodies are not.
@@ -680,6 +759,7 @@ inline bool IsSpeedable(const Body& body) noexcept
 /// @details Indicates whether this body is accelerable, i.e. whether it is effected by
 ///   forces. Only Dynamic bodies are accelerable.
 /// @return true if the body is accelerable, false otherwise.
+/// @see GetType(const Body& body), SetType(Body& body, BodyType value).
 /// @relatedalso Body
 inline bool IsAccelerable(const Body& body) noexcept
 {
@@ -760,12 +840,7 @@ inline void UnsetEnabled(Body& body) noexcept
 /// @relatedalso Body
 inline void SetEnabled(Body& body, bool value) noexcept
 {
-    if (value) {
-        body.SetEnabled();
-    }
-    else {
-        body.UnsetEnabled();
-    }
+    value ? body.SetEnabled() : body.UnsetEnabled();
 }
 
 /// @brief Gets the awake/asleep state of this body.
@@ -781,7 +856,7 @@ inline bool IsAwake(const Body& body) noexcept
 /// @brief Awakens this body.
 /// @details Sets this body to awake and resets its under-active time if it's a "speedable"
 ///   body. This function has no effect otherwise.
-/// @post If this body is a "speedable" body, then this body's <code>IsAwake</code> function
+/// @post If this body is a "speedable" body, then <code>IsAwake(const Body&)</code> function
 ///   returns true.
 /// @post If this body is a "speedable" body, then this body's <code>GetUnderActiveTime</code>
 ///   function returns zero.
@@ -796,7 +871,7 @@ inline void SetAwake(Body& body) noexcept
 /// @details If this body is allowed to sleep, this: sets the sleep state of the body to
 /// asleep, resets this body's under active time, and resets this body's velocity (linear
 /// and angular).
-/// @post This body's <code>IsAwake</code> function returns false.
+/// @post <code>IsAwake(const Body&)</code> function returns false.
 /// @post This body's <code>GetUnderActiveTime</code> function returns zero.
 /// @post This body's <code>GetVelocity</code> function returns zero linear and zero angular
 ///   speed.
@@ -1082,7 +1157,7 @@ inline AngularAcceleration GetAngularAcceleration(const Body& body) noexcept
 /// @relatedalso Body
 inline bool Awaken(Body& body) noexcept
 {
-    if (!body.IsAwake() && body.IsSpeedable()) {
+    if (!IsAwake(body) && IsSpeedable(body)) {
         body.SetAwake();
         return true;
     }
@@ -1094,7 +1169,7 @@ inline bool Awaken(Body& body) noexcept
 /// @relatedalso Body
 inline bool Unawaken(Body& body) noexcept
 {
-    if (body.IsAwake() && body.IsSleepingAllowed()) {
+    if (IsAwake(body) && IsSleepingAllowed(body)) {
         body.UnsetAwake();
         return true;
     }
@@ -1355,10 +1430,12 @@ inline const std::vector<ShapeID>& GetShapes(const Body& body) noexcept
 }
 
 /// @brief Equals operator.
+/// @see operator!=(const Body&, const Body&).
 /// @relatedalso Body
 bool operator==(const Body& lhs, const Body& rhs);
 
 /// @brief Not-equals operator.
+/// @see operator==(const Body&, const Body&).
 /// @relatedalso Body
 inline bool operator!=(const Body& lhs, const Body& rhs)
 {

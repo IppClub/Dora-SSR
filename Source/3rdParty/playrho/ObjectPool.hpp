@@ -25,8 +25,8 @@
 /// @brief Definition of the @c ObjectPool class template and closely related code.
 
 #include <algorithm> // for std::any_of
+#include <cassert> // for assert
 #include <stdexcept>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -95,20 +95,24 @@ public:
     }
 
     /// @brief Frees the previously-allocated index entry.
+    /// @note Provides the strong exception guarantee - if the operation errs, state is like
+    ///   it was prior to calling this function.
+    /// @pre <code>FindFree(size_type)</code> returns <code>false</code> for the given index.
     /// @post <code>FindFree(size_type)</code> returns <code>true</code> for the freed index.
     /// @post <code>free_size()</code> returns a value one greater than before.
     /// @throws std::out_of_range if given an index that's greater than or equal to the size
     ///    of this instance as returned by <code>size()</code>.
-    /// @todo Consider having this function check if given index already freed.
     /// @see Allocate, FindFree, free_size, size.
-    void Free(size_type index)
+    reference Free(size_type index)
     {
         // only put index into free list if within size range
         if (index >= m_data.size()) {
             throw std::out_of_range("can't free given index");
         }
-        m_data[index] = value_type{};
+        assert(!FindFree(index));
         m_free.push_back(index);
+        m_data[index] = value_type{};
+        return m_data[index];
     }
 
     /// @brief Finds whether the given index is in the free list.
@@ -127,6 +131,7 @@ public:
     /// @see at
     reference operator[](size_type pos)
     {
+        assert(pos < m_data.size());
         return m_data[pos];
     }
 
@@ -135,6 +140,7 @@ public:
     /// @see at
     const_reference operator[](size_type pos) const
     {
+        assert(pos < m_data.size());
         return m_data[pos];
     }
 
@@ -212,6 +218,38 @@ public:
     const value_type* data() const noexcept
     {
         return m_data.data();
+    }
+
+    /// @brief Hidden friend operator equality support.
+    friend bool operator==(const ObjectPool& lhs, const ObjectPool& rhs) noexcept
+    {
+        const auto size = std::min(lhs.size(), rhs.size());
+        for (auto i = size_type(0); i < size; ++i) {
+            if (lhs[i] != rhs[i]) {
+                return false;
+            }
+        }
+        if (lhs.size() > rhs.size()) {
+            for (auto i = size; i < lhs.size(); ++i) {
+                if (std::find(lhs.m_free.begin(), lhs.m_free.end(), i) == lhs.m_free.end()) {
+                    return false;
+                }
+            }
+        }
+        else if (lhs.size() < rhs.size()) {
+            for (auto i = size; i < rhs.size(); ++i) {
+                if (std::find(rhs.m_free.begin(), rhs.m_free.end(), i) == rhs.m_free.end()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /// @brief Hidden friend operator inequality support.
+    friend bool operator!=(const ObjectPool& lhs, const ObjectPool& rhs) noexcept
+    {
+        return !(lhs == rhs);
     }
 
 private:

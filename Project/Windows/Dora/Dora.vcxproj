@@ -345,10 +345,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\AabbTreeWorldBody.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Body.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -1439,16 +1435,17 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ArrayList.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\BlockAllocator.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\BodyID.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\BodyShapeFunction.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\BodyType.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ConstraintSolverConf.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\Contact.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\Contactable.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ContactFeature.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ContactFunction.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ContactID.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ContactKey.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\AABB.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\AabbTreeWorld.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\AabbTreeWorldBody.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Acceleration.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\BasicAPI.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Body.hpp" />
@@ -1457,7 +1454,9 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ChainShapeConf.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ClipList.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\CodeDumper.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactImpulsesFunction.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactImpulsesList.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactManifoldFunction.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactSolver.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ConvexHull.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DiskShapeConf.hpp" />
@@ -1545,6 +1544,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\InvalidArgument.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\Island.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\IslandStats.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\JointFunction.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\JointID.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\KeyedContactID.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\LengthError.hpp" />
@@ -1557,6 +1557,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\NonPositive.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\NonZero.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ObjectPool.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\OutOfRange.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\MemoryResource.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\PoolMemoryResource.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\StatsResource.hpp" />
@@ -1568,6 +1569,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\Real.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\RealConstants.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\Settings.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ShapeFunction.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ShapeID.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\Span.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\StackAllocator.hpp" />
@@ -1887,6 +1889,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Dora SSR.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\Source\3rdParty\playrho\LICENSE.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{340C4AB9-29B3-4591-B8AA-CF532ADE77AA}</ProjectGuid>

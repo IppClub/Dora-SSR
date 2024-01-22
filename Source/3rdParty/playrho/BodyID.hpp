@@ -24,8 +24,12 @@
 /// @file
 /// @brief Definition of the <code>BodyID</code> alias and closely related code.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/detail/IndexingNamedType.hpp"
 #include "playrho/Settings.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -36,20 +40,12 @@ using BodyID = detail::IndexingNamedType<BodyCounter, struct BodyIdentifier>;
 /// @see BodyID.
 constexpr auto InvalidBodyID = static_cast<BodyID>(static_cast<BodyID::underlying_type>(-1));
 
-/// @brief Gets an invalid value for the BodyID type.
-/// @see BodyID.
-template <>
-constexpr BodyID GetInvalid() noexcept
-{
-    return InvalidBodyID;
-}
-
 /// @brief Determines if the given value is valid.
 /// @see BodyID.
 template <>
 constexpr bool IsValid(const BodyID& value) noexcept
 {
-    return value != GetInvalid<BodyID>();
+    return value != InvalidBodyID;
 }
 
 } // namespace playrho

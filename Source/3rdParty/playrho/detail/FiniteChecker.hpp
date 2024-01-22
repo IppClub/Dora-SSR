@@ -24,7 +24,13 @@
 /// @file
 /// @brief Definition of the @c FiniteChecker class template.
 
+// IWYU pragma: begin_exports
+
+// IWYU pragma: private, include "playrho/Finite.hpp"
+
 #include "playrho/Math.hpp" // for playrho::isfinite
+
+// IWYU pragma: end_exports
 
 namespace playrho::detail {
 

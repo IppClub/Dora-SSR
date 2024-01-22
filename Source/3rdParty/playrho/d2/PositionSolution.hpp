@@ -24,8 +24,12 @@
 /// @file
 /// @brief Definition of the @c PositionSolution class and closely related code.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/d2/Math.hpp"
 #include "playrho/d2/Position.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 

@@ -38,7 +38,7 @@
 /// @see World, JointID.
 /// @see https://en.wikipedia.org/wiki/Create,_read,_update_and_delete.
 
-#include <vector>
+// IWYU pragma: begin_exports
 
 #include "playrho/BodyID.hpp"
 #include "playrho/JointID.hpp"
@@ -46,6 +46,8 @@
 
 #include "playrho/d2/Joint.hpp"
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 

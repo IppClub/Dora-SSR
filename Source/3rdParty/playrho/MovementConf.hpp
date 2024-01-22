@@ -24,7 +24,11 @@
 /// @file
 /// @brief Definition of the @c MovementConf class and closely related code.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/Units.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

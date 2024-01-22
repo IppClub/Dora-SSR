@@ -25,11 +25,17 @@
 /// @file
 /// @brief Definition of the @c WeldJointConf class and closely related code.
 
+// IWYU pragma: begin_exports
+
+#include "playrho/NonNegative.hpp"
 #include "playrho/Span.hpp"
 #include "playrho/TypeInfo.hpp"
+#include "playrho/Vector3.hpp"
 
 #include "playrho/d2/JointConf.hpp"
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -149,6 +155,7 @@ constexpr bool operator!=(const WeldJointConf& lhs, const WeldJointConf& rhs) no
 WeldJointConf GetWeldJointConf(const Joint& joint);
 
 /// @brief Gets the configuration for the given parameters.
+/// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso World
 WeldJointConf GetWeldJointConf(const World& world, BodyID bodyA, BodyID bodyB,
                                const Length2& anchor = Length2{});

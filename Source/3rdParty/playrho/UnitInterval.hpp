@@ -24,8 +24,14 @@
 /// @file
 /// @brief Definition of the @c UnitInterval value checked types and related code.
 
+#include <type_traits> // for std::is_default_constructible_v
+
+// IWYU pragma: begin_exports
+
 #include "playrho/detail/Checked.hpp"
 #include "playrho/detail/UnitIntervalChecker.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

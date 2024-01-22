@@ -22,9 +22,16 @@
 #ifndef PLAYRHO_D2_INDEXPAIR_HPP
 #define PLAYRHO_D2_INDEXPAIR_HPP
 
-#include "playrho/Settings.hpp"
 #include <array>
+#include <cstdlib> // for std::size_t
 #include <utility>
+
+// IWYU pragma: begin_exports
+
+#include "playrho/Settings.hpp"
+#include "playrho/Units.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -133,7 +140,7 @@ VertexCounter GetSecondShapeVertexIdx(const detail::SeparationInfo<N>& info) noe
 ///   for the type.
 struct LengthIndexPair
 {
-    Length distance = GetInvalid<Length>(); ///< Separation.
+    Length distance = Length(); ///< Separation.
     IndexPair indices = InvalidIndexPair; ///< Index pair.
 };
 

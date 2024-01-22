@@ -31,7 +31,7 @@
 namespace playrho {
 namespace d2 {
 
-static_assert(IsValidShapeTypeV<ChainShapeConf>);
+static_assert(detail::IsValidShapeTypeV<ChainShapeConf>);
 
 namespace {
 

@@ -25,13 +25,18 @@
 /// @file
 /// @brief Definition of the @c PrismaticJointConf class and closely related code.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/LimitState.hpp"
 #include "playrho/Span.hpp"
 #include "playrho/TypeInfo.hpp"
+#include "playrho/Vector3.hpp"
 
 #include "playrho/d2/JointConf.hpp"
 #include "playrho/d2/Math.hpp"
 #include "playrho/d2/UnitVec.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -209,11 +214,14 @@ constexpr bool operator!=(const PrismaticJointConf& lhs, const PrismaticJointCon
 PrismaticJointConf GetPrismaticJointConf(const Joint& joint);
 
 /// @brief Gets the configuration for the given parameters.
+/// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso World
 PrismaticJointConf GetPrismaticJointConf(const World& world, BodyID bA, BodyID bB,
                                          const Length2& anchor, const UnitVec& axis);
 
 /// @brief Gets the current linear velocity of the given configuration.
+/// @throws std::out_of_range If given an invalid body identifier in the given joint
+///   conifguration.
 /// @relatedalso World
 LinearVelocity GetLinearVelocity(const World& world, const PrismaticJointConf& joint) noexcept;
 

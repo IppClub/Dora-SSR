@@ -25,7 +25,7 @@
 /// @file
 /// @brief Declarations of free functions of World for unidentified information.
 
-#include <utility> // for std::pair
+// IWYU pragma: begin_exports
 
 #include "playrho/BodyID.hpp"
 #include "playrho/JointID.hpp"
@@ -35,6 +35,8 @@
 #include "playrho/ShapeID.hpp"
 
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 

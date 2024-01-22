@@ -455,7 +455,6 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/playrho/d2/Distance.cpp
 	src/main/cpp/3rdParty/playrho/d2/ChainShapeConf.cpp
 	src/main/cpp/3rdParty/playrho/d2/RevoluteJointConf.cpp
-	src/main/cpp/3rdParty/playrho/d2/AabbTreeWorldBody.cpp
 	src/main/cpp/3rdParty/playrho/d2/PrismaticJointConf.cpp
 	src/main/cpp/3rdParty/playrho/d2/WorldMisc.cpp
 	src/main/cpp/3rdParty/playrho/d2/CodeDumper.cpp

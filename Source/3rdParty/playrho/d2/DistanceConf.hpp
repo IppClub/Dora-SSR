@@ -24,9 +24,15 @@
 /// @file
 /// @brief Definition of the @c DistanceConf class and closely related code.
 
+#include <type_traits> // for std::remove_const_t
+
+// IWYU pragma: begin_exports
+
 #include "playrho/Settings.hpp"
 
 #include "playrho/d2/Simplex.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

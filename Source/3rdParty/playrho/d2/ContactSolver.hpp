@@ -25,10 +25,14 @@
 /// @file
 /// @brief Declarations of the velocity and position constraint solver functions.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/Span.hpp"
 
 #include "playrho/d2/Math.hpp"
 #include "playrho/d2/PositionSolution.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

@@ -25,9 +25,13 @@
 /// @file
 /// @brief Definition of @c IndexingNamedType class template and related code.
 
-#include <utility>
+// IWYU pragma: private
+// IWYU pragma: friend "playrho/.*"
+
+#include <cstddef> // for std::size_t
 #include <functional> // for std::hash
 #include <type_traits> // for std::is_nothrow_default_constructible_v
+#include <utility>
 
 namespace playrho::detail {
 

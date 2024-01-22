@@ -25,19 +25,29 @@
 /// @file
 /// @brief Definition of the @c WheelJointConf class and closely related code.
 
+// IWYU pragma: begin_exports
+
+#include "playrho/BodyID.hpp"
+#include "playrho/NonNegative.hpp"
+#include "playrho/Real.hpp"
 #include "playrho/Span.hpp"
 #include "playrho/Units.hpp"
+#include "playrho/Vector2.hpp"
+
+#include "playrho/detail/TypeInfo.hpp"
 
 #include "playrho/d2/JointConf.hpp"
 #include "playrho/d2/Math.hpp"
 #include "playrho/d2/UnitVec.hpp"
 
-namespace playrho {
+// IWYU pragma: end_exports
 
+namespace playrho {
 struct ConstraintSolverConf;
 struct StepConf;
+}
 
-namespace d2 {
+namespace playrho::d2 {
 
 class World;
 class BodyConstraint;
@@ -203,11 +213,15 @@ constexpr bool operator!=(const WheelJointConf& lhs, const WheelJointConf& rhs) 
 WheelJointConf GetWheelJointConf(const Joint& joint);
 
 /// @brief Gets the definition data for the given parameters.
+/// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso World
 WheelJointConf GetWheelJointConf(const World& world, BodyID bodyA, BodyID bodyB, // force line-break
                                  const Length2& anchor, const UnitVec& axis = UnitVec::GetRight());
 
 /// @brief Gets the angular velocity for the given configuration within the specified world.
+/// @param world The world the given joint configuration relates to.
+/// @param conf Configuration of the joint to get the angular velocity for.
+/// @throws std::out_of_range If given an invalid body identifier in the joint configuration.
 /// @relatedalso World
 AngularVelocity GetAngularVelocity(const World& world, const WheelJointConf& conf);
 
@@ -286,8 +300,7 @@ constexpr void SetDampingRatio(WheelJointConf& object, Real value) noexcept
     object.UseDampingRatio(value);
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 /// @brief Type info specialization for <code>d2::WheelJointConf</code>.
 template <>

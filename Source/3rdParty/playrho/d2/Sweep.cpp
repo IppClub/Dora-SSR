@@ -19,6 +19,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include "playrho/Real.hpp"
+#include "playrho/ZeroToUnderOne.hpp"
+
 #include "playrho/d2/Math.hpp" // for GetPosition
 #include "playrho/d2/Sweep.hpp"
 

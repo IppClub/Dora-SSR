@@ -25,10 +25,15 @@
 /// @file
 /// @brief Structures and functions used for computing clip lists.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/ArrayList.hpp"
 #include "playrho/ContactFeature.hpp"
+#include "playrho/Settings.hpp"
 
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 

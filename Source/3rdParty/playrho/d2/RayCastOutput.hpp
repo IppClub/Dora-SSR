@@ -25,7 +25,11 @@
 /// @file
 /// @brief Declaration of the RayCastOutput structure and related free functions.
 
+#include <cstddef> // for std::size_t
+#include <functional> // for std::function
 #include <optional>
+
+// IWYU pragma: begin_exports
 
 #include "playrho/BodyID.hpp"
 #include "playrho/RayCastOpcode.hpp"
@@ -35,6 +39,8 @@
 
 #include "playrho/d2/RayCastInput.hpp"
 #include "playrho/d2/UnitVec.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 namespace detail {

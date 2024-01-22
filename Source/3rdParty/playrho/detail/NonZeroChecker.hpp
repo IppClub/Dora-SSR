@@ -24,6 +24,8 @@
 /// @file
 /// @brief Definition of the @c NonZeroChecker class template.
 
+// IWYU pragma: private, include "playrho/NonZero.hpp"
+
 namespace playrho::detail {
 
 /// @brief Non-zero constrained value checker.

@@ -19,6 +19,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <cassert> // for assert
+
 #include "playrho/Contact.hpp"
 
 #include "playrho/d2/Manifold.hpp"
@@ -44,7 +46,7 @@ inline WorldManifold GetForCircles(const Manifold& manifold,
     const auto cA = pointA + (radiusA * normal);
     const auto cB = pointB - (radiusB * normal);
     const auto p0 = (cA + cB) / Real{2};
-    const auto c0 = manifold.GetContactImpulses(0);
+    const auto c0 = manifold.GetImpulses(0);
     const auto s0 = Dot(cB - cA, normal);
     return WorldManifold{normal, WorldManifold::PointData{p0, c0, s0}};
 }
@@ -56,7 +58,7 @@ inline WorldManifold GetForFaceA(const Manifold& manifold,
     const auto normal = Rotate(manifold.GetLocalNormal(), xfA.q);
     const auto planePoint = Transform(manifold.GetLocalPoint(), xfA);
     const auto pointFn = [&](Manifold::size_type index) {
-        const auto impulses = manifold.GetContactImpulses(index);
+        const auto impulses = manifold.GetImpulses(index);
         const auto clipPoint = Transform(manifold.GetPoint(index).localPoint, xfB);
         const auto cA = clipPoint + (radiusA - Dot(clipPoint - planePoint, normal)) * normal;
         const auto cB = clipPoint - (radiusB * normal);
@@ -83,7 +85,7 @@ inline WorldManifold GetForFaceB(const Manifold& manifold,
     const auto normal = Rotate(manifold.GetLocalNormal(), xfB.q);
     const auto planePoint = Transform(manifold.GetLocalPoint(), xfB);
     const auto pointFn = [&](Manifold::size_type index) {
-        const auto impulses = manifold.GetContactImpulses(index);
+        const auto impulses = manifold.GetImpulses(index);
         const auto clipPoint = Transform(manifold.GetPoint(index).localPoint, xfA);
         const auto cB = clipPoint + (radiusB - Dot(clipPoint - planePoint, normal)) * normal;
         const auto cA = clipPoint - (radiusA * normal);

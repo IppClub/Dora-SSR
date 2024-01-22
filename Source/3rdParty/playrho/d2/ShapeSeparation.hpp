@@ -22,8 +22,12 @@
 #ifndef PLAYRHO_D2_SHAPESEPARATION_HPP
 #define PLAYRHO_D2_SHAPESEPARATION_HPP
 
+// IWYU pragma: begin_exports
+
 #include "playrho/d2/IndexPair.hpp" // for SeparationInfo
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 

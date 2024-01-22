@@ -25,8 +25,14 @@
 /// @file
 /// @brief Definition of the @c Vector2 alias template and closely related code.
 
+// IWYU pragma: begin_exports
+
+#include "playrho/Real.hpp"
 #include "playrho/Settings.hpp"
+#include "playrho/Units.hpp"
 #include "playrho/Vector.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -43,6 +49,9 @@ using Vec2 = Vector2<Real>;
 /// @brief 2-element vector of Length quantities.
 /// @note Often used as a 2-dimensional distance or location vector.
 using Length2 = Vector2<Length>;
+
+/// @brief Invalid @c Length2 constant.
+constexpr auto InvalidLength2 = Length2{Invalid<Length>, Invalid<Length>};
 
 /// @brief 2-element vector of linear velocity (<code>LinearVelocity</code>) quantities.
 /// @note Often used as a 2-dimensional speed vector.
@@ -104,50 +113,12 @@ constexpr auto GetFwdPerpendicular(const Vector2<T>& vector) noexcept -> Vector2
     return {get<1>(vector), -get<0>(vector)};
 }
 
-/// @brief Gets an invalid value for the <code>Vec2</code> type.
-template <>
-constexpr Vec2 GetInvalid() noexcept
-{
-    return Vec2{GetInvalid<Vec2::value_type>(), GetInvalid<Vec2::value_type>()};
-}
-
 /// @brief Determines whether the given vector contains finite coordinates.
 template <typename TYPE>
 constexpr bool IsValid(const Vector2<TYPE>& value) noexcept
 {
     return IsValid(get<0>(value)) && IsValid(get<1>(value));
 }
-
-#ifdef PLAYRHO_USE_BOOST_UNITS
-/// @brief Gets an invalid value for the Length2 type.
-template <>
-constexpr Length2 GetInvalid() noexcept
-{
-    return Length2{GetInvalid<Length>(), GetInvalid<Length>()};
-}
-
-/// @brief Gets an invalid value for the LinearVelocity2 type.
-template <>
-constexpr LinearVelocity2 GetInvalid() noexcept
-{
-    return LinearVelocity2{GetInvalid<LinearVelocity>(), GetInvalid<LinearVelocity>()};
-}
-
-/// @brief Gets an invalid value for the Force2 type.
-template <>
-constexpr Force2 GetInvalid() noexcept
-{
-    return Force2{GetInvalid<Force>(), GetInvalid<Force>()};
-}
-
-/// @brief Gets an invalid value for the Momentum2 type.
-template <>
-constexpr Momentum2 GetInvalid() noexcept
-{
-    return Momentum2{GetInvalid<Momentum>(), GetInvalid<Momentum>()};
-}
-
-#endif
 
 namespace d2 {
 

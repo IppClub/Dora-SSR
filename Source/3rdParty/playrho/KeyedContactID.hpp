@@ -24,8 +24,14 @@
 /// @file
 /// @brief Declaration of the <code>KeyedContactID</code> alias.
 
+#include <utility>
+
+// IWYU pragma: begin_exports
+
 #include "playrho/ContactKey.hpp"
 #include "playrho/ContactID.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

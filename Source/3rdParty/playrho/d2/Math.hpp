@@ -25,14 +25,29 @@
 /// @file
 /// @brief Declarations of general 2-D math related code.
 
+#include <cassert> // for assert
+#include <tuple> // for std::tuple_size_v
+#include <type_traits> // for std::decay_t
+#include <vector>
+
+// IWYU pragma: begin_exports
+
 #include "playrho/Math.hpp"
+#include "playrho/Matrix.hpp"
+#include "playrho/Real.hpp"
+#include "playrho/UnitInterval.hpp"
+#include "playrho/Units.hpp"
+#include "playrho/Vector2.hpp"
+
+#include "playrho/detail/Checked.hpp"
 
 #include "playrho/d2/UnitVec.hpp"
 #include "playrho/d2/Position.hpp"
 #include "playrho/d2/Velocity.hpp"
-#include "playrho/d2/Acceleration.hpp"
 #include "playrho/d2/Transformation.hpp"
 #include "playrho/d2/Sweep.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 
@@ -56,7 +71,7 @@ inline Angle GetAngle(const Transformation& value)
 
 /// @brief Multiplication operator.
 template <class T, typename U, bool NoExcept>
-constexpr Vector2<T> operator*(const detail::Checked<T, U, NoExcept>& s, const UnitVec& u) noexcept
+constexpr Vector2<T> operator*(const playrho::detail::Checked<T, U, NoExcept>& s, const UnitVec& u) noexcept
 {
     return Vector2<T>{u.GetX() * s, u.GetY() * s};
 }
@@ -70,7 +85,7 @@ constexpr Vector2<T> operator*(const T& s, const UnitVec& u) noexcept
 
 /// @brief Multiplication operator.
 template <class T, class U, bool NoExcept>
-constexpr Vector2<T> operator*(const UnitVec& u, const detail::Checked<T, U, NoExcept>& s) noexcept
+constexpr Vector2<T> operator*(const UnitVec& u, const playrho::detail::Checked<T, U, NoExcept>& s) noexcept
 {
     return Vector2<T>{u.GetX() * s, u.GetY() * s};
 }
@@ -122,7 +137,6 @@ constexpr auto InverseRotate(const Vector2<T>& vector, const UnitVec& angle) noe
 /// @param fallback Fallback unit vector value to use in case a unit vector can't effectively be
 ///   calculated from the given value.
 /// @return value divided by its length if length not almost zero otherwise invalid value.
-/// @see AlmostEqual.
 template <class T>
 inline UnitVec GetUnitVector(const Vector2<T>& value,
                              const UnitVec& fallback = UnitVec::GetDefaultFallback()) noexcept
@@ -145,15 +159,10 @@ inline Position GetNormalized(const Position& val) noexcept
 /// @relatedalso Sweep
 inline Sweep GetNormalized(Sweep sweep) noexcept
 {
-#if 1
     const auto pos0a = playrho::GetNormalized(sweep.pos0.angular);
     const auto d = sweep.pos0.angular - pos0a;
     sweep.pos0.angular = pos0a;
     sweep.pos1.angular -= d;
-#else
-    sweep.pos0.angular = playrho::GetNormalized(sweep.pos0.angular);
-    sweep.pos1.angular = playrho::GetNormalized(sweep.pos1.angular);
-#endif
     return sweep;
 }
 

@@ -23,33 +23,49 @@
 #define PLAYRHO_D2_BODYCONF_HPP
 
 /// @file
-/// @brief Declarations of @c BodyConf class and free functions associated with it.
+/// @brief Declarations of @c BodyConf class & free functions associated with it.
 
+#include <cstdlib> // for std::size_t
+#include <type_traits> // for std::is_default_constructible_v
+
+// IWYU pragma: begin_exports
+
+#include "playrho/ArrayList.hpp"
 #include "playrho/BodyType.hpp"
 #include "playrho/NonNegative.hpp"
-#include "playrho/Settings.hpp"
 #include "playrho/ShapeID.hpp"
+#include "playrho/Span.hpp"
 
-#include "playrho/d2/Math.hpp"
+#include "playrho/d2/Position.hpp"
+#include "playrho/d2/Sweep.hpp"
+#include "playrho/d2/Transformation.hpp"
+#include "playrho/d2/Velocity.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 
 class Body;
 
 /// @brief Configuration for a body.
-/// @details A body configuration holds all the data needed to construct a rigid body.
-///   You can safely re-use body configurations.
+/// @details A body configuration holds all the data needed to construct a rigid
+///   body. You can safely re-use body configurations.
 /// @note Value class meant for passing in for <code>Body</code> construction.
 /// @see World, Body.
 struct BodyConf {
     /// @brief Default body type.
     static constexpr auto DefaultBodyType = BodyType::Static;
 
-    /// @brief Default location.
-    static constexpr auto DefaultLocation = Length2{};
+    /// @brief Default sweep.
+    static constexpr auto DefaultSweep = Sweep{};
 
-    /// @brief Default angle.
-    static constexpr auto DefaultAngle = 0_deg;
+    /// @brief Default inverse mass.
+    static constexpr auto DefaultInvMass =
+        NonNegativeFF<InvMass>{Real(1) / Kilogram};
+
+    /// @brief Default inverse rotational inertia.
+    static constexpr auto DefaultInvRotI =
+        NonNegativeFF<InvRotInertia>{};
 
     /// @brief Default linear velocity.
     static constexpr auto DefaultLinearVelocity = LinearVelocity2{};
@@ -61,13 +77,14 @@ struct BodyConf {
     static constexpr auto DefaultLinearAcceleration = LinearAcceleration2{};
 
     /// @brief Default angular acceleration.
-    static constexpr auto DefaultAngularAcceleration = AngularAcceleration{0 * RadianPerSquareSecond};
+    static constexpr auto DefaultAngularAcceleration =
+        AngularAcceleration{0 * RadianPerSquareSecond};
 
     /// @brief Default linear damping.
-    static constexpr auto DefaultLinearDamping = NonNegative<Frequency>{0_Hz};
+    static constexpr auto DefaultLinearDamping = NonNegativeFF<Frequency>{0_Hz};
 
     /// @brief Default angular damping.
-    static constexpr auto DefaultAngularDamping = NonNegative<Frequency>{0_Hz};
+    static constexpr auto DefaultAngularDamping = NonNegativeFF<Frequency>{0_Hz};
 
     /// @brief Default under active time.
     static constexpr auto DefaultUnderActiveTime = 0_s;
@@ -87,13 +104,25 @@ struct BodyConf {
     /// @brief Default enabled value.
     static constexpr auto DefaultEnabled = true;
 
+    /// @brief Default mass data dirty value.
+    static constexpr auto DefaultMassDataDirty = true;
+
+    /// @brief Max associable shapes.
+    static constexpr auto MaxShapes = std::size_t(128);
+
     // Builder-styled methods...
 
     /// @brief Use the given type.
-    constexpr BodyConf& UseType(BodyType t) noexcept;
-
-    /// @brief Use the given type.
     constexpr BodyConf& Use(BodyType t) noexcept;
+
+    /// @brief Use the given sweep.
+    constexpr BodyConf& Use(const Sweep& v) noexcept;
+
+    /// @brief Use the given inverse mass.
+    constexpr BodyConf& UseInvMass(const NonNegative<InvMass>& v) noexcept;
+
+    /// @brief Use the given inverse rotational inertia.
+    constexpr BodyConf& UseInvRotI(const NonNegative<InvRotInertia>& v) noexcept;
 
     /// @brief Use the given location.
     constexpr BodyConf& UseLocation(const Length2& l) noexcept;
@@ -128,8 +157,17 @@ struct BodyConf {
     /// @brief Use the given under active time.
     constexpr BodyConf& UseUnderActiveTime(Time v) noexcept;
 
-    /// @brief Use the shape identifier as the identifier to attach to the body.
-    constexpr BodyConf& Use(ShapeID v) noexcept;
+    /// @brief Appends the shape identifier to the collection to attach to the body.
+    /// @throws LengthError if operation would exceed <code>MaxShapes</code>. Provides
+    ///   the strong exception guarantee - i.e. state is as it was before this was called.
+    /// @post <code>shapes</code> holds the given value.
+    constexpr BodyConf& Use(ShapeID v);
+
+    /// @brief Appends the shape identifiers to the collection to attach to the body.
+    /// @throws LengthError if operation would exceed <code>MaxShapes</code>. Provides
+    ///   the strong exception guarantee - i.e. state is as it was before this was called.
+    /// @post <code>shapes</code> holds the given values in the same order as given.
+    constexpr BodyConf& Use(Span<const ShapeID> v);
 
     /// @brief Use the given allow sleep value.
     constexpr BodyConf& UseAllowSleep(bool value) noexcept;
@@ -146,20 +184,29 @@ struct BodyConf {
     /// @brief Use the given enabled state.
     constexpr BodyConf& UseEnabled(bool value) noexcept;
 
+    /// @brief Use the given mass data dirty state.
+    constexpr BodyConf& UseMassDataDirty(bool v) noexcept;
+
     // Public member variables...
 
     /// @brief Type of the body: static, kinematic, or dynamic.
     /// @note If a dynamic body would have zero mass, the mass is set to one.
     BodyType type = DefaultBodyType;
 
-    /// The world location of the body. Avoid creating bodies at the origin
-    /// since this can lead to many overlapping shapes.
-    Length2 location = DefaultLocation;
+    /// @brief The sweep of the body.
+    /// @details This establishes a body's location and angle.
+    /// @note Avoid creating bodies at the origin since this can lead to many overlapping shapes.
+    Sweep sweep = DefaultSweep;
 
-    /// The world angle of the body.
-    Angle angle = DefaultAngle;
+    /// @brief Inverse mass for the body.
+    /// @note Only applies if type is dynamic.
+    NonNegative<InvMass> invMass = DefaultInvMass;
 
-    /// The linear velocity of the body's origin in world co-ordinates (in m/s).
+    /// @brief Inverse rotational inertia for the body.
+    /// @note Only applies if type is dynamic.
+    NonNegative<InvRotInertia> invRotI = DefaultInvRotI;
+
+    /// The linear velocity of the body's origin in world co-ordinates.
     LinearVelocity2 linearVelocity = DefaultLinearVelocity;
 
     /// The angular velocity of the body.
@@ -188,9 +235,8 @@ struct BodyConf {
     ///   or leave it as 0.
     Time underActiveTime = DefaultUnderActiveTime;
 
-    /// Identifier of shape that will be associated with the body on its creation.
-    /// @note This can often be faster than later using an <code>Attach</code> function.
-    ShapeID shape = InvalidShapeID;
+    /// @brief Shapes to associate a body with.
+    ArrayList<ShapeID, MaxShapes> shapes;
 
     /// Set this flag to false if this body should never fall asleep. Note that
     /// this increases CPU usage.
@@ -210,12 +256,10 @@ struct BodyConf {
 
     /// Whether or not the body is enabled.
     bool enabled = DefaultEnabled;
-};
 
-constexpr BodyConf& BodyConf::UseType(BodyType t) noexcept
-{
-    return Use(t);
-}
+    /// @brief Whether mass data is "dirty".
+    bool massDataDirty = DefaultMassDataDirty;
+};
 
 constexpr BodyConf& BodyConf::Use(BodyType t) noexcept
 {
@@ -223,22 +267,41 @@ constexpr BodyConf& BodyConf::Use(BodyType t) noexcept
     return *this;
 }
 
+constexpr BodyConf& BodyConf::Use(const Sweep& v) noexcept
+{
+    sweep = v;
+    return *this;
+}
+
+constexpr BodyConf& BodyConf::UseInvMass(
+    const NonNegative<InvMass>& v) noexcept
+{
+    invMass = v;
+    return *this;
+}
+
+constexpr BodyConf& BodyConf::UseInvRotI(
+    const NonNegative<InvRotInertia>& v) noexcept
+{
+    invRotI = v;
+    return *this;
+}
+
 constexpr BodyConf& BodyConf::UseLocation(const Length2& l) noexcept
 {
-    location = l;
+    sweep = Sweep{Position{l, sweep.pos0.angular}};
     return *this;
 }
 
 constexpr BodyConf& BodyConf::UseAngle(Angle a) noexcept
 {
-    angle = a;
+    sweep = Sweep{Position{sweep.pos0.linear, a}};
     return *this;
 }
 
 constexpr BodyConf& BodyConf::Use(const Position& v) noexcept
 {
-    location = v.linear;
-    angle = v.angular;
+    sweep = Sweep{v};
     return *this;
 }
 
@@ -291,9 +354,15 @@ constexpr BodyConf& BodyConf::UseUnderActiveTime(Time v) noexcept
     return *this;
 }
 
-constexpr BodyConf& BodyConf::Use(ShapeID v) noexcept
+constexpr BodyConf& BodyConf::Use(ShapeID v)
 {
-    shape = v;
+    shapes += v;
+    return *this;
+}
+
+constexpr BodyConf& BodyConf::Use(Span<const ShapeID> values)
+{
+    shapes += values;
     return *this;
 }
 
@@ -327,6 +396,16 @@ constexpr BodyConf& BodyConf::UseEnabled(bool value) noexcept
     return *this;
 }
 
+constexpr BodyConf& BodyConf::UseMassDataDirty(bool v) noexcept
+{
+    massDataDirty = v;
+    return *this;
+}
+
+// Asserts some basic traits...
+static_assert(std::is_default_constructible_v<BodyConf>);
+static_assert(std::is_copy_constructible_v<BodyConf>);
+
 /// @brief Gets the default body definition.
 /// @relatedalso BodyConf
 constexpr BodyConf GetDefaultBodyConf() noexcept
@@ -337,17 +416,22 @@ constexpr BodyConf GetDefaultBodyConf() noexcept
 /// @brief Gets the body definition for the given body.
 /// @param body Body to get the <code>BodyConf</code> for.
 /// @relatedalso Body
-BodyConf GetBodyConf(const Body& body) noexcept;
+BodyConf GetBodyConf(const Body& body);
 
-/// @brief Gets the transformation associated with the given configuration.
+/// @brief Gets the location of the given configuration.
 /// @relatedalso BodyConf
-Transformation GetTransformation(const BodyConf& conf) noexcept;
+constexpr auto GetLocation(const BodyConf& conf) noexcept
+    -> Length2
+{
+    return conf.sweep.pos0.linear;
+}
 
 /// @brief Gets the angle of the given configuration.
 /// @relatedalso BodyConf
-constexpr Angle GetAngle(const BodyConf& conf) noexcept
+constexpr auto GetAngle(const BodyConf& conf) noexcept
+    -> Angle
 {
-    return conf.angle;
+    return conf.sweep.pos0.angular;
 }
 
 /// @brief Operator equals.
@@ -355,8 +439,9 @@ constexpr Angle GetAngle(const BodyConf& conf) noexcept
 constexpr bool operator==(const BodyConf& lhs, const BodyConf& rhs) noexcept
 {
     return lhs.type == rhs.type && //
-           lhs.location == rhs.location && //
-           lhs.angle == rhs.angle && //
+           lhs.sweep == rhs.sweep && //
+           lhs.invMass == rhs.invMass && //
+           lhs.invRotI == rhs.invRotI && //
            lhs.linearVelocity == rhs.linearVelocity && //
            lhs.angularVelocity == rhs.angularVelocity && //
            lhs.linearAcceleration == rhs.linearAcceleration && //
@@ -364,11 +449,13 @@ constexpr bool operator==(const BodyConf& lhs, const BodyConf& rhs) noexcept
            lhs.linearDamping == rhs.linearDamping && //
            lhs.angularDamping == rhs.angularDamping && //
            lhs.underActiveTime == rhs.underActiveTime && //
+           lhs.shapes == rhs.shapes && //
            lhs.allowSleep == rhs.allowSleep && //
            lhs.awake == rhs.awake && //
            lhs.fixedRotation == rhs.fixedRotation && //
            lhs.bullet == rhs.bullet && //
-           lhs.enabled == rhs.enabled;
+           lhs.enabled == rhs.enabled && //
+           lhs.massDataDirty == rhs.massDataDirty;
 }
 
 /// @brief Operator not-equals.

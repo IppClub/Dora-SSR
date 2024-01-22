@@ -24,6 +24,8 @@
 /// @file
 /// @brief Definition of the @c UnitIntervalChecker class template.
 
+// IWYU pragma: private, include "playrho/UnitInterval.hpp"
+
 namespace playrho::detail {
 
 /// @brief Unit-interval constrained value checker.

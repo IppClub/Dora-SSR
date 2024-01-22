@@ -19,11 +19,12 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <type_traits> // for std::is_default_constructible_v
+
 #include "playrho/d2/JointConf.hpp"
 #include "playrho/d2/Joint.hpp"
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 static_assert(std::is_default_constructible_v<JointConf>,
               "JointConf should be default constructible!");
@@ -44,5 +45,4 @@ void Set(JointConf& def, const Joint& joint) noexcept
     def.collideConnected = GetCollideConnected(joint);
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

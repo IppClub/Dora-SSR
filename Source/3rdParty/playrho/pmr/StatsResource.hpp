@@ -21,7 +21,13 @@
 #ifndef PLAYRHO_STATS_RESOURCE_HPP
 #define PLAYRHO_STATS_RESOURCE_HPP
 
+#include <cstddef> // for std::size_t
+
+// IWYU pragma: begin_exports
+
 #include "playrho/pmr/MemoryResource.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::pmr {
 

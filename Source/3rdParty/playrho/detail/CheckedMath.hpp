@@ -26,7 +26,11 @@
 
 #include <cmath> // for std::nextafter
 
+// IWYU pragma: begin_exports
+
 #include "playrho/detail/Checked.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::detail {
 

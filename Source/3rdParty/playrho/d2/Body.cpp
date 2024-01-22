@@ -19,21 +19,15 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <algorithm> // for std::find
+#include <cassert> // for assert
+
+#include "playrho/Math.hpp" // for Cross, etc
+#include "playrho/Templates.hpp"
+
 #include "playrho/d2/Body.hpp"
 
-#include "playrho/d2/BodyConf.hpp"
-
-#include <type_traits>
-#include <utility>
-
 namespace playrho::d2 {
-
-static_assert(std::is_default_constructible_v<Body>, "Body must be default constructible!");
-static_assert(std::is_copy_constructible_v<Body>, "Body must be copy constructible!");
-static_assert(std::is_move_constructible_v<Body>, "Body must be move constructible!");
-static_assert(std::is_copy_assignable_v<Body>, "Body must be copy assignable!");
-static_assert(std::is_move_assignable_v<Body>, "Body must be move assignable!");
-static_assert(std::is_nothrow_destructible_v<Body>, "Body must be nothrow destructible!");
 
 Body::FlagsType Body::GetFlags(BodyType type) noexcept
 {
@@ -83,21 +77,28 @@ Body::FlagsType Body::GetFlags(const BodyConf& bd) noexcept
     if (bd.enabled) {
         flags |= e_enabledFlag;
     }
+    if (bd.massDataDirty &&
+        (!bd.shapes.empty() ||
+         (bd.invMass != BodyConf::DefaultInvMass) ||
+         (bd.invRotI != BodyConf::DefaultInvRotI))) {
+        flags |= e_massDataDirtyFlag;
+    }
     return flags;
 }
 
 Body::Body(const BodyConf& bd)
-    : m_xf{::playrho::d2::GetTransformation(bd)},
-      m_sweep{Position{bd.location, bd.angle}},
+    : m_xf{GetTransform1(bd.sweep)},
+      m_sweep{bd.sweep},
       m_flags{GetFlags(bd)},
-      m_invMass{(bd.type == playrho::BodyType::Dynamic) ? InvMass{Real{1} / Kilogram} : InvMass{}},
+      m_invMass{(bd.type == playrho::BodyType::Dynamic)
+                    ? bd.invMass : NonNegative<InvMass>{}},
+      m_invRotI{(bd.type == playrho::BodyType::Dynamic)
+                    ? bd.invRotI : NonNegative<InvRotInertia>{}},
       m_linearDamping{bd.linearDamping},
       m_angularDamping{bd.angularDamping},
-      m_shapes{(bd.shape == InvalidShapeID) ? std::vector<ShapeID>{}
-                                            : std::vector<ShapeID>{bd.shape}}
+      m_shapes(bd.shapes.begin(), bd.shapes.end())
 {
-    assert(IsValid(bd.location));
-    assert(IsValid(bd.angle));
+    assert(IsValid(bd.sweep));
     assert(IsValid(bd.linearVelocity));
     assert(IsValid(bd.angularVelocity));
     assert(IsValid(m_xf));
@@ -152,7 +153,7 @@ void Body::SetSleepingAllowed(bool flag) noexcept
     if (flag) {
         m_flags |= e_autoSleepFlag;
     }
-    else if (IsSpeedable()) {
+    else if ((m_flags & Body::e_velocityFlag) != 0) {
         m_flags &= ~e_autoSleepFlag;
         SetAwakeFlag();
         m_underActiveTime = 0_s;
@@ -163,7 +164,7 @@ void Body::SetAwake() noexcept
 {
     // Ignore this request unless this body is speedable so as to maintain the body's invariant
     // that only "speedable" bodies can be awake.
-    if (IsSpeedable()) {
+    if ((m_flags & Body::e_velocityFlag) != 0) {
         SetAwakeFlag();
         m_underActiveTime = 0_s;
     }
@@ -171,7 +172,8 @@ void Body::SetAwake() noexcept
 
 void Body::UnsetAwake() noexcept
 {
-    if (!IsSpeedable() || IsSleepingAllowed()) {
+    if (((m_flags & Body::e_velocityFlag) == 0) ||
+        ((m_flags & Body::e_autoSleepFlag) != 0)) {
         UnsetAwakeFlag();
         m_underActiveTime = 0_s;
         m_linearVelocity = LinearVelocity2{};
@@ -182,7 +184,7 @@ void Body::UnsetAwake() noexcept
 void Body::SetVelocity(const Velocity& value) noexcept
 {
     if (value != Velocity{}) {
-        if (!IsSpeedable()) {
+        if ((m_flags & Body::e_velocityFlag) == 0) {
             return;
         }
         SetAwakeFlag();
@@ -193,7 +195,7 @@ void Body::SetVelocity(const Velocity& value) noexcept
 
 void Body::JustSetVelocity(const Velocity& value) noexcept
 {
-    assert(IsSpeedable() || (value == Velocity{}));
+    assert(((m_flags & Body::e_velocityFlag) != 0) || (value == Velocity{}));
     m_linearVelocity = value.linear;
     m_angularVelocity = value.angular;
 }
@@ -208,7 +210,7 @@ void Body::SetAcceleration(const LinearAcceleration2& linear, AngularAcceleratio
         return;
     }
 
-    if (!IsAccelerable()) {
+    if ((m_flags & Body::e_accelerationFlag) == 0) {
         if ((linear != LinearAcceleration2{}) || (angular != AngularAcceleration{})) {
             // non-accelerable bodies can only be set to zero acceleration, bail...
             return;
@@ -286,7 +288,7 @@ Velocity GetVelocity(const Body& body, Time h) noexcept
 {
     // Integrate velocity and apply damping.
     auto velocity = body.GetVelocity();
-    if (body.IsAccelerable()) {
+    if (IsAccelerable(body)) {
         // Integrate velocities.
         velocity.linear += h * body.GetLinearAcceleration();
         velocity.angular += h * body.GetAngularAcceleration();
@@ -325,7 +327,15 @@ bool operator==(const Body& lhs, const Body& rhs)
 {
     return GetTransformation(lhs) == GetTransformation(rhs) && //
            GetSweep(lhs) == GetSweep(rhs) && //
-           GetType(lhs) == GetType(rhs) && //
+           IsDestroyed(lhs) == IsDestroyed(rhs) && //
+           IsAwake(lhs) == IsAwake(rhs) && //
+           IsSleepingAllowed(lhs) == IsSleepingAllowed(rhs) && //
+           IsImpenetrable(lhs) == IsImpenetrable(rhs) && //
+           IsFixedRotation(lhs) == IsFixedRotation(rhs) && //
+           IsEnabled(lhs) == IsEnabled(rhs) && //
+           IsSpeedable(lhs) == IsSpeedable(rhs) && //
+           IsAccelerable(lhs) == IsAccelerable(rhs) && //
+           IsMassDataDirty(lhs) == IsMassDataDirty(rhs) && //
            GetVelocity(lhs) == GetVelocity(rhs) && //
            GetAcceleration(lhs) == GetAcceleration(rhs) && //
            GetInvMass(lhs) == GetInvMass(rhs) && //

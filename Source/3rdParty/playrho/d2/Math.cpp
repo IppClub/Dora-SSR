@@ -19,9 +19,11 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/Math.hpp"
+#include <cassert> // for assert
 
 #include "playrho/ConstraintSolverConf.hpp"
+
+#include "playrho/d2/Math.hpp"
 
 namespace playrho::d2 {
 
@@ -105,6 +107,7 @@ std::vector<UnitVec> GetFwdNormalsVector(const std::vector<Length2>& vertices)
 {
     auto normals = std::vector<UnitVec>();
     const auto count = static_cast<VertexCounter>(size(vertices));
+    normals.reserve(count);
     if (count > 1) {
         // Compute normals.
         for (auto i = decltype(count){0}; i < count; ++i) {

@@ -28,8 +28,12 @@
 #include <type_traits>
 #include <utility> // for std::declval
 
+// IWYU pragma: begin_exports
+
 #include "playrho/InvalidArgument.hpp"
 #include "playrho/Templates.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::detail {
 

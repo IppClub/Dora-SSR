@@ -41,10 +41,14 @@
 #include <cmath>
 #include <type_traits>
 
+// IWYU pragma: begin_exports
+
+#include "playrho/Real.hpp"
 #include "playrho/RealConstants.hpp"
 #include "playrho/Templates.hpp"
-
 #include "playrho/to_underlying.hpp"
+
+// IWYU pragma: end_exports
 
 // #define PLAYRHO_USE_BOOST_UNITS
 #if defined(PLAYRHO_USE_BOOST_UNITS)
@@ -997,105 +1001,6 @@ template <class Unit, class Y>
 constexpr auto StripUnit(const boost::units::quantity<Unit, Y> source)
 {
     return source.value();
-}
-
-/// @brief Gets an invalid value for the Angle type.
-template <>
-constexpr Angle GetInvalid() noexcept
-{
-    return GetInvalid<Real>() * Radian;
-}
-
-/// @brief Gets an invalid value for the Frequency type.
-template <>
-constexpr Frequency GetInvalid() noexcept
-{
-    return GetInvalid<Real>() * Hertz;
-}
-
-/// @brief Gets an invalid value for the AngularVelocity type.
-template <>
-constexpr AngularVelocity GetInvalid() noexcept
-{
-    return GetInvalid<Real>() * RadianPerSecond;
-}
-
-/// @brief Gets an invalid value for the Time type.
-template <>
-constexpr Time GetInvalid() noexcept
-{
-    return GetInvalid<Real>() * Second;
-}
-
-/// @brief Gets an invalid value for the Length type.
-template <>
-constexpr Length GetInvalid() noexcept
-{
-    return GetInvalid<Real>() * Meter;
-}
-
-/// @brief Gets an invalid value for the Mass type.
-template <>
-constexpr Mass GetInvalid() noexcept
-{
-    return GetInvalid<Real>() * Kilogram;
-}
-
-/// @brief Gets an invalid value for the InvMass type.
-template <>
-constexpr InvMass GetInvalid() noexcept
-{
-    return GetInvalid<Real>() / Kilogram;
-}
-
-/// @brief Gets an invalid value for the Momentum type.
-template <>
-constexpr Momentum GetInvalid() noexcept
-{
-    return GetInvalid<Real>() * Kilogram * MeterPerSecond;
-}
-
-/// @brief Gets an invalid value for the Force type.
-template <>
-constexpr Force GetInvalid() noexcept
-{
-    return GetInvalid<Real>() * Newton;
-}
-
-/// @brief Gets an invalid value for the Torque type.
-template <>
-constexpr Torque GetInvalid() noexcept
-{
-    return GetInvalid<Real>() * NewtonMeter;
-}
-
-/// @brief Gets an invalid value for the LinearVelocity type.
-template <>
-constexpr LinearVelocity GetInvalid() noexcept
-{
-    return GetInvalid<Real>() * MeterPerSecond;
-}
-
-/// @brief Gets an invalid value for the LinearAcceleration type.
-template <>
-constexpr LinearAcceleration GetInvalid() noexcept
-{
-    return GetInvalid<Real>() * MeterPerSquareSecond;
-}
-
-/// @brief Gets an invalid value for the AngularAcceleration type.
-template <>
-constexpr AngularAcceleration GetInvalid() noexcept
-{
-    return GetInvalid<Real>() * RadianPerSquareSecond;
-}
-
-/// @brief Gets an invalid value for the RotInertia type.
-template <>
-constexpr RotInertia GetInvalid() noexcept
-{
-    // RotInertia is L^2  M    QP^-2
-    return GetInvalid<Real>() * SquareMeter * Kilogram / SquareRadian;
 }
 
 #endif // defined(PLAYRHO_USE_BOOST_UNITS)

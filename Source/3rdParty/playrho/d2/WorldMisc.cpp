@@ -19,19 +19,16 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/WorldMisc.hpp"
+#include "playrho/MovementConf.hpp"
+#include "playrho/StepConf.hpp"
 
 #include "playrho/d2/World.hpp"
 #include "playrho/d2/WorldBody.hpp"
-#include "playrho/d2/BodyConf.hpp"
-#include "playrho/StepConf.hpp"
-#include "playrho/MovementConf.hpp"
-
-#include <utility> // for std::move
+#include "playrho/d2/WorldMisc.hpp"
 
 namespace playrho::d2 {
 
-StepStats Step(World& world, Time delta, TimestepIters velocityIterations,
+StepStats Step(World &world, Time delta, TimestepIters velocityIterations,
                TimestepIters positionIterations)
 {
     StepConf conf;

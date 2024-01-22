@@ -29,17 +29,18 @@
 #ifndef PLAYRHO_SETTINGS_HPP
 #define PLAYRHO_SETTINGS_HPP
 
-#include <cstddef>
-#include <cassert>
-#include <cfloat>
-#include <cmath>
-#include <cstdint>
-#include <algorithm>
+#include <cstdint> // for std::uint8_t
+#include <limits> // for std::numeric_limits
+#include <type_traits> // for std::remove_const_t
 
+// IWYU pragma: begin_exports
+
+#include "playrho/Real.hpp"
 #include "playrho/RealConstants.hpp"
-#include "playrho/Templates.hpp"
 #include "playrho/Units.hpp"
 #include "playrho/WiderType.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -227,6 +228,13 @@ constexpr auto DefaultAngularSleepTolerance = Real((Pi * 2) / 180) * RadianPerSe
 /// @details Ratio used for switching between rounded-corner collisions and closest-face
 ///   biased normal collisions.
 constexpr auto DefaultCirclesRatio = Real(10);
+
+/// @brief Invalid value of the template's instantiated numeric type
+template <class T, std::enable_if_t<
+    std::numeric_limits<T>::has_signaling_NaN || std::numeric_limits<T>::has_quiet_NaN, int> = 0>
+constexpr auto Invalid = std::numeric_limits<T>::has_signaling_NaN
+    ? std::numeric_limits<T>::signaling_NaN()
+    : std::numeric_limits<T>::quiet_NaN();
 
 } // namespace playrho
 

@@ -38,18 +38,27 @@
 /// @see World, BodyID.
 /// @see https://en.wikipedia.org/wiki/Create,_read,_update_and_delete.
 
-#include <iterator>
-#include <vector>
-#include <functional>
+// IWYU pragma: begin_exports
 
 #include "playrho/BodyID.hpp"
-#include "playrho/JointID.hpp"
-#include "playrho/KeyedContactID.hpp"
+#include "playrho/BodyType.hpp"
+#include "playrho/Math.hpp"
+#include "playrho/NonNegative.hpp"
+#include "playrho/Real.hpp"
+#include "playrho/Settings.hpp"
 #include "playrho/ShapeID.hpp"
+#include "playrho/Units.hpp"
+#include "playrho/Vector2.hpp" // for Length2
 
-#include "playrho/d2/Body.hpp"
+#include "playrho/d2/Acceleration.hpp"
 #include "playrho/d2/MassData.hpp"
 #include "playrho/d2/Math.hpp"
+#include "playrho/d2/Position.hpp"
+#include "playrho/d2/Transformation.hpp"
+#include "playrho/d2/UnitVec.hpp"
+#include "playrho/d2/Velocity.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 
@@ -61,10 +70,6 @@ class Shape;
 /// This is the <code>googletest</code> based unit testing file for the free function
 ///   interfaces to <code>playrho::d2::World</code> body member functions and additional
 ///   functionality.
-
-/// @name World Body Non-Member Functions.
-/// Non-Member functions relating to bodies.
-/// @{
 
 /// @brief Creates a rigid body with the given configuration.
 /// @warning This function should not be used while the world is locked &mdash; as it is
@@ -343,6 +348,7 @@ inline Position GetPosition(const World& world, BodyID id)
 }
 
 /// @brief Convenience function for getting a world vector of the identified body.
+/// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso World
 inline UnitVec GetWorldVector(const World& world, BodyID id, const UnitVec& localVector)
 {
@@ -446,9 +452,17 @@ bool IsEnabled(const World& world, BodyID id);
 /// @relatedalso World
 void SetEnabled(World& world, BodyID id, bool value);
 
-/// @brief Awakens the body if it's asleep.
+/// @brief Awakens the body if it's asleep and "speedable".
+/// @param world The world for which the identified body is to be awoken.
+/// @param id Identifier of the body within the world to awaken.
+/// @return true if <code>SetAwake(World&, BodyID)</code> was called on the identified body,
+///   false otherwise.
 /// @throws WrongState if this function is called while the world is locked.
 /// @throws std::out_of_range If given an invalid body identifier.
+/// @post On returning true: <code>IsAwake(const World&, BodyID)</code> returns true
+///   for the given world and identified body.
+/// @see IsAwake(const World&, BodyID), IsSpeedable(BodyType), GetType(const World&, BodyID),
+///   SetAwake(World&, BodyID).
 /// @relatedalso World
 inline bool Awaken(World& world, BodyID id)
 {
@@ -738,16 +752,27 @@ Frequency GetAngularDamping(const World& world, BodyID id);
 void SetAngularDamping(World& world, BodyID id, NonNegative<Frequency> angularDamping);
 
 /// @brief Gets the count of awake bodies in the given world.
+/// @param world The world for which to get the awake count for.
+/// @see Awaken.
 /// @relatedalso World
 BodyCounter GetAwakeCount(const World& world);
 
-/// @brief Awakens all of the bodies in the given world.
-/// @details Calls all of the world's bodies' <code>SetAwake</code> function.
-/// @return Sum total of calls to bodies' <code>SetAwake</code> function that returned true.
+/// @brief Awakens all of the "speedable" bodies in the given world.
+/// @details Convenience function for calling <code>Awaken(World&, BodyID)</code> for all
+///   bodies identified in the given world.
+/// @param world The world whose bodies are to be awoken.
+/// @return Sum total of calls to <code>Awaken(World&, BodyID)</code> that returned true.
+/// @post On normal return: <code>IsAwake(const World&, BodyID)</code> returns true for all
+///   the "speedable" bodies of the given world.
+/// @see GetBodies(const World&), Awaken(World&, BodyID), IsAwake(const World&, BodyID),
+///   IsSpeedable(BodyType).
 /// @relatedalso World
 BodyCounter Awaken(World& world);
 
 /// @brief Finds body in given world that's closest to the given location.
+/// @param world The world to find closest body to location in.
+/// @param location Location in the given world to find the closest body to.
+/// @return Identifier of the closest body, or <code>InvalidBodyID</code>.
 /// @relatedalso World
 BodyID FindClosestBody(const World& world, const Length2& location);
 
@@ -775,8 +800,6 @@ inline void ClearForces(World& world)
 {
     SetAccelerations(world, Acceleration{});
 }
-
-/// @}
 
 } // namespace playrho::d2
 

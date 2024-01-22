@@ -25,11 +25,17 @@
 /// @file
 /// @brief Definition of the @c Matrix alias and closely related code.
 
+#include <cstdlib> // for std::size_t
+#include <type_traits> // for std::enable_if_t
+
+// IWYU pragma: begin_exports
+
 #include "playrho/Vector.hpp"
 #include "playrho/Vector2.hpp" // for Vec2
-#include "playrho/Templates.hpp"
 #include "playrho/Real.hpp"
 #include "playrho/Units.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -213,13 +219,6 @@ template <>
 constexpr bool IsValid(const Mat22& value) noexcept
 {
     return IsValid(get<0>(value)) && IsValid(get<1>(value));
-}
-
-/// @brief Gets an invalid value for a <code>Mat22</code>.
-template <>
-constexpr Mat22 GetInvalid() noexcept
-{
-    return Mat22{GetInvalid<Vec2>(), GetInvalid<Vec2>()};
 }
 
 } // namespace playrho

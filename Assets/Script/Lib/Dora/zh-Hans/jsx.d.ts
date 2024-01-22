@@ -102,10 +102,9 @@ class Node {
 	children?: any[] | any;
 
 	/**
-	 * 调用一个函数在每一帧运行，或是调度一个协程开始执行。
-	 * @param funcOrJob 要运行的函数，返回true以停止。或是要运行的协程，用返回true或`coroutine.yield(true)`停止运行。
+	 * 调用一个函数在每一帧运行，或是调度一个协程开始执行。返回true以停止要运行的函数。返回true或者调用`coroutine.yield(true)`停止运行的协程。
 	 */
-	onUpdate?(this: void, funcOrJob: ((this: void, deltaTime: number) => boolean) | dora.Job): void;
+	onUpdate?: ((this: void, deltaTime: number) => boolean) | dora.Job;
 
 	/**
 	 * ActionEnd事件会在节点执行完动作时触发。
@@ -1028,14 +1027,17 @@ class Body extends Node {
 	/**
 	 * 注册一个函数，该函数在物理体与其他物理体发生碰撞时被调用。
 	 * 当注册的函数返回false时，物理体将不会触发本次的碰撞事件。
-	 * @param filter 碰撞过滤器函数。
+	 * @param other 当前发生碰撞的物理体对象。
+	 * @returns 返回false时，物理体将不会触发本次的碰撞事件。
 	 */
-	onContactFilter?(filter: (this: void, body: Body) => boolean): void;
+	onContactFilter?(this: void, other: dora.Body.Type): boolean;
 }
 
 class RectangleShape {
-	/** 多边形的中心点。 */
-	center?: dora.Vec2.Type;
+	/** 多边形的中心点的X坐标。 */
+	centerX?: number;
+	/** 多边形的中心点的Y坐标。 */
+	centerY?: number;
 	/** 多边形的宽度。 */
 	width: number;
 	/** 多边形的高度。 */
@@ -1079,8 +1081,10 @@ class MultiShape {
 }
 
 class DiskShape {
-	/** 圆盘的中心点。 */
-	center?: dora.Vec2.Type;
+	/** 圆盘的中心点的X坐标。 */
+	centerX?: number;
+	/** 圆盘的中心点的Y坐标。 */
+	centerY?: number;
 	/** 圆盘的半径。 */
 	radius: number;
 	/** 圆盘的密度（默认为0.0）。 */
@@ -1332,21 +1336,21 @@ interface IntrinsicElements {
 	 */
 	'draw-node': DrawNode;
 	/**
-	 * 在指定位置绘制指定半径和颜色的点。只能作为`<draw-node>`的子组件来使用。
+	 * 在指定位置绘制指定半径和颜色的点。只能作为`<draw-node>`的子标签来使用。
 	 */
-	dot: Dot;
+	'dot-shape': Dot;
 	/**
-	 * 用指定的半径和颜色绘制两点之间的线段。只能作为`<draw-node>`的子组件来使用。
+	 * 用指定的半径和颜色绘制两点之间的线段。只能作为`<draw-node>`的子标签来使用。
 	 */
-	segment: Segment;
+	'segment-shape': Segment;
 	/**
-	 * 绘制由顶点列表定义的多边形，具有指定的填充颜色和边框。只能作为`<draw-node>`的子组件来使用。
+	 * 绘制由顶点列表定义的多边形，具有指定的填充颜色和边框。只能作为`<draw-node>`的子标签来使用。
 	 */
-	polygon: Polygon;
+	'polygon-shape': Polygon;
 	/**
-	 * 把一组顶点绘制为多个三角形，每个顶点都有自己的颜色。只能作为`<draw-node>`的子组件来使用。
+	 * 把一组顶点绘制为多个三角形，每个顶点都有自己的颜色。只能作为`<draw-node>`的子标签来使用。
 	 */
-	verts: Verts;
+	'verts-shape': Verts;
 	/**
 	 * 用于将纹理渲染为图元网格的类，每个图元都可以定位、着色，并可以操作其UV坐标。
 	 */
@@ -1379,99 +1383,123 @@ interface IntrinsicElements {
 	action: Action;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的X锚点。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	'anchor-x': AnchorX;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的Y锚点。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	'anchor-y': AnchorY;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的角度。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	angle: Angle;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的x轴旋转角度。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	'angle-x': AngleX;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的y轴旋转角度。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	'angle-y': AngleY;
 	/**
 	 * 创建动作定义，该动作在动画时间线中产生延迟。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	delay: Delay;
 	/**
 	 * 创建动作定义，该动作将触发事件。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	event: Event;
 	/**
 	* 创建动作定义，该动作将持续改变节点的宽度。
+	只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	*/
 	width: Width;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的高度。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	height: Height;
 	/**
 	 * 创建动作定义，该动作将隐藏节点。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	hide: Hide;
 	/**
 	 * 创建动作定义，该动作将显示节点。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	show: Show;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的位置。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	move: Move;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的不透明度。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	opacity: Opacity;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的旋转。
 	 * 滚动动画将确保节点通过最小旋转角度旋转到目标角度。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	roll: Roll;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的X轴和Y轴缩放。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	scale: Scale;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的X轴缩放。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	'scale-x': ScaleX;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的Y轴缩放。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	'scale-y': ScaleY;
 	/**
 	 * 创建动作定义，该动作将持续改变节点沿X轴的倾斜。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	'skew-x': SkewX;
 	/**
 	 * 创建动作定义，该动作将持续改变节点沿Y轴的倾斜。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	'skew-y': SkewY;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的X坐标位置。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	'move-x': MoveX;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的Y坐标位置。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	'move-y': MoveY;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的z位置。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	'move-z': MoveZ;
 	/**
 	 * 创建动作定义，该动作会并行执行一组动作。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	spawn: Spawn;
 	/**
 	 * 创建动作定义，该动作会顺序执行一系列其它动作。
+	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
 	 */
 	sequence: Sequence;
 	/**
@@ -1480,32 +1508,39 @@ interface IntrinsicElements {
 	'physics-world': PhysicsWorld;
 	/**
 	 * 设定物理体的分组之间的碰撞关系。
+	 * 只能作为`<physics-world>`或是其派生组件的子标签来使用。
 	 */
 	contact: Contact;
 	/**
 	 * 在游戏中代表物理世界中的物理体的类。
+	 * 只能作为`<physics-world>`或是其派生组件的子标签来使用。
 	 */
 	body: Body;
 	/**
-	 * 将矩形形状定义附加到物理体上。
+	 * 将矩形形状的混合物定义附加到物理体上。
+	 * 只能作为`<body>`或是其派生组件的子标签来使用。
 	 */
-	'rect-shape': RectangleShape;
+	'rect-fixture': RectangleShape;
 	/**
-	 * 使用顶点将多边形形状定义附加到物理体上。
+	 * 使用顶点将多边形形状的混合物定义附加到物理体上。
+	 * 只能作为`<body>`或是其派生组件的子标签来使用。
 	 */
-	'polygon-shape': PolygonShape;
+	'polygon-fixture': PolygonShape;
 	/**
-	 * 将由多个凸形状组成的凹形状定义附加到物理体上。
+	 * 将由多个凸边形组成的凹边形定义的混合物附加到物理体上。
+	 * 只能作为`<body>`或是其派生组件的子标签来使用。
 	 */
-	'multi-shape': MultiShape;
+	'multi-fixture': MultiShape;
 	/**
-	 * 将圆盘形状定义附加到物理体上。
+	 * 将圆盘形状的混合物定义附加到物理体上。
+	 * 只能作为`<body>`或是其派生组件的子标签来使用。
 	 */
-	'disk-shape': DiskShape;
+	'disk-fixture': DiskShape;
 	/**
-	 * 将链形状定义附加到物理体上。链形状是自由形式的线段序列，具有双面碰撞的特性。
+	 * 将链形状的混合物定义附加到物理体上。链形状是自由形式的线段序列，具有双面碰撞的特性。
+	 * 只能作为`<body>`或是其派生组件的子标签来使用。
 	 */
-	'chain-shape': ChainShape;
+	'chain-fixture': ChainShape;
 	/**
 	 * 创建两个物理体之间的距离关节。
 	 */

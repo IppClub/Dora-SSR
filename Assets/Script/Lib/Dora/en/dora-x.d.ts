@@ -22,7 +22,7 @@ export namespace React {
 	 * @param children - The child elements of the element.
 	 * @returns The created React element.
 	 */
-	export function createElement(this: void, type: any, props?: any, ...children: any[]): Element | Element[];
+	export function createElement(type: any, props?: any, ...children: any[]): Element | Element[];
 }
 
 /**

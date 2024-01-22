@@ -25,12 +25,16 @@
 /// @file
 /// @brief Definition of the @c MotorJointConf class and closely related code.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/NonNegative.hpp"
 #include "playrho/Span.hpp"
 #include "playrho/TypeInfo.hpp"
 
 #include "playrho/d2/JointConf.hpp"
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -165,6 +169,7 @@ constexpr bool operator!=(const MotorJointConf& lhs, const MotorJointConf& rhs) 
 MotorJointConf GetMotorJointConf(const Joint& joint);
 
 /// @brief Gets the confguration for the given parameters.
+/// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso World
 MotorJointConf GetMotorJointConf(const World& world, BodyID bA, BodyID bB);
 

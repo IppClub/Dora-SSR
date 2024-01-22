@@ -25,48 +25,66 @@
 /// @file
 /// @brief Declarations of the AabbTreeWorld class.
 
-#include <functional>
-#include <iterator>
+#include <cstdint> // for std::uint32_t
 #include <map>
-#include <memory>
 #include <optional>
-#include <stack>
-#include <stdexcept>
+#include <tuple>
 #include <type_traits> // for std::is_default_constructible_v, etc.
+#include <utility> // for std::pair, std::move
 #include <vector>
 
+// IWYU pragma: begin_exports
+
 #include "playrho/BodyID.hpp"
+#include "playrho/BodyShapeFunction.hpp"
+#include "playrho/Contact.hpp"
+#include "playrho/Contactable.hpp"
+#include "playrho/ContactFunction.hpp"
+#include "playrho/ContactID.hpp"
 #include "playrho/ContactKey.hpp"
-#include "playrho/Filter.hpp"
+#include "playrho/JointFunction.hpp"
 #include "playrho/JointID.hpp"
+#include "playrho/Interval.hpp"
 #include "playrho/Island.hpp"
 #include "playrho/IslandStats.hpp"
 #include "playrho/KeyedContactID.hpp"
 #include "playrho/ObjectPool.hpp"
 #include "playrho/Positive.hpp"
+#include "playrho/Real.hpp"
+#include "playrho/Settings.hpp"
+#include "playrho/ShapeFunction.hpp"
 #include "playrho/ShapeID.hpp"
+#include "playrho/Span.hpp"
 #include "playrho/StepStats.hpp"
+#include "playrho/Units.hpp"
+#include "playrho/Vector2.hpp"
+#include "playrho/ZeroToUnderOne.hpp"
 
+#include "playrho/pmr/MemoryResource.hpp"
 #include "playrho/pmr/PoolMemoryResource.hpp"
 #include "playrho/pmr/StatsResource.hpp"
 
+#include "playrho/d2/Body.hpp"
 #include "playrho/d2/BodyConstraint.hpp"
+#include "playrho/d2/ContactImpulsesFunction.hpp"
+#include "playrho/d2/ContactManifoldFunction.hpp"
 #include "playrho/d2/DynamicTree.hpp"
-#include "playrho/d2/MassData.hpp"
-#include "playrho/d2/Math.hpp"
+#include "playrho/d2/Joint.hpp"
+#include "playrho/d2/Shape.hpp"
+#include "playrho/d2/Transformation.hpp"
 #include "playrho/d2/WorldConf.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
 struct StepConf;
 enum class BodyType;
-class Contact;
 
-namespace d2 {
+} // namespace playrho
 
-class Body;
-class Joint;
-class Shape;
+namespace playrho::d2 {
+
 class Manifold;
 class ContactImpulsesList;
 class AabbTreeWorld;
@@ -93,58 +111,45 @@ using BodyShapeIDs = std::vector<std::pair<BodyID, ShapeID>>;
 /// @brief Proxy container type alias.
 using ProxyIDs = std::vector<DynamicTree::Size>;
 
-/// @brief Shapes listener.
-using ShapeListener = std::function<void(ShapeID)>;
-
-/// @brief Shapes paired with bodies IDs listener.
-using AssociationListener = std::function<void(std::pair<BodyID, ShapeID>)>;
-
-/// @brief Joints listener.
-using JointListener = std::function<void(JointID)>;
-
-/// @brief Contacts listener.
-using ContactListener = std::function<void(ContactID)>;
-
-/// @brief Manifolds paired with contacts listener.
-using ManifoldContactListener = std::function<void(ContactID, const Manifold&)>;
-
-/// @brief Impulses contact listener.
-using ImpulsesContactListener =
-std::function<void(ContactID, const ContactImpulsesList&, unsigned)>;
-
 /// @name AabbTreeWorld Listener Non-Member Functions
 /// @{
 
 /// @brief Registers a destruction listener for shapes.
 /// @note This listener is called on <code>Clear(AabbTreeWorld&)</code> for every shape.
 /// @see Clear(AabbTreeWorld&).
-void SetShapeDestructionListener(AabbTreeWorld& world, ShapeListener listener) noexcept;
+void SetShapeDestructionListener(AabbTreeWorld& world, ShapeFunction listener) noexcept;
 
 /// @brief Registers a detach listener for shapes detaching from bodies.
-void SetDetachListener(AabbTreeWorld& world, AssociationListener listener) noexcept;
+void SetDetachListener(AabbTreeWorld& world, BodyShapeFunction listener) noexcept;
 
 /// @brief Register a destruction listener for joints.
 /// @note This listener is called on <code>Clear()</code> for every joint. It's also called
 ///   on <code>Destroy(BodyID)</code> for every joint associated with the identified body.
 /// @see Clear, Destroy(BodyID).
-void SetJointDestructionListener(AabbTreeWorld& world, JointListener listener) noexcept;
+void SetJointDestructionListener(AabbTreeWorld& world, JointFunction listener) noexcept;
 
 /// @brief Register a begin contact event listener.
-void SetBeginContactListener(AabbTreeWorld& world, ContactListener listener) noexcept;
+void SetBeginContactListener(AabbTreeWorld& world, ContactFunction listener) noexcept;
 
 /// @brief Register an end contact event listener.
-void SetEndContactListener(AabbTreeWorld& world, ContactListener listener) noexcept;
+void SetEndContactListener(AabbTreeWorld& world, ContactFunction listener) noexcept;
 
 /// @brief Register a pre-solve contact event listener.
-void SetPreSolveContactListener(AabbTreeWorld& world, ManifoldContactListener listener) noexcept;
+void SetPreSolveContactListener(AabbTreeWorld& world, ContactManifoldFunction listener) noexcept;
 
 /// @brief Register a post-solve contact event listener.
-void SetPostSolveContactListener(AabbTreeWorld& world, ImpulsesContactListener listener) noexcept;
+void SetPostSolveContactListener(AabbTreeWorld& world, ContactImpulsesFunction listener) noexcept;
 
 /// @}
 
 /// @name AabbTreeWorld Miscellaneous Non-Member Functions
 /// @{
+
+/// @brief Equality operator for world comparisons.
+bool operator==(const AabbTreeWorld& lhs, const AabbTreeWorld& rhs);
+
+/// @brief Inequality operator for world comparisons.
+bool operator!=(const AabbTreeWorld& lhs, const AabbTreeWorld& rhs);
 
 /// @brief Gets the resource statistics of the specified world.
 std::optional<pmr::StatsResource::Stats> GetResourceStats(const AabbTreeWorld& world) noexcept;
@@ -191,6 +196,7 @@ void Clear(AabbTreeWorld& world) noexcept;
 ///   of their fixtures when they experience collisions.
 /// @post The bodies for proxies queue will be empty.
 /// @post The fixtures for proxies queue will be empty.
+/// @post No contact in the world needs updating.
 ///
 /// @return Statistics for the step.
 ///
@@ -264,8 +270,8 @@ const BodyShapeIDs& GetFixturesForProxies(const AabbTreeWorld& world) noexcept;
 ///   for body related functions.
 BodyCounter GetBodyRange(const AabbTreeWorld& world) noexcept;
 
-/// @brief Gets the world body range for this constant world.
-/// @details Gets a range enumerating the bodies currently existing within this world.
+/// @brief Gets a container of valid world body identifiers for this constant world.
+/// @details Gets a container of identifiers of bodies currently existing within this world.
 ///   These are the bodies that had been created from previous calls to the
 ///   <code>CreateBody(const Body&)</code> function that haven't yet been destroyed.
 /// @return Container of body identifiers that can be iterated over using begin and
@@ -273,7 +279,7 @@ BodyCounter GetBodyRange(const AabbTreeWorld& world) noexcept;
 /// @see CreateBody(const Body&).
 const BodyIDs& GetBodies(const AabbTreeWorld& world) noexcept;
 
-/// @brief Gets the bodies-for-proxies range for this world.
+/// @brief Gets the bodies-for-proxies container for this world.
 /// @details Provides insight on what bodies have been queued for proxy processing
 ///   during the next call to the world step function.
 /// @see Step.
@@ -283,8 +289,9 @@ const BodyIDs& GetBodiesForProxies(const AabbTreeWorld& world) noexcept;
 /// @warning This function should not be used while the world is locked &mdash; as it is
 ///   during callbacks. If it is, it will throw an exception or abort your program.
 /// @note No references to the configuration are retained. Its value is copied.
-/// @post The created body will be present in the range returned from the
-///   <code>GetBodies()</code> function.
+/// @note This function does not reset the mass data for the body.
+/// @post The created body will be present in the container returned from the
+///   <code>GetBodies(const AabbTreeWorld&)</code> function.
 /// @param world The world within which to create the body.
 /// @param body A customized body or its default value.
 /// @return Identifier of the newly created body which can later be destroyed by calling
@@ -313,24 +320,28 @@ void SetBody(AabbTreeWorld& world, BodyID id, Body value);
 /// @details Destroys a given body that had previously been created by a call to this
 ///   world's <code>CreateBody(const Body&)</code> function.
 /// @warning This automatically deletes all associated shapes and joints.
-/// @warning This function is locked during callbacks.
-/// @warning Behavior is not specified if identified body was not created by this world.
 /// @note This function is locked during callbacks.
-/// @post The destroyed body will no longer be present in the range returned from the
-///   <code>GetBodies()</code> function.
-/// @post None of the body's fixtures will be present in the fixtures-for-proxies
-///   collection.
 /// @param world The world within which the identified body is to be destroyed.
 /// @param id Identifier of body to destroy that had been created by this world.
 /// @throws WrongState if this function is called while the world is locked.
 /// @throws std::out_of_range If given an invalid body identifier.
-/// @see CreateBody(const Body&), GetBodies, GetFixturesForProxies.
+/// @post On success: the destroyed body will no longer be present in the container returned
+///   from the <code>GetBodies(const AabbTreeWorld&)</code> function; none of the body's
+///   fixtures will be present in the fixtures-for-proxies collection;
+///   <code>IsDestroyed(const AabbTreeWorld& world, BodyID)</code> for @p world and @p id
+///   returns true.
+/// @see CreateBody, GetBodies(const AabbTreeWorld&), GetFixturesForProxies,
+///   IsDestroyed(const AabbTreeWorld& world, BodyID).
 /// @see PhysicalEntities.
 void Destroy(AabbTreeWorld& world, BodyID id);
 
 /// @brief Gets whether the given identifier is to a body that's been destroyed.
-/// @note Complexity is at most O(n) where n is the number of elements free.
-bool IsDestroyed(const AabbTreeWorld& world, BodyID id) noexcept;
+/// @note Complexity of this function is O(1).
+/// @see Destroy(AabbTreeWorld& world, BodyID).
+inline auto IsDestroyed(const AabbTreeWorld& world, BodyID id) -> bool
+{
+    return IsDestroyed(GetBody(world, id));
+}
 
 /// @brief Gets the proxies for the identified body.
 /// @throws std::out_of_range If given an invalid identifier.
@@ -355,7 +366,7 @@ const BodyJointIDs& GetJoints(const AabbTreeWorld& world, BodyID id);
 JointCounter GetJointRange(const AabbTreeWorld& world) noexcept;
 
 /// @brief Gets the container of joint IDs of the given world.
-/// @details Gets a range enumerating the joints currently existing within this world.
+/// @details Gets a container enumerating the joints currently existing within this world.
 ///   These are the joints that had been created from previous calls to the
 ///   <code>CreateJoint(const Joint&)</code> function that haven't yet been destroyed.
 /// @return Container of joint IDs of existing joints.
@@ -365,8 +376,8 @@ const JointIDs& GetJoints(const AabbTreeWorld& world) noexcept;
 /// @brief Creates a joint to constrain one or more bodies.
 /// @warning This function is locked during callbacks.
 /// @note No references to the configuration are retained. Its value is copied.
-/// @post The created joint will be present in the range returned from the
-///   <code>GetJoints()</code> function.
+/// @post The created joint will be present in the container returned from the
+///   <code>GetJoints(const AabbTreeWorld&)</code> function.
 /// @return Identifier for the newly created joint which can later be destroyed by calling
 ///   the <code>Destroy(JointID)</code> function.
 /// @throws WrongState if this function is called while the world is locked.
@@ -392,21 +403,25 @@ void SetJoint(AabbTreeWorld& world, JointID id, Joint def);
 /// @brief Destroys a joint.
 /// @details Destroys a given joint that had previously been created by a call to this
 ///   world's <code>CreateJoint(const Joint&)</code> function.
-/// @warning This function is locked during callbacks.
-/// @warning Behavior is not specified if identified joint wasn't created by this world.
+/// @note This function is locked during callbacks.
 /// @note This may cause the connected bodies to begin colliding.
-/// @post The destroyed joint will no longer be present in the range returned from the
-///   <code>GetJoints()</code> function.
 /// @param world The world within which the identified joint is to be destroyed.
 /// @param id Identifier of joint to destroy that had been created by this world.
+/// @post On success: the destroyed joint will no longer be present in the container
+///   returned from the <code>GetJoints(const AabbTreeWorld&)</code> function;
+///   <code>IsDestroyed(const AabbTreeWorld&,JointID)</code> returns true.
 /// @throws WrongState if this function is called while the world is locked.
-/// @see CreateJoint(const Joint&), GetJoints.
+/// @see CreateJoint, GetJoints, IsDestroyed(const AabbTreeWorld& world, JointID).
 /// @see PhysicalEntities.
 void Destroy(AabbTreeWorld& world, JointID id);
 
 /// @brief Gets whether the given identifier is to a joint that's been destroyed.
-/// @note Complexity is at most O(n) where n is the number of elements free.
-bool IsDestroyed(const AabbTreeWorld& world, JointID id) noexcept;
+/// @note Complexity is O(1).
+/// @see Destroy(AabbTreeWorld& world, JointID).
+inline auto IsDestroyed(const AabbTreeWorld& world, JointID id) -> bool
+{
+    return IsDestroyed(GetJoint(world, id));
+}
 
 /// @}
 
@@ -442,12 +457,24 @@ const Shape& GetShape(const AabbTreeWorld& world, ShapeID id);
 void SetShape(AabbTreeWorld& world, ShapeID id, Shape def);
 
 /// @brief Destroys the identified shape removing any body associations with it first.
-/// @warning This function is locked during callbacks.
+/// @note This function is locked during callbacks.
 /// @note This function does not reset the mass data of any effected bodies.
+/// @param world The world from which the identified shape is to be destroyed.
+/// @param id Identifier of the shape to destroy.
 /// @throws WrongState if this function is called while the world is locked.
 /// @throws std::out_of_range If given an invalid shape identifier.
-/// @see CreateShape, Detach.
+/// @post On success: <code>IsDestroyed(const AabbTreeWorld& world, ShapeID)</code> for
+///   @p world and @p id returns true.
+/// @see CreateShape, Detach, IsDestroyed(const AabbTreeWorld& world, ShapeID).
 void Destroy(AabbTreeWorld& world, ShapeID id);
+
+/// @brief Gets whether the given identifier is to a shape that's been destroyed.
+/// @note Complexity is O(1).
+/// @see Destroy(AabbTreeWorld& world, ShapeID).
+inline auto IsDestroyed(const AabbTreeWorld& world, ShapeID id) -> bool
+{
+    return IsDestroyed(GetShape(world, id));
+}
 
 /// @}
 
@@ -460,9 +487,9 @@ void Destroy(AabbTreeWorld& world, ShapeID id);
 ///   for contact related functions.
 ContactCounter GetContactRange(const AabbTreeWorld& world) noexcept;
 
-/// @brief Gets the world contact range.
+/// @brief Gets a container of valid world contact identifiers.
 /// @warning contacts are created and destroyed in the middle of a time step.
-/// Use <code>ContactListener</code> to avoid missing contacts.
+/// Use <code>ContactFunction</code> to avoid missing contacts.
 /// @return Container of keyed contact IDs of existing contacts.
 KeyedContactIDs GetContacts(const AabbTreeWorld& world);
 
@@ -472,24 +499,39 @@ KeyedContactIDs GetContacts(const AabbTreeWorld& world);
 const Contact& GetContact(const AabbTreeWorld& world, ContactID id);
 
 /// @brief Sets the identified contact's state.
-/// @note This will throw an exception to preserve invariants.
-/// @invariant A contact may only be impenetrable if one or both bodies are.
-/// @invariant A contact may only be active if one or both bodies are awake.
-/// @invariant A contact may only be a sensor or one or both shapes are.
-/// @throws InvalidArgument if a change would violate an invariant or if the specified ID
-///   was destroyed.
+/// @note The new state:
+///   - Is not allowed to change the bodies, shapes, or children identified.
+///   - Is not allowed to change whether the contact is awake.
+///   - Is not allowed to change whether the contact is impenetrable.
+///   - Is not allowed to change whether the contact is for a sensor.
+///   - Is not allowed to change the TOI of the contact.
+///   - Is not allowed to change the TOI count of the contact.
+/// @param world The world of the contact whose state is to be set.
+/// @param id Identifier of the contact whose state is to be set.
+/// @param value Value the contact is to be set to.
 /// @throws std::out_of_range If given an invalid contact identifier or an invalid identifier
 ///   in the new contact value.
-/// @see GetContact.
+/// @throws InvalidArgument if the identifier is to a freed contact or if the new state is
+///   not allowable.
+/// @see GetContact, GetContactRange.
 void SetContact(AabbTreeWorld& world, ContactID id, Contact value);
 
 /// @brief Gets the identified manifold.
 /// @throws std::out_of_range If given an invalid contact identifier.
+/// @see SetManifold, GetContactRange.
 const Manifold& GetManifold(const AabbTreeWorld& world, ContactID id);
 
+/// @brief Sets the identified manifold.
+/// @throws std::out_of_range If given an invalid contact identifier.
+/// @see GetManifold, GetContactRange.
+void SetManifold(AabbTreeWorld& world, ContactID id, const Manifold& value);
+
 /// @brief Gets whether the given identifier is to a contact that's been destroyed.
-/// @note Complexity is at most O(n) where n is the number of elements free.
-bool IsDestroyed(const AabbTreeWorld& world, ContactID id) noexcept;
+/// @note Complexity of this function is O(1).
+inline auto IsDestroyed(const AabbTreeWorld& world, ContactID id) -> bool
+{
+    return IsDestroyed(GetContact(world, id));
+}
 
 /// @}
 
@@ -538,20 +580,26 @@ public:
     /// @see Clear.
     ~AabbTreeWorld() noexcept;
 
-    // Delete compiler defined implementations of move construction/assignment and copy assignment...
+    /// @brief Copy assignment is explicitly deleted.
+    /// @note This type is not assignable.
     AabbTreeWorld& operator=(const AabbTreeWorld& other) = delete;
+
+    /// @brief Move assignment is explicitly deleted.
+    /// @note This type is not assignable.
     AabbTreeWorld& operator=(AabbTreeWorld&& other) = delete;
 
     // Listener friend functions...
-    friend void SetShapeDestructionListener(AabbTreeWorld& world, ShapeListener listener) noexcept;
-    friend void SetDetachListener(AabbTreeWorld& world, AssociationListener listener) noexcept;
-    friend void SetJointDestructionListener(AabbTreeWorld& world, JointListener listener) noexcept;
-    friend void SetBeginContactListener(AabbTreeWorld& world, ContactListener listener) noexcept;
-    friend void SetEndContactListener(AabbTreeWorld& world, ContactListener listener) noexcept;
-    friend void SetPreSolveContactListener(AabbTreeWorld& world, ManifoldContactListener listener) noexcept;
-    friend void SetPostSolveContactListener(AabbTreeWorld& world, ImpulsesContactListener listener) noexcept;
+    friend void SetShapeDestructionListener(AabbTreeWorld& world, ShapeFunction listener) noexcept;
+    friend void SetDetachListener(AabbTreeWorld& world, BodyShapeFunction listener) noexcept;
+    friend void SetJointDestructionListener(AabbTreeWorld& world, JointFunction listener) noexcept;
+    friend void SetBeginContactListener(AabbTreeWorld& world, ContactFunction listener) noexcept;
+    friend void SetEndContactListener(AabbTreeWorld& world, ContactFunction listener) noexcept;
+    friend void SetPreSolveContactListener(AabbTreeWorld& world, ContactManifoldFunction listener) noexcept;
+    friend void SetPostSolveContactListener(AabbTreeWorld& world, ContactImpulsesFunction listener) noexcept;
 
     // Miscellaneous friend functions...
+    friend bool operator==(const AabbTreeWorld& lhs, const AabbTreeWorld& rhs);
+    friend bool operator!=(const AabbTreeWorld& lhs, const AabbTreeWorld& rhs);
     friend std::optional<pmr::StatsResource::Stats> GetResourceStats(const AabbTreeWorld& world) noexcept;
     friend void Clear(AabbTreeWorld& world) noexcept;
     friend StepStats Step(AabbTreeWorld& world, const StepConf& conf);
@@ -574,7 +622,6 @@ public:
     friend const Body& GetBody(const AabbTreeWorld& world, BodyID id);
     friend void SetBody(AabbTreeWorld& world, BodyID id, Body value);
     friend void Destroy(AabbTreeWorld& world, BodyID id);
-    friend bool IsDestroyed(const AabbTreeWorld& world, BodyID id) noexcept;
     friend const ProxyIDs& GetProxies(const AabbTreeWorld& world, BodyID id);
     friend const BodyContactIDs& GetContacts(const AabbTreeWorld& world, BodyID id);
     friend const BodyJointIDs& GetJoints(const AabbTreeWorld& world, BodyID id);
@@ -586,7 +633,6 @@ public:
     friend const Joint& GetJoint(const AabbTreeWorld& world, JointID id);
     friend void SetJoint(AabbTreeWorld& world, JointID id, Joint def);
     friend void Destroy(AabbTreeWorld& world, JointID id);
-    friend bool IsDestroyed(const AabbTreeWorld& world, JointID id) noexcept;
 
     // Shape friend functions...
     friend ShapeCounter GetShapeRange(const AabbTreeWorld& world) noexcept;
@@ -601,7 +647,7 @@ public:
     friend const Contact& GetContact(const AabbTreeWorld& world, ContactID id);
     friend void SetContact(AabbTreeWorld& world, ContactID id, Contact value);
     friend const Manifold& GetManifold(const AabbTreeWorld& world, ContactID id);
-    friend bool IsDestroyed(const AabbTreeWorld& world, ContactID id) noexcept;
+    friend void SetManifold(AabbTreeWorld& world, ContactID id, const Manifold& value);
 
 private:
     /// @brief Flags type data type.
@@ -633,18 +679,32 @@ private:
         vector bodies; ///< IDs of bodies that have been "islanded".
         vector contacts; ///< IDs of contacts that have been "islanded".
         vector joints; ///< IDs of joints that have been "islanded".
+
+        /// @brief Hidden friend equality support for Islanded.
+        friend bool operator==(const Islanded& lhs, const Islanded& rhs) noexcept
+        {
+            return lhs.bodies == rhs.bodies // newline!
+                && lhs.contacts == rhs.contacts // newline!
+                && lhs.joints == rhs.joints;
+        }
+
+        /// @brief Hidden friend inequality support for Islanded.
+        friend bool operator!=(const Islanded& lhs, const Islanded& rhs) noexcept
+        {
+            return !(lhs == rhs);
+        }
     };
 
     /// @brief Solves the step.
     /// @details Finds islands, integrates and solves constraints, solves position constraints.
     /// @note This may miss collisions involving fast moving bodies and allow them to tunnel
     ///   through each other.
-    /// @pre <code>IsLocked()</code> returns false.
-    /// @pre <code>IsStepComplete()</code> returns true.
+    /// @pre <code>IsLocked(const AabbTreeWorld&)</code> & <code>IsStepComplete(const AabbTreeWorld&)</code>
+    ///   return true for this world.
+    /// @post No contact in the world needs updating.
     RegStepStats SolveReg(const StepConf& conf);
 
     /// @brief Solves the given island (regularly).
-    ///
     /// @details This:
     ///   1. Updates every island-body's <code>sweep.pos0</code> to its <code>sweep.pos1</code>.
     ///   2. Updates every island-body's <code>sweep.pos1</code> to the new normalized "solved"
@@ -654,15 +714,13 @@ private:
     ///   4. Synchronizes every island-body's transform (by updating it to transform one of the
     ///      body's sweep).
     ///   5. Reports to the listener (if non-null).
-    ///
     /// @param conf Time step configuration information.
     /// @param island Island of bodies, contacts, and joints to solve for. Must contain at least
     ///   one body, contact, or joint.
-    ///
+    /// @pre <code>IsLocked(const AabbTreeWorld&)</code> & <code>IsStepComplete(const AabbTreeWorld&)</code>
+    ///   return true for this world.
     /// @pre @p island contains at least one body, contact, or joint identifier.
-    ///
     /// @return Island solver results.
-    ///
     IslandStats SolveRegIslandViaGS(const StepConf& conf, const Island& island);
 
     /// @brief Adds to the island based off of a given "seed" body.
@@ -682,8 +740,7 @@ private:
                      ContactCounter& remNumContacts,
                      JointCounter& remNumJoints);
 
-    /// @brief Adds contacts of the specified body to the island and adds the other contacted
-    ///   bodies to the body stack.
+    /// @brief Adds contacts of identified body to island & adds other contacted bodies to body stack.
     void AddContactsToIsland(Island& island, BodyStack& stack,
                              const BodyContactIDs& contacts,
                              BodyID bodyID);
@@ -696,12 +753,15 @@ private:
     /// @note This is intended to detect and prevent the tunneling that the faster Solve function
     ///    may miss.
     /// @param conf Time step configuration to use.
+    /// @pre <code>IsLocked(const AabbTreeWorld&)</code> returns true for this world.
+    /// @post No contact in the world needs updating.
     ToiStepStats SolveToi(const StepConf& conf);
 
     /// @brief Solves collisions for the given time of impact.
     /// @param contactID Identifier of contact to solve for.
     /// @param conf Time step configuration to solve for.
-    /// @pre The identified contact has a valid TOI, is enabled, is active, and is impenetrable.
+    /// @pre <code>IsLocked(const AabbTreeWorld&)</code> returns true for this world.
+    /// @pre The identified contact has a valid TOI, is enabled, is awake, and is impenetrable.
     /// @pre The identified contact is **not** a sensor.
     /// @pre There is no contact having a lower TOI in this time step that has
     ///   not already been solved for.
@@ -710,12 +770,12 @@ private:
     IslandStats SolveToi(ContactID contactID, const StepConf& conf);
 
     /// @brief Solves the time of impact for bodies 0 and 1 of the given island.
-    ///
     /// @details This:
     ///   1. Updates position 0 of the sweeps of bodies 0 and 1.
     ///   2. Updates position 1 of the sweeps, the transforms, and the velocities of the other
     ///      bodies in this island.
-    ///
+    ///   3. Calls the post solve contact listener if set.
+    /// @pre <code>IsLocked(const AabbTreeWorld&)</code> returns true for this world.
     /// @pre <code>island.bodies</code> contains at least two bodies, the first two of which
     ///   are bodies 0 and 1.
     /// @pre <code>island.bodies</code> contains appropriate other bodies of the contacts of
@@ -723,12 +783,9 @@ private:
     /// @pre <code>island.contacts</code> contains the contact that specified the two identified
     ///   bodies.
     /// @pre <code>island.contacts</code> contains appropriate other contacts of the two bodies.
-    ///
     /// @param conf Time step configuration information.
     /// @param island Island to do time of impact solving for.
-    ///
     /// @return Island solver results.
-    ///
     IslandStats SolveToiViaGS(const Island& island, const StepConf& conf);
 
     /// @brief Process contacts output.
@@ -746,13 +803,16 @@ private:
     ///      the appropriate contacts of the body.
     ///   3. Adds those contacts that are still enabled and still touching to the given island
     ///      (or resets the other bodies advancement).
-    ///   4. Adds to the island, those other bodies that haven't already been added of the contacts that got added.
-    /// @note Precondition: there should be no lower TOI for which contacts have not already been processed.
+    ///   4. Adds to the island, those other bodies that haven't already been added of the contacts that
+    ///      got added.
     /// @param[in,out] id Identifier of the dynamic/accelerable body to process contacts for.
     /// @param[in,out] island Island. On return this may contain additional contacts or bodies.
     /// @param[in] toi Time of impact (TOI). Value between 0 and under 1.
     /// @param[in] conf Step configuration data.
-    ProcessContactsOutput ProcessContactsForTOI(BodyID id, Island& island, ZeroToUnderOneFF<Real> toi,
+    /// @pre The identified body is in <code>m_islanded.bodies</code> and accelerable.
+    /// @pre There should be no lower TOI for which contacts have not already been processed.
+    ProcessContactsOutput ProcessContactsForTOI(BodyID id, Island& island,
+                                                ZeroToUnderOneFF<Real> toi,
                                                 const StepConf& conf);
 
     /// @brief Removes the given body from this world.
@@ -767,9 +827,6 @@ private:
     /// @brief Update contacts statistics.
     struct UpdateContactsStats
     {
-        /// @brief Number of contacts ignored (because both bodies were asleep).
-        ContactCounter ignored = 0;
-
         /// @brief Number of contacts updated.
         ContactCounter updated = 0;
 
@@ -808,13 +865,13 @@ private:
     /// @brief Aggregate of user settable listener functions.
     struct Listeners
     {
-        ShapeListener shapeDestruction; ///< Listener for shape destruction.
-        AssociationListener detach; ///< Listener for shapes detaching from bodies.
-        JointListener jointDestruction; ///< Listener for joint destruction.
-        ContactListener beginContact; ///< Listener for beginning contact events.
-        ContactListener endContact; ///< Listener for ending contact events.
-        ManifoldContactListener preSolveContact; ///< Listener for pre-solving contacts.
-        ImpulsesContactListener postSolveContact; ///< Listener for post-solving contacts.
+        ShapeFunction shapeDestruction; ///< Listener for shape destruction.
+        BodyShapeFunction detach; ///< Listener for shapes detaching from bodies.
+        JointFunction jointDestruction; ///< Listener for joint destruction.
+        ContactFunction beginContact; ///< Listener for beginning contact events.
+        ContactFunction endContact; ///< Listener for ending contact events.
+        ContactManifoldFunction preSolveContact; ///< Listener for pre-solving contacts.
+        ContactImpulsesFunction postSolveContact; ///< Listener for post-solving contacts.
     };
 
     /// @brief Updates the contact times of impact.
@@ -824,7 +881,7 @@ private:
     /// @details
     /// This finds and destroys the contacts that need filtering and no longer should collide or
     /// that no longer have AABB-based overlapping fixtures. Those contacts that persist and
-    /// have active bodies (either or both) get their Update methods called with the current
+    /// have awake bodies (either or both) get their Update methods called with the current
     /// contact listener as its argument.
     /// Essentially this really just purges contacts that are no longer relevant.
     DestroyContactsStats DestroyContacts(KeyedContactIDs& contacts);
@@ -842,7 +899,8 @@ private:
     /// @post Container returned by <code>GetContacts()</code> increases in size by returned amount.
     /// @post For some body IDs, <code>GetContacts(BodyID)</code> may have more elements.
     /// @see GetProxies.
-    ContactCounter AddContacts(std::vector<ProxyKey, pmr::polymorphic_allocator<ProxyKey>>&& keys);
+    ContactCounter AddContacts(std::vector<ProxyKey, pmr::polymorphic_allocator<ProxyKey>>&& keys,
+                               const StepConf& conf);
 
     /// @brief Destroys the given contact and removes it from its container.
     /// @details This updates the contacts container, returns the memory to the allocator,
@@ -862,22 +920,21 @@ private:
     /// @details This updates the broad phase dynamic tree data for all of the identified shapes.
     ContactCounter Synchronize(const ProxyIDs& bodyProxies,
                                const Transformation& xfm0, const Transformation& xfm1,
-                               Real multiplier, Length extension);
+                               const StepConf& conf);
 
-    /// @brief Updates the touching related state and notifies listener (if one given).
-    ///
+    /// @brief Updates touching related state and notifies any listeners.
     /// @note Ideally this function is only called when a dependent change has occurred.
     /// @note Touching related state depends on the following data:
     ///   - The fixtures' sensor states.
     ///   - The fixtures bodies' transformations.
     ///   - The <code>maxCirclesRatio</code> per-step configuration state *OR* the
     ///     <code>maxDistanceIters</code> per-step configuration state.
-    ///
     /// @param id Identifies the contact to update.
     /// @param conf Per-step configuration information.
-    ///
+    /// @pre <code>IsLocked(const AabbTreeWorld&)</code> returns true for this world.
+    /// @pre The identified contact needs updating.
+    /// @post The identified contact does not need updating.
     /// @see GetManifold, IsTouching
-    ///
     void Update(ContactID id, const ContactUpdateConf& conf);
 
     /******** Member variables. ********/
@@ -940,7 +997,8 @@ private:
     KeyedContactIDs m_contacts;
 
     /// Bodies, contacts, and joints that are already in an island.
-    /// @note This is step-wise state that needs to be here or within a step solving co-routine for sub-stepping TOI solving.
+    /// @note This is step-wise state that needs to be here or within a step solving co-routine for
+    ///   sub-stepping TOI solving.
     /// @note This instance's members capacities depend on state changed outside the step loop.
     /// @see Island.
     Islanded m_islanded;
@@ -1006,6 +1064,7 @@ inline const JointIDs& GetJoints(const AabbTreeWorld& world) noexcept
 
 inline KeyedContactIDs GetContacts(const AabbTreeWorld& world)
 {
+    using std::begin, std::end;
     return KeyedContactIDs{begin(world.m_contacts), end(world.m_contacts)};
 }
 
@@ -1049,37 +1108,37 @@ inline const DynamicTree& GetTree(const AabbTreeWorld& world) noexcept
     return world.m_tree;
 }
 
-inline void SetShapeDestructionListener(AabbTreeWorld& world, ShapeListener listener) noexcept
+inline void SetShapeDestructionListener(AabbTreeWorld& world, ShapeFunction listener) noexcept
 {
     world.m_listeners.shapeDestruction = std::move(listener);
 }
 
-inline void SetDetachListener(AabbTreeWorld& world, AssociationListener listener) noexcept
+inline void SetDetachListener(AabbTreeWorld& world, BodyShapeFunction listener) noexcept
 {
     world.m_listeners.detach = std::move(listener);
 }
 
-inline void SetJointDestructionListener(AabbTreeWorld& world, JointListener listener) noexcept
+inline void SetJointDestructionListener(AabbTreeWorld& world, JointFunction listener) noexcept
 {
     world.m_listeners.jointDestruction = std::move(listener);
 }
 
-inline void SetBeginContactListener(AabbTreeWorld& world, ContactListener listener) noexcept
+inline void SetBeginContactListener(AabbTreeWorld& world, ContactFunction listener) noexcept
 {
     world.m_listeners.beginContact = std::move(listener);
 }
 
-inline void SetEndContactListener(AabbTreeWorld& world, ContactListener listener) noexcept
+inline void SetEndContactListener(AabbTreeWorld& world, ContactFunction listener) noexcept
 {
     world.m_listeners.endContact = std::move(listener);
 }
 
-inline void SetPreSolveContactListener(AabbTreeWorld& world, ManifoldContactListener listener) noexcept
+inline void SetPreSolveContactListener(AabbTreeWorld& world, ContactManifoldFunction listener) noexcept
 {
     world.m_listeners.preSolveContact = std::move(listener);
 }
 
-inline void SetPostSolveContactListener(AabbTreeWorld& world, ImpulsesContactListener listener) noexcept
+inline void SetPostSolveContactListener(AabbTreeWorld& world, ContactImpulsesFunction listener) noexcept
 {
     world.m_listeners.postSolveContact = std::move(listener);
 }
@@ -1091,7 +1150,29 @@ inline void SetPostSolveContactListener(AabbTreeWorld& world, ImpulsesContactLis
 ContactID GetSoonestContact(const Span<const KeyedContactID>& ids,
                             const Span<const Contact>& contacts) noexcept;
 
-} // namespace d2
-} // namespace playrho
+/// @brief Creates a body within the world that's a copy of the given one.
+/// @relatedalso AabbTreeWorld
+BodyID CreateBody(AabbTreeWorld& world, const BodyConf& def);
+
+/// @brief Associates a validly identified shape with the validly identified body.
+/// @throws std::out_of_range If given an invalid body or shape identifier.
+/// @throws WrongState if this function is called while the world is locked.
+/// @see GetShapes.
+/// @relatedalso AabbTreeWorld
+void Attach(AabbTreeWorld& world, BodyID id, ShapeID shapeID);
+
+/// @brief Disassociates a validly identified shape from the validly identified body.
+/// @throws std::out_of_range If given an invalid body or shape identifier.
+/// @throws WrongState if this function is called while the world is locked.
+/// @relatedalso AabbTreeWorld
+bool Detach(AabbTreeWorld& world, BodyID id, ShapeID shapeID);
+
+/// @brief Disassociates all of the associated shape from the validly identified body.
+/// @throws std::out_of_range If given an invalid body identifier.
+/// @throws WrongState if this function is called while the world is locked.
+/// @relatedalso AabbTreeWorld
+const std::vector<ShapeID>& GetShapes(const AabbTreeWorld& world, BodyID id);
+
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_AABBTREEWORLD_HPP

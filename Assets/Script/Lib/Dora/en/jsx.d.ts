@@ -102,10 +102,9 @@ class Node {
 	children?: any[] | any
 
 	/**
-	 * Schedules a function to run every frame, or schedules a coroutine to start running.
-	 * @param funcOrJob The function to run, return true to stop. Or the coroutine to run, return or yield true to stop.
+	 * Schedules a function to run every frame, or schedules a coroutine to start running. Return true to stop the running function or using 'coroutine.yield(true)' to stop the coroutine.
 	 */
-	onUpdate?(this: void, funcOrJob: ((this: void, deltaTime: number) => boolean) | dora.Job): void;
+	onUpdate?: ((this: void, deltaTime: number) => boolean) | dora.Job;
 
 	/**
 	 * The ActionEnd slot is triggered when an action is finished.
@@ -1025,14 +1024,17 @@ class Body extends Node {
 
 	/**
 	 * Register a function to be called when the body begins to receive contact events. Return false from this function to prevent colliding.
-	 * @param filter The filter function to set.
+	 * @param other The other `Body` object that the current `Body` is colliding with.
+	 * @returns Whether to allow the collision to happen.
 	 */
-	onContactFilter?(filter: (this: void, other: Body) => boolean): void;
+	onContactFilter?(this: void, other: dora.Body.Type): boolean;
 }
 
 class RectangleShape {
-	/** center The center point of the polygon. */
-	center?: dora.Vec2.Type;
+	/** The center X position of the polygon. */
+	centerX?: number;
+	/** The center Y position of the polygon. */
+	centerY?: number;
 	/** The width of the polygon. */
 	width: number;
 	/** The height of the polygon. */
@@ -1076,8 +1078,10 @@ class MultiShape {
 }
 
 class DiskShape {
-	/** The center point of the disk. */
-	center?: dora.Vec2.Type;
+	/** The center X position of the disk. */
+	centerX?: number;
+	/** The center Y position of the disk. */
+	centerY?: number;
 	/** The radius of the disk. */
 	radius: number;
 	/** The density of the disk (default is 0.0). */
@@ -1332,22 +1336,22 @@ interface IntrinsicElements {
 	 * Draws a dot at a specified position with a specified radius and color.
 	 * Can only be used as a child element of `<draw-node>`.
 	 */
-	dot: Dot;
+	'dot-shape': Dot;
 	/**
 	 * Draws a line segment between two points with a specified radius and color.
 	 * Can only be used as a child element of `<draw-node>`.
 	 */
-	segment: Segment;
+	'segment-shape': Segment;
 	/**
 	 * Draws a polygon defined by a list of vertices with a specified fill color and border.
 	 * Can only be used as a child element of `<draw-node>`.
 	 */
-	polygon: Polygon;
+	'polygon-shape': Polygon;
 	/**
 	 * Draws a set of vertices as triangles, each vertex with its own color.
 	 * Can only be used as a child element of `<draw-node>`.
 	 */
-	verts: Verts;
+	'verts-shape': Verts;
 	/**
 	 * A class used to render a texture as a grid of sprites, where each sprite can be positioned,
 	 * colored, and have its UV coordinates manipulated.
@@ -1381,99 +1385,123 @@ interface IntrinsicElements {
 	action: Action;
 	/**
 	 * Creates a definition for an action that animates the x anchor point of a Node from one value to another.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	'anchor-x': AnchorX;
 	/**
 	 * Creates a definition for an action that animates the y anchor point of a Node from one value to another.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	'anchor-y': AnchorY;
 	/**
 	 * Creates a definition for an action that animates the angle of a Node from one value to another.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	angle: Angle;
 	/**
 	 * Creates a definition for an action that animates the x-axis rotation angle of a Node from one value to another.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	'angle-x': AngleX;
 	/**
 	 * Creates a definition for an action that animates the y-axis rotation angle of a Node from one value to another.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	'angle-y': AngleY;
 	/**
 	 * Creates a definition for an action that makes a delay in the animation timeline.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	delay: Delay;
 	/**
 	 * Creates a definition for an action that emits an event.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	event: Event;
 	/**
 	 * Creates a definition for an action that animates the width of a Node.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	width: Width;
 	/**
 	 * Creates a definition for an action that animates the height of a Node.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	height: Height;
 	/**
 	 * Creates a definition for an action that hides a Node.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	hide: Hide;
 	/**
 	 * Creates a definition for an action that shows a Node.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	show: Show;
 	/**
 	 * Creates a definition for an action that animates the position of a Node.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	move: Move;
 	/**
 	 * Creates a definition for an action that animates the opacity of a Node from one value to another.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	opacity: Opacity;
 	/**
 	 * Creates a definition for an action that animates the rotation of a Node from one value to another.
 	 * The roll animation will make sure the node is rotated to the target angle by the minimum rotation angle.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	roll: Roll;
 	/**
 	 * Creates a definition for an action that animates the x-axis and y-axis scale of a Node from one value to another.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	scale: Scale;
 	/**
 	 * Creates a definition for an action that animates the x-axis scale of a Node from one value to another.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	'scale-x': ScaleX;
 	/**
 	 * Creates a definition for an action that animates the y-axis scale of a Node from one value to another.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	'scale-y': ScaleY;
 	/**
 	 * Creates a definition for an action that animates the skew of a Node along the x-axis.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	'skew-x': SkewX;
 	/**
 	 * Creates a definition for an action that animates the skew of a Node along the y-axis.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	'skew-y': SkewY;
 	/**
 	 * Creates a definition for an action that animates the x-position of a Node.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	'move-x': MoveX;
 	/**
 	 * Creates a definition for an action that animates the y-position of a Node.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	'move-y': MoveY;
 	/**
 	 * Creates a definition for an action that animates the z-position of a Node.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	'move-z': MoveZ;
 	/**
 	 * Creates a definition for an action that runs a group of actions in parallel.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	spawn: Spawn;
 	/**
 	 * Creates a definition for an action that runs a sequence of actions.
+	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
 	 */
 	sequence: Sequence;
 	/**
@@ -1482,32 +1510,39 @@ interface IntrinsicElements {
 	'physics-world': PhysicsWorld;
 	/**
 	 * The setting for whether two groups of bodies should collide.
+	 * Must be placed under <physics-world> or its derivatives to take effect.
 	 */
 	contact: Contact;
 	/**
 	 * A class represents a physics body in the world.
+	 * Must be placed under <physics-world> or its derivatives to take effect.
 	 */
 	body: Body;
 	/**
 	 * Attaches a rectangle fixture definition to the body.
+	 * Must be placed under <body> or its derivatives to take effect.
 	 */
-	'rect-shape': RectangleShape;
+	'rect-fixture': RectangleShape;
 	/**
 	 * Attaches a polygon fixture definition to the body using vertices.
+	 * Must be placed under <body> or its derivatives to take effect.
 	 */
-	'polygon-shape': PolygonShape;
+	'polygon-fixture': PolygonShape;
 	/**
-	 * Attaches a concave shape definition made of multiple convex shapes to the body.
+	 * Attaches a concave fixture definition made of multiple convex fixtures to the body.
+	 * Must be placed under <body> or its derivatives to take effect.
 	 */
-	'multi-shape': MultiShape;
+	'multi-fixture': MultiShape;
 	/**
 	 * Attaches a disk fixture definition to the body.
+	 * Must be placed under <body> or its derivatives to take effect.
 	 */
-	'disk-shape': DiskShape;
+	'disk-fixture': DiskShape;
 	/**
 	 * Attaches a chain fixture definition to the body. The Chain fixture is a free form sequence of line segments that has two-sided collision.
+	 * Must be placed under <body> or its derivatives to take effect.
 	 */
-	'chain-shape': ChainShape;
+	'chain-fixture': ChainShape;
 	/**
 	 * Creates a distance joint between two bodies.
 	 */

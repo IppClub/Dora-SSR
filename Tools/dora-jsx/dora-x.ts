@@ -43,7 +43,6 @@ export interface Element {
 }
 
 export function createElement(
-	this: void,
 	type: any,
 	props?: any,
 	...children: any[]
@@ -275,8 +274,8 @@ let getDrawNode: (this: void, enode: React.Element) => dora.DrawNode.Type;
 			if (typeof child !== "object") {
 				continue;
 			}
-			switch (child.type) {
-				case 'dot': {
+			switch (child.type as keyof JSX.IntrinsicElements) {
+				case 'dot-shape': {
 					const dot = child.props as JSX.Dot;
 					node.drawDot(
 						dora.Vec2(dot.x, dot.y),
@@ -285,7 +284,7 @@ let getDrawNode: (this: void, enode: React.Element) => dora.DrawNode.Type;
 					);
 					break;
 				}
-				case 'segment': {
+				case 'segment-shape': {
 					const segment = child.props as JSX.Segment;
 					node.drawSegment(
 						dora.Vec2(segment.startX, segment.startY),
@@ -295,7 +294,7 @@ let getDrawNode: (this: void, enode: React.Element) => dora.DrawNode.Type;
 					);
 					break;
 				}
-				case 'polygon': {
+				case 'polygon-shape': {
 					const poly = child.props as JSX.Polygon;
 					node.drawPolygon(
 						poly.verts,
@@ -305,7 +304,7 @@ let getDrawNode: (this: void, enode: React.Element) => dora.DrawNode.Type;
 					);
 					break;
 				}
-				case 'verts': {
+				case 'verts-shape': {
 					const verts = child.props as JSX.Verts;
 					node.drawVertices(verts.verts.map(([vert, color]) => [vert, dora.Color(color)]));
 					break;
@@ -510,19 +509,19 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 			if (typeof child !== 'object') {
 				continue;
 			}
-			switch (child.type) {
-				case 'rect-shape': {
+			switch (child.type as keyof JSX.IntrinsicElements) {
+				case 'rect-fixture': {
 					const shape = child.props as JSX.RectangleShape;
 					if (shape.sensorTag !== undefined) {
 						bodyDef.attachPolygonSensor(
 							shape.sensorTag,
 							shape.width, shape.height,
-							shape.center ?? dora.Vec2.zero,
+							dora.Vec2(shape.centerX ?? 0, shape.centerY ?? 0),
 							shape.angle ?? 0
 						);
 					} else {
 						bodyDef.attachPolygon(
-							shape.center ?? dora.Vec2.zero,
+							dora.Vec2(shape.centerX ?? 0, shape.centerY ?? 0),
 							shape.width, shape.height,
 							shape.angle ?? 0,
 							shape.density ?? 0,
@@ -532,7 +531,7 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 					}
 					break;
 				}
-				case 'polygon-shape': {
+				case 'polygon-fixture': {
 					const shape = child.props as JSX.PolygonShape;
 					if (shape.sensorTag !== undefined) {
 						bodyDef.attachPolygonSensor(
@@ -549,7 +548,7 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 					}
 					break;
 				}
-				case 'multi-shape': {
+				case 'multi-fixture': {
 					const shape = child.props as JSX.MultiShape;
 					if (shape.sensorTag !== undefined) {
 						extraSensors ??= [];
@@ -564,16 +563,17 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 					}
 					break;
 				}
-				case 'disk-shape': {
+				case 'disk-fixture': {
 					const shape = child.props as JSX.DiskShape;
 					if (shape.sensorTag !== undefined) {
 						bodyDef.attachDiskSensor(
 							shape.sensorTag,
+							dora.Vec2(shape.centerX ?? 0, shape.centerY ?? 0),
 							shape.radius
 						);
 					} else {
 						bodyDef.attachDisk(
-							shape.center ?? dora.Vec2.zero,
+							dora.Vec2(shape.centerX ?? 0, shape.centerY ?? 0),
 							shape.radius,
 							shape.density ?? 0,
 							shape.friction ?? 0.4,
@@ -582,7 +582,7 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 					}
 					break;
 				}
-				case 'chain-shape': {
+				case 'chain-fixture': {
 					const shape = child.props as JSX.ChainShape;
 					if (shape.sensorTag !== undefined) {
 						extraSensors ??= [];
@@ -720,10 +720,10 @@ const elementMap: ElementMap = {
 	'draw-node': (nodeStack: dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		addChild(nodeStack, getDrawNode(enode), enode);
 	},
-	dot: drawNodeCheck,
-	segment: drawNodeCheck,
-	polygon: drawNodeCheck,
-	verts: drawNodeCheck,
+	'dot-shape': drawNodeCheck,
+	'segment-shape': drawNodeCheck,
+	'polygon-shape': drawNodeCheck,
+	'verts-shape': drawNodeCheck,
 	grid: (nodeStack: dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
 		addChild(nodeStack, getGrid(enode), enode);
 	},
@@ -858,11 +858,11 @@ const elementMap: ElementMap = {
 			print(`tag <${enode.type}> must be placed under <physics-world> or its derivatives to take effect`);
 		}
 	},
-	'rect-shape': bodyCheck,
-	'polygon-shape': bodyCheck,
-	'multi-shape': bodyCheck,
-	'disk-shape': bodyCheck,
-	'chain-shape': bodyCheck,
+	'rect-fixture': bodyCheck,
+	'polygon-fixture': bodyCheck,
+	'multi-fixture': bodyCheck,
+	'disk-fixture': bodyCheck,
+	'chain-fixture': bodyCheck,
 	'distance-joint': (_nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const joint = enode.props as JSX.DistanceJoint;
 		if (joint.ref === undefined) {

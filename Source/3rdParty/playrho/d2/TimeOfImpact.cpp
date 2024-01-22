@@ -197,7 +197,7 @@ ToiOutput GetToiViaSat( // NOLINT(readability-function-cognitive-complexity)
                     stats.max_root_iters = std::max(stats.max_root_iters, roots);
                     return ToiOutput{t, stats, ToiOutput::e_maxRootIters};
                 }
-                if (nextafter(static_cast<float>(a1), static_cast<float>(a2)) >= a2) {
+                if (nextafter(a1, a2) >= a2) {
                     stats.sum_finder_iters += pbIter;
                     stats.sum_root_iters += roots;
                     stats.max_root_iters = std::max(stats.max_root_iters, roots);

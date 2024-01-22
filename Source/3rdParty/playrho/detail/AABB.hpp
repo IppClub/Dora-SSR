@@ -25,12 +25,23 @@
 /// @brief Declaration of the AABB class and free functions that return instances of it.
 
 #include <algorithm> // for std::mismatch, lexicographical_compare, etc
-#include <utility> // for std::get
+#include <cstddef> // for std::size_t
+#include <functional> // for std::less, std::greater
+#include <ostream>
+#include <type_traits>
+
+// IWYU pragma: begin_exports
+
+// IWYU pragma: private
+// IWYU pragma: friend "playrho/.*"
 
 #include "playrho/Intervals.hpp" // for LengthInterval, IsIntersecting
+#include "playrho/NonNegative.hpp"
+#include "playrho/Real.hpp"
+#include "playrho/Units.hpp"
 #include "playrho/Vector.hpp"
-#include "playrho/Settings.hpp" // for ChildCounter, etc.
-#include "playrho/Templates.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::detail {
 

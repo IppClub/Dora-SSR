@@ -24,9 +24,16 @@
 /// @file
 /// @brief Definition of the <code>Contactable</code> class and closely related code.
 
+#include <ostream>
+#include <type_traits> // for std::is_nothrow_default_constructible_v, etc
+
+// IWYU pragma: begin_exports
+
 #include "playrho/Settings.hpp" // for ChildCounter
 #include "playrho/ShapeID.hpp"
 #include "playrho/BodyID.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -67,11 +74,44 @@ constexpr bool operator!=(const Contactable& lhs, const Contactable& rhs) noexce
     return !(lhs == rhs);
 }
 
+/// @brief Less-than operator.
+/// @relatedalso Contactable
+constexpr bool operator<(const Contactable& lhs, const Contactable& rhs) noexcept
+{
+    if (lhs.bodyId < rhs.bodyId) {
+        return true;
+    }
+    if (lhs.bodyId > rhs.bodyId) {
+        return false;
+    }
+    if (lhs.shapeId < rhs.shapeId) {
+        return true;
+    }
+    if (lhs.shapeId > rhs.shapeId) {
+        return false;
+    }
+    return lhs.childId < rhs.childId;
+}
+
 /// @brief Is-for convenience function.
 /// @return true if contactable is for the identified body and shape, else false.
 constexpr bool IsFor(const Contactable& c, BodyID bodyID, ShapeID shapeID) noexcept
 {
     return (c.bodyId == bodyID) && (c.shapeId == shapeID);
+}
+
+/// @brief Output stream operator support.
+/// @relatedalso Contactable
+inline auto operator<< (std::ostream &os, const Contactable &c) -> std::ostream&
+{
+    os << "{";
+    os << to_underlying(c.bodyId);
+    os << ",";
+    os << to_underlying(c.shapeId);
+    os << ",";
+    os << c.childId;
+    os << "}";
+    return os;
 }
 
 }

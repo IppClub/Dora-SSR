@@ -19,11 +19,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <algorithm> // for std::max
+#include <cassert> // for assert
+#include <cstddef> // for std::size_t
+#include <memory>
+
 #include "playrho/StackAllocator.hpp"
 #include "playrho/Math.hpp"
 #include "playrho/DynamicMemory.hpp"
-
-#include <memory>
 
 using namespace playrho;
 

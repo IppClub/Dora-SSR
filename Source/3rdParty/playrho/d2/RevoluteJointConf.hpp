@@ -25,12 +25,17 @@
 /// @file
 /// @brief Definition of the @c RevoluteJointConf class and closely related code.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/LimitState.hpp"
 #include "playrho/Span.hpp"
 #include "playrho/TypeInfo.hpp"
+#include "playrho/Vector3.hpp"
 
 #include "playrho/d2/JointConf.hpp"
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -193,15 +198,22 @@ constexpr bool operator!=(const RevoluteJointConf& lhs, const RevoluteJointConf&
 RevoluteJointConf GetRevoluteJointConf(const Joint& joint);
 
 /// @brief Gets the configuration for the given parameters.
+/// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso World
 RevoluteJointConf GetRevoluteJointConf(const World& world, BodyID bodyA, BodyID bodyB,
                                        const Length2& anchor);
 
 /// @brief Gets the current angle of the given configuration in the given world.
+/// @param world The world the given joint configuration relates to.
+/// @param conf Configuration of the joint to get the angle for.
+/// @throws std::out_of_range If given an invalid body identifier in the joint configuration.
 /// @relatedalso World
 Angle GetAngle(const World& world, const RevoluteJointConf& conf);
 
 /// @brief Gets the current angular velocity of the given configuration.
+/// @param world The world the given joint configuration relates to.
+/// @param conf Configuration of the joint to get the angular velocity for.
+/// @throws std::out_of_range If given an invalid body identifier in the joint configuration.
 /// @relatedalso World
 AngularVelocity GetAngularVelocity(const World& world, const RevoluteJointConf& conf);
 

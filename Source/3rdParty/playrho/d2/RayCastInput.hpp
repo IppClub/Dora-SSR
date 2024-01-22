@@ -24,7 +24,11 @@
 /// @file
 /// @brief Alias for the 2-D RayCastInput struct.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/detail/RayCastInput.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 

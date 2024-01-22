@@ -24,14 +24,20 @@
 /// @file
 /// @brief Declarations of the @c WorldConf class.
 
+#include <cstdint> // for std::uint8_t
+
+// IWYU pragma: begin_exports
+
 #include "playrho/Interval.hpp"
 #include "playrho/Positive.hpp"
 #include "playrho/Settings.hpp"
+#include "playrho/Units.hpp"
 
 #include "playrho/pmr/MemoryResource.hpp" // for pmr things
 
-namespace playrho {
-namespace d2 {
+// IWYU pragma: end_exports
+
+namespace playrho::d2 {
 
 /// @brief World configuration data.
 struct WorldConf {
@@ -173,7 +179,6 @@ constexpr WorldConf& WorldConf::UseProxyCapacity(ContactCounter value) noexcept
     return *this;
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_WORLDCONF_HPP

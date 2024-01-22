@@ -24,8 +24,12 @@
 /// @file
 /// @brief Alias for an @c Interval of @c Length .
 
+// IWYU pragma: begin_exports
+
 #include "playrho/Interval.hpp"
 #include "playrho/Units.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

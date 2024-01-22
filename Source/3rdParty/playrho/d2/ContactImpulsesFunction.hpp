@@ -1,6 +1,5 @@
 /*
- * Original work Copyright (c) 2006-2011 Erin Catto http://www.box2d.org
- * Modified work Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
+ * Copyright (c) 2023 Louis Langholtz https://github.com/louis-langholtz/PlayRho
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -19,38 +18,28 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/AabbTreeWorld.hpp"
-#include "playrho/d2/AabbTreeWorldBody.hpp"
-#include "playrho/d2/Body.hpp"
-#include "playrho/d2/BodyConf.hpp"
+#ifndef PLAYRHO_D2_CONTACTIMPULSESFUNCTION_HPP
+#define PLAYRHO_D2_CONTACTIMPULSESFUNCTION_HPP
+
+/// @file
+/// @brief Definition of the <code>ContactImpulsesFunction</code> type alias.
+
+#include <functional> // for std::function
+
+// IWYU pragma: begin_exports
+
+#include "playrho/ContactID.hpp"
+
+#include "playrho/d2/ContactImpulsesList.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 
-BodyID CreateBody(AabbTreeWorld& world, const BodyConf& def)
-{
-    return CreateBody(world, Body{def});
-}
-
-void Attach(AabbTreeWorld& world, BodyID id, ShapeID shapeID)
-{
-    auto body = GetBody(world, id);
-    body.Attach(shapeID);
-    SetBody(world, id, body);
-}
-
-bool Detach(AabbTreeWorld& world, BodyID id, ShapeID shapeID)
-{
-    auto body = GetBody(world, id);
-    if (body.Detach(shapeID)) {
-        SetBody(world, id, body);
-        return true;
-    }
-    return false;
-}
-
-const std::vector<ShapeID>& GetShapes(const AabbTreeWorld& world, BodyID id)
-{
-    return GetBody(world, id).GetShapes();
-}
+/// @brief Contact-impulses function.
+using ContactImpulsesFunction =
+    std::function<void(ContactID, const ContactImpulsesList&, unsigned)>;
 
 } // namespace playrho::d2
+
+#endif // PLAYRHO_D2_CONTACTIMPULSESFUNCTION_HPP

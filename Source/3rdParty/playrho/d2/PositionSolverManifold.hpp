@@ -25,13 +25,18 @@
 /// @file
 /// @brief Definition of the @c PositionSolverManifold class and closely related code.
 
-#include "playrho/Settings.hpp"
+// IWYU pragma: begin_exports
+
+#include "playrho/Units.hpp" // for Length
+#include "playrho/Vector2.hpp" // for Length2
 
 #include "playrho/d2/Manifold.hpp"
-#include "playrho/d2/Math.hpp"
 
-namespace playrho {
-namespace d2 {
+// IWYU pragma: end_exports
+
+namespace playrho ::d2 {
+
+struct Transformation;
 
 /// Position solver manifold.
 /// @details
@@ -52,7 +57,7 @@ struct PositionSolverManifold
     Length m_separation{};
 };
 
-/// Gets the normal-point-separation data in world coordinates for the given inputs.
+/// @brief Gets the normal-point-separation data in world coordinates for the given inputs.
 /// @note The returned normal is in the direction of shape A to shape B.
 /// @note The returned separation distance does not account for vertex radiuses. It's simply
 ///   the separation between the points of the manifold. To account for the vertex radiuses,
@@ -60,7 +65,6 @@ struct PositionSolverManifold
 PositionSolverManifold GetPSM(const Manifold& manifold, Manifold::size_type index,
                               const Transformation& xfA, const Transformation& xfB);
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_POSITIONSOLVERMANIFOLD_HPP

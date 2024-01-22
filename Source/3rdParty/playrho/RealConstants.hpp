@@ -29,8 +29,11 @@
 #ifndef PLAYRHO_REALCONSTANTS_HPP
 #define PLAYRHO_REALCONSTANTS_HPP
 
-#include "playrho/Defines.hpp"
+// IWYU pragma: begin_exports
+
 #include "playrho/Real.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

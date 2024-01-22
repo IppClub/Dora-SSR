@@ -25,20 +25,42 @@
 /// @file
 /// @brief Definition of the @c Position class and closely related code.
 
-#include "playrho/Settings.hpp"
+#include <type_traits>
+
+// IWYU pragma: begin_exports
+
+#include "playrho/Real.hpp"
 #include "playrho/Templates.hpp"
+#include "playrho/Units.hpp"
 #include "playrho/Vector2.hpp"
 
-namespace playrho {
-namespace d2 {
+// IWYU pragma: end_exports
+
+namespace playrho::d2 {
 
 /// @brief 2-D positional data structure.
 /// @details A 2-element length and angle pair suitable for representing a linear and
 ///   angular position in 2-D.
 struct Position {
-    Length2 linear; ///< Linear position.
-    Angle angular; ///< Angular position.
+    /// @brief Default constructor.
+    constexpr Position() noexcept = default;
+
+    /// @brief Initializing constructor.
+    constexpr explicit Position(Length2 l, Angle a = 0_deg) noexcept:
+          linear{l}, angular{a}
+    {
+        // Intentionally empty.
+    }
+
+    Length2 linear{}; ///< Linear position.
+    Angle angular{}; ///< Angular position.
 };
+
+// Assert some expected traits...
+static_assert(std::is_nothrow_default_constructible_v<Position>);
+static_assert(std::is_copy_constructible_v<Position>);
+static_assert(std::is_move_constructible_v<Position>);
+static_assert(std::is_nothrow_destructible_v<Position>);
 
 /// @brief Equality operator.
 /// @relatedalso Position
@@ -113,7 +135,9 @@ constexpr Position operator*(const Real scalar, const Position& pos)
     return Position{pos.linear * scalar, pos.angular * scalar};
 }
 
-} // namespace d2
+} // namespace playrho::d2
+
+namespace playrho {
 
 /// @brief Determines if the given value is valid.
 /// @relatedalso d2::Position

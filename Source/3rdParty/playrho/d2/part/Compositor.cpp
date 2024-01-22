@@ -24,6 +24,6 @@
 
 namespace playrho::d2 {
 
-static_assert(IsValidShapeTypeV<part::Compositor<>>);
+static_assert(detail::IsValidShapeTypeV<part::Compositor<>>);
 
 } // namespace playrho::d2

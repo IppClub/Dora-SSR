@@ -25,10 +25,15 @@
 /// @brief Definition of the @c Velocity class and closely related code.
 
 #include <utility>
-#include <vector>
 
-#include "playrho/Settings.hpp"
+// IWYU pragma: begin_exports
+
+#include "playrho/Real.hpp"
+#include "playrho/Templates.hpp"
+#include "playrho/Units.hpp"
 #include "playrho/Vector2.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -38,8 +43,8 @@ namespace d2 {
 
 /// @brief 2-D velocity related data structure.
 struct Velocity {
-    LinearVelocity2 linear; ///< Linear velocity.
-    AngularVelocity angular; ///< Angular velocity.
+    LinearVelocity2 linear{}; ///< Linear velocity.
+    AngularVelocity angular{}; ///< Angular velocity.
 };
 
 /// @brief Equality operator.
