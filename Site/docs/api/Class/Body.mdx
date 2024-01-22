@@ -337,3 +337,22 @@ attachSensor: function(self: Body, tag: integer, fixtureDef: FixtureDef): Sensor
 | Return Type | Description |
 | --- | --- |
 | Sensor | the newly attached sensor. |
+
+## onContactFilter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Register a function to be called when the body begins to receive contact events. Return false from this function to prevent colliding.
+
+**Signature:**
+```tl
+onContactFilter: function(self: Body, filter: function(other: Body): boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filter | function | The filter function to set. |
