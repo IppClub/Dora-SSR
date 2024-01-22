@@ -875,15 +875,24 @@ export default function PersistentDrawerLeft() {
 			if (tabIndex !== null) {
 				const closeTab = () => {
 					setFiles(prev => {
-						const newFiles = prev.filter((_, index) => index !== tabIndex);
-						if (newFiles.length === 0) {
-							switchTab(null);
-						} else if (tabIndex > 0) {
-							switchTab(tabIndex - 1, newFiles[tabIndex - 1]);
+						if (prev.length === tabIndex + 1) {
+							switchTab(tabIndex - 1, prev[tabIndex - 1]);
+							setTimeout(() => {
+								setFiles(prev => {
+									prev.pop();
+									return [...prev];
+								});
+							}, 10);
+							return prev;
 						} else {
-							switchTab(tabIndex, newFiles[tabIndex]);
+							const newFiles = prev.filter((_, index) => index !== tabIndex);
+							if (newFiles.length === 0) {
+								switchTab(null);
+							} else {
+								switchTab(tabIndex, newFiles[tabIndex]);
+							}
+							return newFiles;
 						}
-						return newFiles;
 					});
 				};
 				setFiles(files => {

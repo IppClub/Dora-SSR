@@ -232,7 +232,7 @@ export async function revalidateModel(model: monaco.editor.ITextModel) {
 	const diagnostics = (await Promise.all([
 		worker.getSyntacticDiagnostics(model.uri.toString()),
 		worker.getSemanticDiagnostics(model.uri.toString())
-	])).reduce((a, it) => a.concat(it));
+	])).reduce((a, it) => a.concat(it)).filter(d => d.code !== 2497 && d.code !== 2666);
 	const markers = diagnostics.map(d => {
 		let {start = 0, length = 0} = d;
 		const startPos = model.getPositionAt(start);
