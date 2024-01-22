@@ -25,7 +25,8 @@
 /// @file
 /// @brief Definition of the <code>BlockAllocator</code> class and closely related code.
 
-#include "playrho/Settings.hpp"
+#include <cstdlib> // for std::size_t
+#include <iterator> // for std::size
 
 namespace playrho {
 
@@ -56,7 +57,7 @@ namespace playrho {
         /// @brief Max block size (before using external allocator).
         static constexpr size_type GetMaxBlockSize() noexcept
         {
-            return AllocatorBlockSizes[size(AllocatorBlockSizes) - 1];
+            return AllocatorBlockSizes[std::size(AllocatorBlockSizes) - 1];
         }
         
         /// @brief Chunk array increment.
@@ -118,7 +119,7 @@ namespace playrho {
         size_type m_chunkCount = 0; ///< Chunk count.
         size_type m_chunkSpace = GetChunkArrayIncrement(); ///< Chunk space.
         Chunk* m_chunks = nullptr; ///< Chunks array.
-        Block* m_freeLists[size(AllocatorBlockSizes)] = {}; ///< Free lists.
+        Block* m_freeLists[std::size(AllocatorBlockSizes)] = {}; ///< Free lists.
     };
     
     /// Block deallocator.

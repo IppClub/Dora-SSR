@@ -499,7 +499,7 @@ export enterEntryAsync = (entry)->
 					.view\addChild with label = Label "sarasa-mono-sc-regular", fontSize
 						.alignment = "Left"
 						.textWidth = width - fontSize
-						.text = msg
+						.text = err
 			\alignLayout!
 		return err
 

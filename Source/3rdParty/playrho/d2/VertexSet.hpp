@@ -24,10 +24,17 @@
 /// @file
 /// @brief Definition of the @c VertexSet class and closely related code.
 
+#include <cassert> // for assert
+#include <cstddef> // for std::size_t
+#include <limits> // for std::numeric_limits
 #include <vector>
 #include <algorithm>
 
+// IWYU pragma: begin_exports
+
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 
@@ -75,11 +82,11 @@ public:
     /// @brief Gets the current size of this set.
     std::size_t size() const noexcept
     {
-        return ::playrho::size(m_elements);
+        return ::std::size(m_elements);
     }
 
     /// @brief Gets the pointer to the data buffer.
-    const_pointer data() const noexcept { return ::playrho::data(m_elements); }
+    const_pointer data() const noexcept { return ::std::data(m_elements); }
 
     /// @brief Gets the "begin" iterator value.
     const_pointer begin() const noexcept { return data(); }

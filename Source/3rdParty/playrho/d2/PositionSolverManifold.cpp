@@ -19,14 +19,20 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/PositionSolverManifold.hpp"
+#include <cassert> // for assert
 
-namespace playrho {
-namespace d2 {
+#include "playrho/Math.hpp" // for Dot
+#include "playrho/Vector2.hpp" // for Length2
+
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/PositionSolverManifold.hpp"
+#include "playrho/d2/UnitVec.hpp"
+
+namespace playrho::d2 {
 
 namespace {
 
-/// Gets the position solver manifold in world coordinates for a circles-type manifold.
+/// @brief Gets the position solver manifold in world coordinates for a circles-type manifold.
 /// @param xfA Transformation for body A.
 /// @param lp Local point. Location of shape A in local coordinates.
 /// @param xfB Transformation for body B.
@@ -45,7 +51,7 @@ inline PositionSolverManifold GetForCircles(const Transformation& xfA, const Len
     return PositionSolverManifold{normal, midpoint, separation};
 }
 
-/// Gets the position solver manifold in world coordinates for a face-a-type manifold.
+/// @brief Gets the position solver manifold in world coordinates for a face-a-type manifold.
 /// @param xfA Transformation for shape A.
 /// @param lp Local point. Location for shape A in local coordinates.
 /// @param ln Local normal for shape A to be transformed into a world normal based on the
@@ -64,7 +70,7 @@ inline PositionSolverManifold GetForFaceA(const Transformation& xfA, const Lengt
     return PositionSolverManifold{normal, clipPoint, separation};
 }
 
-/// Gets the position solver manifold in world coordinates for a face-b-type manifold.
+/// @brief Gets the position solver manifold in world coordinates for a face-b-type manifold.
 /// @param xfB Transformation for body B.
 /// @param lp Local point.
 /// @param ln Local normal for shape B to be transformed into a world normal based on the
@@ -86,11 +92,18 @@ inline PositionSolverManifold GetForFaceB(const Transformation& xfB, const Lengt
 
 } // unnamed namespace
 
+// Documented here and in declaration because Doxygen seems to be unable to see this
+// function's declaration Doxygen documentation. Not sure why.
+
+/// @brief Gets the normal-point-separation data in world coordinates for the given inputs.
+/// @note The returned normal is in the direction of shape A to shape B.
+/// @note The returned separation distance does not account for vertex radiuses. It's simply
+///   the separation between the points of the manifold. To account for the vertex radiuses,
+///   the total vertex radius must be subtracted from this separation distance.
 PositionSolverManifold GetPSM(const Manifold& manifold, Manifold::size_type index,
                               const Transformation& xfA, const Transformation& xfB)
 {
-    switch (manifold.GetType())
-    {
+    switch (manifold.GetType()) {
     case Manifold::e_circles:
         return GetForCircles(xfA, manifold.GetLocalPoint(),
                              xfB, manifold.GetPoint(index).localPoint);
@@ -104,8 +117,7 @@ PositionSolverManifold GetPSM(const Manifold& manifold, Manifold::size_type inde
         break;
     }
     assert(manifold.GetType() == Manifold::e_unset);
-    return PositionSolverManifold{GetInvalid<UnitVec>(), GetInvalid<Length2>(), GetInvalid<Length>()};
+    return PositionSolverManifold{UnitVec(), InvalidLength2, Invalid<Length>};
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

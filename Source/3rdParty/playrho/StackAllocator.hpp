@@ -25,7 +25,7 @@
 /// @file
 /// @brief Definition of the @c StackAllocator class.
 
-#include "playrho/Settings.hpp"
+#include <cstdlib> // for std::size_t
 
 namespace playrho {
 

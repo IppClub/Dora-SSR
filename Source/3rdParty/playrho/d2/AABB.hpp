@@ -24,14 +24,18 @@
 /// @file
 /// @brief Declaration of the AABB class and free functions that return instances of it.
 
-#include "playrho/Intervals.hpp" // for LengthInterval, IsIntersecting
-#include "playrho/Vector.hpp"
-#include "playrho/Settings.hpp" // for ChildCounter, etc.
-#include "playrho/Templates.hpp"
+#include <cstddef> // for std::size_t
+
+// IWYU pragma: begin_exports
+
 #include "playrho/BodyID.hpp"
+#include "playrho/Interval.hpp"
+#include "playrho/Settings.hpp" // for ChildCounter, etc.
 #include "playrho/ShapeID.hpp"
 
 #include "playrho/detail/AABB.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -48,11 +52,21 @@ class DistanceProxy;
 struct Transformation;
 class World;
 
-using ::playrho::detail::Contains;
-using ::playrho::detail::TestOverlap;
+using ::playrho::detail::Contains; // NOLINT(misc-unused-using-decls)
+using ::playrho::detail::GetFattenedAABB; // NOLINT(misc-unused-using-decls)
+using ::playrho::detail::GetDisplacedAABB; // NOLINT(misc-unused-using-decls)
+using ::playrho::detail::GetIntersectingAABB; // NOLINT(misc-unused-using-decls)
+using ::playrho::detail::Include; // NOLINT(misc-unused-using-decls)
+using ::playrho::detail::TestOverlap; // NOLINT(misc-unused-using-decls)
 
 /// @brief 2-Dimensional Axis Aligned Bounding Box.
 using AABB = ::playrho::detail::AABB<2>;
+
+/// @brief Invalid AABB value.
+constexpr auto InvalidAABB = AABB{
+    LengthInterval{Invalid<Length>},
+    LengthInterval{Invalid<Length>}
+};
 
 /// @brief Gets the perimeter length of the 2-dimensional AABB.
 /// @pre The sizes of each of the AABB's ranges are representable.
@@ -92,10 +106,19 @@ AABB ComputeAABB(const Shape& shape, const Transformation& xf);
 
 /// @brief Computes the AABB for the identified shape relative to the identified body
 ///   within the given world.
+/// @param world The world in which the given body and shape identifiers identify a body
+///   and shape.
+/// @param bodyID Identifier of the body the identified shape is associated with.
+/// @param shapeID Identifier of the shape associated with the identified body to compute
+///   the AABB for.
+/// @see ComputeAABB(const World&, BodyID).
 /// @relatedalso World
 AABB ComputeAABB(const World& world, BodyID bodyID, ShapeID shapeID);
 
 /// @brief Computes the AABB for the identified body within the given world.
+/// @param world The world in which the given body identifier identifies a body.
+/// @param id Identifier of the body to compute the AABB for.
+/// @see ComputeAABB(const World&, BodyID, ShapeID).
 /// @relatedalso World
 AABB ComputeAABB(const World& world, BodyID id);
 
@@ -109,6 +132,9 @@ AABB ComputeIntersectingAABB(const World& world, // force newline
                              BodyID bB, ShapeID sB, ChildCounter iB);
 
 /// @brief Computes the intersecting AABB for the given contact.
+/// @param world The world for which the given contact relates to.
+/// @param contact The contact identifying bodies, shapes, and children with @p world
+///   to compute the intersecting AABB for.
 /// @relatedalso World
 AABB ComputeIntersectingAABB(const World& world, const Contact& contact);
 
@@ -117,14 +143,6 @@ AABB ComputeIntersectingAABB(const World& world, const Contact& contact);
 AABB GetAABB(const playrho::detail::RayCastInput<2>& input) noexcept;
 
 } // namespace d2
-
-/// @brief Gets an invalid AABB value.
-/// @relatedalso detail::AABB
-template <>
-constexpr d2::AABB GetInvalid() noexcept
-{
-    return d2::AABB{LengthInterval{GetInvalid<Length>()}, LengthInterval{GetInvalid<Length>()}};
-}
 
 } // namespace playrho
 

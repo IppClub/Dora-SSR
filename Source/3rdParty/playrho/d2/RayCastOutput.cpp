@@ -19,7 +19,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include <utility>
+#include <algorithm> // for std::min
+#include <cassert> // for assert
 
 #include "playrho/GrowableStack.hpp"
 
@@ -106,14 +107,14 @@ RayCastOutput RayCast( // NOLINT(readability-function-cognitive-complexity)
             auto s = -1; // Sign of the normal vector.
             if (t1 > t2)
             {
-                std::swap(t1, t2);
+                swap(t1, t2);
                 s = 1;
             }
             if (tmin < t1)
             {
                 normal = (i == 0)?
                     ((s < 0)? UnitVec::GetLeft(): UnitVec::GetRight()):
-                    ((s < 0)? UnitVec::GetBottom(): UnitVec::GetTop());
+                    ((s < 0)? UnitVec::GetDown(): UnitVec::GetUp());
                 tmin = t1; // Push the min up
             }
             tmax = std::min(tmax, t2); // Pull the max down
@@ -173,7 +174,7 @@ RayCastOutput RayCast(const DistanceProxy& proxy, const RayCastInput& input,
     const auto ray = transformedInput.p2 - transformedInput.p1; // Ray delta (p2 - p1)
     
     auto minT = nextafter(Real{input.maxFraction}, Real(2));
-    auto normalFound = GetInvalid<UnitVec>();
+    auto normalFound = UnitVec();
     
     for (auto i = decltype(vertexCount){0}; i < vertexCount; ++i)
     {
@@ -192,7 +193,7 @@ RayCastOutput RayCast(const DistanceProxy& proxy, const RayCastInput& input,
         {
             const auto normal = proxy.GetNormal(i);
             const auto offset = normal * radius;
-            const auto v0off = v0 + Vec2{offset[0], offset[1]};
+            const auto v0off = v0 + offset;
             const auto q_sub_p = v0off - ray0;
             const auto reciprocalRayCrossEdge = Real{1} / ray_cross_edge;
 

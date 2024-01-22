@@ -25,18 +25,27 @@
 /// @file
 /// @brief Conventional and custom math related code.
 
+#include <cassert>
 #include <cmath>
+#include <cstdint> // for std::int64_t
+#include <cstdlib> // for std::size_t
+#include <limits> // for std::numeric_limits
 #include <numeric>
 #include <type_traits> // for std::decay_t
 #include <vector>
 
+// IWYU pragma: begin_exports
+
 #include "playrho/Matrix.hpp"
 #include "playrho/NonNegative.hpp"
-#include "playrho/Settings.hpp"
+#include "playrho/Real.hpp"
 #include "playrho/Span.hpp"
-#include "playrho/UnitInterval.hpp"
+#include "playrho/Units.hpp"
+#include "playrho/Vector.hpp"
 #include "playrho/Vector2.hpp"
 #include "playrho/Vector3.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -171,18 +180,17 @@ constexpr auto AlmostZero(const T& value) -> decltype(abs(value) < std::numeric_
 }
 
 /// @brief Determines whether the given two values are "almost equal".
+/// @note A default ULP of 4 is what googletest uses in its @c kMaxUlps setting for its
+///   @c AlmostEquals function found in its @c gtest/internal/gtest-internal.h file.
+/// @see https://github.com/google/googletest/blob/main/googletest/include/gtest/internal/gtest-internal.h
 template <typename T>
-constexpr auto AlmostEqual(const T& x, const T& y, int ulp = 2)
--> std::enable_if_t<std::is_floating_point_v<T>, bool>
+constexpr auto AlmostEqual(T a, T b, int ulp = 4)
+    -> std::enable_if_t<IsArithmeticV<T>, bool>
 {
-    // From http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon :
-    //   "the machine epsilon has to be scaled to the magnitude of the values used
-    //    and multiplied by the desired precision in ULPs (units in the last place)
-    //    unless the result is subnormal".
-    // Where "subnormal" means almost zero.
-    //
-    return (abs(x - y) < (std::numeric_limits<T>::epsilon() * abs(x + y) * static_cast<T>(ulp))) ||
-           AlmostZero(x - y);
+    for (; (a != b) && (ulp > 0); --ulp) {
+        a = nextafter(a, b);
+    }
+    return a == b;
 }
 
 /// @brief Constant expression enhanced truncate function.
@@ -261,6 +269,7 @@ inline Angle GetAngle(const Vector2<T>& value)
 /// @brief Gets the square of the magnitude of the given iterable value.
 /// @note For performance, use this instead of <code>GetMagnitude(T value)</code> (if possible).
 /// @return Non-negative value from 0 to infinity, or NaN.
+/// @see GetMagnitude.
 template <typename T>
 constexpr auto GetMagnitudeSquared(const T& value) noexcept
 {
@@ -275,6 +284,7 @@ constexpr auto GetMagnitudeSquared(const T& value) noexcept
 
 /// @brief Gets the magnitude of the given value.
 /// @note Works for any type for which <code>GetMagnitudeSquared</code> also works.
+/// @see GetMagnitudeSquared.
 template <typename T>
 inline auto GetMagnitude(const T& value) noexcept(noexcept(sqrt(GetMagnitudeSquared(value))))
 -> decltype(sqrt(GetMagnitudeSquared(value)))

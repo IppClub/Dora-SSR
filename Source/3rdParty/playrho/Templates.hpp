@@ -24,22 +24,18 @@
 /// @file
 /// @brief Definitions of miscellaneous template related code.
 
+#include <cstdlib> // for std::size_t
+#include <type_traits> // for std::enable_if_t
+
+// IWYU pragma: begin_exports
+
 #include "playrho/detail/Templates.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
-/// @brief Gets an invalid value for the type.
-/// @tparam T Type to get an invalid value for.
-/// @note Specialize this function for the types which have an invalid value concept.
-/// @see IsValid.
-template <typename T>
-constexpr T GetInvalid() noexcept
-{
-    static_assert(sizeof(T) == 0, "No available specialization");
-}
-
 /// @brief Determines if the given value is valid.
-/// @see GetInvalid.
 template <typename T>
 constexpr bool IsValid(const T& value) noexcept
 {
@@ -56,43 +52,13 @@ constexpr bool IsValid(const T& value) noexcept
     return value == value; // NOLINT(misc-redundant-expression)
 }
 
-// GetInvalid template specializations.
-
-/// @brief Gets an invalid value for the float type.
-template <>
-constexpr float GetInvalid() noexcept
-{
-    return std::numeric_limits<float>::signaling_NaN();
-}
-
-/// @brief Gets an invalid value for the double type.
-template <>
-constexpr double GetInvalid() noexcept
-{
-    return std::numeric_limits<double>::signaling_NaN();
-}
-
-/// @brief Gets an invalid value for the long double type.
-template <>
-constexpr long double GetInvalid() noexcept
-{
-    return std::numeric_limits<long double>::signaling_NaN();
-}
-
-/// @brief Gets an invalid value for the std::size_t type.
-template <>
-constexpr std::size_t GetInvalid() noexcept
-{
-    return static_cast<std::size_t>(-1);
-}
-
 // IsValid template specializations.
 
 /// @brief Determines if the given value is valid.
 template <>
 constexpr bool IsValid(const std::size_t& value) noexcept
 {
-    return value != GetInvalid<std::size_t>();
+    return value != static_cast<std::size_t>(-1);
 }
 
 // Other templates.
@@ -157,7 +123,7 @@ auto end(ReversionWrapper<T> w)
 template <typename T>
 std::enable_if_t<IsReverseIterableV<T>, ReversionWrapper<T>> Reverse(T&& iterable)
 {
-    return {iterable};
+    return {std::forward<T>(iterable)};
 }
 
 /// @brief Alias for pulling the <code>max_size</code> constomization point into the
@@ -296,6 +262,28 @@ using HasUnaryFunctor = detail::HasFunctor<Type, Return(Arg)>;
 ///   up in gcc-9.
 template <typename Type, typename Check, typename DecayedType = std::decay_t<Type>>
 using DecayedTypeIfNotSame = std::enable_if_t<!std::is_same_v<DecayedType, Check>, DecayedType>;
+
+/// @brief A pre-C++20 constant expression implementation of <code>std::equal</code>.
+/// @see https://en.cppreference.com/w/cpp/algorithm/equal
+template <class InputIt1, class InputIt2>
+constexpr auto Equal(InputIt1 first1, InputIt1 last1,
+                     InputIt2 first2, InputIt2 last2)
+    -> decltype(first1 == last1, first2 == last2, ++first1, ++first2, *first1 == *first2)
+{
+    while (true) {
+        if ((first1 == last1) && (first2 == last2)) {
+            return true;
+        }
+        if ((first1 == last1) || (first2 == last2)) {
+            return false;
+        }
+        if (!(*first1 == *first2)) {
+            return false;
+        }
+        ++first1;
+        ++first2;
+    }
+}
 
 } // namespace playrho
 

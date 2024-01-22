@@ -20,13 +20,30 @@
  */
 
 #include <algorithm>
-#include <functional>
-#include <memory>
+#include <cassert>
+#include <limits>
 
 #include "playrho/to_underlying.hpp"
+#include "playrho/BodyID.hpp"
+#include "playrho/BodyType.hpp"
+#include "playrho/Math.hpp"
+#include "playrho/NonNegative.hpp"
+#include "playrho/Real.hpp"
+#include "playrho/Settings.hpp"
+#include "playrho/ShapeID.hpp"
+#include "playrho/Templates.hpp"
+#include "playrho/Units.hpp"
+#include "playrho/Vector.hpp" // for GetX, GetY
+#include "playrho/Vector2.hpp" // for Length2
 
+#include "playrho/d2/Acceleration.hpp"
 #include "playrho/d2/Body.hpp"
+#include "playrho/d2/MassData.hpp"
 #include "playrho/d2/Math.hpp"
+#include "playrho/d2/Position.hpp"
+#include "playrho/d2/Sweep.hpp"
+#include "playrho/d2/Transformation.hpp"
+#include "playrho/d2/Velocity.hpp"
 #include "playrho/d2/WorldBody.hpp"
 #include "playrho/d2/WorldShape.hpp"
 #include "playrho/d2/World.hpp"
@@ -348,9 +365,9 @@ void ResetMassData(World& world, BodyID id)
 void SetMassData(World& world, BodyID id, const MassData& massData)
 {
     auto body = GetBody(world, id);
-    if (!body.IsAccelerable()) {
+    if (!IsAccelerable(body)) {
         body.SetInvMassData(InvMass{}, InvRotInertia{});
-        if (!body.IsSpeedable()) {
+        if (!IsSpeedable(body)) {
             body.SetSweep(Sweep{Position{GetLocation(body), GetAngle(body)}});
         }
         SetBody(world, id, body);
@@ -359,7 +376,7 @@ void SetMassData(World& world, BodyID id, const MassData& massData)
     const auto mass = (massData.mass > 0_kg)? Mass{massData.mass}: 1_kg;
     const auto invMass = Real{1} / mass;
     auto invRotInertia = Real(0) / (1_m2 * 1_kg / SquareRadian);
-    if ((massData.I > RotInertia{}) && (!body.IsFixedRotation())) {
+    if ((massData.I > RotInertia{}) && (!IsFixedRotation(body))) {
         const auto lengthSquared = GetMagnitudeSquared(massData.center);
         // L^2 M QP^-2
         const auto I = RotInertia{massData.I} - RotInertia{(mass * lengthSquared) / SquareRadian};
@@ -558,8 +575,8 @@ void SetAccelerations(World& world, const LinearAcceleration2& acceleration)
 
 BodyID FindClosestBody(const World& world, const Length2& location)
 {
-    const auto bodies = GetBodies(world);
     auto found = InvalidBodyID;
+    const auto bodies = GetBodies(world);
     auto minLengthSquared = std::numeric_limits<Area>::infinity();
     for (const auto& body: bodies)
     {

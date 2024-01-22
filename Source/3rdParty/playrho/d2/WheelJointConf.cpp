@@ -19,17 +19,30 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <algorithm> // for std::clamp
+#include <type_traits> // for std::is_default_constructible_v
+
+#include "playrho/BodyID.hpp"
 #include "playrho/ConstraintSolverConf.hpp"
+#include "playrho/Math.hpp"
+#include "playrho/Real.hpp"
+#include "playrho/RealConstants.hpp" // for Pi
+#include "playrho/Span.hpp"
 #include "playrho/StepConf.hpp"
+#include "playrho/Units.hpp"
+#include "playrho/Vector2.hpp"
 
 #include "playrho/d2/BodyConstraint.hpp"
 #include "playrho/d2/Joint.hpp"
+#include "playrho/d2/JointConf.hpp"
 #include "playrho/d2/Math.hpp"
+#include "playrho/d2/Position.hpp"
+#include "playrho/d2/UnitVec.hpp"
+#include "playrho/d2/Velocity.hpp"
 #include "playrho/d2/WorldBody.hpp"
 #include "playrho/d2/WheelJointConf.hpp"
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 static_assert(std::is_default_constructible_v<WheelJointConf>,
               "WheelJointConf should be default constructible!");
@@ -345,5 +358,4 @@ bool SolvePosition(const WheelJointConf& object, const Span<BodyConstraint>& bod
     return abs(C) <= conf.linearSlop;
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

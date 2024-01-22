@@ -24,6 +24,8 @@
 /// @file
 /// @brief Definition of the @c ZeroToUnderOneChecker class template.
 
+// IWYU pragma: private, include "playrho/ZeroToUnderOne.hpp"
+
 namespace playrho::detail {
 
 /// @brief Right open unit-interval constrained value checker.

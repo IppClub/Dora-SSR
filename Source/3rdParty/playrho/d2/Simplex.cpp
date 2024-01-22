@@ -19,6 +19,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <cassert> // for assert
+
 #include "playrho/d2/Simplex.hpp"
 
 namespace playrho {

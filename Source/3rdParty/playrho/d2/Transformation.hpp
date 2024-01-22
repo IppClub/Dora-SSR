@@ -22,15 +22,18 @@
 #ifndef PLAYRHO_D2_TRANSFORMATION_HPP
 #define PLAYRHO_D2_TRANSFORMATION_HPP
 
-#include "playrho/Settings.hpp"
-#include "playrho/Vector2.hpp"
-#include "playrho/d2/UnitVec.hpp"
-
 /// @file
 /// @brief Definition of the Transformation class and free functions directly associated with it.
 
-namespace playrho {
-namespace d2 {
+// IWYU pragma: begin_exports
+
+#include "playrho/Vector2.hpp"
+
+#include "playrho/d2/UnitVec.hpp"
+
+// IWYU pragma: end_exports
+
+namespace playrho::d2 {
 
 struct BodyConf;
 
@@ -76,7 +79,9 @@ constexpr UnitVec GetDirection(const Transformation& value) noexcept
     return value.q;
 }
 
-} // namespace d2
+} // namespace playrho::d2
+
+namespace playrho {
 
 /// @brief Determines if the given value is valid.
 /// @relatedalso d2::Transformation

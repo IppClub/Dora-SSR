@@ -24,6 +24,8 @@
 /// @file
 /// @brief Definition of the @c PositiveChecker class template.
 
+// IWYU pragma: private, include "playrho/Positive.hpp"
+
 namespace playrho::detail {
 
 /// @brief Positive constrained value checker.

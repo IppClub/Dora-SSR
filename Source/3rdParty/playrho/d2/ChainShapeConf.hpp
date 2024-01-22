@@ -25,8 +25,13 @@
 /// @file
 /// @brief Definition of the @c ChainShapeConf class and closely related code.
 
+#include <cassert>
 #include <vector>
 
+// IWYU pragma: begin_exports
+
+#include "playrho/NonNegative.hpp"
+#include "playrho/Templates.hpp"
 #include "playrho/TypeInfo.hpp"
 
 #include "playrho/d2/ShapeConf.hpp"
@@ -34,6 +39,8 @@
 #include "playrho/d2/MassData.hpp"
 #include "playrho/d2/Math.hpp"
 #include "playrho/d2/AABB.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 

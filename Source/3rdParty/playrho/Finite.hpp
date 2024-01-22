@@ -24,8 +24,14 @@
 /// @file
 /// @brief Aliases for checked finite types.
 
+#include <type_traits> // for std::is_default_constructible_v
+
+// IWYU pragma: begin_exports
+
 #include "playrho/detail/Checked.hpp"
 #include "playrho/detail/FiniteChecker.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

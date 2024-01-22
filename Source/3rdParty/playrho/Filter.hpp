@@ -25,8 +25,7 @@
 /// @file
 /// @brief Declarations of the Filter class and any free functions associated with it.
 
-#include "playrho/Defines.hpp"
-#include <cstdint>
+#include <cstdint> // for std::int16_t
 
 namespace playrho {
 

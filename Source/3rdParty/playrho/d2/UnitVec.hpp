@@ -24,14 +24,23 @@
 /// @file
 /// @brief Declarations of the UnitVec class and free functions associated with it.
 
+#include <cassert> // for assert
+#include <cmath> // for std::sqrt, etc
 #include <cstdlib>
 #include <iostream>
+#include <iterator> // for std::reverse_iterator
 #include <utility>
 #include <type_traits>
 
+// IWYU pragma: begin_exports
+
 #include "playrho/InvalidArgument.hpp"
-#include "playrho/Settings.hpp"
+#include "playrho/Real.hpp"
+#include "playrho/RealConstants.hpp"
+#include "playrho/Templates.hpp" // for IsValid
 #include "playrho/Units.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -51,16 +60,16 @@ class UnitVec
 public:
     /// @brief Value type used for the coordinate values of this vector.
     using value_type = Real;
-    
+
     /// @brief Size type.
     using size_type = std::size_t;
-    
+
     /// @brief Constant reference type.
     using const_reference = const value_type&;
-    
+
     /// @brief Constant pointer type.
     using const_pointer = const value_type*;
-    
+
     /// @brief Constant iterator type.
     using const_iterator = const value_type*;
     
@@ -69,48 +78,48 @@ public:
 
     /// @brief Gets the right-ward oriented unit vector.
     /// @note This is the value for the 0/4 turned (0 angled) unit vector.
-    /// @note This is the reverse perpendicular unit vector of the bottom oriented vector.
-    /// @note This is the forward perpendicular unit vector of the top oriented vector.
+    /// @note This is the reverse perpendicular unit vector of the down oriented vector.
+    /// @note This is the forward perpendicular unit vector of the up oriented vector.
     static constexpr UnitVec GetRight() noexcept { return UnitVec{1, 0}; }
 
-    /// @brief Gets the top-ward oriented unit vector.
+    /// @brief Gets the up-ward oriented unit vector.
     /// @note This is the actual value for the 1/4 turned (90 degree angled) unit vector.
     /// @note This is the reverse perpendicular unit vector of the right oriented vector.
     /// @note This is the forward perpendicular unit vector of the left oriented vector.
-    static constexpr UnitVec GetTop() noexcept { return UnitVec{0, 1}; }
+    static constexpr UnitVec GetUp() noexcept { return UnitVec{0, 1}; }
 
     /// @brief Gets the left-ward oriented unit vector.
     /// @note This is the actual value for the 2/4 turned (180 degree angled) unit vector.
-    /// @note This is the reverse perpendicular unit vector of the top oriented vector.
-    /// @note This is the forward perpendicular unit vector of the bottom oriented vector.
+    /// @note This is the reverse perpendicular unit vector of the up oriented vector.
+    /// @note This is the forward perpendicular unit vector of the down oriented vector.
     static constexpr UnitVec GetLeft() noexcept { return UnitVec{-1, 0}; }
 
-    /// @brief Gets the bottom-ward oriented unit vector.
+    /// @brief Gets the down-ward oriented unit vector.
     /// @note This is the actual value for the 3/4 turned (270 degree angled) unit vector.
     /// @note This is the reverse perpendicular unit vector of the left oriented vector.
     /// @note This is the forward perpendicular unit vector of the right oriented vector.
-    static constexpr UnitVec GetBottom() noexcept { return UnitVec{0, -1}; }
+    static constexpr UnitVec GetDown() noexcept { return UnitVec{0, -1}; }
 
     /// @brief Gets the non-oriented unit vector.
     static constexpr UnitVec GetZero() noexcept { return UnitVec{}; }
 
     /// @brief Gets the 45 degree unit vector.
     /// @details This is the unit vector in the positive X and Y quadrant where X == Y.
-    static constexpr UnitVec GetTopRight() noexcept
+    static constexpr UnitVec GetUpRight() noexcept
     {
         // Note that 1/sqrt(2) == sqrt(2)/(sqrt(2)*sqrt(2)) == sqrt(2)/2
         return UnitVec{+SquareRootTwo/Real(2), +SquareRootTwo/Real(2)};
     }
-    
+
     /// @brief Gets the -45 degree unit vector.
     /// @details This is the unit vector in the positive X and negative Y quadrant
     ///   where |X| == |Y|.
-    static constexpr UnitVec GetBottomRight() noexcept
+    static constexpr UnitVec GetDownRight() noexcept
     {
         // Note that 1/sqrt(2) == sqrt(2)/(sqrt(2)*sqrt(2)) == sqrt(2)/2
         return UnitVec{+SquareRootTwo/Real(2), -SquareRootTwo/Real(2)};
     }
-    
+
     /// @brief Gets the default fallback.
     static constexpr UnitVec GetDefaultFallback() noexcept { return UnitVec{}; }
 
@@ -134,8 +143,8 @@ public:
         switch (xBits | yBits) {
         case Right: return std::make_pair(GetRight(), x);
         case Left: return std::make_pair(GetLeft(), -x);
-        case Up: return std::make_pair(GetTop(), y);
-        case Down: return std::make_pair(GetBottom(), -y);
+        case Up: return std::make_pair(GetUp(), y);
+        case Down: return std::make_pair(GetDown(), -y);
         case None: return std::make_pair(fallback, T{});
         case NaN: return std::make_pair(fallback, T{});
         default: break;
@@ -150,7 +159,7 @@ public:
             const auto invMagnitude = Real{1} / magnitude;
             return {UnitVec{value_type{x * invMagnitude}, value_type{y * invMagnitude}}, magnitude};
         }
-        
+
         // Finally, try the more accurate and robust way...
         const auto magnitude = hypot(x, y);
         return std::make_pair(UnitVec{x / magnitude, y / magnitude}, magnitude);
@@ -159,60 +168,60 @@ public:
     /// @brief Gets the given angled unit vector.
     /// @note For angles that are meant to be at exact multiples of the quarter turn,
     ///   better accuracy will be had by using one of the four oriented unit
-    ///   vector returning methods - for the right, top, left, bottom orientations.
+    ///   vector returning methods - for the right, up, left, down orientations.
     static UnitVec Get(Angle angle) noexcept;
 
     /// @brief Default constructor.
     /// @details Constructs a non-oriented unit vector.
     /// @post <code>GetX()</code> and <code>GetY()</code> return zero.
     constexpr UnitVec() noexcept = default;
-    
+
     /// @brief Gets the max size.
     static constexpr size_type max_size() noexcept { return N; }
-    
+
     /// @brief Gets the size.
     static constexpr size_type size() noexcept { return N; }
-    
+
     /// @brief Whether empty.
     /// @note Always false for N > 0.
     static constexpr bool empty() noexcept { return false; }
-    
+
     /// @brief Gets a "begin" iterator.
     const_iterator begin() const noexcept { return const_iterator(data()); }
-    
+
     /// @brief Gets an "end" iterator.
     const_iterator end() const noexcept { return const_iterator(data() + N); }
-    
+
     /// @brief Gets a "begin" iterator.
     const_iterator cbegin() const noexcept { return begin(); }
-    
+
     /// @brief Gets an "end" iterator.
     const_iterator cend() const noexcept { return end(); }
-    
+
     /// @brief Gets a reverse "begin" iterator.
     const_reverse_iterator crbegin() const noexcept
     {
         return const_reverse_iterator{data() + N};
     }
-    
+
     /// @brief Gets a reverse "end" iterator.
     const_reverse_iterator crend() const noexcept
     {
         return const_reverse_iterator{data()};
     }
-    
+
     /// @brief Gets a reverse "begin" iterator.
     const_reverse_iterator rbegin() const noexcept
     {
         return crbegin();
     }
-    
+
     /// @brief Gets a reverse "end" iterator.
     const_reverse_iterator rend() const noexcept
     {
         return crend();
     }
-    
+
     /// @brief Gets a constant reference to the requested element.
     /// @note No bounds checking is performed.
     /// @param pos Valid element index to get value for.
@@ -222,7 +231,7 @@ public:
         assert(pos < size());
         return m_elems[pos]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
-    
+
     /// @brief Gets a constant reference to the requested element.
     /// @throws InvalidArgument if given a position that's >= size().
     constexpr const_reference at(size_type pos) const
@@ -233,20 +242,20 @@ public:
         }
         return m_elems[pos]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
-    
+
     /// @brief Direct access to data.
     constexpr const_pointer data() const noexcept
     {
         // Cast to be more explicit about wanting to decay array into pointer...
         return static_cast<const_pointer>(m_elems);
     }
-    
+
     /// @brief Gets the "X" value.
     constexpr auto GetX() const noexcept { return m_elems[0]; }
 
     /// @brief Gets the "Y" value.
     constexpr auto GetY() const noexcept { return m_elems[1]; }
-    
+
     /// @brief Flips the X and Y values.
     constexpr UnitVec FlipXY() const noexcept { return UnitVec{-GetX(), -GetY()}; }
 
@@ -415,9 +424,6 @@ inline ::std::ostream& operator<<(::std::ostream& os, const UnitVec& value)
 }
 
 } // namespace d2
-
-/// @brief Gets an invalid value for the <code>UnitVec</code> type.
-template <> constexpr d2::UnitVec GetInvalid() noexcept { return d2::UnitVec{}; }
 
 /// @brief Determines if the given value is valid.
 template <> constexpr bool IsValid(const d2::UnitVec& value) noexcept

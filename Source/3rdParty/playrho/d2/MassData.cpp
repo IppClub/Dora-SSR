@@ -19,16 +19,23 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <cassert>
+
+#include "playrho/Math.hpp"
+#include "playrho/NonNegative.hpp"
+#include "playrho/Real.hpp"
+#include "playrho/RealConstants.hpp"
+#include "playrho/Span.hpp"
+#include "playrho/Templates.hpp"
+#include "playrho/Units.hpp"
+#include "playrho/Vector.hpp"
+#include "playrho/Vector2.hpp"
+
 #include "playrho/d2/MassData.hpp"
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/UnitVec.hpp"
 
-#include "playrho/d2/Shape.hpp"
-#include "playrho/d2/EdgeShapeConf.hpp"
-#include "playrho/d2/PolygonShapeConf.hpp"
-#include "playrho/d2/ChainShapeConf.hpp"
-#include "playrho/d2/DiskShapeConf.hpp"
-
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 MassData GetMassData(Length r, NonNegative<AreaDensity> density, const Length2& location)
 {
@@ -182,5 +189,4 @@ MassData GetMassData(Length vertexRadius, NonNegative<AreaDensity> density,
     return MassData{massDataCenter, mass, massDataI};
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

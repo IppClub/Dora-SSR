@@ -24,8 +24,13 @@
 /// @file
 /// @brief Definition of the @c ContactID alias and closely related code.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/detail/IndexingNamedType.hpp"
+
 #include "playrho/Settings.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -36,18 +41,11 @@ using ContactID = detail::IndexingNamedType<ContactCounter, struct ContactIdenti
 constexpr auto InvalidContactID =
     static_cast<ContactID>(static_cast<ContactID::underlying_type>(-1));
 
-/// @brief Gets an invalid value for the ContactID type.
-template <>
-constexpr ContactID GetInvalid() noexcept
-{
-    return InvalidContactID;
-}
-
 /// @brief Determines if the given value is valid.
 template <>
 constexpr bool IsValid(const ContactID& value) noexcept
 {
-    return value != GetInvalid<ContactID>();
+    return value != InvalidContactID;
 }
 
 } // namespace playrho

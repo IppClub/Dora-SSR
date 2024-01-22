@@ -22,8 +22,12 @@
 #ifndef PLAYRHO_D2_TIMEOFIMPACT_HPP
 #define PLAYRHO_D2_TIMEOFIMPACT_HPP
 
+// IWYU pragma: begin_exports
+
 #include "playrho/ToiConf.hpp"
 #include "playrho/ToiOutput.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 

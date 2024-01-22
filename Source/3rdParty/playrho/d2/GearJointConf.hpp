@@ -27,12 +27,16 @@
 
 #include <variant>
 
+// IWYU pragma: begin_exports
+
 #include "playrho/JointID.hpp"
 #include "playrho/Span.hpp"
 #include "playrho/TypeInfo.hpp"
 
 #include "playrho/d2/JointConf.hpp"
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -189,6 +193,7 @@ constexpr bool operator!=(const GearJointConf& lhs, const GearJointConf& rhs) no
 GearJointConf GetGearJointConf(const Joint& joint);
 
 /// @brief Gets the configuration for the given parameters.
+/// @throws std::out_of_range If given an invalid joint identifier.
 /// @relatedalso World
 GearJointConf GetGearJointConf(const World& world, JointID id1, JointID id2, Real ratio = Real{1});
 

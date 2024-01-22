@@ -25,18 +25,32 @@
 /// @file
 /// @brief Definition of the @c PolygonShapeConf class and closely related code.
 
+#include <cassert> // for assert
 #include <type_traits>
 #include <vector>
 
+// IWYU pragma: begin_exports
+
+#include "playrho/InvalidArgument.hpp"
+#include "playrho/Matrix.hpp" // for Mat22
+#include "playrho/NonNegative.hpp"
+#include "playrho/Settings.hpp"
 #include "playrho/Span.hpp"
-#include "playrho/TypeInfo.hpp"
+#include "playrho/Units.hpp"
+#include "playrho/Vector2.hpp"
+
+#include "playrho/detail/Templates.hpp"
+#include "playrho/detail/TypeInfo.hpp"
 
 #include "playrho/d2/DistanceProxy.hpp"
 #include "playrho/d2/MassData.hpp"
-#include "playrho/d2/Math.hpp"
 #include "playrho/d2/NgonWithFwdNormals.hpp"
 #include "playrho/d2/ShapeConf.hpp"
+#include "playrho/d2/Transformation.hpp"
+#include "playrho/d2/UnitVec.hpp"
 #include "playrho/d2/VertexSet.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 
@@ -201,6 +215,11 @@ struct PolygonShapeConf : public ShapeBuilder<PolygonShapeConf>
     /// @brief N-gon data.
     NgonWithFwdNormals<> ngon;
 };
+
+// Assert some expected traits...
+static_assert(std::is_default_constructible_v<PolygonShapeConf>);
+static_assert(std::is_nothrow_default_constructible_v<PolygonShapeConf>);
+static_assert(std::is_copy_constructible_v<PolygonShapeConf>);
 
 inline PolygonShapeConf& PolygonShapeConf::UseVertexRadius(NonNegative<Length> value) noexcept
 {

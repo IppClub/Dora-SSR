@@ -28,15 +28,15 @@
 
 namespace playrho {
 
-    /// @brief Wrong state logic error.
-    /// @details Indicates that a function was called with an object in the wrong
-    ///   state for its operation.
-    /// @ingroup ExceptionsGroup
-    class WrongState: public std::logic_error
-    {
-    public:
-        using std::logic_error::logic_error;
-    };
+/// @brief Wrong state logic error.
+/// @details Indicates that a function was called with an object in the wrong
+///   state for its operation.
+/// @ingroup ExceptionsGroup
+class WrongState: public std::logic_error
+{
+public:
+    using std::logic_error::logic_error;
+};
 
 } // namespace playrho
 

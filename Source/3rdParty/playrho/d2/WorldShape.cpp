@@ -18,16 +18,30 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <algorithm> // for std::for_each
 #include <set>
 
+#include "playrho/BodyID.hpp"
 #include "playrho/Contact.hpp" // for MixFriction
+#include "playrho/NonNegative.hpp"
+#include "playrho/Real.hpp"
+#include "playrho/Settings.hpp"
+#include "playrho/ShapeID.hpp"
+#include "playrho/Span.hpp"
+#include "playrho/Templates.hpp"
+#include "playrho/TypeInfo.hpp" // for TypeID
+#include "playrho/Units.hpp"
+#include "playrho/Vector2.hpp"
 
+#include "playrho/d2/MassData.hpp"
+#include "playrho/d2/Math.hpp" // for InverseTransform
+#include "playrho/d2/Shape.hpp"
+#include "playrho/d2/UnitVec.hpp"
 #include "playrho/d2/World.hpp"
 #include "playrho/d2/WorldBody.hpp"
 #include "playrho/d2/WorldShape.hpp"
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 using playrho::size;
 
@@ -176,5 +190,4 @@ Real GetDefaultRestitution(const Shape& a, const Shape& b)
     return MixRestitution(GetRestitution(a), GetRestitution(b));
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

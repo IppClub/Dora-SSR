@@ -38,18 +38,29 @@
 /// @see World, ContactID.
 /// @see https://en.wikipedia.org/wiki/Create,_read,_update_and_delete.
 
+#include <map>
 #include <optional>
-#include <vector>
+#include <utility> // for std::pair
+
+// IWYU pragma: begin_exports
 
 #include "playrho/BodyID.hpp"
 #include "playrho/ContactID.hpp"
 #include "playrho/KeyedContactID.hpp"
 #include "playrho/NonNegative.hpp"
+#include "playrho/Real.hpp"
 #include "playrho/Settings.hpp"
 #include "playrho/ShapeID.hpp"
 #include "playrho/UnitInterval.hpp"
+#include "playrho/Units.hpp"
 
 #include "playrho/d2/WorldManifold.hpp"
+
+// IWYU pragma: end_exports
+
+namespace playrho {
+struct Contactable;
+}
 
 namespace playrho::d2 {
 
@@ -174,7 +185,6 @@ Real GetRestitution(const World& world, ContactID id);
 /// @param world The world in which the contact is identified in.
 /// @param id Identifier of the contact whose friction value should be set.
 /// @param friction Co-efficient of friction value of zero or greater.
-/// @pre @p friction must be greater-than or equal-to zero.
 /// @post <code>GetFriction(world, id)</code> returns the value set.
 /// @throws std::out_of_range If given an invalid contact identifier.
 /// @see GetFriction(const World&, ContactID).
@@ -235,6 +245,10 @@ void SetEnabled(World& world, ContactID id);
 void UnsetEnabled(World& world, ContactID id);
 
 /// @brief Gets the touching count for the given world.
+/// @details Basically a convenience function for iterating over all contact identifiers
+///   returned from <code>GetContacts(const World&)</code> for the given world and counting
+///   for how many <code>IsTouching(const World&, ContactID)</code> returns true.
+/// @see GetContacts(const World&), IsTouching(const World&, ContactID).
 /// @relatedalso World
 ContactCounter GetTouchingCount(const World& world);
 
@@ -252,6 +266,15 @@ inline void SetEnabled(World& world, ContactID id, bool value)
         UnsetEnabled(world, id);
     }
 }
+
+/// @brief Makes a map of contacts in the given world that are in the touching state.
+/// @relatedalso World
+auto MakeTouchingMap(const World &world)
+    -> std::map<std::pair<Contactable, Contactable>, ContactID>;
+
+/// @brief Determines whether the given worlds have the same touching contacts & manifolds.
+/// @relatedalso World
+auto SameTouching(const World& lhs, const World& rhs) -> bool;
 
 } // namespace playrho::d2
 

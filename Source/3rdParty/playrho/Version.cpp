@@ -19,15 +19,13 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <sstream> // for std::stringstream
+#include <string>
+
 #include "playrho/Version.hpp"
 #include "playrho/TypeInfo.hpp" // for GetTypeName
 #include "playrho/Real.hpp"
 #include "playrho/Defines.hpp" // for PLAYRHO_VERSION_*
-
-#include <cstdio>
-#include <cstdarg>
-#include <cstdlib>
-#include <sstream> // for std::stringstream
 
 namespace playrho {
 

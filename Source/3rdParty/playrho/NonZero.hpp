@@ -24,8 +24,14 @@
 /// @file
 /// @brief Definition of the @c NonZero value checked types.
 
+#include <type_traits> // for std::is_default_constructible_v, std::enable_if_t
+
+// IWYU pragma: begin_exports
+
 #include "playrho/detail/Checked.hpp"
 #include "playrho/detail/NonZeroChecker.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

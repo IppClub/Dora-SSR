@@ -45,7 +45,7 @@ bool Body::init() {
 	if (!Node::init()) return false;
 	_prBody = pd::CreateBody(_pWorld->getPrWorld(), *_bodyDef->getConf());
 	_pWorld->setBodyData(_prBody, this);
-	Node::setPosition(PhysicsWorld::Val(_bodyDef->getConf()->location));
+	Node::setPosition(PhysicsWorld::Val(pd::GetLocation(*_bodyDef->getConf())));
 	for (BodyDef::FixtureConf& fixtureConf : _bodyDef->getFixtureConfs()) {
 		if (pd::IsSensor(fixtureConf.shape)) {
 			Body::attachSensor(fixtureConf.tag, fixtureConf.shape);

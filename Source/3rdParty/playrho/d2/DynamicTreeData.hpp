@@ -24,8 +24,12 @@
 /// @file
 /// @brief Definitions of @c DynamicTree related classes.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/Contactable.hpp"
 #include "playrho/Settings.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

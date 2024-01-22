@@ -25,6 +25,8 @@
 /// @file
 /// @brief Basic API include file to pull in at once most headers used.
 
+// IWYU pragma: begin_exports
+
 // For purists, just include this first file.
 #include "playrho/d2/World.hpp"
 
@@ -43,6 +45,7 @@
 #include "playrho/d2/EdgeShapeConf.hpp"
 #include "playrho/d2/MultiShapeConf.hpp"
 #include "playrho/d2/PolygonShapeConf.hpp"
+#include "playrho/d2/Transformation.hpp"
 #include "playrho/d2/part/Compositor.hpp"
 
 // For any and all joint configurations, add one or more of the following.
@@ -57,5 +60,7 @@
 #include "playrho/d2/RopeJointConf.hpp"
 #include "playrho/d2/WeldJointConf.hpp"
 #include "playrho/d2/WheelJointConf.hpp"
+
+// IWYU pragma: end_exports
 
 #endif // PLAYRHO_D2_BASICAPI_HPP

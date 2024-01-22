@@ -123,6 +123,7 @@ const Editor = memo((props: {
 			theme="dora-dark"
 			defaultValue={file.content}
 			onMount={onMount}
+			keepCurrentModel
 			loading={editorBackground}
 			onChange={(content: string | undefined) => {
 				if (content === undefined) return;
@@ -581,6 +582,9 @@ export default function PersistentDrawerLeft() {
 							break;
 						}
 						setFiles(prev => {
+							if (prev.find(file => file.key === key) !== undefined) {
+								return prev;
+							}
 							const index = prev.length;
 							const newFile: EditingFile = {
 								key,
@@ -601,6 +605,9 @@ export default function PersistentDrawerLeft() {
 					case ".jpg":
 					case ".skel": {
 						setFiles(prev => {
+							if (prev.find(file => file.key === key) !== undefined) {
+								return prev;
+							}
 							const index = prev.length;
 							const newFile: EditingFile = {
 								key,
@@ -632,6 +639,9 @@ export default function PersistentDrawerLeft() {
 							if (res.success && res.content !== undefined) {
 								const content = res.content;
 								setFiles(prev => {
+									if (prev.find(file => file.key === key) !== undefined) {
+										return prev;
+									}
 									const index = prev.length;
 									const newFile: EditingFile = {
 										key,
@@ -860,33 +870,39 @@ export default function PersistentDrawerLeft() {
 		});
 	}, [t, assetPath]);
 
-	const closeCurrentTab = () => {
-		if (tabIndex !== null) {
-			const closeTab = () => {
-				setFiles(prev => {
-					const newFiles = prev.filter((_, index) => index !== tabIndex);
-					if (newFiles.length === 0) {
-						switchTab(null);
-					} else if (tabIndex > 0) {
-						switchTab(tabIndex - 1, newFiles[tabIndex - 1]);
-					} else {
-						switchTab(tabIndex, newFiles[tabIndex]);
+	const closeCurrentTab = useCallback(() => {
+		setTabIndex(tabIndex => {
+			if (tabIndex !== null) {
+				const closeTab = () => {
+					setFiles(prev => {
+						const newFiles = prev.filter((_, index) => index !== tabIndex);
+						if (newFiles.length === 0) {
+							switchTab(null);
+						} else if (tabIndex > 0) {
+							switchTab(tabIndex - 1, newFiles[tabIndex - 1]);
+						} else {
+							switchTab(tabIndex, newFiles[tabIndex]);
+						}
+						return newFiles;
+					});
+				};
+				setFiles(files => {
+					if (files[tabIndex].contentModified !== null) {
+						setPopupInfo({
+							title: t("popup.closingTab"),
+							msg: t("popup.closingNoSave"),
+							cancelable: true,
+							confirmed: closeTab,
+						});
+						return files;
 					}
-					return newFiles;
+					setTimeout(closeTab, 10);
+					return files;
 				});
-			};
-			if (files[tabIndex].contentModified !== null) {
-				setPopupInfo({
-					title: t("popup.closingTab"),
-					msg: t("popup.closingNoSave"),
-					cancelable: true,
-					confirmed: closeTab,
-				});
-				return;
 			}
-			closeTab();
-		}
-	};
+			return tabIndex;
+		});
+	}, [switchTab, t]);
 
 	const closeAllTabs = () => {
 		const closeTabs = () => {

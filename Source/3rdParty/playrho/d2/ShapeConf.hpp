@@ -25,11 +25,15 @@
 /// @file
 /// @brief Definition of the @c BaseShapeConf class and closely related code.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/Filter.hpp"
 #include "playrho/Finite.hpp"
 #include "playrho/NonNegative.hpp"
-#include "playrho/Settings.hpp"
+#include "playrho/Real.hpp"
 #include "playrho/Units.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 
@@ -53,27 +57,21 @@ struct BaseShapeConf {
     static constexpr auto DefaultIsSensor = false;
 
     /// @brief Friction coefficient.
-    ///
     /// @note This must be a value between 0 and +infinity. It is safer however to
     ///   keep the value below the square root of the max value of a Real.
     /// @note This is usually in the range [0,1].
     /// @note The square-root of the product of this value multiplied by a touching
     ///   fixture's friction becomes the friction coefficient for the contact.
-    ///
     NonNegative<Real> friction = DefaultFriction;
 
     /// @brief Restitution (elasticity) of the associated shape.
-    ///
     /// @note This should be a valid finite value.
     /// @note This is usually in the range [0,1].
-    ///
     Finite<Real> restitution = DefaultRestitution;
 
     /// @brief Area density of the associated shape.
-    ///
     /// @note This must be a non-negative value.
     /// @note Use 0 to indicate that the shape's associated mass should be 0.
-    ///
     NonNegative<AreaDensity> density = DefaultDensity;
 
     /// Filtering data for contacts.

@@ -19,17 +19,24 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/AABB.hpp"
-#include "playrho/d2/RayCastInput.hpp"
-#include "playrho/d2/DistanceProxy.hpp"
-#include "playrho/d2/Shape.hpp"
+#include <cassert> // for assert
+
+#include "playrho/BodyID.hpp"
 #include "playrho/Contact.hpp"
+#include "playrho/Settings.hpp" // for ChildCounter
+#include "playrho/ShapeID.hpp"
+#include "playrho/Templates.hpp" // for IsValid
+
+#include "playrho/d2/AABB.hpp"
+#include "playrho/d2/DistanceProxy.hpp"
+#include "playrho/d2/Math.hpp"
+#include "playrho/d2/RayCastInput.hpp"
+#include "playrho/d2/Shape.hpp"
 #include "playrho/d2/World.hpp"
 #include "playrho/d2/WorldBody.hpp"
 #include "playrho/d2/WorldShape.hpp"
 
-namespace playrho {
-namespace d2 {
+namespace playrho::d2 {
 
 AABB ComputeAABB(const DistanceProxy& proxy, const Transformation& xf) noexcept
 {
@@ -104,5 +111,4 @@ AABB GetAABB(const RayCastInput& input) noexcept
     return AABB{input.p1, input.p1 + fractDelta};
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2

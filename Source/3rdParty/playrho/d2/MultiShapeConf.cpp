@@ -27,7 +27,7 @@
 
 namespace playrho::d2 {
 
-static_assert(IsValidShapeTypeV<MultiShapeConf>);
+static_assert(detail::IsValidShapeTypeV<MultiShapeConf>);
 
 /// Computes the mass properties of this shape using its dimensions and density.
 /// The inertia tensor is computed about the local origin.

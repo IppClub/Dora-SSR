@@ -56,7 +56,7 @@ std::size_t FindLowestRightMostVertex(Span<const Length2> vertices) noexcept
         }
         return i0;
     }
-    return GetInvalid<std::size_t>();
+    return static_cast<std::size_t>(-1);
 }
 
 std::vector<Length2> GetConvexHullAsVector(Span<const Length2> vertices)
@@ -65,7 +65,7 @@ std::vector<Length2> GetConvexHullAsVector(Span<const Length2> vertices)
     // Create the convex hull using the Gift wrapping algorithm
     // http://en.wikipedia.org/wiki/Gift_wrapping_algorithm
     const auto index0 = FindLowestRightMostVertex(vertices);
-    if (index0 != GetInvalid<std::size_t>())
+    if (index0 != static_cast<std::size_t>(-1))
     {
         const auto numVertices = size(vertices);
         auto hull = std::vector<decltype(size(vertices))>();

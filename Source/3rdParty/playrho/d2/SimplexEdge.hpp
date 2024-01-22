@@ -25,11 +25,14 @@
 /// @file
 /// @brief Definition of the @c SimplexEdge class and closely related code.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/d2/IndexPair.hpp"
 #include "playrho/d2/Math.hpp"
 
-namespace playrho {
-namespace d2 {
+// IWYU pragma: end_exports
+
+namespace playrho::d2 {
 
 /// @brief Simplex edge.
 /// @details This is the locations (in world coordinates) and indices of a pair of vertices
@@ -97,7 +100,6 @@ constexpr bool operator!= (const SimplexEdge& lhs, const SimplexEdge& rhs) noexc
     return !(lhs == rhs);
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_SIMPLEXEDGE_HPP

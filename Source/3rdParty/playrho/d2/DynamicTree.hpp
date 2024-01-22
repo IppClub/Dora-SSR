@@ -25,6 +25,12 @@
 /// @file
 /// @brief Declaration of the <code>DynamicTree</code> class.
 
+#include <cassert> // for assert
+#include <cstddef> // for std::size_t
+#include <functional> // for std::function
+
+// IWYU pragma: begin_exports
+
 #include "playrho/d2/AABB.hpp"
 #include "playrho/d2/DynamicTreeData.hpp"
 #include "playrho/ShapeID.hpp"
@@ -32,7 +38,7 @@
 #include "playrho/Vector2.hpp"
 #include "playrho/BodyID.hpp"
 
-#include <cassert> // for assert
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 
@@ -561,6 +567,12 @@ inline Contactable DynamicTree::GetLeafData(Size index) const noexcept
 
 // Free functions...
 
+/// @brief Finds index of node matching given contactble using a linear search.
+/// @return Node index or <code>DynamicTree::GetInvalidSize()</code>.
+/// @see DynamicTree::GetInvalidSize().
+/// @relatedalso DynamicTree
+auto FindIndex(const DynamicTree &tree, const Contactable &c) noexcept -> DynamicTree::Size;
+
 /// @brief Replaces the old child with the new child.
 /// @pre Either @c bd.child1 or @c bd.child2 is equal to @c oldChild .
 constexpr DynamicTreeBranchData ReplaceChild(DynamicTreeBranchData bd, DynamicTree::Size oldChild,
@@ -636,7 +648,8 @@ inline AABB GetAABB(const DynamicTree& tree) noexcept
 
 /// @brief Tests for overlap of the elements identified in the given dynamic tree.
 /// @relatedalso DynamicTree
-inline bool TestOverlap(const DynamicTree& tree, DynamicTree::Size leafIdA,
+inline bool TestOverlap(const DynamicTree& tree,
+                        DynamicTree::Size leafIdA,
                         DynamicTree::Size leafIdB) noexcept
 {
     return TestOverlap(tree.GetAABB(leafIdA), tree.GetAABB(leafIdB));

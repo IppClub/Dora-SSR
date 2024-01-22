@@ -20,6 +20,7 @@
  */
 
 #include <algorithm>
+#include <cassert> // for assert
 #include <optional>
 
 #include "playrho/ConstraintSolverConf.hpp"

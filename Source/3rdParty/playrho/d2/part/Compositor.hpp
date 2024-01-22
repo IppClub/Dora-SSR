@@ -22,6 +22,9 @@
 #define PLAYRHO_D2_PART_COMPOSITOR_HPP
 
 #include <array>
+#include <type_traits> // for std::enable_if_t
+
+// IWYU pragma: begin_exports
 
 #include "playrho/Units.hpp"
 #include "playrho/InvalidArgument.hpp"
@@ -35,7 +38,37 @@
 #include "playrho/d2/MassData.hpp"
 #include "playrho/d2/Math.hpp"
 
+// IWYU pragma: end_exports
+
 namespace playrho::d2::part {
+
+namespace detail {
+
+/// @brief Member rotate return type.
+template <class T>
+using MemberRotateReturnType = decltype(std::declval<T&>().Rotate(UnitVec{}));
+
+/// @brief Helper variable template on whether <code>Rotate(T&, Angle)</code> is found.
+template <class T>
+inline constexpr bool HasMemberRotateV = playrho::detail::is_detected_v<MemberRotateReturnType, T>;
+
+/// @brief Member scale return type.
+template <class T>
+using MemberScaleReturnType = decltype(std::declval<T&>().Scale(Vec2{}));
+
+/// @brief Helper variable template on whether <code>Scale(T&, Vec2)</code> is found.
+template <class T>
+inline constexpr bool HasMemberScaleV = playrho::detail::is_detected_v<MemberScaleReturnType, T>;
+
+/// @brief Member translate return type.
+template <class T>
+using MemberTranslateReturnType = decltype(std::declval<T&>().Translate(Length2{}));
+
+/// @brief Helper variable template on whether <code>Scale(T&, Vec2)</code> is found.
+template <class T>
+inline constexpr bool HasMemberTranslateV = playrho::detail::is_detected_v<MemberTranslateReturnType, T>;
+
+}
 
 /// @brief "Discriminator" for named template arguments.
 /// @note "[This allows] the various setter types to be identical. (You cannot have multiple direct
@@ -82,7 +115,7 @@ class StaticRectangle
 
     /// @brief Normals of the rectangle.
     static constexpr auto normals = std::array<UnitVec, 4u>{
-        UnitVec::GetRight(), UnitVec::GetTop(), UnitVec::GetLeft(), UnitVec::GetBottom()};
+        UnitVec::GetRight(), UnitVec::GetUp(), UnitVec::GetLeft(), UnitVec::GetDown()};
 
     /// @brief Vertices of the rectangle.
     static constexpr auto vertices =
@@ -204,7 +237,7 @@ class DynamicRectangle
 
     /// @brief Normals of the rectangle.
     static constexpr auto normals = std::array<UnitVec, 4u>{
-        UnitVec::GetRight(), UnitVec::GetTop(), UnitVec::GetLeft(), UnitVec::GetBottom()};
+        UnitVec::GetRight(), UnitVec::GetUp(), UnitVec::GetLeft(), UnitVec::GetDown()};
 
     /// @brief Vertices of the rectangle.
     std::array<Length2, 4u> vertices =
@@ -760,38 +793,80 @@ auto GetMassData(const Compositor<P1, P2, P3, P4, P5, P6>& arg) noexcept
 /// @note By way of SFINAE, this function is only available from overload resolution for objects
 /// having a member function of this same name and accepting the given value.
 /// @relatedalso Compositor
-template <class P1, class P2, class P3, class P4, class P5, class P6, std::size_t N>
-auto Translate(Compositor<P1, P2, P3, P4, P5, P6>& arg, const Vector<Length, N>& value)
-    -> decltype(arg.Translate(value))
+template <class P1, class P2, class P3, class P4, class P5, class P6>
+auto Translate(Compositor<P1, P2, P3, P4, P5, P6>& arg, const Length2& value)
+    -> std::enable_if_t<detail::HasMemberTranslateV<decltype(arg)>, void>
 {
     return arg.Translate(value);
 }
 
+/// @brief No-op translation function.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+///   not having a member function of this same name and accepting the given value.
+/// @throw InvalidArgument if value not zero.
+/// @relatedalso Compositor
+template <class P1, class P2, class P3, class P4, class P5, class P6>
+auto Translate(Compositor<P1, P2, P3, P4, P5, P6>& arg, const Length2& value)
+    -> std::enable_if_t<!detail::HasMemberTranslateV<decltype(arg)>, void>
+{
+    if (Length2{} != value) {
+        throw InvalidArgument("Translate non-zero amount not supported");
+    }
+}
+
 /// @brief Scales the given compositor's vertices by the given value.
 /// @note By way of SFINAE, this function is only available from overload resolution for objects
-/// having a member function of this same name and accepting the given value.
+///   having a member function of this same name and accepting the given value.
 /// @relatedalso Compositor
-template <class P1, class P2, class P3, class P4, class P5, class P6, std::size_t N>
-auto Scale(Compositor<P1, P2, P3, P4, P5, P6>& arg, const Vector<Real, N>& value)
-    -> decltype(arg.Scale(value))
+template <class P1, class P2, class P3, class P4, class P5, class P6>
+auto Scale(Compositor<P1, P2, P3, P4, P5, P6>& arg, const Vec2& value)
+    -> std::enable_if_t<detail::HasMemberScaleV<decltype(arg)>, void>
 {
-    return arg.Scale(value);
+    arg.Scale(value);
+}
+
+/// @brief No-op scale function.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+///   not having a member function of this same name and accepting the given value.
+/// @throw InvalidArgument if value not the identity vector.
+/// @relatedalso Compositor
+template <class P1, class P2, class P3, class P4, class P5, class P6>
+auto Scale(Compositor<P1, P2, P3, P4, P5, P6>& arg, const Vec2& value)
+    -> std::enable_if_t<!detail::HasMemberScaleV<decltype(arg)>, void>
+{
+    if (Vec2{Real(1), Real(1)} != value) {
+        throw InvalidArgument("Scale non-identity amount not supported");
+    }
 }
 
 /// @brief Rotates the given compositor's vertices by the given value.
 /// @note By way of SFINAE, this function is only available from overload resolution for objects
-/// having a member function of this same name and accepting the given value.
+///   having a member function of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto Rotate(Compositor<P1, P2, P3, P4, P5, P6>& arg, ::playrho::d2::UnitVec value)
-    -> decltype(arg.Rotate(value))
+    -> std::enable_if_t<detail::HasMemberRotateV<decltype(arg)>, void>
 {
-    return arg.Rotate(value);
+    arg.Rotate(value);
+}
+
+/// @brief No-op rotate function.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+///   not having a member function of this same name and accepting the given value.
+/// @throw InvalidArgument if value not the right direction.
+/// @relatedalso Compositor
+template <class P1, class P2, class P3, class P4, class P5, class P6>
+auto Rotate(Compositor<P1, P2, P3, P4, P5, P6>& arg, ::playrho::d2::UnitVec value)
+    -> std::enable_if_t<!detail::HasMemberRotateV<decltype(arg)>, void>
+{
+    if (UnitVec::GetRight() != value) {
+        throw InvalidArgument("Rotate non-zero amount not supported");
+    }
 }
 
 /// @brief Gets the vertex radius of the given shape configuration.
 /// @note By way of SFINAE, this function is only available from overload resolution for objects
-/// having a member function of this same name and accepting the given index and value.
+///   having a member function of this same name and accepting the given index and value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto SetVertexRadius(Compositor<P1, P2, P3, P4, P5, P6>& arg, ChildCounter index,
@@ -812,9 +887,23 @@ auto SetDensity(Compositor<P1, P2, P3, P4, P5, P6>& arg, NonNegative<AreaDensity
     arg.density = value;
 }
 
+/// @brief No-op density setter.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+///   not having a member variable of this same name and accepting the given value.
+/// @throw InvalidArgument if value different from existing.
+/// @relatedalso Compositor
+template <class P1, class P2, class P3, class P4, class P5, class P6>
+auto SetDensity(Compositor<P1, P2, P3, P4, P5, P6>& arg, NonNegative<AreaDensity> value)
+    -> std::enable_if_t<std::is_const_v<decltype(arg.density)>, void>
+{
+    if (GetDensity(arg) != value) {
+        throw InvalidArgument("SetDensity to non-equivalent value not supported");
+    }
+}
+
 /// @brief Filter setter.
 /// @note By way of SFINAE, this function is only available from overload resolution for objects
-/// having a member variable of this same name and accepting the given value.
+///   having a member variable of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto SetFilter(Compositor<P1, P2, P3, P4, P5, P6>& arg, Filter value)
@@ -823,9 +912,23 @@ auto SetFilter(Compositor<P1, P2, P3, P4, P5, P6>& arg, Filter value)
     arg.filter = value;
 }
 
+/// @brief No-op filter setter.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+///   having a member variable of this same name and accepting the given value.
+/// @throw InvalidArgument if value different from existing.
+/// @relatedalso Compositor
+template <class P1, class P2, class P3, class P4, class P5, class P6>
+auto SetFilter(Compositor<P1, P2, P3, P4, P5, P6>& arg, Filter value)
+    -> std::enable_if_t<std::is_const_v<decltype(arg.filter)>, void>
+{
+    if (GetFilter(arg) != value) {
+        throw InvalidArgument("SetFilter to non-equivalent filter not supported");
+    }
+}
+
 /// @brief Sensor setter.
 /// @note By way of SFINAE, this function is only available from overload resolution for objects
-/// having a member variable of this same name and accepting the given value.
+///   having a member variable of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto SetSensor(Compositor<P1, P2, P3, P4, P5, P6>& arg, bool value)
@@ -834,9 +937,23 @@ auto SetSensor(Compositor<P1, P2, P3, P4, P5, P6>& arg, bool value)
     arg.sensor = value;
 }
 
+/// @brief No-op sensor setter.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+///   not having a member variable of this same name and accepting the given value.
+/// @throw InvalidArgument if value different from existing.
+/// @relatedalso Compositor
+template <class P1, class P2, class P3, class P4, class P5, class P6>
+auto SetSensor(Compositor<P1, P2, P3, P4, P5, P6>& arg, bool value)
+    -> std::enable_if_t<std::is_const_v<decltype(arg.sensor)>, void>
+{
+    if (IsSensor(arg) != value) {
+        throw InvalidArgument("SetSensor to non-equivalent value not supported");
+    }
+}
+
 /// @brief Sets friction.
 /// @note By way of SFINAE, this function is only available from overload resolution for objects
-/// having a member variable of this same name and accepting the given value.
+///   having a member variable of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto SetFriction(Compositor<P1, P2, P3, P4, P5, P6>& arg, NonNegative<Real> value)
@@ -845,15 +962,43 @@ auto SetFriction(Compositor<P1, P2, P3, P4, P5, P6>& arg, NonNegative<Real> valu
     arg.friction = value;
 }
 
+/// @brief No-op friction setting function.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+///   not having a member variable of this same name and accepting the given value.
+/// @throw InvalidArgument if value different from existing.
+/// @relatedalso Compositor
+template <class P1, class P2, class P3, class P4, class P5, class P6>
+auto SetFriction(Compositor<P1, P2, P3, P4, P5, P6>& arg, NonNegative<Real> value)
+    -> std::enable_if_t<std::is_const_v<decltype(arg.friction)>, void>
+{
+    if (GetFriction(arg) != value) {
+        throw InvalidArgument("SetFriction to non-equivalent value not supported");
+    }
+}
+
 /// @brief Sets restitution.
 /// @note By way of SFINAE, this function is only available from overload resolution for objects
-/// having a member variable of this same name and accepting the given value.
+///   having a member variable of this same name and accepting the given value.
 /// @relatedalso Compositor
 template <class P1, class P2, class P3, class P4, class P5, class P6>
 auto SetRestitution(Compositor<P1, P2, P3, P4, P5, P6>& arg, Real value)
     -> std::enable_if_t<!std::is_const_v<decltype(arg.restitution)>, void>
 {
     arg.restitution = value;
+}
+
+/// @brief No-op restitution setting function.
+/// @note By way of SFINAE, this function is only available from overload resolution for objects
+///   not having a member variable of this same name and accepting the given value.
+/// @throw InvalidArgument if value different from existing.
+/// @relatedalso Compositor
+template <class P1, class P2, class P3, class P4, class P5, class P6>
+auto SetRestitution(Compositor<P1, P2, P3, P4, P5, P6>& arg, Real value)
+    -> std::enable_if_t<std::is_const_v<decltype(arg.restitution)>, void>
+{
+    if (GetRestitution(arg) != value) {
+        throw InvalidArgument("SetRestitution to non-equivalent value not supported");
+    }
 }
 
 /// @brief Equality operator.

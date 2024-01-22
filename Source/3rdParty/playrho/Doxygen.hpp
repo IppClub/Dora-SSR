@@ -92,10 +92,16 @@ For a more elaborate example, that's of an entire application, see
 /// @namespace playrho::d2
 /// Name space for 2-dimensionally related PlayRho names.
 
+/// @namespace playrho::d2::detail
+/// Name space for internal/detail 2-dimensionally related PlayRho names.
+
 /// @namespace playrho::d2::part
 /// Name space for parts attached to bodies and support for those parts.
 
 /// @namespace playrho::detail
 /// Name space for internal/detail related PlayRho names.
+
+/// @namespace playrho::pmr
+/// Name space for polymorphic memory resource related PlayRho names.
 
 #endif // PLAYRHO_DOXYGEN_HPP

@@ -25,9 +25,16 @@
 /// @file
 /// @brief Declaration of the RayCastInput class template.
 
+#include <cstddef> // for std::size_t
+
+// IWYU pragma: begin_exports
+
 #include "playrho/Vector.hpp"
+#include "playrho/Real.hpp"
 #include "playrho/UnitInterval.hpp"
 #include "playrho/Units.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::detail {
 

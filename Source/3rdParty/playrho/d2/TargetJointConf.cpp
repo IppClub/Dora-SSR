@@ -19,13 +19,15 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/TargetJointConf.hpp"
+#include <cassert> // for assert
 
+#include "playrho/ConstraintSolverConf.hpp"
+#include "playrho/StepConf.hpp"
+
+#include "playrho/d2/TargetJointConf.hpp"
 #include "playrho/d2/WorldBody.hpp"
 #include "playrho/d2/Joint.hpp"
-#include "playrho/StepConf.hpp"
 #include "playrho/d2/BodyConstraint.hpp"
-#include "playrho/ConstraintSolverConf.hpp"
 
 namespace playrho {
 namespace d2 {

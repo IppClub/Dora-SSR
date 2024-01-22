@@ -26,12 +26,15 @@
 
 #include <cstddef>
 #include <cassert>
+#include <initializer_list>
 #include <type_traits>
-#include <iterator>
-#include <vector>
+#include <utility> // for std::forward
 
-#include "playrho/Defines.hpp"
-#include "playrho/Templates.hpp"
+// IWYU pragma: begin_exports
+
+#include "playrho/Templates.hpp" // for Equal
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -64,6 +67,12 @@ public:
     constexpr Span(pointer array, size_type size) noexcept : m_array{array}, m_size{size} {}
 
     /// @brief Initializing constructor.
+    constexpr Span(std::initializer_list<T> list) noexcept
+        : m_array{list.begin()}, m_size{list.size()}
+    {
+    }
+
+    /// @brief Initializing constructor.
     template <std::size_t SIZE>
     constexpr Span(data_type (&array)[SIZE]) noexcept : m_array{&array[0]}, m_size{SIZE}
     {
@@ -71,16 +80,11 @@ public:
 
     /// @brief Initializing constructor.
     template <typename U,
-        typename = std::enable_if_t<!std::is_array_v<U> && std::is_same_v<decltype(pointer{::playrho::data(std::declval<U>())}), pointer>>
-    >
+              typename = std::enable_if_t<
+                  !std::is_array_v<U> &&
+                  std::is_same_v<decltype(pointer{::playrho::data(std::declval<U>())}), pointer>>>
     constexpr Span(U&& value) noexcept
         : m_array{::playrho::data(std::forward<U>(value))}, m_size{::playrho::size(std::forward<U>(value))}
-    {
-    }
-
-    /// @brief Initializing constructor.
-    constexpr Span(std::initializer_list<T> list) noexcept
-        : m_array{list.begin()}, m_size{list.size()}
     {
     }
 
@@ -125,6 +129,23 @@ private:
     pointer m_array = nullptr; ///< Pointer to array of data.
     size_type m_size = 0; ///< Size of array of data.
 };
+
+/// @brief Equality operator support.
+template <typename T>
+constexpr auto operator==(const Span<T> &lhs, const Span<T> &rhs) noexcept
+{
+    if (lhs.size() != rhs.size()) {
+        return false;
+    }
+    return Equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+/// @brief Inequality operator support.
+template <typename T>
+constexpr auto operator!=(const Span<T> &lhs, const Span<T> &rhs) noexcept
+{
+    return !(lhs == rhs);
+}
 
 } // namespace playrho
 

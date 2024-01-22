@@ -26,13 +26,25 @@
 /// @brief Definition of the <code>Contact</code> class and closely related code.
 
 #include <cassert> // for assert
+#include <cstdint> // for std::uint8_t
+#ifndef NDEBUG
 #include <limits> // for std::numeric_limits
+#endif
 #include <optional>
 
+// IWYU pragma: begin_exports
+
+#include "playrho/BodyID.hpp"
 #include "playrho/Contactable.hpp"
 #include "playrho/Math.hpp"
 #include "playrho/NonNegative.hpp"
+#include "playrho/Real.hpp"
+#include "playrho/Settings.hpp" // for ChildCounter
+#include "playrho/ShapeID.hpp"
 #include "playrho/UnitInterval.hpp"
+#include "playrho/Units.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -67,6 +79,9 @@ struct ToiConf;
 class Contact
 {
 public:
+    /// @brief Default contactable value.
+    static constexpr auto DefaultContactable = Contactable{InvalidBodyID, InvalidShapeID, 0};
+
     /// @brief Substep type.
     using substep_type = TimestepIters;
 
@@ -74,7 +89,11 @@ public:
     constexpr Contact() noexcept = default;
 
     /// @brief Initializing constructor.
-    /// @note This need never be called directly by a user.
+    /// @param a The "a" contactable value.
+    /// @param b The "b" contactable value.
+    /// @post If either @p a or @p b is not the value of @c DefaultContactable then:
+    ///   <code>IsEnabled()</code> and <code>NeedsUpdating()</code> return true,
+    ///   else they return false.
     constexpr Contact(const Contactable& a, const Contactable& b) noexcept;
 
     /// @brief Is this contact touching?
@@ -153,10 +172,12 @@ public:
     constexpr LinearVelocity GetTangentSpeed() const noexcept;
 
     /// @brief Gets the time of impact count.
+    /// @note This is a non-essential part - it doesn't participate in equality.
     /// @see SetToiCount.
     constexpr substep_type GetToiCount() const noexcept;
 
     /// @brief Sets the TOI count to the given value.
+    /// @note This is a non-essential part. So changing this doesn't effect equality!
     /// @post <code>GetToiCount()</code> returns the value set.
     /// @see GetToiCount.
     constexpr void SetToiCount(substep_type value) noexcept;
@@ -169,16 +190,19 @@ public:
     constexpr void IncrementToiCount() noexcept;
 
     /// @brief Gets whether a TOI is set.
+    /// @note This is a non-essential part - it doesn't participate in equality.
     /// @return true if this object has a TOI set for it, false otherwise.
     constexpr bool HasValidToi() const noexcept;
 
     /// @brief Gets the time of impact (TOI) as a fraction.
+    /// @note This is a non-essential part - it doesn't participate in equality.
     /// @return Time of impact fraction in the range of 0 to 1 if set (where 1
     ///   means no actual impact in current time slot), otherwise empty.
     /// @see SetToi(const std::optional<UnitIntervalFF<Real>>&).
     constexpr std::optional<UnitIntervalFF<Real>> GetToi() const noexcept;
 
     /// @brief Sets the time of impact (TOI).
+    /// @note This is a non-essential part. So changing this doesn't effect equality!
     /// @param toi Time of impact as a fraction between 0 and 1 where 1 indicates
     ///   no actual impact in the current time slot, or empty.
     /// @post <code>GetToi()</code> returns the value set and
@@ -225,7 +249,7 @@ public:
     /// @brief Unsets the sensor state of this contact.
     /// @post <code>IsSensor()</code> returns false.
     /// @see IsSensor().
-    constexpr void UnsetIsSensor() noexcept;
+    constexpr void UnsetSensor() noexcept;
 
     /// @brief Whether or not this contact is "impenetrable".
     /// @note This should be true whenever body A or body B are impenetrable.
@@ -242,21 +266,17 @@ public:
     /// @see IsImpenetrable().
     constexpr void UnsetImpenetrable() noexcept;
 
-    /// @brief Whether or not this contact is "active".
-    /// @note This should be true whenever body A or body B are "awake".
-    constexpr bool IsActive() const noexcept;
+    /// @brief Whether or not this contact was destroyed.
+    /// @see SetDestroyed, UnsetDestroyed.
+    constexpr bool IsDestroyed() const noexcept;
 
-    /// @brief Sets the active state of this contact.
-    /// @attention Call this if body A or body B are "awake".
-    /// @post <code>IsActive()</code> returns true.
-    /// @see IsActive().
-    constexpr void SetIsActive() noexcept;
+    /// @brief Sets the destroyed property of this contact.
+    /// @note This is only meaningfully used by the world implementation.
+    constexpr void SetDestroyed() noexcept;
 
-    /// @brief Unsets the active state of this contact.
-    /// @attention Call this if neither body A nor body B are "awake".
-    /// @post <code>IsActive()</code> returns false.
-    /// @see IsActive().
-    constexpr void UnsetIsActive() noexcept;
+    /// @brief Unsets the destroyed property of this contact.
+    /// @note This is only meaningfully used by the world implementation.
+    constexpr void UnsetDestroyed() noexcept;
 
 private:
     /// Flags type data type.
@@ -267,33 +287,33 @@ private:
         // Set when the shapes are touching.
         e_touchingFlag = 0x01,
 
-        // This contact can be disabled (by user)
+        // This entity can be disabled (by user)
         e_enabledFlag = 0x02,
 
-        // This contact needs filtering because a shape filter was changed.
+        // This entity needs filtering because a shape filter was changed.
         e_filterFlag = 0x04,
 
-        // This contact has a valid TOI in m_toi
+        // This entity has a valid TOI in m_toi
         e_toiFlag = 0x08,
 
-        // This contacts needs its touching state updated.
+        // This entity needs its touching state updated.
         e_dirtyFlag = 0x10,
 
-        /// Indicates whether the contact is to be treated as a sensor or not.
+        /// Indicates whether this entity is to be treated as a sensor or not.
         e_sensorFlag = 0x20,
 
-        /// Indicates whether the contact is to be treated as active or not.
-        e_activeFlag = 0x40,
+        /// Whether this entity was destroyed or not.
+        e_destroyed = 0x40,
 
-        /// Whether contact is to be treated as between impenetrable bodies.
+        /// Whether this entity is to be treated as between impenetrable bodies.
         e_impenetrableFlag = 0x80,
     };
 
     /// @brief Identifying info for the A-side of the 2-bodied contact.
-    Contactable m_contactableA{InvalidBodyID, InvalidShapeID, 0};
+    Contactable m_contactableA = DefaultContactable;
 
     /// @brief Identifying info for the B-side of the 2-bodied contact.
-    Contactable m_contactableB{InvalidBodyID, InvalidShapeID, 0};
+    Contactable m_contactableB = DefaultContactable;
 
     // initialized on construction (construction-time depedent)
 
@@ -313,7 +333,8 @@ private:
     /// @note Only valid if <code>m_flags & e_toiFlag</code>.
     UnitIntervalFF<Real> m_toi;
 
-    /// Count of TOI calculations contact has gone through since last reset.
+    /// @brief Count of TOI calculations contact has gone through since last reset.
+    /// @note This is a non-essential part - it should not participate in equality.
     substep_type m_toiCount = 0;
 
     FlagsType m_flags = 0; ///< Flags.
@@ -322,7 +343,8 @@ private:
 constexpr Contact::Contact(const Contactable& a, const Contactable& b) noexcept
     : m_contactableA{a},
       m_contactableB{b},
-      m_flags{e_enabledFlag | e_dirtyFlag}
+      m_flags{((a != DefaultContactable) || (b != DefaultContactable))
+          ? FlagsType(e_enabledFlag | e_dirtyFlag): FlagsType{}}
 {
 }
 
@@ -469,7 +491,7 @@ constexpr void Contact::SetSensor() noexcept
     m_flags |= e_sensorFlag;
 }
 
-constexpr void Contact::UnsetIsSensor() noexcept
+constexpr void Contact::UnsetSensor() noexcept
 {
     m_flags &= ~e_sensorFlag;
 }
@@ -489,19 +511,19 @@ constexpr void Contact::UnsetImpenetrable() noexcept
     m_flags &= ~e_impenetrableFlag;
 }
 
-constexpr bool Contact::IsActive() const noexcept
+constexpr bool Contact::IsDestroyed() const noexcept
 {
-    return (m_flags & e_activeFlag) != 0u;
+    return (m_flags & e_destroyed) != 0u;
 }
 
-constexpr void Contact::SetIsActive() noexcept
+constexpr void Contact::SetDestroyed() noexcept
 {
-    m_flags |= e_activeFlag;
+    m_flags |= e_destroyed;
 }
 
-constexpr void Contact::UnsetIsActive() noexcept
+constexpr void Contact::UnsetDestroyed() noexcept
 {
-    m_flags &= ~e_activeFlag;
+    m_flags &= ~e_destroyed;
 }
 
 constexpr void Contact::IncrementToiCount() noexcept
@@ -516,20 +538,21 @@ constexpr void Contact::IncrementToiCount() noexcept
 /// @relatedalso Contact
 constexpr bool operator==(const Contact& lhs, const Contact& rhs) noexcept
 {
-    return lhs.GetContactableA() == rhs.GetContactableB() && //
+    // Excludes checking the following which are *non-essential parts*:
+    //   lhs.GetToiCount() == rhs.GetToiCount()
+    //   lhs.GetToi() == rhs.GetToi()
+    return lhs.GetContactableA() == rhs.GetContactableA() && //
+           lhs.GetContactableB() == rhs.GetContactableB() && //
            lhs.GetFriction() == rhs.GetFriction() && //
            lhs.GetRestitution() == rhs.GetRestitution() && //
            lhs.GetTangentSpeed() == rhs.GetTangentSpeed() && //
-           lhs.GetToiCount() == rhs.GetToiCount() && //
            lhs.IsTouching() == rhs.IsTouching() && //
            lhs.IsEnabled() == rhs.IsEnabled() && //
            lhs.NeedsFiltering() == rhs.NeedsFiltering() && //
-           lhs.HasValidToi() == rhs.HasValidToi() && //
            lhs.NeedsUpdating() == rhs.NeedsUpdating() && //
            lhs.IsSensor() == rhs.IsSensor() && //
-           lhs.IsActive() == rhs.IsActive() && //
            lhs.IsImpenetrable() == rhs.IsImpenetrable() && //
-           lhs.GetToi() == rhs.GetToi();
+           lhs.IsDestroyed() == rhs.IsDestroyed();
 }
 
 /// @brief Operator not-equals.
@@ -609,33 +632,6 @@ constexpr void UnsetImpenetrable(Contact& contact) noexcept
     contact.UnsetImpenetrable();
 }
 
-/// @brief Determines whether the given contact is "active".
-/// @relatedalso Contact
-constexpr bool IsActive(const Contact& contact) noexcept
-{
-    return contact.IsActive();
-}
-
-/// @brief Sets the active state of the given contact.
-/// @attention Call this if body A or body B are "awake".
-/// @post <code>IsActive(contact)</code> returns true.
-/// @see IsActive(const Contact &).
-/// @relatedalso Contact
-constexpr void SetIsActive(Contact& contact) noexcept
-{
-    contact.SetIsActive();
-}
-
-/// @brief Unsets the active state of this contact.
-/// @attention Call this if neither body A nor body B are "awake".
-/// @post <code>IsActive(contact)</code> returns false.
-/// @see IsActive(const Contact &).
-/// @relatedalso Contact
-constexpr void UnsetIsActive(Contact& contact) noexcept
-{
-    contact.UnsetIsActive();
-}
-
 /// @brief Gets whether the given contact is enabled or not.
 /// @relatedalso Contact
 constexpr bool IsEnabled(const Contact& contact) noexcept
@@ -688,9 +684,9 @@ constexpr void SetSensor(Contact& contact) noexcept
 /// @post <code>IsSensor(contact)</code> returns false.
 /// @see IsSensor(const Contact &).
 /// @relatedalso Contact
-constexpr void UnsetIsSensor(Contact& contact) noexcept
+constexpr void UnsetSensor(Contact& contact) noexcept
 {
-    contact.UnsetIsSensor();
+    contact.UnsetSensor();
 }
 
 /// @brief Gets the time of impact count.
@@ -873,6 +869,30 @@ constexpr auto GetOtherBody(const Contact& c, BodyID bodyID) noexcept
 {
     return (c.GetContactableA().bodyId != bodyID)
         ? c.GetContactableA().bodyId: c.GetContactableB().bodyId;
+}
+
+/// @brief Whether or not the given contact was destroyed.
+/// @see SetDestroyed, UnsetDestroyed.
+/// @relatedalso Contact
+constexpr auto IsDestroyed(const Contact& c) noexcept -> bool
+{
+    return c.IsDestroyed();
+}
+
+/// @brief Sets the destroyed property of the given contact.
+/// @note This is only meaningfully used by the world implementation.
+/// @relatedalso Contact
+constexpr void SetDestroyed(Contact& c) noexcept
+{
+    c.SetDestroyed();
+}
+
+/// @brief Unsets the destroyed property of the given contact.
+/// @note This is only meaningfully used by the world implementation.
+/// @relatedalso Contact
+constexpr void UnsetDestroyed(Contact& c) noexcept
+{
+    c.UnsetDestroyed();
 }
 
 } // namespace playrho

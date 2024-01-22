@@ -26,12 +26,15 @@
 /// @brief Definition of the @c JointConf class and closely related code.
 
 #include <cstddef> // for std::max_align_t
-#include <cstdint>
+
+// IWYU pragma: begin_exports
 
 #include "playrho/BodyID.hpp"
+#include "playrho/Units.hpp"
 
-namespace playrho {
-namespace d2 {
+// IWYU pragma: end_exports
+
+namespace playrho::d2 {
 
 /// @brief Base joint definition class.
 /// @details Joint definitions are used to construct joints.
@@ -337,7 +340,6 @@ constexpr auto GetAngularMotorImpulse(const T& conf) noexcept
     return conf.angularMotorImpulse;
 }
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_JOINTCONF_HPP

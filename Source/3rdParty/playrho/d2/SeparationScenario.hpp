@@ -24,13 +24,16 @@
 
 #include <variant>
 
+// IWYU pragma: begin_exports
+
 #include "playrho/Vector2.hpp" // for Length2
 
 #include "playrho/d2/IndexPair.hpp"
 #include "playrho/d2/UnitVec.hpp"
 
-namespace playrho {
-namespace d2 {
+// IWYU pragma: end_exports
+
+namespace playrho::d2 {
 
 class DistanceProxy;
 struct Transformation;
@@ -109,7 +112,6 @@ Length Evaluate(const SeparationScenario& scenario,
                 const Transformation& xfB,
                 IndexPair indexPair);
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_SEPARATIONFINDER_HPP

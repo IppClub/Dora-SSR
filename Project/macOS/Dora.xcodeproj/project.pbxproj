@@ -247,7 +247,6 @@
 		3CA77F072AE665C100B7BADA /* Distance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E7C2AE665C000B7BADA /* Distance.cpp */; };
 		3CA77F082AE665C100B7BADA /* ChainShapeConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E7F2AE665C000B7BADA /* ChainShapeConf.cpp */; };
 		3CA77F092AE665C100B7BADA /* RevoluteJointConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E802AE665C000B7BADA /* RevoluteJointConf.cpp */; };
-		3CA77F0A2AE665C100B7BADA /* AabbTreeWorldBody.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E822AE665C000B7BADA /* AabbTreeWorldBody.cpp */; };
 		3CA77F0B2AE665C100B7BADA /* PrismaticJointConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E832AE665C000B7BADA /* PrismaticJointConf.cpp */; };
 		3CA77F0C2AE665C100B7BADA /* WorldMisc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E842AE665C000B7BADA /* WorldMisc.cpp */; };
 		3CA77F0D2AE665C100B7BADA /* Compositor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E882AE665C000B7BADA /* Compositor.cpp */; };
@@ -813,6 +812,13 @@
 		3C853F7F28E2DC0F0012C0D0 /* Test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Test.cpp; path = ../../../Source/Test/Test.cpp; sourceTree = "<group>"; };
 		3C853F8028E2DC0F0012C0D0 /* Test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Test.h; path = ../../../Source/Test/Test.h; sourceTree = "<group>"; };
 		3C853F8428E2FCDF0012C0D0 /* HelloWorldCpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HelloWorldCpp.cpp; path = ../../../Source/Test/HelloWorldCpp.cpp; sourceTree = "<group>"; };
+		3C87085F2B5E0F56002E9658 /* ContactImpulsesFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ContactImpulsesFunction.hpp; sourceTree = "<group>"; };
+		3C8708602B5E0F56002E9658 /* ContactManifoldFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ContactManifoldFunction.hpp; sourceTree = "<group>"; };
+		3C8708612B5E0FAC002E9658 /* ShapeFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ShapeFunction.hpp; sourceTree = "<group>"; };
+		3C8708622B5E0FAC002E9658 /* ContactFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ContactFunction.hpp; sourceTree = "<group>"; };
+		3C8708632B5E0FAC002E9658 /* JointFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = JointFunction.hpp; sourceTree = "<group>"; };
+		3C8708642B5E0FAC002E9658 /* OutOfRange.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OutOfRange.hpp; sourceTree = "<group>"; };
+		3C8708652B5E0FAC002E9658 /* BodyShapeFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BodyShapeFunction.hpp; sourceTree = "<group>"; };
 		3C8805761E5EDCE100B52D4B /* Debug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Debug.cpp; path = ../../../Source/Common/Debug.cpp; sourceTree = "<group>"; };
 		3C883AF721E0896A00BFD758 /* VGNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VGNode.cpp; path = ../../../Source/Node/VGNode.cpp; sourceTree = "<group>"; };
 		3C883AF821E0896A00BFD758 /* VGNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VGNode.h; path = ../../../Source/Node/VGNode.h; sourceTree = "<group>"; };
@@ -859,7 +865,6 @@
 		3CA77DF72AE665BE00B7BADA /* StackAllocator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StackAllocator.cpp; sourceTree = "<group>"; };
 		3CA77DF82AE665BF00B7BADA /* to_underlying.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = to_underlying.hpp; sourceTree = "<group>"; };
 		3CA77DF92AE665BF00B7BADA /* WrongState.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WrongState.hpp; sourceTree = "<group>"; };
-		3CA77DFA2AE665BF00B7BADA /* propagate_const.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = propagate_const.hpp; sourceTree = "<group>"; };
 		3CA77DFB2AE665BF00B7BADA /* IslandStats.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = IslandStats.hpp; sourceTree = "<group>"; };
 		3CA77DFC2AE665BF00B7BADA /* Vector.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Vector.hpp; sourceTree = "<group>"; };
 		3CA77DFD2AE665BF00B7BADA /* InvalidArgument.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = InvalidArgument.hpp; sourceTree = "<group>"; };
@@ -897,7 +902,6 @@
 		3CA77E202AE665C000B7BADA /* RevoluteJointConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RevoluteJointConf.hpp; sourceTree = "<group>"; };
 		3CA77E212AE665C000B7BADA /* WorldMisc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WorldMisc.hpp; sourceTree = "<group>"; };
 		3CA77E222AE665C000B7BADA /* RayCastOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RayCastOutput.cpp; sourceTree = "<group>"; };
-		3CA77E232AE665C000B7BADA /* AabbTreeWorldBody.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = AabbTreeWorldBody.hpp; sourceTree = "<group>"; };
 		3CA77E242AE665C000B7BADA /* PrismaticJointConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = PrismaticJointConf.hpp; sourceTree = "<group>"; };
 		3CA77E252AE665C000B7BADA /* CodeDumper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = CodeDumper.hpp; sourceTree = "<group>"; };
 		3CA77E262AE665C000B7BADA /* VelocityConstraint.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = VelocityConstraint.hpp; sourceTree = "<group>"; };
@@ -992,7 +996,6 @@
 		3CA77E7F2AE665C000B7BADA /* ChainShapeConf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ChainShapeConf.cpp; sourceTree = "<group>"; };
 		3CA77E802AE665C000B7BADA /* RevoluteJointConf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RevoluteJointConf.cpp; sourceTree = "<group>"; };
 		3CA77E812AE665C000B7BADA /* ShapeConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ShapeConf.hpp; sourceTree = "<group>"; };
-		3CA77E822AE665C000B7BADA /* AabbTreeWorldBody.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AabbTreeWorldBody.cpp; sourceTree = "<group>"; };
 		3CA77E832AE665C000B7BADA /* PrismaticJointConf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PrismaticJointConf.cpp; sourceTree = "<group>"; };
 		3CA77E842AE665C000B7BADA /* WorldMisc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WorldMisc.cpp; sourceTree = "<group>"; };
 		3CA77E852AE665C000B7BADA /* RayCastOutput.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RayCastOutput.hpp; sourceTree = "<group>"; };
@@ -2372,11 +2375,12 @@
 		3CA77E1E2AE665C000B7BADA /* d2 */ = {
 			isa = PBXGroup;
 			children = (
+				3C87085F2B5E0F56002E9658 /* ContactImpulsesFunction.hpp */,
+				3C8708602B5E0F56002E9658 /* ContactManifoldFunction.hpp */,
 				3CA77E1F2AE665C000B7BADA /* RayCastInput.hpp */,
 				3CA77E202AE665C000B7BADA /* RevoluteJointConf.hpp */,
 				3CA77E212AE665C000B7BADA /* WorldMisc.hpp */,
 				3CA77E222AE665C000B7BADA /* RayCastOutput.cpp */,
-				3CA77E232AE665C000B7BADA /* AabbTreeWorldBody.hpp */,
 				3CA77E242AE665C000B7BADA /* PrismaticJointConf.hpp */,
 				3CA77E252AE665C000B7BADA /* CodeDumper.hpp */,
 				3CA77E262AE665C000B7BADA /* VelocityConstraint.hpp */,
@@ -2471,7 +2475,6 @@
 				3CA77E7F2AE665C000B7BADA /* ChainShapeConf.cpp */,
 				3CA77E802AE665C000B7BADA /* RevoluteJointConf.cpp */,
 				3CA77E812AE665C000B7BADA /* ShapeConf.hpp */,
-				3CA77E822AE665C000B7BADA /* AabbTreeWorldBody.cpp */,
 				3CA77E832AE665C000B7BADA /* PrismaticJointConf.cpp */,
 				3CA77E842AE665C000B7BADA /* WorldMisc.cpp */,
 				3CA77E852AE665C000B7BADA /* RayCastOutput.hpp */,
@@ -2831,6 +2834,11 @@
 		3CFDA8492200358900C9DFD0 /* playrho */ = {
 			isa = PBXGroup;
 			children = (
+				3C8708652B5E0FAC002E9658 /* BodyShapeFunction.hpp */,
+				3C8708622B5E0FAC002E9658 /* ContactFunction.hpp */,
+				3C8708632B5E0FAC002E9658 /* JointFunction.hpp */,
+				3C8708642B5E0FAC002E9658 /* OutOfRange.hpp */,
+				3C8708612B5E0FAC002E9658 /* ShapeFunction.hpp */,
 				3CA77E112AE665BF00B7BADA /* ArrayList.hpp */,
 				3CA77E192AE665C000B7BADA /* BlockAllocator.cpp */,
 				3CA77EAE2AE665C000B7BADA /* BlockAllocator.hpp */,
@@ -2878,7 +2886,6 @@
 				3CA77EA12AE665C000B7BADA /* pmr */,
 				3CA77E1C2AE665C000B7BADA /* PointState.hpp */,
 				3CA77ED52AE665C100B7BADA /* Positive.hpp */,
-				3CA77DFA2AE665BF00B7BADA /* propagate_const.hpp */,
 				3CA77DFF2AE665BF00B7BADA /* RayCastOpcode.hpp */,
 				3CA77ED12AE665C100B7BADA /* Real.hpp */,
 				3CA77EAA2AE665C000B7BADA /* RealConstants.hpp */,
@@ -3168,7 +3175,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1510;
+				LastUpgradeCheck = 1520;
 				ORGANIZATIONNAME = Dorothy;
 				TargetAttributes = {
 					3CC81FE51D966770008C8B77 = {
@@ -3339,7 +3346,6 @@
 				3CF10EF32874AE7E00940268 /* ClippingAttachment.cpp in Sources */,
 				3C1A3AFD272A850F003A2829 /* liolib.c in Sources */,
 				3CF10EE42874AE7E00940268 /* Bone.cpp in Sources */,
-				3CA77F0A2AE665C100B7BADA /* AabbTreeWorldBody.cpp in Sources */,
 				3CA77F0B2AE665C100B7BADA /* PrismaticJointConf.cpp in Sources */,
 				3C2F9C8E1E7B132600B98D39 /* ClipCache.cpp in Sources */,
 				3CF10ED02874AE7E00940268 /* RTTI.cpp in Sources */,
@@ -3669,6 +3675,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
@@ -3728,6 +3735,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";

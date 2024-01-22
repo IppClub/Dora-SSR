@@ -25,9 +25,10 @@
 /// @file
 /// @brief Definition of the <code>ContactFeature</code> class and closely related code.
 
+#include <cstdint> // for std::uint8_t
 #include <ostream>
 
-#include "playrho/Math.hpp"
+#include "playrho/Settings.hpp" // for InvalidVertex
 
 namespace playrho {
 
@@ -44,15 +45,35 @@ struct ContactFeature
     using Index = std::uint8_t; ///< Index type.
 
     /// @brief Type of the associated index value.
-    enum Type : std::uint8_t
+    enum Type: std::uint16_t
     {
         e_vertex = 0,
-        e_face = 1
+        e_face   = 1,
     };
 
-    Type typeA; ///< The feature type on shape A
+    /// @brief Default constructor.
+    /// @post <code>typeA == e_vertex</code>, <code>typeB == e_vertex</code>,
+    ///   <code>other == 0</code>, <code>indexA == InvalidVertex</code>,
+    ///   <code>indexB == InvalidVertex</code>.
+    constexpr ContactFeature() noexcept
+        : typeA{e_vertex}, typeB{e_vertex}, other{}, indexA{InvalidVertex}, indexB{InvalidVertex}
+    {
+        // Intentionally empty.
+    }
+
+    /// @brief Initializing constructor.
+    /// @post <code>typeA == tA</code>, <code>typeB == tB</code>, <code>other == 0</code>,
+    ///   <code>indexA == iA</code>, <code>indexB == iB</code>.
+    constexpr ContactFeature(Type tA, Index iA, Type tB, Index iB) noexcept
+        : typeA{tA}, typeB{tB}, other{}, indexA{iA}, indexB{iB}
+    {
+        // Intentionally empty.
+    }
+
+    Type typeA: 1; ///< The feature type on shape A
+    Type typeB: 1; ///< The feature type on shape B
+    Type other: 14; ///< Private for internal use!
     Index indexA; ///< Feature index on shape A
-    Type typeB; ///< The feature type on shape B
     Index indexB; ///< Feature index on shape B
 };
 

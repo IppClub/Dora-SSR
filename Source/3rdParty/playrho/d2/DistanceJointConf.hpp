@@ -25,12 +25,16 @@
 /// @file
 /// @brief Definition of the @c DistanceJointConf class and closely related code.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/NonNegative.hpp"
 #include "playrho/Span.hpp"
 #include "playrho/TypeInfo.hpp"
 
 #include "playrho/d2/JointConf.hpp"
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -153,14 +157,17 @@ constexpr bool operator!=(const DistanceJointConf& lhs, const DistanceJointConf&
 }
 
 /// @brief Gets the definition data for the given joint.
+/// @param joint The joint to get the configuration for.
 /// @throws std::bad_cast If the given joint's type is inappropriate for getting this value.
 /// @relatedalso Joint
 DistanceJointConf GetDistanceJointConf(const Joint& joint);
 
-/// @brief Gets the configuration for the given parameters.
+/// @brief Gets the configuration for a joint with the given parameters.
+/// @throws std::out_of_range If given an invalid body identifier.
 /// @relatedalso World
-DistanceJointConf GetDistanceJointConf(const World& world, BodyID bodyA, BodyID bodyB, // force line-break
-                                       const Length2& anchorA = Length2{}, // force line-break
+DistanceJointConf GetDistanceJointConf(const World& world, // newline!
+                                       BodyID bodyA, BodyID bodyB, // newline!
+                                       const Length2& anchorA = Length2{}, // newline!
                                        const Length2& anchorB = Length2{});
 
 /// @brief Gets the current linear reaction for the given configuration.

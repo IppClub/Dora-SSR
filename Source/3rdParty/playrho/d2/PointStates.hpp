@@ -26,8 +26,12 @@
 /// @brief Structures and functions used for computing before and after like point
 ///   oriented collision response states.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/Settings.hpp"
 #include "playrho/PointState.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 

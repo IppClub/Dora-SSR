@@ -25,118 +25,162 @@
 /// @file
 /// @brief Definitions of the World class and closely related code.
 
-#include <functional> // for std::function
 #include <iterator>
 #include <memory> // for std::unique_ptr
 #include <optional>
-#include <stdexcept>
+#include <tuple>
+#include <typeinfo>
 #include <type_traits> // for std::is_default_constructible_v, etc.
+#include <utility> // for std::move
 #include <vector>
 
+// IWYU pragma: begin_exports
+
 #include "playrho/BodyID.hpp"
+#include "playrho/BodyShapeFunction.hpp"
 #include "playrho/Contact.hpp"
+#include "playrho/ContactFunction.hpp"
+#include "playrho/ContactID.hpp"
+#include "playrho/ContactKey.hpp"
+#include "playrho/Interval.hpp"
 #include "playrho/KeyedContactID.hpp"
+#include "playrho/JointFunction.hpp"
 #include "playrho/JointID.hpp"
-#include "playrho/LimitState.hpp"
-#include "playrho/propagate_const.hpp"
+#include "playrho/Positive.hpp"
+#include "playrho/Settings.hpp"
+#include "playrho/ShapeFunction.hpp"
 #include "playrho/ShapeID.hpp"
 #include "playrho/StepConf.hpp"
 #include "playrho/StepStats.hpp"
+#include "playrho/Templates.hpp" // for begin, end
 #include "playrho/TypeInfo.hpp" // for GetTypeID
+#include "playrho/Units.hpp"
+#include "playrho/Vector2.hpp"
 
 #include "playrho/pmr/StatsResource.hpp"
 
-#include "playrho/d2/BodyConf.hpp" // for GetDefaultBodyConf
 #include "playrho/d2/Body.hpp"
+#include "playrho/d2/BodyConf.hpp" // for GetDefaultBodyConf
+#include "playrho/d2/ContactImpulsesFunction.hpp"
+#include "playrho/d2/ContactManifoldFunction.hpp"
 #include "playrho/d2/Joint.hpp"
 #include "playrho/d2/Manifold.hpp"
-#include "playrho/d2/MassData.hpp"
-#include "playrho/d2/Math.hpp"
 #include "playrho/d2/Shape.hpp"
 #include "playrho/d2/WorldConf.hpp"
 
-namespace playrho {
-namespace d2 {
+// IWYU pragma: end_exports
+
+#include "playrho/d2/detail/WorldConcept.hpp"
+#include "playrho/d2/detail/WorldModel.hpp"
+
+namespace playrho::d2 {
 
 class World;
 class ContactImpulsesList;
 class DynamicTree;
 
-/// @brief Shape listener.
-using ShapeListener = std::function<void(ShapeID)>;
-
-/// @brief Body-shape listener.
-using AssociationListener = std::function<void(std::pair<BodyID, ShapeID>)>;
-
-/// @brief Listener type for some joint related events.
-using JointListener = std::function<void(JointID)>;
-
-/// @brief Listener type for some contact related events.
-using ContactListener = std::function<void(ContactID)>;
-
-/// @brief Listener type for some manifold contact events.
-using ManifoldContactListener = std::function<void(ContactID, const Manifold&)>;
-
-/// @brief Impulses contact listener.
-using ImpulsesContactListener =
-    std::function<void(ContactID, const ContactImpulsesList&, unsigned)>;
-
-/// @name World Listener Non-Member Functions
-/// @{
-
 /// @brief Sets the destruction listener for shapes.
 /// @note This listener is called on <code>Clear(World&)</code> for every shape.
+/// @param world The world to set the listener for.
+/// @param listener Function that the world is to call on these events.
 /// @see Clear(World&).
-void SetShapeDestructionListener(World& world, ShapeListener listener) noexcept;
+void SetShapeDestructionListener(World& world, ShapeFunction listener) noexcept;
 
 /// @brief Sets the detach listener for shapes detaching from bodies.
-void SetDetachListener(World& world, AssociationListener listener) noexcept;
+/// @note This listener is called on <code>Destroy(World&,BodyID)</code> for every shape
+///   associated with that identified body.
+/// @param world The world to set the listener for.
+/// @param listener Function that the world is to call on these events.
+/// @see Destroy(World&,BodyID).
+void SetDetachListener(World& world, BodyShapeFunction listener) noexcept;
 
 /// @brief Sets the destruction listener for joints.
 /// @note This listener is called on <code>Clear(World&)</code> for every joint. It's also called
 ///   on <code>Destroy(BodyID)</code> for every joint associated with the identified body.
+/// @param world The world to set the listener for.
+/// @param listener Function that the world is to call on these events.
 /// @see Clear(World&), Destroy(BodyID).
-void SetJointDestructionListener(World& world, JointListener listener) noexcept;
+void SetJointDestructionListener(World& world, JointFunction listener) noexcept;
 
 /// @brief Sets the begin-contact lister.
-/// @see SetEndContactListener(World&, ContactListener).
-void SetBeginContactListener(World& world, ContactListener listener) noexcept;
+/// @note This listener is called during calls to the
+///   <code>Step(World&,const StepConf&)</code> function for every contact that transitions
+///   from not previously touching, to touching in the step.
+/// @param world The world to set the listener for.
+/// @param listener Function that the world is to call on these events.
+/// @see SetEndContactListener(World&, ContactFunction).
+void SetBeginContactListener(World& world, ContactFunction listener) noexcept;
 
 /// @brief Sets the end-contact lister.
-/// @see SetBeginContactListener(World&, ContactListener).
-void SetEndContactListener(World& world, ContactListener listener) noexcept;
+/// @note This listener is called during calls to the
+///   <code>Step(World&,const StepConf&)</code> function for every contact that transitions
+///   from previously touching, to no longer touching in the step.
+/// @param world The world to set the listener for.
+/// @param listener Function that the world is to call on these events.
+/// @see SetBeginContactListener(World&, ContactFunction).
+void SetEndContactListener(World& world, ContactFunction listener) noexcept;
 
 /// @brief Sets the pre-solve-contact lister.
-/// @see etPostSolveContactListener(World&, ImpulsesContactListener).
-void SetPreSolveContactListener(World& world, ManifoldContactListener listener) noexcept;
+/// @note This listener is called during calls to the
+///   <code>Step(World&,const StepConf&)</code> function for every non-sensor contact that
+///   is touching.
+/// @param world The world to set the listener for.
+/// @param listener Function that the world is to call on these events.
+/// @see SetPostSolveContactListener(World&, ContactImpulsesFunction).
+void SetPreSolveContactListener(World& world, ContactManifoldFunction listener) noexcept;
 
 /// @brief Sets the post-solve-contact lister.
-/// @see SetPreSolveContactListener(World&, ManifoldContactListener).
-void SetPostSolveContactListener(World& world, ImpulsesContactListener listener) noexcept;
+/// @note This listener is called during calls to the
+///   <code>Step(World&,const StepConf&)</code> function for every contact that was "solved"
+///   during regular processing or TOI processing (or both).
+/// @param world The world to set the listener for.
+/// @param listener Function that the world is to call on these events.
+/// @see SetPreSolveContactListener(World&, ContactManifoldFunction).
+void SetPostSolveContactListener(World& world, ContactImpulsesFunction listener) noexcept;
 
-/// @}
-
-/// @name World Miscellaneous Non-Member Functions
-/// @{
-
-/// @brief Gets the identifier of the type of data this can be casted to.
+/// @brief Gets the identifier of the type of data the given world can be casted to.
+/// @param world The world for which an identifier of the type of its underlying value is
+///   to be returned.
+/// @see TypeCast.
 TypeID GetType(const World& world) noexcept;
 
-/// @brief Converts the given world into its current configuration value.
+/// @brief Casts the given world into its current underlying configuration value.
 /// @note The design for this was based off the design of the C++17 <code>std::any</code>
 ///   class and its associated <code>std::any_cast</code> function. The code for this is based
 ///   off of the <code>std::any</code> code from the LLVM Project.
+/// @tparam T type to cast the underlying value of the given world to, if matching the actual
+///   type of the underlying value.
+/// @param value Pointer to the world whose underlying value, if it's type is the type
+///   of the template parameter, is to be returned.
+/// @see GetType(const World&).
 /// @see https://llvm.org/
 template <typename T>
 std::add_pointer_t<std::add_const_t<T>> TypeCast(const World* value) noexcept;
 
-/// @brief Converts the given world into its current configuration value.
+/// @brief Casts the given world into its current configuration value.
 /// @note The design for this was based off the design of the C++17 <code>std::any</code>
 ///   class and its associated <code>std::any_cast</code> function. The code for this is based
 ///   off of the <code>std::any</code> implementation from the LLVM Project.
+/// @tparam T type to cast the underlying value of the given world to, if matching the actual
+///   type of the underlying value.
+/// @param value Pointer to the world whose underlying value, if it's type is the type
+///   of the template parameter, is to be returned.
+/// @see GetType(const World&).
 /// @see https://llvm.org/
 template <typename T>
 std::add_pointer_t<T> TypeCast(World* value) noexcept;
+
+/// @brief Equality operator for world comparisons.
+/// @param lhs Left hand side world of the infix binary equality operator.
+/// @param rhs Right hand side world of the infix binary equality operator.
+/// @return true if @p lhs is equal to @p rhs , false otherwise.
+bool operator==(const World& lhs, const World& rhs) noexcept;
+
+/// @brief Inequality operator for world comparisons.
+/// @param lhs Left hand side world of the infix binary inequality operator.
+/// @param rhs Right hand side world of the infix binary inequality operator.
+/// @return true if @p lhs is **not** equal to @p rhs , false otherwise.
+bool operator!=(const World& lhs, const World& rhs) noexcept;
 
 /// @brief Gets the polymorphic memory resource allocator statistics of the specified world.
 /// @note This will be the empty value unless the world configuration the given world was
@@ -144,6 +188,7 @@ std::add_pointer_t<T> TypeCast(World* value) noexcept;
 /// @note This information can be used to tweak the world configuration to pre-allocate enough
 ///   space to avoid the less deterministic performance behavior of dynamic memory allocation
 ///   during world step processing that may otherwise occur.
+/// @param world The world to get the memory resource allocator statistics for.
 /// @see WorldConf.
 std::optional<pmr::StatsResource::Stats> GetResourceStats(const World& world) noexcept;
 
@@ -151,6 +196,7 @@ std::optional<pmr::StatsResource::Stats> GetResourceStats(const World& world) no
 /// @note This calls the joint and shape destruction listeners (if they're set), for all
 ///   defined joints and shapes, before clearing anything. Any exceptions thrown from these
 ///   listeners are ignored.
+/// @param world The world to clear.
 /// @post The contents of this world have all been destroyed and this world's internal
 ///   state is reset as though it had just been constructed.
 /// @see SetJointDestructionListener, SetShapeDestructionListener.
@@ -192,18 +238,22 @@ StepStats Step(World& world, const StepConf& conf = StepConf{});
 
 /// @brief Whether or not "step" is complete.
 /// @details The "step" is completed when there are no more TOI events for the current time
-/// step.
+///   step.
+/// @param world The world to return whether the step is completed for.
 /// @return <code>true</code> unless sub-stepping is enabled and the step function returned
 ///   without finishing all of its sub-steps.
-/// @see GetSubStepping, SetSubStepping.
+/// @see GetSubStepping, SetSubStepping, Step.
 bool IsStepComplete(const World& world) noexcept;
 
 /// @brief Gets whether or not sub-stepping is enabled.
+/// @param world The world to return whether sub-stepping is enabled for.
 /// @see SetSubStepping, IsStepComplete.
 bool GetSubStepping(const World& world) noexcept;
 
 /// @brief Enables/disables single stepped continuous physics.
 /// @note This is not normally used. Enabling sub-stepping is meant for testing.
+/// @param world The world to set whether or not to do sub-stepping for.
+/// @param flag @c true to enable sub-stepping, @c false to disable it.
 /// @post The <code>GetSubStepping()</code> function will return the value this function was
 ///   called with.
 /// @see IsStepComplete, GetSubStepping.
@@ -217,6 +267,7 @@ const DynamicTree& GetTree(const World& world);
 /// @brief Is the specified world locked.
 /// @details Used to detect whether being called while already within the execution of the
 ///   <code>Step(World&, const StepConf&)</code> function - which sets this "lock".
+/// @param world The world to return whether it's in a locked state or not.
 /// @see Step(World&, const StepConf&).
 bool IsLocked(const World& world) noexcept;
 
@@ -231,36 +282,34 @@ bool IsLocked(const World& world) noexcept;
 void ShiftOrigin(World& world, const Length2& newOrigin);
 
 /// @brief Gets the vertex radius interval allowable for the given world.
+/// @param world The world whose allowable vertex radius interval is to be returned for.
 /// @see CreateShape(World&, const Shape&).
 Interval<Positive<Length>> GetVertexRadiusInterval(const World& world) noexcept;
 
 /// @brief Gets the inverse delta time.
 /// @details Gets the inverse delta time that was set on construction or assignment, and
-///   updated on every call to the <code>Step()</code> function having a non-zero delta-time.
+///   updated on every call to the <code>Step</code> function having a non-zero delta-time.
+/// @param world The world whose inverse delta time is to be returned for.
 /// @see Step.
 Frequency GetInvDeltaTime(const World& world) noexcept;
-
-/// @}
-
-/// @name World Body Non-Member Functions.
-/// Non-Member functions relating to bodies.
-/// @{
 
 /// @brief Gets the extent of the currently valid body range.
 /// @note This is one higher than the maxium <code>BodyID</code> that is in range
 ///   for body related functions.
+/// @param world The world whose body range is to be returned for.
 BodyCounter GetBodyRange(const World& world) noexcept;
 
-/// @brief Gets the world body range for this constant world.
-/// @details Gets a range enumerating the bodies currently existing within this world.
-///   These are the bodies that had been created from previous calls to
+/// @brief Gets the valid world body identifiers container for this constant world.
+/// @details Gets a container enumerating the identifiers of bodies currently existing
+///   within this world. These are the bodies that had been created from previous calls to
 ///   <code>CreateBody(World&, const Body&)</code> that haven't yet been destroyed by
 ///   a call to <code>Destroy(World& world, BodyID)</code> or to <code>Clear(World&)</code>.
+/// @param world The world whose body identifiers are to be returned for.
 /// @return Container of body identifiers.
 /// @see CreateBody(World&, const Body&), Destroy(World& world, BodyID), Clear(World&).
 std::vector<BodyID> GetBodies(const World& world);
 
-/// @brief Gets the bodies-for-proxies range for this world.
+/// @brief Gets the bodies-for-proxies container for this world.
 /// @details Provides insight on what bodies have been queued for proxy processing
 ///   during the next call to the world step function.
 /// @see Step.
@@ -268,11 +317,9 @@ std::vector<BodyID> GetBodies(const World& world);
 std::vector<BodyID> GetBodiesForProxies(const World& world);
 
 /// @brief Creates a rigid body within the world that's a copy of the given one.
-/// @warning This function should not be used while the world is locked &mdash; as it is
+/// @note This function should not be used while the world is locked &mdash; as it is
 ///   during callbacks. If it is, it will throw an exception or abort your program.
 /// @note No references to the configuration are retained. Its value is copied.
-/// @post The created body will be present in the range returned from the
-///   <code>GetBodies(const World&)</code> function.
 /// @param world The world within which to create the body.
 /// @param body A customized body or its default value.
 /// @param resetMassData Whether or not the mass data of the body should be reset.
@@ -280,55 +327,73 @@ std::vector<BodyID> GetBodiesForProxies(const World& world);
 ///   the <code>Destroy(BodyID)</code> function.
 /// @throws WrongState if this function is called while the world is locked.
 /// @throws LengthError if this operation would create more than <code>MaxBodies</code>.
-/// @throws std::out_of_range if the given body references any invalid shape identifiers.
-/// @see Destroy(World& world, BodyID), GetBodies(const World&), ResetMassData.
+/// @throws std::out_of_range if the given body references any out of range shape identifiers.
+/// @post The created body's identifier will be present in the container returned from the
+///   <code>GetBodies(const World&)</code> function.
+/// @post Calling <code>GetBody(const World&, BodyID)</code> with the returned body identifer
+///   returns the body given to this create function.
+/// @see Destroy(World& world, BodyID), GetBodies(const World&), ResetMassData, GetShapeRange.
 /// @see PhysicalEntities.
 BodyID CreateBody(World& world, const Body& body = Body{}, bool resetMassData = true);
 
 /// @brief Gets the state of the identified body.
-/// @throws std::out_of_range If given an invalid body identifier.
-/// @see CreateBody(World& world, const BodyConf&),
-///   SetBody(World& world, BodyID id, const Body& body).
+/// @throws std::out_of_range If given an out of range body identifier.
+/// @see CreateBody(World&, const Body&, bool), SetBody(World&, BodyID, const Body&),
+///   GetBodyRange.
 Body GetBody(const World& world, BodyID id);
 
 /// @brief Sets the state of the identified body.
-/// @throws std::out_of_range if given an invalid id of if the given body references any
-///   invalid shape identifiers.
+/// @param world The world containing the identified body whose state is to be set.
+/// @param id Identifier of the body whose state is to be set.
+/// @param body New state of the identified body.
+/// @throws std::out_of_range if @p id is out of range, or if the given body references any
+///   shape identifiers that are out of range.
 /// @throws InvalidArgument if the specified ID was destroyed.
-/// @see GetBody(const World& world, BodyID id), GetBodyRange.
+/// @post On success: <code>GetBody(const World&, BodyID)</code> for @p world and @p id
+///   returns the value of @p body .
+/// @see GetBody(const World&, BodyID), GetBodyRange, GetShapeRange.
 void SetBody(World& world, BodyID id, const Body& body);
 
 /// @brief Destroys the identified body.
 /// @details Destroys the identified body that had previously been created by a call
 ///   to this world's <code>CreateBody(const BodyConf&)</code> function.
-/// @warning This automatically deletes all associated shapes and joints.
-/// @warning This function is locked during callbacks.
-/// @warning Behavior is not specified if identified body wasn't created by this world.
-/// @note This function is locked during callbacks.
-/// @post The destroyed body will no longer be present in the range returned from the
-///   <code>GetBodies()</code> function.
+/// @note This automatically deletes all associated shapes and joints.
+/// @note This function is locked during callbacks. The detatch listener, if set, is called
+///   for every shape associated with the identified body.
 /// @param world The world from which to delete the identified body from.
 /// @param id Identifier of body to destroy that had been created in @p world.
 /// @throws WrongState if this function is called while the world is locked.
-/// @throws std::out_of_range If given an invalid body identifier.
-/// @see CreateBody(const BodyConf&), GetBodies, GetBodyRange.
+/// @throws std::out_of_range If given an out of range body identifier.
+/// @post On success: the destroyed body's identifier is no longer present in the container
+///   returned from the <code>GetBodies(const World&)</code> function; the count returned
+///   by <code>GetBodyCount(const World&)</code> will be one less than before this was called;
+///   <code>GetBodyRange(const World&)</code> will be unchanged.
+/// @see CreateBody, GetBodies, GetBodyCount, GetBodyRange, SetDetachListener, IsLocked.
 /// @see PhysicalEntities.
 void Destroy(World& world, BodyID id);
 
-/// @brief Gets the range of joints attached to the identified body.
-/// @throws std::out_of_range If given an invalid body identifier.
+/// @brief Gets whether the given identifier is to a body that's been destroyed.
+/// @note Complexity of this function is O(1).
+/// @see Destroy(World& world, BodyID).
+inline auto IsDestroyed(const World& world, BodyID id) -> bool
+{
+    return IsDestroyed(GetBody(world, id));
+}
+
+/// @brief Gets the container of valid joints attached to the identified body.
+/// @throws std::out_of_range If given an out of range body identifier.
 /// @see CreateJoint, GetBodyRange.
 std::vector<std::pair<BodyID, JointID>> GetJoints(const World& world, BodyID id);
 
 /// @brief Gets the container of contacts attached to the identified body.
 /// @warning This collection changes during the time step and you may
-///   miss some collisions if you don't use <code>ContactListener</code>.
-/// @throws std::out_of_range If given an invalid body identifier.
+///   miss some collisions if you don't use <code>ContactFunction</code>.
+/// @throws std::out_of_range If given an out of range body identifier.
 /// @see GetBodyRange.
 std::vector<std::tuple<ContactKey, ContactID>> GetContacts(const World& world, BodyID id);
 
 /// @brief Gets the identities of the shapes associated with the identified body.
-/// @throws std::out_of_range If given an invalid body identifier.
+/// @throws std::out_of_range If given an out of range body identifier.
 /// @see GetBodyRange, CreateBody, SetBody.
 std::vector<ShapeID> GetShapes(const World& world, BodyID id);
 
@@ -337,6 +402,10 @@ std::vector<ShapeID> GetShapes(const World& world, BodyID id);
 /// @param fn Function or functor with a signature like:
 ///   <code>Acceleration (*fn)(World&,BodyID)</code>.
 /// @throws WrongState if this function is called while the world is locked.
+/// @post On success: <code>GetAcceleration(const World&, BodyID)</code> will return
+///   the acceleration assigned to it by the given function.
+/// @see SetAcceleration(World&,BodyID,const Acceleration&),
+///   GetAcceleration(const World&,BodyID).
 /// @relatedalso World
 template <class F>
 void SetAccelerations(World& world, F fn)
@@ -346,12 +415,6 @@ void SetAccelerations(World& world, F fn)
         SetAcceleration(world, b, fn(world, b));
     });
 }
-
-/// @}
-
-/// @name World Joint Non-Member Functions
-/// Member functions relating to joints.
-/// @{
 
 /// @brief Gets the extent of the currently valid joint range.
 /// @note This is one higher than the maxium <code>JointID</code> that is in range
@@ -376,7 +439,12 @@ inline JointCounter GetJointCount(const World& world)
 }
 
 /// @brief Creates a new joint within the given world.
+/// @param world The world in which the specified joint is to be created within.
+/// @param def State of the joint to create within the world.
 /// @throws WrongState if this function is called while the world is locked.
+/// @post On success: <code>GetJoints(const World&)</code> for this same world will contain
+///   the identifier returned by this function; <code>GetJoint(const World&, JointID)</code>
+///   for @p world and the returned identifier, returns @p def .
 JointID CreateJoint(World& world, const Joint& def);
 
 /// @brief Creates a new joint from a configuration.
@@ -390,23 +458,32 @@ JointID CreateJoint(World& world, const T& value)
 }
 
 /// @brief Destroys the identified joint.
+/// @param world The world in which the specified joint is to be destroyed from.
+/// @param id Identifier of the joint to destroy.
 /// @throws WrongState if this function is called while the world is locked.
-/// @throws std::out_of_range If given an invalid joint identifier.
+/// @throws std::out_of_range If given an out of range joint identifier.
+/// @post On success: the given identifier is no longer within those returned by
+///   <code>GetJoints(const World&)</code>, the count returned by
+///   <code>GetJointCount(const World&)</code> will be one less than before this was called.
+/// @see CreateJoint, IsLocked, GetJointRange.
 void Destroy(World& world, JointID id);
 
 /// @brief Gets the value of the identified joint.
-/// @throws std::out_of_range If given an invalid joint identifier.
+/// @throws std::out_of_range If given an out of range joint identifier.
+/// @see GetJointRange.
 Joint GetJoint(const World& world, JointID id);
 
 /// @brief Sets the value of the identified joint.
 /// @throws WrongState if this function is called while the world is locked.
-/// @throws std::out_of_range If given an invalid joint identifier.
+/// @throws std::out_of_range If given an out of range joint identifier.
+/// @see GetJointRange.
 void SetJoint(World& world, JointID id, const Joint& def);
 
 /// @brief Sets a joint's value from a configuration.
 /// @details This is a convenience function for allowing limited implicit conversions to joints.
 /// @throws WrongState if this function is called while the world is locked.
-/// @throws std::out_of_range If given an invalid joint identifier.
+/// @throws std::out_of_range If given an out of range joint identifier.
+/// @see GetJointRange.
 /// @relatedalso World
 template <typename T>
 void SetJoint(World& world, JointID id, const T& value)
@@ -414,11 +491,12 @@ void SetJoint(World& world, JointID id, const T& value)
     return SetJoint(world, id, Joint{value});
 }
 
-/// @}
-
-/// @name World Shape Non-Member Functions
-/// Non-member functions relating to shapes.
-/// @{
+/// @brief Gets whether the given identifier is to a joint that's been destroyed.
+/// @note Complexity of this function is O(1).
+inline auto IsDestroyed(const World& world, JointID id) -> bool
+{
+    return IsDestroyed(GetJoint(world, id));
+}
 
 /// @brief Gets the extent of the currently valid shape range.
 /// @note This is one higher than the maxium <code>ShapeID</code> that is in range
@@ -448,25 +526,31 @@ auto CreateShape(World& world, const T& shapeConf) ->
 }
 
 /// @brief Destroys the identified shape.
+/// @param world The world in which the specified shape is to be destroyed from.
+/// @param id Identifier of the shape to destroy.
 /// @throws WrongState if this function is called while the world is locked.
-/// @throws std::out_of_range If given an invalid identifier.
+/// @throws std::out_of_range If given an out of range identifier.
+/// @post On success: no body in the specified world will have the identified shape attached
+///   to it; <code>GetShapeRange(const World&)</code> will be unchanged.
+/// @see CreateShape, IsLocked, GetShapeRange.
 void Destroy(World& world, ShapeID id);
 
 /// @brief Gets the shape associated with the identifier.
-/// @throws std::out_of_range If given an invalid identifier.
+/// @throws std::out_of_range If given an out of range identifier.
+/// @see GetShapeRange.
 Shape GetShape(const World& world, ShapeID id);
 
 /// @brief Sets the identified shape to the new value.
-/// @throws std::out_of_range If given an invalid shape identifier.
-/// @see CreateShape.
+/// @throws std::out_of_range If given an out of range shape identifier.
+/// @see CreateShape, GetShapeRange.
 void SetShape(World& world, ShapeID, const Shape& def);
 
-/// @}
-
-
-/// @name World Contact Non-Member Functions
-/// Non-member functions relating to contacts.
-/// @{
+/// @brief Gets whether the given identifier is to a shape that's been destroyed.
+/// @note Complexity of this function is O(1).
+inline auto IsDestroyed(const World& world, ShapeID id) -> bool
+{
+    return IsDestroyed(GetShape(world, id));
+}
 
 /// @brief Gets the extent of the currently valid contact range.
 /// @note This is one higher than the maxium <code>ContactID</code> that is in range
@@ -479,20 +563,47 @@ ContactCounter GetContactRange(const World& world) noexcept;
 std::vector<KeyedContactID> GetContacts(const World& world);
 
 /// @brief Gets the identified contact.
-/// @throws std::out_of_range If given an invalid contact identifier.
+/// @throws std::out_of_range If given an out of range contact identifier.
+/// @see GetContantRange.
 Contact GetContact(const World& world, ContactID id);
 
 /// @brief Sets the identified contact's state.
-/// @note This may throw an exception or update associated entities to preserve invariants.
-/// @invariant A contact may only be impenetrable if one or both bodies are.
-/// @invariant A contact may only be active if one or both bodies are awake.
-/// @invariant A contact may only be a sensor or one or both shapes are.
-/// @throws std::out_of_range If given an invalid contact identifier.
+/// @param world The world of the contact whose state is to be set.
+/// @param id Identifier of the contact whose state is to be set.
+/// @param value Value the contact is to be set to. The new state:
+///   is not allowed to change whether the contact is awake,
+///   is not allowed to change whether the contact is impenetrable,
+///   is not allowed to change whether the contact is for a sensor,
+///   is not allowed to change the TOI of the contact,
+///   is not allowed to change the TOI count of the contact. Otherwise, this function
+///   will throw an <code>InvalidArgument</code> exception and not change anything.
+/// @throws std::out_of_range If given an out of range contact identifier or the new
+///   contact value references an out of range identifier.
+/// @throws InvalidArgument if the identifier is to a freed contact or if the new state is
+///   not allowable.
+/// @see GetContact, GetContactRange.
 void SetContact(World& world, ContactID id, const Contact& value);
 
 /// @brief Gets the manifold for the identified contact.
-/// @throws std::out_of_range If given an invalid contact identifier.
+/// @note There is a manifold for every contact and vice-versa.
+/// @throws std::out_of_range If given an out of range contact identifier.
+/// @see SetManifold, GetContantRange.
 Manifold GetManifold(const World& world, ContactID id);
+
+/// @brief Sets the identified manifold's state.
+/// @note There is a manifold for every contact and vice-versa.
+/// @param world The world of the manifold whose state is to be set.
+/// @param id Identifier of the manifold whose state is to be set.
+/// @param value Value the manifold is to be set to. The new state:
+///   TODO: is not allowed to change whether the contact is awake,
+///   TODO: is not allowed to change whether the contact is impenetrable.
+///   Otherwise, throws <code>InvalidArgument</code> exception and doesn't change anything.
+/// @throws std::out_of_range If given an out of range contact identifier or the new
+///   manifold value references an out of range identifier.
+/// @throws InvalidArgument if the identifier is to a freed contact or if the new state is
+///   not allowable.
+/// @see GetManifold, GetContactRange.
+void SetManifold(World& world, ContactID id, const Manifold& value);
 
 /// @brief Gets the count of contacts in the given world.
 /// @note Not all contacts are for shapes that are actually touching. Some contacts are for
@@ -505,7 +616,12 @@ inline ContactCounter GetContactCount(const World& world) noexcept
     return static_cast<ContactCounter>(size(GetContacts(world)));
 }
 
-/// @}
+/// @brief Gets whether the given identifier is to a contact that's been destroyed.
+/// @note Complexity of this function is O(1).
+inline auto IsDestroyed(const World& world, ContactID id) -> bool
+{
+    return IsDestroyed(GetContact(world, id));
+}
 
 /// @defgroup PhysicalEntities Physical Entities
 ///
@@ -581,21 +697,30 @@ public:
     /// @brief Constructs a world object.
     /// @details Constructs a world object using the default world implementation class
     ///   that's instantiated with the given configuraion.
+    /// @note More configurability can be had via the <code>StepConf</code>
+    ///   data given to the <code>Step(World&, const StepConf&)</code> function.
     /// @param def A customized world configuration or its default value.
-    /// @note A lot more configurability can be had via the <code>StepConf</code>
-    ///   data that's given to the <code>Step(World&, const StepConf&)</code> function.
+    /// @post <code>GetType(const World&)</code> for the created object returns the value
+    ///   returned by <code>GetTypeID<AabbTreeWorld>()</code>.
+    /// @post <code>GetBodyCount(const World&)</code>, <code>GetJointCount(const World&)</code>,
+    ///   <code>GetContactCount(const World&)</code> for the created object all return 0.
+    /// @post <code>GetBodies(const World&)</code>, <code>GetJoints(const World&)</code>,
+    ///   <code>GetContacts(const World&)</code> for the created object all return empty
+    ///   containers.
+    /// @post <code>IsLocked(const World&)</code>, <code>GetSubStepping(const World&)</code>
+    ///   all return false.
     /// @see Step(World&, const StepConf&).
     explicit World(const WorldConf& def = WorldConf{});
 
-    /// @brief Copy constructor.
-    /// @details Copy constructs this world with a deep copy of the given world.
-    World(const World& other): m_impl{other.m_impl? other.m_impl->Clone_(): nullptr}
-    {
-        // Intentionally empty.
-    }
+    /// @brief Copy constructs this world with a deep copy of the given world.
+    /// @param other The world to copy construct this one from.
+    /// @throws std::bad_alloc if memory cannot be allocated.
+    /// @post The state of the created object is equal to the state of the copied from object.
+    /// @see operator==(const World&, const World&).
+    World(const World& other);
 
-    /// @brief Move constructor.
-    /// @details Move constructs this world.
+    /// @brief Move constructs this world.
+    /// @param other The world to move construct this one from.
     /// @post <code>this</code> is what <code>other</code> used to be.
     /// @post <code>other</code> is in a "valid but unspecified state". The only thing it
     ///   can be used for, is as the destination of an assignment.
@@ -607,27 +732,37 @@ public:
     /// @brief Polymorphic initializing constructor.
     /// @details Constructor for constructing an instance from any class supporting the @c World
     ///   functionality.
+    /// @param arg A value of a world-concept supporting type to construct this object from.
     /// @throws std::bad_alloc if there's a failure allocating storage for the given value.
+    /// @post <code>GetType(const World&)</code> for the created object returns the value
+    ///   returned by <code>GetTypeID<std::decay_t<T>>()</code>.
     template <typename T, typename DT = std::decay_t<T>,
     typename Tp = std::enable_if_t<!std::is_same_v<DT, World> && !std::is_same_v<DT, WorldConf>, DT>,
     typename = std::enable_if_t<std::is_constructible_v<DT, T>>>
-    explicit World(T&& arg) : m_impl{std::make_unique<Model<Tp>>(std::forward<T>(arg))}
+    explicit World(T&& arg) : m_impl{std::make_unique<detail::WorldModel<Tp>>(std::forward<T>(arg))}
     {
         // Intentionally empty.
     }
 
-    /// @brief Copy assignment operator.
-    /// @details Copy assigns this world with a deep copy of the given world.
-    World& operator=(const World& other)
-    {
-        m_impl = other.m_impl ? other.m_impl->Clone_() : nullptr;
-        return *this;
-    }
+    /// @brief Destroys all contained physics entities and releases all related resources.
+    /// @note This calls the <code>Clear(World&)</code> function.
+    /// @see Clear.
+    ~World() noexcept;
 
-    /// @brief Move assignment operator.
-    /// @details Move assigns this world.
-    /// @post <code>this</code> is what <code>other</code> used to be.
-    /// @post <code>other</code> is in a "valid but unspecified state". The only thing it
+    /// @brief Copy assigns this world with a deep copy of the given world.
+    /// @note Provides the strong exception guarantee. If this operation throws an exception,
+    ///   the state of this object is unchanged.
+    /// @param other The other world to copy assign from.
+    /// @throws std::bad_alloc if memory cannot be allocated.
+    /// @post On success: the state of the assigned-to object is equal to the state of the
+    ///   copied from object.
+    /// @see operator==(const World&, const World&).
+    World& operator=(const World& other);
+
+    /// @brief Move assigns this world.
+    /// @param other The other world to move assign from.
+    /// @post <code>this</code> is what @p other used to be.
+    /// @post @p other is in a "valid but unspecified state". The only thing it
     ///   can be used for, is as the destination of an assignment.
     World& operator=(World&& other) noexcept
     {
@@ -635,20 +770,14 @@ public:
         return *this;
     }
 
-    /// @brief Destructor.
-    /// @details All physics entities are destroyed and all memory is released.
-    /// @note This will call the <code>Clear()</code> function.
-    /// @see Clear.
-    ~World() noexcept;
-
     // Listener friend functions...
-    friend void SetShapeDestructionListener(World& world, ShapeListener listener) noexcept;
-    friend void SetDetachListener(World& world, AssociationListener listener) noexcept;
-    friend void SetJointDestructionListener(World& world, JointListener listener) noexcept;
-    friend void SetBeginContactListener(World& world, ContactListener listener) noexcept;
-    friend void SetEndContactListener(World& world, ContactListener listener) noexcept;
-    friend void SetPreSolveContactListener(World& world, ManifoldContactListener listener) noexcept;
-    friend void SetPostSolveContactListener(World& world, ImpulsesContactListener listener) noexcept;
+    friend void SetShapeDestructionListener(World& world, ShapeFunction listener) noexcept;
+    friend void SetDetachListener(World& world, BodyShapeFunction listener) noexcept;
+    friend void SetJointDestructionListener(World& world, JointFunction listener) noexcept;
+    friend void SetBeginContactListener(World& world, ContactFunction listener) noexcept;
+    friend void SetEndContactListener(World& world, ContactFunction listener) noexcept;
+    friend void SetPreSolveContactListener(World& world, ContactManifoldFunction listener) noexcept;
+    friend void SetPostSolveContactListener(World& world, ContactImpulsesFunction listener) noexcept;
 
     // Miscellaneous friend functions...
     friend TypeID GetType(const World& world) noexcept;
@@ -656,6 +785,9 @@ public:
     friend std::add_pointer_t<std::add_const_t<T>> TypeCast(const World* value) noexcept;
     template <typename T>
     friend std::add_pointer_t<T> TypeCast(World* value) noexcept;
+    friend bool operator==(const World& lhs, const World& rhs) noexcept;
+    friend bool operator!=(const World& lhs, const World& rhs) noexcept;
+
     friend std::optional<pmr::StatsResource::Stats> GetResourceStats(const World& world) noexcept;
     friend void Clear(World& world) noexcept;
     friend StepStats Step(World& world, const StepConf& conf);
@@ -701,770 +833,55 @@ public:
     friend Contact GetContact(const World& world, ContactID id);
     friend void SetContact(World& world, ContactID id, const Contact& value);
     friend Manifold GetManifold(const World& world, ContactID id);
+    friend void SetManifold(World& world, ContactID id, const Manifold& value);
 
 private:
-    /// @brief Concept pure virtual base class.
-    struct Concept {
-        /// @brief Destructor.
-        virtual ~Concept() = default;
-
-        /// @name Listener Member Functions
-        /// @note Having these as part of the base interface instead of say taking
-        ///   these settings on construction, allows users to already have access
-        ///   to the World object so these can be set without making the underlying
-        ///   type part of the listener callback parameter interface.
-        /// @{
-
-        /// @brief Sets the destruction listener for shapes.
-        /// @note This listener is called on <code>Clear_()</code> for every shape.
-        /// @see Clear_.
-        virtual void SetShapeDestructionListener_(ShapeListener listener) noexcept = 0;
-
-        /// @brief Sets the detach listener for shapes detaching from bodies.
-        virtual void SetDetachListener_(AssociationListener listener) noexcept = 0;
-
-        /// @brief Sets a destruction listener for joints.
-        /// @note This listener is called on <code>Clear_()</code> for every joint. It's also called
-        ///   on <code>Destroy_(BodyID)</code> for every joint associated with the identified body.
-        /// @see Clear_, Destroy_(BodyID).
-        virtual void SetJointDestructionListener_(JointListener listener) noexcept = 0;
-
-        /// @brief Sets a begin contact event listener.
-        virtual void SetBeginContactListener_(ContactListener listener) noexcept = 0;
-
-        /// @brief Sets an end contact event listener.
-        virtual void SetEndContactListener_(ContactListener listener) noexcept = 0;
-
-        /// @brief Sets a pre-solve contact event listener.
-        virtual void SetPreSolveContactListener_(ManifoldContactListener listener) noexcept = 0;
-
-        /// @brief Sets a post-solve contact event listener.
-        virtual void SetPostSolveContactListener_(ImpulsesContactListener listener) noexcept = 0;
-
-        /// @}
-
-        /// @name Miscellaneous Member Functions
-        /// @{
-
-        /// @brief Clones the instance - making a deep copy.
-        virtual std::unique_ptr<Concept> Clone_() const = 0;
-
-        /// @brief Gets the use type information.
-        /// @return Type info of the underlying value's type.
-        virtual TypeID GetType_() const noexcept = 0;
-
-        /// @brief Gets the data for the underlying configuration.
-        virtual const void* GetData_() const noexcept = 0;
-
-        /// @brief Gets the data for the underlying configuration.
-        virtual void* GetData_() noexcept = 0;
-
-        /// @brief Gets the polymorphic memory resource statistics.
-        /// @note This will be the zero initialized value unless the world configuration the
-        ///   world was constructed with specified the collection of these statistics.
-        virtual std::optional<pmr::StatsResource::Stats> GetResourceStats_() const noexcept = 0;
-
-        /// @brief Clears the world.
-        /// @note This calls the joint and shape destruction listeners (if they're set), for all
-        ///   defined joints and shapes, before clearing anything. Any exceptions thrown from these
-        ///   listeners are ignored.
-        /// @post The contents of this world have all been destroyed and this world's internal
-        ///   state is reset as though it had just been constructed.
-        /// @see SetJointDestructionListener_, SetShapeDestructionListener_.
-        virtual void Clear_() noexcept = 0;
-
-        /// @brief Steps the world simulation according to the given configuration.
-        /// @details Performs position and velocity updating, sleeping of non-moving bodies, updating
-        ///   of the contacts, and notifying the contact listener of begin-contact, end-contact,
-        ///   pre-solve, and post-solve events.
-        /// @warning Behavior is not specified if given a negative step time delta.
-        /// @warning Varying the step time delta may lead to non-physical behaviors.
-        /// @note Calling this with a zero step time delta results only in fixtures and bodies
-        ///   registered for special handling being processed. No physics is performed.
-        /// @note If the given velocity and position iterations are zero, this function doesn't
-        ///   do velocity or position resolutions respectively of the contacting bodies.
-        /// @note While body velocities are updated accordingly (per the sum of forces acting on them),
-        ///   body positions (barring any collisions) are updated as if they had moved the entire time
-        ///   step at those resulting velocities. In other words, a body initially at position 0
-        ///   (<code>p0</code>) going velocity 0 (<code>v0</code>) fast with a sum acceleration of
-        ///   <code>a</code>, after time <code>t</code> and barring any collisions, will have a new
-        ///   velocity (<code>v1</code>) of <code>v0 + (a * t)</code> and a new position
-        ///   (<code>p1</code>) of <code>p0 + v1 * t</code>.
-        /// @post Static bodies are unmoved.
-        /// @post Kinetic bodies are moved based on their previous velocities.
-        /// @post Dynamic bodies are moved based on their previous velocities, gravity, applied
-        ///   forces, applied impulses, masses, damping, and the restitution and friction values
-        ///   of their fixtures when they experience collisions.
-        /// @param conf Configuration for the simulation step.
-        /// @return Statistics for the step.
-        /// @throws WrongState if this function is called while the world is locked.
-        virtual StepStats Step_(const StepConf& conf) = 0;
-
-        /// @brief Whether or not "step" is complete.
-        /// @details The "step" is completed when there are no more TOI events for the current time
-        /// step.
-        /// @return <code>true</code> unless sub-stepping is enabled and the step function returned
-        ///   without finishing all of its sub-steps.
-        /// @see GetSubStepping_, SetSubStepping_.
-        virtual bool IsStepComplete_() const noexcept = 0;
-
-        /// @brief Gets whether or not sub-stepping is enabled.
-        /// @see SetSubStepping_, IsStepComplete_.
-        virtual bool GetSubStepping_() const noexcept = 0;
-
-        /// @brief Enables/disables single stepped continuous physics.
-        /// @note This is not normally used. Enabling sub-stepping is meant for testing.
-        /// @post The <code>GetSubStepping_()</code> function will return the value this function was
-        ///   called with.
-        /// @see IsStepComplete_, GetSubStepping_.
-        virtual void SetSubStepping_(bool flag) noexcept = 0;
-
-        /// @brief Gets access to the broad-phase dynamic tree information.
-        /// @todo Consider removing this function. This function exposes the implementation detail
-        ///   of the broad-phase contact detection system.
-        virtual const DynamicTree& GetTree_() const noexcept = 0;
-
-        /// @brief Is the world locked (in the middle of a time step).
-        virtual bool IsLocked_() const noexcept = 0;
-
-        /// @brief Shifts the world origin.
-        /// @note Useful for large worlds.
-        /// @note The body shift formula is: <code>position -= newOrigin</code>.
-        /// @post The "origin" of this world's bodies, joints, and the board-phase dynamic tree
-        ///   have been translated per the shift amount and direction.
-        /// @param newOrigin the new origin with respect to the old origin
-        /// @throws WrongState if this function is called while the world is locked.
-        virtual void ShiftOrigin_(const Length2& newOrigin) = 0;
-
-        /// @brief Gets the vertex radius range that shapes in this world can be.
-        virtual Interval<Positive<Length>> GetVertexRadiusInterval_() const noexcept = 0;
-
-        /// @brief Gets the inverse delta time.
-        /// @details Gets the inverse delta time that was set on construction or assignment, and
-        ///   updated on every call to the <code>Step_</code> function having a non-zero delta-time.
-        /// @see Step_.
-        virtual Frequency GetInvDeltaTime_() const noexcept = 0;
-
-        /// @}
-
-        /// @name Body Member Functions.
-        /// Member functions relating to bodies.
-        /// @{
-
-        /// @brief Gets the extent of the currently valid body range.
-        /// @note This is one higher than the maxium <code>BodyID</code> that is in range
-        ///   for body related functions.
-        virtual BodyCounter GetBodyRange_() const noexcept = 0;
-
-        /// @brief Gets the world body range for this constant world.
-        /// @details Gets a range enumerating the bodies currently existing within this world.
-        ///   These are the bodies that had been created from previous calls to the
-        ///   <code>CreateBody_(const Body&)</code> function that haven't yet been destroyed.
-        /// @return An iterable of body identifiers.
-        /// @see CreateBody_.
-        virtual std::vector<BodyID> GetBodies_() const = 0;
-
-        /// @brief Gets the bodies-for-proxies range for this world.
-        /// @details Provides insight on what bodies have been queued for proxy processing
-        ///   during the next call to the world step function.
-        /// @see Step_.
-        /// @todo Remove this function from this class - access from implementation instead.
-        virtual std::vector<BodyID> GetBodiesForProxies_() const = 0;
-
-        /// @brief Creates a rigid body that's a copy of the given one.
-        /// @warning This function should not be used while the world is locked &mdash; as it is
-        ///   during callbacks. If it is, it will throw an exception or abort your program.
-        /// @note No references to the configuration are retained. Its value is copied.
-        /// @post The created body will be present in the range returned from the
-        ///   <code>GetBodies_()</code> function.
-        /// @param body A customized body or its default value.
-        /// @return Identifier of the newly created body which can later be destroyed by calling
-        ///   the <code>Destroy_(BodyID)</code> function.
-        /// @throws WrongState if this function is called while the world is locked.
-        /// @throws LengthError if this operation would create more than <code>MaxBodies</code>.
-        /// @throws std::out_of_range if the given body references any invalid shape identifiers.
-        /// @see Destroy_(BodyID), GetBodies_.
-        /// @see PhysicalEntities.
-        virtual BodyID CreateBody_(const Body& body) = 0;
-
-        /// @brief Gets the state of the identified body.
-        /// @throws std::out_of_range If given an invalid body identifier.
-        /// @see SetBody_, GetBodyRange_.
-        virtual Body GetBody_(BodyID id) const = 0;
-
-        /// @brief Sets the state of the identified body.
-        /// @throws std::out_of_range if given an invalid id of if the given body references any
-        ///   invalid shape identifiers.
-        /// @throws InvalidArgument if the specified ID was destroyed.
-        /// @see GetBody_, GetBodyRange_.
-        virtual void SetBody_(BodyID id, const Body& value) = 0;
-
-        /// @brief Destroys the identified body.
-        /// @details Destroys the identified body that had previously been created by a call to this
-        ///   world's <code>CreateBody_(const Body&)</code> function.
-        /// @warning This automatically deletes all associated shapes and joints.
-        /// @warning This function is locked during callbacks.
-        /// @warning Behavior is not specified if identified body wasn't created by this world.
-        /// @note This function is locked during callbacks.
-        /// @post The destroyed body will no longer be present in the range returned from the
-        ///   <code>GetBodies_()</code> function.
-        /// @param id Identifier of body to destroy that had been created by this world.
-        /// @throws WrongState if this function is called while the world is locked.
-        /// @throws std::out_of_range If given an invalid body identifier.
-        /// @see CreateBody_, GetBodies_, GetBodyRange_.
-        /// @see PhysicalEntities.
-        virtual void Destroy_(BodyID id) = 0;
-
-        /// @brief Gets the range of joints attached to the identified body.
-        /// @throws std::out_of_range If given an invalid body identifier.
-        /// @see CreateJoint_, GetBodyRange_.
-        virtual std::vector<std::pair<BodyID, JointID>> GetJoints_(BodyID id) const = 0;
-
-        /// @brief Gets the container of contacts attached to the identified body.
-        /// @warning This collection changes during the time step and you may
-        ///   miss some collisions if you don't use <code>ContactListener</code>.
-        /// @throws std::out_of_range If given an invalid body identifier.
-        /// @see GetBodyRange_.
-        virtual std::vector<std::tuple<ContactKey, ContactID>> GetContacts_(BodyID id) const = 0;
-
-        /// @brief Gets the identities of the shapes associated with the identified body.
-        /// @throws std::out_of_range If given an invalid body identifier.
-        /// @see GetBodyRange_, CreateBody_, SetBody_.
-        virtual std::vector<ShapeID> GetShapes_(BodyID id) const = 0;
-
-        /// @}
-
-        /// @name Joint Member Functions
-        /// Member functions relating to joints.
-        /// @{
-
-        /// @brief Gets the extent of the currently valid joint range.
-        /// @note This is one higher than the maxium <code>JointID</code> that is in range
-        ///   for joint related functions.
-        virtual JointCounter GetJointRange_() const noexcept = 0;
-
-        /// @brief Gets the world joint range.
-        /// @details Gets a range enumerating the joints currently existing within this world.
-        ///   These are the joints that had been created from previous calls to the
-        ///   <code>CreateJoint_</code> function that haven't yet been destroyed.
-        /// @return World joints sized-range.
-        /// @see CreateJoint_.
-        virtual std::vector<JointID> GetJoints_() const = 0;
-
-        /// @brief Creates a joint to constrain one or more bodies.
-        /// @warning This function is locked during callbacks.
-        /// @post The created joint will be present in the range returned from the
-        ///   <code>GetJoints_()</code> function.
-        /// @return Identifier of newly created joint which can later be destroyed by calling the
-        ///   <code>Destroy_(JointID)</code> function.
-        /// @throws WrongState if this function is called while the world is locked.
-        /// @throws LengthError if this operation would create more than <code>MaxJoints</code>.
-        /// @see PhysicalEntities.
-        /// @see Destroy_(JointID), GetJoints_.
-        virtual JointID CreateJoint_(const Joint& def) = 0;
-
-        /// @brief Gets the value of the identified joint.
-        /// @throws std::out_of_range If given an invalid joint identifier.
-        /// @see SetJoint_, GetJointRange_.
-        virtual Joint GetJoint_(JointID id) const = 0;
-
-        /// @brief Sets the identified joint to the given value.
-        /// @throws WrongState if this function is called while the world is locked.
-        /// @throws std::out_of_range If given an invalid joint identifier.
-        /// @throws InvalidArgument if the specified ID was destroyed.
-        /// @see GetJoint_, GetJointRange_.
-        virtual void SetJoint_(JointID id, const Joint& def) = 0;
-
-        /// @brief Destroys the identified joint.
-        /// @details Destroys the identified joint that had previously been created by a call to this
-        ///   world's <code>CreateJoint_(const Joint&)</code> function.
-        /// @warning This function is locked during callbacks.
-        /// @note This may cause the connected bodies to begin colliding.
-        /// @post The destroyed joint will no longer be present in the range returned from the
-        ///   <code>GetJoints_()</code> function.
-        /// @param id Identifier of joint to destroy that had been created by this world.
-        /// @throws WrongState if this function is called while the world is locked.
-        /// @throws std::out_of_range If given an invalid joint identifier.
-        /// @see CreateJoint_(const Joint&), GetJoints_, GetJointRange_.
-        /// @see PhysicalEntities.
-        virtual void Destroy_(JointID id) = 0;
-
-        /// @}
-
-        /// @name Shape Member Functions
-        /// Member functions relating to shapes.
-        /// @{
-
-        /// @brief Gets the extent of the currently valid shape range.
-        /// @note This is one higher than the maxium <code>ShapeID</code> that is in range
-        ///   for shape related functions.
-        virtual ShapeCounter GetShapeRange_() const noexcept = 0;
-
-        /// @brief Creates an identifiable copy of the given shape within this world.
-        /// @throws InvalidArgument if called for a shape with a vertex radius that's either:
-        ///    less than the minimum vertex radius, or greater than the maximum vertex radius.
-        /// @throws WrongState if this function is called while the world is locked.
-        /// @throws LengthError if this operation would create more than <code>MaxShapes</code>.
-        /// @see Destroy_(ShapeID), GetShape_, SetShape_.
-        virtual ShapeID CreateShape_(const Shape& def) = 0;
-
-        /// @throws std::out_of_range If given an invalid shape identifier.
-        /// @see CreateShape_.
-        virtual Shape GetShape_(ShapeID id) const = 0;
-
-        /// @brief Sets the identified shape to the new value.
-        /// @throws std::out_of_range If given an invalid shape identifier.
-        /// @throws InvalidArgument if the specified ID was destroyed.
-        /// @see CreateShape_.
-        virtual void SetShape_(ShapeID id, const Shape& def) = 0;
-
-        /// @brief Destroys the identified shape.
-        /// @throws std::out_of_range If given an invalid shape identifier.
-        /// @see CreateShape_.
-        virtual void Destroy_(ShapeID id) = 0;
-
-        /// @}
-
-        /// @name Contact Member Functions
-        /// Member functions relating to contacts.
-        /// @{
-
-        /// @brief Gets the extent of the currently valid contact range.
-        /// @note This is one higher than the maxium <code>ContactID</code> that is in range
-        ///   for contact related functions.
-        virtual ContactCounter GetContactRange_() const noexcept = 0;
-
-        /// @brief Gets the world contact range.
-        /// @warning contacts are created and destroyed in the middle of a time step.
-        /// Use <code>ContactListener</code> to avoid missing contacts.
-        /// @return World contacts sized-range.
-        virtual std::vector<KeyedContactID> GetContacts_() const = 0;
-
-        /// @brief Gets the identified contact.
-        /// @throws std::out_of_range If given an invalid contact identifier.
-        /// @see SetContact_, GetContactRange_.
-        virtual Contact GetContact_(ContactID id) const = 0;
-
-        /// @brief Sets the identified contact's state.
-        /// @note This may throw an exception or update associated entities to preserve invariants.
-        /// @invariant A contact may only be impenetrable if one or both bodies are.
-        /// @invariant A contact may only be active if one or both bodies are awake.
-        /// @invariant A contact may only be a sensor or one or both shapes are.
-        /// @throws std::out_of_range If given an invalid contact identifier.
-        /// @throws InvalidArgument if a change would violate an invariant or if the specified ID
-        ///   was destroyed.
-        /// @see GetContact_, GetContactRange_.
-        virtual void SetContact_(ContactID id, const Contact& value) = 0;
-
-        /// @brief Gets the collision manifold for the identified contact.
-        /// @throws std::out_of_range If given an invalid contact identifier.
-        /// @see GetContact_, GetContactRange_.
-        virtual Manifold GetManifold_(ContactID id) const = 0;
-
-        /// @}
-    };
-
-    template <class T>
-    struct Model;
-
     /// @brief Pointer to implementation (PIMPL)
     /// @see https://en.cppreference.com/w/cpp/language/pimpl
-    propagate_const<std::unique_ptr<Concept>> m_impl;
-};
-
-/// @brief Interface between type class template instantiated for and Concept class.
-/// @see Concept.
-template <class T>
-struct World::Model final: World::Concept {
-    /// @brief Type alias for the type of the data held.
-    using data_type = T;
-
-    /// @brief Initializing constructor.
-    template <typename U, std::enable_if_t<!std::is_same_v<U, Model>, int> = 0>
-    explicit Model(U&& arg) noexcept(std::is_nothrow_constructible_v<T, U>)
-        : data{std::forward<U>(arg)}
-    {
-        // Intentionally empty.
-    }
-
-    /// @name Listener Member Functions
-    /// @{
-
-    /// @copydoc Concept::SetShapeDestructionListener_
-    void SetShapeDestructionListener_(ShapeListener listener) noexcept override
-    {
-        SetShapeDestructionListener(data, std::move(listener));
-    }
-
-    /// @copydoc Concept::SetDetachListener_
-    void SetDetachListener_(AssociationListener listener) noexcept override
-    {
-        SetDetachListener(data, std::move(listener));
-    }
-
-    /// @copydoc Concept::SetJointDestructionListener_
-    void SetJointDestructionListener_(JointListener listener) noexcept override
-    {
-        SetJointDestructionListener(data, std::move(listener));
-    }
-
-    /// @copydoc Concept::SetBeginContactListener_
-    void SetBeginContactListener_(ContactListener listener) noexcept override
-    {
-        SetBeginContactListener(data, std::move(listener));
-    }
-
-    /// @copydoc Concept::SetEndContactListener_
-    void SetEndContactListener_(ContactListener listener) noexcept override
-    {
-        SetEndContactListener(data, std::move(listener));
-    }
-
-    /// @copydoc Concept::SetPreSolveContactListener_
-    void SetPreSolveContactListener_(ManifoldContactListener listener) noexcept override
-    {
-        SetPreSolveContactListener(data, std::move(listener));
-    }
-
-    /// @copydoc Concept::SetPostSolveContactListener_
-    void SetPostSolveContactListener_(ImpulsesContactListener listener) noexcept override
-    {
-        SetPostSolveContactListener(data, std::move(listener));
-    }
-
-    /// @}
-
-    /// @name Miscellaneous Member Functions
-    /// @{
-
-    /// @copydoc Concept::Clone_
-    std::unique_ptr<Concept> Clone_() const override
-    {
-        return std::make_unique<Model<T>>(data);
-    }
-
-    /// @copydoc Concept::GetType_
-    TypeID GetType_() const noexcept override
-    {
-        return GetTypeID<data_type>();
-    }
-
-    /// @copydoc Concept::GetData_
-    const void* GetData_() const noexcept override
-    {
-        // Note address of "data" not necessarily same as address of "this" since
-        // base class is virtual.
-        return &data;
-    }
-
-    /// @copydoc Concept::GetData_
-    void* GetData_() noexcept override
-    {
-        // Note address of "data" not necessarily same as address of "this" since
-        // base class is virtual.
-        return &data;
-    }
-
-    /// @copydoc Concept::GetResourceStats_
-    std::optional<pmr::StatsResource::Stats> GetResourceStats_() const noexcept override
-    {
-        return GetResourceStats(data);
-    }
-
-    /// @copydoc Concept::Clear_
-    void Clear_() noexcept override
-    {
-        Clear(data);
-    }
-
-    /// @copydoc Concept::Step_
-    StepStats Step_(const StepConf& conf) override
-    {
-        return Step(data, conf);
-    }
-
-    /// @copydoc Concept::IsStepComplete_
-    bool IsStepComplete_() const noexcept override
-    {
-        return IsStepComplete(data);
-    }
-
-    /// @copydoc Concept::GetSubStepping_
-    bool GetSubStepping_() const noexcept override
-    {
-        return GetSubStepping(data);
-    }
-
-    /// @copydoc Concept::SetSubStepping_
-    void SetSubStepping_(bool flag) noexcept override
-    {
-        SetSubStepping(data, flag);
-    }
-
-    /// @copydoc Concept::GetTree_
-    const DynamicTree& GetTree_() const noexcept override
-    {
-        return GetTree(data);
-    }
-
-    /// @copydoc Concept::IsLocked_
-    bool IsLocked_() const noexcept override
-    {
-        return IsLocked(data);
-    }
-
-    /// @copydoc Concept::ShiftOrigin_
-    void ShiftOrigin_(const Length2& newOrigin) override
-    {
-        ShiftOrigin(data, newOrigin);
-    }
-
-    /// @copydoc Concept::GetVertexRadiusInterval_
-    Interval<Positive<Length>> GetVertexRadiusInterval_() const noexcept override
-    {
-        return GetVertexRadiusInterval(data);
-    }
-
-    /// @copydoc Concept::GetInvDeltaTime_
-    Frequency GetInvDeltaTime_() const noexcept override
-    {
-        return GetInvDeltaTime(data);
-    }
-
-    /// @}
-
-    /// @name Body Member Functions.
-    /// Member functions relating to bodies.
-    /// @{
-
-    /// @copydoc Concept::GetBodyRange_
-    BodyCounter GetBodyRange_() const noexcept override
-    {
-        return GetBodyRange(data);
-    }
-
-    /// @copydoc Concept::GetBodies_
-    std::vector<BodyID> GetBodies_() const override
-    {
-        return GetBodies(data);
-    }
-
-    /// @copydoc Concept::GetBodiesForProxies_
-    std::vector<BodyID> GetBodiesForProxies_() const override
-    {
-        return GetBodiesForProxies(data);
-    }
-
-    /// @copydoc Concept::CreateBody_
-    BodyID CreateBody_(const Body& body) override
-    {
-        return CreateBody(data, body);
-    }
-
-    /// @copydoc Concept::GetBody_
-    Body GetBody_(BodyID id) const override
-    {
-        return GetBody(data, id);
-    }
-
-    /// @copydoc Concept::SetBody_
-    void SetBody_(BodyID id, const Body& value) override
-    {
-        SetBody(data, id, value);
-    }
-
-    /// @copydoc Concept::Destroy_(BodyID)
-    void Destroy_(BodyID id) override
-    {
-        Destroy(data, id);
-    }
-
-    /// @copydoc Concept::GetJoints_(BodyID)
-    std::vector<std::pair<BodyID, JointID>> GetJoints_(BodyID id) const override
-    {
-        return GetJoints(data, id);
-    }
-
-    /// @copydoc Concept::GetContacts_(BodyID)
-    std::vector<std::tuple<ContactKey, ContactID>> GetContacts_(BodyID id) const override
-    {
-        return GetContacts(data, id);
-    }
-
-    /// @copydoc Concept::GetShapes_
-    std::vector<ShapeID> GetShapes_(BodyID id) const override
-    {
-        return GetShapes(data, id);
-    }
-
-    /// @}
-
-    /// @name Joint Member Functions
-    /// Member functions relating to joints.
-    /// @{
-
-    /// @copydoc Concept::GetJointRange_
-    JointCounter GetJointRange_() const noexcept override
-    {
-        return GetJointRange(data);
-    }
-
-    /// @copydoc Concept::GetJoints_
-    std::vector<JointID> GetJoints_() const override
-    {
-        return GetJoints(data);
-    }
-
-    /// @copydoc Concept::CreateJoint_
-    JointID CreateJoint_(const Joint& def) override
-    {
-        return CreateJoint(data, def);
-    }
-
-    /// @copydoc Concept::GetJoint_
-    Joint GetJoint_(JointID id) const override
-    {
-        return GetJoint(data, id);
-    }
-
-    /// @copydoc Concept::SetJoint_
-    void SetJoint_(JointID id, const Joint& def) override
-    {
-        return SetJoint(data, id, def);
-    }
-
-    /// @copydoc Concept::Destroy_
-    void Destroy_(JointID id) override
-    {
-        return Destroy(data, id);
-    }
-
-    /// @}
-
-    /// @name Shape Member Functions
-    /// Member functions relating to shapes.
-    /// @{
-
-    /// @copydoc Concept::GetShapeRange_
-    ShapeCounter GetShapeRange_() const noexcept override
-    {
-        return GetShapeRange(data);
-    }
-
-    /// @copydoc Concept::CreateShape_
-    ShapeID CreateShape_(const Shape& def) override
-    {
-        return CreateShape(data, def);
-    }
-
-    /// @copydoc Concept::GetShape_
-    Shape GetShape_(ShapeID id) const override
-    {
-        return GetShape(data, id);
-    }
-
-    /// @copydoc Concept::SetShape_
-    void SetShape_(ShapeID id, const Shape& def) override
-    {
-        SetShape(data, id, def);
-    }
-
-    /// @copydoc Concept::Destroy_
-    void Destroy_(ShapeID id) override
-    {
-        Destroy(data, id);
-    }
-
-    /// @}
-
-    /// @name Contact Member Functions
-    /// Member functions relating to contacts.
-    /// @{
-
-    /// @copydoc Concept::GetContactRange_
-    ContactCounter GetContactRange_() const noexcept override
-    {
-        return GetContactRange(data);
-    }
-
-    /// @copydoc Concept::GetContacts_
-    std::vector<KeyedContactID> GetContacts_() const override
-    {
-        return GetContacts(data);
-    }
-
-    /// @copydoc Concept::GetContact_
-    Contact GetContact_(ContactID id) const override
-    {
-        return GetContact(data, id);
-    }
-
-    /// @copydoc Concept::SetContact_
-    void SetContact_(ContactID id, const Contact& value) override
-    {
-        SetContact(data, id, value);
-    }
-
-    /// @copydoc Concept::GetManifold_
-    Manifold GetManifold_(ContactID id) const override
-    {
-        return GetManifold(data, id);
-    }
-
-    /// @}
-
-    data_type data; ///< Data.
+    std::unique_ptr<detail::WorldConcept> m_impl;
 };
 
 // State & confirm intended compile-time traits of World class...
+static_assert(!std::is_polymorphic_v<World>);
 static_assert(std::is_default_constructible_v<World>);
 static_assert(std::is_copy_constructible_v<World>);
 static_assert(std::is_copy_assignable_v<World>);
 static_assert(std::is_nothrow_move_constructible_v<World>);
 static_assert(std::is_nothrow_move_assignable_v<World>);
 
-inline World::~World() noexcept
-{
-    if (m_impl) { // for proper handling after being moved from
-        // Call implementation's clear while World still valid to give destruction
-        // listening callbacks chance to run while world data is still valid.
-        m_impl->Clear_();
-    }
-}
-
 // World Listener Non-Member Functions...
 
-inline void SetShapeDestructionListener(World& world, ShapeListener listener) noexcept
+inline void SetShapeDestructionListener(World& world, ShapeFunction listener) noexcept
 {
     world.m_impl->SetShapeDestructionListener_(std::move(listener));
 }
 
-inline void SetDetachListener(World& world, AssociationListener listener) noexcept
+inline void SetDetachListener(World& world, BodyShapeFunction listener) noexcept
 {
     world.m_impl->SetDetachListener_(std::move(listener));
 }
 
-inline void SetJointDestructionListener(World& world, JointListener listener) noexcept
+inline void SetJointDestructionListener(World& world, JointFunction listener) noexcept
 {
     world.m_impl->SetJointDestructionListener_(std::move(listener));
 }
 
-inline void SetBeginContactListener(World& world, ContactListener listener) noexcept
+inline void SetBeginContactListener(World& world, ContactFunction listener) noexcept
 {
     world.m_impl->SetBeginContactListener_(std::move(listener));
 }
 
-inline void SetEndContactListener(World& world, ContactListener listener) noexcept
+inline void SetEndContactListener(World& world, ContactFunction listener) noexcept
 {
     world.m_impl->SetEndContactListener_(std::move(listener));
 }
 
-inline void SetPreSolveContactListener(World& world, ManifoldContactListener listener) noexcept
+inline void SetPreSolveContactListener(World& world, ContactManifoldFunction listener) noexcept
 {
     world.m_impl->SetPreSolveContactListener_(std::move(listener));
 }
 
-inline void SetPostSolveContactListener(World& world, ImpulsesContactListener listener) noexcept
+inline void SetPostSolveContactListener(World& world, ContactImpulsesFunction listener) noexcept
 {
     world.m_impl->SetPostSolveContactListener_(std::move(listener));
 }
@@ -1474,6 +891,17 @@ inline void SetPostSolveContactListener(World& world, ImpulsesContactListener li
 inline TypeID GetType(const World& world) noexcept
 {
     return world.m_impl->GetType_();
+}
+
+inline bool operator==(const World& lhs, const World& rhs) noexcept
+{
+    return (lhs.m_impl == rhs.m_impl) ||
+           ((lhs.m_impl && rhs.m_impl) && (lhs.m_impl->IsEqual_(*rhs.m_impl)));
+}
+
+inline bool operator!=(const World& lhs, const World& rhs) noexcept
+{
+    return !(lhs == rhs);
 }
 
 inline std::optional<pmr::StatsResource::Stats> GetResourceStats(const World& world) noexcept
@@ -1664,6 +1092,11 @@ inline Manifold GetManifold(const World& world, ContactID id)
     return world.m_impl->GetManifold_(id);
 }
 
+inline void SetManifold(World& world, ContactID id, const Manifold& value)
+{
+    world.m_impl->SetManifold_(id, value);
+}
+
 // Free functions...
 
 /// @brief Converts the given joint into its current configuration value.
@@ -1758,7 +1191,6 @@ inline std::add_pointer_t<T> TypeCast(World* value) noexcept
 /// This is the <code>googletest</code> based unit testing file for the
 /// <code>playrho::d2::World</code> class.
 
-} // namespace d2
-} // namespace playrho
+} // namespace playrho::d2
 
 #endif // PLAYRHO_D2_WORLD_HPP

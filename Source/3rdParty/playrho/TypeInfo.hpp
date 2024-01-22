@@ -25,10 +25,13 @@
 /// @brief Definition of @c TypeID class and closely related code.
 
 #include <cstring> // for std::strcmp
+#include <type_traits> // for std::decay_t
 
-#include "playrho/Templates.hpp"
+// IWYU pragma: begin_exports
 
 #include "playrho/detail/TypeInfo.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

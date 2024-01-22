@@ -24,7 +24,13 @@
 /// @file
 /// @brief Definition of the <code>ConstraintSolverConf</code> class and closely related code.
 
+// IWYU pragma: begin_exports
+
+#include "playrho/Real.hpp"
 #include "playrho/Settings.hpp"
+#include "playrho/Units.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

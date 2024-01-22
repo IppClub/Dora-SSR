@@ -26,15 +26,26 @@
 /// @brief Definition of the @c EdgeShapeConf class and closely related code.
 
 #include <array>
-#include <utility> // for std::index_sequence
 
-#include "playrho/TypeInfo.hpp"
+// IWYU pragma: begin_exports
+
+#include "playrho/InvalidArgument.hpp"
+#include "playrho/NonNegative.hpp"
+#include "playrho/Real.hpp"
+#include "playrho/Settings.hpp"
+#include "playrho/Units.hpp"
+#include "playrho/Vector2.hpp" // for Length2
+
+#include "playrho/detail/Templates.hpp"
+#include "playrho/detail/TypeInfo.hpp"
 
 #include "playrho/d2/DistanceProxy.hpp"
 #include "playrho/d2/MassData.hpp"
-#include "playrho/d2/Math.hpp"
 #include "playrho/d2/NgonWithFwdNormals.hpp"
 #include "playrho/d2/ShapeConf.hpp"
+#include "playrho/d2/UnitVec.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 
@@ -105,7 +116,7 @@ struct EdgeShapeConf : public ShapeBuilder<EdgeShapeConf>
     ///   shapes more prone to roll off of them.
     NonNegativeFF<Length> vertexRadius = GetDefaultVertexRadius();
 
-    NgonWithFwdNormals<2> ngon;
+    NgonWithFwdNormals<2> ngon; ///< N-gon value of the object.
 };
 
 inline EdgeShapeConf& EdgeShapeConf::UseVertexRadius(NonNegative<Length> value) noexcept

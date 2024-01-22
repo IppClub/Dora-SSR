@@ -25,11 +25,16 @@
 /// @file
 /// @brief Definition of the @c TargetJointConf class and closely related code.
 
+// IWYU pragma: begin_exports
+
+#include "playrho/NonNegative.hpp"
 #include "playrho/Span.hpp"
 #include "playrho/TypeInfo.hpp"
 
 #include "playrho/d2/JointConf.hpp"
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -83,7 +88,7 @@ struct TargetJointConf : public JointBuilder<TargetJointConf> {
     /// @note Typically this would be the value of:
     ///   <code>bodyB != InvalidBodyID
     ///     ? GetLocalPoint(GetBody(world, bodyB), target)
-    ///     : GetInvalid<Length2>()</code>.
+    ///     : Length2()</code>.
     constexpr auto& UseAnchor(const Length2& v) noexcept
     {
         localAnchorB = v;

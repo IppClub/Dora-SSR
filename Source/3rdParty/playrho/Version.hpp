@@ -28,8 +28,6 @@
 #include <cstdint> // for std::std::int32_t
 #include <string>
 
-#include "playrho/Defines.hpp"
-
 namespace playrho {
 
 /// @brief Version numbering scheme.

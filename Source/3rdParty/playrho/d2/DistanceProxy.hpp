@@ -28,11 +28,20 @@
 #ifdef IMPLEMENT_DISTANCEPROXY_WITH_BUFFERS
 #include <algorithm>
 #endif
+#include <cassert> // for assert
+#include <cstddef> // for std::size_t
+#include <limits> // for std::numeric_limits
 #include <vector>
 
+// IWYU pragma: begin_exports
+
+#include "playrho/NonNegative.hpp"
+#include "playrho/Settings.hpp"
 #include "playrho/Span.hpp"
 
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 // Define IMPLEMENT_DISTANCEPROXY_WITH_BUFFERS to implement the DistanceProxy class
 // using buffers instead of pointers. Note that timing tests suggest implementing with
@@ -249,7 +258,7 @@ bool TestPoint(const DistanceProxy& proxy, const Length2& point) noexcept;
 
 /// @brief Finds the index of the lowest right most vertex in the given collection.
 /// @return Index of the lowest right most vertex in the given collection, or
-///   <code>GetInvalid<std::size_t>()</code> for empty container.
+///   <code>std::size_t(-1)</code> for empty container.
 std::size_t FindLowestRightMostVertex(Span<const Length2> vertices) noexcept;
 
 /// @brief Gets the convex hull for the given collection of vertices as a vector.

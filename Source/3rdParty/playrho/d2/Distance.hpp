@@ -22,9 +22,19 @@
 #ifndef PLAYRHO_D2_DISTANCE_HPP
 #define PLAYRHO_D2_DISTANCE_HPP
 
+#include <cstdint> // for std::uint8_t
+#include <utility> // for std::pair
+#include <type_traits> // for std::remove_const_t
+
+// IWYU pragma: begin_exports
+
+#include "playrho/Settings.hpp" // for DefaultMaxDistanceIters
+
 #include "playrho/d2/DistanceConf.hpp"
 #include "playrho/d2/Math.hpp"
 #include "playrho/d2/Simplex.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

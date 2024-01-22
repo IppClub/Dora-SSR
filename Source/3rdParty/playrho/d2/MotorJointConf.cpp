@@ -166,18 +166,14 @@ bool SolveVelocity(MotorJointConf& object, const Span<BodyConstraint>& bodies,
 
     auto& bodyConstraintA = At(bodies, GetBodyA(object));
     auto& bodyConstraintB = At(bodies, GetBodyB(object));
-
     auto velA = bodyConstraintA.GetVelocity();
     auto velB = bodyConstraintB.GetVelocity();
-
     const auto invMassA = bodyConstraintA.GetInvMass();
     const auto invMassB = bodyConstraintB.GetInvMass();
     const auto invRotInertiaA = bodyConstraintA.GetInvRotInertia();
     const auto invRotInertiaB = bodyConstraintB.GetInvRotInertia();
-
     const auto h = step.deltaTime;
     const auto inv_h = (h != 0_s) ? Real(1) / h : 0_Hz;
-
     auto solved = true;
 
     // Solve angular friction
@@ -185,19 +181,17 @@ bool SolveVelocity(MotorJointConf& object, const Span<BodyConstraint>& bodies,
         const auto Cdot = AngularVelocity{(velB.angular - velA.angular) +
                                           inv_h * object.correctionFactor * object.angularError};
         const auto angularImpulse = AngularMomentum{-object.angularMass * Cdot};
-
         const auto oldAngularImpulse = object.angularImpulse;
         const auto maxAngularImpulse = h * object.maxTorque;
         const auto newAngularImpulse =
             std::clamp(oldAngularImpulse + angularImpulse, -maxAngularImpulse, maxAngularImpulse);
         object.angularImpulse = newAngularImpulse;
-        const auto incAngularImpulse = newAngularImpulse - oldAngularImpulse;
-
-        if (incAngularImpulse != AngularMomentum{}) {
+        const auto angImpulse = newAngularImpulse - oldAngularImpulse;
+        if (angImpulse != AngularMomentum{}) {
+            velA -= Velocity{LinearVelocity2{}, invRotInertiaA * angImpulse};
+            velB += Velocity{LinearVelocity2{}, invRotInertiaB * angImpulse};
             solved = false;
         }
-        velA.angular -= invRotInertiaA * incAngularImpulse;
-        velB.angular += invRotInertiaB * incAngularImpulse;
     }
 
     // Solve linear friction
@@ -208,34 +202,30 @@ bool SolveVelocity(MotorJointConf& object, const Span<BodyConstraint>& bodies,
                                         (GetRevPerpendicular(object.rA) * (velA.angular / Radian))};
         const auto Cdot =
             LinearVelocity2{(vb - va) + inv_h * object.correctionFactor * object.linearError};
-
         const auto impulse = -Transform(Cdot, object.linearMass);
         const auto oldImpulse = object.linearImpulse;
         object.linearImpulse += impulse;
-
         const auto maxImpulse = h * object.maxForce;
-
         if (GetMagnitudeSquared(object.linearImpulse) > Square(maxImpulse)) {
             object.linearImpulse =
                 GetUnitVector(object.linearImpulse, UnitVec::GetZero()) * maxImpulse;
         }
-
-        const auto incImpulse = object.linearImpulse - oldImpulse;
-        const auto angImpulseA = AngularMomentum{Cross(object.rA, incImpulse) / Radian};
-        const auto angImpulseB = AngularMomentum{Cross(object.rB, incImpulse) / Radian};
-
-        if (incImpulse != Momentum2{0_Ns, 0_Ns}) {
+        const auto linImpulse = object.linearImpulse - oldImpulse;
+        const auto angImpulseA = AngularMomentum{Cross(object.rA, linImpulse) / Radian};
+        const auto angImpulseB = AngularMomentum{Cross(object.rB, linImpulse) / Radian};
+        if (linImpulse != Momentum2{} || angImpulseA != AngularMomentum{} || angImpulseB != AngularMomentum{}) {
+            velA -= Velocity{invMassA * linImpulse, invRotInertiaA * angImpulseA};
+            velB += Velocity{invMassB * linImpulse, invRotInertiaB * angImpulseB};
             solved = false;
         }
-
-        velA -= Velocity{invMassA * incImpulse, invRotInertiaA * angImpulseA};
-        velB += Velocity{invMassB * incImpulse, invRotInertiaB * angImpulseB};
     }
 
+    if (solved) {
+        return true;
+    }
     bodyConstraintA.SetVelocity(velA);
     bodyConstraintB.SetVelocity(velB);
-
-    return solved;
+    return false;
 }
 
 bool SolvePosition(const MotorJointConf&, const Span<BodyConstraint>&, const ConstraintSolverConf&)

@@ -1287,9 +1287,6 @@
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\AabbTreeWorld.cpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\AabbTreeWorldBody.cpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Body.cpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClCompile>
@@ -2804,9 +2801,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\AabbTreeWorld.hpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\AabbTreeWorldBody.hpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Acceleration.hpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
@@ -3078,6 +3072,27 @@
       <Filter>Lua\Xml</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Dora.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactImpulsesFunction.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactManifoldFunction.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\BodyShapeFunction.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ContactFunction.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\JointFunction.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\OutOfRange.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ShapeFunction.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
@@ -3088,5 +3103,10 @@
     <Image Include="Dora SSR.ico">
       <Filter>Resources</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\Source\3rdParty\playrho\LICENSE.txt">
+      <Filter>3rdParty\playrho</Filter>
+    </Text>
   </ItemGroup>
 </Project>

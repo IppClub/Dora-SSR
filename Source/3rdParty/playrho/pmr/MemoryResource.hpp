@@ -215,7 +215,11 @@ struct pool_options
 
 #else
 
+// IWYU pragma: begin_exports
+
 #include <memory_resource>
+
+// IWYU pragma: end_exports
 
 namespace playrho::pmr {
 

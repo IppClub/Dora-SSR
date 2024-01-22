@@ -25,11 +25,14 @@
 /// @file
 /// @brief Definition of the @c Acceleration class and closely related code.
 
-#include "playrho/Settings.hpp"
-#include "playrho/Vector2.hpp"
+// IWYU pragma: begin_exports
 
-namespace playrho {
-namespace d2 {
+#include "playrho/Templates.hpp" // for IsValid
+#include "playrho/Vector2.hpp" // for LinearAcceleration2
+
+// IWYU pragma: end_exports
+
+namespace playrho::d2 {
 
 /// @brief 2-D acceleration related data structure.
 struct Acceleration {
@@ -137,7 +140,9 @@ constexpr Acceleration operator/(const Acceleration& lhs, const Real rhs)
     return Acceleration{lhs.linear * inverseRhs, lhs.angular * inverseRhs};
 }
 
-} // namespace d2
+} // namespace playrho::d2
+
+namespace playrho {
 
 /// @brief Determines if the given value is valid.
 /// @relatedalso playrho::d2::Acceleration

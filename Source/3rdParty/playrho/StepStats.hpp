@@ -24,7 +24,16 @@
 /// @file
 /// @brief Definition of the @c StepStats related classes and code.
 
+#include <cstdint> // for std::uint32_t
+#include <limits> // for std::numeric_limits
+#include <type_traits> // for std::remove_const_t
+
+// IWYU pragma: begin_exports
+
 #include "playrho/Settings.hpp"
+#include "playrho/Units.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 
@@ -33,13 +42,30 @@ struct PreStepStats {
     /// @brief Counter type.
     using counter_type = std::uint32_t;
 
+    counter_type proxiesCreated = 0; ///< Proxies created count.
     counter_type proxiesMoved = 0; ///< Proxies moved count.
-    counter_type destroyed = 0; ///< Count of contacts destroyed.
-    counter_type added = 0; ///< Count of contacts added.
-    counter_type ignored = 0; ///< Count of contacts ignored during update processing.
-    counter_type updated = 0; ///< Count of contacts updated (during update processing).
-    counter_type skipped = 0; ///< Count of contacts Skipped (during update processing).
+    counter_type contactsDestroyed = 0; ///< Count of contacts destroyed.
+    counter_type contactsAdded = 0; ///< Count of contacts added.
+    counter_type contactsUpdated = 0; ///< Count of contacts updated during update processing.
+    counter_type contactsSkipped = 0; ///< Count of contacts not-needing update.
 };
+
+/// @brief Operator equal support.
+constexpr auto operator==(const PreStepStats &lhs, const PreStepStats &rhs) -> bool
+{
+    return (lhs.proxiesCreated == rhs.proxiesCreated) && //
+           (lhs.proxiesMoved == rhs.proxiesMoved) && //
+           (lhs.contactsDestroyed == rhs.contactsDestroyed) && //
+           (lhs.contactsAdded == rhs.contactsAdded) && //
+           (lhs.contactsUpdated == rhs.contactsUpdated) && //
+           (lhs.contactsSkipped == rhs.contactsSkipped);
+}
+
+/// @brief Operator not-equal support.
+constexpr auto operator!=(const PreStepStats &lhs, const PreStepStats &rhs) -> bool
+{
+    return !(lhs == rhs);
+}
 
 /// @brief Regular-phase per-step statistics.
 struct RegStepStats {
@@ -57,15 +83,49 @@ struct RegStepStats {
     BodyCounter bodiesSlept = 0; ///< Bodies slept count.
     BodyCounter maxIslandBodies = 0; ///< Max bodies in all of the islands.
     counter_type contactsAdded = 0; ///< Contacts added count.
+    counter_type contactsUpdated = 0; ///< Count of contacts updated.
+    counter_type contactsSkipped = 0; ///< Count of contacts not-needing update.
     counter_type proxiesMoved = 0; ///< Proxies moved count.
     counter_type sumPosIters = 0; ///< Sum of the position iterations.
     counter_type sumVelIters = 0; ///< Sum of the velocity iterations.
 };
 
+/// @brief Operator equal support.
+constexpr auto operator==(const RegStepStats &lhs, const RegStepStats &rhs) -> bool
+{
+    return (lhs.minSeparation == rhs.minSeparation) && //
+           (lhs.maxIncImpulse == rhs.maxIncImpulse) && //
+           (lhs.islandsFound == rhs.islandsFound) && //
+           (lhs.islandsSolved == rhs.islandsSolved) && //
+           (lhs.bodiesSlept == rhs.bodiesSlept) && //
+           (lhs.maxIslandBodies == rhs.maxIslandBodies) && //
+           (lhs.contactsAdded == rhs.contactsAdded) && //
+           (lhs.contactsUpdated == rhs.contactsUpdated) && //
+           (lhs.contactsSkipped == rhs.contactsSkipped) && //
+           (lhs.proxiesMoved == rhs.proxiesMoved) && //
+           (lhs.sumPosIters == rhs.sumPosIters) && //
+           (lhs.sumVelIters == rhs.sumVelIters);
+}
+
+/// @brief Operator not-equal support.
+constexpr auto operator!=(const RegStepStats &lhs, const RegStepStats &rhs) -> bool
+{
+    return !(lhs == rhs);
+}
+
 /// @brief TOI-phase per-step statistics.
 struct ToiStepStats {
     /// @brief Counter type.
     using counter_type = std::uint32_t;
+
+    /// @brief Distance iteration type.
+    using dist_iter_type = std::remove_const_t<decltype(DefaultMaxDistanceIters)>;
+
+    /// @brief TOI iteration type.
+    using toi_iter_type = std::remove_const_t<decltype(DefaultMaxToiIters)>;
+
+    /// @brief Root iteration type.
+    using root_iter_type = std::remove_const_t<decltype(DefaultMaxToiRootIters)>;
 
     /// @brief Min separation.
     Length minSeparation = std::numeric_limits<Length>::infinity();
@@ -85,19 +145,37 @@ struct ToiStepStats {
     counter_type sumPosIters = 0; ///< Sum position iterations count.
     counter_type sumVelIters = 0; ///< Sum velocity iterations count.
 
-    /// @brief Distance iteration type.
-    using dist_iter_type = std::remove_const_t<decltype(DefaultMaxDistanceIters)>;
-
-    /// @brief TOI iteration type.
-    using toi_iter_type = std::remove_const_t<decltype(DefaultMaxToiIters)>;
-
-    /// @brief Root iteration type.
-    using root_iter_type = std::remove_const_t<decltype(DefaultMaxToiRootIters)>;
-
     dist_iter_type maxDistIters = 0; ///< Max distance iterations.
     toi_iter_type maxToiIters = 0; ///< Max TOI iterations.
     root_iter_type maxRootIters = 0; ///< Max root iterations.
 };
+
+/// @brief Operator equal support.
+constexpr auto operator==(const ToiStepStats &lhs, const ToiStepStats &rhs) -> bool
+{
+    return (lhs.minSeparation == rhs.minSeparation) && //
+           (lhs.maxIncImpulse == rhs.maxIncImpulse) && //
+           (lhs.islandsFound == rhs.islandsFound) && //
+           (lhs.islandsSolved == rhs.islandsSolved) && //
+           (lhs.contactsFound == rhs.contactsFound) && //
+           (lhs.contactsAtMaxSubSteps == rhs.contactsAtMaxSubSteps) && //
+           (lhs.contactsUpdatedToi == rhs.contactsUpdatedToi) && //
+           (lhs.contactsUpdatedTouching == rhs.contactsUpdatedTouching) && //
+           (lhs.contactsSkippedTouching == rhs.contactsSkippedTouching) && //
+           (lhs.contactsAdded == rhs.contactsAdded) && //
+           (lhs.proxiesMoved == rhs.proxiesMoved) && //
+           (lhs.sumPosIters == rhs.sumPosIters) && //
+           (lhs.sumVelIters == rhs.sumVelIters) && //
+           (lhs.maxDistIters == rhs.maxDistIters) && //
+           (lhs.maxToiIters == rhs.maxToiIters) && //
+           (lhs.maxRootIters == rhs.maxRootIters);
+}
+
+/// @brief Operator not-equal support.
+constexpr auto operator!=(const ToiStepStats &lhs, const ToiStepStats &rhs) -> bool
+{
+    return !(lhs == rhs);
+}
 
 /// @brief Per-step statistics.
 /// @details These are statistics output from the <code>d2::World::Step</code> function.

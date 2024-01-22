@@ -24,6 +24,8 @@
 /// @file
 /// @brief Definition of @c underlying_type trait class and related code.
 
+// IWYU pragma: private, include "playrho/to_underlying.hpp"
+
 #include <type_traits> // for std::void_t, std::is_nothrow_default_constructible_v
 
 namespace playrho::detail {
@@ -57,10 +59,6 @@ struct underlying_type<T, std::enable_if_t<has_underlying_type_member<T>::value>
     /// @brief Type alias of the underlying type.
     using type = typename T::underlying_type;
 };
-
-/// Underlying-type convenience alias.
-template <class T>
-using underlying_type_t = typename underlying_type<T>::type;
 
 } // namespace playrho::detail
 

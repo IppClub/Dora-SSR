@@ -84,7 +84,17 @@ void PhysicsWorld::setupBeginContact() {
 		pr::ShapeID fixtureB = pd::GetShapeB(_world, contact);
 		Body* bodyA = _bodyData[pd::GetBodyA(_world, contact).get()];
 		Body* bodyB = _bodyData[pd::GetBodyB(_world, contact).get()];
-		if (!bodyA || !bodyB) return;
+		if (!bodyA || !bodyB) {
+			return;
+		}
+		if (bodyA->filterContact && !bodyA->filterContact(bodyB)) {
+			pd::UnsetEnabled(_world, contact);
+			return;
+		}
+		if (bodyB->filterContact && !bodyB->filterContact(bodyA)) {
+			pd::UnsetEnabled(_world, contact);
+			return;
+		}
 		if (pd::IsSensor(_world, fixtureA)) {
 			Sensor* sensor = _fixtureData[fixtureA.get()];
 			if (sensor && sensor->isEnabled() && !pd::IsSensor(_world, fixtureB)) {
@@ -119,6 +129,9 @@ void PhysicsWorld::setupBeginContact() {
 
 void PhysicsWorld::setupEndContact() {
 	pd::SetEndContactListener(_world, [this](pr::ContactID contact) {
+		if (!pd::IsEnabled(_world, contact)) {
+			return;
+		}
 		pr::ShapeID fixtureA = pd::GetShapeA(_world, contact);
 		pr::ShapeID fixtureB = pd::GetShapeB(_world, contact);
 		Body* bodyA = _bodyData[pd::GetBodyA(_world, contact).get()];
@@ -156,46 +169,10 @@ void PhysicsWorld::setupEndContact() {
 	});
 }
 
-void PhysicsWorld::setupPreSolve() {
-	pd::SetPreSolveContactListener(_world, [this](pr::ContactID contact, const pd::Manifold&) {
-		Body* bodyA = _bodyData[pd::GetBodyA(_world, contact).get()];
-		Body* bodyB = _bodyData[pd::GetBodyB(_world, contact).get()];
-		if (!bodyA || !bodyB) {
-			return;
-		}
-		if (bodyA->filterContact && !bodyA->filterContact(bodyB)) {
-			pd::UnsetEnabled(_world, contact);
-			return;
-		}
-		if (bodyB->filterContact && !bodyB->filterContact(bodyA)) {
-			pd::UnsetEnabled(_world, contact);
-			return;
-		}
-		if (!bodyA->isReceivingContact() && !bodyB->isReceivingContact()) {
-			return;
-		}
-		pd::WorldManifold worldManifold = pd::GetWorldManifold(_world, contact);
-		Vec2 point = PhysicsWorld::Val(worldManifold.GetPoint(0));
-		if (bodyA->isReceivingContact()) {
-			pd::UnitVec normal = worldManifold.GetNormal();
-			ContactPair pair{bodyA, bodyB, point, {normal[0], normal[1]}};
-			pair.retain();
-			_contactStarts.push_back(pair);
-		}
-		if (bodyB->isReceivingContact()) {
-			pd::UnitVec normal = worldManifold.GetNormal();
-			ContactPair pair{bodyB, bodyA, point, {normal[0], normal[1]}};
-			pair.retain();
-			_contactStarts.push_back(pair);
-		}
-	});
-}
-
 bool PhysicsWorld::init() {
 	if (!Node::init()) return false;
 	setupBeginContact();
 	setupEndContact();
-	setupPreSolve();
 	for (int i = 0; i < TotalGroups; i++) {
 		_filters[i].groupIndex = i;
 		_filters[i].categoryBits = 1 << i;

@@ -25,12 +25,16 @@
 /// @file
 /// @brief Definition of the @c BodyConstraint class and closely related code.
 
-#include <cassert>
+#include <cassert> // for assert
+
+// IWYU pragma: begin_exports
 
 #include "playrho/MovementConf.hpp"
-#include "playrho/Units.hpp"
 
 #include "playrho/d2/Body.hpp" // for GetInvMass & other Body helpers
+#include "playrho/d2/Position.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 
@@ -102,12 +106,12 @@ public:
 private:
     Position m_position; ///< Position data of body.
     Velocity m_velocity; ///< Velocity data of body.
-    Length2 m_localCenter; ///< Local center of the associated body's sweep.
-    InvMass m_invMass; ///< Inverse mass of associated body (a non-negative value).
+    Length2 m_localCenter{}; ///< Local center of the associated body's sweep.
+    InvMass m_invMass{}; ///< Inverse mass of associated body (a non-negative value).
 
     /// Inverse rotational inertia about the center of mass of the associated body
     /// (a non-negative value).
-    InvRotInertia m_invRotI;
+    InvRotInertia m_invRotI{};
 };
 
 inline InvMass BodyConstraint::GetInvMass() const noexcept

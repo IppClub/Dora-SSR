@@ -428,7 +428,7 @@ bool BodyDef::isBullet() const {
 }
 
 void BodyDef::setType(pr::BodyType var) {
-	_conf.UseType(var);
+	_conf.Use(var);
 }
 
 pr::BodyType BodyDef::getType() const {

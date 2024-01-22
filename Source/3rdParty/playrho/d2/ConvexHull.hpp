@@ -27,8 +27,16 @@
 #include <utility> // for std::move
 #include <vector>
 
+// IWYU pragma: begin_exports
+
+#include "playrho/NonNegative.hpp"
+#include "playrho/Settings.hpp"
+#include "playrho/Templates.hpp"
+
 #include "playrho/d2/DistanceProxy.hpp"
 #include "playrho/d2/Math.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::d2 {
 

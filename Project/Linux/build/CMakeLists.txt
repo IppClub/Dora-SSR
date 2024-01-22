@@ -460,7 +460,6 @@ add_executable(dora-ssr
 	../../../Source/3rdParty/playrho/d2/Distance.cpp
 	../../../Source/3rdParty/playrho/d2/ChainShapeConf.cpp
 	../../../Source/3rdParty/playrho/d2/RevoluteJointConf.cpp
-	../../../Source/3rdParty/playrho/d2/AabbTreeWorldBody.cpp
 	../../../Source/3rdParty/playrho/d2/PrismaticJointConf.cpp
 	../../../Source/3rdParty/playrho/d2/WorldMisc.cpp
 	../../../Source/3rdParty/playrho/d2/CodeDumper.cpp

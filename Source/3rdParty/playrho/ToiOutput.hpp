@@ -24,9 +24,17 @@
 /// @file
 /// @brief Definitions of @c ToiOutput class and closely related code.
 
+#include <cstdint> // for std::uint8_t
+#include <type_traits> // for std::remove_const_t
+
+// IWYU pragma: begin_exports
+
+#include "playrho/Real.hpp"
 #include "playrho/Settings.hpp"
 #include "playrho/UnitInterval.hpp"
 #include "playrho/WiderType.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

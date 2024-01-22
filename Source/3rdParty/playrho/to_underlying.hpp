@@ -24,16 +24,24 @@
 /// @file
 /// @brief Definition of @c to_underlying function template.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/detail/underlying_type.hpp"
 
+// IWYU pragma: end_exports
+
 namespace playrho {
+
+/// Underlying-type convenience alias.
+template <class T>
+using underlying_type_t = typename detail::underlying_type<T>::type;
 
 /// Converts the given value to the value as the underlying type.
 /// @note This is like <code>std::to_underlying</code> slated for C++23.
 template <typename T>
-constexpr auto to_underlying(T value) noexcept -> detail::underlying_type_t<T>
+constexpr auto to_underlying(T value) noexcept -> underlying_type_t<T>
 {
-    return static_cast<detail::underlying_type_t<T>>(value);
+    return static_cast<underlying_type_t<T>>(value);
 }
 
 } // namespace playrho

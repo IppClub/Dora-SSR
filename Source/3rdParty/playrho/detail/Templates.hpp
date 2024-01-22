@@ -24,10 +24,10 @@
 /// @file
 /// @brief Low-level declarations for general class & function templates.
 
+// IWYU pragma: private, include "playrho/Templates.hpp"
+
 #include <algorithm>
-#include <functional>
 #include <iterator>
-#include <limits>
 #include <type_traits>
 #include <utility> // for std::declval
 

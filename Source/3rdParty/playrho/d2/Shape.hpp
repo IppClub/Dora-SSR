@@ -28,267 +28,31 @@
 /// @brief Definition of the @c Shape class and closely related code.
 
 #include <memory>
-#include <functional>
 #include <utility>
-#include <stdexcept>
+#include <typeinfo> // for std::bad_cast
 #include <type_traits> // for std::add_pointer_t, std::add_const_t
+
+// IWYU pragma: begin_exports
 
 #include "playrho/InvalidArgument.hpp"
 #include "playrho/Filter.hpp"
 #include "playrho/NonNegative.hpp"
+#include "playrho/Settings.hpp" // for ChildCounter
+#include "playrho/Templates.hpp" // for DecayedTypeIfNotSame
 #include "playrho/TypeInfo.hpp"
 
 #include "playrho/d2/DistanceProxy.hpp"
 #include "playrho/d2/MassData.hpp"
 #include "playrho/d2/Math.hpp"
 
+#include "playrho/d2/detail/ShapeConcept.hpp"
+#include "playrho/d2/detail/ShapeModel.hpp"
+
+// IWYU pragma: end_exports
+
 namespace playrho::d2 {
 
 class Shape;
-
-// Traits...
-
-namespace detail {
-
-/// @brief An "is valid shape type" trait.
-/// @note This is the general false template type.
-template <typename T, class = void>
-struct IsValidShapeType : std::false_type {
-};
-
-/// @brief An "is valid shape type" trait.
-/// @note This is the specialized true template type.
-/// @note A shape can be constructed from or have its value set to any value whose type
-///   <code>T</code> has at least the following function definitions available for it:
-///   - <code>bool operator==(const T& lhs, const T& rhs) noexcept;</code>
-///   - <code>ChildCounter GetChildCount(const T&) noexcept;</code>
-///   - <code>DistanceProxy GetChild(const T&, ChildCounter index);</code>
-///   - <code>MassData GetMassData(const T&) noexcept;</code>
-///   - <code>NonNegative<Length> GetVertexRadius(const T&, ChildCounter idx);</code>
-///   - <code>NonNegative<AreaDensity> GetDensity(const T&) noexcept;</code>
-///   - <code>NonNegative<Real> GetFriction(const T&) noexcept;</code>
-///   - <code>Real GetRestitution(const T&) noexcept;</code>
-/// @see Shape
-template <typename T>
-struct IsValidShapeType<
-    T,
-    std::void_t<decltype(GetChildCount(std::declval<T>())), //
-                decltype(GetChild(std::declval<T>(), std::declval<ChildCounter>())), //
-                decltype(GetMassData(std::declval<T>())), //
-                decltype(GetVertexRadius(std::declval<T>(), std::declval<ChildCounter>())), //
-                decltype(GetDensity(std::declval<T>())), //
-                decltype(GetFriction(std::declval<T>())), //
-                decltype(GetRestitution(std::declval<T>())), //
-                decltype(std::declval<T>() == std::declval<T>()), //
-                decltype(std::declval<DecayedTypeIfNotSame<T, Shape>>()),
-                decltype(std::is_constructible_v<DecayedTypeIfNotSame<T, Shape>, T>)>>
-    : std::true_type {
-};
-
-template <class T, class = void>
-struct HasSetFriction : std::false_type {
-};
-
-template <class T>
-struct HasSetFriction<T,
-                      std::void_t<decltype(SetFriction(std::declval<T&>(), std::declval<Real>()))>>
-    : std::true_type {
-};
-
-template <class T, class = void>
-struct HasSetSensor : std::false_type {
-};
-
-template <class T>
-struct HasSetSensor<T, std::void_t<decltype(SetSensor(std::declval<T&>(), std::declval<bool>()))>>
-    : std::true_type {
-};
-
-template <class T, class = void>
-struct HasSetDensity : std::false_type {
-};
-
-template <class T>
-struct HasSetDensity<T, std::void_t<decltype(SetDensity(std::declval<T&>(),
-                                                        std::declval<NonNegative<AreaDensity>>()))>>
-    : std::true_type {
-};
-
-template <class T, class = void>
-struct HasSetRestitution : std::false_type {
-};
-
-template <class T>
-struct HasSetRestitution<
-    T, std::void_t<decltype(SetRestitution(std::declval<T&>(), std::declval<Real>()))>>
-    : std::true_type {
-};
-
-template <class T, class = void>
-struct HasSetFilter : std::false_type {
-};
-
-template <class T>
-struct HasSetFilter<T, std::void_t<decltype(SetFilter(std::declval<T&>(), std::declval<Filter>()))>>
-    : std::true_type {
-};
-
-template <class T, class = void>
-struct HasTranslate : std::false_type {
-};
-
-template <class T>
-struct HasTranslate<T,
-                    std::void_t<decltype(Translate(std::declval<T&>(), std::declval<Length2>()))>>
-    : std::true_type {
-};
-
-template <class T, class = void>
-struct HasScale : std::false_type {
-};
-
-template <class T>
-struct HasScale<T, std::void_t<decltype(Scale(std::declval<T&>(), std::declval<Vec2>()))>>
-    : std::true_type {
-};
-
-/// @brief Type trait for not finding a <code>Rotate(T&, Angle)</code> function.
-/// @details A @c UnaryTypeTrait providing the member constant @c value equal to @c false for
-///   the given type for which no <code>Rotate</code> function is found taking it and an @c Angle.
-/// @tparam T type to check.
-/// @see https://en.cppreference.com/w/cpp/named_req/UnaryTypeTrait.
-template <class T, class = void>
-struct HasRotate : std::false_type {
-};
-
-/// @brief Type trait for finding a <code>Rotate(T&, Angle)</code> function.
-/// @details A @c UnaryTypeTrait providing the member constant @c value equal to @c true for
-///   the given type for which a <code>Rotate</code> function is found taking it and an @c Angle.
-/// @tparam T type to check.
-/// @see https://en.cppreference.com/w/cpp/named_req/UnaryTypeTrait.
-template <class T>
-struct HasRotate<T, std::void_t<decltype(Rotate(std::declval<T&>(), std::declval<Angle>()))>>
-    : std::true_type {
-};
-
-}
-
-/// @brief Boolean value for whether the specified type is a valid shape type.
-/// @see Shape.
-template <class T>
-inline constexpr bool IsValidShapeTypeV = detail::IsValidShapeType<T>::value;
-
-/// @brief Helper variable template on whether <code>SetFriction(T&, Real)</code> is found.
-template <class T>
-inline constexpr bool HasSetFrictionV = detail::HasSetFriction<T>::value;
-
-/// @brief Helper variable template on whether <code>SetSensor(T&, bool)</code> is found.
-template <class T>
-inline constexpr bool HasSetSensorV = detail::HasSetSensor<T>::value;
-
-/// @brief Helper variable template on whether <code>SetDensity(T&, NonNegative<AreaDensity>)</code> is found.
-template <class T>
-inline constexpr bool HasSetDensityV = detail::HasSetDensity<T>::value;
-
-/// @brief Helper variable template on whether <code>SetRestitution(T&, Real)</code> is found.
-template <class T>
-inline constexpr bool HasSetRestitutionV = detail::HasSetRestitution<T>::value;
-
-/// @brief Helper variable template on whether <code>SetFilter(T&, Filter)</code> is found.
-template <class T>
-inline constexpr bool HasSetFilterV = detail::HasSetFilter<T>::value;
-
-/// @brief Helper variable template on whether <code>Translate(T&, Length2)</code> is found.
-template <class T>
-inline constexpr bool HasTranslateV = detail::HasTranslate<T>::value;
-
-/// @brief Helper variable template on whether <code>Scale(T&, Vec2)</code> is found.
-template <class T>
-inline constexpr bool HasScaleV = detail::HasScale<T>::value;
-
-/// @brief Helper variable template on whether <code>Rotate(T&, Angle)</code> is found.
-template <class T>
-inline constexpr bool HasRotateV = detail::HasRotate<T>::value;
-
-/// @brief Fallback friction setter that throws unless given the same value as current.
-template <class T>
-std::enable_if_t<IsValidShapeTypeV<T> && !HasSetFrictionV<T>, void>
-SetFriction(T& o, NonNegative<Real> value)
-{
-    if (GetFriction(o) != value) {
-        throw InvalidArgument("SetFriction to non-equivalent value not supported");
-    }
-}
-
-/// @brief Fallback sensor setter that throws unless given the same value as current.
-template <class T>
-std::enable_if_t<IsValidShapeTypeV<T> && !HasSetSensorV<T>, void>
-SetSensor(T& o, bool value)
-{
-    if (IsSensor(o) != value) {
-        throw InvalidArgument("SetSensor to non-equivalent value not supported");
-    }
-}
-
-/// @brief Fallback density setter that throws unless given the same value as current.
-template <class T>
-std::enable_if_t<IsValidShapeTypeV<T> && !HasSetDensityV<T>, void>
-SetDensity(T& o, NonNegative<AreaDensity> value)
-{
-    if (GetDensity(o) != value) {
-        throw InvalidArgument("SetDensity to non-equivalent value not supported");
-    }
-}
-
-/// @brief Fallback restitution setter that throws unless given the same value as current.
-template <class T>
-std::enable_if_t<IsValidShapeTypeV<T> && !HasSetRestitutionV<T>, void>
-SetRestitution(T& o, Real value)
-{
-    if (GetRestitution(o) != value) {
-        throw InvalidArgument("SetRestitution to non-equivalent value not supported");
-    }
-}
-
-/// @brief Fallback filter setter that throws unless given the same value as current.
-template <class T>
-std::enable_if_t<IsValidShapeTypeV<T> && !HasSetFilterV<T>, void>
-SetFilter(T& o, Filter value)
-{
-    if (GetFilter(o) != value) {
-        throw InvalidArgument("SetFilter to non-equivalent filter not supported");
-    }
-}
-
-/// @brief Fallback translate function that throws unless the given value has no effect.
-template <class T>
-auto Translate(T&, const Length2& value)
-    -> std::enable_if_t<IsValidShapeTypeV<T> && !HasTranslateV<T>, void>
-{
-    if (Length2{} != value) {
-        throw InvalidArgument("Translate non-zero amount not supported");
-    }
-}
-
-/// @brief Fallback scale function that throws unless the given value has no effect.
-template <class T>
-auto Scale(T&, const Vec2& value)
-    -> std::enable_if_t<IsValidShapeTypeV<T> && !HasScaleV<T>, void>
-{
-    if (Vec2{Real(1), Real(1)} != value) {
-        throw InvalidArgument("Scale non-identity amount not supported");
-    }
-}
-
-/// @brief Fallback rotate function that throws unless the given value has no effect.
-template <class T>
-auto Rotate(T&, const UnitVec& value)
-    -> std::enable_if_t<IsValidShapeTypeV<T> && !HasRotateV<T>, void>
-{
-    if (UnitVec::GetRight() != value) {
-        throw InvalidArgument("Rotate non-zero amount not supported");
-    }
-}
 
 // Forward declare functions.
 // Note that these may be friend functions but that declaring these within the class that
@@ -462,7 +226,7 @@ public:
     Shape() noexcept = default;
 
     /// @brief Copy constructor.
-    Shape(const Shape& other) : m_self{other.m_self ? other.m_self->Clone_() : nullptr}
+    Shape(const Shape& other) : m_impl{other.m_impl ? other.m_impl->Clone_() : nullptr}
     {
         // Intentionally empty.
     }
@@ -481,7 +245,7 @@ public:
     /// @throws std::bad_alloc if there's a failure allocating storage.
     template <typename T, typename Tp = DecayedTypeIfNotSame<T, Shape>,
               typename = std::enable_if_t<std::is_constructible_v<Tp, T>>>
-    explicit Shape(T&& arg) : m_self{std::make_unique<Model<Tp>>(std::forward<T>(arg))}
+    explicit Shape(T&& arg) : m_impl{std::make_unique<detail::ShapeModel<Tp>>(std::forward<T>(arg))}
     {
         // Intentionally empty.
     }
@@ -489,7 +253,7 @@ public:
     /// @brief Copy assignment.
     Shape& operator=(const Shape& other)
     {
-        m_self = other.m_self ? other.m_self->Clone_() : nullptr;
+        m_impl = other.m_impl ? other.m_impl->Clone_() : nullptr;
         return *this;
     }
 
@@ -514,155 +278,155 @@ public:
     /// @brief Swap support.
     void swap(Shape& other) noexcept
     {
-        std::swap(m_self, other.m_self);
+        std::swap(m_impl, other.m_impl);
     }
 
     /// @brief Checks whether this instance contains a value.
     bool has_value() const noexcept
     {
-        return static_cast<bool>(m_self);
+        return static_cast<bool>(m_impl);
     }
 
     friend ChildCounter GetChildCount(const Shape& shape) noexcept
     {
-        return shape.m_self ? shape.m_self->GetChildCount_() : static_cast<ChildCounter>(0);
+        return shape.m_impl ? shape.m_impl->GetChildCount_() : static_cast<ChildCounter>(0);
     }
 
     friend DistanceProxy GetChild(const Shape& shape, ChildCounter index)
     {
-        if (!shape.m_self) {
+        if (!shape.m_impl) {
             throw InvalidArgument("index out of range");
         }
-        return shape.m_self->GetChild_(index);
+        return shape.m_impl->GetChild_(index);
     }
 
     friend MassData GetMassData(const Shape& shape)
     {
-        return shape.m_self ? shape.m_self->GetMassData_() : MassData{};
+        return shape.m_impl ? shape.m_impl->GetMassData_() : MassData{};
     }
 
     friend NonNegative<Length> GetVertexRadius(const Shape& shape, ChildCounter idx)
     {
-        if (!shape.m_self) {
+        if (!shape.m_impl) {
             throw InvalidArgument("index out of range");
         }
-        return shape.m_self->GetVertexRadius_(idx);
+        return shape.m_impl->GetVertexRadius_(idx);
     }
 
     friend void SetVertexRadius(Shape& shape, ChildCounter idx, NonNegative<Length> value)
     {
-        if (shape.m_self) {
-            auto copy = shape.m_self->Clone_();
+        if (shape.m_impl) {
+            auto copy = shape.m_impl->Clone_();
             copy->SetVertexRadius_(idx, value);
-            shape.m_self = std::move(copy);
+            shape.m_impl = std::move(copy);
         }
     }
 
     friend NonNegativeFF<Real> GetFriction(const Shape& shape) noexcept
     {
-        return shape.m_self ? shape.m_self->GetFriction_() : NonNegativeFF<Real>();
+        return shape.m_impl ? shape.m_impl->GetFriction_() : NonNegativeFF<Real>();
     }
 
     friend void SetFriction(Shape& shape, NonNegative<Real> value)
     {
-        if (shape.m_self) {
-            auto copy = shape.m_self->Clone_();
+        if (shape.m_impl) {
+            auto copy = shape.m_impl->Clone_();
             copy->SetFriction_(value);
-            shape.m_self = std::move(copy);
+            shape.m_impl = std::move(copy);
         }
     }
 
     friend Real GetRestitution(const Shape& shape) noexcept
     {
-        return shape.m_self ? shape.m_self->GetRestitution_() : Real(0);
+        return shape.m_impl ? shape.m_impl->GetRestitution_() : Real(0);
     }
 
     friend void SetRestitution(Shape& shape, Real value)
     {
-        if (shape.m_self) {
-            auto copy = shape.m_self->Clone_();
+        if (shape.m_impl) {
+            auto copy = shape.m_impl->Clone_();
             copy->SetRestitution_(value);
-            shape.m_self = std::move(copy);
+            shape.m_impl = std::move(copy);
         }
     }
 
     friend NonNegative<AreaDensity> GetDensity(const Shape& shape) noexcept
     {
-        return shape.m_self ? shape.m_self->GetDensity_() : DefaultDensity;
+        return shape.m_impl ? shape.m_impl->GetDensity_() : DefaultDensity;
     }
 
     friend void SetDensity(Shape& shape, NonNegative<AreaDensity> value)
     {
-        if (shape.m_self) {
-            auto copy = shape.m_self->Clone_();
+        if (shape.m_impl) {
+            auto copy = shape.m_impl->Clone_();
             copy->SetDensity_(value);
-            shape.m_self = std::move(copy);
+            shape.m_impl = std::move(copy);
         }
     }
 
     friend Filter GetFilter(const Shape& shape) noexcept
     {
-        return shape.m_self ? shape.m_self->GetFilter_() : Filter{};
+        return shape.m_impl ? shape.m_impl->GetFilter_() : Filter{};
     }
 
     friend void SetFilter(Shape& shape, Filter value)
     {
-        if (shape.m_self) {
-            auto copy = shape.m_self->Clone_();
+        if (shape.m_impl) {
+            auto copy = shape.m_impl->Clone_();
             copy->SetFilter_(value);
-            shape.m_self = std::move(copy);
+            shape.m_impl = std::move(copy);
         }
     }
 
     friend bool IsSensor(const Shape& shape) noexcept
     {
-        return shape.m_self ? shape.m_self->IsSensor_() : false;
+        return shape.m_impl ? shape.m_impl->IsSensor_() : false;
     }
 
     friend void SetSensor(Shape& shape, bool value)
     {
-        if (shape.m_self) {
-            auto copy = shape.m_self->Clone_();
+        if (shape.m_impl) {
+            auto copy = shape.m_impl->Clone_();
             copy->SetSensor_(value);
-            shape.m_self = std::move(copy);
+            shape.m_impl = std::move(copy);
         }
     }
 
     friend void Translate(Shape& shape, const Length2& value)
     {
-        if (shape.m_self) {
-            auto copy = shape.m_self->Clone_();
+        if (shape.m_impl) {
+            auto copy = shape.m_impl->Clone_();
             copy->Translate_(value);
-            shape.m_self = std::move(copy);
+            shape.m_impl = std::move(copy);
         }
     }
 
     friend void Scale(Shape& shape, const Vec2& value)
     {
-        if (shape.m_self) {
-            auto copy = shape.m_self->Clone_();
+        if (shape.m_impl) {
+            auto copy = shape.m_impl->Clone_();
             copy->Scale_(value);
-            shape.m_self = std::move(copy);
+            shape.m_impl = std::move(copy);
         }
     }
 
     friend void Rotate(Shape& shape, const UnitVec& value)
     {
-        if (shape.m_self) {
-            auto copy = shape.m_self->Clone_();
+        if (shape.m_impl) {
+            auto copy = shape.m_impl->Clone_();
             copy->Rotate_(value);
-            shape.m_self = std::move(copy);
+            shape.m_impl = std::move(copy);
         }
     }
 
     friend const void* GetData(const Shape& shape) noexcept
     {
-        return shape.m_self ? shape.m_self->GetData_() : nullptr;
+        return shape.m_impl ? shape.m_impl->GetData_() : nullptr;
     }
 
     friend TypeID GetType(const Shape& shape) noexcept
     {
-        return shape.m_self ? shape.m_self->GetType_() : GetTypeID<void>();
+        return shape.m_impl ? shape.m_impl->GetType_() : GetTypeID<void>();
     }
 
     template <typename T>
@@ -670,8 +434,8 @@ public:
 
     friend bool operator==(const Shape& lhs, const Shape& rhs) noexcept
     {
-        return (lhs.m_self == rhs.m_self) ||
-               ((lhs.m_self && rhs.m_self) && (*lhs.m_self == *rhs.m_self));
+        return (lhs.m_impl == rhs.m_impl) ||
+               ((lhs.m_impl && rhs.m_impl) && (lhs.m_impl->IsEqual_(*rhs.m_impl)));
     }
 
     friend bool operator!=(const Shape& lhs, const Shape& rhs) noexcept
@@ -680,236 +444,21 @@ public:
     }
 
 private:
-    /// @brief Internal configuration concept.
-    /// @details Provides an internal pure virtual interface for the runtime value polymorphism.
-    struct Concept { // NOLINT(cppcoreguidelines-special-member-functions)
-        virtual ~Concept() = default;
-
-        /// @brief Clones this concept and returns a pointer to a mutable copy.
-        /// @note This may throw <code>std::bad_alloc</code> or any exception that's thrown
-        ///   by the constructor for the model's underlying data type.
-        /// @throws std::bad_alloc if there's a failure allocating storage.
-        virtual std::unique_ptr<Concept> Clone_() const = 0;
-
-        /// @brief Gets the "child" count.
-        virtual ChildCounter GetChildCount_() const noexcept = 0;
-
-        /// @brief Gets the "child" specified by the given index.
-        virtual DistanceProxy GetChild_(ChildCounter index) const = 0;
-
-        /// @brief Gets the mass data.
-        virtual MassData GetMassData_() const = 0;
-
-        /// @brief Gets the vertex radius.
-        /// @param idx Child index to get vertex radius for.
-        virtual NonNegative<Length> GetVertexRadius_(ChildCounter idx) const = 0;
-
-        /// @brief Sets the vertex radius.
-        /// @param idx Child index to set vertex radius for.
-        /// @param value Value to set the vertex radius to.
-        virtual void SetVertexRadius_(ChildCounter idx, NonNegative<Length> value) = 0;
-
-        /// @brief Gets the density.
-        virtual NonNegative<AreaDensity> GetDensity_() const noexcept = 0;
-
-        /// @brief Sets the density.
-        virtual void SetDensity_(NonNegative<AreaDensity>) noexcept = 0;
-
-        /// @brief Gets the friction.
-        virtual NonNegativeFF<Real> GetFriction_() const noexcept = 0;
-
-        /// @brief Sets the friction.
-        virtual void SetFriction_(NonNegative<Real> value) = 0;
-
-        /// @brief Gets the restitution.
-        virtual Real GetRestitution_() const noexcept = 0;
-
-        /// @brief Sets the restitution.
-        virtual void SetRestitution_(Real value) = 0;
-
-        /// @brief Gets the filter.
-        /// @see SetFilter_.
-        virtual Filter GetFilter_() const noexcept = 0;
-
-        /// @brief Sets the filter.
-        /// @see GetFilter_.
-        virtual void SetFilter_(Filter value) = 0;
-
-        /// @brief Gets whether or not this shape is a sensor.
-        /// @see SetSensor_.
-        virtual bool IsSensor_() const noexcept = 0;
-
-        /// @brief Sets whether or not this shape is a sensor.
-        /// @see IsSensor_.
-        virtual void SetSensor_(bool value) = 0;
-
-        /// @brief Translates all of the shape's vertices by the given amount.
-        virtual void Translate_(const Length2& value) = 0;
-
-        /// @brief Scales all of the shape's vertices by the given amount.
-        virtual void Scale_(const Vec2& value) = 0;
-
-        /// @brief Rotates all of the shape's vertices by the given amount.
-        virtual void Rotate_(const UnitVec& value) = 0;
-
-        /// @brief Equality checking function.
-        virtual bool IsEqual_(const Concept& other) const noexcept = 0;
-
-        /// @brief Gets the use type information.
-        /// @return Type info of the underlying value's type.
-        virtual TypeID GetType_() const noexcept = 0;
-
-        /// @brief Gets the data for the underlying configuration.
-        virtual const void* GetData_() const noexcept = 0;
-
-        /// @brief Equality operator.
-        friend bool operator==(const Concept& lhs, const Concept& rhs) noexcept
-        {
-            return lhs.IsEqual_(rhs);
-        }
-
-        /// @brief Inequality operator.
-        friend bool operator!=(const Concept& lhs, const Concept& rhs) noexcept
-        {
-            return !(lhs == rhs);
-        }
-    };
-
-    /// @brief Internal model configuration concept.
-    /// @note Provides an implementation for runtime polymorphism for shape configuration.
-    template <typename T>
-    struct Model final : Concept {
-        /// @brief Type alias for the type of the data held.
-        using data_type = T;
-
-        /// @brief Initializing constructor.
-        template <typename U, std::enable_if_t<!std::is_same_v<U, Model>, int> = 0>
-        explicit Model(U&& arg) noexcept(std::is_nothrow_constructible_v<T, U>)
-            : data{std::forward<U>(arg)}
-        {
-            // Intentionally empty.
-        }
-
-        std::unique_ptr<Concept> Clone_() const override
-        {
-            return std::make_unique<Model>(data);
-        }
-
-        ChildCounter GetChildCount_() const noexcept override
-        {
-            return GetChildCount(data);
-        }
-
-        DistanceProxy GetChild_(ChildCounter index) const override
-        {
-            return GetChild(data, index);
-        }
-
-        MassData GetMassData_() const override
-        {
-            return GetMassData(data);
-        }
-
-        NonNegative<Length> GetVertexRadius_(ChildCounter idx) const override
-        {
-            return GetVertexRadius(data, idx);
-        }
-
-        void SetVertexRadius_(ChildCounter idx, NonNegative<Length> value) override
-        {
-            SetVertexRadius(data, idx, value);
-        }
-
-        NonNegative<AreaDensity> GetDensity_() const noexcept override
-        {
-            return GetDensity(data);
-        }
-
-        void SetDensity_(NonNegative<AreaDensity> value) noexcept override
-        {
-            SetDensity(data, value);
-        }
-
-        NonNegativeFF<Real> GetFriction_() const noexcept override
-        {
-            return GetFriction(data);
-        }
-
-        void SetFriction_(NonNegative<Real> value) override
-        {
-            SetFriction(data, value);
-        }
-
-        Real GetRestitution_() const noexcept override
-        {
-            return GetRestitution(data);
-        }
-
-        void SetRestitution_(Real value) override
-        {
-            SetRestitution(data, value);
-        }
-
-        Filter GetFilter_() const noexcept override
-        {
-            return GetFilter(data);
-        }
-
-        void SetFilter_(Filter value) override
-        {
-            SetFilter(data, value);
-        }
-
-        bool IsSensor_() const noexcept override
-        {
-            return IsSensor(data);
-        }
-
-        void SetSensor_(bool value) override
-        {
-            SetSensor(data, value);
-        }
-
-        void Translate_(const Length2& value) override
-        {
-            Translate(data, value);
-        }
-
-        void Scale_(const Vec2& value) override
-        {
-            Scale(data, value);
-        }
-
-        void Rotate_(const UnitVec& value) override
-        {
-            Rotate(data, value);
-        }
-
-        bool IsEqual_(const Concept& other) const noexcept override
-        {
-            // Would be preferable to do this without using any kind of RTTI system.
-            // But how would that be done?
-            return (GetType_() == other.GetType_()) &&
-                   (data == *static_cast<const T*>(other.GetData_()));
-        }
-
-        TypeID GetType_() const noexcept override
-        {
-            return GetTypeID<data_type>();
-        }
-
-        const void* GetData_() const noexcept override
-        {
-            // Note address of "data" not necessarily same as address of "this" since
-            // base class is virtual.
-            return &data;
-        }
-
-        data_type data; ///< Data.
-    };
-
-    std::unique_ptr<const Concept> m_self; ///< Self pointer.
+    std::unique_ptr<const detail::ShapeConcept> m_impl; ///< Pointer to implementation.
 };
+
+// Related non-member functions...
+
+template <typename T>
+std::add_pointer_t<std::add_const_t<T>> TypeCast(const Shape* value) noexcept
+{
+    static_assert(!std::is_reference<T>::value, "T may not be a reference.");
+    using ReturnType = std::add_pointer_t<std::add_const_t<T>>;
+    if (value && value->m_impl && (GetType(*value) == GetTypeID<T>())) {
+        return static_cast<ReturnType>(value->m_impl->GetData_());
+    }
+    return nullptr;
+}
 
 // Related free functions...
 
@@ -948,15 +497,11 @@ inline T TypeCast(const Shape& value)
     return static_cast<T>(*tmp);
 }
 
-template <typename T>
-inline std::add_pointer_t<std::add_const_t<T>> TypeCast(const Shape* value) noexcept
+/// @brief Gets whether the given entity is in the is-destroyed state.
+/// @relatedalso Shape
+inline auto IsDestroyed(const Shape &value) noexcept -> bool
 {
-    static_assert(!std::is_reference<T>::value, "T may not be a reference.");
-    using ReturnType = std::add_pointer_t<std::add_const_t<T>>;
-    if (value && value->m_self && (GetType(*value) == GetTypeID<T>())) {
-        return static_cast<ReturnType>(value->m_self->GetData_());
-    }
-    return nullptr;
+    return !value.has_value();
 }
 
 /// @brief Whether contact calculations should be performed between the two instances.

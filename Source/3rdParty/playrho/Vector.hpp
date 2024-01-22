@@ -25,17 +25,21 @@
 /// @file
 /// @brief Definition of the @c Vector class template and closely related code.
 
+#include <algorithm> // for std::lexicographical_compare and more
 #include <cassert>
 #include <cstddef>
-#include <type_traits>
 #include <iterator>
-#include <algorithm> // for std::lexicographical_compare and more
-#include <functional>
 #include <iostream>
+#include <tuple>
+#include <type_traits>
+
+// IWYU pragma: begin_exports
 
 #include "playrho/InvalidArgument.hpp"
 #include "playrho/Real.hpp"
 #include "playrho/Templates.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

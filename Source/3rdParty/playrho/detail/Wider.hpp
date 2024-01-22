@@ -27,7 +27,11 @@
 #include <cstdint>
 #include <type_traits>
 
+// IWYU pragma: begin_exports
+
 #include "playrho/Defines.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho::detail {
 

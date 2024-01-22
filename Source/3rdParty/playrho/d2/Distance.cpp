@@ -19,13 +19,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
-#include "playrho/d2/Distance.hpp"
+#include <cassert> // for assert
 
+#include "playrho/StepConf.hpp"
+
+#include "playrho/d2/Distance.hpp"
 #include "playrho/d2/DistanceProxy.hpp"
 #include "playrho/d2/Simplex.hpp"
 #include "playrho/d2/TimeOfImpact.hpp"
-
-#include "playrho/StepConf.hpp"
 
 namespace playrho {
 namespace d2 {

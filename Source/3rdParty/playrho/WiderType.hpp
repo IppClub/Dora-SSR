@@ -24,7 +24,11 @@
 /// @file
 /// @brief Definition of the @c WiderType alias template.
 
+// IWYU pragma: begin_exports
+
 #include "playrho/detail/Wider.hpp"
+
+// IWYU pragma: end_exports
 
 namespace playrho {
 

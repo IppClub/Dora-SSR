@@ -19,6 +19,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <cassert> // for assert
+
 #include "playrho/StepConf.hpp"
 #include "playrho/to_underlying.hpp"
 

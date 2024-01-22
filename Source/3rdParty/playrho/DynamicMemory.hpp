@@ -25,15 +25,11 @@
 /// @file
 /// @brief Dynamic memory allocation helpers.
 
-#include "playrho/Defines.hpp"
-
 #include <cstddef>
 #include <limits> // for std::numeric_limits
 #include <new>
-#include <type_traits>
 
 namespace playrho {
-// Memory Allocation
 
 /// @brief Allocates memory.
 /// @note One can change this function to use ones own memory allocator. Be sure to conform
