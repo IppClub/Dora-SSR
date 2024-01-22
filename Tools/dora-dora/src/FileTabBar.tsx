@@ -43,6 +43,7 @@ export interface FileTabBarProps {
 interface StyledTabsProps {
 	children?: React.ReactNode;
 	value: number | false;
+	showScroll: boolean;
 	onChange: (event: React.SyntheticEvent, newValue: number) => void;
 }
 
@@ -50,7 +51,7 @@ const StyledTabs = styled((props: StyledTabsProps) => (
 	<Tabs
 		variant='scrollable'
 		selectionFollowsFocus
-		scrollButtons="auto"
+		scrollButtons={props.showScroll}
 		{...props}
 		TabIndicatorProps={{ children: <span className="MuiTabs-indicatorSpan" /> }}
 	/>
@@ -140,6 +141,7 @@ export default memo(function FileTabBar(props: FileTabBarProps) {
 		<Box width={'100%'}>
 			<StyledTabs
 				value={value}
+				showScroll={items.length > 0}
 				onChange={handleChange}
 				aria-label="styled tabs"
 			>

@@ -20,109 +20,103 @@ local terrainDef = BodyDef() -- 13
 local count = 50 -- 14
 local radius = 300 -- 15
 local vertices = {} -- 16
-local index = 0 -- 17
-do -- 17
-    local i = 0 -- 18
-    while i < count + 1 do -- 18
-        local angle = 2 * math.pi * i / count -- 19
-        vertices[index + 1] = Vec2( -- 20
-            radius * math.cos(angle), -- 20
-            radius * math.sin(angle) -- 20
-        ) -- 20
-        index = index + 1 -- 21
-        i = i + 1 -- 18
-    end -- 18
-end -- 18
-terrainDef:attachChain(vertices, 0.4, 0) -- 23
-terrainDef:attachDisk( -- 24
-    Vec2(0, -270), -- 24
-    30, -- 24
-    1, -- 24
-    0, -- 24
-    1 -- 24
-) -- 24
-terrainDef:attachPolygon( -- 25
-    Vec2(0, 80), -- 25
-    120, -- 25
-    30, -- 25
-    0, -- 25
-    1, -- 25
-    0, -- 25
-    1 -- 25
-) -- 25
-local terrain = Body(terrainDef, world) -- 27
-terrain:addTo(world) -- 28
-local drawNode = Line( -- 30
-    { -- 30
-        Vec2(-20, 0), -- 31
-        Vec2(20, 0), -- 32
-        Vec2.zero, -- 33
-        Vec2(0, -20), -- 34
-        Vec2(0, 20) -- 35
-    }, -- 35
-    App.themeColor -- 36
-) -- 36
-drawNode:addTo(world) -- 37
-local diskDef = BodyDef() -- 39
-diskDef.type = "Dynamic" -- 40
-diskDef.linearAcceleration = gravity -- 41
-diskDef:attachDisk(20, 5, 0.8, 1) -- 42
-local disk = Body( -- 44
-    diskDef, -- 44
-    world, -- 44
-    Vec2(100, 200) -- 44
-) -- 44
-disk:addTo(world) -- 45
-disk.angularRate = -1800 -- 46
-disk.receivingContact = true -- 47
-disk:slot( -- 48
-    "ContactStart", -- 48
-    function(_, point) -- 48
-        drawNode.position = point -- 49
-        if label ~= nil then -- 49
-            label.text = string.format("Contact: [%.0f,%.0f]", point.x, point.y) -- 51
-        end -- 51
-    end -- 48
-) -- 48
-local windowFlags = { -- 54
-    "NoDecoration", -- 55
-    "AlwaysAutoResize", -- 56
-    "NoSavedSettings", -- 57
-    "NoFocusOnAppearing", -- 58
-    "NoNav", -- 59
-    "NoMove" -- 60
-} -- 60
-local receivingContact = disk.receivingContact -- 62
-threadLoop(function() -- 63
-    local ____App_visualSize_2 = App.visualSize -- 64
-    local width = ____App_visualSize_2.width -- 64
-    ImGui.SetNextWindowBgAlpha(0.35) -- 65
-    ImGui.SetNextWindowPos( -- 66
-        Vec2(width - 10, 10), -- 66
-        "Always", -- 66
-        Vec2(1, 0) -- 66
+for i = 0, count + 1 do -- 16
+    local angle = 2 * math.pi * i / count -- 18
+    vertices[#vertices + 1] = Vec2( -- 19
+        radius * math.cos(angle), -- 19
+        radius * math.sin(angle) -- 19
+    ) -- 19
+end -- 19
+terrainDef:attachChain(vertices, 0.4, 0) -- 21
+terrainDef:attachDisk( -- 22
+    Vec2(0, -270), -- 22
+    30, -- 22
+    1, -- 22
+    0, -- 22
+    1 -- 22
+) -- 22
+terrainDef:attachPolygon( -- 23
+    Vec2(0, 80), -- 23
+    120, -- 23
+    30, -- 23
+    0, -- 23
+    1, -- 23
+    0, -- 23
+    1 -- 23
+) -- 23
+local terrain = Body(terrainDef, world) -- 25
+terrain:addTo(world) -- 26
+local drawNode = Line( -- 28
+    { -- 28
+        Vec2(-20, 0), -- 29
+        Vec2(20, 0), -- 30
+        Vec2.zero, -- 31
+        Vec2(0, -20), -- 32
+        Vec2(0, 20) -- 33
+    }, -- 33
+    App.themeColor -- 34
+) -- 34
+drawNode:addTo(world) -- 35
+local diskDef = BodyDef() -- 37
+diskDef.type = "Dynamic" -- 38
+diskDef.linearAcceleration = gravity -- 39
+diskDef:attachDisk(20, 5, 0.8, 1) -- 40
+local disk = Body( -- 42
+    diskDef, -- 42
+    world, -- 42
+    Vec2(100, 200) -- 42
+) -- 42
+disk:addTo(world) -- 43
+disk.angularRate = -1800 -- 44
+disk.receivingContact = true -- 45
+disk:slot( -- 46
+    "ContactStart", -- 46
+    function(_, point) -- 46
+        drawNode.position = point -- 47
+        if label ~= nil then -- 47
+            label.text = string.format("Contact: [%.0f,%.0f]", point.x, point.y) -- 49
+        end -- 49
+    end -- 46
+) -- 46
+local windowFlags = { -- 52
+    "NoDecoration", -- 53
+    "AlwaysAutoResize", -- 54
+    "NoSavedSettings", -- 55
+    "NoFocusOnAppearing", -- 56
+    "NoNav", -- 57
+    "NoMove" -- 58
+} -- 58
+local receivingContact = disk.receivingContact -- 60
+threadLoop(function() -- 61
+    local ____App_visualSize_2 = App.visualSize -- 62
+    local width = ____App_visualSize_2.width -- 62
+    ImGui.SetNextWindowBgAlpha(0.35) -- 63
+    ImGui.SetNextWindowPos( -- 64
+        Vec2(width - 10, 10), -- 64
+        "Always", -- 64
+        Vec2(1, 0) -- 64
+    ) -- 64
+    ImGui.SetNextWindowSize( -- 65
+        Vec2(240, 0), -- 65
+        "FirstUseEver" -- 65
+    ) -- 65
+    ImGui.Begin( -- 66
+        "Contact", -- 66
+        windowFlags, -- 66
+        function() -- 66
+            ImGui.Text("Contact") -- 67
+            ImGui.Separator() -- 68
+            ImGui.TextWrapped("Receive events when physics bodies contact.") -- 69
+            local changed = false -- 70
+            changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact) -- 71
+            if changed then -- 71
+                disk.receivingContact = receivingContact -- 73
+                if label ~= nil then -- 73
+                    label.text = "" -- 74
+                end -- 74
+            end -- 74
+        end -- 66
     ) -- 66
-    ImGui.SetNextWindowSize( -- 67
-        Vec2(240, 0), -- 67
-        "FirstUseEver" -- 67
-    ) -- 67
-    ImGui.Begin( -- 68
-        "Contact", -- 68
-        windowFlags, -- 68
-        function() -- 68
-            ImGui.Text("Contact") -- 69
-            ImGui.Separator() -- 70
-            ImGui.TextWrapped("Receive events when physics bodies contact.") -- 71
-            local changed = false -- 72
-            changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact) -- 73
-            if changed then -- 73
-                disk.receivingContact = receivingContact -- 75
-                if label ~= nil then -- 75
-                    label.text = "" -- 76
-                end -- 76
-            end -- 76
-        end -- 68
-    ) -- 68
-    return false -- 79
-end) -- 63
-return ____exports -- 63
+    return false -- 77
+end) -- 61
+return ____exports -- 61

@@ -14,11 +14,9 @@ const terrainDef = BodyDef();
 const count = 50;
 const radius = 300;
 const vertices = [];
-let index = 0;
-for (let i = 0; i < count + 1; i++) {
+for (let i of $range(0, count + 1)) {
 	const angle = 2 * math.pi * i / count;
-	vertices[index] = Vec2(radius * math.cos(angle), radius * math.sin(angle));
-	index++;
+	vertices.push(Vec2(radius * math.cos(angle), radius * math.sin(angle)));
 }
 terrainDef.attachChain(vertices, 0.4, 0);
 terrainDef.attachDisk(Vec2(0, -270), 30, 1, 0, 1.0);
