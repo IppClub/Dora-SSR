@@ -90,7 +90,7 @@ load: function(self: Cache, filename: string): boolean
 
 **Signature:**
 ```tl
-loadAsync: function(self: Cache, filename: string): boolean
+loadAsync: function(self: Cache, filename: string | {string}, handler?: function(progress: number))
 ```
 
 **Usage:**
@@ -107,13 +107,8 @@ end)
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| filename | string | The name of the file to load. |
-
-**Returns:**
-
-| Return Type | Description |
-| --- | --- |
-| boolean | True if the file was loaded successfully, false otherwise. |
+| filenames | string | \{string} | The name of the file(s) to load. |
+| handler | function | [optional] A callback function that is invoked when the file is loaded. The progress parameter is a number between 0 and 1. |
 
 ## update
 
