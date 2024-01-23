@@ -46,9 +46,9 @@ local record Cache
 	-- 		print("Game resource is loaded into memory")
 	-- 	end
 	-- end)
-	-- @param filename (string) The name of the file to load.
-	-- @return (boolean) True if the file was loaded successfully, false otherwise.
-	loadAsync: function(self: Cache, filename: string): boolean
+	-- @param filenames (string | {string}) The name of the file(s) to load.
+	-- @param handler (function) [optional] A callback function that is invoked when the file is loaded. The progress parameter is a number between 0 and 1.
+	loadAsync: function(self: Cache, filename: string | {string}, handler?: function(progress: number))
 
 	-- Updates the content of a file loaded in the cache.
 	-- If the item of filename does not exist in the cache, a new file content will be added into the cache.

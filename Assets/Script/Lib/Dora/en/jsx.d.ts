@@ -253,6 +253,12 @@ class Node {
 	 * @param axisValue The controller axis value ranging from -1.0 to 1.0.
 	*/
 	onAxis?(this: void, controllerId: number, axisValue: number): void;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.Node.Type): void;
 }
 
 class ClipNode extends Node {
@@ -272,6 +278,12 @@ class ClipNode extends Node {
 	 * Whether to invert the clipping area.
 	 */
 	inverted?: boolean;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.ClipNode.Type): void;
 }
 
 class Playable extends Node {
@@ -324,6 +336,12 @@ class Playable extends Node {
 	 * @param target The Playable instance that the animation was played on.
 	*/
 	onAnimationEnd?(this: void, animationName: string, target: dora.Playable.Type): void;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.Playable.Type): void;
 }
 
 class DragonBone extends Playable {
@@ -345,6 +363,12 @@ class DragonBone extends Playable {
 	 * Whether hit testing is enabled.
 	 */
 	hitTestEnabled?: boolean;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.DragonBone.Type): void;
 }
 
 class Spine extends Playable {
@@ -361,6 +385,12 @@ class Spine extends Playable {
 
 	/** Whether hit testing is enabled. */
 	hitTestEnabled?: boolean;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.Spine.Type): void;
 }
 
 class Model extends Playable {
@@ -376,6 +406,12 @@ class Model extends Playable {
 	 * Whether the animation model will be played in reverse.
 	 */
 	reversed?: boolean;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.Model.Type): void;
 }
 
 class Dot {
@@ -473,6 +509,12 @@ class DrawNode extends Node {
 	 * The blend function used to draw the shape.
 	 */
 	blendFunc?: dora.BlendFunc.Type;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.DrawNode.Type): void;
 }
 
 class Grid extends Node {
@@ -501,6 +543,12 @@ class Grid extends Node {
 
 	/** The sprite effect applied to the grid. Default is `SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")`. */
 	effect?: dora.SpriteEffect.Type;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.Grid.Type): void;
 }
 
 class Sprite extends Node {
@@ -552,6 +600,12 @@ class Sprite extends Node {
 	 * The texture filtering mode for the sprite.
 	 */
 	filter?: dora.TextureFilter;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.Sprite.Type): void;
 }
 
 class Label extends Node {
@@ -615,6 +669,12 @@ class Label extends Node {
 	 * The text alignment setting. (Default is `TextAlign.Center`)
 	 */
 	alignment?: dora.TextAlign;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.Label.Type): void;
 }
 
 class Line extends Node {
@@ -639,6 +699,12 @@ class Line extends Node {
 	 * Color of the line in format 0xffffffff (ARGB, default is opaque white).
 	 */
 	lineColor?: number;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.Line.Type): void;
 }
 
 class Particle extends Node {
@@ -658,6 +724,12 @@ class Particle extends Node {
 	 * Triggered after a Particle node started a stop action and then all the active particles end their lives.
 	*/
 	onFinished?(this: void): void;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.Particle.Type): void;
 }
 
 class Menu extends Node {
@@ -667,6 +739,12 @@ class Menu extends Node {
 	 * Whether the menu is currently enabled or disabled.
 	 */
 	enabled?: boolean;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.Menu.Type): void;
 }
 
 class Action {
@@ -905,6 +983,12 @@ class PhysicsWorld extends Node {
 	 * Whether debug graphic should be displayed for the physics world.
 	 */
 	showDebug?: boolean;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.PhysicsWorld.Type): void;
 }
 
 class Contact {
@@ -1028,6 +1112,12 @@ class Body extends Node {
 	 * @returns Whether to allow the collision to happen.
 	 */
 	onContactFilter?(this: void, other: dora.Body.Type): boolean;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.Body.Type): void;
 }
 
 class RectangleShape {
@@ -1591,6 +1681,10 @@ interface IntrinsicElements {
 
 interface ElementChildrenAttribute {
 	children: {};
+}
+
+interface ElementAttributesProperty {
+	props: any;
 }
 
 } // namespace JSX

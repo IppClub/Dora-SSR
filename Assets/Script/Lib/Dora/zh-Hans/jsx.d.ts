@@ -253,6 +253,12 @@ class Node {
 	 * @param axisValue 控制器轴的值，范围从 -1.0 到 1.0。
 	*/
 	onAxis?(this: void, controllerId: number, axisValue: number): void;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.Node.Type): void;
 }
 
 class ClipNode extends Node {
@@ -272,6 +278,12 @@ class ClipNode extends Node {
 	 * 是否反转剪切区域。
 	 */
 	inverted?: boolean;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.ClipNode.Type): void;
 }
 
 class Playable extends Node {
@@ -324,6 +336,12 @@ class Playable extends Node {
 	 * @param target 播放该动画的动画模型实例。
 	*/
 	onAnimationEnd?(this: void, animationName: string, target: dora.Playable.Type): void;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.Playable.Type): void;
 }
 
 class DragonBone extends Playable {
@@ -345,6 +363,12 @@ class DragonBone extends Playable {
 	 * 是否启用命中测试。
 	 */
 	hitTestEnabled?: boolean;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.DragonBone.Type): void;
 }
 
 class Spine extends Playable {
@@ -361,6 +385,12 @@ class Spine extends Playable {
 
 	/** 是否启用命中测试。 */
 	hitTestEnabled?: boolean;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.Spine.Type): void;
 }
 
 class Model extends Playable {
@@ -376,6 +406,12 @@ class Model extends Playable {
 	 * 是否将动画模型反向播放。
 	 */
 	reversed?: boolean;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.Model.Type): void;
 }
 
 class Dot {
@@ -473,6 +509,12 @@ class DrawNode extends Node {
 	 * 用于绘制形状的混合函数。
 	 */
 	blendFunc?: dora.BlendFunc.Type;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.DrawNode.Type): void;
 }
 
 class Grid extends Node {
@@ -501,6 +543,12 @@ class Grid extends Node {
 
 	/** 应用于网格图元上的着色器特效。默认为 `SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")`。 */
 	effect?: dora.SpriteEffect.Type;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.Grid.Type): void;
 }
 
 class Sprite extends Node {
@@ -552,6 +600,12 @@ class Sprite extends Node {
 	 * 图元的纹理过滤模式。
 	 */
 	filter?: dora.TextureFilter;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.Sprite.Type): void;
 }
 
 class Label extends Node {
@@ -615,6 +669,12 @@ class Label extends Node {
 	 * 文本对齐设置，默认为 TextAlign.Center。
 	 */
 	alignment?: dora.TextAlign;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.Label.Type): void;
 }
 
 class Line extends Node {
@@ -639,6 +699,12 @@ class Line extends Node {
 	 * 线条的颜色，格式为0xffffffff（ARGB），默认为白色。
 	 */
 	lineColor?: number;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.Line.Type): void;
 }
 
 class Particle extends Node {
@@ -658,6 +724,12 @@ class Particle extends Node {
 	 * 当粒子系统节点在启动之后又停止发射粒子，并等待所有已发射的粒子结束它们的生命周期时触发。
 	*/
 	onFinished?(this: void): void;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.Particle.Type): void;
 }
 
 class Menu extends Node {
@@ -667,6 +739,12 @@ class Menu extends Node {
 	 * 当前是否启用菜单节点。默认为 true。
 	 */
 	enabled?: boolean;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.Menu.Type): void;
 }
 
 class Action {
@@ -907,6 +985,12 @@ class PhysicsWorld extends Node {
 	 * 是否应为物理世界显示调试图形。
 	 */
 	showDebug?: boolean;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.PhysicsWorld.Type): void;
 }
 
 class Contact {
@@ -1031,6 +1115,12 @@ class Body extends Node {
 	 * @returns 返回false时，物理体将不会触发本次的碰撞事件。
 	 */
 	onContactFilter?(this: void, other: dora.Body.Type): boolean;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.Body.Type): void;
 }
 
 class RectangleShape {
@@ -1589,6 +1679,10 @@ interface IntrinsicElements {
 
 interface ElementChildrenAttribute {
 	children: {};
+}
+
+interface ElementAttributesProperty {
+	props: any;
 }
 
 } // namespace JSX

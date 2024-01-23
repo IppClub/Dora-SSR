@@ -4449,10 +4449,10 @@ class Cache {
 
 	/**
 	 * Loads a file into the cache asynchronously.
-	 * @param filename The name of the file to load.
-	 * @returns True if the file was loaded successfully, false otherwise.
+	 * @param filename The name of the file(s) to load.
+	 * @param handler A function to call when a resource is loaded. The progress parameter is a number between 0 and 1.
 	 */
-	loadAsync(filename: string): boolean;
+	loadAsync(filename: string | string[], handler?: (this: void, progress: number) => void): void;
 
 	/**
 	 * Updates the content of a file loaded in the cache.

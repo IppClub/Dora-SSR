@@ -15,11 +15,6 @@ dora.require = require
 
 :searchPaths = Content
 
-runningPaths =
-	* Path Content.writablePath, ".build", "Script", "Lib"
-	* Path Content.writablePath, ".build", "Script"
-	* Path Content.writablePath, ".build"
-
 useChinese = App.locale\match("^zh")?
 updateLocale = ->
 	useChinese = App.locale\match("^zh")?
@@ -466,8 +461,9 @@ export enterEntryAsync = (entry)->
 			return false, "failed to run cpp test '#{name}'"
 	sleep!
 	try
-		for path in *runningPaths
-			Content\insertSearchPath 1, path
+		scriptPath = Path\getPath file
+		Content\insertSearchPath 1, scriptPath
+		Content\insertSearchPath 1, Path scriptPath, "Script"
 		result = require file
 		result! if "function" == type result
 	catch msg

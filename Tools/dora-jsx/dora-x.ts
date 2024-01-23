@@ -6,13 +6,24 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-/// <reference path="./jsx.d.ts"/>
+/// <reference path="./enjsx.d.ts"/>
 import * as dora from 'dora';
 
 export namespace React {
 
+export abstract class Component<T> {
+	constructor(props: T) {
+		this.props = props;
+	}
+	props!: T;
+	abstract render(): React.Element;
+	static isComponent = true;
+}
+
+export const Fragment = undefined;
+
 function flattenChild(this: void, child: any): LuaMultiReturn<[any, boolean]> {
-	if (typeof child !== "object") {
+	if (type(child) !== "table") {
 		return $multi(child, true);
 	}
 	if (child.type !== undefined) {
@@ -38,48 +49,65 @@ function flattenChild(this: void, child: any): LuaMultiReturn<[any, boolean]> {
 
 export interface Element {
 	type: string;
-	props?: any;
+	props: any;
 	children: Element[];
 }
 
 export function createElement(
-	type: any,
-	props?: any,
+	typeName: any,
+	props: any,
 	...children: any[]
 ): Element | Element[] {
-	if (typeof type === 'function') {
-		props ??= {};
-		if (props.children) {
-			props.children = [...props.children, ...children];
-		} else {
-			props.children = children;
+	switch (type(typeName)) {
+		case 'function': {
+				props ??= {};
+				if (props.children) {
+					props.children = [...props.children, ...children];
+				} else {
+					props.children = children;
+				}
+				const item = typeName(props);
+				item.props.children = undefined;
+				return item;
 		}
-		const item = type(props);
-		item.props.children = undefined;
-		return item;
-	} else {
-		if (props && props.children) {
-			children = [...props.children, ...children];
-			props.children = undefined;
-		}
-		const flatChildren = [];
-		for (let i of $range(1, children.length)) {
-			const [child, flat] = flattenChild(children[i - 1]);
-			if (flat) {
-				flatChildren.push(child);
+		case 'table': {
+			if (!typeName.isComponent) {
+				print('unsupported class object in element creation');
+				return [];
+			}
+			props ??= {};
+			if (props.children) {
+				props.children = [...props.children, ...children];
 			} else {
-				for (let i of $range(1, (child as []).length)) {
-					flatChildren.push((child as [])[i - 1]);
+				props.children = children;
+			}
+			const inst = new typeName(props);
+			return inst.render();
+		}
+		default: {
+			if (props && props.children) {
+				children = [...props.children, ...children];
+				props.children = undefined;
+			}
+			const flatChildren = [];
+			for (let i of $range(1, children.length)) {
+				const [child, flat] = flattenChild(children[i - 1]);
+				if (flat) {
+					flatChildren.push(child);
+				} else {
+					for (let i of $range(1, (child as []).length)) {
+						flatChildren.push((child as [])[i - 1]);
+					}
 				}
 			}
+			children = flatChildren;
 		}
-		children = flatChildren;
 	}
-	if (type === undefined) {
+	if (typeName === undefined) {
 		return children;
 	}
 	return {
-		type,
+		type: typeName,
 		props,
 		children
 	};
@@ -164,6 +192,9 @@ function getNode(enode: React.Element, cnode?: dora.Node.Type, attribHandler?: A
 	}
 	if (anchor !== null) cnode.anchor = anchor;
 	if (color3 !== null) cnode.color3 = color3;
+	if (jnode.onMount !== undefined) {
+		jnode.onMount(cnode);
+	}
 	return cnode;
 }
 
@@ -271,7 +302,7 @@ let getDrawNode: (this: void, enode: React.Element) => dora.DrawNode.Type;
 		const {children} = enode;
 		for (let i of $range(1, children.length)) {
 			const child = children[i - 1];
-			if (typeof child !== "object") {
+			if (type(child) !== "table") {
 				continue;
 			}
 			switch (child.type as keyof JSX.IntrinsicElements) {
@@ -387,7 +418,7 @@ let getLabel: (this: void, enode: React.Element) => dora.Label.Type | null;
 			let text = label.text ?? '';
 			for (let i of $range(1, children.length)) {
 				const child = children[i - 1];
-				if (typeof child !== 'object') {
+				if (type(child) !== 'table') {
 					text += tostring(child);
 				}
 			}
@@ -506,7 +537,7 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 		let extraSensors: [tag: number, def: dora.FixtureDef.Type][] | null = null;
 		for (let i of $range(1, enode.children.length)) {
 			const child = enode.children[i - 1];
-			if (typeof child !== 'object') {
+			if (type(child) !== 'table') {
 				continue;
 			}
 			switch (child.type as keyof JSX.IntrinsicElements) {
@@ -1124,7 +1155,7 @@ const elementMap: ElementMap = {
 	},
 }
 function visitNode(this: void, nodeStack: dora.Node.Type[], node: React.Element | React.Element[], parent?: React.Element) {
-	if (typeof node !== "object") {
+	if (type(node) !== "table") {
 		return;
 	}
 	const enode = node as React.Element;
@@ -1166,4 +1197,53 @@ export function toNode(this: void, enode: React.Element | React.Element[]): dora
 
 export function useRef<T>(this: void, item?: T): JSX.Ref<T> {
 	return {current: item ?? null};
+}
+
+function getPreload(this: void, preloadList: string[], node: React.Element | React.Element[]) {
+	if (type(node) !== "table") {
+		return;
+	}
+	const enode = node as React.Element;
+	if (enode.type === undefined) {
+		const list = node as React.Element[];
+		if (list.length > 0) {
+			for (let i of $range(1, list.length)) {
+				getPreload(preloadList, list[i - 1]);
+			}
+		}
+	} else {
+		switch (enode.type as keyof JSX.IntrinsicElements) {
+			case 'sprite':
+				const sprite = enode.props as JSX.Sprite;
+				preloadList.push(sprite.file);
+				break;
+			case 'playable':
+				const playable = enode.props as JSX.Playable;
+				preloadList.push(playable.file);
+				break;
+			case 'model':
+				const model = enode.props as JSX.Model;
+				preloadList.push(`model:${model.file}`);
+				break;
+			case 'spine':
+				const spine = enode.props as JSX.Spine;
+				preloadList.push(`spine:${spine.file}`);
+				break;
+			case 'dragon-bone':
+				const dragonBone = enode.props as JSX.DragonBone;
+				preloadList.push(`bone:${dragonBone.file}`);
+				break;
+			case 'label':
+				const label = enode.props as JSX.Label;
+				preloadList.push(`font:${label.fontName};${label.fontSize}`);
+				break;
+		}
+	}
+	getPreload(preloadList, enode.children);
+}
+
+export function preloadAsync(this: void, enode: React.Element | React.Element[], handler?: (this: void, progress: number) => void) {
+	const preloadList: string[] = [];
+	getPreload(preloadList, enode);
+	dora.Cache.loadAsync(preloadList, handler);
 }

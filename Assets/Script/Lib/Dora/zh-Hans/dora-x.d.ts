@@ -21,7 +21,7 @@ export namespace React {
 	 * @param children 子元素。
 	 * @returns 创建的 React 元素。
 	 */
-	export function createElement(type: any, props?: any, ...children: any[]): Element | Element[];
+	export function createElement(type: any, props: any, ...children: any[]): Element | Element[];
 }
 
 /**
@@ -37,3 +37,10 @@ export function toNode(this: void, enode: React.Element | React.Element[]): dora
  * @returns 创建的 Ref 对象。
  */
 export function useRef<T>(this: void, item?: T): JSX.Ref<T>;
+
+/**
+ * 异步地预加载指定的节点使用的资源文件。
+ * @param enode 要预加载的节点。
+ * @param handler 用于通知进度变化的回调函数。
+ */
+export function preloadAsync(this: void, enode: React.Element | React.Element[], handler?: (this: void, progress: number) => void): void;
