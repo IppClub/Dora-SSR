@@ -97,7 +97,6 @@ const Editor = memo((props: {
 	width: number, height: number,
 	language: string,
 	fileKey: string,
-	file: EditingFile,
 	readOnly: boolean,
 	onMount: (editor: monaco.editor.IStandaloneCodeEditor) => void,
 	onModified: (key: string, content: string) => void,
@@ -109,7 +108,6 @@ const Editor = memo((props: {
 		height,
 		language,
 		fileKey,
-		file,
 		readOnly,
 		onMount,
 		onModified,
@@ -121,7 +119,6 @@ const Editor = memo((props: {
 			height={height}
 			language={language}
 			theme="dora-dark"
-			defaultValue={file.content}
 			onMount={onMount}
 			keepCurrentModel
 			loading={editorBackground}
@@ -484,6 +481,7 @@ export default function PersistentDrawerLeft() {
 		}
 		const model = editor.getModel();
 		if (model) {
+			model.setValue(file.content);
 			model.onDidChangeContent((e) => {
 				lastEditorActionTime = Date.now();
 				const modified = model.getValue();
@@ -873,26 +871,19 @@ export default function PersistentDrawerLeft() {
 	const closeCurrentTab = useCallback(() => {
 		setTabIndex(tabIndex => {
 			if (tabIndex !== null) {
+				let currentIndex = tabIndex;
 				const closeTab = () => {
 					setFiles(prev => {
-						if (prev.length === tabIndex + 1) {
-							switchTab(tabIndex - 1, prev[tabIndex - 1]);
-							setTimeout(() => {
-								setFiles(prev => {
-									prev.pop();
-									return [...prev];
-								});
-							}, 10);
-							return prev;
+						const newFiles = prev.filter((_, index) => index !== currentIndex);
+						if (newFiles.length === 0) {
+							switchTab(null);
 						} else {
-							const newFiles = prev.filter((_, index) => index !== tabIndex);
-							if (newFiles.length === 0) {
-								switchTab(null);
-							} else {
-								switchTab(tabIndex, newFiles[tabIndex]);
+							if (currentIndex >= newFiles.length) {
+								currentIndex = newFiles.length - 1;
 							}
-							return newFiles;
+							switchTab(currentIndex, newFiles[currentIndex]);
 						}
+						return newFiles;
 					});
 				};
 				setFiles(files => {
@@ -2368,7 +2359,6 @@ export default function PersistentDrawerLeft() {
 										fileKey={file.key}
 										width={width}
 										height={winSize.height}
-										file={file}
 										language={language}
 										onMount={file.onMount}
 										onModified={onModified}

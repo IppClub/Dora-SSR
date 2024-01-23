@@ -373,10 +373,10 @@ do
 		local total = #files
 		for i = 1, total do
 			Cache_loadAsync(self, files[i], function()
-				if handler then
-					handler(files[i])
-				end
 				count = count + 1
+				if handler then
+					handler(count / total)
+				end
 			end)
 		end
 		wait(function()

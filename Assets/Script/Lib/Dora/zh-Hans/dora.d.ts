@@ -4453,9 +4453,9 @@ class Cache {
 	/**
 	 * 异步将文件加载到缓存中。
 	 * @param filename 要加载的文件的名称。
-	 * @returns 如果文件成功加载，则返回true，否则返回false。
+	 * @param handler [可选] 加载进度回调函数。progress 参数是一个介于0和1之间的数字，表示加载进度的百分比。
 	 */
-	loadAsync(filename: string): boolean;
+	loadAsync(filename: string | string[], handler?: (this: void, progress: number) => void): void;
 
 	/**
 	 * 更新缓存中已加载文件的内容。

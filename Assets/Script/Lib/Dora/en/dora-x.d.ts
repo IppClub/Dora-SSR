@@ -22,7 +22,7 @@ export namespace React {
 	 * @param children - The child elements of the element.
 	 * @returns The created React element.
 	 */
-	export function createElement(type: any, props?: any, ...children: any[]): Element | Element[];
+	export function createElement(type: any, props: any, ...children: any[]): Element | Element[];
 }
 
 /**
@@ -38,3 +38,10 @@ export function toNode(this: void, enode: React.Element | React.Element[]): dora
  * @returns The created ref object.
  */
 export function useRef<T>(this: void, item?: T): JSX.Ref<T>;
+
+/**
+ * Asynchronously preloads the resource files used by the specified node.
+ * @param enode The node to preload.
+ * @param handler The callback function used to notify the progress change.
+ */
+export function preloadAsync(this: void, enode: React.Element | React.Element[], handler?: (this: void, progress: number) => void): void;
