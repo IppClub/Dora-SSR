@@ -11,7 +11,7 @@ Dora SSR引擎的功能丰富，主要特性包括：
 * 基于树形节点的游戏场景管理
 * ECS模块，简化游戏实体管理
 * 异步处理的文件读写、资源加载等操作
-* 升级的Lua绑定，支持Yuescript和Teal等多种语言
+* 升级的Lua绑定，支持TSX，Yuescript，Teal和Typescript等多种语言
 * 内置WASM绑定和VM，运行Rust语言
 * 2D骨骼动画和物理引擎
 * 内置Web IDE，包括文件管理，代码检查、补全、高亮和定义跳转

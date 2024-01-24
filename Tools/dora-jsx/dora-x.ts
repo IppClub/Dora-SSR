@@ -6,8 +6,12 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-/// <reference path="./enjsx.d.ts"/>
+/// <reference path="./jsx.d.ts"/>
 import * as dora from 'dora';
+
+function Warn(this: void, msg: string) {
+	Warn(`[Dora Warning] ${msg}`);
+}
 
 export namespace React {
 
@@ -72,7 +76,7 @@ export function createElement(
 		}
 		case 'table': {
 			if (!typeName.isComponent) {
-				print('unsupported class object in element creation');
+				Warn('unsupported class object in element creation');
 				return [];
 			}
 			props ??= {};
@@ -117,7 +121,7 @@ export function createElement(
 
 type AttribHandler = (this: void, cnode: any, enode: React.Element, k: any, v: any) => boolean;
 
-function getNode(enode: React.Element, cnode?: dora.Node.Type, attribHandler?: AttribHandler) {
+function getNode(this: void, enode: React.Element, cnode?: dora.Node.Type, attribHandler?: AttribHandler) {
 	cnode = cnode ?? dora.Node();
 	const jnode = enode.props as JSX.Node;
 	let anchor: dora.Vec2.Type | null = null;
@@ -670,7 +674,7 @@ type ElementMap = {
 
 function drawNodeCheck(this: void, _nodeStack: dora.Node.Type[], enode: React.Element, parent?: React.Element) {
 	if (parent === undefined || parent.type !== 'draw-node') {
-		print(`label <${enode.type}> must be placed under a <draw-node> to take effect`);
+		Warn(`label <${enode.type}> must be placed under a <draw-node> to take effect`);
 	}
 }
 
@@ -685,13 +689,13 @@ function actionCheck(this: void, _nodeStack: dora.Node.Type[], enode: React.Elem
 		}
 	}
 	if (unsupported) {
-		print(`tag <${enode.type}> must be placed under <action>, <spawn> or <sequence> to take effect`);
+		Warn(`tag <${enode.type}> must be placed under <action>, <spawn> or <sequence> to take effect`);
 	}
 }
 
 function bodyCheck(this: void, _nodeStack: dora.Node.Type[], enode: React.Element, parent?: React.Element) {
 	if (parent === undefined || parent.type !== 'body') {
-		print(`label <${enode.type}> must be placed under a <body> to take effect`);
+		Warn(`label <${enode.type}> must be placed under a <body> to take effect`);
 	}
 }
 
@@ -831,7 +835,7 @@ const elementMap: ElementMap = {
 					actionStack.push(dora.Sequence(...table.unpack(sequenceStack)));
 				}
 				default:
-					print(`unsupported tag <${enode.type}> under action definition`);
+					Warn(`unsupported tag <${enode.type}> under action definition`);
 					break;
 			}
 		}
@@ -878,7 +882,7 @@ const elementMap: ElementMap = {
 			const contact = enode.props as JSX.Contact;
 			world.setShouldContact(contact.groupA, contact.groupB, contact.enabled);
 		} else {
-			print(`tag <${enode.type}> must be placed under <physics-world> or its derivatives to take effect`);
+			Warn(`tag <${enode.type}> must be placed under <physics-world> or its derivatives to take effect`);
 		}
 	},
 	body: (nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
@@ -886,7 +890,7 @@ const elementMap: ElementMap = {
 		if (world !== null) {
 			addChild(nodeStack, getBody(enode, world), enode);
 		} else {
-			print(`tag <${enode.type}> must be placed under <physics-world> or its derivatives to take effect`);
+			Warn(`tag <${enode.type}> must be placed under <physics-world> or its derivatives to take effect`);
 		}
 	},
 	'rect-fixture': bodyCheck,
@@ -897,15 +901,15 @@ const elementMap: ElementMap = {
 	'distance-joint': (_nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const joint = enode.props as JSX.DistanceJoint;
 		if (joint.ref === undefined) {
-			print(`not creating instance of tag <${enode.type}> because it has no reference`);
+			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
 		if (joint.bodyA.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
 		if (joint.bodyB.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
 		(joint.ref as any).current = dora.Joint.distance(
@@ -920,15 +924,15 @@ const elementMap: ElementMap = {
 	'friction-joint': (_nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const joint = enode.props as JSX.FrictionJoint;
 		if (joint.ref === undefined) {
-			print(`not creating instance of tag <${enode.type}> because it has no reference`);
+			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
 		if (joint.bodyA.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
 		if (joint.bodyB.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
 		(joint.ref as any).current = dora.Joint.friction(
@@ -943,15 +947,15 @@ const elementMap: ElementMap = {
 	'gear-joint': (_nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const joint = enode.props as JSX.GearJoint;
 		if (joint.ref === undefined) {
-			print(`not creating instance of tag <${enode.type}> because it has no reference`);
+			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
 		if (joint.jointA.current === null) {
-			print(`not creating instance of tag <${enode.type}> because jointA is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because jointA is invalid`);
 			return;
 		}
 		if (joint.jointB.current === null) {
-			print(`not creating instance of tag <${enode.type}> because jointB is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because jointB is invalid`);
 			return;
 		}
 		(joint.ref as any).current = dora.Joint.gear(
@@ -964,15 +968,15 @@ const elementMap: ElementMap = {
 	'spring-joint': (_nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const joint = enode.props as JSX.SpringJoint;
 		if (joint.ref === undefined) {
-			print(`not creating instance of tag <${enode.type}> because it has no reference`);
+			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
 		if (joint.bodyA.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
 		if (joint.bodyB.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
 		(joint.ref as any).current = dora.Joint.spring(
@@ -989,11 +993,11 @@ const elementMap: ElementMap = {
 	'move-joint': (_nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const joint = enode.props as JSX.MoveJoint;
 		if (joint.ref === undefined) {
-			print(`not creating instance of tag <${enode.type}> because it has no reference`);
+			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
 		if (joint.body.current === null) {
-			print(`not creating instance of tag <${enode.type}> because body is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because body is invalid`);
 			return;
 		}
 		(joint.ref as any).current = dora.Joint.move(
@@ -1008,15 +1012,15 @@ const elementMap: ElementMap = {
 	'prismatic-joint': (_nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const joint = enode.props as JSX.PrismaticJoint;
 		if (joint.ref === undefined) {
-			print(`not creating instance of tag <${enode.type}> because it has no reference`);
+			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
 		if (joint.bodyA.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
 		if (joint.bodyB.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
 		(joint.ref as any).current = dora.Joint.prismatic(
@@ -1034,15 +1038,15 @@ const elementMap: ElementMap = {
 	'pulley-joint': (_nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const joint = enode.props as JSX.PulleyJoint;
 		if (joint.ref === undefined) {
-			print(`not creating instance of tag <${enode.type}> because it has no reference`);
+			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
 		if (joint.bodyA.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
 		if (joint.bodyB.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
 		(joint.ref as any).current = dora.Joint.pulley(
@@ -1059,15 +1063,15 @@ const elementMap: ElementMap = {
 	'revolute-joint': (_nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const joint = enode.props as JSX.RevoluteJoint;
 		if (joint.ref === undefined) {
-			print(`not creating instance of tag <${enode.type}> because it has no reference`);
+			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
 		if (joint.bodyA.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
 		if (joint.bodyB.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
 		(joint.ref as any).current = dora.Joint.revolute(
@@ -1084,15 +1088,15 @@ const elementMap: ElementMap = {
 	'rope-joint': (_nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const joint = enode.props as JSX.RopeJoint;
 		if (joint.ref === undefined) {
-			print(`not creating instance of tag <${enode.type}> because it has no reference`);
+			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
 		if (joint.bodyA.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
 		if (joint.bodyB.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
 		(joint.ref as any).current = dora.Joint.rope(
@@ -1107,15 +1111,15 @@ const elementMap: ElementMap = {
 	'weld-joint': (_nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const joint = enode.props as JSX.WeldJoint;
 		if (joint.ref === undefined) {
-			print(`not creating instance of tag <${enode.type}> because it has no reference`);
+			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
 		if (joint.bodyA.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
 		if (joint.bodyB.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
 		(joint.ref as any).current = dora.Joint.weld(
@@ -1130,15 +1134,15 @@ const elementMap: ElementMap = {
 	'wheel-joint': (_nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const joint = enode.props as JSX.WheelJoint;
 		if (joint.ref === undefined) {
-			print(`not creating instance of tag <${enode.type}> because it has no reference`);
+			Warn(`not creating instance of tag <${enode.type}> because it has no reference`);
 			return;
 		}
 		if (joint.bodyA.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyA is invalid`);
 			return;
 		}
 		if (joint.bodyB.current === null) {
-			print(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
+			Warn(`not creating instance of tag <${enode.type}> because bodyB is invalid`);
 			return;
 		}
 		(joint.ref as any).current = dora.Joint.wheel(
@@ -1175,7 +1179,7 @@ function visitNode(this: void, nodeStack: dora.Node.Type[], node: React.Element 
 		if (handler !== undefined) {
 			handler(nodeStack, enode, parent);
 		} else {
-			print(`unsupported tag <${enode.type}>`);
+			Warn(`unsupported tag <${enode.type}>`);
 		}
 	}
 }

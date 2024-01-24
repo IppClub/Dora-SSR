@@ -11,7 +11,7 @@
 * Game scene management based on a tree-like node structure
 * ECS module for simplified game entity management
 * Asynchronous file I/O, resource loading, and other operations
-* Upgraded Lua bindings with support for Yuescript and Teal, among other languages
+* Upgraded Lua bindings with support for TSX, Yuescript, Teal and Typescript
 * Built-in WASM bindings and VM for running Rust language
 * 2D skeletal animation and physics engine
 * Built-in Web IDE with file management, code checking, autocompletion, highlighting, and definition jumping

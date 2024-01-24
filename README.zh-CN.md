@@ -30,6 +30,10 @@
 
 - 支持Teal语言，编译到Lua的静态类型语言。
 
+- 支持 TypeScript，一门静态类型的 JavaScript 语言的超集，添加了强大的类型检查功能。
+
+- 支持 TSX，允许在脚本中嵌入类似 XML/HTML 的文本，与 TypeScript 一起使用。
+
 - 支持Rust语言，运行在内置的WASM绑定和VM上。
 
 - 2D骨骼动画和物理引擎支持。
@@ -73,7 +77,7 @@
     - 1、下载并运行[软件](https://github.com/ippclub/Dora-SSR/releases/latest)。
       - 在macOS上也可以通过 Homebrew 进行软件安装。
           ```sh
-          brew tap ippclub/dora-ssr 
+          brew tap ippclub/dora-ssr
           brew install --cask dora-ssr
           ```
 
