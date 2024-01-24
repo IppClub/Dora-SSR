@@ -30,6 +30,10 @@
 
 - Supports for the Teal language, a statically typed dialect for Lua.
 
+- Supports TypeScript, a statically typed superset of JavaScript that adds powerful type checking.
+
+- Supports TSX, allows embedding XML/HTML-like text within scripts, used with TypeScript.
+
 - Supports the Rust language, running on the built-in WASM runtime with Rust bindings.
 
 - 2D skeletal animation and physics engine support.
@@ -72,9 +76,9 @@
   - Windows, macOS
 
      - 1. Download and run the [software](https://github.com/ippclub/Dora-SSR/releases/latest).
-          - Get software on macOS with Homebrew using 
+          - Get software on macOS with Homebrew using
           ```sh
-          brew tap ippclub/dora-ssr 
+          brew tap ippclub/dora-ssr
           brew install --cask dora-ssr
           ```
 
