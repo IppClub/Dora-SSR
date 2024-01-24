@@ -466,6 +466,7 @@ export enterEntryAsync = (entry)->
 		Content\insertSearchPath 1, Path scriptPath, "Script"
 		result = require file
 		result! if "function" == type result
+		nil
 	catch msg
 		err = debug.traceback msg
 		allClear!
