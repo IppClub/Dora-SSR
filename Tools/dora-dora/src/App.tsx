@@ -1263,6 +1263,13 @@ export default function PersistentDrawerLeft() {
 							column: 1
 						};
 						break;
+					case ".xml":
+						content = "<!-- @preview-file off -->\n<Dora>\n\t\n</Dora>\n";
+						position = {
+							lineNumber: 3,
+							column: 2
+						};
+						break;
 					default:
 						break;
 				}
@@ -1759,7 +1766,7 @@ export default function PersistentDrawerLeft() {
 							setFiles(prev => [...prev]);
 							const ext = path.extname(file.key).toLowerCase();
 							switch (ext) {
-								case ".ts": case ".tsx": case ".lua": case ".tl": case ".yue": {
+								case ".ts": case ".tsx": case ".lua": case ".tl": case ".yue": case ".xml": {
 									if (contentModified.search(/@preview-file on\b/) >= 0) {
 										onPlayControlClick("Run This", true);
 									} else if (contentModified.search(/@preview-project on\b/) >= 0) {
