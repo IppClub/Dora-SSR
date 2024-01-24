@@ -2,9 +2,9 @@ import "@site/src/languages/highlight";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Using Dora Xml for UI Development II
+# Using Dora XML for UI Development II
 
-After defining the graphical UI using Dora Xml, the next problem to solve is how to add handling logic for UI interactions. We can use the class mechanism of Dora SSR to write a new class that inherits from the Xml UI component and contains the interface logic for the UI. For example, we have a button Xml component.
+After defining the graphical UI using Dora XML, the next problem to solve is how to add handling logic for UI interactions. We can use the class mechanism of Dora SSR to write a new class that inherits from the XML UI component and contains the interface logic for the UI. For example, we have a button XML component.
 
 ```xml title="ButtonView.xml"
 <!-- params: X, Y, Radius, Text, FontSize -->
@@ -75,7 +75,7 @@ The business logic we added to the button mainly includes a feature to count the
 
 ```xml title="MainSceneView.xml"
 <Node>
-	<Import Module="Button"/><!-- Import the Lua module directly in Xml -->
+	<Import Module="Button"/><!-- Import the Lua module directly in XML -->
 
 	<Menu X="100" Y="100" Width="100" Height="100">
 		<Button X="25" Y="25" Radius="50" Text="Click"
@@ -112,11 +112,11 @@ local MainScene = require("MainScene")
 Director.entry:addChild(MainScene())
 ```
 
-This way, the organization of our program logic for UI development is more complete. We use Dora Xml to manage the appearance of the UI, and then write the UI logic in Lua classes. Now the appearance definition of UI components and the code for business logic can be developed and maintained in separate files.
+This way, the organization of our program logic for UI development is more complete. We use Dora XML to manage the appearance of the UI, and then write the UI logic in Lua classes. Now the appearance definition of UI components and the code for business logic can be developed and maintained in separate files.
 
 ## Writing UI Logic with Yuescript
 
-With Dora Xml simplifying the UI code, we can further introduce a new language called Yuescript for development. Yuescript is a language that compiles into Lua and can seamlessly integrate with Lua. Its main feature is concise and easy-to-maintain code. Let's see how to use Yuescript together with Dora Xml to write business logic. The code from the previous section can be written in Yuescript as follows:
+With Dora XML simplifying the UI code, we can further introduce a new language called Yuescript for development. Yuescript is a language that compiles into Lua and can seamlessly integrate with Lua. Its main feature is concise and easy-to-maintain code. Let's see how to use Yuescript together with Dora XML to write business logic. The code from the previous section can be written in Yuescript as follows:
 
 ```yue title="Button.yue"
 _ENV = Dora!

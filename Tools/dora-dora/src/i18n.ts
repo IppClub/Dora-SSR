@@ -94,7 +94,7 @@ i18n
 						yuescript: "expressive, extremely concise language",
 						teal: "a typed dialect of Lua",
 						typescript: "a strongly typed programming language",
-						xml: "write game node trees in Xml format",
+						xml: "write game node trees in XML format",
 						markdown: "do some documentation",
 						folder: "create a file folder",
 						yarn: "a language for game dialogue",

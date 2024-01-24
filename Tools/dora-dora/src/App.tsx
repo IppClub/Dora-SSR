@@ -1142,7 +1142,7 @@ export default function PersistentDrawerLeft() {
 			case "Lua": ext = ".lua"; break;
 			case "Teal": ext = ".tl"; break;
 			case "Yuescript": ext = ".yue"; break;
-			case "Dora Xml": ext = ".xml"; break;
+			case "Dora XML": ext = ".xml"; break;
 			case "Markdown": ext = ".md"; break;
 			case "Yarn": ext = ".yarn"; break;
 			case "Visual Script": ext = ".vs"; break;

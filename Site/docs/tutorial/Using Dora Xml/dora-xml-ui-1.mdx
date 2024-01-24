@@ -2,11 +2,15 @@ import "@site/src/languages/highlight";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Using Dora Xml for UI Development I
+# Using Dora XML for UI Development I
 
-Dora SSR provides a functionality called Dora Xml, which helps separate the graphical presentation and logical processing code. The core functionality of Dora Xml is to write code for graphical presentation and interaction, especially code focused on user display in game UI interfaces, using an XML markup language, similar to HTML in web pages. Creating UI components, setting layout dimensions and appearance colors, creating interactive animations, and UI animations triggered by events can all be organized and written in the Dora Xml language. Dora Xml mostly complies with the XML specification, but with some modifications and additions, including many predefined tags and the ability to create custom tags.
+Dora SSR provides a functionality called Dora XML, which helps separate the graphical presentation and logical processing code. The core functionality of Dora XML is to write code for graphical presentation and interaction, especially code focused on user display in game UI interfaces, using an XML markup language, similar to HTML in web pages. Creating UI components, setting layout dimensions and appearance colors, creating interactive animations, and UI animations triggered by events can all be organized and written in the Dora XML language. Dora XML mostly complies with the XML specification, but with some modifications and additions, including many predefined tags and the ability to create custom tags.
 
-To write Dora Xml, you can create and edit code files in the web IDE provided by Dora SSR to benefit from features such as syntax highlighting, code completion, and error checking, which make the writing process much more easier. Now let's see how to use Dora Xml to write a custom button component.
+:::tip Use Dora TSX instead
+Currently Dora SSR also provides a solution to use TSX to write game scenes or UI interfaces. It can provide better code editor auxiliary functions through Typescript language and offers more detailed syntax static checking. However, using The TSX solution will slightly decrease performance. If you do not encounter performance problems, it is recommended to use Dora TSX instead of Dora XML.
+:::
+
+To write Dora XML, you can create and edit code files in the web IDE provided by Dora SSR to benefit from features such as syntax highlighting, code completion, and error checking, which make the writing process much more easier. Now let's see how to use Dora XML to write a custom button component.
 
 First, let's design our button:
 
@@ -16,7 +20,7 @@ First, let's design our button:
 * The appearance of the button should change when a click event is triggered.
 * As an independent control, it should be reusable in multiple places and support adjusting displays with different parameters.
 
-Now we can start our Dora Xml coding.
+Now we can start our Dora XML coding.
 
 ### 1. Creating a Clickable Area
 
@@ -131,7 +135,7 @@ We use the `<Import>` tag to import the XML module. The `Module` attribute of Im
 
 The Import module can have additional attributes. Apart from the special-purpose built-in attributes Name and Ref (Ref="True" allows accessing the module object through the root node variable, and Name is used for subsequent code references), any other attributes set will be passed as lowercase parameter variables into the module internally. So be sure to fill in the required parameter variables in the module.
 
-This way, our custom button is complete. Loading and running a Dora Xml file is straightforward; you can directly load it like a regular Lua file. For example:
+This way, our custom button is complete. Loading and running a Dora XML file is straightforward; you can directly load it like a regular Lua file. For example:
 
 ```lua
 local Director = require("Director")
@@ -167,11 +171,11 @@ return function()
 end
 ```
 
-In fact, Dora Xml is compiled into Lua code for execution. The above code is the result of compiling MainScene.xml. However, writing Lua code logic using XML tags provides a clearer code structure and improves the maintainability of the program.
+In fact, Dora XML is compiled into Lua code for execution. The above code is the result of compiling MainScene.xml. However, writing Lua code logic using XML tags provides a clearer code structure and improves the maintainability of the program.
 
 ### 7. Creating a Button Template
 
-If we want to create buttons with different appearances but similar functionality, we can create a reusable template for certain fixed button functionalities. In Dora Xml, we can modify the previously written button into such a template.
+If we want to create buttons with different appearances but similar functionality, we can create a reusable template for certain fixed button functionalities. In Dora XML, we can modify the previously written button into such a template.
 
 ```xml title="ButtonBase.xml"
 <!-- params: X, Y, Width, Height, Text, FontSize -->
@@ -201,7 +205,7 @@ local buttonBase = ButtonBase()
 print(buttonBase.face) -- This will give you access to the face node
 ```
 
-Next, we can use this template in Dora Xml:
+Next, we can use this template in Dora XML:
 
 ```xml title="SpriteButton.xml"
 <!-- params: X, Y, Text -->
