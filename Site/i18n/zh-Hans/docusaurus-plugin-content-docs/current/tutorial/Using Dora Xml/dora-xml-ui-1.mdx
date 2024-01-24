@@ -2,11 +2,15 @@ import "@site/src/languages/highlight";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# 使用 Dora Xml 编写 UI 1
+# 使用 Dora XML 编写 UI 1
 
-&emsp;&emsp;Dora SSR 提供了一个可以帮助做图形展示与逻辑处理代码做一些开发分离的功能框架，叫做Dora Xml。Dora Xml的核心功能就是把图形展示和交互的代码，特别是一些游戏UI界面中的关注于用户展示的代码用Xml标记语言来编写，就像Web网页中的HTML语言类似的定位。像创建UI组件，设置布局尺寸、颜色外观，创建交互动画和UI动画响应消息事件，都可以只用Dora Xml语言来组织和完成编写。Dora Xml基本符合Xml规范，但也稍微做了些修改，有很多预定义的标签，也可以自定义新的标签。
+&emsp;&emsp;Dora SSR 提供了一个可以帮助做图形展示与逻辑处理代码做一些开发分离的功能框架，叫做 Dora XML。Dora XML 的核心功能就是把图形展示和交互的代码，特别是一些游戏 UI 界面中的关注于用户展示的代码用 XML 标记语言来编写，就像 Web 网页中的 HTML 语言类似的定位。像创建 UI 组件，设置布局尺寸、颜色外观，创建交互动画和 UI 动画响应消息事件，都可以只用 Dora XML 语言来组织和完成编写。Dora XML 基本符合 XML 规范，但也稍微做了些修改，有很多预定义的标签，也可以自定义新的标签。
 
-&emsp;&emsp;编写Dora Xml，只要在 Dora SSR 自带的 Web IDE 中创建和编辑代码文件，就可以获得语法高亮、代码补全和一些错误检查的功能，写起来就能省力一些。下面我们来看看怎么用 Dora Xml 写一个自定义的按钮组件吧。
+:::tip 使用 Dora TSX 作为替代
+&emsp;&emsp;目前 Dora SSR 也提供了使用 TSX 来编写游戏场景或是 UI 界面的方案，可以通过 Typescript 语言来提供更好的代码编辑器辅助功能，并获得更细致的语法静态检查功能，但是使用 TSX 的方案也会稍微增加一些性能消耗，如果没有遇到性能瓶颈的问题，推荐优先使用 Dora TSX 的功能来代替 Dora XML。
+:::
+
+&emsp;&emsp;编写 Dora XML，只要在 Dora SSR 自带的 Web IDE 中创建和编辑代码文件，就可以获得语法高亮、代码补全和一些错误检查的功能，写起来就能省力一些。下面我们来看看怎么用 Dora XML 写一个自定义的按钮组件吧。
 
 &emsp;&emsp;先简单地设计一下我们的按钮：
 
@@ -83,7 +87,7 @@ import TabItem from '@theme/TabItem';
 </Node>
 ```
 
-&emsp;&emsp;用`<Slot>`标签添加对按钮点击事件的监听，并在处理事件时执行相应的动作。执行动作的对象为绘图的节点，所以为了在事件标签中引用它，所以给它添加了`Name`的属性。其实在`<Slot>`标签里还可以内嵌代码，可以支持`<Lua>`或是`<Yue>`标签在任意位置插入并执行一段代码，这些标签中可以编写的代码不限行数与内容，也不用担心`>`和`<`操作符影响Xml标签解析的问题。
+&emsp;&emsp;用`<Slot>`标签添加对按钮点击事件的监听，并在处理事件时执行相应的动作。执行动作的对象为绘图的节点，所以为了在事件标签中引用它，所以给它添加了`Name`的属性。其实在`<Slot>`标签里还可以内嵌代码，可以支持`<Lua>`或是`<Yue>`标签在任意位置插入并执行一段代码，这些标签中可以编写的代码不限行数与内容，也不用担心`>`和`<`操作符影响XML标签解析的问题。
 
 ### 5.让按钮支持显示参数的调整
 
@@ -125,11 +129,11 @@ import TabItem from '@theme/TabItem';
 </Node>
 ```
 
-&emsp;&emsp;用`<Import>`标签导入Xml模块。Import的Module属性的中需要填入模块的完整路径，如果Button.xml的路径为View/Button.xml，则需要写为`<Import Module="View.Button"/>`。此外还可以在当前模块范围内重命名导入的模块，比如写成`<Import Module="View.Button" Name="ButtonView"/>`，之后的标签名称就可以使用ButtonView而不是Button了。
+&emsp;&emsp;用`<Import>`标签导入XML模块。Import的Module属性的中需要填入模块的完整路径，如果Button.xml的路径为View/Button.xml，则需要写为`<Import Module="View.Button"/>`。此外还可以在当前模块范围内重命名导入的模块，比如写成`<Import Module="View.Button" Name="ButtonView"/>`，之后的标签名称就可以使用ButtonView而不是Button了。
 
 &emsp;&emsp;导入模块可以设置的属性，除了有特殊作用内置的Name和Ref属性（Ref="True"可以通过根节点节点变量访问这个模块对象，Name用于做后续代码引用），其它设置的属性都会作为首字母小写的参数变量传入模块内部使用。所以一定不能漏填模块中所需要的参数变量。
 
-&emsp;&emsp;这样我们的自定义按钮就完成了，要加载运行Dora Xml文件很简单，可以直接当成普通的Lua文件进行加载，比如这样：
+&emsp;&emsp;这样我们的自定义按钮就完成了，要加载运行Dora XML文件很简单，可以直接当成普通的Lua文件进行加载，比如这样：
 
 ```lua
 local Director = require("Director")
@@ -165,11 +169,11 @@ return function()
 end
 ```
 
-&emsp;&emsp;事实上，Dora Xml也是编译生成Lua代码执行的，以上代码正是MainScene.xml编译生成的结果。但是用Xml标签来编写这样的Lua代码逻辑可以得到更加清晰的代码结构，也提升了程序代码的可维护性。
+&emsp;&emsp;事实上，Dora XML也是编译生成Lua代码执行的，以上代码正是MainScene.xml编译生成的结果。但是用XML标签来编写这样的Lua代码逻辑可以得到更加清晰的代码结构，也提升了程序代码的可维护性。
 
 ### 7.制作按钮模板
 
-&emsp;&emsp;如果我们想做多种外观不同但是功能基本相同的按钮，我们就可以想把一些固定的按钮功能做成通用的模板。在Dora Xml里我们可以把之前写的按钮改造成这样的模版。
+&emsp;&emsp;如果我们想做多种外观不同但是功能基本相同的按钮，我们就可以想把一些固定的按钮功能做成通用的模板。在Dora XML里我们可以把之前写的按钮改造成这样的模版。
 
 ```xml title="ButtonBase.xml"
 <!-- params: X, Y, Width, Height, Text, FontSize -->
@@ -197,7 +201,7 @@ local buttonBase = ButtonBase()
 print(buttonBase.face) -- 这里就可以获取到face节点
 ```
 
-&emsp;&emsp;接下来在Dora Xml中可以这样使用这个模板：
+&emsp;&emsp;接下来在Dora XML中可以这样使用这个模板：
 
 ```xml title="SpriteButton.xml"
 <!-- params: X, Y, Text -->
@@ -222,4 +226,4 @@ print(buttonBase.face) -- 这里就可以获取到face节点
 </Node>
 ```
 
-&emsp;&emsp;我们导入并复用了这个模板模块，并通过`<Item>`标签获取模板中导出的子组件，把Item标签中的Name属性设置为与导出的子节点相同的名字face，并在这个子组件下添加了一个图元节点。Dora Xml 中`<Import>`标签必须出现在引用的外部组件之前，如果引用的外部组件要用作根节点，可以通过添加一个顶层的`<Dora>`将所有实际的代码包裹起来。通过这样的写法，我们就可以在套用按钮模板功能之下，定制不同外观的按钮了。
+&emsp;&emsp;我们导入并复用了这个模板模块，并通过`<Item>`标签获取模板中导出的子组件，把Item标签中的Name属性设置为与导出的子节点相同的名字face，并在这个子组件下添加了一个图元节点。Dora XML 中`<Import>`标签必须出现在引用的外部组件之前，如果引用的外部组件要用作根节点，可以通过添加一个顶层的`<Dora>`将所有实际的代码包裹起来。通过这样的写法，我们就可以在套用按钮模板功能之下，定制不同外观的按钮了。

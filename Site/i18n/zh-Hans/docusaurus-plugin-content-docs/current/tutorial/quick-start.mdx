@@ -34,10 +34,39 @@ import TabItem from '@theme/TabItem';
 
 2. 第二步：编写游戏代码
 
-	- 在项目文件夹下新建游戏入口代码文件，选择Yuescript语言（或Teal、Lua）命名为`init`。
+	- 在项目文件夹下新建游戏入口代码文件，选择Yuescript语言（或Teal、Lua、Typescript）命名为`init`。
 	- 编写代码：
 
 <Tabs>
+<TabItem value="tsx" label="TSX">
+
+```tsx title="Hello/init.tsx"
+// @preview-file on
+import { React, toNode, useRef } from 'dora-x';
+import { Ease, Move, Sprite } from 'dora';
+
+const sprite = useRef<Sprite.Type>();
+
+// 创建游戏场景树根节点
+// 以及一个图片精灵作为子节点
+toNode(
+	<node onTapBegan={(touch) => {
+			const sp = sprite.current;
+			if (sp) {
+				sp.perform(Move(
+					1, // 持续时间，单位为秒
+					sp.position, // 开始位置
+					touch.location, // 结束位置
+					Ease.OutBack // 缓动函数
+				));
+			}
+		}}>
+		<sprite ref={sprite} file='Image/logo.png'/>
+	</node>
+);
+```
+
+</TabItem>
 <TabItem value="yue" label="Yuescript">
 
 ```yue title="Hello/init.yue"
@@ -55,7 +84,7 @@ with Node!
 
 	-- 接收并处理点击事件移动图片精灵
 	.touchEnabled = true
-	\slot "Tapped", (touch)->
+	\slot "TapBegan", (touch)->
 		sprite\perform Move(
 			1 -- 持续时间，单位为秒
 			sprite.position -- 开始位置
@@ -85,7 +114,7 @@ root:addChild(sprite)
 
 -- 接收并处理点击事件移动图片精灵
 root.touchEnabled = true
-root:slot("Tapped", function(touch)
+root:slot("TapBegan", function(touch)
 	sprite:perform(Move(
 		1, -- 持续时间，单位为秒
 		sprite.position, -- 开始位置
@@ -117,7 +146,7 @@ root:addChild(sprite)
 
 -- 接收并处理点击事件移动图片精灵
 root.touchEnabled = true
-root:slot("Tapped", function(touch: Touch)
+root:slot("TapBegan", function(touch: Touch)
 	sprite:perform(Move(
 		1, -- 持续时间，单位为秒
 		sprite.position, -- 开始位置
@@ -145,7 +174,7 @@ root.addChild(sprite);
 
 // 接收并处理点击事件移动图片精灵
 root.touchEnabled = true;
-root.slot(Slot.Tapped, touch => {
+root.slot(Slot.TapBegan, touch => {
 	sprite.perform(
 		Move(
 			1, // 持续时间，单位为秒

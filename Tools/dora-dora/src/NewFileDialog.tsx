@@ -23,7 +23,7 @@ import { VscMarkdown } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
 import { DialogActions, Grid } from '@mui/material';
 
-export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Typescript" | "Dora Xml" | "Markdown" | "Yarn" | "Visual Script" | "Folder"
+export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Typescript" | "Dora XML" | "Markdown" | "Yarn" | "Visual Script" | "Folder"
 
 interface FileType {
 	icon: React.ReactNode;
@@ -59,12 +59,12 @@ const fileTypes: FileType[] = [
 	},
 	{
 		icon: <DiCode size={65} style={{marginLeft: '-3px'}}/>,
-		name: "Dora Xml",
+		name: "Dora XML",
 		desc: "file.xml",
 		padding: '13px'
 	},
 	{
-		icon: <img src="yarn-editor/icon_512x512.png" alt="Yuescript" width="50px" height="50px" style={{marginLeft: '0px'}}/>,
+		icon: <img src="/yarn-editor/icon_512x512.png" alt="Yarn" width="50px" height="50px" style={{marginLeft: '0px'}}/>,
 		name: "Yarn",
 		desc: "file.yarn",
 		padding: '15px'

@@ -2,9 +2,9 @@ import "@site/src/languages/highlight";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# 使用 Dora Xml 编写 UI 2
+# 使用 Dora XML 编写 UI 2
 
-&emsp;&emsp;使用 Dora Xml 编写UI界面的图形定义以后，接下来要解决的问题是如何增加界面交互的处理逻辑。我们可以使用Dora SSR的class类的机制，写一个继承Xml界面组件的带有界面处理逻辑的新的类。比如我们有一个按钮的Xml组件。
+&emsp;&emsp;使用 Dora XML 编写 UI 界面的图形定义以后，接下来要解决的问题是如何增加界面交互的处理逻辑。我们可以使用 Dora SSR 的 class 类的机制，写一个继承 XML 界面组件的带有界面处理逻辑的新的类。比如我们有一个按钮的 XML 组件。
 
 ```xml title="ButtonView.xml"
 <!-- params: X, Y, Radius, Text, FontSize -->
@@ -27,7 +27,7 @@ import TabItem from '@theme/TabItem';
 </Node>
 ```
 
-&emsp;&emsp;注意我们通过设置Name和Ref属性来导出了访问Label的接口label。然后我们写一个类来继承这个组件并添加一些业务逻辑：
+&emsp;&emsp;注意我们通过设置 Name 和 Ref 属性来导出了访问 Label 的接口 label。然后我们写一个类来继承这个组件并添加一些业务逻辑：
 
 ```lua title="Button.lua"
 local _ENV = Dora()
@@ -71,11 +71,11 @@ local Button = Class({
 return Button
 ```
 
-&emsp;&emsp;我们给按钮增加的业务逻辑主要是一个统计点击次数的功能，一个获取点击次数的接口clickCount，还有一个直接设置按钮文本的接口text。接下来使用这个扩展业务逻辑了的按钮。
+&emsp;&emsp;我们给按钮增加的业务逻辑主要是一个统计点击次数的功能，一个获取点击次数的接口 clickCount，还有一个直接设置按钮文本的接口 text。接下来使用这个扩展业务逻辑了的按钮。
 
 ```xml title="MainSceneView.xml"
 <Node>
-	<Import Module="Button"/><!-- 直接在Xml中导入Lua模块 -->
+	<Import Module="Button"/><!-- 直接在XML中导入Lua模块 -->
 
 	<Menu X="100" Y="100" Width="100" Height="100">
 		<Button X="25" Y="25" Radius="50" Text="Click"
@@ -84,7 +84,7 @@ return Button
 </Node>
 ```
 
-&emsp;&emsp;接下来给MainSceneView.xml也添加相应的业务逻辑。
+&emsp;&emsp;接下来给 MainSceneView.xml 也添加相应的业务逻辑。
 
 ```lua title="MainScene.lua"
 local _ENV = Dora()
@@ -112,11 +112,11 @@ local MainScene = require("MainScene")
 Director.entry:addChild(MainScene())
 ```
 
-&emsp;&emsp;这样我们的界面开发的程序逻辑组织就比较完善了。用Dora Xml来管理界面外观，然后在Lua类中写界面逻辑。现在UI组件的外观定义和业务逻辑的代码就可以分别在不同的文件中进行开发和维护了。
+&emsp;&emsp;这样我们的界面开发的程序逻辑组织就比较完善了。用 Dora XML 来管理界面外观，然后在 Lua 类中写界面逻辑。现在UI组件的外观定义和业务逻辑的代码就可以分别在不同的文件中进行开发和维护了。
 
 ## 使用 Yuescript 编写 UI 逻辑
 
-&emsp;&emsp;有了Dora Xml简化界面代码的编写，我们可以进一步地引入了叫做Yuescript的新语言进行开发，Yuescript是一门编译成Lua运行的语言，所以可以和Lua无缝结合使用。它的最大的特性是代码比较简洁和易于维护。下面就来看一下怎么用 Yuescript 配合 Dora Xml 写业务逻辑吧。前文中的代码如果使用 Yuescript 就可以写成：
+&emsp;&emsp;有了 Dora XML 简化界面代码的编写，我们可以进一步地引入了叫做 Yuescript 的新语言进行开发，Yuescript 是一门编译成Lua运行的语言，所以可以和 Lua 无缝结合使用。它的最大的特性是代码比较简洁和易于维护。下面就来看一下怎么用 Yuescript 配合 Dora XML 写业务逻辑吧。前文中的代码如果使用 Yuescript 就可以写成：
 
 ```yue title="Button.yue"
 _ENV = Dora!
@@ -156,4 +156,4 @@ import "MainScene"
 Director.entry\addChild MainScene!
 ```
 
-&emsp;&emsp;比前文的代码要简练了很多，但实现的功能是完全相同的。所以推荐读者可以尝试使用 Yuescript 来编写UI界面的逻辑代码。Yuescript 使用了Python的缩进控制代码块的代码风格，以及从包括 Python 在内的很多语言中吸收了优秀的语法特性。目前在 Dora SSR 的 Web IDE 中也添加了对 Yuescript 的代码编写的支持，包括高亮补全和错误检查等，想学习 Yuescript 这门语言，就从[这里](https://yuescript.org/doc)开始吧。
+&emsp;&emsp;比前文的代码要简练了很多，但实现的功能是完全相同的。所以推荐读者可以尝试使用 Yuescript 来编写UI界面的逻辑代码。Yuescript 使用了 Python 的缩进控制代码块的代码风格，以及从包括 Python 在内的很多语言中吸收了优秀的语法特性。目前在 Dora SSR 的 Web IDE 中也添加了对 Yuescript 的代码编写的支持，包括高亮补全和错误检查等，想学习 Yuescript 这门语言，就从[这里](https://yuescript.org/doc)开始吧。
