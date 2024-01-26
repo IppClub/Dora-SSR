@@ -463,7 +463,9 @@ export enterEntryAsync = (entry)->
 	try
 		scriptPath = Path\getPath file
 		Content\insertSearchPath 1, scriptPath
-		Content\insertSearchPath 1, Path scriptPath, "Script"
+		scriptPath = Path scriptPath, "Script"
+		if Content\exist scriptPath
+			Content\insertSearchPath 1, scriptPath
 		result = require file
 		result! if "function" == type result
 		nil

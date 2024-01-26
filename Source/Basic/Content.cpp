@@ -97,7 +97,13 @@ bool Content::move(String src, String dst) {
 }
 
 bool Content::save(String filename, String content) {
-	ofstream stream(Content::getFullPath(filename), std::ios::trunc | std::ios::binary);
+	auto fullPathAndPackage = Content::getFullPathAndPackage(filename);
+	if (fullPathAndPackage.zipFile) {
+		Error("can not save file \"{}\" to a zip package", filename.toString());
+		return false;
+	}
+	auto fullPath = fullPathAndPackage.fullPath.empty() ? filename.toString() : fullPathAndPackage.fullPath;
+	ofstream stream(fullPath, std::ios::trunc | std::ios::binary);
 	if (!stream) return false;
 	if (stream.write(content.rawData(), content.size())) {
 		return true;
@@ -106,7 +112,13 @@ bool Content::save(String filename, String content) {
 }
 
 bool Content::save(String filename, uint8_t* content, int64_t size) {
-	ofstream stream(Content::getFullPath(filename), std::ios::trunc | std::ios::binary);
+	auto fullPathAndPackage = Content::getFullPathAndPackage(filename);
+	if (fullPathAndPackage.zipFile) {
+		Error("can not save file \"{}\" to a zip package", filename.toString());
+		return false;
+	}
+	auto fullPath = fullPathAndPackage.fullPath.empty() ? filename.toString() : fullPathAndPackage.fullPath;
+	ofstream stream(fullPath, std::ios::trunc | std::ios::binary);
 	if (!stream) return false;
 	if (stream.write(r_cast<char*>(content), s_cast<std::streamsize>(size))) {
 		return true;
@@ -115,8 +127,13 @@ bool Content::save(String filename, uint8_t* content, int64_t size) {
 }
 
 bool Content::remove(String filename) {
-	std::string fullPath = Content::getFullPath(filename);
-	if (!Content::exist(fullPath)) return false;
+	auto fullPathAndPackage = Content::getFullPathAndPackage(filename);
+	if (fullPathAndPackage.zipFile) {
+		Error("can not remove file \"{}\" from a zip package", filename.toString());
+		return false;
+	}
+	auto fullPath = fullPathAndPackage.fullPath.empty() ? filename.toString() : fullPathAndPackage.fullPath;
+	if (!Content::isFileExist(fullPath)) return false;
 	std::error_code err;
 	fs::remove_all(fullPath, err);
 	WarnIf(err, "failed to remove files from \"{}\" due to \"{}\".", filename.toString(), err.message());
@@ -138,7 +155,11 @@ std::list<std::string> Content::getFiles(String path) {
 
 std::list<std::string> Content::getAllFiles(String path) {
 	std::string searchName = path.empty() ? _assetPath : path.toString();
-	std::string fullPath = Content::getFullPath(searchName);
+	auto fullPathAndPackage = Content::getFullPathAndPackage(searchName);
+	if (fullPathAndPackage.zipFile) {
+		return fullPathAndPackage.zipFile->getAllFiles();
+	}
+	auto fullPath = fullPathAndPackage.fullPath.empty() ? searchName : fullPathAndPackage.fullPath;
 #if BX_PLATFORM_ANDROID
 	if (isAndroidAsset(fullPath)) {
 		return _apkFile->getAllFiles(getAndroidAssetName(fullPath));
@@ -194,14 +215,24 @@ static std::tuple<std::string, std::string> splitDirectoryAndFilename(const std:
 	return std::make_tuple(path, file);
 }
 
-std::string Content::getFullPath(String filename) {
+Content::SearchPath Content::getFullPathAndPackage(String filename) {
 	AssertIf(filename.empty(), "invalid filename for full path.");
 
 	Slice targetFile = filename;
 	targetFile.trimSpace();
 
 	if (Content::isAbsolutePath(targetFile)) {
-		return targetFile.toString();
+		for (const auto& zipFile : _searchZipPaths) {
+			auto relative = fs::path(targetFile.begin(), targetFile.end()).lexically_relative(zipFile.first).string();
+			auto relSlice = Slice(relative);
+			if (!relSlice.empty() && targetFile.left(3) != "..\\"_slice && targetFile.left(3) != "../"_slice) {
+				if (relative == "."_slice || zipFile.second->fileExists(relative)) {
+					return {targetFile.toString(), zipFile.second.get(), relative};
+				}
+			}
+		}
+
+		return {targetFile.toString(), nullptr, Slice::Empty};
 	}
 
 	while (targetFile.size() > 1 && (targetFile.back() == '\\' || targetFile.back() == '/')) {
@@ -211,32 +242,49 @@ std::string Content::getFullPath(String filename) {
 	static std::mutex pathMutex;
 	{
 		std::lock_guard<std::mutex> lock(pathMutex);
+		auto fName = fs::path(targetFile.begin(), targetFile.end()).lexically_normal();
+		auto fStr = fName.string();
 
-		auto it = _fullPathCache.find(targetFile);
+		auto it = _fullPathCache.find(fStr);
 		if (it != _fullPathCache.end()) {
-			return it->second;
+			return {it->second.first, it->second.second, it->second.second ? fStr : Slice::Empty};
 		}
 
 		std::string path, file, fullPath;
-		auto fname = fs::path(targetFile.begin(), targetFile.end()).lexically_normal();
 		for (const auto& searchPath : _searchPaths) {
-			std::tie(path, file) = splitDirectoryAndFilename((fs::path(searchPath) / fname).string());
+			auto it = _searchZipPaths.find(searchPath);
+			if (it != _searchZipPaths.end()) {
+				auto fstr = fName.string();
+				if (it->second->fileExists(fstr)) {
+					fullPath = (fs::path(searchPath) / fName).string();
+					auto zipPair = std::make_pair(fullPath, it->second.get());
+					_fullPathCache[fStr] = zipPair;
+					return {zipPair.first, zipPair.second, fStr};
+				}
+				continue;
+			}
+			std::tie(path, file) = splitDirectoryAndFilename((fs::path(searchPath) / fName).string());
 			fullPath = Content::getFullPathForDirectoryAndFilename(path, file);
 			if (!fullPath.empty()) {
-				_fullPathCache[fname.string()] = fullPath;
-				return fullPath;
+				_fullPathCache[fStr] = {fullPath, nullptr};
+				return {fullPath, nullptr, Slice::Empty};
 			}
 		}
 
 		std::tie(path, file) = splitDirectoryAndFilename(targetFile.toString());
 		fullPath = Content::getFullPathForDirectoryAndFilename(path, file);
 		if (!fullPath.empty()) {
-			_fullPathCache[targetFile.toString()] = fullPath;
-			return fullPath;
+			_fullPathCache[targetFile.toString()] = {fullPath, nullptr};
+			return {fullPath, nullptr, Slice::Empty};
 		}
 	}
 
-	return targetFile.toString();
+	return {Slice::Empty, nullptr, Slice::Empty};
+}
+
+std::string Content::getFullPath(String filename) {
+	auto fullPath = getFullPathAndPackage(filename).fullPath;
+	return fullPath.empty() ? filename.toString() : fullPath;
 }
 
 std::list<std::string> Content::getFullPathsToTry(String filename) {
@@ -263,30 +311,65 @@ std::list<std::string> Content::getFullPathsToTry(String filename) {
 }
 
 void Content::insertSearchPath(int index, String path) {
+	_thread->pause();
 	std::string searchPath = Content::getFullPath(path);
-	_searchPaths.insert(_searchPaths.begin() + index, searchPath);
-	_fullPathCache.clear();
+	if (Content::isFileExist(searchPath)) {
+		if (Content::isPathFolder(searchPath)) {
+			if (index >= _searchPaths.size()) {
+				_searchPaths.push_back(searchPath);
+			} else {
+				_searchPaths.insert(_searchPaths.begin() + index, searchPath);
+				_fullPathCache.clear();
+			}
+		} else {
+			auto relativePath = fs::path(searchPath).lexically_relative(fs::path(Content::getAssetPath())).string();
+			auto relSlice = Slice(relativePath);
+			if (!relativePath.empty() && relSlice.left(3) != "..\\"_slice && relSlice.left(3) != "../"_slice) {
+				Error("can not set file \"{}\" under asset path as search package", path.toString());
+			} else {
+				auto zipFile = New<ZipFile>(searchPath);
+				if (zipFile->isOK()) {
+					if (index >= _searchPaths.size()) {
+						_searchPaths.push_back(searchPath);
+					} else {
+						_searchPaths.insert(_searchPaths.begin() + index, searchPath);
+						_fullPathCache.clear();
+					}
+					_searchZipPaths[searchPath] = std::move(zipFile);
+				} else {
+					Error("search path \"{}\" is neither a folder nor a zip file", path.toString());
+				}
+			}
+		}
+	} else {
+		Warn("search path \"{}\" is not existed", path.toString());
+	}
+	_thread->resume();
 }
 
 void Content::addSearchPath(String path) {
-	std::string searchPath = Content::getFullPath(path);
-	_searchPaths.push_back(searchPath);
+	Content::insertSearchPath(_searchPaths.size(), path);
 }
 
 void Content::removeSearchPath(String path) {
+	_thread->pause();
 	std::string realPath = Content::getFullPath(path);
 	for (auto it = _searchPaths.begin(); it != _searchPaths.end(); ++it) {
 		if (*it == realPath) {
 			_searchPaths.erase(it);
+			_searchZipPaths.erase(*it);
 			_fullPathCache.clear();
 			break;
 		}
 	}
+	_thread->resume();
 }
 
 void Content::setSearchPaths(const std::vector<std::string>& searchPaths) {
+	_thread->pause();
 	_searchPaths.clear();
 	_fullPathCache.clear();
+	_thread->resume();
 	for (const std::string& searchPath : searchPaths) {
 		Content::addSearchPath(searchPath);
 	}
@@ -574,7 +657,11 @@ bool Content::isFolder(String path) {
 
 std::list<std::string> Content::getDirEntries(String path, bool isFolder) {
 	std::string searchName = path.empty() ? _assetPath : path.toString();
-	std::string fullPath = Content::getFullPath(searchName);
+	auto fullPathAndPackage = Content::getFullPathAndPackage(searchName);
+	if (fullPathAndPackage.zipFile) {
+		return fullPathAndPackage.zipFile->getDirEntries(fullPathAndPackage.zipRelativePath, isFolder);
+	}
+	std::string fullPath = fullPathAndPackage.fullPath;
 #if BX_PLATFORM_ANDROID
 	if (isAndroidAsset(fullPath)) {
 		return _apkFile->getDirEntries(getAndroidAssetName(fullPath), isFolder);
@@ -622,7 +709,14 @@ uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 	if (filename.empty()) {
 		return data;
 	}
-	std::string fullPath = Content::getFullPath(filename);
+	auto fullPathAndPackage = Content::getFullPathAndPackage(filename);
+	if (fullPathAndPackage.zipFile) {
+		size_t s = 0;
+		auto res = fullPathAndPackage.zipFile->getFileDataUnsafe(fullPathAndPackage.zipRelativePath, &s);
+		size = s_cast<int64_t>(s);
+		return res;
+	}
+	std::string fullPath = fullPathAndPackage.fullPath;
 	if (isAndroidAsset(fullPath)) {
 		data = _apkFile->getFileDataUnsafe(getAndroidAssetName(fullPath), r_cast<size_t*>(&size));
 	} else {
@@ -651,7 +745,11 @@ bool Content::loadByChunks(String filename, const std::function<bool(uint8_t*, i
 	if (filename.empty()) {
 		return false;
 	}
-	std::string fullPath = Content::getFullPath(filename);
+	auto fullPathAndPackage = getFullPathAndPackage(filename);
+	if (fullPathAndPackage.zipFile) {
+		return fullPathAndPackage.zipFile->getFileDataByChunks(fullPathAndPackage.zipRelativePath, handler);
+	}
+	std::string fullPath = fullPathAndPackage.fullPath;
 	if (isAndroidAsset(fullPath)) {
 		if (_apkFile->getFileDataByChunks(getAndroidAssetName(fullPath), handler)) {
 			return true;
@@ -796,11 +894,18 @@ static std::string toUTF8String(const std::string& str) {
 
 uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 	if (filename.empty()) return nullptr;
+	auto fullPathAndPackage = Content::getFullPathAndPackage(filename);
+	if (fullPathAndPackage.zipFile) {
+		size_t s = 0;
+		auto res = fullPathAndPackage.zipFile->getFileDataUnsafe(fullPathAndPackage.zipRelativePath, &s);
+		size = s_cast<int64_t>(s);
+		return res;
+	}
 	std::string fullPath =
 #if BX_PLATFORM_WINDOWS
-		toUTF8String(Content::getFullPath(filename));
+		fullPath = toUTF8String(fullPathAndPackage.fullPath);
 #else
-		Content::getFullPath(filename);
+		fullPathAndPackage.fullPath;
 #endif // BX_PLATFORM_WINDOWS
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr) {
@@ -816,7 +921,16 @@ uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 
 bool Content::loadByChunks(String filename, const std::function<bool(uint8_t*, int)>& handler) {
 	if (filename.empty()) return false;
-	std::string fullPath = Content::getFullPath(filename);
+	auto fullPathAndPackage = getFullPathAndPackage(filename);
+	if (fullPathAndPackage.zipFile) {
+		return fullPathAndPackage.zipFile->getFileDataByChunks(fullPathAndPackage.zipRelativePath, handler);
+	}
+	std::string fullPath =
+#if BX_PLATFORM_WINDOWS
+		fullPath = toUTF8String(fullPathAndPackage.fullPath);
+#else
+		fullPathAndPackage.fullPath;
+#endif // BX_PLATFORM_WINDOWS
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr) {
 		Error("failed to load file: \"{}\"", fullPath);

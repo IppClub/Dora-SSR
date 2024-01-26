@@ -8,9 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#if BX_PLATFORM_ANDROID
 class ZipFile;
-#endif
 
 NS_DORA_BEGIN
 
@@ -68,6 +66,12 @@ protected:
 	bool isFileExist(String filePath);
 	bool isPathFolder(String filePath);
 	std::list<std::string> getDirEntries(String path, bool isFolder);
+	struct SearchPath {
+		std::string fullPath;
+		ZipFile* zipFile;
+		std::string zipRelativePath;
+	};
+	SearchPath getFullPathAndPackage(String filename);
 
 private:
 	std::string _assetPath;
@@ -79,7 +83,8 @@ private:
 	std::string _apkFilter;
 #endif
 	std::vector<std::string> _searchPaths;
-	StringMap<std::string> _fullPathCache;
+	StringMap<Own<ZipFile>> _searchZipPaths;
+	StringMap<std::pair<std::string, ZipFile*>> _fullPathCache;
 	Async* _thread;
 	SINGLETON_REF(Content, Application);
 };

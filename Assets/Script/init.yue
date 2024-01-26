@@ -3,8 +3,6 @@ _ENV = Dora!
 with Content
 	.searchPaths =
 		* .writablePath
-		* Path .writablePath, ".build", "Script"
-		* Path .writablePath, ".build", "Script", "Lib"
 		* Path .assetPath, "Script"
 		* Path .assetPath, "Script", "Lib"
 		* Path .assetPath, "Script", "Lib", "Dora", App.locale\match("^zh") and "zh-Hans" or "en"
