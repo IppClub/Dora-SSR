@@ -1,3 +1,7 @@
+---
+sidebar_position: 5
+---
+
 # Engine Dev Configuration
 
 ## 1. Get the Source
@@ -36,11 +40,11 @@ git clone https://github.com/ippclub/Dora-SSR.git
    sudo luarocks install luafilesystem
    cd Tools/tolua++
    lua tolua++.lua
-
+   
    # macOS
    cd Tools/tolua++
    ./build.sh
-
+   
    # Windows
    cd Tools\tolua++
    build.bat
@@ -73,7 +77,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
    # For arm architecture
    cd Project/Linux
    make arm
-
+   
    # For x86_64 architecture
    cd Project/Linux
    make x86_64

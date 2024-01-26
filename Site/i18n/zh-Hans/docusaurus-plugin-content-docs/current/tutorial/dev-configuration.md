@@ -1,3 +1,7 @@
+---
+sidebar_position: 5
+---
+
 # 引擎项目的开发配置
 
 ## 一、获取项目源码
@@ -36,11 +40,11 @@ git clone https://github.com/ippclub/Dora-SSR.git
    sudo luarocks install luafilesystem
    cd Tools/tolua++
    lua tolua++.lua
-
+   
    # macOS
    cd Tools/tolua++
    ./build.sh
-
+   
    # Windows
    cd Tools\tolua++
    build.bat
@@ -74,7 +78,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
    # 硬件架构为 arm
    cd Project/Linux
    make arm
-
+   
    # 硬件架构为 x86_64
    cd Project/Linux
    make x86_64
