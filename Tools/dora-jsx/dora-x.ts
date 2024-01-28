@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 import * as dora from 'dora';
 
 function Warn(this: void, msg: string) {
-	Warn(`[Dora Warning] ${msg}`);
+	print(`[Dora Warning] ${msg}`);
 }
 
 export namespace React {
@@ -70,9 +70,7 @@ export function createElement(
 				} else {
 					props.children = children;
 				}
-				const item = typeName(props);
-				item.props.children = undefined;
-				return item;
+				return typeName(props);
 		}
 		case 'table': {
 			if (!typeName.isComponent) {
@@ -112,7 +110,7 @@ export function createElement(
 	}
 	return {
 		type: typeName,
-		props,
+		props: props ?? {},
 		children
 	};
 }
@@ -126,73 +124,71 @@ function getNode(this: void, enode: React.Element, cnode?: dora.Node.Type, attri
 	const jnode = enode.props as JSX.Node;
 	let anchor: dora.Vec2.Type | null = null;
 	let color3: dora.Color3.Type | null = null;
-	if (jnode !== undefined) {
-		for (let [k, v] of pairs(enode.props)) {
-			switch (k as keyof JSX.Node) {
-				case 'ref': v.current = cnode; break;
-				case 'anchorX': anchor = dora.Vec2(v, (anchor ?? cnode.anchor).y); break;
-				case 'anchorY': anchor = dora.Vec2((anchor ?? cnode.anchor).x, v); break;
-				case 'color3': color3 = dora.Color3(v); break;
-				case 'transformTarget': cnode.transformTarget = v.current; break;
-				case 'onUpdate': cnode.schedule(v); break;
-				case 'onActionEnd': cnode.slot(dora.Slot.ActionEnd, v); break;
-				case 'onTapFilter': cnode.slot(dora.Slot.TapFilter, v); break;
-				case 'onTapBegan': cnode.slot(dora.Slot.TapBegan, v); break;
-				case 'onTapEnded': cnode.slot(dora.Slot.TapEnded, v); break;
-				case 'onTapped': cnode.slot(dora.Slot.Tapped, v); break;
-				case 'onTapMoved': cnode.slot(dora.Slot.TapMoved, v); break;
-				case 'onMouseWheel': cnode.slot(dora.Slot.MouseWheel, v); break;
-				case 'onGesture': cnode.slot(dora.Slot.Gesture, v); break;
-				case 'onEnter': cnode.slot(dora.Slot.Enter, v); break;
-				case 'onExit': cnode.slot(dora.Slot.Exit, v); break;
-				case 'onCleanup': cnode.slot(dora.Slot.Cleanup, v); break;
-				case 'onKeyDown': cnode.slot(dora.Slot.KeyDown, v); break;
-				case 'onKeyUp': cnode.slot(dora.Slot.KeyUp, v); break;
-				case 'onKeyPressed': cnode.slot(dora.Slot.KeyPressed, v); break;
-				case 'onAttachIME': cnode.slot(dora.Slot.AttachIME, v); break;
-				case 'onDetachIME': cnode.slot(dora.Slot.DetachIME, v); break;
-				case 'onTextInput': cnode.slot(dora.Slot.TextInput, v); break;
-				case 'onTextEditing': cnode.slot(dora.Slot.TextEditing, v); break;
-				case 'onButtonDown': cnode.slot(dora.Slot.ButtonDown, v); break;
-				case 'onButtonUp': cnode.slot(dora.Slot.ButtonUp, v); break;
-				case 'onAxis': cnode.slot(dora.Slot.Axis, v); break;
-				default: {
-					if (attribHandler) {
-						if (!attribHandler(cnode, enode, k, v)) {
-							(cnode as any)[k] = v;
-						}
-					} else {
+	for (let [k, v] of pairs(enode.props)) {
+		switch (k as keyof JSX.Node) {
+			case 'ref': v.current = cnode; break;
+			case 'anchorX': anchor = dora.Vec2(v, (anchor ?? cnode.anchor).y); break;
+			case 'anchorY': anchor = dora.Vec2((anchor ?? cnode.anchor).x, v); break;
+			case 'color3': color3 = dora.Color3(v); break;
+			case 'transformTarget': cnode.transformTarget = v.current; break;
+			case 'onUpdate': cnode.schedule(v); break;
+			case 'onActionEnd': cnode.slot(dora.Slot.ActionEnd, v); break;
+			case 'onTapFilter': cnode.slot(dora.Slot.TapFilter, v); break;
+			case 'onTapBegan': cnode.slot(dora.Slot.TapBegan, v); break;
+			case 'onTapEnded': cnode.slot(dora.Slot.TapEnded, v); break;
+			case 'onTapped': cnode.slot(dora.Slot.Tapped, v); break;
+			case 'onTapMoved': cnode.slot(dora.Slot.TapMoved, v); break;
+			case 'onMouseWheel': cnode.slot(dora.Slot.MouseWheel, v); break;
+			case 'onGesture': cnode.slot(dora.Slot.Gesture, v); break;
+			case 'onEnter': cnode.slot(dora.Slot.Enter, v); break;
+			case 'onExit': cnode.slot(dora.Slot.Exit, v); break;
+			case 'onCleanup': cnode.slot(dora.Slot.Cleanup, v); break;
+			case 'onKeyDown': cnode.slot(dora.Slot.KeyDown, v); break;
+			case 'onKeyUp': cnode.slot(dora.Slot.KeyUp, v); break;
+			case 'onKeyPressed': cnode.slot(dora.Slot.KeyPressed, v); break;
+			case 'onAttachIME': cnode.slot(dora.Slot.AttachIME, v); break;
+			case 'onDetachIME': cnode.slot(dora.Slot.DetachIME, v); break;
+			case 'onTextInput': cnode.slot(dora.Slot.TextInput, v); break;
+			case 'onTextEditing': cnode.slot(dora.Slot.TextEditing, v); break;
+			case 'onButtonDown': cnode.slot(dora.Slot.ButtonDown, v); break;
+			case 'onButtonUp': cnode.slot(dora.Slot.ButtonUp, v); break;
+			case 'onAxis': cnode.slot(dora.Slot.Axis, v); break;
+			default: {
+				if (attribHandler) {
+					if (!attribHandler(cnode, enode, k, v)) {
 						(cnode as any)[k] = v;
 					}
-					break;
+				} else {
+					(cnode as any)[k] = v;
 				}
+				break;
 			}
 		}
-		if (jnode.touchEnabled !== false && (
-				jnode.onTapFilter ||
-				jnode.onTapBegan ||
-				jnode.onTapMoved ||
-				jnode.onTapEnded ||
-				jnode.onTapped ||
-				jnode.onMouseWheel ||
-				jnode.onGesture
-			)) {
-			cnode.touchEnabled = true;
-		}
-		if (jnode.keyboardEnabled !== false && (
-				jnode.onKeyDown ||
-				jnode.onKeyUp ||
-				jnode.onKeyPressed
-			)) {
-			cnode.keyboardEnabled = true;
-		}
-		if (jnode.controllerEnabled !== false && (
-				jnode.onButtonDown ||
-				jnode.onButtonUp ||
-				jnode.onAxis
-			)) {
-			cnode.controllerEnabled = true;
-		}
+	}
+	if (jnode.touchEnabled !== false && (
+			jnode.onTapFilter ||
+			jnode.onTapBegan ||
+			jnode.onTapMoved ||
+			jnode.onTapEnded ||
+			jnode.onTapped ||
+			jnode.onMouseWheel ||
+			jnode.onGesture
+		)) {
+		cnode.touchEnabled = true;
+	}
+	if (jnode.keyboardEnabled !== false && (
+			jnode.onKeyDown ||
+			jnode.onKeyUp ||
+			jnode.onKeyPressed
+		)) {
+		cnode.keyboardEnabled = true;
+	}
+	if (jnode.controllerEnabled !== false && (
+			jnode.onButtonDown ||
+			jnode.onButtonUp ||
+			jnode.onAxis
+		)) {
+		cnode.controllerEnabled = true;
 	}
 	if (anchor !== null) cnode.anchor = anchor;
 	if (color3 !== null) cnode.color3 = color3;
