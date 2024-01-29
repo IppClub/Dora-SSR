@@ -315,7 +315,7 @@ void Content::insertSearchPath(int index, String path) {
 	std::string searchPath = Content::getFullPath(path);
 	if (Content::isFileExist(searchPath)) {
 		if (Content::isPathFolder(searchPath)) {
-			if (index >= _searchPaths.size()) {
+			if (index >= s_cast<int>(_searchPaths.size())) {
 				_searchPaths.push_back(searchPath);
 			} else {
 				_searchPaths.insert(_searchPaths.begin() + index, searchPath);
@@ -329,7 +329,7 @@ void Content::insertSearchPath(int index, String path) {
 			} else {
 				auto zipFile = New<ZipFile>(searchPath);
 				if (zipFile->isOK()) {
-					if (index >= _searchPaths.size()) {
+					if (index >= s_cast<int>(_searchPaths.size())) {
 						_searchPaths.push_back(searchPath);
 					} else {
 						_searchPaths.insert(_searchPaths.begin() + index, searchPath);
@@ -882,7 +882,7 @@ Content::Content()
 #endif // WIN32_LEAN_AND_MEAN
 #include <windows.h>
 static std::string toUTF8String(const std::string& str) {
-	int wsize = MultiByteToWideChar(CP_ACP, 0, str.data(), str.length(), 0, 0);
+	int wsize = MultiByteToWideChar(CP_ACP, 0, str.data(), str.length(), nullptr, 0);
 	std::wstring wstr(wsize, 0);
 	MultiByteToWideChar(CP_ACP, 0, str.data(), str.length(), &wstr[0], wsize);
 	int u8size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), nullptr, 0, nullptr, nullptr);
@@ -903,7 +903,7 @@ uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 	}
 	std::string fullPath =
 #if BX_PLATFORM_WINDOWS
-		fullPath = toUTF8String(fullPathAndPackage.fullPath);
+		toUTF8String(fullPathAndPackage.fullPath);
 #else
 		fullPathAndPackage.fullPath;
 #endif // BX_PLATFORM_WINDOWS
@@ -927,7 +927,7 @@ bool Content::loadByChunks(String filename, const std::function<bool(uint8_t*, i
 	}
 	std::string fullPath =
 #if BX_PLATFORM_WINDOWS
-		fullPath = toUTF8String(fullPathAndPackage.fullPath);
+		toUTF8String(fullPathAndPackage.fullPath);
 #else
 		fullPathAndPackage.fullPath;
 #endif // BX_PLATFORM_WINDOWS
