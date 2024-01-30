@@ -4,7 +4,6 @@ project(Dora-SSR)
 set(CMAKE_CXX_STANDARD 20)
 
 find_package(SDL2 REQUIRED)
-include_directories(${SDL2_INCLUDE_DIRS})
 
 include_directories(
 	${SDL2_INCLUDE_DIRS}
@@ -23,8 +22,8 @@ include_directories(
 	../../../Source/3rdParty/sqlite
 	../../../Source/3rdParty/dragonBones
 	../../../Source/3rdParty/wasm3
-	../../../source/3rdParty/asio
-	../../../source/3rdParty/zlib
+	../../../Source/3rdParty/asio
+	../../../Source/3rdParty/zlib
 )
 
 add_library(BGFX-lib STATIC IMPORTED)
