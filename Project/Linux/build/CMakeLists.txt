@@ -23,7 +23,8 @@ include_directories(
 	../../../Source/3rdParty/sqlite
 	../../../Source/3rdParty/dragonBones
 	../../../Source/3rdParty/wasm3
-	../../../Source/3rdParty/asio
+	../../../source/3rdparty/asio
+	../../../source/3rdparty/zlib
 )
 
 add_library(BGFX-lib STATIC IMPORTED)
@@ -471,6 +472,20 @@ add_executable(dora-ssr
 	../../../Source/3rdParty/playrho/d2/DistanceConf.cpp
 	../../../Source/3rdParty/playrho/d2/PointStates.cpp
 	../../../Source/3rdParty/playrho/d2/part/Compositor.cpp
+	../../../Source/3rdParty/zlib/inflate.c
+	../../../Source/3rdParty/zlib/compress.c
+	../../../Source/3rdParty/zlib/deflate.c
+	../../../Source/3rdParty/zlib/gzread.c
+	../../../Source/3rdParty/zlib/crc32.c
+	../../../Source/3rdParty/zlib/zutil.c
+	../../../Source/3rdParty/zlib/gzlib.c
+	../../../Source/3rdParty/zlib/inftrees.c
+	../../../Source/3rdParty/zlib/uncompr.c
+	../../../Source/3rdParty/zlib/gzwrite.c
+	../../../Source/3rdParty/zlib/trees.c
+	../../../Source/3rdParty/zlib/gzclose.c
+	../../../Source/3rdParty/zlib/inffast.c
+	../../../Source/3rdParty/zlib/adler32.c
 )
 
 target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11)

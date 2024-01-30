@@ -290,6 +290,34 @@
 		3C6E804D272A40B400E9F115 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C6E804B272A40B400E9F115 /* sqlite3.c */; };
 		3C6E804E272A40B400E9F115 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C6E804B272A40B400E9F115 /* sqlite3.c */; };
 		3C73E45B21B02625004E5731 /* Sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C73E45921B02624004E5731 /* Sound.cpp */; };
+		3C7FA34F2B688547005A8441 /* gzclose.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3392B688546005A8441 /* gzclose.c */; };
+		3C7FA3502B688547005A8441 /* gzclose.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3392B688546005A8441 /* gzclose.c */; };
+		3C7FA3512B688547005A8441 /* adler32.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA33A2B688546005A8441 /* adler32.c */; };
+		3C7FA3522B688547005A8441 /* adler32.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA33A2B688546005A8441 /* adler32.c */; };
+		3C7FA3532B688547005A8441 /* inflate.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA33C2B688546005A8441 /* inflate.c */; };
+		3C7FA3542B688547005A8441 /* inflate.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA33C2B688546005A8441 /* inflate.c */; };
+		3C7FA3552B688547005A8441 /* zutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA33D2B688547005A8441 /* zutil.c */; };
+		3C7FA3562B688547005A8441 /* zutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA33D2B688547005A8441 /* zutil.c */; };
+		3C7FA3572B688547005A8441 /* trees.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3402B688547005A8441 /* trees.c */; };
+		3C7FA3582B688547005A8441 /* trees.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3402B688547005A8441 /* trees.c */; };
+		3C7FA3592B688547005A8441 /* compress.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3412B688547005A8441 /* compress.c */; };
+		3C7FA35A2B688547005A8441 /* compress.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3412B688547005A8441 /* compress.c */; };
+		3C7FA35B2B688547005A8441 /* uncompr.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3442B688547005A8441 /* uncompr.c */; };
+		3C7FA35C2B688547005A8441 /* uncompr.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3442B688547005A8441 /* uncompr.c */; };
+		3C7FA35D2B688547005A8441 /* gzwrite.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3452B688547005A8441 /* gzwrite.c */; };
+		3C7FA35E2B688547005A8441 /* gzwrite.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3452B688547005A8441 /* gzwrite.c */; };
+		3C7FA35F2B688547005A8441 /* crc32.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3462B688547005A8441 /* crc32.c */; };
+		3C7FA3602B688547005A8441 /* crc32.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3462B688547005A8441 /* crc32.c */; };
+		3C7FA3612B688547005A8441 /* inftrees.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3492B688547005A8441 /* inftrees.c */; };
+		3C7FA3622B688547005A8441 /* inftrees.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3492B688547005A8441 /* inftrees.c */; };
+		3C7FA3632B688547005A8441 /* inffast.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA34B2B688547005A8441 /* inffast.c */; };
+		3C7FA3642B688547005A8441 /* inffast.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA34B2B688547005A8441 /* inffast.c */; };
+		3C7FA3652B688547005A8441 /* gzread.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA34C2B688547005A8441 /* gzread.c */; };
+		3C7FA3662B688547005A8441 /* gzread.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA34C2B688547005A8441 /* gzread.c */; };
+		3C7FA3672B688547005A8441 /* deflate.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA34E2B688547005A8441 /* deflate.c */; };
+		3C7FA3682B688547005A8441 /* deflate.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA34E2B688547005A8441 /* deflate.c */; };
+		3C7FA36B2B688560005A8441 /* gzlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3692B68855F005A8441 /* gzlib.c */; };
+		3C7FA36C2B688560005A8441 /* gzlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3692B68855F005A8441 /* gzlib.c */; };
 		3C814F5D259C75CF0009DEC9 /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C814F5C259C75CF0009DEC9 /* Value.cpp */; };
 		3C853F8A28E3ED8A0012C0D0 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C853F8728E3ED8A0012C0D0 /* Test.cpp */; };
 		3C853F8B28E3ED8A0012C0D0 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C853F8728E3ED8A0012C0D0 /* Test.cpp */; };
@@ -1256,6 +1284,31 @@
 		3C6E804C272A40B400E9F115 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = ../../../Source/3rdParty/sqlite/sqlite3.h; sourceTree = "<group>"; };
 		3C73E45921B02624004E5731 /* Sound.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sound.cpp; path = ../../../Source/Audio/Sound.cpp; sourceTree = "<group>"; };
 		3C73E45A21B02625004E5731 /* Sound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sound.h; path = ../../../Source/Audio/Sound.h; sourceTree = "<group>"; };
+		3C7FA3382B688546005A8441 /* deflate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = deflate.h; path = ../../../Source/3rdParty/zlib/deflate.h; sourceTree = "<group>"; };
+		3C7FA3392B688546005A8441 /* gzclose.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gzclose.c; path = ../../../Source/3rdParty/zlib/gzclose.c; sourceTree = "<group>"; };
+		3C7FA33A2B688546005A8441 /* adler32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = adler32.c; path = ../../../Source/3rdParty/zlib/adler32.c; sourceTree = "<group>"; };
+		3C7FA33B2B688546005A8441 /* inffixed.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = inffixed.h; path = ../../../Source/3rdParty/zlib/inffixed.h; sourceTree = "<group>"; };
+		3C7FA33C2B688546005A8441 /* inflate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = inflate.c; path = ../../../Source/3rdParty/zlib/inflate.c; sourceTree = "<group>"; };
+		3C7FA33D2B688547005A8441 /* zutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zutil.c; path = ../../../Source/3rdParty/zlib/zutil.c; sourceTree = "<group>"; };
+		3C7FA33E2B688547005A8441 /* crc32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crc32.h; path = ../../../Source/3rdParty/zlib/crc32.h; sourceTree = "<group>"; };
+		3C7FA33F2B688547005A8441 /* zutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zutil.h; path = ../../../Source/3rdParty/zlib/zutil.h; sourceTree = "<group>"; };
+		3C7FA3402B688547005A8441 /* trees.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = trees.c; path = ../../../Source/3rdParty/zlib/trees.c; sourceTree = "<group>"; };
+		3C7FA3412B688547005A8441 /* compress.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = compress.c; path = ../../../Source/3rdParty/zlib/compress.c; sourceTree = "<group>"; };
+		3C7FA3422B688547005A8441 /* gzguts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gzguts.h; path = ../../../Source/3rdParty/zlib/gzguts.h; sourceTree = "<group>"; };
+		3C7FA3432B688547005A8441 /* zlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zlib.h; path = ../../../Source/3rdParty/zlib/zlib.h; sourceTree = "<group>"; };
+		3C7FA3442B688547005A8441 /* uncompr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = uncompr.c; path = ../../../Source/3rdParty/zlib/uncompr.c; sourceTree = "<group>"; };
+		3C7FA3452B688547005A8441 /* gzwrite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gzwrite.c; path = ../../../Source/3rdParty/zlib/gzwrite.c; sourceTree = "<group>"; };
+		3C7FA3462B688547005A8441 /* crc32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = crc32.c; path = ../../../Source/3rdParty/zlib/crc32.c; sourceTree = "<group>"; };
+		3C7FA3472B688547005A8441 /* inflate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = inflate.h; path = ../../../Source/3rdParty/zlib/inflate.h; sourceTree = "<group>"; };
+		3C7FA3482B688547005A8441 /* trees.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = trees.h; path = ../../../Source/3rdParty/zlib/trees.h; sourceTree = "<group>"; };
+		3C7FA3492B688547005A8441 /* inftrees.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = inftrees.c; path = ../../../Source/3rdParty/zlib/inftrees.c; sourceTree = "<group>"; };
+		3C7FA34A2B688547005A8441 /* inffast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = inffast.h; path = ../../../Source/3rdParty/zlib/inffast.h; sourceTree = "<group>"; };
+		3C7FA34B2B688547005A8441 /* inffast.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = inffast.c; path = ../../../Source/3rdParty/zlib/inffast.c; sourceTree = "<group>"; };
+		3C7FA34C2B688547005A8441 /* gzread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gzread.c; path = ../../../Source/3rdParty/zlib/gzread.c; sourceTree = "<group>"; };
+		3C7FA34D2B688547005A8441 /* inftrees.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = inftrees.h; path = ../../../Source/3rdParty/zlib/inftrees.h; sourceTree = "<group>"; };
+		3C7FA34E2B688547005A8441 /* deflate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = deflate.c; path = ../../../Source/3rdParty/zlib/deflate.c; sourceTree = "<group>"; };
+		3C7FA3692B68855F005A8441 /* gzlib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gzlib.c; path = ../../../Source/3rdParty/zlib/gzlib.c; sourceTree = "<group>"; };
+		3C7FA36A2B68855F005A8441 /* zconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zconf.h; path = ../../../Source/3rdParty/zlib/zconf.h; sourceTree = "<group>"; };
 		3C814F5C259C75CF0009DEC9 /* Value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Value.cpp; path = ../../../Source/Support/Value.cpp; sourceTree = "<group>"; };
 		3C853F8728E3ED8A0012C0D0 /* Test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Test.cpp; path = ../../../Source/Test/Test.cpp; sourceTree = "<group>"; };
 		3C853F8828E3ED8A0012C0D0 /* HelloWorldCpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HelloWorldCpp.cpp; path = ../../../Source/Test/HelloWorldCpp.cpp; sourceTree = "<group>"; };
@@ -2813,6 +2866,38 @@
 			name = ToLua;
 			sourceTree = "<group>";
 		};
+		3C7FA3372B68851F005A8441 /* zlib */ = {
+			isa = PBXGroup;
+			children = (
+				3C7FA36A2B68855F005A8441 /* zconf.h */,
+				3C7FA33A2B688546005A8441 /* adler32.c */,
+				3C7FA3412B688547005A8441 /* compress.c */,
+				3C7FA3462B688547005A8441 /* crc32.c */,
+				3C7FA33E2B688547005A8441 /* crc32.h */,
+				3C7FA34E2B688547005A8441 /* deflate.c */,
+				3C7FA3382B688546005A8441 /* deflate.h */,
+				3C7FA3392B688546005A8441 /* gzclose.c */,
+				3C7FA3422B688547005A8441 /* gzguts.h */,
+				3C7FA3692B68855F005A8441 /* gzlib.c */,
+				3C7FA34C2B688547005A8441 /* gzread.c */,
+				3C7FA3452B688547005A8441 /* gzwrite.c */,
+				3C7FA34B2B688547005A8441 /* inffast.c */,
+				3C7FA34A2B688547005A8441 /* inffast.h */,
+				3C7FA33B2B688546005A8441 /* inffixed.h */,
+				3C7FA33C2B688546005A8441 /* inflate.c */,
+				3C7FA3472B688547005A8441 /* inflate.h */,
+				3C7FA3492B688547005A8441 /* inftrees.c */,
+				3C7FA34D2B688547005A8441 /* inftrees.h */,
+				3C7FA3402B688547005A8441 /* trees.c */,
+				3C7FA3482B688547005A8441 /* trees.h */,
+				3C7FA3442B688547005A8441 /* uncompr.c */,
+				3C7FA3432B688547005A8441 /* zlib.h */,
+				3C7FA33D2B688547005A8441 /* zutil.c */,
+				3C7FA33F2B688547005A8441 /* zutil.h */,
+			);
+			name = zlib;
+			sourceTree = "<group>";
+		};
 		3C853F8628E3ED760012C0D0 /* Test */ = {
 			isa = PBXGroup;
 			children = (
@@ -3113,6 +3198,7 @@
 		3CB410221E05B08B00A8804D /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3C7FA3372B68851F005A8441 /* zlib */,
 				3C5399F22998DECB00E9125C /* colib */,
 				3CFEBDAC269308CB006D9974 /* dragonBones */,
 				3C030CA524CAC1CE0074786E /* ml */,
@@ -3771,6 +3857,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3C0C77552757437E0030BDCD /* miniz.c in Sources */,
+				3C7FA3602B688547005A8441 /* crc32.c in Sources */,
 				3CA780132AE66FB000B7BADA /* WorldJoint.cpp in Sources */,
 				3C0C77562757437E0030BDCD /* ZipUtils.cpp in Sources */,
 				3C8CD74D27268B2D0045B362 /* RenderTarget.cpp in Sources */,
@@ -3827,6 +3914,7 @@
 				3C6E8010272A404A00E9F115 /* darray.cpp in Sources */,
 				3C5399F72998DEF800E9125C /* ljson.c in Sources */,
 				3CF10FC72874C81C00940268 /* PathConstraintData.cpp in Sources */,
+				3C7FA3502B688547005A8441 /* gzclose.c in Sources */,
 				3C1A3BE9272A8820003A2829 /* lmathlib.c in Sources */,
 				3C6E7FD6272A404900E9F115 /* soloud_fftfilter.cpp in Sources */,
 				3C1A3C09272A8820003A2829 /* lutf8lib.c in Sources */,
@@ -3921,6 +4009,7 @@
 				3CA780792AE66FB000B7BADA /* MemoryResource.cpp in Sources */,
 				3CFEBE2B26930AA1006D9974 /* AnimationConfig.cpp in Sources */,
 				3CFEBE2C26930AA1006D9974 /* AnimationData.cpp in Sources */,
+				3C7FA35E2B688547005A8441 /* gzwrite.c in Sources */,
 				3CA7802D2AE66FB000B7BADA /* DistanceProxy.cpp in Sources */,
 				3CFEBE2D26930AA1006D9974 /* ArmatureData.cpp in Sources */,
 				3C6E8008272A404900E9F115 /* tts.cpp in Sources */,
@@ -3967,6 +4056,7 @@
 				3CF10FFD2874C81C00940268 /* SkeletonBinary.cpp in Sources */,
 				3CAA2D372615605A004443A6 /* Savepoint.cpp in Sources */,
 				3C6E8044272A404A00E9F115 /* soloud_thread.cpp in Sources */,
+				3C7FA3582B688547005A8441 /* trees.c in Sources */,
 				3CAA2D382615605A004443A6 /* Statement.cpp in Sources */,
 				3CA780372AE66FB000B7BADA /* TimeOfImpact.cpp in Sources */,
 				3CAA2D392615605A004443A6 /* Transaction.cpp in Sources */,
@@ -3974,6 +4064,7 @@
 				3CAA2D312615603A004443A6 /* Database.cpp in Sources */,
 				3C6E7FEC272A404900E9F115 /* soloud_sdl2_static.cpp in Sources */,
 				3C6E7FD0272A404900E9F115 /* soloud_eqfilter.cpp in Sources */,
+				3C7FA36C2B688560005A8441 /* gzlib.c in Sources */,
 				3CA780292AE66FB000B7BADA /* ContactImpulsesList.cpp in Sources */,
 				3C6E803E272A404A00E9F115 /* soloud_queue.cpp in Sources */,
 				3CBE0DF926087F7B003F4F45 /* Sprite.cpp in Sources */,
@@ -4016,11 +4107,13 @@
 				3C6E7FF0272A404900E9F115 /* stb_vorbis.c in Sources */,
 				3CBE0E1A26087F7B003F4F45 /* VGRender.cpp in Sources */,
 				3CBE0E1B26087F7B003F4F45 /* Sensor.cpp in Sources */,
+				3C7FA3682B688547005A8441 /* deflate.c in Sources */,
 				3CBE0E1D26087F7B003F4F45 /* Utils.cpp in Sources */,
 				3CBE0E1F26087F7B003F4F45 /* Body.cpp in Sources */,
 				3CA780472AE66FB000B7BADA /* Shape.cpp in Sources */,
 				3CF10FF12874C81C00940268 /* SkeletonClipping.cpp in Sources */,
 				3CBE0E2126087F7B003F4F45 /* Model.cpp in Sources */,
+				3C7FA3622B688547005A8441 /* inftrees.c in Sources */,
 				3CBE0E2226087F7B003F4F45 /* tolua_event.cpp in Sources */,
 				3C1A3C0B272A8820003A2829 /* ldo.c in Sources */,
 				3CBE0E2326087F7B003F4F45 /* Director.cpp in Sources */,
@@ -4031,6 +4124,7 @@
 				3CBE0E2626087F7B003F4F45 /* TouchDispather.cpp in Sources */,
 				3CBE0E2826087F7B003F4F45 /* Listener.cpp in Sources */,
 				3CBE0E2926087F7B003F4F45 /* SkeletonCache.cpp in Sources */,
+				3C7FA35A2B688547005A8441 /* compress.c in Sources */,
 				3CBE0E2A26087F7B003F4F45 /* AtlasCache.cpp in Sources */,
 				3CBE0E2B26087F7B003F4F45 /* ModelCache.cpp in Sources */,
 				3CA7808F2AE66FB000B7BADA /* Island.cpp in Sources */,
@@ -4040,6 +4134,7 @@
 				3CA780812AE66FB000B7BADA /* ToiConf.cpp in Sources */,
 				3CBE0E3326087F7B003F4F45 /* tolua_is.cpp in Sources */,
 				3C1A3BD5272A8820003A2829 /* lmem.c in Sources */,
+				3C7FA3522B688547005A8441 /* adler32.c in Sources */,
 				3CA780172AE66FB000B7BADA /* TargetJointConf.cpp in Sources */,
 				3CBE0E3426087F7B003F4F45 /* Joint.cpp in Sources */,
 				3CA780252AE66FB000B7BADA /* DiskShapeConf.cpp in Sources */,
@@ -4051,6 +4146,7 @@
 				3CBE0E3C26087F7B003F4F45 /* Bullet.cpp in Sources */,
 				3CF10FCB2874C81C00940268 /* AnimationStateData.cpp in Sources */,
 				3CBE0E3F26087F7B003F4F45 /* imgui_demo.cpp in Sources */,
+				3C7FA35C2B688547005A8441 /* uncompr.c in Sources */,
 				3CF10FED2874C81C00940268 /* DrawOrderTimeline.cpp in Sources */,
 				3C6E801E272A404A00E9F115 /* soloud_monotone.cpp in Sources */,
 				3C6E8016272A404A00E9F115 /* soloud_tedsid.cpp in Sources */,
@@ -4069,6 +4165,7 @@
 				3CBE0E5026087F7B003F4F45 /* imgui_widgets.cpp in Sources */,
 				3CA780612AE66FB000B7BADA /* Compositor.cpp in Sources */,
 				3CA780672AE66FB000B7BADA /* DistanceJointConf.cpp in Sources */,
+				3C7FA3542B688547005A8441 /* inflate.c in Sources */,
 				3C1A3BCF272A8820003A2829 /* lundump.c in Sources */,
 				3C6E804E272A40B400E9F115 /* sqlite3.c in Sources */,
 				3CBE0E5126087F7B003F4F45 /* SAXParser.cpp in Sources */,
@@ -4131,6 +4228,7 @@
 				3CBE0EA826087F7B003F4F45 /* Value.cpp in Sources */,
 				3CA31652299234DF007879C4 /* soloud_duckfilter.cpp in Sources */,
 				3CBE0EA926087F7B003F4F45 /* LuaManual.cpp in Sources */,
+				3C7FA3662B688547005A8441 /* gzread.c in Sources */,
 				3CBE0EAA26087F7B003F4F45 /* Scheduler.cpp in Sources */,
 				3CA780152AE66FB000B7BADA /* FrictionJointConf.cpp in Sources */,
 				3CBE0EAB26087F7B003F4F45 /* LuaEngine.cpp in Sources */,
@@ -4163,11 +4261,13 @@
 				3CA7806B2AE66FB000B7BADA /* MassData.cpp in Sources */,
 				3CBE0ECD26087F7B003F4F45 /* ShaderCache.cpp in Sources */,
 				3CA780592AE66FB000B7BADA /* RevoluteJointConf.cpp in Sources */,
+				3C7FA3562B688547005A8441 /* zutil.c in Sources */,
 				3CA7805D2AE66FB000B7BADA /* PrismaticJointConf.cpp in Sources */,
 				3CF10FDF2874C81C00940268 /* SkeletonJson.cpp in Sources */,
 				3CBE0ECE26087F7B003F4F45 /* lodepng.cpp in Sources */,
 				3CBE0ED826087F7B003F4F45 /* PhysicsWorld.cpp in Sources */,
 				3CBE0EDA26087F7B003F4F45 /* AutoreleasePool.cpp in Sources */,
+				3C7FA3642B688547005A8441 /* inffast.c in Sources */,
 				3CBE0EDE26087F7B003F4F45 /* AINode.cpp in Sources */,
 				3CA780432AE66FB000B7BADA /* WorldShape.cpp in Sources */,
 				3CFEA161285B873B002D106F /* m3_core.c in Sources */,
@@ -4188,6 +4288,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3C030CCF24CAC2BA0074786E /* Sprite.cpp in Sources */,
+				3C7FA35F2B688547005A8441 /* crc32.c in Sources */,
 				3CA780122AE66FB000B7BADA /* WorldJoint.cpp in Sources */,
 				3C6E8035272A404A00E9F115 /* soloud_fft.cpp in Sources */,
 				3CFFEC71292F1A7000BC6DA1 /* ImGuiBinding.cpp in Sources */,
@@ -4244,6 +4345,7 @@
 				3CFEA15A285B873B002D106F /* m3_api_uvwasi.c in Sources */,
 				3C6E8003272A404900E9F115 /* soloud_sfxr.cpp in Sources */,
 				3C6E8027272A404A00E9F115 /* soloud_fft_lut.cpp in Sources */,
+				3C7FA34F2B688547005A8441 /* gzclose.c in Sources */,
 				3CF10FC82874C81C00940268 /* RegionAttachment.cpp in Sources */,
 				3C883B1321E338F500BFD758 /* Object.cpp in Sources */,
 				3C25B871257A7F8B002DD8E1 /* yue_compiler.cpp in Sources */,
@@ -4338,6 +4440,7 @@
 				3CA780782AE66FB000B7BADA /* MemoryResource.cpp in Sources */,
 				3C4BC6571E17F17100292200 /* Geometry.cpp in Sources */,
 				3CFEBDC5269309C7006D9974 /* Animation.cpp in Sources */,
+				3C7FA35D2B688547005A8441 /* gzwrite.c in Sources */,
 				3CA7802C2AE66FB000B7BADA /* DistanceProxy.cpp in Sources */,
 				3CD6C2A51E30C1F500B36FFC /* Effect.cpp in Sources */,
 				3CFEA156285B873B002D106F /* m3_compile.c in Sources */,
@@ -4384,6 +4487,7 @@
 				3C6E7FD3272A404900E9F115 /* soloud_echofilter.cpp in Sources */,
 				3C6E8021272A404A00E9F115 /* soloud_openmpt_dll.c in Sources */,
 				3CFEBE3F26930B15006D9974 /* DragonBone.cpp in Sources */,
+				3C7FA3572B688547005A8441 /* trees.c in Sources */,
 				3C13200521011BB60087154A /* AI.cpp in Sources */,
 				3CA780362AE66FB000B7BADA /* TimeOfImpact.cpp in Sources */,
 				3C6E8023272A404A00E9F115 /* soloud_openmpt.cpp in Sources */,
@@ -4391,6 +4495,7 @@
 				3CA1B7F61EC16ED300BC58FF /* tinyxml2.cpp in Sources */,
 				3CF10FF82874C81C00940268 /* ColorTimeline.cpp in Sources */,
 				3CA1B7EF1EC16E9F00BC58FF /* LuaFromXml.cpp in Sources */,
+				3C7FA36B2B688560005A8441 /* gzlib.c in Sources */,
 				3C6D37251E27D9CE008C92E8 /* TextureCache.cpp in Sources */,
 				3CA780282AE66FB000B7BADA /* ContactImpulsesList.cpp in Sources */,
 				3CFEA158285B873B002D106F /* m3_code.c in Sources */,
@@ -4433,11 +4538,13 @@
 				3C883B1821E338F500BFD758 /* Application.cpp in Sources */,
 				3CF10FFC2874C81C00940268 /* SkeletonBinary.cpp in Sources */,
 				3C25B874257A7F8B002DD8E1 /* parser.cpp in Sources */,
+				3C7FA3672B688547005A8441 /* deflate.c in Sources */,
 				3C5972FE1E7F74CB00BFD00F /* Animation.cpp in Sources */,
 				3C6E8007272A404900E9F115 /* tts.cpp in Sources */,
 				3CA780462AE66FB000B7BADA /* Shape.cpp in Sources */,
 				3CAA2D1826155DB3004443A6 /* Database.cpp in Sources */,
 				3C6E7FF5272A404900E9F115 /* soloud_wav.cpp in Sources */,
+				3C7FA3612B688547005A8441 /* inftrees.c in Sources */,
 				3C6E8029272A404A00E9F115 /* soloud_core_voicegroup.cpp in Sources */,
 				3CD328461E4C42FF0036906C /* ImGuiDora.cpp in Sources */,
 				3C6E801F272A404A00E9F115 /* soloud_vizsn.cpp in Sources */,
@@ -4448,6 +4555,7 @@
 				3CF110062874C81C00940268 /* PathAttachment.cpp in Sources */,
 				3C5973091E7F74E900BFD00F /* ClipCache.cpp in Sources */,
 				3C030CCB24CAC2BA0074786E /* Playable.cpp in Sources */,
+				3C7FA3592B688547005A8441 /* compress.c in Sources */,
 				3C6E8043272A404A00E9F115 /* soloud_thread.cpp in Sources */,
 				3CF110102874C81C00940268 /* TextureLoader.cpp in Sources */,
 				3CA7808E2AE66FB000B7BADA /* Island.cpp in Sources */,
@@ -4457,6 +4565,7 @@
 				3CA780802AE66FB000B7BADA /* ToiConf.cpp in Sources */,
 				3C6E7FEB272A404900E9F115 /* soloud_sdl2_static.cpp in Sources */,
 				3C6E7FCF272A404900E9F115 /* soloud_eqfilter.cpp in Sources */,
+				3C7FA3512B688547005A8441 /* adler32.c in Sources */,
 				3CA780162AE66FB000B7BADA /* TargetJointConf.cpp in Sources */,
 				3C6E803D272A404A00E9F115 /* soloud_queue.cpp in Sources */,
 				3CA780242AE66FB000B7BADA /* DiskShapeConf.cpp in Sources */,
@@ -4468,6 +4577,7 @@
 				3C6E7FD7272A404900E9F115 /* soloud_robotizefilter.cpp in Sources */,
 				3C131FF921011BB60087154A /* PlatformWorld.cpp in Sources */,
 				3CFEBE0926930A26006D9974 /* UserData.cpp in Sources */,
+				3C7FA35B2B688547005A8441 /* uncompr.c in Sources */,
 				3CF10FA02874C81C00940268 /* PathConstraintSpacingTimeline.cpp in Sources */,
 				3CF10F9A2874C81C00940268 /* SequenceTimeline.cpp in Sources */,
 				3C6E7FF1272A404900E9F115 /* soloud_wavstream.cpp in Sources */,
@@ -4486,6 +4596,7 @@
 				3C6E8013272A404A00E9F115 /* ted.cpp in Sources */,
 				3CA780602AE66FB000B7BADA /* Compositor.cpp in Sources */,
 				3CA780662AE66FB000B7BADA /* DistanceJointConf.cpp in Sources */,
+				3C7FA3532B688547005A8441 /* inflate.c in Sources */,
 				3C9CCD0A2689D7670086757D /* os.cpp in Sources */,
 				3C883B1A21E338F500BFD758 /* Camera.cpp in Sources */,
 				3C883B1521E338F500BFD758 /* Content.mm in Sources */,
@@ -4548,6 +4659,7 @@
 				3C25B872257A7F8B002DD8E1 /* yuescript.cpp in Sources */,
 				3CD6C2A11E30C14800B36FFC /* ShaderCache.cpp in Sources */,
 				3CFEBDD6269309D5006D9974 /* DeformVertices.cpp in Sources */,
+				3C7FA3652B688547005A8441 /* gzread.c in Sources */,
 				3CFEBE0B26930A26006D9974 /* BoundingBoxData.cpp in Sources */,
 				3CA780142AE66FB000B7BADA /* FrictionJointConf.cpp in Sources */,
 				3C28C0A22772CFE4007FC76E /* Grid.cpp in Sources */,
@@ -4580,11 +4692,13 @@
 				3CA7806A2AE66FB000B7BADA /* MassData.cpp in Sources */,
 				3CFEBE0D26930A26006D9974 /* SkinData.cpp in Sources */,
 				3CA780582AE66FB000B7BADA /* RevoluteJointConf.cpp in Sources */,
+				3C7FA3552B688547005A8441 /* zutil.c in Sources */,
 				3CA7805C2AE66FB000B7BADA /* PrismaticJointConf.cpp in Sources */,
 				3CFEBE0F26930A26006D9974 /* AnimationData.cpp in Sources */,
 				3C1A3BFE272A8820003A2829 /* lcorolib.c in Sources */,
 				3CF10FDE2874C81C00940268 /* SkeletonJson.cpp in Sources */,
 				3C030CCA24CAC2B90074786E /* Particle.cpp in Sources */,
+				3C7FA3632B688547005A8441 /* inffast.c in Sources */,
 				3CB730821E80344C006DFA18 /* Dictionary.cpp in Sources */,
 				3CA780422AE66FB000B7BADA /* WorldShape.cpp in Sources */,
 				3CFEBE0A26930A26006D9974 /* ArmatureData.cpp in Sources */,
@@ -4683,6 +4797,7 @@
 					../../Source/3rdParty/dragonBones,
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/asio,
+					../../Source/3rdParty/zlib,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -4748,6 +4863,7 @@
 					../../Source/3rdParty/dragonBones,
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/asio,
+					../../Source/3rdParty/zlib,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -4957,6 +5073,7 @@
 					../../Source/3rdParty/dragonBones,
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/asio,
+					../../Source/3rdParty/zlib,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -5023,6 +5140,7 @@
 					../../Source/3rdParty/dragonBones,
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/asio,
+					../../Source/3rdParty/zlib,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
