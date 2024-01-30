@@ -1,14 +1,14 @@
 //
 //  httplib.h
 //
-//  Copyright (c) 2023 Yuji Hirose. All rights reserved.
+//  Copyright (c) 2024 Yuji Hirose. All rights reserved.
 //  MIT License
 //
 
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
 
-#define CPPHTTPLIB_VERSION "0.15.0"
+#define CPPHTTPLIB_VERSION "0.15.1"
 
 /*
  * Configuration
