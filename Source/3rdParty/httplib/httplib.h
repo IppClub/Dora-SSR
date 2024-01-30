@@ -8,7 +8,7 @@
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
 
-#define CPPHTTPLIB_VERSION "0.14.3"
+#define CPPHTTPLIB_VERSION "0.15.0"
 
 /*
  * Configuration
@@ -82,6 +82,10 @@
 #define CPPHTTPLIB_FORM_URL_ENCODED_PAYLOAD_MAX_LENGTH 8192
 #endif
 
+#ifndef CPPHTTPLIB_RANGE_MAX_COUNT
+#define CPPHTTPLIB_RANGE_MAX_COUNT 1024
+#endif
+
 #ifndef CPPHTTPLIB_TCP_NODELAY
 #define CPPHTTPLIB_TCP_NODELAY false
 #endif
@@ -141,11 +145,11 @@ using ssize_t = long;
 #endif // _MSC_VER
 
 #ifndef S_ISREG
-#define S_ISREG(m) (((m)&S_IFREG) == S_IFREG)
+#define S_ISREG(m) (((m) & S_IFREG) == S_IFREG)
 #endif // S_ISREG
 
 #ifndef S_ISDIR
-#define S_ISDIR(m) (((m)&S_IFDIR) == S_IFDIR)
+#define S_ISDIR(m) (((m) & S_IFDIR) == S_IFDIR)
 #endif // S_ISDIR
 
 #ifndef NOMINMAX
@@ -272,7 +276,7 @@ using socket_t = int;
 #endif
 
 #ifdef CPPHTTPLIB_ZLIB_SUPPORT
-#include <zlib.h>
+#include "zlib.h"
 #endif
 
 #ifdef CPPHTTPLIB_BROTLI_SUPPORT
@@ -596,6 +600,7 @@ struct Response {
   void set_redirect(const std::string &url, int status = StatusCode::Found_302);
   void set_content(const char *s, size_t n, const std::string &content_type);
   void set_content(const std::string &s, const std::string &content_type);
+  void set_content(std::string &&s, const std::string &content_type);
 
   void set_content_provider(
       size_t length, const std::string &content_type, ContentProvider provider,
@@ -744,6 +749,8 @@ using SocketOptions = std::function<void(socket_t sock)>;
 void default_socket_options(socket_t sock);
 
 const char *status_message(int status);
+
+std::string get_bearer_token_auth(const Request &req);
 
 namespace detail {
 
@@ -1946,6 +1953,15 @@ inline const char *status_message(int status) {
   }
 }
 
+inline std::string get_bearer_token_auth(const Request &req) {
+  if (req.has_header("Authorization")) {
+    static std::string BearerHeaderPrefix = "Bearer ";
+    return req.get_header_value("Authorization")
+        .substr(BearerHeaderPrefix.length());
+  }
+  return "";
+}
+
 template <class Rep, class Period>
 inline Server &
 Server::set_read_timeout(const std::chrono::duration<Rep, Period> &duration) {
@@ -2056,7 +2072,7 @@ void hosted_at(const std::string &hostname, std::vector<std::string> &addrs);
 
 std::string append_query_params(const std::string &path, const Params &params);
 
-std::pair<std::string, std::string> make_range_header(Ranges ranges);
+std::pair<std::string, std::string> make_range_header(const Ranges &ranges);
 
 std::pair<std::string, std::string>
 make_basic_authentication_header(const std::string &username,
@@ -2404,6 +2420,7 @@ inline bool is_valid_path(const std::string &path) {
     // Read component
     auto beg = i;
     while (i < path.size() && path[i] != '/') {
+      if (path[i] == '\0') { return false; }
       i++;
     }
 
@@ -2561,7 +2578,7 @@ inline std::string trim_double_quotes_copy(const std::string &s) {
 
 inline void split(const char *b, const char *e, char d,
                   std::function<void(const char *, const char *)> fn) {
-  return split(b, e, d, (std::numeric_limits<size_t>::max)(), fn);
+  return split(b, e, d, (std::numeric_limits<size_t>::max)(), std::move(fn));
 }
 
 inline void split(const char *b, const char *e, char d, size_t m,
@@ -2796,7 +2813,7 @@ inline ssize_t select_read(socket_t sock, time_t sec, time_t usec) {
   return handle_EINTR([&]() { return poll(&pfd_read, 1, timeout); });
 #else
 #ifndef _WIN32
-  if (sock >= FD_SETSIZE) { return 1; }
+  if (sock >= FD_SETSIZE) { return -1; }
 #endif
 
   fd_set fds;
@@ -2824,7 +2841,7 @@ inline ssize_t select_write(socket_t sock, time_t sec, time_t usec) {
   return handle_EINTR([&]() { return poll(&pfd_read, 1, timeout); });
 #else
 #ifndef _WIN32
-  if (sock >= FD_SETSIZE) { return 1; }
+  if (sock >= FD_SETSIZE) { return -1; }
 #endif
 
   fd_set fds;
@@ -4627,26 +4644,30 @@ inline std::string to_lower(const char *beg, const char *end) {
   return out;
 }
 
-inline std::string make_multipart_data_boundary() {
+inline std::string random_string(size_t length) {
   static const char data[] =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
   // std::random_device might actually be deterministic on some
   // platforms, but due to lack of support in the c++ standard library,
   // doing better requires either some ugly hacks or breaking portability.
-  std::random_device seed_gen;
+  static std::random_device seed_gen;
 
   // Request 128 bits of entropy for initialization
-  std::seed_seq seed_sequence{seed_gen(), seed_gen(), seed_gen(), seed_gen()};
-  std::mt19937 engine(seed_sequence);
+  static std::seed_seq seed_sequence{seed_gen(), seed_gen(), seed_gen(),
+                                     seed_gen()};
 
-  std::string result = "--cpp-httplib-multipart-data-";
+  static std::mt19937 engine(seed_sequence);
 
-  for (auto i = 0; i < 16; i++) {
+  std::string result;
+  for (size_t i = 0; i < length; i++) {
     result += data[engine() % (sizeof(data) - 1)];
   }
-
   return result;
+}
+
+inline std::string make_multipart_data_boundary() {
+  return "--cpp-httplib-multipart-data-" + detail::random_string(16);
 }
 
 inline bool is_multipart_boundary_chars_valid(const std::string &boundary) {
@@ -4706,44 +4727,91 @@ serialize_multipart_formdata(const MultipartFormDataItems &items,
   return body;
 }
 
+inline bool normalize_ranges(Request &req, Response &res) {
+  ssize_t contant_len = static_cast<ssize_t>(
+      res.content_length_ ? res.content_length_ : res.body.size());
+
+  ssize_t prev_first_pos = -1;
+  ssize_t prev_last_pos = -1;
+  size_t overwrapping_count = 0;
+
+  if (!req.ranges.empty()) {
+    // NOTE: The following Range check is based on '14.2. Range' in RFC 9110
+    // 'HTTP Semantics' to avoid potential denial-of-service attacks.
+    // https://www.rfc-editor.org/rfc/rfc9110#section-14.2
+
+    // Too many ranges
+    if (req.ranges.size() > CPPHTTPLIB_RANGE_MAX_COUNT) { return false; }
+
+    for (auto &r : req.ranges) {
+      auto &first_pos = r.first;
+      auto &last_pos = r.second;
+
+      if (first_pos == -1 && last_pos == -1) {
+        first_pos = 0;
+        last_pos = contant_len;
+      }
+
+      if (first_pos == -1) {
+        first_pos = contant_len - last_pos;
+        last_pos = contant_len - 1;
+      }
+
+      if (last_pos == -1) { last_pos = contant_len - 1; }
+
+      // Range must be within content length
+      if (!(0 <= first_pos && first_pos <= last_pos &&
+            last_pos <= contant_len - 1)) {
+        return false;
+      }
+
+      // Ranges must be in ascending order
+      if (first_pos <= prev_first_pos) { return false; }
+
+      // Request must not have more than two overlapping ranges
+      if (first_pos <= prev_last_pos) {
+        overwrapping_count++;
+        if (overwrapping_count > 2) { return false; }
+      }
+
+      prev_first_pos = (std::max)(prev_first_pos, first_pos);
+      prev_last_pos = (std::max)(prev_last_pos, last_pos);
+    }
+  }
+
+  return true;
+}
+
 inline std::pair<size_t, size_t>
-get_range_offset_and_length(const Request &req, size_t content_length,
-                            size_t index) {
-  auto r = req.ranges[index];
+get_range_offset_and_length(Range r, size_t content_length) {
+  assert(r.first != -1 && r.second != -1);
+  assert(0 <= r.first && r.first < static_cast<ssize_t>(content_length));
+  assert(r.first <= r.second &&
+         r.second < static_cast<ssize_t>(content_length));
 
-  if (r.first == -1 && r.second == -1) {
-    return std::make_pair(0, content_length);
-  }
-
-  auto slen = static_cast<ssize_t>(content_length);
-
-  if (r.first == -1) {
-    r.first = (std::max)(static_cast<ssize_t>(0), slen - r.second);
-    r.second = slen - 1;
-  }
-
-  if (r.second == -1) { r.second = slen - 1; }
   return std::make_pair(r.first, static_cast<size_t>(r.second - r.first) + 1);
 }
 
-inline std::string
-make_content_range_header_field(const std::pair<ssize_t, ssize_t> &range,
-                                size_t content_length) {
+inline std::string make_content_range_header_field(
+    const std::pair<size_t, size_t> &offset_and_length, size_t content_length) {
+  auto st = offset_and_length.first;
+  auto ed = st + offset_and_length.second - 1;
+
   std::string field = "bytes ";
-  if (range.first != -1) { field += std::to_string(range.first); }
+  field += std::to_string(st);
   field += "-";
-  if (range.second != -1) { field += std::to_string(range.second); }
+  field += std::to_string(ed);
   field += "/";
   field += std::to_string(content_length);
   return field;
 }
 
 template <typename SToken, typename CToken, typename Content>
-bool process_multipart_ranges_data(const Request &req, Response &res,
+bool process_multipart_ranges_data(const Request &req,
                                    const std::string &boundary,
                                    const std::string &content_type,
-                                   SToken stoken, CToken ctoken,
-                                   Content content) {
+                                   size_t content_length, SToken stoken,
+                                   CToken ctoken, Content content) {
   for (size_t i = 0; i < req.ranges.size(); i++) {
     ctoken("--");
     stoken(boundary);
@@ -4754,16 +4822,17 @@ bool process_multipart_ranges_data(const Request &req, Response &res,
       ctoken("\r\n");
     }
 
+    auto offset_and_length =
+        get_range_offset_and_length(req.ranges[i], content_length);
+
     ctoken("Content-Range: ");
-    const auto &range = req.ranges[i];
-    stoken(make_content_range_header_field(range, res.content_length_));
+    stoken(make_content_range_header_field(offset_and_length, content_length));
     ctoken("\r\n");
     ctoken("\r\n");
 
-    auto offsets = get_range_offset_and_length(req, res.content_length_, i);
-    auto offset = offsets.first;
-    auto length = offsets.second;
-    if (!content(offset, length)) { return false; }
+    if (!content(offset_and_length.first, offset_and_length.second)) {
+      return false;
+    }
     ctoken("\r\n");
   }
 
@@ -4774,31 +4843,30 @@ bool process_multipart_ranges_data(const Request &req, Response &res,
   return true;
 }
 
-inline bool make_multipart_ranges_data(const Request &req, Response &res,
+inline void make_multipart_ranges_data(const Request &req, Response &res,
                                        const std::string &boundary,
                                        const std::string &content_type,
+                                       size_t content_length,
                                        std::string &data) {
-  return process_multipart_ranges_data(
-      req, res, boundary, content_type,
+  process_multipart_ranges_data(
+      req, boundary, content_type, content_length,
       [&](const std::string &token) { data += token; },
       [&](const std::string &token) { data += token; },
       [&](size_t offset, size_t length) {
-        if (offset < res.body.size()) {
-          data += res.body.substr(offset, length);
-          return true;
-        }
-        return false;
+        assert(offset + length <= content_length);
+        data += res.body.substr(offset, length);
+        return true;
       });
 }
 
-inline size_t
-get_multipart_ranges_data_length(const Request &req, Response &res,
-                                 const std::string &boundary,
-                                 const std::string &content_type) {
+inline size_t get_multipart_ranges_data_length(const Request &req,
+                                               const std::string &boundary,
+                                               const std::string &content_type,
+                                               size_t content_length) {
   size_t data_length = 0;
 
   process_multipart_ranges_data(
-      req, res, boundary, content_type,
+      req, boundary, content_type, content_length,
       [&](const std::string &token) { data_length += token.size(); },
       [&](const std::string &token) { data_length += token.size(); },
       [&](size_t /*offset*/, size_t length) {
@@ -4810,31 +4878,19 @@ get_multipart_ranges_data_length(const Request &req, Response &res,
 }
 
 template <typename T>
-inline bool write_multipart_ranges_data(Stream &strm, const Request &req,
-                                        Response &res,
-                                        const std::string &boundary,
-                                        const std::string &content_type,
-                                        const T &is_shutting_down) {
+inline bool
+write_multipart_ranges_data(Stream &strm, const Request &req, Response &res,
+                            const std::string &boundary,
+                            const std::string &content_type,
+                            size_t content_length, const T &is_shutting_down) {
   return process_multipart_ranges_data(
-      req, res, boundary, content_type,
+      req, boundary, content_type, content_length,
       [&](const std::string &token) { strm.write(token); },
       [&](const std::string &token) { strm.write(token); },
       [&](size_t offset, size_t length) {
         return write_content(strm, res.content_provider_, offset, length,
                              is_shutting_down);
       });
-}
-
-inline std::pair<size_t, size_t>
-get_range_offset_and_length(const Request &req, const Response &res,
-                            size_t index) {
-  auto r = req.ranges[index];
-
-  if (r.second == -1) {
-    r.second = static_cast<ssize_t>(res.content_length_) - 1;
-  }
-
-  return std::make_pair(r.first, r.second - r.first + 1);
 }
 
 inline bool expect_content(const Request &req) {
@@ -5123,20 +5179,6 @@ inline bool parse_www_authenticate(const Response &res,
   return false;
 }
 
-// https://stackoverflow.com/questions/440133/how-do-i-create-a-random-alpha-numeric-string-in-c/440240#answer-440240
-inline std::string random_string(size_t length) {
-  auto randchar = []() -> char {
-    const char charset[] = "0123456789"
-                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                           "abcdefghijklmnopqrstuvwxyz";
-    const size_t max_index = (sizeof(charset) - 1);
-    return charset[static_cast<size_t>(std::rand()) % max_index];
-  };
-  std::string str(length, 0);
-  std::generate_n(str.begin(), length, randchar);
-  return str;
-}
-
 class ContentProviderAdapter {
 public:
   explicit ContentProviderAdapter(
@@ -5201,10 +5243,11 @@ inline std::string append_query_params(const std::string &path,
 }
 
 // Header utilities
-inline std::pair<std::string, std::string> make_range_header(Ranges ranges) {
+inline std::pair<std::string, std::string>
+make_range_header(const Ranges &ranges) {
   std::string field = "bytes=";
   auto i = 0;
-  for (auto r : ranges) {
+  for (const auto &r : ranges) {
     if (i != 0) { field += ", "; }
     if (r.first != -1) { field += std::to_string(r.first); }
     field += '-';
@@ -5342,13 +5385,22 @@ inline void Response::set_content(const std::string &s,
   set_content(s.data(), s.size(), content_type);
 }
 
+inline void Response::set_content(std::string &&s,
+                                  const std::string &content_type) {
+  body = std::move(s);
+
+  auto rng = headers.equal_range("Content-Type");
+  headers.erase(rng.first, rng.second);
+  set_header("Content-Type", content_type);
+}
+
 inline void Response::set_content_provider(
     size_t in_length, const std::string &content_type, ContentProvider provider,
     ContentProviderResourceReleaser resource_releaser) {
   set_header("Content-Type", content_type);
   content_length_ = in_length;
   if (in_length > 0) { content_provider_ = std::move(provider); }
-  content_provider_resource_releaser_ = resource_releaser;
+  content_provider_resource_releaser_ = std::move(resource_releaser);
   is_chunked_content_provider_ = false;
 }
 
@@ -5358,7 +5410,7 @@ inline void Response::set_content_provider(
   set_header("Content-Type", content_type);
   content_length_ = 0;
   content_provider_ = detail::ContentProviderAdapter(std::move(provider));
-  content_provider_resource_releaser_ = resource_releaser;
+  content_provider_resource_releaser_ = std::move(resource_releaser);
   is_chunked_content_provider_ = false;
 }
 
@@ -5368,7 +5420,7 @@ inline void Response::set_chunked_content_provider(
   set_header("Content-Type", content_type);
   content_length_ = 0;
   content_provider_ = detail::ContentProviderAdapter(std::move(provider));
-  content_provider_resource_releaser_ = resource_releaser;
+  content_provider_resource_releaser_ = std::move(resource_releaser);
   is_chunked_content_provider_ = true;
 }
 
@@ -6019,7 +6071,6 @@ inline bool Server::write_response_core(Stream &strm, bool close_connection,
       if (write_content_with_provider(strm, req, res, boundary, content_type)) {
         res.content_provider_success_ = true;
       } else {
-        res.content_provider_success_ = false;
         ret = false;
       }
     }
@@ -6044,15 +6095,16 @@ Server::write_content_with_provider(Stream &strm, const Request &req,
       return detail::write_content(strm, res.content_provider_, 0,
                                    res.content_length_, is_shutting_down);
     } else if (req.ranges.size() == 1) {
-      auto offsets =
-          detail::get_range_offset_and_length(req, res.content_length_, 0);
-      auto offset = offsets.first;
-      auto length = offsets.second;
-      return detail::write_content(strm, res.content_provider_, offset, length,
-                                   is_shutting_down);
+      auto offset_and_length = detail::get_range_offset_and_length(
+          req.ranges[0], res.content_length_);
+
+      return detail::write_content(strm, res.content_provider_,
+                                   offset_and_length.first,
+                                   offset_and_length.second, is_shutting_down);
     } else {
       return detail::write_multipart_ranges_data(
-          strm, req, res, boundary, content_type, is_shutting_down);
+          strm, req, res, boundary, content_type, res.content_length_,
+          is_shutting_down);
     }
   } else {
     if (res.is_chunked_content_provider_) {
@@ -6202,12 +6254,12 @@ inline bool Server::handle_file_request(const Request &req, Response &res,
           auto mm = std::make_shared<detail::mmap>(path.c_str());
           if (!mm->is_open()) { return false; }
 
-          res.set_content_provider(
-              mm->size(),
+          res.set_chunked_content_provider(
               detail::find_content_type(path, file_extension_and_mimetype_map_,
                                         default_file_mimetype_),
-              [mm](size_t offset, size_t length, DataSink &sink) -> bool {
-                sink.write(mm->data() + offset, length);
+              [mm](size_t, DataSink &sink) -> bool {
+                sink.write(mm->data(), mm->size());
+                sink.done();
                 return true;
               });
 
@@ -6447,13 +6499,13 @@ inline void Server::apply_ranges(const Request &req, Response &res,
                                  std::string &content_type,
                                  std::string &boundary) const {
   if (req.ranges.size() > 1) {
-    boundary = detail::make_multipart_data_boundary();
-
     auto it = res.headers.find("Content-Type");
     if (it != res.headers.end()) {
       content_type = it->second;
       res.headers.erase(it);
     }
+
+    boundary = detail::make_multipart_data_boundary();
 
     res.set_header("Content-Type",
                    "multipart/byteranges; boundary=" + boundary);
@@ -6467,16 +6519,17 @@ inline void Server::apply_ranges(const Request &req, Response &res,
       if (req.ranges.empty()) {
         length = res.content_length_;
       } else if (req.ranges.size() == 1) {
-        auto offsets =
-            detail::get_range_offset_and_length(req, res.content_length_, 0);
-        length = offsets.second;
+        auto offset_and_length = detail::get_range_offset_and_length(
+            req.ranges[0], res.content_length_);
+
+        length = offset_and_length.second;
 
         auto content_range = detail::make_content_range_header_field(
-            req.ranges[0], res.content_length_);
+            offset_and_length, res.content_length_);
         res.set_header("Content-Range", content_range);
       } else {
-        length = detail::get_multipart_ranges_data_length(req, res, boundary,
-                                                          content_type);
+        length = detail::get_multipart_ranges_data_length(
+            req, boundary, content_type, res.content_length_);
       }
       res.set_header("Content-Length", std::to_string(length));
     } else {
@@ -6495,30 +6548,22 @@ inline void Server::apply_ranges(const Request &req, Response &res,
     if (req.ranges.empty()) {
       ;
     } else if (req.ranges.size() == 1) {
+      auto offset_and_length =
+          detail::get_range_offset_and_length(req.ranges[0], res.body.size());
+      auto offset = offset_and_length.first;
+      auto length = offset_and_length.second;
+
       auto content_range = detail::make_content_range_header_field(
-          req.ranges[0], res.body.size());
+          offset_and_length, res.body.size());
       res.set_header("Content-Range", content_range);
 
-      auto offsets =
-          detail::get_range_offset_and_length(req, res.body.size(), 0);
-      auto offset = offsets.first;
-      auto length = offsets.second;
-
-      if (offset < res.body.size()) {
-        res.body = res.body.substr(offset, length);
-      } else {
-        res.body.clear();
-        res.status = StatusCode::RangeNotSatisfiable_416;
-      }
+      assert(offset + length <= res.body.size());
+      res.body = res.body.substr(offset, length);
     } else {
       std::string data;
-      if (detail::make_multipart_ranges_data(req, res, boundary, content_type,
-                                             data)) {
-        res.body.swap(data);
-      } else {
-        res.body.clear();
-        res.status = StatusCode::RangeNotSatisfiable_416;
-      }
+      detail::make_multipart_ranges_data(req, res, boundary, content_type,
+                                         res.body.size(), data);
+      res.body.swap(data);
     }
 
     if (type != detail::EncodingType::None) {
@@ -6694,13 +6739,20 @@ Server::process_request(Stream &strm, bool close_connection,
     }
   }
 #endif
-
   if (routed) {
-    if (res.status == -1) {
-      res.status = req.ranges.empty() ? StatusCode::OK_200
-                                      : StatusCode::PartialContent_206;
+    if (detail::normalize_ranges(req, res)) {
+      if (res.status == -1) {
+        res.status = req.ranges.empty() ? StatusCode::OK_200
+                                        : StatusCode::PartialContent_206;
+      }
+      return write_response_with_content(strm, close_connection, req, res);
+    } else {
+      res.body.clear();
+      res.content_length_ = 0;
+      res.content_provider_ = nullptr;
+      res.status = StatusCode::RangeNotSatisfiable_416;
+      return write_response(strm, close_connection, req, res);
     }
-    return write_response_with_content(strm, close_connection, req, res);
   } else {
     if (res.status == -1) { res.status = StatusCode::NotFound_404; }
     return write_response(strm, close_connection, req, res);
@@ -7606,14 +7658,15 @@ inline Result ClientImpl::Get(const std::string &path, const Params &params,
   if (params.empty()) { return Get(path, headers); }
 
   std::string path_with_query = append_query_params(path, params);
-  return Get(path_with_query, headers, progress);
+  return Get(path_with_query, headers, std::move(progress));
 }
 
 inline Result ClientImpl::Get(const std::string &path, const Params &params,
                               const Headers &headers,
                               ContentReceiver content_receiver,
                               Progress progress) {
-  return Get(path, params, headers, nullptr, content_receiver, progress);
+  return Get(path, params, headers, nullptr, std::move(content_receiver),
+             std::move(progress));
 }
 
 inline Result ClientImpl::Get(const std::string &path, const Params &params,
@@ -7622,12 +7675,13 @@ inline Result ClientImpl::Get(const std::string &path, const Params &params,
                               ContentReceiver content_receiver,
                               Progress progress) {
   if (params.empty()) {
-    return Get(path, headers, response_handler, content_receiver, progress);
+    return Get(path, headers, std::move(response_handler),
+               std::move(content_receiver), std::move(progress));
   }
 
   std::string path_with_query = append_query_params(path, params);
-  return Get(path_with_query, headers, response_handler, content_receiver,
-             progress);
+  return Get(path_with_query, headers, std::move(response_handler),
+             std::move(content_receiver), std::move(progress));
 }
 
 inline Result ClientImpl::Head(const std::string &path) {
@@ -9002,19 +9056,20 @@ inline Result Client::Get(const std::string &path, const Headers &headers,
 }
 inline Result Client::Get(const std::string &path, const Params &params,
                           const Headers &headers, Progress progress) {
-  return cli_->Get(path, params, headers, progress);
+  return cli_->Get(path, params, headers, std::move(progress));
 }
 inline Result Client::Get(const std::string &path, const Params &params,
                           const Headers &headers,
                           ContentReceiver content_receiver, Progress progress) {
-  return cli_->Get(path, params, headers, content_receiver, progress);
+  return cli_->Get(path, params, headers, std::move(content_receiver),
+                   std::move(progress));
 }
 inline Result Client::Get(const std::string &path, const Params &params,
                           const Headers &headers,
                           ResponseHandler response_handler,
                           ContentReceiver content_receiver, Progress progress) {
-  return cli_->Get(path, params, headers, response_handler, content_receiver,
-                   progress);
+  return cli_->Get(path, params, headers, std::move(response_handler),
+                   std::move(content_receiver), std::move(progress));
 }
 
 inline Result Client::Head(const std::string &path) { return cli_->Head(path); }

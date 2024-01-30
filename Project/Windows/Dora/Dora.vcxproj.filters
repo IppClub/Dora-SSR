@@ -226,6 +226,9 @@
     <Filter Include="3rdParty\playrho\detail">
       <UniqueIdentifier>{e7437292-101d-41c1-bbef-7c426fbc0365}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\zlib">
+      <UniqueIdentifier>{df4b410f-b909-4d7a-b7b8-7f7d2643ca81}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
@@ -1454,6 +1457,48 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Lua\Xml\DoraTag.cpp">
       <Filter>Lua\Xml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\adler32.c">
+      <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\compress.c">
+      <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\crc32.c">
+      <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\deflate.c">
+      <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\gzclose.c">
+      <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\gzlib.c">
+      <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\gzread.c">
+      <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\gzwrite.c">
+      <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\inffast.c">
+      <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\inflate.c">
+      <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\inftrees.c">
+      <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\trees.c">
+      <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\uncompr.c">
+      <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\zlib\zutil.c">
+      <Filter>3rdParty\zlib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3092,6 +3137,39 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ShapeFunction.hpp">
       <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\zlib\crc32.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\zlib\deflate.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\zlib\gzguts.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\zlib\inffast.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\zlib\inffixed.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\zlib\inflate.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\zlib\inftrees.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\zlib\trees.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\zlib\zconf.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\zlib\zlib.h">
+      <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\zlib\zutil.h">
+      <Filter>3rdParty\zlib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

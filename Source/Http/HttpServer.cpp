@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/Event.h"
 #include "Event/Listener.h"
 
+#define CPPHTTPLIB_ZLIB_SUPPORT
 #include "httplib/httplib.h"
 
 #define ASIO_STANDALONE
@@ -314,8 +315,9 @@ bool HttpServer::start(int port) {
 		waitForLoaded.wait();
 		if (dataSize > 0) {
 			auto sd = std::make_shared<OwnArray<uint8_t>>(std::move(data));
-			res.set_content_provider(dataSize, content_type, [sd = std::move(sd)](size_t offset, size_t length, httplib::DataSink& sink) -> bool {
-				sink.write(r_cast<const char*>((*sd).get()) + offset, length);
+			res.set_chunked_content_provider(content_type, [sd = std::move(sd), dataSize](size_t, httplib::DataSink& sink) -> bool {
+				sink.write(r_cast<const char*>((*sd).get()), dataSize);
+				sink.done();
 				return true;
 			});
 			return true;

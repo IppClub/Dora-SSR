@@ -17,6 +17,7 @@ include_directories(
 	src/main/cpp/3rdParty/dragonBones
 	src/main/cpp/3rdParty/wasm3
 	src/main/cpp/3rdParty/asio
+	src/main/cpp/3rdParty/zlib
 )
 
 add_library(SDL2-lib SHARED IMPORTED)
@@ -466,6 +467,20 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/playrho/d2/DistanceConf.cpp
 	src/main/cpp/3rdParty/playrho/d2/PointStates.cpp
 	src/main/cpp/3rdParty/playrho/d2/part/Compositor.cpp
+	src/main/cpp/3rdParty/zlib/inflate.c
+	src/main/cpp/3rdParty/zlib/compress.c
+	src/main/cpp/3rdParty/zlib/deflate.c
+	src/main/cpp/3rdParty/zlib/gzread.c
+	src/main/cpp/3rdParty/zlib/crc32.c
+	src/main/cpp/3rdParty/zlib/zutil.c
+	src/main/cpp/3rdParty/zlib/gzlib.c
+	src/main/cpp/3rdParty/zlib/inftrees.c
+	src/main/cpp/3rdParty/zlib/uncompr.c
+	src/main/cpp/3rdParty/zlib/gzwrite.c
+	src/main/cpp/3rdParty/zlib/trees.c
+	src/main/cpp/3rdParty/zlib/gzclose.c
+	src/main/cpp/3rdParty/zlib/inffast.c
+	src/main/cpp/3rdParty/zlib/adler32.c
 )
 
 target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib)
