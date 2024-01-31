@@ -18,6 +18,7 @@ include_directories(
 	src/main/cpp/3rdParty/wasm3
 	src/main/cpp/3rdParty/asio
 	src/main/cpp/3rdParty/zlib
+	src/main/cpp/3rdParty/OpenSSL/Header
 )
 
 add_library(SDL2-lib SHARED IMPORTED)
@@ -48,6 +49,18 @@ add_library(BIMGDE-lib STATIC IMPORTED)
 set_target_properties(
 	BIMGDE-lib PROPERTIES IMPORTED_LOCATION
 	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/bgfx/Lib/Android/${ANDROID_ABI}/libbimg_decode.a
+)
+
+add_library(SSL-lib STATIC IMPORTED)
+set_target_properties(
+	SSL-lib PROPERTIES IMPORTED_LOCATION
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/OpenSSL/Lib/Android/${ANDROID_ABI}/libssl.a
+)
+
+add_library(CRYPTO-lib STATIC IMPORTED)
+set_target_properties(
+	CRYPTO-lib PROPERTIES IMPORTED_LOCATION
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/OpenSSL/Lib/Android/${ANDROID_ABI}/libcrypto.a
 )
 
 add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0 -Dd_m3HasWASI -DLUA_USE_LINUX)
@@ -483,5 +496,4 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/zlib/adler32.c
 )
 
-target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib)
-
+target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib CRYPTO-lib SSL-lib)

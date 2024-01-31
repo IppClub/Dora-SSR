@@ -6804,6 +6804,25 @@ export interface tolua {
 
 export const tolua: tolua;
 
+/**
+ * Represents an HTTP client.
+ */
+interface HttpClient {
+	/**
+	 * Downloads a file asynchronously from the specified URL and saves it to the specified path. Should be run in a coroutine.
+	 * @param url The URL of the file to download.
+	 * @param fullPath The full path where the downloaded file should be saved.
+	 * @param progress [optional] A callback function that is called periodically to report the download progress.
+	 * The function receives two parameters: current (the number of bytes downloaded so far)
+	 * and total (the total number of bytes to be downloaded).
+	 * @returns A boolean value indicating whether the download was done successfully.
+	 */
+	downloadAsync(url: string, fullPath: string, progress?: (current: number, total: number) => void): boolean;
+}
+
+const httpClient: HttpClient;
+export {httpClient as HttpClient};
+
 } // module "dora"
 
 declare function p(this: void, ...args: any[]): void;
