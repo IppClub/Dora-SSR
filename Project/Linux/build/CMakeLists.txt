@@ -4,6 +4,7 @@ project(Dora-SSR)
 set(CMAKE_CXX_STANDARD 20)
 
 find_package(SDL2 REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 include_directories(
 	${SDL2_INCLUDE_DIRS}
@@ -487,5 +488,5 @@ add_executable(dora-ssr
 	../../../Source/3rdParty/zlib/adler32.c
 )
 
-target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11)
+target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto)
 

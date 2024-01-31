@@ -1996,13 +1996,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>..\..\..\Source\3rdParty\BGFX\Lib\Windows;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Debug;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Source\3rdParty\BGFX\Lib\Windows;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Debug;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\OpenSSL\Lib\Windows\Debug;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\build\$(Configuration)\</OutDir>
     <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>..\..\..\Source\3rdParty\BGFX\Lib\Windows;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Release;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Source\3rdParty\BGFX\Lib\Windows;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Release;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\OpenSSL\Lib\Windows\Release;$(LibraryPath)</LibraryPath>
     <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
     <OutDir>$(SolutionDir)\build\$(Configuration)\</OutDir>
   </PropertyGroup>
@@ -2012,7 +2012,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;_ITERATOR_DEBUG_LEVEL=0;WITH_SDL2_STATIC;BX_CONFIG_DEBUG=1;d_m3HasWASI;LUA_USE_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/asio;../../../Source/3rdParty/zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/asio;../../../Source/3rdParty/zlib;../../../Source/3rdParty/OpenSSL/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderFile>Const/Header.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -2025,8 +2025,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bxDebug.lib;psapi.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>SDL2.lib;bgfxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bxDebug.lib;psapi.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;libcrypto_static.lib;libssl_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrt.lib %(AdditionalOptions)</AdditionalOptions>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
@@ -2055,7 +2055,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WITH_SDL2_STATIC;BX_CONFIG_DEBUG=0;d_m3HasWASI;LUA_USE_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/asio;../../../Source/3rdParty/zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/asio;../../../Source/3rdParty/zlib;../../../Source/3rdParty/OpenSSL/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
@@ -2072,7 +2072,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfxRelease.lib;bimgRelease.lib;bimg_decodeRelease.lib;bxRelease.lib;psapi.lib;msvcrt.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfxRelease.lib;bimgRelease.lib;bimg_decodeRelease.lib;bxRelease.lib;psapi.lib;msvcrt.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;libcrypto_static.lib;libssl_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>

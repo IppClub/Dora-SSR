@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/Event.h"
 #include "Event/Listener.h"
 
+#define CPPHTTPLIB_OPENSSL_SUPPORT
 #define CPPHTTPLIB_ZLIB_SUPPORT
 #include "httplib/httplib.h"
 
@@ -35,6 +36,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 namespace ws = websocketpp;
 namespace wsl = websocketpp::lib;
+
+#if BX_PLATFORM_LINUX
+#include <limits.h>
+#include <unistd.h>
+
+#include "ghc/fs_impl.hpp"
+
+#include "ghc/fs_fwd.hpp"
+namespace fs = ghc::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif // BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_WINDOWS
 static std::string get_local_ip() {
@@ -492,6 +506,91 @@ void HttpServer::stop() {
 
 const char* HttpServer::getVersion() {
 	return CPPHTTPLIB_VERSION;
+}
+
+void HttpClient::downloadAsync(String url, String filePath, const std::function<void (bool interrupted, uint64_t current, uint64_t total)>& progress) {
+	static std::regex urlRegex(
+		R"(^(([^:\/?#]+):)?(//([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)",
+		std::regex::extended
+	);
+	std::smatch matchResult;
+	auto urlStr = url.toString();
+	std::string schemeHostPort, pathToGet;
+	if (std::regex_match(urlStr, matchResult, urlRegex)) {
+		std::string scheme = matchResult[2];
+		std::string authority = matchResult[4];
+		std::string path = matchResult[5];
+		std::string query = matchResult[7];
+		std::string fragment = matchResult[9];
+		if (scheme.empty()) {
+			Error("url scheme is missing for \"{}\"", urlStr);
+			progress(true, 0, 0);
+			return;
+		}
+		if (authority.empty()) {
+			Error("url authority is missing for \"{}\"", urlStr);
+			progress(true, 0, 0);
+			return;
+		}
+		schemeHostPort = scheme + "://"s + authority;
+		pathToGet = path;
+		if (!query.empty()) {
+			pathToGet += '?' + query;
+		}
+		if (!fragment.empty()) {
+			pathToGet += '#' + fragment;
+		}
+	} else {
+		Error("malformed url \"{}\" to download", urlStr);
+		progress(true, 0, 0);
+		return;
+	}
+	SharedAsyncThread.run([schemeHostPort, fileStr = filePath.toString(), urlStr, progress, pathToGet]() {
+		try {
+			httplib::Client client(schemeHostPort);
+			client.enable_server_certificate_verification(false);
+			client.set_follow_location(true);
+			std::ofstream out(fileStr, std::ios::out | std::ios::trunc | std::ios::binary);
+			if (!out) {
+				Error("invalid local file path \"{}\" to download to", fileStr);
+				return;
+			}
+			auto result = client.Get(pathToGet, [&](const char* data, size_t data_length) -> bool {
+				if (!out.write(data, data_length)) {
+					Error("failed to write downloaded file for \"{}\"", urlStr);
+					SharedApplication.invokeInLogic([progress]() {
+						progress(true, 0, 0);
+					});
+					std::error_code err;
+					fs::remove_all(fileStr, err);
+					WarnIf(err, "failed to remove download file \"{}\" due to \"{}\".", fileStr, err.message());
+					return false;
+				}
+				return true;
+			}, [&](uint64_t current, uint64_t total) -> bool {
+				SharedApplication.invokeInLogic([progress, current, total]() {
+					progress(false, current, total);
+				});
+				return true;
+			});
+			if (!result || result.error() != httplib::Error::Success) {
+				Error("failed to download \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
+				SharedApplication.invokeInLogic([progress]() {
+					progress(true, 0, 0);
+				});
+				std::error_code err;
+				if (fs::exists(fileStr, err)) {
+					fs::remove_all(fileStr, err);
+					WarnIf(err, "failed to remove download file \"{}\" due to \"{}\".", fileStr, err.message());
+				}
+			}
+		} catch (const std::invalid_argument& ex) {
+			Error("invalid url \"{}\" to download due to: {}", urlStr, ex.what());
+			SharedApplication.invokeInLogic([progress]() {
+				progress(true, 0, 0);
+			});
+		}
+	});
 }
 
 NS_DORA_END

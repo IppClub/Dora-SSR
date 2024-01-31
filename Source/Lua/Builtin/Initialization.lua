@@ -509,6 +509,29 @@ do
 		end)
 	end
 
+	local HttpClient = dora.HttpClient
+	local HttpClient_downloadAsync = HttpClient.downloadAsync
+	HttpClient.downloadAsync = function(self, url, filePath, progress)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "HttpClient.downloadAsync should be run in a thread")
+		local failed = false
+		local done = false
+		HttpClient_downloadAsync(self, url, filePath, function(interrupted, current, total)
+			if interrupted then
+				failed = true
+			else
+				if progress then
+					progress(current, total)
+				end
+				done = current == total
+			end
+		end)
+		wait(function()
+			return done or failed
+		end)
+		return not failed
+	end
+
 	local yue_checkAsync = yue.checkAsync
 	yue.checkAsync = function(codes, searchPath)
 		local _, mainThread = coroutine.running()

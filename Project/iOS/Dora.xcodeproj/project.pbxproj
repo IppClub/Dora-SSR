@@ -318,6 +318,10 @@
 		3C7FA3682B688547005A8441 /* deflate.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA34E2B688547005A8441 /* deflate.c */; };
 		3C7FA36B2B688560005A8441 /* gzlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3692B68855F005A8441 /* gzlib.c */; };
 		3C7FA36C2B688560005A8441 /* gzlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3692B68855F005A8441 /* gzlib.c */; };
+		3C7FA3732B68A1DE005A8441 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA3712B68A1DD005A8441 /* libcrypto.a */; };
+		3C7FA3742B68A1DE005A8441 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA3722B68A1DD005A8441 /* libssl.a */; };
+		3C7FA3772B68A1F0005A8441 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA3752B68A1F0005A8441 /* libssl.a */; };
+		3C7FA3782B68A1F0005A8441 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA3762B68A1F0005A8441 /* libcrypto.a */; };
 		3C814F5D259C75CF0009DEC9 /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C814F5C259C75CF0009DEC9 /* Value.cpp */; };
 		3C853F8A28E3ED8A0012C0D0 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C853F8728E3ED8A0012C0D0 /* Test.cpp */; };
 		3C853F8B28E3ED8A0012C0D0 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C853F8728E3ED8A0012C0D0 /* Test.cpp */; };
@@ -1309,6 +1313,10 @@
 		3C7FA34E2B688547005A8441 /* deflate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = deflate.c; path = ../../../Source/3rdParty/zlib/deflate.c; sourceTree = "<group>"; };
 		3C7FA3692B68855F005A8441 /* gzlib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gzlib.c; path = ../../../Source/3rdParty/zlib/gzlib.c; sourceTree = "<group>"; };
 		3C7FA36A2B68855F005A8441 /* zconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zconf.h; path = ../../../Source/3rdParty/zlib/zconf.h; sourceTree = "<group>"; };
+		3C7FA3712B68A1DD005A8441 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = ../../Source/3rdParty/OpenSSL/Lib/iOS/libcrypto.a; sourceTree = "<group>"; };
+		3C7FA3722B68A1DD005A8441 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../../Source/3rdParty/OpenSSL/Lib/iOS/libssl.a; sourceTree = "<group>"; };
+		3C7FA3752B68A1F0005A8441 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = "../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator/libssl.a"; sourceTree = "<group>"; };
+		3C7FA3762B68A1F0005A8441 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator/libcrypto.a"; sourceTree = "<group>"; };
 		3C814F5C259C75CF0009DEC9 /* Value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Value.cpp; path = ../../../Source/Support/Value.cpp; sourceTree = "<group>"; };
 		3C853F8728E3ED8A0012C0D0 /* Test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Test.cpp; path = ../../../Source/Test/Test.cpp; sourceTree = "<group>"; };
 		3C853F8828E3ED8A0012C0D0 /* HelloWorldCpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HelloWorldCpp.cpp; path = ../../../Source/Test/HelloWorldCpp.cpp; sourceTree = "<group>"; };
@@ -1958,6 +1966,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C7FA3772B68A1F0005A8441 /* libssl.a in Frameworks */,
+				3C7FA3782B68A1F0005A8441 /* libcrypto.a in Frameworks */,
 				3CBE0F4D26088937003F4F45 /* libSDL2.a in Frameworks */,
 				3CBE0F1E26087FB3003F4F45 /* libbimg.a in Frameworks */,
 				3CBE0F1F26087FB3003F4F45 /* libbx.a in Frameworks */,
@@ -1982,6 +1992,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C7FA3732B68A1DE005A8441 /* libcrypto.a in Frameworks */,
+				3C7FA3742B68A1DE005A8441 /* libssl.a in Frameworks */,
 				3CA7809F2AE770EE00B7BADA /* libSDL2.a in Frameworks */,
 				3CA7809A2AE770DC00B7BADA /* libbgfx.a in Frameworks */,
 				3CA7809B2AE770DC00B7BADA /* libbimg.a in Frameworks */,
@@ -2951,6 +2963,10 @@
 		3C98626E1D9CA4500056A045 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3C7FA3712B68A1DD005A8441 /* libcrypto.a */,
+				3C7FA3762B68A1F0005A8441 /* libcrypto.a */,
+				3C7FA3722B68A1DD005A8441 /* libssl.a */,
+				3C7FA3752B68A1F0005A8441 /* libssl.a */,
 				3CA7809E2AE770EE00B7BADA /* libSDL2.a */,
 				3CA780962AE770DC00B7BADA /* libbgfx.a */,
 				3CA780982AE770DC00B7BADA /* libbimg_decode.a */,
@@ -3730,7 +3746,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 1520;
 				ORGANIZATIONNAME = IppClub;
 				TargetAttributes = {
 					3CBE0DF526087F7B003F4F45 = {
@@ -4770,6 +4786,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
 					"../../Source/3rdParty/bgfx/Lib/iOS-Simulator",
+					"../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator",
 				);
 				OTHER_CFLAGS = (
 					"-Wno-ambiguous-macro",
@@ -4798,6 +4815,7 @@
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/asio,
 					../../Source/3rdParty/zlib,
+					../../Source/3rdParty/OpenSSL/Header,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -4836,6 +4854,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
 					"../../Source/3rdParty/bgfx/Lib/iOS-Simulator",
+					"../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator",
 				);
 				OTHER_CFLAGS = (
 					"-Wno-ambiguous-macro",
@@ -4864,6 +4883,7 @@
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/asio,
 					../../Source/3rdParty/zlib,
+					../../Source/3rdParty/OpenSSL/Header,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -4873,6 +4893,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -4947,6 +4968,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -5046,6 +5068,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					../../Source/3rdParty/SDL2/Lib/iOS,
 					../../Source/3rdParty/bgfx/Lib/iOS,
+					../../Source/3rdParty/OpenSSL/Lib/iOS,
 				);
 				OTHER_CFLAGS = (
 					"-Wno-ambiguous-macro",
@@ -5074,6 +5097,7 @@
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/asio,
 					../../Source/3rdParty/zlib,
+					../../Source/3rdParty/OpenSSL/Header,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -5113,6 +5137,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					../../Source/3rdParty/SDL2/Lib/iOS,
 					../../Source/3rdParty/bgfx/Lib/iOS,
+					../../Source/3rdParty/OpenSSL/Lib/iOS,
 				);
 				OTHER_CFLAGS = (
 					"-Wno-ambiguous-macro",
@@ -5141,6 +5166,7 @@
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/asio,
 					../../Source/3rdParty/zlib,
+					../../Source/3rdParty/OpenSSL/Header,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};

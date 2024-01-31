@@ -1110,6 +1110,11 @@ class HttpServer
 	static tolua_outside HttpServer* HttpServer_shared @ create();
 };
 
+class HttpClient
+{
+	static void downloadAsync(String url, String filePath, tolua_function_void progress);
+};
+
 namespace ML {
 
 class QLearner : public Object

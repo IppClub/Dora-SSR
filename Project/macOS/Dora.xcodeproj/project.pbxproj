@@ -198,6 +198,8 @@
 		3C7FA3342B67AEE0005A8441 /* uncompr.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3262B67AEE0005A8441 /* uncompr.c */; };
 		3C7FA3352B67AEE0005A8441 /* inflate.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3272B67AEE0005A8441 /* inflate.c */; };
 		3C7FA3362B67AEE0005A8441 /* zutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C7FA3282B67AEE0005A8441 /* zutil.c */; };
+		3C7FA36F2B689F7D005A8441 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA36D2B689F7D005A8441 /* libssl.a */; };
+		3C7FA3702B689F7D005A8441 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA36E2B689F7D005A8441 /* libcrypto.a */; };
 		3C853F8128E2DC0F0012C0D0 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C853F7F28E2DC0F0012C0D0 /* Test.cpp */; };
 		3C853F8528E2FCE00012C0D0 /* HelloWorldCpp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C853F8428E2FCDF0012C0D0 /* HelloWorldCpp.cpp */; };
 		3C8805771E5EDCE100B52D4B /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8805761E5EDCE100B52D4B /* Debug.cpp */; };
@@ -848,6 +850,8 @@
 		3C7FA3262B67AEE0005A8441 /* uncompr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = uncompr.c; path = ../../../Source/3rdParty/zlib/uncompr.c; sourceTree = "<group>"; };
 		3C7FA3272B67AEE0005A8441 /* inflate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = inflate.c; path = ../../../Source/3rdParty/zlib/inflate.c; sourceTree = "<group>"; };
 		3C7FA3282B67AEE0005A8441 /* zutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zutil.c; path = ../../../Source/3rdParty/zlib/zutil.c; sourceTree = "<group>"; };
+		3C7FA36D2B689F7D005A8441 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../../Source/3rdParty/OpenSSL/Lib/macOS/libssl.a; sourceTree = "<group>"; };
+		3C7FA36E2B689F7D005A8441 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = ../../Source/3rdParty/OpenSSL/Lib/macOS/libcrypto.a; sourceTree = "<group>"; };
 		3C853F7F28E2DC0F0012C0D0 /* Test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Test.cpp; path = ../../../Source/Test/Test.cpp; sourceTree = "<group>"; };
 		3C853F8028E2DC0F0012C0D0 /* Test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Test.h; path = ../../../Source/Test/Test.h; sourceTree = "<group>"; };
 		3C853F8428E2FCDF0012C0D0 /* HelloWorldCpp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HelloWorldCpp.cpp; path = ../../../Source/Test/HelloWorldCpp.cpp; sourceTree = "<group>"; };
@@ -1505,6 +1509,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C7FA36F2B689F7D005A8441 /* libssl.a in Frameworks */,
+				3C7FA3702B689F7D005A8441 /* libcrypto.a in Frameworks */,
 				3CD029141E07DD5F0016E1EC /* libbgfx.a in Frameworks */,
 				3CE7D3751EADF594008EADB3 /* libbimg_decode.a in Frameworks */,
 				3CE7D3761EADF594008EADB3 /* libbimg.a in Frameworks */,
@@ -1754,6 +1760,8 @@
 		3C17D58D1D9C401F008758E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3C7FA36E2B689F7D005A8441 /* libcrypto.a */,
+				3C7FA36D2B689F7D005A8441 /* libssl.a */,
 				3CD029151E07DD720016E1EC /* libSDL2.a */,
 				3CD029131E07DD5F0016E1EC /* libbgfx.a */,
 				3CE7D3731EADF594008EADB3 /* libbimg_decode.a */,
@@ -3904,6 +3912,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/bgfx/Lib/macOS",
+					"$(SRCROOT)/../../Source/3rdParty/OpenSSL/Lib/macOS",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.3;
 				OTHER_CFLAGS = (
@@ -3932,6 +3941,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/wasm3",
 					"$(SRCROOT)/../../Source/3rdParty/asio",
 					"$(SRCROOT)/../../Source/3rdParty/zlib",
+					"$(SRCROOT)/../../Source/3rdParty/OpenSSL/Header",
 				);
 				VALID_ARCHS = "x86_64 arm64";
 			};
@@ -3970,6 +3980,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/bgfx/Lib/macOS",
+					"$(SRCROOT)/../../Source/3rdParty/OpenSSL/Lib/macOS",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.3;
 				OTHER_CFLAGS = (
@@ -3998,6 +4009,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/wasm3",
 					"$(SRCROOT)/../../Source/3rdParty/asio",
 					"$(SRCROOT)/../../Source/3rdParty/zlib",
+					"$(SRCROOT)/../../Source/3rdParty/OpenSSL/Header",
 				);
 				VALID_ARCHS = "x86_64 arm64";
 			};

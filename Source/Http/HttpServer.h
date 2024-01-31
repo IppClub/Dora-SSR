@@ -82,4 +82,9 @@ private:
 #define SharedHttpServer \
 	Dora::Singleton<Dora::HttpServer>::shared()
 
+class HttpClient {
+public:
+	static void downloadAsync(String url, String filePath, const std::function<void (bool interrupted, uint64_t current, uint64_t total)>& progress);
+};
+
 NS_DORA_END
