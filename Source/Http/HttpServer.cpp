@@ -41,8 +41,6 @@ namespace wsl = websocketpp::lib;
 #include <limits.h>
 #include <unistd.h>
 
-#include "ghc/fs_impl.hpp"
-
 #include "ghc/fs_fwd.hpp"
 namespace fs = ghc::filesystem;
 #else
