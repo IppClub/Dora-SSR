@@ -2025,7 +2025,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bxDebug.lib;psapi.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;libcrypto_static.lib;libssl_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bxDebug.lib;psapi.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;libcrypto_static.lib;libssl_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrt.lib %(AdditionalOptions)</AdditionalOptions>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
@@ -2072,7 +2072,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfxRelease.lib;bimgRelease.lib;bimg_decodeRelease.lib;bxRelease.lib;psapi.lib;msvcrt.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;libcrypto_static.lib;libssl_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;bgfxRelease.lib;bimgRelease.lib;bimg_decodeRelease.lib;bxRelease.lib;psapi.lib;msvcrt.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;libcrypto_static.lib;libssl_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
