@@ -218,10 +218,6 @@
     "message": "切换自动换行",
     "description": "The title attribute for toggle word wrapping button of code block lines"
   },
-  "theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel": {
-    "message": "打开/收起侧边栏菜单「{label}」",
-    "description": "The ARIA label to toggle the collapsible sidebar category"
-  },
   "theme.NavBar.navAriaLabel": {
     "message": "主导航",
     "description": "The ARIA label for the main navigation"
@@ -332,5 +328,25 @@
   "theme.SearchBar.label": {
     "message": "搜索",
     "description": "The ARIA label and placeholder for search button"
+  },
+  "theme.admonition.warning": {
+    "message": "注意",
+    "description": "The default label used for the Warning admonition (:::warning)"
+  },
+  "theme.DocSidebarItem.expandCategoryAriaLabel": {
+    "message": "展开侧边栏分类 '{label}'",
+    "description": "The ARIA label to expand the sidebar category"
+  },
+  "theme.DocSidebarItem.collapseCategoryAriaLabel": {
+    "message": "折叠侧边栏分类 '{label}'",
+    "description": "The ARIA label to collapse the sidebar category"
+  },
+  "theme.unlistedContent.title": {
+    "message": "未列出页",
+    "description": "The unlisted content banner title"
+  },
+  "theme.unlistedContent.message": {
+    "message": "此页面未列出。搜索引擎不会对其索引，只有拥有直接链接的用户才能访问。",
+    "description": "The unlisted content banner message"
   }
 }

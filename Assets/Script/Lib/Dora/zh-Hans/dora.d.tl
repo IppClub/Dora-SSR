@@ -101,6 +101,7 @@ local nvg = require("nvg")
 local ImGui = require("ImGui")
 local Platformer = require("Platformer")
 local HttpServer = require("HttpServer")
+local HttpClient = require("HttpClient")
 local Profiler = require("Profiler")
 local teal = require("teal")
 local yue = require("yue")
@@ -220,5 +221,6 @@ global dora = {
 	teal = teal,
 	yue = yue,
 	HttpServer = HttpServer,
+	HttpClient = HttpClient,
 	Profiler = Profiler,
 }
