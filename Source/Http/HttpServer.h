@@ -84,7 +84,21 @@ private:
 
 class HttpClient {
 public:
-	static void downloadAsync(String url, String filePath, const std::function<void (bool interrupted, uint64_t current, uint64_t total)>& progress);
+	PROPERTY_BOOL(Stopped);
+	virtual ~HttpClient();
+	void stop();
+	void downloadAsync(String url, String filePath, const std::function<void(bool interrupted, uint64_t current, uint64_t total)>& progress);
+
+protected:
+	HttpClient();
+
+private:
+	Async* _thread;
+	bool _stopped;
+	SINGLETON_REF(HttpClient, AsyncThread, Director);
 };
+
+#define SharedHttpClient \
+	Dora::Singleton<Dora::HttpClient>::shared()
 
 NS_DORA_END

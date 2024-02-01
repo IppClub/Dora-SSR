@@ -588,6 +588,11 @@ void Content::unzipAsync(String zipFile, String folderPath, const std::function<
 		return;
 	}
 	auto zip = std::make_shared<ZipFile>(fullZipPath);
+	if (!zip->isOK()) {
+		Error("failed to unzip file \"{}\"", zipFile.toString());
+		callback(false);
+		return;
+	}
 	std::string rootDir;
 	BLOCK_START
 	auto entries = zip->getDirEntries(""s, false);

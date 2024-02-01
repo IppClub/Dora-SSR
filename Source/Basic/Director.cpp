@@ -22,6 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Effect/Effect.h"
 #include "Entity/Entity.h"
 #include "GUI/ImGuiDora.h"
+#include "Http/HttpServer.h"
 #include "Input/Controller.h"
 #include "Input/Keyboard.h"
 #include "Input/TouchDispather.h"
@@ -520,6 +521,12 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 			_stoped = true;
 			Event::send("AppQuit"_slice);
 			cleanup();
+			if (Singleton<HttpServer>::isInitialized()) {
+				SharedHttpServer.stop();
+			}
+			if (Singleton<HttpClient>::isInitialized()) {
+				SharedHttpClient.stop();
+			}
 			break;
 		// The application is being terminated by the OS.
 		case SDL_APP_TERMINATING:
