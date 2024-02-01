@@ -1112,7 +1112,8 @@ class HttpServer
 
 class HttpClient
 {
-	static void downloadAsync(String url, String filePath, tolua_function_void progress);
+	void downloadAsync(String url, String filePath, tolua_function_void progress);
+	static tolua_outside HttpClient* HttpClient_shared @ create();
 };
 
 namespace ML {

@@ -51,6 +51,7 @@ do
 	dora.Keyboard = dora.Keyboard()
 	dora.DB = dora.DB()
 	dora.HttpServer = dora.HttpServer()
+	dora.HttpClient = dora.HttpClient()
 	dora.Platformer.Decision.AI = dora.Platformer.Decision.AI()
 	dora.Platformer.Data = dora.Platformer.Data()
 end

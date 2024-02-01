@@ -100,7 +100,11 @@ const LogView = memo((props: LogViewProps) => {
 						color: Color.TextSecondary
 					}}
 					rowHeight={22}
-					enableSearch stream follow/>
+					selectableLines
+					enableSearch
+					stream
+					follow
+				/>
 			</DialogContent>
 			<DialogActions>
 				<form noValidate autoComplete="off" style={{width: "100%"}} onSubmit={onSubmit}>

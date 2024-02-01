@@ -506,11 +506,32 @@ const char* HttpServer::getVersion() {
 	return CPPHTTPLIB_VERSION;
 }
 
-void HttpClient::downloadAsync(String url, String filePath, const std::function<void (bool interrupted, uint64_t current, uint64_t total)>& progress) {
+/* HttpClient */
+
+HttpClient::HttpClient()
+	: _thread(nullptr),
+	_stopped(false) {
+}
+
+HttpClient::~HttpClient() {
+	stop();
+}
+
+bool HttpClient::isStopped() const {
+	return _stopped;
+}
+
+void HttpClient::downloadAsync(String url, String filePath, const std::function<void(bool interrupted, uint64_t current, uint64_t total)>& progress) {
+	if (_stopped) {
+		progress(true, 0, 0);
+		return;
+	}
+	if (!_thread) {
+		_thread = SharedAsyncThread.newThread();
+	}
 	static std::regex urlRegex(
 		R"(^(([^:\/?#]+):)?(//([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)",
-		std::regex::extended
-	);
+		std::regex::extended);
 	std::smatch matchResult;
 	auto urlStr = url.toString();
 	std::string schemeHostPort, pathToGet;
@@ -543,7 +564,7 @@ void HttpClient::downloadAsync(String url, String filePath, const std::function<
 		progress(true, 0, 0);
 		return;
 	}
-	SharedAsyncThread.run([schemeHostPort, fileStr = filePath.toString(), urlStr, progress, pathToGet]() {
+	_thread->run([schemeHostPort, fileStr = filePath.toString(), urlStr, progress, pathToGet]() {
 		try {
 			httplib::Client client(schemeHostPort);
 			client.enable_server_certificate_verification(false);
@@ -553,24 +574,28 @@ void HttpClient::downloadAsync(String url, String filePath, const std::function<
 				Error("invalid local file path \"{}\" to download to", fileStr);
 				return;
 			}
-			auto result = client.Get(pathToGet, [&](const char* data, size_t data_length) -> bool {
-				if (!out.write(data, data_length)) {
-					Error("failed to write downloaded file for \"{}\"", urlStr);
-					SharedApplication.invokeInLogic([progress]() {
-						progress(true, 0, 0);
+			auto result = client.Get(
+				pathToGet, [&](const char* data, size_t data_length) -> bool {
+					if (SharedHttpClient.isStopped()) {
+						return false;
+					} else if (!out.write(data, data_length)) {
+						Error("failed to write downloaded file for \"{}\"", urlStr);
+						SharedApplication.invokeInLogic([progress]() {
+							progress(true, 0, 0);
+						});
+						std::error_code err;
+						fs::remove_all(fileStr, err);
+						WarnIf(err, "failed to remove download file \"{}\" due to \"{}\".", fileStr, err.message());
+						return false;
+					}
+					return true;
+				},
+				[&](uint64_t current, uint64_t total) -> bool {
+					SharedApplication.invokeInLogic([progress, current, total]() {
+						progress(false, current, total);
 					});
-					std::error_code err;
-					fs::remove_all(fileStr, err);
-					WarnIf(err, "failed to remove download file \"{}\" due to \"{}\".", fileStr, err.message());
-					return false;
-				}
-				return true;
-			}, [&](uint64_t current, uint64_t total) -> bool {
-				SharedApplication.invokeInLogic([progress, current, total]() {
-					progress(false, current, total);
+					return true;
 				});
-				return true;
-			});
 			if (!result || result.error() != httplib::Error::Success) {
 				Error("failed to download \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
 				SharedApplication.invokeInLogic([progress]() {
@@ -589,6 +614,10 @@ void HttpClient::downloadAsync(String url, String filePath, const std::function<
 			});
 		}
 	});
+}
+
+void HttpClient::stop() {
+	_stopped = true;
 }
 
 NS_DORA_END

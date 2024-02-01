@@ -245,6 +245,9 @@ int HttpServer_postSchedule(lua_State* L);
 int HttpServer_upload(lua_State* L);
 inline HttpServer* HttpServer_shared() { return &SharedHttpServer; }
 
+/* HttpClient */
+inline HttpClient* HttpClient_shared() { return &SharedHttpClient; }
+
 /* Effect */
 inline Pass* Effect_get(Effect* self, size_t index) { return self->get(index - 1); }
 
