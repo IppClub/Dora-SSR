@@ -1,0 +1,34 @@
+import "@site/src/languages/highlight";
+
+# HttpClient
+
+**描述：**
+
+&emsp;&emsp;代表一个HTTP客户端。
+
+## downloadAsync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从指定的URL异步下载文件，并保存到指定的路径。必须在一个协程中调用此方法。
+
+**签名：**
+```tl
+downloadAsync: function(self: HttpClient, url: string, fullPath: string, progress?: function(current: integer, total: integer)): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| url | string | 需要下载的文件的URL。 |
+| fullPath | string | 下载文件应保存的完整路径。 |
+| progress | string | [可选] 一个定期报告下载进度的回调函数。	该函数接收两个参数：current（到目前为止下载的字节数）和 total（需要下载的总字节数）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 一个布尔值，表示下载是否成功完成。 |
