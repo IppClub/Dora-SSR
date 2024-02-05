@@ -19,7 +19,9 @@ return function(schema: string, ...: string): DoraConfig
 	local insertValues: {string: any} = {}
 	local updateValues: {string: any} = {}
 	local deleteValues: {string} = {}
+	local loaded = false
 	local function notify(event: Struct.RecordEvent, key: string, value: any)
+		assert(loaded, "Config should be loaded before updating")
 		if event == "Modified" then
 			if oldValues[key] == nil then
 				insertValues[key] = value
@@ -84,24 +86,35 @@ return function(schema: string, ...: string): DoraConfig
 		]])
 	end
 
-	rawset(conf as table, "loadAsync", function(self: DoraConfig)
-		local rows = DB:queryAsync("select name, value_num, value_str from " .. tableName) as {{string, number, string}}
+	local function initConfig(self: DoraConfig, rows: {{string, number, string}})
+		local mt = getmetatable(self) as {string}
+		local fields = {}
+		for i = 1, #mt do
+			local fieldName = mt[i]
+			fields[fieldName] = true
+		end
 		for i = 1, #rows do
 			local key = rows[i][1]
-			local value: number | string = rows[i][2] or rows[i][3]
-			oldValues[key] = value
-			self[key] = value
+			if fields[key] then
+				local value: number | string = rows[i][2] or rows[i][3]
+				oldValues[key] = value
+				self[key] = value
+			else
+				print("Config key \"" .. key .. "\" is no longer exist")
+			end
 		end
+	end
+
+	rawset(conf as table, "loadAsync", function(self: DoraConfig)
+		local rows = DB:queryAsync("select name, value_num, value_str from " .. tableName) as {{string, number, string}}
+		loaded = true
+		initConfig(self, rows)
 	end)
 
 	rawset(conf as table, "load", function(self: DoraConfig)
 		local rows = DB:query("select name, value_num, value_str from " .. tableName) as {{string, number, string}}
-		for i = 1, #rows do
-			local key = rows[i][1]
-			local value: number | string = rows[i][2] or rows[i][3]
-			oldValues[key] = value
-			self[key] = value
-		end
+		loaded = true
+		initConfig(self, rows)
 	end)
 
 	rawset(conf as table, "__notify", notify)
