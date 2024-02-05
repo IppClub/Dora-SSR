@@ -231,11 +231,6 @@ void Keyboard::updateIMEPosHint(const Vec2& winPos) {
 
 void Keyboard::handleEvent(const SDL_Event& event) {
 	switch (event.type) {
-		case SDL_MOUSEBUTTONDOWN:
-		case SDL_FINGERDOWN: {
-			detachIME();
-			break;
-		}
 		case SDL_KEYDOWN: {
 			Slice name;
 			bool oldDown;

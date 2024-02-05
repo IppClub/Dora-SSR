@@ -347,6 +347,7 @@ bool Unit::start(String name) {
 void Unit::stop() {
 	if (_currentAction && _currentAction->isDoing()) {
 		_currentAction->stop();
+		_currentAction->_status = Behavior::Status::Success;
 		_currentAction = nullptr;
 	}
 }
