@@ -62,6 +62,24 @@ std::string Content::getAndroidAssetName(String fullPath) const {
 
 Content::~Content() { }
 
+void Content::init(int argc, const char* const argv[]) {
+	for (int i = 0; i < argc; i++) {
+		if (argv[i] == "--asset"sv && i + 1 < argc) {
+			std::string assetPath = argv[++i];
+			std::error_code err;
+			std::string fullPath = fs::absolute(assetPath, err).string();
+			if (err) {
+				Error("got invalid asset path \"{}\"", assetPath);
+			}
+			if (fs::exists(fullPath, err)) {
+				_assetPath = fullPath;
+			} else {
+				Error("got invalid asset path \"{}\"", assetPath);
+			}
+		}
+	}
+}
+
 Async* Content::getThread() const {
 	return _thread;
 }
