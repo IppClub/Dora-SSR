@@ -5423,7 +5423,10 @@ tl.type_check = function(ast, opts)
 		end
 	end
 
+	local resolve_embeds
+
 	local function union_type(t)
+		resolve_embeds(t)
 		if is_typetype(t) then
 			return union_type(t.def)
 		elseif t.typename == "tuple" then
@@ -6222,9 +6225,9 @@ tl.type_check = function(ast, opts)
 		return false, t2.typename .. " can't be embedded"
 	end
 
-	local resolve_tuple_and_nominal = nil
+	local resolve_tuple_and_nominal
 
-	local function resolve_embeds(t)
+	resolve_embeds = function(t)
 		if not t.embeds or t.embeds_resolved then
 			return t
 		end
