@@ -63,7 +63,7 @@ public:
 	PROPERTY_BOOL(Idled);
 	SDLEventHandler eventHandler;
 	QuitHandler quitHandler;
-	int run();
+	int run(int argc, const char* const argv[]);
 	void shutdown();
 	void invokeInRender(const std::function<void()>& func);
 	void invokeInLogic(const std::function<void()>& func);

@@ -21,6 +21,7 @@ public:
 	PROPERTY_CREF(std::vector<std::string>, SearchPaths);
 	PROPERTY_READONLY(Async*, Thread);
 	virtual ~Content();
+	void init(int argc, const char* const argv[]);
 	bool exist(String filename);
 	bool isFolder(String path);
 	bool isAbsolutePath(String strPath);
