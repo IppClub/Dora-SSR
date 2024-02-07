@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2023 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2024 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bx/blob/master/LICENSE
  */
 
@@ -213,6 +213,10 @@ namespace bx
 	/// Returns true if value `_a` is power of 2.
 	template<typename Ty>
 	constexpr bool isPowerOf2(Ty _a);
+
+	/// Returns a value of type To by reinterpreting the object representation of From.
+	template <typename To, typename From>
+	constexpr To bit_cast(const From& value) noexcept;
 
 	/// Copy memory block.
 	///

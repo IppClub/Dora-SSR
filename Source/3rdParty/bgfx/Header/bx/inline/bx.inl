@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2023 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2024 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bx/blob/master/LICENSE
  */
 
@@ -145,6 +145,16 @@ namespace bx
 	inline constexpr bool isPowerOf2(Ty _a)
 	{
 		return _a && !(_a & (_a - 1) );
+	}
+
+	template <typename To, typename From>
+	inline constexpr To bit_cast(const From& value) noexcept
+	{
+		BX_STATIC_ASSERT(sizeof(To) == sizeof(From), "To and From must be the same size.");
+		BX_STATIC_ASSERT(isTriviallyConstructible<To>(), "Destination target must be trivially constructible.");
+		To result;
+		bx::memCopy(&result, &value, sizeof(To));
+		return result;
 	}
 
 } // namespace bx

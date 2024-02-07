@@ -841,15 +841,6 @@ bool Content::isAbsolutePath(String strPath) {
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_WINDOWS
-Content::Content()
-	: _thread(SharedAsyncThread.newThread()) {
-	_assetPath = fs::current_path().string();
-
-	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
-	_writablePath = prefPath;
-	SDL_free(prefPath);
-}
-
 bool Content::isAbsolutePath(String strPath) {
 	if (strPath.size() > 2
 		&& ((strPath[0] >= 'a' && strPath[0] <= 'z') || (strPath[0] >= 'A' && strPath[0] <= 'Z'))
@@ -861,6 +852,15 @@ bool Content::isAbsolutePath(String strPath) {
 #endif // BX_PLATFORM_WINDOWS
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+Content::Content()
+	: _thread(SharedAsyncThread.newThread()) {
+	_assetPath = fs::current_path().string();
+
+	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
+	_writablePath = prefPath;
+	SDL_free(prefPath);
+}
+
 bool Content::isFileExist(String filePath) {
 	std::string strPath = filePath.toString();
 	if (!Content::isAbsolutePath(strPath)) {
@@ -883,19 +883,6 @@ Content::Content()
 	SDL_free(prefPath);
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
-
-#if BX_PLATFORM_LINUX
-Content::Content()
-	: _thread(SharedAsyncThread.newThread()) {
-	auto currentPath = NewArray<char>(PATH_MAX);
-	::getcwd(currentPath.get(), PATH_MAX);
-	_assetPath = currentPath.get();
-
-	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
-	_writablePath = prefPath;
-	SDL_free(prefPath);
-}
-#endif // BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 
