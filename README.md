@@ -86,6 +86,30 @@
 
      - 3. Start game development.
 
+
+  - Linux
+
+     - 1. Installation.
+       
+       - Ubuntu Jammy
+         ```sh
+         sudo add-apt-repository ppa:ippclub/dora-ssr
+         sudo apt update
+         sudo apt install dora-ssr
+         ```
+
+       - Debian Bookworm
+         ```sh
+         sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
+         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
+         sudo apt update
+         sudo apt install dora-ssr
+         ```
+
+     - 2. Run the software and access the server address displayed by the software through a browser.
+
+     - 3. Start game development.
+
 - Engine project development
 
    For the installation and configuration of Dora SSR project development, see [Official Documents](https://Dora-ssr.net/docs/tutorial/dev-configuration) for details.
