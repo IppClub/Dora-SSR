@@ -84,6 +84,28 @@
     - 2、运行软件，通过浏览器访问软件显示的服务器地址。
 
     - 3、开始游戏开发。
+    
+  - Linux
+    - 1、安装软件：
+      
+       - Ubuntu Jammy
+         ```sh
+         sudo add-apt-repository ppa:ippclub/dora-ssr
+         sudo apt update
+         sudo apt install dora-ssr
+         ```
+
+       - Debian Bookworm
+         ```sh
+         sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
+         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
+         sudo apt update
+         sudo apt install dora-ssr
+         ```
+
+    - 2、运行软件，通过浏览器访问软件显示的服务器地址。
+    
+    - 3、开始游戏开发。
 
 - 引擎项目开发
 
