@@ -1,4 +1,5 @@
 import * as ts from "typescript";
+import { SyntaxKind } from "typescript";
 import * as lua from "../../../LuaAST";
 import { TransformationContext } from "../../context";
 import { validateAssignment } from "../../utils/assignment-validation";
@@ -73,6 +74,29 @@ export function transformAssignment(
         );
 
         return [arrayLengthAssignment];
+    }
+
+    if (ts.isPropertyAccessExpression(lhs) || ts.isElementAccessExpression(lhs)) {
+        if (lhs.expression.kind === SyntaxKind.SuperKeyword) {
+            const symbol = context.checker.getSymbolAtLocation(lhs);
+            if (symbol && symbol.flags & ts.SymbolFlags.SetAccessor) {
+                return [
+                    lua.createExpressionStatement(
+                        transformLuaLibFunction(
+                            context,
+                            LuaLibFeature.DescriptorSet,
+                            parent,
+                            lua.createIdentifier("self"),
+                            context.transformExpression(lhs.expression),
+                            ts.isPropertyAccessExpression(lhs)
+                                ? lua.createStringLiteral(lhs.name.text)
+                                : context.transformExpression(lhs.argumentExpression),
+                            right
+                        )
+                    ),
+                ];
+            }
+        }
     }
 
     const symbol =
@@ -207,8 +231,6 @@ const canBeTransformedToLuaAssignmentStatement = (
                 return aliases.length === 0;
             }
         }
-
-        return true;
     });
 
 export function transformAssignmentStatement(
