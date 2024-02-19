@@ -210,7 +210,6 @@
       "__TS__Await"
     ],
     "dependencies": [
-      "InstanceOf",
       "Promise",
       "New"
     ]
@@ -275,6 +274,16 @@
     "dependencies": [
       "StringAccess",
       "Symbol"
+    ]
+  },
+  "DescriptorGet": {
+    "exports": [
+      "__TS__DescriptorGet"
+    ]
+  },
+  "DescriptorSet": {
+    "exports": [
+      "__TS__DescriptorSet"
     ]
   },
   "Error": {
@@ -491,8 +500,7 @@
       "Promise",
       "New",
       "InstanceOf",
-      "Class",
-      "FunctionBind"
+      "Class"
     ]
   },
   "PromiseAll": {
@@ -554,7 +562,9 @@
       "__TS__SetDescriptor"
     ],
     "dependencies": [
-      "CloneDescriptor"
+      "CloneDescriptor",
+      "DescriptorGet",
+      "DescriptorSet"
     ]
   },
   "SparseArrayNew": {

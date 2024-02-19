@@ -126,11 +126,8 @@ function transformExpressionsUsingSparseArray(
         arrayIdentifier = pushToSparseArray(context, arrayIdentifier, expressionBatch);
     }
 
-    if (arrayIdentifier === undefined) {
-        throw Error("arrayIdentifier is undefined");
-    } else {
-        return [transformLuaLibFunction(context, LuaLibFeature.SparseArraySpread, undefined, arrayIdentifier)];
-	}
+    assert(arrayIdentifier);
+    return [transformLuaLibFunction(context, LuaLibFeature.SparseArraySpread, undefined, arrayIdentifier)];
 }
 
 function countNeededTemps(
