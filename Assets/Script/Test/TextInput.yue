@@ -34,7 +34,7 @@ TextInput = Class ((args)->
 		label.text = text
 		offsetX = math.max label.width + 3 - width, 0
 		label.x = -offsetX
-		cursor.x = label.width - offsetX + 1
+		cursor.x = label.width - offsetX - 10
 		cursor\schedule blink!
 
 	node = with ClipNode SolidRect :width, :height
@@ -51,7 +51,7 @@ TextInput = Class ((args)->
 			(pos) <- \convertToWindowSpace Vec2 -label.x + label.width, 0
 			Keyboard\updateIMEPosHint pos
 		startEditing = ->
-			if !@imeAttached
+			if not .imeAttached
 				\attachIME!
 				updateIMEPos!
 		.updateDisplayText = (text)=>

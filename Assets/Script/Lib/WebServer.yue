@@ -565,9 +565,34 @@ HttpServer\postSchedule "/read", (req)->
 				return :content, success: true
 	success: false
 
+compileFileAsync = (inputFile, sourceCodes)->
+	file = Path\getFilename inputFile
+	searchPath = if dir := getProjectDirFromFile inputFile
+		file = Path\getRelative inputFile, Path Content.writablePath, dir
+		Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
+	else ""
+	outputFile = Path\replaceExt inputFile, "lua"
+	options: {extension: yueext} = yue
+	switch Path\getExt inputFile when yueext
+		(success) <- yue.compile inputFile, outputFile, searchPath, (codes, err, globals)->
+			return unless codes
+			success, result = LintYueGlobals codes, globals
+			return unless success
+			codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
+			result ..= "\n" unless result == ""
+			"-- [yue]: #{file}\n#{result}" .. codes
+		Content\remove outputFile if not success
+	when "tl"
+		if codes := teal.toluaAsync sourceCodes, file, searchPath
+			Content\saveAsync outputFile, codes
+		else
+			Content\remove outputFile
+
 HttpServer\postSchedule "/write", (req)->
 	switch req when {body: {:path, :content}}
 		if Content\saveAsync path, content
+			switch Path\getExt path when "tl", "yue"
+				compileFileAsync path, content
 			return success: true
 	success: false
 
