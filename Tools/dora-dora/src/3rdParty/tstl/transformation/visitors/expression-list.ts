@@ -126,7 +126,7 @@ function transformExpressionsUsingSparseArray(
         arrayIdentifier = pushToSparseArray(context, arrayIdentifier, expressionBatch);
     }
 
-    assert(arrayIdentifier);
+    if (!arrayIdentifier) throw new Error("Array identifier was not created");
     return [transformLuaLibFunction(context, LuaLibFeature.SparseArraySpread, undefined, arrayIdentifier)];
 }
 
