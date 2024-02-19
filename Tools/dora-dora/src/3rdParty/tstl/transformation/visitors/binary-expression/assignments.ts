@@ -231,6 +231,8 @@ const canBeTransformedToLuaAssignmentStatement = (
                 return aliases.length === 0;
             }
         }
+
+        return true;
     });
 
 export function transformAssignmentStatement(
