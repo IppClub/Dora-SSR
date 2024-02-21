@@ -188,9 +188,9 @@ export default memo(function FileTree(props: FileTreeProps) {
 		<MacScrollbar
 			skin='dark'
 			style={{
-				paddingLeft: '10px',
 				color: Color.Primary,
 				fontSize: '14px',
+				height: '100%',
 			}}
 		>
 			<style dangerouslySetInnerHTML={{ __html: treeStyle }}/>
@@ -256,4 +256,30 @@ export default memo(function FileTree(props: FileTreeProps) {
 			/>
 		</MacScrollbar>
 	);
+}, (prev, next) => {
+	if (prev.selectedKeys.length !== next.selectedKeys.length) {
+		return false;
+	}
+	prev.selectedKeys.sort();
+	next.selectedKeys.sort();
+	for (let i = 0; i < prev.selectedKeys.length; i++) {
+		if (prev.selectedKeys[i] !== next.selectedKeys[i]) {
+			return false;
+		}
+	}
+	if (prev.expandedKeys.length !== next.expandedKeys.length) {
+		return false;
+	}
+	prev.expandedKeys.sort();
+	next.expandedKeys.sort();
+	for (let i = 0; i < prev.expandedKeys.length; i++) {
+		if (prev.expandedKeys[i] !== next.expandedKeys[i]) {
+			return false;
+		}
+	}
+	return prev.treeData === next.treeData &&
+		prev.onSelect === next.onSelect &&
+		prev.onMenuClick === next.onMenuClick &&
+		prev.onExpand === next.onExpand &&
+		prev.onDrop === next.onDrop;
 });

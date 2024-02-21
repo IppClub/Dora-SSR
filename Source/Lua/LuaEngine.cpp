@@ -1749,16 +1749,12 @@ bool LuaEngine::execute(lua_State* L, int numArgs) {
 	bool result = false;
 	int top = lua_gettop(L) - numArgs - 1;
 	if (LuaEngine::call(L, numArgs, 1)) {
-		switch (lua_type(L, -1)) {
-			case LUA_TBOOLEAN:
-				result = lua_toboolean(L, -1) != 0;
-				break;
-			case LUA_TNUMBER:
-				result = lua_tonumber(L, -1) != 0;
-				break;
+		if (lua_isboolean(L, -1)) {
+			result = lua_toboolean(L, -1) != 0;
 		}
-	} else
+	} else {
 		result = true; // if function call fails, return true to stop schedule related functions
+	}
 	lua_settop(L, top); // stack clear
 	return result;
 }

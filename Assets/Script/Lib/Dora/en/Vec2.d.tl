@@ -1,5 +1,5 @@
-local type Size = require("SizeType")
 local type Vec2 = require("Vec2Type")
+local type Size = require("SizeType")
 
 -- A class for creating Vec2 objects.
 local record Vec2Class

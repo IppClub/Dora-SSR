@@ -677,6 +677,7 @@ static void group_watch(int64_t group, int32_t func, int64_t stack) {
 			push_value(args, e->getComponent(index));
 		}
 		SharedWasmRuntime.invoke(func);
+		return std::get<bool>(args->pop());
 	});
 }
 static int64_t group_find(int64_t group, int32_t func, int64_t stack) {
@@ -707,6 +708,7 @@ static void observer_watch(int64_t observer, int32_t func, int64_t stack) {
 			push_value(args, e->getComponent(index));
 		}
 		SharedWasmRuntime.invoke(func);
+		return std::get<bool>(args->pop());
 	});
 }
 

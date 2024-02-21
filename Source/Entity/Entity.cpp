@@ -17,6 +17,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
+typedef Acf::Delegate<void(Entity*)> EntityEventHandler;
+
 class EntityPool {
 public:
 	EntityPool() {
@@ -42,9 +44,9 @@ public:
 				}
 			}
 			nextValues.clear();
-			for (const auto& trigger : triggers) {
-				trigger();
-			}
+			triggers.erase(std::remove_if(triggers.begin(), triggers.end(), [](const auto& trigger) {
+				return trigger();
+			}), triggers.end());
 			for (auto& it : observers) {
 				it.second->clear();
 			}
@@ -90,35 +92,35 @@ public:
 	static_assert(sizeof(NextId) == sizeof(uint64_t), "invalid updated entity id size");
 	std::stack<Ref<Entity>> availableEntities;
 	RefVector<Entity> entities;
-	std::vector<Acf::Delegate<void()>> triggers;
+	std::vector<Acf::Delegate<bool()>> triggers;
 	std::unordered_set<int> usedIndices;
 	StringMap<int> comIndices;
 	std::unordered_set<WRef<Entity>, WRefEntityHasher> updatedEntities;
-	std::vector<EntityHandler> addHandlers;
-	std::vector<EntityHandler> changeHandlers;
-	std::vector<EntityHandler> removeHandlers;
-	std::vector<EntityHandler> groupAddHandlers;
-	std::vector<EntityHandler> groupRemoveHandlers;
+	std::vector<EntityEventHandler> addHandlers;
+	std::vector<EntityEventHandler> changeHandlers;
+	std::vector<EntityEventHandler> removeHandlers;
+	std::vector<EntityEventHandler> groupAddHandlers;
+	std::vector<EntityEventHandler> groupRemoveHandlers;
 	std::unordered_map<uint64_t, Own<Value>> nextValues;
 	StringMap<Ref<EntityGroup>> groups;
 	StringMap<Ref<EntityObserver>> observers;
-	EntityHandler& getAddHandler(int index) {
+	EntityEventHandler& getAddHandler(int index) {
 		while (s_cast<int>(addHandlers.size()) <= index) addHandlers.emplace_back();
 		return addHandlers[index];
 	}
-	EntityHandler& getGroupAddHandler(int index) {
+	EntityEventHandler& getGroupAddHandler(int index) {
 		while (s_cast<int>(groupAddHandlers.size()) <= index) groupAddHandlers.emplace_back();
 		return groupAddHandlers[index];
 	}
-	EntityHandler& getChangeHandler(int index) {
+	EntityEventHandler& getChangeHandler(int index) {
 		while (s_cast<int>(changeHandlers.size()) <= index) changeHandlers.emplace_back();
 		return changeHandlers[index];
 	}
-	EntityHandler& getGroupRemoveHandler(int index) {
+	EntityEventHandler& getGroupRemoveHandler(int index) {
 		while (s_cast<int>(groupRemoveHandlers.size()) <= index) groupRemoveHandlers.emplace_back();
 		return groupRemoveHandlers[index];
 	}
-	EntityHandler& getRemoveHandler(int index) {
+	EntityEventHandler& getRemoveHandler(int index) {
 		while (s_cast<int>(removeHandlers.size()) <= index) removeHandlers.emplace_back();
 		return removeHandlers[index];
 	}
@@ -426,10 +428,9 @@ void EntityGroup::onRemove(Entity* entity) {
 EntityGroup* EntityGroup::watch(const EntityHandler& handler) {
 	WRef<EntityGroup> self(this);
 	SharedEntityPool.triggers.push_back([self, handler]() {
-		if (!self) return;
-		self->each([&handler](Entity* entity) {
-			handler(entity);
-			return false;
+		if (!self) return true;
+		return self->each([&handler](Entity* entity) {
+			return handler(entity);
 		});
 	});
 	return this;
@@ -439,8 +440,8 @@ EntityGroup* EntityGroup::watch(LuaHandler* handler) {
 	WRef<EntityGroup> self(this);
 	Ref<LuaHandler> hRef(handler);
 	SharedEntityPool.triggers.push_back([self, hRef]() {
-		if (!self) return;
-		self->each([&](Entity* entity) {
+		if (!self) return true;
+		return self->each([&](Entity* entity) {
 			auto L = SharedLuaEngine.getState();
 			tolua_pushobject(L, entity);
 			for (int i : self->_components) {
@@ -450,8 +451,7 @@ EntityGroup* EntityGroup::watch(LuaHandler* handler) {
 				else
 					lua_pushnil(L);
 			}
-			LuaEngine::execute(L, hRef->get(), self->_components.size() + 1);
-			return false;
+			return LuaEngine::execute(L, hRef->get(), self->_components.size() + 1);
 		});
 	});
 	return this;
@@ -570,10 +570,9 @@ void EntityObserver::onEvent(Entity* entity) {
 EntityObserver* EntityObserver::watch(const EntityHandler& handler) {
 	WRef<EntityObserver> self(this);
 	SharedEntityPool.triggers.push_back([self, handler]() {
-		if (!self) return;
-		self->each([&handler](Entity* entity) {
-			handler(entity);
-			return false;
+		if (!self) return true;
+		return self->each([&handler](Entity* entity) {
+			return handler(entity);
 		});
 	});
 	return this;
@@ -583,8 +582,8 @@ EntityObserver* EntityObserver::watch(LuaHandler* handler) {
 	WRef<EntityObserver> self(this);
 	Ref<LuaHandler> hRef(handler);
 	SharedEntityPool.triggers.push_back([self, hRef]() {
-		if (!self) return;
-		self->each([&](Entity* entity) {
+		if (!self) return true;
+		return self->each([&](Entity* entity) {
 			auto L = SharedLuaEngine.getState();
 			tolua_pushobject(L, entity);
 			for (int i : self->_components) {
@@ -594,8 +593,7 @@ EntityObserver* EntityObserver::watch(LuaHandler* handler) {
 				else
 					lua_pushnil(L);
 			}
-			LuaEngine::execute(L, hRef->get(), self->_components.size() + 1);
-			return false;
+			return LuaEngine::execute(L, hRef->get(), self->_components.size() + 1);
 		});
 	});
 	return this;

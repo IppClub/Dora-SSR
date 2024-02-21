@@ -352,6 +352,40 @@ export default function PersistentDrawerLeft() {
 		setTabIndex(newValue);
 		if (newValue === null) return;
 		if (fileToFocus !== undefined) {
+			const file = fileToFocus;
+			setTreeData(prev => {
+				const visitedStack: TreeDataType[] = [];
+				function visitTree(node: TreeDataType): boolean {
+					if (node.key === file.key) {
+						setSelectedKeys([node.key]);
+						setSelectedNode(node);
+						return false;
+					}
+					if (node.children !== undefined) {
+						visitedStack.push(node);
+						const continueSearch = node.children.every(child => {
+							return visitTree(child);
+						});
+						if (continueSearch) {
+							visitedStack.pop();
+						}
+						return continueSearch;
+					}
+					return true;
+				};
+				for (let i = 0; i < prev.length; i++) {
+					if (!visitTree(prev[i])) {
+						for (let node of visitedStack) {
+							if (expandedKeys.indexOf(node.key) === -1) {
+								expandedKeys.push(node.key);
+							}
+						}
+						setExpandedKeys([...expandedKeys]);
+						break;
+					}
+				}
+				return prev;
+			});
 			setTimeout(() => {
 				const {editor} = fileToFocus;
 				if (editor !== undefined) {
@@ -377,7 +411,7 @@ export default function PersistentDrawerLeft() {
 				fileToFocus.yarnData?.warpToFocusedNode();
 			}, 100);
 		}
-	}, []);
+	}, [expandedKeys]);
 
 	const tabBarOnChange = useCallback((newValue: number) => {
 		setFiles(files => {
@@ -689,7 +723,7 @@ export default function PersistentDrawerLeft() {
 		openFileInTab(key, title);
 	};
 
-	const onExpand = (keys: string[]) => {
+	const onExpand = useCallback((keys: string[]) => {
 		const rootNode = treeData.at(0);
 		if (rootNode === undefined) return;
 		let changedKey: string | undefined = undefined;
@@ -717,7 +751,7 @@ export default function PersistentDrawerLeft() {
 			return;
 		}
 		setExpandedKeys(keys);
-	};
+	}, [expandedKeys, loadAssets, switchTab, t, treeData]);
 
 	const saveAllTabs = useCallback(() => {
 		return new Promise<boolean>((resolve) => {
@@ -964,7 +998,7 @@ export default function PersistentDrawerLeft() {
 		}
 	};
 
-	const deleteFile = (data: TreeDataType) => {
+	const deleteFile = useCallback((data: TreeDataType) => {
 		const rootNode = treeData.at(0);
 		if (rootNode === undefined) return;
 		if (rootNode.key === data.key) {
@@ -1034,9 +1068,9 @@ export default function PersistentDrawerLeft() {
 				});
 			},
 		});
-	};
+	}, [files, tabIndex, t, treeData, switchTab]);
 
-	const onTreeMenuClick = (event: TreeMenuEvent, data?: TreeDataType)=> {
+	const onTreeMenuClick = useCallback((event: TreeMenuEvent, data?: TreeDataType)=> {
 		if (event === "Cancel") return;
 		if (data === undefined) return;
 		if (checkFileReadonly(data.key)) return;
@@ -1134,7 +1168,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 		}
-	};
+	}, [checkFileReadonly, loadAssets, t, deleteFile, treeData]);
 
 	const onNewFileClose = (item?: DoraFileType) => {
 		let ext: string | null = null;
@@ -1369,7 +1403,7 @@ export default function PersistentDrawerLeft() {
 		setFileInfo(null);
 	};
 
-	const updateDir = (oldDir: string, newDir: string) => {
+	const updateDir = useCallback((oldDir: string, newDir: string) => {
 		return Service.list({path: oldDir}).then((res) => {
 			if (res.success) {
 				const affected = res.files ? res.files.map(f => [path.join(oldDir, f), path.join(newDir, f)]) : [];
@@ -1405,9 +1439,9 @@ export default function PersistentDrawerLeft() {
 				return {newFiles, newExpanded};
 			}
 		});
-	};
+	}, [expandedKeys, files]);
 
-	const onDrop = (self: TreeDataType, target: TreeDataType) => {
+	const onDrop = useCallback((self: TreeDataType, target: TreeDataType) => {
 		if (contentModified) {
 			addAlert(t("alert.movingNoSave"), "info");
 			return;
@@ -1470,7 +1504,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-	};
+	}, [checkFileReadonly, expandedKeys, files, updateDir, loadAssets, t, treeData]);
 
 	const onUploaded = useCallback((dir: string, file: string) => {
 		setFiles(files => {
@@ -2080,7 +2114,7 @@ export default function PersistentDrawerLeft() {
 				<DialogTitle id="alert-dialog-title">
 					{popupInfo?.title}
 				</DialogTitle>
-				<MacScrollbar skin='dark'>
+				<MacScrollbar skin='dark' style={{ height: '100%' }}>
 					<DialogContent>
 						<DialogContentText
 							component="span"
@@ -2226,7 +2260,7 @@ export default function PersistentDrawerLeft() {
 							textAlign: "center"
 						}}
 					/>
-					<Divider style={{backgroundColor: '#0002'}}/>
+					<Divider style={{backgroundColor: '#0004'}}/>
 					<FileTree
 						selectedKeys={selectedKeys}
 						expandedKeys={expandedKeys}

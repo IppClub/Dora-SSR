@@ -4,9 +4,9 @@ local Entity = require("Entity").Type
 local record Observer
 
 	-- Watches the components changes to entities that match the observer's component filter.
-	-- @param func (function) The function to call when a change occurs.
+	-- @param func (function) The function to call when a change occurs. Returns true to stop watching.
 	-- @return (Observer) The same observer, for method chaining.
-	watch: function(self: Observer, func: function(Entity)): Observer
+	watch: function(self: Observer, func: function(Entity): boolean): Observer
 end
 
 -- A class for creating Observer objects.

@@ -80,7 +80,7 @@ export interface UnitActionParam {
 	 * @param action 需要检查可用性的单位动作。
 	 * @returns 如果单位动作对游戏单位可用，则返回true，否则返回false。
 	 */
-	available(this: void, owner: Unit, action: UnitAction): boolean;
+	available?(this: void, owner: Unit, action: UnitAction): boolean;
 
 	/**
 	 * 创建新函数或协程作业以代表单位动作的处理过程的函数。

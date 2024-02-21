@@ -20,7 +20,7 @@ local function toNode(item: any): Node.Type | nil
 	return tolua.cast(item, "Node")
 end
 
-Observer("Add", { "scene" }):watch(function(_entity: Entity.Type, scene: Node.Type)
+Observer("Add", { "scene" }):watch(function(_entity: Entity.Type, scene: Node.Type): boolean
 	scene.touchEnabled = true
 	scene:slot("TapEnded", function(touch: Touch)
 		local location = touch.location
@@ -31,7 +31,7 @@ Observer("Add", { "scene" }):watch(function(_entity: Entity.Type, scene: Node.Ty
 	end)
 end)
 
-Observer("Add", { "image" }):watch(function(self: Entity.Type, image: string)
+Observer("Add", { "image" }):watch(function(self: Entity.Type, image: string): boolean
 	sceneGroup:each(function(e: Entity.Type): boolean
 		local scene = toNode(e.scene)
 		if not scene is nil then
@@ -47,19 +47,19 @@ Observer("Add", { "image" }):watch(function(self: Entity.Type, image: string)
 	end)
 end)
 
-Observer("Remove", { "sprite" }):watch(function(self: Entity.Type)
+Observer("Remove", { "sprite" }):watch(function(self: Entity.Type): boolean
 	local sprite = toNode(self.oldValues.sprite)
 	if not sprite is nil then
 		sprite:removeFromParent()
 	end
 end)
 
-Observer("Remove", { "target" }):watch(function(self: Entity.Type)
+Observer("Remove", { "target" }):watch(function(self: Entity.Type): boolean
 	print("remove target from entity " .. tostring(self.index))
 end)
 
 Group({ "position", "direction", "speed", "target" }):watch(
-	function(self: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
+	function(self: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type): boolean
 	if target == position then
 		return
 	end
@@ -76,7 +76,7 @@ Group({ "position", "direction", "speed", "target" }):watch(
 end)
 
 Observer("AddOrChange", { "position", "direction", "sprite" }):watch(
-	function(self: Entity.Type, position: Vec2.Type, direction: number, sprite: Sprite.Type)
+	function(self: Entity.Type, position: Vec2.Type, direction: number, sprite: Sprite.Type): boolean
 	sprite.position = position
 	local lastDirection = self.oldValues.direction or sprite.angle
 	if lastDirection is number then
@@ -128,7 +128,7 @@ local windowFlags = {
 	"NoNav",
 	"NoMove"
 }
-Observer("Add", { "scene" }):watch(function(entity: Entity.Type)
+Observer("Add", { "scene" }):watch(function(entity: Entity.Type): boolean
 	local scene = toNode(entity.scene)
 	if not scene is nil then
 		scene:schedule(function(): boolean

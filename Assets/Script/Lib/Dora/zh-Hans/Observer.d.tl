@@ -4,9 +4,9 @@ local Entity = require("Entity").Type
 local record Observer
 
 	-- 监控观察器观察的实体上的组件变化，在发生变更时调用处理函数。
-	-- @param func (function) 当发生组件变更时要调用的处理函数。
+	-- @param func (function) 当发生组件变更时要调用的处理函数，当该处理函数返回 true 时，停止监听组件变化。
 	-- @return (Observer) 当前的观察器，用于方法级连调用。
-	watch: function(self: Observer, func: function(Entity)): Observer
+	watch: function(self: Observer, func: function(Entity): boolean): Observer
 end
 
 -- 用于创建观察器对象的类。

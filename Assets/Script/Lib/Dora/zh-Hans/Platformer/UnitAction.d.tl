@@ -18,10 +18,10 @@ local record UnitActionParam
 	-- 恢复时间主要影响动画模型在切换不同动作播放的动画之间进行过渡的时间长度。
 	recovery: number
 
-	-- 游戏单位动作是否排队。排队的动作不会替换具有相同优先级切在运行中的动作。
+	-- 游戏单位动作是否排队。排队的动作不会替换具有相同优先级切在运行中的动作。[可选]
 	queued: boolean
 
-	-- 用于检查游戏单位是否可以执行单位动作的函数。
+	-- 用于检查游戏单位是否可以执行单位动作的函数。[可选]
 	-- @param owner (Unit) 动作所属的游戏单位。
 	-- @param action (UnitAction) 要检查可用性的动作。
 	-- @return (boolean) 如果游戏单位动作检查通过则返回true，否则返回false。
@@ -36,7 +36,7 @@ local record UnitActionParam
 		| Routine.Job
 	)
 
-	-- 当游戏单位停止执行单位动作时调用的函数。
+	-- 当游戏单位停止执行单位动作时调用的函数。[可选]
 	-- @param owner (Unit) 动作所属的游戏单位。
 	stop: function(owner: Unit)
 end

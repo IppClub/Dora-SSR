@@ -89,5 +89,6 @@ fn main() {
 		p!("entity: {}, {}, {}", a, b, c);
 		e.remove("a");
 		e.remove("d");
+		return false;
 	}));
 }
