@@ -1,11 +1,11 @@
 [package]
 name = "dora-ssr"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["Li Jin <dragon-fly@qq.com>"]
 edition = "2021"
 license = "MIT"
 homepage = "https://dora-ssr.net"
-repository = "https://github.com/pigpigyyy/Dora-SSR"
+repository = "https://github.com/IppClub/Dora-SSR"
 keywords = ["gamedev", "WASM"]
 documentation = "https://dora-ssr.net/docs/api/intro"
 description = "The lib for building Dora SSR games in Rust running on target wasm32-wasi."

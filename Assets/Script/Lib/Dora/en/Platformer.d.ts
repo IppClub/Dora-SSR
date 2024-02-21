@@ -80,7 +80,7 @@ export interface UnitActionParam {
 	 * @param action The "UnitAction" to check availability for.
 	 * @returns True if the "UnitAction" is available for the "Unit", false otherwise.
 	 */
-	available(this: void, owner: Unit, action: UnitAction): boolean;
+	available?(this: void, owner: Unit, action: UnitAction): boolean;
 
 	/**
 	 * A function that creates a new function or "Routine.Job" that represents the processing of the "UnitAction".

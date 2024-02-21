@@ -95,6 +95,9 @@ const LogView = memo((props: LogViewProps) => {
 					height={props.height}
 					text={text}
 					style={{
+						msOverflowStyle: "none",
+						scrollbarWidth: "none",
+						WebkitScrollSnapType: "none",
 						fontSize: 18,
 						fontFamily: "Roboto,Helvetica,Arial,sans-serif",
 						color: Color.TextSecondary
@@ -102,6 +105,7 @@ const LogView = memo((props: LogViewProps) => {
 					rowHeight={22}
 					selectableLines
 					enableSearch
+					caseInsensitive
 					stream
 					follow
 				/>

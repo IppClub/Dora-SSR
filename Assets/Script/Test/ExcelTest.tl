@@ -270,7 +270,7 @@ local tolua <const> = require("tolua")
 local Unit <const> = Platformer.Unit
 local type Entity = require("Entity")
 
-Observer("Add", {"player"}):watch(function(self: Entity.Type)
+Observer("Add", {"player"}):watch(function(self: Entity.Type): boolean
 	local unit = Unit(unitDef, world, self, Vec2(300, -350))
 	unit.order = PlayerLayer
 	unit.group = PlayerGroup
@@ -280,7 +280,7 @@ Observer("Add", {"player"}):watch(function(self: Entity.Type)
 	world.camera.followTarget = unit
 end)
 
-Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon: string)
+Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon: string): boolean
 	local sprite = Sprite(icon)
 	if sprite is nil then
 		return
@@ -325,7 +325,7 @@ Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon
 	self.body = body
 end)
 
-Observer("Remove", {"body"}):watch(function(self: Entity.Type)
+Observer("Remove", {"body"}):watch(function(self: Entity.Type): boolean
 	(self.oldValues.body as Body.Type):removeFromParent()
 end)
 

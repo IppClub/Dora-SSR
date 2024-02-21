@@ -1,5 +1,5 @@
-local type Size = require("SizeType")
 local type Vec2 = require("Vec2Type")
+local type Size = require("SizeType")
 
 -- 用于创建二维向量对象的类。
 local record Vec2Class

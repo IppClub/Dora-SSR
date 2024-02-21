@@ -836,7 +836,7 @@ end
 do
 	local UnitAction = dora.Platformer.UnitAction
 	local UnitAction_add = UnitAction.add
-	local function dummy() end
+	local function dummy() return true end
 	UnitAction.add = function(self, name, params)
 		UnitAction_add(
 			self, name,
@@ -844,7 +844,7 @@ do
 			params.reaction,
 			params.recovery,
 			params.queued or false,
-			params.available,
+			params.available or dummy,
 			params.create,
 			params.stop or dummy
 		)

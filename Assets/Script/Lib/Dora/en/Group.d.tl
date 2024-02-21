@@ -22,9 +22,9 @@ local record Group
 	find: function(self: Group, func: function(Entity): boolean): Entity
 
 	-- Watches the group for changes to its entities, calling a function whenever an entity is added or changed.
-	-- @param func (function) The function to call when an entity is added or changed.
+	-- @param func (function) The function to call when an entity is added or changed. Returns true to stop watching.
 	-- @return (Group) The same group, for method chaining.
-	watch: function(self: Group, func: function(Entity)): Group
+	watch: function(self: Group, func: function(Entity): boolean): Group
 end
 
 -- A class for creating Group objects.

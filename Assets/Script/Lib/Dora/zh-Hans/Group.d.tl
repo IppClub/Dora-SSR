@@ -22,9 +22,9 @@ local record Group
 	find: function(self: Group, func: function(Entity): boolean): Entity
 
 	-- 监视组中实体的更改，每当添加或更改实体的属性（组件）时调用一个监测函数。
-	-- @param func (function) 添加或更改实体时要调用的监测函数。
+	-- @param func (function) 添加或更改实体时要调用的监测函数。返回 true 以停止监测。
 	-- @return (Group) 当前的实体组本身，用于方法级连调用。
-	watch: function(self: Group, func: function(Entity)): Group
+	watch: function(self: Group, func: function(Entity): boolean): Group
 end
 
 -- 用于创建实体组对象的类。

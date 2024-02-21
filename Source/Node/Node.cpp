@@ -418,7 +418,15 @@ void Node::onExit() {
 		}
 	}
 	pauseActionInList(_action);
-	emit("Exit"_slice);
+	if (_signal) {
+		if (auto slot = _signal->getSlot("Exit"_slice)) {
+			_scheduler->schedule([handler = slot->getHandler()](double) {
+				Event event("Exit"_slice);
+				handler(&event);
+				return true;
+			});
+		}
+	}
 }
 
 Array* Node::getChildren() {
@@ -572,8 +580,16 @@ void Node::moveToParent(Node* parent) {
 void Node::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
 		_flags.setOn(Node::Cleanup);
-		emit("Cleanup"_slice);
-		_signal = nullptr;
+		if (_signal) {
+			if (auto slot = _signal->getSlot("Cleanup"_slice)) {
+				_scheduler->schedule([handler = slot->getHandler()](double) {
+					Event event("Cleanup"_slice);
+					handler(&event);
+					return true;
+				});
+			}
+			_signal = nullptr;
+		}
 		ARRAY_START(Node, child, _children) {
 			child->cleanup();
 		}
@@ -1583,6 +1599,10 @@ Slot::Slot(const EventHandler& handler)
 
 Slot::Slot() { }
 
+const EventHandler& Slot::getHandler() const {
+	return _handler;
+}
+
 void Slot::add(const EventHandler& handler) {
 	_handler += handler;
 }
@@ -1760,6 +1780,22 @@ void Signal::removeGSlots(String name) {
 		return name == gslot->getName();
 	}),
 		_gslots.end());
+}
+
+Slot* Signal::getSlot(String name) {
+	if (_slots) {
+		auto it = _slots->find(name);
+		if (it != _slots->end()) {
+			return it->second.get();
+		}
+	} else if (_slotsArray) {
+		for (auto& item : *_slotsArray) {
+			if (name == item.first) {
+				return item.second.get();
+			}
+		}
+	}
+	return nullptr;
 }
 
 RefVector<Listener> Signal::getGSlots(String name) const {
