@@ -364,6 +364,7 @@ protected:
 
 class Slot {
 public:
+	PROPERTY_READONLY_CREF(EventHandler, Handler);
 	void add(const EventHandler& handler);
 	void set(const EventHandler& handler);
 	void remove(const EventHandler& handler);
@@ -391,6 +392,7 @@ public:
 	void removeGSlot(Listener* gslot);
 	void removeSlots(String name);
 	void removeGSlots(String name);
+	Slot* getSlot(String name);
 	RefVector<Listener> getGSlots(String name) const;
 	void emit(Event* event);
 	static const size_t MaxSlotArraySize;

@@ -19,10 +19,10 @@ local record UnitActionParam
 	-- The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
 	recovery: number
 
-	-- Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority.
+	-- Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority. [optional]
 	queued: boolean
 
-	-- A function that determines whether the "UnitAction" is currently available for the specified "Unit".
+	-- A function that determines whether the "UnitAction" is currently available for the specified "Unit". [optional]
 	-- @param owner (Unit) The "Unit" that owns the "UnitAction".
 	-- @param action (UnitAction) The "UnitAction" to check availability for.
 	-- @return (boolean) True if the "UnitAction" is available for the "Unit", false otherwise.
@@ -37,7 +37,7 @@ local record UnitActionParam
 		| Routine.Job
 	)
 
-	-- A function that gets invoked when the specified "Unit" stops performing the "UnitAction".
+	-- A function that gets invoked when the specified "Unit" stops performing the "UnitAction". [optional]
 	-- @param owner (Unit) The "Unit" is stoping the "UnitAction".
 	stop: function(owner: Unit)
 end

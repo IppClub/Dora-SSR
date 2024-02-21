@@ -1117,10 +1117,13 @@ extern "C" {
 }
 
 impl Group {
-	pub fn watch(&mut self, mut func: Box<dyn FnMut(&mut CallStack)>) {
+	pub fn watch(&mut self, mut func: Box<dyn FnMut(&mut CallStack) -> bool>) {
 		let mut stack = CallStack::new();
 		let stack_raw = stack.raw();
-		let func_id = push_function(Box::new(move || { func(&mut stack); }));
+		let func_id = push_function(Box::new(move || {
+			let result = func(&mut stack);
+			stack.push_bool(result);
+		}));
 		unsafe { group_watch(self.raw(), func_id, stack_raw); }
 	}
 	pub fn each(&self, func: Box<dyn FnMut(&Entity) -> bool>) -> bool {
@@ -1146,10 +1149,13 @@ pub enum EntityEvent {
 }
 
 impl Observer {
-	pub fn watch(&mut self, mut func: Box<dyn FnMut(&mut CallStack)>) {
+	pub fn watch(&mut self, mut func: Box<dyn FnMut(&mut CallStack) -> bool>) {
 		let mut stack = CallStack::new();
 		let stack_raw = stack.raw();
-		let func_id = push_function(Box::new(move || { func(&mut stack); }));
+		let func_id = push_function(Box::new(move || {
+			let result = func(&mut stack);
+			stack.push_bool(result);
+		}));
 		unsafe { observer_watch(self.raw(), func_id, stack_raw); }
 	}
 }

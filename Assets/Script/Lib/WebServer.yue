@@ -533,9 +533,9 @@ HttpServer\post "/new", (req)->
 		if not Content\exist path
 			parent = Path\getPath path
 			files = Content\getFiles parent
-			name = Path\getName path
+			name = Path\getName(path)\lower!
 			for file in *files
-				if name == Path\getName file
+				if name == Path\getName(file)\lower!
 					return success: false
 			if "" == Path\getExt path
 				if Content\mkdir path
@@ -547,6 +547,16 @@ HttpServer\post "/new", (req)->
 HttpServer\post "/delete", (req)->
 	switch req when {body: {:path}}
 		if Content\exist path
+			parent = Path\getPath path
+			files = Content\getFiles parent
+			name = Path\getName(path)\lower!
+			ext = Path\getExt path
+			for file in *files
+				if name == Path\getName(file)\lower!
+					switch Path\getExt file when "tl" then if ext in ["vs",]
+						Content\remove Path parent, file
+					when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "xml"]
+						Content\remove Path parent, file
 			if Content\remove path
 				return success: true
 	success: false
@@ -554,7 +564,26 @@ HttpServer\post "/delete", (req)->
 HttpServer\post "/rename", (req)->
 	switch req when {body: {:old, :new}}
 		if Content\exist(old) and not Content\exist new
+			parent = Path\getPath new
+			files = Content\getFiles parent
+			name = Path\getName(new)\lower!
+			for file in *files
+				if name == Path\getName(file)\lower!
+					return success: false
 			if Content\move old, new
+				newParent = Path\getPath new
+				parent = Path\getPath old
+				files = Content\getFiles parent
+				newName = Path\getName new
+				oldName = Path\getName old
+				name = oldName\lower!
+				ext = Path\getExt old
+				for file in *files
+					if name == Path\getName(file)\lower!
+						switch Path\getExt file when "tl" then if ext in ["vs",]
+							Content\move Path(parent, file), Path newParent, newName .. ".tl"
+						when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "xml"]
+							Content\move Path(parent, file), Path newParent, newName .. ".lua"
 				return success: true
 	success: false
 
@@ -587,21 +616,27 @@ compileFileAsync = (inputFile, sourceCodes)->
 			Content\saveAsync outputFile, codes
 		else
 			Content\remove outputFile
+	when "xml"
+		if codes := xml.tolua sourceCodes
+			Content\saveAsync outputFile, "-- [xml]: #{file}\n#{codes}"
+		else
+			Content\remove outputFile
 
 HttpServer\postSchedule "/write", (req)->
 	switch req when {body: {:path, :content}}
 		if Content\saveAsync path, content
-			switch Path\getExt path when "tl", "yue"
+			switch Path\getExt path when "tl", "yue", "xml"
 				compileFileAsync path, content
 			return success: true
 	success: false
 
 extentionLevels =
-	vs: 5
-	ts: 4
-	tsx: 3
-	tl: 2
+	vs: 2
+	ts: 1
+	tsx: 1
+	tl: 1
 	yue: 1
+	xml: 1
 	lua: 0
 
 HttpServer\post "/assets", ->
@@ -609,7 +644,7 @@ HttpServer\post "/assets", ->
 		children = nil
 		dirs = Content\getDirs path
 		for dir in *dirs
-			if root then switch dir when ".upload", ".download", ".www", ".build"
+			if root then switch dir when ".upload", ".download", ".www", ".build", ".git"
 				continue
 			elseif dir == ".git"
 				continue

@@ -23,6 +23,7 @@ import {
 } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next';
 import { Color } from './Frame';
+import { Tooltip } from '@mui/material';
 
 export type TabStatus = "normal" | "warning" | "error";
 
@@ -69,12 +70,15 @@ const StyledTabs = styled((props: StyledTabsProps) => (
 
 interface StyledTabProps {
 	label: string;
+	tooltip: string;
 	status: TabStatus;
 	onContextMenu: (event: React.MouseEvent) => void;
 }
 
 const StyledTab = styled((props: StyledTabProps) => (
-	<Tab disableRipple {...props}/>
+	<Tooltip arrow title={props.tooltip}>
+		<Tab disableRipple {...props}/>
+	</Tooltip>
 ))(({ theme, status }) => {
 	let color = Color.Secondary;
 	let selectedColor = Color.Primary;
@@ -149,6 +153,7 @@ export default memo(function FileTabBar(props: FileTabBarProps) {
 						<StyledTab
 							onContextMenu={onContextMenu}
 							key={item.key}
+							tooltip={item.key}
 							label={item.contentModified !== null ? '*' + item.title : item.title}
 							status={item.status}
 						/>

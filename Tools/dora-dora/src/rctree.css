@@ -1,5 +1,6 @@
 .rc-tree {
   margin: 0;
+  padding: 10px;
   border: 1px solid transparent;
 }
 .rc-tree-focused:not(.rc-tree-active-focused) {

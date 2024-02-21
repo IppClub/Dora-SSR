@@ -49,9 +49,11 @@ void Spine::SpineListener::callback(spine::AnimationState* state, spine::EventTy
 				_owner->_currentAnimationName.clear();
 			}
 			break;
-		case spine::EventType_Event:
-			_owner->emit(animationName, s_cast<Playable*>(_owner));
+		case spine::EventType_Event: {
+			const auto& name = event->getData().getName();
+			_owner->emit(Slice{name.buffer(), name.length()}, s_cast<Playable*>(_owner));
 			break;
+		}
 		case spine::EventType_Complete:
 			_owner->emit("AnimationEnd"_slice, animationName.toString(), s_cast<Playable*>(_owner));
 			_owner->_lastCompletedAnimationName = animationName.toString();
