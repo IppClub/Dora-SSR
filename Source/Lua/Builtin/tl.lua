@@ -10758,13 +10758,13 @@ tl.dora_to_lua = function(input, filename, search_path)
 			table.insert(errs, err.filename .. ":" .. tostring(err.y) .. ":" .. tostring(err.x) .. ": " .. err.msg)
 		end
 	end
-	if res.warnings and #res.warnings > 0 then
-		for i = 1, #res.warnings do
-			local warning = res.warnings[i]
-			table.insert(errs, warning.filename .. ":" .. tostring(warning.y) .. ":" .. tostring(warning.x) .. ": " .. warning.msg)
-		end
-	end
 	if #errs > 0 then
+		if res.warnings and #res.warnings > 0 then
+			for i = 1, #res.warnings do
+				local warning = res.warnings[i]
+				table.insert(errs, warning.filename .. ":" .. tostring(warning.y) .. ":" .. tostring(warning.x) .. ": " .. warning.msg)
+			end
+		end
 		return nil, table.concat(errs, "\n")
 	end
 	local code = tl.pretty_print_ast(program, gen_target, false)
