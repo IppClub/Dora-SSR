@@ -17,6 +17,10 @@ local record TargetAllow
 	-- @param relation (Data.Relation) 子弹对象与其他游戏对象或游戏单位之间的关系。
 	-- @return (boolean) 子弹对象是否允许发生碰撞。
 	isAllow: function(self: TargetAllow, relation: Data.Relation): boolean
+
+	-- 获取子弹对象是否允许与地形对象发生碰撞的参数值。
+	-- @return (integer) 子弹对象是否允许与地形对象发生碰撞的参数值。
+	toValue: function(): integer
 end
 
 -- @usage

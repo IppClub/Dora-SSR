@@ -1015,6 +1015,11 @@ class Body extends Node {
 	type: dora.BodyMoveType;
 
 	/**
+	 * The `PhysicsWorld` instance for creating body node.
+	 */
+	world?: dora.PhysicsWorldType;
+
+	/**
 	 * A constant linear acceleration applied to the body.
 	 * Can be used for simulating gravity, wind, or other constant forces.
 	 * @example
@@ -1606,6 +1611,7 @@ interface IntrinsicElements {
 	/**
 	 * A class represents a physics body in the world.
 	 * Must be placed under <physics-world> or its derivatives to take effect.
+	 * Or providing a `world` attribute for creating physics body instance.
 	 */
 	body: Body;
 	/**

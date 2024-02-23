@@ -516,7 +516,7 @@ thread ->
 	sleep 2
 	waitForWebStart = false
 
-reloadDevEntry = ->
+reloadDevEntry = -> thread ->
 	waitForWebStart = true
 	doClean!
 	allClear!

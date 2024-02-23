@@ -398,7 +398,7 @@ void Node::onEnter() {
 	}
 	resumeActionInList(_action);
 	markDirty();
-	emit("Enter"_slice);
+	post("Enter"_slice);
 }
 
 void Node::onExit() {
@@ -418,15 +418,7 @@ void Node::onExit() {
 		}
 	}
 	pauseActionInList(_action);
-	if (_signal) {
-		if (auto slot = _signal->getSlot("Exit"_slice)) {
-			_scheduler->schedule([handler = slot->getHandler()](double) {
-				Event event("Exit"_slice);
-				handler(&event);
-				return true;
-			});
-		}
-	}
+	post("Exit"_slice);
 }
 
 Array* Node::getChildren() {
@@ -580,16 +572,8 @@ void Node::moveToParent(Node* parent) {
 void Node::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
 		_flags.setOn(Node::Cleanup);
-		if (_signal) {
-			if (auto slot = _signal->getSlot("Cleanup"_slice)) {
-				_scheduler->schedule([handler = slot->getHandler()](double) {
-					Event event("Cleanup"_slice);
-					handler(&event);
-					return true;
-				});
-			}
-			_signal = nullptr;
-		}
+		post("Cleanup"_slice);
+		_signal = nullptr;
 		ARRAY_START(Node, child, _children) {
 			child->cleanup();
 		}
@@ -976,6 +960,18 @@ const Matrix& Node::getWorld() {
 void Node::emit(Event* event) {
 	if (_signal) {
 		_signal->emit(event);
+	}
+}
+
+void Node::post(String name) {
+	if (_signal) {
+		if (auto slot = _signal->getSlot(name)) {
+			SharedDirector.getPostScheduler()->schedule([handler = slot->getHandler(), name = name.toString()](double) {
+				Event event(name);
+				handler(&event);
+				return true;
+			});
+		}
 	}
 }
 

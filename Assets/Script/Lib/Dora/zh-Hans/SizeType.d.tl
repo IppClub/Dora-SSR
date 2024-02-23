@@ -1,5 +1,4 @@
 local ContainerItem = require("ContainerItemType")
-local type Vec2 = require("Vec2Type")
 
 -- 具有给定宽度和高度的尺寸对象类。
 local record Size
@@ -26,7 +25,7 @@ local record Size
 	-- 将尺寸对象乘以向量。
 	-- @param vec (Vec2) 要乘以的向量，用一个Vec2对象表示。
 	-- @return (Size) 将尺寸对象乘以向量的结果。
-	mul: function(self: Size, vec: Vec2): Size
+	mul: function(self: Size, vec: dora.Vec2.Type): Size
 
 	-- 检查两个尺寸对象是否相等。
 	-- @param other (Size) 要比较的另一个尺寸对象。
@@ -38,7 +37,7 @@ local record Size
 	-- @param vec (Vec2) 要乘以的向量，用一个Vec2对象表示。
 	-- @return (Size) 将尺寸对象乘以向量的结果。
 	-- @usage local halfSize = size * Vec2(0.5, 0.5)
-	metamethod __mul: function(self: Size, vec: Vec2): Size
+	metamethod __mul: function(self: Size, vec: dora.Vec2.Type): Size
 end
 
 return Size

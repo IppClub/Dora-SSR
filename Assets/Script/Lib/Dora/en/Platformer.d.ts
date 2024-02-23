@@ -497,6 +497,12 @@ class TargetAllow {
 	 * @returns Whether the bullet object is allowed to interact.
 	 */
 	isAllow(relation: Relation): boolean;
+
+	/**
+	 * A function that converts the "TargetAllow" object to a number value.
+	 * @returns The number value representing the "TargetAllow" object.
+	 */
+	toValue(): number;
 }
 
 export namespace TargetAllow {
@@ -1135,9 +1141,9 @@ class Bullet extends Body {
 	private constructor();
 
 	/**
-	 * The `TargetAllow` object for the bullet object.
+	 * The value from a `Platformer.TargetAllow` object for the bullet object.
 	 */
-	targetAllow: TargetAllow;
+	targetAllow: number;
 
 	/**
 	 * Whether the bullet object is facing right.

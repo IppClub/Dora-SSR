@@ -1,5 +1,4 @@
 local ContainerItem = require("ContainerItemType")
-local type Size = require("SizeType")
 
 -- A record representing a 2D vector with an x and y component.
 local record Vec2
@@ -70,7 +69,7 @@ local record Vec2
 	-- @param other (Size) The Size object to multiply by.
 	-- @return (Vec2) The result of multiplying the vector by the Size object.
 	-- @usage local halfVec = vec * Size(0.5, 0.5)
-	mul: function(self: Vec2, other: Size): Vec2
+	mul: function(self: Vec2, other: dora.Size.Type): Vec2
 
 	-- Divide a vector by a scalar.
 	-- @param other (number) The scalar to divide by, represented by a number.
@@ -106,7 +105,7 @@ local record Vec2
 	-- @param other (Size) The Size object to multiply by.
 	-- @return (Vec2) The result of multiplying the vector by the Size object.
 	-- @usage local halfVec = vec * Size(0.5, 0.5)
-	metamethod __mul: function(self: Vec2, other: Size): Vec2
+	metamethod __mul: function(self: Vec2, other: dora.Size.Type): Vec2
 
 	-- Divide a vector by a scalar.
 	-- @param other (number) The scalar to divide by, represented by a number.
