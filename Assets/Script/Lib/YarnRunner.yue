@@ -2,7 +2,7 @@ import "yarncompile"
 import "Content"
 import "json"
 
-rewriteError = (err, luaCode, title)->
+rewriteError = (err, luaCode, title) ->
 	line, msg = err\match ".*:(%d+):%s*(.*)"
 	line = tonumber line
 	current = 1
@@ -17,7 +17,7 @@ rewriteError = (err, luaCode, title)->
 	"#{title}:#{line}: #{msg}"
 
 export default class YarnRunner
-	gotoStory: (title)=>
+	gotoStory: (title) =>
 		storyFunc = @funcs[title]
 		unless storyFunc
 			yarnCode = @codes[title]
@@ -46,7 +46,7 @@ export default class YarnRunner
 		]
 		true
 
-	new: (filename, startTitle, state = {}, command = {}, testing = false)=>
+	new: (filename, startTitle, state = {}, command = {}, testing = false) =>
 		jsonCode = Content\load filename
 		error "failed to read yarn file \"#{filename}\"" unless jsonCode
 		jsonObject = json.load jsonCode
@@ -63,11 +63,11 @@ export default class YarnRunner
 		@stories = []
 		@visited = {}
 		@yarn = {
-			dice: (num)-> math.random num
+			dice: (num) -> math.random num
 			random: -> math.random!
-			random_range: (start, stop)-> math.random start, stop
-			visited: (name)-> @visited[name]?
-			visited_count: (name)-> @visited[name] ?? 0
+			random_range: (start, stop) -> math.random start, stop
+			visited: (name) -> @visited[name]?
+			visited_count: (name) -> @visited[name] ?? 0
 		}
 		@startTitle = startTitle
 		if testing
@@ -87,7 +87,7 @@ export default class YarnRunner
 				:title, :body = node
 				@codes[title] = body
 
-	advance: (choice)=>
+	advance: (choice) =>
 		if @startTitle
 			success, err = @gotoStory @startTitle
 			@startTitle = nil

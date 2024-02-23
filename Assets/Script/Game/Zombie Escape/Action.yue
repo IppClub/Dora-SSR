@@ -1,6 +1,6 @@
 _ENV = Dora dora.Platformer
 
-groundEntranceEnd = (name, playable)->
+groundEntranceEnd = (name, playable) ->
 	return unless name == "groundEntrance"
 	playable.parent\stop!
 
@@ -36,7 +36,7 @@ UnitAction\add "fallOff",
 				.speed = 1
 				\play "fallOff"
 		else @data.fallDown = false
-		(action)=>
+		(action) =>
 			return true if @onSurface
 			if not @data.fallDown and
 				@playable.current ~= "fallOff" and

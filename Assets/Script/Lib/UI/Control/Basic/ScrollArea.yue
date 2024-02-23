@@ -7,13 +7,13 @@ import "UI.View.Shape.SolidRect"
 -- "ScrollTouchEnded", ->
 -- "ScrollStart", ->
 -- "ScrollEnd", ->
--- "Scrolled",(delta)->
+-- "Scrolled",(delta) ->
 -- [params]
 -- x,y,width,height,
 -- paddingX,paddingY,
 -- viewWidth,viewHeight
 export default Class ScrollArea,
-	__init: (args)=>
+	__init: (args) =>
 		{
 			x: selfX = 0
 			y: selfY = 0
@@ -49,7 +49,7 @@ export default Class ScrollArea,
 				sleep!
 				@view.touchEnabled = enabled
 
-		updateReset = (deltaTime)->
+		updateReset = (deltaTime) ->
 			local x, y
 			timePassed += deltaTime
 			t = math.min timePassed * 4, 1
@@ -87,7 +87,7 @@ export default Class ScrollArea,
 			timePassed = 0
 			@schedule updateReset
 
-		setOffset = (delta, touching)->
+		setOffset = (delta, touching) ->
 			dPosX = delta.x
 			dPosY = delta.y
 			newPosX = deltaX + dPosX
@@ -131,7 +131,7 @@ export default Class ScrollArea,
 			newPosX < -moveX - paddingX * 0.5)
 
 		accel = screenSize * 2
-		updateSpeed = (dt)->
+		updateSpeed = (dt) ->
 			V = S / dt
 			if V.length > accel
 				V = V\normalize!
@@ -139,7 +139,7 @@ export default Class ScrollArea,
 			S = Vec2.zero
 			false
 
-		updatePos = (dt)->
+		updatePos = (dt) ->
 			dir = Vec2 V.x, V.y
 			dir = dir\normalize!
 			A = dir * -accel
@@ -159,11 +159,11 @@ export default Class ScrollArea,
 				setOffset dS, false
 			false
 
-		@slot "TapFilter", (touch)->
+		@slot "TapFilter", (touch) ->
 			if not touch.first or not Rect(-width / 2, -height / 2, width, height)\containsPoint touch.location
 				touch.enabled = false
 
-		@slot "TapBegan", (touch)->
+		@slot "TapBegan", (touch) ->
 			deltaMoveLength = 0
 			S = Vec2.zero
 			V = Vec2.zero
@@ -182,7 +182,7 @@ export default Class ScrollArea,
 				@emit "ScrollEnd"
 			@emit "ScrollTouchEnded"
 
-		@slot "TapMoved", (touch)->
+		@slot "TapMoved", (touch) ->
 			lastMoveLength = deltaMoveLength
 			S = touch.delta
 			deltaMoveLength += S.length
@@ -192,7 +192,7 @@ export default Class ScrollArea,
 					@dragging = true
 					@emit "ScrollStart"
 
-		@area\slot "MouseWheel", (delta)->
+		@area\slot "MouseWheel", (delta) ->
 			px, py = paddingX, paddingY
 			paddingX, paddingY = 0, 0
 			setOffset delta * -20
@@ -239,7 +239,7 @@ export default Class ScrollArea,
 			)
 			fadeBarX = Action fadeSeq
 			fadeBarY = Action fadeSeq
-			@slot "Scrolled", (delta)->
+			@slot "Scrolled", (delta) ->
 				if delta.x ~= 0
 					barX = getScrollBarX!
 					barX.x = (@area.width - 50) * math.max math.min(-@offset.x / (viewWidth - width), 1), 0
@@ -251,20 +251,20 @@ export default Class ScrollArea,
 
 		@slot "Enter", -> @emit "Scrolled", Vec2.zero
 
-		@scroll = (delta)=>
+		@scroll = (delta) =>
 			if delta
 				deltaX += delta.x
 				deltaY += delta.y
 				@emit "Scrolled", Vec2 delta.x, delta.y
 			startReset! if isReseting!
 
-		@scrollTo = (offset)=>
+		@scrollTo = (offset) =>
 			delta = offset - Vec2 deltaX, deltaY
 			deltaX = offset.x
 			deltaY = offset.y
 			@emit "Scrolled", delta
 
-		@updatePadding = (padX, padY)=>
+		@updatePadding = (padX, padY) =>
 			paddingX = padX
 			paddingY = padY
 			@scroll Vec2.zero
@@ -272,7 +272,7 @@ export default Class ScrollArea,
 		@getPadding = -> Vec2 paddingX, paddingY
 		@getViewSize = -> Size viewWidth, viewHeight
 		@getTotalDelta = -> Vec2 deltaX, deltaY
-		@resetSize = (w, h, viewW, viewH)=>
+		@resetSize = (w, h, viewW, viewH) =>
 			offset = @offset
 			@offset = Vec2.zero
 			width,height = w, h
@@ -296,10 +296,10 @@ export default Class ScrollArea,
 				@barY = nil
 
 	offset: property => @getTotalDelta!,
-		(offset)=> @scroll offset - @getTotalDelta!
+		(offset) => @scroll offset - @getTotalDelta!
 
 	viewSize: property => @getViewSize!,
-		(size)=>
+		(size) =>
 			@resetSize(
 				@contentSize.width
 				@contentSize.height
@@ -308,10 +308,10 @@ export default Class ScrollArea,
 			)
 
 	padding: property => @getPadding!,
-		(padding)=> @updatePadding padding.x, padding.y
+		(padding) => @updatePadding padding.x, padding.y
 
-	setupMenuScroll: (menu)=>
-		@slot "Scrolled", (delta)->
+	setupMenuScroll: (menu) =>
+		@slot "Scrolled", (delta) ->
 			menu\moveAndCullItems delta -- reduce draw calls
 		menuEnabled = true
 		@slot "ScrollStart", ->
@@ -320,7 +320,7 @@ export default Class ScrollArea,
 		@slot "ScrollTouchEnded", ->
 			menu.enabled = menuEnabled if not menu.enabled
 
-	adjustSizeWithAlign:(alignMode = "Auto", padding = 10, size = @area.size,viewSize)=>
+	adjustSizeWithAlign:(alignMode = "Auto", padding = 10, size = @area.size,viewSize) =>
 		-- alignMode: auto, vertical, horizontal
 		viewSize or= size
 		offset = @offset
@@ -340,7 +340,7 @@ export default Class ScrollArea,
 		)
 		@offset = offset
 
-	scrollToPosY:(posY, time = 0.3)=>
+	scrollToPosY:(posY, time = 0.3) =>
 		:height = @contentSize
 		offset = @offset
 		viewHeight = @viewSize.height
@@ -354,7 +354,7 @@ export default Class ScrollArea,
 			endY = math.min endY, viewHeight - height
 		@schedule once ->
 			changeY = endY - startY
-			cycle time, (progress)->
+			cycle time, (progress) ->
 				offset = Vec2 offset.x, startY + changeY * Ease\func Ease.OutQuad, progress
 				@scrollTo offset
 			offset = Vec2 offset.x, endY

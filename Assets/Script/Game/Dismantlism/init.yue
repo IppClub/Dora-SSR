@@ -36,7 +36,7 @@ spaceBack = nil
 dailyBack = nil
 center = AlignNode hAlign: "Center", vAlign: "Center"
 with AlignNode isRoot: true, inUI: false
-	\slot "AlignLayout", (w, h)->
+	\slot "AlignLayout", (w, h) ->
 		worldScale = w / 2970
 		root.scaleX = worldScale
 		root.scaleY = worldScale
@@ -100,16 +100,16 @@ moveJoint = nil
 movingBody = nil
 with Node!
 	.touchEnabled = true
-	\slot "TapBegan", (touch)->
+	\slot "TapBegan", (touch) ->
 		worldPos = \convertToWorldSpace touch.location
 		pos = world\convertToNodeSpace worldPos
-		world\query Rect(pos - Vec2(1, 1), Size 2, 2), (body)->
+		world\query Rect(pos - Vec2(1, 1), Size 2, 2), (body) ->
 			return false if body.tag ~= "" and body.tag ~= (isSpace and "space" or "daily")
 			moveJoint\destroy! if moveJoint
 			moveJoint = Joint\move true, body, pos, 400
 			movingBody = body
 			true
-	\slot "TapMoved", (touch)->
+	\slot "TapMoved", (touch) ->
 		if moveJoint
 			worldPos = \convertToWorldSpace touch.location
 			pos = world\convertToNodeSpace worldPos
@@ -232,7 +232,7 @@ buildScene = ->
 						.textAlign = "Center"
 						.color = Color 0x66ffffff
 						.text = "Drag It\nHere"
-					\slot "BodyEnter", (body)->
+					\slot "BodyEnter", (body) ->
 						return if body.tag ~= "" and body.tag ~= (isSpace and "space" or "daily")
 						return if body.group == 1
 						body.group = 1
@@ -294,7 +294,7 @@ buildScene = ->
 								body\removeFromParent!
 			when "safearea"
 				with node.data.rect
-					\slot "BodyEnter", (body)->
+					\slot "BodyEnter", (body) ->
 						return if body == movingBody
 						:tag = body.children[1]
 						if (name == "safe1" and tag == "get") or

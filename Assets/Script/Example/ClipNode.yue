@@ -1,6 +1,6 @@
 _ENV = Dora!
 
-StarVertices = (radius, line = false)->
+StarVertices = (radius, line = false) ->
 	a = math.rad 36
 	c = math.rad 72
 	f = math.sin(a) * math.tan(c) + math.cos a
@@ -26,7 +26,7 @@ targetA = with Model "Model/xiaoli.model"
 		X 1.5, 200, -200
 		Event "Turn"
 	)
-	\slot "ActionEnd", (action)-> \runAction action
+	\slot "ActionEnd", (action) -> \runAction action
 	\slot "Turn", -> .fliped = not .fliped
 
 clipNodeA = with ClipNode maskA
@@ -52,7 +52,7 @@ targetB = with DrawNode!
 		X 1.5, -200, 200
 		X 1.5, 200, -200
 	)
-	\slot "ActionEnd", (action)-> \runAction action
+	\slot "ActionEnd", (action) -> \runAction action
 
 clipNodeB = with ClipNode maskB
 	\addChild targetB

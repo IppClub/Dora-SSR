@@ -217,10 +217,10 @@ Struct.Phyx.Wheel(
 )
 
 loadFuncs = nil
-loadData = (data, item)->
+loadData = (data, item) ->
 	loadFuncs[data[1]] data, item
 
-toDef = (data)-> with BodyDef!
+toDef = (data) -> with BodyDef!
 	.type = data.type
 	.bullet = data.bullet
 	.linearAcceleration = data.linearAcceleration
@@ -233,11 +233,11 @@ toDef = (data)-> with BodyDef!
 	.facePos = data.facePos
 
 loadFuncs =
-	"Array": (data, itemDict)->
+	"Array": (data, itemDict) ->
 		for i = 1, data\count!
 			loadData data\get(i), itemDict
 
-	"Phyx.Rect": (data, itemDict)->
+	"Phyx.Rect": (data, itemDict) ->
 		bodyDef = toDef data
 		:width, :height = data.size
 		if data.sensor
@@ -252,7 +252,7 @@ loadFuncs =
 				loadData subShapes\get(i), bodyDef
 		itemDict[data.name] = bodyDef
 
-	"Phyx.Disk": (data, itemDict)->
+	"Phyx.Disk": (data, itemDict) ->
 		bodyDef = toDef data
 		if data.sensor
 			bodyDef\attachDiskSensor data.sensorTag, data.center, data.radius
@@ -266,7 +266,7 @@ loadFuncs =
 				loadData subShapes\get(i), bodyDef
 		itemDict[data.name] = bodyDef
 
-	"Phyx.Poly": (data, itemDict)->
+	"Phyx.Poly": (data, itemDict) ->
 		bodyDef = toDef data
 		if data.sensor
 			bodyDef\attachPolygonSensor data.sensorTag, data.vertices\toArray!
@@ -280,7 +280,7 @@ loadFuncs =
 				loadData subShapes\get(i), bodyDef
 		itemDict[data.name] = bodyDef
 
-	"Phyx.Chain": (data, itemDict)->
+	"Phyx.Chain": (data, itemDict) ->
 		bodyDef = toDef data
 		bodyDef\attachChain data.vertices\toArray!, data.friction, data.restitution
 		if subShapes := data.subShapes
@@ -288,7 +288,7 @@ loadFuncs =
 				loadData subShapes\get(i), bodyDef
 		itemDict[data.name] = bodyDef
 
-	"Phyx.SubRect": (data, bodyDef)->
+	"Phyx.SubRect": (data, bodyDef) ->
 		:width, :height = data.size
 		if data.sensor
 			bodyDef\attachPolygonSensor data.sensorTag, data.center, width, height
@@ -298,7 +298,7 @@ loadFuncs =
 				data.angle, data.density, data.friction, data.restitution
 			)
 
-	"Phyx.SubDisk": (data, bodyDef)->
+	"Phyx.SubDisk": (data, bodyDef) ->
 		if data.sensor
 			bodyDef\attachDiskSensor data.sensorTag, data.center, data.radius
 		else
@@ -307,7 +307,7 @@ loadFuncs =
 				data.density, data.friction, data.restitution
 			)
 
-	"Phyx.SubPoly": (data, bodyDef)->
+	"Phyx.SubPoly": (data, bodyDef) ->
 		if data.sensor
 			bodyDef\attachPolygonSensor data.sensorTag, data.vertices\toArray!
 		else
@@ -316,10 +316,10 @@ loadFuncs =
 				data.density, data.friction, data.restitution
 			)
 
-	"Phyx.SubChain": (data, bodyDef)->
+	"Phyx.SubChain": (data, bodyDef) ->
 		bodyDef\attachChain data.vertices\toArray!, data.friction, data.restitution
 
-	"Phyx.Distance": (data, itemDict)->
+	"Phyx.Distance": (data, itemDict) ->
 		itemDict[data.name] = JointDef\distance(
 			data.collision
 			data.bodyA
@@ -329,7 +329,7 @@ loadFuncs =
 			data.frequency
 			data.damping
 		)
-	"Phyx.Friction": (data, itemDict)->
+	"Phyx.Friction": (data, itemDict) ->
 		itemDict[data.name] = JointDef\friction(
 			data.collision
 			data.bodyA
@@ -339,7 +339,7 @@ loadFuncs =
 			data.maxTorque
 		)
 
-	"Phyx.Gear": (data, itemDict)->
+	"Phyx.Gear": (data, itemDict) ->
 		itemDict[data.name] = JointDef\gear(
 			data.collision
 			data.jointA
@@ -347,7 +347,7 @@ loadFuncs =
 			data.ratio
 		)
 
-	"Phyx.Spring": (data, itemDict)->
+	"Phyx.Spring": (data, itemDict) ->
 		itemDict[data.name] = JointDef\spring(
 			data.collision
 			data.bodyA
@@ -359,7 +359,7 @@ loadFuncs =
 			data.correctionFactor
 		)
 
-	"Phyx.Prismatic": (data, itemDict)->
+	"Phyx.Prismatic": (data, itemDict) ->
 		itemDict[data.name] = JointDef\prismatic(
 			data.collision
 			data.bodyA
@@ -372,7 +372,7 @@ loadFuncs =
 			data.motorSpeed
 		)
 
-	"Phyx.Pulley": (data, itemDict)->
+	"Phyx.Pulley": (data, itemDict) ->
 		itemDict[data.name] = JointDef\pulley(
 			data.collision
 			data.bodyA
@@ -384,7 +384,7 @@ loadFuncs =
 			data.ratio
 		)
 
-	"Phyx.Revolute": (data, itemDict)->
+	"Phyx.Revolute": (data, itemDict) ->
 		itemDict[data.name] = JointDef\revolute(
 			data.collision
 			data.bodyA
@@ -396,7 +396,7 @@ loadFuncs =
 			data.motorSpeed
 		)
 
-	"Phyx.Rope": (data, itemDict)->
+	"Phyx.Rope": (data, itemDict) ->
 		itemDict[data.name] = JointDef\rope(
 			data.collision
 			data.bodyA
@@ -406,7 +406,7 @@ loadFuncs =
 			data.maxLength
 		)
 
-	"Phyx.Weld": (data, itemDict)->
+	"Phyx.Weld": (data, itemDict) ->
 		itemDict[data.name] = JointDef\weld(
 			data.collision
 			data.bodyA
@@ -416,7 +416,7 @@ loadFuncs =
 			data.damping
 		)
 
-	"Phyx.Wheel": (data, itemDict)->
+	"Phyx.Wheel": (data, itemDict) ->
 		itemDict[data.name] = JointDef\wheel(
 			data.collision
 			data.bodyA
@@ -429,13 +429,13 @@ loadFuncs =
 			data.damping
 		)
 
-export default (bodyData, world, pos, angle)->
+export default (bodyData, world, pos, angle) ->
 	itemDict = Dictionary!
 	loadData Struct\load(bodyData), itemDict
 	root = Node!
 	items = root.data
 	center = Vec2.zero
-	itemDict\each (itemDef, key)->
+	itemDict\each (itemDef, key) ->
 		if "BodyDef" == tolua.type itemDef
 			body = Body itemDef, world, pos, angle
 			body.owner = root

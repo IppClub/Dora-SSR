@@ -187,7 +187,7 @@ newCreature = ->
 
 ql = ML.QLearner!
 
-getEffect = (tags, action)->
+getEffect = (tags, action) ->
 	effects = actionEffects[actions[action]]
 	cancelHarm = false
 	eset = []
@@ -288,7 +288,7 @@ threadLoop ->
 					else
 						result[item[1]] = item[2]
 			result = [ [k,v] for k,v in pairs result]
-			table.sort result, (a,b)-> b[2] < a[2]
+			table.sort result, (a,b) -> b[2] < a[2]
 			laborResult = table.concat ["#{k}:#{v}" for [k,v] in *result], ", "
 			laborResult ..= "\n习得动作生效次数: #{validAction}/100"
 		TextWrapped laborResult if laborResult
@@ -351,7 +351,7 @@ threadLoop ->
 			dataStr = table.concat [table.concat r, "," for r in *records], "\n"
 			thread ->
 				lines = []
-				ML.BuildDecisionTreeAsync dataStr,0,(depth,name,op,value)->
+				ML.BuildDecisionTreeAsync dataStr,0,(depth,name,op,value) ->
 					line = string.rep("\t",depth) .. if name ~= "" then
 						"if #{name} #{op} #{op=='==' and "\"#{value}\"" or value}"
 					else

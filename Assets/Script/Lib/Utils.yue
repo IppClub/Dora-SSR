@@ -28,7 +28,7 @@ StructToString = =>
 				content[] = "[#{i}]=#{value}"
 	"{" .. (concat content, ',') .. "}"
 StructDefMeta = {
-	set: (index, item)=>
+	set: (index, item) =>
 		index += 1
 		if 1 <= index and index <= #@
 			@[index] = item
@@ -38,12 +38,12 @@ StructDefMeta = {
 				StructUpdated @
 		else
 			error "Access index out of range."
-	get: (index)=>
+	get: (index) =>
 		if 1 <= index and index < #@
 			@[index + 1]
 		else
 			nil
-	insert: (argA, argB)=>
+	insert: (argA, argB) =>
 		local item, index
 		if argB
 			item = argB
@@ -61,7 +61,7 @@ StructDefMeta = {
 			notify "Added", index - 1, item
 			StructUpdated @
 		item
-	remove: (arg)=>
+	remove: (arg) =>
 		local item, index
 		for i = 2, #@
 			if @[i] == arg
@@ -75,7 +75,7 @@ StructDefMeta = {
 				notify "Removed", index - 1, item
 				StructUpdated @
 		item
-	removeAt: (index)=>
+	removeAt: (index) =>
 		length = #@
 		item = if index
 			if 0 < index and index < length
@@ -102,22 +102,22 @@ StructDefMeta = {
 			if notify
 				notify "Removed", index - 1, item
 				StructUpdated @
-	each: (handler)=>
+	each: (handler) =>
 		for index = 2, #@
 			if true == handler @[index], index - 1
 				return true
 		false
-	eachAttr: (handler)=>
+	eachAttr: (handler) =>
 		for i, v in ipairs getmetatable @
 			handler v, @[i + 1]
-	contains: (item)=>
+	contains: (item) =>
 		for index = 2, #@
 			if item == @[index]
 				return true
 		false
 	toArray: => [item for item in *@[2,]]
 	count: => #@ - 1
-	sort: (comparer)=>
+	sort: (comparer) =>
 		arr = @toArray!
 		sort arr, comparer
 		for i = 1, #arr
@@ -131,7 +131,7 @@ StructDefMeta = {
 			concat {"Struct.", @__name, "{\"", concat(content, "\",\""), "\"}"}
 		else
 			"Struct.#{@__name}()"
-	__call: (data)=>
+	__call: (data) =>
 		item = {@__name}
 		if data
 			for k, v in pairs data
@@ -147,18 +147,18 @@ StructDefMeta = {
 }
 StructDefs = {}
 StructHelper = {
-	__call: (...)=>
+	__call: (...) =>
 		structName = @path .. @name
 		local tupleDef
 		tupleDef = setmetatable {
 			__name: structName
-			__index: (key)=>
+			__index: (key) =>
 				item = tupleDef[key]
 				if item
 					rawget @, item
 				else
 					StructDefMeta[key]
-			__newindex: (key, value)=>
+			__newindex: (key, value) =>
 				index = tupleDef[key]
 				if index
 					oldValue = rawget @, index
@@ -197,7 +197,7 @@ StructHelper = {
 					tupleDef[name] = i + 1
 		StructDefs[structName] = tupleDef
 		tupleDef
-	__index: (key)=>
+	__index: (key) =>
 		@path ..= @name
 		@path ..= "."
 		@name = key
@@ -214,7 +214,7 @@ StructHelper = {
 }
 setmetatable StructHelper, StructHelper
 local Struct
-StructLoad = (data)->
+StructLoad = (data) ->
 	if "table" == type data
 		mt = StructDefs[data[1]]
 		assert mt, "Struct started with \"#{data[1]}\" is not defined."
@@ -222,7 +222,7 @@ StructLoad = (data)->
 		for item in *data
 			StructLoad item
 export Struct = setmetatable {
-	load: (...)=>
+	load: (...) =>
 		count = select "#", ...
 		if count > 1
 			name = select 1, ...
@@ -243,9 +243,9 @@ export Struct = setmetatable {
 			data
 	clear: =>
 		StructDefs = {}
-	has: (name)=> StructDefs[name]?
+	has: (name) => StructDefs[name]?
 }, {
-	__index: (name)=>
+	__index: (name) =>
 		def = StructDefs[name]
 		if not def
 			StructHelper.name = name
@@ -256,9 +256,9 @@ export Struct = setmetatable {
 		concat [tostring v for _, v in pairs StructDefs], "\n"
 }
 
-export Set = (list)-> {item, true for item in *list}
+export Set = (list) -> {item, true for item in *list}
 
-export CompareTable = (olds, news)->
+export CompareTable = (olds, news) ->
 	itemsToDel = []
 	itemSet = Set news
 	for item in *olds
@@ -271,7 +271,7 @@ export CompareTable = (olds, news)->
 			itemsToAdd[] = item
 	return itemsToAdd, itemsToDel
 
-export Round = (val)->
+export Round = (val) ->
 	if type(val) == "number"
 		val > 0 and floor(val + 0.5) or ceil(val - 0.5)
 	else
@@ -280,7 +280,7 @@ export Round = (val)->
 			val.y > 0 and floor(val.y + 0.5) or ceil(val.y - 0.5)
 		)
 
-export IsValidPath = (filename)-> not filename\match "[\\/|:*?<>\"]"
+export IsValidPath = (filename) -> not filename\match "[\\/|:*?<>\"]"
 
 allowedUseOfGlobals = Set
 	* "Dora"
@@ -288,7 +288,7 @@ allowedUseOfGlobals = Set
 	* "require"
 	* "_G"
 
-export LintYueGlobals = (luaCodes, globals, globalInLocal = true)->
+export LintYueGlobals = (luaCodes, globals, globalInLocal = true) ->
 	errors = []
 	requireModules = []
 	luaCodes = luaCodes\gsub "^local _module_[^\r\n]*[^\r\n]+", ""
@@ -330,7 +330,7 @@ export LintYueGlobals = (luaCodes, globals, globalInLocal = true)->
 	else
 		true, table.concat requireModules, "\n"
 
-export GSplit = (text, pattern, plain)->
+export GSplit = (text, pattern, plain) ->
 	splitStart, length = 1, #text
 	->
 		if splitStart

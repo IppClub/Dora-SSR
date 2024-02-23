@@ -10,7 +10,7 @@ store:Store = Data
 :GroupPlayer = Store
 
 playerGroup = Group ["hero", "unit"]
-updatePlayerControl = (key,flag)->
+updatePlayerControl = (key,flag) ->
 	playerGroup\each => @unit.data[key] = flag if @group == GroupPlayer
 
 root = with AlignNode isRoot:true

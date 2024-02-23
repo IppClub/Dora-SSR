@@ -30,7 +30,7 @@ with AlignNode isRoot: true, inUI: false
 			}
 			.border = LineRect :width, :height, color: 0xffffffff
 			.area\addChild .border
-			\slot "AlignLayout", (w, h)->
+			\slot "AlignLayout", (w, h) ->
 				.position = Vec2 w / 2, h / 2
 				w -= 200
 				h -= 20
@@ -47,7 +47,7 @@ with AlignNode isRoot: true, inUI: false
 		.alignOffset = Vec2 0, 200
 	\alignLayout!
 
-commands = <index>: (name)=> (...)->
+commands = <index>: (name) => (...) ->
 	msg = "[command]: " .. name .. " " .. table.concat [tostring select i, ... for i = 1, select '#', ...], ", "
 	coroutine.yield "Command", msg
 
@@ -58,7 +58,7 @@ menu = with Menu!
 
 local advance
 
-setButtons = (options)->
+setButtons = (options) ->
 	menu\removeAllChildren!
 	buttons = options ?? 1
 	with menu
@@ -76,7 +76,7 @@ setButtons = (options)->
 						advance!
 		\alignItems!
 
-advance = (option)->
+advance = (option) ->
 	action, result = runner\advance option
 	switch action when "Text"
 		charName = ""

@@ -20,7 +20,7 @@ with CircleButton {
 	\slot "Tapped", ->
 		if .text == "显示"
 			.text = "隐藏"
-			ruler\show 0, 0, 100, 10, (value)->
+			ruler\show 0, 0, 100, 10, (value) ->
 				print value
 		else
 			.text = "显示"

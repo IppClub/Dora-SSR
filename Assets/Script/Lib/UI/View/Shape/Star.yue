@@ -1,6 +1,6 @@
 _ENV = Dora!
 
-StarVertices = (radius, line=true)->
+StarVertices = (radius, line=true) ->
 	a = math.rad 36
 	c = math.rad 72
 	f = math.sin(a) * math.tan(c) + math.cos a
@@ -11,7 +11,7 @@ StarVertices = (radius, line=true)->
 		cr = i % 2 == 1 and r or R
 		Vec2 cr * math.sin(angle), cr * math.cos angle
 
-export default (args)->
+export default (args) ->
 	with Node!
 		.position = Vec2 args.x or 0, args.y or 0
 		if args.fillColor

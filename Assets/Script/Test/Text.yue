@@ -21,7 +21,7 @@ with AlignNode isRoot: true, inUI: false
 			}
 			.border = LineRect width: width, height: height, color: 0xffffffff
 			.area\addChild .border
-			\slot "AlignLayout", (w, h)->
+			\slot "AlignLayout", (w, h) ->
 				.position = Vec2 w / 2, h / 2
 				w -= 200
 				h -= 20

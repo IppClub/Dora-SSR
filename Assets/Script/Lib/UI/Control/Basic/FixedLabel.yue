@@ -2,7 +2,7 @@ _ENV = Dora!
 import "utf-8" as utf8
 
 Class Node,
-	__init:(args)=>
+	__init: (args) =>
 		{
 			:x = 0
 			:y = 0
@@ -37,7 +37,7 @@ Class Node,
 		@text = text
 
 	text: property (=> @_text),
-		(value)=>
+		(value) =>
 			@_text = value
 			@_label.text = value
 			:width, :height = @

@@ -13,7 +13,7 @@ node = with Node!
 			X 2, 250, -150
 			Event "Turn"
 		)
-		\slot "ActionEnd", (action)-> \runAction action
+		\slot "ActionEnd", (action) -> \runAction action
 		\slot "Turn", -> .fliped = not .fliped
 
 renderTarget = with RenderTarget 300, 400

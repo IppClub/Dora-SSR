@@ -10,10 +10,10 @@ p animations, looks
 bone = with DragonBone boneStr
 	.look = looks[1]
 	\play animations[1], true
-	\slot "AnimationEnd", (name)-> print "#{name} end!"
+	\slot "AnimationEnd", (name) -> print "#{name} end!"
 	.y = -200
 	.touchEnabled = true
-	\slot "TapBegan", (touch)->
+	\slot "TapBegan", (touch) ->
 		:x, :y = touch.location
 		if name := \containsPoint x, y
 			\addChild with Label "sarasa-mono-sc-regular", 30

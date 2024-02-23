@@ -1,7 +1,7 @@
 _ENV = Dora!
 
 export default Class Node,
-	__init: (args)=>
+	__init: (args) =>
 		{
 			:isRoot = false
 			:inUI = true
@@ -24,12 +24,12 @@ export default Class Node,
 					@size = viewSize
 					:width, :height = viewSize
 					@emit "AlignLayout", width, height
-					@eachChild (child)->
+					@eachChild (child) ->
 						child\emit "AlignLayout", width, height
 			@slot "Enter", ->
 				:width, :height = @inUI and App.bufferSize or View.size
 				@emit "AlignLayout", width, height
-				@eachChild (child)->
+				@eachChild (child) ->
 					child\emit "AlignLayout", width, height
 		else
 			@hAlign = hAlign
@@ -37,7 +37,7 @@ export default Class Node,
 			@alignOffset = alignOffset
 			@alignWidth = alignWidth
 			@alignHeight = alignHeight
-			@slot "AlignLayout", (w, h)->
+			@slot "AlignLayout", (w, h) ->
 				env = :w,:h
 				oldSize = @size
 				if @alignWidth
@@ -57,16 +57,16 @@ export default Class Node,
 				newSize = @size
 				if oldSize ~= newSize
 					:width, :height = newSize
-					@eachChild (child)->
+					@eachChild (child) ->
 						child\emit "AlignLayout", width, height
 
 	alignLayout:=>
 		if @_isRoot
 			:width, :height = @inUI and App.bufferSize or View.size
 			@emit "AlignLayout", width, height
-			@eachChild (child)->
+			@eachChild (child) ->
 				child\emit "AlignLayout", width, height
 		else
 			:width, :height = @size
-			@eachChild (child)->
+			@eachChild (child) ->
 				child\emit "AlignLayout", width, height

@@ -5,7 +5,7 @@ sprite = with Sprite "Image/logo.png"
 
 with Node!
 	.touchEnabled = true
-	\slot "TapMoved", (touch)->
+	\slot "TapMoved", (touch) ->
 		return unless touch.first
 		sprite.position += touch.delta
 	\addChild sprite

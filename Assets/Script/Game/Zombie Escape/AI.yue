@@ -10,14 +10,14 @@ rangeAttack = Sel [
 	Seq [
 		Con "attack path blocked", =>
 			sensor = @getSensorByTag Unit.AttackSensorTag
-			if sensor.sensedBodies\each (body)->
+			if sensor.sensedBodies\each (body) ->
 					body.group == Data.groupTerrain and
 					(@x > body.x) ~= @faceRight and
 					body.tag == "Obstacle"
 				faceObstacle = true
 				start = @position
 				stop = Vec2 start.x + (@faceRight and 1 or -1) * @unitDef.attackRange.width, start.y
-				Store.world\raycast start, stop, true, (b)->
+				Store.world\raycast start, stop, true, (b) ->
 					return false if b.group == Data.groupDetection
 					faceObstacle = false if Data\isEnemy @, b
 					true
@@ -34,7 +34,7 @@ walk = Sel [
 		Con "obstacles ahead", =>
 			start = @position
 			stop = Vec2 start.x + (@faceRight and 140 or -140), start.y
-			Store.world\raycast start, stop, false, (b, p)->
+			Store.world\raycast start, stop, false, (b, p) ->
 				if b.group == Data.groupTerrain and b.tag == "Obstacle"
 					@data.obstacleDistance = math.abs p.x - start.x
 					true
@@ -68,7 +68,7 @@ fightDecision = Seq [
 				evadeLeftEnemy = false
 				evadeRightEnemy = false
 				sensor = @getSensorByTag Unit.AttackSensorTag
-				sensor.sensedBodies\each (body)->
+				sensor.sensedBodies\each (body) ->
 					if Data\isEnemy @, body
 						distance = math.abs @x - body.x
 						if distance < 80
@@ -145,7 +145,7 @@ Store["AI_KidFollow"] = Sel [
 	]
 	Seq [
 		Con "follow target is away", =>
-			if target := playerGroup\find (e)-> e.unit ~= @
+			if target := playerGroup\find (e) -> e.unit ~= @
 				@data.followTarget = target.unit
 				math.abs(@x - target.unit.x) > 50
 			else false

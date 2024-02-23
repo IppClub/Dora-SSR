@@ -32,7 +32,7 @@ Item = Class Node,
 			.angle = 45
 
 		@runAction Angle 5,0,360
-		@slot "ActionEnd", (action)-> @runAction action
+		@slot "ActionEnd", (action) -> @runAction action
 
 currentEntry = with Node!
 	.renderGroup = true
