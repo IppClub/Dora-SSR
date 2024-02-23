@@ -28,14 +28,14 @@ touchTheSky = false
 isInvincible = false
 hardMode = false
 
-getCubeDef = (width, height)-> with BodyDef!
+getCubeDef = (width, height) -> with BodyDef!
 	.type = "Dynamic"
 	.linearAcceleration = gravity
 	.angularDamping = 1.8
 	-- .fixedRotation = true
 	\attachPolygon width, height, 0.4, 0.4, 0.4
 
-getBlockDef = (width, height)-> with BodyDef!
+getBlockDef = (width, height) -> with BodyDef!
 	.type = "Static"
 	.linearAcceleration = gravity
 	\attachPolygon width, height, 0.4, 0.4, 0.4
@@ -143,13 +143,13 @@ isGrabbing = false
 isGrabbed = false
 grabBlock = Node!
 
-emitRope = (cubeBody, endPoint)->
+emitRope = (cubeBody, endPoint) ->
 	startPoint = cubeBody.position
 	isBlock = false
 	isSelf = true
 	grabPoint = endPoint
 	Audio\play "sfx/slime_touch.wav"
-	world\raycast startPoint, endPoint, false, (_body, point)->
+	world\raycast startPoint, endPoint, false, (_body, point) ->
 		if isBlock
 			isGrabbed = true
 			grabPoint = point
@@ -169,7 +169,7 @@ emitRope = (cubeBody, endPoint)->
 				--	 curEndPoint = curEndPoint + dir * dis
 				\drawSegment cubeBody.position, grabPoint, 10, Color 0xaaffffff
 
-getGrabForce = (body, target)->
+getGrabForce = (body, target) ->
 	prePos = body.position
 	force = target - prePos
 	force = force\normalize! * 30
@@ -179,7 +179,7 @@ camera = Camera2D!
 Director\pushCamera camera
 updateViewScale!
 
-cameraFollow = (body)->
+cameraFollow = (body) ->
 	with Node!
 		\schedule ->
 			camera.position = Vec2 0, (body.position.y - camera.position.y) * 0.1 + camera.position.y + 30
@@ -234,7 +234,7 @@ arriveDest = ->
 				restartGame!
 		\addTo ui
 
-buildBlocks = (index)->
+buildBlocks = (index) ->
 	blocks = blockTypes[index]
 	for block in *blocks
 		[width, height, pos, blockType] = block
@@ -248,7 +248,7 @@ buildBlocks = (index)->
 					Audio\play "sfx/strike.wav"
 				blockColor = colorWhite
 			when 1
-				\slot "BodyEnter", (body)->
+				\slot "BodyEnter", (body) ->
 					if not isInvincible
 						loseHeart!
 						body\applyLinearImpulse Vec2(math.random(-1000, 1000), math.random(-1000, -500)),
@@ -276,7 +276,7 @@ buildBlocks = (index)->
 				\addChild with Sprite "Image/spring.png"
 					.scaleX = .scaleY = 0.15
 				implulseAvailable = true
-				\slot "BodyEnter", (body)->
+				\slot "BodyEnter", (body) ->
 					return unless implulseAvailable
 					Audio\play "sfx/rebound.wav"
 					body\applyLinearImpulse Vec2(0, springForce), body.position
@@ -317,7 +317,7 @@ buildWorld = ->
 		\addTo world
 	with Node!
 		.touchEnabled = true
-		\slot "TapBegan", (touch)->
+		\slot "TapBegan", (touch) ->
 			isGrabbing = true
 			return unless touch.first
 			:location = touch

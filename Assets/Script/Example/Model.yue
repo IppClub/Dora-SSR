@@ -6,7 +6,7 @@ model = with Model modelFile
 	.recovery = 0.2
 	.look = "happy"
 	\play "walk", true
-	\slot "AnimationEnd", (name)-> print name, "end"
+	\slot "AnimationEnd", (name) -> print name, "end"
 
 -- example codes ends here, some test ui below --
 

@@ -4,15 +4,15 @@ sceneGroup = Group ["scene",]
 positionGroup = Group ["position",]
 
 with Observer "Add", ["scene",]
-	\watch (scene)=> with scene
+	\watch (scene) => with scene
 		.touchEnabled = true
-		\slot "TapEnded", (touch)->
+		\slot "TapEnded", (touch) ->
 			:location = touch
-			positionGroup\each (entity)->
+			positionGroup\each (entity) ->
 				entity.target = location
 
 with Observer "Add", ["image",]
-	\watch (image)=> sceneGroup\each (e)->
+	\watch (image) => sceneGroup\each (e) ->
 		with @sprite = Sprite image
 			\addTo e.scene
 			\runAction Scale 0.5, 0, 0.5, Ease.OutBack
@@ -25,7 +25,7 @@ with Observer "Remove", ["target",]
 	\watch => print "remove target from entity #{@index}"
 
 with Group ["position", "direction", "speed", "target"]
-	\watch (position, direction, speed, target)=>
+	\watch (position, direction, speed, target) =>
 		return if target == position
 		dir = target - position
 		dir = dir\normalize!
@@ -37,7 +37,7 @@ with Group ["position", "direction", "speed", "target"]
 		@target = nil if newPos == target
 
 with Observer "AddOrChange", ["position", "direction", "sprite"]
-	\watch (position, direction, sprite)=>
+	\watch (position, direction, sprite) =>
 		sprite.position = position
 		lastDirection = @oldValues.direction or sprite.angle
 		if math.abs(direction - lastDirection) > 1
@@ -83,7 +83,7 @@ threadLoop ->
 				direction: 1.0 * math.random 0, 360
 				speed: 1.0 * math.random 1, 20
 		if ImGui.Button "Destroy An Entity"
-			Group(["sprite", "position"])\each (entity)->
+			Group(["sprite", "position"])\each (entity) ->
 				entity.position = nil
 				with entity.sprite
 					\runAction Sequence Scale(0.5, 0.5, 0, Ease.InBack), Event "Destroy"

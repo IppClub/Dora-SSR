@@ -242,7 +242,7 @@ with Body terrainDef,world,Vec2.zero
 
 -- action
 
-rangeAttackEnd = (name,playable)->
+rangeAttackEnd = (name,playable) ->
 	playable.parent\stop! if name == "range"
 
 UnitAction\add "range",
@@ -269,7 +269,7 @@ UnitAction\add "range",
 				with Bullet bulletDef,@
 					.color = Color 0xff666666 if @group == EnemyGroup
 					.targetAllow = targetAllow
-					\slot "HitTarget", (bullet,target,pos)->
+					\slot "HitTarget", (bullet,target,pos) ->
 						with target.data
 							.hitPoint = pos
 							.hitPower = attackPower
@@ -315,12 +315,12 @@ UnitAction\add "multiArrow",
 			\play "range"
 			\slot "AnimationEnd", rangeAttackEnd
 		once =>
-			onAttack = (angle,speed)->
+			onAttack = (angle,speed) ->
 				BigArrow\setVelocity angle,speed
 				with Bullet BigArrow,@
 					.color = Color 0xff666666 if @group == EnemyGroup
 					.targetAllow = targetAllow
-					\slot "HitTarget", (bullet,target,pos)->
+					\slot "HitTarget", (bullet,target,pos) ->
 						with target.data
 							.hitPoint = pos
 							.hitPower = attackPower
@@ -354,7 +354,7 @@ UnitAction\add "fallOff",
 				.speed = 2.5
 				\play "idle"
 		else @data.fallDown = false
-		(action)=>
+		(action) =>
 			return true if @onSurface
 			if not @data.fallDown and @velocityY <= 0
 				@data.fallDown = true
@@ -411,7 +411,7 @@ UnitAction\add "rush",
 			sleep 0.3
 			true
 
-spearAttackEnd = (name,playable)->
+spearAttackEnd = (name,playable) ->
 	playable.parent\stop! if name == "spear"
 
 UnitAction\add "spearAttack",
@@ -437,7 +437,7 @@ UnitAction\add "spearAttack",
 			dir = @faceRight and 0 or -900
 			origin = @position - Vec2(0,205) + Vec2(dir,0)
 			size = Size 900,40
-			world\query Rect(origin,size), (body)->
+			world\query Rect(origin,size), (body) ->
 				:entity = body
 				if entity and Data\isEnemy body,@
 					with body.data
@@ -461,7 +461,7 @@ Store["Bullet_Arrow"] = with BulletDef!
 	\setAsCircle 10
 	\setVelocity 25,800
 
-GetBoss = (entity, pos, black)->
+GetBoss = (entity, pos, black) ->
 	unitDef = with Dictionary!
 		.linearAcceleration = Vec2 0, -10
 		.bodyType = "Dynamic"
@@ -523,7 +523,7 @@ GetBoss = (entity, pos, black)->
 		if node := .playable\getNodeByName "mask"
 			node\addChild Sprite "Model/patreon.clip|#{masks[math.random 1, #masks]}"
 
-GetUnit = (entity, pos, black)->
+GetUnit = (entity, pos, black) ->
 	characterType = characterTypes[math.random 1, #characterTypes]
 	characterColor = characterColors[math.random 1, #characterColors]
 	character =
@@ -731,7 +731,7 @@ Store["AI_Boss"] = Sel [
 ]
 
 with Observer "Add", ["position","order","group","faceRight"]
-	\watch (position,order,group,faceRight)=>
+	\watch (position,order,group,faceRight) =>
 		:world = Store
 		@player = true if group == PlayerGroup
 		@enemy = true if group == EnemyGroup
@@ -746,7 +746,7 @@ with Observer "Add", ["position","order","group","faceRight"]
 			\addTo world
 
 with Observer "Change", ["hp","unit"]
-	\watch (hp,unit)=>
+	\watch (hp,unit) =>
 		:boss = @
 		hp:lastHp = @oldValues
 		if hp < lastHp
@@ -784,7 +784,7 @@ with Observer "Change", ["hp","unit"]
 					elseif not Group(["unit",])\each => @group == EnemyGroup
 						emit "Win"
 
-WaitForSignal = (text,duration)->
+WaitForSignal = (text,duration) ->
 	with Label "sarasa-mono-sc-regular", 100
 		.color = themeColor
 		.text = text
@@ -809,7 +809,7 @@ Director.ui\addChild with AlignNode isRoot:true
 		.hAlign = "Left"
 		.vAlign = "Top"
 		.alignOffset = Vec2(360,80) * (uiScale / 2)
-		\gslot "AddScore", (value)->
+		\gslot "AddScore", (value) ->
 			return if value < 0 and GameScore == 0
 			\addChild with Label "sarasa-mono-sc-regular",64
 				.color = themeColor
@@ -948,7 +948,7 @@ Director.ui\addChild with AlignNode isRoot:true
 						faceRight: false
 			\schedule once ->
 				time = 2
-				cycle time, (dt)->
+				cycle time, (dt) ->
 					:width,:height = App.visualSize
 					SetNextWindowPos Vec2 width/2-150,height/2+30
 					SetNextWindowSize Vec2(300,50), "FirstUseEver"

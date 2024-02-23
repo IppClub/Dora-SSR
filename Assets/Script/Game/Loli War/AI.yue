@@ -102,7 +102,7 @@ Store["HeroAI"] = Sel [
 		]
 	]
 	Seq [
-		Con "not facing enemy", => heroes\each (hero)->
+		Con "not facing enemy", => heroes\each (hero) ->
 			:unit = hero
 			if Data\isEnemy unit,@
 				if (@x > unit.x) == @faceRight
@@ -119,7 +119,7 @@ Store["HeroAI"] = Sel [
 		Act "jump"
 	]
 	Seq [
-		Con "is at enemy side", => heroes\each (hero)->
+		Con "is at enemy side", => heroes\each (hero) ->
 			:unit = hero
 			if Data\isEnemy unit,@
 				if math.abs(@x - unit.x) < 50
@@ -167,7 +167,7 @@ Store["SwitchAI"] = Sel [
 
 switches = Group ["switch",]
 turnToSwitch = Seq [
-	Con "go to switch", => switches\each (item)->
+	Con "go to switch", => switches\each (item) ->
 		if item.group == @group and @entity and @entity.targetSwitch == item.switch
 			return (@x > item.unit.x) == @faceRight
 	Act "turn"
@@ -198,12 +198,12 @@ Store["BunnySwitcherAI"] = Sel [
 			return .atSwitch? and .atSwitch.entity.switch == @entity.targetSwitch
 		Sel [
 			Seq [
-				Con "switch available", => heroes\each (hero)->
+				Con "switch available", => heroes\each (hero) ->
 					return false if @group ~= hero.group
 					needEP,available = switch @entity.targetSwitch
 						when "Switch"
 							bunnyCount = 0
-							Group(["bunny",])\each (bunny)->
+							Group(["bunny",])\each (bunny) ->
 								bunnyCount += 1 if bunny.group == @group
 							1,bunnyCount < MaxBunnies
 						when "SwitchG"

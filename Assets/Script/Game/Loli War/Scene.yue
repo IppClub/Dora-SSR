@@ -63,12 +63,12 @@ GameWorld = Class PlatformWorld,
 			\attachPolygon Vec2(pos.x-512,1004-512),10,1024
 			\attachPolygon Vec2(pos.x+512,1004-512),10,1024
 
-		readme = with Body readmeDef,@,Vec2.zero
+		readme = with Body readmeDef, @, Vec2.zero
 			.order = LayerBackground
 			.group = GroupDisplay
 			\addTo @
 			\gslot "PlayerSelect", ->
-				.children\each (child)->
+				.children\each (child) ->
 					with Visual "Particle/heart.par"
 						.position = child\convertToWorldSpace Vec2.zero
 						\autoRemove!
@@ -103,7 +103,7 @@ GameWorld = Class PlatformWorld,
 				\addTo readme
 
 	buildCastles: =>
-		Block = (block,group,look,x,y)->
+		Block = (block,group,look,x,y) ->
 			Entity
 				block: "Block#{block}"
 				:group
@@ -179,7 +179,7 @@ GameWorld = Class PlatformWorld,
 		emit "BlockValue",GroupEnemy,enemyBlockHP
 
 	buildSwitches: =>
-		Switch = (switchType,group,look,x,y)->
+		Switch = (switchType,group,look,x,y) ->
 			Entity
 				switch: switchType
 				:group
@@ -196,7 +196,7 @@ GameWorld = Class PlatformWorld,
 		switchGExist = false
 		switchNExist = false
 		bunnySwitchers = Group ["bunny","targetSwitch"]
-		bunnySwitchers\each (switcher)->
+		bunnySwitchers\each (switcher) ->
 			if switcher.group == group
 				switch switcher.targetSwitch
 					when "SwitchG" then switchGExist = true

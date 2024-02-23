@@ -23,22 +23,22 @@ store:Store = Data
 heroes = Group ["hero",]
 
 with Observer "Add",["world",]
-	\watch (world)=>
+	\watch (world) =>
 		Store.world = with world
 			with .camera
 				.followRatio = Vec2 0.03,0.03
 				.boundary = Rect 0,-110,4096,1004
 				.position = Vec2 1024,274
 			\setIterations 2,3
-			\gslot "BlockValue",(group,value)-> heroes\each (hero)->
+			\gslot "BlockValue",(group,value) -> heroes\each (hero) ->
 				hero.blocks = value if hero.group == group
-			\gslot "BlockChange",(group,value)-> heroes\each (hero)->
+			\gslot "BlockChange",(group,value) -> heroes\each (hero) ->
 				if hero.group == group and hero.blocks
 					hero.blocks = math.max hero.blocks+value,0
 					hero.defending = true if value < 0
-			\gslot "EPChange",(group,value)-> heroes\each (hero)->
+			\gslot "EPChange",(group,value) -> heroes\each (hero) ->
 				hero.ep += value if hero.group == group
-			\gslot "PlayerSelect",(hero)-> thread ->
+			\gslot "PlayerSelect",(hero) -> thread ->
 				sleep 1
 				\clearScene!
 				for ep in *{6,1,1}
@@ -91,7 +91,7 @@ mutables = [
 ]
 
 with Observer "Add",["hero","group","layer","position","faceRight","AI"]
-	\watch (hero,group,layer,position,faceRight,AI)=>
+	\watch (hero,group,layer,position,faceRight,AI) =>
 		:world = Store
 		def = Store[hero]
 		for var in *mutables
@@ -116,7 +116,7 @@ with Observer "Add",["hero","group","layer","position","faceRight","AI"]
 		emit "HPChange",@group,@hp
 
 with Observer "Add",["bunny","group","layer","position","faceRight","AI"]
-	\watch (bunny,group,layer,position,faceRight,AI)=>
+	\watch (bunny,group,layer,position,faceRight,AI) =>
 		:world = Store
 		def = Store[bunny]
 		for var in *mutables
@@ -133,7 +133,7 @@ with Observer "Add",["bunny","group","layer","position","faceRight","AI"]
 			@hp -= 1.0 if @hp == 0.0
 
 with Observer "Add",["switch","group","layer","look","position"]
-	\watch (switchType,group,layer,look,position)=>
+	\watch (switchType,group,layer,look,position) =>
 		:world = Store
 		unit = with Unit Store[switchType],world,@,position
 			.group = group
@@ -144,7 +144,7 @@ with Observer "Add",["switch","group","layer","look","position"]
 				.scaleY = 2
 			\addTo world
 			.emittingEvent = true
-			\slot "BodyEnter",(sensorTag)=>
+			\slot "BodyEnter",(sensorTag) =>
 				if .attackSensor.tag == sensorTag and @entity and Data\isFriend @, unit
 					if @group == GroupPlayer and @entity.hero and not @data.tip
 						floating = Action Sequence(
@@ -161,7 +161,7 @@ with Observer "Add",["switch","group","layer","look","position"]
 							\slot "ActionEnd", => \runAction floating
 							\addTo @
 					@data.atSwitch = unit
-			\slot "BodyLeave",(sensorTag)=>
+			\slot "BodyLeave",(sensorTag) =>
 				if .attackSensor.tag == sensorTag and Data\isFriend @, unit
 					@data.atSwitch = nil
 					if @data.tip
@@ -174,7 +174,7 @@ with Observer "Add",["switch","group","layer","look","position"]
 						@data.tip = nil
 
 with Observer "Add",["block","group","layer","look","position"]
-	\watch (block,group,layer,look,position)=>
+	\watch (block,group,layer,look,position) =>
 		:world = Store
 		def = Store[block]
 		@hp = def.hp
@@ -186,7 +186,7 @@ with Observer "Add",["block","group","layer","look","position"]
 			\addTo world
 
 with Observer "Add",["poke","group","layer","position"]
-	\watch (poke,group,layer,position)=>
+	\watch (poke,group,layer,position) =>
 		:world = Store
 		pokeDef = with BodyDef!
 			.linearAcceleration = Vec2 0,-10
@@ -209,7 +209,7 @@ with Observer "Add",["poke","group","layer","position"]
 				.filter = "Point"
 				.visible = false
 			\addChild glow
-			\slot "BodyEnter",(sensorTag)=>
+			\slot "BodyEnter",(sensorTag) =>
 				if sensorTag == 0 and switch @group
 						when GroupPlayer,GroupEnemy then Data\isEnemy @group,.group
 						else false
@@ -250,7 +250,7 @@ with Observer "Add",["poke","group","layer","position"]
 		Audio\play "Audio/quake.wav"
 
 with Observer "Change", ["hp","unit","block"]
-	\watch (hp,unit)=>
+	\watch (hp,unit) =>
 		hp:lastHp = @oldValues
 		if hp < lastHp
 			unit\start "cancel" if unit\isDoing "hit"
@@ -278,7 +278,7 @@ with Observer "Change", ["hp","unit","block"]
 			emit "BlockChange",group,math.max(hp,0)-lastHp
 
 with Observer "Change", ["hp","bunny"]
-	\watch (hp)=>
+	\watch (hp) =>
 		:unit = @
 		hp:lastHp = @oldValues
 		if hp < lastHp
@@ -298,7 +298,7 @@ with Observer "Change", ["hp","bunny"]
 					unit\removeFromParent!
 
 with Observer "Change", ["hp","hero"]
-	\watch (hp)=>
+	\watch (hp) =>
 		:unit = @
 		hp:lastHp = @oldValues
 		:world = Store
@@ -326,7 +326,7 @@ with Observer "Change", ["hp","hero"]
 							View.postEffect = with SpriteEffect "builtin:vs_sprite","builtin:fs_spritesaturation"
 								\get(1)\set "u_adjustment",0
 							sleep 3
-							cycle 5,(dt)-> View.postEffect\get(1)\set "u_adjustment",dt
+							cycle 5,(dt) -> View.postEffect\get(1)\set "u_adjustment",dt
 							View.postEffect = nil
 						\slot "Cleanup", ->
 							View.postEffect = nil
@@ -342,7 +342,7 @@ with Observer "Change", ["hp","hero"]
 					stop = switch lastGroup
 						when GroupPlayer then Vec2 512,1004-512
 						when GroupEnemy then Vec2 3584,1004-512
-					cycle 5,(dt)-> unit.position = start + (stop-start) * Ease\func Ease.OutQuad,dt
+					cycle 5,(dt) -> unit.position = start + (stop-start) * Ease\func Ease.OutQuad,dt
 					unit.playable.look = "happy"
 					unit.visible = true
 					unit.velocityY = 1
@@ -360,7 +360,7 @@ with Observer "Change", ["hp","hero"]
 		emit "HPChange",@group,math.max(hp,0)-lastHp
 
 with Observer "Change", ["blocks","group"]
-	\watch (blocks,group)=>
+	\watch (blocks,group) =>
 		:world = Store
 		return unless world.playing
 		if blocks == 0
@@ -378,7 +378,7 @@ with Observer "Change", ["blocks","group"]
 				.linearAcceleration = Vec2 0,-10
 				.type = "Dynamic"
 				\attachPolygon sp.width*2,sp.height*2,1,0,1
-			heroes\each (hero)->
+			heroes\each (hero) ->
 				if hero.group == GroupPlayer
 					with Body rectDef,world,Vec2(hero.unit.x,512)
 						.order = LayerBunny

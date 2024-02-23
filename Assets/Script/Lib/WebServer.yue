@@ -6,7 +6,7 @@ HttpServer.wwwPath = Path Content.writablePath, ".www"
 
 from "Utils" import LintYueGlobals
 
-getProjectDirFromFile = (file)->
+getProjectDirFromFile = (file) ->
 	:writablePath = Content
 	return nil if writablePath ~= file\sub 1, #writablePath
 	current = Path\getRelative file, writablePath
@@ -19,12 +19,12 @@ getProjectDirFromFile = (file)->
 	until false
 	nil
 
-getSearchPath = (file)->
+getSearchPath = (file) ->
 	if dir := getProjectDirFromFile file
 		return Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
 	""
 
-getSearchFolders = (file)->
+getSearchFolders = (file) ->
 	if dir := getProjectDirFromFile file
 		return
 			* Path dir, "Script"
@@ -44,8 +44,13 @@ disabledCheckForLua =
 	* "cannot use operator '#'"
 	* "attempting ipairs loop"
 	* "expects record or nominal"
+	* "variable is not being assigned a value"
+	* "<unknown type>"
+	* "<invalid type>"
+	* "using the '#' operator on this map will always return 0"
+	* "can't match a record to a map with non%-string keys"
 
-yueCheck = (file, content)->
+yueCheck = (file, content) ->
 	searchPath = getSearchPath file
 	checkResult, luaCodes = yue.checkAsync content, searchPath
 	info = []
@@ -65,7 +70,7 @@ yueCheck = (file, content)->
 			info[] = ["syntax", file, line, col, "invalid global variable"]
 	luaCodes, info
 
-luaCheck = (file, content)->
+luaCheck = (file, content) ->
 	res, err = load content, "check"
 	if not res
 		line, msg = err\match ".*:(%d+):%s*(.*)"
@@ -89,7 +94,7 @@ luaCheck = (file, content)->
 			success = true
 	return :success, :info
 
-luaCheckWithLineInfo = (file, luaCodes)->
+luaCheckWithLineInfo = (file, luaCodes) ->
 	res = luaCheck file, luaCodes
 	info = []
 	if not res.success
@@ -109,7 +114,7 @@ luaCheckWithLineInfo = (file, luaCodes)->
 		return false, info
 	return true, info
 
-getCompiledYueLine = (content, line, row, file)->
+getCompiledYueLine = (content, line, row, file) ->
 	luaCodes, info = yueCheck file, content
 	return nil unless luaCodes
 	current = 1
@@ -131,7 +136,7 @@ getCompiledYueLine = (content, line, row, file)->
 	else
 		nil
 
-HttpServer\postSchedule "/check", (req)->
+HttpServer\postSchedule "/check", (req) ->
 	switch req when {body: {:file, :content}}
 		ext = Path\getExt file
 		switch ext when "tl"
@@ -165,7 +170,7 @@ HttpServer\postSchedule "/check", (req)->
 				return success: false, :info
 	success: true
 
-updateInferedDesc = (infered)->
+updateInferedDesc = (infered) ->
 	return if not infered.key or infered.key == "" or infered.desc\match "^polymorphic function %(with types "
 	:key, :row = infered
 	if codes := Content\loadAsync key
@@ -178,14 +183,14 @@ updateInferedDesc = (infered)->
 			if lineCode\match "^%s*%-%- @"
 				skipping = true
 				continue
-			if result := lineCode\match "%s*%-%- (.+)"
+			if result := lineCode\match "^%s*%-%- (.+)"
 				comments[] = result unless skipping
 			elseif #comments > 0
 				comments = []
 				skipping = false
 		infered.doc = table.concat comments, "\n"
 
-HttpServer\postSchedule "/infer", (req)->
+HttpServer\postSchedule "/infer", (req) ->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
 		searchPath = getSearchPath file
 		switch lang when "tl", "lua"
@@ -206,7 +211,7 @@ HttpServer\postSchedule "/infer", (req)->
 				return success: true, :infered
 	success: false
 
-getParamDocs = (signatures)->
+getParamDocs = (signatures) ->
 	if codes := Content\loadAsync signatures[1].file
 		comments = []
 		params = []
@@ -265,7 +270,7 @@ getParamDocs = (signatures)->
 		return if #results > 0 then results else nil
 	nil
 
-HttpServer\postSchedule "/signature", (req)->
+HttpServer\postSchedule "/signature", (req) ->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
 		searchPath = getSearchPath file
 		switch lang when "tl", "lua"
@@ -365,7 +370,7 @@ yueKeywords = [
 	"with"
 ]
 
-HttpServer\postSchedule "/complete", (req)->
+HttpServer\postSchedule "/complete", (req) ->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
 		searchPath = getSearchPath file
 		repeat
@@ -478,7 +483,7 @@ HttpServer\postSchedule "/complete", (req)->
 
 HttpServer\upload(
 	"/upload"
-	(req, filename)->
+	(req, filename) ->
 		switch req when {params: {:path}}
 			uploadPath = Path Content.writablePath, ".upload"
 			if not Content\exist uploadPath
@@ -487,7 +492,7 @@ HttpServer\upload(
 			Content\mkdir Path\getPath targetPath
 			return targetPath
 		nil
-	(req, file)->
+	(req, file) ->
 		switch req when {params: {:path}}
 			uploadPath = Path Content.writablePath, ".upload"
 			targetPath = Path path, Path\getRelative file, uploadPath
@@ -497,11 +502,11 @@ HttpServer\upload(
 		false
 )
 
-HttpServer\post "/list", (req)->
+HttpServer\post "/list", (req) ->
 	switch req when {body: {:path}}
 		if Content\exist path
 			files = {}
-			visitAssets = (path, folder)->
+			visitAssets = (path, folder) ->
 				dirs = Content\getDirs path
 				for dir in *dirs
 					continue if dir\match "^%."
@@ -528,7 +533,7 @@ HttpServer\post "/info", -> return
 	locale: App.locale
 	version: App.version
 
-HttpServer\post "/new", (req)->
+HttpServer\post "/new", (req) ->
 	switch req when {body: {:path, :content}}
 		if not Content\exist path
 			parent = Path\getPath path
@@ -544,7 +549,7 @@ HttpServer\post "/new", (req)->
 				return success: true
 	success: false
 
-HttpServer\post "/delete", (req)->
+HttpServer\post "/delete", (req) ->
 	switch req when {body: {:path}}
 		if Content\exist path
 			parent = Path\getPath path
@@ -561,7 +566,7 @@ HttpServer\post "/delete", (req)->
 				return success: true
 	success: false
 
-HttpServer\post "/rename", (req)->
+HttpServer\post "/rename", (req) ->
 	switch req when {body: {:old, :new}}
 		if Content\exist(old) and not Content\exist new
 			parent = Path\getPath new
@@ -587,14 +592,14 @@ HttpServer\post "/rename", (req)->
 				return success: true
 	success: false
 
-HttpServer\postSchedule "/read", (req)->
+HttpServer\postSchedule "/read", (req) ->
 	switch req when {body: {:path}}
 		if Content\exist path
 			if content := Content\loadAsync path
 				return :content, success: true
 	success: false
 
-compileFileAsync = (inputFile, sourceCodes)->
+compileFileAsync = (inputFile, sourceCodes) ->
 	file = Path\getFilename inputFile
 	searchPath = if dir := getProjectDirFromFile inputFile
 		file = Path\getRelative inputFile, Path Content.writablePath, dir
@@ -603,7 +608,7 @@ compileFileAsync = (inputFile, sourceCodes)->
 	outputFile = Path\replaceExt inputFile, "lua"
 	options: {extension: yueext} = yue
 	switch Path\getExt inputFile when yueext
-		(success) <- yue.compile inputFile, outputFile, searchPath, (codes, err, globals)->
+		(success) <- yue.compile inputFile, outputFile, searchPath, (codes, err, globals) ->
 			return unless codes
 			success, result = LintYueGlobals codes, globals
 			return unless success
@@ -622,7 +627,7 @@ compileFileAsync = (inputFile, sourceCodes)->
 		else
 			Content\remove outputFile
 
-HttpServer\postSchedule "/write", (req)->
+HttpServer\postSchedule "/write", (req) ->
 	switch req when {body: {:path, :content}}
 		if Content\saveAsync path, content
 			switch Path\getExt path when "tl", "yue", "xml"
@@ -640,7 +645,7 @@ extentionLevels =
 	lua: 0
 
 HttpServer\post "/assets", ->
-	visitAssets = (path, root)->
+	visitAssets = (path, root) ->
 		children = nil
 		dirs = Content\getDirs path
 		for dir in *dirs
@@ -675,7 +680,7 @@ HttpServer\post "/assets", ->
 				title: file
 			}
 		if children
-			table.sort children, (a, b)->
+			table.sort children, (a, b) ->
 				if a.dir == b.dir
 					a.title < b.title
 				else
@@ -718,7 +723,7 @@ HttpServer\post "/assets", ->
 		]
 	}
 
-HttpServer\postSchedule "/run", (req)->
+HttpServer\postSchedule "/run", (req) ->
 	switch req when {body: {:file, :asProj}}
 		import "Dev.Entry"
 		if asProj
@@ -738,20 +743,20 @@ HttpServer\postSchedule "/stop", ->
 	import "Dev.Entry"
 	success: Entry.stop!
 
-HttpServer\postSchedule "/zip", (req)->
+HttpServer\postSchedule "/zip", (req) ->
 	switch req when {body: {:path, :zipFile}}
 		Content\mkdir Path\getPath zipFile
-		return success: Content\zipAsync path, zipFile, (file)->
+		return success: Content\zipAsync path, zipFile, (file) ->
 			not (file\match('^%.') or file\match "[\\/]%.")
 	success: false
 
-HttpServer\postSchedule "/unzip", (req)->
+HttpServer\postSchedule "/unzip", (req) ->
 	switch req when {body: {:zipFile, :path}}
-		return success: Content\unzipAsync zipFile, path, (file)->
+		return success: Content\unzipAsync zipFile, path, (file) ->
 			not (file\match('^%.') or file\match("[\\/]%.") or file\match "__MACOSX")
 	success: false
 
-HttpServer\post "/editingInfo", (req)->
+HttpServer\post "/editingInfo", (req) ->
 	import "Dev.Entry"
 	config = Entry.getConfig!
 	switch req when {body: {:editingInfo}}
@@ -772,12 +777,12 @@ HttpServer\post "/editingInfo", (req)->
 			}
 		success: true, editingInfo: config.editingInfo
 
-HttpServer\post "/command", (req)->
+HttpServer\post "/command", (req) ->
 	switch req when {body: {:code}}
 		emit "AppCommand", code
 	success: true
 
-HttpServer\post "/exist", (req)->
+HttpServer\post "/exist", (req) ->
 	switch req when {body: {:file}}
 		success: Content\exist file
 	else

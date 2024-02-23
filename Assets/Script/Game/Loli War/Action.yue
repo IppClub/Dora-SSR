@@ -22,7 +22,7 @@ UnitAction\add "fallOff",
 			\play "jump", true
 		=> @onSurface
 
-pushSwitchEnd = (name,playable)->
+pushSwitchEnd = (name,playable) ->
 	switch name
 		when "switch","attack"
 			playable.parent\stop!
@@ -59,7 +59,7 @@ UnitAction\add "waitUser",
 			\play "idle", true
 		-> false
 
-switchPushed = (name,playable)->
+switchPushed = (name,playable) ->
 	switch name
 		when "pushRight","pushLeft"
 			playable.parent\stop!
@@ -82,7 +82,7 @@ UnitAction\add "pushed",
 			heroes = Group {"hero"}
 			switch @entity.switch
 				when "Switch"
-					heroes\each (hero)->
+					heroes\each (hero) ->
 						if @group == hero.group and hero.ep >= 1
 							Entity with {}
 								.bunny,.group,.faceRight,.position = switch @group
@@ -93,13 +93,13 @@ UnitAction\add "pushed",
 								.AI = "BunnyForwardReturnAI"
 								.layer = LayerBunny
 								bunnyCount = 0
-								Group(["bunny",])\each (bunny)->
+								Group(["bunny",])\each (bunny) ->
 									bunnyCount += 1 if bunny.group == @group
 								.hp = 0.0 if bunnyCount > MaxBunnies
 							emit "EPChange", @group, -1
 							return true
 				when "SwitchG"
-					heroes\each (hero)->
+					heroes\each (hero) ->
 						if @group == hero.group and hero.ep >= 2
 							Entity with {}
 								.layer = LayerBlock
@@ -116,7 +116,7 @@ UnitAction\add "pushed",
 		@data.pushed = false
 		@playable\slot("AnimationEnd")\remove pushSwitchEnd
 
-strikeEnd = (name,playable)->
+strikeEnd = (name,playable) ->
 	playable.parent\stop! if name == "hit"
 
 UnitAction\add "strike",
@@ -136,7 +136,7 @@ UnitAction\add "strike",
 	stop: =>
 		@playable\slot("AnimationEnd")\remove strikeEnd
 
-villyAttackEnd = (name,playable)->
+villyAttackEnd = (name,playable) ->
 	playable.parent\stop! if name == "attack"
 
 UnitAction\add "villyAttack",
@@ -163,7 +163,7 @@ UnitAction\add "villyAttack",
 				Audio\play "Audio/v_att.wav"
 				with Bullet bulletDef,@
 					.targetAllow = targetAllow
-					\slot "HitTarget",(bullet,target,pos)->
+					\slot "HitTarget",(bullet,target,pos) ->
 						with target.data
 							.hitPoint = pos
 							.hitPower = attackPower

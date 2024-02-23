@@ -1,6 +1,6 @@
 _ENV = Dora!
 
-with Label "sarasa-mono-sc-regular",40
+with Label "sarasa-mono-sc-regular", 40
 	.batched = false
 	.text = "你好，Dora SSR！"
 	for i = 1, .characterCount
@@ -11,7 +11,7 @@ with Label "sarasa-mono-sc-regular",40
 			Scale 0.2, 2, 1
 		)
 
-with Label "sarasa-mono-sc-regular",30
+with Label "sarasa-mono-sc-regular", 30
 	.text = "-- from Jin."
 	.color = App.themeColor
 	.opacity = 0

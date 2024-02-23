@@ -2,13 +2,13 @@ _ENV = Dora!
 import "UI.View.Control.Basic.CircleButton"
 
 -- [signals]
--- "Tapped",(button)->
+-- "Tapped",(button) ->
 -- [params]
 -- text, x, y, radius, fontName=NotoSansHans-Regular, fontSize=18
 export default Class CircleButton,
-	__init:(args)=>
+	__init: (args) =>
 		@_text = @label.text if @label
-		@slot "TapFilter", (touch)->
+		@slot "TapFilter", (touch) ->
 			touch.enabled = false unless touch.first
 		@slot "Tapped", ->
 			enabled = @touchEnabled
@@ -18,6 +18,6 @@ export default Class CircleButton,
 				@touchEnabled = enabled
 
 	text:property (=> @_text),
-		(value)=>
+		(value) =>
 			@_text = value
 			@label.text = value if @label

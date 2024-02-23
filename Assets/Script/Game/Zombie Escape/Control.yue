@@ -9,7 +9,7 @@ store:Store = Data
 
 Store.controlPlayer = "KidW"
 playerGroup = Group ["player",]
-updatePlayerControl = (key, flag)->
+updatePlayerControl = (key, flag) ->
 	if player := playerGroup\find => @unit.tag == Store.controlPlayer
 		player.unit.data[key] = flag
 uiScale = App.devicePixelRatio

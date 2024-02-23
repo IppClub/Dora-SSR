@@ -6,7 +6,7 @@ import "UI.View.Shape.Star"
 store:Store = Data
 
 with Observer "Add", ["obstacleDef", "size", "position", "color"]
-	\watch (obstacleDef, size, position, color)=>
+	\watch (obstacleDef, size, position, color) =>
 		:world,:TerrainLayer = Store
 		color = Color3 color
 		with Body Store[obstacleDef], world, position
@@ -50,7 +50,7 @@ mutables =
 	* "attackSpeed"
 
 with Observer "Add", ["unitDef", "position", "order", "group", "faceRight"]
-	\watch (unitDef, position, order, group, faceRight)=>
+	\watch (unitDef, position, order, group, faceRight) =>
 		:world = Store
 		def = Store[unitDef]
 		for var in *mutables
@@ -67,7 +67,7 @@ with Observer "Add", ["unitDef", "position", "order", "group", "faceRight"]
 		world.camera.followTarget = unit if @player and unit.decisionTree == "AI_KidSearch"
 
 with Observer "Change", ["hp", "unit"]
-	\watch (hp, unit)=>
+	\watch (hp, unit) =>
 		hp:lastHp = @oldValues
 		if hp < lastHp
 			if hp > 0
@@ -87,7 +87,7 @@ with Observer "Change", ["hp", "unit"]
 
 Store.zombieKilled = 0
 with Observer "Change", ["hp", "zombie"]
-	\watch (hp)=> Store.zombieKilled += 1 if hp <= 0
+	\watch (hp) => Store.zombieKilled += 1 if hp <= 0
 
 zombieGroup = Group ["zombie",]
 threadLoop ->

@@ -16,7 +16,7 @@ unit = Unit
 		* Action name: "sleep", id: "a3"
 
 -- 监听属性变化
-unit.__notify = (event, key, value)->
+unit.__notify = (event, key, value) ->
 	switch event
 		when "Modified"
 			print "Value of name \"#{key}\" changed to #{value}."
@@ -24,7 +24,7 @@ unit.__notify = (event, key, value)->
 			print "Values updated."
 
 -- 监听列表变化
-unit.actions.__notify = (event, index, item)->
+unit.actions.__notify = (event, index, item) ->
 	switch event
 		when "Added"
 			print "Add item #{item} at index #{index}."

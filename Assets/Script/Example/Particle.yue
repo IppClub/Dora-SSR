@@ -45,7 +45,7 @@ Data = {
 	-- RotatePerSecondVariance: ["o","float",0]
 }
 
-toString = (value)->
+toString = (value) ->
 	switch tolua.type value
 		when "number"
 			"#{value}"
@@ -70,7 +70,7 @@ root = with Node!
 	.scaleY = 2
 	\addChild particle
 	.touchEnabled = true
-	\slot "TapMoved",(touch)->
+	\slot "TapMoved",(touch) ->
 		return unless touch.first
 		particle.position += touch.delta/2
 
@@ -78,7 +78,7 @@ root = with Node!
 
 DataDirty = false
 
-Item = (name)->
+Item = (name) ->
 	PushItemWidth -180, ->
 		switch Data[name][2]
 			when "float"

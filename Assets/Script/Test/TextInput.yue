@@ -3,7 +3,7 @@ import "UI.View.Shape.LineRect"
 import "UI.View.Shape.SolidRect"
 import "utf-8" as utf8
 
-TextInput = Class ((args)->
+TextInput = Class ((args) ->
 	{
 		:fontName
 		:fontSize
@@ -30,7 +30,7 @@ TextInput = Class ((args)->
 		.y = label.y
 		.visible = false
 
-	updateText = (text)->
+	updateText = (text) ->
 		label.text = text
 		offsetX = math.max label.width + 3 - width, 0
 		label.x = -offsetX
@@ -54,7 +54,7 @@ TextInput = Class ((args)->
 			if not .imeAttached
 				\attachIME!
 				updateIMEPos!
-		.updateDisplayText = (text)=>
+		.updateDisplayText = (text) =>
 			textDisplay = text
 			label.text = text
 
@@ -74,9 +74,9 @@ TextInput = Class ((args)->
 			label.text = .hint if textDisplay == ""
 
 		.touchEnabled = true
-		\slot "Tapped", (touch)-> startEditing! if touch.first
+		\slot "Tapped", (touch) -> startEditing! if touch.first
 
-		\slot "KeyPressed", (key)->
+		\slot "KeyPressed", (key) ->
 			if App.platform == "Android" and utf8.len(textEditing) == 1
 				textEditing = "" if key == "BackSpace"
 			else
@@ -89,13 +89,13 @@ TextInput = Class ((args)->
 				when "Return"
 					\detachIME!
 
-		\slot "TextInput", (text)->
+		\slot "TextInput", (text) ->
 			textDisplay = utf8.sub(textDisplay, 1, -1 - utf8.len(textEditing)) .. text
 			textEditing = ""
 			updateText textDisplay
 			updateIMEPos!
 
-		\slot "TextEditing", (text, start)->
+		\slot "TextEditing", (text, start) ->
 			textDisplay = utf8.sub(textDisplay, 1, -1 - utf8.len(textEditing)) .. text
 			textEditing = text
 			label.text = textDisplay
@@ -117,7 +117,7 @@ TextInput = Class ((args)->
 		\addChild node
 	), {
 		text: property (=> @label.text),
-			(value)=>
+			(value) =>
 				@content\detachIME! if @content.imeAttached
 				@content\updateDisplayText value
 	}

@@ -1,12 +1,12 @@
 _ENV = Dora!
 
-CircleVertices = (radius, verts = 20)->
-	newV = (index, radius)->
+CircleVertices = (radius, verts = 20) ->
+	newV = (index, radius) ->
 		angle = 2 * math.pi * index / verts
 		Vec2(radius * math.cos(angle), radius * math.sin(angle)) + Vec2(radius, radius)
 	[newV index, radius for index = 0, verts]
 
-StarVertices = (radius)->
+StarVertices = (radius) ->
 	a = math.rad 36
 	c = math.rad 72
 	f = math.sin(a) * math.tan(c) + math.cos a
