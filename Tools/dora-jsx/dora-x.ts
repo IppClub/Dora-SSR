@@ -506,6 +506,7 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 			case 'linearAcceleration':
 			case 'fixedRotation':
 			case 'bullet':
+			case 'world':
 				return true;
 			case 'velocityX': cnode.velocityX = v; return true;
 			case 'velocityY': cnode.velocityY = v; return true;
@@ -882,6 +883,11 @@ const elementMap: ElementMap = {
 		}
 	},
 	body: (nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
+		const def = enode.props as JSX.Body;
+		if (def.world) {
+			addChild(nodeStack, getBody(enode, def.world), enode);
+			return;
+		}
 		const world = dora.tolua.cast(nodeStack[nodeStack.length - 1], dora.TypeName.PhysicsWorld);
 		if (world !== null) {
 			addChild(nodeStack, getBody(enode, world), enode);

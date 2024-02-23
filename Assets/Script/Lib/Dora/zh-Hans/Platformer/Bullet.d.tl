@@ -1,7 +1,6 @@
 local Body = require("Body").Type
 local Unit = require("Platformer.Unit").Type
 local Node = require("Node").Type
-local TargetAllow = require("Platformer.TargetAllow").Type
 local BulletDef = require("Platformer.BulletDef").Type
 
 -- 包含游戏中的子弹对象的属性和行为的类。
@@ -10,8 +9,8 @@ local record Bullet
 	-- 继承自`Body`。
 	embed Body
 
-	-- 子弹的允许碰撞对象的定义信息。
-	targetAllow: TargetAllow
+	-- 子弹的允许碰撞对象的定义信息。通过`Platformer.TargetAllow`对象获取。
+	targetAllow: integer
 
 	-- 子弹对象是否面向右边。
 	const faceRight: boolean

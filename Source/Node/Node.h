@@ -334,6 +334,7 @@ protected:
 	Own<UpdateItem> _updateItem;
 	UpdateItem* getUpdateItem();
 	FixedScheduledItem* getFixedScheduledItem();
+	void post(String name);
 	enum: Flag::ValueType {
 		Visible = 1,
 		SelfVisible = 1 << 1,

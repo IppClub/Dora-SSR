@@ -1,7 +1,6 @@
 local Body = require("Body").Type
 local Unit = require("Platformer.Unit").Type
 local Node = require("Node").Type
-local TargetAllow = require("Platformer.TargetAllow").Type
 local BulletDef = require("Platformer.BulletDef").Type
 
 -- A record type that defines the properties and behavior of a bullet object instance in the game.
@@ -10,8 +9,8 @@ local record Bullet
 	-- Inherits from `Body`.
 	embed Body
 
-	-- The `TargetAllow` object for the bullet object.
-	targetAllow: TargetAllow
+	-- The value from a `Platformer.TargetAllow` object for the bullet object.
+	targetAllow: integer
 
 	-- Whether the bullet object is facing right.
 	const faceRight: boolean

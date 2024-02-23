@@ -19,6 +19,10 @@ local record TargetAllow
 	-- @param relation (Data.Relation) The relationship between the bullet object and the other game object or unit.
 	-- @return (boolean) Whether the bullet object is allowed to interact.
 	isAllow: function(self: TargetAllow, relation: Data.Relation): boolean
+
+	-- Converts the object to a value that can be used for interaction settings.
+	-- @return (integer) The value that can be used for interaction settings.
+	toValue: function(): integer
 end
 
 -- @usage

@@ -1,5 +1,4 @@
 local ContainerItem = require("ContainerItemType")
-local type Size = require("SizeType")
 
 -- 表示具有 x 轴和 y 轴坐标的二维向量类。
 local record Vec2
@@ -69,7 +68,7 @@ local record Vec2
 	-- @param other (Size) 要乘以的尺寸对象。
 	-- @return (Vec2) 将向量乘以尺寸对象的结果。
 	-- @usage local halfVec = vec * Size(0.5, 0.5)
-	mul: function(self: Vec2, other: Size): Vec2
+	mul: function(self: Vec2, other: dora.Size.Type): Vec2
 
 	-- 将向量除以标量的元方法。
 	-- @param other (number) 要除以的标量。
@@ -104,7 +103,7 @@ local record Vec2
 	-- @param other (Size) 要乘以的尺寸对象。
 	-- @return (Vec2) 将向量乘以尺寸对象的结果。
 	-- @usage local halfVec = vec * Size(0.5, 0.5)
-	metamethod __mul: function(self: Vec2, other: Size): Vec2
+	metamethod __mul: function(self: Vec2, other: dora.Size.Type): Vec2
 
 	-- 将向量除以标量的元方法。
 	-- @param other (number) 要除以的标量。

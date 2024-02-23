@@ -1017,6 +1017,11 @@ class Body extends Node {
 	type: dora.BodyMoveType;
 
 	/**
+	 * 用于创建物理体的 `PhysicsWorld` 实例。
+	 */
+	world?: dora.PhysicsWorldType;
+
+	/**
 	 * 在物理体上持续施加的线性加速度。
 	 * 可以用来模拟重力、推力或是风力。
 	 * @example
@@ -1604,6 +1609,7 @@ interface IntrinsicElements {
 	/**
 	 * 在游戏中代表物理世界中的物理体的类。
 	 * 只能作为`<physics-world>`或是其派生组件的子标签来使用。
+	 * 或是提供`world`属性用于创建物理体的实例。
 	 */
 	body: Body;
 	/**

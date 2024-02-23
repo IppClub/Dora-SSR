@@ -497,6 +497,12 @@ class TargetAllow {
 	 * @returns 子弹对象是否被允许进行交互。
 	 */
 	isAllow(relation: Relation): boolean;
+
+	/**
+	 * 将子弹对象的允许交互关系转换为整数。
+	 * @returns 子弹对象的允许交互关系的整数值。
+	 */
+	toValue(): number;
 }
 
 export namespace TargetAllow {
@@ -1136,9 +1142,9 @@ class Bullet extends Body {
 	private constructor();
 
 	/**
-	 * 子弹对象的`TargetAllow`对象。
+	 * 子弹的允许碰撞对象的定义信息。通过`Platformer.TargetAllow`对象获取。
 	 */
-	targetAllow: TargetAllow;
+	targetAllow: number;
 
 	/**
 	 * 子弹对象是否朝右。
