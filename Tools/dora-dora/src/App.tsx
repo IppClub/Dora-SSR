@@ -613,49 +613,53 @@ export default function PersistentDrawerLeft() {
 						if (checkFileReadonly(key)) {
 							break;
 						}
-						setFiles(prev => {
-							if (prev.find(file => file.key === key) !== undefined) {
-								return prev;
-							}
-							const index = prev.length;
-							const newFile: EditingFile = {
-								key,
-								title,
-								content: "",
-								contentModified: null,
-								uploading: true,
-								sortIndex,
-								status: "normal",
-								onMount: () => {}
-							};
-							newFile.onMount = onEditorDidMount(newFile);
-							return sortedFiles([...prev, newFile], index);
-						});
+						setTimeout(() => {
+							setFiles(prev => {
+								if (prev.find(file => file.key === key) !== undefined) {
+									return prev;
+								}
+								const index = prev.length;
+								const newFile: EditingFile = {
+									key,
+									title,
+									content: "",
+									contentModified: null,
+									uploading: true,
+									sortIndex,
+									status: "normal",
+									onMount: () => {}
+								};
+								newFile.onMount = onEditorDidMount(newFile);
+								return sortedFiles([...prev, newFile], index);
+							});
+						}, 10);
 						break;
 					}
 					case ".png":
 					case ".jpg":
 					case ".skel": {
-						setFiles(prev => {
-							if (prev.find(file => file.key === key) !== undefined) {
-								return prev;
-							}
-							const index = prev.length;
-							const newFile: EditingFile = {
-								key,
-								title,
-								content: "",
-								contentModified: null,
-								uploading: false,
-								position,
-								mdEditing,
-								sortIndex,
-								status: "normal",
-								onMount: () => {},
-							};
-							newFile.onMount = onEditorDidMount(newFile);
-							return sortedFiles([...prev, newFile], index);
-						});
+						setTimeout(() => {
+							setFiles(prev => {
+								if (prev.find(file => file.key === key) !== undefined) {
+									return prev;
+								}
+								const index = prev.length;
+								const newFile: EditingFile = {
+									key,
+									title,
+									content: "",
+									contentModified: null,
+									uploading: false,
+									position,
+									mdEditing,
+									sortIndex,
+									status: "normal",
+									onMount: () => {},
+								};
+								newFile.onMount = onEditorDidMount(newFile);
+								return sortedFiles([...prev, newFile], index);
+							});
+						}, 10);
 						break;
 					}
 					case ".lua":
