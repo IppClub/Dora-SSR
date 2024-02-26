@@ -82,6 +82,7 @@ interface EditingFile {
 	yarnData?: YarnEditorData;
 	codeWireData?: CodeWireData;
 	sortIndex?: number;
+	readOnly?: boolean;
 	status: TabStatus;
 };
 
@@ -249,7 +250,7 @@ export default function PersistentDrawerLeft() {
 				if (res.success && res.editingInfo) {
 					const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
 					editingInfo.files.forEach((file, i) => {
-						openFileInTab(file.key, file.title, file.position, file.mdEditing, i, editingInfo.index);
+						openFileInTab(file.key, file.title, file.position, file.mdEditing, i, editingInfo.index, file.readOnly);
 					});
 				}
 			});
@@ -560,7 +561,7 @@ export default function PersistentDrawerLeft() {
 		}
 	}, [t]);
 
-	const openFileInTab = useCallback((key: string, title: string, position?: monaco.IPosition, mdEditing?: boolean, sortIndex?: number, targetIndex?: number) => {
+	const openFileInTab = useCallback((key: string, title: string, position?: monaco.IPosition, mdEditing?: boolean, sortIndex?: number, targetIndex?: number, readOnly?: boolean) => {
 		setFiles(files => {
 			let index: number | null = null;
 			const file = files.find((file, i) => {
@@ -627,6 +628,7 @@ export default function PersistentDrawerLeft() {
 									uploading: true,
 									sortIndex,
 									status: "normal",
+									readOnly,
 									onMount: () => {}
 								};
 								newFile.onMount = onEditorDidMount(newFile);
@@ -654,6 +656,7 @@ export default function PersistentDrawerLeft() {
 									mdEditing,
 									sortIndex,
 									status: "normal",
+									readOnly,
 									onMount: () => {},
 								};
 								newFile.onMount = onEditorDidMount(newFile);
@@ -689,6 +692,7 @@ export default function PersistentDrawerLeft() {
 										mdEditing,
 										sortIndex,
 										status: "normal",
+										readOnly,
 										onMount: () => {},
 									};
 									newFile.onMount = onEditorDidMount(newFile);
@@ -787,7 +791,28 @@ export default function PersistentDrawerLeft() {
 							if (res.success) {
 								file.content = content;
 								file.contentModified = null;
-								setFiles(prev => [...prev]);
+								setFiles(prev => {
+									const ext = path.extname(file.key).toLowerCase();
+									if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
+										const {key} = file;
+										const extname = path.extname(key);
+										const name = path.basename(key, extname);
+										const dir = path.dirname(key);
+										const luaFile = path.join(dir, name + ".lua");
+										const fileInTab = prev.find(f => path.relative(f.key, luaFile) === "");
+										if (fileInTab !== undefined) {
+											const resultCodes = res.resultCodes ?? "";
+											fileInTab.content = resultCodes;
+											setTimeout(() => {
+												const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+												if (model) {
+													model.setValue(resultCodes);
+												}
+											}, 10);
+										}
+									}
+									return [...prev];
+								});
 								count++;
 								if (count === fileCount) {
 									resolve(true);
@@ -822,19 +847,16 @@ export default function PersistentDrawerLeft() {
 							const name = path.basename(file.key, extname);
 							const tlFile = path.join(path.dirname(file.key), name + ".tl");
 							const fileInTab = files.find(f => path.relative(f.key, tlFile) === "");
+							if (fileInTab !== undefined) {
+								fileInTab.content = tealCode;
+								setFiles([...files]);
+								const model = monaco.editor.getModel(monaco.Uri.parse(tlFile));
+								if (model) {
+									model.setValue(tealCode);
+								}
+							}
 							Service.write({path: tlFile, content: tealCode}).then((res) => {
-								if (res.success) {
-									if (fileInTab !== undefined) {
-										setFiles(prev => {
-											const newTabs = prev.filter(f => f.key !== fileInTab.key);
-											const newIndex = newTabs.findIndex(t => t.key === file.key);
-											if (newIndex >= 0) {
-												setTabIndex(newIndex);
-											}
-											return newTabs;
-										});
-									}
-								} else {
+								if (!res.success) {
 									addAlert(t("alert.save", {title: file.title}), "error");
 								}
 							}).then(() => {
@@ -875,19 +897,17 @@ export default function PersistentDrawerLeft() {
 										const name = path.basename(file.key, extname);
 										const luaFile = path.join(path.dirname(file.key), name + ".lua");
 										const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+										if (fileInTab !== undefined) {
+											fileInTab.content = luaCode;
+											setFiles([...files]);
+											const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+											if (model) {
+												model.setValue(luaCode);
+											}
+										}
 										Service.write({path: luaFile, content: luaCode}).then((res) => {
 											if (res.success) {
 												saveFile(content);
-												if (fileInTab !== undefined) {
-													setFiles(prev => {
-														const newTabs = prev.filter(f => f.key !== fileInTab.key);
-														const newIndex = newTabs.findIndex(t => t.key === file.key);
-														if (newIndex >= 0) {
-															setTabIndex(newIndex);
-														}
-														return newTabs;
-													});
-												}
 											} else {
 												addAlert(t("alert.saveCurrent"), "error");
 											}
@@ -1169,6 +1189,23 @@ export default function PersistentDrawerLeft() {
 					}
 					loadAssets();
 				})
+				break;
+			}
+			case "View Compiled": {
+				const {key} = data;
+				const extname = path.extname(key);
+				const name = path.basename(key, extname);
+				const dir = path.dirname(key);
+				const luaFile = path.join(dir, name + ".lua");
+				Service.read({path: luaFile}).then((res) => {
+					if (res.success && res.content !== undefined) {
+						openFileInTab(luaFile, name + ".lua", undefined, undefined, undefined, undefined, true);
+					} else {
+						addAlert(t("alert.failedCompile", {title: name + ".lua"}), "warning");
+					}
+				}).catch(() => {
+					addAlert(t("alert.read", {title: name + ".lua"}), "error");
+				});
 				break;
 			}
 		}
@@ -1801,7 +1838,27 @@ export default function PersistentDrawerLeft() {
 						if (res.success) {
 							file.content = contentModified;
 							file.contentModified = null;
-							setFiles(prev => [...prev]);
+							setFiles(prev => {
+								if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
+									const {key} = file;
+									const extname = path.extname(key);
+									const name = path.basename(key, extname);
+									const dir = path.dirname(key);
+									const luaFile = path.join(dir, name + ".lua");
+									const fileInTab = prev.find(f => path.relative(f.key, luaFile) === "");
+									if (fileInTab !== undefined) {
+										const resultCodes = res.resultCodes === undefined ? "" : res.resultCodes;
+										fileInTab.content = resultCodes;
+										setTimeout(() => {
+											const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+											if (model) {
+												model.setValue(resultCodes);
+											}
+										}, 10);
+									}
+								}
+								return [...prev]
+							});
 							const ext = path.extname(file.key).toLowerCase();
 							switch (ext) {
 								case ".ts": case ".tsx": case ".lua": case ".tl": case ".yue": case ".xml": {
@@ -1838,19 +1895,16 @@ export default function PersistentDrawerLeft() {
 					const name = path.basename(file.key, extname);
 					const tlFile = path.join(path.dirname(file.key), name + ".tl");
 					const fileInTab = files.find(f => path.relative(f.key, tlFile) === "");
+					if (fileInTab !== undefined) {
+						fileInTab.content = tealCode;
+						setFiles([...files]);
+						const model = monaco.editor.getModel(monaco.Uri.parse(tlFile));
+						if (model) {
+							model.setValue(tealCode);
+						}
+					}
 					Service.write({path: tlFile, content: tealCode}).then((res) => {
-						if (res.success) {
-							if (fileInTab !== undefined) {
-								setFiles(prev => {
-									const newTabs = prev.filter(f => f.key !== fileInTab.key);
-									const newIndex = newTabs.findIndex(t => t.key === file.key);
-									if (newIndex >= 0) {
-										setTabIndex(newIndex);
-									}
-									return newTabs;
-								});
-							}
-						} else {
+						if (!res.success) {
 							addAlert(t("alert.saveCurrent"), "error");
 						}
 					}).then(() => {
@@ -1890,19 +1944,17 @@ export default function PersistentDrawerLeft() {
 								const name = path.basename(file.key, extname);
 								const luaFile = path.join(path.dirname(file.key), name + ".lua");
 								const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+								if (fileInTab !== undefined) {
+									fileInTab.content = luaCode;
+									setFiles([...files]);
+									const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+									if (model) {
+										model.setValue(luaCode);
+									}
+								}
 								Service.write({path: luaFile, content: luaCode}).then((res) => {
 									if (res.success) {
 										saveFile();
-										if (fileInTab !== undefined) {
-											setFiles(prev => {
-												const newTabs = prev.filter(f => f.key !== fileInTab.key);
-												const newIndex = newTabs.findIndex(t => t.key === file.key);
-												if (newIndex >= 0) {
-													setTabIndex(newIndex);
-												}
-												return newTabs;
-											});
-										}
 									} else {
 										addAlert(t("alert.saveCurrent"), "error");
 									}
@@ -2026,12 +2078,12 @@ export default function PersistentDrawerLeft() {
 		const editingInfo: Service.EditingInfo = {
 			index: tabIndex ?? 0,
 			files: files.map(f => {
-				const {key, title, mdEditing, editor} = f;
+				const {key, title, mdEditing, editor, readOnly} = f;
 				let position: monaco.Position | null = null;
 				if (editor !== undefined) {
 					position = editor.getPosition();
 				}
-				return {key, title, mdEditing, position: position ? position : undefined};
+				return {key, title, mdEditing, position: position ? position : undefined, readOnly};
 			})
 		};
 		Service.editingInfo({
@@ -2297,7 +2349,7 @@ export default function PersistentDrawerLeft() {
 							case ".vs": visualScript = true; break;
 						}
 						const markdown = language === "markdown";
-						const readOnly = !file.key.startsWith(treeData.at(0)?.key ?? "");
+						const readOnly = file.readOnly || !file.key.startsWith(treeData.at(0)?.key ?? "");
 						let parentPath;
 						if (readOnly) {
 							parentPath = treeData.at(0)?.children?.at(0)?.key ?? "";

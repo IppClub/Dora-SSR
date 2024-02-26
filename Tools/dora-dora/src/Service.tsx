@@ -261,6 +261,7 @@ export interface WriteRequest {
 }
 export interface WriteResponse {
 	success: boolean;
+	resultCodes?: string;
 }
 export const write = (req: WriteRequest) => {
 	return post<WriteResponse>("/write", req);
@@ -379,6 +380,7 @@ export interface EditingInfo {
 			lineNumber: number,
 			column: number
 		}
+		readOnly?: boolean,
 	}[];
 };
 export interface EditingInfoRequest {
