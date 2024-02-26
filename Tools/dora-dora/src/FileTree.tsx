@@ -23,6 +23,7 @@ import {
 	AiOutlineDownload,
 	AiFillFileZip,
 } from 'react-icons/ai';
+import { GoFileCode } from "react-icons/go";
 import { FcImageFile } from 'react-icons/fc';
 import { SiWebassembly } from 'react-icons/si';
 import Tree from 'rc-tree';
@@ -138,7 +139,7 @@ const motion = {
 	onLeaveActive: () => ({ height: 0 }),
 };
 
-export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Download" | "Cancel" | "Unzip";
+export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Download" | "Cancel" | "Unzip" | "View Compiled";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
@@ -184,6 +185,8 @@ export default memo(function FileTree(props: FileTreeProps) {
 		props.onDrop(info.dragNode, info.node);
 	};
 
+	const ext = anchorItem ? Info.path.extname(anchorItem.data.key).toLowerCase() : "";
+
 	return (
 		<MacScrollbar
 			skin='dark'
@@ -228,13 +231,31 @@ export default memo(function FileTree(props: FileTreeProps) {
 					</ListItemIcon>
 					<ListItemText primary={ t("menu.download") }/>
 				</StyledMenuItem>
-				{anchorItem && Info.path.extname(anchorItem.data.key).toLowerCase() === ".zip" ?
+				{anchorItem && ext === ".zip" ?
 					<StyledMenuItem onClick={() => handleClose("Unzip", anchorItem?.data)}>
 						<ListItemIcon>
 							<AiOutlineFolderOpen/>
 						</ListItemIcon>
 						<ListItemText primary={ t("menu.extract") }/>
-					</StyledMenuItem>	: null
+					</StyledMenuItem> : null
+				}
+				{anchorItem &&
+					Info.path.extname(
+						Info.path.basename(anchorItem.data.key, ext)
+					) === "" &&
+					(
+						ext === ".yue" ||
+						ext === ".tl" ||
+						ext === ".ts" ||
+						ext === ".tsx" ||
+						ext === ".xml"
+					) ?
+					<StyledMenuItem onClick={() => handleClose("View Compiled", anchorItem?.data)}>
+					<ListItemIcon>
+						<GoFileCode/>
+					</ListItemIcon>
+					<ListItemText primary={ t("menu.viewCompiled", {lang: "Lua"}) }/>
+					</StyledMenuItem> : null
 				}
 			</StyledMenu>
 			<Tree
