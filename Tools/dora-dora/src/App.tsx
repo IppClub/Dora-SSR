@@ -1209,7 +1209,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 		}
-	}, [checkFileReadonly, loadAssets, t, deleteFile, treeData]);
+	}, [checkFileReadonly, loadAssets, t, deleteFile, treeData, openFileInTab]);
 
 	const onNewFileClose = (item?: DoraFileType) => {
 		let ext: string | null = null;
