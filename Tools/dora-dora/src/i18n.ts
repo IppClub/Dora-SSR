@@ -57,7 +57,7 @@ i18n
 						doneUnzip: "finished unziping file {{title}}",
 						failedUnzip: "failed to unzip file {{title}}, make sure it's a ZIP and no same named folder exist",
 						failedTS: "TypeScript compile error, check log for details",
-						failedCompile: "Failed to generate {{title}}",
+						failedCompile: "Not generated {{title}}",
 					},
 					popup: {
 						goToFile: "Go to File",
@@ -176,7 +176,7 @@ i18n
 						doneUnzip: "完成解压缩 {{title}}",
 						failedUnzip: "解压缩 {{title}} 失败，请确认为 ZIP 文件且目录下无同名文件夹",
 						failedTS: "TypeScript 编译报错，请查看日志",
-						failedCompile: "未生成 {{title}}",
+						failedCompile: "待生成 {{title}}",
 					},
 					popup: {
 						goToFile: "跳转到文件",
