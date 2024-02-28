@@ -292,8 +292,9 @@ doCompile = (minify)->
 			success, result = LintYueGlobals codes, globals
 			if success
 				codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
+				codes = codes\gsub "^\n*", ""
 				result ..= "\n" unless result == ""
-				"-- [yue]: #{file}\n#{result}" .. codes
+				"-- [yue]: #{file}\n#{result}#{codes}"
 			else
 				if yueCodes := Content\load input
 					globalErrors = []

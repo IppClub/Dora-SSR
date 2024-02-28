@@ -613,7 +613,8 @@ compileFileAsync = (inputFile, sourceCodes) ->
 			return unless codes
 			success, result = LintYueGlobals codes, globals
 			return unless success
-			codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", ""
+			codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
+			codes = codes\gsub "^\n*", ""
 			result ..= "\n" unless result == ""
 			resultCodes = "-- [yue]: #{file}\n#{result}#{codes}"
 			resultCodes
