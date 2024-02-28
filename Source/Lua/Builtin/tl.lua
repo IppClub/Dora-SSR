@@ -4875,10 +4875,6 @@ function tl.search_module(module_name, search_dtl)
 	if found then
 		return found
 	end
-	found, tried = search_for(module_name, ".lua", path, tried)
-	if found then
-		return tl.canonicalize_path(found, nil)
-	end
 	return nil, tried
 end
 
@@ -9097,7 +9093,11 @@ tl.type_check = function(ast, opts)
 								r = lax and UNKNOWN or INVALID
 							end
 						end
-						add_var(v, v.tk, r)
+						if i == 1 then
+							add_var(v, v.tk, r, "const")
+						else
+							add_var(v, v.tk, r)
+						end
 						last = r
 					end
 					if (not lax) and (not rets.is_va and #node.vars > #rets) then
@@ -9129,7 +9129,7 @@ tl.type_check = function(ast, opts)
 				(not step_t or step_t.typename == "integer")) and
 				INTEGER or
 				NUMBER
-				add_var(node.var, node.var.tk, t)
+				add_var(node.var, node.var.tk, t, "const")
 			end,
 			after = end_scope_and_none_type,
 		},
