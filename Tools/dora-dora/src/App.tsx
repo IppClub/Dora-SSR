@@ -726,9 +726,11 @@ export default function PersistentDrawerLeft() {
 			setSelectedNode(null);
 			return;
 		}
-		const {key, title} = nodes[0];
+		const {key, title, dir} = nodes[0];
 		setSelectedNode(nodes[0]);
-		openFileInTab(key, title);
+		if (dir || path.extname(title) !== "") {
+			openFileInTab(key, title);
+		}
 	};
 
 	const onExpand = useCallback((keys: string[]) => {
