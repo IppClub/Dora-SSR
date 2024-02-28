@@ -58,23 +58,23 @@ import TabItem from '@theme/TabItem';
 import { React, toNode, useRef } from 'dora-x';
 import { Ease, Move, Sprite } from 'dora';
 
-const sprite = useRef<Sprite.Type>();
+const spriteRef = useRef<Sprite.Type>();
 
 // create the root node of the game scene tree
 // and a sprite as a child node
 toNode(
 	<node onTapBegan={(touch) => {
-			const sp = sprite.current;
-			if (sp) {
-				sp.perform(Move(
-					1, // duration in seconds
-					sp.position, // start position
-					touch.location, // end position
-					Ease.OutBack // easing function
-				));
-			}
-		}}>
-		<sprite ref={sprite} file='Image/logo.png'/>
+		const {current: sprite} = spriteRef;
+		if (sprite) {
+			sprite.perform(Move(
+				1, // duration in seconds
+				sprite.position, // start position
+				touch.location, // end position
+				Ease.OutBack // easing function
+			));
+		}
+	}}>
+		<sprite ref={spriteRef} file='Image/logo.png'/>
 	</node>
 );
 ```
@@ -174,7 +174,7 @@ end)
 
 ```ts title="Hello/init.ts"
 // import modules
-import {Ease, Move, Node, Slot, Sprite} from 'dora';
+import { Ease, Move, Node, Slot, Sprite } from 'dora';
 
 // create a sprite
 const sprite = Sprite("Image/logo.png");
