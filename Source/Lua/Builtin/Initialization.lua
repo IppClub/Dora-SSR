@@ -1142,5 +1142,12 @@ end
 
 -- default GC setting
 
--- collectgarbage("incremental", 100, 5000)
-collectgarbage("generational", 20, 100)
+--[[
+collectgarbage("incremental")
+collectgarbage("param", "pause", 100)
+collectgarbage("param", "stepmul", 5000)
+]]
+collectgarbage("generational")
+collectgarbage("param", "minormul", 25)
+collectgarbage("param", "minormajor", 100)
+collectgarbage("param", "majorminor", 50)

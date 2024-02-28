@@ -40,6 +40,27 @@
 
 
 /*
+** Only tables with hash parts larget than LIMFORLAST has a 'lastfree'
+** field that optimizes finding a free slot. Smaller tables do a
+** complete search when looking for a free slot.
+*/
+#define LLIMFORLAST    2  /* log2 of LIMTFORLAST */
+#define LIMFORLAST     twoto(LLIMFORLAST)
+
+/*
+** Union to store an int field ensuring that what follows it in
+** memory is properly aligned to store a TValue.
+*/
+typedef union {
+  int lastfree;
+  char padding[offsetof(struct { int i; TValue v; }, v)];
+} Limbox;
+
+#define haslastfree(t)     ((t)->lsizenode > LLIMFORLAST)
+#define getlastfree(t)     (&((cast(Limbox *, (t)->node) - 1)->lastfree))
+
+
+/*
 ** MAXABITS is the largest integer such that MAXASIZE fits in an
 ** unsigned int.
 */
@@ -350,9 +371,10 @@ int luaH_next (lua_State *L, Table *t, StkId key) {
   unsigned int asize = luaH_realasize(t);
   unsigned int i = findindex(L, t, s2v(key), asize);  /* find original key */
   for (; i < asize; i++) {  /* try first array part */
-    if (!isempty(&t->array[i])) {  /* a non-empty entry? */
+    int tag = *getArrTag(t, i);
+    if (!tagisempty(tag)) {  /* a non-empty entry? */
       setivalue(s2v(key), i + 1);
-      setobj2s(L, key + 1, &t->array[i]);
+      farr2val(t, i + 1, tag, s2v(key + 1));
       return 1;
     }
   }
@@ -369,8 +391,51 @@ int luaH_next (lua_State *L, Table *t, StkId key) {
 
 
 static void freehash (lua_State *L, Table *t) {
-  if (!isdummy(t))
-    luaM_freearray(L, t->node, cast_sizet(sizenode(t)));
+  if (!isdummy(t)) {
+    size_t bsize = sizenode(t) * sizeof(Node);  /* 'node' size in bytes */
+    char *arr = cast_charp(t->node);
+    if (haslastfree(t)) {
+      bsize += sizeof(Limbox);
+      arr -= sizeof(Limbox);
+    }
+    luaM_freearray(L, arr, bsize);
+  }
+}
+
+
+/*
+** Check whether an integer key is in the array part. If 'alimit' is
+** not the real size of the array, the key still can be in the array
+** part.  In this case, do the "Xmilia trick" to check whether 'key-1'
+** is smaller than the real size.
+** The trick works as follow: let 'p' be the integer such that
+** '2^(p+1) >= alimit > 2^p', or '2^(p+1) > alimit-1 >= 2^p'.  That is,
+** 'p' is the highest 1-bit in 'alimit-1', and 2^(p+1) is the real size
+** of the array. What we have to check becomes 'key-1 < 2^(p+1)'.  We
+** compute '(key-1) & ~(alimit-1)', which we call 'res'; it will have
+** the 'p' bit cleared. (It may also clear other bits smaller than 'p',
+** but no bit higher than 'p'.) If the key is outside the array, that
+** is, 'key-1 >= 2^(p+1)', then 'res' will have some 1-bit higher than
+** 'p', therefore it will be larger or equal to 'alimit', and the check
+** will fail. If 'key-1 < 2^(p+1)', then 'res' has no 1-bit higher than
+** 'p', and as the bit 'p' itself was cleared, 'res' will be smaller
+** than 2^p, therefore smaller than 'alimit', and the check succeeds.
+** As special cases, when 'alimit' is 0 the condition is trivially false,
+** and when 'alimit' is 1 the condition simplifies to 'key-1 < alimit'.
+** If key is 0 or negative, 'res' will have its higher bit on, so that
+** it cannot be smaller than 'alimit'.
+*/
+static int keyinarray (Table *t, lua_Integer key) {
+  lua_Unsigned alimit = t->alimit;
+  if (l_castS2U(key) - 1u < alimit)  /* 'key' in [1, t->alimit]? */
+    return 1;
+  else if (!isrealasize(t) &&  /* key still may be in the array part? */
+           (((l_castS2U(key) - 1u) & ~(alimit - 1u)) < alimit)) {
+    t->alimit = cast_uint(key);  /* probably '#t' is here now */
+    return 1;
+  }
+  else
+    return 0;
 }
 
 
@@ -421,6 +486,12 @@ static int countint (lua_Integer key, unsigned int *nums) {
 }
 
 
+l_sinline int arraykeyisempty (const Table *t, lua_Integer key) {
+  int tag = *getArrTag(t, key - 1);
+  return tagisempty(tag);
+}
+
+
 /*
 ** Count keys in array part of table 't': Fill 'nums[i]' with
 ** number of keys that will go into corresponding slice and return
@@ -443,7 +514,7 @@ static unsigned int numusearray (const Table *t, unsigned int *nums) {
     }
     /* count elements in range (2^(lg - 1), 2^lg] */
     for (; i <= lim; i++) {
-      if (!isempty(&t->array[i-1]))
+      if (!arraykeyisempty(t, i))
         lc++;
     }
     nums[lg] += lc;
@@ -471,6 +542,32 @@ static int numusehash (const Table *t, unsigned int *nums, unsigned int *pna) {
 
 
 /*
+** Convert an "abstract size" (number of slots in an array) to
+** "concrete size" (number of bytes in the array).
+** If the abstract size is not a multiple of NM, the last cell is
+** incomplete, so we don't need to allocate memory for the whole cell.
+** 'extra' computes how many values are not needed in that last cell.
+** It will be zero when 'size' is a multiple of NM, and from there it
+** increases as 'size' decreases, up to (NM - 1).
+*/
+static size_t concretesize (unsigned int size) {
+  unsigned int numcells = (size + NM - 1) / NM;   /* (size / NM) rounded up */
+  unsigned int extra = NM - 1 - ((size + NM - 1) % NM);
+  return numcells * sizeof(ArrayCell) - extra * sizeof(Value);
+}
+
+
+static ArrayCell *resizearray (lua_State *L , Table *t,
+                               unsigned int oldasize,
+                               unsigned int newasize) {
+  size_t oldasizeb = concretesize(oldasize);
+  size_t newasizeb = concretesize(newasize);
+  void *a = luaM_reallocvector(L, t->array, oldasizeb, newasizeb, lu_byte);
+  return cast(ArrayCell*, a);
+}
+
+
+/*
 ** Creates an array for the hash part of a table with the given
 ** size, or reuses the dummy node if size is zero.
 ** The computation for size overflow is in two steps: the first
@@ -481,7 +578,7 @@ static void setnodevector (lua_State *L, Table *t, unsigned int size) {
   if (size == 0) {  /* no elements to hash part? */
     t->node = cast(Node *, dummynode);  /* use common 'dummynode' */
     t->lsizenode = 0;
-    t->lastfree = NULL;  /* signal that it is using dummy node */
+    setdummy(t);  /* signal that it is using dummy node */
   }
   else {
     int i;
@@ -489,15 +586,22 @@ static void setnodevector (lua_State *L, Table *t, unsigned int size) {
     if (lsize > MAXHBITS || (1u << lsize) > MAXHSIZE)
       luaG_runerror(L, "table overflow");
     size = twoto(lsize);
-    t->node = luaM_newvector(L, size, Node);
+    if (lsize <= LLIMFORLAST)  /* no 'lastfree' field? */
+      t->node = luaM_newvector(L, size, Node);
+    else {
+      size_t bsize = size * sizeof(Node) + sizeof(Limbox);
+      char *node = luaM_newblock(L, bsize);
+      t->node = cast(Node *, node + sizeof(Limbox));
+      *getlastfree(t) = size;  /* all positions are free */
+    }
+    t->lsizenode = cast_byte(lsize);
+    setnodummy(t);
     for (i = 0; i < cast_int(size); i++) {
       Node *n = gnode(t, i);
       gnext(n) = 0;
       setnilkey(n);
       setempty(gval(n));
     }
-    t->lsizenode = cast_byte(lsize);
-    t->lastfree = gnode(t, size);  /* all positions are free */
   }
 }
 
@@ -522,18 +626,21 @@ static void reinsert (lua_State *L, Table *ot, Table *t) {
 
 
 /*
-** Exchange the hash part of 't1' and 't2'.
+** Exchange the hash part of 't1' and 't2'. (In 'flags', only the
+** dummy bit must be exchanged: The 'isrealasize' is not related
+** to the hash part, and the metamethod bits do not change during
+** a resize, so the "real" table can keep their values.)
 */
 static void exchangehashpart (Table *t1, Table *t2) {
   lu_byte lsizenode = t1->lsizenode;
   Node *node = t1->node;
-  Node *lastfree = t1->lastfree;
+  int bitdummy1 = t1->flags & BITDUMMY;
   t1->lsizenode = t2->lsizenode;
   t1->node = t2->node;
-  t1->lastfree = t2->lastfree;
+  t1->flags = (t1->flags & NOTBITDUMMY) | (t2->flags & BITDUMMY);
   t2->lsizenode = lsizenode;
   t2->node = node;
-  t2->lastfree = lastfree;
+  t2->flags = (t2->flags & NOTBITDUMMY) | bitdummy1;
 }
 
 
@@ -555,22 +662,27 @@ void luaH_resize (lua_State *L, Table *t, unsigned int newasize,
   unsigned int i;
   Table newt;  /* to keep the new hash part */
   unsigned int oldasize = setlimittosize(t);
-  TValue *newarray;
+  ArrayCell *newarray;
   /* create new hash part with appropriate size into 'newt' */
+  newt.flags = 0;
   setnodevector(L, &newt, nhsize);
   if (newasize < oldasize) {  /* will array shrink? */
     t->alimit = newasize;  /* pretend array has new size... */
     exchangehashpart(t, &newt);  /* and new hash */
     /* re-insert into the new hash the elements from vanishing slice */
     for (i = newasize; i < oldasize; i++) {
-      if (!isempty(&t->array[i]))
-        luaH_setint(L, t, i + 1, &t->array[i]);
+      int tag = *getArrTag(t, i);
+      if (!tagisempty(tag)) {  /* a non-empty entry? */
+        TValue aux;
+        farr2val(t, i + 1, tag, &aux);
+        luaH_setint(L, t, i + 1, &aux);
+      }
     }
     t->alimit = oldasize;  /* restore current size... */
     exchangehashpart(t, &newt);  /* and hash (in case of errors) */
   }
   /* allocate new array */
-  newarray = luaM_reallocvector(L, t->array, oldasize, newasize, TValue);
+  newarray = resizearray(L, t, oldasize, newasize);
   if (l_unlikely(newarray == NULL && newasize > 0)) {  /* allocation failed? */
     freehash(L, &newt);  /* release new hash part */
     luaM_error(L);  /* raise error (with array unchanged) */
@@ -580,7 +692,7 @@ void luaH_resize (lua_State *L, Table *t, unsigned int newasize,
   t->array = newarray;  /* set new array part */
   t->alimit = newasize;
   for (i = oldasize; i < newasize; i++)  /* clear new slice of the array */
-     setempty(&t->array[i]);
+    *getArrTag(t, i) = LUA_VEMPTY;
   /* re-insert elements from old hash part into new parts */
   reinsert(L, &newt, t);  /* 'newt' now has the old hash */
   freehash(L, &newt);  /* free old hash part */
@@ -635,19 +747,40 @@ Table *luaH_new (lua_State *L) {
 }
 
 
+/*
+** Frees a table. The assert ensures the correctness of 'concretesize',
+** checking its result against the address of the last element in the
+** array part of the table, computed abstractly.
+*/
 void luaH_free (lua_State *L, Table *t) {
+  unsigned int realsize = luaH_realasize(t);
+  size_t sizeb = concretesize(realsize);
+  lua_assert((sizeb == 0 && realsize == 0) ||
+             cast_charp(t->array) + sizeb - sizeof(Value) ==
+             cast_charp(getArrVal(t, realsize - 1)));
   freehash(L, t);
-  luaM_freearray(L, t->array, luaH_realasize(t));
+  luaM_freemem(L, t->array, sizeb);
   luaM_free(L, t);
 }
 
 
 static Node *getfreepos (Table *t) {
-  if (!isdummy(t)) {
-    while (t->lastfree > t->node) {
-      t->lastfree--;
-      if (keyisnil(t->lastfree))
-        return t->lastfree;
+  if (haslastfree(t)) {  /* does it have 'lastfree' information? */
+    /* look for a spot before 'lastfree', updating 'lastfree' */
+    while (*getlastfree(t) > 0) {
+      Node *free = gnode(t, --(*getlastfree(t)));
+      if (keyisnil(free))
+        return free;
+    }
+  }
+  else {  /* no 'lastfree' information */
+    if (!isdummy(t)) {
+      int i = sizenode(t);
+      while (i--) {  /* do a linear search */
+        Node *free = gnode(t, i);
+        if (keyisnil(free))
+          return free;
+      }
     }
   }
   return NULL;  /* could not find a free place */
@@ -656,11 +789,11 @@ static Node *getfreepos (Table *t) {
 
 
 /*
-** inserts a new key into a hash table; first, check whether key's main
+** Inserts a new key into a hash table; first, check whether key's main
 ** position is free. If not, check whether colliding node is in its main
-** position or not: if it is not, move colliding node to an empty place and
-** put new key in its main position; otherwise (colliding node is in its main
-** position), new key goes to an empty position.
+** position or not: if it is not, move colliding node to an empty place
+** and put new key in its main position; otherwise (colliding node is in
+** its main position), new key goes to an empty position.
 */
 static void luaH_newkey (lua_State *L, Table *t, const TValue *key,
                                                  TValue *value) {
@@ -720,57 +853,57 @@ static void luaH_newkey (lua_State *L, Table *t, const TValue *key,
 }
 
 
-/*
-** Search function for integers. If integer is inside 'alimit', get it
-** directly from the array part. Otherwise, if 'alimit' is not
-** the real size of the array, the key still can be in the array part.
-** In this case, do the "Xmilia trick" to check whether 'key-1' is
-** smaller than the real size.
-** The trick works as follow: let 'p' be an integer such that
-**   '2^(p+1) >= alimit > 2^p', or  '2^(p+1) > alimit-1 >= 2^p'.
-** That is, 2^(p+1) is the real size of the array, and 'p' is the highest
-** bit on in 'alimit-1'. What we have to check becomes 'key-1 < 2^(p+1)'.
-** We compute '(key-1) & ~(alimit-1)', which we call 'res'; it will
-** have the 'p' bit cleared. If the key is outside the array, that is,
-** 'key-1 >= 2^(p+1)', then 'res' will have some bit on higher than 'p',
-** therefore it will be larger or equal to 'alimit', and the check
-** will fail. If 'key-1 < 2^(p+1)', then 'res' has no bit on higher than
-** 'p', and as the bit 'p' itself was cleared, 'res' will be smaller
-** than 2^p, therefore smaller than 'alimit', and the check succeeds.
-** As special cases, when 'alimit' is 0 the condition is trivially false,
-** and when 'alimit' is 1 the condition simplifies to 'key-1 < alimit'.
-** If key is 0 or negative, 'res' will have its higher bit on, so that
-** if cannot be smaller than alimit.
-*/
-const TValue *luaH_getint (Table *t, lua_Integer key) {
-  lua_Unsigned alimit = t->alimit;
-  if (l_castS2U(key) - 1u < alimit)  /* 'key' in [1, t->alimit]? */
-    return &t->array[key - 1];
-  else if (!isrealasize(t) &&  /* key still may be in the array part? */
-           (((l_castS2U(key) - 1u) & ~(alimit - 1u)) < alimit)) {
-    t->alimit = cast_uint(key);  /* probably '#t' is here now */
-    return &t->array[key - 1];
-  }
-  else {  /* key is not in the array part; check the hash */
-    Node *n = hashint(t, key);
-    for (;;) {  /* check whether 'key' is somewhere in the chain */
-      if (keyisinteger(n) && keyival(n) == key)
-        return gval(n);  /* that's it */
-      else {
-        int nx = gnext(n);
-        if (nx == 0) break;
-        n += nx;
-      }
+static const TValue *getintfromhash (Table *t, lua_Integer key) {
+  Node *n = hashint(t, key);
+  lua_assert(l_castS2U(key) - 1u >= luaH_realasize(t));
+  for (;;) {  /* check whether 'key' is somewhere in the chain */
+    if (keyisinteger(n) && keyival(n) == key)
+      return gval(n);  /* that's it */
+    else {
+      int nx = gnext(n);
+      if (nx == 0) break;
+      n += nx;
     }
-    return &absentkey;
   }
+  return &absentkey;
+}
+
+
+static int hashkeyisempty (Table *t, lua_Integer key) {
+  const TValue *val = getintfromhash(t, key);
+  return isempty(val);
+}
+
+
+static int finishnodeget (const TValue *val, TValue *res) {
+  if (!ttisnil(val)) {
+    setobj(((lua_State*)NULL), res, val);
+    return HOK;  /* success */
+  }
+  else
+    return HNOTFOUND;  /* could not get value */
+}
+
+
+int luaH_getint (Table *t, lua_Integer key, TValue *res) {
+  if (keyinarray(t, key)) {
+    int tag = *getArrTag(t, key - 1);
+    if (!tagisempty(tag)) {
+      farr2val(t, key, tag, res);
+      return HOK;  /* success */
+    }
+    else
+      return ~cast_int(key);  /* empty slot in the array part */
+  }
+  else
+    return finishnodeget(getintfromhash(t, key), res);
 }
 
 
 /*
 ** search function for short strings
 */
-const TValue *luaH_getshortstr (Table *t, TString *key) {
+const TValue *luaH_Hgetshortstr (Table *t, TString *key) {
   Node *n = hashstr(t, key);
   lua_assert(key->tt == LUA_VSHRSTR);
   for (;;) {  /* check whether 'key' is somewhere in the chain */
@@ -786,9 +919,14 @@ const TValue *luaH_getshortstr (Table *t, TString *key) {
 }
 
 
-const TValue *luaH_getstr (Table *t, TString *key) {
+int luaH_getshortstr (Table *t, TString *key, TValue *res) {
+  return finishnodeget(luaH_Hgetshortstr(t, key), res);
+}
+
+
+static const TValue *Hgetstr (Table *t, TString *key) {
   if (key->tt == LUA_VSHRSTR)
-    return luaH_getshortstr(t, key);
+    return luaH_Hgetshortstr(t, key);
   else {  /* for long strings, use generic case */
     TValue ko;
     setsvalue(cast(lua_State *, NULL), &ko, key);
@@ -797,25 +935,109 @@ const TValue *luaH_getstr (Table *t, TString *key) {
 }
 
 
+int luaH_getstr (Table *t, TString *key, TValue *res) {
+  return finishnodeget(Hgetstr(t, key), res);
+}
+
+
+TString *luaH_getstrkey (Table *t, TString *key) {
+  const TValue *o = Hgetstr(t, key);
+  if (!isabstkey(o))  /* string already present? */
+    return keystrval(nodefromval(o));  /* get saved copy */
+  else
+    return NULL;
+}
+
+
 /*
 ** main search function
 */
-const TValue *luaH_get (Table *t, const TValue *key) {
+int luaH_get (Table *t, const TValue *key, TValue *res) {
+  const TValue *slot;
   switch (ttypetag(key)) {
-    case LUA_VSHRSTR: return luaH_getshortstr(t, tsvalue(key));
-    case LUA_VNUMINT: return luaH_getint(t, ivalue(key));
-    case LUA_VNIL: return &absentkey;
+    case LUA_VSHRSTR:
+      slot = luaH_Hgetshortstr(t, tsvalue(key));
+      break;
+    case LUA_VNUMINT:
+      return luaH_getint(t, ivalue(key), res);
+    case LUA_VNIL:
+      slot = &absentkey;
+      break;
     case LUA_VNUMFLT: {
       lua_Integer k;
       if (luaV_flttointeger(fltvalue(key), &k, F2Ieq)) /* integral index? */
-        return luaH_getint(t, k);  /* use specialized version */
+        return luaH_getint(t, k, res);  /* use specialized version */
       /* else... */
     }  /* FALLTHROUGH */
     default:
-      return getgeneric(t, key, 0);
+      slot = getgeneric(t, key, 0);
+      break;
+  }
+  return finishnodeget(slot, res);
+}
+
+
+static int finishnodeset (Table *t, const TValue *slot, TValue *val) {
+  if (!ttisnil(slot)) {
+    setobj(((lua_State*)NULL), cast(TValue*, slot), val);
+    return HOK;  /* success */
+  }
+  else if (isabstkey(slot))
+    return HNOTFOUND;  /* no slot with that key */
+  else return (cast(Node*, slot) - t->node) + HFIRSTNODE;  /* node encoded */
+}
+
+
+static int rawfinishnodeset (const TValue *slot, TValue *val) {
+  if (isabstkey(slot))
+    return 0;  /* no slot with that key */
+  else {
+    setobj(((lua_State*)NULL), cast(TValue*, slot), val);
+    return 1;  /* success */
   }
 }
 
+
+int luaH_psetint (Table *t, lua_Integer key, TValue *val) {
+  if (keyinarray(t, key)) {
+    lu_byte *tag = getArrTag(t, key - 1);
+    if (!tagisempty(*tag) || checknoTM(t->metatable, TM_NEWINDEX)) {
+      fval2arr(t, key, tag, val);
+      return HOK;  /* success */
+    }
+    else
+      return ~cast_int(key);  /* empty slot in the array part */
+  }
+  else
+    return finishnodeset(t, getintfromhash(t, key), val);
+}
+
+
+int luaH_psetshortstr (Table *t, TString *key, TValue *val) {
+  return finishnodeset(t, luaH_Hgetshortstr(t, key), val);
+}
+
+
+int luaH_psetstr (Table *t, TString *key, TValue *val) {
+  return finishnodeset(t, Hgetstr(t, key), val);
+}
+
+
+int luaH_pset (Table *t, const TValue *key, TValue *val) {
+  switch (ttypetag(key)) {
+    case LUA_VSHRSTR: return luaH_psetshortstr(t, tsvalue(key), val);
+    case LUA_VNUMINT: return luaH_psetint(t, ivalue(key), val);
+    case LUA_VNIL: return HNOTFOUND;
+    case LUA_VNUMFLT: {
+      lua_Integer k;
+      if (luaV_flttointeger(fltvalue(key), &k, F2Ieq)) /* integral index? */
+        return luaH_psetint(t, k, val);  /* use specialized version */
+      /* else... */
+    }  /* FALLTHROUGH */
+    default:
+      return finishnodeset(t, getgeneric(t, key, 0), val);
+  }
+}
 
 /*
 ** Finish a raw "set table" operation, where 'slot' is where the value
@@ -823,12 +1045,21 @@ const TValue *luaH_get (Table *t, const TValue *key) {
 ** Beware: when using this function you probably need to check a GC
 ** barrier and invalidate the TM cache.
 */
+
+
 void luaH_finishset (lua_State *L, Table *t, const TValue *key,
-                                   const TValue *slot, TValue *value) {
-  if (isabstkey(slot))
+                                    TValue *value, int hres) {
+  lua_assert(hres != HOK);
+  if (hres == HNOTFOUND) {
     luaH_newkey(L, t, key, value);
-  else
-    setobj2t(L, cast(TValue *, slot), value);
+  }
+  else if (hres > 0) {  /* regular Node? */
+    setobj2t(L, gval(gnode(t, hres - HFIRSTNODE)), value);
+  }
+  else {  /* array entry */
+    hres = ~hres;  /* real index */
+    obj2arr(t, hres, value);
+  }
 }
 
 
@@ -837,20 +1068,27 @@ void luaH_finishset (lua_State *L, Table *t, const TValue *key,
 ** barrier and invalidate the TM cache.
 */
 void luaH_set (lua_State *L, Table *t, const TValue *key, TValue *value) {
-  const TValue *slot = luaH_get(t, key);
-  luaH_finishset(L, t, key, slot, value);
+  int hres = luaH_pset(t, key, value);
+  if (hres != HOK)
+    luaH_finishset(L, t, key, value, hres);
 }
 
 
+/*
+** Ditto for a GC barrier. (No need to invalidate the TM cache, as
+** integers cannot be keys to metamethods.)
+*/
 void luaH_setint (lua_State *L, Table *t, lua_Integer key, TValue *value) {
-  const TValue *p = luaH_getint(t, key);
-  if (isabstkey(p)) {
-    TValue k;
-    setivalue(&k, key);
-    luaH_newkey(L, t, &k, value);
+  if (keyinarray(t, key))
+    obj2arr(t, key, value);
+  else {
+    int ok = rawfinishnodeset(getintfromhash(t, key), value);
+    if (!ok) {
+      TValue k;
+      setivalue(&k, key);
+      luaH_newkey(L, t, &k, value);
+    }
   }
-  else
-    setobj2t(L, cast(TValue *, p), value);
 }
 
 
@@ -876,27 +1114,26 @@ static lua_Unsigned hash_search (Table *t, lua_Unsigned j) {
       j *= 2;
     else {
       j = LUA_MAXINTEGER;
-      if (isempty(luaH_getint(t, j)))  /* t[j] not present? */
+      if (hashkeyisempty(t, j))  /* t[j] not present? */
         break;  /* 'j' now is an absent index */
       else  /* weird case */
         return j;  /* well, max integer is a boundary... */
     }
-  } while (!isempty(luaH_getint(t, j)));  /* repeat until an absent t[j] */
+  } while (!hashkeyisempty(t, j));  /* repeat until an absent t[j] */
   /* i < j  &&  t[i] present  &&  t[j] absent */
   while (j - i > 1u) {  /* do a binary search between them */
     lua_Unsigned m = (i + j) / 2;
-    if (isempty(luaH_getint(t, m))) j = m;
+    if (hashkeyisempty(t, m)) j = m;
     else i = m;
   }
   return i;
 }
 
 
-static unsigned int binsearch (const TValue *array, unsigned int i,
-                                                    unsigned int j) {
+static unsigned int binsearch (Table *array, unsigned int i, unsigned int j) {
   while (j - i > 1u) {  /* binary search */
     unsigned int m = (i + j) / 2;
-    if (isempty(&array[m - 1])) j = m;
+    if (arraykeyisempty(array, m)) j = m;
     else i = m;
   }
   return i;
@@ -937,9 +1174,9 @@ static unsigned int binsearch (const TValue *array, unsigned int i,
 */
 lua_Unsigned luaH_getn (Table *t) {
   unsigned int limit = t->alimit;
-  if (limit > 0 && isempty(&t->array[limit - 1])) {  /* (1)? */
+  if (limit > 0 && arraykeyisempty(t, limit)) {  /* (1)? */
     /* there must be a boundary before 'limit' */
-    if (limit >= 2 && !isempty(&t->array[limit - 2])) {
+    if (limit >= 2 && !arraykeyisempty(t, limit - 1)) {
       /* 'limit - 1' is a boundary; can it be a new limit? */
       if (ispow2realasize(t) && !ispow2(limit - 1)) {
         t->alimit = limit - 1;
@@ -948,7 +1185,7 @@ lua_Unsigned luaH_getn (Table *t) {
       return limit - 1;
     }
     else {  /* must search for a boundary in [0, limit] */
-      unsigned int boundary = binsearch(t->array, 0, limit);
+      unsigned int boundary = binsearch(t, 0, limit);
       /* can this boundary represent the real size of the array? */
       if (ispow2realasize(t) && boundary > luaH_realasize(t) / 2) {
         t->alimit = boundary;  /* use it as the new limit */
@@ -960,14 +1197,14 @@ lua_Unsigned luaH_getn (Table *t) {
   /* 'limit' is zero or present in table */
   if (!limitequalsasize(t)) {  /* (2)? */
     /* 'limit' > 0 and array has more elements after 'limit' */
-    if (isempty(&t->array[limit]))  /* 'limit + 1' is empty? */
+    if (arraykeyisempty(t, limit + 1))  /* 'limit + 1' is empty? */
       return limit;  /* this is the boundary */
     /* else, try last element in the array */
     limit = luaH_realasize(t);
-    if (isempty(&t->array[limit - 1])) {  /* empty? */
+    if (arraykeyisempty(t, limit)) {  /* empty? */
       /* there must be a boundary in the array after old limit,
          and it must be a valid new limit */
-      unsigned int boundary = binsearch(t->array, t->alimit, limit);
+      unsigned int boundary = binsearch(t, t->alimit, limit);
       t->alimit = boundary;
       return boundary;
     }
@@ -975,8 +1212,8 @@ lua_Unsigned luaH_getn (Table *t) {
   }
   /* (3) 'limit' is the last element and either is zero or present in table */
   lua_assert(limit == luaH_realasize(t) &&
-             (limit == 0 || !isempty(&t->array[limit - 1])));
-  if (isdummy(t) || isempty(luaH_getint(t, cast(lua_Integer, limit + 1))))
+             (limit == 0 || !arraykeyisempty(t, limit)));
+  if (isdummy(t) || hashkeyisempty(t, cast(lua_Integer, limit + 1)))
     return limit;  /* 'limit + 1' is absent */
   else  /* 'limit + 1' is also present */
     return hash_search(t, limit);

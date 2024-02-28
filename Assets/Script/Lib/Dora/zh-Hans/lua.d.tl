@@ -1,4 +1,4 @@
--- 载入函数的枚举类型。
+-- 载入模式的枚举类型。
 local enum LoadMode
 
 	-- 二进制模式
@@ -11,6 +11,7 @@ local enum LoadMode
 	"bt"
 end
 
+-- 选择长度标志的枚举类型。
 local enum SelectLengthFlag
 	"#"
 end
@@ -48,14 +49,60 @@ end
 -- 垃圾回收器操作的枚举类型。
 local enum GarbageCollectorOperationD
 
-	-- 将收集器模式更改为增量模式。此选项可以后跟三个数字：垃圾收集器暂停、步骤倍增器和步骤大小。零值表示不更改该值。
-	"incremental"
+	-- 获取或设置垃圾回收器参数。无参数时，返回当前参数的值。有参数时，设置参数的值并返回当前值。
+	"param"
 end
 
--- 垃圾回收器操作的枚举类型。
-local enum GarbageCollectorOperationE
+-- 垃圾回收器参数的枚举类型。
+local enum GarbageCollectorParameter
 
-	-- 将收集器模式更改为分代模式。此选项可以后跟两个数字：垃圾收集器次要倍增器和主要倍增器。零值表示不更改该值。
+	-- 垃圾回收器暂停参数控制回收器在启动新回收周期之前等待的时间。
+	-- 当对象数量达到上一个回收周期后的总数的 `pause` 倍时，回收器将启动新周期。
+	-- 较大的值会使回收器更不积极。
+	-- 小于或等于 100 的值表示回收器不等待时间来启动新周期。
+	-- 值为 200 表示回收器在总对象数量翻倍之前等待启动新周期。
+	-- 默认值为 200。
+	"pause"
+
+	-- 垃圾回收器步进乘数参数控制每个 GC 步骤的大小。
+	-- `stepmul` 的值表示解释器在每个步骤中会标记或清除 `stepmul` 个对象。
+	-- 较大的值会使回收器更积极。
+	-- 注意，值太小可能使回收器太慢而无法完成一个周期。
+	-- 默认值为 200。
+	-- 作为特例，零值表示无限工作，实际上产生一个非增量的、会停止世界的回收器。
+	"stepmul"
+
+	-- 垃圾回收器步长参数控制每个增量步骤的大小，具体是在执行步骤之前解释器创建多少个对象：
+	-- `stepsize` 的值表示解释器在步骤之间大约创建 `stepsize` 个对象。
+	-- 默认值为 250。
+	"stepsize"
+
+	-- 小型回收器乘数参数控制小型回收的频率。
+	-- 对于小型乘数 `minormul`，当对象数量比上一个大型回收后使用的数量增加 `minormul` 倍时，将执行新的小型回收。
+	-- 例如，对于乘数为 20，当对象数量比上一个大型回收后的总数增加 20% 时，回收器将执行小型回收。
+	-- 默认值为 25。
+	"minormul"
+
+	-- 小型-大型乘数参数控制切换到大型回收的时机。
+	-- 对于乘数 `minormajor`，当旧对象数量比上一个大型回收后的总数增加 `minormajor` 时，回收器将切换到大型回收。
+	-- 例如，对于乘数为 100，当旧对象数量比上一个大型回收后的总数的两倍还多时，回收器将执行大型回收。
+	-- 默认值为 100。
+	"minormajor"
+
+	-- 大型-小型乘数参数控制切换回小型回收的时机。
+	-- 对于乘数 `majorminor`，在大型回收收集到上一个周期分配的对象的至少 `majorminor` 倍之后，回收器将切换回小型回收。
+	-- 特别地，对于乘数为 0，回收器在执行一次大型回收周期后立即切换回小型回收。
+	-- 默认值为 50。
+	"majorminor"
+end
+
+-- 垃圾回收模式的枚举类型。
+local enum GarbageCollectionMode
+
+	-- 将回收器模式更改为增量模式。
+	"incremental"
+
+	-- 将回收器模式更改为分代模式。
 	"generational"
 end
 
@@ -263,18 +310,16 @@ local record lua
 	-- @return (bool) 收集器是否正在运行。
 	collectgarbage: function(opt: GarbageCollectorOperationC): boolean
 
-	-- 垃圾收集器的通用接口。根据首个参数 opt 决定执行的不同功能。
-	-- @param opt ("incremental") 要执行的垃圾收集操作。
-	-- @param pause (number) 垃圾收集器的暂停时间。
-	-- @param stepmul (number) 步幅的乘数系数。
-	-- @param stepsize (number) 步幅的大小。
-	collectgarbage: function(opt: GarbageCollectorOperationD, pause: number, stepmul: number, stepsize: number)
+	-- 垃圾收集器的通用接口。根据第一个参数opt执行不同的功能。
+	-- @param opt ("param") 垃圾收集器操作。
+	-- @param param (GarbageCollectorParameter) 要获取或设置的参数。
+	-- @param value (number) [可选] 参数的新值。
+	-- @return (number) 参数的当前值。
+	collectgarbage: function(opt: GarbageCollectorOperationD, param: GarbageCollectorParameter, value?: number): number
 
-	-- 垃圾收集器的通用接口。根据首个参数 opt 决定执行的不同功能。
-	-- @param opt ("generational") 要执行的垃圾收集操作。
-	-- @param minormul (number) 垃圾收集器的次要乘数系数。
-	-- @param majormul (number) 垃圾收集器的主要乘数系数。
-	collectgarbage: function(opt: GarbageCollectorOperationE, minormul: number, majormul: number)
+	-- 垃圾收集器的通用接口。根据第一个参数opt执行不同的功能。
+	-- @param opt ("generational" | "incremental" ) 垃圾收集器操作。
+	collectgarbage: function(opt: GarbageCollectionMode)
 
 	-- 提供基本数学函数的库。
 	record math
@@ -514,6 +559,13 @@ local record lua
 		-- @param j (number) [可选] 结束索引。默认为#list。
 		-- @return (string) 连接后的字符串。
 		concat: function(list: {string | number}, sep?: string, i?: number, j?: number): string
+
+		-- 创建一个新的空表格，并预分配内存。
+		-- 当您事先知道表格将有多少元素时，这种预分配可以提高性能并能节省内存，
+		-- @param nseq (integer) 表格将有的序列元素数量的提示。
+		-- @param nrec (integer) [可选] 表格将有的非序列元素数量的提示。默认为0。
+		-- @return (table) 新的空表格。
+		create: function(nseq: integer, nrec?: integer): table
 
 		-- 将元素插入表格。
 		-- @param list (table) 目标列表。

@@ -4844,8 +4844,8 @@ end
 local function filename_to_module_name(filename)
 	local path = package.path
 	for entry in path:gmatch("[^;]+") do
-		entry = entry:gsub("%.", "%%.")
-		local lua_pat = "^" .. entry:gsub("%?", ".+") .. "$"
+		local ent = entry:gsub("%.", "%%.")
+		local lua_pat = "^" .. ent:gsub("%?", ".+") .. "$"
 		local d_tl_pat = lua_pat:gsub("%%.lua%$", "%%.d%%.tl$")
 		local tl_pat = lua_pat:gsub("%%.lua%$", "%%.tl$")
 
