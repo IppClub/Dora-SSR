@@ -20,10 +20,12 @@
 
 
 /*
-** Size of a TString: Size of the header plus space for the string
+** Size of a short TString: Size of the header plus space for the string
 ** itself (including final '\0').
 */
-#define sizelstring(l)  (offsetof(TString, contents) + ((l) + 1) * sizeof(char))
+#define sizestrshr(l)  \
+	(offsetof(TString, contents) + ((l) + 1) * sizeof(char))
+
 
 #define luaS_newliteral(L, s)	(luaS_newlstr(L, "" s, \
                                  (sizeof(s)/sizeof(char))-1))
@@ -52,6 +54,8 @@ LUAI_FUNC Udata *luaS_newudata (lua_State *L, size_t s, int nuvalue);
 LUAI_FUNC TString *luaS_newlstr (lua_State *L, const char *str, size_t l);
 LUAI_FUNC TString *luaS_new (lua_State *L, const char *str);
 LUAI_FUNC TString *luaS_createlngstrobj (lua_State *L, size_t l);
-
+LUAI_FUNC TString *luaS_newextlstr (lua_State *L,
+		const char *s, size_t len, lua_Alloc falloc, void *ud);
+LUAI_FUNC size_t luaS_sizelngstr (size_t len, int kind);
 
 #endif

@@ -930,19 +930,17 @@ declare function collectgarbage(opt: 'restart'): void;
  * This function is a generic interface to the garbage collector. It performs
  * different functions according to its first argument, opt.
  *
- * Sets arg as the new value for the pause of the collector (see §2.5). Returns
- * the previous value for pause.
+ * Changes the collector mode.
  */
-declare function collectgarbage(opt: 'setpause', arg: number): number;
+declare function collectgarbage(opt: 'incremental' | 'generational'): void;
 
 /**
  * This function is a generic interface to the garbage collector. It performs
  * different functions according to its first argument, opt.
  *
- * Sets arg as the new value for the step multiplier of the collector (see
- * §2.5). Returns the previous value for step.
+ * Gets or sets the garbage-collector parameter. With no argument, returns the current value for the parameter. With argument, sets the value of the parameter and returns the current value.
  */
-declare function collectgarbage(opt: 'setstepmul', arg: number): number;
+declare function collectgarbage(opt: 'param', param: 'minormul' | 'majorminor' | 'minormajor' | 'pause' | 'stepmul' | 'stepsize', arg?: number): number;
 
 /**
  * This function is a generic interface to the garbage collector. It performs
@@ -954,7 +952,7 @@ declare function collectgarbage(opt: 'setstepmul', arg: number): number;
  * (in KBytes) had been allocated by Lua. Returns true if the step finished a
  * collection cycle.
  */
-declare function collectgarbage(opt: 'step', arg: number): boolean;
+declare function collectgarbage(opt: 'step', arg?: number): boolean;
 
 /**
  * Opens the named file and executes its contents as a Lua chunk. When called
@@ -1926,6 +1924,16 @@ declare namespace table {
 	 * is greater than j, returns the empty string.
 	 */
 	function concat(list: (string | number)[], sep?: string, i?: number, j?: number): string;
+
+	/**
+	 * Creates a new empty table, preallocating memory.
+	 * This preallocation may help performance and save memory
+	 * when you know in advance how many elements the table will have.
+	 * @param nseq An integer hint for how many elements the table will have as a sequence.
+	 * @param nrec An optional integer hint for how many other elements the table will have; its default is zero.
+	 * @returns The new empty table.
+	 */
+	function create<T extends any[]>(nseq: number, nrec?: number): T;
 
 	/**
 	 * Inserts element value at position pos in list, shifting up the elements

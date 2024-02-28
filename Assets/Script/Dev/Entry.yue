@@ -147,9 +147,9 @@ getFileEntries = (path)->
 	entries = {}
 	for file in *getAllFiles path, ["xml", "lua", yueext, "tl"]
 		entryName = Path\getName file
-		file = Path\replaceExt file, ""
-		file = Path Path\getName(path), file
-		entry = [entryName, file]
+		fileName = Path\replaceExt file, ""
+		fileName = Path Path\getName(path), fileName
+		entry = [entryName, fileName]
 		entries[] = entry
 	table.sort entries, (a, b)-> a[1] < b[1]
 	entries
@@ -172,10 +172,10 @@ getProjectEntries = (path)->
 					for [name, tPath] in *getFileEntries testPath
 						entry = [name, Path(dir, Path\getPath(file), tPath)]
 						tests[] = entry
-				file = Path\replaceExt file, ""
-				file = Path dir, file
-				entryName = Path\getName Path\getPath file
-				entry = [entryName, file, examples, tests]
+				fileName = Path\replaceExt file, ""
+				fileName = Path dir, fileName
+				entryName = Path\getName Path\getPath fileName
+				entry = [entryName, fileName, examples, tests]
 				entries[] = entry
 	table.sort entries, (a, b)-> a[1] < b[1]
 	entries

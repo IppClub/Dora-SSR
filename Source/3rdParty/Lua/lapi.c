@@ -53,6 +53,16 @@ const char lua_ident[] =
 #define isupvalue(i)		((i) < LUA_REGISTRYINDEX)
 
 
+/* Advance the garbage collector when creating large objects */
+static void advancegc (lua_State *L, size_t delta) {
+  delta >>= 5;  /* one object for each 32 bytes (empirical) */
+  if (delta > 0) {
+    global_State *g = G(L);
+    luaE_setdebt(g, g->GCdebt - delta);
+  }
+}
+
+
 /*
 ** Convert an acceptable index to a pointer to its respective value.
 ** Non-valid indices return the special nil value 'G(L)->nilvalue'.
@@ -92,7 +102,7 @@ static TValue *index2value (lua_State *L, int idx) {
 /*
 ** Convert a valid actual index (not a pseudo-index) to its address.
 */
-l_sinline StkId index2stack (lua_State *L, int idx) {
+static StkId index2stack (lua_State *L, int idx) {
   CallInfo *ci = L->ci;
   if (idx > 0) {
     StkId o = ci->func.p + idx;
@@ -224,7 +234,7 @@ LUA_API void lua_closeslot (lua_State *L, int idx) {
 ** Note that we move(copy) only the value inside the stack.
 ** (We do not move additional fields that may exist.)
 */
-l_sinline void reverse (lua_State *L, StkId from, StkId to) {
+static void reverse (lua_State *L, StkId from, StkId to) {
   for (; from < to; from++, to--) {
     TValue temp;
     setobj(L, &temp, s2v(from));
@@ -416,10 +426,11 @@ LUA_API const char *lua_tolstring (lua_State *L, int idx, size_t *len) {
     luaC_checkGC(L);
     o = index2value(L, idx);  /* previous call may reallocate the stack */
   }
-  if (len != NULL)
-    *len = tsslen(tsvalue(o));
   lua_unlock(L);
-  return getstr(tsvalue(o));
+  if (len != NULL)
+    return getlstr(tsvalue(o), *len);
+  else
+    return getstr(tsvalue(o));
 }
 
 
@@ -538,6 +549,23 @@ LUA_API const char *lua_pushlstring (lua_State *L, const char *s, size_t len) {
   ts = (len == 0) ? luaS_new(L, "") : luaS_newlstr(L, s, len);
   setsvalue2s(L, L->top.p, ts);
   api_incr_top(L);
+  advancegc(L, len);
+  luaC_checkGC(L);
+  lua_unlock(L);
+  return getstr(ts);
+}
+
+
+LUA_API const char *lua_pushextlstring (lua_State *L,
+	        const char *s, size_t len, lua_Alloc falloc, void *ud) {
+  TString *ts;
+  lua_lock(L);
+  api_check(L, s[len] == '\0', "string not ending with zero");
+  ts = luaS_newextlstr (L, s, len, falloc, ud);
+  setsvalue2s(L, L->top.p, ts);
+  api_incr_top(L);
+  if (falloc != NULL)  /* non-static string? */
+    advancegc(L, len);  /* count its memory */
   luaC_checkGC(L);
   lua_unlock(L);
   return getstr(ts);
@@ -653,51 +681,47 @@ LUA_API int lua_pushthread (lua_State *L) {
 */
 
 
-l_sinline int auxgetstr (lua_State *L, const TValue *t, const char *k) {
-  const TValue *slot;
+static int auxgetstr (lua_State *L, const TValue *t, const char *k) {
+  int hres;
   TString *str = luaS_new(L, k);
-  if (luaV_fastget(L, t, str, slot, luaH_getstr)) {
-    setobj2s(L, L->top.p, slot);
+  luaV_fastget(t, str, s2v(L->top.p), luaH_getstr, hres);
+  if (hres == HOK) {
     api_incr_top(L);
   }
   else {
     setsvalue2s(L, L->top.p, str);
     api_incr_top(L);
-    luaV_finishget(L, t, s2v(L->top.p - 1), L->top.p - 1, slot);
+    luaV_finishget(L, t, s2v(L->top.p - 1), L->top.p - 1, hres);
   }
   lua_unlock(L);
   return ttype(s2v(L->top.p - 1));
 }
 
 
-/*
-** Get the global table in the registry. Since all predefined
-** indices in the registry were inserted right when the registry
-** was created and never removed, they must always be in the array
-** part of the registry.
-*/
-#define getGtable(L)  \
-	(&hvalue(&G(L)->l_registry)->array[LUA_RIDX_GLOBALS - 1])
+static void getGlobalTable (lua_State *L, TValue *gt) {
+  Table *registry = hvalue(&G(L)->l_registry);
+  int hres = luaH_getint(registry, LUA_RIDX_GLOBALS, gt);
+  (void)hres;  /* avoid warnings (not used) when checks are off */
+  api_check(L, hres == HOK, "global table must exist");
+}
 
 
 LUA_API int lua_getglobal (lua_State *L, const char *name) {
-  const TValue *G;
+  TValue gt;
   lua_lock(L);
-  G = getGtable(L);
-  return auxgetstr(L, G, name);
+  getGlobalTable(L, &gt);
+  return auxgetstr(L, &gt, name);
 }
 
 
 LUA_API int lua_gettable (lua_State *L, int idx) {
-  const TValue *slot;
+  int hres;
   TValue *t;
   lua_lock(L);
   t = index2value(L, idx);
-  if (luaV_fastget(L, t, s2v(L->top.p - 1), slot, luaH_get)) {
-    setobj2s(L, L->top.p - 1, slot);
-  }
-  else
-    luaV_finishget(L, t, s2v(L->top.p - 1), L->top.p - 1, slot);
+  luaV_fastget(t, s2v(L->top.p - 1), s2v(L->top.p - 1), luaH_get, hres);
+  if (hres != HOK)
+    luaV_finishget(L, t, s2v(L->top.p - 1), L->top.p - 1, hres);
   lua_unlock(L);
   return ttype(s2v(L->top.p - 1));
 }
@@ -711,16 +735,14 @@ LUA_API int lua_getfield (lua_State *L, int idx, const char *k) {
 
 LUA_API int lua_geti (lua_State *L, int idx, lua_Integer n) {
   TValue *t;
-  const TValue *slot;
+  int hres;
   lua_lock(L);
   t = index2value(L, idx);
-  if (luaV_fastgeti(L, t, n, slot)) {
-    setobj2s(L, L->top.p, slot);
-  }
-  else {
-    TValue aux;
-    setivalue(&aux, n);
-    luaV_finishget(L, t, &aux, L->top.p, slot);
+  luaV_fastgeti(t, n, s2v(L->top.p), hres);
+  if (hres != HOK) {
+    TValue key;
+    setivalue(&key, n);
+    luaV_finishget(L, t, &key, L->top.p, hres);
   }
   api_incr_top(L);
   lua_unlock(L);
@@ -728,18 +750,16 @@ LUA_API int lua_geti (lua_State *L, int idx, lua_Integer n) {
 }
 
 
-l_sinline int finishrawget (lua_State *L, const TValue *val) {
-  if (isempty(val))  /* avoid copying empty items to the stack */
+l_sinline int finishrawget (lua_State *L, int hres) {
+  if (hres != HOK)  /* avoid copying empty items to the stack */
     setnilvalue(s2v(L->top.p));
-  else
-    setobj2s(L, L->top.p, val);
   api_incr_top(L);
   lua_unlock(L);
   return ttype(s2v(L->top.p - 1));
 }
 
 
-static Table *gettable (lua_State *L, int idx) {
+l_sinline Table *gettable (lua_State *L, int idx) {
   TValue *t = index2value(L, idx);
   api_check(L, ttistable(t), "table expected");
   return hvalue(t);
@@ -748,21 +768,23 @@ static Table *gettable (lua_State *L, int idx) {
 
 LUA_API int lua_rawget (lua_State *L, int idx) {
   Table *t;
-  const TValue *val;
+  int hres;
   lua_lock(L);
   api_checknelems(L, 1);
   t = gettable(L, idx);
-  val = luaH_get(t, s2v(L->top.p - 1));
+  hres = luaH_get(t, s2v(L->top.p - 1), s2v(L->top.p - 1));
   L->top.p--;  /* remove key */
-  return finishrawget(L, val);
+  return finishrawget(L, hres);
 }
 
 
 LUA_API int lua_rawgeti (lua_State *L, int idx, lua_Integer n) {
   Table *t;
+  int hres;
   lua_lock(L);
   t = gettable(L, idx);
-  return finishrawget(L, luaH_getint(t, n));
+  luaH_fastgeti(t, n, s2v(L->top.p), hres);
+  return finishrawget(L, hres);
 }
 
 
@@ -772,7 +794,7 @@ LUA_API int lua_rawgetp (lua_State *L, int idx, const void *p) {
   lua_lock(L);
   t = gettable(L, idx);
   setpvalue(&k, cast_voidp(p));
-  return finishrawget(L, luaH_get(t, &k));
+  return finishrawget(L, luaH_get(t, &k, s2v(L->top.p)));
 }
 
 
@@ -844,17 +866,18 @@ LUA_API int lua_getiuservalue (lua_State *L, int idx, int n) {
 ** t[k] = value at the top of the stack (where 'k' is a string)
 */
 static void auxsetstr (lua_State *L, const TValue *t, const char *k) {
-  const TValue *slot;
+  int hres;
   TString *str = luaS_new(L, k);
   api_checknelems(L, 1);
-  if (luaV_fastget(L, t, str, slot, luaH_getstr)) {
-    luaV_finishfastset(L, t, slot, s2v(L->top.p - 1));
+  luaV_fastset(t, str, s2v(L->top.p - 1), hres, luaH_psetstr);
+  if (hres == HOK) {
+    luaV_finishfastset(L, t, s2v(L->top.p - 1));
     L->top.p--;  /* pop value */
   }
   else {
     setsvalue2s(L, L->top.p, str);  /* push 'str' (to make it a TValue) */
     api_incr_top(L);
-    luaV_finishset(L, t, s2v(L->top.p - 1), s2v(L->top.p - 2), slot);
+    luaV_finishset(L, t, s2v(L->top.p - 1), s2v(L->top.p - 2), hres);
     L->top.p -= 2;  /* pop value and key */
   }
   lua_unlock(L);  /* lock done by caller */
@@ -862,24 +885,25 @@ static void auxsetstr (lua_State *L, const TValue *t, const char *k) {
 
 
 LUA_API void lua_setglobal (lua_State *L, const char *name) {
-  const TValue *G;
+  TValue gt;
   lua_lock(L);  /* unlock done in 'auxsetstr' */
-  G = getGtable(L);
-  auxsetstr(L, G, name);
+  getGlobalTable(L, &gt);
+  auxsetstr(L, &gt, name);
 }
 
 
 LUA_API void lua_settable (lua_State *L, int idx) {
   TValue *t;
-  const TValue *slot;
+  int hres;
   lua_lock(L);
   api_checknelems(L, 2);
   t = index2value(L, idx);
-  if (luaV_fastget(L, t, s2v(L->top.p - 2), slot, luaH_get)) {
-    luaV_finishfastset(L, t, slot, s2v(L->top.p - 1));
+  luaV_fastset(t, s2v(L->top.p - 2), s2v(L->top.p - 1), hres, luaH_pset);
+  if (hres == HOK) {
+    luaV_finishfastset(L, t, s2v(L->top.p - 1));
   }
   else
-    luaV_finishset(L, t, s2v(L->top.p - 2), s2v(L->top.p - 1), slot);
+    luaV_finishset(L, t, s2v(L->top.p - 2), s2v(L->top.p - 1), hres);
   L->top.p -= 2;  /* pop index and value */
   lua_unlock(L);
 }
@@ -893,17 +917,17 @@ LUA_API void lua_setfield (lua_State *L, int idx, const char *k) {
 
 LUA_API void lua_seti (lua_State *L, int idx, lua_Integer n) {
   TValue *t;
-  const TValue *slot;
+  int hres;
   lua_lock(L);
   api_checknelems(L, 1);
   t = index2value(L, idx);
-  if (luaV_fastgeti(L, t, n, slot)) {
-    luaV_finishfastset(L, t, slot, s2v(L->top.p - 1));
-  }
+  luaV_fastseti(t, n, s2v(L->top.p - 1), hres);
+  if (hres == HOK)
+    luaV_finishfastset(L, t, s2v(L->top.p - 1));
   else {
-    TValue aux;
-    setivalue(&aux, n);
-    luaV_finishset(L, t, &aux, s2v(L->top.p - 1), slot);
+    TValue temp;
+    setivalue(&temp, n);
+    luaV_finishset(L, t, &temp, s2v(L->top.p - 1), hres);
   }
   L->top.p--;  /* pop value */
   lua_unlock(L);
@@ -1130,10 +1154,11 @@ LUA_API int lua_load (lua_State *L, lua_Reader reader, void *data,
     LClosure *f = clLvalue(s2v(L->top.p - 1));  /* get new function */
     if (f->nupvalues >= 1) {  /* does it have an upvalue? */
       /* get global table from registry */
-      const TValue *gt = getGtable(L);
+      TValue gt;
+      getGlobalTable(L, &gt);
       /* set global table as 1st upvalue of 'f' (may be LUA_ENV) */
-      setobj(L, f->upvals[0]->v.p, gt);
-      luaC_barrier(L, f->upvals[0], gt);
+      setobj(L, f->upvals[0]->v.p, &gt);
+      luaC_barrier(L, f->upvals[0], &gt);
     }
   }
   lua_unlock(L);
@@ -1141,16 +1166,19 @@ LUA_API int lua_load (lua_State *L, lua_Reader reader, void *data,
 }
 
 
+/*
+** Dump a Lua function, calling 'writer' to write its parts. Ensure
+** the stack returns with its original size.
+*/
 LUA_API int lua_dump (lua_State *L, lua_Writer writer, void *data, int strip) {
   int status;
-  TValue *o;
+  ptrdiff_t otop = savestack(L, L->top.p);  /* original top */
+  TValue *f = s2v(L->top.p - 1);  /* function to be dumped */
   lua_lock(L);
   api_checknelems(L, 1);
-  o = s2v(L->top.p - 1);
-  if (isLfunction(o))
-    status = luaU_dump(L, getproto(o), writer, data, strip);
-  else
-    status = 1;
+  api_check(L, isLfunction(f), "Lua function expected");
+  status = luaU_dump(L, clLvalue(f)->p, writer, data, strip);
+  L->top.p = restorestack(L, otop);  /* restore top */
   lua_unlock(L);
   return status;
 }
@@ -1168,7 +1196,7 @@ LUA_API int lua_gc (lua_State *L, int what, ...) {
   va_list argp;
   int res = 0;
   global_State *g = G(L);
-  if (g->gcstp & GCSTPGC)  /* internal stop? */
+  if (g->gcstp & (GCSTPGC | GCSTPCLS))  /* internal stop? */
     return -1;  /* all options are invalid when stopped */
   lua_lock(L);
   va_start(argp, what);
@@ -1179,7 +1207,7 @@ LUA_API int lua_gc (lua_State *L, int what, ...) {
     }
     case LUA_GCRESTART: {
       luaE_setdebt(g, 0);
-      g->gcstp = 0;  /* (GCSTPGC must be already zero here) */
+      g->gcstp = 0;  /* (other bits must be zero here) */
       break;
     }
     case LUA_GCCOLLECT: {
@@ -1188,42 +1216,25 @@ LUA_API int lua_gc (lua_State *L, int what, ...) {
     }
     case LUA_GCCOUNT: {
       /* GC values are expressed in Kbytes: #bytes/2^10 */
-      res = cast_int(gettotalbytes(g) >> 10);
+      res = cast_int(g->totalbytes >> 10);
       break;
     }
     case LUA_GCCOUNTB: {
-      res = cast_int(gettotalbytes(g) & 0x3ff);
+      res = cast_int(g->totalbytes & 0x3ff);
       break;
     }
     case LUA_GCSTEP: {
-      int data = va_arg(argp, int);
-      l_mem debt = 1;  /* =1 to signal that it did an actual step */
       lu_byte oldstp = g->gcstp;
-      g->gcstp = 0;  /* allow GC to run (GCSTPGC must be zero here) */
-      if (data == 0) {
-        luaE_setdebt(g, 0);  /* do a basic step */
-        luaC_step(L);
-      }
-      else {  /* add 'data' to total debt */
-        debt = cast(l_mem, data) * 1024 + g->GCdebt;
-        luaE_setdebt(g, debt);
-        luaC_checkGC(L);
-      }
-      g->gcstp = oldstp;  /* restore previous state */
-      if (debt > 0 && g->gcstate == GCSpause)  /* end of cycle? */
+      l_obj n = va_arg(argp, int);
+      int work = 0;  /* true if GC did some work */
+      g->gcstp = 0;  /* allow GC to run (other bits must be zero here) */
+      if (n <= 0)
+        n = g->GCdebt;  /* force to run one basic step */
+      luaE_setdebt(g, g->GCdebt - n);
+      luaC_condGC(L, (void)0, work = 1);
+      if (work && g->gcstate == GCSpause)  /* end of cycle? */
         res = 1;  /* signal it */
-      break;
-    }
-    case LUA_GCSETPAUSE: {
-      int data = va_arg(argp, int);
-      res = getgcparam(g->gcpause);
-      setgcparam(g->gcpause, data);
-      break;
-    }
-    case LUA_GCSETSTEPMUL: {
-      int data = va_arg(argp, int);
-      res = getgcparam(g->gcstepmul);
-      setgcparam(g->gcstepmul, data);
+      g->gcstp = oldstp;  /* restore previous state */
       break;
     }
     case LUA_GCISRUNNING: {
@@ -1231,28 +1242,22 @@ LUA_API int lua_gc (lua_State *L, int what, ...) {
       break;
     }
     case LUA_GCGEN: {
-      int minormul = va_arg(argp, int);
-      int majormul = va_arg(argp, int);
-      res = isdecGCmodegen(g) ? LUA_GCGEN : LUA_GCINC;
-      if (minormul != 0)
-        g->genminormul = minormul;
-      if (majormul != 0)
-        setgcparam(g->genmajormul, majormul);
-      luaC_changemode(L, KGC_GEN);
+      res = (g->gckind == KGC_INC) ? LUA_GCINC : LUA_GCGEN;
+      luaC_changemode(L, KGC_GENMINOR);
       break;
     }
     case LUA_GCINC: {
-      int pause = va_arg(argp, int);
-      int stepmul = va_arg(argp, int);
-      int stepsize = va_arg(argp, int);
-      res = isdecGCmodegen(g) ? LUA_GCGEN : LUA_GCINC;
-      if (pause != 0)
-        setgcparam(g->gcpause, pause);
-      if (stepmul != 0)
-        setgcparam(g->gcstepmul, stepmul);
-      if (stepsize != 0)
-        g->gcstepsize = stepsize;
+      res = (g->gckind == KGC_INC) ? LUA_GCINC : LUA_GCGEN;
       luaC_changemode(L, KGC_INC);
+      break;
+    }
+    case LUA_GCPARAM: {
+      int param = va_arg(argp, int);
+      int value = va_arg(argp, int);
+      api_check(L, 0 <= param && param < LUA_GCPN, "invalid parameter");
+      res = luaO_applyparam(g->gcparams[param], 100);
+      if (value >= 0)
+        g->gcparams[param] = luaO_codeparam(value);
       break;
     }
     default: res = -1;  /* invalid option */
@@ -1291,9 +1296,8 @@ LUA_API int lua_next (lua_State *L, int idx) {
   api_checknelems(L, 1);
   t = gettable(L, idx);
   more = luaH_next(L, t, L->top.p - 1);
-  if (more) {
+  if (more)
     api_incr_top(L);
-  }
   else  /* no more elements */
     L->top.p -= 1;  /* remove key */
   lua_unlock(L);
@@ -1319,13 +1323,14 @@ LUA_API void lua_toclose (lua_State *L, int idx) {
 LUA_API void lua_concat (lua_State *L, int n) {
   lua_lock(L);
   api_checknelems(L, n);
-  if (n > 0)
+  if (n > 0) {
     luaV_concat(L, n);
+    luaC_checkGC(L);
+  }
   else {  /* nothing to concatenate */
     setsvalue2s(L, L->top.p, luaS_newlstr(L, "", 0));  /* push empty string */
     api_incr_top(L);
   }
-  luaC_checkGC(L);
   lua_unlock(L);
 }
 
@@ -1381,6 +1386,7 @@ LUA_API void *lua_newuserdatauv (lua_State *L, size_t size, int nuvalue) {
   u = luaS_newudata(L, size, nuvalue);
   setuvalue(L, s2v(L->top.p), u);
   api_incr_top(L);
+  advancegc(L, size);
   luaC_checkGC(L);
   lua_unlock(L);
   return getudatamem(u);

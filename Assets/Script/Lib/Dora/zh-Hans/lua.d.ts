@@ -871,16 +871,16 @@ declare function collectgarbage(opt: 'restart'): void;
 /**
  * 此函数是垃圾收集器的通用接口。根据其第一个参数，opt，执行不同的功能。
  *
- * 将 arg 设置为收集器暂停的新值（参见 §2.5）。返回暂停的前一个值。
+ * 改变垃圾收集器的工作模式。
  */
-declare function collectgarbage(opt: 'setpause', arg: number): number;
+declare function collectgarbage(opt: 'incremental' | 'generational'): void;
 
 /**
  * 此函数是垃圾收集器的通用接口。根据其第一个参数，opt，执行不同的功能。
  *
- * 将 arg 设置为收集器步进乘数的新值（参见 §2.5）。返回步进的前一个值。
+ * 获取或设置垃圾收集器参数。如果没有参数，则返回参数的当前值。如果有参数，则设置参数的值并返回当前值。
  */
-declare function collectgarbage(opt: 'setstepmul', arg: number): number;
+declare function collectgarbage(opt: 'param', param: 'minormul' | 'majorminor' | 'minormajor' | 'pause' | 'stepmul' | 'stepsize', arg?: number): number;
 
 /**
  * 此函数是垃圾收集器的通用接口。根据其第一个参数，opt，执行不同的功能。
@@ -890,7 +890,7 @@ declare function collectgarbage(opt: 'setstepmul', arg: number): number;
  * 对于非零值，收集器将执行，就像 Lua 分配了该数量的内存（以 KBytes 为单位）。
  * 如果步骤完成了收集周期，则返回 true。
  */
-declare function collectgarbage(opt: 'step', arg: number): boolean;
+declare function collectgarbage(opt: 'step', arg?: number): boolean;
 
 /**
  * 打开指定的文件并执行其内容作为 Lua 块。当没有参数调用时，dofile 执行标准输入（stdin）的内容。
@@ -1599,6 +1599,15 @@ declare namespace table {
 	 * 给定一个所有元素都是字符串或数字的列表，返回字符串 list[i]..sep..list[i+1] ··· sep..list[j]。sep 的默认值为空字符串，i 的默认值为 1，j 的默认值为 #list。如果 i 大于 j，则返回空字符串。
 	 */
 	function concat(list: (string | number)[], sep?: string, i?: number, j?: number): string;
+
+	/**
+	 * 创建一个新的空表格，并预分配内存。
+	 * 当您事先知道表格将有多少元素时，这种预分配可以提高性能并能节省内存，
+	 * @param nseq 表格将有的序列元素数量的提示。
+	 * @param nrec 表格将有的非序列元素数量的提示。默认为0。
+	 * @returns 新的空表格。
+	 */
+	function create<T extends any[]>(nseq: number, nrec?: number): T
 
 	/**
 	 * 在列表的位置 pos 插入元素 value，将元素 list[pos]，list[pos+1]，···，list[#list] 向上移动。pos 的默认值为 #list+1，因此调用 table.insert(t,x) 将 x 插入到列表 t 的末尾。

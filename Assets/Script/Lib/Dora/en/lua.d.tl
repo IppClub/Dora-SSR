@@ -48,14 +48,60 @@ end
 -- Enumeration for The garbage collector operation.
 local enum GarbageCollectorOperationD
 
-	-- Change the collector mode to incremental. This option can be followed by three numbers: the garbage-collector pause, the step multiplier, and the step size. A zero means to not change that value.
-	"incremental"
+	-- Gets or sets the garbage-collector parameter. With no argument, returns the current value for the parameter. With argument, sets the value of the parameter and returns the current value.
+	"param"
 end
 
--- Enumeration for The garbage collector operation.
-local enum GarbageCollectorOperationE
+-- Enumeration for The garbage collector parameter.
+local enum GarbageCollectorParameter
 
-	-- Change the collector mode to generational. This option can be followed by two numbers: the garbage-collector minor multiplier and the major multiplier. A zero means to not change that value.
+	-- The garbage-collector pause controls how long the collector waits before starting a new cycle.
+	-- The collector starts a new cycle when the number of objects hits `pause` of the total after the previous collection.
+	-- Larger values make the collector less aggressive.
+	-- Values equal to or less than 100 mean the collector will not wait to start a new cycle.
+	-- A value of 200 means that the collector waits for the total number of objects to double before starting a new cycle.
+	-- The default value is 200.
+	"pause"
+
+	-- The garbage-collector step multiplier controls the size of each GC step.
+	-- A value of `stepmul` means the interpreter will mark or sweep, in each step, `stepmul` objects for each created object.
+	-- Larger values make the collector more aggressive.
+	-- Beware that values too small can make the collector too slow to ever finish a cycle.
+	-- The default value is 200.
+	-- As a special case, a zero value means unlimited work, effectively producing a non-incremental, stop-the-world collector.
+	"stepmul"
+
+	-- The garbage-collector step size controls the size of each incremental step, specifically how many objects the interpreter creates before performing a step:
+	-- A value of `stepsize` means the interpreter will create approximately `stepsize` objects between steps.
+	-- The default value is 250.
+	"stepsize"
+
+	-- The minor multiplier controls the frequency of minor collections.
+	-- For a minor multiplier `minormul`, a new minor collection will be done when the number of objects grows `minormul` larger than the number in use just after the last major collection.
+	-- For instance, for a multiplier of 20, the collector will do a minor collection when the number of objects gets 20% larger than the total after the last major collection.
+	-- The default value is 25.
+	"minormul"
+
+	-- The minor-major multiplier controls the shift to major collections.
+	-- For a multiplier `minormajor`, the collector will shift to a major collection when the number of old objects grows `minormajor` larger than the total after the previous major collection.
+	-- For instance, for a multiplier of 100, the collector will do a major collection when the number of old objects gets larger than twice the total after the previous major collection.
+	-- The default value is 100.
+	"minormajor"
+
+	-- The major-minor multiplier controls the shift back to minor collections.
+	-- For a multiplier `majorminor`, the collector will shift back to minor collections after a major collection collects at least `majorminor` of the objects allocated during the last cycle.
+	-- In particular, for a multiplier of 0, the collector will immediately shift back to minor collections after doing one cycle of major collections.
+	-- The default value is 50.
+	"majorminor"
+end
+
+-- Enumeration for The garbage collection mode.
+local enum GarbageCollectionMode
+
+	-- Change the collector mode to incremental.
+	"incremental"
+
+	-- Change the collector mode to generational.
 	"generational"
 end
 
@@ -255,9 +301,9 @@ local record lua
 
 	-- Generic interface to the garbage collector. Performs different functions based on the first argument, opt.
 	-- @param opt ("step") The garbage collector operation.
-	-- @param arg (number) The step "size".
+	-- @param arg (number) [optional] The step "size".
 	-- @return (boolean) Depends on the opt parameter.
-	collectgarbage: function(opt: GarbageCollectorOperationB, arg: number): boolean
+	collectgarbage: function(opt: GarbageCollectorOperationB, arg?: number): boolean
 
 	-- Generic interface to the garbage collector. Performs different functions based on the first argument, opt.
 	-- @param opt ("isrunning") The garbage collector operation.
@@ -265,17 +311,15 @@ local record lua
 	collectgarbage: function(opt: GarbageCollectorOperationC): boolean
 
 	-- Generic interface to the garbage collector. Performs different functions based on the first argument, opt.
-	-- @param opt ("incremental") The garbage collector operation.
-	-- @param pause (number) The garbage-collector pause.
-	-- @param stepmul (number) The step multiplier.
-	-- @param stepsize (number) The step size.
-	collectgarbage: function(opt: GarbageCollectorOperationD, pause: number, stepmul: number, stepsize: number)
+	-- @param opt ("param") The garbage collector operation.
+	-- @param param (GarbageCollectorParameter) The parameter to get or set.
+	-- @param value (number) [optional] The new value for the parameter.
+	-- @return (number) The current value of the parameter.
+	collectgarbage: function(opt: GarbageCollectorOperationD, param: GarbageCollectorParameter, value?: number): number
 
 	-- Generic interface to the garbage collector. Performs different functions based on the first argument, opt.
-	-- @param opt ("generational") The garbage collector operation.
-	-- @param minormul (number) The garbage-collector minor multiplier.
-	-- @param majormul (number) The garbage-collector major multiplier.
-	collectgarbage: function(opt: GarbageCollectorOperationE, minormul: number, majormul: number)
+	-- @param opt ("generational" | "incremental" ) The garbage collector operation.
+	collectgarbage: function(opt: GarbageCollectionMode)
 
 	-- Library provides basic mathematical functions.
 	record math
@@ -515,6 +559,14 @@ local record lua
 		-- @param j (number) [optional] Ending index. Default is #list.
 		-- @return (string) The concatenated string.
 		concat: function(list: {string | number}, sep?: string, i?: number, j?: number): string
+
+		-- Creates a new empty table, preallocating memory.
+		-- This preallocation may help performance and save memory
+		-- when you know in advance how many elements the table will have.
+		-- @param nseq (integer) A hint for how many elements the table will have as a sequence.
+		-- @param nrec (integer) [optional] A hint for how many other elements the table will have; its default is zero.
+		-- @return (table) The new empty table.
+		create: function(nseq: integer, nrec?: integer): table
 
 		-- Inserts an element into a table.
 		-- @param list (table) The target list.
