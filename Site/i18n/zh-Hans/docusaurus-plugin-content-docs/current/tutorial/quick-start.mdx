@@ -63,23 +63,23 @@ import TabItem from '@theme/TabItem';
 import { React, toNode, useRef } from 'dora-x';
 import { Ease, Move, Sprite } from 'dora';
 
-const sprite = useRef<Sprite.Type>();
+const spriteRef = useRef<Sprite.Type>();
 
 // 创建游戏场景树根节点
 // 以及一个图片精灵作为子节点
 toNode(
 	<node onTapBegan={(touch) => {
-			const sp = sprite.current;
-			if (sp) {
-				sp.perform(Move(
-					1, // 持续时间，单位为秒
-					sp.position, // 开始位置
-					touch.location, // 结束位置
-					Ease.OutBack // 缓动函数
-				));
-			}
-		}}>
-		<sprite ref={sprite} file='Image/logo.png'/>
+		const {current: sprite} = spriteRef;
+		if (sprite) {
+			sprite.perform(Move(
+				1, // 持续时间，单位为秒
+				sprite.position, // 开始位置
+				touch.location, // 结束位置
+				Ease.OutBack // 缓动函数
+			));
+		}
+	}}>
+		<sprite ref={spriteRef} file='Image/logo.png'/>
 	</node>
 );
 ```
@@ -179,7 +179,7 @@ end)
 
 ```ts title="Hello/init.ts"
 // 导入功能模块
-import {Ease, Move, Node, Slot, Sprite} from 'dora';
+import { Ease, Move, Node, Slot, Sprite } from 'dora';
 
 // 创建图片精灵
 const sprite = Sprite("Image/logo.png");
