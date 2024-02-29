@@ -4283,6 +4283,18 @@ export namespace Texture2D {
 	export type Type = Texture2D;
 }
 
+interface Texture2DClass {
+	/**
+	 * Creates a new texture from the specified image file.
+	 * @param filename The filename of the image file to load.
+	 * @returns The new texture.
+	 */
+	(this: void, filename: string): Texture2D | null;
+}
+
+const texture2DClass: Texture2DClass;
+export {texture2DClass as Texture2D};
+
 /**
  * A class used to render a texture as a grid of sprites, where each sprite can be positioned,
  * colored, and have its UV coordinates manipulated.

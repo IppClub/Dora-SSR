@@ -359,6 +359,7 @@ object class Texture2D
 {
 	readonly common int width;
 	readonly common int height;
+	static outside optional Texture2D* texture_2d_create @ createFile(string filename);
 };
 
 object class Sprite : public INode

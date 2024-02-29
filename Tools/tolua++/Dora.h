@@ -426,6 +426,7 @@ class Texture2D : public Object
 {
 	tolua_readonly tolua_property__common int width;
 	tolua_readonly tolua_property__common int height;
+	static tolua_outside Texture2D* Texture2D_create @ create(String filename);
 };
 
 struct BlendFunc

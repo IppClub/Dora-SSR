@@ -2,6 +2,7 @@ extern "C" {
 	fn texture2d_type() -> i32;
 	fn texture2d_get_width(slf: i64) -> i32;
 	fn texture2d_get_height(slf: i64) -> i32;
+	fn texture2d_with_file(filename: i64) -> i64;
 }
 use crate::dora::IObject;
 pub struct Texture2D { raw: i64 }
@@ -20,5 +21,8 @@ impl Texture2D {
 	}
 	pub fn get_height(&self) -> i32 {
 		return unsafe { texture2d_get_height(self.raw()) };
+	}
+	pub fn with_file(filename: &str) -> Option<Texture2D> {
+		unsafe { return Texture2D::from(texture2d_with_file(crate::dora::from_string(filename))); }
 	}
 }

@@ -4287,6 +4287,18 @@ export namespace Texture2D {
 	export type Type = Texture2D;
 }
 
+interface Texture2DClass {
+	/**
+	 * 从指定的文件名创建新的纹理。
+	 * @param filename 要加载的纹理文件的文件名。
+	 * @returns 新的纹理。
+	 */
+	(this: void, filename: string): Texture2D | null;
+}
+
+const texture2DClass: Texture2DClass;
+export {texture2DClass as Texture2D};
+
 /**
  * 用于将纹理渲染为图元网格的类，每个图元都可以定位、着色，并可以操作其UV坐标。
  */
