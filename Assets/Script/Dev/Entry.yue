@@ -145,8 +145,14 @@ getAllFiles = (path, exts)->
 
 getFileEntries = (path)->
 	entries = {}
-	for file in *getAllFiles path, ["xml", "lua", yueext, "tl"]
+	for file in *getAllFiles path, ["lua", "xml", yueext, "tl"]
 		entryName = Path\getName file
+		entryAdded = false
+		for [ename,] in *entries
+			if entryName == ename
+				entryAdded = true
+				break
+		continue if entryAdded
 		fileName = Path\replaceExt file, ""
 		fileName = Path Path\getName(path), fileName
 		entry = [entryName, fileName]
@@ -158,8 +164,17 @@ getProjectEntries = (path)->
 	entries = []
 	for dir in *Content\getDirs path
 		continue if dir\match "^%."
-		for file in *getAllFiles Path(path, dir), ["xml", "lua", yueext, "tl", "wasm"]
+		for file in *getAllFiles Path(path, dir), ["lua", "xml", yueext, "tl", "wasm"]
 			if "init" == Path\getName(file)\lower!
+				fileName = Path\replaceExt file, ""
+				fileName = Path dir, fileName
+				entryName = Path\getName Path\getPath fileName
+				entryAdded = false
+				for [ename,] in *entries
+					if entryName == ename
+						entryAdded = true
+						break
+				continue if entryAdded
 				examples = []
 				tests = []
 				examplePath = Path path, dir, Path\getPath(file), "Example"
@@ -172,10 +187,13 @@ getProjectEntries = (path)->
 					for [name, tPath] in *getFileEntries testPath
 						entry = [name, Path(dir, Path\getPath(file), tPath)]
 						tests[] = entry
-				fileName = Path\replaceExt file, ""
-				fileName = Path dir, fileName
-				entryName = Path\getName Path\getPath fileName
-				entry = [entryName, fileName, examples, tests]
+				logoFile = Path path, Path\getPath(fileName), "Image", "logo.png"
+				unless Content\exist logoFile
+					logoFile = Path path, Path\getPath(fileName), "Image", "logo.jpg"
+					logoFile = nil unless Content\exist logoFile
+				logoTex = Texture2D logoFile if logoFile
+				logoFile = nil unless logoTex
+				entry = [entryName, fileName, examples, tests, logoFile, logoTex]
 				entries[] = entry
 	table.sort entries, (a, b)-> a[1] < b[1]
 	entries
@@ -748,7 +766,7 @@ entryWindow = threadLoop ->
 		return
 
 	:themeColor = App
-	width:fullWidth, :height = App.visualSize
+	width: fullWidth, :height = App.visualSize
 
 	SetNextWindowBgAlpha 0.85
 	SetNextWindowPos Vec2(5, height - 130), "Always", Vec2 0, 0
@@ -788,7 +806,7 @@ entryWindow = threadLoop ->
 			filterText = filterText\lower! if filterText
 			if #gamesInDev > 0
 				for game in *gamesInDev
-					[gameName, _, examples, tests] = game
+					[gameName, _, examples, tests, logoFile, logoTex] = game
 					showSep = false
 					if match gameName
 						Columns 1, false
@@ -796,7 +814,19 @@ entryWindow = threadLoop ->
 						SameLine!
 						Text gameName
 						Separator!
-						PushID gameName, ->
+						if logoFile
+							width: texWidth, height: texHeight = logoTex
+							displayWidth = (fullWidth / 2 - paddingX) * 2 - 35
+							const sizing = 0.8
+							texHeight = displayWidth * sizing * texHeight / texWidth
+							texWidth = displayWidth * sizing
+							padding = displayWidth * (1 - sizing) / 2
+							Dummy Vec2 padding, 0
+							SameLine!
+							if ImageButton gameName, logoFile, Vec2 texWidth, texHeight
+								enterDemoEntry game
+						else
+							<- PushID gameName
 							if Button zh and "开始运行" or "Game Start", Vec2 -1, 40
 								enterDemoEntry game
 						NextColumn!

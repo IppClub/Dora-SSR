@@ -75,6 +75,9 @@ inline Color Grabber_getColor(Node::Grabber* self, uint32_t x, uint32_t y) { ret
 inline void Grabber_setColor(Node::Grabber* self, uint32_t x, uint32_t y, Color color) { self->setColor(x - 1, y - 1, color); }
 inline void Grabber_moveUV(Node::Grabber* self, uint32_t x, uint32_t y, Vec2 offset) { self->moveUV(x - 1, y - 1, offset); }
 
+/* Texture2D */
+inline Texture2D* Texture2D_create(String filename) { return SharedTextureCache.load(filename); }
+
 /* Sprite */
 int Sprite_GetUWrap(lua_State* L);
 int Sprite_SetUWrap(lua_State* L);

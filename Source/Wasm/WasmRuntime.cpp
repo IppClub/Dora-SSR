@@ -745,9 +745,15 @@ static Action* node_perform_def(Node* node, ActionDef def) {
 	return nullptr;
 }
 
+// Texture2D
+
+static inline Texture2D* texture_2d_create(String name) {
+	return SharedTextureCache.load(name);
+}
+
 // Sprite
 
-static void sprite_set_effect_nullptr(Sprite* self) {
+static inline void sprite_set_effect_nullptr(Sprite* self) {
 	self->setEffect(nullptr);
 }
 

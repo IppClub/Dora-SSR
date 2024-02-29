@@ -856,6 +856,7 @@ void Image(String clipStr, const Vec2& size, Color tint_col, Color border_col) {
 	Texture2D* tex = nullptr;
 	Rect rect;
 	std::tie(tex, rect) = SharedClipCache.loadTexture(clipStr);
+	AssertUnless(tex, "failed to get resource for ImGui.Image");
 	union {
 		ImTextureID ptr;
 		struct {
@@ -873,6 +874,7 @@ bool ImageButton(const char* str_id, String clipStr, const Vec2& size, Color bg_
 	Texture2D* tex = nullptr;
 	Rect rect;
 	std::tie(tex, rect) = SharedClipCache.loadTexture(clipStr);
+	AssertUnless(tex, "failed to get resource for ImGui.ImageButton");
 	union {
 		ImTextureID ptr;
 		struct {
