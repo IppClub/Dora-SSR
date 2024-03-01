@@ -6,17 +6,17 @@ import "UI.View.RightTouchPad"
 import "UI.View.RestartPad"
 import "UI.Control.StartPanel"
 
-store:Store = Data
+store: Store = Data
 :GroupPlayer = Store
 
 playerGroup = Group ["hero", "unit"]
-updatePlayerControl = (key,flag) ->
+updatePlayerControl = (key, flag) ->
 	playerGroup\each => @unit.data[key] = flag if @group == GroupPlayer
 
-root = with AlignNode isRoot:true
+root = with AlignNode isRoot: true
 	\addChild HPWheel!
 	switch App.platform
-		when "iOS","Android"
+		when "iOS", "Android"
 			\addChild with LeftTouchPad!
 				\slot "KeyLeftUp", -> updatePlayerControl "keyLeft", false
 				\slot "KeyLeftDown", -> updatePlayerControl "keyLeft", true
@@ -27,8 +27,8 @@ root = with AlignNode isRoot:true
 				\slot "KeyFDown", -> updatePlayerControl "keyF", true
 				\slot "KeyUpUp", -> updatePlayerControl "keyUp", false
 				\slot "KeyUpDown", -> updatePlayerControl "keyUp", true
-		when "macOS","Windows","Linux"
-			with Node!
+		when "macOS", "Windows", "Linux"
+			\addChild with Node!
 				\schedule ->
 					updatePlayerControl "keyLeft", Keyboard\isKeyPressed "A"
 					updatePlayerControl "keyRight", Keyboard\isKeyPressed "D"

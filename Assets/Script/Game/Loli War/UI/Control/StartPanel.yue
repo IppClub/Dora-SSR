@@ -2,8 +2,8 @@ _ENV = Dora dora.Platformer
 import "UI.View.StartPanel"
 
 export default Class StartPanel,
-	__init:=>
-		buttons = {@fButton,@vButton,@dButton}
+	__init: =>
+		buttons = [@fButton, @vButton, @dButton]
 		for button in *buttons
 			button\slot "Tapped", ->
 				Audio\play "Audio/choose.wav"
@@ -14,11 +14,11 @@ export default Class StartPanel,
 					when @vButton then "Villy"
 					when @dButton then "Dorothy"
 		@node\schedule ->
-			pos = nvg.TouchPos!*(View.size.width/App.visualSize.width)
+			pos = nvg.TouchPos! * (View.size.width / App.visualSize.width)
 			pos = Vec2 pos.x, View.size.height - pos.y
-			for _,button in ipairs buttons
+			for _, button in ipairs buttons
 				localPos = button\convertToNodeSpace pos
-				if Rect(Vec2.zero,button.size)\containsPoint localPos
+				if Rect(Vec2.zero, button.size)\containsPoint localPos
 					button\glow!
 				else
 					button\stopGlow!

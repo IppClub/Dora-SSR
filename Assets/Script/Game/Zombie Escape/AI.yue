@@ -4,7 +4,7 @@ _ENV = Dora(
 )
 import "Platformer" as Behavior:BT
 
-store:Store = Data
+store: Store = Data
 
 rangeAttack = Sel [
 	Seq [
