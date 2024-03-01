@@ -744,11 +744,12 @@ with Observer "Add", ["position", "order", "group", "faceRight"]
 			.playable\runAction Action Scale 0.5, 0, @unit.unitDef.scale, Ease.OutBack
 			.faceRight = faceRight
 			\addTo world
+		false
 
 with Observer "Change", ["hp", "unit"]
 	\watch (hp, unit) =>
 		:boss = @
-		hp:lastHp = @oldValues
+		hp: lastHp = @oldValues
 		if hp < lastHp
 			unit\start "cancel" if not boss and unit\isDoing "hit"
 			with Label "sarasa-mono-sc-regular", 30
@@ -766,7 +767,7 @@ with Observer "Change", ["hp", "unit"]
 			if boss
 				with Visual "Particle/bloodp.par"
 					.position = unit.data.hitPoint
-					\addTo world,unit.order
+					\addTo world, unit.order
 					\autoRemove!
 					\start!
 			if hp > 0
@@ -783,6 +784,7 @@ with Observer "Change", ["hp", "unit"]
 						emit "Lost"
 					elseif not Group(["unit",])\each => @group == EnemyGroup
 						emit "Win"
+		false
 
 WaitForSignal = (text, duration) ->
 	with Label "sarasa-mono-sc-regular", 100
