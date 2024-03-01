@@ -1214,8 +1214,8 @@ mutables = [
 ]
 
 with Observer "Add", ["unitDef","position","order","group","faceRight"]
-	\watch (unitDef,position,order,group) =>
-		{:player,:faceRight,:charSet,:decisionTree} = @
+	\watch (unitDef, position, order, group) =>
+		{:player, :faceRight, :charSet, :decisionTree} = @
 		{:world} = Store
 		func = UnitDefFuncs[unitDef]
 		def = func!
@@ -1242,6 +1242,7 @@ with Observer "Add", ["unitDef","position","order","group","faceRight"]
 		updateModel unit.playable, characters[charSet] if charSet
 		if player
 			world.camera.followTarget = unit
+		false
 
 with Observer "Change", ["hp","unit"]
 	\watch (hp,unit) =>
@@ -1267,5 +1268,6 @@ with Observer "Change", ["hp","unit"]
 							world.camera.followTarget = p.unit
 							true
 						else false
+		false
 
 --world.showDebug = true

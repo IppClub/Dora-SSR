@@ -72,6 +72,7 @@ with Observer "Add", ["world",]
 		world\buildSwitches!
 		world\buildGameReadme!
 		Audio\playStream "Audio/LOOP13.ogg", true
+		false
 
 mutables =
 	* "hp"
@@ -112,6 +113,7 @@ with Observer "Add", ["hero", "group", "layer", "position", "faceRight", "AI"]
 		if group == GroupPlayer
 			world.camera.followTarget = unit
 		emit "HPChange", @group, @hp
+		false
 
 with Observer "Add", ["bunny", "group", "layer", "position", "faceRight", "AI"]
 	\watch (bunny, group, layer, position, faceRight, AI) =>
@@ -129,6 +131,7 @@ with Observer "Add", ["bunny", "group", "layer", "position", "faceRight", "AI"]
 			\eachAction => @recovery = 0.1
 			\addTo world
 			@hp -= 1.0 if @hp == 0.0
+		false
 
 with Observer "Add", ["switch", "group", "layer", "look", "position"]
 	\watch (switchType, group, layer, look, position) =>
@@ -170,6 +173,7 @@ with Observer "Add", ["switch", "group", "layer", "look", "position"]
 							)
 							\slot("ActionEnd")\set -> \removeFromParent!
 						@data.tip = nil
+		false
 
 with Observer "Add", ["block", "group", "layer", "look", "position"]
 	\watch (block, group, layer, look, position) =>
@@ -182,6 +186,7 @@ with Observer "Add", ["block", "group", "layer", "look", "position"]
 			.order = layer
 			.playable.look = look
 			\addTo world
+		false
 
 with Observer "Add", ["poke", "group", "layer", "position"]
 	\watch (poke, group, layer, position) =>
@@ -247,6 +252,7 @@ with Observer "Add", ["poke", "group", "layer", "position"]
 				Audio\play "Audio/explosion.wav"
 			\addTo world, layer
 		Audio\play "Audio/quake.wav"
+		false
 
 with Observer "Change", ["hp", "unit", "block"]
 	\watch (hp, unit) =>
@@ -275,6 +281,7 @@ with Observer "Change", ["hp", "unit", "block"]
 				when GroupPlayerBlock then GroupPlayer
 				when GroupEnemyBlock then GroupEnemy
 			emit "BlockChange", group, math.max(hp, 0) - lastHp
+		false
 
 with Observer "Change", ["hp", "bunny"]
 	\watch (hp) =>
@@ -295,6 +302,7 @@ with Observer "Change", ["hp", "bunny"]
 				unit\schedule once ->
 					sleep 5
 					unit\removeFromParent!
+		false
 
 with Observer "Change", ["hp", "hero"]
 	\watch (hp) =>
@@ -357,11 +365,12 @@ with Observer "Change", ["hp", "hero"]
 					when GroupEnemy then GroupPlayer
 				emit "EPChange", group, 1
 		emit "HPChange", @group, math.max(hp, 0) - lastHp
+		false
 
 with Observer "Change", ["blocks", "group"]
 	\watch (blocks, group) =>
 		:world = Store
-		return unless world.playing
+		return false unless world.playing
 		if blocks == 0
 			world.playing = false
 			Audio\playStream "Audio/LOOP11.ogg", true
@@ -384,3 +393,4 @@ with Observer "Change", ["blocks", "group"]
 						.group = GroupDisplay
 						\addChild sp
 						\addTo world
+		false
