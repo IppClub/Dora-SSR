@@ -187,7 +187,7 @@ Store["BunnySwitcherAI"] = Sel [
 		Con "need attack", =>
 			attackUnits = AI\getUnitsInAttackRange!
 			for unit in *attackUnits
-				if Data\isEnemy(@,unit) and
+				if Data\isEnemy(@, unit) and
 					(@x < unit.x) == @faceRight
 					return App.rand % 5 ~= 0
 			false

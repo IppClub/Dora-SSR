@@ -2,15 +2,15 @@ _ENV = Dora dora.Platformer
 import "UI.View.ButtonGlow"
 
 export default Class ButtonGlow,
-	__init:=>
-		@slot "Tapped",(touch)->
+	__init: =>
+		@slot "Tapped", (touch) ->
 			with Visual "Particle/select.par"
 				.position = @convertToWorldSpace touch.location
 				\addTo Director.ui
 				\autoRemove!
 				\start!
 
-	glow:=>
+	glow: =>
 		if not @scheduled
 			Audio\play "Audio/select.wav"
 			@schedule loop ->
@@ -21,7 +21,7 @@ export default Class ButtonGlow,
 				@down.visible = false
 				sleep 0.5
 
-	stopGlow:=>
+	stopGlow: =>
 		if @scheduled
 			@unschedule!
 			@up.visible = true

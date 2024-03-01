@@ -9,7 +9,6 @@ UnitAction\add "groundEntrance",
 	reaction: -1
 	recovery: 0
 	queued: true
-	available: -> true
 	create: =>
 		@data.lastGroup = @group
 		@group = 0

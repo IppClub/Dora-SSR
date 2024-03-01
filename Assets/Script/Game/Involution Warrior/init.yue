@@ -315,12 +315,12 @@ UnitAction\add "multiArrow",
 			\play "range"
 			\slot "AnimationEnd", rangeAttackEnd
 		once =>
-			onAttack = (angle,speed) ->
+			onAttack = (angle, speed) ->
 				BigArrow\setVelocity angle,speed
 				with Bullet BigArrow,@
 					.color = Color 0xff666666 if @group == EnemyGroup
 					.targetAllow = targetAllow
-					\slot "HitTarget", (bullet,target,pos) ->
+					\slot "HitTarget", (bullet, target, pos) ->
 						with target.data
 							.hitPoint = pos
 							.hitPower = attackPower
@@ -435,11 +435,11 @@ UnitAction\add "spearAttack",
 			sleep 50.0/60.0
 			Audio\play "Audio/f_att.wav"
 			dir = @faceRight and 0 or -900
-			origin = @position - Vec2(0,205) + Vec2(dir,0)
-			size = Size 900,40
-			world\query Rect(origin,size), (body) ->
+			origin = @position - Vec2(0, 205) + Vec2 dir, 0
+			size = Size 900, 40
+			world\query Rect(origin, size), (body) ->
 				:entity = body
-				if entity and Data\isEnemy body,@
+				if entity and Data\isEnemy body, @
 					with body.data
 						.hitPoint = body.position
 						.hitPower = attackPower
@@ -459,7 +459,7 @@ Store["Bullet_Arrow"] = with BulletDef!
 	.gravity = Vec2 0, -10
 	.face = Face "Model/patreon.clip|item_arrow", Vec2.zero
 	\setAsCircle 10
-	\setVelocity 25,800
+	\setVelocity 25, 800
 
 GetBoss = (entity, pos, black) ->
 	unitDef = with Dictionary!
@@ -480,12 +480,12 @@ GetBoss = (entity, pos, black) ->
 		.hp = 30.0
 		.attackSpeed = 1.0
 		.attackBase = 2.5
-		.attackDelay = 50.0/60.0
-		.attackEffectDelay = 50.0/60.0
+		.attackDelay = 50.0 / 60.0
+		.attackEffectDelay = 50.0 / 60.0
 		.attackBonus = 0.0
 		.attackFactor = 1.0
-		.attackRange = Size 780,300
-		.attackPower = Vec2 200,200
+		.attackRange = Size 780, 300
+		.attackPower = Vec2 200, 200
 		.attackTarget = "Multi"
 		.targetAllow = do
 			conf = with TargetAllow!
@@ -515,9 +515,9 @@ GetBoss = (entity, pos, black) ->
 		]
 	for var in *mutables
 		entity[var] = unitDef[var]
-	with Unit unitDef,world,entity,pos
+	with Unit unitDef, world, entity, pos
 		if black
-			for i = 1,7
+			for i = 1, 7
 				if node := .playable\getNodeByName "w#{i}"
 					node.color = Color 0xff666666
 		if node := .playable\getNodeByName "mask"
@@ -555,14 +555,14 @@ GetUnit = (entity, pos, black) ->
 	for k in pairs skills
 		actions\add k
 	unitDef = with Dictionary!
-		.linearAcceleration = Vec2 0,-10
+		.linearAcceleration = Vec2 0, -10
 		.bodyType = "Dynamic"
 		.scale = 1
 		.density = 1.0
 		.friction = 1.0
 		.restitution = 0.0
 		.playable = "model:Model/patreon.model"
-		.size = Size 64,128
+		.size = Size 64, 128
 		.tag = "Fighter"
 		.sensity = 0
 		.move = 250
@@ -572,8 +572,8 @@ GetUnit = (entity, pos, black) ->
 		.hp = 10.0
 		.attackSpeed = 1.0
 		.attackBase = 2.5
-		.attackDelay = 20.0/60.0
-		.attackEffectDelay = 20.0/60.0
+		.attackDelay = 20.0 / 60.0
+		.attackEffectDelay = 20.0 / 60.0
 		.attackBonus = 0.0
 		.attackFactor = 1.0
 		.attackRange = attackRange
@@ -598,7 +598,7 @@ GetUnit = (entity, pos, black) ->
 		.actions = actions
 	for var in *mutables
 		entity[var] = unitDef[var]
-	with Unit unitDef,world,entity,pos
+	with Unit unitDef, world, entity, pos
 		for slot in *itemSlots
 			node = .playable\getNodeByName slot
 			if item := character[slot]
@@ -630,7 +630,7 @@ Store["AI_Common"] = Sel [
 		Con "need attack", =>
 			attackUnits = AI\getUnitsInAttackRange!
 			for unit in *attackUnits
-				if Data\isEnemy(@,unit) and
+				if Data\isEnemy(@, unit) and
 					(@x < unit.x) == @faceRight
 					return true
 			false
@@ -654,7 +654,7 @@ Store["AI_Common"] = Sel [
 					if @entity.rushSkill
 						units = AI\getDetectedUnits!
 						for unit in *units
-							if Data\isEnemy(@,unit) and
+							if Data\isEnemy(@, unit) and
 								(@x < unit.x) == @faceRight and @position\distance(unit.position) > 300
 								return true
 					false
@@ -665,7 +665,7 @@ Store["AI_Common"] = Sel [
 					if @entity.evadeSkill
 						units = AI\getDetectedUnits!
 						for unit in *units
-							if Data\isEnemy(@,unit) and
+							if Data\isEnemy(@, unit) and
 								(@x < unit.x) == @faceRight and @position\distance(unit.position) < 300
 								return true
 					false
@@ -702,7 +702,7 @@ Store["AI_Boss"] = Sel [
 		Con "need attack", =>
 			attackUnits = AI\getUnitsInAttackRange!
 			for unit in *attackUnits
-				if Data\isEnemy(@,unit) and
+				if Data\isEnemy(@, unit) and
 					(@x < unit.x) == @faceRight
 					return true
 			false
@@ -730,8 +730,8 @@ Store["AI_Boss"] = Sel [
 	Act "walk"
 ]
 
-with Observer "Add", ["position","order","group","faceRight"]
-	\watch (position,order,group,faceRight) =>
+with Observer "Add", ["position", "order", "group", "faceRight"]
+	\watch (position, order, group, faceRight) =>
 		:world = Store
 		@player = true if group == PlayerGroup
 		@enemy = true if group == EnemyGroup
@@ -741,24 +741,24 @@ with Observer "Add", ["position","order","group","faceRight"]
 			GetUnit @,position,group == EnemyGroup)
 			.group = group
 			.order = order
-			.playable\runAction Action Scale 0.5,0,@unit.unitDef.scale,Ease.OutBack
+			.playable\runAction Action Scale 0.5, 0, @unit.unitDef.scale, Ease.OutBack
 			.faceRight = faceRight
 			\addTo world
 
-with Observer "Change", ["hp","unit"]
-	\watch (hp,unit) =>
+with Observer "Change", ["hp", "unit"]
+	\watch (hp, unit) =>
 		:boss = @
 		hp:lastHp = @oldValues
 		if hp < lastHp
 			unit\start "cancel" if not boss and unit\isDoing "hit"
-			with Label "sarasa-mono-sc-regular",30
+			with Label "sarasa-mono-sc-regular", 30
 				.order = PlayerLayer
 				.color = Color 0xffff0000
-				.position = unit.position + Vec2 0,40
+				.position = unit.position + Vec2 0, 40
 				.text = "-#{lastHp-hp}"
 				\runAction Action Sequence(
-					Y 0.5,.y,.y+100
-					Opacity 0.2,1,0
+					Y 0.5, .y, .y + 100
+					Opacity 0.2, 1, 0
 					Event "End"
 				)
 				\slot "End", -> \removeFromParent!
@@ -784,18 +784,18 @@ with Observer "Change", ["hp","unit"]
 					elseif not Group(["unit",])\each => @group == EnemyGroup
 						emit "Win"
 
-WaitForSignal = (text,duration) ->
+WaitForSignal = (text, duration) ->
 	with Label "sarasa-mono-sc-regular", 100
 		.color = themeColor
 		.text = text
 		\runAction Spawn(
-			Scale 0.5,0.3,1,Ease.OutBack
-			Opacity 0.3,0,1
+			Scale 0.5, 0.3, 1, Ease.OutBack
+			Opacity 0.3, 0, 1
 		)
-		sleep duration-0.3
+		sleep duration - 0.3
 		\runAction Spawn(
-			Scale 0.3,1,1.5,Ease.OutQuad
-			Opacity 0.3,1,0,Ease.OutQuad
+			Scale 0.3, 1, 1.5, Ease.OutQuad
+			Opacity 0.3, 1, 0, Ease.OutQuad
 		)
 		sleep 0.3
 		\removeFromParent!
@@ -803,46 +803,46 @@ WaitForSignal = (text,duration) ->
 GameScore = 20
 
 uiScale = App.devicePixelRatio
-Director.ui\addChild with AlignNode isRoot:true
+Director.ui\addChild with AlignNode isRoot: true
 	\addChild with AlignNode!
 		.size = Size 0,0
 		.hAlign = "Left"
 		.vAlign = "Top"
-		.alignOffset = Vec2(360,80) * (uiScale / 2)
+		.alignOffset = Vec2(360, 80) * (uiScale / 2)
 		\gslot "AddScore", (value) ->
 			return if value < 0 and GameScore == 0
-			\addChild with Label "sarasa-mono-sc-regular",64
+			\addChild with Label "sarasa-mono-sc-regular", 64
 				.color = themeColor
-				.text = string.format "#{value > 0 and '+' or ''}%d",value
+				.text = string.format "#{value > 0 and '+' or ''}%d", value
 				\runAction Sequence(
 					Spawn(
-						Scale 0.5,0.3,1,Ease.OutBack
-						Opacity 0.5,0,1
+						Scale 0.5, 0.3, 1, Ease.OutBack
+						Opacity 0.5, 0, 1
 					)
 					Delay 0.5
 					Spawn(
-						Scale 0.3,1,1.5,Ease.OutQuad
-						Opacity 0.3,1,0,Ease.OutQuad
+						Scale 0.3, 1, 1.5, Ease.OutQuad
+						Opacity 0.3, 1, 0, Ease.OutQuad
 					)
 					Event "End"
 				)
 				\slot "End", -> \removeFromParent!
-			GameScore = math.max 0, GameScore+value
+			GameScore = math.max 0, GameScore + value
 			if GameScore == 0
 				\schedule once ->
 					Audio\play "Audio/game_over.wav"
 					WaitForSignal "FOREVER LOST!", 3
 					emit "GameLost"
 	\addChild with AlignNode!
-		.size = Size 0,0
+		.size = Size 0, 0
 		.hAlign = "Center"
 		.vAlign = "Center"
-		.alignOffset = Vec2 0,-300*(uiScale/2)
+		.alignOffset = Vec2 0, -300 * (uiScale / 2)
 		\addChild with CircleButton {
-				text:"STRIKE\nBACK"
-				radius:80
-				fontName:"sarasa-mono-sc-regular"
-				fontSize:48
+				text: "STRIKE\nBACK"
+				radius: 80
+				fontName: "sarasa-mono-sc-regular"
+				fontSize: 48
 			}
 			.visible = false
 			.touchEnabled = false
@@ -858,11 +858,11 @@ Director.ui\addChild with AlignNode isRoot:true
 					emit "AddScore", 20
 					emit "Start"
 		\addChild with CircleButton {
-				text:"FIGHT"
-				x:-200
-				radius:80
-				fontName:"sarasa-mono-sc-regular"
-				fontSize:48
+				text: "FIGHT"
+				x: -200
+				radius: 80
+				fontName: "sarasa-mono-sc-regular"
+				fontSize: 48
 			}
 			\slot "Tapped", ->
 				return if GameScore <= 0
@@ -872,11 +872,11 @@ Director.ui\addChild with AlignNode isRoot:true
 					Audio\play "Audio/choose.wav"
 					WaitForSignal "FIGHT!", 1
 		\addChild with CircleButton {
-				text:"ANOTHER\nWAY"
-				x:200
-				radius:80
-				fontName:"sarasa-mono-sc-regular"
-				fontSize:48
+				text: "ANOTHER\nWAY"
+				x: 200
+				radius: 80
+				fontName: "sarasa-mono-sc-regular"
+				fontSize: 48
 			}
 			\slot "Tapped", ->
 				Audio\play "Audio/switch.wav"
@@ -884,14 +884,14 @@ Director.ui\addChild with AlignNode isRoot:true
 				emit "Start"
 		\gslot "Lost", ->
 			\schedule once ->
-				emit "AddScore", -(10+math.floor(GameScore/20)*5)
+				emit "AddScore", -(10 + math.floor(GameScore / 20) * 5)
 				return if GameScore == 0
 				Audio\play "Audio/hero_fall.wav"
 				WaitForSignal "LOST!", 1.5
 				emit "Start"
 		\gslot "Win", ->
 			\schedule once ->
-				score = 5*Group(["player",]).count
+				score = 5 * Group(["player",]).count
 				emit "AddScore", score
 				Audio\play "Audio/hero_win.wav"
 				WaitForSignal "WIN!", 1.5
@@ -915,9 +915,9 @@ Director.ui\addChild with AlignNode isRoot:true
 					@visible = true
 			Group(["unit",])\each => @unit\removeFromParent!
 			unitCount = if GameScore < 40
-				1 + math.min(2,math.floor math.max(0,GameScore-20)/5)
+				1 + math.min 2, math.floor math.max(0, GameScore - 20) / 5
 			else
-				3 + math.min(3,math.floor GameScore/35)
+				3 + math.min 3, math.floor GameScore / 35
 			if math.random(1, 100) == 1
 				Entity
 					position: Vec2 -200, 100
@@ -949,11 +949,11 @@ Director.ui\addChild with AlignNode isRoot:true
 			\schedule once ->
 				time = 2
 				cycle time, (dt) ->
-					:width,:height = App.visualSize
-					SetNextWindowPos Vec2 width/2-150,height/2+30
-					SetNextWindowSize Vec2(300,50), "FirstUseEver"
-					Begin "CountDown", ["NoResize","NoSavedSettings","NoTitleBar","NoMove"], ->
-						ProgressBar 1.0-dt, Vec2(-1,30), string.format "%.2fs", (1-dt)*time
+					:width, :height = App.visualSize
+					SetNextWindowPos Vec2 width / 2 - 150, height / 2 + 30
+					SetNextWindowSize Vec2(300, 50), "FirstUseEver"
+					Begin "CountDown", ["NoResize", "NoSavedSettings", "NoTitleBar","NoMove"], ->
+						ProgressBar 1.0 - dt, Vec2(-1, 30), string.format "%.2fs", (1 - dt) * time
 				emit "Wasted"
 				return if GameScore == 0
 				Audio\play "Audio/choose.wav"
@@ -961,48 +961,48 @@ Director.ui\addChild with AlignNode isRoot:true
 				emit "Start"
 		\addChild with Node!
 			\schedule ->
-				:width,:height = App.visualSize
-				SetNextWindowPos Vec2 20,20
-				SetNextWindowSize Vec2(120,280), "FirstUseEver"
-				PushStyleVar "ItemSpacing",Vec2.zero, ->
-					Begin "Stats", ["NoResize","NoSavedSettings","NoTitleBar","NoMove"], ->
+				:width, :height = App.visualSize
+				SetNextWindowPos Vec2 20, 20
+				SetNextWindowSize Vec2(120, 280), "FirstUseEver"
+				PushStyleVar "ItemSpacing", Vec2.zero, ->
+					Begin "Stats", ["NoResize", "NoSavedSettings", "NoTitleBar", "NoMove"], ->
 						Text "VALUE: #{GameScore}"
-						Image "Model/patreon.clip|character_handGreen", Vec2 30,30
+						Image "Model/patreon.clip|character_handGreen", Vec2 30, 30
 						SameLine!
 						Text "->"
 						SameLine!
-						Image "Model/patreon.clip|character_handRed", Vec2 30,30
+						Image "Model/patreon.clip|character_handRed", Vec2 30, 30
 						SameLine!
 						Text "x3"
-						Image "Model/patreon.clip|character_handRed", Vec2 30,30
+						Image "Model/patreon.clip|character_handRed", Vec2 30, 30
 						SameLine!
 						Text "->"
 						SameLine!
-						Image "Model/patreon.clip|character_handYellow", Vec2 30,30
+						Image "Model/patreon.clip|character_handYellow", Vec2 30, 30
 						SameLine!
 						Text "x3"
-						Image "Model/patreon.clip|character_handYellow", Vec2 30,30
+						Image "Model/patreon.clip|character_handYellow", Vec2 30, 30
 						SameLine!
 						Text "->"
 						SameLine!
-						Image "Model/patreon.clip|character_handGreen", Vec2 30,30
+						Image "Model/patreon.clip|character_handGreen", Vec2 30, 30
 						SameLine!
 						Text "x3"
-						Image "Model/patreon.clip|item_bow", Vec2 30,30
+						Image "Model/patreon.clip|item_bow", Vec2 30, 30
 						SameLine!
 						Text ">"
 						SameLine!
-						Image "Model/patreon.clip|item_sword", Vec2 30,30
-						Image "Model/patreon.clip|item_hatTop", Vec2 30,30
+						Image "Model/patreon.clip|item_sword", Vec2 30, 30
+						Image "Model/patreon.clip|item_hatTop", Vec2 30, 30
 						SameLine!
 						Text "dodge"
-						Image "Model/patreon.clip|item_helmet", Vec2 30,30
+						Image "Model/patreon.clip|item_helmet", Vec2 30, 30
 						SameLine!
 						Text "rush"
-						Image "Model/patreon.clip|item_rod", Vec2 30,30
+						Image "Model/patreon.clip|item_rod", Vec2 30, 30
 						SameLine!
 						Text "knock"
-						Image "Model/patreon.clip|tile_heart", Vec2 30,30
+						Image "Model/patreon.clip|tile_heart", Vec2 30, 30
 						SameLine!
 						Text "bash"
 

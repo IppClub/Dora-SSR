@@ -1302,7 +1302,7 @@ std::string MacroLit_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
 	std::string line;
 	if (argsDef) {
-		line = '(' + argsDef->to_string(ud) + ')';
+		line = '(' + argsDef->to_string(ud) + ") "s;
 	}
 	line += "->"s;
 	if (body->content.is<Statement_t>()) {
@@ -1323,7 +1323,7 @@ std::string Macro_t::to_string(void* ud) const {
 }
 std::string MacroInPlace_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
-	auto line = "$->"s;
+	auto line = "$ ->"s;
 	if (body->content.is<Statement_t>()) {
 		line += ' ' + body->to_string(ud);
 	} else {
