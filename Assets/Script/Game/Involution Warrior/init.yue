@@ -731,7 +731,7 @@ Store["AI_Boss"] = Sel [
 ]
 
 with Observer "Add", ["position", "order", "group", "faceRight"]
-	\watch (position, order, group, faceRight) =>
+	\watch (position, order, group, faceRight): false =>
 		:world = Store
 		@player = true if group == PlayerGroup
 		@enemy = true if group == EnemyGroup
@@ -744,10 +744,9 @@ with Observer "Add", ["position", "order", "group", "faceRight"]
 			.playable\runAction Action Scale 0.5, 0, @unit.unitDef.scale, Ease.OutBack
 			.faceRight = faceRight
 			\addTo world
-		false
 
 with Observer "Change", ["hp", "unit"]
-	\watch (hp, unit) =>
+	\watch (hp, unit): false =>
 		:boss = @
 		hp: lastHp = @oldValues
 		if hp < lastHp
@@ -784,7 +783,6 @@ with Observer "Change", ["hp", "unit"]
 						emit "Lost"
 					elseif not Group(["unit",])\each => @group == EnemyGroup
 						emit "Win"
-		false
 
 WaitForSignal = (text, duration) ->
 	with Label "sarasa-mono-sc-regular", 100
