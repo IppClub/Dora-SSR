@@ -1,4 +1,14 @@
-# Thirdparty Licenses
+# Thirdparty Licenses Notice
+
+Please note we provide an open source software notice for the third party open source software along with this software and/or this software component (in the following just “this SOFTWARE”). The open source software licenses are granted by the respective right holders.
+
+Warranty Disclaimer
+
+THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL BE USEFUL, BUT WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
+
+
+
+## Copyright Notice and License Texts
 
 - [bgfx](https://github.com/bkaradzic/bgfx): [BSD-2 License](Source/3rdParty/bgfx/LICENSE)
 - [colib](https://github.com/colinsusie/colib): [MIT License](Source/3rdParty/colib/LICENSE)
@@ -42,3 +52,9 @@
 - [deno_std](https://github.com/denoland/deno_std): [MIT License](Tools/dora-dora/src/3rdParty/LICENSE-deno)
 - [monaco-editor-auto-typings](https://github.com/lukasbach/monaco-editor-auto-typings): [MIT License](Tools/dora-dora/src/3rdParty/monaco-editor-auto-typings/LICENSE)
 - [TypeScriptToLua](https://github.com/TypeScriptToLua/TypeScriptToLua): [MIT License](Tools/dora-dora/src/3rdParty/tstl/LICENSE)
+
+
+
+## All in One
+
+[License Texts](Assets/LICENSES)

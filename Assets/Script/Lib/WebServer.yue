@@ -19,17 +19,15 @@ getProjectDirFromFile = (file) ->
 	until false
 	nil
 
-getSearchPath = (file) ->
+getSearchPath = (file): "" ->
 	if dir := getProjectDirFromFile file
 		return Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
-	""
 
-getSearchFolders = (file) ->
+getSearchFolders = (file): [] ->
 	if dir := getProjectDirFromFile file
 		return
 			* Path dir, "Script"
 			* dir
-	[]
 
 disabledCheckForLua =
 	* "incompatible number of returns"
@@ -136,7 +134,7 @@ getCompiledYueLine = (content, line, row, file) ->
 	else
 		nil
 
-HttpServer\postSchedule "/check", (req) ->
+HttpServer\postSchedule "/check", (req): success: true ->
 	switch req when {body: {:file, :content}}
 		ext = Path\getExt file
 		switch ext when "tl"
@@ -168,7 +166,6 @@ HttpServer\postSchedule "/check", (req) ->
 				info = for [row, err] in *result
 					["syntax", file, row, 0, err]
 				return success: false, :info
-	success: true
 
 updateInferedDesc = (infered) ->
 	return if not infered.key or infered.key == "" or infered.desc\match "^polymorphic function %(with types "
@@ -190,7 +187,7 @@ updateInferedDesc = (infered) ->
 				skipping = false
 		infered.doc = table.concat comments, "\n"
 
-HttpServer\postSchedule "/infer", (req) ->
+HttpServer\postSchedule "/infer", (req): success: false ->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
 		searchPath = getSearchPath file
 		switch lang when "tl", "lua"
@@ -209,9 +206,8 @@ HttpServer\postSchedule "/infer", (req) ->
 					infered.col = 0
 				updateInferedDesc infered
 				return success: true, :infered
-	success: false
 
-getParamDocs = (signatures) ->
+getParamDocs = (signatures): nil ->
 	if codes := Content\loadAsync signatures[1].file
 		comments = []
 		params = []
@@ -268,9 +264,8 @@ getParamDocs = (signatures) ->
 				doc.returnType = nil
 			results[] = doc
 		return if #results > 0 then results else nil
-	nil
 
-HttpServer\postSchedule "/signature", (req) ->
+HttpServer\postSchedule "/signature", (req): success: false ->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
 		searchPath = getSearchPath file
 		switch lang when "tl", "lua"
@@ -289,7 +284,6 @@ HttpServer\postSchedule "/signature", (req) ->
 			elseif signatures := teal.getSignatureAsync luaCodes, "dora.#{targetLine}", targetRow, searchPath
 				if signatures := getParamDocs signatures
 					return success: true, :signatures
-	success: false
 
 luaKeywords = [
 	'and'
@@ -370,7 +364,7 @@ yueKeywords = [
 	"with"
 ]
 
-HttpServer\postSchedule "/complete", (req) ->
+HttpServer\postSchedule "/complete", (req): success: false ->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
 		searchPath = getSearchPath file
 		repeat
@@ -479,11 +473,10 @@ HttpServer\postSchedule "/complete", (req) ->
 				suggestions = for [label, insertText] in *items
 					[label, insertText, "field"]
 				return success: true, :suggestions
-	success: false
 
 HttpServer\upload(
 	"/upload"
-	(req, filename) ->
+	(req, filename): nil ->
 		switch req when {params: {:path}}
 			uploadPath = Path Content.writablePath, ".upload"
 			if not Content\exist uploadPath
@@ -491,18 +484,16 @@ HttpServer\upload(
 			targetPath = Path uploadPath, filename
 			Content\mkdir Path\getPath targetPath
 			return targetPath
-		nil
-	(req, file) ->
+	(req, file): false ->
 		switch req when {params: {:path}}
 			uploadPath = Path Content.writablePath, ".upload"
 			targetPath = Path path, Path\getRelative file, uploadPath
 			Content\mkdir Path\getPath targetPath
 			if Content\move file, targetPath
 				return true
-		false
 )
 
-HttpServer\post "/list", (req) ->
+HttpServer\post "/list", (req): success: false ->
 	switch req when {body: {:path}}
 		if Content\exist path
 			files = {}
@@ -526,14 +517,13 @@ HttpServer\post "/list", (req) ->
 			visitAssets path, ""
 			files = nil if #files == 0
 			return success: true, :files
-	success: false
 
 HttpServer\post "/info", -> return
 	platform: App.platform
 	locale: App.locale
 	version: App.version
 
-HttpServer\post "/new", (req) ->
+HttpServer\post "/new", (req): success: false ->
 	switch req when {body: {:path, :content}}
 		if not Content\exist path
 			parent = Path\getPath path
@@ -547,9 +537,8 @@ HttpServer\post "/new", (req) ->
 					return success: true
 			elseif Content\save path, content
 				return success: true
-	success: false
 
-HttpServer\post "/delete", (req) ->
+HttpServer\post "/delete", (req): success: false ->
 	switch req when {body: {:path}}
 		if Content\exist path
 			parent = Path\getPath path
@@ -564,9 +553,8 @@ HttpServer\post "/delete", (req) ->
 						Content\remove Path parent, file
 			if Content\remove path
 				return success: true
-	success: false
 
-HttpServer\post "/rename", (req) ->
+HttpServer\post "/rename", (req): success: false ->
 	switch req when {body: {:old, :new}}
 		if Content\exist(old) and not Content\exist new
 			parent = Path\getPath new
@@ -590,16 +578,14 @@ HttpServer\post "/rename", (req) ->
 						when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "xml"]
 							Content\move Path(parent, file), Path newParent, newName .. ".lua"
 				return success: true
-	success: false
 
-HttpServer\postSchedule "/read", (req) ->
+HttpServer\postSchedule "/read", (req): success: false ->
 	switch req when {body: {:path}}
 		if Content\exist path
 			if content := Content\loadAsync path
 				return :content, success: true
-	success: false
 
-compileFileAsync = (inputFile, sourceCodes) ->
+compileFileAsync = (inputFile, sourceCodes): nil ->
 	file = Path\getFilename inputFile
 	searchPath = if dir := getProjectDirFromFile inputFile
 		file = Path\getRelative inputFile, Path Content.writablePath, dir
@@ -636,11 +622,9 @@ compileFileAsync = (inputFile, sourceCodes) ->
 			Content\remove outputFile
 			resultCodes = false
 	wait -> resultCodes ~= nil
-	return if resultCodes
-		resultCodes
-	else nil
+	return resultCodes if resultCodes
 
-HttpServer\postSchedule "/write", (req) ->
+HttpServer\postSchedule "/write", (req): success: false ->
 	switch req when {body: {:path, :content}}
 		if Content\saveAsync path, content
 			switch Path\getExt path when "tl", "yue", "xml"
@@ -648,7 +632,6 @@ HttpServer\postSchedule "/write", (req) ->
 					resultCodes = compileFileAsync path, content
 					return success: true, :resultCodes
 			return success: true
-	success: false
 
 extentionLevels =
 	vs: 2
@@ -738,7 +721,7 @@ HttpServer\post "/assets", ->
 		]
 	}
 
-HttpServer\postSchedule "/run", (req) ->
+HttpServer\postSchedule "/run", (req): success: false ->
 	switch req when {body: {:file, :asProj}}
 		import "Dev.Entry"
 		if asProj
@@ -752,18 +735,16 @@ HttpServer\postSchedule "/run", (req) ->
 		file = Path\replaceExt file, ""
 		success, err = Entry.enterEntryAsync [Path\getName(file), file]
 		return :success, :err
-	success: false
 
 HttpServer\postSchedule "/stop", ->
 	import "Dev.Entry"
 	success: Entry.stop!
 
-HttpServer\postSchedule "/zip", (req) ->
+HttpServer\postSchedule "/zip", (req): success: false ->
 	switch req when {body: {:path, :zipFile}}
 		Content\mkdir Path\getPath zipFile
 		return success: Content\zipAsync path, zipFile, (file) ->
 			not (file\match('^%.') or file\match "[\\/]%.")
-	success: false
 
 HttpServer\postSchedule "/unzip", (req) ->
 	switch req when {body: {:zipFile, :path}}
@@ -792,16 +773,14 @@ HttpServer\post "/editingInfo", (req) ->
 			}
 		success: true, editingInfo: config.editingInfo
 
-HttpServer\post "/command", (req) ->
+HttpServer\post "/command", (req): success: false ->
 	switch req when {body: {:code}}
 		emit "AppCommand", code
-	success: true
+		return success: true
 
-HttpServer\post "/exist", (req) ->
+HttpServer\post "/exist", (req): success: false ->
 	switch req when {body: {:file}}
-		success: Content\exist file
-	else
-		success: false
+		return success: Content\exist file
 
 status = url: nil
 export default status

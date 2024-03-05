@@ -1279,6 +1279,16 @@ std::string FunLit_t::to_string(void* ud) const {
 	if (argsDef) {
 		line = argsDef->to_string(ud);
 	}
+	if (defaultReturn) {
+		if (defaultReturn.is<DefaultValue_t>()) {
+			line += ':';
+		} else {
+			line += ": "s + defaultReturn->to_string(ud);
+		}
+	}
+	if (!line.empty()) {
+		line += ' ';
+	}
 	line += arrow->to_string(ud);
 	if (body) {
 		if (body->content.is<Statement_t>()) {
