@@ -4,7 +4,7 @@ App.idled = true
 
 moduleCache = []
 oldRequire = _G.require
-require = (path)->
+require = (path) ->
 	loaded = package.loaded[path]
 	if loaded == nil
 		moduleCache[] = path
@@ -137,13 +137,13 @@ unless isChineseSupported
 
 building = false
 
-getAllFiles = (path, exts)->
+getAllFiles = (path, exts) ->
 	filters = Set exts
 	return for file in *Content\getAllFiles path
 		continue if not filters[Path\getExt file]
 		file
 
-getFileEntries = (path)->
+getFileEntries = (path) ->
 	entries = {}
 	for file in *getAllFiles path, ["lua", "xml", yueext, "tl"]
 		entryName = Path\getName file
@@ -157,10 +157,10 @@ getFileEntries = (path)->
 		fileName = Path Path\getName(path), fileName
 		entry = [entryName, fileName]
 		entries[] = entry
-	table.sort entries, (a, b)-> a[1] < b[1]
+	table.sort entries, (a, b) -> a[1] < b[1]
 	entries
 
-getProjectEntries = (path)->
+getProjectEntries = (path) ->
 	entries = []
 	for dir in *Content\getDirs path
 		continue if dir\match "^%."
@@ -195,7 +195,7 @@ getProjectEntries = (path)->
 				logoFile = nil unless logoTex
 				entry = [entryName, fileName, examples, tests, logoFile, logoTex]
 				entries[] = entry
-	table.sort entries, (a, b)-> a[1] < b[1]
+	table.sort entries, (a, b) -> a[1] < b[1]
 	entries
 
 local gamesInDev, games
@@ -241,7 +241,7 @@ updateEntries = ->
 
 updateEntries!
 
-doCompile = (minify)->
+doCompile = (minify) ->
 	return if building
 	building = true
 	startTime = App.runningTime
@@ -263,7 +263,8 @@ doCompile = (minify)->
 			* Path writablePath, gamePath
 			* Path writablePath, ".build", gamePath
 			* Path(writablePath, gamePath, "Script", "?.lua") .. ";" .. Path writablePath, gamePath, "?.lua"
-	for [inputPath, outputPath, searchPath] in *buildPaths
+			* gamePath
+	for [inputPath, outputPath, searchPath, gamePath] in *buildPaths
 		continue unless Content\exist inputPath
 
 		for file in *getAllFiles inputPath, ["lua",]
@@ -271,6 +272,7 @@ doCompile = (minify)->
 				* file
 				* Path inputPath, file
 				* Path outputPath, file
+				* gamePath
 
 		for file in *getAllFiles inputPath, [yueext,]
 			yueFiles[] =
@@ -278,12 +280,14 @@ doCompile = (minify)->
 				* Path inputPath, file
 				* Path outputPath, Path\replaceExt file, "lua"
 				* searchPath
+				* gamePath
 
 		for file in *getAllFiles inputPath, ["xml",]
 			xmlFiles[] =
 				* file
 				* Path inputPath, file
 				* Path outputPath, Path\replaceExt file, "lua"
+				* gamePath
 
 		for file in *getAllFiles inputPath, ["tl",]
 			if not file\match ".*%.d%.tl$"
@@ -292,6 +296,7 @@ doCompile = (minify)->
 					* Path inputPath, file
 					* Path outputPath, Path\replaceExt file, "lua"
 					* searchPath
+					* gamePath
 
 	paths = {Path\getPath(file[3]), true \
 		for files in *[luaFiles, yueFiles, xmlFiles, tlFiles] \
@@ -302,10 +307,11 @@ doCompile = (minify)->
 	totalFiles = #yueFiles + #xmlFiles + #tlFiles
 	fileCount = 0
 	errors = []
-	for [file, input, output, searchPath] in *yueFiles
-		(success) <- yue.compile input, output, searchPath, (codes, err, globals)->
+	for [file, input, output, searchPath, gamePath] in *yueFiles
+		filename = if gamePath then Path gamePath, file else file
+		(success) <- yue.compile input, output, searchPath, (codes, err, globals) ->
 			if not codes
-				errors[] = "Compile errors in #{file}.\n#{err}"
+				errors[] = "Compile errors in #{filename}.\n#{err}"
 				return
 			success, result = LintYueGlobals codes, globals
 			if success
@@ -324,33 +330,35 @@ doCompile = (minify)->
 								code = lineCode
 								break
 							countLine += 1
-						globalErrors[] = "invalid global variable \"#{name}\"\nin \"#{file}\", at line #{line}, col #{col}.\n#{code\gsub("\t", " ") .. '\n' .. string.rep(" ", col - 1) .. "^"}"
+						globalErrors[] = "invalid global variable \"#{name}\"\nin \"#{filename}\", at line #{line}, col #{col}.\n#{code\gsub("\t", " ") .. '\n' .. string.rep(" ", col - 1) .. "^"}"
 					errors[] = table.concat globalErrors, "\n"
 				else
 					errors[] = "failed to load file #{input}"
-		print "Yue compiled: #{file}" if success
+		print "Yue compiled: #{filename}" if success
 		fileCount += 1
 
 	thread ->
-		for [file, input, output] in *xmlFiles
+		for [file, input, output, gamePath] in *xmlFiles
+			filename = if gamePath then Path gamePath, file else file
 			sourceCodes = Content\loadAsync input
 			codes, err = xml.tolua sourceCodes
 			if not codes
-				errors[] = "Compile errors in #{file}.\n#{err}"
+				errors[] = "Compile errors in #{filename}.\n#{err}"
 			else
 				Content\saveAsync output, "-- [xml]: #{file}\n#{codes}"
-				print "Xml compiled: #{file}"
+				print "Xml compiled: #{filename}"
 			fileCount += 1
 
 	thread ->
-		for [file, input, output, searchPath] in *tlFiles
+		for [file, input, output, searchPath, gamePath] in *tlFiles
+			filename = if gamePath then Path gamePath, file else file
 			sourceCodes = Content\loadAsync input
 			codes, err = teal.toluaAsync sourceCodes, file, searchPath
 			if not codes
-				errors[] = "Compile errors in #{file}.\n#{err}"
+				errors[] = "Compile errors in #{filename}.\n#{err}"
 			else
 				Content\saveAsync output, codes
-				print "Teal compiled: #{file}"
+				print "Teal compiled: #{filename}"
 			fileCount += 1
 
 	thread ->
@@ -409,9 +417,9 @@ entryWindow = nil
 
 setupEventHandlers = ->
 	with Director.postNode
-		\gslot "AppTheme", (argb)->
+		\gslot "AppTheme", (argb) ->
 			config.themeColor = argb
-		\gslot "AppLocale", (locale)->
+		\gslot "AppLocale", (locale) ->
 			config.locale = locale
 			updateLocale!
 			teal.clear true
@@ -423,7 +431,7 @@ setupEventHandlers = ->
 				:width, :height = App.winSize
 				config.winWidth = width
 				config.winHeight = height
-			\gslot "AppFullScreen", (fullScreen)->
+			\gslot "AppFullScreen", (fullScreen) ->
 				config.fullScreen = fullScreen and 1 or 0
 			\gslot "AppMoved", ->
 				x: config.winX, y: config.winY = App.winPosition
@@ -468,7 +476,7 @@ export stop = ->
 	currentEntry = nil
 	true
 
-export enterEntryAsync = (entry)->
+export enterEntryAsync = (entry) ->
 	isInEntry = false
 	App.idled = false
 	currentEntry = entry
@@ -508,7 +516,7 @@ export enterEntryAsync = (entry)->
 						viewWidth: height
 						viewHeight: height
 					}
-					\slot "AlignLayout", (w, h)->
+					\slot "AlignLayout", (w, h) ->
 						.position = Vec2 w / 2, h / 2
 						w -= 20
 						h -= 20
@@ -521,7 +529,7 @@ export enterEntryAsync = (entry)->
 			\alignLayout!
 		return err
 
-enterDemoEntry = (entry)-> thread -> enterEntryAsync entry
+enterDemoEntry = (entry) -> thread -> enterEntryAsync entry
 
 reloadCurrentEntry = ->
 	if currentEntry
@@ -595,6 +603,7 @@ extraOperations = ->
 	if changed, scaleContent := Checkbox string.format("%.1fx #{zh and '屏幕缩放' or 'Screen'}", screenScale), scaleContent
 		View.scale = scaleContent and screenScale or 1
 
+transparant = Color 0x0
 windowFlags =
 	* "NoTitleBar"
 	* "NoResize"
@@ -655,7 +664,7 @@ footerWindow = threadLoop ->
 		Vec2 width - 170, height - 50
 	else
 		Vec2 width, height
-	PushStyleColor "WindowBg", Color(0x0), -> Begin "Show", windowFlags, ->
+	PushStyleColor "WindowBg", transparant, -> Begin "Show", windowFlags, ->
 		if width >= 600
 			Columns 2, false
 			NextColumn!
@@ -735,7 +744,7 @@ exampleOpen = false
 testOpen = false
 filterText = nil
 anyEntryMatched = false
-match = (name)->
+match = (name) ->
 	res = not filterText or name\lower!\match filterText
 	anyEntryMatched = true if res
 	res
@@ -800,7 +809,7 @@ entryWindow = threadLoop ->
 	anyEntryMatched = false
 	SetNextWindowPos Vec2 0, 50
 	SetNextWindowSize Vec2 fullWidth, height - 100
-	PushStyleColor "WindowBg", Color(0x0), -> PushStyleVar "WindowPadding", Vec2(paddingX, 10), ->
+	PushStyleColor "WindowBg", transparant, -> PushStyleVar "WindowPadding", Vec2(paddingX, 10), ->
 		Begin "Content", windowFlags, ->
 			filterText = filterBuf\toString!\match "[^%%%.%[]+"
 			filterText = filterText\lower! if filterText
