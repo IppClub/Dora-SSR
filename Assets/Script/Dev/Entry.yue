@@ -187,13 +187,17 @@ getProjectEntries = (path) ->
 					for [name, tPath] in *getFileEntries testPath
 						entry = [name, Path(dir, Path\getPath(file), tPath)]
 						tests[] = entry
-				logoFile = Path path, Path\getPath(fileName), "Image", "logo.png"
-				unless Content\exist logoFile
-					logoFile = Path path, Path\getPath(fileName), "Image", "logo.jpg"
-					logoFile = nil unless Content\exist logoFile
-				logoTex = Texture2D logoFile if logoFile
-				logoFile = nil unless logoTex
-				entry = [entryName, fileName, examples, tests, logoFile, logoTex]
+				entry = [entryName, fileName, examples, tests]
+				bannerFile = Path path, Path\getPath(fileName), "Image", "banner.png"
+				unless Content\exist bannerFile
+					bannerFile = Path path, Path\getPath(fileName), "Image", "banner.jpg"
+					bannerFile = nil unless Content\exist bannerFile
+				if bannerFile then thread ->
+					Cache\loadAsync bannerFile
+					bannerTex = Texture2D bannerFile
+					if bannerTex
+						entry[] = bannerFile
+						entry[] = bannerTex
 				entries[] = entry
 	table.sort entries, (a, b) -> a[1] < b[1]
 	entries
@@ -815,7 +819,7 @@ entryWindow = threadLoop ->
 			filterText = filterText\lower! if filterText
 			if #gamesInDev > 0
 				for game in *gamesInDev
-					[gameName, _, examples, tests, logoFile, logoTex] = game
+					[gameName, fileName, examples, tests, bannerFile, bannerTex] = game
 					showSep = false
 					if match gameName
 						Columns 1, false
@@ -823,19 +827,20 @@ entryWindow = threadLoop ->
 						SameLine!
 						Text gameName
 						Separator!
-						if logoFile
-							width: texWidth, height: texHeight = logoTex
+						if bannerFile
+							width: texWidth, height: texHeight = bannerTex
 							displayWidth = (fullWidth / 2 - paddingX) * 2 - 35
 							const sizing = 0.8
 							texHeight = displayWidth * sizing * texHeight / texWidth
 							texWidth = displayWidth * sizing
-							padding = displayWidth * (1 - sizing) / 2
+							padding = displayWidth * (1 - sizing) / 2 - 10
 							Dummy Vec2 padding, 0
 							SameLine!
-							if ImageButton gameName, logoFile, Vec2 texWidth, texHeight
+							<- PushID fileName
+							if ImageButton gameName, bannerFile, Vec2 texWidth, texHeight
 								enterDemoEntry game
 						else
-							<- PushID gameName
+							<- PushID fileName
 							if Button zh and "开始运行" or "Game Start", Vec2 -1, 40
 								enterDemoEntry game
 						NextColumn!
@@ -903,11 +908,49 @@ entryWindow = threadLoop ->
 					opened = if filterText? then showGame else false
 					SetNextItemOpen gameOpen
 					TreeNode zh and "游戏演示" or "Game Demo", ->
-						Columns maxColumns, false
+						columns = math.max math.floor(width / 400), 1
+						Columns columns, false
 						for game in *games
 							continue unless match game[1]
-							if Button game[1], Vec2 -1, 40
-								enterDemoEntry game
+							[gameName, fileName, _, _, bannerFile, bannerTex] = game
+							if columns > 1
+								if bannerFile
+									width: texWidth, height: texHeight = bannerTex
+									const displayWidth = 370
+									texHeight = displayWidth * texHeight / texWidth
+									texWidth = displayWidth
+									Text gameName
+									<- PushID fileName
+									if ImageButton gameName, bannerFile, Vec2 texWidth, texHeight
+										enterDemoEntry game
+								else
+									<- PushID fileName
+									if Button gameName, Vec2 -1, 40
+										enterDemoEntry game
+							else
+								if bannerFile
+									width: texWidth, height: texHeight = bannerTex
+									displayWidth = (fullWidth / 2 - paddingX) * 2 - 35
+									sizing = 0.8
+									texHeight = displayWidth * sizing * texHeight / texWidth
+									texWidth = displayWidth * sizing
+									if texWidth > 500
+										sizing = 0.6
+										texHeight = displayWidth * sizing * texHeight / texWidth
+										texWidth = displayWidth * sizing
+									padding = displayWidth * (1 - sizing) / 2 - 10
+									Dummy Vec2 padding, 0
+									SameLine!
+									Text gameName
+									Dummy Vec2 padding, 0
+									SameLine!
+									<- PushID fileName
+									if ImageButton gameName, bannerFile, Vec2 texWidth, texHeight
+										enterDemoEntry game
+								else
+									<- PushID fileName
+									if Button zh and "开始运行" or "Game Start", Vec2 -1, 40
+										enterDemoEntry game
 							NextColumn!
 						Columns 1, false
 						opened = true

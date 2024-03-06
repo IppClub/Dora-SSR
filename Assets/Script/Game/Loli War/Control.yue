@@ -13,7 +13,7 @@ playerGroup = Group ["hero", "unit"]
 updatePlayerControl = (key, flag) ->
 	playerGroup\each => @unit.data[key] = flag if @group == GroupPlayer
 
-root = with AlignNode isRoot: true
+with root = AlignNode isRoot: true
 	\addChild HPWheel!
 	switch App.platform
 		when "iOS", "Android"
@@ -34,10 +34,16 @@ root = with AlignNode isRoot: true
 					updatePlayerControl "keyRight", Keyboard\isKeyPressed "D"
 					updatePlayerControl "keyUp", Keyboard\isKeyPressed "K"
 					updatePlayerControl "keyF", Keyboard\isKeyPressed "J"
+	showStartPanel = ->
+		root\addChild with StartPanel!
+			\slot "AlignLayout", (w) ->
+				w *= 0.6
+				width = 210 * 2 * App.devicePixelRatio
+				.scaleX = .scaleY = w / width if w < width
+		root\alignLayout!
 	\addChild with RestartPad!
 		\slot "Tapped", ->
 			Store.winner = -1
-			root\addChild StartPanel!
-			root\alignLayout!
-	\addChild StartPanel!
+			showStartPanel!
 	\addTo Director.ui
+	showStartPanel!
