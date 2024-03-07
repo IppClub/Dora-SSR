@@ -366,6 +366,9 @@ static int32_t imgui__color_edit3(int64_t label, int64_t stack) {
 static int32_t imgui__color_edit4(int64_t label, int64_t stack, int32_t show_alpha) {
 	return ImGui::Binding::ColorEdit4(*str_from(label), r_cast<CallStack*>(stack), show_alpha != 0) ? 1 : 0;
 }
+static void imgui_scroll_when_dragging_on_void() {
+	ImGui::Binding::ScrollWhenDraggingOnVoid();
+}
 static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_load_font_ttf_async", imgui_load_font_ttf_async);
 	mod.link_optional("*", "imgui_is_font_loaded", imgui_is_font_loaded);
@@ -487,4 +490,5 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui__v_slider_int_opts", imgui__v_slider_int_opts);
 	mod.link_optional("*", "imgui__color_edit3", imgui__color_edit3);
 	mod.link_optional("*", "imgui__color_edit4", imgui__color_edit4);
+	mod.link_optional("*", "imgui_scroll_when_dragging_on_void", imgui_scroll_when_dragging_on_void);
 }

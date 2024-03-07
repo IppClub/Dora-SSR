@@ -119,6 +119,7 @@ extern "C" {
 	fn imgui__v_slider_int_opts(label: i64, size: i64, stack: i64, v_min: i32, v_max: i32, format: i64, slider_flags: i64) -> i32;
 	fn imgui__color_edit3(label: i64, stack: i64) -> i32;
 	fn imgui__color_edit4(label: i64, stack: i64, show_alpha: i32) -> i32;
+	fn imgui_scroll_when_dragging_on_void();
 }
 use crate::dora::IObject;
 pub struct ImGui { }
@@ -487,5 +488,8 @@ impl ImGui {
 	}
 	pub fn _color_edit4(label: &str, stack: &crate::dora::CallStack, show_alpha: bool) -> bool {
 		unsafe { return imgui__color_edit4(crate::dora::from_string(label), stack.raw(), if show_alpha { 1 } else { 0 }) != 0; }
+	}
+	pub fn scroll_when_dragging_on_void() {
+		unsafe { imgui_scroll_when_dragging_on_void(); }
 	}
 }

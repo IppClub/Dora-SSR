@@ -626,5 +626,6 @@ export function GetMouseDragDelta(
 		lock_threshold?: number // Default: -1.0
 	): Vec2;
 export function ResetMouseDragDelta(this: void, button?: number): void; // Default: 0
+export function ScrollWhenDraggingOnVoid(this: void): void;
 
 } // module 'ImGui'

@@ -706,4 +706,6 @@ void SetStyleVar(String name, float var);
 void SetStyleVar(String name, const Vec2& var);
 void SetStyleColor(String name, Color color);
 
+void ScrollWhenDraggingOnVoid();
+
 NS_END(ImGui::Binding)
