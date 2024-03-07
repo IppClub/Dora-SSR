@@ -475,11 +475,13 @@ void Node::addChild(Node* child, int order) {
 }
 
 void Node::addChild(Node* child) {
+	AssertIf(child == this, "can not add node to itself.");
 	AssertIf(child == nullptr, "add invalid child(nullptr) to node.");
 	addChild(child, child->getOrder(), child->getTag());
 }
 
 Node* Node::addTo(Node* parent, int order, String tag) {
+	AssertIf(parent == this, "can not add node to itself.");
 	AssertIf(parent == nullptr, "add node to invalid parent.");
 	parent->addChild(this, order, tag);
 	return this;

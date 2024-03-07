@@ -547,8 +547,8 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 					if (shape.sensorTag !== undefined) {
 						bodyDef.attachPolygonSensor(
 							shape.sensorTag,
-							shape.width, shape.height,
 							dora.Vec2(shape.centerX ?? 0, shape.centerY ?? 0),
+							shape.width, shape.height,
 							shape.angle ?? 0
 						);
 					} else {
@@ -797,25 +797,25 @@ const elementMap: ElementMap = {
 				case 'delay': {
 					const item = enode.props as JSX.Delay;
 					actionStack.push(dora.Delay(item.time));
-					return;
+					break;
 				}
 				case 'event': {
 					const item = enode.props as JSX.Event;
 					actionStack.push(dora.Event(item.name, item.param));
-					return;
+					break;
 				}
 				case 'hide': {
 					actionStack.push(dora.Hide());
-					return;
+					break;
 				}
 				case 'show': {
 					actionStack.push(dora.Show());
-					return;
+					break;
 				}
 				case 'move': {
 					const item = enode.props as JSX.Move;
 					actionStack.push(dora.Move(item.time, dora.Vec2(item.startX, item.startY), dora.Vec2(item.stopX, item.stopY), item.easing));
-					return;
+					break;
 				}
 				case 'spawn': {
 					const spawnStack: dora.ActionDef.Type[] = [];
@@ -823,6 +823,7 @@ const elementMap: ElementMap = {
 						visitAction(spawnStack, enode.children[i - 1]);
 					}
 					actionStack.push(dora.Spawn(...table.unpack(spawnStack)));
+					break;
 				}
 				case 'sequence': {
 					const sequenceStack: dora.ActionDef.Type[] = [];
@@ -830,6 +831,7 @@ const elementMap: ElementMap = {
 						visitAction(sequenceStack, enode.children[i - 1]);
 					}
 					actionStack.push(dora.Sequence(...table.unpack(sequenceStack)));
+					break;
 				}
 				default:
 					Warn(`unsupported tag <${enode.type}> under action definition`);

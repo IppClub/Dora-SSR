@@ -4690,12 +4690,21 @@ class BodyDef extends Object {
 	/**
 	 * Attaches a polygon sensor fixture definition to the body.
 	 * @param tag An integer tag for the sensor.
-	 * @param width The width of the polygon (optional).
-	 * @param height The height of the polygon (optional).
-	 * @param center The center point of the polygon (optional).
+	 * @param width The width of the polygon.
+	 * @param height The height of the polygon.
 	 * @param angle The angle of the polygon (default is 0.0) (optional).
 	 */
-	attachPolygonSensor(tag: number, width?: number, height?: number, center?: Vec2, angle?: number): void;
+	attachPolygonSensor(tag: number, width: number, height: number, angle?: number): void;
+
+	/**
+	 * Attaches a polygon sensor fixture definition to the body.
+	 * @param tag An integer tag for the sensor.
+	 * @param center The center point of the polygon.
+	 * @param width The width of the polygon.
+	 * @param height The height of the polygon.
+	 * @param angle The angle of the polygon (default is 0.0) (optional).
+	 */
+	attachPolygonSensor(tag: number, center: Vec2, width: number, height: number, angle?: number): void;
 
 	/**
 	 * Attaches a polygon sensor fixture definition to the body using vertices.
