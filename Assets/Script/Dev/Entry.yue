@@ -906,11 +906,12 @@ entryWindow = threadLoop ->
 				SameLine!
 				Text zh and "开发示例" or "Development Showcase"
 				Separator!
+				const demoViewWith = 400
 				if #games > 0 and showGame
 					opened = if filterText? then showGame else false
 					SetNextItemOpen gameOpen
 					TreeNode zh and "游戏演示" or "Game Demo", ->
-						columns = math.max math.floor(width / 400), 1
+						columns = math.max math.floor(width / demoViewWith), 1
 						Columns columns, false
 						for game in *games
 							continue unless match game[1]
@@ -918,7 +919,7 @@ entryWindow = threadLoop ->
 							if columns > 1
 								if bannerFile
 									width: texWidth, height: texHeight = bannerTex
-									const displayWidth = 370
+									const displayWidth = demoViewWith - 40
 									texHeight = displayWidth * texHeight / texWidth
 									texWidth = displayWidth
 									Text gameName
