@@ -4693,12 +4693,21 @@ class BodyDef extends Object {
 	/**
 	 * 将多边形感应器形状定义附加到物理体上。
 	 * @param tag 感应器的整数标签。
-	 * @param width 多边形的宽度（可选）。
-	 * @param height 多边形的高度（可选）。
-	 * @param center 多边形的中心点（可选）。
+	 * @param width 多边形的宽度。
+	 * @param height 多边形的高度。
 	 * @param angle 多边形的角度（默认为0.0）（可选）。
 	 */
-	attachPolygonSensor(tag: number, width?: number, height?: number, center?: Vec2, angle?: number): void;
+	attachPolygonSensor(tag: number, width: number, height: number, angle?: number): void;
+
+	/**
+	 * 将多边形感应器形状定义附加到物理体上。
+	 * @param tag 感应器的整数标签。
+	 * @param center 多边形的中心点。
+	 * @param width 多边形的宽度。
+	 * @param height 多边形的高度。
+	 * @param angle 多边形的角度（默认为0.0）（可选）。
+	 */
+	attachPolygonSensor(tag: number, center: Vec2, width: number, height: number, angle?: number): void;
 
 	/**
 	 * 使用顶点将多边形感应器形状定义附加到物理体上。
