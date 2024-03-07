@@ -1443,22 +1443,28 @@ void Columns(
 
 void ScrollWhenDraggingOnVoid() {
 	ImGuiButtonFlags button_flags = ImGuiButtonFlags_MouseButtonLeft;
-	ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
-	ImVec2 delta(-mouse_delta.x, -mouse_delta.y);
 	ImGuiContext& g = *ImGui::GetCurrentContext();
 	ImGuiWindow* window = g.CurrentWindow;
 	bool hovered = false;
-	bool held = false;
+	static bool held = false;
 	ImGuiID id = window->GetID("##scrolldraggingoverlay");
 	ImGui::KeepAliveID(id);
+	bool lastHeld = held;
 	if (g.HoveredId == 0) {
 		ImGui::ButtonBehavior(window->Rect(), id, &hovered, &held, button_flags);
 	}
-	if (held && delta.x != 0.0f) {
-		ImGui::SetScrollX(window, window->Scroll.x + delta.x);
+	if (lastHeld != held) {
+		return;
 	}
-	if (held && delta.y != 0.0f) {
-		ImGui::SetScrollY(window, window->Scroll.y + delta.y);
+	if (held) {
+		ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
+		ImVec2 delta(-mouse_delta.x, -mouse_delta.y);
+		if (delta.x != 0.0f) {
+			ImGui::SetScrollX(window, window->Scroll.x + delta.x);
+		}
+		if (delta.y != 0.0f) {
+			ImGui::SetScrollY(window, window->Scroll.y + delta.y);
+		}
 	}
 }
 

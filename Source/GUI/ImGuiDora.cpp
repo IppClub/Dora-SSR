@@ -1463,11 +1463,15 @@ void ImGuiDora::handleEvent(const SDL_Event& event) {
 			break;
 		}
 		case SDL_MOUSEMOTION: {
+			if (event.motion.state == 0 && _mousePressed[0]) {
+				break;
+			}
 			Size visualSize = SharedApplication.getVisualSize();
 			Size winSize = SharedApplication.getWinSize();
-			ImGui::GetIO().MousePos = Vec2{
+			ImGui::GetIO().AddMousePosEvent(
 				s_cast<float>(event.motion.x) * visualSize.width / winSize.width,
-				s_cast<float>(event.motion.y) * visualSize.height / winSize.height};
+				s_cast<float>(event.motion.y) * visualSize.height / winSize.height
+			);
 			break;
 		}
 		case SDL_KEYDOWN:
