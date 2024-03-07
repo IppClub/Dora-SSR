@@ -944,6 +944,7 @@ local record ImGui
 	ResetMouseDragDelta: function(
 		button?: integer --[[0]]
 	)
+	ScrollWhenDraggingOnVoid: function()
 end
 local imgui: ImGui
 return imgui

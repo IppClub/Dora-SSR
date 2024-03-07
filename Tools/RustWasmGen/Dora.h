@@ -1745,4 +1745,7 @@ static bool Binding::VSliderInt @ _vSliderIntOpts(
 static bool Binding::ColorEdit3 @ _colorEdit3(string label, CallStack* stack);
 
 static bool Binding::ColorEdit4 @ _colorEdit4(string label, CallStack* stack, bool show_alpha);
+
+static void Binding::ScrollWhenDraggingOnVoid @ scrollWhenDraggingOnVoid();
 };
+

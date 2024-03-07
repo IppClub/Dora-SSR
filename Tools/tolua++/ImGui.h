@@ -126,6 +126,7 @@ namespace ImGui
 	bool Binding::VSliderFloat @ VSliderFloat(CString label, Vec2 size, float* v, float v_min, float v_max, CString format, String flags[tolua_len]);
 	bool Binding::VSliderInt @ VSliderInt(CString label, Vec2 size, int* v, int v_min, int v_max, CString format = "%d");
 	bool Binding::VSliderInt @ VSliderInt(CString label, Vec2 size, int* v, int v_min, int v_max, CString format, String flags[tolua_len]);
+	void Binding::ScrollWhenDraggingOnVoid @ ScrollWhenDraggingOnVoid();
 
 	void SetNextWindowBgAlpha(float alpha);
 	void ShowDemoWindow();

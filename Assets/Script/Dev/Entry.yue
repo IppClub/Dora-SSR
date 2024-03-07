@@ -782,7 +782,7 @@ entryWindow = threadLoop ->
 	width: fullWidth, :height = App.visualSize
 
 	SetNextWindowBgAlpha 0.85
-	SetNextWindowPos Vec2(5, height - 130), "Always", Vec2 0, 0
+	SetNextWindowPos Vec2(fullWidth - 30, height - 130), "Always", Vec2 1, 0
 	PushStyleVar "WindowPadding", Vec2(10, 5), ->
 		Begin "Web IDE", displayWindowFlags, ->
 			Separator!
@@ -856,6 +856,7 @@ entryWindow = threadLoop ->
 							TextColored themeColor, zh and "示例：" or "Example:"
 							SameLine!
 							Text gameName
+							<- PushStyleVar "ItemSpacing", Vec2 20, 10
 							Columns maxColumns, false
 							for example in *examples
 								continue unless match example[1]
@@ -875,6 +876,7 @@ entryWindow = threadLoop ->
 							TextColored themeColor, zh and "测试：" or "Test:"
 							SameLine!
 							Text gameName
+							<- PushStyleVar "ItemSpacing", Vec2 20, 10
 							Columns maxColumns, false
 							for test in *tests
 								continue unless match test[1]
@@ -949,7 +951,7 @@ entryWindow = threadLoop ->
 										enterDemoEntry game
 								else
 									<- PushID fileName
-									if Button zh and "开始运行" or "Game Start", Vec2 -1, 40
+									if Button gameName, Vec2 -1, 40
 										enterDemoEntry game
 							NextColumn!
 						Columns 1, false
@@ -959,6 +961,7 @@ entryWindow = threadLoop ->
 					opened = if filterText? then showExample else false
 					SetNextItemOpen exampleOpen
 					TreeNode zh and "引擎示例" or "Engine Example", ->
+						<- PushStyleVar "ItemSpacing", Vec2 20, 10
 						Columns maxColumns, false
 						for example in *doraExamples
 							continue unless match example[1]
@@ -972,6 +975,7 @@ entryWindow = threadLoop ->
 					opened = if filterText? then showTest else false
 					SetNextItemOpen testOpen
 					TreeNode zh and "引擎测试" or "Engine Test", ->
+						<- PushStyleVar "ItemSpacing", Vec2 20, 10
 						Columns maxColumns, false
 						for test in *doraTests
 							continue unless match test[1]
@@ -995,6 +999,7 @@ entryWindow = threadLoop ->
 					TextColored descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!'
 					Separator!
 			Columns 1, false
-			Dummy Vec2 100, 40
+			Dummy Vec2 100, 80
+			ScrollWhenDraggingOnVoid!
 
 webStatus = require "WebServer"

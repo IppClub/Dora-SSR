@@ -16,6 +16,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Wasm/WasmRuntime.h"
 
+#include "imgui/imgui_internal.h"
+
 NS_DORA_BEGIN
 
 /* Buffer */
@@ -1437,6 +1439,27 @@ void Columns(
 	bool border,
 	const std::string& str_id) {
 	Columns(count, border, str_id.c_str());
+}
+
+void ScrollWhenDraggingOnVoid() {
+	ImGuiButtonFlags button_flags = ImGuiButtonFlags_MouseButtonLeft;
+	ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
+	ImVec2 delta(-mouse_delta.x, -mouse_delta.y);
+	ImGuiContext& g = *ImGui::GetCurrentContext();
+	ImGuiWindow* window = g.CurrentWindow;
+	bool hovered = false;
+	bool held = false;
+	ImGuiID id = window->GetID("##scrolldraggingoverlay");
+	ImGui::KeepAliveID(id);
+	if (g.HoveredId == 0) {
+		ImGui::ButtonBehavior(window->Rect(), id, &hovered, &held, button_flags);
+	}
+	if (held && delta.x != 0.0f) {
+		ImGui::SetScrollX(window, window->Scroll.x + delta.x);
+	}
+	if (held && delta.y != 0.0f) {
+		ImGui::SetScrollY(window, window->Scroll.y + delta.y);
+	}
 }
 
 NS_END(ImGui::Binding)
