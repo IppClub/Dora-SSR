@@ -743,7 +743,7 @@ displayWindowFlags =
 
 webStatus = nil
 descColor = Color 0xffa1a1a1
-gameOpen = false
+gameOpen = #gamesInDev == 0
 exampleOpen = false
 testOpen = false
 filterText = nil
