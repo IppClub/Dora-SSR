@@ -33,7 +33,8 @@ toNode(
 				]}
 				density={1}
 				friction={0.4}
-				restitution={0.4}/>
+				restitution={0.4}
+			/>
 		</body>
 
 		<body
@@ -67,7 +68,7 @@ const windowFlags = [
 	WindowFlag.NoMove
 ];
 threadLoop(() => {
-	const {width} = App.visualSize
+	const {width} = App.visualSize;
 	ImGui.SetNextWindowBgAlpha(0.35);
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);

@@ -62,36 +62,36 @@ toNode(React:createElement( -- 12
         React:createElement("rect-fixture", {width = 800, height = 10, friction = 0.8, restitution = 0.2}) -- 32
     ) -- 32
 )) -- 32
-local windowFlags = { -- 61
-    "NoDecoration", -- 62
-    "AlwaysAutoResize", -- 63
-    "NoSavedSettings", -- 64
-    "NoFocusOnAppearing", -- 65
-    "NoNav", -- 66
-    "NoMove" -- 67
-} -- 67
-threadLoop(function() -- 69
-    local ____App_visualSize_0 = App.visualSize -- 70
-    local width = ____App_visualSize_0.width -- 70
-    ImGui.SetNextWindowBgAlpha(0.35) -- 71
-    ImGui.SetNextWindowPos( -- 72
-        Vec2(width - 10, 10), -- 72
-        "Always", -- 72
-        Vec2(1, 0) -- 72
-    ) -- 72
-    ImGui.SetNextWindowSize( -- 73
-        Vec2(240, 0), -- 73
-        "FirstUseEver" -- 73
+local windowFlags = { -- 62
+    "NoDecoration", -- 63
+    "AlwaysAutoResize", -- 64
+    "NoSavedSettings", -- 65
+    "NoFocusOnAppearing", -- 66
+    "NoNav", -- 67
+    "NoMove" -- 68
+} -- 68
+threadLoop(function() -- 70
+    local ____App_visualSize_0 = App.visualSize -- 71
+    local width = ____App_visualSize_0.width -- 71
+    ImGui.SetNextWindowBgAlpha(0.35) -- 72
+    ImGui.SetNextWindowPos( -- 73
+        Vec2(width - 10, 10), -- 73
+        "Always", -- 73
+        Vec2(1, 0) -- 73
     ) -- 73
-    ImGui.Begin( -- 74
-        "Body", -- 74
-        windowFlags, -- 74
-        function() -- 74
-            ImGui.Text("Body") -- 75
-            ImGui.Separator() -- 76
-            ImGui.TextWrapped("Basic usage to create physics bodies!") -- 77
-        end -- 74
+    ImGui.SetNextWindowSize( -- 74
+        Vec2(240, 0), -- 74
+        "FirstUseEver" -- 74
     ) -- 74
-    return false -- 79
-end) -- 69
-return ____exports -- 69
+    ImGui.Begin( -- 75
+        "Body", -- 75
+        windowFlags, -- 75
+        function() -- 75
+            ImGui.Text("Body") -- 76
+            ImGui.Separator() -- 77
+            ImGui.TextWrapped("Basic usage to create physics bodies!") -- 78
+        end -- 75
+    ) -- 75
+    return false -- 80
+end) -- 70
+return ____exports -- 70
