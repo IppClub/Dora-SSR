@@ -83,14 +83,14 @@ find: function(self: Group, func: function(Entity): boolean): Entity
 
 **签名：**
 ```tl
-watch: function(self: Group, func: function(Entity)): Group
+watch: function(self: Group, func: function(Entity): boolean): Group
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| func | function | 添加或更改实体时要调用的监测函数。 |
+| func | function | 添加或更改实体时要调用的监测函数。返回 true 以停止监测。 |
 
 **返回值：**
 

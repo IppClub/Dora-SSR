@@ -5,3 +5,28 @@ import "@site/src/languages/highlight";
 **Description:**
 
 &emsp;&emsp;A record represents Texture2D class object.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a texture object from the given file.
+
+**Signature:**
+```tl
+metamethod __call: function(self: Texture2DClass, filename: string): Texture2D | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The file name of the texture. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Texture2D | The texture object. |

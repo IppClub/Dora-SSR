@@ -83,14 +83,14 @@ find: function(self: Group, func: function(Entity): boolean): Entity
 
 **Signature:**
 ```tl
-watch: function(self: Group, func: function(Entity)): Group
+watch: function(self: Group, func: function(Entity): boolean): Group
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| func | function | The function to call when an entity is added or changed. |
+| func | function | The function to call when an entity is added or changed. Returns true to stop watching. |
 
 **Returns:**
 
