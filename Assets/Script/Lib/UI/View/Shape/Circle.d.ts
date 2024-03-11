@@ -1,4 +1,4 @@
-import {NodeType} from 'dora';
+import { NodeType } from 'dora';
 
 interface Param {
 	/** default 0 */

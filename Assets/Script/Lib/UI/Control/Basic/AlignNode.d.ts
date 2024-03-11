@@ -34,6 +34,10 @@ interface AlignNodeClass {
 	(this: void, param: Param): AlignNode;
 }
 
+export namespace AlignNode {
+	type Type = AlignNode;
+}
+
 const alignNodeClass: AlignNodeClass;
 export = alignNodeClass;
 

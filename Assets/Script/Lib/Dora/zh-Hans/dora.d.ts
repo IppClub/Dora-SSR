@@ -1682,9 +1682,9 @@ class Dictionary extends Object {
 	/**
 	 * 设置字典里的值的方法。
 	 * @param key 要设置的字典的键。
-	 * @param item 要在字典里存储的值，设置为undefined以删除此键值对。
+	 * @param item 要在字典里存储的值，设置为undefined或null以删除此键值对。
 	 */
-	set(key: string, item: Item): void;
+	set(key: string, item: Item | undefined | null): void;
 
 	/**
 	 * 遍历字典中每个键值对并调用处理函数。
@@ -1704,7 +1704,7 @@ class Dictionary extends Object {
 	 * @param key 要检索的字典的键。
 	 * @returns 字典里存储的值，如果不存在则为undefined。
 	 */
-	[key: string]: Item | undefined;
+	[key: string]: Item | undefined | null;
 }
 
 export namespace Dictionary {

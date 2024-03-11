@@ -1,5 +1,6 @@
-/// <reference path="dora.d.ts" />
+import {} from "dora";
 
+declare module 'YarnRunner' {
 /**
  * 用于定义标记属性的接口。
  */
@@ -51,7 +52,7 @@ interface TextResult {
  */
 type OptionResult = [option: TextResult | boolean];
 
-declare class YarnRunner {
+class YarnRunner {
 	private constructor();
 
 	/** 用于访问 Yarn 脚本运行时变量的字段。 */
@@ -75,6 +76,10 @@ declare class YarnRunner {
 		LuaMultiReturn<["Command", any]>;
 }
 
+export namespace YarnRunner {
+	type Type = YarnRunner;
+}
+
 interface YarnRunnerClass {
 	/**
 	 * 创建 Yarn 脚本运行器。
@@ -95,5 +100,7 @@ interface YarnRunnerClass {
 	): YarnRunner;
 }
 
-declare const yarnRunnerClass: YarnRunnerClass;
+const yarnRunnerClass: YarnRunnerClass;
 export = yarnRunnerClass;
+
+} // module 'YarnRunner'

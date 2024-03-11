@@ -33,6 +33,10 @@ class ScrollArea extends Node {
 	adjustSizeWithAlign(alignMode?: AlignMode, padding?: number, size?: Size, viewSize?: Size): void; // Default padding is 10
 }
 
+export namespace ScrollArea {
+	type Type = ScrollArea;
+}
+
 interface ScrollAreaClass {
 	(this: void, param: Param): ScrollArea;
 }

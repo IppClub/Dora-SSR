@@ -16,6 +16,10 @@ class CircleButton extends Node {
 	text: string;
 }
 
+export namespace CircleButton {
+	type Type = CircleButton;
+}
+
 interface CircleButtonClass {
 	(this: void, param: Param): CircleButton;
 }

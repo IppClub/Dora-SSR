@@ -1398,6 +1398,19 @@ class WheelJoint {
 	damping?: number;
 }
 
+class CustomNode extends Node {
+	/**
+	 * Function to create a custom node.
+	 * @returns The custom node element.
+	 */
+	onCreate(this: void): dora.Node.Type | null;
+}
+
+class CustomElement {
+	name: string;
+	data: any;
+}
+
 interface IntrinsicElements {
 	/**
 	 * Class used for building a hierarchical tree structure of game objects.
@@ -1683,6 +1696,14 @@ interface IntrinsicElements {
 	 * Creates a wheel joint between two objects.
 	 */
 	'wheel-joint': WheelJoint;
+	/**
+	 * A class for creating a custom node element.
+	 */
+	'custom-node': CustomNode;
+	/**
+	 * A class for creating a custom element.
+	 */
+	'custom-element': CustomElement;
 }
 
 interface ElementChildrenAttribute {

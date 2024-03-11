@@ -52,12 +52,10 @@ Slice tolua_typename(lua_State* L, int lo) {
 				tolua_pushslice(L, "[undefined]"_slice); // result
 			}
 		}
-	} else // is table
-	{
+	} else { // is table
 		lua_pushvalue(L, lo); // tb
 		lua_rawget(L, LUA_REGISTRYINDEX); // reg[tb], name
-		if (!lua_isstring(L, -1)) // name is string
-		{
+		if (!lua_isstring(L, -1)) { // name is string
 			lua_pop(L, 1); // empty
 			tolua_pushslice(L, "table"_slice); // result
 		} else {
