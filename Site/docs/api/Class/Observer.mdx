@@ -18,14 +18,14 @@ import "@site/src/languages/highlight";
 
 **Signature:**
 ```tl
-watch: function(self: Observer, func: function(Entity)): Observer
+watch: function(self: Observer, func: function(Entity): boolean): Observer
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| func | function | The function to call when a change occurs. |
+| func | function | The function to call when a change occurs. Returns true to stop watching. |
 
 **Returns:**
 

@@ -5,3 +5,28 @@ import "@site/src/languages/highlight";
 **描述：**
 
 &emsp;&emsp;代表2D纹理对象类的对象。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的2D纹理对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: Texture2DClass, filename: string): Texture2D | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 纹理的文件路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Texture2D | 返回新创建的2D纹理对象。 |

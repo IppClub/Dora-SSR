@@ -18,14 +18,14 @@ import "@site/src/languages/highlight";
 
 **签名：**
 ```tl
-watch: function(self: Observer, func: function(Entity)): Observer
+watch: function(self: Observer, func: function(Entity): boolean): Observer
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| func | function | 当发生组件变更时要调用的处理函数。 |
+| func | function | 当发生组件变更时要调用的处理函数，当该处理函数返回 true 时，停止监听组件变化。 |
 
 **返回值：**
 

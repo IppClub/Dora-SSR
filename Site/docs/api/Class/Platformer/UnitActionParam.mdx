@@ -56,7 +56,7 @@ recovery: number
 
 **Description:**
 
-&emsp;&emsp;Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority.
+&emsp;&emsp;Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority. [optional]
 
 **Signature:**
 ```tl
@@ -69,7 +69,7 @@ queued: boolean
 
 **Description:**
 
-&emsp;&emsp;A function that determines whether the "UnitAction" is currently available for the specified "Unit".
+&emsp;&emsp;A function that determines whether the "UnitAction" is currently available for the specified "Unit". [optional]
 
 **Signature:**
 ```tl
@@ -124,7 +124,7 @@ create: function(owner: Unit, action: UnitAction): (
 
 **Description:**
 
-&emsp;&emsp;A function that gets invoked when the specified "Unit" stops performing the "UnitAction".
+&emsp;&emsp;A function that gets invoked when the specified "Unit" stops performing the "UnitAction". [optional]
 
 **Signature:**
 ```tl
