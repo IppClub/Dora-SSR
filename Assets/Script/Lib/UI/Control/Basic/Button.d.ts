@@ -17,6 +17,10 @@ class Button extends Node {
 	text: string;
 }
 
+export namespace Button {
+	type Type = Button;
+}
+
 interface ButtonClass {
 	(this: void, param: Param): Button;
 }

@@ -650,6 +650,25 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 	};
 }
 
+let getCustomNode: (this: void, enode: React.Element) => dora.Node.Type | null;
+{
+	function handleCustomNode(this: void, _cnode: dora.Node.Type, _enode: React.Element, k: any, _v: any) {
+		switch (k as keyof JSX.CustomNode) {
+			case 'onCreate': return true;
+		}
+		return false;
+	}
+	getCustomNode = (enode: React.Element) => {
+		const custom = enode.props as JSX.CustomNode;
+		const node = custom.onCreate();
+		if (node) {
+			const cnode = getNode(enode, node, handleCustomNode);
+			return cnode;
+		}
+		return null;
+	};
+}
+
 function addChild(this: void, nodeStack: dora.Node.Type[], cnode: dora.Node.Type, enode: React.Element) {
 	if (nodeStack.length > 0) {
 		const last = nodeStack[nodeStack.length - 1];
@@ -1160,6 +1179,12 @@ const elementMap: ElementMap = {
 			joint.frequency ?? 0,
 			joint.damping ?? 0.7
 		);
+	},
+	'custom-node': (nodeStack: dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
+		const node = getCustomNode(enode);
+		if (node !== null) {
+			addChild(nodeStack, node, enode);
+		}
 	},
 }
 function visitNode(this: void, nodeStack: dora.Node.Type[], node: React.Element | React.Element[], parent?: React.Element) {

@@ -1401,6 +1401,19 @@ class WheelJoint {
 	damping?: number;
 }
 
+class CustomNode extends Node {
+	/**
+	 * 用于创建自定义节点的回调函数。
+	 * @returns 返回自定义节点的实例。
+	 */
+	onCreate(this: void): dora.Node.Type | null;
+}
+
+class CustomElement {
+	name: string;
+	data: any;
+}
+
 interface IntrinsicElements {
 	/**
 	 * 用于构建游戏对象的层级树结构的类。
@@ -1681,6 +1694,14 @@ interface IntrinsicElements {
 	 * 创建两个物体之间的轮子关节。
 	 */
 	'wheel-joint': WheelJoint;
+	/**
+	 * 创建一个通过自定义函数构建的节点。
+	 */
+	'custom-node': CustomNode;
+	/**
+	 * 创建一个自定义的标签。
+	 */
+	'custom-element': CustomElement;
 }
 
 interface ElementChildrenAttribute {

@@ -1,5 +1,6 @@
-/// <reference path="dora.d.ts" />
+import {} from 'dora';
 
+declare module 'YarnRunner' {
 /**
  * Interface to define markup attributes.
  */
@@ -51,7 +52,7 @@ interface TextResult {
  */
 type OptionResult = [option: TextResult | boolean];
 
-declare class YarnRunner {
+class YarnRunner {
 	private constructor();
 
 	/** Field for accessing Yarn script runtime variables. */
@@ -75,6 +76,10 @@ declare class YarnRunner {
 		LuaMultiReturn<["Command", any]>;
 }
 
+export namespace YarnRunner {
+	type Type = YarnRunner;
+}
+
 interface YarnRunnerClass {
 	/**
 	 * Create a Yarn script runner.
@@ -95,5 +100,7 @@ interface YarnRunnerClass {
 	): YarnRunner;
 }
 
-declare const yarnRunnerClass: YarnRunnerClass;
+const yarnRunnerClass: YarnRunnerClass;
 export = yarnRunnerClass;
+
+} // module 'YarnRunner'
