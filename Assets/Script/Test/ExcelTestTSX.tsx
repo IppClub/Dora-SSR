@@ -1,6 +1,7 @@
-import { Data, Decision, PlatformWorld, Unit, UnitAction } from 'Platformer';
-import { App, Body, BodyDef, BodyMoveType, Color, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, ObserverEvent, Sprite, Spawn, AngleY, Sequence, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Menu, Keyboard, KeyName, TypeName } from 'dora';
-import * as Rectangle from 'UI/View/Shape/Rectangle';
+import { React, toNode, useRef } from 'dora-x';
+import { Data, PlatformWorld, Unit, UnitAction } from 'Platformer';
+import { App, Body, BodyMoveType, Color, Color3, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, ObserverEvent, Sprite, Spawn, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Keyboard, KeyName, TypeName, ActionDef } from 'dora';
+import { DecisionTree, toAI } from 'Platformer-x';
 
 const TerrainLayer = 0;
 const PlayerLayer = 1;
@@ -13,8 +14,7 @@ const TerrainGroup = Data.groupTerrain;
 Data.setShouldContact(PlayerGroup, ItemGroup, true);
 
 const themeColor = App.themeColor;
-const fillColor = Color(themeColor.toColor3(), 0x66).toARGB();
-const borderColor = themeColor.toARGB();
+const color = themeColor.toARGB();
 const DesignWidth = 1500;
 
 const world = PlatformWorld();
@@ -25,63 +25,64 @@ world.gslot(GSlot.AppSizeChanged, () => {
 	world.camera.zoom = View.size.width / DesignWidth;
 });
 
-const terrainDef = BodyDef();
-terrainDef.type = BodyMoveType.Static;
-terrainDef.attachPolygon(Vec2(0, -500), 2500, 10, 0, 1, 1, 0);
-terrainDef.attachPolygon(Vec2(0, 500), 2500, 10, 0, 1, 1, 0);
-terrainDef.attachPolygon(Vec2(1250, 0), 10, 1000, 0, 1, 1, 0);
-terrainDef.attachPolygon(Vec2(-1250, 0), 10, 1000, 0, 1, 1, 0);
+interface RectShapeProps {
+	x?: number;
+	y?: number;
+	width: number;
+	height: number;
+	color: number;
+}
 
-const terrain = Body(terrainDef, world, Vec2.zero);
-terrain.order = TerrainLayer;
-terrain.group = TerrainGroup;
-terrain.addChild(Rectangle({
-	y: -500,
-	width: 2500,
-	height: 10,
-	fillColor: fillColor,
-	borderColor: borderColor,
-	fillOrder: 1,
-	lineOrder: 2
-}));
-terrain.addChild(Rectangle({
-	x: 1250,
-	y: 0,
-	width: 10,
-	height: 1000,
-	fillColor: fillColor,
-	borderColor: borderColor,
-	fillOrder: 1,
-	lineOrder: 2
-}));
-terrain.addChild(Rectangle({
-	x: -1250,
-	y: 0,
-	width: 10,
-	height: 1000,
-	fillColor: fillColor,
-	borderColor: borderColor,
-	fillOrder: 1,
-	lineOrder: 2
-}));
-world.addChild(terrain);
+function RectShape(props: RectShapeProps) {
+	const hw = props.width / 2;
+	const hh = props.height / 2;
+	const x = props.x ?? 0;
+	const y = props.y ?? 0;
+	const color = Color3(props.color);
+	const fillColor = Color(color, 0x66).toARGB();
+	const borderColor = Color(color, 0xff).toARGB();
+	return <polygon-shape
+		verts={[
+			Vec2(-hw + x, hh + y),
+			Vec2(hw + x, hh + y),
+			Vec2(hw + x, -hh + y),
+			Vec2(-hw + x, -hh + y)
+		]}
+		fillColor={fillColor}
+		borderColor={borderColor}
+		borderWidth={1}
+	/>;
+}
+
+const terrain = toNode(
+	<body type={BodyMoveType.Static} world={world} order={TerrainLayer} group={TerrainGroup}>
+		<rect-fixture centerY={-500} width={2500} height={10} friction={1} restitution={0}/>
+		<rect-fixture centerY={500} width={2500} height={10} friction={1} restitution={0}/>
+		<rect-fixture centerX={1250} width={10} height={2500} friction={1} restitution={0}/>
+		<rect-fixture centerX={-1250} width={10} height={2500} friction={1} restitution={0}/>
+		<draw-node>
+			<RectShape y={-500} width={2500} height={10} color={color}/>
+			<RectShape x={1250} width={10} height={1000} color={color}/>
+			<RectShape x={-1250} width={10} height={1000} color={color}/>
+		</draw-node>
+	</body>
+);
+terrain?.addTo(world);
 
 UnitAction.add("idle", {
 	priority: 1,
 	reaction: 2.0,
 	recovery: 0.2,
-	available: self => {
-		return self.onSurface;
-	},
+	available: self => self.onSurface,
 	create: self => {
 		const {playable} = self;
 		playable.speed = 1.0;
 		playable.play("idle", true);
 		const playIdleSpecial = loop(() => {
-				sleep(3);
-				sleep(playable.play("idle1"));
-				playable.play("idle", true);
-				return false;
+			sleep(3);
+			sleep(playable.play("idle1"));
+			playable.play("idle", true);
+			return false;
 		});
 		self.data.playIdleSpecial = playIdleSpecial;
 		return owner => {
@@ -95,9 +96,7 @@ UnitAction.add("move", {
 	priority: 1,
 	reaction: 2.0,
 	recovery: 0.2,
-	available: self => {
-		return self.onSurface;
-	},
+	available: self => self.onSurface,
 	create: self => {
 		const {playable} = self;
 		playable.speed = 1;
@@ -121,9 +120,7 @@ UnitAction.add("jump", {
 	reaction: 2.0,
 	recovery: 0.1,
 	queued: true,
-	available: self => {
-		return self.onSurface;
-	},
+	available: self => self.onSurface,
 	create: self => {
 		const jump = self.unitDef.jump as number;
 		self.velocityY = jump;
@@ -139,9 +136,7 @@ UnitAction.add("fallOff", {
 	priority: 2,
 	reaction: -1,
 	recovery: 0.3,
-	available: self => {
-		return !self.onSurface;
-	},
+	available: self => !self.onSurface,
 	create: self => {
 		if (self.playable.current !== "jumping") {
 			const {playable} = self;
@@ -160,11 +155,11 @@ UnitAction.add("fallOff", {
 	}
 });
 
-const {Sel, Seq, Con, Act} = Decision;
+const { Selector, Match, Action } = DecisionTree;
 
-Data.store["AI:playerControl"] = Sel([
-	Seq([
-		Con("fmove key down", self => {
+Data.store["AI:playerControl"] = toAI(
+	<Selector>
+		<Match desc='fmove key down' onCheck={self => {
 			const keyLeft = self.entity.keyLeft as boolean;
 			const keyRight = self.entity.keyRight as boolean;
 			return !(keyLeft && keyRight) &&
@@ -172,29 +167,25 @@ Data.store["AI:playerControl"] = Sel([
 				(keyLeft && self.faceRight) ||
 				(keyRight && !self.faceRight)
 			);
-		}),
-		Act("turn")
-	]),
-	Seq([
-		Con("is falling", self => {
-			return !self.onSurface;
-		}),
-		Act("fallOff")
-	]),
-	Seq([
-		Con("jump key down", self => {
-			return self.entity.keyJump as boolean;
-		}),
-		Act("jump")
-	]),
-	Seq([
-		Con("fmove key down", self => {
-			return (self.entity.keyLeft || self.entity.keyRight) as boolean;
-		}),
-		Act("move")
-	]),
-	Act("idle")
-]);
+		}}>
+			<Action name='turn'/>
+		</Match>
+	
+		<Match desc='is falling' onCheck={self => !self.onSurface}>
+			<Action name='fallOff'/>
+		</Match>
+	
+		<Match desc='jump key down' onCheck={self => self.entity.keyJump as boolean}>
+			<Action name='jump'/>
+		</Match>
+	
+		<Match desc='fmove key down' onCheck={self => (self.entity.keyLeft || self.entity.keyRight) as boolean}>
+			<Action name='move'/>
+		</Match>
+	
+		<Action name='idle'/>
+	</Selector>
+);
 
 const unitDef = Dictionary();
 unitDef.linearAcceleration = Vec2(0, -15);
@@ -213,7 +204,6 @@ unitDef.detectDistance = 350;
 unitDef.hp = 5.0;
 unitDef.tag = "player";
 unitDef.decisionTree = "AI:playerControl";
-unitDef.usePreciseHit = false;
 unitDef.actions = Array([
 	"idle",
 	"turn",
@@ -234,35 +224,49 @@ Observer(ObserverEvent.Add, ["player"]).watch(self => {
 });
 
 Observer(ObserverEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string) => {
-	const sprite = Sprite(icon);
-	if (!sprite) return;
-	sprite.schedule(loop(() => {
-		sleep(sprite.runAction(Spawn(
-			AngleY(5, 0, 360),
-			Sequence(
-				Y(2.5, 0, 40, Ease.OutQuad),
-				Y(2.5, 40, 0, Ease.InQuad)
-			)
-		)));
-		return false;
-	}));
+	const rotationRef = useRef<ActionDef.Type>();
+	const spriteRef = useRef<Sprite.Type>();
 
-	const bodyDef = BodyDef();
-	bodyDef.type = BodyMoveType.Dynamic;
-	bodyDef.linearAcceleration = Vec2(0, -10);
-	bodyDef.attachPolygon(sprite.width * 0.5, sprite.height);
-	bodyDef.attachPolygonSensor(0, sprite.width, sprite.height);
+	const sprite = toNode(
+		<sprite file={icon} ref={spriteRef} onUpdate={loop(() => {
+			const {current: rotation} = rotationRef;
+			const {current: sprite} = spriteRef;
+			if (!rotation || !sprite) return true;
+			sleep(sprite.runAction(rotation));
+			return false;
+		})}>
+			<action ref={rotationRef}>
+				<spawn>
+					<angle-y time={5} start={0} stop={360}/>
+					<sequence>
+						<move-y time={2.5} start={0} stop={40} easing={Ease.OutQuad}/>
+						<move-y time={2.5} start={40} stop={0} easing={Ease.InQuad}/>
+					</sequence>
+				</spawn>
+			</action>
+		</sprite>
+	);
 
-	const body = Body(bodyDef, world, Vec2(x, 0));
-	body.order = ItemLayer;
-	body.group = ItemGroup;
+	if (!sprite) return false;
+
+	const body = toNode(
+		<body
+			type={BodyMoveType.Dynamic} world={world} linearAcceleration={Vec2(0, -10)}
+			x={x} order={ItemLayer} group={ItemGroup}>
+			<rect-fixture width={sprite.width * 0.5} height={sprite.height}/>
+			<rect-fixture sensorTag={0} width={sprite.width} height={sprite.height}/>
+		</body>
+	);
+
+	if (!body) return false;
+
+	const itemBody = body as Body.Type;
 	body.addChild(sprite);
-
 	body.slot(Slot.BodyEnter, item => {
 		if (tolua.type(item) === TypeName.Unit) {
 			self.picked = true;
-			body.group = Data.groupHide;
-			body.schedule(once(() => {
+			itemBody.group = Data.groupHide;
+			itemBody.schedule(once(() => {
 				sleep(sprite.runAction(Spawn(
 					Scale(0.2, 1, 1.3, Ease.OutBack),
 					Opacity(0.2, 1, 0)
@@ -327,15 +331,15 @@ function loadExcel(this: void) {
 				icon: st.Icon,
 				desc: st.Desc,
 				item: true
-			}
+			};
 			Entity(item);
 		}
 	}
 }
 
-import * as AlignNode from "UI/Control/Basic/AlignNode";
-import * as CircleButton from "UI/Control/Basic/CircleButton";
-import { HAlignMode, VAlignMode } from 'UI/Control/Basic/AlignNode';
+import * as AlignNodeCreate from "UI/Control/Basic/AlignNode";
+import * as CircleButtonCreate from "UI/Control/Basic/CircleButton";
+import { HAlignMode, VAlignMode, AlignNode } from 'UI/Control/Basic/AlignNode';
 import { SetCond, WindowFlag } from 'ImGui';
 import * as ImGui from 'ImGui';
 
@@ -353,95 +357,83 @@ function updatePlayerControl(this: void, key: string, flag: boolean, vpad: boole
 }
 
 const uiScale = App.devicePixelRatio;
-const alignNode = AlignNode({
-	isRoot: true,
-	inUI: true
-});
-Director.ui.addChild(alignNode);
 
-const leftAlign = AlignNode({
-	hAlign: HAlignMode.Left,
-	vAlign: VAlignMode.Bottom
-});
-alignNode.addChild(leftAlign);
+interface AlignNodeProps extends JSX.Node {
+	root?: boolean;
+	ui?: boolean;
+	hAlign?: HAlignMode;
+	vAlign?: VAlignMode;
+}
 
-const leftMenu = Menu();
-leftAlign.addChild(leftMenu);
+function AlignNode(props: AlignNodeProps) {
+	return <custom-node onCreate={() => AlignNodeCreate({
+		isRoot: props.root,
+		inUI: props.ui,
+		hAlign: props.hAlign,
+		vAlign: props.vAlign
+	})} {...props}/>;
+}
 
-const leftButton = CircleButton({
-	text: "左(a)",
-	x: 20 * uiScale,
-	y: 60 * uiScale,
-	radius: 30 * uiScale,
-	fontSize: math.floor(18 * uiScale)
-});
-leftButton.anchor = Vec2.zero;
-leftButton.slot(Slot.TapBegan, () => {
-	updatePlayerControl("keyLeft", true, true);
-});
-leftButton.slot(Slot.TapEnded, () => {
-	updatePlayerControl("keyLeft", false, true);
-});
-leftMenu.addChild(leftButton);
+interface CircleButtonProps extends JSX.Node {
+	text: string;
+}
 
-const rightButton = CircleButton({
-	text: "右(d)",
-	x: 90 * uiScale,
-	y: 60 * uiScale,
-	radius: 30 * uiScale,
-	fontSize: math.floor(18 * uiScale)
-});
-rightButton.anchor = Vec2.zero;
-rightButton.slot(Slot.TapBegan, () => {
-	updatePlayerControl("keyRight", true, true);
-});
-rightButton.slot(Slot.TapEnded, () => {
-	updatePlayerControl("keyRight", false, true);
-});
-leftMenu.addChild(rightButton);
+function CircleButton(props: CircleButtonProps) {
+	return <custom-node onCreate={() => CircleButtonCreate({
+		text: props.text,
+		radius: 30 * uiScale,
+		fontSize: math.floor(18 * uiScale)
+	})} {...props}/>
+}
 
-const rightAlign = AlignNode({
-	hAlign: HAlignMode.Right,
-	vAlign: VAlignMode.Bottom
-});
-alignNode.addChild(rightAlign);
+const ui = toNode(
+	<AlignNode root ui>
+		<AlignNode hAlign={HAlignMode.Left} vAlign={VAlignMode.Bottom}>
+			<menu>
+				<CircleButton
+					text={"Left\n(a)"} x={20 * uiScale} y={60 * uiScale} anchorX={0} anchorY={0}
+					onTapBegan={() => updatePlayerControl("keyLeft", true, true)}
+					onTapEnded={() => updatePlayerControl("keyLeft", false, true)}
+				/>
+				<CircleButton
+					text={"Right\n(a)"} x={90 * uiScale} y={60 * uiScale} anchorX={0} anchorY={0}
+					onTapBegan={() => updatePlayerControl("keyRight", true, true)}
+					onTapEnded={() => updatePlayerControl("keyRight", false, true)}
+				/>
+			</menu>
+		</AlignNode>
+		<AlignNode hAlign={HAlignMode.Right} vAlign={VAlignMode.Bottom}>
+			<menu>
+				<CircleButton
+					text={"Jump\n(j)"} x={-80 * uiScale} y={60 * uiScale} anchorX={0} anchorY={0}
+					onTapBegan={() => updatePlayerControl("keyJump", true, true)}
+					onTapEnded={() => updatePlayerControl("keyJump", false, true)}
+				/>
+			</menu>
+		</AlignNode>
+	</AlignNode>
+);
 
-const rightMenu = Menu();
-rightAlign.addChild(rightMenu);
-
-const jumpButton = CircleButton({
-	text: "跳(j)",
-	x: -80 * uiScale,
-	y: 60 * uiScale,
-	radius: 30 * uiScale,
-	fontSize: math.floor(18 * uiScale)
-});
-jumpButton.anchor = Vec2.zero;
-jumpButton.slot(Slot.TapBegan, () => {
-	updatePlayerControl("keyJump", true, true);
-});
-jumpButton.slot(Slot.TapEnded, () => {
-	updatePlayerControl("keyJump", false, true);
-});
-rightMenu.addChild(jumpButton);
-
-alignNode.alignLayout();
-
-alignNode.schedule(() => {
-	const keyA = Keyboard.isKeyPressed(KeyName.A);
-	const keyD = Keyboard.isKeyPressed(KeyName.D);
-	const keyJ = Keyboard.isKeyPressed(KeyName.J);
-	if (keyD || keyD || keyJ) {
-		keyboardEnabled = true;
-	}
-	if (!keyboardEnabled) {
+if (ui) {
+	const alignNode = ui as AlignNode.Type;
+	alignNode.addTo(Director.ui);
+	alignNode.alignLayout();
+	alignNode.schedule(() => {
+		const keyA = Keyboard.isKeyPressed(KeyName.A);
+		const keyD = Keyboard.isKeyPressed(KeyName.D);
+		const keyJ = Keyboard.isKeyPressed(KeyName.J);
+		if (keyD || keyD || keyJ) {
+			keyboardEnabled = true;
+		}
+		if (!keyboardEnabled) {
+			return false;
+		}
+		updatePlayerControl("keyLeft", keyA, false);
+		updatePlayerControl("keyRight", keyD, false);
+		updatePlayerControl("keyJump", keyJ, false);
 		return false;
-	}
-	updatePlayerControl("keyLeft", keyA, false);
-	updatePlayerControl("keyRight", keyD, false);
-	updatePlayerControl("keyJump", keyJ, false);
-	return false;
-});
+	});
+}
 
 const pickedItemGroup = Group(["picked"]);
 const windowFlags = [
@@ -473,8 +465,7 @@ Director.ui.schedule(() => {
 					item.num -= 1;
 					const sprite = Sprite(item.icon);
 					if (!sprite) return false;
-					sprite.scaleX = 0.5;
-					sprite.scaleY = 0.5;
+					sprite.scaleX = sprite.scaleY = 0.5;
 					sprite.perform(Spawn(
 						Opacity(1, 1, 0),
 						Y(1, 150, 250)
