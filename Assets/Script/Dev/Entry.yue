@@ -663,16 +663,11 @@ footerWindow = threadLoop ->
 	return unless showEntry
 
 	:width, :height = App.visualSize
-	SetNextWindowSize Vec2 170, 50
-	SetNextWindowPos if width >= 600
-		Vec2 width - 170, height - 50
-	else
-		Vec2 width, height
+	SetNextWindowSize Vec2 50, 50
+	SetNextWindowPos Vec2 width - 50, height - 50
 	PushStyleColor "WindowBg", transparant, -> Begin "Show", windowFlags, ->
-		if width >= 600
-			Columns 2, false
-			NextColumn!
-			if changed, showFooter := Checkbox zh and "开发" or "Dev", showFooter
+		if isInEntry or width >= 540
+			if changed, showFooter := Checkbox "##dev", showFooter
 				config.showFooter = showFooter and 1 or 0
 
 	if isInEntry and

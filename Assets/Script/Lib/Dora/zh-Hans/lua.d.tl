@@ -934,11 +934,6 @@ local record lua
 		-- @return (any, boolean) 用户值和一个布尔状态。
 		getuservalue: function(u: Userdata, n: number): any, boolean
 
-		-- 为C栈设置新限制。
-		-- @param limit (number) 新C栈限制。
-		-- @return (boolean | number) 如果无效则为false，或旧限制。
-		setcstacklimit: function(limit: number): boolean | number
-
 		-- 设置调试钩子函数。
 		-- @param thread (thread) [可选] 要操作的线程。
 		-- @param hook (function) 钩子函数。
