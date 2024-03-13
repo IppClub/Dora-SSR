@@ -935,11 +935,6 @@ local record lua
 		-- @return (any, boolean) The user value and a boolean status.
 		getuservalue: function(u: Userdata, n: number): any, boolean
 
-		-- Sets a new limit for the C stack.
-		-- @param limit (number) The new C stack limit.
-		-- @return (boolean | number) False if invalid, or the old limit.
-		setcstacklimit: function(limit: number): boolean | number
-
 		-- Sets a debug hook function.
 		-- @param thread (thread) [optional] The thread to operate over.
 		-- @param hook (function) The hook function.

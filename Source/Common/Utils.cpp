@@ -76,7 +76,11 @@ std::string Path::concat(const std::list<Slice>& paths) {
 	fs::path path = paths.front().toString();
 	for (auto it = ++paths.begin(); it != paths.end(); ++it) {
 		if (it->empty()) continue;
-		path /= it->toString();
+		if (path.empty()) {
+			path = it->toString();
+		} else {
+			path /= it->toString();
+		}
 	}
 	return path.string();
 }

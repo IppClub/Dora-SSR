@@ -500,8 +500,9 @@ ImGuiDora::ImGuiDora()
 		e->get(name, msg, level, cost);
 		if (name == "Loader"_slice) {
 			const auto& assetPath = SharedContent.getAssetPath();
-			if (Slice(msg).left(assetPath.size()) == assetPath) {
-				msg = Path::concat({"assets"_slice, msg.substr(assetPath.size())});
+			auto relative = Path::getRelative(msg, assetPath);
+			if (!relative.empty() && !relative.starts_with(".."sv)) {
+				msg = Path::concat({"assets"_slice, relative});
 			}
 			if (level == 0) _loaderTotalTime += cost;
 			_loaderCosts.push_front({s_cast<int>(_loaderCosts.size()),
