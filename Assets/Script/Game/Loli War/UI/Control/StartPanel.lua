@@ -9,6 +9,15 @@ local ipairs = _G.ipairs -- 1
 local Rect = dora.Rect -- 1
 local _module_0 = nil -- 1
 local StartPanel = require("UI.View.StartPanel") -- 2
+local _anon_func_0 = function(button, self) -- 15
+	if self.fButton == button then -- 13
+		return "Flandre" -- 13
+	elseif self.vButton == button then -- 14
+		return "Villy" -- 14
+	elseif self.dButton == button then -- 15
+		return "Dorothy" -- 15
+	end -- 15
+end -- 12
 _module_0 = Class(StartPanel, { -- 5
 	__init = function(self) -- 5
 		local buttons = { -- 6
@@ -24,15 +33,7 @@ _module_0 = Class(StartPanel, { -- 5
 					local btn = buttons[_index_1] -- 10
 					btn.touchEnabled = false -- 11
 				end -- 11
-				return emit("PlayerSelect", (function() -- 12
-					if self.fButton == button then -- 13
-						return "Flandre" -- 13
-					elseif self.vButton == button then -- 14
-						return "Villy" -- 14
-					elseif self.dButton == button then -- 15
-						return "Dorothy" -- 15
-					end -- 15
-				end)()) -- 15
+				return emit("PlayerSelect", _anon_func_0(button, self)) -- 15
 			end) -- 8
 		end -- 15
 		self.node:schedule(function() -- 16

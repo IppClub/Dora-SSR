@@ -1,11 +1,11 @@
 -- [yue]: Script/Lib/YarnRunner.yue
 local tonumber = _G.tonumber -- 1
 local tostring = _G.tostring -- 1
+local setmetatable = _G.setmetatable -- 1
 local coroutine = _G.coroutine -- 1
 local load = _G.load -- 1
 local error = _G.error -- 1
 local pairs = _G.pairs -- 1
-local setmetatable = _G.setmetatable -- 1
 local getmetatable = _G.getmetatable -- 1
 local math = _G.math -- 1
 local _module_0 = nil -- 1

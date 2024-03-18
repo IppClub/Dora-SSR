@@ -301,8 +301,11 @@ export LintYueGlobals = (luaCodes, globals, globalInLocal = true) ->
 			[importItem, item]
 	else []
 	importSet = {}
+	globalSet = {}
 	for globalVar in *globals
-		[name, line, col] = globalVar
+		[name,] = globalVar
+		continue if globalSet[name]
+		globalSet[name] = true
 		continue if allowedUseOfGlobals[name]
 		if _G[name]
 			if globalInLocal

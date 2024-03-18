@@ -1,16 +1,16 @@
-local Group = require("Group")
-local Observer = require("Observer")
-local Scale = require("Scale")
-local Ease = require("Ease")
-local Roll = require("Roll")
-local Entity = require("Entity")
-local Sprite = require("Sprite")
-local Vec2 = require("Vec2")
-local Node = require("Node")
-local Sequence = require("Sequence")
-local Event = require("Event")
+local Group <const> = require("Group")
+local Observer <const> = require("Observer")
+local Scale <const> = require("Scale")
+local Ease <const> = require("Ease")
+local Roll <const> = require("Roll")
+local Entity <const> = require("Entity")
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local Node <const> = require("Node")
+local Sequence <const> = require("Sequence")
+local Event <const> = require("Event")
 
-local tolua = require("tolua")
+local tolua <const> = require("tolua")
 
 local sceneGroup = Group({ "scene" })
 local positionGroup = Group({ "position" })
@@ -29,6 +29,7 @@ Observer("Add", { "scene" }):watch(function(_entity, scene)
 			return false
 		end)
 	end)
+	return false
 end)
 
 Observer("Add", { "image" }):watch(function(self, image)
@@ -45,6 +46,7 @@ Observer("Add", { "image" }):watch(function(self, image)
 			return true
 		end
 	end)
+	return false
 end)
 
 Observer("Remove", { "sprite" }):watch(function(self)
@@ -52,10 +54,12 @@ Observer("Remove", { "sprite" }):watch(function(self)
 	if not (sprite == nil) then
 		sprite:removeFromParent()
 	end
+	return false
 end)
 
 Observer("Remove", { "target" }):watch(function(self)
 	print("remove target from entity " .. tostring(self.index))
+	return false
 end)
 
 Group({ "position", "direction", "speed", "target" }):watch(
@@ -73,6 +77,7 @@ function(self, position, _direction, speed, target)
 	if newPos == target then
 		self.target = nil
 	end
+	return false
 end)
 
 Observer("AddOrChange", { "position", "direction", "sprite" }):watch(
@@ -84,6 +89,7 @@ function(self, position, direction, sprite)
 			sprite:runAction(Roll(0.3, lastDirection, direction))
 		end
 	end
+	return false
 end)
 
 
@@ -96,7 +102,7 @@ end)
 Entity({ scene = Node() })
 
 do
-	local def = {
+	local def <const> = {
 		image = "Image/logo.png",
 		position = Vec2.zero,
 		direction = 45.0,
@@ -106,7 +112,7 @@ do
 end
 
 do
-	local def = {
+	local def <const> = {
 		image = "Image/logo.png",
 		position = Vec2(-100, 200),
 		direction = 90.0,
@@ -117,8 +123,8 @@ end
 
 
 
-local App = require("App")
-local ImGui = require("ImGui")
+local App <const> = require("App")
+local ImGui <const> = require("ImGui")
 
 local windowFlags = {
 	"NoDecoration",
@@ -141,7 +147,7 @@ Observer("Add", { "scene" }):watch(function(entity)
 				ImGui.Separator()
 				ImGui.TextWrapped("Tap any place to move entities.")
 				if ImGui.Button("Create Random Entity") then
-					local def = {
+					local def <const> = {
 						image = "Image/logo.png",
 						position = Vec2(6 * math.random(1, 100), 6 * math.random(1, 100)),
 						direction = 1.0 * math.random(0, 360),
@@ -170,4 +176,5 @@ Observer("Add", { "scene" }):watch(function(entity)
 			end)
 		end)
 	end
+	return false
 end)

@@ -1,18 +1,18 @@
-local DragonBone = require("DragonBone")
-local Label = require("Label")
-local App = require("App")
-local Sequence = require("Sequence")
-local Spawn = require("Spawn")
-local Scale = require("Scale")
-local Ease = require("Ease")
-local Delay = require("Delay")
-local Opacity = require("Opacity")
-local Event = require("Event")
-local Vec2 = require("Vec2")
-local threadLoop = require("threadLoop")
+local DragonBone <const> = require("DragonBone")
+local Label <const> = require("Label")
+local App <const> = require("App")
+local Sequence <const> = require("Sequence")
+local Spawn <const> = require("Spawn")
+local Scale <const> = require("Scale")
+local Ease <const> = require("Ease")
+local Delay <const> = require("Delay")
+local Opacity <const> = require("Opacity")
+local Event <const> = require("Event")
+local Vec2 <const> = require("Vec2")
+local threadLoop <const> = require("threadLoop")
 
 
-local boneStr = "DragonBones/NewDragon"
+local boneStr <const> = "DragonBones/NewDragon"
 local animations = DragonBone:getAnimations(boneStr)
 local looks = DragonBone:getLooks(boneStr)
 
@@ -61,7 +61,7 @@ end)
 
 
 
-local ImGui = require("ImGui")
+local ImGui <const> = require("ImGui")
 
 local windowFlags = {
 	"NoDecoration",

@@ -49,6 +49,13 @@ local camZoom = world.camera.zoom -- 18
 local decisions = { } -- 19
 local showDecisionTrace = false -- 20
 local lastDecisionTree = "" -- 21
+local _anon_func_0 = function(controlChoice) -- 126
+	if controlChoice == 1 then -- 126
+		return "Keyboard: Left(A), Right(D), Shoot(J), Jump(K)" -- 127
+	else -- 128
+		return "TouchPad: Use buttons in lower screen to control unit." -- 128
+	end -- 126
+end -- 126
 world:schedule(function() -- 22
 	local width, height -- 23
 	do -- 23
@@ -213,13 +220,7 @@ world:schedule(function() -- 22
 				Director.ui.children.first.visible = controlChoice == 0 -- 124
 			end -- 122
 			Separator() -- 125
-			TextWrapped((function() -- 126
-				if controlChoice == 1 then -- 126
-					return "Keyboard: Left(A), Right(D), Shoot(J), Jump(K)" -- 127
-				else -- 128
-					return "TouchPad: Use buttons in lower screen to control unit." -- 128
-				end -- 126
-			end)()) -- 126
+			TextWrapped(_anon_func_0(controlChoice)) -- 126
 			Separator() -- 129
 			pressedA, choice = RadioButton("TouchPad", controlChoice, 0) -- 130
 			if pressedA then -- 131

@@ -827,6 +827,28 @@ stop = function() -- 476
 	return true -- 481
 end -- 476
 _module_0["stop"] = stop -- 481
+local _anon_func_0 = function(Path, file, Content, require, type) -- 502
+	do -- 495
+		local scriptPath = Path:getPath(file) -- 495
+		Content:insertSearchPath(1, scriptPath) -- 496
+		scriptPath = Path(scriptPath, "Script") -- 497
+		if Content:exist(scriptPath) then -- 498
+			Content:insertSearchPath(1, scriptPath) -- 499
+		end -- 498
+		local result = require(file) -- 500
+		if "function" == type(result) then -- 501
+			result() -- 501
+		end -- 501
+		return nil -- 502
+	end -- 502
+end -- 495
+local _anon_func_1 = function(scroll, Label, fontSize, width, err) -- 532
+	local label = Label("sarasa-mono-sc-regular", fontSize) -- 529
+	label.alignment = "Left" -- 530
+	label.textWidth = width - fontSize -- 531
+	label.text = err -- 532
+	return label -- 529
+end -- 529
 local enterEntryAsync -- 483
 enterEntryAsync = function(entry) -- 483
 	isInEntry = false -- 484
@@ -841,19 +863,7 @@ enterEntryAsync = function(entry) -- 483
 		end -- 489
 	end -- 488
 	sleep() -- 493
-	return xpcall(function() -- 494
-		local scriptPath = Path:getPath(file) -- 495
-		Content:insertSearchPath(1, scriptPath) -- 496
-		scriptPath = Path(scriptPath, "Script") -- 497
-		if Content:exist(scriptPath) then -- 498
-			Content:insertSearchPath(1, scriptPath) -- 499
-		end -- 498
-		local result = require(file) -- 500
-		if "function" == type(result) then -- 501
-			result() -- 501
-		end -- 501
-		return nil -- 502
-	end, function(msg) -- 502
+	return xpcall(_anon_func_0, function(msg) -- 502
 		local err = debug.traceback(msg) -- 504
 		allClear() -- 505
 		print(err) -- 506
@@ -893,13 +903,7 @@ enterEntryAsync = function(entry) -- 483
 						scroll.view.children.first.textWidth = w - fontSize -- 527
 						return scroll:adjustSizeWithAlign("Auto", 10, Size(w, h)) -- 528
 					end) -- 523
-					scroll.view:addChild((function() -- 529
-						local label = Label("sarasa-mono-sc-regular", fontSize) -- 529
-						label.alignment = "Left" -- 530
-						label.textWidth = width - fontSize -- 531
-						label.text = err -- 532
-						return label -- 529
-					end)()) -- 529
+					scroll.view:addChild(_anon_func_1(scroll, Label, fontSize, width, err)) -- 529
 					return scroll -- 515
 				end)()) -- 515
 				return root -- 514
@@ -907,7 +911,7 @@ enterEntryAsync = function(entry) -- 483
 			_with_0:alignLayout() -- 533
 		end -- 513
 		return err -- 534
-	end) -- 534
+	end, Path, file, Content, require, type) -- 534
 end -- 483
 _module_0["enterEntryAsync"] = enterEntryAsync -- 534
 local enterDemoEntry -- 536
@@ -1048,6 +1052,20 @@ local windowFlags = { -- 612
 	"NoBringToFrontOnFocus" -- 617
 } -- 611
 local initFooter = true -- 618
+local _anon_func_2 = function(currentIndex, allEntries) -- 652
+	if currentIndex > 1 then -- 652
+		return allEntries[currentIndex - 1] -- 653
+	else -- 655
+		return allEntries[#allEntries] -- 655
+	end -- 652
+end -- 652
+local _anon_func_3 = function(currentIndex, allEntries) -- 659
+	if currentIndex < #allEntries then -- 659
+		return allEntries[currentIndex + 1] -- 660
+	else -- 662
+		return allEntries[1] -- 662
+	end -- 659
+end -- 659
 footerWindow = threadLoop(function() -- 619
 	local zh = useChinese and isChineseSupported -- 620
 	if HttpServer.wsConnectionCount > 0 then -- 621
@@ -1101,26 +1119,14 @@ footerWindow = threadLoop(function() -- 619
 			if currentIndex == nil then -- 651
 				currentIndex = #allEntries + 1 -- 651
 			end -- 651
-			enterDemoEntry((function() -- 652
-				if currentIndex > 1 then -- 652
-					return allEntries[currentIndex - 1] -- 653
-				else -- 655
-					return allEntries[#allEntries] -- 655
-				end -- 652
-			end)()) -- 652
+			enterDemoEntry(_anon_func_2(currentIndex, allEntries)) -- 652
 		end -- 649
 		if right then -- 656
 			allClear() -- 657
 			if currentIndex == nil then -- 658
 				currentIndex = 0 -- 658
 			end -- 658
-			enterDemoEntry((function() -- 659
-				if currentIndex < #allEntries then -- 659
-					return allEntries[currentIndex + 1] -- 660
-				else -- 662
-					return allEntries[1] -- 662
-				end -- 659
-			end)()) -- 659
+			enterDemoEntry(_anon_func_3(currentIndex, allEntries)) -- 659
 		end -- 656
 	end -- 662
 	if not showEntry then -- 663

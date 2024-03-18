@@ -1,10 +1,10 @@
-local Vec2 = require("Vec2")
-local threadLoop = require("threadLoop")
-local Node = require("Node")
-local DrawNode = require("DrawNode")
-local Color = require("Color")
-local App = require("App")
-local Line = require("Line")
+local Vec2 <const> = require("Vec2")
+local threadLoop <const> = require("threadLoop")
+local Node <const> = require("Node")
+local DrawNode <const> = require("DrawNode")
+local Color <const> = require("Color")
+local App <const> = require("App")
+local Line <const> = require("Line")
 
 local function CircleVertices(radius, verts)
 	if verts == nil then
@@ -95,7 +95,7 @@ cameraLine:addTo(camera)
 
 
 
-local ImGui = require("ImGui")
+local ImGui <const> = require("ImGui")
 
 local windowFlags = {
 	"NoDecoration",

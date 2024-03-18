@@ -1,13 +1,13 @@
-local Vec2 = require("Vec2")
-local PhysicsWorld = require("PhysicsWorld")
-local Label = require("Label")
-local BodyDef = require("BodyDef")
-local Body = require("Body")
-local Line = require("Line")
-local App = require("App")
-local threadLoop = require("threadLoop")
+local Vec2 <const> = require("Vec2")
+local PhysicsWorld <const> = require("PhysicsWorld")
+local Label <const> = require("Label")
+local BodyDef <const> = require("BodyDef")
+local Body <const> = require("Body")
+local Line <const> = require("Line")
+local App <const> = require("App")
+local threadLoop <const> = require("threadLoop")
 
-local gravity = Vec2(0, -10)
+local gravity <const> = Vec2(0, -10)
 
 local world = PhysicsWorld()
 world:setShouldContact(0, 0, true)
@@ -17,8 +17,8 @@ local label = Label("sarasa-mono-sc-regular", 30)
 label:addTo(world)
 
 local terrainDef = BodyDef()
-local count = 50
-local radius = 300
+local count <const> = 50
+local radius <const> = 300
 local vertices = {}
 local index = 1
 for i = 1, count + 1 do
@@ -58,7 +58,7 @@ end)
 
 
 
-local ImGui = require("ImGui")
+local ImGui <const> = require("ImGui")
 
 local windowFlags = {
 	"NoDecoration",

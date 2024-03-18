@@ -1,7 +1,7 @@
-local threadLoop = require("threadLoop")
-local Node = require("Node")
-local once = require("once")
-local sleep = require("sleep")
+local threadLoop <const> = require("threadLoop")
+local Node <const> = require("Node")
+local once <const> = require("once")
+local sleep <const> = require("sleep")
 
 local node = Node()
 node:slot("Enter", function()

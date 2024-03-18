@@ -1,15 +1,15 @@
-local Vec2 = require("Vec2")
-local DrawNode = require("DrawNode")
-local Model = require("Model")
-local Sequence = require("Sequence")
-local X = require("X")
-local Event = require("Event")
-local Node = require("Node")
-local ClipNode = require("ClipNode")
-local Line = require("Line")
-local App = require("App")
-local threadLoop = require("threadLoop")
-local Action = require("Action")
+local Vec2 <const> = require("Vec2")
+local DrawNode <const> = require("DrawNode")
+local Model <const> = require("Model")
+local Sequence <const> = require("Sequence")
+local X <const> = require("X")
+local Event <const> = require("Event")
+local Node <const> = require("Node")
+local ClipNode <const> = require("ClipNode")
+local Line <const> = require("Line")
+local App <const> = require("App")
+local threadLoop <const> = require("threadLoop")
+local Action <const> = require("Action")
 
 local function StarVertices(radius, line)
 	local a = math.rad(36)
@@ -87,7 +87,7 @@ exampleB:addChild(clipNodeB)
 
 
 
-local ImGui = require("ImGui")
+local ImGui <const> = require("ImGui")
 
 local inverted = true
 local withAlphaThreshold = true

@@ -1,14 +1,14 @@
-local Node = require("Node")
-local Vec2 = require("Vec2")
-local Sprite = require("Sprite")
-local DrawNode = require("DrawNode")
-local Color = require("Color")
-local App = require("App")
-local Line = require("Line")
-local Angle = require("Angle")
-local Size = require("Size")
-local threadLoop = require("threadLoop")
-local Action = require("Action")
+local Node <const> = require("Node")
+local Vec2 <const> = require("Vec2")
+local Sprite <const> = require("Sprite")
+local DrawNode <const> = require("DrawNode")
+local Color <const> = require("Color")
+local App <const> = require("App")
+local Line <const> = require("Line")
+local Angle <const> = require("Angle")
+local Size <const> = require("Size")
+local threadLoop <const> = require("threadLoop")
+local Action <const> = require("Action")
 
 local function Item()
 	local node = Node()
@@ -64,7 +64,7 @@ currentEntry:alignItems()
 
 
 
-local ImGui = require("ImGui")
+local ImGui <const> = require("ImGui")
 
 local renderGroup = currentEntry.renderGroup
 local windowFlags = {

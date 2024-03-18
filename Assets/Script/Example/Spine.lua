@@ -3,22 +3,33 @@ local Spine = dora.Spine -- 1
 local p = _G.p -- 1
 local print = _G.print -- 1
 local tostring = _G.tostring -- 1
-local Label = dora.Label -- 1
-local App = dora.App -- 1
-local Sequence = dora.Sequence -- 1
-local Spawn = dora.Spawn -- 1
-local Scale = dora.Scale -- 1
 local Ease = dora.Ease -- 1
 local Delay = dora.Delay -- 1
-local Opacity = dora.Opacity -- 1
-local Event = dora.Event -- 1
 local Vec2 = dora.Vec2 -- 1
+local Event = dora.Event -- 1
+local Opacity = dora.Opacity -- 1
+local Spawn = dora.Spawn -- 1
+local Sequence = dora.Sequence -- 1
+local App = dora.App -- 1
+local Label = dora.Label -- 1
+local Scale = dora.Scale -- 1
 local threadLoop = dora.threadLoop -- 1
 local ImGui = dora.ImGui -- 1
 local spineStr = "Spine/dragon-ess" -- 3
 local animations = Spine:getAnimations(spineStr) -- 5
 local looks = Spine:getLooks(spineStr) -- 6
 p(animations, looks) -- 8
+local _anon_func_0 = function(_with_0, Label, name, App, Sequence, Spawn, Scale, Ease, Delay, Opacity, Event, Vec2, x, y) -- 29
+	local _with_1 = Label("sarasa-mono-sc-regular", 30) -- 18
+	_with_1.text = name -- 19
+	_with_1.color = App.themeColor -- 20
+	_with_1:perform(Sequence(Spawn(Scale(1, 0, 2, Ease.OutQuad), Sequence(Delay(0.5), Opacity(0.5, 1, 0))), Event("Stop"))) -- 21
+	_with_1.position = Vec2(x, y) -- 28
+	_with_1:slot("Stop", function() -- 29
+		return _with_1:removeFromParent() -- 29
+	end) -- 29
+	return _with_1 -- 18
+end -- 18
 local spine -- 10
 do -- 10
 	local _with_0 = Spine(spineStr) -- 10
@@ -37,17 +48,7 @@ do -- 10
 		do -- 17
 			local name = _with_0:containsPoint(x, y) -- 17
 			if name then -- 17
-				return _with_0:addChild((function() -- 18
-					local _with_1 = Label("sarasa-mono-sc-regular", 30) -- 18
-					_with_1.text = name -- 19
-					_with_1.color = App.themeColor -- 20
-					_with_1:perform(Sequence(Spawn(Scale(1, 0, 2, Ease.OutQuad), Sequence(Delay(0.5), Opacity(0.5, 1, 0))), Event("Stop"))) -- 21
-					_with_1.position = Vec2(x, y) -- 28
-					_with_1:slot("Stop", function() -- 29
-						return _with_1:removeFromParent() -- 29
-					end) -- 29
-					return _with_1 -- 18
-				end)()) -- 29
+				return _with_0:addChild(_anon_func_0(_with_0, Label, name, App, Sequence, Spawn, Scale, Ease, Delay, Opacity, Event, Vec2, x, y)) -- 29
 			end -- 17
 		end -- 17
 	end) -- 15

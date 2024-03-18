@@ -1,13 +1,13 @@
-local Director = require("Director")
-local Node = require("Node")
-local Model = require("Model")
-local once = require("once")
-local cycle = require("cycle")
-local Sprite = require("Sprite")
-local Vec2 = require("Vec2")
-local Ease = require("Ease")
-local Camera2D = require("Camera2D")
-local threadLoop = require("threadLoop")
+local Director <const> = require("Director")
+local Node <const> = require("Node")
+local Model <const> = require("Model")
+local once <const> = require("once")
+local cycle <const> = require("cycle")
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local Ease <const> = require("Ease")
+local Camera2D <const> = require("Camera2D")
+local threadLoop <const> = require("threadLoop")
 
 local node = Node()
 
@@ -52,8 +52,8 @@ end))
 
 
 
-local App = require("App")
-local ImGui = require("ImGui")
+local App <const> = require("App")
+local ImGui <const> = require("ImGui")
 
 local windowFlags = {
 	"NoDecoration",

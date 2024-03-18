@@ -34,7 +34,7 @@ do -- 6
 				entity.target = location -- 12
 			end) -- 12
 		end) -- 9
-		return scene -- 7
+		return false -- 12
 	end) -- 7
 end -- 6
 do -- 14
@@ -42,7 +42,7 @@ do -- 14
 		"image" -- 14
 	}) -- 14
 	_with_0:watch(function(self, image) -- 15
-		return sceneGroup:each(function(e) -- 15
+		sceneGroup:each(function(e) -- 15
 			do -- 16
 				local _with_1 = Sprite(image) -- 16
 				self.sprite = _with_1 -- 16
@@ -50,7 +50,8 @@ do -- 14
 				_with_1:runAction(Scale(0.5, 0, 0.5, Ease.OutBack)) -- 18
 			end -- 16
 			return true -- 19
-		end) -- 19
+		end) -- 15
+		return false -- 19
 	end) -- 15
 end -- 14
 do -- 21
@@ -90,6 +91,7 @@ do -- 27
 		if newPos == target then -- 37
 			self.target = nil -- 37
 		end -- 37
+		return false -- 37
 	end) -- 28
 end -- 27
 do -- 39
@@ -102,8 +104,9 @@ do -- 39
 		sprite.position = position -- 41
 		local lastDirection = self.oldValues.direction or sprite.angle -- 42
 		if math.abs(direction - lastDirection) > 1 then -- 43
-			return sprite:runAction(Roll(0.3, lastDirection, direction)) -- 44
+			sprite:runAction(Roll(0.3, lastDirection, direction)) -- 44
 		end -- 43
+		return false -- 44
 	end) -- 40
 end -- 39
 Entity({ -- 47
