@@ -288,7 +288,8 @@ public:
 					}
 				}
 #endif // YUE_NO_MACRO
-				return {std::move(out.back()), std::nullopt, std::move(globals), std::move(options), parseTime, compileTime, _varArgs.top().usedVar};
+				bool usedVar = _varArgs.top().usedVar;
+				return {std::move(out.back()), std::nullopt, std::move(globals), std::move(options), parseTime, compileTime, usedVar};
 			} catch (const CompileError& error) {
 				auto displayMessage = _info.errorMessage(error.what(), error.line, error.col, _config.lineOffset);
 				return {
@@ -300,7 +301,7 @@ public:
 						displayMessage},
 					std::move(globals),
 					std::move(options),
-					parseTime, compileTime, _varArgs.top().usedVar};
+					parseTime, compileTime, false};
 			}
 		} else {
 			const auto& error = _info.error.value();
@@ -314,7 +315,7 @@ public:
 						""},
 					std::move(globals),
 					std::move(options),
-					parseTime, compileTime, _varArgs.top().usedVar};
+					parseTime, compileTime, false};
 			}
 			auto displayMessage = _info.errorMessage(error.msg, error.line, error.col, _config.lineOffset);
 			return {
@@ -326,7 +327,7 @@ public:
 					displayMessage},
 				std::move(globals),
 				std::move(options),
-				parseTime, compileTime, _varArgs.top().usedVar};
+				parseTime, compileTime, false};
 		}
 	}
 
