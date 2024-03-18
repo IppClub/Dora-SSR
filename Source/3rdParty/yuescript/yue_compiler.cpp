@@ -4281,9 +4281,9 @@ private:
 								finalArgs.push_back(arg);
 							}
 						}
-						auto newBlock = toAst<Block_t>(funcName + '(' + join(finalArgs, ","sv) + ')', x);
+						newBlock->statements.push_back(toAst<Statement_t>(funcName + ' ' + join(finalArgs, ","sv), x));
 						auto sVal = singleValueFrom(static_cast<Statement_t*>(newBlock->statements.back())->content.to<ExpListAssign_t>()->expList);
-						ast_to<Invoke_t>(sVal->item.to<ChainValue_t>()->items.back())->args.dup(newInvoke->args);
+						ast_to<InvokeArgs_t>(sVal->item.to<ChainValue_t>()->items.back())->args.dup(newInvoke->args);
 						transformBlock(newBlock, out, usage, assignList, isRoot);
 						return;
 					}
@@ -5638,10 +5638,27 @@ private:
 							}
 							chainValue->items.push_back(toAst<Exp_t>('\"' + name + '\"', x));
 							if (auto invoke = ast_cast<Invoke_t>(followItem)) {
-								invoke->args.push_front(toAst<Exp_t>(callVar, x));
+								auto newInvoke = x->new_ptr<Invoke_t>();
+								newInvoke->args.push_back(toAst<Exp_t>(callVar, x));
+								newInvoke->args.dup(invoke->args);
+								chainValue->items.push_back(newInvoke);
+								++next;
 							} else {
 								auto invokeArgs = static_cast<InvokeArgs_t*>(followItem);
-								invokeArgs->args.push_front(toAst<Exp_t>(callVar, x));
+								auto newInvokeArgs = x->new_ptr<InvokeArgs_t>();
+								newInvokeArgs->args.push_back(toAst<Exp_t>(callVar, x));
+								newInvokeArgs->args.dup(invokeArgs->args);
+								chainValue->items.push_back(newInvokeArgs);
+								++next;
+								if (next != chainList.end()) {
+									auto paren = x->new_ptr<Parens_t>();
+									paren->expr.set(newExp(chainValue, x));
+									auto ncallable = x->new_ptr<Callable_t>();
+									ncallable->item.set(paren);
+									auto nchainValue = x->new_ptr<ChainValue_t>();
+									nchainValue->items.push_back(ncallable);
+									chainValue.set(nchainValue);
+								}
 							}
 							for (auto i = next; i != chainList.end(); ++i) {
 								chainValue->items.push_back(*i);
