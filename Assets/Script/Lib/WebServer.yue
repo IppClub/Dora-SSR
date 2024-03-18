@@ -47,6 +47,7 @@ disabledCheckForLua =
 	* "<invalid type>"
 	* "using the '#' operator on this map will always return 0"
 	* "can't match a record to a map with non%-string keys"
+	* "redeclaration of variable"
 
 yueCheck = (file, content) ->
 	searchPath = getSearchPath file
