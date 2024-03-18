@@ -82,6 +82,23 @@ local center = AlignNode({ -- 37
 	hAlign = "Center", -- 37
 	vAlign = "Center" -- 37
 }) -- 37
+local _anon_func_0 = function(_with_1, Grid, Vec2, w, h) -- 55
+	local _with_0 = Grid("Model/duality.clip|space", 1, 1) -- 49
+	_with_0:moveUV(1, 1, Vec2(1, 1)) -- 50
+	_with_0:moveUV(2, 1, Vec2(-1, 1)) -- 51
+	_with_0:moveUV(1, 2, Vec2(1, -1)) -- 52
+	_with_0:moveUV(2, 2, Vec2(-1, -1)) -- 53
+	_with_0.scaleX = w / 8 -- 54
+	_with_0.scaleY = h / 1078 -- 55
+	return _with_0 -- 49
+end -- 49
+local _anon_func_1 = function(_with_2, Sprite, x, y) -- 63
+	local _with_0 = Sprite("Model/duality.clip|stary") -- 60
+	_with_0.anchorX = 0 -- 61
+	_with_0.x = -3000 + (x - 1) * 1000 -- 62
+	_with_0.y = 3000 - (y - 1) * 1000 -- 63
+	return _with_0 -- 60
+end -- 60
 do -- 38
 	local _with_0 = AlignNode({ -- 38
 		isRoot = true, -- 38
@@ -100,29 +117,14 @@ do -- 38
 			local _with_1 = Node() -- 46
 			_with_1.visible = isSpace -- 47
 			_with_1.order = -1 -- 48
-			_with_1:addChild((function() -- 49
-				local _with_2 = Grid("Model/duality.clip|space", 1, 1) -- 49
-				_with_2:moveUV(1, 1, Vec2(1, 1)) -- 50
-				_with_2:moveUV(2, 1, Vec2(-1, 1)) -- 51
-				_with_2:moveUV(1, 2, Vec2(1, -1)) -- 52
-				_with_2:moveUV(2, 2, Vec2(-1, -1)) -- 53
-				_with_2.scaleX = w / 8 -- 54
-				_with_2.scaleY = h / 1078 -- 55
-				return _with_2 -- 49
-			end)()) -- 49
+			_with_1:addChild(_anon_func_0(_with_1, Grid, Vec2, w, h)) -- 49
 			_with_1:addChild((function() -- 56
 				local _with_2 = Node() -- 56
 				_with_2.scaleX = worldScale -- 57
 				_with_2.scaleY = worldScale -- 58
 				for y = 1, 8 do -- 59
 					for x = 1, 8 do -- 59
-						_with_2:addChild((function() -- 60
-							local _with_3 = Sprite("Model/duality.clip|stary") -- 60
-							_with_3.anchorX = 0 -- 61
-							_with_3.x = -3000 + (x - 1) * 1000 -- 62
-							_with_3.y = 3000 - (y - 1) * 1000 -- 63
-							return _with_3 -- 60
-						end)()) -- 60
+						_with_2:addChild(_anon_func_1(_with_2, Sprite, x, y)) -- 60
 					end -- 63
 				end -- 63
 				_with_2:perform(X(10, 0, -1000 * worldScale)) -- 64
@@ -290,6 +292,24 @@ switchScene = function() -- 148
 end -- 148
 local restartScene = nil -- 202
 local gameEnded = false -- 203
+local _anon_func_2 = function(_with_0, Label, Color) -- 234
+	local _with_1 = Label("sarasa-mono-sc-regular", 80) -- 231
+	_with_1.textAlign = "Center" -- 232
+	_with_1.color = Color(0x66ffffff) -- 233
+	_with_1.text = "Drag It\nHere" -- 234
+	return _with_1 -- 231
+end -- 231
+local _anon_func_3 = function(_with_1, Node, Sprite, body, Sequence, Spawn, Scale, Ease, Opacity, Delay, Event) -- 269
+	local _with_0 = Node() -- 256
+	_with_0:addChild(Sprite("Model/duality.clip|window")) -- 257
+	_with_0:addChild(Sprite("Model/duality.clip|credits1")) -- 258
+	_with_0.position = body.position -- 259
+	_with_0:perform(Sequence(Spawn(Scale(0.5, 0, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(3), Scale(0.5, 1, 0, Ease.InBack), Event("End"))) -- 260
+	_with_0:slot("End", function() -- 269
+		return _with_0:removeFromParent() -- 269
+	end) -- 269
+	return _with_0 -- 256
+end -- 256
 local buildScene -- 204
 buildScene = function() -- 204
 	for i = 1, scene:count() do -- 205
@@ -335,13 +355,7 @@ buildScene = function() -- 204
 					height = 400, -- 230
 					color = 0x66000000 -- 230
 				})) -- 230
-				_with_0:addChild((function() -- 231
-					local _with_1 = Label("sarasa-mono-sc-regular", 80) -- 231
-					_with_1.textAlign = "Center" -- 232
-					_with_1.color = Color(0x66ffffff) -- 233
-					_with_1.text = "Drag It\nHere" -- 234
-					return _with_1 -- 231
-				end)()) -- 231
+				_with_0:addChild(_anon_func_2(_with_0, Label, Color)) -- 231
 				_with_0:slot("BodyEnter", function(body) -- 235
 					if body.tag ~= "" and body.tag ~= (isSpace and "space" or "daily") then -- 236
 						return -- 236
@@ -365,17 +379,7 @@ buildScene = function() -- 204
 								score = score + 100 -- 253
 							elseif "credit" == _exp_0 then -- 254
 								score = score + 50 -- 255
-								world:addChild((function() -- 256
-									local _with_2 = Node() -- 256
-									_with_2:addChild(Sprite("Model/duality.clip|window")) -- 257
-									_with_2:addChild(Sprite("Model/duality.clip|credits1")) -- 258
-									_with_2.position = body.position -- 259
-									_with_2:perform(Sequence(Spawn(Scale(0.5, 0, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(3), Scale(0.5, 1, 0, Ease.InBack), Event("End"))) -- 260
-									_with_2:slot("End", function() -- 269
-										return _with_2:removeFromParent() -- 269
-									end) -- 269
-									return _with_2 -- 256
-								end)()) -- 256
+								world:addChild(_anon_func_3(_with_1, Node, Sprite, body, Sequence, Spawn, Scale, Ease, Opacity, Delay, Event)) -- 256
 							else -- 271
 								score = score + 10 -- 271
 							end -- 271

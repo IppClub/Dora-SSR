@@ -10661,6 +10661,8 @@ function tl.target_from_lua_version(str)
 		return "5.3"
 	elseif str == "Lua 5.4" then
 		return "5.4"
+	elseif str == "Lua 5.5" then
+		return "5.4"
 	end
 end
 

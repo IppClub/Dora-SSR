@@ -1,16 +1,16 @@
-local Node = require("Node")
-local Spine = require("Spine")
-local Sequence = require("Sequence")
-local X = require("X")
-local Event = require("Event")
-local RenderTarget = require("RenderTarget")
-local Color = require("Color")
-local App = require("App")
-local Sprite = require("Sprite")
-local Line = require("Line")
-local Vec2 = require("Vec2")
-local threadLoop = require("threadLoop")
-local Action = require("Action")
+local Node <const> = require("Node")
+local Spine <const> = require("Spine")
+local Sequence <const> = require("Sequence")
+local X <const> = require("X")
+local Event <const> = require("Event")
+local RenderTarget <const> = require("RenderTarget")
+local Color <const> = require("Color")
+local App <const> = require("App")
+local Sprite <const> = require("Sprite")
+local Line <const> = require("Line")
+local Vec2 <const> = require("Vec2")
+local threadLoop <const> = require("threadLoop")
+local Action <const> = require("Action")
 
 local root = Node()
 
@@ -65,7 +65,7 @@ surface:addTo(root)
 
 
 
-local ImGui = require("ImGui")
+local ImGui <const> = require("ImGui")
 
 local windowFlags = {
 	"NoDecoration",

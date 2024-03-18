@@ -3,50 +3,53 @@ local Class = dora.Class -- 1
 local Node = dora.Node -- 1
 local Vec2 = dora.Vec2 -- 1
 local Sprite = dora.Sprite -- 1
-local DrawNode = dora.DrawNode -- 1
-local Color = dora.Color -- 1
 local App = dora.App -- 1
+local Color = dora.Color -- 1
+local DrawNode = dora.DrawNode -- 1
 local Line = dora.Line -- 1
 local Angle = dora.Angle -- 1
 local Size = dora.Size -- 1
 local threadLoop = dora.threadLoop -- 1
 local ImGui = dora.ImGui -- 1
+local _anon_func_0 = function(Sprite) -- 12
+	local _with_0 = Sprite("Image/logo.png") -- 9
+	_with_0.scaleX = 0.1 -- 10
+	_with_0.scaleY = 0.1 -- 11
+	_with_0.renderOrder = 1 -- 12
+	return _with_0 -- 9
+end -- 9
+local _anon_func_1 = function(DrawNode, Vec2, Color, App) -- 22
+	local _with_0 = DrawNode() -- 14
+	_with_0:drawPolygon({ -- 16
+		Vec2(-60, -60), -- 16
+		Vec2(60, -60), -- 17
+		Vec2(60, 60), -- 18
+		Vec2(-60, 60) -- 19
+	}, Color(App.themeColor:toColor3(), 0x30)) -- 15
+	_with_0.renderOrder = 2 -- 21
+	_with_0.angle = 45 -- 22
+	return _with_0 -- 14
+end -- 14
+local _anon_func_2 = function(Line, Vec2, Color) -- 32
+	local _with_0 = Line({ -- 25
+		Vec2(-60, -60), -- 25
+		Vec2(60, -60), -- 26
+		Vec2(60, 60), -- 27
+		Vec2(-60, 60), -- 28
+		Vec2(-60, -60) -- 29
+	}, Color(0xffff0080)) -- 24
+	_with_0.renderOrder = 3 -- 31
+	_with_0.angle = 45 -- 32
+	return _with_0 -- 24
+end -- 24
 local Item = Class(Node, { -- 4
 	__init = function(self) -- 4
 		self.width = 144 -- 5
 		self.height = 144 -- 6
 		self.anchor = Vec2.zero -- 7
-		self:addChild((function() -- 9
-			local _with_0 = Sprite("Image/logo.png") -- 9
-			_with_0.scaleX = 0.1 -- 10
-			_with_0.scaleY = 0.1 -- 11
-			_with_0.renderOrder = 1 -- 12
-			return _with_0 -- 9
-		end)()) -- 9
-		self:addChild((function() -- 14
-			local _with_0 = DrawNode() -- 14
-			_with_0:drawPolygon({ -- 16
-				Vec2(-60, -60), -- 16
-				Vec2(60, -60), -- 17
-				Vec2(60, 60), -- 18
-				Vec2(-60, 60) -- 19
-			}, Color(App.themeColor:toColor3(), 0x30)) -- 15
-			_with_0.renderOrder = 2 -- 21
-			_with_0.angle = 45 -- 22
-			return _with_0 -- 14
-		end)()) -- 14
-		self:addChild((function() -- 24
-			local _with_0 = Line({ -- 25
-				Vec2(-60, -60), -- 25
-				Vec2(60, -60), -- 26
-				Vec2(60, 60), -- 27
-				Vec2(-60, 60), -- 28
-				Vec2(-60, -60) -- 29
-			}, Color(0xffff0080)) -- 24
-			_with_0.renderOrder = 3 -- 31
-			_with_0.angle = 45 -- 32
-			return _with_0 -- 24
-		end)()) -- 24
+		self:addChild(_anon_func_0(Sprite)) -- 9
+		self:addChild(_anon_func_1(DrawNode, Vec2, Color, App)) -- 14
+		self:addChild(_anon_func_2(Line, Vec2, Color)) -- 24
 		self:runAction(Angle(5, 0, 360)) -- 34
 		return self:slot("ActionEnd", function(action) -- 35
 			return self:runAction(action) -- 35

@@ -1,12 +1,12 @@
-local threadLoop = require("threadLoop")
-local Node = require("Node")
-local Label = require("Label")
-local Sequence = require("Sequence")
-local Delay = require("Delay")
-local Scale = require("Scale")
-local App = require("App")
-local Vec2 = require("Vec2")
-local Opacity = require("Opacity")
+local threadLoop <const> = require("threadLoop")
+local Node <const> = require("Node")
+local Label <const> = require("Label")
+local Sequence <const> = require("Sequence")
+local Delay <const> = require("Delay")
+local Scale <const> = require("Scale")
+local App <const> = require("App")
+local Vec2 <const> = require("Vec2")
+local Opacity <const> = require("Opacity")
 
 local node = Node()
 
@@ -42,7 +42,7 @@ label:addTo(node)
 
 
 
-local ImGui = require("ImGui")
+local ImGui <const> = require("ImGui")
 
 local windowFlags = {
 	"NoDecoration",

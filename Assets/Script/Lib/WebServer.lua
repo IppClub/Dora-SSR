@@ -491,6 +491,17 @@ HttpServer:postSchedule("/infer", function(req) -- 190
 		success = false -- 190
 	} -- 208
 end) -- 190
+local _anon_func_0 = function(doc) -- 259
+	local _accum_0 = { } -- 259
+	local _len_0 = 1 -- 259
+	local _list_0 = doc.params -- 259
+	for _index_0 = 1, #_list_0 do -- 259
+		local param = _list_0[_index_0] -- 259
+		_accum_0[_len_0] = param.name -- 259
+		_len_0 = _len_0 + 1 -- 259
+	end -- 259
+	return _accum_0 -- 259
+end -- 259
 local getParamDocs -- 210
 getParamDocs = function(signatures) -- 210
 	do -- 211
@@ -568,17 +579,7 @@ getParamDocs = function(signatures) -- 210
 					goto _continue_0 -- 257
 				end -- 257
 				if doc.params then -- 258
-					doc.desc = "function(" .. tostring(table.concat((function() -- 259
-						local _accum_0 = { } -- 259
-						local _len_0 = 1 -- 259
-						local _list_0 = doc.params -- 259
-						for _index_1 = 1, #_list_0 do -- 259
-							local param = _list_0[_index_1] -- 259
-							_accum_0[_len_0] = param.name -- 259
-							_len_0 = _len_0 + 1 -- 259
-						end -- 259
-						return _accum_0 -- 259
-					end)(), ', ')) .. ")" -- 259
+					doc.desc = "function(" .. tostring(table.concat(_anon_func_0(doc), ', ')) .. ")" -- 259
 				else -- 261
 					doc.desc = "function()" -- 261
 				end -- 258
@@ -779,6 +780,18 @@ local yueKeywords = { -- 330
 	"when", -- 363
 	"with" -- 364
 } -- 329
+local _anon_func_1 = function(Path, f) -- 400
+	local _val_0 = Path:getExt(f) -- 400
+	return "ttf" == _val_0 or "otf" == _val_0 -- 400
+end -- 400
+local _anon_func_2 = function(suggestions) -- 426
+	local _tbl_0 = { } -- 426
+	for _index_0 = 1, #suggestions do -- 426
+		local item = suggestions[_index_0] -- 426
+		_tbl_0[item[1] .. item[2]] = item -- 426
+	end -- 426
+	return _tbl_0 -- 426
+end -- 426
 HttpServer:postSchedule("/complete", function(req) -- 367
 	do -- 368
 		local _type_0 = type(req) -- 368
@@ -890,10 +903,7 @@ HttpServer:postSchedule("/complete", function(req) -- 367
 								local _list_1 = Content:getFiles(fontPath) -- 399
 								for _index_1 = 1, #_list_1 do -- 399
 									local f = _list_1[_index_1] -- 399
-									if (function() -- 400
-										local _val_0 = Path:getExt(f) -- 400
-										return "ttf" == _val_0 or "otf" == _val_0 -- 400
-									end)() then -- 400
+									if _anon_func_1(Path, f) then -- 400
 										if "." == f:sub(1, 1) then -- 401
 											goto _continue_1 -- 401
 										end -- 401
@@ -991,14 +1001,7 @@ HttpServer:postSchedule("/complete", function(req) -- 367
 						do -- 426
 							local _accum_0 = { } -- 426
 							local _len_0 = 1 -- 426
-							for _, v in pairs((function() -- 426
-								local _tbl_0 = { } -- 426
-								for _index_0 = 1, #suggestions do -- 426
-									local item = suggestions[_index_0] -- 426
-									_tbl_0[item[1] .. item[2]] = item -- 426
-								end -- 426
-								return _tbl_0 -- 426
-							end)()) do -- 426
+							for _, v in pairs(_anon_func_2(suggestions)) do -- 426
 								_accum_0[_len_0] = v -- 426
 								_len_0 = _len_0 + 1 -- 426
 							end -- 426
@@ -1625,6 +1628,52 @@ local extentionLevels = { -- 637
 	xml = 1, -- 642
 	lua = 0 -- 643
 } -- 636
+local _anon_func_4 = function(visitAssets, Path, Content, zh) -- 708
+	local _with_0 = visitAssets(Path(Content.assetPath, "Doc", zh and "zh-Hans" or "en")) -- 707
+	_with_0.title = zh and "说明文档" or "Readme" -- 708
+	return _with_0 -- 707
+end -- 707
+local _anon_func_5 = function(visitAssets, Path, Content, zh) -- 710
+	local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Lib", "Dora", zh and "zh-Hans" or "en")) -- 709
+	_with_0.title = zh and "接口文档" or "API Doc" -- 710
+	return _with_0 -- 709
+end -- 709
+local _anon_func_6 = function(visitAssets, Path, Content, zh) -- 712
+	local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Example")) -- 711
+	_with_0.title = zh and "代码示例" or "Example" -- 712
+	return _with_0 -- 711
+end -- 711
+local _anon_func_7 = function(visitAssets, Path, Content, zh) -- 714
+	local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Test")) -- 713
+	_with_0.title = zh and "功能测试" or "Test" -- 714
+	return _with_0 -- 713
+end -- 713
+local _anon_func_3 = function(Path, Content, zh, visitAssets, pairs) -- 719
+	local _tab_0 = { -- 702
+		{ -- 703
+			key = Path(Content.assetPath), -- 703
+			dir = true, -- 704
+			title = zh and "内置资源" or "Built-in", -- 705
+			children = { -- 707
+				_anon_func_4(visitAssets, Path, Content, zh), -- 707
+				_anon_func_5(visitAssets, Path, Content, zh), -- 709
+				_anon_func_6(visitAssets, Path, Content, zh), -- 711
+				_anon_func_7(visitAssets, Path, Content, zh), -- 713
+				visitAssets(Path(Content.assetPath, "Image")), -- 715
+				visitAssets(Path(Content.assetPath, "Spine")), -- 716
+				visitAssets(Path(Content.assetPath, "Font")) -- 717
+			} -- 706
+		} -- 702
+	} -- 720
+	local _obj_0 = visitAssets(Content.writablePath, true) -- 720
+	local _idx_0 = #_tab_0 + 1 -- 720
+	for _index_0 = 1, #_obj_0 do -- 720
+		local _value_0 = _obj_0[_index_0] -- 720
+		_tab_0[_idx_0] = _value_0 -- 720
+		_idx_0 = _idx_0 + 1 -- 720
+	end -- 720
+	return _tab_0 -- 719
+end -- 702
 HttpServer:post("/assets", function() -- 645
 	local visitAssets -- 646
 	visitAssets = function(path, root) -- 646
@@ -1735,48 +1784,7 @@ HttpServer:post("/assets", function() -- 645
 		key = Content.writablePath, -- 698
 		dir = true, -- 699
 		title = "Assets", -- 700
-		children = (function() -- 702
-			local _tab_0 = { -- 702
-				{ -- 703
-					key = Path(Content.assetPath), -- 703
-					dir = true, -- 704
-					title = zh and "内置资源" or "Built-in", -- 705
-					children = { -- 707
-						(function() -- 707
-							local _with_0 = visitAssets(Path(Content.assetPath, "Doc", zh and "zh-Hans" or "en")) -- 707
-							_with_0.title = zh and "说明文档" or "Readme" -- 708
-							return _with_0 -- 707
-						end)(), -- 707
-						(function() -- 709
-							local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Lib", "Dora", zh and "zh-Hans" or "en")) -- 709
-							_with_0.title = zh and "接口文档" or "API Doc" -- 710
-							return _with_0 -- 709
-						end)(), -- 709
-						(function() -- 711
-							local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Example")) -- 711
-							_with_0.title = zh and "代码示例" or "Example" -- 712
-							return _with_0 -- 711
-						end)(), -- 711
-						(function() -- 713
-							local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Test")) -- 713
-							_with_0.title = zh and "功能测试" or "Test" -- 714
-							return _with_0 -- 713
-						end)(), -- 713
-						visitAssets(Path(Content.assetPath, "Image")), -- 715
-						visitAssets(Path(Content.assetPath, "Spine")), -- 716
-						visitAssets(Path(Content.assetPath, "Font")) -- 717
-					} -- 706
-				} -- 702
-			} -- 720
-			local _obj_0 = visitAssets(Content.writablePath, true) -- 720
-			local _idx_0 = #_tab_0 + 1 -- 720
-			for _index_0 = 1, #_obj_0 do -- 720
-				local _value_0 = _obj_0[_index_0] -- 720
-				_tab_0[_idx_0] = _value_0 -- 720
-				_idx_0 = _idx_0 + 1 -- 720
-			end -- 720
-			return _tab_0 -- 719
-		end)() -- 701
+		children = _anon_func_3(Path, Content, zh, visitAssets, pairs) -- 701
 	} -- 722
 end) -- 645
 HttpServer:postSchedule("/run", function(req) -- 724

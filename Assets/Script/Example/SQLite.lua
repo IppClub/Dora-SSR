@@ -32,6 +32,16 @@ print("row changed:", DB:exec("DELETE FROM test WHERE id > 1")) -- 22
 print("row changed:", DB:exec("UPDATE test SET value = ? WHERE id = 1", { -- 24
 	"hello world!" -- 24
 })) -- 24
+local _anon_func_0 = function(items) -- 33
+	local _accum_0 = { } -- 33
+	local _len_0 = 1 -- 33
+	for _index_0 = 1, #items do -- 33
+		local item = items[_index_0] -- 33
+		_accum_0[_len_0] = item[1] -- 33
+		_len_0 = _len_0 + 1 -- 33
+	end -- 33
+	return _accum_0 -- 33
+end -- 33
 thread(function() -- 26
 	print("insert async") -- 27
 	local data -- 28
@@ -50,15 +60,6 @@ thread(function() -- 26
 	p(DB:insertAsync("test", data)) -- 29
 	print("query async...") -- 31
 	local items = DB:queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC") -- 32
-	return p((function() -- 33
-		local _accum_0 = { } -- 33
-		local _len_0 = 1 -- 33
-		for _index_0 = 1, #items do -- 33
-			local item = items[_index_0] -- 33
-			_accum_0[_len_0] = item[1] -- 33
-			_len_0 = _len_0 + 1 -- 33
-		end -- 33
-		return _accum_0 -- 33
-	end)()) -- 33
+	return p(_anon_func_0(items)) -- 33
 end) -- 26
 return print("OK") -- 35

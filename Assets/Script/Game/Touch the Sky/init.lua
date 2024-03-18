@@ -13,8 +13,8 @@ local DrawNode = dora.DrawNode -- 1
 local Camera2D = dora.Camera2D -- 1
 local Body = dora.Body -- 1
 local Sprite = dora.Sprite -- 1
-local math = _G.math -- 1
 local tostring = _G.tostring -- 1
+local math = _G.math -- 1
 local once = dora.once -- 1
 local sleep = dora.sleep -- 1
 local threadLoop = dora.threadLoop -- 1
@@ -502,6 +502,12 @@ cameraFollow = function(body) -- 182
 	end) -- 184
 	return _with_0 -- 183
 end -- 182
+local _anon_func_0 = function(_with_0, Sprite, scale) -- 198
+	local _with_1 = Sprite("Image/cube.png") -- 197
+	_with_1.scaleX = scale -- 198
+	_with_1.scaleY = scale -- 198
+	return _with_1 -- 197
+end -- 197
 local addCube -- 187
 addCube = function() -- 187
 	do -- 188
@@ -518,33 +524,36 @@ addCube = function() -- 187
 		_with_0.group = 0 -- 194
 		_with_0.angularRate = 0 -- 195
 		_with_0.velocity = Vec2.zero -- 196
-		_with_0:addChild((function() -- 197
-			local _with_1 = Sprite("Image/cube.png") -- 197
-			_with_1.scaleX = scale -- 198
-			_with_1.scaleY = scale -- 198
-			return _with_1 -- 197
-		end)()) -- 197
+		_with_0:addChild(_anon_func_0(_with_0, Sprite, scale)) -- 197
 		_with_0:addTo(cube) -- 199
 		cubebody = _with_0 -- 191
 	end -- 191
 	return cameraFollow(cubebody) -- 200
 end -- 187
+local _anon_func_1 = function(_with_0, Sprite, View) -- 207
+	local _with_1 = Sprite("Image/heart_3.png") -- 204
+	_with_1.tag = "heartSprite" -- 205
+	_with_1.y = View.size.height / 2 - 100 -- 206
+	_with_1.scaleX = 6 -- 207
+	_with_1.scaleY = 6 -- 207
+	return _with_1 -- 204
+end -- 204
 local addHeartUI -- 202
 addHeartUI = function() -- 202
 	do -- 203
 		local _with_0 = Node() -- 203
-		_with_0:addChild((function() -- 204
-			local _with_1 = Sprite("Image/heart_3.png") -- 204
-			_with_1.tag = "heartSprite" -- 205
-			_with_1.y = View.size.height / 2 - 100 -- 206
-			_with_1.scaleX = 6 -- 207
-			_with_1.scaleY = 6 -- 207
-			return _with_1 -- 204
-		end)()) -- 204
+		_with_0:addChild(_anon_func_1(_with_0, Sprite, View)) -- 204
 		heartNode = _with_0 -- 203
 	end -- 203
 	return ui:addChild(heartNode) -- 208
 end -- 202
+local _anon_func_2 = function(heartSprite, View) -- 220
+	heartSprite.tag = "heartSprite" -- 218
+	heartSprite.y = View.size.height / 2 - 100 -- 219
+	heartSprite.scaleX = 6 -- 220
+	heartSprite.scaleY = 6 -- 220
+	return heartSprite -- 217
+end -- 217
 local loseHeart -- 210
 loseHeart = function() -- 210
 	heart = heart - 1 -- 211
@@ -555,13 +564,7 @@ loseHeart = function() -- 210
 	else -- 216
 		heartSprite = Sprite("Image/heart_0.png") -- 216
 	end -- 213
-	return heartNode:addChild((function() -- 217
-		heartSprite.tag = "heartSprite" -- 218
-		heartSprite.y = View.size.height / 2 - 100 -- 219
-		heartSprite.scaleX = 6 -- 220
-		heartSprite.scaleY = 6 -- 220
-		return heartSprite -- 217
-	end)()) -- 220
+	return heartNode:addChild(_anon_func_2(heartSprite, View)) -- 220
 end -- 210
 local arriveDest -- 222
 arriveDest = function() -- 222
@@ -587,6 +590,29 @@ arriveDest = function() -- 222
 		restartButton = _with_0 -- 228
 	end -- 228
 end -- 222
+local _anon_func_3 = function(_with_0, Sprite) -- 273
+	local _with_1 = Sprite("Image/red.png") -- 272
+	_with_1.scaleX = 0.15 -- 273
+	_with_1.scaleY = 0.15 -- 273
+	return _with_1 -- 272
+end -- 272
+local _anon_func_4 = function(_with_0, Sprite) -- 277
+	local _with_1 = Sprite("Image/spring.png") -- 276
+	_with_1.scaleX = 0.15 -- 277
+	_with_1.scaleY = 0.15 -- 277
+	return _with_1 -- 276
+end -- 276
+local _anon_func_5 = function(_with_0, DrawNode, Vec2, width, height, blockColor) -- 294
+	local _with_1 = DrawNode() -- 287
+	local verts = { -- 289
+		Vec2(-width / 2, height / 2), -- 289
+		Vec2(width / 2, height / 2), -- 290
+		Vec2(width / 2, -height / 2), -- 291
+		Vec2(-width / 2, -height / 2) -- 292
+	} -- 288
+	_with_1:drawPolygon(verts, blockColor) -- 294
+	return _with_1 -- 287
+end -- 287
 local buildBlocks -- 237
 buildBlocks = function(index) -- 237
 	local blocks = blockTypes[index] -- 238
@@ -630,20 +656,10 @@ buildBlocks = function(index) -- 237
 					end -- 261
 				end) -- 251
 				blockColor = colorRed -- 271
-				_with_0:addChild((function() -- 272
-					local _with_1 = Sprite("Image/red.png") -- 272
-					_with_1.scaleX = 0.15 -- 273
-					_with_1.scaleY = 0.15 -- 273
-					return _with_1 -- 272
-				end)()) -- 272
+				_with_0:addChild(_anon_func_3(_with_0, Sprite)) -- 272
 			elseif 2 == blockType then -- 274
 				blockColor = colorBlue -- 275
-				_with_0:addChild((function() -- 276
-					local _with_1 = Sprite("Image/spring.png") -- 276
-					_with_1.scaleX = 0.15 -- 277
-					_with_1.scaleY = 0.15 -- 277
-					return _with_1 -- 276
-				end)()) -- 276
+				_with_0:addChild(_anon_func_4(_with_0, Sprite)) -- 276
 				local implulseAvailable = true -- 278
 				_with_0:slot("BodyEnter", function(body) -- 279
 					if not implulseAvailable then -- 280
@@ -658,22 +674,27 @@ buildBlocks = function(index) -- 237
 					end)) -- 286
 				end) -- 279
 			end -- 286
-			_with_0:addChild((function() -- 287
-				local _with_1 = DrawNode() -- 287
-				local verts = { -- 289
-					Vec2(-width / 2, height / 2), -- 289
-					Vec2(width / 2, height / 2), -- 290
-					Vec2(width / 2, -height / 2), -- 291
-					Vec2(-width / 2, -height / 2) -- 292
-				} -- 288
-				_with_1:drawPolygon(verts, blockColor) -- 294
-				return _with_1 -- 287
-			end)()) -- 287
+			_with_0:addChild(_anon_func_5(_with_0, DrawNode, Vec2, width, height, blockColor)) -- 287
 			_with_0:addTo(world) -- 295
 			blockBodies[#blockBodies + 1] = _with_0 -- 242
 		end -- 242
 	end -- 295
 end -- 237
+local _anon_func_6 = function(_with_0, Sprite) -- 307
+	local _with_1 = Sprite("Image/sky.png") -- 304
+	_with_1.x = 90 -- 305
+	_with_1.y = 100 -- 306
+	_with_1.scaleX = 2.7 -- 307
+	_with_1.scaleY = 2.7 -- 307
+	return _with_1 -- 304
+end -- 304
+local _anon_func_7 = function(_with_0, DrawNode, Vec2, borderWidth, colorWhite, borderHeight) -- 316
+	local _with_1 = DrawNode() -- 313
+	_with_1:drawSegment(Vec2(-borderWidth / 2, 0), Vec2(borderWidth / 2, 0), 10, colorWhite) -- 314
+	_with_1:drawSegment(Vec2(-borderWidth / 2, 0), Vec2(-borderWidth / 2, borderHeight), 10, colorWhite) -- 315
+	_with_1:drawSegment(Vec2(borderWidth / 2, 0), Vec2(borderWidth / 2, borderHeight), 10, colorWhite) -- 316
+	return _with_1 -- 313
+end -- 313
 local buildWorld -- 297
 buildWorld = function() -- 297
 	buildBlocks(1) -- 298
@@ -683,14 +704,7 @@ buildWorld = function() -- 297
 	do -- 302
 		local _with_0 = Body(destinationDef, world, Vec2(borderPos.x, borderPos.y + borderHeight)) -- 302
 		_with_0.group = 1 -- 303
-		_with_0:addChild((function() -- 304
-			local _with_1 = Sprite("Image/sky.png") -- 304
-			_with_1.x = 90 -- 305
-			_with_1.y = 100 -- 306
-			_with_1.scaleX = 2.7 -- 307
-			_with_1.scaleY = 2.7 -- 307
-			return _with_1 -- 304
-		end)()) -- 304
+		_with_0:addChild(_anon_func_6(_with_0, Sprite)) -- 304
 		_with_0:slot("BodyEnter", function() -- 308
 			if not touchTheSky then -- 309
 				return arriveDest() -- 309
@@ -701,13 +715,7 @@ buildWorld = function() -- 297
 	do -- 311
 		local _with_0 = Body(borderDef, world, Vec2.zero) -- 311
 		_with_0.group = 1 -- 312
-		_with_0:addChild((function() -- 313
-			local _with_1 = DrawNode() -- 313
-			_with_1:drawSegment(Vec2(-borderWidth / 2, 0), Vec2(borderWidth / 2, 0), 10, colorWhite) -- 314
-			_with_1:drawSegment(Vec2(-borderWidth / 2, 0), Vec2(-borderWidth / 2, borderHeight), 10, colorWhite) -- 315
-			_with_1:drawSegment(Vec2(borderWidth / 2, 0), Vec2(borderWidth / 2, borderHeight), 10, colorWhite) -- 316
-			return _with_1 -- 313
-		end)()) -- 313
+		_with_0:addChild(_anon_func_7(_with_0, DrawNode, Vec2, borderWidth, colorWhite, borderHeight)) -- 313
 		_with_0:addTo(world) -- 317
 	end -- 311
 	local _with_0 = Node() -- 318

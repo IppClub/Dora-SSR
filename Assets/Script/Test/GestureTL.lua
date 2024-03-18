@@ -1,9 +1,9 @@
-local nvg = require("nvg")
-local Sprite = require("Sprite")
-local Vec2 = require("Vec2")
-local View = require("View")
-local threadLoop = require("threadLoop")
-local Node = require("Node")
+local nvg <const> = require("nvg")
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local View <const> = require("View")
+local threadLoop <const> = require("threadLoop")
+local Node <const> = require("Node")
 
 local texture = nvg.GetDoraSSR()
 local sprite = Sprite(texture)
@@ -25,8 +25,8 @@ end)
 
 
 
-local App = require("App")
-local ImGui = require("ImGui")
+local App <const> = require("App")
+local ImGui <const> = require("ImGui")
 
 local windowFlags = {
 	"NoDecoration",

@@ -1,13 +1,13 @@
-local Vec2 = require("Vec2")
-local BodyDef = require("BodyDef")
-local Body = require("Body")
-local PhysicsWorld = require("PhysicsWorld")
-local threadLoop = require("threadLoop")
+local Vec2 <const> = require("Vec2")
+local BodyDef <const> = require("BodyDef")
+local Body <const> = require("Body")
+local PhysicsWorld <const> = require("PhysicsWorld")
+local threadLoop <const> = require("threadLoop")
 
-local gravity = Vec2(0, -10)
-local groupZero = 0
-local groupOne = 1
-local groupTwo = 2
+local gravity <const> = Vec2(0, -10)
+local groupZero <const> = 0
+local groupOne <const> = 1
+local groupTwo <const> = 2
 
 local terrainDef = BodyDef()
 terrainDef.type = "Static"
@@ -52,8 +52,8 @@ world:addChild(body)
 
 
 
-local ImGui = require("ImGui")
-local App = require("App")
+local ImGui <const> = require("ImGui")
+local App <const> = require("App")
 
 local windowFlags = {
 	"NoDecoration",

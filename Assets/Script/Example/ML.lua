@@ -762,6 +762,56 @@ local windowFlags = { -- 247
 	"NoResize", -- 247
 	"NoSavedSettings" -- 247
 } -- 247
+local _anon_func_0 = function(tostring, training) -- 256
+	local _accum_0 = { } -- 256
+	local _len_0 = 1 -- 256
+	local _list_0 = training.result -- 256
+	for _index_0 = 1, #_list_0 do -- 256
+		local item = _list_0[_index_0] -- 256
+		_accum_0[_len_0] = tostring(item[1]) .. ":" .. tostring(item[2]) -- 256
+		_len_0 = _len_0 + 1 -- 256
+	end -- 256
+	return _accum_0 -- 256
+end -- 256
+local _anon_func_1 = function(tostring, result) -- 292
+	local _accum_0 = { } -- 292
+	local _len_0 = 1 -- 292
+	for _index_0 = 1, #result do -- 292
+		local _des_0 = result[_index_0] -- 292
+		local k, v = _des_0[1], _des_0[2] -- 292
+		_accum_0[_len_0] = tostring(k) .. ":" .. tostring(v) -- 292
+		_len_0 = _len_0 + 1 -- 292
+	end -- 292
+	return _accum_0 -- 292
+end -- 292
+local _anon_func_2 = function(effectNames, effectFlags) -- 298
+	local _accum_0 = { } -- 298
+	local _len_0 = 1 -- 298
+	for i = 1, #effectFlags do -- 298
+		if effectFlags[i] then -- 298
+			_accum_0[_len_0] = effectNames[i] -- 298
+			_len_0 = _len_0 + 1 -- 298
+		end -- 298
+	end -- 298
+	return _accum_0 -- 298
+end -- 298
+local _anon_func_3 = function(table, records) -- 351
+	local _accum_0 = { } -- 351
+	local _len_0 = 1 -- 351
+	for _index_0 = 1, #records do -- 351
+		local r = records[_index_0] -- 351
+		_accum_0[_len_0] = table.concat(r, ",") -- 351
+		_len_0 = _len_0 + 1 -- 351
+	end -- 351
+	return _accum_0 -- 351
+end -- 351
+local _anon_func_4 = function(name, tostring, op, value) -- 355
+	if name ~= "" then -- 355
+		return "if " .. tostring(name) .. " " .. tostring(op) .. " " .. tostring(op == '==' and "\"" .. tostring(value) .. "\"" or value) -- 356
+	else -- 358
+		return tostring(op) .. " \"" .. tostring(value) .. "\"" -- 358
+	end -- 355
+end -- 355
 return threadLoop(function() -- 248
 	local width, height -- 249
 	do -- 249
@@ -774,17 +824,7 @@ return threadLoop(function() -- 248
 		if training then -- 253
 			TextWrapped("生物: " .. tostring(training.name)) -- 254
 			TextWrapped("执行动作: " .. tostring(actions[training.action])) -- 255
-			TextWrapped("取得效果: " .. tostring(table.concat((function() -- 256
-				local _accum_0 = { } -- 256
-				local _len_0 = 1 -- 256
-				local _list_0 = training.result -- 256
-				for _index_0 = 1, #_list_0 do -- 256
-					local item = _list_0[_index_0] -- 256
-					_accum_0[_len_0] = tostring(item[1]) .. ":" .. tostring(item[2]) -- 256
-					_len_0 = _len_0 + 1 -- 256
-				end -- 256
-				return _accum_0 -- 256
-			end)(), ", "))) -- 256
+			TextWrapped("取得效果: " .. tostring(table.concat(_anon_func_0(tostring, training), ", "))) -- 256
 			TextWrapped("手工训练记录数: " .. tostring(manualOp)) -- 257
 			if training.rand then -- 258
 				TextWrapped("[执行了随机动作]") -- 259
@@ -847,17 +887,7 @@ return threadLoop(function() -- 248
 			table.sort(result, function(a, b) -- 291
 				return b[2] < a[2] -- 291
 			end) -- 291
-			laborResult = table.concat((function() -- 292
-				local _accum_0 = { } -- 292
-				local _len_0 = 1 -- 292
-				for _index_0 = 1, #result do -- 292
-					local _des_0 = result[_index_0] -- 292
-					local k, v = _des_0[1], _des_0[2] -- 292
-					_accum_0[_len_0] = tostring(k) .. ":" .. tostring(v) -- 292
-					_len_0 = _len_0 + 1 -- 292
-				end -- 292
-				return _accum_0 -- 292
-			end)(), ", ") -- 292
+			laborResult = table.concat(_anon_func_1(tostring, result), ", ") -- 292
 			laborResult = laborResult .. "\n习得动作生效次数: " .. tostring(validAction) .. "/100" -- 293
 		end -- 279
 		if laborResult then -- 294
@@ -866,17 +896,7 @@ return threadLoop(function() -- 248
 		Separator() -- 295
 		local doSelfTraining = false -- 296
 		if selfTrained then -- 297
-			local target = table.concat((function() -- 298
-				local _accum_0 = { } -- 298
-				local _len_0 = 1 -- 298
-				for i = 1, #effectFlags do -- 298
-					if effectFlags[i] then -- 298
-						_accum_0[_len_0] = effectNames[i] -- 298
-						_len_0 = _len_0 + 1 -- 298
-					end -- 298
-				end -- 298
-				return _accum_0 -- 298
-			end)(), ", ") -- 298
+			local target = table.concat(_anon_func_2(effectNames, effectFlags), ", ") -- 298
 			TextWrapped("已完成自我训练, 目标: " .. tostring(target)) -- 299
 			if Button("遗忘") then -- 300
 				selfTrained = false -- 301
@@ -988,26 +1008,11 @@ return threadLoop(function() -- 248
 		Separator() -- 348
 		TextWrapped("总结人工训练思维逻辑") -- 349
 		if Button("开始总结") and #records > 2 then -- 350
-			local dataStr = table.concat((function() -- 351
-				local _accum_0 = { } -- 351
-				local _len_0 = 1 -- 351
-				for _index_0 = 1, #records do -- 351
-					local r = records[_index_0] -- 351
-					_accum_0[_len_0] = table.concat(r, ",") -- 351
-					_len_0 = _len_0 + 1 -- 351
-				end -- 351
-				return _accum_0 -- 351
-			end)(), "\n") -- 351
+			local dataStr = table.concat(_anon_func_3(table, records), "\n") -- 351
 			thread(function() -- 352
 				local lines = { } -- 353
 				ML.BuildDecisionTreeAsync(dataStr, 0, function(depth, name, op, value) -- 354
-					local line = string.rep("\t", depth) .. (function() -- 355
-						if name ~= "" then -- 355
-							return "if " .. tostring(name) .. " " .. tostring(op) .. " " .. tostring(op == '==' and "\"" .. tostring(value) .. "\"" or value) -- 356
-						else -- 358
-							return tostring(op) .. " \"" .. tostring(value) .. "\"" -- 358
-						end -- 355
-					end)() -- 355
+					local line = string.rep("\t", depth) .. _anon_func_4(name, tostring, op, value) -- 355
 					lines[#lines + 1] = line -- 359
 				end) -- 354
 				decisionStr = table.concat(lines, "\n") -- 360

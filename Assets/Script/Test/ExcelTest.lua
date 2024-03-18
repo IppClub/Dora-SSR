@@ -1,15 +1,15 @@
-local Platformer = require("Platformer")
-local Data = Platformer.Data
+local Platformer <const> = require("Platformer")
+local Data <const> = Platformer.Data
 
-local Rectangle = require("UI.View.Shape.Rectangle")
-local Vec2 = require("Vec2")
-local Rect = require("Rect")
-local BodyDef = require("BodyDef")
-local Body = require("Body")
-local Director = require("Director")
-local App = require("App")
-local Color = require("Color")
-local View = require("View")
+local Rectangle <const> = require("UI.View.Shape.Rectangle")
+local Vec2 <const> = require("Vec2")
+local Rect <const> = require("Rect")
+local BodyDef <const> = require("BodyDef")
+local Body <const> = require("Body")
+local Director <const> = require("Director")
+local App <const> = require("App")
+local Color <const> = require("Color")
+local View <const> = require("View")
 
 local TerrainLayer = 0
 local PlayerLayer = 1
@@ -24,7 +24,7 @@ Data:setShouldContact(PlayerGroup, ItemGroup, true)
 local themeColor = App.themeColor
 local fillColor = Color(themeColor:toColor3(), 0x66):toARGB()
 local borderColor = themeColor:toARGB()
-local DesignWidth = 1500
+local DesignWidth <const> = 1500
 
 local world = Platformer.PlatformWorld()
 world.camera.boundary = Rect(-1250, -500, 2500, 1000)
@@ -75,11 +75,11 @@ terrain:addChild(Rectangle({
 }))
 world:addChild(terrain)
 
-local once = require("once")
-local loop = require("loop")
-local sleep = require("sleep")
+local once <const> = require("once")
+local loop <const> = require("loop")
+local sleep <const> = require("sleep")
 
-local UnitAction = Platformer.UnitAction
+local UnitAction <const> = Platformer.UnitAction
 
 
 UnitAction:add("idle", {
@@ -188,11 +188,11 @@ UnitAction:add("fallOff", {
 	end,
 })
 
-local Decision = Platformer.Decision
-local Sel = Decision.Sel
-local Seq = Decision.Seq
-local Con = Decision.Con
-local Act = Decision.Act
+local Decision <const> = Platformer.Decision
+local Sel <const> = Decision.Sel
+local Seq <const> = Decision.Seq
+local Con <const> = Decision.Con
+local Act <const> = Decision.Act
 
 Data.store["AI:playerControl"] = Sel({
 	Seq({
@@ -226,9 +226,9 @@ Data.store["AI:playerControl"] = Sel({
 	Act("idle"),
 })
 
-local Dictionary = require("Dictionary")
-local Size = require("Size")
-local Array = require("Array")
+local Dictionary <const> = require("Dictionary")
+local Size <const> = require("Size")
+local Array <const> = require("Array")
 
 local unitDef = Dictionary()
 unitDef.linearAcceleration = Vec2(0, -15)
@@ -257,17 +257,17 @@ unitDef.actions = Array({
 	"cancel",
 })
 
-local Observer = require("Observer")
-local Sprite = require("Sprite")
-local Spawn = require("Spawn")
-local AngleY = require("AngleY")
-local Sequence = require("Sequence")
-local Y = require("Y")
-local Scale = require("Scale")
-local Opacity = require("Opacity")
-local Ease = require("Ease")
-local tolua = require("tolua")
-local Unit = Platformer.Unit
+local Observer <const> = require("Observer")
+local Sprite <const> = require("Sprite")
+local Spawn <const> = require("Spawn")
+local AngleY <const> = require("AngleY")
+local Sequence <const> = require("Sequence")
+local Y <const> = require("Y")
+local Scale <const> = require("Scale")
+local Opacity <const> = require("Opacity")
+local Ease <const> = require("Ease")
+local tolua <const> = require("tolua")
+local Unit <const> = Platformer.Unit
 local Entity = require("Entity")
 
 Observer("Add", { "player" }):watch(function(self)
@@ -329,10 +329,10 @@ Observer("Remove", { "body" }):watch(function(self)
 	(self.oldValues.body):removeFromParent()
 end)
 
-local Content = require("Content")
-local Group = require("Group")
-local Utils = require("Utils")
-local Struct = Utils.Struct
+local Content <const> = require("Content")
+local Group <const> = require("Group")
+local Utils <const> = require("Utils")
+local Struct <const> = Utils.Struct
 
 
 
@@ -358,7 +358,7 @@ local function loadExcel()
 		end)
 		for i = 3, #its do
 			local st = Struct:load(its[i])
-			local item = {
+			local item <const> = {
 				name = st.Name,
 				no = st.No,
 				x = st.X,
@@ -372,11 +372,11 @@ local function loadExcel()
 	end
 end
 
-local ImGui = require("ImGui")
-local AlignNode = require("UI.Control.Basic.AlignNode")
-local CircleButton = require("UI.Control.Basic.CircleButton")
-local Menu = require("Menu")
-local Keyboard = require("Keyboard")
+local ImGui <const> = require("ImGui")
+local AlignNode <const> = require("UI.Control.Basic.AlignNode")
+local CircleButton <const> = require("UI.Control.Basic.CircleButton")
+local Menu <const> = require("Menu")
+local Keyboard <const> = require("Keyboard")
 
 local keyboardEnabled = true
 

@@ -4,7 +4,7 @@ sceneGroup = Group ["scene",]
 positionGroup = Group ["position",]
 
 with Observer "Add", ["scene",]
-	\watch (scene) => with scene
+	\watch (scene): false => with scene
 		.touchEnabled = true
 		\slot "TapEnded", (touch) ->
 			:location = touch
@@ -12,7 +12,7 @@ with Observer "Add", ["scene",]
 				entity.target = location
 
 with Observer "Add", ["image",]
-	\watch (image) => sceneGroup\each (e) ->
+	\watch (image): false => sceneGroup\each (e) ->
 		with @sprite = Sprite image
 			\addTo e.scene
 			\runAction Scale 0.5, 0, 0.5, Ease.OutBack
@@ -25,7 +25,7 @@ with Observer "Remove", ["target",]
 	\watch => print "remove target from entity #{@index}"
 
 with Group ["position", "direction", "speed", "target"]
-	\watch (position, direction, speed, target) =>
+	\watch (position, direction, speed, target): false =>
 		return if target == position
 		dir = target - position
 		dir = dir\normalize!
@@ -37,7 +37,7 @@ with Group ["position", "direction", "speed", "target"]
 		@target = nil if newPos == target
 
 with Observer "AddOrChange", ["position", "direction", "sprite"]
-	\watch (position, direction, sprite) =>
+	\watch (position, direction, sprite): false =>
 		sprite.position = position
 		lastDirection = @oldValues.direction or sprite.angle
 		if math.abs(direction - lastDirection) > 1

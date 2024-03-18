@@ -17,6 +17,64 @@ local emit = dora.emit -- 1
 local _module_0 = nil -- 1
 local Store = Data.store -- 3
 local GroupPlayer, GroupEnemy, GroupPlayerBlock, GroupEnemyBlock, GroupTerrain, GroupDisplay, LayerReadMe, LayerBlock, LayerBunny, LayerSwitch, LayerPlayerHero, LayerEnemyHero, LayerBackground = Store.GroupPlayer, Store.GroupEnemy, Store.GroupPlayerBlock, Store.GroupEnemyBlock, Store.GroupTerrain, Store.GroupDisplay, Store.LayerReadMe, Store.LayerBlock, Store.LayerBunny, Store.LayerSwitch, Store.LayerPlayerHero, Store.LayerEnemyHero, Store.LayerBackground -- 4
+local _anon_func_0 = function(Body, terrainDef, self, Vec2, LayerBackground, GroupTerrain) -- 38
+	local _with_0 = Body(terrainDef, self, Vec2.zero) -- 36
+	_with_0.order = LayerBackground -- 37
+	_with_0.group = GroupTerrain -- 38
+	return _with_0 -- 36
+end -- 36
+local _anon_func_1 = function(Sprite, LayerBackground, Vec2) -- 45
+	local _with_0 = Sprite("Model/items.clip|background") -- 40
+	_with_0.order = LayerBackground -- 41
+	_with_0.anchor = Vec2.zero -- 42
+	_with_0.scaleX = 4146 / _with_0.width -- 43
+	_with_0.scaleY = 1600 / _with_0.height -- 44
+	_with_0.y = -50 -- 45
+	return _with_0 -- 40
+end -- 40
+local _anon_func_3 = function(_with_0, Sprite, i) -- 55
+	local _with_1 = Sprite("Model/misc.clip|floor") -- 51
+	_with_1.scaleX = 8 -- 52
+	_with_1.scaleY = 8 -- 53
+	_with_1.x = i * 128 -- 54
+	_with_1.filter = "Point" -- 55
+	return _with_1 -- 51
+end -- 51
+local _anon_func_2 = function(Node, LayerBackground, Sprite) -- 55
+	local _with_0 = Node() -- 47
+	_with_0.order = LayerBackground -- 48
+	_with_0.y = -44 -- 49
+	for i = 0, 32 do -- 50
+		_with_0:addChild(_anon_func_3(_with_0, Sprite, i)) -- 51
+	end -- 55
+	return _with_0 -- 47
+end -- 47
+local _anon_func_4 = function(group, GroupPlayer, Vec2, GroupEnemy, LayerBunny) -- 211
+	local _with_0 = { } -- 204
+	_with_0.group = group -- 205
+	if GroupPlayer == group then -- 207
+		_with_0.bunny, _with_0.faceRight, _with_0.position = "BunnyG", false, Vec2(216, 500) -- 207
+	elseif GroupEnemy == group then -- 208
+		_with_0.bunny, _with_0.faceRight, _with_0.position = "BunnyP", true, Vec2(3877, 500) -- 208
+	end -- 208
+	_with_0.AI = "BunnySwitcherAI" -- 209
+	_with_0.layer = LayerBunny -- 210
+	_with_0.targetSwitch = "SwitchG" -- 211
+	return _with_0 -- 204
+end -- 204
+local _anon_func_5 = function(group, GroupPlayer, Vec2, GroupEnemy, LayerBunny) -- 220
+	local _with_0 = { } -- 213
+	_with_0.group = group -- 214
+	if GroupPlayer == group then -- 216
+		_with_0.bunny, _with_0.faceRight, _with_0.position = "BunnyG", true, Vec2(677, 500) -- 216
+	elseif GroupEnemy == group then -- 217
+		_with_0.bunny, _with_0.faceRight, _with_0.position = "BunnyP", false, Vec2(3431, 500) -- 217
+	end -- 217
+	_with_0.AI = "BunnySwitcherAI" -- 218
+	_with_0.layer = LayerBunny -- 219
+	_with_0.targetSwitch = "Switch" -- 220
+	return _with_0 -- 213
+end -- 213
 local GameWorld = Class(PlatformWorld, { -- 21
 	__init = function(self) -- 21
 		Entity({ -- 22
@@ -39,37 +97,9 @@ local GameWorld = Class(PlatformWorld, { -- 21
 			_with_0:attachPolygon(Vec2(4101, 1004 - 512), 10, 1024) -- 34
 			terrainDef = _with_0 -- 29
 		end -- 29
-		self:addChild((function() -- 36
-			local _with_0 = Body(terrainDef, self, Vec2.zero) -- 36
-			_with_0.order = LayerBackground -- 37
-			_with_0.group = GroupTerrain -- 38
-			return _with_0 -- 36
-		end)()) -- 36
-		self:addChild((function() -- 40
-			local _with_0 = Sprite("Model/items.clip|background") -- 40
-			_with_0.order = LayerBackground -- 41
-			_with_0.anchor = Vec2.zero -- 42
-			_with_0.scaleX = 4146 / _with_0.width -- 43
-			_with_0.scaleY = 1600 / _with_0.height -- 44
-			_with_0.y = -50 -- 45
-			return _with_0 -- 40
-		end)()) -- 40
-		return self:addChild((function() -- 47
-			local _with_0 = Node() -- 47
-			_with_0.order = LayerBackground -- 48
-			_with_0.y = -44 -- 49
-			for i = 0, 32 do -- 50
-				_with_0:addChild((function() -- 51
-					local _with_1 = Sprite("Model/misc.clip|floor") -- 51
-					_with_1.scaleX = 8 -- 52
-					_with_1.scaleY = 8 -- 53
-					_with_1.x = i * 128 -- 54
-					_with_1.filter = "Point" -- 55
-					return _with_1 -- 51
-				end)()) -- 51
-			end -- 55
-			return _with_0 -- 47
-		end)()) -- 55
+		self:addChild(_anon_func_0(Body, terrainDef, self, Vec2, LayerBackground, GroupTerrain)) -- 36
+		self:addChild(_anon_func_1(Sprite, LayerBackground, Vec2)) -- 40
+		return self:addChild(_anon_func_2(Node, LayerBackground, Sprite)) -- 55
 	end, -- 28
 	buildGameReadme = function(self) -- 57
 		local pos = self.camera.position -- 58
@@ -285,34 +315,10 @@ local GameWorld = Class(PlatformWorld, { -- 21
 			end -- 199
 		end) -- 198
 		if not switchGExist then -- 203
-			Entity((function() -- 204
-				local _with_0 = { } -- 204
-				_with_0.group = group -- 205
-				if GroupPlayer == group then -- 207
-					_with_0.bunny, _with_0.faceRight, _with_0.position = "BunnyG", false, Vec2(216, 500) -- 207
-				elseif GroupEnemy == group then -- 208
-					_with_0.bunny, _with_0.faceRight, _with_0.position = "BunnyP", true, Vec2(3877, 500) -- 208
-				end -- 208
-				_with_0.AI = "BunnySwitcherAI" -- 209
-				_with_0.layer = LayerBunny -- 210
-				_with_0.targetSwitch = "SwitchG" -- 211
-				return _with_0 -- 204
-			end)()) -- 204
+			Entity(_anon_func_4(group, GroupPlayer, Vec2, GroupEnemy, LayerBunny)) -- 204
 		end -- 203
 		if not switchNExist then -- 212
-			return Entity((function() -- 213
-				local _with_0 = { } -- 213
-				_with_0.group = group -- 214
-				if GroupPlayer == group then -- 216
-					_with_0.bunny, _with_0.faceRight, _with_0.position = "BunnyG", true, Vec2(677, 500) -- 216
-				elseif GroupEnemy == group then -- 217
-					_with_0.bunny, _with_0.faceRight, _with_0.position = "BunnyP", false, Vec2(3431, 500) -- 217
-				end -- 217
-				_with_0.AI = "BunnySwitcherAI" -- 218
-				_with_0.layer = LayerBunny -- 219
-				_with_0.targetSwitch = "Switch" -- 220
-				return _with_0 -- 213
-			end)()) -- 220
+			return Entity(_anon_func_5(group, GroupPlayer, Vec2, GroupEnemy, LayerBunny)) -- 220
 		end -- 212
 	end, -- 194
 	clearScene = function(self) -- 222

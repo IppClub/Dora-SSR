@@ -267,6 +267,13 @@ local lastAction = "idle" -- 183
 local lastActionFrame = App.frame -- 184
 local data = { } -- 185
 local row = nil -- 186
+local _anon_func_0 = function(enemy) -- 228
+	local _obj_0 = enemy.currentAction -- 228
+	if _obj_0 ~= nil then -- 228
+		return _obj_0.name -- 228
+	end -- 228
+	return nil -- 228
+end -- 228
 local Do -- 187
 Do = function(name) -- 187
 	return Seq({ -- 188
@@ -319,13 +326,7 @@ Do = function(name) -- 187
 			local enemy_hero_action -- 226
 			do -- 226
 				local enemy = AI:getNearestUnit("Enemy") -- 227
-				enemy_hero_action = (function() -- 228
-					local _obj_0 = enemy.currentAction -- 228
-					if _obj_0 ~= nil then -- 228
-						return _obj_0.name -- 228
-					end -- 228
-					return nil -- 228
-				end)() or "unknown" -- 228
+				enemy_hero_action = _anon_func_0(enemy) or "unknown" -- 228
 			end -- 228
 			row = { -- 231
 				not_facing_enemy = not_facing_enemy, -- 231
@@ -375,6 +376,20 @@ local rowTypes = { -- 267
 	'N', -- 268
 	'C' -- 269
 } -- 266
+local _anon_func_1 = function(_with_0, name, tostring, op, value) -- 287
+	if name ~= "" then -- 287
+		return "if " .. tostring(name) .. " " .. tostring(op) .. " " .. tostring(op == '==' and "\"" .. tostring(value) .. "\"" or value) -- 288
+	else -- 290
+		return tostring(op) .. " \"" .. tostring(value) .. "\"" -- 290
+	end -- 287
+end -- 287
+local _anon_func_2 = function(_with_0, load, luaCodes) -- 298
+	local _obj_0 = load(luaCodes) -- 298
+	if _obj_0 ~= nil then -- 298
+		return _obj_0() -- 298
+	end -- 298
+	return nil -- 298
+end -- 298
 do -- 272
 	local _with_0 = Node() -- 272
 	_with_0:gslot("TrainAI", function(charSet) -- 273
@@ -421,13 +436,7 @@ do -- 272
 				"(_ENV) ->" -- 285
 			} -- 285
 			local accuracy = ML.BuildDecisionTreeAsync(dataStr, 0, function(depth, name, op, value) -- 286
-				local line = string.rep("\t", depth + 1) .. (function() -- 287
-					if name ~= "" then -- 287
-						return "if " .. tostring(name) .. " " .. tostring(op) .. " " .. tostring(op == '==' and "\"" .. tostring(value) .. "\"" or value) -- 288
-					else -- 290
-						return tostring(op) .. " \"" .. tostring(value) .. "\"" -- 290
-					end -- 287
-				end)() -- 287
+				local line = string.rep("\t", depth + 1) .. _anon_func_1(_with_0, name, tostring, op, value) -- 287
 				lines[#lines + 1] = line -- 291
 			end) -- 286
 			local codes = table.concat(lines, "\n") -- 292
@@ -437,13 +446,7 @@ do -- 272
 			local luaCodes = yue.to_lua(codes, { -- 297
 				reserve_line_number = false -- 297
 			}) -- 297
-			local learnedAI = (function() -- 298
-				local _obj_0 = load(luaCodes) -- 298
-				if _obj_0 ~= nil then -- 298
-					return _obj_0() -- 298
-				end -- 298
-				return nil -- 298
-			end)() or function() -- 298
+			local learnedAI = _anon_func_2(_with_0, load, luaCodes) or function() -- 298
 				return "unknown" -- 298
 			end -- 298
 			characters[charSet].learnedAI = learnedAI -- 299
@@ -451,6 +454,13 @@ do -- 272
 		end) -- 300
 	end) -- 273
 end -- 272
+local _anon_func_3 = function(enemy) -- 356
+	local _obj_0 = enemy.currentAction -- 356
+	if _obj_0 ~= nil then -- 356
+		return _obj_0.name -- 356
+	end -- 356
+	return nil -- 356
+end -- 356
 Store["AI_Learned"] = Sel({ -- 303
 	Seq({ -- 304
 		Con("is dead", function(self) -- 304
@@ -520,13 +530,7 @@ Store["AI_Learned"] = Sel({ -- 303
 			local enemy_hero_action -- 354
 			do -- 354
 				local enemy = AI:getNearestUnit("Enemy") -- 355
-				enemy_hero_action = (function() -- 356
-					local _obj_1 = enemy.currentAction -- 356
-					if _obj_1 ~= nil then -- 356
-						return _obj_1.name -- 356
-					end -- 356
-					return nil -- 356
-				end)() or "unknown" -- 356
+				enemy_hero_action = _anon_func_3(enemy) or "unknown" -- 356
 			end -- 356
 			self.entity.learnedAction = characters[self.entity.charSet].learnedAI({ -- 359
 				not_facing_enemy = not_facing_enemy, -- 359
@@ -885,6 +889,22 @@ NewItemPanel = function(displayName, itemName, itemOptions, currentSet) -- 612
 	end -- 648
 end -- 612
 local size, grid = 2000, 150 -- 652
+local _anon_func_4 = function(_with_0, Line, size, grid, Vec2, Color) -- 673
+	local _with_1 = Line() -- 662
+	_with_1.depthWrite = true -- 663
+	_with_1.z = -10 -- 664
+	for i = -size / grid, size / grid do -- 665
+		_with_1:add({ -- 667
+			Vec2(i * grid, size), -- 667
+			Vec2(i * grid, -size) -- 668
+		}, Color(0xff000000)) -- 666
+		_with_1:add({ -- 671
+			Vec2(-size, i * grid), -- 671
+			Vec2(size, i * grid) -- 672
+		}, Color(0xff000000)) -- 670
+	end -- 673
+	return _with_1 -- 662
+end -- 662
 local background -- 654
 background = function() -- 654
 	local _with_0 = DrawNode() -- 654
@@ -895,22 +915,7 @@ background = function() -- 654
 		Vec2(size, -size), -- 659
 		Vec2(-size, -size) -- 660
 	}, Color(0xff888888)) -- 656
-	_with_0:addChild((function() -- 662
-		local _with_1 = Line() -- 662
-		_with_1.depthWrite = true -- 663
-		_with_1.z = -10 -- 664
-		for i = -size / grid, size / grid do -- 665
-			_with_1:add({ -- 667
-				Vec2(i * grid, size), -- 667
-				Vec2(i * grid, -size) -- 668
-			}, Color(0xff000000)) -- 666
-			_with_1:add({ -- 671
-				Vec2(-size, i * grid), -- 671
-				Vec2(size, i * grid) -- 672
-			}, Color(0xff000000)) -- 670
-		end -- 673
-		return _with_1 -- 662
-	end)()) -- 662
+	_with_0:addChild(_anon_func_4(_with_0, Line, size, grid, Vec2, Color)) -- 662
 	return _with_0 -- 654
 end -- 654
 do -- 675
@@ -962,6 +967,11 @@ do -- 712
 	_with_0.group = Data.groupTerrain -- 714
 	_with_0:addTo(world) -- 715
 end -- 712
+local _anon_func_5 = function(Sprite, item, tostring, offset) -- 736
+	local _with_0 = Sprite("Model/patreon.clip|" .. tostring(item)) -- 735
+	_with_0.position = offset -- 736
+	return _with_0 -- 735
+end -- 735
 local updateModel -- 717
 updateModel = function(model, currentSet) -- 717
 	local node = model:getNodeByName("body") -- 718
@@ -982,11 +992,7 @@ updateModel = function(model, currentSet) -- 717
 		local item = currentSet[slot] -- 732
 		if item then -- 733
 			local offset = itemSettings[item].offset -- 734
-			node:addChild((function() -- 735
-				local _with_0 = Sprite("Model/patreon.clip|" .. tostring(item)) -- 735
-				_with_0.position = offset -- 736
-				return _with_0 -- 735
-			end)()) -- 735
+			node:addChild(_anon_func_5(Sprite, item, tostring, offset)) -- 735
 		end -- 733
 	end -- 736
 end -- 717

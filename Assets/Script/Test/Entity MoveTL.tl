@@ -29,6 +29,7 @@ Observer("Add", { "scene" }):watch(function(_entity: Entity.Type, scene: Node.Ty
 			return false
 		end)
 	end)
+	return false
 end)
 
 Observer("Add", { "image" }):watch(function(self: Entity.Type, image: string): boolean
@@ -45,6 +46,7 @@ Observer("Add", { "image" }):watch(function(self: Entity.Type, image: string): b
 			return true
 		end
 	end)
+	return false
 end)
 
 Observer("Remove", { "sprite" }):watch(function(self: Entity.Type): boolean
@@ -52,10 +54,12 @@ Observer("Remove", { "sprite" }):watch(function(self: Entity.Type): boolean
 	if not sprite is nil then
 		sprite:removeFromParent()
 	end
+	return false
 end)
 
 Observer("Remove", { "target" }):watch(function(self: Entity.Type): boolean
 	print("remove target from entity " .. tostring(self.index))
+	return false
 end)
 
 Group({ "position", "direction", "speed", "target" }):watch(
@@ -73,6 +77,7 @@ Group({ "position", "direction", "speed", "target" }):watch(
 	if newPos == target then
 		self.target = nil
 	end
+	return false
 end)
 
 Observer("AddOrChange", { "position", "direction", "sprite" }):watch(
@@ -84,6 +89,7 @@ Observer("AddOrChange", { "position", "direction", "sprite" }):watch(
 			sprite:runAction(Roll(0.3, lastDirection, direction))
 		end
 	end
+	return false
 end)
 
 local record EntityDef
@@ -170,4 +176,5 @@ Observer("Add", { "scene" }):watch(function(entity: Entity.Type): boolean
 			end)
 		end)
 	end
+	return false
 end)

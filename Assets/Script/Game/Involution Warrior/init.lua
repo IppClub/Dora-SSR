@@ -50,8 +50,8 @@ local Visual = _module_1.Visual -- 1
 local emit = dora.emit -- 1
 local Spawn = dora.Spawn -- 1
 local Director = dora.Director -- 1
-local string = _G.string -- 1
 local Delay = dora.Delay -- 1
+local string = _G.string -- 1
 local Entity = dora.Entity -- 1
 local _module_0 = dora.ImGui -- 1
 local SetNextWindowPos = _module_0.SetNextWindowPos -- 1
@@ -223,6 +223,22 @@ local itemSettings = { -- 111
 } -- 110
 local GamePaused = true -- 169
 local size, grid = 1500, 150 -- 173
+local _anon_func_0 = function(_with_0, Line, size, grid, Vec2, Color) -- 194
+	local _with_1 = Line() -- 183
+	_with_1.depthWrite = true -- 184
+	_with_1.z = -10 -- 185
+	for i = -size / grid, size / grid do -- 186
+		_with_1:add({ -- 188
+			Vec2(i * grid, size), -- 188
+			Vec2(i * grid, -size) -- 189
+		}, Color(0xff000000)) -- 187
+		_with_1:add({ -- 192
+			Vec2(-size, i * grid), -- 192
+			Vec2(size, i * grid) -- 193
+		}, Color(0xff000000)) -- 191
+	end -- 194
+	return _with_1 -- 183
+end -- 183
 local background -- 175
 background = function() -- 175
 	local _with_0 = DrawNode() -- 175
@@ -233,22 +249,7 @@ background = function() -- 175
 		Vec2(size, -size), -- 180
 		Vec2(-size, -size) -- 181
 	}, Color(0xff888888)) -- 177
-	_with_0:addChild((function() -- 183
-		local _with_1 = Line() -- 183
-		_with_1.depthWrite = true -- 184
-		_with_1.z = -10 -- 185
-		for i = -size / grid, size / grid do -- 186
-			_with_1:add({ -- 188
-				Vec2(i * grid, size), -- 188
-				Vec2(i * grid, -size) -- 189
-			}, Color(0xff000000)) -- 187
-			_with_1:add({ -- 192
-				Vec2(-size, i * grid), -- 192
-				Vec2(size, i * grid) -- 193
-			}, Color(0xff000000)) -- 191
-		end -- 194
-		return _with_1 -- 183
-	end)()) -- 183
+	_with_0:addChild(_anon_func_0(_with_0, Line, size, grid, Vec2, Color)) -- 183
 	return _with_0 -- 175
 end -- 175
 do -- 196
@@ -702,6 +703,29 @@ GetBoss = function(entity, pos, black) -- 464
 	end -- 523
 	return _with_0 -- 518
 end -- 464
+local _anon_func_1 = function(pairs, items, itemSettings, entity, tostring) -- 545
+	local _accum_0 = { } -- 542
+	local _len_0 = 1 -- 542
+	for _, v in pairs(items) do -- 542
+		do -- 543
+			local skill = itemSettings[v].skill -- 543
+			if skill then -- 543
+				entity[tostring(skill) .. "Skill"] = true -- 544
+				_accum_0[_len_0] = skill -- 545
+			end -- 543
+		end -- 543
+		_len_0 = _len_0 + 1 -- 545
+	end -- 545
+	return _accum_0 -- 545
+end -- 542
+local _anon_func_2 = function(_with_0, Sprite, item, tostring, Color, black, itemSettings) -- 609
+	local _with_1 = Sprite("Model/patreon.clip|" .. tostring(item)) -- 607
+	if black then -- 608
+		_with_1.color = Color(0xff666666) -- 608
+	end -- 608
+	_with_1.position = itemSettings[item].offset -- 609
+	return _with_1 -- 607
+end -- 607
 local GetUnit -- 526
 GetUnit = function(entity, pos, black) -- 526
 	local characterType = characterTypes[math.random(1, #characterTypes)] -- 527
@@ -721,21 +745,7 @@ GetUnit = function(entity, pos, black) -- 526
 	local bonusPower = itemSettings[items.lhand].attackPower or Vec2.zero -- 539
 	local attackPower = bonusPower + (itemSettings[items.rhand].attackPower or Vec2(100, 100)) -- 540
 	local sndAttack = itemSettings[items.rhand].sndAttack or "" -- 541
-	local skills = Set((function() -- 542
-		local _accum_0 = { } -- 542
-		local _len_0 = 1 -- 542
-		for _, v in pairs(items) do -- 542
-			do -- 543
-				local skill = itemSettings[v].skill -- 543
-				if skill then -- 543
-					entity[tostring(skill) .. "Skill"] = true -- 544
-					_accum_0[_len_0] = skill -- 545
-				end -- 543
-			end -- 543
-			_len_0 = _len_0 + 1 -- 545
-		end -- 545
-		return _accum_0 -- 545
-	end)()) -- 542
+	local skills = Set(_anon_func_1(pairs, items, itemSettings, entity, tostring)) -- 542
 	local actions = Array({ -- 547
 		"walk", -- 547
 		"turn", -- 548
@@ -816,14 +826,7 @@ GetUnit = function(entity, pos, black) -- 526
 		do -- 606
 			local item = items[slot] -- 606
 			if item then -- 606
-				node:addChild((function() -- 607
-					local _with_1 = Sprite("Model/patreon.clip|" .. tostring(item)) -- 607
-					if black then -- 608
-						_with_1.color = Color(0xff666666) -- 608
-					end -- 608
-					_with_1.position = itemSettings[item].offset -- 609
-					return _with_1 -- 607
-				end)()) -- 607
+				node:addChild(_anon_func_2(_with_0, Sprite, item, tostring, Color, black, itemSettings)) -- 607
 			end -- 606
 		end -- 606
 	end -- 609
@@ -1090,6 +1093,16 @@ WaitForSignal = function(text, duration) -- 787
 end -- 787
 local GameScore = 20 -- 803
 local uiScale = App.devicePixelRatio -- 805
+local _anon_func_3 = function(_with_1, Label, themeColor, string, tostring, value, Sequence, Spawn, Scale, Ease, Opacity, Delay, Event) -- 829
+	local _with_0 = Label("sarasa-mono-sc-regular", 64) -- 814
+	_with_0.color = themeColor -- 815
+	_with_0.text = string.format(tostring(value > 0 and '+' or '') .. "%d", value) -- 816
+	_with_0:runAction(Sequence(Spawn(Scale(0.5, 0.3, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(0.5), Spawn(Scale(0.3, 1, 1.5, Ease.OutQuad), Opacity(0.3, 1, 0, Ease.OutQuad)), Event("End"))) -- 817
+	_with_0:slot("End", function() -- 829
+		return _with_0:removeFromParent() -- 829
+	end) -- 829
+	return _with_0 -- 814
+end -- 814
 Director.ui:addChild((function() -- 806
 	local _with_0 = AlignNode({ -- 806
 		isRoot = true -- 806
@@ -1104,16 +1117,7 @@ Director.ui:addChild((function() -- 806
 			if value < 0 and GameScore == 0 then -- 813
 				return -- 813
 			end -- 813
-			_with_1:addChild((function() -- 814
-				local _with_2 = Label("sarasa-mono-sc-regular", 64) -- 814
-				_with_2.color = themeColor -- 815
-				_with_2.text = string.format(tostring(value > 0 and '+' or '') .. "%d", value) -- 816
-				_with_2:runAction(Sequence(Spawn(Scale(0.5, 0.3, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(0.5), Spawn(Scale(0.3, 1, 1.5, Ease.OutQuad), Opacity(0.3, 1, 0, Ease.OutQuad)), Event("End"))) -- 817
-				_with_2:slot("End", function() -- 829
-					return _with_2:removeFromParent() -- 829
-				end) -- 829
-				return _with_2 -- 814
-			end)()) -- 814
+			_with_1:addChild(_anon_func_3(_with_1, Label, themeColor, string, tostring, value, Sequence, Spawn, Scale, Ease, Opacity, Delay, Event)) -- 814
 			GameScore = math.max(0, GameScore + value) -- 830
 			if GameScore == 0 then -- 831
 				return _with_1:schedule(once(function() -- 832

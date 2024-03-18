@@ -335,6 +335,15 @@ StructLoad = function(data) -- 217
 		end -- 223
 	end -- 218
 end -- 217
+local _anon_func_0 = function(tostring, pairs, StructDefs) -- 256
+	local _accum_0 = { } -- 256
+	local _len_0 = 1 -- 256
+	for _, v in pairs(StructDefs) do -- 256
+		_accum_0[_len_0] = tostring(v) -- 256
+		_len_0 = _len_0 + 1 -- 256
+	end -- 256
+	return _accum_0 -- 256
+end -- 256
 Struct = setmetatable({ -- 225
 	load = function(self, ...) -- 225
 		local count = select("#", ...) -- 226
@@ -379,15 +388,7 @@ Struct = setmetatable({ -- 225
 		return def -- 254
 	end, -- 248
 	__tostring = function(self) -- 255
-		return concat((function() -- 256
-			local _accum_0 = { } -- 256
-			local _len_0 = 1 -- 256
-			for _, v in pairs(StructDefs) do -- 256
-				_accum_0[_len_0] = tostring(v) -- 256
-				_len_0 = _len_0 + 1 -- 256
-			end -- 256
-			return _accum_0 -- 256
-		end)(), "\n") -- 256
+		return concat(_anon_func_0(tostring, pairs, StructDefs), "\n") -- 256
 	end -- 255
 }) -- 224
 _module_0["Struct"] = Struct -- 257
@@ -478,75 +479,80 @@ LintYueGlobals = function(luaCodes, globals, globalInLocal) -- 291
 		importItems = { } -- 302
 	end -- 296
 	local importSet = { } -- 303
-	for _index_0 = 1, #globals do -- 304
-		local globalVar = globals[_index_0] -- 304
-		local name, line, col = globalVar[1], globalVar[2], globalVar[3] -- 305
-		if allowedUseOfGlobals[name] then -- 306
-			goto _continue_1 -- 306
-		end -- 306
-		if _G[name] then -- 307
-			if globalInLocal then -- 308
-				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = _G." .. tostring(name) .. " -- 1" -- 309
-			end -- 308
-			goto _continue_1 -- 310
+	local globalSet = { } -- 304
+	for _index_0 = 1, #globals do -- 305
+		local globalVar = globals[_index_0] -- 305
+		local name = globalVar[1] -- 306
+		if globalSet[name] then -- 307
+			goto _continue_1 -- 307
 		end -- 307
-		local findModule = false -- 311
-		if importCodes then -- 312
-			if dora[name] then -- 313
-				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = dora." .. tostring(name) .. " -- 1" -- 314
-				findModule = true -- 315
-			else -- 317
-				for i, _des_0 in ipairs(importItems) do -- 317
-					local mod, modName = _des_0[1], _des_0[2] -- 317
-					if (mod[name] ~= nil) then -- 318
-						local moduleName = "_module_" .. tostring(i - 1) -- 319
-						if not importSet[mod] then -- 320
-							importSet[mod] = true -- 321
-							requireModules[#requireModules + 1] = "local " .. tostring(moduleName) .. " = " .. tostring(modName) .. " -- 1" -- 322
-						end -- 320
-						requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = " .. tostring(moduleName) .. "." .. tostring(name) .. " -- 1" -- 323
-						findModule = true -- 324
-						break -- 325
-					end -- 318
-				end -- 325
-			end -- 313
-		end -- 312
-		if not findModule then -- 326
-			errors[#errors + 1] = globalVar -- 327
-		end -- 326
-		::_continue_1:: -- 305
-	end -- 327
-	if #errors > 0 then -- 328
-		return false, errors -- 329
-	else -- 331
-		return true, table.concat(requireModules, "\n") -- 331
-	end -- 328
+		globalSet[name] = true -- 308
+		if allowedUseOfGlobals[name] then -- 309
+			goto _continue_1 -- 309
+		end -- 309
+		if _G[name] then -- 310
+			if globalInLocal then -- 311
+				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = _G." .. tostring(name) .. " -- 1" -- 312
+			end -- 311
+			goto _continue_1 -- 313
+		end -- 310
+		local findModule = false -- 314
+		if importCodes then -- 315
+			if dora[name] then -- 316
+				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = dora." .. tostring(name) .. " -- 1" -- 317
+				findModule = true -- 318
+			else -- 320
+				for i, _des_0 in ipairs(importItems) do -- 320
+					local mod, modName = _des_0[1], _des_0[2] -- 320
+					if (mod[name] ~= nil) then -- 321
+						local moduleName = "_module_" .. tostring(i - 1) -- 322
+						if not importSet[mod] then -- 323
+							importSet[mod] = true -- 324
+							requireModules[#requireModules + 1] = "local " .. tostring(moduleName) .. " = " .. tostring(modName) .. " -- 1" -- 325
+						end -- 323
+						requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = " .. tostring(moduleName) .. "." .. tostring(name) .. " -- 1" -- 326
+						findModule = true -- 327
+						break -- 328
+					end -- 321
+				end -- 328
+			end -- 316
+		end -- 315
+		if not findModule then -- 329
+			errors[#errors + 1] = globalVar -- 330
+		end -- 329
+		::_continue_1:: -- 306
+	end -- 330
+	if #errors > 0 then -- 331
+		return false, errors -- 332
+	else -- 334
+		return true, table.concat(requireModules, "\n") -- 334
+	end -- 331
 end -- 291
-_module_0["LintYueGlobals"] = LintYueGlobals -- 331
-local GSplit -- 333
-GSplit = function(text, pattern, plain) -- 333
-	local splitStart, length = 1, #text -- 334
-	return function() -- 335
-		if splitStart then -- 336
-			local sepStart, sepEnd = string.find(text, pattern, splitStart, plain) -- 337
-			local ret -- 338
-			if not sepStart then -- 339
-				ret = string.sub(text, splitStart) -- 340
-				splitStart = nil -- 341
-			elseif sepEnd < sepStart then -- 342
-				ret = string.sub(text, splitStart, sepStart) -- 343
-				if sepStart < length then -- 344
-					splitStart = sepStart + 1 -- 345
-				else -- 347
-					splitStart = nil -- 347
-				end -- 344
-			else -- 349
-				ret = sepStart > splitStart and string.sub(text, splitStart, sepStart - 1) or '' -- 349
-				splitStart = sepEnd + 1 -- 350
-			end -- 339
-			return ret -- 351
-		end -- 336
-	end -- 351
-end -- 333
-_module_0["GSplit"] = GSplit -- 351
-return _module_0 -- 351
+_module_0["LintYueGlobals"] = LintYueGlobals -- 334
+local GSplit -- 336
+GSplit = function(text, pattern, plain) -- 336
+	local splitStart, length = 1, #text -- 337
+	return function() -- 338
+		if splitStart then -- 339
+			local sepStart, sepEnd = string.find(text, pattern, splitStart, plain) -- 340
+			local ret -- 341
+			if not sepStart then -- 342
+				ret = string.sub(text, splitStart) -- 343
+				splitStart = nil -- 344
+			elseif sepEnd < sepStart then -- 345
+				ret = string.sub(text, splitStart, sepStart) -- 346
+				if sepStart < length then -- 347
+					splitStart = sepStart + 1 -- 348
+				else -- 350
+					splitStart = nil -- 350
+				end -- 347
+			else -- 352
+				ret = sepStart > splitStart and string.sub(text, splitStart, sepStart - 1) or '' -- 352
+				splitStart = sepEnd + 1 -- 353
+			end -- 342
+			return ret -- 354
+		end -- 339
+	end -- 354
+end -- 336
+_module_0["GSplit"] = GSplit -- 354
+return _module_0 -- 354

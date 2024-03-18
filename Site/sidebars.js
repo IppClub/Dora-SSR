@@ -441,6 +441,11 @@ const sidebars = {
 				},
 				{
 					type: 'doc',
+					label: 'Opacity',
+					id: 'api/Module/Opacity',
+				},
+				{
+					type: 'doc',
 					label: 'Height',
 					id: 'api/Module/Height',
 				},
@@ -819,7 +824,6 @@ const sidebars = {
 					label: 'Module',
 					items: [
 						"api/Module/Platformer",
-						"api/Module/Opacity",
 						"api/Module/Log",
 						"api/Module/dora",
 						"api/Module/Array",

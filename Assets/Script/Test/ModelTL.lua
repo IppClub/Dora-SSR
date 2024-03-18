@@ -1,5 +1,5 @@
-local Model = require("Model")
-local threadLoop = require("threadLoop")
+local Model <const> = require("Model")
+local threadLoop <const> = require("threadLoop")
 
 local modelFile = "Model/xiaoli.model"
 local model = Model(modelFile)
@@ -12,9 +12,9 @@ end)
 
 
 
-local App = require("App")
-local ImGui = require("ImGui")
-local Vec2 = require("Vec2")
+local App <const> = require("App")
+local ImGui <const> = require("ImGui")
+local Vec2 <const> = require("Vec2")
 
 local looks = Model:getLooks(modelFile)
 if #looks == 0 then
