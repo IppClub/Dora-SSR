@@ -101,7 +101,7 @@ do -- 21
 	end)()) -- 46
 	_with_0:alignLayout() -- 48
 end -- 21
-local _anon_func_0 = function(tostring, select, ...) -- 51
+local _anon_func_0 = function(select, tostring, ...) -- 51
 	local _accum_0 = { } -- 51
 	local _len_0 = 1 -- 51
 	for i = 1, select('#', ...) do -- 51
@@ -113,7 +113,7 @@ end -- 51
 local commands = setmetatable({ }, { -- 50
 	__index = function(self, name) -- 50
 		return function(...) -- 50
-			local msg = "[command]: " .. name .. " " .. table.concat(_anon_func_0(tostring, select, ...), ", ") -- 51
+			local msg = "[command]: " .. name .. " " .. table.concat(_anon_func_0(select, tostring, ...), ", ") -- 51
 			return coroutine.yield("Command", msg) -- 52
 		end -- 52
 	end -- 50

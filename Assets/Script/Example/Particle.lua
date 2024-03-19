@@ -314,7 +314,7 @@ Item = function(name) -- 81
 		end -- 114
 	end) -- 114
 end -- 81
-local _anon_func_0 = function(tostring, toString, pairs, Data) -- 121
+local _anon_func_0 = function(Data, pairs, toString, tostring) -- 121
 	local _accum_0 = { } -- 121
 	local _len_0 = 1 -- 121
 	for k, v in pairs(Data) do -- 121
@@ -328,7 +328,7 @@ local work = coroutine.wrap(function() -- 116
 		sleep(1) -- 118
 		if DataDirty then -- 119
 			DataDirty = false -- 120
-			Cache:update("__test__.par", "<A>" .. table.concat(_anon_func_0(tostring, toString, pairs, Data)) .. "</A>") -- 121
+			Cache:update("__test__.par", "<A>" .. table.concat(_anon_func_0(Data, pairs, toString, tostring)) .. "</A>") -- 121
 			particle:removeFromParent() -- 122
 			do -- 123
 				local _with_0 = Particle("__test__.par") -- 123
@@ -339,7 +339,7 @@ local work = coroutine.wrap(function() -- 116
 		end -- 119
 	end -- 125
 end) -- 116
-local _anon_func_1 = function(tostring, toString, pairs, Data) -- 135
+local _anon_func_1 = function(Data, pairs, toString, tostring) -- 135
 	local _accum_0 = { } -- 135
 	local _len_0 = 1 -- 135
 	for k, v in pairs(Data) do -- 135
@@ -364,7 +364,7 @@ return threadLoop(function() -- 127
 			Item(k) -- 133
 		end -- 133
 		if Button("Export") then -- 134
-			return print("<A>" .. table.concat(_anon_func_1(tostring, toString, pairs, Data)) .. "</A>") -- 135
+			return print("<A>" .. table.concat(_anon_func_1(Data, pairs, toString, tostring)) .. "</A>") -- 135
 		end -- 134
 	end) -- 131
 	return work() -- 136

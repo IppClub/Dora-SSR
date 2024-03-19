@@ -18,7 +18,7 @@ local _anon_func_0 = function(Sprite) -- 12
 	_with_0.renderOrder = 1 -- 12
 	return _with_0 -- 9
 end -- 9
-local _anon_func_1 = function(DrawNode, Vec2, Color, App) -- 22
+local _anon_func_1 = function(App, Color, DrawNode, Vec2) -- 22
 	local _with_0 = DrawNode() -- 14
 	_with_0:drawPolygon({ -- 16
 		Vec2(-60, -60), -- 16
@@ -30,7 +30,7 @@ local _anon_func_1 = function(DrawNode, Vec2, Color, App) -- 22
 	_with_0.angle = 45 -- 22
 	return _with_0 -- 14
 end -- 14
-local _anon_func_2 = function(Line, Vec2, Color) -- 32
+local _anon_func_2 = function(Color, Line, Vec2) -- 32
 	local _with_0 = Line({ -- 25
 		Vec2(-60, -60), -- 25
 		Vec2(60, -60), -- 26
@@ -48,8 +48,8 @@ local Item = Class(Node, { -- 4
 		self.height = 144 -- 6
 		self.anchor = Vec2.zero -- 7
 		self:addChild(_anon_func_0(Sprite)) -- 9
-		self:addChild(_anon_func_1(DrawNode, Vec2, Color, App)) -- 14
-		self:addChild(_anon_func_2(Line, Vec2, Color)) -- 24
+		self:addChild(_anon_func_1(App, Color, DrawNode, Vec2)) -- 14
+		self:addChild(_anon_func_2(Color, Line, Vec2)) -- 24
 		self:runAction(Angle(5, 0, 360)) -- 34
 		return self:slot("ActionEnd", function(action) -- 35
 			return self:runAction(action) -- 35

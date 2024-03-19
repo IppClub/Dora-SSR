@@ -5,21 +5,21 @@ local print = _G.print -- 1
 local tostring = _G.tostring -- 1
 local Vec2 = dora.Vec2 -- 1
 local Label = dora.Label -- 1
-local Ease = dora.Ease -- 1
 local Spawn = dora.Spawn -- 1
+local Ease = dora.Ease -- 1
+local Event = dora.Event -- 1
 local Opacity = dora.Opacity -- 1
 local Delay = dora.Delay -- 1
 local App = dora.App -- 1
-local Sequence = dora.Sequence -- 1
 local Scale = dora.Scale -- 1
-local Event = dora.Event -- 1
+local Sequence = dora.Sequence -- 1
 local threadLoop = dora.threadLoop -- 1
 local ImGui = dora.ImGui -- 1
 local boneStr = "DragonBones/NewDragon" -- 3
 local animations = DragonBone:getAnimations(boneStr) -- 5
 local looks = DragonBone:getLooks(boneStr) -- 6
 p(animations, looks) -- 8
-local _anon_func_0 = function(_with_0, Label, name, App, Sequence, Spawn, Scale, Ease, Delay, Opacity, Event, Vec2, x, y) -- 31
+local _anon_func_0 = function(App, Delay, Ease, Event, Label, Opacity, Scale, Sequence, Spawn, Vec2, _with_0, name, x, y) -- 31
 	local _with_1 = Label("sarasa-mono-sc-regular", 30) -- 19
 	_with_1.text = name -- 20
 	_with_1.color = App.themeColor -- 21
@@ -50,7 +50,7 @@ do -- 10
 		do -- 18
 			local name = _with_0:containsPoint(x, y) -- 18
 			if name then -- 18
-				return _with_0:addChild(_anon_func_0(_with_0, Label, name, App, Sequence, Spawn, Scale, Ease, Delay, Opacity, Event, Vec2, x, y)) -- 31
+				return _with_0:addChild(_anon_func_0(App, Delay, Ease, Event, Label, Opacity, Scale, Sequence, Spawn, Vec2, _with_0, name, x, y)) -- 31
 			end -- 18
 		end -- 18
 	end) -- 16
