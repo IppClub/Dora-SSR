@@ -92,7 +92,7 @@ switchPushed = function(name, playable) -- 61
 		return playable.parent:stop() -- 63
 	end -- 63
 end -- 61
-local _anon_func_0 = function(LayerBlock, self, GroupPlayer, GroupPlayerPoke, Vec2, GroupEnemy, GroupEnemyPoke) -- 108
+local _anon_func_0 = function(GroupEnemy, GroupEnemyPoke, GroupPlayer, GroupPlayerPoke, LayerBlock, Vec2, self) -- 108
 	local _with_0 = { } -- 102
 	_with_0.layer = LayerBlock -- 103
 	do -- 104
@@ -164,7 +164,7 @@ UnitAction:add("pushed", { -- 66
 				elseif "SwitchG" == _exp_0 then -- 99
 					heroes:each(function(hero) -- 100
 						if self.group == hero.group and hero.ep >= 2 then -- 101
-							Entity(_anon_func_0(LayerBlock, self, GroupPlayer, GroupPlayerPoke, Vec2, GroupEnemy, GroupEnemyPoke)) -- 102
+							Entity(_anon_func_0(GroupEnemy, GroupEnemyPoke, GroupPlayer, GroupPlayerPoke, LayerBlock, Vec2, self)) -- 102
 							emit("EPChange", self.group, -2) -- 109
 							return true -- 110
 						end -- 101

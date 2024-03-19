@@ -335,7 +335,7 @@ StructLoad = function(data) -- 217
 		end -- 223
 	end -- 218
 end -- 217
-local _anon_func_0 = function(tostring, pairs, StructDefs) -- 256
+local _anon_func_0 = function(StructDefs, pairs, tostring) -- 256
 	local _accum_0 = { } -- 256
 	local _len_0 = 1 -- 256
 	for _, v in pairs(StructDefs) do -- 256
@@ -388,7 +388,7 @@ Struct = setmetatable({ -- 225
 		return def -- 254
 	end, -- 248
 	__tostring = function(self) -- 255
-		return concat(_anon_func_0(tostring, pairs, StructDefs), "\n") -- 256
+		return concat(_anon_func_0(StructDefs, pairs, tostring), "\n") -- 256
 	end -- 255
 }) -- 224
 _module_0["Struct"] = Struct -- 257

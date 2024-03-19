@@ -1629,37 +1629,37 @@ local extentionLevels = { -- 638
 	xml = 1, -- 643
 	lua = 0 -- 644
 } -- 637
-local _anon_func_4 = function(visitAssets, Path, Content, zh) -- 709
+local _anon_func_4 = function(Content, Path, visitAssets, zh) -- 709
 	local _with_0 = visitAssets(Path(Content.assetPath, "Doc", zh and "zh-Hans" or "en")) -- 708
 	_with_0.title = zh and "说明文档" or "Readme" -- 709
 	return _with_0 -- 708
 end -- 708
-local _anon_func_5 = function(visitAssets, Path, Content, zh) -- 711
+local _anon_func_5 = function(Content, Path, visitAssets, zh) -- 711
 	local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Lib", "Dora", zh and "zh-Hans" or "en")) -- 710
 	_with_0.title = zh and "接口文档" or "API Doc" -- 711
 	return _with_0 -- 710
 end -- 710
-local _anon_func_6 = function(visitAssets, Path, Content, zh) -- 713
+local _anon_func_6 = function(Content, Path, visitAssets, zh) -- 713
 	local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Example")) -- 712
 	_with_0.title = zh and "代码示例" or "Example" -- 713
 	return _with_0 -- 712
 end -- 712
-local _anon_func_7 = function(visitAssets, Path, Content, zh) -- 715
+local _anon_func_7 = function(Content, Path, visitAssets, zh) -- 715
 	local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Test")) -- 714
 	_with_0.title = zh and "功能测试" or "Test" -- 715
 	return _with_0 -- 714
 end -- 714
-local _anon_func_3 = function(Path, Content, zh, visitAssets, pairs) -- 720
+local _anon_func_3 = function(Content, Path, pairs, visitAssets, zh) -- 720
 	local _tab_0 = { -- 703
 		{ -- 704
 			key = Path(Content.assetPath), -- 704
 			dir = true, -- 705
 			title = zh and "内置资源" or "Built-in", -- 706
 			children = { -- 708
-				_anon_func_4(visitAssets, Path, Content, zh), -- 708
-				_anon_func_5(visitAssets, Path, Content, zh), -- 710
-				_anon_func_6(visitAssets, Path, Content, zh), -- 712
-				_anon_func_7(visitAssets, Path, Content, zh), -- 714
+				_anon_func_4(Content, Path, visitAssets, zh), -- 708
+				_anon_func_5(Content, Path, visitAssets, zh), -- 710
+				_anon_func_6(Content, Path, visitAssets, zh), -- 712
+				_anon_func_7(Content, Path, visitAssets, zh), -- 714
 				visitAssets(Path(Content.assetPath, "Image")), -- 716
 				visitAssets(Path(Content.assetPath, "Spine")), -- 717
 				visitAssets(Path(Content.assetPath, "Font")) -- 718
@@ -1785,7 +1785,7 @@ HttpServer:post("/assets", function() -- 646
 		key = Content.writablePath, -- 699
 		dir = true, -- 700
 		title = "Assets", -- 701
-		children = _anon_func_3(Path, Content, zh, visitAssets, pairs) -- 702
+		children = _anon_func_3(Content, Path, pairs, visitAssets, zh) -- 702
 	} -- 723
 end) -- 646
 HttpServer:postSchedule("/run", function(req) -- 725

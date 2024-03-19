@@ -376,7 +376,7 @@ local rowTypes = { -- 267
 	'N', -- 268
 	'C' -- 269
 } -- 266
-local _anon_func_1 = function(_with_0, name, tostring, op, value) -- 287
+local _anon_func_1 = function(_with_0, name, op, tostring, value) -- 287
 	if name ~= "" then -- 287
 		return "if " .. tostring(name) .. " " .. tostring(op) .. " " .. tostring(op == '==' and "\"" .. tostring(value) .. "\"" or value) -- 288
 	else -- 290
@@ -436,7 +436,7 @@ do -- 272
 				"(_ENV) ->" -- 285
 			} -- 285
 			local accuracy = ML.BuildDecisionTreeAsync(dataStr, 0, function(depth, name, op, value) -- 286
-				local line = string.rep("\t", depth + 1) .. _anon_func_1(_with_0, name, tostring, op, value) -- 287
+				local line = string.rep("\t", depth + 1) .. _anon_func_1(_with_0, name, op, tostring, value) -- 287
 				lines[#lines + 1] = line -- 291
 			end) -- 286
 			local codes = table.concat(lines, "\n") -- 292
@@ -889,7 +889,7 @@ NewItemPanel = function(displayName, itemName, itemOptions, currentSet) -- 612
 	end -- 648
 end -- 612
 local size, grid = 2000, 150 -- 652
-local _anon_func_4 = function(_with_0, Line, size, grid, Vec2, Color) -- 673
+local _anon_func_4 = function(Color, Line, Vec2, _with_0, grid, size) -- 673
 	local _with_1 = Line() -- 662
 	_with_1.depthWrite = true -- 663
 	_with_1.z = -10 -- 664
@@ -915,7 +915,7 @@ background = function() -- 654
 		Vec2(size, -size), -- 659
 		Vec2(-size, -size) -- 660
 	}, Color(0xff888888)) -- 656
-	_with_0:addChild(_anon_func_4(_with_0, Line, size, grid, Vec2, Color)) -- 662
+	_with_0:addChild(_anon_func_4(Color, Line, Vec2, _with_0, grid, size)) -- 662
 	return _with_0 -- 654
 end -- 654
 do -- 675
@@ -967,7 +967,7 @@ do -- 712
 	_with_0.group = Data.groupTerrain -- 714
 	_with_0:addTo(world) -- 715
 end -- 712
-local _anon_func_5 = function(Sprite, item, tostring, offset) -- 736
+local _anon_func_5 = function(Sprite, item, offset, tostring) -- 736
 	local _with_0 = Sprite("Model/patreon.clip|" .. tostring(item)) -- 735
 	_with_0.position = offset -- 736
 	return _with_0 -- 735
@@ -992,7 +992,7 @@ updateModel = function(model, currentSet) -- 717
 		local item = currentSet[slot] -- 732
 		if item then -- 733
 			local offset = itemSettings[item].offset -- 734
-			node:addChild(_anon_func_5(Sprite, item, tostring, offset)) -- 735
+			node:addChild(_anon_func_5(Sprite, item, offset, tostring)) -- 735
 		end -- 733
 	end -- 736
 end -- 717

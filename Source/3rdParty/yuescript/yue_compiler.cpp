@@ -3653,7 +3653,7 @@ private:
 		}
 	}
 
-	std::optional<std::pair<std::string, str_list>> upValueFuncFrom(Exp_t* exp, str_list* ensureArgList = nullptr) {
+	std::optional<std::pair<std::string, str_list>> upValueFuncFrom(Exp_t* exp, str_list* ensureArgListInTheEnd = nullptr) {
 		if (_funcLevel <= 1) return std::nullopt;
 		auto result = exp->traverse([&](ast_node* node) {
 			switch (node->get_id()) {
@@ -3725,25 +3725,33 @@ private:
 			}
 			if (!upVarsAssignedOrCaptured) {
 				auto x = exp;
-				if (usedVar) {
-					args.push_back("..."s);
-				}
-				if (ensureArgList) {
+				if (ensureArgListInTheEnd) {
 					std::unordered_set<std::string> vars;
 					for (const auto& arg : args) {
 						vars.insert(arg);
 					}
-					for (const auto& arg : *ensureArgList) {
+					for (const auto& arg : *ensureArgListInTheEnd) {
 						vars.erase(arg);
 					}
 					str_list finalArgs;
 					for (const auto& arg : vars) {
 						finalArgs.push_back(arg);
 					}
-					for (const auto& arg : *ensureArgList) {
+					finalArgs.sort();
+					for (const auto& arg : *ensureArgListInTheEnd) {
 						finalArgs.push_back(arg);
 					}
+					if (usedVar) {
+						if (finalArgs.back() != "..."sv) {
+							finalArgs.push_back("..."s);
+						}
+					}
 					args = std::move(finalArgs);
+				} else {
+					args.sort();
+					if (usedVar) {
+						args.push_back("..."s);
+					}
 				}
 				auto funLit = toAst<FunLit_t>("("s + join(args, ","sv) + ")-> nil"s, x);
 				funLit->body->content.set(stmt.get());
@@ -4344,21 +4352,11 @@ private:
 				}
 				popScope();
 				auto okVar = getUnusedName("_ok_"sv);
-				std::string pCallStmtStr;
-				if (!_varArgs.empty() && _varArgs.top().hasVar) {
-					pCallStmtStr = okVar + ", ... = pcall((...)->, ...)"s;
-				} else {
-					pCallStmtStr = okVar + ", ... = pcall(->)"s;
-				}
+				std::string pCallStmtStr = okVar + ", ... = try\n\tnil"s;
 				auto pCallStmt = toAst<Statement_t>(pCallStmtStr, x);
 				auto pCallExp = ast_to<Exp_t>(pCallStmt->content.to<ExpListAssign_t>()->action.to<Assign_t>()->values.back());
 				auto value = singleValueFrom(pCallExp);
-				auto invoke = ast_to<Invoke_t>(value->item.to<ChainValue_t>()->items.back());
-				auto pCallValue = singleValueFrom(ast_to<Exp_t>(invoke->args.front()));
-				auto pCallFunc = pCallValue->item.to<SimpleValue_t>()->value.to<FunLit_t>();
-				auto pCallBody = x->new_ptr<Body_t>();
-				pCallBody->content.set(followingBlock);
-				pCallFunc->body.set(pCallBody);
+				value->item.to<SimpleValue_t>()->value.to<Try_t>()->func.set(followingBlock);
 				for (const auto& stmt : getCloses) {
 					newBlock->statements.push_back(toAst<Statement_t>(stmt, x));
 				}
@@ -8070,7 +8068,7 @@ private:
 				auto chainValue = static_cast<ChainValue_t*>(value->item.get());
 				if (auto callable = ast_cast<Callable_t>(chainValue->items.front()); callable && chainValue->items.size() == 1) {
 					if (auto self = callable->item.as<SelfItem_t>()) {
-						if (auto selfVar = self->name.as<Self_t>()) {
+						if (self->name.as<Self_t>()) {
 							classTextName = "\"self\"";
 						}
 					} else if (auto var = callable->item.as<Variable_t>()) {
@@ -9020,6 +9018,7 @@ private:
 			BREAK_IF(tryBlock->statements.size() != 1);
 			auto stmt = static_cast<Statement_t*>(tryBlock->statements.front());
 			auto expListAssign = stmt->content.as<ExpListAssign_t>();
+			BREAK_IF(!expListAssign);
 			BREAK_IF(expListAssign->action);
 			auto value = singleValueFrom(expListAssign->expList);
 			BREAK_IF(!value);
@@ -9044,13 +9043,17 @@ private:
 						auto invoke = ast_to<Invoke_t>(xpcall->items.back());
 						invoke->args.push_back(toAst<Exp_t>(funcName, x));
 						invoke->args.push_back(errHandler);
-						invoke->args.dup(toAst<ExpList_t>(join(args, ","sv), x)->exprs);
+						if (!args.empty()) {
+							invoke->args.dup(toAst<ExpList_t>(join(args, ","sv), x)->exprs);
+						}
 						transformChainValue(xpcall, out, ExpUsage::Closure);
 					} else {
 						auto pcall = toAst<ChainValue_t>("pcall()", x);
 						auto invoke = ast_to<Invoke_t>(pcall->items.back());
 						invoke->args.push_back(toAst<Exp_t>(funcName, x));
-						invoke->args.dup(toAst<ExpList_t>(join(args, ","sv), x)->exprs);
+						if (!args.empty()) {
+							invoke->args.dup(toAst<ExpList_t>(join(args, ","sv), x)->exprs);
+						}
 						transformChainValue(pcall, out, ExpUsage::Closure);
 					}
 					if (usage == ExpUsage::Common) {

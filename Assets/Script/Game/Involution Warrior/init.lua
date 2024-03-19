@@ -50,8 +50,8 @@ local Visual = _module_1.Visual -- 1
 local emit = dora.emit -- 1
 local Spawn = dora.Spawn -- 1
 local Director = dora.Director -- 1
-local Delay = dora.Delay -- 1
 local string = _G.string -- 1
+local Delay = dora.Delay -- 1
 local Entity = dora.Entity -- 1
 local _module_0 = dora.ImGui -- 1
 local SetNextWindowPos = _module_0.SetNextWindowPos -- 1
@@ -223,7 +223,7 @@ local itemSettings = { -- 111
 } -- 110
 local GamePaused = true -- 169
 local size, grid = 1500, 150 -- 173
-local _anon_func_0 = function(_with_0, Line, size, grid, Vec2, Color) -- 194
+local _anon_func_0 = function(Color, Line, Vec2, _with_0, grid, size) -- 194
 	local _with_1 = Line() -- 183
 	_with_1.depthWrite = true -- 184
 	_with_1.z = -10 -- 185
@@ -249,7 +249,7 @@ background = function() -- 175
 		Vec2(size, -size), -- 180
 		Vec2(-size, -size) -- 181
 	}, Color(0xff888888)) -- 177
-	_with_0:addChild(_anon_func_0(_with_0, Line, size, grid, Vec2, Color)) -- 183
+	_with_0:addChild(_anon_func_0(Color, Line, Vec2, _with_0, grid, size)) -- 183
 	return _with_0 -- 175
 end -- 175
 do -- 196
@@ -703,7 +703,7 @@ GetBoss = function(entity, pos, black) -- 464
 	end -- 523
 	return _with_0 -- 518
 end -- 464
-local _anon_func_1 = function(pairs, items, itemSettings, entity, tostring) -- 545
+local _anon_func_1 = function(entity, itemSettings, items, pairs, tostring) -- 545
 	local _accum_0 = { } -- 542
 	local _len_0 = 1 -- 542
 	for _, v in pairs(items) do -- 542
@@ -718,7 +718,7 @@ local _anon_func_1 = function(pairs, items, itemSettings, entity, tostring) -- 5
 	end -- 545
 	return _accum_0 -- 545
 end -- 542
-local _anon_func_2 = function(_with_0, Sprite, item, tostring, Color, black, itemSettings) -- 609
+local _anon_func_2 = function(Color, Sprite, _with_0, black, item, itemSettings, tostring) -- 609
 	local _with_1 = Sprite("Model/patreon.clip|" .. tostring(item)) -- 607
 	if black then -- 608
 		_with_1.color = Color(0xff666666) -- 608
@@ -745,7 +745,7 @@ GetUnit = function(entity, pos, black) -- 526
 	local bonusPower = itemSettings[items.lhand].attackPower or Vec2.zero -- 539
 	local attackPower = bonusPower + (itemSettings[items.rhand].attackPower or Vec2(100, 100)) -- 540
 	local sndAttack = itemSettings[items.rhand].sndAttack or "" -- 541
-	local skills = Set(_anon_func_1(pairs, items, itemSettings, entity, tostring)) -- 542
+	local skills = Set(_anon_func_1(entity, itemSettings, items, pairs, tostring)) -- 542
 	local actions = Array({ -- 547
 		"walk", -- 547
 		"turn", -- 548
@@ -826,7 +826,7 @@ GetUnit = function(entity, pos, black) -- 526
 		do -- 606
 			local item = items[slot] -- 606
 			if item then -- 606
-				node:addChild(_anon_func_2(_with_0, Sprite, item, tostring, Color, black, itemSettings)) -- 607
+				node:addChild(_anon_func_2(Color, Sprite, _with_0, black, item, itemSettings, tostring)) -- 607
 			end -- 606
 		end -- 606
 	end -- 609
@@ -1093,7 +1093,7 @@ WaitForSignal = function(text, duration) -- 787
 end -- 787
 local GameScore = 20 -- 803
 local uiScale = App.devicePixelRatio -- 805
-local _anon_func_3 = function(_with_1, Label, themeColor, string, tostring, value, Sequence, Spawn, Scale, Ease, Opacity, Delay, Event) -- 829
+local _anon_func_3 = function(Delay, Ease, Event, Label, Opacity, Scale, Sequence, Spawn, _with_1, string, themeColor, tostring, value) -- 829
 	local _with_0 = Label("sarasa-mono-sc-regular", 64) -- 814
 	_with_0.color = themeColor -- 815
 	_with_0.text = string.format(tostring(value > 0 and '+' or '') .. "%d", value) -- 816
@@ -1117,7 +1117,7 @@ Director.ui:addChild((function() -- 806
 			if value < 0 and GameScore == 0 then -- 813
 				return -- 813
 			end -- 813
-			_with_1:addChild(_anon_func_3(_with_1, Label, themeColor, string, tostring, value, Sequence, Spawn, Scale, Ease, Opacity, Delay, Event)) -- 814
+			_with_1:addChild(_anon_func_3(Delay, Ease, Event, Label, Opacity, Scale, Sequence, Spawn, _with_1, string, themeColor, tostring, value)) -- 814
 			GameScore = math.max(0, GameScore + value) -- 830
 			if GameScore == 0 then -- 831
 				return _with_1:schedule(once(function() -- 832

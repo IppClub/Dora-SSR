@@ -154,7 +154,7 @@ local mutables = { -- 77
 	"attackTarget", -- 88
 	"defenceType" -- 89
 } -- 76
-local _anon_func_0 = function(_with_1, Visual) -- 111
+local _anon_func_0 = function(Visual, _with_1) -- 111
 	local _with_0 = Visual("Particle/select.par") -- 109
 	_with_0:autoRemove() -- 110
 	_with_0:start() -- 111
@@ -195,7 +195,7 @@ do -- 91
 				self.recovery = 0.05 -- 107
 			end) -- 107
 			_with_1:addTo(world) -- 108
-			_with_1:addChild(_anon_func_0(_with_1, Visual)) -- 109
+			_with_1:addChild(_anon_func_0(Visual, _with_1)) -- 109
 			unit = _with_1 -- 97
 		end -- 97
 		if group == GroupPlayer then -- 112
@@ -329,7 +329,7 @@ do -- 174
 		return false -- 184
 	end) -- 175
 end -- 174
-local _anon_func_1 = function(_with_1, self, GroupPlayer, GroupEnemy, Data) -- 213
+local _anon_func_1 = function(Data, GroupEnemy, GroupPlayer, _with_1, self) -- 213
 	local _exp_0 = self.group -- 211
 	if GroupPlayer == _exp_0 or GroupEnemy == _exp_0 then -- 212
 		return Data:isEnemy(self.group, _with_1.group) -- 212
@@ -383,7 +383,7 @@ do -- 186
 			end -- 204
 			_with_1:addChild(glow) -- 209
 			_with_1:slot("BodyEnter", function(self, sensorTag) -- 210
-				if sensorTag == 0 and _anon_func_1(_with_1, self, GroupPlayer, GroupEnemy, Data) then -- 211
+				if sensorTag == 0 and _anon_func_1(Data, GroupEnemy, GroupPlayer, _with_1, self) then -- 211
 					if (_with_1.x < self.x) == (_with_1.velocityX > 0) then -- 214
 						self.velocity = Vec2(_with_1.velocityX > 0 and 500 or -500, 400) -- 215
 						return self:start("strike") -- 216
