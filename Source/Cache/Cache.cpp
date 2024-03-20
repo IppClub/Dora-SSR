@@ -40,8 +40,7 @@ bool Cache::load(String filename) {
 			case "font"_hash:
 				return SharedFontCache.load(tokens.back());
 			default:
-				Error("resource str flag must be \"model\", \"spine\", \"bone\" and \"font\".");
-				return false;
+				break;
 		}
 	}
 	std::string ext = Path::getExt(filename);
@@ -106,8 +105,7 @@ void Cache::loadAsync(String filename, const std::function<void()>& callback) {
 				});
 				return;
 			default:
-				Error("resource str flag must be \"model\", \"spine\", \"bone\" and \"font\".");
-				return;
+				break;
 		}
 	}
 	std::string ext = Path::getExt(filename);
@@ -161,7 +159,7 @@ void Cache::loadAsync(String filename, const std::function<void()>& callback) {
 				});
 				break;
 			default:
-				Error("resource is not supported by name: \"{}\".", filename.toString());
+				Error("resource is not supported: \"{}\".", filename.toString());
 				break;
 		}
 	}
