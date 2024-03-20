@@ -22,8 +22,8 @@ export interface SpinePlayerProps {
 
 const SpinePlayer = memo((props: SpinePlayerProps) => {
 	const {skelFile, atlasFile} = props;
-	const skelUrl = Service.addr("/" + skelFile.replace("\\", "/"));
-	const atlasUrl = Service.addr("/" + atlasFile.replace("\\", "/"));
+	const skelUrl = Service.addr("/" + skelFile.replace(/\\/g, "/"));
+	const atlasUrl = Service.addr("/" + atlasFile.replace(/\\/g, "/"));
 	const playerRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const {t} = useTranslation();
