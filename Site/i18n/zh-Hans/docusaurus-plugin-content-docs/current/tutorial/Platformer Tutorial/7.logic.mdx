@@ -34,11 +34,11 @@ local Unit <const> = Platformer.Unit
 &emsp;&emsp;接着，我们创建了一个[观察器](/docs/api/Class/Observer)，用于监听游戏玩家角色实体的创建行为。当实体被创建时，我们会创建一个代表实际玩家角色的场景节点的[Unit](/docs/api/Class/Platformer/Unit)对象，并进行相关的初始化操作，所以Entity代表的只是纯粹的游戏数据对象，而真正在游戏场景中渲染图形和进行互动的游戏功能，还得靠创建与游戏数据相对应的游戏场景节点对象：
 
 ```tl title="Script/Logic.tl"
-Observer("Add", {"player"}):watch(function(self: Entity.Type)
+Observer("Add", {"player"}):watch(function(self: Entity.Type): boolean
 	local unitDef = Data.store["Unit:player"] as Dictionary.Type
 	local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
 	if unitDef is nil or world is nil then
-		return
+		return false
 	end
 
 	local unit = Unit(unitDef, world, self, Vec2(300, -350))
@@ -48,16 +48,17 @@ Observer("Add", {"player"}):watch(function(self: Entity.Type)
 	unit.playable:play("idle", true)
 	world:addChild(unit)
 	world.camera.followTarget = unit
+	return false
 end)
 ```
 
 &emsp;&emsp;然后，我们创建了另一个观察器，用于监听游戏道具实体的创建行为。当实体被创建时，我们会创建一个[Sprite](/docs/api/Class/Sprite)对象，这是游戏道具的图形表示。同时，我们也创建了一个游戏道具的物理体[Body](/docs/api/Class/Body)的对象，并在物理体上添加了一个感应器。这个感应器可以监听到与其发生碰撞的其他物体，当感应到与玩家对象碰撞时，就会触发名字叫["BodyEnter"](/docs/api/Node%20Event/Body#bodyenter)的节点事件，并执行我们注册好的道具拾取的处理逻辑：
 
 ```tl title="Script/Logic.tl"
-Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon: string)
+Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon: string): boolean
 	local world = Data.store["Scene:world"] as Platformer.PlatformWorld.Type
 	if world is nil then
-		return
+		return false
 	end
 
 	-- 创建道具在场景中的显示图形和动画
@@ -102,14 +103,16 @@ Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon
 	-- 将道具在场景中的节点对象存储为一个实体（Entity）上的组件
 	-- 用于触发后续的处理逻辑
 	self.body = body
+	return false
 end)
 ```
 
 &emsp;&emsp;最后，我们创建了一个观察器，用于监听实体上的body组件的删除行为。当body组件被删除时，我们会销毁相关的游戏对象：
 
 ```tl title="Script/Logic.tl"
-Observer("Remove", {"body"}):watch(function(self: Entity.Type)
+Observer("Remove", {"body"}):watch(function(self: Entity.Type): boolean
 	(self.oldValues.body as Body.Type):removeFromParent()
+	return false
 end)
 ```
 
