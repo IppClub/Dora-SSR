@@ -45,11 +45,9 @@ do -- 10
 			local _obj_0 = touch.location -- 16
 			x, y = _obj_0.x, _obj_0.y -- 16
 		end -- 16
-		do -- 17
-			local name = _with_0:containsPoint(x, y) -- 17
-			if name then -- 17
-				return _with_0:addChild(_anon_func_0(App, Delay, Ease, Event, Label, Opacity, Scale, Sequence, Spawn, Vec2, _with_0, name, x, y)) -- 29
-			end -- 17
+		local name = _with_0:containsPoint(x, y) -- 17
+		if name then -- 17
+			return _with_0:addChild(_anon_func_0(App, Delay, Ease, Event, Label, Opacity, Scale, Sequence, Spawn, Vec2, _with_0, name, x, y)) -- 29
 		end -- 17
 	end) -- 15
 	spine = _with_0 -- 10
@@ -73,12 +71,10 @@ return threadLoop(function() -- 41
 		ImGui.Text("Spine") -- 47
 		ImGui.Separator() -- 48
 		ImGui.TextWrapped("Basic usage to create spine! Tap it for a hit test.") -- 49
-		do -- 50
-			local changed -- 50
-			changed, showDebug = ImGui.Checkbox("BoundingBox", showDebug) -- 50
-			if changed then -- 50
-				spine.showDebug = showDebug -- 51
-			end -- 50
+		local changed -- 50
+		changed, showDebug = ImGui.Checkbox("BoundingBox", showDebug) -- 50
+		if changed then -- 50
+			spine.showDebug = showDebug -- 51
 		end -- 50
 	end) -- 51
 end) -- 51

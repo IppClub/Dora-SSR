@@ -138,18 +138,16 @@ do -- 38
 		if dailyBack then -- 66
 			dailyBack:removeFromParent() -- 66
 		end -- 66
-		do -- 67
-			local _with_1 = Grid("Model/duality.clip|day", 1, 1) -- 67
-			_with_1.visible = not isSpace -- 68
-			_with_1.order = -1 -- 69
-			_with_1:moveUV(1, 1, Vec2(1, 1)) -- 70
-			_with_1:moveUV(2, 1, Vec2(-1, 1)) -- 71
-			_with_1:moveUV(1, 2, Vec2(1, -1)) -- 72
-			_with_1:moveUV(2, 2, Vec2(-1, -1)) -- 73
-			_with_1.scaleX = w / 8 -- 74
-			_with_1.scaleY = h / 1078 -- 75
-			dailyBack = _with_1 -- 67
-		end -- 67
+		local _with_1 = Grid("Model/duality.clip|day", 1, 1) -- 67
+		_with_1.visible = not isSpace -- 68
+		_with_1.order = -1 -- 69
+		_with_1:moveUV(1, 1, Vec2(1, 1)) -- 70
+		_with_1:moveUV(2, 1, Vec2(-1, 1)) -- 71
+		_with_1:moveUV(1, 2, Vec2(1, -1)) -- 72
+		_with_1:moveUV(2, 2, Vec2(-1, -1)) -- 73
+		_with_1.scaleX = w / 8 -- 74
+		_with_1.scaleY = h / 1078 -- 75
+		dailyBack = _with_1 -- 67
 	end) -- 39
 	_with_0:addChild((function() -- 76
 		local _with_1 = AlignNode({ -- 76
@@ -250,21 +248,17 @@ switchScene = function() -- 148
 		spaceBack:perform(Sequence(Show(), Opacity(0.5, 0, 1))) -- 156
 		for _index_0 = 1, #dailyBodies do -- 160
 			local body = dailyBodies[_index_0] -- 160
-			do -- 161
-				local _with_0 = body.children[1] -- 161
-				if _with_0.actionCount == 0 then -- 162
-					_with_0:perform(Sequence(Show(), Scale(0.5, 1, 0, Ease.OutBack), Hide())) -- 163
-				end -- 162
-			end -- 161
+			local _with_0 = body.children[1] -- 161
+			if _with_0.actionCount == 0 then -- 162
+				_with_0:perform(Sequence(Show(), Scale(0.5, 1, 0, Ease.OutBack), Hide())) -- 163
+			end -- 162
 		end -- 167
 		for _index_0 = 1, #spaceBodies do -- 168
 			local body = spaceBodies[_index_0] -- 168
-			do -- 169
-				local _with_0 = body.children[1] -- 169
-				if _with_0.actionCount == 0 then -- 170
-					_with_0:perform(Sequence(Show(), Scale(0.5, 0, 1, Ease.OutBack))) -- 171
-				end -- 170
-			end -- 169
+			local _with_0 = body.children[1] -- 169
+			if _with_0.actionCount == 0 then -- 170
+				_with_0:perform(Sequence(Show(), Scale(0.5, 0, 1, Ease.OutBack))) -- 171
+			end -- 170
 		end -- 174
 	else -- 176
 		Audio:playStream("Audio/Dismantlism Daily.ogg", true, 0.2) -- 176
@@ -272,21 +266,17 @@ switchScene = function() -- 148
 		dailyBack:perform(Sequence(Show(), Opacity(0.5, 0, 1))) -- 182
 		for _index_0 = 1, #spaceBodies do -- 186
 			local body = spaceBodies[_index_0] -- 186
-			do -- 187
-				local _with_0 = body.children[1] -- 187
-				if _with_0.actionCount == 0 then -- 188
-					_with_0:perform(Sequence(Show(), Scale(0.5, 1, 0, Ease.OutBack), Hide())) -- 189
-				end -- 188
-			end -- 187
+			local _with_0 = body.children[1] -- 187
+			if _with_0.actionCount == 0 then -- 188
+				_with_0:perform(Sequence(Show(), Scale(0.5, 1, 0, Ease.OutBack), Hide())) -- 189
+			end -- 188
 		end -- 193
 		for _index_0 = 1, #dailyBodies do -- 194
 			local body = dailyBodies[_index_0] -- 194
-			do -- 195
-				local _with_0 = body.children[1] -- 195
-				if _with_0.actionCount == 0 then -- 196
-					_with_0:perform(Sequence(Show(), Scale(0.5, 0, 1, Ease.OutBack))) -- 197
-				end -- 196
-			end -- 195
+			local _with_0 = body.children[1] -- 195
+			if _with_0.actionCount == 0 then -- 196
+				_with_0:perform(Sequence(Show(), Scale(0.5, 0, 1, Ease.OutBack))) -- 197
+			end -- 196
 		end -- 200
 	end -- 149
 end -- 148
@@ -346,95 +336,91 @@ buildScene = function() -- 204
 			end) -- 225
 		end -- 214
 		if "removearea" == file then -- 228
-			do -- 229
-				local _with_0 = node.data.rect -- 229
-				_with_0:addChild(SolidRect({ -- 230
-					x = -200, -- 230
-					y = -200, -- 230
-					width = 400, -- 230
-					height = 400, -- 230
-					color = 0x66000000 -- 230
-				})) -- 230
-				_with_0:addChild(_anon_func_2(Color, Label, _with_0)) -- 231
-				_with_0:slot("BodyEnter", function(body) -- 235
-					if body.tag ~= "" and body.tag ~= (isSpace and "space" or "daily") then -- 236
-						return -- 236
-					end -- 236
-					if body.group == 1 then -- 237
-						return -- 237
-					end -- 237
-					body.group = 1 -- 238
-					local _with_1 = body.children[1] -- 239
-					_with_1:perform(Sequence(Spawn(Opacity(0.5, 1, 0), Scale(0.5, 1, 1.5, Ease.OutBack)), Event("Destroy"))) -- 240
-					_with_1:slot("Destroy", function() -- 244
-						do -- 245
-							local _exp_0 = _with_1.tag -- 245
-							if "star2" == _exp_0 or "pizza" == _exp_0 then -- 246
-								score = score + 10 -- 247
-								isSpace = not isSpace -- 248
-								switchScene() -- 249
-							elseif "quit" == _exp_0 then -- 250
-								App:shutdown() -- 251
-							elseif "get" == _exp_0 or "fish" == _exp_0 then -- 252
-								score = score + 100 -- 253
-							elseif "credit" == _exp_0 then -- 254
-								score = score + 50 -- 255
-								world:addChild(_anon_func_3(Delay, Ease, Event, Node, Opacity, Scale, Sequence, Spawn, Sprite, _with_1, body)) -- 256
-							else -- 271
-								score = score + 10 -- 271
-							end -- 271
+			local _with_0 = node.data.rect -- 229
+			_with_0:addChild(SolidRect({ -- 230
+				x = -200, -- 230
+				y = -200, -- 230
+				width = 400, -- 230
+				height = 400, -- 230
+				color = 0x66000000 -- 230
+			})) -- 230
+			_with_0:addChild(_anon_func_2(Color, Label, _with_0)) -- 231
+			_with_0:slot("BodyEnter", function(body) -- 235
+				if body.tag ~= "" and body.tag ~= (isSpace and "space" or "daily") then -- 236
+					return -- 236
+				end -- 236
+				if body.group == 1 then -- 237
+					return -- 237
+				end -- 237
+				body.group = 1 -- 238
+				local _with_1 = body.children[1] -- 239
+				_with_1:perform(Sequence(Spawn(Opacity(0.5, 1, 0), Scale(0.5, 1, 1.5, Ease.OutBack)), Event("Destroy"))) -- 240
+				_with_1:slot("Destroy", function() -- 244
+					do -- 245
+						local _exp_0 = _with_1.tag -- 245
+						if "star2" == _exp_0 or "pizza" == _exp_0 then -- 246
+							score = score + 10 -- 247
+							isSpace = not isSpace -- 248
+							switchScene() -- 249
+						elseif "quit" == _exp_0 then -- 250
+							App:shutdown() -- 251
+						elseif "get" == _exp_0 or "fish" == _exp_0 then -- 252
+							score = score + 100 -- 253
+						elseif "credit" == _exp_0 then -- 254
+							score = score + 50 -- 255
+							world:addChild(_anon_func_3(Delay, Ease, Event, Node, Opacity, Scale, Sequence, Spawn, Sprite, _with_1, body)) -- 256
+						else -- 271
+							score = score + 10 -- 271
 						end -- 271
-						scoreTxt.text = tostring(score) -- 272
-						if score > 600 then -- 273
-							gameEnded = true -- 274
-							center:addChild((function() -- 275
-								local _with_2 = Node() -- 275
-								_with_2:addChild(Sprite("Model/duality.clip|window")) -- 276
-								_with_2:addChild(Sprite("Model/duality.clip|win")) -- 277
-								_with_2:perform(Sequence(Spawn(Scale(0.5, 0, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(3), Scale(0.5, 1, 0, Ease.InBack), Event("End"))) -- 278
-								_with_2:slot("End", function() -- 287
-									_with_2:removeFromParent() -- 288
-									return restartScene() -- 289
-								end) -- 287
-								return _with_2 -- 275
-							end)()) -- 275
-						end -- 273
-						if movingBody == body and moveJoint then -- 290
-							moveJoint:destroy() -- 291
-							moveJoint = nil -- 292
-							movingBody = nil -- 293
-						end -- 290
-						return body:removeFromParent() -- 294
-					end) -- 244
-					return _with_1 -- 239
-				end) -- 235
-			end -- 229
+					end -- 271
+					scoreTxt.text = tostring(score) -- 272
+					if score > 600 then -- 273
+						gameEnded = true -- 274
+						center:addChild((function() -- 275
+							local _with_2 = Node() -- 275
+							_with_2:addChild(Sprite("Model/duality.clip|window")) -- 276
+							_with_2:addChild(Sprite("Model/duality.clip|win")) -- 277
+							_with_2:perform(Sequence(Spawn(Scale(0.5, 0, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(3), Scale(0.5, 1, 0, Ease.InBack), Event("End"))) -- 278
+							_with_2:slot("End", function() -- 287
+								_with_2:removeFromParent() -- 288
+								return restartScene() -- 289
+							end) -- 287
+							return _with_2 -- 275
+						end)()) -- 275
+					end -- 273
+					if movingBody == body and moveJoint then -- 290
+						moveJoint:destroy() -- 291
+						moveJoint = nil -- 292
+						movingBody = nil -- 293
+					end -- 290
+					return body:removeFromParent() -- 294
+				end) -- 244
+				return _with_1 -- 239
+			end) -- 235
 		elseif "safearea" == file then -- 295
-			do -- 296
-				local _with_0 = node.data.rect -- 296
-				_with_0:slot("BodyEnter", function(body) -- 297
-					if body == movingBody then -- 298
-						return -- 298
-					end -- 298
-					local tag = body.children[1].tag -- 299
-					if (name == "safe1" and tag == "get") or (name == "safe2" and tag == "fish") then -- 300
-						if not gameEnded then -- 302
-							gameEnded = true -- 303
-							return world:addChild((function() -- 304
-								local _with_1 = Node() -- 304
-								_with_1:addChild(Sprite("Model/duality.clip|window")) -- 305
-								_with_1:addChild(Sprite("Model/duality.clip|lose")) -- 306
-								_with_1.position = body.position -- 307
-								_with_1:perform(Sequence(Spawn(Scale(0.5, 0, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(2), Scale(0.5, 1, 0, Ease.InBack), Event("End"))) -- 308
-								_with_1:slot("End", function() -- 317
-									return restartScene() -- 317
-								end) -- 317
-								return _with_1 -- 304
-							end)()) -- 317
-						end -- 302
-					end -- 300
-				end) -- 297
-			end -- 296
+			local _with_0 = node.data.rect -- 296
+			_with_0:slot("BodyEnter", function(body) -- 297
+				if body == movingBody then -- 298
+					return -- 298
+				end -- 298
+				local tag = body.children[1].tag -- 299
+				if (name == "safe1" and tag == "get") or (name == "safe2" and tag == "fish") then -- 300
+					if not gameEnded then -- 302
+						gameEnded = true -- 303
+						return world:addChild((function() -- 304
+							local _with_1 = Node() -- 304
+							_with_1:addChild(Sprite("Model/duality.clip|window")) -- 305
+							_with_1:addChild(Sprite("Model/duality.clip|lose")) -- 306
+							_with_1.position = body.position -- 307
+							_with_1:perform(Sequence(Spawn(Scale(0.5, 0, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(2), Scale(0.5, 1, 0, Ease.InBack), Event("End"))) -- 308
+							_with_1:slot("End", function() -- 317
+								return restartScene() -- 317
+							end) -- 317
+							return _with_1 -- 304
+						end)()) -- 317
+					end -- 302
+				end -- 300
+			end) -- 297
 		end -- 317
 	end -- 317
 end -- 204

@@ -164,25 +164,23 @@ advance = function(option) -- 79
 			local _list_0 = result.marks -- 84
 			for _index_0 = 1, #_list_0 do -- 84
 				local mark = _list_0[_index_0] -- 84
-				do -- 85
-					local _type_0 = type(mark) -- 85
-					local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 85
-					if _tab_0 then -- 85
-						local attr = mark.name -- 85
-						local name -- 85
-						do -- 85
-							local _obj_0 = mark.attrs -- 85
-							local _type_1 = type(_obj_0) -- 85
-							if "table" == _type_1 or "userdata" == _type_1 then -- 85
-								name = _obj_0.name -- 85
-							end -- 86
+				local _type_0 = type(mark) -- 85
+				local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 85
+				if _tab_0 then -- 85
+					local attr = mark.name -- 85
+					local name -- 85
+					do -- 85
+						local _obj_0 = mark.attrs -- 85
+						local _type_1 = type(_obj_0) -- 85
+						if "table" == _type_1 or "userdata" == _type_1 then -- 85
+							name = _obj_0.name -- 85
 						end -- 86
-						if attr ~= nil and name ~= nil then -- 85
-							if attr == "char" then -- 86
-								charName = tostring(name) .. ": " -- 86
-							end -- 86
-						end -- 85
 					end -- 86
+					if attr ~= nil and name ~= nil then -- 85
+						if attr == "char" then -- 86
+							charName = tostring(name) .. ": " -- 86
+						end -- 86
+					end -- 85
 				end -- 86
 			end -- 86
 		end -- 83

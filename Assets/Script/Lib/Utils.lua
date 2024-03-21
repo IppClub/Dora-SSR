@@ -454,27 +454,25 @@ LintYueGlobals = function(luaCodes, globals, globalInLocal) -- 291
 	local importCodes = luaCodes:match("^%s*local%s*_ENV%s*=%s*Dora%(([^%)]-)%)") -- 295
 	local importItems -- 296
 	if importCodes then -- 296
-		do -- 297
-			local _accum_0 = { } -- 297
-			local _len_0 = 1 -- 297
-			for item in importCodes:gmatch("%s*([^,\n\r]+)%s*") do -- 297
-				local getImport = load("return " .. tostring(item)) -- 298
-				local importItem -- 299
-				if getImport ~= nil then -- 299
-					importItem = getImport() -- 299
-				end -- 299
-				if not importItem or "table" ~= type(importItem) then -- 300
-					goto _continue_0 -- 300
-				end -- 300
-				_accum_0[_len_0] = { -- 301
-					importItem, -- 301
-					item -- 301
-				} -- 301
-				_len_0 = _len_0 + 1 -- 301
-				::_continue_0:: -- 298
-			end -- 301
-			importItems = _accum_0 -- 297
+		local _accum_0 = { } -- 297
+		local _len_0 = 1 -- 297
+		for item in importCodes:gmatch("%s*([^,\n\r]+)%s*") do -- 297
+			local getImport = load("return " .. tostring(item)) -- 298
+			local importItem -- 299
+			if getImport ~= nil then -- 299
+				importItem = getImport() -- 299
+			end -- 299
+			if not importItem or "table" ~= type(importItem) then -- 300
+				goto _continue_0 -- 300
+			end -- 300
+			_accum_0[_len_0] = { -- 301
+				importItem, -- 301
+				item -- 301
+			} -- 301
+			_len_0 = _len_0 + 1 -- 301
+			::_continue_0:: -- 298
 		end -- 301
+		importItems = _accum_0 -- 297
 	else -- 302
 		importItems = { } -- 302
 	end -- 296

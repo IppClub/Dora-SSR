@@ -573,22 +573,20 @@ arriveDest = function() -- 222
 	Audio:playStream("sfx/victory.ogg", true, 0.2) -- 225
 	local body = cube:getChildByTag("cubeBody") -- 226
 	body:applyLinearImpulse(Vec2(0, 1500), body.position) -- 227
-	do -- 228
-		local _with_0 = Node() -- 228
-		_with_0:addChild((function() -- 229
-			local _with_1 = Sprite("Image/restart.png") -- 229
-			_with_1.scaleX = 2 -- 230
-			_with_1.scaleY = 2 -- 230
-			_with_1.touchEnabled = true -- 231
-			_with_1:slot("TapBegan", function() -- 232
-				restartButton:removeFromParent() -- 233
-				return restartGame() -- 234
-			end) -- 232
-			return _with_1 -- 229
-		end)()) -- 229
-		_with_0:addTo(ui) -- 235
-		restartButton = _with_0 -- 228
-	end -- 228
+	local _with_0 = Node() -- 228
+	_with_0:addChild((function() -- 229
+		local _with_1 = Sprite("Image/restart.png") -- 229
+		_with_1.scaleX = 2 -- 230
+		_with_1.scaleY = 2 -- 230
+		_with_1.touchEnabled = true -- 231
+		_with_1:slot("TapBegan", function() -- 232
+			restartButton:removeFromParent() -- 233
+			return restartGame() -- 234
+		end) -- 232
+		return _with_1 -- 229
+	end)()) -- 229
+	_with_0:addTo(ui) -- 235
+	restartButton = _with_0 -- 228
 end -- 222
 local _anon_func_3 = function(Sprite, _with_0) -- 273
 	local _with_1 = Sprite("Image/red.png") -- 272
@@ -620,64 +618,62 @@ buildBlocks = function(index) -- 237
 		local block = blocks[_index_0] -- 239
 		local width, height, pos, blockType = block[1], block[2], block[3], block[4] -- 240
 		pos = pos + Vec2(0, blockLevel[index]) -- 241
-		do -- 242
-			local _with_0 = Body(getBlockDef(width, height), world, pos) -- 242
-			_with_0.group = 1 -- 243
-			local blockColor = Color(0xffffffff) -- 244
-			_with_0:attachSensor(1, BodyDef:polygon(width + 15, height + 15)) -- 245
-			if 0 == blockType then -- 246
-				_with_0:slot("BodyEnter", function() -- 247
-					return Audio:play("sfx/strike.wav") -- 248
-				end) -- 247
-				blockColor = colorWhite -- 249
-			elseif 1 == blockType then -- 250
-				_with_0:slot("BodyEnter", function(body) -- 251
-					if not isInvincible then -- 252
-						loseHeart() -- 253
-						body:applyLinearImpulse(Vec2(math.random(-1000, 1000), math.random(-1000, -500)), body.position) -- 254
-						Audio:play("sfx/explode2.wav") -- 256
-					end -- 252
-					_with_0:schedule(once(function() -- 257
-						isInvincible = true -- 258
-						sleep(1) -- 259
-						isInvincible = false -- 260
-					end)) -- 257
-					if heart <= 0 then -- 261
-						isGrabbing = false -- 262
-						isGrabbed = false -- 263
-						grabBlock:unschedule() -- 264
-						ropeNode:clear() -- 265
-						ropeNode:unschedule() -- 266
-						Audio:play("sfx/game_over.wav") -- 267
-						return _with_0:schedule(once(function() -- 268
-							sleep(0.5) -- 269
-							return restartGame() -- 270
-						end)) -- 270
-					end -- 261
-				end) -- 251
-				blockColor = colorRed -- 271
-				_with_0:addChild(_anon_func_3(Sprite, _with_0)) -- 272
-			elseif 2 == blockType then -- 274
-				blockColor = colorBlue -- 275
-				_with_0:addChild(_anon_func_4(Sprite, _with_0)) -- 276
-				local implulseAvailable = true -- 278
-				_with_0:slot("BodyEnter", function(body) -- 279
-					if not implulseAvailable then -- 280
-						return -- 280
-					end -- 280
-					Audio:play("sfx/rebound.wav") -- 281
-					body:applyLinearImpulse(Vec2(0, springForce), body.position) -- 282
-					implulseAvailable = false -- 283
-					return _with_0:schedule(once(function() -- 284
-						sleep(0.2) -- 285
-						implulseAvailable = true -- 286
-					end)) -- 286
-				end) -- 279
-			end -- 286
-			_with_0:addChild(_anon_func_5(DrawNode, Vec2, _with_0, blockColor, height, width)) -- 287
-			_with_0:addTo(world) -- 295
-			blockBodies[#blockBodies + 1] = _with_0 -- 242
-		end -- 242
+		local _with_0 = Body(getBlockDef(width, height), world, pos) -- 242
+		_with_0.group = 1 -- 243
+		local blockColor = Color(0xffffffff) -- 244
+		_with_0:attachSensor(1, BodyDef:polygon(width + 15, height + 15)) -- 245
+		if 0 == blockType then -- 246
+			_with_0:slot("BodyEnter", function() -- 247
+				return Audio:play("sfx/strike.wav") -- 248
+			end) -- 247
+			blockColor = colorWhite -- 249
+		elseif 1 == blockType then -- 250
+			_with_0:slot("BodyEnter", function(body) -- 251
+				if not isInvincible then -- 252
+					loseHeart() -- 253
+					body:applyLinearImpulse(Vec2(math.random(-1000, 1000), math.random(-1000, -500)), body.position) -- 254
+					Audio:play("sfx/explode2.wav") -- 256
+				end -- 252
+				_with_0:schedule(once(function() -- 257
+					isInvincible = true -- 258
+					sleep(1) -- 259
+					isInvincible = false -- 260
+				end)) -- 257
+				if heart <= 0 then -- 261
+					isGrabbing = false -- 262
+					isGrabbed = false -- 263
+					grabBlock:unschedule() -- 264
+					ropeNode:clear() -- 265
+					ropeNode:unschedule() -- 266
+					Audio:play("sfx/game_over.wav") -- 267
+					return _with_0:schedule(once(function() -- 268
+						sleep(0.5) -- 269
+						return restartGame() -- 270
+					end)) -- 270
+				end -- 261
+			end) -- 251
+			blockColor = colorRed -- 271
+			_with_0:addChild(_anon_func_3(Sprite, _with_0)) -- 272
+		elseif 2 == blockType then -- 274
+			blockColor = colorBlue -- 275
+			_with_0:addChild(_anon_func_4(Sprite, _with_0)) -- 276
+			local implulseAvailable = true -- 278
+			_with_0:slot("BodyEnter", function(body) -- 279
+				if not implulseAvailable then -- 280
+					return -- 280
+				end -- 280
+				Audio:play("sfx/rebound.wav") -- 281
+				body:applyLinearImpulse(Vec2(0, springForce), body.position) -- 282
+				implulseAvailable = false -- 283
+				return _with_0:schedule(once(function() -- 284
+					sleep(0.2) -- 285
+					implulseAvailable = true -- 286
+				end)) -- 286
+			end) -- 279
+		end -- 286
+		_with_0:addChild(_anon_func_5(DrawNode, Vec2, _with_0, blockColor, height, width)) -- 287
+		_with_0:addTo(world) -- 295
+		blockBodies[#blockBodies + 1] = _with_0 -- 242
 	end -- 295
 end -- 237
 local _anon_func_6 = function(Sprite, _with_0) -- 307
@@ -786,11 +782,9 @@ return threadLoop(function() -- 362
 		Text("Touch The Sky") -- 368
 		Separator() -- 369
 		TextWrapped("Click to grab!") -- 370
-		do -- 371
-			local changed, isHardMode = Checkbox("Hard Mode", hardMode) -- 371
-			if changed then -- 371
-				hardMode = isHardMode -- 372
-			end -- 371
+		local changed, isHardMode = Checkbox("Hard Mode", hardMode) -- 371
+		if changed then -- 371
+			hardMode = isHardMode -- 372
 		end -- 371
 	end) -- 372
 end) -- 372

@@ -29,24 +29,22 @@ do -- 7
 	_with_0:setVelocity(0, 600) -- 23
 	Store["Bullet_KidM"] = _with_0 -- 7
 end -- 7
-do -- 25
-	local _with_0 = BulletDef() -- 25
-	_with_0.tag = "" -- 26
-	_with_0.endEffect = "" -- 27
-	_with_0.lifeTime = 5 -- 28
-	_with_0.damageRadius = 0 -- 29
-	_with_0.highSpeedFix = false -- 30
-	_with_0.gravity = Vec2(0, -10) -- 31
-	_with_0.face = Face(function() -- 32
-		return Star({ -- 33
-			size = 15, -- 33
-			borderColor = 0xffff0088, -- 34
-			fillColor = 0x66ff0088, -- 35
-			fillOrder = 1, -- 36
-			lineOrder = 2 -- 37
-		}) -- 38
-	end) -- 32
-	_with_0:setAsCircle(10) -- 39
-	_with_0:setVelocity(60, 600) -- 40
-	Store["Bullet_KidW"] = _with_0 -- 25
-end -- 25
+local _with_0 = BulletDef() -- 25
+_with_0.tag = "" -- 26
+_with_0.endEffect = "" -- 27
+_with_0.lifeTime = 5 -- 28
+_with_0.damageRadius = 0 -- 29
+_with_0.highSpeedFix = false -- 30
+_with_0.gravity = Vec2(0, -10) -- 31
+_with_0.face = Face(function() -- 32
+	return Star({ -- 33
+		size = 15, -- 33
+		borderColor = 0xffff0088, -- 34
+		fillColor = 0x66ff0088, -- 35
+		fillOrder = 1, -- 36
+		lineOrder = 2 -- 37
+	}) -- 38
+end) -- 32
+_with_0:setAsCircle(10) -- 39
+_with_0:setVelocity(60, 600) -- 40
+Store["Bullet_KidW"] = _with_0 -- 25

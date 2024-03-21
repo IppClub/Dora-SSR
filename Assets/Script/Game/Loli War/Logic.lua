@@ -271,17 +271,15 @@ do -- 133
 				if _with_1.attackSensor.tag == sensorTag and self.entity and Data:isFriend(self, unit) then -- 146
 					if self.group == GroupPlayer and self.entity.hero and not self.data.tip then -- 147
 						local floating = Action(Sequence(Y(0.5, 140, 150, Ease.OutQuad), Y(0.3, 150, 140, Ease.InQuad))) -- 148
-						do -- 152
-							local _with_2 = Sprite("Model/items.clip|keyf_down") -- 152
-							_with_2.y = 140 -- 153
-							local scaleOut = Action(Spawn(Opacity(0.3, 0, 1), Scale(0.3, 0, 1, Ease.OutQuad))) -- 154
-							_with_2:runAction(scaleOut) -- 158
-							_with_2:slot("ActionEnd", function(self) -- 159
-								return _with_2:runAction(floating) -- 159
-							end) -- 159
-							_with_2:addTo(self) -- 160
-							self.data.tip = _with_2 -- 152
-						end -- 152
+						local _with_2 = Sprite("Model/items.clip|keyf_down") -- 152
+						_with_2.y = 140 -- 153
+						local scaleOut = Action(Spawn(Opacity(0.3, 0, 1), Scale(0.3, 0, 1, Ease.OutQuad))) -- 154
+						_with_2:runAction(scaleOut) -- 158
+						_with_2:slot("ActionEnd", function(self) -- 159
+							return _with_2:runAction(floating) -- 159
+						end) -- 159
+						_with_2:addTo(self) -- 160
+						self.data.tip = _with_2 -- 152
 					end -- 147
 					self.data.atSwitch = unit -- 161
 				end -- 146
@@ -453,11 +451,9 @@ do -- 251
 			if hp > 0 then -- 256
 				unit:start("hit") -- 257
 				unit.faceRight = true -- 258
-				do -- 259
-					local _with_1 = unit.playable -- 259
-					_with_1.recovery = 0.5 -- 260
-					_with_1:play("hp" .. tostring(math.floor(hp))) -- 261
-				end -- 259
+				local _with_1 = unit.playable -- 259
+				_with_1.recovery = 0.5 -- 260
+				_with_1:play("hp" .. tostring(math.floor(hp))) -- 261
 			else -- 263
 				unit:start("hit") -- 263
 				unit.faceRight = true -- 264

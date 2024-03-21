@@ -57,11 +57,9 @@ observer:watch(function(self, hp, mp) -- 39
 			print("hp change [from " .. tostring(oldHP) .. " to " .. tostring(hp) .. "]: entity " .. tostring(self.id)) -- 43
 		end -- 40
 	end -- 40
-	do -- 44
-		local oldMP = self.oldValues.mp -- 44
-		if oldMP then -- 44
-			return print("mp change [from " .. tostring(oldMP) .. " to " .. tostring(mp) .. "]: entity " .. tostring(self.id)) -- 45
-		end -- 44
+	local oldMP = self.oldValues.mp -- 44
+	if oldMP then -- 44
+		return print("mp change [from " .. tostring(oldMP) .. " to " .. tostring(mp) .. "]: entity " .. tostring(self.id)) -- 45
 	end -- 44
 end) -- 38
 observer1:watch(function(self, hp, sp) -- 48

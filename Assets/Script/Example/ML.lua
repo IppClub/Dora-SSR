@@ -650,18 +650,16 @@ getEffect = function(tags, action) -- 190
 		if eff[1] == "取消伤害" then -- 197
 			cancelHarm = true -- 198
 		else -- 200
-			do -- 200
-				local e = eset[eff[1]] -- 200
-				if e then -- 200
-					local _update_0 = 1 -- 201
-					e[_update_0] = e[_update_0] + eff[2] -- 201
-					e[2] = math.max(e[2], eff[3]) -- 202
-				else -- 204
-					eset[eff[1]] = { -- 204
-						eff[2], -- 204
-						eff[3] -- 204
-					} -- 204
-				end -- 200
+			local e = eset[eff[1]] -- 200
+			if e then -- 200
+				local _update_0 = 1 -- 201
+				e[_update_0] = e[_update_0] + eff[2] -- 201
+				e[2] = math.max(e[2], eff[3]) -- 202
+			else -- 204
+				eset[eff[1]] = { -- 204
+					eff[2], -- 204
+					eff[3] -- 204
+				} -- 204
 			end -- 200
 		end -- 197
 		::_continue_0:: -- 195

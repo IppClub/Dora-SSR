@@ -375,36 +375,32 @@ updateInferedDesc = function(infered) -- 171
 		return -- 172
 	end -- 172
 	local key, row = infered.key, infered.row -- 173
-	do -- 174
-		local codes = Content:loadAsync(key) -- 174
-		if codes then -- 174
-			local comments = { } -- 175
-			local line = 0 -- 176
-			local skipping = false -- 177
-			for lineCode in codes:gmatch("([^\r\n]*)\r?\n?") do -- 178
-				line = line + 1 -- 179
-				if line >= row then -- 180
-					break -- 180
-				end -- 180
-				if lineCode:match("^%s*%-%- @") then -- 181
-					skipping = true -- 182
-					goto _continue_0 -- 183
-				end -- 181
-				do -- 184
-					local result = lineCode:match("^%s*%-%- (.+)") -- 184
-					if result then -- 184
-						if not skipping then -- 185
-							comments[#comments + 1] = result -- 185
-						end -- 185
-					elseif #comments > 0 then -- 186
-						comments = { } -- 187
-						skipping = false -- 188
-					end -- 184
-				end -- 184
-				::_continue_0:: -- 179
-			end -- 188
-			infered.doc = table.concat(comments, "\n") -- 189
-		end -- 174
+	local codes = Content:loadAsync(key) -- 174
+	if codes then -- 174
+		local comments = { } -- 175
+		local line = 0 -- 176
+		local skipping = false -- 177
+		for lineCode in codes:gmatch("([^\r\n]*)\r?\n?") do -- 178
+			line = line + 1 -- 179
+			if line >= row then -- 180
+				break -- 180
+			end -- 180
+			if lineCode:match("^%s*%-%- @") then -- 181
+				skipping = true -- 182
+				goto _continue_0 -- 183
+			end -- 181
+			local result = lineCode:match("^%s*%-%- (.+)") -- 184
+			if result then -- 184
+				if not skipping then -- 185
+					comments[#comments + 1] = result -- 185
+				end -- 185
+			elseif #comments > 0 then -- 186
+				comments = { } -- 187
+				skipping = false -- 188
+			end -- 184
+			::_continue_0:: -- 179
+		end -- 188
+		infered.doc = table.concat(comments, "\n") -- 189
 	end -- 174
 end -- 171
 HttpServer:postSchedule("/infer", function(req) -- 191
@@ -538,39 +534,37 @@ getParamDocs = function(signatures) -- 211
 				if needBreak then -- 232
 					break -- 232
 				end -- 232
-				do -- 233
-					local result = lineCode:match("%s*%-%- (.+)") -- 233
-					if result then -- 233
-						local name, typ, desc = result:match("^@param%s*([%w_]+)%s*%(([^%)]-)%)%s*(.+)") -- 234
-						if not name then -- 235
-							name, typ, desc = result:match("^@param%s*(%.%.%.)%s*%(([^%)]-)%)%s*(.+)") -- 236
-						end -- 235
-						if name then -- 237
-							local pname = name -- 238
-							if desc:match("%[optional%]") or desc:match("%[可选%]") then -- 239
-								pname = pname .. "?" -- 239
-							end -- 239
-							params[#params + 1] = { -- 241
-								name = tostring(pname) .. ": " .. tostring(typ), -- 241
-								desc = "**" .. tostring(name) .. "**: " .. tostring(desc) -- 242
-							} -- 240
-						else -- 245
-							typ = result:match("^@return%s*%(([^%)]-)%)") -- 245
-							if typ then -- 245
-								if returnType then -- 246
-									returnType = returnType .. ", " .. typ -- 247
-								else -- 249
-									returnType = typ -- 249
-								end -- 246
-								result = result:gsub("@return", "**return:**") -- 250
-							end -- 245
-							comments[#comments + 1] = result -- 251
-						end -- 237
-					elseif #comments > 0 then -- 252
-						comments = { } -- 253
-						params = { } -- 254
-						returnType = nil -- 255
-					end -- 233
+				local result = lineCode:match("%s*%-%- (.+)") -- 233
+				if result then -- 233
+					local name, typ, desc = result:match("^@param%s*([%w_]+)%s*%(([^%)]-)%)%s*(.+)") -- 234
+					if not name then -- 235
+						name, typ, desc = result:match("^@param%s*(%.%.%.)%s*%(([^%)]-)%)%s*(.+)") -- 236
+					end -- 235
+					if name then -- 237
+						local pname = name -- 238
+						if desc:match("%[optional%]") or desc:match("%[可选%]") then -- 239
+							pname = pname .. "?" -- 239
+						end -- 239
+						params[#params + 1] = { -- 241
+							name = tostring(pname) .. ": " .. tostring(typ), -- 241
+							desc = "**" .. tostring(name) .. "**: " .. tostring(desc) -- 242
+						} -- 240
+					else -- 245
+						typ = result:match("^@return%s*%(([^%)]-)%)") -- 245
+						if typ then -- 245
+							if returnType then -- 246
+								returnType = returnType .. ", " .. typ -- 247
+							else -- 249
+								returnType = typ -- 249
+							end -- 246
+							result = result:gsub("@return", "**return:**") -- 250
+						end -- 245
+						comments[#comments + 1] = result -- 251
+					end -- 237
+				elseif #comments > 0 then -- 252
+					comments = { } -- 253
+					params = { } -- 254
+					returnType = nil -- 255
 				end -- 233
 			end -- 255
 			local results = { } -- 256
@@ -648,17 +642,15 @@ HttpServer:postSchedule("/signature", function(req) -- 269
 			if lang ~= nil and file ~= nil and content ~= nil and line ~= nil and row ~= nil then -- 270
 				local searchPath = getSearchPath(file) -- 271
 				if "tl" == lang or "lua" == lang then -- 272
-					do -- 273
-						local signatures = teal.getSignatureAsync(content, line, row, searchPath) -- 273
-						if signatures then -- 273
-							signatures = getParamDocs(signatures) -- 274
-							if signatures then -- 274
-								return { -- 275
-									success = true, -- 275
-									signatures = signatures -- 275
-								} -- 275
-							end -- 274
-						end -- 273
+					local signatures = teal.getSignatureAsync(content, line, row, searchPath) -- 273
+					if signatures then -- 273
+						signatures = getParamDocs(signatures) -- 274
+						if signatures then -- 274
+							return { -- 275
+								success = true, -- 275
+								signatures = signatures -- 275
+							} -- 275
+						end -- 274
 					end -- 273
 				elseif "yue" == lang then -- 276
 					local luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine(content, line, row, file) -- 277
@@ -674,28 +666,26 @@ HttpServer:postSchedule("/signature", function(req) -- 269
 							targetLine = withVar .. (chainOp == '\\' and ':' or '.') .. chainCall -- 281
 						end -- 279
 					end -- 279
-					do -- 282
-						local signatures = teal.getSignatureAsync(luaCodes, targetLine, targetRow, searchPath) -- 282
-						if signatures then -- 282
-							signatures = getParamDocs(signatures) -- 283
-							if signatures then -- 283
-								return { -- 284
-									success = true, -- 284
-									signatures = signatures -- 284
-								} -- 284
-							end -- 283
-						else -- 285
-							signatures = teal.getSignatureAsync(luaCodes, "dora." .. tostring(targetLine), targetRow, searchPath) -- 285
-							if signatures then -- 285
-								signatures = getParamDocs(signatures) -- 286
-								if signatures then -- 286
-									return { -- 287
-										success = true, -- 287
-										signatures = signatures -- 287
-									} -- 287
-								end -- 286
-							end -- 285
-						end -- 282
+					local signatures = teal.getSignatureAsync(luaCodes, targetLine, targetRow, searchPath) -- 282
+					if signatures then -- 282
+						signatures = getParamDocs(signatures) -- 283
+						if signatures then -- 283
+							return { -- 284
+								success = true, -- 284
+								signatures = signatures -- 284
+							} -- 284
+						end -- 283
+					else -- 285
+						signatures = teal.getSignatureAsync(luaCodes, "dora." .. tostring(targetLine), targetRow, searchPath) -- 285
+						if signatures then -- 285
+							signatures = getParamDocs(signatures) -- 286
+							if signatures then -- 286
+								return { -- 287
+									success = true, -- 287
+									signatures = signatures -- 287
+								} -- 287
+							end -- 286
+						end -- 285
 					end -- 282
 				end -- 287
 			end -- 270
@@ -952,22 +942,20 @@ HttpServer:postSchedule("/complete", function(req) -- 368
 								end -- 413
 								goto _continue_2 -- 414
 							end -- 414
-							do -- 415
-								local _exp_0 = Path:getExt(f) -- 415
-								if "lua" == _exp_0 or "tl" == _exp_0 or "yue" == _exp_0 or "xml" == _exp_0 then -- 415
-									local name = Path:getName(f) -- 416
-									if "d" == Path:getExt(name) then -- 417
-										goto _continue_2 -- 417
-									end -- 417
-									if "." == name:sub(1, 1) then -- 418
-										goto _continue_2 -- 418
-									end -- 418
-									suggestions[#suggestions + 1] = { -- 419
-										name, -- 419
-										"module", -- 419
-										"field" -- 419
-									} -- 419
-								end -- 419
+							local _exp_0 = Path:getExt(f) -- 415
+							if "lua" == _exp_0 or "tl" == _exp_0 or "yue" == _exp_0 or "xml" == _exp_0 then -- 415
+								local name = Path:getName(f) -- 416
+								if "d" == Path:getExt(name) then -- 417
+									goto _continue_2 -- 417
+								end -- 417
+								if "." == name:sub(1, 1) then -- 418
+									goto _continue_2 -- 418
+								end -- 418
+								suggestions[#suggestions + 1] = { -- 419
+									name, -- 419
+									"module", -- 419
+									"field" -- 419
+								} -- 419
 							end -- 419
 							::_continue_2:: -- 405
 						end -- 419
@@ -1372,17 +1360,15 @@ HttpServer:post("/delete", function(req) -- 542
 					for _index_0 = 1, #files do -- 549
 						local file = files[_index_0] -- 549
 						if name == Path:getName(file):lower() then -- 550
-							do -- 551
-								local _exp_0 = Path:getExt(file) -- 551
-								if "tl" == _exp_0 then -- 551
-									if ("vs" == ext) then -- 551
-										Content:remove(Path(parent, file)) -- 552
-									end -- 551
-								elseif "lua" == _exp_0 then -- 553
-									if ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "xml" == ext) then -- 553
-										Content:remove(Path(parent, file)) -- 554
-									end -- 553
-								end -- 554
+							local _exp_0 = Path:getExt(file) -- 551
+							if "tl" == _exp_0 then -- 551
+								if ("vs" == ext) then -- 551
+									Content:remove(Path(parent, file)) -- 552
+								end -- 551
+							elseif "lua" == _exp_0 then -- 553
+								if ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "xml" == ext) then -- 553
+									Content:remove(Path(parent, file)) -- 554
+								end -- 553
 							end -- 554
 						end -- 550
 					end -- 554
@@ -1444,17 +1430,15 @@ HttpServer:post("/rename", function(req) -- 558
 						for _index_0 = 1, #files do -- 575
 							local file = files[_index_0] -- 575
 							if name == Path:getName(file):lower() then -- 576
-								do -- 577
-									local _exp_0 = Path:getExt(file) -- 577
-									if "tl" == _exp_0 then -- 577
-										if ("vs" == ext) then -- 577
-											Content:move(Path(parent, file), Path(newParent, newName .. ".tl")) -- 578
-										end -- 577
-									elseif "lua" == _exp_0 then -- 579
-										if ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "xml" == ext) then -- 579
-											Content:move(Path(parent, file), Path(newParent, newName .. ".lua")) -- 580
-										end -- 579
-									end -- 580
+								local _exp_0 = Path:getExt(file) -- 577
+								if "tl" == _exp_0 then -- 577
+									if ("vs" == ext) then -- 577
+										Content:move(Path(parent, file), Path(newParent, newName .. ".tl")) -- 578
+									end -- 577
+								elseif "lua" == _exp_0 then -- 579
+									if ("tl" == ext or "yue" == ext or "ts" == ext or "tsx" == ext or "vs" == ext or "xml" == ext) then -- 579
+										Content:move(Path(parent, file), Path(newParent, newName .. ".lua")) -- 580
+									end -- 579
 								end -- 580
 							end -- 576
 						end -- 580
@@ -1485,14 +1469,12 @@ HttpServer:postSchedule("/read", function(req) -- 583
 			end -- 587
 			if path ~= nil then -- 584
 				if Content:exist(path) then -- 585
-					do -- 586
-						local content = Content:loadAsync(path) -- 586
-						if content then -- 586
-							return { -- 587
-								content = content, -- 587
-								success = true -- 587
-							} -- 587
-						end -- 586
+					local content = Content:loadAsync(path) -- 586
+					if content then -- 586
+						return { -- 587
+							content = content, -- 587
+							success = true -- 587
+						} -- 587
 					end -- 586
 				end -- 585
 			end -- 584
@@ -1543,26 +1525,22 @@ compileFileAsync = function(inputFile, sourceCodes) -- 589
 				end -- 608
 			end) -- 599
 		elseif "tl" == _exp_0 then -- 611
-			do -- 612
-				local codes = teal.toluaAsync(sourceCodes, file, searchPath) -- 612
-				if codes then -- 612
-					resultCodes = codes -- 613
-					Content:saveAsync(outputFile, codes) -- 614
-				else -- 616
-					Content:remove(outputFile) -- 616
-					resultCodes = false -- 617
-				end -- 612
+			local codes = teal.toluaAsync(sourceCodes, file, searchPath) -- 612
+			if codes then -- 612
+				resultCodes = codes -- 613
+				Content:saveAsync(outputFile, codes) -- 614
+			else -- 616
+				Content:remove(outputFile) -- 616
+				resultCodes = false -- 617
 			end -- 612
 		elseif "xml" == _exp_0 then -- 618
-			do -- 619
-				local codes = xml.tolua(sourceCodes) -- 619
-				if codes then -- 619
-					resultCodes = "-- [xml]: " .. tostring(file) .. "\n" .. tostring(codes) -- 620
-					Content:saveAsync(outputFile, resultCodes) -- 621
-				else -- 623
-					Content:remove(outputFile) -- 623
-					resultCodes = false -- 624
-				end -- 619
+			local codes = xml.tolua(sourceCodes) -- 619
+			if codes then -- 619
+				resultCodes = "-- [xml]: " .. tostring(file) .. "\n" .. tostring(codes) -- 620
+				Content:saveAsync(outputFile, resultCodes) -- 621
+			else -- 623
+				Content:remove(outputFile) -- 623
+				resultCodes = false -- 624
 			end -- 619
 		end -- 624
 	end -- 624
@@ -1703,39 +1681,37 @@ HttpServer:post("/assets", function() -- 646
 				goto _continue_1 -- 660
 			end -- 660
 			local name = Path:getName(file) -- 661
-			do -- 662
-				local ext = names[name] -- 662
-				if ext then -- 662
-					local lv1 -- 663
-					do -- 663
-						local _exp_0 = extentionLevels[ext] -- 663
-						if _exp_0 ~= nil then -- 663
-							lv1 = _exp_0 -- 663
-						else -- 663
-							lv1 = -1 -- 663
-						end -- 663
+			local ext = names[name] -- 662
+			if ext then -- 662
+				local lv1 -- 663
+				do -- 663
+					local _exp_0 = extentionLevels[ext] -- 663
+					if _exp_0 ~= nil then -- 663
+						lv1 = _exp_0 -- 663
+					else -- 663
+						lv1 = -1 -- 663
 					end -- 663
-					ext = Path:getExt(file) -- 664
-					local lv2 -- 665
-					do -- 665
-						local _exp_0 = extentionLevels[ext] -- 665
-						if _exp_0 ~= nil then -- 665
-							lv2 = _exp_0 -- 665
-						else -- 665
-							lv2 = -1 -- 665
-						end -- 665
+				end -- 663
+				ext = Path:getExt(file) -- 664
+				local lv2 -- 665
+				do -- 665
+					local _exp_0 = extentionLevels[ext] -- 665
+					if _exp_0 ~= nil then -- 665
+						lv2 = _exp_0 -- 665
+					else -- 665
+						lv2 = -1 -- 665
 					end -- 665
-					if lv2 > lv1 then -- 666
-						names[name] = ext -- 666
-					end -- 666
-				else -- 668
-					ext = Path:getExt(file) -- 668
-					if not extentionLevels[ext] then -- 669
-						names[file] = "" -- 670
-					else -- 672
-						names[name] = ext -- 672
-					end -- 669
-				end -- 662
+				end -- 665
+				if lv2 > lv1 then -- 666
+					names[name] = ext -- 666
+				end -- 666
+			else -- 668
+				ext = Path:getExt(file) -- 668
+				if not extentionLevels[ext] then -- 669
+					names[file] = "" -- 670
+				else -- 672
+					names[name] = ext -- 672
+				end -- 669
 			end -- 662
 			::_continue_1:: -- 660
 		end -- 672
@@ -1812,22 +1788,20 @@ HttpServer:postSchedule("/run", function(req) -- 725
 			if file ~= nil and asProj ~= nil then -- 726
 				local Entry = require("Dev.Entry") -- 727
 				if asProj then -- 728
-					do -- 729
-						local proj = getProjectDirFromFile(file) -- 729
-						if proj then -- 729
-							Entry.allClear() -- 730
-							local target = Path(proj, "init") -- 731
-							local success, err = Entry.enterEntryAsync({ -- 732
-								"Project", -- 732
-								target -- 732
-							}) -- 732
-							target = Path:getName(Path:getPath(target)) -- 733
-							return { -- 734
-								success = success, -- 734
-								target = target, -- 734
-								err = err -- 734
-							} -- 734
-						end -- 729
+					local proj = getProjectDirFromFile(file) -- 729
+					if proj then -- 729
+						Entry.allClear() -- 730
+						local target = Path(proj, "init") -- 731
+						local success, err = Entry.enterEntryAsync({ -- 732
+							"Project", -- 732
+							target -- 732
+						}) -- 732
+						target = Path:getName(Path:getPath(target)) -- 733
+						return { -- 734
+							success = success, -- 734
+							target = target, -- 734
+							err = err -- 734
+						} -- 734
 					end -- 729
 				end -- 728
 				Entry.allClear() -- 735
@@ -1925,51 +1899,49 @@ end) -- 750
 HttpServer:post("/editingInfo", function(req) -- 756
 	local Entry = require("Dev.Entry") -- 757
 	local config = Entry.getConfig() -- 758
-	do -- 759
-		local _type_0 = type(req) -- 759
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 759
-		local _match_0 = false -- 759
-		if _tab_0 then -- 759
-			local editingInfo -- 759
-			do -- 759
-				local _obj_0 = req.body -- 759
-				local _type_1 = type(_obj_0) -- 759
-				if "table" == _type_1 or "userdata" == _type_1 then -- 759
-					editingInfo = _obj_0.editingInfo -- 759
-				end -- 761
+	local _type_0 = type(req) -- 759
+	local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 759
+	local _match_0 = false -- 759
+	if _tab_0 then -- 759
+		local editingInfo -- 759
+		do -- 759
+			local _obj_0 = req.body -- 759
+			local _type_1 = type(_obj_0) -- 759
+			if "table" == _type_1 or "userdata" == _type_1 then -- 759
+				editingInfo = _obj_0.editingInfo -- 759
 			end -- 761
-			if editingInfo ~= nil then -- 759
-				_match_0 = true -- 759
-				config.editingInfo = editingInfo -- 760
-				return { -- 761
-					success = true -- 761
-				} -- 761
-			end -- 759
+		end -- 761
+		if editingInfo ~= nil then -- 759
+			_match_0 = true -- 759
+			config.editingInfo = editingInfo -- 760
+			return { -- 761
+				success = true -- 761
+			} -- 761
 		end -- 759
-		if not _match_0 then -- 759
-			if not (config.editingInfo ~= nil) then -- 763
-				local json = require("json") -- 764
-				local folder -- 765
-				if App.locale:match('^zh') then -- 765
-					folder = 'zh-Hans' -- 765
-				else -- 765
-					folder = 'en' -- 765
-				end -- 765
-				config.editingInfo = json.dump({ -- 767
-					index = 0, -- 767
-					files = { -- 769
-						{ -- 770
-							key = Path(Content.assetPath, 'Doc', folder, 'welcome.md'), -- 770
-							title = "welcome.md" -- 771
-						} -- 769
-					} -- 768
-				}) -- 766
-			end -- 763
-			return { -- 775
-				success = true, -- 775
-				editingInfo = config.editingInfo -- 775
-			} -- 775
-		end -- 775
+	end -- 759
+	if not _match_0 then -- 759
+		if not (config.editingInfo ~= nil) then -- 763
+			local json = require("json") -- 764
+			local folder -- 765
+			if App.locale:match('^zh') then -- 765
+				folder = 'zh-Hans' -- 765
+			else -- 765
+				folder = 'en' -- 765
+			end -- 765
+			config.editingInfo = json.dump({ -- 767
+				index = 0, -- 767
+				files = { -- 769
+					{ -- 770
+						key = Path(Content.assetPath, 'Doc', folder, 'welcome.md'), -- 770
+						title = "welcome.md" -- 771
+					} -- 769
+				} -- 768
+			}) -- 766
+		end -- 763
+		return { -- 775
+			success = true, -- 775
+			editingInfo = config.editingInfo -- 775
+		} -- 775
 	end -- 775
 end) -- 756
 HttpServer:post("/command", function(req) -- 777

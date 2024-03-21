@@ -1015,13 +1015,11 @@ NewFighter = function(name, currentSet) -- 738
 		_with_0:slot("Tapped", function() -- 749
 			if not fighter:getChildByTag("select") then -- 750
 				local selectFrame -- 751
-				do -- 751
-					local _with_1 = Sprite("Model/patreon.clip|ui_select") -- 751
-					_with_1:addTo(fighter, 0, "select") -- 752
-					_with_1:runAction(Scale(0.3, 0, 1.8, Ease.OutBack)) -- 753
-					assembleFighter = true -- 754
-					selectFrame = _with_1 -- 751
-				end -- 751
+				local _with_1 = Sprite("Model/patreon.clip|ui_select") -- 751
+				_with_1:addTo(fighter, 0, "select") -- 752
+				_with_1:runAction(Scale(0.3, 0, 1.8, Ease.OutBack)) -- 753
+				assembleFighter = true -- 754
+				selectFrame = _with_1 -- 751
 			end -- 750
 		end) -- 749
 		_with_0:play("idle", true) -- 755
@@ -1100,13 +1098,11 @@ NewFighter = function(name, currentSet) -- 738
 			if Button("装备完成！", Vec2(200, 80)) then -- 812
 				updateModel(fighter, currentSet) -- 813
 				CloseCurrentPopup() -- 814
-				do -- 815
-					local _with_0 = fighter:getChildByTag("select") -- 815
-					_with_0:runAction(Sequence(Spawn(Scale(0.3, 1.8, 2.5), Opacity(0.3, 1, 0)), Event("End"))) -- 816
-					_with_0:slot("End", function() -- 820
-						return _with_0:removeFromParent() -- 820
-					end) -- 820
-				end -- 815
+				local _with_0 = fighter:getChildByTag("select") -- 815
+				_with_0:runAction(Sequence(Spawn(Scale(0.3, 1.8, 2.5), Opacity(0.3, 1, 0)), Event("End"))) -- 816
+				_with_0:slot("End", function() -- 820
+					return _with_0:removeFromParent() -- 820
+				end) -- 820
 			end -- 812
 			return NextColumn() -- 821
 		end) -- 821
@@ -1310,134 +1306,130 @@ Director.ui:addChild((function() -- 835
 		end)()) -- 907
 		return _with_1 -- 889
 	end)()) -- 889
-	do -- 942
-		local _exp_0 = App.platform -- 942
-		if "iOS" == _exp_0 or "Android" == _exp_0 then -- 943
-			_with_0:addChild((function() -- 944
-				local _with_1 = AlignNode() -- 944
-				_with_1.hAlign = "Left" -- 945
-				_with_1.vAlign = "Bottom" -- 946
-				_with_1.visible = false -- 947
-				_with_1:gslot("ShowTraining", function(show) -- 948
-					_with_1.visible = show -- 948
-				end) -- 948
-				_with_1:addChild((function() -- 949
-					local _with_2 = Menu() -- 949
-					_with_2:addChild((function() -- 950
-						local _with_3 = CircleButton({ -- 951
-							text = "左", -- 951
-							x = 20 * uiScale, -- 952
-							y = 90 * uiScale, -- 953
-							radius = 30 * uiScale, -- 954
-							fontSize = math.floor(18 * uiScale) -- 955
-						}) -- 950
-						_with_3.anchor = Vec2.zero -- 957
-						_with_3:slot("TapBegan", function() -- 958
-							return updatePlayerControl("keyLeft", true) -- 958
-						end) -- 958
-						_with_3:slot("TapEnded", function() -- 959
-							return updatePlayerControl("keyLeft", false) -- 959
-						end) -- 959
-						return _with_3 -- 950
-					end)()) -- 950
-					_with_2:addChild((function() -- 960
-						local _with_3 = CircleButton({ -- 961
-							text = "右", -- 961
-							x = 90 * uiScale, -- 962
-							y = 90 * uiScale, -- 963
-							radius = 30 * uiScale, -- 964
-							fontSize = math.floor(18 * uiScale) -- 965
-						}) -- 960
-						_with_3.anchor = Vec2.zero -- 967
-						_with_3:slot("TapBegan", function() -- 968
-							return updatePlayerControl("keyRight", true) -- 968
-						end) -- 968
-						_with_3:slot("TapEnded", function() -- 969
-							return updatePlayerControl("keyRight", false) -- 969
-						end) -- 969
-						return _with_3 -- 960
-					end)()) -- 960
-					return _with_2 -- 949
-				end)()) -- 949
-				return _with_1 -- 944
-			end)()) -- 944
-			_with_0:addChild((function() -- 970
-				local _with_1 = AlignNode() -- 970
-				_with_1.hAlign = "Right" -- 971
-				_with_1.vAlign = "Bottom" -- 972
-				_with_1.visible = false -- 973
-				_with_1:gslot("ShowTraining", function(show) -- 974
-					_with_1.visible = show -- 974
-				end) -- 974
-				_with_1:addChild((function() -- 975
-					local _with_2 = Menu() -- 975
-					_with_2:addChild((function() -- 976
-						local _with_3 = CircleButton({ -- 977
-							text = "闪", -- 977
-							x = -80 * uiScale, -- 978
-							y = 160 * uiScale, -- 979
-							radius = 30 * uiScale, -- 980
-							fontSize = math.floor(18 * uiScale) -- 981
-						}) -- 976
-						_with_3.anchor = Vec2.zero -- 983
-						_with_3:slot("TapBegan", function() -- 984
-							return updatePlayerControl("keyE", true) -- 984
-						end) -- 984
-						_with_3:slot("TapEnded", function() -- 985
-							return updatePlayerControl("keyE", false) -- 985
-						end) -- 985
-						return _with_3 -- 976
-					end)()) -- 976
-					_with_2:addChild((function() -- 986
-						local _with_3 = CircleButton({ -- 987
-							text = "跳", -- 987
-							x = -80 * uiScale, -- 988
-							y = 90 * uiScale, -- 989
-							radius = 30 * uiScale, -- 990
-							fontSize = math.floor(18 * uiScale) -- 991
-						}) -- 986
-						_with_3.anchor = Vec2.zero -- 993
-						_with_3:slot("TapBegan", function() -- 994
-							return updatePlayerControl("keyUp", true) -- 994
-						end) -- 994
-						_with_3:slot("TapEnded", function() -- 995
-							return updatePlayerControl("keyUp", false) -- 995
-						end) -- 995
-						return _with_3 -- 986
-					end)()) -- 986
-					_with_2:addChild((function() -- 996
-						local _with_3 = CircleButton({ -- 997
-							text = "打", -- 997
-							x = -150 * uiScale, -- 998
-							y = 90 * uiScale, -- 999
-							radius = 30 * uiScale, -- 1000
-							fontSize = math.floor(18 * uiScale) -- 1001
-						}) -- 996
-						_with_3.anchor = Vec2.zero -- 1003
-						_with_3:slot("TapBegan", function() -- 1004
-							return updatePlayerControl("keyF", true) -- 1004
-						end) -- 1004
-						_with_3:slot("TapEnded", function() -- 1005
-							return updatePlayerControl("keyF", false) -- 1005
-						end) -- 1005
-						return _with_3 -- 996
-					end)()) -- 996
-					return _with_2 -- 975
-				end)()) -- 975
-				return _with_1 -- 970
-			end)()) -- 970
-		elseif "macOS" == _exp_0 or "Windows" == _exp_0 or "Linux" == _exp_0 then -- 1006
-			do -- 1007
-				local _with_1 = Node() -- 1007
-				_with_1:schedule(function() -- 1008
-					updatePlayerControl("keyLeft", Keyboard:isKeyPressed("A")) -- 1009
-					updatePlayerControl("keyRight", Keyboard:isKeyPressed("D")) -- 1010
-					updatePlayerControl("keyUp", Keyboard:isKeyPressed("K")) -- 1011
-					updatePlayerControl("keyF", Keyboard:isKeyPressed("J")) -- 1012
-					return updatePlayerControl("keyE", Keyboard:isKeyPressed("E")) -- 1013
-				end) -- 1008
-			end -- 1007
-		end -- 1013
+	local _exp_0 = App.platform -- 942
+	if "iOS" == _exp_0 or "Android" == _exp_0 then -- 943
+		_with_0:addChild((function() -- 944
+			local _with_1 = AlignNode() -- 944
+			_with_1.hAlign = "Left" -- 945
+			_with_1.vAlign = "Bottom" -- 946
+			_with_1.visible = false -- 947
+			_with_1:gslot("ShowTraining", function(show) -- 948
+				_with_1.visible = show -- 948
+			end) -- 948
+			_with_1:addChild((function() -- 949
+				local _with_2 = Menu() -- 949
+				_with_2:addChild((function() -- 950
+					local _with_3 = CircleButton({ -- 951
+						text = "左", -- 951
+						x = 20 * uiScale, -- 952
+						y = 90 * uiScale, -- 953
+						radius = 30 * uiScale, -- 954
+						fontSize = math.floor(18 * uiScale) -- 955
+					}) -- 950
+					_with_3.anchor = Vec2.zero -- 957
+					_with_3:slot("TapBegan", function() -- 958
+						return updatePlayerControl("keyLeft", true) -- 958
+					end) -- 958
+					_with_3:slot("TapEnded", function() -- 959
+						return updatePlayerControl("keyLeft", false) -- 959
+					end) -- 959
+					return _with_3 -- 950
+				end)()) -- 950
+				_with_2:addChild((function() -- 960
+					local _with_3 = CircleButton({ -- 961
+						text = "右", -- 961
+						x = 90 * uiScale, -- 962
+						y = 90 * uiScale, -- 963
+						radius = 30 * uiScale, -- 964
+						fontSize = math.floor(18 * uiScale) -- 965
+					}) -- 960
+					_with_3.anchor = Vec2.zero -- 967
+					_with_3:slot("TapBegan", function() -- 968
+						return updatePlayerControl("keyRight", true) -- 968
+					end) -- 968
+					_with_3:slot("TapEnded", function() -- 969
+						return updatePlayerControl("keyRight", false) -- 969
+					end) -- 969
+					return _with_3 -- 960
+				end)()) -- 960
+				return _with_2 -- 949
+			end)()) -- 949
+			return _with_1 -- 944
+		end)()) -- 944
+		_with_0:addChild((function() -- 970
+			local _with_1 = AlignNode() -- 970
+			_with_1.hAlign = "Right" -- 971
+			_with_1.vAlign = "Bottom" -- 972
+			_with_1.visible = false -- 973
+			_with_1:gslot("ShowTraining", function(show) -- 974
+				_with_1.visible = show -- 974
+			end) -- 974
+			_with_1:addChild((function() -- 975
+				local _with_2 = Menu() -- 975
+				_with_2:addChild((function() -- 976
+					local _with_3 = CircleButton({ -- 977
+						text = "闪", -- 977
+						x = -80 * uiScale, -- 978
+						y = 160 * uiScale, -- 979
+						radius = 30 * uiScale, -- 980
+						fontSize = math.floor(18 * uiScale) -- 981
+					}) -- 976
+					_with_3.anchor = Vec2.zero -- 983
+					_with_3:slot("TapBegan", function() -- 984
+						return updatePlayerControl("keyE", true) -- 984
+					end) -- 984
+					_with_3:slot("TapEnded", function() -- 985
+						return updatePlayerControl("keyE", false) -- 985
+					end) -- 985
+					return _with_3 -- 976
+				end)()) -- 976
+				_with_2:addChild((function() -- 986
+					local _with_3 = CircleButton({ -- 987
+						text = "跳", -- 987
+						x = -80 * uiScale, -- 988
+						y = 90 * uiScale, -- 989
+						radius = 30 * uiScale, -- 990
+						fontSize = math.floor(18 * uiScale) -- 991
+					}) -- 986
+					_with_3.anchor = Vec2.zero -- 993
+					_with_3:slot("TapBegan", function() -- 994
+						return updatePlayerControl("keyUp", true) -- 994
+					end) -- 994
+					_with_3:slot("TapEnded", function() -- 995
+						return updatePlayerControl("keyUp", false) -- 995
+					end) -- 995
+					return _with_3 -- 986
+				end)()) -- 986
+				_with_2:addChild((function() -- 996
+					local _with_3 = CircleButton({ -- 997
+						text = "打", -- 997
+						x = -150 * uiScale, -- 998
+						y = 90 * uiScale, -- 999
+						radius = 30 * uiScale, -- 1000
+						fontSize = math.floor(18 * uiScale) -- 1001
+					}) -- 996
+					_with_3.anchor = Vec2.zero -- 1003
+					_with_3:slot("TapBegan", function() -- 1004
+						return updatePlayerControl("keyF", true) -- 1004
+					end) -- 1004
+					_with_3:slot("TapEnded", function() -- 1005
+						return updatePlayerControl("keyF", false) -- 1005
+					end) -- 1005
+					return _with_3 -- 996
+				end)()) -- 996
+				return _with_2 -- 975
+			end)()) -- 975
+			return _with_1 -- 970
+		end)()) -- 970
+	elseif "macOS" == _exp_0 or "Windows" == _exp_0 or "Linux" == _exp_0 then -- 1006
+		local _with_1 = Node() -- 1007
+		_with_1:schedule(function() -- 1008
+			updatePlayerControl("keyLeft", Keyboard:isKeyPressed("A")) -- 1009
+			updatePlayerControl("keyRight", Keyboard:isKeyPressed("D")) -- 1010
+			updatePlayerControl("keyUp", Keyboard:isKeyPressed("K")) -- 1011
+			updatePlayerControl("keyF", Keyboard:isKeyPressed("J")) -- 1012
+			return updatePlayerControl("keyE", Keyboard:isKeyPressed("E")) -- 1013
+		end) -- 1008
 	end -- 1013
 	return _with_0 -- 835
 end)()) -- 835
@@ -1595,11 +1587,9 @@ UnitAction:add("fallOff", { -- 1117
 	create = function(self) -- 1121
 		if self.velocityY <= 0 then -- 1122
 			self.data.fallDown = true -- 1123
-			do -- 1124
-				local _with_0 = self.playable -- 1124
-				_with_0.speed = 2.5 -- 1125
-				_with_0:play("idle") -- 1126
-			end -- 1124
+			local _with_0 = self.playable -- 1124
+			_with_0.speed = 2.5 -- 1125
+			_with_0:play("idle") -- 1126
 		else -- 1127
 			self.data.fallDown = false -- 1127
 		end -- 1122
@@ -1609,11 +1599,9 @@ UnitAction:add("fallOff", { -- 1117
 			end -- 1129
 			if not self.data.fallDown and self.velocityY <= 0 then -- 1130
 				self.data.fallDown = true -- 1131
-				do -- 1132
-					local _with_0 = self.playable -- 1132
-					_with_0.speed = 2.5 -- 1133
-					_with_0:play("idle") -- 1134
-				end -- 1132
+				local _with_0 = self.playable -- 1132
+				_with_0.speed = 2.5 -- 1133
+				_with_0:play("idle") -- 1134
 			end -- 1130
 			return false -- 1135
 		end -- 1135
@@ -1802,13 +1790,11 @@ _with_0:watch(function(self, hp, unit) -- 1247
 			unit:start("cancel") -- 1251
 		end -- 1251
 		if boss then -- 1252
-			do -- 1253
-				local _with_1 = Visual("Particle/bloodp.par") -- 1253
-				_with_1.position = unit.data.hitPoint -- 1254
-				_with_1:addTo(world, unit.order) -- 1255
-				_with_1:autoRemove() -- 1256
-				_with_1:start() -- 1257
-			end -- 1253
+			local _with_1 = Visual("Particle/bloodp.par") -- 1253
+			_with_1.position = unit.data.hitPoint -- 1254
+			_with_1:addTo(world, unit.order) -- 1255
+			_with_1:autoRemove() -- 1256
+			_with_1:start() -- 1257
 		end -- 1252
 		if hp > 0 then -- 1258
 			unit:start("hit") -- 1259

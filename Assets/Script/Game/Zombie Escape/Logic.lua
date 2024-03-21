@@ -104,15 +104,13 @@ do -- 52
 			_with_1:eachAction(function(self) -- 63
 				self.recovery = 0 -- 63
 			end) -- 63
-			do -- 64
-				local _with_2 = _with_1.playable -- 64
-				_with_2:eachNode(function(sp) -- 65
-					sp.filter = "Point" -- 65
-				end) -- 65
-				if self.zombie then -- 66
-					_with_2:play("groundEntrance") -- 66
-				end -- 66
-			end -- 64
+			local _with_2 = _with_1.playable -- 64
+			_with_2:eachNode(function(sp) -- 65
+				sp.filter = "Point" -- 65
+			end) -- 65
+			if self.zombie then -- 66
+				_with_2:play("groundEntrance") -- 66
+			end -- 66
 			unit = _with_1 -- 58
 		end -- 58
 		if self.player and unit.decisionTree == "AI_KidSearch" then -- 67
@@ -140,16 +138,14 @@ do -- 69
 					unit:runAction(Opacity(0.5, 1, 0, Ease.OutQuad)) -- 81
 					sleep(0.5) -- 82
 					if Store.world.camera.followTarget == unit then -- 83
-						do -- 84
-							local player = Group({ -- 84
-								"player", -- 84
-								"unit" -- 84
-							}):find(function(self) -- 84
-								return self.player -- 84
-							end) -- 84
-							if player then -- 84
-								Store.world.camera.followTarget = player.unit -- 85
-							end -- 84
+						local player = Group({ -- 84
+							"player", -- 84
+							"unit" -- 84
+						}):find(function(self) -- 84
+							return self.player -- 84
+						end) -- 84
+						if player then -- 84
+							Store.world.camera.followTarget = player.unit -- 85
 						end -- 84
 					end -- 83
 					return unit:removeFromParent() -- 86

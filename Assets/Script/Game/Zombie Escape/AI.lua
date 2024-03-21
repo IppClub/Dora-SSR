@@ -198,16 +198,14 @@ Store["AI_KidFollow"] = Sel({ -- 137
 	}), -- 142
 	Seq({ -- 147
 		Con("follow target is away", function(self) -- 147
-			do -- 148
-				local target = playerGroup:find(function(e) -- 148
-					return e.unit ~= self -- 148
-				end) -- 148
-				if target then -- 148
-					self.data.followTarget = target.unit -- 149
-					return math.abs(self.x - target.unit.x) > 50 -- 150
-				else -- 151
-					return false -- 151
-				end -- 148
+			local target = playerGroup:find(function(e) -- 148
+				return e.unit ~= self -- 148
+			end) -- 148
+			if target then -- 148
+				self.data.followTarget = target.unit -- 149
+				return math.abs(self.x - target.unit.x) > 50 -- 150
+			else -- 151
+				return false -- 151
 			end -- 148
 		end), -- 147
 		Sel({ -- 153

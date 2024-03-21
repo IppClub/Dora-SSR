@@ -173,59 +173,57 @@ do -- 99
 	}) -- 135
 	Store["Unit_Zombie1"] = _with_0 -- 99
 end -- 99
-do -- 147
-	local _with_0 = Dictionary() -- 147
-	_with_0.linearAcceleration = Vec2(0, -10) -- 148
-	_with_0.bodyType = "Dynamic" -- 149
-	_with_0.scale = 5 -- 150
-	_with_0.density = 1.0 -- 151
-	_with_0.friction = 1.0 -- 152
-	_with_0.restitution = 0.0 -- 153
-	_with_0.playable = "model:Model/Zombie2" -- 154
-	_with_0.size = Size(40, 110) -- 155
-	_with_0.tag = "Zombie2" -- 156
-	_with_0.sensity = 0.2 -- 157
-	_with_0.move = 60 -- 158
-	_with_0.moveSpeed = 1.0 -- 159
-	_with_0.jump = 500 -- 160
-	_with_0.detectDistance = 600 -- 161
-	_with_0.hp = 5.0 -- 162
-	_with_0.attackBase = 1 -- 163
-	_with_0.attackDelay = 0.4 -- 164
-	_with_0.attackEffectDelay = 0.1 -- 165
-	_with_0.attackRange = Size(150, 80) -- 166
-	_with_0.attackPower = Vec2(150, 100) -- 167
-	_with_0.attackTarget = "Multi" -- 168
-	do -- 169
-		local conf -- 170
-		do -- 170
-			local _with_1 = TargetAllow() -- 170
-			_with_1.terrainAllowed = true -- 171
-			_with_1:allow("Enemy", true) -- 172
-			conf = _with_1 -- 170
-		end -- 170
-		_with_0.targetAllow = conf:toValue() -- 173
-	end -- 173
-	_with_0.damageType = 0 -- 174
-	_with_0.defenceType = 0 -- 175
-	_with_0.bulletType = "" -- 176
-	_with_0.attackEffect = "" -- 177
-	_with_0.hitEffect = "" -- 178
-	_with_0.sndAttack = "" -- 179
-	_with_0.sndFallen = "" -- 180
-	_with_0.decisionTree = "AI_Zombie" -- 181
-	_with_0.usePreciseHit = false -- 182
-	_with_0.actions = Array({ -- 184
-		"walk", -- 184
-		"turn", -- 185
-		"meleeAttack", -- 186
-		"idle", -- 187
-		"cancel", -- 188
-		"jump", -- 189
-		"hit", -- 190
-		"fall", -- 191
-		"groundEntrance", -- 192
-		"fallOff" -- 193
-	}) -- 183
-	Store["Unit_Zombie2"] = _with_0 -- 147
-end -- 147
+local _with_0 = Dictionary() -- 147
+_with_0.linearAcceleration = Vec2(0, -10) -- 148
+_with_0.bodyType = "Dynamic" -- 149
+_with_0.scale = 5 -- 150
+_with_0.density = 1.0 -- 151
+_with_0.friction = 1.0 -- 152
+_with_0.restitution = 0.0 -- 153
+_with_0.playable = "model:Model/Zombie2" -- 154
+_with_0.size = Size(40, 110) -- 155
+_with_0.tag = "Zombie2" -- 156
+_with_0.sensity = 0.2 -- 157
+_with_0.move = 60 -- 158
+_with_0.moveSpeed = 1.0 -- 159
+_with_0.jump = 500 -- 160
+_with_0.detectDistance = 600 -- 161
+_with_0.hp = 5.0 -- 162
+_with_0.attackBase = 1 -- 163
+_with_0.attackDelay = 0.4 -- 164
+_with_0.attackEffectDelay = 0.1 -- 165
+_with_0.attackRange = Size(150, 80) -- 166
+_with_0.attackPower = Vec2(150, 100) -- 167
+_with_0.attackTarget = "Multi" -- 168
+do -- 169
+	local conf -- 170
+	do -- 170
+		local _with_1 = TargetAllow() -- 170
+		_with_1.terrainAllowed = true -- 171
+		_with_1:allow("Enemy", true) -- 172
+		conf = _with_1 -- 170
+	end -- 170
+	_with_0.targetAllow = conf:toValue() -- 173
+end -- 173
+_with_0.damageType = 0 -- 174
+_with_0.defenceType = 0 -- 175
+_with_0.bulletType = "" -- 176
+_with_0.attackEffect = "" -- 177
+_with_0.hitEffect = "" -- 178
+_with_0.sndAttack = "" -- 179
+_with_0.sndFallen = "" -- 180
+_with_0.decisionTree = "AI_Zombie" -- 181
+_with_0.usePreciseHit = false -- 182
+_with_0.actions = Array({ -- 184
+	"walk", -- 184
+	"turn", -- 185
+	"meleeAttack", -- 186
+	"idle", -- 187
+	"cancel", -- 188
+	"jump", -- 189
+	"hit", -- 190
+	"fall", -- 191
+	"groundEntrance", -- 192
+	"fallOff" -- 193
+}) -- 183
+Store["Unit_Zombie2"] = _with_0 -- 147

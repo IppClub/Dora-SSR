@@ -86,12 +86,10 @@ return threadLoop(function() -- 53
 		ImGui.Text("Render Group") -- 59
 		ImGui.Separator() -- 60
 		ImGui.TextWrapped("When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window.") -- 61
-		do -- 62
-			local changed -- 62
-			changed, renderGroup = ImGui.Checkbox("Grouped", renderGroup) -- 62
-			if changed then -- 62
-				currentEntry.renderGroup = renderGroup -- 63
-			end -- 62
+		local changed -- 62
+		changed, renderGroup = ImGui.Checkbox("Grouped", renderGroup) -- 62
+		if changed then -- 62
+			currentEntry.renderGroup = renderGroup -- 63
 		end -- 62
 	end) -- 63
 end) -- 63

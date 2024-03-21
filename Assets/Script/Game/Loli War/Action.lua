@@ -95,13 +95,11 @@ end -- 61
 local _anon_func_0 = function(GroupEnemy, GroupEnemyPoke, GroupPlayer, GroupPlayerPoke, LayerBlock, Vec2, self) -- 108
 	local _with_0 = { } -- 102
 	_with_0.layer = LayerBlock -- 103
-	do -- 104
-		local _exp_0 = self.group -- 104
-		if GroupPlayer == _exp_0 then -- 105
-			_with_0.poke, _with_0.group, _with_0.position = "pokeb", GroupPlayerPoke, Vec2(192, 1004 - 512) -- 106
-		elseif GroupEnemy == _exp_0 then -- 107
-			_with_0.poke, _with_0.group, _with_0.position = "pokep", GroupEnemyPoke, Vec2(3904, 1004 - 512) -- 108
-		end -- 108
+	local _exp_0 = self.group -- 104
+	if GroupPlayer == _exp_0 then -- 105
+		_with_0.poke, _with_0.group, _with_0.position = "pokeb", GroupPlayerPoke, Vec2(192, 1004 - 512) -- 106
+	elseif GroupEnemy == _exp_0 then -- 107
+		_with_0.poke, _with_0.group, _with_0.position = "pokep", GroupEnemyPoke, Vec2(3904, 1004 - 512) -- 108
 	end -- 108
 	return _with_0 -- 102
 end -- 102

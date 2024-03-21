@@ -216,11 +216,9 @@ _module_0 = function(bodyData, world, pos, angle) -- 432
 				itemDef.position = pos -- 456
 				itemDef.angle = angle -- 457
 			end -- 454
-			do -- 458
-				local joint = Joint(itemDef, items) -- 458
-				if joint then -- 458
-					items[key] = joint -- 459
-				end -- 458
+			local joint = Joint(itemDef, items) -- 458
+			if joint then -- 458
+				items[key] = joint -- 459
 			end -- 458
 		end -- 439
 	end) -- 438
