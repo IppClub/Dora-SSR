@@ -378,16 +378,14 @@ do -- 306
 	}) -- 312
 	Store["Switch"] = _with_0 -- 306
 end -- 306
-do -- 314
-	local _with_0 = Dictionary() -- 314
-	_with_0.bodyType = "Static" -- 315
-	_with_0.playable = "model:Model/switch" -- 316
-	_with_0.attackRange = Size(80, 126) -- 317
-	_with_0.tag = "Switch" -- 318
-	_with_0.decisionTree = "SwitchAI" -- 319
-	_with_0.actions = Array({ -- 320
-		"waitUser", -- 320
-		"pushed" -- 320
-	}) -- 320
-	Store["SwitchG"] = _with_0 -- 314
-end -- 314
+local _with_0 = Dictionary() -- 314
+_with_0.bodyType = "Static" -- 315
+_with_0.playable = "model:Model/switch" -- 316
+_with_0.attackRange = Size(80, 126) -- 317
+_with_0.tag = "Switch" -- 318
+_with_0.decisionTree = "SwitchAI" -- 319
+_with_0.actions = Array({ -- 320
+	"waitUser", -- 320
+	"pushed" -- 320
+}) -- 320
+Store["SwitchG"] = _with_0 -- 314

@@ -20,16 +20,14 @@ do -- 7
 	_with_0:setVelocity(15, 1200) -- 16
 	Store["Arrow"] = _with_0 -- 7
 end -- 7
-do -- 18
-	local _with_0 = BulletDef() -- 18
-	_with_0.tag = "" -- 19
-	_with_0.endEffect = "" -- 20
-	_with_0.lifeTime = 3.0 -- 21
-	_with_0.damageRadius = 0 -- 22
-	_with_0.highSpeedFix = false -- 23
-	_with_0.gravity = Vec2(0, 4) -- 24
-	_with_0.face = Face("Model/misc.clip|heartbullet", Vec2.zero, 2) -- 25
-	_with_0:setAsCircle(15) -- 26
-	_with_0:setVelocity(0, 400) -- 27
-	Store["Bubble"] = _with_0 -- 18
-end -- 18
+local _with_0 = BulletDef() -- 18
+_with_0.tag = "" -- 19
+_with_0.endEffect = "" -- 20
+_with_0.lifeTime = 3.0 -- 21
+_with_0.damageRadius = 0 -- 22
+_with_0.highSpeedFix = false -- 23
+_with_0.gravity = Vec2(0, 4) -- 24
+_with_0.face = Face("Model/misc.clip|heartbullet", Vec2.zero, 2) -- 25
+_with_0:setAsCircle(15) -- 26
+_with_0:setVelocity(0, 400) -- 27
+Store["Bubble"] = _with_0 -- 18

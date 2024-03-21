@@ -16,10 +16,8 @@ do -- 9
 	_with_0:attachPolygon(260, 60, 1, 1, 0) -- 11
 	Store["Body_ObstacleM"] = _with_0 -- 9
 end -- 9
-do -- 13
-	local _with_0 = BodyDef() -- 13
-	_with_0.type = "Dynamic" -- 14
-	_with_0.linearAcceleration = Vec2(0, -10) -- 15
-	_with_0:attachDisk(40, 1, 0.6, 0.4) -- 16
-	Store["Body_ObstacleC"] = _with_0 -- 13
-end -- 13
+local _with_0 = BodyDef() -- 13
+_with_0.type = "Dynamic" -- 14
+_with_0.linearAcceleration = Vec2(0, -10) -- 15
+_with_0:attachDisk(40, 1, 0.6, 0.4) -- 16
+Store["Body_ObstacleC"] = _with_0 -- 13

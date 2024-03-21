@@ -43,11 +43,9 @@ return UnitAction:add("fallOff", { -- 27
 	create = function(self) -- 31
 		if self.velocityY <= 0 then -- 32
 			self.data.fallDown = true -- 33
-			do -- 34
-				local _with_0 = self.playable -- 34
-				_with_0.speed = 1 -- 35
-				_with_0:play("fallOff") -- 36
-			end -- 34
+			local _with_0 = self.playable -- 34
+			_with_0.speed = 1 -- 35
+			_with_0:play("fallOff") -- 36
 		else -- 37
 			self.data.fallDown = false -- 37
 		end -- 32
@@ -57,11 +55,9 @@ return UnitAction:add("fallOff", { -- 27
 			end -- 39
 			if not self.data.fallDown and self.playable.current ~= "fallOff" and self.velocityY <= 0 then -- 40
 				self.data.fallDown = true -- 43
-				do -- 44
-					local _with_0 = self.playable -- 44
-					_with_0.speed = 1 -- 45
-					_with_0:play("fallOff") -- 46
-				end -- 44
+				local _with_0 = self.playable -- 44
+				_with_0.speed = 1 -- 45
+				_with_0:play("fallOff") -- 46
 			end -- 40
 			return false -- 47
 		end -- 47

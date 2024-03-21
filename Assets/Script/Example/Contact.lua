@@ -102,13 +102,11 @@ return threadLoop(function() -- 57
 		ImGui.Text("Contact") -- 63
 		ImGui.Separator() -- 64
 		ImGui.TextWrapped("Receive events when physics bodies contact.") -- 65
-		do -- 66
-			local changed -- 66
-			changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact) -- 66
-			if changed then -- 66
-				disk.receivingContact = receivingContact -- 67
-				label.text = "" -- 68
-			end -- 66
+		local changed -- 66
+		changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact) -- 66
+		if changed then -- 66
+			disk.receivingContact = receivingContact -- 67
+			label.text = "" -- 68
 		end -- 66
 	end) -- 68
 end) -- 68

@@ -21,13 +21,11 @@ local playerGroup = Group({ -- 11
 }) -- 11
 local updatePlayerControl -- 12
 updatePlayerControl = function(key, flag) -- 12
-	do -- 13
-		local player = playerGroup:find(function(self) -- 13
-			return self.unit.tag == Store.controlPlayer -- 13
-		end) -- 13
-		if player then -- 13
-			player.unit.data[key] = flag -- 14
-		end -- 13
+	local player = playerGroup:find(function(self) -- 13
+		return self.unit.tag == Store.controlPlayer -- 13
+	end) -- 13
+	if player then -- 13
+		player.unit.data[key] = flag -- 14
 	end -- 13
 end -- 12
 local uiScale = App.devicePixelRatio -- 15

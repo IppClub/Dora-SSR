@@ -97,26 +97,24 @@ updateLocale = function() -- 19
 	Content.searchPaths = searchPaths -- 22
 end -- 19
 if DB:exist("Config") then -- 24
-	do -- 25
-		local _exp_0 = DB:query("select value_str from Config where name = 'locale'") -- 25
-		local _type_0 = type(_exp_0) -- 26
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 26
-		if _tab_0 then -- 26
-			local locale -- 26
-			do -- 26
-				local _obj_0 = _exp_0[1] -- 26
-				local _type_1 = type(_obj_0) -- 26
-				if "table" == _type_1 or "userdata" == _type_1 then -- 26
-					locale = _obj_0[1] -- 26
-				end -- 28
+	local _exp_0 = DB:query("select value_str from Config where name = 'locale'") -- 25
+	local _type_0 = type(_exp_0) -- 26
+	local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 26
+	if _tab_0 then -- 26
+		local locale -- 26
+		do -- 26
+			local _obj_0 = _exp_0[1] -- 26
+			local _type_1 = type(_obj_0) -- 26
+			if "table" == _type_1 or "userdata" == _type_1 then -- 26
+				locale = _obj_0[1] -- 26
 			end -- 28
-			if locale ~= nil then -- 26
-				if App.locale ~= locale then -- 26
-					App.locale = locale -- 27
-					updateLocale() -- 28
-				end -- 26
-			end -- 26
 		end -- 28
+		if locale ~= nil then -- 26
+			if App.locale ~= locale then -- 26
+				App.locale = locale -- 27
+				updateLocale() -- 28
+			end -- 26
+		end -- 26
 	end -- 28
 end -- 24
 local Config = require("Config") -- 30
@@ -575,28 +573,26 @@ doCompile = function(minify) -- 248
 				end -- 324
 				return "-- [yue]: " .. tostring(file) .. "\n" .. tostring(result) .. tostring(codes) -- 325
 			else -- 327
-				do -- 327
-					local yueCodes = Content:load(input) -- 327
-					if yueCodes then -- 327
-						local globalErrors = { } -- 328
-						for _index_1 = 1, #result do -- 329
-							local _des_1 = result[_index_1] -- 329
-							local name, line, col = _des_1[1], _des_1[2], _des_1[3] -- 329
-							local countLine = 1 -- 330
-							local code = "" -- 331
-							for lineCode in yueCodes:gmatch("([^\r\n]*)\r?\n?") do -- 332
-								if countLine == line then -- 333
-									code = lineCode -- 334
-									break -- 335
-								end -- 333
-								countLine = countLine + 1 -- 336
-							end -- 336
-							globalErrors[#globalErrors + 1] = "invalid global variable \"" .. tostring(name) .. "\"\nin \"" .. tostring(filename) .. "\", at line " .. tostring(line) .. ", col " .. tostring(col) .. ".\n" .. tostring(code:gsub("\t", " ") .. '\n' .. string.rep(" ", col - 1) .. "^") -- 337
-						end -- 337
-						errors[#errors + 1] = table.concat(globalErrors, "\n") -- 338
-					else -- 340
-						errors[#errors + 1] = "failed to load file " .. tostring(input) -- 340
-					end -- 327
+				local yueCodes = Content:load(input) -- 327
+				if yueCodes then -- 327
+					local globalErrors = { } -- 328
+					for _index_1 = 1, #result do -- 329
+						local _des_1 = result[_index_1] -- 329
+						local name, line, col = _des_1[1], _des_1[2], _des_1[3] -- 329
+						local countLine = 1 -- 330
+						local code = "" -- 331
+						for lineCode in yueCodes:gmatch("([^\r\n]*)\r?\n?") do -- 332
+							if countLine == line then -- 333
+								code = lineCode -- 334
+								break -- 335
+							end -- 333
+							countLine = countLine + 1 -- 336
+						end -- 336
+						globalErrors[#globalErrors + 1] = "invalid global variable \"" .. tostring(name) .. "\"\nin \"" .. tostring(filename) .. "\", at line " .. tostring(line) .. ", col " .. tostring(col) .. ".\n" .. tostring(code:gsub("\t", " ") .. '\n' .. string.rep(" ", col - 1) .. "^") -- 337
+					end -- 337
+					errors[#errors + 1] = table.concat(globalErrors, "\n") -- 338
+				else -- 340
+					errors[#errors + 1] = "failed to load file " .. tostring(input) -- 340
 				end -- 327
 			end -- 321
 		end, function(success) -- 316
@@ -745,28 +741,26 @@ setupEventHandlers = function() -- 422
 			return updateEntries() -- 432
 		end -- 431
 	end) -- 430
-	do -- 433
-		local _exp_0 = App.platform -- 433
-		if "Linux" == _exp_0 or "Windows" == _exp_0 or "macOS" == _exp_0 then -- 433
-			_with_0:gslot("AppSizeChanged", function() -- 434
-				local width, height -- 435
-				do -- 435
-					local _obj_0 = App.winSize -- 435
-					width, height = _obj_0.width, _obj_0.height -- 435
-				end -- 435
-				config.winWidth = width -- 436
-				config.winHeight = height -- 437
-			end) -- 434
-			_with_0:gslot("AppFullScreen", function(fullScreen) -- 438
-				config.fullScreen = fullScreen and 1 or 0 -- 439
-			end) -- 438
-			_with_0:gslot("AppMoved", function() -- 440
-				do -- 441
-					local _obj_0 = App.winPosition -- 441
-					config.winX, config.winY = _obj_0.x, _obj_0.y -- 441
-				end -- 441
-			end) -- 440
-		end -- 441
+	local _exp_0 = App.platform -- 433
+	if "Linux" == _exp_0 or "Windows" == _exp_0 or "macOS" == _exp_0 then -- 433
+		_with_0:gslot("AppSizeChanged", function() -- 434
+			local width, height -- 435
+			do -- 435
+				local _obj_0 = App.winSize -- 435
+				width, height = _obj_0.width, _obj_0.height -- 435
+			end -- 435
+			config.winWidth = width -- 436
+			config.winHeight = height -- 437
+		end) -- 434
+		_with_0:gslot("AppFullScreen", function(fullScreen) -- 438
+			config.fullScreen = fullScreen and 1 or 0 -- 439
+		end) -- 438
+		_with_0:gslot("AppMoved", function() -- 440
+			do -- 441
+				local _obj_0 = App.winPosition -- 441
+				config.winX, config.winY = _obj_0.x, _obj_0.y -- 441
+			end -- 441
+		end) -- 440
 	end -- 441
 	return _with_0 -- 423
 end -- 422
@@ -801,11 +795,9 @@ allClear = function() -- 445
 	teal.clear() -- 465
 	yue.clear() -- 466
 	for _, item in pairs(ubox()) do -- 467
-		do -- 468
-			local node = tolua.cast(item, "Node") -- 468
-			if node then -- 468
-				node:cleanup() -- 468
-			end -- 468
+		local node = tolua.cast(item, "Node") -- 468
+		if node then -- 468
+			node:cleanup() -- 468
 		end -- 468
 	end -- 468
 	collectgarbage() -- 469
@@ -964,14 +956,12 @@ extraOperations = function() -- 566
 				if ossLicenseOpen then -- 573
 					licenseText = licenseText:gsub("\r\n", "\n") -- 574
 					for license in GSplit(licenseText, "\n--------\n", true) do -- 575
-						do -- 576
-							local name, text = license:match("[%s\n]*([^\n]*)[\n]*(.*)") -- 576
-							if name then -- 576
-								ossLicenses[#ossLicenses + 1] = { -- 577
-									name, -- 577
-									text -- 577
-								} -- 577
-							end -- 576
+						local name, text = license:match("[%s\n]*([^\n]*)[\n]*(.*)") -- 576
+						if name then -- 576
+							ossLicenses[#ossLicenses + 1] = { -- 577
+								name, -- 577
+								text -- 577
+							} -- 577
 						end -- 576
 					end -- 577
 				end -- 573
@@ -1033,12 +1023,10 @@ extraOperations = function() -- 566
 				reloadDevEntry() -- 606
 			end -- 603
 		end -- 602
-		do -- 607
-			local changed -- 607
-			changed, scaleContent = Checkbox(string.format("%.1fx " .. tostring(zh and '屏幕缩放' or 'Screen'), screenScale), scaleContent) -- 607
-			if changed then -- 607
-				View.scale = scaleContent and screenScale or 1 -- 608
-			end -- 607
+		local changed -- 607
+		changed, scaleContent = Checkbox(string.format("%.1fx " .. tostring(zh and '屏幕缩放' or 'Screen'), screenScale), scaleContent) -- 607
+		if changed then -- 607
+			View.scale = scaleContent and screenScale or 1 -- 608
 		end -- 607
 	end) -- 594
 end -- 566
@@ -1142,12 +1130,10 @@ footerWindow = threadLoop(function() -- 619
 	PushStyleColor("WindowBg", transparant, function() -- 668
 		return Begin("Show", windowFlags, function() -- 668
 			if isInEntry or width >= 540 then -- 669
-				do -- 670
-					local changed -- 670
-					changed, showFooter = Checkbox("##dev", showFooter) -- 670
-					if changed then -- 670
-						config.showFooter = showFooter and 1 or 0 -- 671
-					end -- 670
+				local changed -- 670
+				changed, showFooter = Checkbox("##dev", showFooter) -- 670
+				if changed then -- 670
+					config.showFooter = showFooter and 1 or 0 -- 671
 				end -- 670
 			end -- 669
 		end) -- 671

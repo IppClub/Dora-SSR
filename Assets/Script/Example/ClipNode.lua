@@ -134,13 +134,11 @@ return threadLoop(function() -- 75
 				frame.visible = not inverted -- 86
 			end -- 83
 		end -- 83
-		do -- 87
-			local changed -- 87
-			changed, withAlphaThreshold = ImGui.Checkbox("With alphaThreshold", withAlphaThreshold) -- 87
-			if changed then -- 87
-				exampleB.visible = withAlphaThreshold -- 88
-				exampleA.visible = not withAlphaThreshold -- 89
-			end -- 87
+		local changed -- 87
+		changed, withAlphaThreshold = ImGui.Checkbox("With alphaThreshold", withAlphaThreshold) -- 87
+		if changed then -- 87
+			exampleB.visible = withAlphaThreshold -- 88
+			exampleA.visible = not withAlphaThreshold -- 89
 		end -- 87
 	end) -- 89
 end) -- 89

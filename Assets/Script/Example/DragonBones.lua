@@ -47,11 +47,9 @@ do -- 10
 			local _obj_0 = touch.location -- 17
 			x, y = _obj_0.x, _obj_0.y -- 17
 		end -- 17
-		do -- 18
-			local name = _with_0:containsPoint(x, y) -- 18
-			if name then -- 18
-				return _with_0:addChild(_anon_func_0(App, Delay, Ease, Event, Label, Opacity, Scale, Sequence, Spawn, Vec2, _with_0, name, x, y)) -- 31
-			end -- 18
+		local name = _with_0:containsPoint(x, y) -- 18
+		if name then -- 18
+			return _with_0:addChild(_anon_func_0(App, Delay, Ease, Event, Label, Opacity, Scale, Sequence, Spawn, Vec2, _with_0, name, x, y)) -- 31
 		end -- 18
 	end) -- 16
 	bone = _with_0 -- 10
@@ -75,12 +73,10 @@ return threadLoop(function() -- 43
 		ImGui.Text("DragonBones") -- 49
 		ImGui.Separator() -- 50
 		ImGui.TextWrapped("Basic usage to create dragonBones! Tap it for a hit test.") -- 51
-		do -- 52
-			local changed -- 52
-			changed, showDebug = ImGui.Checkbox("BoundingBox", showDebug) -- 52
-			if changed then -- 52
-				bone.showDebug = showDebug -- 53
-			end -- 52
+		local changed -- 52
+		changed, showDebug = ImGui.Checkbox("BoundingBox", showDebug) -- 52
+		if changed then -- 52
+			bone.showDebug = showDebug -- 53
 		end -- 52
 	end) -- 53
 end) -- 53

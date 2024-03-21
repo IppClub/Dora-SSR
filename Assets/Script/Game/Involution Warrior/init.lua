@@ -459,11 +459,9 @@ UnitAction:add("fallOff", { -- 346
 	create = function(self) -- 350
 		if self.velocityY <= 0 then -- 351
 			self.data.fallDown = true -- 352
-			do -- 353
-				local _with_0 = self.playable -- 353
-				_with_0.speed = 2.5 -- 354
-				_with_0:play("idle") -- 355
-			end -- 353
+			local _with_0 = self.playable -- 353
+			_with_0.speed = 2.5 -- 354
+			_with_0:play("idle") -- 355
 		else -- 356
 			self.data.fallDown = false -- 356
 		end -- 351
@@ -473,11 +471,9 @@ UnitAction:add("fallOff", { -- 346
 			end -- 358
 			if not self.data.fallDown and self.velocityY <= 0 then -- 359
 				self.data.fallDown = true -- 360
-				do -- 361
-					local _with_0 = self.playable -- 361
-					_with_0.speed = 2.5 -- 362
-					_with_0:play("idle") -- 363
-				end -- 361
+				local _with_0 = self.playable -- 361
+				_with_0.speed = 2.5 -- 362
+				_with_0:play("idle") -- 363
 			end -- 359
 			return false -- 364
 		end -- 364
@@ -687,19 +683,15 @@ GetBoss = function(entity, pos, black) -- 464
 	local _with_0 = Unit(unitDef, world, entity, pos) -- 518
 	if black then -- 519
 		for i = 1, 7 do -- 520
-			do -- 521
-				local node = _with_0.playable:getNodeByName("w" .. tostring(i)) -- 521
-				if node then -- 521
-					node.color = Color(0xff666666) -- 522
-				end -- 521
+			local node = _with_0.playable:getNodeByName("w" .. tostring(i)) -- 521
+			if node then -- 521
+				node.color = Color(0xff666666) -- 522
 			end -- 521
 		end -- 522
 	end -- 519
-	do -- 523
-		local node = _with_0.playable:getNodeByName("mask") -- 523
-		if node then -- 523
-			node:addChild(Sprite("Model/patreon.clip|" .. tostring(masks[math.random(1, #masks)]))) -- 524
-		end -- 523
+	local node = _with_0.playable:getNodeByName("mask") -- 523
+	if node then -- 523
+		node:addChild(Sprite("Model/patreon.clip|" .. tostring(masks[math.random(1, #masks)]))) -- 524
 	end -- 523
 	return _with_0 -- 518
 end -- 464
@@ -707,12 +699,10 @@ local _anon_func_1 = function(entity, itemSettings, items, pairs, tostring) -- 5
 	local _accum_0 = { } -- 542
 	local _len_0 = 1 -- 542
 	for _, v in pairs(items) do -- 542
-		do -- 543
-			local skill = itemSettings[v].skill -- 543
-			if skill then -- 543
-				entity[tostring(skill) .. "Skill"] = true -- 544
-				_accum_0[_len_0] = skill -- 545
-			end -- 543
+		local skill = itemSettings[v].skill -- 543
+		if skill then -- 543
+			entity[tostring(skill) .. "Skill"] = true -- 544
+			_accum_0[_len_0] = skill -- 545
 		end -- 543
 		_len_0 = _len_0 + 1 -- 545
 	end -- 545
@@ -823,11 +813,9 @@ GetUnit = function(entity, pos, black) -- 526
 				node:addChild(Sprite("Model/patreon.clip|" .. tostring(item))) -- 605
 			end -- 604
 		end -- 604
-		do -- 606
-			local item = items[slot] -- 606
-			if item then -- 606
-				node:addChild(_anon_func_2(Color, Sprite, _with_0, black, item, itemSettings, tostring)) -- 607
-			end -- 606
+		local item = items[slot] -- 606
+		if item then -- 606
+			node:addChild(_anon_func_2(Color, Sprite, _with_0, black, item, itemSettings, tostring)) -- 607
 		end -- 606
 	end -- 609
 	return _with_0 -- 601
@@ -1042,13 +1030,11 @@ do -- 748
 				_with_1:addTo(world) -- 765
 			end -- 754
 			if boss then -- 766
-				do -- 767
-					local _with_1 = Visual("Particle/bloodp.par") -- 767
-					_with_1.position = unit.data.hitPoint -- 768
-					_with_1:addTo(world, unit.order) -- 769
-					_with_1:autoRemove() -- 770
-					_with_1:start() -- 771
-				end -- 767
+				local _with_1 = Visual("Particle/bloodp.par") -- 767
+				_with_1.position = unit.data.hitPoint -- 768
+				_with_1:addTo(world, unit.order) -- 769
+				_with_1:autoRemove() -- 770
+				_with_1:start() -- 771
 			end -- 766
 			if hp > 0 then -- 772
 				unit:start("hit") -- 773

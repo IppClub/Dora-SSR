@@ -78,32 +78,26 @@ return threadLoop(function() -- 18
 			end -- 34
 			ImGui.PushItemWidth(-60, function() -- 36
 				local angle = sprite.angle -- 37
-				do -- 38
-					local changed -- 38
-					changed, angle = ImGui.DragInt("Angle", math.floor(angle), 1, -360, 360) -- 38
-					if changed then -- 38
-						sprite.angle = angle -- 39
-					end -- 38
+				local changed -- 38
+				changed, angle = ImGui.DragInt("Angle", math.floor(angle), 1, -360, 360) -- 38
+				if changed then -- 38
+					sprite.angle = angle -- 39
 				end -- 38
 			end) -- 36
 			ImGui.PushItemWidth(-60, function() -- 40
 				local angleX = sprite.angleX -- 41
-				do -- 42
-					local changed -- 42
-					changed, angleX = ImGui.DragInt("AngleX", math.floor(angleX), 1, -360, 360) -- 42
-					if changed then -- 42
-						sprite.angleX = angleX -- 43
-					end -- 42
+				local changed -- 42
+				changed, angleX = ImGui.DragInt("AngleX", math.floor(angleX), 1, -360, 360) -- 42
+				if changed then -- 42
+					sprite.angleX = angleX -- 43
 				end -- 42
 			end) -- 40
 			ImGui.PushItemWidth(-60, function() -- 44
 				local angleY = sprite.angleY -- 45
-				do -- 46
-					local changed -- 46
-					changed, angleY = ImGui.DragInt("AngleY", math.floor(angleY), 1, -360, 360) -- 46
-					if changed then -- 46
-						sprite.angleY = angleY -- 47
-					end -- 46
+				local changed -- 46
+				changed, angleY = ImGui.DragInt("AngleY", math.floor(angleY), 1, -360, 360) -- 46
+				if changed then -- 46
+					sprite.angleY = angleY -- 47
 				end -- 46
 			end) -- 44
 			local skewX, skewY = sprite.skewX, sprite.skewY -- 48
@@ -116,12 +110,10 @@ return threadLoop(function() -- 18
 			end -- 49
 			ImGui.PushItemWidth(-70, function() -- 51
 				local opacity = sprite.opacity -- 52
-				do -- 53
-					local changed -- 53
-					changed, opacity = ImGui.DragFloat("Opacity", opacity, 0.01, 0, 1, "%.2f") -- 53
-					if changed then -- 53
-						sprite.opacity = opacity -- 54
-					end -- 53
+				local changed -- 53
+				changed, opacity = ImGui.DragFloat("Opacity", opacity, 0.01, 0, 1, "%.2f") -- 53
+				if changed then -- 53
+					sprite.opacity = opacity -- 54
 				end -- 53
 			end) -- 51
 			return ImGui.PushItemWidth(-1, function() -- 55

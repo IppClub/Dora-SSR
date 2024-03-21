@@ -195,13 +195,11 @@ local GameWorld = Class(PlatformWorld, { -- 21
 				_with_0:attachPolygon(sp.width * 2, sp.height * 2, 1, 0, 1) -- 98
 				rectDef = _with_0 -- 95
 			end -- 95
-			do -- 99
-				local _with_0 = Body(rectDef, self, item[2]) -- 99
-				_with_0.order = LayerBackground -- 100
-				_with_0.group = GroupDisplay -- 101
-				_with_0:addChild(sp) -- 102
-				_with_0:addTo(readme) -- 103
-			end -- 99
+			local _with_0 = Body(rectDef, self, item[2]) -- 99
+			_with_0.order = LayerBackground -- 100
+			_with_0.group = GroupDisplay -- 101
+			_with_0:addChild(sp) -- 102
+			_with_0:addTo(readme) -- 103
 		end -- 103
 	end, -- 57
 	buildCastles = function(self) -- 105

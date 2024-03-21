@@ -19,11 +19,9 @@ _module_0 = Class(Digit, { -- 5
 		self:removeAllChildren() -- 12
 		local two = math.floor(self._value / 10) -- 13
 		if two > 0 then -- 14
-			do -- 15
-				local _with_0 = Sprite("Model/misc.clip|" .. tostring(two)) -- 15
-				_with_0.anchor = Vec2(0, 0.5) -- 16
-				_with_0:addTo(self) -- 17
-			end -- 15
+			local _with_0 = Sprite("Model/misc.clip|" .. tostring(two)) -- 15
+			_with_0.anchor = Vec2(0, 0.5) -- 16
+			_with_0:addTo(self) -- 17
 		end -- 14
 		local one = math.floor(self._value % 10) -- 18
 		local _with_0 = Sprite("Model/misc.clip|" .. tostring(one)) -- 19
