@@ -820,19 +820,17 @@ stop = function() -- 476
 end -- 476
 _module_0["stop"] = stop -- 481
 local _anon_func_0 = function(Content, Path, file, require, type) -- 502
-	do -- 495
-		local scriptPath = Path:getPath(file) -- 495
-		Content:insertSearchPath(1, scriptPath) -- 496
-		scriptPath = Path(scriptPath, "Script") -- 497
-		if Content:exist(scriptPath) then -- 498
-			Content:insertSearchPath(1, scriptPath) -- 499
-		end -- 498
-		local result = require(file) -- 500
-		if "function" == type(result) then -- 501
-			result() -- 501
-		end -- 501
-		return nil -- 502
-	end -- 502
+	local scriptPath = Path:getPath(file) -- 495
+	Content:insertSearchPath(1, scriptPath) -- 496
+	scriptPath = Path(scriptPath, "Script") -- 497
+	if Content:exist(scriptPath) then -- 498
+		Content:insertSearchPath(1, scriptPath) -- 499
+	end -- 498
+	local result = require(file) -- 500
+	if "function" == type(result) then -- 501
+		result() -- 501
+	end -- 501
+	return nil -- 502
 end -- 495
 local _anon_func_1 = function(Label, err, fontSize, scroll, width) -- 532
 	local label = Label("sarasa-mono-sc-regular", fontSize) -- 529
