@@ -7,37 +7,37 @@ local Audio = dora.Audio -- 1
 local loop = dora.loop -- 1
 local sleep = dora.sleep -- 1
 local _module_0 = nil -- 1
-local ButtonGlow = require("UI.View.ButtonGlow") -- 2
-_module_0 = Class(ButtonGlow, { -- 5
-	__init = function(self) -- 5
-		return self:slot("Tapped", function(touch) -- 6
-			local _with_0 = Visual("Particle/select.par") -- 7
-			_with_0.position = self:convertToWorldSpace(touch.location) -- 8
-			_with_0:addTo(Director.ui) -- 9
-			_with_0:autoRemove() -- 10
-			_with_0:start() -- 11
-			return _with_0 -- 7
-		end) -- 11
-	end, -- 5
-	glow = function(self) -- 13
-		if not self.scheduled then -- 14
-			Audio:play("Audio/select.wav") -- 15
-			return self:schedule(loop(function() -- 16
-				self.up.visible = false -- 17
-				self.down.visible = true -- 18
-				sleep(0.5) -- 19
-				self.up.visible = true -- 20
-				self.down.visible = false -- 21
-				return sleep(0.5) -- 22
-			end)) -- 22
-		end -- 14
+local ButtonGlow = require("UI.View.ButtonGlow") -- 10
+_module_0 = Class(ButtonGlow, { -- 13
+	__init = function(self) -- 13
+		return self:slot("Tapped", function(touch) -- 14
+			local _with_0 = Visual("Particle/select.par") -- 15
+			_with_0.position = self:convertToWorldSpace(touch.location) -- 16
+			_with_0:addTo(Director.ui) -- 17
+			_with_0:autoRemove() -- 18
+			_with_0:start() -- 19
+			return _with_0 -- 15
+		end) -- 19
 	end, -- 13
-	stopGlow = function(self) -- 24
-		if self.scheduled then -- 25
-			self:unschedule() -- 26
-			self.up.visible = true -- 27
-			self.down.visible = false -- 28
-		end -- 25
-	end -- 24
-}) -- 4
-return _module_0 -- 28
+	glow = function(self) -- 21
+		if not self.scheduled then -- 22
+			Audio:play("Audio/select.wav") -- 23
+			return self:schedule(loop(function() -- 24
+				self.up.visible = false -- 25
+				self.down.visible = true -- 26
+				sleep(0.5) -- 27
+				self.up.visible = true -- 28
+				self.down.visible = false -- 29
+				return sleep(0.5) -- 30
+			end)) -- 30
+		end -- 22
+	end, -- 21
+	stopGlow = function(self) -- 32
+		if self.scheduled then -- 33
+			self:unschedule() -- 34
+			self.up.visible = true -- 35
+			self.down.visible = false -- 36
+		end -- 33
+	end -- 32
+}) -- 12
+return _module_0 -- 36
