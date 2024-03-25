@@ -20,179 +20,179 @@ local Size = dora.Size -- 1
 local Entity = dora.Entity -- 1
 local math = _G.math -- 1
 local tostring = _G.tostring -- 1
-local Rectangle = require("UI.View.Shape.Rectangle") -- 2
-local Circle = require("UI.View.Shape.Circle") -- 3
-local Star = require("UI.View.Shape.Star") -- 4
-local Store = Data.store -- 6
-do -- 8
-	local _with_0 = Observer("Add", { -- 8
-		"obstacleDef", -- 8
-		"size", -- 8
-		"position", -- 8
-		"color" -- 8
-	}) -- 8
-	_with_0:watch(function(self, obstacleDef, size, position, color) -- 9
-		local world, TerrainLayer = Store.world, Store.TerrainLayer -- 10
-		color = Color3(color) -- 11
-		do -- 12
-			local _with_1 = Body(Store[obstacleDef], world, position) -- 12
-			_with_1.tag = "Obstacle" -- 13
-			_with_1.order = TerrainLayer -- 14
-			_with_1.group = Data.groupTerrain -- 15
-			if "number" == type(size) then -- 16
-				_with_1:addChild(Circle({ -- 18
-					radius = size, -- 18
-					fillColor = Color(color, 0x66):toARGB(), -- 19
-					borderColor = Color(color, 0xff):toARGB(), -- 20
-					fillOrder = 1, -- 21
-					lineOrder = 2 -- 22
-				})) -- 17
-				_with_1:addChild(Star({ -- 25
-					size = 20, -- 25
-					borderColor = 0xffffffff, -- 26
-					fillColor = 0x66ffffff, -- 27
-					fillOrder = 1, -- 28
-					lineOrder = 2 -- 29
-				})) -- 24
-			else -- 32
-				_with_1:addChild(Rectangle({ -- 33
-					width = size.width, -- 33
-					height = size.height, -- 34
-					fillColor = Color(color, 0x66):toARGB(), -- 35
-					borderColor = Color(color, 0xff):toARGB(), -- 36
-					fillOrder = 1, -- 37
-					lineOrder = 2 -- 38
+local Rectangle = require("UI.View.Shape.Rectangle") -- 10
+local Circle = require("UI.View.Shape.Circle") -- 11
+local Star = require("UI.View.Shape.Star") -- 12
+local Store = Data.store -- 14
+do -- 16
+	local _with_0 = Observer("Add", { -- 16
+		"obstacleDef", -- 16
+		"size", -- 16
+		"position", -- 16
+		"color" -- 16
+	}) -- 16
+	_with_0:watch(function(self, obstacleDef, size, position, color) -- 17
+		local world, TerrainLayer = Store.world, Store.TerrainLayer -- 18
+		color = Color3(color) -- 19
+		do -- 20
+			local _with_1 = Body(Store[obstacleDef], world, position) -- 20
+			_with_1.tag = "Obstacle" -- 21
+			_with_1.order = TerrainLayer -- 22
+			_with_1.group = Data.groupTerrain -- 23
+			if "number" == type(size) then -- 24
+				_with_1:addChild(Circle({ -- 26
+					radius = size, -- 26
+					fillColor = Color(color, 0x66):toARGB(), -- 27
+					borderColor = Color(color, 0xff):toARGB(), -- 28
+					fillOrder = 1, -- 29
+					lineOrder = 2 -- 30
+				})) -- 25
+				_with_1:addChild(Star({ -- 33
+					size = 20, -- 33
+					borderColor = 0xffffffff, -- 34
+					fillColor = 0x66ffffff, -- 35
+					fillOrder = 1, -- 36
+					lineOrder = 2 -- 37
 				})) -- 32
-			end -- 16
-			_with_1:addTo(world) -- 40
-		end -- 12
-		self:destroy() -- 41
-		return false -- 41
-	end) -- 9
-end -- 8
-local mutables = { -- 44
-	"hp", -- 44
-	"moveSpeed", -- 45
-	"move", -- 46
-	"jump", -- 47
-	"targetAllow", -- 48
-	"attackPower", -- 49
-	"attackSpeed" -- 50
-} -- 43
-do -- 52
-	local _with_0 = Observer("Add", { -- 52
-		"unitDef", -- 52
-		"position", -- 52
-		"order", -- 52
-		"group", -- 52
-		"faceRight" -- 52
-	}) -- 52
-	_with_0:watch(function(self, unitDef, position, order, group, faceRight) -- 53
-		local world = Store.world -- 54
-		local def = Store[unitDef] -- 55
-		for _index_0 = 1, #mutables do -- 56
-			local var = mutables[_index_0] -- 56
-			self[var] = def[var] -- 57
-		end -- 57
-		local unit -- 58
-		do -- 58
-			local _with_1 = Unit(def, world, self, position) -- 58
-			_with_1.group = group -- 59
-			_with_1.order = order -- 60
-			_with_1.faceRight = faceRight -- 61
-			_with_1:addTo(world) -- 62
-			_with_1:eachAction(function(self) -- 63
-				self.recovery = 0 -- 63
-			end) -- 63
-			local _with_2 = _with_1.playable -- 64
-			_with_2:eachNode(function(sp) -- 65
-				sp.filter = "Point" -- 65
-			end) -- 65
-			if self.zombie then -- 66
-				_with_2:play("groundEntrance") -- 66
-			end -- 66
-			unit = _with_1 -- 58
-		end -- 58
-		if self.player and unit.decisionTree == "AI_KidSearch" then -- 67
-			world.camera.followTarget = unit -- 67
-		end -- 67
-		return false -- 67
-	end) -- 53
-end -- 52
-do -- 69
-	local _with_0 = Observer("Change", { -- 69
-		"hp", -- 69
-		"unit" -- 69
-	}) -- 69
-	_with_0:watch(function(self, hp, unit) -- 70
-		local lastHp = self.oldValues.hp -- 71
-		if hp < lastHp then -- 72
-			if hp > 0 then -- 73
-				unit:start("hit") -- 74
-			else -- 76
-				unit:start("hit") -- 76
-				unit:start("fall") -- 77
-				unit.group = Data.groupHide -- 78
-				unit:schedule(once(function() -- 79
-					sleep(5) -- 80
-					unit:runAction(Opacity(0.5, 1, 0, Ease.OutQuad)) -- 81
-					sleep(0.5) -- 82
-					if Store.world.camera.followTarget == unit then -- 83
-						local player = Group({ -- 84
-							"player", -- 84
-							"unit" -- 84
-						}):find(function(self) -- 84
-							return self.player -- 84
-						end) -- 84
-						if player then -- 84
-							Store.world.camera.followTarget = player.unit -- 85
-						end -- 84
-					end -- 83
-					return unit:removeFromParent() -- 86
-				end)) -- 79
-			end -- 73
-		end -- 72
-		return false -- 86
-	end) -- 70
-end -- 69
-Store.zombieKilled = 0 -- 88
-do -- 89
-	local _with_0 = Observer("Change", { -- 89
-		"hp", -- 89
-		"zombie" -- 89
-	}) -- 89
-	_with_0:watch(function(self, hp) -- 90
-		if hp <= 0 then -- 91
-			Store.zombieKilled = Store.zombieKilled + 1 -- 91
-		end -- 91
-		return false -- 91
-	end) -- 90
-end -- 89
-local zombieGroup = Group({ -- 93
-	"zombie" -- 93
-}) -- 93
-return threadLoop(function() -- 94
-	local ZombieLayer, ZombieGroup, MaxZombies, ZombieWaveDelay, world = Store.ZombieLayer, Store.ZombieGroup, Store.MaxZombies, Store.ZombieWaveDelay, Store.world -- 95
-	if zombieGroup.count < MaxZombies then -- 102
-		for i = zombieGroup.count + 1, MaxZombies do -- 103
-			local available = false -- 104
-			local pos = Vec2.zero -- 105
-			while not available do -- 106
-				pos = Vec2(App.rand % 2400 - 1200, -430) -- 107
-				available = not world:query(Rect(pos, Size(5, 5)), function(self) -- 108
-					return self.group == Data.groupTerrain -- 108
-				end) -- 108
-			end -- 108
-			Entity({ -- 110
-				unitDef = "Unit_Zombie" .. tostring(math.floor(App.rand % 2 + 1)), -- 110
-				order = ZombieLayer, -- 111
-				position = pos, -- 112
-				group = ZombieGroup, -- 113
-				faceRight = App.rand % 2 == 0, -- 114
-				zombie = true -- 115
-			}) -- 109
-			sleep(0.1 * App.rand % 5) -- 116
-		end -- 116
-	end -- 102
-	return sleep(ZombieWaveDelay) -- 117
-end) -- 117
+			else -- 40
+				_with_1:addChild(Rectangle({ -- 41
+					width = size.width, -- 41
+					height = size.height, -- 42
+					fillColor = Color(color, 0x66):toARGB(), -- 43
+					borderColor = Color(color, 0xff):toARGB(), -- 44
+					fillOrder = 1, -- 45
+					lineOrder = 2 -- 46
+				})) -- 40
+			end -- 24
+			_with_1:addTo(world) -- 48
+		end -- 20
+		self:destroy() -- 49
+		return false -- 49
+	end) -- 17
+end -- 16
+local mutables = { -- 52
+	"hp", -- 52
+	"moveSpeed", -- 53
+	"move", -- 54
+	"jump", -- 55
+	"targetAllow", -- 56
+	"attackPower", -- 57
+	"attackSpeed" -- 58
+} -- 51
+do -- 60
+	local _with_0 = Observer("Add", { -- 60
+		"unitDef", -- 60
+		"position", -- 60
+		"order", -- 60
+		"group", -- 60
+		"faceRight" -- 60
+	}) -- 60
+	_with_0:watch(function(self, unitDef, position, order, group, faceRight) -- 61
+		local world = Store.world -- 62
+		local def = Store[unitDef] -- 63
+		for _index_0 = 1, #mutables do -- 64
+			local var = mutables[_index_0] -- 64
+			self[var] = def[var] -- 65
+		end -- 65
+		local unit -- 66
+		do -- 66
+			local _with_1 = Unit(def, world, self, position) -- 66
+			_with_1.group = group -- 67
+			_with_1.order = order -- 68
+			_with_1.faceRight = faceRight -- 69
+			_with_1:addTo(world) -- 70
+			_with_1:eachAction(function(self) -- 71
+				self.recovery = 0 -- 71
+			end) -- 71
+			local _with_2 = _with_1.playable -- 72
+			_with_2:eachNode(function(sp) -- 73
+				sp.filter = "Point" -- 73
+			end) -- 73
+			if self.zombie then -- 74
+				_with_2:play("groundEntrance") -- 74
+			end -- 74
+			unit = _with_1 -- 66
+		end -- 66
+		if self.player and unit.decisionTree == "AI_KidSearch" then -- 75
+			world.camera.followTarget = unit -- 75
+		end -- 75
+		return false -- 75
+	end) -- 61
+end -- 60
+do -- 77
+	local _with_0 = Observer("Change", { -- 77
+		"hp", -- 77
+		"unit" -- 77
+	}) -- 77
+	_with_0:watch(function(self, hp, unit) -- 78
+		local lastHp = self.oldValues.hp -- 79
+		if hp < lastHp then -- 80
+			if hp > 0 then -- 81
+				unit:start("hit") -- 82
+			else -- 84
+				unit:start("hit") -- 84
+				unit:start("fall") -- 85
+				unit.group = Data.groupHide -- 86
+				unit:schedule(once(function() -- 87
+					sleep(5) -- 88
+					unit:runAction(Opacity(0.5, 1, 0, Ease.OutQuad)) -- 89
+					sleep(0.5) -- 90
+					if Store.world.camera.followTarget == unit then -- 91
+						local player = Group({ -- 92
+							"player", -- 92
+							"unit" -- 92
+						}):find(function(self) -- 92
+							return self.player -- 92
+						end) -- 92
+						if player then -- 92
+							Store.world.camera.followTarget = player.unit -- 93
+						end -- 92
+					end -- 91
+					return unit:removeFromParent() -- 94
+				end)) -- 87
+			end -- 81
+		end -- 80
+		return false -- 94
+	end) -- 78
+end -- 77
+Store.zombieKilled = 0 -- 96
+do -- 97
+	local _with_0 = Observer("Change", { -- 97
+		"hp", -- 97
+		"zombie" -- 97
+	}) -- 97
+	_with_0:watch(function(self, hp) -- 98
+		if hp <= 0 then -- 99
+			Store.zombieKilled = Store.zombieKilled + 1 -- 99
+		end -- 99
+		return false -- 99
+	end) -- 98
+end -- 97
+local zombieGroup = Group({ -- 101
+	"zombie" -- 101
+}) -- 101
+return threadLoop(function() -- 102
+	local ZombieLayer, ZombieGroup, MaxZombies, ZombieWaveDelay, world = Store.ZombieLayer, Store.ZombieGroup, Store.MaxZombies, Store.ZombieWaveDelay, Store.world -- 103
+	if zombieGroup.count < MaxZombies then -- 110
+		for i = zombieGroup.count + 1, MaxZombies do -- 111
+			local available = false -- 112
+			local pos = Vec2.zero -- 113
+			while not available do -- 114
+				pos = Vec2(App.rand % 2400 - 1200, -430) -- 115
+				available = not world:query(Rect(pos, Size(5, 5)), function(self) -- 116
+					return self.group == Data.groupTerrain -- 116
+				end) -- 116
+			end -- 116
+			Entity({ -- 118
+				unitDef = "Unit_Zombie" .. tostring(math.floor(App.rand % 2 + 1)), -- 118
+				order = ZombieLayer, -- 119
+				position = pos, -- 120
+				group = ZombieGroup, -- 121
+				faceRight = App.rand % 2 == 0, -- 122
+				zombie = true -- 123
+			}) -- 117
+			sleep(0.1 * App.rand % 5) -- 124
+		end -- 124
+	end -- 110
+	return sleep(ZombieWaveDelay) -- 125
+end) -- 125

@@ -74,1746 +74,1746 @@ local cycle = dora.cycle -- 1
 local Observer = dora.Observer -- 1
 local Unit = _module_1.Unit -- 1
 local Visual = _module_1.Visual -- 1
-local AlignNode = require("UI.Control.Basic.AlignNode") -- 7
-local CircleButton = require("UI.Control.Basic.CircleButton") -- 8
-local Store = Data.store -- 9
-local characters = { -- 14
-	{ -- 14
-		body = "character_roundGreen", -- 14
-		lhand = "character_handGreen", -- 15
-		rhand = "character_handGreen" -- 16
-	}, -- 14
-	{ -- 18
-		body = "character_roundRed", -- 18
-		lhand = "character_handRed", -- 19
-		rhand = "character_handRed" -- 20
-	}, -- 18
-	{ -- 22
-		body = "character_roundYellow", -- 22
-		lhand = "character_handYellow", -- 23
-		rhand = "character_handYellow" -- 24
-	} -- 22
-} -- 13
-local headItems = { -- 27
-	"item_hat", -- 27
-	"item_hatTop", -- 28
-	"item_helmet", -- 29
-	"item_helmetModern" -- 30
-} -- 26
-local lhandItems = { -- 33
-	"item_shield", -- 33
-	"item_shieldRound", -- 34
-	"tile_heart", -- 35
-	"ui_hand" -- 36
-} -- 32
-local rhandItems = { -- 39
-	"item_bow", -- 39
-	"item_sword", -- 40
-	"item_rod", -- 41
-	"item_spear" -- 42
-} -- 38
-local characterTypes = { -- 45
-	"square", -- 45
-	"round" -- 46
-} -- 44
-local characterColors = { -- 49
-	"Green", -- 49
-	"Red", -- 50
-	"Yellow" -- 51
-} -- 48
-local itemSettings = { -- 54
-	item_hat = { -- 55
-		name = "普通帽子", -- 55
-		desc = "就是很普通的帽子，增加许些防御力", -- 56
-		cost = 1, -- 57
-		skill = "jump", -- 58
-		skillDesc = "跳跃", -- 59
-		offset = Vec2(0, 30) -- 60
-	}, -- 54
-	item_hatTop = { -- 63
-		name = "高帽子", -- 63
-		desc = "就是很普通的帽子，增加许些防御力", -- 64
-		cost = 1, -- 65
-		skill = "evade", -- 66
-		skillDesc = "闪避", -- 67
-		offset = Vec2(0, 30) -- 68
-	}, -- 62
-	item_helmet = { -- 71
-		name = "战盔", -- 71
-		desc = "就是很普通的帽子，增加许些防御力", -- 72
-		cost = 1, -- 73
-		skill = "evade", -- 74
-		skillDesc = "闪避", -- 75
-		offset = Vec2(0, 0) -- 76
-	}, -- 70
-	item_helmetModern = { -- 79
-		name = "橄榄球盔", -- 79
-		desc = "就是很普通的帽子，增加许些防御力", -- 80
-		cost = 1, -- 81
-		skill = "", -- 82
-		skillDesc = "无", -- 83
-		offset = Vec2(0, 0) -- 84
-	}, -- 78
-	item_shield = { -- 87
-		name = "方形盾", -- 87
-		desc = "无", -- 88
-		cost = 1, -- 89
-		skill = "evade", -- 90
-		skillDesc = "闪避", -- 91
-		offset = Vec2(0, 0) -- 92
-	}, -- 86
-	item_shieldRound = { -- 95
-		name = "小圆盾", -- 95
-		desc = "无", -- 96
-		cost = 1, -- 97
-		skill = "jump", -- 98
-		skillDesc = "跳跃", -- 99
-		offset = Vec2(0, 0) -- 100
-	}, -- 94
-	tile_heart = { -- 103
-		name = "爱心", -- 103
-		desc = "无", -- 104
-		cost = 1, -- 105
-		skill = "jump", -- 106
-		skillDesc = "跳跃", -- 107
-		offset = Vec2(0, 0) -- 108
-	}, -- 102
-	ui_hand = { -- 111
-		name = "手套", -- 111
-		desc = "无", -- 112
-		cost = 1, -- 113
-		skill = "evade", -- 114
-		skillDesc = "闪避", -- 115
-		offset = Vec2(0, 0) -- 116
-	}, -- 110
-	item_bow = { -- 119
-		name = "短弓", -- 119
-		desc = "无", -- 120
-		cost = 1, -- 121
-		skill = "range", -- 122
-		skillDesc = "远程攻击", -- 123
-		offset = Vec2(10, 0), -- 124
-		attackRange = Size(630, 150) -- 125
-	}, -- 118
-	item_sword = { -- 128
-		name = "剑", -- 128
+local AlignNode = require("UI.Control.Basic.AlignNode") -- 16
+local CircleButton = require("UI.Control.Basic.CircleButton") -- 17
+local Store = Data.store -- 18
+local characters = { -- 23
+	{ -- 23
+		body = "character_roundGreen", -- 23
+		lhand = "character_handGreen", -- 24
+		rhand = "character_handGreen" -- 25
+	}, -- 23
+	{ -- 27
+		body = "character_roundRed", -- 27
+		lhand = "character_handRed", -- 28
+		rhand = "character_handRed" -- 29
+	}, -- 27
+	{ -- 31
+		body = "character_roundYellow", -- 31
+		lhand = "character_handYellow", -- 32
+		rhand = "character_handYellow" -- 33
+	} -- 31
+} -- 22
+local headItems = { -- 36
+	"item_hat", -- 36
+	"item_hatTop", -- 37
+	"item_helmet", -- 38
+	"item_helmetModern" -- 39
+} -- 35
+local lhandItems = { -- 42
+	"item_shield", -- 42
+	"item_shieldRound", -- 43
+	"tile_heart", -- 44
+	"ui_hand" -- 45
+} -- 41
+local rhandItems = { -- 48
+	"item_bow", -- 48
+	"item_sword", -- 49
+	"item_rod", -- 50
+	"item_spear" -- 51
+} -- 47
+local characterTypes = { -- 54
+	"square", -- 54
+	"round" -- 55
+} -- 53
+local characterColors = { -- 58
+	"Green", -- 58
+	"Red", -- 59
+	"Yellow" -- 60
+} -- 57
+local itemSettings = { -- 63
+	item_hat = { -- 64
+		name = "普通帽子", -- 64
+		desc = "就是很普通的帽子，增加许些防御力", -- 65
+		cost = 1, -- 66
+		skill = "jump", -- 67
+		skillDesc = "跳跃", -- 68
+		offset = Vec2(0, 30) -- 69
+	}, -- 63
+	item_hatTop = { -- 72
+		name = "高帽子", -- 72
+		desc = "就是很普通的帽子，增加许些防御力", -- 73
+		cost = 1, -- 74
+		skill = "evade", -- 75
+		skillDesc = "闪避", -- 76
+		offset = Vec2(0, 30) -- 77
+	}, -- 71
+	item_helmet = { -- 80
+		name = "战盔", -- 80
+		desc = "就是很普通的帽子，增加许些防御力", -- 81
+		cost = 1, -- 82
+		skill = "evade", -- 83
+		skillDesc = "闪避", -- 84
+		offset = Vec2(0, 0) -- 85
+	}, -- 79
+	item_helmetModern = { -- 88
+		name = "橄榄球盔", -- 88
+		desc = "就是很普通的帽子，增加许些防御力", -- 89
+		cost = 1, -- 90
+		skill = "", -- 91
+		skillDesc = "无", -- 92
+		offset = Vec2(0, 0) -- 93
+	}, -- 87
+	item_shield = { -- 96
+		name = "方形盾", -- 96
+		desc = "无", -- 97
+		cost = 1, -- 98
+		skill = "evade", -- 99
+		skillDesc = "闪避", -- 100
+		offset = Vec2(0, 0) -- 101
+	}, -- 95
+	item_shieldRound = { -- 104
+		name = "小圆盾", -- 104
+		desc = "无", -- 105
+		cost = 1, -- 106
+		skill = "jump", -- 107
+		skillDesc = "跳跃", -- 108
+		offset = Vec2(0, 0) -- 109
+	}, -- 103
+	tile_heart = { -- 112
+		name = "爱心", -- 112
+		desc = "无", -- 113
+		cost = 1, -- 114
+		skill = "jump", -- 115
+		skillDesc = "跳跃", -- 116
+		offset = Vec2(0, 0) -- 117
+	}, -- 111
+	ui_hand = { -- 120
+		name = "手套", -- 120
+		desc = "无", -- 121
+		cost = 1, -- 122
+		skill = "evade", -- 123
+		skillDesc = "闪避", -- 124
+		offset = Vec2(0, 0) -- 125
+	}, -- 119
+	item_bow = { -- 128
+		name = "短弓", -- 128
 		desc = "无", -- 129
 		cost = 1, -- 130
-		skill = "meleeAttack", -- 131
-		skillDesc = "近程攻击", -- 132
-		offset = Vec2(15, 50), -- 133
-		attackRange = Size(120, 150) -- 134
+		skill = "range", -- 131
+		skillDesc = "远程攻击", -- 132
+		offset = Vec2(10, 0), -- 133
+		attackRange = Size(630, 150) -- 134
 	}, -- 127
-	item_rod = { -- 137
-		name = "法杖", -- 137
+	item_sword = { -- 137
+		name = "剑", -- 137
 		desc = "无", -- 138
 		cost = 1, -- 139
 		skill = "meleeAttack", -- 140
 		skillDesc = "近程攻击", -- 141
 		offset = Vec2(15, 50), -- 142
-		attackRange = Size(200, 150) -- 143
+		attackRange = Size(120, 150) -- 143
 	}, -- 136
-	item_spear = { -- 146
-		name = "长矛", -- 146
+	item_rod = { -- 146
+		name = "法杖", -- 146
 		desc = "无", -- 147
 		cost = 1, -- 148
 		skill = "meleeAttack", -- 149
 		skillDesc = "近程攻击", -- 150
 		offset = Vec2(15, 50), -- 151
 		attackRange = Size(200, 150) -- 152
-	} -- 145
-} -- 53
-local itemSlots = { -- 155
-	"head", -- 155
-	"lhand", -- 156
-	"rhand" -- 157
-} -- 154
-characters = { -- 160
-	{ -- 160
-		head = nil, -- 160
-		lhand = nil, -- 161
-		rhand = nil, -- 162
-		type = 1, -- 163
-		color = 1, -- 164
-		learnedAI = function() -- 165
-			return "unknown" -- 165
-		end -- 165
-	}, -- 160
-	{ -- 167
-		head = nil, -- 167
-		lhand = nil, -- 168
-		rhand = nil, -- 169
-		type = 1, -- 170
-		color = 2, -- 171
-		learnedAI = function() -- 172
-			return "unknown" -- 172
-		end -- 172
-	}, -- 167
-	{ -- 174
-		head = nil, -- 174
-		lhand = nil, -- 175
-		rhand = nil, -- 176
-		type = 1, -- 177
-		color = 3, -- 178
-		learnedAI = function() -- 179
-			return "unknown" -- 179
-		end -- 179
-	} -- 174
-} -- 159
-local bossGroup = Group({ -- 181
-	"boss" -- 181
-}) -- 181
-local lastAction = "idle" -- 183
-local lastActionFrame = App.frame -- 184
-local data = { } -- 185
-local row = nil -- 186
-local _anon_func_0 = function(enemy) -- 228
-	local _obj_0 = enemy.currentAction -- 228
-	if _obj_0 ~= nil then -- 228
-		return _obj_0.name -- 228
-	end -- 228
-	return nil -- 228
-end -- 228
-local Do -- 187
-Do = function(name) -- 187
-	return Seq({ -- 188
-		Con("Collect data", function(self) -- 188
-			if self:isDoing(name) then -- 189
-				row = nil -- 190
-				return true -- 191
-			end -- 189
-			if not (AI:getNearestUnit("Enemy") ~= nil) then -- 193
-				row = nil -- 194
-				return true -- 195
-			end -- 193
-			local attack_ready -- 197
-			do -- 197
-				local attackUnits = AI:getUnitsInAttackRange() -- 198
-				local ready = false -- 199
-				for _index_0 = 1, #attackUnits do -- 200
-					local unit = attackUnits[_index_0] -- 200
-					if Data:isEnemy(self, unit) and (self.x < unit.x) == self.faceRight then -- 201
-						ready = true -- 203
-						break -- 204
-					end -- 201
-				end -- 204
-				attack_ready = ready -- 205
-			end -- 205
-			local not_facing_enemy -- 207
-			do -- 207
-				local enemy = AI:getNearestUnit("Enemy") -- 208
-				if enemy then -- 209
-					not_facing_enemy = (self.x > enemy.x) == self.faceRight -- 210
-				else -- 212
-					not_facing_enemy = false -- 212
-				end -- 209
-			end -- 212
-			local enemy_in_attack_range -- 214
-			do -- 214
-				local enemy = AI:getNearestUnit("Enemy") -- 215
-				local attackUnits = AI:getUnitsInAttackRange() -- 216
-				enemy_in_attack_range = attackUnits and attackUnits:contains(enemy) or false -- 217
-			end -- 217
-			local nearest_enemy_distance -- 219
-			do -- 219
-				local enemy = AI:getNearestUnit("Enemy") -- 220
-				if (enemy ~= nil) then -- 221
-					nearest_enemy_distance = math.abs(enemy.x - self.x) -- 222
-				else -- 224
-					nearest_enemy_distance = 999999 -- 224
-				end -- 221
-			end -- 224
-			local enemy_hero_action -- 226
-			do -- 226
-				local enemy = AI:getNearestUnit("Enemy") -- 227
-				enemy_hero_action = _anon_func_0(enemy) or "unknown" -- 228
-			end -- 228
-			row = { -- 231
-				not_facing_enemy = not_facing_enemy, -- 231
-				enemy_in_attack_range = enemy_in_attack_range, -- 232
-				attack_ready = attack_ready, -- 233
-				enemy_hero_action = enemy_hero_action, -- 234
-				nearest_enemy_distance = nearest_enemy_distance, -- 235
-				action = name -- 236
-			} -- 230
-			return true -- 238
-		end), -- 188
-		Sel({ -- 240
-			Con("is doing", function(self) -- 240
-				return self:isDoing(name) -- 240
-			end), -- 240
-			Seq({ -- 242
-				Act(name), -- 242
-				Con("action succeeded", function(self) -- 243
-					lastAction = name -- 244
-					lastActionFrame = App.frame -- 245
-					return true -- 246
-				end) -- 243
-			}) -- 241
-		}), -- 239
-		Con("Save data", function(self) -- 249
-			if row == nil then -- 250
-				return true -- 250
-			end -- 250
-			data[#data + 1] = row -- 251
-			return true -- 252
-		end) -- 249
-	}) -- 253
-end -- 187
-local rowNames = { -- 256
-	"not_facing_enemy", -- 256
-	"enemy_in_attack_range", -- 257
-	"attack_ready", -- 259
-	"enemy_hero_action", -- 260
-	"nearest_enemy_distance", -- 261
-	"action" -- 263
-} -- 255
-local rowTypes = { -- 267
-	'C', -- 267
-	'C', -- 267
-	'C', -- 268
-	'C', -- 268
-	'N', -- 268
-	'C' -- 269
-} -- 266
-local _anon_func_1 = function(_with_0, name, op, tostring, value) -- 287
-	if name ~= "" then -- 287
-		return "if " .. tostring(name) .. " " .. tostring(op) .. " " .. tostring(op == '==' and "\"" .. tostring(value) .. "\"" or value) -- 288
-	else -- 290
-		return tostring(op) .. " \"" .. tostring(value) .. "\"" -- 290
-	end -- 287
-end -- 287
-local _anon_func_2 = function(_with_0, load, luaCodes) -- 298
-	local _obj_0 = load(luaCodes) -- 298
-	if _obj_0 ~= nil then -- 298
-		return _obj_0() -- 298
-	end -- 298
-	return nil -- 298
-end -- 298
-do -- 272
-	local _with_0 = Node() -- 272
-	_with_0:gslot("TrainAI", function(charSet) -- 273
-		local csvData -- 274
-		do -- 274
-			local _accum_0 = { } -- 274
-			local _len_0 = 1 -- 274
-			for _index_0 = 1, #data do -- 274
-				local row = data[_index_0] -- 274
-				local rd -- 275
-				do -- 275
-					local _accum_1 = { } -- 275
-					local _len_1 = 1 -- 275
-					for _index_1 = 1, #rowNames do -- 275
-						local name = rowNames[_index_1] -- 275
-						local val -- 276
-						if (row[name] ~= nil) then -- 276
-							val = row[name] -- 276
-						else -- 276
-							val = "N" -- 276
-						end -- 276
-						if "boolean" == type(val) then -- 277
-							if val then -- 278
-								val = "T" -- 278
-							else -- 278
-								val = "F" -- 278
-							end -- 278
-						end -- 277
-						_accum_1[_len_1] = tostring(val) -- 279
-						_len_1 = _len_1 + 1 -- 279
-					end -- 279
-					rd = _accum_1 -- 275
-				end -- 279
-				_accum_0[_len_0] = table.concat(rd, ",") -- 280
-				_len_0 = _len_0 + 1 -- 280
-			end -- 280
-			csvData = _accum_0 -- 274
-		end -- 280
-		local names = tostring(table.concat(rowNames, ',')) .. "\n" -- 281
-		local dataStr = tostring(names) .. tostring(table.concat(rowTypes, ',')) .. "\n" .. tostring(table.concat(csvData, '\n')) -- 282
-		data = { } -- 283
-		return thread(function() -- 284
-			local lines = { -- 285
-				"(_ENV) ->" -- 285
-			} -- 285
-			local accuracy = ML.BuildDecisionTreeAsync(dataStr, 0, function(depth, name, op, value) -- 286
-				local line = string.rep("\t", depth + 1) .. _anon_func_1(_with_0, name, op, tostring, value) -- 287
-				lines[#lines + 1] = line -- 291
-			end) -- 286
-			local codes = table.concat(lines, "\n") -- 292
-			print("learning accuracy: " .. tostring(accuracy)) -- 293
-			print(codes) -- 294
-			local yue = require("yue") -- 296
-			local luaCodes = yue.to_lua(codes, { -- 297
-				reserve_line_number = false -- 297
-			}) -- 297
-			local learnedAI = _anon_func_2(_with_0, load, luaCodes) or function() -- 298
-				return "unknown" -- 298
-			end -- 298
-			characters[charSet].learnedAI = learnedAI -- 299
-			return emit("LearnedAI", learnedAI) -- 300
-		end) -- 300
-	end) -- 273
-end -- 272
-local _anon_func_3 = function(enemy) -- 356
-	local _obj_0 = enemy.currentAction -- 356
-	if _obj_0 ~= nil then -- 356
-		return _obj_0.name -- 356
-	end -- 356
-	return nil -- 356
-end -- 356
-Store["AI_Learned"] = Sel({ -- 303
-	Seq({ -- 304
-		Con("is dead", function(self) -- 304
-			return self.entity.hp <= 0 -- 304
-		end), -- 304
-		Accept() -- 305
-	}), -- 303
-	Seq({ -- 308
-		Con("is falling", function(self) -- 308
-			return not self.onSurface -- 308
-		end), -- 308
-		Act("fallOff") -- 309
-	}), -- 307
-	Seq({ -- 312
-		Con("run learned AI", function(self) -- 312
-			local _obj_0 = self.data -- 313
-			_obj_0.lastActionTime = _obj_0.lastActionTime or 0.0 -- 313
-			if not (AI:getNearestUnit("Enemy") ~= nil) then -- 315
-				return false -- 315
-			end -- 315
-			if App.totalTime - self.data.lastActionTime < 0.1 then -- 317
-				return false -- 318
-			else -- 320
-				self.data.lastActionTime = App.totalTime -- 320
-			end -- 317
-			local attack_ready -- 322
-			do -- 322
-				local attackUnits = AI:getUnitsInAttackRange() -- 323
-				local ready = "F" -- 324
-				for _index_0 = 1, #attackUnits do -- 325
-					local unit = attackUnits[_index_0] -- 325
-					if Data:isEnemy(self, unit) and (self.x < unit.x) == self.faceRight then -- 326
-						ready = "T" -- 328
-						break -- 329
-					end -- 326
-				end -- 329
-				attack_ready = ready -- 330
-			end -- 330
-			local not_facing_enemy -- 332
-			do -- 332
-				local enemy = AI:getNearestUnit("Enemy") -- 333
-				if enemy then -- 334
-					if (self.x > enemy.x) == self.faceRight then -- 335
-						not_facing_enemy = "T" -- 336
-					else -- 338
-						not_facing_enemy = "F" -- 338
+	}, -- 145
+	item_spear = { -- 155
+		name = "长矛", -- 155
+		desc = "无", -- 156
+		cost = 1, -- 157
+		skill = "meleeAttack", -- 158
+		skillDesc = "近程攻击", -- 159
+		offset = Vec2(15, 50), -- 160
+		attackRange = Size(200, 150) -- 161
+	} -- 154
+} -- 62
+local itemSlots = { -- 164
+	"head", -- 164
+	"lhand", -- 165
+	"rhand" -- 166
+} -- 163
+characters = { -- 169
+	{ -- 169
+		head = nil, -- 169
+		lhand = nil, -- 170
+		rhand = nil, -- 171
+		type = 1, -- 172
+		color = 1, -- 173
+		learnedAI = function() -- 174
+			return "unknown" -- 174
+		end -- 174
+	}, -- 169
+	{ -- 176
+		head = nil, -- 176
+		lhand = nil, -- 177
+		rhand = nil, -- 178
+		type = 1, -- 179
+		color = 2, -- 180
+		learnedAI = function() -- 181
+			return "unknown" -- 181
+		end -- 181
+	}, -- 176
+	{ -- 183
+		head = nil, -- 183
+		lhand = nil, -- 184
+		rhand = nil, -- 185
+		type = 1, -- 186
+		color = 3, -- 187
+		learnedAI = function() -- 188
+			return "unknown" -- 188
+		end -- 188
+	} -- 183
+} -- 168
+local bossGroup = Group({ -- 190
+	"boss" -- 190
+}) -- 190
+local lastAction = "idle" -- 192
+local lastActionFrame = App.frame -- 193
+local data = { } -- 194
+local row = nil -- 195
+local _anon_func_0 = function(enemy) -- 237
+	local _obj_0 = enemy.currentAction -- 237
+	if _obj_0 ~= nil then -- 237
+		return _obj_0.name -- 237
+	end -- 237
+	return nil -- 237
+end -- 237
+local Do -- 196
+Do = function(name) -- 196
+	return Seq({ -- 197
+		Con("Collect data", function(self) -- 197
+			if self:isDoing(name) then -- 198
+				row = nil -- 199
+				return true -- 200
+			end -- 198
+			if not (AI:getNearestUnit("Enemy") ~= nil) then -- 202
+				row = nil -- 203
+				return true -- 204
+			end -- 202
+			local attack_ready -- 206
+			do -- 206
+				local attackUnits = AI:getUnitsInAttackRange() -- 207
+				local ready = false -- 208
+				for _index_0 = 1, #attackUnits do -- 209
+					local unit = attackUnits[_index_0] -- 209
+					if Data:isEnemy(self, unit) and (self.x < unit.x) == self.faceRight then -- 210
+						ready = true -- 212
+						break -- 213
+					end -- 210
+				end -- 213
+				attack_ready = ready -- 214
+			end -- 214
+			local not_facing_enemy -- 216
+			do -- 216
+				local enemy = AI:getNearestUnit("Enemy") -- 217
+				if enemy then -- 218
+					not_facing_enemy = (self.x > enemy.x) == self.faceRight -- 219
+				else -- 221
+					not_facing_enemy = false -- 221
+				end -- 218
+			end -- 221
+			local enemy_in_attack_range -- 223
+			do -- 223
+				local enemy = AI:getNearestUnit("Enemy") -- 224
+				local attackUnits = AI:getUnitsInAttackRange() -- 225
+				enemy_in_attack_range = attackUnits and attackUnits:contains(enemy) or false -- 226
+			end -- 226
+			local nearest_enemy_distance -- 228
+			do -- 228
+				local enemy = AI:getNearestUnit("Enemy") -- 229
+				if (enemy ~= nil) then -- 230
+					nearest_enemy_distance = math.abs(enemy.x - self.x) -- 231
+				else -- 233
+					nearest_enemy_distance = 999999 -- 233
+				end -- 230
+			end -- 233
+			local enemy_hero_action -- 235
+			do -- 235
+				local enemy = AI:getNearestUnit("Enemy") -- 236
+				enemy_hero_action = _anon_func_0(enemy) or "unknown" -- 237
+			end -- 237
+			row = { -- 240
+				not_facing_enemy = not_facing_enemy, -- 240
+				enemy_in_attack_range = enemy_in_attack_range, -- 241
+				attack_ready = attack_ready, -- 242
+				enemy_hero_action = enemy_hero_action, -- 243
+				nearest_enemy_distance = nearest_enemy_distance, -- 244
+				action = name -- 245
+			} -- 239
+			return true -- 247
+		end), -- 197
+		Sel({ -- 249
+			Con("is doing", function(self) -- 249
+				return self:isDoing(name) -- 249
+			end), -- 249
+			Seq({ -- 251
+				Act(name), -- 251
+				Con("action succeeded", function(self) -- 252
+					lastAction = name -- 253
+					lastActionFrame = App.frame -- 254
+					return true -- 255
+				end) -- 252
+			}) -- 250
+		}), -- 248
+		Con("Save data", function(self) -- 258
+			if row == nil then -- 259
+				return true -- 259
+			end -- 259
+			data[#data + 1] = row -- 260
+			return true -- 261
+		end) -- 258
+	}) -- 262
+end -- 196
+local rowNames = { -- 265
+	"not_facing_enemy", -- 265
+	"enemy_in_attack_range", -- 266
+	"attack_ready", -- 268
+	"enemy_hero_action", -- 269
+	"nearest_enemy_distance", -- 270
+	"action" -- 272
+} -- 264
+local rowTypes = { -- 276
+	'C', -- 276
+	'C', -- 276
+	'C', -- 277
+	'C', -- 277
+	'N', -- 277
+	'C' -- 278
+} -- 275
+local _anon_func_1 = function(_with_0, name, op, tostring, value) -- 296
+	if name ~= "" then -- 296
+		return "if " .. tostring(name) .. " " .. tostring(op) .. " " .. tostring(op == '==' and "\"" .. tostring(value) .. "\"" or value) -- 297
+	else -- 299
+		return tostring(op) .. " \"" .. tostring(value) .. "\"" -- 299
+	end -- 296
+end -- 296
+local _anon_func_2 = function(_with_0, load, luaCodes) -- 307
+	local _obj_0 = load(luaCodes) -- 307
+	if _obj_0 ~= nil then -- 307
+		return _obj_0() -- 307
+	end -- 307
+	return nil -- 307
+end -- 307
+do -- 281
+	local _with_0 = Node() -- 281
+	_with_0:gslot("TrainAI", function(charSet) -- 282
+		local csvData -- 283
+		do -- 283
+			local _accum_0 = { } -- 283
+			local _len_0 = 1 -- 283
+			for _index_0 = 1, #data do -- 283
+				local row = data[_index_0] -- 283
+				local rd -- 284
+				do -- 284
+					local _accum_1 = { } -- 284
+					local _len_1 = 1 -- 284
+					for _index_1 = 1, #rowNames do -- 284
+						local name = rowNames[_index_1] -- 284
+						local val -- 285
+						if (row[name] ~= nil) then -- 285
+							val = row[name] -- 285
+						else -- 285
+							val = "N" -- 285
+						end -- 285
+						if "boolean" == type(val) then -- 286
+							if val then -- 287
+								val = "T" -- 287
+							else -- 287
+								val = "F" -- 287
+							end -- 287
+						end -- 286
+						_accum_1[_len_1] = tostring(val) -- 288
+						_len_1 = _len_1 + 1 -- 288
+					end -- 288
+					rd = _accum_1 -- 284
+				end -- 288
+				_accum_0[_len_0] = table.concat(rd, ",") -- 289
+				_len_0 = _len_0 + 1 -- 289
+			end -- 289
+			csvData = _accum_0 -- 283
+		end -- 289
+		local names = tostring(table.concat(rowNames, ',')) .. "\n" -- 290
+		local dataStr = tostring(names) .. tostring(table.concat(rowTypes, ',')) .. "\n" .. tostring(table.concat(csvData, '\n')) -- 291
+		data = { } -- 292
+		return thread(function() -- 293
+			local lines = { -- 294
+				"(_ENV) ->" -- 294
+			} -- 294
+			local accuracy = ML.BuildDecisionTreeAsync(dataStr, 0, function(depth, name, op, value) -- 295
+				local line = string.rep("\t", depth + 1) .. _anon_func_1(_with_0, name, op, tostring, value) -- 296
+				lines[#lines + 1] = line -- 300
+			end) -- 295
+			local codes = table.concat(lines, "\n") -- 301
+			print("learning accuracy: " .. tostring(accuracy)) -- 302
+			print(codes) -- 303
+			local yue = require("yue") -- 305
+			local luaCodes = yue.to_lua(codes, { -- 306
+				reserve_line_number = false -- 306
+			}) -- 306
+			local learnedAI = _anon_func_2(_with_0, load, luaCodes) or function() -- 307
+				return "unknown" -- 307
+			end -- 307
+			characters[charSet].learnedAI = learnedAI -- 308
+			return emit("LearnedAI", learnedAI) -- 309
+		end) -- 309
+	end) -- 282
+end -- 281
+local _anon_func_3 = function(enemy) -- 365
+	local _obj_0 = enemy.currentAction -- 365
+	if _obj_0 ~= nil then -- 365
+		return _obj_0.name -- 365
+	end -- 365
+	return nil -- 365
+end -- 365
+Store["AI_Learned"] = Sel({ -- 312
+	Seq({ -- 313
+		Con("is dead", function(self) -- 313
+			return self.entity.hp <= 0 -- 313
+		end), -- 313
+		Accept() -- 314
+	}), -- 312
+	Seq({ -- 317
+		Con("is falling", function(self) -- 317
+			return not self.onSurface -- 317
+		end), -- 317
+		Act("fallOff") -- 318
+	}), -- 316
+	Seq({ -- 321
+		Con("run learned AI", function(self) -- 321
+			local _obj_0 = self.data -- 322
+			_obj_0.lastActionTime = _obj_0.lastActionTime or 0.0 -- 322
+			if not (AI:getNearestUnit("Enemy") ~= nil) then -- 324
+				return false -- 324
+			end -- 324
+			if App.totalTime - self.data.lastActionTime < 0.1 then -- 326
+				return false -- 327
+			else -- 329
+				self.data.lastActionTime = App.totalTime -- 329
+			end -- 326
+			local attack_ready -- 331
+			do -- 331
+				local attackUnits = AI:getUnitsInAttackRange() -- 332
+				local ready = "F" -- 333
+				for _index_0 = 1, #attackUnits do -- 334
+					local unit = attackUnits[_index_0] -- 334
+					if Data:isEnemy(self, unit) and (self.x < unit.x) == self.faceRight then -- 335
+						ready = "T" -- 337
+						break -- 338
 					end -- 335
-				else -- 340
-					not_facing_enemy = "F" -- 340
-				end -- 334
-			end -- 340
-			local enemy_in_attack_range -- 342
-			do -- 342
-				local enemy = AI:getNearestUnit("Enemy") -- 343
-				local attackUnits = AI:getUnitsInAttackRange() -- 344
-				enemy_in_attack_range = (attackUnits and attackUnits:contains(enemy)) and "T" or "F" -- 345
-			end -- 345
-			local nearest_enemy_distance -- 347
-			do -- 347
-				local enemy = AI:getNearestUnit("Enemy") -- 348
-				if (enemy ~= nil) then -- 349
-					nearest_enemy_distance = math.abs(enemy.x - self.x) -- 350
-				else -- 352
-					nearest_enemy_distance = 999999 -- 352
-				end -- 349
-			end -- 352
-			local enemy_hero_action -- 354
-			do -- 354
-				local enemy = AI:getNearestUnit("Enemy") -- 355
-				enemy_hero_action = _anon_func_3(enemy) or "unknown" -- 356
-			end -- 356
-			self.entity.learnedAction = characters[self.entity.charSet].learnedAI({ -- 359
-				not_facing_enemy = not_facing_enemy, -- 359
-				enemy_in_attack_range = enemy_in_attack_range, -- 360
-				attack_ready = attack_ready, -- 361
-				enemy_hero_action = enemy_hero_action, -- 362
-				nearest_enemy_distance = nearest_enemy_distance -- 363
-			}) or "unknown" -- 358
-			return true -- 365
-		end), -- 312
-		Sel({ -- 367
-			Con("is doing", function(self) -- 367
-				return self:isDoing(self.entity.learnedAction) -- 367
-			end), -- 367
-			Seq({ -- 369
-				Act(function(self) -- 369
-					return self.entity.learnedAction -- 369
-				end), -- 369
-				Con("Succeeded prediction", function(self) -- 370
-					emit("Prediction", true) -- 371
-					return true -- 372
-				end) -- 370
-			}), -- 368
-			Con("Failed prediction", function(self) -- 374
-				emit("Prediction", false) -- 375
-				return false -- 376
-			end) -- 374
-		}) -- 366
-	}), -- 311
-	Seq({ -- 380
-		Con("not facing enemy", function(self) -- 380
-			return bossGroup:each(function(boss) -- 380
-				local unit = boss.unit -- 381
-				if Data:isEnemy(unit, self) then -- 382
-					if (self.x > unit.x) == self.faceRight then -- 383
-						return true -- 384
-					end -- 383
-				end -- 382
-			end) -- 384
-		end), -- 380
-		Act("turn") -- 385
-	}), -- 379
-	Seq({ -- 388
-		Con("need turn", function(self) -- 388
-			return (self.x < -1000 and not self.faceRight) or (self.x > 1000 and self.faceRight) -- 389
-		end), -- 388
-		Act("turn") -- 390
-	}), -- 387
-	Sel({ -- 393
-		Seq({ -- 394
-			Con("take a break", function(self) -- 394
-				return App.rand % 60 == 0 -- 394
-			end), -- 394
-			Act("idle") -- 395
-		}), -- 393
-		Act("walk") -- 397
-	}) -- 392
-}) -- 302
-do -- 401
-	local _with_0 = BulletDef() -- 401
-	_with_0.tag = "" -- 402
-	_with_0.endEffect = "" -- 403
-	_with_0.lifeTime = 5 -- 404
-	_with_0.damageRadius = 0 -- 405
-	_with_0.highSpeedFix = false -- 406
-	_with_0.gravity = Vec2(0, -10) -- 407
-	_with_0.face = Face("Model/patreon.clip|item_arrow", Vec2(0, 0)) -- 408
-	_with_0:setAsCircle(10) -- 409
-	_with_0:setVelocity(25, 800) -- 410
-	Store["Bullet_Arrow"] = _with_0 -- 401
-end -- 401
-Store["AI_Boss"] = Sel({ -- 413
-	Seq({ -- 414
-		Con("is dead", function(self) -- 414
-			return self.entity.hp <= 0 -- 414
-		end), -- 414
-		Accept() -- 415
-	}), -- 413
-	Seq({ -- 418
-		Con("is falling", function(self) -- 418
-			return not self.onSurface -- 418
-		end), -- 418
-		Act("fallOff") -- 419
-	}), -- 417
-	Seq({ -- 422
-		Con("is not attacking", function(self) -- 422
-			return not self:isDoing("meleeAttack") and not self:isDoing("multiArrow") and not self:isDoing("spearAttack") -- 425
-		end), -- 422
-		Con("need attack", function(self) -- 426
-			local attackUnits = AI:getUnitsInAttackRange() -- 427
-			for _index_0 = 1, #attackUnits do -- 428
-				local unit = attackUnits[_index_0] -- 428
-				if Data:isEnemy(self, unit) and (self.x < unit.x) == self.faceRight then -- 429
-					return true -- 431
-				end -- 429
-			end -- 431
-			return false -- 432
-		end), -- 426
-		Sel({ -- 434
-			Seq({ -- 435
-				Con("melee attack", function(self) -- 435
-					return App.rand % 250 == 0 -- 435
-				end), -- 435
-				Act("meleeAttack") -- 436
-			}), -- 434
-			Seq({ -- 439
-				Con("range attack", function(self) -- 439
-					return App.rand % 250 == 0 -- 439
-				end), -- 439
-				Act("multiArrow") -- 440
-			}), -- 438
-			Seq({ -- 443
-				Con("spear attack", function(self) -- 443
-					return App.rand % 250 == 0 -- 443
-				end), -- 443
-				Act("spearAttack") -- 444
-			}), -- 442
-			Act("idle") -- 446
-		}) -- 433
-	}), -- 421
-	Seq({ -- 450
-		Con("need turn", function(self) -- 450
-			return (self.x < -1000 and not self.faceRight) or (self.x > 1000 and self.faceRight) -- 451
-		end), -- 450
-		Act("turn") -- 452
-	}), -- 449
-	Act("walk") -- 454
-}) -- 412
-Store["AI_PlayerControl"] = Sel({ -- 458
+				end -- 338
+				attack_ready = ready -- 339
+			end -- 339
+			local not_facing_enemy -- 341
+			do -- 341
+				local enemy = AI:getNearestUnit("Enemy") -- 342
+				if enemy then -- 343
+					if (self.x > enemy.x) == self.faceRight then -- 344
+						not_facing_enemy = "T" -- 345
+					else -- 347
+						not_facing_enemy = "F" -- 347
+					end -- 344
+				else -- 349
+					not_facing_enemy = "F" -- 349
+				end -- 343
+			end -- 349
+			local enemy_in_attack_range -- 351
+			do -- 351
+				local enemy = AI:getNearestUnit("Enemy") -- 352
+				local attackUnits = AI:getUnitsInAttackRange() -- 353
+				enemy_in_attack_range = (attackUnits and attackUnits:contains(enemy)) and "T" or "F" -- 354
+			end -- 354
+			local nearest_enemy_distance -- 356
+			do -- 356
+				local enemy = AI:getNearestUnit("Enemy") -- 357
+				if (enemy ~= nil) then -- 358
+					nearest_enemy_distance = math.abs(enemy.x - self.x) -- 359
+				else -- 361
+					nearest_enemy_distance = 999999 -- 361
+				end -- 358
+			end -- 361
+			local enemy_hero_action -- 363
+			do -- 363
+				local enemy = AI:getNearestUnit("Enemy") -- 364
+				enemy_hero_action = _anon_func_3(enemy) or "unknown" -- 365
+			end -- 365
+			self.entity.learnedAction = characters[self.entity.charSet].learnedAI({ -- 368
+				not_facing_enemy = not_facing_enemy, -- 368
+				enemy_in_attack_range = enemy_in_attack_range, -- 369
+				attack_ready = attack_ready, -- 370
+				enemy_hero_action = enemy_hero_action, -- 371
+				nearest_enemy_distance = nearest_enemy_distance -- 372
+			}) or "unknown" -- 367
+			return true -- 374
+		end), -- 321
+		Sel({ -- 376
+			Con("is doing", function(self) -- 376
+				return self:isDoing(self.entity.learnedAction) -- 376
+			end), -- 376
+			Seq({ -- 378
+				Act(function(self) -- 378
+					return self.entity.learnedAction -- 378
+				end), -- 378
+				Con("Succeeded prediction", function(self) -- 379
+					emit("Prediction", true) -- 380
+					return true -- 381
+				end) -- 379
+			}), -- 377
+			Con("Failed prediction", function(self) -- 383
+				emit("Prediction", false) -- 384
+				return false -- 385
+			end) -- 383
+		}) -- 375
+	}), -- 320
+	Seq({ -- 389
+		Con("not facing enemy", function(self) -- 389
+			return bossGroup:each(function(boss) -- 389
+				local unit = boss.unit -- 390
+				if Data:isEnemy(unit, self) then -- 391
+					if (self.x > unit.x) == self.faceRight then -- 392
+						return true -- 393
+					end -- 392
+				end -- 391
+			end) -- 393
+		end), -- 389
+		Act("turn") -- 394
+	}), -- 388
+	Seq({ -- 397
+		Con("need turn", function(self) -- 397
+			return (self.x < -1000 and not self.faceRight) or (self.x > 1000 and self.faceRight) -- 398
+		end), -- 397
+		Act("turn") -- 399
+	}), -- 396
+	Sel({ -- 402
+		Seq({ -- 403
+			Con("take a break", function(self) -- 403
+				return App.rand % 60 == 0 -- 403
+			end), -- 403
+			Act("idle") -- 404
+		}), -- 402
+		Act("walk") -- 406
+	}) -- 401
+}) -- 311
+do -- 410
+	local _with_0 = BulletDef() -- 410
+	_with_0.tag = "" -- 411
+	_with_0.endEffect = "" -- 412
+	_with_0.lifeTime = 5 -- 413
+	_with_0.damageRadius = 0 -- 414
+	_with_0.highSpeedFix = false -- 415
+	_with_0.gravity = Vec2(0, -10) -- 416
+	_with_0.face = Face("Model/patreon.clip|item_arrow", Vec2(0, 0)) -- 417
+	_with_0:setAsCircle(10) -- 418
+	_with_0:setVelocity(25, 800) -- 419
+	Store["Bullet_Arrow"] = _with_0 -- 410
+end -- 410
+Store["AI_Boss"] = Sel({ -- 422
+	Seq({ -- 423
+		Con("is dead", function(self) -- 423
+			return self.entity.hp <= 0 -- 423
+		end), -- 423
+		Accept() -- 424
+	}), -- 422
+	Seq({ -- 427
+		Con("is falling", function(self) -- 427
+			return not self.onSurface -- 427
+		end), -- 427
+		Act("fallOff") -- 428
+	}), -- 426
+	Seq({ -- 431
+		Con("is not attacking", function(self) -- 431
+			return not self:isDoing("meleeAttack") and not self:isDoing("multiArrow") and not self:isDoing("spearAttack") -- 434
+		end), -- 431
+		Con("need attack", function(self) -- 435
+			local attackUnits = AI:getUnitsInAttackRange() -- 436
+			for _index_0 = 1, #attackUnits do -- 437
+				local unit = attackUnits[_index_0] -- 437
+				if Data:isEnemy(self, unit) and (self.x < unit.x) == self.faceRight then -- 438
+					return true -- 440
+				end -- 438
+			end -- 440
+			return false -- 441
+		end), -- 435
+		Sel({ -- 443
+			Seq({ -- 444
+				Con("melee attack", function(self) -- 444
+					return App.rand % 250 == 0 -- 444
+				end), -- 444
+				Act("meleeAttack") -- 445
+			}), -- 443
+			Seq({ -- 448
+				Con("range attack", function(self) -- 448
+					return App.rand % 250 == 0 -- 448
+				end), -- 448
+				Act("multiArrow") -- 449
+			}), -- 447
+			Seq({ -- 452
+				Con("spear attack", function(self) -- 452
+					return App.rand % 250 == 0 -- 452
+				end), -- 452
+				Act("spearAttack") -- 453
+			}), -- 451
+			Act("idle") -- 455
+		}) -- 442
+	}), -- 430
 	Seq({ -- 459
-		Con("is dead", function(self) -- 459
-			return self.entity.hp <= 0 -- 459
+		Con("need turn", function(self) -- 459
+			return (self.x < -1000 and not self.faceRight) or (self.x > 1000 and self.faceRight) -- 460
 		end), -- 459
-		Accept() -- 460
+		Act("turn") -- 461
 	}), -- 458
-	Seq({ -- 463
-		Seq({ -- 464
-			Con("move key down", function(self) -- 464
-				return not (self.data.keyLeft and self.data.keyRight) and ((self.data.keyLeft and self.faceRight) or (self.data.keyRight and not self.faceRight)) -- 469
-			end), -- 464
-			Act("turn") -- 470
-		}), -- 463
-		Reject() -- 472
-	}), -- 462
-	Seq({ -- 475
-		Con("evade key down", function(self) -- 475
-			return self.data.keyE -- 475
-		end), -- 475
-		Do("evade") -- 476
-	}), -- 474
-	Seq({ -- 479
-		Con("attack key down", function(self) -- 479
-			return self.data.keyF -- 479
-		end), -- 479
-		Sel({ -- 481
-			Do("meleeAttack"), -- 481
-			Do("range") -- 482
-		}) -- 480
-	}), -- 478
-	Sel({ -- 486
-		Seq({ -- 487
-			Con("is falling", function(self) -- 487
-				return not self.onSurface and not self:isDoing("evade") -- 487
-			end), -- 487
-			Act("fallOff") -- 488
-		}), -- 486
-		Seq({ -- 491
-			Con("jump key down", function(self) -- 491
-				return self.data.keyUp -- 491
-			end), -- 491
-			Do("jump") -- 492
-		}) -- 490
-	}), -- 485
-	Seq({ -- 496
-		Con("move key down", function(self) -- 496
-			return self.data.keyLeft or self.data.keyRight -- 496
-		end), -- 496
-		Do("walk") -- 497
-	}), -- 495
-	Act("idle") -- 499
-}) -- 457
-local NewFighterDef -- 502
-NewFighterDef = function() -- 502
-	local _with_0 = Dictionary() -- 502
-	_with_0.linearAcceleration = Vec2(0, -10) -- 503
-	_with_0.bodyType = "Dynamic" -- 504
-	_with_0.scale = 1 -- 505
-	_with_0.density = 1.0 -- 506
-	_with_0.friction = 1.0 -- 507
-	_with_0.restitution = 0.0 -- 508
-	_with_0.playable = "model:Model/patreon" -- 509
-	_with_0.size = Size(64, 128) -- 510
-	_with_0.tag = "Fighter" -- 511
-	_with_0.sensity = 0 -- 512
-	_with_0.move = 250 -- 513
-	_with_0.moveSpeed = 1.0 -- 514
-	_with_0.jump = 700 -- 515
-	_with_0.detectDistance = 800 -- 516
-	_with_0.hp = 50.0 -- 517
-	_with_0.attackSpeed = 1.0 -- 518
-	_with_0.attackBase = 2.5 -- 519
-	_with_0.attackDelay = 20.0 / 60.0 -- 520
-	_with_0.attackEffectDelay = 20.0 / 60.0 -- 521
-	_with_0.attackBonus = 0.0 -- 522
-	_with_0.attackFactor = 1.0 -- 523
-	_with_0.attackRange = Size(350, 150) -- 524
-	_with_0.attackPower = Vec2(100, 100) -- 525
-	_with_0.attackTarget = "Single" -- 526
-	do -- 527
-		local conf -- 528
-		do -- 528
-			local _with_1 = TargetAllow() -- 528
-			_with_1.terrainAllowed = true -- 529
-			_with_1:allow("Enemy", true) -- 530
-			conf = _with_1 -- 528
-		end -- 528
-		_with_0.targetAllow = conf:toValue() -- 531
-	end -- 531
-	_with_0.damageType = 0 -- 532
-	_with_0.defenceType = 0 -- 533
-	_with_0.bulletType = "Bullet_Arrow" -- 534
-	_with_0.attackEffect = "" -- 535
-	_with_0.hitEffect = "Particle/bloodp.par" -- 536
-	_with_0.name = "Fighter" -- 537
-	_with_0.desc = "" -- 538
-	_with_0.sndAttack = "" -- 539
-	_with_0.sndFallen = "" -- 540
-	_with_0.decisionTree = "AI_PlayerControl" -- 541
-	_with_0.usePreciseHit = true -- 542
-	_with_0.actions = Array({ -- 544
-		"walk", -- 544
-		"turn", -- 545
-		"idle", -- 546
-		"cancel", -- 547
-		"hit", -- 548
-		"fall", -- 549
-		"fallOff" -- 550
-	}) -- 543
-	return _with_0 -- 502
-end -- 502
-local NewBossDef -- 553
-NewBossDef = function() -- 553
-	local _with_0 = Dictionary() -- 553
-	_with_0.linearAcceleration = Vec2(0, -10) -- 554
-	_with_0.bodyType = "Dynamic" -- 555
-	_with_0.scale = 2 -- 556
-	_with_0.density = 10.0 -- 557
-	_with_0.friction = 1.0 -- 558
-	_with_0.restitution = 0.0 -- 559
-	_with_0.playable = "model:Model/bossp.model" -- 560
-	_with_0.size = Size(150, 410) -- 561
-	_with_0.tag = "Boss" -- 562
-	_with_0.sensity = 0 -- 563
-	_with_0.move = 100 -- 564
-	_with_0.moveSpeed = 1.0 -- 565
-	_with_0.jump = 600 -- 566
-	_with_0.detectDistance = 1500 -- 567
-	_with_0.hp = 200.0 -- 568
-	_with_0.attackSpeed = 1.0 -- 569
-	_with_0.attackBase = 2.5 -- 570
-	_with_0.attackDelay = 50.0 / 60.0 -- 571
-	_with_0.attackEffectDelay = 50.0 / 60.0 -- 572
-	_with_0.attackBonus = 0.0 -- 573
-	_with_0.attackFactor = 1.0 -- 574
-	_with_0.attackRange = Size(780, 300) -- 575
-	_with_0.attackPower = Vec2(200, 200) -- 576
-	_with_0.attackTarget = "Multi" -- 577
-	do -- 578
-		local conf -- 579
-		do -- 579
-			local _with_1 = TargetAllow() -- 579
-			_with_1.terrainAllowed = true -- 580
-			_with_1:allow("Enemy", true) -- 581
-			conf = _with_1 -- 579
-		end -- 579
-		_with_0.targetAllow = conf:toValue() -- 582
-	end -- 582
-	_with_0.damageType = 0 -- 583
-	_with_0.defenceType = 0 -- 584
-	_with_0.bulletType = "Bullet_Arrow" -- 585
-	_with_0.attackEffect = "" -- 586
-	_with_0.hitEffect = "Particle/bloodp.par" -- 587
-	_with_0.sndAttack = "" -- 588
-	_with_0.sndFallen = "" -- 589
-	_with_0.decisionTree = "AI_Boss" -- 590
-	_with_0.usePreciseHit = true -- 591
-	_with_0.actions = Array({ -- 593
-		"walk", -- 593
-		"turn", -- 594
-		"meleeAttack", -- 595
-		"multiArrow", -- 596
-		"spearAttack", -- 597
-		"idle", -- 598
-		"cancel", -- 599
-		"jump", -- 600
-		"fall", -- 601
-		"fallOff" -- 602
-	}) -- 592
-	return _with_0 -- 553
-end -- 553
-local UnitDefFuncs = { -- 606
-	fighter = NewFighterDef, -- 606
-	boss = NewBossDef -- 607
-} -- 605
-local themeColor = App.themeColor -- 610
-local itemSize = 64 -- 611
-local NewItemPanel -- 612
-NewItemPanel = function(displayName, itemName, itemOptions, currentSet) -- 612
-	local selectItems = false -- 613
-	return function() -- 614
-		Columns(1, false) -- 615
-		TextColored(themeColor, displayName) -- 616
-		NextColumn() -- 617
-		if selectItems then -- 618
-			Columns(#itemOptions + 1, false) -- 619
-			PushID(tostring(itemName) .. "x", function() -- 620
-				if Button("x", Vec2(itemSize + 10, itemSize + 10)) then -- 621
-					currentSet[itemName] = nil -- 622
-					selectItems = false -- 623
-				end -- 621
-			end) -- 620
-			NextColumn() -- 624
-			for i = 1, #itemOptions do -- 625
-				local item = itemOptions[i] -- 626
-				if ImageButton(tostring(itemName) .. tostring(i), "Model/patreon.clip|" .. tostring(item), Vec2(itemSize, itemSize)) then -- 627
-					currentSet[itemName] = item -- 628
-					selectItems = false -- 629
-				end -- 627
-				NextColumn() -- 630
-			end -- 630
-		else -- 632
-			if not currentSet[itemName] then -- 632
-				Columns(3, false) -- 633
-				PushID(tostring(itemName) .. "c1", function() -- 634
-					if Button("x", Vec2(itemSize + 10, itemSize + 10)) then -- 635
-						selectItems = true -- 635
-					end -- 635
-				end) -- 634
-				NextColumn() -- 636
-				return Text("未装备") -- 637
-			else -- 639
-				Columns(3, false) -- 639
-				local item = currentSet[itemName] -- 640
-				if ImageButton(tostring(itemName) .. "c2", "Model/patreon.clip|" .. tostring(item), Vec2(itemSize, itemSize)) then -- 641
-					selectItems = true -- 641
-				end -- 641
-				NextColumn() -- 642
-				TextColored(Color(0xfffffa0a), itemSettings[item].name) -- 643
-				TextWrapped(itemSettings[item].desc) -- 644
+	Act("walk") -- 463
+}) -- 421
+Store["AI_PlayerControl"] = Sel({ -- 467
+	Seq({ -- 468
+		Con("is dead", function(self) -- 468
+			return self.entity.hp <= 0 -- 468
+		end), -- 468
+		Accept() -- 469
+	}), -- 467
+	Seq({ -- 472
+		Seq({ -- 473
+			Con("move key down", function(self) -- 473
+				return not (self.data.keyLeft and self.data.keyRight) and ((self.data.keyLeft and self.faceRight) or (self.data.keyRight and not self.faceRight)) -- 478
+			end), -- 473
+			Act("turn") -- 479
+		}), -- 472
+		Reject() -- 481
+	}), -- 471
+	Seq({ -- 484
+		Con("evade key down", function(self) -- 484
+			return self.data.keyE -- 484
+		end), -- 484
+		Do("evade") -- 485
+	}), -- 483
+	Seq({ -- 488
+		Con("attack key down", function(self) -- 488
+			return self.data.keyF -- 488
+		end), -- 488
+		Sel({ -- 490
+			Do("meleeAttack"), -- 490
+			Do("range") -- 491
+		}) -- 489
+	}), -- 487
+	Sel({ -- 495
+		Seq({ -- 496
+			Con("is falling", function(self) -- 496
+				return not self.onSurface and not self:isDoing("evade") -- 496
+			end), -- 496
+			Act("fallOff") -- 497
+		}), -- 495
+		Seq({ -- 500
+			Con("jump key down", function(self) -- 500
+				return self.data.keyUp -- 500
+			end), -- 500
+			Do("jump") -- 501
+		}) -- 499
+	}), -- 494
+	Seq({ -- 505
+		Con("move key down", function(self) -- 505
+			return self.data.keyLeft or self.data.keyRight -- 505
+		end), -- 505
+		Do("walk") -- 506
+	}), -- 504
+	Act("idle") -- 508
+}) -- 466
+local NewFighterDef -- 511
+NewFighterDef = function() -- 511
+	local _with_0 = Dictionary() -- 511
+	_with_0.linearAcceleration = Vec2(0, -10) -- 512
+	_with_0.bodyType = "Dynamic" -- 513
+	_with_0.scale = 1 -- 514
+	_with_0.density = 1.0 -- 515
+	_with_0.friction = 1.0 -- 516
+	_with_0.restitution = 0.0 -- 517
+	_with_0.playable = "model:Model/patreon" -- 518
+	_with_0.size = Size(64, 128) -- 519
+	_with_0.tag = "Fighter" -- 520
+	_with_0.sensity = 0 -- 521
+	_with_0.move = 250 -- 522
+	_with_0.moveSpeed = 1.0 -- 523
+	_with_0.jump = 700 -- 524
+	_with_0.detectDistance = 800 -- 525
+	_with_0.hp = 50.0 -- 526
+	_with_0.attackSpeed = 1.0 -- 527
+	_with_0.attackBase = 2.5 -- 528
+	_with_0.attackDelay = 20.0 / 60.0 -- 529
+	_with_0.attackEffectDelay = 20.0 / 60.0 -- 530
+	_with_0.attackBonus = 0.0 -- 531
+	_with_0.attackFactor = 1.0 -- 532
+	_with_0.attackRange = Size(350, 150) -- 533
+	_with_0.attackPower = Vec2(100, 100) -- 534
+	_with_0.attackTarget = "Single" -- 535
+	do -- 536
+		local conf -- 537
+		do -- 537
+			local _with_1 = TargetAllow() -- 537
+			_with_1.terrainAllowed = true -- 538
+			_with_1:allow("Enemy", true) -- 539
+			conf = _with_1 -- 537
+		end -- 537
+		_with_0.targetAllow = conf:toValue() -- 540
+	end -- 540
+	_with_0.damageType = 0 -- 541
+	_with_0.defenceType = 0 -- 542
+	_with_0.bulletType = "Bullet_Arrow" -- 543
+	_with_0.attackEffect = "" -- 544
+	_with_0.hitEffect = "Particle/bloodp.par" -- 545
+	_with_0.name = "Fighter" -- 546
+	_with_0.desc = "" -- 547
+	_with_0.sndAttack = "" -- 548
+	_with_0.sndFallen = "" -- 549
+	_with_0.decisionTree = "AI_PlayerControl" -- 550
+	_with_0.usePreciseHit = true -- 551
+	_with_0.actions = Array({ -- 553
+		"walk", -- 553
+		"turn", -- 554
+		"idle", -- 555
+		"cancel", -- 556
+		"hit", -- 557
+		"fall", -- 558
+		"fallOff" -- 559
+	}) -- 552
+	return _with_0 -- 511
+end -- 511
+local NewBossDef -- 562
+NewBossDef = function() -- 562
+	local _with_0 = Dictionary() -- 562
+	_with_0.linearAcceleration = Vec2(0, -10) -- 563
+	_with_0.bodyType = "Dynamic" -- 564
+	_with_0.scale = 2 -- 565
+	_with_0.density = 10.0 -- 566
+	_with_0.friction = 1.0 -- 567
+	_with_0.restitution = 0.0 -- 568
+	_with_0.playable = "model:Model/bossp.model" -- 569
+	_with_0.size = Size(150, 410) -- 570
+	_with_0.tag = "Boss" -- 571
+	_with_0.sensity = 0 -- 572
+	_with_0.move = 100 -- 573
+	_with_0.moveSpeed = 1.0 -- 574
+	_with_0.jump = 600 -- 575
+	_with_0.detectDistance = 1500 -- 576
+	_with_0.hp = 200.0 -- 577
+	_with_0.attackSpeed = 1.0 -- 578
+	_with_0.attackBase = 2.5 -- 579
+	_with_0.attackDelay = 50.0 / 60.0 -- 580
+	_with_0.attackEffectDelay = 50.0 / 60.0 -- 581
+	_with_0.attackBonus = 0.0 -- 582
+	_with_0.attackFactor = 1.0 -- 583
+	_with_0.attackRange = Size(780, 300) -- 584
+	_with_0.attackPower = Vec2(200, 200) -- 585
+	_with_0.attackTarget = "Multi" -- 586
+	do -- 587
+		local conf -- 588
+		do -- 588
+			local _with_1 = TargetAllow() -- 588
+			_with_1.terrainAllowed = true -- 589
+			_with_1:allow("Enemy", true) -- 590
+			conf = _with_1 -- 588
+		end -- 588
+		_with_0.targetAllow = conf:toValue() -- 591
+	end -- 591
+	_with_0.damageType = 0 -- 592
+	_with_0.defenceType = 0 -- 593
+	_with_0.bulletType = "Bullet_Arrow" -- 594
+	_with_0.attackEffect = "" -- 595
+	_with_0.hitEffect = "Particle/bloodp.par" -- 596
+	_with_0.sndAttack = "" -- 597
+	_with_0.sndFallen = "" -- 598
+	_with_0.decisionTree = "AI_Boss" -- 599
+	_with_0.usePreciseHit = true -- 600
+	_with_0.actions = Array({ -- 602
+		"walk", -- 602
+		"turn", -- 603
+		"meleeAttack", -- 604
+		"multiArrow", -- 605
+		"spearAttack", -- 606
+		"idle", -- 607
+		"cancel", -- 608
+		"jump", -- 609
+		"fall", -- 610
+		"fallOff" -- 611
+	}) -- 601
+	return _with_0 -- 562
+end -- 562
+local UnitDefFuncs = { -- 615
+	fighter = NewFighterDef, -- 615
+	boss = NewBossDef -- 616
+} -- 614
+local themeColor = App.themeColor -- 619
+local itemSize = 64 -- 620
+local NewItemPanel -- 621
+NewItemPanel = function(displayName, itemName, itemOptions, currentSet) -- 621
+	local selectItems = false -- 622
+	return function() -- 623
+		Columns(1, false) -- 624
+		TextColored(themeColor, displayName) -- 625
+		NextColumn() -- 626
+		if selectItems then -- 627
+			Columns(#itemOptions + 1, false) -- 628
+			PushID(tostring(itemName) .. "x", function() -- 629
+				if Button("x", Vec2(itemSize + 10, itemSize + 10)) then -- 630
+					currentSet[itemName] = nil -- 631
+					selectItems = false -- 632
+				end -- 630
+			end) -- 629
+			NextColumn() -- 633
+			for i = 1, #itemOptions do -- 634
+				local item = itemOptions[i] -- 635
+				if ImageButton(tostring(itemName) .. tostring(i), "Model/patreon.clip|" .. tostring(item), Vec2(itemSize, itemSize)) then -- 636
+					currentSet[itemName] = item -- 637
+					selectItems = false -- 638
+				end -- 636
+				NextColumn() -- 639
+			end -- 639
+		else -- 641
+			if not currentSet[itemName] then -- 641
+				Columns(3, false) -- 642
+				PushID(tostring(itemName) .. "c1", function() -- 643
+					if Button("x", Vec2(itemSize + 10, itemSize + 10)) then -- 644
+						selectItems = true -- 644
+					end -- 644
+				end) -- 643
 				NextColumn() -- 645
-				TextColored(Color(0xffff0a90), "消耗: " .. tostring(itemSettings[item].cost)) -- 646
-				Text("特技: " .. tostring(itemSettings[item].skillDesc)) -- 647
-				return NextColumn() -- 648
-			end -- 632
-		end -- 618
-	end -- 648
-end -- 612
-local size, grid = 2000, 150 -- 652
-local _anon_func_4 = function(Color, Line, Vec2, _with_0, grid, size) -- 673
-	local _with_1 = Line() -- 662
-	_with_1.depthWrite = true -- 663
-	_with_1.z = -10 -- 664
-	for i = -size / grid, size / grid do -- 665
-		_with_1:add({ -- 667
-			Vec2(i * grid, size), -- 667
-			Vec2(i * grid, -size) -- 668
-		}, Color(0xff000000)) -- 666
-		_with_1:add({ -- 671
-			Vec2(-size, i * grid), -- 671
-			Vec2(size, i * grid) -- 672
-		}, Color(0xff000000)) -- 670
-	end -- 673
-	return _with_1 -- 662
-end -- 662
-local background -- 654
-background = function() -- 654
-	local _with_0 = DrawNode() -- 654
-	_with_0.depthWrite = true -- 655
-	_with_0:drawPolygon({ -- 657
-		Vec2(-size, size), -- 657
-		Vec2(size, size), -- 658
-		Vec2(size, -size), -- 659
-		Vec2(-size, -size) -- 660
-	}, Color(0xff888888)) -- 656
-	_with_0:addChild(_anon_func_4(Color, Line, Vec2, _with_0, grid, size)) -- 662
-	return _with_0 -- 654
-end -- 654
-do -- 675
-	local _with_0 = background() -- 675
-	_with_0.z = 600 -- 676
-end -- 675
-do -- 677
-	local _with_0 = background() -- 677
-	_with_0.angleX = 45 -- 678
-end -- 677
-local TerrainLayer = 0 -- 682
-local EnemyLayer = 1 -- 683
-local PlayerLayer = 2 -- 684
-local PlayerGroup = 1 -- 686
-local EnemyGroup = 2 -- 687
-local DesignWidth <const> = 1500 -- 689
-Data:setRelation(PlayerGroup, EnemyGroup, "Enemy") -- 691
-Data:setShouldContact(PlayerGroup, EnemyGroup, true) -- 692
-local world -- 694
-do -- 694
-	local _with_0 = PlatformWorld() -- 694
-	_with_0.camera.boundary = Rect(-1250, -500, 2500, 1000) -- 695
-	_with_0.camera.followRatio = Vec2(0.01, 0.01) -- 696
-	_with_0.camera.zoom = View.size.width / DesignWidth -- 697
-	_with_0:gslot("AppSizeChanged", function() -- 698
-		local zoom = View.size.width / DesignWidth -- 699
-		_with_0.camera.zoom = zoom -- 700
-		local _with_1 = Director.ui -- 701
-		_with_1.scaleX = zoom -- 702
-		_with_1.scaleY = zoom -- 702
-		return _with_1 -- 701
-	end) -- 698
-	world = _with_0 -- 694
-end -- 694
-Store["world"] = world -- 703
-local terrainDef -- 705
-do -- 705
-	local _with_0 = BodyDef() -- 705
-	_with_0.type = "Static" -- 706
-	_with_0:attachPolygon(Vec2(0, 0), 2500, 10, 0, 1, 1, 0) -- 707
-	_with_0:attachPolygon(Vec2(0, 1000), 2500, 10, 0, 1, 1, 0) -- 708
-	_with_0:attachPolygon(Vec2(1250, 500), 10, 1000, 0, 1, 1, 0) -- 709
-	_with_0:attachPolygon(Vec2(-1250, 500), 10, 1000, 0, 1, 1, 0) -- 710
-	terrainDef = _with_0 -- 705
-end -- 705
-do -- 712
-	local _with_0 = Body(terrainDef, world, Vec2.zero) -- 712
-	_with_0.order = TerrainLayer -- 713
-	_with_0.group = Data.groupTerrain -- 714
-	_with_0:addTo(world) -- 715
-end -- 712
-local _anon_func_5 = function(Sprite, item, offset, tostring) -- 736
-	local _with_0 = Sprite("Model/patreon.clip|" .. tostring(item)) -- 735
-	_with_0.position = offset -- 736
-	return _with_0 -- 735
-end -- 735
-local updateModel -- 717
-updateModel = function(model, currentSet) -- 717
-	local node = model:getNodeByName("body") -- 718
-	node:removeAllChildren() -- 719
-	local charType = characterTypes[currentSet.type] -- 720
-	local charColor = characterColors[currentSet.color] -- 721
-	node:addChild(Sprite("Model/patreon.clip|character_" .. tostring(charType) .. tostring(charColor))) -- 722
-	node = model:getNodeByName("lhand") -- 723
-	node:removeAllChildren() -- 724
-	node:addChild(Sprite("Model/patreon.clip|character_hand" .. tostring(charColor))) -- 725
-	node = model:getNodeByName("rhand") -- 726
-	node:removeAllChildren() -- 727
-	node:addChild(Sprite("Model/patreon.clip|character_hand" .. tostring(charColor))) -- 728
-	model:getNodeByName("head"):removeAllChildren() -- 729
-	for _index_0 = 1, #itemSlots do -- 730
-		local slot = itemSlots[_index_0] -- 730
-		node = model:getNodeByName(slot) -- 731
-		local item = currentSet[slot] -- 732
-		if item then -- 733
-			local offset = itemSettings[item].offset -- 734
-			node:addChild(_anon_func_5(Sprite, item, offset, tostring)) -- 735
-		end -- 733
-	end -- 736
-end -- 717
-local NewFighter -- 738
-NewFighter = function(name, currentSet) -- 738
-	local assembleFighter = false -- 739
-	local fighter -- 740
-	do -- 740
-		local _with_0 = Model("Model/patreon.model") -- 740
-		local modelRect = Rect(-128, -128, 256, 256) -- 741
-		_with_0.recovery = 0.2 -- 742
-		_with_0.order = PlayerLayer -- 743
-		_with_0.touchEnabled = true -- 744
-		_with_0.swallowTouches = true -- 745
-		_with_0:slot("TapFilter", function(touch) -- 746
-			if not modelRect:containsPoint(touch.location) then -- 747
-				touch.enabled = false -- 748
-			end -- 747
-		end) -- 746
-		_with_0:slot("Tapped", function() -- 749
-			if not fighter:getChildByTag("select") then -- 750
-				local selectFrame -- 751
-				local _with_1 = Sprite("Model/patreon.clip|ui_select") -- 751
-				_with_1:addTo(fighter, 0, "select") -- 752
-				_with_1:runAction(Scale(0.3, 0, 1.8, Ease.OutBack)) -- 753
-				assembleFighter = true -- 754
-				selectFrame = _with_1 -- 751
-			end -- 750
-		end) -- 749
-		_with_0:play("idle", true) -- 755
-		fighter = _with_0 -- 740
-	end -- 740
-	updateModel(fighter, currentSet) -- 756
-	local HeadItemPanel = NewItemPanel("头部", "head", headItems, currentSet) -- 757
-	local LHandItemPanel = NewItemPanel("副手", "lhand", lhandItems, currentSet) -- 758
-	local RHandItemPanel = NewItemPanel("主手", "rhand", rhandItems, currentSet) -- 759
-	return fighter, function() -- 760
-		SetNextWindowSize(Vec2(445, 600), "FirstUseEver") -- 761
-		if assembleFighter then -- 762
-			assembleFighter = false -- 763
-			OpenPopup("战士" .. tostring(name)) -- 764
-		end -- 762
-		return BeginPopupModal("战士" .. tostring(name), { -- 765
-			"NoResize", -- 765
-			"NoSavedSettings" -- 765
-		}, function() -- 765
-			HeadItemPanel() -- 766
-			RHandItemPanel() -- 767
-			LHandItemPanel() -- 768
-			Columns(1, false) -- 769
-			TextColored(themeColor, "性别") -- 770
-			NextColumn() -- 771
-			local _ -- 772
-			_, currentSet.type = RadioButton("男", currentSet.type, 1) -- 772
-			SameLine() -- 773
-			_, currentSet.type = RadioButton("女", currentSet.type, 2) -- 774
-			Columns(1, false) -- 775
-			local cost = 0 -- 776
-			for _index_0 = 1, #itemSlots do -- 777
-				local slot = itemSlots[_index_0] -- 777
-				local item = currentSet[slot] -- 778
-				cost = cost + (item and itemSettings[item].cost or 0) -- 779
-			end -- 779
-			TextColored(themeColor, "累计消耗资源：" .. tostring(cost)) -- 780
-			NextColumn() -- 781
-			Columns(2, false) -- 782
-			if Button("进行训练！", Vec2(200, 80)) then -- 783
-				updateModel(fighter, currentSet) -- 784
-				CloseCurrentPopup() -- 785
-				do -- 786
-					local _with_0 = fighter:getChildByTag("select") -- 786
-					_with_0:removeFromParent() -- 787
-				end -- 786
-				emit("ShowSetting", false) -- 788
-				local charSet = 1 -- 789
-				for i = 1, #characters do -- 790
-					if currentSet == characters[i] then -- 791
-						charSet = i -- 792
-						break -- 793
-					end -- 791
-				end -- 793
-				Entity({ -- 795
-					unitDef = "fighter", -- 795
-					charSet = charSet, -- 796
-					order = PlayerLayer, -- 797
-					position = Vec2(-400, 400), -- 798
-					group = PlayerGroup, -- 799
-					faceRight = true, -- 800
-					player = true, -- 801
-					decisionTree = "AI_PlayerControl" -- 802
-				}) -- 794
+				return Text("未装备") -- 646
+			else -- 648
+				Columns(3, false) -- 648
+				local item = currentSet[itemName] -- 649
+				if ImageButton(tostring(itemName) .. "c2", "Model/patreon.clip|" .. tostring(item), Vec2(itemSize, itemSize)) then -- 650
+					selectItems = true -- 650
+				end -- 650
+				NextColumn() -- 651
+				TextColored(Color(0xfffffa0a), itemSettings[item].name) -- 652
+				TextWrapped(itemSettings[item].desc) -- 653
+				NextColumn() -- 654
+				TextColored(Color(0xffff0a90), "消耗: " .. tostring(itemSettings[item].cost)) -- 655
+				Text("特技: " .. tostring(itemSettings[item].skillDesc)) -- 656
+				return NextColumn() -- 657
+			end -- 641
+		end -- 627
+	end -- 657
+end -- 621
+local size, grid = 2000, 150 -- 661
+local _anon_func_4 = function(Color, Line, Vec2, _with_0, grid, size) -- 682
+	local _with_1 = Line() -- 671
+	_with_1.depthWrite = true -- 672
+	_with_1.z = -10 -- 673
+	for i = -size / grid, size / grid do -- 674
+		_with_1:add({ -- 676
+			Vec2(i * grid, size), -- 676
+			Vec2(i * grid, -size) -- 677
+		}, Color(0xff000000)) -- 675
+		_with_1:add({ -- 680
+			Vec2(-size, i * grid), -- 680
+			Vec2(size, i * grid) -- 681
+		}, Color(0xff000000)) -- 679
+	end -- 682
+	return _with_1 -- 671
+end -- 671
+local background -- 663
+background = function() -- 663
+	local _with_0 = DrawNode() -- 663
+	_with_0.depthWrite = true -- 664
+	_with_0:drawPolygon({ -- 666
+		Vec2(-size, size), -- 666
+		Vec2(size, size), -- 667
+		Vec2(size, -size), -- 668
+		Vec2(-size, -size) -- 669
+	}, Color(0xff888888)) -- 665
+	_with_0:addChild(_anon_func_4(Color, Line, Vec2, _with_0, grid, size)) -- 671
+	return _with_0 -- 663
+end -- 663
+do -- 684
+	local _with_0 = background() -- 684
+	_with_0.z = 600 -- 685
+end -- 684
+do -- 686
+	local _with_0 = background() -- 686
+	_with_0.angleX = 45 -- 687
+end -- 686
+local TerrainLayer = 0 -- 691
+local EnemyLayer = 1 -- 692
+local PlayerLayer = 2 -- 693
+local PlayerGroup = 1 -- 695
+local EnemyGroup = 2 -- 696
+local DesignWidth <const> = 1500 -- 698
+Data:setRelation(PlayerGroup, EnemyGroup, "Enemy") -- 700
+Data:setShouldContact(PlayerGroup, EnemyGroup, true) -- 701
+local world -- 703
+do -- 703
+	local _with_0 = PlatformWorld() -- 703
+	_with_0.camera.boundary = Rect(-1250, -500, 2500, 1000) -- 704
+	_with_0.camera.followRatio = Vec2(0.01, 0.01) -- 705
+	_with_0.camera.zoom = View.size.width / DesignWidth -- 706
+	_with_0:gslot("AppSizeChanged", function() -- 707
+		local zoom = View.size.width / DesignWidth -- 708
+		_with_0.camera.zoom = zoom -- 709
+		local _with_1 = Director.ui -- 710
+		_with_1.scaleX = zoom -- 711
+		_with_1.scaleY = zoom -- 711
+		return _with_1 -- 710
+	end) -- 707
+	world = _with_0 -- 703
+end -- 703
+Store["world"] = world -- 712
+local terrainDef -- 714
+do -- 714
+	local _with_0 = BodyDef() -- 714
+	_with_0.type = "Static" -- 715
+	_with_0:attachPolygon(Vec2(0, 0), 2500, 10, 0, 1, 1, 0) -- 716
+	_with_0:attachPolygon(Vec2(0, 1000), 2500, 10, 0, 1, 1, 0) -- 717
+	_with_0:attachPolygon(Vec2(1250, 500), 10, 1000, 0, 1, 1, 0) -- 718
+	_with_0:attachPolygon(Vec2(-1250, 500), 10, 1000, 0, 1, 1, 0) -- 719
+	terrainDef = _with_0 -- 714
+end -- 714
+do -- 721
+	local _with_0 = Body(terrainDef, world, Vec2.zero) -- 721
+	_with_0.order = TerrainLayer -- 722
+	_with_0.group = Data.groupTerrain -- 723
+	_with_0:addTo(world) -- 724
+end -- 721
+local _anon_func_5 = function(Sprite, item, offset, tostring) -- 745
+	local _with_0 = Sprite("Model/patreon.clip|" .. tostring(item)) -- 744
+	_with_0.position = offset -- 745
+	return _with_0 -- 744
+end -- 744
+local updateModel -- 726
+updateModel = function(model, currentSet) -- 726
+	local node = model:getNodeByName("body") -- 727
+	node:removeAllChildren() -- 728
+	local charType = characterTypes[currentSet.type] -- 729
+	local charColor = characterColors[currentSet.color] -- 730
+	node:addChild(Sprite("Model/patreon.clip|character_" .. tostring(charType) .. tostring(charColor))) -- 731
+	node = model:getNodeByName("lhand") -- 732
+	node:removeAllChildren() -- 733
+	node:addChild(Sprite("Model/patreon.clip|character_hand" .. tostring(charColor))) -- 734
+	node = model:getNodeByName("rhand") -- 735
+	node:removeAllChildren() -- 736
+	node:addChild(Sprite("Model/patreon.clip|character_hand" .. tostring(charColor))) -- 737
+	model:getNodeByName("head"):removeAllChildren() -- 738
+	for _index_0 = 1, #itemSlots do -- 739
+		local slot = itemSlots[_index_0] -- 739
+		node = model:getNodeByName(slot) -- 740
+		local item = currentSet[slot] -- 741
+		if item then -- 742
+			local offset = itemSettings[item].offset -- 743
+			node:addChild(_anon_func_5(Sprite, item, offset, tostring)) -- 744
+		end -- 742
+	end -- 745
+end -- 726
+local NewFighter -- 747
+NewFighter = function(name, currentSet) -- 747
+	local assembleFighter = false -- 748
+	local fighter -- 749
+	do -- 749
+		local _with_0 = Model("Model/patreon.model") -- 749
+		local modelRect = Rect(-128, -128, 256, 256) -- 750
+		_with_0.recovery = 0.2 -- 751
+		_with_0.order = PlayerLayer -- 752
+		_with_0.touchEnabled = true -- 753
+		_with_0.swallowTouches = true -- 754
+		_with_0:slot("TapFilter", function(touch) -- 755
+			if not modelRect:containsPoint(touch.location) then -- 756
+				touch.enabled = false -- 757
+			end -- 756
+		end) -- 755
+		_with_0:slot("Tapped", function() -- 758
+			if not fighter:getChildByTag("select") then -- 759
+				local selectFrame -- 760
+				local _with_1 = Sprite("Model/patreon.clip|ui_select") -- 760
+				_with_1:addTo(fighter, 0, "select") -- 761
+				_with_1:runAction(Scale(0.3, 0, 1.8, Ease.OutBack)) -- 762
+				assembleFighter = true -- 763
+				selectFrame = _with_1 -- 760
+			end -- 759
+		end) -- 758
+		_with_0:play("idle", true) -- 764
+		fighter = _with_0 -- 749
+	end -- 749
+	updateModel(fighter, currentSet) -- 765
+	local HeadItemPanel = NewItemPanel("头部", "head", headItems, currentSet) -- 766
+	local LHandItemPanel = NewItemPanel("副手", "lhand", lhandItems, currentSet) -- 767
+	local RHandItemPanel = NewItemPanel("主手", "rhand", rhandItems, currentSet) -- 768
+	return fighter, function() -- 769
+		SetNextWindowSize(Vec2(445, 600), "FirstUseEver") -- 770
+		if assembleFighter then -- 771
+			assembleFighter = false -- 772
+			OpenPopup("战士" .. tostring(name)) -- 773
+		end -- 771
+		return BeginPopupModal("战士" .. tostring(name), { -- 774
+			"NoResize", -- 774
+			"NoSavedSettings" -- 774
+		}, function() -- 774
+			HeadItemPanel() -- 775
+			RHandItemPanel() -- 776
+			LHandItemPanel() -- 777
+			Columns(1, false) -- 778
+			TextColored(themeColor, "性别") -- 779
+			NextColumn() -- 780
+			local _ -- 781
+			_, currentSet.type = RadioButton("男", currentSet.type, 1) -- 781
+			SameLine() -- 782
+			_, currentSet.type = RadioButton("女", currentSet.type, 2) -- 783
+			Columns(1, false) -- 784
+			local cost = 0 -- 785
+			for _index_0 = 1, #itemSlots do -- 786
+				local slot = itemSlots[_index_0] -- 786
+				local item = currentSet[slot] -- 787
+				cost = cost + (item and itemSettings[item].cost or 0) -- 788
+			end -- 788
+			TextColored(themeColor, "累计消耗资源：" .. tostring(cost)) -- 789
+			NextColumn() -- 790
+			Columns(2, false) -- 791
+			if Button("进行训练！", Vec2(200, 80)) then -- 792
+				updateModel(fighter, currentSet) -- 793
+				CloseCurrentPopup() -- 794
+				do -- 795
+					local _with_0 = fighter:getChildByTag("select") -- 795
+					_with_0:removeFromParent() -- 796
+				end -- 795
+				emit("ShowSetting", false) -- 797
+				local charSet = 1 -- 798
+				for i = 1, #characters do -- 799
+					if currentSet == characters[i] then -- 800
+						charSet = i -- 801
+						break -- 802
+					end -- 800
+				end -- 802
 				Entity({ -- 804
-					unitDef = "boss", -- 804
-					order = EnemyLayer, -- 805
-					position = Vec2(400, 400), -- 806
-					group = EnemyGroup, -- 807
-					faceRight = false, -- 808
-					boss = true -- 809
+					unitDef = "fighter", -- 804
+					charSet = charSet, -- 805
+					order = PlayerLayer, -- 806
+					position = Vec2(-400, 400), -- 807
+					group = PlayerGroup, -- 808
+					faceRight = true, -- 809
+					player = true, -- 810
+					decisionTree = "AI_PlayerControl" -- 811
 				}) -- 803
-				emit("ShowTraining", true) -- 810
-			end -- 783
-			NextColumn() -- 811
-			if Button("装备完成！", Vec2(200, 80)) then -- 812
-				updateModel(fighter, currentSet) -- 813
-				CloseCurrentPopup() -- 814
-				local _with_0 = fighter:getChildByTag("select") -- 815
-				_with_0:runAction(Sequence(Spawn(Scale(0.3, 1.8, 2.5), Opacity(0.3, 1, 0)), Event("End"))) -- 816
-				_with_0:slot("End", function() -- 820
-					return _with_0:removeFromParent() -- 820
-				end) -- 820
-			end -- 812
-			return NextColumn() -- 821
-		end) -- 821
-	end -- 821
-end -- 738
-local fighterFigures = { } -- 823
-local fighterPanels = { } -- 824
-for i = 1, #characters do -- 825
-	local fighter, fighterPanel = NewFighter(string.rep("I", i), characters[i]) -- 826
-	table.insert(fighterFigures, fighter) -- 827
-	table.insert(fighterPanels, fighterPanel) -- 828
-end -- 828
-local playerGroup = Group({ -- 830
-	"player", -- 830
-	"unit" -- 830
-}) -- 830
-local updatePlayerControl -- 831
-updatePlayerControl = function(key, flag) -- 831
-	return playerGroup:each(function(self) -- 831
-		self.unit.data[key] = flag -- 831
-	end) -- 831
-end -- 831
-local uiScale = App.devicePixelRatio -- 833
-Director.ui:addChild((function() -- 835
-	local _with_0 = AlignNode({ -- 835
-		isRoot = true -- 835
-	}) -- 835
-	_with_0:schedule(function() -- 836
-		local width, height -- 837
-		do -- 837
-			local _obj_0 = App.visualSize -- 837
-			width, height = _obj_0.width, _obj_0.height -- 837
-		end -- 837
-		SetNextWindowPos(Vec2(10, 10), "FirstUseEver") -- 838
-		SetNextWindowSize(Vec2(350, 160), "FirstUseEver") -- 839
-		return Begin("AI军团", { -- 840
-			"NoResize", -- 840
-			"NoSavedSettings" -- 840
-		}, function() -- 840
-			local isPC -- 841
-			do -- 841
-				local _exp_0 = App.platform -- 841
-				if "macOS" == _exp_0 or "Windows" == _exp_0 or "Linux" == _exp_0 then -- 842
-					isPC = true -- 842
-				else -- 843
-					isPC = false -- 843
-				end -- 843
-			end -- 843
-			return TextWrapped("点击你的学员部队配备装备，并亲自进行战斗方法的训练，最后带领部队挑战敌人。\n学员战斗AI通过玩家操作自动学习生成。" .. tostring(isPC and '训练操作按键：向左A，向右D，闪避E，攻击J，跳跃K' or '')) -- 844
-		end) -- 844
-	end) -- 836
-	_with_0:addChild((function() -- 845
-		local _with_1 = AlignNode() -- 845
-		_with_1.size = Size(0, 0) -- 846
-		_with_1.hAlign = "Center" -- 847
-		_with_1.vAlign = "Center" -- 848
-		_with_1.alignOffset = Vec2(0, 32) -- 849
-		_with_1.visible = false -- 850
-		_with_1:gslot("ShowTraining", function(show) -- 851
-			_with_1.visible = show -- 852
-			if show then -- 853
-				return _with_1:addChild((function() -- 854
-					local _with_2 = CircleButton({ -- 855
-						text = "训练\n结束！", -- 855
-						y = -300, -- 856
-						radius = 80, -- 857
-						fontName = "sarasa-mono-sc-regular", -- 858
-						fontSize = 48 -- 859
-					}) -- 854
-					_with_2:slot("Tapped", function() -- 861
-						emit("ShowTraining", false) -- 862
-						Group({ -- 863
-							"player" -- 863
-						}):each(function(e) -- 863
-							if e.charSet then -- 864
-								emit("TrainAI", e.charSet) -- 865
-								return e.unit:removeFromParent() -- 866
-							end -- 864
-						end) -- 863
-						Group({ -- 867
-							"boss" -- 867
-						}):each(function(e) -- 867
-							return e.unit:removeFromParent() -- 868
-						end) -- 867
-						return emit("ShowSetting", true) -- 869
-					end) -- 861
-					return _with_2 -- 854
-				end)()) -- 869
-			else -- 871
-				return _with_1:removeAllChildren() -- 871
-			end -- 853
-		end) -- 851
-		_with_1:gslot("ShowFight", function(show) -- 872
-			_with_1.visible = show -- 873
-			if show then -- 874
-				return _with_1:addChild((function() -- 875
-					local _with_2 = CircleButton({ -- 876
-						text = "离开\n战斗", -- 876
-						y = -300, -- 877
-						radius = 80, -- 878
-						fontName = "sarasa-mono-sc-regular", -- 879
-						fontSize = 48 -- 880
-					}) -- 875
-					_with_2:slot("Tapped", function() -- 882
-						Group({ -- 883
-							"unitDef" -- 883
-						}):each(function(e) -- 883
-							local _obj_0 = e.unit -- 884
-							if _obj_0 ~= nil then -- 884
-								return _obj_0:removeFromParent() -- 884
-							end -- 884
-							return nil -- 884
-						end) -- 883
-						emit("ShowSetting", true) -- 885
-						return thread(function() -- 886
-							return emit("ShowFight", false) -- 886
-						end) -- 886
-					end) -- 882
-					return _with_2 -- 875
-				end)()) -- 886
-			else -- 888
-				return _with_1:removeAllChildren() -- 888
-			end -- 874
-		end) -- 872
-		return _with_1 -- 845
-	end)()) -- 845
-	_with_0:addChild((function() -- 889
-		local _with_1 = AlignNode() -- 889
-		_with_1.size = Size(0, 0) -- 890
-		_with_1.hAlign = "Center" -- 891
-		_with_1.vAlign = "Center" -- 892
-		_with_1.alignOffset = Vec2(0, 32) -- 893
-		_with_1:gslot("ShowSetting", function(show) -- 894
-			_with_1.visible = show -- 894
-		end) -- 894
-		_with_1:addChild((function() -- 895
-			local _with_2 = Model("Model/bossp.model") -- 895
-			_with_2.x = 500 -- 896
-			_with_2.y = 100 -- 897
-			_with_2.fliped = true -- 898
-			_with_2.speed = 0.8 -- 899
-			_with_2.scaleX, _with_2.scaleY = 2, 2 -- 900
-			_with_2.recovery = 0.2 -- 901
-			_with_2:play("idle", true) -- 902
-			return _with_2 -- 895
-		end)()) -- 895
-		for i = 1, #fighterFigures do -- 903
-			local fighter = fighterFigures[i] -- 904
-			_with_1:addChild((function() -- 905
-				fighter.x = -500 + (i - 1) * 200 -- 906
-				return fighter -- 905
-			end)()) -- 905
-		end -- 906
-		_with_1:addChild((function() -- 907
-			local _with_2 = CircleButton({ -- 908
-				text = "开战！", -- 908
-				y = -300, -- 909
-				radius = 80, -- 910
-				fontName = "sarasa-mono-sc-regular", -- 911
-				fontSize = 48 -- 912
-			}) -- 907
-			local showItems -- 914
-			showItems = function(show) -- 914
-				for _index_0 = 1, #fighterFigures do -- 915
-					local fighter = fighterFigures[_index_0] -- 915
-					fighter.touchEnabled = not show -- 916
-				end -- 916
-				_with_2.visible = not show -- 917
-			end -- 914
-			_with_2:gslot("ShowFight", showItems) -- 918
-			_with_2:gslot("ShowTraining", showItems) -- 919
-			_with_2:slot("Tapped", function() -- 920
-				if not _with_2.visible then -- 921
-					return -- 921
-				end -- 921
-				for i = 1, #characters do -- 922
-					local char = characters[i] -- 923
-					Entity({ -- 925
-						unitDef = "fighter", -- 925
-						charSet = i, -- 926
-						order = PlayerLayer, -- 927
-						position = Vec2(-600 + (i - 1) * 200, 400), -- 928
-						group = PlayerGroup, -- 929
-						faceRight = true, -- 930
-						decisionTree = "AI_Learned", -- 931
-						player = true -- 932
-					}) -- 924
-				end -- 932
-				Entity({ -- 934
-					unitDef = "boss", -- 934
-					order = EnemyLayer, -- 935
-					position = Vec2(400, 400), -- 936
-					group = EnemyGroup, -- 937
-					faceRight = false, -- 938
-					boss = true -- 939
-				}) -- 933
-				emit("ShowSetting", false) -- 940
-				return emit("ShowFight", true) -- 941
-			end) -- 920
-			return _with_2 -- 907
-		end)()) -- 907
-		return _with_1 -- 889
-	end)()) -- 889
-	local _exp_0 = App.platform -- 942
-	if "iOS" == _exp_0 or "Android" == _exp_0 then -- 943
-		_with_0:addChild((function() -- 944
-			local _with_1 = AlignNode() -- 944
-			_with_1.hAlign = "Left" -- 945
-			_with_1.vAlign = "Bottom" -- 946
-			_with_1.visible = false -- 947
-			_with_1:gslot("ShowTraining", function(show) -- 948
-				_with_1.visible = show -- 948
-			end) -- 948
-			_with_1:addChild((function() -- 949
-				local _with_2 = Menu() -- 949
-				_with_2:addChild((function() -- 950
-					local _with_3 = CircleButton({ -- 951
-						text = "左", -- 951
-						x = 20 * uiScale, -- 952
-						y = 90 * uiScale, -- 953
-						radius = 30 * uiScale, -- 954
-						fontSize = math.floor(18 * uiScale) -- 955
-					}) -- 950
-					_with_3.anchor = Vec2.zero -- 957
-					_with_3:slot("TapBegan", function() -- 958
-						return updatePlayerControl("keyLeft", true) -- 958
-					end) -- 958
-					_with_3:slot("TapEnded", function() -- 959
-						return updatePlayerControl("keyLeft", false) -- 959
-					end) -- 959
-					return _with_3 -- 950
-				end)()) -- 950
-				_with_2:addChild((function() -- 960
-					local _with_3 = CircleButton({ -- 961
-						text = "右", -- 961
-						x = 90 * uiScale, -- 962
-						y = 90 * uiScale, -- 963
-						radius = 30 * uiScale, -- 964
-						fontSize = math.floor(18 * uiScale) -- 965
-					}) -- 960
-					_with_3.anchor = Vec2.zero -- 967
-					_with_3:slot("TapBegan", function() -- 968
-						return updatePlayerControl("keyRight", true) -- 968
+				Entity({ -- 813
+					unitDef = "boss", -- 813
+					order = EnemyLayer, -- 814
+					position = Vec2(400, 400), -- 815
+					group = EnemyGroup, -- 816
+					faceRight = false, -- 817
+					boss = true -- 818
+				}) -- 812
+				emit("ShowTraining", true) -- 819
+			end -- 792
+			NextColumn() -- 820
+			if Button("装备完成！", Vec2(200, 80)) then -- 821
+				updateModel(fighter, currentSet) -- 822
+				CloseCurrentPopup() -- 823
+				local _with_0 = fighter:getChildByTag("select") -- 824
+				_with_0:runAction(Sequence(Spawn(Scale(0.3, 1.8, 2.5), Opacity(0.3, 1, 0)), Event("End"))) -- 825
+				_with_0:slot("End", function() -- 829
+					return _with_0:removeFromParent() -- 829
+				end) -- 829
+			end -- 821
+			return NextColumn() -- 830
+		end) -- 830
+	end -- 830
+end -- 747
+local fighterFigures = { } -- 832
+local fighterPanels = { } -- 833
+for i = 1, #characters do -- 834
+	local fighter, fighterPanel = NewFighter(string.rep("I", i), characters[i]) -- 835
+	table.insert(fighterFigures, fighter) -- 836
+	table.insert(fighterPanels, fighterPanel) -- 837
+end -- 837
+local playerGroup = Group({ -- 839
+	"player", -- 839
+	"unit" -- 839
+}) -- 839
+local updatePlayerControl -- 840
+updatePlayerControl = function(key, flag) -- 840
+	return playerGroup:each(function(self) -- 840
+		self.unit.data[key] = flag -- 840
+	end) -- 840
+end -- 840
+local uiScale = App.devicePixelRatio -- 842
+Director.ui:addChild((function() -- 844
+	local _with_0 = AlignNode({ -- 844
+		isRoot = true -- 844
+	}) -- 844
+	_with_0:schedule(function() -- 845
+		local width, height -- 846
+		do -- 846
+			local _obj_0 = App.visualSize -- 846
+			width, height = _obj_0.width, _obj_0.height -- 846
+		end -- 846
+		SetNextWindowPos(Vec2(10, 10), "FirstUseEver") -- 847
+		SetNextWindowSize(Vec2(350, 160), "FirstUseEver") -- 848
+		return Begin("AI军团", { -- 849
+			"NoResize", -- 849
+			"NoSavedSettings" -- 849
+		}, function() -- 849
+			local isPC -- 850
+			do -- 850
+				local _exp_0 = App.platform -- 850
+				if "macOS" == _exp_0 or "Windows" == _exp_0 or "Linux" == _exp_0 then -- 851
+					isPC = true -- 851
+				else -- 852
+					isPC = false -- 852
+				end -- 852
+			end -- 852
+			return TextWrapped("点击你的学员部队配备装备，并亲自进行战斗方法的训练，最后带领部队挑战敌人。\n学员战斗AI通过玩家操作自动学习生成。" .. tostring(isPC and '训练操作按键：向左A，向右D，闪避E，攻击J，跳跃K' or '')) -- 853
+		end) -- 853
+	end) -- 845
+	_with_0:addChild((function() -- 854
+		local _with_1 = AlignNode() -- 854
+		_with_1.size = Size(0, 0) -- 855
+		_with_1.hAlign = "Center" -- 856
+		_with_1.vAlign = "Center" -- 857
+		_with_1.alignOffset = Vec2(0, 32) -- 858
+		_with_1.visible = false -- 859
+		_with_1:gslot("ShowTraining", function(show) -- 860
+			_with_1.visible = show -- 861
+			if show then -- 862
+				return _with_1:addChild((function() -- 863
+					local _with_2 = CircleButton({ -- 864
+						text = "训练\n结束！", -- 864
+						y = -300, -- 865
+						radius = 80, -- 866
+						fontName = "sarasa-mono-sc-regular", -- 867
+						fontSize = 48 -- 868
+					}) -- 863
+					_with_2:slot("Tapped", function() -- 870
+						emit("ShowTraining", false) -- 871
+						Group({ -- 872
+							"player" -- 872
+						}):each(function(e) -- 872
+							if e.charSet then -- 873
+								emit("TrainAI", e.charSet) -- 874
+								return e.unit:removeFromParent() -- 875
+							end -- 873
+						end) -- 872
+						Group({ -- 876
+							"boss" -- 876
+						}):each(function(e) -- 876
+							return e.unit:removeFromParent() -- 877
+						end) -- 876
+						return emit("ShowSetting", true) -- 878
+					end) -- 870
+					return _with_2 -- 863
+				end)()) -- 878
+			else -- 880
+				return _with_1:removeAllChildren() -- 880
+			end -- 862
+		end) -- 860
+		_with_1:gslot("ShowFight", function(show) -- 881
+			_with_1.visible = show -- 882
+			if show then -- 883
+				return _with_1:addChild((function() -- 884
+					local _with_2 = CircleButton({ -- 885
+						text = "离开\n战斗", -- 885
+						y = -300, -- 886
+						radius = 80, -- 887
+						fontName = "sarasa-mono-sc-regular", -- 888
+						fontSize = 48 -- 889
+					}) -- 884
+					_with_2:slot("Tapped", function() -- 891
+						Group({ -- 892
+							"unitDef" -- 892
+						}):each(function(e) -- 892
+							local _obj_0 = e.unit -- 893
+							if _obj_0 ~= nil then -- 893
+								return _obj_0:removeFromParent() -- 893
+							end -- 893
+							return nil -- 893
+						end) -- 892
+						emit("ShowSetting", true) -- 894
+						return thread(function() -- 895
+							return emit("ShowFight", false) -- 895
+						end) -- 895
+					end) -- 891
+					return _with_2 -- 884
+				end)()) -- 895
+			else -- 897
+				return _with_1:removeAllChildren() -- 897
+			end -- 883
+		end) -- 881
+		return _with_1 -- 854
+	end)()) -- 854
+	_with_0:addChild((function() -- 898
+		local _with_1 = AlignNode() -- 898
+		_with_1.size = Size(0, 0) -- 899
+		_with_1.hAlign = "Center" -- 900
+		_with_1.vAlign = "Center" -- 901
+		_with_1.alignOffset = Vec2(0, 32) -- 902
+		_with_1:gslot("ShowSetting", function(show) -- 903
+			_with_1.visible = show -- 903
+		end) -- 903
+		_with_1:addChild((function() -- 904
+			local _with_2 = Model("Model/bossp.model") -- 904
+			_with_2.x = 500 -- 905
+			_with_2.y = 100 -- 906
+			_with_2.fliped = true -- 907
+			_with_2.speed = 0.8 -- 908
+			_with_2.scaleX, _with_2.scaleY = 2, 2 -- 909
+			_with_2.recovery = 0.2 -- 910
+			_with_2:play("idle", true) -- 911
+			return _with_2 -- 904
+		end)()) -- 904
+		for i = 1, #fighterFigures do -- 912
+			local fighter = fighterFigures[i] -- 913
+			_with_1:addChild((function() -- 914
+				fighter.x = -500 + (i - 1) * 200 -- 915
+				return fighter -- 914
+			end)()) -- 914
+		end -- 915
+		_with_1:addChild((function() -- 916
+			local _with_2 = CircleButton({ -- 917
+				text = "开战！", -- 917
+				y = -300, -- 918
+				radius = 80, -- 919
+				fontName = "sarasa-mono-sc-regular", -- 920
+				fontSize = 48 -- 921
+			}) -- 916
+			local showItems -- 923
+			showItems = function(show) -- 923
+				for _index_0 = 1, #fighterFigures do -- 924
+					local fighter = fighterFigures[_index_0] -- 924
+					fighter.touchEnabled = not show -- 925
+				end -- 925
+				_with_2.visible = not show -- 926
+			end -- 923
+			_with_2:gslot("ShowFight", showItems) -- 927
+			_with_2:gslot("ShowTraining", showItems) -- 928
+			_with_2:slot("Tapped", function() -- 929
+				if not _with_2.visible then -- 930
+					return -- 930
+				end -- 930
+				for i = 1, #characters do -- 931
+					local char = characters[i] -- 932
+					Entity({ -- 934
+						unitDef = "fighter", -- 934
+						charSet = i, -- 935
+						order = PlayerLayer, -- 936
+						position = Vec2(-600 + (i - 1) * 200, 400), -- 937
+						group = PlayerGroup, -- 938
+						faceRight = true, -- 939
+						decisionTree = "AI_Learned", -- 940
+						player = true -- 941
+					}) -- 933
+				end -- 941
+				Entity({ -- 943
+					unitDef = "boss", -- 943
+					order = EnemyLayer, -- 944
+					position = Vec2(400, 400), -- 945
+					group = EnemyGroup, -- 946
+					faceRight = false, -- 947
+					boss = true -- 948
+				}) -- 942
+				emit("ShowSetting", false) -- 949
+				return emit("ShowFight", true) -- 950
+			end) -- 929
+			return _with_2 -- 916
+		end)()) -- 916
+		return _with_1 -- 898
+	end)()) -- 898
+	local _exp_0 = App.platform -- 951
+	if "iOS" == _exp_0 or "Android" == _exp_0 then -- 952
+		_with_0:addChild((function() -- 953
+			local _with_1 = AlignNode() -- 953
+			_with_1.hAlign = "Left" -- 954
+			_with_1.vAlign = "Bottom" -- 955
+			_with_1.visible = false -- 956
+			_with_1:gslot("ShowTraining", function(show) -- 957
+				_with_1.visible = show -- 957
+			end) -- 957
+			_with_1:addChild((function() -- 958
+				local _with_2 = Menu() -- 958
+				_with_2:addChild((function() -- 959
+					local _with_3 = CircleButton({ -- 960
+						text = "左", -- 960
+						x = 20 * uiScale, -- 961
+						y = 90 * uiScale, -- 962
+						radius = 30 * uiScale, -- 963
+						fontSize = math.floor(18 * uiScale) -- 964
+					}) -- 959
+					_with_3.anchor = Vec2.zero -- 966
+					_with_3:slot("TapBegan", function() -- 967
+						return updatePlayerControl("keyLeft", true) -- 967
+					end) -- 967
+					_with_3:slot("TapEnded", function() -- 968
+						return updatePlayerControl("keyLeft", false) -- 968
 					end) -- 968
-					_with_3:slot("TapEnded", function() -- 969
-						return updatePlayerControl("keyRight", false) -- 969
-					end) -- 969
-					return _with_3 -- 960
-				end)()) -- 960
-				return _with_2 -- 949
-			end)()) -- 949
-			return _with_1 -- 944
-		end)()) -- 944
-		_with_0:addChild((function() -- 970
-			local _with_1 = AlignNode() -- 970
-			_with_1.hAlign = "Right" -- 971
-			_with_1.vAlign = "Bottom" -- 972
-			_with_1.visible = false -- 973
-			_with_1:gslot("ShowTraining", function(show) -- 974
-				_with_1.visible = show -- 974
-			end) -- 974
-			_with_1:addChild((function() -- 975
-				local _with_2 = Menu() -- 975
-				_with_2:addChild((function() -- 976
-					local _with_3 = CircleButton({ -- 977
-						text = "闪", -- 977
-						x = -80 * uiScale, -- 978
-						y = 160 * uiScale, -- 979
-						radius = 30 * uiScale, -- 980
-						fontSize = math.floor(18 * uiScale) -- 981
-					}) -- 976
-					_with_3.anchor = Vec2.zero -- 983
-					_with_3:slot("TapBegan", function() -- 984
-						return updatePlayerControl("keyE", true) -- 984
-					end) -- 984
-					_with_3:slot("TapEnded", function() -- 985
-						return updatePlayerControl("keyE", false) -- 985
-					end) -- 985
-					return _with_3 -- 976
-				end)()) -- 976
-				_with_2:addChild((function() -- 986
-					local _with_3 = CircleButton({ -- 987
-						text = "跳", -- 987
-						x = -80 * uiScale, -- 988
-						y = 90 * uiScale, -- 989
-						radius = 30 * uiScale, -- 990
-						fontSize = math.floor(18 * uiScale) -- 991
-					}) -- 986
-					_with_3.anchor = Vec2.zero -- 993
-					_with_3:slot("TapBegan", function() -- 994
-						return updatePlayerControl("keyUp", true) -- 994
+					return _with_3 -- 959
+				end)()) -- 959
+				_with_2:addChild((function() -- 969
+					local _with_3 = CircleButton({ -- 970
+						text = "右", -- 970
+						x = 90 * uiScale, -- 971
+						y = 90 * uiScale, -- 972
+						radius = 30 * uiScale, -- 973
+						fontSize = math.floor(18 * uiScale) -- 974
+					}) -- 969
+					_with_3.anchor = Vec2.zero -- 976
+					_with_3:slot("TapBegan", function() -- 977
+						return updatePlayerControl("keyRight", true) -- 977
+					end) -- 977
+					_with_3:slot("TapEnded", function() -- 978
+						return updatePlayerControl("keyRight", false) -- 978
+					end) -- 978
+					return _with_3 -- 969
+				end)()) -- 969
+				return _with_2 -- 958
+			end)()) -- 958
+			return _with_1 -- 953
+		end)()) -- 953
+		_with_0:addChild((function() -- 979
+			local _with_1 = AlignNode() -- 979
+			_with_1.hAlign = "Right" -- 980
+			_with_1.vAlign = "Bottom" -- 981
+			_with_1.visible = false -- 982
+			_with_1:gslot("ShowTraining", function(show) -- 983
+				_with_1.visible = show -- 983
+			end) -- 983
+			_with_1:addChild((function() -- 984
+				local _with_2 = Menu() -- 984
+				_with_2:addChild((function() -- 985
+					local _with_3 = CircleButton({ -- 986
+						text = "闪", -- 986
+						x = -80 * uiScale, -- 987
+						y = 160 * uiScale, -- 988
+						radius = 30 * uiScale, -- 989
+						fontSize = math.floor(18 * uiScale) -- 990
+					}) -- 985
+					_with_3.anchor = Vec2.zero -- 992
+					_with_3:slot("TapBegan", function() -- 993
+						return updatePlayerControl("keyE", true) -- 993
+					end) -- 993
+					_with_3:slot("TapEnded", function() -- 994
+						return updatePlayerControl("keyE", false) -- 994
 					end) -- 994
-					_with_3:slot("TapEnded", function() -- 995
-						return updatePlayerControl("keyUp", false) -- 995
-					end) -- 995
-					return _with_3 -- 986
-				end)()) -- 986
-				_with_2:addChild((function() -- 996
-					local _with_3 = CircleButton({ -- 997
-						text = "打", -- 997
-						x = -150 * uiScale, -- 998
-						y = 90 * uiScale, -- 999
-						radius = 30 * uiScale, -- 1000
-						fontSize = math.floor(18 * uiScale) -- 1001
-					}) -- 996
-					_with_3.anchor = Vec2.zero -- 1003
-					_with_3:slot("TapBegan", function() -- 1004
-						return updatePlayerControl("keyF", true) -- 1004
+					return _with_3 -- 985
+				end)()) -- 985
+				_with_2:addChild((function() -- 995
+					local _with_3 = CircleButton({ -- 996
+						text = "跳", -- 996
+						x = -80 * uiScale, -- 997
+						y = 90 * uiScale, -- 998
+						radius = 30 * uiScale, -- 999
+						fontSize = math.floor(18 * uiScale) -- 1000
+					}) -- 995
+					_with_3.anchor = Vec2.zero -- 1002
+					_with_3:slot("TapBegan", function() -- 1003
+						return updatePlayerControl("keyUp", true) -- 1003
+					end) -- 1003
+					_with_3:slot("TapEnded", function() -- 1004
+						return updatePlayerControl("keyUp", false) -- 1004
 					end) -- 1004
-					_with_3:slot("TapEnded", function() -- 1005
-						return updatePlayerControl("keyF", false) -- 1005
-					end) -- 1005
-					return _with_3 -- 996
-				end)()) -- 996
-				return _with_2 -- 975
-			end)()) -- 975
-			return _with_1 -- 970
-		end)()) -- 970
-	elseif "macOS" == _exp_0 or "Windows" == _exp_0 or "Linux" == _exp_0 then -- 1006
-		local _with_1 = Node() -- 1007
-		_with_1:schedule(function() -- 1008
-			updatePlayerControl("keyLeft", Keyboard:isKeyPressed("A")) -- 1009
-			updatePlayerControl("keyRight", Keyboard:isKeyPressed("D")) -- 1010
-			updatePlayerControl("keyUp", Keyboard:isKeyPressed("K")) -- 1011
-			updatePlayerControl("keyF", Keyboard:isKeyPressed("J")) -- 1012
-			return updatePlayerControl("keyE", Keyboard:isKeyPressed("E")) -- 1013
-		end) -- 1008
-	end -- 1013
-	return _with_0 -- 835
-end)()) -- 835
-do -- 1015
-	local _with_0 = Node() -- 1015
-	_with_0:schedule(function() -- 1016
-		local width, height -- 1017
-		do -- 1017
-			local _obj_0 = App.visualSize -- 1017
-			width, height = _obj_0.width, _obj_0.height -- 1017
-		end -- 1017
-		for _index_0 = 1, #fighterPanels do -- 1018
-			local panel = fighterPanels[_index_0] -- 1018
-			panel() -- 1018
-		end -- 1018
-	end) -- 1016
-end -- 1015
-local rangeAttackEnd -- 1020
-rangeAttackEnd = function(name, playable) -- 1020
-	if name == "range" then -- 1021
-		return playable.parent:stop() -- 1021
-	end -- 1021
-end -- 1020
-UnitAction:add("range", { -- 1024
-	priority = 3, -- 1024
-	reaction = 10, -- 1025
-	recovery = 0.1, -- 1026
-	queued = true, -- 1027
-	available = function(self) -- 1028
-		return true -- 1028
-	end, -- 1028
-	create = function(self) -- 1029
-		local attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor -- 1030
-		do -- 1030
-			local _obj_0 = self.entity -- 1035
-			attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor = _obj_0.attackSpeed, _obj_0.targetAllow, _obj_0.attackPower, _obj_0.damageType, _obj_0.attackBase, _obj_0.attackBonus, _obj_0.attackFactor -- 1030
-		end -- 1035
-		do -- 1036
-			local _with_0 = self.playable -- 1036
-			_with_0.speed = attackSpeed -- 1037
-			_with_0:play("range") -- 1038
-			_with_0:slot("AnimationEnd", rangeAttackEnd) -- 1039
-		end -- 1036
-		return once(function(self) -- 1040
-			local bulletDef = Store[self.unitDef.bulletType] -- 1041
-			local onAttack -- 1042
-			onAttack = function() -- 1042
-				local _with_0 = Bullet(bulletDef, self) -- 1043
-				_with_0.targetAllow = targetAllow -- 1044
-				_with_0:slot("HitTarget", function(bullet, target, pos) -- 1045
-					do -- 1046
-						local _with_1 = target.data -- 1046
-						_with_1.hitPoint = pos -- 1047
-						_with_1.hitPower = attackPower -- 1048
-						_with_1.hitFromRight = bullet.velocityX < 0 -- 1049
-					end -- 1046
-					local entity = target.entity -- 1050
-					local factor = Data:getDamageFactor(damageType, entity.defenceType) -- 1051
-					local damage = (attackBase + attackBonus) * (attackFactor + factor) -- 1052
-					entity.hp = entity.hp - damage -- 1053
-					bullet.hitStop = true -- 1054
-				end) -- 1045
-				_with_0:addTo(self.world, self.order) -- 1055
-				return _with_0 -- 1043
-			end -- 1042
-			sleep(0.5 * 28.0 / 30.0 / attackSpeed) -- 1056
-			onAttack() -- 1057
-			while true do -- 1058
-				sleep() -- 1058
-			end -- 1058
-		end) -- 1058
-	end, -- 1029
-	stop = function(self) -- 1059
-		return self.playable:slot("AnimationEnd"):remove(rangeAttackEnd) -- 1060
-	end -- 1059
-}) -- 1023
-local BigArrow -- 1062
-do -- 1062
-	local _with_0 = BulletDef() -- 1062
-	_with_0.tag = "" -- 1063
-	_with_0.endEffect = "" -- 1064
-	_with_0.lifeTime = 5 -- 1065
-	_with_0.damageRadius = 0 -- 1066
-	_with_0.highSpeedFix = false -- 1067
-	_with_0.gravity = Vec2(0, -10) -- 1068
-	_with_0.face = Face("Model/patreon.clip|item_arrow", Vec2(-100, 0), 2) -- 1069
-	_with_0:setAsCircle(10) -- 1070
-	_with_0:setVelocity(25, 800) -- 1071
-	BigArrow = _with_0 -- 1062
-end -- 1062
-UnitAction:add("multiArrow", { -- 1074
-	priority = 3, -- 1074
-	reaction = 10, -- 1075
-	recovery = 0.1, -- 1076
-	queued = true, -- 1077
-	available = function(self) -- 1078
-		return true -- 1078
-	end, -- 1078
-	create = function(self) -- 1079
-		local attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor -- 1080
-		do -- 1080
-			local _obj_0 = self.entity -- 1085
-			attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor = _obj_0.attackSpeed, _obj_0.targetAllow, _obj_0.attackPower, _obj_0.damageType, _obj_0.attackBase, _obj_0.attackBonus, _obj_0.attackFactor -- 1080
-		end -- 1085
-		do -- 1086
-			local _with_0 = self.playable -- 1086
-			_with_0.speed = attackSpeed -- 1087
-			_with_0:play("range") -- 1088
-			_with_0:slot("AnimationEnd", rangeAttackEnd) -- 1089
-		end -- 1086
-		return once(function(self) -- 1090
-			local onAttack -- 1091
-			onAttack = function(angle, speed) -- 1091
-				BigArrow:setVelocity(angle, speed) -- 1092
-				local _with_0 = Bullet(BigArrow, self) -- 1093
-				_with_0.targetAllow = targetAllow -- 1094
-				_with_0:slot("HitTarget", function(bullet, target, pos) -- 1095
-					do -- 1096
-						local _with_1 = target.data -- 1096
-						_with_1.hitPoint = pos -- 1097
-						_with_1.hitPower = attackPower -- 1098
-						_with_1.hitFromRight = bullet.velocityX < 0 -- 1099
-					end -- 1096
-					local entity = target.entity -- 1100
-					local factor = Data:getDamageFactor(damageType, entity.defenceType) -- 1101
-					local damage = (attackBase + attackBonus) * (attackFactor + factor) -- 1102
-					entity.hp = entity.hp - damage -- 1103
-					bullet.hitStop = true -- 1104
-				end) -- 1095
-				_with_0:addTo(self.world, self.order) -- 1105
-				return _with_0 -- 1093
-			end -- 1091
-			sleep(30.0 / 60.0 / attackSpeed) -- 1106
-			onAttack(30, 1100) -- 1107
-			onAttack(10, 1000) -- 1108
-			onAttack(-10, 900) -- 1109
-			onAttack(-30, 800) -- 1110
-			onAttack(-50, 700) -- 1111
-			while true do -- 1112
-				sleep() -- 1112
-			end -- 1112
-		end) -- 1112
-	end, -- 1079
-	stop = function(self) -- 1113
-		return self.playable:slot("AnimationEnd"):remove(rangeAttackEnd) -- 1114
-	end -- 1113
-}) -- 1073
-UnitAction:add("fallOff", { -- 1117
-	priority = 1, -- 1117
-	reaction = 1, -- 1118
-	recovery = 0, -- 1119
-	available = function(self) -- 1120
-		return not self.onSurface -- 1120
-	end, -- 1120
-	create = function(self) -- 1121
-		if self.velocityY <= 0 then -- 1122
-			self.data.fallDown = true -- 1123
-			local _with_0 = self.playable -- 1124
-			_with_0.speed = 2.5 -- 1125
-			_with_0:play("idle") -- 1126
-		else -- 1127
-			self.data.fallDown = false -- 1127
-		end -- 1122
-		return function(self, action) -- 1128
-			if self.onSurface then -- 1129
-				return true -- 1129
-			end -- 1129
-			if not self.data.fallDown and self.velocityY <= 0 then -- 1130
-				self.data.fallDown = true -- 1131
-				local _with_0 = self.playable -- 1132
-				_with_0.speed = 2.5 -- 1133
-				_with_0:play("idle") -- 1134
-			end -- 1130
-			return false -- 1135
-		end -- 1135
-	end -- 1121
-}) -- 1116
-UnitAction:add("evade", { -- 1138
-	priority = 10, -- 1138
-	reaction = 10, -- 1139
-	recovery = 0, -- 1140
-	queued = true, -- 1141
-	available = function(self) -- 1142
-		return true -- 1142
-	end, -- 1142
-	create = function(self) -- 1143
-		do -- 1144
-			local _with_0 = self.playable -- 1144
-			_with_0.speed = 1.0 -- 1145
-			_with_0.recovery = 0.0 -- 1146
-			_with_0:play("bevade") -- 1147
+					return _with_3 -- 995
+				end)()) -- 995
+				_with_2:addChild((function() -- 1005
+					local _with_3 = CircleButton({ -- 1006
+						text = "打", -- 1006
+						x = -150 * uiScale, -- 1007
+						y = 90 * uiScale, -- 1008
+						radius = 30 * uiScale, -- 1009
+						fontSize = math.floor(18 * uiScale) -- 1010
+					}) -- 1005
+					_with_3.anchor = Vec2.zero -- 1012
+					_with_3:slot("TapBegan", function() -- 1013
+						return updatePlayerControl("keyF", true) -- 1013
+					end) -- 1013
+					_with_3:slot("TapEnded", function() -- 1014
+						return updatePlayerControl("keyF", false) -- 1014
+					end) -- 1014
+					return _with_3 -- 1005
+				end)()) -- 1005
+				return _with_2 -- 984
+			end)()) -- 984
+			return _with_1 -- 979
+		end)()) -- 979
+	elseif "macOS" == _exp_0 or "Windows" == _exp_0 or "Linux" == _exp_0 then -- 1015
+		local _with_1 = Node() -- 1016
+		_with_1:schedule(function() -- 1017
+			updatePlayerControl("keyLeft", Keyboard:isKeyPressed("A")) -- 1018
+			updatePlayerControl("keyRight", Keyboard:isKeyPressed("D")) -- 1019
+			updatePlayerControl("keyUp", Keyboard:isKeyPressed("K")) -- 1020
+			updatePlayerControl("keyF", Keyboard:isKeyPressed("J")) -- 1021
+			return updatePlayerControl("keyE", Keyboard:isKeyPressed("E")) -- 1022
+		end) -- 1017
+	end -- 1022
+	return _with_0 -- 844
+end)()) -- 844
+do -- 1024
+	local _with_0 = Node() -- 1024
+	_with_0:schedule(function() -- 1025
+		local width, height -- 1026
+		do -- 1026
+			local _obj_0 = App.visualSize -- 1026
+			width, height = _obj_0.width, _obj_0.height -- 1026
+		end -- 1026
+		for _index_0 = 1, #fighterPanels do -- 1027
+			local panel = fighterPanels[_index_0] -- 1027
+			panel() -- 1027
+		end -- 1027
+	end) -- 1025
+end -- 1024
+local rangeAttackEnd -- 1029
+rangeAttackEnd = function(name, playable) -- 1029
+	if name == "range" then -- 1030
+		return playable.parent:stop() -- 1030
+	end -- 1030
+end -- 1029
+UnitAction:add("range", { -- 1033
+	priority = 3, -- 1033
+	reaction = 10, -- 1034
+	recovery = 0.1, -- 1035
+	queued = true, -- 1036
+	available = function(self) -- 1037
+		return true -- 1037
+	end, -- 1037
+	create = function(self) -- 1038
+		local attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor -- 1039
+		do -- 1039
+			local _obj_0 = self.entity -- 1044
+			attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor = _obj_0.attackSpeed, _obj_0.targetAllow, _obj_0.attackPower, _obj_0.damageType, _obj_0.attackBase, _obj_0.attackBonus, _obj_0.attackFactor -- 1039
+		end -- 1044
+		do -- 1045
+			local _with_0 = self.playable -- 1045
+			_with_0.speed = attackSpeed -- 1046
+			_with_0:play("range") -- 1047
+			_with_0:slot("AnimationEnd", rangeAttackEnd) -- 1048
+		end -- 1045
+		return once(function(self) -- 1049
+			local bulletDef = Store[self.unitDef.bulletType] -- 1050
+			local onAttack -- 1051
+			onAttack = function() -- 1051
+				local _with_0 = Bullet(bulletDef, self) -- 1052
+				_with_0.targetAllow = targetAllow -- 1053
+				_with_0:slot("HitTarget", function(bullet, target, pos) -- 1054
+					do -- 1055
+						local _with_1 = target.data -- 1055
+						_with_1.hitPoint = pos -- 1056
+						_with_1.hitPower = attackPower -- 1057
+						_with_1.hitFromRight = bullet.velocityX < 0 -- 1058
+					end -- 1055
+					local entity = target.entity -- 1059
+					local factor = Data:getDamageFactor(damageType, entity.defenceType) -- 1060
+					local damage = (attackBase + attackBonus) * (attackFactor + factor) -- 1061
+					entity.hp = entity.hp - damage -- 1062
+					bullet.hitStop = true -- 1063
+				end) -- 1054
+				_with_0:addTo(self.world, self.order) -- 1064
+				return _with_0 -- 1052
+			end -- 1051
+			sleep(0.5 * 28.0 / 30.0 / attackSpeed) -- 1065
+			onAttack() -- 1066
+			while true do -- 1067
+				sleep() -- 1067
+			end -- 1067
+		end) -- 1067
+	end, -- 1038
+	stop = function(self) -- 1068
+		return self.playable:slot("AnimationEnd"):remove(rangeAttackEnd) -- 1069
+	end -- 1068
+}) -- 1032
+local BigArrow -- 1071
+do -- 1071
+	local _with_0 = BulletDef() -- 1071
+	_with_0.tag = "" -- 1072
+	_with_0.endEffect = "" -- 1073
+	_with_0.lifeTime = 5 -- 1074
+	_with_0.damageRadius = 0 -- 1075
+	_with_0.highSpeedFix = false -- 1076
+	_with_0.gravity = Vec2(0, -10) -- 1077
+	_with_0.face = Face("Model/patreon.clip|item_arrow", Vec2(-100, 0), 2) -- 1078
+	_with_0:setAsCircle(10) -- 1079
+	_with_0:setVelocity(25, 800) -- 1080
+	BigArrow = _with_0 -- 1071
+end -- 1071
+UnitAction:add("multiArrow", { -- 1083
+	priority = 3, -- 1083
+	reaction = 10, -- 1084
+	recovery = 0.1, -- 1085
+	queued = true, -- 1086
+	available = function(self) -- 1087
+		return true -- 1087
+	end, -- 1087
+	create = function(self) -- 1088
+		local attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor -- 1089
+		do -- 1089
+			local _obj_0 = self.entity -- 1094
+			attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor = _obj_0.attackSpeed, _obj_0.targetAllow, _obj_0.attackPower, _obj_0.damageType, _obj_0.attackBase, _obj_0.attackBonus, _obj_0.attackFactor -- 1089
+		end -- 1094
+		do -- 1095
+			local _with_0 = self.playable -- 1095
+			_with_0.speed = attackSpeed -- 1096
+			_with_0:play("range") -- 1097
+			_with_0:slot("AnimationEnd", rangeAttackEnd) -- 1098
+		end -- 1095
+		return once(function(self) -- 1099
+			local onAttack -- 1100
+			onAttack = function(angle, speed) -- 1100
+				BigArrow:setVelocity(angle, speed) -- 1101
+				local _with_0 = Bullet(BigArrow, self) -- 1102
+				_with_0.targetAllow = targetAllow -- 1103
+				_with_0:slot("HitTarget", function(bullet, target, pos) -- 1104
+					do -- 1105
+						local _with_1 = target.data -- 1105
+						_with_1.hitPoint = pos -- 1106
+						_with_1.hitPower = attackPower -- 1107
+						_with_1.hitFromRight = bullet.velocityX < 0 -- 1108
+					end -- 1105
+					local entity = target.entity -- 1109
+					local factor = Data:getDamageFactor(damageType, entity.defenceType) -- 1110
+					local damage = (attackBase + attackBonus) * (attackFactor + factor) -- 1111
+					entity.hp = entity.hp - damage -- 1112
+					bullet.hitStop = true -- 1113
+				end) -- 1104
+				_with_0:addTo(self.world, self.order) -- 1114
+				return _with_0 -- 1102
+			end -- 1100
+			sleep(30.0 / 60.0 / attackSpeed) -- 1115
+			onAttack(30, 1100) -- 1116
+			onAttack(10, 1000) -- 1117
+			onAttack(-10, 900) -- 1118
+			onAttack(-30, 800) -- 1119
+			onAttack(-50, 700) -- 1120
+			while true do -- 1121
+				sleep() -- 1121
+			end -- 1121
+		end) -- 1121
+	end, -- 1088
+	stop = function(self) -- 1122
+		return self.playable:slot("AnimationEnd"):remove(rangeAttackEnd) -- 1123
+	end -- 1122
+}) -- 1082
+UnitAction:add("fallOff", { -- 1126
+	priority = 1, -- 1126
+	reaction = 1, -- 1127
+	recovery = 0, -- 1128
+	available = function(self) -- 1129
+		return not self.onSurface -- 1129
+	end, -- 1129
+	create = function(self) -- 1130
+		if self.velocityY <= 0 then -- 1131
+			self.data.fallDown = true -- 1132
+			local _with_0 = self.playable -- 1133
+			_with_0.speed = 2.5 -- 1134
+			_with_0:play("idle") -- 1135
+		else -- 1136
+			self.data.fallDown = false -- 1136
+		end -- 1131
+		return function(self, action) -- 1137
+			if self.onSurface then -- 1138
+				return true -- 1138
+			end -- 1138
+			if not self.data.fallDown and self.velocityY <= 0 then -- 1139
+				self.data.fallDown = true -- 1140
+				local _with_0 = self.playable -- 1141
+				_with_0.speed = 2.5 -- 1142
+				_with_0:play("idle") -- 1143
+			end -- 1139
+			return false -- 1144
 		end -- 1144
-		return once(function(self) -- 1148
-			local group = self.group -- 1149
-			self.group = Data.groupHide -- 1150
-			local dir = self.faceRight and -1 or 1 -- 1151
-			cycle(0.2, function() -- 1152
-				self.velocityX = 800 * dir -- 1152
-			end) -- 1152
-			self.group = group -- 1153
-			do -- 1154
-				local _with_0 = self.playable -- 1154
-				_with_0.speed = 1.0 -- 1155
-				_with_0:play("idle") -- 1156
-			end -- 1154
-			sleep(1) -- 1157
-			return true -- 1158
-		end) -- 1158
-	end -- 1143
-}) -- 1137
-local spearAttackEnd -- 1160
-spearAttackEnd = function(name, playable) -- 1160
-	if name == "spear" then -- 1161
-		return playable.parent:stop() -- 1161
-	end -- 1161
-end -- 1160
-UnitAction:add("spearAttack", { -- 1164
-	priority = 3, -- 1164
-	reaction = 10, -- 1165
-	recovery = 0.1, -- 1166
-	queued = true, -- 1167
-	available = function(self) -- 1168
-		return true -- 1168
-	end, -- 1168
-	create = function(self) -- 1169
-		local attackSpeed, attackPower, damageType, attackBase, attackBonus, attackFactor -- 1170
-		do -- 1170
-			local _obj_0 = self.entity -- 1174
-			attackSpeed, attackPower, damageType, attackBase, attackBonus, attackFactor = _obj_0.attackSpeed, _obj_0.attackPower, _obj_0.damageType, _obj_0.attackBase, _obj_0.attackBonus, _obj_0.attackFactor -- 1170
-		end -- 1174
-		do -- 1175
-			local _with_0 = self.playable -- 1175
-			_with_0.speed = attackSpeed -- 1176
-			_with_0.recovery = 0.2 -- 1177
-			_with_0:play("spear") -- 1178
-			_with_0:slot("AnimationEnd", spearAttackEnd) -- 1179
-		end -- 1175
-		return once(function(self) -- 1180
-			sleep(50.0 / 60.0) -- 1181
-			local dir = self.faceRight and 0 or -900 -- 1182
-			local origin = self.position - Vec2(0, 205) + Vec2(dir, 0) -- 1183
-			size = Size(900, 40) -- 1184
-			world:query(Rect(origin, size), function(body) -- 1185
-				local entity = body.entity -- 1186
-				if entity and Data:isEnemy(body, self) then -- 1187
-					do -- 1188
-						local _with_0 = body.data -- 1188
-						_with_0.hitPoint = body.position -- 1189
-						_with_0.hitPower = attackPower -- 1190
-						_with_0.hitFromRight = not self.faceRight -- 1191
-					end -- 1188
-					local factor = Data:getDamageFactor(damageType, entity.defenceType) -- 1192
-					local damage = (attackBase + attackBonus) * (attackFactor + factor) -- 1193
-					entity.hp = entity.hp - damage -- 1194
-				end -- 1187
-				return false -- 1195
-			end) -- 1185
-			while true do -- 1196
-				sleep() -- 1196
-			end -- 1196
-		end) -- 1196
-	end, -- 1169
-	stop = function(self) -- 1197
-		return self.playable:slot("AnimationEnd"):remove(spearAttackEnd) -- 1198
-	end -- 1197
-}) -- 1163
-local mutables = { -- 1201
-	"hp", -- 1201
-	"moveSpeed", -- 1202
-	"move", -- 1203
-	"jump", -- 1204
-	"targetAllow", -- 1205
-	"attackBase", -- 1206
-	"attackPower", -- 1207
-	"attackSpeed", -- 1208
-	"damageType", -- 1209
-	"attackBonus", -- 1210
-	"attackFactor", -- 1211
-	"attackTarget", -- 1212
-	"defenceType" -- 1213
-} -- 1200
-do -- 1216
-	local _with_0 = Observer("Add", { -- 1216
-		"unitDef", -- 1216
-		"position", -- 1216
-		"order", -- 1216
-		"group", -- 1216
-		"faceRight" -- 1216
-	}) -- 1216
-	_with_0:watch(function(self, unitDef, position, order, group) -- 1217
-		local player, faceRight, charSet, decisionTree = self.player, self.faceRight, self.charSet, self.decisionTree -- 1218
-		world = Store.world -- 1219
-		local func = UnitDefFuncs[unitDef] -- 1220
-		local def = func() -- 1221
-		for _index_0 = 1, #mutables do -- 1222
-			local var = mutables[_index_0] -- 1222
-			self[var] = def[var] -- 1223
-		end -- 1223
-		if charSet then -- 1224
-			local set = characters[charSet] -- 1225
-			local actions = def.actions -- 1226
-			local actionSet -- 1227
-			do -- 1227
-				local _tbl_0 = { } -- 1227
-				for _index_0 = 1, #actions do -- 1227
-					local a = actions[_index_0] -- 1227
-					_tbl_0[a] = true -- 1227
-				end -- 1227
-				actionSet = _tbl_0 -- 1227
-			end -- 1227
-			for _index_0 = 1, #itemSlots do -- 1228
-				local slot = itemSlots[_index_0] -- 1228
-				local item = set[slot] -- 1229
-				if not item then -- 1230
-					goto _continue_0 -- 1230
-				end -- 1230
-				local skill = itemSettings[item].skill -- 1231
-				if skill and not actionSet[skill] then -- 1232
-					actions:add(skill) -- 1233
-				end -- 1232
-				local attackRange = itemSettings[item].attackRange -- 1234
-				if attackRange then -- 1235
-					def.attackRange = attackRange -- 1235
-				end -- 1235
-				::_continue_0:: -- 1229
-			end -- 1235
-		end -- 1224
-		if decisionTree then -- 1236
-			def.decisionTree = decisionTree -- 1236
-		end -- 1236
-		local unit -- 1237
-		do -- 1237
-			local _with_1 = Unit(def, world, self, position) -- 1237
-			_with_1.group = group -- 1238
-			_with_1.order = order -- 1239
-			_with_1.faceRight = faceRight -- 1240
-			_with_1:addTo(world) -- 1241
-			unit = _with_1 -- 1237
-		end -- 1237
-		if charSet then -- 1242
-			updateModel(unit.playable, characters[charSet]) -- 1242
-		end -- 1242
-		if player then -- 1243
-			world.camera.followTarget = unit -- 1244
-		end -- 1243
-		return false -- 1244
-	end) -- 1217
-end -- 1216
-local _with_0 = Observer("Change", { -- 1246
-	"hp", -- 1246
-	"unit" -- 1246
-}) -- 1246
-_with_0:watch(function(self, hp, unit) -- 1247
-	local boss = self.boss -- 1248
-	local lastHp = self.oldValues.hp -- 1249
-	if hp < lastHp then -- 1250
-		if not boss and unit:isDoing("hit") then -- 1251
-			unit:start("cancel") -- 1251
+	end -- 1130
+}) -- 1125
+UnitAction:add("evade", { -- 1147
+	priority = 10, -- 1147
+	reaction = 10, -- 1148
+	recovery = 0, -- 1149
+	queued = true, -- 1150
+	available = function(self) -- 1151
+		return true -- 1151
+	end, -- 1151
+	create = function(self) -- 1152
+		do -- 1153
+			local _with_0 = self.playable -- 1153
+			_with_0.speed = 1.0 -- 1154
+			_with_0.recovery = 0.0 -- 1155
+			_with_0:play("bevade") -- 1156
+		end -- 1153
+		return once(function(self) -- 1157
+			local group = self.group -- 1158
+			self.group = Data.groupHide -- 1159
+			local dir = self.faceRight and -1 or 1 -- 1160
+			cycle(0.2, function() -- 1161
+				self.velocityX = 800 * dir -- 1161
+			end) -- 1161
+			self.group = group -- 1162
+			do -- 1163
+				local _with_0 = self.playable -- 1163
+				_with_0.speed = 1.0 -- 1164
+				_with_0:play("idle") -- 1165
+			end -- 1163
+			sleep(1) -- 1166
+			return true -- 1167
+		end) -- 1167
+	end -- 1152
+}) -- 1146
+local spearAttackEnd -- 1169
+spearAttackEnd = function(name, playable) -- 1169
+	if name == "spear" then -- 1170
+		return playable.parent:stop() -- 1170
+	end -- 1170
+end -- 1169
+UnitAction:add("spearAttack", { -- 1173
+	priority = 3, -- 1173
+	reaction = 10, -- 1174
+	recovery = 0.1, -- 1175
+	queued = true, -- 1176
+	available = function(self) -- 1177
+		return true -- 1177
+	end, -- 1177
+	create = function(self) -- 1178
+		local attackSpeed, attackPower, damageType, attackBase, attackBonus, attackFactor -- 1179
+		do -- 1179
+			local _obj_0 = self.entity -- 1183
+			attackSpeed, attackPower, damageType, attackBase, attackBonus, attackFactor = _obj_0.attackSpeed, _obj_0.attackPower, _obj_0.damageType, _obj_0.attackBase, _obj_0.attackBonus, _obj_0.attackFactor -- 1179
+		end -- 1183
+		do -- 1184
+			local _with_0 = self.playable -- 1184
+			_with_0.speed = attackSpeed -- 1185
+			_with_0.recovery = 0.2 -- 1186
+			_with_0:play("spear") -- 1187
+			_with_0:slot("AnimationEnd", spearAttackEnd) -- 1188
+		end -- 1184
+		return once(function(self) -- 1189
+			sleep(50.0 / 60.0) -- 1190
+			local dir = self.faceRight and 0 or -900 -- 1191
+			local origin = self.position - Vec2(0, 205) + Vec2(dir, 0) -- 1192
+			size = Size(900, 40) -- 1193
+			world:query(Rect(origin, size), function(body) -- 1194
+				local entity = body.entity -- 1195
+				if entity and Data:isEnemy(body, self) then -- 1196
+					do -- 1197
+						local _with_0 = body.data -- 1197
+						_with_0.hitPoint = body.position -- 1198
+						_with_0.hitPower = attackPower -- 1199
+						_with_0.hitFromRight = not self.faceRight -- 1200
+					end -- 1197
+					local factor = Data:getDamageFactor(damageType, entity.defenceType) -- 1201
+					local damage = (attackBase + attackBonus) * (attackFactor + factor) -- 1202
+					entity.hp = entity.hp - damage -- 1203
+				end -- 1196
+				return false -- 1204
+			end) -- 1194
+			while true do -- 1205
+				sleep() -- 1205
+			end -- 1205
+		end) -- 1205
+	end, -- 1178
+	stop = function(self) -- 1206
+		return self.playable:slot("AnimationEnd"):remove(spearAttackEnd) -- 1207
+	end -- 1206
+}) -- 1172
+local mutables = { -- 1210
+	"hp", -- 1210
+	"moveSpeed", -- 1211
+	"move", -- 1212
+	"jump", -- 1213
+	"targetAllow", -- 1214
+	"attackBase", -- 1215
+	"attackPower", -- 1216
+	"attackSpeed", -- 1217
+	"damageType", -- 1218
+	"attackBonus", -- 1219
+	"attackFactor", -- 1220
+	"attackTarget", -- 1221
+	"defenceType" -- 1222
+} -- 1209
+do -- 1225
+	local _with_0 = Observer("Add", { -- 1225
+		"unitDef", -- 1225
+		"position", -- 1225
+		"order", -- 1225
+		"group", -- 1225
+		"faceRight" -- 1225
+	}) -- 1225
+	_with_0:watch(function(self, unitDef, position, order, group) -- 1226
+		local player, faceRight, charSet, decisionTree = self.player, self.faceRight, self.charSet, self.decisionTree -- 1227
+		world = Store.world -- 1228
+		local func = UnitDefFuncs[unitDef] -- 1229
+		local def = func() -- 1230
+		for _index_0 = 1, #mutables do -- 1231
+			local var = mutables[_index_0] -- 1231
+			self[var] = def[var] -- 1232
+		end -- 1232
+		if charSet then -- 1233
+			local set = characters[charSet] -- 1234
+			local actions = def.actions -- 1235
+			local actionSet -- 1236
+			do -- 1236
+				local _tbl_0 = { } -- 1236
+				for _index_0 = 1, #actions do -- 1236
+					local a = actions[_index_0] -- 1236
+					_tbl_0[a] = true -- 1236
+				end -- 1236
+				actionSet = _tbl_0 -- 1236
+			end -- 1236
+			for _index_0 = 1, #itemSlots do -- 1237
+				local slot = itemSlots[_index_0] -- 1237
+				local item = set[slot] -- 1238
+				if not item then -- 1239
+					goto _continue_0 -- 1239
+				end -- 1239
+				local skill = itemSettings[item].skill -- 1240
+				if skill and not actionSet[skill] then -- 1241
+					actions:add(skill) -- 1242
+				end -- 1241
+				local attackRange = itemSettings[item].attackRange -- 1243
+				if attackRange then -- 1244
+					def.attackRange = attackRange -- 1244
+				end -- 1244
+				::_continue_0:: -- 1238
+			end -- 1244
+		end -- 1233
+		if decisionTree then -- 1245
+			def.decisionTree = decisionTree -- 1245
+		end -- 1245
+		local unit -- 1246
+		do -- 1246
+			local _with_1 = Unit(def, world, self, position) -- 1246
+			_with_1.group = group -- 1247
+			_with_1.order = order -- 1248
+			_with_1.faceRight = faceRight -- 1249
+			_with_1:addTo(world) -- 1250
+			unit = _with_1 -- 1246
+		end -- 1246
+		if charSet then -- 1251
+			updateModel(unit.playable, characters[charSet]) -- 1251
 		end -- 1251
-		if boss then -- 1252
-			local _with_1 = Visual("Particle/bloodp.par") -- 1253
-			_with_1.position = unit.data.hitPoint -- 1254
-			_with_1:addTo(world, unit.order) -- 1255
-			_with_1:autoRemove() -- 1256
-			_with_1:start() -- 1257
+		if player then -- 1252
+			world.camera.followTarget = unit -- 1253
 		end -- 1252
-		if hp > 0 then -- 1258
-			unit:start("hit") -- 1259
-		else -- 1261
-			unit:start("hit") -- 1261
-			unit:start("fall") -- 1262
-			unit.group = Data.groupHide -- 1263
-			if self.player then -- 1264
-				playerGroup:each(function(p) -- 1265
-					if p and p.unit and p.hp > 0 then -- 1266
-						world.camera.followTarget = p.unit -- 1267
-						return true -- 1268
-					else -- 1269
-						return false -- 1269
-					end -- 1266
-				end) -- 1265
-			end -- 1264
-		end -- 1258
-	end -- 1250
-	return false -- 1269
-end) -- 1247
-return _with_0 -- 1246
+		return false -- 1253
+	end) -- 1226
+end -- 1225
+local _with_0 = Observer("Change", { -- 1255
+	"hp", -- 1255
+	"unit" -- 1255
+}) -- 1255
+_with_0:watch(function(self, hp, unit) -- 1256
+	local boss = self.boss -- 1257
+	local lastHp = self.oldValues.hp -- 1258
+	if hp < lastHp then -- 1259
+		if not boss and unit:isDoing("hit") then -- 1260
+			unit:start("cancel") -- 1260
+		end -- 1260
+		if boss then -- 1261
+			local _with_1 = Visual("Particle/bloodp.par") -- 1262
+			_with_1.position = unit.data.hitPoint -- 1263
+			_with_1:addTo(world, unit.order) -- 1264
+			_with_1:autoRemove() -- 1265
+			_with_1:start() -- 1266
+		end -- 1261
+		if hp > 0 then -- 1267
+			unit:start("hit") -- 1268
+		else -- 1270
+			unit:start("hit") -- 1270
+			unit:start("fall") -- 1271
+			unit.group = Data.groupHide -- 1272
+			if self.player then -- 1273
+				playerGroup:each(function(p) -- 1274
+					if p and p.unit and p.hp > 0 then -- 1275
+						world.camera.followTarget = p.unit -- 1276
+						return true -- 1277
+					else -- 1278
+						return false -- 1278
+					end -- 1275
+				end) -- 1274
+			end -- 1273
+		end -- 1267
+	end -- 1259
+	return false -- 1278
+end) -- 1256
+return _with_0 -- 1255

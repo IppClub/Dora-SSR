@@ -1,23 +1,23 @@
 -- [yue]: Script/Game/Zombie Escape/init.yue
 local Path = dora.Path -- 1
 local Content = dora.Content -- 1
-local scriptPath = Path:getScriptPath(...) -- 4
-if scriptPath then -- 4
-	Content:insertSearchPath(1, scriptPath) -- 5
-	local _list_0 = { -- 7
-		"Constant", -- 7
-		"Unit", -- 8
-		"Body", -- 9
-		"Bullet", -- 10
-		"Action", -- 11
-		"AI", -- 12
-		"Logic", -- 13
-		"Control", -- 14
-		"Scene", -- 15
-		"Debug" -- 16
-	} -- 6
-	for _index_0 = 1, #_list_0 do -- 17
-		local mod = _list_0[_index_0] -- 6
-		require(Path(scriptPath, mod)) -- 6
-	end -- 6
-end -- 4
+local scriptPath = Path:getScriptPath(...) -- 13
+if scriptPath then -- 13
+	Content:insertSearchPath(1, scriptPath) -- 14
+	local _list_0 = { -- 16
+		"Constant", -- 16
+		"Unit", -- 17
+		"Body", -- 18
+		"Bullet", -- 19
+		"Action", -- 20
+		"AI", -- 21
+		"Logic", -- 22
+		"Control", -- 23
+		"Scene", -- 24
+		"Debug" -- 25
+	} -- 15
+	for _index_0 = 1, #_list_0 do -- 26
+		local mod = _list_0[_index_0] -- 15
+		require(Path(scriptPath, mod)) -- 15
+	end -- 15
+end -- 13

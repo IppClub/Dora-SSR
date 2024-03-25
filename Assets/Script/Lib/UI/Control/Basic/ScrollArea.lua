@@ -18,439 +18,439 @@ local Action = dora.Action -- 1
 local property = dora.property -- 1
 local cycle = dora.cycle -- 1
 local _module_0 = nil -- 1
-local ScrollArea = require("UI.View.Control.Basic.ScrollArea") -- 2
-local SolidRect = require("UI.View.Shape.SolidRect") -- 3
-_module_0 = Class(ScrollArea, { -- 16
-	__init = function(self, args) -- 16
-		local selfX, selfY, width, height, viewWidth, viewHeight, scrollBar, scrollBarColor3, clipping = args.x, args.y, args.width, args.height, args.viewWidth, args.viewHeight, args.scrollBar, args.scrollBarColor3, args.clipping -- 17
-		if selfX == nil then -- 18
-			selfX = 0 -- 18
-		end -- 18
-		if selfY == nil then -- 19
-			selfY = 0 -- 19
-		end -- 19
-		if width == nil then -- 20
-			width = 0 -- 20
-		end -- 20
-		if height == nil then -- 21
-			height = 0 -- 21
-		end -- 21
-		if viewWidth == nil then -- 22
-			viewWidth = width -- 22
-		end -- 22
-		if viewHeight == nil then -- 23
-			viewHeight = height -- 23
-		end -- 23
-		if scrollBar == nil then -- 24
-			scrollBar = true -- 24
-		end -- 24
-		if scrollBarColor3 == nil then -- 25
-			scrollBarColor3 = App.themeColor:toARGB() -- 25
-		end -- 25
-		if clipping == nil then -- 26
-			clipping = true -- 26
+local ScrollArea = require("UI.View.Control.Basic.ScrollArea") -- 10
+local SolidRect = require("UI.View.Shape.SolidRect") -- 11
+_module_0 = Class(ScrollArea, { -- 24
+	__init = function(self, args) -- 24
+		local selfX, selfY, width, height, viewWidth, viewHeight, scrollBar, scrollBarColor3, clipping = args.x, args.y, args.width, args.height, args.viewWidth, args.viewHeight, args.scrollBar, args.scrollBarColor3, args.clipping -- 25
+		if selfX == nil then -- 26
+			selfX = 0 -- 26
 		end -- 26
-		self.x = selfX -- 28
-		self.y = selfY -- 29
-		viewWidth = math.max(viewWidth, width) -- 30
-		viewHeight = math.max(viewHeight, height) -- 31
-		local screenSize = (Vec2(View.size)).length -- 32
-		local moveY = viewHeight - height -- 33
-		local moveX = viewWidth - width -- 34
-		local deltaX, deltaY = 0, 0 -- 35
-		local paddingX, paddingY = args.paddingX, args.paddingY -- 36
-		if paddingX == nil then -- 36
-			paddingX = 200 -- 36
-		end -- 36
-		if paddingY == nil then -- 36
-			paddingY = 200 -- 36
-		end -- 36
-		local posX, posY = 0, 0 -- 37
-		local timePassed = 0 -- 38
-		local S = Vec2.zero -- 39
-		local V = Vec2.zero -- 40
-		local deltaMoveLength = 0 -- 41
-		self.contentSize = Size(width, height) -- 42
-		self:setupMenuScroll(self.view) -- 43
-		self.view:slot("Tapped", function() -- 45
-			local enabled = self.view.touchEnabled -- 46
-			self.view.touchEnabled = false -- 47
-			return self.view:schedule(once(function() -- 48
-				sleep() -- 49
-				self.view.touchEnabled = enabled -- 50
-			end)) -- 50
-		end) -- 45
-		local updateReset -- 52
-		updateReset = function(deltaTime) -- 52
-			local x, y -- 53
-			timePassed = timePassed + deltaTime -- 54
-			local t = math.min(timePassed * 4, 1) -- 55
-			do -- 56
-				local _with_0 = Ease -- 56
-				if posX < -moveX then -- 57
-					local tmp = deltaX -- 58
-					deltaX = posX - (moveX + posX) * _with_0:func(_with_0.OutQuad, t) -- 59
-					x = deltaX - tmp -- 60
-				elseif posX > 0 then -- 61
-					local tmp = deltaX -- 62
-					deltaX = posX - posX * _with_0:func(_with_0.OutQuad, t) -- 63
-					x = deltaX - tmp -- 64
-				end -- 57
-				if posY < 0 then -- 65
-					local tmp = deltaY -- 66
-					deltaY = posY - posY * _with_0:func(_with_0.OutQuad, t) -- 67
-					y = deltaY - tmp -- 68
-				elseif posY > moveY then -- 69
-					local tmp = deltaY -- 70
-					deltaY = posY + (moveY - posY) * _with_0:func(_with_0.OutQuad, t) -- 71
-					y = deltaY - tmp -- 72
+		if selfY == nil then -- 27
+			selfY = 0 -- 27
+		end -- 27
+		if width == nil then -- 28
+			width = 0 -- 28
+		end -- 28
+		if height == nil then -- 29
+			height = 0 -- 29
+		end -- 29
+		if viewWidth == nil then -- 30
+			viewWidth = width -- 30
+		end -- 30
+		if viewHeight == nil then -- 31
+			viewHeight = height -- 31
+		end -- 31
+		if scrollBar == nil then -- 32
+			scrollBar = true -- 32
+		end -- 32
+		if scrollBarColor3 == nil then -- 33
+			scrollBarColor3 = App.themeColor:toARGB() -- 33
+		end -- 33
+		if clipping == nil then -- 34
+			clipping = true -- 34
+		end -- 34
+		self.x = selfX -- 36
+		self.y = selfY -- 37
+		viewWidth = math.max(viewWidth, width) -- 38
+		viewHeight = math.max(viewHeight, height) -- 39
+		local screenSize = (Vec2(View.size)).length -- 40
+		local moveY = viewHeight - height -- 41
+		local moveX = viewWidth - width -- 42
+		local deltaX, deltaY = 0, 0 -- 43
+		local paddingX, paddingY = args.paddingX, args.paddingY -- 44
+		if paddingX == nil then -- 44
+			paddingX = 200 -- 44
+		end -- 44
+		if paddingY == nil then -- 44
+			paddingY = 200 -- 44
+		end -- 44
+		local posX, posY = 0, 0 -- 45
+		local timePassed = 0 -- 46
+		local S = Vec2.zero -- 47
+		local V = Vec2.zero -- 48
+		local deltaMoveLength = 0 -- 49
+		self.contentSize = Size(width, height) -- 50
+		self:setupMenuScroll(self.view) -- 51
+		self.view:slot("Tapped", function() -- 53
+			local enabled = self.view.touchEnabled -- 54
+			self.view.touchEnabled = false -- 55
+			return self.view:schedule(once(function() -- 56
+				sleep() -- 57
+				self.view.touchEnabled = enabled -- 58
+			end)) -- 58
+		end) -- 53
+		local updateReset -- 60
+		updateReset = function(deltaTime) -- 60
+			local x, y -- 61
+			timePassed = timePassed + deltaTime -- 62
+			local t = math.min(timePassed * 4, 1) -- 63
+			do -- 64
+				local _with_0 = Ease -- 64
+				if posX < -moveX then -- 65
+					local tmp = deltaX -- 66
+					deltaX = posX - (moveX + posX) * _with_0:func(_with_0.OutQuad, t) -- 67
+					x = deltaX - tmp -- 68
+				elseif posX > 0 then -- 69
+					local tmp = deltaX -- 70
+					deltaX = posX - posX * _with_0:func(_with_0.OutQuad, t) -- 71
+					x = deltaX - tmp -- 72
 				end -- 65
-			end -- 56
-			x = x or 0 -- 73
-			y = y or 0 -- 74
-			self:emit("Scrolled", Vec2(x, y)) -- 75
-			if t == 1 then -- 76
-				self:unschedule() -- 77
-				self:emit("ScrollEnd") -- 78
-			end -- 76
-			return false -- 79
-		end -- 52
-		local isReseting -- 81
-		isReseting = function() -- 81
-			return not self.dragging and (deltaX > 0 or deltaX < -moveX or deltaY > moveY or deltaY < 0) -- 82
-		end -- 81
-		local startReset -- 84
-		startReset = function() -- 84
-			posX = deltaX -- 85
-			posY = deltaY -- 86
-			timePassed = 0 -- 87
-			return self:schedule(updateReset) -- 88
-		end -- 84
-		local setOffset -- 90
-		setOffset = function(delta, touching) -- 90
-			local dPosX = delta.x -- 91
-			local dPosY = delta.y -- 92
-			local newPosX = deltaX + dPosX -- 93
-			local newPosY = deltaY + dPosY -- 94
-			newPosX = math.min(newPosX, paddingX) -- 96
-			newPosX = math.max(newPosX, -moveX - paddingX) -- 97
-			newPosY = math.max(newPosY, -paddingY) -- 98
-			newPosY = math.min(newPosY, moveY + paddingY) -- 99
-			dPosX = newPosX - deltaX -- 100
-			dPosY = newPosY - deltaY -- 101
-			if touching then -- 103
-				local lenY -- 104
-				if newPosY < 0 then -- 104
-					lenY = (0 - newPosY) / paddingY -- 105
-				elseif newPosY > moveY then -- 106
-					lenY = (newPosY - moveY) / paddingY -- 107
-				else -- 108
-					lenY = 0 -- 108
-				end -- 104
-				local lenX -- 109
-				if newPosX > 0 then -- 109
-					lenX = (newPosX - 0) / paddingX -- 110
-				elseif newPosX < -moveX then -- 111
-					lenX = (-moveX - newPosX) / paddingX -- 112
-				else -- 113
-					lenX = 0 -- 113
-				end -- 109
-				if lenY > 0 then -- 115
-					local v = lenY * 3 -- 116
-					dPosY = dPosY / math.max(v * v, 1) -- 117
-				end -- 115
-				if lenX > 0 then -- 118
-					local v = lenX * 3 -- 119
-					dPosX = dPosX / math.max(v * v, 1) -- 120
-				end -- 118
-			end -- 103
-			deltaX = deltaX + dPosX -- 122
-			deltaY = deltaY + dPosY -- 123
-			self:emit("Scrolled", Vec2(dPosX, dPosY)) -- 125
-			if not touching and (newPosY < -paddingY * 0.5 or newPosY > moveY + paddingY * 0.5 or newPosX > paddingX * 0.5 or newPosX < -moveX - paddingX * 0.5) then -- 127
-				return startReset() -- 131
-			end -- 127
-		end -- 90
-		local accel = screenSize * 2 -- 133
-		local updateSpeed -- 134
-		updateSpeed = function(dt) -- 134
-			V = S / dt -- 135
-			if V.length > accel then -- 136
-				V = V:normalize() -- 137
-				V = V * accel -- 138
-			end -- 136
-			S = Vec2.zero -- 139
-			return false -- 140
-		end -- 134
-		local updatePos -- 142
-		updatePos = function(dt) -- 142
-			local dir = Vec2(V.x, V.y) -- 143
-			dir = dir:normalize() -- 144
-			local A = dir * -accel -- 145
-			local incX = V.x > 0 -- 146
-			local incY = V.y > 0 -- 147
-			V = V + A * dt * 0.5 -- 148
-			local decX = V.x < 0 -- 149
-			local decY = V.y < 0 -- 150
-			if incX == decX and incY == decY then -- 151
-				if isReseting() then -- 152
-					startReset() -- 153
-				else -- 155
-					self:unschedule() -- 155
-					self:emit("ScrollEnd") -- 156
-				end -- 152
-			else -- 158
-				local dS = V * dt -- 158
-				setOffset(dS, false) -- 159
-			end -- 151
-			return false -- 160
+				if posY < 0 then -- 73
+					local tmp = deltaY -- 74
+					deltaY = posY - posY * _with_0:func(_with_0.OutQuad, t) -- 75
+					y = deltaY - tmp -- 76
+				elseif posY > moveY then -- 77
+					local tmp = deltaY -- 78
+					deltaY = posY + (moveY - posY) * _with_0:func(_with_0.OutQuad, t) -- 79
+					y = deltaY - tmp -- 80
+				end -- 73
+			end -- 64
+			x = x or 0 -- 81
+			y = y or 0 -- 82
+			self:emit("Scrolled", Vec2(x, y)) -- 83
+			if t == 1 then -- 84
+				self:unschedule() -- 85
+				self:emit("ScrollEnd") -- 86
+			end -- 84
+			return false -- 87
+		end -- 60
+		local isReseting -- 89
+		isReseting = function() -- 89
+			return not self.dragging and (deltaX > 0 or deltaX < -moveX or deltaY > moveY or deltaY < 0) -- 90
+		end -- 89
+		local startReset -- 92
+		startReset = function() -- 92
+			posX = deltaX -- 93
+			posY = deltaY -- 94
+			timePassed = 0 -- 95
+			return self:schedule(updateReset) -- 96
+		end -- 92
+		local setOffset -- 98
+		setOffset = function(delta, touching) -- 98
+			local dPosX = delta.x -- 99
+			local dPosY = delta.y -- 100
+			local newPosX = deltaX + dPosX -- 101
+			local newPosY = deltaY + dPosY -- 102
+			newPosX = math.min(newPosX, paddingX) -- 104
+			newPosX = math.max(newPosX, -moveX - paddingX) -- 105
+			newPosY = math.max(newPosY, -paddingY) -- 106
+			newPosY = math.min(newPosY, moveY + paddingY) -- 107
+			dPosX = newPosX - deltaX -- 108
+			dPosY = newPosY - deltaY -- 109
+			if touching then -- 111
+				local lenY -- 112
+				if newPosY < 0 then -- 112
+					lenY = (0 - newPosY) / paddingY -- 113
+				elseif newPosY > moveY then -- 114
+					lenY = (newPosY - moveY) / paddingY -- 115
+				else -- 116
+					lenY = 0 -- 116
+				end -- 112
+				local lenX -- 117
+				if newPosX > 0 then -- 117
+					lenX = (newPosX - 0) / paddingX -- 118
+				elseif newPosX < -moveX then -- 119
+					lenX = (-moveX - newPosX) / paddingX -- 120
+				else -- 121
+					lenX = 0 -- 121
+				end -- 117
+				if lenY > 0 then -- 123
+					local v = lenY * 3 -- 124
+					dPosY = dPosY / math.max(v * v, 1) -- 125
+				end -- 123
+				if lenX > 0 then -- 126
+					local v = lenX * 3 -- 127
+					dPosX = dPosX / math.max(v * v, 1) -- 128
+				end -- 126
+			end -- 111
+			deltaX = deltaX + dPosX -- 130
+			deltaY = deltaY + dPosY -- 131
+			self:emit("Scrolled", Vec2(dPosX, dPosY)) -- 133
+			if not touching and (newPosY < -paddingY * 0.5 or newPosY > moveY + paddingY * 0.5 or newPosX > paddingX * 0.5 or newPosX < -moveX - paddingX * 0.5) then -- 135
+				return startReset() -- 139
+			end -- 135
+		end -- 98
+		local accel = screenSize * 2 -- 141
+		local updateSpeed -- 142
+		updateSpeed = function(dt) -- 142
+			V = S / dt -- 143
+			if V.length > accel then -- 144
+				V = V:normalize() -- 145
+				V = V * accel -- 146
+			end -- 144
+			S = Vec2.zero -- 147
+			return false -- 148
 		end -- 142
-		self:slot("TapFilter", function(touch) -- 162
-			if not touch.first or not Rect(-width / 2, -height / 2, width, height):containsPoint(touch.location) then -- 163
-				touch.enabled = false -- 164
-			end -- 163
-		end) -- 162
-		self:slot("TapBegan", function(touch) -- 166
-			deltaMoveLength = 0 -- 167
-			S = Vec2.zero -- 168
-			V = Vec2.zero -- 169
-			self:schedule(updateSpeed) -- 170
-			return self:emit("ScrollTouchBegan") -- 171
-		end) -- 166
-		self:slot("TapEnded", function() -- 173
-			if not self.dragging then -- 174
-				self:emit("NoneScrollTapped") -- 175
-			end -- 174
-			self.dragging = false -- 176
-			if isReseting() then -- 177
-				startReset() -- 178
-			elseif V ~= Vec2.zero and deltaMoveLength > 10 then -- 179
-				self:schedule(updatePos) -- 180
-			else -- 182
-				self:emit("ScrollEnd") -- 182
-			end -- 177
-			return self:emit("ScrollTouchEnded") -- 183
-		end) -- 173
-		self:slot("TapMoved", function(touch) -- 185
-			local lastMoveLength = deltaMoveLength -- 186
-			S = touch.delta -- 187
-			deltaMoveLength = deltaMoveLength + S.length -- 188
-			if deltaMoveLength > 10 then -- 189
-				setOffset(S, true) -- 190
-				if lastMoveLength <= 10 then -- 191
-					self.dragging = true -- 192
-					return self:emit("ScrollStart") -- 193
-				end -- 191
-			end -- 189
-		end) -- 185
-		self.area:slot("MouseWheel", function(delta) -- 195
-			local px, py = paddingX, paddingY -- 196
-			paddingX, paddingY = 0, 0 -- 197
-			setOffset(delta * -20) -- 198
-			paddingX, paddingY = px, py -- 199
-		end) -- 195
-		if scrollBar then -- 201
-			local getScrollBarX -- 202
-			getScrollBarX = function() -- 202
-				if self.barX then -- 203
-					return self.barX -- 203
-				end -- 203
-				local barX = SolidRect({ -- 205
-					width = 50, -- 205
-					height = 10, -- 206
-					color = 0x66000000 + scrollBarColor3 -- 207
-				}) -- 204
-				local barBgX = SolidRect({ -- 209
-					width = self.area.width, -- 209
-					height = 10, -- 210
-					color = 0x22000000 + scrollBarColor3 -- 211
-				}) -- 208
-				barBgX:addChild(barX) -- 212
-				self.area:addChild(barBgX) -- 213
-				self.barX = barX -- 214
-				self.barBgX = barBgX -- 215
-				return barX -- 216
-			end -- 202
-			local getScrollBarY -- 217
-			getScrollBarY = function() -- 217
-				if self.barY then -- 218
-					return self.barY -- 218
-				end -- 218
-				local barY = SolidRect({ -- 220
-					width = 10, -- 220
-					height = 50, -- 221
-					color = 0x66000000 + scrollBarColor3 -- 222
-				}) -- 219
-				local barBgY = SolidRect({ -- 224
-					width = 10, -- 224
-					height = self.area.height, -- 225
-					color = 0x22000000 + scrollBarColor3 -- 226
-				}) -- 223
-				barBgY.x = self.area.width - 10 -- 227
-				barBgY:addChild(barY) -- 228
-				self.area:addChild(barBgY) -- 229
-				self.barY = barY -- 230
-				self.barBgY = barBgY -- 231
-				return barY -- 232
-			end -- 217
-			local fadeSeq = Sequence(Show(), Opacity(0, 1, 1), Delay(1), Opacity(0.4, 1, 0, Ease.OutQuad), Hide()) -- 233
-			local fadeBarX = Action(fadeSeq) -- 240
-			local fadeBarY = Action(fadeSeq) -- 241
-			self:slot("Scrolled", function(delta) -- 242
-				if delta.x ~= 0 then -- 243
-					local barX = getScrollBarX() -- 244
-					barX.x = (self.area.width - 50) * math.max(math.min(-self.offset.x / (viewWidth - width), 1), 0) -- 245
-					self.barBgX:perform(fadeBarX) -- 246
-				end -- 243
-				if delta.y ~= 0 then -- 247
-					local barY = getScrollBarY() -- 248
-					barY.y = (self.area.height - 50) * math.max(math.min(1 - self.offset.y / (viewHeight - height), 1), 0) -- 249
-					return self.barBgY:perform(fadeBarY) -- 250
-				end -- 247
-			end) -- 242
-		end -- 201
-		self:slot("Enter", function() -- 252
-			return self:emit("Scrolled", Vec2.zero) -- 252
-		end) -- 252
-		self.scroll = function(self, delta) -- 254
-			if delta then -- 255
-				deltaX = deltaX + delta.x -- 256
-				deltaY = deltaY + delta.y -- 257
-				self:emit("Scrolled", Vec2(delta.x, delta.y)) -- 258
-			end -- 255
-			if isReseting() then -- 259
-				return startReset() -- 259
-			end -- 259
-		end -- 254
-		self.scrollTo = function(self, offset) -- 261
-			local delta = offset - Vec2(deltaX, deltaY) -- 262
-			deltaX = offset.x -- 263
-			deltaY = offset.y -- 264
-			return self:emit("Scrolled", delta) -- 265
-		end -- 261
-		self.updatePadding = function(self, padX, padY) -- 267
-			paddingX = padX -- 268
-			paddingY = padY -- 269
-			return self:scroll(Vec2.zero) -- 270
-		end -- 267
-		self.getPadding = function() -- 272
-			return Vec2(paddingX, paddingY) -- 272
-		end -- 272
-		self.getViewSize = function() -- 273
-			return Size(viewWidth, viewHeight) -- 273
-		end -- 273
-		self.getTotalDelta = function() -- 274
-			return Vec2(deltaX, deltaY) -- 274
-		end -- 274
-		self.resetSize = function(self, w, h, viewW, viewH) -- 275
-			local offset = self.offset -- 276
-			self.offset = Vec2.zero -- 277
-			width, height = w, h -- 278
-			viewWidth = math.max(viewW or w, w) -- 279
-			viewHeight = math.max(viewH or h, h) -- 280
-			moveY = viewHeight - height -- 281
-			moveX = viewWidth - width -- 282
-			local size = Size(w, h) -- 283
-			self.contentSize = size -- 284
-			self.area.size = size -- 285
-			self.view.size = size -- 286
-			if clipping then -- 287
-				self.area.stencil = SolidRect({ -- 287
-					width = w, -- 287
-					height = h -- 287
-				}) -- 287
-			end -- 287
-			self.offset = offset -- 288
-			if self.barBgX then -- 289
-				self.area:removeChild(self.barBgX) -- 290
-				self.barBgX = nil -- 291
-				self.barX = nil -- 292
-			end -- 289
-			if self.barBgY then -- 293
-				self.area:removeChild(self.barBgY) -- 294
-				self.barBgY = nil -- 295
-				self.barY = nil -- 296
-			end -- 293
+		local updatePos -- 150
+		updatePos = function(dt) -- 150
+			local dir = Vec2(V.x, V.y) -- 151
+			dir = dir:normalize() -- 152
+			local A = dir * -accel -- 153
+			local incX = V.x > 0 -- 154
+			local incY = V.y > 0 -- 155
+			V = V + A * dt * 0.5 -- 156
+			local decX = V.x < 0 -- 157
+			local decY = V.y < 0 -- 158
+			if incX == decX and incY == decY then -- 159
+				if isReseting() then -- 160
+					startReset() -- 161
+				else -- 163
+					self:unschedule() -- 163
+					self:emit("ScrollEnd") -- 164
+				end -- 160
+			else -- 166
+				local dS = V * dt -- 166
+				setOffset(dS, false) -- 167
+			end -- 159
+			return false -- 168
+		end -- 150
+		self:slot("TapFilter", function(touch) -- 170
+			if not touch.first or not Rect(-width / 2, -height / 2, width, height):containsPoint(touch.location) then -- 171
+				touch.enabled = false -- 172
+			end -- 171
+		end) -- 170
+		self:slot("TapBegan", function(touch) -- 174
+			deltaMoveLength = 0 -- 175
+			S = Vec2.zero -- 176
+			V = Vec2.zero -- 177
+			self:schedule(updateSpeed) -- 178
+			return self:emit("ScrollTouchBegan") -- 179
+		end) -- 174
+		self:slot("TapEnded", function() -- 181
+			if not self.dragging then -- 182
+				self:emit("NoneScrollTapped") -- 183
+			end -- 182
+			self.dragging = false -- 184
+			if isReseting() then -- 185
+				startReset() -- 186
+			elseif V ~= Vec2.zero and deltaMoveLength > 10 then -- 187
+				self:schedule(updatePos) -- 188
+			else -- 190
+				self:emit("ScrollEnd") -- 190
+			end -- 185
+			return self:emit("ScrollTouchEnded") -- 191
+		end) -- 181
+		self:slot("TapMoved", function(touch) -- 193
+			local lastMoveLength = deltaMoveLength -- 194
+			S = touch.delta -- 195
+			deltaMoveLength = deltaMoveLength + S.length -- 196
+			if deltaMoveLength > 10 then -- 197
+				setOffset(S, true) -- 198
+				if lastMoveLength <= 10 then -- 199
+					self.dragging = true -- 200
+					return self:emit("ScrollStart") -- 201
+				end -- 199
+			end -- 197
+		end) -- 193
+		self.area:slot("MouseWheel", function(delta) -- 203
+			local px, py = paddingX, paddingY -- 204
+			paddingX, paddingY = 0, 0 -- 205
+			setOffset(delta * -20) -- 206
+			paddingX, paddingY = px, py -- 207
+		end) -- 203
+		if scrollBar then -- 209
+			local getScrollBarX -- 210
+			getScrollBarX = function() -- 210
+				if self.barX then -- 211
+					return self.barX -- 211
+				end -- 211
+				local barX = SolidRect({ -- 213
+					width = 50, -- 213
+					height = 10, -- 214
+					color = 0x66000000 + scrollBarColor3 -- 215
+				}) -- 212
+				local barBgX = SolidRect({ -- 217
+					width = self.area.width, -- 217
+					height = 10, -- 218
+					color = 0x22000000 + scrollBarColor3 -- 219
+				}) -- 216
+				barBgX:addChild(barX) -- 220
+				self.area:addChild(barBgX) -- 221
+				self.barX = barX -- 222
+				self.barBgX = barBgX -- 223
+				return barX -- 224
+			end -- 210
+			local getScrollBarY -- 225
+			getScrollBarY = function() -- 225
+				if self.barY then -- 226
+					return self.barY -- 226
+				end -- 226
+				local barY = SolidRect({ -- 228
+					width = 10, -- 228
+					height = 50, -- 229
+					color = 0x66000000 + scrollBarColor3 -- 230
+				}) -- 227
+				local barBgY = SolidRect({ -- 232
+					width = 10, -- 232
+					height = self.area.height, -- 233
+					color = 0x22000000 + scrollBarColor3 -- 234
+				}) -- 231
+				barBgY.x = self.area.width - 10 -- 235
+				barBgY:addChild(barY) -- 236
+				self.area:addChild(barBgY) -- 237
+				self.barY = barY -- 238
+				self.barBgY = barBgY -- 239
+				return barY -- 240
+			end -- 225
+			local fadeSeq = Sequence(Show(), Opacity(0, 1, 1), Delay(1), Opacity(0.4, 1, 0, Ease.OutQuad), Hide()) -- 241
+			local fadeBarX = Action(fadeSeq) -- 248
+			local fadeBarY = Action(fadeSeq) -- 249
+			self:slot("Scrolled", function(delta) -- 250
+				if delta.x ~= 0 then -- 251
+					local barX = getScrollBarX() -- 252
+					barX.x = (self.area.width - 50) * math.max(math.min(-self.offset.x / (viewWidth - width), 1), 0) -- 253
+					self.barBgX:perform(fadeBarX) -- 254
+				end -- 251
+				if delta.y ~= 0 then -- 255
+					local barY = getScrollBarY() -- 256
+					barY.y = (self.area.height - 50) * math.max(math.min(1 - self.offset.y / (viewHeight - height), 1), 0) -- 257
+					return self.barBgY:perform(fadeBarY) -- 258
+				end -- 255
+			end) -- 250
+		end -- 209
+		self:slot("Enter", function() -- 260
+			return self:emit("Scrolled", Vec2.zero) -- 260
+		end) -- 260
+		self.scroll = function(self, delta) -- 262
+			if delta then -- 263
+				deltaX = deltaX + delta.x -- 264
+				deltaY = deltaY + delta.y -- 265
+				self:emit("Scrolled", Vec2(delta.x, delta.y)) -- 266
+			end -- 263
+			if isReseting() then -- 267
+				return startReset() -- 267
+			end -- 267
+		end -- 262
+		self.scrollTo = function(self, offset) -- 269
+			local delta = offset - Vec2(deltaX, deltaY) -- 270
+			deltaX = offset.x -- 271
+			deltaY = offset.y -- 272
+			return self:emit("Scrolled", delta) -- 273
+		end -- 269
+		self.updatePadding = function(self, padX, padY) -- 275
+			paddingX = padX -- 276
+			paddingY = padY -- 277
+			return self:scroll(Vec2.zero) -- 278
 		end -- 275
-	end, -- 16
-	offset = property(function(self) -- 298
-		return self:getTotalDelta() -- 298
-	end, function(self, offset) -- 299
-		return self:scroll(offset - self:getTotalDelta()) -- 299
-	end), -- 298
-	viewSize = property(function(self) -- 301
-		return self:getViewSize() -- 301
-	end, function(self, size) -- 302
-		return self:resetSize(self.contentSize.width, self.contentSize.height, size.width, size.height) -- 308
-	end), -- 301
-	padding = property(function(self) -- 310
-		return self:getPadding() -- 310
-	end, function(self, padding) -- 311
-		return self:updatePadding(padding.x, padding.y) -- 311
-	end), -- 310
-	setupMenuScroll = function(self, menu) -- 313
-		self:slot("Scrolled", function(delta) -- 314
-			return menu:moveAndCullItems(delta) -- 315
-		end) -- 314
-		local menuEnabled = true -- 316
-		self:slot("ScrollStart", function() -- 317
-			menuEnabled = menu.enabled -- 318
-			menu.enabled = false -- 319
-		end) -- 317
-		return self:slot("ScrollTouchEnded", function() -- 320
-			if not menu.enabled then -- 321
-				menu.enabled = menuEnabled -- 321
-			end -- 321
-		end) -- 321
-	end, -- 313
-	adjustSizeWithAlign = function(self, alignMode, padding, size, viewSize) -- 323
-		if alignMode == nil then -- 323
-			alignMode = "Auto" -- 323
-		end -- 323
-		if padding == nil then -- 323
-			padding = 10 -- 323
-		end -- 323
-		if size == nil then -- 323
-			size = self.area.size -- 323
-		end -- 323
-		viewSize = viewSize or size -- 325
-		local offset = self.offset -- 326
-		self.offset = Vec2.zero -- 327
-		if "Auto" == alignMode then -- 329
-			viewSize = self.view:alignItems(Size(viewSize.width, size.height), padding) -- 330
-		elseif "Vertical" == alignMode then -- 331
-			viewSize = self.view:alignItemsVertically(size, padding) -- 332
-		elseif "Horizontal" == alignMode then -- 333
-			viewSize = self.view:alignItemsHorizontally(size, padding) -- 334
-		end -- 334
-		self:resetSize(size.width, size.height, viewSize.width, viewSize.height) -- 335
-		self.offset = offset -- 341
-	end, -- 323
-	scrollToPosY = function(self, posY, time) -- 343
-		if time == nil then -- 343
-			time = 0.3 -- 343
-		end -- 343
-		local height = self.contentSize.height -- 344
-		local offset = self.offset -- 345
-		local viewHeight = self.viewSize.height -- 346
-		local deltaY = height / 2 - posY -- 347
-		local startY = offset.y -- 348
-		local endY = startY + deltaY -- 349
-		if viewHeight <= height then -- 350
-			endY = 0 -- 351
-		else -- 353
-			endY = math.max(endY, 0) -- 353
-			endY = math.min(endY, viewHeight - height) -- 354
-		end -- 350
-		return self:schedule(once(function() -- 355
-			local changeY = endY - startY -- 356
-			cycle(time, function(progress) -- 357
-				offset = Vec2(offset.x, startY + changeY * Ease:func(Ease.OutQuad, progress)) -- 358
-				return self:scrollTo(offset) -- 359
-			end) -- 357
-			offset = Vec2(offset.x, endY) -- 360
-			return self:scrollTo(offset) -- 361
-		end)) -- 361
-	end -- 343
-}) -- 15
-return _module_0 -- 361
+		self.getPadding = function() -- 280
+			return Vec2(paddingX, paddingY) -- 280
+		end -- 280
+		self.getViewSize = function() -- 281
+			return Size(viewWidth, viewHeight) -- 281
+		end -- 281
+		self.getTotalDelta = function() -- 282
+			return Vec2(deltaX, deltaY) -- 282
+		end -- 282
+		self.resetSize = function(self, w, h, viewW, viewH) -- 283
+			local offset = self.offset -- 284
+			self.offset = Vec2.zero -- 285
+			width, height = w, h -- 286
+			viewWidth = math.max(viewW or w, w) -- 287
+			viewHeight = math.max(viewH or h, h) -- 288
+			moveY = viewHeight - height -- 289
+			moveX = viewWidth - width -- 290
+			local size = Size(w, h) -- 291
+			self.contentSize = size -- 292
+			self.area.size = size -- 293
+			self.view.size = size -- 294
+			if clipping then -- 295
+				self.area.stencil = SolidRect({ -- 295
+					width = w, -- 295
+					height = h -- 295
+				}) -- 295
+			end -- 295
+			self.offset = offset -- 296
+			if self.barBgX then -- 297
+				self.area:removeChild(self.barBgX) -- 298
+				self.barBgX = nil -- 299
+				self.barX = nil -- 300
+			end -- 297
+			if self.barBgY then -- 301
+				self.area:removeChild(self.barBgY) -- 302
+				self.barBgY = nil -- 303
+				self.barY = nil -- 304
+			end -- 301
+		end -- 283
+	end, -- 24
+	offset = property(function(self) -- 306
+		return self:getTotalDelta() -- 306
+	end, function(self, offset) -- 307
+		return self:scroll(offset - self:getTotalDelta()) -- 307
+	end), -- 306
+	viewSize = property(function(self) -- 309
+		return self:getViewSize() -- 309
+	end, function(self, size) -- 310
+		return self:resetSize(self.contentSize.width, self.contentSize.height, size.width, size.height) -- 316
+	end), -- 309
+	padding = property(function(self) -- 318
+		return self:getPadding() -- 318
+	end, function(self, padding) -- 319
+		return self:updatePadding(padding.x, padding.y) -- 319
+	end), -- 318
+	setupMenuScroll = function(self, menu) -- 321
+		self:slot("Scrolled", function(delta) -- 322
+			return menu:moveAndCullItems(delta) -- 323
+		end) -- 322
+		local menuEnabled = true -- 324
+		self:slot("ScrollStart", function() -- 325
+			menuEnabled = menu.enabled -- 326
+			menu.enabled = false -- 327
+		end) -- 325
+		return self:slot("ScrollTouchEnded", function() -- 328
+			if not menu.enabled then -- 329
+				menu.enabled = menuEnabled -- 329
+			end -- 329
+		end) -- 329
+	end, -- 321
+	adjustSizeWithAlign = function(self, alignMode, padding, size, viewSize) -- 331
+		if alignMode == nil then -- 331
+			alignMode = "Auto" -- 331
+		end -- 331
+		if padding == nil then -- 331
+			padding = 10 -- 331
+		end -- 331
+		if size == nil then -- 331
+			size = self.area.size -- 331
+		end -- 331
+		viewSize = viewSize or size -- 333
+		local offset = self.offset -- 334
+		self.offset = Vec2.zero -- 335
+		if "Auto" == alignMode then -- 337
+			viewSize = self.view:alignItems(Size(viewSize.width, size.height), padding) -- 338
+		elseif "Vertical" == alignMode then -- 339
+			viewSize = self.view:alignItemsVertically(size, padding) -- 340
+		elseif "Horizontal" == alignMode then -- 341
+			viewSize = self.view:alignItemsHorizontally(size, padding) -- 342
+		end -- 342
+		self:resetSize(size.width, size.height, viewSize.width, viewSize.height) -- 343
+		self.offset = offset -- 349
+	end, -- 331
+	scrollToPosY = function(self, posY, time) -- 351
+		if time == nil then -- 351
+			time = 0.3 -- 351
+		end -- 351
+		local height = self.contentSize.height -- 352
+		local offset = self.offset -- 353
+		local viewHeight = self.viewSize.height -- 354
+		local deltaY = height / 2 - posY -- 355
+		local startY = offset.y -- 356
+		local endY = startY + deltaY -- 357
+		if viewHeight <= height then -- 358
+			endY = 0 -- 359
+		else -- 361
+			endY = math.max(endY, 0) -- 361
+			endY = math.min(endY, viewHeight - height) -- 362
+		end -- 358
+		return self:schedule(once(function() -- 363
+			local changeY = endY - startY -- 364
+			cycle(time, function(progress) -- 365
+				offset = Vec2(offset.x, startY + changeY * Ease:func(Ease.OutQuad, progress)) -- 366
+				return self:scrollTo(offset) -- 367
+			end) -- 365
+			offset = Vec2(offset.x, endY) -- 368
+			return self:scrollTo(offset) -- 369
+		end)) -- 369
+	end -- 351
+}) -- 23
+return _module_0 -- 369
