@@ -1,10 +1,12 @@
 /// <reference path="jsx.d.ts" />
 
+declare module "dora-x" {
+
+import type * as dora from 'dora';
+
 /**
  * Represents the React namespace.
  */
-import type * as dora from 'dora';
-
 export namespace React {
 	/**
 	 * Represents a React element.
@@ -45,3 +47,5 @@ export function useRef<T>(this: void, item?: T): JSX.Ref<T>;
  * @param handler The callback function used to notify the progress change.
  */
 export function preloadAsync(this: void, enode: React.Element | React.Element[], handler?: (this: void, progress: number) => void): void;
+
+} // module "dora-x"

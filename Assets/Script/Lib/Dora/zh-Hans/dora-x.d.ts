@@ -1,4 +1,7 @@
 /// <reference path="jsx.d.ts" />
+
+declare module "dora-x" {
+
 import type * as dora from 'dora';
 
 /**
@@ -44,3 +47,5 @@ export function useRef<T>(this: void, item?: T): JSX.Ref<T>;
  * @param handler 用于通知进度变化的回调函数。
  */
 export function preloadAsync(this: void, enode: React.Element | React.Element[], handler?: (this: void, progress: number) => void): void;
+
+} // module "dora-x"

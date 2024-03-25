@@ -1,7 +1,9 @@
+declare module 'Platformer-x' {
+
 import { React } from 'dora-x';
 import * as P from 'Platformer';
 
-declare namespace BehaviorTree {
+export namespace BehaviorTree {
 	export class Leaf implements React.Element {
 		private constructor();
 		type: string;
@@ -65,7 +67,7 @@ declare namespace BehaviorTree {
 	export function Retry(props: CountProps): Leaf;
 }
 
-declare namespace DecisionTree {
+export namespace DecisionTree {
 	export class Leaf implements React.Element {
 		private constructor();
 		type: string;
@@ -114,4 +116,6 @@ declare namespace DecisionTree {
 	export function Behavior(props: BehaviorProps): Leaf;
 }
 
-declare function toAI(this: void, node: DecisionTree.Leaf): P.Decision.Leaf | null;
+export function toAI(this: void, node: DecisionTree.Leaf): P.Decision.Leaf | null;
+
+} // module "Platformer-x"
