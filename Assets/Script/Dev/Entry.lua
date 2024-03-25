@@ -756,10 +756,8 @@ setupEventHandlers = function() -- 422
 			config.fullScreen = fullScreen and 1 or 0 -- 439
 		end) -- 438
 		_with_0:gslot("AppMoved", function() -- 440
-			do -- 441
-				local _obj_0 = App.winPosition -- 441
-				config.winX, config.winY = _obj_0.x, _obj_0.y -- 441
-			end -- 441
+			local _obj_0 = App.winPosition -- 441
+			config.winX, config.winY = _obj_0.x, _obj_0.y -- 441
 		end) -- 440
 	end -- 441
 	return _with_0 -- 423
