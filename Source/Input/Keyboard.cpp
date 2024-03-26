@@ -249,7 +249,7 @@ void Keyboard::handleEvent(const SDL_Event& event) {
 			}
 			if (!oldDown) {
 				_changedKeys.push_back(event.key.keysym.sym);
-				EventArgs<Slice> keyDown("KeyDown"_slice, name.toString());
+				EventArgs<Slice> keyDown("KeyDown"_slice, name);
 				handler(&keyDown);
 			}
 			EventArgs<Slice> keyPressed("KeyPressed"_slice, name);
