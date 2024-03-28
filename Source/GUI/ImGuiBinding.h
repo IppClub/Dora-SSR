@@ -708,4 +708,34 @@ void SetStyleColor(String name, Color color);
 
 void ScrollWhenDraggingOnVoid();
 
+inline void SetWindowFocus(String name) { ImGui::SetWindowFocus(name.c_str()); }
+inline void SeparatorText(String text) { ImGui::SeparatorText(text.c_str()); }
+inline void TableHeader(String label) { ImGui::TableHeader(label.c_str()); }
+inline void PushID(String str_id) { ImGui::PushID(str_id.c_str()); }
+inline uint32_t GetID(String str_id) { return ImGui::GetID(str_id.c_str()); }
+inline bool Button(String label, Vec2 size) { return ImGui::Button(label.c_str(), size); };
+inline bool SmallButton(String label) { return ImGui::SmallButton(label.c_str()); }
+inline bool InvisibleButton(String str_id, Vec2 size) { return ImGui::InvisibleButton(str_id.c_str(), size); }
+
+bool Checkbox(String label, CallStack* stack);
+bool RadioButton(String label, CallStack* stack, int v_button);
+
+void PlotLines(String label, const std::vector<float>& values, int values_offset = 0, String overlay_text = nullptr, float scale_min = FLT_MIN, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero);
+
+void PlotHistogram(String label, const std::vector<float>& values, int values_offset = 0, String overlay_text = nullptr, float scale_min = FLT_MIN, float scale_max = FLT_MAX, Vec2 graph_size = Vec2::zero);
+
+inline void ProgressBar(float fraction, Vec2 size_arg = Vec2{-1, 0}, String overlay = nullptr) { ImGui::ProgressBar(fraction, size_arg, overlay.c_str()); }
+
+bool ListBox(String label, CallStack* stack, const std::vector<std::string>& items, int height_in_items = -1);
+
+bool SliderAngle(String label, CallStack* stack, float v_degrees_min, float v_degrees_max);
+
+inline void TreePush(String str_id) { ImGui::TreePush(str_id.c_str()); }
+inline bool BeginListBox(String label, Vec2 size) { return ImGui::BeginListBox(label.c_str(), size); }
+inline void Value(String prefix, bool b) { ImGui::Value(prefix.c_str(), b); }
+inline bool BeginMenu(String label, bool enabled) { return ImGui::BeginMenu(label.c_str(), enabled); };
+inline bool MenuItem(String label, String shortcut, bool selected, bool enabled) { return ImGui::MenuItem(label.c_str(), shortcut.c_str(), selected, enabled); }
+inline void OpenPopup(String str_id) { ImGui::OpenPopup(str_id.c_str()); }
+inline bool BeginPopup(String str_id) { return ImGui::BeginPopup(str_id.c_str()); }
+
 NS_END(ImGui::Binding)

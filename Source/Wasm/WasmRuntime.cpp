@@ -170,6 +170,10 @@ static int64_t to_vec(const std::vector<uint32_t>& vec) {
 	return buf_retain(dora_vec_t(std::move(buf)));
 }
 
+static int64_t to_vec(const std::vector<float>& vec) {
+	return buf_retain(dora_vec_t(std::move(vec)));
+}
+
 static std::vector<std::string> from_str_vec(int64_t var) {
 	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
 	auto vecInt = std::get<std::vector<int64_t>>(*vec);
@@ -201,6 +205,11 @@ static std::vector<uint32_t> from_uint32_vec(int64_t var) {
 		vs.push_back(s_cast<uint32_t>(item));
 	}
 	return vs;
+}
+
+static std::vector<float> from_float_vec(int64_t var) {
+	auto vec = std::unique_ptr<dora_vec_t>(r_cast<dora_vec_t*>(var));
+	return std::move(std::get<std::vector<float>>(*vec));
 }
 
 static std::vector<VertexColor> from_vertex_color_vec(int64_t var) {

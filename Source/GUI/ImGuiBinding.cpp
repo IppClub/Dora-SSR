@@ -1468,4 +1468,45 @@ void ScrollWhenDraggingOnVoid() {
 	}
 }
 
+bool Checkbox(String label, CallStack* stack) {
+	bool v = std::get<bool>(stack->pop());
+	bool changed = ImGui::Checkbox(label.c_str(), &v);
+	stack->push(v);
+	return changed;
+}
+
+bool RadioButton(String label, CallStack* stack, int v_button) {
+	int v = s_cast<int>(std::get<int64_t>(stack->pop()));
+	bool changed = ImGui::RadioButton(label.c_str(), &v, v_button);
+	stack->push(s_cast<int64_t>(v));
+	return changed;
+}
+
+void PlotLines(String label, const std::vector<float>& values, int values_offset, String overlay_text, float scale_min, float scale_max, Vec2 graph_size) {
+	ImGui::PlotLines(label.c_str(), values.data(), s_cast<int>(values.size()), values_offset, overlay_text.c_str(), scale_min, scale_max, graph_size);
+}
+
+void PlotHistogram(String label, const std::vector<float>& values, int values_offset, String overlay_text, float scale_min, float scale_max, Vec2 graph_size) {
+	ImGui::PlotHistogram(label.c_str(), values.data(), s_cast<int>(values.size()), values_offset, overlay_text.c_str(), scale_min, scale_max, graph_size);
+}
+
+bool ListBox(String label, CallStack* stack, const std::vector<std::string>& items, int height_in_items) {
+	std::vector<const char*> cItems;
+	cItems.reserve(items.size());
+	for (const auto& item : items) {
+		cItems.push_back(item.c_str());
+	}
+	int current_item = s_cast<int>(std::get<int64_t>(stack->pop()));
+	bool changed = ImGui::ListBox(label.c_str(), &current_item, cItems.data(), s_cast<int>(cItems.size()), height_in_items);
+	stack->push(s_cast<int64_t>(current_item));
+	return changed;
+}
+
+bool SliderAngle(String label, CallStack* stack, float v_degrees_min, float v_degrees_max) {
+	float v_rad = s_cast<float>(std::get<double>(stack->pop()));
+	bool changed = ImGui::SliderAngle(label.c_str(), &v_rad, v_degrees_min, v_degrees_max);
+	stack->push(s_cast<double>(v_rad));
+	return changed;
+}
+
 NS_END(ImGui::Binding)
