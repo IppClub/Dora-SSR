@@ -289,6 +289,16 @@ basicTypes =
 		* (name)-> "crate::dora::Vector::to_i32(#{name})"
 		* -> error "unsupported"
 		* -> error "unsupported"
+	VecFloat:
+		* "i64"
+		* (name)-> "from_float_vec(#{name})"
+		* (name)-> "to_vec(#{name})"
+		* "&Vec<f32>"
+		* "Vec<f32>"
+		* (name)-> "crate::dora::Vector::from_f32(#{name})"
+		* (name)-> "crate::dora::Vector::to_f32(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	VertexColor:
 		* "i64"
 		* (name)-> "*r_cast<VertexColor*>(#{name})"
@@ -727,8 +737,10 @@ impl I#{clsNewName} for #{clsNewName} { }"
 			switch itemType
 				when "field"
 					{_, labels, dataType, name, newName} = clsItem
+					funcName = name\sub(1, 1)\lower! .. name\sub 2
+					funcName = table.concat [sub\lower! for sub in funcName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
 					funcNewName = newName or name
-					funcName = table.concat [sub\lower! for sub in name\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
+					funcNewName = funcNewName\sub(1, 1)\lower! .. funcNewName\sub 2
 					funcNewName = table.concat [sub\lower! for sub in funcNewName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
 					isReadonly = false
 					isStatic = false
@@ -748,7 +760,11 @@ impl I#{clsNewName} for #{clsNewName} { }"
 						1
 					else
 						2
-					pub = "pub " if isStatic
+					if isStatic
+						pub = if funcNewName\sub(1,1) == "_"
+							"pub(crate) "
+						else
+							"pub "
 					rustType = basicTypes[dataType]
 					if rustType == nil and "*" == dataType\sub -1
 						dataTypeName = dataType\match "[^ \t*]+"
@@ -826,7 +842,8 @@ impl I#{clsNewName} for #{clsNewName} { }"
 					funcCount += 1
 					{_, labels, dataType, name, newName, args, constFlag} = clsItem
 					funcNewName = newName or name
-					funcName = table.concat [sub\lower! for sub in name\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
+					funcName = name\sub(1, 1)\lower! .. name\sub 2
+					funcName = table.concat [sub\lower! for sub in funcName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
 					isCreate = false
 					if "create" == funcNewName\sub 1, 6
 						isCreate = true
@@ -835,6 +852,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 						else
 							"new"
 						pub = "pub "
+					funcNewName = funcNewName\sub(1, 1)\lower! .. funcNewName\sub 2
 					funcNewName = table.concat [sub\lower! for sub in funcNewName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
 					isStatic = false
 					isOutside = false
@@ -848,7 +866,11 @@ impl I#{clsNewName} for #{clsNewName} { }"
 								isStatic = true
 							when "optional"
 								isOptional = true
-					pub = "pub " if isStatic
+					if isStatic
+						pub = if funcNewName\sub(1,1) == "_"
+							"pub(crate) "
+						else
+							"pub "
 					rustType = basicTypes[dataType]
 					if rustType == nil and "*" == dataType\sub -1
 						dataTypeName = dataType\match "[^ \t*]+"
