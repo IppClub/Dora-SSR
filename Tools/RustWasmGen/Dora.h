@@ -1438,103 +1438,355 @@ interface object class Node
 	static Node* create();
 };
 
+/// A struct represents a 2D texture.
 object class Texture2D
 {
+	/// the width of the texture, in pixels.
 	readonly common int width;
+	/// the height of the texture, in pixels.
 	readonly common int height;
+	/// Creates a texture object from the given file.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The file name of the texture.
+	///
+	/// # Returns
+	///
+	/// * `Texture2D` - The texture object.
 	static outside optional Texture2D* texture_2d_create @ createFile(string filename);
 };
 
+/// A struct to render texture in game scene tree hierarchy.
 object class Sprite : public INode
 {
+	/// whether the depth buffer should be written to when rendering the sprite.
 	boolean bool depthWrite;
+	/// the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
+	/// Only works with `sprite.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest");`.
 	common float alphaRef;
+	/// the texture rectangle for the sprite.
 	common Rect textureRect;
+	/// the texture for the sprite.
 	optional readonly common Texture2D* texture;
+	/// the blend function for the sprite.
 	common BlendFunc blendFunc;
+	/// the sprite shader effect.
 	common SpriteEffect* effect;
+	/// the texture wrapping mode for the U (horizontal) axis.
 	common TextureWrap uWrap @ uwrap;
+	/// the texture wrapping mode for the V (vertical) axis.
 	common TextureWrap vWrap @ vwrap;
+	/// the texture filtering mode for the sprite.
 	common TextureFilter filter;
+	/// Removes the sprite effect and sets the default effect.
 	outside void sprite_set_effect_nullptr @ set_effect_as_default();
+	/// A method for creating a Sprite object.
+	///
+	/// # Returns
+	///
+	/// * `Sprite` - A new instance of the Sprite class.
 	static Sprite* create();
+	/// A method for creating a Sprite object.
+	///
+	/// # Arguments
+	///
+	/// * `texture` - The texture to be used for the sprite.
+	/// * `texture_rect` - An optional rectangle defining the portion of the texture to use for the sprite. If not provided, the whole texture will be used for rendering.
+	///
+	/// # Returns
+	///
+	/// * `Sprite` - A new instance of the Sprite class.
 	static Sprite* create @ createTextureRect(Texture2D* texture, Rect textureRect);
+	/// A method for creating a Sprite object.
+	///
+	/// # Arguments
+	///
+	/// * `texture` - The texture to be used for the sprite.
+	///
+	/// # Returns
+	///
+	/// * `Sprite` - A new instance of the Sprite class.
 	static Sprite* create @ createTexture(Texture2D* texture);
+	/// A method for creating a Sprite object.
+	///
+	/// # Arguments
+	///
+	/// * `clip_str` - The string containing format for loading a texture file. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
+	///
+	/// # Returns
+	///
+	/// * `Option<Sprite>` - A new instance of the Sprite class. If the texture file is not found, it will return `None`.
 	static optional Sprite* from @ createFile(string clipStr);
 };
 
+/// A struct used to render a texture as a grid of sprites, where each sprite can be positioned, colored, and have its UV coordinates manipulated.
 object class Grid : public INode
 {
+	/// the number of columns in the grid. And there are `gridX + 1` vertices horizontally for rendering.
 	readonly common uint32_t gridX;
+	/// the number of rows in the grid. And there are `gridY + 1` vertices vertically for rendering.
 	readonly common uint32_t gridY;
+	/// whether depth writes are enabled.
 	boolean bool depthWrite;
+	/// the blending function used for the grid.
 	common BlendFunc blendFunc;
+	/// the sprite effect applied to the grid.
+	/// Default is `SpriteEffect::new("builtin:vs_sprite", "builtin:fs_sprite")`.
 	common SpriteEffect* effect;
+	/// the rectangle within the texture that is used for the grid.
 	common Rect textureRect;
+	/// the texture used for the grid.
 	optional common Texture2D* texture;
+	/// Sets the position of a vertex in the grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the vertex in the grid.
+	/// * `y` - The y-coordinate of the vertex in the grid.
+	/// * `pos` - The new position of the vertex, represented by a Vec2 object.
+	/// * `z` - The new z-coordinate of the vertex.
 	void setPos(int x, int y, Vec2 pos, float z);
+	/// Gets the position of a vertex in the grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the vertex in the grid.
+	/// * `y` - The y-coordinate of the vertex in the grid.
+	///
+	/// # Returns
+	///
+	/// * `Vec2` - The current position of the vertex.
 	Vec2 getPos(int x, int y) const;
+	/// Sets the color of a vertex in the grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the vertex in the grid.
+	/// * `y` - The y-coordinate of the vertex in the grid.
+	/// * `color` - The new color of the vertex, represented by a Color object.
 	void setColor(int x, int y, Color color);
+	/// Gets the color of a vertex in the grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the vertex in the grid.
+	/// * `y` - The y-coordinate of the vertex in the grid.
+	///
+	/// # Returns
+	///
+	/// * `Color` - The current color of the vertex.
 	Color getColor(int x, int y) const;
+	/// Moves the UV coordinates of a vertex in the grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the vertex in the grid.
+	/// * `y` - The y-coordinate of the vertex in the grid.
+	/// * `offset` - The offset by which to move the UV coordinates, represented by a Vec2 object.
 	void moveUV @ move_uv(int x, int y, Vec2 offset);
+	/// Creates a new Grid with the specified dimensions and grid size.
+	///
+	/// # Arguments
+	///
+	/// * `width` - The width of the grid.
+	/// * `height` - The height of the grid.
+	/// * `grid_x` - The number of columns in the grid.
+	/// * `grid_y` - The number of rows in the grid.
+	///
+	/// # Returns
+	///
+	/// * `Grid` - The new Grid instance.
 	static Grid* create(float width, float height, uint32_t gridX, uint32_t gridY);
+	/// Creates a new Grid with the specified texture, texture rectangle, and grid size.
+	///
+	/// # Arguments
+	///
+	/// * `texture` - The texture to use for the grid.
+	/// * `texture_rect` - The rectangle within the texture to use for the grid.
+	/// * `grid_x` - The number of columns in the grid.
+	/// * `grid_y` - The number of rows in the grid.
+	///
+	/// # Returns
+	///
+	/// * `Grid` - The new Grid instance.
 	static Grid* create @ createTextureRect(Texture2D* texture, Rect textureRect, uint32_t gridX, uint32_t gridY);
+	/// Creates a new Grid with the specified texture, texture rectangle, and grid size.
+	///
+	/// # Arguments
+	///
+	/// * `texture` - The texture to use for the grid.
+	/// * `grid_x` - The number of columns in the grid.
+	/// * `grid_y` - The number of rows in the grid.
+	///
+	/// # Returns
+	///
+	/// * `Grid` - The new Grid instance.
 	static Grid* create @ createTexture(Texture2D* texture, uint32_t gridX, uint32_t gridY);
+	/// Creates a new Grid with the specified clip string and grid size.
+	///
+	/// # Arguments
+	///
+	/// * `clip_str` - The clip string to use for the grid. Can be "Image/file.png" and "Image/items.clip|itemA".
+	/// * `grid_x` - The number of columns in the grid.
+	/// * `grid_y` - The number of rows in the grid.
+	///
+	/// # Returns
+	///
+	/// * `Grid` - The new Grid instance.
 	static optional Grid* from @ createFile(string clipStr, uint32_t gridX, uint32_t gridY);
 };
 
+/// Represents a touch input or mouse click event.
 object class Touch
 {
+	/// whether touch input is enabled or not.
 	boolean bool enabled;
+	/// whether the touch event originated from a mouse click.
 	readonly boolean bool mouse @ fromMouse;
+	/// whether this is the first touch event when multi-touches exist.
 	readonly boolean bool first;
+	/// the unique identifier assigned to this touch event.
 	readonly common int id;
+	/// the amount and direction of movement since the last touch event.
 	readonly common Vec2 delta;
+	/// the location of the touch event in the node's local coordinate system.
 	readonly common Vec2 location;
+	/// the location of the touch event in world coordinate system.
 	readonly common Vec2 worldLocation;
 };
 
+/// A struct that defines a set of easing functions for use in animations.
 singleton struct Ease
 {
+	/// Applies an easing function to a given value over a given amount of time.
+	///
+	/// # Arguments
+	///
+	/// * `easing` - The easing function to apply.
+	/// * `time` - The amount of time to apply the easing function over, should be between 0 and 1.
+	///
+	/// # Returns
+	///
+	/// * `f32` - The result of applying the easing function to the value.
 	static float func(EaseType easing, float time);
 };
 
+/// A node for rendering text using a TrueType font.
 object class Label : public INode
 {
+	/// the text alignment setting.
 	common TextAlign alignment;
+	/// the alpha threshold value. Pixels with alpha values below this value will not be drawn.
+	/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
 	common float alphaRef;
+	/// the width of the text used for text wrapping.
+	/// Set to `Label::AutomaticWidth` to disable wrapping.
+	/// Default is `Label::AutomaticWidth`.
 	common float textWidth;
+	/// the gap in pixels between characters.
 	common float spacing;
+	/// the gap in pixels between lines of text.
 	common float lineGap;
+	/// the text to be rendered.
 	common string text;
+	/// the blend function used to render the text.
 	common BlendFunc blendFunc;
+	/// whether depth writing is enabled. (Default is false)
 	boolean bool depthWrite;
+	/// whether the label is using batched rendering.
+	/// When using batched rendering the `label.get_character()` function will no longer work, but it provides better rendering performance. Default is true.
 	boolean bool batched;
+	/// the sprite effect used to render the text.
 	common SpriteEffect* effect;
+	/// the number of characters in the label.
 	readonly common int characterCount;
+	/// Returns the sprite for the character at the specified index.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index of the character sprite to retrieve.
+	///
+	/// # Returns
+	///
+	/// * `Option<Sprite>` - The sprite for the character, or `None` if the index is out of range.
 	optional Sprite* getCharacter(int index);
+	/// the value to use for automatic width calculation
 	static readonly float AutomaticWidth @ automaticWidth;
+	/// Creates a new Label object with the specified font name and font size.
+	///
+	/// # Arguments
+	///
+	/// * `font_name` - The name of the font to use for the label. Can be font file path with or without file extension.
+	/// * `font_size` - The size of the font to use for the label.
+	///
+	/// # Returns
+	///
+	/// * `Label` - The new Label object.
 	static Label* create(string fontName, uint32_t fontSize);
 };
 
+/// A RenderTarget is a buffer that allows you to render a Node into a texture.
 object class RenderTarget
 {
+	/// the width of the rendering target.
 	readonly common uint16_t width;
+	/// the height of the rendering target.
 	readonly common uint16_t height;
+	/// the camera used for rendering the scene.
 	optional common Camera* camera;
+	/// the texture generated by the rendering target.
 	readonly common Texture2D* texture;
+	/// Renders a node to the target without replacing its previous contents.
+	///
+	/// # Arguments
+	///
+	/// * `target` - The node to be rendered onto the render target.
 	void render(Node* target);
+	/// Clears the previous color, depth and stencil values on the render target.
+	///
+	/// # Arguments
+	///
+	/// * `color` - The clear color used to clear the render target.
+	/// * `depth` - Optional. The value used to clear the depth buffer of the render target. Default is 1.
+	/// * `stencil` - Optional. The value used to clear the stencil buffer of the render target. Default is 0.
 	void renderWithClear @ renderClear(Color color, float depth, uint8_t stencil);
+	/// Renders a node to the target after clearing the previous color, depth and stencil values on it.
+	///
+	/// # Arguments
+	///
+	/// * `target` - The node to be rendered onto the render target.
+	/// * `color` - The clear color used to clear the render target.
+	/// * `depth` - The value used to clear the depth buffer of the render target. Default can be 1.
+	/// * `stencil` - The value used to clear the stencil buffer of the render target. Default can be 0.
 	void renderWithClear @ renderClearWithTarget(Node* target, Color color, float depth, uint8_t stencil);
+	/// Saves the contents of the render target to a PNG file asynchronously.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to save the contents to.
 	void saveAsync(string filename, function<void(bool success)> handler);
 	static RenderTarget* create(uint16_t width, uint16_t height);
 };
 
+/// A Node that can clip its children based on the alpha values of its stencil.
 object class ClipNode : public INode
 {
+	/// the stencil Node that defines the clipping shape.
 	common Node* stencil;
+	/// the minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
 	common float alphaThreshold;
+	/// whether to invert the clipping area.
 	boolean bool inverted;
+	/// Creates a new ClipNode object.
+	///
+	/// # Arguments
+	///
+	/// * `stencil` - The stencil Node that defines the clipping shape. Defaults to `None`.
+	///
+	/// # Returns
+	///
+	/// * A new `ClipNode` object.
 	static ClipNode* create(Node* stencil);
 };
 
@@ -1545,95 +1797,455 @@ value struct VertexColor
 	static VertexColor create(Vec2 vec, Color color);
 };
 
+/// A scene node that draws simple shapes such as dots, lines, and polygons.
 object class DrawNode : public INode
 {
+	/// whether to write to the depth buffer when drawing (default is false).
 	boolean bool depthWrite;
+	/// the blend function used to draw the shape.
 	common BlendFunc blendFunc;
+	/// Draws a dot at a specified position with a specified radius and color.
+	///
+	/// # Arguments
+	///
+	/// * `pos` - The position of the dot.
+	/// * `radius` - The radius of the dot.
+	/// * `color` - The color of the dot.
 	void drawDot(Vec2 pos, float radius, Color color);
+	/// Draws a line segment between two points with a specified radius and color.
+	///
+	/// # Arguments
+	///
+	/// * `from` - The starting point of the line.
+	/// * `to` - The ending point of the line.
+	/// * `radius` - The radius of the line.
+	/// * `color` - The color of the line.
 	void drawSegment(Vec2 from, Vec2 to, float radius, Color color);
+	/// Draws a polygon defined by a list of vertices with a specified fill color and border.
+	///
+	/// # Arguments
+	///
+	/// * `verts` - The vertices of the polygon.
+	/// * `fill_color` - The fill color of the polygon.
+	/// * `border_width` - The width of the border.
+	/// * `border_color` - The color of the border.
 	void drawPolygon(VecVec2 verts, Color fillColor, float borderWidth, Color borderColor);
+	/// Draws a set of vertices as triangles, each vertex with its own color.
+	///
+	/// # Arguments
+	///
+	/// * `verts` - The list of vertices and their colors. Each element is a tuple where the first element is a `Vec2` and the second element is a `Color`.
 	void drawVertices(VecVertexColor verts);
+	/// Clears all previously drawn shapes from the node.
 	void clear();
+	/// Creates a new DrawNode object.
+	///
+	/// # Returns
+	///
+	/// * A new `DrawNode` object.
 	static DrawNode* create();
 };
 
+/// A struct provides functionality for drawing lines using vertices.
 object class Line : public INode
 {
+	/// whether the depth should be written. (Default is false)
 	boolean bool depthWrite;
+	/// blend function used for rendering the line.
 	common BlendFunc blendFunc;
+	/// Adds vertices to the line.
+	///
+	/// # Arguments
+	///
+	/// * `verts` - A vector of vertices to add to the line.
+	/// * `color` - Optional. The color of the line.
 	void add(VecVec2 verts, Color color);
+	/// Sets vertices of the line.
+	///
+	/// # Arguments
+	///
+	/// * `verts` - A vector of vertices to set.
+	/// * `color` - Optional. The color of the line.
 	void set(VecVec2 verts, Color color);
+	/// Clears all the vertices of line.
 	void clear();
+	/// Creates and returns a new empty Line object.
+	///
+	/// # Returns
+	///
+	/// * A new `Line` object.
 	static Line* create();
+	/// Creates and returns a new Line object.
+	///
+	/// # Arguments
+	///
+	/// * `verts` - A vector of vertices to add to the line.
+	/// * `color` - The color of the line.
+	///
+	/// # Returns
+	///
+	/// * A new `Line` object.
 	static Line* create @ createVecColor(VecVec2 verts, Color color);
 };
 
+/// Represents a particle system node that emits and animates particles.
 object class ParticleNode @ Particle : public INode
 {
+	/// whether the particle system is active.
 	readonly boolean bool active;
+	/// Starts emitting particles.
 	void start();
+	/// Stops emitting particles and wait for all active particles to end their lives.
 	void stop();
+	/// Creates a new Particle object from a particle system file.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The file path of the particle system file.
+	///
+	/// # Returns
+	///
+	/// * A new `Particle` object.
 	static optional ParticleNode* create(string filename);
 };
 
+/// An interface for an animation model system.
 interface object class Playable : public INode
 {
+	/// the look of the animation.
 	common string look;
+	/// the play speed of the animation.
 	common float speed;
+	/// the recovery time of the animation, in seconds.
+	/// Used for doing transitions from one animation to another animation.
 	common float recovery;
+	/// whether the animation is flipped horizontally.
 	boolean bool fliped;
+	/// the current playing animation name.
 	readonly common string current;
+	/// the last completed animation name.
 	readonly common string lastCompleted;
+	/// Gets a key point on the animation model by its name.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the key point to get.
+	///
+	/// # Returns
+	///
+	/// * A `Vec2` representing the key point value.
 	Vec2 getKeyPoint @ getKey(string name);
+	/// Plays an animation from the model.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the animation to play.
+	/// * `loop` - Whether to loop the animation or not.
+	///
+	/// # Returns
+	///
+	/// * The duration of the animation in seconds.
 	float play(string name, bool looping);
+	/// Stops the currently playing animation.
 	void stop();
+	/// Attaches a child node to a slot on the animation model.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the slot to set.
+	/// * `item` - The node to set the slot to.
 	void setSlot(string name, Node* item);
+	/// Gets the child node attached to the animation model.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the slot to get.
+	///
+	/// # Returns
+	///
+	/// * The node in the slot, or `None` if there is no node in the slot.
 	optional Node* getSlot(string name);
+	/// Creates a new instance of 'Playable' from the specified animation file.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The filename of the animation file to load. Supports DragonBone, Spine2D and Dora Model files.
+	/// Should be one of the formats below:
+	///     * "model:" + modelFile
+	///     * "spine:" + spineStr
+	///     * "bone:" + dragonBoneStr
+	///
+	/// # Returns
+	///
+	/// * A new instance of 'Playable'. If the file could not be loaded, then `None` is returned.
 	static optional Playable* create(string filename);
 };
 
+/// Another implementation of the 'Playable' animation interface.
 object class Model : public IPlayable
 {
+	/// the duration of the current animation.
 	readonly common float duration;
+	/// whether the animation model will be played in reverse.
 	boolean bool reversed;
+	/// whether the animation model is currently playing.
 	readonly boolean bool playing;
+	/// whether the animation model is currently paused.
 	readonly boolean bool paused;
+	/// Checks if an animation exists in the model.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the animation to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - Whether the animation exists in the model or not.
 	bool hasAnimation(string name);
+	/// Pauses the currently playing animation.
 	void pause();
+	/// Resumes the currently paused animation,
 	void resume();
+	/// Resumes the currently paused animation, or plays a new animation if specified.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the animation to play.
+	/// * `loop` - Whether to loop the animation or not.
 	void resume @ resumeAnimation(string name, bool looping);
+	/// Resets the current animation to its initial state.
 	void reset();
+	/// Updates the animation to the specified time, and optionally in reverse.
+	///
+	/// # Arguments
+	///
+	/// * `elapsed` - The time to update to.
+	/// * `reversed` - Whether to play the animation in reverse.
 	void updateTo(float elapsed, bool reversed);
+	/// Gets the node with the specified name.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the node to get.
+	///
+	/// # Returns
+	///
+	/// * The node with the specified name.
 	Node* getNodeByName(string name);
+	/// Calls the specified function for each node in the model, and stops if the function returns `false`.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call for each node.
+	///
+	/// # Returns
+	///
+	/// * `bool` - Whether the function was called for all nodes or not.
 	bool eachNode(function<bool(Node* node)> func);
+	/// Creates a new instance of 'Model' from the specified model file.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The filename of the model file to load. Can be filename with or without extension like: "Model/item" or "Model/item.model".
+	///
+	/// # Returns
+	///
+	/// * A new instance of 'Model'.
 	static Model* create(string filename);
+	/// Returns a new dummy instance of 'Model' that can do nothing.
+	///
+	/// # Returns
+	///
+	/// * A new dummy instance of 'Model'.
+	static Model* dummy();
+	/// Gets the clip file from the specified model file.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The filename of the model file to search.
+	///
+	/// # Returns
+	///
+	/// * A `String` representing the name of the clip file.
 	static outside string model_get_clip_filename @ getClipFile(string filename);
+	/// Gets an array of look names from the specified model file.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The filename of the model file to search.
+	///
+	/// # Returns
+	///
+	/// * A `Vec<String>` representing an array of look names found in the model file.
 	static outside VecStr model_get_look_names @ getLooks(string filename);
+	/// Gets an array of animation names from the specified model file.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The filename of the model file to search.
+	///
+	/// # Returns
+	///
+	/// * A `Vec<String>` representing an array of animation names found in the model file.
 	static outside VecStr model_get_animation_names @ getAnimations(string filename);
 };
 
+/// An implementation of an animation system using the Spine engine.
 object class Spine : public IPlayable
 {
+	/// whether to show debug graphics.
 	boolean bool showDebug;
+	/// whether hit testing is enabled.
 	boolean bool hitTestEnabled;
+	/// Sets the rotation of a bone in the Spine skeleton.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the bone to rotate.
+	/// * `rotation` - The amount to rotate the bone, in degrees.
+	///
+	/// # Returns
+	///
+	/// * `bool` - Whether the rotation was successfully set or not.
 	bool setBoneRotation(string name, float rotation);
+	/// Checks if a point in space is inside the boundaries of the Spine skeleton.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the point to check.
+	/// * `y` - The y-coordinate of the point to check.
+	///
+	/// # Returns
+	///
+	/// * `Option<String>` - The name of the bone at the point, or `None` if there is no bone at the point.
 	string containsPoint(float x, float y);
+	/// Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
+	///
+	/// # Arguments
+	///
+	/// * `x1` - The x-coordinate of the start point of the line segment.
+	/// * `y1` - The y-coordinate of the start point of the line segment.
+	/// * `x2` - The x-coordinate of the end point of the line segment.
+	/// * `y2` - The y-coordinate of the end point of the line segment.
+	///
+	/// # Returns
+	///
+	/// * `Option<String>` - The name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
 	string intersectsSegment(float x1, float y1, float x2, float y2);
+	/// Creates a new instance of 'Spine' using the specified skeleton file and atlas file.
+	///
+	/// # Arguments
+	///
+	/// * `skel_file` - The filename of the skeleton file to load.
+	/// * `atlas_file` - The filename of the atlas file to load.
+	///
+	/// # Returns
+	///
+	/// * A new instance of 'Spine' with the specified skeleton file and atlas file. Returns `None` if the skeleton file or atlas file could not be loaded.
 	static Spine* create @ createFiles(string skelFile, string atlasFile);
+	/// Creates a new instance of 'Spine' using the specified Spine string.
+	///
+	/// # Arguments
+	///
+	/// * `spine_str` - The Spine file string for the new instance. A Spine file string can be a file path with the target file extension like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas".
+	///
+	/// # Returns
+	///
+	/// * A new instance of 'Spine'. Returns `None` if the Spine file could not be loaded.
 	static Spine* create(string spineStr);
+	/// Returns a list of available looks for the specified Spine2D file string.
+	///
+	/// # Arguments
+	///
+	/// * `spine_str` - The Spine2D file string to get the looks for.
+	///
+	/// # Returns
+	///
+	/// * A `Vec<String>` representing the available looks.
 	static outside VecStr spine_get_look_names @ getLooks(string spineStr);
+	/// Returns a list of available animations for the specified Spine2D file string.
+	///
+	/// # Arguments
+	///
+	/// * `spine_str` - The Spine2D file string to get the animations for.
+	///
+	/// # Returns
+	///
+	/// * A `Vec<String>` representing the available animations.
 	static outside VecStr spine_get_animation_names @ getAnimations(string spineStr);
 };
 
+/// An implementation of the 'Playable' record using the DragonBones animation system.
 object class DragonBone : public IPlayable
 {
+	/// whether to show debug graphics.
 	boolean bool showDebug;
+	/// whether hit testing is enabled.
 	boolean bool hitTestEnabled;
+	/// Checks if a point is inside the boundaries of the instance and returns the name of the bone or slot at that point, or `None` if no bone or slot is found.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the point to check.
+	/// * `y` - The y-coordinate of the point to check.
+	///
+	/// # Returns
+	///
+	/// * `String` - The name of the bone or slot at the point.
 	string containsPoint(float x, float y);
+	/// Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
+	///
+	/// # Arguments
+	///
+	/// * `x1` - The x-coordinate of the start point of the line segment.
+	/// * `y1` - The y-coordinate of the start point of the line segment.
+	/// * `x2` - The x-coordinate of the end point of the line segment.
+	/// * `y2` - The y-coordinate of the end point of the line segment.
+	///
+	/// # Returns
+	///
+	/// * `String` - The name of the bone or slot at the intersection point.
 	string intersectsSegment(float x1, float y1, float x2, float y2);
+	/// Creates a new instance of 'DragonBone' using the specified bone file and atlas file. This function only loads the first armature.
+	///
+	/// # Arguments
+	///
+	/// * `bone_file` - The filename of the bone file to load.
+	/// * `atlas_file` - The filename of the atlas file to load.
+	///
+	/// # Returns
+	///
+	/// * A new instance of 'DragonBone' with the specified bone file and atlas file. Returns `None` if the bone file or atlas file is not found.
 	static DragonBone* create @ createFiles(string boneFile, string atlasFile);
+	/// Creates a new instance of 'DragonBone' using the specified bone string.
+	///
+	/// # Arguments
+	///
+	/// * `bone_str` - The DragonBone file string for the new instance. A DragonBone file string can be a file path with the target file extension like "DragonBone/item" or file paths with all the related files like "DragonBone/item_ske.json|DragonBone/item_tex.json". An armature name can be added following a separator of ';'. like "DragonBone/item;mainArmature" or "DragonBone/item_ske.json|DragonBone/item_tex.json;mainArmature".
+	///
+	/// # Returns
+	///
+	/// * A new instance of 'DragonBone'. Returns `None` if the bone file or atlas file is not found.
 	static DragonBone* create(string boneStr);
+	/// Returns a list of available looks for the specified DragonBone file string.
+	///
+	/// # Arguments
+	///
+	/// * `bone_str` - The DragonBone file string to get the looks for.
+	///
+	/// # Returns
+	///
+	/// * A `Vec<String>` representing the available looks.
 	static outside VecStr dragon_bone_get_look_names @ getLooks(string boneStr);
+	/// Returns a list of available animations for the specified DragonBone file string.
+	///
+	/// # Arguments
+	///
+	/// * `bone_str` - The DragonBone file string to get the animations for.
+	///
+	/// # Returns
+	///
+	/// * A `Vec<String>` representing the available animations.
 	static outside VecStr dragon_bone_get_animation_names @ getAnimations(string boneStr);
 };
 

@@ -25,6 +25,7 @@ extern "C" {
 use crate::dora::IObject;
 use crate::dora::INode;
 impl INode for Grid { }
+/// A struct used to render a texture as a grid of sprites, where each sprite can be positioned, colored, and have its UV coordinates manipulated.
 pub struct Grid { raw: i64 }
 crate::dora_object!(Grid);
 impl Grid {
@@ -36,66 +37,168 @@ impl Grid {
 			}
 		})
 	}
+	/// Gets the number of columns in the grid. And there are `gridX + 1` vertices horizontally for rendering.
 	pub fn get_grid_x(&self) -> i32 {
 		return unsafe { grid_get_grid_x(self.raw()) };
 	}
+	/// Gets the number of rows in the grid. And there are `gridY + 1` vertices vertically for rendering.
 	pub fn get_grid_y(&self) -> i32 {
 		return unsafe { grid_get_grid_y(self.raw()) };
 	}
+	/// Sets whether depth writes are enabled.
 	pub fn set_depth_write(&mut self, var: bool) {
 		unsafe { grid_set_depth_write(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether depth writes are enabled.
 	pub fn is_depth_write(&self) -> bool {
 		return unsafe { grid_is_depth_write(self.raw()) != 0 };
 	}
+	/// Sets the blending function used for the grid.
 	pub fn set_blend_func(&mut self, var: u64) {
 		unsafe { grid_set_blend_func(self.raw(), var as i64) };
 	}
+	/// Gets the blending function used for the grid.
 	pub fn get_blend_func(&self) -> u64 {
 		return unsafe { grid_get_blend_func(self.raw()) as u64 };
 	}
+	/// Sets the sprite effect applied to the grid.
+	/// Default is `SpriteEffect::new("builtin:vs_sprite", "builtin:fs_sprite")`.
 	pub fn set_effect(&mut self, var: &crate::dora::SpriteEffect) {
 		unsafe { grid_set_effect(self.raw(), var.raw()) };
 	}
+	/// Gets the sprite effect applied to the grid.
+	/// Default is `SpriteEffect::new("builtin:vs_sprite", "builtin:fs_sprite")`.
 	pub fn get_effect(&self) -> crate::dora::SpriteEffect {
 		return unsafe { crate::dora::SpriteEffect::from(grid_get_effect(self.raw())).unwrap() };
 	}
+	/// Sets the rectangle within the texture that is used for the grid.
 	pub fn set_texture_rect(&mut self, var: &crate::dora::Rect) {
 		unsafe { grid_set_texture_rect(self.raw(), var.raw()) };
 	}
+	/// Gets the rectangle within the texture that is used for the grid.
 	pub fn get_texture_rect(&self) -> crate::dora::Rect {
 		return unsafe { crate::dora::Rect::from(grid_get_texture_rect(self.raw())) };
 	}
+	/// Sets the texture used for the grid.
 	pub fn set_texture(&mut self, var: &crate::dora::Texture2D) {
 		unsafe { grid_set_texture(self.raw(), var.raw()) };
 	}
+	/// Gets the texture used for the grid.
 	pub fn get_texture(&self) -> Option<crate::dora::Texture2D> {
 		return unsafe { crate::dora::Texture2D::from(grid_get_texture(self.raw())) };
 	}
+	/// Sets the position of a vertex in the grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the vertex in the grid.
+	/// * `y` - The y-coordinate of the vertex in the grid.
+	/// * `pos` - The new position of the vertex, represented by a Vec2 object.
+	/// * `z` - The new z-coordinate of the vertex.
 	pub fn set_pos(&mut self, x: i32, y: i32, pos: &crate::dora::Vec2, z: f32) {
 		unsafe { grid_set_pos(self.raw(), x, y, pos.into_i64(), z); }
 	}
+	/// Gets the position of a vertex in the grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the vertex in the grid.
+	/// * `y` - The y-coordinate of the vertex in the grid.
+	///
+	/// # Returns
+	///
+	/// * `Vec2` - The current position of the vertex.
 	pub fn get_pos(&self, x: i32, y: i32) -> crate::dora::Vec2 {
 		unsafe { return crate::dora::Vec2::from(grid_get_pos(self.raw(), x, y)); }
 	}
+	/// Sets the color of a vertex in the grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the vertex in the grid.
+	/// * `y` - The y-coordinate of the vertex in the grid.
+	/// * `color` - The new color of the vertex, represented by a Color object.
 	pub fn set_color(&mut self, x: i32, y: i32, color: &crate::dora::Color) {
 		unsafe { grid_set_color(self.raw(), x, y, color.to_argb() as i32); }
 	}
+	/// Gets the color of a vertex in the grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the vertex in the grid.
+	/// * `y` - The y-coordinate of the vertex in the grid.
+	///
+	/// # Returns
+	///
+	/// * `Color` - The current color of the vertex.
 	pub fn get_color(&self, x: i32, y: i32) -> crate::dora::Color {
 		unsafe { return crate::dora::Color::from(grid_get_color(self.raw(), x, y)); }
 	}
+	/// Moves the UV coordinates of a vertex in the grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the vertex in the grid.
+	/// * `y` - The y-coordinate of the vertex in the grid.
+	/// * `offset` - The offset by which to move the UV coordinates, represented by a Vec2 object.
 	pub fn move_uv(&mut self, x: i32, y: i32, offset: &crate::dora::Vec2) {
 		unsafe { grid_move_uv(self.raw(), x, y, offset.into_i64()); }
 	}
+	/// Creates a new Grid with the specified dimensions and grid size.
+	///
+	/// # Arguments
+	///
+	/// * `width` - The width of the grid.
+	/// * `height` - The height of the grid.
+	/// * `grid_x` - The number of columns in the grid.
+	/// * `grid_y` - The number of rows in the grid.
+	///
+	/// # Returns
+	///
+	/// * `Grid` - The new Grid instance.
 	pub fn new(width: f32, height: f32, grid_x: i32, grid_y: i32) -> Grid {
 		unsafe { return Grid { raw: grid_new(width, height, grid_x, grid_y) }; }
 	}
+	/// Creates a new Grid with the specified texture, texture rectangle, and grid size.
+	///
+	/// # Arguments
+	///
+	/// * `texture` - The texture to use for the grid.
+	/// * `texture_rect` - The rectangle within the texture to use for the grid.
+	/// * `grid_x` - The number of columns in the grid.
+	/// * `grid_y` - The number of rows in the grid.
+	///
+	/// # Returns
+	///
+	/// * `Grid` - The new Grid instance.
 	pub fn with_texture_rect(texture: &crate::dora::Texture2D, texture_rect: &crate::dora::Rect, grid_x: i32, grid_y: i32) -> Grid {
 		unsafe { return Grid { raw: grid_with_texture_rect(texture.raw(), texture_rect.raw(), grid_x, grid_y) }; }
 	}
+	/// Creates a new Grid with the specified texture, texture rectangle, and grid size.
+	///
+	/// # Arguments
+	///
+	/// * `texture` - The texture to use for the grid.
+	/// * `grid_x` - The number of columns in the grid.
+	/// * `grid_y` - The number of rows in the grid.
+	///
+	/// # Returns
+	///
+	/// * `Grid` - The new Grid instance.
 	pub fn with_texture(texture: &crate::dora::Texture2D, grid_x: i32, grid_y: i32) -> Grid {
 		unsafe { return Grid { raw: grid_with_texture(texture.raw(), grid_x, grid_y) }; }
 	}
+	/// Creates a new Grid with the specified clip string and grid size.
+	///
+	/// # Arguments
+	///
+	/// * `clip_str` - The clip string to use for the grid. Can be "Image/file.png" and "Image/items.clip|itemA".
+	/// * `grid_x` - The number of columns in the grid.
+	/// * `grid_y` - The number of rows in the grid.
+	///
+	/// # Returns
+	///
+	/// * `Grid` - The new Grid instance.
 	pub fn with_file(clip_str: &str, grid_x: i32, grid_y: i32) -> Option<Grid> {
 		unsafe { return Grid::from(grid_with_file(crate::dora::from_string(clip_str), grid_x, grid_y)); }
 	}

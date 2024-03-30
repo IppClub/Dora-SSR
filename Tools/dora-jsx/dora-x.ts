@@ -401,6 +401,7 @@ let getLabel: (this: void, enode: React.Element) => dora.Label.Type | null;
 			case 'alphaRef': cnode.alphaRef = v; return true;
 			case 'textWidth': cnode.textWidth = v; return true;
 			case 'lineGap': cnode.lineGap = v; return true;
+			case 'spacing': cnode.spacing = v; return true;
 			case 'blendFunc': cnode.blendFunc = v; return true;
 			case 'depthWrite': cnode.depthWrite = v; return true;
 			case 'batched': cnode.batched = v; return true;
@@ -1186,6 +1187,7 @@ const elementMap: ElementMap = {
 			addChild(nodeStack, node, enode);
 		}
 	},
+	'custom-element': () => {},
 }
 function visitNode(this: void, nodeStack: dora.Node.Type[], node: React.Element | React.Element[], parent?: React.Element) {
 	if (type(node) !== "table") {

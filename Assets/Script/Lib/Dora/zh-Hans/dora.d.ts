@@ -4331,8 +4331,9 @@ class Grid extends Node {
 	 * @param x 顶点在网格中的x坐标。
 	 * @param y 顶点在网格中的y坐标。
 	 * @param pos 顶点的新位置。
+	 * @param z [可选] 顶点的新z坐标（默认为0）。
 	 */
-	setPos(x: number, y: number, pos: Vec2): void;
+	setPos(x: number, y: number, pos: Vec2, z?: number): void;
 
 	/**
 	 * 获取网格中顶点的位置。
@@ -4377,12 +4378,13 @@ export namespace Grid {
 interface GridClass {
 	/**
 	 * 使用指定的纹理矩形和网格大小创建新的Grid。
-	 * @param textureRect 用于网格的纹理内的矩形。
+	 * @param width 网格的宽度。
+	 * @param height 网格的高度。
 	 * @param gridX 网格中的列数。
 	 * @param gridY 网格中的行数。
 	 * @returns 新的Grid实例。
 	 */
-	(this: void, textureRect: Rect, gridX: number, gridY: number): Grid;
+	(this: void, width: number, height: number, gridX: number, gridY: number): Grid;
 
 	/**
 	 * 使用指定的纹理，纹理矩形和网格大小创建新的Grid。
@@ -5760,6 +5762,11 @@ class Label extends Node {
 	 * 文本行之间的间距（以像素为单位）。
 	 */
 	lineGap: number;
+
+	/**
+	 * 文本字符之间的间距（以像素为单位）。
+	 */
+	spacing: number;
 
 	/**
 	 * 要渲染的文本。

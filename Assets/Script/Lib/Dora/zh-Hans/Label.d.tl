@@ -28,6 +28,9 @@ local record Label
 	-- 文本行之间的像素间隔。
 	lineGap: number
 
+	-- 文本行之间的像素间隔。
+	spacing: number
+
 	-- 要渲染的文本。
 	text: string
 

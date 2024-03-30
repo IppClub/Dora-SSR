@@ -8,6 +8,7 @@ extern "C" {
 use crate::dora::IObject;
 use crate::dora::INode;
 impl INode for Particle { }
+/// Represents a particle system node that emits and animates particles.
 pub struct Particle { raw: i64 }
 crate::dora_object!(Particle);
 impl Particle {
@@ -19,15 +20,27 @@ impl Particle {
 			}
 		})
 	}
+	/// Gets whether the particle system is active.
 	pub fn is_active(&self) -> bool {
 		return unsafe { particlenode_is_active(self.raw()) != 0 };
 	}
+	/// Starts emitting particles.
 	pub fn start(&mut self) {
 		unsafe { particlenode_start(self.raw()); }
 	}
+	/// Stops emitting particles and wait for all active particles to end their lives.
 	pub fn stop(&mut self) {
 		unsafe { particlenode_stop(self.raw()); }
 	}
+	/// Creates a new Particle object from a particle system file.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The file path of the particle system file.
+	///
+	/// # Returns
+	///
+	/// * A new `Particle` object.
 	pub fn new(filename: &str) -> Option<Particle> {
 		unsafe { return Particle::from(particlenode_new(crate::dora::from_string(filename))); }
 	}

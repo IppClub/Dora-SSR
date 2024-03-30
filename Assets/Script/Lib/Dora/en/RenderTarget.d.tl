@@ -4,7 +4,7 @@ local Camera = require("Camera").Type
 local Texture2D = require("Texture2D").Type
 local Color = require("Color").Type
 
--- A RenderTarget is a node with buffer that allows you to render a Node into a texture.
+-- A RenderTarget is a buffer that allows you to render a Node into a texture.
 local record RenderTarget
 
 	-- Inherits from `Object`.
@@ -23,6 +23,7 @@ local record RenderTarget
 	camera: Camera
 
 	-- Renders a node to the target without replacing its previous contents.
+	-- @param target (Node) The node to be rendered onto the render target.
 	render: function(self: RenderTarget, target: Node)
 
 	-- Clears the previous color, depth and stencil values on the render target.

@@ -28,6 +28,9 @@ local record Label
 	-- The gap in pixels between lines of text.
 	lineGap: number
 
+	-- The gap in pixels between characters.
+	spacing: number
+
 	-- The text to be rendered.
 	text: string
 

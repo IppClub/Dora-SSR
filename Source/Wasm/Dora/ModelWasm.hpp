@@ -52,6 +52,9 @@ static int32_t model_each_node(int64_t self, int32_t func, int64_t stack) {
 static int64_t model_new(int64_t filename) {
 	return from_object(Model::create(*str_from(filename)));
 }
+static int64_t model_dummy() {
+	return from_object(Model::dummy());
+}
 static int64_t model_get_clip_file(int64_t filename) {
 	return str_retain(model_get_clip_filename(*str_from(filename)));
 }
@@ -77,6 +80,7 @@ static void linkModel(wasm3::module3& mod) {
 	mod.link_optional("*", "model_get_node_by_name", model_get_node_by_name);
 	mod.link_optional("*", "model_each_node", model_each_node);
 	mod.link_optional("*", "model_new", model_new);
+	mod.link_optional("*", "model_dummy", model_dummy);
 	mod.link_optional("*", "model_get_clip_file", model_get_clip_file);
 	mod.link_optional("*", "model_get_looks", model_get_looks);
 	mod.link_optional("*", "model_get_animations", model_get_animations);
