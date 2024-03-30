@@ -493,7 +493,7 @@ basicTypes =
 
 lastPos = 1
 
-Newline = Cmt P"\n", (str, pos)->
+Newline = Cmt P"\r"^-1 * P"\n", (str, pos)->
 	lastPos = pos
 	true
 
@@ -515,6 +515,10 @@ MethodLabel = C(P"static")^-1 * White * C(P"outside")^-1 * White * C(P"optional"
 
 Type = C (Indent * White * P"::" * White)^0 * Indent * (White * P"*")^-1
 
+Doc = C P"///" * (-Newline * P(1))^0
+
+Docs = White * Ct (Doc * White)^0
+
 mark = (name) -> (...) -> {name, ...}
 
 Param = P {
@@ -523,11 +527,10 @@ Param = P {
 	Func: Ct P"function<" * White * Type * White * Ct P"(" * White * (V"Param" * (White * P"," * White * V"Param")^0 * White)^-1 * P")" * White * P">"
 }
 
-Method = Ct(White * MethodLabel) * White * Type * White * (C(P"operator==") + Name) * White * (P"@" * White * Name + Cc false) * White * Ct(P"(" * White * (Param * (White * P"," * White * Param)^0 * White)^-1 * P")") * White * C(P"const")^-1 * White * P";" / mark"method"
+Method = Docs * Ct(White * MethodLabel) * White * Type * White * (C(P"operator==") + Name) * White * (P"@" * White * Name + Cc false) * White * Ct(P"(" * White * (Param * (White * P"," * White * Param)^0 * White)^-1 * P")") * White * C(P"const")^-1 * White * P";" / mark"method"
 
-Field = Ct(White * FieldLabel) * White * Type * White * Name * White * (P"@" * White * Name + Cc false) * White * P";" / mark"field"
-
-Class = White * Ct Ct(White * ClassLabel) * White * (P"class" + P"struct") * White * Ct(Name * White * (P"@" * White * Name + Cc false) * White * (P":" * White * (P"public")^-1 * White * ClassName * White + Cc false)) *
+Field = Docs * Ct(White * FieldLabel) * White * Type * White * Name * White * (P"@" * White * Name + Cc false) * White * P";" / mark"field"
+Class = White * Ct Docs * Ct(White * ClassLabel) * White * (P"class" + P"struct") * White * Ct(Name * White * (P"@" * White * Name + Cc false) * White * (P":" * White * (P"public")^-1 * White * ClassName * White + Cc false)) *
 	P"{" *
 		Ct (White * (Method + Field))^0 * White *
 	P"}" * White * P";"
@@ -610,7 +613,7 @@ else
 		elseif not cls
 			table.remove moduleScopes, #moduleScopes
 			continue
-		{_, clsNames} = cls
+		[_, _, clsNames] = cls
 		{clsName, clsNewName} = clsNames
 		clsNewName or= clsName
 		if #moduleScopes > 0
@@ -638,8 +641,8 @@ else
 			table.concat(moduleScopes, "::") .. "::"
 		else
 			""
-		{clsLabels, clsNames, clsBody} = cls
-		{clsName, clsNewName, clsParent} = clsNames
+		[clsDocs, clsLabels, clsNames, clsBody] = cls
+		[clsName, clsNewName, clsParent] = clsNames
 		if clsParent
 			clsParent = nameMap[clsParent] or clsParent
 		clsNewName or= clsName
@@ -682,6 +685,8 @@ else
 					rustBinding[] = "use crate::dora::#{inherit};"
 					rustBinding[] = "impl #{inherit} for #{clsNewName} { }"
 		cppLink[] = "static void link#{table.concat moduleScopes}#{cppModuleName}(wasm3::module3& mod) {"
+		if #clsDocs > 0
+			rustBinding[] = table.concat clsDocs, '\n'
 		rustBinding[] = if isTrait
 			if isObject
 				rustBinding[] = "pub struct #{clsNewName} { raw: i64 }
@@ -733,10 +738,10 @@ impl I#{clsNewName} for #{clsNewName} { }"
 	pub fn raw(&self) -> i64 { self.raw }"
 		for clsItem in *clsBody
 			pub = isTrait and "" or "pub "
-			{itemType} = clsItem
+			[itemType,] = clsItem
 			switch itemType
 				when "field"
-					{_, labels, dataType, name, newName} = clsItem
+					[_, docs, labels, dataType, name, newName] = clsItem
 					funcName = name\sub(1, 1)\lower! .. name\sub 2
 					funcName = table.concat [sub\lower! for sub in funcName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
 					funcNewName = newName or name
@@ -773,9 +778,12 @@ impl I#{clsNewName} for #{clsNewName} { }"
 						if not isReadonly and not interfaces[rustName]
 							objectUsed = nil
 					if rustType
-						{rt, cast, castFrom, rtTypeIn, rtTypeOut, rtCast, rtCastFrom} = rustType
+						[rt, cast, castFrom, rtTypeIn, rtTypeOut, rtCast, rtCastFrom] = rustType
 						cppType = cppTypes[rt]
 						if not isReadonly
+							if #docs > 0
+								text = table.concat docs, '\n\t'
+								rustBinding[] = '\t' .. text\sub(1, 4) .. 'Sets' .. text\sub(4)
 							setFunc = switch fieldType
 								when "primitive"
 									"#{name} = #{cast 'var'}"
@@ -803,6 +811,9 @@ impl I#{clsNewName} for #{clsNewName} { }"
 								slfDecl = isStatic and "" or "&mut self, "
 								slf = isStatic and "" or "self.raw(), "
 								"\t#{pub}fn #{rustSetterName}(#{slfDecl}var: #{rtTypeIn or rt}) {\n\t\tunsafe { #{cppSetterName}(#{slf}#{rtCast and rtCast('var') or 'var'}) };\n\t}"
+						if #docs > 0
+							text = table.concat docs, '\n\t'
+							rustBinding[] = '\t' .. text\sub(1, 4) .. 'Gets' .. text\sub(4)
 						getFunc, prefix = switch fieldType
 							when "primitive"
 								"#{name}", "get"
@@ -840,7 +851,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 						error "\"#{dataType}\" is not supported."
 				when "method"
 					funcCount += 1
-					{_, labels, dataType, name, newName, args, constFlag} = clsItem
+					[_, docs, labels, dataType, name, newName, args, constFlag] = clsItem
 					funcNewName = newName or name
 					funcName = name\sub(1, 1)\lower! .. name\sub 2
 					funcName = table.concat [sub\lower! for sub in funcName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
@@ -877,13 +888,13 @@ impl I#{clsNewName} for #{clsNewName} { }"
 						rustName = nameMap[dataTypeName] or dataTypeName
 						rustType = getObjectType dataTypeName, rustName, isCreate, isOptional
 					if rustType
-						{rt, cast, castFrom, _, rtTypeOut, _, rtCastFrom} = rustType
+						[rt, cast, castFrom, _, rtTypeOut, _, rtCastFrom] = rustType
 						if isOptional and not rtTypeOut\match "^Option<"
 							rtTypeOut = "Option<#{rtTypeOut}>"
 						cppType = cppTypes[rt] ?? "void"
 						funcArgCount = -1
 						argItems = for arg in *args
-							{argKind, argType, argName} = arg
+							[argKind, argType, argName] = arg
 							argName = toCamelCase argName
 							switch argKind
 								when "variable"
@@ -894,25 +905,25 @@ impl I#{clsNewName} for #{clsNewName} { }"
 										rustTypeA = getObjectType argTypeName, rustName
 										objectUsed = nil unless interfaces[rustName]
 									if rustTypeA
-										{rtA, castA, _, rtTypeInA, _, rtCastA} = rustTypeA
+										[rtA, castA, _, rtTypeInA, _, rtCastA] = rustTypeA
 										cppTypeA = cppTypes[rtA]
-										{
+										[
 											"#{cppTypeA} #{argName}"
 											(argType == cppTypeA and argName or castA argName)
 											"#{argName}: #{rtA}"
 											"#{argName}: #{rtTypeInA or rtA}"
 											"#{rtCastA and rtCastA(argName) or argName}"
-										}
+										]
 									else
 										error "\"#{argType}\" is not supported."
 								when "callback"
 									funcArgCount += 1
 									fnArgId = funcArgCount == 0 and '' or tostring funcArgCount
-									{_, func, fname} = arg
+									[_, func, fname] = arg
 									fname = toCamelCase fname
-									{freturnType, fargs} = func
+									[freturnType, fargs] = func
 									items = for farg in *fargs
-										{fargKind, fargType, fargName} = farg
+										[fargKind, fargType, fargName] = farg
 										if fargKind ~= "variable"
 											error "\"#{fargKind}\" is not supported in function argument."
 										frustType = basicTypes[fargType]
@@ -925,42 +936,42 @@ impl I#{clsNewName} for #{clsNewName} { }"
 											fcppType = callbackDefs[fargType] or fargType
 											switch fargType\match "[^ \t*]+"
 												when "Event"
-													{
+													[
 														"Event* #{fargName}"
 														"\t\t#{fargName}->pushArgsToWasm(args#{fnArgId});"
 														"&mut crate::dora::CallStack"
 														"&mut stack#{fnArgId}"
-													}
+													]
 												when "Platformer::Behavior::Blackboard", "Platformer::UnitAction"
-													{
+													[
 														"#{fcppType}* #{fargName}"
 														"\t\targs#{fnArgId}->push(r_cast<int64_t>(#{fargName}));"
 														frtTypeIn
 														fpopArg fnArgId
-													}
+													]
 												when "DBRecord"
-													{
+													[
 														"#{fcppType}& #{fargName}"
 														"\t\targs#{fnArgId}->push(r_cast<int64_t>(new DBRecord{std::move(#{fargName})}));"
 														frtTypeIn
 														fpopArg fnArgId
-													}
+													]
 												when "MLQState", "MLQAction"
-													{
+													[
 														"#{fcppType} #{fargName}"
 														"\t\targs#{fnArgId}->push(s_cast<int64_t>(#{fargName}));"
 														frtTypeIn
 														fpopArg fnArgId
-													}
+													]
 												when nil
 													error "\"#{fargType}\" is not supported."
 												else
-													{
+													[
 														"#{fcppType} #{fargName}"
 														"\t\targs#{fnArgId}->push(#{fargName});"
 														frtTypeIn
 														fpopArg fnArgId
-													}
+													]
 									argPassed = #items > 0
 									cppArgDef = table.concat [item[1] for item in *items], ", "
 									cppArgPass = table.concat [item[2] for item in *items], "\n"
@@ -1053,7 +1064,11 @@ impl I#{clsNewName} for #{clsNewName} { }"
 						rustBinding[] = if isSingleton
 							rtOut = rtTypeOut or rt
 							item = "#{cppFuncName}(#{argRtPass})"
-							"\t#{pub}fn #{rustFuncName}(#{argRtInDefs})#{rtOut and ' -> ' .. rtOut or ''} {\n#{argRtPrepare}\t\tunsafe { #{prefix}#{rtCastFrom and rtCastFrom(item, isOptional) or item}; }\n\t}"
+							docText = if #docs > 0
+								'\t' .. table.concat(docs, '\n\t') .. '\n'
+							else
+								''
+							"#{docText}\t#{pub}fn #{rustFuncName}(#{argRtInDefs})#{rtOut and ' -> ' .. rtOut or ''} {\n#{argRtPrepare}\t\tunsafe { #{prefix}#{rtCastFrom and rtCastFrom(item, isOptional) or item}; }\n\t}"
 						else
 							rtOut = rtTypeOut or rt
 							slfParam = isConst and "&self" or "&mut self"
@@ -1063,12 +1078,21 @@ impl I#{clsNewName} for #{clsNewName} { }"
 							if slf ~= "" then argRtPass = slf .. (argRtPass ~= "" and ", " or "") .. argRtPass
 							item = "#{cppFuncName}(#{argRtPass})"
 							if funcNewName == "equals"
+								docText = if #docs > 0
+									'\t' .. table.concat docs, '\n\t'
+								else
+									''
 								table.insert rustBinding, objectUsed and objectUsed + 1 or 2, "impl PartialEq for Rect {
+#{docText}
 	fn eq(&self, other: &Self) -> bool {\n#{argRtPrepare}\t\tunsafe { #{prefix}#{rtCastFrom and rtCastFrom(item, isOptional) or item} }\n\t}
 }"
 								nil
 							else
-								"\t#{pub}fn #{rustFuncName}(#{argRtInDefs})#{rtOut and ' -> ' .. rtOut or ''} {\n#{argRtPrepare}\t\tunsafe { #{prefix}#{rtCastFrom and rtCastFrom(item, isOptional) or item}; }\n\t}"
+								docText = if #docs > 0
+									'\t' .. table.concat(docs, '\n\t') .. '\n'
+								else
+									''
+								"#{docText}\t#{pub}fn #{rustFuncName}(#{argRtInDefs})#{rtOut and ' -> ' .. rtOut or ''} {\n#{argRtPrepare}\t\tunsafe { #{prefix}#{rtCastFrom and rtCastFrom(item, isOptional) or item}; }\n\t}"
 					else
 						error "\"#{dataType}\" is not supported."
 		if objectUsed

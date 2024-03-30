@@ -426,6 +426,12 @@ local record Node
 		-- @param y (integer) The y-index of the vertex in the grabber grid.
 		-- @param color (Color) The new color of the vertex.
 		setColor: function(self: Grabber, x: integer, y: integer, color: Color)
+
+		-- Sets the UV coordinates of a vertex in the grabber grid.
+		-- @param x (integer) The x-index of the vertex in the grabber grid.
+		-- @param y (integer) The y-index of the vertex in the grabber grid.
+		-- @param offset (Vec2) The new UV coordinates of the vertex.
+		moveUV: function(self: Grabber, x: integer, y: integer, offset: Vec2)
 	end
 
 	-- Creates or removes a texture grabber for the specified node.

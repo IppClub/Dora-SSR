@@ -372,6 +372,7 @@ private:
 
 class Path {
 public:
+	static std::string concatVector(const std::vector<std::string>& paths);
 	static std::string concat(const std::list<Slice>& paths);
 	static std::string getExt(String path);
 	static std::string getPath(String path);

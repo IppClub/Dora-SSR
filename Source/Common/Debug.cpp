@@ -35,7 +35,7 @@ void LogError(const std::string& str) {
 #else
 	std::cerr << str;
 #endif // BX_PLATFORM_ANDROID
-	if (!Singleton<Dora::Application>::isDisposed() && SharedApplication.isLogicRunning()) {
+	if (Singleton<Dora::Application>::isInitialized() && SharedApplication.isLogicRunning()) {
 		SharedApplication.invokeInLogic([str]() {
 			LogHandler(str);
 		});
@@ -68,7 +68,7 @@ void LogPrintInThread(const std::string& str) {
 }
 
 bool IsInLua() {
-	return !Dora::Singleton<Dora::LuaEngine>::isDisposed() && SharedLuaEngine.isInLua();
+	return Dora::Singleton<Dora::LuaEngine>::isInitialized() && SharedLuaEngine.isInLua();
 }
 
 NS_DORA_END

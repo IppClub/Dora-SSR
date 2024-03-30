@@ -1,357 +1,1440 @@
+/// An array data structure that supports various operations.
 object class Array
 {
+	/// the number of items in the array.
 	readonly common size_t count;
+	/// whether the array is empty or not.
 	readonly boolean bool empty;
+	/// Adds all items from another array to the end of this array.
+	///
+	/// # Arguments
+	///
+	/// * `other` - Another array object.
 	void addRange(Array* other);
+	/// Removes all items from this array that are also in another array.
+	///
+	/// # Arguments
+	///
+	/// * `other` - Another array object.
 	void removeFrom(Array* other);
+	/// Removes all items from the array.
 	void clear();
+	/// Reverses the order of the items in the array.
 	void reverse();
+	/// Removes any empty slots from the end of the array.
+	/// This method is used to release the unused memory this array holds.
 	void shrink();
+	/// Swaps the items at two given indices.
+	///
+	/// # Arguments
+	///
+	/// * `index_a` - The first index.
+	/// * `index_b` - The second index.
 	void swap(int indexA, int indexB);
+	/// Removes the item at the given index.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index to remove.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if an item was removed, `false` otherwise.
 	bool removeAt(int index);
+	/// Removes the item at the given index without preserving the order of the array.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index to remove.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if an item was removed, `false` otherwise.
 	bool fastRemoveAt(int index);
+	/// Creates a new array object
 	static Array* create();
 };
 
+/// A struct for storing pairs of string keys and various values.
 object class Dictionary
 {
+	/// the number of items in the dictionary.
 	readonly common int count;
+	/// the keys of the items in the dictionary.
 	readonly common VecStr keys;
+	/// Removes all the items from the dictionary.
 	void clear();
+	/// Creates instance of the "Dictionary".
 	static Dictionary* create();
 };
 
+/// A rectangle object with a left-bottom origin position and a size.
 value struct Rect
 {
+	/// the position of the origin of the rectangle.
 	Vec2 origin;
+	/// the dimensions of the rectangle.
 	Size size;
+	/// the x-coordinate of the origin of the rectangle.
 	common float x;
+	/// the y-coordinate of the origin of the rectangle.
 	common float y;
+	/// the width of the rectangle.
 	common float width;
+	/// the height of the rectangle.
 	common float height;
+	/// the left edge in x-axis of the rectangle.
 	common float left;
+	/// the right edge in x-axis of the rectangle.
 	common float right;
+	/// the x-coordinate of the center of the rectangle.
 	common float centerX;
+	/// the y-coordinate of the center of the rectangle.
 	common float centerY;
+	/// the bottom edge in y-axis of the rectangle.
 	common float bottom;
+	/// the top edge in y-axis of the rectangle.
 	common float top;
+	/// the lower bound (left-bottom) of the rectangle.
 	common Vec2 lowerBound;
+	/// the upper bound (right-top) of the rectangle.
 	common Vec2 upperBound;
+	/// Sets the properties of the rectangle.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the origin of the rectangle.
+	/// * `y` - The y-coordinate of the origin of the rectangle.
+	/// * `width` - The width of the rectangle.
+	/// * `height` - The height of the rectangle.
 	void set(float x, float y, float width, float height);
+	/// Checks if a point is inside the rectangle.
+	///
+	/// # Arguments
+	///
+	/// * `point` - The point to check, represented by a Vec2 object.
+	///
+	/// # Returns
+	///
+	/// * `bool` - Whether or not the point is inside the rectangle.
 	bool containsPoint(Vec2 point) const;
+	/// Checks if the rectangle intersects with another rectangle.
+	///
+	/// # Arguments
+	///
+	/// * `rect` - The other rectangle to check for intersection with, represented by a Rect object.
+	///
+	/// # Returns
+	///
+	/// * `bool` - Whether or not the rectangles intersect.
 	bool intersectsRect(Rect rect) const;
+	/// Checks if two rectangles are equal.
+	///
+	/// # Arguments
+	///
+	/// * `other` - The other rectangle to compare to, represented by a Rect object.
+	///
+	/// # Returns
+	///
+	/// * `bool` - Whether or not the two rectangles are equal.
 	bool operator== @ equals(Rect other) const;
+	/// Creates a new rectangle object using a Vec2 object for the origin and a Size object for the size.
+	///
+	/// # Arguments
+	///
+	/// * `origin` - The origin of the rectangle, represented by a Vec2 object.
+	/// * `size` - The size of the rectangle, represented by a Size object.
+	///
+	/// # Returns
+	///
+	/// * `Rect` - A new rectangle object.
 	static Rect create(Vec2 origin, Size size);
+	/// Gets a rectangle object with all properties set to 0.
 	static outside Rect rect_get_zero @ zero();
 };
 
+/// A struct representing an application.
 singleton class Application @ App
 {
+	/// the current passed frame number.
 	readonly common uint32_t frame;
+	/// the size of the main frame buffer texture used for rendering.
 	readonly common Size bufferSize;
+	/// the logic visual size of the screen.
+	/// The visual size only changes when application window size changes.
+	/// And it won't be affacted by the view buffer scaling factor.
 	readonly common Size visualSize;
+	/// the ratio of the pixel density displayed by the device
+	/// Can be calculated as the size of the rendering buffer divided by the size of the application window.
 	readonly common float devicePixelRatio;
+	/// the platform the game engine is running on.
 	readonly common string platform;
+	/// the version string of the game engine.
+	/// Should be in format of "v0.0.0".
 	readonly common string version;
+	/// the dependencies of the game engine.
 	readonly common string deps;
+	/// the time in seconds since the last frame update.
 	readonly common double deltaTime;
+	/// the elapsed time since current frame was started, in seconds.
 	readonly common double elapsedTime;
+	/// the total time the game engine has been running until last frame ended, in seconds.
+	/// Should be a contant number when invoked in a same frame for multiple times.
 	readonly common double totalTime;
+	/// the total time the game engine has been running until this field being accessed, in seconds.
+	/// Should be a increasing number when invoked in a same frame for multiple times.
 	readonly common double runningTime;
+	/// a random number generated by a random number engine based on Mersenne Twister algorithm.
+	/// So that the random number generated by a same seed should be consistent on every platform.
 	readonly common uint32_t rand;
+	/// the maximum valid frames per second the game engine is allowed to run at.
+	/// The max FPS is being inferred by the device screen max refresh rate.
 	readonly common uint32_t maxFPS @ max_fps;
+	/// whether the game engine is running in debug mode.
 	readonly boolean bool debugging;
+	/// the system locale string, in format like: `zh-Hans`, `en`.
 	common string locale;
+	/// the theme color for Dora SSR.
 	common Color themeColor;
+	/// the random number seed.
 	common uint32_t seed;
+	/// the target frames per second the game engine is supposed to run at.
+	/// Only works when `fpsLimited` is set to true.
 	common uint32_t targetFPS @ target_fps;
+	/// the application window size.
+	/// May differ from visual size due to the different DPIs of display devices.
+	/// Set `winSize` to `Size.zero` to toggle application window into full screen mode,
+	/// It is not available to set this property on platform Android and iOS.
 	common Size winSize;
+	/// the application window position.
+	/// It is not available to set this property on platform Android and iOS.
 	common Vec2 winPosition;
+	/// whether the game engine is limiting the frames per second.
+	/// Set `fpsLimited` to true, will make engine run in a busy loop to track the  precise frame time to switch to the next frame. And this behavior can lead to 100% CPU usage. This is usually common practice on Windows PCs for better CPU usage occupation. But it also results in extra heat and power consumption.
 	boolean bool fPSLimited @ fpsLimited;
+	/// whether the game engine is currently idled.
+	/// Set `idled` to true, will make game logic thread use a sleep time and going idled for next frame to come. Due to the imprecision in sleep time. This idled state may cause game engine over slept for a few frames to lost.
+	/// `idled` state can reduce some CPU usage.
 	boolean bool idled;
+	/// Shuts down the game engine.
+	/// It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 	void shutdown();
 };
 
+/// A struct representing an entity for an ECS game system.
 object class Entity
 {
+	/// the number of all running entities.
 	static readonly common uint32_t count;
+	/// the index of the entity.
 	readonly common int index;
+	/// Clears all entities.
 	static void clear();
+	/// Removes a property of the entity.
+	///
+	/// This function will trigger events for Observer objects.
+	///
+	/// # Arguments
+	///
+	/// * `key` - The name of the property to remove.
 	void remove(string key);
+	/// Destroys the entity.
 	void destroy();
+	/// Creates a new entity.
 	static Entity* create();
 };
 
+/// A struct representing a group of entities in the ECS game systems.
 object class EntityGroup @ Group
 {
+	/// the number of entities in the group.
 	readonly common int count;
+	/// Finds the first entity in the group that satisfies a predicate function.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The predicate function to test each entity with.
+	///
+	/// # Returns
+	///
+	/// * `Option<Entity>` - The first entity that satisfies the predicate, or None if no entity does.
 	optional Entity* find(function<bool(Entity* e)> func) const;
+	/// A method that creates a new group with the specified component names.
+	///
+	/// # Arguments
+	///
+	/// * `components` - A vector listing the names of the components to include in the group.
+	///
+	/// # Returns
+	///
+	/// * `Group` - The new group.
 	static EntityGroup* create(VecStr components);
 };
 
+/// A struct representing an observer of entity changes in the game systems.
 object class EntityObserver @ Observer
 {
+	/// A method that creates a new observer with the specified component filter and action to watch for.
+	///
+	/// # Arguments
+	///
+	/// * `event` - The type of event to watch for.
+	/// * `components` - A vector listing the names of the components to filter entities by.
+	///
+	/// # Returns
+	///
+	/// * `Observer` - The new observer.
 	static EntityObserver* create(EntityEvent event, VecStr components);
 };
 
+/// Helper struct for file path operations.
 struct Path
 {
+	/// Extracts the file extension from a given file path.
+	///
+	/// # Example
+	///
+	/// Input: "/a/b/c.TXT" Output: "txt"
+	///
+	/// # Arguments
+	///
+	/// * `path` - The input file path.
+	///
+	/// # Returns
+	///
+	/// * `String` - The extension of the input file.
 	static string getExt(string path);
+	/// Extracts the parent path from a given file path.
+	///
+	/// # Example
+	///
+	/// Input: "/a/b/c.TXT" Output: "/a/b"
+	///
+	/// # Arguments
+	///
+	/// * `path` - The input file path.
+	///
+	/// # Returns
+	///
+	/// * `String` - The parent path of the input file.
 	static string getPath(string path);
+	/// Extracts the file name without extension from a given file path.
+	///
+	/// # Example
+	///
+	/// Input: "/a/b/c.TXT" Output: "c"
+	///
+	/// # Arguments
+	///
+	/// * `path` - The input file path.
+	///
+	/// # Returns
+	///
+	/// * `String` - The name of the input file without extension.
 	static string getName(string path);
+	/// Extracts the file name from a given file path.
+	///
+	/// # Example
+	///
+	/// Input: "/a/b/c.TXT" Output: "c.TXT"
+	///
+	/// # Arguments
+	///
+	/// * `path` - The input file path.
+	///
+	/// # Returns
+	///
+	/// * `String` - The name of the input file.
 	static string getFilename(string path);
+	/// Computes the relative path from the target file to the input file.
+	///
+	/// # Example
+	///
+	/// Input: "/a/b/c.TXT", base: "/a" Output: "b/c.TXT"
+	///
+	/// # Arguments
+	///
+	/// * `path` - The input file path.
+	/// * `base` - The target file path.
+	///
+	/// # Returns
+	///
+	/// * `String` - The relative path from the input file to the target file.
 	static string getRelative(string path, string target);
+	/// Changes the file extension in a given file path.
+	///
+	/// # Example
+	///
+	/// Input: "/a/b/c.TXT", "lua" Output: "/a/b/c.lua"
+	///
+	/// # Arguments
+	///
+	/// * `path` - The input file path.
+	/// * `new_ext` - The new file extension to replace the old one.
+	///
+	/// # Returns
+	///
+	/// * `String` - The new file path.
 	static string replaceExt(string path, string newExt);
+	/// Changes the filename in a given file path.
+	///
+	/// # Example
+	///
+	/// Input: "/a/b/c.TXT", "d" Output: "/a/b/d.TXT"
+	///
+	/// # Arguments
+	///
+	/// * `path` - The input file path.
+	/// * `new_file` - The new filename to replace the old one.
+	///
+	/// # Returns
+	///
+	/// * `String` - The new file path.
 	static string replaceFilename(string path, string newFile);
+	/// Joins the given segments into a new file path.
+	///
+	/// # Example
+	///
+	/// Input: "a", "b", "c.TXT" Output: "a/b/c.TXT"
+	///
+	/// # Arguments
+	///
+	/// * `segments` - The segments to be joined as a new file path.
+	///
+	/// # Returns
+	///
+	/// * `String` - The new file path.
+	static string concatVector @ concat(VecStr paths);
 };
 
+/// The `Content` is a static struct that manages file searching,
+/// loading and other operations related to resources.
 singleton class Content
 {
+	/// an array of directories to search for resource files.
 	common VecStr searchPaths;
+	/// the path to the directory containing read-only resources.
 	readonly common string assetPath;
+	/// the path to the directory where files can be written.
 	readonly common string writablePath;
+	/// Saves the specified content to a file with the specified filename.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to save.
+	/// * `content` - The content to save to the file.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the content saves to file successfully, `false` otherwise.
 	bool save(string filename, string content);
+	/// Checks if a file with the specified filename exists.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the file exists, `false` otherwise.
 	bool exist(string filename);
+	/// Creates a new directory with the specified path.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path of the directory to create.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the directory was created, `false` otherwise.
 	bool createFolder @ mkdir(string path);
+	/// Checks if the specified path is a directory.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the path is a directory, `false` otherwise.
 	bool isFolder @ isdir(string path);
+	/// Copies the file or directory at the specified source path to the target path.
+	///
+	/// # Arguments
+	///
+	/// * `src_path` - The path of the file or directory to copy.
+	/// * `dst_path` - The path to copy the file or directory to.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the file or directory was successfully copied to the target path, `false` otherwise.
 	bool copy(string src, string dst);
+	/// Moves the file or directory at the specified source path to the target path.
+	///
+	/// # Arguments
+	///
+	/// * `src_path` - The path of the file or directory to move.
+	/// * `dst_path` - The path to move the file or directory to.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the file or directory was successfully moved to the target path, `false` otherwise.
 	bool move @ moveTo(string src, string dst);
+	/// Removes the file or directory at the specified path.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path of the file or directory to remove.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the file or directory was successfully removed, `false` otherwise.
 	bool remove(string path);
+	/// Gets the full path of a file with the specified filename.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to get the full path of.
+	///
+	/// # Returns
+	///
+	/// * `String` - The full path of the file.
 	string getFullPath(string filename);
+	/// Adds a new search path to the end of the list.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The search path to add.
 	void addSearchPath(string path);
+	/// Inserts a search path at the specified index.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index at which to insert the search path.
+	/// * `path` - The search path to insert.
 	void insertSearchPath(int index, string path);
+	/// Removes the specified search path from the list.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The search path to remove.
 	void removeSearchPath(string path);
+	/// Clears the search path cache of the map of relative paths to full paths.
 	void clearPathCache();
+	/// Gets the names of all subdirectories in the specified directory.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path of the directory to search.
+	///
+	/// # Returns
+	///
+	/// * `Vec<String>` - An array of the names of all subdirectories in the specified directory.
 	VecStr getDirs(string path);
+	/// Gets the names of all files in the specified directory.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path of the directory to search.
+	///
+	/// # Returns
+	///
+	/// * `Vec<String>` - An array of the names of all files in the specified directory.
 	VecStr getFiles(string path);
+	/// Gets the names of all files in the specified directory and its subdirectories.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path of the directory to search.
+	///
+	/// # Returns
+	///
+	/// * `Vec<String>` - An array of the names of all files in the specified directory and its subdirectories.
 	VecStr getAllFiles(string path);
+	/// Asynchronously loads the content of the file with the specified filename.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to load.
+	/// * `callback` - The function to call with the content of the file once it is loaded.
+	///
+	/// # Returns
+	///
+	/// * `String` - The content of the loaded file.
 	void loadAsync(string filename, function<void(string content)> callback);
+	/// Asynchronously copies a file or a folder from the source path to the destination path.
+	///
+	/// # Arguments
+	///
+	/// * `src` - The path of the file or folder to copy.
+	/// * `dst` - The destination path of the copied files.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the file or folder was copied successfully, `false` otherwise.
 	void copyAsync(string srcFile, string targetFile, function<void(bool success)> callback);
+	/// Asynchronously saves the specified content to a file with the specified filename.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to save.
+	/// * `content` - The content to save to the file.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the content was saved successfully, `false` otherwise.
 	void saveAsync(string filename, string content, function<void(bool success)> callback);
+	/// Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
+	///
+	/// # Arguments
+	///
+	/// * `folder_path` - The path of the folder to compress, should be under the asset writable path.
+	/// * `zip_file` - The name of the ZIP archive to create.
+	/// * `filter` - An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the folder was compressed successfully, `false` otherwise.
 	void zipAsync(string folderPath, string zipFile, function<bool(string file)> filter, function<void(bool success)> callback);
+	/// Asynchronously decompresses a ZIP archive to the specified folder.
+	///
+	/// # Arguments
+	///
+	/// * `zip_file` - The name of the ZIP archive to decompress, should be a file under the asset writable path.
+	/// * `folder_path` - The path of the folder to decompress to, should be under the asset writable path.
+	/// * `filter` - An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the folder was decompressed successfully, `false` otherwise.
 	void unzipAsync(string zipFile, string folderPath, function<bool(string file)> filter, function<void(bool success)> callback);
 };
 
+/// A scheduler that manages the execution of scheduled tasks.
 object class Scheduler
 {
+	/// the time scale factor for the scheduler.
+	/// This factor is applied to deltaTime that the scheduled functions will receive.
 	common float timeScale;
+	/// the target frame rate (in frames per second) for a fixed update mode.
+	/// The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
+	/// It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
 	common int fixedFPS @ fixed_fps;
+	/// Schedules a function to be called every frame.
+	///
+	/// # Arguments
+	///
+	/// * `handler` - The function to be called. It should take a single argument of type `f64`, which represents the delta time since the last frame. If the function returns `true`, it will not be called again.
 	void schedule(function<bool(double deltaTime)> func);
+	/// Creates a new Scheduler object.
 	static Scheduler* create();
 };
 
+/// A struct for Camera object in the game engine.
 interface object class Camera
 {
+	/// the name of the Camera.
 	readonly common string name;
 };
 
+/// A struct for 2D camera object in the game engine.
 object class Camera2D : public ICamera
 {
+	/// the rotation angle of the camera in degrees.
 	common float rotation;
+	/// the factor by which to zoom the camera. If set to 1.0, the view is normal sized. If set to 2.0, items will appear double in size.
 	common float zoom;
+	/// the position of the camera in the game world.
 	common Vec2 position;
+	/// Creates a new Camera2D object with the given name.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the Camera2D object.
+	///
+	/// # Returns
+	///
+	/// * `Camera2D` - A new instance of the Camera2D object.
 	static Camera2D* create(string name);
 };
 
+/// A struct for an orthographic camera object in the game engine.
 object class CameraOtho : public ICamera
 {
+	/// the position of the camera in the game world.
 	common Vec2 position;
+	/// Creates a new CameraOtho object with the given name.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the CameraOtho object.
+	///
+	/// # Returns
+	///
+	/// * `CameraOtho` - A new instance of the CameraOtho object.
 	static CameraOtho* create(string name);
 };
 
+/// A struct representing a shader pass.
 object class Pass
 {
+	/// whether this Pass should be a grab pass.
+	/// A grab pass will render a portion of game scene into a texture frame buffer.
+	/// Then use this texture frame buffer as an input for next render pass.
 	boolean bool grabPass;
+	/// Sets the value of shader parameters.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the parameter to set.
+	/// * `var` - The numeric value to set.
 	void set @ set(string name, float var);
+	/// Sets the values of shader parameters.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the parameter to set.
+	/// * `var1` - The first numeric value to set.
+	/// * `var2` - An optional second numeric value to set.
+	/// * `var3` - An optional third numeric value to set.
+	/// * `var4` - An optional fourth numeric value to set.
 	void set @ setVec4(string name, float var1, float var2, float var3, float var4);
+	/// Another function that sets the values of shader parameters.
+	///
+	/// Works the same as:
+	/// pass.set("varName", color.r / 255.0, color.g / 255.0, color.b / 255.0, color.opacity);
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the parameter to set.
+	/// * `var` - The Color object to set.
 	void set @ setColor(string name, Color var);
+	/// Creates a new Pass object.
+	///
+	/// # Arguments
+	///
+	/// * `vert_shader` - The vertex shader in binary form file string.
+	/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
+	///     * "builtin:" + theBuiltinShaderName
+	///     * "Shader/compiled_shader_file.bin"
+	///
+	/// # Returns
+	///
+	/// * `Pass` - A new Pass object.
 	static Pass* create(string vertShader, string fragShader);
 };
 
+/// A struct for managing multiple render pass objects.
+/// Effect objects allow you to combine multiple passes to create more complex shader effects.
 interface object class Effect
 {
+	/// Adds a Pass object to this Effect.
+	///
+	/// # Arguments
+	///
+	/// * `pass` - The Pass object to add.
 	void add(Pass* pass);
+	/// Retrieves a Pass object from this Effect by index.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index of the Pass object to retrieve.
+	///
+	/// # Returns
+	///
+	/// * `Pass` - The Pass object at the given index.
 	outside optional Pass* effect_get_pass @ get(size_t index) const;
+	/// Removes all Pass objects from this Effect.
 	void clear();
+	/// A method that allows you to create a new Effect object.
+	///
+	/// # Arguments
+	///
+	/// * `vert_shader` - The vertex shader file string.
+	/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
+	///     * "builtin:" + theBuiltinShaderName
+	///     * "Shader/compiled_shader_file.bin"
+	///
+	/// # Returns
+	///
+	/// * `Effect` - A new Effect object.
 	static Effect* create(string vertShader, string fragShader);
 };
 
+/// A struct that is a specialization of Effect for rendering 2D sprites.
 object class SpriteEffect : public IEffect
 {
+	/// A method that allows you to create a new SpriteEffect object.
+	///
+	/// # Arguments
+	///
+	/// * `vert_shader` - The vertex shader file string.
+	/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
+	///     * "builtin:" + theBuiltinShaderName
+	///     * "Shader/compiled_shader_file.bin"
+	///
+	/// # Returns
+	///
+	/// * `SpriteEffect` - A new SpriteEffect object.
 	static SpriteEffect* create(string vertShader, string fragShader);
 };
 
+/// A struct manages the game scene trees and provides access to root scene nodes for different game uses.
 singleton class Director
 {
+	/// the background color for the game world.
 	common Color clearColor;
+	/// the game scheduler which is used for scheduling tasks like animations and gameplay events.
 	common Scheduler* scheduler;
+	/// the root node for 2D user interface elements like buttons and labels.
 	readonly common Node* uI @ ui;
+	/// the root node for 3D user interface elements with 3D projection effect.
 	readonly common Node* uI3D @ ui_3d;
+	/// the root node for the starting point of a game.
 	readonly common Node* entry;
+	/// the root node for post-rendering scene tree.
 	readonly common Node* postNode;
+	/// the system scheduler which is used for low-level system tasks, should not put any game logic in it.
 	readonly common Scheduler* systemScheduler;
+	/// the scheduler used for processing post game logic.
 	readonly common Scheduler* postScheduler;
+	/// the current active camera in Director's camera stack.
 	readonly common Camera* currentCamera;
+	/// Adds a new camera to Director's camera stack and sets it to the current camera.
+	///
+	/// # Arguments
+	///
+	/// * `camera` - The camera to add.
 	void pushCamera(Camera* camera);
+	/// Removes the current camera from Director's camera stack.
 	void popCamera();
+	/// Removes a specified camera from Director's camera stack.
+	///
+	/// # Arguments
+	///
+	/// * `camera` - The camera to remove.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the camera was removed, `false` otherwise.
 	bool removeCamera(Camera* camera);
+	/// Removes all cameras from Director's camera stack.
 	void clearCamera();
+	/// Cleans up all resources managed by the Director, including scene trees and cameras.
 	void cleanup();
 };
 
+/// A struct that provides access to the 3D graphic view.
 singleton class View
 {
+	/// the size of the view in pixels.
 	readonly common Size size;
+	/// the standard distance of the view from the origin.
 	readonly common float standardDistance;
+	/// the aspect ratio of the view.
 	readonly common float aspectRatio;
+	/// the distance to the near clipping plane.
 	common float nearPlaneDistance;
+	/// the distance to the far clipping plane.
 	common float farPlaneDistance;
+	/// the field of view of the view in degrees.
 	common float fieldOfView;
+	/// the scale factor of the view.
 	common float scale;
+	/// the post effect applied to the view.
 	optional common SpriteEffect* postEffect;
+	/// Removes the post effect applied to the view.
 	outside void view_set_post_effect_nullptr @ set_post_effect_null();
+	/// whether or not vertical sync is enabled.
 	boolean bool vSync @ vsync;
 };
 
 value class ActionDef { };
 
+/// Represents an action that can be run on a node.
 object class Action
 {
+	/// the duration of the action.
 	readonly common float duration;
+	/// whether the action is currently running.
 	readonly boolean bool running;
+	/// whether the action is currently paused.
 	readonly boolean bool paused;
+	/// whether the action should be run in reverse.
 	boolean bool reversed;
+	/// the speed at which the action should be run.
+	/// Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
 	common float speed;
+	/// Pauses the action.
 	void pause();
+	/// Resumes the action.
 	void resume();
+	/// Updates the state of the Action.
+	///
+	/// # Arguments
+	///
+	/// * `elapsed` - The amount of time in seconds that has elapsed to update action to.
+	/// * `reversed` - Whether or not to update the Action in reverse.
 	void updateTo(float elapsed, bool reversed);
-	static outside ActionDef action_def_prop @ prop(float duration, float start, float stop,
-		Property prop, EaseType easing);
-	static outside ActionDef action_def_tint @ tint(float duration, Color3 start, Color3 stop,
-		EaseType easing);
-	static outside ActionDef action_def_roll @ roll(float duration, float start, float stop,
-		EaseType easing);
+	/// Creates a new Action object to change a property of a node.
+	///
+	/// # Arguments
+	///
+	/// * `duration` - The duration of the action.
+	/// * `start` - The starting value of the property.
+	/// * `stop` - The ending value of the property.
+	/// * `prop` - The property to change.
+	/// * `easing` - The easing function to use.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
+	static outside ActionDef action_def_prop @ prop(float duration, float start, float stop, Property prop, EaseType easing);
+	/// Creates a new Action object to change the color of a node.
+	///
+	/// # Arguments
+	///
+	/// * `duration` - The duration of the action.
+	/// * `start` - The starting color.
+	/// * `stop` - The ending color.
+	/// * `easing` - The easing function to use.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
+	static outside ActionDef action_def_tint @ tint(float duration, Color3 start, Color3 stop, EaseType easing);
+	/// Creates a new Action object to rotate a node by smallest angle.
+	///
+	/// # Arguments
+	///
+	/// * `duration` - The duration of the action.
+	/// * `start` - The starting angle.
+	/// * `stop` - The ending angle.
+	/// * `easing` - The easing function to use.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
+	static outside ActionDef action_def_roll @ roll(float duration, float start, float stop, EaseType easing);
+	/// Creates a new Action object to run a group of actions in parallel.
+	///
+	/// # Arguments
+	///
+	/// * `defs` - The actions to run in parallel.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
 	static outside ActionDef action_def_spawn @ spawn(VecActionDef defs);
+	/// Creates a new Action object to run a group of actions in sequence.
+	///
+	/// # Arguments
+	///
+	/// * `defs` - The actions to run in sequence.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
 	static outside ActionDef action_def_sequence @ sequence(VecActionDef defs);
+	/// Creates a new Action object to delay the execution of following action.
+	///
+	/// # Arguments
+	///
+	/// * `duration` - The duration of the delay.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
 	static outside ActionDef action_def_delay @ delay(float duration);
+	/// Creates a new Action object to show a node.
 	static outside ActionDef action_def_show @ show();
+	/// Creates a new Action object to hide a node.
 	static outside ActionDef action_def_hide @ hide();
+	/// Creates a new Action object to emit an event.
+	///
+	/// # Arguments
+	///
+	/// * `eventName` - The name of the event to emit.
+	/// * `msg` - The message to send with the event.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
 	static outside ActionDef action_def_emit @ event(string eventName, string msg);
-	static outside ActionDef action_def_move @ move_to(float duration, Vec2 start, Vec2 stop,
-		EaseType easing);
-	static outside ActionDef action_def_scale @ scale(float duration, float start, float stop,
-		EaseType easing);
+	/// Creates a new Action object to move a node.
+	///
+	/// # Arguments
+	///
+	/// * `duration` - The duration of the action.
+	/// * `start` - The starting position.
+	/// * `stop` - The ending position.
+	/// * `easing` - The easing function to use.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
+	static outside ActionDef action_def_move @ move_to(float duration, Vec2 start, Vec2 stop, EaseType easing);
+	/// Creates a new Action object to scale a node.
+	///
+	/// # Arguments
+	///
+	/// * `duration` - The duration of the action.
+	/// * `start` - The starting scale.
+	/// * `stop` - The ending scale.
+	/// * `easing` - The easing function to use.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
+	static outside ActionDef action_def_scale @ scale(float duration, float start, float stop, EaseType easing);
 };
 
+/// A grabber which is used to render a part of the scene to a texture
+/// by a grid of vertices.
 object class Grabber
 {
+	/// the camera used to render the texture.
 	optional common Camera* camera;
+	/// the sprite effect applied to the texture.
 	optional common SpriteEffect* effect;
+	/// the blend function applied to the texture.
 	common BlendFunc blendFunc;
+	/// the clear color used to clear the texture.
 	common Color clearColor;
+	/// Sets the position of a vertex in the grabber grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-index of the vertex in the grabber grid.
+	/// * `y` - The y-index of the vertex in the grabber grid.
+	/// * `pos` - The new position of the vertex, represented by a Vec2 object.
+	/// * `z` - An optional argument representing the new z-coordinate of the vertex.
 	void setPos(int x, int y, Vec2 pos, float z);
+	/// Gets the position of a vertex in the grabber grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-index of the vertex in the grabber grid.
+	/// * `y` - The y-index of the vertex in the grabber grid.
+	///
+	/// # Returns
+	///
+	/// * `Vec2` - The position of the vertex.
 	Vec2 getPos(int x, int y) const;
+	/// Sets the color of a vertex in the grabber grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-index of the vertex in the grabber grid.
+	/// * `y` - The y-index of the vertex in the grabber grid.
+	/// * `color` - The new color of the vertex, represented by a Color object.
 	void setColor(int x, int y, Color color);
+	/// Gets the color of a vertex in the grabber grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-index of the vertex in the grabber grid.
+	/// * `y` - The y-index of the vertex in the grabber grid.
+	///
+	/// # Returns
+	///
+	/// * `Color` - The color of the vertex.
 	Color getColor(int x, int y) const;
+	/// Sets the UV coordinates of a vertex in the grabber grid.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-index of the vertex in the grabber grid.
+	/// * `y` - The y-index of the vertex in the grabber grid.
+	/// * `offset` - The new UV coordinates of the vertex, represented by a Vec2 object.
 	void moveUV @ move_uv(int x, int y, Vec2 offset);
 };
 
+/// Struct used for building a hierarchical tree structure of game objects.
 interface object class Node
 {
+	/// the order of the node in the parent's children array.
 	common int order;
+	/// the rotation angle of the node in degrees.
 	common float angle;
+	/// the X-axis rotation angle of the node in degrees.
 	common float angleX;
+	/// the Y-axis rotation angle of the node in degrees.
 	common float angleY;
+	/// the X-axis scale factor of the node.
 	common float scaleX;
+	/// the Y-axis scale factor of the node.
 	common float scaleY;
+	/// the X-axis position of the node.
 	common float x;
+	/// the Y-axis position of the node.
 	common float y;
+	/// the Z-axis position of the node.
 	common float z;
+	/// the position of the node as a Vec2 object.
 	common Vec2 position;
+	/// the X-axis skew angle of the node in degrees.
 	common float skewX;
+	/// the Y-axis skew angle of the node in degrees.
 	common float skewY;
+	/// whether the node is visible.
 	boolean bool visible;
+	/// the anchor point of the node as a Vec2 object.
 	common Vec2 anchor;
+	/// the width of the node.
 	common float width;
+	/// the height of the node.
 	common float height;
+	/// the size of the node as a Size object.
 	common Size size;
+	/// the tag of the node as a string.
 	common string tag;
+	/// the opacity of the node, should be 0 to 1.0.
 	common float opacity;
+	/// the color of the node as a Color object.
 	common Color color;
+	/// the color of the node as a Color3 object.
 	common Color3 color3;
+	/// whether to pass the opacity value to child nodes.
 	boolean bool passOpacity;
+	/// whether to pass the color value to child nodes.
 	boolean bool passColor3;
+	/// the target node acts as a parent node for transforming this node.
 	optional common Node* transformTarget;
+	/// the scheduler used for scheduling update and action callbacks.
 	common Scheduler* scheduler;
+	/// the children of the node as an Array object, could be None.
 	optional readonly common Array* children;
+	/// the parent of the node, could be None.
 	optional readonly common Node* parent;
+	/// the bounding box of the node as a Rect object.
 	readonly common Rect boundingBox;
+	/// whether the node is currently running in a scene tree.
 	readonly boolean bool running;
+	/// whether the node is currently scheduling a function or a coroutine for updates.
 	readonly boolean bool scheduled;
+	/// the number of actions currently running on the node.
 	readonly common int actionCount;
+	/// additional data stored on the node as a Dictionary object.
 	readonly common Dictionary* userData @ data;
+	/// whether touch events are enabled on the node.
 	boolean bool touchEnabled;
+	/// whether the node should swallow touch events.
 	boolean bool swallowTouches;
+	/// whether the node should swallow mouse wheel events.
 	boolean bool swallowMouseWheel;
+	/// whether keyboard events are enabled on the node.
 	boolean bool keyboardEnabled;
+	/// whether controller events are enabled on the node.
 	boolean bool controllerEnabled;
+	/// whether to group the node's rendering with all its recursive children.
 	boolean bool renderGroup;
+	/// the rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier.
 	common int renderOrder;
-
+	/// Adds a child node to the current node.
+	///
+	/// # Arguments
+	///
+	/// * `child` - The child node to add.
+	/// * `order` - The drawing order of the child node.
+	/// * `tag` - The tag of the child node.
 	void addChild @ addChildWithOrderTag(Node* child, int order, string tag);
+	/// Adds a child node to the current node.
+	///
+	/// # Arguments
+	///
+	/// * `child` - The child node to add.
+	/// * `order` - The drawing order of the child node.
 	void addChild @ addChildWithOrder(Node* child, int order);
+	/// Adds a child node to the current node.
+	///
+	/// # Arguments
+	///
+	/// * `child` - The child node to add.
 	void addChild(Node* child);
-
+	/// Adds the current node to a parent node.
+	///
+	/// # Arguments
+	///
+	/// * `parent` - The parent node to add the current node to.
+	/// * `order` - The drawing order of the current node.
+	/// * `tag` - The tag of the current node.
+	///
+	/// # Returns
+	///
+	/// * `Node` - The current node.
 	Node* addTo @ addToWithOrderTag(Node* parent, int order, string tag);
+	/// Adds the current node to a parent node.
+	///
+	/// # Arguments
+	///
+	/// * `parent` - The parent node to add the current node to.
+	/// * `order` - The drawing order of the current node.
+	///
+	/// # Returns
+	///
+	/// * `Node` - The current node.
 	Node* addTo @ addToWithOrder(Node* parent, int order);
+	/// Adds the current node to a parent node.
+	///
+	/// # Arguments
+	///
+	/// * `parent` - The parent node to add the current node to.
+	///
+	/// # Returns
+	///
+	/// * `Node` - The current node.
 	Node* addTo(Node* parent);
-
+	/// Removes a child node from the current node.
+	///
+	/// # Arguments
+	///
+	/// * `child` - The child node to remove.
+	/// * `cleanup` - Whether to cleanup the child node.
 	void removeChild(Node* child, bool cleanup);
+	/// Removes a child node from the current node by tag.
+	///
+	/// # Arguments
+	///
+	/// * `tag` - The tag of the child node to remove.
+	/// * `cleanup` - Whether to cleanup the child node.
 	void removeChildByTag(string tag, bool cleanup);
+	/// Removes all child nodes from the current node.
+	///
+	/// # Arguments
+	///
+	/// * `cleanup` - Whether to cleanup the child nodes.
 	void removeAllChildren(bool cleanup);
+	/// Removes the current node from its parent node.
+	///
+	/// # Arguments
+	///
+	/// * `cleanup` - Whether to cleanup the current node.
 	void removeFromParent(bool cleanup);
+	/// Moves the current node to a new parent node without triggering node events.
+	///
+	/// # Arguments
+	///
+	/// * `parent` - The new parent node to move the current node to.
 	void moveToParent(Node* parent);
-
+	/// Cleans up the current node.
 	void cleanup();
-
+	/// Gets a child node by tag.
+	///
+	/// # Arguments
+	///
+	/// * `tag` - The tag of the child node to get.
+	///
+	/// # Returns
+	///
+	/// * `Option<Node>` - The child node, or `None` if not found.
 	optional Node* getChildByTag(string tag);
-
+	/// Schedules a function to be called every frame.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to be called. If the function returns `true`, it will not be called again.
 	void schedule(function<bool(double deltaTime)> func);
+	/// Unschedules the current node's scheduled function.
 	void unschedule();
-
+	/// Converts a point from world space to node space.
+	///
+	/// # Arguments
+	///
+	/// * `world_point` - The point in world space, represented by a Vec2 object.
+	///
+	/// # Returns
+	///
+	/// * `Vec2` - The converted point in world space.
 	Vec2 convertToNodeSpace(Vec2 worldPoint);
+	/// Converts a point from node space to world space.
+	///
+	/// # Arguments
+	///
+	/// * `node_point` - The point in node space, represented by a Vec2 object.
+	///
+	/// # Returns
+	///
+	/// * `Vec2` - The converted point in world space.
 	Vec2 convertToWorldSpace(Vec2 nodePoint);
+	/// Converts a point from node space to world space.
+	///
+	/// # Arguments
+	///
+	/// * `node_point` - The point in node space, represented by a Vec2 object.
+	///
+	/// # Returns
+	///
+	/// * `Vec2` - The converted point in world space.
 	void convertToWindowSpace(Vec2 nodePoint, function<void(Vec2 result)> callback);
-
+	/// Calls the given function for each child node of this node.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `false` if all children have been visited, `true` if the iteration was interrupted by the function.
 	bool eachChild(function<bool(Node* child)> func);
+	/// Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `false` if all nodes have been visited, `true` if the traversal was interrupted by the function.
 	bool traverse(function<bool(Node* child)> func);
+	/// Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `false` if all nodes have been visited, `true` if the traversal was interrupted by the function.
 	bool traverseAll(function<bool(Node* child)> func);
-
+	/// Runs an action defined by the given action definition on this node.
+	///
+	/// # Arguments
+	///
+	/// * `action_def` - The action definition to run.
+	///
+	/// # Returns
+	///
+	/// * `f64` - The duration of the newly running action in seconds.
 	outside optional Action* node_run_action_def @ run_action(ActionDef def);
+	/// Stops all actions running on this node.
 	void stopAllActions();
-	outside optional Action* node_perform_def @ perform(ActionDef def);
+	/// Runs an action defined by the given action definition right after clearing all the previous running actions.
+	///
+	/// # Arguments
+	///
+	/// * `action_def` - The action definition to run.
+	///
+	/// # Returns
+	///
+	/// * `f64` - The duration of the newly running action in seconds.
+	outside optional Action* node_perform_def @ perform(ActionDef actionDef);
+	/// Stops the given action running on this node.
+	///
+	/// # Arguments
+	///
+	/// * `action` - The action to stop.
 	void stopAction(Action* action);
-
+	/// Vertically aligns all child nodes within the node using the given size and padding.
+	///
+	/// # Arguments
+	///
+	/// * `padding` - The amount of padding to use between each child node.
+	///
+	/// # Returns
+	///
+	/// * `Size` - The size of the node after alignment.
 	Size alignItemsVertically(float padding);
+	/// Vertically aligns all child nodes within the node using the given size and padding.
+	///
+	/// # Arguments
+	///
+	/// * `size` - The size to use for alignment.
+	/// * `padding` - The amount of padding to use between each child node.
+	///
+	/// # Returns
+	///
+	/// * `Size` - The size of the node after alignment.
 	Size alignItemsVertically @ alignItemsVerticallyWithSize(Size size, float padding);
+	/// Horizontally aligns all child nodes within the node using the given size and padding.
+	///
+	/// # Arguments
+	///
+	/// * `padding` - The amount of padding to use between each child node.
+	///
+	/// # Returns
+	///
+	/// * `Size` - The size of the node after alignment.
 	Size alignItemsHorizontally(float padding);
+	/// Horizontally aligns all child nodes within the node using the given size and padding.
+	///
+	/// # Arguments
+	///
+	/// * `size` - The size to hint for alignment.
+	/// * `padding` - The amount of padding to use between each child node.
+	///
+	/// # Returns
+	///
+	/// * `Size` - The size of the node after alignment.
 	Size alignItemsHorizontally @ alignItemsHorizontallyWithSize(Size size, float padding);
+	/// Aligns all child nodes within the node using the given size and padding.
+	///
+	/// # Arguments
+	///
+	/// * `padding` - The amount of padding to use between each child node.
+	///
+	/// # Returns
+	///
+	/// * `Size` - The size of the node after alignment.
 	Size alignItems(float padding);
+	/// Aligns all child nodes within the node using the given size and padding.
+	///
+	/// # Arguments
+	///
+	/// * `size` - The size to use for alignment.
+	/// * `padding` - The amount of padding to use between each child node.
+	///
+	/// # Returns
+	///
+	/// * `Size` - The size of the node after alignment.
 	Size alignItems @ alignItemsWithSize(Size size, float padding);
+	/// Moves and changes child nodes' visibility based on their position in parent's area.
+	///
+	/// # Arguments
+	///
+	/// * `delta` - The distance to move its children, represented by a Vec2 object.
 	void moveAndCullItems(Vec2 delta);
-
+	/// Attaches the input method editor (IME) to the node.
+	/// Makes node recieving "AttachIME", "DetachIME", "TextInput", "TextEditing" events.
 	void attachIME @ attach_ime();
+	/// Detaches the input method editor (IME) from the node.
 	void detachIME @ detach_ime();
-
+	/// Creates a texture grabber for the specified node.
+	///
+	/// # Returns
+	///
+	/// * `Grabber` - A Grabber object.
 	outside Grabber* node_start_grabbing @ grab();
+	/// Creates a texture grabber for the specified node with a specified grid size.
+	///
+	/// # Arguments
+	///
+	/// * `grid_x` - The number of horizontal grid cells to divide the grabber into.
+	/// * `grid_y` - The number of vertical grid cells to divide the grabber into.
+	///
+	/// # Returns
+	///
+	/// * `Grabber` - A Grabber object.
 	Grabber* grab @ grabWithSize(uint32_t gridX, uint32_t gridY);
+	/// Removes the texture grabber for the specified node.
 	outside void node_stop_grabbing @ stop_grab();
-
+	/// Removes the transform target for the specified node.
 	outside void node_set_transform_target_nullptr @ set_transform_target_null();
-
-	bool slot(string name, function<void(Event* e)> func);
-	bool gslot(string name, function<void(Event* e)> func);
-
+	/// Associates the given handler function with the node event.
+	///
+	/// # Arguments
+	///
+	/// * `event_name` - The name of the node event.
+	/// * `handler` - The handler function to associate with the node event.
+	void slot(string eventName, function<void(Event* e)> func);
+	/// Associates the given handler function with a global event.
+	///
+	/// # Arguments
+	///
+	/// * `event_name` - The name of the global event.
+	/// * `handler` - The handler function to associate with the event.
+	void gslot(string eventName, function<void(Event* e)> func);
+	/// Creates a new instance of the `Node` struct.
 	static Node* create();
 };
 

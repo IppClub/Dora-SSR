@@ -327,8 +327,8 @@ static int64_t node_run_action(int64_t self, int64_t def) {
 static void node_stop_all_actions(int64_t self) {
 	r_cast<Node*>(self)->stopAllActions();
 }
-static int64_t node_perform(int64_t self, int64_t def) {
-	return from_object(node_perform_def(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(def))));
+static int64_t node_perform(int64_t self, int64_t action_def) {
+	return from_object(node_perform_def(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(action_def))));
 }
 static void node_stop_action(int64_t self, int64_t action) {
 	r_cast<Node*>(self)->stopAction(r_cast<Action*>(action));
@@ -372,27 +372,27 @@ static void node_stop_grab(int64_t self) {
 static void node_set_transform_target_null(int64_t self) {
 	node_set_transform_target_nullptr(r_cast<Node*>(self));
 }
-static int32_t node_slot(int64_t self, int64_t name, int32_t func, int64_t stack) {
+static void node_slot(int64_t self, int64_t event_name, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	return r_cast<Node*>(self)->slot(*str_from(name), [func, args, deref](Event* e) {
+	r_cast<Node*>(self)->slot(*str_from(event_name), [func, args, deref](Event* e) {
 		args->clear();
 		e->pushArgsToWasm(args);
 		SharedWasmRuntime.invoke(func);
-	}) ? 1 : 0;
+	});
 }
-static int32_t node_gslot(int64_t self, int64_t name, int32_t func, int64_t stack) {
+static void node_gslot(int64_t self, int64_t event_name, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	return r_cast<Node*>(self)->gslot(*str_from(name), [func, args, deref](Event* e) {
+	r_cast<Node*>(self)->gslot(*str_from(event_name), [func, args, deref](Event* e) {
 		args->clear();
 		e->pushArgsToWasm(args);
 		SharedWasmRuntime.invoke(func);
-	}) ? 1 : 0;
+	});
 }
 static int64_t node_new() {
 	return from_object(Node::create());

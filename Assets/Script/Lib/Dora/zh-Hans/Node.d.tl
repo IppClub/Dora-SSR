@@ -428,6 +428,12 @@ local record Node
 		-- @param y (integer) 顶点在抓取器网格中的 y 索引。
 		-- @param color (Color) 顶点的新颜色。
 		setColor: function(self: Grabber, x: integer, y: integer, color: Color)
+
+		-- 设置抓取器网格中一个顶点的纹理坐标。
+		-- @param x (integer) 顶点在抓取器网格中的 x 索引。
+		-- @param y (integer) 顶点在抓取器网格中的 y 索引。
+		-- @param offset (Vec2) 顶点的新纹理坐标。
+		moveUV: function(self: Grabber, x: integer, y: integer, offset: Vec2)
 	end
 
 	-- 创建或移除节点上的纹理抓取器。

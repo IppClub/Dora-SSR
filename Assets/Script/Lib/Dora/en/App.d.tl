@@ -38,6 +38,9 @@ local record App
 	-- Should be in format of "v0.0.0".
 	const version: string
 
+	-- The dependencies of the game engine.
+	const deps: string
+
 	-- The time in seconds since the last frame update.
 	const deltaTime: number
 

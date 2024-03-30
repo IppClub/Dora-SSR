@@ -94,7 +94,7 @@ extern "C" {
 	fn node_traverse_all(slf: i64, func: i32, stack: i64) -> i32;
 	fn node_run_action(slf: i64, def: i64) -> i64;
 	fn node_stop_all_actions(slf: i64);
-	fn node_perform(slf: i64, def: i64) -> i64;
+	fn node_perform(slf: i64, action_def: i64) -> i64;
 	fn node_stop_action(slf: i64, action: i64);
 	fn node_align_items_vertically(slf: i64, padding: f32) -> i64;
 	fn node_align_items_vertically_with_size(slf: i64, size: i64, padding: f32) -> i64;
@@ -109,267 +109,429 @@ extern "C" {
 	fn node_grab_with_size(slf: i64, grid_x: i32, grid_y: i32) -> i64;
 	fn node_stop_grab(slf: i64);
 	fn node_set_transform_target_null(slf: i64);
-	fn node_slot(slf: i64, name: i64, func: i32, stack: i64) -> i32;
-	fn node_gslot(slf: i64, name: i64, func: i32, stack: i64) -> i32;
+	fn node_slot(slf: i64, event_name: i64, func: i32, stack: i64);
+	fn node_gslot(slf: i64, event_name: i64, func: i32, stack: i64);
 	fn node_new() -> i64;
 }
 use crate::dora::IObject;
+/// Struct used for building a hierarchical tree structure of game objects.
 pub struct Node { raw: i64 }
 crate::dora_object!(Node);
 impl INode for Node { }
 pub trait INode: IObject {
+	/// Sets the order of the node in the parent's children array.
 	fn set_order(&mut self, var: i32) {
 		unsafe { node_set_order(self.raw(), var) };
 	}
+	/// Gets the order of the node in the parent's children array.
 	fn get_order(&self) -> i32 {
 		return unsafe { node_get_order(self.raw()) };
 	}
+	/// Sets the rotation angle of the node in degrees.
 	fn set_angle(&mut self, var: f32) {
 		unsafe { node_set_angle(self.raw(), var) };
 	}
+	/// Gets the rotation angle of the node in degrees.
 	fn get_angle(&self) -> f32 {
 		return unsafe { node_get_angle(self.raw()) };
 	}
+	/// Sets the X-axis rotation angle of the node in degrees.
 	fn set_angle_x(&mut self, var: f32) {
 		unsafe { node_set_angle_x(self.raw(), var) };
 	}
+	/// Gets the X-axis rotation angle of the node in degrees.
 	fn get_angle_x(&self) -> f32 {
 		return unsafe { node_get_angle_x(self.raw()) };
 	}
+	/// Sets the Y-axis rotation angle of the node in degrees.
 	fn set_angle_y(&mut self, var: f32) {
 		unsafe { node_set_angle_y(self.raw(), var) };
 	}
+	/// Gets the Y-axis rotation angle of the node in degrees.
 	fn get_angle_y(&self) -> f32 {
 		return unsafe { node_get_angle_y(self.raw()) };
 	}
+	/// Sets the X-axis scale factor of the node.
 	fn set_scale_x(&mut self, var: f32) {
 		unsafe { node_set_scale_x(self.raw(), var) };
 	}
+	/// Gets the X-axis scale factor of the node.
 	fn get_scale_x(&self) -> f32 {
 		return unsafe { node_get_scale_x(self.raw()) };
 	}
+	/// Sets the Y-axis scale factor of the node.
 	fn set_scale_y(&mut self, var: f32) {
 		unsafe { node_set_scale_y(self.raw(), var) };
 	}
+	/// Gets the Y-axis scale factor of the node.
 	fn get_scale_y(&self) -> f32 {
 		return unsafe { node_get_scale_y(self.raw()) };
 	}
+	/// Sets the X-axis position of the node.
 	fn set_x(&mut self, var: f32) {
 		unsafe { node_set_x(self.raw(), var) };
 	}
+	/// Gets the X-axis position of the node.
 	fn get_x(&self) -> f32 {
 		return unsafe { node_get_x(self.raw()) };
 	}
+	/// Sets the Y-axis position of the node.
 	fn set_y(&mut self, var: f32) {
 		unsafe { node_set_y(self.raw(), var) };
 	}
+	/// Gets the Y-axis position of the node.
 	fn get_y(&self) -> f32 {
 		return unsafe { node_get_y(self.raw()) };
 	}
+	/// Sets the Z-axis position of the node.
 	fn set_z(&mut self, var: f32) {
 		unsafe { node_set_z(self.raw(), var) };
 	}
+	/// Gets the Z-axis position of the node.
 	fn get_z(&self) -> f32 {
 		return unsafe { node_get_z(self.raw()) };
 	}
+	/// Sets the position of the node as a Vec2 object.
 	fn set_position(&mut self, var: &crate::dora::Vec2) {
 		unsafe { node_set_position(self.raw(), var.into_i64()) };
 	}
+	/// Gets the position of the node as a Vec2 object.
 	fn get_position(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(node_get_position(self.raw())) };
 	}
+	/// Sets the X-axis skew angle of the node in degrees.
 	fn set_skew_x(&mut self, var: f32) {
 		unsafe { node_set_skew_x(self.raw(), var) };
 	}
+	/// Gets the X-axis skew angle of the node in degrees.
 	fn get_skew_x(&self) -> f32 {
 		return unsafe { node_get_skew_x(self.raw()) };
 	}
+	/// Sets the Y-axis skew angle of the node in degrees.
 	fn set_skew_y(&mut self, var: f32) {
 		unsafe { node_set_skew_y(self.raw(), var) };
 	}
+	/// Gets the Y-axis skew angle of the node in degrees.
 	fn get_skew_y(&self) -> f32 {
 		return unsafe { node_get_skew_y(self.raw()) };
 	}
+	/// Sets whether the node is visible.
 	fn set_visible(&mut self, var: bool) {
 		unsafe { node_set_visible(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether the node is visible.
 	fn is_visible(&self) -> bool {
 		return unsafe { node_is_visible(self.raw()) != 0 };
 	}
+	/// Sets the anchor point of the node as a Vec2 object.
 	fn set_anchor(&mut self, var: &crate::dora::Vec2) {
 		unsafe { node_set_anchor(self.raw(), var.into_i64()) };
 	}
+	/// Gets the anchor point of the node as a Vec2 object.
 	fn get_anchor(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(node_get_anchor(self.raw())) };
 	}
+	/// Sets the width of the node.
 	fn set_width(&mut self, var: f32) {
 		unsafe { node_set_width(self.raw(), var) };
 	}
+	/// Gets the width of the node.
 	fn get_width(&self) -> f32 {
 		return unsafe { node_get_width(self.raw()) };
 	}
+	/// Sets the height of the node.
 	fn set_height(&mut self, var: f32) {
 		unsafe { node_set_height(self.raw(), var) };
 	}
+	/// Gets the height of the node.
 	fn get_height(&self) -> f32 {
 		return unsafe { node_get_height(self.raw()) };
 	}
+	/// Sets the size of the node as a Size object.
 	fn set_size(&mut self, var: &crate::dora::Size) {
 		unsafe { node_set_size(self.raw(), var.into_i64()) };
 	}
+	/// Gets the size of the node as a Size object.
 	fn get_size(&self) -> crate::dora::Size {
 		return unsafe { crate::dora::Size::from(node_get_size(self.raw())) };
 	}
+	/// Sets the tag of the node as a string.
 	fn set_tag(&mut self, var: &str) {
 		unsafe { node_set_tag(self.raw(), crate::dora::from_string(var)) };
 	}
+	/// Gets the tag of the node as a string.
 	fn get_tag(&self) -> String {
 		return unsafe { crate::dora::to_string(node_get_tag(self.raw())) };
 	}
+	/// Sets the opacity of the node, should be 0 to 1.0.
 	fn set_opacity(&mut self, var: f32) {
 		unsafe { node_set_opacity(self.raw(), var) };
 	}
+	/// Gets the opacity of the node, should be 0 to 1.0.
 	fn get_opacity(&self) -> f32 {
 		return unsafe { node_get_opacity(self.raw()) };
 	}
+	/// Sets the color of the node as a Color object.
 	fn set_color(&mut self, var: &crate::dora::Color) {
 		unsafe { node_set_color(self.raw(), var.to_argb() as i32) };
 	}
+	/// Gets the color of the node as a Color object.
 	fn get_color(&self) -> crate::dora::Color {
 		return unsafe { crate::dora::Color::from(node_get_color(self.raw())) };
 	}
+	/// Sets the color of the node as a Color3 object.
 	fn set_color3(&mut self, var: &crate::dora::Color3) {
 		unsafe { node_set_color3(self.raw(), var.to_rgb() as i32) };
 	}
+	/// Gets the color of the node as a Color3 object.
 	fn get_color3(&self) -> crate::dora::Color3 {
 		return unsafe { crate::dora::Color3::from(node_get_color3(self.raw())) };
 	}
+	/// Sets whether to pass the opacity value to child nodes.
 	fn set_pass_opacity(&mut self, var: bool) {
 		unsafe { node_set_pass_opacity(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether to pass the opacity value to child nodes.
 	fn is_pass_opacity(&self) -> bool {
 		return unsafe { node_is_pass_opacity(self.raw()) != 0 };
 	}
+	/// Sets whether to pass the color value to child nodes.
 	fn set_pass_color3(&mut self, var: bool) {
 		unsafe { node_set_pass_color3(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether to pass the color value to child nodes.
 	fn is_pass_color3(&self) -> bool {
 		return unsafe { node_is_pass_color3(self.raw()) != 0 };
 	}
+	/// Sets the target node acts as a parent node for transforming this node.
 	fn set_transform_target(&mut self, var: &dyn crate::dora::INode) {
 		unsafe { node_set_transform_target(self.raw(), var.raw()) };
 	}
+	/// Gets the target node acts as a parent node for transforming this node.
 	fn get_transform_target(&self) -> Option<crate::dora::Node> {
 		return unsafe { crate::dora::Node::from(node_get_transform_target(self.raw())) };
 	}
+	/// Sets the scheduler used for scheduling update and action callbacks.
 	fn set_scheduler(&mut self, var: &crate::dora::Scheduler) {
 		unsafe { node_set_scheduler(self.raw(), var.raw()) };
 	}
+	/// Gets the scheduler used for scheduling update and action callbacks.
 	fn get_scheduler(&self) -> crate::dora::Scheduler {
 		return unsafe { crate::dora::Scheduler::from(node_get_scheduler(self.raw())).unwrap() };
 	}
+	/// Gets the children of the node as an Array object, could be None.
 	fn get_children(&self) -> Option<crate::dora::Array> {
 		return unsafe { crate::dora::Array::from(node_get_children(self.raw())) };
 	}
+	/// Gets the parent of the node, could be None.
 	fn get_parent(&self) -> Option<crate::dora::Node> {
 		return unsafe { crate::dora::Node::from(node_get_parent(self.raw())) };
 	}
+	/// Gets the bounding box of the node as a Rect object.
 	fn get_bounding_box(&self) -> crate::dora::Rect {
 		return unsafe { crate::dora::Rect::from(node_get_bounding_box(self.raw())) };
 	}
+	/// Gets whether the node is currently running in a scene tree.
 	fn is_running(&self) -> bool {
 		return unsafe { node_is_running(self.raw()) != 0 };
 	}
+	/// Gets whether the node is currently scheduling a function or a coroutine for updates.
 	fn is_scheduled(&self) -> bool {
 		return unsafe { node_is_scheduled(self.raw()) != 0 };
 	}
+	/// Gets the number of actions currently running on the node.
 	fn get_action_count(&self) -> i32 {
 		return unsafe { node_get_action_count(self.raw()) };
 	}
+	/// Gets additional data stored on the node as a Dictionary object.
 	fn get_data(&self) -> crate::dora::Dictionary {
 		return unsafe { crate::dora::Dictionary::from(node_get_data(self.raw())).unwrap() };
 	}
+	/// Sets whether touch events are enabled on the node.
 	fn set_touch_enabled(&mut self, var: bool) {
 		unsafe { node_set_touch_enabled(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether touch events are enabled on the node.
 	fn is_touch_enabled(&self) -> bool {
 		return unsafe { node_is_touch_enabled(self.raw()) != 0 };
 	}
+	/// Sets whether the node should swallow touch events.
 	fn set_swallow_touches(&mut self, var: bool) {
 		unsafe { node_set_swallow_touches(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether the node should swallow touch events.
 	fn is_swallow_touches(&self) -> bool {
 		return unsafe { node_is_swallow_touches(self.raw()) != 0 };
 	}
+	/// Sets whether the node should swallow mouse wheel events.
 	fn set_swallow_mouse_wheel(&mut self, var: bool) {
 		unsafe { node_set_swallow_mouse_wheel(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether the node should swallow mouse wheel events.
 	fn is_swallow_mouse_wheel(&self) -> bool {
 		return unsafe { node_is_swallow_mouse_wheel(self.raw()) != 0 };
 	}
+	/// Sets whether keyboard events are enabled on the node.
 	fn set_keyboard_enabled(&mut self, var: bool) {
 		unsafe { node_set_keyboard_enabled(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether keyboard events are enabled on the node.
 	fn is_keyboard_enabled(&self) -> bool {
 		return unsafe { node_is_keyboard_enabled(self.raw()) != 0 };
 	}
+	/// Sets whether controller events are enabled on the node.
 	fn set_controller_enabled(&mut self, var: bool) {
 		unsafe { node_set_controller_enabled(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether controller events are enabled on the node.
 	fn is_controller_enabled(&self) -> bool {
 		return unsafe { node_is_controller_enabled(self.raw()) != 0 };
 	}
+	/// Sets whether to group the node's rendering with all its recursive children.
 	fn set_render_group(&mut self, var: bool) {
 		unsafe { node_set_render_group(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether to group the node's rendering with all its recursive children.
 	fn is_render_group(&self) -> bool {
 		return unsafe { node_is_render_group(self.raw()) != 0 };
 	}
+	/// Sets the rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier.
 	fn set_render_order(&mut self, var: i32) {
 		unsafe { node_set_render_order(self.raw(), var) };
 	}
+	/// Gets the rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier.
 	fn get_render_order(&self) -> i32 {
 		return unsafe { node_get_render_order(self.raw()) };
 	}
+	/// Adds a child node to the current node.
+	///
+	/// # Arguments
+	///
+	/// * `child` - The child node to add.
+	/// * `order` - The drawing order of the child node.
+	/// * `tag` - The tag of the child node.
 	fn add_child_with_order_tag(&mut self, child: &dyn crate::dora::INode, order: i32, tag: &str) {
 		unsafe { node_add_child_with_order_tag(self.raw(), child.raw(), order, crate::dora::from_string(tag)); }
 	}
+	/// Adds a child node to the current node.
+	///
+	/// # Arguments
+	///
+	/// * `child` - The child node to add.
+	/// * `order` - The drawing order of the child node.
 	fn add_child_with_order(&mut self, child: &dyn crate::dora::INode, order: i32) {
 		unsafe { node_add_child_with_order(self.raw(), child.raw(), order); }
 	}
+	/// Adds a child node to the current node.
+	///
+	/// # Arguments
+	///
+	/// * `child` - The child node to add.
 	fn add_child(&mut self, child: &dyn crate::dora::INode) {
 		unsafe { node_add_child(self.raw(), child.raw()); }
 	}
+	/// Adds the current node to a parent node.
+	///
+	/// # Arguments
+	///
+	/// * `parent` - The parent node to add the current node to.
+	/// * `order` - The drawing order of the current node.
+	/// * `tag` - The tag of the current node.
+	///
+	/// # Returns
+	///
+	/// * `Node` - The current node.
 	fn add_to_with_order_tag(&mut self, parent: &dyn crate::dora::INode, order: i32, tag: &str) -> crate::dora::Node {
 		unsafe { return crate::dora::Node::from(node_add_to_with_order_tag(self.raw(), parent.raw(), order, crate::dora::from_string(tag))).unwrap(); }
 	}
+	/// Adds the current node to a parent node.
+	///
+	/// # Arguments
+	///
+	/// * `parent` - The parent node to add the current node to.
+	/// * `order` - The drawing order of the current node.
+	///
+	/// # Returns
+	///
+	/// * `Node` - The current node.
 	fn add_to_with_order(&mut self, parent: &dyn crate::dora::INode, order: i32) -> crate::dora::Node {
 		unsafe { return crate::dora::Node::from(node_add_to_with_order(self.raw(), parent.raw(), order)).unwrap(); }
 	}
+	/// Adds the current node to a parent node.
+	///
+	/// # Arguments
+	///
+	/// * `parent` - The parent node to add the current node to.
+	///
+	/// # Returns
+	///
+	/// * `Node` - The current node.
 	fn add_to(&mut self, parent: &dyn crate::dora::INode) -> crate::dora::Node {
 		unsafe { return crate::dora::Node::from(node_add_to(self.raw(), parent.raw())).unwrap(); }
 	}
+	/// Removes a child node from the current node.
+	///
+	/// # Arguments
+	///
+	/// * `child` - The child node to remove.
+	/// * `cleanup` - Whether to cleanup the child node.
 	fn remove_child(&mut self, child: &dyn crate::dora::INode, cleanup: bool) {
 		unsafe { node_remove_child(self.raw(), child.raw(), if cleanup { 1 } else { 0 }); }
 	}
+	/// Removes a child node from the current node by tag.
+	///
+	/// # Arguments
+	///
+	/// * `tag` - The tag of the child node to remove.
+	/// * `cleanup` - Whether to cleanup the child node.
 	fn remove_child_by_tag(&mut self, tag: &str, cleanup: bool) {
 		unsafe { node_remove_child_by_tag(self.raw(), crate::dora::from_string(tag), if cleanup { 1 } else { 0 }); }
 	}
+	/// Removes all child nodes from the current node.
+	///
+	/// # Arguments
+	///
+	/// * `cleanup` - Whether to cleanup the child nodes.
 	fn remove_all_children(&mut self, cleanup: bool) {
 		unsafe { node_remove_all_children(self.raw(), if cleanup { 1 } else { 0 }); }
 	}
+	/// Removes the current node from its parent node.
+	///
+	/// # Arguments
+	///
+	/// * `cleanup` - Whether to cleanup the current node.
 	fn remove_from_parent(&mut self, cleanup: bool) {
 		unsafe { node_remove_from_parent(self.raw(), if cleanup { 1 } else { 0 }); }
 	}
+	/// Moves the current node to a new parent node without triggering node events.
+	///
+	/// # Arguments
+	///
+	/// * `parent` - The new parent node to move the current node to.
 	fn move_to_parent(&mut self, parent: &dyn crate::dora::INode) {
 		unsafe { node_move_to_parent(self.raw(), parent.raw()); }
 	}
+	/// Cleans up the current node.
 	fn cleanup(&mut self) {
 		unsafe { node_cleanup(self.raw()); }
 	}
+	/// Gets a child node by tag.
+	///
+	/// # Arguments
+	///
+	/// * `tag` - The tag of the child node to get.
+	///
+	/// # Returns
+	///
+	/// * `Option<Node>` - The child node, or `None` if not found.
 	fn get_child_by_tag(&mut self, tag: &str) -> Option<crate::dora::Node> {
 		unsafe { return crate::dora::Node::from(node_get_child_by_tag(self.raw(), crate::dora::from_string(tag))); }
 	}
+	/// Schedules a function to be called every frame.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to be called. If the function returns `true`, it will not be called again.
 	fn schedule(&mut self, mut func: Box<dyn FnMut(f64) -> bool>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
@@ -379,15 +541,43 @@ pub trait INode: IObject {
 		}));
 		unsafe { node_schedule(self.raw(), func_id, stack_raw); }
 	}
+	/// Unschedules the current node's scheduled function.
 	fn unschedule(&mut self) {
 		unsafe { node_unschedule(self.raw()); }
 	}
+	/// Converts a point from world space to node space.
+	///
+	/// # Arguments
+	///
+	/// * `world_point` - The point in world space, represented by a Vec2 object.
+	///
+	/// # Returns
+	///
+	/// * `Vec2` - The converted point in world space.
 	fn convert_to_node_space(&mut self, world_point: &crate::dora::Vec2) -> crate::dora::Vec2 {
 		unsafe { return crate::dora::Vec2::from(node_convert_to_node_space(self.raw(), world_point.into_i64())); }
 	}
+	/// Converts a point from node space to world space.
+	///
+	/// # Arguments
+	///
+	/// * `node_point` - The point in node space, represented by a Vec2 object.
+	///
+	/// # Returns
+	///
+	/// * `Vec2` - The converted point in world space.
 	fn convert_to_world_space(&mut self, node_point: &crate::dora::Vec2) -> crate::dora::Vec2 {
 		unsafe { return crate::dora::Vec2::from(node_convert_to_world_space(self.raw(), node_point.into_i64())); }
 	}
+	/// Converts a point from node space to world space.
+	///
+	/// # Arguments
+	///
+	/// * `node_point` - The point in node space, represented by a Vec2 object.
+	///
+	/// # Returns
+	///
+	/// * `Vec2` - The converted point in world space.
 	fn convert_to_window_space(&mut self, node_point: &crate::dora::Vec2, mut callback: Box<dyn FnMut(&crate::dora::Vec2)>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
@@ -396,6 +586,15 @@ pub trait INode: IObject {
 		}));
 		unsafe { node_convert_to_window_space(self.raw(), node_point.into_i64(), func_id, stack_raw); }
 	}
+	/// Calls the given function for each child node of this node.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `false` if all children have been visited, `true` if the iteration was interrupted by the function.
 	fn each_child(&mut self, mut func: Box<dyn FnMut(&dyn crate::dora::INode) -> bool>) -> bool {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
@@ -405,6 +604,15 @@ pub trait INode: IObject {
 		}));
 		unsafe { return node_each_child(self.raw(), func_id, stack_raw) != 0; }
 	}
+	/// Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `false` if all nodes have been visited, `true` if the traversal was interrupted by the function.
 	fn traverse(&mut self, mut func: Box<dyn FnMut(&dyn crate::dora::INode) -> bool>) -> bool {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
@@ -414,6 +622,15 @@ pub trait INode: IObject {
 		}));
 		unsafe { return node_traverse(self.raw(), func_id, stack_raw) != 0; }
 	}
+	/// Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `false` if all nodes have been visited, `true` if the traversal was interrupted by the function.
 	fn traverse_all(&mut self, mut func: Box<dyn FnMut(&dyn crate::dora::INode) -> bool>) -> bool {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
@@ -423,72 +640,190 @@ pub trait INode: IObject {
 		}));
 		unsafe { return node_traverse_all(self.raw(), func_id, stack_raw) != 0; }
 	}
+	/// Runs an action defined by the given action definition on this node.
+	///
+	/// # Arguments
+	///
+	/// * `action_def` - The action definition to run.
+	///
+	/// # Returns
+	///
+	/// * `f64` - The duration of the newly running action in seconds.
 	fn run_action(&mut self, def: &crate::dora::ActionDef) -> Option<crate::dora::Action> {
 		unsafe { return crate::dora::Action::from(node_run_action(self.raw(), def.raw())); }
 	}
+	/// Stops all actions running on this node.
 	fn stop_all_actions(&mut self) {
 		unsafe { node_stop_all_actions(self.raw()); }
 	}
-	fn perform(&mut self, def: &crate::dora::ActionDef) -> Option<crate::dora::Action> {
-		unsafe { return crate::dora::Action::from(node_perform(self.raw(), def.raw())); }
+	/// Runs an action defined by the given action definition right after clearing all the previous running actions.
+	///
+	/// # Arguments
+	///
+	/// * `action_def` - The action definition to run.
+	///
+	/// # Returns
+	///
+	/// * `f64` - The duration of the newly running action in seconds.
+	fn perform(&mut self, action_def: &crate::dora::ActionDef) -> Option<crate::dora::Action> {
+		unsafe { return crate::dora::Action::from(node_perform(self.raw(), action_def.raw())); }
 	}
+	/// Stops the given action running on this node.
+	///
+	/// # Arguments
+	///
+	/// * `action` - The action to stop.
 	fn stop_action(&mut self, action: &crate::dora::Action) {
 		unsafe { node_stop_action(self.raw(), action.raw()); }
 	}
+	/// Vertically aligns all child nodes within the node using the given size and padding.
+	///
+	/// # Arguments
+	///
+	/// * `padding` - The amount of padding to use between each child node.
+	///
+	/// # Returns
+	///
+	/// * `Size` - The size of the node after alignment.
 	fn align_items_vertically(&mut self, padding: f32) -> crate::dora::Size {
 		unsafe { return crate::dora::Size::from(node_align_items_vertically(self.raw(), padding)); }
 	}
+	/// Vertically aligns all child nodes within the node using the given size and padding.
+	///
+	/// # Arguments
+	///
+	/// * `size` - The size to use for alignment.
+	/// * `padding` - The amount of padding to use between each child node.
+	///
+	/// # Returns
+	///
+	/// * `Size` - The size of the node after alignment.
 	fn align_items_vertically_with_size(&mut self, size: &crate::dora::Size, padding: f32) -> crate::dora::Size {
 		unsafe { return crate::dora::Size::from(node_align_items_vertically_with_size(self.raw(), size.into_i64(), padding)); }
 	}
+	/// Horizontally aligns all child nodes within the node using the given size and padding.
+	///
+	/// # Arguments
+	///
+	/// * `padding` - The amount of padding to use between each child node.
+	///
+	/// # Returns
+	///
+	/// * `Size` - The size of the node after alignment.
 	fn align_items_horizontally(&mut self, padding: f32) -> crate::dora::Size {
 		unsafe { return crate::dora::Size::from(node_align_items_horizontally(self.raw(), padding)); }
 	}
+	/// Horizontally aligns all child nodes within the node using the given size and padding.
+	///
+	/// # Arguments
+	///
+	/// * `size` - The size to hint for alignment.
+	/// * `padding` - The amount of padding to use between each child node.
+	///
+	/// # Returns
+	///
+	/// * `Size` - The size of the node after alignment.
 	fn align_items_horizontally_with_size(&mut self, size: &crate::dora::Size, padding: f32) -> crate::dora::Size {
 		unsafe { return crate::dora::Size::from(node_align_items_horizontally_with_size(self.raw(), size.into_i64(), padding)); }
 	}
+	/// Aligns all child nodes within the node using the given size and padding.
+	///
+	/// # Arguments
+	///
+	/// * `padding` - The amount of padding to use between each child node.
+	///
+	/// # Returns
+	///
+	/// * `Size` - The size of the node after alignment.
 	fn align_items(&mut self, padding: f32) -> crate::dora::Size {
 		unsafe { return crate::dora::Size::from(node_align_items(self.raw(), padding)); }
 	}
+	/// Aligns all child nodes within the node using the given size and padding.
+	///
+	/// # Arguments
+	///
+	/// * `size` - The size to use for alignment.
+	/// * `padding` - The amount of padding to use between each child node.
+	///
+	/// # Returns
+	///
+	/// * `Size` - The size of the node after alignment.
 	fn align_items_with_size(&mut self, size: &crate::dora::Size, padding: f32) -> crate::dora::Size {
 		unsafe { return crate::dora::Size::from(node_align_items_with_size(self.raw(), size.into_i64(), padding)); }
 	}
+	/// Moves and changes child nodes' visibility based on their position in parent's area.
+	///
+	/// # Arguments
+	///
+	/// * `delta` - The distance to move its children, represented by a Vec2 object.
 	fn move_and_cull_items(&mut self, delta: &crate::dora::Vec2) {
 		unsafe { node_move_and_cull_items(self.raw(), delta.into_i64()); }
 	}
+	/// Attaches the input method editor (IME) to the node.
+	/// Makes node recieving "AttachIME", "DetachIME", "TextInput", "TextEditing" events.
 	fn attach_ime(&mut self) {
 		unsafe { node_attach_ime(self.raw()); }
 	}
+	/// Detaches the input method editor (IME) from the node.
 	fn detach_ime(&mut self) {
 		unsafe { node_detach_ime(self.raw()); }
 	}
+	/// Creates a texture grabber for the specified node.
+	///
+	/// # Returns
+	///
+	/// * `Grabber` - A Grabber object.
 	fn grab(&mut self) -> crate::dora::Grabber {
 		unsafe { return crate::dora::Grabber::from(node_grab(self.raw())).unwrap(); }
 	}
+	/// Creates a texture grabber for the specified node with a specified grid size.
+	///
+	/// # Arguments
+	///
+	/// * `grid_x` - The number of horizontal grid cells to divide the grabber into.
+	/// * `grid_y` - The number of vertical grid cells to divide the grabber into.
+	///
+	/// # Returns
+	///
+	/// * `Grabber` - A Grabber object.
 	fn grab_with_size(&mut self, grid_x: i32, grid_y: i32) -> crate::dora::Grabber {
 		unsafe { return crate::dora::Grabber::from(node_grab_with_size(self.raw(), grid_x, grid_y)).unwrap(); }
 	}
+	/// Removes the texture grabber for the specified node.
 	fn stop_grab(&mut self) {
 		unsafe { node_stop_grab(self.raw()); }
 	}
+	/// Removes the transform target for the specified node.
 	fn set_transform_target_null(&mut self) {
 		unsafe { node_set_transform_target_null(self.raw()); }
 	}
-	fn slot(&mut self, name: &str, mut func: Box<dyn FnMut(&mut crate::dora::CallStack)>) -> bool {
+	/// Associates the given handler function with the node event.
+	///
+	/// # Arguments
+	///
+	/// * `event_name` - The name of the node event.
+	/// * `handler` - The handler function to associate with the node event.
+	fn slot(&mut self, event_name: &str, mut func: Box<dyn FnMut(&mut crate::dora::CallStack)>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
 		let func_id = crate::dora::push_function(Box::new(move || {
 			func(&mut stack)
 		}));
-		unsafe { return node_slot(self.raw(), crate::dora::from_string(name), func_id, stack_raw) != 0; }
+		unsafe { node_slot(self.raw(), crate::dora::from_string(event_name), func_id, stack_raw); }
 	}
-	fn gslot(&mut self, name: &str, mut func: Box<dyn FnMut(&mut crate::dora::CallStack)>) -> bool {
+	/// Associates the given handler function with a global event.
+	///
+	/// # Arguments
+	///
+	/// * `event_name` - The name of the global event.
+	/// * `handler` - The handler function to associate with the event.
+	fn gslot(&mut self, event_name: &str, mut func: Box<dyn FnMut(&mut crate::dora::CallStack)>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
 		let func_id = crate::dora::push_function(Box::new(move || {
 			func(&mut stack)
 		}));
-		unsafe { return node_gslot(self.raw(), crate::dora::from_string(name), func_id, stack_raw) != 0; }
+		unsafe { node_gslot(self.raw(), crate::dora::from_string(event_name), func_id, stack_raw); }
 	}
 }
 impl Node {
@@ -500,6 +835,7 @@ impl Node {
 			}
 		})
 	}
+	/// Creates a new instance of the `Node` struct.
 	pub fn new() -> Node {
 		unsafe { return Node { raw: node_new() }; }
 	}

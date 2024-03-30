@@ -7,6 +7,7 @@ extern "C" {
 use crate::dora::IObject;
 use crate::dora::ICamera;
 impl ICamera for CameraOtho { }
+/// A struct for an orthographic camera object in the game engine.
 pub struct CameraOtho { raw: i64 }
 crate::dora_object!(CameraOtho);
 impl CameraOtho {
@@ -18,12 +19,23 @@ impl CameraOtho {
 			}
 		})
 	}
+	/// Sets the position of the camera in the game world.
 	pub fn set_position(&mut self, var: &crate::dora::Vec2) {
 		unsafe { cameraotho_set_position(self.raw(), var.into_i64()) };
 	}
+	/// Gets the position of the camera in the game world.
 	pub fn get_position(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(cameraotho_get_position(self.raw())) };
 	}
+	/// Creates a new CameraOtho object with the given name.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the CameraOtho object.
+	///
+	/// # Returns
+	///
+	/// * `CameraOtho` - A new instance of the CameraOtho object.
 	pub fn new(name: &str) -> CameraOtho {
 		unsafe { return CameraOtho { raw: cameraotho_new(crate::dora::from_string(name)) }; }
 	}
