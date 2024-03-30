@@ -24,65 +24,200 @@ extern "C" {
 	fn content_zip_async(folder_path: i64, zip_file: i64, func: i32, stack: i64, func1: i32, stack1: i64);
 	fn content_unzip_async(zip_file: i64, folder_path: i64, func: i32, stack: i64, func1: i32, stack1: i64);
 }
+/// The `Content` is a static struct that manages file searching,
+/// loading and other operations related to resources.
 pub struct Content { }
 impl Content {
+	/// Sets an array of directories to search for resource files.
 	pub fn set_search_paths(var: &Vec<&str>) {
 		unsafe { content_set_search_paths(crate::dora::Vector::from_str(var)) };
 	}
+	/// Gets an array of directories to search for resource files.
 	pub fn get_search_paths() -> Vec<String> {
 		return unsafe { crate::dora::Vector::to_str(content_get_search_paths()) };
 	}
+	/// Gets the path to the directory containing read-only resources.
 	pub fn get_asset_path() -> String {
 		return unsafe { crate::dora::to_string(content_get_asset_path()) };
 	}
+	/// Gets the path to the directory where files can be written.
 	pub fn get_writable_path() -> String {
 		return unsafe { crate::dora::to_string(content_get_writable_path()) };
 	}
+	/// Saves the specified content to a file with the specified filename.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to save.
+	/// * `content` - The content to save to the file.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the content saves to file successfully, `false` otherwise.
 	pub fn save(filename: &str, content: &str) -> bool {
 		unsafe { return content_save(crate::dora::from_string(filename), crate::dora::from_string(content)) != 0; }
 	}
+	/// Checks if a file with the specified filename exists.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the file exists, `false` otherwise.
 	pub fn exist(filename: &str) -> bool {
 		unsafe { return content_exist(crate::dora::from_string(filename)) != 0; }
 	}
+	/// Creates a new directory with the specified path.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path of the directory to create.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the directory was created, `false` otherwise.
 	pub fn mkdir(path: &str) -> bool {
 		unsafe { return content_mkdir(crate::dora::from_string(path)) != 0; }
 	}
+	/// Checks if the specified path is a directory.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the path is a directory, `false` otherwise.
 	pub fn isdir(path: &str) -> bool {
 		unsafe { return content_isdir(crate::dora::from_string(path)) != 0; }
 	}
+	/// Copies the file or directory at the specified source path to the target path.
+	///
+	/// # Arguments
+	///
+	/// * `src_path` - The path of the file or directory to copy.
+	/// * `dst_path` - The path to copy the file or directory to.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the file or directory was successfully copied to the target path, `false` otherwise.
 	pub fn copy(src: &str, dst: &str) -> bool {
 		unsafe { return content_copy(crate::dora::from_string(src), crate::dora::from_string(dst)) != 0; }
 	}
+	/// Moves the file or directory at the specified source path to the target path.
+	///
+	/// # Arguments
+	///
+	/// * `src_path` - The path of the file or directory to move.
+	/// * `dst_path` - The path to move the file or directory to.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the file or directory was successfully moved to the target path, `false` otherwise.
 	pub fn move_to(src: &str, dst: &str) -> bool {
 		unsafe { return content_move_to(crate::dora::from_string(src), crate::dora::from_string(dst)) != 0; }
 	}
+	/// Removes the file or directory at the specified path.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path of the file or directory to remove.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the file or directory was successfully removed, `false` otherwise.
 	pub fn remove(path: &str) -> bool {
 		unsafe { return content_remove(crate::dora::from_string(path)) != 0; }
 	}
+	/// Gets the full path of a file with the specified filename.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to get the full path of.
+	///
+	/// # Returns
+	///
+	/// * `String` - The full path of the file.
 	pub fn get_full_path(filename: &str) -> String {
 		unsafe { return crate::dora::to_string(content_get_full_path(crate::dora::from_string(filename))); }
 	}
+	/// Adds a new search path to the end of the list.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The search path to add.
 	pub fn add_search_path(path: &str) {
 		unsafe { content_add_search_path(crate::dora::from_string(path)); }
 	}
+	/// Inserts a search path at the specified index.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index at which to insert the search path.
+	/// * `path` - The search path to insert.
 	pub fn insert_search_path(index: i32, path: &str) {
 		unsafe { content_insert_search_path(index, crate::dora::from_string(path)); }
 	}
+	/// Removes the specified search path from the list.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The search path to remove.
 	pub fn remove_search_path(path: &str) {
 		unsafe { content_remove_search_path(crate::dora::from_string(path)); }
 	}
+	/// Clears the search path cache of the map of relative paths to full paths.
 	pub fn clear_path_cache() {
 		unsafe { content_clear_path_cache(); }
 	}
+	/// Gets the names of all subdirectories in the specified directory.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path of the directory to search.
+	///
+	/// # Returns
+	///
+	/// * `Vec<String>` - An array of the names of all subdirectories in the specified directory.
 	pub fn get_dirs(path: &str) -> Vec<String> {
 		unsafe { return crate::dora::Vector::to_str(content_get_dirs(crate::dora::from_string(path))); }
 	}
+	/// Gets the names of all files in the specified directory.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path of the directory to search.
+	///
+	/// # Returns
+	///
+	/// * `Vec<String>` - An array of the names of all files in the specified directory.
 	pub fn get_files(path: &str) -> Vec<String> {
 		unsafe { return crate::dora::Vector::to_str(content_get_files(crate::dora::from_string(path))); }
 	}
+	/// Gets the names of all files in the specified directory and its subdirectories.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path of the directory to search.
+	///
+	/// # Returns
+	///
+	/// * `Vec<String>` - An array of the names of all files in the specified directory and its subdirectories.
 	pub fn get_all_files(path: &str) -> Vec<String> {
 		unsafe { return crate::dora::Vector::to_str(content_get_all_files(crate::dora::from_string(path))); }
 	}
+	/// Asynchronously loads the content of the file with the specified filename.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to load.
+	/// * `callback` - The function to call with the content of the file once it is loaded.
+	///
+	/// # Returns
+	///
+	/// * `String` - The content of the loaded file.
 	pub fn load_async(filename: &str, mut callback: Box<dyn FnMut(&str)>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
@@ -91,6 +226,16 @@ impl Content {
 		}));
 		unsafe { content_load_async(crate::dora::from_string(filename), func_id, stack_raw); }
 	}
+	/// Asynchronously copies a file or a folder from the source path to the destination path.
+	///
+	/// # Arguments
+	///
+	/// * `src` - The path of the file or folder to copy.
+	/// * `dst` - The destination path of the copied files.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the file or folder was copied successfully, `false` otherwise.
 	pub fn copy_async(src_file: &str, target_file: &str, mut callback: Box<dyn FnMut(bool)>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
@@ -99,6 +244,16 @@ impl Content {
 		}));
 		unsafe { content_copy_async(crate::dora::from_string(src_file), crate::dora::from_string(target_file), func_id, stack_raw); }
 	}
+	/// Asynchronously saves the specified content to a file with the specified filename.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to save.
+	/// * `content` - The content to save to the file.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the content was saved successfully, `false` otherwise.
 	pub fn save_async(filename: &str, content: &str, mut callback: Box<dyn FnMut(bool)>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
@@ -107,6 +262,17 @@ impl Content {
 		}));
 		unsafe { content_save_async(crate::dora::from_string(filename), crate::dora::from_string(content), func_id, stack_raw); }
 	}
+	/// Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
+	///
+	/// # Arguments
+	///
+	/// * `folder_path` - The path of the folder to compress, should be under the asset writable path.
+	/// * `zip_file` - The name of the ZIP archive to create.
+	/// * `filter` - An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the folder was compressed successfully, `false` otherwise.
 	pub fn zip_async(folder_path: &str, zip_file: &str, mut filter: Box<dyn FnMut(&str) -> bool>, mut callback: Box<dyn FnMut(bool)>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
@@ -121,6 +287,17 @@ impl Content {
 		}));
 		unsafe { content_zip_async(crate::dora::from_string(folder_path), crate::dora::from_string(zip_file), func_id, stack_raw, func_id1, stack_raw1); }
 	}
+	/// Asynchronously decompresses a ZIP archive to the specified folder.
+	///
+	/// # Arguments
+	///
+	/// * `zip_file` - The name of the ZIP archive to decompress, should be a file under the asset writable path.
+	/// * `folder_path` - The path of the folder to decompress to, should be under the asset writable path.
+	/// * `filter` - An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the folder was decompressed successfully, `false` otherwise.
 	pub fn unzip_async(zip_file: &str, folder_path: &str, mut filter: Box<dyn FnMut(&str) -> bool>, mut callback: Box<dyn FnMut(bool)>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();

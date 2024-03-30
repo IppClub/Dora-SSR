@@ -305,7 +305,6 @@ void  dump_code_page  (IM3CodePage i_codePage, pc_t i_startPC)
 
         while (pc < end)
         {
-            // pc_t operationPC = pc;
             IM3Operation op = (IM3Operation) (* pc++);
 
                 OpInfo i = find_operation_info (op);

@@ -96,7 +96,7 @@ local record Array
 	index: function(self: Array, item: Item): integer
 
 	-- Removes and returns the last item in the array.
-	-- @return (Item) The last item in the array.
+	-- @return (Item) The last item removed from the array.
 	removeLast: function(self: Array): Item
 
 	-- Removes the first occurrence of a given item from the array without preserving order.

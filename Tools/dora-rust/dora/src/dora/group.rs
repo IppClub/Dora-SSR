@@ -5,6 +5,7 @@ extern "C" {
 	fn entitygroup_new(components: i64) -> i64;
 }
 use crate::dora::IObject;
+/// A struct representing a group of entities in the ECS game systems.
 pub struct Group { raw: i64 }
 crate::dora_object!(Group);
 impl Group {
@@ -16,9 +17,19 @@ impl Group {
 			}
 		})
 	}
+	/// Gets the number of entities in the group.
 	pub fn get_count(&self) -> i32 {
 		return unsafe { entitygroup_get_count(self.raw()) };
 	}
+	/// Finds the first entity in the group that satisfies a predicate function.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The predicate function to test each entity with.
+	///
+	/// # Returns
+	///
+	/// * `Option<Entity>` - The first entity that satisfies the predicate, or None if no entity does.
 	pub fn find(&self, mut func: Box<dyn FnMut(&crate::dora::Entity) -> bool>) -> Option<crate::dora::Entity> {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
@@ -28,6 +39,15 @@ impl Group {
 		}));
 		unsafe { return crate::dora::Entity::from(entitygroup_find(self.raw(), func_id, stack_raw)); }
 	}
+	/// A method that creates a new group with the specified component names.
+	///
+	/// # Arguments
+	///
+	/// * `components` - A vector listing the names of the components to include in the group.
+	///
+	/// # Returns
+	///
+	/// * `Group` - The new group.
 	pub fn new(components: &Vec<&str>) -> Group {
 		unsafe { return Group { raw: entitygroup_new(crate::dora::Vector::from_str(components)) }; }
 	}

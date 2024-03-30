@@ -70,6 +70,21 @@ Profiler::~Profiler() {
 	level--;
 }
 
+std::string Path::concatVector(const std::vector<std::string>& paths) {
+	if (paths.empty()) return Slice::Empty;
+	if (paths.size() == 1) return paths.front();
+	fs::path path = paths.front();
+	for (auto it = ++paths.begin(); it != paths.end(); ++it) {
+		if (it->empty()) continue;
+		if (path.empty()) {
+			path = *it;
+		} else {
+			path /= *it;
+		}
+	}
+	return path.string();
+}
+
 std::string Path::concat(const std::list<Slice>& paths) {
 	if (paths.empty()) return Slice::Empty;
 	if (paths.size() == 1) return paths.front().toString();

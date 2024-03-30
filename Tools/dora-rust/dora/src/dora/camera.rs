@@ -3,10 +3,12 @@ extern "C" {
 	fn camera_get_name(slf: i64) -> i64;
 }
 use crate::dora::IObject;
+/// A struct for Camera object in the game engine.
 pub struct Camera { raw: i64 }
 crate::dora_object!(Camera);
 impl ICamera for Camera { }
 pub trait ICamera: IObject {
+	/// Gets the name of the Camera.
 	fn get_name(&self) -> String {
 		return unsafe { crate::dora::to_string(camera_get_name(self.raw())) };
 	}

@@ -1,3 +1,11 @@
+/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 use std::{ffi::c_void, any::Any};
 use once_cell::sync::Lazy;
 
@@ -1037,38 +1045,99 @@ extern "C" {
 }
 
 impl Array {
+	/// Sets the item at the given index.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index to set, should be 0 based.
+	/// * `item` - The new item value.
 	pub fn set<'a, T>(&mut self, index: i32, v: T) where T: IntoValue<'a> {
 		if unsafe { array_set(self.raw(), index, v.val().raw()) == 0 } {
 			panic!("Out of bounds, expecting [0, {}), got {}", self.get_count(), index);
 		}
 	}
+	/// Gets the item at the given index.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index to get, should be 0 based.
+	///
+	/// # Returns
+	///
+	/// * `Option<Value>` - The item value.
 	pub fn get(&self, index: i32) -> Option<Value> {
 		Value::from(unsafe { array_get(self.raw(), index) })
 	}
+	/// The first item in the array.
 	pub fn first(&self) -> Option<Value> {
 		Value::from(unsafe { array_first(self.raw()) })
 	}
+	/// The last item in the array.
 	pub fn last(&self) -> Option<Value> {
 		Value::from(unsafe { array_last(self.raw()) })
 	}
+	/// A random item from the array.
 	pub fn random_object(&self) -> Option<Value> {
 		Value::from(unsafe { array_random_object(self.raw()) })
 	}
+	/// Adds an item to the end of the array.
+	///
+	/// # Arguments
+	///
+	/// * `item` - The item to add.
 	pub fn add<'a, T>(&mut self, v: T) where T: IntoValue<'a> {
 		unsafe { array_add(self.raw(), v.val().raw()); }
 	}
+	/// Inserts an item at the given index, shifting other items to the right.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index to insert at.
+	/// * `item` - The item to insert.
 	pub fn insert<'a, T>(&mut self, index: i32, v: T) where T: IntoValue<'a> {
 		unsafe { array_insert(self.raw(), index, v.val().raw()); }
 	}
+	/// Checks whether the array contains a given item.
+	///
+	/// # Arguments
+	///
+	/// * `item` - The item to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - True if the item is found, false otherwise.
 	pub fn contains<'a, T>(&self, v: T) -> bool where T: IntoValue<'a> {
 		unsafe { array_contains(self.raw(), v.val().raw()) != 0 }
 	}
+	/// Gets the index of a given item.
+	///
+	/// # Arguments
+	///
+	/// * `item` - The item to search for.
+	///
+	/// # Returns
+	///
+	/// * `i32` - The index of the item, or -1 if it is not found.
 	pub fn index<'a, T>(&self, v: T) -> i32 where T: IntoValue<'a> {
 		unsafe { array_index(self.raw(), v.val().raw()) }
 	}
+	/// Removes and returns the last item in the array.
+	///
+	/// # Returns
+	///
+	/// * `Option<Value>` - The last item removed from the array.
 	pub fn remove_last(&mut self) -> Option<Value> {
 		Value::from(unsafe { array_remove_last(self.raw()) })
 	}
+	/// Removes the first occurrence of a given item from the array without preserving order.
+	///
+	/// # Arguments
+	///
+	/// * `item` - The item to remove.
+	///
+	/// # Returns
+	///
+	/// * `bool` - True if the item was found and removed, false otherwise.
 	pub fn fast_remove<'a, T>(&mut self, v: T) -> bool where T: IntoValue<'a> {
 		unsafe { array_fast_remove(self.raw(), v.val().raw()) != 0 }
 	}
@@ -1082,9 +1151,24 @@ extern "C" {
 }
 
 impl Dictionary {
+	/// A method for setting items in the dictionary.
+	///
+	/// # Arguments
+	///
+	/// * `key` - The key of the item to set.
+	/// * `item` - The Item to set for the given key, set to None to delete this key-value pair.
 	pub fn set<'a, T>(&mut self, key: &str, v: T) where T: IntoValue<'a> {
 		unsafe { dictionary_set(self.raw(), from_string(key), v.val().raw()); }
 	}
+	/// A method for accessing items in the dictionary.
+	///
+	/// # Arguments
+	///
+	/// * `key` - The key of the item to retrieve.
+	///
+	/// # Returns
+	///
+	/// * `Option<Item>` - The Item with the given key, or None if it does not exist.
 	pub fn get(&self, key: &str) -> Option<Value> {
 		Value::from(unsafe { dictionary_get(self.raw(), from_string(key)) })
 	}
@@ -1099,12 +1183,38 @@ extern "C" {
 }
 
 impl Entity {
+	/// Sets a property of the entity to a given value.
+	/// This function will trigger events for Observer objects.
+	///
+	/// # Arguments
+	///
+	/// * `key` - The name of the property to set.
+	/// * `item` - The value to set the property to.
 	pub fn set<'a, T>(&mut self, key: &str, value: T) where T: IntoValue<'a> {
 		unsafe { entity_set(self.raw(), from_string(key), value.val().raw()); }
 	}
+	/// Retrieves the value of a property of the entity.
+	///
+	/// # Arguments
+	///
+	/// * `key` - The name of the property to retrieve the value of.
+	///
+	/// # Returns
+	///
+	/// * `Option<Value>` - The value of the specified property.
 	pub fn get(&self, key: &str) -> Option<Value> {
 		Value::from(unsafe { entity_get(self.raw(), from_string(key)) })
 	}
+	/// Retrieves the previous value of a property of the entity.
+	/// The old values are values before the last change of the component values of the Entity.
+	///
+	/// # Arguments
+	///
+	/// * `key` - The name of the property to retrieve the previous value of.
+	///
+	/// # Returns
+	///
+	/// * `Option<Value>` - The previous value of the specified property.
 	pub fn get_old(&self, key: &str) -> Option<Value> {
 		Value::from(unsafe { entity_get_old(self.raw(), from_string(key)) })
 	}
@@ -1117,7 +1227,16 @@ extern "C" {
 }
 
 impl Group {
-	pub fn watch(&mut self, mut func: Box<dyn FnMut(&mut CallStack) -> bool>) {
+	/// Watches the group for changes to its entities, calling a function whenever an entity is added or changed.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call when an entity is added or changed. Returns true to stop watching.
+	///
+	/// # Returns
+	///
+	/// * `Group` - The same group, for method chaining.
+	pub fn watch(&mut self, mut func: Box<dyn FnMut(&mut CallStack) -> bool>) -> &mut Group {
 		let mut stack = CallStack::new();
 		let stack_raw = stack.raw();
 		let func_id = push_function(Box::new(move || {
@@ -1125,7 +1244,17 @@ impl Group {
 			stack.push_bool(result);
 		}));
 		unsafe { group_watch(self.raw(), func_id, stack_raw); }
+		self
 	}
+	/// Calls a function for each entity in the group.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call for each entity. Returning true inside the function will stop iteration.
+	///
+	/// # Returns
+	///
+	/// * `bool` - Returns false if all entities were processed, true if the iteration was interrupted.
 	pub fn each(&self, func: Box<dyn FnMut(&Entity) -> bool>) -> bool {
 		match self.find(func) {
 			Some(_) => true,
@@ -1137,7 +1266,7 @@ impl Group {
 // Observer
 
 extern "C" {
-	fn observer_watch(observer: i64, func: i32, stack: i64);
+	fn observer_watch(observer: i64, func: i32, stack: i64) -> i64;
 }
 
 #[repr(i32)]
@@ -1149,7 +1278,16 @@ pub enum EntityEvent {
 }
 
 impl Observer {
-	pub fn watch(&mut self, mut func: Box<dyn FnMut(&mut CallStack) -> bool>) {
+	/// Watches the components changes to entities that match the observer's component filter.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call when a change occurs. Returns true to stop watching.
+	///
+	/// # Returns
+	///
+	/// * `Observer` - The same observer, for method chaining.
+	pub fn watch(&mut self, mut func: Box<dyn FnMut(&mut CallStack) -> bool>) -> &mut Observer {
 		let mut stack = CallStack::new();
 		let stack_raw = stack.raw();
 		let func_id = push_function(Box::new(move || {
@@ -1157,6 +1295,7 @@ impl Observer {
 			stack.push_bool(result);
 		}));
 		unsafe { observer_watch(self.raw(), func_id, stack_raw); }
+		self
 	}
 }
 
@@ -1167,6 +1306,12 @@ extern "C" {
 }
 
 impl Node {
+	/// Emits an event to a node, triggering the event handler associated with the event name.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the event.
+	/// * `stack` - The argument stack to be passed to the event handler.
 	pub fn emit(&mut self, name: &str, stack: CallStack) {
 		unsafe { node_emit(self.raw(), from_string(name), stack.raw()); }
 	}
@@ -1271,9 +1416,39 @@ extern "C" {
 }
 
 impl platformer::behavior::Blackboard {
+	/// Sets a value in the blackboard.
+	///
+	/// # Arguments
+	/// * `key` - The key associated with the value.
+	/// * `value` - The value to be set.
+	///
+	/// # Example
+	///
+	/// ```
+	/// blackboard.set("score", 100);
+	/// ```
 	pub fn set<'a, T>(&mut self, key: &str, value: T) where T: IntoValue<'a> {
 		unsafe { blackboard_set(self.raw(), from_string(key), value.val().raw()); }
 	}
+	/// Retrieves a value from the blackboard.
+	///
+	/// # Arguments
+	///
+	/// * `key` - The key associated with the value.
+	///
+	/// # Returns
+	///
+	/// An `Option` containing the value associated with the key, or `None` if the key does not exist.
+	///
+	/// # Example
+	///
+	/// ```
+	/// if let Some(score) = blackboard.get("score") {
+	///     println!("Score: {}", score.into_i32().unwrap());
+	/// } else {
+	///     println!("Score not found.");
+	/// }
+	/// ```
 	pub fn get(&self, key: &str) -> Option<Value> {
 		Value::from(unsafe { blackboard_get(self.raw(), from_string(key)) })
 	}

@@ -8,6 +8,7 @@ extern "C" {
 	fn entity_new() -> i64;
 }
 use crate::dora::IObject;
+/// A struct representing an entity for an ECS game system.
 pub struct Entity { raw: i64 }
 crate::dora_object!(Entity);
 impl Entity {
@@ -19,21 +20,33 @@ impl Entity {
 			}
 		})
 	}
+	/// Gets the number of all running entities.
 	pub fn get_count() -> i32 {
 		return unsafe { entity_get_count() };
 	}
+	/// Gets the index of the entity.
 	pub fn get_index(&self) -> i32 {
 		return unsafe { entity_get_index(self.raw()) };
 	}
+	/// Clears all entities.
 	pub fn clear() {
 		unsafe { entity_clear(); }
 	}
+	/// Removes a property of the entity.
+	///
+	/// This function will trigger events for Observer objects.
+	///
+	/// # Arguments
+	///
+	/// * `key` - The name of the property to remove.
 	pub fn remove(&mut self, key: &str) {
 		unsafe { entity_remove(self.raw(), crate::dora::from_string(key)); }
 	}
+	/// Destroys the entity.
 	pub fn destroy(&mut self) {
 		unsafe { entity_destroy(self.raw()); }
 	}
+	/// Creates a new entity.
 	pub fn new() -> Entity {
 		unsafe { return Entity { raw: entity_new() }; }
 	}

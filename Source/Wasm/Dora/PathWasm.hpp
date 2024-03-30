@@ -19,6 +19,9 @@ static int64_t path_replace_ext(int64_t path, int64_t new_ext) {
 static int64_t path_replace_filename(int64_t path, int64_t new_file) {
 	return str_retain(Path::replaceFilename(*str_from(path), *str_from(new_file)));
 }
+static int64_t path_concat(int64_t paths) {
+	return str_retain(Path::concatVector(from_str_vec(paths)));
+}
 static void linkPath(wasm3::module3& mod) {
 	mod.link_optional("*", "path_get_ext", path_get_ext);
 	mod.link_optional("*", "path_get_path", path_get_path);
@@ -27,4 +30,5 @@ static void linkPath(wasm3::module3& mod) {
 	mod.link_optional("*", "path_get_relative", path_get_relative);
 	mod.link_optional("*", "path_replace_ext", path_replace_ext);
 	mod.link_optional("*", "path_replace_filename", path_replace_filename);
+	mod.link_optional("*", "path_concat", path_concat);
 }

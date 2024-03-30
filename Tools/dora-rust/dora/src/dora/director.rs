@@ -17,53 +17,82 @@ extern "C" {
 	fn director_cleanup();
 }
 use crate::dora::IObject;
+/// A struct manages the game scene trees and provides access to root scene nodes for different game uses.
 pub struct Director { }
 impl Director {
+	/// Sets the background color for the game world.
 	pub fn set_clear_color(var: &crate::dora::Color) {
 		unsafe { director_set_clear_color(var.to_argb() as i32) };
 	}
+	/// Gets the background color for the game world.
 	pub fn get_clear_color() -> crate::dora::Color {
 		return unsafe { crate::dora::Color::from(director_get_clear_color()) };
 	}
+	/// Sets the game scheduler which is used for scheduling tasks like animations and gameplay events.
 	pub fn set_scheduler(var: &crate::dora::Scheduler) {
 		unsafe { director_set_scheduler(var.raw()) };
 	}
+	/// Gets the game scheduler which is used for scheduling tasks like animations and gameplay events.
 	pub fn get_scheduler() -> crate::dora::Scheduler {
 		return unsafe { crate::dora::Scheduler::from(director_get_scheduler()).unwrap() };
 	}
+	/// Gets the root node for 2D user interface elements like buttons and labels.
 	pub fn get_ui() -> crate::dora::Node {
 		return unsafe { crate::dora::Node::from(director_get_ui()).unwrap() };
 	}
+	/// Gets the root node for 3D user interface elements with 3D projection effect.
 	pub fn get_ui_3d() -> crate::dora::Node {
 		return unsafe { crate::dora::Node::from(director_get_ui_3d()).unwrap() };
 	}
+	/// Gets the root node for the starting point of a game.
 	pub fn get_entry() -> crate::dora::Node {
 		return unsafe { crate::dora::Node::from(director_get_entry()).unwrap() };
 	}
+	/// Gets the root node for post-rendering scene tree.
 	pub fn get_post_node() -> crate::dora::Node {
 		return unsafe { crate::dora::Node::from(director_get_post_node()).unwrap() };
 	}
+	/// Gets the system scheduler which is used for low-level system tasks, should not put any game logic in it.
 	pub fn get_system_scheduler() -> crate::dora::Scheduler {
 		return unsafe { crate::dora::Scheduler::from(director_get_system_scheduler()).unwrap() };
 	}
+	/// Gets the scheduler used for processing post game logic.
 	pub fn get_post_scheduler() -> crate::dora::Scheduler {
 		return unsafe { crate::dora::Scheduler::from(director_get_post_scheduler()).unwrap() };
 	}
+	/// Gets the current active camera in Director's camera stack.
 	pub fn get_current_camera() -> crate::dora::Camera {
 		return unsafe { crate::dora::Camera::from(director_get_current_camera()).unwrap() };
 	}
+	/// Adds a new camera to Director's camera stack and sets it to the current camera.
+	///
+	/// # Arguments
+	///
+	/// * `camera` - The camera to add.
 	pub fn push_camera(camera: &dyn crate::dora::ICamera) {
 		unsafe { director_push_camera(camera.raw()); }
 	}
+	/// Removes the current camera from Director's camera stack.
 	pub fn pop_camera() {
 		unsafe { director_pop_camera(); }
 	}
+	/// Removes a specified camera from Director's camera stack.
+	///
+	/// # Arguments
+	///
+	/// * `camera` - The camera to remove.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the camera was removed, `false` otherwise.
 	pub fn remove_camera(camera: &dyn crate::dora::ICamera) -> bool {
 		unsafe { return director_remove_camera(camera.raw()) != 0; }
 	}
+	/// Removes all cameras from Director's camera stack.
 	pub fn clear_camera() {
 		unsafe { director_clear_camera(); }
 	}
+	/// Cleans up all resources managed by the Director, including scene trees and cameras.
 	pub fn cleanup() {
 		unsafe { director_cleanup(); }
 	}
