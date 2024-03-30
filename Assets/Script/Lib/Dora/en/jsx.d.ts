@@ -640,6 +640,11 @@ class Label extends Node {
 	lineGap?: number;
 
 	/**
+	 * The gap in pixels between characters.
+	 */
+	spacing?: number;
+
+	/**
 	 * The text to be rendered.
 	 */
 	text?: string;

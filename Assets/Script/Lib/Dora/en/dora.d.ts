@@ -4328,8 +4328,9 @@ class Grid extends Node {
 	 * @param x The x-coordinate of the vertex in the grid.
 	 * @param y The y-coordinate of the vertex in the grid.
 	 * @param pos The new position of the vertex.
+	 * @param z [optional] The new z-coordinate of the vertex in the grid (default is 0).
 	 */
-	setPos(x: number, y: number, pos: Vec2): void;
+	setPos(x: number, y: number, pos: Vec2, z?: number): void;
 
 	/**
 	 * Gets the position of a vertex in the grid.
@@ -4374,12 +4375,13 @@ export namespace Grid {
 interface GridClass {
 	/**
 	 * Creates a new Grid with the specified texture rectangle and grid size.
-	 * @param textureRect The rectangle within the texture to use for the grid.
+	 * @param width The width of the texture.
+	 * @param height The height of the texture.
 	 * @param gridX The number of columns in the grid.
 	 * @param gridY The number of rows in the grid.
 	 * @returns The new Grid instance.
 	 */
-	(this: void, textureRect: Rect, gridX: number, gridY: number): Grid;
+	(this: void, width: number, height: number, gridX: number, gridY: number): Grid;
 
 	/**
 	 * Creates a new Grid with the specified texture, texture rectangle, and grid size.
@@ -5755,6 +5757,11 @@ class Label extends Node {
 	 * The gap in pixels between lines of text.
 	 */
 	lineGap: number;
+
+	/**
+	 * The gap in pixels between characters.
+	 */
+	spacing: number;
 
 	/**
 	 * The text to be rendered.

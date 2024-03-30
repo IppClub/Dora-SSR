@@ -23,6 +23,7 @@ local record RenderTarget
 	camera: Camera
 
 	-- 渲染节点到目标纹理，不清空之前渲染的内容。
+	-- @param target (Node) 要渲染到渲染目标的节点。
 	render: function(self: RenderTarget, target: Node)
 
 	-- 初始化渲染目标纹理上颜色，深度和模板值。

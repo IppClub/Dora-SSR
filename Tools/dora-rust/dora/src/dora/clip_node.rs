@@ -11,6 +11,7 @@ extern "C" {
 use crate::dora::IObject;
 use crate::dora::INode;
 impl INode for ClipNode { }
+/// A Node that can clip its children based on the alpha values of its stencil.
 pub struct ClipNode { raw: i64 }
 crate::dora_object!(ClipNode);
 impl ClipNode {
@@ -22,24 +23,39 @@ impl ClipNode {
 			}
 		})
 	}
+	/// Sets the stencil Node that defines the clipping shape.
 	pub fn set_stencil(&mut self, var: &dyn crate::dora::INode) {
 		unsafe { clipnode_set_stencil(self.raw(), var.raw()) };
 	}
+	/// Gets the stencil Node that defines the clipping shape.
 	pub fn get_stencil(&self) -> crate::dora::Node {
 		return unsafe { crate::dora::Node::from(clipnode_get_stencil(self.raw())).unwrap() };
 	}
+	/// Sets the minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
 	pub fn set_alpha_threshold(&mut self, var: f32) {
 		unsafe { clipnode_set_alpha_threshold(self.raw(), var) };
 	}
+	/// Gets the minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
 	pub fn get_alpha_threshold(&self) -> f32 {
 		return unsafe { clipnode_get_alpha_threshold(self.raw()) };
 	}
+	/// Sets whether to invert the clipping area.
 	pub fn set_inverted(&mut self, var: bool) {
 		unsafe { clipnode_set_inverted(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether to invert the clipping area.
 	pub fn is_inverted(&self) -> bool {
 		return unsafe { clipnode_is_inverted(self.raw()) != 0 };
 	}
+	/// Creates a new ClipNode object.
+	///
+	/// # Arguments
+	///
+	/// * `stencil` - The stencil Node that defines the clipping shape. Defaults to `None`.
+	///
+	/// # Returns
+	///
+	/// * A new `ClipNode` object.
 	pub fn new(stencil: &dyn crate::dora::INode) -> ClipNode {
 		unsafe { return ClipNode { raw: clipnode_new(stencil.raw()) }; }
 	}

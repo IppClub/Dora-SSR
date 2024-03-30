@@ -16,6 +16,7 @@ use crate::dora::IPlayable;
 impl IPlayable for DragonBone { }
 use crate::dora::INode;
 impl INode for DragonBone { }
+/// An implementation of the 'Playable' record using the DragonBones animation system.
 pub struct DragonBone { raw: i64 }
 crate::dora_object!(DragonBone);
 impl DragonBone {
@@ -27,33 +28,96 @@ impl DragonBone {
 			}
 		})
 	}
+	/// Sets whether to show debug graphics.
 	pub fn set_show_debug(&mut self, var: bool) {
 		unsafe { dragonbone_set_show_debug(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether to show debug graphics.
 	pub fn is_show_debug(&self) -> bool {
 		return unsafe { dragonbone_is_show_debug(self.raw()) != 0 };
 	}
+	/// Sets whether hit testing is enabled.
 	pub fn set_hit_test_enabled(&mut self, var: bool) {
 		unsafe { dragonbone_set_hit_test_enabled(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether hit testing is enabled.
 	pub fn is_hit_test_enabled(&self) -> bool {
 		return unsafe { dragonbone_is_hit_test_enabled(self.raw()) != 0 };
 	}
+	/// Checks if a point is inside the boundaries of the instance and returns the name of the bone or slot at that point, or `None` if no bone or slot is found.
+	///
+	/// # Arguments
+	///
+	/// * `x` - The x-coordinate of the point to check.
+	/// * `y` - The y-coordinate of the point to check.
+	///
+	/// # Returns
+	///
+	/// * `String` - The name of the bone or slot at the point.
 	pub fn contains_point(&mut self, x: f32, y: f32) -> String {
 		unsafe { return crate::dora::to_string(dragonbone_contains_point(self.raw(), x, y)); }
 	}
+	/// Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
+	///
+	/// # Arguments
+	///
+	/// * `x1` - The x-coordinate of the start point of the line segment.
+	/// * `y1` - The y-coordinate of the start point of the line segment.
+	/// * `x2` - The x-coordinate of the end point of the line segment.
+	/// * `y2` - The y-coordinate of the end point of the line segment.
+	///
+	/// # Returns
+	///
+	/// * `String` - The name of the bone or slot at the intersection point.
 	pub fn intersects_segment(&mut self, x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> String {
 		unsafe { return crate::dora::to_string(dragonbone_intersects_segment(self.raw(), x_1, y_1, x_2, y_2)); }
 	}
+	/// Creates a new instance of 'DragonBone' using the specified bone file and atlas file. This function only loads the first armature.
+	///
+	/// # Arguments
+	///
+	/// * `bone_file` - The filename of the bone file to load.
+	/// * `atlas_file` - The filename of the atlas file to load.
+	///
+	/// # Returns
+	///
+	/// * A new instance of 'DragonBone' with the specified bone file and atlas file. Returns `None` if the bone file or atlas file is not found.
 	pub fn with_files(bone_file: &str, atlas_file: &str) -> DragonBone {
 		unsafe { return DragonBone { raw: dragonbone_with_files(crate::dora::from_string(bone_file), crate::dora::from_string(atlas_file)) }; }
 	}
+	/// Creates a new instance of 'DragonBone' using the specified bone string.
+	///
+	/// # Arguments
+	///
+	/// * `bone_str` - The DragonBone file string for the new instance. A DragonBone file string can be a file path with the target file extension like "DragonBone/item" or file paths with all the related files like "DragonBone/item_ske.json|DragonBone/item_tex.json". An armature name can be added following a separator of ';'. like "DragonBone/item;mainArmature" or "DragonBone/item_ske.json|DragonBone/item_tex.json;mainArmature".
+	///
+	/// # Returns
+	///
+	/// * A new instance of 'DragonBone'. Returns `None` if the bone file or atlas file is not found.
 	pub fn new(bone_str: &str) -> DragonBone {
 		unsafe { return DragonBone { raw: dragonbone_new(crate::dora::from_string(bone_str)) }; }
 	}
+	/// Returns a list of available looks for the specified DragonBone file string.
+	///
+	/// # Arguments
+	///
+	/// * `bone_str` - The DragonBone file string to get the looks for.
+	///
+	/// # Returns
+	///
+	/// * A `Vec<String>` representing the available looks.
 	pub fn get_looks(bone_str: &str) -> Vec<String> {
 		unsafe { return crate::dora::Vector::to_str(dragonbone_get_looks(crate::dora::from_string(bone_str))); }
 	}
+	/// Returns a list of available animations for the specified DragonBone file string.
+	///
+	/// # Arguments
+	///
+	/// * `bone_str` - The DragonBone file string to get the animations for.
+	///
+	/// # Returns
+	///
+	/// * A `Vec<String>` representing the available animations.
 	pub fn get_animations(bone_str: &str) -> Vec<String> {
 		unsafe { return crate::dora::Vector::to_str(dragonbone_get_animations(crate::dora::from_string(bone_str))); }
 	}

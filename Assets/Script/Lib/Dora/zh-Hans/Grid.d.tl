@@ -38,13 +38,14 @@ local record Grid
 	-- @param x (integer) 网格中顶点的x坐标。
 	-- @param y (integer) 网格中顶点的y坐标。
 	-- @param pos (Vec2) 顶点的新位置。
-	setPos: function(self: Grid, x: integer, y: integer, pos: Vec2)
+	-- @param z (number) [可选] 顶点的新z坐标（默认为0）。
+	setPos: function(self: Grid, x: integer, y: integer, pos: Vec2, z?: number)
 
 	-- 获取网格中顶点的位置。
 	-- @param x (integer) 网格中顶点的x坐标。
 	-- @param y (integer) 网格中顶点的y坐标。
 	-- @return (Vec2) 顶点的当前位置。
-	getPos: function(self: Grid, x: integer, y: integer)
+	getPos: function(self: Grid, x: integer, y: integer): Vec2
 
 	-- 获取网格中顶点的颜色。
 	-- @param x (integer) 网格中顶点的x坐标。
@@ -70,11 +71,12 @@ local record GridClass
 	type Type = Grid
 
 	-- 创建具有指定纹理矩形和网格大小的新网格。
-	-- @param textureRect (Rect) 用于网格的纹理内的矩形。
+	-- @param width (number) 网格的宽度。
+	-- @param height (number) 网格的高度。
 	-- @param gridX (integer) 网格中列的数量。
 	-- @param gridY (integer) 网格中行的数量。
 	-- @return (Grid) 新网格实例。
-	metamethod __call: function(self: GridClass, textureRect: Rect, gridX: integer, gridY: integer): Grid
+	metamethod __call: function(self: GridClass, width: number, height: number, gridX: integer, gridY: integer): Grid
 
 	-- 创建具有指定纹理、纹理矩形和网格大小的新网格。
 	-- @param texture (Texture2D) 用于网格的纹理。

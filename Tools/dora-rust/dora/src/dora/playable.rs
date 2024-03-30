@@ -20,52 +20,100 @@ extern "C" {
 use crate::dora::IObject;
 use crate::dora::INode;
 impl INode for Playable { }
+/// An interface for an animation model system.
 pub struct Playable { raw: i64 }
 crate::dora_object!(Playable);
 impl IPlayable for Playable { }
 pub trait IPlayable: INode {
+	/// Sets the look of the animation.
 	fn set_look(&mut self, var: &str) {
 		unsafe { playable_set_look(self.raw(), crate::dora::from_string(var)) };
 	}
+	/// Gets the look of the animation.
 	fn get_look(&self) -> String {
 		return unsafe { crate::dora::to_string(playable_get_look(self.raw())) };
 	}
+	/// Sets the play speed of the animation.
 	fn set_speed(&mut self, var: f32) {
 		unsafe { playable_set_speed(self.raw(), var) };
 	}
+	/// Gets the play speed of the animation.
 	fn get_speed(&self) -> f32 {
 		return unsafe { playable_get_speed(self.raw()) };
 	}
+	/// Sets the recovery time of the animation, in seconds.
+	/// Used for doing transitions from one animation to another animation.
 	fn set_recovery(&mut self, var: f32) {
 		unsafe { playable_set_recovery(self.raw(), var) };
 	}
+	/// Gets the recovery time of the animation, in seconds.
+	/// Used for doing transitions from one animation to another animation.
 	fn get_recovery(&self) -> f32 {
 		return unsafe { playable_get_recovery(self.raw()) };
 	}
+	/// Sets whether the animation is flipped horizontally.
 	fn set_fliped(&mut self, var: bool) {
 		unsafe { playable_set_fliped(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether the animation is flipped horizontally.
 	fn is_fliped(&self) -> bool {
 		return unsafe { playable_is_fliped(self.raw()) != 0 };
 	}
+	/// Gets the current playing animation name.
 	fn get_current(&self) -> String {
 		return unsafe { crate::dora::to_string(playable_get_current(self.raw())) };
 	}
+	/// Gets the last completed animation name.
 	fn get_last_completed(&self) -> String {
 		return unsafe { crate::dora::to_string(playable_get_last_completed(self.raw())) };
 	}
+	/// Gets a key point on the animation model by its name.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the key point to get.
+	///
+	/// # Returns
+	///
+	/// * A `Vec2` representing the key point value.
 	fn get_key(&mut self, name: &str) -> crate::dora::Vec2 {
 		unsafe { return crate::dora::Vec2::from(playable_get_key(self.raw(), crate::dora::from_string(name))); }
 	}
+	/// Plays an animation from the model.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the animation to play.
+	/// * `loop` - Whether to loop the animation or not.
+	///
+	/// # Returns
+	///
+	/// * The duration of the animation in seconds.
 	fn play(&mut self, name: &str, looping: bool) -> f32 {
 		unsafe { return playable_play(self.raw(), crate::dora::from_string(name), if looping { 1 } else { 0 }); }
 	}
+	/// Stops the currently playing animation.
 	fn stop(&mut self) {
 		unsafe { playable_stop(self.raw()); }
 	}
+	/// Attaches a child node to a slot on the animation model.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the slot to set.
+	/// * `item` - The node to set the slot to.
 	fn set_slot(&mut self, name: &str, item: &dyn crate::dora::INode) {
 		unsafe { playable_set_slot(self.raw(), crate::dora::from_string(name), item.raw()); }
 	}
+	/// Gets the child node attached to the animation model.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the slot to get.
+	///
+	/// # Returns
+	///
+	/// * The node in the slot, or `None` if there is no node in the slot.
 	fn get_slot(&mut self, name: &str) -> Option<crate::dora::Node> {
 		unsafe { return crate::dora::Node::from(playable_get_slot(self.raw(), crate::dora::from_string(name))); }
 	}
@@ -79,6 +127,19 @@ impl Playable {
 			}
 		})
 	}
+	/// Creates a new instance of 'Playable' from the specified animation file.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The filename of the animation file to load. Supports DragonBone, Spine2D and Dora Model files.
+	/// Should be one of the formats below:
+	///     * "model:" + modelFile
+	///     * "spine:" + spineStr
+	///     * "bone:" + dragonBoneStr
+	///
+	/// # Returns
+	///
+	/// * A new instance of 'Playable'. If the file could not be loaded, then `None` is returned.
 	pub fn new(filename: &str) -> Option<Playable> {
 		unsafe { return Playable::from(playable_new(crate::dora::from_string(filename))); }
 	}

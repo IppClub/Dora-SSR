@@ -645,6 +645,11 @@ class Label extends Node {
 	lineGap?: number;
 
 	/**
+	 * 文本字符之间的间距（以像素为单位）。
+	 */
+	spacing?: number;
+
+	/**
 	 * 用于渲染文本的混合函数。
 	 */
 	blendFunc?: dora.BlendFunc.Type;
