@@ -1408,6 +1408,38 @@ pub enum TextAlign {
 	Right = 2,
 }
 
+// BodyDef
+
+pub enum BodyType {
+	Dynamic = 0,
+	Static = 1,
+	Kinematic = 2,
+}
+
+impl BodyDef {
+	/// Sets the define for the type of the body.
+	///
+	/// # Arguments
+	///
+	/// * `body_type` - The type of the body.
+	pub fn set_type(&mut self, body_type: BodyType) {
+		self._set_type(body_type as i32);
+	}
+	/// Gets the define for the type of the body.
+	///
+	/// # Returns
+	///
+	/// * `BodyType` - The type of the body.
+	pub fn get_type(&self) -> BodyType {
+		match self._get_type() {
+			0 => BodyType::Dynamic,
+			1 => BodyType::Static,
+			2 => BodyType::Kinematic,
+			_ => panic!("Invalid body type.")
+		}
+	}
+}
+
 // Blackboard
 
 extern "C" {

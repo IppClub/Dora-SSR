@@ -766,10 +766,13 @@ impl I#{clsNewName} for #{clsNewName} { }"
 					else
 						2
 					if isStatic
-						pub = if funcNewName\sub(1,1) == "_"
+						pub = if funcNewName\sub(1, 1) == "_"
 							"pub(crate) "
 						else
 							"pub "
+					elseif pub\sub(1, 3) == "pub"
+						if funcNewName\sub(1, 1) == "_"
+							pub = "pub(crate) "
 					rustType = basicTypes[dataType]
 					if rustType == nil and "*" == dataType\sub -1
 						dataTypeName = dataType\match "[^ \t*]+"
@@ -882,6 +885,9 @@ impl I#{clsNewName} for #{clsNewName} { }"
 							"pub(crate) "
 						else
 							"pub "
+					elseif pub\sub(1, 3) == "pub"
+						if funcNewName\sub(1,1) == "_"
+							pub = "pub(crate) "
 					rustType = basicTypes[dataType]
 					if rustType == nil and "*" == dataType\sub -1
 						dataTypeName = dataType\match "[^ \t*]+"

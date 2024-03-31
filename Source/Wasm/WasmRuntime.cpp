@@ -877,6 +877,36 @@ static std::vector<std::string> dragon_bone_get_animation_names(String boneStr) 
 	return std::vector<std::string>();
 }
 
+static void body_def_set_type_enum(BodyDef* def, int32_t type) {
+	pr::BodyType bodyType;
+	switch (type) {
+		case 0:
+			bodyType = pr::BodyType::Dynamic;
+			break;
+		case 1:
+			bodyType = pr::BodyType::Static;
+			break;
+		case 2:
+			bodyType = pr::BodyType::Kinematic;
+			break;
+		default:
+			Issue("invalid body type value for BodyDef: {}", type);
+			break;
+	}
+	def->setType(bodyType);
+}
+
+static int32_t body_def_get_type_enum(BodyDef* def) {
+	switch (def->getType()) {
+		case pr::BodyType::Dynamic:
+			return 0;
+		case pr::BodyType::Static:
+			return 1;
+		case pr::BodyType::Kinematic:
+			return 2;
+	}
+}
+
 // QLearner
 
 #define MLBuildDecisionTreeAsync ML::BuildDecisionTreeAsync
