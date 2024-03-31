@@ -1,6 +1,12 @@
 static int32_t bodydef_type() {
 	return DoraType<BodyDef>();
 }
+static void bodydef__set_type(int64_t self, int32_t var) {
+	body_def_set_type_enum(r_cast<BodyDef*>(self), s_cast<int>(var));
+}
+static int32_t bodydef__get_type(int64_t self) {
+	return body_def_get_type_enum(r_cast<BodyDef*>(self));
+}
 static void bodydef_set_position(int64_t self, int64_t var) {
 	r_cast<BodyDef*>(self)->offset = vec2_from(var);
 }
@@ -117,6 +123,8 @@ static int64_t bodydef_new() {
 }
 static void linkBodyDef(wasm3::module3& mod) {
 	mod.link_optional("*", "bodydef_type", bodydef_type);
+	mod.link_optional("*", "bodydef__set_type", bodydef__set_type);
+	mod.link_optional("*", "bodydef__get_type", bodydef__get_type);
 	mod.link_optional("*", "bodydef_set_position", bodydef_set_position);
 	mod.link_optional("*", "bodydef_get_position", bodydef_get_position);
 	mod.link_optional("*", "bodydef_set_angle", bodydef_set_angle);

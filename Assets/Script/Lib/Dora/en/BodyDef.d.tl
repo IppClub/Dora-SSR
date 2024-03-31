@@ -2,7 +2,7 @@ local Object = require("Object").Type
 local Vec2 = require("Vec2").Type
 local FixtureDef = require("FixtureDef").Type
 
--- A record called "BodyDef" to describe the properties of a physics body.
+-- A record to describe the properties of a physics body.
 local record BodyDef
 
 	-- Inherits from `Object`.

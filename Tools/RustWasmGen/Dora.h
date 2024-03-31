@@ -2249,31 +2249,112 @@ object class DragonBone : public IPlayable
 	static outside VecStr dragon_bone_get_animation_names @ getAnimations(string boneStr);
 };
 
+/// A struct that represents a physics world in the game.
 interface object class PhysicsWorld : public INode
 {
+	/// whether debug graphic should be displayed for the physics world.
 	boolean bool showDebug;
+	/// Queries the physics world for all bodies that intersect with the specified rectangle.
+	///
+	/// # Arguments
+	///
+	/// * `rect` - The rectangle to query for bodies.
+	/// * `handler` - A function that is called for each body found in the query. The function takes a `Body` as an argument and returns a `bool` indicating whether to continue querying for more bodies. Return `false` to continue, `true` to stop.
+	///
+	/// # Returns
+	///
+	/// * `bool` - Whether the query was interrupted. `true` means interrupted, `false` otherwise.
 	bool query(Rect rect, function<bool(Body* body)> handler);
+	/// Casts a ray through the physics world and finds the first body that intersects with the ray.
+	///
+	/// # Arguments
+	///
+	/// * `start` - The starting point of the ray.
+	/// * `stop` - The ending point of the ray.
+	/// * `closest` - Whether to stop ray casting upon the closest body that intersects with the ray. Set `closest` to `true` to get a faster ray casting search.
+	/// * `handler` - A function that is called for each body found in the raycast. The function takes a `Body`, a `Vec2` representing the point where the ray intersects with the body, and a `Vec2` representing the normal vector at the point of intersection as arguments, and returns a `bool` indicating whether to continue casting the ray for more bodies. Return `false` to continue, `true` to stop.
+	///
+	/// # Returns
+	///
+	/// * `bool` - Whether the raycast was interrupted. `true` means interrupted, `false` otherwise.
 	bool raycast(Vec2 start, Vec2 stop, bool closest, function<bool(Body* body, Vec2 point, Vec2 normal)> handler);
+	/// Sets the number of velocity and position iterations to perform in the physics world.
+	///
+	/// # Arguments
+	///
+	/// * `velocity_iter` - The number of velocity iterations to perform.
+	/// * `position_iter` - The number of position iterations to perform.
 	void setIterations(int velocityIter, int positionIter);
+	/// Sets whether two physics groups should make contact with each other or not.
+	///
+	/// # Arguments
+	///
+	/// * `groupA` - The first physics group.
+	/// * `groupB` - The second physics group.
+	/// * `contact` - Whether the two groups should make contact with each other.
 	void setShouldContact(uint8_t groupA, uint8_t groupB, bool contact);
+	/// Gets whether two physics groups should make contact with each other or not.
+	///
+	/// # Arguments
+	///
+	/// * `groupA` - The first physics group.
+	/// * `groupB` - The second physics group.
+	///
+	/// # Returns
+	///
+	/// * `bool` - Whether the two groups should make contact with each other.
 	bool getShouldContact(uint8_t groupA, uint8_t groupB);
+	/// the factor used for converting physics engine meters value to pixel value.
+	/// Default 100.0 is a good value since the physics engine can well simulate real life objects
+	/// between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
+	/// between 10 to 1000 pixels that suite most games.
+	/// You can change this value before any physics body creation.
 	static float scaleFactor;
-	static PhysicsWorld* create();
+	/// Creates a new `PhysicsWorld` object.
+	///
+	/// # Returns
+	///
+	/// * A new `PhysicsWorld` object.
+static PhysicsWorld* create();
 };
 
 object class FixtureDef { };
 
+/// A struct to describe the properties of a physics body.
 object class BodyDef
 {
+	outside void body_def_set_type_enum @ _set_type(int var);
+	outside int32_t body_def_get_type_enum @ _get_type();
+	/// define for the position of the body.
 	Vec2 offset @ position;
+	/// define for the angle of the body.
 	float angleOffset @ angle;
+	/// define for the face image or other items accepted by creating `Face` for the body.
 	string face;
+	/// define for the face position of the body.
 	Vec2 facePos;
+	/// define for linear damping of the body.
 	common float linearDamping;
+	/// define for angular damping of the body.
 	common float angularDamping;
+	/// define for initial linear acceleration of the body.
 	common Vec2 linearAcceleration;
+	/// whether the body's rotation is fixed or not.
 	boolean bool fixedRotation;
+	/// whether the body is a bullet or not.
+	/// Set to true to add extra bullet movement check for the body.
 	boolean bool bullet;
+	/// Creates a polygon fixture definition with the specified dimensions and center position.
+	///
+	/// # Arguments
+	///
+	/// * `center` - The center point of the polygon.
+	/// * `width` - The width of the polygon.
+	/// * `height` - The height of the polygon.
+	/// * `angle` - The angle of the polygon.
+	/// * `density` - The density of the polygon.
+	/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
+	/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.
 	static FixtureDef* polygon @ polygonWithCenter(
 		Vec2 center,
 		float width,
@@ -2282,17 +2363,45 @@ object class BodyDef
 		float density,
 		float friction,
 		float restitution);
+	/// Creates a polygon fixture definition with the specified dimensions.
+	///
+	/// # Arguments
+	///
+	/// * `width` - The width of the polygon.
+	/// * `height` - The height of the polygon.
+	/// * `density` - The density of the polygon.
+	/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
+	/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.
 	static FixtureDef* polygon(
 		float width,
 		float height,
 		float density,
 		float friction,
 		float restitution);
+	/// Creates a polygon fixture definition with the specified vertices.
+	///
+	/// # Arguments
+	///
+	/// * `vertices` - The vertices of the polygon.
+	/// * `density` - The density of the polygon.
+	/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
+	/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
 	static FixtureDef* polygon @ polygonWithVertices(
 		VecVec2 vertices,
 		float density,
 		float friction,
 		float restitution);
+	/// Attaches a polygon fixture definition to the body.
+	///
+	/// # Arguments
+	///
+	/// * `center` - The center point of the polygon.
+	/// * `width` - The width of the polygon.
+	/// * `height` - The height of the polygon.
+	/// * `angle` - The angle of the polygon.
+	/// * `density` - The density of the polygon.
+	/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
+	/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
 	void attachPolygon @ attachPolygonCenter(
 		Vec2 center,
 		float width,
@@ -2301,113 +2410,349 @@ object class BodyDef
 		float density,
 		float friction,
 		float restitution);
+	/// Attaches a polygon fixture definition to the body.
+	///
+	/// # Arguments
+	///
+	/// * `width` - The width of the polygon.
+	/// * `height` - The height of the polygon.
+	/// * `density` - The density of the polygon.
+	/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
+	/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
 	void attachPolygon(
 		float width,
 		float height,
 		float density,
 		float friction,
 		float restitution);
+	/// Attaches a polygon fixture definition to the body.
+	///
+	/// # Arguments
+	///
+	/// * `vertices` - The vertices of the polygon.
+	/// * `density` - The density of the polygon.
+	/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
+	/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
 	void attachPolygon @ attachPolygonWithVertices(
 		VecVec2 vertices,
 		float density,
 		float friction,
 		float restitution);
+	/// Creates a concave shape definition made of multiple convex shapes.
+	///
+	/// # Arguments
+	///
+	/// * `vertices` - A vector containing the vertices of each convex shape that makes up the concave shape. Each convex shape in the vertices vector should end with a `Vec2(0.0, 0.0)` as separator.
+	/// * `density` - The density of the shape.
+	/// * `friction` - The friction coefficient of the shape. Should be between 0.0 and 1.0.
+	/// * `restitution` - The restitution (elasticity) of the shape. Should be between 0.0 and 1.0.
+	///
+	/// # Returns
+	///
+	/// * `FixtureDef` - The resulting fixture definition.
 	static FixtureDef* multi(
 		VecVec2 vertices,
 		float density,
 		float friction,
 		float restitution);
+	/// Attaches a concave shape definition made of multiple convex shapes to the body.
+	///
+	/// # Arguments
+	///
+	/// * `vertices` - A vector containing the vertices of each convex shape that makes up the concave shape. Each convex shape in the vertices vector should end with a `Vec2(0.0, 0.0)` as separator.
+	/// * `density` - The density of the concave shape.
+	/// * `friction` - The friction of the concave shape. Should be between 0.0 and 1.0.
+	/// * `restitution` - The restitution of the concave shape. Should be between 0.0 and 1.0.
 	void attachMulti(
 		VecVec2 vertices,
 		float density,
 		float friction,
 		float restitution);
+	/// Creates a Disk-shape fixture definition.
+	///
+	/// # Arguments
+	///
+	/// * `center` - The center of the circle.
+	/// * `radius` - The radius of the circle.
+	/// * `density` - The density of the circle.
+	/// * `friction` - The friction coefficient of the circle. Should be between 0.0 and 1.0.
+	/// * `restitution` - The restitution (elasticity) of the circle. Should be between 0.0 and 1.0.
+	///
+	/// # Returns
+	///
+	/// * `FixtureDef` - The resulting fixture definition.
 	static FixtureDef* disk @ diskWithCenter(
 		Vec2 center,
 		float radius,
 		float density,
 		float friction,
 		float restitution);
+	/// Creates a Disk-shape fixture definition.
+	///
+	/// # Arguments
+	///
+	/// * `radius` - The radius of the circle.
+	/// * `density` - The density of the circle.
+	/// * `friction` - The friction coefficient of the circle. Should be between 0.0 and 1.0.
+	/// * `restitution` - The restitution (elasticity) of the circle. Should be between 0.0 and 1.0.
+	///
+	/// # Returns
+	///
+	/// * `FixtureDef` - The resulting fixture definition.
 	static FixtureDef* disk(
 		float radius,
 		float density,
 		float friction,
 		float restitution);
+	/// Attaches a disk fixture definition to the body.
+	///
+	/// # Arguments
+	///
+	/// * `center` - The center point of the disk.
+	/// * `radius` - The radius of the disk.
+	/// * `density` - The density of the disk.
+	/// * `friction` - The friction of the disk. Should be between 0.0 and 1.0.
+	/// * `restitution` - The restitution of the disk. Should be between 0.0 and 1.0.
 	void attachDisk @ attachDiskWithCenter(
 		Vec2 center,
 		float radius,
 		float density,
 		float friction,
 		float restitution);
+	/// Attaches a disk fixture definition to the body.
+	///
+	/// # Arguments
+	///
+	/// * `radius` - The radius of the disk.
+	/// * `density` - The density of the disk.
+	/// * `friction` - The friction of the disk. Should be between 0.0 and 1.0.
+	/// * `restitution` - The restitution of the disk. Should be between 0.0 and 1.0.
 	void attachDisk(
 		float radius,
 		float density,
 		float friction,
 		float restitution);
+	/// Creates a Chain-shape fixture definition. This fixture is a free form sequence of line segments that has two-sided collision.
+	///
+	/// # Arguments
+	///
+	/// * `vertices` - The vertices of the chain.
+	/// * `friction` - The friction coefficient of the chain. Should be between 0.0 and 1.0.
+	/// * `restitution` - The restitution (elasticity) of the chain. Should be between 0.0 and 1.0.
+	///
+	/// # Returns
+	///
+	/// * `FixtureDef` - The resulting fixture definition.
 	static FixtureDef* chain(
 		VecVec2 vertices,
 		float friction,
 		float restitution);
+	/// Attaches a chain fixture definition to the body. The Chain fixture is a free form sequence of line segments that has two-sided collision.
+	///
+	/// # Arguments
+	///
+	/// * `vertices` - The vertices of the chain.
+	/// * `friction` - The friction of the chain. Should be between 0.0 and 1.0.
+	/// * `restitution` - The restitution of the chain. Should be between 0.0 and 1.0.
 	void attachChain(
 		VecVec2 vertices,
 		float friction,
 		float restitution);
+	/// Attaches a polygon sensor fixture definition to the body.
+	///
+	/// # Arguments
+	///
+	/// * `tag` - An integer tag for the sensor.
+	/// * `width` - The width of the polygon.
+	/// * `height` - The height of the polygon.
 	void attachPolygonSensor(
 		int tag,
 		float width,
 		float height);
+	/// Attaches a polygon sensor fixture definition to the body.
+	///
+	/// # Arguments
+	///
+	/// * `tag` - An integer tag for the sensor.
+	/// * `center` - The center point of the polygon.
+	/// * `width` - The width of the polygon.
+	/// * `height` - The height of the polygon.
+	/// * `angle` - Optional. The angle of the polygon.
 	void attachPolygonSensor @ attachPolygonSensorWithCenter(
 		int tag,
 		Vec2 center,
 		float width,
 		float height,
 		float angle);
+	/// Attaches a polygon sensor fixture definition to the body.
+	///
+	/// # Arguments
+	///
+	/// * `tag` - An integer tag for the sensor.
+	/// * `vertices` - A vector containing the vertices of the polygon.
 	void attachPolygonSensor @ attachPolygonSensorWithVertices(
 		int tag,
 		VecVec2 vertices);
+	/// Attaches a disk sensor fixture definition to the body.
+	///
+	/// # Arguments
+	///
+	/// * `tag` - An integer tag for the sensor.
+	/// * `center` - The center of the disk.
+	/// * `radius` - The radius of the disk.
 	void attachDiskSensor @ attachDiskSensorWithCenter(
 		int tag,
 		Vec2 center,
 		float radius);
+	/// Attaches a disk sensor fixture definition to the body.
+	///
+	/// # Arguments
+	///
+	/// * `tag` - An integer tag for the sensor.
+	/// * `radius` - The radius of the disk.
 	void attachDiskSensor(
 		int tag,
 		float radius);
+	/// Creates a new instance of `BodyDef` class.
+	///
+	/// # Returns
+	///
+	/// * A new `BodyDef` object.
 	static BodyDef* create();
 };
 
+/// A struct to represent a physics sensor object in the game world.
 object class Sensor
 {
+	/// whether the sensor is currently enabled or not.
 	boolean bool enabled;
+	/// the tag for the sensor.
 	readonly common int tag;
+	/// the "Body" object that owns the sensor.
 	readonly common Body* owner;
+	/// whether the sensor is currently sensing any other "Body" objects in the game world.
 	readonly boolean bool sensed;
+	/// the array of "Body" objects that are currently being sensed by the sensor.
 	readonly common Array* sensedBodies;
+	/// Determines whether the specified `Body` object is currently being sensed by the sensor.
+	///
+	/// # Arguments
+	///
+	/// * `body` - The `Body` object to check if it is being sensed.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the `Body` object is being sensed by the sensor, `false` otherwise.
 	bool contains(Body* body);
 };
 
+/// A struct represents a physics body in the world.
 interface object class Body : public INode
 {
+	/// the physics world that the body belongs to.
 	readonly common PhysicsWorld* physicsWorld @ world;
+	/// the definition of the body.
 	readonly common BodyDef* bodyDef;
+	/// the mass of the body.
 	readonly common float mass;
+	/// whether the body is used as a sensor or not.
 	readonly boolean bool sensor;
+	/// the x-axis velocity of the body.
 	common float velocityX;
+	/// the y-axis velocity of the body.
 	common float velocityY;
+	/// the velocity of the body as a `Vec2`.
 	common Vec2 velocity;
+	/// the angular rate of the body.
 	common float angularRate;
+	/// the collision group that the body belongs to.
 	common uint8_t group;
+	/// the linear damping of the body.
 	common float linearDamping;
+	/// the angular damping of the body.
 	common float angularDamping;
+	/// the reference for an owner of the body.
 	common Object* owner;
+	/// whether the body is currently receiving contact events or not.
 	boolean bool receivingContact;
+	/// Applies a linear impulse to the body at a specified position.
+	///
+	/// # Arguments
+	///
+	/// * `impulse` - The linear impulse to apply.
+	/// * `pos` - The position at which to apply the impulse.
 	void applyLinearImpulse(Vec2 impulse, Vec2 pos);
+	/// Applies an angular impulse to the body.
+	///
+	/// # Arguments
+	///
+	/// * `impulse` - The angular impulse to apply.
 	void applyAngularImpulse(float impulse);
+	/// Returns the sensor with the given tag.
+	///
+	/// # Arguments
+	///
+	/// * `tag` - The tag of the sensor to get.
+	///
+	/// # Returns
+	///
+	/// * `Sensor` - The sensor with the given tag.
 	Sensor* getSensorByTag(int tag);
+	/// Removes the sensor with the specified tag from the body.
+	///
+	/// # Arguments
+	///
+	/// * `tag` - The tag of the sensor to remove.
+	///
+	/// # Returns
+	///
+	/// * `bool` - Whether a sensor with the specified tag was found and removed.
 	bool removeSensorByTag(int tag);
+	/// Removes the given sensor from the body's sensor list.
+	///
+	/// # Arguments
+	///
+	/// * `sensor` - The sensor to remove.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the sensor was successfully removed, `false` otherwise.
 	bool removeSensor(Sensor* sensor);
+	/// Attaches a fixture to the body.
+	///
+	/// # Arguments
+	///
+	/// * `fixture_def` - The fixture definition for the fixture to attach.
 	void attach(FixtureDef* fixtureDef);
+	/// Attaches a new sensor with the given tag and fixture definition to the body.
+	///
+	/// # Arguments
+	///
+	/// * `tag` - The tag of the sensor to attach.
+	/// * `fixture_def` - The fixture definition of the sensor.
+	///
+	/// # Returns
+	///
+	/// * `Sensor` - The newly attached sensor.
 	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
+	/// Registers a function to be called when the body begins to receive contact events. Return `false` from this function to prevent colliding.
+	///
+	/// # Arguments
+	///
+	/// * `filter` - The filter function to set.
 	void onContactFilter(function<bool(Body* body)> filter);
+	/// Creates a new instance of `Body`.
+	///
+	/// # Arguments
+	///
+	/// * `def` - The definition for the body to be created.
+	/// * `world` - The physics world where the body belongs.
+	/// * `pos` - The initial position of the body.
+	/// * `rot` - The initial rotation angle of the body in degrees.
+	///
+	/// # Returns
+	///
+	/// * A new `Body` instance.
 	static Body* create(BodyDef* def, PhysicsWorld* world, Vec2 pos, float rot);
 };
 
