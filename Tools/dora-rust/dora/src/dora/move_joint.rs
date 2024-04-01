@@ -6,6 +6,7 @@ extern "C" {
 use crate::dora::IObject;
 use crate::dora::IJoint;
 impl IJoint for MoveJoint { }
+/// A type of joint that allows a physics body to move to a specific position.
 pub struct MoveJoint { raw: i64 }
 crate::dora_object!(MoveJoint);
 impl MoveJoint {
@@ -17,9 +18,11 @@ impl MoveJoint {
 			}
 		})
 	}
+	/// Sets the current position of the move joint in the game world.
 	pub fn set_position(&mut self, var: &crate::dora::Vec2) {
 		unsafe { movejoint_set_position(self.raw(), var.into_i64()) };
 	}
+	/// Gets the current position of the move joint in the game world.
 	pub fn get_position(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(movejoint_get_position(self.raw())) };
 	}

@@ -2315,7 +2315,7 @@ interface object class PhysicsWorld : public INode
 	/// # Returns
 	///
 	/// * A new `PhysicsWorld` object.
-static PhysicsWorld* create();
+	static PhysicsWorld* create();
 };
 
 object class FixtureDef { };
@@ -2324,7 +2324,7 @@ object class FixtureDef { };
 object class BodyDef
 {
 	outside void body_def_set_type_enum @ _set_type(int var);
-	outside int32_t body_def_get_type_enum @ _get_type();
+	outside int32_t body_def_get_type_enum @ _get_type() const;
 	/// define for the position of the body.
 	Vec2 offset @ position;
 	/// define for the angle of the body.
@@ -2756,11 +2756,30 @@ interface object class Body : public INode
 	static Body* create(BodyDef* def, PhysicsWorld* world, Vec2 pos, float rot);
 };
 
+/// A struct that defines the properties of a joint to be created.
 object class JointDef
 {
+	/// the center point of the joint, in local coordinates.
 	Vec2 center;
+	/// the position of the joint, in world coordinates.
 	Vec2 position;
+	/// the angle of the joint, in degrees.
 	float angle;
+	/// Creates a distance joint definition.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the physics body connected to joint will collide with each other.
+	/// * `body_a` - The name of first physics body to connect with the joint.
+	/// * `body_b` - The name of second physics body to connect with the joint.
+	/// * `anchor_a` - The position of the joint on the first physics body.
+	/// * `anchor_b` - The position of the joint on the second physics body.
+	/// * `frequency` - The frequency of the joint, in Hertz.
+	/// * `damping` - The damping ratio of the joint.
+	///
+	/// # Returns
+	///
+	/// * `JointDef` - The new joint definition.
 	static JointDef* distance(
 		bool collision,
 		string bodyA,
@@ -2769,6 +2788,20 @@ object class JointDef
 		Vec2 anchorB,
 		float frequency,
 		float damping);
+	/// Creates a friction joint definition.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the physics body connected to joint will collide with each other.
+	/// * `body_a` - The first physics body to connect with the joint.
+	/// * `body_b` - The second physics body to connect with the joint.
+	/// * `world_pos` - The position of the joint in the game world.
+	/// * `max_force` - The maximum force that can be applied to the joint.
+	/// * `max_torque` - The maximum torque that can be applied to the joint.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The new friction joint definition.
 	static JointDef* friction(
 		bool collision,
 		string bodyA,
@@ -2776,11 +2809,39 @@ object class JointDef
 		Vec2 worldPos,
 		float maxForce,
 		float maxTorque);
+	/// Creates a gear joint definition.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the physics bodies connected to the joint can collide with each other.
+	/// * `joint_a` - The first joint to connect with the gear joint.
+	/// * `joint_b` - The second joint to connect with the gear joint.
+	/// * `ratio` - The gear ratio.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The new gear joint definition.
 	static JointDef* gear(
 		bool collision,
 		string jointA,
 		string jointB,
 		float ratio);
+	/// Creates a new spring joint definition.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether the connected bodies should collide with each other.
+	/// * `body_a` - The first body connected to the joint.
+	/// * `body_b` - The second body connected to the joint.
+	/// * `linear_offset` - Position of body-B minus the position of body-A, in body-A's frame.
+	/// * `angular_offset` - Angle of body-B minus angle of body-A.
+	/// * `max_force` - The maximum force the joint can exert.
+	/// * `max_torque` - The maximum torque the joint can exert.
+	/// * `correction_factor` - Correction factor. 0.0 = no correction, 1.0 = full correction.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The created joint definition.
 	static JointDef* spring(
 		bool collision,
 		string bodyA,
@@ -2790,6 +2851,23 @@ object class JointDef
 		float maxForce,
 		float maxTorque,
 		float correctionFactor);
+	/// Creates a new prismatic joint definition.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether the connected bodies should collide with each other.
+	/// * `body_a` - The first body connected to the joint.
+	/// * `body_b` - The second body connected to the joint.
+	/// * `world_pos` - The world position of the joint.
+	/// * `axis_angle` - The axis angle of the joint.
+	/// * `lower_translation` - Lower translation limit.
+	/// * `upper_translation` - Upper translation limit.
+	/// * `max_motor_force` - Maximum motor force.
+	/// * `motor_speed` - Motor speed.
+	///
+	/// # Returns
+	///
+	/// * `MotorJoint` - The created prismatic joint definition.
 	static JointDef* prismatic(
 		bool collision,
 		string bodyA,
@@ -2800,6 +2878,22 @@ object class JointDef
 		float upperTranslation,
 		float maxMotorForce,
 		float motorSpeed);
+	/// Creates a pulley joint definition.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the connected bodies will collide with each other.
+	/// * `body_a` - The first physics body to connect.
+	/// * `body_b` - The second physics body to connect.
+	/// * `anchor_a` - The position of the anchor point on the first body.
+	/// * `anchor_b` - The position of the anchor point on the second body.
+	/// * `ground_anchor_a` - The position of the ground anchor point on the first body in world coordinates.
+	/// * `ground_anchor_b` - The position of the ground anchor point on the second body in world coordinates.
+	/// * `ratio` - The pulley ratio.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The pulley joint definition.
 	static JointDef* pulley(
 		bool collision,
 		string bodyA,
@@ -2809,6 +2903,22 @@ object class JointDef
 		Vec2 groundAnchorA,
 		Vec2 groundAnchorB,
 		float ratio);
+	/// Creates a revolute joint definition.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the connected bodies will collide with each other.
+	/// * `body_a` - The first physics body to connect.
+	/// * `body_b` - The second physics body to connect.
+	/// * `world_pos` - The position in world coordinates where the joint will be created.
+	/// * `lower_angle` - The lower angle limit in radians.
+	/// * `upper_angle` - The upper angle limit in radians.
+	/// * `max_motor_torque` - The maximum torque that can be applied to the joint to achieve the target speed.
+	/// * `motor_speed` - The desired speed of the joint.
+	///
+	/// # Returns
+	///
+	/// * `MotorJoint` - The revolute joint definition.
 	static JointDef* revolute(
 		bool collision,
 		string bodyA,
@@ -2818,6 +2928,20 @@ object class JointDef
 		float upperAngle,
 		float maxMotorTorque,
 		float motorSpeed);
+	/// Creates a rope joint definition.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the connected bodies will collide with each other.
+	/// * `body_a` - The first physics body to connect.
+	/// * `body_b` - The second physics body to connect.
+	/// * `anchor_a` - The position of the anchor point on the first body.
+	/// * `anchor_b` - The position of the anchor point on the second body.
+	/// * `max_length` - The maximum distance between the anchor points.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The rope joint definition.
 	static JointDef* rope(
 		bool collision,
 		string bodyA,
@@ -2825,6 +2949,20 @@ object class JointDef
 		Vec2 anchorA,
 		Vec2 anchorB,
 		float maxLength);
+	/// Creates a weld joint definition.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the bodies connected to the joint can collide with each other.
+	/// * `body_a` - The first body to be connected by the joint.
+	/// * `body_b` - The second body to be connected by the joint.
+	/// * `world_pos` - The position in the world to connect the bodies together.
+	/// * `frequency` - The frequency at which the joint should be stiff.
+	/// * `damping` - The damping rate of the joint.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The newly created weld joint definition.
 	static JointDef* weld(
 		bool collision,
 		string bodyA,
@@ -2832,6 +2970,23 @@ object class JointDef
 		Vec2 worldPos,
 		float frequency,
 		float damping);
+	/// Creates a wheel joint definition.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the bodies connected to the joint can collide with each other.
+	/// * `body_a` - The first body to be connected by the joint.
+	/// * `body_b` - The second body to be connected by the joint.
+	/// * `world_pos` - The position in the world to connect the bodies together.
+	/// * `axis_angle` - The angle of the joint axis in radians.
+	/// * `max_motor_torque` - The maximum torque the joint motor can exert.
+	/// * `motor_speed` - The target speed of the joint motor.
+	/// * `frequency` - The frequency at which the joint should be stiff.
+	/// * `damping` - The damping rate of the joint.
+	///
+	/// # Returns
+	///
+	/// * `MotorJoint` - The newly created wheel joint definition.
 	static JointDef* wheel(
 		bool collision,
 		string bodyA,
@@ -2844,8 +2999,24 @@ object class JointDef
 		float damping);
 };
 
+/// A struct that can be used to connect physics bodies together.
 interface object class Joint
 {
+	/// Creates a distance joint between two physics bodies.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the physics body connected to joint will collide with each other.
+	/// * `body_a` - The first physics body to connect with the joint.
+	/// * `body_b` - The second physics body to connect with the joint.
+	/// * `anchor_a` - The position of the joint on the first physics body.
+	/// * `anchor_b` - The position of the joint on the second physics body.
+	/// * `frequency` - The frequency of the joint, in Hertz.
+	/// * `damping` - The damping ratio of the joint.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The new distance joint.
 	static Joint* distance(
 		bool collision,
 		Body* bodyA,
@@ -2854,6 +3025,20 @@ interface object class Joint
 		Vec2 anchorB,
 		float frequency,
 		float damping);
+	/// Creates a friction joint between two physics bodies.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the physics body connected to joint will collide with each other.
+	/// * `body_a` - The first physics body to connect with the joint.
+	/// * `body_b` - The second physics body to connect with the joint.
+	/// * `world_pos` - The position of the joint in the game world.
+	/// * `max_force` - The maximum force that can be applied to the joint.
+	/// * `max_torque` - The maximum torque that can be applied to the joint.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The new friction joint.
 	static Joint* friction(
 		bool collision,
 		Body* bodyA,
@@ -2861,11 +3046,39 @@ interface object class Joint
 		Vec2 worldPos,
 		float maxForce,
 		float maxTorque);
+	/// Creates a gear joint between two other joints.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the physics bodies connected to the joint can collide with each other.
+	/// * `joint_a` - The first joint to connect with the gear joint.
+	/// * `joint_b` - The second joint to connect with the gear joint.
+	/// * `ratio` - The gear ratio.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The new gear joint.
 	static Joint* gear(
 		bool collision,
 		Joint* jointA,
 		Joint* jointB,
 		float ratio);
+	/// Creates a new spring joint between the two specified bodies.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether the connected bodies should collide with each other.
+	/// * `body_a` - The first body connected to the joint.
+	/// * `body_b` - The second body connected to the joint.
+	/// * `linear_offset` - Position of body-B minus the position of body-A, in body-A's frame.
+	/// * `angular_offset` - Angle of body-B minus angle of body-A.
+	/// * `max_force` - The maximum force the joint can exert.
+	/// * `max_torque` - The maximum torque the joint can exert.
+	/// * `correction_factor` - Correction factor. 0.0 = no correction, 1.0 = full correction.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The created joint.
 	static Joint* spring(
 		bool collision,
 		Body* bodyA,
@@ -2875,6 +3088,20 @@ interface object class Joint
 		float maxForce,
 		float maxTorque,
 		float correctionFactor);
+	/// Creates a new move joint for the specified body.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether the body can collide with other bodies.
+	/// * `body` - The body that the joint is attached to.
+	/// * `target_pos` - The target position that the body should move towards.
+	/// * `max_force` - The maximum force the joint can exert.
+	/// * `frequency` - Frequency ratio.
+	/// * `damping` - Damping ratio.
+	///
+	/// # Returns
+	///
+	/// * `MoveJoint` - The created move joint.
 	static MoveJoint* move @ moveTarget(
 		bool collision,
 		Body* body,
@@ -2882,6 +3109,23 @@ interface object class Joint
 		float maxForce,
 		float frequency,
 		float damping);
+	/// Creates a new prismatic joint between the two specified bodies.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether the connected bodies should collide with each other.
+	/// * `body_a` - The first body connected to the joint.
+	/// * `body_b` - The second body connected to the joint.
+	/// * `world_pos` - The world position of the joint.
+	/// * `axis_angle` - The axis angle of the joint.
+	/// * `lower_translation` - Lower translation limit.
+	/// * `upper_translation` - Upper translation limit.
+	/// * `max_motor_force` - Maximum motor force.
+	/// * `motor_speed` - Motor speed.
+	///
+	/// # Returns
+	///
+	/// * `MotorJoint` - The created prismatic joint.
 	static MotorJoint* prismatic(
 		bool collision,
 		Body* bodyA,
@@ -2892,6 +3136,22 @@ interface object class Joint
 		float upperTranslation,
 		float maxMotorForce,
 		float motorSpeed);
+	/// Creates a pulley joint between two physics bodies.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the connected bodies will collide with each other.
+	/// * `body_a` - The first physics body to connect.
+	/// * `body_b` - The second physics body to connect.
+	/// * `anchor_a` - The position of the anchor point on the first body.
+	/// * `anchor_b` - The position of the anchor point on the second body.
+	/// * `ground_anchor_a` - The position of the ground anchor point on the first body in world coordinates.
+	/// * `ground_anchor_b` - The position of the ground anchor point on the second body in world coordinates.
+	/// * `ratio` - The pulley ratio.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The pulley joint.
 	static Joint* pulley(
 		bool collision,
 		Body* bodyA,
@@ -2901,6 +3161,22 @@ interface object class Joint
 		Vec2 groundAnchorA,
 		Vec2 groundAnchorB,
 		float ratio);
+	/// Creates a revolute joint between two physics bodies.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the connected bodies will collide with each other.
+	/// * `body_a` - The first physics body to connect.
+	/// * `body_b` - The second physics body to connect.
+	/// * `world_pos` - The position in world coordinates where the joint will be created.
+	/// * `lower_angle` - The lower angle limit in radians.
+	/// * `upper_angle` - The upper angle limit in radians.
+	/// * `max_motor_torque` - The maximum torque that can be applied to the joint to achieve the target speed.
+	/// * `motor_speed` - The desired speed of the joint.
+	///
+	/// # Returns
+	///
+	/// * `MotorJoint` - The revolute joint.
 	static MotorJoint* revolute(
 		bool collision,
 		Body* bodyA,
@@ -2910,6 +3186,20 @@ interface object class Joint
 		float upperAngle,
 		float maxMotorTorque,
 		float motorSpeed);
+	/// Creates a rope joint between two physics bodies.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the connected bodies will collide with each other.
+	/// * `body_a` - The first physics body to connect.
+	/// * `body_b` - The second physics body to connect.
+	/// * `anchor_a` - The position of the anchor point on the first body.
+	/// * `anchor_b` - The position of the anchor point on the second body.
+	/// * `max_length` - The maximum distance between the anchor points.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The rope joint.
 	static Joint* rope(
 		bool collision,
 		Body* bodyA,
@@ -2917,6 +3207,20 @@ interface object class Joint
 		Vec2 anchorA,
 		Vec2 anchorB,
 		float maxLength);
+	/// Creates a weld joint between two bodies.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the bodies connected to the joint can collide with each other.
+	/// * `body_a` - The first body to be connected by the joint.
+	/// * `body_b` - The second body to be connected by the joint.
+	/// * `world_pos` - The position in the world to connect the bodies together.
+	/// * `frequency` - The frequency at which the joint should be stiff.
+	/// * `damping` - The damping rate of the joint.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The newly created weld joint.
 	static Joint* weld(
 		bool collision,
 		Body* bodyA,
@@ -2924,6 +3228,23 @@ interface object class Joint
 		Vec2 worldPos,
 		float frequency,
 		float damping);
+	/// Creates a wheel joint between two bodies.
+	///
+	/// # Arguments
+	///
+	/// * `can_collide` - Whether or not the bodies connected to the joint can collide with each other.
+	/// * `body_a` - The first body to be connected by the joint.
+	/// * `body_b` - The second body to be connected by the joint.
+	/// * `world_pos` - The position in the world to connect the bodies together.
+	/// * `axis_angle` - The angle of the joint axis in radians.
+	/// * `max_motor_torque` - The maximum torque the joint motor can exert.
+	/// * `motor_speed` - The target speed of the joint motor.
+	/// * `frequency` - The frequency at which the joint should be stiff.
+	/// * `damping` - The damping rate of the joint.
+	///
+	/// # Returns
+	///
+	/// * `MotorJoint` - The newly created wheel joint.
 	static MotorJoint* wheel(
 		bool collision,
 		Body* bodyA,
@@ -2934,64 +3255,174 @@ interface object class Joint
 		float motorSpeed,
 		float frequency,
 		float damping);
+	/// the physics world that the joint belongs to.
 	readonly common PhysicsWorld* physicsWorld @ world;
+	/// Destroys the joint and removes it from the physics simulation.
 	void destroy();
+	/// Creates a joint instance based on the given joint definition and item dictionary containing physics bodies to be connected by joint.
+	///
+	/// # Arguments
+	///
+	/// * `def` - The joint definition.
+	/// * `item_dict` - The dictionary containing all the bodies and other required items.
+	///
+	/// # Returns
+	///
+	/// * `Joint` - The newly created joint.
 	static Joint* create(JointDef* def, Dictionary* itemDict);
 };
 
+/// A type of joint that allows a physics body to move to a specific position.
 object class MoveJoint : public IJoint
 {
+	/// the current position of the move joint in the game world.
 	common Vec2 position;
 };
 
+/// A joint that applies a rotational or linear force to a physics body.
 object class MotorJoint : public IJoint
 {
+	/// whether or not the motor joint is enabled.
 	boolean bool enabled;
+	/// the force applied to the motor joint.
 	common float force;
+	/// the speed of the motor joint.
 	common float speed;
 };
 
+/// A interface for managing various game resources.
 singleton struct Cache
 {
+	/// Loads a file into the cache with a blocking operation.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to load.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the file was loaded successfully, `false` otherwise.
 	static bool load(string filename);
+	/// Loads a file into the cache asynchronously.
+	///
+	/// # Arguments
+	///
+	/// * `filenames` - The name of the file(s) to load. This can be a single string or a vector of strings.
+	/// * `handler` - A callback function that is invoked when the file is loaded.
 	static void loadAsync(string filename, function<void()> callback);
+	/// Updates the content of a file loaded in the cache.
+	/// If the item of filename does not exist in the cache, a new file content will be added into the cache.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to update.
+	/// * `content` - The new content for the file.
 	static void update @ updateItem(string filename, string content);
+	/// Updates the texture object of the specific filename loaded in the cache.
+	/// If the texture object of filename does not exist in the cache, it will be added into the cache.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the texture to update.
+	/// * `texture` - The new texture object for the file.
 	static void update @ updateTexture(string filename, Texture2D* texture);
-	static void unload();
+	/// Unloads a resource from the cache.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The type name of resource to unload, could be one of "Texture", "SVG", "Clip", "Frame", "Model", "Particle", "Shader", "Font", "Sound", "Spine". Or the name of the resource file to unload.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the resource was unloaded successfully, `false` otherwise.
 	static bool unload @ unloadItemOrType(string name);
+	/// Removes all unused resources (not being referenced) from the cache.
 	static void removeUnused();
+	/// Removes all unused resources of the given type from the cache.
+	///
+	/// # Arguments
+	///
+	/// * `resource_type` - The type of resource to remove. This could be one of "Texture", "SVG", "Clip", "Frame", "Model", "Particle", "Shader", "Font", "Sound", "Spine".
 	static void removeUnused @ removeUnusedByType(string typeName);
 };
 
+/// A interface of an audio player.
 singleton class Audio
 {
+	/// Plays a sound effect and returns a handler for the audio.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The path to the sound effect file (must be a WAV file).
+	/// * `loop` - Optional. Whether to loop the sound effect. Default is `false`.
+	///
+	/// # Returns
+	///
+	/// * `i32` - A handler for the audio that can be used to stop the sound effect.
 	uint32_t play(string filename, bool looping);
+	/// Stops a sound effect that is currently playing.
+	///
+	/// # Arguments
+	///
+	/// * `handler` - The handler for the audio that is returned by the `play` function.
 	void stop(uint32_t handle);
+	/// Plays a streaming audio file.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The path to the streaming audio file (can be OGG, WAV, MP3, or FLAC).
+	/// * `loop` - Whether to loop the streaming audio.
+	/// * `crossFadeTime` - The time (in seconds) to crossfade between the previous and new streaming audio.
 	void playStream(string filename, bool looping, float crossFadeTime);
+	/// Stops a streaming audio file that is currently playing.
+	///
+	/// # Arguments
+	///
+	/// * `fade_time` - The time (in seconds) to fade out the streaming audio.
 	void stopStream(float fadeTime);
 };
 
+/// An interface for handling keyboard inputs.
 singleton class Keyboard
 {
-	bool isKeyDown(string name);
-	bool isKeyUp(string name);
-	bool isKeyPressed(string name);
-	void updateIMEPosHint(Vec2 winPos);
+	bool isKeyDown @ _is_key_down(string name);
+	bool isKeyUp @ _is_key_up(string name);
+	bool isKeyPressed @ _is_key_pressed(string name);
+	/// Updates the input method editor (IME) position hint.
+	///
+	/// # Arguments
+	///
+	/// * `win_pos` - The position of the keyboard window.
+	void updateIMEPosHint @ update_ime_pos_hint(Vec2 winPos);
 };
 
+/// An interface for handling game controller inputs.
 singleton class Controller
 {
-	bool isButtonDown(int controllerId, string name);
-	bool isButtonUp(int controllerId, string name);
-	bool isButtonPressed(int controllerId, string name);
-	float getAxis(int controllerId, string name);
+	bool isButtonDown @ _is_button_down(int controllerId, string name);
+	bool isButtonUp @ _is_button_up(int controllerId, string name);
+	bool isButtonPressed @ _is_button_pressed(int controllerId, string name);
+	float getAxis @ _get_axis(int controllerId, string name);
 };
 
+/// A struct used for Scalable Vector Graphics rendering.
 object class SVGDef @ SVG
 {
+	/// the width of the SVG object.
 	readonly common float width;
+	/// the height of the SVG object.
 	readonly common float height;
+	/// Renders the SVG object, should be called every frame for the render result to appear.
 	void render();
+	/// Creates a new SVG object from the specified SVG file.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The path to the SVG format file.
+	///
+	/// # Returns
+	///
+	/// * `Svg` - The created SVG object.
 	static optional SVGDef* from @ create(string filename);
 };
 
@@ -3011,115 +3442,535 @@ value struct DBQuery
 	void add(string sql);
 };
 
+/// A struct that represents a database.
 singleton class DB
 {
+	/// Checks whether a table exists in the database.
+	///
+	/// # Arguments
+	///
+	/// * `table_name` - The name of the table to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the table exists, `false` otherwise.
 	bool exist(string tableName);
+	/// Checks whether a table exists in the database.
+	///
+	/// # Arguments
+	///
+	/// * `table_name` - The name of the table to check.
+	/// * `schema` - Optional. The name of the schema to check in.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the table exists, `false` otherwise.
 	bool exist @ existSchema(string tableName, string schema);
+	/// Executes an SQL statement and returns the number of rows affected.
+	///
+	/// # Arguments
+	///
+	/// * `sql` - The SQL statement to execute.
+	///
+	/// # Returns
+	///
+	/// * `i32` - The number of rows affected by the statement.
 	int exec(string sql);
+	/// Executes a list of SQL statements as a single transaction.
+	///
+	/// # Arguments
+	///
+	/// * `query` - A list of SQL statements to execute.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the transaction was successful, `false` otherwise.
 	outside bool db_do_transaction @ transaction(DBQuery query);
+	/// Executes a list of SQL statements as a single transaction asynchronously.
+	///
+	/// # Arguments
+	///
+	/// * `sqls` - A list of SQL statements to execute.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the transaction was successful, `false` otherwise.
 	outside void db_do_transaction_async @ transactionAsync(DBQuery query, function<void(bool result)> callback);
+	/// Executes an SQL query and returns the results as a list of rows.
+	///
+	/// # Arguments
+	///
+	/// * `sql` - The SQL statement to execute.
+	/// * `with_column` - Whether to include column names in the result.
+	///
+	/// # Returns
+	///
+	/// * `DBRecord` - A list of rows returned by the query.
 	outside DBRecord db_do_query @ query(string sql, bool withColumns);
-	outside DBRecord db_do_query_with_params @ queryWithParams(string sql, Array* param, bool withColumns);
-	outside void db_do_insert @ insert(string tableName, DBParams params);
-	outside int32_t db_do_exec_with_records @ execWithRecords(string sql, DBParams params);
-	outside void db_do_query_with_params_async @ queryWithParamsAsync(string sql, Array* param, bool withColumns, function<void(DBRecord result)> callback);
-	outside void db_do_insert_async @ insertAsync(string tableName, DBParams params, function<void(bool result)> callback);
-	outside void db_do_exec_async @ execAsync(string sql, DBParams params, function<void(int64_t rowChanges)> callback);
+	/// Executes an SQL query and returns the results as a list of rows.
+	///
+	/// # Arguments
+	///
+	/// * `sql` - The SQL statement to execute.
+	/// * `args` - A list of values to substitute into the SQL statement.
+	/// * `with_column` - Whether to include column names in the result.
+	///
+	/// # Returns
+	///
+	/// * `DBRecord` - A list of rows returned by the query.
+	outside DBRecord db_do_query_with_params @ queryWithParams(string sql, Array* args, bool withColumns);
+	/// Inserts a row of data into a table within a transaction.
+	///
+	/// # Arguments
+	///
+	/// * `table_name` - The name of the table to insert into.
+	/// * `values` - The values to insert into the table.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the insertion was successful, `false` otherwise.
+	outside void db_do_insert @ insert(string tableName, DBParams values);
+	/// Executes an SQL statement and returns the number of rows affected.
+	///
+	/// # Arguments
+	///
+	/// * `sql` - The SQL statement to execute.
+	/// * `values` - Lists of values to substitute into the SQL statement.
+	///
+	/// # Returns
+	///
+	/// * `i32` - The number of rows affected by the statement.
+	outside int32_t db_do_exec_with_records @ execWithRecords(string sql, DBParams values);
+	/// Executes an SQL query asynchronously and returns the results as a list of rows.
+	///
+	/// # Arguments
+	///
+	/// * `sql` - The SQL statement to execute.
+	/// * `args` - Optional. A list of values to substitute into the SQL statement.
+	/// * `with_column` - Optional. Whether to include column names in the result. Default is `false`.
+	/// * `callback` - A callback function that is invoked when the query is executed, receiving the results as a list of rows.
+	outside void db_do_query_with_params_async @ queryWithParamsAsync(string sql, Array* args, bool withColumns, function<void(DBRecord result)> callback);
+	/// Inserts a row of data into a table within a transaction asynchronously.
+	///
+	/// # Arguments
+	///
+	/// * `table_name` - The name of the table to insert into.
+	/// * `values` - The values to insert into the table.
+	/// * `callback` - A callback function that is invoked when the insertion is executed, receiving the result of the insertion.
+	outside void db_do_insert_async @ insertAsync(string tableName, DBParams values, function<void(bool result)> callback);
+	/// Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
+	///
+	/// # Arguments
+	///
+	/// * `sql` - The SQL statement to execute.
+	/// * `values` - A list of values to substitute into the SQL statement.
+	/// * `callback` - A callback function that is invoked when the statement is executed, recieving the number of rows affected.
+	outside void db_do_exec_async @ execAsync(string sql, DBParams values, function<void(int64_t rowChanges)> callback);
 };
 
+/// A simple reinforcement learning framework that can be used to learn optimal policies for Markov decision processes using Q-learning. Q-learning is a model-free reinforcement learning algorithm that learns an optimal action-value function from experience by repeatedly updating estimates of the Q-value of state-action pairs.
 object class MLQLearner @ QLearner
 {
+	/// Updates Q-value for a state-action pair based on received reward.
+	///
+	/// # Arguments
+	///
+	/// * `state` - An integer representing the state.
+	/// * `action` - An integer representing the action.
+	/// * `reward` - A number representing the reward received for the action in the state.
 	void update(MLQState state, MLQAction action, double reward);
+	/// Returns the best action for a given state based on the current Q-values.
+	///
+	/// # Arguments
+	///
+	/// * `state` - The current state.
+	///
+	/// # Returns
+	///
+	/// * `i32` - The action with the highest Q-value for the given state.
 	uint32_t getBestAction(MLQState state);
+	/// Visits all state-action pairs and calls the provided handler function for each pair.
+	///
+	/// # Arguments
+	///
+	/// * `handler` - A function that is called for each state-action pair.
 	outside void ml_qlearner_visit_state_action_q @ visitMatrix(function<void(MLQState state, MLQAction action, double q)> handler);
+	/// Constructs a state from given hints and condition values.
+	///
+	/// # Arguments
+	///
+	/// * `hints` - A vector of integers representing the byte length of provided values.
+	/// * `values` - The condition values as discrete values.
+	///
+	/// # Returns
+	///
+	/// * `i64` - The packed state value.
 	static MLQState pack(VecUint32 hints, VecUint32 values);
+	/// Deconstructs a state from given hints to get condition values.
+	///
+	/// # Arguments
+	///
+	/// * `hints` - A vector of integers representing the byte length of provided values.
+	/// * `state` - The state integer to unpack.
+	///
+	/// # Returns
+	///
+	/// * `Vec<i32>` - The condition values as discrete values.
 	static VecUint32 unpack(VecUint32 hints, MLQState state);
+	/// Creates a new QLearner object with optional parameters for gamma, alpha, and maxQ.
+	///
+	/// # Arguments
+	///
+	/// * `gamma` - The discount factor for future rewards.
+	/// * `alpha` - The learning rate for updating Q-values.
+	/// * `maxQ` - The maximum Q-value. Defaults to 100.0.
+	///
+	/// # Returns
+	///
+	/// * `QLearner` - The newly created QLearner object.
 	static QLearner* create(double gamma, double alpha, double maxQ);
 };
 
+/// An interface for machine learning algorithms.
 singleton class C45
 {
+	/// A function that takes CSV data as input and applies the C4.5 machine learning algorithm to build a decision tree model asynchronously.
+	/// C4.5 is a decision tree algorithm that uses information gain to select the best attribute to split the data at each node of the tree. The resulting decision tree can be used to make predictions on new data.
+	///
+	/// # Arguments
+	///
+	/// * `csv_data` - The CSV training data for building the decision tree using delimiter `,`.
+	/// * `max_depth` - The maximum depth of the generated decision tree. Set to 0 to prevent limiting the generated tree depth.
+	/// * `handler` - The callback function to be called for each node of the generated decision tree.
+	///     * `depth` - The learning accuracy value or the depth of the current node in the decision tree.
+	///     * `name` - The name of the attribute used for splitting the data at the current node.
+	///     * `op` - The comparison operator used for splitting the data at the current node.
+	///     * `value` - The value used for splitting the data at the current node.
 	static outside void MLBuildDecisionTreeAsync @ buildDecisionTreeAsync(string data, int maxDepth, function<void(double depth, string name, string op, string value)> treeVisitor);
 };
 
 namespace Platformer {
 
+/// A struct to specifies how a bullet object should interact with other game objects or units based on their relationship.
 value class TargetAllow
 {
+	/// whether the bullet object can collide with terrain.
 	boolean bool terrainAllowed;
+	/// Allows or disallows the bullet object to interact with a game object or unit, based on their relationship.
+	///
+	/// # Arguments
+	///
+	/// * `relation` - The relationship between the bullet object and the other game object or unit.
+	/// * `allow` - Whether the bullet object should be allowed to interact.
 	void allow(Platformer::Relation relation, bool allow);
+	/// Determines whether the bullet object is allowed to interact with a game object or unit, based on their relationship.
+	///
+	/// # Arguments
+	///
+	/// * `relation` - The relationship between the bullet object and the other game object or unit.
+	///
+	/// # Returns
+	///
+	/// * `bool` - Whether the bullet object is allowed to interact.
 	bool isAllow(Platformer::Relation relation);
+	/// Converts the object to a value that can be used for interaction settings.
+	///
+	/// # Returns
+	///
+	/// * `usize` - The value that can be used for interaction settings.
 	uint32_t toValue();
+	/// Creates a new TargetAllow object with default settings.
 	static Platformer::TargetAllow create();
+	/// Creates a new TargetAllow object with the specified value.
+	///
+	/// # Arguments
+	///
+	/// * `value` - The value to use for the new TargetAllow object.
 	static Platformer::TargetAllow create @ createValue(uint32_t value);
 };
 
+/// Represents a definition for a visual component of a game bullet or other visual item.
 object class Face
 {
+	/// Adds a child `Face` definition to it.
+	///
+	/// # Arguments
+	///
+	/// * `face` - The child `Face` to add.
 	void addChild(Platformer::Face* face);
+	/// Returns a node that can be added to a scene tree for rendering.
+	///
+	/// # Returns
+	///
+	/// * `Node` - The `Node` representing this `Face`.
 	Node* toNode();
+	/// Creates a new `Face` definition using the specified attributes.
+	///
+	/// # Arguments
+	///
+	/// * `face_str` - A string for creating the `Face` component. Could be 'Image/file.png' and 'Image/items.clip|itemA'.
+	/// * `point` - The position of the `Face` component.
+	/// * `scale` - The scale of the `Face` component.
+	/// * `angle` - The angle of the `Face` component.
+	///
+	/// # Returns
+	///
+	/// * `Face` - The new `Face` component.
 	static Face* create(string faceStr, Vec2 point, float scale, float angle);
+	/// Creates a new `Face` definition using the specified attributes.
+	///
+	/// # Arguments
+	///
+	/// * `create_func` - A function that returns a `Node` representing the `Face` component.
+	/// * `point` - The position of the `Face` component.
+	/// * `scale` - The scale of the `Face` component.
+	/// * `angle` - The angle of the `Face` component.
+	///
+	/// # Returns
+	///
+	/// * `Face` - The new `Face` component.
 	static Face* create @ createFunc(function<Node*()> createFunc, Vec2 point, float scale, float angle);
 };
 
+/// A struct type that specifies the properties and behaviors of a bullet object in the game.
 object class BulletDef
 {
+	/// the tag for the bullet object.
 	string tag;
+	/// the effect that occurs when the bullet object ends its life.
 	string endEffect;
+	/// the amount of time in seconds that the bullet object remains active.
 	float lifeTime;
+	/// the radius of the bullet object's damage area.
 	float damageRadius;
+	/// whether the bullet object should be fixed for high speeds.
 	boolean bool highSpeedFix;
+	/// the gravity vector that applies to the bullet object.
 	common Vec2 gravity;
+	/// the visual item of the bullet object.
 	common Platformer::Face* face;
+	/// the physics body definition for the bullet object.
 	readonly common BodyDef* bodyDef;
+	/// the velocity vector of the bullet object.
 	readonly common Vec2 velocity;
+	/// Sets the bullet object's physics body as a circle.
+	///
+	/// # Arguments
+	///
+	/// * `radius` - The radius of the circle.
 	void setAsCircle(float radius);
+	/// Sets the velocity of the bullet object.
+	///
+	/// # Arguments
+	///
+	/// * `angle` - The angle of the velocity in degrees.
+	/// * `speed` - The speed of the velocity.
 	void setVelocity(float angle, float speed);
+	/// Creates a new bullet object definition with default settings.
+	///
+	/// # Returns
+	///
+	/// * `BulletDef` - The new bullet object definition.
 	static BulletDef* create();
 };
 
+/// A struct that defines the properties and behavior of a bullet object instance in the game.
 object class Bullet : public IBody
 {
+	/// the value from a `Platformer.TargetAllow` object for the bullet object.
 	common uint32_t targetAllow;
+	/// whether the bullet object is facing right.
 	readonly boolean bool faceRight;
+	/// whether the bullet object should stop on impact.
 	boolean bool hitStop;
+	/// the `Unit` object that fired the bullet.
 	readonly common Platformer::Unit* emitter;
+	/// the `BulletDef` object that defines the bullet's properties and behavior.
 	readonly common Platformer::BulletDef* bulletDef;
+	/// the `Node` object that appears as the bullet's visual item.
 	common Node* face;
+	/// Destroys the bullet object instance.
 	void destroy();
+	/// A method that creates a new `Bullet` object instance with the specified `BulletDef` and `Unit` objects.
+	///
+	/// # Arguments
+	///
+	/// * `def` - The `BulletDef` object that defines the bullet's properties and behavior.
+	/// * `owner` - The `Unit` object that fired the bullet.
+	///
+	/// # Returns
+	///
+	/// * `Bullet` - The new `Bullet` object instance.
 	static Bullet* create(Platformer::BulletDef* def, Platformer::Unit* owner);
 };
 
+/// A struct represents a visual effect object like Particle, Frame Animation or just a Sprite.
 object class Visual : public INode
 {
+	/// whether the visual effect is currently playing or not.
 	readonly boolean bool playing;
+	/// Starts playing the visual effect.
 	void start();
+	/// Stops playing the visual effect.
 	void stop();
+	/// Automatically removes the visual effect from the game world when it finishes playing.
+	///
+	/// # Returns
+	///
+	/// * `Visual` - The same `Visual` object that was passed in as a parameter.
 	Platformer::Visual* autoRemove();
+	/// Creates a new `Visual` object with the specified name.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the new `Visual` object. Could be a particle file, a frame animation file or an image file.
+	///
+	/// # Returns
+	///
+	/// * `Visual` - The new `Visual` object.
 	static Visual* create(string name);
 };
 
 namespace Behavior {
 
+/// A blackboard object that can be used to store data for behavior tree nodes.
 class Blackboard
 {
+	/// the time since the last frame update in seconds.
 	readonly common double deltaTime;
+	/// the unit that the AI agent belongs to.
 	readonly common Platformer::Unit* owner;
 };
 
+/// A behavior tree framework for creating game AI structures.
 object class Leaf @ Tree
 {
+	/// Creates a new sequence node that executes an array of child nodes in order.
+	///
+	/// # Arguments
+	///
+	/// * `nodes` - A vector of child nodes.
+	///
+	/// # Returns
+	///
+	/// * `Leaf` - A new sequence node.
 	static outside Platformer::Behavior::Leaf* BSeq @ seq(VecBTree nodes);
+	/// Creates a new selector node that selects and executes one of its child nodes that will succeed.
+	///
+	/// # Arguments
+	///
+	/// * `nodes` - A vector of child nodes.
+	///
+	/// # Returns
+	///
+	/// * `Leaf` - A new selector node.
 	static outside Platformer::Behavior::Leaf* BSel @ sel(VecBTree nodes);
+	/// Creates a new condition node that executes a check handler function when executed.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the condition.
+	/// * `check` - A function that takes a blackboard object and returns a boolean value.
+	///
+	/// # Returns
+	///
+	/// * `Leaf` - A new condition node.
 	static outside Platformer::Behavior::Leaf* BCon @ con(string name, function<bool(Platformer::Behavior::Blackboard blackboard)> handler);
-	static outside Platformer::Behavior::Leaf* BAct @ act(string action);
-	static outside Platformer::Behavior::Leaf* BCommand @ command(string action);
+	/// Creates a new action node that executes an action when executed.
+	/// This node will block the execution until the action finishes.
+	///
+	/// # Arguments
+	///
+	/// * `action_name` - The name of the action to execute.
+	///
+	/// # Returns
+	///
+	/// * `Leaf` - A new action node.
+	static outside Platformer::Behavior::Leaf* BAct @ act(string action_name);
+	/// Creates a new command node that executes a command when executed.
+	/// This node will return right after the action starts.
+	///
+	/// # Arguments
+	///
+	/// * `action_name` - The name of the command to execute.
+	///
+	/// # Returns
+	///
+	/// * `Leaf` - A new command node.
+	static outside Platformer::Behavior::Leaf* BCommand @ command(string action_name);
+	/// Creates a new wait node that waits for a specified duration when executed.
+	///
+	/// # Arguments
+	///
+	/// * `duration` - The duration to wait in seconds.
+	///
+	/// # Returns
+	///
+	/// * A new wait node of type `Leaf`.
 	static outside Platformer::Behavior::Leaf* BWait @ wait(double duration);
+	/// Creates a new countdown node that executes a child node continuously until a timer runs out.
+	///
+	/// # Arguments
+	///
+	/// * `time` - The time limit in seconds.
+	/// * `node` - The child node to execute.
+	///
+	/// # Returns
+	///
+	/// * A new countdown node of type `Leaf`.
 	static outside Platformer::Behavior::Leaf* BCountdown @ countdown(double time, Platformer::Behavior::Leaf* node);
+	/// Creates a new timeout node that executes a child node until a timer runs out.
+	///
+	/// # Arguments
+	///
+	/// * `time` - The time limit in seconds.
+	/// * `node` - The child node to execute.
+	///
+	/// # Returns
+	///
+	/// * A new timeout node of type `Leaf`.
 	static outside Platformer::Behavior::Leaf* BTimeout @ timeout(double time, Platformer::Behavior::Leaf* node);
+	/// Creates a new repeat node that executes a child node a specified number of times.
+	///
+	/// # Arguments
+	///
+	/// * `times` - The number of times to execute the child node.
+	/// * `node` - The child node to execute.
+	///
+	/// # Returns
+	///
+	/// * A new repeat node of type `Leaf`.
 	static outside Platformer::Behavior::Leaf* BRepeat @ repeat(int times, Platformer::Behavior::Leaf* node);
+	/// Creates a new repeat node that executes a child node repeatedly.
+	///
+	/// # Arguments
+	///
+	/// * `node` - The child node to execute.
+	///
+	/// # Returns
+	///
+	/// * A new repeat node of type `Leaf`.
 	static outside Platformer::Behavior::Leaf* BRepeat @ repeatForever(Platformer::Behavior::Leaf* node);
+	/// Creates a new retry node that executes a child node repeatedly until it succeeds or a maximum number of retries is reached.
+	///
+	/// # Arguments
+	///
+	/// * `times` - The maximum number of retries.
+	/// * `node` - The child node to execute.
+	///
+	/// # Returns
+	///
+	/// * A new retry node of type `Leaf`.
 	static outside Platformer::Behavior::Leaf* BRetry @ retry(int times, Platformer::Behavior::Leaf* node);
+	/// Creates a new retry node that executes a child node repeatedly until it succeeds.
+	///
+	/// # Arguments
+	///
+	/// * `node` - The child node to execute.
+	///
+	/// # Returns
+	///
+	/// * A new retry node of type `Leaf`.
 	static outside Platformer::Behavior::Leaf* BRetry @ retryUntilPass(Platformer::Behavior::Leaf* node);
 };
 
@@ -3127,26 +3978,151 @@ object class Leaf @ Tree
 
 namespace Decision {
 
+/// A decision tree framework for creating game AI structures.
 object class Leaf @ Tree
 {
+	/// Creates a selector node with the specified child nodes.
+	///
+	/// A selector node will go through the child nodes until one succeeds.
+	///
+	/// # Arguments
+	///
+	/// * `nodes` - An array of `Leaf` nodes.
+	///
+	/// # Returns
+	///
+	/// * A `Leaf` node that represents a selector.
 	static outside Platformer::Decision::Leaf* DSel @ sel(VecDTree nodes);
+	/// Creates a sequence node with the specified child nodes.
+	///
+	/// A sequence node will go through the child nodes until all nodes succeed.
+	///
+	/// # Arguments
+	///
+	/// * `nodes` - An array of `Leaf` nodes.
+	///
+	/// # Returns
+	///
+	/// * A `Leaf` node that represents a sequence.
 	static outside Platformer::Decision::Leaf* DSeq @ seq(VecDTree nodes);
+	/// Creates a condition node with the specified name and handler function.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the condition.
+	/// * `check` - The check function that takes a `Unit` parameter and returns a boolean result.
+	///
+	/// # Returns
+	///
+	/// * A `Leaf` node that represents a condition check.
 	static outside Platformer::Decision::Leaf* DCon @ con(string name, function<bool(Platformer::Unit* unit)> handler);
-	static outside Platformer::Decision::Leaf* DAct @ act(string action);
+	/// Creates an action node with the specified action name.
+	///
+	/// # Arguments
+	///
+	/// * `action_name` - The name of the action to perform.
+	///
+	/// # Returns
+	///
+	/// * A `Leaf` node that represents an action.
+	static outside Platformer::Decision::Leaf* DAct @ act(string action_name);
+	/// Creates an action node with the specified handler function.
+	///
+	/// # Arguments
+	///
+	/// * `handler` - The handler function that takes a `Unit` parameter which is the running AI agent and returns an action.
+	///
+	/// # Returns
+	///
+	/// * A `Leaf` node that represents an action.
 	static outside Platformer::Decision::Leaf* DAct @ actDynamic(function<string(Platformer::Unit* unit)> handler);
+	/// Creates a leaf node that represents accepting the current behavior tree.
+	///
+	/// Always get success result from this node.
+	///
+	/// # Returns
+	///
+	/// * A `Leaf` node.
 	static outside Platformer::Decision::Leaf* DAccept @ accept();
+	/// Creates a leaf node that represents rejecting the current behavior tree.
+	///
+	/// Always get failure result from this node.
+	///
+	/// # Returns
+	///
+	/// * A `Leaf` node.
 	static outside Platformer::Decision::Leaf* DReject @ reject();
+	/// Creates a leaf node with the specified behavior tree as its root.
+	///
+	/// It is possible to include a Behavior Tree as a node in a Decision Tree by using the Behave() function. This allows the AI to use a combination of decision-making and behavior execution to achieve its goals.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the behavior tree.
+	/// * `root` - The root node of the behavior tree.
+	///
+	/// # Returns
+	///
+	/// * A `Leaf` node.
 	static outside Platformer::Decision::Leaf* DBehave @ behave(string name, Platformer::Behavior::Leaf* root);
 };
 
+/// The interface to retrieve information while executing the decision tree.
 singleton class AI
 {
+	/// Gets an array of units in detection range that have the specified relation to current AI agent.
+	///
+	/// # Arguments
+	///
+	/// * `relation` - The relation to filter the units by.
+	///
+	/// # Returns
+	///
+	/// * An array of units with the specified relation.
 	Array* getUnitsByRelation(Platformer::Relation relation);
+	/// Gets an array of units that the AI has detected.
+	///
+	/// # Returns
+	///
+	/// * An array of detected units.
 	Array* getDetectedUnits();
+	/// Gets an array of bodies that the AI has detected.
+	///
+	/// # Returns
+	///
+	/// * An array of detected bodies.
 	Array* getDetectedBodies();
+	/// Gets the nearest unit that has the specified relation to the AI.
+	///
+	/// # Arguments
+	///
+	/// * `relation` - The relation to filter the units by.
+	///
+	/// # Returns
+	///
+	/// * The nearest unit with the specified relation.
 	Platformer::Unit* getNearestUnit(Platformer::Relation relation);
+	/// Gets the distance to the nearest unit that has the specified relation to the AI agent.
+	///
+	/// # Arguments
+	///
+	/// * `relation` - The relation to filter the units by.
+	///
+	/// # Returns
+	///
+	/// * The distance to the nearest unit with the specified relation.
 	float getNearestUnitDistance(Platformer::Relation relation);
+	/// Gets an array of units that are within attack range.
+	///
+	/// # Returns
+	///
+	/// * An array of units in attack range.
 	Array* getUnitsInAttackRange();
+	/// Gets an array of bodies that are within attack range.
+	///
+	/// # Returns
+	///
+	/// * An array of bodies in attack range.
 	Array* getBodiesInAttackRange();
 };
 
@@ -3157,15 +4133,37 @@ value class WasmActionUpdate @ ActionUpdate
 	static WasmActionUpdate create(function<bool(Platformer::Unit* owner, Platformer::UnitAction action, float deltaTime)> update);
 };
 
+/// A struct that represents an action that can be performed by a "Unit".
 class UnitAction
 {
+	/// the length of the reaction time for the "UnitAction", in seconds.
+	/// The reaction time will affect the AI check cycling time.
 	float reaction;
+	/// the length of the recovery time for the "UnitAction", in seconds.
+	/// The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
 	float recovery;
+	/// the name of the "UnitAction".
 	readonly common string name;
+	/// whether the "Unit" is currently performing the "UnitAction" or not.
 	readonly boolean bool doing;
+	/// the "Unit" that owns this "UnitAction".
 	readonly common Platformer::Unit* owner;
+	/// the elapsed time since the "UnitAction" was started, in seconds.
 	readonly common float elapsedTime;
+	/// Removes all "UnitAction" objects from the "UnitActionClass".
 	static void clear();
+	/// Adds a new "UnitAction" to the "UnitActionClass" with the specified name and parameters.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the "UnitAction".
+	/// * `priority` - The priority level for the "UnitAction". `UnitAction` with higher priority (larger number) will replace the running lower priority `UnitAction`. If performing `UnitAction` having the same priority with the running `UnitAction` and the `UnitAction` to perform having the param 'queued' to be true, the running `UnitAction` won't be replaced.
+	/// * `reaction` - The length of the reaction time for the "UnitAction", in seconds. The reaction time will affect the AI check cycling time. Set to 0.0 to make AI check run in every update.
+	/// * `recovery` - The length of the recovery time for the "UnitAction", in seconds. The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
+	/// * `queued` - Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority.
+	/// * `available` - A function that takes a `Unit` object and a `UnitAction` object and returns a boolean value indicating whether the "UnitAction" is available to be performed.
+	/// * `create` - A function that takes a `Unit` object and a `UnitAction` object and returns a `WasmActionUpdate` object that contains the update function for the "UnitAction".
+	/// * `stop` - A function that takes a `Unit` object and a `UnitAction` object and stops the "UnitAction".
 	static outside void platformer_wasm_unit_action_add @ add(
 		string name, int priority, float reaction, float recovery, bool queued,
 		function<bool(Platformer::Unit* owner, Platformer::UnitAction action)> available,
@@ -3173,87 +4171,416 @@ class UnitAction
 		function<void(Platformer::Unit* owner, Platformer::UnitAction action)> stop);
 };
 
+/// A struct represents a character or other interactive item in a game scene.
 object class Unit : public IBody
 {
+	/// the property that references a "Playable" object for managing the animation state and playback of the "Unit".
 	common Playable* playable;
+	/// the property that specifies the maximum distance at which the "Unit" can detect other "Unit" or objects.
 	common float detectDistance;
+	/// the property that specifies the size of the attack range for the "Unit".
 	common Size attackRange;
+	/// the boolean property that specifies whether the "Unit" is facing right or not.
 	boolean bool faceRight;
+	/// the boolean property that specifies whether the "Unit" is receiving a trace of the decision tree for debugging purposes.
 	boolean bool receivingDecisionTrace;
+	/// the string property that specifies the decision tree to use for the "Unit's" AI behavior.
+	/// the decision tree object will be searched in The singleton instance Data.store.
 	common string decisionTreeName @ decisionTree;
+	/// whether the "Unit" is currently on a surface or not.
 	readonly boolean bool onSurface;
+	/// the "Sensor" object for detecting ground surfaces.
 	readonly common Sensor* groundSensor;
+	/// the "Sensor" object for detecting other "Unit" objects or physics bodies in the game world.
 	readonly common Sensor* detectSensor;
+	/// the "Sensor" object for detecting other "Unit" objects within the attack senser area.
 	readonly common Sensor* attackSensor;
+	/// the "Dictionary" object for defining the properties and behavior of the "Unit".
 	readonly common Dictionary* unitDef;
+	/// the property that specifies the current action being performed by the "Unit".
 	readonly common Platformer::UnitAction currentAction;
+	/// the width of the "Unit".
 	readonly common float width;
+	/// the height of the "Unit".
 	readonly common float height;
+	/// the "Entity" object for representing the "Unit" in the ECS system.
 	readonly common Entity* entity;
+	/// Adds a new `UnitAction` to the `Unit` with the specified name, and returns the new `UnitAction`.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the new `UnitAction`.
+	///
+	/// # Returns
+	///
+	/// * The newly created `UnitAction`.
 	Platformer::UnitAction attachAction(string name);
+	/// Removes the `UnitAction` with the specified name from the `Unit`.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the `UnitAction` to remove.
 	void removeAction(string name);
+	/// Removes all "UnitAction" objects from the "Unit".
 	void removeAllActions();
+	/// Returns the `UnitAction` with the specified name, or `None` if the `UnitAction` does not exist.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the `UnitAction` to retrieve.
+	///
+	/// # Returns
+	///
+	/// * The `UnitAction` with the specified name, or `None`.
 	optional Platformer::UnitAction getAction(string name);
+	/// Calls the specified function for each `UnitAction` attached to the `Unit`.
+	///
+	/// # Arguments
+	///
+	/// * `func` - A function to call for each `UnitAction`.
 	void eachAction(function<void(Platformer::UnitAction action)> func);
+	/// Starts the `UnitAction` with the specified name, and returns true if the `UnitAction` was started successfully.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the `UnitAction` to start.
+	///
+	/// # Returns
+	///
+	/// * `true` if the `UnitAction` was started successfully, `false` otherwise.
 	bool start(string name);
+	/// Stops the currently running "UnitAction".
 	void stop();
+	/// Returns true if the `Unit` is currently performing the specified `UnitAction`, false otherwise.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the `UnitAction` to check.
+	///
+	/// # Returns
+	///
+	/// * `true` if the `Unit` is currently performing the specified `UnitAction`, `false` otherwise.
 	bool isDoing(string name);
-	static Unit* create(Dictionary* unitDef, PhysicsWorld* physicsworld, Entity* entity, Vec2 pos, float rot);
-	static Unit* create @ createStore(string defName, string worldName, Entity* entity, Vec2 pos, float rot);
+	/// A method that creates a new `Unit` object.
+	///
+	/// # Arguments
+	///
+	/// * `unit_def` - A `Dictionary` object that defines the properties and behavior of the `Unit`.
+	/// * `physics_world` - A `PhysicsWorld` object that represents the physics simulation world.
+	/// * `entity` - An `Entity` object that represents the `Unit` in ECS system.
+	/// * `pos` - A `Vec2` object that specifies the initial position of the `Unit`.
+	/// * `rot` - A number that specifies the initial rotation of the `Unit`.
+	///
+	/// # Returns
+	///
+	/// * The newly created `Unit` object.
+	static Unit* create(Dictionary* unitDef, PhysicsWorld* physicsWorld, Entity* entity, Vec2 pos, float rot);
+	/// A method that creates a new `Unit` object.
+	///
+	/// # Arguments
+	///
+	/// * `unit_def_name` - A string that specifies the name of the `Unit` definition to retrieve from `Data.store` table.
+	/// * `physics_world_name` - A string that specifies the name of the `PhysicsWorld` object to retrieve from `Data.store` table.
+	/// * `entity` - An `Entity` object that represents the `Unit` in ECS system.
+	/// * `pos` - A `Vec2` object that specifies the initial position of the `Unit`.
+	/// * `rot` - An optional number that specifies the initial rotation of the `Unit` (default is 0.0).
+	///
+	/// # Returns
+	///
+	/// * The newly created `Unit` object.
+	static Unit* create @ createStore(string unitDefName, string physicsWorldName, Entity* entity, Vec2 pos, float rot);
 };
 
+/// A platform camera for 2D platformer games that can track a game unit's movement and keep it within the camera's view.
 object class PlatformCamera : public ICamera
 {
+	/// The camera's position.
 	common Vec2 position;
+	/// The camera's rotation in degrees.
 	common float rotation;
+	/// The camera's zoom factor, 1.0 means the normal size, 2.0 mean zoom to doubled size.
 	common float zoom;
+	/// The rectangular area within which the camera is allowed to view.
 	common Rect boundary;
+	/// the ratio at which the camera should move to keep up with the target's position.
+	/// For example, set to `Vec2(1.0, 1.0)`, then the camera will keep up to the target's position right away.
+	/// Set to Vec2(0.5, 0.5) or smaller value, then the camera will move halfway to the target's position each frame, resulting in a smooth and gradual movement.
 	common Vec2 followRatio;
+	/// the offset at which the camera should follow the target.
 	common Vec2 followOffset;
+	/// the game unit that the camera should track.
 	optional common Node* followTarget;
+	/// Removes the target that the camera is following.
 	outside void platform_camera_set_follow_target_nullptr @ set_follow_target_null();
+	/// Creates a new instance of `PlatformCamera`.
+	///
+	/// # Arguments
+	///
+	/// * `name` - An optional string that specifies the name of the new instance. Default is an empty string.
+	///
+	/// # Returns
+	///
+	/// * A new `PlatformCamera` instance.
 	static PlatformCamera* create(string name);
 };
 
+/// A struct representing a 2D platformer game world with physics simulations.
 object class PlatformWorld : public IPhysicsWorld
 {
+	/// the camera used to control the view of the game world.
 	readonly common Platformer::PlatformCamera* camera;
+	/// Moves a child node to a new order for a different layer.
+	///
+	/// # Arguments
+	///
+	/// * `child` - The child node to be moved.
+	/// * `new_order` - The new order of the child node.
 	void moveChild(Node* child, int newOrder);
+	/// Gets the layer node at a given order.
+	///
+	/// # Arguments
+	///
+	/// * `order` - The order of the layer node to get.
+	///
+	/// # Returns
+	///
+	/// * The layer node at the given order.
 	Node* getLayer(int order);
+	/// Sets the parallax moving ratio for a given layer to simulate 3D projection effect.
+	///
+	/// # Arguments
+	///
+	/// * `order` - The order of the layer to set the ratio for.
+	/// * `ratio` - The new parallax ratio for the layer.
 	void setLayerRatio(int order, Vec2 ratio);
+	/// Gets the parallax moving ratio for a given layer.
+	///
+	/// # Arguments
+	///
+	/// * `order` - The order of the layer to get the ratio for.
+	///
+	/// # Returns
+	///
+	/// * A `Vec2` representing the parallax ratio for the layer.
 	Vec2 getLayerRatio(int order);
+	/// Sets the position offset for a given layer.
+	///
+	/// # Arguments
+	///
+	/// * `order` - The order of the layer to set the offset for.
+	/// * `offset` - A `Vec2` representing the new position offset for the layer.
 	void setLayerOffset(int order, Vec2 offset);
+	/// Gets the position offset for a given layer.
+	///
+	/// # Arguments
+	///
+	/// * `order` - The order of the layer to get the offset for.
+	///
+	/// # Returns
+	///
+	/// * A `Vec2` representing the position offset for the layer.
 	Vec2 getLayerOffset(int order);
+	/// Swaps the positions of two layers.
+	///
+	/// # Arguments
+	///
+	/// * `order_a` - The order of the first layer to swap.
+	/// * `order_b` - The order of the second layer to swap.
 	void swapLayer(int orderA, int orderB);
+	/// Removes a layer from the game world.
+	///
+	/// # Arguments
+	///
+	/// * `order` - The order of the layer to remove.
 	void removeLayer(int order);
+	/// Removes all layers from the game world.
 	void removeAllLayers();
+	/// The method to create a new instance of `PlatformWorld`.
+	///
+	/// # Returns
+	///
+	/// * A new instance of `PlatformWorld`.
 	static PlatformWorld* create();
 };
 
+/// An interface that provides a centralized location for storing and accessing game-related data.
 singleton class Data
 {
+	/// the group key representing the first index for a player group.
 	readonly common uint8_t groupFirstPlayer;
+	/// the group key representing the last index for a player group.
 	readonly common uint8_t groupLastPlayer;
+	/// the group key that won't have any contact with other groups by default.
 	readonly common uint8_t groupHide;
+	/// the group key that will have contacts with player groups by default.
 	readonly common uint8_t groupDetectPlayer;
+	/// the group key representing terrain that will have contacts with other groups by default.
 	readonly common uint8_t groupTerrain;
+	/// the group key that will have contacts with other groups by default.
 	readonly common uint8_t groupDetection;
+	/// the dictionary that can be used to store arbitrary data associated with string keys and various values globally.
 	readonly common Dictionary* store;
+	/// Sets a boolean value indicating whether two groups should be in contact or not.
+	///
+	/// # Arguments
+	///
+	/// * `group_a` - An integer representing the first group.
+	/// * `group_b` - An integer representing the second group.
+	/// * `contact` - A boolean indicating whether the two groups should be in contact.
 	void setShouldContact(uint8_t groupA, uint8_t groupB, bool contact);
+	/// Gets a boolean value indicating whether two groups should be in contact or not.
+	///
+	/// # Arguments
+	///
+	/// * `group_a` - An integer representing the first group.
+	/// * `group_b` - An integer representing the second group.
+	///
+	/// # Returns
+	///
+	/// * A boolean indicating whether the two groups should be in contact.
 	bool getShouldContact(uint8_t groupA, uint8_t groupB);
+	/// Sets the relation between two groups.
+	///
+	/// # Arguments
+	///
+	/// * `group_a` - An integer representing the first group.
+	/// * `group_b` - An integer representing the second group.
+	/// * `relation` - The relation between the two groups.
 	void setRelation(uint8_t groupA, uint8_t groupB, Platformer::Relation relation);
+	/// Gets the relation between two groups.
+	///
+	/// # Arguments
+	///
+	/// * `group_a` - An integer representing the first group.
+	/// * `group_b` - An integer representing the second group.
+	///
+	/// # Returns
+	///
+	/// * The relation between the two groups.
 	Platformer::Relation getRelation @ getRelationByGroup(uint8_t groupA, uint8_t groupB);
+	/// A function that can be used to get the relation between two bodies.
+	///
+	/// # Arguments
+	///
+	/// * `body_a` - The first body.
+	/// * `body_b` - The second body.
+	///
+	/// # Returns
+	///
+	/// * The relation between the two bodies.
 	Platformer::Relation getRelation(Body* bodyA, Body* bodyB);
+	/// A function that returns whether two groups have an "Enemy" relation.
+	///
+	/// # Arguments
+	///
+	/// * `group_a` - An integer representing the first group.
+	/// * `group_b` - An integer representing the second group.
+	///
+	/// # Returns
+	///
+	/// * A boolean indicating whether the two groups have an "Enemy" relation.
 	bool isEnemy @ isEnemyGroup(uint8_t groupA, uint8_t groupB);
+	/// A function that returns whether two bodies have an "Enemy" relation.
+	///
+	/// # Arguments
+	///
+	/// * `body_a` - The first body.
+	/// * `body_b` - The second body.
+	///
+	/// # Returns
+	///
+	/// * A boolean indicating whether the two bodies have an "Enemy" relation.
 	bool isEnemy(Body* bodyA, Body* bodyB);
+	/// A function that returns whether two groups have a "Friend" relation.
+	///
+	/// # Arguments
+	///
+	/// * `group_a` - An integer representing the first group.
+	/// * `group_b` - An integer representing the second group.
+	///
+	/// # Returns
+	///
+	/// * A boolean indicating whether the two groups have a "Friend" relation.
 	bool isFriend @ isFriendGroup(uint8_t groupA, uint8_t groupB);
+	/// A function that returns whether two bodies have a "Friend" relation.
+	///
+	/// # Arguments
+	///
+	/// * `body_a` - The first body.
+	/// * `body_b` - The second body.
+	///
+	/// # Returns
+	///
+	/// * A boolean indicating whether the two bodies have a "Friend" relation.
 	bool isFriend(Body* bodyA, Body* bodyB);
+	/// A function that returns whether two groups have a "Neutral" relation.
+	///
+	/// # Arguments
+	///
+	/// * `group_a` - An integer representing the first group.
+	/// * `group_b` - An integer representing the second group.
+	///
+	/// # Returns
+	///
+	/// * A boolean indicating whether the two groups have a "Neutral" relation.
 	bool isNeutral @ isNeutralGroup(uint8_t groupA, uint8_t groupB);
+	/// A function that returns whether two bodies have a "Neutral" relation.
+	///
+	/// # Arguments
+	///
+	/// * `body_a` - The first body.
+	/// * `body_b` - The second body.
+	///
+	/// # Returns
+	///
+	/// * A boolean indicating whether the two bodies have a "Neutral" relation.
 	bool isNeutral(Body* bodyA, Body* bodyB);
+	/// Sets the bonus factor for a particular type of damage against a particular type of defence.
+	///
+	/// The builtin "MeleeAttack" and "RangeAttack" actions use a simple formula of `finalDamage = damage * bonus`.
+	///
+	/// # Arguments
+	///
+	/// * `damage_type` - An integer representing the type of damage.
+	/// * `defence_type` - An integer representing the type of defence.
+	/// * `bonus` - A number representing the bonus.
 	void setDamageFactor(uint16_t damageType, uint16_t defenceType, float bounus);
+	/// Gets the bonus factor for a particular type of damage against a particular type of defence.
+	///
+	/// # Arguments
+	///
+	/// * `damage_type` - An integer representing the type of damage.
+	/// * `defence_type` - An integer representing the type of defence.
+	///
+	/// # Returns
+	///
+	/// * A number representing the bonus factor.
 	float getDamageFactor(uint16_t damageType, uint16_t defenceType);
+	/// A function that returns whether a body is a player or not.
+	///
+	/// This works the same as `Data::get_group_first_player() <= body.group and body.group <= Data::get_group_last_player()`.
+	///
+	/// # Arguments
+	///
+	/// * `body` - The body to check.
+	///
+	/// # Returns
+	///
+	/// * A boolean indicating whether the body is a player.
 	bool isPlayer(Body* body);
+	/// A function that returns whether a body is terrain or not.
+	///
+	/// This works the same as `body.group == Data::get_group_terrain()`.
+	///
+	/// # Arguments
+	///
+	/// * `body` - The body to check.
+	///
+	/// # Returns
+	///
+	/// * A boolean indicating whether the body is terrain.
 	bool isTerrain(Body* body);
+	/// Clears all data stored in the "Data" object, including user data in Data.store field. And reset some data to default values.
 	void clear();
 };
 

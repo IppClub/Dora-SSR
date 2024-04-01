@@ -26,6 +26,9 @@ local record PlatformCamera
 	-- Set to Vec2(0.5, 0.5) or smaller value, then the camera will move halfway to the target's position each frame, resulting in a smooth and gradual movement.
 	followRatio: Vec2
 
+	-- The offset from the target's position that the camera should follow.
+	followOffset: Vec2
+
 	-- The game unit that the camera should track.
 	followTarget: Node
 end

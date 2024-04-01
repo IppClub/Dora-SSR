@@ -20,7 +20,7 @@ local record UnitClass
 
 	-- A metamethod that creates a new "Unit" object.
 	-- @param unitDef (Dictionary) A "Dictionary" object that defines the properties and behavior of the "Unit".
-	-- @param physicsworld (PhysicsWorld) A "PhysicsWorld" object that represents the physics simulation world.
+	-- @param physicsWorld (PhysicsWorld) A "PhysicsWorld" object that represents the physics simulation world.
 	-- @param entity (Entity) An "Entity" object that represents the "Unit" in ECS system.
 	-- @param pos (Vec2) A "Vec2" object that specifies the initial position of the "Unit".
 	-- @param rot (number) [optional] An optional number that specifies the initial rotation of the "Unit" (default is 0.0).
@@ -28,7 +28,23 @@ local record UnitClass
 	metamethod __call: function(
 		self: UnitClass,
 		unitDef: Dictionary,
-		physicsworld: PhysicsWorld,
+		physicsWorld: PhysicsWorld,
+		entity: Entity,
+		pos: Vec2,
+		rot?: number --[[0.0]]
+	): Unit
+
+	-- A metamethod that creates a new "Unit" object.
+	-- @param unitDefName (string) A string that specifies the name of the "Unit" definition to retrieve from Data.store table.
+	-- @param physicsWorldName (string) A string that specifies the name of the "PhysicsWorld" object to retrieve from Data.store table.
+	-- @param entity (Entity) An "Entity" object that represents the "Unit" in ECS system.
+	-- @param pos (Vec2) A "Vec2" object that specifies the initial position of the "Unit".
+	-- @param rot (number) [optional] An optional number that specifies the initial rotation of the "Unit" (default is 0.0).
+	-- @return (Unit) The newly created "Unit" object.
+	metamethod __call: function(
+		self: UnitClass,
+		unitDefName: string,
+		physicsWorldName: string,
 		entity: Entity,
 		pos: Vec2,
 		rot?: number --[[0.0]]

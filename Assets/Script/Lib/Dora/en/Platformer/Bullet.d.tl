@@ -3,7 +3,7 @@ local Unit = require("Platformer.Unit").Type
 local Node = require("Node").Type
 local BulletDef = require("Platformer.BulletDef").Type
 
--- A record type that defines the properties and behavior of a bullet object instance in the game.
+-- A record that defines the properties and behavior of a bullet object instance in the game.
 local record Bullet
 
 	-- Inherits from `Body`.

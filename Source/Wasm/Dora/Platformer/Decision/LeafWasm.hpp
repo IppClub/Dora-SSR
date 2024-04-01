@@ -19,8 +19,8 @@ static int64_t platformer_decision_leaf_con(int64_t name, int32_t func, int64_t 
 		return std::get<bool>(args->pop());
 	}));
 }
-static int64_t platformer_decision_leaf_act(int64_t action) {
-	return from_object(DAct(*str_from(action)));
+static int64_t platformer_decision_leaf_act(int64_t action_name) {
+	return from_object(DAct(*str_from(action_name)));
 }
 static int64_t platformer_decision_leaf_act_dynamic(int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
