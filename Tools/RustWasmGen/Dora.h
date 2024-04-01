@@ -3512,13 +3512,13 @@ singleton class DB
 	/// # Arguments
 	///
 	/// * `sql` - The SQL statement to execute.
-	/// * `args` - A list of values to substitute into the SQL statement.
+	/// * `params` - A list of values to substitute into the SQL statement.
 	/// * `with_column` - Whether to include column names in the result.
 	///
 	/// # Returns
 	///
 	/// * `DBRecord` - A list of rows returned by the query.
-	outside DBRecord db_do_query_with_params @ queryWithParams(string sql, Array* args, bool withColumns);
+	outside DBRecord db_do_query_with_params @ queryWithParams(string sql, Array* params, bool withColumns);
 	/// Inserts a row of data into a table within a transaction.
 	///
 	/// # Arguments
@@ -3546,10 +3546,10 @@ singleton class DB
 	/// # Arguments
 	///
 	/// * `sql` - The SQL statement to execute.
-	/// * `args` - Optional. A list of values to substitute into the SQL statement.
+	/// * `params` - Optional. A list of values to substitute into the SQL statement.
 	/// * `with_column` - Optional. Whether to include column names in the result. Default is `false`.
 	/// * `callback` - A callback function that is invoked when the query is executed, receiving the results as a list of rows.
-	outside void db_do_query_with_params_async @ queryWithParamsAsync(string sql, Array* args, bool withColumns, function<void(DBRecord result)> callback);
+	outside void db_do_query_with_params_async @ queryWithParamsAsync(string sql, Array* params, bool withColumns, function<void(DBRecord result)> callback);
 	/// Inserts a row of data into a table within a transaction asynchronously.
 	///
 	/// # Arguments

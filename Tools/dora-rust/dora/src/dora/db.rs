@@ -5,10 +5,10 @@ extern "C" {
 	fn db_transaction(query: i64) -> i32;
 	fn db_transaction_async(query: i64, func: i32, stack: i64);
 	fn db_query(sql: i64, with_columns: i32) -> i64;
-	fn db_query_with_params(sql: i64, args: i64, with_columns: i32) -> i64;
+	fn db_query_with_params(sql: i64, params: i64, with_columns: i32) -> i64;
 	fn db_insert(table_name: i64, values: i64);
 	fn db_exec_with_records(sql: i64, values: i64) -> i32;
-	fn db_query_with_params_async(sql: i64, args: i64, with_columns: i32, func: i32, stack: i64);
+	fn db_query_with_params_async(sql: i64, params: i64, with_columns: i32, func: i32, stack: i64);
 	fn db_insert_async(table_name: i64, values: i64, func: i32, stack: i64);
 	fn db_exec_async(sql: i64, values: i64, func: i32, stack: i64);
 }
@@ -100,14 +100,14 @@ impl DB {
 	/// # Arguments
 	///
 	/// * `sql` - The SQL statement to execute.
-	/// * `args` - A list of values to substitute into the SQL statement.
+	/// * `params` - A list of values to substitute into the SQL statement.
 	/// * `with_column` - Whether to include column names in the result.
 	///
 	/// # Returns
 	///
 	/// * `DBRecord` - A list of rows returned by the query.
-	pub fn query_with_params(sql: &str, args: &crate::dora::Array, with_columns: bool) -> crate::dora::DBRecord {
-		unsafe { return crate::dora::DBRecord::from(db_query_with_params(crate::dora::from_string(sql), args.raw(), if with_columns { 1 } else { 0 })); }
+	pub fn query_with_params(sql: &str, params: &crate::dora::Array, with_columns: bool) -> crate::dora::DBRecord {
+		unsafe { return crate::dora::DBRecord::from(db_query_with_params(crate::dora::from_string(sql), params.raw(), if with_columns { 1 } else { 0 })); }
 	}
 	/// Inserts a row of data into a table within a transaction.
 	///
@@ -140,16 +140,16 @@ impl DB {
 	/// # Arguments
 	///
 	/// * `sql` - The SQL statement to execute.
-	/// * `args` - Optional. A list of values to substitute into the SQL statement.
+	/// * `params` - Optional. A list of values to substitute into the SQL statement.
 	/// * `with_column` - Optional. Whether to include column names in the result. Default is `false`.
 	/// * `callback` - A callback function that is invoked when the query is executed, receiving the results as a list of rows.
-	pub fn query_with_params_async(sql: &str, args: &crate::dora::Array, with_columns: bool, mut callback: Box<dyn FnMut(crate::dora::DBRecord)>) {
+	pub fn query_with_params_async(sql: &str, params: &crate::dora::Array, with_columns: bool, mut callback: Box<dyn FnMut(crate::dora::DBRecord)>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
 		let func_id = crate::dora::push_function(Box::new(move || {
 			callback(crate::dora::DBRecord::from(stack.pop_i64().unwrap()))
 		}));
-		unsafe { db_query_with_params_async(crate::dora::from_string(sql), args.raw(), if with_columns { 1 } else { 0 }, func_id, stack_raw); }
+		unsafe { db_query_with_params_async(crate::dora::from_string(sql), params.raw(), if with_columns { 1 } else { 0 }, func_id, stack_raw); }
 	}
 	/// Inserts a row of data into a table within a transaction asynchronously.
 	///
