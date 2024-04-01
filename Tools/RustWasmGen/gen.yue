@@ -784,9 +784,11 @@ impl I#{clsNewName} for #{clsNewName} { }"
 						[rt, cast, castFrom, rtTypeIn, rtTypeOut, rtCast, rtCastFrom] = rustType
 						cppType = cppTypes[rt]
 						if not isReadonly
-							if #docs > 0
+							docText = if #docs > 0
 								text = table.concat docs, '\n\t'
-								rustBinding[] = '\t' .. text\sub(1, 4) .. 'Sets' .. text\sub(4)
+								'\t' .. text\sub(1, 4) .. 'Sets' .. text\sub(4) .. '\n'
+							else
+								''
 							setFunc = switch fieldType
 								when "primitive"
 									"#{name} = #{cast 'var'}"
@@ -809,14 +811,16 @@ impl I#{clsNewName} for #{clsNewName} { }"
 								slf = isStatic and "" or "slf: i64, "
 								"\tfn #{cppSetterName}(#{slf}var: #{rt});"
 							rustBinding[] = if isSingleton
-								"\t#{pub}fn #{rustSetterName}(var: #{rtTypeIn or rt}) {\n\t\tunsafe { #{cppSetterName}(#{rtCast and rtCast('var') or 'var'}) };\n\t}"
+								"#{docText}\t#{pub}fn #{rustSetterName}(var: #{rtTypeIn or rt}) {\n\t\tunsafe { #{cppSetterName}(#{rtCast and rtCast('var') or 'var'}) };\n\t}"
 							else
 								slfDecl = isStatic and "" or "&mut self, "
 								slf = isStatic and "" or "self.raw(), "
-								"\t#{pub}fn #{rustSetterName}(#{slfDecl}var: #{rtTypeIn or rt}) {\n\t\tunsafe { #{cppSetterName}(#{slf}#{rtCast and rtCast('var') or 'var'}) };\n\t}"
-						if #docs > 0
+								"#{docText}\t#{pub}fn #{rustSetterName}(#{slfDecl}var: #{rtTypeIn or rt}) {\n\t\tunsafe { #{cppSetterName}(#{slf}#{rtCast and rtCast('var') or 'var'}) };\n\t}"
+						docText = if #docs > 0
 							text = table.concat docs, '\n\t'
-							rustBinding[] = '\t' .. text\sub(1, 4) .. 'Gets' .. text\sub(4)
+							'\t' .. text\sub(1, 4) .. 'Gets' .. text\sub(4) .. '\n'
+						else
+							''
 						getFunc, prefix = switch fieldType
 							when "primitive"
 								"#{name}", "get"
@@ -844,12 +848,12 @@ impl I#{clsNewName} for #{clsNewName} { }"
 							"\tfn #{cppGetterName}(#{slf}) -> #{rt};"
 						rustBinding[] = if isSingleton
 							item = "#{cppGetterName}()"
-							"\t#{pub}fn #{rustGetterName}() -> #{rtTypeOut or rt} {\n\t\treturn unsafe { #{rtCastFrom and rtCastFrom(item) or item} };\n\t}"
+							"#{docText}\t#{pub}fn #{rustGetterName}() -> #{rtTypeOut or rt} {\n\t\treturn unsafe { #{rtCastFrom and rtCastFrom(item) or item} };\n\t}"
 						else
 							slfDecl = isStatic and "" or "&self"
 							slf = isStatic and "" or "self.raw()"
 							item = "#{cppGetterName}(#{slf})"
-							"\t#{pub}fn #{rustGetterName}(#{slfDecl}) -> #{rtTypeOut or rt} {\n\t\treturn unsafe { #{rtCastFrom and rtCastFrom(item) or item} };\n\t}"
+							"#{docText}\t#{pub}fn #{rustGetterName}(#{slfDecl}) -> #{rtTypeOut or rt} {\n\t\treturn unsafe { #{rtCastFrom and rtCastFrom(item) or item} };\n\t}"
 					else
 						error "\"#{dataType}\" is not supported."
 				when "method"

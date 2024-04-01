@@ -278,7 +278,7 @@ interface UnitClass {
 	/**
 	 * 创建新的游戏单位对象的元方法。
 	 * @param unitDef 定义游戏单位属性和行为的字典对象。
-	 * @param physicsworld 表示物理模拟世界的物理世界对象。
+	 * @param physicsWorld 表示物理模拟世界的物理世界对象。
 	 * @param entity 在ECS系统中代表游戏单位的数据实体对象。
 	 * @param pos 指定游戏单位初始位置的"Vec2"对象。
 	 * @param rot 可选的数字，指定游戏单位的初始旋转（默认为0.0）。
@@ -287,7 +287,25 @@ interface UnitClass {
 	(
 		this: void,
 		unitDef: Dictionary,
-		physicsworld: PhysicsWorld,
+		physicsWorld: PhysicsWorld,
+		entity: Entity,
+		pos: Vec2,
+		rot?: number
+	): Unit;
+
+	/**
+	 * 创建新的游戏单位对象的元方法。
+	 * @param unitDefName 定义游戏单位属性和行为的字典对象的名称，将用于在`Data.store`中搜索对象。
+	 * @param physicsWorldName 表示物理模拟世界的物理世界对象的名称，将用于在`Data.store`中搜索对象。
+	 * @param entity 在ECS系统中代表游戏单位的数据实体对象。
+	 * @param pos 指定游戏单位初始位置的"Vec2"对象。
+	 * @param rot 可选的数字，指定游戏单位的初始旋转（默认为0.0）。
+	 * @returns 新创建的游戏单位对象。
+	 */
+	(
+		this: void,
+		unitDefName: string,
+		physicsWorldName: string,
 		entity: Entity,
 		pos: Vec2,
 		rot?: number

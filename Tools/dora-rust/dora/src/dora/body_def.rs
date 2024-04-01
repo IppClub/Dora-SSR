@@ -57,7 +57,7 @@ impl BodyDef {
 	pub(crate) fn _set_type(&mut self, var: i32) {
 		unsafe { bodydef__set_type(self.raw(), var); }
 	}
-	pub(crate) fn _get_type(&mut self) -> i32 {
+	pub(crate) fn _get_type(&self) -> i32 {
 		unsafe { return bodydef__get_type(self.raw()); }
 	}
 	/// Sets define for the position of the body.

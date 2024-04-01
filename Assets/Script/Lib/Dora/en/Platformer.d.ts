@@ -278,7 +278,7 @@ interface UnitClass {
 	/**
 	 * A metamethod that creates a new "Unit" object.
 	 * @param unitDef A "Dictionary" object that defines the properties and behavior of the "Unit".
-	 * @param physicsworld A "PhysicsWorld" object that represents the physics simulation world.
+	 * @param physicsWorld A "PhysicsWorld" object that represents the physics simulation world.
 	 * @param entity An "Entity" object that represents the "Unit" in the ECS system.
 	 * @param pos A "Vec2" object that specifies the initial position of the "Unit".
 	 * @param rot An optional number that specifies the initial rotation of the "Unit" (default is 0.0).
@@ -287,7 +287,25 @@ interface UnitClass {
 	(
 		this: void,
 		unitDef: Dictionary,
-		physicsworld: PhysicsWorld,
+		physicsWorld: PhysicsWorld,
+		entity: Entity,
+		pos: Vec2,
+		rot?: number
+	): Unit;
+
+	/**
+	 * A metamethod that creates a new "Unit" object.
+	 * @param unitDefName The name of the "Dictionary" object that defines the properties and behavior of the "Unit" to retrieve from the "Data.store".
+	 * @param physicsWorldName The name of the "PhysicsWorld" object that represents the physics simulation world to retrieve from the "Data.store".
+	 * @param entity An "Entity" object that represents the "Unit" in the ECS system.
+	 * @param pos A "Vec2" object that specifies the initial position of the "Unit".
+	 * @param rot An optional number that specifies the initial rotation of the "Unit" (default is 0.0).
+	 * @returns The newly created "Unit" object.
+	 */
+	(
+		this: void,
+		unitDefName: string,
+		physicsWorldName: string,
 		entity: Entity,
 		pos: Vec2,
 		rot?: number

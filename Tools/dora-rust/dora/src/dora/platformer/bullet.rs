@@ -17,6 +17,7 @@ use crate::dora::IBody;
 impl IBody for Bullet { }
 use crate::dora::INode;
 impl INode for Bullet { }
+/// A struct that defines the properties and behavior of a bullet object instance in the game.
 pub struct Bullet { raw: i64 }
 crate::dora_object!(Bullet);
 impl Bullet {
@@ -28,36 +29,56 @@ impl Bullet {
 			}
 		})
 	}
+	/// Sets the value from a `Platformer.TargetAllow` object for the bullet object.
 	pub fn set_target_allow(&mut self, var: i32) {
 		unsafe { platformer_bullet_set_target_allow(self.raw(), var) };
 	}
+	/// Gets the value from a `Platformer.TargetAllow` object for the bullet object.
 	pub fn get_target_allow(&self) -> i32 {
 		return unsafe { platformer_bullet_get_target_allow(self.raw()) };
 	}
+	/// Gets whether the bullet object is facing right.
 	pub fn is_face_right(&self) -> bool {
 		return unsafe { platformer_bullet_is_face_right(self.raw()) != 0 };
 	}
+	/// Sets whether the bullet object should stop on impact.
 	pub fn set_hit_stop(&mut self, var: bool) {
 		unsafe { platformer_bullet_set_hit_stop(self.raw(), if var { 1 } else { 0 }) };
 	}
+	/// Gets whether the bullet object should stop on impact.
 	pub fn is_hit_stop(&self) -> bool {
 		return unsafe { platformer_bullet_is_hit_stop(self.raw()) != 0 };
 	}
+	/// Gets the `Unit` object that fired the bullet.
 	pub fn get_emitter(&self) -> crate::dora::platformer::Unit {
 		return unsafe { crate::dora::platformer::Unit::from(platformer_bullet_get_emitter(self.raw())).unwrap() };
 	}
+	/// Gets the `BulletDef` object that defines the bullet's properties and behavior.
 	pub fn get_bullet_def(&self) -> crate::dora::platformer::BulletDef {
 		return unsafe { crate::dora::platformer::BulletDef::from(platformer_bullet_get_bullet_def(self.raw())).unwrap() };
 	}
+	/// Sets the `Node` object that appears as the bullet's visual item.
 	pub fn set_face(&mut self, var: &dyn crate::dora::INode) {
 		unsafe { platformer_bullet_set_face(self.raw(), var.raw()) };
 	}
+	/// Gets the `Node` object that appears as the bullet's visual item.
 	pub fn get_face(&self) -> crate::dora::Node {
 		return unsafe { crate::dora::Node::from(platformer_bullet_get_face(self.raw())).unwrap() };
 	}
+	/// Destroys the bullet object instance.
 	pub fn destroy(&mut self) {
 		unsafe { platformer_bullet_destroy(self.raw()); }
 	}
+	/// A method that creates a new `Bullet` object instance with the specified `BulletDef` and `Unit` objects.
+	///
+	/// # Arguments
+	///
+	/// * `def` - The `BulletDef` object that defines the bullet's properties and behavior.
+	/// * `owner` - The `Unit` object that fired the bullet.
+	///
+	/// # Returns
+	///
+	/// * `Bullet` - The new `Bullet` object instance.
 	pub fn new(def: &crate::dora::platformer::BulletDef, owner: &crate::dora::platformer::Unit) -> Bullet {
 		unsafe { return Bullet { raw: platformer_bullet_new(def.raw(), owner.raw()) }; }
 	}

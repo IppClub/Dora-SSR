@@ -6,6 +6,7 @@ extern "C" {
 	fn svgdef_new(filename: i64) -> i64;
 }
 use crate::dora::IObject;
+/// A struct used for Scalable Vector Graphics rendering.
 pub struct SVG { raw: i64 }
 crate::dora_object!(SVG);
 impl SVG {
@@ -17,15 +18,27 @@ impl SVG {
 			}
 		})
 	}
+	/// Gets the width of the SVG object.
 	pub fn get_width(&self) -> f32 {
 		return unsafe { svgdef_get_width(self.raw()) };
 	}
+	/// Gets the height of the SVG object.
 	pub fn get_height(&self) -> f32 {
 		return unsafe { svgdef_get_height(self.raw()) };
 	}
+	/// Renders the SVG object, should be called every frame for the render result to appear.
 	pub fn render(&mut self) {
 		unsafe { svgdef_render(self.raw()); }
 	}
+	/// Creates a new SVG object from the specified SVG file.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The path to the SVG format file.
+	///
+	/// # Returns
+	///
+	/// * `Svg` - The created SVG object.
 	pub fn new(filename: &str) -> Option<SVG> {
 		unsafe { return SVG::from(svgdef_new(crate::dora::from_string(filename))); }
 	}

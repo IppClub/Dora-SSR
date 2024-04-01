@@ -26,6 +26,9 @@ local record PlatformCamera
 	-- 设置为 Vec2(0.5, 0.5) 或更小的值时，相机将在每帧中移动到距离目标位置的一半，从而实现更加平滑的跟踪移动效果。
 	followRatio: Vec2
 
+	-- 相机跟踪目标位置的偏移量。
+	followOffset: Vec2
+
 	-- 相机在跟踪的游戏单位。
 	followTarget: Node
 end

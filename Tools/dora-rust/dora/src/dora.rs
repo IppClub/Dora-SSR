@@ -109,6 +109,8 @@ mod audio;
 pub use audio::Audio;
 mod keyboard;
 pub use keyboard::Keyboard;
+mod controller;
+pub use controller::Controller;
 mod svg;
 pub use svg::SVG;
 mod dbquery;
@@ -1437,6 +1439,382 @@ impl BodyDef {
 			2 => BodyType::Kinematic,
 			_ => panic!("Invalid body type.")
 		}
+	}
+}
+
+// Keyboard
+
+pub enum KeyName {
+	Return,
+	Escape,
+	BackSpace,
+	Tab,
+	Space,
+	Exclamation,
+	DoubleQuote,
+	Hash,
+	Percent,
+	Dollar,
+	Ampersand,
+	SingleQuote,
+	LeftParen,
+	RightParen,
+	Asterisk,
+	Plus,
+	Comma,
+	Minus,
+	Dot,
+	Slash,
+	Num1,
+	Num2,
+	Num3,
+	Num4,
+	Num5,
+	Num6,
+	Num7,
+	Num8,
+	Num9,
+	Num0,
+	Colon,
+	Semicolon,
+	LessThan,
+	Equal,
+	GreaterThan,
+	Question,
+	At,
+	LeftBracket,
+	Backslash,
+	RightBracket,
+	Caret,
+	Underscore,
+	Backtick,
+	A,
+	B,
+	C,
+	D,
+	E,
+	F,
+	G,
+	H,
+	I,
+	J,
+	K,
+	L,
+	M,
+	N,
+	O,
+	P,
+	Q,
+	R,
+	S,
+	T,
+	U,
+	V,
+	W,
+	X,
+	Y,
+	Z,
+	Delete,
+	CapsLock,
+	F1,
+	F2,
+	F3,
+	F4,
+	F5,
+	F6,
+	F7,
+	F8,
+	F9,
+	F10,
+	F11,
+	F12,
+	PrintScreen,
+	ScrollLock,
+	Pause,
+	Insert,
+	Home,
+	PageUp,
+	End,
+	PageDown,
+	Right,
+	Left,
+	Down,
+	Up,
+	Application,
+	LCtrl,
+	LShift,
+	LAlt,
+	LGui,
+	RCtrl,
+	RShift,
+	RAlt,
+	RGui,
+}
+
+impl AsRef<str> for KeyName {
+	fn as_ref(&self) -> &str {
+		match self {
+			KeyName::Return => "Return",
+			KeyName::Escape => "Escape",
+			KeyName::BackSpace => "BackSpace",
+			KeyName::Tab => "Tab",
+			KeyName::Space => "Space",
+			KeyName::Exclamation => "!",
+			KeyName::DoubleQuote => "\"",
+			KeyName::Hash => "#",
+			KeyName::Percent => "%",
+			KeyName::Dollar => "$",
+			KeyName::Ampersand => "&",
+			KeyName::SingleQuote => "'",
+			KeyName::LeftParen => "(",
+			KeyName::RightParen => ")",
+			KeyName::Asterisk => "*",
+			KeyName::Plus => "+",
+			KeyName::Comma => ",",
+			KeyName::Minus => "-",
+			KeyName::Dot => ".",
+			KeyName::Slash => "/",
+			KeyName::Num1 => "1",
+			KeyName::Num2 => "2",
+			KeyName::Num3 => "3",
+			KeyName::Num4 => "4",
+			KeyName::Num5 => "5",
+			KeyName::Num6 => "6",
+			KeyName::Num7 => "7",
+			KeyName::Num8 => "8",
+			KeyName::Num9 => "9",
+			KeyName::Num0 => "0",
+			KeyName::Colon => ":",
+			KeyName::Semicolon => ";",
+			KeyName::LessThan => "<",
+			KeyName::Equal => "=",
+			KeyName::GreaterThan => ">",
+			KeyName::Question => "?",
+			KeyName::At => "@",
+			KeyName::LeftBracket => "[",
+			KeyName::Backslash => "\\",
+			KeyName::RightBracket => "]",
+			KeyName::Caret => "^",
+			KeyName::Underscore => "_",
+			KeyName::Backtick => "`",
+			KeyName::A => "A",
+			KeyName::B => "B",
+			KeyName::C => "C",
+			KeyName::D => "D",
+			KeyName::E => "E",
+			KeyName::F => "F",
+			KeyName::G => "G",
+			KeyName::H => "H",
+			KeyName::I => "I",
+			KeyName::J => "J",
+			KeyName::K => "K",
+			KeyName::L => "L",
+			KeyName::M => "M",
+			KeyName::N => "N",
+			KeyName::O => "O",
+			KeyName::P => "P",
+			KeyName::Q => "Q",
+			KeyName::R => "R",
+			KeyName::S => "S",
+			KeyName::T => "T",
+			KeyName::U => "U",
+			KeyName::V => "V",
+			KeyName::W => "W",
+			KeyName::X => "X",
+			KeyName::Y => "Y",
+			KeyName::Z => "Z",
+			KeyName::Delete => "Delete",
+			KeyName::CapsLock => "CapsLock",
+			KeyName::F1 => "F1",
+			KeyName::F2 => "F2",
+			KeyName::F3 => "F3",
+			KeyName::F4 => "F4",
+			KeyName::F5 => "F5",
+			KeyName::F6 => "F6",
+			KeyName::F7 => "F7",
+			KeyName::F8 => "F8",
+			KeyName::F9 => "F9",
+			KeyName::F10 => "F10",
+			KeyName::F11 => "F11",
+			KeyName::F12 => "F12",
+			KeyName::PrintScreen => "PrintScreen",
+			KeyName::ScrollLock => "ScrollLock",
+			KeyName::Pause => "Pause",
+			KeyName::Insert => "Insert",
+			KeyName::Home => "Home",
+			KeyName::PageUp => "PageUp",
+			KeyName::End => "End",
+			KeyName::PageDown => "PageDown",
+			KeyName::Right => "Right",
+			KeyName::Left => "Left",
+			KeyName::Down => "Down",
+			KeyName::Up => "Up",
+			KeyName::Application => "Application",
+			KeyName::LCtrl => "LCtrl",
+			KeyName::LShift => "LShift",
+			KeyName::LAlt => "LAlt",
+			KeyName::LGui => "LGui",
+			KeyName::RCtrl => "RCtrl",
+			KeyName::RShift => "RShift",
+			KeyName::RAlt => "RAlt",
+			KeyName::RGui => "RGui",
+		 }
+	}
+}
+
+impl Keyboard {
+	/// Checks whether a key is pressed down in the current frame.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the key to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the key is pressed down, `false` otherwise.
+	pub fn is_key_down(key: KeyName) -> bool {
+		Keyboard::_is_key_down(key.as_ref())
+	}
+	/// Checks whether a key is released in the current frame.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the key to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the key is released, `false` otherwise.
+	pub fn is_key_up(key: KeyName) -> bool {
+		Keyboard::_is_key_up(key.as_ref())
+	}
+	/// Checks whether a key is in pressed state.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the key to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the key is in pressed state, `false` otherwise.
+	pub fn is_key_pressed(key: KeyName) -> bool {
+		Keyboard::_is_key_pressed(key.as_ref())
+	}
+}
+
+// Controller
+
+pub enum AxisName {
+	LeftX,
+	LeftY,
+	RightX,
+	RightY,
+	LeftTrigger,
+	RightTrigger,
+}
+
+impl AsRef<str> for AxisName {
+	fn as_ref(&self) -> &str {
+		match self {
+			AxisName::LeftX => "leftx",
+			AxisName::LeftY => "lefty",
+			AxisName::RightX => "rightx",
+			AxisName::RightY => "righty",
+			AxisName::LeftTrigger => "lefttrigger",
+			AxisName::RightTrigger => "righttrigger",
+		}
+	}
+}
+
+pub enum ButtonName {
+	A,
+	B,
+	Back,
+	DPDown,
+	DPLeft,
+	DPRight,
+	DPUp,
+	LeftShoulder,
+	LeftStick,
+	RightShoulder,
+	RightStick,
+	Start,
+	X,
+	Y,
+}
+
+impl AsRef<str> for ButtonName {
+	fn as_ref(&self) -> &str {
+		match self {
+			ButtonName::A => "a",
+			ButtonName::B => "b",
+			ButtonName::Back => "back",
+			ButtonName::DPDown => "dpdown",
+			ButtonName::DPLeft => "dpleft",
+			ButtonName::DPRight => "dpright",
+			ButtonName::DPUp => "dpup",
+			ButtonName::LeftShoulder => "leftshoulder",
+			ButtonName::LeftStick => "leftstick",
+			ButtonName::RightShoulder => "rightshoulder",
+			ButtonName::RightStick => "rightstick",
+			ButtonName::Start => "start",
+			ButtonName::X => "x",
+			ButtonName::Y => "y",
+		}
+	}
+}
+
+impl Controller {
+	/// Checks whether a button is pressed down in the current frame.
+	///
+	/// # Arguments
+	///
+	/// * `controller_id` - The controller id, incrementing from 0 when multiple controllers are connected.
+	/// * `name` - The name of the button to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the button is pressed down, `false` otherwise.
+	pub fn is_button_down(controller_id: i32, button: ButtonName) -> bool {
+		Controller::_is_button_down(controller_id, button.as_ref())
+	}
+	/// Checks whether a button is released in the current frame.
+	///
+	/// # Arguments
+	///
+	/// * `controller_id` - The controller id, incrementing from 0 when multiple controllers are connected.
+	/// * `name` - The name of the button to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the button is released, `false` otherwise.
+	pub fn is_button_up(controller_id: i32, button: ButtonName) -> bool {
+		Controller::_is_button_up(controller_id, button.as_ref())
+	}
+	/// Checks whether a button is in pressed state.
+	///
+	/// # Arguments
+	///
+	/// * `controller_id` - The controller id, incrementing from 0 when multiple controllers are connected.
+	/// * `name` - The name of the button to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the button is in pressed state, `false` otherwise.
+	pub fn is_button_pressed(controller_id: i32, button: ButtonName) -> bool {
+		Controller::_is_button_pressed(controller_id, button.as_ref())
+	}
+	/// Gets the axis value from a given controller.
+	///
+	/// # Arguments
+	///
+	/// * `controller_id` - The controller id, incrementing from 0 when multiple controllers are connected.
+	/// * `name` - The name of the controller axis to check.
+	///
+	/// # Returns
+	///
+	/// * `f32` - The axis value ranging from -1.0 to 1.0.
+	pub fn get_axis(controller_id: i32, axis: AxisName) -> f32 {
+		Controller::_get_axis(controller_id, axis.as_ref())
 	}
 }
 

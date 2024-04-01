@@ -6,6 +6,7 @@ extern "C" {
 	fn platformer_face_with_func(func: i32, stack: i64, point: i64, scale: f32, angle: f32) -> i64;
 }
 use crate::dora::IObject;
+/// Represents a definition for a visual component of a game bullet or other visual item.
 pub struct Face { raw: i64 }
 crate::dora_object!(Face);
 impl Face {
@@ -17,15 +18,49 @@ impl Face {
 			}
 		})
 	}
+	/// Adds a child `Face` definition to it.
+	///
+	/// # Arguments
+	///
+	/// * `face` - The child `Face` to add.
 	pub fn add_child(&mut self, face: &crate::dora::platformer::Face) {
 		unsafe { platformer_face_add_child(self.raw(), face.raw()); }
 	}
+	/// Returns a node that can be added to a scene tree for rendering.
+	///
+	/// # Returns
+	///
+	/// * `Node` - The `Node` representing this `Face`.
 	pub fn to_node(&mut self) -> crate::dora::Node {
 		unsafe { return crate::dora::Node::from(platformer_face_to_node(self.raw())).unwrap(); }
 	}
+	/// Creates a new `Face` definition using the specified attributes.
+	///
+	/// # Arguments
+	///
+	/// * `face_str` - A string for creating the `Face` component. Could be 'Image/file.png' and 'Image/items.clip|itemA'.
+	/// * `point` - The position of the `Face` component.
+	/// * `scale` - The scale of the `Face` component.
+	/// * `angle` - The angle of the `Face` component.
+	///
+	/// # Returns
+	///
+	/// * `Face` - The new `Face` component.
 	pub fn new(face_str: &str, point: &crate::dora::Vec2, scale: f32, angle: f32) -> Face {
 		unsafe { return Face { raw: platformer_face_new(crate::dora::from_string(face_str), point.into_i64(), scale, angle) }; }
 	}
+	/// Creates a new `Face` definition using the specified attributes.
+	///
+	/// # Arguments
+	///
+	/// * `create_func` - A function that returns a `Node` representing the `Face` component.
+	/// * `point` - The position of the `Face` component.
+	/// * `scale` - The scale of the `Face` component.
+	/// * `angle` - The angle of the `Face` component.
+	///
+	/// # Returns
+	///
+	/// * `Face` - The new `Face` component.
 	pub fn with_func(mut create_func: Box<dyn FnMut() -> crate::dora::Node>, point: &crate::dora::Vec2, scale: f32, angle: f32) -> Face {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();

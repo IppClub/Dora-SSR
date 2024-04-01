@@ -17,6 +17,7 @@ use crate::dora::IPhysicsWorld;
 impl IPhysicsWorld for PlatformWorld { }
 use crate::dora::INode;
 impl INode for PlatformWorld { }
+/// A struct representing a 2D platformer game world with physics simulations.
 pub struct PlatformWorld { raw: i64 }
 crate::dora_object!(PlatformWorld);
 impl PlatformWorld {
@@ -28,36 +29,99 @@ impl PlatformWorld {
 			}
 		})
 	}
+	/// Gets the camera used to control the view of the game world.
 	pub fn get_camera(&self) -> crate::dora::platformer::PlatformCamera {
 		return unsafe { crate::dora::platformer::PlatformCamera::from(platformer_platformworld_get_camera(self.raw())).unwrap() };
 	}
+	/// Moves a child node to a new order for a different layer.
+	///
+	/// # Arguments
+	///
+	/// * `child` - The child node to be moved.
+	/// * `new_order` - The new order of the child node.
 	pub fn move_child(&mut self, child: &dyn crate::dora::INode, new_order: i32) {
 		unsafe { platformer_platformworld_move_child(self.raw(), child.raw(), new_order); }
 	}
+	/// Gets the layer node at a given order.
+	///
+	/// # Arguments
+	///
+	/// * `order` - The order of the layer node to get.
+	///
+	/// # Returns
+	///
+	/// * The layer node at the given order.
 	pub fn get_layer(&mut self, order: i32) -> crate::dora::Node {
 		unsafe { return crate::dora::Node::from(platformer_platformworld_get_layer(self.raw(), order)).unwrap(); }
 	}
+	/// Sets the parallax moving ratio for a given layer to simulate 3D projection effect.
+	///
+	/// # Arguments
+	///
+	/// * `order` - The order of the layer to set the ratio for.
+	/// * `ratio` - The new parallax ratio for the layer.
 	pub fn set_layer_ratio(&mut self, order: i32, ratio: &crate::dora::Vec2) {
 		unsafe { platformer_platformworld_set_layer_ratio(self.raw(), order, ratio.into_i64()); }
 	}
+	/// Gets the parallax moving ratio for a given layer.
+	///
+	/// # Arguments
+	///
+	/// * `order` - The order of the layer to get the ratio for.
+	///
+	/// # Returns
+	///
+	/// * A `Vec2` representing the parallax ratio for the layer.
 	pub fn get_layer_ratio(&mut self, order: i32) -> crate::dora::Vec2 {
 		unsafe { return crate::dora::Vec2::from(platformer_platformworld_get_layer_ratio(self.raw(), order)); }
 	}
+	/// Sets the position offset for a given layer.
+	///
+	/// # Arguments
+	///
+	/// * `order` - The order of the layer to set the offset for.
+	/// * `offset` - A `Vec2` representing the new position offset for the layer.
 	pub fn set_layer_offset(&mut self, order: i32, offset: &crate::dora::Vec2) {
 		unsafe { platformer_platformworld_set_layer_offset(self.raw(), order, offset.into_i64()); }
 	}
+	/// Gets the position offset for a given layer.
+	///
+	/// # Arguments
+	///
+	/// * `order` - The order of the layer to get the offset for.
+	///
+	/// # Returns
+	///
+	/// * A `Vec2` representing the position offset for the layer.
 	pub fn get_layer_offset(&mut self, order: i32) -> crate::dora::Vec2 {
 		unsafe { return crate::dora::Vec2::from(platformer_platformworld_get_layer_offset(self.raw(), order)); }
 	}
+	/// Swaps the positions of two layers.
+	///
+	/// # Arguments
+	///
+	/// * `order_a` - The order of the first layer to swap.
+	/// * `order_b` - The order of the second layer to swap.
 	pub fn swap_layer(&mut self, order_a: i32, order_b: i32) {
 		unsafe { platformer_platformworld_swap_layer(self.raw(), order_a, order_b); }
 	}
+	/// Removes a layer from the game world.
+	///
+	/// # Arguments
+	///
+	/// * `order` - The order of the layer to remove.
 	pub fn remove_layer(&mut self, order: i32) {
 		unsafe { platformer_platformworld_remove_layer(self.raw(), order); }
 	}
+	/// Removes all layers from the game world.
 	pub fn remove_all_layers(&mut self) {
 		unsafe { platformer_platformworld_remove_all_layers(self.raw()); }
 	}
+	/// The method to create a new instance of `PlatformWorld`.
+	///
+	/// # Returns
+	///
+	/// * A new instance of `PlatformWorld`.
 	pub fn new() -> PlatformWorld {
 		unsafe { return PlatformWorld { raw: platformer_platformworld_new() }; }
 	}

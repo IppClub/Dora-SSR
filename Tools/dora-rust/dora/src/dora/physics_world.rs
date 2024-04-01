@@ -99,16 +99,6 @@ pub trait IPhysicsWorld: INode {
 	fn get_should_contact(&mut self, group_a: i32, group_b: i32) -> bool {
 		unsafe { return physicsworld_get_should_contact(self.raw(), group_a, group_b) != 0; }
 	}
-	/// Sets the factor used for converting physics engine meters value to pixel value.
-	/// Default 100.0 is a good value since the physics engine can well simulate real life objects
-	/// between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
-	/// between 10 to 1000 pixels that suite most games.
-	/// You can change this value before any physics body creation.
-	/// Gets the factor used for converting physics engine meters value to pixel value.
-	/// Default 100.0 is a good value since the physics engine can well simulate real life objects
-	/// between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
-	/// between 10 to 1000 pixels that suite most games.
-	/// You can change this value before any physics body creation.
 }
 impl PhysicsWorld {
 	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
@@ -119,9 +109,19 @@ impl PhysicsWorld {
 			}
 		})
 	}
+	/// Sets the factor used for converting physics engine meters value to pixel value.
+	/// Default 100.0 is a good value since the physics engine can well simulate real life objects
+	/// between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
+	/// between 10 to 1000 pixels that suite most games.
+	/// You can change this value before any physics body creation.
 	pub fn set_scale_factor(var: f32) {
 		unsafe { physicsworld_set_scale_factor(var) };
 	}
+	/// Gets the factor used for converting physics engine meters value to pixel value.
+	/// Default 100.0 is a good value since the physics engine can well simulate real life objects
+	/// between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
+	/// between 10 to 1000 pixels that suite most games.
+	/// You can change this value before any physics body creation.
 	pub fn get_scale_factor() -> f32 {
 		return unsafe { physicsworld_get_scale_factor() };
 	}
