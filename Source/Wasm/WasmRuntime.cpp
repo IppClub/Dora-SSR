@@ -375,6 +375,7 @@ static int32_t value_is_size(int64_t value) {
 	return std::holds_alternative<Size>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
 
+void CallStack::push(uint64_t value) { _stack.push_back(s_cast<int64_t>(value)); }
 void CallStack::push(int64_t value) { _stack.push_back(value); }
 void CallStack::push(double value) { _stack.push_back(value); }
 void CallStack::push(bool value) { _stack.push_back(value); }
@@ -1197,6 +1198,7 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/PassWasm.hpp"
 #include "Dora/PathWasm.hpp"
 #include "Dora/PhysicsWorldWasm.hpp"
+#include "Dora/HttpClientWasm.hpp"
 #include "Dora/Platformer/Behavior/BlackboardWasm.hpp"
 #include "Dora/Platformer/Behavior/LeafWasm.hpp"
 #include "Dora/Platformer/BulletDefWasm.hpp"
@@ -1284,6 +1286,7 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkDB(mod);
 	linkC45(mod);
 	linkMLQLearner(mod);
+	linkHttpClient(mod);
 	linkPlatformerTargetAllow(mod);
 	linkPlatformerFace(mod);
 	linkPlatformerBulletDef(mod);

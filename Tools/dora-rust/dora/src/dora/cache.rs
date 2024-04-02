@@ -37,9 +37,9 @@ impl Cache {
 	///
 	/// * `filenames` - The name of the file(s) to load. This can be a single string or a vector of strings.
 	/// * `handler` - A callback function that is invoked when the file is loaded.
-	pub fn load_async(filename: &str, mut callback: Box<dyn FnMut()>) {
+	pub fn load_async(filename: &str, mut handler: Box<dyn FnMut()>) {
 		let func_id = crate::dora::push_function(Box::new(move || {
-			callback()
+			handler()
 		}));
 		unsafe { cache_load_async(crate::dora::from_string(filename), func_id); }
 	}

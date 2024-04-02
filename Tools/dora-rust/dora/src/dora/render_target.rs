@@ -86,6 +86,7 @@ impl RenderTarget {
 	/// # Arguments
 	///
 	/// * `filename` - The name of the file to save the contents to.
+	/// * `handler` - The function to call when the save operation is complete. The function will be passed a boolean value indicating whether the save operation was successful.
 	pub fn save_async(&mut self, filename: &str, mut handler: Box<dyn FnMut(bool)>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();

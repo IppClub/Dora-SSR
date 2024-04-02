@@ -54,7 +54,7 @@ impl Scheduler {
 	///
 	/// # Arguments
 	///
-	/// * `handler` - The function to be called. It should take a single argument of type `f64`, which represents the delta time since the last frame. If the function returns `true`, it will not be called again.
+	/// * `func` - The function to be called. It should take a single argument of type `f64`, which represents the delta time since the last frame. If the function returns `true`, it will not be called again.
 	pub fn schedule(&mut self, mut func: Box<dyn FnMut(f64) -> bool>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();

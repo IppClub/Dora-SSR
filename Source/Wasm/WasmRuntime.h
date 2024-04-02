@@ -24,6 +24,7 @@ using dora_val_t = std::variant<
 
 class CallStack {
 public:
+	void push(uint64_t value);
 	void push(int64_t value);
 	void push(double value);
 	void push(bool value);

@@ -238,8 +238,9 @@ impl Content {
 	///
 	/// # Arguments
 	///
-	/// * `src` - The path of the file or folder to copy.
-	/// * `dst` - The destination path of the copied files.
+	/// * `srcFile` - The path of the file or folder to copy.
+	/// * `targetFile` - The destination path of the copied files.
+	/// * `callback` - The function to call with a boolean indicating whether the file or folder was copied successfully.
 	///
 	/// # Returns
 	///
@@ -258,6 +259,7 @@ impl Content {
 	///
 	/// * `filename` - The name of the file to save.
 	/// * `content` - The content to save to the file.
+	/// * `callback` - The function to call with a boolean indicating whether the content was saved successfully.
 	///
 	/// # Returns
 	///
@@ -277,6 +279,7 @@ impl Content {
 	/// * `folder_path` - The path of the folder to compress, should be under the asset writable path.
 	/// * `zip_file` - The name of the ZIP archive to create.
 	/// * `filter` - An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
+	/// * `callback` - The function to call with a boolean indicating whether the folder was compressed successfully.
 	///
 	/// # Returns
 	///
@@ -302,6 +305,7 @@ impl Content {
 	/// * `zip_file` - The name of the ZIP archive to decompress, should be a file under the asset writable path.
 	/// * `folder_path` - The path of the folder to decompress to, should be under the asset writable path.
 	/// * `filter` - An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
+	/// * `callback` - The function to call with a boolean indicating whether the archive was decompressed successfully.
 	///
 	/// # Returns
 	///
