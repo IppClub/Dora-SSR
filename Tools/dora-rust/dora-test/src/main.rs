@@ -91,8 +91,8 @@ fn main() {
 		e.remove("d");
 		return false;
 	}));
-	let mut n = Node::new();
-	let nn = cast::<Node>(n.obj()).unwrap();
-	n.add_child(&nn);
-	n.align_items(10.0);
+	if let Some(mut sp) = Sprite::with_file("Image/logo.png") {
+		sp.set_scale_x(0.5);
+		sp.set_scale_y(0.5);
+	}
 }
