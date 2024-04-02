@@ -78,6 +78,7 @@ impl DB {
 	/// # Arguments
 	///
 	/// * `sqls` - A list of SQL statements to execute.
+	/// * `callback` - A callback function that is invoked when the transaction is executed, receiving the result of the transaction.
 	///
 	/// # Returns
 	///

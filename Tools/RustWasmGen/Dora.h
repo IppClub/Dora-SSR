@@ -566,8 +566,9 @@ singleton class Content
 	///
 	/// # Arguments
 	///
-	/// * `src` - The path of the file or folder to copy.
-	/// * `dst` - The destination path of the copied files.
+	/// * `srcFile` - The path of the file or folder to copy.
+	/// * `targetFile` - The destination path of the copied files.
+	/// * `callback` - The function to call with a boolean indicating whether the file or folder was copied successfully.
 	///
 	/// # Returns
 	///
@@ -579,6 +580,7 @@ singleton class Content
 	///
 	/// * `filename` - The name of the file to save.
 	/// * `content` - The content to save to the file.
+	/// * `callback` - The function to call with a boolean indicating whether the content was saved successfully.
 	///
 	/// # Returns
 	///
@@ -591,6 +593,7 @@ singleton class Content
 	/// * `folder_path` - The path of the folder to compress, should be under the asset writable path.
 	/// * `zip_file` - The name of the ZIP archive to create.
 	/// * `filter` - An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
+	/// * `callback` - The function to call with a boolean indicating whether the folder was compressed successfully.
 	///
 	/// # Returns
 	///
@@ -603,6 +606,7 @@ singleton class Content
 	/// * `zip_file` - The name of the ZIP archive to decompress, should be a file under the asset writable path.
 	/// * `folder_path` - The path of the folder to decompress to, should be under the asset writable path.
 	/// * `filter` - An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
+	/// * `callback` - The function to call with a boolean indicating whether the archive was decompressed successfully.
 	///
 	/// # Returns
 	///
@@ -624,7 +628,7 @@ object class Scheduler
 	///
 	/// # Arguments
 	///
-	/// * `handler` - The function to be called. It should take a single argument of type `f64`, which represents the delta time since the last frame. If the function returns `true`, it will not be called again.
+	/// * `func` - The function to be called. It should take a single argument of type `f64`, which represents the delta time since the last frame. If the function returns `true`, it will not be called again.
 	void schedule(function<bool(double deltaTime)> func);
 	/// Creates a new Scheduler object.
 	static Scheduler* create();
@@ -1111,7 +1115,7 @@ interface object class Node
 	readonly common Rect boundingBox;
 	/// whether the node is currently running in a scene tree.
 	readonly boolean bool running;
-	/// whether the node is currently scheduling a function or a coroutine for updates.
+	/// whether the node is currently scheduling a function for updates.
 	readonly boolean bool scheduled;
 	/// the number of actions currently running on the node.
 	readonly common int actionCount;
@@ -1262,6 +1266,7 @@ interface object class Node
 	/// # Arguments
 	///
 	/// * `node_point` - The point in node space, represented by a Vec2 object.
+	/// * `callback` - The function to call with the converted point in world space.
 	///
 	/// # Returns
 	///
@@ -1765,6 +1770,7 @@ object class RenderTarget
 	/// # Arguments
 	///
 	/// * `filename` - The name of the file to save the contents to.
+	/// * `handler` - The function to call when the save operation is complete. The function will be passed a boolean value indicating whether the save operation was successful.
 	void saveAsync(string filename, function<void(bool success)> handler);
 	static RenderTarget* create(uint16_t width, uint16_t height);
 };
@@ -3309,7 +3315,7 @@ singleton struct Cache
 	///
 	/// * `filenames` - The name of the file(s) to load. This can be a single string or a vector of strings.
 	/// * `handler` - A callback function that is invoked when the file is loaded.
-	static void loadAsync(string filename, function<void()> callback);
+	static void loadAsync(string filename, function<void()> handler);
 	/// Updates the content of a file loaded in the cache.
 	/// If the item of filename does not exist in the cache, a new file content will be added into the cache.
 	///
@@ -3491,6 +3497,7 @@ singleton class DB
 	/// # Arguments
 	///
 	/// * `sqls` - A list of SQL statements to execute.
+	/// * `callback` - A callback function that is invoked when the transaction is executed, receiving the result of the transaction.
 	///
 	/// # Returns
 	///
@@ -3647,6 +3654,20 @@ singleton class C45
 	///     * `op` - The comparison operator used for splitting the data at the current node.
 	///     * `value` - The value used for splitting the data at the current node.
 	static outside void MLBuildDecisionTreeAsync @ buildDecisionTreeAsync(string data, int maxDepth, function<void(double depth, string name, string op, string value)> treeVisitor);
+};
+
+/// An HTTP client interface.
+singleton class HttpClient
+{
+	/// Downloads a file asynchronously from the specified URL and saves it to the specified path.
+	///
+	/// # Arguments
+	///
+	/// * `url` - The URL of the file to download.
+	/// * `full_path` - The full path where the downloaded file should be saved.
+	/// * `progress` - A callback function that is called periodically to report the download progress.
+	///   The function receives three parameters: `interrupted` (a boolean value indicating whether the download was interrupted), `current` (the number of bytes downloaded so far) and `total` (the total number of bytes to be downloaded).
+	void downloadAsync(string url, string fullPath, function<void(bool interrupted, uint64_t current, uint64_t total)> progress);
 };
 
 namespace Platformer {

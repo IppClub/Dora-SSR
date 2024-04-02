@@ -127,6 +127,8 @@ pub mod ml {
 	pub use super::c_45::C45;
 	pub use super::q_learner::QLearner;
 }
+mod http_client;
+pub use http_client::HttpClient;
 pub mod platformer;
 mod buffer;
 pub use buffer::Buffer;

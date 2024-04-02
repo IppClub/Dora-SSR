@@ -343,7 +343,7 @@ pub trait INode: IObject {
 	fn is_running(&self) -> bool {
 		return unsafe { node_is_running(self.raw()) != 0 };
 	}
-	/// Gets whether the node is currently scheduling a function or a coroutine for updates.
+	/// Gets whether the node is currently scheduling a function for updates.
 	fn is_scheduled(&self) -> bool {
 		return unsafe { node_is_scheduled(self.raw()) != 0 };
 	}
@@ -582,6 +582,7 @@ pub trait INode: IObject {
 	/// # Arguments
 	///
 	/// * `node_point` - The point in node space, represented by a Vec2 object.
+	/// * `callback` - The function to call with the converted point in world space.
 	///
 	/// # Returns
 	///

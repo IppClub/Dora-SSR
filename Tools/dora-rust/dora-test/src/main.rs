@@ -91,8 +91,19 @@ fn main() {
 		e.remove("d");
 		return false;
 	}));
+	let mut root = Node::new();
+	root.set_touch_enabled(true);
 	if let Some(mut sp) = Sprite::with_file("Image/logo.png") {
 		sp.set_scale_x(0.5);
 		sp.set_scale_y(0.5);
+		sp.add_to(&root);
+		root.slot("TapBegan", Box::new(move |stack| {
+			let touch = stack.pop_cast::<Touch>().unwrap();
+			let start = sp.get_position();
+			let stop = touch.get_location();
+			p!("[{}, {}]", stop.x, stop.y);
+			let action = Action::move_to(1.0, &start, &stop, EaseType::OutBack);
+			sp.perform(&action);
+		}));
 	}
 }
