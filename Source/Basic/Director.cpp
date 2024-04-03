@@ -242,6 +242,7 @@ void Director::doLogic() {
 		SharedImGui.begin();
 		_scheduler->update(deltaTime);
 		_postScheduler->update(deltaTime);
+		Event::handlePostEvents();
 		SharedImGui.end();
 
 		SharedKeyboard.clearChanges();
@@ -468,6 +469,7 @@ void Director::cleanup() {
 		_postNode->cleanup();
 		_postNode = nullptr;
 	}
+	Event::handlePostEvents();
 	if (_nvgContext) {
 		nvgDelete(_nvgContext);
 		_nvgContext = nullptr;
@@ -526,6 +528,9 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 			}
 			if (Singleton<HttpClient>::isInitialized()) {
 				SharedHttpClient.stop();
+			}
+			if (Singleton<WasmRuntime>::isInitialized()) {
+				SharedWasmRuntime.clear();
 			}
 			break;
 		// The application is being terminated by the OS.

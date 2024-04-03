@@ -13,6 +13,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
+class Scheduler;
+
 using dora_val_t = std::variant<
 	int64_t,
 	double,
@@ -44,12 +46,16 @@ private:
 
 class WasmRuntime {
 public:
+	PROPERTY_READONLY_CALL(Scheduler*, PostScheduler);
+	PROPERTY_READONLY_CALL(Scheduler*, Scheduler);
 	PROPERTY_READONLY(uint32_t, MemorySize);
 	~WasmRuntime();
 	bool executeMainFile(String filename);
 	void executeMainFileAsync(String filename, const std::function<void(bool)>& handler);
 	void invoke(int32_t funcId);
 	void deref(int32_t funcId);
+	void scheduleUpdate();
+	void unscheduleUpdate();
 	void clear();
 
 protected:
@@ -60,6 +66,9 @@ private:
 	Own<wasm3::runtime> _runtime;
 	Own<wasm3::function> _callFunc;
 	Own<wasm3::function> _derefFunc;
+	Ref<Scheduler> _scheduler;
+	Ref<Scheduler> _postScheduler;
+	std::shared_ptr<bool> _scheduling;
 	std::pair<OwnArray<uint8_t>, size_t> _wasm;
 	SINGLETON_REF(WasmRuntime, LuaEngine);
 };

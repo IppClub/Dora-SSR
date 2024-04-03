@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 use std::{ffi::c_void, any::Any};
 use once_cell::sync::Lazy;
+use core::ptr::addr_of_mut;
 
 mod rect;
 pub use rect::Rect;
@@ -302,17 +303,20 @@ pub struct Vec2 {
 }
 
 impl Vec2 {
-	pub fn from(value: i64) -> Vec2 {
-		unsafe { LightValue { value: value }.vec2 }
+	pub fn new(x: f32, y: f32) -> Vec2 {
+		Vec2 { x: x, y: y }
 	}
 	pub fn zero() -> Vec2 {
 		Vec2 { x: 0.0, y: 0.0 }
 	}
-	pub fn into_i64(&self) -> i64 {
-		unsafe { LightValue { vec2: *self }.value }
-	}
 	pub fn is_zero(&self) -> bool {
 		self.x == 0.0 && self.y == 0.0
+	}
+	pub(crate) fn from(value: i64) -> Vec2 {
+		unsafe { LightValue { value: value }.vec2 }
+	}
+	pub(crate) fn into_i64(&self) -> i64 {
+		unsafe { LightValue { vec2: *self }.value }
 	}
 }
 
@@ -325,17 +329,20 @@ pub struct Size {
 }
 
 impl Size {
-	pub fn from(value: i64) -> Size {
-		unsafe { LightValue { value: value }.size }
+	pub fn new(width: f32, height: f32) -> Size {
+		Size { width: width, height: height }
 	}
 	pub fn zero() -> Size {
 		Size { width: 0.0, height: 0.0 }
 	}
-	pub fn into_i64(&self) -> i64 {
-		unsafe { LightValue { size: *self }.value }
-	}
 	pub fn is_zero(&self) -> bool {
 		self.width == 0.0 && self.height == 0.0
+	}
+	pub(crate) fn from(value: i64) -> Size {
+		unsafe { LightValue { value: value }.size }
+	}
+	pub(crate) fn into_i64(&self) -> i64 {
+		unsafe { LightValue { size: *self }.value }
 	}
 }
 
@@ -1870,28 +1877,28 @@ static mut IMGUI_STACK: Lazy<CallStack> = Lazy::new(|| { CallStack::new() });
 
 impl ImGui {
 	fn push_bool(v: bool) -> &'static mut CallStack {
-		let stack = unsafe { &mut IMGUI_STACK };
+		let stack = unsafe { addr_of_mut!(IMGUI_STACK).as_mut().unwrap() };
 		stack.push_bool(v);
 		stack
 	}
 	fn push_i32(v: i32) -> &'static mut CallStack {
-		let stack = unsafe { &mut IMGUI_STACK };
+		let stack = unsafe { addr_of_mut!(IMGUI_STACK).as_mut().unwrap() };
 		stack.push_i32(v);
 		stack
 	}
 	fn push_i32x2(v1: i32, v2: i32) -> &'static mut CallStack {
-		let stack = unsafe { &mut IMGUI_STACK };
+		let stack = unsafe { addr_of_mut!(IMGUI_STACK).as_mut().unwrap() };
 		stack.push_i32(v1);
 		stack.push_i32(v2);
 		stack
 	}
 	fn push_f32(v: f32) -> &'static mut CallStack {
-		let stack = unsafe { &mut IMGUI_STACK };
+		let stack = unsafe { addr_of_mut!(IMGUI_STACK).as_mut().unwrap() };
 		stack.push_f32(v);
 		stack
 	}
 	fn push_f32x2(v1: f32, v2: f32) -> &'static mut CallStack {
-		let stack = unsafe { &mut IMGUI_STACK };
+		let stack = unsafe { addr_of_mut!(IMGUI_STACK).as_mut().unwrap() };
 		stack.push_f32(v1);
 		stack.push_f32(v2);
 		stack
@@ -2136,4 +2143,143 @@ impl ImGui {
 		let changed = ImGui::_list_box_with_height(label, stack, items, height_in_items);
 		(changed, stack.pop_i32().unwrap())
 	}
+}
+
+use std::future::Future;
+use std::pin::Pin;
+use std::task::{Poll, Context};
+
+enum State {
+	Halted,
+	Running,
+}
+
+pub struct Coroutine {
+	state: State,
+}
+
+impl Coroutine {
+	pub fn waiter<'a>(&'a mut self) -> Waiter<'a> {
+		Waiter { co: self }
+	}
+}
+
+pub struct Waiter<'a> {
+	co: &'a mut Coroutine,
+}
+
+impl<'a> Future for Waiter<'a> {
+	type Output = ();
+
+	fn poll(mut self: Pin<&mut Self>, _cx: &mut Context) -> Poll<Self::Output> {
+		 match self.co.state {
+			State::Halted => {
+				self.co.state = State::Running;
+				Poll::Ready(())
+			}
+			State::Running => {
+				self.co.state = State::Halted;
+				Poll::Pending
+			}
+		 }
+	}
+}
+
+use std::task::{RawWaker, RawWakerVTable, Waker};
+
+fn create_waker() -> Waker {
+	unsafe { Waker::from_raw(RAW_WAKER) }
+}
+
+const RAW_WAKER: RawWaker = RawWaker::new(std::ptr::null(), &VTABLE);
+const VTABLE: RawWakerVTable = RawWakerVTable::new(clone, wake, wake_by_ref, drop);
+
+unsafe fn clone(_: *const ()) -> RawWaker { RAW_WAKER }
+unsafe fn wake(_: *const ()) { }
+unsafe fn wake_by_ref(_: *const ()) { }
+unsafe fn drop(_: *const ()) { }
+
+struct Executor {
+	co: Pin<Box<dyn Future<Output=()>>>,
+}
+
+impl Executor {
+	fn new<C, F>(closure: C) -> Self where
+		F: Future<Output=()> + 'static,
+		C: FnOnce(Coroutine) -> F, {
+		let co = Coroutine { state: State::Running };
+		Executor {
+			co: Box::pin(closure(co)),
+		}
+	}
+
+	fn update(&mut self) -> bool {
+		let waker = create_waker();
+		let mut context = Context::from_waker(&waker);
+		match self.co.as_mut().poll(&mut context) {
+			Poll::Pending => {
+				false
+			},
+			Poll::Ready(()) => {
+				true
+			},
+		}
+	}
+}
+
+pub fn once<C, F>(closure: C) -> Box<dyn FnMut(f64) -> bool> where
+	F: Future<Output=()> + 'static,
+	C: FnOnce(Coroutine) -> F, {
+	let mut executor = Executor::new(closure);
+	Box::new(move |_| {
+		executor.update()
+	})
+}
+
+pub fn thread<C, F>(closure: C) where
+	F: Future<Output=()> + 'static,
+	C: FnOnce(Coroutine) -> F, {
+	let mut executor = Executor::new(closure);
+	Director::get_scheduler().schedule(Box::new(move |_| {
+		executor.update()
+	}));
+}
+
+#[macro_export]
+macro_rules! sleep {
+	($co:expr, $time:expr) => {
+		{
+			let mut time = 0.0;
+			while time <= $time {
+				time += dora_ssr::App::get_delta_time();
+				$co.waiter().await;
+			}
+		}
+	};
+}
+
+#[macro_export]
+macro_rules! cycle {
+	($co:expr, $time:expr, $closure:expr) => {
+		{
+			let mut time = 0.0;
+			loop {
+				$closure(f64::min(time / $time, 1.0));
+				if time >= $time {
+					break;
+				}
+				$co.waiter().await;
+				time += dora_ssr::App::get_delta_time();
+			}
+		}
+	};
+}
+
+#[macro_export]
+macro_rules! wait {
+	($co:expr, $condition:expr) => {
+		while !$condition {
+			$co.waiter().await;
+		}
+	};
 }

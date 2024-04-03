@@ -72,6 +72,9 @@ local record Cache
 	-- @return (boolean) 如果资源文件成功被卸载，则返回 true，否则返回 false。
 	unload: function(self: Cache, filename: string): boolean
 
+	-- 从缓存中强制卸载所有资源文件。
+	unload: function(self: Cache)
+
 	-- 按资源类型从缓存中删除所有未被使用（未被引用）的资源。
 	-- @param type (ResourceType) 要删除的资源类型。
 	removeUnused: function(self: Cache, type: ResourceType)

@@ -51,6 +51,10 @@ public:
 	template <class... Args>
 	static void send(String name, const Args&... args);
 
+	static void post(String name, const EventHandler& handler);
+
+	static void handlePostEvents();
+
 	template <class... Args>
 	static void sendInternal(String name, const Args&... args);
 
@@ -67,6 +71,7 @@ protected:
 
 private:
 	static StringMap<Own<EventType>> _eventMap;
+	static std::list<std::pair<std::string, EventHandler>> _postEvents;
 	friend class Listener;
 	DORA_TYPE_BASE(Event);
 };

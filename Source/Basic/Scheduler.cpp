@@ -141,20 +141,19 @@ bool Scheduler::update(double deltaTime) {
 	_deltaTime = deltaTime * _timeScale;
 	_leftTime += deltaTime;
 
-	static std::vector<std::pair<Ref<Object>, FixedScheduledItem*>> fixedUpdateObjects;
 	double fixedDelta = 1.0 / _fixedFPS;
 	double fixedDeltaTime = fixedDelta * _timeScale;
 	while (_leftTime > fixedDelta) {
-		fixedUpdateObjects.reserve(_fixedUpdateList.size());
+		_fixedUpdateObjects.reserve(_fixedUpdateList.size());
 		for (auto item : _fixedUpdateList) {
-			fixedUpdateObjects.emplace_back(item->target, item);
+			_fixedUpdateObjects.emplace_back(item->target, item);
 		}
-		for (const auto& fixedUpdateObject : fixedUpdateObjects) {
+		for (const auto& fixedUpdateObject : _fixedUpdateObjects) {
 			if (fixedUpdateObject.second->fixedUpdate(fixedDeltaTime)) {
 				unscheduleFixed(fixedUpdateObject.second);
 			}
 		}
-		fixedUpdateObjects.clear();
+		_fixedUpdateObjects.clear();
 		_leftTime -= fixedDelta;
 	}
 
@@ -193,17 +192,16 @@ bool Scheduler::update(double deltaTime) {
 	}
 
 	/* update scheduled items */
-	static std::vector<std::pair<Ref<Object>, ScheduledItem*>> updateObjects;
-	updateObjects.reserve(_updateList.size());
+	_updateObjects.reserve(_updateList.size());
 	for (auto item : _updateList) {
-		updateObjects.emplace_back(item->target, item);
+		_updateObjects.emplace_back(item->target, item);
 	}
-	for (const auto& updateObject : updateObjects) {
+	for (const auto& updateObject : _updateObjects) {
 		if (updateObject.second->update(deltaTime)) {
 			unschedule(updateObject.second);
 		}
 	}
-	updateObjects.clear();
+	_updateObjects.clear();
 	return false;
 }
 

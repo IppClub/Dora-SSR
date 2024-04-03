@@ -4499,6 +4499,11 @@ class Cache {
 	unload(filename: string): boolean;
 
 	/**
+	 * Unloads all resources from the cache.
+	 */
+	unload(): void;
+
+	/**
 	 * Removes all unused resources (not being referenced) of the given type from the cache.
 	 * @param type The type of resource to remove.
 	 */

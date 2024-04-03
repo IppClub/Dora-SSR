@@ -12,12 +12,6 @@ static void director_set_clear_color(int32_t var) {
 static int32_t director_get_clear_color() {
 	return SharedDirector.getClearColor().toARGB();
 }
-static void director_set_scheduler(int64_t var) {
-	SharedDirector.setScheduler(r_cast<Scheduler*>(var));
-}
-static int64_t director_get_scheduler() {
-	return from_object(SharedDirector.getScheduler());
-}
 static int64_t director_get_ui() {
 	return from_object(SharedDirector.getUI());
 }
@@ -30,14 +24,14 @@ static int64_t director_get_entry() {
 static int64_t director_get_post_node() {
 	return from_object(SharedDirector.getPostNode());
 }
-static int64_t director_get_system_scheduler() {
-	return from_object(SharedDirector.getSystemScheduler());
-}
-static int64_t director_get_post_scheduler() {
-	return from_object(SharedDirector.getPostScheduler());
-}
 static int64_t director_get_current_camera() {
 	return from_object(SharedDirector.getCurrentCamera());
+}
+static int64_t director_get_scheduler() {
+	return from_object(director_get_wasm_scheduler());
+}
+static int64_t director_get_post_scheduler() {
+	return from_object(director_get_wasm_post_scheduler());
 }
 static void director_push_camera(int64_t camera) {
 	SharedDirector.pushCamera(r_cast<Camera*>(camera));
@@ -52,20 +46,18 @@ static void director_clear_camera() {
 	SharedDirector.clearCamera();
 }
 static void director_cleanup() {
-	SharedDirector.cleanup();
+	director_wasm_cleanup();
 }
 static void linkDirector(wasm3::module3& mod) {
 	mod.link_optional("*", "director_set_clear_color", director_set_clear_color);
 	mod.link_optional("*", "director_get_clear_color", director_get_clear_color);
-	mod.link_optional("*", "director_set_scheduler", director_set_scheduler);
-	mod.link_optional("*", "director_get_scheduler", director_get_scheduler);
 	mod.link_optional("*", "director_get_ui", director_get_ui);
 	mod.link_optional("*", "director_get_ui_3d", director_get_ui_3d);
 	mod.link_optional("*", "director_get_entry", director_get_entry);
 	mod.link_optional("*", "director_get_post_node", director_get_post_node);
-	mod.link_optional("*", "director_get_system_scheduler", director_get_system_scheduler);
-	mod.link_optional("*", "director_get_post_scheduler", director_get_post_scheduler);
 	mod.link_optional("*", "director_get_current_camera", director_get_current_camera);
+	mod.link_optional("*", "director_get_scheduler", director_get_scheduler);
+	mod.link_optional("*", "director_get_post_scheduler", director_get_post_scheduler);
 	mod.link_optional("*", "director_push_camera", director_push_camera);
 	mod.link_optional("*", "director_pop_camera", director_pop_camera);
 	mod.link_optional("*", "director_remove_camera", director_remove_camera);
