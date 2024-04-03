@@ -267,7 +267,7 @@ class Director
 	tolua_readonly tolua_property__common Node* uI3D @ ui3D;
 	tolua_readonly tolua_property__common Node* entry;
 	tolua_readonly tolua_property__common Node* postNode;
-	tolua_readonly tolua_property__common Scheduler* /systemScheduler;
+	tolua_readonly tolua_property__common Scheduler* systemScheduler;
 	tolua_readonly tolua_property__common Scheduler* postScheduler;
 	tolua_readonly tolua_property__common Camera* currentCamera;
 	void pushCamera(Camera* camera);
@@ -426,7 +426,7 @@ class Texture2D : public Object
 {
 	tolua_readonly tolua_property__common int width;
 	tolua_readonly tolua_property__common int height;
-	static tolua_outside Texture2D* Texture2D_create @ create(String filename)
+	static tolua_outside Texture2D* Texture2D_create @ create(String filename);
 };
 
 struct BlendFunc
