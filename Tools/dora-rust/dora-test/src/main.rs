@@ -1,109 +1,28 @@
 use dora_ssr::*;
 
+mod tests;
+
+fn all_clear() {
+	Director::cleanup();
+	Cache::unload();
+	Entity::clear();
+	platformer::Data::clear();
+	platformer::UnitAction::clear();
+}
+
 fn main() {
-	platformer::UnitAction::add(
-		"action",
-		1,
-		0.1,
-		0.2,
-		true,
-		Box::new(|_unit, _action| {
-			true
-		}),
-		Box::new(|_unit, _action| {
-			platformer::ActionUpdate::new(Box::new(|_unit, _action, _dt| {
-				true
-			}))
-		}),
-		Box::new(|_unit, _action| {
-		})
-	);
-	p!("Hello, world!");
-	let mut node = Node::new();
-	p!("id: {}", node.get_id());
-	p!("x: {}", node.get_x());
-	node.set_x(100.5);
-	node.set_tag("电风扇");
-	p!("x: {}, tag: {}", node.get_position().x, node.get_tag());
-	let mut i = 0;
-	node.schedule(Box::new(move |dt| {
-		i = i + 1;
-		p!("{} {}", i, dt);
-		i > 30
-	}));
-	node.slot("Enter", Box::new(|_| {
-		p!("Entered!");
-	}));
-	node.slot("Event", Box::new(|args| {
-		p!("MyEvent! {}, {}, {}", args.pop_i32().unwrap(), args.pop_str().unwrap(), args.pop_bool().unwrap());
-	}));
-	node.perform(&Action::spawn(&vec![
-		Action::sequence(&vec![
-			Action::delay(3.0),
-			Action::event("End", "3 seconds later!")
-		]),
-		Action::prop(1.0, 0.0, 233.0, Property::X, EaseType::InBack)
-	]));
-	node.slot("End", Box::new(|args| {
-		let n = args.pop_cast::<Node>().unwrap();
-		p!("{} {}", args.pop_str().unwrap(), n.get_x());
-	}));
-
-	let mut entry = Director::get_entry();
-	entry.add_child(&node);
-
-	let children = entry.get_children().unwrap();
-	p!("children len: {}", children.get_count());
-
-	node.emit("Event", args!(1, "dsd", true));
-
-	let mut arr = Array::new();
-	arr.add(node.obj());
-	if let Some(mut a) = arr.get(0).unwrap().cast::<Node>() {
-		a.emit("Event", args!(2, "xyz", false));
-	}
-
-	let mut userdata = node.get_data();
-	userdata.set("key123", arr.obj());
-	let keys = userdata.get_keys();
-	for i in 0 .. keys.len() {
-		p!("k: {}, v: {}", keys[i], userdata.get("key123").unwrap().cast::<Array>().unwrap().raw());
-	}
-	p!("platform: {}", App::get_platform());
-
-	let mut entity = Entity::new();
-	entity.set("a", 123);
-	entity.set("b", false);
-	entity.set("c", 1.2);
-	let mut group = Group::new(&vec!["a", "b", "c"]);
-	if let Some(mut target) = group.find(Box::new(|e| {
-		!e.get("b").unwrap().into_bool().unwrap()
-	})) {
-		target.set("d", "value");
-	}
-	group.watch(Box::new(|args| {
-		let mut e = args.pop_cast::<Entity>().unwrap();
-		let a = args.pop_i32().unwrap();
-		let b = args.pop_bool().unwrap();
-		let c = args.pop_f64().unwrap();
-		p!("entity: {}, {}, {}", a, b, c);
-		e.remove("a");
-		e.remove("d");
-		return false;
-	}));
-	let mut root = Node::new();
-	root.set_touch_enabled(true);
-	if let Some(mut sp) = Sprite::with_file("Image/logo.png") {
-		sp.set_scale_x(0.5);
-		sp.set_scale_y(0.5);
-		sp.add_to(&root);
-		root.slot("TapBegan", Box::new(move |stack| {
-			let touch = stack.pop_cast::<Touch>().unwrap();
-			let start = sp.get_position();
-			let stop = touch.get_location();
-			p!("[{}, {}]", stop.x, stop.y);
-			let action = Action::move_to(1.0, &start, &stop, EaseType::OutBack);
-			sp.perform(&action);
-		}));
-	}
+	thread(move |mut co| async move {
+		loop {
+			let size = App::get_visual_size();
+			ImGui::set_next_window_pos(&Vec2::new(size.width / 2.0, size.height / 2.0), "FirstUseEver", &Vec2::new(0.5, 0.5));
+			if ImGui::begin_opts("Rust Tests", &vec!["AlwaysAutoResize"]) {
+				if ImGui::button("Hello World", &Vec2::zero()) {
+					all_clear();
+					tests::hello_world::test();
+				}
+				ImGui::end();
+			}
+			co.waiter().await;
+		}
+	});
 }

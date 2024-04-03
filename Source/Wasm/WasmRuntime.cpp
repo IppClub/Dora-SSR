@@ -718,6 +718,20 @@ static void observer_watch(int64_t observer, int32_t func, int64_t stack) {
 	});
 }
 
+// Director
+
+static Scheduler* director_get_wasm_scheduler() {
+	return SharedWasmRuntime.getScheduler();
+}
+
+static Scheduler* director_get_wasm_post_scheduler() {
+	return SharedWasmRuntime.getPostScheduler();
+}
+
+static void director_wasm_cleanup() {
+	SharedDirector.cleanup();
+}
+
 // Node
 
 using Grabber = Node::Grabber;
@@ -1183,6 +1197,7 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/FixtureDefWasm.hpp"
 #include "Dora/GrabberWasm.hpp"
 #include "Dora/GridWasm.hpp"
+#include "Dora/HttpClientWasm.hpp"
 #include "Dora/ImGuiWasm.hpp"
 #include "Dora/JointDefWasm.hpp"
 #include "Dora/JointWasm.hpp"
@@ -1198,7 +1213,6 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/PassWasm.hpp"
 #include "Dora/PathWasm.hpp"
 #include "Dora/PhysicsWorldWasm.hpp"
-#include "Dora/HttpClientWasm.hpp"
 #include "Dora/Platformer/Behavior/BlackboardWasm.hpp"
 #include "Dora/Platformer/Behavior/LeafWasm.hpp"
 #include "Dora/Platformer/BulletDefWasm.hpp"
@@ -1434,6 +1448,7 @@ bool WasmRuntime::executeMainFile(String filename) {
 			_derefFunc = New<wasm3::function>(_runtime->find_function("deref_function"));
 		}
 		wasm3::function mainFn = _runtime->find_function("_start");
+		scheduleUpdate();
 		mainFn.call_argv();
 		return true;
 	} catch (std::runtime_error& e) {
@@ -1478,6 +1493,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 					Own<wasm3::function> mainFn;
 					values->get(mod, mainFn);
 					if (mod) {
+						scheduleUpdate();
 						mainFn->call_argv();
 						handler(true);
 					} else
@@ -1500,8 +1516,19 @@ void WasmRuntime::invoke(int32_t funcId) {
 }
 
 void WasmRuntime::deref(int32_t funcId) {
-	AssertUnless(_derefFunc, "wasm module is not ready");
-	_derefFunc->call(funcId);
+	if (_derefFunc) {
+		_derefFunc->call(funcId);
+	}
+}
+
+Scheduler* WasmRuntime::getScheduler() {
+	AssertUnless(_scheduler, "should schedule WASM update before getting the scheduler");
+	return _scheduler;
+}
+
+Scheduler* WasmRuntime::getPostScheduler() {
+	AssertUnless(_postScheduler, "should schedule WASM update before getting the post scheduler");
+	return _postScheduler;
 }
 
 uint32_t WasmRuntime::getMemorySize() const {
@@ -1511,7 +1538,44 @@ uint32_t WasmRuntime::getMemorySize() const {
 	return DORA_WASM_STACK_SIZE;
 }
 
+void WasmRuntime::unscheduleUpdate() {
+	if (_scheduling) {
+		*_scheduling = false;
+		_scheduling = nullptr;
+	}
+	_scheduler = nullptr;
+	_postScheduler = nullptr;
+}
+
+void WasmRuntime::scheduleUpdate() {
+	unscheduleUpdate();
+	_scheduling = std::make_shared<bool>(true);
+	_scheduler = Scheduler::create();
+	_postScheduler = Scheduler::create();
+	SharedDirector.getScheduler()->schedule([scheduling = _scheduling, scheduler = WRef<Scheduler>(_scheduler)](double deltaTime) {
+		if (!*scheduling) {
+			return true;
+		}
+		if (scheduler) {
+			scheduler->update(deltaTime);
+			return false;
+		}
+		return true;
+	});
+	SharedDirector.getPostScheduler()->schedule([scheduling = _scheduling, scheduler = WRef<Scheduler>(_postScheduler)](double deltaTime) {
+		if (!*scheduling) {
+			return true;
+		}
+		if (scheduler) {
+			scheduler->update(deltaTime);
+			return false;
+		}
+		return true;
+	});
+}
+
 void WasmRuntime::clear() {
+	unscheduleUpdate();
 	_callFunc = nullptr;
 	_derefFunc = nullptr;
 	_runtime = nullptr;

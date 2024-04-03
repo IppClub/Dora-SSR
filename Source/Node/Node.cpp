@@ -968,11 +968,7 @@ void Node::emit(Event* event) {
 void Node::post(String name) {
 	if (_signal) {
 		if (auto slot = _signal->getSlot(name)) {
-			SharedDirector.getPostScheduler()->schedule([handler = slot->getHandler(), name = name.toString()](double) {
-				Event event(name);
-				handler(&event);
-				return true;
-			});
+			Event::post(name, slot->getHandler());
 		}
 	}
 }

@@ -4502,6 +4502,11 @@ class Cache {
 	unload(filename: string): boolean;
 
 	/**
+	 * 从缓存中卸载所有资源。
+	 */
+	unload(): void;
+
+	/**
 	 * 从缓存中移除特定类型的所有未使用的资源（未被引用）。
 	 * @param type 要移除的资源类型。
 	 */

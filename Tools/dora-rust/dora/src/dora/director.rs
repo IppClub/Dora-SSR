@@ -9,22 +9,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" {
 	fn director_set_clear_color(var: i32);
 	fn director_get_clear_color() -> i32;
-	fn director_set_scheduler(var: i64);
-	fn director_get_scheduler() -> i64;
 	fn director_get_ui() -> i64;
 	fn director_get_ui_3d() -> i64;
 	fn director_get_entry() -> i64;
 	fn director_get_post_node() -> i64;
-	fn director_get_system_scheduler() -> i64;
-	fn director_get_post_scheduler() -> i64;
 	fn director_get_current_camera() -> i64;
+	fn director_get_scheduler() -> i64;
+	fn director_get_post_scheduler() -> i64;
 	fn director_push_camera(camera: i64);
 	fn director_pop_camera();
 	fn director_remove_camera(camera: i64) -> i32;
 	fn director_clear_camera();
 	fn director_cleanup();
 }
-use crate::dora::IObject;
 /// A struct manages the game scene trees and provides access to root scene nodes for different game uses.
 pub struct Director { }
 impl Director {
@@ -35,14 +32,6 @@ impl Director {
 	/// Gets the background color for the game world.
 	pub fn get_clear_color() -> crate::dora::Color {
 		return unsafe { crate::dora::Color::from(director_get_clear_color()) };
-	}
-	/// Sets the game scheduler which is used for scheduling tasks like animations and gameplay events.
-	pub fn set_scheduler(var: &crate::dora::Scheduler) {
-		unsafe { director_set_scheduler(var.raw()) };
-	}
-	/// Gets the game scheduler which is used for scheduling tasks like animations and gameplay events.
-	pub fn get_scheduler() -> crate::dora::Scheduler {
-		return unsafe { crate::dora::Scheduler::from(director_get_scheduler()).unwrap() };
 	}
 	/// Gets the root node for 2D user interface elements like buttons and labels.
 	pub fn get_ui() -> crate::dora::Node {
@@ -60,17 +49,17 @@ impl Director {
 	pub fn get_post_node() -> crate::dora::Node {
 		return unsafe { crate::dora::Node::from(director_get_post_node()).unwrap() };
 	}
-	/// Gets the system scheduler which is used for low-level system tasks, should not put any game logic in it.
-	pub fn get_system_scheduler() -> crate::dora::Scheduler {
-		return unsafe { crate::dora::Scheduler::from(director_get_system_scheduler()).unwrap() };
-	}
-	/// Gets the scheduler used for processing post game logic.
-	pub fn get_post_scheduler() -> crate::dora::Scheduler {
-		return unsafe { crate::dora::Scheduler::from(director_get_post_scheduler()).unwrap() };
-	}
 	/// Gets the current active camera in Director's camera stack.
 	pub fn get_current_camera() -> crate::dora::Camera {
 		return unsafe { crate::dora::Camera::from(director_get_current_camera()).unwrap() };
+	}
+	/// Gets the game scheduler which is used for scheduling tasks.
+	pub fn get_scheduler() -> crate::dora::Scheduler {
+		unsafe { return crate::dora::Scheduler::from(director_get_scheduler()).unwrap(); }
+	}
+	/// Gets the scheduler used for processing post game logic.
+	pub fn get_post_scheduler() -> crate::dora::Scheduler {
+		unsafe { return crate::dora::Scheduler::from(director_get_post_scheduler()).unwrap(); }
 	}
 	/// Adds a new camera to Director's camera stack and sets it to the current camera.
 	///

@@ -106,6 +106,8 @@ private:
 	double _leftTime;
 	UpdateList _updateList;
 	FixedUpdateList _fixedUpdateList;
+	std::vector<std::pair<Ref<Object>, FixedScheduledItem*>> _fixedUpdateObjects;
+	std::vector<std::pair<Ref<Object>, ScheduledItem*>> _updateObjects;
 	Ref<Array> _actionList;
 
 private:

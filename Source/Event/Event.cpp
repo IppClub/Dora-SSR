@@ -16,6 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DORA_BEGIN
 
 StringMap<Own<EventType>> Event::_eventMap;
+std::list<std::pair<std::string, EventHandler>> Event::_postEvents;
 
 Event::Event(String name)
 	: _name(name) { }
@@ -52,6 +53,19 @@ void Event::send(Event* e) {
 	auto it = _eventMap.find(e->getName());
 	if (it != _eventMap.end()) {
 		it->second->handle(e);
+	}
+}
+
+void Event::post(String name, const EventHandler &handler) {
+	_postEvents.emplace_back(name.toString(), handler);
+}
+
+void Event::handlePostEvents() {
+	while (!_postEvents.empty()) {
+		const auto& eventPair = _postEvents.front();
+		Event event(eventPair.first);
+		eventPair.second(&event);
+		_postEvents.pop_front();
 	}
 }
 

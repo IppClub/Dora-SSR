@@ -788,8 +788,6 @@ singleton class Director
 {
 	/// the background color for the game world.
 	common Color clearColor;
-	/// the game scheduler which is used for scheduling tasks like animations and gameplay events.
-	common Scheduler* scheduler;
 	/// the root node for 2D user interface elements like buttons and labels.
 	readonly common Node* uI @ ui;
 	/// the root node for 3D user interface elements with 3D projection effect.
@@ -798,12 +796,12 @@ singleton class Director
 	readonly common Node* entry;
 	/// the root node for post-rendering scene tree.
 	readonly common Node* postNode;
-	/// the system scheduler which is used for low-level system tasks, should not put any game logic in it.
-	readonly common Scheduler* systemScheduler;
-	/// the scheduler used for processing post game logic.
-	readonly common Scheduler* postScheduler;
 	/// the current active camera in Director's camera stack.
 	readonly common Camera* currentCamera;
+	/// Gets the game scheduler which is used for scheduling tasks.
+	outside Scheduler* director_get_wasm_scheduler @ getScheduler();
+	/// Gets the scheduler used for processing post game logic.
+	outside Scheduler* director_get_wasm_post_scheduler @ getPostScheduler();
 	/// Adds a new camera to Director's camera stack and sets it to the current camera.
 	///
 	/// # Arguments
@@ -825,7 +823,7 @@ singleton class Director
 	/// Removes all cameras from Director's camera stack.
 	void clearCamera();
 	/// Cleans up all resources managed by the Director, including scene trees and cameras.
-	void cleanup();
+	outside void director_wasm_cleanup @ cleanup();
 };
 
 /// A struct that provides access to the 3D graphic view.
@@ -3342,6 +3340,8 @@ singleton struct Cache
 	///
 	/// * `bool` - `true` if the resource was unloaded successfully, `false` otherwise.
 	static bool unload @ unloadItemOrType(string name);
+	/// Unloads all resources from the cache.
+	static void unload();
 	/// Removes all unused resources (not being referenced) from the cache.
 	static void removeUnused();
 	/// Removes all unused resources of the given type from the cache.

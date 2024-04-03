@@ -12,6 +12,7 @@ extern "C" {
 	fn cache_update_item(filename: i64, content: i64);
 	fn cache_update_texture(filename: i64, texture: i64);
 	fn cache_unload_item_or_type(name: i64) -> i32;
+	fn cache_unload();
 	fn cache_remove_unused();
 	fn cache_remove_unused_by_type(type_name: i64);
 }
@@ -74,6 +75,10 @@ impl Cache {
 	/// * `bool` - `true` if the resource was unloaded successfully, `false` otherwise.
 	pub fn unload_item_or_type(name: &str) -> bool {
 		unsafe { return cache_unload_item_or_type(crate::dora::from_string(name)) != 0; }
+	}
+	/// Unloads all resources from the cache.
+	pub fn unload() {
+		unsafe { cache_unload(); }
 	}
 	/// Removes all unused resources (not being referenced) from the cache.
 	pub fn remove_unused() {
