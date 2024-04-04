@@ -466,6 +466,24 @@ static void traverseweakvalue (global_State *g, Table *h) {
 
 
 /*
+** Traverse the array part of a table.
+*/
+static int traversearray (global_State *g, Table *h) {
+  unsigned asize = luaH_realasize(h);
+  int marked = 0;  /* true if some object is marked in this traversal */
+  unsigned i;
+  for (i = 0; i < asize; i++) {
+    GCObject *o = gcvalarr(h, i);
+    if (o != NULL && iswhite(o)) {
+      marked = 1;
+      reallymarkobject(g, o);
+    }
+  }
+  return marked;
+}
+
+
+/*
 ** Traverse an ephemeron table and link it to proper list. Returns true
 ** iff any object was marked during this traversal (which implies that
 ** convergence has to continue). During propagation phase, keep table
@@ -478,20 +496,11 @@ static void traverseweakvalue (global_State *g, Table *h) {
 ** by 'genlink'.
 */
 static int traverseephemeron (global_State *g, Table *h, int inv) {
-  int marked = 0;  /* true if an object is marked in this traversal */
   int hasclears = 0;  /* true if table has white keys */
   int hasww = 0;  /* true if table has entry "white-key -> white-value" */
   unsigned int i;
-  unsigned int asize = luaH_realasize(h);
   unsigned int nsize = sizenode(h);
-  /* traverse array part */
-  for (i = 0; i < asize; i++) {
-    GCObject *o = gcvalarr(h, i);
-    if (o != NULL && iswhite(o)) {
-      marked = 1;
-      reallymarkobject(g, o);
-    }
-  }
+  int marked = traversearray(g, h);  /* traverse array part */
   /* traverse hash part; if 'inv', traverse descending
      (see 'convergeephemerons') */
   for (i = 0; i < nsize; i++) {
@@ -523,13 +532,7 @@ static int traverseephemeron (global_State *g, Table *h, int inv) {
 
 static void traversestrongtable (global_State *g, Table *h) {
   Node *n, *limit = gnodelast(h);
-  unsigned int i;
-  unsigned int asize = luaH_realasize(h);
-  for (i = 0; i < asize; i++) {  /* traverse array part */
-    GCObject *o = gcvalarr(h, i);
-    if (o != NULL && iswhite(o))
-      reallymarkobject(g, o);
-  }
+  traversearray(g, h);
   for (n = gnode(h, 0); n < limit; n++) {  /* traverse hash part */
     if (isempty(gval(n)))  /* entry is empty? */
       clearkey(n);  /* clear its key */
@@ -1052,7 +1055,6 @@ static void setpause (global_State *g) {
   l_obj threshold = applygcparam(g, PAUSE, g->marked);
   l_obj debt = threshold - gettotalobjs(g);
   if (debt < 0) debt = 0;
-//printf("pause: %ld  %ld\n", debt, g->marked);
   luaE_setdebt(g, debt);
 }
 
@@ -1258,7 +1260,6 @@ static void minor2inc (lua_State *L, global_State *g, int kind) {
 static int checkminormajor (global_State *g, l_obj addedold1) {
   l_obj step = applygcparam(g, MINORMUL, g->GCmajorminor);
   l_obj limit = applygcparam(g, MINORMAJOR, g->GCmajorminor);
-//printf("-> (%ld) major? marked: %ld  limit: %ld  step: %ld  addedold1: %ld)\n", gettotalobjs(g), g->marked, limit, step, addedold1);
   return (addedold1 >= (step >> 1) || g->marked >= limit);
 }
 
@@ -1407,7 +1408,6 @@ static int checkmajorminor (lua_State *L, global_State *g) {
     l_obj addedobjs = numobjs - g->GCmajorminor;
     l_obj limit = applygcparam(g, MAJORMINOR, addedobjs);
     l_obj tobecollected = numobjs - g->marked;
-//printf("(%ld) -> minor? tobecollected: %ld  limit: %ld\n", numobjs, tobecollected, limit);
     if (tobecollected > limit) {
       atomic2gen(L, g);  /* return to generational mode */
       setminordebt(g);
