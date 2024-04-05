@@ -4663,8 +4663,10 @@ private:
 				return 503;
 			} else if (target.value() == "5.4"sv) {
 				return 504;
+			} else if (target.value() == "5.5"sv) {
+				return 505;
 			} else {
-				throw CompileError("get invalid Lua target \""s + target.value() + "\", should be 5.1, 5.2, 5.3 or 5.4"s, x);
+				throw CompileError("get invalid Lua target \""s + target.value() + "\", should be from 5.1 to 5.5"s, x);
 			}
 		}
 #ifndef YUE_NO_MACRO
