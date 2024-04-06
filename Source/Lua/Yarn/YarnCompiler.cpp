@@ -390,7 +390,7 @@ public:
 		stop = line_break | eof();
 		comment = "##" >> *(not_(set("\r\n")) >> any_char) >> and_(stop);
 		space_one = set(" \t");
-		space = -(and_(set(" \t-\\")) >> *space_one >> -comment);
+		space = -(and_(set(" \t#")) >> *space_one >> -comment);
 		space_break = space >> line_break;
 		white = space >> *(line_break >> space);
 		alpha_num = range('a', 'z') | range('A', 'Z') | range('0', '9') | '_';
@@ -471,6 +471,19 @@ public:
 			return true;
 		});
 
+		push_indent = pl::user(plain_space, [](const item_t& item) {
+			int indent = 0;
+			for (input_it i = item.begin->m_it; i != item.end->m_it; ++i) {
+				switch (*i) {
+					case ' ': indent++; break;
+					case '\t': indent += 4; break;
+				}
+			}
+			State* st = reinterpret_cast<State*>(item.user_data);
+			st->indents.push(indent);
+			return true;
+		});
+
 		Variable = '$' >> Name;
 
 		Func = Name >> '(' >> Seperator >> space >> -(Value >> *(space >> ',' >> space >> Value)) >> space >> ')';
@@ -548,7 +561,7 @@ public:
 
 		Goto = key("jump") >> space >> Title;
 
-		Call = not_((expr("endif") | "else") >> not_alpha_num) >> Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
+		Call = not_((expr("endif") | "else" | "elseif") >> not_alpha_num) >> Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
 
 		Command = "<<" >> space >> (
 			If |
@@ -564,9 +577,9 @@ public:
 			plain_space
 		) >> and_(line_break);
 
-		if_else_if = line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("elseif") >> space >> Exp >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> Block;
-		if_else = line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("else") >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> Block;
-		If = key("if") >> space >> Seperator >> Exp >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> Block >> *if_else_if >> -if_else >> line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("endif");
+		if_else_if = line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("elseif") >> space >> Exp >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> ensure(and_(push_indent) >> Block, pop_indent);
+		if_else = line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("else") >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> ensure(and_(push_indent) >> Block, pop_indent);
+		If = key("if") >> space >> Seperator >> Exp >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> ensure(and_(push_indent) >> Block, pop_indent) >> *if_else_if >> -if_else >> line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("endif");
 
 		line = (
 			empty_line_break |
@@ -689,6 +702,7 @@ private:
 	NONE_AST_RULE(check_indent_match);
 	NONE_AST_RULE(advance);
 	NONE_AST_RULE(advance_match);
+	NONE_AST_RULE(push_indent);
 	NONE_AST_RULE(pop_indent);
 	NONE_AST_RULE(empty_line_break);
 	NONE_AST_RULE(line);

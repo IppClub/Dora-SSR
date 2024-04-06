@@ -1301,7 +1301,7 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@mnbroatch/bondage@^4.0.9":
+"@mnbroatch/bondage@4.2.4":
   version "4.2.4"
   resolved "https://registry.npmmirror.com/@mnbroatch/bondage/-/bondage-4.2.4.tgz#48d87f05050bd90f0c18c335d9219eb4d2ecaf97"
   integrity sha512-cPN7T/MqkXoI2Uc79UDw4vzpy8ukMAO7cJwYGb2IUAORhSHvC5XUdE8JnJLvroA1qrMQaYIxkRulV1IhwXOoJQ==
@@ -10978,12 +10978,12 @@ yargs@^16.1.0:
     y18n "^5.0.5"
     yargs-parser "^20.2.2"
 
-yarn-bound@^0.4.3:
-  version "0.4.3"
-  resolved "https://registry.npmmirror.com/yarn-bound/-/yarn-bound-0.4.3.tgz#65731110a9c98c401ffa6e2ff6cf61748ed41bd2"
-  integrity sha512-3oxOCHZNOWu7mcrugydgRlsTUCfCtahX2SEi2/TinpAy4FE8UT9pKCq/iJjdnyjMISb7FPByfZkkRkRQDY1LEA==
+yarn-bound@^0.5.4:
+  version "0.5.4"
+  resolved "https://registry.npmmirror.com/yarn-bound/-/yarn-bound-0.5.4.tgz#8a9e43c69d0e0d08ddf571f090a47893f3898c07"
+  integrity sha512-fgydFtorwRutUWJXDTZF1xWLoYTNVQL2GCxVvC0t/0XnQZdN+0y1/SGLaYq+IMpX3If2lgLE7f99IhvDhCx6nQ==
   dependencies:
-    "@mnbroatch/bondage" "^4.0.9"
+    "@mnbroatch/bondage" "4.2.4"
 
 yauzl@^2.4.2:
   version "2.10.0"
