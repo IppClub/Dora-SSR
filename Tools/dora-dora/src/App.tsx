@@ -1210,6 +1210,14 @@ export default function PersistentDrawerLeft() {
 				});
 				break;
 			}
+			case "Copy Path": {
+				navigator.clipboard.writeText(data.key).then(() => {
+					addAlert(t("alert.copied", {title: data.title}), "success");
+				}).catch(() => {
+					addAlert(t("alert.copy"), "error");
+				});
+				break;
+			}
 		}
 	}, [checkFileReadonly, loadAssets, t, deleteFile, treeData, openFileInTab]);
 
