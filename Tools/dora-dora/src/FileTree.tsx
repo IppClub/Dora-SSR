@@ -23,6 +23,7 @@ import {
 	AiOutlineDownload,
 	AiFillFileZip,
 } from 'react-icons/ai';
+import { RxClipboardCopy } from "react-icons/rx";
 import { GoFileCode } from "react-icons/go";
 import { FcImageFile } from 'react-icons/fc';
 import { SiWebassembly } from 'react-icons/si';
@@ -139,7 +140,7 @@ const motion = {
 	onLeaveActive: () => ({ height: 0 }),
 };
 
-export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Download" | "Cancel" | "Unzip" | "View Compiled";
+export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
@@ -230,6 +231,12 @@ export default memo(function FileTree(props: FileTreeProps) {
 						<AiOutlineDownload/>
 					</ListItemIcon>
 					<ListItemText primary={ t("menu.download") }/>
+				</StyledMenuItem>
+				<StyledMenuItem onClick={() => handleClose("Copy Path", anchorItem?.data)}>
+					<ListItemIcon>
+						<RxClipboardCopy/>
+					</ListItemIcon>
+					<ListItemText primary={ t("menu.copyPath") }/>
 				</StyledMenuItem>
 				{anchorItem && ext === ".zip" ?
 					<StyledMenuItem onClick={() => handleClose("Unzip", anchorItem?.data)}>
