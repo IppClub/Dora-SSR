@@ -73,6 +73,7 @@ local record ImGui
 		"GrabMinSize"
 		"GrabRounding"
 		"TabRounding"
+		"SeparatorTextBorderSize"
 	end
 	enum StyleVarVec
 		"WindowPadding"
@@ -84,6 +85,8 @@ local record ImGui
 		"CellPadding"
 		"ButtonTextAlign"
 		"SelectableTextAlign"
+		"SeparatorTextAlign"
+		"SeparatorTextPadding"
 	end
 	enum StyleVarBool
 		"AntiAliasedLines"
@@ -109,6 +112,9 @@ local record ImGui
 		"NoBringToFrontOnFocus"
 		"AlwaysVerticalScrollbar"
 		"AlwaysHorizontalScrollbar"
+		"NoNavInputs"
+		"NoNavFocus"
+		"UnsavedDocument"
 	end
 	enum ChildFlag
 		""
@@ -128,11 +134,30 @@ local record ImGui
 		"FirstUseEver"
 		"Appearing"
 	end
-	enum ColorEditMode
-		""
-		"RGB"
-		"HSV"
-		"HEX"
+	enum ColorEditFlag
+		"NoAlpha"
+		"NoPicker"
+		"NoOptions"
+		"NoSmallPreview"
+		"NoInputs"
+		"NoTooltip"
+		"NoLabel"
+		"NoSidePreview"
+		"NoDragDrop"
+		"NoBorder"
+		"AlphaBar"
+		"AlphaPreview"
+		"AlphaPreviewHalf"
+		"HDR"
+		"DisplayRGB"
+		"DisplayHSV"
+		"DisplayHex"
+		"Uint8"
+		"Float"
+		"PickerHueBar"
+		"PickerHueWheel"
+		"InputRGB"
+		"InputHSV"
 	end
 	enum InputTextFlag
 		""
@@ -152,6 +177,11 @@ local record ImGui
 		"AlwaysOverwrite"
 		"ReadOnly"
 		"Password"
+		"NoUndoRedo"
+		"CharsScientific"
+		"CallbackResize"
+		"CallbackEdit"
+		"EscapeClearsAll"
 	end
 	enum TreeNodeFlag
 		""
@@ -165,6 +195,11 @@ local record ImGui
 		"OpenOnArrow"
 		"Leaf"
 		"Bullet"
+		"FramePadding"
+		"SpanAvailWidth"
+		"SpanFullWidth"
+		"SpanAllColumns"
+		"NavLeftJumpsBackHere"
 		"CollapsingHeader"
 	end
 	enum SelectableFlag
@@ -210,6 +245,8 @@ local record ImGui
 		"ScrollX"
 		"ScrollY"
 		"SortMulti"
+		"SortTristate"
+		"HighlightHoveredColumn"
 	end
 	enum TableRowFlag
 		""
@@ -250,6 +287,7 @@ local record ImGui
 		"MouseButtonLeft"
 		"MouseButtonRight"
 		"MouseButtonMiddle"
+		"NoReopen"
 		"NoOpenOverExistingPopup"
 		"NoOpenOverItems"
 		"AnyPopupId"
@@ -374,7 +412,7 @@ local record ImGui
 		collapsed: boolean,
 		setCond?: SetCond --[[""]]
 	)
-	SetColorEditOptions: function(colorEditMode: ColorEditMode)
+	SetColorEditOptions: function(colorEditFlags: {ColorEditFlag})
 	InputText: function(
 		label: string,
 		buffer: Buffer,
@@ -462,7 +500,11 @@ local record ImGui
 	BulletText: function(text: string)
 	SetTooltip: function(text: string)
 
-	ColorEdit3: function(label: string, color3: Color3): boolean
+	ColorEdit3: function(
+		label: string,
+		color3: Color3,
+		flags?: {ColorEditFlag}
+	): boolean
 	ColorEdit4: function(
 		label: string,
 		color: Color,
@@ -487,7 +529,7 @@ local record ImGui
 	ColorButton: function(
 		desc_id: string,
 		col: Color,
-		flags?: ColorEditMode --[[""]],
+		flags?: {ColorEditFlag},
 		size?: Vec2 --[[Vec2.zero]]
 	): boolean
 

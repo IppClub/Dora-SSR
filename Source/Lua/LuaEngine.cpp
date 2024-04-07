@@ -1667,7 +1667,7 @@ void LuaEngine::executeReturn(LuaHandler*& luaHandler, int handler, int paramCou
 	lua_settop(L, top);
 }
 
-bool LuaEngine::isInLua() const {
+bool LuaEngine::isInLua() {
 	return _callFromLua > 0;
 }
 

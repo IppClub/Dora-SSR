@@ -21,9 +21,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <jni.h>
 #endif // BX_PLATFORM_ANDROID
 
-#if !DORA_DISABLE_ASSERT_IN_LUA
 #include "Lua/LuaEngine.h"
-#endif // !DORA_DISABLE_ASSERT_IN_LUA
+#include "Wasm/WasmRuntime.h"
 
 NS_DORA_BEGIN
 
@@ -67,8 +66,14 @@ void LogPrintInThread(const std::string& str) {
 	});
 }
 
-bool IsInLua() {
-	return Dora::Singleton<Dora::LuaEngine>::isInitialized() && SharedLuaEngine.isInLua();
+bool IsInLuaOrWasm() {
+	if (LuaEngine::isInLua()) {
+		return true;
+	}
+	if (WasmRuntime::isInWasm()) {
+		return true;
+	}
+	return false;
 }
 
 NS_DORA_END

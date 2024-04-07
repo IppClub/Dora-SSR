@@ -118,7 +118,7 @@ return threadLoop(function() -- 18
 			end) -- 51
 			return ImGui.PushItemWidth(-1, function() -- 55
 				local color3 = sprite.color3 -- 56
-				ImGui.SetColorEditOptions("RGB") -- 57
+				ImGui.SetColorEditOptions({"DisplayRGB"}) -- 57
 				if ImGui.ColorEdit3("", color3) then -- 58
 					sprite.color3 = color3 -- 59
 				end -- 58

@@ -34,7 +34,7 @@ namespace ImGui
 	void Binding::SetWindowPos @ SetWindowPos(CString name, Vec2 pos, String setCond = nullptr);
 	void Binding::SetWindowSize @ SetWindowSize(CString name, Vec2 size, String setCond = nullptr);
 	void Binding::SetWindowCollapsed @ SetWindowCollapsed(CString name, bool collapsed, String setCond = nullptr);
-	void Binding::SetColorEditOptions @ SetColorEditOptions(String colorEditMode);
+	void Binding::SetColorEditOptions @ SetColorEditOptions(String colorEditFlags[tolua_len]);
 	bool Binding::InputText @ InputText(CString label, Buffer* buffer);
 	bool Binding::InputText @ InputText(CString label, Buffer* buffer, String inputTextFlags[tolua_len]);
 	bool Binding::InputTextMultiline @ InputTextMultiline(CString label, Buffer* buffer, Vec2 size = Vec2::zero);
@@ -71,12 +71,16 @@ namespace ImGui
 	void Binding::SetTooltip @ SetTooltip(CString text);
 
 	bool Binding::ColorEdit3 @ ColorEdit3(CString label, Color3* color3);
-	bool Binding::ColorEdit4 @ ColorEdit4(CString label, Color* color, bool show_alpha = true);
+	bool Binding::ColorEdit3 @ ColorEdit3(CString label, Color3* color3, String colorEditFlags[tolua_len]);
+
+	bool Binding::ColorEdit4 @ ColorEdit4(CString label, Color* color);
+	bool Binding::ColorEdit4 @ ColorEdit4(CString label, Color* color, String colorEditFlags[tolua_len]);
 
 	void Binding::Image @ Image(String clipStr, Vec2 size, Color tint_col = Color(0xffffffff), Color border_col = Color(0x0));
 	bool Binding::ImageButton @ ImageButton(const char* str_id, String clipStr, Vec2 size, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
 
-	bool Binding::ColorButton @ ColorButton(CString desc_id, Color col, String flags = nullptr, Vec2 size = Vec2::zero);
+	bool Binding::ColorButton @ ColorButton(CString desc_id, Color col);
+	bool Binding::ColorButton @ ColorButton(CString desc_id, Color col, String colorEditFlags[tolua_len], Vec2 size = Vec2::zero);
 	
 	void Binding::Columns @ Columns(int count = 1, bool border = true);
 	void Binding::Columns @ Columns(int count, bool border, CString id);

@@ -1873,6 +1873,351 @@ impl platformer::behavior::Blackboard {
 	}
 }
 
+use enumflags2::{bitflags, make_bitflags, BitFlags};
+
+#[bitflags]
+#[repr(u8)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiSliderFlag {
+	AlwaysClamp = 1 << 4,
+	Logarithmic = 1 << 5,
+	NoRoundToFormat = 1 << 6,
+	NoInput = 1 << 7
+}
+
+#[bitflags]
+#[repr(u32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiWindowFlag {
+	NoTitleBar = 1 << 0,
+	NoResize = 1 << 1,
+	NoMove = 1 << 2,
+	NoScrollbar = 1 << 3,
+	NoScrollWithMouse = 1 << 4,
+	NoCollapse = 1 << 5,
+	AlwaysAutoResize = 1 << 6,
+	NoBackground = 1 << 7,
+	NoSavedSettings = 1 << 8,
+	NoMouseInputs = 1 << 9,
+	MenuBar = 1 << 10,
+	HorizontalScrollbar = 1 << 11,
+	NoFocusOnAppearing = 1 << 12,
+	NoBringToFrontOnFocus = 1 << 13,
+	AlwaysVerticalScrollbar= 1 << 14,
+	AlwaysHorizontalScrollbar= 1<< 15,
+	NoNavInputs = 1 << 16,
+	NoNavFocus = 1 << 17,
+	UnsavedDocument = 1 << 18
+}
+
+impl ImGuiWindowFlag {
+	pub const NO_NAV: BitFlags<Self> = make_bitflags!(Self::{NoNavInputs | NoNavFocus});
+	pub const NO_DECORATION: BitFlags<Self> = make_bitflags!(Self::{NoTitleBar | NoResize | NoScrollbar | NoCollapse});
+	pub const NO_INPUTS: BitFlags<Self> = make_bitflags!(Self::{NoMouseInputs | NoNavInputs | NoNavFocus});
+}
+
+#[bitflags]
+#[repr(u8)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiChildFlag {
+	Border = 1 << 0,
+	AlwaysUseWindowPadding = 1 << 1,
+	ResizeX = 1 << 2,
+	ResizeY = 1 << 3,
+	AutoResizeX = 1 << 4,
+	AutoResizeY = 1 << 5,
+	AlwaysAutoResize = 1 << 6,
+	FrameStyle = 1 << 7
+}
+
+#[bitflags]
+#[repr(u32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiInputTextFlag {
+	CharsDecimal = 1 << 0,
+	CharsHexadecimal = 1 << 1,
+	CharsUppercase = 1 << 2,
+	CharsNoBlank = 1 << 3,
+	AutoSelectAll = 1 << 4,
+	EnterReturnsTrue = 1 << 5,
+	CallbackCompletion = 1 << 6,
+	CallbackHistory = 1 << 7,
+	CallbackAlways = 1 << 8,
+	CallbackCharFilter = 1 << 9,
+	AllowTabInput = 1 << 10,
+	CtrlEnterForNewLine = 1 << 11,
+	NoHorizontalScroll = 1 << 12,
+	AlwaysOverwrite = 1 << 13,
+	ReadOnly = 1 << 14,
+	Password = 1 << 15,
+	NoUndoRedo = 1 << 16,
+	CharsScientific = 1 << 17,
+	CallbackResize = 1 << 18,
+	CallbackEdit = 1 << 19,
+	EscapeClearsAll = 1 << 20
+}
+
+#[bitflags]
+#[repr(u32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiTreeNodeFlag {
+	Selected = 1 << 0,
+	Framed = 1 << 1,
+	AllowOverlap = 1 << 2,
+	NoTreePushOnOpen = 1 << 3,
+	NoAutoOpenOnLog = 1 << 4,
+	DefaultOpen = 1 << 5,
+	OpenOnDoubleClick = 1 << 6,
+	OpenOnArrow = 1 << 7,
+	Leaf = 1 << 8,
+	Bullet = 1 << 9,
+	FramePadding = 1 << 10,
+	SpanAvailWidth = 1 << 11,
+	SpanFullWidth = 1 << 12,
+	SpanAllColumns = 1 << 13,
+	NavLeftJumpsBackHere = 1 << 14
+}
+
+impl ImGuiTreeNodeFlag {
+	pub const COLLAPSING_HEADER: BitFlags<Self> = make_bitflags!(Self::{Framed | NoTreePushOnOpen | NoAutoOpenOnLog});
+}
+
+#[bitflags]
+#[repr(u8)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiSelectableFlag {
+	DontClosePopups = 1 << 0,
+	SpanAllColumns = 1 << 1,
+	AllowDoubleClick = 1 << 2,
+	Disabled = 1 << 3,
+	AllowOverlap = 1 << 4
+}
+
+pub enum ImGuiCol {
+	Text,
+	TextDisabled,
+	WindowBg,
+	ChildBg,
+	PopupBg,
+	Border,
+	BorderShadow,
+	FrameBg,
+	FrameBgHovered,
+	FrameBgActive,
+	TitleBg,
+	TitleBgActive,
+	TitleBgCollapsed,
+	MenuBarBg,
+	ScrollbarBg,
+	ScrollbarGrab,
+	ScrollbarGrabHovered,
+	ScrollbarGrabActive,
+	CheckMark,
+	SliderGrab,
+	SliderGrabActive,
+	Button,
+	ButtonHovered,
+	ButtonActive,
+	Header,
+	HeaderHovered,
+	HeaderActive,
+	Separator,
+	SeparatorHovered,
+	SeparatorActive,
+	ResizeGrip,
+	ResizeGripHovered,
+	ResizeGripActive,
+	Tab,
+	TabHovered,
+	TabActive,
+	TabUnfocused,
+	TabUnfocusedActive,
+	PlotLines,
+	PlotLinesHovered,
+	PlotHistogram,
+	PlotHistogramHovered,
+	TableHeaderBg,
+	TableBorderStrong,
+	TableBorderLight,
+	TableRowBg,
+	TableRowBgAlt,
+	TextSelectedBg,
+	DragDropTarget,
+	NavHighlight,
+	NavWindowingHighlight,
+	NavWindowingDimBg,
+	ModalWindowDimBg
+}
+
+#[bitflags]
+#[repr(u32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiColorEditFlag {
+	NoAlpha = 1 << 1,
+	NoPicker = 1 << 2,
+	NoOptions = 1 << 3,
+	NoSmallPreview = 1 << 4,
+	NoInputs = 1 << 5,
+	NoTooltip = 1 << 6,
+	NoLabel = 1 << 7,
+	NoSidePreview = 1 << 8,
+	NoDragDrop = 1 << 9,
+	NoBorder = 1 << 10,
+	AlphaBar = 1 << 16,
+	AlphaPreview = 1 << 17,
+	AlphaPreviewHalf = 1 << 18,
+	HDR = 1 << 19,
+	DisplayRGB = 1 << 20,
+	DisplayHSV = 1 << 21,
+	DisplayHex = 1 << 22,
+	Uint8 = 1 << 23,
+	Float = 1 << 24,
+	PickerHueBar = 1 << 25,
+	PickerHueWheel = 1 << 26,
+	InputRGB = 1 << 27,
+	InputHSV = 1 << 28
+}
+
+impl ImGuiColorEditFlag {
+	pub const DEFAULT_OPTIONS: BitFlags<Self> = make_bitflags!(Self::{Uint8 | DisplayRGB | InputRGB | PickerHueBar});
+}
+
+pub enum ImGuiCond {
+	Always = 1 << 0,
+	Once = 1 << 1,
+	FirstUseEver = 1 << 2,
+	Appearing = 1 << 3,
+}
+
+#[bitflags]
+#[repr(u32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiTableFlag {
+	Resizable = 1 << 0,
+	Reorderable = 1 << 1,
+	Hideable = 1 << 2,
+	Sortable = 1 << 3,
+	NoSavedSettings = 1 << 4,
+	ContextMenuInBody = 1 << 5,
+	RowBg = 1 << 6,
+	BordersInnerH = 1 << 7,
+	BordersOuterH = 1 << 8,
+	BordersInnerV = 1 << 9,
+	BordersOuterV = 1 << 10,
+	NoBordersInBody = 1 << 11,
+	NoBordersInBodyUntilResize = 1 << 12,
+	SizingFixedFit = 1 << 13,
+	SizingFixedSame = 1 << 14,
+	SizingStretchSame = 1 << 15,
+	NoHostExtendX = 1 << 16,
+	NoHostExtendY = 1 << 17,
+	NoKeepColumnsVisible = 1 << 18,
+	PreciseWidths = 1 << 19,
+	NoClip = 1 << 20,
+	PadOuterX = 1 << 21,
+	NoPadOuterX = 1 << 22,
+	NoPadInnerX = 1 << 23,
+	ScrollX = 1 << 24,
+	ScrollY = 1 << 25,
+	SortMulti = 1 << 26,
+	SortTristate = 1 << 27,
+	HighlightHoveredColumn = 1 << 28
+}
+
+impl ImGuiTableFlag {
+	pub const BORDERS_H: BitFlags<Self> = make_bitflags!(Self::{BordersInnerH | BordersOuterH});
+	pub const BORDERS_V: BitFlags<Self> = make_bitflags!(Self::{BordersInnerV | BordersOuterV});
+	pub const BORDERS_INNER: BitFlags<Self> = make_bitflags!(Self::{BordersInnerV | BordersInnerH});
+	pub const BORDERS_OUTER: BitFlags<Self> = make_bitflags!(Self::{BordersOuterV | BordersOuterH});
+	pub const BORDERS: BitFlags<Self> = make_bitflags!(Self::{BordersInnerV | BordersInnerH | BordersOuterV | BordersOuterH});
+	pub const SIZING_STRETCH_PROP: BitFlags<Self> = make_bitflags!(Self::{SizingFixedFit | SizingFixedSame});
+}
+
+#[bitflags]
+#[repr(u32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiTableColumnFlag {
+	Disabled = 1 << 0,
+	DefaultHide = 1 << 1,
+	DefaultSort = 1 << 2,
+	WidthStretch = 1 << 3,
+	WidthFixed = 1 << 4,
+	NoResize = 1 << 5,
+	NoReorder = 1 << 6,
+	NoHide = 1 << 7,
+	NoClip = 1 << 8,
+	NoSort = 1 << 9,
+	NoSortAscending = 1 << 10,
+	NoSortDescending = 1 << 11,
+	NoHeaderLabel = 1 << 12,
+	NoHeaderWidth = 1 << 13,
+	PreferSortAscending = 1 << 14,
+	PreferSortDescending = 1 << 15,
+	IndentEnable = 1 << 16,
+	IndentDisable = 1 << 17,
+	AngledHeader = 1 << 18,
+	IsEnabled = 1 << 24,
+	IsVisible = 1 << 25,
+	IsSorted = 1 << 26,
+	IsHovered = 1 << 27
+}
+
+pub enum ImGuiPopupButton {
+	MouseButtonLeft = 0,
+	MouseButtonRight = 1,
+	MouseButtonMiddle = 2
+}
+
+#[bitflags]
+#[repr(u32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiPopupFlag {
+	NoReopen = 1 << 5,
+	NoOpenOverExistingPopup = 1 << 7,
+	NoOpenOverItems = 1 << 8,
+	AnyPopupId = 1 << 10,
+	AnyPopupLevel = 1 << 11
+}
+
+impl ImGuiPopupFlag {
+	pub const ANY_POPUP: BitFlags<Self> = make_bitflags!(Self::{AnyPopupId | AnyPopupLevel});
+}
+
+pub enum ImGuiStyleVar {
+	Alpha = 0,
+	DisabledAlpha = 1,
+	WindowRounding = 3,
+	WindowBorderSize = 4,
+	ChildRounding = 7,
+	ChildBorderSize = 8,
+	PopupRounding = 9,
+	PopupBorderSize = 10,
+	FrameRounding = 12,
+	FrameBorderSize = 13,
+	IndentSpacing = 16,
+	ScrollbarSize = 18,
+	ScrollbarRounding = 19,
+	GrabMinSize = 20,
+	GrabRounding = 21,
+	TabRounding = 22,
+	TabBarBorderSize = 23,
+	SeparatorTextBorderSize = 26,
+}
+
+pub enum ImGuiStyleVec2 {
+	WindowPadding = 2,
+	WindowMinSize = 5,
+	WindowTitleAlign = 6,
+	FramePadding = 11,
+	ItemSpacing = 14,
+	ItemInnerSpacing = 15,
+	CellPadding = 17,
+	ButtonTextAlign = 24,
+	SelectableTextAlign = 25,
+	SeparatorTextAlign = 27,
+	SeparatorTextPadding = 28
+}
+
 static mut IMGUI_STACK: Lazy<CallStack> = Lazy::new(|| { CallStack::new() });
 
 impl ImGui {
@@ -1908,39 +2253,48 @@ impl ImGui {
 		let changed = ImGui::_begin(name, stack);
 		(changed, stack.pop_bool().unwrap())
 	}
-	pub fn begin_ret_opts(name: &str, opened: bool, windows_flags: &Vec<&str>) -> (bool, bool) {
+	pub fn begin_opts(name: &str, windows_flags: BitFlags<ImGuiWindowFlag>) -> bool {
+		ImGui::_begin_opts(name, windows_flags.bits() as i32)
+	}
+	pub fn begin_ret_opts(name: &str, opened: bool, windows_flags: BitFlags<ImGuiWindowFlag>) -> (bool, bool) {
 		let stack = ImGui::push_bool(opened);
-		let changed = ImGui::_begin_opts(name, stack, windows_flags);
+		let changed = ImGui::_begin_ret_opts(name, stack, windows_flags.bits() as i32);
 		(changed, stack.pop_bool().unwrap())
+	}
+	pub fn begin_child_opts(str_id: &str, size: &crate::dora::Vec2, child_flags: BitFlags<ImGuiChildFlag>, window_flags: BitFlags<ImGuiWindowFlag>) -> bool {
+		ImGui::_begin_child_opts(str_id, size, child_flags.bits() as i32, window_flags.bits() as i32)
+	}
+	pub fn begin_child_with_id_opts(id: i32, size: &crate::dora::Vec2, child_flags: BitFlags<ImGuiChildFlag>, window_flags: BitFlags<ImGuiWindowFlag>) -> bool {
+		ImGui::_begin_child_with_id_opts(id, size, child_flags.bits() as i32, window_flags.bits() as i32)
 	}
 	pub fn collapsing_header_ret(label: &str, opened: bool) -> (bool, bool) {
 		let stack = ImGui::push_bool(opened);
-		let changed = ImGui::_collapsing_header(label, stack);
+		let changed = ImGui::_collapsing_header_ret(label, stack);
 		(changed, stack.pop_bool().unwrap())
 	}
-	pub fn collapsing_header_ret_opts(label: &str, opened: bool, tree_node_flags: &Vec<&str>) -> (bool, bool) {
+	pub fn collapsing_header_ret_opts(label: &str, opened: bool, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>) -> (bool, bool) {
 		let stack = ImGui::push_bool(opened);
-		let changed = ImGui::_collapsing_header_opts(label, stack, tree_node_flags);
+		let changed = ImGui::_collapsing_header_ret_opts(label, stack, tree_node_flags.bits() as i32);
 		(changed, stack.pop_bool().unwrap())
 	}
 	pub fn selectable_ret(label: &str, selected: bool) -> (bool, bool) {
 		let stack = ImGui::push_bool(selected);
-		let changed = ImGui::_selectable(label, stack);
+		let changed = ImGui::_selectable_ret(label, stack);
 		(changed, stack.pop_bool().unwrap())
 	}
-	pub fn selectable_ret_opts(label: &str, selected: bool, size: &crate::dora::Vec2, selectable_flags: &Vec<&str>) -> (bool, bool) {
+	pub fn selectable_ret_opts(label: &str, selected: bool, size: &crate::dora::Vec2, selectable_flags: BitFlags<ImGuiSelectableFlag>) -> (bool, bool) {
 		let stack = ImGui::push_bool(selected);
-		let changed = ImGui::_selectable_opts(label, stack, size, selectable_flags);
+		let changed = ImGui::_selectable_ret_opts(label, stack, size, selectable_flags.bits() as i32);
 		(changed, stack.pop_bool().unwrap())
 	}
 	pub fn begin_popup_modal_ret(name: &str, opened: bool) -> (bool, bool) {
 		let stack = ImGui::push_bool(opened);
-		let changed = ImGui::_begin_popup_modal(name, stack);
+		let changed = ImGui::_begin_popup_modal_ret(name, stack);
 		(changed, stack.pop_bool().unwrap())
 	}
-	pub fn begin_popup_modal_ret_opts(name: &str, opened: bool, windows_flags: &Vec<&str>) -> (bool, bool) {
+	pub fn begin_popup_modal_ret_opts(name: &str, opened: bool, windows_flags: BitFlags<ImGuiWindowFlag>) -> (bool, bool) {
 		let stack = ImGui::push_bool(opened);
-		let changed = ImGui::_begin_popup_modal_opts(name, stack, windows_flags);
+		let changed = ImGui::_begin_popup_modal_ret_opts(name, stack, windows_flags.bits() as i32);
 		(changed, stack.pop_bool().unwrap())
 	}
 	pub fn combo_ret(label: &str, current_item: i32, items: &Vec<&str>) -> (bool, i32) {
@@ -1958,9 +2312,9 @@ impl ImGui {
 		let changed = ImGui::_drag_float(label, stack, v_speed, v_min, v_max);
 		(changed, stack.pop_f32().unwrap())
 	}
-	pub fn drag_float_ret_opts(label: &str, v: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: &Vec<&str>) -> (bool, f32) {
+	pub fn drag_float_ret_opts(label: &str, v: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32) {
 		let stack = ImGui::push_f32(v);
-		let changed = ImGui::_drag_float_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags);
+		let changed = ImGui::_drag_float_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap())
 	}
 	pub fn drag_float2_ret(label: &str, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
@@ -1968,9 +2322,9 @@ impl ImGui {
 		let changed = ImGui::_drag_float2(label, stack, v_speed, v_min, v_max);
 		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
 	}
-	pub fn drag_float2_ret_opts(label: &str, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: &Vec<&str>) -> (bool, f32, f32) {
+	pub fn drag_float2_ret_opts(label: &str, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32, f32) {
 		let stack = ImGui::push_f32x2(v1, v2);
-		let changed = ImGui::_drag_float2_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags);
+		let changed = ImGui::_drag_float2_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
 	}
 	pub fn drag_int2_ret(label: &str, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32) -> (bool, i32, i32) {
@@ -1978,9 +2332,9 @@ impl ImGui {
 		let changed = ImGui::_drag_int2(label, stack, v_speed, v_min, v_max);
 		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
 	}
-	pub fn drag_int2_opts(label: &str, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: &str, slider_flags: &Vec<&str>) -> (bool, i32, i32) {
+	pub fn drag_int2_opts(label: &str, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32, i32) {
 		let stack = ImGui::push_i32x2(v1, v2);
-		let changed = ImGui::_drag_int2_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags);
+		let changed = ImGui::_drag_int2_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
 	}
 	pub fn input_float_ret(label: &str, v: f32) -> (bool, f32) {
@@ -1988,9 +2342,9 @@ impl ImGui {
 		let changed = ImGui::_input_float(label, stack);
 		(changed, stack.pop_f32().unwrap())
 	}
-	pub fn input_float_ret_opts(label: &str, v: f32, step: f32, step_fast: f32, display_format: &str, input_text_flags: &Vec<&str>) -> (bool, f32) {
+	pub fn input_float_ret_opts(label: &str, v: f32, step: f32, step_fast: f32, display_format: &str, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, f32) {
 		let stack = ImGui::push_f32(v);
-		let changed = ImGui::_input_float_opts(label, stack, step, step_fast, display_format, input_text_flags);
+		let changed = ImGui::_input_float_opts(label, stack, step, step_fast, display_format, input_text_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap())
 	}
 	pub fn input_float2_ret(label: &str, v1: f32, v2: f32) -> (bool, f32, f32) {
@@ -1998,9 +2352,9 @@ impl ImGui {
 		let changed = ImGui::_input_float2(label, stack);
 		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
 	}
-	pub fn input_float2_ret_opts(label: &str, v1: f32, v2: f32, display_format: &str, input_text_flags: &Vec<&str>) -> (bool, f32, f32) {
+	pub fn input_float2_ret_opts(label: &str, v1: f32, v2: f32, display_format: &str, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, f32, f32) {
 		let stack = ImGui::push_f32x2(v1, v2);
-		let changed = ImGui::_input_float2_opts(label, stack, display_format, input_text_flags);
+		let changed = ImGui::_input_float2_opts(label, stack, display_format, input_text_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
 	}
 	pub fn input_int_ret(label: &str, v: i32) -> (bool, i32) {
@@ -2008,9 +2362,9 @@ impl ImGui {
 		let changed = ImGui::_input_int(label, stack);
 		(changed, stack.pop_i32().unwrap())
 	}
-	pub fn input_int_ret_opts(label: &str, v: i32, step: i32, step_fast: i32, input_text_flags: &Vec<&str>) -> (bool, i32) {
+	pub fn input_int_ret_opts(label: &str, v: i32, step: i32, step_fast: i32, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, i32) {
 		let stack = ImGui::push_i32(v);
-		let changed = ImGui::_input_int_opts(label, stack, step, step_fast, input_text_flags);
+		let changed = ImGui::_input_int_opts(label, stack, step, step_fast, input_text_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap())
 	}
 	pub fn input_int2_ret(label: &str, v1: i32, v2: i32) -> (bool, i32, i32) {
@@ -2018,9 +2372,9 @@ impl ImGui {
 		let changed = ImGui::_input_int2(label, stack);
 		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
 	}
-	pub fn input_int2_ret_opts(label: &str, v1: i32, v2: i32, input_text_flags: &Vec<&str>) -> (bool, i32, i32) {
+	pub fn input_int2_ret_opts(label: &str, v1: i32, v2: i32, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, i32, i32) {
 		let stack = ImGui::push_i32x2(v1, v2);
-		let changed = ImGui::_input_int2_opts(label, stack, input_text_flags);
+		let changed = ImGui::_input_int2_opts(label, stack, input_text_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
 	}
 	pub fn slider_float_ret(label: &str, v: f32, v_min: f32, v_max: f32) -> (bool, f32) {
@@ -2028,9 +2382,9 @@ impl ImGui {
 		let changed = ImGui::_slider_float(label, stack, v_min, v_max);
 		(changed, stack.pop_f32().unwrap())
 	}
-	pub fn slider_float_ret_opts(label: &str, v: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: &Vec<&str>) -> (bool, f32) {
+	pub fn slider_float_ret_opts(label: &str, v: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32) {
 		let stack = ImGui::push_f32(v);
-		let changed = ImGui::_slider_float_opts(label, stack, v_min, v_max, display_format, slider_flags);
+		let changed = ImGui::_slider_float_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap())
 	}
 	pub fn slider_float2_ret(label: &str, v1: f32, v2: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
@@ -2038,9 +2392,9 @@ impl ImGui {
 		let changed = ImGui::_slider_float2(label, stack, v_min, v_max);
 		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
 	}
-	pub fn slider_float2_ret_opts(label: &str, v1: f32, v2: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: &Vec<&str>) -> (bool, f32, f32) {
+	pub fn slider_float2_ret_opts(label: &str, v1: f32, v2: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32, f32) {
 		let stack = ImGui::push_f32x2(v1, v2);
-		let changed = ImGui::_slider_float2_opts(label, stack, v_min, v_max, display_format, slider_flags);
+		let changed = ImGui::_slider_float2_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
 	}
 	pub fn drag_float_range2_ret(label: &str, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
@@ -2048,9 +2402,9 @@ impl ImGui {
 		let changed = ImGui::_drag_float_range2(label, stack, v_speed, v_min, v_max);
 		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
 	}
-	pub fn drag_float_range2_ret_opts(label: &str, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32, format: &str, format_max: &str, slider_flags: &Vec<&str>) -> (bool, f32, f32) {
+	pub fn drag_float_range2_ret_opts(label: &str, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32, format: &str, format_max: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32, f32) {
 		let stack = ImGui::push_f32x2(v_current_min, v_current_max);
-		let changed = ImGui::_drag_float_range2_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags);
+		let changed = ImGui::_drag_float_range2_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
 	}
 	pub fn drag_int(label: &str, value: i32, v_speed: f32, v_min: i32, v_max: i32) -> (bool, i32) {
@@ -2058,9 +2412,9 @@ impl ImGui {
 		let changed = ImGui::_drag_int(label, stack, v_speed, v_min, v_max);
 		(changed, stack.pop_i32().unwrap())
 	}
-	pub fn drag_int_opts(label: &str, value: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: &str, slider_flags: &Vec<&str>) -> (bool, i32) {
+	pub fn drag_int_opts(label: &str, value: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32) {
 		let stack = ImGui::push_i32(value);
-		let changed = ImGui::_drag_int_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags);
+		let changed = ImGui::_drag_int_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap())
 	}
 	pub fn drag_int_range2_ret(label: &str, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32) -> (bool, i32, i32) {
@@ -2068,9 +2422,9 @@ impl ImGui {
 		let changed = ImGui::_drag_int_range2(label, stack, v_speed, v_min, v_max);
 		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
 	}
-	pub fn drag_int_range2_ret_opts(label: &str, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32, format: &str, format_max: &str, slider_flags: &Vec<&str>) -> (bool, i32, i32) {
+	pub fn drag_int_range2_ret_opts(label: &str, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32, format: &str, format_max: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32, i32) {
 		let stack = ImGui::push_i32x2(v_current_min, v_current_max);
-		let changed = ImGui::_drag_int_range2_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags);
+		let changed = ImGui::_drag_int_range2_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
 	}
 	pub fn slider_int(label: &str, value: i32, v_min: i32, v_max: i32) -> (bool, i32) {
@@ -2078,9 +2432,9 @@ impl ImGui {
 		let changed = ImGui::_slider_int(label, stack, v_min, v_max);
 		(changed, stack.pop_i32().unwrap())
 	}
-	pub fn slider_int_opts(label: &str, value: i32, v_min: i32, v_max: i32, format: &str, slider_flags: &Vec<&str>) -> (bool, i32) {
+	pub fn slider_int_opts(label: &str, value: i32, v_min: i32, v_max: i32, format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32) {
 		let stack = ImGui::push_i32(value);
-		let changed = ImGui::_slider_int_opts(label, stack, v_min, v_max, format, slider_flags);
+		let changed = ImGui::_slider_int_opts(label, stack, v_min, v_max, format, slider_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap())
 	}
 	pub fn slider_int2(label: &str, v1: i32, v2: i32, v_min: i32, v_max: i32) -> (bool, i32, i32) {
@@ -2088,9 +2442,9 @@ impl ImGui {
 		let changed = ImGui::_slider_int2(label, stack, v_min, v_max);
 		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
 	}
-	pub fn slider_int2_opts(label: &str, v1: i32, v2: i32, v_min: i32, v_max: i32, display_format: &str, slider_flags: &Vec<&str>) -> (bool, i32, i32) {
+	pub fn slider_int2_opts(label: &str, v1: i32, v2: i32, v_min: i32, v_max: i32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32, i32) {
 		let stack = ImGui::push_i32x2(v1, v2);
-		let changed = ImGui::_slider_int2_opts(label, stack, v_min, v_max, display_format, slider_flags);
+		let changed = ImGui::_slider_int2_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
 	}
 	pub fn v_slider_float_ret(label: &str, size: &crate::dora::Vec2, v: f32, v_min: f32, v_max: f32) -> (bool, f32) {
@@ -2098,9 +2452,9 @@ impl ImGui {
 		let changed = ImGui::_v_slider_float(label, size, stack, v_min, v_max);
 		(changed, stack.pop_f32().unwrap())
 	}
-	pub fn v_slider_float_ret_opts(label: &str, size: &crate::dora::Vec2, v: f32, v_min: f32, v_max: f32, format: &str, slider_flags: &Vec<&str>) -> (bool, f32) {
+	pub fn v_slider_float_ret_opts(label: &str, size: &crate::dora::Vec2, v: f32, v_min: f32, v_max: f32, format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32) {
 		let stack = ImGui::push_f32(v);
-		let changed = ImGui::_v_slider_float_opts(label, size, stack, v_min, v_max, format, slider_flags);
+		let changed = ImGui::_v_slider_float_opts(label, size, stack, v_min, v_max, format, slider_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap())
 	}
 	pub fn v_slider_int_ret(label: &str, size: &crate::dora::Vec2, v: i32, v_min: i32, v_max: i32) -> (bool, i32) {
@@ -2108,9 +2462,9 @@ impl ImGui {
 		let changed = ImGui::_v_slider_int(label, size, stack, v_min, v_max);
 		(changed, stack.pop_i32().unwrap())
 	}
-	pub fn v_slider_int_ret_opts(label: &str, size: &crate::dora::Vec2, v: i32, v_min: i32, v_max: i32, format: &str, slider_flags: &Vec<&str>) -> (bool, i32) {
+	pub fn v_slider_int_ret_opts(label: &str, size: &crate::dora::Vec2, v: i32, v_min: i32, v_max: i32, format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32) {
 		let stack = ImGui::push_i32(v);
-		let changed = ImGui::_v_slider_int_opts(label, size, stack, v_min, v_max, format, slider_flags);
+		let changed = ImGui::_v_slider_int_opts(label, size, stack, v_min, v_max, format, slider_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap())
 	}
 	pub fn color_edit3(label: &str, color3: &Color3) -> (bool, Color3) {
@@ -2118,9 +2472,9 @@ impl ImGui {
 		let changed = ImGui::_color_edit3(label, stack);
 		(changed, Color3::new(stack.pop_i32().unwrap() as u32))
 	}
-	pub fn color_edit4(label: &str, color: &Color, show_alpha: bool) -> (bool, Color) {
+	pub fn color_edit4(label: &str, color: &Color) -> (bool, Color) {
 		let stack = ImGui::push_i32(color.to_argb() as i32);
-		let changed = ImGui::_color_edit4(label, stack, show_alpha);
+		let changed = ImGui::_color_edit4(label, stack);
 		(changed, Color::new(stack.pop_i32().unwrap() as u32))
 	}
 	pub fn checkbox(label: &str, checked: bool) -> (bool, bool) {
@@ -2142,6 +2496,88 @@ impl ImGui {
 		let stack = ImGui::push_i32(current_item);
 		let changed = ImGui::_list_box_with_height(label, stack, items, height_in_items);
 		(changed, stack.pop_i32().unwrap())
+	}
+	pub fn set_next_window_pos_center_with_cond(set_cond: ImGuiCond) {
+		ImGui::_set_next_window_pos_center_with_cond(set_cond as i32)
+	}
+	pub fn set_next_window_size_with_cond(size: &crate::dora::Vec2, set_cond: ImGuiCond) {
+		ImGui::_set_next_window_size_with_cond(size, set_cond as i32);
+	}
+	pub fn set_next_window_collapsed_with_cond(collapsed: bool, set_cond: ImGuiCond) {
+		ImGui::_set_next_window_collapsed_with_cond(collapsed, set_cond as i32);
+	}
+	pub fn set_window_pos_with_cond(name: &str, pos: &crate::dora::Vec2, set_cond: ImGuiCond) {
+		ImGui::_set_window_pos_with_cond(name, pos, set_cond as i32);
+	}
+	pub fn set_window_size_with_cond(name: &str, size: &crate::dora::Vec2, set_cond: ImGuiCond) {
+		ImGui::_set_window_size_with_cond(name, size, set_cond as i32);
+	}
+	pub fn set_window_collapsed_with_cond(name: &str, collapsed: bool, set_cond: ImGuiCond) {
+		ImGui::_set_window_collapsed_with_cond(name, collapsed, set_cond as i32);
+	}
+	pub fn set_color_edit_options(color_edit_flags: BitFlags<ImGuiColorEditFlag>) {
+		ImGui::_set_color_edit_options(color_edit_flags.bits() as i32);
+	}
+	pub fn input_text_opts(label: &str, buffer: &crate::dora::Buffer, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> bool {
+		ImGui::_input_text_opts(label, buffer, input_text_flags.bits() as i32)
+	}
+	pub fn input_text_multiline_opts(label: &str, buffer: &crate::dora::Buffer, size: &crate::dora::Vec2, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> bool {
+		ImGui::_input_text_multiline_opts(label, buffer, size, input_text_flags.bits() as i32)
+	}
+	pub fn tree_node_ex_opts(label: &str, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>) -> bool {
+		ImGui::_tree_node_ex_opts(label, tree_node_flags.bits() as i32)
+	}
+	pub fn tree_node_ex_with_id_opts(str_id: &str, text: &str, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>) -> bool {
+		ImGui::_tree_node_ex_with_id_opts(str_id, text, tree_node_flags.bits() as i32)
+	}
+	pub fn set_next_item_open_with_cond(is_open: bool, set_cond: ImGuiCond) {
+		ImGui::_set_next_item_open_with_cond(is_open, set_cond as i32);
+	}
+	pub fn collapsing_header_opts(label: &str, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>) -> bool {
+		ImGui::_collapsing_header_opts(label, tree_node_flags.bits() as i32)
+	}
+	pub fn selectable_opts(label: &str, selectable_flags: BitFlags<ImGuiSelectableFlag>) -> bool {
+		ImGui::_selectable_opts(label, selectable_flags.bits() as i32)
+	}
+	pub fn begin_popup_modal_opts(name: &str, windows_flags: BitFlags<ImGuiWindowFlag>) -> bool {
+		ImGui::_begin_popup_modal_opts(name, windows_flags.bits() as i32)
+	}
+	pub fn begin_popup_context_item_opts(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>) -> bool {
+		ImGui::_begin_popup_context_item_opts(name, (button as u32 | popup_flags.bits()) as i32)
+	}
+	pub fn begin_popup_context_window_opts(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>) -> bool {
+		ImGui::_begin_popup_context_window_opts(name, (button as u32 | popup_flags.bits()) as i32)
+	}
+	pub fn begin_popup_context_void_opts(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>) -> bool {
+		ImGui::_begin_popup_context_void_opts(name, (button as u32 | popup_flags.bits()) as i32)
+	}
+	pub fn begin_table_opts(str_id: &str, column: i32, outer_size: &crate::dora::Vec2, inner_width: f32, table_flags: BitFlags<ImGuiTableFlag>) -> bool {
+		ImGui::_begin_table_opts(str_id, column, outer_size, inner_width, table_flags.bits() as i32)
+	}
+	pub fn table_setup_column_opts(label: &str, init_width_or_weight: f32, user_id: i32, table_column_flags: BitFlags<ImGuiTableColumnFlag>) {
+		ImGui::_table_setup_column_opts(label, init_width_or_weight, user_id, table_column_flags.bits() as i32);
+	}
+	pub fn color_edit3_opts(label: &str, color3: &Color3, color_edit_flags: BitFlags<ImGuiColorEditFlag>) -> (bool, Color3) {
+		let stack = ImGui::push_i32(color3.to_rgb() as i32);
+		let changed = ImGui::_color_edit3_opts(label, stack, color_edit_flags.bits() as i32);
+		(changed, Color3::new(stack.pop_i32().unwrap() as u32))
+	}
+	pub fn color_edit4_opts(label: &str, color: &Color, color_edit_flags: BitFlags<ImGuiColorEditFlag>) -> (bool, Color) {
+		let stack = ImGui::push_i32(color.to_argb() as i32);
+		let changed = ImGui::_color_edit4_opts(label, stack, color_edit_flags.bits() as i32);
+		(changed, Color::new(stack.pop_i32().unwrap() as u32))
+	}
+	pub fn set_next_window_pos(pos: &crate::dora::Vec2, set_cond: ImGuiCond, pivot: &crate::dora::Vec2) {
+		ImGui::_set_next_window_pos(pos, set_cond as i32, pivot);
+	}
+	pub fn push_style_color(col: ImGuiCol, color: &crate::dora::Color) {
+		ImGui::_push_style_color(col as i32, color);
+	}
+	pub fn push_style_float(style: ImGuiStyleVar, val: f32) {
+		ImGui::_push_style_float(style as i32, val);
+	}
+	pub fn push_style_vec2(style: ImGuiStyleVec2, val: &crate::dora::Vec2) {
+		ImGui::_push_style_vec2(style as i32, val);
 	}
 }
 

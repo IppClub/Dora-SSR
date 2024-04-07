@@ -65,8 +65,6 @@ NS_DORA_END
 
 NS_BEGIN(ImGui::Binding)
 
-std::vector<std::string> EmptyOptions;
-
 static ImGuiSliderFlags_ getSliderFlag(String flag) {
 	switch (Switch::hash(flag)) {
 		case "AlwaysClamp"_hash:
@@ -93,14 +91,6 @@ static uint32_t SliderFlags(Slice* flags, int count) {
 	return result;
 }
 
-static uint32_t SliderFlags(const std::vector<std::string>& flags) {
-	uint32_t result = 0;
-	for (const auto& flag : flags) {
-		result |= getSliderFlag(flag);
-	}
-	return result;
-}
-
 static ImGuiWindowFlags_ getWindowFlag(String style) {
 	switch (Switch::hash(style)) {
 		case "NoNav"_hash: return ImGuiWindowFlags_NoNav;
@@ -120,6 +110,9 @@ static ImGuiWindowFlags_ getWindowFlag(String style) {
 		case "NoBringToFrontOnFocus"_hash: return ImGuiWindowFlags_NoBringToFrontOnFocus;
 		case "AlwaysVerticalScrollbar"_hash: return ImGuiWindowFlags_AlwaysVerticalScrollbar;
 		case "AlwaysHorizontalScrollbar"_hash: return ImGuiWindowFlags_AlwaysHorizontalScrollbar;
+		case "NoNavInputs"_hash: return ImGuiWindowFlags_NoNavInputs;
+		case "NoNavFocus"_hash: return ImGuiWindowFlags_NoNavFocus;
+		case "UnsavedDocument"_hash: return ImGuiWindowFlags_UnsavedDocument;
 		case ""_hash: return ImGuiWindowFlags_(0);
 		default:
 			Issue("ImGui window flag named \"{}\" is invalid.", style.toString());
@@ -132,14 +125,6 @@ static uint32_t WindowFlags(Slice* flags, int count) {
 	uint32_t result = 0;
 	for (int i = 0; i < count; i++) {
 		result |= getWindowFlag(flags[i]);
-	}
-	return result;
-}
-
-static uint32_t WindowFlags(const std::vector<std::string>& flags) {
-	uint32_t result = 0;
-	for (const auto& flag : flags) {
-		result |= getWindowFlag(flag);
 	}
 	return result;
 }
@@ -170,14 +155,6 @@ static uint32_t ChildFlags(Slice* flags, int count) {
 	return result;
 }
 
-static uint32_t ChildFlags(const std::vector<std::string>& flags) {
-	uint32_t result = 0;
-	for (const auto& flag : flags) {
-		result |= getChildFlag(flag);
-	}
-	return result;
-}
-
 static ImGuiInputTextFlags_ getInputTextFlag(String flag) {
 	switch (Switch::hash(flag)) {
 		case "CharsDecimal"_hash: return ImGuiInputTextFlags_CharsDecimal;
@@ -196,6 +173,11 @@ static ImGuiInputTextFlags_ getInputTextFlag(String flag) {
 		case "AlwaysOverwrite"_hash: return ImGuiInputTextFlags_AlwaysOverwrite;
 		case "ReadOnly"_hash: return ImGuiInputTextFlags_ReadOnly;
 		case "Password"_hash: return ImGuiInputTextFlags_Password;
+		case "NoUndoRedo"_hash: return ImGuiInputTextFlags_NoUndoRedo;
+		case "CharsScientific"_hash: return ImGuiInputTextFlags_CharsScientific;
+		case "CallbackResize"_hash: return ImGuiInputTextFlags_CallbackResize;
+		case "CallbackEdit"_hash: return ImGuiInputTextFlags_CallbackEdit;
+		case "EscapeClearsAll"_hash: return ImGuiInputTextFlags_EscapeClearsAll;
 		case ""_hash: return ImGuiInputTextFlags_(0);
 		default:
 			Issue("ImGui input text flag named \"{}\" is invalid.", flag.toString());
@@ -207,14 +189,6 @@ static uint32_t InputTextFlags(Slice* flags, int count) {
 	uint32_t result = 0;
 	for (int i = 0; i < count; i++) {
 		result |= getInputTextFlag(flags[i]);
-	}
-	return result;
-}
-
-static uint32_t InputTextFlags(const std::vector<std::string>& flags) {
-	uint32_t result = 0;
-	for (const auto& flag : flags) {
-		result |= getInputTextFlag(flag);
 	}
 	return result;
 }
@@ -231,6 +205,11 @@ static ImGuiTreeNodeFlags_ getTreeNodeFlag(String flag) {
 		case "OpenOnArrow"_hash: return ImGuiTreeNodeFlags_OpenOnArrow;
 		case "Leaf"_hash: return ImGuiTreeNodeFlags_Leaf;
 		case "Bullet"_hash: return ImGuiTreeNodeFlags_Bullet;
+		case "FramePadding"_hash: return ImGuiTreeNodeFlags_FramePadding;
+		case "SpanAvailWidth"_hash: return ImGuiTreeNodeFlags_SpanAvailWidth;
+		case "SpanFullWidth"_hash: return ImGuiTreeNodeFlags_SpanFullWidth;
+		case "SpanAllColumns"_hash: return ImGuiTreeNodeFlags_SpanAllColumns;
+		case "NavLeftJumpsBackHere"_hash: return ImGuiTreeNodeFlags_NavLeftJumpsBackHere;
 		case "CollapsingHeader"_hash: return ImGuiTreeNodeFlags_CollapsingHeader;
 		case ""_hash: return ImGuiTreeNodeFlags_(0);
 		default:
@@ -243,14 +222,6 @@ static uint32_t TreeNodeFlags(Slice* flags, int count) {
 	uint32_t result = 0;
 	for (int i = 0; i < count; i++) {
 		result |= getTreeNodeFlag(flags[i]);
-	}
-	return result;
-}
-
-static uint32_t TreeNodeFlags(const std::vector<std::string>& flags) {
-	uint32_t result = 0;
-	for (const auto& flag : flags) {
-		result |= getTreeNodeFlag(flag);
 	}
 	return result;
 }
@@ -273,14 +244,6 @@ static uint32_t SelectableFlags(Slice* flags, int count) {
 	uint32_t result = 0;
 	for (int i = 0; i < count; i++) {
 		result |= getSelectableFlag(flags[i]);
-	}
-	return result;
-}
-
-static uint32_t SelectableFlags(const std::vector<std::string>& flags) {
-	uint32_t result = 0;
-	for (const auto& flag : flags) {
-		result |= getSelectableFlag(flag);
 	}
 	return result;
 }
@@ -345,16 +308,44 @@ static uint32_t ColorIndex(String col) {
 	}
 }
 
-static uint32_t ColorEditFlag(String mode) {
+static uint32_t getColorEditFlag(String mode) {
 	switch (Switch::hash(mode)) {
-		case "RGB"_hash: return ImGuiColorEditFlags_DisplayRGB;
-		case "HSV"_hash: return ImGuiColorEditFlags_DisplayHSV;
-		case "HEX"_hash: return ImGuiColorEditFlags_DisplayHex;
+		case "NoAlpha"_hash: return ImGuiColorEditFlags_NoAlpha;
+		case "NoPicker"_hash: return ImGuiColorEditFlags_NoPicker;
+		case "NoOptions"_hash: return ImGuiColorEditFlags_NoOptions;
+		case "NoSmallPreview"_hash: return ImGuiColorEditFlags_NoSmallPreview;
+		case "NoInputs"_hash: return ImGuiColorEditFlags_NoInputs;
+		case "NoTooltip"_hash: return ImGuiColorEditFlags_NoTooltip;
+		case "NoLabel"_hash: return ImGuiColorEditFlags_NoLabel;
+		case "NoSidePreview"_hash: return ImGuiColorEditFlags_NoSidePreview;
+		case "NoDragDrop"_hash: return ImGuiColorEditFlags_NoDragDrop;
+		case "NoBorder"_hash: return ImGuiColorEditFlags_NoBorder;
+		case "AlphaBar"_hash: return ImGuiColorEditFlags_AlphaBar;
+		case "AlphaPreview"_hash: return ImGuiColorEditFlags_AlphaPreview;
+		case "AlphaPreviewHalf"_hash: return ImGuiColorEditFlags_AlphaPreviewHalf;
+		case "HDR"_hash: return ImGuiColorEditFlags_HDR;
+		case "DisplayRGB"_hash: return ImGuiColorEditFlags_DisplayRGB;
+		case "DisplayHSV"_hash: return ImGuiColorEditFlags_DisplayHSV;
+		case "DisplayHex"_hash: return ImGuiColorEditFlags_DisplayHex;
+		case "Uint8"_hash: return ImGuiColorEditFlags_Uint8;
+		case "Float"_hash: return ImGuiColorEditFlags_Float;
+		case "PickerHueBar"_hash: return ImGuiColorEditFlags_PickerHueBar;
+		case "PickerHueWheel"_hash: return ImGuiColorEditFlags_PickerHueWheel;
+		case "InputRGB"_hash: return ImGuiColorEditFlags_InputRGB;
+		case "InputHSV"_hash: return ImGuiColorEditFlags_InputHSV;
 		case ""_hash: return ImGuiColorEditFlags_None;
 		default:
 			Issue("ImGui color edit flag named \"{}\" is invalid.", mode.toString());
 			return ImGuiColorEditFlags_None;
 	}
+}
+
+static uint32_t ColorEditFlags(Slice* flags, int count) {
+	uint32_t result = 0;
+	for (int i = 0; i < count; i++) {
+		result |= getColorEditFlag(flags[i]);
+	}
+	return result;
 }
 
 static uint32_t SetCondFlag(String cond) {
@@ -375,6 +366,7 @@ static ImGuiPopupFlags getPopupFlag(String flag) {
 		case "MouseButtonLeft"_hash: return ImGuiPopupFlags_MouseButtonLeft;
 		case "MouseButtonRight"_hash: return ImGuiPopupFlags_MouseButtonRight;
 		case "MouseButtonMiddle"_hash: return ImGuiPopupFlags_MouseButtonMiddle;
+		case "NoReopen"_hash: return ImGuiPopupFlags_NoReopen;
 		case "NoOpenOverExistingPopup"_hash: return ImGuiPopupFlags_NoOpenOverExistingPopup;
 		case "NoOpenOverItems"_hash: return ImGuiPopupFlags_NoOpenOverItems;
 		case "AnyPopupId"_hash: return ImGuiPopupFlags_AnyPopupId;
@@ -391,14 +383,6 @@ static uint32_t PopupFlags(Slice* flags, int count) {
 	uint32_t result = 0;
 	for (int i = 0; i < count; i++) {
 		result |= getPopupFlag(flags[i]);
-	}
-	return result;
-}
-
-static uint32_t PopupFlags(const std::vector<std::string>& flags) {
-	uint32_t result = 0;
-	for (const auto& flag : flags) {
-		result |= getPopupFlag(flag);
 	}
 	return result;
 }
@@ -438,6 +422,8 @@ static ImGuiTableFlags_ getTableFlags(String flag) {
 		case "ScrollX"_hash: return ImGuiTableFlags_ScrollX;
 		case "ScrollY"_hash: return ImGuiTableFlags_ScrollY;
 		case "SortMulti"_hash: return ImGuiTableFlags_SortMulti;
+		case "SortTristate"_hash: return ImGuiTableFlags_SortTristate;
+		case "HighlightHoveredColumn"_hash: return ImGuiTableFlags_HighlightHoveredColumn;
 		case ""_hash: return ImGuiTableFlags_None;
 		default:
 			Issue("ImGui table flag named \"{}\" is invalid.", flag.toString());
@@ -450,14 +436,6 @@ static uint32_t TableFlags(Slice* flags, int count) {
 	uint32_t result = 0;
 	for (int i = 0; i < count; i++) {
 		result |= getTableFlags(flags[i]);
-	}
-	return result;
-}
-
-static uint32_t TableFlags(const std::vector<std::string>& flags) {
-	uint32_t result = 0;
-	for (const auto& flag : flags) {
-		result |= getTableFlags(flag);
 	}
 	return result;
 }
@@ -507,14 +485,6 @@ static uint32_t TableColumnFlags(Slice* flags, int count) {
 	uint32_t result = 0;
 	for (int i = 0; i < count; i++) {
 		result |= getTableColumnFlags(flags[i]);
-	}
-	return result;
-}
-
-static uint32_t TableColumnFlags(const std::vector<std::string>& flags) {
-	uint32_t result = 0;
-	for (const auto& flag : flags) {
-		result |= getTableColumnFlags(flag);
 	}
 	return result;
 }
@@ -579,6 +549,10 @@ void SetNextWindowPosCenter(String setCond, const Vec2& pivot) {
 	ImGui::SetNextWindowPos(Vec2(ImGui::GetIO().DisplaySize) * 0.5f, SetCondFlag(setCond), pivot);
 }
 
+void SetNextWindowPosCenter(uint32_t setCond, const Vec2& pivot) {
+	ImGui::SetNextWindowPos(Vec2(ImGui::GetIO().DisplaySize) * 0.5f, setCond, pivot);
+}
+
 void SetNextWindowSize(const Vec2& size, String setCond) {
 	ImGui::SetNextWindowSize(size, SetCondFlag(setCond));
 }
@@ -599,8 +573,8 @@ void SetWindowCollapsed(const char* name, bool collapsed, String setCond) {
 	ImGui::SetWindowCollapsed(name, collapsed, SetCondFlag(setCond));
 }
 
-void SetColorEditOptions(String colorEditMode) {
-	ImGui::SetColorEditOptions(ColorEditFlag(colorEditMode));
+void SetColorEditOptions(Slice* colorEditFlags, int colorEditFlagCount) {
+	ImGui::SetColorEditOptions(ColorEditFlags(colorEditFlags, colorEditFlagCount));
 }
 
 bool InputText(const char* label, Buffer* buffer, Slice* inputTextFlags, int flagCount) {
@@ -661,6 +635,10 @@ void PushStyleColor(String name, Color color) {
 	ImGui::PushStyleColor(ColorIndex(name), color.toVec4());
 }
 
+void PushStyleColor(uint32_t name, Color color) {
+	ImGui::PushStyleColor(name, color.toVec4());
+}
+
 void PushStyleVar(String name, const Vec2& val) {
 	ImGuiStyleVar_ styleVar = ImGuiStyleVar_WindowPadding;
 	switch (Switch::hash(name)) {
@@ -673,6 +651,8 @@ void PushStyleVar(String name, const Vec2& val) {
 		case "CellPadding"_hash: styleVar = ImGuiStyleVar_CellPadding; break;
 		case "ButtonTextAlign"_hash: styleVar = ImGuiStyleVar_ButtonTextAlign; break;
 		case "SelectableTextAlign"_hash: styleVar = ImGuiStyleVar_SelectableTextAlign; break;
+		case "SeparatorTextAlign"_hash: styleVar = ImGuiStyleVar_SeparatorTextAlign; break;
+		case "SeparatorTextPadding"_hash: styleVar = ImGuiStyleVar_SeparatorTextPadding; break;
 		default:
 			Issue("ImGui style var name \"{}\" is invalid.", name.toString());
 			break;
@@ -698,6 +678,7 @@ void PushStyleVar(String name, float val) {
 		case "GrabMinSize"_hash: styleVar = ImGuiStyleVar_GrabMinSize; break;
 		case "GrabRounding"_hash: styleVar = ImGuiStyleVar_GrabRounding; break;
 		case "TabRounding"_hash: styleVar = ImGuiStyleVar_TabRounding; break;
+		case "SeparatorTextBorderSize"_hash: styleVar = ImGuiStyleVar_SeparatorTextBorderSize; break;
 		default:
 			Issue("ImGui style var name \"{}\" is invalid.", name.toString());
 			break;
@@ -840,16 +821,16 @@ bool VSliderInt(const char* label, const Vec2& size, int* v, int v_min, int v_ma
 	return ImGui::VSliderInt(label, size, v, v_min, v_max, format, SliderFlags(flags, flagCount));
 }
 
-bool ColorEdit3(const char* label, Color3* color3) {
+bool ColorEdit3(const char* label, Color3* color3, Slice* colorEditFlags, int colorEditFlagCount) {
 	Vec3 vec3 = color3->toVec3();
-	bool changed = ImGui::ColorEdit3(label, vec3);
+	bool changed = ImGui::ColorEdit3(label, vec3, ColorEditFlags(colorEditFlags, colorEditFlagCount));
 	*color3 = vec3;
 	return changed;
 }
 
-bool ColorEdit4(const char* label, Color* color, bool show_alpha) {
+bool ColorEdit4(const char* label, Color* color, Slice* colorEditFlags, int colorEditFlagCount) {
 	Vec4 vec4 = color->toVec4();
-	bool changed = ImGui::ColorEdit4(label, vec4);
+	bool changed = ImGui::ColorEdit4(label, vec4, ColorEditFlags(colorEditFlags, colorEditFlagCount));
 	*color = vec4;
 	return changed;
 }
@@ -890,8 +871,8 @@ bool ImageButton(const char* str_id, String clipStr, const Vec2& size, Color bg_
 	return ImGui::ImageButton(str_id, texture.ptr, size, uv0, uv1, bg_col.toVec4(), tint_col.toVec4());
 }
 
-bool ColorButton(const char* desc_id, Color col, String flags, const Vec2& size) {
-	return ImGui::ColorButton(desc_id, col.toVec4(), ColorEditFlag(flags), size);
+bool ColorButton(const char* desc_id, Color col, Slice* flags, int flagCount, const Vec2& size) {
+	return ImGui::ColorButton(desc_id, col.toVec4(), ColorEditFlags(flags, flagCount), size);
 }
 
 void Columns(int count, bool border) {
@@ -906,8 +887,8 @@ bool BeginTable(const char* str_id, int column, const Vec2& outer_size, float in
 	return ImGui::BeginTable(str_id, column, TableFlags(flags, flagCount), outer_size, inner_width);
 }
 
-bool BeginTable(const std::string& str_id, int column, const Vec2& outer_size, float inner_width, const std::vector<std::string>& tableFlags) {
-	return ImGui::BeginTable(str_id.c_str(), column, TableFlags(tableFlags), outer_size, inner_width);
+bool BeginTable(const std::string& str_id, int column, const Vec2& outer_size, float inner_width, uint32_t tableFlags) {
+	return ImGui::BeginTable(str_id.c_str(), column, tableFlags, outer_size, inner_width);
 }
 
 void TableNextRow(float min_row_height, String row_flag) {
@@ -918,8 +899,8 @@ void TableSetupColumn(const char* label, float init_width_or_weight, ImU32 user_
 	ImGui::TableSetupColumn(label, TableColumnFlags(flags, flagCount), init_width_or_weight, user_id);
 }
 
-void TableSetupColumn(const std::string& label, float init_width_or_weight, uint32_t user_id, const std::vector<std::string>& tableColumnFlags) {
-	ImGui::TableSetupColumn(label.c_str(), TableColumnFlags(tableColumnFlags), init_width_or_weight, user_id);
+void TableSetupColumn(const std::string& label, float init_width_or_weight, uint32_t user_id, uint32_t tableColumnFlags) {
+	ImGui::TableSetupColumn(label.c_str(), tableColumnFlags, init_width_or_weight, user_id);
 }
 
 void SetStyleVar(String name, const Vec2& var) {
@@ -988,16 +969,16 @@ void SetStyleColor(String name, Color color) {
 
 bool Begin(
 	const std::string& name,
-	const std::vector<std::string>& windowFlags) {
-	return ImGui::Begin(name.c_str(), nullptr, WindowFlags(windowFlags));
+	uint32_t windowFlags) {
+	return ImGui::Begin(name.c_str(), nullptr, windowFlags);
 }
 
 bool Begin(
 	const std::string& name,
 	CallStack* stack, // p_open
-	const std::vector<std::string>& windowFlags) {
+	uint32_t windowFlags) {
 	bool p_open = std::get<bool>(stack->pop());
-	bool changed = ImGui::Begin(name.c_str(), &p_open, WindowFlags(windowFlags));
+	bool changed = ImGui::Begin(name.c_str(), &p_open, windowFlags);
 	stack->push(p_open);
 	return changed;
 }
@@ -1005,17 +986,17 @@ bool Begin(
 bool BeginChild(
 	const std::string& str_id,
 	const Vec2& size,
-	const std::vector<std::string>& childFlags,
-	const std::vector<std::string>& windowFlags) {
-	return ImGui::BeginChild(str_id.c_str(), size, ChildFlags(childFlags), WindowFlags(windowFlags));
+	uint32_t childFlags,
+	uint32_t windowFlags) {
+	return ImGui::BeginChild(str_id.c_str(), size, childFlags, windowFlags);
 }
 
 bool BeginChild(
 	ImGuiID id,
 	const Vec2& size,
-	const std::vector<std::string>& childFlags,
-	const std::vector<std::string>& windowFlags) {
-	return ImGui::BeginChild(id, size, ChildFlags(childFlags), WindowFlags(windowFlags));
+	uint32_t childFlags,
+	uint32_t windowFlags) {
+	return ImGui::BeginChild(id, size, childFlags, windowFlags);
 }
 
 void SetWindowPos(
@@ -1025,11 +1006,25 @@ void SetWindowPos(
 	SetWindowPos(name.c_str(), pos, setCond);
 }
 
+void SetWindowPos(
+	const std::string& name,
+	const Vec2& pos,
+	uint32_t setCond) {
+	ImGui::SetWindowPos(name.c_str(), pos, setCond);
+}
+
 void SetWindowSize(
 	const std::string& name,
 	const Vec2& size,
 	String setCond) {
 	SetWindowSize(name.c_str(), size, setCond);
+}
+
+void SetWindowSize(
+	const std::string& name,
+	const Vec2& size,
+	uint32_t setCond) {
+	ImGui::SetWindowSize(name.c_str(), size, setCond);
 }
 
 void SetWindowCollapsed(
@@ -1039,99 +1034,106 @@ void SetWindowCollapsed(
 	SetWindowCollapsed(name.c_str(), collapsed, setCond);
 }
 
+void SetWindowCollapsed(
+	const std::string& name,
+	bool collapsed,
+	uint32_t setCond) {
+	ImGui::SetWindowCollapsed(name.c_str(), collapsed, setCond);
+}
+
 bool InputText(
 	const std::string& label,
 	Buffer* buffer,
-	const std::vector<std::string>& inputTextFlags) {
-	return ImGui::InputText(label.c_str(), buffer->get(), buffer->size(), InputTextFlags(inputTextFlags));
+	uint32_t inputTextFlags) {
+	return ImGui::InputText(label.c_str(), buffer->get(), buffer->size(), inputTextFlags);
 }
 
 bool InputTextMultiline(
 	const std::string& label,
 	Buffer* buffer,
 	const Vec2& size,
-	const std::vector<std::string>& inputTextFlags) {
-	return ImGui::InputTextMultiline(label.c_str(), buffer->get(), buffer->size(), size, InputTextFlags(inputTextFlags));
+	uint32_t inputTextFlags) {
+	return ImGui::InputTextMultiline(label.c_str(), buffer->get(), buffer->size(), size, inputTextFlags);
 }
 
 bool TreeNodeEx(
 	const std::string& label,
-	const std::vector<std::string>& treeNodeFlags) {
-	return ImGui::TreeNodeEx(label.c_str(), TreeNodeFlags(treeNodeFlags));
+	uint32_t treeNodeFlags) {
+	return ImGui::TreeNodeEx(label.c_str(), treeNodeFlags);
 }
 
 bool TreeNodeEx(
 	const std::string& str_id,
 	const std::string& text,
-	const std::vector<std::string>& treeNodeFlags) {
-	return ImGui::TreeNodeEx(str_id.c_str(), TreeNodeFlags(treeNodeFlags), "%s", text.c_str());
+	uint32_t treeNodeFlags) {
+	return ImGui::TreeNodeEx(str_id.c_str(), treeNodeFlags, "%s", text.c_str());
 }
 
 bool CollapsingHeader(
 	const std::string& label,
-	const std::vector<std::string>& treeNodeFlags) {
-	return ImGui::CollapsingHeader(label.c_str(), TreeNodeFlags(treeNodeFlags));
+	uint32_t treeNodeFlags) {
+	return ImGui::CollapsingHeader(label.c_str(), treeNodeFlags);
 }
 
 bool CollapsingHeader(
 	const std::string& label,
 	CallStack* stack, // p_open
-	const std::vector<std::string>& treeNodeFlags) {
+	uint32_t treeNodeFlags) {
 	bool p_open = std::get<bool>(stack->pop());
-	bool changed = ImGui::CollapsingHeader(label.c_str(), &p_open, TreeNodeFlags(treeNodeFlags));
+	bool changed = ImGui::CollapsingHeader(label.c_str(), &p_open, treeNodeFlags);
 	stack->push(p_open);
 	return changed;
 }
 
 bool Selectable(
 	const std::string& label,
-	const std::vector<std::string>& selectableFlags) {
-	return ImGui::Selectable(label.c_str(), SelectableFlags(selectableFlags));
+	uint32_t selectableFlags) {
+	return ImGui::Selectable(label.c_str(), selectableFlags);
 }
 
 bool Selectable(
 	const std::string& label,
 	CallStack* stack, // p_selected
 	const Vec2& size,
-	const std::vector<std::string>& selectableFlags) {
+	uint32_t selectableFlags) {
 	bool p_selected = std::get<bool>(stack->pop());
-	bool changed = ImGui::Selectable(label.c_str(), &p_selected, SelectableFlags(selectableFlags), size);
+	bool changed = ImGui::Selectable(label.c_str(), &p_selected, selectableFlags, size);
 	stack->push(p_selected);
 	return changed;
 }
 
 bool BeginPopupModal(
 	const std::string& name,
-	const std::vector<std::string>& windowFlags) {
-	return ImGui::BeginPopupModal(name.c_str(), nullptr, WindowFlags(windowFlags));
+	uint32_t windowFlags) {
+	return ImGui::BeginPopupModal(name.c_str(), nullptr, windowFlags);
 }
 
 bool BeginPopupModal(
 	const std::string& name,
 	CallStack* stack, // p_open
-	const std::vector<std::string>& windowFlags) {
+	uint32_t windowFlags) {
 	bool p_open = std::get<bool>(stack->pop());
-	bool changed = ImGui::BeginPopupModal(name.c_str(), &p_open, WindowFlags(windowFlags));
+	bool changed = ImGui::BeginPopupModal(name.c_str(), &p_open, windowFlags);
 	stack->push(p_open);
 	return changed;
 }
 
 bool BeginPopupContextItem(
 	const std::string& name,
-	const std::vector<std::string>& popupFlags) {
-	return ImGui::BeginPopupContextItem(name.c_str(), PopupFlags(popupFlags));
+	uint32_t popupFlags) {
+	return ImGui::BeginPopupContextItem(name.c_str(), popupFlags);
 }
 
 bool BeginPopupContextWindow(
 	const std::string& name,
-	const std::vector<std::string>& popupFlags) {
-	return ImGui::BeginPopupContextWindow(name.c_str(), PopupFlags(popupFlags));
+	uint32_t popupFlags) {
+	return ImGui::BeginPopupContextWindow(name.c_str(), popupFlags);
 }
 
 bool BeginPopupContextVoid(
 	const std::string& name,
-	const std::vector<std::string>& popupFlags) {
-	return ImGui::BeginPopupContextWindow(name.c_str(), PopupFlags(popupFlags));
+	uint32_t popupFlags) {
+	return ImGui::BeginPopupContextWindow(name.c_str(), popupFlags);
 }
 
 void LabelText(const std::string& label, const std::string& text) {
@@ -1173,9 +1175,9 @@ bool DragFloat(
 	float v_min,
 	float v_max,
 	const std::string& display_format,
-	const std::vector<std::string>& flags) {
+	uint32_t sliderFlags) {
 	float v = s_cast<float>(std::get<double>(stack->pop()));
-	bool changed = ImGui::DragFloat(label.c_str(), &v, v_speed, v_min, v_max, display_format.c_str(), SliderFlags(flags));
+	bool changed = ImGui::DragFloat(label.c_str(), &v, v_speed, v_min, v_max, display_format.c_str(), sliderFlags);
 	stack->push(v);
 	return changed;
 }
@@ -1187,11 +1189,11 @@ bool DragFloat2(
 	float v_min,
 	float v_max,
 	const std::string& display_format,
-	const std::vector<std::string>& flags) {
+	uint32_t sliderFlags) {
 	float floats[2] = {
 		s_cast<float>(std::get<double>(stack->pop())),
 		s_cast<float>(std::get<double>(stack->pop()))};
-	bool changed = ImGui::DragFloat2(label.c_str(), floats, v_speed, v_min, v_max, display_format.c_str(), SliderFlags(flags));
+	bool changed = ImGui::DragFloat2(label.c_str(), floats, v_speed, v_min, v_max, display_format.c_str(), sliderFlags);
 	stack->push(floats[0]);
 	stack->push(floats[1]);
 	return changed;
@@ -1204,9 +1206,9 @@ bool DragInt(
 	int v_min,
 	int v_max,
 	const std::string& display_format,
-	const std::vector<std::string>& flags) {
+	uint32_t sliderFlags) {
 	int v = s_cast<int>(std::get<int64_t>(stack->pop()));
-	bool changed = ImGui::DragInt(label.c_str(), &v, v_speed, v_min, v_max, display_format.c_str(), SliderFlags(flags));
+	bool changed = ImGui::DragInt(label.c_str(), &v, v_speed, v_min, v_max, display_format.c_str(), sliderFlags);
 	stack->push(s_cast<int64_t>(v));
 	return changed;
 }
@@ -1218,11 +1220,11 @@ bool DragInt2(
 	int v_min,
 	int v_max,
 	const std::string& display_format,
-	const std::vector<std::string>& flags) {
+	uint32_t sliderFlags) {
 	int ints[] = {
 		s_cast<int>(std::get<int64_t>(stack->pop())),
 		s_cast<int>(std::get<int64_t>(stack->pop()))};
-	bool changed = ImGui::DragInt2(label.c_str(), ints, v_speed, v_min, v_max, display_format.c_str(), SliderFlags(flags));
+	bool changed = ImGui::DragInt2(label.c_str(), ints, v_speed, v_min, v_max, display_format.c_str(), sliderFlags);
 	stack->push(s_cast<int64_t>(ints[0]));
 	stack->push(s_cast<int64_t>(ints[1]));
 	return changed;
@@ -1234,9 +1236,9 @@ bool InputFloat(
 	float step,
 	float step_fast,
 	const std::string& format,
-	const std::vector<std::string>& flags) {
+	uint32_t inputTextFlags) {
 	float v = s_cast<float>(std::get<double>(stack->pop()));
-	bool changed = ImGui::InputFloat(label.c_str(), &v, step, step_fast, format.c_str(), InputTextFlags(flags));
+	bool changed = ImGui::InputFloat(label.c_str(), &v, step, step_fast, format.c_str(), inputTextFlags);
 	stack->push(v);
 	return changed;
 }
@@ -1245,11 +1247,11 @@ bool InputFloat2(
 	const std::string& label,
 	CallStack* stack, // v1, v2
 	const std::string& format,
-	const std::vector<std::string>& flags) {
+	uint32_t inputTextFlags) {
 	float floats[2] = {
 		s_cast<float>(std::get<double>(stack->pop())),
 		s_cast<float>(std::get<double>(stack->pop()))};
-	bool changed = ImGui::InputFloat2(label.c_str(), floats, format.c_str(), InputTextFlags(flags));
+	bool changed = ImGui::InputFloat2(label.c_str(), floats, format.c_str(), inputTextFlags);
 	stack->push(floats[0]);
 	stack->push(floats[1]);
 	return changed;
@@ -1260,9 +1262,9 @@ bool InputInt(
 	CallStack* stack, // v
 	int step,
 	int step_fast,
-	const std::vector<std::string>& flags) {
+	uint32_t inputTextFlags) {
 	int v = s_cast<int>(std::get<int64_t>(stack->pop()));
-	bool changed = ImGui::InputInt(label.c_str(), &v, step, step_fast, InputTextFlags(flags));
+	bool changed = ImGui::InputInt(label.c_str(), &v, step, step_fast, inputTextFlags);
 	stack->push(s_cast<int64_t>(v));
 	return changed;
 }
@@ -1270,11 +1272,11 @@ bool InputInt(
 bool InputInt2(
 	const std::string& label,
 	CallStack* stack, // v1, v2
-	const std::vector<std::string>& flags) {
+	uint32_t inputTextFlags) {
 	int ints[] = {
 		s_cast<int>(std::get<int64_t>(stack->pop())),
 		s_cast<int>(std::get<int64_t>(stack->pop()))};
-	bool changed = ImGui::InputInt2(label.c_str(), ints, InputTextFlags(flags));
+	bool changed = ImGui::InputInt2(label.c_str(), ints, inputTextFlags);
 	stack->push(s_cast<int64_t>(ints[0]));
 	stack->push(s_cast<int64_t>(ints[1]));
 	return changed;
@@ -1286,9 +1288,9 @@ bool SliderFloat(
 	float v_min,
 	float v_max,
 	const std::string& format,
-	const std::vector<std::string>& flags) {
+	uint32_t sliderFlags) {
 	float v = s_cast<float>(std::get<double>(stack->pop()));
-	bool changed = ImGui::SliderFloat(label.c_str(), &v, v_min, v_max, format.c_str(), SliderFlags(flags));
+	bool changed = ImGui::SliderFloat(label.c_str(), &v, v_min, v_max, format.c_str(), sliderFlags);
 	stack->push(v);
 	return changed;
 }
@@ -1299,11 +1301,11 @@ bool SliderFloat2(
 	float v_min,
 	float v_max,
 	const std::string& display_format,
-	const std::vector<std::string>& flags) {
+	uint32_t sliderFlags) {
 	float floats[2] = {
 		s_cast<float>(std::get<double>(stack->pop())),
 		s_cast<float>(std::get<double>(stack->pop()))};
-	bool changed = ImGui::SliderFloat2(label.c_str(), floats, v_min, v_max, display_format.c_str(), SliderFlags(flags));
+	bool changed = ImGui::SliderFloat2(label.c_str(), floats, v_min, v_max, display_format.c_str(), sliderFlags);
 	stack->push(floats[0]);
 	stack->push(floats[1]);
 	return changed;
@@ -1315,9 +1317,9 @@ bool SliderInt(
 	int v_min,
 	int v_max,
 	const std::string& format,
-	const std::vector<std::string>& flags) {
+	uint32_t sliderFlags) {
 	int v = s_cast<int>(std::get<int64_t>(stack->pop()));
-	bool changed = ImGui::SliderInt(label.c_str(), &v, v_min, v_max, format.c_str(), SliderFlags(flags));
+	bool changed = ImGui::SliderInt(label.c_str(), &v, v_min, v_max, format.c_str(), sliderFlags);
 	stack->push(s_cast<int64_t>(v));
 	return changed;
 }
@@ -1328,11 +1330,11 @@ bool SliderInt2(
 	int v_min,
 	int v_max,
 	const std::string& display_format,
-	const std::vector<std::string>& flags) {
+	uint32_t sliderFlags) {
 	int ints[] = {
 		s_cast<int>(std::get<int64_t>(stack->pop())),
 		s_cast<int>(std::get<int64_t>(stack->pop()))};
-	bool changed = ImGui::SliderInt2(label.c_str(), ints, v_min, v_max, display_format.c_str(), SliderFlags(flags));
+	bool changed = ImGui::SliderInt2(label.c_str(), ints, v_min, v_max, display_format.c_str(), sliderFlags);
 	stack->push(s_cast<int64_t>(ints[0]));
 	stack->push(s_cast<int64_t>(ints[1]));
 	return changed;
@@ -1346,10 +1348,10 @@ bool DragFloatRange2(
 	float v_max,
 	const std::string& format,
 	const std::string& format_max,
-	const std::vector<std::string>& flags) {
+	uint32_t sliderFlags) {
 	float v_current_min = s_cast<float>(std::get<double>(stack->pop()));
 	float v_current_max = s_cast<float>(std::get<double>(stack->pop()));
-	bool changed = ImGui::DragFloatRange2(label.c_str(), &v_current_min, &v_current_max, v_speed, v_min, v_max, format.c_str(), format_max.c_str(), SliderFlags(flags));
+	bool changed = ImGui::DragFloatRange2(label.c_str(), &v_current_min, &v_current_max, v_speed, v_min, v_max, format.c_str(), format_max.c_str(), sliderFlags);
 	stack->push(v_current_min);
 	stack->push(v_current_max);
 	return changed;
@@ -1363,10 +1365,10 @@ bool DragIntRange2(
 	int v_max,
 	const std::string& format,
 	const std::string& format_max,
-	const std::vector<std::string>& flags) {
+	uint32_t sliderFlags) {
 	int v_current_min = s_cast<int>(std::get<int64_t>(stack->pop()));
 	int v_current_max = s_cast<int>(std::get<int64_t>(stack->pop()));
-	bool changed = ImGui::DragIntRange2(label.c_str(), &v_current_min, &v_current_max, v_speed, v_min, v_max, format.c_str(), format_max.c_str(), SliderFlags(flags));
+	bool changed = ImGui::DragIntRange2(label.c_str(), &v_current_min, &v_current_max, v_speed, v_min, v_max, format.c_str(), format_max.c_str(), sliderFlags);
 	stack->push(s_cast<int64_t>(v_current_min));
 	stack->push(s_cast<int64_t>(v_current_max));
 	return changed;
@@ -1379,9 +1381,9 @@ bool VSliderFloat(
 	float v_min,
 	float v_max,
 	const std::string& format,
-	const std::vector<std::string>& flags) {
+	uint32_t sliderFlags) {
 	float v = s_cast<float>(std::get<double>(stack->pop()));
-	bool changed = ImGui::VSliderFloat(label.c_str(), size, &v, v_min, v_max, format.c_str(), SliderFlags(flags));
+	bool changed = ImGui::VSliderFloat(label.c_str(), size, &v, v_min, v_max, format.c_str(), sliderFlags);
 	stack->push(v);
 	return changed;
 }
@@ -1393,27 +1395,30 @@ bool VSliderInt(
 	int v_min,
 	int v_max,
 	const std::string& format,
-	const std::vector<std::string>& flags) {
+	uint32_t sliderFlags) {
 	int v = s_cast<int>(std::get<int64_t>(stack->pop()));
-	bool changed = ImGui::VSliderInt(label.c_str(), size, &v, v_min, v_max, format.c_str(), SliderFlags(flags));
+	bool changed = ImGui::VSliderInt(label.c_str(), size, &v, v_min, v_max, format.c_str(), sliderFlags);
 	stack->push(s_cast<int64_t>(v));
 	return changed;
 }
 
-bool ColorEdit3(const std::string& label, CallStack* stack) {
-	Color3 color3{s_cast<uint32_t>(std::get<int64_t>(stack->pop()))};
-	bool changed = ColorEdit3(label.c_str(), &color3);
-	stack->push(s_cast<int64_t>(color3.toRGB()));
+bool ColorEdit3(
+	const std::string& label,
+	CallStack* stack,
+	uint32_t colorEditFlags) {
+	auto color3 = Color3{s_cast<uint32_t>(std::get<int64_t>(stack->pop()))}.toVec3();
+	bool changed = ImGui::ColorEdit3(label.c_str(), color3, colorEditFlags);
+	stack->push(s_cast<int64_t>(Color3(color3).toRGB()));
 	return changed;
 }
 
 bool ColorEdit4(
 	const std::string& label,
 	CallStack* stack,
-	bool show_alpha) {
-	Color color{s_cast<uint32_t>(std::get<int64_t>(stack->pop()))};
-	bool changed = ColorEdit4(label.c_str(), &color, show_alpha);
-	stack->push(s_cast<int64_t>(color.toARGB()));
+	uint32_t colorEditFlags) {
+	auto color = Color{s_cast<uint32_t>(std::get<int64_t>(stack->pop()))}.toVec4();
+	bool changed = ImGui::ColorEdit4(label.c_str(), color, colorEditFlags);
+	stack->push(s_cast<int64_t>(Color(color).toARGB()));
 	return changed;
 }
 
@@ -1429,9 +1434,9 @@ bool ImageButton(
 bool ColorButton(
 	const std::string& desc_id,
 	Color col,
-	String flags,
+	uint32_t colorEditFlags,
 	const Vec2& size) {
-	return ColorButton(desc_id.c_str(), col, flags, size);
+	return ImGui::ColorButton(desc_id.c_str(), col.toVec4(), colorEditFlags, size);
 }
 
 void Columns(

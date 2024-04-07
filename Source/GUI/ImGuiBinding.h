@@ -41,8 +41,6 @@ NS_BEGIN(ImGui::Binding)
 
 using namespace Dora;
 
-extern std::vector<std::string> EmptyOptions;
-
 void LoadFontTTFAsync(
 	String ttfFontFile,
 	float fontSize,
@@ -69,12 +67,12 @@ bool Begin(
 
 bool Begin(
 	const std::string& name,
-	const std::vector<std::string>& windowFlags = EmptyOptions); //
+	uint32_t windowFlags = 0); //
 
 bool Begin(
 	const std::string& name,
 	CallStack* stack, // p_open
-	const std::vector<std::string>& windowFlags = EmptyOptions); //
+	uint32_t windowFlags = 0); //
 
 bool BeginChild(
 	const char* str_id,
@@ -95,14 +93,14 @@ bool BeginChild(
 bool BeginChild(
 	const std::string& str_id,
 	const Vec2& size = Vec2::zero,
-	const std::vector<std::string>& childFlags = EmptyOptions,
-	const std::vector<std::string>& windowFlags = EmptyOptions); //
+	uint32_t childFlags = 0,
+	uint32_t windowFlags = 0); //
 
 bool BeginChild(
 	ImGuiID id,
 	const Vec2& size,
-	const std::vector<std::string>& childFlags,
-	const std::vector<std::string>& windowFlags); //
+	uint32_t childFlags,
+	uint32_t windowFlags); //
 
 void SetNextWindowPos(
 	const Vec2& pos,
@@ -111,6 +109,10 @@ void SetNextWindowPos(
 
 void SetNextWindowPosCenter(
 	String setCond = nullptr,
+	const Vec2& pivot = Vec2::zero);
+
+void SetNextWindowPosCenter(
+	uint32_t setCond,
 	const Vec2& pivot = Vec2::zero);
 
 void SetNextWindowSize(
@@ -131,6 +133,11 @@ void SetWindowPos(
 	const Vec2& pos,
 	String setCond = nullptr); //
 
+void SetWindowPos(
+	const std::string& name,
+	const Vec2& pos,
+	uint32_t setCond);
+
 void SetWindowSize(
 	const char* name,
 	const Vec2& size,
@@ -140,6 +147,11 @@ void SetWindowSize(
 	const std::string& name,
 	const Vec2& size,
 	String setCond = nullptr); //
+
+void SetWindowSize(
+	const std::string& name,
+	const Vec2& size,
+	uint32_t setCond);
 
 void SetWindowCollapsed(
 	const char* name,
@@ -151,7 +163,14 @@ void SetWindowCollapsed(
 	bool collapsed,
 	String setCond = nullptr); //
 
-void SetColorEditOptions(String colorEditMode);
+void SetWindowCollapsed(
+	const std::string& name,
+	bool collapsed,
+	uint32_t setCond);
+
+void SetColorEditOptions(
+	Slice* colorEditFlags = nullptr,
+	int colorEditFlagCount = 0);
 
 bool InputText(
 	const char* label,
@@ -162,7 +181,7 @@ bool InputText(
 bool InputText(
 	const std::string& label,
 	Buffer* buffer,
-	const std::vector<std::string>& inputTextFlags = EmptyOptions); //
+	uint32_t inputTextFlags = 0); //
 
 bool InputTextMultiline(
 	const char* label,
@@ -175,7 +194,7 @@ bool InputTextMultiline(
 	const std::string& label,
 	Buffer* buffer,
 	const Vec2& size = Vec2::zero,
-	const std::vector<std::string>& inputTextFlags = EmptyOptions); //
+	uint32_t inputTextFlags = 0); //
 
 bool TreeNodeEx(
 	const char* label,
@@ -184,7 +203,7 @@ bool TreeNodeEx(
 
 bool TreeNodeEx(
 	const std::string& label,
-	const std::vector<std::string>& treeNodeFlags = EmptyOptions); //
+	uint32_t treeNodeFlags = 0); //
 
 bool TreeNodeEx(
 	const char* str_id,
@@ -195,7 +214,7 @@ bool TreeNodeEx(
 bool TreeNodeEx(
 	const std::string& str_id,
 	const std::string& text,
-	const std::vector<std::string>& treeNodeFlags = EmptyOptions); //
+	uint32_t treeNodeFlags = 0); //
 
 void SetNextItemOpen(
 	bool is_open,
@@ -214,12 +233,12 @@ bool CollapsingHeader(
 
 bool CollapsingHeader(
 	const std::string& label,
-	const std::vector<std::string>& treeNodeFlags = EmptyOptions); //
+	uint32_t treeNodeFlags = 0); //
 
 bool CollapsingHeader(
 	const std::string& label,
 	CallStack* stack, // p_open
-	const std::vector<std::string>& treeNodeFlags = EmptyOptions); //
+	uint32_t treeNodeFlags = 0); //
 
 bool Selectable(
 	const char* label,
@@ -235,13 +254,13 @@ bool Selectable(
 
 bool Selectable(
 	const std::string& label,
-	const std::vector<std::string>& selectableFlags = EmptyOptions); //
+	uint32_t selectableFlags = 0); //
 
 bool Selectable(
 	const std::string& label,
 	CallStack* stack, // p_selected
 	const Vec2& size = Vec2::zero,
-	const std::vector<std::string>& selectableFlags = EmptyOptions); //
+	uint32_t selectableFlags = 0); //
 
 bool BeginPopupModal(
 	const char* name,
@@ -256,12 +275,12 @@ bool BeginPopupModal(
 
 bool BeginPopupModal(
 	const std::string& name,
-	const std::vector<std::string>& windowFlags = EmptyOptions); //
+	uint32_t windowFlags = 0); //
 
 bool BeginPopupModal(
 	const std::string& name,
 	CallStack* stack, // p_open
-	const std::vector<std::string>& windowFlags = EmptyOptions); //
+	uint32_t windowFlags = 0); //
 
 bool BeginPopupContextItem(
 	const char* name,
@@ -280,19 +299,21 @@ bool BeginPopupContextVoid(
 
 bool BeginPopupContextItem(
 	const std::string& name,
-	const std::vector<std::string>& popupFlags = EmptyOptions); //
+	uint32_t popupFlags = 0); //
 
 bool BeginPopupContextWindow(
 	const std::string& name,
-	const std::vector<std::string>& popupFlags = EmptyOptions); //
+	uint32_t popupFlags = 0); //
 
 bool BeginPopupContextVoid(
 	const std::string& name,
-	const std::vector<std::string>& popupFlags = EmptyOptions); //
+	uint32_t popupFlags = 0); //
 
 void PushStyleColor(String name, Color color);
 void PushStyleVar(String name, float val);
 void PushStyleVar(String name, const Vec2& val);
+
+void PushStyleColor(uint32_t name, Color color);
 
 void Text(String text);
 void TextColored(Color color, String text);
@@ -338,7 +359,7 @@ bool DragFloat(
 	float v_min,
 	float v_max,
 	const std::string& display_format = "%.3f"s,
-	const std::vector<std::string>& sliderFlags = EmptyOptions); //
+	uint32_t sliderFlags = 0); //
 
 bool DragFloat2(
 	const char* label,
@@ -358,7 +379,7 @@ bool DragFloat2(
 	float v_min,
 	float v_max,
 	const std::string& display_format = "%.3f"s,
-	const std::vector<std::string>& sliderFlags = EmptyOptions); //
+	uint32_t sliderFlags = 0); //
 
 bool DragInt(
 	const char* label,
@@ -377,7 +398,7 @@ bool DragInt(
 	int v_min,
 	int v_max,
 	const std::string& display_format = "%d"s,
-	const std::vector<std::string>& sliderFlags = EmptyOptions); //
+	uint32_t sliderFlags = 0); //
 
 bool DragInt2(
 	const char* label,
@@ -397,7 +418,7 @@ bool DragInt2(
 	int v_min,
 	int v_max,
 	const std::string& display_format = "%.0f"s,
-	const std::vector<std::string>& sliderFlags = EmptyOptions); //
+	uint32_t sliderFlags = 0); //
 
 bool InputFloat(
 	const char* label,
@@ -414,7 +435,7 @@ bool InputFloat(
 	float step = 0.0f,
 	float step_fast = 0.0f,
 	const std::string& format = "%.3f"s,
-	const std::vector<std::string>& inputTextFlags = EmptyOptions); //
+	uint32_t inputTextFlags = 0); //
 
 bool InputFloat2(
 	const char* label,
@@ -428,7 +449,7 @@ bool InputFloat2(
 	const std::string& label,
 	CallStack* stack, // v1, v2
 	const std::string& format = "%.1f"s,
-	const std::vector<std::string>& inputTextFlags = EmptyOptions); //
+	uint32_t inputTextFlags = 0); //
 
 bool InputInt(
 	const char* label,
@@ -443,7 +464,7 @@ bool InputInt(
 	CallStack* stack, // v
 	int step = 1,
 	int step_fast = 100,
-	const std::vector<std::string>& inputTextFlags = EmptyOptions); //
+	uint32_t inputTextFlags = 0); //
 
 bool InputInt2(
 	const char* label,
@@ -455,7 +476,7 @@ bool InputInt2(
 bool InputInt2(
 	const std::string& label,
 	CallStack* stack, // v1, v2
-	const std::vector<std::string>& inputTextFlags = EmptyOptions); //
+	uint32_t inputTextFlags = 0); //
 
 bool SliderFloat(
 	const char* label,
@@ -472,7 +493,7 @@ bool SliderFloat(
 	float v_min,
 	float v_max,
 	const std::string& format = "%.3f"s,
-	const std::vector<std::string>& sliderFlags = EmptyOptions); //
+	uint32_t sliderFlags = 0); //
 
 bool SliderFloat2(
 	const char* label,
@@ -490,7 +511,7 @@ bool SliderFloat2(
 	float v_min,
 	float v_max,
 	const std::string& display_format = "%.3f"s,
-	const std::vector<std::string>& sliderFlags = EmptyOptions); //
+	uint32_t sliderFlags = 0); //
 
 bool SliderInt(
 	const char* label,
@@ -507,7 +528,7 @@ bool SliderInt(
 	int v_min,
 	int v_max,
 	const std::string& format = "%d"s,
-	const std::vector<std::string>& sliderFlags = EmptyOptions); //
+	uint32_t sliderFlags = 0); //
 
 bool SliderInt2(
 	const char* label,
@@ -525,7 +546,7 @@ bool SliderInt2(
 	int v_min,
 	int v_max,
 	const std::string& display_format = "%.0f"s,
-	const std::vector<std::string>& sliderFlags = EmptyOptions); //
+	uint32_t sliderFlags = 0); //
 
 bool DragFloatRange2(
 	const char* label,
@@ -547,7 +568,7 @@ bool DragFloatRange2(
 	float v_max,
 	const std::string& format = "%.3f"s,
 	const std::string& format_max = nullptr,
-	const std::vector<std::string>& sliderFlags = EmptyOptions); //
+	uint32_t sliderFlags = 0); //
 
 bool DragIntRange2(
 	const char* label,
@@ -569,7 +590,7 @@ bool DragIntRange2(
 	int v_max,
 	const std::string& format = "%d"s,
 	const std::string& format_max = nullptr,
-	const std::vector<std::string>& sliderFlags = EmptyOptions); //
+	uint32_t sliderFlags = 0); //
 
 bool VSliderFloat(
 	const char* label,
@@ -588,7 +609,7 @@ bool VSliderFloat(
 	float v_min,
 	float v_max,
 	const std::string& format = "%.3f"s,
-	const std::vector<std::string>& sliderFlags = EmptyOptions); //
+	uint32_t sliderFlags = 0); //
 
 bool VSliderInt(
 	const char* label,
@@ -607,21 +628,22 @@ bool VSliderInt(
 	int v_min,
 	int v_max,
 	const std::string& format = "%d"s,
-	const std::vector<std::string>& sliderFlags = EmptyOptions); //
+	uint32_t sliderFlags = 0); //
 
-bool ColorEdit3(const char* label, Color3* color3);
+bool ColorEdit3(const char* label, Color3* color3, Slice* colorEditFlags = nullptr, int colorEditFlagCount = 0);
 
-bool ColorEdit3(const std::string& label, CallStack* stack /* color3 */);
+bool ColorEdit3(const std::string& label, CallStack* stack /* color3 */, uint32_t colorEditFlags = 0);
 
 bool ColorEdit4(
 	const char* label,
 	Color* color,
-	bool show_alpha = true);
+	Slice* colorEditFlags = nullptr,
+	int colorEditFlagCount = 0);
 
 bool ColorEdit4(
 	const std::string& label,
 	CallStack* stack, // color4
-	bool show_alpha = true); //
+	uint32_t colorEditFlags = 0); //
 
 void Image(
 	String clipStr,
@@ -646,13 +668,14 @@ bool ImageButton(
 bool ColorButton(
 	const char* desc_id,
 	Color col,
-	String flags = nullptr,
+	Slice* colorEditFlags = nullptr,
+	int colorEditFlagCount = 0,
 	const Vec2& size = Vec2::zero);
 
 bool ColorButton(
 	const std::string& desc_id,
 	Color col,
-	String flags = nullptr,
+	uint32_t colorEditFlags = 0,
 	const Vec2& size = Vec2::zero); //
 
 void Columns(
@@ -682,7 +705,7 @@ bool BeginTable(
 	int column,
 	const Vec2& outer_size = Vec2::zero,
 	float inner_width = 0.0f,
-	const std::vector<std::string>& tableFlags = EmptyOptions); //
+	uint32_t tableFlags = 0); //
 
 void TableNextRow(
 	float min_row_height = 0.0f,
@@ -699,7 +722,7 @@ void TableSetupColumn(
 	const std::string& label,
 	float init_width_or_weight = 0.0f,
 	uint32_t user_id = 0,
-	const std::vector<std::string>& tableColumnFlags = EmptyOptions); //
+	uint32_t tableColumnFlags = 0); //
 
 void SetStyleVar(String name, bool var);
 void SetStyleVar(String name, float var);

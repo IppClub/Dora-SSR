@@ -54,7 +54,7 @@ threadLoop ->
 					sprite.opacity = opacity
 			ImGui.PushItemWidth -1, ->
 				:color3 = sprite
-				ImGui.SetColorEditOptions "RGB"
+				ImGui.SetColorEditOptions ["DisplayRGB",]
 				if ImGui.ColorEdit3 "", color3
 					sprite.color3 = color3
 		if ImGui.Button "Reset", Vec2 140, 30

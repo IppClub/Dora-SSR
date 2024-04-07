@@ -57,6 +57,7 @@ public:
 	void scheduleUpdate();
 	void unscheduleUpdate();
 	void clear();
+	static bool isInWasm();
 
 protected:
 	WasmRuntime();
@@ -70,6 +71,7 @@ private:
 	Ref<Scheduler> _postScheduler;
 	std::shared_ptr<bool> _scheduling;
 	std::pair<OwnArray<uint8_t>, size_t> _wasm;
+	static int _callFromWasm;
 	SINGLETON_REF(WasmRuntime, LuaEngine);
 };
 
