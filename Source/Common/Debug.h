@@ -17,7 +17,7 @@ extern Acf::Delegate<void(const std::string&)> LogHandler;
 void LogError(const std::string& str);
 void LogPrintInThread(const std::string& str);
 
-bool IsInLua();
+bool IsInLuaOrWasm();
 
 #define LogPrint(...) \
 	Dora::LogPrintInThread(fmt::format(__VA_ARGS__))
@@ -64,7 +64,7 @@ bool IsInLua();
 			auto msg = fmt::format("[Dora Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
 				__FILE__, __FUNCTION__, __LINE__, \
 				fmt::format(__VA_ARGS__)); \
-			if (Dora::IsInLua()) { \
+			if (Dora::IsInLuaOrWasm()) { \
 				throw std::runtime_error(msg); \
 			} else { \
 				Dora::LogError(msg + '\n'); \
@@ -78,7 +78,7 @@ bool IsInLua();
 			auto msg = fmt::format("[Dora Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
 				__FILE__, __FUNCTION__, __LINE__, \
 				fmt::format(__VA_ARGS__)); \
-			if (Dora::IsInLua()) { \
+			if (Dora::IsInLuaOrWasm()) { \
 				throw std::runtime_error(msg); \
 			} else { \
 				Dora::LogError(msg + '\n'); \
@@ -91,7 +91,7 @@ bool IsInLua();
 		auto msg = fmt::format("[Dora Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
 			__FILE__, __FUNCTION__, __LINE__, \
 			fmt::format(__VA_ARGS__)); \
-		if (Dora::IsInLua()) { \
+		if (Dora::IsInLuaOrWasm()) { \
 			throw std::runtime_error(msg); \
 		} else { \
 			Dora::LogError(msg + '\n'); \

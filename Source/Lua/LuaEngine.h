@@ -29,7 +29,6 @@ class LuaEngine {
 public:
 	virtual ~LuaEngine();
 	PROPERTY_READONLY(lua_State*, State);
-	PROPERTY_READONLY_BOOL(InLua);
 	PROPERTY_READONLY(int, MemoryCount);
 
 	std::pair<std::string, std::string> compileTealToLua(String tlCodes, String filename, String searchPath);
@@ -212,6 +211,7 @@ public:
 	static bool execute(lua_State* L, int numArgs); // returns function result
 	static bool invoke(lua_State* L, int handler, int numArgs, int numRets); // returns success or failure
 
+	static bool isInLua();
 private:
 	struct TealState {
 		lua_State* L;

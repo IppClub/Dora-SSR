@@ -1423,6 +1423,8 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "blackboard_get", blackboard_get);
 }
 
+int WasmRuntime::_callFromWasm = 0;
+
 WasmRuntime::WasmRuntime() {
 	_env = New<wasm3::environment>();
 	_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
@@ -1436,6 +1438,8 @@ bool WasmRuntime::executeMainFile(String filename) {
 		return false;
 	}
 	try {
+		_callFromWasm++;
+		DEFER(_callFromWasm--);
 		PROFILE("Loader"_slice, filename);
 		{
 			PROFILE("Loader"_slice, filename.toString() + " [Load]"s);
@@ -1488,6 +1492,8 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 			},
 			[file, handler, this](Own<Values> values) {
 				try {
+					_callFromWasm++;
+					DEFER(_callFromWasm--);
 					PROFILE("Loader"_slice, file);
 					Own<wasm3::module3> mod;
 					Own<wasm3::function> mainFn;
@@ -1509,6 +1515,8 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 void WasmRuntime::invoke(int32_t funcId) {
 	AssertUnless(_callFunc, "wasm module is not ready");
 	try {
+		_callFromWasm++;
+		DEFER(_callFromWasm--);
 		_callFunc->call(funcId);
 	} catch (std::runtime_error& e) {
 		Error("failed to execute wasm module due to: {}{}", e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
@@ -1583,6 +1591,10 @@ void WasmRuntime::clear() {
 	_env = New<wasm3::environment>();
 	_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
 	_wasm = {nullptr, 0};
+}
+
+bool WasmRuntime::isInWasm() {
+	return _callFromWasm > 0;
 }
 
 NS_DORA_END

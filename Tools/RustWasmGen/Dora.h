@@ -4630,152 +4630,152 @@ static void Binding::ShowConsole @ showConsole();
 
 static bool Binding::Begin @ begin(string name);
 
-static bool Binding::Begin @ beginOpts(
+static bool Binding::Begin @ _beginOpts(
 	string name,
-	VecStr windowsFlags);
+	uint32_t windowsFlags);
 
 static void End @ end();
 
 static bool Binding::BeginChild @ beginChild(string str_id);
 
-static bool Binding::BeginChild @ beginChildOpts(
+static bool Binding::BeginChild @ _beginChildOpts(
 	string str_id,
 	Vec2 size,
-	VecStr childFlags,
-	VecStr windowFlags);
+	uint32_t childFlags,
+	uint32_t windowFlags);
 
 static bool Binding::BeginChild @ beginChildWith_id(uint32_t id);
 
-static bool Binding::BeginChild @ beginChildWith_idOpts(
+static bool Binding::BeginChild @ _beginChildWith_idOpts(
 	uint32_t id,
 	Vec2 size,
-	VecStr childFlags,
-	VecStr windowFlags);
+	uint32_t childFlags,
+	uint32_t windowFlags);
 
 static void EndChild @ endChild();
 
 static void Binding::SetNextWindowPosCenter @ setNextWindowPosCenter();
 
-static void Binding::SetNextWindowPosCenter @ setNextWindowPosCenterWithCond(string setCond);
+static void Binding::SetNextWindowPosCenter @ _setNextWindowPosCenterWithCond(uint32_t setCond);
 
-static void Binding::SetNextWindowSize @ setNextWindowSize(Vec2 size);
+static void SetNextWindowSize @ setNextWindowSize(Vec2 size);
 
-static void Binding::SetNextWindowSize @ setNextWindowSizeWithCond(
+static void SetNextWindowSize @ _setNextWindowSizeWithCond(
 	Vec2 size,
-	string setCond);
+	uint32_t setCond);
 
-static void Binding::SetNextWindowCollapsed @ setNextWindowCollapsed(bool collapsed);
+static void SetNextWindowCollapsed @ setNextWindowCollapsed(bool collapsed);
 
-static void Binding::SetNextWindowCollapsed @ setNextWindowCollapsedWithCond(
+static void SetNextWindowCollapsed @ _setNextWindowCollapsedWithCond(
 	bool collapsed,
-	string setCond);
+	uint32_t setCond);
 
 static void Binding::SetWindowPos @ setWindowPos(string name, Vec2 pos);
 
-static void Binding::SetWindowPos @ setWindowPosWithCond(
+static void Binding::SetWindowPos @ _setWindowPosWithCond(
 	string name,
 	Vec2 pos,
-	string setCond);
+	uint32_t setCond);
 
 static void Binding::SetWindowSize @ setWindowSize(
 	string name,
 	Vec2 size);
 
-static void Binding::SetWindowSize @ setWindowSizeWithCond(
+static void Binding::SetWindowSize @ _setWindowSizeWithCond(
 	string name,
 	Vec2 size,
-	string setCond);
+	uint32_t setCond);
 
 static void Binding::SetWindowCollapsed @ setWindowCollapsed(
 	string name,
 	bool collapsed);
 
-static void Binding::SetWindowCollapsed @ setWindowCollapsedWithCond(
+static void Binding::SetWindowCollapsed @ _setWindowCollapsedWithCond(
 	string name,
 	bool collapsed,
-	string setCond);
+	uint32_t setCond);
 
-static void Binding::SetColorEditOptions @ setColorEditOptions(string colorEditMode);
+static void SetColorEditOptions @ _setColorEditOptions(uint32_t colorEditFlags);
 
 static bool Binding::InputText @ inputText(
 	string label,
 	Buffer* buffer);
 
-static bool Binding::InputText @ inputTextOpts(
+static bool Binding::InputText @ _inputTextOpts(
 	string label,
 	Buffer* buffer,
-	VecStr inputTextFlags);
+	uint32_t inputTextFlags);
 
 static bool Binding::InputTextMultiline @ inputTextMultiline(
 	string label,
 	Buffer* buffer);
 
-static bool Binding::InputTextMultiline @ inputTextMultilineOpts(
+static bool Binding::InputTextMultiline @ _inputTextMultilineOpts(
 	string label,
 	Buffer* buffer,
 	Vec2 size,
-	VecStr inputTextFlags);
+	uint32_t inputTextFlags);
 
 static bool Binding::TreeNodeEx @ treeNodeEx(string label);
 
-static bool Binding::TreeNodeEx @ treeNodeExOpts(
+static bool Binding::TreeNodeEx @ _treeNodeExOpts(
 	string label,
-	VecStr treeNodeFlags);
+	uint32_t treeNodeFlags);
 
 static bool Binding::TreeNodeEx @ treeNodeExWith_id(
 	string str_id,
 	string text);
 
-static bool Binding::TreeNodeEx @ treeNodeExWith_idOpts(
+static bool Binding::TreeNodeEx @ _treeNodeExWith_idOpts(
 	string str_id,
 	string text,
-	VecStr treeNodeFlags);
+	uint32_t treeNodeFlags);
 
-static void Binding::SetNextItemOpen @ setNextItemOpen(bool is_open);
+static void SetNextItemOpen @ setNextItemOpen(bool is_open);
 
-static void Binding::SetNextItemOpen @ setNextItemOpenWithCond(
+static void SetNextItemOpen @ _setNextItemOpenWithCond(
 	bool is_open,
-	string setCond);
+	uint32_t setCond);
 
 static bool Binding::CollapsingHeader @ collapsingHeader(string label);
 
-static bool Binding::CollapsingHeader @ collapsingHeaderOpts(
+static bool Binding::CollapsingHeader @ _collapsingHeaderOpts(
 	string label,
-	VecStr treeNodeFlags);
+	uint32_t treeNodeFlags);
 
 static bool Binding::Selectable @ selectable(string label);
 
-static bool Binding::Selectable @ selectableOpts(
+static bool Binding::Selectable @ _selectableOpts(
 	string label,
-	VecStr selectableFlags);
+	uint32_t selectableFlags);
 
 static bool Binding::BeginPopupModal @ beginPopupModal(string name);
 
-static bool Binding::BeginPopupModal @ beginPopupModalOpts(
+static bool Binding::BeginPopupModal @ _beginPopupModalOpts(
 	string name,
-	VecStr windowsFlags);
+	uint32_t windowsFlags);
 
 static bool Binding::BeginPopupContextItem @ beginPopupContextItem(string name);
 
-static bool Binding::BeginPopupContextItem @ beginPopupContextItemOpts(
+static bool Binding::BeginPopupContextItem @ _beginPopupContextItemOpts(
 	string name,
-	VecStr popupFlags);
+	uint32_t popupFlags);
 
 static bool Binding::BeginPopupContextWindow @ beginPopupContextWindow(string name);
 
-static bool Binding::BeginPopupContextWindow @ beginPopupContextWindowOpts(
+static bool Binding::BeginPopupContextWindow @ _beginPopupContextWindowOpts(
 	string name,
-	VecStr popupFlags);
+	uint32_t popupFlags);
 
 static bool Binding::BeginPopupContextVoid @ beginPopupContextVoid(string name);
 
-static bool Binding::BeginPopupContextVoid @ beginPopupContextVoidOpts(
+static bool Binding::BeginPopupContextVoid @ _beginPopupContextVoidOpts(
 	string name,
-	VecStr popupFlags);
+	uint32_t popupFlags);
 
-static void Binding::PushStyleColor @ bushStyleColor(string name, Color color);
-static void Binding::PushStyleVar @ pushStyleFloat(string name, float val);
-static void Binding::PushStyleVar @ pushStyleVec2(string name, Vec2 val);
+static void Binding::PushStyleColor @ _pushStyleColor(uint32_t name, Color color);
+static void PushStyleVar @ _pushStyleFloat(uint32_t name, float val);
+static void PushStyleVar @ _pushStyleVec2(uint32_t name, Vec2 val);
 
 static void Binding::Text @ text(string text);
 static void Binding::TextColored @ textColored(Color color, string text);
@@ -4816,7 +4816,7 @@ static bool Binding::ColorButton @ colorButton(
 static bool Binding::ColorButton @ colorButtonOpts(
 	string desc_id,
 	Color col,
-	string flags,
+	uint32_t flags,
 	Vec2 size);
 
 static void Binding::Columns @ columns(int count);
@@ -4828,12 +4828,12 @@ static void Binding::Columns @ columnsOpts(
 
 static bool Binding::BeginTable @ beginTable(string str_id, int column);
 
-static bool Binding::BeginTable @ beginTableOpts(
+static bool Binding::BeginTable @ _beginTableOpts(
 	string str_id,
 	int column,
 	Vec2 outer_size,
 	float inner_width,
-	VecStr tableFlags);
+	uint32_t tableFlags);
 
 static void Binding::TableNextRow @ tableNextRow();
 
@@ -4843,11 +4843,11 @@ static void Binding::TableNextRow @ tableNextRowOpts(
 
 static void Binding::TableSetupColumn @ tableSetupColumn(string label);
 
-static void Binding::TableSetupColumn @ tableSetupColumnOpts(
+static void Binding::TableSetupColumn @ _tableSetupColumnOpts(
 	string label,
 	float init_width_or_weight,
 	uint32_t user_id,
-	VecStr tableColumnFlags);
+	uint32_t tableColumnFlags);
 
 static void Binding::SetStyleVar @ setStyleBool(string name, bool var);
 static void Binding::SetStyleVar @ setStyleFloat(string name, float var);
@@ -4858,38 +4858,38 @@ static bool Binding::Begin @ _begin(
 	string name,
 	CallStack* stack);
 
-static bool Binding::Begin @ _beginOpts(
+static bool Binding::Begin @ _begin_ret_opts(
 	string name,
 	CallStack* stack,
-	VecStr windowsFlags);
+	uint32_t windowsFlags);
 
-static bool Binding::CollapsingHeader @ _collapsingHeader(
+static bool Binding::CollapsingHeader @ _collapsingHeader_ret(
 	string label,
 	CallStack* stack);
 
-static bool Binding::CollapsingHeader @ _collapsingHeaderOpts(
+static bool Binding::CollapsingHeader @ _collapsingHeader_ret_opts(
 	string label,
 	CallStack* stack,
-	VecStr treeNodeFlags);
+	uint32_t treeNodeFlags);
 
-static bool Binding::Selectable @ _selectable(
+static bool Binding::Selectable @ _selectable_ret(
 	string label,
 	CallStack* stack);
 
-static bool Binding::Selectable @ _selectableOpts(
+static bool Binding::Selectable @ _selectable_ret_opts(
 	string label,
 	CallStack* stack,
 	Vec2 size,
-	VecStr selectableFlags);
+	uint32_t selectableFlags);
 
-static bool Binding::BeginPopupModal @ _beginPopupModal(
+static bool Binding::BeginPopupModal @ _beginPopupModal_ret(
 	string name,
 	CallStack* stack);
 
-static bool Binding::BeginPopupModal @ _beginPopupModalOpts(
+static bool Binding::BeginPopupModal @ _beginPopupModal_ret_opts(
 	string name,
 	CallStack* stack,
-	VecStr windowsFlags);
+	uint32_t windowsFlags);
 
 static bool Binding::Combo @ _combo(
 	string label,
@@ -4916,7 +4916,7 @@ static bool Binding::DragFloat @ _dragFloatOpts(
 	float v_min,
 	float v_max,
 	string display_format,
-	VecStr sliderFlags);
+	uint32_t sliderFlags);
 
 static bool Binding::DragFloat2 @ _dragFloat2(
 	string label,
@@ -4932,7 +4932,7 @@ static bool Binding::DragFloat2 @ _dragFloat2Opts(
 	float v_min,
 	float v_max,
 	string display_format,
-	VecStr sliderFlags);
+	uint32_t sliderFlags);
 
 static bool Binding::DragInt @ _dragInt(
 	string label,
@@ -4948,7 +4948,7 @@ static bool Binding::DragInt @ _dragIntOpts(
 	int v_min,
 	int v_max,
 	string display_format,
-	VecStr sliderFlags);
+	uint32_t sliderFlags);
 
 static bool Binding::DragInt2 @ _dragInt2(
 	string label,
@@ -4964,7 +4964,7 @@ static bool Binding::DragInt2 @ _dragInt2Opts(
 	int v_min,
 	int v_max,
 	string display_format,
-	VecStr sliderFlags);
+	uint32_t sliderFlags);
 
 static bool Binding::InputFloat @ _inputFloat(
 	string label,
@@ -4976,7 +4976,7 @@ static bool Binding::InputFloat @ _inputFloatOpts(
 	float step,
 	float step_fast,
 	string display_format,
-	VecStr inputTextFlags);
+	uint32_t inputTextFlags);
 
 static bool Binding::InputFloat2 @ _inputFloat2(
 	string label,
@@ -4986,7 +4986,7 @@ static bool Binding::InputFloat2 @ _inputFloat2Opts(
 	string label,
 	CallStack* stack,
 	string display_format,
-	VecStr inputTextFlags);
+	uint32_t inputTextFlags);
 
 static bool Binding::InputInt @ _inputInt(
 	string label,
@@ -4997,7 +4997,7 @@ static bool Binding::InputInt @ _inputIntOpts(
 	CallStack* stack,
 	int step,
 	int step_fast,
-	VecStr inputTextFlags);
+	uint32_t inputTextFlags);
 
 static bool Binding::InputInt2 @ _inputInt2(
 	string label,
@@ -5006,7 +5006,7 @@ static bool Binding::InputInt2 @ _inputInt2(
 static bool Binding::InputInt2 @ _inputInt2Opts(
 	string label,
 	CallStack* stack,
-	VecStr inputTextFlags);
+	uint32_t inputTextFlags);
 
 static bool Binding::SliderFloat @ _sliderFloat(
 	string label,
@@ -5020,7 +5020,7 @@ static bool Binding::SliderFloat @ _sliderFloatOpts(
 	float v_min,
 	float v_max,
 	string display_format,
-	VecStr sliderFlags);
+	uint32_t sliderFlags);
 
 static bool Binding::SliderFloat2 @ _sliderFloat2(
 	string label,
@@ -5034,7 +5034,7 @@ static bool Binding::SliderFloat2 @ _sliderFloat2Opts(
 	float v_min,
 	float v_max,
 	string display_format,
-	VecStr sliderFlags);
+	uint32_t sliderFlags);
 
 static bool Binding::SliderInt @ _sliderInt(
 	string label,
@@ -5048,7 +5048,7 @@ static bool Binding::SliderInt @ _sliderIntOpts(
 	int v_min,
 	int v_max,
 	string format,
-	VecStr sliderFlags);
+	uint32_t sliderFlags);
 
 static bool Binding::SliderInt2 @ _sliderInt2(
 	string label,
@@ -5062,7 +5062,7 @@ static bool Binding::SliderInt2 @ _sliderInt2Opts(
 	int v_min,
 	int v_max,
 	string display_format,
-	VecStr sliderFlags);
+	uint32_t sliderFlags);
 
 static bool Binding::DragFloatRange2 @ _dragFloatRange2(
 	string label,
@@ -5079,7 +5079,7 @@ static bool Binding::DragFloatRange2 @ _dragFloatRange2Opts(
 	float v_max,
 	string format,
 	string format_max,
-	VecStr sliderFlags);
+	uint32_t sliderFlags);
 
 static bool Binding::DragIntRange2 @ _dragIntRange2(
 	string label,
@@ -5096,7 +5096,7 @@ static bool Binding::DragIntRange2 @ _dragIntRange2Opts(
 	int v_max,
 	string format,
 	string format_max,
-	VecStr sliderFlags);
+	uint32_t sliderFlags);
 
 static bool Binding::VSliderFloat @ _vSliderFloat(
 	string label,
@@ -5112,7 +5112,7 @@ static bool Binding::VSliderFloat @ _vSliderFloatOpts(
 	float v_min,
 	float v_max,
 	string format,
-	VecStr sliderFlags);
+	uint32_t sliderFlags);
 
 static bool Binding::VSliderInt @ _vSliderInt(
 	string label,
@@ -5128,15 +5128,17 @@ static bool Binding::VSliderInt @ _vSliderIntOpts(
 	int v_min,
 	int v_max,
 	string format,
-	VecStr sliderFlags);
+	uint32_t sliderFlags);
 
 static bool Binding::ColorEdit3 @ _colorEdit3(string label, CallStack* stack);
+static bool Binding::ColorEdit3 @ _colorEdit3_opts(string label, CallStack* stack, uint32_t colorEditFlags);
 
-static bool Binding::ColorEdit4 @ _colorEdit4(string label, CallStack* stack, bool show_alpha);
+static bool Binding::ColorEdit4 @ _colorEdit4(string label, CallStack* stack);
+static bool Binding::ColorEdit4 @ _colorEdit4_opts(string label, CallStack* stack, uint32_t colorEditFlags);
 
 static void Binding::ScrollWhenDraggingOnVoid @ scrollWhenDraggingOnVoid();
 
-static void Binding::SetNextWindowPos @ setNextWindowPos(Vec2 pos, string setCond, Vec2 pivot);
+static void SetNextWindowPos @ _setNextWindowPos(Vec2 pos, uint32_t setCond, Vec2 pivot);
 static void SetNextWindowBgAlpha(float alpha);
 static void ShowDemoWindow();
 static Vec2 GetContentRegionMax();

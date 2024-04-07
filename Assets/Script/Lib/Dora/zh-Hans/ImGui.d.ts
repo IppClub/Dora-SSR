@@ -83,7 +83,8 @@ export const enum StyleVarNum {
 	ScrollbarRounding = "ScrollbarRounding",
 	GrabMinSize = "GrabMinSize",
 	GrabRounding = "GrabRounding",
-	TabRounding = "TabRounding"
+	TabRounding = "TabRounding",
+	SeparatorTextBorderSize = "SeparatorTextBorderSize"
 }
 
 export const enum StyleVarVec {
@@ -95,7 +96,9 @@ export const enum StyleVarVec {
 	ItemInnerSpacing = "ItemInnerSpacing",
 	CellPadding = "CellPadding",
 	ButtonTextAlign = "ButtonTextAlign",
-	SelectableTextAlign = "SelectableTextAlign"
+	SelectableTextAlign = "SelectableTextAlign",
+	SeparatorTextAlign = "SeparatorTextAlign",
+	SeparatorTextPadding = "SeparatorTextPadding"
 }
 
 export const enum StyleVarBool {
@@ -122,7 +125,10 @@ export const enum WindowFlag {
 	NoFocusOnAppearing = "NoFocusOnAppearing",
 	NoBringToFrontOnFocus = "NoBringToFrontOnFocus",
 	AlwaysVerticalScrollbar = "AlwaysVerticalScrollbar",
-	AlwaysHorizontalScrollbar = "AlwaysHorizontalScrollbar"
+	AlwaysHorizontalScrollbar = "AlwaysHorizontalScrollbar",
+	NoNavInputs = "NoNavInputs",
+	NoNavFocus = "NoNavFocus",
+	UnsavedDocument = "UnsavedDocument"
 }
 
 export const enum ChildFlag {
@@ -145,11 +151,31 @@ export const enum SetCond {
 	Appearing = "Appearing"
 }
 
-export const enum ColorEditMode {
+export const enum ColorEditFlag {
 	None = "",
-	RGB = "RGB",
-	HSV = "HSV",
-	HEX = "HEX"
+	NoAlpha = "NoAlpha",
+	NoPicker = "NoPicker",
+	NoOptions = "NoOptions",
+	NoSmallPreview = "NoSmallPreview",
+	NoInputs = "NoInputs",
+	NoTooltip = "NoTooltip",
+	NoLabel = "NoLabel",
+	NoSidePreview = "NoSidePreview",
+	NoDragDrop = "NoDragDrop",
+	NoBorder = "NoBorder",
+	AlphaBar = "AlphaBar",
+	AlphaPreview = "AlphaPreview",
+	AlphaPreviewHalf = "AlphaPreviewHalf",
+	HDR = "HDR",
+	DisplayRGB = "DisplayRGB",
+	DisplayHSV = "DisplayHSV",
+	DisplayHex = "DisplayHex",
+	Uint8 = "Uint8",
+	Float = "Float",
+	PickerHueBar = "PickerHueBar",
+	PickerHueWheel = "PickerHueWheel",
+	InputRGB = "InputRGB",
+	InputHSV = "InputHSV"
 }
 
 export const enum InputTextFlag {
@@ -169,7 +195,11 @@ export const enum InputTextFlag {
 	NoHorizontalScroll = "NoHorizontalScroll",
 	AlwaysOverwrite = "AlwaysOverwrite",
 	ReadOnly = "ReadOnly",
-	Password = "Password"
+	Password = "Password",
+	CharsScientific = "CharsScientific",
+	CallbackResize = "CallbackResize",
+	CallbackEdit = "CallbackEdit",
+	EscapeClearsAll = "EscapeClearsAll"
 }
 
 export const enum TreeNodeFlag {
@@ -184,6 +214,11 @@ export const enum TreeNodeFlag {
 	OpenOnArrow = "OpenOnArrow",
 	Leaf = "Leaf",
 	Bullet = "Bullet",
+	FramePadding = "FramePadding",
+	SpanAvailWidth = "SpanAvailWidth",
+	SpanFullWidth = "SpanFullWidth",
+	SpanAllColumns = "SpanAllColumns",
+	NavLeftJumpsBackHere = "NavLeftJumpsBackHere",
 	CollapsingHeader = "CollapsingHeader"
 }
 
@@ -229,7 +264,9 @@ export const enum TableFlag {
 	NoPadInnerX = "NoPadInnerX",
 	ScrollX = "ScrollX",
 	ScrollY = "ScrollY",
-	SortMulti = "SortMulti"
+	SortMulti = "SortMulti",
+	SortTristate = "SortTristate",
+	HighlightHoveredColumn = "HighlightHoveredColumn"
 }
 
 export const enum TableRowFlag {
@@ -274,6 +311,7 @@ export const enum PopupFlag {
 	MouseButtonLeft = "MouseButtonLeft",
 	MouseButtonRight = "MouseButtonRight",
 	MouseButtonMiddle = "MouseButtonMiddle",
+	NoReopen = "NoReopen",
 	NoOpenOverExistingPopup = "NoOpenOverExistingPopup",
 	NoOpenOverItems = "NoOpenOverItems",
 	AnyPopupId = "AnyPopupId",
@@ -318,7 +356,7 @@ export function SetNextWindowCollapsed(this: void, collapsed: boolean, setCond?:
 export function SetWindowPos(this: void, name: string, pos: Vec2, setCond?: SetCond): void;
 export function SetWindowSize(this: void, name: string, size: Vec2, setCond?: SetCond): void;
 export function SetWindowCollapsed(this: void, name: string, collapsed: boolean, setCond?: SetCond): void;
-export function SetColorEditOptions(this: void, colorEditMode: ColorEditMode): void;
+export function SetColorEditOptions(this: void, colorEditFlags: ColorEditFlag[]): void;
 export function InputTextMultiline(this: void, label: string, buffer: Buffer, inputTextFlags?: InputTextFlag): boolean;
 export function InputTextMultiline(this: void, label: string, buffer: Buffer, size?: Vec2, inputTextFlags?: InputTextFlag): boolean;
 export function TreeNodeEx(this: void, label: string, treeNodeFlags: TreeNodeFlag, inside: (this: void) => void): boolean;
@@ -345,13 +383,13 @@ export function LabelText(this: void, label: string, text: string): void;
 export function BulletText(this: void, text: string): void;
 export function SetTooltip(this: void, text: string): void;
 
-export function ColorEdit3(this: void, label: string, color3: Color3): boolean;
-export function ColorEdit4(this: void, label: string, color: Color, show_alpha?: boolean): boolean;
+export function ColorEdit3(this: void, label: string, color3: Color3, flags?: ColorEditFlag[]): boolean;
+export function ColorEdit4(this: void, label: string, color: Color, flags?: ColorEditFlag[]): boolean;
 
 export function Image(this: void, clipStr: string, size: Vec2, tint_col?: Color, border_col?: Color): void;
 export function ImageButton(this: void, str_id: string, clipStr: string, size: Vec2, frame_padding?: number, bg_col?: Color, tint_col?: Color): boolean;
 
-export function ColorButton(this: void, desc_id: string, col: Color, flags?: ColorEditMode, size?: Vec2): boolean;
+export function ColorButton(this: void, desc_id: string, col: Color, flags?: ColorEditFlag[], size?: Vec2): boolean;
 
 export function Columns(this: void, count?: number, border?: boolean, id?: string): void;
 

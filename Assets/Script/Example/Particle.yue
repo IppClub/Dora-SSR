@@ -100,7 +100,7 @@ Item = (name) ->
 				DataDirty, Data[name][3] = true, Vec2 x,y if changed
 			when "Color"
 				PushItemWidth -150, ->
-					SetColorEditOptions "RGB"
+					SetColorEditOptions ["DisplayRGB",]
 					changed = ColorEdit4 name, Data[name][3]
 					DataDirty = true if changed
 			when "bool"

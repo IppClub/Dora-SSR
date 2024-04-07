@@ -20,13 +20,19 @@ pub fn test() {
 	}));
 
 	let mut imgui_node = Node::new();
-	let windows_flags = vec!["NoDecoration", "AlwaysAutoResize", "NoSavedSettings", "NoFocusOnAppearing", "NoNav", "NoMove"];
+	let windows_flags =
+		ImGuiWindowFlag::NO_DECORATION |
+		ImGuiWindowFlag::AlwaysAutoResize |
+		ImGuiWindowFlag::NoSavedSettings |
+		ImGuiWindowFlag::NoFocusOnAppearing |
+		ImGuiWindowFlag::NO_NAV |
+		ImGuiWindowFlag::NoMove;
 	imgui_node.schedule(Box::new(move |_| {
 		let width = App::get_visual_size().width;
 		ImGui::set_next_window_bg_alpha(0.35);
-		ImGui::set_next_window_pos(&Vec2::new(width - 10.0, 10.0), "Always", &Vec2::new(1.0, 0.0));
-		ImGui::set_next_window_size_with_cond(&Vec2::new(240.0, 0.0), "FirstUseEver");
-		if ImGui::begin_opts("Hello World", &windows_flags) {
+		ImGui::set_next_window_pos(&Vec2::new(width - 10.0, 10.0), ImGuiCond::Always, &Vec2::new(1.0, 0.0));
+		ImGui::set_next_window_size_with_cond(&Vec2::new(240.0, 0.0), ImGuiCond::FirstUseEver);
+		if ImGui::begin_opts("Hello World", windows_flags) {
 			ImGui::text("Hello World");
 			ImGui::separator();
 			ImGui::text_wrapped("Basic Dora schedule and signal function usage. Written in Yuescript. View outputs in log window!");

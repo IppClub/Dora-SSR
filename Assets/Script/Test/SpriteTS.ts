@@ -1,4 +1,4 @@
-import { WindowFlag, SetCond, ColorEditMode } from "ImGui";
+import { WindowFlag, SetCond, ColorEditFlag } from "ImGui";
 import * as ImGui from "ImGui";
 import { App, Size, Slot, Sprite, Vec2, threadLoop } from "dora";
 
@@ -90,7 +90,7 @@ threadLoop(() => {
 			ImGui.PushItemWidth(-1, () => {
 				if (!sprite) return;
 				let color3 = sprite.color3;
-				ImGui.SetColorEditOptions(ColorEditMode.RGB);
+				ImGui.SetColorEditOptions([ColorEditFlag.DisplayRGB]);
 				if (ImGui.ColorEdit3("", color3)) {
 					sprite.color3 = color3;
 				}

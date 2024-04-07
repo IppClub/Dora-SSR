@@ -203,7 +203,7 @@ threadLoop(function() -- 23
                                 return -- 91
                             end -- 91
                             local color3 = sprite.color3 -- 92
-                            ImGui.SetColorEditOptions("RGB") -- 93
+                            ImGui.SetColorEditOptions({"DisplayRGB"}) -- 93
                             if ImGui.ColorEdit3("", color3) then -- 93
                                 sprite.color3 = color3 -- 95
                             end -- 95
