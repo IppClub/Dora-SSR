@@ -44,7 +44,7 @@ threadLoop ->
 	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
 	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
 	ImGui.Begin "Spine", windowFlags, ->
-		ImGui.Text "Spine"
+		ImGui.Text "Spine (Yuescript)"
 		ImGui.Separator!
 		ImGui.TextWrapped "Basic usage to create spine! Tap it for a hit test."
 		if changed, showDebug := ImGui.Checkbox "BoundingBox", showDebug

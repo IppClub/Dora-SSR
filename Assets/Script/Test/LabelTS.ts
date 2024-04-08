@@ -1,3 +1,4 @@
+// @preview-file off
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 import { App, Delay, Label, Node, Opacity, Scale, Sequence, Vec2, threadLoop } from "dora"
@@ -50,7 +51,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(size.width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
 	ImGui.Begin("Label", windowFlags, () => {
-		ImGui.Text("Label");
+		ImGui.Text("Label (Typescript)");
 		ImGui.Separator();
 		ImGui.TextWrapped("Render labels with unbatched and batched methods!");
 	});

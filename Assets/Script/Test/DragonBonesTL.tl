@@ -78,7 +78,7 @@ threadLoop(function(): boolean
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
 	ImGui.Begin("DragonBones", windowFlags, function()
-		ImGui.Text("DragonBones")
+		ImGui.Text("DragonBones (Teal)")
 		ImGui.Separator()
 		ImGui.TextWrapped("Basic usage to create dragonBones! Tap it for a hit test.")
 		local changed = false

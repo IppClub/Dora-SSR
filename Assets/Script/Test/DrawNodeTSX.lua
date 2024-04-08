@@ -153,7 +153,7 @@ threadLoop(function() -- 83
         "Draw Node", -- 88
         windowFlags, -- 88
         function() -- 88
-            ImGui.Text("Draw Node") -- 89
+            ImGui.Text("Draw Node (TSX)") -- 89
             ImGui.Separator() -- 90
             ImGui.TextWrapped("Draw shapes and lines!") -- 91
         end -- 88

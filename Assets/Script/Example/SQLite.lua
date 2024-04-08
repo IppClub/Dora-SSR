@@ -4,6 +4,10 @@ local print = _G.print -- 1
 local p = _G.p -- 1
 local thread = dora.thread -- 1
 local pairs = _G.pairs -- 1
+local threadLoop = dora.threadLoop -- 1
+local App = dora.App -- 1
+local ImGui = dora.ImGui -- 1
+local Vec2 = dora.Vec2 -- 1
 local result = DB:transaction({ -- 4
 	"DROP TABLE IF EXISTS test", -- 4
 	"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)", -- 5
@@ -62,4 +66,24 @@ thread(function() -- 26
 	local items = DB:queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC") -- 32
 	return p(_anon_func_0(items)) -- 33
 end) -- 26
-return print("OK") -- 35
+print("OK") -- 35
+local windowFlags = { -- 40
+	"NoDecoration", -- 40
+	"AlwaysAutoResize", -- 41
+	"NoSavedSettings", -- 42
+	"NoFocusOnAppearing", -- 43
+	"NoNav", -- 44
+	"NoMove" -- 45
+} -- 39
+return threadLoop(function() -- 46
+	local width -- 47
+	width = App.visualSize.width -- 47
+	ImGui.SetNextWindowBgAlpha(0.35) -- 48
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 49
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 50
+	return ImGui.Begin("SQLite", windowFlags, function() -- 51
+		ImGui.Text("SQLite (Yuescript)") -- 52
+		ImGui.Separator() -- 53
+		return ImGui.TextWrapped("Doing database operations in synchronous and asynchronous ways.") -- 54
+	end) -- 54
+end) -- 54

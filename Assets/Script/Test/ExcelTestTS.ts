@@ -1,3 +1,4 @@
+// @preview-file off
 import { Data, Decision, PlatformWorld, Unit, UnitAction } from 'Platformer';
 import { App, Body, BodyDef, BodyMoveType, Color, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, ObserverEvent, Sprite, Spawn, AngleY, Sequence, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Menu, Keyboard, KeyName, TypeName } from 'dora';
 import * as Rectangle from 'UI/View/Shape/Rectangle';
@@ -463,7 +464,7 @@ Director.ui.schedule(() => {
 		}
 		ImGui.Separator();
 		ImGui.Dummy(Vec2(100, 10));
-		ImGui.Text("背包");
+		ImGui.Text("背包 (Typescript)");
 		ImGui.Separator();
 		ImGui.Columns(3, false);
 		pickedItemGroup.each(e => {

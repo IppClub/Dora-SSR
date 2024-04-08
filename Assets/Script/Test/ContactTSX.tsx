@@ -1,4 +1,4 @@
-// @preview-file on
+// @preview-file off
 import { React, toNode, useRef } from 'dora-x';
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
@@ -82,7 +82,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
 	ImGui.Begin("Contact", windowFlags, () => {
-		ImGui.Text("Contact");
+		ImGui.Text("Contact (TSX)");
 		ImGui.Separator();
 		ImGui.TextWrapped("Receive events when physics bodies contact.");
 		let changed = false;

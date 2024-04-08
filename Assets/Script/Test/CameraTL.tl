@@ -68,7 +68,7 @@ threadLoop(function(): boolean
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
 	ImGui.Begin("Camera", windowFlags, function()
-		ImGui.Text("Camera")
+		ImGui.Text("Camera (Teal)")
 		ImGui.Separator()
 		ImGui.TextWrapped("View camera motions, use 3D camera as default!")
 	end)

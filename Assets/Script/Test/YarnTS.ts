@@ -1,3 +1,4 @@
+// @preview-file off
 import * as CircleButton from "UI/Control/Basic/CircleButton";
 import * as AlignNode from "UI/Control/Basic/AlignNode";
 import { HAlignMode, VAlignMode } from "UI/Control/Basic/AlignNode";
@@ -158,7 +159,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(200, 0), SetCond.Always);
 	ImGui.Begin("Yarn Test", windowFlags, () => {
-		ImGui.Text("Yarn Tester");
+		ImGui.Text("Yarn Tester (Typescript)");
 		ImGui.Separator();
 		let changed = false;
 		[changed, currentFile] = ImGui.Combo("File", currentFile, files);

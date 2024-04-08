@@ -81,7 +81,7 @@ threadLoop(function(): boolean
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
 	ImGui.Begin("Render Target", windowFlags, function()
-		ImGui.Text("Render Target")
+		ImGui.Text("Render Target (Teal)")
 		ImGui.Separator()
 		ImGui.TextWrapped("Use render target node as a mirror!")
 	end)

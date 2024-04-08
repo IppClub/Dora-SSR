@@ -36,6 +36,7 @@ threadLoop(function()
 	ImGui.SetNextWindowPos(Vec2(width - 250, 10), "FirstUseEver")
 	ImGui.SetNextWindowSize(Vec2(240, 325), "FirstUseEver")
 	ImGui.Begin("Model", windowFlags, function()
+		ImGui.Text("Model (Teal)")
 		local changed = false
 		changed, currentLook = ImGui.Combo("Look", currentLook, looks)
 		if changed then

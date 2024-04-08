@@ -1,3 +1,4 @@
+// @preview-file off
 import { App, Body, BodyDef, BodyMoveType, PhysicsWorld, Vec2, threadLoop } from "dora";
 import * as ImGui from 'ImGui';
 import { WindowFlag, SetCond } from "ImGui";
@@ -62,7 +63,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
 	ImGui.Begin("Body", windowFlags, () => {
-		ImGui.Text("Body");
+		ImGui.Text("Body (Typescript)");
 		ImGui.Separator();
 		ImGui.TextWrapped("Basic usage to create physics bodies!");
 	});

@@ -87,7 +87,7 @@ threadLoop(function() -- 70
         "Body", -- 75
         windowFlags, -- 75
         function() -- 75
-            ImGui.Text("Body") -- 76
+            ImGui.Text("Body (TSX)") -- 76
             ImGui.Separator() -- 77
             ImGui.TextWrapped("Basic usage to create physics bodies!") -- 78
         end -- 75

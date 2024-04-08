@@ -501,7 +501,7 @@ Director.ui:schedule(function()
 		end
 		ImGui.Separator()
 		ImGui.Dummy(Vec2(100, 10))
-		ImGui.Text("背包")
+		ImGui.Text("背包 (Teal)")
 		ImGui.Separator()
 		ImGui.Columns(3, false)
 		pickedItemGroup:each(function(e)

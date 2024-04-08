@@ -83,7 +83,7 @@ return threadLoop(function() -- 53
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 56
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 57
 	return ImGui.Begin("Render Group", windowFlags, function() -- 58
-		ImGui.Text("Render Group") -- 59
+		ImGui.Text("Render Group (Yuescript)") -- 59
 		ImGui.Separator() -- 60
 		ImGui.TextWrapped("When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window.") -- 61
 		local changed -- 62

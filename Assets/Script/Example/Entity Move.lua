@@ -139,7 +139,7 @@ return threadLoop(function() -- 70
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 73
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 74
 	return ImGui.Begin("ECS System", windowFlags, function() -- 75
-		ImGui.Text("ECS System") -- 76
+		ImGui.Text("ECS System (Yuescript)") -- 76
 		ImGui.Separator() -- 77
 		ImGui.TextWrapped("Tap any place to move entities.") -- 78
 		if ImGui.Button("Create Random Entity") then -- 79

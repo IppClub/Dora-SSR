@@ -1,4 +1,7 @@
-import { DB, SQL, thread } from "dora";
+// @preview-file off
+import { SetCond, WindowFlag } from "ImGui";
+import * as ImGui from "ImGui";
+import { App, DB, SQL, Vec2, thread, threadLoop } from "dora";
 
 const sqls: SQL[] = [
 	"DROP TABLE IF EXISTS test",
@@ -41,3 +44,24 @@ thread(() => {
 });
 
 print("OK")
+
+const windowFlags = [
+	WindowFlag.NoDecoration,
+	WindowFlag.AlwaysAutoResize,
+	WindowFlag.NoSavedSettings,
+	WindowFlag.NoFocusOnAppearing,
+	WindowFlag.NoNav,
+	WindowFlag.NoMove
+];
+threadLoop(() => {
+	const size = App.visualSize;
+	ImGui.SetNextWindowBgAlpha(0.35);
+	ImGui.SetNextWindowPos(Vec2(size.width - 10, 10), SetCond.Always, Vec2(1, 0));
+	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
+	ImGui.Begin("SQLite", windowFlags, () => {
+		ImGui.Text("SQLite (Typescript)");
+		ImGui.Separator();
+		ImGui.TextWrapped("Doing database operations in synchronous and asynchronous ways");
+	});
+	return false;
+});

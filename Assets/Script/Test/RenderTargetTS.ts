@@ -1,3 +1,4 @@
+// @preview-file off
 import { WindowFlag, SetCond } from "ImGui";
 import * as ImGui from "ImGui";
 import { App, Color, Event, Line, Node, RenderTarget, Sequence, Slot, Spine, Sprite, Vec2, X, threadLoop } from "dora";
@@ -49,7 +50,6 @@ surface.schedule(() => {
 	return false;
 });
 
-
 const windowFlags = [
 	WindowFlag.NoDecoration,
 	WindowFlag.AlwaysAutoResize,
@@ -64,7 +64,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(size.width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
 	ImGui.Begin("Render Target", windowFlags, () => {
-		ImGui.Text("Render Target");
+		ImGui.Text("Render Target (Typescript)");
 		ImGui.Separator();
 		ImGui.TextWrapped("Use render target node as a mirror!");
 	});

@@ -42,7 +42,7 @@ threadLoop(function(): boolean
 	ImGui.SetNextWindowPos(Vec2(w - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
 	ImGui.Begin("Gesture", windowFlags, function()
-		ImGui.Text("Gesture")
+		ImGui.Text("Gesture (Teal)")
 		ImGui.Separator()
 		ImGui.TextWrapped("Interact with multi-touches!")
 	end)

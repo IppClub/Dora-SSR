@@ -65,7 +65,7 @@ return threadLoop(function() -- 33
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 35
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 36
 	return ImGui.Begin("Camera", windowFlags, function() -- 37
-		ImGui.Text("Camera") -- 38
+		ImGui.Text("Camera (Yuescript)") -- 38
 		ImGui.Separator() -- 39
 		return ImGui.TextWrapped("View camera motions, use 3D camera as default!") -- 40
 	end) -- 40

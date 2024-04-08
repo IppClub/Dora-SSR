@@ -239,7 +239,7 @@ return threadLoop(function() -- 122
 	SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 124
 	SetNextWindowSize(Vec2(200, 0), "Always") -- 125
 	return Begin("Yarn Test", windowFlags, function() -- 126
-		Text("Yarn Tester") -- 127
+		Text("Yarn Tester (Yuescript)") -- 127
 		Separator() -- 128
 		local changed -- 129
 		changed, currentFile = Combo("File", currentFile, files) -- 129

@@ -30,6 +30,7 @@ threadLoop(function(): boolean
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 520), "FirstUseEver")
 	ImGui.Begin("Sprite", windowFlags, function()
+		ImGui.Text("Sprite (Teal)")
 		ImGui.BeginChild("SpriteSetting", Vec2(-1, -40), function()
 			if sprite is nil then
 				return

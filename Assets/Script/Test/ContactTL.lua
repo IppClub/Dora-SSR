@@ -75,7 +75,7 @@ threadLoop(function()
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
 	ImGui.Begin("Contact", windowFlags, function()
-		ImGui.Text("Contact")
+		ImGui.Text("Contact (Teal)")
 		ImGui.Separator()
 		ImGui.TextWrapped("Receive events when physics bodies contact.")
 		local changed = false

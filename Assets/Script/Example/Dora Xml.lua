@@ -32,7 +32,7 @@ do -- 21
 		ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 37
 		ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 38
 		return ImGui.Begin("Dora Xml", windowFlags, function() -- 39
-			ImGui.Text("Dora Xml") -- 40
+			ImGui.Text("Dora Xml (Xml)") -- 40
 			ImGui.Separator() -- 41
 			return ImGui.TextWrapped("View related codes in log window!") -- 42
 		end) -- 42

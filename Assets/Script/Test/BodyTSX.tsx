@@ -1,4 +1,4 @@
-// @preview-file on
+// @preview-file off
 import { React, toNode } from 'dora-x';
 import { App, BodyMoveType, Vec2, threadLoop } from "dora";
 import * as ImGui from 'ImGui';
@@ -73,7 +73,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
 	ImGui.Begin("Body", windowFlags, () => {
-		ImGui.Text("Body");
+		ImGui.Text("Body (TSX)");
 		ImGui.Separator();
 		ImGui.TextWrapped("Basic usage to create physics bodies!");
 	});

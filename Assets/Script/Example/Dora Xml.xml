@@ -37,7 +37,7 @@
 			ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0
 			ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
 			ImGui.Begin "Dora Xml", windowFlags, ->
-				ImGui.Text "Dora Xml"
+				ImGui.Text "Dora Xml (Xml)"
 				ImGui.Separator!
 				ImGui.TextWrapped "View related codes in log window!"
 	</Yue>

@@ -104,7 +104,7 @@ threadLoop(function()
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
 	ImGui.Begin("Clip Node", windowFlags, function()
-		ImGui.Text("Clip Node")
+		ImGui.Text("Clip Node (Teal)")
 		ImGui.Separator()
 		ImGui.TextWrapped("Render children nodes with mask!")
 		local changed = false

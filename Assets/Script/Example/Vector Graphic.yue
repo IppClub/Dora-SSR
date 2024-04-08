@@ -60,6 +60,6 @@ threadLoop ->
 	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
 	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
 	ImGui.Begin "Vector Graphic Rendering", windowFlags, ->
-		ImGui.Text "Vector Graphic Rendering"
+		ImGui.Text "Vector Graphic Rendering (Yuescript)"
 		ImGui.Separator!
 		ImGui.TextWrapped "Use nanoVG lib to do vector graphic rendering, render to a texture or do instant render!"

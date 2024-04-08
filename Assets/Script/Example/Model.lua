@@ -38,46 +38,47 @@ return threadLoop(function() -- 21
 	ImGui.SetNextWindowPos(Vec2(width - 250, 10), "FirstUseEver") -- 23
 	ImGui.SetNextWindowSize(Vec2(240, 325), "FirstUseEver") -- 24
 	return ImGui.Begin("Model", windowFlags, function() -- 25
-		do -- 26
-			local changed -- 26
-			changed, currentLook = ImGui.Combo("Look", currentLook, looks) -- 26
-			if changed then -- 26
-				model.look = looks[currentLook] -- 27
-			end -- 26
-		end -- 26
-		do -- 28
-			local changed -- 28
-			changed, currentAnim = ImGui.Combo("Anim", currentAnim, animations) -- 28
-			if changed then -- 28
-				model:play(animations[currentAnim], loop) -- 29
-			end -- 28
-		end -- 28
-		do -- 30
-			local changed -- 30
-			changed, loop = ImGui.Checkbox("Loop", loop) -- 30
-			if changed then -- 30
-				model:play(animations[currentAnim], loop) -- 31
-			end -- 30
-		end -- 30
-		ImGui.SameLine() -- 32
-		do -- 33
-			local changed -- 33
-			changed, model.reversed = ImGui.Checkbox("Reversed", model.reversed) -- 33
-			if changed then -- 33
-				model:play(animations[currentAnim], loop) -- 34
-			end -- 33
-		end -- 33
-		ImGui.PushItemWidth(-70, function() -- 35
-			local _ -- 36
-			_, model.speed = ImGui.DragFloat("Speed", model.speed, 0.01, 0, 10, "%.2f") -- 36
-			_, model.recovery = ImGui.DragFloat("Recovery", model.recovery, 0.01, 0, 10, "%.2f") -- 37
-		end) -- 35
-		local scale = model.scaleX -- 38
-		local _ -- 39
-		_, scale = ImGui.DragFloat("Scale", scale, 0.01, 0.5, 2, "%.2f") -- 39
-		model.scaleX, model.scaleY = scale, scale -- 40
-		if ImGui.Button("Play", Vec2(140, 30)) then -- 41
-			return model:play(animations[currentAnim], loop) -- 42
-		end -- 41
-	end) -- 42
-end) -- 42
+		ImGui.Text("Model (Yuescript)") -- 26
+		do -- 27
+			local changed -- 27
+			changed, currentLook = ImGui.Combo("Look", currentLook, looks) -- 27
+			if changed then -- 27
+				model.look = looks[currentLook] -- 28
+			end -- 27
+		end -- 27
+		do -- 29
+			local changed -- 29
+			changed, currentAnim = ImGui.Combo("Anim", currentAnim, animations) -- 29
+			if changed then -- 29
+				model:play(animations[currentAnim], loop) -- 30
+			end -- 29
+		end -- 29
+		do -- 31
+			local changed -- 31
+			changed, loop = ImGui.Checkbox("Loop", loop) -- 31
+			if changed then -- 31
+				model:play(animations[currentAnim], loop) -- 32
+			end -- 31
+		end -- 31
+		ImGui.SameLine() -- 33
+		do -- 34
+			local changed -- 34
+			changed, model.reversed = ImGui.Checkbox("Reversed", model.reversed) -- 34
+			if changed then -- 34
+				model:play(animations[currentAnim], loop) -- 35
+			end -- 34
+		end -- 34
+		ImGui.PushItemWidth(-70, function() -- 36
+			local _ -- 37
+			_, model.speed = ImGui.DragFloat("Speed", model.speed, 0.01, 0, 10, "%.2f") -- 37
+			_, model.recovery = ImGui.DragFloat("Recovery", model.recovery, 0.01, 0, 10, "%.2f") -- 38
+		end) -- 36
+		local scale = model.scaleX -- 39
+		local _ -- 40
+		_, scale = ImGui.DragFloat("Scale", scale, 0.01, 0.5, 2, "%.2f") -- 40
+		model.scaleX, model.scaleY = scale, scale -- 41
+		if ImGui.Button("Play", Vec2(140, 30)) then -- 42
+			return model:play(animations[currentAnim], loop) -- 43
+		end -- 42
+	end) -- 43
+end) -- 43

@@ -126,7 +126,7 @@ return threadLoop(function() -- 78
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 81
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 82
 	return ImGui.Begin("Draw Node", windowFlags, function() -- 83
-		ImGui.Text("Draw Node") -- 84
+		ImGui.Text("Draw Node (Yuescript)") -- 84
 		ImGui.Separator() -- 85
 		return ImGui.TextWrapped("Draw shapes and lines!") -- 86
 	end) -- 86

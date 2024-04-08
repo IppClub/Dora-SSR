@@ -20,6 +20,7 @@ threadLoop ->
 	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0
 	ImGui.SetNextWindowSize Vec2(240, 520), "FirstUseEver"
 	ImGui.Begin "Sprite", windowFlags, ->
+		ImGui.Text "Sprite (Yuescript)"
 		ImGui.BeginChild "SpriteSetting", Vec2(-1, -40), ->
 			:z = sprite
 			if changed, z := ImGui.DragFloat "Z", z, 1, -1000, 1000, "%.2f"
