@@ -111,7 +111,7 @@ threadLoop(function(): boolean
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
 	ImGui.Begin("Draw Node", windowFlags, function()
-		ImGui.Text("Draw Node")
+		ImGui.Text("Draw Node (Teal)")
 		ImGui.Separator()
 		ImGui.TextWrapped("Draw shapes and lines!")
 	end)

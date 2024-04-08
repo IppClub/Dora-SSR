@@ -292,7 +292,9 @@ Item = function(name) -- 81
 			end -- 100
 		elseif "Color" == _exp_0 then -- 101
 			return PushItemWidth(-150, function() -- 102
-				SetColorEditOptions({"DisplayRGB"}) -- 103
+				SetColorEditOptions({ -- 103
+					"DisplayRGB" -- 103
+				}) -- 103
 				local changed = ColorEdit4(name, Data[name][3]) -- 104
 				if changed then -- 105
 					DataDirty = true -- 105

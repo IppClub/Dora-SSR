@@ -1,3 +1,4 @@
+// @preview-file off
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 import { App, Body, BodyDef, BodyMoveType, Label, Line, PhysicsWorld, Slot, Vec2, threadLoop } from "dora";
@@ -64,7 +65,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
 	ImGui.Begin("Contact", windowFlags, () => {
-		ImGui.Text("Contact");
+		ImGui.Text("Contact (Typescript)");
 		ImGui.Separator();
 		ImGui.TextWrapped("Receive events when physics bodies contact.");
 		let changed = false;

@@ -23,6 +23,7 @@ threadLoop ->
 	ImGui.SetNextWindowPos Vec2(width-250,10), "FirstUseEver"
 	ImGui.SetNextWindowSize Vec2(240,325), "FirstUseEver"
 	ImGui.Begin "Model", windowFlags, ->
+		ImGui.Text "Model (Yuescript)"
 		if changed, currentLook := ImGui.Combo "Look", currentLook, looks
 			model.look = looks[currentLook]
 		if changed, currentAnim := ImGui.Combo "Anim", currentAnim, animations

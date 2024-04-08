@@ -30,6 +30,7 @@ threadLoop(function()
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 520), "FirstUseEver")
 	ImGui.Begin("Sprite", windowFlags, function()
+		ImGui.Text("Sprite (Teal)")
 		ImGui.BeginChild("SpriteSetting", Vec2(-1, -40), function()
 			if sprite == nil then
 				return
@@ -92,7 +93,7 @@ threadLoop(function()
 			end)
 			ImGui.PushItemWidth(-1, function()
 				local color3 = sprite.color3
-				ImGui.SetColorEditOptions({"DisplayRGB"})
+				ImGui.SetColorEditOptions({ "DisplayRGB" })
 				if ImGui.ColorEdit3("", color3) then
 					sprite.color3 = color3
 				end

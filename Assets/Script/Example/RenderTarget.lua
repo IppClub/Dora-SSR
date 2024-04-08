@@ -74,7 +74,7 @@ return threadLoop(function() -- 47
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 50
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 51
 	return ImGui.Begin("Render Target", windowFlags, function() -- 52
-		ImGui.Text("Render Target") -- 53
+		ImGui.Text("Render Target (Yuescript)") -- 53
 		ImGui.Separator() -- 54
 		return ImGui.TextWrapped("Use render target node as a mirror!") -- 55
 	end) -- 55

@@ -42,7 +42,7 @@ return threadLoop(function() -- 33
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 36
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 37
 	return ImGui.Begin("Label", windowFlags, function() -- 38
-		ImGui.Text("Label") -- 39
+		ImGui.Text("Label (Yuescript)") -- 39
 		ImGui.Separator() -- 40
 		return ImGui.TextWrapped("Render labels with unbatched and batched methods!") -- 41
 	end) -- 41

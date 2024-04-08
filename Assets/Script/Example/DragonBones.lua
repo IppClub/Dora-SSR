@@ -70,7 +70,7 @@ return threadLoop(function() -- 43
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 46
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 47
 	return ImGui.Begin("DragonBones", windowFlags, function() -- 48
-		ImGui.Text("DragonBones") -- 49
+		ImGui.Text("DragonBones (Yuescript)") -- 49
 		ImGui.Separator() -- 50
 		ImGui.TextWrapped("Basic usage to create dragonBones! Tap it for a hit test.") -- 51
 		local changed -- 52

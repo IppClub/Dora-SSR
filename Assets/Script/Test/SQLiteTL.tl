@@ -45,3 +45,30 @@ thread(function(): boolean
 end)
 
 print("OK")
+
+-- example codes ends here, some test ui below --
+
+local ImGui <const> = require("ImGui")
+local threadLoop <const> = require("threadLoop")
+local App <const> = require("App")
+local Vec2 <const> = require("Vec2")
+
+local windowFlags = {
+	"NoDecoration",
+	"AlwaysAutoResize",
+	"NoSavedSettings",
+	"NoFocusOnAppearing",
+	"NoNav",
+	"NoMove"
+}
+threadLoop(function(): boolean
+	local width = App.visualSize.width
+	ImGui.SetNextWindowBgAlpha(0.35)
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
+	ImGui.Begin("SQLite", windowFlags, function()
+		ImGui.Text("SQLite (Teal)")
+		ImGui.Separator()
+		ImGui.TextWrapped("Doing database operations in synchronous and asynchronous ways.")
+	end)
+end)

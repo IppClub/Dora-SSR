@@ -1,3 +1,4 @@
+// @preview-file off
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 import { App, Component, Ease, Entity, Event, Group, Node, Observer, ObserverEvent, Roll, Scale, Sequence, Slot, Sprite, TypeName, Vec2, tolua } from "dora";
@@ -112,7 +113,7 @@ Observer(ObserverEvent.Add, ["scene"]).watch(entity => {
 			ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 			ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
 			ImGui.Begin("ECS System", windowFlags, () => {
-				ImGui.Text("ECS System")
+				ImGui.Text("ECS System (Typescript)")
 				ImGui.Separator()
 				ImGui.TextWrapped("Tap any place to move entities.")
 				if (ImGui.Button("Create Random Entity")) {

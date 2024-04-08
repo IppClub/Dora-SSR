@@ -143,7 +143,7 @@ Observer("Add", { "scene" }):watch(function(entity)
 			ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
 			ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
 			ImGui.Begin("ECS System", windowFlags, function()
-				ImGui.Text("ECS System")
+				ImGui.Text("ECS System (Teal)")
 				ImGui.Separator()
 				ImGui.TextWrapped("Tap any place to move entities.")
 				if ImGui.Button("Create Random Entity") then

@@ -2,123 +2,124 @@
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
 local ____exports = {} -- 1
-local ImGui = require("ImGui") -- 2
-local ____dora = require("dora") -- 3
-local App = ____dora.App -- 3
-local Model = ____dora.Model -- 3
-local Vec2 = ____dora.Vec2 -- 3
-local threadLoop = ____dora.threadLoop -- 3
-local modelFile = "Model/xiaoli.model" -- 5
-local looks = Model:getLooks(modelFile) -- 7
-if #looks == 0 then -- 7
-    looks[#looks + 1] = "" -- 9
-end -- 9
-local animations = Model:getAnimations(modelFile) -- 12
-if #animations == 0 then -- 12
-    animations[#animations + 1] = "" -- 14
-end -- 14
-local currentLook = __TS__ArrayIndexOf(looks, "happy") -- 17
-currentLook = math.max(currentLook, 0) -- 18
-local currentAnim = __TS__ArrayIndexOf(animations, "idle") -- 19
-currentAnim = math.max(currentAnim, 0) -- 20
-local model = Model(modelFile) -- 22
-if model then -- 22
-    model.recovery = 0.2 -- 24
-    model.look = looks[currentLook + 1] -- 25
-    model:play(animations[currentAnim + 1], true) -- 26
-    model:slot( -- 27
-        "AnimationEnd", -- 27
-        function(name) -- 27
-            print(name, "end") -- 28
-        end -- 27
-    ) -- 27
-end -- 27
-currentLook = currentLook + 1 -- 32
-currentAnim = currentAnim + 1 -- 33
-local loop = true -- 35
-local windowFlags = {"NoResize", "NoSavedSettings"} -- 36
-threadLoop(function() -- 40
-    local ____App_visualSize_0 = App.visualSize -- 41
-    local width = ____App_visualSize_0.width -- 41
-    ImGui.SetNextWindowPos( -- 42
-        Vec2(width - 250, 10), -- 42
-        "FirstUseEver" -- 42
-    ) -- 42
-    ImGui.SetNextWindowSize( -- 43
-        Vec2(240, 325), -- 43
+local ImGui = require("ImGui") -- 3
+local ____dora = require("dora") -- 4
+local App = ____dora.App -- 4
+local Model = ____dora.Model -- 4
+local Vec2 = ____dora.Vec2 -- 4
+local threadLoop = ____dora.threadLoop -- 4
+local modelFile = "Model/xiaoli.model" -- 6
+local looks = Model:getLooks(modelFile) -- 8
+if #looks == 0 then -- 8
+    looks[#looks + 1] = "" -- 10
+end -- 10
+local animations = Model:getAnimations(modelFile) -- 13
+if #animations == 0 then -- 13
+    animations[#animations + 1] = "" -- 15
+end -- 15
+local currentLook = __TS__ArrayIndexOf(looks, "happy") -- 18
+currentLook = math.max(currentLook, 0) -- 19
+local currentAnim = __TS__ArrayIndexOf(animations, "idle") -- 20
+currentAnim = math.max(currentAnim, 0) -- 21
+local model = Model(modelFile) -- 23
+if model then -- 23
+    model.recovery = 0.2 -- 25
+    model.look = looks[currentLook + 1] -- 26
+    model:play(animations[currentAnim + 1], true) -- 27
+    model:slot( -- 28
+        "AnimationEnd", -- 28
+        function(name) -- 28
+            print(name, "end") -- 29
+        end -- 28
+    ) -- 28
+end -- 28
+currentLook = currentLook + 1 -- 33
+currentAnim = currentAnim + 1 -- 34
+local loop = true -- 36
+local windowFlags = {"NoResize", "NoSavedSettings"} -- 37
+threadLoop(function() -- 41
+    local ____App_visualSize_0 = App.visualSize -- 42
+    local width = ____App_visualSize_0.width -- 42
+    ImGui.SetNextWindowPos( -- 43
+        Vec2(width - 250, 10), -- 43
         "FirstUseEver" -- 43
     ) -- 43
-    ImGui.Begin( -- 44
-        "Model", -- 44
-        windowFlags, -- 44
-        function() -- 44
-            if not model then -- 44
-                return -- 45
-            end -- 45
-            local changed = false -- 46
-            changed, currentLook = ImGui.Combo("Look", currentLook, looks) -- 47
-            if changed then -- 47
-                model.look = looks[currentLook] -- 49
-            end -- 49
-            changed, currentAnim = ImGui.Combo("Anim", currentAnim, animations) -- 52
-            if changed then -- 52
-                model:play(animations[currentAnim], loop) -- 54
-            end -- 54
-            changed, loop = ImGui.Checkbox("Loop", loop) -- 57
-            if changed then -- 57
-                model:play(animations[currentAnim], loop) -- 59
-            end -- 59
-            ImGui.SameLine() -- 62
-            local ____temp_1 = {ImGui.Checkbox("Reversed", model.reversed)} -- 63
-            changed = ____temp_1[1] -- 63
-            model.reversed = ____temp_1[2] -- 63
-            if changed then -- 63
-                model:play(animations[currentAnim], loop) -- 65
-            end -- 65
-            ImGui.PushItemWidth( -- 68
-                -70, -- 68
-                function() -- 68
-                    local ____temp_2 = {ImGui.DragFloat( -- 69
-                        "Speed", -- 69
-                        model.speed, -- 69
-                        0.01, -- 69
-                        0, -- 69
-                        10, -- 69
-                        "%.2f" -- 69
-                    )} -- 69
-                    changed = ____temp_2[1] -- 69
-                    model.speed = ____temp_2[2] -- 69
-                    local ____temp_3 = {ImGui.DragFloat( -- 70
-                        "Recovery", -- 70
-                        model.recovery, -- 70
-                        0.01, -- 70
-                        0, -- 70
-                        10, -- 70
-                        "%.2f" -- 70
-                    )} -- 70
-                    changed = ____temp_3[1] -- 70
-                    model.recovery = ____temp_3[2] -- 70
-                end -- 68
-            ) -- 68
-            local scale = model.scaleX -- 73
-            changed, scale = ImGui.DragFloat( -- 74
-                "Scale", -- 74
-                scale, -- 74
-                0.01, -- 74
-                0.5, -- 74
-                2, -- 74
-                "%.2f" -- 74
-            ) -- 74
-            model.scaleX = scale -- 75
-            model.scaleY = scale -- 76
-            if ImGui.Button( -- 76
-                "Play", -- 78
-                Vec2(140, 30) -- 78
-            ) then -- 78
-                model:play(animations[currentAnim], loop) -- 79
-            end -- 79
-        end -- 44
+    ImGui.SetNextWindowSize( -- 44
+        Vec2(240, 325), -- 44
+        "FirstUseEver" -- 44
     ) -- 44
-    return false -- 83
-end) -- 40
-return ____exports -- 40
+    ImGui.Begin( -- 45
+        "Model", -- 45
+        windowFlags, -- 45
+        function() -- 45
+            ImGui.Text("Model (Typescript)") -- 46
+            if not model then -- 46
+                return -- 47
+            end -- 47
+            local changed = false -- 48
+            changed, currentLook = ImGui.Combo("Look", currentLook, looks) -- 49
+            if changed then -- 49
+                model.look = looks[currentLook] -- 51
+            end -- 51
+            changed, currentAnim = ImGui.Combo("Anim", currentAnim, animations) -- 54
+            if changed then -- 54
+                model:play(animations[currentAnim], loop) -- 56
+            end -- 56
+            changed, loop = ImGui.Checkbox("Loop", loop) -- 59
+            if changed then -- 59
+                model:play(animations[currentAnim], loop) -- 61
+            end -- 61
+            ImGui.SameLine() -- 64
+            local ____temp_1 = {ImGui.Checkbox("Reversed", model.reversed)} -- 65
+            changed = ____temp_1[1] -- 65
+            model.reversed = ____temp_1[2] -- 65
+            if changed then -- 65
+                model:play(animations[currentAnim], loop) -- 67
+            end -- 67
+            ImGui.PushItemWidth( -- 70
+                -70, -- 70
+                function() -- 70
+                    local ____temp_2 = {ImGui.DragFloat( -- 71
+                        "Speed", -- 71
+                        model.speed, -- 71
+                        0.01, -- 71
+                        0, -- 71
+                        10, -- 71
+                        "%.2f" -- 71
+                    )} -- 71
+                    changed = ____temp_2[1] -- 71
+                    model.speed = ____temp_2[2] -- 71
+                    local ____temp_3 = {ImGui.DragFloat( -- 72
+                        "Recovery", -- 72
+                        model.recovery, -- 72
+                        0.01, -- 72
+                        0, -- 72
+                        10, -- 72
+                        "%.2f" -- 72
+                    )} -- 72
+                    changed = ____temp_3[1] -- 72
+                    model.recovery = ____temp_3[2] -- 72
+                end -- 70
+            ) -- 70
+            local scale = model.scaleX -- 75
+            changed, scale = ImGui.DragFloat( -- 76
+                "Scale", -- 76
+                scale, -- 76
+                0.01, -- 76
+                0.5, -- 76
+                2, -- 76
+                "%.2f" -- 76
+            ) -- 76
+            model.scaleX = scale -- 77
+            model.scaleY = scale -- 78
+            if ImGui.Button( -- 78
+                "Play", -- 80
+                Vec2(140, 30) -- 80
+            ) then -- 80
+                model:play(animations[currentAnim], loop) -- 81
+            end -- 81
+        end -- 45
+    ) -- 45
+    return false -- 85
+end) -- 41
+return ____exports -- 41

@@ -122,7 +122,7 @@ return threadLoop(function() -- 75
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 77
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 78
 	return ImGui.Begin("Clip Node", windowFlags, function() -- 79
-		ImGui.Text("Clip Node") -- 80
+		ImGui.Text("Clip Node (Yuescript)") -- 80
 		ImGui.Separator() -- 81
 		ImGui.TextWrapped("Render children nodes with mask!") -- 82
 		do -- 83

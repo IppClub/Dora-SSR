@@ -78,7 +78,7 @@ return threadLoop(function() -- 57
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 60
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 61
 	return ImGui.Begin("Vector Graphic Rendering", windowFlags, function() -- 62
-		ImGui.Text("Vector Graphic Rendering") -- 63
+		ImGui.Text("Vector Graphic Rendering (Yuescript)") -- 63
 		ImGui.Separator() -- 64
 		return ImGui.TextWrapped("Use nanoVG lib to do vector graphic rendering, render to a texture or do instant render!") -- 65
 	end) -- 65

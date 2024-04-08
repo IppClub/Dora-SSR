@@ -125,7 +125,7 @@ threadLoop(function() -- 79
         "Contact", -- 84
         windowFlags, -- 84
         function() -- 84
-            ImGui.Text("Contact") -- 85
+            ImGui.Text("Contact (TSX)") -- 85
             ImGui.Separator() -- 86
             ImGui.TextWrapped("Receive events when physics bodies contact.") -- 87
             local changed = false -- 88

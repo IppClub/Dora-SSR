@@ -1,3 +1,4 @@
+// @preview-file off
 import { WindowFlag, SetCond } from "ImGui";
 import * as ImGui from 'ImGui';
 import { App, Model, Slot, Vec2, threadLoop } from "dora";
@@ -42,6 +43,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 250, 10), SetCond.FirstUseEver);
 	ImGui.SetNextWindowSize(Vec2(240, 325), SetCond.FirstUseEver);
 	ImGui.Begin("Model", windowFlags, () => {
+		ImGui.Text("Model (Typescript)");
 		if (!model) return;
 		let changed = false;
 		[changed, currentLook] = ImGui.Combo("Look", currentLook, looks);

@@ -1,3 +1,4 @@
+// @preview-file off
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 import { App, Director, Ease, Model, Node, Sprite, TypeName, Vec2, cycle, once, threadLoop, tolua } from "dora";
@@ -58,7 +59,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
 	ImGui.Begin("Camera", windowFlags, () => {
-		ImGui.Text("Camera");
+		ImGui.Text("Camera (Typescript)");
 		ImGui.Separator();
 		ImGui.TextWrapped("View camera motions, use 3D camera as default!");
 	});

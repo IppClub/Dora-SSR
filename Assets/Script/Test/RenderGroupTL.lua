@@ -81,7 +81,7 @@ threadLoop(function()
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
 	ImGui.Begin("Render Group", windowFlags, function()
-		ImGui.Text("Render Group")
+		ImGui.Text("Render Group (Teal)")
 		ImGui.Separator()
 		ImGui.TextWrapped("When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window.")
 		local changed = true

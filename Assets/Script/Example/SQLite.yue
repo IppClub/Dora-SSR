@@ -33,3 +33,22 @@ thread ->
 	p [item[1] for item in *items]
 
 print "OK"
+
+-- example codes ends here, some test ui below --
+
+windowFlags =
+	* "NoDecoration"
+	* "AlwaysAutoResize"
+	* "NoSavedSettings"
+	* "NoFocusOnAppearing"
+	* "NoNav"
+	* "NoMove"
+threadLoop ->
+	const :width = App.visualSize
+	ImGui.SetNextWindowBgAlpha 0.35
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	ImGui.Begin "SQLite", windowFlags, ->
+		ImGui.Text "SQLite (Yuescript)"
+		ImGui.Separator!
+		ImGui.TextWrapped "Doing database operations in synchronous and asynchronous ways."

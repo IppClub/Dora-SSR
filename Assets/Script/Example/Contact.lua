@@ -99,7 +99,7 @@ return threadLoop(function() -- 57
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 60
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 61
 	return ImGui.Begin("Contact", windowFlags, function() -- 62
-		ImGui.Text("Contact") -- 63
+		ImGui.Text("Contact (Yuescript)") -- 63
 		ImGui.Separator() -- 64
 		ImGui.TextWrapped("Receive events when physics bodies contact.") -- 65
 		local changed -- 66

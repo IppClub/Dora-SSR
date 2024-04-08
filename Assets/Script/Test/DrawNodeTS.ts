@@ -1,3 +1,4 @@
+// @preview-file off
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from "ImGui";
 import { App, Color, DrawNode, Line, Node, Vec2, threadLoop } from "dora"
@@ -97,7 +98,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
 	ImGui.Begin("Draw Node", windowFlags, () => {
-		ImGui.Text("Draw Node");
+		ImGui.Text("Draw Node (Typescript)");
 		ImGui.Separator();
 		ImGui.TextWrapped("Draw shapes and lines!");
 	});

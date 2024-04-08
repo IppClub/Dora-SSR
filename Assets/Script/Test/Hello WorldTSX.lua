@@ -59,7 +59,7 @@ threadLoop(function() -- 36
         "Hello World", -- 41
         windowFlags, -- 41
         function() -- 41
-            ImGui.Text("Hello World") -- 42
+            ImGui.Text("Hello World (TSX)") -- 42
             ImGui.Separator() -- 43
             ImGui.TextWrapped("Basic Dora schedule and signal function usage. Written in Teal. View outputs in log window!") -- 44
         end -- 41

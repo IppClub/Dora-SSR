@@ -1,3 +1,4 @@
+// @preview-file off
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 import { App, Delay, DragonBone, Ease, Event, Label, Opacity, Scale, Sequence, Slot, Spawn, Vec2, threadLoop } from "dora";
@@ -64,7 +65,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
 	ImGui.Begin("DragonBones", windowFlags, () => {
-		ImGui.Text("DragonBones");
+		ImGui.Text("DragonBones (Typescript)");
 		ImGui.Separator();
 		ImGui.TextWrapped("Basic usage to create dragonBones! Tap it for a hit test.");
 		let changed = false;

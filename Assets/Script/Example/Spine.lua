@@ -68,7 +68,7 @@ return threadLoop(function() -- 41
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 44
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 45
 	return ImGui.Begin("Spine", windowFlags, function() -- 46
-		ImGui.Text("Spine") -- 47
+		ImGui.Text("Spine (Yuescript)") -- 47
 		ImGui.Separator() -- 48
 		ImGui.TextWrapped("Basic usage to create spine! Tap it for a hit test.") -- 49
 		local changed -- 50

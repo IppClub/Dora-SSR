@@ -1,4 +1,4 @@
-// @preview-file on
+// @preview-file off
 import { React, toNode } from 'dora-x';
 import { WindowFlag, SetCond } from "ImGui";
 import * as ImGui from "ImGui";
@@ -39,7 +39,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(size.width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
 	ImGui.Begin("Hello World", windowFlags, () => {
-		ImGui.Text("Hello World");
+		ImGui.Text("Hello World (TSX)");
 		ImGui.Separator();
 		ImGui.TextWrapped("Basic Dora schedule and signal function usage. Written in Teal. View outputs in log window!");
 	});

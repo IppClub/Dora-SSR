@@ -61,7 +61,7 @@ return threadLoop(function() -- 42
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 45
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 46
 	return ImGui.Begin("Multi-tasking", windowFlags, function() -- 47
-		ImGui.Text("Multi-tasking") -- 48
+		ImGui.Text("Multi-tasking (Yuescript)") -- 48
 		ImGui.Separator() -- 49
 		return ImGui.TextWrapped("Basic Dora multi-tasking usage. Powered by View outputs in log window!") -- 50
 	end) -- 50

@@ -1,3 +1,4 @@
+// @preview-file off
 import { React, toNode, useRef } from 'dora-x';
 import { Data, PlatformWorld, Unit, UnitAction } from 'Platformer';
 import { App, Body, BodyMoveType, Color, Color3, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, ObserverEvent, Sprite, Spawn, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Keyboard, KeyName, TypeName, ActionDef } from 'dora';
@@ -170,19 +171,19 @@ Data.store["AI:playerControl"] = toAI(
 		}}>
 			<Action name='turn'/>
 		</Match>
-	
+
 		<Match desc='is falling' onCheck={self => !self.onSurface}>
 			<Action name='fallOff'/>
 		</Match>
-	
+
 		<Match desc='jump key down' onCheck={self => self.entity.keyJump as boolean}>
 			<Action name='jump'/>
 		</Match>
-	
+
 		<Match desc='fmove key down' onCheck={self => (self.entity.keyLeft || self.entity.keyRight) as boolean}>
 			<Action name='move'/>
 		</Match>
-	
+
 		<Action name='idle'/>
 	</Selector>
 );
@@ -455,7 +456,7 @@ Director.ui.schedule(() => {
 		}
 		ImGui.Separator();
 		ImGui.Dummy(Vec2(100, 10));
-		ImGui.Text("背包");
+		ImGui.Text("背包 (TSX)");
 		ImGui.Separator();
 		ImGui.Columns(3, false);
 		pickedItemGroup.each(e => {

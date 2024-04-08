@@ -36,6 +36,6 @@ threadLoop ->
 	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
 	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
 	ImGui.Begin "Label", windowFlags, ->
-		ImGui.Text "Label"
+		ImGui.Text "Label (Yuescript)"
 		ImGui.Separator!
 		ImGui.TextWrapped "Render labels with unbatched and batched methods!"

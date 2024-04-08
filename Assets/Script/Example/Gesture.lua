@@ -40,7 +40,7 @@ return threadLoop(function() -- 32
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 35
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 36
 	return ImGui.Begin("Gesture", windowFlags, function() -- 37
-		ImGui.Text("Gesture") -- 38
+		ImGui.Text("Gesture (Yuescript)") -- 38
 		ImGui.Separator() -- 39
 		return ImGui.TextWrapped("Interact with multi-touches!") -- 40
 	end) -- 40

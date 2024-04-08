@@ -1,3 +1,4 @@
+// @preview-file off
 import { WindowFlag, SetCond, ColorEditFlag } from "ImGui";
 import * as ImGui from "ImGui";
 import { App, Size, Slot, Sprite, Vec2, threadLoop } from "dora";
@@ -25,6 +26,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 520), SetCond.FirstUseEver);
 	ImGui.Begin("Sprite", windowFlags, () => {
+		ImGui.Text("Sprite (Typescript)");
 		ImGui.BeginChild("SpriteSetting", Vec2(-1, -40), () => {
 			if (!sprite) return;
 			let changed = false;

@@ -79,7 +79,7 @@ return threadLoop(function() -- 57
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 60
 	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 61
 	return ImGui.Begin("Body", windowFlags, function() -- 62
-		ImGui.Text("Body") -- 63
+		ImGui.Text("Body (Yuescript)") -- 63
 		ImGui.Separator() -- 64
 		return ImGui.TextWrapped("Basic usage to create physics bodies!") -- 65
 	end) -- 65

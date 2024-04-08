@@ -1,3 +1,4 @@
+// @preview-file off
 import { SetCond, WindowFlag } from 'ImGui';
 import * as ImGui from 'ImGui';
 import { App, Node, Slot, Sprite, Vec2, View, threadLoop } from 'dora';
@@ -35,7 +36,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
 	ImGui.Begin("Gesture", windowFlags, () => {
-		ImGui.Text("Gesture");
+		ImGui.Text("Gesture (Typescript)");
 		ImGui.Separator();
 		ImGui.TextWrapped("Interact with multi-touches!");
 	});

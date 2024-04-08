@@ -60,6 +60,6 @@ threadLoop ->
 	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
 	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
 	ImGui.Begin "Body", windowFlags, ->
-		ImGui.Text "Body"
+		ImGui.Text "Body (Yuescript)"
 		ImGui.Separator!
 		ImGui.TextWrapped "Basic usage to create physics bodies!"

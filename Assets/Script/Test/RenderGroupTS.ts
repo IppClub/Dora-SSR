@@ -1,3 +1,4 @@
+// @preview-file off
 import { WindowFlag, SetCond } from "ImGui";
 import * as ImGui from 'ImGui';
 import { Angle, App, Color, DrawNode, Line, Node, Size, Slot, Sprite, Vec2, threadLoop } from "dora";
@@ -66,7 +67,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 0), SetCond.FirstUseEver);
 	ImGui.Begin("Render Group", windowFlags, () => {
-		ImGui.Text("Render Group");
+		ImGui.Text("Render Group (Typescript)");
 		ImGui.Separator();
 		ImGui.TextWrapped("When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window.");
 		let changed = false;
