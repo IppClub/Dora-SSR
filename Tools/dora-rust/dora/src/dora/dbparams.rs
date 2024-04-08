@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" {
 	fn dbparams_release(raw: i64);
 	fn dbparams_add(slf: i64, params: i64);
+	fn dbparams_new() -> i64;
 }
 use crate::dora::IObject;
 pub struct DBParams { raw: i64 }
@@ -16,13 +17,16 @@ impl Drop for DBParams {
 	fn drop(&mut self) { unsafe { dbparams_release(self.raw); } }
 }
 impl DBParams {
-	pub fn raw(&self) -> i64 {
+	pub(crate) fn raw(&self) -> i64 {
 		self.raw
 	}
-	pub fn from(raw: i64) -> DBParams {
+	pub(crate) fn from(raw: i64) -> DBParams {
 		DBParams { raw: raw }
 	}
 	pub fn add(&mut self, params: &crate::dora::Array) {
 		unsafe { dbparams_add(self.raw(), params.raw()); }
+	}
+	pub fn new() -> crate::dora::DBParams {
+		unsafe { return crate::dora::DBParams::from(dbparams_new()); }
 	}
 }

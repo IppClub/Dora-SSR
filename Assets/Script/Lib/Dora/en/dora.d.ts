@@ -4224,6 +4224,9 @@ class Group extends Object {
 	/** The number of entities in the group. */
 	readonly count: number;
 
+	/** The first entity in the group, or undefined if the group is empty. */
+	readonly first?: Entity;
+
 	/**
 	 * Calls a function for each entity in the group.
 	 * @param func The function to call for each entity. Returning true inside the function to stop iteration.

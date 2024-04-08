@@ -156,6 +156,7 @@ static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn IObject>>>> = Lazy::new(||
 		Effect::type_info(),
 		SpriteEffect::type_info(),
 		Grabber::type_info(),
+		Action::type_info(),
 		Node::type_info(),
 		Texture2D::type_info(),
 		Sprite::type_info(),
@@ -278,6 +279,20 @@ extern "C" {
 	fn call_stack_front_size(info: i64) -> i32;
 
 	fn dora_print(msg: i64);
+
+	fn vec2_add(a: i64, b: i64) -> i64;
+	fn vec2_sub(a: i64, b: i64) -> i64;
+	fn vec2_mul(a: i64, b: i64) -> i64;
+	fn vec2_mul_float(a: i64, b: f32) -> i64;
+	fn vec2_div(a: i64, b: f32) -> i64;
+	fn vec2_distance(a: i64, b: i64) -> f32;
+	fn vec2_distance_squared(a: i64, b: i64) -> f32;
+	fn vec2_length(a: i64) -> f32;
+	fn vec2_angle(a: i64) -> f32;
+	fn vec2_normalize(a: i64) -> i64;
+	fn vec2_perp(a: i64) -> i64;
+	fn vec2_dot(a: i64, b: i64) -> f32;
+	fn vec2_clamp(a: i64, from: i64, to: i64) -> i64;
 }
 
 pub fn print(msg: &str) {
@@ -303,6 +318,12 @@ pub struct Vec2 {
 }
 
 impl Vec2 {
+	pub(crate) fn from(value: i64) -> Vec2 {
+		unsafe { LightValue { value: value }.vec2 }
+	}
+	pub(crate) fn into_i64(&self) -> i64 {
+		unsafe { LightValue { vec2: *self }.value }
+	}
 	pub fn new(x: f32, y: f32) -> Vec2 {
 		Vec2 { x: x, y: y }
 	}
@@ -312,11 +333,65 @@ impl Vec2 {
 	pub fn is_zero(&self) -> bool {
 		self.x == 0.0 && self.y == 0.0
 	}
-	pub(crate) fn from(value: i64) -> Vec2 {
-		unsafe { LightValue { value: value }.vec2 }
+
+	pub fn distance(&self, other: &Vec2) -> f32 {
+		unsafe { vec2_distance(self.into_i64(), other.into_i64()) }
 	}
-	pub(crate) fn into_i64(&self) -> i64 {
-		unsafe { LightValue { vec2: *self }.value }
+	pub fn distance_squared(&self, other: &Vec2) -> f32 {
+		unsafe { vec2_distance_squared(self.into_i64(), other.into_i64()) }
+	}
+	pub fn length(&self) -> f32 {
+		unsafe { vec2_length(self.into_i64()) }
+	}
+	pub fn angle(&self) -> f32 {
+		unsafe { vec2_angle(self.into_i64()) }
+	}
+	pub fn normalize(&self) -> Vec2 {
+		Vec2::from(unsafe { vec2_normalize(self.into_i64()) })
+	}
+	pub fn perp(&self) -> Vec2 {
+		Vec2::from(unsafe { vec2_perp(self.into_i64()) })
+	}
+	pub fn dot(&self, other: &Vec2) -> f32 {
+		unsafe { vec2_dot(self.into_i64(), other.into_i64()) }
+	}
+	pub fn clamp(&self, from: &Vec2, to: &Vec2) -> Vec2 {
+		Vec2::from(unsafe { vec2_clamp(self.into_i64(), from.into_i64(), to.into_i64()) })
+	}
+}
+
+impl std::ops::Add for Vec2 {
+	type Output = Vec2;
+	fn add(self, other: Vec2) -> Vec2 {
+		Vec2::from(unsafe { vec2_add(self.into_i64(), other.into_i64()) })
+	}
+}
+
+impl std::ops::Sub for Vec2 {
+	type Output = Vec2;
+	fn sub(self, other: Vec2) -> Vec2 {
+		Vec2::from(unsafe { vec2_sub(self.into_i64(), other.into_i64()) })
+	}
+}
+
+impl std::ops::Mul for Vec2 {
+	type Output = Vec2;
+	fn mul(self, other: Vec2) -> Vec2 {
+		Vec2::from(unsafe { vec2_mul(self.into_i64(), other.into_i64()) })
+	}
+}
+
+impl std::ops::Mul<f32> for Vec2 {
+	type Output = Vec2;
+	fn mul(self, other: f32) -> Vec2 {
+		Vec2::from(unsafe { vec2_mul_float(self.into_i64(), other) })
+	}
+}
+
+impl std::ops::Div<f32> for Vec2 {
+	type Output = Vec2;
+	fn div(self, other: f32) -> Vec2 {
+		Vec2::from(unsafe { vec2_div(self.into_i64(), other) })
 	}
 }
 
@@ -1028,10 +1103,11 @@ impl CallStack {
 			} else { None }
 		}
 	}
-	pub fn pop(&mut self) {
+	pub fn pop(&mut self) -> bool {
 		if unsafe { call_stack_pop(self.raw) } == 0 {
-			panic!("pop from empty call stack!");
+			return false;
 		}
+		true
 	}
 }
 
@@ -1096,8 +1172,9 @@ impl Array {
 	/// # Arguments
 	///
 	/// * `item` - The item to add.
-	pub fn add<'a, T>(&mut self, v: T) where T: IntoValue<'a> {
+	pub fn add<'a, T>(&mut self, v: T) -> &mut Self where T: IntoValue<'a> {
 		unsafe { array_add(self.raw(), v.val().raw()); }
+		self
 	}
 	/// Inserts an item at the given index, shifting other items to the right.
 	///
@@ -1277,7 +1354,7 @@ impl Group {
 // Observer
 
 extern "C" {
-	fn observer_watch(observer: i64, func: i32, stack: i64) -> i64;
+	fn observer_watch(observer: i64, func: i32, stack: i64);
 }
 
 #[repr(i32)]

@@ -33,7 +33,7 @@ use crate::dora::IObject;
 pub struct BulletDef { raw: i64 }
 crate::dora_object!(BulletDef);
 impl BulletDef {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { platformer_bulletdef_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

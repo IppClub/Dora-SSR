@@ -19,7 +19,7 @@ impl ICamera for CameraOtho { }
 pub struct CameraOtho { raw: i64 }
 crate::dora_object!(CameraOtho);
 impl CameraOtho {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { cameraotho_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

@@ -15,10 +15,10 @@ impl Drop for ActionUpdate {
 	fn drop(&mut self) { unsafe { platformer_actionupdate_release(self.raw); } }
 }
 impl ActionUpdate {
-	pub fn raw(&self) -> i64 {
+	pub(crate) fn raw(&self) -> i64 {
 		self.raw
 	}
-	pub fn from(raw: i64) -> ActionUpdate {
+	pub(crate) fn from(raw: i64) -> ActionUpdate {
 		ActionUpdate { raw: raw }
 	}
 	pub fn new(mut update: Box<dyn FnMut(&crate::dora::platformer::Unit, &crate::dora::platformer::UnitAction, f32) -> bool>) -> crate::dora::platformer::ActionUpdate {

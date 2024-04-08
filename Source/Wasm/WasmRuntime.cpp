@@ -284,7 +284,8 @@ static int64_t value_create_f64(double value) {
 }
 
 static int64_t value_create_str(int64_t value) {
-	return r_cast<int64_t>(new dora_val_t(value));
+	auto str = r_cast<std::string*>(value);
+	return r_cast<int64_t>(new dora_val_t(*str));
 }
 
 static int64_t value_create_bool(int32_t value) {
@@ -576,6 +577,40 @@ static void dora_print(int64_t var) {
 	LogPrintInThread(*str_from(var));
 }
 
+/* Vec2 */
+
+static int64_t vec2_add(int64_t a, int64_t b) {
+	return vec2_retain(vec2_from(a) + vec2_from(b));
+}
+static int64_t vec2_sub(int64_t a, int64_t b) {
+	return vec2_retain(vec2_from(a) - vec2_from(b));
+}
+static int64_t vec2_mul(int64_t a, int64_t b) {
+	return vec2_retain(vec2_from(a) * vec2_from(b));
+}
+static int64_t vec2_mul_float(int64_t a, float b) {
+	return vec2_retain(vec2_from(a) * b);
+}
+static int64_t vec2_div(int64_t a, float b) {
+	return vec2_retain(vec2_from(a) / b);
+}
+static float vec2_distance(int64_t a, int64_t b) {
+	return vec2_from(a).distance(vec2_from(b));
+}
+static float vec2_distance_squared(int64_t a, int64_t b) {
+	return vec2_from(a).distanceSquared(vec2_from(b));
+}
+static float vec2_length(int64_t a) { return vec2_from(a).length(); }
+static float vec2_angle(int64_t a) { return vec2_from(a).angle(); }
+static int64_t vec2_normalize(int64_t a) { return vec2_retain(Vec2::normalize(vec2_from(a))); }
+static int64_t vec2_perp(int64_t a) { return vec2_retain(Vec2::perp(vec2_from(a))); }
+static float vec2_dot(int64_t a, int64_t b) { return vec2_from(a).dot(vec2_from(b)); }
+static int64_t vec2_clamp(int64_t a, int64_t from, int64_t to) {
+	auto b = vec2_from(a);
+	b.clamp(vec2_from(from), vec2_from(to));
+	return vec2_retain(b);
+}
+
 /* Array */
 
 static int32_t array_set(int64_t array, int32_t index, int64_t v) {
@@ -710,8 +745,10 @@ static void observer_watch(int64_t observer, int32_t func, int64_t stack) {
 	entityObserver->watch([entityObserver, func, args, deref](Entity* e) {
 		args->clear();
 		args->push(e);
-		for (int index : entityObserver->getComponents()) {
-			push_value(args, e->getComponent(index));
+		if (entityObserver->getEventType() != Entity::Remove) {
+			for (int index : entityObserver->getComponents()) {
+				push_value(args, e->getComponent(index));
+			}
 		}
 		SharedWasmRuntime.invoke(func);
 		return std::get<bool>(args->pop());
@@ -1392,6 +1429,20 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "call_stack_front_size", call_stack_front_size);
 
 	mod.link_optional("*", "dora_print", dora_print);
+
+	mod.link_optional("*", "vec2_add", vec2_add);
+	mod.link_optional("*", "vec2_sub", vec2_sub);
+	mod.link_optional("*", "vec2_mul", vec2_mul);
+	mod.link_optional("*", "vec2_mul_float", vec2_mul_float);
+	mod.link_optional("*", "vec2_div", vec2_div);
+	mod.link_optional("*", "vec2_distance", vec2_distance);
+	mod.link_optional("*", "vec2_distance_squared", vec2_distance_squared);
+	mod.link_optional("*", "vec2_length", vec2_length);
+	mod.link_optional("*", "vec2_angle", vec2_angle);
+	mod.link_optional("*", "vec2_normalize", vec2_normalize);
+	mod.link_optional("*", "vec2_perp", vec2_perp);
+	mod.link_optional("*", "vec2_dot", vec2_dot);
+	mod.link_optional("*", "vec2_clamp", vec2_clamp);
 
 	mod.link_optional("*", "array_set", array_set);
 	mod.link_optional("*", "array_get", array_get);

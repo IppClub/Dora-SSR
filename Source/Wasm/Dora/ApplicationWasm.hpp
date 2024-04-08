@@ -39,8 +39,8 @@ static double application_get_total_time() {
 static double application_get_running_time() {
 	return SharedApplication.getRunningTime();
 }
-static int32_t application_get_rand() {
-	return s_cast<int32_t>(SharedApplication.getRand());
+static int64_t application_get_rand() {
+	return s_cast<int64_t>(SharedApplication.getRand());
 }
 static int32_t application_get_max_fps() {
 	return s_cast<int32_t>(SharedApplication.getMaxFPS());

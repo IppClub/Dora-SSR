@@ -386,6 +386,13 @@ int EntityGroup::getCount() const {
 	return s_cast<int>(_entities.size());
 }
 
+Entity* EntityGroup::getFirst() const {
+	if (_entities.empty()) {
+		return nullptr;
+	}
+	return *_entities.begin();
+}
+
 bool EntityGroup::init() {
 	Object::init();
 	Entity::each([this](Entity* entity) {
@@ -494,8 +501,8 @@ const std::vector<int>& EntityObserver::getComponents() const {
 	return _components;
 }
 
-EntityObserver::EntityObserver(int option, const std::vector<std::string>& components)
-	: _option(option) {
+EntityObserver::EntityObserver(int eventType, const std::vector<std::string>& components)
+	: _eventType(eventType) {
 	_components.resize(components.size());
 	for (int i = 0; i < s_cast<int>(components.size()); i++) {
 		_components[i] = SharedEntityPool.getIndex(components[i]);
@@ -505,7 +512,7 @@ EntityObserver::EntityObserver(int option, const std::vector<std::string>& compo
 EntityObserver::~EntityObserver() {
 	if (Singleton<EntityPool>::isDisposed()) return;
 	for (int index : _components) {
-		switch (_option) {
+		switch (_eventType) {
 			case Entity::Add:
 				SharedEntityPool.getAddHandler(index) -= std::make_pair(this, &EntityObserver::onEvent);
 				break;
@@ -526,7 +533,7 @@ EntityObserver::~EntityObserver() {
 bool EntityObserver::init() {
 	if (!Object::init()) return false;
 	for (int index : _components) {
-		switch (_option) {
+		switch (_eventType) {
 			case Entity::Add:
 				SharedEntityPool.getAddHandler(index) += std::make_pair(this, &EntityObserver::onEvent);
 				break;
@@ -547,7 +554,7 @@ bool EntityObserver::init() {
 
 void EntityObserver::onEvent(Entity* entity) {
 	bool match = true;
-	if (_option == Entity::Remove) {
+	if (_eventType == Entity::Remove) {
 		for (int index : _components) {
 			if (!entity->has(index) && !entity->hasOld(index)) {
 				match = false;
@@ -601,6 +608,10 @@ EntityObserver* EntityObserver::watch(LuaHandler* handler) {
 
 void EntityObserver::clear() {
 	_entities.clear();
+}
+
+int EntityObserver::getEventType() const {
+	return _eventType;
 }
 
 EntityObserver* EntityObserver::create(int option, const std::vector<std::string>& components) {

@@ -1766,7 +1766,7 @@ tolua_lerror:
 /* EntityObserver */
 
 EntityObserver* EntityObserver_create(String option, Slice components[], int count) {
-	uint32_t optionVal = -1;
+	int optionVal = 0;
 	switch (Switch::hash(option)) {
 		case "Add"_hash: optionVal = Entity::Add; break;
 		case "Change"_hash: optionVal = Entity::Change; break;

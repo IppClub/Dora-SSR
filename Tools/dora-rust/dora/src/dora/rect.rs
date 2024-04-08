@@ -63,10 +63,10 @@ impl Drop for Rect {
 	fn drop(&mut self) { unsafe { rect_release(self.raw); } }
 }
 impl Rect {
-	pub fn raw(&self) -> i64 {
+	pub(crate) fn raw(&self) -> i64 {
 		self.raw
 	}
-	pub fn from(raw: i64) -> Rect {
+	pub(crate) fn from(raw: i64) -> Rect {
 		Rect { raw: raw }
 	}
 	/// Sets the position of the origin of the rectangle.

@@ -83,6 +83,7 @@ class EntityGroup : public Object {
 public:
 	PROPERTY_READONLY_CREF(std::vector<int>, Components);
 	PROPERTY_READONLY(int, Count);
+	PROPERTY_READONLY(Entity*, First);
 	EntityGroup(const std::vector<std::string>& components);
 	virtual ~EntityGroup();
 	virtual bool init() override;
@@ -110,11 +111,12 @@ private:
 class EntityObserver : public Object {
 public:
 	PROPERTY_READONLY_CREF(std::vector<int>, Components);
-	EntityObserver(int option, const std::vector<std::string>& components);
+	PROPERTY_READONLY(int, EventType);
+	EntityObserver(int eventType, const std::vector<std::string>& components);
 	virtual ~EntityObserver();
 	virtual bool init() override;
-	static EntityObserver* create(int option, const std::vector<std::string>& components);
-	static EntityObserver* create(int option, Slice components[], int count);
+	static EntityObserver* create(int eventType, const std::vector<std::string>& components);
+	static EntityObserver* create(int eventType, Slice components[], int count);
 
 public:
 	void clear();
@@ -127,7 +129,7 @@ protected:
 	bool each(const Func& func);
 
 private:
-	int _option;
+	int _eventType;
 	std::unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
 	std::vector<int> _components;
 	DORA_TYPE_OVERRIDE(EntityObserver);

@@ -109,7 +109,7 @@ pub trait IPhysicsWorld: INode {
 	}
 }
 impl PhysicsWorld {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { physicsworld_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

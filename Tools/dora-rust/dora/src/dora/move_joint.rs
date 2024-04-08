@@ -18,7 +18,7 @@ impl IJoint for MoveJoint { }
 pub struct MoveJoint { raw: i64 }
 crate::dora_object!(MoveJoint);
 impl MoveJoint {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { movejoint_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

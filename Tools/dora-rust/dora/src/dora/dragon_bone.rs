@@ -28,7 +28,7 @@ impl INode for DragonBone { }
 pub struct DragonBone { raw: i64 }
 crate::dora_object!(DragonBone);
 impl DragonBone {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { dragonbone_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

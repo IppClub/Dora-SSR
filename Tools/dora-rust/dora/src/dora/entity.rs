@@ -20,7 +20,7 @@ use crate::dora::IObject;
 pub struct Entity { raw: i64 }
 crate::dora_object!(Entity);
 impl Entity {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { entity_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

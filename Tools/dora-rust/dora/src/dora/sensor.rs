@@ -21,7 +21,7 @@ use crate::dora::IObject;
 pub struct Sensor { raw: i64 }
 crate::dora_object!(Sensor);
 impl Sensor {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { sensor_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

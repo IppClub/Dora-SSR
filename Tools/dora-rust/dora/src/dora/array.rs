@@ -25,7 +25,7 @@ use crate::dora::IObject;
 pub struct Array { raw: i64 }
 crate::dora_object!(Array);
 impl Array {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { array_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

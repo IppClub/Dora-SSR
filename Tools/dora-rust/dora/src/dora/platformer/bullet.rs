@@ -29,7 +29,7 @@ impl INode for Bullet { }
 pub struct Bullet { raw: i64 }
 crate::dora_object!(Bullet);
 impl Bullet {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { platformer_bullet_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

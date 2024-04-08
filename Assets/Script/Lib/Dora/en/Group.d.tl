@@ -10,6 +10,9 @@ local record Group
 	-- The number of entities in the group.
 	const count: integer
 
+	-- The first entity in the group, or nil if the group is empty.
+	const first: Entity
+
 	-- Calls a function for each entity in the group.
 	-- @param func (function) The function to call for each entity.
 	-- Returning true inside the function to stop iteration.

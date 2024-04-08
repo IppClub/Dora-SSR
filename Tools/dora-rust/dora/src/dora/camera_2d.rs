@@ -23,7 +23,7 @@ impl ICamera for Camera2D { }
 pub struct Camera2D { raw: i64 }
 crate::dora_object!(Camera2D);
 impl Camera2D {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { camera2d_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

@@ -14,10 +14,10 @@ impl Drop for ActionDef {
 	fn drop(&mut self) { unsafe { actiondef_release(self.raw); } }
 }
 impl ActionDef {
-	pub fn raw(&self) -> i64 {
+	pub(crate) fn raw(&self) -> i64 {
 		self.raw
 	}
-	pub fn from(raw: i64) -> ActionDef {
+	pub(crate) fn from(raw: i64) -> ActionDef {
 		ActionDef { raw: raw }
 	}
 }

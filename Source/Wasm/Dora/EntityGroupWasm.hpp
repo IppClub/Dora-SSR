@@ -12,6 +12,9 @@ static int32_t group_type() {
 static int32_t entitygroup_get_count(int64_t self) {
 	return s_cast<int32_t>(r_cast<EntityGroup*>(self)->getCount());
 }
+static int64_t entitygroup_get_first(int64_t self) {
+	return from_object(r_cast<EntityGroup*>(self)->getFirst());
+}
 static int64_t entitygroup_find(int64_t self, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
@@ -30,6 +33,7 @@ static int64_t entitygroup_new(int64_t components) {
 static void linkEntityGroup(wasm3::module3& mod) {
 	mod.link_optional("*", "group_type", group_type);
 	mod.link_optional("*", "entitygroup_get_count", entitygroup_get_count);
+	mod.link_optional("*", "entitygroup_get_first", entitygroup_get_first);
 	mod.link_optional("*", "entitygroup_find", entitygroup_find);
 	mod.link_optional("*", "entitygroup_new", entitygroup_new);
 }

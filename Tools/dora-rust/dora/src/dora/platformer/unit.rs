@@ -49,7 +49,7 @@ impl INode for Unit { }
 pub struct Unit { raw: i64 }
 crate::dora_object!(Unit);
 impl Unit {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { platformer_unit_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

@@ -177,6 +177,7 @@ class Entity : public Object
 class EntityGroup @ Group
 {
 	tolua_readonly tolua_property__common int count;
+	tolua_readonly tolua_property__common Entity* first;
 	bool each(tolua_function_bool func);
 	Entity* find(tolua_function_bool func);
 	static EntityGroup* create(String components[tolua_len]);

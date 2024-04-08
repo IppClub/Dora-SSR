@@ -16,10 +16,10 @@ impl Drop for DBRecord {
 	fn drop(&mut self) { unsafe { dbrecord_release(self.raw); } }
 }
 impl DBRecord {
-	pub fn raw(&self) -> i64 {
+	pub(crate) fn raw(&self) -> i64 {
 		self.raw
 	}
-	pub fn from(raw: i64) -> DBRecord {
+	pub(crate) fn from(raw: i64) -> DBRecord {
 		DBRecord { raw: raw }
 	}
 	pub fn read(&mut self, record: &crate::dora::Array) -> bool {

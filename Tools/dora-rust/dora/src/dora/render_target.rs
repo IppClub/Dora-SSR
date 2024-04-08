@@ -24,7 +24,7 @@ use crate::dora::IObject;
 pub struct RenderTarget { raw: i64 }
 crate::dora_object!(RenderTarget);
 impl RenderTarget {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { rendertarget_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

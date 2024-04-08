@@ -18,7 +18,7 @@ use crate::dora::IObject;
 pub struct Buffer { raw: i64 }
 crate::dora_object!(Buffer);
 impl Buffer {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { buffer_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

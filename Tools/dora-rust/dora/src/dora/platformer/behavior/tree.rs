@@ -26,7 +26,7 @@ use crate::dora::IObject;
 pub struct Tree { raw: i64 }
 crate::dora_object!(Tree);
 impl Tree {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { platformer_behavior_tree_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

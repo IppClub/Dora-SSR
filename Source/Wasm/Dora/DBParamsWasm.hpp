@@ -12,7 +12,11 @@ static void dbparams_release(int64_t raw) {
 static void dbparams_add(int64_t self, int64_t params) {
 	r_cast<DBParams*>(self)->add(r_cast<Array*>(params));
 }
+static int64_t dbparams_new() {
+	return r_cast<int64_t>(new DBParams{});
+}
 static void linkDBParams(wasm3::module3& mod) {
 	mod.link_optional("*", "dbparams_release", dbparams_release);
 	mod.link_optional("*", "dbparams_add", dbparams_add);
+	mod.link_optional("*", "dbparams_new", dbparams_new);
 }
