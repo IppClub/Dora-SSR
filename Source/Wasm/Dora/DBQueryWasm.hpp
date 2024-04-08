@@ -15,8 +15,12 @@ static void dbquery_add_with_params(int64_t self, int64_t sql, int64_t params) {
 static void dbquery_add(int64_t self, int64_t sql) {
 	r_cast<DBQuery*>(self)->add(*str_from(sql));
 }
+static int64_t dbquery_new() {
+	return r_cast<int64_t>(new DBQuery{});
+}
 static void linkDBQuery(wasm3::module3& mod) {
 	mod.link_optional("*", "dbquery_release", dbquery_release);
 	mod.link_optional("*", "dbquery_add_with_params", dbquery_add_with_params);
 	mod.link_optional("*", "dbquery_add", dbquery_add);
+	mod.link_optional("*", "dbquery_new", dbquery_new);
 }

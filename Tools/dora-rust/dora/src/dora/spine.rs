@@ -29,7 +29,7 @@ impl INode for Spine { }
 pub struct Spine { raw: i64 }
 crate::dora_object!(Spine);
 impl Spine {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { spine_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

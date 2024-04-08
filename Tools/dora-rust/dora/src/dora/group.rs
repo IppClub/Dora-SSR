@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" {
 	fn group_type() -> i32;
 	fn entitygroup_get_count(slf: i64) -> i32;
+	fn entitygroup_get_first(slf: i64) -> i64;
 	fn entitygroup_find(slf: i64, func: i32, stack: i64) -> i64;
 	fn entitygroup_new(components: i64) -> i64;
 }
@@ -17,7 +18,7 @@ use crate::dora::IObject;
 pub struct Group { raw: i64 }
 crate::dora_object!(Group);
 impl Group {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { group_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,
@@ -28,6 +29,10 @@ impl Group {
 	/// Gets the number of entities in the group.
 	pub fn get_count(&self) -> i32 {
 		return unsafe { entitygroup_get_count(self.raw()) };
+	}
+	/// Gets the first entity in the group.
+	pub fn get_first(&self) -> Option<crate::dora::Entity> {
+		return unsafe { crate::dora::Entity::from(entitygroup_get_first(self.raw())) };
 	}
 	/// Finds the first entity in the group that satisfies a predicate function.
 	///

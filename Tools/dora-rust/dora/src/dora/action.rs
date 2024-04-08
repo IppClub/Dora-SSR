@@ -35,7 +35,7 @@ use crate::dora::IObject;
 pub struct Action { raw: i64 }
 crate::dora_object!(Action);
 impl Action {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { action_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

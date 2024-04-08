@@ -21,13 +21,13 @@ extern "C" {
 /// A struct that represents an action that can be performed by a "Unit".
 pub struct UnitAction { raw: i64 }
 impl UnitAction {
-	pub fn from(raw: i64) -> Option<UnitAction> {
+	pub(crate) fn from(raw: i64) -> Option<UnitAction> {
 		match raw {
 			0 => None,
 			_ => Some(UnitAction { raw: raw })
 		}
 	}
-	pub fn raw(&self) -> i64 { self.raw }
+	pub(crate) fn raw(&self) -> i64 { self.raw }
 	/// Sets the length of the reaction time for the "UnitAction", in seconds.
 	/// The reaction time will affect the AI check cycling time.
 	pub fn set_reaction(&mut self, var: f32) {

@@ -54,7 +54,7 @@ use crate::dora::IObject;
 pub struct BodyDef { raw: i64 }
 crate::dora_object!(BodyDef);
 impl BodyDef {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { bodydef_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

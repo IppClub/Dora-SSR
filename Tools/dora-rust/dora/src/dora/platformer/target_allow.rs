@@ -22,10 +22,10 @@ impl Drop for TargetAllow {
 	fn drop(&mut self) { unsafe { platformer_targetallow_release(self.raw); } }
 }
 impl TargetAllow {
-	pub fn raw(&self) -> i64 {
+	pub(crate) fn raw(&self) -> i64 {
 		self.raw
 	}
-	pub fn from(raw: i64) -> TargetAllow {
+	pub(crate) fn from(raw: i64) -> TargetAllow {
 		TargetAllow { raw: raw }
 	}
 	/// Sets whether the bullet object can collide with terrain.

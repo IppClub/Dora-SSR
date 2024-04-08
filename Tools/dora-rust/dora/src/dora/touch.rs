@@ -22,7 +22,7 @@ use crate::dora::IObject;
 pub struct Touch { raw: i64 }
 crate::dora_object!(Touch);
 impl Touch {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { touch_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

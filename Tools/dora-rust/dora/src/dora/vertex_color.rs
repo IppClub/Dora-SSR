@@ -19,10 +19,10 @@ impl Drop for VertexColor {
 	fn drop(&mut self) { unsafe { vertexcolor_release(self.raw); } }
 }
 impl VertexColor {
-	pub fn raw(&self) -> i64 {
+	pub(crate) fn raw(&self) -> i64 {
 		self.raw
 	}
-	pub fn from(raw: i64) -> VertexColor {
+	pub(crate) fn from(raw: i64) -> VertexColor {
 		VertexColor { raw: raw }
 	}
 	pub fn set_vertex(&mut self, var: &crate::dora::Vec2) {

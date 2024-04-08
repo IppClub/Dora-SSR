@@ -33,11 +33,11 @@ pub fn test() {
 		ImGui::set_next_window_pos(&Vec2::new(width - 10.0, 10.0), ImGuiCond::Always, &Vec2::new(1.0, 0.0));
 		ImGui::set_next_window_size_with_cond(&Vec2::new(240.0, 0.0), ImGuiCond::FirstUseEver);
 		if ImGui::begin_opts("Hello World", windows_flags) {
-			ImGui::text("Hello World");
+			ImGui::text("Hello World (Rust)");
 			ImGui::separator();
 			ImGui::text_wrapped("Basic Dora schedule and signal function usage. Written in Yuescript. View outputs in log window!");
-			ImGui::end();
 		}
-		return false;
+		ImGui::end();
+		false
 	}));
 }

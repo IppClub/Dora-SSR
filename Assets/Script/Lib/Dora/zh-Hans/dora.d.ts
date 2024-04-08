@@ -4228,8 +4228,11 @@ class Group extends Object {
 	/** 实体组中的实体数量。 */
 	readonly count: number;
 
+	/** 实体组中的第一个实体，如果没有实体，则为undefined。 */
+	readonly first?: Entity;
+
 	/**
-	 * 对组中的每个实体调用函数。
+	 * 对实体组中的每个实体调用函数。
 	 * @param func 对每个实体调用的函数。在函数内部返回true以停止迭代。
 	 * @returns 如果所有实体都被处理，返回False；如果迭代被中断，返回True。
 	 */

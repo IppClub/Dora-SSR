@@ -29,7 +29,7 @@ impl INode for PlatformWorld { }
 pub struct PlatformWorld { raw: i64 }
 crate::dora_object!(PlatformWorld);
 impl PlatformWorld {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { platformer_platformworld_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

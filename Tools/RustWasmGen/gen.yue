@@ -232,7 +232,7 @@ basicTypes =
 	DBParams:
 		* "i64"
 		* (name)-> "*r_cast<DBParams*>(#{name})"
-		* (name)-> "r_cast<int64_t>(new DBParams{#{name}})"
+		* (name)-> "r_cast<int64_t>(new DBParams{})"
 		* "crate::dora::DBParams"
 		* "crate::dora::DBParams"
 		* (name)-> "#{name}.raw()"
@@ -252,7 +252,7 @@ basicTypes =
 	DBQuery:
 		* "i64"
 		* (name)-> "*r_cast<DBQuery*>(#{name})"
-		* (name)-> "r_cast<int64_t>(new DBQuery{std::move(#{name}}))"
+		* (name)-> "r_cast<int64_t>(new DBQuery{})"
 		* "crate::dora::DBQuery"
 		* "crate::dora::DBQuery"
 		* (name)-> "#{name}.raw()"
@@ -708,7 +708,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 		rustExtern[] = "extern \"C\" {"
 		if isObject
 			rustExtern[] = "\tfn #{namespace}#{clsNewNameL}_type() -> i32;"
-			rustBinding[] = "\tpub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+			rustBinding[] = "\tpub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { #{namespace}#{clsNewNameL}_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,
@@ -721,21 +721,21 @@ impl I#{clsNewName} for #{clsNewName} { }"
 	delete r_cast<#{clsName}*>(raw);
 }"
 			rustExtern[] = "\tfn #{namespace}#{clsNewNameL}_release(raw: i64);"
-			rustBinding[] = "\tpub fn raw(&self) -> i64 {
+			rustBinding[] = "\tpub(crate) fn raw(&self) -> i64 {
 		self.raw
 	}
-	pub fn from(raw: i64) -> #{clsNewName} {
+	pub(crate) fn from(raw: i64) -> #{clsNewName} {
 		#{clsNewName} { raw: raw }
 	}"
 			cppLink[] = "\tmod.link_optional(\"*\", \"#{namespace}#{clsNewNameL}_release\", #{namespace}#{clsNewNameL}_release);"
 		if #clsLabels == 0
-			rustBinding[] = "\tpub fn from(raw: i64) -> Option<#{clsNewName}> {
+			rustBinding[] = "\tpub(crate) fn from(raw: i64) -> Option<#{clsNewName}> {
 		match raw {
 			0 => None,
 			_ => Some(#{clsNewName} { raw: raw })
 		}
 	}
-	pub fn raw(&self) -> i64 { self.raw }"
+	pub(crate) fn raw(&self) -> i64 { self.raw }"
 		for clsItem in *clsBody
 			pub = isTrait and "" or "pub "
 			[itemType,] = clsItem

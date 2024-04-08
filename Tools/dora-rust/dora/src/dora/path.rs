@@ -17,15 +17,8 @@ extern "C" {
 	fn path_concat(paths: i64) -> i64;
 }
 /// Helper struct for file path operations.
-pub struct Path { raw: i64 }
+pub struct Path { }
 impl Path {
-	pub fn from(raw: i64) -> Option<Path> {
-		match raw {
-			0 => None,
-			_ => Some(Path { raw: raw })
-		}
-	}
-	pub fn raw(&self) -> i64 { self.raw }
 	/// Extracts the file extension from a given file path.
 	///
 	/// # Example

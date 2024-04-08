@@ -18,7 +18,7 @@ use crate::dora::IObject;
 pub struct SVG { raw: i64 }
 crate::dora_object!(SVG);
 impl SVG {
-	pub fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
 		(unsafe { svg_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
 			match raw {
 				0 => None,

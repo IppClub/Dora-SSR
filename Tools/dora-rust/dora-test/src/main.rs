@@ -20,8 +20,20 @@ fn main() {
 					all_clear();
 					tests::hello_world::test();
 				}
-				ImGui::end();
+				if ImGui::button("Body", &Vec2::zero()) {
+					all_clear();
+					tests::body::test();
+				}
+				if ImGui::button("Entity Move", &Vec2::zero()) {
+					all_clear();
+					tests::entity_move::test();
+				}
+				if ImGui::button("SQLite", &Vec2::zero()) {
+					all_clear();
+					tests::sqlite::test();
+				}
 			}
+			ImGui::end();
 			co.waiter().await;
 		}
 	});
