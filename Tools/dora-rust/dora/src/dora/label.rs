@@ -166,7 +166,7 @@ impl Label {
 	/// # Returns
 	///
 	/// * `Label` - The new Label object.
-	pub fn new(font_name: &str, font_size: i32) -> Label {
-		unsafe { return Label { raw: label_new(crate::dora::from_string(font_name), font_size) }; }
+	pub fn new(font_name: &str, font_size: i32) -> Option<Label> {
+		unsafe { return Label::from(label_new(crate::dora::from_string(font_name), font_size)); }
 	}
 }

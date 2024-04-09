@@ -31,7 +31,7 @@ extern "C" {
 	fn bodydef_polygon_with_center(center: i64, width: f32, height: f32, angle: f32, density: f32, friction: f32, restitution: f32) -> i64;
 	fn bodydef_polygon(width: f32, height: f32, density: f32, friction: f32, restitution: f32) -> i64;
 	fn bodydef_polygon_with_vertices(vertices: i64, density: f32, friction: f32, restitution: f32) -> i64;
-	fn bodydef_attach_polygon_center(slf: i64, center: i64, width: f32, height: f32, angle: f32, density: f32, friction: f32, restitution: f32);
+	fn bodydef_attach_polygon_with_center(slf: i64, center: i64, width: f32, height: f32, angle: f32, density: f32, friction: f32, restitution: f32);
 	fn bodydef_attach_polygon(slf: i64, width: f32, height: f32, density: f32, friction: f32, restitution: f32);
 	fn bodydef_attach_polygon_with_vertices(slf: i64, vertices: i64, density: f32, friction: f32, restitution: f32);
 	fn bodydef_multi(vertices: i64, density: f32, friction: f32, restitution: f32) -> i64;
@@ -190,8 +190,8 @@ impl BodyDef {
 	/// * `density` - The density of the polygon.
 	/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
 	/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
-	pub fn attach_polygon_center(&mut self, center: &crate::dora::Vec2, width: f32, height: f32, angle: f32, density: f32, friction: f32, restitution: f32) {
-		unsafe { bodydef_attach_polygon_center(self.raw(), center.into_i64(), width, height, angle, density, friction, restitution); }
+	pub fn attach_polygon_with_center(&mut self, center: &crate::dora::Vec2, width: f32, height: f32, angle: f32, density: f32, friction: f32, restitution: f32) {
+		unsafe { bodydef_attach_polygon_with_center(self.raw(), center.into_i64(), width, height, angle, density, friction, restitution); }
 	}
 	/// Attaches a polygon fixture definition to the body.
 	///

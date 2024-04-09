@@ -431,9 +431,9 @@ union LightValue {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct Color {
-	pub r: u8,
-	pub g: u8,
 	pub b: u8,
+	pub g: u8,
+	pub r: u8,
 	pub a: u8
 }
 
@@ -444,6 +444,9 @@ union ColorValue {
 }
 
 impl Color {
+	pub const WHITE: Color = Color { r: 255, g: 255, b: 255, a: 255 };
+	pub const BLACK: Color = Color { r: 0, g: 0, b: 0, a: 255 };
+	pub const TRANSPARENT: Color = Color { r: 0, g: 0, b: 0, a: 0 };
 	pub fn new(argb: u32) -> Color {
 		let a = argb >> 24;
 		let r = (argb & 0x00ff0000) >> 16;
@@ -451,8 +454,8 @@ impl Color {
 		let b = argb & 0x000000ff;
 		Color { r: r as u8, g: g as u8, b: b as u8, a: a as u8 }
 	}
-	pub fn from(agbr: i32) -> Color {
-		unsafe { ColorValue{ value: agbr }.color }
+	pub fn from(argb: i32) -> Color {
+		unsafe { ColorValue{ value: argb }.color }
 	}
 	pub fn to_argb(&self) -> u32 {
 		(self.a as u32) << 24 | (self.r as u32) << 16 | (self.g as u32) << 8 | self.b as u32
@@ -465,9 +468,9 @@ impl Color {
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct Color3 {
-	pub r: u8,
+	pub b: u8,
 	pub g: u8,
-	pub b: u8
+	pub r: u8
 }
 
 #[repr(C)]
@@ -484,14 +487,16 @@ union Color3Value {
 }
 
 impl Color3 {
+	pub const WHITE: Color3 = Color3 { r: 255, g: 255, b: 255 };
+	pub const BLACK: Color3 = Color3 { r: 0, g: 0, b: 0 };
 	pub fn new(rgb: u32) -> Color3 {
 		let r = (rgb & 0x00ff0000) >> 16;
 		let g = (rgb & 0x0000ff00) >> 8;
 		let b = rgb & 0x000000ff;
 		Color3 { r: r as u8, g: g as u8, b: b as u8 }
 	}
-	pub fn from(gbr: i32) -> Color3 {
-		unsafe { Color3Value { value: gbr }.color3a.color3 }
+	pub fn from(rgb: i32) -> Color3 {
+		unsafe { Color3Value { value: rgb }.color3a.color3 }
 	}
 	pub fn to_rgb(&self) -> u32 {
 		(self.r as u32) << 16 | (self.g as u32) << 8 | self.b as u32
@@ -1950,7 +1955,8 @@ impl platformer::behavior::Blackboard {
 	}
 }
 
-use enumflags2::{bitflags, make_bitflags, BitFlags};
+use enumflags2::{bitflags, make_bitflags};
+pub use enumflags2::BitFlags;
 
 #[bitflags]
 #[repr(u8)]
@@ -2295,6 +2301,13 @@ pub enum ImGuiStyleVec2 {
 	SeparatorTextPadding = 28
 }
 
+#[bitflags]
+#[repr(u8)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiTableRowFlag {
+	Headers = 1 << 0
+}
+
 static mut IMGUI_STACK: Lazy<CallStack> = Lazy::new(|| { CallStack::new() });
 
 impl ImGui {
@@ -2325,29 +2338,34 @@ impl ImGui {
 		stack.push_f32(v2);
 		stack
 	}
-	pub fn begin_ret(name: &str, opened: bool) -> (bool, bool) {
-		let stack = ImGui::push_bool(opened);
-		let changed = ImGui::_begin(name, stack);
-		(changed, stack.pop_bool().unwrap())
+	pub fn begin(name: &str) -> bool {
+		ImGui::begin_opts(name, BitFlags::default())
 	}
 	pub fn begin_opts(name: &str, windows_flags: BitFlags<ImGuiWindowFlag>) -> bool {
 		ImGui::_begin_opts(name, windows_flags.bits() as i32)
+	}
+	pub fn begin_ret(name: &str, opened: bool) -> (bool, bool) {
+		ImGui::begin_ret_opts(name, opened, BitFlags::default())
 	}
 	pub fn begin_ret_opts(name: &str, opened: bool, windows_flags: BitFlags<ImGuiWindowFlag>) -> (bool, bool) {
 		let stack = ImGui::push_bool(opened);
 		let changed = ImGui::_begin_ret_opts(name, stack, windows_flags.bits() as i32);
 		(changed, stack.pop_bool().unwrap())
 	}
+	pub fn begin_child(str_id: &str) -> bool {
+		ImGui::begin_child_opts(str_id, &Vec2::zero(), BitFlags::default(), BitFlags::default())
+	}
 	pub fn begin_child_opts(str_id: &str, size: &crate::dora::Vec2, child_flags: BitFlags<ImGuiChildFlag>, window_flags: BitFlags<ImGuiWindowFlag>) -> bool {
 		ImGui::_begin_child_opts(str_id, size, child_flags.bits() as i32, window_flags.bits() as i32)
+	}
+	pub fn begin_child_with_id(id: i32) -> bool {
+		ImGui::begin_child_with_id_opts(id, &Vec2::zero(), BitFlags::default(), BitFlags::default())
 	}
 	pub fn begin_child_with_id_opts(id: i32, size: &crate::dora::Vec2, child_flags: BitFlags<ImGuiChildFlag>, window_flags: BitFlags<ImGuiWindowFlag>) -> bool {
 		ImGui::_begin_child_with_id_opts(id, size, child_flags.bits() as i32, window_flags.bits() as i32)
 	}
 	pub fn collapsing_header_ret(label: &str, opened: bool) -> (bool, bool) {
-		let stack = ImGui::push_bool(opened);
-		let changed = ImGui::_collapsing_header_ret(label, stack);
-		(changed, stack.pop_bool().unwrap())
+		ImGui::collapsing_header_ret_opts(label, opened, BitFlags::default())
 	}
 	pub fn collapsing_header_ret_opts(label: &str, opened: bool, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>) -> (bool, bool) {
 		let stack = ImGui::push_bool(opened);
@@ -2355,9 +2373,7 @@ impl ImGui {
 		(changed, stack.pop_bool().unwrap())
 	}
 	pub fn selectable_ret(label: &str, selected: bool) -> (bool, bool) {
-		let stack = ImGui::push_bool(selected);
-		let changed = ImGui::_selectable_ret(label, stack);
-		(changed, stack.pop_bool().unwrap())
+		ImGui::selectable_ret_opts(label, selected, &Vec2::zero(), BitFlags::default())
 	}
 	pub fn selectable_ret_opts(label: &str, selected: bool, size: &crate::dora::Vec2, selectable_flags: BitFlags<ImGuiSelectableFlag>) -> (bool, bool) {
 		let stack = ImGui::push_bool(selected);
@@ -2365,9 +2381,7 @@ impl ImGui {
 		(changed, stack.pop_bool().unwrap())
 	}
 	pub fn begin_popup_modal_ret(name: &str, opened: bool) -> (bool, bool) {
-		let stack = ImGui::push_bool(opened);
-		let changed = ImGui::_begin_popup_modal_ret(name, stack);
-		(changed, stack.pop_bool().unwrap())
+		ImGui::begin_popup_modal_ret_opts(name, opened, BitFlags::default())
 	}
 	pub fn begin_popup_modal_ret_opts(name: &str, opened: bool, windows_flags: BitFlags<ImGuiWindowFlag>) -> (bool, bool) {
 		let stack = ImGui::push_bool(opened);
@@ -2375,277 +2389,297 @@ impl ImGui {
 		(changed, stack.pop_bool().unwrap())
 	}
 	pub fn combo_ret(label: &str, current_item: i32, items: &Vec<&str>) -> (bool, i32) {
-		let stack = ImGui::push_i32(current_item);
-		let changed = ImGui::_combo(label, stack, items);
-		(changed, stack.pop_i32().unwrap())
+		ImGui::combo_ret_opts(label, current_item, items, -1)
 	}
 	pub fn combo_ret_opts(label: &str, current_item: i32, items: &Vec<&str>, height_in_items: i32) -> (bool, i32) {
 		let stack = ImGui::push_i32(current_item);
-		let changed = ImGui::_combo_opts(label, stack, items, height_in_items);
+		let changed = ImGui::_combo_ret_opts(label, stack, items, height_in_items);
 		(changed, stack.pop_i32().unwrap())
 	}
 	pub fn drag_float_ret(label: &str, v: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32) {
-		let stack = ImGui::push_f32(v);
-		let changed = ImGui::_drag_float(label, stack, v_speed, v_min, v_max);
-		(changed, stack.pop_f32().unwrap())
+		ImGui::drag_float_ret_opts(label, v, v_speed, v_min, v_max, "%.3f", BitFlags::default())
 	}
 	pub fn drag_float_ret_opts(label: &str, v: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32) {
 		let stack = ImGui::push_f32(v);
-		let changed = ImGui::_drag_float_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
+		let changed = ImGui::_drag_float_ret_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap())
 	}
 	pub fn drag_float2_ret(label: &str, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
-		let stack = ImGui::push_f32x2(v1, v2);
-		let changed = ImGui::_drag_float2(label, stack, v_speed, v_min, v_max);
-		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
+		ImGui::drag_float2_ret_opts(label, v1, v2, v_speed, v_min, v_max, "%.3f", BitFlags::default())
 	}
 	pub fn drag_float2_ret_opts(label: &str, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32, f32) {
 		let stack = ImGui::push_f32x2(v1, v2);
-		let changed = ImGui::_drag_float2_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
+		let changed = ImGui::_drag_float2_ret_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
 	}
 	pub fn drag_int2_ret(label: &str, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32) -> (bool, i32, i32) {
-		let stack = ImGui::push_i32x2(v1, v2);
-		let changed = ImGui::_drag_int2(label, stack, v_speed, v_min, v_max);
-		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
+		ImGui::drag_int2_ret_opts(label, v1, v2, v_speed, v_min, v_max, "%d", BitFlags::default())
 	}
-	pub fn drag_int2_opts(label: &str, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32, i32) {
+	pub fn drag_int2_ret_opts(label: &str, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32, i32) {
 		let stack = ImGui::push_i32x2(v1, v2);
-		let changed = ImGui::_drag_int2_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
+		let changed = ImGui::_drag_int2_ret_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
 	}
 	pub fn input_float_ret(label: &str, v: f32) -> (bool, f32) {
-		let stack = ImGui::push_f32(v);
-		let changed = ImGui::_input_float(label, stack);
-		(changed, stack.pop_f32().unwrap())
+		ImGui::input_float_ret_opts(label, v, 0.0, 0.0, "%.3f", BitFlags::default())
 	}
 	pub fn input_float_ret_opts(label: &str, v: f32, step: f32, step_fast: f32, display_format: &str, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, f32) {
 		let stack = ImGui::push_f32(v);
-		let changed = ImGui::_input_float_opts(label, stack, step, step_fast, display_format, input_text_flags.bits() as i32);
+		let changed = ImGui::_input_float_ret_opts(label, stack, step, step_fast, display_format, input_text_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap())
 	}
 	pub fn input_float2_ret(label: &str, v1: f32, v2: f32) -> (bool, f32, f32) {
-		let stack = ImGui::push_f32x2(v1, v2);
-		let changed = ImGui::_input_float2(label, stack);
-		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
+		ImGui::input_float2_ret_opts(label, v1, v2, "%.3f", BitFlags::default())
 	}
 	pub fn input_float2_ret_opts(label: &str, v1: f32, v2: f32, display_format: &str, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, f32, f32) {
 		let stack = ImGui::push_f32x2(v1, v2);
-		let changed = ImGui::_input_float2_opts(label, stack, display_format, input_text_flags.bits() as i32);
+		let changed = ImGui::_input_float2_ret_opts(label, stack, display_format, input_text_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
 	}
 	pub fn input_int_ret(label: &str, v: i32) -> (bool, i32) {
-		let stack = ImGui::push_i32(v);
-		let changed = ImGui::_input_int(label, stack);
-		(changed, stack.pop_i32().unwrap())
+		ImGui::input_int_ret_opts(label, v, 1, 100, BitFlags::default())
 	}
 	pub fn input_int_ret_opts(label: &str, v: i32, step: i32, step_fast: i32, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, i32) {
 		let stack = ImGui::push_i32(v);
-		let changed = ImGui::_input_int_opts(label, stack, step, step_fast, input_text_flags.bits() as i32);
+		let changed = ImGui::_input_int_ret_opts(label, stack, step, step_fast, input_text_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap())
 	}
 	pub fn input_int2_ret(label: &str, v1: i32, v2: i32) -> (bool, i32, i32) {
-		let stack = ImGui::push_i32x2(v1, v2);
-		let changed = ImGui::_input_int2(label, stack);
-		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
+		ImGui::input_int2_ret_opts(label, v1, v2, BitFlags::default())
 	}
 	pub fn input_int2_ret_opts(label: &str, v1: i32, v2: i32, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, i32, i32) {
 		let stack = ImGui::push_i32x2(v1, v2);
-		let changed = ImGui::_input_int2_opts(label, stack, input_text_flags.bits() as i32);
+		let changed = ImGui::_input_int2_ret_opts(label, stack, input_text_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
 	}
 	pub fn slider_float_ret(label: &str, v: f32, v_min: f32, v_max: f32) -> (bool, f32) {
-		let stack = ImGui::push_f32(v);
-		let changed = ImGui::_slider_float(label, stack, v_min, v_max);
-		(changed, stack.pop_f32().unwrap())
+		ImGui::slider_float_ret_opts(label, v, v_min, v_max, "%.3f", BitFlags::default())
 	}
 	pub fn slider_float_ret_opts(label: &str, v: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32) {
 		let stack = ImGui::push_f32(v);
-		let changed = ImGui::_slider_float_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
+		let changed = ImGui::_slider_float_ret_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap())
 	}
 	pub fn slider_float2_ret(label: &str, v1: f32, v2: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
-		let stack = ImGui::push_f32x2(v1, v2);
-		let changed = ImGui::_slider_float2(label, stack, v_min, v_max);
-		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
+		ImGui::slider_float2_ret_opts(label, v1, v2, v_min, v_max, "%.3f", BitFlags::default())
 	}
 	pub fn slider_float2_ret_opts(label: &str, v1: f32, v2: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32, f32) {
 		let stack = ImGui::push_f32x2(v1, v2);
-		let changed = ImGui::_slider_float2_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
+		let changed = ImGui::_slider_float2_ret_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
 	}
 	pub fn drag_float_range2_ret(label: &str, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
-		let stack = ImGui::push_f32x2(v_current_min, v_current_max);
-		let changed = ImGui::_drag_float_range2(label, stack, v_speed, v_min, v_max);
-		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
+		ImGui::drag_float_range2_ret_opts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%.3f", "%.3f", BitFlags::default())
 	}
 	pub fn drag_float_range2_ret_opts(label: &str, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32, format: &str, format_max: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32, f32) {
 		let stack = ImGui::push_f32x2(v_current_min, v_current_max);
-		let changed = ImGui::_drag_float_range2_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags.bits() as i32);
+		let changed = ImGui::_drag_float_range2_ret_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap(), stack.pop_f32().unwrap())
 	}
-	pub fn drag_int(label: &str, value: i32, v_speed: f32, v_min: i32, v_max: i32) -> (bool, i32) {
-		let stack = ImGui::push_i32(value);
-		let changed = ImGui::_drag_int(label, stack, v_speed, v_min, v_max);
-		(changed, stack.pop_i32().unwrap())
+	pub fn drag_int_ret(label: &str, value: i32, v_speed: f32, v_min: i32, v_max: i32) -> (bool, i32) {
+		ImGui::drag_int_ret_opts(label, value, v_speed, v_min, v_max, "%d", BitFlags::default())
 	}
-	pub fn drag_int_opts(label: &str, value: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32) {
+	pub fn drag_int_ret_opts(label: &str, value: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32) {
 		let stack = ImGui::push_i32(value);
-		let changed = ImGui::_drag_int_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
+		let changed = ImGui::_drag_int_ret_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap())
 	}
 	pub fn drag_int_range2_ret(label: &str, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32) -> (bool, i32, i32) {
-		let stack = ImGui::push_i32x2(v_current_min, v_current_max);
-		let changed = ImGui::_drag_int_range2(label, stack, v_speed, v_min, v_max);
-		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
+		ImGui::drag_int_range2_ret_opts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%d", "%d", BitFlags::default())
 	}
 	pub fn drag_int_range2_ret_opts(label: &str, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32, format: &str, format_max: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32, i32) {
 		let stack = ImGui::push_i32x2(v_current_min, v_current_max);
-		let changed = ImGui::_drag_int_range2_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags.bits() as i32);
+		let changed = ImGui::_drag_int_range2_ret_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
 	}
-	pub fn slider_int(label: &str, value: i32, v_min: i32, v_max: i32) -> (bool, i32) {
+	pub fn slider_int_ret(label: &str, value: i32, v_min: i32, v_max: i32) -> (bool, i32) {
+		ImGui::slider_int_ret_opts(label, value, v_min, v_max, "%d", BitFlags::default())
+	}
+	pub fn slider_int_ret_opts(label: &str, value: i32, v_min: i32, v_max: i32, format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32) {
 		let stack = ImGui::push_i32(value);
-		let changed = ImGui::_slider_int(label, stack, v_min, v_max);
+		let changed = ImGui::_slider_int_ret_opts(label, stack, v_min, v_max, format, slider_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap())
 	}
-	pub fn slider_int_opts(label: &str, value: i32, v_min: i32, v_max: i32, format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32) {
-		let stack = ImGui::push_i32(value);
-		let changed = ImGui::_slider_int_opts(label, stack, v_min, v_max, format, slider_flags.bits() as i32);
-		(changed, stack.pop_i32().unwrap())
+	pub fn slider_int2_ret(label: &str, v1: i32, v2: i32, v_min: i32, v_max: i32) -> (bool, i32, i32) {
+		ImGui::slider_int2_ret_opts(label, v1, v2, v_min, v_max, "%d", BitFlags::default())
 	}
-	pub fn slider_int2(label: &str, v1: i32, v2: i32, v_min: i32, v_max: i32) -> (bool, i32, i32) {
+	pub fn slider_int2_ret_opts(label: &str, v1: i32, v2: i32, v_min: i32, v_max: i32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32, i32) {
 		let stack = ImGui::push_i32x2(v1, v2);
-		let changed = ImGui::_slider_int2(label, stack, v_min, v_max);
-		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
-	}
-	pub fn slider_int2_opts(label: &str, v1: i32, v2: i32, v_min: i32, v_max: i32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32, i32) {
-		let stack = ImGui::push_i32x2(v1, v2);
-		let changed = ImGui::_slider_int2_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
+		let changed = ImGui::_slider_int2_ret_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap(), stack.pop_i32().unwrap())
 	}
 	pub fn v_slider_float_ret(label: &str, size: &crate::dora::Vec2, v: f32, v_min: f32, v_max: f32) -> (bool, f32) {
-		let stack = ImGui::push_f32(v);
-		let changed = ImGui::_v_slider_float(label, size, stack, v_min, v_max);
-		(changed, stack.pop_f32().unwrap())
+		ImGui::v_slider_float_ret_opts(label, size, v, v_min, v_max, "%.3f", BitFlags::default())
 	}
 	pub fn v_slider_float_ret_opts(label: &str, size: &crate::dora::Vec2, v: f32, v_min: f32, v_max: f32, format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32) {
 		let stack = ImGui::push_f32(v);
-		let changed = ImGui::_v_slider_float_opts(label, size, stack, v_min, v_max, format, slider_flags.bits() as i32);
+		let changed = ImGui::_v_slider_float_ret_opts(label, size, stack, v_min, v_max, format, slider_flags.bits() as i32);
 		(changed, stack.pop_f32().unwrap())
 	}
 	pub fn v_slider_int_ret(label: &str, size: &crate::dora::Vec2, v: i32, v_min: i32, v_max: i32) -> (bool, i32) {
-		let stack = ImGui::push_i32(v);
-		let changed = ImGui::_v_slider_int(label, size, stack, v_min, v_max);
-		(changed, stack.pop_i32().unwrap())
+		ImGui::v_slider_int_ret_opts(label, size, v, v_min, v_max, "%d", BitFlags::default())
 	}
 	pub fn v_slider_int_ret_opts(label: &str, size: &crate::dora::Vec2, v: i32, v_min: i32, v_max: i32, format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32) {
 		let stack = ImGui::push_i32(v);
-		let changed = ImGui::_v_slider_int_opts(label, size, stack, v_min, v_max, format, slider_flags.bits() as i32);
+		let changed = ImGui::_v_slider_int_ret_opts(label, size, stack, v_min, v_max, format, slider_flags.bits() as i32);
 		(changed, stack.pop_i32().unwrap())
 	}
-	pub fn color_edit3(label: &str, color3: &Color3) -> (bool, Color3) {
+	pub fn color_edit3_ret(label: &str, color3: &Color3) -> (bool, Color3) {
+		ImGui::color_edit3_ret_opts(label, color3, BitFlags::default())
+	}
+	pub fn color_edit3_ret_opts(label: &str, color3: &Color3, color_edit_flags: BitFlags<ImGuiColorEditFlag>) -> (bool, Color3) {
 		let stack = ImGui::push_i32(color3.to_rgb() as i32);
-		let changed = ImGui::_color_edit3(label, stack);
+		let changed = ImGui::_color_edit3_ret_opts(label, stack, color_edit_flags.bits() as i32);
 		(changed, Color3::new(stack.pop_i32().unwrap() as u32))
 	}
-	pub fn color_edit4(label: &str, color: &Color) -> (bool, Color) {
+	pub fn color_edit4_ret(label: &str, color: &Color) -> (bool, Color) {
+		ImGui::color_edit4_ret_opts(label, color, BitFlags::default())
+	}
+	pub fn color_edit4_ret_opts(label: &str, color: &Color, color_edit_flags: BitFlags<ImGuiColorEditFlag>) -> (bool, Color) {
 		let stack = ImGui::push_i32(color.to_argb() as i32);
-		let changed = ImGui::_color_edit4(label, stack);
+		let changed = ImGui::_color_edit4_ret_opts(label, stack, color_edit_flags.bits() as i32);
 		(changed, Color::new(stack.pop_i32().unwrap() as u32))
 	}
-	pub fn checkbox(label: &str, checked: bool) -> (bool, bool) {
+	pub fn checkbox_ret(label: &str, checked: bool) -> (bool, bool) {
 		let stack = ImGui::push_bool(checked);
-		let changed = ImGui::_checkbox(label, stack);
+		let changed = ImGui::_checkbox_ret(label, stack);
 		(changed, stack.pop_bool().unwrap())
 	}
-	pub fn radio_button(label: &str, value: i32, v_button: i32) -> (bool, i32) {
+	pub fn radio_button_ret(label: &str, value: i32, v_button: i32) -> (bool, i32) {
 		let stack = ImGui::push_i32(value);
-		let changed = ImGui::_radio_button(label, stack, v_button);
+		let changed = ImGui::_radio_button_ret(label, stack, v_button);
 		(changed, stack.pop_i32().unwrap())
 	}
-	pub fn list_box(label: &str, current_item: i32, items: &Vec<&str>) -> (bool, i32) {
+	pub fn list_box_ret(label: &str, current_item: i32, items: &Vec<&str>) -> (bool, i32) {
+		ImGui::list_box_ret_opts(label, current_item, items, -1)
+	}
+	pub fn list_box_ret_opts(label: &str, current_item: i32, items: &Vec<&str>, height_in_items: i32) -> (bool, i32) {
 		let stack = ImGui::push_i32(current_item);
-		let changed = ImGui::_list_box(label, stack, items);
+		let changed = ImGui::_list_box_ret_opts(label, stack, items, height_in_items);
 		(changed, stack.pop_i32().unwrap())
 	}
-	pub fn list_box_with_height(label: &str, current_item: i32, items: &Vec<&str>, height_in_items: i32) -> (bool, i32) {
-		let stack = ImGui::push_i32(current_item);
-		let changed = ImGui::_list_box_with_height(label, stack, items, height_in_items);
-		(changed, stack.pop_i32().unwrap())
+	pub fn set_next_window_pos_center() {
+		ImGui::set_next_window_pos_center_opts(ImGuiCond::Always);
 	}
-	pub fn set_next_window_pos_center_with_cond(set_cond: ImGuiCond) {
-		ImGui::_set_next_window_pos_center_with_cond(set_cond as i32)
+	pub fn set_next_window_pos_center_opts(set_cond: ImGuiCond) {
+		ImGui::_set_next_window_pos_center_opts(set_cond as i32);
 	}
-	pub fn set_next_window_size_with_cond(size: &crate::dora::Vec2, set_cond: ImGuiCond) {
-		ImGui::_set_next_window_size_with_cond(size, set_cond as i32);
+	pub fn set_next_window_size(size: &crate::dora::Vec2) {
+		ImGui::set_next_window_size_opts(size, ImGuiCond::Always);
 	}
-	pub fn set_next_window_collapsed_with_cond(collapsed: bool, set_cond: ImGuiCond) {
-		ImGui::_set_next_window_collapsed_with_cond(collapsed, set_cond as i32);
+	pub fn set_next_window_size_opts(size: &crate::dora::Vec2, set_cond: ImGuiCond) {
+		ImGui::_set_next_window_size_opts(size, set_cond as i32);
 	}
-	pub fn set_window_pos_with_cond(name: &str, pos: &crate::dora::Vec2, set_cond: ImGuiCond) {
-		ImGui::_set_window_pos_with_cond(name, pos, set_cond as i32);
+	pub fn set_next_window_collapsed(collapsed: bool) {
+		ImGui::set_next_window_collapsed_opts(collapsed, ImGuiCond::Always);
 	}
-	pub fn set_window_size_with_cond(name: &str, size: &crate::dora::Vec2, set_cond: ImGuiCond) {
-		ImGui::_set_window_size_with_cond(name, size, set_cond as i32);
+	pub fn set_next_window_collapsed_opts(collapsed: bool, set_cond: ImGuiCond) {
+		ImGui::_set_next_window_collapsed_opts(collapsed, set_cond as i32);
 	}
-	pub fn set_window_collapsed_with_cond(name: &str, collapsed: bool, set_cond: ImGuiCond) {
-		ImGui::_set_window_collapsed_with_cond(name, collapsed, set_cond as i32);
+	pub fn set_window_pos(name: &str, pos: &crate::dora::Vec2) {
+		ImGui::set_window_pos_opts(name, pos, ImGuiCond::Always);
+	}
+	pub fn set_window_pos_opts(name: &str, pos: &crate::dora::Vec2, set_cond: ImGuiCond) {
+		ImGui::_set_window_pos_opts(name, pos, set_cond as i32);
+	}
+	pub fn set_window_size(name: &str, size: &crate::dora::Vec2) {
+		ImGui::set_window_size_opts(name, size, ImGuiCond::Always);
+	}
+	pub fn set_window_size_opts(name: &str, size: &crate::dora::Vec2, set_cond: ImGuiCond) {
+		ImGui::_set_window_size_opts(name, size, set_cond as i32);
+	}
+	pub fn set_window_collapsed(name: &str, collapsed: bool) {
+		ImGui::set_window_collapsed_opts(name, collapsed, ImGuiCond::Always);
+	}
+	pub fn set_window_collapsed_opts(name: &str, collapsed: bool, set_cond: ImGuiCond) {
+		ImGui::_set_window_collapsed_opts(name, collapsed, set_cond as i32);
 	}
 	pub fn set_color_edit_options(color_edit_flags: BitFlags<ImGuiColorEditFlag>) {
 		ImGui::_set_color_edit_options(color_edit_flags.bits() as i32);
 	}
+	pub fn input_text(label: &str, buffer: &crate::dora::Buffer) -> bool {
+		ImGui::input_text_opts(label, buffer, BitFlags::default())
+	}
 	pub fn input_text_opts(label: &str, buffer: &crate::dora::Buffer, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> bool {
 		ImGui::_input_text_opts(label, buffer, input_text_flags.bits() as i32)
+	}
+	pub fn input_text_multiline(label: &str, buffer: &crate::dora::Buffer, size: &crate::dora::Vec2) -> bool {
+		ImGui::input_text_multiline_opts(label, buffer, size, BitFlags::default())
 	}
 	pub fn input_text_multiline_opts(label: &str, buffer: &crate::dora::Buffer, size: &crate::dora::Vec2, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> bool {
 		ImGui::_input_text_multiline_opts(label, buffer, size, input_text_flags.bits() as i32)
 	}
+	pub fn tree_node_ex(label: &str) -> bool {
+		ImGui::tree_node_ex_opts(label, BitFlags::default())
+	}
 	pub fn tree_node_ex_opts(label: &str, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>) -> bool {
 		ImGui::_tree_node_ex_opts(label, tree_node_flags.bits() as i32)
+	}
+	pub fn tree_node_ex_with_id(str_id: &str, text: &str) -> bool {
+		ImGui::tree_node_ex_with_id_opts(str_id, text, BitFlags::default())
 	}
 	pub fn tree_node_ex_with_id_opts(str_id: &str, text: &str, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>) -> bool {
 		ImGui::_tree_node_ex_with_id_opts(str_id, text, tree_node_flags.bits() as i32)
 	}
-	pub fn set_next_item_open_with_cond(is_open: bool, set_cond: ImGuiCond) {
-		ImGui::_set_next_item_open_with_cond(is_open, set_cond as i32);
+	pub fn set_next_item_open(is_open: bool) {
+		ImGui::set_next_item_open_opts(is_open, ImGuiCond::Always);
+	}
+	pub fn set_next_item_open_opts(is_open: bool, set_cond: ImGuiCond) {
+		ImGui::_set_next_item_open_opts(is_open, set_cond as i32);
+	}
+	pub fn collapsing_header(label: &str) -> bool {
+		ImGui::collapsing_header_opts(label, BitFlags::default())
 	}
 	pub fn collapsing_header_opts(label: &str, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>) -> bool {
 		ImGui::_collapsing_header_opts(label, tree_node_flags.bits() as i32)
 	}
+	pub fn selectable(label: &str) -> bool {
+		ImGui::selectable_opts(label, BitFlags::default())
+	}
 	pub fn selectable_opts(label: &str, selectable_flags: BitFlags<ImGuiSelectableFlag>) -> bool {
 		ImGui::_selectable_opts(label, selectable_flags.bits() as i32)
+	}
+	pub fn begin_popup_modal(name: &str) -> bool {
+		ImGui::begin_popup_modal_opts(name, BitFlags::default())
 	}
 	pub fn begin_popup_modal_opts(name: &str, windows_flags: BitFlags<ImGuiWindowFlag>) -> bool {
 		ImGui::_begin_popup_modal_opts(name, windows_flags.bits() as i32)
 	}
+	pub fn begin_popup_context_item(name: &str) -> bool {
+		ImGui::begin_popup_context_item_opts(name, ImGuiPopupButton::MouseButtonRight, BitFlags::default())
+	}
 	pub fn begin_popup_context_item_opts(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>) -> bool {
 		ImGui::_begin_popup_context_item_opts(name, (button as u32 | popup_flags.bits()) as i32)
+	}
+	pub fn begin_popup_context_window(name: &str) -> bool {
+		ImGui::begin_popup_context_window_opts(name, ImGuiPopupButton::MouseButtonRight, BitFlags::default())
 	}
 	pub fn begin_popup_context_window_opts(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>) -> bool {
 		ImGui::_begin_popup_context_window_opts(name, (button as u32 | popup_flags.bits()) as i32)
 	}
+	pub fn begin_popup_context_void(name: &str) -> bool {
+		ImGui::begin_popup_context_void_opts(name, ImGuiPopupButton::MouseButtonRight, BitFlags::default())
+	}
 	pub fn begin_popup_context_void_opts(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>) -> bool {
 		ImGui::_begin_popup_context_void_opts(name, (button as u32 | popup_flags.bits()) as i32)
+	}
+	pub fn begin_table(str_id: &str, column: i32) -> bool {
+		ImGui::begin_table_opts(str_id, column, &Vec2::zero(), -1.0, BitFlags::default())
 	}
 	pub fn begin_table_opts(str_id: &str, column: i32, outer_size: &crate::dora::Vec2, inner_width: f32, table_flags: BitFlags<ImGuiTableFlag>) -> bool {
 		ImGui::_begin_table_opts(str_id, column, outer_size, inner_width, table_flags.bits() as i32)
 	}
+	pub fn table_setup_column(label: &str, init_width_or_weight: f32) {
+		ImGui::table_setup_column_opts(label, init_width_or_weight, 0, BitFlags::default())
+	}
 	pub fn table_setup_column_opts(label: &str, init_width_or_weight: f32, user_id: i32, table_column_flags: BitFlags<ImGuiTableColumnFlag>) {
 		ImGui::_table_setup_column_opts(label, init_width_or_weight, user_id, table_column_flags.bits() as i32);
 	}
-	pub fn color_edit3_opts(label: &str, color3: &Color3, color_edit_flags: BitFlags<ImGuiColorEditFlag>) -> (bool, Color3) {
-		let stack = ImGui::push_i32(color3.to_rgb() as i32);
-		let changed = ImGui::_color_edit3_opts(label, stack, color_edit_flags.bits() as i32);
-		(changed, Color3::new(stack.pop_i32().unwrap() as u32))
+	pub fn set_next_window_pos(pos: &crate::dora::Vec2) {
+		ImGui::set_next_window_pos_opts(pos, ImGuiCond::Always, &Vec2::zero());
 	}
-	pub fn color_edit4_opts(label: &str, color: &Color, color_edit_flags: BitFlags<ImGuiColorEditFlag>) -> (bool, Color) {
-		let stack = ImGui::push_i32(color.to_argb() as i32);
-		let changed = ImGui::_color_edit4_opts(label, stack, color_edit_flags.bits() as i32);
-		(changed, Color::new(stack.pop_i32().unwrap() as u32))
-	}
-	pub fn set_next_window_pos(pos: &crate::dora::Vec2, set_cond: ImGuiCond, pivot: &crate::dora::Vec2) {
-		ImGui::_set_next_window_pos(pos, set_cond as i32, pivot);
+	pub fn set_next_window_pos_opts(pos: &crate::dora::Vec2, set_cond: ImGuiCond, pivot: &crate::dora::Vec2) {
+		ImGui::_set_next_window_pos_opts(pos, set_cond as i32, pivot);
 	}
 	pub fn push_style_color(col: ImGuiCol, color: &crate::dora::Color) {
 		ImGui::_push_style_color(col as i32, color);
@@ -2655,6 +2689,29 @@ impl ImGui {
 	}
 	pub fn push_style_vec2(style: ImGuiStyleVec2, val: &crate::dora::Vec2) {
 		ImGui::_push_style_vec2(style as i32, val);
+	}
+	pub fn color_button(desc_id: &str, col: &crate::dora::Color) -> bool {
+		ImGui::color_button_opts(desc_id, col, BitFlags::default(), &Vec2::zero())
+	}
+	pub fn color_button_opts(desc_id: &str, col: &crate::dora::Color, color_edit_flags: BitFlags<ImGuiColorEditFlag>, size: &crate::dora::Vec2) -> bool {
+		ImGui::_color_button_opts(desc_id, col, color_edit_flags.bits() as i32, size)
+	}
+	pub fn slider_angle_ret(label: &str, v: f32, v_degrees_min: f32, v_degrees_max: f32) -> (bool, f32) {
+		let stack = ImGui::push_f32(v);
+		let changed = ImGui::_slider_angle_ret(label, stack, v_degrees_min, v_degrees_max);
+		(changed, stack.pop_f32().unwrap())
+	}
+	pub fn image(clip_str: &str, size: &crate::dora::Vec2) {
+		ImGui::image_opts(clip_str, size, &Color::WHITE, &Color::TRANSPARENT);
+	}
+	pub fn image_button(str_id: &str, clip_str: &str, size: &crate::dora::Vec2) -> bool {
+		ImGui::image_button_opts(str_id, clip_str, size, &Color::TRANSPARENT, &Color::WHITE)
+	}
+	pub fn table_next_row() {
+		ImGui::table_next_row_opts(0.0, BitFlags::default());
+	}
+	pub fn table_next_row_opts(min_row_height: f32, table_row_flags: BitFlags<ImGuiTableRowFlag>) {
+		ImGui::_table_next_row_opts(min_row_height, table_row_flags.bits() as i32);
 	}
 }
 

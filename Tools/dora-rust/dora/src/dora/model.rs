@@ -145,8 +145,8 @@ impl Model {
 	/// # Returns
 	///
 	/// * A new instance of 'Model'.
-	pub fn new(filename: &str) -> Model {
-		unsafe { return Model { raw: model_new(crate::dora::from_string(filename)) }; }
+	pub fn new(filename: &str) -> Option<Model> {
+		unsafe { return Model::from(model_new(crate::dora::from_string(filename))); }
 	}
 	/// Returns a new dummy instance of 'Model' that can do nothing.
 	///
