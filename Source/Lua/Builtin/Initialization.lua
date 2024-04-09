@@ -915,8 +915,6 @@ do
 	ImGui.End = nil
 	ImGui.BeginChild = pairCallA(ImGui.BeginChild, ImGui.EndChild)
 	ImGui.EndChild = nil
-	ImGui.BeginChildFrame = pairCallA(ImGui.BeginChildFrame, ImGui.EndChildFrame)
-	ImGui.EndChildFrame = nil
 	ImGui.BeginPopup = pairCallB(ImGui.BeginPopup, ImGui.EndPopup)
 	ImGui.BeginPopupModal = pairCallB(ImGui.BeginPopupModal, ImGui.EndPopup)
 	ImGui.BeginPopupContextItem = pairCallB(ImGui.BeginPopupContextItem, ImGui.EndPopup)
@@ -927,13 +925,13 @@ do
 	ImGui.EndGroup = nil
 	ImGui.BeginDisabled = pairCallC(ImGui.BeginDisabled, ImGui.EndDisabled)
 	ImGui.EndDisabled = nil
-	ImGui.BeginTooltip = pairCallC(ImGui.BeginTooltip, ImGui.EndTooltip)
+	ImGui.BeginTooltip = pairCallB(ImGui.BeginTooltip, ImGui.EndTooltip)
 	ImGui.EndTooltip = nil
-	ImGui.BeginMainMenuBar = pairCallC(ImGui.BeginMainMenuBar, ImGui.EndMainMenuBar)
+	ImGui.BeginMainMenuBar = pairCallB(ImGui.BeginMainMenuBar, ImGui.EndMainMenuBar)
 	ImGui.EndMainMenuBar = nil
-	ImGui.BeginMenuBar = pairCallC(ImGui.BeginMenuBar, ImGui.EndMenuBar)
+	ImGui.BeginMenuBar = pairCallB(ImGui.BeginMenuBar, ImGui.EndMenuBar)
 	ImGui.EndMenuBar = nil
-	ImGui.BeginMenu = pairCallC(ImGui.BeginMenu, ImGui.EndMenu)
+	ImGui.BeginMenu = pairCallB(ImGui.BeginMenu, ImGui.EndMenu)
 	ImGui.EndMenu = nil
 	ImGui.PushStyleColor = pairCallC(ImGui.PushStyleColor, ImGui.PopStyleColor)
 	ImGui.PopStyleColor = nil
@@ -950,14 +948,16 @@ do
 	ImGui.PushID = pairCallC(ImGui.PushID, ImGui.PopID)
 	ImGui.PopID = nil
 	local TreePop = ImGui.TreePop
-	ImGui.TreePop = nil
-	ImGui.TreePush = pairCallB(ImGui.TreePush, TreePop)
+	ImGui.TreePush = pairCallC(ImGui.TreePush, TreePop)
 	ImGui.TreeNode = pairCallB(ImGui.TreeNode, TreePop)
 	ImGui.TreeNodeEx = pairCallB(ImGui.TreeNodeEx, TreePop)
+	ImGui.TreePop = nil
 	ImGui.PushClipRect = pairCallC(ImGui.PushClipRect, ImGui.PopClipRect)
 	ImGui.PopClipRect = nil
 	ImGui.BeginTable = pairCallB(ImGui.BeginTable, ImGui.EndTable)
 	ImGui.EndTable = nil
+	ImGui.BeginListBox = pairCallB(ImGui.BeginListBox, ImGui.EndListBox)
+	ImGui.EndListBox = nil
 end
 
 -- ML

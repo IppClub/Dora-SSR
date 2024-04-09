@@ -785,21 +785,17 @@ static void node_stop_grabbing(Node* node) {
 static void node_set_transform_target_nullptr(Node* node) {
 	node->setTransformTarget(nullptr);
 }
-static Action* node_run_action_def(Node* node, ActionDef def) {
+static float node_run_action_def_duration(Node* node, ActionDef def) {
 	if (def) {
-		auto action = Action::create(std::move(def));
-		node->runAction(action);
-		return action;
+		return node->runAction(Action::create(std::move(def)));
 	}
-	return nullptr;
+	return 0.0f;
 }
-static Action* node_perform_def(Node* node, ActionDef def) {
+static float node_perform_def_duration(Node* node, ActionDef def) {
 	if (def) {
-		auto action = Action::create(std::move(def));
-		node->perform(action);
-		return action;
+		return node->perform(Action::create(std::move(def)));
 	}
-	return nullptr;
+	return 0.0f;
 }
 
 // Texture2D

@@ -853,33 +853,7 @@ singleton class View
 	boolean bool vSync @ vsync;
 };
 
-value class ActionDef { };
-
-/// Represents an action that can be run on a node.
-object class Action
-{
-	/// the duration of the action.
-	readonly common float duration;
-	/// whether the action is currently running.
-	readonly boolean bool running;
-	/// whether the action is currently paused.
-	readonly boolean bool paused;
-	/// whether the action should be run in reverse.
-	boolean bool reversed;
-	/// the speed at which the action should be run.
-	/// Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
-	common float speed;
-	/// Pauses the action.
-	void pause();
-	/// Resumes the action.
-	void resume();
-	/// Updates the state of the Action.
-	///
-	/// # Arguments
-	///
-	/// * `elapsed` - The amount of time in seconds that has elapsed to update action to.
-	/// * `reversed` - Whether or not to update the Action in reverse.
-	void updateTo(float elapsed, bool reversed);
+value class ActionDef {
 	/// Creates a new Action object to change a property of a node.
 	///
 	/// # Arguments
@@ -991,6 +965,43 @@ object class Action
 	///
 	/// * `Action` - A new Action object.
 	static outside ActionDef action_def_scale @ scale(float duration, float start, float stop, EaseType easing);
+};
+
+/// Represents an action that can be run on a node.
+object class Action
+{
+	/// the duration of the action.
+	readonly common float duration;
+	/// whether the action is currently running.
+	readonly boolean bool running;
+	/// whether the action is currently paused.
+	readonly boolean bool paused;
+	/// whether the action should be run in reverse.
+	boolean bool reversed;
+	/// the speed at which the action should be run.
+	/// Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
+	common float speed;
+	/// Pauses the action.
+	void pause();
+	/// Resumes the action.
+	void resume();
+	/// Updates the state of the Action.
+	///
+	/// # Arguments
+	///
+	/// * `elapsed` - The amount of time in seconds that has elapsed to update action to.
+	/// * `reversed` - Whether or not to update the Action in reverse.
+	void updateTo(float elapsed, bool reversed);
+	/// Creates a new Action object.
+	///
+	/// # Arguments
+	///
+	/// * `def` - The definition of the action.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
+	static Action* create(ActionDef def);
 };
 
 /// A grabber which is used to render a part of the scene to a texture
@@ -1310,8 +1321,18 @@ interface object class Node
 	///
 	/// # Returns
 	///
-	/// * `f64` - The duration of the newly running action in seconds.
-	outside optional Action* node_run_action_def @ run_action(ActionDef def);
+	/// * `f32` - The duration of the newly running action in seconds.
+	outside float node_run_action_def_duration @ run_action_def(ActionDef def);
+	/// Runs an action on this node.
+	///
+	/// # Arguments
+	///
+	/// * `action` - The action to run.
+	///
+	/// # Returns
+	///
+	/// * `f32` - The duration of the newly running action in seconds.
+	float runAction @ runAction(Action* action);
 	/// Stops all actions running on this node.
 	void stopAllActions();
 	/// Runs an action defined by the given action definition right after clearing all the previous running actions.
@@ -1322,8 +1343,18 @@ interface object class Node
 	///
 	/// # Returns
 	///
-	/// * `f64` - The duration of the newly running action in seconds.
-	outside optional Action* node_perform_def @ perform(ActionDef actionDef);
+	/// * `f32` - The duration of the newly running action in seconds.
+	outside float node_perform_def_duration @ perform_def(ActionDef actionDef);
+	/// Runs an action on this node right after clearing all the previous running actions.
+	///
+	/// # Arguments
+	///
+	/// * `action` - The action to run.
+	///
+	/// # Returns
+	///
+	/// * `f32` - The duration of the newly running action in seconds.
+	float perform(Action* action);
 	/// Stops the given action running on this node.
 	///
 	/// # Arguments
@@ -4636,7 +4667,7 @@ static bool Binding::Begin @ _beginOpts(
 	string name,
 	uint32_t windowsFlags);
 
-static void End();
+static void End @ _end();
 
 static bool Binding::BeginChild @ _beginChildOpts(
 	string str_id,
@@ -4650,7 +4681,7 @@ static bool Binding::BeginChild @ _beginChildWith_idOpts(
 	uint32_t childFlags,
 	uint32_t windowFlags);
 
-static void EndChild @ endChild();
+static void EndChild @ _endChild();
 
 static void Binding::SetNextWindowPosCenter @ _setNextWindowPosCenterOpts(uint32_t setCond);
 
@@ -4715,6 +4746,11 @@ static bool Binding::BeginPopupModal @ _beginPopupModalOpts(
 	string name,
 	uint32_t windowsFlags);
 
+static bool Binding::BeginPopupModal @ _beginPopupModal_ret_opts(
+	string name,
+	CallStack* stack,
+	uint32_t windowsFlags);
+
 static bool Binding::BeginPopupContextItem @ _beginPopupContextItemOpts(
 	string name,
 	uint32_t popupFlags);
@@ -4738,7 +4774,7 @@ static void Binding::TextWrapped @ textWrapped(string text);
 
 static void Binding::LabelText @ labelText(string label, string text);
 static void Binding::BulletText @ bulletText(string text);
-static bool Binding::TreeNode @ treeNode(string str_id, string text);
+static bool Binding::TreeNode @ _treeNode(string str_id, string text);
 static void Binding::SetTooltip @ setTooltip(string text);
 
 static void Binding::Image @ imageOpts(
@@ -4804,11 +4840,6 @@ static bool Binding::Selectable @ _selectable_ret_opts(
 	CallStack* stack,
 	Vec2 size,
 	uint32_t selectableFlags);
-
-static bool Binding::BeginPopupModal @ _beginPopupModal_ret_opts(
-	string name,
-	CallStack* stack,
-	uint32_t windowsFlags);
 
 static bool Binding::Combo @ _comboRetOpts(
 	string label,
@@ -4979,18 +5010,18 @@ static void SetScrollY(float scroll_y);
 static void SetScrollHereY(float center_y_ratio);
 static void SetScrollFromPosY(float pos_y, float center_y_ratio);
 static void SetKeyboardFocusHere(int offset);
-static void PopStyleColor(int count);
-static void PopStyleVar(int count);
+static void PopStyleColor @ _popStyleColor(int count);
+static void PopStyleVar @ _popStyleVar(int count);
 static void SetNextItemWidth(float item_width);
-static void PushItemWidth(float item_width);
-static void PopItemWidth();
+static void PushItemWidth @ _pushItemWidth(float item_width);
+static void PopItemWidth @ _popItemWidth();
 static float CalcItemWidth();
-static void PushTextWrapPos(float wrap_pos_x);
-static void PopTextWrapPos();
-static void PushTabStop(bool v);
-static void PopTabStop();
-static void PushButtonRepeat(bool repeat);
-static void PopButtonRepeat();
+static void PushTextWrapPos @ _pushTextWrapPos(float wrap_pos_x);
+static void PopTextWrapPos @ _popTextWrapPos();
+static void PushTabStop @ _pushTabStop(bool v);
+static void PopTabStop @ _popTabStop();
+static void PushButtonRepeat @ _pushButtonRepeat(bool repeat);
+static void PopButtonRepeat @ _popButtonRepeat();
 static void Separator();
 static void SameLine(float pos_x, float spacing_w);
 static void NewLine();
@@ -4998,8 +5029,8 @@ static void Spacing();
 static void Dummy(Vec2 size);
 static void Indent(float indent_w);
 static void Unindent(float indent_w);
-static void BeginGroup();
-static void EndGroup();
+static void BeginGroup @ _beginGroup();
+static void EndGroup @ _endGroup();
 static Vec2 GetCursorPos();
 static float GetCursorPosX();
 static float GetCursorPosY();
@@ -5018,18 +5049,18 @@ static float GetColumnOffset(int column_index);
 static void SetColumnOffset(int column_index, float offset_x);
 static float GetColumnWidth(int column_index);
 static int GetColumnsCount();
-static void EndTable();
+static void EndTable @ _endTable();
 static bool TableNextColumn();
 static bool TableSetColumnIndex(int column_n);
 static void TableSetupScrollFreeze(int cols, int rows);
 static void TableHeadersRow();
-static void PopID @ pop_id();
 static void Bullet @ bulletItem();
 
 static void Binding::SetWindowFocus @ SetWindowFocus(string name);
 static void Binding::SeparatorText @ SeparatorText(string text);
 static void Binding::TableHeader @ TableHeader(string label);
-static void Binding::PushID @ push_id(string str_id);
+static void Binding::PushID @ _push_id(string str_id);
+static void PopID @ _pop_id();
 static uint32_t Binding::GetID @ get_id(string str_id);
 static bool Binding::Button @ Button(string label, Vec2 size);
 static bool Binding::SmallButton @ SmallButton(string label);
@@ -5051,30 +5082,30 @@ static bool Binding::ListBox @ _listBoxRetOpts(string label, CallStack* stack, V
 
 static bool Binding::SliderAngle @ _sliderAngleRet(string label, CallStack* stack, float v_degrees_min, float v_degrees_max);
 
-static void Binding::TreePush @ TreePush(string str_id);
-static bool Binding::BeginListBox @ BeginListBox(string label, Vec2 size);
+static void Binding::TreePush @ _treePush(string str_id);
+static void TreePop @ _treePop();
 static void Binding::Value @ Value(string prefix, bool b);
-static bool Binding::BeginMenu @ BeginMenu(string label, bool enabled);
 static bool Binding::MenuItem @ MenuItem(string label, string shortcut, bool selected, bool enabled);
 static void Binding::OpenPopup @ OpenPopup(string str_id);
-static bool Binding::BeginPopup @ BeginPopup(string str_id);
+static bool Binding::BeginPopup @ _beginPopup(string str_id);
+static void EndPopup @ _endPopup();
 
-static void TreePop();
 static float GetTreeNodeToLabelSpacing();
-static void EndListBox();
-static void BeginDisabled();
-static void EndDisabled();
-static void BeginTooltip();
-static void EndTooltip();
-static bool BeginMainMenuBar();
-static void EndMainMenuBar();
-static bool BeginMenuBar();
-static void EndMenuBar();
-static void EndMenu();
-static void EndPopup();
+static bool Binding::BeginListBox @ _beginListBox(string label, Vec2 size);
+static void EndListBox @ _endListBox();
+static void BeginDisabled @ _beginDisabled();
+static void EndDisabled @ _endDisabled();
+static bool BeginTooltip @ _beginTooltip();
+static void EndTooltip @ _endTooltip();
+static bool BeginMainMenuBar @ _beginMainMenuBar();
+static void EndMainMenuBar @ _endMainMenuBar();
+static bool BeginMenuBar @ _beginMenuBar();
+static void EndMenuBar @ _endMenuBar();
+static bool Binding::BeginMenu @ _beginMenu(string label, bool enabled);
+static void EndMenu @ _endMenu();
 static void CloseCurrentPopup();
-static void PushClipRect(Vec2 clip_rect_min, Vec2 clip_rect_max, bool intersect_with_current_clip_rect);
-static void PopClipRect();
+static void PushClipRect @ _pushClipRect(Vec2 clip_rect_min, Vec2 clip_rect_max, bool intersect_with_current_clip_rect);
+static void PopClipRect @ _popClipRect();
 static bool IsItemHovered();
 static bool IsItemActive();
 static bool IsItemClicked(int mouse_button);

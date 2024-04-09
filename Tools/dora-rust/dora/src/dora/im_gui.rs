@@ -12,10 +12,10 @@ extern "C" {
 	fn imgui_show_stats();
 	fn imgui_show_console();
 	fn imgui__begin_opts(name: i64, windows_flags: i32) -> i32;
-	fn imgui_end();
+	fn imgui__end();
 	fn imgui__begin_child_opts(str_id: i64, size: i64, child_flags: i32, window_flags: i32) -> i32;
 	fn imgui__begin_child_with_id_opts(id: i32, size: i64, child_flags: i32, window_flags: i32) -> i32;
-	fn imgui_end_child();
+	fn imgui__end_child();
 	fn imgui__set_next_window_pos_center_opts(set_cond: i32);
 	fn imgui__set_next_window_size_opts(size: i64, set_cond: i32);
 	fn imgui__set_next_window_collapsed_opts(collapsed: i32, set_cond: i32);
@@ -31,6 +31,7 @@ extern "C" {
 	fn imgui__collapsing_header_opts(label: i64, tree_node_flags: i32) -> i32;
 	fn imgui__selectable_opts(label: i64, selectable_flags: i32) -> i32;
 	fn imgui__begin_popup_modal_opts(name: i64, windows_flags: i32) -> i32;
+	fn imgui__begin_popup_modal_ret_opts(name: i64, stack: i64, windows_flags: i32) -> i32;
 	fn imgui__begin_popup_context_item_opts(name: i64, popup_flags: i32) -> i32;
 	fn imgui__begin_popup_context_window_opts(name: i64, popup_flags: i32) -> i32;
 	fn imgui__begin_popup_context_void_opts(name: i64, popup_flags: i32) -> i32;
@@ -43,7 +44,7 @@ extern "C" {
 	fn imgui_text_wrapped(text: i64);
 	fn imgui_label_text(label: i64, text: i64);
 	fn imgui_bullet_text(text: i64);
-	fn imgui_tree_node(str_id: i64, text: i64) -> i32;
+	fn imgui__tree_node(str_id: i64, text: i64) -> i32;
 	fn imgui_set_tooltip(text: i64);
 	fn imgui_image_opts(clip_str: i64, size: i64, tint_col: i32, border_col: i32);
 	fn imgui_image_button_opts(str_id: i64, clip_str: i64, size: i64, bg_col: i32, tint_col: i32) -> i32;
@@ -60,7 +61,6 @@ extern "C" {
 	fn imgui__begin_ret_opts(name: i64, stack: i64, windows_flags: i32) -> i32;
 	fn imgui__collapsing_header_ret_opts(label: i64, stack: i64, tree_node_flags: i32) -> i32;
 	fn imgui__selectable_ret_opts(label: i64, stack: i64, size: i64, selectable_flags: i32) -> i32;
-	fn imgui__begin_popup_modal_ret_opts(name: i64, stack: i64, windows_flags: i32) -> i32;
 	fn imgui__combo_ret_opts(label: i64, stack: i64, items: i64, height_in_items: i32) -> i32;
 	fn imgui__drag_float_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: f32, v_max: f32, display_format: i64, slider_flags: i32) -> i32;
 	fn imgui__drag_float2_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: f32, v_max: f32, display_format: i64, slider_flags: i32) -> i32;
@@ -106,18 +106,18 @@ extern "C" {
 	fn imgui_set_scroll_here_y(center_y_ratio: f32);
 	fn imgui_set_scroll_from_pos_y(pos_y: f32, center_y_ratio: f32);
 	fn imgui_set_keyboard_focus_here(offset: i32);
-	fn imgui_pop_style_color(count: i32);
-	fn imgui_pop_style_var(count: i32);
+	fn imgui__pop_style_color(count: i32);
+	fn imgui__pop_style_var(count: i32);
 	fn imgui_set_next_item_width(item_width: f32);
-	fn imgui_push_item_width(item_width: f32);
-	fn imgui_pop_item_width();
+	fn imgui__push_item_width(item_width: f32);
+	fn imgui__pop_item_width();
 	fn imgui_calc_item_width() -> f32;
-	fn imgui_push_text_wrap_pos(wrap_pos_x: f32);
-	fn imgui_pop_text_wrap_pos();
-	fn imgui_push_tab_stop(v: i32);
-	fn imgui_pop_tab_stop();
-	fn imgui_push_button_repeat(repeat: i32);
-	fn imgui_pop_button_repeat();
+	fn imgui__push_text_wrap_pos(wrap_pos_x: f32);
+	fn imgui__pop_text_wrap_pos();
+	fn imgui__push_tab_stop(v: i32);
+	fn imgui__pop_tab_stop();
+	fn imgui__push_button_repeat(repeat: i32);
+	fn imgui__pop_button_repeat();
 	fn imgui_separator();
 	fn imgui_same_line(pos_x: f32, spacing_w: f32);
 	fn imgui_new_line();
@@ -125,8 +125,8 @@ extern "C" {
 	fn imgui_dummy(size: i64);
 	fn imgui_indent(indent_w: f32);
 	fn imgui_unindent(indent_w: f32);
-	fn imgui_begin_group();
-	fn imgui_end_group();
+	fn imgui__begin_group();
+	fn imgui__end_group();
 	fn imgui_get_cursor_pos() -> i64;
 	fn imgui_get_cursor_pos_x() -> f32;
 	fn imgui_get_cursor_pos_y() -> f32;
@@ -145,17 +145,17 @@ extern "C" {
 	fn imgui_set_column_offset(column_index: i32, offset_x: f32);
 	fn imgui_get_column_width(column_index: i32) -> f32;
 	fn imgui_get_columns_count() -> i32;
-	fn imgui_end_table();
+	fn imgui__end_table();
 	fn imgui_table_next_column() -> i32;
 	fn imgui_table_set_column_index(column_n: i32) -> i32;
 	fn imgui_table_setup_scroll_freeze(cols: i32, rows: i32);
 	fn imgui_table_headers_row();
-	fn imgui_pop_id();
 	fn imgui_bullet_item();
 	fn imgui_set_window_focus(name: i64);
 	fn imgui_separator_text(text: i64);
 	fn imgui_table_header(label: i64);
-	fn imgui_push_id(str_id: i64);
+	fn imgui__push_id(str_id: i64);
+	fn imgui__pop_id();
 	fn imgui_get_id(str_id: i64) -> i32;
 	fn imgui_button(label: i64, size: i64) -> i32;
 	fn imgui_small_button(label: i64) -> i32;
@@ -170,29 +170,29 @@ extern "C" {
 	fn imgui_progress_bar_opts(fraction: f32, size_arg: i64, overlay: i64);
 	fn imgui__list_box_ret_opts(label: i64, stack: i64, items: i64, height_in_items: i32) -> i32;
 	fn imgui__slider_angle_ret(label: i64, stack: i64, v_degrees_min: f32, v_degrees_max: f32) -> i32;
-	fn imgui_tree_push(str_id: i64);
-	fn imgui_begin_list_box(label: i64, size: i64) -> i32;
+	fn imgui__tree_push(str_id: i64);
+	fn imgui__tree_pop();
 	fn imgui_value(prefix: i64, b: i32);
-	fn imgui_begin_menu(label: i64, enabled: i32) -> i32;
 	fn imgui_menu_item(label: i64, shortcut: i64, selected: i32, enabled: i32) -> i32;
 	fn imgui_open_popup(str_id: i64);
-	fn imgui_begin_popup(str_id: i64) -> i32;
-	fn imgui_tree_pop();
+	fn imgui__begin_popup(str_id: i64) -> i32;
+	fn imgui__end_popup();
 	fn imgui_get_tree_node_to_label_spacing() -> f32;
-	fn imgui_end_list_box();
-	fn imgui_begin_disabled();
-	fn imgui_end_disabled();
-	fn imgui_begin_tooltip();
-	fn imgui_end_tooltip();
-	fn imgui_begin_main_menu_bar() -> i32;
-	fn imgui_end_main_menu_bar();
-	fn imgui_begin_menu_bar() -> i32;
-	fn imgui_end_menu_bar();
-	fn imgui_end_menu();
-	fn imgui_end_popup();
+	fn imgui__begin_list_box(label: i64, size: i64) -> i32;
+	fn imgui__end_list_box();
+	fn imgui__begin_disabled();
+	fn imgui__end_disabled();
+	fn imgui__begin_tooltip() -> i32;
+	fn imgui__end_tooltip();
+	fn imgui__begin_main_menu_bar() -> i32;
+	fn imgui__end_main_menu_bar();
+	fn imgui__begin_menu_bar() -> i32;
+	fn imgui__end_menu_bar();
+	fn imgui__begin_menu(label: i64, enabled: i32) -> i32;
+	fn imgui__end_menu();
 	fn imgui_close_current_popup();
-	fn imgui_push_clip_rect(clip_rect_min: i64, clip_rect_max: i64, intersect_with_current_clip_rect: i32);
-	fn imgui_pop_clip_rect();
+	fn imgui__push_clip_rect(clip_rect_min: i64, clip_rect_max: i64, intersect_with_current_clip_rect: i32);
+	fn imgui__pop_clip_rect();
 	fn imgui_is_item_hovered() -> i32;
 	fn imgui_is_item_active() -> i32;
 	fn imgui_is_item_clicked(mouse_button: i32) -> i32;
@@ -240,8 +240,8 @@ impl ImGui {
 	pub(crate) fn _begin_opts(name: &str, windows_flags: i32) -> bool {
 		unsafe { return imgui__begin_opts(crate::dora::from_string(name), windows_flags) != 0; }
 	}
-	pub fn end() {
-		unsafe { imgui_end(); }
+	pub(crate) fn _end() {
+		unsafe { imgui__end(); }
 	}
 	pub(crate) fn _begin_child_opts(str_id: &str, size: &crate::dora::Vec2, child_flags: i32, window_flags: i32) -> bool {
 		unsafe { return imgui__begin_child_opts(crate::dora::from_string(str_id), size.into_i64(), child_flags, window_flags) != 0; }
@@ -249,8 +249,8 @@ impl ImGui {
 	pub(crate) fn _begin_child_with_id_opts(id: i32, size: &crate::dora::Vec2, child_flags: i32, window_flags: i32) -> bool {
 		unsafe { return imgui__begin_child_with_id_opts(id, size.into_i64(), child_flags, window_flags) != 0; }
 	}
-	pub fn end_child() {
-		unsafe { imgui_end_child(); }
+	pub(crate) fn _end_child() {
+		unsafe { imgui__end_child(); }
 	}
 	pub(crate) fn _set_next_window_pos_center_opts(set_cond: i32) {
 		unsafe { imgui__set_next_window_pos_center_opts(set_cond); }
@@ -297,6 +297,9 @@ impl ImGui {
 	pub(crate) fn _begin_popup_modal_opts(name: &str, windows_flags: i32) -> bool {
 		unsafe { return imgui__begin_popup_modal_opts(crate::dora::from_string(name), windows_flags) != 0; }
 	}
+	pub(crate) fn _begin_popup_modal_ret_opts(name: &str, stack: &crate::dora::CallStack, windows_flags: i32) -> bool {
+		unsafe { return imgui__begin_popup_modal_ret_opts(crate::dora::from_string(name), stack.raw(), windows_flags) != 0; }
+	}
 	pub(crate) fn _begin_popup_context_item_opts(name: &str, popup_flags: i32) -> bool {
 		unsafe { return imgui__begin_popup_context_item_opts(crate::dora::from_string(name), popup_flags) != 0; }
 	}
@@ -333,8 +336,8 @@ impl ImGui {
 	pub fn bullet_text(text: &str) {
 		unsafe { imgui_bullet_text(crate::dora::from_string(text)); }
 	}
-	pub fn tree_node(str_id: &str, text: &str) -> bool {
-		unsafe { return imgui_tree_node(crate::dora::from_string(str_id), crate::dora::from_string(text)) != 0; }
+	pub(crate) fn _tree_node(str_id: &str, text: &str) -> bool {
+		unsafe { return imgui__tree_node(crate::dora::from_string(str_id), crate::dora::from_string(text)) != 0; }
 	}
 	pub fn set_tooltip(text: &str) {
 		unsafe { imgui_set_tooltip(crate::dora::from_string(text)); }
@@ -383,9 +386,6 @@ impl ImGui {
 	}
 	pub(crate) fn _selectable_ret_opts(label: &str, stack: &crate::dora::CallStack, size: &crate::dora::Vec2, selectable_flags: i32) -> bool {
 		unsafe { return imgui__selectable_ret_opts(crate::dora::from_string(label), stack.raw(), size.into_i64(), selectable_flags) != 0; }
-	}
-	pub(crate) fn _begin_popup_modal_ret_opts(name: &str, stack: &crate::dora::CallStack, windows_flags: i32) -> bool {
-		unsafe { return imgui__begin_popup_modal_ret_opts(crate::dora::from_string(name), stack.raw(), windows_flags) != 0; }
 	}
 	pub(crate) fn _combo_ret_opts(label: &str, stack: &crate::dora::CallStack, items: &Vec<&str>, height_in_items: i32) -> bool {
 		unsafe { return imgui__combo_ret_opts(crate::dora::from_string(label), stack.raw(), crate::dora::Vector::from_str(items), height_in_items) != 0; }
@@ -522,41 +522,41 @@ impl ImGui {
 	pub fn set_keyboard_focus_here(offset: i32) {
 		unsafe { imgui_set_keyboard_focus_here(offset); }
 	}
-	pub fn pop_style_color(count: i32) {
-		unsafe { imgui_pop_style_color(count); }
+	pub(crate) fn _pop_style_color(count: i32) {
+		unsafe { imgui__pop_style_color(count); }
 	}
-	pub fn pop_style_var(count: i32) {
-		unsafe { imgui_pop_style_var(count); }
+	pub(crate) fn _pop_style_var(count: i32) {
+		unsafe { imgui__pop_style_var(count); }
 	}
 	pub fn set_next_item_width(item_width: f32) {
 		unsafe { imgui_set_next_item_width(item_width); }
 	}
-	pub fn push_item_width(item_width: f32) {
-		unsafe { imgui_push_item_width(item_width); }
+	pub(crate) fn _push_item_width(item_width: f32) {
+		unsafe { imgui__push_item_width(item_width); }
 	}
-	pub fn pop_item_width() {
-		unsafe { imgui_pop_item_width(); }
+	pub(crate) fn _pop_item_width() {
+		unsafe { imgui__pop_item_width(); }
 	}
 	pub fn calc_item_width() -> f32 {
 		unsafe { return imgui_calc_item_width(); }
 	}
-	pub fn push_text_wrap_pos(wrap_pos_x: f32) {
-		unsafe { imgui_push_text_wrap_pos(wrap_pos_x); }
+	pub(crate) fn _push_text_wrap_pos(wrap_pos_x: f32) {
+		unsafe { imgui__push_text_wrap_pos(wrap_pos_x); }
 	}
-	pub fn pop_text_wrap_pos() {
-		unsafe { imgui_pop_text_wrap_pos(); }
+	pub(crate) fn _pop_text_wrap_pos() {
+		unsafe { imgui__pop_text_wrap_pos(); }
 	}
-	pub fn push_tab_stop(v: bool) {
-		unsafe { imgui_push_tab_stop(if v { 1 } else { 0 }); }
+	pub(crate) fn _push_tab_stop(v: bool) {
+		unsafe { imgui__push_tab_stop(if v { 1 } else { 0 }); }
 	}
-	pub fn pop_tab_stop() {
-		unsafe { imgui_pop_tab_stop(); }
+	pub(crate) fn _pop_tab_stop() {
+		unsafe { imgui__pop_tab_stop(); }
 	}
-	pub fn push_button_repeat(repeat: bool) {
-		unsafe { imgui_push_button_repeat(if repeat { 1 } else { 0 }); }
+	pub(crate) fn _push_button_repeat(repeat: bool) {
+		unsafe { imgui__push_button_repeat(if repeat { 1 } else { 0 }); }
 	}
-	pub fn pop_button_repeat() {
-		unsafe { imgui_pop_button_repeat(); }
+	pub(crate) fn _pop_button_repeat() {
+		unsafe { imgui__pop_button_repeat(); }
 	}
 	pub fn separator() {
 		unsafe { imgui_separator(); }
@@ -579,11 +579,11 @@ impl ImGui {
 	pub fn unindent(indent_w: f32) {
 		unsafe { imgui_unindent(indent_w); }
 	}
-	pub fn begin_group() {
-		unsafe { imgui_begin_group(); }
+	pub(crate) fn _begin_group() {
+		unsafe { imgui__begin_group(); }
 	}
-	pub fn end_group() {
-		unsafe { imgui_end_group(); }
+	pub(crate) fn _end_group() {
+		unsafe { imgui__end_group(); }
 	}
 	pub fn get_cursor_pos() -> crate::dora::Vec2 {
 		unsafe { return crate::dora::Vec2::from(imgui_get_cursor_pos()); }
@@ -639,8 +639,8 @@ impl ImGui {
 	pub fn get_columns_count() -> i32 {
 		unsafe { return imgui_get_columns_count(); }
 	}
-	pub fn end_table() {
-		unsafe { imgui_end_table(); }
+	pub(crate) fn _end_table() {
+		unsafe { imgui__end_table(); }
 	}
 	pub fn table_next_column() -> bool {
 		unsafe { return imgui_table_next_column() != 0; }
@@ -654,9 +654,6 @@ impl ImGui {
 	pub fn table_headers_row() {
 		unsafe { imgui_table_headers_row(); }
 	}
-	pub fn pop_id() {
-		unsafe { imgui_pop_id(); }
-	}
 	pub fn bullet_item() {
 		unsafe { imgui_bullet_item(); }
 	}
@@ -669,8 +666,11 @@ impl ImGui {
 	pub fn table_header(label: &str) {
 		unsafe { imgui_table_header(crate::dora::from_string(label)); }
 	}
-	pub fn push_id(str_id: &str) {
-		unsafe { imgui_push_id(crate::dora::from_string(str_id)); }
+	pub(crate) fn _push_id(str_id: &str) {
+		unsafe { imgui__push_id(crate::dora::from_string(str_id)); }
+	}
+	pub(crate) fn _pop_id() {
+		unsafe { imgui__pop_id(); }
 	}
 	pub fn get_id(str_id: &str) -> i32 {
 		unsafe { return imgui_get_id(crate::dora::from_string(str_id)); }
@@ -714,17 +714,14 @@ impl ImGui {
 	pub(crate) fn _slider_angle_ret(label: &str, stack: &crate::dora::CallStack, v_degrees_min: f32, v_degrees_max: f32) -> bool {
 		unsafe { return imgui__slider_angle_ret(crate::dora::from_string(label), stack.raw(), v_degrees_min, v_degrees_max) != 0; }
 	}
-	pub fn tree_push(str_id: &str) {
-		unsafe { imgui_tree_push(crate::dora::from_string(str_id)); }
+	pub(crate) fn _tree_push(str_id: &str) {
+		unsafe { imgui__tree_push(crate::dora::from_string(str_id)); }
 	}
-	pub fn begin_list_box(label: &str, size: &crate::dora::Vec2) -> bool {
-		unsafe { return imgui_begin_list_box(crate::dora::from_string(label), size.into_i64()) != 0; }
+	pub(crate) fn _tree_pop() {
+		unsafe { imgui__tree_pop(); }
 	}
 	pub fn value(prefix: &str, b: bool) {
 		unsafe { imgui_value(crate::dora::from_string(prefix), if b { 1 } else { 0 }); }
-	}
-	pub fn begin_menu(label: &str, enabled: bool) -> bool {
-		unsafe { return imgui_begin_menu(crate::dora::from_string(label), if enabled { 1 } else { 0 }) != 0; }
 	}
 	pub fn menu_item(label: &str, shortcut: &str, selected: bool, enabled: bool) -> bool {
 		unsafe { return imgui_menu_item(crate::dora::from_string(label), crate::dora::from_string(shortcut), if selected { 1 } else { 0 }, if enabled { 1 } else { 0 }) != 0; }
@@ -732,56 +729,59 @@ impl ImGui {
 	pub fn open_popup(str_id: &str) {
 		unsafe { imgui_open_popup(crate::dora::from_string(str_id)); }
 	}
-	pub fn begin_popup(str_id: &str) -> bool {
-		unsafe { return imgui_begin_popup(crate::dora::from_string(str_id)) != 0; }
+	pub(crate) fn _begin_popup(str_id: &str) -> bool {
+		unsafe { return imgui__begin_popup(crate::dora::from_string(str_id)) != 0; }
 	}
-	pub fn tree_pop() {
-		unsafe { imgui_tree_pop(); }
+	pub(crate) fn _end_popup() {
+		unsafe { imgui__end_popup(); }
 	}
 	pub fn get_tree_node_to_label_spacing() -> f32 {
 		unsafe { return imgui_get_tree_node_to_label_spacing(); }
 	}
-	pub fn end_list_box() {
-		unsafe { imgui_end_list_box(); }
+	pub(crate) fn _begin_list_box(label: &str, size: &crate::dora::Vec2) -> bool {
+		unsafe { return imgui__begin_list_box(crate::dora::from_string(label), size.into_i64()) != 0; }
 	}
-	pub fn begin_disabled() {
-		unsafe { imgui_begin_disabled(); }
+	pub(crate) fn _end_list_box() {
+		unsafe { imgui__end_list_box(); }
 	}
-	pub fn end_disabled() {
-		unsafe { imgui_end_disabled(); }
+	pub(crate) fn _begin_disabled() {
+		unsafe { imgui__begin_disabled(); }
 	}
-	pub fn begin_tooltip() {
-		unsafe { imgui_begin_tooltip(); }
+	pub(crate) fn _end_disabled() {
+		unsafe { imgui__end_disabled(); }
 	}
-	pub fn end_tooltip() {
-		unsafe { imgui_end_tooltip(); }
+	pub(crate) fn _begin_tooltip() -> bool {
+		unsafe { return imgui__begin_tooltip() != 0; }
 	}
-	pub fn begin_main_menu_bar() -> bool {
-		unsafe { return imgui_begin_main_menu_bar() != 0; }
+	pub(crate) fn _end_tooltip() {
+		unsafe { imgui__end_tooltip(); }
 	}
-	pub fn end_main_menu_bar() {
-		unsafe { imgui_end_main_menu_bar(); }
+	pub(crate) fn _begin_main_menu_bar() -> bool {
+		unsafe { return imgui__begin_main_menu_bar() != 0; }
 	}
-	pub fn begin_menu_bar() -> bool {
-		unsafe { return imgui_begin_menu_bar() != 0; }
+	pub(crate) fn _end_main_menu_bar() {
+		unsafe { imgui__end_main_menu_bar(); }
 	}
-	pub fn end_menu_bar() {
-		unsafe { imgui_end_menu_bar(); }
+	pub(crate) fn _begin_menu_bar() -> bool {
+		unsafe { return imgui__begin_menu_bar() != 0; }
 	}
-	pub fn end_menu() {
-		unsafe { imgui_end_menu(); }
+	pub(crate) fn _end_menu_bar() {
+		unsafe { imgui__end_menu_bar(); }
 	}
-	pub fn end_popup() {
-		unsafe { imgui_end_popup(); }
+	pub(crate) fn _begin_menu(label: &str, enabled: bool) -> bool {
+		unsafe { return imgui__begin_menu(crate::dora::from_string(label), if enabled { 1 } else { 0 }) != 0; }
+	}
+	pub(crate) fn _end_menu() {
+		unsafe { imgui__end_menu(); }
 	}
 	pub fn close_current_popup() {
 		unsafe { imgui_close_current_popup(); }
 	}
-	pub fn push_clip_rect(clip_rect_min: &crate::dora::Vec2, clip_rect_max: &crate::dora::Vec2, intersect_with_current_clip_rect: bool) {
-		unsafe { imgui_push_clip_rect(clip_rect_min.into_i64(), clip_rect_max.into_i64(), if intersect_with_current_clip_rect { 1 } else { 0 }); }
+	pub(crate) fn _push_clip_rect(clip_rect_min: &crate::dora::Vec2, clip_rect_max: &crate::dora::Vec2, intersect_with_current_clip_rect: bool) {
+		unsafe { imgui__push_clip_rect(clip_rect_min.into_i64(), clip_rect_max.into_i64(), if intersect_with_current_clip_rect { 1 } else { 0 }); }
 	}
-	pub fn pop_clip_rect() {
-		unsafe { imgui_pop_clip_rect(); }
+	pub(crate) fn _pop_clip_rect() {
+		unsafe { imgui__pop_clip_rect(); }
 	}
 	pub fn is_item_hovered() -> bool {
 		unsafe { return imgui_is_item_hovered() != 0; }

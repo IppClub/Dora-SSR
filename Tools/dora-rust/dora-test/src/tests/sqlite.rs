@@ -79,7 +79,8 @@ pub fn test() {
 
 	p!("OK");
 
-	let windows_flags = ImGuiWindowFlag::NO_DECORATION |
+	let windows_flags =
+		ImGuiWindowFlag::NO_DECORATION |
 		ImGuiWindowFlag::AlwaysAutoResize |
 		ImGuiWindowFlag::NoSavedSettings |
 		ImGuiWindowFlag::NoFocusOnAppearing |
@@ -91,12 +92,11 @@ pub fn test() {
 		ImGui::set_next_window_bg_alpha(0.35);
 		ImGui::set_next_window_pos_opts(&Vec2::new(size.width - 10.0, 10.0), ImGuiCond::Always, &Vec2::new(1.0, 0.0));
 		ImGui::set_next_window_size_opts(&Vec2::new(240.0, 0.0), ImGuiCond::FirstUseEver);
-		if ImGui::begin_opts("SQLite", windows_flags) {
+		ImGui::begin_opts("SQLite", windows_flags, || {
 			ImGui::text("SQLite (Rust)");
 			ImGui::separator();
 			ImGui::text_wrapped("Doing database operations in synchronous and asynchronous ways.");
-		}
-		ImGui::end();
+		});
 		false
 	}));
 }

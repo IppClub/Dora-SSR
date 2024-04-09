@@ -2338,31 +2338,45 @@ impl ImGui {
 		stack.push_f32(v2);
 		stack
 	}
-	pub fn begin(name: &str) -> bool {
-		ImGui::begin_opts(name, BitFlags::default())
+	pub fn begin<C>(name: &str, inside: C) where C: FnOnce() {
+		ImGui::begin_opts(name, BitFlags::default(), inside);
 	}
-	pub fn begin_opts(name: &str, windows_flags: BitFlags<ImGuiWindowFlag>) -> bool {
-		ImGui::_begin_opts(name, windows_flags.bits() as i32)
+	pub fn begin_opts<C>(name: &str, windows_flags: BitFlags<ImGuiWindowFlag>, inside: C) where C: FnOnce() {
+		if ImGui::_begin_opts(name, windows_flags.bits() as i32) {
+			inside();
+		}
+		ImGui::_end();
 	}
-	pub fn begin_ret(name: &str, opened: bool) -> (bool, bool) {
-		ImGui::begin_ret_opts(name, opened, BitFlags::default())
+	pub fn begin_ret<C>(name: &str, opened: bool, inside: C) -> (bool, bool) where C: FnOnce() {
+		ImGui::begin_ret_opts(name, opened, BitFlags::default(), inside)
 	}
-	pub fn begin_ret_opts(name: &str, opened: bool, windows_flags: BitFlags<ImGuiWindowFlag>) -> (bool, bool) {
+	pub fn begin_ret_opts<C>(name: &str, opened: bool, windows_flags: BitFlags<ImGuiWindowFlag>, inside: C) -> (bool, bool) where C: FnOnce() {
 		let stack = ImGui::push_bool(opened);
 		let changed = ImGui::_begin_ret_opts(name, stack, windows_flags.bits() as i32);
+		let opened = stack.pop_bool().unwrap();
+		if opened {
+			inside();
+		}
+		ImGui::_end();
 		(changed, stack.pop_bool().unwrap())
 	}
-	pub fn begin_child(str_id: &str) -> bool {
-		ImGui::begin_child_opts(str_id, &Vec2::zero(), BitFlags::default(), BitFlags::default())
+	pub fn begin_child<C>(str_id: &str, inside: C) where C: FnOnce() {
+		ImGui::begin_child_opts(str_id, &Vec2::zero(), BitFlags::default(), BitFlags::default(), inside);
 	}
-	pub fn begin_child_opts(str_id: &str, size: &crate::dora::Vec2, child_flags: BitFlags<ImGuiChildFlag>, window_flags: BitFlags<ImGuiWindowFlag>) -> bool {
-		ImGui::_begin_child_opts(str_id, size, child_flags.bits() as i32, window_flags.bits() as i32)
+	pub fn begin_child_opts<C>(str_id: &str, size: &crate::dora::Vec2, child_flags: BitFlags<ImGuiChildFlag>, window_flags: BitFlags<ImGuiWindowFlag>, inside: C) where C: FnOnce() {
+		if ImGui::_begin_child_opts(str_id, size, child_flags.bits() as i32, window_flags.bits() as i32) {
+			inside();
+		}
+		ImGui::_end_child();
 	}
-	pub fn begin_child_with_id(id: i32) -> bool {
-		ImGui::begin_child_with_id_opts(id, &Vec2::zero(), BitFlags::default(), BitFlags::default())
+	pub fn begin_child_with_id<C>(id: i32, inside: C) where C: FnOnce() {
+		ImGui::begin_child_with_id_opts(id, &Vec2::zero(), BitFlags::default(), BitFlags::default(), inside);
 	}
-	pub fn begin_child_with_id_opts(id: i32, size: &crate::dora::Vec2, child_flags: BitFlags<ImGuiChildFlag>, window_flags: BitFlags<ImGuiWindowFlag>) -> bool {
-		ImGui::_begin_child_with_id_opts(id, size, child_flags.bits() as i32, window_flags.bits() as i32)
+	pub fn begin_child_with_id_opts<C>(id: i32, size: &crate::dora::Vec2, child_flags: BitFlags<ImGuiChildFlag>, window_flags: BitFlags<ImGuiWindowFlag>, inside: C) where C: FnOnce() {
+		if ImGui::_begin_child_with_id_opts(id, size, child_flags.bits() as i32, window_flags.bits() as i32) {
+			inside();
+		}
+		ImGui::_end_child();
 	}
 	pub fn collapsing_header_ret(label: &str, opened: bool) -> (bool, bool) {
 		ImGui::collapsing_header_ret_opts(label, opened, BitFlags::default())
@@ -2378,14 +2392,6 @@ impl ImGui {
 	pub fn selectable_ret_opts(label: &str, selected: bool, size: &crate::dora::Vec2, selectable_flags: BitFlags<ImGuiSelectableFlag>) -> (bool, bool) {
 		let stack = ImGui::push_bool(selected);
 		let changed = ImGui::_selectable_ret_opts(label, stack, size, selectable_flags.bits() as i32);
-		(changed, stack.pop_bool().unwrap())
-	}
-	pub fn begin_popup_modal_ret(name: &str, opened: bool) -> (bool, bool) {
-		ImGui::begin_popup_modal_ret_opts(name, opened, BitFlags::default())
-	}
-	pub fn begin_popup_modal_ret_opts(name: &str, opened: bool, windows_flags: BitFlags<ImGuiWindowFlag>) -> (bool, bool) {
-		let stack = ImGui::push_bool(opened);
-		let changed = ImGui::_begin_popup_modal_ret_opts(name, stack, windows_flags.bits() as i32);
 		(changed, stack.pop_bool().unwrap())
 	}
 	pub fn combo_ret(label: &str, current_item: i32, items: &Vec<&str>) -> (bool, i32) {
@@ -2609,17 +2615,34 @@ impl ImGui {
 	pub fn input_text_multiline_opts(label: &str, buffer: &crate::dora::Buffer, size: &crate::dora::Vec2, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> bool {
 		ImGui::_input_text_multiline_opts(label, buffer, size, input_text_flags.bits() as i32)
 	}
-	pub fn tree_node_ex(label: &str) -> bool {
-		ImGui::tree_node_ex_opts(label, BitFlags::default())
+	pub fn tree_push<C>(str_id: &str, inside: C) where C: FnOnce() {
+		ImGui::_tree_push(str_id);
+		inside();
+		ImGui::_tree_pop();
 	}
-	pub fn tree_node_ex_opts(label: &str, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>) -> bool {
-		ImGui::_tree_node_ex_opts(label, tree_node_flags.bits() as i32)
+	pub fn tree_node<C>(str_id: &str, text: &str, inside: C) where C: FnOnce() {
+		if ImGui::_tree_node(str_id, text) {
+			inside();
+			ImGui::_tree_pop();
+		}
 	}
-	pub fn tree_node_ex_with_id(str_id: &str, text: &str) -> bool {
-		ImGui::tree_node_ex_with_id_opts(str_id, text, BitFlags::default())
+	pub fn tree_node_ex<C>(label: &str, inside: C) where C: FnOnce() {
+		ImGui::tree_node_ex_opts(label, BitFlags::default(), inside)
 	}
-	pub fn tree_node_ex_with_id_opts(str_id: &str, text: &str, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>) -> bool {
-		ImGui::_tree_node_ex_with_id_opts(str_id, text, tree_node_flags.bits() as i32)
+	pub fn tree_node_ex_opts<C>(label: &str, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>, inside: C) where C: FnOnce() {
+		if ImGui::_tree_node_ex_opts(label, tree_node_flags.bits() as i32) {
+			inside();
+			ImGui::_tree_pop();
+		}
+	}
+	pub fn tree_node_ex_with_id<C>(str_id: &str, text: &str, inside: C) where C: FnOnce() {
+		ImGui::tree_node_ex_with_id_opts(str_id, text, BitFlags::default(), inside);
+	}
+	pub fn tree_node_ex_with_id_opts<C>(str_id: &str, text: &str, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>, inside: C) where C: FnOnce() {
+		if ImGui::_tree_node_ex_with_id_opts(str_id, text, tree_node_flags.bits() as i32) {
+			inside();
+			ImGui::_tree_pop();
+		}
 	}
 	pub fn set_next_item_open(is_open: bool) {
 		ImGui::set_next_item_open_opts(is_open, ImGuiCond::Always);
@@ -2639,35 +2662,64 @@ impl ImGui {
 	pub fn selectable_opts(label: &str, selectable_flags: BitFlags<ImGuiSelectableFlag>) -> bool {
 		ImGui::_selectable_opts(label, selectable_flags.bits() as i32)
 	}
-	pub fn begin_popup_modal(name: &str) -> bool {
-		ImGui::begin_popup_modal_opts(name, BitFlags::default())
+	pub fn begin_popup<C>(str_id: &str, inside: C) where C: FnOnce() {
+		if ImGui::_begin_popup(str_id) {
+			inside();
+			ImGui::_end_popup();
+		}
 	}
-	pub fn begin_popup_modal_opts(name: &str, windows_flags: BitFlags<ImGuiWindowFlag>) -> bool {
-		ImGui::_begin_popup_modal_opts(name, windows_flags.bits() as i32)
+	pub fn begin_popup_modal<C>(name: &str, inside: C) where C: FnOnce() {
+		ImGui::begin_popup_modal_opts(name, BitFlags::default(), inside);
 	}
-	pub fn begin_popup_context_item(name: &str) -> bool {
-		ImGui::begin_popup_context_item_opts(name, ImGuiPopupButton::MouseButtonRight, BitFlags::default())
+	pub fn begin_popup_modal_opts<C>(name: &str, windows_flags: BitFlags<ImGuiWindowFlag>, inside: C) where C: FnOnce() {
+		if ImGui::_begin_popup_modal_opts(name, windows_flags.bits() as i32) {
+			inside();
+			ImGui::_end_popup();
+		}
 	}
-	pub fn begin_popup_context_item_opts(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>) -> bool {
-		ImGui::_begin_popup_context_item_opts(name, (button as u32 | popup_flags.bits()) as i32)
+	pub fn begin_popup_modal_ret(name: &str, opened: bool) -> (bool, bool) {
+		ImGui::begin_popup_modal_ret_opts(name, opened, BitFlags::default())
 	}
-	pub fn begin_popup_context_window(name: &str) -> bool {
-		ImGui::begin_popup_context_window_opts(name, ImGuiPopupButton::MouseButtonRight, BitFlags::default())
+	pub fn begin_popup_modal_ret_opts(name: &str, opened: bool, windows_flags: BitFlags<ImGuiWindowFlag>) -> (bool, bool) {
+		let stack = ImGui::push_bool(opened);
+		let changed = ImGui::_begin_popup_modal_ret_opts(name, stack, windows_flags.bits() as i32);
+		(changed, stack.pop_bool().unwrap())
 	}
-	pub fn begin_popup_context_window_opts(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>) -> bool {
-		ImGui::_begin_popup_context_window_opts(name, (button as u32 | popup_flags.bits()) as i32)
+	pub fn begin_popup_context_item<C>(name: &str, inside: C) where C: FnOnce() {
+		ImGui::begin_popup_context_item_opts(name, ImGuiPopupButton::MouseButtonRight, BitFlags::default(), inside);
 	}
-	pub fn begin_popup_context_void(name: &str) -> bool {
-		ImGui::begin_popup_context_void_opts(name, ImGuiPopupButton::MouseButtonRight, BitFlags::default())
+	pub fn begin_popup_context_item_opts<C>(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>, inside: C) where C: FnOnce() {
+		if ImGui::_begin_popup_context_item_opts(name, (button as u32 | popup_flags.bits()) as i32) {
+			inside();
+			ImGui::_end_popup();
+		}
 	}
-	pub fn begin_popup_context_void_opts(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>) -> bool {
-		ImGui::_begin_popup_context_void_opts(name, (button as u32 | popup_flags.bits()) as i32)
+	pub fn begin_popup_context_window<C>(name: &str, inside: C) where C: FnOnce() {
+		ImGui::begin_popup_context_window_opts(name, ImGuiPopupButton::MouseButtonRight, BitFlags::default(), inside);
 	}
-	pub fn begin_table(str_id: &str, column: i32) -> bool {
-		ImGui::begin_table_opts(str_id, column, &Vec2::zero(), -1.0, BitFlags::default())
+	pub fn begin_popup_context_window_opts<C>(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>, inside: C) where C: FnOnce() {
+		if ImGui::_begin_popup_context_window_opts(name, (button as u32 | popup_flags.bits()) as i32) {
+			inside();
+			ImGui::_end_popup();
+		}
 	}
-	pub fn begin_table_opts(str_id: &str, column: i32, outer_size: &crate::dora::Vec2, inner_width: f32, table_flags: BitFlags<ImGuiTableFlag>) -> bool {
-		ImGui::_begin_table_opts(str_id, column, outer_size, inner_width, table_flags.bits() as i32)
+	pub fn begin_popup_context_void<C>(name: &str, inside: C) where C: FnOnce() {
+		ImGui::begin_popup_context_void_opts(name, ImGuiPopupButton::MouseButtonRight, BitFlags::default(), inside);
+	}
+	pub fn begin_popup_context_void_opts<C>(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>, inside: C) where C: FnOnce() {
+		if ImGui::_begin_popup_context_void_opts(name, (button as u32 | popup_flags.bits()) as i32) {
+			inside();
+			ImGui::_end_popup();
+		}
+	}
+	pub fn begin_table<C>(str_id: &str, column: i32, inside: C) where C: FnOnce() {
+		ImGui::begin_table_opts(str_id, column, &Vec2::zero(), -1.0, BitFlags::default(), inside);
+	}
+	pub fn begin_table_opts<C>(str_id: &str, column: i32, outer_size: &crate::dora::Vec2, inner_width: f32, table_flags: BitFlags<ImGuiTableFlag>, inside: C) where C: FnOnce() {
+		if ImGui::_begin_table_opts(str_id, column, outer_size, inner_width, table_flags.bits() as i32) {
+			inside();
+			ImGui::_end_table();
+		}
 	}
 	pub fn table_setup_column(label: &str, init_width_or_weight: f32) {
 		ImGui::table_setup_column_opts(label, init_width_or_weight, 0, BitFlags::default())
@@ -2681,14 +2733,20 @@ impl ImGui {
 	pub fn set_next_window_pos_opts(pos: &crate::dora::Vec2, set_cond: ImGuiCond, pivot: &crate::dora::Vec2) {
 		ImGui::_set_next_window_pos_opts(pos, set_cond as i32, pivot);
 	}
-	pub fn push_style_color(col: ImGuiCol, color: &crate::dora::Color) {
+	pub fn push_style_color<C>(col: ImGuiCol, color: &crate::dora::Color, inside: C) where C: FnOnce() {
 		ImGui::_push_style_color(col as i32, color);
+		inside();
+		ImGui::_pop_style_color(1);
 	}
-	pub fn push_style_float(style: ImGuiStyleVar, val: f32) {
+	pub fn push_style_float<C>(style: ImGuiStyleVar, val: f32, inside: C) where C: FnOnce() {
 		ImGui::_push_style_float(style as i32, val);
+		inside();
+		ImGui::_pop_style_var(1);
 	}
-	pub fn push_style_vec2(style: ImGuiStyleVec2, val: &crate::dora::Vec2) {
+	pub fn push_style_vec2<C>(style: ImGuiStyleVec2, val: &crate::dora::Vec2, inside: C) where C: FnOnce() {
 		ImGui::_push_style_vec2(style as i32, val);
+		inside();
+		ImGui::_pop_style_var(1);
 	}
 	pub fn color_button(desc_id: &str, col: &crate::dora::Color) -> bool {
 		ImGui::color_button_opts(desc_id, col, BitFlags::default(), &Vec2::zero())
@@ -2712,6 +2770,76 @@ impl ImGui {
 	}
 	pub fn table_next_row_opts(min_row_height: f32, table_row_flags: BitFlags<ImGuiTableRowFlag>) {
 		ImGui::_table_next_row_opts(min_row_height, table_row_flags.bits() as i32);
+	}
+	pub fn begin_list_box<C>(label: &str, size: &crate::dora::Vec2, inside: C) where C: FnOnce() {
+		if ImGui::_begin_list_box(label, size) {
+			inside();
+			ImGui::_end_list_box();
+		}
+	}
+	pub fn begin_group<C>(inside: C) where C: FnOnce() {
+		ImGui::_begin_group();
+		inside();
+		ImGui::_end_group();
+	}
+	pub fn begin_disabled<C>(inside: C) where C: FnOnce() {
+		ImGui::_begin_disabled();
+		inside();
+		ImGui::_end_disabled();
+	}
+	pub fn begin_tooltip<C>(inside: C) where C: FnOnce() {
+		if ImGui::_begin_tooltip() {
+			inside();
+			ImGui::_end_tooltip();
+		}
+	}
+	pub fn begin_main_menu_bar<C>(inside: C) where C: FnOnce() {
+		if ImGui::_begin_main_menu_bar() {
+			inside();
+			ImGui::_end_main_menu_bar();
+		}
+	}
+	pub fn begin_menu_bar<C>(inside: C) where C: FnOnce() {
+		if ImGui::_begin_menu_bar() {
+			inside();
+			ImGui::_end_menu_bar();
+		}
+	}
+	pub fn begin_menu<C>(label: &str, enabled: bool, inside: C) where C: FnOnce() {
+		if ImGui::_begin_menu(label, enabled) {
+			inside();
+			ImGui::_end_menu();
+		}
+	}
+	pub fn push_item_width<C>(width: f32, inside: C) where C: FnOnce() {
+		ImGui::_push_item_width(width);
+		inside();
+		ImGui::_pop_item_width();
+	}
+	pub fn push_text_wrap_pos<C>(wrap_pos_x: f32, inside: C) where C: FnOnce() {
+		ImGui::_push_text_wrap_pos(wrap_pos_x);
+		inside();
+		ImGui::_pop_text_wrap_pos();
+	}
+	pub fn push_tab_stop<C>(v: bool, inside: C) where C: FnOnce() {
+		ImGui::_push_tab_stop(v);
+		inside();
+		ImGui::_pop_tab_stop();
+	}
+	pub fn push_button_repeat<C>(repeat: bool, inside: C) where C: FnOnce() {
+		ImGui::_push_button_repeat(repeat);
+		inside();
+		ImGui::_pop_button_repeat();
+	}
+	pub fn push_id<C>(str_id: &str, inside: C) where C: FnOnce() {
+		ImGui::_push_id(str_id);
+		inside();
+		ImGui::_pop_id();
+	}
+	pub fn push_clip_rect<C>(clip_rect_min: &crate::dora::Vec2, clip_rect_max: &crate::dora::Vec2, intersect_with_current_clip_rect: bool, inside: C) where C: FnOnce() {
+		ImGui::_push_clip_rect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect);
+		inside();
+		ImGui::_pop_clip_rect();
 	}
 }
 

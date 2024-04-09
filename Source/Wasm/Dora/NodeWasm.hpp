@@ -329,14 +329,20 @@ static int32_t node_traverse_all(int64_t self, int32_t func, int64_t stack) {
 		return std::get<bool>(args->pop());
 	}) ? 1 : 0;
 }
-static int64_t node_run_action(int64_t self, int64_t def) {
-	return from_object(node_run_action_def(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(def))));
+static float node_run_action_def(int64_t self, int64_t def) {
+	return node_run_action_def_duration(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(def)));
+}
+static float node_run_action(int64_t self, int64_t action) {
+	return r_cast<Node*>(self)->runAction(r_cast<Action*>(action));
 }
 static void node_stop_all_actions(int64_t self) {
 	r_cast<Node*>(self)->stopAllActions();
 }
-static int64_t node_perform(int64_t self, int64_t action_def) {
-	return from_object(node_perform_def(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(action_def))));
+static float node_perform_def(int64_t self, int64_t action_def) {
+	return node_perform_def_duration(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(action_def)));
+}
+static float node_perform(int64_t self, int64_t action) {
+	return r_cast<Node*>(self)->perform(r_cast<Action*>(action));
 }
 static void node_stop_action(int64_t self, int64_t action) {
 	r_cast<Node*>(self)->stopAction(r_cast<Action*>(action));
@@ -499,8 +505,10 @@ static void linkNode(wasm3::module3& mod) {
 	mod.link_optional("*", "node_each_child", node_each_child);
 	mod.link_optional("*", "node_traverse", node_traverse);
 	mod.link_optional("*", "node_traverse_all", node_traverse_all);
+	mod.link_optional("*", "node_run_action_def", node_run_action_def);
 	mod.link_optional("*", "node_run_action", node_run_action);
 	mod.link_optional("*", "node_stop_all_actions", node_stop_all_actions);
+	mod.link_optional("*", "node_perform_def", node_perform_def);
 	mod.link_optional("*", "node_perform", node_perform);
 	mod.link_optional("*", "node_stop_action", node_stop_action);
 	mod.link_optional("*", "node_align_items_vertically", node_align_items_vertically);

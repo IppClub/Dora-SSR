@@ -9,6 +9,50 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 static void actiondef_release(int64_t raw) {
 	delete r_cast<ActionDef*>(raw);
 }
+static int64_t actiondef_prop(float duration, float start, float stop, int32_t prop, int32_t easing) {
+	return r_cast<int64_t>(new ActionDef{action_def_prop(duration, start, stop, s_cast<Property::Enum>(prop), s_cast<Ease::Enum>(easing))});
+}
+static int64_t actiondef_tint(float duration, int32_t start, int32_t stop, int32_t easing) {
+	return r_cast<int64_t>(new ActionDef{action_def_tint(duration, Color3(s_cast<uint32_t>(start)), Color3(s_cast<uint32_t>(stop)), s_cast<Ease::Enum>(easing))});
+}
+static int64_t actiondef_roll(float duration, float start, float stop, int32_t easing) {
+	return r_cast<int64_t>(new ActionDef{action_def_roll(duration, start, stop, s_cast<Ease::Enum>(easing))});
+}
+static int64_t actiondef_spawn(int64_t defs) {
+	return r_cast<int64_t>(new ActionDef{action_def_spawn(from_action_def_vec(defs))});
+}
+static int64_t actiondef_sequence(int64_t defs) {
+	return r_cast<int64_t>(new ActionDef{action_def_sequence(from_action_def_vec(defs))});
+}
+static int64_t actiondef_delay(float duration) {
+	return r_cast<int64_t>(new ActionDef{action_def_delay(duration)});
+}
+static int64_t actiondef_show() {
+	return r_cast<int64_t>(new ActionDef{action_def_show()});
+}
+static int64_t actiondef_hide() {
+	return r_cast<int64_t>(new ActionDef{action_def_hide()});
+}
+static int64_t actiondef_event(int64_t event_name, int64_t msg) {
+	return r_cast<int64_t>(new ActionDef{action_def_emit(*str_from(event_name), *str_from(msg))});
+}
+static int64_t actiondef_move_to(float duration, int64_t start, int64_t stop, int32_t easing) {
+	return r_cast<int64_t>(new ActionDef{action_def_move(duration, vec2_from(start), vec2_from(stop), s_cast<Ease::Enum>(easing))});
+}
+static int64_t actiondef_scale(float duration, float start, float stop, int32_t easing) {
+	return r_cast<int64_t>(new ActionDef{action_def_scale(duration, start, stop, s_cast<Ease::Enum>(easing))});
+}
 static void linkActionDef(wasm3::module3& mod) {
 	mod.link_optional("*", "actiondef_release", actiondef_release);
+	mod.link_optional("*", "actiondef_prop", actiondef_prop);
+	mod.link_optional("*", "actiondef_tint", actiondef_tint);
+	mod.link_optional("*", "actiondef_roll", actiondef_roll);
+	mod.link_optional("*", "actiondef_spawn", actiondef_spawn);
+	mod.link_optional("*", "actiondef_sequence", actiondef_sequence);
+	mod.link_optional("*", "actiondef_delay", actiondef_delay);
+	mod.link_optional("*", "actiondef_show", actiondef_show);
+	mod.link_optional("*", "actiondef_hide", actiondef_hide);
+	mod.link_optional("*", "actiondef_event", actiondef_event);
+	mod.link_optional("*", "actiondef_move_to", actiondef_move_to);
+	mod.link_optional("*", "actiondef_scale", actiondef_scale);
 }

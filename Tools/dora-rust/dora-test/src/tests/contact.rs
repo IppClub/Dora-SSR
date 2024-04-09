@@ -47,7 +47,8 @@ pub fn test() {
 			lb.set_text(&format!("Contact: [{:.0},{:.0}]", point.x, point.y));
 		}
 	}));
-	let windows_flags = ImGuiWindowFlag::NO_DECORATION |
+	let windows_flags =
+		ImGuiWindowFlag::NO_DECORATION |
 		ImGuiWindowFlag::AlwaysAutoResize |
 		ImGuiWindowFlag::NoSavedSettings |
 		ImGuiWindowFlag::NoFocusOnAppearing |
@@ -61,7 +62,7 @@ pub fn test() {
 		ImGui::set_next_window_bg_alpha(0.35);
 		ImGui::set_next_window_pos_opts(&Vec2::new(width - 10.0, 10.0), ImGuiCond::Always, &Vec2::new(1.0, 0.0));
 		ImGui::set_next_window_size_opts(&Vec2::new(240.0, 0.0), ImGuiCond::FirstUseEver);
-		if ImGui::begin_opts("Contact", windows_flags) {
+		ImGui::begin_opts("Contact", windows_flags, || {
 			ImGui::text("Contact (Rust)");
 			ImGui::separator();
 			ImGui::text_wrapped("Receive events when physics bodies contact.");
@@ -71,8 +72,7 @@ pub fn test() {
 				disk.set_receiving_contact(receiving_contact);
 				lb.set_text("");
 			}
-		}
-		ImGui::end();
+		});
 		false
 	}));
 }
