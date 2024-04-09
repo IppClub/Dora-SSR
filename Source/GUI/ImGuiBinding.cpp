@@ -1163,7 +1163,7 @@ bool Combo(
 		cItems.push_back(item.c_str());
 	}
 	int current_item = s_cast<int>(std::get<int64_t>(stack->pop()));
-	bool changed = Combo(label.c_str(), &current_item, cItems.data(), static_cast<int>(items.size()), height_in_items);
+	bool changed = ImGui::Combo(label.c_str(), &current_item, cItems.data(), static_cast<int>(items.size()), height_in_items);
 	stack->push(s_cast<int64_t>(current_item));
 	return changed;
 }

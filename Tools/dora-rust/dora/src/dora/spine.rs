@@ -104,8 +104,8 @@ impl Spine {
 	/// # Returns
 	///
 	/// * A new instance of 'Spine' with the specified skeleton file and atlas file. Returns `None` if the skeleton file or atlas file could not be loaded.
-	pub fn with_files(skel_file: &str, atlas_file: &str) -> Spine {
-		unsafe { return Spine { raw: spine_with_files(crate::dora::from_string(skel_file), crate::dora::from_string(atlas_file)) }; }
+	pub fn with_files(skel_file: &str, atlas_file: &str) -> Option<Spine> {
+		unsafe { return Spine::from(spine_with_files(crate::dora::from_string(skel_file), crate::dora::from_string(atlas_file))); }
 	}
 	/// Creates a new instance of 'Spine' using the specified Spine string.
 	///
@@ -116,8 +116,8 @@ impl Spine {
 	/// # Returns
 	///
 	/// * A new instance of 'Spine'. Returns `None` if the Spine file could not be loaded.
-	pub fn new(spine_str: &str) -> Spine {
-		unsafe { return Spine { raw: spine_new(crate::dora::from_string(spine_str)) }; }
+	pub fn new(spine_str: &str) -> Option<Spine> {
+		unsafe { return Spine::from(spine_new(crate::dora::from_string(spine_str))); }
 	}
 	/// Returns a list of available looks for the specified Spine2D file string.
 	///

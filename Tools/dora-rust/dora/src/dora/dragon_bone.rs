@@ -90,8 +90,8 @@ impl DragonBone {
 	/// # Returns
 	///
 	/// * A new instance of 'DragonBone' with the specified bone file and atlas file. Returns `None` if the bone file or atlas file is not found.
-	pub fn with_files(bone_file: &str, atlas_file: &str) -> DragonBone {
-		unsafe { return DragonBone { raw: dragonbone_with_files(crate::dora::from_string(bone_file), crate::dora::from_string(atlas_file)) }; }
+	pub fn with_files(bone_file: &str, atlas_file: &str) -> Option<DragonBone> {
+		unsafe { return DragonBone::from(dragonbone_with_files(crate::dora::from_string(bone_file), crate::dora::from_string(atlas_file))); }
 	}
 	/// Creates a new instance of 'DragonBone' using the specified bone string.
 	///
@@ -102,8 +102,8 @@ impl DragonBone {
 	/// # Returns
 	///
 	/// * A new instance of 'DragonBone'. Returns `None` if the bone file or atlas file is not found.
-	pub fn new(bone_str: &str) -> DragonBone {
-		unsafe { return DragonBone { raw: dragonbone_new(crate::dora::from_string(bone_str)) }; }
+	pub fn new(bone_str: &str) -> Option<DragonBone> {
+		unsafe { return DragonBone::from(dragonbone_new(crate::dora::from_string(bone_str))); }
 	}
 	/// Returns a list of available looks for the specified DragonBone file string.
 	///

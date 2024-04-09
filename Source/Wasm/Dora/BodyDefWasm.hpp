@@ -78,7 +78,7 @@ static int64_t bodydef_polygon(float width, float height, float density, float f
 static int64_t bodydef_polygon_with_vertices(int64_t vertices, float density, float friction, float restitution) {
 	return r_cast<int64_t>(BodyDef::polygon(from_vec2_vec(vertices), density, friction, restitution));
 }
-static void bodydef_attach_polygon_center(int64_t self, int64_t center, float width, float height, float angle, float density, float friction, float restitution) {
+static void bodydef_attach_polygon_with_center(int64_t self, int64_t center, float width, float height, float angle, float density, float friction, float restitution) {
 	r_cast<BodyDef*>(self)->attachPolygon(vec2_from(center), width, height, angle, density, friction, restitution);
 }
 static void bodydef_attach_polygon(int64_t self, float width, float height, float density, float friction, float restitution) {
@@ -154,7 +154,7 @@ static void linkBodyDef(wasm3::module3& mod) {
 	mod.link_optional("*", "bodydef_polygon_with_center", bodydef_polygon_with_center);
 	mod.link_optional("*", "bodydef_polygon", bodydef_polygon);
 	mod.link_optional("*", "bodydef_polygon_with_vertices", bodydef_polygon_with_vertices);
-	mod.link_optional("*", "bodydef_attach_polygon_center", bodydef_attach_polygon_center);
+	mod.link_optional("*", "bodydef_attach_polygon_with_center", bodydef_attach_polygon_with_center);
 	mod.link_optional("*", "bodydef_attach_polygon", bodydef_attach_polygon);
 	mod.link_optional("*", "bodydef_attach_polygon_with_vertices", bodydef_attach_polygon_with_vertices);
 	mod.link_optional("*", "bodydef_multi", bodydef_multi);
