@@ -35,7 +35,7 @@ pub fn test() {
 		) {
 			if let Some(mut sprite) = Sprite::with_file(&image) {
 				sprite.add_to(&scene);
-				sprite.run_action(&Action::scale(0.5, 0.0, 0.5, EaseType::OutBack));
+				sprite.run_action_def(ActionDef::scale(0.5, 0.0, 0.5, EaseType::OutBack));
 				entity.set("sprite", sprite.obj());
 			}
 		}
@@ -104,7 +104,7 @@ pub fn test() {
 			let get_old_direction = move || entity.get_old("direction")?.into_f32();
 			let last_direction = get_old_direction().unwrap_or(sprite.get_angle());
 			if (direction - last_direction).abs() > 1.0 {
-				sprite.run_action(&Action::roll(0.3, last_direction, direction, EaseType::InOutSine));
+				sprite.run_action_def(ActionDef::roll(0.3, last_direction, direction, EaseType::InOutSine));
 			}
 		}
 		false
@@ -129,7 +129,8 @@ pub fn test() {
 		entity.set("speed", 10.0);
 	}
 
-	let window_flags = ImGuiWindowFlag::NO_DECORATION |
+	let window_flags =
+		ImGuiWindowFlag::NO_DECORATION |
 		ImGuiWindowFlag::AlwaysAutoResize |
 		ImGuiWindowFlag::NoSavedSettings |
 		ImGuiWindowFlag::NoFocusOnAppearing |
@@ -141,7 +142,7 @@ pub fn test() {
 		ImGui::set_next_window_bg_alpha(0.35);
 		ImGui::set_next_window_pos_opts(&Vec2::new(width - 10.0, 10.0), ImGuiCond::Always, &Vec2::new(1.0, 0.0));
 		ImGui::set_next_window_size_opts(&Vec2::new(240.0, 0.0), ImGuiCond::FirstUseEver);
-		if ImGui::begin_opts("ECS System", window_flags) {
+		ImGui::begin_opts("ECS System", window_flags, || {
 			ImGui::text("ECS System (Rust)");
 			ImGui::separator();
 			ImGui::text_wrapped("Tap any place to move entities.");
@@ -162,10 +163,11 @@ pub fn test() {
 					entity.remove("position");
 					let get_sprite = |e: &Entity| e.get("sprite")?.cast::<Sprite>();
 					if let Some(mut sprite) = get_sprite(&entity) {
-						sprite.run_action(&Action::sequence(&vec![
-							Action::scale(0.5, 0.5, 0.0, EaseType::InBack),
-							Action::event("Destroy", "")
-						]));
+						sprite.run_action_def(
+							ActionDef::sequence(&vec![
+								ActionDef::scale(0.5, 0.5, 0.0, EaseType::InBack),
+								ActionDef::event("Destroy", "")
+							]));
 						sprite.slot("Destroy", Box::new(move |_| {
 							entity.destroy();
 						}));
@@ -173,8 +175,7 @@ pub fn test() {
 					true
 				}));
 			}
-		}
-		ImGui::end();
+		});
 		false
 	}));
 }

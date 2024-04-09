@@ -245,7 +245,7 @@ namespace ImGui
 	void BeginDisabled();
 	void EndDisabled();
 
-	void BeginTooltip();
+	bool BeginTooltip();
 	void EndTooltip();
 
 	bool BeginMainMenuBar();

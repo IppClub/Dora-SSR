@@ -323,7 +323,7 @@ basicTypes =
 		* "i64"
 		* (name)-> "std::move(*r_cast<ActionDef*>(#{name}))"
 		* (name)-> "r_cast<int64_t>(new ActionDef{#{name}})"
-		* "&crate::dora::ActionDef"
+		* "crate::dora::ActionDef"
 		* "crate::dora::ActionDef"
 		* (name)-> "#{name}.raw()"
 		* (name)-> "crate::dora::ActionDef::from(#{name})"

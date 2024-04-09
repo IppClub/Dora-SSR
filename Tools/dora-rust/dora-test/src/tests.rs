@@ -5,3 +5,4 @@ pub mod entity_move;
 pub mod contact;
 pub mod model;
 pub mod sprite;
+pub mod rander_target;

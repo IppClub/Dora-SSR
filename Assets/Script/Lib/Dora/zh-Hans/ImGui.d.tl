@@ -866,9 +866,13 @@ local record ImGui
 	GetTreeNodeToLabelSpacing: function(): number
 	BeginListBox: function(
 		label: string,
-		size?: Vec2 --[[Vec2.zero]]
-	): boolean
-	EndListBox: function()
+		size: Vec2,
+		inside: function()
+	)
+	BeginListBox: function(
+		label: string,
+		inside: function()
+	)
 
 	Value: function(prefix: string, b: boolean)
 	Value: function(prefix: string, v: integer)

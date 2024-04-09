@@ -47,7 +47,8 @@ pub fn test() {
 	body_d.set_angular_rate(90.0);
 	world.add_child(&body_d);
 
-	let windows_flags = ImGuiWindowFlag::NO_DECORATION |
+	let windows_flags =
+		ImGuiWindowFlag::NO_DECORATION |
 		ImGuiWindowFlag::AlwaysAutoResize |
 		ImGuiWindowFlag::NoSavedSettings |
 		ImGuiWindowFlag::NoFocusOnAppearing |
@@ -59,12 +60,11 @@ pub fn test() {
 		ImGui::set_next_window_bg_alpha(0.35);
 		ImGui::set_next_window_pos_opts(&Vec2::new(width - 10.0, 10.0), ImGuiCond::Always, &Vec2::new(1.0, 0.0));
 		ImGui::set_next_window_size_opts(&Vec2::new(240.0, 0.0), ImGuiCond::FirstUseEver);
-		if ImGui::begin_opts("Body", windows_flags) {
+		ImGui::begin_opts("Body", windows_flags, || {
 			ImGui::text("Body (Rust)");
 			ImGui::separator();
 			ImGui::text_wrapped("Basic usage to create physics bodies!");
-		}
-		ImGui::end();
+		});
 		false
 	}));
 }

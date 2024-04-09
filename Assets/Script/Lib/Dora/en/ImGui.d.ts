@@ -583,13 +583,13 @@ export function SliderAngle(
 		v_degrees_max?: number
 	): LuaMultiReturn<[boolean, number]>;
 
-export function TreeNode(this: void, label: string, inside: () => boolean): boolean;
-export function TreeNode(this: void, str_id: string, text: string, inside: () => boolean): boolean;
+export function TreeNode(this: void, label: string, inside: (this: void) => void): boolean;
+export function TreeNode(this: void, str_id: string, text: string, inside: (this: void) => void): boolean;
 export function TreePush(this: void, str_id: string, inside: (this: void) => void): void;
 export function TreePush(this: void, inside: (this: void) => void): void;
 export function GetTreeNodeToLabelSpacing(this: void): number;
-export function BeginListBox(this: void, label: string, size?: Vec2): boolean;
-export function EndListBox(this: void): void;
+export function BeginListBox(this: void, label: string, inside: (this: void) => void): void;
+export function BeginListBox(this: void, label: string, size: Vec2, inside: (this: void) => void): void;
 
 export function Value(this: void, prefix: string, b: boolean): void;
 export function Value(this: void, prefix: string, v: number): void;

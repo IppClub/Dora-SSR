@@ -29,7 +29,7 @@ static void imgui_show_console() {
 static int32_t imgui__begin_opts(int64_t name, int32_t windows_flags) {
 	return ImGui::Binding::Begin(*str_from(name), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
 }
-static void imgui_end() {
+static void imgui__end() {
 	ImGui::End();
 }
 static int32_t imgui__begin_child_opts(int64_t str_id, int64_t size, int32_t child_flags, int32_t window_flags) {
@@ -38,7 +38,7 @@ static int32_t imgui__begin_child_opts(int64_t str_id, int64_t size, int32_t chi
 static int32_t imgui__begin_child_with_id_opts(int32_t id, int64_t size, int32_t child_flags, int32_t window_flags) {
 	return ImGui::Binding::BeginChild(s_cast<uint32_t>(id), vec2_from(size), s_cast<uint32_t>(child_flags), s_cast<uint32_t>(window_flags)) ? 1 : 0;
 }
-static void imgui_end_child() {
+static void imgui__end_child() {
 	ImGui::EndChild();
 }
 static void imgui__set_next_window_pos_center_opts(int32_t set_cond) {
@@ -86,6 +86,9 @@ static int32_t imgui__selectable_opts(int64_t label, int32_t selectable_flags) {
 static int32_t imgui__begin_popup_modal_opts(int64_t name, int32_t windows_flags) {
 	return ImGui::Binding::BeginPopupModal(*str_from(name), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
 }
+static int32_t imgui__begin_popup_modal_ret_opts(int64_t name, int64_t stack, int32_t windows_flags) {
+	return ImGui::Binding::BeginPopupModal(*str_from(name), r_cast<CallStack*>(stack), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
+}
 static int32_t imgui__begin_popup_context_item_opts(int64_t name, int32_t popup_flags) {
 	return ImGui::Binding::BeginPopupContextItem(*str_from(name), s_cast<uint32_t>(popup_flags)) ? 1 : 0;
 }
@@ -122,7 +125,7 @@ static void imgui_label_text(int64_t label, int64_t text) {
 static void imgui_bullet_text(int64_t text) {
 	ImGui::Binding::BulletText(*str_from(text));
 }
-static int32_t imgui_tree_node(int64_t str_id, int64_t text) {
+static int32_t imgui__tree_node(int64_t str_id, int64_t text) {
 	return ImGui::Binding::TreeNode(*str_from(str_id), *str_from(text)) ? 1 : 0;
 }
 static void imgui_set_tooltip(int64_t text) {
@@ -172,9 +175,6 @@ static int32_t imgui__collapsing_header_ret_opts(int64_t label, int64_t stack, i
 }
 static int32_t imgui__selectable_ret_opts(int64_t label, int64_t stack, int64_t size, int32_t selectable_flags) {
 	return ImGui::Binding::Selectable(*str_from(label), r_cast<CallStack*>(stack), vec2_from(size), s_cast<uint32_t>(selectable_flags)) ? 1 : 0;
-}
-static int32_t imgui__begin_popup_modal_ret_opts(int64_t name, int64_t stack, int32_t windows_flags) {
-	return ImGui::Binding::BeginPopupModal(*str_from(name), r_cast<CallStack*>(stack), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
 }
 static int32_t imgui__combo_ret_opts(int64_t label, int64_t stack, int64_t items, int32_t height_in_items) {
 	return ImGui::Binding::Combo(*str_from(label), r_cast<CallStack*>(stack), from_str_vec(items), s_cast<int>(height_in_items)) ? 1 : 0;
@@ -311,40 +311,40 @@ static void imgui_set_scroll_from_pos_y(float pos_y, float center_y_ratio) {
 static void imgui_set_keyboard_focus_here(int32_t offset) {
 	ImGui::SetKeyboardFocusHere(s_cast<int>(offset));
 }
-static void imgui_pop_style_color(int32_t count) {
+static void imgui__pop_style_color(int32_t count) {
 	ImGui::PopStyleColor(s_cast<int>(count));
 }
-static void imgui_pop_style_var(int32_t count) {
+static void imgui__pop_style_var(int32_t count) {
 	ImGui::PopStyleVar(s_cast<int>(count));
 }
 static void imgui_set_next_item_width(float item_width) {
 	ImGui::SetNextItemWidth(item_width);
 }
-static void imgui_push_item_width(float item_width) {
+static void imgui__push_item_width(float item_width) {
 	ImGui::PushItemWidth(item_width);
 }
-static void imgui_pop_item_width() {
+static void imgui__pop_item_width() {
 	ImGui::PopItemWidth();
 }
 static float imgui_calc_item_width() {
 	return ImGui::CalcItemWidth();
 }
-static void imgui_push_text_wrap_pos(float wrap_pos_x) {
+static void imgui__push_text_wrap_pos(float wrap_pos_x) {
 	ImGui::PushTextWrapPos(wrap_pos_x);
 }
-static void imgui_pop_text_wrap_pos() {
+static void imgui__pop_text_wrap_pos() {
 	ImGui::PopTextWrapPos();
 }
-static void imgui_push_tab_stop(int32_t v) {
+static void imgui__push_tab_stop(int32_t v) {
 	ImGui::PushTabStop(v != 0);
 }
-static void imgui_pop_tab_stop() {
+static void imgui__pop_tab_stop() {
 	ImGui::PopTabStop();
 }
-static void imgui_push_button_repeat(int32_t repeat) {
+static void imgui__push_button_repeat(int32_t repeat) {
 	ImGui::PushButtonRepeat(repeat != 0);
 }
-static void imgui_pop_button_repeat() {
+static void imgui__pop_button_repeat() {
 	ImGui::PopButtonRepeat();
 }
 static void imgui_separator() {
@@ -368,10 +368,10 @@ static void imgui_indent(float indent_w) {
 static void imgui_unindent(float indent_w) {
 	ImGui::Unindent(indent_w);
 }
-static void imgui_begin_group() {
+static void imgui__begin_group() {
 	ImGui::BeginGroup();
 }
-static void imgui_end_group() {
+static void imgui__end_group() {
 	ImGui::EndGroup();
 }
 static int64_t imgui_get_cursor_pos() {
@@ -428,7 +428,7 @@ static float imgui_get_column_width(int32_t column_index) {
 static int32_t imgui_get_columns_count() {
 	return s_cast<int32_t>(ImGui::GetColumnsCount());
 }
-static void imgui_end_table() {
+static void imgui__end_table() {
 	ImGui::EndTable();
 }
 static int32_t imgui_table_next_column() {
@@ -443,9 +443,6 @@ static void imgui_table_setup_scroll_freeze(int32_t cols, int32_t rows) {
 static void imgui_table_headers_row() {
 	ImGui::TableHeadersRow();
 }
-static void imgui_pop_id() {
-	ImGui::PopID();
-}
 static void imgui_bullet_item() {
 	ImGui::Bullet();
 }
@@ -458,8 +455,11 @@ static void imgui_separator_text(int64_t text) {
 static void imgui_table_header(int64_t label) {
 	ImGui::Binding::TableHeader(*str_from(label));
 }
-static void imgui_push_id(int64_t str_id) {
+static void imgui__push_id(int64_t str_id) {
 	ImGui::Binding::PushID(*str_from(str_id));
+}
+static void imgui__pop_id() {
+	ImGui::PopID();
 }
 static int32_t imgui_get_id(int64_t str_id) {
 	return s_cast<int32_t>(ImGui::Binding::GetID(*str_from(str_id)));
@@ -503,17 +503,14 @@ static int32_t imgui__list_box_ret_opts(int64_t label, int64_t stack, int64_t it
 static int32_t imgui__slider_angle_ret(int64_t label, int64_t stack, float v_degrees_min, float v_degrees_max) {
 	return ImGui::Binding::SliderAngle(*str_from(label), r_cast<CallStack*>(stack), v_degrees_min, v_degrees_max) ? 1 : 0;
 }
-static void imgui_tree_push(int64_t str_id) {
+static void imgui__tree_push(int64_t str_id) {
 	ImGui::Binding::TreePush(*str_from(str_id));
 }
-static int32_t imgui_begin_list_box(int64_t label, int64_t size) {
-	return ImGui::Binding::BeginListBox(*str_from(label), vec2_from(size)) ? 1 : 0;
+static void imgui__tree_pop() {
+	ImGui::TreePop();
 }
 static void imgui_value(int64_t prefix, int32_t b) {
 	ImGui::Binding::Value(*str_from(prefix), b != 0);
-}
-static int32_t imgui_begin_menu(int64_t label, int32_t enabled) {
-	return ImGui::Binding::BeginMenu(*str_from(label), enabled != 0) ? 1 : 0;
 }
 static int32_t imgui_menu_item(int64_t label, int64_t shortcut, int32_t selected, int32_t enabled) {
 	return ImGui::Binding::MenuItem(*str_from(label), *str_from(shortcut), selected != 0, enabled != 0) ? 1 : 0;
@@ -521,55 +518,58 @@ static int32_t imgui_menu_item(int64_t label, int64_t shortcut, int32_t selected
 static void imgui_open_popup(int64_t str_id) {
 	ImGui::Binding::OpenPopup(*str_from(str_id));
 }
-static int32_t imgui_begin_popup(int64_t str_id) {
+static int32_t imgui__begin_popup(int64_t str_id) {
 	return ImGui::Binding::BeginPopup(*str_from(str_id)) ? 1 : 0;
 }
-static void imgui_tree_pop() {
-	ImGui::TreePop();
+static void imgui__end_popup() {
+	ImGui::EndPopup();
 }
 static float imgui_get_tree_node_to_label_spacing() {
 	return ImGui::GetTreeNodeToLabelSpacing();
 }
-static void imgui_end_list_box() {
+static int32_t imgui__begin_list_box(int64_t label, int64_t size) {
+	return ImGui::Binding::BeginListBox(*str_from(label), vec2_from(size)) ? 1 : 0;
+}
+static void imgui__end_list_box() {
 	ImGui::EndListBox();
 }
-static void imgui_begin_disabled() {
+static void imgui__begin_disabled() {
 	ImGui::BeginDisabled();
 }
-static void imgui_end_disabled() {
+static void imgui__end_disabled() {
 	ImGui::EndDisabled();
 }
-static void imgui_begin_tooltip() {
-	ImGui::BeginTooltip();
+static int32_t imgui__begin_tooltip() {
+	return ImGui::BeginTooltip() ? 1 : 0;
 }
-static void imgui_end_tooltip() {
+static void imgui__end_tooltip() {
 	ImGui::EndTooltip();
 }
-static int32_t imgui_begin_main_menu_bar() {
+static int32_t imgui__begin_main_menu_bar() {
 	return ImGui::BeginMainMenuBar() ? 1 : 0;
 }
-static void imgui_end_main_menu_bar() {
+static void imgui__end_main_menu_bar() {
 	ImGui::EndMainMenuBar();
 }
-static int32_t imgui_begin_menu_bar() {
+static int32_t imgui__begin_menu_bar() {
 	return ImGui::BeginMenuBar() ? 1 : 0;
 }
-static void imgui_end_menu_bar() {
+static void imgui__end_menu_bar() {
 	ImGui::EndMenuBar();
 }
-static void imgui_end_menu() {
-	ImGui::EndMenu();
+static int32_t imgui__begin_menu(int64_t label, int32_t enabled) {
+	return ImGui::Binding::BeginMenu(*str_from(label), enabled != 0) ? 1 : 0;
 }
-static void imgui_end_popup() {
-	ImGui::EndPopup();
+static void imgui__end_menu() {
+	ImGui::EndMenu();
 }
 static void imgui_close_current_popup() {
 	ImGui::CloseCurrentPopup();
 }
-static void imgui_push_clip_rect(int64_t clip_rect_min, int64_t clip_rect_max, int32_t intersect_with_current_clip_rect) {
+static void imgui__push_clip_rect(int64_t clip_rect_min, int64_t clip_rect_max, int32_t intersect_with_current_clip_rect) {
 	ImGui::PushClipRect(vec2_from(clip_rect_min), vec2_from(clip_rect_max), intersect_with_current_clip_rect != 0);
 }
-static void imgui_pop_clip_rect() {
+static void imgui__pop_clip_rect() {
 	ImGui::PopClipRect();
 }
 static int32_t imgui_is_item_hovered() {
@@ -647,10 +647,10 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_show_stats", imgui_show_stats);
 	mod.link_optional("*", "imgui_show_console", imgui_show_console);
 	mod.link_optional("*", "imgui__begin_opts", imgui__begin_opts);
-	mod.link_optional("*", "imgui_end", imgui_end);
+	mod.link_optional("*", "imgui__end", imgui__end);
 	mod.link_optional("*", "imgui__begin_child_opts", imgui__begin_child_opts);
 	mod.link_optional("*", "imgui__begin_child_with_id_opts", imgui__begin_child_with_id_opts);
-	mod.link_optional("*", "imgui_end_child", imgui_end_child);
+	mod.link_optional("*", "imgui__end_child", imgui__end_child);
 	mod.link_optional("*", "imgui__set_next_window_pos_center_opts", imgui__set_next_window_pos_center_opts);
 	mod.link_optional("*", "imgui__set_next_window_size_opts", imgui__set_next_window_size_opts);
 	mod.link_optional("*", "imgui__set_next_window_collapsed_opts", imgui__set_next_window_collapsed_opts);
@@ -666,6 +666,7 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui__collapsing_header_opts", imgui__collapsing_header_opts);
 	mod.link_optional("*", "imgui__selectable_opts", imgui__selectable_opts);
 	mod.link_optional("*", "imgui__begin_popup_modal_opts", imgui__begin_popup_modal_opts);
+	mod.link_optional("*", "imgui__begin_popup_modal_ret_opts", imgui__begin_popup_modal_ret_opts);
 	mod.link_optional("*", "imgui__begin_popup_context_item_opts", imgui__begin_popup_context_item_opts);
 	mod.link_optional("*", "imgui__begin_popup_context_window_opts", imgui__begin_popup_context_window_opts);
 	mod.link_optional("*", "imgui__begin_popup_context_void_opts", imgui__begin_popup_context_void_opts);
@@ -678,7 +679,7 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_text_wrapped", imgui_text_wrapped);
 	mod.link_optional("*", "imgui_label_text", imgui_label_text);
 	mod.link_optional("*", "imgui_bullet_text", imgui_bullet_text);
-	mod.link_optional("*", "imgui_tree_node", imgui_tree_node);
+	mod.link_optional("*", "imgui__tree_node", imgui__tree_node);
 	mod.link_optional("*", "imgui_set_tooltip", imgui_set_tooltip);
 	mod.link_optional("*", "imgui_image_opts", imgui_image_opts);
 	mod.link_optional("*", "imgui_image_button_opts", imgui_image_button_opts);
@@ -695,7 +696,6 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui__begin_ret_opts", imgui__begin_ret_opts);
 	mod.link_optional("*", "imgui__collapsing_header_ret_opts", imgui__collapsing_header_ret_opts);
 	mod.link_optional("*", "imgui__selectable_ret_opts", imgui__selectable_ret_opts);
-	mod.link_optional("*", "imgui__begin_popup_modal_ret_opts", imgui__begin_popup_modal_ret_opts);
 	mod.link_optional("*", "imgui__combo_ret_opts", imgui__combo_ret_opts);
 	mod.link_optional("*", "imgui__drag_float_ret_opts", imgui__drag_float_ret_opts);
 	mod.link_optional("*", "imgui__drag_float2_ret_opts", imgui__drag_float2_ret_opts);
@@ -741,18 +741,18 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_set_scroll_here_y", imgui_set_scroll_here_y);
 	mod.link_optional("*", "imgui_set_scroll_from_pos_y", imgui_set_scroll_from_pos_y);
 	mod.link_optional("*", "imgui_set_keyboard_focus_here", imgui_set_keyboard_focus_here);
-	mod.link_optional("*", "imgui_pop_style_color", imgui_pop_style_color);
-	mod.link_optional("*", "imgui_pop_style_var", imgui_pop_style_var);
+	mod.link_optional("*", "imgui__pop_style_color", imgui__pop_style_color);
+	mod.link_optional("*", "imgui__pop_style_var", imgui__pop_style_var);
 	mod.link_optional("*", "imgui_set_next_item_width", imgui_set_next_item_width);
-	mod.link_optional("*", "imgui_push_item_width", imgui_push_item_width);
-	mod.link_optional("*", "imgui_pop_item_width", imgui_pop_item_width);
+	mod.link_optional("*", "imgui__push_item_width", imgui__push_item_width);
+	mod.link_optional("*", "imgui__pop_item_width", imgui__pop_item_width);
 	mod.link_optional("*", "imgui_calc_item_width", imgui_calc_item_width);
-	mod.link_optional("*", "imgui_push_text_wrap_pos", imgui_push_text_wrap_pos);
-	mod.link_optional("*", "imgui_pop_text_wrap_pos", imgui_pop_text_wrap_pos);
-	mod.link_optional("*", "imgui_push_tab_stop", imgui_push_tab_stop);
-	mod.link_optional("*", "imgui_pop_tab_stop", imgui_pop_tab_stop);
-	mod.link_optional("*", "imgui_push_button_repeat", imgui_push_button_repeat);
-	mod.link_optional("*", "imgui_pop_button_repeat", imgui_pop_button_repeat);
+	mod.link_optional("*", "imgui__push_text_wrap_pos", imgui__push_text_wrap_pos);
+	mod.link_optional("*", "imgui__pop_text_wrap_pos", imgui__pop_text_wrap_pos);
+	mod.link_optional("*", "imgui__push_tab_stop", imgui__push_tab_stop);
+	mod.link_optional("*", "imgui__pop_tab_stop", imgui__pop_tab_stop);
+	mod.link_optional("*", "imgui__push_button_repeat", imgui__push_button_repeat);
+	mod.link_optional("*", "imgui__pop_button_repeat", imgui__pop_button_repeat);
 	mod.link_optional("*", "imgui_separator", imgui_separator);
 	mod.link_optional("*", "imgui_same_line", imgui_same_line);
 	mod.link_optional("*", "imgui_new_line", imgui_new_line);
@@ -760,8 +760,8 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_dummy", imgui_dummy);
 	mod.link_optional("*", "imgui_indent", imgui_indent);
 	mod.link_optional("*", "imgui_unindent", imgui_unindent);
-	mod.link_optional("*", "imgui_begin_group", imgui_begin_group);
-	mod.link_optional("*", "imgui_end_group", imgui_end_group);
+	mod.link_optional("*", "imgui__begin_group", imgui__begin_group);
+	mod.link_optional("*", "imgui__end_group", imgui__end_group);
 	mod.link_optional("*", "imgui_get_cursor_pos", imgui_get_cursor_pos);
 	mod.link_optional("*", "imgui_get_cursor_pos_x", imgui_get_cursor_pos_x);
 	mod.link_optional("*", "imgui_get_cursor_pos_y", imgui_get_cursor_pos_y);
@@ -780,17 +780,17 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_set_column_offset", imgui_set_column_offset);
 	mod.link_optional("*", "imgui_get_column_width", imgui_get_column_width);
 	mod.link_optional("*", "imgui_get_columns_count", imgui_get_columns_count);
-	mod.link_optional("*", "imgui_end_table", imgui_end_table);
+	mod.link_optional("*", "imgui__end_table", imgui__end_table);
 	mod.link_optional("*", "imgui_table_next_column", imgui_table_next_column);
 	mod.link_optional("*", "imgui_table_set_column_index", imgui_table_set_column_index);
 	mod.link_optional("*", "imgui_table_setup_scroll_freeze", imgui_table_setup_scroll_freeze);
 	mod.link_optional("*", "imgui_table_headers_row", imgui_table_headers_row);
-	mod.link_optional("*", "imgui_pop_id", imgui_pop_id);
 	mod.link_optional("*", "imgui_bullet_item", imgui_bullet_item);
 	mod.link_optional("*", "imgui_set_window_focus", imgui_set_window_focus);
 	mod.link_optional("*", "imgui_separator_text", imgui_separator_text);
 	mod.link_optional("*", "imgui_table_header", imgui_table_header);
-	mod.link_optional("*", "imgui_push_id", imgui_push_id);
+	mod.link_optional("*", "imgui__push_id", imgui__push_id);
+	mod.link_optional("*", "imgui__pop_id", imgui__pop_id);
 	mod.link_optional("*", "imgui_get_id", imgui_get_id);
 	mod.link_optional("*", "imgui_button", imgui_button);
 	mod.link_optional("*", "imgui_small_button", imgui_small_button);
@@ -805,29 +805,29 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_progress_bar_opts", imgui_progress_bar_opts);
 	mod.link_optional("*", "imgui__list_box_ret_opts", imgui__list_box_ret_opts);
 	mod.link_optional("*", "imgui__slider_angle_ret", imgui__slider_angle_ret);
-	mod.link_optional("*", "imgui_tree_push", imgui_tree_push);
-	mod.link_optional("*", "imgui_begin_list_box", imgui_begin_list_box);
+	mod.link_optional("*", "imgui__tree_push", imgui__tree_push);
+	mod.link_optional("*", "imgui__tree_pop", imgui__tree_pop);
 	mod.link_optional("*", "imgui_value", imgui_value);
-	mod.link_optional("*", "imgui_begin_menu", imgui_begin_menu);
 	mod.link_optional("*", "imgui_menu_item", imgui_menu_item);
 	mod.link_optional("*", "imgui_open_popup", imgui_open_popup);
-	mod.link_optional("*", "imgui_begin_popup", imgui_begin_popup);
-	mod.link_optional("*", "imgui_tree_pop", imgui_tree_pop);
+	mod.link_optional("*", "imgui__begin_popup", imgui__begin_popup);
+	mod.link_optional("*", "imgui__end_popup", imgui__end_popup);
 	mod.link_optional("*", "imgui_get_tree_node_to_label_spacing", imgui_get_tree_node_to_label_spacing);
-	mod.link_optional("*", "imgui_end_list_box", imgui_end_list_box);
-	mod.link_optional("*", "imgui_begin_disabled", imgui_begin_disabled);
-	mod.link_optional("*", "imgui_end_disabled", imgui_end_disabled);
-	mod.link_optional("*", "imgui_begin_tooltip", imgui_begin_tooltip);
-	mod.link_optional("*", "imgui_end_tooltip", imgui_end_tooltip);
-	mod.link_optional("*", "imgui_begin_main_menu_bar", imgui_begin_main_menu_bar);
-	mod.link_optional("*", "imgui_end_main_menu_bar", imgui_end_main_menu_bar);
-	mod.link_optional("*", "imgui_begin_menu_bar", imgui_begin_menu_bar);
-	mod.link_optional("*", "imgui_end_menu_bar", imgui_end_menu_bar);
-	mod.link_optional("*", "imgui_end_menu", imgui_end_menu);
-	mod.link_optional("*", "imgui_end_popup", imgui_end_popup);
+	mod.link_optional("*", "imgui__begin_list_box", imgui__begin_list_box);
+	mod.link_optional("*", "imgui__end_list_box", imgui__end_list_box);
+	mod.link_optional("*", "imgui__begin_disabled", imgui__begin_disabled);
+	mod.link_optional("*", "imgui__end_disabled", imgui__end_disabled);
+	mod.link_optional("*", "imgui__begin_tooltip", imgui__begin_tooltip);
+	mod.link_optional("*", "imgui__end_tooltip", imgui__end_tooltip);
+	mod.link_optional("*", "imgui__begin_main_menu_bar", imgui__begin_main_menu_bar);
+	mod.link_optional("*", "imgui__end_main_menu_bar", imgui__end_main_menu_bar);
+	mod.link_optional("*", "imgui__begin_menu_bar", imgui__begin_menu_bar);
+	mod.link_optional("*", "imgui__end_menu_bar", imgui__end_menu_bar);
+	mod.link_optional("*", "imgui__begin_menu", imgui__begin_menu);
+	mod.link_optional("*", "imgui__end_menu", imgui__end_menu);
 	mod.link_optional("*", "imgui_close_current_popup", imgui_close_current_popup);
-	mod.link_optional("*", "imgui_push_clip_rect", imgui_push_clip_rect);
-	mod.link_optional("*", "imgui_pop_clip_rect", imgui_pop_clip_rect);
+	mod.link_optional("*", "imgui__push_clip_rect", imgui__push_clip_rect);
+	mod.link_optional("*", "imgui__pop_clip_rect", imgui__pop_clip_rect);
 	mod.link_optional("*", "imgui_is_item_hovered", imgui_is_item_hovered);
 	mod.link_optional("*", "imgui_is_item_active", imgui_is_item_active);
 	mod.link_optional("*", "imgui_is_item_clicked", imgui_is_item_clicked);

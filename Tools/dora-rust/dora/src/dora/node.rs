@@ -100,9 +100,11 @@ extern "C" {
 	fn node_each_child(slf: i64, func: i32, stack: i64) -> i32;
 	fn node_traverse(slf: i64, func: i32, stack: i64) -> i32;
 	fn node_traverse_all(slf: i64, func: i32, stack: i64) -> i32;
-	fn node_run_action(slf: i64, def: i64) -> i64;
+	fn node_run_action_def(slf: i64, def: i64) -> f32;
+	fn node_run_action(slf: i64, action: i64) -> f32;
 	fn node_stop_all_actions(slf: i64);
-	fn node_perform(slf: i64, action_def: i64) -> i64;
+	fn node_perform_def(slf: i64, action_def: i64) -> f32;
+	fn node_perform(slf: i64, action: i64) -> f32;
 	fn node_stop_action(slf: i64, action: i64);
 	fn node_align_items_vertically(slf: i64, padding: f32) -> i64;
 	fn node_align_items_vertically_with_size(slf: i64, size: i64, padding: f32) -> i64;
@@ -657,9 +659,21 @@ pub trait INode: IObject {
 	///
 	/// # Returns
 	///
-	/// * `f64` - The duration of the newly running action in seconds.
-	fn run_action(&mut self, def: &crate::dora::ActionDef) -> Option<crate::dora::Action> {
-		unsafe { return crate::dora::Action::from(node_run_action(self.raw(), def.raw())); }
+	/// * `f32` - The duration of the newly running action in seconds.
+	fn run_action_def(&mut self, def: crate::dora::ActionDef) -> f32 {
+		unsafe { return node_run_action_def(self.raw(), def.raw()); }
+	}
+	/// Runs an action on this node.
+	///
+	/// # Arguments
+	///
+	/// * `action` - The action to run.
+	///
+	/// # Returns
+	///
+	/// * `f32` - The duration of the newly running action in seconds.
+	fn run_action(&mut self, action: &crate::dora::Action) -> f32 {
+		unsafe { return node_run_action(self.raw(), action.raw()); }
 	}
 	/// Stops all actions running on this node.
 	fn stop_all_actions(&mut self) {
@@ -673,9 +687,21 @@ pub trait INode: IObject {
 	///
 	/// # Returns
 	///
-	/// * `f64` - The duration of the newly running action in seconds.
-	fn perform(&mut self, action_def: &crate::dora::ActionDef) -> Option<crate::dora::Action> {
-		unsafe { return crate::dora::Action::from(node_perform(self.raw(), action_def.raw())); }
+	/// * `f32` - The duration of the newly running action in seconds.
+	fn perform_def(&mut self, action_def: crate::dora::ActionDef) -> f32 {
+		unsafe { return node_perform_def(self.raw(), action_def.raw()); }
+	}
+	/// Runs an action on this node right after clearing all the previous running actions.
+	///
+	/// # Arguments
+	///
+	/// * `action` - The action to run.
+	///
+	/// # Returns
+	///
+	/// * `f32` - The duration of the newly running action in seconds.
+	fn perform(&mut self, action: &crate::dora::Action) -> f32 {
+		unsafe { return node_perform(self.raw(), action.raw()); }
 	}
 	/// Stops the given action running on this node.
 	///

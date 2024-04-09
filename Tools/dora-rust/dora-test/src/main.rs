@@ -15,7 +15,7 @@ fn main() {
 		loop {
 			let size = App::get_visual_size();
 			ImGui::set_next_window_pos_opts(&Vec2::new(size.width / 2.0, size.height / 2.0), ImGuiCond::FirstUseEver, &Vec2::new(0.5, 0.5));
-			if ImGui::begin_opts("Rust Tests", ImGuiWindowFlag::NoSavedSettings.into()) {
+			ImGui::begin_opts("Rust Tests", ImGuiWindowFlag::NoSavedSettings.into(), || {
 				let button_size = Vec2::new(200.0, 0.0);
 				if ImGui::button("Hello World", &button_size) {
 					all_clear();
@@ -45,8 +45,11 @@ fn main() {
 					all_clear();
 					tests::model::test();
 				}
-			}
-			ImGui::end();
+				if ImGui::button("Render Target", &button_size) {
+					all_clear();
+					tests::rander_target::test();
+				}
+			});
 			co.waiter().await;
 		}
 	});
