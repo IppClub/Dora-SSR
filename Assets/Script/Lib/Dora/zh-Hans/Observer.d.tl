@@ -13,8 +13,8 @@ end
 local record ObserverClass
 	type Type = Observer
 
-	-- 观察器可以观察的实体变更类型。
-	enum Action
+	-- 观察器可以观察的实体变更事件类型。
+	enum EntityEvent
 
 		-- 添加新实体。
 		"Add"
@@ -30,10 +30,10 @@ local record ObserverClass
 	end
 
 	-- 用于创建监控具有特定组件的实体变化的新观察器。
-	-- @param action (Action) 要监控的实体变化类型。
+	-- @param event (EntityEvent) 要监控的实体变化类型。
 	-- @param components ({string}) 监控的实体包含的组件的清单。
 	-- @return (Observer) 新的观察器对象。
-	metamethod __call: function(self: ObserverClass, action: Action, components: {string}): Observer
+	metamethod __call: function(self: ObserverClass, event: EntityEvent, components: {string}): Observer
 end
 
 local observerClass: ObserverClass

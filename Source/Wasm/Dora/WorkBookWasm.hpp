@@ -6,24 +6,13 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t platformer_actionupdate_type() {
-	return DoraType<Platformer::WasmActionUpdate>();
+static void workbook_release(int64_t raw) {
+	delete r_cast<WorkBook*>(raw);
 }
-static int64_t platformer_wasmactionupdate_new(int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
-	});
-	auto args = r_cast<CallStack*>(stack);
-	return from_object(Platformer::WasmActionUpdate::create([func, args, deref](Platformer::Unit* owner, Platformer::UnitAction* action, float deltaTime) {
-		args->clear();
-		args->push(owner);
-		args->push(r_cast<int64_t>(action));
-		args->push(deltaTime);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
-	}));
+static int64_t workbook_get_sheet(int64_t self, int64_t name) {
+	return r_cast<int64_t>(new WorkSheet{r_cast<WorkBook*>(self)->getSheet(*str_from(name))});
 }
-static void linkPlatformerWasmActionUpdate(wasm3::module3& mod) {
-	mod.link_optional("*", "platformer_actionupdate_type", platformer_actionupdate_type);
-	mod.link_optional("*", "platformer_wasmactionupdate_new", platformer_wasmactionupdate_new);
+static void linkWorkBook(wasm3::module3& mod) {
+	mod.link_optional("*", "workbook_release", workbook_release);
+	mod.link_optional("*", "workbook_get_sheet", workbook_get_sheet);
 }

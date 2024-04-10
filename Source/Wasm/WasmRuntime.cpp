@@ -13,6 +13,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Dora.h"
 #include "GUI/ImGuiBinding.h"
 
+#include "Other/xlsxtext.hpp"
+
 NS_DORA_BEGIN
 
 union LightWasmValue {
@@ -611,6 +613,91 @@ static int64_t vec2_clamp(int64_t a, int64_t from, int64_t to) {
 	return vec2_retain(b);
 }
 
+/* Content */
+
+static int64_t content_load(int64_t filename) {
+	auto result = SharedContent.load(*str_from(filename));
+	if (result.second > 0) {
+		return str_retain({r_cast<char*>(result.first.get()), result.second});
+	}
+	return 0;
+}
+
+struct WorkSheet {
+	WorkSheet() { }
+	WorkSheet(WorkSheet&& other)
+		: worksheet(other.worksheet)
+		, workbook(std::move(other.workbook))
+		, it(other.it) {
+	}
+	bool read(Array* row) {
+		if (!worksheet) return false;
+		if (it != worksheet->end()) {
+			row->clear();
+			for (const auto& cell : *it) {
+				if (row->getCount() < cell.refer.col) {
+					for (int i = s_cast<int>(row->getCount()); i < s_cast<int>(cell.refer.col); i++) {
+						row->add(Value::alloc(false));
+					}
+				}
+				if (cell.value.empty() && cell.string_id >= 0) {
+					const auto& value = workbook->shared_strings()[cell.string_id];
+					row->set(cell.refer.col - 1, Value::alloc(value));
+				} else {
+					char* endptr = nullptr;
+					double d = std::strtod(cell.value.c_str(), &endptr);
+					if (*endptr != '\0' || endptr == cell.value.c_str()) {
+						row->set(cell.refer.col - 1, Value::alloc(cell.value));
+					} else {
+						row->set(cell.refer.col - 1, Value::alloc(d));
+					}
+				}
+			}
+			it++;
+			return true;
+		} else {
+			return false;
+		}
+	}
+	xlsxtext::worksheet* worksheet = nullptr;
+	std::vector<std::vector<xlsxtext::cell>>::const_iterator it;
+	std::shared_ptr<xlsxtext::workbook> workbook;
+};
+
+struct WorkBook {
+	WorkSheet getSheet(String name) {
+		if (!workbook) return {};
+		for (auto& worksheet : *workbook) {
+			if (worksheet.name() == name) {
+				auto errors = worksheet.read();
+				if (!errors.empty()) {
+					Error("failed to read excel sheet \"{}\":", worksheet.name());
+					for (auto [refer, msg] : errors) {
+						Error("{}: {}", refer, msg);
+					}
+					return {};
+				}
+				WorkSheet sheet;
+				sheet.worksheet = &worksheet;
+				sheet.it = worksheet.begin();
+				sheet.workbook = workbook;
+				return sheet;
+			}
+		}
+		return {};
+	}
+	std::shared_ptr<xlsxtext::workbook> workbook;
+};
+
+static WorkBook content_wasm_load_excel(String filename) {
+	auto workbook = std::make_shared<xlsxtext::workbook>(SharedContent.load(filename));
+	WorkBook book;
+	if (workbook->read()) {
+		book.workbook = workbook;
+	}
+	return book;
+}
+
 /* Array */
 
 static int32_t array_set(int64_t array, int32_t index, int64_t v) {
@@ -1001,8 +1088,8 @@ static int64_t blackboard_get(int64_t b, int64_t k) {
 
 // Decision
 
-#define DSeq Platformer::Decision::Sel
-#define DSel Platformer::Decision::Seq
+#define DSeq Platformer::Decision::Seq
+#define DSel Platformer::Decision::Sel
 #define DCon Platformer::Decision::Con
 #define DAct Platformer::Decision::Act
 #define DAccept Platformer::Decision::Accept
@@ -1012,16 +1099,15 @@ static int64_t blackboard_get(int64_t b, int64_t k) {
 // UnitAction
 
 namespace Platformer {
-class WasmActionUpdate {
+class WasmActionUpdate : public Object {
 public:
-	WasmActionUpdate(const std::function<bool(Unit*, UnitAction*, float)>& update)
-		: _update(update) { }
-	bool operator()(Unit* owner, UnitAction* action, float deltaTime) {
-		return _update(owner, action, deltaTime);
-	}
+	std::function<bool(Unit*, UnitAction*, float)> update;
+	CREATE_FUNC(WasmActionUpdate);
 
-private:
-	std::function<bool(Unit*, UnitAction*, float)> _update;
+protected:
+	explicit WasmActionUpdate(std::function<bool(Unit*, UnitAction*, float)>&& update)
+		: update(std::move(update)) { }
+	DORA_TYPE_OVERRIDE(WasmActionUpdate);
 };
 class WasmUnitAction : public UnitAction {
 public:
@@ -1035,7 +1121,7 @@ public:
 		if (auto playable = _owner->getPlayable()) {
 			playable->setRecovery(recovery);
 		}
-		_update = _create(_owner, s_cast<UnitAction*>(this));
+		_update = std::move(_create(_owner, s_cast<UnitAction*>(this))->update);
 		if (_update(_owner, s_cast<UnitAction*>(this), 0.0f)) {
 			WasmUnitAction::stop();
 		}
@@ -1054,7 +1140,7 @@ public:
 
 private:
 	std::function<bool(Unit*, UnitAction*)> _available;
-	std::function<WasmActionUpdate(Unit*, UnitAction*)> _create;
+	std::function<WasmActionUpdate*(Unit*, UnitAction*)> _create;
 	std::function<bool(Unit*, UnitAction*, float)> _update;
 	std::function<void(Unit*, UnitAction*)> _stop;
 	friend class WasmActionDef;
@@ -1063,13 +1149,13 @@ class WasmActionDef : public UnitActionDef {
 public:
 	WasmActionDef(
 		const std::function<bool(Unit*, UnitAction*)>& available,
-		const std::function<WasmActionUpdate(Unit*, UnitAction*)>& create,
+		const std::function<WasmActionUpdate*(Unit*, UnitAction*)>& create,
 		const std::function<void(Unit*, UnitAction*)>& stop)
 		: available(available)
 		, create(create)
 		, stop(stop) { }
 	std::function<bool(Unit*, UnitAction*)> available;
-	std::function<WasmActionUpdate(Unit*, UnitAction*)> create;
+	std::function<WasmActionUpdate*(Unit*, UnitAction*)> create;
 	std::function<void(Unit*, UnitAction*)> stop;
 	virtual Own<UnitAction> toAction(Unit* unit) override {
 		WasmUnitAction* action = new WasmUnitAction(name, priority, queued, unit);
@@ -1084,7 +1170,7 @@ public:
 static void wasm_unit_action_add(
 	String name, int priority, float reaction, float recovery, bool queued,
 	const std::function<bool(Unit*, UnitAction*)>& available,
-	const std::function<WasmActionUpdate(Unit*, UnitAction*)>& create,
+	const std::function<WasmActionUpdate*(Unit*, UnitAction*)>& create,
 	const std::function<void(Unit*, UnitAction*)>& stop) {
 	UnitActionDef* actionDef = new WasmActionDef(available, create, stop);
 	actionDef->name = name.toString();
@@ -1109,7 +1195,11 @@ struct DBParams {
 	std::deque<std::vector<Own<Value>>> records;
 };
 struct DBRecord {
+	DBRecord() { }
+	DBRecord(DBRecord&& other)
+		: records(std::move(other.records)) { }
 	bool read(Array* record) {
+		record->clear();
 		if (records.empty()) return false;
 		for (const auto& value : records.front()) {
 			record->add(DB::col(value));
@@ -1120,6 +1210,9 @@ struct DBRecord {
 	std::deque<std::vector<DB::Col>> records;
 };
 struct DBQuery {
+	DBQuery() { }
+	DBQuery(DBQuery&& other)
+		: queries(std::move(other.queries)) { }
 	void addWithParams(String sql, DBParams& params) {
 		auto& query = queries.emplace_back();
 		query.first = sql.toString();
@@ -1213,6 +1306,8 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/CameraOthoWasm.hpp"
 #include "Dora/CameraWasm.hpp"
 #include "Dora/ClipNodeWasm.hpp"
+#include "Dora/WorkBookWasm.hpp"
+#include "Dora/WorkSheetWasm.hpp"
 #include "Dora/ContentWasm.hpp"
 #include "Dora/DBParamsWasm.hpp"
 #include "Dora/DBQueryWasm.hpp"
@@ -1284,6 +1379,8 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkEntity(mod);
 	linkEntityGroup(mod);
 	linkEntityObserver(mod);
+	linkWorkBook(mod);
+	linkWorkSheet(mod);
 	linkContent(mod);
 	linkPath(mod);
 	linkScheduler(mod);
@@ -1439,6 +1536,8 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "vec2_perp", vec2_perp);
 	mod.link_optional("*", "vec2_dot", vec2_dot);
 	mod.link_optional("*", "vec2_clamp", vec2_clamp);
+
+	mod.link_optional("*", "content_load", content_load);
 
 	mod.link_optional("*", "array_set", array_set);
 	mod.link_optional("*", "array_get", array_get);

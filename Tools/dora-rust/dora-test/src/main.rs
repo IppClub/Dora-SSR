@@ -49,6 +49,10 @@ fn main() {
 					all_clear();
 					tests::rander_target::test();
 				}
+				if ImGui::button("Excel Test", &button_size) {
+					all_clear();
+					tests::excel_test::test();
+				}
 			});
 			co.waiter().await;
 		}

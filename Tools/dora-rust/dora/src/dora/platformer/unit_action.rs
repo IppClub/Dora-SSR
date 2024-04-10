@@ -91,7 +91,7 @@ impl UnitAction {
 		let stack_raw1 = stack1.raw();
 		let func_id1 = crate::dora::push_function(Box::new(move || {
 			let result = create(&stack1.pop_cast::<crate::dora::platformer::Unit>().unwrap(), &crate::dora::platformer::UnitAction::from(stack1.pop_i64().unwrap()).unwrap());
-			stack1.push_i64(result.raw());
+			stack1.push_object(&result);
 		}));
 		let mut stack2 = crate::dora::CallStack::new();
 		let stack_raw2 = stack2.raw();

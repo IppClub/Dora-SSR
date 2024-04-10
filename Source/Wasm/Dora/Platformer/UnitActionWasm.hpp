@@ -57,7 +57,7 @@ static void platformer_unitaction_add(int64_t name, int32_t priority, float reac
 		args1->push(owner);
 		args1->push(r_cast<int64_t>(action));
 		SharedWasmRuntime.invoke(func1);
-		return *r_cast<Platformer::WasmActionUpdate*>(std::get<int64_t>(args1->pop()));
+		return s_cast<Platformer::WasmActionUpdate*>(std::get<Object*>(args1->pop()));
 	}, [func2, args2, deref2](Platformer::Unit* owner, Platformer::UnitAction* action) {
 		args2->clear();
 		args2->push(owner);

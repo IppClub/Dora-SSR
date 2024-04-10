@@ -136,6 +136,9 @@ static void content_unzip_async(int64_t zip_file, int64_t folder_path, int32_t f
 		SharedWasmRuntime.invoke(func1);
 	});
 }
+static int64_t content_load_excel(int64_t filename) {
+	return r_cast<int64_t>(new WorkBook{content_wasm_load_excel(*str_from(filename))});
+}
 static void linkContent(wasm3::module3& mod) {
 	mod.link_optional("*", "content_set_search_paths", content_set_search_paths);
 	mod.link_optional("*", "content_get_search_paths", content_get_search_paths);
@@ -161,4 +164,5 @@ static void linkContent(wasm3::module3& mod) {
 	mod.link_optional("*", "content_save_async", content_save_async);
 	mod.link_optional("*", "content_zip_async", content_zip_async);
 	mod.link_optional("*", "content_unzip_async", content_unzip_async);
+	mod.link_optional("*", "content_load_excel", content_load_excel);
 }

@@ -31,6 +31,7 @@ extern "C" {
 	fn content_save_async(filename: i64, content: i64, func: i32, stack: i64);
 	fn content_zip_async(folder_path: i64, zip_file: i64, func: i32, stack: i64, func1: i32, stack1: i64);
 	fn content_unzip_async(zip_file: i64, folder_path: i64, func: i32, stack: i64, func1: i32, stack1: i64);
+	fn content_load_excel(filename: i64) -> i64;
 }
 /// The `Content` is a static struct that manages file searching,
 /// loading and other operations related to resources.
@@ -323,5 +324,8 @@ impl Content {
 			callback(stack1.pop_bool().unwrap())
 		}));
 		unsafe { content_unzip_async(crate::dora::from_string(zip_file), crate::dora::from_string(folder_path), func_id, stack_raw, func_id1, stack_raw1); }
+	}
+	pub fn load_excel(filename: &str) -> crate::dora::WorkBook {
+		unsafe { return crate::dora::WorkBook::from(content_load_excel(crate::dora::from_string(filename))); }
 	}
 }

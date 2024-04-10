@@ -37,11 +37,11 @@ local Director = ____dora.Director -- 3
 local Menu = ____dora.Menu -- 3
 local Keyboard = ____dora.Keyboard -- 3
 local Rectangle = require("UI.View.Shape.Rectangle") -- 4
-local ____Utils = require("Utils") -- 287
-local Struct = ____Utils.Struct -- 287
-local AlignNode = require("UI.Control.Basic.AlignNode") -- 337
-local CircleButton = require("UI.Control.Basic.CircleButton") -- 338
-local ImGui = require("ImGui") -- 341
+local ____Utils = require("Utils") -- 290
+local Struct = ____Utils.Struct -- 290
+local AlignNode = require("UI.Control.Basic.AlignNode") -- 340
+local CircleButton = require("UI.Control.Basic.CircleButton") -- 341
+local ImGui = require("ImGui") -- 344
 local TerrainLayer = 0 -- 6
 local PlayerLayer = 1 -- 7
 local ItemLayer = 2 -- 8
@@ -330,270 +330,273 @@ Observer("Add", {"player"}):watch(function(____self) -- 227
     unit.playable:play("idle", true) -- 232
     world:addChild(unit) -- 233
     world.camera.followTarget = unit -- 234
+    return false -- 235
 end) -- 227
-Observer("Add", {"x", "icon"}):watch(function(____self, x, icon) -- 237
-    local sprite = Sprite(icon) -- 238
-    if not sprite then -- 238
-        return -- 239
-    end -- 239
-    sprite:schedule(loop(function() -- 240
-        sleep(sprite:runAction(Spawn( -- 241
-            AngleY(5, 0, 360), -- 242
-            Sequence( -- 243
-                Y(2.5, 0, 40, Ease.OutQuad), -- 244
-                Y(2.5, 40, 0, Ease.InQuad) -- 245
-            ) -- 245
-        ))) -- 245
-        return false -- 248
-    end)) -- 240
-    local bodyDef = BodyDef() -- 251
-    bodyDef.type = "Dynamic" -- 252
-    bodyDef.linearAcceleration = Vec2(0, -10) -- 253
-    bodyDef:attachPolygon(sprite.width * 0.5, sprite.height) -- 254
-    bodyDef:attachPolygonSensor(0, sprite.width, sprite.height) -- 255
-    local body = Body( -- 257
-        bodyDef, -- 257
-        world, -- 257
-        Vec2(x, 0) -- 257
-    ) -- 257
-    body.order = ItemLayer -- 258
-    body.group = ItemGroup -- 259
-    body:addChild(sprite) -- 260
-    body:slot( -- 262
-        "BodyEnter", -- 262
-        function(item) -- 262
-            if tolua.type(item) == "Platformer::Unit" then -- 262
-                ____self.picked = true -- 264
-                body.group = Data.groupHide -- 265
-                body:schedule(once(function() -- 266
-                    sleep(sprite:runAction(Spawn( -- 267
-                        Scale(0.2, 1, 1.3, Ease.OutBack), -- 268
-                        Opacity(0.2, 1, 0) -- 269
-                    ))) -- 269
-                    ____self.body = nil -- 271
-                end)) -- 266
-            end -- 266
-        end -- 262
-    ) -- 262
-    world:addChild(body) -- 276
-    ____self.body = body -- 277
-end) -- 237
-Observer("Remove", {"body"}):watch(function(____self) -- 280
-    local body = tolua.cast(____self.oldValues.body, "Body") -- 281
-    if body ~= nil then -- 281
-        body:removeFromParent() -- 283
-    end -- 283
-end) -- 280
-local function loadExcel() -- 308
-    local xlsx = Content:loadExcel("Data/items.xlsx", {"items"}) -- 309
-    if xlsx ~= nil then -- 309
-        local its = xlsx.items -- 311
-        local names = its[2] -- 312
-        table.remove(names, 1) -- 313
-        if not Struct:has("Item") then -- 313
-            Struct.Item(names) -- 315
-        end -- 315
-        Group({"item"}):each(function(e) -- 317
-            e:destroy() -- 318
-            return false -- 319
-        end) -- 317
-        do -- 317
-            local i = 2 -- 321
-            while i < #its do -- 321
-                local st = Struct:load(its[i + 1]) -- 322
-                local item = { -- 323
-                    name = st.Name, -- 324
-                    no = st.No, -- 325
-                    x = st.X, -- 326
-                    num = st.Num, -- 327
-                    icon = st.Icon, -- 328
-                    desc = st.Desc, -- 329
-                    item = true -- 330
-                } -- 330
-                Entity(item) -- 332
-                i = i + 1 -- 321
-            end -- 321
-        end -- 321
-    end -- 321
-end -- 308
-local keyboardEnabled = true -- 343
-local playerGroup = Group({"player"}) -- 345
-local function updatePlayerControl(key, flag, vpad) -- 346
-    if keyboardEnabled and vpad then -- 346
-        keyboardEnabled = false -- 348
-    end -- 348
-    playerGroup:each(function(____self) -- 350
-        ____self[key] = flag -- 351
-        return false -- 352
-    end) -- 350
-end -- 346
-local uiScale = App.devicePixelRatio -- 356
-local alignNode = AlignNode({isRoot = true, inUI = true}) -- 357
-Director.ui:addChild(alignNode) -- 361
-local leftAlign = AlignNode({hAlign = "Left", vAlign = "Bottom"}) -- 363
-alignNode:addChild(leftAlign) -- 367
-local leftMenu = Menu() -- 369
-leftAlign:addChild(leftMenu) -- 370
-local leftButton = CircleButton({ -- 372
-    text = "左(a)", -- 373
-    x = 20 * uiScale, -- 374
-    y = 60 * uiScale, -- 375
-    radius = 30 * uiScale, -- 376
-    fontSize = math.floor(18 * uiScale) -- 377
-}) -- 377
-leftButton.anchor = Vec2.zero -- 379
-leftButton:slot( -- 380
-    "TapBegan", -- 380
-    function() -- 380
-        updatePlayerControl("keyLeft", true, true) -- 381
-    end -- 380
-) -- 380
+Observer("Add", {"x", "icon"}):watch(function(____self, x, icon) -- 238
+    local sprite = Sprite(icon) -- 239
+    if not sprite then -- 239
+        return false -- 240
+    end -- 240
+    sprite:schedule(loop(function() -- 241
+        sleep(sprite:runAction(Spawn( -- 242
+            AngleY(5, 0, 360), -- 243
+            Sequence( -- 244
+                Y(2.5, 0, 40, Ease.OutQuad), -- 245
+                Y(2.5, 40, 0, Ease.InQuad) -- 246
+            ) -- 246
+        ))) -- 246
+        return false -- 249
+    end)) -- 241
+    local bodyDef = BodyDef() -- 252
+    bodyDef.type = "Dynamic" -- 253
+    bodyDef.linearAcceleration = Vec2(0, -10) -- 254
+    bodyDef:attachPolygon(sprite.width * 0.5, sprite.height) -- 255
+    bodyDef:attachPolygonSensor(0, sprite.width, sprite.height) -- 256
+    local body = Body( -- 258
+        bodyDef, -- 258
+        world, -- 258
+        Vec2(x, 0) -- 258
+    ) -- 258
+    body.order = ItemLayer -- 259
+    body.group = ItemGroup -- 260
+    body:addChild(sprite) -- 261
+    body:slot( -- 263
+        "BodyEnter", -- 263
+        function(item) -- 263
+            if tolua.type(item) == "Platformer::Unit" then -- 263
+                ____self.picked = true -- 265
+                body.group = Data.groupHide -- 266
+                body:schedule(once(function() -- 267
+                    sleep(sprite:runAction(Spawn( -- 268
+                        Scale(0.2, 1, 1.3, Ease.OutBack), -- 269
+                        Opacity(0.2, 1, 0) -- 270
+                    ))) -- 270
+                    ____self.body = nil -- 272
+                end)) -- 267
+            end -- 267
+        end -- 263
+    ) -- 263
+    world:addChild(body) -- 277
+    ____self.body = body -- 278
+    return false -- 279
+end) -- 238
+Observer("Remove", {"body"}):watch(function(____self) -- 282
+    local body = tolua.cast(____self.oldValues.body, "Body") -- 283
+    if body ~= nil then -- 283
+        body:removeFromParent() -- 285
+    end -- 285
+    return false -- 287
+end) -- 282
+local function loadExcel() -- 311
+    local xlsx = Content:loadExcel("Data/items.xlsx", {"items"}) -- 312
+    if xlsx ~= nil then -- 312
+        local its = xlsx.items -- 314
+        local names = its[2] -- 315
+        table.remove(names, 1) -- 316
+        if not Struct:has("Item") then -- 316
+            Struct.Item(names) -- 318
+        end -- 318
+        Group({"item"}):each(function(e) -- 320
+            e:destroy() -- 321
+            return false -- 322
+        end) -- 320
+        do -- 320
+            local i = 2 -- 324
+            while i < #its do -- 324
+                local st = Struct:load(its[i + 1]) -- 325
+                local item = { -- 326
+                    name = st.Name, -- 327
+                    no = st.No, -- 328
+                    x = st.X, -- 329
+                    num = st.Num, -- 330
+                    icon = st.Icon, -- 331
+                    desc = st.Desc, -- 332
+                    item = true -- 333
+                } -- 333
+                Entity(item) -- 335
+                i = i + 1 -- 324
+            end -- 324
+        end -- 324
+    end -- 324
+end -- 311
+local keyboardEnabled = true -- 346
+local playerGroup = Group({"player"}) -- 348
+local function updatePlayerControl(key, flag, vpad) -- 349
+    if keyboardEnabled and vpad then -- 349
+        keyboardEnabled = false -- 351
+    end -- 351
+    playerGroup:each(function(____self) -- 353
+        ____self[key] = flag -- 354
+        return false -- 355
+    end) -- 353
+end -- 349
+local uiScale = App.devicePixelRatio -- 359
+local alignNode = AlignNode({isRoot = true, inUI = true}) -- 360
+Director.ui:addChild(alignNode) -- 364
+local leftAlign = AlignNode({hAlign = "Left", vAlign = "Bottom"}) -- 366
+alignNode:addChild(leftAlign) -- 370
+local leftMenu = Menu() -- 372
+leftAlign:addChild(leftMenu) -- 373
+local leftButton = CircleButton({ -- 375
+    text = "左(a)", -- 376
+    x = 20 * uiScale, -- 377
+    y = 60 * uiScale, -- 378
+    radius = 30 * uiScale, -- 379
+    fontSize = math.floor(18 * uiScale) -- 380
+}) -- 380
+leftButton.anchor = Vec2.zero -- 382
 leftButton:slot( -- 383
-    "TapEnded", -- 383
+    "TapBegan", -- 383
     function() -- 383
-        updatePlayerControl("keyLeft", false, true) -- 384
+        updatePlayerControl("keyLeft", true, true) -- 384
     end -- 383
 ) -- 383
-leftMenu:addChild(leftButton) -- 386
-local rightButton = CircleButton({ -- 388
-    text = "右(d)", -- 389
-    x = 90 * uiScale, -- 390
-    y = 60 * uiScale, -- 391
-    radius = 30 * uiScale, -- 392
-    fontSize = math.floor(18 * uiScale) -- 393
-}) -- 393
-rightButton.anchor = Vec2.zero -- 395
-rightButton:slot( -- 396
-    "TapBegan", -- 396
-    function() -- 396
-        updatePlayerControl("keyRight", true, true) -- 397
-    end -- 396
-) -- 396
+leftButton:slot( -- 386
+    "TapEnded", -- 386
+    function() -- 386
+        updatePlayerControl("keyLeft", false, true) -- 387
+    end -- 386
+) -- 386
+leftMenu:addChild(leftButton) -- 389
+local rightButton = CircleButton({ -- 391
+    text = "右(d)", -- 392
+    x = 90 * uiScale, -- 393
+    y = 60 * uiScale, -- 394
+    radius = 30 * uiScale, -- 395
+    fontSize = math.floor(18 * uiScale) -- 396
+}) -- 396
+rightButton.anchor = Vec2.zero -- 398
 rightButton:slot( -- 399
-    "TapEnded", -- 399
+    "TapBegan", -- 399
     function() -- 399
-        updatePlayerControl("keyRight", false, true) -- 400
+        updatePlayerControl("keyRight", true, true) -- 400
     end -- 399
 ) -- 399
-leftMenu:addChild(rightButton) -- 402
-local rightAlign = AlignNode({hAlign = "Right", vAlign = "Bottom"}) -- 404
-alignNode:addChild(rightAlign) -- 408
-local rightMenu = Menu() -- 410
-rightAlign:addChild(rightMenu) -- 411
-local jumpButton = CircleButton({ -- 413
-    text = "跳(j)", -- 414
-    x = -80 * uiScale, -- 415
-    y = 60 * uiScale, -- 416
-    radius = 30 * uiScale, -- 417
-    fontSize = math.floor(18 * uiScale) -- 418
-}) -- 418
-jumpButton.anchor = Vec2.zero -- 420
-jumpButton:slot( -- 421
-    "TapBegan", -- 421
-    function() -- 421
-        updatePlayerControl("keyJump", true, true) -- 422
-    end -- 421
-) -- 421
+rightButton:slot( -- 402
+    "TapEnded", -- 402
+    function() -- 402
+        updatePlayerControl("keyRight", false, true) -- 403
+    end -- 402
+) -- 402
+leftMenu:addChild(rightButton) -- 405
+local rightAlign = AlignNode({hAlign = "Right", vAlign = "Bottom"}) -- 407
+alignNode:addChild(rightAlign) -- 411
+local rightMenu = Menu() -- 413
+rightAlign:addChild(rightMenu) -- 414
+local jumpButton = CircleButton({ -- 416
+    text = "跳(j)", -- 417
+    x = -80 * uiScale, -- 418
+    y = 60 * uiScale, -- 419
+    radius = 30 * uiScale, -- 420
+    fontSize = math.floor(18 * uiScale) -- 421
+}) -- 421
+jumpButton.anchor = Vec2.zero -- 423
 jumpButton:slot( -- 424
-    "TapEnded", -- 424
+    "TapBegan", -- 424
     function() -- 424
-        updatePlayerControl("keyJump", false, true) -- 425
+        updatePlayerControl("keyJump", true, true) -- 425
     end -- 424
 ) -- 424
-rightMenu:addChild(jumpButton) -- 427
-alignNode:alignLayout() -- 429
-alignNode:schedule(function() -- 431
-    local keyA = Keyboard:isKeyPressed("A") -- 432
-    local keyD = Keyboard:isKeyPressed("D") -- 433
-    local keyJ = Keyboard:isKeyPressed("J") -- 434
-    if keyD or keyD or keyJ then -- 434
-        keyboardEnabled = true -- 436
-    end -- 436
-    if not keyboardEnabled then -- 436
-        return false -- 439
+jumpButton:slot( -- 427
+    "TapEnded", -- 427
+    function() -- 427
+        updatePlayerControl("keyJump", false, true) -- 428
+    end -- 427
+) -- 427
+rightMenu:addChild(jumpButton) -- 430
+alignNode:alignLayout() -- 432
+alignNode:schedule(function() -- 434
+    local keyA = Keyboard:isKeyPressed("A") -- 435
+    local keyD = Keyboard:isKeyPressed("D") -- 436
+    local keyJ = Keyboard:isKeyPressed("J") -- 437
+    if keyD or keyD or keyJ then -- 437
+        keyboardEnabled = true -- 439
     end -- 439
-    updatePlayerControl("keyLeft", keyA, false) -- 441
-    updatePlayerControl("keyRight", keyD, false) -- 442
-    updatePlayerControl("keyJump", keyJ, false) -- 443
-    return false -- 444
-end) -- 431
-local pickedItemGroup = Group({"picked"}) -- 447
-local windowFlags = { -- 448
-    "NoDecoration", -- 449
-    "AlwaysAutoResize", -- 450
-    "NoSavedSettings", -- 451
-    "NoFocusOnAppearing", -- 452
-    "NoNav", -- 453
-    "NoMove" -- 454
-} -- 454
-Director.ui:schedule(function() -- 456
-    local size = App.visualSize -- 457
-    ImGui.SetNextWindowBgAlpha(0.35) -- 458
-    ImGui.SetNextWindowPos( -- 459
-        Vec2(size.width - 10, 10), -- 459
-        "Always", -- 459
-        Vec2(1, 0) -- 459
-    ) -- 459
-    ImGui.SetNextWindowSize( -- 460
-        Vec2(100, 300), -- 460
-        "FirstUseEver" -- 460
-    ) -- 460
-    ImGui.Begin( -- 461
-        "BackPack", -- 461
-        windowFlags, -- 461
-        function() -- 461
-            if ImGui.Button("重新加载Excel") then -- 461
-                loadExcel() -- 463
-            end -- 463
-            ImGui.Separator() -- 465
-            ImGui.Dummy(Vec2(100, 10)) -- 466
-            ImGui.Text("背包 (Typescript)") -- 467
+    if not keyboardEnabled then -- 439
+        return false -- 442
+    end -- 442
+    updatePlayerControl("keyLeft", keyA, false) -- 444
+    updatePlayerControl("keyRight", keyD, false) -- 445
+    updatePlayerControl("keyJump", keyJ, false) -- 446
+    return false -- 447
+end) -- 434
+local pickedItemGroup = Group({"picked"}) -- 450
+local windowFlags = { -- 451
+    "NoDecoration", -- 452
+    "AlwaysAutoResize", -- 453
+    "NoSavedSettings", -- 454
+    "NoFocusOnAppearing", -- 455
+    "NoNav", -- 456
+    "NoMove" -- 457
+} -- 457
+Director.ui:schedule(function() -- 459
+    local size = App.visualSize -- 460
+    ImGui.SetNextWindowBgAlpha(0.35) -- 461
+    ImGui.SetNextWindowPos( -- 462
+        Vec2(size.width - 10, 10), -- 462
+        "Always", -- 462
+        Vec2(1, 0) -- 462
+    ) -- 462
+    ImGui.SetNextWindowSize( -- 463
+        Vec2(100, 300), -- 463
+        "FirstUseEver" -- 463
+    ) -- 463
+    ImGui.Begin( -- 464
+        "BackPack", -- 464
+        windowFlags, -- 464
+        function() -- 464
+            if ImGui.Button("重新加载Excel") then -- 464
+                loadExcel() -- 466
+            end -- 466
             ImGui.Separator() -- 468
-            ImGui.Columns(3, false) -- 469
-            pickedItemGroup:each(function(e) -- 470
-                local item = e -- 471
-                if item.num > 0 then -- 471
-                    if ImGui.ImageButton( -- 471
-                        "item" .. tostring(item.no), -- 473
-                        item.icon, -- 473
-                        Vec2(50, 50) -- 473
-                    ) then -- 473
-                        item.num = item.num - 1 -- 474
-                        local sprite = Sprite(item.icon) -- 475
-                        if not sprite then -- 475
-                            return false -- 476
-                        end -- 476
-                        sprite.scaleX = 0.5 -- 477
-                        sprite.scaleY = 0.5 -- 478
-                        sprite:perform(Spawn( -- 479
-                            Opacity(1, 1, 0), -- 480
-                            Y(1, 150, 250) -- 481
-                        )) -- 481
-                        local player = playerGroup:find(function() return true end) -- 483
-                        if player ~= nil then -- 483
-                            local unit = player.unit -- 485
-                            unit:addChild(sprite) -- 486
-                        end -- 486
-                    end -- 486
-                    if ImGui.IsItemHovered() then -- 486
-                        ImGui.BeginTooltip(function() -- 490
-                            ImGui.Text(item.name) -- 491
-                            ImGui.TextColored(themeColor, "数量：") -- 492
-                            ImGui.SameLine() -- 493
-                            ImGui.Text(tostring(item.num)) -- 494
-                            ImGui.TextColored(themeColor, "描述：") -- 495
+            ImGui.Dummy(Vec2(100, 10)) -- 469
+            ImGui.Text("背包 (Typescript)") -- 470
+            ImGui.Separator() -- 471
+            ImGui.Columns(3, false) -- 472
+            pickedItemGroup:each(function(e) -- 473
+                local item = e -- 474
+                if item.num > 0 then -- 474
+                    if ImGui.ImageButton( -- 474
+                        "item" .. tostring(item.no), -- 476
+                        item.icon, -- 476
+                        Vec2(50, 50) -- 476
+                    ) then -- 476
+                        item.num = item.num - 1 -- 477
+                        local sprite = Sprite(item.icon) -- 478
+                        if not sprite then -- 478
+                            return false -- 479
+                        end -- 479
+                        sprite.scaleX = 0.5 -- 480
+                        sprite.scaleY = 0.5 -- 481
+                        sprite:perform(Spawn( -- 482
+                            Opacity(1, 1, 0), -- 483
+                            Y(1, 150, 250) -- 484
+                        )) -- 484
+                        local player = playerGroup:find(function() return true end) -- 486
+                        if player ~= nil then -- 486
+                            local unit = player.unit -- 488
+                            unit:addChild(sprite) -- 489
+                        end -- 489
+                    end -- 489
+                    if ImGui.IsItemHovered() then -- 489
+                        ImGui.BeginTooltip(function() -- 493
+                            ImGui.Text(item.name) -- 494
+                            ImGui.TextColored(themeColor, "数量：") -- 495
                             ImGui.SameLine() -- 496
-                            ImGui.Text(tostring(item.desc)) -- 497
-                        end) -- 490
-                    end -- 490
-                    ImGui.NextColumn() -- 500
-                end -- 500
-                return false -- 502
-            end) -- 470
-        end -- 461
-    ) -- 461
-    return false -- 505
-end) -- 456
-Entity({player = true}) -- 508
-loadExcel() -- 509
-return ____exports -- 509
+                            ImGui.Text(tostring(item.num)) -- 497
+                            ImGui.TextColored(themeColor, "描述：") -- 498
+                            ImGui.SameLine() -- 499
+                            ImGui.Text(tostring(item.desc)) -- 500
+                        end) -- 493
+                    end -- 493
+                    ImGui.NextColumn() -- 503
+                end -- 503
+                return false -- 505
+            end) -- 473
+        end -- 464
+    ) -- 464
+    return false -- 508
+end) -- 459
+Entity({player = true}) -- 511
+loadExcel() -- 512
+return ____exports -- 512
