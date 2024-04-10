@@ -16,9 +16,9 @@ pub fn test() {
 	let mut arr = Array::new();
 	let data = ["hello", "world", "ok"];
 	for i in 0..data.len() {
-		arr.clear();
 		arr.add(false).add(data[i]);
 		params.add(&arr);
+		arr.clear();
 	}
 	sqls.add_with_params("INSERT INTO test VALUES(?, ?)", params);
 
@@ -26,24 +26,22 @@ pub fn test() {
 	p!("transaction result: {}", result);
 	p!("table test exist: {}", DB::exist("test"));
 
-	let mut result = DB::query("SELECT * FROM test", true);
-	arr.clear();
-	result.read(&arr);
+	let mut records = DB::query("SELECT * FROM test", true);
+	records.read(&arr);
 	for i in 0..arr.get_count() as i32 {
 		if let Some(value) = get_str(&arr, i) {
 			p!("{}", value);
 		}
 	}
-	arr.clear();
+
 	let mut count = 0;
-	while result.read(&arr) {
+	while records.read(&arr) {
 		if let Some(value) = get_i32(&arr, 0) {
 			p!("{}", value);
 		}
 		if let Some(value) = get_str(&arr, 1) {
 			p!("{}", value);
 		}
-		arr.clear();
 		count += 1;
 	}
 	p!("result count: {}", count);
@@ -68,12 +66,10 @@ pub fn test() {
 	}));
 
 	DB::query_with_params_async("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC", &Array::new(), true, Box::new(move |mut result| {
-		arr.clear();
 		while result.read(&arr) {
 			if let Some(value) = get_str(&arr, 0) {
 				p!("{}", value);
 			}
-			arr.clear();
 		}
 	}));
 

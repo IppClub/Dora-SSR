@@ -13,8 +13,8 @@ end
 local record ObserverClass
 	type Type = Observer
 
-	-- The types of actions that an observer can watch for.
-	enum Action
+	-- The types of entity events that an observer can watch for.
+	enum EntityEvent
 
 		-- The addition of a new entity.
 		"Add"
@@ -30,10 +30,10 @@ local record ObserverClass
 	end
 
 	-- A metamethod that creates a new observer with the specified component filter and action to watch for
-	-- @param action (Action) The type of action to watch for.
+	-- @param event (EntityEvent) The type of entity event to watch for.
 	-- @param components ({string}) A table listing the names of the components to filter entities by.
 	-- @return (Observer) The new observer.
-	metamethod __call: function(self: ObserverClass, action: Action, components: {string}): Observer
+	metamethod __call: function(self: ObserverClass, event: EntityEvent, components: {string}): Observer
 end
 
 local observerClass: ObserverClass

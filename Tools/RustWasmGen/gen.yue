@@ -209,26 +209,6 @@ basicTypes =
 		* (name)-> "crate::dora::Rect::from(#{name})"
 		* -> error "unsupported"
 		* -> error "unsupported"
-	WasmActionUpdate:
-		* "i64"
-		* (name)-> "*r_cast<WasmActionUpdate*>(#{name})"
-		* (name)-> "r_cast<int64_t>(new Platformer::WasmActionUpdate{#{name}})"
-		* "&crate::dora::platformer::ActionUpdate"
-		* "crate::dora::platformer::ActionUpdate"
-		* (name)-> "#{name}.raw()"
-		* (name)-> "crate::dora::platformer::ActionUpdate::from(#{name})"
-		* (fnArgId)-> "crate::dora::platformer::ActionUpdate::from(stack#{fnArgId}.pop_i64().unwrap())"
-		* (name, fnArgId)-> "stack#{fnArgId}.push_i64(#{name}.raw());"
-	"Platformer::WasmActionUpdate":
-		* "i64"
-		* (name)-> "*r_cast<WasmActionUpdate*>(#{name})"
-		* (name)-> "r_cast<int64_t>(new Platformer::WasmActionUpdate{#{name}})"
-		* "&crate::dora::platformer::ActionUpdate"
-		* "crate::dora::platformer::ActionUpdate"
-		* (name)-> "#{name}.raw()"
-		* (name)-> "crate::dora::platformer::ActionUpdate::from(#{name})"
-		* (fnArgId)-> "crate::dora::platformer::ActionUpdate::from(stack#{fnArgId}.pop_i64().unwrap())"
-		* (name, fnArgId)-> "stack#{fnArgId}.push_i64(#{name}.raw());"
 	DBParams:
 		* "i64"
 		* (name)-> "*r_cast<DBParams*>(#{name})"
@@ -258,6 +238,26 @@ basicTypes =
 		* (name)-> "#{name}.raw()"
 		* (name)-> "crate::dora::DBQuery::from(#{name})"
 		* -> error "unsupported"
+		* -> error "unsupported"
+	WorkBook:
+		* "i64"
+		* (name)-> "*r_cast<WorkBook*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new WorkBook{#{name}})"
+		* "crate::dora::WorkBook"
+		* "crate::dora::WorkBook"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::WorkBook::from(#{name})"
+		* (fnArgId)-> "crate::dora::WorkBook::from(stack#{fnArgId}.pop_i64().unwrap())"
+		* -> error "unsupported"
+	WorkSheet:
+		* "i64"
+		* (name)-> "*r_cast<WorkSheet*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new WorkSheet{#{name}})"
+		* "crate::dora::WorkSheet"
+		* "crate::dora::WorkSheet"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::WorkSheet::from(#{name})"
+		* (fnArgId)-> "crate::dora::WorkSheet::from(stack#{fnArgId}.pop_i64().unwrap())"
 		* -> error "unsupported"
 	VecStr:
 		* "i64"
@@ -895,7 +895,10 @@ impl I#{clsNewName} for #{clsNewName} { }"
 					rustType = basicTypes[dataType]
 					if rustType == nil and "*" == dataType\sub -1
 						dataTypeName = dataType\match "[^ \t*]+"
-						rustName = nameMap[dataTypeName] or dataTypeName
+						rustName = if isCreate
+							clsNewName
+						else
+							nameMap[dataTypeName] or dataTypeName
 						rustType = getObjectType dataTypeName, rustName, isCreate, isOptional
 					if rustType
 						[rt, cast, castFrom, _, rtTypeOut, _, rtCastFrom] = rustType
@@ -1008,7 +1011,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 												when "string"
 													"\t\treturn std::get<std::string>(args#{fnArgId}->pop());\n"
 												when "Platformer::WasmActionUpdate"
-													"\t\treturn *r_cast<Platformer::WasmActionUpdate*>(std::get<int64_t>(args#{fnArgId}->pop()));\n"
+													"\t\treturn s_cast<Platformer::WasmActionUpdate*>(std::get<Object*>(args#{fnArgId}->pop()));\n"
 												else
 													"\t\treturn std::get<#{freturnType}>(args#{fnArgId}->pop());\n"
 											callback = "let result = #{callback};\n\t\t\t#{frPush 'result', fnArgId}"

@@ -409,6 +409,16 @@ singleton struct Path
 	static string concatVector @ concat(VecStr paths);
 };
 
+value struct WorkSheet
+{
+	bool read(Array* row);
+};
+
+value struct WorkBook
+{
+	WorkSheet getSheet(string name);
+};
+
 /// The `Content` is a static struct that manages file searching,
 /// loading and other operations related to resources.
 singleton class Content
@@ -614,6 +624,8 @@ singleton class Content
 	///
 	/// * `bool` - `true` if the folder was decompressed successfully, `false` otherwise.
 	void unzipAsync(string zipFile, string folderPath, function<bool(string file)> filter, function<void(bool success)> callback);
+
+	outside WorkBook content_wasm_load_excel @ load_excel(string filename);
 };
 
 /// A scheduler that manages the execution of scheduled tasks.
@@ -4184,9 +4196,9 @@ singleton class AI
 
 }
 
-value class WasmActionUpdate @ ActionUpdate
+object class WasmActionUpdate @ ActionUpdate
 {
-	static WasmActionUpdate create(function<bool(Platformer::Unit* owner, Platformer::UnitAction action, float deltaTime)> update);
+	static WasmActionUpdate* create(function<bool(Platformer::Unit* owner, Platformer::UnitAction action, float deltaTime)> update);
 };
 
 /// A struct that represents an action that can be performed by a "Unit".
@@ -4223,7 +4235,7 @@ class UnitAction
 	static outside void platformer_wasm_unit_action_add @ add(
 		string name, int priority, float reaction, float recovery, bool queued,
 		function<bool(Platformer::Unit* owner, Platformer::UnitAction action)> available,
-		function<Platformer::WasmActionUpdate(Platformer::Unit* owner, Platformer::UnitAction action)> create,
+		function<Platformer::WasmActionUpdate*(Platformer::Unit* owner, Platformer::UnitAction action)> create,
 		function<void(Platformer::Unit* owner, Platformer::UnitAction action)> stop);
 };
 

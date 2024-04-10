@@ -6,3 +6,4 @@ pub mod contact;
 pub mod model;
 pub mod sprite;
 pub mod rander_target;
+pub mod excel_test;

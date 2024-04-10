@@ -122,6 +122,10 @@ mod dbrecord;
 pub use dbrecord::DBRecord;
 mod db;
 pub use db::DB;
+mod work_book;
+pub use work_book::WorkBook;
+mod work_sheet;
+pub use work_sheet::WorkSheet;
 mod c_45;
 mod q_learner;
 pub mod ml {
@@ -183,6 +187,7 @@ static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn IObject>>>> = Lazy::new(||
 		MoveJoint::type_info(),
 		SVG::type_info(),
 		ml::QLearner::type_info(),
+		platformer::ActionUpdate::type_info(),
 		platformer::Face::type_info(),
 		platformer::BulletDef::type_info(),
 		platformer::Bullet::type_info(),
@@ -1120,6 +1125,32 @@ impl Drop for CallStack {
 	fn drop(&mut self) { unsafe { call_stack_release(self.raw); } }
 }
 
+// Content
+
+extern "C" {
+	fn content_load(filename: i64) -> i64;
+}
+
+impl Content {
+	/// Loads the content of the file with the specified filename.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The name of the file to load.
+	///
+	/// # Returns
+	///
+	/// * `String` - The content of the loaded file.
+	pub fn load(filename: &str) -> Option<String> {
+		let result = unsafe { content_load(from_string(filename)) };
+		if result > 0 {
+			Some(to_string(result))
+		} else {
+			None
+		}
+	}
+}
+
 // Array
 
 extern "C" {
@@ -1906,6 +1937,16 @@ impl Controller {
 	/// * `f32` - The axis value ranging from -1.0 to 1.0.
 	pub fn get_axis(controller_id: i32, axis: AxisName) -> f32 {
 		Controller::_get_axis(controller_id, axis.as_ref())
+	}
+}
+
+// platformer::ActionUpdate
+
+impl platformer::ActionUpdate {
+	pub fn from_update(mut update: Box<dyn FnMut(f64) -> bool>) -> platformer::ActionUpdate {
+		platformer::ActionUpdate::new(Box::new(move |_, _, dt| {
+			update(dt as f64)
+		}))
 	}
 }
 
@@ -2947,9 +2988,10 @@ pub fn thread<C, F>(closure: C) where
 macro_rules! sleep {
 	($co:expr, $time:expr) => {
 		{
-			let mut time = 0.0;
-			while time <= $time {
-				time += dora_ssr::App::get_delta_time();
+			let total = $time;
+			let mut time: f32 = 0.0;
+			while time <= total {
+				time += dora_ssr::App::get_delta_time() as f32;
 				$co.waiter().await;
 			}
 		}
@@ -2960,14 +3002,15 @@ macro_rules! sleep {
 macro_rules! cycle {
 	($co:expr, $time:expr, $closure:expr) => {
 		{
-			let mut time = 0.0;
+			let total = $time;
+			let mut time: f32 = 0.0;
 			loop {
-				$closure(f64::min(time / $time, 1.0));
-				if time >= $time {
+				$closure(f32::min(time / $time, 1.0));
+				if time >= total {
 					break;
 				}
 				$co.waiter().await;
-				time += dora_ssr::App::get_delta_time();
+				time += dora_ssr::App::get_delta_time() as f32;
 			}
 		}
 	};

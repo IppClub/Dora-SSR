@@ -183,7 +183,9 @@ bool EntityGroup::each(const Func& func) {
 
 template <typename Func>
 Entity* EntityGroup::find(const Func& func) {
-	for (Entity* entity : _entities) {
+	static decltype(_entities) entities;
+	entities = _entities;
+	for (Entity* entity : entities) {
 		if (entity && func(entity)) return entity;
 	}
 	return nullptr;

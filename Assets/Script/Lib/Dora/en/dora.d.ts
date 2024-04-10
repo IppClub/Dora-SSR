@@ -4176,16 +4176,16 @@ class Observer {
 
 	/**
 	 * Watches the components changes to entities that match the observer's component filter.
-	 * @param func The function to call when a change occurs.
+	 * @param func The function to call when a change occurs. Returning true inside the function to stop watching.
 	 * @returns The same observer, for method chaining.
 	 */
-	watch(func: (this: void, entity: Entity, ...components: any[]) => void): Observer;
+	watch(func: (this: void, entity: Entity, ...components: any[]) => boolean): Observer;
 }
 
 /**
- * The types of events that an observer can watch for.
+ * The types of entity events that an observer can watch for.
  */
-export const enum ObserverEvent {
+export const enum EntityEvent {
 	/** The addition of a new entity. */
 	Add = "Add",
 
@@ -4205,11 +4205,11 @@ export const enum ObserverEvent {
 interface ObserverClass {
 	/**
 	 * A method that creates a new observer with the specified component filter and action to watch for.
-	 * @param action The type of action to watch for.
+	 * @param event The type of entity event to watch for.
 	 * @param components A list of the names of the components to filter entities by.
 	 * @returns The new observer.
 	 */
-	(this: void, action: ObserverEvent, components: string[]): Observer;
+	(this: void, event: EntityEvent, components: string[]): Observer;
 }
 
 const observerClass: ObserverClass;
@@ -4243,10 +4243,10 @@ class Group extends Object {
 
 	/**
 	 * Watches the group for changes to its entities, calling a function whenever an entity is added or changed.
-	 * @param func The function to call when an entity is added or changed.
+	 * @param func The function to call when an entity is added or changed. Returning true inside the function to stop watching.
 	 * @returns The same group, for method chaining.
 	 */
-	watch(func: (this: void, entity: Entity, ...components: any[]) => void): Group;
+	watch(func: (this: void, entity: Entity, ...components: any[]) => boolean): Group;
 }
 
 export namespace Group {

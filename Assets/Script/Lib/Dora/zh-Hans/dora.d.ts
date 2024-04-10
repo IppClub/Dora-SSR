@@ -4180,16 +4180,16 @@ class Observer {
 
 	/**
 	 * 监听目标的实体对象的特定组件变化。
-	 * @param func 当实体发生变化时调用的函数。
+	 * @param func 当实体发生变化时调用的函数。在函数内部返回true以停止监听。
 	 * @returns 用于链式调用方法的同一个观察者。
 	 */
-	watch(func: (this: void, entity: Entity, ...components: any[]) => void): Observer;
+	watch(func: (this: void, entity: Entity, ...components: any[]) => boolean): Observer;
 }
 
 /**
- * 观察者可以监听的事件类型。
+ * 观察者可以监听的实体事件类型。
  */
-export const enum ObserverEvent {
+export const enum EntityEvent {
 	/** 新实体的添加。 */
 	Add = "Add",
 
@@ -4209,11 +4209,11 @@ export const enum ObserverEvent {
 interface ObserverClass {
 	/**
 	 * 创建具有指定组件过滤器和要监听的动作的新观察者。
-	 * @param action 要监听的动作类型。
+	 * @param event 要监听的实体事件类型。
 	 * @param components 用于过滤实体的组件的名称列表。
 	 * @returns 新的观察者。
 	 */
-	(this: void, action: ObserverEvent, components: string[]): Observer;
+	(this: void, event: EntityEvent, components: string[]): Observer;
 }
 
 const observerClass: ObserverClass;
@@ -4247,10 +4247,10 @@ class Group extends Object {
 
 	/**
 	 * 监听实体组的实体变化，每当实体被添加或更改时，触发回调函数。
-	 * @param func 当实体被添加或更改时调用的函数。
+	 * @param func 当实体被添加或更改时调用的函数。在函数内部返回true以停止监听。
 	 * @returns 用于链式调用方法的同一个实体组。
 	 */
-	watch(func: (this: void, entity: Entity, ...components: any[]) => void): Group;
+	watch(func: (this: void, entity: Entity, ...components: any[]) => boolean): Group;
 }
 
 export namespace Group {

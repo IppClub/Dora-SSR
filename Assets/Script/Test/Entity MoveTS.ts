@@ -1,7 +1,7 @@
 // @preview-file off
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Component, Ease, Entity, Event, Group, Node, Observer, ObserverEvent, Roll, Scale, Sequence, Slot, Sprite, TypeName, Vec2, tolua } from "dora";
+import { App, Component, Ease, Entity, Event, Group, Node, Observer, EntityEvent, Roll, Scale, Sequence, Slot, Sprite, TypeName, Vec2, tolua } from "dora";
 
 const sceneGroup = Group(["scene"]);
 const positionGroup = Group(["position"]);
@@ -10,7 +10,7 @@ function toNode(item: any) {
 	return tolua.cast(item, TypeName.Node);
 }
 
-Observer(ObserverEvent.Add, ["scene"]).watch((_, scene: Node.Type) => {
+Observer(EntityEvent.Add, ["scene"]).watch((_, scene: Node.Type) => {
 	scene.touchEnabled = true;
 	scene.slot(Slot.TapEnded, touch => {
 		const {location} = touch;
@@ -19,9 +19,10 @@ Observer(ObserverEvent.Add, ["scene"]).watch((_, scene: Node.Type) => {
 			return false;
 		});
 	});
+	return false;
 });
 
-Observer(ObserverEvent.Add, ["image"]).watch((entity, image: string) => {
+Observer(EntityEvent.Add, ["image"]).watch((entity, image: string) => {
 	sceneGroup.each(e => {
 		const scene = toNode(e.scene);
 		if (scene !== null) {
@@ -35,20 +36,23 @@ Observer(ObserverEvent.Add, ["image"]).watch((entity, image: string) => {
 		}
 		return false;
 	})
+	return false;
 });
 
-Observer(ObserverEvent.Remove, ["sprite"]).watch(entity => {
+Observer(EntityEvent.Remove, ["sprite"]).watch(entity => {
 	const sprite = toNode(entity.oldValues.sprite);
 	sprite?.removeFromParent();
+	return false;
 });
 
-Observer(ObserverEvent.Remove, ["target"]).watch(entity => {
+Observer(EntityEvent.Remove, ["target"]).watch(entity => {
 	print("remove target from entity " + entity.index);
+	return false;
 });
 
 Group(["position", "direction", "speed", "target"]).watch(
 	(entity, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type) => {
-	if (target.equals(position)) return;
+	if (target.equals(position)) return false;
 	const dir = target.sub(position).normalize();
 	const angle = math.deg(math.atan(dir.x, dir.y));
 	let newPos = position.add(dir.mul(speed));
@@ -58,9 +62,10 @@ Group(["position", "direction", "speed", "target"]).watch(
 	if (newPos.equals(target)) {
 		entity.target = undefined;
 	}
+	return false;
 });
 
-Observer(ObserverEvent.AddOrChange, ["position", "direction", "sprite"]).watch(
+Observer(EntityEvent.AddOrChange, ["position", "direction", "sprite"]).watch(
 	(entity, position: Vec2.Type, direction: number, sprite: Sprite.Type) => {
 	sprite.position = position
 	const lastDirection = entity.oldValues.direction ?? sprite.angle;
@@ -69,6 +74,7 @@ Observer(ObserverEvent.AddOrChange, ["position", "direction", "sprite"]).watch(
 			sprite.runAction(Roll(0.3, lastDirection, direction));
 		}
 	}
+	return false;
 });
 
 interface EntityDef extends Record<string, Component> {
@@ -104,7 +110,7 @@ const windowFlags = [
 	WindowFlag.NoNav,
 	WindowFlag.NoMove
 ];
-Observer(ObserverEvent.Add, ["scene"]).watch(entity => {
+Observer(EntityEvent.Add, ["scene"]).watch(entity => {
 	const scene = toNode(entity.scene);
 	if (scene !== null) {
 		scene.schedule(() => {
@@ -147,4 +153,5 @@ Observer(ObserverEvent.Add, ["scene"]).watch(entity => {
 			return false;
 		});
 	}
+	return false;
 });

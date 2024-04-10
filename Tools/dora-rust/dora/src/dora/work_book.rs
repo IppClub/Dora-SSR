@@ -6,24 +6,22 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t platformer_actionupdate_type() {
-	return DoraType<Platformer::WasmActionUpdate>();
+extern "C" {
+	fn workbook_release(raw: i64);
+	fn workbook_get_sheet(slf: i64, name: i64) -> i64;
 }
-static int64_t platformer_wasmactionupdate_new(int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
-	});
-	auto args = r_cast<CallStack*>(stack);
-	return from_object(Platformer::WasmActionUpdate::create([func, args, deref](Platformer::Unit* owner, Platformer::UnitAction* action, float deltaTime) {
-		args->clear();
-		args->push(owner);
-		args->push(r_cast<int64_t>(action));
-		args->push(deltaTime);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
-	}));
+pub struct WorkBook { raw: i64 }
+impl Drop for WorkBook {
+	fn drop(&mut self) { unsafe { workbook_release(self.raw); } }
 }
-static void linkPlatformerWasmActionUpdate(wasm3::module3& mod) {
-	mod.link_optional("*", "platformer_actionupdate_type", platformer_actionupdate_type);
-	mod.link_optional("*", "platformer_wasmactionupdate_new", platformer_wasmactionupdate_new);
+impl WorkBook {
+	pub(crate) fn raw(&self) -> i64 {
+		self.raw
+	}
+	pub(crate) fn from(raw: i64) -> WorkBook {
+		WorkBook { raw: raw }
+	}
+	pub fn get_sheet(&mut self, name: &str) -> crate::dora::WorkSheet {
+		unsafe { return crate::dora::WorkSheet::from(workbook_get_sheet(self.raw(), crate::dora::from_string(name))); }
+	}
 }

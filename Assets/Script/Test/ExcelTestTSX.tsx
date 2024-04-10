@@ -1,7 +1,7 @@
 // @preview-file off
 import { React, toNode, useRef } from 'dora-x';
 import { Data, PlatformWorld, Unit, UnitAction } from 'Platformer';
-import { App, Body, BodyMoveType, Color, Color3, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, ObserverEvent, Sprite, Spawn, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Keyboard, KeyName, TypeName, ActionDef } from 'dora';
+import { App, Body, BodyMoveType, Color, Color3, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, EntityEvent, Sprite, Spawn, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Keyboard, KeyName, TypeName, ActionDef } from 'dora';
 import { DecisionTree, toAI } from 'Platformer-x';
 
 const TerrainLayer = 0;
@@ -214,7 +214,7 @@ unitDef.actions = Array([
 	"cancel"
 ]);
 
-Observer(ObserverEvent.Add, ["player"]).watch(self => {
+Observer(EntityEvent.Add, ["player"]).watch(self => {
 	const unit = Unit(unitDef, world, self, Vec2(300, -350));
 	unit.order = PlayerLayer;
 	unit.group = PlayerGroup;
@@ -222,9 +222,10 @@ Observer(ObserverEvent.Add, ["player"]).watch(self => {
 	unit.playable.play("idle", true);
 	world.addChild(unit);
 	world.camera.followTarget = unit;
+	return false;
 });
 
-Observer(ObserverEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string) => {
+Observer(EntityEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string) => {
 	const rotationRef = useRef<ActionDef.Type>();
 	const spriteRef = useRef<Sprite.Type>();
 
@@ -279,13 +280,15 @@ Observer(ObserverEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string)
 
 	world.addChild(body);
 	self.body = body;
+	return false;
 });
 
-Observer(ObserverEvent.Remove, ["body"]).watch(self => {
+Observer(EntityEvent.Remove, ["body"]).watch(self => {
 	const body = tolua.cast(self.oldValues.body, TypeName.Body);
 	if (body !== null) {
 		body.removeFromParent();
 	}
+	return false;
 });
 
 import { Struct } from 'Utils';

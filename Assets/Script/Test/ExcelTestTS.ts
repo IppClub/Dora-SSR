@@ -1,6 +1,6 @@
 // @preview-file off
 import { Data, Decision, PlatformWorld, Unit, UnitAction } from 'Platformer';
-import { App, Body, BodyDef, BodyMoveType, Color, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, ObserverEvent, Sprite, Spawn, AngleY, Sequence, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Menu, Keyboard, KeyName, TypeName } from 'dora';
+import { App, Body, BodyDef, BodyMoveType, Color, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, EntityEvent, Sprite, Spawn, AngleY, Sequence, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Menu, Keyboard, KeyName, TypeName } from 'dora';
 import * as Rectangle from 'UI/View/Shape/Rectangle';
 
 const TerrainLayer = 0;
@@ -224,7 +224,7 @@ unitDef.actions = Array([
 	"cancel"
 ]);
 
-Observer(ObserverEvent.Add, ["player"]).watch(self => {
+Observer(EntityEvent.Add, ["player"]).watch(self => {
 	const unit = Unit(unitDef, world, self, Vec2(300, -350));
 	unit.order = PlayerLayer;
 	unit.group = PlayerGroup;
@@ -232,11 +232,12 @@ Observer(ObserverEvent.Add, ["player"]).watch(self => {
 	unit.playable.play("idle", true);
 	world.addChild(unit);
 	world.camera.followTarget = unit;
+	return false;
 });
 
-Observer(ObserverEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string) => {
+Observer(EntityEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string) => {
 	const sprite = Sprite(icon);
-	if (!sprite) return;
+	if (!sprite) return false;
 	sprite.schedule(loop(() => {
 		sleep(sprite.runAction(Spawn(
 			AngleY(5, 0, 360),
@@ -275,13 +276,15 @@ Observer(ObserverEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string)
 
 	world.addChild(body);
 	self.body = body;
+	return false;
 });
 
-Observer(ObserverEvent.Remove, ["body"]).watch(self => {
+Observer(EntityEvent.Remove, ["body"]).watch(self => {
 	const body = tolua.cast(self.oldValues.body, TypeName.Body);
 	if (body !== null) {
 		body.removeFromParent();
 	}
+	return false;
 });
 
 import { Struct } from 'Utils';

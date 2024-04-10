@@ -7,27 +7,28 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 extern "C" {
-	fn platformer_actionupdate_release(raw: i64);
+	fn platformer_actionupdate_type() -> i32;
 	fn platformer_wasmactionupdate_new(func: i32, stack: i64) -> i64;
 }
+use crate::dora::IObject;
 pub struct ActionUpdate { raw: i64 }
-impl Drop for ActionUpdate {
-	fn drop(&mut self) { unsafe { platformer_actionupdate_release(self.raw); } }
-}
+crate::dora_object!(ActionUpdate);
 impl ActionUpdate {
-	pub(crate) fn raw(&self) -> i64 {
-		self.raw
+	pub(crate) fn type_info() -> (i32, fn(i64) -> Option<Box<dyn IObject>>) {
+		(unsafe { platformer_actionupdate_type() }, |raw: i64| -> Option<Box<dyn IObject>> {
+			match raw {
+				0 => None,
+				_ => Some(Box::new(ActionUpdate { raw: raw }))
+			}
+		})
 	}
-	pub(crate) fn from(raw: i64) -> ActionUpdate {
-		ActionUpdate { raw: raw }
-	}
-	pub fn new(mut update: Box<dyn FnMut(&crate::dora::platformer::Unit, &crate::dora::platformer::UnitAction, f32) -> bool>) -> crate::dora::platformer::ActionUpdate {
+	pub fn new(mut update: Box<dyn FnMut(&crate::dora::platformer::Unit, &crate::dora::platformer::UnitAction, f32) -> bool>) -> ActionUpdate {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
 		let func_id = crate::dora::push_function(Box::new(move || {
 			let result = update(&stack.pop_cast::<crate::dora::platformer::Unit>().unwrap(), &crate::dora::platformer::UnitAction::from(stack.pop_i64().unwrap()).unwrap(), stack.pop_f32().unwrap());
 			stack.push_bool(result);
 		}));
-		unsafe { return crate::dora::platformer::ActionUpdate::from(platformer_wasmactionupdate_new(func_id, stack_raw)); }
+		unsafe { return ActionUpdate { raw: platformer_wasmactionupdate_new(func_id, stack_raw) }; }
 	}
 }
