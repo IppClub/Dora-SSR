@@ -16,11 +16,24 @@ import "@site/src/languages/highlight";
 
 **描述：**
 
-&emsp;&emsp;组中实体的数量。
+&emsp;&emsp;实体组中实体的数量。
 
 **签名：**
 ```tl
 const count: integer
+```
+
+## first
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;实体组中的最后一个实体，如果实体组为空，则为nil。
+
+**签名：**
+```tl
+const first: Entity
 ```
 
 ## each
@@ -29,7 +42,7 @@ const count: integer
 
 **描述：**
 
-&emsp;&emsp;对组中的每个实体调用一个函数。
+&emsp;&emsp;对实体组中的每个实体调用一个函数。
 
 **签名：**
 ```tl
@@ -79,7 +92,7 @@ find: function(self: Group, func: function(Entity): boolean): Entity
 
 **描述：**
 
-&emsp;&emsp;监视组中实体的更改，每当添加或更改实体的属性（组件）时调用一个监测函数。
+&emsp;&emsp;监视实体组中实体的更改，每当添加或更改实体的属性（组件）时调用一个监测函数。
 
 **签名：**
 ```tl

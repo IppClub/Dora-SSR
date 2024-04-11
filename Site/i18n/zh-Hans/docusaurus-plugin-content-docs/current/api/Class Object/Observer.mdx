@@ -6,17 +6,17 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;用于创建观察器对象的类。
 
-## Observer.Action
+## Observer.EntityEvent
 
 **类型：** 枚举。
 
 **描述：**
 
-&emsp;&emsp;观察器可以观察的实体变更类型。
+&emsp;&emsp;观察器可以观察的实体变更事件类型。
 
 **签名：**
 ```tl
-enum Action
+enum EntityEvent
 
 	-- 添加新实体。
 	"Add"
@@ -42,14 +42,14 @@ end
 
 **签名：**
 ```tl
-metamethod __call: function(self: ObserverClass, action: Action, components: {string}): Observer
+metamethod __call: function(self: ObserverClass, event: EntityEvent, components: {string}): Observer
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| action | Action | 要监控的实体变化类型。 |
+| event | EntityEvent | 要监控的实体变化类型。 |
 | components | \{string} | 监控的实体包含的组件的清单。 |
 
 **返回值：**

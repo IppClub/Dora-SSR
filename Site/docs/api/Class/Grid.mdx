@@ -112,7 +112,7 @@ effect: SpriteEffect
 
 **Signature:**
 ```tl
-setPos: function(self: Grid, x: integer, y: integer, pos: Vec2)
+setPos: function(self: Grid, x: integer, y: integer, pos: Vec2, z?: number)
 ```
 
 **Parameters:**
@@ -122,6 +122,7 @@ setPos: function(self: Grid, x: integer, y: integer, pos: Vec2)
 | x | integer | The x-coordinate of the vertex in the grid. |
 | y | integer | The y-coordinate of the vertex in the grid. |
 | pos | Vec2 | The new position of the vertex. |
+| z | number | [optional] The z-coordinate of the vertex. Default is 0. |
 
 ## getPos
 
@@ -133,7 +134,7 @@ setPos: function(self: Grid, x: integer, y: integer, pos: Vec2)
 
 **Signature:**
 ```tl
-getPos: function(self: Grid, x: integer, y: integer)
+getPos: function(self: Grid, x: integer, y: integer): Vec2
 ```
 
 **Parameters:**

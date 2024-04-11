@@ -6,17 +6,17 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;A class for creating Observer objects.
 
-## Observer.Action
+## Observer.EntityEvent
 
 **Type:** Enumeration.
 
 **Description:**
 
-&emsp;&emsp;The types of actions that an observer can watch for.
+&emsp;&emsp;The types of entity events that an observer can watch for.
 
 **Signature:**
 ```tl
-enum Action
+enum EntityEvent
 
 	-- The addition of a new entity.
 	"Add"
@@ -42,14 +42,14 @@ end
 
 **Signature:**
 ```tl
-metamethod __call: function(self: ObserverClass, action: Action, components: {string}): Observer
+metamethod __call: function(self: ObserverClass, event: EntityEvent, components: {string}): Observer
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| action | Action | The type of action to watch for. |
+| event | EntityEvent | The type of entity event to watch for. |
 | components | \{string} | A table listing the names of the components to filter entities by. |
 
 **Returns:**
