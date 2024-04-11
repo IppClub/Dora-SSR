@@ -9,7 +9,7 @@ pub fn test() {
 		if let Some(mut scene) = stack.pop_cast::<Node>() {
 			let group = position_group.clone();
 			scene.set_touch_enabled(true);
-			scene.slot("TapEnded", Box::new(move |stack| {
+			scene.slot(Slot::TAP_BEGAN, Box::new(move |stack| {
 				if let Some(touch) = stack.pop_cast::<Touch>() {
 					let location = touch.get_location();
 					group.each(Box::new(move |entity| {

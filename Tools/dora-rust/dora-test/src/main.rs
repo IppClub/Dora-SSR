@@ -21,6 +21,10 @@ fn main() {
 					all_clear();
 					tests::hello_world::test();
 				}
+				if ImGui::button("Quick Start", &button_size) {
+					all_clear();
+					tests::quick_start::test();
+				}
 				if ImGui::button("Body", &button_size) {
 					all_clear();
 					tests::body::test();

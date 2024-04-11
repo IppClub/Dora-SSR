@@ -30,7 +30,7 @@ pub fn test() {
 	camera.set_follow_ratio(&Vec2::new(0.02, 0.02));
 	camera.set_zoom(App::get_visual_size().width / DESIGN_WIDTH);
 	let world_clone = world.clone();
-	world.gslot("AppSizeChanged", Box::new(move |_| {
+	world.gslot(GSlot::APP_SIZE_CHANGED, Box::new(move |_| {
 		world_clone.get_camera().set_zoom(
 			App::get_visual_size().width / DESIGN_WIDTH
 		);
@@ -331,7 +331,7 @@ pub fn test() {
 
 		let mut body_clone = body.clone();
 		let mut entity_clone = entity.clone();
-		body.slot("BodyEnter", Box::new(move |stack| {
+		body.slot(Slot::BODY_ENTER, Box::new(move |stack| {
 			if stack.pop_cast::<platformer::Unit>().is_some() {
 				body_clone.set_group(platformer::Data::get_group_hide());
 				let mut body_clone_two = body_clone.clone();

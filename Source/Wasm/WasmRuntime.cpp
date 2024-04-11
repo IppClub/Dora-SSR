@@ -613,6 +613,14 @@ static int64_t vec2_clamp(int64_t a, int64_t from, int64_t to) {
 	return vec2_retain(b);
 }
 
+/* emit */
+
+static void dora_emit(int64_t name, int64_t stack) {
+	auto args = r_cast<CallStack*>(stack);
+	auto eventName = str_from(name);
+	WasmEventArgs::send(*eventName, args);
+}
+
 /* Content */
 
 static int64_t content_load(int64_t filename) {
@@ -1536,6 +1544,8 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "vec2_perp", vec2_perp);
 	mod.link_optional("*", "vec2_dot", vec2_dot);
 	mod.link_optional("*", "vec2_clamp", vec2_clamp);
+
+	mod.link_optional("*", "dora_emit", dora_emit);
 
 	mod.link_optional("*", "content_load", content_load);
 

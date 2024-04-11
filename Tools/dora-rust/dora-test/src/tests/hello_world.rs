@@ -2,13 +2,13 @@ use dora_ssr::*;
 
 pub fn test() {
 	let mut node = Node::new();
-	node.slot("Enter", Box::new(|_| {
+	node.slot(Slot::ENTER, Box::new(|_| {
 		p!("on enter event");
 	}));
-	node.slot("Exit", Box::new(|_| {
+	node.slot(Slot::EXIT, Box::new(|_| {
 		p!("on exit event");
 	}));
-	node.slot("Cleanup", Box::new(|_| {
+	node.slot(Slot::CLEANUP, Box::new(|_| {
 		p!("on node destoyed event");
 	}));
 	node.schedule(once(move |mut co| async move {

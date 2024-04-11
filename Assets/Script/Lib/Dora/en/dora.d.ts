@@ -2508,9 +2508,10 @@ interface NodeEventHandlerMap {
 	 * The Axis slot is triggered when a game controller axis changed.
 	 * Triggers after setting `node.controllerEnabled = true`.
 	 * @param controllerId The controller id, incrementing from 0 when multiple controllers connected.
+	 * @param axisName The name of the controller axis that changed.
 	 * @param axisValue The controller axis value ranging from -1.0 to 1.0.
 	*/
-	Axis(this: void, controllerId: number, axisValue: number): void;
+	Axis(this: void, controllerId: number, axisName: AxisName, axisValue: number): void;
 
 	/**
 	 * Triggers after an animation has ended on a Playable instance.

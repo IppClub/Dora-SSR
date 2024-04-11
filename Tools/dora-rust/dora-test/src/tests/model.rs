@@ -25,7 +25,7 @@ pub fn test() {
 	model.set_recovery(0.2);
 	model.set_look(&looks[current_look]);
 	model.play(&animations[current_anim], true);
-	model.slot("AnimationEnd", Box::new(move |stack| {
+	model.slot(Slot::ANIMATION_END, Box::new(move |stack| {
 		if let Some(name) = stack.pop_str() {
 			p!("{} end", name);
 		}
