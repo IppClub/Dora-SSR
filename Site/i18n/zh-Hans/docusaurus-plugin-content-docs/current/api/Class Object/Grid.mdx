@@ -16,14 +16,15 @@ import "@site/src/languages/highlight";
 
 **签名：**
 ```tl
-metamethod __call: function(self: GridClass, textureRect: Rect, gridX: integer, gridY: integer): Grid
+metamethod __call: function(self: GridClass, width: number, height: number, gridX: integer, gridY: integer): Grid
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| textureRect | Rect | 用于网格的纹理内的矩形。 |
+| width | number | 网格的宽度。 |
+| height | number | 网格的高度。 |
 | gridX | integer | 网格中列的数量。 |
 | gridY | integer | 网格中行的数量。 |
 

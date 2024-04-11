@@ -16,14 +16,15 @@ import "@site/src/languages/highlight";
 
 **Signature:**
 ```tl
-metamethod __call: function(self: GridClass, textureRect: Rect, gridX: integer, gridY: integer): Grid
+metamethod __call: function(self: GridClass, width: number, height: number, gridX: integer, gridY: integer): Grid
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| textureRect | Rect | The rectangle within the texture to use for the grid. |
+| width | number | The width of the grid. |
+| height | number | The height of the grid. |
 | gridX | integer | The number of columns in the grid. |
 | gridY | integer | The number of rows in the grid. |
 

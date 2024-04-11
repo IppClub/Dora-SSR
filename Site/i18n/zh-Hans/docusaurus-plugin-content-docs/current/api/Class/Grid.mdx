@@ -112,7 +112,7 @@ effect: SpriteEffect
 
 **签名：**
 ```tl
-setPos: function(self: Grid, x: integer, y: integer, pos: Vec2)
+setPos: function(self: Grid, x: integer, y: integer, pos: Vec2, z?: number)
 ```
 
 **参数：**
@@ -122,6 +122,7 @@ setPos: function(self: Grid, x: integer, y: integer, pos: Vec2)
 | x | integer | 网格中顶点的x坐标。 |
 | y | integer | 网格中顶点的y坐标。 |
 | pos | Vec2 | 顶点的新位置。 |
+| z | number | [可选] 顶点的新z坐标（默认为0）。 |
 
 ## getPos
 
@@ -133,7 +134,7 @@ setPos: function(self: Grid, x: integer, y: integer, pos: Vec2)
 
 **签名：**
 ```tl
-getPos: function(self: Grid, x: integer, y: integer)
+getPos: function(self: Grid, x: integer, y: integer): Vec2
 ```
 
 **参数：**
