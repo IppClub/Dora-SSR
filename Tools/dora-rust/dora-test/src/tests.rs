@@ -7,3 +7,4 @@ pub mod model;
 pub mod sprite;
 pub mod rander_target;
 pub mod excel_test;
+pub mod quick_start;

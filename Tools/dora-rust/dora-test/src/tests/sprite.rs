@@ -9,7 +9,7 @@ pub fn test() {
 	sprite.set_scale_y(0.5);
 	sprite.set_touch_enabled(true);
 	let mut sp = sprite.clone();
-	sprite.slot("TapMoved", Box::new(move |stack| {
+	sprite.slot(Slot::TAP_MOVED, Box::new(move |stack| {
 		if let Some(touch) = stack.pop_cast::<Touch>() {
 			if !touch.is_first() {
 				return;

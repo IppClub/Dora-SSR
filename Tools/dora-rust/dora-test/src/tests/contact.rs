@@ -40,7 +40,7 @@ pub fn test() {
 	disk.set_angular_rate(-1800.0);
 	disk.set_receiving_contact(true);
 	let mut lb = label.clone();
-	disk.slot("ContactStart", Box::new(move |stack| {
+	disk.slot(Slot::CONTACT_START, Box::new(move |stack| {
 		stack.pop();
 		if let Some(point) = stack.pop_vec2() {
 			draw_node.set_position(&point);

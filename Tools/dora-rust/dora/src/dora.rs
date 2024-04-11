@@ -298,10 +298,37 @@ extern "C" {
 	fn vec2_perp(a: i64) -> i64;
 	fn vec2_dot(a: i64, b: i64) -> f32;
 	fn vec2_clamp(a: i64, from: i64, to: i64) -> i64;
+
+	fn dora_emit(name: i64, stack: i64);
 }
 
 pub fn print(msg: &str) {
 	unsafe { dora_print(from_string(msg)); }
+}
+
+/// Emits a global event with the given name and arguments to all listeners registered by `node.gslot()`` function.
+///
+/// # Arguments
+///
+/// * eventName - The name of the event to emit.
+/// * stack - The data to pass to the global event listeners.
+///
+/// # Example
+///
+/// ```
+/// let mut node = Node::new();
+/// node.gslot("MyGlobalEvent", Box::new(|stack| {
+/// 	let (arg1, arg2) = match (stack.pop_str(), stack.pop_i64()) {
+/// 		(Some(arg1), Some(arg2)) => (arg1, arg2),
+/// 		_ => return,
+/// 	};
+/// 	p!("Event triggered: {}, {}", arg1, arg2);
+/// }));
+///
+/// emit("MyGlobalEvent", args!("Hello", 123));
+/// ```
+pub fn emit(name: &str, stack: CallStack) {
+	unsafe { dora_emit(from_string(name), stack.raw()); }
 }
 
 #[macro_export]
@@ -1123,6 +1150,633 @@ impl CallStack {
 
 impl Drop for CallStack {
 	fn drop(&mut self) { unsafe { call_stack_release(self.raw); } }
+}
+
+// Slot
+
+pub struct Slot { }
+impl Slot {
+	/// The ActionEnd slot is triggered when an action is finished.
+	/// Triggers after calling `node.run_action()`, `node.perform()`, `node.run_action_def()` and `node.perform_def()`.
+	///
+	/// # Callback Arguments
+	///
+	/// * action: Action - The finished action.
+	/// * target: Node - The node that finished the action.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.perform_def(ActionDef::prop(1.0, 0.0, 100.0, Property::X, EaseType::Linear));
+	/// node.slot(Slot::ACTION_END, Box::new(|stack| {
+	/// 	let (
+	/// 		action,
+	/// 		target
+	/// 	) = match (
+	/// 		stack.pop_cast::<Action>,
+	/// 		stack.pop_cast::<Node>()
+	/// 	) {
+	/// 		(Some(action), Some(target)) => (action, target),
+	/// 		_ => return,
+	/// 	};
+	/// });
+	/// ```
+	pub const ACTION_END: &'static str = "Action";
+	/// The TapFilter slot is triggered before the TapBegan slot and can be used to filter out certain taps.
+	/// Triggers after setting `node.set_touch_enabled(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * touch: Touch - The touch that triggered the tap.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_touch_enabled(true);
+	/// node.slot(Slot::TAP_FILTER, Box::new(|stack| {
+	/// 	let touch = match stack.pop_cast::<Touch>() {
+	/// 		Some(touch) => touch,
+	/// 		None => return,
+	/// 	};
+	/// 	touch.set_enabled(false);
+	/// });
+	/// ```
+	pub const TAP_FILTER: &'static str = "TapFilter";
+	/// The TapBegan slot is triggered when a tap is detected.
+	/// Triggers after setting `node.set_touch_enabled(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * touch: Touch - The touch that triggered the tap.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_touch_enabled(true);
+	/// node.slot(Slot::TAP_BEGAN, Box::new(|stack| {
+	/// 	let touch = match stack.pop_cast::<Touch>() {
+	/// 		Some(touch) => touch,
+	/// 		None => return,
+	/// 	};
+	/// });
+	/// ```
+	pub const TAP_BEGAN: &'static str = "TapBegan";
+	/// The TapEnded slot is triggered when a tap ends.
+	/// Triggers after setting `node.set_touch_enabled(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * touch: Touch - The touch that triggered the tap.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_touch_enabled(true);
+	/// node.slot(Slot::TAP_ENDED, Box::new(|stack| {
+	/// 	let touch = match stack.pop_cast::<Touch>() {
+	/// 		Some(touch) => touch,
+	/// 		None => return,
+	/// 	};
+	/// });
+	/// ```
+	pub const TAP_ENDED: &'static str = "TapEnded";
+	/// The Tapped slot is triggered when a tap is detected and has ended.
+	/// Triggers after setting `node.set_touch_enabled(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * touch: Touch - The touch that triggered the tap.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_touch_enabled(true);
+	/// node.slot(Slot::TAPPED, Box::new(|stack| {
+	/// 	let touch = match stack.pop_cast::<Touch>() {
+	/// 		Some(touch) => touch,
+	/// 		None => return,
+	/// 	};
+	/// });
+	/// ```
+	pub const TAPPED: &'static str = "Tapped";
+	/// The TapMoved slot is triggered when a tap moves.
+	/// Triggers after setting `node.set_touch_enabled(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * touch: Touch - The touch that triggered the tap.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_touch_enabled(true);
+	/// node.slot(Slot::TAP_MOVED, Box::new(|stack| {
+	/// 	let touch = match stack.pop_cast::<Touch>() {
+	/// 		Some(touch) => touch,
+	/// 		None => return,
+	/// 	};
+	/// });
+	/// ```
+	pub const TAP_MOVED: &'static str = "TapMoved";
+	/// The MouseWheel slot is triggered when the mouse wheel is scrolled.
+	/// Triggers after setting `node.set_touch_enabled(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * delta: Vec2 - The amount of scrolling that occurred.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_touch_enabled(true);
+	/// node.slot(Slot::MOUSE_WHEEL, Box::new(|stack| {
+	/// 	let delta = match stack.pop_vec2() {
+	/// 		Some(delta) => delta,
+	/// 		None => return,
+	/// 	};
+	/// });
+	/// ```
+	pub const MOUSE_WHEEL: &'static str = "MouseWheel";
+	/// The Gesture slot is triggered when a gesture is recognized.
+	///
+	/// # Callback Arguments
+	///
+	/// * center: Vec2 - The center of the gesture.
+	/// * numFingers: i32 - The number of fingers involved in the gesture.
+	/// * deltaDist: f32 - The distance the gesture has moved.
+	/// * deltaAngle: f32 - The angle of the gesture.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_touch_enabled(true);
+	/// node.slot(Slot::GESTURE, Box::new(|stack| {
+	/// 	let (
+	/// 		center,
+	/// 		numFingers,
+	/// 		deltaDist,
+	/// 		deltaAngle
+	/// 	) = match (
+	/// 		stack.pop_vec2(),
+	/// 		stack.pop_i32(),
+	/// 		stack.pop_f32(),
+	/// 		stack.pop_f32()
+	/// 	) {
+	/// 		(Some(center), Some(numFingers), Some(deltaDist), Some(deltaAngle)) => (center, numFingers, deltaDist, deltaAngle),
+	/// 		_ => return,
+	/// 	};
+	/// });
+	/// ```
+	pub const GESTURE: &'static str = "Gesture";
+	/// The Enter slot is triggered when a node is added to the scene graph.
+	/// Triggers when doing `node.add_child()`.
+	pub const ENTER: &'static str = "Enter";
+	/// The Exit slot is triggered when a node is removed from the scene graph.
+	/// Triggers when doing `node.remove_child()`.
+	pub const EXIT: &'static str = "Exit";
+	/// The Cleanup slot is triggered when a node is cleaned up.
+	/// Triggers only when doing `parent.remove_child(node, true)`.
+	pub const CLEANUP: &'static str = "Cleanup";
+	/// The KeyDown slot is triggered when a key is pressed down.
+	/// Triggers after setting `node.set_keyboard_enabled(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * keyName: String - The name of the key that was pressed.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_keyboard_enabled(true);
+	/// node.slot(Slot::KEY_DOWN, Box::new(|stack| {
+	/// 	let keyName = match stack.pop_str() {
+	/// 		Some(keyName) => keyName,
+	/// 		None => return,
+	/// 	};
+	/// 	if keyName == KeyName::Space.as_ref() {
+	/// 		p!("Space key down!");
+	/// 	}
+	/// });
+	/// ```
+	pub const KEY_DOWN: &'static str = "KeyDown";
+	/// The KeyUp slot is triggered when a key is released.
+	/// Triggers after setting `node.set_keyboard_enabled(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * keyName: String - The name of the key that was released.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_keyboard_enabled(true);
+	/// node.slot(Slot::KEY_UP, Box::new(|stack| {
+	/// 	let keyName = match stack.pop_str() {
+	/// 		Some(keyName) => keyName,
+	/// 		None => return,
+	/// 	};
+	/// 	if keyName == KeyName::Space.as_ref() {
+	/// 		p!("Space key up!");
+	/// 	}
+	/// });
+	/// ```
+	pub const KEY_UP: &'static str = "KeyUp";
+	/// The KeyPressed slot is triggered when a key is pressed.
+	/// Triggers after setting `node.set_keyboard_enabled(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * keyName: String - The name of the key that was pressed.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_keyboard_enabled(true);
+	/// node.slot(Slot::KEY_PRESSED, Box::new(|stack| {
+	/// 	let keyName = match stack.pop_str() {
+	/// 		Some(keyName) => keyName,
+	/// 		None => return,
+	/// 	};
+	/// 	if keyName == KeyName::Space.as_ref() {
+	/// 		p!("Space key pressed!");
+	/// 	}
+	/// });
+	/// ```
+	pub const KEY_PRESSED: &'static str = "KeyPressed";
+	/// The AttachIME slot is triggered when the input method editor (IME) is attached (calling `node.attach_ime()`).
+	pub const ATTACH_IME: &'static str = "AttachIME";
+	/// The DetachIME slot is triggered when the input method editor (IME) is detached (calling `node.detach_ime()` or manually closing IME).
+	pub const DETACH_IME: &'static str = "DetachIME";
+	/// The TextInput slot is triggered when text input is received.
+	/// Triggers after calling `node.attach_ime()`.
+	///
+	/// # Callback Arguments
+	///
+	/// * text: String - The text that was input.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.attach_ime();
+	/// node.slot(Slot::TEXT_INPUT, Box::new(|stack| {
+	/// 	let text = match stack.pop_str() {
+	/// 		Some(text) => text,
+	/// 		None => return,
+	/// 	};
+	/// 	p!(text);
+	/// }));
+	/// ```
+	pub const TEXT_INPUT: &'static str = "TextInput";
+	/// The TextEditing slot is triggered when text is being edited.
+	/// Triggers after calling `node.attach_ime()`.
+	///
+	/// # Callback Arguments
+	///
+	/// * text: String - The text that is being edited.
+	/// * startPos: i32 - The starting position of the text being edited.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.attach_ime();
+	/// node.slot(Slot::TEXT_EDITING, Box::new(|stack| {
+	/// 	let (
+	/// 		text,
+	/// 		startPos
+	/// 	) = match (
+	/// 		stack.pop_str(),
+	/// 		stack.pop_i32()
+	/// 	) {
+	/// 		(Some(text), Some(startPos)) => (text, startPos),
+	/// 		_ => return,
+	/// 	};
+	/// 	p!(text, startPos);
+	/// }));
+	/// ```
+	pub const TEXT_EDITING: &'static str = "TextEditing";
+	/// The ButtonDown slot is triggered when a game controller button is pressed down.
+	/// Triggers after setting `node.set_controller_enabled(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * controllerId: i32 - The controller id, incrementing from 0 when multiple controllers connected.
+	/// * buttonName: String - The name of the button that was pressed.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_controller_enabled(true);
+	/// node.slot(Slot::BUTTON_DOWN, Box::new(|stack| {
+	/// 	let (
+	/// 		controllerId,
+	/// 		buttonName
+	/// 	) = match (
+	/// 		stack.pop_i32(),
+	/// 		stack.pop_str()
+	/// 	) {
+	/// 		(Some(controllerId), Some(buttonName)) => (controllerId, buttonName),
+	/// 		_ => return,
+	/// 	};
+	/// 	if controllerId == 0 && buttonName == ButtonName::DPUp.as_ref() {
+	/// 		p!("DPad up button down!");
+	/// 	}
+	/// }));
+	/// ```
+	pub const BUTTON_DOWN: &'static str = "ButtonDown";
+	/// The ButtonUp slot is triggered when a game controller button is released.
+	/// Triggers after setting `node.set_controller_enabled(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * controllerId: i32 - The controller id, incrementing from 0 when multiple controllers connected.
+	/// * buttonName: String - The name of the button that was released.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_controller_enabled(true);
+	/// node.slot(Slot::BUTTON_UP, Box::new(|stack| {
+	/// 	let (
+	/// 		controllerId,
+	/// 		buttonName
+	/// 	) = match (
+	/// 		stack.pop_i32(),
+	/// 		stack.pop_str()
+	/// 	) {
+	/// 		(Some(controllerId), Some(buttonName)) => (controllerId, buttonName),
+	/// 		_ => return,
+	/// 	};
+	/// 	if controllerId == 0 && buttonName == ButtonName::DPUp.as_ref() {
+	/// 		p!("DPad up button up!");
+	/// 	}
+	/// }));
+	/// ```
+	pub const BUTTON_UP: &'static str = "ButtonUp";
+	/// The Axis slot is triggered when a game controller axis changed.
+	/// Triggers after setting `node.set_controller_enabled(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * controllerId: i32 - The controller id, incrementing from 0 when multiple controllers connected.
+	/// * axisName: String - The name of the axis that changed.
+	/// * axisValue: f32 - The controller axis value ranging from -1.0 to 1.0.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_controller_enabled(true);
+	/// node.slot(Slot::AXIS, Box::new(|stack| {
+	/// 	let (
+	/// 		controllerId,
+	/// 		axisName,
+	/// 		axisValue
+	/// 	) = match (
+	/// 		stack.pop_i32(),
+	/// 		stack.pop_str(),
+	/// 		stack.pop_f32()
+	/// 	) {
+	/// 		(Some(controllerId), Some(axisName), Some(axisValue)) => (controllerId, axisName, axisValue),
+	/// 		_ => return,
+	/// 	};
+	/// 	if controllerId == 0 && axisName == AxisName::LeftX.as_ref() {
+	/// 		p!("Left stick x value {}", axisValue);
+	/// 	}
+	/// }));
+	pub const AXIS: &'static str = "Axis";
+	/// Triggers after an animation has ended on a Playable instance.
+	///
+	/// # Callback Arguments
+	///
+	/// * animationName: String - The name of the animation that ended.
+	/// * target: Playable - The Playable instance that the animation was played on.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// playable.play("Walk", false);
+	/// playable.slot(Slot::ANIMATION_END, Box::new(|stack| {
+	/// 	let (
+	/// 		animationName,
+	/// 		target
+	/// 	) = match (
+	/// 		stack.pop_str(),
+	/// 		stack.pop_cast::<Playable>()
+	/// 	) {
+	/// 		(Some(animationName), Some(target)) => (animationName, target),
+	/// 		_ => return,
+	/// 	};
+	/// 	if animationName == "Walk" {
+	/// 		target.play("Idle", true);
+	/// 	}
+	/// }));
+	/// ```
+	pub const ANIMATION_END: &'static str = "AnimationEnd";
+	/// Triggers when a Body object collides with a sensor object.
+	/// Triggers after setting `body.set_receiving_contact(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * other: Body - The other Body object that the current Body is colliding with.
+	/// * sensorTag: i32 - The tag of the sensor that triggered this collision.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// body.set_receiving_contact(true);
+	/// body.slot(Slot::BODY_ENTER, Box::new(|stack| {
+	/// 	let (
+	/// 		other,
+	/// 		sensorTag
+	/// 	) = match (
+	/// 		stack.pop_cast::<Body>(),
+	/// 		stack.pop_i32()
+	/// 	) {
+	/// 		(Some(other), Some(sensorTag)) => (other, sensorTag),
+	/// 		_ => return,
+	/// 	};
+	/// 	p!(sensorTag);
+	/// }));
+	/// ```
+	pub const BODY_ENTER: &'static str = "BodyEnter";
+	/// Triggers when a `Body` object is no longer colliding with a sensor object.
+	/// Triggers after setting `body.set_receiving_contact(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * other: Body - The other `Body` object that the current `Body` is no longer colliding with.
+	/// * sensorTag: i32 - The tag of the sensor that triggered this collision.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// body.set_receiving_contact(true);
+	/// body.slot(Slot::BODY_LEAVE, Box::new(|stack| {
+	/// 	let (
+	/// 		other,
+	/// 		sensorTag
+	/// 	) = match (
+	/// 		stack.pop_cast::<Body>(),
+	/// 		stack.pop_i32()
+	/// 	) {
+	/// 		(Some(other), Some(sensorTag)) => (other, sensorTag),
+	/// 		_ => return,
+	/// 	};
+	/// 	p!(sensorTag);
+	/// }));
+	/// ```
+	pub const BODY_LEAVE: &'static str = "BodyLeave";
+	/// Triggers when a `Body` object starts to collide with another object.
+	/// Triggers after setting `body.set_receiving_contact(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * other: Body - The other `Body` object that the current `Body` is colliding with.
+	/// * point: Vec2 - The point of collision in world coordinates.
+	/// * normal: Vec2 - The normal vector of the contact surface in world coordinates.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// body.set_receiving_contact(true);
+	/// body.slot(Slot::CONTACT_START, Box::new(|stack| {
+	/// 	let (
+	/// 		other,
+	/// 		point,
+	/// 		normal
+	/// 	) = match (
+	/// 		stack.pop_cast::<Body>(),
+	/// 		stack.pop_vec2(),
+	/// 		stack.pop_vec2()
+	/// 	) {
+	/// 		(Some(other), Some(point), Some(normal)) => (other, point, normal),
+	/// 		_ => return,
+	/// 	};
+	/// }));
+	/// ```
+	pub const CONTACT_START: &'static str = "ContactStart";
+	/// Triggers when a `Body` object stops colliding with another object.
+	/// Triggers after setting `body.set_receiving_contact(true)`.
+	///
+	/// # Callback Arguments
+	///
+	/// * other: Body - The other `Body` object that the current `Body` is no longer colliding with.
+	/// * point: Vec2 - The point of collision in world coordinates.
+	/// * normal: Vec2 - The normal vector of the contact surface in world coordinates.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// body.set_receiving_contact(true);
+	/// body.slot(Slot::CONTACT_START, Box::new(|stack| {
+	/// 	let (
+	/// 		other,
+	/// 		point,
+	/// 		normal
+	/// 	) = match (
+	/// 		stack.pop_cast::<Body>(),
+	/// 		stack.pop_vec2(),
+	/// 		stack.pop_vec2()
+	/// 	) {
+	/// 		(Some(other), Some(point), Some(normal)) => (other, point, normal),
+	/// 		_ => return,
+	/// 	};
+	/// }));
+	/// ```
+	pub const CONTACT_END: &'static str = "ContactEnd";
+	/// Triggered after a `Particle` node started a stop action and then all the active particles end their lives.
+	pub const FINISHED: &'static str = "Finished";
+}
+
+// GSlot
+
+pub struct GSlot { }
+impl GSlot {
+	/// Triggers when the application is about to quit.
+	pub const APP_QUIT: &'static str = "AppQuit";
+	/// Triggers when the application receives a low memory warning.
+	pub const APP_LOW_MEMORY: &'static str = "AppLowMemory";
+	/// Triggers when the application is about to enter the background.
+	pub const APP_WILL_ENTER_BACKGROUND: &'static str = "AppWillEnterBackground";
+	/// Triggers when the application has entered the background.
+	pub const APP_DID_ENTER_BACKGROUND: &'static str = "AppDidEnterBackground";
+	/// Triggers when the application is about to enter the foreground.
+	pub const APP_WILL_ENTER_FOREGROUND: &'static str = "AppWillEnterForeground";
+	/// Triggers when the application has entered the foreground.
+	pub const APP_DID_ENTER_FOREGROUND: &'static str = "AppDidEnterForeground";
+	/// Triggers when the application window size changes.
+	pub const APP_SIZE_CHANGED: &'static str = "AppSizeChanged";
+	/// Triggers when the application window enters or exits full-screen mode.
+	///
+	/// # Callback Arguments
+	///
+	/// * fullScreen: bool - True if the application is in full-screen mode, false otherwise.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.gslot(GSlot::APP_FULL_SCREEN, Box::new(|stack| {
+	/// 	let fullScreen = match stack.pop_bool() {
+	/// 		Some(fullScreen) => fullScreen,
+	/// 		None => return,
+	/// 	};
+	/// 	if fullScreen {
+	/// 		p!("App is in full-screen mode!");
+	/// 	} else {
+	/// 		p!("App is not in full-screen mode!");
+	/// 	}
+	/// }));
+	/// ```
+	pub const APP_FULL_SCREEN: &'static str = "AppFullScreen";
+	/// Triggers when the application window position changes.
+	pub const APP_MOVED: &'static str = "AppMoved";
+	/// Triggers when the application theme color changes.
+	///
+	/// # Callback Arguments
+	///
+	/// * themeColor: Color - The new theme color.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.gslot(GSlot::APP_THEME, Box::new(|stack| {
+	/// 	let themeColor = match stack.pop_cast::<Color>() {
+	/// 		Some(themeColor) => themeColor,
+	/// 		None => return,
+	/// 	};
+	/// 	p!("themeColor [{}, {}, {}, {}]", themeColor.r(), themeColor.g(), themeColor.b(), themeColor.a());
+	/// }));
+	/// ```
+	pub const APP_THEME: &'static str = "AppTheme";
+	/// Triggers when a websocket connection is open.
+	pub const APP_WS_OPEN: &'static str = "AppWSOpen";
+	/// Triggers when a websocket connection is closed.
+	pub const APP_WS_CLOSE: &'static str = "AppWSClose";
+	/// Triggers when received text message from a websocket connection.
+	///
+	/// # Callback Arguments
+	///
+	/// * msg: string - The message received.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.gslot(GSlot::APP_WS_MESSAGE, Box::new(|stack| {
+	/// 	let msg = match stack.pop_str() {
+	/// 		Some(msg) => msg,
+	/// 		None => return,
+	/// 	};
+	/// 	p!(msg);
+	/// }));
+	/// ```
+	pub const APP_WS_MESSAGE: &'static str = "AppWSMessage";
+	/// A gobal event used for broadcasting massage to all websocket connections.
+	///
+	/// # Usage
+	///
+	/// ```
+	/// emit(GSlot::APP_WS_SEND, args!("A text message"));
+	/// ```
+	pub const APP_WS_SEND: &'static str = "AppWSSend";
 }
 
 // Content

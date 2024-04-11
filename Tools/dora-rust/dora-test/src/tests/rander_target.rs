@@ -23,7 +23,7 @@ pub fn test() {
 			ActionDef::event("Turn", "")
 		]));
 	let mut spine_clone = spine.clone();
-	spine.slot("ActionEnd", Box::new(move |stack| {
+	spine.slot(Slot::ACTION_END, Box::new(move |stack| {
 		if let Some(action) = stack.pop_cast::<Action>() {
 			spine_clone.run_action(&action);
 		}

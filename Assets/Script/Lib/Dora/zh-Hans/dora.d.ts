@@ -2509,9 +2509,10 @@ interface NodeEventHandlerMap {
 	 * 当游戏控制器轴发生变化时触发Axis事件。
 	 * 在设置`node.controllerEnabled = true`之后触发。
 	 * @param controllerId 控制器ID，当有多个控制器连接时从0开始递增。
+	 * @param axisName 控制器轴的名称。
 	 * @param axisValue 控制器轴的值，范围从 -1.0 到 1.0。
 	*/
-	Axis(this: void, controllerId: number, axisValue: number): void;
+	Axis(this: void, controllerId: number, axisName: AxisName, axisValue: number): void;
 
 	/**
 	 * 当Playable动画模型播放结束动画后触发。
