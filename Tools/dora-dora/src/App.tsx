@@ -1211,11 +1211,19 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 			case "Copy Path": {
-				navigator.clipboard.writeText(data.key).then(() => {
-					addAlert(t("alert.copied", {title: data.title}), "success");
-				}).catch(() => {
-					addAlert(t("alert.copy"), "error");
-				});
+				if (navigator.clipboard.writeText) {
+					navigator.clipboard.writeText(data.key).then(() => {
+						addAlert(t("alert.copied", {title: data.title}), "success");
+					}).catch(() => {
+						addAlert(t("alert.copy"), "error");
+					});
+				} else {
+					setPopupInfo({
+						title: t("alert.tocopy", {title: data.title}),
+						msg: data.key,
+						raw: true
+					});
+				}
 				break;
 			}
 		}
