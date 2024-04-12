@@ -60,6 +60,7 @@ i18n
 						failedCompile: "not generated {{title}}",
 						copied: "copied path {{title}}",
 						copy: "failed to copy path",
+						tocopy: "Full path for {{title}}",
 					},
 					popup: {
 						goToFile: "Go to File",
@@ -182,6 +183,7 @@ i18n
 						failedCompile: "待生成 {{title}}",
 						copied: "已复制路径 {{title}}",
 						copy: "复制路径失败",
+						tocopy: "{{title}} 的完整路径",
 					},
 					popup: {
 						goToFile: "跳转到文件",
