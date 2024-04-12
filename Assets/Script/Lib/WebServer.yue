@@ -495,11 +495,13 @@ HttpServer\upload(
 			return targetPath
 	(req, file): false ->
 		switch req when {params: {:path}}
-			uploadPath = Path Content.writablePath, ".upload"
-			targetPath = Path path, Path\getRelative file, uploadPath
-			Content\mkdir Path\getPath targetPath
-			if Content\move file, targetPath
-				return true
+			path = Content\getFullPath path
+			if Content\exist path
+				uploadPath = Path Content.writablePath, ".upload"
+				targetPath = Path path, Path\getRelative file, uploadPath
+				Content\mkdir Path\getPath targetPath
+				if Content\move file, targetPath
+					return true
 )
 
 HttpServer\post "/list", (req): success: false ->

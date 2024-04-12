@@ -56,4 +56,8 @@ with open(latest_wasm_file, 'rb') as f:
         response = requests.post(f"http://{upload_url}:8866/run", json={'file': os.path.join(args.target_path, os.path.basename(latest_wasm_file)), 'asProj': False})
         if response.json()["success"]:
             print("Started running.")
+        else:
+            print("Failed to run.")
+    else:
+        print("Failed to upload file.")
 
