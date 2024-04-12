@@ -171,6 +171,7 @@ export default function PersistentDrawerLeft() {
 			msg: string,
 			raw?: boolean,
 			cancelable?: boolean,
+			selectable?: boolean,
 			confirmed?: () => void,
 		} | null>(null);
 
@@ -1211,8 +1212,10 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 			case "Copy Path": {
-				if (navigator.clipboard.writeText) {
-					navigator.clipboard.writeText(data.key).then(() => {
+				const writablePath = treeData.at(0)?.key ?? "";
+				const relativePath = path.relative(writablePath, data.key);
+				if (navigator.clipboard && navigator.clipboard.writeText) {
+					navigator.clipboard.writeText(relativePath).then(() => {
 						addAlert(t("alert.copied", {title: data.title}), "success");
 					}).catch(() => {
 						addAlert(t("alert.copy"), "error");
@@ -1220,7 +1223,8 @@ export default function PersistentDrawerLeft() {
 				} else {
 					setPopupInfo({
 						title: t("alert.tocopy", {title: data.title}),
-						msg: data.key,
+						msg: relativePath,
+						selectable: true,
 						raw: true
 					});
 				}
@@ -2194,8 +2198,26 @@ export default function PersistentDrawerLeft() {
 							component="span"
 							id="alert-dialog-description"
 						>
-							{popupInfo?.raw ?
-								<pre>{popupInfo?.msg}</pre>
+							{popupInfo?.selectable ?
+								<TextField
+									fullWidth
+									hiddenLabel
+									multiline
+									variant="outlined"
+									id="popupText"
+									defaultValue={popupInfo?.msg}
+									InputProps={{
+										readOnly: true,
+									}}
+									sx={{
+										"& .MuiOutlinedInput-notchedOutline": {
+											borderColor: Color.Secondary,
+										}
+									}}
+									onFocus={(event) => event.target.setSelectionRange(0, event.target.value.length)}
+								/>
+								: popupInfo?.raw ?
+									<pre>{popupInfo?.msg}</pre>
 								: popupInfo?.msg
 							}
 						</DialogContentText>
