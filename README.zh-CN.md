@@ -56,7 +56,7 @@
 
 - 支持True Type字体的渲染和基础排版。
 
-- 提供可用于制作自己游戏的开放美术素材和游戏IP —— [《灵数奇缘》](http://luvsensedigital.org)。
+- 提供可用于制作自己游戏的开放美术素材和游戏IP —— [《灵数奇缘》](https://luv-sense-digital.readthedocs.io)。
 
 &emsp;&emsp;<img src='Assets/Image/LSD.jpg' alt='LSD' width='300px'/>
 
