@@ -123,24 +123,142 @@
 
 2. 第二步：编写游戏代码
 
-   - 在项目文件夹下新建游戏入口代码文件，选择Yuescript语言命名为`init`。
+   - 在项目文件夹下新建游戏入口代码文件，选择 Lua  (Yuescript, Teal, Typescript 或 TSX) 语言命名为`init`。
 
    - 编写Hello World代码：
 
+- **Lua**
+```lua
+local _ENV = Dora()
+
+local sprite = Sprite("Image/logo.png")
+sprite:schedule(once(function()
+  for i = 3, 1, -1 do
+    print(i)
+    sleep(1)
+  end
+  print("Hello World")
+  sprite:perform(Sequence(
+    Scale(0.1, 1, 0.5),
+    Scale(0.5, 0.5, 1, Ease.OutBack)
+  ))
+end))
+```
+
+- **Teal**
+```lua
+local sleep <const> = require("sleep")
+local Ease <const> = require("Ease")
+local Scale <const> = require("Scale")
+local Sequence <const> = require("Sequence")
+local once <const> = require("once")
+local Sprite <const> = require("Sprite")
+
+local sprite = Sprite("Image/logo.png")
+if not sprite is nil then
+  sprite:schedule(once(function()
+    for i = 3, 1, -1 do
+      print(i)
+      sleep(1)
+    end
+    print("Hello World")
+    sprite:perform(Sequence(
+      Scale(0.1, 1, 0.5),
+      Scale(0.5, 0.5, 1, Ease.OutBack)
+    ))
+  end))
+end
+```
+- **Yuescript**
 ```moonscript
 _ENV = Dora!
 
 with Sprite "Image/logo.png"
-  \addTo Director.entry
-  \schedule once ->
-    for i = 3, 1, -1
-      print i
-      sleep 1
-    print "Hello World!"
-    \perform Sequence(
-      Scale 0.1, 1, 0.5
-      Scale 0.5, 0.5, 1, Ease.OutBack
-    )
+   \schedule once ->
+     for i = 3, 1, -1
+       print i
+       sleep 1
+     print "Hello World!"
+     \perform Sequence(
+       Scale 0.1, 1, 0.5
+       Scale 0.5, 0.5, 1, Ease. OutBack
+     )
+```
+- **Typescript**
+```typescript
+import {Sprite, Ease, Scale, Sequence, once, sleep} from 'dora';
+
+const sprite = Sprite("Image/logo.png");
+if (sprite) {
+  sprite.schedule(once(() => {
+    for (let i of $range(3, 1, -1)) {
+      print(i);
+      sleep(1);
+    }
+    print("Hello World");
+    sprite.perform(Sequence(
+      Scale(0.1, 1, 0.5),
+      Scale(0.5, 0.5, 1, Ease.OutBack)
+    ))
+  }));
+}
+```
+- **TSX**
+```tsx
+import { React, toNode, useRef } from 'dora-x';
+import { ActionDef, Ease, Sprite, once, sleep } from 'dora';
+
+const actionRef = useRef<ActionDef.Type>();
+const spriteRef = useRef<Sprite.Type>();
+
+const onUpdate = once(() => {
+  for (let i of $range(3, 1, -1)) {
+    print(i);
+    sleep(1);
+  }
+  print("Hello World");
+  if (actionRef.current && spriteRef.current) {
+    spriteRef.current.perform(actionRef.current);
+  }
+});
+
+toNode(
+  <sprite
+    ref={spriteRef}
+    file='Image/logo.png'
+    onUpdate={onUpdate}
+  >
+    <action ref={actionRef}>
+      <sequence>
+        <scale time={0.1} start={1} stop={0.5}/>
+        <scale time={0.5} start={0.5} stop={1} easing={Ease.OutBack}/>
+      </sequence>
+    </action>
+  </sprite>
+);
+```
+- 也支持使用 **Rust** 来编写游戏代码，编译为 WASM 文件，命名为 `init.wasm` 再上传到引擎中加载运行。
+```rust
+use dora_ssr::*;
+
+fn main () {
+  let mut sprite = match Sprite::with_file("Image/logo.png") {
+    Some(sprite) => sprite,
+    None => return,
+  };
+  let mut sprite_clone = sprite.clone();
+  sprite.schedule(once(move |mut co| async move {
+    for i in (1..=3).rev() {
+      p!("{}", i);
+      sleep!(co, 1.0);
+    }
+    p!("Hello World");
+    sprite_clone.perform_def(ActionDef::sequence(&vec![
+      ActionDef::scale(0.1, 1.0, 0.5, EaseType::Linear),
+      ActionDef::scale(0.5, 0.5, 1.0, EaseType::OutBack),
+    ]));
+  }));
+}
 ```
 
 3. 第三步：运行游戏
