@@ -44,9 +44,7 @@
 
 - Supports True Type font rendering and basic typesetting.
 
-- Provides open art resources and game IPs that can be used to create your own games - ["Luv Sense Digital"](http://luvsensedigital.org).
-
-&emsp;&emsp;<img src='Assets/Image/LSD.jpg' alt='LSD' width='300px'/>
+- Provides open art resources and game IPs that can be used to create your own games - ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io).
 
 <br>
 
