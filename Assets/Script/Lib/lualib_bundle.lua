@@ -773,10 +773,11 @@ end
 
 local __TS__AsyncAwaiter, __TS__Await
 do
-    local cocreate = coroutine.create
-    local coresume = coroutine.resume
-    local costatus = coroutine.status
-    local coyield = coroutine.yield
+    local ____coroutine = _G.coroutine or ({})
+    local cocreate = ____coroutine.create
+    local coresume = ____coroutine.resume
+    local costatus = ____coroutine.status
+    local coyield = ____coroutine.yield
     function __TS__AsyncAwaiter(generator)
         return __TS__New(
             __TS__Promise,
@@ -1417,6 +1418,22 @@ do
     Map[Symbol.species] = Map
 end
 
+local function __TS__MapGroupBy(items, keySelector)
+    local result = __TS__New(Map)
+    local i = 0
+    for ____, item in __TS__Iterator(items) do
+        local key = keySelector(nil, item, i)
+        if result:has(key) then
+            local ____temp_0 = result:get(key)
+            ____temp_0[#____temp_0 + 1] = item
+        else
+            result:set(key, {item})
+        end
+        i = i + 1
+    end
+    return result
+end
+
 local __TS__Match = string.match
 
 local __TS__MathAtan2 = math.atan2 or math.atan
@@ -1669,6 +1686,22 @@ local function __TS__ObjectFromEntries(entries)
         end
     end
     return obj
+end
+
+local function __TS__ObjectGroupBy(items, keySelector)
+    local result = {}
+    local i = 0
+    for ____, item in __TS__Iterator(items) do
+        local key = keySelector(nil, item, i)
+        if result[key] ~= nil then
+            local ____result_key_0 = result[key]
+            ____result_key_0[#____result_key_0 + 1] = item
+        else
+            result[key] = {item}
+        end
+        i = i + 1
+    end
+    return result
 end
 
 local function __TS__ObjectKeys(obj)
@@ -2563,6 +2596,7 @@ return {
   __TS__Iterator = __TS__Iterator,
   __TS__LuaIteratorSpread = __TS__LuaIteratorSpread,
   Map = Map,
+  __TS__MapGroupBy = __TS__MapGroupBy,
   __TS__Match = __TS__Match,
   __TS__MathAtan2 = __TS__MathAtan2,
   __TS__MathModf = __TS__MathModf,
@@ -2582,6 +2616,7 @@ return {
   __TS__ObjectFromEntries = __TS__ObjectFromEntries,
   __TS__ObjectGetOwnPropertyDescriptor = __TS__ObjectGetOwnPropertyDescriptor,
   __TS__ObjectGetOwnPropertyDescriptors = __TS__ObjectGetOwnPropertyDescriptors,
+  __TS__ObjectGroupBy = __TS__ObjectGroupBy,
   __TS__ObjectKeys = __TS__ObjectKeys,
   __TS__ObjectRest = __TS__ObjectRest,
   __TS__ObjectValues = __TS__ObjectValues,
