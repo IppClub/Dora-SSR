@@ -86,9 +86,10 @@ luaCheck = (file, content) ->
 	if info
 		info = for item in *info
 			useCheck = true
-			for check in *disabledCheckForLua
-				if not item[5]\match("unused") and item[5]\match check
-					useCheck = false
+			if not item[5]\match "unused"
+				for check in *disabledCheckForLua
+					if item[5]\match check
+						useCheck = false
 			continue unless useCheck
 			switch item[1]
 				when "type"
