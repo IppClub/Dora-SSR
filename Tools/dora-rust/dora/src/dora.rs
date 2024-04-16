@@ -306,7 +306,7 @@ pub fn print(msg: &str) {
 	unsafe { dora_print(from_string(msg)); }
 }
 
-/// Emits a global event with the given name and arguments to all listeners registered by `node.gslot()`` function.
+/// Emits a global event with the given name and arguments to all listeners registered by `node.gslot()` function.
 ///
 /// # Arguments
 ///
@@ -341,6 +341,7 @@ macro_rules! p {
 	}};
 }
 
+/// A record representing a 2D vector with an x and y component.
 #[repr(C)]
 #[derive(Clone, Copy)]
 #[derive(PartialEq)]
@@ -427,6 +428,7 @@ impl std::ops::Div<f32> for Vec2 {
 	}
 }
 
+/// A size object with a given width and height.
 #[repr(C)]
 #[derive(Clone, Copy)]
 #[derive(PartialEq)]
@@ -460,6 +462,7 @@ union LightValue {
 	value: i64,
 }
 
+/// A color with red, green, blue, and alpha channels.
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct Color {
@@ -497,6 +500,7 @@ impl Color {
 	}
 }
 
+/// A color with red, green and blue channels.
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct Color3 {
@@ -557,46 +561,65 @@ fn from_string(s: &str) -> i64 {
 	}
 }
 
-pub struct Vector;
+pub(crate) trait IBuf {
+	fn to_buf(&self) -> i64;
+}
+
+impl IBuf for Vec<i32> {
+	fn to_buf(&self) -> i64 {
+		unsafe {
+			let len = self.len() as i32;
+			let ptr = self.as_ptr();
+			let new_vec = buf_new_i32(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
+}
+
+impl IBuf for Vec<i64> {
+	fn to_buf(&self) -> i64 {
+		unsafe {
+			let len = self.len() as i32;
+			let ptr = self.as_ptr();
+			let new_vec = buf_new_i64(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
+}
+
+impl IBuf for Vec<f32> {
+	fn to_buf(&self) -> i64 {
+		unsafe {
+			let len = self.len() as i32;
+			let ptr = self.as_ptr();
+			let new_vec = buf_new_f32(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
+}
+
+impl IBuf for Vec<f64> {
+	fn to_buf(&self) -> i64 {
+		unsafe {
+			let len = self.len() as i32;
+			let ptr = self.as_ptr();
+			let new_vec = buf_new_f64(len);
+			buf_write(new_vec, ptr as *const c_void);
+			return new_vec;
+		}
+	}
+}
+
+pub(crate) struct Vector;
 
 impl Vector {
-	pub fn to_i32(v: i64) -> Vec<i32> {
+	pub fn to_num<T>(v: i64) -> Vec<T> where T: Clone + Default {
 		unsafe {
 			let len = buf_len(v) as usize;
-			let mut vec: Vec<i32> = Vec::with_capacity(len as usize);
-			vec.resize(len, Default::default());
-			let data = vec.as_mut_ptr() as *mut c_void;
-			buf_read(data, v);
-			buf_release(v);
-			return vec;
-		}
-	}
-	pub fn to_i64(v: i64) -> Vec<i64> {
-		unsafe {
-			let len = buf_len(v) as usize;
-			let mut vec: Vec<i64> = Vec::with_capacity(len as usize);
-			vec.resize(len, Default::default());
-			let data = vec.as_mut_ptr() as *mut c_void;
-			buf_read(data, v);
-			buf_release(v);
-			return vec;
-		}
-	}
-	pub fn to_f32(v: i64) -> Vec<f32> {
-		unsafe {
-			let len = buf_len(v) as usize;
-			let mut vec: Vec<f32> = Vec::with_capacity(len as usize);
-			vec.resize(len, Default::default());
-			let data = vec.as_mut_ptr() as *mut c_void;
-			buf_read(data, v);
-			buf_release(v);
-			return vec;
-		}
-	}
-	pub fn to_f64(v: i64) -> Vec<f64> {
-		unsafe {
-			let len = buf_len(v) as usize;
-			let mut vec: Vec<f64> = Vec::with_capacity(len as usize);
+			let mut vec: Vec<T> = Vec::with_capacity(len as usize);
 			vec.resize(len, Default::default());
 			let data = vec.as_mut_ptr() as *mut c_void;
 			buf_read(data, v);
@@ -619,41 +642,8 @@ impl Vector {
 			strs
 		}
 	}
-	pub fn from_i32(s: &Vec<i32>) -> i64 {
-		unsafe {
-			let len = s.len() as i32;
-			let ptr = s.as_ptr();
-			let new_vec = buf_new_i32(len);
-			buf_write(new_vec, ptr as *const c_void);
-			return new_vec;
-		}
-	}
-	pub fn from_i64(s: &Vec<i64>) -> i64 {
-		unsafe {
-			let len = s.len() as i32;
-			let ptr = s.as_ptr();
-			let new_vec = buf_new_i64(len);
-			buf_write(new_vec, ptr as *const c_void);
-			return new_vec;
-		}
-	}
-	pub fn from_f32(s: &Vec<f32>) -> i64 {
-		unsafe {
-			let len = s.len() as i32;
-			let ptr = s.as_ptr();
-			let new_vec = buf_new_f32(len);
-			buf_write(new_vec, ptr as *const c_void);
-			return new_vec;
-		}
-	}
-	pub fn from_f64(s: &Vec<f64>) -> i64 {
-		unsafe {
-			let len = s.len() as i32;
-			let ptr = s.as_ptr();
-			let new_vec = buf_new_f64(len);
-			buf_write(new_vec, ptr as *const c_void);
-			return new_vec;
-		}
+	pub fn from_num<T: IBuf>(s: &T) -> i64 {
+		return s.to_buf();
 	}
 	pub fn from_str(s: &Vec<&str>) -> i64 {
 		unsafe {
@@ -803,6 +793,8 @@ pub fn cast<T: Clone + 'static>(obj: &dyn IObject) -> Option<T> {
 	Some(obj.as_any().downcast_ref::<T>()?.clone())
 }
 
+/// An argument stack for passing values to a function.
+/// The stack is used to pass arguments to a function and to receive return values from a function.
 pub struct CallStack { raw: i64 }
 
 pub enum DoraValue<'a> {
@@ -1152,8 +1144,7 @@ impl Drop for CallStack {
 	fn drop(&mut self) { unsafe { call_stack_release(self.raw); } }
 }
 
-// Slot
-
+/// An interface for providing Dora SSR built-in node event names.
 pub struct Slot { }
 impl Slot {
 	/// The ActionEnd slot is triggered when an action is finished.
@@ -1179,7 +1170,7 @@ impl Slot {
 	/// 		(Some(action), Some(target)) => (action, target),
 	/// 		_ => return,
 	/// 	};
-	/// });
+	/// }));
 	/// ```
 	pub const ACTION_END: &'static str = "Action";
 	/// The TapFilter slot is triggered before the TapBegan slot and can be used to filter out certain taps.
@@ -1199,7 +1190,7 @@ impl Slot {
 	/// 		None => return,
 	/// 	};
 	/// 	touch.set_enabled(false);
-	/// });
+	/// }));
 	/// ```
 	pub const TAP_FILTER: &'static str = "TapFilter";
 	/// The TapBegan slot is triggered when a tap is detected.
@@ -1218,7 +1209,7 @@ impl Slot {
 	/// 		Some(touch) => touch,
 	/// 		None => return,
 	/// 	};
-	/// });
+	/// }));
 	/// ```
 	pub const TAP_BEGAN: &'static str = "TapBegan";
 	/// The TapEnded slot is triggered when a tap ends.
@@ -1237,7 +1228,7 @@ impl Slot {
 	/// 		Some(touch) => touch,
 	/// 		None => return,
 	/// 	};
-	/// });
+	/// }));
 	/// ```
 	pub const TAP_ENDED: &'static str = "TapEnded";
 	/// The Tapped slot is triggered when a tap is detected and has ended.
@@ -1256,7 +1247,7 @@ impl Slot {
 	/// 		Some(touch) => touch,
 	/// 		None => return,
 	/// 	};
-	/// });
+	/// }));
 	/// ```
 	pub const TAPPED: &'static str = "Tapped";
 	/// The TapMoved slot is triggered when a tap moves.
@@ -1275,7 +1266,7 @@ impl Slot {
 	/// 		Some(touch) => touch,
 	/// 		None => return,
 	/// 	};
-	/// });
+	/// }));
 	/// ```
 	pub const TAP_MOVED: &'static str = "TapMoved";
 	/// The MouseWheel slot is triggered when the mouse wheel is scrolled.
@@ -1294,7 +1285,7 @@ impl Slot {
 	/// 		Some(delta) => delta,
 	/// 		None => return,
 	/// 	};
-	/// });
+	/// }));
 	/// ```
 	pub const MOUSE_WHEEL: &'static str = "MouseWheel";
 	/// The Gesture slot is triggered when a gesture is recognized.
@@ -1325,7 +1316,7 @@ impl Slot {
 	/// 		(Some(center), Some(numFingers), Some(deltaDist), Some(deltaAngle)) => (center, numFingers, deltaDist, deltaAngle),
 	/// 		_ => return,
 	/// 	};
-	/// });
+	/// }));
 	/// ```
 	pub const GESTURE: &'static str = "Gesture";
 	/// The Enter slot is triggered when a node is added to the scene graph.
@@ -1356,7 +1347,7 @@ impl Slot {
 	/// 	if keyName == KeyName::Space.as_ref() {
 	/// 		p!("Space key down!");
 	/// 	}
-	/// });
+	/// }));
 	/// ```
 	pub const KEY_DOWN: &'static str = "KeyDown";
 	/// The KeyUp slot is triggered when a key is released.
@@ -1378,7 +1369,7 @@ impl Slot {
 	/// 	if keyName == KeyName::Space.as_ref() {
 	/// 		p!("Space key up!");
 	/// 	}
-	/// });
+	/// }));
 	/// ```
 	pub const KEY_UP: &'static str = "KeyUp";
 	/// The KeyPressed slot is triggered when a key is pressed.
@@ -1400,7 +1391,7 @@ impl Slot {
 	/// 	if keyName == KeyName::Space.as_ref() {
 	/// 		p!("Space key pressed!");
 	/// 	}
-	/// });
+	/// }));
 	/// ```
 	pub const KEY_PRESSED: &'static str = "KeyPressed";
 	/// The AttachIME slot is triggered when the input method editor (IME) is attached (calling `node.attach_ime()`).
@@ -1687,8 +1678,7 @@ impl Slot {
 	pub const FINISHED: &'static str = "Finished";
 }
 
-// GSlot
-
+/// An interface for providing Dora SSR built-in global event names.
 pub struct GSlot { }
 impl GSlot {
 	/// Triggers when the application is about to quit.

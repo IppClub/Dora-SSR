@@ -691,16 +691,16 @@ impl ImGui {
 		unsafe { return imgui__radio_button_ret(crate::dora::from_string(label), stack.raw(), v_button) != 0; }
 	}
 	pub fn plot_lines(label: &str, values: &Vec<f32>) {
-		unsafe { imgui_plot_lines(crate::dora::from_string(label), crate::dora::Vector::from_f32(values)); }
+		unsafe { imgui_plot_lines(crate::dora::from_string(label), crate::dora::Vector::from_num(values)); }
 	}
 	pub fn plot_lines_opts(label: &str, values: &Vec<f32>, values_offset: i32, overlay_text: &str, scale_min: f32, scale_max: f32, graph_size: &crate::dora::Vec2) {
-		unsafe { imgui_plot_lines_opts(crate::dora::from_string(label), crate::dora::Vector::from_f32(values), values_offset, crate::dora::from_string(overlay_text), scale_min, scale_max, graph_size.into_i64()); }
+		unsafe { imgui_plot_lines_opts(crate::dora::from_string(label), crate::dora::Vector::from_num(values), values_offset, crate::dora::from_string(overlay_text), scale_min, scale_max, graph_size.into_i64()); }
 	}
 	pub fn plot_histogram(label: &str, values: &Vec<f32>) {
-		unsafe { imgui_plot_histogram(crate::dora::from_string(label), crate::dora::Vector::from_f32(values)); }
+		unsafe { imgui_plot_histogram(crate::dora::from_string(label), crate::dora::Vector::from_num(values)); }
 	}
 	pub fn plot_histogram_opts(label: &str, values: &Vec<f32>, values_offset: i32, overlay_text: &str, scale_min: f32, scale_max: f32, graph_size: &crate::dora::Vec2) {
-		unsafe { imgui_plot_histogram_opts(crate::dora::from_string(label), crate::dora::Vector::from_f32(values), values_offset, crate::dora::from_string(overlay_text), scale_min, scale_max, graph_size.into_i64()); }
+		unsafe { imgui_plot_histogram_opts(crate::dora::from_string(label), crate::dora::Vector::from_num(values), values_offset, crate::dora::from_string(overlay_text), scale_min, scale_max, graph_size.into_i64()); }
 	}
 	pub fn progress_bar(fraction: f32) {
 		unsafe { imgui_progress_bar(fraction); }

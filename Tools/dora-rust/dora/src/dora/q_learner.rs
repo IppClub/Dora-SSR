@@ -74,7 +74,7 @@ impl QLearner {
 	///
 	/// * `i64` - The packed state value.
 	pub fn pack(hints: &Vec<i32>, values: &Vec<i32>) -> u64 {
-		unsafe { return mlqlearner_pack(crate::dora::Vector::from_i32(hints), crate::dora::Vector::from_i32(values)) as u64; }
+		unsafe { return mlqlearner_pack(crate::dora::Vector::from_num(hints), crate::dora::Vector::from_num(values)) as u64; }
 	}
 	/// Deconstructs a state from given hints to get condition values.
 	///
@@ -87,7 +87,7 @@ impl QLearner {
 	///
 	/// * `Vec<i32>` - The condition values as discrete values.
 	pub fn unpack(hints: &Vec<i32>, state: u64) -> Vec<i32> {
-		unsafe { return crate::dora::Vector::to_i32(mlqlearner_unpack(crate::dora::Vector::from_i32(hints), state as i64)); }
+		unsafe { return crate::dora::Vector::to_num(mlqlearner_unpack(crate::dora::Vector::from_num(hints), state as i64)); }
 	}
 	/// Creates a new QLearner object with optional parameters for gamma, alpha, and maxQ.
 	///

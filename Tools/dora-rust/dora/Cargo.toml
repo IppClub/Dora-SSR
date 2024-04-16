@@ -1,6 +1,6 @@
 [package]
 name = "dora-ssr"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["Li Jin <dragon-fly@qq.com>"]
 edition = "2021"
 license = "MIT"
@@ -9,7 +9,10 @@ repository = "https://github.com/IppClub/Dora-SSR"
 keywords = ["gamedev", "WASM"]
 documentation = "https://dora-ssr.net/docs/api/intro"
 description = "The lib for building Dora SSR game as wasm32-wasi that runs on multi-platform Dora SSR engine."
-crate-type = "lib"
+
+[lib]
+name = "dora_ssr"
+crate-type = ["lib"]
 
 [dependencies]
 paste = "1.0.12"

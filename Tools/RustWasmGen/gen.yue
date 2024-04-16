@@ -285,8 +285,8 @@ basicTypes =
 		* (name)-> "to_vec(#{name})"
 		* "&Vec<i32>"
 		* "Vec<i32>"
-		* (name)-> "crate::dora::Vector::from_i32(#{name})"
-		* (name)-> "crate::dora::Vector::to_i32(#{name})"
+		* (name)-> "crate::dora::Vector::from_num(#{name})"
+		* (name)-> "crate::dora::Vector::to_num(#{name})"
 		* -> error "unsupported"
 		* -> error "unsupported"
 	VecFloat:
@@ -295,8 +295,8 @@ basicTypes =
 		* (name)-> "to_vec(#{name})"
 		* "&Vec<f32>"
 		* "Vec<f32>"
-		* (name)-> "crate::dora::Vector::from_f32(#{name})"
-		* (name)-> "crate::dora::Vector::to_f32(#{name})"
+		* (name)-> "crate::dora::Vector::from_num(#{name})"
+		* (name)-> "crate::dora::Vector::to_num(#{name})"
 		* -> error "unsupported"
 		* -> error "unsupported"
 	VertexColor:
