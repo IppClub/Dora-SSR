@@ -23,7 +23,7 @@ export default Class StartPanel,
 					when @dButton then "Dorothy"
 		@node\schedule ->
 			width: bw, height: bh = App.bufferSize
-			width: vw, height: vh = App.visualSize
+			width: vw = App.visualSize
 			pos = nvg.TouchPos! * (bw / vw)
 			pos = Vec2 pos.x - bw / 2, bh / 2 - pos.y
 			for _, button in ipairs buttons

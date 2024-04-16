@@ -50,8 +50,8 @@ local Visual = _module_1.Visual -- 1
 local emit = dora.emit -- 1
 local Spawn = dora.Spawn -- 1
 local Director = dora.Director -- 1
-local string = _G.string -- 1
 local Delay = dora.Delay -- 1
+local string = _G.string -- 1
 local Entity = dora.Entity -- 1
 local _module_0 = dora.ImGui -- 1
 local SetNextWindowPos = _module_0.SetNextWindowPos -- 1
@@ -1307,61 +1307,56 @@ Director.ui:addChild((function() -- 815
 		_with_1:addChild((function() -- 971
 			local _with_2 = Node() -- 971
 			_with_2:schedule(function() -- 972
-				local width, height -- 973
-				do -- 973
-					local _obj_0 = App.visualSize -- 973
-					width, height = _obj_0.width, _obj_0.height -- 973
-				end -- 973
-				SetNextWindowPos(Vec2(20, 20)) -- 974
-				SetNextWindowSize(Vec2(120, 280), "FirstUseEver") -- 975
-				return PushStyleVar("ItemSpacing", Vec2.zero, function() -- 976
-					return Begin("Stats", { -- 977
-						"NoResize", -- 977
-						"NoSavedSettings", -- 977
-						"NoTitleBar", -- 977
-						"NoMove" -- 977
-					}, function() -- 977
-						Text("VALUE: " .. tostring(GameScore)) -- 978
-						Image("Model/patreon.clip|character_handGreen", Vec2(30, 30)) -- 979
-						SameLine() -- 980
-						Text("->") -- 981
-						SameLine() -- 982
-						Image("Model/patreon.clip|character_handRed", Vec2(30, 30)) -- 983
-						SameLine() -- 984
-						Text("x3") -- 985
-						Image("Model/patreon.clip|character_handRed", Vec2(30, 30)) -- 986
-						SameLine() -- 987
-						Text("->") -- 988
-						SameLine() -- 989
-						Image("Model/patreon.clip|character_handYellow", Vec2(30, 30)) -- 990
-						SameLine() -- 991
-						Text("x3") -- 992
-						Image("Model/patreon.clip|character_handYellow", Vec2(30, 30)) -- 993
-						SameLine() -- 994
-						Text("->") -- 995
-						SameLine() -- 996
-						Image("Model/patreon.clip|character_handGreen", Vec2(30, 30)) -- 997
-						SameLine() -- 998
-						Text("x3") -- 999
-						Image("Model/patreon.clip|item_bow", Vec2(30, 30)) -- 1000
-						SameLine() -- 1001
-						Text(">") -- 1002
-						SameLine() -- 1003
-						Image("Model/patreon.clip|item_sword", Vec2(30, 30)) -- 1004
-						Image("Model/patreon.clip|item_hatTop", Vec2(30, 30)) -- 1005
-						SameLine() -- 1006
-						Text("dodge") -- 1007
-						Image("Model/patreon.clip|item_helmet", Vec2(30, 30)) -- 1008
-						SameLine() -- 1009
-						Text("rush") -- 1010
-						Image("Model/patreon.clip|item_rod", Vec2(30, 30)) -- 1011
-						SameLine() -- 1012
-						Text("knock") -- 1013
-						Image("Model/patreon.clip|tile_heart", Vec2(30, 30)) -- 1014
-						SameLine() -- 1015
-						return Text("bash") -- 1016
-					end) -- 1016
-				end) -- 1016
+				SetNextWindowPos(Vec2(20, 20)) -- 973
+				SetNextWindowSize(Vec2(120, 280), "FirstUseEver") -- 974
+				return PushStyleVar("ItemSpacing", Vec2.zero, function() -- 975
+					return Begin("Stats", { -- 976
+						"NoResize", -- 976
+						"NoSavedSettings", -- 976
+						"NoTitleBar", -- 976
+						"NoMove" -- 976
+					}, function() -- 976
+						Text("VALUE: " .. tostring(GameScore)) -- 977
+						Image("Model/patreon.clip|character_handGreen", Vec2(30, 30)) -- 978
+						SameLine() -- 979
+						Text("->") -- 980
+						SameLine() -- 981
+						Image("Model/patreon.clip|character_handRed", Vec2(30, 30)) -- 982
+						SameLine() -- 983
+						Text("x3") -- 984
+						Image("Model/patreon.clip|character_handRed", Vec2(30, 30)) -- 985
+						SameLine() -- 986
+						Text("->") -- 987
+						SameLine() -- 988
+						Image("Model/patreon.clip|character_handYellow", Vec2(30, 30)) -- 989
+						SameLine() -- 990
+						Text("x3") -- 991
+						Image("Model/patreon.clip|character_handYellow", Vec2(30, 30)) -- 992
+						SameLine() -- 993
+						Text("->") -- 994
+						SameLine() -- 995
+						Image("Model/patreon.clip|character_handGreen", Vec2(30, 30)) -- 996
+						SameLine() -- 997
+						Text("x3") -- 998
+						Image("Model/patreon.clip|item_bow", Vec2(30, 30)) -- 999
+						SameLine() -- 1000
+						Text(">") -- 1001
+						SameLine() -- 1002
+						Image("Model/patreon.clip|item_sword", Vec2(30, 30)) -- 1003
+						Image("Model/patreon.clip|item_hatTop", Vec2(30, 30)) -- 1004
+						SameLine() -- 1005
+						Text("dodge") -- 1006
+						Image("Model/patreon.clip|item_helmet", Vec2(30, 30)) -- 1007
+						SameLine() -- 1008
+						Text("rush") -- 1009
+						Image("Model/patreon.clip|item_rod", Vec2(30, 30)) -- 1010
+						SameLine() -- 1011
+						Text("knock") -- 1012
+						Image("Model/patreon.clip|tile_heart", Vec2(30, 30)) -- 1013
+						SameLine() -- 1014
+						return Text("bash") -- 1015
+					end) -- 1015
+				end) -- 1015
 			end) -- 972
 			return _with_2 -- 971
 		end)()) -- 971
@@ -1369,4 +1364,4 @@ Director.ui:addChild((function() -- 815
 	end)()) -- 845
 	return _with_0 -- 815
 end)()) -- 815
-return emit("Start") -- 1018
+return emit("Start") -- 1017

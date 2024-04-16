@@ -16,7 +16,6 @@ store: Store = Data
 	:GroupEnemyBlock
 	:GroupTerrain
 	:GroupDisplay
-	:LayerReadMe
 	:LayerBlock
 	:LayerBunny
 	:LayerSwitch
