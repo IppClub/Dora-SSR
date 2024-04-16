@@ -57,11 +57,7 @@ local _anon_func_0 = function(controlChoice) -- 134
 	end -- 134
 end -- 134
 world:schedule(function() -- 30
-	local width, height -- 31
-	do -- 31
-		local _obj_0 = App.visualSize -- 31
-		width, height = _obj_0.width, _obj_0.height -- 31
-	end -- 31
+	local width = App.visualSize.width -- 31
 	SetNextWindowPos(Vec2(width - 250, 10), "FirstUseEver") -- 32
 	SetNextWindowSize(Vec2(240, userControl and 500 or 300)) -- 33
 	Begin("Zombie Game Demo", { -- 34

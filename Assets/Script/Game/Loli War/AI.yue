@@ -14,8 +14,6 @@ _ENV = Dora(
 store:Store = Data
 {
 	:MaxBunnies
-	:GroupPlayer
-	:GroupEnemyPoke
 } = Store
 
 heroes = Group ["hero",]

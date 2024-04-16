@@ -970,7 +970,6 @@ Director.ui\addChild with AlignNode isRoot: true
 				emit "Start"
 		\addChild with Node!
 			\schedule ->
-				:width, :height = App.visualSize
 				SetNextWindowPos Vec2 20, 20
 				SetNextWindowSize Vec2(120, 280), "FirstUseEver"
 				PushStyleVar "ItemSpacing", Vec2.zero, ->

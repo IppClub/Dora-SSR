@@ -42,11 +42,7 @@ _module_0 = Class(StartPanel, { -- 13
 				local _obj_0 = App.bufferSize -- 25
 				bw, bh = _obj_0.width, _obj_0.height -- 25
 			end -- 25
-			local vw, vh -- 26
-			do -- 26
-				local _obj_0 = App.visualSize -- 26
-				vw, vh = _obj_0.width, _obj_0.height -- 26
-			end -- 26
+			local vw = App.visualSize.width -- 26
 			local pos = nvg.TouchPos() * (bw / vw) -- 27
 			pos = Vec2(pos.x - bw / 2, bh / 2 - pos.y) -- 28
 			for _, button in ipairs(buttons) do -- 29

@@ -13,294 +13,294 @@ local AI = _module_1.AI -- 1
 local App = dora.App -- 1
 local math = _G.math -- 1
 local Store = Data.store -- 14
-local MaxBunnies, GroupPlayer, GroupEnemyPoke = Store.MaxBunnies, Store.GroupPlayer, Store.GroupEnemyPoke -- 15
-local heroes = Group({ -- 21
-	"hero" -- 21
+local MaxBunnies = Store.MaxBunnies -- 15
+local heroes = Group({ -- 19
+	"hero" -- 19
+}) -- 19
+local gameEndWait = Seq({ -- 22
+	Con("game end", function(self) -- 22
+		return (Store.winner ~= nil) -- 22
+	end), -- 22
+	Sel({ -- 24
+		Seq({ -- 25
+			Con("need wait", function(self) -- 25
+				return self.onSurface and not self:isDoing("wait") -- 25
+			end), -- 25
+			Act("cancel"), -- 26
+			Act("wait") -- 27
+		}), -- 24
+		Accept() -- 29
+	}) -- 23
 }) -- 21
-local gameEndWait = Seq({ -- 24
-	Con("game end", function(self) -- 24
-		return (Store.winner ~= nil) -- 24
-	end), -- 24
-	Sel({ -- 26
-		Seq({ -- 27
-			Con("need wait", function(self) -- 27
-				return self.onSurface and not self:isDoing("wait") -- 27
-			end), -- 27
-			Act("cancel"), -- 28
-			Act("wait") -- 29
-		}), -- 26
-		Accept() -- 31
-	}) -- 25
-}) -- 23
-Store["PlayerControlAI"] = Sel({ -- 36
-	Seq({ -- 37
-		Con("is dead", function(self) -- 37
-			return self.entity.hp <= 0 -- 37
-		end), -- 37
-		Accept() -- 38
-	}), -- 36
-	Seq({ -- 41
-		Con("pushing switch", function(self) -- 41
-			return self:isDoing("pushSwitch") -- 41
-		end), -- 41
-		Accept() -- 42
-	}), -- 40
-	Seq({ -- 45
-		Seq({ -- 46
-			Con("move key down", function(self) -- 46
-				return not (self.data.keyLeft and self.data.keyRight) and ((self.data.keyLeft and self.faceRight) or (self.data.keyRight and not self.faceRight)) -- 51
-			end), -- 46
-			Act("turn") -- 52
-		}), -- 45
-		Reject() -- 54
-	}), -- 44
-	Seq({ -- 57
-		Con("attack key down", function(self) -- 57
-			return Store.winner == nil and self.data.keyF -- 57
-		end), -- 57
-		Sel({ -- 59
-			Seq({ -- 60
-				Con("at switch", function(self) -- 60
-					local theSwitch = self.data.atSwitch -- 61
-					return (theSwitch ~= nil) and not theSwitch.data.pushed and ((self.x < theSwitch.x) == self.faceRight) -- 63
-				end), -- 60
-				Act("pushSwitch") -- 64
-			}), -- 59
-			Act("villyAttack"), -- 66
-			Act("meleeAttack"), -- 67
-			Act("rangeAttack") -- 68
-		}) -- 58
-	}), -- 56
-	Sel({ -- 72
-		Seq({ -- 73
-			Con("is falling", function(self) -- 73
-				return not self.onSurface -- 73
-			end), -- 73
-			Act("fallOff") -- 74
-		}), -- 72
-		Seq({ -- 77
-			Con("jump key down", function(self) -- 77
-				return self.data.keyUp -- 77
-			end), -- 77
-			Act("jump") -- 78
-		}) -- 76
-	}), -- 71
-	Seq({ -- 82
-		Con("move key down", function(self) -- 82
-			return self.data.keyLeft or self.data.keyRight -- 82
-		end), -- 82
-		Act("walk") -- 83
-	}), -- 81
-	Act("idle") -- 85
-}) -- 35
-Store["HeroAI"] = Sel({ -- 89
-	Seq({ -- 90
-		Con("is dead", function(self) -- 90
-			return self.entity.hp <= 0 -- 90
-		end), -- 90
-		Accept() -- 91
-	}), -- 89
-	Seq({ -- 94
-		Con("is falling", function(self) -- 94
-			return not self.onSurface -- 94
-		end), -- 94
-		Act("fallOff") -- 95
-	}), -- 93
-	gameEndWait, -- 97
-	Seq({ -- 99
-		Con("need attack", function(self) -- 99
-			local attackUnits = AI:getUnitsInAttackRange() -- 100
-			for _index_0 = 1, #attackUnits do -- 101
-				local unit = attackUnits[_index_0] -- 101
-				if Data:isEnemy(self, unit) and (self.x < unit.x) == self.faceRight then -- 102
-					return true -- 104
-				end -- 102
-			end -- 104
-			return false -- 105
-		end), -- 99
-		Sel({ -- 107
-			Act("villyAttack"), -- 107
-			Act("rangeAttack"), -- 108
-			Act("meleeAttack") -- 109
-		}) -- 106
-	}), -- 98
-	Seq({ -- 113
-		Con("not facing enemy", function(self) -- 113
-			return heroes:each(function(hero) -- 113
-				local unit = hero.unit -- 114
-				if Data:isEnemy(unit, self) then -- 115
-					if (self.x > unit.x) == self.faceRight then -- 116
-						return true -- 117
-					end -- 116
-				end -- 115
-			end) -- 117
-		end), -- 113
-		Act("turn") -- 118
-	}), -- 112
-	Seq({ -- 121
-		Con("need turn", function(self) -- 121
-			return (self.x < 100 and not self.faceRight) or (self.x > 3990 and self.faceRight) -- 122
-		end), -- 121
-		Act("turn") -- 123
-	}), -- 120
-	Seq({ -- 126
-		Con("wanna jump", function(self) -- 126
-			return App.rand % 20 == 0 -- 126
-		end), -- 126
-		Act("jump") -- 127
-	}), -- 125
-	Seq({ -- 130
-		Con("is at enemy side", function(self) -- 130
-			return heroes:each(function(hero) -- 130
-				local unit = hero.unit -- 131
-				if Data:isEnemy(unit, self) then -- 132
-					if math.abs(self.x - unit.x) < 50 then -- 133
-						return true -- 134
-					end -- 133
-				end -- 132
-			end) -- 134
-		end), -- 130
-		Act("idle") -- 135
-	}), -- 129
-	Act("walk") -- 137
-}) -- 88
-Store["BunnyForwardReturnAI"] = Sel({ -- 141
-	Seq({ -- 142
-		Con("is dead", function(self) -- 142
-			return self.entity.hp <= 0 -- 142
-		end), -- 142
-		Accept() -- 143
-	}), -- 141
-	Seq({ -- 146
-		Con("is falling", function(self) -- 146
-			return not self.onSurface -- 146
-		end), -- 146
-		Act("fallOff") -- 147
-	}), -- 145
-	gameEndWait, -- 149
-	Seq({ -- 151
-		Con("need attack", function(self) -- 151
-			local attackUnits = AI:getUnitsInAttackRange() -- 152
-			for _index_0 = 1, #attackUnits do -- 153
-				local unit = attackUnits[_index_0] -- 153
-				if Data:isEnemy(self, unit) and (self.x < unit.x) == self.faceRight then -- 154
-					return App.rand % 5 ~= 0 -- 156
-				end -- 154
-			end -- 156
-			return false -- 157
-		end), -- 151
-		Act("meleeAttack") -- 158
-	}), -- 150
-	Seq({ -- 161
-		Con("need turn", function(self) -- 161
-			return (self.x < 100 and not self.faceRight) or (self.x > 3990 and self.faceRight) -- 162
-		end), -- 161
-		Act("turn") -- 163
-	}), -- 160
-	Act("walk") -- 165
-}) -- 140
-Store["SwitchAI"] = Sel({ -- 169
-	Seq({ -- 170
-		Con("is pushed", function(self) -- 170
-			return self.data.pushed -- 170
-		end), -- 170
-		Act("pushed") -- 171
-	}), -- 169
-	Act("waitUser") -- 173
-}) -- 168
-local switches = Group({ -- 176
-	"switch" -- 176
-}) -- 176
-local turnToSwitch = Seq({ -- 178
-	Con("go to switch", function(self) -- 178
-		return switches:each(function(item) -- 178
-			if item.group == self.group and self.entity and self.entity.targetSwitch == item.switch then -- 179
-				return (self.x > item.unit.x) == self.faceRight -- 180
-			end -- 179
-		end) -- 180
-	end), -- 178
-	Act("turn"), -- 181
-	Reject() -- 182
-}) -- 177
-Store["BunnySwitcherAI"] = Sel({ -- 185
-	Seq({ -- 186
-		Con("is dead", function(self) -- 186
-			return self.entity.hp <= 0 -- 186
-		end), -- 186
-		Accept() -- 187
-	}), -- 185
-	Seq({ -- 190
-		Con("is falling", function(self) -- 190
-			return not self.onSurface -- 190
-		end), -- 190
-		Act("fallOff") -- 191
-	}), -- 189
-	gameEndWait, -- 193
-	Seq({ -- 195
-		Con("need attack", function(self) -- 195
-			local attackUnits = AI:getUnitsInAttackRange() -- 196
-			for _index_0 = 1, #attackUnits do -- 197
-				local unit = attackUnits[_index_0] -- 197
-				if Data:isEnemy(self, unit) and (self.x < unit.x) == self.faceRight then -- 198
-					return App.rand % 5 ~= 0 -- 200
-				end -- 198
-			end -- 200
-			return false -- 201
-		end), -- 195
-		Act("meleeAttack") -- 202
-	}), -- 194
-	Seq({ -- 205
-		Con("at switch", function(self) -- 205
-			local _with_0 = self.data -- 205
-			return (_with_0.atSwitch ~= nil) and _with_0.atSwitch.entity.switch == self.entity.targetSwitch -- 206
-		end), -- 205
-		Sel({ -- 208
-			Seq({ -- 209
-				Con("switch available", function(self) -- 209
-					return heroes:each(function(hero) -- 209
-						if self.group ~= hero.group then -- 210
-							return false -- 210
-						end -- 210
-						local needEP, available -- 211
-						do -- 211
-							local _exp_0 = self.entity.targetSwitch -- 211
-							if "Switch" == _exp_0 then -- 212
-								local bunnyCount = 0 -- 213
-								Group({ -- 214
-									"bunny" -- 214
-								}):each(function(bunny) -- 214
-									if bunny.group == self.group then -- 215
-										bunnyCount = bunnyCount + 1 -- 215
-									end -- 215
-								end) -- 214
-								needEP, available = 1, bunnyCount < MaxBunnies -- 216
-							elseif "SwitchG" == _exp_0 then -- 217
-								needEP, available = 2, hero.defending -- 218
+Store["PlayerControlAI"] = Sel({ -- 34
+	Seq({ -- 35
+		Con("is dead", function(self) -- 35
+			return self.entity.hp <= 0 -- 35
+		end), -- 35
+		Accept() -- 36
+	}), -- 34
+	Seq({ -- 39
+		Con("pushing switch", function(self) -- 39
+			return self:isDoing("pushSwitch") -- 39
+		end), -- 39
+		Accept() -- 40
+	}), -- 38
+	Seq({ -- 43
+		Seq({ -- 44
+			Con("move key down", function(self) -- 44
+				return not (self.data.keyLeft and self.data.keyRight) and ((self.data.keyLeft and self.faceRight) or (self.data.keyRight and not self.faceRight)) -- 49
+			end), -- 44
+			Act("turn") -- 50
+		}), -- 43
+		Reject() -- 52
+	}), -- 42
+	Seq({ -- 55
+		Con("attack key down", function(self) -- 55
+			return Store.winner == nil and self.data.keyF -- 55
+		end), -- 55
+		Sel({ -- 57
+			Seq({ -- 58
+				Con("at switch", function(self) -- 58
+					local theSwitch = self.data.atSwitch -- 59
+					return (theSwitch ~= nil) and not theSwitch.data.pushed and ((self.x < theSwitch.x) == self.faceRight) -- 61
+				end), -- 58
+				Act("pushSwitch") -- 62
+			}), -- 57
+			Act("villyAttack"), -- 64
+			Act("meleeAttack"), -- 65
+			Act("rangeAttack") -- 66
+		}) -- 56
+	}), -- 54
+	Sel({ -- 70
+		Seq({ -- 71
+			Con("is falling", function(self) -- 71
+				return not self.onSurface -- 71
+			end), -- 71
+			Act("fallOff") -- 72
+		}), -- 70
+		Seq({ -- 75
+			Con("jump key down", function(self) -- 75
+				return self.data.keyUp -- 75
+			end), -- 75
+			Act("jump") -- 76
+		}) -- 74
+	}), -- 69
+	Seq({ -- 80
+		Con("move key down", function(self) -- 80
+			return self.data.keyLeft or self.data.keyRight -- 80
+		end), -- 80
+		Act("walk") -- 81
+	}), -- 79
+	Act("idle") -- 83
+}) -- 33
+Store["HeroAI"] = Sel({ -- 87
+	Seq({ -- 88
+		Con("is dead", function(self) -- 88
+			return self.entity.hp <= 0 -- 88
+		end), -- 88
+		Accept() -- 89
+	}), -- 87
+	Seq({ -- 92
+		Con("is falling", function(self) -- 92
+			return not self.onSurface -- 92
+		end), -- 92
+		Act("fallOff") -- 93
+	}), -- 91
+	gameEndWait, -- 95
+	Seq({ -- 97
+		Con("need attack", function(self) -- 97
+			local attackUnits = AI:getUnitsInAttackRange() -- 98
+			for _index_0 = 1, #attackUnits do -- 99
+				local unit = attackUnits[_index_0] -- 99
+				if Data:isEnemy(self, unit) and (self.x < unit.x) == self.faceRight then -- 100
+					return true -- 102
+				end -- 100
+			end -- 102
+			return false -- 103
+		end), -- 97
+		Sel({ -- 105
+			Act("villyAttack"), -- 105
+			Act("rangeAttack"), -- 106
+			Act("meleeAttack") -- 107
+		}) -- 104
+	}), -- 96
+	Seq({ -- 111
+		Con("not facing enemy", function(self) -- 111
+			return heroes:each(function(hero) -- 111
+				local unit = hero.unit -- 112
+				if Data:isEnemy(unit, self) then -- 113
+					if (self.x > unit.x) == self.faceRight then -- 114
+						return true -- 115
+					end -- 114
+				end -- 113
+			end) -- 115
+		end), -- 111
+		Act("turn") -- 116
+	}), -- 110
+	Seq({ -- 119
+		Con("need turn", function(self) -- 119
+			return (self.x < 100 and not self.faceRight) or (self.x > 3990 and self.faceRight) -- 120
+		end), -- 119
+		Act("turn") -- 121
+	}), -- 118
+	Seq({ -- 124
+		Con("wanna jump", function(self) -- 124
+			return App.rand % 20 == 0 -- 124
+		end), -- 124
+		Act("jump") -- 125
+	}), -- 123
+	Seq({ -- 128
+		Con("is at enemy side", function(self) -- 128
+			return heroes:each(function(hero) -- 128
+				local unit = hero.unit -- 129
+				if Data:isEnemy(unit, self) then -- 130
+					if math.abs(self.x - unit.x) < 50 then -- 131
+						return true -- 132
+					end -- 131
+				end -- 130
+			end) -- 132
+		end), -- 128
+		Act("idle") -- 133
+	}), -- 127
+	Act("walk") -- 135
+}) -- 86
+Store["BunnyForwardReturnAI"] = Sel({ -- 139
+	Seq({ -- 140
+		Con("is dead", function(self) -- 140
+			return self.entity.hp <= 0 -- 140
+		end), -- 140
+		Accept() -- 141
+	}), -- 139
+	Seq({ -- 144
+		Con("is falling", function(self) -- 144
+			return not self.onSurface -- 144
+		end), -- 144
+		Act("fallOff") -- 145
+	}), -- 143
+	gameEndWait, -- 147
+	Seq({ -- 149
+		Con("need attack", function(self) -- 149
+			local attackUnits = AI:getUnitsInAttackRange() -- 150
+			for _index_0 = 1, #attackUnits do -- 151
+				local unit = attackUnits[_index_0] -- 151
+				if Data:isEnemy(self, unit) and (self.x < unit.x) == self.faceRight then -- 152
+					return App.rand % 5 ~= 0 -- 154
+				end -- 152
+			end -- 154
+			return false -- 155
+		end), -- 149
+		Act("meleeAttack") -- 156
+	}), -- 148
+	Seq({ -- 159
+		Con("need turn", function(self) -- 159
+			return (self.x < 100 and not self.faceRight) or (self.x > 3990 and self.faceRight) -- 160
+		end), -- 159
+		Act("turn") -- 161
+	}), -- 158
+	Act("walk") -- 163
+}) -- 138
+Store["SwitchAI"] = Sel({ -- 167
+	Seq({ -- 168
+		Con("is pushed", function(self) -- 168
+			return self.data.pushed -- 168
+		end), -- 168
+		Act("pushed") -- 169
+	}), -- 167
+	Act("waitUser") -- 171
+}) -- 166
+local switches = Group({ -- 174
+	"switch" -- 174
+}) -- 174
+local turnToSwitch = Seq({ -- 176
+	Con("go to switch", function(self) -- 176
+		return switches:each(function(item) -- 176
+			if item.group == self.group and self.entity and self.entity.targetSwitch == item.switch then -- 177
+				return (self.x > item.unit.x) == self.faceRight -- 178
+			end -- 177
+		end) -- 178
+	end), -- 176
+	Act("turn"), -- 179
+	Reject() -- 180
+}) -- 175
+Store["BunnySwitcherAI"] = Sel({ -- 183
+	Seq({ -- 184
+		Con("is dead", function(self) -- 184
+			return self.entity.hp <= 0 -- 184
+		end), -- 184
+		Accept() -- 185
+	}), -- 183
+	Seq({ -- 188
+		Con("is falling", function(self) -- 188
+			return not self.onSurface -- 188
+		end), -- 188
+		Act("fallOff") -- 189
+	}), -- 187
+	gameEndWait, -- 191
+	Seq({ -- 193
+		Con("need attack", function(self) -- 193
+			local attackUnits = AI:getUnitsInAttackRange() -- 194
+			for _index_0 = 1, #attackUnits do -- 195
+				local unit = attackUnits[_index_0] -- 195
+				if Data:isEnemy(self, unit) and (self.x < unit.x) == self.faceRight then -- 196
+					return App.rand % 5 ~= 0 -- 198
+				end -- 196
+			end -- 198
+			return false -- 199
+		end), -- 193
+		Act("meleeAttack") -- 200
+	}), -- 192
+	Seq({ -- 203
+		Con("at switch", function(self) -- 203
+			local _with_0 = self.data -- 203
+			return (_with_0.atSwitch ~= nil) and _with_0.atSwitch.entity.switch == self.entity.targetSwitch -- 204
+		end), -- 203
+		Sel({ -- 206
+			Seq({ -- 207
+				Con("switch available", function(self) -- 207
+					return heroes:each(function(hero) -- 207
+						if self.group ~= hero.group then -- 208
+							return false -- 208
+						end -- 208
+						local needEP, available -- 209
+						do -- 209
+							local _exp_0 = self.entity.targetSwitch -- 209
+							if "Switch" == _exp_0 then -- 210
+								local bunnyCount = 0 -- 211
+								Group({ -- 212
+									"bunny" -- 212
+								}):each(function(bunny) -- 212
+									if bunny.group == self.group then -- 213
+										bunnyCount = bunnyCount + 1 -- 213
+									end -- 213
+								end) -- 212
+								needEP, available = 1, bunnyCount < MaxBunnies -- 214
+							elseif "SwitchG" == _exp_0 then -- 215
+								needEP, available = 2, hero.defending -- 216
+							end -- 216
+						end -- 216
+						if hero.ep >= needEP and available then -- 217
+							if not self.data.atSwitch:isDoing("pushed") then -- 218
+								if self.entity.targetSwitch == "SwitchG" then -- 219
+									hero.defending = false -- 219
+								end -- 219
+								return true -- 220
 							end -- 218
-						end -- 218
-						if hero.ep >= needEP and available then -- 219
-							if not self.data.atSwitch:isDoing("pushed") then -- 220
-								if self.entity.targetSwitch == "SwitchG" then -- 221
-									hero.defending = false -- 221
-								end -- 221
-								return true -- 222
-							end -- 220
-						end -- 219
-						return false -- 223
-					end) -- 223
-				end), -- 209
-				Act("pushSwitch") -- 224
-			}), -- 208
-			turnToSwitch, -- 226
-			Act("idle") -- 227
-		}) -- 207
-	}), -- 204
-	Seq({ -- 231
-		Con("need turn", function(self) -- 231
-			return (self.x < 100 and not self.faceRight) or (self.x > 3990 and self.faceRight) -- 232
-		end), -- 231
-		Act("turn") -- 233
-	}), -- 230
-	turnToSwitch, -- 235
-	Act("walk") -- 236
-}) -- 184
+						end -- 217
+						return false -- 221
+					end) -- 221
+				end), -- 207
+				Act("pushSwitch") -- 222
+			}), -- 206
+			turnToSwitch, -- 224
+			Act("idle") -- 225
+		}) -- 205
+	}), -- 202
+	Seq({ -- 229
+		Con("need turn", function(self) -- 229
+			return (self.x < 100 and not self.faceRight) or (self.x > 3990 and self.faceRight) -- 230
+		end), -- 229
+		Act("turn") -- 231
+	}), -- 228
+	turnToSwitch, -- 233
+	Act("walk") -- 234
+}) -- 182

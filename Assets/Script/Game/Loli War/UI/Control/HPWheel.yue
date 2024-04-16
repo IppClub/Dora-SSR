@@ -13,8 +13,6 @@ import "UI.View.EPHint"
 {
 	:GroupPlayer
 	:GroupEnemy
-	:GroupPlayerBlock
-	:GroupEnemyBlock
 	:MaxEP
 	:MaxHP
 } = Data.store

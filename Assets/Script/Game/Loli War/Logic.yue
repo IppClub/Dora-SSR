@@ -13,16 +13,13 @@ store: Store = Data
 	:GroupPlayer
 	:GroupEnemy
 	:GroupDisplay
-	:GroupTerrain
 	:GroupPlayerBlock
 	:GroupEnemyBlock
 	:GroupPlayerPoke
 	:GroupEnemyPoke
 	:LayerBunny
-	:LayerReadMe
 	:LayerPlayerHero
 	:LayerEnemyHero
-	:LayerBackground
 	:LayerBlock
 	:MaxEP
 	:MaxHP
@@ -129,7 +126,7 @@ with Observer "Add", ["bunny", "group", "layer", "position", "faceRight", "AI"]
 			if var == "hp" and @[var] ~= nil
 				continue
 			@[var] = def[var]
-		unit = with Unit def, world, @, position
+		with Unit def, world, @, position
 			.group = group
 			.faceRight = faceRight
 			.order = layer
