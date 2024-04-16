@@ -45,7 +45,7 @@
     "remark-gfm": "^4.0.0",
     "source-map": "0.7.3",
     "tailwindcss": "^3.0.2",
-    "typescript": "5.3.3"
+    "typescript": "5.4.2"
   },
   "scripts": {
     "start": "node scripts/start.js",

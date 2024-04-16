@@ -96,6 +96,16 @@ interface ObjectConstructor {
 	 * @param o 包含属性和方法的对象。这可以是您创建的对象或现有的文档对象模型（DOM）对象。
 	 */
 	keys(o: object): string[];
+
+	/**
+	 * 根据传递的回调函数的返回值对可迭代对象的成员进行分组。
+	 * @param items 可迭代对象。
+	 * @param keySelector 会对items中的每个项目调用的回调。
+	 */
+	groupBy<K extends PropertyKey, T>(
+		items: Iterable<T>,
+		keySelector: (item: T, index: number) => K,
+	): Partial<Record<K, T[]>>;
 }
 
 /**
@@ -1338,6 +1348,16 @@ interface Map<K, V> {
 interface MapConstructor {
 	new (): Map<any, any>;
 	new <K, V>(entries?: readonly (readonly [K, V])[] | null): Map<K, V>;
+
+	/**
+	 * 根据传递的回调函数的返回值对可迭代对象的成员进行分组。
+	 * @param items 可迭代对象。
+	 * @param keySelector 会为 items 中的每个项目调用的回调。
+	 */
+	groupBy<K, T>(
+		items: Iterable<T>,
+		keySelector: (item: T, index: number) => K,
+	): Map<K, T[]>;
 }
 declare var Map: MapConstructor;
 
