@@ -2,7 +2,7 @@
   <img src='Assets/Image/logo.png' alt='Dora SSR' width='300px'/>
 </p>
 
-# Dora SSR
+# 多萝珍奇引擎（Dora SSR）
 
 #### [English](README.md)  | 中文
 
@@ -331,4 +331,4 @@ fn main () {
 
 ## 许可证
 
-Dora SSR使用[MIT许可证](LICENSE)。
+Dora SSR使用[MIT许可证](LICENSE)。原为Dorothy SSR项目，项目名称现处于更名程序中。

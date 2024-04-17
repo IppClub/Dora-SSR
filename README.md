@@ -2,7 +2,7 @@
   <img src='Assets/Image/logo.png' alt='Dora SSR' width='300px'/>
 </p>
 
-# Dora SSR
+# Dora SSR (多萝珍奇引擎)
 
 #### English | [中文](README.zh-CN.md)
 
@@ -334,4 +334,4 @@ Welcome to participate in the development and maintenance of Dora SSR. Please se
 
 ## License
 
-Dora SSR uses the [MIT License](LICENSE).
+Dora SSR uses the [MIT License](LICENSE). The project was originally named Dorothy SSR and is currently undergoing a renaming process.
