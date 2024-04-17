@@ -6,13 +6,20 @@
 
 #### English | [中文](README.zh-CN.md)
 
-&emsp;&emsp;Dora SSR is a game engine for rapid development of 2D games on various devices. It has a built-in easy-to-use development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
+![Static Badge](https://img.shields.io/badge/C%2B%2B20-game_engine-yellow?logo=c%2B%2B) ![Static Badge](https://img.shields.io/badge/Rust-scripting-e36f39?logo=rust) ![Static Badge](https://img.shields.io/badge/Lua-scripting-blue?logo=lua) ![Static Badge](https://img.shields.io/badge/Teal-scripting-blue) ![Static Badge](https://img.shields.io/badge/YueScript-scripting-blue) ![Static Badge](https://img.shields.io/badge/TypeScript-scripting-blue?logo=typescript&logoColor=white) ![Static Badge](https://img.shields.io/badge/TSX-scripting-blue?logo=typescript&logoColor=white)
+ ![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg) ![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg) ![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg) ![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg) ![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)
 
-|Android|Linux|Windows|macOS|iOS|
-|:-:|:-:|:-:|:-:|:-:|
-|[![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml)|[![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml)|[![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml)|[![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml)|[![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml)|
+Dora SSR is a game engine for rapid development of 2D games on various devices. It has a built-in easy-to-use development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
 
 <img src='Site/static/img/3.png' alt='Playground' width='600px'/>
+
+## Dora SSR Joins the Open Atom Foundation
+
+We are delighted to announce that the Dora SSR project has officially become a donation and incubation preparatory project under the Open Atom Foundation. This new stage of development signifies our steadfast commitment to building a more open and collaborative gaming development environment.
+
+### About the Open Atom Foundation
+
+The Open Atom Foundation is a non-profit organization dedicated to supporting and promoting the development of open-source technologies. Within this foundation's community, Dora SSR will utilize broader resources and community support to propel the project's development and innovation. For more information, please visit the [foundation's official website](https://openatom.org/).
 
 ## Key Features
 
