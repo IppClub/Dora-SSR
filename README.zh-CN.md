@@ -6,13 +6,20 @@
 
 #### [English](README.md)  | 中文
 
+![Static Badge](https://img.shields.io/badge/C%2B%2B20-game_engine-yellow?logo=c%2B%2B) ![Static Badge](https://img.shields.io/badge/Rust-scripting-e36f39?logo=rust) ![Static Badge](https://img.shields.io/badge/Lua-scripting-blue?logo=lua) ![Static Badge](https://img.shields.io/badge/Teal-scripting-blue) ![Static Badge](https://img.shields.io/badge/YueScript-scripting-blue) ![Static Badge](https://img.shields.io/badge/TypeScript-scripting-blue?logo=typescript&logoColor=white) ![Static Badge](https://img.shields.io/badge/TSX-scripting-blue?logo=typescript&logoColor=white)
+ ![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg) ![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg) ![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg) ![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg) ![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)
+
 &emsp;&emsp;Dora SSR是一个用于多种设备上快速开发2D游戏的游戏引擎。它内置易用的开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
 
-|Android|Linux|Windows|macOS|iOS|
-|:-:|:-:|:-:|:-:|:-:|
-|[![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml)|[![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml)|[![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml)|[![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml)|[![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml)|
-
 <img src='Site/static/img/3.png' alt='Playground' width='600px'/>
+
+## Dora SSR 项目现已加入开放原子开源基金会
+
+&emsp;&emsp;我们很高兴地宣布，Dora SSR 项目现已成为开放原子开源基金会的官方捐赠和孵化筹备期项目。这一新的发展阶段标志着我们致力于建设一个更开放、更协作的游戏开发环境的坚定承诺。
+
+### 关于开放原子开源基金会
+
+&emsp;&emsp;开放原子开源基金会（Open Atom Foundation）是一个非盈利组织，旨在支持和推广开源技术的发展。在该基金会的大家庭中，Dora SSR 会利用更广泛的资源和社区支持，以推动项目的发展和创新。更多信息请查看[基金会官网](https://openatom.org/)。
 
 ## 主要特点
 
