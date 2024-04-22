@@ -9,7 +9,7 @@ import "@site/src/languages/highlight";
 # 给 Moonscript 重写编译器的故事
 
 <p align="center">
-  <img src='/zh-hans/img/tokyo-moon.jpg' alt="tokyo moon" height="300px"/>
+  <img src='/img/tokyo-moon.jpg' alt="tokyo moon" height="300px"/>
 </p>
 
 ## Moonscript 是一门极为小众的编程语言
@@ -17,7 +17,7 @@ import "@site/src/languages/highlight";
 &emsp;&emsp;Moonscript 是一门编译成为 Lua 代码并在 Lua 虚拟机运行的编程语言。主要语法和特性借鉴于 Coffeescript。这门语言的优势在于语言简练、具有较强表达力的同时能保留尽可能高的可读性，在表达力和可读性之间取得一个比较好的平衡点。有较为克制不那么 corner case 的语法糖。用来写一些经常变化的业务逻辑非常省力，实践下来编写相同的游戏开发类的业务逻辑，用 Moonscript 比写原生的 Lua 能缩减到 1/2，甚至到 1/3 的代码量，更少的代码对减少 Bug 的产生或是问题排查也有很多帮助。另外这门语言还有一个重要特点，据 Discord 群里的老哥说，全世界范围内的活跃用户可能只有 20 多人。还有一个更重要的特点就是这是一门 Sailor Moon Themed 的编程语言。
 
 <p align="center">
-  <img src='/zh-hans/img/moonscript.png' alt="logo里暗藏情怀" height="200px"/>
+  <img src='/img/moonscript.png' alt="logo里暗藏情怀" height="200px"/>
    logo里暗藏情怀
 </p>
 
@@ -92,7 +92,7 @@ switch (node->getId()) {
 
 ## 方言中的方言——Yuescript 语言的生产应用
 
-&emsp;&emsp;Yuescript 在创作之初其实有一直绑定了一个开源的游戏引擎项目 Dora SSR (https://dora-ssr.net/zh-Hans )，可以说 Yuescript 的一个重要的创作目标，就是为了让支持 Lua 语言的 Dora SSR 开源游戏引擎用上升级版的 Moonscript 语言。结合 Dora SSR 的 Web IDE，我们还给 Yuescript 语言稍微增加了一点点代码编辑器上的类型推导和代码补全的辅助能力。
+&emsp;&emsp;Yuescript 在创作之初其实有一直绑定了一个开源的游戏引擎项目 Dora SSR (https://dora-ssr.net )，可以说 Yuescript 的一个重要的创作目标，就是为了让支持 Lua 语言的 Dora SSR 开源游戏引擎用上升级版的 Moonscript 语言。结合 Dora SSR 的 Web IDE，我们还给 Yuescript 语言稍微增加了一点点代码编辑器上的类型推导和代码补全的辅助能力。
 
 &emsp;&emsp;我特别喜欢在参加一些 Game Jam 活动的时候，和策划伙伴一顿头脑风暴，然后掏出 Dora SSR 引擎和 Yuescript 就是一阵不考虑太多编程设计且“不计后果”的糊玩法编码。当然编程设计也不能说是完全没有，结合 Dora SSR 游戏引擎的消息系统机制 + Yuescript 函数式风格编程的写法。Game Jam 里埋头花几个钟头写 1k 行代码左右，在一个函数内把游戏 demo 写完也是没有问题的。在 [Dora SSR 的仓库](https://github.com/IppClub/Dora-SSR/tree/main/Assets/Script/Game) 里也可以看到我们过往糊的各种 Game Jam 小游戏的 Yuescript 源码。
 
