@@ -1,0 +1,75 @@
+---
+authors: [lijin]
+tags: [Yuescript, Lua]
+---
+
+import "@site/src/languages/highlight";
+
+# The Tale of Rewriting the Moonscript Compiler
+
+<p align="center">
+  <img src='/img/tokyo-moon.jpg' alt="tokyo moon" height="300px"/>
+</p>
+
+## Moonscript: A Niche Language with a Twist
+
+Moonscript is a fascinating programming language that compiles into Lua and runs on the Lua virtual machine. Its syntax and features draw inspiration from Coffeescript, offering a sweet spot between expressiveness and readability—minimizing code while maximizing clarity. It's particularly adept at handling frequently changing business logic, allowing developers to slash code volumes significantly when compared to native Lua—sometimes down to a third! This not only saves time but also reduces bugs and troubleshooting headaches. But perhaps one of its quirkiest features, as revealed by a seasoned developer in a Discord chat, is its dedicated global but modest-sized user base and its delightful Sailor Moon-themed aesthetic.
+
+<p align="center">
+  <img src='/img/moonscript.png' alt="emotions embedded" height="200px"/>
+</p>
+
+## Open Source and Free: A Challenging Sustainability
+
+The creator of Moonscript has developed commercial sites like the indie game marketplace itch.io and the art-sharing platform streak.club using this language. To maintain stability, he paused the addition of new features and slowed down on fixing issues since 2017. Understandably, life's tough, and the creator has set up a GitHub sponsor page hoping for more support for his open-source efforts. It's unfair to expect continuous free contributions from anyone, after all.
+
+## Rewriting on My Own Terms
+
+As a die-hard fan of Moonscript, I couldn't just stand by. The original Moonscript compiler was written in Moonscript itself, with a core parser built in C using a PEG grammar library to generate ASTs, which were then processed back in Lua. This was a resource-intensive process, particularly for large projects where dynamic loading of Moonscript code could cause noticeable lag. Additionally, the dynamic nature of Lua made it ill-suited for handling strict data types in ASTs—a typical weak point in dynamic language development.
+
+So, instead of building on the existing codebase, I opted for a fresh start in my second favorite programming language, C++ (with Moonscript being the first, of course). This rewrite not only solved several unresolved issues but also reintroduced some long-missed programming features from other languages. Check out the new project here: [Yuescript](https://yuescript.org/zh).
+
+## Transpilers for Lua and PEG Grammar
+
+Nowadays, compilers that generate code in another programming language are more accurately called transpilers. Lua’s simple design allows for fast compilation with a one-pass recursive descent parser. With diverse programming preferences, many have ventured into developing transpilers from various languages like JavaScript, TypeScript, Lisp, C, Python, Go, and C# into Lua. This enhances Lua's capabilities, driven by aesthetic preferences, personalized needs, and advancing hardware that liberates computing power. Even Python’s creator once used a LL(1) grammar to ensure parser efficiency thirty years ago. With today's better hardware, more complex grammars like PEG that allow infinite backtracking for matches have become viable, improving parser flexibility and future language evolution.
+
+## The Advantages of C++ in Writing a Transpiler
+
+Describing Moonscript as a macro system on Lua isn’t far from the truth, as many of its features are essentially syntactic sugar over Lua. The process involves three steps: parsing the code into a Moon AST, converting this AST into a Lua equivalent, and finally translating that into code. C++ shines in handling ASTs with its compile-time and runtime type checking, which minimizes errors significantly. Since C++17, the language has become even more powerful and expressive. For instance, the use of template metaprogramming allows us to ensure safety and efficiency:
+
+```cpp
+// Checking if an AST node is either Exp or ExpList
+if (item.is<Exp_t, ExpList_t>()) {
+    ...
+}
+
+// Fetching the last matching node for a given AST structure
+if (auto variable =
+    node->getByPath<ChainValue_t, Callable_t, Variable_t>()) {
+    auto varName = toString(variable->name);
+    ...
+}
+
+// Handling different AST structures with a switch statement
+switch (node->getId()) {
+    case id<While_t>(): {
+        auto while_ = static_cast<While_t*>(node);
+        ...
+        break;
+    }
+    case id<For_t>(): {
+        auto for_ = static_cast<For_t*>(node);
+        ...
+        break;
+    }
+    ...
+}
+```
+
+## Yuescript in Action: More Than Just a Language
+
+Initially, Yuescript was tied to an open-source game engine project, Dora SSR (https://dora-ssr.net/zh-Hans), aiming to elevate the capabilities of the Lua-supported engine with an advanced version of Moonscript. Along with the engine’s Web IDE, Yuescript also adds modest code completion and type inference features to enhance coding efficiency.
+
+I particularly enjoy using Yuescript during Game Jams, brainstorming with teammates and then diving into coding without overthinking the design—a somewhat reckless yet fun approach to programming. Although we still integrate some programming design using Dora SSR’s messaging system combined with Yuescript’s functional style. You can see some of our frenzied Game Jam projects in Yuescript at [Dora SSR's repository](https://github.com/IppClub/Dora-SSR/tree/main/Assets/Script/Game).
+
+So, as a dialect of Lua's dialect Moonscript, Yuescript not only holds its ground in theory but has also been battle-tested in real applications within the Dora SSR project.

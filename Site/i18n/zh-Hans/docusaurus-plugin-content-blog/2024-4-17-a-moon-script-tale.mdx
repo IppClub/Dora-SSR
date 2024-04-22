@@ -1,0 +1,102 @@
+---
+authors: [lijin]
+tags: [Yuescript, Lua]
+
+---
+
+import "@site/src/languages/highlight";
+
+# 给 Moonscript 重写编译器的故事
+
+<p align="center">
+  <img src='/zh-hans/img/tokyo-moon.jpg' alt="tokyo moon" height="300px"/>
+</p>
+
+## Moonscript 是一门极为小众的编程语言
+
+&emsp;&emsp;Moonscript 是一门编译成为 Lua 代码并在 Lua 虚拟机运行的编程语言。主要语法和特性借鉴于 Coffeescript。这门语言的优势在于语言简练、具有较强表达力的同时能保留尽可能高的可读性，在表达力和可读性之间取得一个比较好的平衡点。有较为克制不那么 corner case 的语法糖。用来写一些经常变化的业务逻辑非常省力，实践下来编写相同的游戏开发类的业务逻辑，用 Moonscript 比写原生的 Lua 能缩减到 1/2，甚至到 1/3 的代码量，更少的代码对减少 Bug 的产生或是问题排查也有很多帮助。另外这门语言还有一个重要特点，据 Discord 群里的老哥说，全世界范围内的活跃用户可能只有 20 多人。还有一个更重要的特点就是这是一门 Sailor Moon Themed 的编程语言。
+
+<p align="center">
+  <img src='/zh-hans/img/moonscript.png' alt="logo里暗藏情怀" height="200px"/>
+   logo里暗藏情怀
+</p>
+
+## 开源和免费难以为继
+
+&emsp;&emsp;Moonscript 的作者因使用这门语言开发了一些商业网站，如销售独立游戏的 itch.io，以及分享绘画作品的网站 streak.club。说为了保持这门语言的稳定性，从 2017 年开始暂缓了项目的维护，不再增加新特性，甚至 issue fix 也不积极了。当然生活不易，作者还开了 github sponsor 希望他开发的开源软件能获得更多支持。我们也没理由要求别人一直免费给大家做贡献。
+
+## 不爽就自己重写
+
+&emsp;&emsp;当然，作为 Moonscript 粉丝的我对这样的状况是不能够接受的。原版 Moonscript 编译器是用 Moonscript 写的，核心是用 C 语言实现的 PEG 文法解析库解析 Moonscript 代码生成 AST 结构传到 Lua 环境中，再由 Moonscript 编译生成的 Lua 代码操作 AST 结构把Moonscript 代码翻译成 Lua 代码。这个方案还是挺浪费资源，C 语言实现的 parser 很高效，但是后续回到 Lua 环境创建大量 Lua 的数据结构，增加资源消耗和 Lua GC 时间其实并无必要，在数千行 Moonscript 代码的项目中，如果不做预编译，在运行时才动态加载 Moonscript 代码，会明显感觉到程序的长时间卡顿。另外用动态类型的语言来操作需要严格检查数据类型的 AST 结构，完全是动态语言开发的弱项。
+
+&emsp;&emsp;当然说得再多不如拿出代码有意义，所以我没有继承已有的 code base，而是直接用第二喜欢的编程语言 C++ 进行了完全的重写（第一喜欢的就是 Moonscript）。并在重写的同时顺便修复了各类作者未解决的问题，并引入一些缺失了几年的其它语言都已经用烂的编程特性。
+
+&emsp;&emsp;详见项目：[Yuescript](https://yuescript.org/zh)。
+
+## Transpilers For Lua 和 PEG 文法
+
+&emsp;&emsp;不过说到编译生成另一门编程语言的编译器，现在更准确的叫法是叫做转译器（transpiler）。Lua 语言因为语言设计的简洁，实现了只用做一次遍历的递归下降解析器，本身的编译时间极快。又因为大家各自编程喜好的不同，很多人就打起了开发其它编程语言转译成 Lua 的转译器，扩展 Lua 语言的开发能力的想法。除了 Moonscript 外现在已有各类从 Javascript、Typescript、Lisp、C、Python、Go 和C# 等等各种语言转译成 Lua 的实现。另外也有各种给 Lua 语言加上静态类型检查的想法。
+
+&emsp;&emsp;说到底还是因为大家的审美和个性化的需求的日益增长，以及硬件的发展解放了算力，让大家都不再纠结于程序文法复杂度以及程序编译期间各种开销的问题，解放了大家研发新编程语言的生产力。就如 Python 之父曾因为历史原因，在三十年前为了确保 parser 的执行效率，降低文本解析阶段的内存消耗，实现了 LL(1) 的文法，只要一个 token 的 look ahead 就足够完成文法解析。后来算力和内存提供的条件已经大大超过以前，便开始考虑采用对程序开发更加友好的PEG文法，通过使用足够多的缓存支持无限多次的文法匹配回溯（backtrace），提升解析器开发的灵活性，以增强未来 Python 语言演化的能力。
+
+&emsp;&emsp;原版 Moonscript 也是用 PEG 文法实现的。一般实现 PEG 支持的程序库都是提供通过 parser combinator 的形式编写解析器程序。我在 C++ 中先尝试了使用 meta programming 实现的在编译期构建 parser 的黑魔法库 PEGTL，结果未获得任何开发上的增益，调试困难就不用说了，如果文法有复杂度太高，或者左递归，直接编译期提示生成函数嵌套超过最大值，左递归报错是应该，正常的嵌套太深就只能尝试调大编译参数看能不能过编译了。好不容易调好了 parser 生成一看好几个M的 binary size，才发现这个库比起应用更多的只是炫技。最终我找到了 parserlib（https://github.com/axilmar/parserlib ）。运行时生成 parser，带有 AST 生成还提供一定程度的左递归文法自动解决功能，看了代码关于如何在 parse 的过程中创建 AST 的部分很精妙，就决定是它了。
+
+## 用 C++ 编写 Transpiler 的优势
+
+&emsp;&emsp;有的人形容 Moonscript 是 Lua 上的一套宏系统，的确没错，很多 Moon 的语法其实就是加了能简写代码的 Lua 语法糖。Moon 转译到 Lua 只要做三步操作，第一步是解析代码生成 Moon AST，第二步是把 Moon AST 转换成对应的 Lua AST，最后一步把 Lua AST 转换成代码文本。用 C++ 操作 AST 结构的优势就是可以在编译期以及运行时以比较小的代价完成对 AST 结构的类型检查。
+
+&emsp;&emsp;并且到 C++17 版本 C++ 语言增加了很多新的编程特性，编程的表达力和抽象能力也已经变得更加强大。原版用 Moonscript 编写的 Moonscript 编译器用了近 5K 行代码，现在用 C++17 实现相同的业务功能也只用 5K 行多一点的代码量。Discord 群里另一位老哥也说他在 C++98 的年代写相同规模的项目预估代码量是不低于上万行的，C++17 已经带来了他没想到的语言进步。当然表达力、抽象力是增强了，用了一些黑魔法特性以后，生成的 binary size 也增大了很多。
+
+&emsp;&emsp;通过 C++ 的 meta programing 的能力，我们可以放心地写这样的代码：
+
+```cpp
+// 检查ast节点是Exp或ExpList
+if (item.is<Exp_t, ExpList_t>()) {
+    ...
+}
+
+// 检查某节点开始是否匹配某个ast结构分支
+// 并获取最后一个匹配的节点
+if (auto variable =
+    node->getByPath<ChainValue_t, Callable_t, Variable_t>()) {
+    auto varName = toString(variable->name);
+    ...
+}
+
+// 用switch语句分别处理不同的ast结构
+// id作为编译期常量由编译器自动生成，无需人手工编号
+switch (node->getId()) {
+    case id<While_t>(): {
+        auto while_ = static_cast<While_t*>(node);
+        ...
+        break;
+    }
+    case id<For_t>(): {
+        auto for_ = static_cast<For_t*>(node);
+        ...
+        break;
+    }
+    ...
+}
+```
+
+&emsp;&emsp;通过利用模板泛型参数的功能，可以将一些参数类型的检查放到编译期。如：
+
+`node->getByPath<ChainValue_t, Callable_t>()`
+
+&emsp;&emsp;就要比类似
+
+`node->getByPath("ChainValue", "Callable")`
+
+&emsp;&emsp;这样的写法少很多潜在的风险，同时进行了编译期参数检查，运行时类型匹配的两重功能，动态类型的语言是很难取代这样的优势的。在这些设施的帮助下，不用额外设计特别复杂的检查机制，错误地操作 AST 结构就会产生明确的编译报错或是运行时报错，让 C++ 写 transpiler 无比爽快和省心。 
+
+## 方言中的方言——Yuescript 语言的生产应用
+
+&emsp;&emsp;Yuescript 在创作之初其实有一直绑定了一个开源的游戏引擎项目 Dora SSR (https://dora-ssr.net/zh-Hans)，可以说 Yuescript 的一个重要的创作目标，就是为了让支持 Lua 语言的 Dora SSR 开源游戏引擎用上升级版的 Moonscript 语言。结合 Dora SSR 的 Web IDE，我们还给 Yuescript 语言稍微增加了一点点代码编辑器上的类型推导和代码补全的辅助能力。
+
+&emsp;&emsp;我特别喜欢在参加一些 Game Jam 活动的时候，和策划伙伴一顿头脑风暴，然后掏出 Dora SSR 引擎和 Yuescript 就是一阵不考虑太多编程设计且“不计后果”的糊玩法编码。当然编程设计也不能说是完全没有，结合 Dora SSR 游戏引擎的消息系统机制 + Yuescript 函数式风格编程的写法。Game Jam 里埋头花几个钟头写 1k 行代码左右，在一个函数内把游戏 demo 写完也是没有问题的。在 [Dora SSR 的仓库](https://github.com/IppClub/Dora-SSR/tree/main/Assets/Script/Game) 里也可以看到我们过往糊的各种 Game Jam 小游戏的 Yuescript 源码。
+
+&emsp;&emsp;所以对 Lua 的方言 Moonscript 的方言 Yuescript 语言的可用性，至少也是在 Dora SSR 项目中有过不少代码有在做验证啦。
+
+
+

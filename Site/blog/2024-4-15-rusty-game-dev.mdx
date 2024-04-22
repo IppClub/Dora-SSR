@@ -1,0 +1,234 @@
+---
+authors: [lijin]
+tags: [Rust, WASM]
+---
+
+import "@site/src/languages/highlight";
+
+# Cross-Platform Game Dev with Rust!
+
+## Introduction
+
+Ever since I was captivated by the magic of Warcraft III MODs in my childhood, I've held a special fondness for game scripting languages. Reflecting back on those days, using Blizzard's JASS language to create levels in Warcraft III was quite basic by today's standards—being statically typed with no garbage collection—but it represented a bold experiment in the early days of game development standards.
+
+### Why Use Scripting Languages for Game Development?
+
+The main purpose of incorporating scripting languages into game development is to enhance the convenience of development and testing. Using lower-level languages like C++ could mean waiting for lengthy recompilations with every single line of code changed. Scripting languages allow for hot-loading of gameplay code, significantly boosting development efficiency.
+
+Over time, dynamic scripting languages like Lua and JavaScript have become regulars in game development. However, as programming languages have evolved, we have the opportunity to redefine the new standards for game scripting languages—a blend of retro and innovation, namely, the combination of Rust and WASM.
+
+## Rust + WASM + Dora SSR: Redefining Game Script Development
+
+Combining Rust with WASM enables us to conduct game updates and testing on devices like Android or iOS without sacrificing performance and without relying on traditional app development toolchains. Moreover, with the help of the Dora SSR open-source game engine's Web IDE interface, games written in Rust can be compiled once and then tested and run on various gaming devices.
+
+### Why Choose Rust?
+
+Rust offers unparalleled memory safety guarantees and operates without the need for a garbage collector, making it ideal for game development, especially in performance-sensitive scenarios. With WASM, Rust not only delivers high performance but also maintains consistency and security across platforms.
+
+### Quick Start Guide
+
+Before diving into development, we need to install the Dora SSR game engine. This engine supports multiple platforms including Windows, Linux, macOS, iOS, and Android. For specific installation steps and requirements, please refer to the official Quick Start Guide: [Dora SSR Quick Start](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start).
+
+<p align="center">
+  <img src='/img/rusty-0.jpg' alt='Dora SSR v1.3.17 running on macOS'/>
+   Dora SSR v1.3.17 running on macOS
+</p>
+
+#### Step One: Create a New Project
+
+Once the Dora SSR engine is running, open the Dora SSR Web IDE in your browser, right-click on the left-side game resource tree, and choose 'New' to create a new folder named 'Hello'.
+
+<p align="center">
+  <img src='/img/rusty-1.jpg' alt="Accessing Dora SSR's Web IDE and creating a new folder in the browser"/>
+   Accessing Dora SSR's Web IDE and creating a new folder in the browser
+</p>
+
+#### Step Two: Write the Game Code
+
+Next, create a new Rust project from the command line:
+
+```shell
+rustup target add wasm32-wasi
+cargo new hello-dora --name init
+cd hello-dora
+cargo add dora_ssr
+```
+
+Write the code in `src/main.rs`:
+
+```rust
+use dora_ssr::*;
+
+fn main() {
+    let mut sprite = match Sprite::with_file("Image/logo.png") {
+        Some(sprite) => sprite,
+        None => return,
+    };
+    let mut sprite_clone = sprite.clone();
+    sprite.schedule(once(move |mut co| async move {
+        for i in (1..=3).rev() {
+            p!("{}", i);
+            sleep!(co, 1.0);
+        }
+        p!("Hello World");
+        sprite_clone.perform_def(ActionDef::sequence(&vec![
+            ActionDef::scale(0.1, 1.0, 0.5, EaseType::Linear),
+            ActionDef::scale(0.5, 0.5, 1.0, EaseType::OutBack),
+        ]));
+    }));
+}
+```
+
+Build the WASM file:
+
+```shell
+cargo build --release --target wasm32-wasi
+```
+
+#### Step Three: Upload and Run the Game
+
+In the Dora SSR Web IDE, right-click the newly created 'Hello' folder, select 'Upload', and upload the compiled WASM file `init.wasm`.
+
+<p align="center">
+  <img src='/img/rusty-2.jpg' alt="Uploading files through the Web IDE"/>
+   Uploading files through the Web IDE
+</p>
+
+Alternatively, use a helper script to upload the WASM file within the Rust project folder. Here’s the command, where the IP parameter should be the address shown in Dora SSR’s Web IDE after startup, and the last parameter is the relative path of the directory to upload:
+
+```shell
+python3 upload.py "192.168.3.1" "Hello"
+```
+
+<p align="center">
+  <img src='/img/rusty-3.jpg' alt="Using a script for one-click compile, upload, and run"/>
+   Using a script for one-click compile, upload, and run
+</p>
+
+#### Step Four: Publish the Game
+
+In the editor's left-side game resource tree, right-click the newly created project folder and choose 'Download'.
+
+Wait for the browser to prompt with a download notification for the packaged project files.
+
+## How It's Implemented
+
+In Dora SSR, implementing support for Rust language development and embedding the WASM runtime was a new technical exploration and trial, involving three key steps:
+
+### 1. Design of the Interface Definition Language (IDL)
+
+To embed the WASM runtime in a C++-written game engine and support Rust, it was first necessary to design an Interface Definition Language (IDL) to facilitate communication and data exchange between different programming languages. Below is an example of a WASM IDL designed for Dora SSR, based on the native C++ programming interface with added annotations needed to transition to Rust interfaces, such as object, readonly, and optional. One of the challenges in cross-language interface mapping is the object-oriented interface design of C++, as Rust does not provide complete object-oriented capabilities, requiring additional code in Rust to simulate some object-oriented features. Fortunately, this language difference is not overly large or complex to manage.
+
+```cpp
+object class EntityGroup @ Group
+{
+    readonly common int count;
+    optional readonly common Entity* first;
+    optional Entity* find(function<bool(Entity* e)> func) const;
+    static EntityGroup* create(VecStr components);
+};
+```
+
+Considering the differences between C++'s object-oriented features and Rust's design philosophy, we partially simulated object-oriented behavior in Rust, necessitating additional mechanisms in Rust to correspond to C++ classes and methods. Although this approach increased the development workload, it maintained the cleanliness of the interface and the maintainability of the system.
+
+### 2. Generating Glue Code
+
+The second step involved writing a program to generate the glue code that facilitates calls between C++, WASM, and Rust through the IDL. For this purpose, we chose to use Yuescript, a dynamic programming language based on Lua, developed as part of the Dora SSR project. Yuescript combines the flexibility and lightweight nature of Lua with the rich syntax and features necessary for complex code generation tasks, utilizing Lua's lpeg syntax parsing library to handle IDL parsing and glue code generation. Below is an excerpt from the IDL parser written using PEG grammar in Yuescript.
+
+```lua
+Param = P {
+    "Param"
+    Param: V"Func" * White * Name / mark"callback" + Type * White * Name / mark"variable"
+    Func: Ct P"function<" * White * Type * White * Ct P"(" * White * (V"Param" * (White * P"," * White * V"Param")^0 * White)^-1 * P")" * White * P">"
+}
+
+Method = Docs * Ct(White * MethodLabel) * White * Type * White * (C(P"operator==") + Name) * White * (P"@" * White * Name + Cc false) * White * Ct(P"(" * White * (Param * (White * P"," * White * Param)^0 * White)^-1 * P")") * White * C(P"const")^-1 * White * P";" / mark"method"
+```
+
+### 3. Embedding WASM Runtime and Code Integration
+
+The final step was to embed the WASM runtime and the generated C++ glue code into the game engine, completing the code integration. For the WASM runtime, we chose WASM3, a high-performance, lightweight WebAssembly interpreter that supports multiple CPU architectures. This choice simplifies the complexity of the compilation chain and enhances cross-platform compatibility. By doing so, Dora SSR can support games developed in Rust running on hardware devices with various architectures, greatly enhancing the accessibility and flexibility of game projects.
+
+During the integration process, we released a crate package for Rust developers, which includes all necessary interfaces and tools, enabling developers to easily develop and republish other game modules written in Rust based on the Dora SSR game engine.
+
+## Performance Comparison
+
+Dora SSR supports Lua scripting as well, currently using the Lua 5.5 version virtual machine. Like WASM3, it does not perform JIT compilation of real-time machine code but interprets script codes within the virtual machine. This setting allows us to make some performance comparisons between these two scripting approaches.
+
+Before delving into comparisons, it's evident that disregarding Lua's garbage collection time, the inherent dynamics of Lua mean that C++ mappings to Lua interfaces must perform runtime checks for input parameter types. Moreover, accessing Lua object properties requires runtime searches through a hash table structure—costs that Rust's static typing and WASM virtual machine either avoid or minimize. Here are some basic performance tests focusing on cross-language calling and parameter passing efficiency, specifically selecting interfaces that require minimal computational processing on the C++ side.
+
+* Rust Test Code
+
+```rust
+let mut root = Node::new();
+let node = Node::new();
+
+let start = App::get_elapsed_time();
+for _ in 0..10000 {
+	root.set_transform_target(&node);
+}
+p!("object passing time: {} ms", (App::get_elapsed_time() - start) * 1000.0);
+
+let start = App::get_elapsed_time();
+for _ in 0..10000 {
+	root.set_x(0.0);
+}
+p!("number passing time: {} ms", (App::get_elapsed_time() - start) * 1000.0);
+
+let start = App::get_elapsed_time();
+for _ in 0..10000 {
+	root.set_tag("Tag name");
+}
+p!("string passing time: {} ms", (App::get_elapsed_time() - start) * 1000.0);
+```
+
+* Lua Test Code
+
+```lua
+local root = Node()
+local node = Node()
+
+local start = App.elapsedTime
+for i = 1, 10000 do
+	root.transformTarget = node
+end
+print("object passing time: " .. tostring((App.elapsedTime - start) * 1000) .. " ms")
+
+start = App.elapsedTime
+for i = 1, 10000 do
+	root.x = 0
+end
+print("number passing time: " .. tostring((App.elapsedTime - start) * 1000) .. " ms")
+
+start = App.elapsedTime
+for i = 1, 10000 do
+	root.tag = "Tag name"
+end
+print("string passing time: " .. tostring((App.elapsedTime - start) * 1000) .. " ms")
+```
+
+### Performance Results
+
+```
+Rust + WASM:
+object passing time: 0.6279945373535156 ms
+number passing time: 0.5879402160644531 ms
+string passing time: 3.543853759765625 ms
+
+Lua:
+object passing time: 6.7338943481445 ms
+number passing time: 2.687931060791 ms
+string passing time: 4.2259693145752 ms
+```
+
+As observed, aside from string type interface calling, Lua's cross-language calling performance in Dora SSR is almost an order of magnitude slower than WASM's. The slight difference in string handling is likely due to the bulk of performance loss occurring during string object copying, a minor concern compared to cross-language calling overheads.
+
+## User Experience Discussion
+
+Introducing Rust into game development has offered a distinct boost in productivity compared to traditional approaches, especially when integrating with large language models like ChatGPT for code generation assistance. Unlike C or C++—or even many dynamic languages—where generated code might compile but often contains hidden runtime errors and defects such as memory leaks or misuse of pointers and references, Rust's strict compiler environment provides a more stable and secure coding environment for game development.
+
+Rust's ownership and borrowing mechanisms, along with its design for type and memory safety, allow many potential issues to be caught and corrected during compilation. By supporting Rust in the Dora SSR game engine, I've found that scripting for games is not only safer but also more efficient, transforming game development from a process of debugging to one focused more on creation and realization.
+
+## Conclusion
+
+Opting for Dora SSR + Rust as a game development toolkit is not just about being on the cutting edge of technology—it's a new exploration of the game development process itself. I warmly invite every game development enthusiast to join our community and embark on this exciting technological journey. Visit our [GitHub repository](https://github.com/IppClub/Dora-SSR) for more information and to get involved. Let's start a new era of game development together!
