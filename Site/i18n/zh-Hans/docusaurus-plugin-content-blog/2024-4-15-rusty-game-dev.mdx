@@ -1,0 +1,236 @@
+---
+authors: [lijin]
+tags: [Rust, WASM]
+---
+
+import "@site/src/languages/highlight";
+
+# 来用 Rust 开发跨平台游戏吧
+
+## 一、引言
+
+&emsp;&emsp;自从童年时代深陷 Warcraft III 的 MOD 魔力之中，我就一直对游戏脚本语言怀有特殊的情感。回想那时，使用暴雪开发的 JASS 语言开发魔兽争霸3的游戏关卡，尽管从今天的角度看 JASS 是极其简陋的，主要特点为静态类型 + 无 GC 功能，但它在那个尚未形成行业标准的年代，代表了对游戏开发语言的一种大胆尝试。
+
+### 为什么要使用脚本语言开发游戏？
+
+&emsp;&emsp;游戏脚本语言的引入主要是为了提高开发测试的便捷性。如果直接使用 C++ 这样的底层语言，每更改一行代码，都可能需要耗费大量时间等待复杂工具链的编译与打包。而通过使用脚本语言，可以对实现游戏玩法的程序进行热加载执行，显著提升游戏的开发效率。
+
+&emsp;&emsp;随着时间的推移，如 Lua 和 JavaScript 这样的动态类型脚本语言已成为游戏开发中的常客。然而，随着编程语言的发展，我们有机会重新定义游戏脚本语言的新标准——既复古又革新，这就是 Rust + WASM 的组合。
+
+## 二、Rust + WASM + Dora SSR：重新定义游戏脚本开发
+
+&emsp;&emsp;通过结合 Rust 和 WASM，我们可以在不牺牲性能的前提下，直接在例如 Android 或 iOS 设备上进行游戏热更新和测试，且无需依赖传统的应用开发工具链。此外，借助 Dora SSR 开源游戏引擎的 Web IDE 接口，使用 Rust 编写的游戏代码可以一次编译后，在多种游戏设备上进行测试和运行。
+
+### 为何选择 Rust？
+
+&emsp;&emsp;Rust 提供了无与伦比的内存安全保证，而且无需垃圾收集器（GC）的介入，这使得它非常适合游戏开发，尤其是在性能敏感的场景下。结合 WASM，Rust 不仅能够提供高性能的执行效率，还能保持跨平台的一致性和安全性。
+
+### 快速开始指南
+
+&emsp;&emsp;在开始开发之前，我们需要安装 Dora SSR 游戏引擎。该引擎支持多种平台，包括 Windows、Linux、macOS、iOS 和 Android。具体的安装步骤和要求，请参见官方快速开始指南：[Dora SSR 快速开始](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)。
+
+<p align="center">
+  <img src='/zh-hans/img/rusty-zh-0.jpg' alt="在 macOS 上运行的 Dora SSR v1.3.17 版本"/>
+   在 macOS 上运行的 Dora SSR v1.3.17 版本
+</p>
+
+#### 第一步：创建新项目
+
+&emsp;&emsp;在 Dora SSR 引擎的二进制程序启动以后，在浏览器中打开 Dora SSR 的 Web IDE，右键点击左侧游戏资源树，选择「新建」并创建名为「Hello」的新文件夹。
+
+<p align="center">
+  <img src="/zh-hans/img/rusty-zh-1.jpg" alt="在浏览器中访问 Dora SSR 的 Web IDE 并新建文件夹"/>
+   在浏览器中访问 Dora SSR 的 Web IDE 并新建文件夹
+</p>
+
+#### 第二步：编写游戏代码
+
+&emsp;&emsp;然后在命令行中创建一个新的 Rust 项目：
+
+```shell
+rustup target add wasm32-wasi
+cargo new hello-dora --name init
+cd hello-dora
+cargo add dora_ssr
+```
+
+&emsp;&emsp;在 `src/main.rs` 中编写代码：
+
+```rust
+use dora_ssr::*;
+
+fn main () {
+  let mut sprite = match Sprite::with_file("Image/logo.png") {
+    Some(sprite) => sprite,
+    None => return,
+  };
+  let mut sprite_clone = sprite.clone();
+  sprite.schedule(once(move |mut co| async move {
+    for i in (1..=3).rev() {
+      p!("{}", i);
+      sleep!(co, 1.0);
+    }
+    p!("Hello World");
+    sprite_clone.perform_def(ActionDef::sequence(&vec![
+      ActionDef::scale(0.1, 1.0, 0.5, EaseType::Linear),
+      ActionDef::scale(0.5, 0.5, 1.0, EaseType::OutBack),
+    ]));
+  }));
+}
+```
+
+&emsp;&emsp;构建生成 WASM 文件：
+
+```shell
+cargo build --release --target wasm32-wasi
+```
+
+#### 第三步：上传并运行游戏
+
+&emsp;&emsp;在 Dora SSR Web IDE 中，右键点击新创建的文件夹「Hello」，选择「上传」并上传编译好的 WASM 文件 `init.wasm`。
+
+<p align="center">
+  <img src='/zh-hans/img/rusty-zh-2.jpg' alt="通过 Web IDE 上传文件，相比用辅助脚本操作可能要更方便"/>
+   通过 Web IDE 上传文件，相比用辅助脚本操作可能要更方便
+</p>
+
+&emsp;&emsp;或者使用辅助脚本 [upload.py](https://github.com/IppClub/Dora-SSR/blob/main/Tools/dora-rust/dora-test/upload.py) 在 Rust 项目文件夹内上传 WASM 文件，命令如下，其中的 IP 参数为 Dora SSR 启动后显示的 Web IDE 地址，后一个参数为要上传目录的相对路径：
+
+```shell
+python3 upload.py "192.168.3.1" "Hello"
+```
+
+<p align="center">
+  <img src='/zh-hans/img/rusty-3.jpg' alt="使用脚本完成一键编译、上传和开始运行"/>
+   使用脚本完成一键编译、上传和开始运行
+</p>
+
+#### 第四步：发布游戏
+
+&emsp;&emsp;在编辑器左侧游戏资源树中，右键点击刚创建的项目文件夹，选择「下载」。
+
+&emsp;&emsp;等待浏览器弹出已打包项目文件的下载提示。
+
+## 三、怎么实现的
+
+&emsp;&emsp;在 Dora SSR 中实现 Rust 语言开发支持和 WASM 运行时嵌入的过程是一次新的技术探索和尝试，主要包括三个关键步骤：
+
+### 1. 接口定义语言（IDL）的设计
+
+&emsp;&emsp;要在 C++ 编写的游戏引擎上嵌入 WASM 运行时并支持 Rust 语言，首先需要设计一种接口定义语言（IDL），以便于不同编程语言之间的通信和数据交换。以下是一个 Dora SSR 设计的 WASM IDL 示例，可以看出是以源语言 C++ 的程序接口为基础，增加一些转换到 Rust 接口所需要的信息的标签，比如 object，readonly，optional 等。做跨语言的接口映射其中有一个难点是 C++ 的接口设计是面向对象的，但是 Rust 并没有提供完整的面向对象设计的能力，所以一部分的面向对象的接口需要在 Rust 上额外编写代码进行功能的模拟，所幸这部分语言差异并没有特别巨大，也不用很复杂的机制设计就能解决。
+
+```cpp
+object class EntityGroup @ Group
+{
+	readonly common int count;
+	optional readonly common Entity* first;
+	optional Entity* find(function<bool(Entity* e)> func) const;
+	static EntityGroup* create(VecStr components);
+};
+```
+
+&emsp;&emsp;考虑到 C++ 的面向对象特性与 Rust 的设计哲学存在差异，我们在 Rust 中部分模拟了 C++ 中面向对象的行为，这需要在 Rust 中额外编写一些机制以对应 C++ 中的类和方法。这种处理方式虽然增加了一些开发工作，但保持了接口的整洁和系统的可维护性。
+
+### 2. 生成胶水代码的程序
+
+&emsp;&emsp;第二步是编写一个程序，通过 IDL 生成 C++、WASM 和 Rust 之间互相调用的胶水代码。为了实现这一点，我们选择使用 Dora SSR 项目自创的 Yuescript 语言。Yuescript 是基于 Lua 的一门动态编程语言，它结合了 Lua 语言生态中的 lpeg 语法解析库来处理 IDL 的解析和胶水代码的生成。使用 Yuescript 的好处是它继承了 Lua 的灵活性和轻量级，同时提供了更丰富的语法和功能，适合处理复杂的代码生成任务。以下是使用 PEG 文法编写的 IDL 解析器的代码节选。
+
+```lua
+Param = P {
+	"Param"
+	Param: V"Func" * White * Name / mark"callback" + Type * White * Name / mark"variable"
+	Func: Ct P"function<" * White * Type * White * Ct P"(" * White * (V"Param" * (White * P"," * White * V"Param")^0 * White)^-1 * P")" * White * P">"
+}
+
+Method = Docs * Ct(White * MethodLabel) * White * Type * White * (C(P"operator==") + Name) * White * (P"@" * White * Name + Cc false) * White * Ct(P"(" * White * (Param * (White * P"," * White * Param)^0 * White)^-1 * P")") * White * C(P"const")^-1 * White * P";" / mark"method"
+```
+
+### 3. 嵌入 WASM 运行时和代码整合
+
+&emsp;&emsp;最后一步是在游戏引擎中嵌入 WASM 运行时以及所生成的 C++ 胶水代码，完成代码的整合。对于 WASM 运行时，我们选择使用 WASM3，这是一个高性能、轻量级的 WebAssembly 解释器，它支持多种 CPU 架构，能够简化编译链的复杂性，并提高跨平台的兼容性。通过这种方式，Dora SSR 能够支持在各种架构的硬件设备上运行 Rust 开发的游戏，极大地提高了游戏项目的可访问性和灵活性。
+
+&emsp;&emsp;在整合过程中，我们发布了供 Rust 开发者使用的 crate 包，包含所有必要的接口和工具，以便开发者未来可以轻松地基于 Dora SSR 游戏引擎开发和再发布使用 Rust 语言编写的其它游戏模块。
+
+## 四、性能比较
+
+&emsp;&emsp;Dora SSR 游戏引擎同时也提供了 Lua 脚本语言的支持。目前使用的是 Lua 5.5 版本的虚拟机，和 WASM3 也是一样的没有做 JIT 的实时机器码的生成而只是在虚拟机中解释执行脚本代码。所以我们可以为这两个相近的脚本方案做一些性能比较。
+
+&emsp;&emsp;在比较之前，我们可以大概判断，不考虑 Lua 语言执行 GC 的耗时，因为 Lua 语言本身的动态特性，C++ 映射到 Lua 的程序接口往往得在运行时做接口传入参数类型的实时检查，另外 Lua 对象的成员属性的访问查找也需要在运行时通过一个 hash 结构的表进行查找，这些都是静态类型的 Rust 语言 + WASM 虚拟机不需要付出的开销，或者只用付出更小的开销的场景。以下是一些基础的性能测试的案例，专门选取了 C++ 端没有做太多计算处理的接口，来比较跨语言调用传参的性能差异。
+
+* Rust 测试代码
+
+```rust
+let mut root = Node::new();
+let node = Node::new();
+
+let start = App::get_elapsed_time();
+for _ in 0..10000 {
+	root.set_transform_target(&node);
+}
+p!("object passing time: {} ms", (App::get_elapsed_time() - start) * 1000.0);
+
+let start = App::get_elapsed_time();
+for _ in 0..10000 {
+	root.set_x(0.0);
+}
+p!("number passing time: {} ms", (App::get_elapsed_time() - start) * 1000.0);
+
+let start = App::get_elapsed_time();
+for _ in 0..10000 {
+	root.set_tag("Tag name");
+}
+p!("string passing time: {} ms", (App::get_elapsed_time() - start) * 1000.0);
+```
+
+* Lua 测试代码
+
+```lua
+local root = Node()
+local node = Node()
+
+local start = App.elapsedTime
+for i = 1, 10000 do
+	root.transformTarget = node
+end
+print("object passing time: " .. tostring((App.elapsedTime - start) * 1000) .. " ms")
+
+start = App.elapsedTime
+for i = 1, 10000 do
+	root.x = 0
+end
+print("number passing time: " .. tostring((App.elapsedTime - start) * 1000) .. " ms")
+
+start = App.elapsedTime
+for i = 1, 10000 do
+	root.tag = "Tag name"
+end
+print("string passing time: " .. tostring((App.elapsedTime - start) * 1000) .. " ms")
+```
+
+### 运行结果
+
+```
+Rust + WASM:
+object passing time: 0.6279945373535156 ms
+number passing time: 0.5879402160644531 ms
+string passing time: 3.543853759765625 ms
+
+Lua:
+object passing time: 6.7338943481445 ms
+number passing time: 2.687931060791 ms
+string passing time: 4.2259693145752 ms
+```
+
+&emsp;&emsp;可以看出，除了字符串类型的接口传参调用外，在 Dora SSR 中实现的其它类型的接口的 Lua 跨语言调用性能要比 WASM 跨语言调用几乎慢一个数量级。字符串类型的接口推断是因为性能消耗大头主要都是在字符串对象的拷贝上，跨语言调用的开销远比内存拷贝的开销小，所以结果差距不大。
+
+## 五、用户体验之谈
+
+&emsp;&emsp;在游戏开发中引入 Rust 语言，我个人体验到了与传统所不同的生产力提升，特别是在与大型语言模型（如 ChatGPT）进行代码生成辅助方面。与传统的 C 或 C++ 相比，Rust 的严格编译器为游戏开发提供了一个更加稳固和安全的编程环境。
+
+&emsp;&emsp;比如使用大语言模型辅助编码时，在生成 C 或 C++ 甚至很多动态类型的语言时，尽管很多时候生成的代码可以通过编译，但在运行时往往仍隐藏着许多难以察觉的错误和缺陷。这些问题可能包括内存泄漏、指针或是引用误用等等，这些都是游戏开发中常见且难以调试的问题。然而，在 Rust 中，许多这类问题都可以在编译阶段被有效捕捉并修正，这得益于 Rust 的所有权和借用机制，以及其在类型安全和内存安全方面的设计优势。
+
+&emsp;&emsp;通过在 Dora SSR 游戏引擎中引入对 Rust 的支持，我发现编写游戏脚本不仅更加安全，也更加高效。这使得游戏开发不再是一个错误排查的过程，而是一个更加专注于创造和实现想象中游戏的过程。Rust 的这些优势，加上 WASM 的跨平台能力，极大地扩展了我们的游戏开发能力和可能性。
+
+## 六、结语
+
+&emsp;&emsp;选择 Dora SSR + Rust 作为游戏开发工具不仅是追求技术的前沿，也是对游戏开发流程的一次新的探索。在这里诚邀每一位热爱游戏开发的朋友加入我们的社区，一同探索这一激动人心的技术旅程。欢迎访问我们的 [GitHub 仓库](https://github.com/IppClub/Dora-SSR) 来了解更多信息，并参与到我们的开发中来。一起开创游戏开发的新纪元吧！
