@@ -242,7 +242,6 @@
 		3CA77EF22AE665C100B7BADA /* DynamicTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E502AE665C000B7BADA /* DynamicTree.cpp */; };
 		3CA77EF32AE665C100B7BADA /* DistanceProxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E522AE665C000B7BADA /* DistanceProxy.cpp */; };
 		3CA77EF42AE665C100B7BADA /* RopeJointConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E532AE665C000B7BADA /* RopeJointConf.cpp */; };
-		3CA77EF52AE665C100B7BADA /* ClipList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E542AE665C000B7BADA /* ClipList.cpp */; };
 		3CA77EF62AE665C100B7BADA /* WorldContact.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E552AE665C000B7BADA /* WorldContact.cpp */; };
 		3CA77EF72AE665C100B7BADA /* WorldBody.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E592AE665C000B7BADA /* WorldBody.cpp */; };
 		3CA77EF82AE665C100B7BADA /* TimeOfImpact.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77E5C2AE665C000B7BADA /* TimeOfImpact.cpp */; };
@@ -993,7 +992,6 @@
 		3CA77E512AE665C000B7BADA /* WorldManifold.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WorldManifold.hpp; sourceTree = "<group>"; };
 		3CA77E522AE665C000B7BADA /* DistanceProxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DistanceProxy.cpp; sourceTree = "<group>"; };
 		3CA77E532AE665C000B7BADA /* RopeJointConf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RopeJointConf.cpp; sourceTree = "<group>"; };
-		3CA77E542AE665C000B7BADA /* ClipList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClipList.cpp; sourceTree = "<group>"; };
 		3CA77E552AE665C000B7BADA /* WorldContact.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WorldContact.cpp; sourceTree = "<group>"; };
 		3CA77E562AE665C000B7BADA /* Velocity.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Velocity.hpp; sourceTree = "<group>"; };
 		3CA77E572AE665C000B7BADA /* ConvexHull.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ConvexHull.hpp; sourceTree = "<group>"; };
@@ -1029,7 +1027,6 @@
 		3CA77E752AE665C000B7BADA /* WorldConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WorldConf.hpp; sourceTree = "<group>"; };
 		3CA77E762AE665C000B7BADA /* WorldContact.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WorldContact.hpp; sourceTree = "<group>"; };
 		3CA77E772AE665C000B7BADA /* RopeJointConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RopeJointConf.hpp; sourceTree = "<group>"; };
-		3CA77E782AE665C000B7BADA /* ClipList.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ClipList.hpp; sourceTree = "<group>"; };
 		3CA77E792AE665C000B7BADA /* ConvexHull.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConvexHull.cpp; sourceTree = "<group>"; };
 		3CA77E7A2AE665C000B7BADA /* Velocity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Velocity.cpp; sourceTree = "<group>"; };
 		3CA77E7B2AE665C000B7BADA /* BodyConstraint.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BodyConstraint.hpp; sourceTree = "<group>"; };
@@ -2509,7 +2506,6 @@
 				3CA77E512AE665C000B7BADA /* WorldManifold.hpp */,
 				3CA77E522AE665C000B7BADA /* DistanceProxy.cpp */,
 				3CA77E532AE665C000B7BADA /* RopeJointConf.cpp */,
-				3CA77E542AE665C000B7BADA /* ClipList.cpp */,
 				3CA77E552AE665C000B7BADA /* WorldContact.cpp */,
 				3CA77E562AE665C000B7BADA /* Velocity.hpp */,
 				3CA77E572AE665C000B7BADA /* ConvexHull.hpp */,
@@ -2545,7 +2541,6 @@
 				3CA77E752AE665C000B7BADA /* WorldConf.hpp */,
 				3CA77E762AE665C000B7BADA /* WorldContact.hpp */,
 				3CA77E772AE665C000B7BADA /* RopeJointConf.hpp */,
-				3CA77E782AE665C000B7BADA /* ClipList.hpp */,
 				3CA77E792AE665C000B7BADA /* ConvexHull.cpp */,
 				3CA77E7A2AE665C000B7BADA /* Velocity.cpp */,
 				3CA77E7B2AE665C000B7BADA /* BodyConstraint.hpp */,
@@ -3485,7 +3480,6 @@
 				3C1A3AF6272A850F003A2829 /* loslib.c in Sources */,
 				3C6E7F39272A30E700E9F115 /* soloud_speech.cpp in Sources */,
 				3CE9D7F51E7FC2A6003AAECB /* BodyDef.cpp in Sources */,
-				3CA77EF52AE665C100B7BADA /* ClipList.cpp in Sources */,
 				3CA77F162AE665C100B7BADA /* PoolMemoryResource.cpp in Sources */,
 				3CA77F1F2AE665C100B7BADA /* Math.cpp in Sources */,
 				3C46E8592614227300DC9D4F /* Database.cpp in Sources */,

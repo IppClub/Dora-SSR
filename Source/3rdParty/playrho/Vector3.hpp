@@ -51,8 +51,7 @@ using Mass3 = Vector3<Mass>;
 using InvMass3 = Vector3<InvMass>;
 
 /// @brief Determines whether the given vector contains finite coordinates.
-template <>
-constexpr bool IsValid(const Vec3& value) noexcept
+constexpr auto IsValid(const Vec3& value) noexcept -> bool
 {
     return IsValid(get<0>(value)) && IsValid(get<1>(value)) && IsValid(get<2>(value));
 }

@@ -215,8 +215,7 @@ using InvMass22 = Matrix22<InvMass>;
 using Mat33 = Matrix33<Real>;
 
 /// @brief Determines if the given value is valid.
-template <>
-constexpr bool IsValid(const Mat22& value) noexcept
+constexpr auto IsValid(const Mat22& value) noexcept -> bool
 {
     return IsValid(get<0>(value)) && IsValid(get<1>(value));
 }

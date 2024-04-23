@@ -562,8 +562,7 @@ namespace playrho {
 
 /// @brief Gets whether the given manifold is valid.
 /// @relatedalso d2::Manifold
-template <>
-constexpr bool IsValid(const d2::Manifold& value) noexcept
+constexpr auto IsValid(const d2::Manifold& value) noexcept -> bool
 {
     return value.GetType() != d2::Manifold::e_unset;
 }

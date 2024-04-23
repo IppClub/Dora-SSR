@@ -250,7 +250,7 @@ bool RayCast(const DynamicTree& tree, RayCastInput input, const DynamicTreeRayCa
     {
         const auto index = stack.top();
         stack.pop();
-        if (index == DynamicTree::GetInvalidSize())
+        if (index == DynamicTree::InvalidSize)
         {
             continue;
         }

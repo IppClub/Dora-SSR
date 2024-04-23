@@ -35,9 +35,14 @@
 
 namespace playrho {
 
-/// @brief Determines if the given value is valid.
+/// @brief Determines if the given value is valid, using the equality operator.
+/// @details Any value for which the comparison of that value with itself is @c true
+///   is considered valid by this function, and any value for which this comparison is
+///   @c false is said to be not valid. If this seems like an odd algorithm, be aware
+///   that this is essentially how floating point @c NaN (not-a-number) works.
+/// @see https://en.wikipedia.org/wiki/NaN
 template <typename T>
-constexpr bool IsValid(const T& value) noexcept
+constexpr auto IsValid(const T& value) noexcept -> bool
 {
     // Note: This is not necessarily a no-op!! But it is a "constexpr".
     //
@@ -52,11 +57,8 @@ constexpr bool IsValid(const T& value) noexcept
     return value == value; // NOLINT(misc-redundant-expression)
 }
 
-// IsValid template specializations.
-
 /// @brief Determines if the given value is valid.
-template <>
-constexpr bool IsValid(const std::size_t& value) noexcept
+constexpr auto IsValid(std::size_t value) noexcept -> bool
 {
     return value != static_cast<std::size_t>(-1);
 }
