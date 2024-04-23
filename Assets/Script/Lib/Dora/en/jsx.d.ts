@@ -490,6 +490,43 @@ class Polygon {
 	borderColor?: number;
 }
 
+class Rectangle {
+	/*
+	 * The width of the rectangle.
+	 */
+	width: number;
+
+	/*
+	 * The height of the rectangle.
+	 */
+	height: number;
+
+	/**
+	 * The center X position of the rectangle.
+	 */
+	centerX?: number;
+
+	/**
+	 * The center Y position of the rectangle.
+	 */
+	centerY?: number;
+
+	/*
+	 * The fill color of the rectangle in format 0xffffffff (ARGB, default is white).
+	 */
+	fillColor?: number;
+
+	/**
+	 * The width of the border (default is 0).
+	 */
+	borderWidth?: number;
+
+	/**
+	 * The color of the border in format 0xffffffff (ARGB, default is white).
+	 */
+	borderColor?: number;
+}
+
 class Verts {
 	/*
 	 * The list of vertices and their colors in format 0xffffffff (ARGB).
@@ -1455,6 +1492,11 @@ interface IntrinsicElements {
 	 * Can only be used as a child element of `<draw-node>`.
 	 */
 	'segment-shape': Segment;
+	/**
+	 * Draws a rectangle defined by width and height with a specified fill color and border.
+	 * Can only be used as a child element of `<draw-node>`.
+	 */
+	'rect-shape': Rectangle;
 	/**
 	 * Draws a polygon defined by a list of vertices with a specified fill color and border.
 	 * Can only be used as a child element of `<draw-node>`.
