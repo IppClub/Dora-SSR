@@ -325,6 +325,25 @@ let getDrawNode: (this: void, enode: React.Element) => dora.DrawNode.Type;
 					);
 					break;
 				}
+				case 'rect-shape': {
+					const rect = child.props as JSX.Rectangle;
+					const centerX = rect.centerX ?? 0;
+					const centerY = rect.centerY ?? 0;
+					const hw = rect.width / 2.0;
+					const hh = rect.height / 2.0;
+					node.drawPolygon(
+						[
+							dora.Vec2(centerX - hw, centerY + hh),
+							dora.Vec2(centerX + hw, centerY + hh),
+							dora.Vec2(centerX + hw, centerY - hh),
+							dora.Vec2(centerX - hw, centerY - hh),
+						],
+						dora.Color(rect.fillColor ?? 0xffffffff),
+						rect.borderWidth ?? 0,
+						dora.Color(rect.borderColor ?? 0xffffffff)
+					);
+					break;
+				}
 				case 'polygon-shape': {
 					const poly = child.props as JSX.Polygon;
 					node.drawPolygon(
@@ -695,18 +714,79 @@ function drawNodeCheck(this: void, _nodeStack: dora.Node.Type[], enode: React.El
 	}
 }
 
-function actionCheck(this: void, _nodeStack: dora.Node.Type[], enode: React.Element, parent?: React.Element) {
+function visitAction(this: void, actionStack: dora.ActionDef.Type[], enode: React.Element) {
+	const createAction = actionMap[enode.type];
+	if (createAction !== undefined) {
+		actionStack.push(createAction(enode.props.time, enode.props.start, enode.props.stop, enode.props.easing));
+		return;
+	}
+	switch (enode.type as keyof JSX.IntrinsicElements) {
+		case 'delay': {
+			const item = enode.props as JSX.Delay;
+			actionStack.push(dora.Delay(item.time));
+			break;
+		}
+		case 'event': {
+			const item = enode.props as JSX.Event;
+			actionStack.push(dora.Event(item.name, item.param));
+			break;
+		}
+		case 'hide': {
+			actionStack.push(dora.Hide());
+			break;
+		}
+		case 'show': {
+			actionStack.push(dora.Show());
+			break;
+		}
+		case 'move': {
+			const item = enode.props as JSX.Move;
+			actionStack.push(dora.Move(item.time, dora.Vec2(item.startX, item.startY), dora.Vec2(item.stopX, item.stopY), item.easing));
+			break;
+		}
+		case 'spawn': {
+			const spawnStack: dora.ActionDef.Type[] = [];
+			for (let i of $range(1, enode.children.length)) {
+				visitAction(spawnStack, enode.children[i - 1]);
+			}
+			actionStack.push(dora.Spawn(...table.unpack(spawnStack)));
+			break;
+		}
+		case 'sequence': {
+			const sequenceStack: dora.ActionDef.Type[] = [];
+			for (let i of $range(1, enode.children.length)) {
+				visitAction(sequenceStack, enode.children[i - 1]);
+			}
+			actionStack.push(dora.Sequence(...table.unpack(sequenceStack)));
+			break;
+		}
+		default:
+			Warn(`unsupported tag <${enode.type}> under action definition`);
+			break;
+	}
+}
+
+function actionCheck(this: void, nodeStack: dora.Node.Type[], enode: React.Element, parent?: React.Element) {
 	let unsupported = false;
 	if (parent === undefined) {
 		unsupported = true;
 	} else {
-		switch (enode.type) {
+		switch (parent.type) {
 			case 'action': case 'spawn': case 'sequence': break;
 			default: unsupported = true; break;
 		}
 	}
 	if (unsupported) {
-		Warn(`tag <${enode.type}> must be placed under <action>, <spawn> or <sequence> to take effect`);
+		if (nodeStack.length > 0) {
+			const node = nodeStack[nodeStack.length - 1];
+			const actionStack: dora.ActionDef.Type[] = [];
+			visitAction(actionStack, enode);
+			if (actionStack.length === 1) {
+				node.runAction(actionStack[0]);
+			}
+		} else {
+			Warn(`tag <${enode.type}> must be placed under <action>, <spawn>, <sequence> or other scene node to take effect`);
+		}
 	}
 }
 
@@ -774,6 +854,7 @@ const elementMap: ElementMap = {
 	},
 	'dot-shape': drawNodeCheck,
 	'segment-shape': drawNodeCheck,
+	'rect-shape': drawNodeCheck,
 	'polygon-shape': drawNodeCheck,
 	'verts-shape': drawNodeCheck,
 	grid: (nodeStack: dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
@@ -804,59 +885,14 @@ const elementMap: ElementMap = {
 		addChild(nodeStack, getMenu(enode), enode);
 	},
 	action: (_nodeStack: dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
-		if (enode.children.length === 0) return;
+		if (enode.children.length === 0) {
+			Warn(`<action> tag has no children`);
+			return;
+		}
 		const action = enode.props as JSX.Action;
-		if (action.ref === undefined) return;
-		function visitAction(this: void, actionStack: dora.ActionDef.Type[], enode: React.Element) {
-			const createAction = actionMap[enode.type];
-			if (createAction !== undefined) {
-				actionStack.push(createAction(enode.props.time, enode.props.start, enode.props.stop, enode.props.easing));
-				return;
-			}
-			switch (enode.type as keyof JSX.IntrinsicElements) {
-				case 'delay': {
-					const item = enode.props as JSX.Delay;
-					actionStack.push(dora.Delay(item.time));
-					break;
-				}
-				case 'event': {
-					const item = enode.props as JSX.Event;
-					actionStack.push(dora.Event(item.name, item.param));
-					break;
-				}
-				case 'hide': {
-					actionStack.push(dora.Hide());
-					break;
-				}
-				case 'show': {
-					actionStack.push(dora.Show());
-					break;
-				}
-				case 'move': {
-					const item = enode.props as JSX.Move;
-					actionStack.push(dora.Move(item.time, dora.Vec2(item.startX, item.startY), dora.Vec2(item.stopX, item.stopY), item.easing));
-					break;
-				}
-				case 'spawn': {
-					const spawnStack: dora.ActionDef.Type[] = [];
-					for (let i of $range(1, enode.children.length)) {
-						visitAction(spawnStack, enode.children[i - 1]);
-					}
-					actionStack.push(dora.Spawn(...table.unpack(spawnStack)));
-					break;
-				}
-				case 'sequence': {
-					const sequenceStack: dora.ActionDef.Type[] = [];
-					for (let i of $range(1, enode.children.length)) {
-						visitAction(sequenceStack, enode.children[i - 1]);
-					}
-					actionStack.push(dora.Sequence(...table.unpack(sequenceStack)));
-					break;
-				}
-				default:
-					Warn(`unsupported tag <${enode.type}> under action definition`);
-					break;
-			}
+		if (action.ref === undefined) {
+			Warn(`<action> tag has no ref`);
+			return;
 		}
 		const actionStack: dora.ActionDef.Type[] = [];
 		for (let i of $range(1, enode.children.length)) {

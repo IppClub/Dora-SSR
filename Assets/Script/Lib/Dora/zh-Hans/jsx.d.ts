@@ -490,6 +490,43 @@ class Polygon {
 	borderColor?: number;
 }
 
+class Rectangle {
+	/*
+	 * 矩形的长。
+	 */
+	width: number;
+
+	/*
+	 * 矩形的宽。
+	 */
+	height: number;
+
+	/**
+	 * 矩形的中心点的X坐标.
+	 */
+	centerX?: number;
+
+	/**
+	 * 矩形的中心点的Y坐标.
+	 */
+	centerY?: number;
+
+	/*
+	 * 矩形的填充颜色（默认为白色）。
+	 */
+	fillColor?: number;
+
+	/**
+	 * 边框的宽度（默认为0）。
+	 */
+	borderWidth?: number;
+
+	/**
+	 * 边框的颜色（默认为白色）。
+	 */
+	borderColor?: number;
+}
+
 class Verts {
 	/*
 	 * 包含要绘制的顶点及其颜色的列表，颜色格式为0xffffffff（ARGB）。
@@ -1456,6 +1493,10 @@ interface IntrinsicElements {
 	 * 用指定的半径和颜色绘制两点之间的线段。只能作为`<draw-node>`的子标签来使用。
 	 */
 	'segment-shape': Segment;
+	/**
+	 * 绘制由长和宽定义的矩形，具有指定的填充颜色和边框。只能作为`<draw-node>`的子标签来使用。
+	 */
+	'rect-shape': Rectangle;
 	/**
 	 * 绘制由顶点列表定义的多边形，具有指定的填充颜色和边框。只能作为`<draw-node>`的子标签来使用。
 	 */
