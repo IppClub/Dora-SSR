@@ -146,8 +146,7 @@ namespace playrho {
 
 /// @brief Determines if the given value is valid.
 /// @relatedalso playrho::d2::Acceleration
-template <>
-constexpr bool IsValid(const d2::Acceleration& value) noexcept
+constexpr auto IsValid(const d2::Acceleration& value) noexcept -> bool
 {
     return IsValid(value.linear) && IsValid(value.angular);
 }

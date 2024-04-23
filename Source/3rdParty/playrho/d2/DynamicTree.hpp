@@ -79,11 +79,8 @@ public:
 
     class TreeNode;
 
-    /// @brief Gets the invalid size value.
-    static constexpr Size GetInvalidSize() noexcept
-    {
-        return static_cast<Size>(-1);
-    }
+    /// @brief Invalid size constant value.
+    static constexpr auto InvalidSize = static_cast<Size>(-1);
 
     /// @brief Type for heights.
     /// @note The maximum height of a tree can never exceed half of the max value of the
@@ -93,16 +90,10 @@ public:
     /// @brief Invalid height constant value.
     static constexpr auto InvalidHeight = static_cast<Height>(-1);
 
-    /// @brief Gets the invalid height value.
-    static constexpr Height GetInvalidHeight() noexcept
-    {
-        return InvalidHeight;
-    }
-
     /// @brief Gets whether the given height is the height for an "unused" node.
     static constexpr bool IsUnused(Height value) noexcept
     {
-        return value == GetInvalidHeight();
+        return value == InvalidHeight;
     }
 
     /// @brief Gets whether the given height is the height for a "leaf" node.
@@ -121,7 +112,7 @@ public:
     /// @post <code>GetNodeCapacity()</code> returns 0.
     /// @post <code>GetNodeCount()</code> returns 0.
     /// @post <code>GetFreeIndex()</code> and <code>GetRootIndex()</code> return
-    ///   <code>GetInvalidSize()</code>.
+    ///   <code>InvalidSize</code>.
     DynamicTree() noexcept;
 
     /// @brief Size initializing constructor.
@@ -132,7 +123,7 @@ public:
     ///   results in <code>GetNodeCapacity()</code> returning zero.
     /// @post <code>GetNodeCount()</code> returns 0.
     /// @post <code>GetFreeIndex()</code> and <code>GetRootIndex()</code> return
-    ///   <code>GetInvalidSize()</code>.
+    ///   <code>InvalidSize</code>.
     /// @throws std::bad_alloc If unable to allocate non-zero sized memory.
     explicit DynamicTree(Size nodeCapacity);
 
@@ -160,9 +151,9 @@ public:
     ///    capacity.
     /// @post <code>GetLeafCount()</code> will return 0.
     /// @post <code>GetNodeCount()</code> will return 0.
-    /// @post <code>GetRootIndex()</code> will return <code>GetInvalidSize()</code>.
+    /// @post <code>GetRootIndex()</code> will return <code>InvalidSize</code>.
     /// @post <code>GetFreeIndex()</code> will return 0 if this tree had any node capacity,
-    ///   else the value of <code>GetInvalidSize()</code>.
+    ///   else the value of <code>InvalidSize</code>.
     void Clear() noexcept;
 
     /// @brief Creates a new leaf node.
@@ -172,14 +163,14 @@ public:
     ///   is less than <code>std::numeric_limits<Size>::max()</code>.
     /// @pre The number of nodes already allocated (as reported by <code>GetNodeCount()</code>)
     ///   is at least one or two less than <code>std::numeric_limits<Size>::max()</code> depending
-    ///   on whether root index is <code>GetInvalidSize()</code> or not.
-    /// @post If the root index had been the <code>GetInvalidSize()</code>, then it will
+    ///   on whether root index is <code>InvalidSize</code> or not.
+    /// @post If the root index had been the <code>InvalidSize</code>, then it will
     ///   be set to the index returned from this function.
     /// @post The leaf count per <code>GetLeafCount()</code> is incremented by one.
     /// @post The node count (as reported by <code>GetNodeCount()</code>) will be incremented by one
-    ///   or two (if the root index had not been <code>GetInvalidSize()</code>).
+    ///   or two (if the root index had not been <code>InvalidSize</code>).
     /// @return The index of the created leaf node. This will be a value not equal to
-    ///   <code>GetInvalidSize()</code>.
+    ///   <code>InvalidSize</code>.
     /// @throws std::bad_alloc If unable to allocate necessary memory. If this exception is
     ///   thrown, this function has no effect.
     /// @see GetLeafCount(), GetNodeCount()
@@ -239,7 +230,7 @@ public:
     /// @brief Gets the index of the "root" node if this tree has one.
     /// @note If the tree has a root node, then the "other" property of this node will be
     ///   the invalid size.
-    /// @return <code>GetInvalidSize()</code> if this tree is "empty", else index to "root" node.
+    /// @return <code>InvalidSize</code> if this tree is "empty", else index to "root" node.
     Size GetRootIndex() const noexcept;
 
     /// @brief Gets the free index.
@@ -282,7 +273,7 @@ public:
     /// @brief Finds first node which references the given index.
     /// @note Primarily intended for unit testing and/or debugging.
     /// @return Index of node referencing the given index, or the value of
-    ///   <code>GetInvalidSize()</code>.
+    ///   <code>InvalidSize</code>.
     Size FindReference(Size index) const noexcept;
 
     /// @brief Customized swap function for <code>DynamicTree</code> objects.
@@ -300,7 +291,7 @@ private:
     ///   <code>GetNodeCount()</code>) is less than <code>GetNodeCapacity()</code>.
     /// @note Call <code>Reserve(GetNodeCount() + 1u)</code> before this if uncertain of whether
     ///   any entries are available on the free list.
-    /// @return Value not equal to <code>GetInvalidSize()</code>.
+    /// @return Value not equal to <code>InvalidSize</code>.
     /// @see GetNodeCount()
     Size AllocateNode() noexcept;
 
@@ -316,8 +307,8 @@ private:
     Size m_nodeCount{0u}; ///< Node count. @details Count of currently allocated nodes.
     Size m_leafCount{0u}; ///< Leaf count. @details Count of currently allocated leaf nodes.
     Size m_rootIndex{
-        GetInvalidSize()}; ///< Index of root element in m_nodes or <code>GetInvalidSize()</code>.
-    Size m_freeIndex{GetInvalidSize()}; ///< Free list. @details Index to free nodes.
+        InvalidSize}; ///< Index of root element in m_nodes or <code>InvalidSize</code>.
+    Size m_freeIndex{InvalidSize}; ///< Free list. @details Index to free nodes.
     Size m_nodeCapacity{0u}; ///< Node capacity. @details Size of buffer allocated for nodes.
     TreeNode* m_nodes{nullptr}; ///< Nodes. @details Initialized on construction.
 };
@@ -356,7 +347,7 @@ public:
     constexpr TreeNode(TreeNode&& other) = default;
 
     /// @brief Initializing constructor.
-    constexpr explicit TreeNode(Size other = DynamicTree::GetInvalidSize()) noexcept
+    constexpr explicit TreeNode(Size other = DynamicTree::InvalidSize) noexcept
         : m_other{other}
     {
         assert(IsUnused(GetHeight()));
@@ -364,7 +355,7 @@ public:
 
     /// @brief Initializing constructor.
     constexpr TreeNode(const Contactable& value, const AABB& aabb,
-                       Size other = DynamicTree::GetInvalidSize()) noexcept
+                       Size other = DynamicTree::InvalidSize) noexcept
         : m_aabb{aabb}, m_variant{value}, m_height{0}, m_other{other}
     {
         // Intentionally empty.
@@ -372,14 +363,14 @@ public:
 
     /// @brief Initializing constructor.
     /// @pre @c height is a value such that <code>IsBranch(height)</code> is true.
-    /// @pre Neither @c value.child1 nor @c value.child2 is equal to <code>GetInvalidSize()</code>.
+    /// @pre Neither @c value.child1 nor @c value.child2 is equal to <code>InvalidSize</code>.
     constexpr TreeNode(const DynamicTreeBranchData& value, const AABB& aabb, Height height,
-                       Size other = DynamicTree::GetInvalidSize()) noexcept
+                       Size other = DynamicTree::InvalidSize) noexcept
         : m_aabb{aabb}, m_variant{value}, m_height{height}, m_other{other}
     {
         assert(IsBranch(height));
-        assert(value.child1 != GetInvalidSize());
-        assert(value.child2 != GetInvalidSize());
+        assert(value.child1 != InvalidSize);
+        assert(value.child2 != InvalidSize);
     }
 
     /// @brief Copy assignment operator.
@@ -463,12 +454,12 @@ public:
 
     /// @brief Assigns the node as a "branch" value.
     /// @pre This node is a branch, i.e.: <code>IsBranch(GetHeight())</code> is true.
-    /// @pre Neither @c v.child1 nor @c v.child2 is equal to <code>GetInvalidSize()</code>.
+    /// @pre Neither @c v.child1 nor @c v.child2 is equal to <code>InvalidSize</code>.
     constexpr void Assign(const DynamicTreeBranchData& v, const AABB& bb, Height h) noexcept
     {
         assert(IsBranch(GetHeight()));
-        assert(v.child1 != GetInvalidSize());
-        assert(v.child2 != GetInvalidSize());
+        assert(v.child1 != InvalidSize);
+        assert(v.child2 != InvalidSize);
         assert(IsBranch(h));
         m_variant.branch = v;
         m_aabb = bb;
@@ -486,21 +477,21 @@ private:
 
     /// @brief Height.
     /// @details "Height" for tree balancing.
-    /// @note 0 if leaf node, <code>DynamicTree::GetInvalidHeight()</code> if free (unallocated)
+    /// @note 0 if leaf node, <code>DynamicTree::InvalidHeight</code> if free (unallocated)
     ///   node, else branch node.
-    Height m_height = GetInvalidHeight();
+    Height m_height = InvalidHeight;
 
     /// @brief Index to "other" node.
     /// @note This is an index to the next node for a free node, else this is the index to the
     ///   parent node.
-    Size m_other = DynamicTree::GetInvalidSize(); ///< Index of another node.
+    Size m_other = DynamicTree::InvalidSize; ///< Index of another node.
 };
 
 inline DynamicTree::Size DynamicTree::GetRootIndex() const noexcept
 {
-    assert((m_rootIndex == GetInvalidSize() && (m_leafCount == 0)) ||
+    assert((m_rootIndex == InvalidSize && (m_leafCount == 0)) ||
            ((m_rootIndex < m_nodeCapacity) && (m_leafCount > 0) &&
-            (GetOther(m_rootIndex) == GetInvalidSize())));
+            (GetOther(m_rootIndex) == InvalidSize)));
     return m_rootIndex;
 }
 
@@ -521,15 +512,15 @@ inline DynamicTree::Size DynamicTree::GetNodeCount() const noexcept
 
 inline DynamicTree::Size DynamicTree::GetLeafCount() const noexcept
 {
-    assert(((m_leafCount == 0) && (m_rootIndex == GetInvalidSize())) ||
-           ((m_leafCount > 0) && (m_rootIndex != GetInvalidSize()) &&
-            (GetOther(m_rootIndex) == GetInvalidSize())));
+    assert(((m_leafCount == 0) && (m_rootIndex == InvalidSize)) ||
+           ((m_leafCount > 0) && (m_rootIndex != InvalidSize) &&
+            (GetOther(m_rootIndex) == InvalidSize)));
     return m_leafCount;
 }
 
 inline const DynamicTree::TreeNode& DynamicTree::GetNode(Size index) const noexcept
 {
-    assert(index != GetInvalidSize());
+    assert(index != InvalidSize);
     assert(index < GetNodeCapacity());
     return *(m_nodes + index); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 }
@@ -568,8 +559,8 @@ inline Contactable DynamicTree::GetLeafData(Size index) const noexcept
 // Free functions...
 
 /// @brief Finds index of node matching given contactble using a linear search.
-/// @return Node index or <code>DynamicTree::GetInvalidSize()</code>.
-/// @see DynamicTree::GetInvalidSize().
+/// @return Node index or <code>DynamicTree::InvalidSize</code>.
+/// @see DynamicTree::InvalidSize.
 /// @relatedalso DynamicTree
 auto FindIndex(const DynamicTree &tree, const Contactable &c) noexcept -> DynamicTree::Size;
 
@@ -631,7 +622,7 @@ constexpr DynamicTree::Size GetNext(const DynamicTree::TreeNode& node) noexcept
 inline DynamicTree::Height GetHeight(const DynamicTree& tree) noexcept
 {
     const auto index = tree.GetRootIndex();
-    return (index != DynamicTree::GetInvalidSize()) ? tree.GetHeight(index)
+    return (index != DynamicTree::InvalidSize) ? tree.GetHeight(index)
                                                     : DynamicTree::Height{0};
 }
 
@@ -643,7 +634,7 @@ inline DynamicTree::Height GetHeight(const DynamicTree& tree) noexcept
 inline AABB GetAABB(const DynamicTree& tree) noexcept
 {
     const auto index = tree.GetRootIndex();
-    return (index != DynamicTree::GetInvalidSize()) ? tree.GetAABB(index) : AABB{};
+    return (index != DynamicTree::InvalidSize) ? tree.GetAABB(index) : AABB{};
 }
 
 /// @brief Tests for overlap of the elements identified in the given dynamic tree.

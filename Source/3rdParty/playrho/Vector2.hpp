@@ -115,7 +115,7 @@ constexpr auto GetFwdPerpendicular(const Vector2<T>& vector) noexcept -> Vector2
 
 /// @brief Determines whether the given vector contains finite coordinates.
 template <typename TYPE>
-constexpr bool IsValid(const Vector2<TYPE>& value) noexcept
+constexpr auto IsValid(const Vector2<TYPE>& value) noexcept -> bool
 {
     return IsValid(get<0>(value)) && IsValid(get<1>(value));
 }

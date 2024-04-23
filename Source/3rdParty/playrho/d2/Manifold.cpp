@@ -26,7 +26,6 @@
 #include "playrho/StepConf.hpp"
 #include "playrho/Templates.hpp" // for size
 
-#include "playrho/d2/ClipList.hpp"
 #include "playrho/d2/Distance.hpp"
 #include "playrho/d2/DistanceProxy.hpp"
 #include "playrho/d2/Manifold.hpp"
@@ -38,6 +37,69 @@
 namespace playrho::d2 {
 
 namespace {
+
+/// @brief Clip vertex.
+/// @details Used for computing contact manifolds.
+struct ClipVertex
+{
+    Length2 v; ///< Vertex of edge or polygon.
+    ContactFeature cf; ///< Contact feature information.
+};
+
+/// @brief Clip list for <code>ClipSegmentToLine</code>.
+/// @see ClipSegmentToLine.
+using ClipList = ArrayList<ClipVertex, MaxManifoldPoints>;
+
+/// Clipping for contact manifolds.
+/// @details This returns an array of points from the given line that are inside of the plane as
+///   defined by a given normal and offset.
+/// @param vIn Clip list of two points defining the line.
+/// @param normal Normal of the plane with which to determine intersection.
+/// @param offset Offset of the plane with which to determine intersection.
+/// @param indexA Index of vertex A.
+/// @return List of zero one or two clip points.
+ClipList ClipSegmentToLine(const ClipList& vIn, const UnitVec& normal, Length offset,
+                           ContactFeature::Index indexA)
+{
+    ClipList vOut;
+
+    if (size(vIn) == 2) // must have two points (for a segment)
+    {
+        // Use Sutherland-Hodgman clipping:
+        //   (https://en.wikipedia.org/wiki/Sutherland%E2%80%93Hodgman_algorithm ).
+
+        // Calculate the distance of end points to the line
+        const auto distance0 = Dot(normal, vIn[0].v) - offset;
+        const auto distance1 = Dot(normal, vIn[1].v) - offset;
+
+        // If the points are behind the plane...
+        // Ideally they are. Then we get face-vertex contact features which are simpler to
+        // calculate. Note that it also helps to avoid changing the contact feature from the
+        // given clip vertices. So the code here also accepts distances that are just slightly
+        // over zero.
+        if (distance0 <= 0_m || AlmostZero(StripUnit(distance0)))
+        {
+            vOut.push_back(vIn[0]);
+        }
+        if (distance1 <= 0_m || AlmostZero(StripUnit(distance1)))
+        {
+            vOut.push_back(vIn[1]);
+        }
+
+        // If we didn't already find two points & the points are on different sides of the plane...
+        if (size(vOut) < 2 && signbit(StripUnit(distance0)) != signbit(StripUnit(distance1)))
+        {
+            // Neither distance0 nor distance1 is 0 and either one or the other is negative (but not both).
+            // Find intersection point of edge and plane
+            // Vertex A is hitting edge B.
+            const auto interp = distance0 / (distance0 - distance1);
+            const auto vertex = vIn[0].v + (vIn[1].v - vIn[0].v) * interp;
+            vOut.push_back(ClipVertex{vertex, GetVertexFaceContactFeature(indexA, vIn[0].cf.indexB)});
+        }
+    }
+
+    return vOut;
+}
 
 constexpr auto face = ContactFeature::e_face;
 constexpr auto vertex = ContactFeature::e_vertex;

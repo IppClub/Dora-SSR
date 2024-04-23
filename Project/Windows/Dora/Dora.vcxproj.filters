@@ -1299,9 +1299,6 @@
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ChainShapeConf.cpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ClipList.cpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\CodeDumper.cpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClCompile>
@@ -2862,9 +2859,6 @@
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ChainShapeConf.hpp">
-      <Filter>3rdParty\playrho\d2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ClipList.hpp">
       <Filter>3rdParty\playrho\d2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\CodeDumper.hpp">

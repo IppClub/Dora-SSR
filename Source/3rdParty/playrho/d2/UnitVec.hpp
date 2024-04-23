@@ -426,7 +426,7 @@ inline ::std::ostream& operator<<(::std::ostream& os, const UnitVec& value)
 } // namespace d2
 
 /// @brief Determines if the given value is valid.
-template <> constexpr bool IsValid(const d2::UnitVec& value) noexcept
+constexpr auto IsValid(const d2::UnitVec& value) noexcept -> bool
 {
     return IsValid(value.GetX()) && IsValid(value.GetY()) && (value != d2::UnitVec::GetZero());
 }

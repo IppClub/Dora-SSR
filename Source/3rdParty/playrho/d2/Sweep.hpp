@@ -43,9 +43,21 @@ namespace playrho::d2 {
 struct Sweep
 {
     /// @brief Default constructor.
+    /// @post <code>pos0</code> is the value of <code>Position{}</code>.
+    /// @post <code>pos1</code> is the value of <code>Position{}</code>.
+    /// @post <code>localCenter</code> is the value of <code>Length2{}</code>.
+    /// @post <code>alpha0</code> is zero.
     constexpr Sweep() = default;
 
     /// @brief Initializing constructor.
+    /// @param p0 Value for position 0.
+    /// @param p1 Value for position 1.
+    /// @param lc Local center.
+    /// @param a0 Alpha 0 for the sweep.
+    /// @post <code>pos0</code> is the value of @p p0 .
+    /// @post <code>pos1</code> is the value of @p p1 .
+    /// @post <code>localCenter</code> is the value of @p lc .
+    /// @post <code>alpha0</code> is the value of @p a0 .
     constexpr Sweep(const Position& p0, const Position& p1, const Length2& lc = Length2{0_m, 0_m},
                     ZeroToUnderOneFF<Real> a0 = {}) noexcept
         : pos0{p0}, pos1{p1}, localCenter{lc}, alpha0{a0}
@@ -53,6 +65,10 @@ struct Sweep
     }
 
     /// @brief Initializing constructor.
+    /// @post <code>pos0</code> is the value of @p p .
+    /// @post <code>pos1</code> is the value of @p p .
+    /// @post <code>localCenter</code> is the value of @p lc .
+    /// @post <code>alpha0</code> is zero.
     constexpr explicit Sweep(const Position& p, const Length2& lc = Length2{0_m, 0_m})
         : Sweep{p, p, lc, ZeroToUnderOneFF<Real>{}}
     {
@@ -81,7 +97,7 @@ struct Sweep
 ///   and the sweep's alpha 0.
 /// @details This advances position 0 (<code>pos0</code>) of the sweep towards position
 ///   1 (<code>pos1</code>) by a factor of the difference between the given alpha and
-///   the alpha 0.
+///   the alpha 0. This **does not** change the sweep's position 1.
 /// @param sweep The sweep to return an advancement of.
 /// @param alpha Valid new time factor in [0,1) to update the sweep to.
 Sweep Advance0(const Sweep& sweep, ZeroToUnderOneFF<Real> alpha) noexcept;
@@ -116,8 +132,7 @@ namespace playrho {
 
 /// @brief Determines if the given value is valid.
 /// @relatedalso d2::Sweep
-template <>
-constexpr bool IsValid(const d2::Sweep& value) noexcept
+constexpr auto IsValid(const d2::Sweep& value) noexcept -> bool
 {
     return IsValid(value.pos0) && IsValid(value.pos1) && IsValid(value.localCenter) &&
            IsValid(value.alpha0);

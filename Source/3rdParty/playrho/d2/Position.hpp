@@ -141,8 +141,7 @@ namespace playrho {
 
 /// @brief Determines if the given value is valid.
 /// @relatedalso d2::Position
-template <>
-constexpr bool IsValid(const d2::Position& value) noexcept
+constexpr auto IsValid(const d2::Position& value) noexcept -> bool
 {
     return IsValid(value.linear) && IsValid(value.angular);
 }

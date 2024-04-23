@@ -27,23 +27,33 @@
 // IWYU pragma: begin_exports
 
 #include "playrho/detail/IndexingNamedType.hpp"
-#include "playrho/Settings.hpp"
+#include "playrho/Settings.hpp" // for BodyCounter
 
 // IWYU pragma: end_exports
 
 namespace playrho {
 
-/// @brief Strongly typed identifier for bodies within @c World instances.
+/// @brief Body identifier.
+/// @details A strongly typed identifier for uniquely identifying bodes within
+///   @c playrho::d2::World instances.
+///   This is based on the @c playrho::BodyCounter type as its underlying type.
+///   These identifiers can be compared with other body identifiers.
+///   Two body identifiers from the same world that compare equal for example,
+///   identify the same body within that world.
+/// @see InvalidBodyID, BodyCounter, ContactID, JointID, ShapeID, d2::Body, d2::World.
 using BodyID = detail::IndexingNamedType<BodyCounter, struct BodyIdentifier>;
 
 /// @brief Invalid body ID value.
-/// @see BodyID.
-constexpr auto InvalidBodyID = static_cast<BodyID>(static_cast<BodyID::underlying_type>(-1));
+/// @details A special, reserved value of a @c playrho::BodyID that
+///   represents/identifies an _invalid_ body.
+/// @see BodyID, IsValid.
+constexpr auto InvalidBodyID = BodyID{static_cast<BodyID::underlying_type>(-1)};
 
-/// @brief Determines if the given value is valid.
-/// @see BodyID.
-template <>
-constexpr bool IsValid(const BodyID& value) noexcept
+/// @brief Determines validity of given value by comparing against
+///   @c playrho::InvalidBodyID .
+/// @return true if not equal to @c playrho::InvalidBodyID , else false.
+/// @see BodyID, InvalidBodyID.
+constexpr auto IsValid(const BodyID& value) noexcept -> bool
 {
     return value != InvalidBodyID;
 }

@@ -448,7 +448,6 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/playrho/d2/DynamicTree.cpp
 	src/main/cpp/3rdParty/playrho/d2/DistanceProxy.cpp
 	src/main/cpp/3rdParty/playrho/d2/RopeJointConf.cpp
-	src/main/cpp/3rdParty/playrho/d2/ClipList.cpp
 	src/main/cpp/3rdParty/playrho/d2/WorldContact.cpp
 	src/main/cpp/3rdParty/playrho/d2/WorldBody.cpp
 	src/main/cpp/3rdParty/playrho/d2/TimeOfImpact.cpp
