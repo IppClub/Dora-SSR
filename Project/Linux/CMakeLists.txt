@@ -440,7 +440,6 @@ add_executable(dora-ssr
 	../../Source/3rdParty/playrho/d2/DynamicTree.cpp
 	../../Source/3rdParty/playrho/d2/DistanceProxy.cpp
 	../../Source/3rdParty/playrho/d2/RopeJointConf.cpp
-	../../Source/3rdParty/playrho/d2/ClipList.cpp
 	../../Source/3rdParty/playrho/d2/WorldContact.cpp
 	../../Source/3rdParty/playrho/d2/WorldBody.cpp
 	../../Source/3rdParty/playrho/d2/TimeOfImpact.cpp

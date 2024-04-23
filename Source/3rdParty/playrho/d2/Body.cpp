@@ -217,6 +217,9 @@ void Body::SetAcceleration(const LinearAcceleration2& linear, AngularAcceleratio
         }
     }
     else {
+        // If the new linear or angular accelerations are higher, or the linear acceleration
+        // changes direction, or the sign of the new angular acceleration is different, then
+        // also set the awake flag and reset the under active time.
         if ((m_angularAcceleration < angular) ||
             (GetMagnitudeSquared(m_linearAcceleration) < GetMagnitudeSquared(linear)) ||
             (playrho::GetAngle(m_linearAcceleration) != playrho::GetAngle(linear)) ||

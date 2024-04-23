@@ -85,8 +85,7 @@ namespace playrho {
 
 /// @brief Determines if the given value is valid.
 /// @relatedalso d2::Transformation
-template <>
-constexpr bool IsValid(const d2::Transformation& value) noexcept
+constexpr auto IsValid(const d2::Transformation& value) noexcept -> bool
 {
     return IsValid(value.p) && IsValid(value.q);
 }

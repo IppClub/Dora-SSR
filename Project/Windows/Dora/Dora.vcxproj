@@ -357,10 +357,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ClipList.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\CodeDumper.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -1508,7 +1504,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\BodyConf.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\BodyConstraint.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ChainShapeConf.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ClipList.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\CodeDumper.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactImpulsesFunction.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactImpulsesList.hpp" />

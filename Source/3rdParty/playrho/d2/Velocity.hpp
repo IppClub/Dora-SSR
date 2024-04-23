@@ -162,8 +162,7 @@ Velocity Cap(Velocity velocity, Time h, const MovementConf& conf) noexcept;
 
 /// @brief Determines if the given value is valid.
 /// @relatedalso d2::Velocity
-template <>
-constexpr bool IsValid(const d2::Velocity& value) noexcept
+constexpr auto IsValid(const d2::Velocity& value) noexcept -> bool
 {
     return IsValid(value.linear) && IsValid(value.angular);
 }

@@ -89,14 +89,12 @@ public:
     /// @brief Initializing constructor.
     /// @note To create a body within a world, use <code>World::CreateBody</code>.
     /// @param bd Configuration data for the body to construct.
-    /// @post <code>GetFlags()</code> will return the value of
-    ///  <code>GetFlags(const BodyConf&)</code> given by @a bd.
     /// @post <code>GetLinearDamping()</code> returns value of @a bd.linearDamping.
     /// @post <code>GetAngularDamping()</code> returns value of @a bd.angularDamping.
     /// @post <code>GetInvMass()</code> returns <code>Real(0)/Kilogram</code> if
     ///   <code>bd.type != BodyType::Dynamic</code>, otherwise it returns value of
     ///   @a bd.invMass.
-    /// @post <code>GetInvRotI()</code> returns <code>InvRotInertia{}</code> if
+    /// @post <code>GetInvRotInertia()</code> returns <code>InvRotInertia{}</code> if
     ///   <code>bd.type != BodyType::Dynamic</code>, otherwise it returns value of
     ///   @a bd.invRotI.
     /// @post <code>GetVelocity()</code> will return the value as if
@@ -105,8 +103,7 @@ public:
     /// @post <code>GetAcceleration()</code> will return the value as if
     ///   <code>SetAcceleration(LinearAcceleration2, AngularAcceleration)</code> had been
     ///   called with values of @a bd.linearAcceleration and @a bd.angularAcceleration.
-    /// @see GetFlags(const BodyConf&).
-    /// @see GetFlags, GetLinearDamping, GetAngularDamping, GetInvMass, GetTransformation,
+    /// @see GetLinearDamping, GetAngularDamping, GetInvMass, GetTransformation,
     ///   GetVelocity, GetAcceleration.
     /// @see World::CreateBody.
     explicit Body(const BodyConf& bd = GetDefaultBodyConf());
@@ -121,11 +118,13 @@ public:
     ///   4. Damping of the body.
     ///   5. Restitutioen and friction values of body's shape parts when experiencing
     ///      collisions.
+    ///
     /// @return the world transform of the body's origin.
     /// @see SetSweep.
     const Transformation& GetTransformation() const noexcept;
 
     /// @brief Gets the body's sweep.
+    /// @return The sweep used by this body.
     /// @see SetSweep.
     const Sweep& GetSweep() const noexcept;
 
@@ -151,14 +150,6 @@ public:
     /// @see GetVelocity, IsSpeedable(const Body&).
     void JustSetVelocity(const Velocity& value) noexcept;
 
-    /// @brief Sets the linear and rotational accelerations on this body.
-    /// @note This has no effect on non-accelerable bodies.
-    /// @note A non-zero acceleration will also awaken the body.
-    /// @param linear Linear acceleration.
-    /// @param angular Angular acceleration.
-    /// @see GetLinearAcceleration, GetAngularAcceleration.
-    void SetAcceleration(const LinearAcceleration2& linear, AngularAcceleration angular) noexcept;
-
     /// @brief Gets this body's linear acceleration.
     /// @see SetAcceleration.
     LinearAcceleration2 GetLinearAcceleration() const noexcept;
@@ -166,6 +157,20 @@ public:
     /// @brief Gets this body's angular acceleration.
     /// @see SetAcceleration.
     AngularAcceleration GetAngularAcceleration() const noexcept;
+
+    /// @brief Sets the linear and rotational accelerations on this body.
+    /// @note This has no effect on non-accelerable bodies.
+    /// @note A non-zero acceleration will also awaken the body.
+    /// @param linear Linear acceleration.
+    /// @param angular Angular acceleration.
+    /// @pre @p linear and @p angular are both valid. I.e.
+    ///   <code>IsValid(linear) && IsValid(angular)</code>.
+    /// @post <code>GetLinearAcceleration()</code> returns @p linear .
+    /// @post <code>GetAngularAcceleration()</code> returns @p angular .
+    /// @post <code>IsAwake()</code> is true and <code>GetUnderActiveTime()</code> returns
+    ///   zero if either of the new accelerations are higher, or the new linear acceleration
+    ///   is in a new direction, or the sign of the new angular acceleration is different.
+    void SetAcceleration(const LinearAcceleration2& linear, AngularAcceleration angular) noexcept;
 
     /// @brief Gets the inverse total mass of the body.
     /// @details This is the cached result of dividing 1 by the body's mass or zero for non
@@ -188,6 +193,8 @@ public:
     NonNegativeFF<InvRotInertia> GetInvRotInertia() const noexcept;
 
     /// @brief Sets the inverse mass data and clears the mass-data-dirty flag.
+    /// @post <code>GetInvMass()</code> returns the set inverse mass.
+    /// @post <code>GetInvRotInertia()</code> returns the set inverse rotational inertia.
     /// @post <code>IsMassDataDirty()</code> returns false.
     /// @see GetInvMass, GetInvRotInertia, IsMassDataDirty.
     void SetInvMassData(NonNegative<InvMass> invMass, NonNegative<InvRotInertia> invRotI) noexcept;
@@ -197,7 +204,8 @@ public:
     NonNegative<Frequency> GetLinearDamping() const noexcept;
 
     /// @brief Sets the linear damping of the body.
-    /// @see GetLinearDamping.
+    /// @post <code>GetLinearDamping()</code> returns the value set.
+    /// @see GetLinearDamping().
     void SetLinearDamping(NonNegative<Frequency> linearDamping) noexcept;
 
     /// @brief Gets the angular damping of the body.
@@ -205,6 +213,7 @@ public:
     NonNegative<Frequency> GetAngularDamping() const noexcept;
 
     /// @brief Sets the angular damping of the body.
+    /// @post <code>GetAngularDamping()</code> returns the value set.
     /// @see GetAngularDamping.
     void SetAngularDamping(NonNegative<Frequency> angularDamping) noexcept;
 
@@ -218,19 +227,27 @@ public:
     /// @post <code>GetUnderActiveTime()</code> returns 0.
     /// @post <code>IsAwake(const Body&)</code> returns true for <code>BodyType::Dynamic</code> or
     ///   <code>BodyType::Kinematic</code>, and returns false for <code>BodyType::Static</code>.
-    /// @see GetType.
+    /// @see GetType, GetFlags.
     void SetType(BodyType value) noexcept;
 
     /// @brief Whether or not this was destroyed.
+    /// @details If you have gotten this body's value from a world, this function says
+    ///   whether the world considers the body destroyed or not.
     /// @see SetDestroyed, UnsetDestroyed.
     constexpr bool IsDestroyed() const noexcept;
 
     /// @brief Sets the destroyed property.
-    /// @note This is only meaningfully used by the world implementation.
+    /// @note This is only meaningfully used by the world implementation. While calling this
+    ///   in your code will have the stated post condition, it won't effect any bodies within
+    ///   a world.
+    /// @post <code>IsDestroyed()</code> returns true.
     constexpr void SetDestroyed() noexcept;
 
     /// @brief Unsets the destroyed property.
-    /// @note This is only meaningfully used by the world implementation.
+    /// @note This is only meaningfully used by the world implementation. While calling this
+    ///   in your code will have the stated post condition, it won't effect any bodies within
+    ///   a world.
+    /// @post <code>IsDestroyed()</code> returns false.
     constexpr void UnsetDestroyed() noexcept;
 
     /// @brief Is "speedable".
@@ -319,6 +336,7 @@ public:
 
     /// @brief Sets this body to have fixed rotation.
     /// @note This causes the mass to be reset.
+    /// @post <code>IsFixedRotation()</code> returns the value set.
     /// @see IsFixedRotation.
     void SetFixedRotation(bool flag);
 
@@ -342,31 +360,46 @@ public:
     bool IsEnabled() const noexcept;
 
     /// @brief Sets the enabled state.
+    /// @post <code>IsEnabled()</code> returns true.
     /// @see IsEnabled(const Body&).
     void SetEnabled() noexcept;
 
     /// @brief Unsets the enabled flag.
+    /// @post <code>IsEnabled()</code> returns false.
     /// @see IsEnabled.
     void UnsetEnabled() noexcept;
 
-    /// @brief Sets the sweep value of the given body.
-    /// @see GetSweep.
+    /// @brief Sets the body's sweep value.
+    /// @note This may also change the body's transformation.
+    /// @pre The body is speedable or the new sweep's position 0 and 1 are equal to each other.
+    /// @post <code>GetSweep()</code> returns the value set.
+    /// @post <code>GetTransformation()</code> returns <code>GetTransform1(value)</code>.
+    /// @see GetSweep, GetTransformation, IsSpeedable.
     void SetSweep(const Sweep& value) noexcept;
 
     /// @brief Sets the "position 0" value of the body to the given position.
+    /// @pre The body is speedable or the new position is equal to the existing position 0.
+    /// @post <code>GetSweep().pos0</code> is the value set.
     /// @see GetSweep, SetSweep.
     void SetPosition0(const Position& value) noexcept;
 
     /// @brief Sets the body sweep's "position 1" value.
-    /// @see GetSweep, SetSweep.
+    /// @pre The body is speedable or the new position is equal to the existing position 1.
+    /// @post <code>GetSweep().pos1</code> is the value set.
+    /// @post <code>GetTransformation()</code> returns <code>GetTransform1(GetSweep())</code>
+    ///   of the new sweep.
+    /// @see GetSweep, SetSweep, GetTransformation.
     void SetPosition1(const Position& value) noexcept;
 
     /// @brief Resets the given body's "alpha-0" value.
+    /// @post <code>GetSweep().alpha0</code> is zero.
     /// @see GetSweep.
     void ResetAlpha0() noexcept;
 
-    /// @brief Calls the body sweep's <code>Advance0</code> function to advance to
-    ///    the given value.
+    /// @brief Advances the body sweep's position 0 and alpha 0 values.
+    /// @pre The body is speedable or body's sweep positions 0 and 1 are the same.
+    /// @post <code>GetSweep()</code> returns what calling
+    ///   <code>Advance0(GetSweep(), value)</code> would return before this call.
     /// @see GetSweep.
     void Advance0(ZeroToUnderOneFF<Real> value) noexcept;
 
