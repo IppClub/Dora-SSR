@@ -324,6 +324,7 @@ private:
 	bool updateProgress();
 	Ref<Action> _prev;
 	Ref<Action> _next;
+	bool _looped;
 	bool _paused;
 	bool _reversed;
 	int _order;

@@ -238,16 +238,13 @@ Observer(EntityEvent.Add, ["player"]).watch(self => {
 Observer(EntityEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string) => {
 	const sprite = Sprite(icon);
 	if (!sprite) return false;
-	sprite.schedule(loop(() => {
-		sleep(sprite.runAction(Spawn(
-			AngleY(5, 0, 360),
-			Sequence(
-				Y(2.5, 0, 40, Ease.OutQuad),
-				Y(2.5, 40, 0, Ease.InQuad)
-			)
-		)));
-		return false;
-	}));
+	sprite.runAction(Spawn(
+		AngleY(5, 0, 360),
+		Sequence(
+			Y(2.5, 0, 40, Ease.OutQuad),
+			Y(2.5, 40, 0, Ease.InQuad)
+		)
+	), true);
 
 	const bodyDef = BodyDef();
 	bodyDef.type = BodyMoveType.Dynamic;

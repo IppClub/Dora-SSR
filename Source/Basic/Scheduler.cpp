@@ -113,7 +113,7 @@ void Scheduler::schedule(Action* action) {
 	if (action && action->_target && !action->isRunning()) {
 		action->_order = s_cast<int>(_actionList->getCount());
 		_actionList->add(Value::alloc(action));
-		if (action->updateProgress()) {
+		if (action->updateProgress() && !action->_looped) {
 			Ref<Action> actionRef(action);
 			Ref<Node> targetRef(action->_target);
 			unschedule(actionRef);
@@ -172,6 +172,9 @@ bool Scheduler::update(double deltaTime) {
 						unschedule(action);
 						target->removeAction(action);
 						target->emit("ActionEnd"_slice, action.get(), target.get());
+						if (action->_looped) {
+							target->runAction(action, true);
+						}
 					}
 				}
 			}

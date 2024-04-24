@@ -226,18 +226,9 @@ Observer(EntityEvent.Add, ["player"]).watch(self => {
 });
 
 Observer(EntityEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string) => {
-	const rotationRef = useRef<ActionDef.Type>();
-	const spriteRef = useRef<Sprite.Type>();
-
 	const sprite = toNode(
-		<sprite file={icon} ref={spriteRef} onUpdate={loop(() => {
-			const {current: rotation} = rotationRef;
-			const {current: sprite} = spriteRef;
-			if (!rotation || !sprite) return true;
-			sleep(sprite.runAction(rotation));
-			return false;
-		})}>
-			<action ref={rotationRef}>
+		<sprite file={icon}>
+			<loop>
 				<spawn>
 					<angle-y time={5} start={0} stop={360}/>
 					<sequence>
@@ -245,10 +236,9 @@ Observer(EntityEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string) =
 						<move-y time={2.5} start={40} stop={0} easing={Ease.InQuad}/>
 					</sequence>
 				</spawn>
-			</action>
+			</loop>
 		</sprite>
 	);
-
 	if (!sprite) return false;
 
 	const body = toNode(
@@ -259,7 +249,6 @@ Observer(EntityEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string) =
 			<rect-fixture sensorTag={0} width={sprite.width} height={sprite.height}/>
 		</body>
 	);
-
 	if (!body) return false;
 
 	const itemBody = body as Body.Type;

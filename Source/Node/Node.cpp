@@ -1078,11 +1078,12 @@ int Node::getActionCount() const {
 	return count;
 }
 
-float Node::runAction(Action* action) {
+float Node::runAction(Action* action, bool loop) {
 	if (!action) return 0.0f;
 	if (action->isRunning()) {
 		stopAction(action);
 	}
+	action->_looped = loop;
 	action->_target = this;
 	action->_prev = nullptr;
 	if (_action) {
@@ -1105,9 +1106,9 @@ void Node::stopAllActions() {
 	stopActionInList(_action);
 }
 
-float Node::perform(Action* action) {
+float Node::perform(Action* action, bool loop) {
 	stopAllActions();
-	return runAction(action);
+	return runAction(action, loop);
 }
 
 bool Node::hasAction(Action* action) {

@@ -48,62 +48,59 @@ local function Item() -- 6
     ):addTo(node) -- 35
     line.renderOrder = 3 -- 36
     line.angle = 45 -- 37
-    node:runAction(Angle(5, 0, 360)) -- 39
-    node:slot( -- 40
-        "ActionEnd", -- 40
-        function(action) -- 40
-            node:runAction(action) -- 41
-        end -- 40
-    ) -- 40
-    return node -- 43
+    node:runAction( -- 39
+        Angle(5, 0, 360), -- 39
+        true -- 39
+    ) -- 39
+    return node -- 40
 end -- 6
-local currentEntry = Node() -- 46
-currentEntry.renderGroup = true -- 47
-currentEntry.size = Size(750, 750) -- 48
-do -- 48
-    local _i = 1 -- 49
-    while _i <= 16 do -- 49
-        currentEntry:addChild(Item()) -- 50
-        _i = _i + 1 -- 49
-    end -- 49
-end -- 49
-currentEntry:alignItems() -- 53
-local renderGroup = currentEntry.renderGroup -- 55
-local windowFlags = { -- 56
-    "NoDecoration", -- 57
-    "AlwaysAutoResize", -- 58
-    "NoSavedSettings", -- 59
-    "NoFocusOnAppearing", -- 60
-    "NoNav", -- 61
-    "NoMove" -- 62
-} -- 62
-threadLoop(function() -- 64
-    local ____App_visualSize_2 = App.visualSize -- 65
-    local width = ____App_visualSize_2.width -- 65
-    ImGui.SetNextWindowBgAlpha(0.35) -- 66
-    ImGui.SetNextWindowPos( -- 67
-        Vec2(width - 10, 10), -- 67
-        "Always", -- 67
-        Vec2(1, 0) -- 67
-    ) -- 67
-    ImGui.SetNextWindowSize( -- 68
-        Vec2(240, 0), -- 68
-        "FirstUseEver" -- 68
-    ) -- 68
-    ImGui.Begin( -- 69
-        "Render Group", -- 69
-        windowFlags, -- 69
-        function() -- 69
-            ImGui.Text("Render Group (Typescript)") -- 70
-            ImGui.Separator() -- 71
-            ImGui.TextWrapped("When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window.") -- 72
-            local changed = false -- 73
-            changed, renderGroup = ImGui.Checkbox("Grouped", renderGroup) -- 74
-            if changed then -- 74
-                currentEntry.renderGroup = renderGroup -- 76
-            end -- 76
-        end -- 69
-    ) -- 69
-    return false -- 79
-end) -- 64
-return ____exports -- 64
+local currentEntry = Node() -- 43
+currentEntry.renderGroup = true -- 44
+currentEntry.size = Size(750, 750) -- 45
+do -- 45
+    local _i = 1 -- 46
+    while _i <= 16 do -- 46
+        currentEntry:addChild(Item()) -- 47
+        _i = _i + 1 -- 46
+    end -- 46
+end -- 46
+currentEntry:alignItems() -- 50
+local renderGroup = currentEntry.renderGroup -- 52
+local windowFlags = { -- 53
+    "NoDecoration", -- 54
+    "AlwaysAutoResize", -- 55
+    "NoSavedSettings", -- 56
+    "NoFocusOnAppearing", -- 57
+    "NoNav", -- 58
+    "NoMove" -- 59
+} -- 59
+threadLoop(function() -- 61
+    local ____App_visualSize_2 = App.visualSize -- 62
+    local width = ____App_visualSize_2.width -- 62
+    ImGui.SetNextWindowBgAlpha(0.35) -- 63
+    ImGui.SetNextWindowPos( -- 64
+        Vec2(width - 10, 10), -- 64
+        "Always", -- 64
+        Vec2(1, 0) -- 64
+    ) -- 64
+    ImGui.SetNextWindowSize( -- 65
+        Vec2(240, 0), -- 65
+        "FirstUseEver" -- 65
+    ) -- 65
+    ImGui.Begin( -- 66
+        "Render Group", -- 66
+        windowFlags, -- 66
+        function() -- 66
+            ImGui.Text("Render Group (Typescript)") -- 67
+            ImGui.Separator() -- 68
+            ImGui.TextWrapped("When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window.") -- 69
+            local changed = false -- 70
+            changed, renderGroup = ImGui.Checkbox("Grouped", renderGroup) -- 71
+            if changed then -- 71
+                currentEntry.renderGroup = renderGroup -- 73
+            end -- 73
+        end -- 66
+    ) -- 66
+    return false -- 76
+end) -- 61
+return ____exports -- 61

@@ -1010,6 +1010,14 @@ class MoveZ {
 	easing?: dora.EaseFunc;
 }
 
+class Loop {
+	/** Whether the action definitions should run in parallel. */
+	spawn?: boolean;
+
+	/** The action definitions to run. Default to run in sequence. */
+	children: any[] | any;
+}
+
 class Spawn {
 	/** The action definitions to run in parallel. */
 	children: any[] | any;
@@ -1540,123 +1548,128 @@ interface IntrinsicElements {
 	action: Action;
 	/**
 	 * Creates a definition for an action that animates the x anchor point of a Node from one value to another.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	'anchor-x': AnchorX;
 	/**
 	 * Creates a definition for an action that animates the y anchor point of a Node from one value to another.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	'anchor-y': AnchorY;
 	/**
 	 * Creates a definition for an action that animates the angle of a Node from one value to another.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	angle: Angle;
 	/**
 	 * Creates a definition for an action that animates the x-axis rotation angle of a Node from one value to another.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	'angle-x': AngleX;
 	/**
 	 * Creates a definition for an action that animates the y-axis rotation angle of a Node from one value to another.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	'angle-y': AngleY;
 	/**
 	 * Creates a definition for an action that makes a delay in the animation timeline.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	delay: Delay;
 	/**
 	 * Creates a definition for an action that emits an event.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	event: Event;
 	/**
 	 * Creates a definition for an action that animates the width of a Node.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	width: Width;
 	/**
 	 * Creates a definition for an action that animates the height of a Node.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	height: Height;
 	/**
 	 * Creates a definition for an action that hides a Node.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	hide: Hide;
 	/**
 	 * Creates a definition for an action that shows a Node.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	show: Show;
 	/**
 	 * Creates a definition for an action that animates the position of a Node.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	move: Move;
 	/**
 	 * Creates a definition for an action that animates the opacity of a Node from one value to another.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	opacity: Opacity;
 	/**
 	 * Creates a definition for an action that animates the rotation of a Node from one value to another.
 	 * The roll animation will make sure the node is rotated to the target angle by the minimum rotation angle.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	roll: Roll;
 	/**
 	 * Creates a definition for an action that animates the x-axis and y-axis scale of a Node from one value to another.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	scale: Scale;
 	/**
 	 * Creates a definition for an action that animates the x-axis scale of a Node from one value to another.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	'scale-x': ScaleX;
 	/**
 	 * Creates a definition for an action that animates the y-axis scale of a Node from one value to another.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	'scale-y': ScaleY;
 	/**
 	 * Creates a definition for an action that animates the skew of a Node along the x-axis.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	'skew-x': SkewX;
 	/**
 	 * Creates a definition for an action that animates the skew of a Node along the y-axis.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	'skew-y': SkewY;
 	/**
 	 * Creates a definition for an action that animates the x-position of a Node.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	'move-x': MoveX;
 	/**
 	 * Creates a definition for an action that animates the y-position of a Node.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	'move-y': MoveY;
 	/**
 	 * Creates a definition for an action that animates the z-position of a Node.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	'move-z': MoveZ;
 	/**
+	 * Creates a definition for an action that runs repeatedly.
+	 * Must be placed under scene node to take effect.
+	 */
+	loop: Loop;
+	/**
 	 * Creates a definition for an action that runs a group of actions in parallel.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	spawn: Spawn;
 	/**
 	 * Creates a definition for an action that runs a sequence of actions.
-	 * Must be placed under <action>, <spawn> or <sequence> to take effect.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	sequence: Sequence;
 	/**

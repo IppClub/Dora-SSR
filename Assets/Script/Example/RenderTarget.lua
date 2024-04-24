@@ -22,60 +22,57 @@ do -- 3
 		_with_1.fliped = true -- 7
 		_with_1.look = "happy" -- 8
 		_with_1:play("walk", true) -- 9
-		_with_1:runAction(Sequence(X(2, -150, 250), Event("Turn"), X(2, 250, -150), Event("Turn"))) -- 10
-		_with_1:slot("ActionEnd", function(action) -- 16
-			return _with_1:runAction(action) -- 16
+		_with_1:runAction(Sequence(X(2, -150, 250), Event("Turn"), X(2, 250, -150), Event("Turn")), true) -- 10
+		_with_1:slot("Turn", function() -- 16
+			_with_1.fliped = not _with_1.fliped -- 16
 		end) -- 16
-		_with_1:slot("Turn", function() -- 17
-			_with_1.fliped = not _with_1.fliped -- 17
-		end) -- 17
 		return _with_1 -- 5
 	end)()) -- 5
 	node = _with_0 -- 3
 end -- 3
-local renderTarget -- 19
-do -- 19
-	local _with_0 = RenderTarget(300, 400) -- 19
-	_with_0:renderWithClear(Color(0xff8a8a8a)) -- 20
-	renderTarget = _with_0 -- 19
-end -- 19
-local surface -- 22
-do -- 22
-	local _with_0 = Sprite(renderTarget.texture) -- 22
-	_with_0.order = 1 -- 23
-	_with_0.z = 300 -- 24
-	_with_0.angleY = 25 -- 25
-	_with_0:addChild(Line({ -- 27
-		Vec2.zero, -- 27
-		Vec2(300, 0), -- 28
-		Vec2(300, 400), -- 29
-		Vec2(0, 400), -- 30
-		Vec2.zero -- 31
-	}, App.themeColor)) -- 26
-	_with_0:schedule(function() -- 33
-		node.y = 200 -- 34
-		renderTarget:renderWithClear(node, Color(0xff8a8a8a)) -- 35
-		node.y = 0 -- 36
-	end) -- 33
-	surface = _with_0 -- 22
-end -- 22
-local windowFlags = { -- 41
-	"NoDecoration", -- 41
-	"AlwaysAutoResize", -- 42
-	"NoSavedSettings", -- 43
-	"NoFocusOnAppearing", -- 44
-	"NoNav", -- 45
-	"NoMove" -- 46
-} -- 40
-return threadLoop(function() -- 47
-	local width -- 48
-	width = App.visualSize.width -- 48
-	ImGui.SetNextWindowBgAlpha(0.35) -- 49
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 50
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 51
-	return ImGui.Begin("Render Target", windowFlags, function() -- 52
-		ImGui.Text("Render Target (Yuescript)") -- 53
-		ImGui.Separator() -- 54
-		return ImGui.TextWrapped("Use render target node as a mirror!") -- 55
-	end) -- 55
-end) -- 55
+local renderTarget -- 18
+do -- 18
+	local _with_0 = RenderTarget(300, 400) -- 18
+	_with_0:renderWithClear(Color(0xff8a8a8a)) -- 19
+	renderTarget = _with_0 -- 18
+end -- 18
+local surface -- 21
+do -- 21
+	local _with_0 = Sprite(renderTarget.texture) -- 21
+	_with_0.order = 1 -- 22
+	_with_0.z = 300 -- 23
+	_with_0.angleY = 25 -- 24
+	_with_0:addChild(Line({ -- 26
+		Vec2.zero, -- 26
+		Vec2(300, 0), -- 27
+		Vec2(300, 400), -- 28
+		Vec2(0, 400), -- 29
+		Vec2.zero -- 30
+	}, App.themeColor)) -- 25
+	_with_0:schedule(function() -- 32
+		node.y = 200 -- 33
+		renderTarget:renderWithClear(node, Color(0xff8a8a8a)) -- 34
+		node.y = 0 -- 35
+	end) -- 32
+	surface = _with_0 -- 21
+end -- 21
+local windowFlags = { -- 40
+	"NoDecoration", -- 40
+	"AlwaysAutoResize", -- 41
+	"NoSavedSettings", -- 42
+	"NoFocusOnAppearing", -- 43
+	"NoNav", -- 44
+	"NoMove" -- 45
+} -- 39
+return threadLoop(function() -- 46
+	local width -- 47
+	width = App.visualSize.width -- 47
+	ImGui.SetNextWindowBgAlpha(0.35) -- 48
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 49
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 50
+	return ImGui.Begin("Render Target", windowFlags, function() -- 51
+		ImGui.Text("Render Target (Yuescript)") -- 52
+		ImGui.Separator() -- 53
+		return ImGui.TextWrapped("Use render target node as a mirror!") -- 54
+	end) -- 54
+end) -- 54

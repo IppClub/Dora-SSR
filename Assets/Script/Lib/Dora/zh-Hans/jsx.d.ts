@@ -1012,6 +1012,14 @@ class MoveZ {
 	easing?: dora.EaseFunc;
 }
 
+class Loop {
+	/** 子动作定义对象是否要并行运行。 */
+	spawn?: boolean;
+
+	/** 要运行的一组动作定义对象，默认会按顺序执行。 */
+	children: any[] | any;
+}
+
 class Spawn {
 	/** 要并行运行的一组动作定义对象。 */
 	children: any[] | any;
@@ -1537,123 +1545,128 @@ interface IntrinsicElements {
 	action: Action;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的X锚点。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	'anchor-x': AnchorX;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的Y锚点。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	'anchor-y': AnchorY;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的角度。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	angle: Angle;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的x轴旋转角度。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	'angle-x': AngleX;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的y轴旋转角度。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	'angle-y': AngleY;
 	/**
 	 * 创建动作定义，该动作在动画时间线中产生延迟。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	delay: Delay;
 	/**
 	 * 创建动作定义，该动作将触发事件。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	event: Event;
 	/**
-	* 创建动作定义，该动作将持续改变节点的宽度。
-	只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
-	*/
+	 * 创建动作定义，该动作将持续改变节点的宽度。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
+	 */
 	width: Width;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的高度。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	height: Height;
 	/**
 	 * 创建动作定义，该动作将隐藏节点。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	hide: Hide;
 	/**
 	 * 创建动作定义，该动作将显示节点。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	show: Show;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的位置。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	move: Move;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的不透明度。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	opacity: Opacity;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的旋转。
 	 * 滚动动画将确保节点通过最小旋转角度旋转到目标角度。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	roll: Roll;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的X轴和Y轴缩放。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	scale: Scale;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的X轴缩放。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	'scale-x': ScaleX;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的Y轴缩放。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	'scale-y': ScaleY;
 	/**
 	 * 创建动作定义，该动作将持续改变节点沿X轴的倾斜。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	'skew-x': SkewX;
 	/**
 	 * 创建动作定义，该动作将持续改变节点沿Y轴的倾斜。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	'skew-y': SkewY;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的X坐标位置。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	'move-x': MoveX;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的Y坐标位置。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	'move-y': MoveY;
 	/**
 	 * 创建动作定义，该动作将持续改变节点的z位置。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	'move-z': MoveZ;
 	/**
+	 * 创建动作定义，该动作会一直重复执行。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
+	 */
+	loop: Loop;
+	/**
 	 * 创建动作定义，该动作会并行执行一组动作。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	spawn: Spawn;
 	/**
 	 * 创建动作定义，该动作会顺序执行一系列其它动作。
-	 * 只能作为`<action>`、`<sequence>`或是`<spawn>`的子标签来使用。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	sequence: Sequence;
 	/**

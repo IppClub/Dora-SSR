@@ -1330,21 +1330,23 @@ interface object class Node
 	/// # Arguments
 	///
 	/// * `action_def` - The action definition to run.
+	/// * `looped` - Whether to loop the action.
 	///
 	/// # Returns
 	///
 	/// * `f32` - The duration of the newly running action in seconds.
-	outside float node_run_action_def_duration @ run_action_def(ActionDef def);
+	outside float node_run_action_def_duration @ run_action_def(ActionDef def, bool looped);
 	/// Runs an action on this node.
 	///
 	/// # Arguments
 	///
 	/// * `action` - The action to run.
+	/// * `looped` - Whether to loop the action.
 	///
 	/// # Returns
 	///
 	/// * `f32` - The duration of the newly running action in seconds.
-	float runAction @ runAction(Action* action);
+	float runAction @ runAction(Action* action, bool looped);
 	/// Stops all actions running on this node.
 	void stopAllActions();
 	/// Runs an action defined by the given action definition right after clearing all the previous running actions.
@@ -1352,21 +1354,23 @@ interface object class Node
 	/// # Arguments
 	///
 	/// * `action_def` - The action definition to run.
+	/// * `looped` - Whether to loop the action.
 	///
 	/// # Returns
 	///
 	/// * `f32` - The duration of the newly running action in seconds.
-	outside float node_perform_def_duration @ perform_def(ActionDef actionDef);
+	outside float node_perform_def_duration @ perform_def(ActionDef actionDef, bool looped);
 	/// Runs an action on this node right after clearing all the previous running actions.
 	///
 	/// # Arguments
 	///
 	/// * `action` - The action to run.
+	/// * `looped` - Whether to loop the action.
 	///
 	/// # Returns
 	///
 	/// * `f32` - The duration of the newly running action in seconds.
-	float perform(Action* action);
+	float perform(Action* action, bool looped);
 	/// Stops the given action running on this node.
 	///
 	/// # Arguments

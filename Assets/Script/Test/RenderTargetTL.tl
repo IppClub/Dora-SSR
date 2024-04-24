@@ -32,11 +32,8 @@ spine:runAction(
 		Event("Turn"),
 		X(2, 250, -150),
 		Event("Turn")
-	)
+	), true
 )
-spine:slot("ActionEnd", function(action: Action.Type)
-	spine:runAction(action)
-end)
 spine:slot("Turn", function()
 	spine.fliped = not spine.fliped
 end)
