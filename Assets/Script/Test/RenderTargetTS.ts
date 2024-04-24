@@ -20,11 +20,7 @@ if (spine) {
 			Event("Turn"),
 			X(2, 250, -150),
 			Event("Turn")
-		)
-	);
-	spine.slot(Slot.ActionEnd, action => {
-		spine.runAction(action);
-	});
+		), true);
 	spine.slot("Turn", () => {
 		spine.fliped = !spine.fliped;
 	});

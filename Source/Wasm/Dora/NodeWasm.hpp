@@ -329,20 +329,20 @@ static int32_t node_traverse_all(int64_t self, int32_t func, int64_t stack) {
 		return std::get<bool>(args->pop());
 	}) ? 1 : 0;
 }
-static float node_run_action_def(int64_t self, int64_t def) {
-	return node_run_action_def_duration(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(def)));
+static float node_run_action_def(int64_t self, int64_t def, int32_t looped) {
+	return node_run_action_def_duration(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(def)), looped != 0);
 }
-static float node_run_action(int64_t self, int64_t action) {
-	return r_cast<Node*>(self)->runAction(r_cast<Action*>(action));
+static float node_run_action(int64_t self, int64_t action, int32_t looped) {
+	return r_cast<Node*>(self)->runAction(r_cast<Action*>(action), looped != 0);
 }
 static void node_stop_all_actions(int64_t self) {
 	r_cast<Node*>(self)->stopAllActions();
 }
-static float node_perform_def(int64_t self, int64_t action_def) {
-	return node_perform_def_duration(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(action_def)));
+static float node_perform_def(int64_t self, int64_t action_def, int32_t looped) {
+	return node_perform_def_duration(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(action_def)), looped != 0);
 }
-static float node_perform(int64_t self, int64_t action) {
-	return r_cast<Node*>(self)->perform(r_cast<Action*>(action));
+static float node_perform(int64_t self, int64_t action, int32_t looped) {
+	return r_cast<Node*>(self)->perform(r_cast<Action*>(action), looped != 0);
 }
 static void node_stop_action(int64_t self, int64_t action) {
 	r_cast<Node*>(self)->stopAction(r_cast<Action*>(action));

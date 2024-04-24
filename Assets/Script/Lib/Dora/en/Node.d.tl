@@ -269,26 +269,30 @@ local record Node
 
 	-- Runs the given action on this node.
 	-- @param action (Action) The action to run.
+	-- @param loop (boolean) [optional] Whether to loop the action. Default is false.
 	-- @return (number) The duration of the newly running action in seconds.
-	runAction: function(self: Node, action: Action): number
+	runAction: function(self: Node, action: Action, loop?: boolean): number
 
 	-- Runs an action defined by the given action definition on this node.
 	-- @param actionDef (ActionDef) The action definition to run.
+	-- @param loop (boolean) [optional] Whether to loop the action. Default is false.
 	-- @return (number) The duration of the newly running action in seconds.
-	runAction: function(self: Node, actionDef: ActionDef): number
+	runAction: function(self: Node, actionDef: ActionDef, loop?: boolean): number
 
 	-- Stops all actions running on this node.
 	stopAllActions: function(self: Node)
 
 	-- Runs the given action immediately without adding it to the action queue.
 	-- @param action (Action) The action to run.
+	-- @param loop (boolean) [optional] Whether to loop the action. Default is false.
 	-- @return (number) The duration of the newly running action.
-	perform: function(self: Node, action: Action): number
+	perform: function(self: Node, action: Action, loop?: boolean): number
 
 	-- Runs an action defined by the given action definition right after clear all the previous running actions.
 	-- @param actionDef (ActionDef) The action definition to run.
+	-- @param loop (boolean) [optional] Whether to loop the action. Default is false.
 	-- @return (number) The duration of the newly running action.
-	perform: function(self: Node, actionDef: ActionDef): number
+	perform: function(self: Node, actionDef: ActionDef, loop?: boolean): number
 
 	-- Stops the given action running on this node.
 	-- @param action (Action) The action to stop.

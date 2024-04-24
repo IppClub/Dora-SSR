@@ -223,10 +223,10 @@ public:
 	}
 
 	PROPERTY_READONLY(int, ActionCount);
-	float runAction(Action* action);
+	float runAction(Action* action, bool loop = false);
 	bool hasAction(Action* action);
 	void stopAllActions();
-	float perform(Action* action);
+	float perform(Action* action, bool loop = false);
 	void removeAction(Action* action);
 	void stopAction(Action* action);
 

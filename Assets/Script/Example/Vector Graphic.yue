@@ -26,8 +26,7 @@ with VGNode 60, 50, 5
 	\runAction Sequence(
 		Scale 0.2, 1.0, 0.3
 		Scale 0.5, 0.3, 1.0, Ease.OutBack
-	)
-	\slot "ActionEnd", => \runAction @
+	), true
 
 drawAnimated = coroutine.wrap ->
 	while true

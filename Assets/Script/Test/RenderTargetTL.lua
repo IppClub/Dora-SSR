@@ -31,12 +31,9 @@ Sequence(
 X(2, -150, 250),
 Event("Turn"),
 X(2, 250, -150),
-Event("Turn")))
+Event("Turn")),
+true)
 
-
-spine:slot("ActionEnd", function(action)
-	spine:runAction(action)
-end)
 spine:slot("Turn", function()
 	spine.fliped = not spine.fliped
 end)

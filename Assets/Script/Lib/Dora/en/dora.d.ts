@@ -2892,16 +2892,18 @@ class Node extends Object {
 	/**
 	 * Runs the given action on this node.
 	 * @param action The action to run.
+	 * @param loop [optional] Whether to loop the action. Defaults to false.
 	 * @returns The duration of the newly running action in seconds.
 	 */
-	runAction(action: Action): number;
+	runAction(action: Action, loop?: boolean): number;
 
 	/**
 	 * Runs an action defined by the given action definition on this node.
 	 * @param actionDef The action definition to run.
+	 * @param loop [optional] Whether to loop the action. Defaults to false.
 	 * @returns The duration of the newly running action in seconds.
 	 */
-	runAction(actionDef: ActionDef): number;
+	runAction(actionDef: ActionDef, loop?: boolean): number;
 
 	/**
 	 * Stops all actions running on this node.
@@ -2911,16 +2913,18 @@ class Node extends Object {
 	/**
 	 * Runs the given action immediately without adding it to the action queue.
 	 * @param action The action to run.
+	 * @param loop [optional] Whether to loop the action. Defaults to false.
 	 * @returns The duration of the newly running action.
 	 */
-	perform(action: Action): number;
+	perform(action: Action, loop?: boolean): number;
 
 	/**
 	 * Runs an action defined by the given action definition right after clearing all the previous running actions.
 	 * @param actionDef The action definition to run.
+	 * @param loop [optional] Whether to loop the action. Defaults to false.
 	 * @returns The duration of the newly running action.
 	 */
-	perform(actionDef: ActionDef): number;
+	perform(actionDef: ActionDef, loop?: boolean): number;
 
 	/**
 	 * Stops the given action running on this node.

@@ -25,8 +25,7 @@ targetA = with Model "Model/xiaoli.model"
 		Event "Turn"
 		X 1.5, 200, -200
 		Event "Turn"
-	)
-	\slot "ActionEnd", (action) -> \runAction action
+	), true
 	\slot "Turn", -> .fliped = not .fliped
 
 clipNodeA = with ClipNode maskA

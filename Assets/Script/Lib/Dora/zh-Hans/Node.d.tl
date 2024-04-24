@@ -270,26 +270,30 @@ local record Node
 
 	-- 在此节点上执行给定的动作对象。
 	-- @param action (Action) 要执行的动作对象。
+	-- @param loop (boolean) [可选] 是否循环执行动作。默认为 false。
 	-- @return (number) 新执行的动作的持续时间，以秒为单位。
-	runAction: function(self: Node, action: Action): number
+	runAction: function(self: Node, action: Action, loop?: boolean): number
 
 	-- 在此节点上执行由动作定义对象定义的动作。
 	-- @param actionDef (ActionDef) 要运行的动作定义。
+	-- @param loop (boolean) [可选] 是否循环执行动作。默认为 false。
 	-- @return (number) 新执行的动作的持续时间，以秒为单位。
-	runAction: function(self: Node, actionDef: ActionDef): number
+	runAction: function(self: Node, actionDef: ActionDef, loop?: boolean): number
 
 	-- 停止在此节点上运行的所有动作。
 	stopAllActions: function(self: Node)
 
 	-- 立即停止所有现有动作，并开始执行一个新动作。
 	-- @param action (Action) 要执行的动作。
+	-- @param loop (boolean) [可选] 是否循环执行动作。默认为 false。
 	-- @return (number) 新执行的动作的持续时间，以秒为单位。
-	perform: function(self: Node, action: Action): number
+	perform: function(self: Node, action: Action, loop?: boolean): number
 
 	-- 立即停止所有现有动作，并通过动作定义对象开始执行一个新动作。
 	-- @param actionDef (ActionDef) 要执行的动作定义。
+	-- @param loop (boolean) [可选] 是否循环执行动作。默认为 false。
 	-- @return (number) 新执行的动作的持续时间，以秒为单位。
-	perform: function(self: Node, actionDef: ActionDef): number
+	perform: function(self: Node, actionDef: ActionDef, loop?: boolean): number
 
 	-- 停止在此节点上运行的某个动作。
 	-- @param action (Action) 要停止的动作。

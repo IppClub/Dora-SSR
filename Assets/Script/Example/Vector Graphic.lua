@@ -39,47 +39,44 @@ do -- 23
 	_with_0:slot("Cleanup", function() -- 25
 		stopRendering = true -- 25
 	end) -- 25
-	_with_0:runAction(Sequence(Scale(0.2, 1.0, 0.3), Scale(0.5, 0.3, 1.0, Ease.OutBack))) -- 26
-	_with_0:slot("ActionEnd", function(self) -- 30
-		return _with_0:runAction(self) -- 30
-	end) -- 30
+	_with_0:runAction(Sequence(Scale(0.2, 1.0, 0.3), Scale(0.5, 0.3, 1.0, Ease.OutBack)), true) -- 26
 end -- 23
-local drawAnimated = coroutine.wrap(function() -- 32
-	while true do -- 33
-		cycle(0.2, function(time) -- 34
-			local scale = 1 - 0.7 * time -- 35
-			nvg.Scale(scale, scale) -- 36
-			return drawHeart() -- 37
-		end) -- 34
-		cycle(0.5, function(time) -- 38
-			local scale = 0.3 + 0.7 * Ease:func(Ease.OutBack, time) -- 39
-			nvg.Scale(scale, scale) -- 40
-			return drawHeart() -- 41
-		end) -- 38
-	end -- 41
-end) -- 32
-threadLoop(function() -- 43
-	nvg.Scale(2, 2) -- 44
-	drawAnimated() -- 45
-	return stopRendering -- 46
-end) -- 43
-local windowFlags = { -- 51
-	"NoDecoration", -- 51
-	"AlwaysAutoResize", -- 52
-	"NoSavedSettings", -- 53
-	"NoFocusOnAppearing", -- 54
-	"NoNav", -- 55
-	"NoMove" -- 56
-} -- 50
-return threadLoop(function() -- 57
-	local width -- 58
-	width = App.visualSize.width -- 58
-	ImGui.SetNextWindowBgAlpha(0.35) -- 59
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 60
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 61
-	return ImGui.Begin("Vector Graphic Rendering", windowFlags, function() -- 62
-		ImGui.Text("Vector Graphic Rendering (Yuescript)") -- 63
-		ImGui.Separator() -- 64
-		return ImGui.TextWrapped("Use nanoVG lib to do vector graphic rendering, render to a texture or do instant render!") -- 65
-	end) -- 65
-end) -- 65
+local drawAnimated = coroutine.wrap(function() -- 31
+	while true do -- 32
+		cycle(0.2, function(time) -- 33
+			local scale = 1 - 0.7 * time -- 34
+			nvg.Scale(scale, scale) -- 35
+			return drawHeart() -- 36
+		end) -- 33
+		cycle(0.5, function(time) -- 37
+			local scale = 0.3 + 0.7 * Ease:func(Ease.OutBack, time) -- 38
+			nvg.Scale(scale, scale) -- 39
+			return drawHeart() -- 40
+		end) -- 37
+	end -- 40
+end) -- 31
+threadLoop(function() -- 42
+	nvg.Scale(2, 2) -- 43
+	drawAnimated() -- 44
+	return stopRendering -- 45
+end) -- 42
+local windowFlags = { -- 50
+	"NoDecoration", -- 50
+	"AlwaysAutoResize", -- 51
+	"NoSavedSettings", -- 52
+	"NoFocusOnAppearing", -- 53
+	"NoNav", -- 54
+	"NoMove" -- 55
+} -- 49
+return threadLoop(function() -- 56
+	local width -- 57
+	width = App.visualSize.width -- 57
+	ImGui.SetNextWindowBgAlpha(0.35) -- 58
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 59
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 60
+	return ImGui.Begin("Vector Graphic Rendering", windowFlags, function() -- 61
+		ImGui.Text("Vector Graphic Rendering (Yuescript)") -- 62
+		ImGui.Separator() -- 63
+		return ImGui.TextWrapped("Use nanoVG lib to do vector graphic rendering, render to a texture or do instant render!") -- 64
+	end) -- 64
+end) -- 64

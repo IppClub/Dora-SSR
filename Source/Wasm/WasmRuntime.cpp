@@ -880,15 +880,15 @@ static void node_stop_grabbing(Node* node) {
 static void node_set_transform_target_nullptr(Node* node) {
 	node->setTransformTarget(nullptr);
 }
-static float node_run_action_def_duration(Node* node, ActionDef def) {
+static float node_run_action_def_duration(Node* node, ActionDef def, bool loop) {
 	if (def) {
-		return node->runAction(Action::create(std::move(def)));
+		return node->runAction(Action::create(std::move(def)), loop);
 	}
 	return 0.0f;
 }
-static float node_perform_def_duration(Node* node, ActionDef def) {
+static float node_perform_def_duration(Node* node, ActionDef def, bool loop) {
 	if (def) {
-		return node->perform(Action::create(std::move(def)));
+		return node->perform(Action::create(std::move(def)), loop);
 	}
 	return 0.0f;
 }
