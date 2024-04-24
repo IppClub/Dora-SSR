@@ -2895,16 +2895,18 @@ class Node extends Object {
 	/**
 	 * 在此节点上执行给定的动作。
 	 * @param action 要执行的动作。
+	 * @param loop [可选] 是否循环执行动作。默认为false。
 	 * @returns 新执行的动作的持续时间（以秒为单位）。
 	 */
-	runAction(action: Action): number;
+	runAction(action: Action, loop?: boolean): number;
 
 	/**
 	 * 在此节点上执行由给定动作定义的动作。
 	 * @param actionDef 要执行的动作定义。
+	 * @param loop [可选] 是否循环执行动作。默认为false。
 	 * @returns 新执行的动作的持续时间（以秒为单位）。
 	 */
-	runAction(actionDef: ActionDef): number;
+	runAction(actionDef: ActionDef, loop?: boolean): number;
 
 	/**
 	 * 停止在此节点上执行的所有动作。
@@ -2914,16 +2916,18 @@ class Node extends Object {
 	/**
 	 * 立即执行给定的动作，而不将其添加到动作队列中。
 	 * @param action 要执行的动作。
+	 * @param loop [可选] 是否循环执行动作。默认为false。
 	 * @returns 新执行的动作的持续时间。
 	 */
-	perform(action: Action): number;
+	perform(action: Action, loop?: boolean): number;
 
 	/**
 	 * 在清除所有之前执行的动作后，立即执行由给定动作定义的动作。
 	 * @param actionDef 要执行的动作定义。
+	 * @param loop [可选] 是否循环执行动作。默认为false。
 	 * @returns 新执行的动作的持续时间。
 	 */
-	perform(actionDef: ActionDef): number;
+	perform(actionDef: ActionDef, loop?: boolean): number;
 
 	/**
 	 * 停止在此节点上执行的特定动作。

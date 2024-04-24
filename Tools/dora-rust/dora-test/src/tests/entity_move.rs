@@ -35,7 +35,7 @@ pub fn test() {
 		) {
 			if let Some(mut sprite) = Sprite::with_file(&image) {
 				sprite.add_to(&scene);
-				sprite.run_action_def(ActionDef::scale(0.5, 0.0, 0.5, EaseType::OutBack));
+				sprite.run_action_def(ActionDef::scale(0.5, 0.0, 0.5, EaseType::OutBack), false);
 				entity.set("sprite", sprite.obj());
 			}
 		}
@@ -104,7 +104,7 @@ pub fn test() {
 			let get_old_direction = move || entity.get_old("direction")?.into_f32();
 			let last_direction = get_old_direction().unwrap_or(sprite.get_angle());
 			if (direction - last_direction).abs() > 1.0 {
-				sprite.run_action_def(ActionDef::roll(0.3, last_direction, direction, EaseType::InOutSine));
+				sprite.run_action_def(ActionDef::roll(0.3, last_direction, direction, EaseType::InOutSine), false);
 			}
 		}
 		false
@@ -167,7 +167,7 @@ pub fn test() {
 							ActionDef::sequence(&vec![
 								ActionDef::scale(0.5, 0.5, 0.0, EaseType::InBack),
 								ActionDef::event("Destroy", "")
-							]));
+							]), false);
 						sprite.slot("Destroy", Box::new(move |_| {
 							entity.destroy();
 						}));

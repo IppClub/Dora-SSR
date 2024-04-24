@@ -286,15 +286,13 @@ Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon
 		return
 	end
 
-	sprite:schedule(loop(function(): boolean
-		sleep(sprite:runAction(Spawn(
-			AngleY(5, 0, 360),
-			Sequence(
-				Y(2.5, 0, 40, Ease.OutQuad),
-				Y(2.5, 40, 0, Ease.InQuad)
-			)
-		)))
-	end))
+	sprite:runAction(Spawn(
+		AngleY(5, 0, 360),
+		Sequence(
+			Y(2.5, 0, 40, Ease.OutQuad),
+			Y(2.5, 40, 0, Ease.InQuad)
+		)
+	), true)
 
 	local bodyDef = BodyDef()
 	bodyDef.type = "Dynamic"

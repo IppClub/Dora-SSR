@@ -636,19 +636,19 @@ do
 	local Action = dora.Action
 	local Node = dora.Node
 	local Node_runAction = Node.runAction
-	Node.runAction = function(self, action)
+	Node.runAction = function(self, action, loop)
 		if type(action) == "table" then
-			return Node_runAction(self, Action(action))
+			return Node_runAction(self, Action(action), loop)
 		else
-			return Node_runAction(self, action)
+			return Node_runAction(self, action, loop)
 		end
 	end
 	local Node_perform = Node.perform
-	Node.perform = function(self, action)
+	Node.perform = function(self, action, loop)
 		if type(action) == "table" then
-			return Node_perform(self, Action(action))
+			return Node_perform(self, Action(action), loop)
 		else
-			return Node_perform(self, action)
+			return Node_perform(self, action, loop)
 		end
 	end
 

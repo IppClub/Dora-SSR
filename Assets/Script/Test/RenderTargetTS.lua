@@ -24,78 +24,75 @@ if spine then -- 10
     spine.scaleY = 1.2 -- 14
     spine.fliped = false -- 15
     spine:play("fmove", true) -- 16
-    spine:runAction(Sequence( -- 17
-        X(2, -150, 250), -- 19
-        Event("Turn"), -- 20
-        X(2, 250, -150), -- 21
-        Event("Turn") -- 22
-    )) -- 22
-    spine:slot( -- 25
-        "ActionEnd", -- 25
-        function(action) -- 25
-            spine:runAction(action) -- 26
-        end -- 25
-    ) -- 25
-    spine:slot( -- 28
-        "Turn", -- 28
-        function() -- 28
-            spine.fliped = not spine.fliped -- 29
-        end -- 28
-    ) -- 28
-end -- 28
-local renderTarget = RenderTarget(300, 400) -- 33
-renderTarget:renderWithClear(Color(4287269514)) -- 34
-local surface = Sprite(renderTarget.texture):addTo(root) -- 36
-surface.z = 300 -- 37
-surface.angleY = 25 -- 38
-surface:addChild(Line( -- 39
-    { -- 39
-        Vec2.zero, -- 40
-        Vec2(300, 0), -- 41
-        Vec2(300, 400), -- 42
-        Vec2(0, 400), -- 43
-        Vec2.zero -- 44
-    }, -- 44
-    App.themeColor -- 45
-)) -- 45
-surface:schedule(function() -- 46
-    node.y = 200 -- 47
-    renderTarget:renderWithClear( -- 48
-        node, -- 48
-        Color(4287269514) -- 48
-    ) -- 48
-    node.y = 0 -- 49
-    return false -- 50
-end) -- 46
-local windowFlags = { -- 53
-    "NoDecoration", -- 54
-    "AlwaysAutoResize", -- 55
-    "NoSavedSettings", -- 56
-    "NoFocusOnAppearing", -- 57
-    "NoNav", -- 58
-    "NoMove" -- 59
-} -- 59
-threadLoop(function() -- 61
-    local size = App.visualSize -- 62
-    ImGui.SetNextWindowBgAlpha(0.35) -- 63
-    ImGui.SetNextWindowPos( -- 64
-        Vec2(size.width - 10, 10), -- 64
-        "Always", -- 64
-        Vec2(1, 0) -- 64
-    ) -- 64
-    ImGui.SetNextWindowSize( -- 65
-        Vec2(240, 0), -- 65
-        "FirstUseEver" -- 65
-    ) -- 65
-    ImGui.Begin( -- 66
-        "Render Target", -- 66
-        windowFlags, -- 66
-        function() -- 66
-            ImGui.Text("Render Target (Typescript)") -- 67
-            ImGui.Separator() -- 68
-            ImGui.TextWrapped("Use render target node as a mirror!") -- 69
-        end -- 66
-    ) -- 66
-    return false -- 71
-end) -- 61
-return ____exports -- 61
+    spine:runAction( -- 17
+        Sequence( -- 18
+            X(2, -150, 250), -- 19
+            Event("Turn"), -- 20
+            X(2, 250, -150), -- 21
+            Event("Turn") -- 22
+        ), -- 22
+        true -- 23
+    ) -- 23
+    spine:slot( -- 24
+        "Turn", -- 24
+        function() -- 24
+            spine.fliped = not spine.fliped -- 25
+        end -- 24
+    ) -- 24
+end -- 24
+local renderTarget = RenderTarget(300, 400) -- 29
+renderTarget:renderWithClear(Color(4287269514)) -- 30
+local surface = Sprite(renderTarget.texture):addTo(root) -- 32
+surface.z = 300 -- 33
+surface.angleY = 25 -- 34
+surface:addChild(Line( -- 35
+    { -- 35
+        Vec2.zero, -- 36
+        Vec2(300, 0), -- 37
+        Vec2(300, 400), -- 38
+        Vec2(0, 400), -- 39
+        Vec2.zero -- 40
+    }, -- 40
+    App.themeColor -- 41
+)) -- 41
+surface:schedule(function() -- 42
+    node.y = 200 -- 43
+    renderTarget:renderWithClear( -- 44
+        node, -- 44
+        Color(4287269514) -- 44
+    ) -- 44
+    node.y = 0 -- 45
+    return false -- 46
+end) -- 42
+local windowFlags = { -- 49
+    "NoDecoration", -- 50
+    "AlwaysAutoResize", -- 51
+    "NoSavedSettings", -- 52
+    "NoFocusOnAppearing", -- 53
+    "NoNav", -- 54
+    "NoMove" -- 55
+} -- 55
+threadLoop(function() -- 57
+    local size = App.visualSize -- 58
+    ImGui.SetNextWindowBgAlpha(0.35) -- 59
+    ImGui.SetNextWindowPos( -- 60
+        Vec2(size.width - 10, 10), -- 60
+        "Always", -- 60
+        Vec2(1, 0) -- 60
+    ) -- 60
+    ImGui.SetNextWindowSize( -- 61
+        Vec2(240, 0), -- 61
+        "FirstUseEver" -- 61
+    ) -- 61
+    ImGui.Begin( -- 62
+        "Render Target", -- 62
+        windowFlags, -- 62
+        function() -- 62
+            ImGui.Text("Render Target (Typescript)") -- 63
+            ImGui.Separator() -- 64
+            ImGui.TextWrapped("Use render target node as a mirror!") -- 65
+        end -- 62
+    ) -- 62
+    return false -- 67
+end) -- 57
+return ____exports -- 57

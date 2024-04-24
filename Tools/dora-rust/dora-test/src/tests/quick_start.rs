@@ -22,6 +22,6 @@ pub fn test() {
 			&sprite.get_position(), // 开始位置
 			&touch.get_location(), // 结束位置
 			EaseType::OutBack // 缓动函数
-		));
+		), false);
 	}));
 }

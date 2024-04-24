@@ -36,10 +36,7 @@ function Item(this: void) {
 	line.renderOrder = 3;
 	line.angle = 45;
 
-	node.runAction(Angle(5, 0, 360));
-	node.slot(Slot.ActionEnd, action => {
-		node.runAction(action);
-	});
+	node.runAction(Angle(5, 0, 360), true);
 	return node;
 }
 

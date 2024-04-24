@@ -302,20 +302,14 @@ pub fn test() {
 			Some(sprite) => sprite,
 			None => return false
 		};
-		let mut sprite_clone = sprite.clone();
-		sprite.schedule(once(move |mut co| async move {
-			loop {
-				sleep!(co, sprite_clone.run_action_def(
-					ActionDef::spawn(&vec![
-						ActionDef::prop(5.0, 0.0, 360.0, Property::AngleY, EaseType::Linear),
-						ActionDef::sequence(&vec![
-							ActionDef::prop(2.5, 0.0, 40.0, Property::Y, EaseType::OutQuad),
-							ActionDef::prop(2.5, 40.0, 0.0, Property::Y, EaseType::InQuad)
-						])
-					]))
-				);
-			}
-		}));
+		sprite.run_action_def(
+			ActionDef::spawn(&vec![
+				ActionDef::prop(5.0, 0.0, 360.0, Property::AngleY, EaseType::Linear),
+				ActionDef::sequence(&vec![
+					ActionDef::prop(2.5, 0.0, 40.0, Property::Y, EaseType::OutQuad),
+					ActionDef::prop(2.5, 40.0, 0.0, Property::Y, EaseType::InQuad)
+				])
+			]), true);
 
 		let mut body_def = BodyDef::new();
 		body_def.set_type(BodyType::Dynamic);
@@ -342,7 +336,7 @@ pub fn test() {
 						ActionDef::spawn(&vec![
 							ActionDef::scale(0.2, 1.0, 1.3, EaseType::OutBack),
 							ActionDef::prop(0.2, 1.0, 0.0, Property::Opacity, EaseType::Linear)
-						]))
+						]), false)
 					);
 					body_clone_two.set_group(platformer::Data::get_group_hide());
 				}));
@@ -470,7 +464,7 @@ pub fn test() {
 							sprite.perform_def(ActionDef::spawn(&vec![
 								ActionDef::prop(1.0, 1.0, 0.0, Property::Opacity, EaseType::Linear),
 								ActionDef::prop(1.0, 150.0, 250.0, Property::Y, EaseType::Linear)
-							]));
+							]), false);
 							unit.add_child(&sprite);
 						}
 					}

@@ -928,6 +928,27 @@ const elementMap: ElementMap = {
 	'move-z': actionCheck,
 	spawn: actionCheck,
 	sequence: actionCheck,
+	loop: (nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
+		if (nodeStack.length > 0) {
+			const node = nodeStack[nodeStack.length - 1];
+			const actionStack: dora.ActionDef.Type[] = [];
+			for (let i of $range(1, enode.children.length)) {
+				visitAction(actionStack, enode.children[i - 1]);
+			}
+			if (actionStack.length === 1) {
+				node.runAction(actionStack[0], true);
+			} else {
+				const loop = enode.props as JSX.Loop;
+				if (loop.spawn) {
+					node.runAction(dora.Spawn(...actionStack), true);
+				} else {
+					node.runAction(dora.Sequence(...actionStack), true);
+				}
+			}
+		} else {
+			Warn(`tag <loop> must be placed under a scene node to take effect`);
+		}
+	},
 	'physics-world': (nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		addChild(nodeStack, getPhysicsWorld(enode), enode);
 	},

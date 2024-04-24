@@ -491,6 +491,7 @@ Action::Action(Own<ActionDuration>&& actionDuration)
 	, _target(nullptr)
 	, _action(std::move(actionDuration))
 	, _reversed(false)
+	, _looped(false)
 	, _paused(false) { }
 
 void Action::updateTo(float elapsed, bool reversed) {

@@ -44,101 +44,98 @@ do -- 19
 	_with_0.look = "happy" -- 20
 	_with_0.fliped = true -- 21
 	_with_0:play("walk", true) -- 22
-	_with_0:runAction(Sequence(X(1.5, -200, 200), Event("Turn"), X(1.5, 200, -200), Event("Turn"))) -- 23
-	_with_0:slot("ActionEnd", function(action) -- 29
-		return _with_0:runAction(action) -- 29
+	_with_0:runAction(Sequence(X(1.5, -200, 200), Event("Turn"), X(1.5, 200, -200), Event("Turn")), true) -- 23
+	_with_0:slot("Turn", function() -- 29
+		_with_0.fliped = not _with_0.fliped -- 29
 	end) -- 29
-	_with_0:slot("Turn", function() -- 30
-		_with_0.fliped = not _with_0.fliped -- 30
-	end) -- 30
 	targetA = _with_0 -- 19
 end -- 19
-local clipNodeA -- 32
-do -- 32
-	local _with_0 = ClipNode(maskA) -- 32
-	_with_0:addChild(targetA) -- 33
-	_with_0.inverted = true -- 34
-	clipNodeA = _with_0 -- 32
-end -- 32
-local frame -- 35
-do -- 35
-	local _with_0 = Line(StarVertices(160, true), App.themeColor) -- 35
-	_with_0.visible = false -- 36
-	frame = _with_0 -- 35
-end -- 35
-local exampleA -- 37
-do -- 37
-	local _with_0 = Node() -- 37
-	_with_0:addChild(clipNodeA) -- 38
-	_with_0:addChild(frame) -- 39
-	_with_0.visible = false -- 40
-	exampleA = _with_0 -- 37
-end -- 37
-local maskB -- 44
-do -- 44
-	local _with_0 = Model("Model/xiaoli.model") -- 44
-	_with_0.look = "happy" -- 45
-	_with_0.fliped = true -- 46
-	_with_0:play("walk", true) -- 47
-	maskB = _with_0 -- 44
-end -- 44
-local targetB -- 49
-do -- 49
-	local _with_0 = DrawNode() -- 49
-	_with_0:drawPolygon(StarVertices(160)) -- 50
-	_with_0:runAction(Sequence(X(1.5, -200, 200), X(1.5, 200, -200))) -- 51
-	_with_0:slot("ActionEnd", function(action) -- 55
-		return _with_0:runAction(action) -- 55
-	end) -- 55
-	targetB = _with_0 -- 49
-end -- 49
-local clipNodeB -- 57
-do -- 57
-	local _with_0 = ClipNode(maskB) -- 57
-	_with_0:addChild(targetB) -- 58
-	_with_0.inverted = true -- 59
-	_with_0.alphaThreshold = 0.3 -- 60
-	clipNodeB = _with_0 -- 57
-end -- 57
-local exampleB -- 61
-do -- 61
-	local _with_0 = Node() -- 61
-	_with_0:addChild(clipNodeB) -- 62
-	exampleB = _with_0 -- 61
-end -- 61
-local inverted = true -- 66
-local withAlphaThreshold = true -- 67
-local windowFlags = { -- 69
-	"NoDecoration", -- 69
-	"AlwaysAutoResize", -- 70
-	"NoSavedSettings", -- 71
-	"NoFocusOnAppearing", -- 72
-	"NoNav", -- 73
-	"NoMove" -- 74
-} -- 68
-return threadLoop(function() -- 75
-	local width -- 76
-	width = App.visualSize.width -- 76
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 77
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 78
-	return ImGui.Begin("Clip Node", windowFlags, function() -- 79
-		ImGui.Text("Clip Node (Yuescript)") -- 80
-		ImGui.Separator() -- 81
-		ImGui.TextWrapped("Render children nodes with mask!") -- 82
-		do -- 83
-			local changed -- 83
-			changed, inverted = ImGui.Checkbox("Inverted", inverted) -- 83
-			if changed then -- 83
-				clipNodeA.inverted = inverted -- 84
-				clipNodeB.inverted = inverted -- 85
-				frame.visible = not inverted -- 86
-			end -- 83
-		end -- 83
-		local changed -- 87
-		changed, withAlphaThreshold = ImGui.Checkbox("With alphaThreshold", withAlphaThreshold) -- 87
-		if changed then -- 87
-			exampleB.visible = withAlphaThreshold -- 88
-			exampleA.visible = not withAlphaThreshold -- 89
-		end -- 87
-	end) -- 89
-end) -- 89
+local clipNodeA -- 31
+do -- 31
+	local _with_0 = ClipNode(maskA) -- 31
+	_with_0:addChild(targetA) -- 32
+	_with_0.inverted = true -- 33
+	clipNodeA = _with_0 -- 31
+end -- 31
+local frame -- 34
+do -- 34
+	local _with_0 = Line(StarVertices(160, true), App.themeColor) -- 34
+	_with_0.visible = false -- 35
+	frame = _with_0 -- 34
+end -- 34
+local exampleA -- 36
+do -- 36
+	local _with_0 = Node() -- 36
+	_with_0:addChild(clipNodeA) -- 37
+	_with_0:addChild(frame) -- 38
+	_with_0.visible = false -- 39
+	exampleA = _with_0 -- 36
+end -- 36
+local maskB -- 43
+do -- 43
+	local _with_0 = Model("Model/xiaoli.model") -- 43
+	_with_0.look = "happy" -- 44
+	_with_0.fliped = true -- 45
+	_with_0:play("walk", true) -- 46
+	maskB = _with_0 -- 43
+end -- 43
+local targetB -- 48
+do -- 48
+	local _with_0 = DrawNode() -- 48
+	_with_0:drawPolygon(StarVertices(160)) -- 49
+	_with_0:runAction(Sequence(X(1.5, -200, 200), X(1.5, 200, -200))) -- 50
+	_with_0:slot("ActionEnd", function(action) -- 54
+		return _with_0:runAction(action) -- 54
+	end) -- 54
+	targetB = _with_0 -- 48
+end -- 48
+local clipNodeB -- 56
+do -- 56
+	local _with_0 = ClipNode(maskB) -- 56
+	_with_0:addChild(targetB) -- 57
+	_with_0.inverted = true -- 58
+	_with_0.alphaThreshold = 0.3 -- 59
+	clipNodeB = _with_0 -- 56
+end -- 56
+local exampleB -- 60
+do -- 60
+	local _with_0 = Node() -- 60
+	_with_0:addChild(clipNodeB) -- 61
+	exampleB = _with_0 -- 60
+end -- 60
+local inverted = true -- 65
+local withAlphaThreshold = true -- 66
+local windowFlags = { -- 68
+	"NoDecoration", -- 68
+	"AlwaysAutoResize", -- 69
+	"NoSavedSettings", -- 70
+	"NoFocusOnAppearing", -- 71
+	"NoNav", -- 72
+	"NoMove" -- 73
+} -- 67
+return threadLoop(function() -- 74
+	local width -- 75
+	width = App.visualSize.width -- 75
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 76
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 77
+	return ImGui.Begin("Clip Node", windowFlags, function() -- 78
+		ImGui.Text("Clip Node (Yuescript)") -- 79
+		ImGui.Separator() -- 80
+		ImGui.TextWrapped("Render children nodes with mask!") -- 81
+		do -- 82
+			local changed -- 82
+			changed, inverted = ImGui.Checkbox("Inverted", inverted) -- 82
+			if changed then -- 82
+				clipNodeA.inverted = inverted -- 83
+				clipNodeB.inverted = inverted -- 84
+				frame.visible = not inverted -- 85
+			end -- 82
+		end -- 82
+		local changed -- 86
+		changed, withAlphaThreshold = ImGui.Checkbox("With alphaThreshold", withAlphaThreshold) -- 86
+		if changed then -- 86
+			exampleB.visible = withAlphaThreshold -- 87
+			exampleA.visible = not withAlphaThreshold -- 88
+		end -- 86
+	end) -- 88
+end) -- 88
