@@ -89,7 +89,6 @@ threadLoop(() => {
 		[changed, receivingContact] = ImGui.Checkbox("Receiving Contact", receivingContact);
 		if (changed) {
 			if (disk.current) {
-				print(receivingContact);
 				disk.current.receivingContact = receivingContact;
 			}
 			if (label.current) {
