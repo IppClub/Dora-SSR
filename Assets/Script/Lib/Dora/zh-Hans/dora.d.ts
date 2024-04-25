@@ -2714,11 +2714,11 @@ class Node extends Object {
 	/** 节点是否有子节点。 */
 	readonly hasChildren: boolean;
 
-	/** 节点的子节点，为Array对象，可能为nil。 */
-	readonly children: Array;
+	/** 节点的子节点，为Array对象，可能为undefined。 */
+	readonly children?: Array;
 
-	/** 节点的父节点。 */
-	readonly parent: Node;
+	/** 节点的父节点，，可能为undefined。 */
+	readonly parent?: Node;
 
 	/** 节点的边界框，为Rect对象。 */
 	readonly boundingBox: Rect;

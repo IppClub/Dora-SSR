@@ -176,6 +176,7 @@ bool PhysicsWorld::init() {
 		_filters[i].groupIndex = i;
 		_filters[i].categoryBits = 1 << i;
 		_filters[i].maskBits = 0;
+		setShouldContact(i, i, true);
 	}
 	Node::scheduleFixedUpdate();
 	return true;
