@@ -309,7 +309,7 @@ let getDrawNode: (this: void, enode: React.Element) => dora.DrawNode.Type;
 				case 'dot-shape': {
 					const dot = child.props as JSX.Dot;
 					node.drawDot(
-						dora.Vec2(dot.x, dot.y),
+						dora.Vec2(dot.x ?? 0, dot.y ?? 0),
 						dot.radius,
 						dora.Color(dot.color ?? 0xffffffff)
 					);

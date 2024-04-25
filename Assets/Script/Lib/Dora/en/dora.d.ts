@@ -2711,11 +2711,11 @@ class Node extends Object {
 	/** Whether the node has children. */
 	readonly hasChildren: boolean;
 
-	/** The children of the node as an Array object, could be nil. */
-	readonly children: Array;
+	/** The children of the node as an Array object, could be undefined. */
+	readonly children?: Array;
 
-	/** The parent node of the node. */
-	readonly parent: Node;
+	/** The parent node of the node, could be undefined. */
+	readonly parent?: Node;
 
 	/** The bounding box of the node as a Rect object. */
 	readonly boundingBox: Rect;
