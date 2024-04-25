@@ -39,7 +39,7 @@ scroll.slot("AlignLayout", (w: number, h: number) => {
 	scroll.position = Vec2(w / 2, h / 2);
 	w -= 200;
 	h -= 20;
-	const label = tolua.cast(scroll.view.children.first, TypeName.Label);
+	const label = tolua.cast(scroll.view.children?.first, TypeName.Label);
 	if (label !== null) {
 		label.textWidth = w - fontSize;
 	}

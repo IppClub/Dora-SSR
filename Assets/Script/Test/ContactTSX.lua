@@ -132,15 +132,14 @@ threadLoop(function() -- 79
             changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact) -- 89
             if changed then -- 89
                 if disk.current then -- 89
-                    print(receivingContact) -- 92
-                    disk.current.receivingContact = receivingContact -- 93
-                end -- 93
-                if label.current then -- 93
-                    label.current.text = "" -- 96
-                end -- 96
-            end -- 96
+                    disk.current.receivingContact = receivingContact -- 92
+                end -- 92
+                if label.current then -- 92
+                    label.current.text = "" -- 95
+                end -- 95
+            end -- 95
         end -- 84
     ) -- 84
-    return false -- 100
+    return false -- 99
 end) -- 79
 return ____exports -- 79
