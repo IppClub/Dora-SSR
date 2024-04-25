@@ -585,7 +585,16 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 }
 
 void Label::updateLabel() {
-	_text = utf8_get_characters(_textUTF8.c_str());
+	auto text = utf8_get_characters(_textUTF8.c_str());
+	_text.clear();
+	for (auto elem : text) {
+		if (elem == '\t') {
+			_text.push_back(' ');
+			_text.push_back(' ');
+		} else {
+			_text.push_back(elem);
+		}
+	}
 	_text.push_back('\0');
 
 	if (_flags.isOn(Label::TextBatched)) {
