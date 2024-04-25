@@ -511,7 +511,7 @@ do -- 290
                         do -- 306
                             local dot = child.props -- 310
                             node:drawDot( -- 311
-                                dora.Vec2(dot.x, dot.y), -- 312
+                                dora.Vec2(dot.x or 0, dot.y or 0), -- 312
                                 dot.radius, -- 313
                                 dora.Color(dot.color or 4294967295) -- 314
                             ) -- 314

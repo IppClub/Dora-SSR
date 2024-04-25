@@ -416,22 +416,22 @@ class Model extends Playable {
 
 class Dot {
 	/**
-	 * 点的X坐标位置。
+	 * 圆点的X坐标位置。
 	 */
-	x: number;
+	x?: number;
 
 	/**
-	 * 点的Y坐标位置。
+	 * 圆点的Y坐标位置。
 	 */
-	y: number;
+	y?: number;
 
 	/**
-	 * 点的半径。
+	 * 圆点的半径。
 	 */
 	radius: number;
 
 	/**
-	 * 点的颜色，格式为0xffffffff（ARGB），默认为白色。
+	 * 圆点的颜色，格式为0xffffffff（ARGB），默认为白色。
 	 */
 	color?: number;
 }
@@ -469,13 +469,13 @@ class Segment {
 }
 
 class Polygon {
-	/*
+	/**
 	 * 多边形的顶点。
 	 */
 	verts: dora.Vec2.Type[];
 
-	/*
-	 * 多边形的填充颜色（默认为白色）。
+	/**
+	 * 多边形的填充颜色，格式为0xffffffff（ARGB），默认为白色。
 	 */
 	fillColor?: number;
 
@@ -485,18 +485,18 @@ class Polygon {
 	borderWidth?: number;
 
 	/**
-	 * 边框的颜色（默认为白色）。
+	 * 边框的颜色，格式为0xffffffff（ARGB），默认为白色。
 	 */
 	borderColor?: number;
 }
 
 class Rectangle {
-	/*
+	/**
 	 * 矩形的长。
 	 */
 	width: number;
 
-	/*
+	/**
 	 * 矩形的宽。
 	 */
 	height: number;
@@ -511,8 +511,8 @@ class Rectangle {
 	 */
 	centerY?: number;
 
-	/*
-	 * 矩形的填充颜色（默认为白色）。
+	/**
+	 * 矩形的填充颜色，格式为0xffffffff（ARGB），默认为白色。
 	 */
 	fillColor?: number;
 
@@ -522,13 +522,13 @@ class Rectangle {
 	borderWidth?: number;
 
 	/**
-	 * 边框的颜色（默认为白色）。
+	 * 边框的颜色，格式为0xffffffff（ARGB），默认为白色。
 	 */
 	borderColor?: number;
 }
 
 class Verts {
-	/*
+	/**
 	 * 包含要绘制的顶点及其颜色的列表，颜色格式为0xffffffff（ARGB）。
 	 */
 	verts: [vert: dora.Vec2.Type, color: number][];

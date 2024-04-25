@@ -418,12 +418,12 @@ class Dot {
 	/**
 	 * The X position of the dot.
 	 */
-	x: number;
+	x?: number;
 
 	/**
 	 * The Y position of the dot.
 	 */
-	y: number;
+	y?: number;
 
 	/**
 	 * The radius of the dot.
@@ -469,12 +469,12 @@ class Segment {
 }
 
 class Polygon {
-	/*
+	/**
 	 * The vertices of the polygon.
 	 */
 	verts: dora.Vec2.Type[];
 
-	/*
+	/**
 	 * The fill color of the polygon in format 0xffffffff (ARGB, default is white).
 	 */
 	fillColor?: number;
@@ -491,12 +491,12 @@ class Polygon {
 }
 
 class Rectangle {
-	/*
+	/**
 	 * The width of the rectangle.
 	 */
 	width: number;
 
-	/*
+	/**
 	 * The height of the rectangle.
 	 */
 	height: number;
@@ -511,7 +511,7 @@ class Rectangle {
 	 */
 	centerY?: number;
 
-	/*
+	/**
 	 * The fill color of the rectangle in format 0xffffffff (ARGB, default is white).
 	 */
 	fillColor?: number;
@@ -528,7 +528,7 @@ class Rectangle {
 }
 
 class Verts {
-	/*
+	/**
 	 * The list of vertices and their colors in format 0xffffffff (ARGB).
 	 */
 	verts: [vert: dora.Vec2.Type, color: number][];
