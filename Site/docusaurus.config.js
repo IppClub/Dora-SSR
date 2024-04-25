@@ -204,7 +204,7 @@ const config = {
 					// Please change this to your repo.
 					// Remove this to remove the "edit this page" links.
 					editUrl:
-						'https://github.com/pigpigyyy/Dora-SSR/tree/main/Site',
+						'https://github.com/ippclub/Dora-SSR/tree/main/Site',
 					// sidebarCollapsed: false,
 					showLastUpdateAuthor: true,
 					showLastUpdateTime: true,
