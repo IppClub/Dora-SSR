@@ -46,7 +46,9 @@ scroll:slot( -- 38
         scroll.position = Vec2(w / 2, h / 2) -- 39
         w = w - 200 -- 40
         h = h - 20 -- 41
-        local label = tolua.cast(scroll.view.children.first, "Label") -- 42
+        local ____tolua_cast_3 = tolua.cast -- 42
+        local ____opt_1 = scroll.view.children -- 42
+        local label = ____tolua_cast_3(____opt_1 and ____opt_1.first, "Label") -- 42
         if label ~= nil then -- 42
             label.textWidth = w - fontSize -- 44
         end -- 44
@@ -60,8 +62,8 @@ scroll:slot( -- 38
         scroll.area:addChild(border) -- 49
     end -- 38
 ) -- 38
-local ____opt_1 = Label("sarasa-mono-sc-regular", fontSize) -- 38
-local label = ____opt_1 and ____opt_1:addTo(scroll.view) -- 51
+local ____opt_4 = Label("sarasa-mono-sc-regular", fontSize) -- 38
+local label = ____opt_4 and ____opt_4:addTo(scroll.view) -- 51
 if label then -- 51
     label.alignment = "Left" -- 53
     label.textWidth = width - fontSize -- 54
@@ -183,8 +185,8 @@ local windowFlags = { -- 150
     "NoMove" -- 155
 } -- 155
 threadLoop(function() -- 157
-    local ____App_visualSize_3 = App.visualSize -- 158
-    local width = ____App_visualSize_3.width -- 158
+    local ____App_visualSize_6 = App.visualSize -- 158
+    local width = ____App_visualSize_6.width -- 158
     ImGui.SetNextWindowPos( -- 159
         Vec2(width - 10, 10), -- 159
         "Always", -- 159
