@@ -552,7 +552,7 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 		if (def.angularDamping !== undefined) bodyDef.angularDamping = def.angularDamping;
 		if (def.bullet !== undefined) bodyDef.bullet = def.bullet;
 		if (def.fixedRotation !== undefined) bodyDef.fixedRotation = def.fixedRotation;
-		if (def.linearAcceleration !== undefined) bodyDef.linearAcceleration = def.linearAcceleration;
+		bodyDef.linearAcceleration = def.linearAcceleration ?? dora.Vec2(0, -9.8);
 		if (def.linearDamping !== undefined) bodyDef.linearDamping = def.linearDamping;
 		bodyDef.position = dora.Vec2(def.x ?? 0, def.y ?? 0);
 		let extraSensors: [tag: number, def: dora.FixtureDef.Type][] | null = null;
@@ -576,7 +576,7 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 							dora.Vec2(shape.centerX ?? 0, shape.centerY ?? 0),
 							shape.width, shape.height,
 							shape.angle ?? 0,
-							shape.density ?? 0,
+							shape.density ?? 1.0,
 							shape.friction ?? 0.4,
 							shape.restitution ?? 0
 						);
@@ -593,7 +593,7 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 					} else {
 						bodyDef.attachPolygon(
 							shape.verts,
-							shape.density ?? 0,
+							shape.density ?? 1.0,
 							shape.friction ?? 0.4,
 							shape.restitution ?? 0
 						);
@@ -608,7 +608,7 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 					} else {
 						bodyDef.attachMulti(
 							shape.verts,
-							shape.density ?? 0,
+							shape.density ?? 1.0,
 							shape.friction ?? 0.4,
 							shape.restitution ?? 0
 						);
@@ -627,7 +627,7 @@ let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) =
 						bodyDef.attachDisk(
 							dora.Vec2(shape.centerX ?? 0, shape.centerY ?? 0),
 							shape.radius,
-							shape.density ?? 0,
+							shape.density ?? 1.0,
 							shape.friction ?? 0.4,
 							shape.restitution ?? 0
 						);

@@ -969,9 +969,7 @@ do -- 521
         if def.fixedRotation ~= nil then -- 553
             bodyDef.fixedRotation = def.fixedRotation -- 554
         end -- 554
-        if def.linearAcceleration ~= nil then -- 554
-            bodyDef.linearAcceleration = def.linearAcceleration -- 555
-        end -- 555
+        bodyDef.linearAcceleration = def.linearAcceleration or dora.Vec2(0, -9.8) -- 555
         if def.linearDamping ~= nil then -- 555
             bodyDef.linearDamping = def.linearDamping -- 556
         end -- 556
@@ -981,12 +979,12 @@ do -- 521
             do -- 558
                 local child = enode.children[i] -- 560
                 if type(child) ~= "table" then -- 560
-                    goto __continue120 -- 562
+                    goto __continue119 -- 562
                 end -- 562
                 repeat -- 562
-                    local ____switch122 = child.type -- 562
-                    local ____cond122 = ____switch122 == "rect-fixture" -- 562
-                    if ____cond122 then -- 562
+                    local ____switch121 = child.type -- 562
+                    local ____cond121 = ____switch121 == "rect-fixture" -- 562
+                    if ____cond121 then -- 562
                         do -- 562
                             local shape = child.props -- 566
                             if shape.sensorTag ~= nil then -- 566
@@ -1003,7 +1001,7 @@ do -- 521
                                     shape.width, -- 577
                                     shape.height, -- 577
                                     shape.angle or 0, -- 578
-                                    shape.density or 0, -- 579
+                                    shape.density or 1, -- 579
                                     shape.friction or 0.4, -- 580
                                     shape.restitution or 0 -- 581
                                 ) -- 581
@@ -1011,20 +1009,20 @@ do -- 521
                             break -- 584
                         end -- 584
                     end -- 584
-                    ____cond122 = ____cond122 or ____switch122 == "polygon-fixture" -- 584
-                    if ____cond122 then -- 584
+                    ____cond121 = ____cond121 or ____switch121 == "polygon-fixture" -- 584
+                    if ____cond121 then -- 584
                         do -- 584
                             local shape = child.props -- 587
                             if shape.sensorTag ~= nil then -- 587
                                 bodyDef:attachPolygonSensor(shape.sensorTag, shape.verts) -- 589
                             else -- 589
-                                bodyDef:attachPolygon(shape.verts, shape.density or 0, shape.friction or 0.4, shape.restitution or 0) -- 594
+                                bodyDef:attachPolygon(shape.verts, shape.density or 1, shape.friction or 0.4, shape.restitution or 0) -- 594
                             end -- 594
                             break -- 601
                         end -- 601
                     end -- 601
-                    ____cond122 = ____cond122 or ____switch122 == "multi-fixture" -- 601
-                    if ____cond122 then -- 601
+                    ____cond121 = ____cond121 or ____switch121 == "multi-fixture" -- 601
+                    if ____cond121 then -- 601
                         do -- 601
                             local shape = child.props -- 604
                             if shape.sensorTag ~= nil then -- 604
@@ -1036,13 +1034,13 @@ do -- 521
                                     dora.BodyDef:multi(shape.verts) -- 607
                                 } -- 607
                             else -- 607
-                                bodyDef:attachMulti(shape.verts, shape.density or 0, shape.friction or 0.4, shape.restitution or 0) -- 609
+                                bodyDef:attachMulti(shape.verts, shape.density or 1, shape.friction or 0.4, shape.restitution or 0) -- 609
                             end -- 609
                             break -- 616
                         end -- 616
                     end -- 616
-                    ____cond122 = ____cond122 or ____switch122 == "disk-fixture" -- 616
-                    if ____cond122 then -- 616
+                    ____cond121 = ____cond121 or ____switch121 == "disk-fixture" -- 616
+                    if ____cond121 then -- 616
                         do -- 616
                             local shape = child.props -- 619
                             if shape.sensorTag ~= nil then -- 619
@@ -1055,7 +1053,7 @@ do -- 521
                                 bodyDef:attachDisk( -- 627
                                     dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 628
                                     shape.radius, -- 629
-                                    shape.density or 0, -- 630
+                                    shape.density or 1, -- 630
                                     shape.friction or 0.4, -- 631
                                     shape.restitution or 0 -- 632
                                 ) -- 632
@@ -1063,8 +1061,8 @@ do -- 521
                             break -- 635
                         end -- 635
                     end -- 635
-                    ____cond122 = ____cond122 or ____switch122 == "chain-fixture" -- 635
-                    if ____cond122 then -- 635
+                    ____cond121 = ____cond121 or ____switch121 == "chain-fixture" -- 635
+                    if ____cond121 then -- 635
                         do -- 635
                             local shape = child.props -- 638
                             if shape.sensorTag ~= nil then -- 638
@@ -1083,7 +1081,7 @@ do -- 521
                     end -- 649
                 until true -- 649
             end -- 649
-            ::__continue120:: -- 649
+            ::__continue119:: -- 649
         end -- 649
         local body = dora.Body(bodyDef, world) -- 653
         if extraSensors ~= nil then -- 653
@@ -1103,9 +1101,9 @@ local getCustomNode -- 673
 do -- 673
     local function handleCustomNode(_cnode, _enode, k, _v) -- 675
         repeat -- 675
-            local ____switch143 = k -- 675
-            local ____cond143 = ____switch143 == "onCreate" -- 675
-            if ____cond143 then -- 675
+            local ____switch142 = k -- 675
+            local ____cond142 = ____switch142 == "onCreate" -- 675
+            if ____cond142 then -- 675
                 return true -- 677
             end -- 677
         until true -- 677
@@ -1148,39 +1146,39 @@ local function visitAction(actionStack, enode) -- 717
         return -- 721
     end -- 721
     repeat -- 721
-        local ____switch154 = enode.type -- 721
-        local ____cond154 = ____switch154 == "delay" -- 721
-        if ____cond154 then -- 721
+        local ____switch153 = enode.type -- 721
+        local ____cond153 = ____switch153 == "delay" -- 721
+        if ____cond153 then -- 721
             do -- 721
                 local item = enode.props -- 725
                 actionStack[#actionStack + 1] = dora.Delay(item.time) -- 726
                 break -- 727
             end -- 727
         end -- 727
-        ____cond154 = ____cond154 or ____switch154 == "event" -- 727
-        if ____cond154 then -- 727
+        ____cond153 = ____cond153 or ____switch153 == "event" -- 727
+        if ____cond153 then -- 727
             do -- 727
                 local item = enode.props -- 730
                 actionStack[#actionStack + 1] = dora.Event(item.name, item.param) -- 731
                 break -- 732
             end -- 732
         end -- 732
-        ____cond154 = ____cond154 or ____switch154 == "hide" -- 732
-        if ____cond154 then -- 732
+        ____cond153 = ____cond153 or ____switch153 == "hide" -- 732
+        if ____cond153 then -- 732
             do -- 732
                 actionStack[#actionStack + 1] = dora.Hide() -- 735
                 break -- 736
             end -- 736
         end -- 736
-        ____cond154 = ____cond154 or ____switch154 == "show" -- 736
-        if ____cond154 then -- 736
+        ____cond153 = ____cond153 or ____switch153 == "show" -- 736
+        if ____cond153 then -- 736
             do -- 736
                 actionStack[#actionStack + 1] = dora.Show() -- 739
                 break -- 740
             end -- 740
         end -- 740
-        ____cond154 = ____cond154 or ____switch154 == "move" -- 740
-        if ____cond154 then -- 740
+        ____cond153 = ____cond153 or ____switch153 == "move" -- 740
+        if ____cond153 then -- 740
             do -- 740
                 local item = enode.props -- 743
                 actionStack[#actionStack + 1] = dora.Move( -- 744
@@ -1192,8 +1190,8 @@ local function visitAction(actionStack, enode) -- 717
                 break -- 745
             end -- 745
         end -- 745
-        ____cond154 = ____cond154 or ____switch154 == "spawn" -- 745
-        if ____cond154 then -- 745
+        ____cond153 = ____cond153 or ____switch153 == "spawn" -- 745
+        if ____cond153 then -- 745
             do -- 745
                 local spawnStack = {} -- 748
                 for i = 1, #enode.children do -- 748
@@ -1203,8 +1201,8 @@ local function visitAction(actionStack, enode) -- 717
                 break -- 753
             end -- 753
         end -- 753
-        ____cond154 = ____cond154 or ____switch154 == "sequence" -- 753
-        if ____cond154 then -- 753
+        ____cond153 = ____cond153 or ____switch153 == "sequence" -- 753
+        if ____cond153 then -- 753
             do -- 753
                 local sequenceStack = {} -- 756
                 for i = 1, #enode.children do -- 756
@@ -1226,9 +1224,9 @@ local function actionCheck(nodeStack, enode, parent) -- 769
         unsupported = true -- 772
     else -- 772
         repeat -- 772
-            local ____switch167 = parent.type -- 772
-            local ____cond167 = ____switch167 == "action" or ____switch167 == "spawn" or ____switch167 == "sequence" -- 772
-            if ____cond167 then -- 772
+            local ____switch166 = parent.type -- 772
+            local ____cond166 = ____switch166 == "action" or ____switch166 == "spawn" or ____switch166 == "sequence" -- 772
+            if ____cond166 then -- 772
                 break -- 775
             end -- 775
             do -- 775
@@ -1855,40 +1853,40 @@ local function getPreload(preloadList, node) -- 1294
         end -- 1303
     else -- 1303
         repeat -- 1303
-            local ____switch282 = enode.type -- 1303
+            local ____switch281 = enode.type -- 1303
             local sprite, playable, model, spine, dragonBone, label -- 1303
-            local ____cond282 = ____switch282 == "sprite" -- 1303
-            if ____cond282 then -- 1303
+            local ____cond281 = ____switch281 == "sprite" -- 1303
+            if ____cond281 then -- 1303
                 sprite = enode.props -- 1309
                 preloadList[#preloadList + 1] = sprite.file -- 1310
                 break -- 1311
             end -- 1311
-            ____cond282 = ____cond282 or ____switch282 == "playable" -- 1311
-            if ____cond282 then -- 1311
+            ____cond281 = ____cond281 or ____switch281 == "playable" -- 1311
+            if ____cond281 then -- 1311
                 playable = enode.props -- 1313
                 preloadList[#preloadList + 1] = playable.file -- 1314
                 break -- 1315
             end -- 1315
-            ____cond282 = ____cond282 or ____switch282 == "model" -- 1315
-            if ____cond282 then -- 1315
+            ____cond281 = ____cond281 or ____switch281 == "model" -- 1315
+            if ____cond281 then -- 1315
                 model = enode.props -- 1317
                 preloadList[#preloadList + 1] = "model:" .. model.file -- 1318
                 break -- 1319
             end -- 1319
-            ____cond282 = ____cond282 or ____switch282 == "spine" -- 1319
-            if ____cond282 then -- 1319
+            ____cond281 = ____cond281 or ____switch281 == "spine" -- 1319
+            if ____cond281 then -- 1319
                 spine = enode.props -- 1321
                 preloadList[#preloadList + 1] = "spine:" .. spine.file -- 1322
                 break -- 1323
             end -- 1323
-            ____cond282 = ____cond282 or ____switch282 == "dragon-bone" -- 1323
-            if ____cond282 then -- 1323
+            ____cond281 = ____cond281 or ____switch281 == "dragon-bone" -- 1323
+            if ____cond281 then -- 1323
                 dragonBone = enode.props -- 1325
                 preloadList[#preloadList + 1] = "bone:" .. dragonBone.file -- 1326
                 break -- 1327
             end -- 1327
-            ____cond282 = ____cond282 or ____switch282 == "label" -- 1327
-            if ____cond282 then -- 1327
+            ____cond281 = ____cond281 or ____switch281 == "label" -- 1327
+            if ____cond281 then -- 1327
                 label = enode.props -- 1329
                 preloadList[#preloadList + 1] = (("font:" .. label.fontName) .. ";") .. tostring(label.fontSize) -- 1330
                 break -- 1331
