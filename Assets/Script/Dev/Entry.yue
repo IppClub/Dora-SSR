@@ -561,10 +561,10 @@ reloadDevEntry = -> thread ->
 	allClear!
 	_G.require = oldRequire
 	dora.require = oldRequire
-	package.loaded["Dev.Entry"] = nil
+	package.loaded["Script.Dev.Entry"] = nil
 	Director.systemScheduler\schedule ->
 		Routine\clear!
-		oldRequire "Dev.Entry"
+		oldRequire "Script.Dev.Entry"
 		true
 
 isOSSLicenseExist = Content\exist "LICENSES"
