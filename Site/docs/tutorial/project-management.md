@@ -1,0 +1,51 @@
+---
+sidebar_position: 5
+
+---
+
+# Organizing Your Game Project Directory
+
+In the world of game development, project management and code organization are crucial. This tutorial is designed to introduce how to organize and manage your game project directory using the Dora SSR open-source game engine.
+
+### 1. Understanding Dora SSR's Project Management Mechanism
+
+Dora SSR engine manages game projects based on directory structures. In this system, any directory containing a file named `init` will automatically be recognized as the root directory of the game project. This `init` file could have extensions such as `.yue`, `.lua`, `.ts`, `.tsx`, `.tl`, or `.wasm`.
+
+### 2. Identifying the Game Project Directory
+
+When using Dora SSR's Web IDE for development, if you open any code file for preview or editing and execute the project run command, the IDE will automatically search upward from the directory of the currently opened file until it finds the root directory containing the `init` file. The game testing run will start from this `init` file.
+
+### 3. Suggestions for Organizing Project Directories
+
+To standardize your game project organization, it is suggested (but not mandatory) to organize your game project directory as follows:
+
+- **Game Project Root Directory**
+  - **Audio**: For storing game audio resources.
+  - **Data**: For static game data files such as Excel spreadsheets, script configuration tables, etc.
+  - **Font**: For storing game font files.
+  - **Image**: For storing game image resources.
+  - **Script**: For storing script files, such as Lua, Yuescript, Teal, or TS code.
+  - **Spine**: For storing game animation resources.
+  - **init.yue/lua/tl/ts/tsx/wasm**: The project startup file, chosen according to the scripting language used.
+
+This structure is not only clear but also easy to manage and maintain.
+
+### 4. Code Module Search Paths
+
+When writing Lua, Yuescript, or Teal code, if you need to import external modules, the Dora SSR engine runtime and Web IDE will search for code modules in the following order:
+
+1. **"Engine User Resource Root Directory"/"Game Project Root Directory"/Script**
+2. **"Engine User Resource Root Directory"/"Game Project Root Directory"**
+3. **"Engine Built-in Resource Root Directory"/Script/Lib**
+4. **"Engine Built-in Resource Root Directory"/Script/Lib/Dora/zh-Hans**
+5. **"Engine Built-in Resource Root Directory"**
+
+For path **Number 3**, ensure you are familiar with the use of Dora SSR’s supportive development libraries. Path **Number 4** is mainly used for providing type definition files for various statically-typed scripting languages interfacing with the Dora SSR engine. Make sure your module's storage path complies with the above search logic for seamless project integration.
+
+### 5. Best Practices
+
+- Keep your code and resources well organized to facilitate team collaboration and project maintenance.
+- Utilize the code inspection features of the Dora SSR Web IDE to instantly see the effects of module imports.
+- Check whether the correctly named `init` file exists in the project directory to ensure the project can be loaded and run correctly.
+
+By following these guidelines, you can effectively manage and run your game project. We wish you the best in creating compelling game experiences with the powerful capabilities of the Dora SSR engine.
