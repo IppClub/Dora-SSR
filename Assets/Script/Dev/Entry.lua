@@ -929,10 +929,10 @@ reloadDevEntry = function() -- 558
 		allClear() -- 561
 		_G.require = oldRequire -- 562
 		dora.require = oldRequire -- 563
-		package.loaded["Dev.Entry"] = nil -- 564
+		package.loaded["Script.Dev.Entry"] = nil -- 564
 		return Director.systemScheduler:schedule(function() -- 565
 			Routine:clear() -- 566
-			oldRequire("Dev.Entry") -- 567
+			oldRequire("Script.Dev.Entry") -- 567
 			return true -- 568
 		end) -- 568
 	end) -- 568

@@ -1791,7 +1791,7 @@ HttpServer:postSchedule("/run", function(req) -- 736
 				end -- 749
 			end -- 749
 			if file ~= nil and asProj ~= nil then -- 737
-				local Entry = require("Dev.Entry") -- 738
+				local Entry = require("Script.Dev.Entry") -- 738
 				if asProj then -- 739
 					local proj = getProjectDirFromFile(file) -- 740
 					if proj then -- 740
@@ -1827,7 +1827,7 @@ HttpServer:postSchedule("/run", function(req) -- 736
 	} -- 749
 end) -- 736
 HttpServer:postSchedule("/stop", function() -- 751
-	local Entry = require("Dev.Entry") -- 752
+	local Entry = require("Script.Dev.Entry") -- 752
 	return { -- 753
 		success = Entry.stop() -- 753
 	} -- 753
@@ -1902,7 +1902,7 @@ HttpServer:postSchedule("/unzip", function(req) -- 761
 	} -- 764
 end) -- 761
 HttpServer:post("/editingInfo", function(req) -- 766
-	local Entry = require("Dev.Entry") -- 767
+	local Entry = require("Script.Dev.Entry") -- 767
 	local config = Entry.getConfig() -- 768
 	local _type_0 = type(req) -- 769
 	local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 769
