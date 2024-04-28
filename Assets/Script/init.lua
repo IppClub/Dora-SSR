@@ -9,4 +9,4 @@ do -- 11
 		Path(_with_0.assetPath, "Script", "Lib", "Dora", App.locale:match("^zh") and "zh-Hans" or "en") -- 14
 	} -- 12
 end -- 11
-return require("Dev.Entry") -- 16
+return require("Script.Dev.Entry") -- 16
