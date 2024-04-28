@@ -758,11 +758,10 @@ HttpServer\postSchedule "/zip", (req): success: false ->
 		return success: Content\zipAsync path, zipFile, (file) ->
 			not (file\match('^%.') or file\match "[\\/]%.")
 
-HttpServer\postSchedule "/unzip", (req) ->
+HttpServer\postSchedule "/unzip", (req): success: false ->
 	switch req when {body: {:zipFile, :path}}
 		return success: Content\unzipAsync zipFile, path, (file) ->
 			not (file\match('^%.') or file\match("[\\/]%.") or file\match "__MACOSX")
-	success: false
 
 HttpServer\post "/editingInfo", (req) ->
 	import "Dev.Entry"
@@ -812,11 +811,11 @@ thread ->
 			)
 			Content\save doraReady, App.version
 			print "Dora Dora is ready!"
-		if HttpServer\start 8866
-			:localIP = HttpServer
-			localIP = "localhost" if localIP == ""
-			status.url = "http://#{localIP}:8866"
-			HttpServer\startWS 8868
-		else
-			status.url = nil
-			print "8866 Port not available!"
+	if HttpServer\start 8866
+		:localIP = HttpServer
+		localIP = "localhost" if localIP == ""
+		status.url = "http://#{localIP}:8866"
+		HttpServer\startWS 8868
+	else
+		status.url = nil
+		print "8866 Port not available!"
