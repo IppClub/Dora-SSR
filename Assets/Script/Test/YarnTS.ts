@@ -10,7 +10,7 @@ import { App, Content, Label, Menu, Path, Size, Slot, TextAlign, TypeName, Vec2,
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 
-const testFile = Path("Test", "tutorial.yarn");
+const testFile = Path(Content.assetPath, "Script", "Test", "tutorial.yarn");
 
 const {width: viewWidth, height: viewHeight} = View.size;
 

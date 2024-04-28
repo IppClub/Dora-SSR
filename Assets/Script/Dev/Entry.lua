@@ -266,7 +266,7 @@ getFileEntries = function(path) -- 154
 			goto _continue_0 -- 163
 		end -- 163
 		local fileName = Path:replaceExt(file, "") -- 164
-		fileName = Path(Path:getName(path), fileName) -- 165
+		fileName = Path(path, fileName) -- 165
 		local entry = { -- 166
 			entryName, -- 166
 			fileName -- 166
@@ -299,7 +299,7 @@ getProjectEntries = function(path) -- 171
 			local file = _list_1[_index_1] -- 175
 			if "init" == Path:getName(file):lower() then -- 176
 				local fileName = Path:replaceExt(file, "") -- 177
-				fileName = Path(dir, fileName) -- 178
+				fileName = Path(path, dir, fileName) -- 178
 				local entryName = Path:getName(Path:getPath(fileName)) -- 179
 				local entryAdded = false -- 180
 				for _index_2 = 1, #entries do -- 181

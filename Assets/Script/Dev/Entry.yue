@@ -162,7 +162,7 @@ getFileEntries = (path) ->
 				break
 		continue if entryAdded
 		fileName = Path\replaceExt file, ""
-		fileName = Path Path\getName(path), fileName
+		fileName = Path path, fileName
 		entry = [entryName, fileName]
 		entries[] = entry
 	table.sort entries, (a, b) -> a[1] < b[1]
@@ -175,7 +175,7 @@ getProjectEntries = (path) ->
 		for file in *getAllFiles Path(path, dir), ["lua", "xml", yueext, "tl", "wasm"]
 			if "init" == Path\getName(file)\lower!
 				fileName = Path\replaceExt file, ""
-				fileName = Path dir, fileName
+				fileName = Path path, dir, fileName
 				entryName = Path\getName Path\getPath fileName
 				entryAdded = false
 				for [ename,] in *entries
