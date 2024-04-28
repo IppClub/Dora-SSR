@@ -1897,138 +1897,138 @@ HttpServer:postSchedule("/unzip", function(req) -- 761
 			end -- 762
 		end -- 764
 	end -- 764
-	return { -- 765
-		success = false -- 765
-	} -- 765
+	return { -- 761
+		success = false -- 761
+	} -- 764
 end) -- 761
-HttpServer:post("/editingInfo", function(req) -- 767
-	local Entry = require("Dev.Entry") -- 768
-	local config = Entry.getConfig() -- 769
-	local _type_0 = type(req) -- 770
-	local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 770
-	local _match_0 = false -- 770
-	if _tab_0 then -- 770
-		local editingInfo -- 770
-		do -- 770
-			local _obj_0 = req.body -- 770
-			local _type_1 = type(_obj_0) -- 770
-			if "table" == _type_1 or "userdata" == _type_1 then -- 770
-				editingInfo = _obj_0.editingInfo -- 770
-			end -- 772
-		end -- 772
-		if editingInfo ~= nil then -- 770
-			_match_0 = true -- 770
-			config.editingInfo = editingInfo -- 771
-			return { -- 772
-				success = true -- 772
-			} -- 772
-		end -- 770
-	end -- 770
-	if not _match_0 then -- 770
-		if not (config.editingInfo ~= nil) then -- 774
-			local json = require("json") -- 775
-			local folder -- 776
-			if App.locale:match('^zh') then -- 776
-				folder = 'zh-Hans' -- 776
-			else -- 776
-				folder = 'en' -- 776
-			end -- 776
-			config.editingInfo = json.dump({ -- 778
-				index = 0, -- 778
-				files = { -- 780
-					{ -- 781
-						key = Path(Content.assetPath, 'Doc', folder, 'welcome.md'), -- 781
-						title = "welcome.md" -- 782
-					} -- 780
-				} -- 779
-			}) -- 777
-		end -- 774
-		return { -- 786
-			success = true, -- 786
-			editingInfo = config.editingInfo -- 786
-		} -- 786
-	end -- 786
-end) -- 767
-HttpServer:post("/command", function(req) -- 788
-	do -- 789
-		local _type_0 = type(req) -- 789
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 789
-		if _tab_0 then -- 789
-			local code -- 789
-			do -- 789
-				local _obj_0 = req.body -- 789
-				local _type_1 = type(_obj_0) -- 789
-				if "table" == _type_1 or "userdata" == _type_1 then -- 789
-					code = _obj_0.code -- 789
-				end -- 791
-			end -- 791
-			if code ~= nil then -- 789
-				emit("AppCommand", code) -- 790
-				return { -- 791
-					success = true -- 791
-				} -- 791
-			end -- 789
-		end -- 791
-	end -- 791
-	return { -- 788
-		success = false -- 788
-	} -- 791
-end) -- 788
-HttpServer:post("/exist", function(req) -- 793
-	do -- 794
-		local _type_0 = type(req) -- 794
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 794
-		if _tab_0 then -- 794
-			local file -- 794
-			do -- 794
-				local _obj_0 = req.body -- 794
-				local _type_1 = type(_obj_0) -- 794
-				if "table" == _type_1 or "userdata" == _type_1 then -- 794
-					file = _obj_0.file -- 794
-				end -- 795
-			end -- 795
-			if file ~= nil then -- 794
-				return { -- 795
-					success = Content:exist(file) -- 795
-				} -- 795
+HttpServer:post("/editingInfo", function(req) -- 766
+	local Entry = require("Dev.Entry") -- 767
+	local config = Entry.getConfig() -- 768
+	local _type_0 = type(req) -- 769
+	local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 769
+	local _match_0 = false -- 769
+	if _tab_0 then -- 769
+		local editingInfo -- 769
+		do -- 769
+			local _obj_0 = req.body -- 769
+			local _type_1 = type(_obj_0) -- 769
+			if "table" == _type_1 or "userdata" == _type_1 then -- 769
+				editingInfo = _obj_0.editingInfo -- 769
+			end -- 771
+		end -- 771
+		if editingInfo ~= nil then -- 769
+			_match_0 = true -- 769
+			config.editingInfo = editingInfo -- 770
+			return { -- 771
+				success = true -- 771
+			} -- 771
+		end -- 769
+	end -- 769
+	if not _match_0 then -- 769
+		if not (config.editingInfo ~= nil) then -- 773
+			local json = require("json") -- 774
+			local folder -- 775
+			if App.locale:match('^zh') then -- 775
+				folder = 'zh-Hans' -- 775
+			else -- 775
+				folder = 'en' -- 775
+			end -- 775
+			config.editingInfo = json.dump({ -- 777
+				index = 0, -- 777
+				files = { -- 779
+					{ -- 780
+						key = Path(Content.assetPath, 'Doc', folder, 'welcome.md'), -- 780
+						title = "welcome.md" -- 781
+					} -- 779
+				} -- 778
+			}) -- 776
+		end -- 773
+		return { -- 785
+			success = true, -- 785
+			editingInfo = config.editingInfo -- 785
+		} -- 785
+	end -- 785
+end) -- 766
+HttpServer:post("/command", function(req) -- 787
+	do -- 788
+		local _type_0 = type(req) -- 788
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 788
+		if _tab_0 then -- 788
+			local code -- 788
+			do -- 788
+				local _obj_0 = req.body -- 788
+				local _type_1 = type(_obj_0) -- 788
+				if "table" == _type_1 or "userdata" == _type_1 then -- 788
+					code = _obj_0.code -- 788
+				end -- 790
+			end -- 790
+			if code ~= nil then -- 788
+				emit("AppCommand", code) -- 789
+				return { -- 790
+					success = true -- 790
+				} -- 790
+			end -- 788
+		end -- 790
+	end -- 790
+	return { -- 787
+		success = false -- 787
+	} -- 790
+end) -- 787
+HttpServer:post("/exist", function(req) -- 792
+	do -- 793
+		local _type_0 = type(req) -- 793
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 793
+		if _tab_0 then -- 793
+			local file -- 793
+			do -- 793
+				local _obj_0 = req.body -- 793
+				local _type_1 = type(_obj_0) -- 793
+				if "table" == _type_1 or "userdata" == _type_1 then -- 793
+					file = _obj_0.file -- 793
+				end -- 794
 			end -- 794
-		end -- 795
-	end -- 795
-	return { -- 793
-		success = false -- 793
-	} -- 795
-end) -- 793
-local status = { -- 797
-	url = nil -- 797
-} -- 797
-_module_0 = status -- 798
-thread(function() -- 800
-	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 801
-	local doraReady = Path(Content.writablePath, ".www", "dora-ready") -- 802
-	if Content:exist(doraWeb) then -- 803
-		local needReload -- 804
-		if Content:exist(doraReady) then -- 804
-			needReload = App.version ~= Content:load(doraReady) -- 805
-		else -- 806
-			needReload = true -- 806
-		end -- 804
-		if needReload then -- 807
-			Content:remove(Path(Content.writablePath, ".www")) -- 808
-			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.writablePath, ".www")) -- 809
-			Content:save(doraReady, App.version) -- 813
-			print("Dora Dora is ready!") -- 814
-		end -- 807
-		if HttpServer:start(8866) then -- 815
-			local localIP = HttpServer.localIP -- 816
-			if localIP == "" then -- 817
-				localIP = "localhost" -- 817
-			end -- 817
-			status.url = "http://" .. tostring(localIP) .. ":8866" -- 818
-			return HttpServer:startWS(8868) -- 819
-		else -- 821
-			status.url = nil -- 821
-			return print("8866 Port not available!") -- 822
-		end -- 815
-	end -- 803
-end) -- 800
-return _module_0 -- 822
+			if file ~= nil then -- 793
+				return { -- 794
+					success = Content:exist(file) -- 794
+				} -- 794
+			end -- 793
+		end -- 794
+	end -- 794
+	return { -- 792
+		success = false -- 792
+	} -- 794
+end) -- 792
+local status = { -- 796
+	url = nil -- 796
+} -- 796
+_module_0 = status -- 797
+thread(function() -- 799
+	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 800
+	local doraReady = Path(Content.writablePath, ".www", "dora-ready") -- 801
+	if Content:exist(doraWeb) then -- 802
+		local needReload -- 803
+		if Content:exist(doraReady) then -- 803
+			needReload = App.version ~= Content:load(doraReady) -- 804
+		else -- 805
+			needReload = true -- 805
+		end -- 803
+		if needReload then -- 806
+			Content:remove(Path(Content.writablePath, ".www")) -- 807
+			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.writablePath, ".www")) -- 808
+			Content:save(doraReady, App.version) -- 812
+			print("Dora Dora is ready!") -- 813
+		end -- 806
+	end -- 802
+	if HttpServer:start(8866) then -- 814
+		local localIP = HttpServer.localIP -- 815
+		if localIP == "" then -- 816
+			localIP = "localhost" -- 816
+		end -- 816
+		status.url = "http://" .. tostring(localIP) .. ":8866" -- 817
+		return HttpServer:startWS(8868) -- 818
+	else -- 820
+		status.url = nil -- 820
+		return print("8866 Port not available!") -- 821
+	end -- 814
+end) -- 799
+return _module_0 -- 821
