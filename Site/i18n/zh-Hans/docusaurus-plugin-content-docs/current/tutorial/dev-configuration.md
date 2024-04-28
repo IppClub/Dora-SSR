@@ -1,8 +1,8 @@
 ---
-sidebar_position: 5
+sidebar_position: 6
 ---
 
-# 引擎项目的开发配置
+# 如何进行引擎项目的开发配置
 
 ## 一、获取项目源码
 
