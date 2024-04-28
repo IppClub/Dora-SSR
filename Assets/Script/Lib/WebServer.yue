@@ -735,7 +735,7 @@ HttpServer\post "/assets", ->
 
 HttpServer\postSchedule "/run", (req): success: false ->
 	switch req when {body: {:file, :asProj}}
-		import "Dev.Entry"
+		import "Script.Dev.Entry"
 		if asProj
 			if proj := getProjectDirFromFile file
 				Entry.allClear!
@@ -749,7 +749,7 @@ HttpServer\postSchedule "/run", (req): success: false ->
 		return :success, :err
 
 HttpServer\postSchedule "/stop", ->
-	import "Dev.Entry"
+	import "Script.Dev.Entry"
 	success: Entry.stop!
 
 HttpServer\postSchedule "/zip", (req): success: false ->
@@ -764,7 +764,7 @@ HttpServer\postSchedule "/unzip", (req): success: false ->
 			not (file\match('^%.') or file\match("[\\/]%.") or file\match "__MACOSX")
 
 HttpServer\post "/editingInfo", (req) ->
-	import "Dev.Entry"
+	import "Script.Dev.Entry"
 	config = Entry.getConfig!
 	switch req when {body: {:editingInfo}}
 		config.editingInfo = editingInfo
