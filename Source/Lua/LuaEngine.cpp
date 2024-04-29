@@ -170,7 +170,7 @@ static int dora_load_file(lua_State* L, String filename, String moduleName = nul
 		if (Slice(displayPath).left(2) == ".."sv) {
 			displayPath = Path::getRelative(targetFilename, SharedContent.getWritablePath());
 		}
-		if (displayPath.empty()) {
+		if (displayPath.empty() || Slice(displayPath).left(2) == ".."sv) {
 			displayPath = targetFilename;
 		}
 		if (luaL_loadbuffer(L, codeBuffer, codeBufferSize, displayPath.c_str()) != 0) {

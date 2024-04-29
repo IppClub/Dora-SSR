@@ -289,7 +289,7 @@ Content::SearchPath Content::getFullPathAndPackage(String filename) {
 			}
 		}
 
-		std::tie(path, file) = splitDirectoryAndFilename(targetFile.toString());
+		std::tie(path, file) = splitDirectoryAndFilename((fs::path(_assetPath) / fName).string());
 		fullPath = Content::getFullPathForDirectoryAndFilename(path, file);
 		if (!fullPath.empty()) {
 			_fullPathCache[targetFile.toString()] = {fullPath, nullptr};
