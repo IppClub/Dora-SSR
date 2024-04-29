@@ -1047,6 +1047,9 @@ static int32_t body_def_get_type_enum(BodyDef* def) {
 			return 1;
 		case pr::BodyType::Kinematic:
 			return 2;
+		default:
+			Issue("invalid body type enum: {}", s_cast<int>(def->getType()));
+			return 0;
 	}
 }
 
