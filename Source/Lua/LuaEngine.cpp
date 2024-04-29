@@ -165,7 +165,15 @@ static int dora_load_file(lua_State* L, String filename, String moduleName = nul
 		}
 	}
 	if (codeBuffer) {
-		if (luaL_loadbuffer(L, codeBuffer, codeBufferSize, filename.c_str()) != 0) {
+		auto targetFilename = Path::replaceExt(targetFile, ""sv);
+		std::string displayPath = Path::getRelative(targetFilename, SharedContent.getAssetPath());
+		if (Slice(displayPath).left(2) == ".."sv) {
+			displayPath = Path::getRelative(targetFilename, SharedContent.getWritablePath());
+		}
+		if (displayPath.empty()) {
+			displayPath = targetFilename;
+		}
+		if (luaL_loadbuffer(L, codeBuffer, codeBufferSize, displayPath.c_str()) != 0) {
 			luaL_error(L, "error loading module \"%s\" from file \"%s\" :\n\t%s",
 				lua_tostring(L, 1), filename.c_str().get(), lua_tostring(L, -1));
 		}
