@@ -167,7 +167,7 @@ static int dora_load_file(lua_State* L, String filename, String moduleName = nul
 	if (codeBuffer) {
 		auto targetFilename = Path::replaceExt(targetFile, ""sv);
 		std::string displayPath = Path::getRelative(targetFilename, SharedContent.getAssetPath());
-		if (Slice(displayPath).left(2) == ".."sv) {
+		if (displayPath.empty() || Slice(displayPath).left(2) == ".."sv) {
 			displayPath = Path::getRelative(targetFilename, SharedContent.getWritablePath());
 		}
 		if (displayPath.empty() || Slice(displayPath).left(2) == ".."sv) {
