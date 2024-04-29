@@ -21,7 +21,31 @@ sidebar_position: 7
 
 &emsp;&emsp;在 `Assets` 目录下，`Script/Lib` 子目录包含了 Dora SSR 引擎提供的开发辅助功能脚本和组件库，这些是必须保留的，因为它们可能会被游戏程序引用。除此之外的其他目录和内容，在不影响游戏运行的前提下，可以考虑都进行删除，以减少最终应用包的大小。
 
-### 3. 构建和打包流程
+### 3. 设置资源搜索路径
+
+&emsp;&emsp;在使用 Dora SSR 的 Web IDE 进行游戏的开发和测试时，引擎默认会在运行前往资源搜索路径中插入以下几个路径：
+
+1. **游戏项目根目录/Script**
+2. **游戏项目根目录**
+3. **引擎内置资源根目录/Script/Lib**
+4. **引擎内置资源根目录/Script/Lib/Dora/zh-Hans**
+
+&emsp;&emsp;为了确保自己独立打包游戏的资源搜索路径保持一致，你可能会需要在入口程序的脚本代码的最开头插入以下的代码，以确保获得一致的脚本模块的加载顺序。以 Lua 语言做程序入口（init 文件）的脚本为例：
+
+```lua title="init.lua"
+local Path <const> = require("Path")
+local Content <const> = require("Content")
+
+local currentScriptPath = Path:getScriptPath(...)
+Content.searchPaths = {
+	Path(currentScriptPath, "Script"),
+	Path(currentScriptPath),
+	Path(Content.assetPath, "Script", "Lib"),
+	Path(Content.assetPath, "Script", "Lib", "Dora", "zh-Hans")
+}
+```
+
+### 4. 构建和打包流程
 
 &emsp;&emsp;打包过程主要涉及以下几个步骤：
 
@@ -37,7 +61,7 @@ sidebar_position: 7
 #### d. 测试应用
 &emsp;&emsp;在目标平台上测试打包好的应用，确保所有功能正常工作，没有遗漏或错误的资源。
 
-### 4. 分发和发布
+### 5. 分发和发布
 
 &emsp;&emsp;打包和测试完成后，您的游戏应用就已准备好进行分发和发布了。您可以选择发布到各类游戏平台，或者自行设立下载站点供玩家下载。
 

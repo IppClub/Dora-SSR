@@ -1,0 +1,246 @@
+---
+authors: [lijin]
+tags: [TSX, TypeScript]
+---
+
+import "@site/src/languages/highlight";
+
+# An Introduction to Cross-Platform Game Development for Frontend Developers
+
+Hello everyone! I’m a game engine enthusiast and a programmer with a solid background in frontend development. If you’ve ever wondered how to transition from crafting websites to developing games, you’re in the right place!
+
+Today, let’s talk about using Dora SSR—a game engine that supports TSX and runs cross-platform natively. It’s a seamless way to step into the world of game development. Don’t worry, game engines aren’t as inaccessible as they might seem; in fact, they have surprising similarities to the frontend tools we’re used to.
+
+## 1. Game Client Development as Frontend Development
+
+First off, let’s define what a game engine is. Simply put, a game engine is a collection of tools and libraries that help developers build games, handling graphics, sound, physics calculations, or collision detection. For frontend developers, think of it as a specialized browser that runs games.
+
+Dora SSR manages game scenes with a tree structure similar to the HTML DOM—quite familiar territory for us. Imagine swapping out HTML div elements with various game objects and replacing CSS animations with game animations. The concepts and even some of the coding practices are not that different. Exciting, isn’t it?
+
+## 2. From TypeScript to TSX: Applying Frontend Tech in Games
+
+Many frontend developers are familiar with TypeScript and React’s JSX syntax. In the open-source Dora SSR game engine, we embrace TSX, offering a game development interface similar to frontend programming patterns. Yes, you heard that right—TSX!
+
+Developing games with TSX means you can leverage your existing frontend tech stack—components, modules, and other modern frontend technologies—directly in game development. Moreover, Dora SSR’s performance optimizations ensure smooth operations even in complex game scenarios.
+
+## 3. Challenge: Craft an "Angry Birds"-like Game in Under 100 Lines of Code
+
+Enough with the theory; let’s dive into some practical work. Let’s see how to write a game similar to "Angry Birds" using less than 100 lines of TSX code in Dora SSR. Before starting, setting up the development environment with Dora SSR is straightforward: install the package, open the browser, and let’s start coding! For installation and getting started, see: [Dora Startup!](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)
+
+<p align="center">
+  <img src={require('@site/static/img/dora-on-android.jpg').default} alt='Accidentally installed as an APK on your phone? Access it over the same local network for on-device development and debugging'/>
+   Accidentally installed as an APK on your phone? Access it over the same local network for on-device development and debugging
+</p>
+
+### 1. Crafting the Simplest Game Scene
+
+Before diving into the actual code, we can start with a special comment that tells Dora SSR’s Web IDE to automatically hot-reload the code upon saving with Ctrl + S, allowing real-time preview of the code execution results.
+
+```tsx
+// @preview-file on
+```
+
+We then import the necessary libraries and components. Our code editor also assists by automatically suggesting the required modules, which can be included later in the coding process:
+
+```tsx
+import { React, toNode, useRef } from 'dora-x';
+import { Body, BodyMoveType, Ease, Label, Line, Scale, TypeName, Vec2, tolua } from 'dora';
+```
+
+Displaying an image in Dora SSR is simple, just use the `<sprite>` tag, and then instantiate it into a game object with the `toNode()` function.
+
+```tsx
+toNode(<sprite file='Image/logo.png' scaleX={0.2} scaleY={0.2}/>);
+```
+
+Now, you’ve pretty much got the hang of most of Dora SSR’s game development tricks. Start creating your own game (seriously).
+
+### 2. Crafting the Game Box Component
+
+Next, the colliding boxes in our game are defined by the `Box` component, which accepts properties such as `num`, `x`, `y`, and `children`:
+
+```tsx
+interface BoxProps {
+  num: number;
+  x?: number;
+  y?: number;
+  children?: any | any[];
+}
+
+const Box = (props: BoxProps) => {
+  const numText = props.num.toString();
+  return (
+    <body type={BodyMoveType.Dynamic} scaleX={0} scaleY={0} x={props.x} y={props.y} tag={numText}>
+      <rect-fixture width={100} height={100}/>
+      <draw-node>
+        <rect-shape width={100} height={100} fillColor={0x8800ffff} borderWidth={1} borderColor={0xff00ffff}/>
+      </draw-node>
+      <label fontName='sarasa-mono-sc-regular' fontSize={40}>{numText}</label>
+      {props.children}
+    </body>
+  );
+};
+```
+
+We use a React-like functional component approach
+
+ to define our box components, where:
+
+- `body` component’s `tag` attribute: stores the score of the box.
+- `rect-fixture`: defines the collision shape of the box.
+- `draw-node`: used to render the appearance of the box.
+- `label`: displays the score on the box.
+
+### 3. Creating TSX-Instantiated Object References
+
+Use `useRef` to create two reference variables for later use, one for the bird and one for the score label:
+
+```tsx
+const bird = useRef<Body.Type>();
+const score = useRef<Label.Type>();
+```
+
+### 4. Creating the Launch Line
+
+The launch line is created by the `line` variable, and touch (or mouse click) event handling is added:
+
+```tsx
+let start = Vec2.zero;
+let delta = Vec2.zero;
+const line = Line();
+
+toNode(
+  <physics-world
+    onTapBegan={(touch) => {
+      start = touch.location;
+      line.clear();
+    }}
+    onTapMoved={(touch) => {
+      delta = delta.add(touch.delta);
+      line.set([start, start.add(delta)]);
+    }}
+    onTapEnded={() => {
+      if (!bird.current) return;
+      bird.current.velocity = delta.mul(Vec2(10, 10));
+      start = Vec2.zero;
+      delta = Vec2.zero;
+      line.clear();
+    }}
+  >
+    {/* ...create other game elements under the physics world... */}
+  </physics-world>
+);
+```
+
+- In the `onTapBegan` event, record the starting touch location and clear the launch line.
+- In the `onTapMoved` event, calculate the distance moved by the touch and update the launch line.
+- In the `onTapEnded` event, set the launch velocity of the bird based on the touch movement and clear the launch line.
+
+### 5. Creating Other Game Elements
+
+Next, we continue creating other elements in the game scene under the `<physics-world>` parent tag:
+
+#### 5.1 Ground
+
+First, we use the `body` component to create the ground and set it as a static body:
+
+```tsx
+<body type={BodyMoveType.Static}>
+  <rect-fixture centerY={-200} width={2000} height={10}/>
+  <draw-node>
+    <rect-shape centerY={-200} width={2000} height={10} fillColor={0xfffbc400}/>
+  </draw-node>
+</body>
+```
+
+- `type={BodyMoveType.Static}`: indicates this is a static body, unaffected by physics simulations.
+- `rect-fixture`: defines the ground’s collision shape as a rectangle.
+- `draw-node`: used to render the appearance of the ground.
+- `rect-shape`: draws a rectangle in yellow color.
+
+#### 5.2 Boxes
+
+Next, we use the previously defined `Box` component to create 5 boxes with different initial positions and scores, and play their entrance animations upon creation:
+
+```tsx
+{
+  [10, 20, 30, 40, 50].map((num, i) => (
+    <Box num={num} x={200} y={-150 + i * 100}>
+      <sequence>
+        <delay time={i * 0.2}/>
+        <scale time={0.3} start={0} stop={1}/>
+      </sequence>
+    </Box>
+  ))
+}
+```
+
+- `map` function: used to iterate through an array of scores from 10 to 50, creating a box for each score that needs to be hit by the bird.
+- `Box` component: used to create boxes, with the following properties passed:
+  - `num={num}`: the score of the box, corresponding to the number in the array.
+  - `x={200}`: the initial x-axis position of the box, set at 200.
+  - `y={-150 + i * 100}`: the initial y-axis position of the box, incrementally adjusted based on the creation index.
+- `sequence` component: used to create an animation sequence to be played on the parent node, including the following animations:
+  - `delay time={i * 0.2}`: delays the animation playback, with the delay time incrementing based on the creation index.
+  - `scale time={0.3} start={0} stop={1}`: scale animation, from not visible to fully visible, lasting 0.3 seconds.
+
+#### 5.3 Bird
+
+Lastly, we use the `body` component to create the bird and set its collision shape, appearance, and score label:
+
+```tsx
+<body ref={bird} type={BodyMoveType.Dynamic} x={-200} y={-150} onContactStart={(other) => {
+		if (other.tag !== '' && score.current) {
+			// accumulate score
+			const sc = parseFloat(score.current.text) + parseFloat(other.tag);
+			score.current.text = sc.toString();
+			// clear the score on the collided box
+			const label = tolua.cast(other.children?.last, TypeName.Label);
+			if (label) label.text = '';
+			other.tag = '';
+			// play the box collision animation
+			other.perform(Scale(0.2, 0.7, 1.0));
+		}
+	}}>
+	<disk-fixture radius={50}/>
+	<draw-node>
+		<dot-shape radius={50} color={0xffff0088}/>
+	</draw-node>
+	<label ref={score} fontName='sarasa-mono-sc-regular' fontSize={40}>0</label>
+	<scale time={0.4} start={0.3} stop{1.0} easing={Ease.OutBack}/>
+</body>
+```
+
+- `ref={bird}`: uses `ref` to create a reference variable for later manipulation of the bird.
+- `type={BodyMoveType.Dynamic}`: indicates this is a dynamic body, affected by physics simulations.
+- `onContactStart={(other) => {}}`: callback function triggered when the bird’s physics body contacts another object.
+- `disk-fixture`: defines the bird’s shape as a disk.
+- `draw-node`: used to render the bird’s appearance.
+- `label`: displays the bird’s accumulated score.
+- `scale`: plays the bird’s entrance animation.
+
+### 6. Completing the Game Logic
+
+With that, we have completed the core logic of our small game. You can further refine the game logic and add features based on your own ideas. The complete demo code can be seen at this link: [Dora-SSR/Assets/Script/Test/Birdy.tsx](https://github.com/IppClub/Dora-SSR/blob/main/Assets/Script/Test/Birdy.tsx). Below are some screenshots of the game in action.
+
+<p align="center">
+  <img src={require('@site/static/img/birdy1.png').default} alt='Dragging the screen to launch the "Angry Birds'/>
+   Dragging the screen to launch the "Angry Birds
+</p>
+
+<p align="center">
+  <img src={require('@site/static/img/birdy2.png').default} alt='Skilled moves earned me all the scores in one shot'/>
+   Skilled moves earned me all the scores in one shot
+</p>
+
+## 4. A Little Reveal
+
+### 1. Deer or Horse
+
+In fact, the game code we wrote can ensure consistent performance across Linux, Android, iOS, macOS, and Windows thanks to the capabilities of the Dora SSR engine. However, to run this code, our Dora SSR engine doesn’t even support a JavaScript runtime environment... (What did you say?)
+
+Yes, the underlying technology of Dora SSR is actually based on Lua and WASM virtual machines as the scripting language runtime. Support for TypeScript is provided through the integration of the TypeScriptToLua compiler [https://github.com/TypeScriptToLua/TypeScriptToLua](https://github.com/TypeScriptToLua/TypeScriptToLua). TSTL has rewritten the backend of the TypeScript language compiler to compile TS and TSX code into equivalent Lua code, allowing TS code to run on Dora. The Dora Web IDE’s code editor helps with TS language checking, completion, and Dora built-in library API hints. In the end, whether it’s a deer or a horse, as long as the code passes the TS compilation check, it will run just the same.
+
+### 2. Is There a Connection with React?
+
+The answer to this question is currently: it could be (thus far, it hasn’t been). React’s most important capability is synchronizing the rendering of components and business data states through the Virtual DOM and Tree Diff process, which has not yet been implemented in Dora SSR. Currently, the code written in TSX for game rendering objects is only built once at runtime, and then the underlying C++ engine functionality continues to handle processing. Maybe one day we will provide a React-like mechanism for game UI development, executing Tree Diff to synchronize state, or a mechanism based on TSX like SolidJS for other rendering component state synchronizations. So here, we sincerely invite all frontend developers to join us, play with the Dora SSR project, and explore how to apply frontend development ideas to game development, bringing more convenient tools into the mix.

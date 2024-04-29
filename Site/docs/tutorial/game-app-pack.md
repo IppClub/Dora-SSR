@@ -21,7 +21,31 @@ These assets are essential components of the game's operation and must be includ
 
 In the `Assets` directory, the `Script/Lib` subdirectory contains development support scripts and component libraries provided by the Dora SSR engine, which must be retained as they may be referenced by the game program. Other directories and content can be considered for deletion to reduce the size of the final application package, as long as it does not affect the game’s operation.
 
-### 3. Building and Packaging Process
+### 3. Set Resource Search Path
+
+When developing and testing games with Dora SSR's Web IDE, the engine will by default insert the following paths into the resource search path before running:
+
+1. **Game project root directory/Script**
+2. **Game project root directory**
+3. **Engine built-in resource root directory/Script/Lib**
+4. **Engine built-in resource root directory/Script/Lib/Dora/zh-Hans**
+
+To ensure that the resource search path of your independently packaged game remains consistent, you may need to insert the following code at the very beginning of the script code of the entry program. This ensures a consistent script module loading order. Here is an example with Lua language as the program entry (init file):
+
+```lua title="init.lua"
+local Path <const> = require("Path")
+local Content <const> = require("Content")
+
+local currentScriptPath = Path:getScriptPath(...)
+Content.searchPaths = {
+	Path(currentScriptPath, "Script"),
+	Path(currentScriptPath),
+	Path(Content.assetPath, "Script", "Lib"),
+	Path(Content.assetPath, "Script", "Lib", "Dora", "zh-Hans")
+}
+```
+
+### 4. Building and Packaging Process
 
 The packaging process mainly involves the following steps:
 
@@ -37,7 +61,7 @@ After building, package the executable file and all necessary resource files tog
 #### d. Test the Application
 Test the packaged application on the target platform to ensure that all functions are working correctly and no resources are missing or incorrect.
 
-### 4. Distribution and Release
+### 5. Distribution and Release
 
 Once packaging and testing are completed, your game application is ready for distribution and release. You can choose to release it on various gaming platforms or set up your own download site for players to download.
 

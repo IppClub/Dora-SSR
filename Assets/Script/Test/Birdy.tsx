@@ -70,16 +70,15 @@ toNode(
 		}
 
 		<body ref={bird} type={BodyMoveType.Dynamic} x={-200} y={-150} onContactStart={(other) => {
-				if (other.tag !== '' && score.current) {
-					const sc = parseFloat(score.current.text) + parseFloat(other.tag);
-					score.current.text = sc.toString();
-					const label = tolua.cast(other.children?.last, TypeName.Label);
-					if (label) label.text = '';
-					other.tag = '';
-					other.perform(Scale(0.2, 0.7, 1.0));
-				}
-			}}
-		>
+			if (other.tag !== '' && score.current) {
+				const sc = parseFloat(score.current.text) + parseFloat(other.tag);
+				score.current.text = sc.toString();
+				const label = tolua.cast(other.children?.last, TypeName.Label);
+				if (label) label.text = '';
+				other.tag = '';
+				other.perform(Scale(0.2, 0.7, 1.0));
+			}
+		}}>
 			<disk-fixture radius={50}/>
 			<draw-node>
 				<dot-shape radius={50} color={0xffff0088}/>
