@@ -114,6 +114,9 @@ const Editor = memo((props: {
 		onModified,
 		onValidate
 	} = props;
+	const doValidate = useCallback((markers: monaco.editor.IMarker[]) => {
+		onValidate(markers, fileKey);
+	}, [onValidate, fileKey]);
 	return <div hidden={hidden}>
 		<MonacoEditor
 			width={width}
@@ -127,7 +130,7 @@ const Editor = memo((props: {
 				if (content === undefined) return;
 				onModified(fileKey, content);
 			}}
-			onValidate={language === "typescript" ? (markers) => {onValidate(markers, fileKey);} : undefined}
+			onValidate={language === "typescript" ? doValidate : undefined}
 			path={monaco.Uri.file(fileKey).toString()}
 			options={{
 				readOnly,
@@ -250,8 +253,31 @@ export default function PersistentDrawerLeft() {
 			Service.editingInfo().then((res: {success: boolean, editingInfo?: string}) => {
 				if (res.success && res.editingInfo) {
 					const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
-					editingInfo.files.forEach((file, i) => {
-						openFileInTab(file.key, file.title, file.position, file.mdEditing, i, editingInfo.index, file.readOnly);
+					const targetIndex = editingInfo.index;
+					Promise.all(editingInfo.files.map((file, i) => {
+						return openFile(file.key, file.title).then((newFile) => {
+							newFile.position = file.position;
+							newFile.mdEditing = file.mdEditing;
+							newFile.readOnly = file.readOnly;
+							newFile.sortIndex = i;
+							return newFile;
+						});
+					})).then((files) => {
+						const result = files.sort((a, b) => {
+							const indexA = a.sortIndex ?? 0;
+							const indexB = b.sortIndex ?? 0;
+							if (indexA < indexB) {
+								return -1;
+							} else if (indexA > indexB) {
+								return 1;
+							} else {
+								return 0;
+							}
+						});
+						setFiles(result);
+						switchTab(targetIndex, result[targetIndex]);
+					}).catch(() => {
+						addAlert(t("alert.open"), "error");
 					});
 				}
 			});
@@ -416,11 +442,8 @@ export default function PersistentDrawerLeft() {
 	}, [expandedKeys]);
 
 	const tabBarOnChange = useCallback((newValue: number) => {
-		setFiles(files => {
-			switchTab(newValue, files[newValue]);
-			return files;
-		})
-	}, [switchTab]);
+		switchTab(newValue, files[newValue]);
+	}, [switchTab, files]);
 
 	const onEditorDidMount = useCallback((file: EditingFile) => async (editor: monaco.editor.IStandaloneCodeEditor) => {
 		file.editor = editor;
@@ -562,156 +585,120 @@ export default function PersistentDrawerLeft() {
 		}
 	}, [t]);
 
-	const openFileInTab = useCallback((key: string, title: string, position?: monaco.IPosition, mdEditing?: boolean, sortIndex?: number, targetIndex?: number, readOnly?: boolean) => {
-		setFiles(files => {
-			let index: number | null = null;
-			const file = files.find((file, i) => {
-				if (path.relative(file.key, key) === "") {
-					index = i;
-					return true;
+	const openFile = (key: string, title: string) => {
+		return new Promise<EditingFile>((resolve, reject) => {
+			const ext = path.extname(title).toLowerCase();
+			switch (ext) {
+				case "": {
+					if (checkFileReadonly(key)) {
+						reject("file readonly");
+						break;
+					}
+					const newFile: EditingFile = {
+						key,
+						title,
+						content: "",
+						contentModified: null,
+						uploading: true,
+						status: "normal",
+						onMount: () => {}
+					};
+					newFile.onMount = onEditorDidMount(newFile);
+					resolve(newFile);
+					break;
 				}
-				return false;
-			});
-			if (file) {
-				file.mdEditing = mdEditing;
-				if (file.editor && position) {
-					const editor = file.editor;
-					setTimeout(() => {
-						editor.focus();
-						editor.setPosition(position);
-						editor.revealPositionInCenter(position);
-					}, 100);
+				case ".png":
+				case ".jpg":
+				case ".skel": {
+					const newFile: EditingFile = {
+						key,
+						title,
+						content: "",
+						contentModified: null,
+						uploading: false,
+						status: "normal",
+						onMount: () => {},
+					};
+					newFile.onMount = onEditorDidMount(newFile);
+					resolve(newFile);
+					break;
+				}
+				case ".lua":
+				case ".tl":
+				case ".yue":
+				case ".xml":
+				case ".md":
+				case ".yarn":
+				case ".vs":
+				case ".ts":
+				case ".tsx": {
+					Service.read({path: key}).then((res) => {
+						if (res.success && res.content !== undefined) {
+							const {content} = res;
+							const newFile: EditingFile = {
+								key,
+								title,
+								content,
+								contentModified: null,
+								uploading: false,
+								status: "normal",
+								onMount: () => {},
+							};
+							newFile.onMount = onEditorDidMount(newFile);
+							resolve(newFile);
+						} else {
+							reject("file read error");
+						}
+					}).catch(() => {
+						addAlert(t("alert.read", {title}), "error");
+						reject("file read error");
+					});
+					break;
+				}
+				default: {
+					addAlert(t("alert.unsuppored", {title}), "warning");
+					reject("unknown file type");
+					break;
 				}
 			}
-			if (index === null) {
-				const sortedFiles = (prev: EditingFile[], index: number) => {
-					if (sortIndex !== undefined) {
-						const result = prev.sort((a, b) => {
-							const indexA = a.sortIndex ?? 0;
-							const indexB = b.sortIndex ?? 0;
-							if (indexA < indexB) {
-								return -1;
-							} else if (indexA > indexB) {
-								return 1;
-							} else {
-								return 0;
-							}
-						});
-						if (targetIndex !== undefined && result.length > targetIndex && result[targetIndex].sortIndex === targetIndex) {
-							const tabFile = result[targetIndex];
-							setTimeout(() => {
-								switchTab(targetIndex, tabFile);
-							}, 10);
-						}
-						return [...result];
-					} else {
-						switchTab(index, prev[index]);
-						return [...prev];
-					}
-				};
-				const ext = path.extname(title).toLowerCase();
-				switch (ext) {
-					case "": {
-						if (checkFileReadonly(key)) {
-							break;
-						}
-						setTimeout(() => {
-							setFiles(prev => {
-								if (prev.find(file => file.key === key) !== undefined) {
-									return prev;
-								}
-								const index = prev.length;
-								const newFile: EditingFile = {
-									key,
-									title,
-									content: "",
-									contentModified: null,
-									uploading: true,
-									sortIndex,
-									status: "normal",
-									readOnly,
-									onMount: () => {}
-								};
-								newFile.onMount = onEditorDidMount(newFile);
-								return sortedFiles([...prev, newFile], index);
-							});
-						}, 10);
-						break;
-					}
-					case ".png":
-					case ".jpg":
-					case ".skel": {
-						setTimeout(() => {
-							setFiles(prev => {
-								if (prev.find(file => file.key === key) !== undefined) {
-									return prev;
-								}
-								const index = prev.length;
-								const newFile: EditingFile = {
-									key,
-									title,
-									content: "",
-									contentModified: null,
-									uploading: false,
-									position,
-									mdEditing,
-									sortIndex,
-									status: "normal",
-									readOnly,
-									onMount: () => {},
-								};
-								newFile.onMount = onEditorDidMount(newFile);
-								return sortedFiles([...prev, newFile], index);
-							});
-						}, 10);
-						break;
-					}
-					case ".lua":
-					case ".tl":
-					case ".yue":
-					case ".xml":
-					case ".md":
-					case ".yarn":
-					case ".vs":
-					case ".ts":
-					case ".tsx": {
-						Service.read({path: key}).then((res) => {
-							if (res.success && res.content !== undefined) {
-								const content = res.content;
-								setFiles(prev => {
-									if (prev.find(file => file.key === key) !== undefined) {
-										return prev;
-									}
-									const index = prev.length;
-									const newFile: EditingFile = {
-										key,
-										title,
-										content,
-										contentModified: null,
-										uploading: false,
-										position,
-										mdEditing,
-										sortIndex,
-										status: "normal",
-										readOnly,
-										onMount: () => {},
-									};
-									newFile.onMount = onEditorDidMount(newFile);
-									return sortedFiles([...prev, newFile], index);
-								});
-							}
-						}).catch(() => {
-							addAlert(t("alert.read", {title}), "error");
-						});
-						break;
-					}
-				}
-			} else if (targetIndex === undefined) {
-				switchTab(index, file);
-			}
-			return files;
 		});
-	}, [checkFileReadonly, onEditorDidMount, switchTab, t]);
+	};
+
+	const openFileInTab = useCallback((key: string, title: string, position?: monaco.IPosition, mdEditing?: boolean, readOnly? :boolean) => {
+		let index: number | null = null;
+		const file = files.find((file, i) => {
+			if (path.relative(file.key, key) === "") {
+				index = i;
+				return true;
+			}
+			return false;
+		});
+		if (file) {
+			file.mdEditing = mdEditing;
+			if (file.editor && position) {
+				const editor = file.editor;
+				setTimeout(() => {
+					editor.focus();
+					editor.setPosition(position);
+					editor.revealPositionInCenter(position);
+				}, 100);
+			}
+		}
+		if (index === null) {
+			openFile(key, title).then((newFile) => {
+				newFile.mdEditing = mdEditing;
+				newFile.readOnly = readOnly;
+				setFiles(files => {
+					const newFiles = [...files, newFile];
+					const lastIndex = newFiles.length - 1;
+					switchTab(lastIndex, newFiles[lastIndex]);
+					return newFiles;
+				});
+			}).catch(() => {});
+		} else {
+			switchTab(index, file);
+		}
+	}, [checkFileReadonly, onEditorDidMount, switchTab, t, files]);
 
 	if (jumpToFile !== null) {
 		setJumpToFile(null);
@@ -721,7 +708,7 @@ export default function PersistentDrawerLeft() {
 		}, jumpToFile.mdEditing);
 	}
 
-	const onSelect = (nodes: TreeDataType[]) => {
+	const onSelect = useCallback((nodes: TreeDataType[]) => {
 		setSelectedKeys(nodes.map(n => n.key));
 		if (nodes.length === 0) {
 			setSelectedNode(null);
@@ -732,7 +719,7 @@ export default function PersistentDrawerLeft() {
 		if (dir || path.extname(title) !== "") {
 			openFileInTab(key, title);
 		}
-	};
+	}, [openFileInTab]);
 
 	const onExpand = useCallback((keys: string[]) => {
 		const rootNode = treeData.at(0);
@@ -766,206 +753,193 @@ export default function PersistentDrawerLeft() {
 
 	const saveAllTabs = useCallback(() => {
 		return new Promise<boolean>((resolve) => {
-			setFiles(files => {
-				const filesToSave = files.filter(file => file.contentModified !== null);
-				const fileCount = filesToSave.length;
-				if (fileCount === 0) {
-					resolve(true);
-					return files;
+			const filesToSave = files.filter(file => file.contentModified !== null);
+			const fileCount = filesToSave.length;
+			if (fileCount === 0) {
+				resolve(true);
+				return files;
+			}
+			let failed = false;
+			let count = 0;
+			filesToSave.forEach(file => {
+				let {contentModified} = file;
+				if (contentModified === null) {
+					count++;
+					if (count === fileCount) {
+						resolve(true);
+					}
+					return;
 				}
-				let failed = false;
-				let count = 0;
-				filesToSave.forEach(file => {
-					let {contentModified} = file;
-					if (contentModified === null) {
-						count++;
-						if (count === fileCount) {
-							resolve(true);
-						}
-						return;
-					}
-					const readOnly = !file.key.startsWith(assetPath);
-					if (readOnly) {
-						addAlert(t("alert.builtin"), "warning");
-						return;
-					}
-					const saveFile = (content: string) => {
-						return Service.write({path: file.key, content}).then((res) => {
-							if (res.success) {
-								file.content = content;
-								file.contentModified = null;
-								setFiles(prev => {
-									const ext = path.extname(file.key).toLowerCase();
-									if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
-										const {key} = file;
-										const extname = path.extname(key);
-										const name = path.basename(key, extname);
-										const dir = path.dirname(key);
-										const luaFile = path.join(dir, name + ".lua");
-										const fileInTab = prev.find(f => path.relative(f.key, luaFile) === "");
-										if (fileInTab !== undefined) {
-											const resultCodes = res.resultCodes ?? "";
-											fileInTab.content = resultCodes;
-											setTimeout(() => {
-												const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
-												if (model) {
-													model.setValue(resultCodes);
-												}
-											}, 10);
+				const readOnly = !file.key.startsWith(assetPath);
+				if (readOnly) {
+					addAlert(t("alert.builtin"), "warning");
+					return;
+				}
+				const saveFile = (content: string) => {
+					return Service.write({path: file.key, content}).then((res) => {
+						if (res.success) {
+							file.content = content;
+							file.contentModified = null;
+							const ext = path.extname(file.key).toLowerCase();
+							if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
+								const {key} = file;
+								const extname = path.extname(key);
+								const name = path.basename(key, extname);
+								const dir = path.dirname(key);
+								const luaFile = path.join(dir, name + ".lua");
+								const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+								if (fileInTab !== undefined) {
+									const resultCodes = res.resultCodes ?? "";
+									fileInTab.content = resultCodes;
+									setTimeout(() => {
+										const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+										if (model) {
+											model.setValue(resultCodes);
 										}
-									}
-									return [...prev];
-								});
-								count++;
-								if (count === fileCount) {
-									resolve(true);
-								}
-							} else {
-								addAlert(t("alert.save", {title: file.title}), "error");
-								if (!failed) {
-									failed = true;
-									resolve(false);
+									}, 10);
 								}
 							}
-						}).catch(() => {
+							setFiles([...files]);
+							count++;
+							if (count === fileCount) {
+								resolve(true);
+							}
+						} else {
 							addAlert(t("alert.save", {title: file.title}), "error");
 							if (!failed) {
 								failed = true;
 								resolve(false);
 							}
-						});
-					};
-					if (file.yarnData !== undefined) {
-						file.yarnData.getJSONData().then((value: string) => {
-							saveFile(value);
+						}
+					}).catch(() => {
+						addAlert(t("alert.save", {title: file.title}), "error");
+						if (!failed) {
+							failed = true;
+							resolve(false);
+						}
+					});
+				};
+				if (file.yarnData !== undefined) {
+					file.yarnData.getJSONData().then((value: string) => {
+						saveFile(value);
+					}).catch(() => {
+						addAlert(t("alert.save", {title: file.title}), "error");
+					})
+				} else if (file.codeWireData !== undefined) {
+					let {codeWireData} = file;
+					const vscript = codeWireData.getVisualScript();
+					if (file.contentModified !== null || file.content !== vscript) {
+						let tealCode = codeWireData.getScript();
+						const extname = path.extname(file.key);
+						const name = path.basename(file.key, extname);
+						const tlFile = path.join(path.dirname(file.key), name + ".tl");
+						const fileInTab = files.find(f => path.relative(f.key, tlFile) === "");
+						if (fileInTab !== undefined) {
+							fileInTab.content = tealCode;
+							setFiles([...files]);
+							const model = monaco.editor.getModel(monaco.Uri.parse(tlFile));
+							if (model) {
+								model.setValue(tealCode);
+							}
+						}
+						Service.write({path: tlFile, content: tealCode}).then((res) => {
+							if (!res.success) {
+								addAlert(t("alert.save", {title: file.title}), "error");
+							}
+						}).then(() => {
+							saveFile(vscript);
+							Service.check({file: tlFile, content: tealCode}).then((res) => {
+								if (res.success) {
+									codeWireData.reportVisualScriptError("");
+								}
+								if (res.info !== undefined) {
+									const lines = tealCode.split("\n");
+									const message = [];
+									for (let err of res.info) {
+										const [, filename, row, , msg] = err;
+										let node = "";
+										if (path.relative(filename, tlFile) === "" && 1 <= row && row <= lines.length) {
+											const ends = lines[row - 1].match(/-- (\d+)$/);
+											if (ends !== null) {
+												node = "node " + ends[1] + ", ";
+											}
+										}
+										message.push(node + "line " + row + ": " + msg);
+									}
+									codeWireData.reportVisualScriptError(message.join("<br>"));
+								}
+							});
 						}).catch(() => {
 							addAlert(t("alert.save", {title: file.title}), "error");
-						})
-					} else if (file.codeWireData !== undefined) {
-						let {codeWireData} = file;
-						const vscript = codeWireData.getVisualScript();
-						if (file.contentModified !== null || file.content !== vscript) {
-							let tealCode = codeWireData.getScript();
-							const extname = path.extname(file.key);
-							const name = path.basename(file.key, extname);
-							const tlFile = path.join(path.dirname(file.key), name + ".tl");
-							const fileInTab = files.find(f => path.relative(f.key, tlFile) === "");
-							if (fileInTab !== undefined) {
-								fileInTab.content = tealCode;
-								setFiles([...files]);
-								const model = monaco.editor.getModel(monaco.Uri.parse(tlFile));
-								if (model) {
-									model.setValue(tealCode);
-								}
-							}
-							Service.write({path: tlFile, content: tealCode}).then((res) => {
-								if (!res.success) {
-									addAlert(t("alert.save", {title: file.title}), "error");
-								}
-							}).then(() => {
-								saveFile(vscript);
-								Service.check({file: tlFile, content: tealCode}).then((res) => {
-									if (res.success) {
-										codeWireData.reportVisualScriptError("");
-									}
-									if (res.info !== undefined) {
-										const lines = tealCode.split("\n");
-										const message = [];
-										for (let err of res.info) {
-											const [, filename, row, , msg] = err;
-											let node = "";
-											if (path.relative(filename, tlFile) === "" && 1 <= row && row <= lines.length) {
-												const ends = lines[row - 1].match(/-- (\d+)$/);
-												if (ends !== null) {
-													node = "node " + ends[1] + ", ";
-												}
-											}
-											message.push(node + "line " + row + ": " + msg);
-										}
-										codeWireData.reportVisualScriptError(message.join("<br>"));
-									}
-								});
-							}).catch(() => {
-								addAlert(t("alert.save", {title: file.title}), "error");
-							});
-						}
-					} else {
-						const ext = path.extname(file.key).toLowerCase();
-						if (ext === '.ts' || ext === '.tsx') {
-							const content = contentModified;
-							import('./TranspileTS').then(({transpileTypescript}) => {
-								transpileTypescript(file.key, content).then(luaCode => {
-									if (luaCode !== undefined) {
-										const extname = path.extname(file.key);
-										const name = path.basename(file.key, extname);
-										const luaFile = path.join(path.dirname(file.key), name + ".lua");
-										const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
-										if (fileInTab !== undefined) {
-											fileInTab.content = luaCode;
-											setFiles([...files]);
-											const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
-											if (model) {
-												model.setValue(luaCode);
-											}
-										}
-										Service.write({path: luaFile, content: luaCode}).then((res) => {
-											if (res.success) {
-												saveFile(content);
-											} else {
-												addAlert(t("alert.saveCurrent"), "error");
-											}
-										});
-									}
-								});
-							});
-						} else {
-							saveFile(contentModified);
-						}
+						});
 					}
-					return files;
-				});
+				} else {
+					const ext = path.extname(file.key).toLowerCase();
+					if (ext === '.ts' || ext === '.tsx') {
+						const content = contentModified;
+						import('./TranspileTS').then(({transpileTypescript}) => {
+							transpileTypescript(file.key, content).then(luaCode => {
+								if (luaCode !== undefined) {
+									const extname = path.extname(file.key);
+									const name = path.basename(file.key, extname);
+									const luaFile = path.join(path.dirname(file.key), name + ".lua");
+									const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+									if (fileInTab !== undefined) {
+										fileInTab.content = luaCode;
+										setFiles([...files]);
+										const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+										if (model) {
+											model.setValue(luaCode);
+										}
+									}
+									Service.write({path: luaFile, content: luaCode}).then((res) => {
+										if (res.success) {
+											saveFile(content);
+										} else {
+											addAlert(t("alert.saveCurrent"), "error");
+										}
+									});
+								}
+							});
+						});
+					} else {
+						saveFile(contentModified);
+					}
+				}
 				return files;
 			});
 		});
-	}, [t, assetPath]);
+	}, [t, assetPath, files]);
 
 	const closeCurrentTab = useCallback(() => {
-		setTabIndex(tabIndex => {
-			if (tabIndex !== null) {
-				let currentIndex = tabIndex;
-				const closeTab = () => {
-					setFiles(prev => {
-						const newFiles = prev.filter((_, index) => index !== currentIndex);
-						if (newFiles.length === 0) {
-							switchTab(null);
-						} else {
-							if (currentIndex >= newFiles.length) {
-								currentIndex = newFiles.length - 1;
-							}
-							switchTab(currentIndex, newFiles[currentIndex]);
-						}
-						return newFiles;
-					});
-				};
-				setFiles(files => {
-					if (files[tabIndex].contentModified !== null) {
-						setPopupInfo({
-							title: t("popup.closingTab"),
-							msg: t("popup.closingNoSave"),
-							cancelable: true,
-							confirmed: closeTab,
-						});
-						return files;
+		if (tabIndex !== null) {
+			let currentIndex = tabIndex;
+			const closeTab = () => {
+				const newFiles = files.filter((_, index) => index !== currentIndex);
+				if (newFiles.length === 0) {
+					switchTab(null);
+				} else {
+					if (currentIndex >= newFiles.length) {
+						currentIndex = newFiles.length - 1;
 					}
-					setTimeout(closeTab, 10);
-					return files;
+					switchTab(currentIndex, newFiles[currentIndex]);
+				}
+				setFiles(newFiles);
+			};
+			if (files[tabIndex].contentModified !== null) {
+				setPopupInfo({
+					title: t("popup.closingTab"),
+					msg: t("popup.closingNoSave"),
+					cancelable: true,
+					confirmed: closeTab,
 				});
+				return;
 			}
-			return tabIndex;
-		});
-	}, [switchTab, t]);
+			setTimeout(closeTab, 10);
+		}
+	}, [switchTab, t, files, tabIndex]);
 
-	const closeAllTabs = () => {
+	const closeAllTabs = useCallback(() => {
 		const closeTabs = () => {
 			setFiles([]);
 			switchTab(null);
@@ -980,16 +954,13 @@ export default function PersistentDrawerLeft() {
 			return;
 		}
 		closeTabs();
-	};
+	}, [switchTab, t]);
 
-	const closeOtherTabs = () => {
+	const closeOtherTabs = useCallback(() => {
 		const closeTabs = () => {
-			setFiles(prev => {
-				const newFiles = prev.filter((_, index) => index === tabIndex);
-				setFiles(newFiles);
-				switchTab(0, newFiles[0]);
-				return newFiles;
-			});
+			const newFiles = files.filter((_, index) => index === tabIndex);
+			setFiles(newFiles);
+			switchTab(0, newFiles[0]);
 		};
 		const otherModified = files.filter((_, index) => index !== tabIndex).find((file) => file.contentModified !== null) !== undefined;
 		if (otherModified) {
@@ -1002,7 +973,7 @@ export default function PersistentDrawerLeft() {
 			return;
 		}
 		closeTabs();
-	};
+	}, [files, switchTab, t, tabIndex]);
 
 	const handleAlertClose = () => {
 		if (popupInfo?.confirmed !== undefined) {
@@ -1013,16 +984,6 @@ export default function PersistentDrawerLeft() {
 
 	const handleAlertCancel = () => {
 		setPopupInfo(null);
-	};
-
-	const onTabMenuClick = (event: TabMenuEvent) => {
-		switch (event) {
-			case "Save": saveCurrentTab(); break;
-			case "SaveAll": saveAllTabs(); break;
-			case "Close": closeCurrentTab(); break;
-			case "CloseAll": closeAllTabs(); break;
-			case "CloseOthers": closeOtherTabs(); break;
-		}
 	};
 
 	const deleteFile = useCallback((data: TreeDataType) => {
@@ -1202,7 +1163,7 @@ export default function PersistentDrawerLeft() {
 				const luaFile = path.join(dir, name + ".lua");
 				Service.read({path: luaFile}).then((res) => {
 					if (res.success && res.content !== undefined) {
-						openFileInTab(luaFile, name + ".lua", undefined, undefined, undefined, undefined, true);
+						openFileInTab(luaFile, name + ".lua", undefined, undefined, true);
 					} else {
 						addAlert(t("alert.failedCompile", {title: name + ".lua"}), "warning");
 					}
@@ -1570,29 +1531,26 @@ export default function PersistentDrawerLeft() {
 	}, [checkFileReadonly, expandedKeys, files, updateDir, loadAssets, t, treeData]);
 
 	const onUploaded = useCallback((dir: string, file: string) => {
-		setFiles(files => {
-			const key = path.join(dir, file);
-			const newFiles = files.filter(f => path.relative(f.key, key) !== "");
-			if (file.length !== newFiles.length) {
-				setFiles(newFiles);
-				if (tabIndex && tabIndex > newFiles.length) {
-					const newIndex = newFiles.length > 0 ? newFiles.length - 1 : null;
-					if (newIndex === null) {
-						switchTab(newIndex);
-					} else {
-						switchTab(newIndex, newFiles[newIndex]);
-					}
+		const key = path.join(dir, file);
+		const newFiles = files.filter(f => path.relative(f.key, key) !== "");
+		if (file.length !== newFiles.length) {
+			setFiles(newFiles);
+			if (tabIndex && tabIndex > newFiles.length) {
+				const newIndex = newFiles.length > 0 ? newFiles.length - 1 : null;
+				if (newIndex === null) {
+					switchTab(newIndex);
+				} else {
+					switchTab(newIndex, newFiles[newIndex]);
 				}
 			}
-			lastUploadedTime = Date.now();
-			setTimeout(() => {
-				if (Date.now() - lastUploadedTime >= 2000) {
-					loadAssets();
-				}
-			}, 2000);
-			return files;
-		})
-	}, [tabIndex, loadAssets, switchTab]);
+		}
+		lastUploadedTime = Date.now();
+		setTimeout(() => {
+			if (Date.now() - lastUploadedTime >= 2000) {
+				loadAssets();
+			}
+		}, 2000);
+	}, [tabIndex, loadAssets, switchTab, files]);
 
 	const checkFile = (file: EditingFile, content: string, model: monaco.editor.ITextModel, lastChange?: monaco.editor.IModelContentChange) => {
 		switch (path.extname(file.key).toLowerCase()) {
@@ -1712,23 +1670,20 @@ export default function PersistentDrawerLeft() {
 
 	const onStopRunning = useCallback(() => {
 		if (tabIndex !== null) {
-			setFiles(files => {
-				const file = files.at(tabIndex);
-				if (file !== undefined) {
-					const title = file.title;
-					if (path.extname(title).toLowerCase() === ".md") {
-						file.mdEditing = true;
-						if (file.editor !== undefined) {
-							const editor = file.editor;
-							setTimeout(() => {
-								editor.focus();
-							}, 100);
-						}
-						return [...files];
+			const file = files.at(tabIndex);
+			if (file !== undefined) {
+				const title = file.title;
+				if (path.extname(title).toLowerCase() === ".md") {
+					file.mdEditing = true;
+					if (file.editor !== undefined) {
+						const editor = file.editor;
+						setTimeout(() => {
+							editor.focus();
+						}, 100);
 					}
+					return [...files];
 				}
-				return files;
-			});
+			}
 		}
 		Service.stop().then((res) => {
 			if (res.success) {
@@ -1742,7 +1697,7 @@ export default function PersistentDrawerLeft() {
 		}).catch(() => {
 			addAlert(t("alert.stopFailed"), "error");
 		});
-	}, [openLog, t, tabIndex]);
+	}, [openLog, t, tabIndex, files]);
 
 	const onPlayControlClick = useCallback((mode: PlayControlMode, noLog?: boolean) => {
 		if (mode === "Go to File") {
@@ -1763,77 +1718,75 @@ export default function PersistentDrawerLeft() {
 			}
 			switch (mode) {
 				case "Run": case "Run This": {
-					setFiles(files => {
-						let key: string | null = null;
-						let title: string | null = null;
-						let dir = false;
-						if (tabIndex !== null) {
-							const file = files.at(tabIndex);
-							if (file !== undefined) {
-								key = file.key;
-								title = file.title;
-								dir = file.uploading;
-								if (path.extname(title).toLowerCase() === ".md") {
-									file.mdEditing = false;
-									return [...files];
+					let key: string | null = null;
+					let title: string | null = null;
+					let dir = false;
+					if (tabIndex !== null) {
+						const file = files.at(tabIndex);
+						if (file !== undefined) {
+							key = file.key;
+							title = file.title;
+							dir = file.uploading;
+							if (path.extname(title).toLowerCase() === ".md") {
+								file.mdEditing = false;
+								setFiles([...files]);
+								return;
+							}
+						}
+					}
+					if (key === null || title === null) {
+						if (selectedNode === null) {
+							addAlert(t("alert.runNoTarget"), "info");
+							return;
+						}
+						key = selectedNode.key;
+						title = selectedNode.title;
+						dir = selectedNode.dir;
+					}
+					let asProj = mode === "Run";
+					if (dir) {
+						key = path.join(key, "init");
+						asProj = true;
+					}
+					const ext = path.extname(key).toLowerCase();
+					switch (ext) {
+						case ".lua":
+						case ".yue":
+						case ".tl":
+						case ".ts":
+						case ".tsx":
+						case ".xml":
+						case ".wasm":
+						case ".yarn":
+						case ".vs":
+						case "": {
+							if (ext === ".yarn" && !asProj) {
+								break;
+							}
+							Service.run({file: key, asProj}).then((res) => {
+								if (res.success) {
+									addAlert(t("alert.run", {title: res.target ?? title}), "success");
+									if (!noLog) setOpenLog({
+										title: res.target ?? title ?? "Running",
+										stopOnClose: true
+									});
+								} else {
+									addAlert(t("alert.runFailed", {title: res.target ?? title}), "error");
 								}
-							}
-						}
-						if (key === null || title === null) {
-							if (selectedNode === null) {
-								addAlert(t("alert.runNoTarget"), "info");
-								return files;
-							}
-							key = selectedNode.key;
-							title = selectedNode.title;
-							dir = selectedNode.dir;
-						}
-						let asProj = mode === "Run";
-						if (dir) {
-							key = path.join(key, "init");
-							asProj = true;
-						}
-						const ext = path.extname(key).toLowerCase();
-						switch (ext) {
-							case ".lua":
-							case ".yue":
-							case ".tl":
-							case ".ts":
-							case ".tsx":
-							case ".xml":
-							case ".wasm":
-							case ".yarn":
-							case ".vs":
-							case "": {
-								if (ext === ".yarn" && !asProj) {
-									break;
+								if (!noLog && res.err !== undefined) {
+									setPopupInfo({
+										title: res.target ?? title ?? "",
+										msg: res.err,
+										raw: true
+									});
 								}
-								Service.run({file: key, asProj}).then((res) => {
-									if (res.success) {
-										addAlert(t("alert.run", {title: res.target ?? title}), "success");
-										if (!noLog) setOpenLog({
-											title: res.target ?? title ?? "Running",
-											stopOnClose: true
-										});
-									} else {
-										addAlert(t("alert.runFailed", {title: res.target ?? title}), "error");
-									}
-									if (!noLog && res.err !== undefined) {
-										setPopupInfo({
-											title: res.target ?? title ?? "",
-											msg: res.err,
-											raw: true
-										});
-									}
-								}).catch(() => {
-									addAlert(t("alert.runFailed", {title}), "error");
-								})
-								return files;
-							}
+							}).catch(() => {
+								addAlert(t("alert.runFailed", {title}), "error");
+							})
+							return;
 						}
-						addAlert(t("alert.runFailed", {title}), "info");
-						return files;
-					});
+					}
+					addAlert(t("alert.runFailed", {title}), "info");
 					return;
 				}
 				case "Stop": {
@@ -1842,155 +1795,159 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		})
-	}, [tabIndex, selectedNode, openLog, t, onStopRunning, saveAllTabs]);
+	}, [tabIndex, selectedNode, openLog, t, onStopRunning, saveAllTabs, files]);
 
 	const saveCurrentTab = useCallback(() => {
 		if (tabIndex === null) return;
-		setFiles(files => {
-			const file = files[tabIndex];
-			const saveFile = () => {
-				if (file.contentModified !== null) {
-					const readOnly = !file.key.startsWith(assetPath);
-					if (readOnly) {
-						addAlert(t("alert.builtin"), "warning");
-						return;
-					}
-					const {contentModified} = file;
-					Service.write({path: file.key, content: contentModified}).then((res) => {
-						if (res.success) {
-							file.content = contentModified;
-							file.contentModified = null;
-							setFiles(prev => {
-								if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
-									const {key} = file;
-									const extname = path.extname(key);
-									const name = path.basename(key, extname);
-									const dir = path.dirname(key);
-									const luaFile = path.join(dir, name + ".lua");
-									const fileInTab = prev.find(f => path.relative(f.key, luaFile) === "");
-									if (fileInTab !== undefined) {
-										const resultCodes = res.resultCodes === undefined ? "" : res.resultCodes;
-										fileInTab.content = resultCodes;
-										setTimeout(() => {
-											const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
-											if (model) {
-												model.setValue(resultCodes);
-											}
-										}, 10);
-									}
-								}
-								return [...prev]
-							});
-							const ext = path.extname(file.key).toLowerCase();
-							switch (ext) {
-								case ".ts": case ".tsx": case ".lua": case ".tl": case ".yue": case ".xml": {
-									if (contentModified.search(/@preview-file on\b/) >= 0) {
-										onPlayControlClick("Run This", true);
-									} else if (contentModified.search(/@preview-project on\b/) >= 0) {
-										onPlayControlClick("Run", true);
-									}
-									break;
-								}
-							}
-						} else {
-							addAlert(t("alert.saveCurrent"), "error");
-						}
-					}).catch(() => {
-						addAlert(t("alert.saveCurrent"), "error");
-					});
+		const file = files[tabIndex];
+		const saveFile = () => {
+			if (file.contentModified !== null) {
+				const readOnly = !file.key.startsWith(assetPath);
+				if (readOnly) {
+					addAlert(t("alert.builtin"), "warning");
+					return;
 				}
-			};
-			if (file.yarnData !== undefined) {
-				file.yarnData.getJSONData().then((value) => {
-					file.contentModified = value;
-					saveFile();
-				}).catch(() => {
-					addAlert(t("alert.saveCurrent"), "error");
-				})
-			} else if (file.codeWireData !== undefined) {
-				let {codeWireData} = file;
-				const vscript = codeWireData.getVisualScript();
-				if (file.contentModified !== null || file.content !== vscript) {
-					file.contentModified = vscript;
-					let tealCode = codeWireData.getScript();
-					const extname = path.extname(file.key);
-					const name = path.basename(file.key, extname);
-					const tlFile = path.join(path.dirname(file.key), name + ".tl");
-					const fileInTab = files.find(f => path.relative(f.key, tlFile) === "");
-					if (fileInTab !== undefined) {
-						fileInTab.content = tealCode;
-						setFiles([...files]);
-						const model = monaco.editor.getModel(monaco.Uri.parse(tlFile));
-						if (model) {
-							model.setValue(tealCode);
-						}
-					}
-					Service.write({path: tlFile, content: tealCode}).then((res) => {
-						if (!res.success) {
-							addAlert(t("alert.saveCurrent"), "error");
-						}
-					}).then(() => {
-						saveFile();
-						Service.check({file: tlFile, content: tealCode}).then((res) => {
-							if (res.success && tealCode !== "") {
-								codeWireData.reportVisualScriptError("");
-							} else if (res.info !== undefined) {
-								const lines = tealCode.split("\n");
-								const message = [];
-								for (let err of res.info) {
-									const [, filename, row, , msg] = err;
-									let node = "";
-									if (path.relative(filename, tlFile) === "" && 1 <= row && row <= lines.length) {
-										const ends = lines[row - 1].match(/-- (\d+)$/);
-										if (ends !== null) {
-											node = "node " + ends[1] + ", ";
-										}
-									}
-									message.push(node + "line " + row + ": " + msg);
-								}
-								codeWireData.reportVisualScriptError(message.join("<br>"));
-							}
-						});
-					}).catch(() => {
-						addAlert(t("alert.saveCurrent"), "error");
-					});
-				}
-			} else {
-				const ext = path.extname(file.key).toLowerCase();
-				if (file.contentModified !== null && (ext === '.ts' || ext === '.tsx') && !file.key.toLocaleLowerCase().endsWith(".d.ts")) {
-					const {key, contentModified} = file;
-					import('./TranspileTS').then(({transpileTypescript}) => {
-						transpileTypescript(key, contentModified).then(luaCode => {
-							if (luaCode !== undefined) {
-								const extname = path.extname(file.key);
-								const name = path.basename(file.key, extname);
-								const luaFile = path.join(path.dirname(file.key), name + ".lua");
-								const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
-								if (fileInTab !== undefined) {
-									fileInTab.content = luaCode;
-									setFiles([...files]);
+				const {contentModified} = file;
+				Service.write({path: file.key, content: contentModified}).then((res) => {
+					if (res.success) {
+						file.content = contentModified;
+						file.contentModified = null;
+						const ext = path.extname(file.key).toLowerCase();
+						if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
+							const {key} = file;
+							const extname = path.extname(key);
+							const name = path.basename(key, extname);
+							const dir = path.dirname(key);
+							const luaFile = path.join(dir, name + ".lua");
+							const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+							if (fileInTab !== undefined) {
+								const resultCodes = res.resultCodes === undefined ? "" : res.resultCodes;
+								fileInTab.content = resultCodes;
+								setTimeout(() => {
 									const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
 									if (model) {
-										model.setValue(luaCode);
+										model.setValue(resultCodes);
+									}
+								}, 10);
+							}
+						}
+						switch (ext) {
+							case ".ts": case ".tsx": case ".lua": case ".tl": case ".yue": case ".xml": {
+								if (contentModified.search(/@preview-file on\b/) >= 0) {
+									onPlayControlClick("Run This", true);
+								} else if (contentModified.search(/@preview-project on\b/) >= 0) {
+									onPlayControlClick("Run", true);
+								}
+								break;
+							}
+						}
+					} else {
+						addAlert(t("alert.saveCurrent"), "error");
+					}
+				}).catch(() => {
+					addAlert(t("alert.saveCurrent"), "error");
+				});
+			}
+		};
+		if (file.yarnData !== undefined) {
+			file.yarnData.getJSONData().then((value) => {
+				file.contentModified = value;
+				saveFile();
+			}).catch(() => {
+				addAlert(t("alert.saveCurrent"), "error");
+			})
+		} else if (file.codeWireData !== undefined) {
+			let {codeWireData} = file;
+			const vscript = codeWireData.getVisualScript();
+			if (file.contentModified !== null || file.content !== vscript) {
+				file.contentModified = vscript;
+				let tealCode = codeWireData.getScript();
+				const extname = path.extname(file.key);
+				const name = path.basename(file.key, extname);
+				const tlFile = path.join(path.dirname(file.key), name + ".tl");
+				const fileInTab = files.find(f => path.relative(f.key, tlFile) === "");
+				if (fileInTab !== undefined) {
+					fileInTab.content = tealCode;
+					setFiles([...files]);
+					const model = monaco.editor.getModel(monaco.Uri.parse(tlFile));
+					if (model) {
+						model.setValue(tealCode);
+					}
+				}
+				Service.write({path: tlFile, content: tealCode}).then((res) => {
+					if (!res.success) {
+						addAlert(t("alert.saveCurrent"), "error");
+					}
+				}).then(() => {
+					saveFile();
+					Service.check({file: tlFile, content: tealCode}).then((res) => {
+						if (res.success && tealCode !== "") {
+							codeWireData.reportVisualScriptError("");
+						} else if (res.info !== undefined) {
+							const lines = tealCode.split("\n");
+							const message = [];
+							for (let err of res.info) {
+								const [, filename, row, , msg] = err;
+								let node = "";
+								if (path.relative(filename, tlFile) === "" && 1 <= row && row <= lines.length) {
+									const ends = lines[row - 1].match(/-- (\d+)$/);
+									if (ends !== null) {
+										node = "node " + ends[1] + ", ";
 									}
 								}
-								Service.write({path: luaFile, content: luaCode}).then((res) => {
-									if (res.success) {
-										saveFile();
-									} else {
-										addAlert(t("alert.saveCurrent"), "error");
-									}
-								});
+								message.push(node + "line " + row + ": " + msg);
 							}
-						});
+							codeWireData.reportVisualScriptError(message.join("<br>"));
+						}
 					});
-				} else {
-					saveFile();
-				}
+				}).catch(() => {
+					addAlert(t("alert.saveCurrent"), "error");
+				});
 			}
-			return files;
-		});
-	}, [t, tabIndex, assetPath, onPlayControlClick]);
+		} else {
+			const ext = path.extname(file.key).toLowerCase();
+			if (file.contentModified !== null && (ext === '.ts' || ext === '.tsx') && !file.key.toLocaleLowerCase().endsWith(".d.ts")) {
+				const {key, contentModified} = file;
+				import('./TranspileTS').then(({transpileTypescript}) => {
+					transpileTypescript(key, contentModified).then(luaCode => {
+						if (luaCode !== undefined) {
+							const extname = path.extname(file.key);
+							const name = path.basename(file.key, extname);
+							const luaFile = path.join(path.dirname(file.key), name + ".lua");
+							const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+							if (fileInTab !== undefined) {
+								fileInTab.content = luaCode;
+								setFiles([...files]);
+								const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+								if (model) {
+									model.setValue(luaCode);
+								}
+							}
+							Service.write({path: luaFile, content: luaCode}).then((res) => {
+								if (res.success) {
+									saveFile();
+								} else {
+									addAlert(t("alert.saveCurrent"), "error");
+								}
+							});
+						}
+					});
+				});
+			} else {
+				saveFile();
+			}
+		}
+	}, [t, tabIndex, assetPath, onPlayControlClick, files]);
+
+	const onTabMenuClick = useCallback((event: TabMenuEvent) => {
+		switch (event) {
+			case "Save": saveCurrentTab(); break;
+			case "SaveAll": saveAllTabs(); break;
+			case "Close": closeCurrentTab(); break;
+			case "CloseAll": closeAllTabs(); break;
+			case "CloseOthers": closeOtherTabs(); break;
+		}
+	}, [saveCurrentTab, saveAllTabs, closeCurrentTab, closeAllTabs, closeOtherTabs]);
 
 	const onKeyDown = (event: KeyboardEvent) => {
 		if (event.ctrlKey || event.altKey || event.metaKey) {
@@ -2121,47 +2078,52 @@ export default function PersistentDrawerLeft() {
 	}, [openLog, onStopRunning]);
 
 	const onValidate = useCallback((markers: monaco.editor.IMarker[], key: string) => {
-		setFiles(files => {
-			const file = files.find(f => f.key === key);
-			if (file === undefined) return files;
-			let status: TabStatus = "normal";
-			let severity = 0;
-			for (const marker of markers) {
-				if (marker.severity > severity) {
-					severity = marker.severity;
+		const file = files.find(f => f.key === key);
+		if (file === undefined) return files;
+		let status: TabStatus = "normal";
+		let severity = 0;
+		for (const marker of markers) {
+			if (marker.severity > severity) {
+				severity = marker.severity;
+			}
+		}
+		if (severity > 0) {
+			switch (severity) {
+				case monaco.MarkerSeverity.Error:
+					status = "error";
+					break;
+				case monaco.MarkerSeverity.Warning:
+					status = "warning";
+					break;
+				default:
+					status = "normal";
+					break;
+			}
+		}
+		if (file.editor !== undefined) {
+			const filtered = markers.filter(marker => {
+				return marker.code !== "2497" && marker.code !== "2666";
+			});
+			if (filtered.length !== markers.length) {
+				const model = file.editor.getModel();
+				if (model) {
+					monaco.editor.setModelMarkers(model, model.getLanguageId(), filtered);
 				}
 			}
-			if (severity > 0) {
-				switch (severity) {
-					case monaco.MarkerSeverity.Error:
-						status = "error";
-						break;
-					case monaco.MarkerSeverity.Warning:
-						status = "warning";
-						break;
-					default:
-						status = "normal";
-						break;
-				}
-			}
-			if (file.editor !== undefined) {
-				const filtered = markers.filter(marker => {
-					return marker.code !== "2497" && marker.code !== "2666";
-				});
-				if (filtered.length !== markers.length) {
-					const model = file.editor.getModel();
-					if (model) {
-						monaco.editor.setModelMarkers(model, model.getLanguageId(), filtered);
-					}
-				}
-			}
-			if (file.status !== status) {
-				file.status = status;
-				return [...files];
-			}
-			return files;
-		});
-	}, []);
+		}
+		if (file.status !== status) {
+			file.status = status;
+			setFiles([...files]);
+		}
+	}, [files]);
+
+	const onFileFilterClose = useCallback((value: FilterOption | null) => {
+		setFilterOptions(null);
+		if (value === null) {
+			return;
+		}
+		openFileInTab(value.key, value.title);
+	}, [setFilterOptions, openFileInTab]);
 
 	return (
 		<Entry>
@@ -2171,14 +2133,7 @@ export default function PersistentDrawerLeft() {
 			>
 				<DialogContent>
 					{filterOptions !== null ?
-						<FileFilter options={filterOptions} onClose={value => {
-							setFilterOptions(null);
-							if (value === null) {
-								return;
-							}
-							setFilterOptions(null);
-							openFileInTab(value.key, value.title);
-						}}/> : null
+						<FileFilter options={filterOptions} onClose={onFileFilterClose}/> : null
 					}
 				</DialogContent>
 			</Dialog>
