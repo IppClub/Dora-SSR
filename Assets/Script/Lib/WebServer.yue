@@ -23,7 +23,7 @@ getProjectDirFromFile = (file) ->
 		break if current == ""
 		for f in *Content\getFiles Path writablePath, current
 			if Path\getName(f)\lower! == "init"
-				return Path current, Path\getPath f
+				return Path writablePath, current, Path\getPath f
 	until false
 	nil
 
