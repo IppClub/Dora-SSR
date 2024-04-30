@@ -323,7 +323,7 @@ getProjectEntries = function(path) -- 171
 						local name, ePath = _des_0[1], _des_0[2] -- 190
 						local entry = { -- 191
 							name, -- 191
-							Path(dir, Path:getPath(file), ePath) -- 191
+							Path(path, dir, Path:getPath(file), ePath) -- 191
 						} -- 191
 						examples[#examples + 1] = entry -- 192
 					end -- 192
@@ -336,7 +336,7 @@ getProjectEntries = function(path) -- 171
 						local name, tPath = _des_0[1], _des_0[2] -- 195
 						local entry = { -- 196
 							name, -- 196
-							Path(dir, Path:getPath(file), tPath) -- 196
+							Path(path, dir, Path:getPath(file), tPath) -- 196
 						} -- 196
 						tests[#tests + 1] = entry -- 197
 					end -- 197
