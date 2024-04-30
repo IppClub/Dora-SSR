@@ -585,7 +585,7 @@ export default function PersistentDrawerLeft() {
 		}
 	}, [t]);
 
-	const openFile = (key: string, title: string) => {
+	const openFile = useCallback((key: string, title: string) => {
 		return new Promise<EditingFile>((resolve, reject) => {
 			const ext = path.extname(title).toLowerCase();
 			switch (ext) {
@@ -662,7 +662,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-	};
+	}, [checkFileReadonly, onEditorDidMount, t]);
 
 	const openFileInTab = useCallback((key: string, title: string, position?: monaco.IPosition, mdEditing?: boolean, readOnly? :boolean) => {
 		let index: number | null = null;
@@ -698,7 +698,7 @@ export default function PersistentDrawerLeft() {
 		} else {
 			switchTab(index, file);
 		}
-	}, [checkFileReadonly, onEditorDidMount, switchTab, t, files]);
+	}, [switchTab, files, openFile]);
 
 	if (jumpToFile !== null) {
 		setJumpToFile(null);
