@@ -33,6 +33,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
 ### Android
 
 1. 手动生成 Lua 绑定。
+
    ```sh
    # ubuntu
    sudo apt-get install lua5.1
@@ -40,17 +41,15 @@ git clone https://github.com/ippclub/Dora-SSR.git
    sudo luarocks install luafilesystem
    cd Tools/tolua++
    lua tolua++.lua
-   
+
    # macOS
    cd Tools/tolua++
    ./build.sh
-   
+
    # Windows
    cd Tools\tolua++
    build.bat
    ```
-
-
 
 2. 安装最新版 **Android Studio**。
 3. 在 IDE 打开工程目录：**Project/Android/Dora**。
@@ -58,9 +57,10 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
 ### Linux
 
+#### Ubuntu
+
 1. 手动生成 Lua 绑定。
    ```sh
-   # ubuntu
    sudo apt-get install lua5.1
    sudo apt-get install -y luarocks
    sudo luarocks install luafilesystem
@@ -69,32 +69,80 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ```
 2. 安装依赖包。
    ```sh
-   # ubuntu
    sudo apt-get install -y libsdl2-dev libgl1-mesa-dev x11proto-core-dev libx11-dev
    ```
 3. 运行编译脚本。
-   * 进行首次编译
+
+   - 进行首次编译
+
    ```sh
    # 硬件架构为 arm
    cd Project/Linux
    make arm
-   
+
    # 硬件架构为 x86_64
    cd Project/Linux
    make x86_64
    ```
 
-   * 进行后续增量编译
+   - 进行后续增量编译
+
    ```sh
    cd Project/Linux
    make
    ```
+
 4. 运行生成的软件。
    ```sh
    cd Assets
    ../Project/Linux/build/dora-ssr
    ```
 
+#### ArchLinux
+
+1. 安装依赖包。
+
+   ```sh
+   sudo pacman -S lua51 luarocks sdl2 gcc make cmake --needed
+   # 因为lua的版本必须是5.1,你需要使用lua5.1而不是最新的lua
+   # 最简单的方法是用ln创建一个软链接
+   sudo ln -s /usr/bin/lua5.1 /usr/local/bin/lua
+   ```
+
+2. 手动生成 Lua 绑定。
+
+   ```sh
+   sudo luarocks --lua-version 5.1 install luafilesystem
+   cd Tools/tolua++
+   lua5.1 tolua++.lua
+   ```
+
+3. 运行编译脚本。
+
+   - 进行首次编译
+
+   ```sh
+   # 硬件架构为 arm
+   cd Project/Linux
+   make arm
+
+   # 硬件架构为 x86_64
+   cd Project/Linux
+   make x86_64
+   ```
+
+   - 进行后续增量编译
+
+   ```sh
+   cd Project/Linux
+   make
+   ```
+
+4. 运行生成的软件。
+   ```sh
+   cd Assets
+   ../Project/Linux/build/dora-ssr
+   ```
 
 ## 三、进行 Dora Dora 编辑器的开发
 
