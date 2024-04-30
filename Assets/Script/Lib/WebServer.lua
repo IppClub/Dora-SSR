@@ -41,7 +41,7 @@ getProjectDirFromFile = function(file) -- 17
 		for _index_0 = 1, #_list_0 do -- 24
 			local f = _list_0[_index_0] -- 24
 			if Path:getName(f):lower() == "init" then -- 25
-				return Path(current, Path:getPath(f)) -- 26
+				return Path(writablePath, current, Path:getPath(f)) -- 26
 			end -- 25
 		end -- 26
 	until false -- 27

@@ -188,12 +188,12 @@ getProjectEntries = (path) ->
 				examplePath = Path path, dir, Path\getPath(file), "Example"
 				if Content\exist examplePath
 					for [name, ePath] in *getFileEntries examplePath
-						entry = [name, Path(dir, Path\getPath(file), ePath)]
+						entry = [name, Path path, dir, Path\getPath(file), ePath]
 						examples[] = entry
 				testPath = Path path, dir, Path\getPath(file), "Test"
 				if Content\exist testPath
 					for [name, tPath] in *getFileEntries testPath
-						entry = [name, Path(dir, Path\getPath(file), tPath)]
+						entry = [name, Path path, dir, Path\getPath(file), tPath]
 						tests[] = entry
 				entry = [entryName, fileName, examples, tests]
 				bannerFile = Path path, Path\getPath(fileName), "Image", "banner.png"
