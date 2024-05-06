@@ -318,7 +318,7 @@ fn main () {
 
 ## 社区
 
-- [Discord](https://discord.gg/ydJVuZhh)
+- [Discord](https://discord.gg/ZfNBSKXnf9)
 - [QQ群：512620381](https://qm.qq.com/cgi-bin/qm/qr?k=7siAhjlLaSMGLHIbNctO-9AJQ0bn0G7i&jump_from=webapi&authKey=Kb6tXlvcJ2LgyTzHQzKwkMxdsQ7sjERXMJ3g10t6b+716pdKClnXqC9bAfrFUEWa)
 
 <br>
