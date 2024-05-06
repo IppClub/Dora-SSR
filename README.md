@@ -321,7 +321,7 @@ For more detailed tutorials, please check [official documents](https://Dora-ssr.
 
 ## Community
 
-- [Discord](https://discord.gg/ydJVuZhh)
+- [Discord](https://discord.gg/ZfNBSKXnf9)
 - [QQ Group: 512620381](https://qm.qq.com/cgi-bin/qm/qr?k=7siAhjlLaSMGLHIbNctO-9AJQ0bn0G7i&jump_from=webapi&authKey=Kb6tXlvcJ2LgyTzHQzKwkMxdsQ7sjERXMJ3g10t6b+716pdKClnXqC9bAfrFUEWa)
 
 <br>

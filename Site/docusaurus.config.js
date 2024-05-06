@@ -279,7 +279,7 @@ const config = {
 					items: [
 						{
 							label: 'Discord',
-							href: 'https://discord.gg/ydJVuZhh',
+							href: 'https://discord.gg/ZfNBSKXnf9',
 						},
 						{
 							label: 'QQ Group: 512620381',
