@@ -410,3 +410,23 @@ Triggers after setting `node.controllerEnabled = true`.
 | --- | --- | --- |
 | controllerId | integer | The controller id, incrementing from 0 when multiple controllers connected. |
 | axisValue | number | The controller axis value ranging from -1.0 to 1.0. |
+
+## AlignLayout
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the layout of the `AlignNode` is updated.
+
+**Signature:**
+```tl
+["AlignLayout"]: function(width: number, height: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| width | number | The width of the node. |
+| height | number | The height of the node. |
