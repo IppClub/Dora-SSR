@@ -207,6 +207,7 @@ class Content
 	bool exist(String filename);
 	bool createFolder @ mkdir(String path);
 	bool isFolder @ isdir(String path);
+	bool isAbsolutePath(String path);
 	bool copy(String src, String dst);
 	bool move(String src, String dst);
 	bool remove(String path);

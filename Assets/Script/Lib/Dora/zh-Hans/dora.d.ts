@@ -3298,6 +3298,13 @@ class Content {
 	move(srcPath: string, dstPath: string): boolean;
 
 	/**
+	 * 检查指定路径是否为绝对路径。
+	 * @param path 要检查的路径。
+	 * @returns 如果路径是绝对路径，则为`true`，否则为`false`。
+	 */
+	isAbsolutePath(path: string): boolean;
+
+	/**
 	 * 获取具有指定文件名的文件的完整路径。
 	 * @param filename 要获取其完整路径的文件的名称。
 	 * @returns 文件的完整路径。

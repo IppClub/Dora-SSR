@@ -15,6 +15,7 @@ extern "C" {
 	fn content_exist(filename: i64) -> i32;
 	fn content_mkdir(path: i64) -> i32;
 	fn content_isdir(path: i64) -> i32;
+	fn content_is_absolute_path(path: i64) -> i32;
 	fn content_copy(src: i64, dst: i64) -> i32;
 	fn content_move_to(src: i64, dst: i64) -> i32;
 	fn content_remove(path: i64) -> i32;
@@ -101,6 +102,18 @@ impl Content {
 	/// * `bool` - `true` if the path is a directory, `false` otherwise.
 	pub fn isdir(path: &str) -> bool {
 		unsafe { return content_isdir(crate::dora::from_string(path)) != 0; }
+	}
+	/// Checks if the specified path is an absolute path.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the path is an absolute path, `false` otherwise.
+	pub fn is_absolute_path(path: &str) -> bool {
+		unsafe { return content_is_absolute_path(crate::dora::from_string(path)) != 0; }
 	}
 	/// Copies the file or directory at the specified source path to the target path.
 	///
