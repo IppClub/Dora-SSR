@@ -241,7 +241,6 @@ let getModel: (this: void, enode: React.Element) => dora.Model.Type | null;
 
 	function handleDragonBoneAttribute(this: void, cnode: dora.DragonBone.Type, enode: React.Element, k: any, v: any) {
 		switch (k as keyof JSX.DragonBone) {
-			case 'showDebug': cnode.showDebug = v; return true;
 			case 'hitTestEnabled': cnode.hitTestEnabled = true; return true;
 		}
 		return handlePlayableAttribute(cnode, enode, k, v);
@@ -257,7 +256,6 @@ let getModel: (this: void, enode: React.Element) => dora.Model.Type | null;
 
 	function handleSpineAttribute(this: void, cnode: dora.Spine.Type, enode: React.Element, k: any, v: any) {
 		switch (k as keyof JSX.Spine) {
-			case 'showDebug': cnode.showDebug = v; return true;
 			case 'hitTestEnabled': cnode.hitTestEnabled = true; return true;
 		}
 		return handlePlayableAttribute(cnode, enode, k, v);
@@ -503,20 +501,11 @@ let getMenu: (this: void, enode: React.Element) => dora.Menu.Type;
 	};
 }
 
-let getPhysicsWorld: (this: void, enode: React.Element) => dora.PhysicsWorld.Type;
-{
-	function handlePhysicsWorldAttribute(this: void, cnode: dora.PhysicsWorld.Type, _enode: React.Element, k: any, v: any) {
-		switch (k as keyof JSX.PhysicsWorld) {
-			case 'showDebug': cnode.showDebug = v; return true;
-		}
-		return false;
-	}
-	getPhysicsWorld = (enode: React.Element) => {
-		const node = dora.PhysicsWorld();
-		const cnode = getNode(enode, node, handlePhysicsWorldAttribute);
-		return cnode as dora.PhysicsWorld.Type;
-	};
-}
+function getPhysicsWorld(this: void, enode: React.Element) {
+	const node = dora.PhysicsWorld();
+	const cnode = getNode(enode, node);
+	return cnode as dora.PhysicsWorld.Type;
+};
 
 let getBody: (this: void, enode: React.Element, world: dora.PhysicsWorld.Type) => dora.Body.Type;
 {
@@ -686,6 +675,51 @@ let getCustomNode: (this: void, enode: React.Element) => dora.Node.Type | null;
 			return cnode;
 		}
 		return null;
+	};
+}
+
+let getAlignNode: (this: void, enode: React.Element) => dora.AlignNode.Type;
+{
+	function handleAlignNode(this: void, _cnode: dora.AlignNode.Type, _enode: React.Element, k: any, _v: any) {
+		switch (k as keyof JSX.AlignNode) {
+			case 'windowRoot': return true;
+			case 'style': return true;
+			case 'onLayout': return true;
+		}
+		return false;
+	}
+	getAlignNode = (enode: React.Element) => {
+		const alignNode = enode.props as JSX.AlignNode;
+		const node = dora.AlignNode(alignNode.windowRoot);
+		if (alignNode.style) {
+			const items: string[] = [];
+			for (let [k, v] of pairs(alignNode.style)) {
+				let [name] = string.gsub(k, "%u", "-%1");
+				name = name.toLowerCase();
+				switch (k) {
+					case 'margin': case 'padding':
+					case 'border': case 'gap': {
+						if (type(v) === 'table') {
+							const valueStr = table.concat((v as any[]).map(item => tostring(item)), ',')
+							items.push(`${name}:${valueStr}`);
+						} else {
+							items.push(`${name}:${v}`);
+						}
+						break;
+					}
+					default:
+						items.push(`${name}:${v}`);
+						break;
+				}
+			}
+			if (alignNode.onLayout) {
+				node.slot(dora.Slot.AlignLayout, alignNode.onLayout);
+			}
+			const styleStr = table.concat(items, ';');
+			node.css(styleStr);
+		}
+		const cnode = getNode(enode, node, handleAlignNode);
+		return cnode as dora.AlignNode.Type;
 	};
 }
 
@@ -1238,13 +1272,16 @@ const elementMap: ElementMap = {
 			joint.damping ?? 0.7
 		);
 	},
-	'custom-node': (nodeStack: dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
+	'custom-node': (nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		const node = getCustomNode(enode);
 		if (node !== null) {
 			addChild(nodeStack, node, enode);
 		}
 	},
 	'custom-element': () => {},
+	'align-node': (nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
+		addChild(nodeStack, getAlignNode(enode), enode);
+	},
 }
 function visitNode(this: void, nodeStack: dora.Node.Type[], node: React.Element | React.Element[], parent?: React.Element) {
 	if (type(node) !== "table") {

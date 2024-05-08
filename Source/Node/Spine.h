@@ -22,11 +22,11 @@ class Spine : public Playable {
 public:
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY_BOOL(HitTestEnabled);
-	PROPERTY_BOOL(ShowDebug);
 	virtual bool init() override;
 	virtual bool update(double deltaTime) override;
 	virtual void render() override;
 	virtual void cleanup() override;
+	virtual void setShowDebug(bool var) override;
 	virtual void setSpeed(float var) override;
 	virtual void setRecovery(float var) override;
 	virtual void setFliped(bool var) override;

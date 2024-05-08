@@ -9,12 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 static int32_t dragonbone_type() {
 	return DoraType<DragonBone>();
 }
-static void dragonbone_set_show_debug(int64_t self, int32_t var) {
-	r_cast<DragonBone*>(self)->setShowDebug(var != 0);
-}
-static int32_t dragonbone_is_show_debug(int64_t self) {
-	return r_cast<DragonBone*>(self)->isShowDebug() ? 1 : 0;
-}
 static void dragonbone_set_hit_test_enabled(int64_t self, int32_t var) {
 	r_cast<DragonBone*>(self)->setHitTestEnabled(var != 0);
 }
@@ -41,8 +35,6 @@ static int64_t dragonbone_get_animations(int64_t bone_str) {
 }
 static void linkDragonBone(wasm3::module3& mod) {
 	mod.link_optional("*", "dragonbone_type", dragonbone_type);
-	mod.link_optional("*", "dragonbone_set_show_debug", dragonbone_set_show_debug);
-	mod.link_optional("*", "dragonbone_is_show_debug", dragonbone_is_show_debug);
 	mod.link_optional("*", "dragonbone_set_hit_test_enabled", dragonbone_set_hit_test_enabled);
 	mod.link_optional("*", "dragonbone_is_hit_test_enabled", dragonbone_is_hit_test_enabled);
 	mod.link_optional("*", "dragonbone_contains_point", dragonbone_contains_point);

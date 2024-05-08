@@ -202,10 +202,7 @@ void PhysicsWorld::setShowDebug(bool var) {
 		removeChild(_debugDraw->getRenderer());
 		_debugDraw = nullptr;
 	}
-}
-
-bool PhysicsWorld::isShowDebug() const {
-	return _debugDraw != nullptr;
+	Node::setShowDebug(var);
 }
 
 void PhysicsWorld::setIterations(int velocityIter, int positionIter) {

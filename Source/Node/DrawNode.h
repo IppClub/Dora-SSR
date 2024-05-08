@@ -171,6 +171,8 @@ public:
 	virtual ~LineRenderer() { }
 	virtual void render() override;
 	void push(Line* line);
+	void pushRect(PosColorVertex verts[4]);
+	void pushSegment(PosColorVertex verts[2]);
 
 protected:
 	LineRenderer();

@@ -9,12 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 static int32_t spine_type() {
 	return DoraType<Spine>();
 }
-static void spine_set_show_debug(int64_t self, int32_t var) {
-	r_cast<Spine*>(self)->setShowDebug(var != 0);
-}
-static int32_t spine_is_show_debug(int64_t self) {
-	return r_cast<Spine*>(self)->isShowDebug() ? 1 : 0;
-}
 static void spine_set_hit_test_enabled(int64_t self, int32_t var) {
 	r_cast<Spine*>(self)->setHitTestEnabled(var != 0);
 }
@@ -44,8 +38,6 @@ static int64_t spine_get_animations(int64_t spine_str) {
 }
 static void linkSpine(wasm3::module3& mod) {
 	mod.link_optional("*", "spine_type", spine_type);
-	mod.link_optional("*", "spine_set_show_debug", spine_set_show_debug);
-	mod.link_optional("*", "spine_is_show_debug", spine_is_show_debug);
 	mod.link_optional("*", "spine_set_hit_test_enabled", spine_set_hit_test_enabled);
 	mod.link_optional("*", "spine_is_hit_test_enabled", spine_is_hit_test_enabled);
 	mod.link_optional("*", "spine_set_bone_rotation", spine_set_bone_rotation);

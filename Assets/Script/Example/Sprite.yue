@@ -2,6 +2,7 @@ _ENV = Dora!
 
 sprite = with Sprite "Image/logo.png"
 	.scaleX = .scaleY = 0.5
+	.showDebug = true
 
 with Node!
 	.touchEnabled = true
@@ -29,7 +30,7 @@ threadLoop ->
 			if changed, x, y := ImGui.DragFloat2 "Anchor", x, y, 0.01, 0, 1, "%.2f"
 				sprite.anchor = Vec2 x, y
 			width: spriteW, :height = sprite.size
-			if changed, spriteW, height := ImGui.DragFloat2 "Size", spriteW, height, 0.1, 0, 1000, "%.f"
+			if changed, spriteW, height := ImGui.DragFloat2 "Size", spriteW, height, 0.1, 0, 1500, "%.f"
 				sprite.size = Size spriteW, height
 			:scaleX, :scaleY = sprite
 			if changed, scaleX, scaleY := ImGui.DragFloat2 "Scale", scaleX, scaleY, 0.01, -2, 2, "%.2f"
@@ -61,5 +62,7 @@ threadLoop ->
 		if ImGui.Button "Reset", Vec2 140, 30
 			with sprite.parent
 				\removeChild sprite
-				sprite = Sprite "Image/logo.png"
+				sprite = with Sprite "Image/logo.png"
+					.scaleX = .scaleY = 0.5
+					.showDebug = true
 				\addChild sprite

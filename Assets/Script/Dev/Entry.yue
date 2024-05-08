@@ -269,8 +269,8 @@ doCompile = (minify) ->
 			""
 		],
 	]
-	for [name, entryFile] in *gamesInDev
-		gamePath = Path\getPath entryFile
+	for [_, entryFile] in *gamesInDev
+		gamePath = Path\getPath Path\getRelative entryFile, writablePath
 		buildPaths[] =
 			* Path writablePath, gamePath
 			* Path writablePath, ".build", gamePath

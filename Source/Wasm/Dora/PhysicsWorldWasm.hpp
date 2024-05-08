@@ -9,12 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 static int32_t physicsworld_type() {
 	return DoraType<PhysicsWorld>();
 }
-static void physicsworld_set_show_debug(int64_t self, int32_t var) {
-	r_cast<PhysicsWorld*>(self)->setShowDebug(var != 0);
-}
-static int32_t physicsworld_is_show_debug(int64_t self) {
-	return r_cast<PhysicsWorld*>(self)->isShowDebug() ? 1 : 0;
-}
 static int32_t physicsworld_query(int64_t self, int64_t rect, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
@@ -61,8 +55,6 @@ static int64_t physicsworld_new() {
 }
 static void linkPhysicsWorld(wasm3::module3& mod) {
 	mod.link_optional("*", "physicsworld_type", physicsworld_type);
-	mod.link_optional("*", "physicsworld_set_show_debug", physicsworld_set_show_debug);
-	mod.link_optional("*", "physicsworld_is_show_debug", physicsworld_is_show_debug);
 	mod.link_optional("*", "physicsworld_query", physicsworld_query);
 	mod.link_optional("*", "physicsworld_raycast", physicsworld_raycast);
 	mod.link_optional("*", "physicsworld_set_iterations", physicsworld_set_iterations);

@@ -48,6 +48,7 @@ public:
 	PROPERTY_VIRTUAL_CREF(Vec2, Position);
 	PROPERTY(float, SkewX);
 	PROPERTY(float, SkewY);
+	PROPERTY_VIRTUAL_BOOL(ShowDebug);
 	PROPERTY_BOOL(Visible);
 	PROPERTY_BOOL(SelfVisible);
 	PROPERTY_BOOL(ChildrenVisible);
@@ -292,6 +293,7 @@ protected:
 	void resumeActionInList(Action* action);
 	void stopActionInList(Action* action);
 	void handleKeyboardAndController(Event* event);
+	void renderDebug();
 
 protected:
 	Flag _flags;
@@ -358,7 +360,8 @@ protected:
 		FixedUpdating = 1 << 19,
 		UnManaged = 1 << 20,
 		InWaitingList = 1 << 21,
-		UserFlag = 1 << 22,
+		ShowDebug = 1 << 22,
+		UserFlag = 1 << 23,
 	};
 	DORA_TYPE_OVERRIDE(Node);
 };

@@ -8,8 +8,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn physicsworld_type() -> i32;
-	fn physicsworld_set_show_debug(slf: i64, var: i32);
-	fn physicsworld_is_show_debug(slf: i64) -> i32;
 	fn physicsworld_query(slf: i64, rect: i64, func: i32, stack: i64) -> i32;
 	fn physicsworld_raycast(slf: i64, start: i64, stop: i64, closest: i32, func: i32, stack: i64) -> i32;
 	fn physicsworld_set_iterations(slf: i64, velocity_iter: i32, position_iter: i32);
@@ -27,14 +25,6 @@ pub struct PhysicsWorld { raw: i64 }
 crate::dora_object!(PhysicsWorld);
 impl IPhysicsWorld for PhysicsWorld { }
 pub trait IPhysicsWorld: INode {
-	/// Sets whether debug graphic should be displayed for the physics world.
-	fn set_show_debug(&mut self, var: bool) {
-		unsafe { physicsworld_set_show_debug(self.raw(), if var { 1 } else { 0 }) };
-	}
-	/// Gets whether debug graphic should be displayed for the physics world.
-	fn is_show_debug(&self) -> bool {
-		return unsafe { physicsworld_is_show_debug(self.raw()) != 0 };
-	}
 	/// Queries the physics world for all bodies that intersect with the specified rectangle.
 	///
 	/// # Arguments

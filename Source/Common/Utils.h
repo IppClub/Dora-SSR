@@ -101,6 +101,13 @@ public: \
 public: \
 	void virtual set##funName(bool var)
 
+#define PROPERTY_OVERRIDE_BOOL(funName) \
+public: \
+	bool is##funName() const; \
+\
+public: \
+	void virtual set##funName(bool var) override
+
 #define PROPERTY_STRING(funName) \
 public: \
 	const std::string& get##funName() const; \

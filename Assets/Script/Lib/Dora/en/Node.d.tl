@@ -142,6 +142,9 @@ local record Node
 	-- Whether to group the node's rendering with all its recursive children.
 	renderGroup: boolean
 
+	-- Whether debug graphic should be displayed for the node.
+	showDebug: boolean
+
 	-- The rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier.
 	renderOrder: integer
 
@@ -567,6 +570,11 @@ local record __SLOT__
 	-- @param controllerId (integer) The controller id, incrementing from 0 when multiple controllers connected.
 	-- @param axisValue (number) The controller axis value ranging from -1.0 to 1.0.
 	["Axis"]: function(controllerId: integer, axisValue: number)
+
+	-- Triggers when the layout of the `AlignNode` is updated.
+	-- @param width The width of the node.
+	-- @param height The height of the node.
+	["AlignLayout"]: function(width: number, height: number)
 end
 
 -- A class object for the `Node` class.

@@ -453,10 +453,7 @@ void DragonBone::setShowDebug(bool var) {
 			_debugLine = nullptr;
 		}
 	}
-}
-
-bool DragonBone::isShowDebug() const {
-	return _debugLine != nullptr;
+	Node::setShowDebug(var);
 }
 
 DragonBone::DBArmatureProxy* DragonBone::getArmatureProxy() const {

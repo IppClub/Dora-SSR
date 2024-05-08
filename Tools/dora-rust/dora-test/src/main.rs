@@ -57,6 +57,10 @@ fn main() {
 					all_clear();
 					tests::excel_test::test();
 				}
+				if ImGui::button("Layout", &button_size) {
+					all_clear();
+					tests::layout::test();
+				}
 			});
 			co.waiter().await;
 		}

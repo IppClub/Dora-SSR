@@ -140,10 +140,7 @@ void Spine::setShowDebug(bool var) {
 			_debugLine = nullptr;
 		}
 	}
-}
-
-bool Spine::isShowDebug() const {
-	return _debugLine != nullptr;
+	Node::setShowDebug(var);
 }
 
 void Spine::setLook(String name) {

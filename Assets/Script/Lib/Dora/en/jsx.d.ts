@@ -42,6 +42,9 @@ class Node {
 	/** The Y-axis skew angle of the node in degrees. */
 	skewY?: number;
 
+	/** Whether debug graphic should be displayed for the node. */
+	showDebug?: boolean;
+
 	/** Whether the node is visible. */
 	visible?: boolean;
 
@@ -355,11 +358,6 @@ class DragonBone extends Playable {
 	file: string;
 
 	/**
-	 * Whether to show debug graphics.
-	 */
-	showDebug?: boolean;
-
-	/**
 	 * Whether hit testing is enabled.
 	 */
 	hitTestEnabled?: boolean;
@@ -379,9 +377,6 @@ class Spine extends Playable {
 	 * A Spine file string can be a file path with the target file extention like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas".
 	 */
 	file: string;
-
-	/** Whether to show debug graphics. */
-	showDebug?: boolean;
 
 	/** Whether hit testing is enabled. */
 	hitTestEnabled?: boolean;
@@ -789,6 +784,90 @@ class Menu extends Node {
 	onMount?(this: void, self: dora.Menu.Type): void;
 }
 
+type StyleDirection = 'ltr' | 'rtl' | 'inherit';
+type StyleAlign = 'flex-start' | 'center' | 'flex-end' | 'stretch' | 'auto';
+type StyleFlexDirection = 'row' | 'column' | 'row-reverse' | 'column-reverse';
+type StyleJustifyContent = 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly';
+type StylePositionType = 'relative' | 'absolute' | 'static';
+type StyleWrap = 'nowrap' | 'wrap' | 'wrap-reverse';
+type StyleOverflow = 'visible' | 'hidden' | 'scroll';
+type StyleDisplay = 'flex' | 'none';
+type StylePercentage = `${number}%`;
+type StyleValuePercent = number | StylePercentage;
+type StyleValuePercentAuto = number | StylePercentage | "auto";
+
+interface AlignStyle {
+	direction?: StyleDirection;
+	alignContent?: StyleAlign;
+	alignItems?: StyleAlign;
+	alignSelf?: StyleAlign;
+	flexDirection?: StyleFlexDirection;
+	justifyContent?: StyleJustifyContent;
+	flexWrap?: StyleWrap;
+	flex?: number;
+	flexBasis?: StyleValuePercentAuto;
+	flexGrow?: number;
+	flexShrink?: number;
+	left?: StyleValuePercent;
+	right?: StyleValuePercent;
+	top?: StyleValuePercent;
+	bottom?: StyleValuePercent;
+	start?: StyleValuePercent;
+	end?: StyleValuePercent;
+	horizontal?: StyleValuePercent;
+	vetical?: StyleValuePercent;
+	position?: StylePositionType;
+	overflow?: StyleOverflow;
+	display?: StyleDisplay;
+	width?: StyleValuePercentAuto;
+	height?: StyleValuePercentAuto;
+	minWidth?: StyleValuePercent;
+	minHeight?: StyleValuePercent;
+	maxWidth?: StyleValuePercent;
+	maxHeight?: StyleValuePercent;
+	marginTop?: StyleValuePercentAuto;
+	marginRight?: StyleValuePercentAuto;
+	marginBottom?: StyleValuePercentAuto;
+	marginLeft?: StyleValuePercentAuto;
+	marginStart?: StyleValuePercentAuto;
+	marginEnd?: StyleValuePercentAuto;
+	margin?: [StyleValuePercentAuto, StyleValuePercentAuto?, StyleValuePercentAuto?, StyleValuePercentAuto?] | StyleValuePercentAuto;
+	paddingTop?: StyleValuePercent;
+	paddingRight?: StyleValuePercent;
+	paddingBottom?: StyleValuePercent;
+	paddingLeft?: StyleValuePercent;
+	padding?: [StyleValuePercent, StyleValuePercent?, StyleValuePercent?, StyleValuePercent?] | StyleValuePercent;
+	border?: [number, number?, number?, number?] | number;
+	gap?: [StyleValuePercent, StyleValuePercent?] | StyleValuePercent;
+	aspectRatio?: number;
+}
+
+class AlignNode extends Node {
+	ref?: Ref<dora.AlignNode.Type>;
+
+	/**
+	 * Whether the node is a window root node.
+	 * A window root node will automatically listen for window size change events and update the layout accordingly.
+	 */
+	windowRoot?: boolean;
+
+	/** The layout style of the node */
+	style?: AlignStyle;
+
+	/**
+	 * Triggers when the layout of the node is updated.
+	 * @param width The width of the node.
+	 * @param height The height of the node.
+	 */
+	onLayout?(this: void, width: number, height: number): void;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.AlignNode.Type): void;
+}
+
 class Action {
 	ref?: Ref<dora.ActionDef.Type>;
 	children: any[] | any;
@@ -1029,11 +1108,6 @@ class Sequence {
 }
 
 class PhysicsWorld extends Node {
-	/**
-	 * Whether debug graphic should be displayed for the physics world.
-	 */
-	showDebug?: boolean;
-
 	/**
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
@@ -1764,6 +1838,10 @@ interface IntrinsicElements {
 	 * A class for creating a custom element.
 	 */
 	'custom-element': CustomElement;
+	/**
+	 * A class for aligning child nodes within a parent node.
+	 */
+	'align-node': AlignNode;
 }
 
 interface ElementChildrenAttribute {

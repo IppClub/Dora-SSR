@@ -9,9 +9,6 @@ local record PhysicsWorld
 	-- 继承自`Node`。
 	embed Node
 
-	-- 是否显示物理世界的调试图形。
-	showDebug: boolean
-
 	-- 查询与指定矩形区域相交的所有物理体。
 	-- @param rect (Rect) 要查询的矩形区域。
 	-- @param handler (function) 对于查询中找到的每个物理体调用的函数。
