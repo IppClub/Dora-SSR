@@ -104,6 +104,7 @@ local objects = {
 	"Label",
 	"ML::QLearner",
 	"SVGDef",
+	"AlignNode",
 	"Platformer::Unit",
 	"Platformer::Face",
 	"Platformer::PlatformCamera",

@@ -5,6 +5,7 @@ local sprite = Sprite("Image/logo.png")
 if sprite == nil then
 	return
 end
+sprite.showDebug = true
 sprite.scaleX = 0.5
 sprite.scaleY = 0.5
 sprite.touchEnabled = true
@@ -106,7 +107,12 @@ threadLoop(function()
 			local parent = sprite.parent
 			parent:removeChild(sprite)
 			sprite = Sprite("Image/logo.png")
-			parent:addChild(sprite)
+			if not (sprite == nil) then
+				sprite.scaleX = 0.5
+				sprite.scaleY = 0.5
+				sprite.showDebug = true
+				parent:addChild(sprite)
+			end
 		end
 	end)
 end)

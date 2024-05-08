@@ -216,6 +216,12 @@ static void node_set_render_group(int64_t self, int32_t var) {
 static int32_t node_is_render_group(int64_t self) {
 	return r_cast<Node*>(self)->isRenderGroup() ? 1 : 0;
 }
+static void node_set_show_debug(int64_t self, int32_t var) {
+	r_cast<Node*>(self)->setShowDebug(var != 0);
+}
+static int32_t node_is_show_debug(int64_t self) {
+	return r_cast<Node*>(self)->isShowDebug() ? 1 : 0;
+}
 static void node_set_render_order(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setRenderOrder(s_cast<int>(var));
 }
@@ -482,6 +488,8 @@ static void linkNode(wasm3::module3& mod) {
 	mod.link_optional("*", "node_is_controller_enabled", node_is_controller_enabled);
 	mod.link_optional("*", "node_set_render_group", node_set_render_group);
 	mod.link_optional("*", "node_is_render_group", node_is_render_group);
+	mod.link_optional("*", "node_set_show_debug", node_set_show_debug);
+	mod.link_optional("*", "node_is_show_debug", node_is_show_debug);
 	mod.link_optional("*", "node_set_render_order", node_set_render_order);
 	mod.link_optional("*", "node_get_render_order", node_get_render_order);
 	mod.link_optional("*", "node_add_child_with_order_tag", node_add_child_with_order_tag);

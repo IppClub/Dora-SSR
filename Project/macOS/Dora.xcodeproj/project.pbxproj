@@ -111,6 +111,26 @@
 		3C49FFEF20EF644900E775D7 /* stb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFEE20EF644900E775D7 /* stb.cpp */; };
 		3C5399E82994E97400E9125C /* HttpServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399E62994E97400E9125C /* HttpServer.cpp */; };
 		3C5399EB2998BAF000E9125C /* ljson.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399EA2998BAF000E9125C /* ljson.c */; };
+		3C53E9372BE8CF1100039640 /* AbsoluteLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E8E62BE8CF1100039640 /* AbsoluteLayout.cpp */; };
+		3C53E9382BE8CF1100039640 /* Baseline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E8E92BE8CF1100039640 /* Baseline.cpp */; };
+		3C53E9392BE8CF1100039640 /* Cache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E8EC2BE8CF1100039640 /* Cache.cpp */; };
+		3C53E93A2BE8CF1100039640 /* CalculateLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E8EE2BE8CF1100039640 /* CalculateLayout.cpp */; };
+		3C53E93B2BE8CF1100039640 /* FlexLine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E8F12BE8CF1100039640 /* FlexLine.cpp */; };
+		3C53E93C2BE8CF1100039640 /* PixelGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E8F32BE8CF1100039640 /* PixelGrid.cpp */; };
+		3C53E93D2BE8CF1100039640 /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E8F82BE8CF1100039640 /* Config.cpp */; };
+		3C53E93E2BE8CF1100039640 /* AssertFatal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E8FB2BE8CF1100039640 /* AssertFatal.cpp */; };
+		3C53E93F2BE8CF1100039640 /* Log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E8FD2BE8CF1100039640 /* Log.cpp */; };
+		3C53E9402BE8CF1100039640 /* event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9142BE8CF1100039640 /* event.cpp */; };
+		3C53E9412BE8CF1100039640 /* LayoutResults.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9182BE8CF1100039640 /* LayoutResults.cpp */; };
+		3C53E9422BE8CF1100039640 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E91A2BE8CF1100039640 /* Node.cpp */; };
+		3C53E9432BE8CF1100039640 /* YGConfig.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9262BE8CF1100039640 /* YGConfig.cpp */; };
+		3C53E9442BE8CF1100039640 /* YGEnums.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9282BE8CF1100039640 /* YGEnums.cpp */; };
+		3C53E9452BE8CF1100039640 /* YGNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E92B2BE8CF1100039640 /* YGNode.cpp */; };
+		3C53E9462BE8CF1100039640 /* YGNodeLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E92D2BE8CF1100039640 /* YGNodeLayout.cpp */; };
+		3C53E9472BE8CF1100039640 /* YGNodeStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E92F2BE8CF1100039640 /* YGNodeStyle.cpp */; };
+		3C53E9482BE8CF1100039640 /* YGPixelGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9312BE8CF1100039640 /* YGPixelGrid.cpp */; };
+		3C53E9492BE8CF1100039640 /* YGValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9332BE8CF1100039640 /* YGValue.cpp */; };
+		3C53E94C2BE9C77D00039640 /* AlignNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E94A2BE9C77D00039640 /* AlignNode.cpp */; };
 		3C54F0DA2599CD65003D8F08 /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C54F0D92599CD65003D8F08 /* Value.cpp */; };
 		3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39B1E0A05AD002141DF /* Event.cpp */; };
 		3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39D1E0A05AD002141DF /* EventType.cpp */; };
@@ -685,6 +705,80 @@
 		3C5399E62994E97400E9125C /* HttpServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HttpServer.cpp; path = ../../../Source/Http/HttpServer.cpp; sourceTree = "<group>"; };
 		3C5399E72994E97400E9125C /* HttpServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HttpServer.h; path = ../../../Source/Http/HttpServer.h; sourceTree = "<group>"; };
 		3C5399EA2998BAF000E9125C /* ljson.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ljson.c; path = ../../../Source/3rdParty/colib/ljson.c; sourceTree = "<group>"; };
+		3C53E8E62BE8CF1100039640 /* AbsoluteLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AbsoluteLayout.cpp; sourceTree = "<group>"; };
+		3C53E8E72BE8CF1100039640 /* AbsoluteLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AbsoluteLayout.h; sourceTree = "<group>"; };
+		3C53E8E82BE8CF1100039640 /* Align.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Align.h; sourceTree = "<group>"; };
+		3C53E8E92BE8CF1100039640 /* Baseline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Baseline.cpp; sourceTree = "<group>"; };
+		3C53E8EA2BE8CF1100039640 /* Baseline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Baseline.h; sourceTree = "<group>"; };
+		3C53E8EB2BE8CF1100039640 /* BoundAxis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BoundAxis.h; sourceTree = "<group>"; };
+		3C53E8EC2BE8CF1100039640 /* Cache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Cache.cpp; sourceTree = "<group>"; };
+		3C53E8ED2BE8CF1100039640 /* Cache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Cache.h; sourceTree = "<group>"; };
+		3C53E8EE2BE8CF1100039640 /* CalculateLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CalculateLayout.cpp; sourceTree = "<group>"; };
+		3C53E8EF2BE8CF1100039640 /* CalculateLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CalculateLayout.h; sourceTree = "<group>"; };
+		3C53E8F02BE8CF1100039640 /* FlexDirection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlexDirection.h; sourceTree = "<group>"; };
+		3C53E8F12BE8CF1100039640 /* FlexLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FlexLine.cpp; sourceTree = "<group>"; };
+		3C53E8F22BE8CF1100039640 /* FlexLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlexLine.h; sourceTree = "<group>"; };
+		3C53E8F32BE8CF1100039640 /* PixelGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PixelGrid.cpp; sourceTree = "<group>"; };
+		3C53E8F42BE8CF1100039640 /* PixelGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PixelGrid.h; sourceTree = "<group>"; };
+		3C53E8F52BE8CF1100039640 /* SizingMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SizingMode.h; sourceTree = "<group>"; };
+		3C53E8F62BE8CF1100039640 /* TrailingPosition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TrailingPosition.h; sourceTree = "<group>"; };
+		3C53E8F82BE8CF1100039640 /* Config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Config.cpp; sourceTree = "<group>"; };
+		3C53E8F92BE8CF1100039640 /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Config.h; sourceTree = "<group>"; };
+		3C53E8FB2BE8CF1100039640 /* AssertFatal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AssertFatal.cpp; sourceTree = "<group>"; };
+		3C53E8FC2BE8CF1100039640 /* AssertFatal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AssertFatal.h; sourceTree = "<group>"; };
+		3C53E8FD2BE8CF1100039640 /* Log.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Log.cpp; sourceTree = "<group>"; };
+		3C53E8FE2BE8CF1100039640 /* Log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Log.h; sourceTree = "<group>"; };
+		3C53E9002BE8CF1100039640 /* Align.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Align.h; sourceTree = "<group>"; };
+		3C53E9012BE8CF1100039640 /* Dimension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dimension.h; sourceTree = "<group>"; };
+		3C53E9022BE8CF1100039640 /* Direction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Direction.h; sourceTree = "<group>"; };
+		3C53E9032BE8CF1100039640 /* Display.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Display.h; sourceTree = "<group>"; };
+		3C53E9042BE8CF1100039640 /* Edge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Edge.h; sourceTree = "<group>"; };
+		3C53E9052BE8CF1100039640 /* Errata.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Errata.h; sourceTree = "<group>"; };
+		3C53E9062BE8CF1100039640 /* ExperimentalFeature.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExperimentalFeature.h; sourceTree = "<group>"; };
+		3C53E9072BE8CF1100039640 /* FlexDirection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlexDirection.h; sourceTree = "<group>"; };
+		3C53E9082BE8CF1100039640 /* Gutter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Gutter.h; sourceTree = "<group>"; };
+		3C53E9092BE8CF1100039640 /* Justify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Justify.h; sourceTree = "<group>"; };
+		3C53E90A2BE8CF1100039640 /* LogLevel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LogLevel.h; sourceTree = "<group>"; };
+		3C53E90B2BE8CF1100039640 /* MeasureMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MeasureMode.h; sourceTree = "<group>"; };
+		3C53E90C2BE8CF1100039640 /* NodeType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NodeType.h; sourceTree = "<group>"; };
+		3C53E90D2BE8CF1100039640 /* Overflow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Overflow.h; sourceTree = "<group>"; };
+		3C53E90E2BE8CF1100039640 /* PhysicalEdge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PhysicalEdge.h; sourceTree = "<group>"; };
+		3C53E90F2BE8CF1100039640 /* PositionType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PositionType.h; sourceTree = "<group>"; };
+		3C53E9102BE8CF1100039640 /* Unit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Unit.h; sourceTree = "<group>"; };
+		3C53E9112BE8CF1100039640 /* Wrap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Wrap.h; sourceTree = "<group>"; };
+		3C53E9122BE8CF1100039640 /* YogaEnums.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YogaEnums.h; sourceTree = "<group>"; };
+		3C53E9142BE8CF1100039640 /* event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = event.cpp; sourceTree = "<group>"; };
+		3C53E9152BE8CF1100039640 /* event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = event.h; sourceTree = "<group>"; };
+		3C53E9172BE8CF1100039640 /* CachedMeasurement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CachedMeasurement.h; sourceTree = "<group>"; };
+		3C53E9182BE8CF1100039640 /* LayoutResults.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LayoutResults.cpp; sourceTree = "<group>"; };
+		3C53E9192BE8CF1100039640 /* LayoutResults.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LayoutResults.h; sourceTree = "<group>"; };
+		3C53E91A2BE8CF1100039640 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Node.cpp; sourceTree = "<group>"; };
+		3C53E91B2BE8CF1100039640 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
+		3C53E91D2BE8CF1100039640 /* Comparison.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Comparison.h; sourceTree = "<group>"; };
+		3C53E91E2BE8CF1100039640 /* FloatOptional.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FloatOptional.h; sourceTree = "<group>"; };
+		3C53E9202BE8CF1100039640 /* SmallValueBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SmallValueBuffer.h; sourceTree = "<group>"; };
+		3C53E9212BE8CF1100039640 /* Style.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Style.h; sourceTree = "<group>"; };
+		3C53E9222BE8CF1100039640 /* StyleLength.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleLength.h; sourceTree = "<group>"; };
+		3C53E9232BE8CF1100039640 /* StyleValueHandle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleValueHandle.h; sourceTree = "<group>"; };
+		3C53E9242BE8CF1100039640 /* StyleValuePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StyleValuePool.h; sourceTree = "<group>"; };
+		3C53E9262BE8CF1100039640 /* YGConfig.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = YGConfig.cpp; sourceTree = "<group>"; };
+		3C53E9272BE8CF1100039640 /* YGConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YGConfig.h; sourceTree = "<group>"; };
+		3C53E9282BE8CF1100039640 /* YGEnums.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = YGEnums.cpp; sourceTree = "<group>"; };
+		3C53E9292BE8CF1100039640 /* YGEnums.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YGEnums.h; sourceTree = "<group>"; };
+		3C53E92A2BE8CF1100039640 /* YGMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YGMacros.h; sourceTree = "<group>"; };
+		3C53E92B2BE8CF1100039640 /* YGNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = YGNode.cpp; sourceTree = "<group>"; };
+		3C53E92C2BE8CF1100039640 /* YGNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YGNode.h; sourceTree = "<group>"; };
+		3C53E92D2BE8CF1100039640 /* YGNodeLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = YGNodeLayout.cpp; sourceTree = "<group>"; };
+		3C53E92E2BE8CF1100039640 /* YGNodeLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YGNodeLayout.h; sourceTree = "<group>"; };
+		3C53E92F2BE8CF1100039640 /* YGNodeStyle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = YGNodeStyle.cpp; sourceTree = "<group>"; };
+		3C53E9302BE8CF1100039640 /* YGNodeStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YGNodeStyle.h; sourceTree = "<group>"; };
+		3C53E9312BE8CF1100039640 /* YGPixelGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = YGPixelGrid.cpp; sourceTree = "<group>"; };
+		3C53E9322BE8CF1100039640 /* YGPixelGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YGPixelGrid.h; sourceTree = "<group>"; };
+		3C53E9332BE8CF1100039640 /* YGValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = YGValue.cpp; sourceTree = "<group>"; };
+		3C53E9342BE8CF1100039640 /* YGValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YGValue.h; sourceTree = "<group>"; };
+		3C53E9352BE8CF1100039640 /* Yoga.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Yoga.h; sourceTree = "<group>"; };
+		3C53E94A2BE9C77D00039640 /* AlignNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AlignNode.cpp; path = ../../../Source/Node/AlignNode.cpp; sourceTree = "<group>"; };
+		3C53E94B2BE9C77D00039640 /* AlignNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AlignNode.h; path = ../../../Source/Node/AlignNode.h; sourceTree = "<group>"; };
 		3C54F0D92599CD65003D8F08 /* Value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Value.cpp; path = ../../../Source/Support/Value.cpp; sourceTree = "<group>"; };
 		3C57A39B1E0A05AD002141DF /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Event.cpp; path = ../../../Source/Event/Event.cpp; sourceTree = "<group>"; };
 		3C57A39C1E0A05AD002141DF /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = ../../../Source/Event/Event.h; sourceTree = "<group>"; };
@@ -1870,6 +1964,7 @@
 		3C291D371E0264510098C860 /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3C53E9362BE8CF1100039640 /* yoga */,
 				3C7FA30F2B67AEC6005A8441 /* zlib */,
 				3C5399E92998BACF00E9125C /* colib */,
 				3CFEB82E268DA5B6006D9974 /* dragonBones */,
@@ -2062,6 +2157,150 @@
 				3C5399EA2998BAF000E9125C /* ljson.c */,
 			);
 			name = colib;
+			sourceTree = "<group>";
+		};
+		3C53E8F72BE8CF1100039640 /* algorithm */ = {
+			isa = PBXGroup;
+			children = (
+				3C53E8E62BE8CF1100039640 /* AbsoluteLayout.cpp */,
+				3C53E8E72BE8CF1100039640 /* AbsoluteLayout.h */,
+				3C53E8E82BE8CF1100039640 /* Align.h */,
+				3C53E8E92BE8CF1100039640 /* Baseline.cpp */,
+				3C53E8EA2BE8CF1100039640 /* Baseline.h */,
+				3C53E8EB2BE8CF1100039640 /* BoundAxis.h */,
+				3C53E8EC2BE8CF1100039640 /* Cache.cpp */,
+				3C53E8ED2BE8CF1100039640 /* Cache.h */,
+				3C53E8EE2BE8CF1100039640 /* CalculateLayout.cpp */,
+				3C53E8EF2BE8CF1100039640 /* CalculateLayout.h */,
+				3C53E8F02BE8CF1100039640 /* FlexDirection.h */,
+				3C53E8F12BE8CF1100039640 /* FlexLine.cpp */,
+				3C53E8F22BE8CF1100039640 /* FlexLine.h */,
+				3C53E8F32BE8CF1100039640 /* PixelGrid.cpp */,
+				3C53E8F42BE8CF1100039640 /* PixelGrid.h */,
+				3C53E8F52BE8CF1100039640 /* SizingMode.h */,
+				3C53E8F62BE8CF1100039640 /* TrailingPosition.h */,
+			);
+			path = algorithm;
+			sourceTree = "<group>";
+		};
+		3C53E8FA2BE8CF1100039640 /* config */ = {
+			isa = PBXGroup;
+			children = (
+				3C53E8F82BE8CF1100039640 /* Config.cpp */,
+				3C53E8F92BE8CF1100039640 /* Config.h */,
+			);
+			path = config;
+			sourceTree = "<group>";
+		};
+		3C53E8FF2BE8CF1100039640 /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				3C53E8FB2BE8CF1100039640 /* AssertFatal.cpp */,
+				3C53E8FC2BE8CF1100039640 /* AssertFatal.h */,
+				3C53E8FD2BE8CF1100039640 /* Log.cpp */,
+				3C53E8FE2BE8CF1100039640 /* Log.h */,
+			);
+			path = debug;
+			sourceTree = "<group>";
+		};
+		3C53E9132BE8CF1100039640 /* enums */ = {
+			isa = PBXGroup;
+			children = (
+				3C53E9002BE8CF1100039640 /* Align.h */,
+				3C53E9012BE8CF1100039640 /* Dimension.h */,
+				3C53E9022BE8CF1100039640 /* Direction.h */,
+				3C53E9032BE8CF1100039640 /* Display.h */,
+				3C53E9042BE8CF1100039640 /* Edge.h */,
+				3C53E9052BE8CF1100039640 /* Errata.h */,
+				3C53E9062BE8CF1100039640 /* ExperimentalFeature.h */,
+				3C53E9072BE8CF1100039640 /* FlexDirection.h */,
+				3C53E9082BE8CF1100039640 /* Gutter.h */,
+				3C53E9092BE8CF1100039640 /* Justify.h */,
+				3C53E90A2BE8CF1100039640 /* LogLevel.h */,
+				3C53E90B2BE8CF1100039640 /* MeasureMode.h */,
+				3C53E90C2BE8CF1100039640 /* NodeType.h */,
+				3C53E90D2BE8CF1100039640 /* Overflow.h */,
+				3C53E90E2BE8CF1100039640 /* PhysicalEdge.h */,
+				3C53E90F2BE8CF1100039640 /* PositionType.h */,
+				3C53E9102BE8CF1100039640 /* Unit.h */,
+				3C53E9112BE8CF1100039640 /* Wrap.h */,
+				3C53E9122BE8CF1100039640 /* YogaEnums.h */,
+			);
+			path = enums;
+			sourceTree = "<group>";
+		};
+		3C53E9162BE8CF1100039640 /* event */ = {
+			isa = PBXGroup;
+			children = (
+				3C53E9142BE8CF1100039640 /* event.cpp */,
+				3C53E9152BE8CF1100039640 /* event.h */,
+			);
+			path = event;
+			sourceTree = "<group>";
+		};
+		3C53E91C2BE8CF1100039640 /* node */ = {
+			isa = PBXGroup;
+			children = (
+				3C53E9172BE8CF1100039640 /* CachedMeasurement.h */,
+				3C53E9182BE8CF1100039640 /* LayoutResults.cpp */,
+				3C53E9192BE8CF1100039640 /* LayoutResults.h */,
+				3C53E91A2BE8CF1100039640 /* Node.cpp */,
+				3C53E91B2BE8CF1100039640 /* Node.h */,
+			);
+			path = node;
+			sourceTree = "<group>";
+		};
+		3C53E91F2BE8CF1100039640 /* numeric */ = {
+			isa = PBXGroup;
+			children = (
+				3C53E91D2BE8CF1100039640 /* Comparison.h */,
+				3C53E91E2BE8CF1100039640 /* FloatOptional.h */,
+			);
+			path = numeric;
+			sourceTree = "<group>";
+		};
+		3C53E9252BE8CF1100039640 /* style */ = {
+			isa = PBXGroup;
+			children = (
+				3C53E9202BE8CF1100039640 /* SmallValueBuffer.h */,
+				3C53E9212BE8CF1100039640 /* Style.h */,
+				3C53E9222BE8CF1100039640 /* StyleLength.h */,
+				3C53E9232BE8CF1100039640 /* StyleValueHandle.h */,
+				3C53E9242BE8CF1100039640 /* StyleValuePool.h */,
+			);
+			path = style;
+			sourceTree = "<group>";
+		};
+		3C53E9362BE8CF1100039640 /* yoga */ = {
+			isa = PBXGroup;
+			children = (
+				3C53E8F72BE8CF1100039640 /* algorithm */,
+				3C53E8FA2BE8CF1100039640 /* config */,
+				3C53E8FF2BE8CF1100039640 /* debug */,
+				3C53E9132BE8CF1100039640 /* enums */,
+				3C53E9162BE8CF1100039640 /* event */,
+				3C53E91C2BE8CF1100039640 /* node */,
+				3C53E91F2BE8CF1100039640 /* numeric */,
+				3C53E9252BE8CF1100039640 /* style */,
+				3C53E9262BE8CF1100039640 /* YGConfig.cpp */,
+				3C53E9272BE8CF1100039640 /* YGConfig.h */,
+				3C53E9282BE8CF1100039640 /* YGEnums.cpp */,
+				3C53E9292BE8CF1100039640 /* YGEnums.h */,
+				3C53E92A2BE8CF1100039640 /* YGMacros.h */,
+				3C53E92B2BE8CF1100039640 /* YGNode.cpp */,
+				3C53E92C2BE8CF1100039640 /* YGNode.h */,
+				3C53E92D2BE8CF1100039640 /* YGNodeLayout.cpp */,
+				3C53E92E2BE8CF1100039640 /* YGNodeLayout.h */,
+				3C53E92F2BE8CF1100039640 /* YGNodeStyle.cpp */,
+				3C53E9302BE8CF1100039640 /* YGNodeStyle.h */,
+				3C53E9312BE8CF1100039640 /* YGPixelGrid.cpp */,
+				3C53E9322BE8CF1100039640 /* YGPixelGrid.h */,
+				3C53E9332BE8CF1100039640 /* YGValue.cpp */,
+				3C53E9342BE8CF1100039640 /* YGValue.h */,
+				3C53E9352BE8CF1100039640 /* Yoga.h */,
+			);
+			name = yoga;
+			path = ../../../Source/3rdParty/yoga;
 			sourceTree = "<group>";
 		};
 		3C57A39A1E0A059A002141DF /* Event */ = {
@@ -2807,6 +3046,8 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3C53E94A2BE9C77D00039640 /* AlignNode.cpp */,
+				3C53E94B2BE9C77D00039640 /* AlignNode.h */,
 				3CCB0C771E6DB0590088C118 /* ClipNode.cpp */,
 				3CCB0C781E6DB0590088C118 /* ClipNode.h */,
 				3CFEB82B268DA599006D9974 /* DragonBone.cpp */,
@@ -3344,6 +3585,7 @@
 				3C6E7F31272A30E700E9F115 /* sndrender.cpp in Sources */,
 				3C6E7F32272A30E700E9F115 /* soloud_sfxr.cpp in Sources */,
 				3C6E7F30272A30E700E9F115 /* soloud_ay.cpp in Sources */,
+				3C53E9422BE8CF1100039640 /* Node.cpp in Sources */,
 				3CA77EDF2AE665C100B7BADA /* RayCastOutput.cpp in Sources */,
 				3C7708331E08CB4300B38C2A /* LuaCode.cpp in Sources */,
 				3CA77EF02AE665C100B7BADA /* AABB.cpp in Sources */,
@@ -3362,6 +3604,7 @@
 				3CEDF77E1E839DE6008839A3 /* ParticleCache.cpp in Sources */,
 				3CFEA11B285B857B002D106F /* m3_api_wasi.c in Sources */,
 				3CFEB860268DA65C006D9974 /* TextureAtlasData.cpp in Sources */,
+				3C53E93B2BE8CF1100039640 /* FlexLine.cpp in Sources */,
 				3CFEBD65268DA6D5006D9974 /* Bone.cpp in Sources */,
 				3C6E7F11272A30E700E9F115 /* soloud_waveshaperfilter.cpp in Sources */,
 				3C5399EB2998BAF000E9125C /* ljson.c in Sources */,
@@ -3371,15 +3614,18 @@
 				3CF10EF12874AE7E00940268 /* Atlas.cpp in Sources */,
 				3CA77EEB2AE665C100B7BADA /* Sweep.cpp in Sources */,
 				3C6E7F2A272A30E700E9F115 /* dr_impl.cpp in Sources */,
+				3C53E9452BE8CF1100039640 /* YGNode.cpp in Sources */,
 				3CFEA11A285B857B002D106F /* m3_core.c in Sources */,
 				3C0D31192456C7F6009C592B /* AtlasCache.cpp in Sources */,
 				3C6E7F34272A30E700E9F115 /* tts.cpp in Sources */,
 				3C9A7D731E5428A200205094 /* Label.cpp in Sources */,
 				3C1A3AFA272A850F003A2829 /* lauxlib.c in Sources */,
+				3C53E9492BE8CF1100039640 /* YGValue.cpp in Sources */,
 				3C6E7F19272A30E700E9F115 /* soloud_audiosource.cpp in Sources */,
 				3C1A3B0A272A850F003A2829 /* lmathlib.c in Sources */,
 				3CF10ECB2874AE7E00940268 /* AnimationStateData.cpp in Sources */,
 				3CA77EF92AE665C100B7BADA /* GearJointConf.cpp in Sources */,
+				3C53E93D2BE8CF1100039640 /* Config.cpp in Sources */,
 				3C0EBE361E2E1D840066450A /* ShaderCache.cpp in Sources */,
 				3CA77EFE2AE665C100B7BADA /* WorldShape.cpp in Sources */,
 				3C6E7F0E272A30E700E9F115 /* soloud_flangerfilter.cpp in Sources */,
@@ -3400,6 +3646,7 @@
 				3C1984792100656800B6F370 /* PlatformCamera.cpp in Sources */,
 				3CF10EC92874AE7E00940268 /* TextureLoader.cpp in Sources */,
 				3C6DA2051EAEF19E006EEE32 /* Model.cpp in Sources */,
+				3C53E94C2BE9C77D00039640 /* AlignNode.cpp in Sources */,
 				3CE9D7F91E7FC2A6003AAECB /* PhysicsWorld.cpp in Sources */,
 				3C0D399D1E1BA603007FEFC3 /* Common.cpp in Sources */,
 				3CFEA12C285B860B002D106F /* WasmRuntime.cpp in Sources */,
@@ -3448,6 +3695,7 @@
 				3C40555320FD93AA0057B0E4 /* Define.cpp in Sources */,
 				3C9CCD042689BDD00086757D /* format.cpp in Sources */,
 				3CD497FE1E7EF3DF00C06CA2 /* FrameCache.cpp in Sources */,
+				3C53E9412BE8CF1100039640 /* LayoutResults.cpp in Sources */,
 				3CB487171E16398700D51749 /* tolua_push.cpp in Sources */,
 				3CA77ED72AE665C100B7BADA /* MovementConf.cpp in Sources */,
 				3CFEBD68268DA6D5006D9974 /* Armature.cpp in Sources */,
@@ -3466,6 +3714,7 @@
 				3C6E7F13272A30E700E9F115 /* soloud_fft_lut.cpp in Sources */,
 				3C1A3AF5272A850F003A2829 /* lctype.c in Sources */,
 				3C5399E82994E97400E9125C /* HttpServer.cpp in Sources */,
+				3C53E93C2BE8CF1100039640 /* PixelGrid.cpp in Sources */,
 				3CFEA122285B857B002D106F /* m3_info.c in Sources */,
 				3CFEB857268DA65C006D9974 /* ArmatureData.cpp in Sources */,
 				3CF10EEB2874AE7E00940268 /* IkConstraintTimeline.cpp in Sources */,
@@ -3477,6 +3726,7 @@
 				3CE9D7FC1E7FE99D003AAECB /* Dictionary.cpp in Sources */,
 				3C6E7F16272A30E700E9F115 /* soloud_fader.cpp in Sources */,
 				3CF10ECA2874AE7E00940268 /* TransformConstraint.cpp in Sources */,
+				3C53E93F2BE8CF1100039640 /* Log.cpp in Sources */,
 				3C1A3AF6272A850F003A2829 /* loslib.c in Sources */,
 				3C6E7F39272A30E700E9F115 /* soloud_speech.cpp in Sources */,
 				3CE9D7F51E7FC2A6003AAECB /* BodyDef.cpp in Sources */,
@@ -3556,6 +3806,7 @@
 				3CFEA11F285B857B002D106F /* m3_env.c in Sources */,
 				3C1A3AEB272A850F003A2829 /* lundump.c in Sources */,
 				3CF10EDE2874AE7E00940268 /* ShearTimeline.cpp in Sources */,
+				3C53E9402BE8CF1100039640 /* event.cpp in Sources */,
 				3CF10EF52874AE7E00940268 /* Event.cpp in Sources */,
 				3C6E7F18272A30E700E9F115 /* soloud.cpp in Sources */,
 				3C7FA32E2B67AEE0005A8441 /* gzlib.c in Sources */,
@@ -3572,7 +3823,9 @@
 				3CFEA124285B857B002D106F /* m3_parse.c in Sources */,
 				3CF10EEC2874AE7E00940268 /* Log.cpp in Sources */,
 				3C1A3AEC272A850F003A2829 /* ltm.c in Sources */,
+				3C53E9442BE8CF1100039640 /* YGEnums.cpp in Sources */,
 				3C54F0DA2599CD65003D8F08 /* Value.cpp in Sources */,
+				3C53E93E2BE8CF1100039640 /* AssertFatal.cpp in Sources */,
 				3CA77EE22AE665C100B7BADA /* MotorJointConf.cpp in Sources */,
 				3CF10EFF2874AE7E00940268 /* AnimationState.cpp in Sources */,
 				3CA77F012AE665C100B7BADA /* PolygonShapeConf.cpp in Sources */,
@@ -3620,6 +3873,7 @@
 				3C47CF1128A356B40011F3E1 /* Cache.cpp in Sources */,
 				3C6E7F15272A30E700E9F115 /* soloud_bus.cpp in Sources */,
 				3CFEBD66268DA6D5006D9974 /* Constraint.cpp in Sources */,
+				3C53E93A2BE8CF1100039640 /* CalculateLayout.cpp in Sources */,
 				3CD497FB1E7EE52300C06CA2 /* ModelCache.cpp in Sources */,
 				3CFEB871268DA694006D9974 /* EventObject.cpp in Sources */,
 				3CA77F062AE665C100B7BADA /* Velocity.cpp in Sources */,
@@ -3648,7 +3902,9 @@
 				3C46E85D2614227300DC9D4F /* Camera.cpp in Sources */,
 				3CF10EC62874AE7E00940268 /* CurveTimeline.cpp in Sources */,
 				3CA77EDB2AE665C100B7BADA /* StepConf.cpp in Sources */,
+				3C53E9432BE8CF1100039640 /* YGConfig.cpp in Sources */,
 				3C7FA32C2B67AEE0005A8441 /* inffast.c in Sources */,
+				3C53E9462BE8CF1100039640 /* YGNodeLayout.cpp in Sources */,
 				3C46E83126140A8F00DC9D4F /* Exception.cpp in Sources */,
 				3CA77F082AE665C100B7BADA /* ChainShapeConf.cpp in Sources */,
 				3CA77F192AE665C100B7BADA /* LimitState.cpp in Sources */,
@@ -3656,6 +3912,7 @@
 				3CF10EDB2874AE7E00940268 /* DrawOrderTimeline.cpp in Sources */,
 				3C46E85E2614227300DC9D4F /* View.cpp in Sources */,
 				3CA77EFB2AE665C100B7BADA /* Body.cpp in Sources */,
+				3C53E9472BE8CF1100039640 /* YGNodeStyle.cpp in Sources */,
 				3C6E7F42272A30E700E9F115 /* soloud_openmpt.cpp in Sources */,
 				3C1A3AF8272A850F003A2829 /* ltable.c in Sources */,
 				3C46E83526140A8F00DC9D4F /* Backup.cpp in Sources */,
@@ -3720,16 +3977,20 @@
 				3C42B09720FEC57C00186F9C /* AINode.cpp in Sources */,
 				3CFEB877268DA6A3006D9974 /* DragonBones.cpp in Sources */,
 				3C6E7F24272A30E700E9F115 /* soloud_misc.cpp in Sources */,
+				3C53E9392BE8CF1100039640 /* Cache.cpp in Sources */,
 				3CF10EE32874AE7E00940268 /* Skin.cpp in Sources */,
 				3CA77F172AE665C100B7BADA /* StatsResource.cpp in Sources */,
 				3CA77F0E2AE665C100B7BADA /* CodeDumper.cpp in Sources */,
+				3C53E9482BE8CF1100039640 /* YGPixelGrid.cpp in Sources */,
 				3C46E8602614227300DC9D4F /* Application.cpp in Sources */,
 				3CFEBDA2268DB403006D9974 /* DragonBoneCache.cpp in Sources */,
 				3CA77F022AE665C100B7BADA /* PulleyJointConf.cpp in Sources */,
 				3CCB0C791E6DB0590088C118 /* ClipNode.cpp in Sources */,
 				3CA77EFC2AE665C100B7BADA /* WheelJointConf.cpp in Sources */,
+				3C53E9382BE8CF1100039640 /* Baseline.cpp in Sources */,
 				3C1A3B03272A850F003A2829 /* lcorolib.c in Sources */,
 				3C6E7F1B272A30E700E9F115 /* soloud_core_setters.cpp in Sources */,
+				3C53E9372BE8CF1100039640 /* AbsoluteLayout.cpp in Sources */,
 				3CF10EE92874AE7E00940268 /* TransformConstraintTimeline.cpp in Sources */,
 				3C6E7F4B272A389200E9F115 /* sqlite3.c in Sources */,
 				3C6E7F0F272A30E700E9F115 /* soloud_freeverbfilter.cpp in Sources */,

@@ -159,6 +159,46 @@
 		3C5399F72998DEF800E9125C /* ljson.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399F52998DEF800E9125C /* ljson.c */; };
 		3C5399FB2998DF4900E9125C /* HttpServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399F92998DF4900E9125C /* HttpServer.cpp */; };
 		3C5399FC2998DF4900E9125C /* HttpServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399F92998DF4900E9125C /* HttpServer.cpp */; };
+		3C53E9DA2BEB442300039640 /* YGPixelGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9CA2BEB442200039640 /* YGPixelGrid.cpp */; };
+		3C53E9DB2BEB442300039640 /* YGPixelGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9CA2BEB442200039640 /* YGPixelGrid.cpp */; };
+		3C53E9DC2BEB442300039640 /* YGConfig.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9CD2BEB442200039640 /* YGConfig.cpp */; };
+		3C53E9DD2BEB442300039640 /* YGConfig.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9CD2BEB442200039640 /* YGConfig.cpp */; };
+		3C53E9DE2BEB442300039640 /* YGValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9D42BEB442300039640 /* YGValue.cpp */; };
+		3C53E9DF2BEB442300039640 /* YGValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9D42BEB442300039640 /* YGValue.cpp */; };
+		3C53E9E02BEB442300039640 /* YGNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9D62BEB442300039640 /* YGNode.cpp */; };
+		3C53E9E12BEB442300039640 /* YGNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9D62BEB442300039640 /* YGNode.cpp */; };
+		3C53E9E22BEB442300039640 /* YGNodeStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9D72BEB442300039640 /* YGNodeStyle.cpp */; };
+		3C53E9E32BEB442300039640 /* YGNodeStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9D72BEB442300039640 /* YGNodeStyle.cpp */; };
+		3C53E9E42BEB442300039640 /* YGNodeLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9D82BEB442300039640 /* YGNodeLayout.cpp */; };
+		3C53E9E52BEB442300039640 /* YGNodeLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9D82BEB442300039640 /* YGNodeLayout.cpp */; };
+		3C53E9E62BEB442300039640 /* YGEnums.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9D92BEB442300039640 /* YGEnums.cpp */; };
+		3C53E9E72BEB442300039640 /* YGEnums.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9D92BEB442300039640 /* YGEnums.cpp */; };
+		3C53E9FC2BEB44B000039640 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9F72BEB44B000039640 /* Node.cpp */; };
+		3C53E9FD2BEB44B000039640 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9F72BEB44B000039640 /* Node.cpp */; };
+		3C53E9FE2BEB44B000039640 /* LayoutResults.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9F82BEB44B000039640 /* LayoutResults.cpp */; };
+		3C53E9FF2BEB44B000039640 /* LayoutResults.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E9F82BEB44B000039640 /* LayoutResults.cpp */; };
+		3C53EA022BEB44C100039640 /* event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA002BEB44C100039640 /* event.cpp */; };
+		3C53EA032BEB44C100039640 /* event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA002BEB44C100039640 /* event.cpp */; };
+		3C53EA1B2BEB44E800039640 /* Log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA182BEB44E800039640 /* Log.cpp */; };
+		3C53EA1C2BEB44E800039640 /* Log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA182BEB44E800039640 /* Log.cpp */; };
+		3C53EA1D2BEB44E800039640 /* AssertFatal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA1A2BEB44E800039640 /* AssertFatal.cpp */; };
+		3C53EA1E2BEB44E800039640 /* AssertFatal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA1A2BEB44E800039640 /* AssertFatal.cpp */; };
+		3C53EA212BEB450000039640 /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA202BEB450000039640 /* Config.cpp */; };
+		3C53EA222BEB450000039640 /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA202BEB450000039640 /* Config.cpp */; };
+		3C53EA342BEB451A00039640 /* Baseline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA242BEB451A00039640 /* Baseline.cpp */; };
+		3C53EA352BEB451A00039640 /* Baseline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA242BEB451A00039640 /* Baseline.cpp */; };
+		3C53EA362BEB451A00039640 /* CalculateLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA252BEB451A00039640 /* CalculateLayout.cpp */; };
+		3C53EA372BEB451A00039640 /* CalculateLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA252BEB451A00039640 /* CalculateLayout.cpp */; };
+		3C53EA382BEB451A00039640 /* PixelGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA262BEB451A00039640 /* PixelGrid.cpp */; };
+		3C53EA392BEB451A00039640 /* PixelGrid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA262BEB451A00039640 /* PixelGrid.cpp */; };
+		3C53EA3A2BEB451A00039640 /* FlexLine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA282BEB451A00039640 /* FlexLine.cpp */; };
+		3C53EA3B2BEB451A00039640 /* FlexLine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA282BEB451A00039640 /* FlexLine.cpp */; };
+		3C53EA3C2BEB451A00039640 /* Cache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA292BEB451A00039640 /* Cache.cpp */; };
+		3C53EA3D2BEB451A00039640 /* Cache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA292BEB451A00039640 /* Cache.cpp */; };
+		3C53EA3E2BEB451A00039640 /* AbsoluteLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA312BEB451A00039640 /* AbsoluteLayout.cpp */; };
+		3C53EA3F2BEB451A00039640 /* AbsoluteLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA312BEB451A00039640 /* AbsoluteLayout.cpp */; };
+		3C53EA422BEB456700039640 /* AlignNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA412BEB456700039640 /* AlignNode.cpp */; };
+		3C53EA432BEB456700039640 /* AlignNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53EA412BEB456700039640 /* AlignNode.cpp */; };
 		3C5972FE1E7F74CB00BFD00F /* Animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5972F81E7F74CB00BFD00F /* Animation.cpp */; };
 		3C5973001E7F74CB00BFD00F /* ModelDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5972FC1E7F74CB00BFD00F /* ModelDef.cpp */; };
 		3C5973091E7F74E900BFD00F /* ClipCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5973021E7F74E900BFD00F /* ClipCache.cpp */; };
@@ -1150,6 +1190,80 @@
 		3C53C14121C9DCDB00343D85 /* chrono.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = chrono.h; path = ../../../Source/3rdParty/fmt/chrono.h; sourceTree = "<group>"; };
 		3C53C14221C9DCDB00343D85 /* color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = color.h; path = ../../../Source/3rdParty/fmt/color.h; sourceTree = "<group>"; };
 		3C53C14321C9DCDB00343D85 /* locale.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = locale.h; path = ../../../Source/3rdParty/fmt/locale.h; sourceTree = "<group>"; };
+		3C53E9CA2BEB442200039640 /* YGPixelGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = YGPixelGrid.cpp; path = ../../../Source/3rdParty/yoga/YGPixelGrid.cpp; sourceTree = "<group>"; };
+		3C53E9CB2BEB442200039640 /* Yoga.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Yoga.h; path = ../../../Source/3rdParty/yoga/Yoga.h; sourceTree = "<group>"; };
+		3C53E9CC2BEB442200039640 /* YGMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YGMacros.h; path = ../../../Source/3rdParty/yoga/YGMacros.h; sourceTree = "<group>"; };
+		3C53E9CD2BEB442200039640 /* YGConfig.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = YGConfig.cpp; path = ../../../Source/3rdParty/yoga/YGConfig.cpp; sourceTree = "<group>"; };
+		3C53E9CE2BEB442200039640 /* YGPixelGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YGPixelGrid.h; path = ../../../Source/3rdParty/yoga/YGPixelGrid.h; sourceTree = "<group>"; };
+		3C53E9CF2BEB442200039640 /* YGConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YGConfig.h; path = ../../../Source/3rdParty/yoga/YGConfig.h; sourceTree = "<group>"; };
+		3C53E9D02BEB442200039640 /* YGValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YGValue.h; path = ../../../Source/3rdParty/yoga/YGValue.h; sourceTree = "<group>"; };
+		3C53E9D12BEB442200039640 /* YGNodeStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YGNodeStyle.h; path = ../../../Source/3rdParty/yoga/YGNodeStyle.h; sourceTree = "<group>"; };
+		3C53E9D22BEB442200039640 /* YGNodeLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YGNodeLayout.h; path = ../../../Source/3rdParty/yoga/YGNodeLayout.h; sourceTree = "<group>"; };
+		3C53E9D32BEB442300039640 /* YGEnums.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YGEnums.h; path = ../../../Source/3rdParty/yoga/YGEnums.h; sourceTree = "<group>"; };
+		3C53E9D42BEB442300039640 /* YGValue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = YGValue.cpp; path = ../../../Source/3rdParty/yoga/YGValue.cpp; sourceTree = "<group>"; };
+		3C53E9D52BEB442300039640 /* YGNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YGNode.h; path = ../../../Source/3rdParty/yoga/YGNode.h; sourceTree = "<group>"; };
+		3C53E9D62BEB442300039640 /* YGNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = YGNode.cpp; path = ../../../Source/3rdParty/yoga/YGNode.cpp; sourceTree = "<group>"; };
+		3C53E9D72BEB442300039640 /* YGNodeStyle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = YGNodeStyle.cpp; path = ../../../Source/3rdParty/yoga/YGNodeStyle.cpp; sourceTree = "<group>"; };
+		3C53E9D82BEB442300039640 /* YGNodeLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = YGNodeLayout.cpp; path = ../../../Source/3rdParty/yoga/YGNodeLayout.cpp; sourceTree = "<group>"; };
+		3C53E9D92BEB442300039640 /* YGEnums.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = YGEnums.cpp; path = ../../../Source/3rdParty/yoga/YGEnums.cpp; sourceTree = "<group>"; };
+		3C53E9F02BEB448D00039640 /* Style.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Style.h; path = ../../../Source/3rdParty/yoga/style/Style.h; sourceTree = "<group>"; };
+		3C53E9F12BEB448D00039640 /* SmallValueBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SmallValueBuffer.h; path = ../../../Source/3rdParty/yoga/style/SmallValueBuffer.h; sourceTree = "<group>"; };
+		3C53E9F22BEB448D00039640 /* StyleLength.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StyleLength.h; path = ../../../Source/3rdParty/yoga/style/StyleLength.h; sourceTree = "<group>"; };
+		3C53E9F32BEB448E00039640 /* StyleValueHandle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StyleValueHandle.h; path = ../../../Source/3rdParty/yoga/style/StyleValueHandle.h; sourceTree = "<group>"; };
+		3C53E9F42BEB448E00039640 /* StyleValuePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StyleValuePool.h; path = ../../../Source/3rdParty/yoga/style/StyleValuePool.h; sourceTree = "<group>"; };
+		3C53E9F52BEB449F00039640 /* Comparison.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Comparison.h; path = ../../../Source/3rdParty/yoga/numeric/Comparison.h; sourceTree = "<group>"; };
+		3C53E9F62BEB449F00039640 /* FloatOptional.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FloatOptional.h; path = ../../../Source/3rdParty/yoga/numeric/FloatOptional.h; sourceTree = "<group>"; };
+		3C53E9F72BEB44B000039640 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Node.cpp; path = ../../../Source/3rdParty/yoga/node/Node.cpp; sourceTree = "<group>"; };
+		3C53E9F82BEB44B000039640 /* LayoutResults.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LayoutResults.cpp; path = ../../../Source/3rdParty/yoga/node/LayoutResults.cpp; sourceTree = "<group>"; };
+		3C53E9F92BEB44B000039640 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Node.h; path = ../../../Source/3rdParty/yoga/node/Node.h; sourceTree = "<group>"; };
+		3C53E9FA2BEB44B000039640 /* CachedMeasurement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CachedMeasurement.h; path = ../../../Source/3rdParty/yoga/node/CachedMeasurement.h; sourceTree = "<group>"; };
+		3C53E9FB2BEB44B000039640 /* LayoutResults.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LayoutResults.h; path = ../../../Source/3rdParty/yoga/node/LayoutResults.h; sourceTree = "<group>"; };
+		3C53EA002BEB44C100039640 /* event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = event.cpp; path = ../../../Source/3rdParty/yoga/event/event.cpp; sourceTree = "<group>"; };
+		3C53EA012BEB44C100039640 /* event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = event.h; path = ../../../Source/3rdParty/yoga/event/event.h; sourceTree = "<group>"; };
+		3C53EA042BEB44D100039640 /* Direction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Direction.h; path = ../../../Source/3rdParty/yoga/enums/Direction.h; sourceTree = "<group>"; };
+		3C53EA052BEB44D100039640 /* YogaEnums.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YogaEnums.h; path = ../../../Source/3rdParty/yoga/enums/YogaEnums.h; sourceTree = "<group>"; };
+		3C53EA062BEB44D100039640 /* PhysicalEdge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PhysicalEdge.h; path = ../../../Source/3rdParty/yoga/enums/PhysicalEdge.h; sourceTree = "<group>"; };
+		3C53EA072BEB44D100039640 /* Display.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Display.h; path = ../../../Source/3rdParty/yoga/enums/Display.h; sourceTree = "<group>"; };
+		3C53EA082BEB44D100039640 /* Edge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Edge.h; path = ../../../Source/3rdParty/yoga/enums/Edge.h; sourceTree = "<group>"; };
+		3C53EA092BEB44D200039640 /* ExperimentalFeature.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ExperimentalFeature.h; path = ../../../Source/3rdParty/yoga/enums/ExperimentalFeature.h; sourceTree = "<group>"; };
+		3C53EA0A2BEB44D200039640 /* MeasureMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MeasureMode.h; path = ../../../Source/3rdParty/yoga/enums/MeasureMode.h; sourceTree = "<group>"; };
+		3C53EA0B2BEB44D200039640 /* LogLevel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LogLevel.h; path = ../../../Source/3rdParty/yoga/enums/LogLevel.h; sourceTree = "<group>"; };
+		3C53EA0C2BEB44D200039640 /* Dimension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dimension.h; path = ../../../Source/3rdParty/yoga/enums/Dimension.h; sourceTree = "<group>"; };
+		3C53EA0D2BEB44D200039640 /* Errata.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Errata.h; path = ../../../Source/3rdParty/yoga/enums/Errata.h; sourceTree = "<group>"; };
+		3C53EA0E2BEB44D200039640 /* Overflow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Overflow.h; path = ../../../Source/3rdParty/yoga/enums/Overflow.h; sourceTree = "<group>"; };
+		3C53EA0F2BEB44D200039640 /* NodeType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NodeType.h; path = ../../../Source/3rdParty/yoga/enums/NodeType.h; sourceTree = "<group>"; };
+		3C53EA102BEB44D200039640 /* PositionType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PositionType.h; path = ../../../Source/3rdParty/yoga/enums/PositionType.h; sourceTree = "<group>"; };
+		3C53EA112BEB44D200039640 /* Wrap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Wrap.h; path = ../../../Source/3rdParty/yoga/enums/Wrap.h; sourceTree = "<group>"; };
+		3C53EA122BEB44D200039640 /* Align.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Align.h; path = ../../../Source/3rdParty/yoga/enums/Align.h; sourceTree = "<group>"; };
+		3C53EA132BEB44D200039640 /* Gutter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Gutter.h; path = ../../../Source/3rdParty/yoga/enums/Gutter.h; sourceTree = "<group>"; };
+		3C53EA142BEB44D200039640 /* Justify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Justify.h; path = ../../../Source/3rdParty/yoga/enums/Justify.h; sourceTree = "<group>"; };
+		3C53EA152BEB44D200039640 /* FlexDirection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FlexDirection.h; path = ../../../Source/3rdParty/yoga/enums/FlexDirection.h; sourceTree = "<group>"; };
+		3C53EA162BEB44D200039640 /* Unit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Unit.h; path = ../../../Source/3rdParty/yoga/enums/Unit.h; sourceTree = "<group>"; };
+		3C53EA172BEB44E800039640 /* Log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Log.h; path = ../../../Source/3rdParty/yoga/debug/Log.h; sourceTree = "<group>"; };
+		3C53EA182BEB44E800039640 /* Log.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Log.cpp; path = ../../../Source/3rdParty/yoga/debug/Log.cpp; sourceTree = "<group>"; };
+		3C53EA192BEB44E800039640 /* AssertFatal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AssertFatal.h; path = ../../../Source/3rdParty/yoga/debug/AssertFatal.h; sourceTree = "<group>"; };
+		3C53EA1A2BEB44E800039640 /* AssertFatal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AssertFatal.cpp; path = ../../../Source/3rdParty/yoga/debug/AssertFatal.cpp; sourceTree = "<group>"; };
+		3C53EA1F2BEB450000039640 /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Config.h; path = ../../../Source/3rdParty/yoga/config/Config.h; sourceTree = "<group>"; };
+		3C53EA202BEB450000039640 /* Config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Config.cpp; path = ../../../Source/3rdParty/yoga/config/Config.cpp; sourceTree = "<group>"; };
+		3C53EA232BEB451900039640 /* Baseline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Baseline.h; path = ../../../Source/3rdParty/yoga/algorithm/Baseline.h; sourceTree = "<group>"; };
+		3C53EA242BEB451A00039640 /* Baseline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Baseline.cpp; path = ../../../Source/3rdParty/yoga/algorithm/Baseline.cpp; sourceTree = "<group>"; };
+		3C53EA252BEB451A00039640 /* CalculateLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CalculateLayout.cpp; path = ../../../Source/3rdParty/yoga/algorithm/CalculateLayout.cpp; sourceTree = "<group>"; };
+		3C53EA262BEB451A00039640 /* PixelGrid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PixelGrid.cpp; path = ../../../Source/3rdParty/yoga/algorithm/PixelGrid.cpp; sourceTree = "<group>"; };
+		3C53EA272BEB451A00039640 /* SizingMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SizingMode.h; path = ../../../Source/3rdParty/yoga/algorithm/SizingMode.h; sourceTree = "<group>"; };
+		3C53EA282BEB451A00039640 /* FlexLine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FlexLine.cpp; path = ../../../Source/3rdParty/yoga/algorithm/FlexLine.cpp; sourceTree = "<group>"; };
+		3C53EA292BEB451A00039640 /* Cache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Cache.cpp; path = ../../../Source/3rdParty/yoga/algorithm/Cache.cpp; sourceTree = "<group>"; };
+		3C53EA2A2BEB451A00039640 /* AbsoluteLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AbsoluteLayout.h; path = ../../../Source/3rdParty/yoga/algorithm/AbsoluteLayout.h; sourceTree = "<group>"; };
+		3C53EA2B2BEB451A00039640 /* Cache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Cache.h; path = ../../../Source/3rdParty/yoga/algorithm/Cache.h; sourceTree = "<group>"; };
+		3C53EA2C2BEB451A00039640 /* Align.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Align.h; path = ../../../Source/3rdParty/yoga/algorithm/Align.h; sourceTree = "<group>"; };
+		3C53EA2D2BEB451A00039640 /* CalculateLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CalculateLayout.h; path = ../../../Source/3rdParty/yoga/algorithm/CalculateLayout.h; sourceTree = "<group>"; };
+		3C53EA2E2BEB451A00039640 /* FlexDirection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FlexDirection.h; path = ../../../Source/3rdParty/yoga/algorithm/FlexDirection.h; sourceTree = "<group>"; };
+		3C53EA2F2BEB451A00039640 /* TrailingPosition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TrailingPosition.h; path = ../../../Source/3rdParty/yoga/algorithm/TrailingPosition.h; sourceTree = "<group>"; };
+		3C53EA302BEB451A00039640 /* FlexLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FlexLine.h; path = ../../../Source/3rdParty/yoga/algorithm/FlexLine.h; sourceTree = "<group>"; };
+		3C53EA312BEB451A00039640 /* AbsoluteLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AbsoluteLayout.cpp; path = ../../../Source/3rdParty/yoga/algorithm/AbsoluteLayout.cpp; sourceTree = "<group>"; };
+		3C53EA322BEB451A00039640 /* PixelGrid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PixelGrid.h; path = ../../../Source/3rdParty/yoga/algorithm/PixelGrid.h; sourceTree = "<group>"; };
+		3C53EA332BEB451A00039640 /* BoundAxis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BoundAxis.h; path = ../../../Source/3rdParty/yoga/algorithm/BoundAxis.h; sourceTree = "<group>"; };
+		3C53EA402BEB456700039640 /* AlignNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AlignNode.h; path = ../../../Source/Node/AlignNode.h; sourceTree = "<group>"; };
+		3C53EA412BEB456700039640 /* AlignNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AlignNode.cpp; path = ../../../Source/Node/AlignNode.cpp; sourceTree = "<group>"; };
 		3C5972F81E7F74CB00BFD00F /* Animation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Animation.cpp; path = ../../../Source/Animation/Animation.cpp; sourceTree = "<group>"; };
 		3C5972F91E7F74CB00BFD00F /* Animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Animation.h; path = ../../../Source/Animation/Animation.h; sourceTree = "<group>"; };
 		3C5972FC1E7F74CB00BFD00F /* ModelDef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ModelDef.cpp; path = ../../../Source/Animation/ModelDef.cpp; sourceTree = "<group>"; };
@@ -2055,6 +2169,8 @@
 		3C1038511E15103600D37A60 /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3C53EA412BEB456700039640 /* AlignNode.cpp */,
+				3C53EA402BEB456700039640 /* AlignNode.h */,
 				3C28C0A12772CFE4007FC76E /* Grid.cpp */,
 				3C28C0A02772CFE4007FC76E /* Grid.h */,
 				3C030CB924CAC2B80074786E /* ClipNode.cpp */,
@@ -2576,6 +2692,149 @@
 				3C5399FA2998DF4900E9125C /* HttpServer.h */,
 			);
 			name = Http;
+			sourceTree = "<group>";
+		};
+		3C53E9C92BEB440A00039640 /* yoga */ = {
+			isa = PBXGroup;
+			children = (
+				3C53E9EF2BEB447200039640 /* style */,
+				3C53E9EE2BEB446500039640 /* numeric */,
+				3C53E9ED2BEB445E00039640 /* node */,
+				3C53E9EC2BEB445700039640 /* event */,
+				3C53E9EB2BEB444F00039640 /* enums */,
+				3C53E9EA2BEB444900039640 /* debug */,
+				3C53E9E92BEB443D00039640 /* config */,
+				3C53E9E82BEB442800039640 /* algorithm */,
+				3C53E9CD2BEB442200039640 /* YGConfig.cpp */,
+				3C53E9CF2BEB442200039640 /* YGConfig.h */,
+				3C53E9D92BEB442300039640 /* YGEnums.cpp */,
+				3C53E9D32BEB442300039640 /* YGEnums.h */,
+				3C53E9CC2BEB442200039640 /* YGMacros.h */,
+				3C53E9D62BEB442300039640 /* YGNode.cpp */,
+				3C53E9D52BEB442300039640 /* YGNode.h */,
+				3C53E9D82BEB442300039640 /* YGNodeLayout.cpp */,
+				3C53E9D22BEB442200039640 /* YGNodeLayout.h */,
+				3C53E9D72BEB442300039640 /* YGNodeStyle.cpp */,
+				3C53E9D12BEB442200039640 /* YGNodeStyle.h */,
+				3C53E9CA2BEB442200039640 /* YGPixelGrid.cpp */,
+				3C53E9CE2BEB442200039640 /* YGPixelGrid.h */,
+				3C53E9D42BEB442300039640 /* YGValue.cpp */,
+				3C53E9D02BEB442200039640 /* YGValue.h */,
+				3C53E9CB2BEB442200039640 /* Yoga.h */,
+			);
+			name = yoga;
+			sourceTree = "<group>";
+		};
+		3C53E9E82BEB442800039640 /* algorithm */ = {
+			isa = PBXGroup;
+			children = (
+				3C53EA312BEB451A00039640 /* AbsoluteLayout.cpp */,
+				3C53EA2A2BEB451A00039640 /* AbsoluteLayout.h */,
+				3C53EA2C2BEB451A00039640 /* Align.h */,
+				3C53EA242BEB451A00039640 /* Baseline.cpp */,
+				3C53EA232BEB451900039640 /* Baseline.h */,
+				3C53EA332BEB451A00039640 /* BoundAxis.h */,
+				3C53EA292BEB451A00039640 /* Cache.cpp */,
+				3C53EA2B2BEB451A00039640 /* Cache.h */,
+				3C53EA252BEB451A00039640 /* CalculateLayout.cpp */,
+				3C53EA2D2BEB451A00039640 /* CalculateLayout.h */,
+				3C53EA2E2BEB451A00039640 /* FlexDirection.h */,
+				3C53EA282BEB451A00039640 /* FlexLine.cpp */,
+				3C53EA302BEB451A00039640 /* FlexLine.h */,
+				3C53EA262BEB451A00039640 /* PixelGrid.cpp */,
+				3C53EA322BEB451A00039640 /* PixelGrid.h */,
+				3C53EA272BEB451A00039640 /* SizingMode.h */,
+				3C53EA2F2BEB451A00039640 /* TrailingPosition.h */,
+			);
+			name = algorithm;
+			sourceTree = "<group>";
+		};
+		3C53E9E92BEB443D00039640 /* config */ = {
+			isa = PBXGroup;
+			children = (
+				3C53EA202BEB450000039640 /* Config.cpp */,
+				3C53EA1F2BEB450000039640 /* Config.h */,
+			);
+			name = config;
+			sourceTree = "<group>";
+		};
+		3C53E9EA2BEB444900039640 /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				3C53EA1A2BEB44E800039640 /* AssertFatal.cpp */,
+				3C53EA192BEB44E800039640 /* AssertFatal.h */,
+				3C53EA182BEB44E800039640 /* Log.cpp */,
+				3C53EA172BEB44E800039640 /* Log.h */,
+			);
+			name = debug;
+			sourceTree = "<group>";
+		};
+		3C53E9EB2BEB444F00039640 /* enums */ = {
+			isa = PBXGroup;
+			children = (
+				3C53EA122BEB44D200039640 /* Align.h */,
+				3C53EA0C2BEB44D200039640 /* Dimension.h */,
+				3C53EA042BEB44D100039640 /* Direction.h */,
+				3C53EA072BEB44D100039640 /* Display.h */,
+				3C53EA082BEB44D100039640 /* Edge.h */,
+				3C53EA0D2BEB44D200039640 /* Errata.h */,
+				3C53EA092BEB44D200039640 /* ExperimentalFeature.h */,
+				3C53EA152BEB44D200039640 /* FlexDirection.h */,
+				3C53EA132BEB44D200039640 /* Gutter.h */,
+				3C53EA142BEB44D200039640 /* Justify.h */,
+				3C53EA0B2BEB44D200039640 /* LogLevel.h */,
+				3C53EA0A2BEB44D200039640 /* MeasureMode.h */,
+				3C53EA0F2BEB44D200039640 /* NodeType.h */,
+				3C53EA0E2BEB44D200039640 /* Overflow.h */,
+				3C53EA062BEB44D100039640 /* PhysicalEdge.h */,
+				3C53EA102BEB44D200039640 /* PositionType.h */,
+				3C53EA162BEB44D200039640 /* Unit.h */,
+				3C53EA112BEB44D200039640 /* Wrap.h */,
+				3C53EA052BEB44D100039640 /* YogaEnums.h */,
+			);
+			name = enums;
+			sourceTree = "<group>";
+		};
+		3C53E9EC2BEB445700039640 /* event */ = {
+			isa = PBXGroup;
+			children = (
+				3C53EA002BEB44C100039640 /* event.cpp */,
+				3C53EA012BEB44C100039640 /* event.h */,
+			);
+			name = event;
+			sourceTree = "<group>";
+		};
+		3C53E9ED2BEB445E00039640 /* node */ = {
+			isa = PBXGroup;
+			children = (
+				3C53E9FA2BEB44B000039640 /* CachedMeasurement.h */,
+				3C53E9F82BEB44B000039640 /* LayoutResults.cpp */,
+				3C53E9FB2BEB44B000039640 /* LayoutResults.h */,
+				3C53E9F72BEB44B000039640 /* Node.cpp */,
+				3C53E9F92BEB44B000039640 /* Node.h */,
+			);
+			name = node;
+			sourceTree = "<group>";
+		};
+		3C53E9EE2BEB446500039640 /* numeric */ = {
+			isa = PBXGroup;
+			children = (
+				3C53E9F52BEB449F00039640 /* Comparison.h */,
+				3C53E9F62BEB449F00039640 /* FloatOptional.h */,
+			);
+			name = numeric;
+			sourceTree = "<group>";
+		};
+		3C53E9EF2BEB447200039640 /* style */ = {
+			isa = PBXGroup;
+			children = (
+				3C53E9F12BEB448D00039640 /* SmallValueBuffer.h */,
+				3C53E9F02BEB448D00039640 /* Style.h */,
+				3C53E9F22BEB448D00039640 /* StyleLength.h */,
+				3C53E9F32BEB448E00039640 /* StyleValueHandle.h */,
+				3C53E9F42BEB448E00039640 /* StyleValuePool.h */,
+			);
+			name = style;
 			sourceTree = "<group>";
 		};
 		3C62B46627000F7200294B2D /* soloud */ = {
@@ -3208,6 +3467,7 @@
 		3CB410221E05B08B00A8804D /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3C53E9C92BEB440A00039640 /* yoga */,
 				3C7FA3372B68851F005A8441 /* zlib */,
 				3C5399F22998DECB00E9125C /* colib */,
 				3CFEBDAC269308CB006D9974 /* dragonBones */,
@@ -3877,9 +4137,11 @@
 				3CF10F9F2874C81C00940268 /* TransformConstraintTimeline.cpp in Sources */,
 				3CFEA16F285B873B002D106F /* m3_api_wasi.c in Sources */,
 				3C6E8036272A404A00E9F115 /* soloud_fft.cpp in Sources */,
+				3C53EA432BEB456700039640 /* AlignNode.cpp in Sources */,
 				3CF110012874C81C00940268 /* Skeleton.cpp in Sources */,
 				3C6E8012272A404A00E9F115 /* soloud_speech.cpp in Sources */,
 				3CF10FC32874C81C00940268 /* Event.cpp in Sources */,
+				3C53EA3F2BEB451A00039640 /* AbsoluteLayout.cpp in Sources */,
 				3C6E804A272A404A00E9F115 /* soloud_misc.cpp in Sources */,
 				3CF10FE52874C81C00940268 /* SkeletonData.cpp in Sources */,
 				3CFEA171285B873B002D106F /* m3_parse.c in Sources */,
@@ -3946,6 +4208,7 @@
 				3C1A3BF7272A8820003A2829 /* lvm.c in Sources */,
 				3C1A3BF1272A8820003A2829 /* loslib.c in Sources */,
 				3CFEA157285B873B002D106F /* m3_compile.c in Sources */,
+				3C53EA392BEB451A00039640 /* PixelGrid.cpp in Sources */,
 				3CF110032874C81C00940268 /* TransformConstraintData.cpp in Sources */,
 				3C6E8048272A404A00E9F115 /* soloud_core_3d.cpp in Sources */,
 				3C6E801C272A404A00E9F115 /* soloud_noise.cpp in Sources */,
@@ -3962,6 +4225,7 @@
 				3C1A3BCD272A8820003A2829 /* lctype.c in Sources */,
 				3C6E803C272A404A00E9F115 /* soloud_filter.cpp in Sources */,
 				3C6E7FD4272A404900E9F115 /* soloud_echofilter.cpp in Sources */,
+				3C53E9DD2BEB442300039640 /* YGConfig.cpp in Sources */,
 				3C6E8022272A404A00E9F115 /* soloud_openmpt_dll.c in Sources */,
 				3CA780772AE66FB000B7BADA /* StatsResource.cpp in Sources */,
 				3C6E8024272A404A00E9F115 /* soloud_openmpt.cpp in Sources */,
@@ -3995,11 +4259,13 @@
 				3CFEBE1F26930AA1006D9974 /* Armature.cpp in Sources */,
 				3C6E803A272A404A00E9F115 /* soloud_core_voiceops.cpp in Sources */,
 				3CFEBE2026930AA1006D9974 /* Bone.cpp in Sources */,
+				3C53E9E72BEB442300039640 /* YGEnums.cpp in Sources */,
 				3CF10FE92874C81C00940268 /* SpineObject.cpp in Sources */,
 				3CFEBE2126930AA1006D9974 /* Constraint.cpp in Sources */,
 				3CA780892AE66FB000B7BADA /* StepConf.cpp in Sources */,
 				3CFEBE2226930AA1006D9974 /* DeformVertices.cpp in Sources */,
 				3C1A3BF9272A8820003A2829 /* lstring.c in Sources */,
+				3C53EA352BEB451A00039640 /* Baseline.cpp in Sources */,
 				3CFEBE2326930AA1006D9974 /* Slot.cpp in Sources */,
 				3C6E7FE4272A404900E9F115 /* soloud_waveshaperfilter.cpp in Sources */,
 				3CFEBE2426930AA1006D9974 /* TransformObject.cpp in Sources */,
@@ -4013,6 +4279,7 @@
 				3C6E7FD2272A404900E9F115 /* soloud_bassboostfilter.cpp in Sources */,
 				3CFEBE2726930AA1006D9974 /* EventObject.cpp in Sources */,
 				3CFEBE2826930AA1006D9974 /* BaseFactory.cpp in Sources */,
+				3C53EA222BEB450000039640 /* Config.cpp in Sources */,
 				3CFEBE2926930AA1006D9974 /* Point.cpp in Sources */,
 				3CFEBE2A26930AA1006D9974 /* Transform.cpp in Sources */,
 				3CA780792AE66FB000B7BADA /* MemoryResource.cpp in Sources */,
@@ -4042,6 +4309,7 @@
 				3CF10FDD2874C81C00940268 /* ConstraintData.cpp in Sources */,
 				3CFEBE3426930AA1006D9974 /* TextureAtlasData.cpp in Sources */,
 				3CF10FFB2874C81C00940268 /* Json.cpp in Sources */,
+				3C53E9DB2BEB442300039640 /* YGPixelGrid.cpp in Sources */,
 				3CFEBE3526930AA1006D9974 /* UserData.cpp in Sources */,
 				3CFEBE3626930AA1006D9974 /* BinaryDataParser.cpp in Sources */,
 				3CA780872AE66FB000B7BADA /* DynamicMemory.cpp in Sources */,
@@ -4107,11 +4375,13 @@
 				3CBE0E1326087F7B003F4F45 /* atlas.cpp in Sources */,
 				3CA7800B2AE66FB000B7BADA /* MotorJointConf.cpp in Sources */,
 				3CF1100B2874C81C00940268 /* AnimationState.cpp in Sources */,
+				3C53E9E32BEB442300039640 /* YGNodeStyle.cpp in Sources */,
 				3C6E8014272A404A00E9F115 /* ted.cpp in Sources */,
 				3CBE0E1626087F7B003F4F45 /* Keyboard.cpp in Sources */,
 				3CBE0E1726087F7B003F4F45 /* stb.cpp in Sources */,
 				3CF10FA12874C81C00940268 /* PathConstraintSpacingTimeline.cpp in Sources */,
 				3CF10F9B2874C81C00940268 /* SequenceTimeline.cpp in Sources */,
+				3C53EA1E2BEB44E800039640 /* AssertFatal.cpp in Sources */,
 				3CBE0E1826087F7B003F4F45 /* imgui_tables.cpp in Sources */,
 				3C6E7FF0272A404900E9F115 /* stb_vorbis.c in Sources */,
 				3CBE0E1A26087F7B003F4F45 /* VGRender.cpp in Sources */,
@@ -4138,6 +4408,7 @@
 				3CBE0E2B26087F7B003F4F45 /* ModelCache.cpp in Sources */,
 				3CA7808F2AE66FB000B7BADA /* Island.cpp in Sources */,
 				3CBE0E2F26087F7B003F4F45 /* Slice.cpp in Sources */,
+				3C53EA032BEB44C100039640 /* event.cpp in Sources */,
 				3CA780932AE66FB000B7BADA /* MovementConf.cpp in Sources */,
 				3CA7807F2AE66FB000B7BADA /* Math.cpp in Sources */,
 				3CA780812AE66FB000B7BADA /* ToiConf.cpp in Sources */,
@@ -4176,6 +4447,7 @@
 				3CA780672AE66FB000B7BADA /* DistanceJointConf.cpp in Sources */,
 				3C7FA3542B688547005A8441 /* inflate.c in Sources */,
 				3C1A3BCF272A8820003A2829 /* lundump.c in Sources */,
+				3C53EA372BEB451A00039640 /* CalculateLayout.cpp in Sources */,
 				3C6E804E272A40B400E9F115 /* sqlite3.c in Sources */,
 				3CBE0E5126087F7B003F4F45 /* SAXParser.cpp in Sources */,
 				3CBE0E5326087F7B003F4F45 /* Geometry.cpp in Sources */,
@@ -4217,6 +4489,7 @@
 				3CBE0E8726087F7B003F4F45 /* Animation.cpp in Sources */,
 				3CBE0E8B26087F7B003F4F45 /* ImGuiDora.cpp in Sources */,
 				3CBE0E8C26087F7B003F4F45 /* tolua_map.cpp in Sources */,
+				3C53E9DF2BEB442300039640 /* YGValue.cpp in Sources */,
 				3CBE0E8F26087F7B003F4F45 /* utf8.cpp in Sources */,
 				3CBE0E9426087F7B003F4F45 /* ClipCache.cpp in Sources */,
 				3C28C0A32772CFE4007FC76E /* Grid.cpp in Sources */,
@@ -4229,12 +4502,14 @@
 				3CBE0E9D26087F7B003F4F45 /* LuaBinding.cpp in Sources */,
 				3CF10FE32874C81C00940268 /* Timeline.cpp in Sources */,
 				3CBE0EA026087F7B003F4F45 /* ast.cpp in Sources */,
+				3C53EA3D2BEB451A00039640 /* Cache.cpp in Sources */,
 				3CF1100D2874C81C00940268 /* DeformTimeline.cpp in Sources */,
 				3CBE0EA226087F7B003F4F45 /* nanovg.cpp in Sources */,
 				3CBE0EA526087F7B003F4F45 /* Camera.cpp in Sources */,
 				3CA780092AE66FB000B7BADA /* Manifold.cpp in Sources */,
 				3CBE0EA726087F7B003F4F45 /* Content.mm in Sources */,
 				3CBE0EA826087F7B003F4F45 /* Value.cpp in Sources */,
+				3C53EA3B2BEB451A00039640 /* FlexLine.cpp in Sources */,
 				3CA31652299234DF007879C4 /* soloud_duckfilter.cpp in Sources */,
 				3CBE0EA926087F7B003F4F45 /* LuaManual.cpp in Sources */,
 				3C7FA3662B688547005A8441 /* gzread.c in Sources */,
@@ -4248,6 +4523,7 @@
 				3CF10FCF2874C81C00940268 /* Attachment.cpp in Sources */,
 				3CBE0EB026087F7B003F4F45 /* EventType.cpp in Sources */,
 				3CF10FD72874C81C00940268 /* Bone.cpp in Sources */,
+				3C53E9E12BEB442300039640 /* YGNode.cpp in Sources */,
 				3CBE0EB126087F7B003F4F45 /* LuaCode.cpp in Sources */,
 				3C6E7FE2272A404900E9F115 /* soloud_biquadresonantfilter.cpp in Sources */,
 				3CBE0EB326087F7B003F4F45 /* DrawNode.cpp in Sources */,
@@ -4271,16 +4547,19 @@
 				3CBE0ECD26087F7B003F4F45 /* ShaderCache.cpp in Sources */,
 				3CA780592AE66FB000B7BADA /* RevoluteJointConf.cpp in Sources */,
 				3C7FA3562B688547005A8441 /* zutil.c in Sources */,
+				3C53E9FD2BEB44B000039640 /* Node.cpp in Sources */,
 				3CA7805D2AE66FB000B7BADA /* PrismaticJointConf.cpp in Sources */,
 				3CF10FDF2874C81C00940268 /* SkeletonJson.cpp in Sources */,
 				3CBE0ECE26087F7B003F4F45 /* lodepng.cpp in Sources */,
 				3CBE0ED826087F7B003F4F45 /* PhysicsWorld.cpp in Sources */,
 				3CBE0EDA26087F7B003F4F45 /* AutoreleasePool.cpp in Sources */,
 				3C7FA3642B688547005A8441 /* inffast.c in Sources */,
+				3C53E9FF2BEB44B000039640 /* LayoutResults.cpp in Sources */,
 				3CBE0EDE26087F7B003F4F45 /* AINode.cpp in Sources */,
 				3CA780432AE66FB000B7BADA /* WorldShape.cpp in Sources */,
 				3CFEA161285B873B002D106F /* m3_core.c in Sources */,
 				3CBE0EDF26087F7B003F4F45 /* tolua_fix.cpp in Sources */,
+				3C53EA1C2BEB44E800039640 /* Log.cpp in Sources */,
 				3CBE0EE126087F7B003F4F45 /* Array.cpp in Sources */,
 				3CBE0EE726087F7B003F4F45 /* Particle.cpp in Sources */,
 				3CBE0EE826087F7B003F4F45 /* Dictionary.cpp in Sources */,
@@ -4288,6 +4567,7 @@
 				3CA780832AE66FB000B7BADA /* Version.cpp in Sources */,
 				3C6E7FE0272A404900E9F115 /* soloud_freeverbfilter.cpp in Sources */,
 				3CA7800D2AE66FB000B7BADA /* Simplex.cpp in Sources */,
+				3C53E9E52BEB442300039640 /* YGNodeLayout.cpp in Sources */,
 				3C6E7FDC272A404900E9F115 /* soloud_lofifilter.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -4307,9 +4587,11 @@
 				3CF10F9E2874C81C00940268 /* TransformConstraintTimeline.cpp in Sources */,
 				3C6E8049272A404A00E9F115 /* soloud_misc.cpp in Sources */,
 				3C131FFC21011BB60087154A /* BulletDef.cpp in Sources */,
+				3C53EA422BEB456700039640 /* AlignNode.cpp in Sources */,
 				3CF110002874C81C00940268 /* Skeleton.cpp in Sources */,
 				3CFEA170285B873B002D106F /* m3_parse.c in Sources */,
 				3CF10FC22874C81C00940268 /* Event.cpp in Sources */,
+				3C53EA3E2BEB451A00039640 /* AbsoluteLayout.cpp in Sources */,
 				3C1A3C0C272A8820003A2829 /* lauxlib.c in Sources */,
 				3CF10FE42874C81C00940268 /* SkeletonData.cpp in Sources */,
 				3CFEA164285B873B002D106F /* m3_info.c in Sources */,
@@ -4376,6 +4658,7 @@
 				3C6577481ECC2C9D00C5FB09 /* Keyboard.cpp in Sources */,
 				3CFEBE1726930A3A006D9974 /* DataParser.cpp in Sources */,
 				3CE9509D20F33DA9002FFC18 /* stb.cpp in Sources */,
+				3C53EA382BEB451A00039640 /* PixelGrid.cpp in Sources */,
 				3C6E802B272A404A00E9F115 /* soloud_bus.cpp in Sources */,
 				3CFEBDEE26930A16006D9974 /* Point.cpp in Sources */,
 				3CB2116325C63C3A00CEA033 /* imgui_tables.cpp in Sources */,
@@ -4392,6 +4675,7 @@
 				3C1A3C08272A8820003A2829 /* lutf8lib.c in Sources */,
 				3C030CCE24CAC2BA0074786E /* Model.cpp in Sources */,
 				3C4BC6641E17F1B500292200 /* tolua_event.cpp in Sources */,
+				3C53E9DC2BEB442300039640 /* YGConfig.cpp in Sources */,
 				3C883B1C21E338F500BFD758 /* Director.cpp in Sources */,
 				3CA780762AE66FB000B7BADA /* StatsResource.cpp in Sources */,
 				3C5399F62998DEF800E9125C /* ljson.c in Sources */,
@@ -4425,11 +4709,13 @@
 				3CF10FD02874C81C00940268 /* Slot.cpp in Sources */,
 				3CAA2D1726155DB3004443A6 /* Transaction.cpp in Sources */,
 				3CF10FA62874C81C00940268 /* RTTI.cpp in Sources */,
+				3C53E9E62BEB442300039640 /* YGEnums.cpp in Sources */,
 				3CF00E39258B475A00898F4B /* SVGCache.cpp in Sources */,
 				3C131FFB21011BB60087154A /* Bullet.cpp in Sources */,
 				3CA780882AE66FB000B7BADA /* StepConf.cpp in Sources */,
 				3CBFB70C264376D4006348C8 /* implot_items.cpp in Sources */,
 				3CF10FF22874C81C00940268 /* IkConstraintData.cpp in Sources */,
+				3C53EA342BEB451A00039640 /* Baseline.cpp in Sources */,
 				3C1A3BDC272A8820003A2829 /* lbaselib.c in Sources */,
 				3C41D60621490BE6003FDDFE /* imgui_demo.cpp in Sources */,
 				3C92DEC41FFE1CFA003AF655 /* Entity.cpp in Sources */,
@@ -4443,6 +4729,7 @@
 				3C41D60521490BE6003FDDFE /* imgui_widgets.cpp in Sources */,
 				3CF110022874C81C00940268 /* TransformConstraintData.cpp in Sources */,
 				3C1A3BF6272A8820003A2829 /* lvm.c in Sources */,
+				3C53EA212BEB450000039640 /* Config.cpp in Sources */,
 				3CA1B7F51EC16ED300BC58FF /* SAXParser.cpp in Sources */,
 				3C1A3BF0272A8820003A2829 /* loslib.c in Sources */,
 				3CA780782AE66FB000B7BADA /* MemoryResource.cpp in Sources */,
@@ -4472,6 +4759,7 @@
 				3CF110082874C81C00940268 /* PathConstraintPositionTimeline.cpp in Sources */,
 				3C6E8045272A404A00E9F115 /* soloud_core_getters.cpp in Sources */,
 				3C6E7FDD272A404900E9F115 /* soloud_flangerfilter.cpp in Sources */,
+				3C53E9DA2BEB442300039640 /* YGPixelGrid.cpp in Sources */,
 				3CE355621E1B7A6300268A19 /* LuaHandler.cpp in Sources */,
 				3C6E7FF3272A404900E9F115 /* dr_impl.cpp in Sources */,
 				3CA780862AE66FB000B7BADA /* DynamicMemory.cpp in Sources */,
@@ -4537,11 +4825,13 @@
 				3CA780722AE66FB000B7BADA /* BlockAllocator.cpp in Sources */,
 				3C6E7FE3272A404900E9F115 /* soloud_waveshaperfilter.cpp in Sources */,
 				3CA7800A2AE66FB000B7BADA /* MotorJointConf.cpp in Sources */,
+				3C53E9E22BEB442300039640 /* YGNodeStyle.cpp in Sources */,
 				3CF10FCC2874C81C00940268 /* CurveTimeline.cpp in Sources */,
 				3CF10FB42874C81C00940268 /* Sequence.cpp in Sources */,
 				3CFEBE0C26930A26006D9974 /* TextureAtlasData.cpp in Sources */,
 				3C1A3BD0272A8820003A2829 /* ldebug.c in Sources */,
 				3C6E7FD1272A404900E9F115 /* soloud_bassboostfilter.cpp in Sources */,
+				3C53EA1D2BEB44E800039640 /* AssertFatal.cpp in Sources */,
 				3CF10FAA2874C81C00940268 /* BoundingBoxAttachment.cpp in Sources */,
 				3C883B1821E338F500BFD758 /* Application.cpp in Sources */,
 				3CF10FFC2874C81C00940268 /* SkeletonBinary.cpp in Sources */,
@@ -4568,6 +4858,7 @@
 				3CF110102874C81C00940268 /* TextureLoader.cpp in Sources */,
 				3CA7808E2AE66FB000B7BADA /* Island.cpp in Sources */,
 				3CE534761E5A9BD500F017AE /* Singleton.cpp in Sources */,
+				3C53EA022BEB44C100039640 /* event.cpp in Sources */,
 				3CA780922AE66FB000B7BADA /* MovementConf.cpp in Sources */,
 				3CA7807E2AE66FB000B7BADA /* Math.cpp in Sources */,
 				3CA780802AE66FB000B7BADA /* ToiConf.cpp in Sources */,
@@ -4606,6 +4897,7 @@
 				3CA780662AE66FB000B7BADA /* DistanceJointConf.cpp in Sources */,
 				3C7FA3532B688547005A8441 /* inflate.c in Sources */,
 				3C9CCD0A2689D7670086757D /* os.cpp in Sources */,
+				3C53EA362BEB451A00039640 /* CalculateLayout.cpp in Sources */,
 				3C883B1A21E338F500BFD758 /* Camera.cpp in Sources */,
 				3C883B1521E338F500BFD758 /* Content.mm in Sources */,
 				3C6E7FEF272A404900E9F115 /* stb_vorbis.c in Sources */,
@@ -4647,6 +4939,7 @@
 				3C883B1B21E338F500BFD758 /* Renderer.cpp in Sources */,
 				3C1A3BCE272A8820003A2829 /* lundump.c in Sources */,
 				3C853F8A28E3ED8A0012C0D0 /* Test.cpp in Sources */,
+				3C53E9DE2BEB442300039640 /* YGValue.cpp in Sources */,
 				3C6E804D272A40B400E9F115 /* sqlite3.c in Sources */,
 				3CAA2D1A26155DB3004443A6 /* Statement.cpp in Sources */,
 				3C030CC824CAC2B90074786E /* Label.cpp in Sources */,
@@ -4659,12 +4952,14 @@
 				3C1A3BF4272A8820003A2829 /* lapi.c in Sources */,
 				3C01B6C21E96433600A0CC1C /* SoundCache.cpp in Sources */,
 				3C41D61021490CFB003FDDFE /* nanovg_bgfx.cpp in Sources */,
+				3C53EA3C2BEB451A00039640 /* Cache.cpp in Sources */,
 				3C030CD024CAC2BA0074786E /* VGNode.cpp in Sources */,
 				3C6E7FF7272A404900E9F115 /* sndchip.cpp in Sources */,
 				3CFEA16C285B873B002D106F /* m3_bind.c in Sources */,
 				3CA780082AE66FB000B7BADA /* Manifold.cpp in Sources */,
 				3CFEBDC4269309C7006D9974 /* AnimationState.cpp in Sources */,
 				3C25B872257A7F8B002DD8E1 /* yuescript.cpp in Sources */,
+				3C53EA3A2BEB451A00039640 /* FlexLine.cpp in Sources */,
 				3CD6C2A11E30C14800B36FFC /* ShaderCache.cpp in Sources */,
 				3CFEBDD6269309D5006D9974 /* DeformVertices.cpp in Sources */,
 				3C7FA3652B688547005A8441 /* gzread.c in Sources */,
@@ -4678,6 +4973,7 @@
 				3CBFB70A264376D4006348C8 /* implot_demo.cpp in Sources */,
 				3C1A3BEC272A8820003A2829 /* lstrlib.c in Sources */,
 				3CFEBE1826930A3A006D9974 /* JSONDataParser.cpp in Sources */,
+				3C53E9E02BEB442300039640 /* YGNode.cpp in Sources */,
 				3CA31651299234DE007879C4 /* soloud_duckfilter.cpp in Sources */,
 				3CFEBDD8269309D5006D9974 /* Armature.cpp in Sources */,
 				3CFEBDDE269309E6006D9974 /* BaseObject.cpp in Sources */,
@@ -4701,16 +4997,19 @@
 				3CFEBE0D26930A26006D9974 /* SkinData.cpp in Sources */,
 				3CA780582AE66FB000B7BADA /* RevoluteJointConf.cpp in Sources */,
 				3C7FA3552B688547005A8441 /* zutil.c in Sources */,
+				3C53E9FC2BEB44B000039640 /* Node.cpp in Sources */,
 				3CA7805C2AE66FB000B7BADA /* PrismaticJointConf.cpp in Sources */,
 				3CFEBE0F26930A26006D9974 /* AnimationData.cpp in Sources */,
 				3C1A3BFE272A8820003A2829 /* lcorolib.c in Sources */,
 				3CF10FDE2874C81C00940268 /* SkeletonJson.cpp in Sources */,
 				3C030CCA24CAC2B90074786E /* Particle.cpp in Sources */,
 				3C7FA3632B688547005A8441 /* inffast.c in Sources */,
+				3C53E9FE2BEB44B000039640 /* LayoutResults.cpp in Sources */,
 				3CB730821E80344C006DFA18 /* Dictionary.cpp in Sources */,
 				3CA780422AE66FB000B7BADA /* WorldShape.cpp in Sources */,
 				3CFEBE0A26930A26006D9974 /* ArmatureData.cpp in Sources */,
 				3CFEA160285B873B002D106F /* m3_core.c in Sources */,
+				3C53EA1B2BEB44E800039640 /* Log.cpp in Sources */,
 				3CFEBDC1269309C7006D9974 /* TimelineState.cpp in Sources */,
 				3CFEBDD7269309D5006D9974 /* TransformObject.cpp in Sources */,
 				3CFEBE0626930A26006D9974 /* ConstraintData.cpp in Sources */,
@@ -4718,6 +5017,7 @@
 				3CA780822AE66FB000B7BADA /* Version.cpp in Sources */,
 				3C6E7FDF272A404900E9F115 /* soloud_freeverbfilter.cpp in Sources */,
 				3CA7800C2AE66FB000B7BADA /* Simplex.cpp in Sources */,
+				3C53E9E42BEB442300039640 /* YGNodeLayout.cpp in Sources */,
 				3C6E7FDB272A404900E9F115 /* soloud_lofifilter.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

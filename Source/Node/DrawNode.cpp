@@ -567,6 +567,47 @@ void LineRenderer::push(Line* line) {
 	_vertices.insert(_vertices.end(), verts.begin(), verts.end());
 }
 
+void LineRenderer::pushRect(PosColorVertex verts[4]) {
+	uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_PT_LINESTRIP | BlendFunc::Default.toValue();
+	if (state != _lastState) {
+		render();
+	}
+	_lastState = state;
+	if (!_vertices.empty()) {
+		_vertices.reserve(_vertices.size() + 6);
+		_vertices.push_back(_vertices.back());
+		_vertices.back().abgr = 0;
+		_vertices.push_back(verts[0]);
+		_vertices.back().abgr = 0;
+	} else {
+		_vertices.reserve(_vertices.size() + 4);
+	}
+	_vertices.push_back(verts[0]);
+	_vertices.push_back(verts[1]);
+	_vertices.push_back(verts[2]);
+	_vertices.push_back(verts[3]);
+	_vertices.push_back(verts[0]);
+}
+
+void LineRenderer::pushSegment(PosColorVertex verts[2]) {
+	uint64_t state = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_PT_LINESTRIP | BlendFunc::Default.toValue();
+	if (state != _lastState) {
+		render();
+	}
+	_lastState = state;
+	if (!_vertices.empty()) {
+		_vertices.reserve(_vertices.size() + 4);
+		_vertices.push_back(_vertices.back());
+		_vertices.back().abgr = 0;
+		_vertices.push_back(verts[0]);
+		_vertices.back().abgr = 0;
+	} else {
+		_vertices.reserve(_vertices.size() + 2);
+	}
+	_vertices.push_back(verts[0]);
+	_vertices.push_back(verts[1]);
+}
+
 void LineRenderer::render() {
 	if (!_vertices.empty()) {
 		bgfx::TransientVertexBuffer vertexBuffer;

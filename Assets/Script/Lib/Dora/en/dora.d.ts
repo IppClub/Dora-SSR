@@ -2359,6 +2359,7 @@ const enum NodeEvent {
 	ContactStart = "ContactStart",
 	ContactEnd = "ContactEnd",
 	Finished = "Finished",
+	AlignLayout = "AlignLayout",
 }
 
 export {NodeEvent as Slot};
@@ -2558,6 +2559,13 @@ interface NodeEventHandlerMap {
 	 * Triggered after a Particle node started a stop action and then all the active particles end their lives.
 	*/
 	Finished(this: void): void;
+
+	/**
+	 * Triggers when the layout of the `AlignNode` is updated.
+	 * @param width The width of the node.
+	 * @param height The height of the node.
+	 */
+	AlignLayout(this: void, width: number, height: number): void;
 }
 
 const enum GlobalEvent {
@@ -2749,6 +2757,9 @@ class Node extends Object {
 
 	/** Whether to group the node's rendering with all its recursive children. */
 	renderGroup: boolean;
+
+	/** Whether to show debug information for the node. */
+	showDebug: boolean;
 
 	/** The rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier. */
 	renderOrder: number;
@@ -4083,6 +4094,65 @@ interface DrawNodeClass {
 const drawNodeClass: DrawNodeClass;
 export {drawNodeClass as DrawNode};
 
+/** A node used for aligning layout elements. */
+class AlignNode extends Node {
+	private constructor();
+
+	/**
+	 * Sets the layout style of the node.
+	 *
+	 * @param style The layout style.
+	 *
+	 * The following properties can be set through a CSS style string:
+	 *
+	 * ## Layout direction and alignment
+	 * * direction: Sets the direction (ltr, rtl, inherit).
+	 * * align-items, align-self, align-content: Sets the alignment of different items (flex-start, center, stretch, flex-end, auto).
+	 * * flex-direction: Sets the layout direction (column, row, column-reverse, row-reverse).
+	 * * justify-content: Sets the arrangement of child items (flex-start, center, flex-end, space-between, space-around, space-evenly).
+	 *
+	 * ## Flex properties
+	 * * flex: Sets the overall size of the flex container.
+	 * * flex-grow: Sets the flex growth value.
+	 * * flex-shrink: Sets the flex shrink value.
+	 * * flex-wrap: Sets whether to wrap (nowrap, wrap, wrap-reverse).
+	 * * flex-basis: Sets the flex basis value or percentage.
+	 *
+	 * ## Margins and dimensions
+	 * * margin: Can be set by a single value or multiple values separated by commas, percentages or auto for each side.
+	 * * margin-top, margin-right, margin-bottom, margin-left, margin-start, margin-end: Sets the margin values, percentages or auto.
+	 * * padding: Can be set by a single value or multiple values separated by commas or percentages for each side.
+	 * * padding-top, padding-right, padding-bottom, padding-left: Sets the padding values or percentages.
+	 * * border: Can be set by a single value or multiple values separated by commas for each side.
+	 * * width, height, min-width, min-height, max-width, max-height: Sets the dimension values or percentage properties.
+	 *
+	 * ## Positioning
+	 * * top, right, bottom, left, start, end, horizontal, vertical: Sets the positioning property values or percentages.
+	 *
+	 * ## Other properties
+	 * * position: Sets the positioning type (absolute, relative, static).
+	 * * overflow: Sets the overflow property (visible, hidden, scroll).
+	 * * display: Controls whether to display (flex, none).
+	 */
+	css(style: string): void;
+}
+
+interface AlignNodeClass {
+	/**
+	 * Creates a new AlignNode object.
+	 * @param isWindowRoot Whether the node is a window root node. A window root node will automatically listen for window size change events and update the layout accordingly.
+	 * @returns The new AlignNode object.
+	 */
+	(this: void, isWindowRoot?: boolean): AlignNode;
+}
+
+export namespace AlignNode {
+	export type Type = AlignNode;
+}
+
+const alignNodeClass: AlignNodeClass;
+export {alignNodeClass as AlignNode};
+
 /**
  * Emits a global event with the given name and arguments to all listeners registered by `node.gslot()` function.
  * @param eventName The name of the event to emit.
@@ -4170,8 +4240,8 @@ interface EntityClass {
 	(this: void, components: Record<string, Component>): Entity;
 }
 
-const entity: EntityClass;
-export {entity as Entity};
+const entityClass: EntityClass;
+export {entityClass as Entity};
 
 /**
  * A class representing an observer of entity changes in the game systems.

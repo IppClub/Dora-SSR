@@ -8,8 +8,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn dragonbone_type() -> i32;
-	fn dragonbone_set_show_debug(slf: i64, var: i32);
-	fn dragonbone_is_show_debug(slf: i64) -> i32;
 	fn dragonbone_set_hit_test_enabled(slf: i64, var: i32);
 	fn dragonbone_is_hit_test_enabled(slf: i64) -> i32;
 	fn dragonbone_contains_point(slf: i64, x: f32, y: f32) -> i64;
@@ -35,14 +33,6 @@ impl DragonBone {
 				_ => Some(Box::new(DragonBone { raw: raw }))
 			}
 		})
-	}
-	/// Sets whether to show debug graphics.
-	pub fn set_show_debug(&mut self, var: bool) {
-		unsafe { dragonbone_set_show_debug(self.raw(), if var { 1 } else { 0 }) };
-	}
-	/// Gets whether to show debug graphics.
-	pub fn is_show_debug(&self) -> bool {
-		return unsafe { dragonbone_is_show_debug(self.raw()) != 0 };
 	}
 	/// Sets whether hit testing is enabled.
 	pub fn set_hit_test_enabled(&mut self, var: bool) {

@@ -77,6 +77,8 @@ extern "C" {
 	fn node_is_controller_enabled(slf: i64) -> i32;
 	fn node_set_render_group(slf: i64, var: i32);
 	fn node_is_render_group(slf: i64) -> i32;
+	fn node_set_show_debug(slf: i64, var: i32);
+	fn node_is_show_debug(slf: i64) -> i32;
 	fn node_set_render_order(slf: i64, var: i32);
 	fn node_get_render_order(slf: i64) -> i32;
 	fn node_add_child_with_order_tag(slf: i64, child: i64, order: i32, tag: i64);
@@ -404,6 +406,14 @@ pub trait INode: IObject {
 	/// Gets whether to group the node's rendering with all its recursive children.
 	fn is_render_group(&self) -> bool {
 		return unsafe { node_is_render_group(self.raw()) != 0 };
+	}
+	/// Sets whether debug graphic should be displayed for the node.
+	fn set_show_debug(&mut self, var: bool) {
+		unsafe { node_set_show_debug(self.raw(), if var { 1 } else { 0 }) };
+	}
+	/// Gets whether debug graphic should be displayed for the node.
+	fn is_show_debug(&self) -> bool {
+		return unsafe { node_is_show_debug(self.raw()) != 0 };
 	}
 	/// Sets the rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier.
 	fn set_render_order(&mut self, var: i32) {

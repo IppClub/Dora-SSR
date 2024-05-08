@@ -95,15 +95,15 @@ private:
 public:
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY_BOOL(HitTestEnabled);
-	PROPERTY_BOOL(ShowDebug);
 	PROPERTY_READONLY(DBArmatureProxy*, ArmatureProxy);
-	virtual void cleanup() override;
 	virtual void visit() override;
 	virtual void render() override;
+	virtual void cleanup() override;
 	virtual void setSpeed(float var) override;
 	virtual void setRecovery(float var) override;
 	virtual void setFliped(bool var) override;
 	virtual void setLook(String var) override;
+	virtual void setShowDebug(bool var) override;
 	virtual const std::string& getCurrent() const override;
 	virtual const std::string& getLastCompleted() const override;
 	virtual Vec2 getKeyPoint(String name) const override;

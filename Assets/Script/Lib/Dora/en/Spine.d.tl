@@ -6,9 +6,6 @@ local record Spine
 	-- Inherits from `Playable`.
 	embed Playable
 
-	-- Whether to show debug graphics.
-	showDebug: boolean
-
 	-- Whether hit testing is enabled.
 	hitTestEnabled: boolean
 

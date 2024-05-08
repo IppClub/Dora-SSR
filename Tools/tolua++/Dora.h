@@ -356,6 +356,7 @@ class Node : public Object
 	tolua_property__bool bool keyboardEnabled;
 	tolua_property__bool bool controllerEnabled;
 	tolua_property__bool bool renderGroup;
+	tolua_property__bool bool showDebug;
 	tolua_property__common int renderOrder;
 
 	void addChild(Node* child, int order, String tag);
@@ -665,7 +666,6 @@ class Model : public Playable
 
 class Spine : public Playable
 {
-	tolua_property__bool bool showDebug;
 	tolua_property__bool bool hitTestEnabled;
 	bool setBoneRotation(String name, float rotation);
 	static Spine* create(String skelFile, String atlasFile);
@@ -676,7 +676,6 @@ class Spine : public Playable
 
 class DragonBone : public Playable
 {
-	tolua_property__bool bool showDebug;
 	tolua_property__bool bool hitTestEnabled;
 	static DragonBone* create(String boneFile, String atlasFile);
 	static DragonBone* create(String boneStr);
@@ -684,9 +683,14 @@ class DragonBone : public Playable
 	static tolua_outside void DragonBone_getAnimationNames @ getAnimations(String boneStr);
 };
 
+class AlignNode : public Node
+{
+	void css(String css);
+	static AlignNode* create(bool isRoot = false);
+};
+
 class PhysicsWorld : public Node
 {
-	tolua_property__bool bool showDebug;
 	bool query(Rect rect, tolua_function_bool handler);
 	bool raycast(Vec2 start, Vec2 stop, bool closest, tolua_function_bool handler);
 	void setIterations(int velocityIter, int positionIter);
