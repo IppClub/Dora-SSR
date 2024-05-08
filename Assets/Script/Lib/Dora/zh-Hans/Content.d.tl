@@ -69,6 +69,11 @@ local record Content
 	-- @return (boolean) 如果成功移动了文件或目录，则为 `true`，否则为 `false`。
 	move: function(self: Content, srcPath: string, dstPath: string): boolean
 
+	-- 检查指定路径是否为绝对路径。
+	-- @param path (string) 要检查的路径。
+	-- @return (boolean) 如果路径为绝对路径，则为 `true`，否则为 `false`。
+	isAbsolutePath: function(self: Content, path: string): boolean
+
 	-- 获取指定文件名的文件的完整路径。
 	-- @param filename (string) 要获取完整路径的文件名。
 	-- @return (string) 文件的完整路径。

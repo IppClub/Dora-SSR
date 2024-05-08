@@ -1791,7 +1791,7 @@ HttpServer:postSchedule("/run", function(req) -- 736
 				end -- 752
 			end -- 752
 			if file ~= nil and asProj ~= nil then -- 737
-				if not Content:exist(file) then -- 738
+				if not Content:isAbsolutePath(file) then -- 738
 					local devFile = Path(Content.writablePath, file) -- 739
 					if Content:exist(devFile) then -- 740
 						file = devFile -- 740

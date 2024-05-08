@@ -70,6 +70,11 @@ local record Content
 	-- @return (boolean) `true` if the file or directory was moved to target path, `false` otherwise.
 	move: function(self: Content, srcPath: string, dstPath: string): boolean
 
+	-- Checks if the specified path is an absolute path.
+	-- @param path (string) The path to check.
+	-- @return (boolean) `true` if the path is an absolute path, `false` otherwise.
+	isAbsolutePath: function(self: Content, path: string): boolean
+
 	-- Gets the full path of a file with the specified filename.
 	-- @param filename (string) The name of the file to get the full path of.
 	-- @return (string) The full path of the file.
