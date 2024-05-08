@@ -42,6 +42,9 @@ class Node {
 	/** 节点的Y轴倾斜角度，单位为度。 */
 	skewY?: number;
 
+	/** 是否显示调试图形。 */
+	showDebug?: boolean;
+
 	/** 节点是否可见。 */
 	visible?: boolean;
 
@@ -355,11 +358,6 @@ class DragonBone extends Playable {
 	file: string;
 
 	/**
-	 * 是否显示调试图形。
-	 */
-	showDebug?: boolean;
-
-	/**
 	 * 是否启用命中测试。
 	 */
 	hitTestEnabled?: boolean;
@@ -379,9 +377,6 @@ class Spine extends Playable {
 	 * `Spine2D`文件名字符串可以是不带扩展名的文件路径，例如：“Spine/item”，也可以是带有所有相关文件的文件路径，例如 “Spine/item.skel|Spine/item.atlas” 或 “Spine/item.json|Spine/item.atlas”。
 	 */
 	file: string;
-
-	/** 是否显示调试图形。 */
-	showDebug?: boolean;
 
 	/** 是否启用命中测试。 */
 	hitTestEnabled?: boolean;
@@ -789,6 +784,87 @@ class Menu extends Node {
 	onMount?(this: void, self: dora.Menu.Type): void;
 }
 
+type StyleDirection = 'ltr' | 'rtl' | 'inherit';
+type StyleAlign = 'flex-start' | 'center' | 'flex-end' | 'stretch' | 'auto';
+type StyleFlexDirection = 'row' | 'column' | 'row-reverse' | 'column-reverse';
+type StyleJustifyContent = 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly';
+type StylePositionType = 'relative' | 'absolute' | 'static';
+type StyleWrap = 'nowrap' | 'wrap' | 'wrap-reverse';
+type StyleOverflow = 'visible' | 'hidden' | 'scroll';
+type StyleDisplay = 'flex' | 'none';
+type StylePercentage = `${number}%`;
+type StyleValuePercent = number | StylePercentage;
+type StyleValuePercentAuto = number | StylePercentage | "auto";
+
+interface AlignStyle {
+	direction?: StyleDirection;
+	alignContent?: StyleAlign;
+	alignItems?: StyleAlign;
+	alignSelf?: StyleAlign;
+	flexDirection?: StyleFlexDirection;
+	justifyContent?: StyleJustifyContent;
+	flexWrap?: StyleWrap;
+	flex?: number;
+	flexBasis?: StyleValuePercentAuto;
+	flexGrow?: number;
+	flexShrink?: number;
+	left?: StyleValuePercent;
+	right?: StyleValuePercent;
+	top?: StyleValuePercent;
+	bottom?: StyleValuePercent;
+	start?: StyleValuePercent;
+	end?: StyleValuePercent;
+	horizontal?: StyleValuePercent;
+	vetical?: StyleValuePercent;
+	position?: StylePositionType;
+	overflow?: StyleOverflow;
+	display?: StyleDisplay;
+	width?: StyleValuePercentAuto;
+	height?: StyleValuePercentAuto;
+	minWidth?: StyleValuePercent;
+	minHeight?: StyleValuePercent;
+	maxWidth?: StyleValuePercent;
+	maxHeight?: StyleValuePercent;
+	marginTop?: StyleValuePercentAuto;
+	marginRight?: StyleValuePercentAuto;
+	marginBottom?: StyleValuePercentAuto;
+	marginLeft?: StyleValuePercentAuto;
+	marginStart?: StyleValuePercentAuto;
+	marginEnd?: StyleValuePercentAuto;
+	margin?: [StyleValuePercentAuto, StyleValuePercentAuto?, StyleValuePercentAuto?, StyleValuePercentAuto?] | StyleValuePercentAuto;
+	paddingTop?: StyleValuePercent;
+	paddingRight?: StyleValuePercent;
+	paddingBottom?: StyleValuePercent;
+	paddingLeft?: StyleValuePercent;
+	padding?: [StyleValuePercent, StyleValuePercent?, StyleValuePercent?, StyleValuePercent?] | StyleValuePercent;
+	border?: [number, number?, number?, number?] | number;
+	gap?: [StyleValuePercent, StyleValuePercent?] | StyleValuePercent;
+	aspectRatio?: number;
+}
+
+class AlignNode extends Node {
+	ref?: Ref<dora.AlignNode.Type>;
+
+	/** 是否为窗口根节点。窗口根节点会自动监听窗口大小变化事件自动更新布局。 */
+	windowRoot?: boolean;
+
+	/** 节点的布局样式 */
+	style?: AlignStyle;
+
+	/**
+	 * 当节点的布局样式发生变化时，会触发该回调函数。
+	 * @param width 当前节点的宽度。
+	 * @param height 当前节点的高度。
+	 */
+	onLayout?(this: void, width: number, height: number): void;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.AlignNode.Type): void;
+}
+
 class Action {
 	ref?: Ref<dora.ActionDef.Type>;
 	children: any[] | any;
@@ -1031,11 +1107,6 @@ class Sequence {
 }
 
 class PhysicsWorld extends Node {
-	/**
-	 * 是否应为物理世界显示调试图形。
-	 */
-	showDebug?: boolean;
-
 	/**
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
@@ -1761,6 +1832,10 @@ interface IntrinsicElements {
 	 * 创建一个自定义的标签。
 	 */
 	'custom-element': CustomElement;
+	/**
+	 * 用于对齐子节点的布局节点。
+	 */
+	'align-node': AlignNode;
 }
 
 interface ElementChildrenAttribute {

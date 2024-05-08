@@ -229,6 +229,33 @@
     <Filter Include="3rdParty\zlib">
       <UniqueIdentifier>{df4b410f-b909-4d7a-b7b8-7f7d2643ca81}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\yoga">
+      <UniqueIdentifier>{584d53c5-9bd1-41e1-bfd7-4a4500917b9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\algorithm">
+      <UniqueIdentifier>{58858286-84a8-4f3f-b4a4-3a4528465c10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\config">
+      <UniqueIdentifier>{96d52929-491b-4b5c-af25-c8f8203cd792}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\debug">
+      <UniqueIdentifier>{59c9ebe4-f60d-4057-b39f-6d80fc18ecc5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\enums">
+      <UniqueIdentifier>{040c966d-05ee-4582-ab4f-32cf6cca2a8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\event">
+      <UniqueIdentifier>{cf6fb3a3-57a6-4bbb-8f80-764efdc708ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\node">
+      <UniqueIdentifier>{ef2fd136-2ce9-40df-90c0-e9c7079ce4d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\numeric">
+      <UniqueIdentifier>{20d9c919-41c9-40a7-88b1-cbfc2f263609}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\style">
+      <UniqueIdentifier>{f935156f-441f-4947-917c-11a198f6d7be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
@@ -1496,6 +1523,66 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\zlib\zutil.c">
       <Filter>3rdParty\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGConfig.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGEnums.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGNode.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGNodeLayout.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGNodeStyle.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGPixelGrid.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGValue.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\AbsoluteLayout.cpp">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\Baseline.cpp">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\Cache.cpp">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\CalculateLayout.cpp">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\FlexLine.cpp">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\PixelGrid.cpp">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\config\Config.cpp">
+      <Filter>3rdParty\yoga\config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\debug\AssertFatal.cpp">
+      <Filter>3rdParty\yoga\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\debug\Log.cpp">
+      <Filter>3rdParty\yoga\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\event\event.cpp">
+      <Filter>3rdParty\yoga\event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\node\LayoutResults.cpp">
+      <Filter>3rdParty\yoga\node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\node\Node.cpp">
+      <Filter>3rdParty\yoga\node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\AlignNode.cpp">
+      <Filter>Node</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3164,6 +3251,168 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\zlib\zutil.h">
       <Filter>3rdParty\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGConfig.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGEnums.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGMacros.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGNode.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGNodeLayout.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGNodeStyle.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGPixelGrid.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGValue.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\Yoga.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\AbsoluteLayout.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\Align.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\Baseline.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\BoundAxis.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\Cache.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\CalculateLayout.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\FlexDirection.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\FlexLine.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\PixelGrid.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\SizingMode.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\TrailingPosition.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\config\Config.h">
+      <Filter>3rdParty\yoga\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\debug\AssertFatal.h">
+      <Filter>3rdParty\yoga\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\debug\Log.h">
+      <Filter>3rdParty\yoga\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Align.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Dimension.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Direction.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Display.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Edge.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Errata.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\ExperimentalFeature.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\FlexDirection.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Gutter.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Justify.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\LogLevel.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\MeasureMode.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\NodeType.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Overflow.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\PhysicalEdge.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\PositionType.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Unit.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Wrap.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\YogaEnums.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\event\event.h">
+      <Filter>3rdParty\yoga\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\SmallValueBuffer.h">
+      <Filter>3rdParty\yoga\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\Style.h">
+      <Filter>3rdParty\yoga\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleLength.h">
+      <Filter>3rdParty\yoga\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleValueHandle.h">
+      <Filter>3rdParty\yoga\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleValuePool.h">
+      <Filter>3rdParty\yoga\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\numeric\Comparison.h">
+      <Filter>3rdParty\yoga\numeric</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\numeric\FloatOptional.h">
+      <Filter>3rdParty\yoga\numeric</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\CachedMeasurement.h">
+      <Filter>3rdParty\yoga\node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\LayoutResults.h">
+      <Filter>3rdParty\yoga\node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\Node.h">
+      <Filter>3rdParty\yoga\node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\AlignNode.h">
+      <Filter>Node</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

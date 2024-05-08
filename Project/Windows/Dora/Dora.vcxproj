@@ -1181,6 +1181,82 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\AbsoluteLayout.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\Baseline.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\Cache.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\CalculateLayout.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\FlexLine.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\PixelGrid.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\config\Config.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\debug\AssertFatal.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\debug\Log.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\event\event.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\node\LayoutResults.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\node\Node.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGConfig.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGEnums.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGNode.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGNodeLayout.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGNodeStyle.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGPixelGrid.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGValue.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\yuescript\ast.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -1333,6 +1409,7 @@
     <ClCompile Include="..\..\..\Source\Lua\Xml\XmlResolver.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\Yarn\YarnCompiler.cpp" />
     <ClCompile Include="..\..\..\Source\ML\ML.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\AlignNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\DragonBone.cpp" />
     <ClCompile Include="..\..\..\Source\Node\DrawNode.cpp" />
@@ -1818,6 +1895,59 @@
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\wasm3.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\wasm3_cpp.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\wasm3_defs.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\AbsoluteLayout.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\Align.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\Baseline.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\BoundAxis.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\Cache.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\CalculateLayout.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\FlexDirection.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\FlexLine.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\PixelGrid.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\SizingMode.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\TrailingPosition.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\config\Config.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\debug\AssertFatal.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\debug\Log.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Align.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Dimension.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Direction.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Display.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Edge.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Errata.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\ExperimentalFeature.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\FlexDirection.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Gutter.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Justify.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\LogLevel.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\MeasureMode.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\NodeType.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Overflow.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\PhysicalEdge.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\PositionType.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Unit.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Wrap.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\YogaEnums.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\event\event.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\CachedMeasurement.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\LayoutResults.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\Node.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\numeric\Comparison.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\numeric\FloatOptional.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\SmallValueBuffer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\Style.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleLength.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleValueHandle.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleValuePool.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGConfig.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGEnums.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGMacros.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGNode.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGNodeLayout.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGNodeStyle.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGPixelGrid.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGValue.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\Yoga.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yuescript\ast.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\yuescript\parser.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\yuescript\stacktraceplus.h" />
@@ -1901,6 +2031,7 @@
     <ClInclude Include="..\..\..\Source\Lua\Xml\XmlResolver.h" />
     <ClInclude Include="..\..\..\Source\Lua\Yarn\YarnCompiler.h" />
     <ClInclude Include="..\..\..\Source\ML\ML.h" />
+    <ClInclude Include="..\..\..\Source\Node\AlignNode.h" />
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h" />
     <ClInclude Include="..\..\..\Source\Node\DragonBone.h" />
     <ClInclude Include="..\..\..\Source\Node\DrawNode.h" />

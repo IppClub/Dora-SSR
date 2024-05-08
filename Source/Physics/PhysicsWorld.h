@@ -25,7 +25,7 @@ class PhysicsWorld : public Node {
 public:
 	virtual ~PhysicsWorld();
 	PROPERTY_READONLY_REF(pd::World, PrWorld);
-	PROPERTY_BOOL(ShowDebug);
+
 	/**
 	 Iterations affect PlayRho`s CPU cost greatly.
 	 Lower these values to get better performance, higher values to get better simulation.
@@ -38,6 +38,7 @@ public:
 	virtual bool fixedUpdate(double deltaTime) override;
 	virtual bool update(double deltaTime) override;
 	virtual void render() override;
+	virtual void setShowDebug(bool var) override;
 
 	void setFixtureData(pr::ShapeID fixture, Sensor* sensor);
 	Sensor* getFixtureData(pr::ShapeID fixture) const;

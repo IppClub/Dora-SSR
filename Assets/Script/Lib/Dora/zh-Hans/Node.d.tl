@@ -142,6 +142,9 @@ local record Node
 	-- 是否将所有层级的子节点按分组编号做分组渲染。
 	renderGroup: boolean
 
+	-- 是否显示节点的调试信息。
+	showDebug: boolean
+
 	-- 用于分组渲染的分组顺序编号。节点的渲染顺序编号越小，渲染就越靠前。
 	renderOrder: integer
 
@@ -569,6 +572,11 @@ local record __SLOT__
 	-- @param controllerId (integer) 控制器ID，当有多个控制器连接时从0开始递增。
 	-- @param axisValue (number) 控制器轴的值，范围从 -1.0 到 1.0。
 	["Axis"]: function(controllerId: integer, axisValue: number)
+
+	-- 当`AlignNode`节点的布局更新时触发。
+	-- @param width (number) 节点的宽度。
+	-- @param height (number) 节点的高度。
+	["AlignLayout"]: function(width: number, height: number)
 end
 
 -- 用于创建场景节点实例的类。

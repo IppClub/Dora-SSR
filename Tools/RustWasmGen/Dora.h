@@ -1156,6 +1156,8 @@ interface object class Node
 	boolean bool controllerEnabled;
 	/// whether to group the node's rendering with all its recursive children.
 	boolean bool renderGroup;
+	/// whether debug graphic should be displayed for the node.
+	boolean bool showDebug;
 	/// the rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier.
 	common int renderOrder;
 	/// Adds a child node to the current node.
@@ -2146,8 +2148,6 @@ object class Model : public IPlayable
 /// An implementation of an animation system using the Spine engine.
 object class Spine : public IPlayable
 {
-	/// whether to show debug graphics.
-	boolean bool showDebug;
 	/// whether hit testing is enabled.
 	boolean bool hitTestEnabled;
 	/// Sets the rotation of a bone in the Spine skeleton.
@@ -2231,8 +2231,6 @@ object class Spine : public IPlayable
 /// An implementation of the 'Playable' record using the DragonBones animation system.
 object class DragonBone : public IPlayable
 {
-	/// whether to show debug graphics.
-	boolean bool showDebug;
 	/// whether hit testing is enabled.
 	boolean bool hitTestEnabled;
 	/// Checks if a point is inside the boundaries of the instance and returns the name of the bone or slot at that point, or `None` if no bone or slot is found.
@@ -2302,11 +2300,51 @@ object class DragonBone : public IPlayable
 	static outside VecStr dragon_bone_get_animation_names @ getAnimations(string boneStr);
 };
 
+/// A node used for aligning layout elements.
+object class AlignNode : public INode
+{
+	/// Sets the layout style of the node.
+	///
+	/// # Arguments
+	///
+	/// * `style` - The layout style to set.
+	/// The following properties can be set through a CSS style string:
+	/// ## Layout direction and alignment
+	/// * direction: Sets the direction (ltr, rtl, inherit).
+	/// * align-items, align-self, align-content: Sets the alignment of different items (flex-start, center, stretch, flex-end, auto).
+	/// * flex-direction: Sets the layout direction (column, row, column-reverse, row-reverse).
+	/// * justify-content: Sets the arrangement of child items (flex-start, center, flex-end, space-between, space-around, space-evenly).
+	/// ## Flex properties
+	/// * flex: Sets the overall size of the flex container.
+	/// * flex-grow: Sets the flex growth value.
+	/// * flex-shrink: Sets the flex shrink value.
+	/// * flex-wrap: Sets whether to wrap (nowrap, wrap, wrap-reverse).
+	/// * flex-basis: Sets the flex basis value or percentage.
+	/// ## Margins and dimensions
+	/// * margin: Can be set by a single value or multiple values separated by commas, percentages or auto for each side.
+	/// * margin-top, margin-right, margin-bottom, margin-left, margin-start, margin-end: Sets the margin values, percentages or auto.
+	/// * padding: Can be set by a single value or multiple values separated by commas or percentages for each side.
+	/// * padding-top, padding-right, padding-bottom, padding-left: Sets the padding values or percentages.
+	/// * border: Can be set by a single value or multiple values separated by commas for each side.
+	/// * width, height, min-width, min-height, max-width, max-height: Sets the dimension values or percentage properties.
+	/// ## Positioning
+	/// * top, right, bottom, left, start, end, horizontal, vertical: Sets the positioning property values or percentages.
+	/// ## Other properties
+	/// * position: Sets the positioning type (absolute, relative, static).
+	/// * overflow: Sets the overflow property (visible, hidden, scroll).
+	/// * display: Controls whether to display (flex, none).
+	void css(string style);
+	/// Creates a new AlignNode object.
+	///
+	/// # Arguments
+	///
+	/// * `isWindowRoot` - Whether the node is a window root node. A window root node will automatically listen for window size change events and update the layout accordingly.
+	static AlignNode* create(bool isWindowRoot);
+};
+
 /// A struct that represents a physics world in the game.
 interface object class PhysicsWorld : public INode
 {
-	/// whether debug graphic should be displayed for the physics world.
-	boolean bool showDebug;
 	/// Queries the physics world for all bodies that intersect with the specified rectangle.
 	///
 	/// # Arguments

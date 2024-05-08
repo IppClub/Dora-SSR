@@ -6,9 +6,6 @@ local record DragonBone
 	-- 继承自`Playable`。
 	embed Playable
 
-	-- 是否显示调试图形。
-	showDebug: boolean
-
 	-- 是否启用碰撞检测的功能。
 	hitTestEnabled: boolean
 

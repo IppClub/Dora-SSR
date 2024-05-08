@@ -23,6 +23,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/Controller.h"
 #include "Input/Keyboard.h"
 #include "Input/TouchDispather.h"
+#include "Node/DrawNode.h"
 #include "Node/Grid.h"
 #include "Node/Sprite.h"
 #include "Support/Dictionary.h"
@@ -31,7 +32,7 @@ NS_DORA_BEGIN
 
 Node::Node(bool unManaged)
 	: _flags(
-		Node::Visible | Node::SelfVisible | Node::ChildrenVisible | Node::PassOpacity | Node::PassColor3 | Node::TraverseEnabled)
+		  Node::Visible | Node::SelfVisible | Node::ChildrenVisible | Node::PassOpacity | Node::PassColor3 | Node::TraverseEnabled)
 	, _order(0)
 	, _renderOrder(0)
 	, _color()
@@ -790,6 +791,45 @@ bool Node::update(double deltaTime) {
 	return result && !isUpdating();
 }
 
+void Node::renderDebug() {
+	if (isShowDebug() && getSize() != Size::zero) {
+		Matrix transform;
+		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
+		float w = getWidth();
+		float h = getHeight();
+		const float anchorSize = 20.0f;
+		Vec4 positions[] = {
+			{0, h, 0, 1.0f},
+			{w, h, 0, 1.0f},
+			{w, 0, 0, 1.0f},
+			{0, 0, 0, 1.0f},
+			{_anchorPoint.x - anchorSize, _anchorPoint.y, 0, 1.0f},
+			{_anchorPoint.x + anchorSize, _anchorPoint.y, 0, 1.0f},
+			{_anchorPoint.x, _anchorPoint.y - anchorSize, 0, 1.0f},
+			{_anchorPoint.x, _anchorPoint.y + anchorSize, 0, 1.0f}};
+		auto color = getColor().toABGR();
+		auto themeColor = SharedApplication.getThemeColor();
+		themeColor.setOpacity(getRealOpacity());
+		auto anchorColor = themeColor.toABGR();
+		PosColorVertex verts[8] = {
+			{0, 0, 0, 0, color},
+			{0, 0, 0, 0, color},
+			{0, 0, 0, 0, color},
+			{0, 0, 0, 0, color},
+			{0, 0, 0, 0, anchorColor},
+			{0, 0, 0, 0, anchorColor},
+			{0, 0, 0, 0, anchorColor},
+			{0, 0, 0, 0, anchorColor}};
+		for (size_t i = 0; i < 8; i++) {
+			bx::vec4MulMtx(&verts[i].x, &positions[i].x, transform);
+		}
+		SharedRendererManager.setCurrent(SharedLineRenderer.getTarget());
+		SharedLineRenderer.pushRect(verts);
+		SharedLineRenderer.pushSegment(verts + 4);
+		SharedLineRenderer.pushSegment(verts + 6);
+	}
+}
+
 void Node::visitInner() {
 	if (_flags.isOff(Node::Visible)) {
 		return;
@@ -816,8 +856,10 @@ void Node::visitInner() {
 			if (_flags.isOn(Node::SelfVisible)) {
 				if (rendererManager.isGrouping() && _renderOrder != 0) {
 					rendererManager.pushGroupItem(this);
-				} else
+				} else {
 					render();
+					renderDebug();
+				}
 			}
 
 			/* visit and render child whose order is greater equal than 0 */
@@ -834,8 +876,10 @@ void Node::visitInner() {
 	} else if (_flags.isOn(Node::SelfVisible)) {
 		if (rendererManager.isGrouping() && _renderOrder != 0) {
 			rendererManager.pushGroupItem(this);
-		} else
+		} else {
 			render();
+			renderDebug();
+		}
 	}
 }
 
@@ -1835,6 +1879,14 @@ void Node::setAsManaged() {
 	if (_flags.isOn(Node::UnManaged)) {
 		_flags.setOff(Node::UnManaged);
 	}
+}
+
+void Node::setShowDebug(bool var) {
+	_flags.set(Node::ShowDebug, var);
+}
+
+bool Node::isShowDebug() const {
+	return _flags.isOn(Node::ShowDebug);
 }
 
 NS_DORA_END

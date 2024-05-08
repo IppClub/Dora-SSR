@@ -156,6 +156,7 @@ add_library(main SHARED
 	src/main/cpp/Node/Playable.cpp
 	src/main/cpp/Node/DragonBone.cpp
 	src/main/cpp/Node/DrawNode.cpp
+	src/main/cpp/Node/AlignNode.cpp
 	src/main/cpp/Event/EventType.cpp
 	src/main/cpp/Event/EventQueue.cpp
 	src/main/cpp/Event/Listener.cpp
@@ -493,6 +494,25 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/zlib/gzclose.c
 	src/main/cpp/3rdParty/zlib/inffast.c
 	src/main/cpp/3rdParty/zlib/adler32.c
+	src/main/cpp/3rdParty/yoga/YGNodeStyle.cpp
+	src/main/cpp/3rdParty/yoga/YGPixelGrid.cpp
+	src/main/cpp/3rdParty/yoga/YGEnums.cpp
+	src/main/cpp/3rdParty/yoga/YGValue.cpp
+	src/main/cpp/3rdParty/yoga/YGConfig.cpp
+	src/main/cpp/3rdParty/yoga/YGNode.cpp
+	src/main/cpp/3rdParty/yoga/YGNodeLayout.cpp
+	src/main/cpp/3rdParty/yoga/config/Config.cpp
+	src/main/cpp/3rdParty/yoga/algorithm/AbsoluteLayout.cpp
+	src/main/cpp/3rdParty/yoga/algorithm/CalculateLayout.cpp
+	src/main/cpp/3rdParty/yoga/algorithm/PixelGrid.cpp
+	src/main/cpp/3rdParty/yoga/algorithm/Cache.cpp
+	src/main/cpp/3rdParty/yoga/algorithm/Baseline.cpp
+	src/main/cpp/3rdParty/yoga/algorithm/FlexLine.cpp
+	src/main/cpp/3rdParty/yoga/node/LayoutResults.cpp
+	src/main/cpp/3rdParty/yoga/node/Node.cpp
+	src/main/cpp/3rdParty/yoga/event/event.cpp
+	src/main/cpp/3rdParty/yoga/debug/Log.cpp
+	src/main/cpp/3rdParty/yoga/debug/AssertFatal.cpp
 )
 
 target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib CRYPTO-lib SSL-lib)

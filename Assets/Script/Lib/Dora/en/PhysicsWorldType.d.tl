@@ -9,9 +9,6 @@ local record PhysicsWorld
 	-- Inherits from `Node`.
 	embed Node
 
-	-- Whether debug graphic should be displayed for the physics world.
-	showDebug: boolean
-
 	-- Queries the physics world for all bodies that intersect with the specified rectangle.
 	-- @param rect (Rect) The rectangle to query for bodies.
 	-- @param handler (function) A function that is called for each body found in the query.

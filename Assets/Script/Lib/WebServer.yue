@@ -496,7 +496,7 @@ HttpServer\upload(
 			return targetPath
 	(req, file): false ->
 		switch req when {params: {:path}}
-			path = Content\getFullPath path
+			path = Path Content.writablePath, path
 			if Content\exist path
 				uploadPath = Path Content.writablePath, ".upload"
 				targetPath = Path path, Path\getRelative file, uploadPath
@@ -735,6 +735,9 @@ HttpServer\post "/assets", ->
 
 HttpServer\postSchedule "/run", (req): success: false ->
 	switch req when {body: {:file, :asProj}}
+		if not Content\exist file
+			devFile = Path Content.writablePath, file
+			file = devFile if Content\exist devFile
 		import "Script.Dev.Entry"
 		if asProj
 			if proj := getProjectDirFromFile file

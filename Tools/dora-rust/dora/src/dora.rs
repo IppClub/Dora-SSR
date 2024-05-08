@@ -86,6 +86,8 @@ mod spine;
 pub use spine::Spine;
 mod dragon_bone;
 pub use dragon_bone::DragonBone;
+mod align_node;
+pub use align_node::AlignNode;
 mod physics_world;
 pub use physics_world::{IPhysicsWorld, PhysicsWorld};
 mod fixture_def;
@@ -176,6 +178,7 @@ static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn IObject>>>> = Lazy::new(||
 		Model::type_info(),
 		Spine::type_info(),
 		DragonBone::type_info(),
+		AlignNode::type_info(),
 		PhysicsWorld::type_info(),
 		FixtureDef::type_info(),
 		BodyDef::type_info(),

@@ -8,8 +8,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn spine_type() -> i32;
-	fn spine_set_show_debug(slf: i64, var: i32);
-	fn spine_is_show_debug(slf: i64) -> i32;
 	fn spine_set_hit_test_enabled(slf: i64, var: i32);
 	fn spine_is_hit_test_enabled(slf: i64) -> i32;
 	fn spine_set_bone_rotation(slf: i64, name: i64, rotation: f32) -> i32;
@@ -36,14 +34,6 @@ impl Spine {
 				_ => Some(Box::new(Spine { raw: raw }))
 			}
 		})
-	}
-	/// Sets whether to show debug graphics.
-	pub fn set_show_debug(&mut self, var: bool) {
-		unsafe { spine_set_show_debug(self.raw(), if var { 1 } else { 0 }) };
-	}
-	/// Gets whether to show debug graphics.
-	pub fn is_show_debug(&self) -> bool {
-		return unsafe { spine_is_show_debug(self.raw()) != 0 };
 	}
 	/// Sets whether hit testing is enabled.
 	pub fn set_hit_test_enabled(&mut self, var: bool) {
