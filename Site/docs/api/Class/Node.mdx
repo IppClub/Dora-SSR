@@ -517,6 +517,19 @@ controllerEnabled: boolean
 renderGroup: boolean
 ```
 
+## showDebug
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether debug graphic should be displayed for the node.
+
+**Signature:**
+```tl
+showDebug: boolean
+```
+
 ## renderOrder
 
 **Type:** Field.
@@ -997,7 +1010,7 @@ traverseAll: function(self: Node, func: function(Node): boolean): boolean
 
 **Signature:**
 ```tl
-runAction: function(self: Node, action: Action): number
+runAction: function(self: Node, action: Action, loop?: boolean): number
 ```
 
 **Parameters:**
@@ -1005,6 +1018,7 @@ runAction: function(self: Node, action: Action): number
 | Parameter | Type | Description |
 | --- | --- | --- |
 | action | Action | The action to run. |
+| loop | boolean | [optional] Whether to loop the action. Default is false. |
 
 **Returns:**
 
@@ -1022,7 +1036,7 @@ runAction: function(self: Node, action: Action): number
 
 **Signature:**
 ```tl
-runAction: function(self: Node, actionDef: ActionDef): number
+runAction: function(self: Node, actionDef: ActionDef, loop?: boolean): number
 ```
 
 **Parameters:**
@@ -1030,6 +1044,7 @@ runAction: function(self: Node, actionDef: ActionDef): number
 | Parameter | Type | Description |
 | --- | --- | --- |
 | actionDef | ActionDef | The action definition to run. |
+| loop | boolean | [optional] Whether to loop the action. Default is false. |
 
 **Returns:**
 
@@ -1060,7 +1075,7 @@ stopAllActions: function(self: Node)
 
 **Signature:**
 ```tl
-perform: function(self: Node, action: Action): number
+perform: function(self: Node, action: Action, loop?: boolean): number
 ```
 
 **Parameters:**
@@ -1068,6 +1083,7 @@ perform: function(self: Node, action: Action): number
 | Parameter | Type | Description |
 | --- | --- | --- |
 | action | Action | The action to run. |
+| loop | boolean | [optional] Whether to loop the action. Default is false. |
 
 **Returns:**
 
@@ -1085,7 +1101,7 @@ perform: function(self: Node, action: Action): number
 
 **Signature:**
 ```tl
-perform: function(self: Node, actionDef: ActionDef): number
+perform: function(self: Node, actionDef: ActionDef, loop?: boolean): number
 ```
 
 **Parameters:**
@@ -1093,6 +1109,7 @@ perform: function(self: Node, actionDef: ActionDef): number
 | Parameter | Type | Description |
 | --- | --- | --- |
 | actionDef | ActionDef | The action definition to run. |
+| loop | boolean | [optional] Whether to loop the action. Default is false. |
 
 **Returns:**
 

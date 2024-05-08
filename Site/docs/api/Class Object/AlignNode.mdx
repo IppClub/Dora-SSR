@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# AlignNode Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating AlignNode objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new AlignNode.
+
+**Signature:**
+```tl
+metamethod __call: function(self: AlignNodeClass, isWindowRoot?: boolean): AlignNode
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| isWindowRoot | boolean | [optional] Whether the node is a window root node. A window root node will automatically listen for window size change events and update the layout accordingly. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| AlignNode | The created AlignNode object. |

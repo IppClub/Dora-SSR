@@ -287,6 +287,31 @@ move: function(self: Content, srcPath: string, dstPath: string): boolean
 | --- | --- |
 | boolean | `true` if the file or directory was moved to target path, `false` otherwise. |
 
+## isAbsolutePath
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if the specified path is an absolute path.
+
+**Signature:**
+```tl
+isAbsolutePath: function(self: Content, path: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The path to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if the path is an absolute path, `false` otherwise. |
+
 ## getFullPath
 
 **Type:** Function.

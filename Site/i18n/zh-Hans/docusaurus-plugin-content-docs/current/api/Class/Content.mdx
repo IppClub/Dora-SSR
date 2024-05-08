@@ -286,6 +286,31 @@ move: function(self: Content, srcPath: string, dstPath: string): boolean
 | --- | --- |
 | boolean | 如果成功移动了文件或目录，则为 `true`，否则为 `false`。 |
 
+## isAbsolutePath
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查指定路径是否为绝对路径。
+
+**签名：**
+```tl
+isAbsolutePath: function(self: Content, path: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要检查的路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果路径为绝对路径，则为 `true`，否则为 `false`。 |
+
 ## getFullPath
 
 **类型：** 函数。

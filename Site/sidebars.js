@@ -187,6 +187,11 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'AlignNode',
+							id: 'api/Class/AlignNode',
+						},
+						{
+							type: 'doc',
 							label: 'Menu',
 							id: 'api/Class/Menu',
 						},
@@ -792,6 +797,7 @@ const sidebars = {
 						"api/Class Object/Observer",
 						"api/Class Object/Object",
 						"api/Class Object/Node",
+						"api/Class Object/AlignNode",
 						"api/Class Object/Model",
 						"api/Class Object/Menu",
 						"api/Class Object/Line",
