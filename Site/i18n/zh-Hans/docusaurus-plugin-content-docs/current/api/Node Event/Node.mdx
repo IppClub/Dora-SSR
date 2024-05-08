@@ -410,3 +410,23 @@ end)
 | --- | --- | --- |
 | controllerId | integer | 控制器ID，当有多个控制器连接时从0开始递增。 |
 | axisValue | number | 控制器轴的值，范围从 -1.0 到 1.0。 |
+
+## AlignLayout
+
+**类型：** 节点事件。
+
+**描述：**
+
+&emsp;&emsp;当`AlignNode`节点的布局更新时触发。
+
+**签名：**
+```tl
+["AlignLayout"]: function(width: number, height: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| width | number | 节点的宽度。 |
+| height | number | 节点的高度。 |

@@ -21,22 +21,6 @@ local tostring <const> = tostring
 local select <const> = select
 local pairs <const>, ipairs <const> = pairs, ipairs
 
--- setup Yuescript loader
-package.path = "?.lua"
-
-local yue = require("yue")
-yue.insert_loader(3)
-
-debug.traceback = function(err, level)
-	return yue.traceback(err, (level or 1) + 1)
-end
-
-debug.debug = nil
-
-local function traceback(err)
-	print(yue.traceback(err))
-end
-
 -- prepare singletons
 do
 	dora.App = dora.Application()
@@ -54,6 +38,22 @@ do
 	dora.HttpClient = dora.HttpClient()
 	dora.Platformer.Decision.AI = dora.Platformer.Decision.AI()
 	dora.Platformer.Data = dora.Platformer.Data()
+end
+
+-- setup Yuescript loader
+package.path = "?.lua;" .. dora.Path(dora.Content.writablePath, "?.lua")
+
+local yue = require("yue")
+yue.insert_loader(3)
+
+debug.traceback = function(err, level)
+	return yue.traceback(err, (level or 1) + 1)
+end
+
+debug.debug = nil
+
+local function traceback(err)
+	print(yue.traceback(err))
 end
 
 -- setup loader profilers

@@ -517,6 +517,19 @@ controllerEnabled: boolean
 renderGroup: boolean
 ```
 
+## showDebug
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否显示节点的调试信息。
+
+**签名：**
+```tl
+showDebug: boolean
+```
+
 ## renderOrder
 
 **类型：** 成员变量。
@@ -998,7 +1011,7 @@ traverseAll: function(self: Node, func: function(Node): boolean): boolean
 
 **签名：**
 ```tl
-runAction: function(self: Node, action: Action): number
+runAction: function(self: Node, action: Action, loop?: boolean): number
 ```
 
 **参数：**
@@ -1006,6 +1019,7 @@ runAction: function(self: Node, action: Action): number
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | action | Action | 要执行的动作对象。 |
+| loop | boolean | [可选] 是否循环执行动作。默认为 false。 |
 
 **返回值：**
 
@@ -1023,7 +1037,7 @@ runAction: function(self: Node, action: Action): number
 
 **签名：**
 ```tl
-runAction: function(self: Node, actionDef: ActionDef): number
+runAction: function(self: Node, actionDef: ActionDef, loop?: boolean): number
 ```
 
 **参数：**
@@ -1031,6 +1045,7 @@ runAction: function(self: Node, actionDef: ActionDef): number
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | actionDef | ActionDef | 要运行的动作定义。 |
+| loop | boolean | [可选] 是否循环执行动作。默认为 false。 |
 
 **返回值：**
 
@@ -1061,7 +1076,7 @@ stopAllActions: function(self: Node)
 
 **签名：**
 ```tl
-perform: function(self: Node, action: Action): number
+perform: function(self: Node, action: Action, loop?: boolean): number
 ```
 
 **参数：**
@@ -1069,6 +1084,7 @@ perform: function(self: Node, action: Action): number
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | action | Action | 要执行的动作。 |
+| loop | boolean | [可选] 是否循环执行动作。默认为 false。 |
 
 **返回值：**
 
@@ -1086,7 +1102,7 @@ perform: function(self: Node, action: Action): number
 
 **签名：**
 ```tl
-perform: function(self: Node, actionDef: ActionDef): number
+perform: function(self: Node, actionDef: ActionDef, loop?: boolean): number
 ```
 
 **参数：**
@@ -1094,6 +1110,7 @@ perform: function(self: Node, actionDef: ActionDef): number
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | actionDef | ActionDef | 要执行的动作定义。 |
+| loop | boolean | [可选] 是否循环执行动作。默认为 false。 |
 
 **返回值：**
 

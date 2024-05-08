@@ -572,8 +572,8 @@ local record __SLOT__
 	["Axis"]: function(controllerId: integer, axisValue: number)
 
 	-- Triggers when the layout of the `AlignNode` is updated.
-	-- @param width The width of the node.
-	-- @param height The height of the node.
+	-- @param width (number) The width of the node.
+	-- @param height (number) The height of the node.
 	["AlignLayout"]: function(width: number, height: number)
 end
 

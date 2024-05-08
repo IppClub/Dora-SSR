@@ -1,0 +1,32 @@
+import "@site/src/languages/highlight";
+
+# AlignNode的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建 AlignNode 对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 AlignNode 对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: AlignNodeClass, isWindowRoot?: boolean): AlignNode
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| isWindowRoot | boolean | [可选] 是否为窗口根节点。窗口根节点会自动监听窗口大小变化事件自动更新布局。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| AlignNode | 新创建的 AlignNode 对象。 |
