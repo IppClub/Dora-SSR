@@ -470,6 +470,16 @@ singleton class Content
 	///
 	/// * `bool` - `true` if the path is a directory, `false` otherwise.
 	bool isFolder @ isdir(string path);
+	/// Checks if the specified path is an absolute path.
+	///
+	/// # Arguments
+	///
+	/// * `path` - The path to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the path is an absolute path, `false` otherwise.
+	bool isAbsolutePath(string path);
 	/// Copies the file or directory at the specified source path to the target path.
 	///
 	/// # Arguments

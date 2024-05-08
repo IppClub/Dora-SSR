@@ -735,7 +735,7 @@ HttpServer\post "/assets", ->
 
 HttpServer\postSchedule "/run", (req): success: false ->
 	switch req when {body: {:file, :asProj}}
-		if not Content\exist file
+		if not Content\isAbsolutePath file
 			devFile = Path Content.writablePath, file
 			file = devFile if Content\exist devFile
 		import "Script.Dev.Entry"
