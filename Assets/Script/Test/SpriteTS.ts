@@ -8,6 +8,7 @@ if (sprite) {
 	sprite.scaleX = 0.5;
 	sprite.scaleY = 0.5;
 	sprite.touchEnabled = true;
+	sprite.showDebug = true;
 	sprite.slot(Slot.TapMoved, touch => {
 		if (!touch.first) {
 			return;
@@ -23,7 +24,7 @@ const windowFlags = [
 ];
 threadLoop(() => {
 	const {width} = App.visualSize;
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.FirstUseEver, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(240, 520), SetCond.FirstUseEver);
 	ImGui.Begin("Sprite", windowFlags, () => {
 		ImGui.Text("Sprite (Typescript)");
@@ -43,7 +44,7 @@ threadLoop(() => {
 			}
 			let size = sprite.size;
 			let [spriteW, height] = [size.width, size.height];
-			[changed, spriteW, height] = ImGui.DragFloat2("Size", spriteW, height, 0.1, 0, 1000, "%.f");
+			[changed, spriteW, height] = ImGui.DragFloat2("Size", spriteW, height, 1, 0, 1500, "%.f");
 			if (changed) {
 				sprite.size = Size(spriteW, height);
 			}
@@ -100,10 +101,23 @@ threadLoop(() => {
 		});
 		if (ImGui.Button("Reset", Vec2(140, 30))) {
 			if (!sprite) return;
-			let parent = sprite.parent;
-			parent.removeChild(sprite);
+			const parent = sprite.parent;
+			sprite.removeFromParent();
 			sprite = Sprite("Image/logo.png");
-			if (sprite) parent.addChild(sprite);
+			if (sprite && parent) {
+				sprite.scaleX = 0.5;
+				sprite.scaleY = 0.5;
+				sprite.touchEnabled = true;
+				sprite.showDebug = true;
+				sprite.slot(Slot.TapMoved, touch => {
+					if (!touch.first) {
+						return;
+					}
+					if (!sprite) return;
+					sprite.position = sprite.position.add(touch.delta);
+				});
+				parent.addChild(sprite);
+			}
 		}
 	});
 	return false;

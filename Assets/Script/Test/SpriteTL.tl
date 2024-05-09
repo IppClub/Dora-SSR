@@ -28,7 +28,7 @@ local windowFlags = {
 }
 threadLoop(function(): boolean
 	local width = App.visualSize.width
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "FirstUseEver", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(240, 520), "FirstUseEver")
 	ImGui.Begin("Sprite", windowFlags, function()
 		ImGui.Text("Sprite (Teal)")
@@ -50,7 +50,7 @@ threadLoop(function(): boolean
 			end
 			local size = sprite.size
 			local spriteW, height = size.width, size.height
-			changed, spriteW, height = ImGui.DragFloat2("Size", spriteW, height, 0.1, 0, 1000, "%.f")
+			changed, spriteW, height = ImGui.DragFloat2("Size", spriteW, height, 1, 0, 1500, "%.f")
 			if changed then
 				sprite.size = Size(spriteW, height)
 			end
@@ -108,10 +108,16 @@ threadLoop(function(): boolean
 			parent:removeChild(sprite)
 			sprite = Sprite("Image/logo.png")
 			if not sprite is nil then
+				sprite.showDebug = true
 				sprite.scaleX = 0.5
 				sprite.scaleY = 0.5
-				sprite.showDebug = true
-				parent:addChild(sprite)
+				sprite.touchEnabled = true
+				sprite:slot("TapMoved", function(touch: Touch)
+					if not touch.first then
+						return
+					end
+					sprite.position = sprite.position + touch.delta
+				end)
 			end
 		end
 	end)
