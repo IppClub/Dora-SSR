@@ -18,7 +18,7 @@ windowFlags =
 	* "NoSavedSettings"
 threadLoop ->
 	const :width = App.visualSize
-	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1,0
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "FirstUseEver", Vec2 1,0
 	ImGui.SetNextWindowSize Vec2(240, 520), "FirstUseEver"
 	ImGui.Begin "Sprite", windowFlags, ->
 		ImGui.Text "Sprite (Yuescript)"
@@ -30,7 +30,7 @@ threadLoop ->
 			if changed, x, y := ImGui.DragFloat2 "Anchor", x, y, 0.01, 0, 1, "%.2f"
 				sprite.anchor = Vec2 x, y
 			width: spriteW, :height = sprite.size
-			if changed, spriteW, height := ImGui.DragFloat2 "Size", spriteW, height, 0.1, 0, 1500, "%.f"
+			if changed, spriteW, height := ImGui.DragFloat2 "Size", spriteW, height, 1, 0, 1500, "%.f"
 				sprite.size = Size spriteW, height
 			:scaleX, :scaleY = sprite
 			if changed, scaleX, scaleY := ImGui.DragFloat2 "Scale", scaleX, scaleY, 0.01, -2, 2, "%.2f"
