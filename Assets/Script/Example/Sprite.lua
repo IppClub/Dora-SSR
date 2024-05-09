@@ -33,7 +33,7 @@ local windowFlags = { -- 17
 return threadLoop(function() -- 19
 	local width -- 20
 	width = App.visualSize.width -- 20
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 21
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "FirstUseEver", Vec2(1, 0)) -- 21
 	ImGui.SetNextWindowSize(Vec2(240, 520), "FirstUseEver") -- 22
 	return ImGui.Begin("Sprite", windowFlags, function() -- 23
 		ImGui.Text("Sprite (Yuescript)") -- 24
@@ -65,7 +65,7 @@ return threadLoop(function() -- 19
 			end -- 32
 			do -- 33
 				local changed -- 33
-				changed, spriteW, height = ImGui.DragFloat2("Size", spriteW, height, 0.1, 0, 1500, "%.f") -- 33
+				changed, spriteW, height = ImGui.DragFloat2("Size", spriteW, height, 1, 0, 1500, "%.f") -- 33
 				if changed then -- 33
 					sprite.size = Size(spriteW, height) -- 34
 				end -- 33

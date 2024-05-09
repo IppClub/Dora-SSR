@@ -57,7 +57,7 @@ end
 debug.debug = nil
 
 local function traceback(err)
-	print(yue.traceback(err))
+	print(debug.traceback(err, 2))
 end
 
 -- setup loader profilers
