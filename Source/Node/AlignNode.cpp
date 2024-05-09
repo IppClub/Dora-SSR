@@ -306,8 +306,8 @@ void AlignNode::alignLayout() {
 				alignChild->setY(getHeight() - (YGNodeLayoutGetTop(alignChild->_yogaNode) + alignChild->getHeight() / 2.0f));
 			}
 		}
+		ARRAY_END
 	}
-	ARRAY_END
 	if (YGNodeGetParent(_yogaNode)) {
 		setX(YGNodeLayoutGetLeft(_yogaNode) + getWidth() / 2.0f);
 		setY(_parent->getHeight() - (YGNodeLayoutGetTop(_yogaNode) + getHeight() / 2.0f));
