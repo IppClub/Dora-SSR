@@ -41,13 +41,17 @@ do
 end
 
 -- setup Yuescript loader
-package.path = "?.lua;" .. dora.Path(dora.Content.writablePath, "?.lua")
+package.path = "?.lua"
 
 local yue = require("yue")
 yue.insert_loader(3)
 
 debug.traceback = function(err, level)
-	return yue.traceback(err, (level or 1) + 1)
+	-- add search path `Content.writablePath` since some source filenames are relative to it
+	package.path = "?.lua;" .. dora.Path(dora.Content.writablePath, "?.lua")
+	local message = yue.traceback(err, (level or 1) + 1)
+	package.path = "?.lua"
+	return message
 end
 
 debug.debug = nil

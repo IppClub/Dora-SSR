@@ -165,6 +165,7 @@ static int dora_load_file(lua_State* L, String filename, String moduleName = nul
 		}
 	}
 	if (codeBuffer) {
+		// make a shorter filename to prevent being trancated by Lua
 		auto targetFilename = Path::replaceExt(targetFile, ""sv);
 		std::string displayPath = Path::getRelative(targetFilename, SharedContent.getAssetPath());
 		if (displayPath.empty() || Slice(displayPath).left(2) == ".."sv) {
