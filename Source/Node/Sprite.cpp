@@ -37,9 +37,9 @@ Sprite::Sprite(Texture2D* texture)
 	: Sprite() {
 	_texture = texture;
 	_textureRect = texture ? Rect{
-					   0.0f, 0.0f,
-					   float(texture->getInfo().width),
-					   float(texture->getInfo().height)}
+								 0.0f, 0.0f,
+								 float(texture->getInfo().width),
+								 float(texture->getInfo().height)}
 						   : Rect::zero;
 }
 
@@ -71,7 +71,6 @@ SpriteEffect* Sprite::getEffect() const {
 
 void Sprite::setTextureRect(const Rect& var) {
 	_textureRect = var;
-	updateVertPosition();
 	updateVertTexCoord();
 }
 
@@ -217,18 +216,20 @@ void Sprite::updateVertTexCoord() {
 }
 
 void Sprite::updateVertPosition() {
-	float width = _textureRect.getWidth();
-	float height = _textureRect.getHeight();
-	float left = 0, right = width, top = height, bottom = 0;
-	_quadPos.rb.x = right;
-	_quadPos.rb.y = bottom;
-	_quadPos.lb.x = left;
-	_quadPos.lb.y = bottom;
-	_quadPos.lt.x = left;
-	_quadPos.lt.y = top;
-	_quadPos.rt.x = right;
-	_quadPos.rt.y = top;
-	_flags.setOn(Sprite::VertexPosDirty);
+	float width = _size.width;
+	float height = _size.height;
+	if (_quadPos.rb.x != width || _quadPos.lt.y != height) {
+		float left = 0, right = width, top = height, bottom = 0;
+		_quadPos.rb.x = right;
+		_quadPos.rb.y = bottom;
+		_quadPos.lb.x = left;
+		_quadPos.lb.y = bottom;
+		_quadPos.lt.x = left;
+		_quadPos.lt.y = top;
+		_quadPos.rt.x = right;
+		_quadPos.rt.y = top;
+		_flags.setOn(Sprite::VertexPosDirty);
+	}
 }
 
 void Sprite::updateVertColor() {
@@ -258,6 +259,12 @@ const Matrix& Sprite::getWorld() {
 
 void Sprite::render() {
 	if (!_texture || !_effect || _textureRect.size == Size::zero) return;
+
+	if (_size == Size::zero) {
+		return;
+	} else {
+		updateVertPosition();
+	}
 
 	if (_flags.isOn(Sprite::VertexColorDirty)) {
 		_flags.setOff(Sprite::VertexColorDirty);
