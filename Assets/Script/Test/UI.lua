@@ -2,12 +2,12 @@
 local tostring = _G.tostring -- 1
 local print = _G.print -- 1
 local Size = dora.Size -- 1
-local Director = dora.Director -- 1
 local Vec2 = dora.Vec2 -- 1
-local Button = require("UI.Control.Basic.Button") -- 2
-local LineRect = require("UI.View.Shape.LineRect") -- 3
-local ScrollArea = require("UI.Control.Basic.ScrollArea") -- 4
-local AlignNode = require("UI.Control.Basic.AlignNode") -- 5
+local Director = dora.Director -- 1
+local AlignNode = dora.AlignNode -- 1
+local Button = require("UI.Control.Basic.Button") -- 3
+local LineRect = require("UI.View.Shape.LineRect") -- 4
+local ScrollArea = require("UI.Control.Basic.ScrollArea") -- 5
 local Panel -- 7
 Panel = function(width, height, viewWidth, viewHeight) -- 7
 	local _with_0 = ScrollArea({ -- 9
@@ -40,64 +40,66 @@ Panel = function(width, height, viewWidth, viewHeight) -- 7
 		end)()) -- 19
 	end -- 26
 	_with_0.view:alignItems(Size(viewWidth, height)) -- 27
+	_with_0.updateSize = function(self, w, h) -- 28
+		self.position = Vec2(w / 2, h / 2) -- 29
+		self:adjustSizeWithAlign("Auto", 10, Size(w, h), Size(width, h)) -- 30
+		self.area:removeChild(self.border) -- 31
+		self.border = LineRect({ -- 32
+			width = w, -- 32
+			height = h, -- 32
+			color = 0xffffffff -- 32
+		}) -- 32
+		return self.area:addChild(self.border) -- 33
+	end -- 28
 	return _with_0 -- 8
 end -- 7
-return Director.ui:addChild((function() -- 29
-	local _with_0 = AlignNode({ -- 29
-		isRoot = true, -- 29
-		inUI = true -- 29
-	}) -- 29
-	_with_0:addChild((function() -- 30
-		local _with_1 = AlignNode() -- 30
-		_with_1.hAlign = "Left" -- 31
-		_with_1.vAlign = "Top" -- 32
-		_with_1.alignWidth = "200" -- 33
-		_with_1.alignHeight = "h-20" -- 34
-		_with_1.alignOffset = Vec2(10, 10) -- 35
-		_with_1:addChild((function() -- 36
-			local _with_2 = Panel(200, 300, 430, 640) -- 36
-			_with_2.position = Vec2(100, 150) -- 37
-			_with_2:slot("AlignLayout", function(w, h) -- 38
-				_with_2:adjustSizeWithAlign("Auto", 10, Size(w, h), Size(400, h)) -- 39
-				_with_2.position = Vec2(w / 2, h / 2) -- 40
-				_with_2.area:removeChild(_with_2.border) -- 41
-				_with_2.border = LineRect({ -- 42
-					width = w, -- 42
-					height = h, -- 42
-					color = 0xffffffff -- 42
-				}) -- 42
-				return _with_2.area:addChild(_with_2.border) -- 43
-			end) -- 38
-			return _with_2 -- 36
-		end)()) -- 36
-		return _with_1 -- 30
-	end)()) -- 30
+return Director.ui:addChild((function() -- 35
+	local _with_0 = AlignNode(true) -- 35
+	_with_0:css("justify-content: space-between; flex-direction: row") -- 36
+	_with_0:addChild((function() -- 37
+		local _with_1 = AlignNode() -- 37
+		_with_1:css("width: 30%; height: 100%; padding: 10") -- 38
+		_with_1:addChild((function() -- 39
+			local _with_2 = AlignNode() -- 39
+			_with_2:css("width: 100%; height: 100%") -- 40
+			local panel = Panel(500, 1000, 1000, 1000) -- 41
+			_with_2:addChild(panel) -- 42
+			_with_2:slot("AlignLayout", function(w, h) -- 43
+				return panel:updateSize(w, h) -- 43
+			end) -- 43
+			return _with_2 -- 39
+		end)()) -- 39
+		return _with_1 -- 37
+	end)()) -- 37
 	_with_0:addChild((function() -- 44
 		local _with_1 = AlignNode() -- 44
-		_with_1.size = Size(300, 300) -- 45
-		_with_1.hAlign = "Center" -- 46
-		_with_1.vAlign = "Center" -- 47
-		_with_1.alignOffset = Vec2.zero -- 48
-		_with_1:addChild((function() -- 49
-			local _with_2 = Panel(300, 300, 430, 640) -- 49
-			_with_2.position = Vec2(150, 150) -- 50
-			return _with_2 -- 49
-		end)()) -- 49
+		_with_1:css("width: 40%; height: 100%; padding: 10; justify-content: center") -- 45
+		_with_1:addChild((function() -- 46
+			local _with_2 = AlignNode() -- 46
+			_with_2:css("width: 100%; height: 50%") -- 47
+			local panel = Panel(600, 1000, 1000, 1000) -- 48
+			_with_2:addChild(panel) -- 49
+			_with_2:slot("AlignLayout", function(w, h) -- 50
+				return panel:updateSize(w, h) -- 50
+			end) -- 50
+			return _with_2 -- 46
+		end)()) -- 46
 		return _with_1 -- 44
 	end)()) -- 44
 	_with_0:addChild((function() -- 51
 		local _with_1 = AlignNode() -- 51
-		_with_1.size = Size(150, 200) -- 52
-		_with_1.hAlign = "Right" -- 53
-		_with_1.vAlign = "Bottom" -- 54
-		_with_1.alignOffset = Vec2(10, 10) -- 55
-		_with_1:addChild((function() -- 56
-			local _with_2 = Panel(150, 200, 430, 640) -- 56
-			_with_2.position = Vec2(75, 100) -- 57
-			return _with_2 -- 56
-		end)()) -- 56
+		_with_1:css("width: 30%; height: 100%; padding: 10; flex-direction: column-reverse") -- 52
+		_with_1:addChild((function() -- 53
+			local _with_2 = AlignNode() -- 53
+			_with_2:css("width: 100%; height: 40%") -- 54
+			local panel = Panel(600, 1000, 1000, 1000) -- 55
+			_with_2:addChild(panel) -- 56
+			_with_2:slot("AlignLayout", function(w, h) -- 57
+				return panel:updateSize(w, h) -- 57
+			end) -- 57
+			return _with_2 -- 53
+		end)()) -- 53
 		return _with_1 -- 51
 	end)()) -- 51
-	_with_0:alignLayout() -- 58
-	return _with_0 -- 29
-end)()) -- 58
+	return _with_0 -- 35
+end)()) -- 57

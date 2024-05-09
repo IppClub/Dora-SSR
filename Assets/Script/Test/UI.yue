@@ -2,7 +2,6 @@ _ENV = Dora!
 import "UI.Control.Basic.Button"
 import "UI.View.Shape.LineRect"
 import "UI.Control.Basic.ScrollArea"
-import "UI.Control.Basic.AlignNode"
 
 Panel = (width, height, viewWidth, viewHeight)->
 	with ScrollArea {
@@ -25,34 +24,33 @@ Panel = (width, height, viewWidth, viewHeight)->
 				}
 				\slot "Tapped", -> print "clicked #{i}"
 		.view\alignItems Size viewWidth, height
+		.updateSize = (w, h) =>
+			@position = Vec2 w / 2, h / 2
+			@adjustSizeWithAlign "Auto", 10, Size(w, h), Size(width, h)
+			@area\removeChild @border
+			@border = LineRect width: w, height: h, color: 0xffffffff
+			@area\addChild @border
 
-Director.ui\addChild with AlignNode isRoot: true, inUI: true
+Director.ui\addChild with AlignNode true
+	\css "justify-content: space-between; flex-direction: row"
 	\addChild with AlignNode!
-		.hAlign = "Left"
-		.vAlign = "Top"
-		.alignWidth = "200"
-		.alignHeight = "h-20"
-		.alignOffset = Vec2 10, 10
-		\addChild with Panel 200, 300, 430, 640
-			.position = Vec2 100, 150
-			\slot "AlignLayout", (w, h)->
-				\adjustSizeWithAlign "Auto", 10, Size(w, h), Size(400, h)
-				.position = Vec2 w / 2, h / 2
-				.area\removeChild .border
-				.border = LineRect width: w, height: h, color: 0xffffffff
-				.area\addChild .border
+		\css "width: 30%; height: 100%; padding: 10"
+		\addChild with AlignNode!
+			\css "width: 100%; height: 100%"
+			panel = Panel 500, 1000, 1000, 1000
+			\addChild panel
+			\slot "AlignLayout", (w, h) -> panel\updateSize w, h
 	\addChild with AlignNode!
-		.size = Size 300, 300
-		.hAlign = "Center"
-		.vAlign = "Center"
-		.alignOffset = Vec2.zero
-		\addChild with Panel 300, 300, 430, 640
-			.position = Vec2 150, 150
+		\css "width: 40%; height: 100%; padding: 10; justify-content: center"
+		\addChild with AlignNode!
+			\css "width: 100%; height: 50%"
+			panel = Panel 600, 1000, 1000, 1000
+			\addChild panel
+			\slot "AlignLayout", (w, h) -> panel\updateSize w, h
 	\addChild with AlignNode!
-		.size = Size 150, 200
-		.hAlign = "Right"
-		.vAlign = "Bottom"
-		.alignOffset = Vec2 10, 10
-		\addChild with Panel 150, 200, 430, 640
-			.position = Vec2 75, 100
-	\alignLayout!
+		\css "width: 30%; height: 100%; padding: 10; flex-direction: column-reverse"
+		\addChild with AlignNode!
+			\css "width: 100%; height: 40%"
+			panel = Panel 600, 1000, 1000, 1000
+			\addChild panel
+			\slot "AlignLayout", (w, h) -> panel\updateSize w, h
