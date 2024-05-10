@@ -24,10 +24,8 @@ NS_DORA_BEGIN
 uint32_t Touch::_source =
 #if BX_PLATFORM_OSX
 	Touch::FromMouse;
-#elif BX_PLATFORM_IOS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
+#else
 	Touch::FromTouch;
-#elif BX_PLATFORM_WINDOWS
-	Touch::FromMouseAndTouch;
 #endif
 
 Touch::Touch(int id)
