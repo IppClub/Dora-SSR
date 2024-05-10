@@ -1789,11 +1789,6 @@ class Touch extends Object {
 	enabled: boolean;
 
 	/**
-	 * Whether the touch event originated from a mouse click.
-	 */
-	readonly fromMouse: boolean;
-
-	/**
 	 * Whether this is the first touch event when multi-touches exist.
 	 */
 	readonly first: boolean;

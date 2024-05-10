@@ -1785,11 +1785,6 @@ class Touch extends Object {
 	enabled: boolean;
 
 	/**
-	 * 触摸事件是否源自鼠标点击。
-	 */
-	readonly fromMouse: boolean;
-
-	/**
 	 * 当存在多个触摸时，此触摸事件是否为第一个。
 	 */
 	readonly first: boolean;

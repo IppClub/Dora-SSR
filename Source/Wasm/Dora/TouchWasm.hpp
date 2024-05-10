@@ -15,9 +15,6 @@ static void touch_set_enabled(int64_t self, int32_t var) {
 static int32_t touch_is_enabled(int64_t self) {
 	return r_cast<Touch*>(self)->isEnabled() ? 1 : 0;
 }
-static int32_t touch_is_from_mouse(int64_t self) {
-	return r_cast<Touch*>(self)->isMouse() ? 1 : 0;
-}
 static int32_t touch_is_first(int64_t self) {
 	return r_cast<Touch*>(self)->isFirst() ? 1 : 0;
 }
@@ -37,7 +34,6 @@ static void linkTouch(wasm3::module3& mod) {
 	mod.link_optional("*", "touch_type", touch_type);
 	mod.link_optional("*", "touch_set_enabled", touch_set_enabled);
 	mod.link_optional("*", "touch_is_enabled", touch_is_enabled);
-	mod.link_optional("*", "touch_is_from_mouse", touch_is_from_mouse);
 	mod.link_optional("*", "touch_is_first", touch_is_first);
 	mod.link_optional("*", "touch_get_id", touch_get_id);
 	mod.link_optional("*", "touch_get_delta", touch_get_delta);
