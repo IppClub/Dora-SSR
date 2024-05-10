@@ -1706,8 +1706,6 @@ object class Touch
 {
 	/// whether touch input is enabled or not.
 	boolean bool enabled;
-	/// whether the touch event originated from a mouse click.
-	readonly boolean bool mouse @ fromMouse;
 	/// whether this is the first touch event when multi-touches exist.
 	readonly boolean bool first;
 	/// the unique identifier assigned to this touch event.

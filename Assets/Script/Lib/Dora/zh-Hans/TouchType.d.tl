@@ -10,9 +10,6 @@ local record Touch
 	-- 该触摸事件是否继续启用。
 	enabled: boolean
 
-	-- 触摸事件是否源自鼠标点击。
-	const fromMouse: boolean
-
 	-- 如果存在多点触控，则此事件是否为第一个触摸事件。
 	const first: boolean
 

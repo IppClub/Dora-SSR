@@ -41,7 +41,6 @@ public:
 		FromMouseAndTouch = FromMouse | FromTouch,
 	};
 	PROPERTY_BOOL(Enabled);
-	PROPERTY_READONLY_BOOL(Mouse);
 	PROPERTY_READONLY_BOOL(First);
 	PROPERTY_READONLY(int, Id);
 	PROPERTY_READONLY(Vec2, Delta);
@@ -65,8 +64,7 @@ private:
 	enum {
 		Enabled = 1,
 		Selected = 1 << 1,
-		IsMouse = 1 << 2,
-		IsFirst = 1 << 3,
+		IsFirst = 1 << 2,
 	};
 	static uint32_t _source;
 	friend class NodeTouchHandler;

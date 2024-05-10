@@ -502,7 +502,6 @@ class Grid : public Node
 class Touch : public Object
 {
 	tolua_property__bool bool enabled;
-	tolua_readonly tolua_property__bool bool mouse @ fromMouse;
 	tolua_readonly tolua_property__bool bool first;
 	tolua_readonly tolua_property__common int id;
 	tolua_readonly tolua_property__common Vec2 delta;

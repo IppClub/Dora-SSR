@@ -10,7 +10,6 @@ extern "C" {
 	fn touch_type() -> i32;
 	fn touch_set_enabled(slf: i64, var: i32);
 	fn touch_is_enabled(slf: i64) -> i32;
-	fn touch_is_from_mouse(slf: i64) -> i32;
 	fn touch_is_first(slf: i64) -> i32;
 	fn touch_get_id(slf: i64) -> i32;
 	fn touch_get_delta(slf: i64) -> i64;
@@ -37,10 +36,6 @@ impl Touch {
 	/// Gets whether touch input is enabled or not.
 	pub fn is_enabled(&self) -> bool {
 		return unsafe { touch_is_enabled(self.raw()) != 0 };
-	}
-	/// Gets whether the touch event originated from a mouse click.
-	pub fn is_from_mouse(&self) -> bool {
-		return unsafe { touch_is_from_mouse(self.raw()) != 0 };
 	}
 	/// Gets whether this is the first touch event when multi-touches exist.
 	pub fn is_first(&self) -> bool {
