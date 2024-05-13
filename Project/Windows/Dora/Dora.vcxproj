@@ -135,6 +135,310 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\bgfxrenderer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.CommonUtils.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.DDSTextureLoader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.GpuParticles.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.ModelRendererBase.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.PngTextureLoader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.Renderer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.Renderer_Impl.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RenderStateBase.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RibbonRendererBase.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RingRendererBase.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.SpriteRendererBase.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.TGATextureLoader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.TrackRendererBase.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\GraphicsDeviceCPU.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\ModelLoader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\TextureLoader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\VertexBuffer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Color.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.CurveLoader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.DefaultEffectLoader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.DefaultFile.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Effect.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNode.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeModel.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRibbon.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRing.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRoot.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeSprite.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeTrack.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.FCurves.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Instance.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceChunk.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceContainer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceGlobal.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceGroup.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InternalScript.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.IntrusiveList.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Manager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Matrix43.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Matrix44.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Random.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.RectF.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Resource.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.ResourceManager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Setting.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Vector2D.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Vector3D.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.WorkerThread.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\ForceField\ForceFields.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\IO\Effekseer.EfkEfcFactory.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.CompiledMaterial.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.MaterialCompiler.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.MaterialFile.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\Model.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ModelLoader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\PointCacheGenerator.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ProceduralModelGenerator.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\SplineGenerator.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Client.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Server.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Session.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Socket.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Noise\CurlNoise.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Collisions.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Easing.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Effekseer.Parameters.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\GpuParticlesParameter.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\KillRules.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Rotation.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Mat43f.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Mat44f.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Utils.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Effekseer.CustomAllocator.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorField.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorFieldLoader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\fmt\format.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -1413,6 +1717,7 @@
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\DragonBone.cpp" />
     <ClCompile Include="..\..\..\Source\Node\DrawNode.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\EffekNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Grid.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Label.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Menu.cpp" />
@@ -1504,6 +1809,155 @@
     <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\parser\BinaryDataParser.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\parser\DataParser.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\parser\JSONDataParser.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\3rdParty\stb_effekseer\stb_image_effekseer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\bgfxrenderer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer.Modules.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer.SIMD.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.CommonUtils.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.DDSTextureLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.GpuParticles.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.ModelRendererBase.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.PngTextureLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.Renderer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.Renderer_Impl.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RenderStateBase.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RibbonRendererBase.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RingRendererBase.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.ShaderBase.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.SpriteRendererBase.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.StandardRenderer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.TGATextureLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.TrackRendererBase.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRendererFlags.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\GraphicsDeviceCPU.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\ModelLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\Shader\gpu_particles_data.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\TextureLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\TrailRenderer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\VertexBuffer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Backend\GraphicsDevice.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Base.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Base.Pre.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Color.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Curve.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.CurveLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.DefaultEffectLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.DefaultFile.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Effect.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectImplemented.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNode.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeModel.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRibbon.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRing.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRoot.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeSprite.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeTrack.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.FCurves.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.File.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Instance.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceChunk.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceContainer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceGlobal.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceGroup.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InternalScript.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InternalStruct.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.IntrusiveList.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Manager.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.ManagerImplemented.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.MaterialLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Math.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Matrix43.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Matrix44.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Random.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.RectF.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Resource.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.ResourceManager.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Setting.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.SoundLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.TextureLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Vector2D.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Vector3D.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.WorkerThread.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\ForceField\ForceFields.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Geometry\GeometryUtility.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\IO\Effekseer.EfkEfcFactory.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.CompiledMaterial.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.MaterialCompiler.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.MaterialFile.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\Model.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ModelLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\PointCacheGenerator.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ProceduralModelGenerator.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ProceduralModelParameter.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\SplineGenerator.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\data\profiler_generated.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\data\reload_generated.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Client.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.ClientImplemented.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Server.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.ServerImplemented.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Session.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Socket.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Noise\CurlNoise.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Noise\PerlinNoise.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\AllTypeColor.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\AlphaCutoff.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\BasicSettings.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Collisions.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\CustomData.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\DepthParameter.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\DynamicParameter.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Easing.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Effekseer.Parameters.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\GpuParticlesParameter.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\KillRules.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\LOD.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Rotation.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Scaling.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Sound.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\SpawnMethod.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Translation.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\UV.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.GpuParticles.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.GpuTimer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.ModelRenderer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.ParticleRenderer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.RibbonRenderer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.RingRenderer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.SpriteRenderer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.TrackRenderer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Base.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Bridge.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Bridge_Gen.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Bridge_NEON.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Bridge_SSE.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Float4.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Float4_Gen.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Float4_NEON.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Float4_SSE.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Int4.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Int4_Gen.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Int4_NEON.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Int4_SSE.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Mat43f.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Mat44f.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Quaternionf.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Utils.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Vec2f.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Vec3f.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Vec4f.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Sound\Effekseer.SoundPlayer.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\BinaryVersion.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Compatiblity.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Effekseer.BinaryReader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Effekseer.CustomAllocator.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\InstancePool.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Profiler.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\String.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorField.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorFieldLoader.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\chrono.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\color.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\compile.h" />
@@ -2035,6 +2489,7 @@
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h" />
     <ClInclude Include="..\..\..\Source\Node\DragonBone.h" />
     <ClInclude Include="..\..\..\Source\Node\DrawNode.h" />
+    <ClInclude Include="..\..\..\Source\Node\EffekNode.h" />
     <ClInclude Include="..\..\..\Source\Node\Grid.h" />
     <ClInclude Include="..\..\..\Source\Node\Label.h" />
     <ClInclude Include="..\..\..\Source\Node\Menu.h" />
@@ -2138,7 +2593,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;_ITERATOR_DEBUG_LEVEL=0;WITH_SDL2_STATIC;BX_CONFIG_DEBUG=1;d_m3HasWASI;LUA_USE_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/asio;../../../Source/3rdParty/zlib;../../../Source/3rdParty/OpenSSL/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/asio;../../../Source/3rdParty/zlib;../../../Source/3rdParty/OpenSSL/Header;../../../Source/3rdParty/Effekseer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderFile>Const/Header.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -2181,7 +2636,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WITH_SDL2_STATIC;BX_CONFIG_DEBUG=0;d_m3HasWASI;LUA_USE_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/asio;../../../Source/3rdParty/zlib;../../../Source/3rdParty/OpenSSL/Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/BGFX/Header/compat/msvc;../../../Source/3rdParty/BGFX/Header;../../../Source/3rdParty/SDL2/Header;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/asio;../../../Source/3rdParty/zlib;../../../Source/3rdParty/OpenSSL/Header;../../../Source/3rdParty/Effekseer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>

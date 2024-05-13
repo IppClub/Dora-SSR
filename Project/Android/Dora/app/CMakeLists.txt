@@ -19,6 +19,7 @@ include_directories(
 	src/main/cpp/3rdParty/asio
 	src/main/cpp/3rdParty/zlib
 	src/main/cpp/3rdParty/OpenSSL/Header
+	src/main/cpp/3rdParty/Effekseer
 )
 
 add_library(SDL2-lib SHARED IMPORTED)
@@ -157,6 +158,7 @@ add_library(main SHARED
 	src/main/cpp/Node/DragonBone.cpp
 	src/main/cpp/Node/DrawNode.cpp
 	src/main/cpp/Node/AlignNode.cpp
+	src/main/cpp/Node/EffekNode.cpp
 	src/main/cpp/Event/EventType.cpp
 	src/main/cpp/Event/EventQueue.cpp
 	src/main/cpp/Event/Listener.cpp
@@ -513,6 +515,82 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/yoga/event/event.cpp
 	src/main/cpp/3rdParty/yoga/debug/Log.cpp
 	src/main/cpp/3rdParty/yoga/debug/AssertFatal.cpp
+	src/main/cpp/3rdParty/Effekseer/bgfxrenderer.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.RectF.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.ResourceManager.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.CurveLoader.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.IntrusiveList.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.EffectNodeRoot.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.Effect.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.WorkerThread.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.Manager.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.EffectNode.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.EffectNodeModel.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.EffectNodeTrack.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.FCurves.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.EffectNodeRing.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.InternalScript.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.DefaultEffectLoader.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.DefaultFile.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.Setting.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.InstanceGlobal.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.EffectNodeSprite.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.InstanceGroup.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.Resource.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.EffectNodeRibbon.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.Instance.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.Matrix43.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.Matrix44.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.InstanceContainer.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.Vector3D.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.Color.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.Vector2D.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.Random.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Effekseer.InstanceChunk.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.TrackRendererBase.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.RenderStateBase.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/VertexBuffer.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/GraphicsDeviceCPU.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.RibbonRendererBase.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/TextureLoader.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.Renderer.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.DDSTextureLoader.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/ModelLoader.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.ModelRendererBase.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.RingRendererBase.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.TGATextureLoader.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.Renderer_Impl.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.SpriteRendererBase.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.CommonUtils.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.PngTextureLoader.cpp
+	src/main/cpp/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.GpuParticles.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/ForceField/ForceFields.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Network/Effekseer.Server.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Network/Effekseer.Client.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Network/Effekseer.Session.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Network/Effekseer.Socket.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/IO/Effekseer.EfkEfcFactory.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/SIMD/Utils.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/SIMD/Mat44f.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/SIMD/Mat43f.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Utils/Effekseer.CustomAllocator.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/VectorField/VectorField.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/VectorField/VectorFieldLoader.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Noise/CurlNoise.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Model/ModelLoader.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Model/SplineGenerator.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Model/Model.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Model/ProceduralModelGenerator.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Model/PointCacheGenerator.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Parameter/Easing.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Parameter/Effekseer.Parameters.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Parameter/GpuParticlesParameter.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Parameter/Collisions.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Parameter/KillRules.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Parameter/Rotation.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Material/Effekseer.MaterialFile.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Material/Effekseer.MaterialCompiler.cpp
+	src/main/cpp/3rdParty/Effekseer/Effekseer/Material/Effekseer.CompiledMaterial.cpp
 )
 
 target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib CRYPTO-lib SSL-lib)

@@ -93,7 +93,7 @@ private:
 	std::stack<Own<Matrix>> _viewProjs;
 	Matrix _defaultViewProj;
 	NVGcontext* _nvgContext;
-	SINGLETON_REF(Director, FontManager, LuaEngine, BGFXDora, Application);
+	SINGLETON_REF(Director, EffekManager, FontManager, LuaEngine, BGFXDora, Application);
 };
 
 #define SharedDirector \

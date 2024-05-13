@@ -28,6 +28,11 @@ inline Own<T> New(Args&&... args) {
 	return Own<T>(new T(std::forward<Args>(args)...));
 }
 
+template <class T, class Del, class... Args>
+inline Own<T, Del> New(Args&&... args) {
+	return Own<T, Del>(new T(std::forward<Args>(args)...));
+}
+
 template <class T>
 inline OwnArray<T> NewArray(size_t size) {
 	return OwnArray<T>(new T[size]);
