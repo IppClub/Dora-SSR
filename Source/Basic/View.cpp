@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Effect/Effect.h"
 #include "Node/Node.h"
+#include "Node/EffekNode.h"
 
 NS_DORA_BEGIN
 
@@ -144,7 +145,7 @@ bool View::isVSync() const {
 }
 
 bool View::isPostProcessNeeded() const {
-	return _scale != 1.0f || _effect != nullptr;
+	return _scale != 1.0f || _effect != nullptr || EffekNode::getRunningNodes() > 0;
 }
 
 float View::getStandardDistance() const {

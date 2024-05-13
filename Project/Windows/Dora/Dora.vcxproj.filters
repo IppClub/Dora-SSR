@@ -256,6 +256,69 @@
     <Filter Include="3rdParty\yoga\style">
       <UniqueIdentifier>{f935156f-441f-4947-917c-11a198f6d7be}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\Effekseer">
+      <UniqueIdentifier>{307f5df6-4b72-46a8-b6fc-94caecfa577e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer">
+      <UniqueIdentifier>{1e783910-3d63-448a-9526-6e14736f200d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Backend">
+      <UniqueIdentifier>{b042433f-9fce-40d0-822e-1c4e256226aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\ForceField">
+      <UniqueIdentifier>{99696fc0-8d41-4922-a18a-dd174925bb77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Geometry">
+      <UniqueIdentifier>{8179e880-be4c-405e-926f-52678a384e5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\IO">
+      <UniqueIdentifier>{7a3d0423-d956-4f2e-9397-672c25649815}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Material">
+      <UniqueIdentifier>{e574b3e4-7ac0-4d4d-b0a3-30da40eb80e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Model">
+      <UniqueIdentifier>{94d93a9e-3bb9-4368-8f2c-871bcb097c0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Network">
+      <UniqueIdentifier>{c6eb7ccc-a506-40dc-9662-17e352f0a985}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Network\data">
+      <UniqueIdentifier>{04132ab2-1a69-4180-8c6c-de313ae81e40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Noise">
+      <UniqueIdentifier>{dda45781-ee5e-4e66-b876-e41322e7cdac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Renderer">
+      <UniqueIdentifier>{36ffc69d-eeac-4099-b830-af66f061aa8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Parameter">
+      <UniqueIdentifier>{dac3a377-cc92-4acf-b20e-cdf9cba55150}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\SIMD">
+      <UniqueIdentifier>{de4a14f5-eace-4bcd-91d5-525e1d349f8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Sound">
+      <UniqueIdentifier>{c743ec71-5c61-4a25-bd92-740792fc7758}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Utils">
+      <UniqueIdentifier>{e39da83b-0061-4231-bf0a-2785c3e6dfde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\VectorField">
+      <UniqueIdentifier>{fb0b1a4b-8e32-4389-b169-35db074ef66a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\EffekseerRendererCommon">
+      <UniqueIdentifier>{b308aad7-2a1d-4df1-80e6-e42bc0217ab4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\EffekseerRendererCommon\Shader">
+      <UniqueIdentifier>{2c2fd612-22c5-46c1-9bce-cc043aa0edd1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\3rdParty">
+      <UniqueIdentifier>{8f16a512-1057-49e9-bdce-7c12ad71c2e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\3rdParty\stb_effekseer">
+      <UniqueIdentifier>{65f9d15f-a845-4914-a3d9-a67e55466575}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
@@ -1582,6 +1645,237 @@
       <Filter>3rdParty\yoga\node</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\AlignNode.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\bgfxrenderer.cpp">
+      <Filter>3rdParty\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Color.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.CurveLoader.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.DefaultEffectLoader.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.DefaultFile.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Effect.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNode.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeModel.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRibbon.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRing.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRoot.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeSprite.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeTrack.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.FCurves.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Instance.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceChunk.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceContainer.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceGlobal.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceGroup.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InternalScript.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.IntrusiveList.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Manager.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Matrix43.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Matrix44.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Random.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.RectF.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Resource.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.ResourceManager.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Setting.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Vector2D.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Vector3D.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.WorkerThread.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\ForceField\ForceFields.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\ForceField</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\IO\Effekseer.EfkEfcFactory.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.CompiledMaterial.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.MaterialCompiler.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.MaterialFile.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\Model.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ModelLoader.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\PointCacheGenerator.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ProceduralModelGenerator.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\SplineGenerator.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Client.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Server.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Session.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Socket.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Noise\CurlNoise.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Noise</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Collisions.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Easing.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Effekseer.Parameters.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\GpuParticlesParameter.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\KillRules.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Rotation.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Mat43f.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Mat44f.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Utils.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Effekseer.CustomAllocator.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorField.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\VectorField</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorFieldLoader.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\VectorField</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.CommonUtils.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.DDSTextureLoader.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.GpuParticles.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.ModelRendererBase.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.PngTextureLoader.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.Renderer.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.Renderer_Impl.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RenderStateBase.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RibbonRendererBase.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RingRendererBase.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.SpriteRendererBase.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.TGATextureLoader.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.TrackRendererBase.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\GraphicsDeviceCPU.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\ModelLoader.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\TextureLoader.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\VertexBuffer.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\EffekNode.cpp">
       <Filter>Node</Filter>
     </ClCompile>
   </ItemGroup>
@@ -3412,6 +3706,456 @@
       <Filter>3rdParty\yoga\node</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\AlignNode.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\bgfxrenderer.h">
+      <Filter>3rdParty\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer.h">
+      <Filter>3rdParty\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer.Modules.h">
+      <Filter>3rdParty\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer.SIMD.h">
+      <Filter>3rdParty\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Base.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Base.Pre.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Color.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Curve.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.CurveLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.DefaultEffectLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.DefaultFile.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Effect.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectImplemented.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNode.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeModel.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRibbon.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRing.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRoot.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeSprite.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeTrack.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.FCurves.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.File.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Instance.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceChunk.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceContainer.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceGlobal.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceGroup.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InternalScript.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InternalStruct.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.IntrusiveList.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Manager.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.ManagerImplemented.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.MaterialLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Math.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Matrix43.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Matrix44.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Random.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.RectF.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Resource.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.ResourceManager.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Setting.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.SoundLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.TextureLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Vector2D.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Vector3D.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.WorkerThread.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Backend\GraphicsDevice.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\ForceField\ForceFields.h">
+      <Filter>3rdParty\Effekseer\Effekseer\ForceField</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Geometry\GeometryUtility.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\IO\Effekseer.EfkEfcFactory.h">
+      <Filter>3rdParty\Effekseer\Effekseer\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.CompiledMaterial.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.MaterialCompiler.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.MaterialFile.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\Model.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ModelLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\PointCacheGenerator.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ProceduralModelGenerator.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ProceduralModelParameter.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\SplineGenerator.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Client.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.ClientImplemented.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Server.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.ServerImplemented.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Session.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Socket.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\data\profiler_generated.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\data\reload_generated.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Noise\CurlNoise.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Noise</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Noise\PerlinNoise.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Noise</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\AllTypeColor.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\AlphaCutoff.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\BasicSettings.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Collisions.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\CustomData.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\DepthParameter.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\DynamicParameter.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Easing.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Effekseer.Parameters.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\GpuParticlesParameter.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\KillRules.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\LOD.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Rotation.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Scaling.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Sound.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\SpawnMethod.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Translation.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\UV.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.GpuParticles.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.GpuTimer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.ModelRenderer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.ParticleRenderer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.RibbonRenderer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.RingRenderer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.SpriteRenderer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.TrackRenderer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Base.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Bridge.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Bridge_Gen.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Bridge_NEON.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Bridge_SSE.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Float4.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Float4_Gen.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Float4_NEON.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Float4_SSE.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Int4.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Int4_Gen.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Int4_NEON.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Int4_SSE.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Mat43f.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Mat44f.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Quaternionf.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Utils.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Vec2f.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Vec3f.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Vec4f.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Sound\Effekseer.SoundPlayer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\BinaryVersion.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Compatiblity.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Effekseer.BinaryReader.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Effekseer.CustomAllocator.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\InstancePool.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Profiler.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\String.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorField.h">
+      <Filter>3rdParty\Effekseer\Effekseer\VectorField</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorFieldLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer\VectorField</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.CommonUtils.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.DDSTextureLoader.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.GpuParticles.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.ModelRendererBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.PngTextureLoader.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.Renderer.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.Renderer_Impl.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RenderStateBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RibbonRendererBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RingRendererBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.ShaderBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.SpriteRendererBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.StandardRenderer.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.TGATextureLoader.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.TrackRendererBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRendererFlags.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\GraphicsDeviceCPU.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\ModelLoader.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\TextureLoader.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\TrailRenderer.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\VertexBuffer.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\Shader\gpu_particles_data.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\3rdParty\stb_effekseer\stb_image_effekseer.h">
+      <Filter>3rdParty\Effekseer\3rdParty\stb_effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\EffekNode.h">
       <Filter>Node</Filter>
     </ClInclude>
   </ItemGroup>

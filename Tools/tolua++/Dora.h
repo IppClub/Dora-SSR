@@ -689,6 +689,13 @@ class AlignNode : public Node
 	static AlignNode* create(bool isRoot = false);
 };
 
+class EffekNode : public Node
+{
+	int play(String filename, Vec2 pos = Vec2::zero, float z = 0.0f);
+	void stop(int handle);
+	static EffekNode* create();
+};
+
 class PhysicsWorld : public Node
 {
 	bool query(Rect rect, tolua_function_bool handler);

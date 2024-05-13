@@ -1328,6 +1328,7 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/DirectorWasm.hpp"
 #include "Dora/DragonBoneWasm.hpp"
 #include "Dora/AlignNodeWasm.hpp"
+#include "Dora/EffekNodeWasm.hpp"
 #include "Dora/DrawNodeWasm.hpp"
 #include "Dora/EaseWasm.hpp"
 #include "Dora/EffectWasm.hpp"
@@ -1424,6 +1425,7 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkSpine(mod);
 	linkDragonBone(mod);
 	linkAlignNode(mod);
+	linkEffekNode(mod);
 	linkPhysicsWorld(mod);
 	linkFixtureDef(mod);
 	linkBodyDef(mod);

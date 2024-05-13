@@ -24,6 +24,83 @@
 		3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0D399E1E1BA8FB007FEFC3 /* Array.cpp */; };
 		3C0EBE301E2DB3FB0066450A /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C0EBE2F1E2DB3FB0066450A /* libbx.a */; };
 		3C0EBE361E2E1D840066450A /* ShaderCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0EBE341E2E1D840066450A /* ShaderCache.cpp */; };
+		3C0FB33D2BEEF0490098E88D /* bgfxrenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB33B2BEEF0490098E88D /* bgfxrenderer.cpp */; };
+		3C0FB46D2BEEF0DA0098E88D /* EffekseerRenderer.CommonUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4462BEEF0DA0098E88D /* EffekseerRenderer.CommonUtils.cpp */; };
+		3C0FB46E2BEEF0DA0098E88D /* EffekseerRenderer.DDSTextureLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4482BEEF0DA0098E88D /* EffekseerRenderer.DDSTextureLoader.cpp */; };
+		3C0FB46F2BEEF0DA0098E88D /* EffekseerRenderer.GpuParticles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB44A2BEEF0DA0098E88D /* EffekseerRenderer.GpuParticles.cpp */; };
+		3C0FB4702BEEF0DA0098E88D /* EffekseerRenderer.ModelRendererBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB44C2BEEF0DA0098E88D /* EffekseerRenderer.ModelRendererBase.cpp */; };
+		3C0FB4712BEEF0DA0098E88D /* EffekseerRenderer.PngTextureLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB44E2BEEF0DA0098E88D /* EffekseerRenderer.PngTextureLoader.cpp */; };
+		3C0FB4722BEEF0DA0098E88D /* EffekseerRenderer.Renderer_Impl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4502BEEF0DA0098E88D /* EffekseerRenderer.Renderer_Impl.cpp */; };
+		3C0FB4732BEEF0DA0098E88D /* EffekseerRenderer.Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4522BEEF0DA0098E88D /* EffekseerRenderer.Renderer.cpp */; };
+		3C0FB4742BEEF0DA0098E88D /* EffekseerRenderer.RenderStateBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4542BEEF0DA0098E88D /* EffekseerRenderer.RenderStateBase.cpp */; };
+		3C0FB4752BEEF0DA0098E88D /* EffekseerRenderer.RibbonRendererBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4562BEEF0DA0098E88D /* EffekseerRenderer.RibbonRendererBase.cpp */; };
+		3C0FB4762BEEF0DA0098E88D /* EffekseerRenderer.RingRendererBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4582BEEF0DA0098E88D /* EffekseerRenderer.RingRendererBase.cpp */; };
+		3C0FB4772BEEF0DA0098E88D /* EffekseerRenderer.SpriteRendererBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB45B2BEEF0DA0098E88D /* EffekseerRenderer.SpriteRendererBase.cpp */; };
+		3C0FB4782BEEF0DA0098E88D /* EffekseerRenderer.TGATextureLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB45E2BEEF0DA0098E88D /* EffekseerRenderer.TGATextureLoader.cpp */; };
+		3C0FB4792BEEF0DA0098E88D /* EffekseerRenderer.TrackRendererBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4602BEEF0DA0098E88D /* EffekseerRenderer.TrackRendererBase.cpp */; };
+		3C0FB47A2BEEF0DA0098E88D /* GraphicsDeviceCPU.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4632BEEF0DA0098E88D /* GraphicsDeviceCPU.cpp */; };
+		3C0FB47B2BEEF0DA0098E88D /* ModelLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4652BEEF0DA0098E88D /* ModelLoader.cpp */; };
+		3C0FB47C2BEEF0DA0098E88D /* TextureLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4672BEEF0DA0098E88D /* TextureLoader.cpp */; };
+		3C0FB47D2BEEF0DA0098E88D /* VertexBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB46A2BEEF0DA0098E88D /* VertexBuffer.cpp */; };
+		3C0FB5472BEEF20D0098E88D /* ForceFields.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4822BEEF20D0098E88D /* ForceFields.cpp */; };
+		3C0FB5482BEEF20D0098E88D /* Effekseer.EfkEfcFactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4872BEEF20D0098E88D /* Effekseer.EfkEfcFactory.cpp */; };
+		3C0FB5492BEEF20D0098E88D /* Effekseer.CompiledMaterial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB48A2BEEF20D0098E88D /* Effekseer.CompiledMaterial.cpp */; };
+		3C0FB54A2BEEF20D0098E88D /* Effekseer.MaterialCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB48C2BEEF20D0098E88D /* Effekseer.MaterialCompiler.cpp */; };
+		3C0FB54B2BEEF20D0098E88D /* Effekseer.MaterialFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB48E2BEEF20D0098E88D /* Effekseer.MaterialFile.cpp */; };
+		3C0FB54C2BEEF20D0098E88D /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4912BEEF20D0098E88D /* Model.cpp */; };
+		3C0FB54D2BEEF20D0098E88D /* ModelLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4932BEEF20D0098E88D /* ModelLoader.cpp */; };
+		3C0FB54E2BEEF20D0098E88D /* PointCacheGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4952BEEF20D0098E88D /* PointCacheGenerator.cpp */; };
+		3C0FB54F2BEEF20D0098E88D /* ProceduralModelGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4972BEEF20D0098E88D /* ProceduralModelGenerator.cpp */; };
+		3C0FB5502BEEF20D0098E88D /* SplineGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB49A2BEEF20D0098E88D /* SplineGenerator.cpp */; };
+		3C0FB5532BEEF20D0098E88D /* Effekseer.Client.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4A22BEEF20D0098E88D /* Effekseer.Client.cpp */; };
+		3C0FB5542BEEF20D0098E88D /* Effekseer.Server.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4A52BEEF20D0098E88D /* Effekseer.Server.cpp */; };
+		3C0FB5552BEEF20D0098E88D /* Effekseer.Session.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4A82BEEF20D0098E88D /* Effekseer.Session.cpp */; };
+		3C0FB5562BEEF20D0098E88D /* Effekseer.Socket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4AA2BEEF20D0098E88D /* Effekseer.Socket.cpp */; };
+		3C0FB5572BEEF20D0098E88D /* CurlNoise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4AD2BEEF20D0098E88D /* CurlNoise.cpp */; };
+		3C0FB5582BEEF20D0098E88D /* Collisions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4B42BEEF20D0098E88D /* Collisions.cpp */; };
+		3C0FB5592BEEF20D0098E88D /* Easing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4B92BEEF20D0098E88D /* Easing.cpp */; };
+		3C0FB55A2BEEF20D0098E88D /* Effekseer.Parameters.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4BB2BEEF20D0098E88D /* Effekseer.Parameters.cpp */; };
+		3C0FB55B2BEEF20D0098E88D /* GpuParticlesParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4BD2BEEF20D0098E88D /* GpuParticlesParameter.cpp */; };
+		3C0FB55C2BEEF20D0098E88D /* KillRules.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4BF2BEEF20D0098E88D /* KillRules.cpp */; };
+		3C0FB55D2BEEF20D0098E88D /* Rotation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4C22BEEF20D0098E88D /* Rotation.cpp */; };
+		3C0FB55E2BEEF20D0098E88D /* Mat43f.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4E02BEEF20D0098E88D /* Mat43f.cpp */; };
+		3C0FB55F2BEEF20D0098E88D /* Mat44f.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4E22BEEF20D0098E88D /* Mat44f.cpp */; };
+		3C0FB5602BEEF20D0098E88D /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4E52BEEF20D0098E88D /* Utils.cpp */; };
+		3C0FB5612BEEF20D0098E88D /* Effekseer.CustomAllocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4F02BEEF20D0098E88D /* Effekseer.CustomAllocator.cpp */; };
+		3C0FB5622BEEF20D0098E88D /* VectorField.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4F62BEEF20D0098E88D /* VectorField.cpp */; };
+		3C0FB5632BEEF20D0098E88D /* VectorFieldLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4F82BEEF20D0098E88D /* VectorFieldLoader.cpp */; };
+		3C0FB5642BEEF20D0098E88D /* Effekseer.Color.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB4FD2BEEF20D0098E88D /* Effekseer.Color.cpp */; };
+		3C0FB5652BEEF20D0098E88D /* Effekseer.CurveLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5002BEEF20D0098E88D /* Effekseer.CurveLoader.cpp */; };
+		3C0FB5662BEEF20D0098E88D /* Effekseer.DefaultEffectLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5022BEEF20D0098E88D /* Effekseer.DefaultEffectLoader.cpp */; };
+		3C0FB5672BEEF20D0098E88D /* Effekseer.DefaultFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5042BEEF20D0098E88D /* Effekseer.DefaultFile.cpp */; };
+		3C0FB5682BEEF20D0098E88D /* Effekseer.Effect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5062BEEF20D0098E88D /* Effekseer.Effect.cpp */; };
+		3C0FB5692BEEF20D0098E88D /* Effekseer.EffectNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB50A2BEEF20D0098E88D /* Effekseer.EffectNode.cpp */; };
+		3C0FB56A2BEEF20D0098E88D /* Effekseer.EffectNodeModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB50C2BEEF20D0098E88D /* Effekseer.EffectNodeModel.cpp */; };
+		3C0FB56B2BEEF20D0098E88D /* Effekseer.EffectNodeRibbon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB50E2BEEF20D0098E88D /* Effekseer.EffectNodeRibbon.cpp */; };
+		3C0FB56C2BEEF20D0098E88D /* Effekseer.EffectNodeRing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5102BEEF20D0098E88D /* Effekseer.EffectNodeRing.cpp */; };
+		3C0FB56D2BEEF20D0098E88D /* Effekseer.EffectNodeRoot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5122BEEF20D0098E88D /* Effekseer.EffectNodeRoot.cpp */; };
+		3C0FB56E2BEEF20D0098E88D /* Effekseer.EffectNodeSprite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5142BEEF20D0098E88D /* Effekseer.EffectNodeSprite.cpp */; };
+		3C0FB56F2BEEF20D0098E88D /* Effekseer.EffectNodeTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5162BEEF20D0098E88D /* Effekseer.EffectNodeTrack.cpp */; };
+		3C0FB5702BEEF20D0098E88D /* Effekseer.FCurves.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5182BEEF20D0098E88D /* Effekseer.FCurves.cpp */; };
+		3C0FB5712BEEF20D0098E88D /* Effekseer.Instance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB51B2BEEF20D0098E88D /* Effekseer.Instance.cpp */; };
+		3C0FB5722BEEF20D0098E88D /* Effekseer.InstanceChunk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB51D2BEEF20D0098E88D /* Effekseer.InstanceChunk.cpp */; };
+		3C0FB5732BEEF20D0098E88D /* Effekseer.InstanceContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB51F2BEEF20D0098E88D /* Effekseer.InstanceContainer.cpp */; };
+		3C0FB5742BEEF20D0098E88D /* Effekseer.InstanceGlobal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5212BEEF20D0098E88D /* Effekseer.InstanceGlobal.cpp */; };
+		3C0FB5752BEEF20D0098E88D /* Effekseer.InstanceGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5232BEEF20D0098E88D /* Effekseer.InstanceGroup.cpp */; };
+		3C0FB5762BEEF20D0098E88D /* Effekseer.InternalScript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5252BEEF20D0098E88D /* Effekseer.InternalScript.cpp */; };
+		3C0FB5772BEEF20D0098E88D /* Effekseer.IntrusiveList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5282BEEF20D0098E88D /* Effekseer.IntrusiveList.cpp */; };
+		3C0FB5782BEEF20D0098E88D /* Effekseer.Manager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB52A2BEEF20D0098E88D /* Effekseer.Manager.cpp */; };
+		3C0FB5792BEEF20D0098E88D /* Effekseer.Matrix43.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB52F2BEEF20D0098E88D /* Effekseer.Matrix43.cpp */; };
+		3C0FB57A2BEEF20D0098E88D /* Effekseer.Matrix44.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5312BEEF20D0098E88D /* Effekseer.Matrix44.cpp */; };
+		3C0FB57B2BEEF20D0098E88D /* Effekseer.Random.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5332BEEF20D0098E88D /* Effekseer.Random.cpp */; };
+		3C0FB57C2BEEF20D0098E88D /* Effekseer.RectF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5352BEEF20D0098E88D /* Effekseer.RectF.cpp */; };
+		3C0FB57D2BEEF20D0098E88D /* Effekseer.Resource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5372BEEF20D0098E88D /* Effekseer.Resource.cpp */; };
+		3C0FB57E2BEEF20D0098E88D /* Effekseer.ResourceManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5392BEEF20D0098E88D /* Effekseer.ResourceManager.cpp */; };
+		3C0FB57F2BEEF20D0098E88D /* Effekseer.Setting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB53B2BEEF20D0098E88D /* Effekseer.Setting.cpp */; };
+		3C0FB5802BEEF20D0098E88D /* Effekseer.Vector2D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB53F2BEEF20D0098E88D /* Effekseer.Vector2D.cpp */; };
+		3C0FB5812BEEF20D0098E88D /* Effekseer.Vector3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5412BEEF20D0098E88D /* Effekseer.Vector3D.cpp */; };
+		3C0FB5822BEEF20D0098E88D /* Effekseer.WorkerThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5432BEEF20D0098E88D /* Effekseer.WorkerThread.cpp */; };
+		3C0FB5852BEEFCF60098E88D /* EffekNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5842BEEFCF60098E88D /* EffekNode.cpp */; };
 		3C1984782100656800B6F370 /* PlatformWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1984742100656700B6F370 /* PlatformWorld.cpp */; };
 		3C1984792100656800B6F370 /* PlatformCamera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1984752100656700B6F370 /* PlatformCamera.cpp */; };
 		3C1A3AEA272A850F003A2829 /* lfunc.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C1A3AAE272A850D003A2829 /* lfunc.c */; };
@@ -525,6 +602,232 @@
 		3C0EBE2F1E2DB3FB0066450A /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbx.a; sourceTree = "<group>"; };
 		3C0EBE341E2E1D840066450A /* ShaderCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShaderCache.cpp; path = ../../../Source/Cache/ShaderCache.cpp; sourceTree = "<group>"; };
 		3C0EBE351E2E1D840066450A /* ShaderCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShaderCache.h; path = ../../../Source/Cache/ShaderCache.h; sourceTree = "<group>"; };
+		3C0FB33B2BEEF0490098E88D /* bgfxrenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = bgfxrenderer.cpp; path = ../../../Source/3rdParty/Effekseer/bgfxrenderer.cpp; sourceTree = "<group>"; };
+		3C0FB33C2BEEF0490098E88D /* bgfxrenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bgfxrenderer.h; path = ../../../Source/3rdParty/Effekseer/bgfxrenderer.h; sourceTree = "<group>"; };
+		3C0FB4442BEEF0DA0098E88D /* gpu_particles_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gpu_particles_data.h; sourceTree = "<group>"; };
+		3C0FB4462BEEF0DA0098E88D /* EffekseerRenderer.CommonUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffekseerRenderer.CommonUtils.cpp; sourceTree = "<group>"; };
+		3C0FB4472BEEF0DA0098E88D /* EffekseerRenderer.CommonUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.CommonUtils.h; sourceTree = "<group>"; };
+		3C0FB4482BEEF0DA0098E88D /* EffekseerRenderer.DDSTextureLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffekseerRenderer.DDSTextureLoader.cpp; sourceTree = "<group>"; };
+		3C0FB4492BEEF0DA0098E88D /* EffekseerRenderer.DDSTextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.DDSTextureLoader.h; sourceTree = "<group>"; };
+		3C0FB44A2BEEF0DA0098E88D /* EffekseerRenderer.GpuParticles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffekseerRenderer.GpuParticles.cpp; sourceTree = "<group>"; };
+		3C0FB44B2BEEF0DA0098E88D /* EffekseerRenderer.GpuParticles.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.GpuParticles.h; sourceTree = "<group>"; };
+		3C0FB44C2BEEF0DA0098E88D /* EffekseerRenderer.ModelRendererBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffekseerRenderer.ModelRendererBase.cpp; sourceTree = "<group>"; };
+		3C0FB44D2BEEF0DA0098E88D /* EffekseerRenderer.ModelRendererBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.ModelRendererBase.h; sourceTree = "<group>"; };
+		3C0FB44E2BEEF0DA0098E88D /* EffekseerRenderer.PngTextureLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffekseerRenderer.PngTextureLoader.cpp; sourceTree = "<group>"; };
+		3C0FB44F2BEEF0DA0098E88D /* EffekseerRenderer.PngTextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.PngTextureLoader.h; sourceTree = "<group>"; };
+		3C0FB4502BEEF0DA0098E88D /* EffekseerRenderer.Renderer_Impl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffekseerRenderer.Renderer_Impl.cpp; sourceTree = "<group>"; };
+		3C0FB4512BEEF0DA0098E88D /* EffekseerRenderer.Renderer_Impl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.Renderer_Impl.h; sourceTree = "<group>"; };
+		3C0FB4522BEEF0DA0098E88D /* EffekseerRenderer.Renderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffekseerRenderer.Renderer.cpp; sourceTree = "<group>"; };
+		3C0FB4532BEEF0DA0098E88D /* EffekseerRenderer.Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.Renderer.h; sourceTree = "<group>"; };
+		3C0FB4542BEEF0DA0098E88D /* EffekseerRenderer.RenderStateBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffekseerRenderer.RenderStateBase.cpp; sourceTree = "<group>"; };
+		3C0FB4552BEEF0DA0098E88D /* EffekseerRenderer.RenderStateBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.RenderStateBase.h; sourceTree = "<group>"; };
+		3C0FB4562BEEF0DA0098E88D /* EffekseerRenderer.RibbonRendererBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffekseerRenderer.RibbonRendererBase.cpp; sourceTree = "<group>"; };
+		3C0FB4572BEEF0DA0098E88D /* EffekseerRenderer.RibbonRendererBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.RibbonRendererBase.h; sourceTree = "<group>"; };
+		3C0FB4582BEEF0DA0098E88D /* EffekseerRenderer.RingRendererBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffekseerRenderer.RingRendererBase.cpp; sourceTree = "<group>"; };
+		3C0FB4592BEEF0DA0098E88D /* EffekseerRenderer.RingRendererBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.RingRendererBase.h; sourceTree = "<group>"; };
+		3C0FB45A2BEEF0DA0098E88D /* EffekseerRenderer.ShaderBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.ShaderBase.h; sourceTree = "<group>"; };
+		3C0FB45B2BEEF0DA0098E88D /* EffekseerRenderer.SpriteRendererBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffekseerRenderer.SpriteRendererBase.cpp; sourceTree = "<group>"; };
+		3C0FB45C2BEEF0DA0098E88D /* EffekseerRenderer.SpriteRendererBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.SpriteRendererBase.h; sourceTree = "<group>"; };
+		3C0FB45D2BEEF0DA0098E88D /* EffekseerRenderer.StandardRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.StandardRenderer.h; sourceTree = "<group>"; };
+		3C0FB45E2BEEF0DA0098E88D /* EffekseerRenderer.TGATextureLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffekseerRenderer.TGATextureLoader.cpp; sourceTree = "<group>"; };
+		3C0FB45F2BEEF0DA0098E88D /* EffekseerRenderer.TGATextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.TGATextureLoader.h; sourceTree = "<group>"; };
+		3C0FB4602BEEF0DA0098E88D /* EffekseerRenderer.TrackRendererBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EffekseerRenderer.TrackRendererBase.cpp; sourceTree = "<group>"; };
+		3C0FB4612BEEF0DA0098E88D /* EffekseerRenderer.TrackRendererBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRenderer.TrackRendererBase.h; sourceTree = "<group>"; };
+		3C0FB4622BEEF0DA0098E88D /* EffekseerRendererFlags.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EffekseerRendererFlags.h; sourceTree = "<group>"; };
+		3C0FB4632BEEF0DA0098E88D /* GraphicsDeviceCPU.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GraphicsDeviceCPU.cpp; sourceTree = "<group>"; };
+		3C0FB4642BEEF0DA0098E88D /* GraphicsDeviceCPU.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphicsDeviceCPU.h; sourceTree = "<group>"; };
+		3C0FB4652BEEF0DA0098E88D /* ModelLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelLoader.cpp; sourceTree = "<group>"; };
+		3C0FB4662BEEF0DA0098E88D /* ModelLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelLoader.h; sourceTree = "<group>"; };
+		3C0FB4672BEEF0DA0098E88D /* TextureLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TextureLoader.cpp; sourceTree = "<group>"; };
+		3C0FB4682BEEF0DA0098E88D /* TextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TextureLoader.h; sourceTree = "<group>"; };
+		3C0FB4692BEEF0DA0098E88D /* TrailRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TrailRenderer.h; sourceTree = "<group>"; };
+		3C0FB46A2BEEF0DA0098E88D /* VertexBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VertexBuffer.cpp; sourceTree = "<group>"; };
+		3C0FB46B2BEEF0DA0098E88D /* VertexBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VertexBuffer.h; sourceTree = "<group>"; };
+		3C0FB47E2BEEF20D0098E88D /* Effekseer.Modules.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Effekseer.Modules.h; path = ../../../Source/3rdParty/Effekseer/Effekseer.Modules.h; sourceTree = "<group>"; };
+		3C0FB47F2BEEF20D0098E88D /* Effekseer.SIMD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Effekseer.SIMD.h; path = ../../../Source/3rdParty/Effekseer/Effekseer.SIMD.h; sourceTree = "<group>"; };
+		3C0FB4802BEEF20D0098E88D /* GraphicsDevice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphicsDevice.h; sourceTree = "<group>"; };
+		3C0FB4822BEEF20D0098E88D /* ForceFields.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ForceFields.cpp; sourceTree = "<group>"; };
+		3C0FB4832BEEF20D0098E88D /* ForceFields.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ForceFields.h; sourceTree = "<group>"; };
+		3C0FB4852BEEF20D0098E88D /* GeometryUtility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GeometryUtility.h; sourceTree = "<group>"; };
+		3C0FB4872BEEF20D0098E88D /* Effekseer.EfkEfcFactory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.EfkEfcFactory.cpp; sourceTree = "<group>"; };
+		3C0FB4882BEEF20D0098E88D /* Effekseer.EfkEfcFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.EfkEfcFactory.h; sourceTree = "<group>"; };
+		3C0FB48A2BEEF20D0098E88D /* Effekseer.CompiledMaterial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.CompiledMaterial.cpp; sourceTree = "<group>"; };
+		3C0FB48B2BEEF20D0098E88D /* Effekseer.CompiledMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.CompiledMaterial.h; sourceTree = "<group>"; };
+		3C0FB48C2BEEF20D0098E88D /* Effekseer.MaterialCompiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.MaterialCompiler.cpp; sourceTree = "<group>"; };
+		3C0FB48D2BEEF20D0098E88D /* Effekseer.MaterialCompiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.MaterialCompiler.h; sourceTree = "<group>"; };
+		3C0FB48E2BEEF20D0098E88D /* Effekseer.MaterialFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.MaterialFile.cpp; sourceTree = "<group>"; };
+		3C0FB48F2BEEF20D0098E88D /* Effekseer.MaterialFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.MaterialFile.h; sourceTree = "<group>"; };
+		3C0FB4912BEEF20D0098E88D /* Model.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Model.cpp; sourceTree = "<group>"; };
+		3C0FB4922BEEF20D0098E88D /* Model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Model.h; sourceTree = "<group>"; };
+		3C0FB4932BEEF20D0098E88D /* ModelLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelLoader.cpp; sourceTree = "<group>"; };
+		3C0FB4942BEEF20D0098E88D /* ModelLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ModelLoader.h; sourceTree = "<group>"; };
+		3C0FB4952BEEF20D0098E88D /* PointCacheGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PointCacheGenerator.cpp; sourceTree = "<group>"; };
+		3C0FB4962BEEF20D0098E88D /* PointCacheGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PointCacheGenerator.h; sourceTree = "<group>"; };
+		3C0FB4972BEEF20D0098E88D /* ProceduralModelGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ProceduralModelGenerator.cpp; sourceTree = "<group>"; };
+		3C0FB4982BEEF20D0098E88D /* ProceduralModelGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProceduralModelGenerator.h; sourceTree = "<group>"; };
+		3C0FB4992BEEF20D0098E88D /* ProceduralModelParameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProceduralModelParameter.h; sourceTree = "<group>"; };
+		3C0FB49A2BEEF20D0098E88D /* SplineGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SplineGenerator.cpp; sourceTree = "<group>"; };
+		3C0FB49B2BEEF20D0098E88D /* SplineGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SplineGenerator.h; sourceTree = "<group>"; };
+		3C0FB49D2BEEF20D0098E88D /* profiler_generated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = profiler_generated.h; sourceTree = "<group>"; };
+		3C0FB49F2BEEF20D0098E88D /* reload_generated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = reload_generated.h; sourceTree = "<group>"; };
+		3C0FB4A22BEEF20D0098E88D /* Effekseer.Client.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Client.cpp; sourceTree = "<group>"; };
+		3C0FB4A32BEEF20D0098E88D /* Effekseer.Client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Client.h; sourceTree = "<group>"; };
+		3C0FB4A42BEEF20D0098E88D /* Effekseer.ClientImplemented.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.ClientImplemented.h; sourceTree = "<group>"; };
+		3C0FB4A52BEEF20D0098E88D /* Effekseer.Server.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Server.cpp; sourceTree = "<group>"; };
+		3C0FB4A62BEEF20D0098E88D /* Effekseer.Server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Server.h; sourceTree = "<group>"; };
+		3C0FB4A72BEEF20D0098E88D /* Effekseer.ServerImplemented.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.ServerImplemented.h; sourceTree = "<group>"; };
+		3C0FB4A82BEEF20D0098E88D /* Effekseer.Session.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Session.cpp; sourceTree = "<group>"; };
+		3C0FB4A92BEEF20D0098E88D /* Effekseer.Session.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Session.h; sourceTree = "<group>"; };
+		3C0FB4AA2BEEF20D0098E88D /* Effekseer.Socket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Socket.cpp; sourceTree = "<group>"; };
+		3C0FB4AB2BEEF20D0098E88D /* Effekseer.Socket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Socket.h; sourceTree = "<group>"; };
+		3C0FB4AD2BEEF20D0098E88D /* CurlNoise.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CurlNoise.cpp; sourceTree = "<group>"; };
+		3C0FB4AE2BEEF20D0098E88D /* CurlNoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CurlNoise.h; sourceTree = "<group>"; };
+		3C0FB4AF2BEEF20D0098E88D /* PerlinNoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PerlinNoise.h; sourceTree = "<group>"; };
+		3C0FB4B12BEEF20D0098E88D /* AllTypeColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AllTypeColor.h; sourceTree = "<group>"; };
+		3C0FB4B22BEEF20D0098E88D /* AlphaCutoff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AlphaCutoff.h; sourceTree = "<group>"; };
+		3C0FB4B32BEEF20D0098E88D /* BasicSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BasicSettings.h; sourceTree = "<group>"; };
+		3C0FB4B42BEEF20D0098E88D /* Collisions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Collisions.cpp; sourceTree = "<group>"; };
+		3C0FB4B52BEEF20D0098E88D /* Collisions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Collisions.h; sourceTree = "<group>"; };
+		3C0FB4B62BEEF20D0098E88D /* CustomData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomData.h; sourceTree = "<group>"; };
+		3C0FB4B72BEEF20D0098E88D /* DepthParameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DepthParameter.h; sourceTree = "<group>"; };
+		3C0FB4B82BEEF20D0098E88D /* DynamicParameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DynamicParameter.h; sourceTree = "<group>"; };
+		3C0FB4B92BEEF20D0098E88D /* Easing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Easing.cpp; sourceTree = "<group>"; };
+		3C0FB4BA2BEEF20D0098E88D /* Easing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Easing.h; sourceTree = "<group>"; };
+		3C0FB4BB2BEEF20D0098E88D /* Effekseer.Parameters.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Parameters.cpp; sourceTree = "<group>"; };
+		3C0FB4BC2BEEF20D0098E88D /* Effekseer.Parameters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Parameters.h; sourceTree = "<group>"; };
+		3C0FB4BD2BEEF20D0098E88D /* GpuParticlesParameter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GpuParticlesParameter.cpp; sourceTree = "<group>"; };
+		3C0FB4BE2BEEF20D0098E88D /* GpuParticlesParameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GpuParticlesParameter.h; sourceTree = "<group>"; };
+		3C0FB4BF2BEEF20D0098E88D /* KillRules.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KillRules.cpp; sourceTree = "<group>"; };
+		3C0FB4C02BEEF20D0098E88D /* KillRules.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KillRules.h; sourceTree = "<group>"; };
+		3C0FB4C12BEEF20D0098E88D /* LOD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LOD.h; sourceTree = "<group>"; };
+		3C0FB4C22BEEF20D0098E88D /* Rotation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Rotation.cpp; sourceTree = "<group>"; };
+		3C0FB4C32BEEF20D0098E88D /* Rotation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rotation.h; sourceTree = "<group>"; };
+		3C0FB4C42BEEF20D0098E88D /* Scaling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Scaling.h; sourceTree = "<group>"; };
+		3C0FB4C52BEEF20D0098E88D /* Sound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Sound.h; sourceTree = "<group>"; };
+		3C0FB4C62BEEF20D0098E88D /* SpawnMethod.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpawnMethod.h; sourceTree = "<group>"; };
+		3C0FB4C72BEEF20D0098E88D /* Translation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Translation.h; sourceTree = "<group>"; };
+		3C0FB4C82BEEF20D0098E88D /* UV.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UV.h; sourceTree = "<group>"; };
+		3C0FB4CA2BEEF20D0098E88D /* Effekseer.GpuParticles.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.GpuParticles.h; sourceTree = "<group>"; };
+		3C0FB4CB2BEEF20D0098E88D /* Effekseer.GpuTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.GpuTimer.h; sourceTree = "<group>"; };
+		3C0FB4CC2BEEF20D0098E88D /* Effekseer.ModelRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.ModelRenderer.h; sourceTree = "<group>"; };
+		3C0FB4CD2BEEF20D0098E88D /* Effekseer.ParticleRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.ParticleRenderer.h; sourceTree = "<group>"; };
+		3C0FB4CE2BEEF20D0098E88D /* Effekseer.RibbonRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.RibbonRenderer.h; sourceTree = "<group>"; };
+		3C0FB4CF2BEEF20D0098E88D /* Effekseer.RingRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.RingRenderer.h; sourceTree = "<group>"; };
+		3C0FB4D02BEEF20D0098E88D /* Effekseer.SpriteRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.SpriteRenderer.h; sourceTree = "<group>"; };
+		3C0FB4D12BEEF20D0098E88D /* Effekseer.TrackRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.TrackRenderer.h; sourceTree = "<group>"; };
+		3C0FB4D32BEEF20D0098E88D /* Base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Base.h; sourceTree = "<group>"; };
+		3C0FB4D42BEEF20D0098E88D /* Bridge_Gen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bridge_Gen.h; sourceTree = "<group>"; };
+		3C0FB4D52BEEF20D0098E88D /* Bridge_NEON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bridge_NEON.h; sourceTree = "<group>"; };
+		3C0FB4D62BEEF20D0098E88D /* Bridge_SSE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bridge_SSE.h; sourceTree = "<group>"; };
+		3C0FB4D72BEEF20D0098E88D /* Bridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bridge.h; sourceTree = "<group>"; };
+		3C0FB4D82BEEF20D0098E88D /* Float4_Gen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Float4_Gen.h; sourceTree = "<group>"; };
+		3C0FB4D92BEEF20D0098E88D /* Float4_NEON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Float4_NEON.h; sourceTree = "<group>"; };
+		3C0FB4DA2BEEF20D0098E88D /* Float4_SSE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Float4_SSE.h; sourceTree = "<group>"; };
+		3C0FB4DB2BEEF20D0098E88D /* Float4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Float4.h; sourceTree = "<group>"; };
+		3C0FB4DC2BEEF20D0098E88D /* Int4_Gen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Int4_Gen.h; sourceTree = "<group>"; };
+		3C0FB4DD2BEEF20D0098E88D /* Int4_NEON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Int4_NEON.h; sourceTree = "<group>"; };
+		3C0FB4DE2BEEF20D0098E88D /* Int4_SSE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Int4_SSE.h; sourceTree = "<group>"; };
+		3C0FB4DF2BEEF20D0098E88D /* Int4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Int4.h; sourceTree = "<group>"; };
+		3C0FB4E02BEEF20D0098E88D /* Mat43f.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mat43f.cpp; sourceTree = "<group>"; };
+		3C0FB4E12BEEF20D0098E88D /* Mat43f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mat43f.h; sourceTree = "<group>"; };
+		3C0FB4E22BEEF20D0098E88D /* Mat44f.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mat44f.cpp; sourceTree = "<group>"; };
+		3C0FB4E32BEEF20D0098E88D /* Mat44f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mat44f.h; sourceTree = "<group>"; };
+		3C0FB4E42BEEF20D0098E88D /* Quaternionf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Quaternionf.h; sourceTree = "<group>"; };
+		3C0FB4E52BEEF20D0098E88D /* Utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Utils.cpp; sourceTree = "<group>"; };
+		3C0FB4E62BEEF20D0098E88D /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
+		3C0FB4E72BEEF20D0098E88D /* Vec2f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vec2f.h; sourceTree = "<group>"; };
+		3C0FB4E82BEEF20D0098E88D /* Vec3f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vec3f.h; sourceTree = "<group>"; };
+		3C0FB4E92BEEF20D0098E88D /* Vec4f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vec4f.h; sourceTree = "<group>"; };
+		3C0FB4EB2BEEF20D0098E88D /* Effekseer.SoundPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.SoundPlayer.h; sourceTree = "<group>"; };
+		3C0FB4ED2BEEF20D0098E88D /* BinaryVersion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BinaryVersion.h; sourceTree = "<group>"; };
+		3C0FB4EE2BEEF20D0098E88D /* Compatiblity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Compatiblity.h; sourceTree = "<group>"; };
+		3C0FB4EF2BEEF20D0098E88D /* Effekseer.BinaryReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.BinaryReader.h; sourceTree = "<group>"; };
+		3C0FB4F02BEEF20D0098E88D /* Effekseer.CustomAllocator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.CustomAllocator.cpp; sourceTree = "<group>"; };
+		3C0FB4F12BEEF20D0098E88D /* Effekseer.CustomAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.CustomAllocator.h; sourceTree = "<group>"; };
+		3C0FB4F22BEEF20D0098E88D /* InstancePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InstancePool.h; sourceTree = "<group>"; };
+		3C0FB4F32BEEF20D0098E88D /* Profiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Profiler.h; sourceTree = "<group>"; };
+		3C0FB4F42BEEF20D0098E88D /* String.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = String.h; sourceTree = "<group>"; };
+		3C0FB4F62BEEF20D0098E88D /* VectorField.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VectorField.cpp; sourceTree = "<group>"; };
+		3C0FB4F72BEEF20D0098E88D /* VectorField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VectorField.h; sourceTree = "<group>"; };
+		3C0FB4F82BEEF20D0098E88D /* VectorFieldLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VectorFieldLoader.cpp; sourceTree = "<group>"; };
+		3C0FB4F92BEEF20D0098E88D /* VectorFieldLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VectorFieldLoader.h; sourceTree = "<group>"; };
+		3C0FB4FB2BEEF20D0098E88D /* Effekseer.Base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Base.h; sourceTree = "<group>"; };
+		3C0FB4FC2BEEF20D0098E88D /* Effekseer.Base.Pre.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Base.Pre.h; sourceTree = "<group>"; };
+		3C0FB4FD2BEEF20D0098E88D /* Effekseer.Color.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Color.cpp; sourceTree = "<group>"; };
+		3C0FB4FE2BEEF20D0098E88D /* Effekseer.Color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Color.h; sourceTree = "<group>"; };
+		3C0FB4FF2BEEF20D0098E88D /* Effekseer.Curve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Curve.h; sourceTree = "<group>"; };
+		3C0FB5002BEEF20D0098E88D /* Effekseer.CurveLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.CurveLoader.cpp; sourceTree = "<group>"; };
+		3C0FB5012BEEF20D0098E88D /* Effekseer.CurveLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.CurveLoader.h; sourceTree = "<group>"; };
+		3C0FB5022BEEF20D0098E88D /* Effekseer.DefaultEffectLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.DefaultEffectLoader.cpp; sourceTree = "<group>"; };
+		3C0FB5032BEEF20D0098E88D /* Effekseer.DefaultEffectLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.DefaultEffectLoader.h; sourceTree = "<group>"; };
+		3C0FB5042BEEF20D0098E88D /* Effekseer.DefaultFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.DefaultFile.cpp; sourceTree = "<group>"; };
+		3C0FB5052BEEF20D0098E88D /* Effekseer.DefaultFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.DefaultFile.h; sourceTree = "<group>"; };
+		3C0FB5062BEEF20D0098E88D /* Effekseer.Effect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Effect.cpp; sourceTree = "<group>"; };
+		3C0FB5072BEEF20D0098E88D /* Effekseer.Effect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Effect.h; sourceTree = "<group>"; };
+		3C0FB5082BEEF20D0098E88D /* Effekseer.EffectImplemented.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.EffectImplemented.h; sourceTree = "<group>"; };
+		3C0FB5092BEEF20D0098E88D /* Effekseer.EffectLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.EffectLoader.h; sourceTree = "<group>"; };
+		3C0FB50A2BEEF20D0098E88D /* Effekseer.EffectNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.EffectNode.cpp; sourceTree = "<group>"; };
+		3C0FB50B2BEEF20D0098E88D /* Effekseer.EffectNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.EffectNode.h; sourceTree = "<group>"; };
+		3C0FB50C2BEEF20D0098E88D /* Effekseer.EffectNodeModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.EffectNodeModel.cpp; sourceTree = "<group>"; };
+		3C0FB50D2BEEF20D0098E88D /* Effekseer.EffectNodeModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.EffectNodeModel.h; sourceTree = "<group>"; };
+		3C0FB50E2BEEF20D0098E88D /* Effekseer.EffectNodeRibbon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.EffectNodeRibbon.cpp; sourceTree = "<group>"; };
+		3C0FB50F2BEEF20D0098E88D /* Effekseer.EffectNodeRibbon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.EffectNodeRibbon.h; sourceTree = "<group>"; };
+		3C0FB5102BEEF20D0098E88D /* Effekseer.EffectNodeRing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.EffectNodeRing.cpp; sourceTree = "<group>"; };
+		3C0FB5112BEEF20D0098E88D /* Effekseer.EffectNodeRing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.EffectNodeRing.h; sourceTree = "<group>"; };
+		3C0FB5122BEEF20D0098E88D /* Effekseer.EffectNodeRoot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.EffectNodeRoot.cpp; sourceTree = "<group>"; };
+		3C0FB5132BEEF20D0098E88D /* Effekseer.EffectNodeRoot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.EffectNodeRoot.h; sourceTree = "<group>"; };
+		3C0FB5142BEEF20D0098E88D /* Effekseer.EffectNodeSprite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.EffectNodeSprite.cpp; sourceTree = "<group>"; };
+		3C0FB5152BEEF20D0098E88D /* Effekseer.EffectNodeSprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.EffectNodeSprite.h; sourceTree = "<group>"; };
+		3C0FB5162BEEF20D0098E88D /* Effekseer.EffectNodeTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.EffectNodeTrack.cpp; sourceTree = "<group>"; };
+		3C0FB5172BEEF20D0098E88D /* Effekseer.EffectNodeTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.EffectNodeTrack.h; sourceTree = "<group>"; };
+		3C0FB5182BEEF20D0098E88D /* Effekseer.FCurves.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.FCurves.cpp; sourceTree = "<group>"; };
+		3C0FB5192BEEF20D0098E88D /* Effekseer.FCurves.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.FCurves.h; sourceTree = "<group>"; };
+		3C0FB51A2BEEF20D0098E88D /* Effekseer.File.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.File.h; sourceTree = "<group>"; };
+		3C0FB51B2BEEF20D0098E88D /* Effekseer.Instance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Instance.cpp; sourceTree = "<group>"; };
+		3C0FB51C2BEEF20D0098E88D /* Effekseer.Instance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Instance.h; sourceTree = "<group>"; };
+		3C0FB51D2BEEF20D0098E88D /* Effekseer.InstanceChunk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.InstanceChunk.cpp; sourceTree = "<group>"; };
+		3C0FB51E2BEEF20D0098E88D /* Effekseer.InstanceChunk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.InstanceChunk.h; sourceTree = "<group>"; };
+		3C0FB51F2BEEF20D0098E88D /* Effekseer.InstanceContainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.InstanceContainer.cpp; sourceTree = "<group>"; };
+		3C0FB5202BEEF20D0098E88D /* Effekseer.InstanceContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.InstanceContainer.h; sourceTree = "<group>"; };
+		3C0FB5212BEEF20D0098E88D /* Effekseer.InstanceGlobal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.InstanceGlobal.cpp; sourceTree = "<group>"; };
+		3C0FB5222BEEF20D0098E88D /* Effekseer.InstanceGlobal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.InstanceGlobal.h; sourceTree = "<group>"; };
+		3C0FB5232BEEF20D0098E88D /* Effekseer.InstanceGroup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.InstanceGroup.cpp; sourceTree = "<group>"; };
+		3C0FB5242BEEF20D0098E88D /* Effekseer.InstanceGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.InstanceGroup.h; sourceTree = "<group>"; };
+		3C0FB5252BEEF20D0098E88D /* Effekseer.InternalScript.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.InternalScript.cpp; sourceTree = "<group>"; };
+		3C0FB5262BEEF20D0098E88D /* Effekseer.InternalScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.InternalScript.h; sourceTree = "<group>"; };
+		3C0FB5272BEEF20D0098E88D /* Effekseer.InternalStruct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.InternalStruct.h; sourceTree = "<group>"; };
+		3C0FB5282BEEF20D0098E88D /* Effekseer.IntrusiveList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.IntrusiveList.cpp; sourceTree = "<group>"; };
+		3C0FB5292BEEF20D0098E88D /* Effekseer.IntrusiveList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.IntrusiveList.h; sourceTree = "<group>"; };
+		3C0FB52A2BEEF20D0098E88D /* Effekseer.Manager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Manager.cpp; sourceTree = "<group>"; };
+		3C0FB52B2BEEF20D0098E88D /* Effekseer.Manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Manager.h; sourceTree = "<group>"; };
+		3C0FB52C2BEEF20D0098E88D /* Effekseer.ManagerImplemented.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.ManagerImplemented.h; sourceTree = "<group>"; };
+		3C0FB52D2BEEF20D0098E88D /* Effekseer.MaterialLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.MaterialLoader.h; sourceTree = "<group>"; };
+		3C0FB52E2BEEF20D0098E88D /* Effekseer.Math.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Math.h; sourceTree = "<group>"; };
+		3C0FB52F2BEEF20D0098E88D /* Effekseer.Matrix43.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Matrix43.cpp; sourceTree = "<group>"; };
+		3C0FB5302BEEF20D0098E88D /* Effekseer.Matrix43.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Matrix43.h; sourceTree = "<group>"; };
+		3C0FB5312BEEF20D0098E88D /* Effekseer.Matrix44.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Matrix44.cpp; sourceTree = "<group>"; };
+		3C0FB5322BEEF20D0098E88D /* Effekseer.Matrix44.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Matrix44.h; sourceTree = "<group>"; };
+		3C0FB5332BEEF20D0098E88D /* Effekseer.Random.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Random.cpp; sourceTree = "<group>"; };
+		3C0FB5342BEEF20D0098E88D /* Effekseer.Random.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Random.h; sourceTree = "<group>"; };
+		3C0FB5352BEEF20D0098E88D /* Effekseer.RectF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.RectF.cpp; sourceTree = "<group>"; };
+		3C0FB5362BEEF20D0098E88D /* Effekseer.RectF.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.RectF.h; sourceTree = "<group>"; };
+		3C0FB5372BEEF20D0098E88D /* Effekseer.Resource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Resource.cpp; sourceTree = "<group>"; };
+		3C0FB5382BEEF20D0098E88D /* Effekseer.Resource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Resource.h; sourceTree = "<group>"; };
+		3C0FB5392BEEF20D0098E88D /* Effekseer.ResourceManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.ResourceManager.cpp; sourceTree = "<group>"; };
+		3C0FB53A2BEEF20D0098E88D /* Effekseer.ResourceManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.ResourceManager.h; sourceTree = "<group>"; };
+		3C0FB53B2BEEF20D0098E88D /* Effekseer.Setting.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Setting.cpp; sourceTree = "<group>"; };
+		3C0FB53C2BEEF20D0098E88D /* Effekseer.Setting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Setting.h; sourceTree = "<group>"; };
+		3C0FB53D2BEEF20D0098E88D /* Effekseer.SoundLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.SoundLoader.h; sourceTree = "<group>"; };
+		3C0FB53E2BEEF20D0098E88D /* Effekseer.TextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.TextureLoader.h; sourceTree = "<group>"; };
+		3C0FB53F2BEEF20D0098E88D /* Effekseer.Vector2D.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Vector2D.cpp; sourceTree = "<group>"; };
+		3C0FB5402BEEF20D0098E88D /* Effekseer.Vector2D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Vector2D.h; sourceTree = "<group>"; };
+		3C0FB5412BEEF20D0098E88D /* Effekseer.Vector3D.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.Vector3D.cpp; sourceTree = "<group>"; };
+		3C0FB5422BEEF20D0098E88D /* Effekseer.Vector3D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Vector3D.h; sourceTree = "<group>"; };
+		3C0FB5432BEEF20D0098E88D /* Effekseer.WorkerThread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effekseer.WorkerThread.cpp; sourceTree = "<group>"; };
+		3C0FB5442BEEF20D0098E88D /* Effekseer.WorkerThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.WorkerThread.h; sourceTree = "<group>"; };
+		3C0FB5462BEEF20D0098E88D /* Effekseer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Effekseer.h; path = ../../../Source/3rdParty/Effekseer/Effekseer.h; sourceTree = "<group>"; };
+		3C0FB5832BEEFCF60098E88D /* EffekNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EffekNode.h; path = ../../../Source/Node/EffekNode.h; sourceTree = "<group>"; };
+		3C0FB5842BEEFCF60098E88D /* EffekNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EffekNode.cpp; path = ../../../Source/Node/EffekNode.cpp; sourceTree = "<group>"; };
 		3C1984742100656700B6F370 /* PlatformWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlatformWorld.cpp; path = ../../../Source/Platformer/PlatformWorld.cpp; sourceTree = "<group>"; };
 		3C1984752100656700B6F370 /* PlatformCamera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PlatformCamera.cpp; path = ../../../Source/Platformer/PlatformCamera.cpp; sourceTree = "<group>"; };
 		3C1984762100656800B6F370 /* PlatformWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PlatformWorld.h; path = ../../../Source/Platformer/PlatformWorld.h; sourceTree = "<group>"; };
@@ -1848,6 +2151,383 @@
 			name = spine;
 			sourceTree = "<group>";
 		};
+		3C0FB33A2BEEF0230098E88D /* Effekseer */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB5452BEEF20D0098E88D /* Effekseer */,
+				3C0FB5462BEEF20D0098E88D /* Effekseer.h */,
+				3C0FB47E2BEEF20D0098E88D /* Effekseer.Modules.h */,
+				3C0FB47F2BEEF20D0098E88D /* Effekseer.SIMD.h */,
+				3C0FB46C2BEEF0DA0098E88D /* EffekseerRendererCommon */,
+				3C0FB33B2BEEF0490098E88D /* bgfxrenderer.cpp */,
+				3C0FB33C2BEEF0490098E88D /* bgfxrenderer.h */,
+			);
+			name = Effekseer;
+			sourceTree = "<group>";
+		};
+		3C0FB4452BEEF0DA0098E88D /* Shader */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4442BEEF0DA0098E88D /* gpu_particles_data.h */,
+			);
+			path = Shader;
+			sourceTree = "<group>";
+		};
+		3C0FB46C2BEEF0DA0098E88D /* EffekseerRendererCommon */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4452BEEF0DA0098E88D /* Shader */,
+				3C0FB4462BEEF0DA0098E88D /* EffekseerRenderer.CommonUtils.cpp */,
+				3C0FB4472BEEF0DA0098E88D /* EffekseerRenderer.CommonUtils.h */,
+				3C0FB4482BEEF0DA0098E88D /* EffekseerRenderer.DDSTextureLoader.cpp */,
+				3C0FB4492BEEF0DA0098E88D /* EffekseerRenderer.DDSTextureLoader.h */,
+				3C0FB44A2BEEF0DA0098E88D /* EffekseerRenderer.GpuParticles.cpp */,
+				3C0FB44B2BEEF0DA0098E88D /* EffekseerRenderer.GpuParticles.h */,
+				3C0FB44C2BEEF0DA0098E88D /* EffekseerRenderer.ModelRendererBase.cpp */,
+				3C0FB44D2BEEF0DA0098E88D /* EffekseerRenderer.ModelRendererBase.h */,
+				3C0FB44E2BEEF0DA0098E88D /* EffekseerRenderer.PngTextureLoader.cpp */,
+				3C0FB44F2BEEF0DA0098E88D /* EffekseerRenderer.PngTextureLoader.h */,
+				3C0FB4502BEEF0DA0098E88D /* EffekseerRenderer.Renderer_Impl.cpp */,
+				3C0FB4512BEEF0DA0098E88D /* EffekseerRenderer.Renderer_Impl.h */,
+				3C0FB4522BEEF0DA0098E88D /* EffekseerRenderer.Renderer.cpp */,
+				3C0FB4532BEEF0DA0098E88D /* EffekseerRenderer.Renderer.h */,
+				3C0FB4542BEEF0DA0098E88D /* EffekseerRenderer.RenderStateBase.cpp */,
+				3C0FB4552BEEF0DA0098E88D /* EffekseerRenderer.RenderStateBase.h */,
+				3C0FB4562BEEF0DA0098E88D /* EffekseerRenderer.RibbonRendererBase.cpp */,
+				3C0FB4572BEEF0DA0098E88D /* EffekseerRenderer.RibbonRendererBase.h */,
+				3C0FB4582BEEF0DA0098E88D /* EffekseerRenderer.RingRendererBase.cpp */,
+				3C0FB4592BEEF0DA0098E88D /* EffekseerRenderer.RingRendererBase.h */,
+				3C0FB45A2BEEF0DA0098E88D /* EffekseerRenderer.ShaderBase.h */,
+				3C0FB45B2BEEF0DA0098E88D /* EffekseerRenderer.SpriteRendererBase.cpp */,
+				3C0FB45C2BEEF0DA0098E88D /* EffekseerRenderer.SpriteRendererBase.h */,
+				3C0FB45D2BEEF0DA0098E88D /* EffekseerRenderer.StandardRenderer.h */,
+				3C0FB45E2BEEF0DA0098E88D /* EffekseerRenderer.TGATextureLoader.cpp */,
+				3C0FB45F2BEEF0DA0098E88D /* EffekseerRenderer.TGATextureLoader.h */,
+				3C0FB4602BEEF0DA0098E88D /* EffekseerRenderer.TrackRendererBase.cpp */,
+				3C0FB4612BEEF0DA0098E88D /* EffekseerRenderer.TrackRendererBase.h */,
+				3C0FB4622BEEF0DA0098E88D /* EffekseerRendererFlags.h */,
+				3C0FB4632BEEF0DA0098E88D /* GraphicsDeviceCPU.cpp */,
+				3C0FB4642BEEF0DA0098E88D /* GraphicsDeviceCPU.h */,
+				3C0FB4652BEEF0DA0098E88D /* ModelLoader.cpp */,
+				3C0FB4662BEEF0DA0098E88D /* ModelLoader.h */,
+				3C0FB4672BEEF0DA0098E88D /* TextureLoader.cpp */,
+				3C0FB4682BEEF0DA0098E88D /* TextureLoader.h */,
+				3C0FB4692BEEF0DA0098E88D /* TrailRenderer.h */,
+				3C0FB46A2BEEF0DA0098E88D /* VertexBuffer.cpp */,
+				3C0FB46B2BEEF0DA0098E88D /* VertexBuffer.h */,
+			);
+			name = EffekseerRendererCommon;
+			path = ../../../Source/3rdParty/Effekseer/EffekseerRendererCommon;
+			sourceTree = "<group>";
+		};
+		3C0FB4812BEEF20D0098E88D /* Backend */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4802BEEF20D0098E88D /* GraphicsDevice.h */,
+			);
+			path = Backend;
+			sourceTree = "<group>";
+		};
+		3C0FB4842BEEF20D0098E88D /* ForceField */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4822BEEF20D0098E88D /* ForceFields.cpp */,
+				3C0FB4832BEEF20D0098E88D /* ForceFields.h */,
+			);
+			path = ForceField;
+			sourceTree = "<group>";
+		};
+		3C0FB4862BEEF20D0098E88D /* Geometry */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4852BEEF20D0098E88D /* GeometryUtility.h */,
+			);
+			path = Geometry;
+			sourceTree = "<group>";
+		};
+		3C0FB4892BEEF20D0098E88D /* IO */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4872BEEF20D0098E88D /* Effekseer.EfkEfcFactory.cpp */,
+				3C0FB4882BEEF20D0098E88D /* Effekseer.EfkEfcFactory.h */,
+			);
+			path = IO;
+			sourceTree = "<group>";
+		};
+		3C0FB4902BEEF20D0098E88D /* Material */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB48A2BEEF20D0098E88D /* Effekseer.CompiledMaterial.cpp */,
+				3C0FB48B2BEEF20D0098E88D /* Effekseer.CompiledMaterial.h */,
+				3C0FB48C2BEEF20D0098E88D /* Effekseer.MaterialCompiler.cpp */,
+				3C0FB48D2BEEF20D0098E88D /* Effekseer.MaterialCompiler.h */,
+				3C0FB48E2BEEF20D0098E88D /* Effekseer.MaterialFile.cpp */,
+				3C0FB48F2BEEF20D0098E88D /* Effekseer.MaterialFile.h */,
+			);
+			path = Material;
+			sourceTree = "<group>";
+		};
+		3C0FB49C2BEEF20D0098E88D /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4912BEEF20D0098E88D /* Model.cpp */,
+				3C0FB4922BEEF20D0098E88D /* Model.h */,
+				3C0FB4932BEEF20D0098E88D /* ModelLoader.cpp */,
+				3C0FB4942BEEF20D0098E88D /* ModelLoader.h */,
+				3C0FB4952BEEF20D0098E88D /* PointCacheGenerator.cpp */,
+				3C0FB4962BEEF20D0098E88D /* PointCacheGenerator.h */,
+				3C0FB4972BEEF20D0098E88D /* ProceduralModelGenerator.cpp */,
+				3C0FB4982BEEF20D0098E88D /* ProceduralModelGenerator.h */,
+				3C0FB4992BEEF20D0098E88D /* ProceduralModelParameter.h */,
+				3C0FB49A2BEEF20D0098E88D /* SplineGenerator.cpp */,
+				3C0FB49B2BEEF20D0098E88D /* SplineGenerator.h */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		3C0FB4A12BEEF20D0098E88D /* data */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB49D2BEEF20D0098E88D /* profiler_generated.h */,
+				3C0FB49F2BEEF20D0098E88D /* reload_generated.h */,
+			);
+			path = data;
+			sourceTree = "<group>";
+		};
+		3C0FB4AC2BEEF20D0098E88D /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4A12BEEF20D0098E88D /* data */,
+				3C0FB4A22BEEF20D0098E88D /* Effekseer.Client.cpp */,
+				3C0FB4A32BEEF20D0098E88D /* Effekseer.Client.h */,
+				3C0FB4A42BEEF20D0098E88D /* Effekseer.ClientImplemented.h */,
+				3C0FB4A52BEEF20D0098E88D /* Effekseer.Server.cpp */,
+				3C0FB4A62BEEF20D0098E88D /* Effekseer.Server.h */,
+				3C0FB4A72BEEF20D0098E88D /* Effekseer.ServerImplemented.h */,
+				3C0FB4A82BEEF20D0098E88D /* Effekseer.Session.cpp */,
+				3C0FB4A92BEEF20D0098E88D /* Effekseer.Session.h */,
+				3C0FB4AA2BEEF20D0098E88D /* Effekseer.Socket.cpp */,
+				3C0FB4AB2BEEF20D0098E88D /* Effekseer.Socket.h */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		3C0FB4B02BEEF20D0098E88D /* Noise */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4AD2BEEF20D0098E88D /* CurlNoise.cpp */,
+				3C0FB4AE2BEEF20D0098E88D /* CurlNoise.h */,
+				3C0FB4AF2BEEF20D0098E88D /* PerlinNoise.h */,
+			);
+			path = Noise;
+			sourceTree = "<group>";
+		};
+		3C0FB4C92BEEF20D0098E88D /* Parameter */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4B12BEEF20D0098E88D /* AllTypeColor.h */,
+				3C0FB4B22BEEF20D0098E88D /* AlphaCutoff.h */,
+				3C0FB4B32BEEF20D0098E88D /* BasicSettings.h */,
+				3C0FB4B42BEEF20D0098E88D /* Collisions.cpp */,
+				3C0FB4B52BEEF20D0098E88D /* Collisions.h */,
+				3C0FB4B62BEEF20D0098E88D /* CustomData.h */,
+				3C0FB4B72BEEF20D0098E88D /* DepthParameter.h */,
+				3C0FB4B82BEEF20D0098E88D /* DynamicParameter.h */,
+				3C0FB4B92BEEF20D0098E88D /* Easing.cpp */,
+				3C0FB4BA2BEEF20D0098E88D /* Easing.h */,
+				3C0FB4BB2BEEF20D0098E88D /* Effekseer.Parameters.cpp */,
+				3C0FB4BC2BEEF20D0098E88D /* Effekseer.Parameters.h */,
+				3C0FB4BD2BEEF20D0098E88D /* GpuParticlesParameter.cpp */,
+				3C0FB4BE2BEEF20D0098E88D /* GpuParticlesParameter.h */,
+				3C0FB4BF2BEEF20D0098E88D /* KillRules.cpp */,
+				3C0FB4C02BEEF20D0098E88D /* KillRules.h */,
+				3C0FB4C12BEEF20D0098E88D /* LOD.h */,
+				3C0FB4C22BEEF20D0098E88D /* Rotation.cpp */,
+				3C0FB4C32BEEF20D0098E88D /* Rotation.h */,
+				3C0FB4C42BEEF20D0098E88D /* Scaling.h */,
+				3C0FB4C52BEEF20D0098E88D /* Sound.h */,
+				3C0FB4C62BEEF20D0098E88D /* SpawnMethod.h */,
+				3C0FB4C72BEEF20D0098E88D /* Translation.h */,
+				3C0FB4C82BEEF20D0098E88D /* UV.h */,
+			);
+			path = Parameter;
+			sourceTree = "<group>";
+		};
+		3C0FB4D22BEEF20D0098E88D /* Renderer */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4CA2BEEF20D0098E88D /* Effekseer.GpuParticles.h */,
+				3C0FB4CB2BEEF20D0098E88D /* Effekseer.GpuTimer.h */,
+				3C0FB4CC2BEEF20D0098E88D /* Effekseer.ModelRenderer.h */,
+				3C0FB4CD2BEEF20D0098E88D /* Effekseer.ParticleRenderer.h */,
+				3C0FB4CE2BEEF20D0098E88D /* Effekseer.RibbonRenderer.h */,
+				3C0FB4CF2BEEF20D0098E88D /* Effekseer.RingRenderer.h */,
+				3C0FB4D02BEEF20D0098E88D /* Effekseer.SpriteRenderer.h */,
+				3C0FB4D12BEEF20D0098E88D /* Effekseer.TrackRenderer.h */,
+			);
+			path = Renderer;
+			sourceTree = "<group>";
+		};
+		3C0FB4EA2BEEF20D0098E88D /* SIMD */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4D32BEEF20D0098E88D /* Base.h */,
+				3C0FB4D42BEEF20D0098E88D /* Bridge_Gen.h */,
+				3C0FB4D52BEEF20D0098E88D /* Bridge_NEON.h */,
+				3C0FB4D62BEEF20D0098E88D /* Bridge_SSE.h */,
+				3C0FB4D72BEEF20D0098E88D /* Bridge.h */,
+				3C0FB4D82BEEF20D0098E88D /* Float4_Gen.h */,
+				3C0FB4D92BEEF20D0098E88D /* Float4_NEON.h */,
+				3C0FB4DA2BEEF20D0098E88D /* Float4_SSE.h */,
+				3C0FB4DB2BEEF20D0098E88D /* Float4.h */,
+				3C0FB4DC2BEEF20D0098E88D /* Int4_Gen.h */,
+				3C0FB4DD2BEEF20D0098E88D /* Int4_NEON.h */,
+				3C0FB4DE2BEEF20D0098E88D /* Int4_SSE.h */,
+				3C0FB4DF2BEEF20D0098E88D /* Int4.h */,
+				3C0FB4E02BEEF20D0098E88D /* Mat43f.cpp */,
+				3C0FB4E12BEEF20D0098E88D /* Mat43f.h */,
+				3C0FB4E22BEEF20D0098E88D /* Mat44f.cpp */,
+				3C0FB4E32BEEF20D0098E88D /* Mat44f.h */,
+				3C0FB4E42BEEF20D0098E88D /* Quaternionf.h */,
+				3C0FB4E52BEEF20D0098E88D /* Utils.cpp */,
+				3C0FB4E62BEEF20D0098E88D /* Utils.h */,
+				3C0FB4E72BEEF20D0098E88D /* Vec2f.h */,
+				3C0FB4E82BEEF20D0098E88D /* Vec3f.h */,
+				3C0FB4E92BEEF20D0098E88D /* Vec4f.h */,
+			);
+			path = SIMD;
+			sourceTree = "<group>";
+		};
+		3C0FB4EC2BEEF20D0098E88D /* Sound */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4EB2BEEF20D0098E88D /* Effekseer.SoundPlayer.h */,
+			);
+			path = Sound;
+			sourceTree = "<group>";
+		};
+		3C0FB4F52BEEF20D0098E88D /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4ED2BEEF20D0098E88D /* BinaryVersion.h */,
+				3C0FB4EE2BEEF20D0098E88D /* Compatiblity.h */,
+				3C0FB4EF2BEEF20D0098E88D /* Effekseer.BinaryReader.h */,
+				3C0FB4F02BEEF20D0098E88D /* Effekseer.CustomAllocator.cpp */,
+				3C0FB4F12BEEF20D0098E88D /* Effekseer.CustomAllocator.h */,
+				3C0FB4F22BEEF20D0098E88D /* InstancePool.h */,
+				3C0FB4F32BEEF20D0098E88D /* Profiler.h */,
+				3C0FB4F42BEEF20D0098E88D /* String.h */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		3C0FB4FA2BEEF20D0098E88D /* VectorField */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4F62BEEF20D0098E88D /* VectorField.cpp */,
+				3C0FB4F72BEEF20D0098E88D /* VectorField.h */,
+				3C0FB4F82BEEF20D0098E88D /* VectorFieldLoader.cpp */,
+				3C0FB4F92BEEF20D0098E88D /* VectorFieldLoader.h */,
+			);
+			path = VectorField;
+			sourceTree = "<group>";
+		};
+		3C0FB5452BEEF20D0098E88D /* Effekseer */ = {
+			isa = PBXGroup;
+			children = (
+				3C0FB4812BEEF20D0098E88D /* Backend */,
+				3C0FB4842BEEF20D0098E88D /* ForceField */,
+				3C0FB4862BEEF20D0098E88D /* Geometry */,
+				3C0FB4892BEEF20D0098E88D /* IO */,
+				3C0FB4902BEEF20D0098E88D /* Material */,
+				3C0FB49C2BEEF20D0098E88D /* Model */,
+				3C0FB4AC2BEEF20D0098E88D /* Network */,
+				3C0FB4B02BEEF20D0098E88D /* Noise */,
+				3C0FB4C92BEEF20D0098E88D /* Parameter */,
+				3C0FB4D22BEEF20D0098E88D /* Renderer */,
+				3C0FB4EA2BEEF20D0098E88D /* SIMD */,
+				3C0FB4EC2BEEF20D0098E88D /* Sound */,
+				3C0FB4F52BEEF20D0098E88D /* Utils */,
+				3C0FB4FA2BEEF20D0098E88D /* VectorField */,
+				3C0FB4FB2BEEF20D0098E88D /* Effekseer.Base.h */,
+				3C0FB4FC2BEEF20D0098E88D /* Effekseer.Base.Pre.h */,
+				3C0FB4FD2BEEF20D0098E88D /* Effekseer.Color.cpp */,
+				3C0FB4FE2BEEF20D0098E88D /* Effekseer.Color.h */,
+				3C0FB4FF2BEEF20D0098E88D /* Effekseer.Curve.h */,
+				3C0FB5002BEEF20D0098E88D /* Effekseer.CurveLoader.cpp */,
+				3C0FB5012BEEF20D0098E88D /* Effekseer.CurveLoader.h */,
+				3C0FB5022BEEF20D0098E88D /* Effekseer.DefaultEffectLoader.cpp */,
+				3C0FB5032BEEF20D0098E88D /* Effekseer.DefaultEffectLoader.h */,
+				3C0FB5042BEEF20D0098E88D /* Effekseer.DefaultFile.cpp */,
+				3C0FB5052BEEF20D0098E88D /* Effekseer.DefaultFile.h */,
+				3C0FB5062BEEF20D0098E88D /* Effekseer.Effect.cpp */,
+				3C0FB5072BEEF20D0098E88D /* Effekseer.Effect.h */,
+				3C0FB5082BEEF20D0098E88D /* Effekseer.EffectImplemented.h */,
+				3C0FB5092BEEF20D0098E88D /* Effekseer.EffectLoader.h */,
+				3C0FB50A2BEEF20D0098E88D /* Effekseer.EffectNode.cpp */,
+				3C0FB50B2BEEF20D0098E88D /* Effekseer.EffectNode.h */,
+				3C0FB50C2BEEF20D0098E88D /* Effekseer.EffectNodeModel.cpp */,
+				3C0FB50D2BEEF20D0098E88D /* Effekseer.EffectNodeModel.h */,
+				3C0FB50E2BEEF20D0098E88D /* Effekseer.EffectNodeRibbon.cpp */,
+				3C0FB50F2BEEF20D0098E88D /* Effekseer.EffectNodeRibbon.h */,
+				3C0FB5102BEEF20D0098E88D /* Effekseer.EffectNodeRing.cpp */,
+				3C0FB5112BEEF20D0098E88D /* Effekseer.EffectNodeRing.h */,
+				3C0FB5122BEEF20D0098E88D /* Effekseer.EffectNodeRoot.cpp */,
+				3C0FB5132BEEF20D0098E88D /* Effekseer.EffectNodeRoot.h */,
+				3C0FB5142BEEF20D0098E88D /* Effekseer.EffectNodeSprite.cpp */,
+				3C0FB5152BEEF20D0098E88D /* Effekseer.EffectNodeSprite.h */,
+				3C0FB5162BEEF20D0098E88D /* Effekseer.EffectNodeTrack.cpp */,
+				3C0FB5172BEEF20D0098E88D /* Effekseer.EffectNodeTrack.h */,
+				3C0FB5182BEEF20D0098E88D /* Effekseer.FCurves.cpp */,
+				3C0FB5192BEEF20D0098E88D /* Effekseer.FCurves.h */,
+				3C0FB51A2BEEF20D0098E88D /* Effekseer.File.h */,
+				3C0FB51B2BEEF20D0098E88D /* Effekseer.Instance.cpp */,
+				3C0FB51C2BEEF20D0098E88D /* Effekseer.Instance.h */,
+				3C0FB51D2BEEF20D0098E88D /* Effekseer.InstanceChunk.cpp */,
+				3C0FB51E2BEEF20D0098E88D /* Effekseer.InstanceChunk.h */,
+				3C0FB51F2BEEF20D0098E88D /* Effekseer.InstanceContainer.cpp */,
+				3C0FB5202BEEF20D0098E88D /* Effekseer.InstanceContainer.h */,
+				3C0FB5212BEEF20D0098E88D /* Effekseer.InstanceGlobal.cpp */,
+				3C0FB5222BEEF20D0098E88D /* Effekseer.InstanceGlobal.h */,
+				3C0FB5232BEEF20D0098E88D /* Effekseer.InstanceGroup.cpp */,
+				3C0FB5242BEEF20D0098E88D /* Effekseer.InstanceGroup.h */,
+				3C0FB5252BEEF20D0098E88D /* Effekseer.InternalScript.cpp */,
+				3C0FB5262BEEF20D0098E88D /* Effekseer.InternalScript.h */,
+				3C0FB5272BEEF20D0098E88D /* Effekseer.InternalStruct.h */,
+				3C0FB5282BEEF20D0098E88D /* Effekseer.IntrusiveList.cpp */,
+				3C0FB5292BEEF20D0098E88D /* Effekseer.IntrusiveList.h */,
+				3C0FB52A2BEEF20D0098E88D /* Effekseer.Manager.cpp */,
+				3C0FB52B2BEEF20D0098E88D /* Effekseer.Manager.h */,
+				3C0FB52C2BEEF20D0098E88D /* Effekseer.ManagerImplemented.h */,
+				3C0FB52D2BEEF20D0098E88D /* Effekseer.MaterialLoader.h */,
+				3C0FB52E2BEEF20D0098E88D /* Effekseer.Math.h */,
+				3C0FB52F2BEEF20D0098E88D /* Effekseer.Matrix43.cpp */,
+				3C0FB5302BEEF20D0098E88D /* Effekseer.Matrix43.h */,
+				3C0FB5312BEEF20D0098E88D /* Effekseer.Matrix44.cpp */,
+				3C0FB5322BEEF20D0098E88D /* Effekseer.Matrix44.h */,
+				3C0FB5332BEEF20D0098E88D /* Effekseer.Random.cpp */,
+				3C0FB5342BEEF20D0098E88D /* Effekseer.Random.h */,
+				3C0FB5352BEEF20D0098E88D /* Effekseer.RectF.cpp */,
+				3C0FB5362BEEF20D0098E88D /* Effekseer.RectF.h */,
+				3C0FB5372BEEF20D0098E88D /* Effekseer.Resource.cpp */,
+				3C0FB5382BEEF20D0098E88D /* Effekseer.Resource.h */,
+				3C0FB5392BEEF20D0098E88D /* Effekseer.ResourceManager.cpp */,
+				3C0FB53A2BEEF20D0098E88D /* Effekseer.ResourceManager.h */,
+				3C0FB53B2BEEF20D0098E88D /* Effekseer.Setting.cpp */,
+				3C0FB53C2BEEF20D0098E88D /* Effekseer.Setting.h */,
+				3C0FB53D2BEEF20D0098E88D /* Effekseer.SoundLoader.h */,
+				3C0FB53E2BEEF20D0098E88D /* Effekseer.TextureLoader.h */,
+				3C0FB53F2BEEF20D0098E88D /* Effekseer.Vector2D.cpp */,
+				3C0FB5402BEEF20D0098E88D /* Effekseer.Vector2D.h */,
+				3C0FB5412BEEF20D0098E88D /* Effekseer.Vector3D.cpp */,
+				3C0FB5422BEEF20D0098E88D /* Effekseer.Vector3D.h */,
+				3C0FB5432BEEF20D0098E88D /* Effekseer.WorkerThread.cpp */,
+				3C0FB5442BEEF20D0098E88D /* Effekseer.WorkerThread.h */,
+			);
+			name = Effekseer;
+			path = ../../../Source/3rdParty/Effekseer/Effekseer;
+			sourceTree = "<group>";
+		};
 		3C17D58D1D9C401F008758E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -1964,6 +2644,7 @@
 		3C291D371E0264510098C860 /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3C0FB33A2BEEF0230098E88D /* Effekseer */,
 				3C53E9362BE8CF1100039640 /* yoga */,
 				3C7FA30F2B67AEC6005A8441 /* zlib */,
 				3C5399E92998BACF00E9125C /* colib */,
@@ -3046,6 +3727,8 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3C0FB5842BEEFCF60098E88D /* EffekNode.cpp */,
+				3C0FB5832BEEFCF60098E88D /* EffekNode.h */,
 				3C53E94A2BE9C77D00039640 /* AlignNode.cpp */,
 				3C53E94B2BE9C77D00039640 /* AlignNode.h */,
 				3CCB0C771E6DB0590088C118 /* ClipNode.cpp */,
@@ -3568,7 +4251,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				3C46E8632614227300DC9D4F /* Content.mm in Sources */,
+				3C0FB5722BEEF20D0098E88D /* Effekseer.InstanceChunk.cpp in Sources */,
+				3C0FB5492BEEF20D0098E88D /* Effekseer.CompiledMaterial.cpp in Sources */,
+				3C0FB55B2BEEF20D0098E88D /* GpuParticlesParameter.cpp in Sources */,
 				3CF10F022874AE7E00940268 /* PointAttachment.cpp in Sources */,
+				3C0FB54C2BEEF20D0098E88D /* Model.cpp in Sources */,
 				3C6E7F2E272A30E700E9F115 /* sndbuffer.cpp in Sources */,
 				3C46E8582614227300DC9D4F /* Director.cpp in Sources */,
 				3C46E83626140A8F00DC9D4F /* Transaction.cpp in Sources */,
@@ -3583,6 +4270,7 @@
 				3CF10EDD2874AE7E00940268 /* AttachmentLoader.cpp in Sources */,
 				3CA77F182AE665C100B7BADA /* MemoryResource.cpp in Sources */,
 				3C6E7F31272A30E700E9F115 /* sndrender.cpp in Sources */,
+				3C0FB5602BEEF20D0098E88D /* Utils.cpp in Sources */,
 				3C6E7F32272A30E700E9F115 /* soloud_sfxr.cpp in Sources */,
 				3C6E7F30272A30E700E9F115 /* soloud_ay.cpp in Sources */,
 				3C53E9422BE8CF1100039640 /* Node.cpp in Sources */,
@@ -3592,7 +4280,9 @@
 				3CB487141E16398700D51749 /* tolua_fix.cpp in Sources */,
 				3CFEBD74268DA6E4006D9974 /* BaseTimelineState.cpp in Sources */,
 				3CFEA125285B857B002D106F /* m3_api_libc.c in Sources */,
+				3C0FB56E2BEEF20D0098E88D /* Effekseer.EffectNodeSprite.cpp in Sources */,
 				3C46E8612614227300DC9D4F /* Object.cpp in Sources */,
+				3C0FB55D2BEEF20D0098E88D /* Rotation.cpp in Sources */,
 				3C6E7F35272A30E700E9F115 /* resonator.cpp in Sources */,
 				3CF10EE62874AE7E00940268 /* Slot.cpp in Sources */,
 				3C5B33D52A496F0F0080049B /* yue_ast.cpp in Sources */,
@@ -3604,6 +4294,7 @@
 				3CEDF77E1E839DE6008839A3 /* ParticleCache.cpp in Sources */,
 				3CFEA11B285B857B002D106F /* m3_api_wasi.c in Sources */,
 				3CFEB860268DA65C006D9974 /* TextureAtlasData.cpp in Sources */,
+				3C0FB57E2BEEF20D0098E88D /* Effekseer.ResourceManager.cpp in Sources */,
 				3C53E93B2BE8CF1100039640 /* FlexLine.cpp in Sources */,
 				3CFEBD65268DA6D5006D9974 /* Bone.cpp in Sources */,
 				3C6E7F11272A30E700E9F115 /* soloud_waveshaperfilter.cpp in Sources */,
@@ -3618,10 +4309,13 @@
 				3CFEA11A285B857B002D106F /* m3_core.c in Sources */,
 				3C0D31192456C7F6009C592B /* AtlasCache.cpp in Sources */,
 				3C6E7F34272A30E700E9F115 /* tts.cpp in Sources */,
+				3C0FB5662BEEF20D0098E88D /* Effekseer.DefaultEffectLoader.cpp in Sources */,
 				3C9A7D731E5428A200205094 /* Label.cpp in Sources */,
 				3C1A3AFA272A850F003A2829 /* lauxlib.c in Sources */,
 				3C53E9492BE8CF1100039640 /* YGValue.cpp in Sources */,
+				3C0FB54D2BEEF20D0098E88D /* ModelLoader.cpp in Sources */,
 				3C6E7F19272A30E700E9F115 /* soloud_audiosource.cpp in Sources */,
+				3C0FB5852BEEFCF60098E88D /* EffekNode.cpp in Sources */,
 				3C1A3B0A272A850F003A2829 /* lmathlib.c in Sources */,
 				3CF10ECB2874AE7E00940268 /* AnimationStateData.cpp in Sources */,
 				3CA77EF92AE665C100B7BADA /* GearJointConf.cpp in Sources */,
@@ -3631,8 +4325,10 @@
 				3C6E7F0E272A30E700E9F115 /* soloud_flangerfilter.cpp in Sources */,
 				3CE9D7F61E7FC2A6003AAECB /* Joint.cpp in Sources */,
 				3C3A5E1424D9BBBF00E59288 /* Constraint.cpp in Sources */,
+				3C0FB54A2BEEF20D0098E88D /* Effekseer.MaterialCompiler.cpp in Sources */,
 				3C7FA32A2B67AEE0005A8441 /* inftrees.c in Sources */,
 				3CFEB83E268DA64B006D9974 /* DataParser.cpp in Sources */,
+				3C0FB47D2BEEF0DA0098E88D /* VertexBuffer.cpp in Sources */,
 				3CB487181E16398700D51749 /* tolua_to.cpp in Sources */,
 				3C6E7F2C272A30E700E9F115 /* sndchip.cpp in Sources */,
 				3CE9D7F81E7FC2A6003AAECB /* Sensor.cpp in Sources */,
@@ -3640,6 +4336,7 @@
 				3CE9D7F71E7FC2A6003AAECB /* JointDef.cpp in Sources */,
 				3CF10EEF2874AE7E00940268 /* PathConstraintSpacingTimeline.cpp in Sources */,
 				3CFEA120285B857B002D106F /* m3_bind.c in Sources */,
+				3C0FB5682BEEF20D0098E88D /* Effekseer.Effect.cpp in Sources */,
 				3C1A3B02272A850F003A2829 /* linit.c in Sources */,
 				3C6E7F48272A340C00E9F115 /* soloud_sdl2_static.cpp in Sources */,
 				3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */,
@@ -3660,12 +4357,15 @@
 				3CB487151E16398700D51749 /* tolua_is.cpp in Sources */,
 				3C9CCD022689BDD00086757D /* os.cpp in Sources */,
 				3CCA844A263668AE00AA9B44 /* implot.cpp in Sources */,
+				3C0FB55A2BEEF20D0098E88D /* Effekseer.Parameters.cpp in Sources */,
 				3C57A3A31E0A05AD002141DF /* Listener.cpp in Sources */,
 				3C7FA3362B67AEE0005A8441 /* zutil.c in Sources */,
+				3C0FB5632BEEF20D0098E88D /* VectorFieldLoader.cpp in Sources */,
 				3C49FFE820EF609700E775D7 /* nanovg.cpp in Sources */,
 				3C46E83326140A8F00DC9D4F /* Database.cpp in Sources */,
 				3CA77F092AE665C100B7BADA /* RevoluteJointConf.cpp in Sources */,
 				3C7FA3352B67AEE0005A8441 /* inflate.c in Sources */,
+				3C0FB57F2BEEF20D0098E88D /* Effekseer.Setting.cpp in Sources */,
 				3C41D5FA2148AD02003FDDFE /* imgui_demo.cpp in Sources */,
 				3C7FA32F2B67AEE0005A8441 /* gzread.c in Sources */,
 				3C6E7F2B272A30E700E9F115 /* soloud_wav.cpp in Sources */,
@@ -3692,6 +4392,7 @@
 				3CA77EE42AE665C100B7BADA /* Joint.cpp in Sources */,
 				3C1A3AFE272A850F003A2829 /* lvm.c in Sources */,
 				3C6E7F38272A30E700E9F115 /* darray.cpp in Sources */,
+				3C0FB5812BEEF20D0098E88D /* Effekseer.Vector3D.cpp in Sources */,
 				3C40555320FD93AA0057B0E4 /* Define.cpp in Sources */,
 				3C9CCD042689BDD00086757D /* format.cpp in Sources */,
 				3CD497FE1E7EF3DF00C06CA2 /* FrameCache.cpp in Sources */,
@@ -3701,27 +4402,35 @@
 				3CFEBD68268DA6D5006D9974 /* Armature.cpp in Sources */,
 				3CA77F032AE665C100B7BADA /* WorldManifold.cpp in Sources */,
 				3CF10ED82874AE7E00940268 /* PathConstraint.cpp in Sources */,
+				3C0FB4712BEEF0DA0098E88D /* EffekseerRenderer.PngTextureLoader.cpp in Sources */,
 				3CB487161E16398700D51749 /* tolua_map.cpp in Sources */,
 				3CF10ED22874AE7E00940268 /* Attachment.cpp in Sources */,
 				3CB2115125C2984900CEA033 /* imgui_tables.cpp in Sources */,
 				3C41D5F92148AD02003FDDFE /* imgui_widgets.cpp in Sources */,
 				3C46E8572614227300DC9D4F /* Content.cpp in Sources */,
 				3CA77EED2AE665C100B7BADA /* UnitVec.cpp in Sources */,
+				3C0FB5572BEEF20D0098E88D /* CurlNoise.cpp in Sources */,
 				3CA77EF42AE665C100B7BADA /* RopeJointConf.cpp in Sources */,
+				3C0FB56F2BEEF20D0098E88D /* Effekseer.EffectNodeTrack.cpp in Sources */,
 				3C6E7F27272A30E700E9F115 /* soloud_vic.cpp in Sources */,
+				3C0FB47A2BEEF0DA0098E88D /* GraphicsDeviceCPU.cpp in Sources */,
 				3CF10EF22874AE7E00940268 /* SlotData.cpp in Sources */,
 				3CB4871E1E16419800D51749 /* Geometry.cpp in Sources */,
+				3C0FB56A2BEEF20D0098E88D /* Effekseer.EffectNodeModel.cpp in Sources */,
 				3C6E7F13272A30E700E9F115 /* soloud_fft_lut.cpp in Sources */,
 				3C1A3AF5272A850F003A2829 /* lctype.c in Sources */,
 				3C5399E82994E97400E9125C /* HttpServer.cpp in Sources */,
 				3C53E93C2BE8CF1100039640 /* PixelGrid.cpp in Sources */,
 				3CFEA122285B857B002D106F /* m3_info.c in Sources */,
+				3C0FB5642BEEF20D0098E88D /* Effekseer.Color.cpp in Sources */,
 				3CFEB857268DA65C006D9974 /* ArmatureData.cpp in Sources */,
 				3CF10EEB2874AE7E00940268 /* IkConstraintTimeline.cpp in Sources */,
 				3CFEB85D268DA65C006D9974 /* AnimationConfig.cpp in Sources */,
 				3C6E7F1F272A30E700E9F115 /* soloud_core_faderops.cpp in Sources */,
 				3CFEB869268DA670006D9974 /* Transform.cpp in Sources */,
 				3CFEBD78268DA6E4006D9974 /* TimelineState.cpp in Sources */,
+				3C0FB5822BEEF20D0098E88D /* Effekseer.WorkerThread.cpp in Sources */,
+				3C0FB5772BEEF20D0098E88D /* Effekseer.IntrusiveList.cpp in Sources */,
 				3C1A3B08272A850F003A2829 /* ltablib.c in Sources */,
 				3CE9D7FC1E7FE99D003AAECB /* Dictionary.cpp in Sources */,
 				3C6E7F16272A30E700E9F115 /* soloud_fader.cpp in Sources */,
@@ -3733,15 +4442,18 @@
 				3CA77F162AE665C100B7BADA /* PoolMemoryResource.cpp in Sources */,
 				3CA77F1F2AE665C100B7BADA /* Math.cpp in Sources */,
 				3C46E8592614227300DC9D4F /* Database.cpp in Sources */,
+				3C0FB4782BEEF0DA0098E88D /* EffekseerRenderer.TGATextureLoader.cpp in Sources */,
 				3CFEB876268DA6A3006D9974 /* BaseObject.cpp in Sources */,
 				3CFEA128285B857B002D106F /* m3_module.c in Sources */,
 				3CA77F1A2AE665C100B7BADA /* Island.cpp in Sources */,
 				3CCEDD471E1D55BF00F32295 /* Utils.cpp in Sources */,
+				3C0FB57C2BEEF20D0098E88D /* Effekseer.RectF.cpp in Sources */,
 				3CF10EF62874AE7E00940268 /* BoundingBoxAttachment.cpp in Sources */,
 				3CA77EE52AE665C100B7BADA /* MultiShapeConf.cpp in Sources */,
 				3CE3555F1E1B3F7200268A19 /* LuaHandler.cpp in Sources */,
 				3C020DCC1E75476600307E4F /* Action.cpp in Sources */,
 				3CA77EE32AE665C100B7BADA /* Simplex.cpp in Sources */,
+				3C0FB5592BEEF20D0098E88D /* Easing.cpp in Sources */,
 				3C6E7F09272A30E700E9F115 /* soloud_echofilter.cpp in Sources */,
 				3C1A3B05272A850F003A2829 /* lapi.c in Sources */,
 				3CB487131E16398700D51749 /* tolua_event.cpp in Sources */,
@@ -3756,7 +4468,10 @@
 				3CF10EF82874AE7E00940268 /* LinkedMesh.cpp in Sources */,
 				3C6E7F20272A30E700E9F115 /* soloud_core_basicops.cpp in Sources */,
 				3CF10ED52874AE7E00940268 /* SpineObject.cpp in Sources */,
+				3C0FB46E2BEEF0DA0098E88D /* EffekseerRenderer.DDSTextureLoader.cpp in Sources */,
+				3C0FB5552BEEF20D0098E88D /* Effekseer.Session.cpp in Sources */,
 				3CF10EF72874AE7E00940268 /* SkeletonClipping.cpp in Sources */,
+				3C0FB57A2BEEF20D0098E88D /* Effekseer.Matrix44.cpp in Sources */,
 				3C6E7F07272A30E700E9F115 /* soloud_eqfilter.cpp in Sources */,
 				3CF10ED62874AE7E00940268 /* Skeleton.cpp in Sources */,
 				3C6E7F22272A30E700E9F115 /* soloud_core_getters.cpp in Sources */,
@@ -3766,6 +4481,7 @@
 				3CF10EE72874AE7E00940268 /* TranslateTimeline.cpp in Sources */,
 				3CA77F1E2AE665C100B7BADA /* ConstraintSolverConf.cpp in Sources */,
 				3C46E85C2614227300DC9D4F /* AutoreleasePool.cpp in Sources */,
+				3C0FB56B2BEEF20D0098E88D /* Effekseer.EffectNodeRibbon.cpp in Sources */,
 				3CFEB85F268DA65C006D9974 /* DisplayData.cpp in Sources */,
 				3CF10EEE2874AE7E00940268 /* VertexAttachment.cpp in Sources */,
 				3CFEA123285B857B002D106F /* m3_compile.c in Sources */,
@@ -3773,10 +4489,12 @@
 				3C6E7F0A272A30E700E9F115 /* soloud_fftfilter.cpp in Sources */,
 				3CE9509820F30A65002FFC18 /* Builtin.cpp in Sources */,
 				3C40555020FD92CC0057B0E4 /* Face.cpp in Sources */,
+				3C0FB5652BEEF20D0098E88D /* Effekseer.CurveLoader.cpp in Sources */,
 				3CDED03F1E52F55100B5E578 /* font_manager.cpp in Sources */,
 				3CF10F012874AE7E00940268 /* AttachmentTimeline.cpp in Sources */,
 				3C1A3AF7272A850F003A2829 /* llex.c in Sources */,
 				3CF10EDA2874AE7E00940268 /* SkeletonJson.cpp in Sources */,
+				3C0FB5782BEEF20D0098E88D /* Effekseer.Manager.cpp in Sources */,
 				3CC7945E2579F9B000042394 /* ast.cpp in Sources */,
 				3C46E85F2614227300DC9D4F /* Renderer.cpp in Sources */,
 				3C3A5E1A24DA4BB900E59288 /* World.cpp in Sources */,
@@ -3786,7 +4504,9 @@
 				3CA77ED62AE665C100B7BADA /* DynamicMemory.cpp in Sources */,
 				3CFEB85A268DA65C006D9974 /* SkinData.cpp in Sources */,
 				3CF09EF71E581AAD009E8C6F /* Singleton.cpp in Sources */,
+				3C0FB5692BEEF20D0098E88D /* Effekseer.EffectNode.cpp in Sources */,
 				3CF10EE22874AE7E00940268 /* SkeletonBinary.cpp in Sources */,
+				3C0FB55F2BEEF20D0098E88D /* Mat44f.cpp in Sources */,
 				3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */,
 				3C6E7F3F272A30E700E9F115 /* soloud_monotone.cpp in Sources */,
 				3C2F9C871E7AE8CA00B98D39 /* Animation.cpp in Sources */,
@@ -3801,16 +4521,20 @@
 				3CF10EF42874AE7E00940268 /* SkeletonBounds.cpp in Sources */,
 				3C3A5E1D24DA5E1700E59288 /* SoftNode.cpp in Sources */,
 				3C1984782100656800B6F370 /* PlatformWorld.cpp in Sources */,
+				3C0FB4792BEEF0DA0098E88D /* EffekseerRenderer.TrackRendererBase.cpp in Sources */,
 				3C6E7F1A272A30E700E9F115 /* soloud_fft.cpp in Sources */,
 				3CA77F042AE665C100B7BADA /* PositionSolverManifold.cpp in Sources */,
+				3C0FB57B2BEEF20D0098E88D /* Effekseer.Random.cpp in Sources */,
 				3CFEA11F285B857B002D106F /* m3_env.c in Sources */,
 				3C1A3AEB272A850F003A2829 /* lundump.c in Sources */,
 				3CF10EDE2874AE7E00940268 /* ShearTimeline.cpp in Sources */,
 				3C53E9402BE8CF1100039640 /* event.cpp in Sources */,
 				3CF10EF52874AE7E00940268 /* Event.cpp in Sources */,
+				3C0FB57D2BEEF20D0098E88D /* Effekseer.Resource.cpp in Sources */,
 				3C6E7F18272A30E700E9F115 /* soloud.cpp in Sources */,
 				3C7FA32E2B67AEE0005A8441 /* gzlib.c in Sources */,
 				3CA77F142AE665C100B7BADA /* DistanceConf.cpp in Sources */,
+				3C0FB4732BEEF0DA0098E88D /* EffekseerRenderer.Renderer.cpp in Sources */,
 				3CD328311E4B0B530036906C /* ImGuiDora.cpp in Sources */,
 				3C853F8128E2DC0F0012C0D0 /* Test.cpp in Sources */,
 				3CEA71B41ECB8ECA00EFFD63 /* Keyboard.cpp in Sources */,
@@ -3819,6 +4543,7 @@
 				3C1A3AED272A850F003A2829 /* ldump.c in Sources */,
 				3CA77EEE2AE665C100B7BADA /* BodyConf.cpp in Sources */,
 				3C5AE08E1FFC737100CB95EB /* Entity.cpp in Sources */,
+				3C0FB5502BEEF20D0098E88D /* SplineGenerator.cpp in Sources */,
 				3CF10F002874AE7E00940268 /* ColorTimeline.cpp in Sources */,
 				3CFEA124285B857B002D106F /* m3_parse.c in Sources */,
 				3CF10EEC2874AE7E00940268 /* Log.cpp in Sources */,
@@ -3829,6 +4554,7 @@
 				3CA77EE22AE665C100B7BADA /* MotorJointConf.cpp in Sources */,
 				3CF10EFF2874AE7E00940268 /* AnimationState.cpp in Sources */,
 				3CA77F012AE665C100B7BADA /* PolygonShapeConf.cpp in Sources */,
+				3C0FB5542BEEF20D0098E88D /* Effekseer.Server.cpp in Sources */,
 				3CA77F002AE665C100B7BADA /* Shape.cpp in Sources */,
 				3C42B0A320FECB0A00186F9C /* AI.cpp in Sources */,
 				3C42B0A020FECB0A00186F9C /* Bullet.cpp in Sources */,
@@ -3840,9 +4566,13 @@
 				3C6E7F10272A30E700E9F115 /* soloud_biquadresonantfilter.cpp in Sources */,
 				3C1A3B09272A850F003A2829 /* lmem.c in Sources */,
 				3CA77EF72AE665C100B7BADA /* WorldBody.cpp in Sources */,
+				3C0FB5472BEEF20D0098E88D /* ForceFields.cpp in Sources */,
 				3CF10EE12874AE7E00940268 /* TransformConstraintData.cpp in Sources */,
 				3C1A3AF3272A850F003A2829 /* lcode.c in Sources */,
+				3C0FB5802BEEF20D0098E88D /* Effekseer.Vector2D.cpp in Sources */,
+				3C0FB47C2BEEF0DA0098E88D /* TextureLoader.cpp in Sources */,
 				3CA718A71FCCF11000B6AC80 /* lodepng.cpp in Sources */,
+				3C0FB4722BEEF0DA0098E88D /* EffekseerRenderer.Renderer_Impl.cpp in Sources */,
 				3CF10EF92874AE7E00940268 /* EventData.cpp in Sources */,
 				3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */,
 				3CF10F032874AE7E00940268 /* IkConstraint.cpp in Sources */,
@@ -3850,9 +4580,12 @@
 				3C0C77132753343D0030BDCD /* ZipUtils.cpp in Sources */,
 				3CA77EE62AE665C100B7BADA /* WorldJoint.cpp in Sources */,
 				3CA77F122AE665C100B7BADA /* MassData.cpp in Sources */,
+				3C0FB5532BEEF20D0098E88D /* Effekseer.Client.cpp in Sources */,
 				3CE9D8001E7FF7A7003AAECB /* DebugDraw.cpp in Sources */,
 				3CFEBD63268DA6D5006D9974 /* Slot.cpp in Sources */,
 				3CFEB840268DA64B006D9974 /* JSONDataParser.cpp in Sources */,
+				3C0FB54F2BEEF20D0098E88D /* ProceduralModelGenerator.cpp in Sources */,
+				3C0FB5612BEEF20D0098E88D /* Effekseer.CustomAllocator.cpp in Sources */,
 				3CA77EE12AE665C100B7BADA /* Manifold.cpp in Sources */,
 				3CA77EDD2AE665C100B7BADA /* Version.cpp in Sources */,
 				3C49FFEF20EF644900E775D7 /* stb.cpp in Sources */,
@@ -3870,6 +4603,7 @@
 				3C1A3AF2272A850F003A2829 /* lzio.c in Sources */,
 				3CA77F1B2AE665C100B7BADA /* ToiConf.cpp in Sources */,
 				3C46E83426140A8F00DC9D4F /* Savepoint.cpp in Sources */,
+				3C0FB5792BEEF20D0098E88D /* Effekseer.Matrix43.cpp in Sources */,
 				3C47CF1128A356B40011F3E1 /* Cache.cpp in Sources */,
 				3C6E7F15272A30E700E9F115 /* soloud_bus.cpp in Sources */,
 				3CFEBD66268DA6D5006D9974 /* Constraint.cpp in Sources */,
@@ -3877,16 +4611,20 @@
 				3CD497FB1E7EE52300C06CA2 /* ModelCache.cpp in Sources */,
 				3CFEB871268DA694006D9974 /* EventObject.cpp in Sources */,
 				3CA77F062AE665C100B7BADA /* Velocity.cpp in Sources */,
+				3C0FB5752BEEF20D0098E88D /* Effekseer.InstanceGroup.cpp in Sources */,
+				3C0FB4742BEEF0DA0098E88D /* EffekseerRenderer.RenderStateBase.cpp in Sources */,
 				3C1A3AF1272A850F003A2829 /* ldblib.c in Sources */,
 				3C1A3AF0272A850F003A2829 /* lobject.c in Sources */,
 				3CA77F102AE665C100B7BADA /* DistanceJointConf.cpp in Sources */,
 				3CF10EEA2874AE7E00940268 /* PathConstraintData.cpp in Sources */,
+				3C0FB46D2BEEF0DA0098E88D /* EffekseerRenderer.CommonUtils.cpp in Sources */,
 				3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */,
 				3C8805771E5EDCE100B52D4B /* Debug.cpp in Sources */,
 				3C6929721E2C60BE0097AC49 /* Effect.cpp in Sources */,
 				3CF10EE02874AE7E00940268 /* Sequence.cpp in Sources */,
 				3CFEA11C285B857B002D106F /* m3_code.c in Sources */,
 				3CF10ECF2874AE7E00940268 /* ScaleTimeline.cpp in Sources */,
+				3C0FB5742BEEF20D0098E88D /* Effekseer.InstanceGlobal.cpp in Sources */,
 				3C3A5E1124D9A3D000E59288 /* Particle.cpp in Sources */,
 				3CA77EE92AE665C100B7BADA /* SeparationScenario.cpp in Sources */,
 				3CA77ED82AE665C100B7BADA /* StackAllocator.cpp in Sources */,
@@ -3896,6 +4634,7 @@
 				3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */,
 				3C6E7F28272A30E700E9F115 /* stb_vorbis.c in Sources */,
 				3CF10EDF2874AE7E00940268 /* Timeline.cpp in Sources */,
+				3C0FB56C2BEEF20D0098E88D /* Effekseer.EffectNodeRing.cpp in Sources */,
 				3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */,
 				3CC7945F2579F9B000042394 /* yue_parser.cpp in Sources */,
 				3CA77EE02AE665C100B7BADA /* EdgeShapeConf.cpp in Sources */,
@@ -3913,14 +4652,19 @@
 				3C46E85E2614227300DC9D4F /* View.cpp in Sources */,
 				3CA77EFB2AE665C100B7BADA /* Body.cpp in Sources */,
 				3C53E9472BE8CF1100039640 /* YGNodeStyle.cpp in Sources */,
+				3C0FB54E2BEEF20D0098E88D /* PointCacheGenerator.cpp in Sources */,
+				3C0FB5702BEEF20D0098E88D /* Effekseer.FCurves.cpp in Sources */,
 				3C6E7F42272A30E700E9F115 /* soloud_openmpt.cpp in Sources */,
 				3C1A3AF8272A850F003A2829 /* ltable.c in Sources */,
 				3C46E83526140A8F00DC9D4F /* Backup.cpp in Sources */,
 				3CA77EF32AE665C100B7BADA /* DistanceProxy.cpp in Sources */,
+				3C0FB55C2BEEF20D0098E88D /* KillRules.cpp in Sources */,
 				3C6E7F0C272A30E700E9F115 /* soloud_dcremovalfilter.cpp in Sources */,
+				3C0FB4772BEEF0DA0098E88D /* EffekseerRenderer.SpriteRendererBase.cpp in Sources */,
 				3C6E7F1E272A30E700E9F115 /* soloud_queue.cpp in Sources */,
 				3C1A3AEF272A850F003A2829 /* lbaselib.c in Sources */,
 				3C46E8622614227300DC9D4F /* VGRender.cpp in Sources */,
+				3C0FB4702BEEF0DA0098E88D /* EffekseerRenderer.ModelRendererBase.cpp in Sources */,
 				3CA77EDC2AE665C100B7BADA /* StepStats.cpp in Sources */,
 				3CFEA11D285B857B002D106F /* m3_api_meta_wasi.c in Sources */,
 				3CC794602579F9B000042394 /* yuescript.cpp in Sources */,
@@ -3938,24 +4682,29 @@
 				3C1A3AFC272A850F003A2829 /* lstate.c in Sources */,
 				3C7FA3292B67AEE0005A8441 /* gzwrite.c in Sources */,
 				3C9A7D7A1E55957500205094 /* atlas.cpp in Sources */,
+				3C0FB5482BEEF20D0098E88D /* Effekseer.EfkEfcFactory.cpp in Sources */,
 				3C6DA2131EAF0726006EEE32 /* tinyxml2.cpp in Sources */,
 				3C46E85B2614227300DC9D4F /* Application.mm in Sources */,
 				3C7FA32D2B67AEE0005A8441 /* deflate.c in Sources */,
+				3C0FB4762BEEF0DA0098E88D /* EffekseerRenderer.RingRendererBase.cpp in Sources */,
 				3C6E7F3B272A30E700E9F115 /* soloud_tedsid.cpp in Sources */,
 				3CFEB85E268DA65C006D9974 /* AnimationData.cpp in Sources */,
 				3C7FA3312B67AEE0005A8441 /* trees.c in Sources */,
+				3C0FB46F2BEEF0DA0098E88D /* EffekseerRenderer.GpuParticles.cpp in Sources */,
 				3CD029091E07D3C50016E1EC /* LuaEngine.cpp in Sources */,
 				3CA77F132AE665C100B7BADA /* ShapeSeparation.cpp in Sources */,
 				3CCA844B263668AE00AA9B44 /* implot_items.cpp in Sources */,
 				3C1A3B06272A850F003A2829 /* lutf8lib.c in Sources */,
 				3CF10ECC2874AE7E00940268 /* Updatable.cpp in Sources */,
 				3CA77EDE2AE665C100B7BADA /* BlockAllocator.cpp in Sources */,
+				3C0FB5582BEEF20D0098E88D /* Collisions.cpp in Sources */,
 				3CA77F052AE665C100B7BADA /* ConvexHull.cpp in Sources */,
 				3CF10EC72874AE7E00940268 /* SequenceTimeline.cpp in Sources */,
 				3C2DFE1B1E95C58A0077B67D /* Sound.cpp in Sources */,
 				3C6E7F36272A30E700E9F115 /* klatt.cpp in Sources */,
 				3CA77EFD2AE665C100B7BADA /* WeldJointConf.cpp in Sources */,
 				3CDA2E1324C20DDD009B0AA5 /* ML.cpp in Sources */,
+				3C0FB5622BEEF20D0098E88D /* VectorField.cpp in Sources */,
 				3CA77F0F2AE665C100B7BADA /* VelocityConstraint.cpp in Sources */,
 				3CF10ED42874AE7E00940268 /* DeformTimeline.cpp in Sources */,
 				3C2DFE141E95C4AF0077B67D /* SoundCache.cpp in Sources */,
@@ -3963,15 +4712,18 @@
 				3CCA844C263668AE00AA9B44 /* implot_demo.cpp in Sources */,
 				3C6E7F21272A30E700E9F115 /* soloud_thread.cpp in Sources */,
 				3CE3456A20F7248A00D7F60C /* MemoryPool.cpp in Sources */,
+				3C0FB5712BEEF20D0098E88D /* Effekseer.Instance.cpp in Sources */,
 				3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */,
 				3CE9D7F41E7FC2A6003AAECB /* Body.cpp in Sources */,
 				3C6E7F3E272A30E700E9F115 /* soloud_noise.cpp in Sources */,
 				3C46E85A2614227300DC9D4F /* Scheduler.cpp in Sources */,
+				3C0FB4752BEEF0DA0098E88D /* EffekseerRenderer.RibbonRendererBase.cpp in Sources */,
 				3CFEBD76268DA6E4006D9974 /* WorldClock.cpp in Sources */,
 				3C0D311C2456E23F009C592B /* SkeletonCache.cpp in Sources */,
 				3C2F9C8A1E7B114B00B98D39 /* ModelDef.cpp in Sources */,
 				3CF10EE82874AE7E00940268 /* IkConstraintData.cpp in Sources */,
 				3CFEBD75268DA6E4006D9974 /* AnimationState.cpp in Sources */,
+				3C0FB5762BEEF20D0098E88D /* Effekseer.InternalScript.cpp in Sources */,
 				3CA77EE82AE665C100B7BADA /* TargetJointConf.cpp in Sources */,
 				3C6E7F29272A30E700E9F115 /* soloud_wavstream.cpp in Sources */,
 				3C42B09720FEC57C00186F9C /* AINode.cpp in Sources */,
@@ -3979,11 +4731,13 @@
 				3C6E7F24272A30E700E9F115 /* soloud_misc.cpp in Sources */,
 				3C53E9392BE8CF1100039640 /* Cache.cpp in Sources */,
 				3CF10EE32874AE7E00940268 /* Skin.cpp in Sources */,
+				3C0FB47B2BEEF0DA0098E88D /* ModelLoader.cpp in Sources */,
 				3CA77F172AE665C100B7BADA /* StatsResource.cpp in Sources */,
 				3CA77F0E2AE665C100B7BADA /* CodeDumper.cpp in Sources */,
 				3C53E9482BE8CF1100039640 /* YGPixelGrid.cpp in Sources */,
 				3C46E8602614227300DC9D4F /* Application.cpp in Sources */,
 				3CFEBDA2268DB403006D9974 /* DragonBoneCache.cpp in Sources */,
+				3C0FB5672BEEF20D0098E88D /* Effekseer.DefaultFile.cpp in Sources */,
 				3CA77F022AE665C100B7BADA /* PulleyJointConf.cpp in Sources */,
 				3CCB0C791E6DB0590088C118 /* ClipNode.cpp in Sources */,
 				3CA77EFC2AE665C100B7BADA /* WheelJointConf.cpp in Sources */,
@@ -3991,7 +4745,10 @@
 				3C1A3B03272A850F003A2829 /* lcorolib.c in Sources */,
 				3C6E7F1B272A30E700E9F115 /* soloud_core_setters.cpp in Sources */,
 				3C53E9372BE8CF1100039640 /* AbsoluteLayout.cpp in Sources */,
+				3C0FB5562BEEF20D0098E88D /* Effekseer.Socket.cpp in Sources */,
 				3CF10EE92874AE7E00940268 /* TransformConstraintTimeline.cpp in Sources */,
+				3C0FB56D2BEEF20D0098E88D /* Effekseer.EffectNodeRoot.cpp in Sources */,
+				3C0FB55E2BEEF20D0098E88D /* Mat43f.cpp in Sources */,
 				3C6E7F4B272A389200E9F115 /* sqlite3.c in Sources */,
 				3C6E7F0F272A30E700E9F115 /* soloud_freeverbfilter.cpp in Sources */,
 				3C6DA2121EAF0726006EEE32 /* SAXParser.cpp in Sources */,
@@ -4007,13 +4764,16 @@
 				3CA77F0D2AE665C100B7BADA /* Compositor.cpp in Sources */,
 				3CFEB858268DA65C006D9974 /* CanvasData.cpp in Sources */,
 				3CFEA11E285B857B002D106F /* m3_api_uvwasi.c in Sources */,
+				3C0FB5732BEEF20D0098E88D /* Effekseer.InstanceContainer.cpp in Sources */,
 				3C6E7F08272A30E700E9F115 /* soloud_bassboostfilter.cpp in Sources */,
 				3C6E7F1C272A30E700E9F115 /* soloud_core_voiceops.cpp in Sources */,
 				3CF10EFE2874AE7E00940268 /* Animation.cpp in Sources */,
+				3C0FB54B2BEEF20D0098E88D /* Effekseer.MaterialFile.cpp in Sources */,
 				3C42B0A620FEFEA800186F9C /* UnitAction.cpp in Sources */,
 				3C6E7F40272A30E700E9F115 /* soloud_vizsn.cpp in Sources */,
 				3CFEA126285B857B002D106F /* m3_exec.c in Sources */,
 				3CFFEC6E292F19EC00BC6DA1 /* ImGuiBinding.cpp in Sources */,
+				3C0FB33D2BEEF0490098E88D /* bgfxrenderer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4197,6 +4957,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/asio",
 					"$(SRCROOT)/../../Source/3rdParty/zlib",
 					"$(SRCROOT)/../../Source/3rdParty/OpenSSL/Header",
+					"$(SRCROOT)/../../Source/3rdParty/Effekseer",
 				);
 				VALID_ARCHS = "x86_64 arm64";
 			};
@@ -4265,6 +5026,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/asio",
 					"$(SRCROOT)/../../Source/3rdParty/zlib",
 					"$(SRCROOT)/../../Source/3rdParty/OpenSSL/Header",
+					"$(SRCROOT)/../../Source/3rdParty/Effekseer",
 				);
 				VALID_ARCHS = "x86_64 arm64";
 			};
