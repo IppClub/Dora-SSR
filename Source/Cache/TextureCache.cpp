@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Content.h"
 #include "Common/Async.h"
 #include "bimg/decode.h"
+#include "bx/pixelformat.h"
 
 NS_DORA_BEGIN
 
@@ -110,32 +111,60 @@ static void releaseImage(void* _ptr, void* _userData) {
 	bimg::imageFree(imageContainer);
 }
 
+static Texture2D* createTexture(bx::AllocatorI* allocator, bimg::ImageContainer* image, String filename) {
+	if (!image) {
+		return nullptr;
+	}
+	bimg::ImageContainer* dstImage = image;
+	bool isPNG = Path::getExt(filename) == "png"_slice;
+	if (isPNG) {
+		if (image->m_format == bimg::TextureFormat::RG8) {
+			dstImage = bimg::imageAlloc(allocator, bimg::TextureFormat::RGBA8, uint16_t(image->m_width), uint16_t(image->m_height), uint16_t(image->m_depth), image->m_numLayers, image->m_cubeMap, false);
+			auto unpack = [](float* dst, const void* src) {
+				const uint8_t* _src = (const uint8_t*)src;
+				dst[0] = dst[1] = dst[2] = bx::fromUnorm(_src[0], 255.0f);
+				dst[3] = bx::fromUnorm(_src[1], 255.0f);
+			};
+			const auto srcbpp = 16;
+			const auto dstbpp = 32;
+			bimg::imageConvert(dstImage->m_data, dstbpp, bx::packRgba8,
+				image->m_data, srcbpp, unpack,
+				image->m_width, image->m_height, image->m_depth,
+				image->m_width * (srcbpp / 8), image->m_width * (dstbpp / 8));
+		} else if (image->m_format != bimg::TextureFormat::RGBA8) {
+			dstImage = bimg::imageConvert(allocator, bimg::TextureFormat::RGBA8, *image, false);
+			bimg::imageFree(image);
+		}
+	}
+	uint64_t flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+	const bgfx::Memory* mem = bgfx::makeRef(
+		dstImage->m_data, dstImage->m_size,
+		releaseImage, dstImage);
+	bgfx::TextureHandle handle = bgfx::createTexture2D(
+		s_cast<uint16_t>(dstImage->m_width),
+		s_cast<uint16_t>(dstImage->m_height),
+		dstImage->m_numMips > 1,
+		dstImage->m_numLayers,
+		s_cast<bgfx::TextureFormat::Enum>(dstImage->m_format),
+		flags,
+		mem);
+	bgfx::TextureInfo info;
+	bgfx::calcTextureSize(info,
+		s_cast<uint16_t>(dstImage->m_width),
+		s_cast<uint16_t>(dstImage->m_height),
+		s_cast<uint16_t>(dstImage->m_depth),
+		dstImage->m_cubeMap,
+		dstImage->m_numMips > 1,
+		dstImage->m_numLayers,
+		s_cast<bgfx::TextureFormat::Enum>(dstImage->m_format));
+	Texture2D* texture = Texture2D::create(handle, info, flags);
+	return texture;
+}
+
 Texture2D* TextureCache::update(String filename, const uint8_t* data, int64_t size) {
 	AssertUnless(data && size > 0, "add invalid data to texture cache.");
-	bimg::ImageContainer* imageContainer = bimg::imageParse(&_allocator, data, s_cast<uint32_t>(size));
-	if (imageContainer) {
-		uint64_t flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
-		const bgfx::Memory* mem = bgfx::makeRef(
-			imageContainer->m_data, imageContainer->m_size,
-			releaseImage, imageContainer);
-		bgfx::TextureHandle handle = bgfx::createTexture2D(
-			s_cast<uint16_t>(imageContainer->m_width),
-			s_cast<uint16_t>(imageContainer->m_height),
-			imageContainer->m_numMips > 1,
-			imageContainer->m_numLayers,
-			s_cast<bgfx::TextureFormat::Enum>(imageContainer->m_format),
-			flags,
-			mem);
-		bgfx::TextureInfo info;
-		bgfx::calcTextureSize(info,
-			s_cast<uint16_t>(imageContainer->m_width),
-			s_cast<uint16_t>(imageContainer->m_height),
-			s_cast<uint16_t>(imageContainer->m_depth),
-			imageContainer->m_cubeMap,
-			imageContainer->m_numMips > 1,
-			imageContainer->m_numLayers,
-			s_cast<bgfx::TextureFormat::Enum>(imageContainer->m_format));
-		Texture2D* texture = Texture2D::create(handle, info, flags);
+	auto image = bimg::imageParse(&_allocator, data, s_cast<uint32_t>(size));
+	if (auto texture = createTexture(&_allocator, image, filename)) {
 		std::string fullPath = SharedContent.getFullPath(filename);
 		_textures[fullPath] = texture;
 		return texture;
@@ -181,29 +210,7 @@ void TextureCache::loadAsync(String filename, const std::function<void(Texture2D
 			[this, file, handler](Own<Values> result) {
 				bimg::ImageContainer* imageContainer;
 				result->get(imageContainer);
-				if (imageContainer) {
-					uint64_t flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
-					const bgfx::Memory* mem = bgfx::makeRef(
-						imageContainer->m_data, imageContainer->m_size,
-						releaseImage, imageContainer);
-					bgfx::TextureHandle handle = bgfx::createTexture2D(
-						s_cast<uint16_t>(imageContainer->m_width),
-						s_cast<uint16_t>(imageContainer->m_height),
-						imageContainer->m_numMips > 1,
-						imageContainer->m_numLayers,
-						s_cast<bgfx::TextureFormat::Enum>(imageContainer->m_format),
-						flags,
-						mem);
-					bgfx::TextureInfo info;
-					bgfx::calcTextureSize(info,
-						s_cast<uint16_t>(imageContainer->m_width),
-						s_cast<uint16_t>(imageContainer->m_height),
-						s_cast<uint16_t>(imageContainer->m_depth),
-						imageContainer->m_cubeMap,
-						imageContainer->m_numMips > 1,
-						imageContainer->m_numLayers,
-						s_cast<bgfx::TextureFormat::Enum>(imageContainer->m_format));
-					Texture2D* texture = Texture2D::create(handle, info, flags);
+				if (Texture2D* texture = createTexture(&_allocator, imageContainer, file)) {
 					std::string fullPath = SharedContent.getFullPath(file);
 					_textures[fullPath] = texture;
 					handler(texture);

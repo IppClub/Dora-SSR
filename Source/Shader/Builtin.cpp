@@ -29,6 +29,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Shader/Sprite/fs_spritewhite.bin.h"
 #include "Shader/Sprite/vs_sprite.bin.h"
 
+#include "Shader/efkbgfx/ad_model_distortion_ps.bin.h"
+#include "Shader/efkbgfx/ad_model_distortion_vs.bin.h"
+#include "Shader/efkbgfx/ad_model_lit_ps.bin.h"
+#include "Shader/efkbgfx/ad_model_lit_vs.bin.h"
+#include "Shader/efkbgfx/ad_model_unlit_ps.bin.h"
+#include "Shader/efkbgfx/ad_model_unlit_vs.bin.h"
+#include "Shader/efkbgfx/ad_sprite_distortion_vs.bin.h"
+#include "Shader/efkbgfx/ad_sprite_lit_vs.bin.h"
+#include "Shader/efkbgfx/ad_sprite_unlit_vs.bin.h"
+#include "Shader/efkbgfx/model_distortion_ps.bin.h"
+#include "Shader/efkbgfx/model_distortion_vs.bin.h"
+#include "Shader/efkbgfx/model_lit_ps.bin.h"
+#include "Shader/efkbgfx/model_lit_vs.bin.h"
+#include "Shader/efkbgfx/model_unlit_ps.bin.h"
+#include "Shader/efkbgfx/model_unlit_vs.bin.h"
+#include "Shader/efkbgfx/sprite_distortion_vs.bin.h"
+#include "Shader/efkbgfx/sprite_lit_vs.bin.h"
+#include "Shader/efkbgfx/sprite_unlit_vs.bin.h"
+
 NS_DORA_BEGIN
 
 static const bgfx::EmbeddedShader doraShaders[] = {
@@ -47,6 +66,24 @@ static const bgfx::EmbeddedShader doraShaders[] = {
 	BGFX_EMBEDDED_SHADER(fs_spritealphatest),
 	BGFX_EMBEDDED_SHADER(fs_spritesaturation),
 	BGFX_EMBEDDED_SHADER(fs_spriteoutlinecolor),
+	BGFX_EMBEDDED_SHADER(ad_model_distortion_ps),
+	BGFX_EMBEDDED_SHADER(ad_model_distortion_vs),
+	BGFX_EMBEDDED_SHADER(ad_model_lit_ps),
+	BGFX_EMBEDDED_SHADER(ad_model_lit_vs),
+	BGFX_EMBEDDED_SHADER(ad_model_unlit_ps),
+	BGFX_EMBEDDED_SHADER(ad_model_unlit_vs),
+	BGFX_EMBEDDED_SHADER(ad_sprite_distortion_vs),
+	BGFX_EMBEDDED_SHADER(ad_sprite_lit_vs),
+	BGFX_EMBEDDED_SHADER(ad_sprite_unlit_vs),
+	BGFX_EMBEDDED_SHADER(model_distortion_ps),
+	BGFX_EMBEDDED_SHADER(model_distortion_vs),
+	BGFX_EMBEDDED_SHADER(model_lit_ps),
+	BGFX_EMBEDDED_SHADER(model_lit_vs),
+	BGFX_EMBEDDED_SHADER(model_unlit_ps),
+	BGFX_EMBEDDED_SHADER(model_unlit_vs),
+	BGFX_EMBEDDED_SHADER(sprite_distortion_vs),
+	BGFX_EMBEDDED_SHADER(sprite_lit_vs),
+	BGFX_EMBEDDED_SHADER(sprite_unlit_vs),
 	BGFX_EMBEDDED_SHADER_END()};
 
 const bgfx::EmbeddedShader* DoraShaders = doraShaders;

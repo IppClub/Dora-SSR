@@ -25,6 +25,7 @@ include_directories(
 	../../Source/3rdParty/wasm3
 	../../Source/3rdParty/asio
 	../../Source/3rdParty/zlib
+	../../Source/3rdParty/Effekseer
 )
 
 add_library(BGFX-lib STATIC IMPORTED)
@@ -149,6 +150,7 @@ add_executable(dora-ssr
 	../../Source/Node/DragonBone.cpp
 	../../Source/Node/DrawNode.cpp
 	../../Source/Node/AlignNode.cpp
+	../../Source/Node/EffekNode.cpp
 	../../Source/Event/EventType.cpp
 	../../Source/Event/EventQueue.cpp
 	../../Source/Event/Listener.cpp
@@ -505,6 +507,82 @@ add_executable(dora-ssr
 	../../Source/3rdParty/yoga/event/event.cpp
 	../../Source/3rdParty/yoga/debug/Log.cpp
 	../../Source/3rdParty/yoga/debug/AssertFatal.cpp
+	../../Source/3rdParty/Effekseer/bgfxrenderer.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.RectF.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.ResourceManager.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.CurveLoader.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.IntrusiveList.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.EffectNodeRoot.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.Effect.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.WorkerThread.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.Manager.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.EffectNode.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.EffectNodeModel.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.EffectNodeTrack.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.FCurves.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.EffectNodeRing.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.InternalScript.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.DefaultEffectLoader.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.DefaultFile.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.Setting.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.InstanceGlobal.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.EffectNodeSprite.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.InstanceGroup.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.Resource.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.EffectNodeRibbon.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.Instance.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.Matrix43.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.Matrix44.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.InstanceContainer.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.Vector3D.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.Color.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.Vector2D.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.Random.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Effekseer.InstanceChunk.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.TrackRendererBase.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.RenderStateBase.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/VertexBuffer.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/GraphicsDeviceCPU.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.RibbonRendererBase.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/TextureLoader.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.Renderer.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.DDSTextureLoader.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/ModelLoader.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.ModelRendererBase.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.RingRendererBase.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.TGATextureLoader.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.Renderer_Impl.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.SpriteRendererBase.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.CommonUtils.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.PngTextureLoader.cpp
+	../../Source/3rdParty/Effekseer/EffekseerRendererCommon/EffekseerRenderer.GpuParticles.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/ForceField/ForceFields.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Network/Effekseer.Server.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Network/Effekseer.Client.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Network/Effekseer.Session.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Network/Effekseer.Socket.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/IO/Effekseer.EfkEfcFactory.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/SIMD/Utils.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/SIMD/Mat44f.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/SIMD/Mat43f.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Utils/Effekseer.CustomAllocator.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/VectorField/VectorField.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/VectorField/VectorFieldLoader.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Noise/CurlNoise.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Model/ModelLoader.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Model/SplineGenerator.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Model/Model.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Model/ProceduralModelGenerator.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Model/PointCacheGenerator.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Parameter/Easing.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Parameter/Effekseer.Parameters.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Parameter/GpuParticlesParameter.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Parameter/Collisions.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Parameter/KillRules.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Parameter/Rotation.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Material/Effekseer.MaterialFile.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Material/Effekseer.MaterialCompiler.cpp
+	../../Source/3rdParty/Effekseer/Effekseer/Material/Effekseer.CompiledMaterial.cpp
 )
 
 target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto)

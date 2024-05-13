@@ -23,12 +23,14 @@ public:
 	PROPERTY_READONLY(uint16_t, Height);
 	PROPERTY(Camera*, Camera);
 	PROPERTY_READONLY(Texture2D*, Texture);
+	PROPERTY_READONLY(Texture2D*, DepthTexture);
 	virtual ~RenderTarget();
 	virtual bool init() override;
 	void render(Node* target);
 	void renderWithClear(Color color, float depth = 1.0f, uint8_t stencil = 0);
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0);
 	void saveAsync(String filename, const std::function<void(bool)>& callback);
+	static RenderTarget* getCurrent();
 	CREATE_FUNC(RenderTarget);
 
 protected:
@@ -45,7 +47,10 @@ private:
 	Ref<Texture2D> _depthTexture;
 	Ref<Camera> _camera;
 	Ref<Node> _dummy;
+	bgfx::TextureHandle _textureHandle;
+	bgfx::TextureHandle _depthTextureHandle;
 	bgfx::FrameBufferHandle _frameBufferHandle;
+	static std::stack<RenderTarget*> _applyingStack;
 	DORA_TYPE_OVERRIDE(RenderTarget);
 };
 

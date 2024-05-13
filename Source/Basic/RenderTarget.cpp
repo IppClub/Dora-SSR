@@ -24,6 +24,8 @@ using namespace lodepnglib;
 
 NS_DORA_BEGIN
 
+std::stack<RenderTarget*> RenderTarget::_applyingStack;
+
 RenderTarget::RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format)
 	: _textureWidth(width)
 	, _textureHeight(height)
@@ -57,6 +59,10 @@ Camera* RenderTarget::getCamera() const {
 
 Texture2D* RenderTarget::getTexture() const {
 	return _texture;
+}
+
+Texture2D* RenderTarget::getDepthTexture() const {
+	return _depthTexture;
 }
 
 bool RenderTarget::init() {
@@ -103,21 +109,8 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 		}
 		Matrix viewProj;
 		switch (bgfx::getCaps()->rendererType) {
-			case bgfx::RendererType::Direct3D11:
-			case bgfx::RendererType::Direct3D12:
-			case bgfx::RendererType::Metal:
-			case bgfx::RendererType::Vulkan: {
-				if (_camera) {
-					if (_camera->hasProjection())
-						viewProj = _camera->getView();
-					else
-						bx::mtxMul(viewProj, _camera->getView(), SharedView.getProjection());
-				} else {
-					bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), 0, s_cast<float>(_textureHeight), -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
-				}
-				break;
-			}
-			default: {
+			case bgfx::RendererType::OpenGL:
+			case bgfx::RendererType::OpenGLES: {
 				if (_camera) {
 					Matrix tmpVP;
 					Matrix revertY;
@@ -132,10 +125,23 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 				}
 				break;
 			}
+			default: {
+				if (_camera) {
+					if (_camera->hasProjection())
+						viewProj = _camera->getView();
+					else
+						bx::mtxMul(viewProj, _camera->getView(), SharedView.getProjection());
+				} else {
+					bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), 0, s_cast<float>(_textureHeight), -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
+				}
+				break;
+			}
 		}
 		SharedDirector.pushViewProjection(viewProj, [&]() {
 			bgfx::setViewTransform(viewId, nullptr, viewProj);
+			_applyingStack.push(this);
 			renderOnly(target);
+			_applyingStack.pop();
 		});
 	});
 }
@@ -222,6 +228,13 @@ void RenderTarget::saveAsync(String filename, const std::function<void(bool)>& c
 		}
 		return false;
 	});
+}
+
+RenderTarget* RenderTarget::getCurrent() {
+	if (_applyingStack.empty()) {
+		return nullptr;
+	}
+	return _applyingStack.top();
 }
 
 NS_DORA_END

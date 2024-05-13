@@ -121,6 +121,11 @@ uint64_t strtoull(const char* str, char** endptr, int base) {
  * Rotr, Rotl
  */
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4146) // unary operator "-" applied to unsigned 
+#endif
+
 static inline
 u32 rotl32(u32 n, unsigned c) {
     const unsigned mask = CHAR_BIT * sizeof(n) - 1;
@@ -148,6 +153,10 @@ u64 rotr64(u64 n, unsigned c) {
     c &= mask & 63;
     return (n >> c) | (n << ((-c) & mask));
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 /*
  * Integer Div, Rem

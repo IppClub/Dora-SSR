@@ -816,7 +816,7 @@ void AlignNode::css(String css) {
 }
 
 struct ConfigDeleter {
-	void operator()(YGConfigRef ptr) const {
+	inline void operator()(YGConfigRef ptr) const {
 		YGConfigFree(ptr);
 	}
 };

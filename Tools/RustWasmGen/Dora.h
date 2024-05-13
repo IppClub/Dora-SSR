@@ -2350,6 +2350,13 @@ object class AlignNode : public INode
 	static AlignNode* create(bool isWindowRoot);
 };
 
+object class EffekNode : public INode
+{
+	int play(string filename, Vec2 pos, float z);
+	void stop(int handle);
+	static EffekNode* create();
+};
+
 /// A struct that represents a physics world in the game.
 interface object class PhysicsWorld : public INode
 {

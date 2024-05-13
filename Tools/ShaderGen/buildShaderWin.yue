@@ -9,9 +9,83 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
 
 bgfx = "Y:\\Workspace\\bgfx"
-dorothy = "Y:\\Workspace\\Dora-SSR"
+dora = "Y:\\Workspace\\Dora-SSR"
 tool = "#{bgfx}\\.build\\win64_vs2022\\bin\\shadercDebug.exe"
-path = "#{dorothy}\\Source\\Shader"
+path = "#{dora}\\Source\\Shader"
+
+efkbgfx =
+	sprite:
+		Unlit:
+			vs: "sprite_unlit_vs"
+			fs: "model_unlit_ps"
+		Lit:
+			vs: "sprite_lit_vs"
+			fs: "model_lit_ps"
+		BackDistortion:
+			vs: "sprite_distortion_vs"
+			fs: "model_distortion_ps"
+		AdvancedUnlit:
+			vs: "ad_sprite_unlit_vs"
+			fs: "ad_model_unlit_ps"
+		AdvancedLit:
+			vs: "ad_sprite_lit_vs"
+			fs: "ad_model_lit_ps"
+		AdvancedBackDistortion:
+			vs: "ad_sprite_distortion_vs"
+			fs: "ad_model_distortion_ps"
+	model:
+		Unlit:
+			vs: "model_unlit_vs"
+			fs: "model_unlit_ps"
+		Lit:
+			vs: "model_lit_vs"
+			fs: "model_lit_ps"
+		BackDistortion:
+			vs: "model_distortion_vs"
+			fs: "model_distortion_ps"
+		AdvancedUnlit:
+			vs: "ad_model_unlit_vs"
+			fs: "ad_model_unlit_ps"
+		AdvancedLit:
+			vs: "ad_model_lit_vs"
+			fs: "ad_model_lit_ps"
+		AdvancedBackDistortion:
+			vs: "ad_model_distortion_vs"
+			fs: "ad_model_distortion_ps"
+
+compiled = {}
+for modeltype, shaders in pairs efkbgfx do for shadertype, shader in pairs shaders do for stage in *{"v", "f"}
+	sname = shader[stage .. "s"]
+	continue if compiled[sname]
+	compiled[sname] = true
+	dir = "#{path}\\efkbgfx"
+	file = "#{sname}.fx.sc"
+	target = "#{dir}\\#{sname}.bin.h"
+	with io.popen ": > #{dir}/#{sname}.bin.h" --"printf \"extern const uint8_t* #{sname}_pssl;\\nextern const uint32_t #{sname}_pssl_size;\\n\" > #{dir}/#{sname}.bin.h"
+		result = \read "a"
+		\close!
+		print result if result ~= ""
+	for {cmd, t} in *{
+			{"#{tool} -i #{bgfx}\\src --type #{stage} --platform windows -f #{dir}\\#{file} -o #{dir}\\tmp -p s_4_0 -O 3 --bin2c #{sname}_dx11 --varyingdef #{dir}\\#{modeltype}_#{shadertype}_varying.def.sc", "DirectX11"}
+		}
+		print "#{dir}\\#{file} #{t} Building."
+		with io.popen cmd
+			result = \read "a"
+			\close!
+			if result == ""
+				print "#{dir}\\#{file} #{t} Built."
+			else
+				print result
+				print "#{dir}\\#{file} #{t} Failed."
+				return
+		with io.popen "type #{dir}\\tmp >> #{target}"
+			result = \read "a"
+			\close!
+			if result ~= ""
+				print result
+				return
+		with io.popen "del #{dir}\\tmp"
+			\close!
 
 for stage in *{"v", "f"}
 	pathStr = io.popen("dir #{path}\\#{stage}s_*.sc /s /b")\read "a"
@@ -24,6 +98,7 @@ for stage in *{"v", "f"}
 				-- {"#{tool} -i #{bgfx}\\src --type #{stage} --platform windows -f #{dir}\\#{file} -o #{dir}\\tmp -p #{stage == 'f' and 'p' or stage}s_3_0 --bin2c #{sname}_dx9 --varyingdef #{dir}\\varying.def.sc", "DirectX9"}
 				{"#{tool} -i #{bgfx}\\src --type #{stage} --platform windows -f #{dir}\\#{file} -o #{dir}\\tmp -p s_4_0 -O 3 --bin2c #{sname}_dx11 --varyingdef #{dir}\\varying.def.sc", "DirectX11"}
 			}
+			print "#{dir}\\#{file} #{t} Building."
 			with io.popen cmd
 				result = \read "a"
 				\close!
