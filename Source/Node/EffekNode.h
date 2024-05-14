@@ -18,8 +18,10 @@ class EffekNode : public Node {
 public:
 	PROPERTY_CLASS(int, RunningNodes);
 	virtual ~EffekNode();
+	virtual bool init() override;
 	virtual void onEnter() override;
 	virtual void onExit() override;
+	virtual bool update(double deltaTime) override;
 	virtual void render() override;
 	virtual void cleanup() override;
 	int play(String filename, const Vec2& pos = Vec2::zero, float z = 0.0f);
@@ -37,7 +39,7 @@ private:
 		Vec3 position;
 		Ref<EffekEff> eff;
 	};
-	std::queue<Own<RunningEff>> _effList;
+	std::vector<Own<RunningEff>> _effeks;
 	DORA_TYPE_OVERRIDE(EffekNode);
 };
 

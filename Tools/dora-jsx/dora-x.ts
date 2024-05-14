@@ -723,6 +723,10 @@ let getAlignNode: (this: void, enode: React.Element) => dora.AlignNode.Type;
 	};
 }
 
+function getEffekNode(this: void, enode: React.Element): dora.EffekNode.Type {
+	return getNode(enode, dora.EffekNode()) as dora.EffekNode.Type;
+}
+
 function addChild(this: void, nodeStack: dora.Node.Type[], cnode: dora.Node.Type, enode: React.Element) {
 	if (nodeStack.length > 0) {
 		const last = nodeStack[nodeStack.length - 1];
@@ -744,7 +748,7 @@ type ElementMap = {
 
 function drawNodeCheck(this: void, _nodeStack: dora.Node.Type[], enode: React.Element, parent?: React.Element) {
 	if (parent === undefined || parent.type !== 'draw-node') {
-		Warn(`label <${enode.type}> must be placed under a <draw-node> to take effect`);
+		Warn(`tag <${enode.type}> must be placed under a <draw-node> to take effect`);
 	}
 }
 
@@ -826,7 +830,7 @@ function actionCheck(this: void, nodeStack: dora.Node.Type[], enode: React.Eleme
 
 function bodyCheck(this: void, _nodeStack: dora.Node.Type[], enode: React.Element, parent?: React.Element) {
 	if (parent === undefined || parent.type !== 'body') {
-		Warn(`label <${enode.type}> must be placed under a <body> to take effect`);
+		Warn(`tag <${enode.type}> must be placed under a <body> to take effect`);
 	}
 }
 
@@ -1281,6 +1285,33 @@ const elementMap: ElementMap = {
 	'custom-element': () => {},
 	'align-node': (nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
 		addChild(nodeStack, getAlignNode(enode), enode);
+	},
+	'effek-node': (nodeStack: dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
+		addChild(nodeStack, getEffekNode(enode), enode);
+	},
+	'effek': (nodeStack: dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
+		if (nodeStack.length > 0) {
+			const node = dora.tolua.cast(nodeStack[nodeStack.length - 1], dora.TypeName.EffekNode);
+			if (node) {
+				const effek = enode.props as JSX.Effek;
+				const handle = node.play(effek.file, dora.Vec2(effek.x ?? 0, effek.y ?? 0), effek.z ?? 0);
+				if (handle >= 0) {
+					if (effek.ref) {
+						(effek.ref as any).current = handle;
+					}
+					if (effek.onEnd) {
+						const {onEnd} = effek;
+						node.slot(dora.Slot.EffekEnd, (h) => {
+							if (handle == h) {
+								onEnd();
+							}
+						});
+					}
+				}
+			} else {
+				Warn(`tag <${enode.type}> must be placed under a <effek-node> to take effect`);
+			}
+		}
 	},
 }
 function visitNode(this: void, nodeStack: dora.Node.Type[], node: React.Element | React.Element[], parent?: React.Element) {

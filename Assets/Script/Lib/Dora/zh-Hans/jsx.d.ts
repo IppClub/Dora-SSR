@@ -865,6 +865,45 @@ class AlignNode extends Node {
 	onMount?(this: void, self: dora.AlignNode.Type): void;
 }
 
+class EffekNode extends Node {
+	ref?: Ref<dora.EffekNode.Type>;
+
+	/**
+	 * 当前节点被实例化时，会触发该回调函数。
+	 * @param self 当前节点的实例。
+	 */
+	onMount?(this: void, self: dora.EffekNode.Type): void;
+}
+
+class Effek {
+	ref?: Ref<number>;
+
+	/**
+	 * 要加载的Effekseer特效文件的文件名。
+	 */
+	file: string;
+
+	/**
+	 * 要播放特效的x位置。
+	 */
+	x?: number;
+
+	/**
+	 * 要播放特效的y位置。
+	 */
+	y?: number;
+
+	/**
+	 * 要播放特效的z位置。
+	 */
+	z?: number;
+
+	/**
+	 * 当特效播放结束时触发该回调。
+	 */
+	onEnd?(): void;
+}
+
 class Action {
 	ref?: Ref<dora.ActionDef.Type>;
 	children: any[] | any;
@@ -1836,6 +1875,14 @@ interface IntrinsicElements {
 	 * 用于对齐子节点的布局节点。
 	 */
 	'align-node': AlignNode;
+	/**
+	 * 用于创建一个Effekseer节点的标签。
+	 */
+	'effek-node': EffekNode;
+	/**
+	 * 用于播放Effekseer特效的标签。必须放在<effek-node>下才能生效。
+	 */
+	'effek': Effek;
 }
 
 interface ElementChildrenAttribute {

@@ -868,6 +868,45 @@ class AlignNode extends Node {
 	onMount?(this: void, self: dora.AlignNode.Type): void;
 }
 
+class EffekNode extends Node {
+	ref?: Ref<dora.EffekNode.Type>;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: dora.EffekNode.Type): void;
+}
+
+class Effek {
+	ref?: Ref<number>;
+
+	/**
+	 * The filename of the Effekseer effect file to load.
+	 */
+	file: string;
+
+	/**
+	 * The x position of the effect.
+	 */
+	x?: number;
+
+	/**
+	 * The y position of the effect.
+	 */
+	y?: number;
+
+	/**
+	 * The z position of the effect.
+	 */
+	z?: number;
+
+	/**
+	 * Triggers when the effect is finished playing.
+	 */
+	onEnd?(): void;
+}
+
 class Action {
 	ref?: Ref<dora.ActionDef.Type>;
 	children: any[] | any;
@@ -1842,6 +1881,14 @@ interface IntrinsicElements {
 	 * A class for aligning child nodes within a parent node.
 	 */
 	'align-node': AlignNode;
+	/**
+	 * A class for creating a Effekseer node.
+	 */
+	'effek-node': EffekNode;
+	/**
+	 * A class for playing a Effekseer effect. Must be placed under <effek-node> to take effect.
+	 */
+	'effek': Effek;
 }
 
 interface ElementChildrenAttribute {

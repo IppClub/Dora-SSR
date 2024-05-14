@@ -2356,6 +2356,7 @@ const enum NodeEvent {
 	ContactEnd = "ContactEnd",
 	Finished = "Finished",
 	AlignLayout = "AlignLayout",
+	EffekEnd = "EffekEnd",
 }
 
 export {NodeEvent as Slot};
@@ -2562,6 +2563,12 @@ interface NodeEventHandlerMap {
 	 * @param height 节点的高度。
 	 */
 	AlignLayout(this: void, width: number, height: number): void;
+
+	/**
+	 * 当一个 Effekseer 特效结束时触发。
+	 * @param handle 结束的特效的句柄。
+	 */
+	EffekEnd(this: void, handle: number): void;
 }
 
 const enum GlobalEvent {
@@ -4087,8 +4094,8 @@ export namespace DrawNode {
 }
 
 /**
-* 用于创建DrawNode对象的类。
-*/
+ * 用于创建DrawNode对象的类。
+ */
 interface DrawNodeClass {
 	/**
 	 * 创建新的DrawNode对象。
@@ -4159,6 +4166,49 @@ export namespace AlignNode {
 
 const alignNodeClass: AlignNodeClass;
 export {alignNodeClass as AlignNode};
+
+/**
+ * 用于播放 Effekseer 特效的类。
+ */
+class EffekNode extends Node {
+	private constructor();
+
+	/**
+	 * 播放一个 Effekseer 特效。
+	 *
+	 * @param filename 要播放的特效文件的名称。
+	 * @param pos 要播放特效的XY坐标位置。
+	 * @param z 要播放特效的Z坐标位置。
+	 * @returns 用于控制特效的句柄。
+	 */
+	play(filename: string, pos?: Vec2, z?: number): number;
+
+	/**
+	 * 停止一个 Effekseer 特效。
+	 *
+	 * @param handle 要停止的特效的句柄。
+	 */
+	stop(handle: number): void;
+}
+
+/**
+ * 用于创建 EffekNode 对象的类。
+ */
+interface EffekNodeClass {
+	/**
+	 * 创建一个新的 EffekNode 对象。
+	 *
+	 * @returns 新创建的 EffekNode 对象。
+	 */
+	(this: void): EffekNode
+}
+
+export namespace EffekNode {
+	export type Type = EffekNode;
+}
+
+const effekNodeClass: EffekNodeClass;
+export {effekNodeClass as EffekNode};
 
 /**
  * 发送具有特定名称和参数的全局事件，传递给所有由`node.gslot()`函数注册的事件监听器。
@@ -6484,6 +6534,8 @@ export const enum TypeName {
 	Particle = "Particle",
 	SVG = "SVG",
 	VGNode = "VGNode",
+	AlignNode = "AlignNode",
+	EffekNode = "EffekNode",
 }
 
 export interface TypeMap {
@@ -6532,6 +6584,8 @@ export interface TypeMap {
 	[TypeName.Particle]: Particle;
 	[TypeName.SVG]: SVG;
 	[TypeName.VGNode]: VGNode;
+	[TypeName.AlignNode]: AlignNode;
+	[TypeName.EffekNode]: EffekNode;
 }
 
 /**

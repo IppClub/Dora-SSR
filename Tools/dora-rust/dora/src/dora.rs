@@ -1682,6 +1682,49 @@ impl Slot {
 	pub const CONTACT_END: &'static str = "ContactEnd";
 	/// Triggered after a `Particle` node started a stop action and then all the active particles end their lives.
 	pub const FINISHED: &'static str = "Finished";
+	/// Triggers when the layout of the `AlignNode` is updated.
+	///
+	/// # Callback Arguments
+	///
+	/// * width: f32 - The width of the `AlignNode`.
+	/// * height: f32 - The height of the `AlignNode`.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// align_node.slot(Slot::ALIGN_LAYOUT, Box::new(|stack| {
+	/// 	let (
+	/// 		width,
+	/// 		height
+	/// 	) = match (
+	/// 		stack.pop_f32(),
+	/// 		stack.pop_f32()
+	/// 	) {
+	/// 		(Some(width), Some(height)) => (width, height),
+	/// 		_ => return,
+	/// 	};
+	/// 	p!("width: {}, height: {}", width, height);
+	/// }));
+	/// ```
+	pub const ALIGN_LAYOUT: &'static str = "AlignLayout";
+	/// Triggers when the `EffekseerNode` finishes playing an effect.
+	///
+	/// # Callback Arguments
+	///
+	/// * handle: i32 - The handle of the effect that finished playing.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// effekseer_node.slot(Slot::EFFEK_END, Box::new(|stack| {
+	/// 	let handle = match stack.pop_i32() {
+	/// 		Some(handle) => handle,
+	/// 		None => return,
+	/// 	};
+	/// 	p!("Effect handle: {}", handle);
+	/// }));
+	/// ```
+	pub const EFFEK_END: &'static str = "EffekEnd";
 }
 
 /// An interface for providing Dora SSR built-in global event names.
