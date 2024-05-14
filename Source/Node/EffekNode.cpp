@@ -15,6 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Content.h"
 #include "Basic/Director.h"
 #include "Basic/RenderTarget.h"
+#include "Basic/Renderer.h"
 #include "Basic/View.h"
 #include "Cache/TextureCache.h"
 #include "Common/Async.h"
@@ -122,8 +123,32 @@ static void m44to43(const Matrix& m44, Effekseer::Matrix43& m43) {
 	}
 }
 
+bool EffekNode::init() {
+	scheduleUpdate();
+	return Node::init();
+}
+
+bool EffekNode::update(double deltaTime) {
+	if (!_effeks.empty()) {
+		auto instance = SharedEffekManager.instance->efkManager.Get();
+		auto it = std::remove_if(_effeks.begin(), _effeks.end(), [&](const Own<RunningEff>& effek) {
+			return !instance->Exists(effek->handle);
+		});
+		if (it != _effeks.end()) {
+			for (auto tmpIt = it; tmpIt != _effeks.end(); ++tmpIt) {
+				EventArgs<int> event("EffekEnd"_slice, tmpIt->get()->handle);
+				emit(&event);
+			}
+			_effeks.erase(it, _effeks.end());
+		}
+	}
+	return Node::update(deltaTime);
+}
+
 void EffekNode::render() {
-	if (_effList.empty()) return;
+	if (_effeks.empty()) return;
+
+	SharedRendererManager.flush();
 
 	auto instance = SharedEffekManager.instance.get();
 	auto manager = instance->efkManager.Get();
@@ -163,20 +188,15 @@ void EffekNode::render() {
 
 	renderer->BeginRendering();
 
-	decltype(_effList) newList;
-	while (!_effList.empty()) {
-		auto item = std::move(_effList.front());
-		auto handle = item->handle;
+	for (const auto& effek : _effeks) {
+		auto handle = effek->handle;
 		if (manager->Exists(handle)) {
-			auto pos = item->position;
+			auto pos = effek->position;
 			manager->SetMatrix(handle, mat43);
 			manager->AddLocation(handle, {pos.x, pos.y, pos.z});
 			manager->DrawHandle(handle, drawParameter);
-			newList.push(std::move(item));
 		}
-		_effList.pop();
 	}
-	_effList.swap(newList);
 
 	renderer->EndRendering();
 }
@@ -184,21 +204,18 @@ void EffekNode::render() {
 void EffekNode::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
 		auto manager = SharedEffekManager.instance->efkManager.Get();
-		while (!_effList.empty()) {
-			int handle = _effList.front()->handle;
-			manager->StopEffect(handle);
-			_effList.pop();
+		for (auto& effek : _effeks) {
+			manager->StopEffect(effek->handle);
 		}
+		_effeks.clear();
 		Node::cleanup();
 	}
 }
 
 EffekNode::~EffekNode() {
 	auto manager = SharedEffekManager.instance->efkManager.Get();
-	while (!_effList.empty()) {
-		int handle = _effList.front()->handle;
-		manager->StopEffect(handle);
-		_effList.pop();
+	for (const auto& effek : _effeks) {
+		manager->StopEffect(effek->handle);
 	}
 }
 
@@ -221,7 +238,7 @@ void EffekNode::onExit() {
 int EffekNode::play(String filename, const Vec2& pos, float z) {
 	if (auto effect = SharedEffekManager.load(filename)) {
 		int handle = SharedEffekManager.instance->efkManager->Play(effect->effect, pos.x, pos.y, z);
-		_effList.emplace(New<RunningEff>(handle, Vec3{pos.x, pos.y, z}, effect));
+		_effeks.emplace_back(New<RunningEff>(handle, Vec3{pos.x, pos.y, z}, effect));
 		return handle;
 	}
 	return -1;

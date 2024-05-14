@@ -575,6 +575,10 @@ local record __SLOT__
 	-- @param width (number) The width of the node.
 	-- @param height (number) The height of the node.
 	["AlignLayout"]: function(width: number, height: number)
+
+	-- Triggers when an Effekseer effect has ended.
+	-- @param handle (integer) The handle of the effect that has ended.
+	["EffekEnd"]: function(handle: integer)
 end
 
 -- A class object for the `Node` class.

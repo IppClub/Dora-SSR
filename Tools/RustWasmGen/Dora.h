@@ -2350,10 +2350,32 @@ object class AlignNode : public INode
 	static AlignNode* create(bool isWindowRoot);
 };
 
+/// A struct for playing Effekseer effects.
 object class EffekNode : public INode
 {
+	/// Plays an effect at the specified position.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The filename of the effect to play.
+	/// * `pos` - The xy-position to play the effect at.
+	/// * `z` - The z-position of the effect.
+	///
+	/// # Returns
+	///
+	/// * `int` - The handle of the effect.
 	int play(string filename, Vec2 pos, float z);
+	/// Stops an effect with the specified handle.
+	///
+	/// # Arguments
+	///
+	/// * `handle` - The handle of the effect to stop.
 	void stop(int handle);
+	/// Creates a new EffekNode object.
+	///
+	/// # Returns
+	///
+	/// * `EffekNode` - A new EffekNode object.
 	static EffekNode* create();
 };
 
