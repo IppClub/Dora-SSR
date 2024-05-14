@@ -11,7 +11,7 @@
 
 Dora SSR is a game engine for rapid development of 2D games on various devices. It has a built-in easy-to-use development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
 
-<img src='Site/static/img/3.png' alt='Playground' width='600px'/>
+<img src='Doc/static/img/3.png' alt='Playground' width='600px'/>
 
 ## Dora SSR Joins the Open Atom Foundation
 
@@ -50,6 +50,10 @@ The Open Atom Foundation is a non-profit organization dedicated to supporting an
 - Supports asynchronous operation of SQLite for real-time query and managing large game configuration data.
 
 - Supports reading Excel spreadsheet data and synchronizing it to SQLite tables.
+
+- Provides the function of adaptive Flex layout for game scenes through CSS.
+
+- Support the functions of Effekseer game effects system.
 
 - Supports the Yarn Spinner language, making it easy to write complex game story systems.
 
