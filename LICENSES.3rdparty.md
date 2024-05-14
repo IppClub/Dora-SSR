@@ -53,6 +53,8 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - [monaco-editor-auto-typings](https://github.com/lukasbach/monaco-editor-auto-typings): [MIT License](Tools/dora-dora/src/3rdParty/monaco-editor-auto-typings/LICENSE)
 - [TypeScriptToLua](https://github.com/TypeScriptToLua/TypeScriptToLua): [MIT License](Tools/dora-dora/src/3rdParty/tstl/LICENSE)
 - [yoga](https://github.com/facebook/yoga): [MIT License](Source/3rdParty/yoga/LICENSE)
+- [Effekseer](https://github.com/effekseer/Effekseer): [MIT License](Source/3rdParty/Effekseer/LICENSE)
+- [efkbgfx](https://github.com/cloudwu/efkbgfx): [MIT License](Source/3rdParty/Effekseer/LICENSE-efkbgfx)
 
 
 
