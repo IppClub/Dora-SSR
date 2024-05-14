@@ -75,10 +75,6 @@
     "message": "图形渲染",
     "description": "The label for category Graphics Rendering in sidebar apiSidebar"
   },
-  "sidebar.apiSidebar.category.Render Functions": {
-    "message": "基础渲染组件",
-    "description": "The label for category Render Functions in sidebar apiSidebar"
-  },
   "sidebar.apiSidebar.category.Animation Models": {
     "message": "动画模型功能",
     "description": "The label for category Animation Models in sidebar apiSidebar"
@@ -582,5 +578,25 @@
   "sidebar.apiSidebar.doc.HttpClient": {
     "message": "HttpClient",
     "description": "The label for the doc item HttpClient in sidebar apiSidebar, linking to the doc api/Class/HttpClient"
+  },
+  "sidebar.apiSidebar.category.Render Nodes": {
+    "message": "基础渲染节点",
+    "description": "The label for category Render Nodes in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.category.Render Objects": {
+    "message": "渲染管理对象",
+    "description": "The label for category Render Objects in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.doc.AlignNode": {
+    "message": "AlignNode",
+    "description": "The label for the doc item AlignNode in sidebar apiSidebar, linking to the doc api/Class/AlignNode"
+  },
+  "sidebar.apiSidebar.doc.EffekNode": {
+    "message": "EffekNode",
+    "description": "The label for the doc item EffekNode in sidebar apiSidebar, linking to the doc api/Class/EffekNode"
+  },
+  "sidebar.apiSidebar.doc.Opacity": {
+    "message": "Opacity",
+    "description": "The label for the doc item Opacity in sidebar apiSidebar, linking to the doc api/Module/Opacity"
   }
 }

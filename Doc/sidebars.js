@@ -268,13 +268,54 @@ const sidebars = {
 			items: [
 				{
 					type: 'category',
-					label: 'Render Functions',
+					label: 'Render Nodes',
 					items: [
 						{
 							type: 'doc',
 							label: 'Sprite',
 							id: 'api/Class/Sprite',
 						},
+						{
+							type: 'doc',
+							label: 'Line',
+							id: 'api/Class/Line',
+						},
+						{
+							type: 'doc',
+							label: 'DrawNode',
+							id: 'api/Class/DrawNode',
+						},
+						{
+							type: 'doc',
+							label: 'ClipNode',
+							id: 'api/Class/ClipNode',
+						},
+						{
+							type: 'doc',
+							label: 'Label',
+							id: 'api/Class/Label',
+						},
+						{
+							type: 'doc',
+							label: 'EffekNode',
+							id: 'api/Class/EffekNode',
+						},
+						{
+							type: 'doc',
+							label: 'SVG',
+							id: 'api/Class/SVG',
+						},
+						{
+							type: 'doc',
+							label: 'Particle',
+							id: 'api/Class/Particle',
+						},
+					]
+				},
+				{
+					type: 'category',
+					label: 'Render Objects',
+					items: [
 						{
 							type: 'doc',
 							label: 'Texture2D',
@@ -302,38 +343,8 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
-							label: 'Line',
-							id: 'api/Class/Line',
-						},
-						{
-							type: 'doc',
-							label: 'DrawNode',
-							id: 'api/Class/DrawNode',
-						},
-						{
-							type: 'doc',
-							label: 'ClipNode',
-							id: 'api/Class/ClipNode',
-						},
-						{
-							type: 'doc',
 							label: 'RenderTarget',
 							id: 'api/Class/RenderTarget',
-						},
-						{
-							type: 'doc',
-							label: 'Label',
-							id: 'api/Class/Label',
-						},
-						{
-							type: 'doc',
-							label: 'Particle',
-							id: 'api/Class/Particle',
-						},
-						{
-							type: 'doc',
-							label: 'SVG',
-							id: 'api/Class/SVG',
 						},
 					]
 				},
@@ -798,6 +809,7 @@ const sidebars = {
 						"api/Class Object/Object",
 						"api/Class Object/Node",
 						"api/Class Object/AlignNode",
+						"api/Class Object/EffekNode",
 						"api/Class Object/Model",
 						"api/Class Object/Menu",
 						"api/Class Object/Line",
