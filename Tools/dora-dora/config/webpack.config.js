@@ -571,7 +571,7 @@ module.exports = function (webpackEnv) {
         languages: ["en", "zh-cn"],
         defaultLanguage: "window.getLanguageSetting()",
         logUnmatched: false,
-        mapLanguage: {},
+        mapLanguages: {},
       }),
       new MonacoWebpackPlugin({
         languages: ['xml', 'markdown', 'ini', 'typescript']
