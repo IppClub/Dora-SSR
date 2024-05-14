@@ -2,44 +2,44 @@
 sidebar_position: 0
 ---
 
-# Dora SSR API Reference
+# Dora SSR API 参考手册
 
-Welcome to the Dora SSR API Reference! This documentation provides detailed information about the APIs and functionality available within the Dora SSR game engine. Use the guide below to navigate through different topics and explore the capabilities of the engine.
+&emsp;&emsp;欢迎来到 Dora SSR API 参考手册！本文档为您提供关于 Dora SSR 游戏引擎内的 API 和功能的详细信息。您可以使用以下指南浏览不同主题并探索引擎的功能。
 
-## Basic Functionality
+## 基础功能
 
-This category provides general functions and services of the engine.
+&emsp;&emsp;这个类别提供了一些引擎的通用基础工具和服务。
 
 * [App](/docs/api/Class/App)
 * [View](/docs/api/Class/View)
 * [Profiler](/docs/api/Class%20Object/Profiler)
 * [Object](/docs/api/Class/Object)
 
-### Audio Menagement
+### 音频管理
 
-This category provides features for managing and playing game music and sound effects.
+&emsp;&emsp;这个类别提供了管理和播放游戏音乐和声效的功能。
 
 * [Audio](/docs/api/Class/Audio)
 
-### Assets Management
+### 资产管理
 
-This category offers the ability to manage various game assets, including files and data.
+&emsp;&emsp;这个类别提供了管理各种游戏资产（包括文件和数据）的功能。
 
 * [Content](/docs/api/Class/Content)
 * [Path](/docs/api/Class/Path)
 * [Cache](/docs/api/Class/Cache)
 * [DB](/docs/api/Class/DB)
 
-### Input Management
+### 输入管理
 
-This category provides part of the game's input processing capabilities. The rest input handling, such as tap/touch events, can be registered and handled in node events.
+&emsp;&emsp;这个类别提供了一部分游戏输入处理的功能。另外的输入处理如点击/触摸事件可以在节点事件中进行注册和处理。
 
 * [Keyboard](/docs/api/Class/Keyboard)
 * [Controller](/docs/api/Class/Controller)
 
-### Data Structure
+### 数据结构
 
-This category provides a range of data structures and types.
+&emsp;&emsp;这个类别提供了一系列数据结构和类型。
 
 * [Array](/docs/api/Class/Array)
 * [Dictionary](/docs/api/Class/Dictionary)
@@ -49,13 +49,13 @@ This category provides a range of data structures and types.
 * [Color](/docs/api/Class/Color)
 * [Color3](/docs/api/Class/Color3)
 
-## Scene Management
+## 场景管理
 
-This category is for managing game scene trees.
+&emsp;&emsp;这个类别负责游戏场景树的管理。
 
-### Tree Management
+### 场景树管理
 
-This category provides the management of the root nodes and cameras of the game scene.
+&emsp;&emsp;这里提供游戏场景树根节点和摄像机的管理。
 
 * [Director](/docs/api/Class/Director)
 * [Scheduler](/docs/api/Class/Scheduler)
@@ -63,9 +63,9 @@ This category provides the management of the root nodes and cameras of the game 
 * [Camera2D](/docs/api/Class/Camera2D)
 * [CameraOtho](/docs/api/Class/CameraOtho)
 
-### Tree Nodes
+### 场景节点
 
-This category provides the management of game scene nodes and node events.
+&emsp;&emsp;这里提供游戏场景节点和节点事件的管理。
 
 * [Node](/docs/api/Class/Node)
 * [AlignNode](/docs/api/Class/AlignNode)
@@ -75,59 +75,65 @@ This category provides the management of game scene nodes and node events.
 * [GSlot](/docs/api/Class/GSlot)
 * [emit](/docs/api/Module/emit)
 
-## Event Management
+## 事件管理
 
-This category is for managing game events.
+&emsp;&emsp;这个类别负责游戏事件的管理。
 
-### Global Events
+### 全局事件
 
-This subcategory handles global-level events, such as application and operating system events.
+&emsp;&emsp;这个子类别处理全局级别的事件，比如应用程序事件和操作系统事件。
 
 * [App Event](/docs/api/Global%20Event/App)
 
-### Node Events
+### 节点事件
 
-This subcategory handles scene node-level events.
+&emsp;&emsp;这个子类别处理场景节点级别的事件。
 
 * [Node Event](/docs/api/Node%20Event/Node)
 * [Body Event](/docs/api/Node%20Event/Body)
 * [Playable Event](/docs/api/Node%20Event/Playable)
 * [Particle Event](/docs/api/Node%20Event/Particle)
 
-## Graphics Rendering
+## 图形渲染
 
-This category is about functions for rendering game graphics.
+&emsp;&emsp;这个类别负责游戏图形的渲染。
 
-### Render Functions
+### 基础渲染节点
 
-This category provides some basic and general game graphics rendering functions.
+&emsp;&emsp;这个类别提供一些基础通用游戏图形渲染场景节点。
 
 * [Sprite](/docs/api/Class/Sprite)
+* [Line](/docs/api/Class/Line)
+* [DrawNode](/docs/api/Class/DrawNode)
+* [ClipNode](/docs/api/Class/ClipNode)
+* [Label](/docs/api/Class/Label)
+* [EffekNode](/docs/api/Class/EffekNode)
+* [SVG](/docs/api/Class/SVG)
+* [Particle](/docs/api/Class/Particle)
+
+### 渲染管理对象
+
+&emsp;&emsp;这个类别提供一些图形渲染管理功能的对象。
+
 * [Texture2D](/docs/api/Class/Texture2D)
 * [BlendFunc](/docs/api/Class/BlendFunc)
 * [Effect](/docs/api/Class/Effect)
 * [SpriteEffect](/docs/api/Class/SpriteEffect)
 * [Pass](/docs/api/Class/Pass)
-* [Line](/docs/api/Class/Line)
-* [DrawNode](/docs/api/Class/DrawNode)
-* [ClipNode](/docs/api/Class/ClipNode)
 * [RenderTarget](/docs/api/Class/RenderTarget)
-* [Label](/docs/api/Class/Label)
-* [Particle](/docs/api/Class/Particle)
-* [SVG](/docs/api/Class/SVG)
 
-### Animation Models
+### 动画模型功能
 
-This subcategory provides functionality for creating and manipulating 2D animation models.
+&emsp;&emsp;这个子类别提供了加载创建和处理2D动画模型的功能。
 
 * [Playable](/docs/api/Class/Playable)
 * [Model](/docs/api/Class/Model)
 * [DragonBone](/docs/api/Class/DragonBone)
 * [Spine](/docs/api/Class/Spine)
 
-## Node Actions
+## 节点动作
 
-This category is for creating and managing actions that can be performed on scene nodes.
+&emsp;&emsp;这个类别负责创建和管理场景节点上可以执行的动作。
 
 * [Action](/docs/api/Class/Action)
 * [Ease](/docs/api/Class/Ease)
@@ -156,9 +162,9 @@ This category is for creating and managing actions that can be performed on scen
 * [AnchorX](/docs/api/Module/AnchorX)
 * [AnchorY](/docs/api/Module/AnchorY)
 
-## Physics Simulation
+## 物理模拟
 
-This category provides functionality for creating and managing physical object simulations.
+&emsp;&emsp;这个类别提供了创建和管理物理对象模拟的功能。
 
 * [PhysicsWorld](/docs/api/Class/PhysicsWorld)
 * [BodyDef](/docs/api/Class/BodyDef)
@@ -170,17 +176,17 @@ This category provides functionality for creating and managing physical object s
 * [MoveJoint](/docs/api/Class/MoveJoint)
 * [MotorJoint](/docs/api/Class/MotorJoint)
 
-## ECS Framework
+## ECS 系统
 
-This category provides the functionality of the Entity Component System (ECS).
+&emsp;&emsp;这个类别负责提供实体组件系统（ECS）的功能。
 
 * [Entity](/docs/api/Class/Entity)
 * [Group](/docs/api/Class/Group)
 * [Observer](/docs/api/Class/Observer)
 
-## Platformer Game Framework
+## 平台游戏框架
 
-This category provides a basic development framework for 2D platform games.
+&emsp;&emsp;这个类别为2D平台游戏提供了一套基础的开发框架功能。
 
 * [Behavior](/docs/api/Class/Platformer/Behavior)
 * [Blackboard](/docs/api/Class/Platformer/Behavior/Blackboard)
@@ -196,9 +202,9 @@ This category provides a basic development framework for 2D platform games.
 * [Face](/docs/api/Class/Platformer/Face)
 * [Visual](/docs/api/Class/Platformer/Visual)
 
-## Coroutine Management
+## 协程管理
 
-This category provides convenient creation and management of coroutines.
+&emsp;&emsp;这个类别提供更为便捷的协程（coroutine）的创建和管理功能。
 
 * [Routine](/docs/api/Class/Routine)
 * [thread](/docs/api/Module/thread)
@@ -209,24 +215,24 @@ This category provides convenient creation and management of coroutines.
 * [sleep](/docs/api/Module/sleep)
 * [wait](/docs/api/Module/wait)
 
-## Machine Learning Algorithms
+## 机器学习算法
 
-This category provides some basic machine learning algorithms, including the C4.5 decision tree algorithm and the Q-learning reinforcement learning algorithm.
+&emsp;&emsp;这个类别提供了一些基础的机器学习算法，包括决策树算法C4.5以及强化学习算法Q-learning等。
 
 * [C4.5](/docs/api/Class/ML#builddecisiontreeasync)
 * [Q-learning](/docs/api/Class/QLearner)
 
-## Dialogue System
+## 对话系统
 
-This category provides the functionality for loading and executing complex game dialogues.
+&emsp;&emsp;这个类别负责提供加载和执行复杂的游戏对话系统的功能。
 
 * [YarnRunner](/docs/api/Class/YarnRunner)
 * [TextResult](/docs/api/Class/YarnRunner/TextResult)
 * [OptionResult](/docs/api/Class/YarnRunner/OptionResult)
 * [Markup](/docs/api/Class/YarnRunner/Markup)
 
-## Networking Service
+## 网络服务
 
-This category provides the functionality for networking service.
+&emsp;&emsp;这个类别负责提供网络通讯相关的功能。
 
 * [HttpClient](/docs/api/Class/HttpClient)

@@ -1,0 +1,57 @@
+import "@site/src/languages/highlight";
+
+# EffekNode
+
+**Description:**
+
+&emsp;&emsp;A class for playing Effekseer effects.
+
+**Class Object:** [EffekNode Class](/docs/api/Class%20Object/EffekNode).
+
+**Inherits from:** [Node](/docs/api/Class/Node).
+
+## play
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Plays an Effekseer effect.
+
+**Signature:**
+```tl
+play: function(self: EffekNode, filename: string, pos?: Vec2, z?: number): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filename of the effect. |
+| pos | Vec2 | [optional] The XY position to play the effect at. |
+| z | number | [optional] The Z position to play the effect at. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The handle of the effect. |
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops an Effekseer effect.
+
+**Signature:**
+```tl
+stop: function(self: EffekNode, handle: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| handle | integer | The handle of the effect. |

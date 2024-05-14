@@ -1,0 +1,57 @@
+import "@site/src/languages/highlight";
+
+# EffekNode
+
+**描述：**
+
+&emsp;&emsp;用于播放 Effekseer 特效的类。
+
+**类对象：**[EffekNode Class](/docs/api/Class%20Object/EffekNode)。
+
+**继承自：**[Node](/docs/api/Class/Node)。
+
+## play
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;播放一个 Effekseer 特效。
+
+**签名：**
+```tl
+play: function(self: EffekNode, filename: string, pos?: Vec2, z?: number): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要播放的特效文件的路径。 |
+| pos | Vec2 | [optional] 要播放特效的XY坐标位置。 |
+| z | number | [optional] 要播放特效的Z坐标位置。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 用于控制特效的句柄。 |
+
+## stop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止一个 Effekseer 特效。
+
+**签名：**
+```tl
+stop: function(self: EffekNode, handle: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| handle | integer | 要停止的特效的句柄。 |
