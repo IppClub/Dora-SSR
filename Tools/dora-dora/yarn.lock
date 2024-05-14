@@ -7218,10 +7218,10 @@ lz-string@^1.5.0:
   resolved "https://registry.npmmirror.com/lz-string/-/lz-string-1.5.0.tgz#c1ab50f77887b712621201ba9fd4e3a6ed099941"
   integrity sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==
 
-mac-scrollbar@^0.10.6:
-  version "0.10.7"
-  resolved "https://registry.npmmirror.com/mac-scrollbar/-/mac-scrollbar-0.10.7.tgz#67beeb028c2010d7be4cc541cbe17f7969f11338"
-  integrity sha512-3AL/sxi+W2gwo83Q6Uy/0a10tuaOzqVd+edhq+M3Y7ml5TaZDoLOO56KRTMjFPIZPh/qoB7+o1P3lEXnxLRbEQ==
+mac-scrollbar@^0.13.6:
+  version "0.13.6"
+  resolved "https://registry.npmmirror.com/mac-scrollbar/-/mac-scrollbar-0.13.6.tgz#059348858fbaff7d98ba65c7cf46da3efd99178a"
+  integrity sha512-P0eNiCTExlmWBQ0FXalfXVh42eo9b0obnZIo1khZzyZX99frTsCmZwcbH0RWZZtNYtBZVd5f/7k4iLPou+skzg==
 
 magic-string@^0.25.0, magic-string@^0.25.7:
   version "0.25.9"
@@ -7843,10 +7843,10 @@ monaco-editor-webpack-plugin@^7.0.1:
   dependencies:
     loader-utils "^2.0.2"
 
-monaco-editor@^0.46.0:
-  version "0.46.0"
-  resolved "https://registry.npmmirror.com/monaco-editor/-/monaco-editor-0.46.0.tgz#013e453fd2408997e4fe0bf67b36a80a24bc7bcc"
-  integrity sha512-ADwtLIIww+9FKybWscd7OCfm9odsFYHImBRI1v9AviGce55QY8raT+9ihH8jX/E/e6QVSGM+pKj4jSUSRmALNQ==
+monaco-editor@^0.48.0:
+  version "0.48.0"
+  resolved "https://registry.npmmirror.com/monaco-editor/-/monaco-editor-0.48.0.tgz#9e54541bbe0ba3f2bb238477d5b981a282205ea0"
+  integrity sha512-goSDElNqFfw7iDHMg8WDATkfcyeLTNpBHQpO8incK6p5qZt5G/1j41X0xdGzpIkGojGXM+QiRQyLjnfDVvrpwA==
 
 monaco-jsx-syntax-highlight@^1.2.0:
   version "1.2.0"

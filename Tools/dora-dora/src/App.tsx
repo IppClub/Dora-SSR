@@ -143,6 +143,7 @@ const Editor = memo((props: {
 				insertSpaces: false,
 				renderWhitespace: 'all',
 				tabSize: 2,
+				definitionLinkOpensInPeek: true,
 			}}
 		/>
 	</div>;

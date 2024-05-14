@@ -436,3 +436,11 @@ monaco.languages.registerSignatureHelpProvider("yue", signatureHelpProvider(["("
 
 const xmlComplete = completionItemProvider([">", "<", "/", " ", "\t", "=", "\n"], "xml");
 monaco.languages.registerCompletionItemProvider("xml", xmlComplete);
+
+monaco.editor.onDidCreateEditor(newEditor => {
+	newEditor.onDidChangeModel(() => {
+		newEditor.updateOptions({
+			readOnly: true
+		});
+	});
+});
