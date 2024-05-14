@@ -15,6 +15,7 @@ extern "C" {
 use crate::dora::IObject;
 use crate::dora::INode;
 impl INode for EffekNode { }
+/// A struct for playing Effekseer effects.
 pub struct EffekNode { raw: i64 }
 crate::dora_object!(EffekNode);
 impl EffekNode {
@@ -26,12 +27,33 @@ impl EffekNode {
 			}
 		})
 	}
+	/// Plays an effect at the specified position.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The filename of the effect to play.
+	/// * `pos` - The xy-position to play the effect at.
+	/// * `z` - The z-position of the effect.
+	///
+	/// # Returns
+	///
+	/// * `int` - The handle of the effect.
 	pub fn play(&mut self, filename: &str, pos: &crate::dora::Vec2, z: f32) -> i32 {
 		unsafe { return effeknode_play(self.raw(), crate::dora::from_string(filename), pos.into_i64(), z); }
 	}
+	/// Stops an effect with the specified handle.
+	///
+	/// # Arguments
+	///
+	/// * `handle` - The handle of the effect to stop.
 	pub fn stop(&mut self, handle: i32) {
 		unsafe { effeknode_stop(self.raw(), handle); }
 	}
+	/// Creates a new EffekNode object.
+	///
+	/// # Returns
+	///
+	/// * `EffekNode` - A new EffekNode object.
 	pub fn new() -> EffekNode {
 		unsafe { return EffekNode { raw: effeknode_new() }; }
 	}

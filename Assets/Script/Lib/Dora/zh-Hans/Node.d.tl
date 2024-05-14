@@ -577,6 +577,10 @@ local record __SLOT__
 	-- @param width (number) 节点的宽度。
 	-- @param height (number) 节点的高度。
 	["AlignLayout"]: function(width: number, height: number)
+
+	-- 当一个 Effekseer 特效结束时触发。
+	-- @param handle (integer) 结束的特效的句柄。
+	["EffekEnd"]: function(handle: integer)
 end
 
 -- 用于创建场景节点实例的类。

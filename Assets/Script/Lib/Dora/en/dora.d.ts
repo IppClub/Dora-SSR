@@ -2355,6 +2355,7 @@ const enum NodeEvent {
 	ContactEnd = "ContactEnd",
 	Finished = "Finished",
 	AlignLayout = "AlignLayout",
+	EffekEnd = "EffekEnd",
 }
 
 export {NodeEvent as Slot};
@@ -2561,6 +2562,12 @@ interface NodeEventHandlerMap {
 	 * @param height The height of the node.
 	 */
 	AlignLayout(this: void, width: number, height: number): void;
+
+	/**
+	 * Triggers when an Effekseer effect has ended.
+	 * @param handle The handle of the effect that has ended.
+	 */
+	EffekEnd(this: void, handle: number): void;
 }
 
 const enum GlobalEvent {
@@ -4083,8 +4090,8 @@ export namespace DrawNode {
 }
 
 /**
-* A class for creating DrawNode objects.
-*/
+ * A class for creating DrawNode objects.
+ */
 interface DrawNodeClass {
 	/**
 	 * Creates a new DrawNode object.
@@ -4154,6 +4161,49 @@ export namespace AlignNode {
 
 const alignNodeClass: AlignNodeClass;
 export {alignNodeClass as AlignNode};
+
+/**
+ * A class for playing Effekseer effects.
+ */
+class EffekNode extends Node {
+	private constructor();
+
+	/**
+	 * Plays an Effekseer effect.
+	 *
+	 * @param filename The filename of the effect.
+	 * @param pos The XY position to play the effect at.
+	 * @param z The Z position to play the effect at.
+	 * @returns The handle of the effect.
+	 */
+	play(filename: string, pos?: Vec2, z?: number): number;
+
+	/**
+	 * Stops an Effekseer effect.
+	 *
+	 * @param handle The handle of the effect.
+	 */
+	stop(handle: number): void;
+}
+
+/**
+ * A class for creating EffekNode objects.
+ */
+interface EffekNodeClass {
+	/**
+	 * Creates a new EffekNode object.
+	 *
+	 * @returns The new EffekNode object.
+	 */
+	(this: void): EffekNode
+}
+
+export namespace EffekNode {
+	export type Type = EffekNode;
+}
+
+const effekNodeClass: EffekNodeClass;
+export {effekNodeClass as EffekNode};
 
 /**
  * Emits a global event with the given name and arguments to all listeners registered by `node.gslot()` function.
@@ -6480,6 +6530,8 @@ export const enum TypeName {
 	Particle = "Particle",
 	SVG = "SVG",
 	VGNode = "VGNode",
+	AlignNode = "AlignNode",
+	EffekNode = "EffekNode",
 }
 
 export interface TypeMap {
@@ -6528,6 +6580,8 @@ export interface TypeMap {
 	[TypeName.Particle]: Particle;
 	[TypeName.SVG]: SVG;
 	[TypeName.VGNode]: VGNode;
+	[TypeName.AlignNode]: AlignNode;
+	[TypeName.EffekNode]: EffekNode;
 }
 
 /**
