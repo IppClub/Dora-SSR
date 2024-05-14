@@ -8,21 +8,29 @@
 
 &emsp;&emsp;The Dora SSR engine offers a rich set of features, including:
 
-* Game scene management based on a tree-like node structure
-* ECS module for simplified game entity management
-* Asynchronous file I/O, resource loading, and other operations
-* Upgraded Lua bindings with support for TSX, Yuescript, Teal and Typescript
-* Built-in WASM bindings and VM for running Rust language
-* 2D skeletal animation and physics engine
-* Built-in Web IDE with file management, code checking, autocompletion, highlighting, and definition jumping
-* Support for asynchronous SQLite operations for real-time querying and writing of large amounts of game configuration data
-* Reading Excel spreadsheet data with support for synchronization to SQLite tables
-* Machine learning algorithm framework for innovative gameplay
-* Supports the Yarn Spinner language, making it easy to write complex game story systems
-* Vector graphics rendering API for directly rendering CSS-less SVG format files
-* Built-in ImGui for creating debugging tools and UI interfaces
-* Playback of audio in multiple formats and rendering of TrueType fonts
-* Open art assets and game IPs available for creating your own games — [Luv Sense Digital](http://luvsensedigital.org)
+- Manages game scenes based on tree node structure.
+- Basic 2D platform game functions, including game logic and AI development framework.
+- Easy-to-use ECS module for game entity management.
+- Asynchronous processing of file read and write, resource loading and other operations.
+- Upgraded Lua binding with support for inheriting and extending low-level C++ objects.
+- Supports Yuescript language, strong expressive and concise Lua dialect.
+- Supports for the Teal language, a statically typed dialect for Lua.
+- Supports TypeScript, a statically typed superset of JavaScript that adds powerful type checking.
+- Supports TSX, allows embedding XML/HTML-like text within scripts, used with TypeScript.
+- Supports the Rust language, running on the built-in WASM runtime with Rust bindings.
+- 2D skeletal animation and physics engine support.
+- Built-in out-of-the-box Web IDE, providing file management, code inspection, completion, highlighting and definition jump.
+- Supports asynchronous operation of SQLite for real-time query and managing large game configuration data.
+- Supports reading Excel spreadsheet data and synchronizing it to SQLite tables.
+- Provides the function of adaptive Flex layout for game scenes through CSS.
+- Support the functions of Effekseer game effects system.
+- Supports the Yarn Spinner language, making it easy to write complex game story systems.
+- Built-in machine learning algorithm framework for innovative gameplay.
+- Provides vector graphics rendering API, which can directly render SVG format files without CSS.
+- Built-in ImGui, easy to create debugging tools and UI interface.
+- Supports FLAC, OGG, MP3 and WAV multi-format audio playback.
+- Supports True Type font rendering and basic typesetting.
+- Provides open art resources and game IPs that can be used to create your own games - ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io).
 
 ## Community Participation
 
@@ -30,4 +38,4 @@
 
 &emsp;&emsp;Thank you for choosing the Dora SSR game engine. Let's create infinite possibilities together!
 
-* [Discord](https://discord.gg/ydJVuZhh)
+* [Discord](https://discord.gg/ZfNBSKXnf9)
