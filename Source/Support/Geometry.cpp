@@ -100,7 +100,7 @@ Vec2 Vec2::operator*(const Size& size) const {
 float Vec2::distance(const Vec2& vec) const {
 	float dx = x - vec.x;
 	float dy = y - vec.y;
-	return std::sqrt(dx * dx + dy * dy);
+	return bx::sqrt(dx * dx + dy * dy);
 }
 
 float Vec2::distanceSquared(const Vec2& vec) const {
@@ -110,7 +110,7 @@ float Vec2::distanceSquared(const Vec2& vec) const {
 }
 
 float Vec2::length() const {
-	return std::sqrt(x * x + y * y);
+	return bx::sqrt(x * x + y * y);
 }
 
 float Vec2::lengthSquared() const {
@@ -118,7 +118,7 @@ float Vec2::lengthSquared() const {
 }
 
 float Vec2::angle() const {
-	return std::atan2(y, x);
+	return bx::atan2(y, x);
 }
 
 void Vec2::normalize() {
@@ -368,8 +368,8 @@ AffineTransform AffineTransform::translate(const AffineTransform& t, float tx, f
 }
 
 AffineTransform AffineTransform::rotate(const AffineTransform& t, float angle) {
-	float fSin = std::sin(angle);
-	float fCos = std::cos(angle);
+	float fSin = bx::sin(angle);
+	float fCos = bx::cos(angle);
 	return {
 		t.a * fCos + t.c * fSin,
 		t.b * fCos + t.d * fSin,
