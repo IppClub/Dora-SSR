@@ -938,14 +938,14 @@ void Label::render() {
 	if (_flags.isOn(Label::VertexPosDirty)) {
 		_flags.setOff(Label::VertexPosDirty);
 		Matrix transform;
-		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
+		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
 		for (size_t i = 0; i < _quadPos.size(); i++) {
 			SpriteQuad& quad = _quads[i];
 			SpriteQuad::Position& quadPos = _quadPos[i];
-			bx::vec4MulMtx(&quad.lt.x, quadPos.lt, transform);
-			bx::vec4MulMtx(&quad.rt.x, quadPos.rt, transform);
-			bx::vec4MulMtx(&quad.lb.x, quadPos.lb, transform);
-			bx::vec4MulMtx(&quad.rb.x, quadPos.rb, transform);
+			Matrix::mulVec4(&quad.lt.x, transform, quadPos.lt);
+			Matrix::mulVec4(&quad.rt.x, transform, quadPos.rt);
+			Matrix::mulVec4(&quad.lb.x, transform, quadPos.lb);
+			Matrix::mulVec4(&quad.rb.x, transform, quadPos.rb);
 		}
 	}
 

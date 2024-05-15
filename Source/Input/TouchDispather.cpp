@@ -169,7 +169,7 @@ static int unProject(float winx, float winy, float winz, const float* invTransfo
 	in[2] = 2.0f * winz - 1.0f;
 	in[3] = 1.0f;
 	// Objects coordinates
-	bx::vec4MulMtx(out, in, invTransform);
+	Matrix::mulVec4(out, invTransform, in);
 	if (out[3] == 0.0f) {
 		return 0;
 	}
@@ -187,7 +187,7 @@ Vec2 NodeTouchHandler::getPos(const Vec3& winPos) {
 	Matrix invMVP;
 	{
 		Matrix MVP;
-		bx::mtxMul(MVP, _target->getWorld(), SharedDirector.getViewProjection());
+		Matrix::mulMtx(MVP, SharedDirector.getViewProjection(), _target->getWorld());
 		bx::mtxInverse(invMVP, MVP);
 	}
 	bx::Plane plane(bx::InitNone);

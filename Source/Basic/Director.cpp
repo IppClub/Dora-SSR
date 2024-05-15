@@ -240,7 +240,7 @@ void Director::doLogic() {
 	if (camera->hasProjection()) {
 		_defaultViewProj = camera->getView();
 	} else {
-		bx::mtxMul(_defaultViewProj, camera->getView(), SharedView.getProjection());
+		Matrix::mulMtx(_defaultViewProj, SharedView.getProjection(), camera->getView());
 	}
 	pushViewProjection(_defaultViewProj, [&]() {
 		/* update game logic */

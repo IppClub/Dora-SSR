@@ -120,7 +120,7 @@ void ClipNode::drawFullScreenStencil(uint8_t maskLayer, bool value) {
 		Matrix ortho;
 		bx::mtxOrtho(ortho, 0, width, 0, height, 0, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
 		for (int i = 0; i < 4; i++) {
-			bx::vec4MulMtx(&vertices[i].x, pos[i], ortho);
+			Matrix::mulVec4(&vertices[i].x, ortho, pos[i]);
 		}
 		const uint16_t indices[] = {0, 1, 2, 1, 3, 2};
 		std::memcpy(indexBuffer.data, indices, sizeof(indices[0]) * 6);
