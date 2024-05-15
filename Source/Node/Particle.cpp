@@ -411,17 +411,17 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 		Matrix rotate;
 		bx::mtxRotateXY(rotate, -bx::toRad(angleX), -bx::toRad(angleY));
 		Matrix transform;
-		bx::mtxMul(transform, rotate, SharedDirector.getViewProjection());
-		bx::vec4MulMtx(&quad.rb.x, &quadPos.rb.x, transform);
-		bx::vec4MulMtx(&quad.lb.x, &quadPos.lb.x, transform);
-		bx::vec4MulMtx(&quad.lt.x, &quadPos.lt.x, transform);
-		bx::vec4MulMtx(&quad.rt.x, &quadPos.rt.x, transform);
+		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), rotate);
+		Matrix::mulVec4(&quad.rb.x, transform, &quadPos.rb.x);
+		Matrix::mulVec4(&quad.lb.x, transform, &quadPos.lb.x);
+		Matrix::mulVec4(&quad.lt.x, transform, &quadPos.lt.x);
+		Matrix::mulVec4(&quad.rt.x, transform, &quadPos.rt.x);
 	} else {
 		const Matrix& transform = SharedDirector.getViewProjection();
-		bx::vec4MulMtx(&quad.rb.x, &quadPos.rb.x, transform);
-		bx::vec4MulMtx(&quad.lb.x, &quadPos.lb.x, transform);
-		bx::vec4MulMtx(&quad.lt.x, &quadPos.lt.x, transform);
-		bx::vec4MulMtx(&quad.rt.x, &quadPos.rt.x, transform);
+		Matrix::mulVec4(&quad.rb.x, transform, &quadPos.rb.x);
+		Matrix::mulVec4(&quad.lb.x, transform, &quadPos.lb.x);
+		Matrix::mulVec4(&quad.lt.x, transform, &quadPos.lt.x);
+		Matrix::mulVec4(&quad.rt.x, transform, &quadPos.rt.x);
 	}
 	_quads.push_back(quad);
 }

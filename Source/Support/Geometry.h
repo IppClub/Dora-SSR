@@ -158,11 +158,13 @@ struct Vec4 {
 struct Matrix {
 	float m[16];
 	inline operator float*() {
-		return r_cast<float*>(this);
+		return &m[0];
 	}
 	inline operator const float*() const {
-		return r_cast<const float*>(this);
+		return &m[0];
 	}
+	static void mulVec4(float* result, const float* matrix, const float* vec4);
+	static void mulMtx(float* result, const float* left, const float* right);
 	static const Matrix Indentity;
 };
 

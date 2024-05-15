@@ -794,7 +794,7 @@ bool Node::update(double deltaTime) {
 void Node::renderDebug() {
 	if (isShowDebug() && getSize() != Size::zero) {
 		Matrix transform;
-		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
+		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
 		float w = getWidth();
 		float h = getHeight();
 		const float anchorSize = 20.0f;
@@ -821,7 +821,7 @@ void Node::renderDebug() {
 			{0, 0, 0, 0, anchorColor},
 			{0, 0, 0, 0, anchorColor}};
 		for (size_t i = 0; i < 8; i++) {
-			bx::vec4MulMtx(&verts[i].x, &positions[i].x, transform);
+			Matrix::mulVec4(&verts[i].x, transform, &positions[i].x);
 		}
 		SharedRendererManager.setCurrent(SharedLineRenderer.getTarget());
 		SharedLineRenderer.pushRect(verts);
@@ -949,13 +949,13 @@ void Node::getLocalWorld(Matrix& localWorld) {
 				/* rotateXY */
 				Matrix mtxRot;
 				bx::mtxRotateXY(mtxRot, -bx::toRad(_angleX), -bx::toRad(_angleY));
-				bx::mtxMul(mtxRoted, mtxRot, mtxBase);
+				Matrix::mulMtx(mtxRoted, mtxBase, mtxRot);
 			}
 
 			/* translateAnchorXY */
 			Matrix mtxAnchor;
 			bx::mtxTranslate(mtxAnchor, -_anchorPoint.x, -_anchorPoint.y, 0.0f);
-			bx::mtxMul(localWorld, mtxAnchor, mtxRoted);
+			Matrix::mulMtx(localWorld, mtxRoted, mtxAnchor);
 		} else {
 			Matrix mtxBase;
 			AffineTransform::toMatrix(transform, mtxBase);
@@ -966,7 +966,7 @@ void Node::getLocalWorld(Matrix& localWorld) {
 			/* rotateXY */
 			Matrix mtxRot;
 			bx::mtxRotateXY(mtxRot, -bx::toRad(_angleX), -bx::toRad(_angleY));
-			bx::mtxMul(localWorld, mtxRot, mtxBase);
+			Matrix::mulMtx(localWorld, mtxBase, mtxRot);
 		}
 	} else {
 		/* translateXY, scaleXY, rotateZ, translateAnchorXY */
@@ -993,7 +993,7 @@ const Matrix& Node::getWorld() {
 		} else {
 			Matrix localWorld;
 			getLocalWorld(localWorld);
-			bx::mtxMul(_world, localWorld, *parentWorld);
+			Matrix::mulMtx(_world, *parentWorld, localWorld);
 		}
 		ARRAY_START(Node, child, _children) {
 			child->_flags.setOn(Node::WorldDirty);
@@ -1386,8 +1386,8 @@ static bool project(float objx, float objy, float objz,
 	in[1] = objy;
 	in[2] = objz;
 	in[3] = 1.0;
-	bx::vec4MulMtx(out, in, model);
-	bx::vec4MulMtx(in, out, proj);
+	Matrix::mulVec4(out, model, in);
+	Matrix::mulVec4(in, proj, out);
 	/* d’ou le resultat normalise entre -1 et 1 */
 	if (in[3] == 0.0) return false;
 	in[0] /= in[3];

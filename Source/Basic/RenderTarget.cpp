@@ -118,8 +118,8 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 					if (_camera->hasProjection())
 						tmpVP = _camera->getView();
 					else
-						bx::mtxMul(tmpVP, _camera->getView(), SharedView.getProjection());
-					bx::mtxMul(viewProj, tmpVP, revertY);
+						Matrix::mulMtx(tmpVP, SharedView.getProjection(), _camera->getView());
+					Matrix::mulMtx(viewProj, tmpVP, revertY);
 				} else {
 					bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), s_cast<float>(_textureHeight), 0, -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
 				}
@@ -130,7 +130,7 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 					if (_camera->hasProjection())
 						viewProj = _camera->getView();
 					else
-						bx::mtxMul(viewProj, _camera->getView(), SharedView.getProjection());
+						Matrix::mulMtx(viewProj, SharedView.getProjection(), _camera->getView());
 				} else {
 					bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), 0, s_cast<float>(_textureHeight), -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
 				}

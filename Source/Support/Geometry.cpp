@@ -10,6 +10,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Support/Geometry.h"
 
+#include "ktm/ktm.h"
+
 NS_DORA_BEGIN
 
 const Vec2 Vec2::zero{0.0f, 0.0f};
@@ -422,5 +424,19 @@ const Matrix Matrix::Indentity = {
 	0, 1, 0, 0,
 	0, 0, 1, 0,
 	0, 0, 0, 1};
+
+void Matrix::mulVec4(float* result, const float* matrix, const float* vec4) {
+	const ktm::fmat4x4& mat = *r_cast<const ktm::fmat4x4*>(r_cast<const void*>(matrix));
+	const ktm::fvec4& v4 = *r_cast<const ktm::fvec4*>(r_cast<const void*>(vec4));
+	ktm::fvec4& output = *r_cast<ktm::fvec4*>(r_cast<void*>(result));
+	output = mat * v4;
+}
+
+void Matrix::mulMtx(float* result, const float* left, const float* right) {
+	const ktm::fmat4x4& lMat = *r_cast<const ktm::fmat4x4*>(r_cast<const void*>(left));
+	const ktm::fmat4x4& rMat = *r_cast<const ktm::fmat4x4*>(r_cast<const void*>(right));
+	ktm::fmat4x4& output = *r_cast<ktm::fmat4x4*>(r_cast<void*>(result));
+	output = lMat * rMat;
+}
 
 NS_DORA_END
