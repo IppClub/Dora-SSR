@@ -194,7 +194,7 @@ const Matrix& CameraOtho::getView() {
 			Matrix move;
 			Matrix temp = view;
 			bx::mtxTranslate(move, _position.x, _position.y, 0);
-			bx::mtxMul(view, move, temp);
+			Matrix::mulMtx(view, temp, move);
 		}
 		_view = view;
 		Updated();
@@ -223,7 +223,7 @@ const Matrix& CameraUI::getView() {
 		Matrix tmp;
 		bx::mtxOrtho(tmp, 0, size.width, 0, size.height, -1000.0f, 1000.0f, 0,
 			bgfx::getCaps()->homogeneousDepth);
-		bx::mtxMul(_view, move, tmp);
+		Matrix::mulMtx(_view, tmp, move);
 		Updated();
 	}
 	return Camera::getView();
@@ -258,7 +258,7 @@ const Matrix& CameraUI3D::getView() {
 			nearPlaneDistance,
 			farPlaneDistance,
 			bgfx::getCaps()->homogeneousDepth);
-		bx::mtxMul(_view, view, projection);
+		Matrix::mulMtx(_view, projection, view);
 		Updated();
 	}
 	return Camera::getView();

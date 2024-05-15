@@ -33,14 +33,14 @@ DBSlotNode::DBSlotNode()
 void DBSlotNode::render() {
 	if (!_texture || !_effect || _vertices.empty()) return;
 	Matrix transform;
-	bx::mtxMul(transform, getWorld(), SharedDirector.getViewProjection());
+	Matrix::mulMtx(transform, SharedDirector.getViewProjection(), getWorld());
 	auto parent = s_cast<DragonBone*>(getParent());
 	uint64_t renderState = (BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_MSAA | _blendFunc.toValue());
 	if (parent->isDepthWrite()) {
 		renderState |= (BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
 	}
 	for (size_t i = 0; i < _points.size(); i++) {
-		bx::vec4MulMtx(&_vertices[i].x, &_points[i].x, transform);
+		Matrix::mulVec4(&_vertices[i].x, transform, &_points[i].x);
 	}
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
 	SharedSpriteRenderer.push(
@@ -54,7 +54,7 @@ const Matrix& DBSlotNode::getWorld() {
 		_flags.setOff(DBSlotNode::TransformDirty);
 		Matrix mat;
 		AffineTransform::toMatrix(_transform, mat);
-		bx::mtxMul(_matrix, mat, Node::getWorld());
+		Matrix::mulMtx(_matrix, Node::getWorld(), mat);
 	}
 	return _matrix;
 }

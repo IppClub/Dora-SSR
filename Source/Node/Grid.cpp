@@ -223,9 +223,9 @@ void Grid::render() {
 	if (_flags.isOn(Grid::VertexPosDirty)) {
 		_flags.setOff(Grid::VertexPosDirty);
 		Matrix transform;
-		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
+		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
 		for (size_t i = 0; i < _points.size(); i++) {
-			bx::vec4MulMtx(&_vertices[i].x, &_points[i].position.x, transform);
+			Matrix::mulVec4(&_vertices[i].x, transform, &_points[i].position.x);
 		}
 	}
 

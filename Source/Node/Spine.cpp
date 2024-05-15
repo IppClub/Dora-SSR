@@ -333,7 +333,7 @@ bool Spine::update(double deltaTime) {
 
 void Spine::render() {
 	Matrix transform;
-	bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
+	Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
 
 	if (isShowDebug()) {
@@ -403,7 +403,7 @@ void Spine::render() {
 				for (size_t j = 0, l = 0; j < vertSize; j++, l += 2) {
 					Vec4 vec{verts[l], verts[l + 1], 0, 1};
 					SpriteVertex& vertex = vertices[j];
-					bx::vec4MulMtx(&vertex.x, vec, transform);
+					Matrix::mulVec4(&vertex.x, transform, vec);
 					vertex.abgr = abgr;
 					vertex.u = uvs[l];
 					vertex.v = uvs[l + 1];
@@ -417,7 +417,7 @@ void Spine::render() {
 				for (size_t j = 0, l = 0; j < 4; j++, l += 2) {
 					SpriteVertex& vertex = vertices[j];
 					SpriteVertex oldVert = vertex;
-					bx::vec4MulMtx(&vertex.x, &oldVert.x, transform);
+					Matrix::mulVec4(&vertex.x, transform, &oldVert.x);
 					vertex.abgr = abgr;
 					vertex.u = region->getUVs()[l];
 					vertex.v = region->getUVs()[l + 1];
@@ -449,7 +449,7 @@ void Spine::render() {
 				for (size_t j = 0, l = 0; j < vertSize; j++, l += 2) {
 					Vec4 vec{verts[l], verts[l + 1], 0, 1};
 					SpriteVertex& vertex = vertices[j];
-					bx::vec4MulMtx(&vertex.x, vec, transform);
+					Matrix::mulVec4(&vertex.x, transform, vec);
 					vertex.abgr = abgr;
 					vertex.u = uvs[l];
 					vertex.v = uvs[l + 1];
@@ -463,7 +463,7 @@ void Spine::render() {
 				for (size_t j = 0, l = 0; j < numVertices; j++, l += 2) {
 					SpriteVertex& vertex = vertices[j];
 					SpriteVertex oldVert = vertex;
-					bx::vec4MulMtx(&vertex.x, &oldVert.x, transform);
+					Matrix::mulVec4(&vertex.x, transform, &oldVert.x);
 					vertex.abgr = abgr;
 					vertex.u = mesh->getUVs()[l];
 					vertex.v = mesh->getUVs()[l + 1];

@@ -92,9 +92,9 @@ void DrawNode::render() {
 	if (_flags.isOn(DrawNode::VertexPosDirty)) {
 		_flags.setOff(DrawNode::VertexPosDirty);
 		Matrix transform;
-		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
+		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
 		for (size_t i = 0; i < _vertices.size(); i++) {
-			bx::vec4MulMtx(&_vertices[i].x, &_posColors[i].pos.x, transform);
+			Matrix::mulVec4(&_vertices[i].x, transform, &_posColors[i].pos.x);
 		}
 	}
 
@@ -525,9 +525,9 @@ void Line::render() {
 	if (_flags.isOn(Line::VertexPosDirty)) {
 		_flags.setOff(Line::VertexPosDirty);
 		Matrix transform;
-		bx::mtxMul(transform, _world, SharedDirector.getViewProjection());
+		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
 		for (size_t i = 0; i < _vertices.size(); i++) {
-			bx::vec4MulMtx(&_vertices[i].x, &_posColors[i].pos.x, transform);
+			Matrix::mulVec4(&_vertices[i].x, transform, &_posColors[i].pos.x);
 		}
 	}
 

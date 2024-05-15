@@ -165,7 +165,7 @@ void EffekNode::render() {
 				Matrix tempProj;
 				Matrix revertY;
 				bx::mtxScale(revertY, 1.0f, -1.0f, 1.0f);
-				bx::mtxMul(tempProj, SharedView.getProjection(), revertY);
+				Matrix::mulMtx(tempProj, SharedView.getProjection(), revertY);
 				MtoM44(tempProj, matrix);
 				break;
 			}
