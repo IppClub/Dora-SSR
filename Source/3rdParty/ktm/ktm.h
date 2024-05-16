@@ -15,13 +15,16 @@
 #include "type_comp.h"
 
 #include "function/arithmetic.h"
+#include "function/trigonometric.h"
+#include "function/exponential.h"
+#include "function/common.h"
 #include "function/geometric.h"
+#include "function/epsilon.h"
 #include "function/matrix.h"
+#include "function/matrix_equation.h"
+#include "function/matrix_transform_2d.h"
+#include "function/matrix_transform_3d.h"
 #include "function/quaternion.h"
 #include "function/complex.h"
-#include "function/epsilon.h"
-#include "function/matrix_equation.h"
-#include "function/transform_2d.h"
-#include "function/transform_3d.h"
 
 #endif
