@@ -15,19 +15,19 @@ git clone https://github.com/ippclub/Dora-SSR.git
 ### Windows
 
 1. 安装 **Visual Studio Community 2022**。
-2. 在 IDE 中打开工程文件：**Project/Windows/Dora.sln**。
+2. 在 IDE 中打开工程文件：**Projects/Windows/Dora.sln**。
 3. 进行编译、调试和运行。
 
 ### macOS
 
 1. 安装最新版 **Xcode**。
-2. 在 IDE 中打开工程文件：**Project/macOS/Dora.xcodeproj**。
+2. 在 IDE 中打开工程文件：**Projects/macOS/Dora.xcodeproj**。
 3. 进行编译、调试和运行。
 
 ### iOS
 
 1. 安装最新版 **Xcode**。
-2. 在 IDE 中打开工程文件：**Project/iOS/Dora.xcodeproj**。
+2. 在 IDE 中打开工程文件：**Projects/iOS/Dora.xcodeproj**。
 3. 进行编译、调试和运行。
 
 ### Android
@@ -52,7 +52,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ```
 
 2. 安装最新版 **Android Studio**。
-3. 在 IDE 打开工程目录：**Project/Android/Dora**。
+3. 在 IDE 打开工程目录：**Projects/Android/Dora**。
 4. 进行编译、调试和运行。
 
 ### Linux
@@ -77,25 +77,25 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
    ```sh
    # 硬件架构为 arm
-   cd Project/Linux
+   cd Projects/Linux
    make arm
 
    # 硬件架构为 x86_64
-   cd Project/Linux
+   cd Projects/Linux
    make x86_64
    ```
 
    - 进行后续增量编译
 
    ```sh
-   cd Project/Linux
+   cd Projects/Linux
    make
    ```
 
 4. 运行生成的软件。
    ```sh
    cd Assets
-   ../Project/Linux/build/dora-ssr
+   ../Projects/Linux/build/dora-ssr
    ```
 
 #### ArchLinux
@@ -123,25 +123,25 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
    ```sh
    # 硬件架构为 arm
-   cd Project/Linux
+   cd Projects/Linux
    make arm
 
    # 硬件架构为 x86_64
-   cd Project/Linux
+   cd Projects/Linux
    make x86_64
    ```
 
    - 进行后续增量编译
 
    ```sh
-   cd Project/Linux
+   cd Projects/Linux
    make
    ```
 
 4. 运行生成的软件。
    ```sh
    cd Assets
-   ../Project/Linux/build/dora-ssr
+   ../Projects/Linux/build/dora-ssr
    ```
 
 ## 三、进行 Dora Dora 编辑器的开发

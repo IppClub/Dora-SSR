@@ -15,19 +15,19 @@ git clone https://github.com/ippclub/Dora-SSR.git
 ### Windows
 
 1. Install **Visual Studio Community 2022**.
-2. Open the project file in the IDE: **Project/Windows/Dora.sln**.
+2. Open the project file in the IDE: **Projects/Windows/Dora.sln**.
 3. Compile, debug, and run the project.
 
 ### macOS
 
 1. Install latest **Xcode**.
-2. Open the project file in the IDE: **Project/macOS/Dora.xcodeproj**.
+2. Open the project file in the IDE: **Projects/macOS/Dora.xcodeproj**.
 3. Compile, debug, and run the project.
 
 ### iOS
 
 1. Install latest **Xcode**.
-2. Open the project file in the IDE: **Project/iOS/Dora.xcodeproj**.
+2. Open the project file in the IDE: **Projects/iOS/Dora.xcodeproj**.
 3. Compile, debug, and run the project.
 
 ### Android
@@ -52,7 +52,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ```
 
 2. Install latest **Android Studio**.
-3. Open the project directory in the IDE: **Project/Android/Dora**.
+3. Open the project directory in the IDE: **Projects/Android/Dora**.
 4. Compile, debug, and run the project.
 
 ### Linux
@@ -77,25 +77,25 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
    ```sh
    # For arm architecture
-   cd Project/Linux
+   cd Projects/Linux
    make arm
 
    # For x86_64 architecture
-   cd Project/Linux
+   cd Projects/Linux
    make x86_64
    ```
 
    - For incremental build
 
    ```sh
-   cd Project/Linux
+   cd Projects/Linux
    make
    ```
 
 4. Run the generated software.
    ```sh
    cd Assets
-   ../Project/Linux/build/dora-ssr
+   ../Projects/Linux/build/dora-ssr
    ```
 
 #### ArchLinux
@@ -123,25 +123,25 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
    ```sh
    # For arm architecture
-   cd Project/Linux
+   cd Projects/Linux
    make arm
 
    # For x86_64 architecture
-   cd Project/Linux
+   cd Projects/Linux
    make x86_64
    ```
 
    - For incremental build
 
    ```sh
-   cd Project/Linux
+   cd Projects/Linux
    make
    ```
 
 4. Run the generated software.
    ```sh
    cd Assets
-   ../Project/Linux/build/dora-ssr
+   ../Projects/Linux/build/dora-ssr
    ```
 
 ## 3. Dora Dora Editor Development

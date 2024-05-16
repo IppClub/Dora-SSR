@@ -140,7 +140,7 @@
 
 - **Lua**
 ```lua
-local _ENV = Dora()
+local _ENV = Dora
 
 local sprite = Sprite("Image/logo.png")
 sprite:schedule(once(function()
@@ -182,7 +182,7 @@ end
 ```
 - **Yuescript**
 ```moonscript
-_ENV = Dora!
+_ENV = Dora
 
 with Sprite "Image/logo.png"
    \schedule once ->
@@ -197,7 +197,7 @@ with Sprite "Image/logo.png"
 ```
 - **Typescript**
 ```typescript
-import {Sprite, Ease, Scale, Sequence, once, sleep} from 'dora';
+import {Sprite, Ease, Scale, Sequence, once, sleep} from 'Dora';
 
 const sprite = Sprite("Image/logo.png");
 if (sprite) {
@@ -216,8 +216,8 @@ if (sprite) {
 ```
 - **TSX**
 ```tsx
-import { React, toNode, useRef } from 'dora-x';
-import { ActionDef, Ease, Sprite, once, sleep } from 'dora';
+import {React, toNode, useRef} from 'DoraX';
+import {ActionDef, Ease, Sprite, once, sleep} from 'Dora';
 
 const actionRef = useRef<ActionDef.Type>();
 const spriteRef = useRef<Sprite.Type>();

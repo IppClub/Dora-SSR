@@ -1,5 +1,5 @@
 all:
-	cd ../../Tools/tolua++ && lua tolua++.lua && cd ../../Project/Linux
+	cd ../../Tools/tolua++ && lua tolua++.lua && cd ../../Projects/Linux
 	$(MAKE) -C build
 
 dep_x86_64:
@@ -7,7 +7,7 @@ dep_x86_64:
 
 x86_64: dep_x86_64
 	[ -d build ] || mkdir build
-	cd ../../Tools/tolua++ && lua tolua++.lua && cd ../../Project/Linux
+	cd ../../Tools/tolua++ && lua tolua++.lua && cd ../../Projects/Linux
 	cd build && cmake -DCMAKE_BUILD_TYPE=Release ..
 	$(MAKE) -C build
 
@@ -16,19 +16,19 @@ dep_arm:
 
 arm: dep_arm
 	[ -d build ] || mkdir build
-	cd ../../Tools/tolua++ && lua tolua++.lua && cd ../../Project/Linux
+	cd ../../Tools/tolua++ && lua tolua++.lua && cd ../../Projects/Linux
 	cd build && cmake -DCMAKE_BUILD_TYPE=Release ..
 	$(MAKE) -C build
 
 debug:
 	[ -d build ] || mkdir build
-	cd ../../Tools/tolua++ && lua tolua++.lua && cd ../../Project/Linux
+	cd ../../Tools/tolua++ && lua tolua++.lua && cd ../../Projects/Linux
 	cd build && cmake -DCMAKE_BUILD_TYPE=debug ..
 	$(MAKE) -C build
 
 release:
 	[ -d build ] || mkdir build
-	cd ../../Tools/tolua++ && lua tolua++.lua && cd ../../Project/Linux
+	cd ../../Tools/tolua++ && lua tolua++.lua && cd ../../Projects/Linux
 	cd build && cmake -DCMAKE_BUILD_TYPE=release ..
 	$(MAKE) -C build
 
