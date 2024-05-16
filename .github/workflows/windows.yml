@@ -17,7 +17,7 @@ jobs:
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Windows build
-        run: msbuild Project\Windows\Dora.sln -p:Configuration=release
+        run: msbuild Projects\Windows\Dora.sln -p:Configuration=release
       - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |
@@ -47,7 +47,7 @@ jobs:
           (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Doc && cd ..)
           (cd Assets && 7z a ..\dora-ssr-windows-x86.7z gamecontrollerdb.txt && cd ..)
           (cd Assets && 7z a ..\dora-ssr-windows-x86.7z LICENSES && cd ..)
-          (cd Project\Windows\build\Release && 7z a ..\..\..\..\dora-ssr-windows-x86.7z Dora.exe && cd ..\..\..\..)
+          (cd Projects\Windows\build\Release && 7z a ..\..\..\..\dora-ssr-windows-x86.7z Dora.exe && cd ..\..\..\..)
           ren dora-ssr-windows-x86.7z dora-ssr-${{ github.ref_name }}-windows-x86.7z
       - name: Release
         uses: softprops/action-gh-release@v1
