@@ -1,14 +1,14 @@
 -- [yue]: Script/Game/Zombie Escape/Control.yue
-local _module_0 = dora.Platformer -- 1
+local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
-local Group = dora.Group -- 1
-local App = dora.App -- 1
-local Menu = dora.Menu -- 1
+local Group = Dora.Group -- 1
+local App = Dora.App -- 1
+local Menu = Dora.Menu -- 1
 local math = _G.math -- 1
-local Vec2 = dora.Vec2 -- 1
-local Director = dora.Director -- 1
-local Keyboard = dora.Keyboard -- 1
-local Node = dora.Node -- 1
+local Vec2 = Dora.Vec2 -- 1
+local Director = Dora.Director -- 1
+local Keyboard = Dora.Keyboard -- 1
+local Node = Dora.Node -- 1
 local AlignNode = require("UI.Control.Basic.AlignNode") -- 10
 local Rectangle = require("UI.View.Shape.Rectangle") -- 11
 local Circle = require("UI.View.Shape.Circle") -- 12

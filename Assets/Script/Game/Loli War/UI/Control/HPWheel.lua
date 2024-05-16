@@ -1,14 +1,14 @@
 -- [yue]: Script/Game/Loli War/UI/Control/HPWheel.yue
-local _module_0 = dora.Platformer -- 1
+local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
-local Class = dora.Class -- 1
+local Class = Dora.Class -- 1
 local math = _G.math -- 1
 local tostring = _G.tostring -- 1
-local ScaleX = dora.ScaleX -- 1
+local ScaleX = Dora.ScaleX -- 1
 local string = _G.string -- 1
 local table = _G.table -- 1
 local ipairs = _G.ipairs -- 1
-local X = dora.X -- 1
+local X = Dora.X -- 1
 local _module_0 = nil -- 1
 local HPWheel = require("UI.View.HPWheel") -- 10
 local EPHint = require("UI.View.EPHint") -- 11

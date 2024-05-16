@@ -1,8 +1,8 @@
 -- [yue]: Script/Game/Zombie Escape/Body.yue
-local _module_0 = dora.Platformer -- 1
+local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
-local BodyDef = dora.BodyDef -- 1
-local Vec2 = dora.Vec2 -- 1
+local BodyDef = Dora.BodyDef -- 1
+local Vec2 = Dora.Vec2 -- 1
 local Store = Data.store -- 11
 do -- 13
 	local _with_0 = BodyDef() -- 13

@@ -1,9 +1,9 @@
 -- [yue]: Script/Lib/UI/Control/Basic/AlignNode.yue
-local Class = dora.Class -- 1
-local Node = dora.Node -- 1
-local Vec2 = dora.Vec2 -- 1
-local App = dora.App -- 1
-local View = dora.View -- 1
+local Class = Dora.Class -- 1
+local Node = Dora.Node -- 1
+local Vec2 = Dora.Vec2 -- 1
+local App = Dora.App -- 1
+local View = Dora.View -- 1
 local load = _G.load -- 1
 local tostring = _G.tostring -- 1
 local _module_0 = nil -- 1

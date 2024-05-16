@@ -1,7 +1,7 @@
 // @preview-file off
 import { WindowFlag, SetCond } from "ImGui";
 import * as ImGui from 'ImGui';
-import { Angle, App, Color, DrawNode, Line, Node, Size, Slot, Sprite, Vec2, threadLoop } from "dora";
+import { Angle, App, Color, DrawNode, Line, Node, Size, Sprite, Vec2, threadLoop } from "Dora";
 
 function Item(this: void) {
 	const node = Node();

@@ -1,13 +1,13 @@
 -- [yue]: Script/Example/ML.yue
-local App = dora.App -- 1
+local App = Dora.App -- 1
 local table = _G.table -- 1
-local ML = dora.ML -- 1
+local ML = Dora.ML -- 1
 local math = _G.math -- 1
 local pairs = _G.pairs -- 1
-local threadLoop = dora.threadLoop -- 1
-local _module_0 = dora.ImGui -- 1
+local threadLoop = Dora.threadLoop -- 1
+local _module_0 = Dora.ImGui -- 1
 local SetNextWindowPos = _module_0.SetNextWindowPos -- 1
-local Vec2 = dora.Vec2 -- 1
+local Vec2 = Dora.Vec2 -- 1
 local SetNextWindowSize = _module_0.SetNextWindowSize -- 1
 local Begin = _module_0.Begin -- 1
 local TextWrapped = _module_0.TextWrapped -- 1
@@ -16,7 +16,7 @@ local Button = _module_0.Button -- 1
 local SameLine = _module_0.SameLine -- 1
 local Separator = _module_0.Separator -- 1
 local Checkbox = _module_0.Checkbox -- 1
-local thread = dora.thread -- 1
+local thread = Dora.thread -- 1
 local string = _G.string -- 1
 local actions = { -- 3
 	"观察", -- 3

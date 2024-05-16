@@ -1,4 +1,4 @@
-_ENV = Dora!
+_ENV = Dora
 
 CircleVertices = (radius, verts = 20) ->
 	newV = (index, radius) ->

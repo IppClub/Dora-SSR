@@ -1,10 +1,10 @@
 -- [yue]: Script/Example/Model.yue
-local Model = dora.Model -- 1
+local Model = Dora.Model -- 1
 local print = _G.print -- 1
-local threadLoop = dora.threadLoop -- 1
-local App = dora.App -- 1
-local ImGui = dora.ImGui -- 1
-local Vec2 = dora.Vec2 -- 1
+local threadLoop = Dora.threadLoop -- 1
+local App = Dora.App -- 1
+local ImGui = Dora.ImGui -- 1
+local Vec2 = Dora.Vec2 -- 1
 local modelFile = "Model/xiaoli.model" -- 3
 local model -- 5
 do -- 5

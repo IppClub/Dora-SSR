@@ -1,7 +1,7 @@
 -- [yue]: Script/Test/EntitySystem.yue
-local Group = dora.Group -- 1
-local Observer = dora.Observer -- 1
-local Entity = dora.Entity -- 1
+local Group = Dora.Group -- 1
+local Observer = Dora.Observer -- 1
+local Entity = Dora.Entity -- 1
 local print = _G.print -- 1
 local assert = _G.assert -- 1
 local tostring = _G.tostring -- 1

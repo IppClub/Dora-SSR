@@ -1,7 +1,7 @@
 // @preview-file off
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Delay, DragonBone, Ease, Event, Label, Opacity, Scale, Sequence, Slot, Spawn, Vec2, threadLoop } from "dora";
+import { App, Delay, DragonBone, Ease, Event, Label, Opacity, Scale, Sequence, Slot, Spawn, Vec2, threadLoop } from "Dora";
 
 const boneStr = "DragonBones/NewDragon";
 const animations = DragonBone.getAnimations(boneStr);

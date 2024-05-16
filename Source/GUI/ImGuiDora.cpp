@@ -280,8 +280,8 @@ public:
 	void runCodes(std::string codes) {
 		LogPrintInThread(codes + '\n');
 		codes.insert(0,
-			"rawset dora, '_REPL', <index>: dora unless dora._REPL\n"
-			"_ENV = dora._REPL\n"
+			"rawset Dora, '_REPL', <index>: Dora unless Dora._REPL\n"
+			"_ENV = Dora._REPL\n"
 			"global *\n"s);
 		lua_State* L = SharedLuaEngine.getState();
 		int top = lua_gettop(L);
@@ -349,7 +349,7 @@ private:
 
 static void DoraSetupTheme(Color color) {
 	auto themeColor = color.toVec4();
-	// dora theme colors, 3 intensities
+	// Dora theme colors, 3 intensities
 	auto HI = [&themeColor](float v) {
 		return ImVec4(
 			themeColor.x * 0.9f,

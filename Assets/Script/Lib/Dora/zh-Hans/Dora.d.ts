@@ -1,7 +1,7 @@
 /// <reference path="es6-subset.d.ts" />
 /// <reference path="lua.d.ts" />
 
-declare module "dora" {
+declare module "Dora" {
 
 interface BasicTyping<TypeName> {
 	__basic__: TypeName;
@@ -1715,7 +1715,7 @@ export namespace Dictionary {
  * 用于创建Dictionary的类
  * @example
  * ```
- * import { Dictionary } from "dora";
+ * import { Dictionary } from "Dora";
  * const dict = Dictionary();
  * ```
  */
@@ -3107,7 +3107,7 @@ interface NodeClass {
 	 *
 	 * @example
 	 * ```
-	 * import {Node} from 'dora';
+	 * import {Node} from 'Dora';
 	 * const node = Node();
 	 * ```
 	 * @returns `Node`类的新实例。
@@ -3214,7 +3214,7 @@ export {clipNodeClass as ClipNode};
  *
  * @example
  * ```
- * import {Content} from "dora";
+ * import {Content} from "Dora";
  * const text = Content.load("filename.txt");
  * ```
  */
@@ -3577,7 +3577,7 @@ export {db as DB};
  *
  * @example
  * ```
- * import {Director} from "dora";
+ * import {Director} from "Dora";
  * Director.entry.addChild(node);
  * ```
  */
@@ -6648,6 +6648,6 @@ interface HttpClient {
 const httpClient: HttpClient;
 export {httpClient as HttpClient};
 
-} // module "dora"
+} // module "Dora"
 
 declare function p(this: void, ...args: any[]): void;

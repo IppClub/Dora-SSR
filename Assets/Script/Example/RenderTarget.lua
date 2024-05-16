@@ -1,17 +1,17 @@
 -- [yue]: Script/Example/RenderTarget.yue
-local Node = dora.Node -- 1
-local Model = dora.Model -- 1
-local Sequence = dora.Sequence -- 1
-local X = dora.X -- 1
-local Event = dora.Event -- 1
-local RenderTarget = dora.RenderTarget -- 1
-local Color = dora.Color -- 1
-local Sprite = dora.Sprite -- 1
-local Line = dora.Line -- 1
-local Vec2 = dora.Vec2 -- 1
-local App = dora.App -- 1
-local threadLoop = dora.threadLoop -- 1
-local ImGui = dora.ImGui -- 1
+local Node = Dora.Node -- 1
+local Model = Dora.Model -- 1
+local Sequence = Dora.Sequence -- 1
+local X = Dora.X -- 1
+local Event = Dora.Event -- 1
+local RenderTarget = Dora.RenderTarget -- 1
+local Color = Dora.Color -- 1
+local Sprite = Dora.Sprite -- 1
+local Line = Dora.Line -- 1
+local Vec2 = Dora.Vec2 -- 1
+local App = Dora.App -- 1
+local threadLoop = Dora.threadLoop -- 1
+local ImGui = Dora.ImGui -- 1
 local node -- 3
 do -- 3
 	local _with_0 = Node() -- 3

@@ -1,10 +1,10 @@
 -- [yue]: Script/Test/Text.yue
-local View = dora.View -- 1
+local View = Dora.View -- 1
 local math = _G.math -- 1
-local App = dora.App -- 1
-local Vec2 = dora.Vec2 -- 1
-local Size = dora.Size -- 1
-local Label = dora.Label -- 1
+local App = Dora.App -- 1
+local Vec2 = Dora.Vec2 -- 1
+local Size = Dora.Size -- 1
+local Label = Dora.Label -- 1
 local LineRect = require("UI.View.Shape.LineRect") -- 2
 local ScrollArea = require("UI.Control.Basic.ScrollArea") -- 3
 local AlignNode = require("UI.Control.Basic.AlignNode") -- 4

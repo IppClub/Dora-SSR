@@ -1,7 +1,7 @@
 // @preview-file off
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from "ImGui";
-import { App, DB, SQL, Vec2, thread, threadLoop } from "dora";
+import { App, DB, SQL, Vec2, thread, threadLoop } from "Dora";
 
 const sqls: SQL[] = [
 	"DROP TABLE IF EXISTS test",

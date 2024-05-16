@@ -35,11 +35,14 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 				return false;
 			}
 			fileName = Info.path.normalize(fileName);
-			const baseName = Info.path.basename(fileName).toLowerCase();
-			if (baseName.startsWith('dora.')) {
+			const baseName = Info.path.basename(fileName);
+			if (baseName.startsWith('Dora.d.')) {
+				return false;
+			}
+			if (baseName.startsWith('Dora.')) {
 				return true;
 			}
-			if (baseName === 'lib.dora.d.ts') {
+			if (baseName === 'lib.Dora.d.ts') {
 				return true;
 			}
 			if (Info.path.isAbsolute(fileName)) {
@@ -75,7 +78,7 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 		},
 		getCanonicalFileName: fileName => Info.path.normalize(fileName),
 		getCurrentDirectory: () => currentDirectory,
-		getDefaultLibFileName: () => "lib.dora.d.ts",
+		getDefaultLibFileName: () => "lib.Dora.d.ts",
 		readFile: fileName => {
 			fileName = Info.path.normalize(fileName);
 			const uri = monaco.Uri.parse(fileName);
@@ -94,11 +97,11 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 		writeFile: () => { },
 		getSourceFile(fileName) {
 			fileName = Info.path.normalize(fileName);
-			const baseName = Info.path.basename(fileName).toLowerCase();
-			if (baseName.startsWith('dora.')) {
+			const baseName = Info.path.basename(fileName);
+			if (baseName.startsWith('Dora.')) {
 				return ts.createSourceFile("dummy.d.ts", "", ts.ScriptTarget.ES2015, false);
 			}
-			if (baseName === 'jsx.d.ts' || baseName === 'dora-x.d.ts') {
+			if (baseName === 'jsx.d.ts' || baseName === 'DoraX.d.ts') {
 				const uri = monaco.Uri.parse(baseName);
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
@@ -111,16 +114,16 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 					}
 				}
 			}
-			if (baseName === 'lib.dora.d.ts') {
-				const uri = monaco.Uri.parse("dora.d.ts");
+			if (baseName === 'lib.Dora.d.ts') {
+				const uri = monaco.Uri.parse("Dora.d.ts");
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
-					return ts.createSourceFile("dora.d.ts", model.getValue(), ts.ScriptTarget.ES2015, false);
+					return ts.createSourceFile("Dora.d.ts", model.getValue(), ts.ScriptTarget.ES2015, false);
 				} else {
-					const res = Service.readSync({path: "dora.d.ts"});
+					const res = Service.readSync({path: "Dora.d.ts"});
 					if (res?.content !== undefined) {
 						monaco.editor.createModel(res.content, 'typescript', uri);
-						return ts.createSourceFile("dora.d.ts", res.content, ts.ScriptTarget.ES2015, false);
+						return ts.createSourceFile("Dora.d.ts", res.content, ts.ScriptTarget.ES2015, false);
 					}
 				}
 			}

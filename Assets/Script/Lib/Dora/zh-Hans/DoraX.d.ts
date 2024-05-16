@@ -1,8 +1,8 @@
 /// <reference path="jsx.d.ts" />
 
-declare module "dora-x" {
+declare module "DoraX" {
 
-import type * as dora from 'dora';
+import type * as Dora from 'Dora';
 
 /**
  * 命名空间 React 包含了与 React 相关的类型和函数。
@@ -28,11 +28,11 @@ export namespace React {
 }
 
 /**
- * 将 React 元素转换为 dora 节点。
+ * 将 React 元素转换为 Dora 节点。
  * @param enode 要转换的 React 元素。
- * @returns 转换后的 dora 节点。
+ * @returns 转换后的 Dora 节点。
  */
-export function toNode(this: void, enode: React.Element | React.Element[]): dora.Node.Type | null;
+export function toNode(this: void, enode: React.Element | React.Element[]): Dora.Node.Type | null;
 
 /**
  * 创建一个用于引用的 Ref 对象。
@@ -48,4 +48,4 @@ export function useRef<T>(this: void, item?: T): JSX.Ref<T>;
  */
 export function preloadAsync(this: void, enode: React.Element | React.Element[], handler?: (this: void, progress: number) => void): void;
 
-} // module "dora-x"
+} // module "DoraX"

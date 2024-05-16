@@ -25,7 +25,7 @@
 
 		<!-- example ends here, print xml and compiled lua codes below -->
 		<Yue>
-			_ENV = Dora!
+			_ENV = Dora
 			xmlCodes = Content\load selfPath
 			luaCodes = xml.tolua xmlCodes
 			print "[Xml Codes]\n\n#{xmlCodes}\n[Compiled Lua Codes]\n\n#{luaCodes}"

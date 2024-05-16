@@ -32,8 +32,8 @@ local SkewX = require("SkewX")
 local Event = require("Event")
 local Rect = require("Rect")
 local Ease = require("Ease")
-local Controller = require("Controller")
 local Keyboard = require("Keyboard")
+local Controller = require("Controller")
 local Color3 = require("Color3")
 local BodyDef = require("BodyDef")
 local Node = require("Node")
@@ -104,6 +104,7 @@ local HttpServer = require("HttpServer")
 local HttpClient = require("HttpClient")
 local Profiler = require("Profiler")
 local AlignNode = require("AlignNode")
+local EffekNode = require("EffekNode")
 local teal = require("teal")
 local yue = require("yue")
 global p = require("p")
@@ -111,8 +112,8 @@ local Class: function(...: any): any
 local classmethod: function(...: any): any
 local property: function(...: any): any
 
--- A global variable containing all the Dora SSR builtin functions.
-global dora = {
+-- 包含所有 Dora SSR 内置功能的一个全局变量。
+global Dora = {
 	Class = Class,
 	classmethod = classmethod,
 	property = property,
@@ -151,8 +152,8 @@ global dora = {
 	Event = Event,
 	Rect = Rect,
 	Ease = Ease,
-	Controller = Controller,
 	Keyboard = Keyboard,
+	Controller = Controller,
 	Color3 = Color3,
 	BodyDef = BodyDef,
 	Node = Node,
@@ -225,4 +226,5 @@ global dora = {
 	HttpClient = HttpClient,
 	Profiler = Profiler,
 	AlignNode = AlignNode,
+	EffekNode = EffekNode,
 }

@@ -1,6 +1,6 @@
 -- [yue]: Script/Game/Zombie Escape/init.yue
-local Path = dora.Path -- 1
-local Content = dora.Content -- 1
+local Path = Dora.Path -- 1
+local Content = Dora.Content -- 1
 local scriptPath = Path:getScriptPath(...) -- 13
 if scriptPath then -- 13
 	Content:insertSearchPath(1, scriptPath) -- 14

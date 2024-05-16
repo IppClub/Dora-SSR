@@ -1,15 +1,15 @@
 -- [ts]: ContactTS.ts
 local ____exports = {} -- 1
 local ImGui = require("ImGui") -- 3
-local ____dora = require("dora") -- 4
-local App = ____dora.App -- 4
-local Body = ____dora.Body -- 4
-local BodyDef = ____dora.BodyDef -- 4
-local Label = ____dora.Label -- 4
-local Line = ____dora.Line -- 4
-local PhysicsWorld = ____dora.PhysicsWorld -- 4
-local Vec2 = ____dora.Vec2 -- 4
-local threadLoop = ____dora.threadLoop -- 4
+local ____Dora = require("Dora") -- 4
+local App = ____Dora.App -- 4
+local Body = ____Dora.Body -- 4
+local BodyDef = ____Dora.BodyDef -- 4
+local Label = ____Dora.Label -- 4
+local Line = ____Dora.Line -- 4
+local PhysicsWorld = ____Dora.PhysicsWorld -- 4
+local Vec2 = ____Dora.Vec2 -- 4
+local threadLoop = ____Dora.threadLoop -- 4
 local gravity = Vec2(0, -10) -- 6
 local world = PhysicsWorld() -- 8
 world:setShouldContact(0, 0, true) -- 9

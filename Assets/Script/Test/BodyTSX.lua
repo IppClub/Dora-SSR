@@ -1,12 +1,12 @@
 -- [tsx]: BodyTSX.tsx
 local ____exports = {} -- 1
-local ____dora_2Dx = require("dora-x") -- 2
-local React = ____dora_2Dx.React -- 2
-local toNode = ____dora_2Dx.toNode -- 2
-local ____dora = require("dora") -- 3
-local App = ____dora.App -- 3
-local Vec2 = ____dora.Vec2 -- 3
-local threadLoop = ____dora.threadLoop -- 3
+local ____DoraX = require("DoraX") -- 2
+local React = ____DoraX.React -- 2
+local toNode = ____DoraX.toNode -- 2
+local ____Dora = require("Dora") -- 3
+local App = ____Dora.App -- 3
+local Vec2 = ____Dora.Vec2 -- 3
+local threadLoop = ____Dora.threadLoop -- 3
 local ImGui = require("ImGui") -- 4
 local gravity = Vec2(0, -10) -- 7
 local groupA = 0 -- 8

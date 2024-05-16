@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
 
-_ENV = Dora!
+_ENV = Dora
 
 HttpServer\stop!
 
@@ -291,7 +291,7 @@ HttpServer\postSchedule "/signature", (req): success: false ->
 			if signatures := teal.getSignatureAsync luaCodes, targetLine, targetRow, searchPath
 				if signatures := getParamDocs signatures
 					return success: true, :signatures
-			elseif signatures := teal.getSignatureAsync luaCodes, "dora.#{targetLine}", targetRow, searchPath
+			elseif signatures := teal.getSignatureAsync luaCodes, "Dora.#{targetLine}", targetRow, searchPath
 				if signatures := getParamDocs signatures
 					return success: true, :signatures
 
@@ -430,7 +430,7 @@ HttpServer\postSchedule "/complete", (req): success: false ->
 					continue if "." == dir\sub 1, 1
 					suggestions[] = [dir, "folder", "variable"]
 			if item == "" and not searchType
-				for [name,] in *teal.completeAsync "", "dora.", 1, searchPath
+				for [name,] in *teal.completeAsync "", "Dora.", 1, searchPath
 					suggestions[] = [name, "dora module", "function"]
 			if #suggestions > 0
 				suggestions = [v for _, v in pairs {item[1] .. item[2], item for item in *suggestions}]
@@ -442,7 +442,7 @@ HttpServer\postSchedule "/complete", (req): success: false ->
 			suggestions = teal.completeAsync content, line, row, searchPath
 			if not line\match("[%.:][%w_]+[%.:]?$") and not line\match "[%w_]+[%.:]$"
 				checkSet = {name, true for {name} in *suggestions}
-				for item in *teal.completeAsync "", "dora.", 1, searchPath
+				for item in *teal.completeAsync "", "Dora.", 1, searchPath
 					suggestions[] = item if not checkSet[item[1]]
 				for word in *luaKeywords
 					suggestions[] = [word, "keyword", "keyword"]
@@ -464,10 +464,10 @@ HttpServer\postSchedule "/complete", (req): success: false ->
 					return success: false
 				suggestions[] = item for item in *teal.completeAsync luaCodes, targetLine, targetRow, searchPath
 				if #suggestions == 0
-					suggestions[] = item for item in *teal.completeAsync luaCodes, "dora.#{targetLine}", targetRow, searchPath
+					suggestions[] = item for item in *teal.completeAsync luaCodes, "Dora.#{targetLine}", targetRow, searchPath
 			if not line\match("[%.:\\][%w_]+[%.\\]?$") and not line\match "[%.\\]$"
 				checkSet = {name, true for {name} in *suggestions}
-				for item in *teal.completeAsync "", "dora.", 1, searchPath
+				for item in *teal.completeAsync "", "Dora.", 1, searchPath
 					suggestions[] = item if not checkSet[item[1]]
 				if not gotGlobals
 					for item in *teal.completeAsync "", "x", 1, searchPath
@@ -612,6 +612,7 @@ compileFileAsync = (inputFile, sourceCodes): nil ->
 			success, result = LintYueGlobals codes, globals
 			return unless success
 			codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
+			codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora[^%w_$][^\n\r]+[\n\r%s]*", "\n"
 			codes = codes\gsub "^\n*", ""
 			result ..= "\n" unless result == ""
 			resultCodes = "-- [yue]: #{file}\n#{result}#{codes}"

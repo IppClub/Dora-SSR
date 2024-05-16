@@ -3,7 +3,7 @@ local ____lualib = require("lualib_bundle") -- 1
 local __TS__Class = ____lualib.__TS__Class -- 1
 local ____exports = {} -- 1
 local Warn, visitBTree -- 1
-local ____dora_2Djsx = require("dora-x") -- 1
+local ____dora_2Djsx = require("DoraX") -- 1
 local React = ____dora_2Djsx.React -- 1
 local P = require("Platformer") -- 2
 function Warn(msg) -- 179

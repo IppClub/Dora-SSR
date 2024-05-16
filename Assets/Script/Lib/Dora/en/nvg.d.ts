@@ -1,4 +1,4 @@
-/// <reference path="dora.d.ts" />
+/// <reference path="Dora.d.ts" />
 
 declare module "nvg" {
 import {
@@ -8,7 +8,7 @@ import {
 	VGPaint,
 	Size,
 	Texture2D
-} from "dora";
+} from "Dora";
 
 type Vec2 = Vec2.Type;
 type Color = Color.Type;

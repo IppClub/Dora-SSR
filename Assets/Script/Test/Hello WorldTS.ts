@@ -1,7 +1,7 @@
 // @preview-file off
 import { WindowFlag, SetCond } from "ImGui";
 import * as ImGui from "ImGui";
-import { App, Node, Slot, Vec2, once, sleep, threadLoop } from "dora";
+import { App, Node, Slot, Vec2, once, sleep, threadLoop } from "Dora";
 
 const node = Node();
 node.slot(Slot.Enter, () => {

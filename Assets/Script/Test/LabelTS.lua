@@ -1,16 +1,16 @@
 -- [ts]: LabelTS.ts
 local ____exports = {} -- 1
 local ImGui = require("ImGui") -- 3
-local ____dora = require("dora") -- 4
-local App = ____dora.App -- 4
-local Delay = ____dora.Delay -- 4
-local Label = ____dora.Label -- 4
-local Node = ____dora.Node -- 4
-local Opacity = ____dora.Opacity -- 4
-local Scale = ____dora.Scale -- 4
-local Sequence = ____dora.Sequence -- 4
-local Vec2 = ____dora.Vec2 -- 4
-local threadLoop = ____dora.threadLoop -- 4
+local ____Dora = require("Dora") -- 4
+local App = ____Dora.App -- 4
+local Delay = ____Dora.Delay -- 4
+local Label = ____Dora.Label -- 4
+local Node = ____Dora.Node -- 4
+local Opacity = ____Dora.Opacity -- 4
+local Scale = ____Dora.Scale -- 4
+local Sequence = ____Dora.Sequence -- 4
+local Vec2 = ____Dora.Vec2 -- 4
+local threadLoop = ____Dora.threadLoop -- 4
 local node = Node() -- 6
 local ____opt_0 = Label("sarasa-mono-sc-regular", 40) -- 6
 local label = ____opt_0 and ____opt_0:addTo(node) -- 8

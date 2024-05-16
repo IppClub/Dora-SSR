@@ -1,16 +1,16 @@
 -- [yue]: Script/Example/Vector Graphic.yue
-local nvg = dora.nvg -- 1
-local Color = dora.Color -- 1
-local VGNode = dora.VGNode -- 1
-local Sequence = dora.Sequence -- 1
-local Scale = dora.Scale -- 1
-local Ease = dora.Ease -- 1
+local nvg = Dora.nvg -- 1
+local Color = Dora.Color -- 1
+local VGNode = Dora.VGNode -- 1
+local Sequence = Dora.Sequence -- 1
+local Scale = Dora.Scale -- 1
+local Ease = Dora.Ease -- 1
 local coroutine = _G.coroutine -- 1
-local cycle = dora.cycle -- 1
-local threadLoop = dora.threadLoop -- 1
-local App = dora.App -- 1
-local ImGui = dora.ImGui -- 1
-local Vec2 = dora.Vec2 -- 1
+local cycle = Dora.cycle -- 1
+local threadLoop = Dora.threadLoop -- 1
+local App = Dora.App -- 1
+local ImGui = Dora.ImGui -- 1
+local Vec2 = Dora.Vec2 -- 1
 local drawHeart -- 3
 drawHeart = function() -- 3
 	local _with_0 = nvg -- 3

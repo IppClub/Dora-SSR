@@ -1,21 +1,21 @@
 -- [yue]: Script/Example/Entity Move.yue
-local Group = dora.Group -- 1
-local Observer = dora.Observer -- 1
-local Sprite = dora.Sprite -- 1
-local Scale = dora.Scale -- 1
-local Ease = dora.Ease -- 1
+local Group = Dora.Group -- 1
+local Observer = Dora.Observer -- 1
+local Sprite = Dora.Sprite -- 1
+local Scale = Dora.Scale -- 1
+local Ease = Dora.Ease -- 1
 local print = _G.print -- 1
 local tostring = _G.tostring -- 1
 local math = _G.math -- 1
-local Roll = dora.Roll -- 1
-local Entity = dora.Entity -- 1
-local Node = dora.Node -- 1
-local Vec2 = dora.Vec2 -- 1
-local threadLoop = dora.threadLoop -- 1
-local App = dora.App -- 1
-local ImGui = dora.ImGui -- 1
-local Sequence = dora.Sequence -- 1
-local Event = dora.Event -- 1
+local Roll = Dora.Roll -- 1
+local Entity = Dora.Entity -- 1
+local Node = Dora.Node -- 1
+local Vec2 = Dora.Vec2 -- 1
+local threadLoop = Dora.threadLoop -- 1
+local App = Dora.App -- 1
+local ImGui = Dora.ImGui -- 1
+local Sequence = Dora.Sequence -- 1
+local Event = Dora.Event -- 1
 local sceneGroup = Group({ -- 3
 	"scene" -- 3
 }) -- 3

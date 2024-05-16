@@ -9,9 +9,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -- GGJ2021
 
 _ENV = Dora(
-	dora.ImGui
-	dora.Platformer
-	dora.Platformer.Decision
+	Dora.ImGui
+	Dora.Platformer
+	Dora.Platformer.Decision
 )
 import "UI.Control.Basic.AlignNode"
 import "UI.Control.Basic.CircleButton"

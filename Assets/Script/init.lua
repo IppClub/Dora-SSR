@@ -1,7 +1,7 @@
 -- [yue]: Script/init.yue
-local Content = dora.Content -- 1
-local Path = dora.Path -- 1
-local App = dora.App -- 1
+local Content = Dora.Content -- 1
+local Path = Dora.Path -- 1
+local App = Dora.App -- 1
 do -- 11
 	local _with_0 = Content -- 11
 	_with_0.searchPaths = { -- 13

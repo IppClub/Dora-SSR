@@ -1,10 +1,10 @@
 -- [yue]: Script/Game/Loli War/UI/Control/Digit.yue
-local Class = dora.Class -- 1
-local property = dora.property -- 1
+local Class = Dora.Class -- 1
+local property = Dora.property -- 1
 local math = _G.math -- 1
-local Sprite = dora.Sprite -- 1
+local Sprite = Dora.Sprite -- 1
 local tostring = _G.tostring -- 1
-local Vec2 = dora.Vec2 -- 1
+local Vec2 = Dora.Vec2 -- 1
 local _module_0 = nil -- 1
 local Digit = require("UI.View.Digit") -- 10
 _module_0 = Class(Digit, { -- 13

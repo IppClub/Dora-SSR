@@ -1,17 +1,17 @@
 -- [ts]: RenderGroupTS.ts
 local ____exports = {} -- 1
 local ImGui = require("ImGui") -- 3
-local ____dora = require("dora") -- 4
-local Angle = ____dora.Angle -- 4
-local App = ____dora.App -- 4
-local Color = ____dora.Color -- 4
-local DrawNode = ____dora.DrawNode -- 4
-local Line = ____dora.Line -- 4
-local Node = ____dora.Node -- 4
-local Size = ____dora.Size -- 4
-local Sprite = ____dora.Sprite -- 4
-local Vec2 = ____dora.Vec2 -- 4
-local threadLoop = ____dora.threadLoop -- 4
+local ____Dora = require("Dora") -- 4
+local Angle = ____Dora.Angle -- 4
+local App = ____Dora.App -- 4
+local Color = ____Dora.Color -- 4
+local DrawNode = ____Dora.DrawNode -- 4
+local Line = ____Dora.Line -- 4
+local Node = ____Dora.Node -- 4
+local Size = ____Dora.Size -- 4
+local Sprite = ____Dora.Sprite -- 4
+local Vec2 = ____Dora.Vec2 -- 4
+local threadLoop = ____Dora.threadLoop -- 4
 local function Item() -- 6
     local node = Node() -- 7
     node.width = 144 -- 8
