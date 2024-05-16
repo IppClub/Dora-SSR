@@ -31,7 +31,7 @@ jobs:
         uses: actions/configure-pages@v3
       - name: Prepare doc site
         run: |
-          cd Doc
+          cd Docs
           yarn
           yarn build
           cd ..
@@ -39,7 +39,7 @@ jobs:
         uses: actions/upload-pages-artifact@v1
         with:
           # Upload Assets
-          path: 'Doc/build'
+          path: 'Docs/build'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
