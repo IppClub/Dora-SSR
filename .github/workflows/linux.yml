@@ -27,5 +27,5 @@ jobs:
         lua tolua++.lua
     - name: Make
       run: |
-        cd Project/Linux
+        cd Projects/Linux
         make x86_64
