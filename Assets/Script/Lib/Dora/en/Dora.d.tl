@@ -104,6 +104,7 @@ local HttpServer = require("HttpServer")
 local HttpClient = require("HttpClient")
 local Profiler = require("Profiler")
 local AlignNode = require("AlignNode")
+local EffekNode = require("EffekNode")
 local teal = require("teal")
 local yue = require("yue")
 global p = require("p")
@@ -225,4 +226,5 @@ global Dora = {
 	HttpClient = HttpClient,
 	Profiler = Profiler,
 	AlignNode = AlignNode,
+	EffekNode = EffekNode,
 }
