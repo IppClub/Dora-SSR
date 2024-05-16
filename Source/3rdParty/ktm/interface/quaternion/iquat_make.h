@@ -104,8 +104,22 @@ struct iquat_make<Father, quat<T>> : Father
                            rinv * (m[0][1] - m[1][0]));
         }
     }
+
+    static KTM_INLINE quat<T> look_dr_lh(const vec<3, T>& direction, const vec<3, T>& up) noexcept
+    {
+        mat<3, 3, T> m;
+		m[2] = direction;
+		m[0] = normalize(cross(up, m[2]));
+		m[1] = cross(m[2], m[0]);
+		return from_matrix(m);
+    }
+
+    static KTM_INLINE quat<T> look_dr_rh(const vec<3, T>& direction, const vec<3, T>& up) noexcept
+    {
+        return look_at_lh(-direction, up);
+    }
 private:
-    static KTM_INLINE quat<T> from_to_less_0p5pi(const vec<3, T>& from, const vec<3, T>& to)
+    static KTM_INLINE quat<T> from_to_less_0p5pi(const vec<3, T>& from, const vec<3, T>& to) noexcept
     {
         // calculate quaternions with rotation angles less than half pi
         vec<3, T> half = normalize(from + to);
