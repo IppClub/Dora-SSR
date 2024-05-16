@@ -1,8 +1,8 @@
 -- [yue]: Script/Lib/UI/Control/Basic/Button.yue
-local Class = dora.Class -- 1
-local once = dora.once -- 1
-local sleep = dora.sleep -- 1
-local property = dora.property -- 1
+local Class = Dora.Class -- 1
+local once = Dora.once -- 1
+local sleep = Dora.sleep -- 1
+local property = Dora.property -- 1
 local _module_0 = nil -- 1
 local Button = require("UI.View.Control.Basic.Button") -- 10
 _module_0 = Class(Button, { -- 17

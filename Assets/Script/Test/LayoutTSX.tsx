@@ -1,6 +1,6 @@
-// @preview-file on
-import { React, toNode } from 'dora-x';
-import { App, Vec2, threadLoop, Node } from 'dora';
+// @preview-file off
+import { React, toNode } from 'DoraX';
+import { App, Vec2, threadLoop, Node } from 'Dora';
 import { SetCond, WindowFlag } from 'ImGui';
 import * as ImGui from 'ImGui';
 
@@ -17,6 +17,32 @@ function Test(this: void, name: string, jsx: React.Element) {
 }
 
 const tests = [
+
+	Test("App",
+		<align-node style={{width: 250, height: 475, padding: 10}} showDebug>
+			<align-node style={{flex: 1, gap: [10, 0]}} showDebug>
+				<align-node style={{height: 60}} showDebug/>
+				<align-node style={{flex: 1, margin: 10}} showDebug/>
+				<align-node style={{flex: 2, margin: 10}} showDebug/>
+				<align-node showDebug
+					style={{
+						position: "absolute",
+						width: "100%",
+						bottom: 0,
+						height: 64,
+						flexDirection: "row",
+						alignItems: "center",
+						justifyContent: "space-around",
+					}}
+				>
+					<align-node style={{height: 40, width: 40}} showDebug/>
+					<align-node style={{height: 40, width: 40}} showDebug/>
+					<align-node style={{height: 40, width: 40}} showDebug/>
+					<align-node style={{height: 40, width: 40}} showDebug/>
+				</align-node>
+			</align-node>
+		</align-node>
+	),
 
 	Test("Align Content",
 		<align-node showDebug

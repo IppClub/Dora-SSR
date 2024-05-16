@@ -1,11 +1,11 @@
 -- [yue]: Script/Game/Loli War/UI/Control/ButtonGlow.yue
-local Class = dora.Class -- 1
-local _module_0 = dora.Platformer -- 1
+local Class = Dora.Class -- 1
+local _module_0 = Dora.Platformer -- 1
 local Visual = _module_0.Visual -- 1
-local Director = dora.Director -- 1
-local Audio = dora.Audio -- 1
-local loop = dora.loop -- 1
-local sleep = dora.sleep -- 1
+local Director = Dora.Director -- 1
+local Audio = Dora.Audio -- 1
+local loop = Dora.loop -- 1
+local sleep = Dora.sleep -- 1
 local _module_0 = nil -- 1
 local ButtonGlow = require("UI.View.ButtonGlow") -- 10
 _module_0 = Class(ButtonGlow, { -- 13

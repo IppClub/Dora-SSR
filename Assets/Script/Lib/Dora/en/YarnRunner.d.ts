@@ -1,4 +1,4 @@
-import {} from 'dora';
+import {} from 'Dora';
 
 declare module 'YarnRunner' {
 /**

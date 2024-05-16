@@ -1,11 +1,11 @@
 -- [yue]: Script/Game/Loli War/Control.yue
-local _module_0 = dora.Platformer -- 1
+local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
-local Group = dora.Group -- 1
-local App = dora.App -- 1
-local Node = dora.Node -- 1
-local Keyboard = dora.Keyboard -- 1
-local Director = dora.Director -- 1
+local Group = Dora.Group -- 1
+local App = Dora.App -- 1
+local Node = Dora.Node -- 1
+local Keyboard = Dora.Keyboard -- 1
+local Director = Dora.Director -- 1
 local HPWheel = require("UI.Control.HPWheel") -- 10
 local AlignNode = require("UI.Control.Basic.AlignNode") -- 11
 local LeftTouchPad = require("UI.View.LeftTouchPad") -- 12

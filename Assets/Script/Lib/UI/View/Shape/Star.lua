@@ -1,10 +1,10 @@
 -- [yue]: Script/Lib/UI/View/Shape/Star.yue
 local math = _G.math -- 1
-local Vec2 = dora.Vec2 -- 1
-local Node = dora.Node -- 1
-local Color = dora.Color -- 1
-local DrawNode = dora.DrawNode -- 1
-local Line = dora.Line -- 1
+local Vec2 = Dora.Vec2 -- 1
+local Node = Dora.Node -- 1
+local Color = Dora.Color -- 1
+local DrawNode = Dora.DrawNode -- 1
+local Line = Dora.Line -- 1
 local _module_0 = nil -- 1
 local StarVertices -- 11
 StarVertices = function(radius, line) -- 11

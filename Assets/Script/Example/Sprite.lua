@@ -1,11 +1,11 @@
 -- [yue]: Script/Example/Sprite.yue
-local Sprite = dora.Sprite -- 1
-local Node = dora.Node -- 1
-local threadLoop = dora.threadLoop -- 1
-local App = dora.App -- 1
-local ImGui = dora.ImGui -- 1
-local Vec2 = dora.Vec2 -- 1
-local Size = dora.Size -- 1
+local Sprite = Dora.Sprite -- 1
+local Node = Dora.Node -- 1
+local threadLoop = Dora.threadLoop -- 1
+local App = Dora.App -- 1
+local ImGui = Dora.ImGui -- 1
+local Vec2 = Dora.Vec2 -- 1
+local Size = Dora.Size -- 1
 local math = _G.math -- 1
 local sprite -- 3
 do -- 3

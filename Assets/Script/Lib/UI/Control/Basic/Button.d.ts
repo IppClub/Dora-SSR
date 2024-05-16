@@ -1,4 +1,4 @@
-import { NodeType as Node } from "dora";
+import { NodeType as Node } from "Dora";
 
 declare module 'Button' {
 

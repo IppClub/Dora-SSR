@@ -1,8 +1,8 @@
 -- [yue]: Script/Game/Loli War/AI.yue
-local _module_0 = dora.Platformer -- 1
+local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
-local Group = dora.Group -- 1
-local _module_1 = dora.Platformer.Decision -- 1
+local Group = Dora.Group -- 1
+local _module_1 = Dora.Platformer.Decision -- 1
 local Seq = _module_1.Seq -- 1
 local Con = _module_1.Con -- 1
 local Sel = _module_1.Sel -- 1
@@ -10,7 +10,7 @@ local Act = _module_1.Act -- 1
 local Accept = _module_1.Accept -- 1
 local Reject = _module_1.Reject -- 1
 local AI = _module_1.AI -- 1
-local App = dora.App -- 1
+local App = Dora.App -- 1
 local math = _G.math -- 1
 local Store = Data.store -- 14
 local MaxBunnies = Store.MaxBunnies -- 15

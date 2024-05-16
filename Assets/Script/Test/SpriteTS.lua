@@ -1,12 +1,12 @@
 -- [ts]: SpriteTS.ts
 local ____exports = {} -- 1
 local ImGui = require("ImGui") -- 3
-local ____dora = require("dora") -- 4
-local App = ____dora.App -- 4
-local Size = ____dora.Size -- 4
-local Sprite = ____dora.Sprite -- 4
-local Vec2 = ____dora.Vec2 -- 4
-local threadLoop = ____dora.threadLoop -- 4
+local ____Dora = require("Dora") -- 4
+local App = ____Dora.App -- 4
+local Size = ____Dora.Size -- 4
+local Sprite = ____Dora.Sprite -- 4
+local Vec2 = ____Dora.Vec2 -- 4
+local threadLoop = ____Dora.threadLoop -- 4
 local sprite = Sprite("Image/logo.png") -- 6
 if sprite then -- 6
     sprite.scaleX = 0.5 -- 8

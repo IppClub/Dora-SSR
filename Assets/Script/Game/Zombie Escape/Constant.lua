@@ -1,5 +1,5 @@
 -- [yue]: Script/Game/Zombie Escape/Constant.yue
-local _module_0 = dora.Platformer -- 1
+local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local _with_0 = Data.store -- 11
 _with_0.PlayerLayer = 2 -- 12

@@ -1,4 +1,4 @@
--- [ts]: dora-x.ts
+-- [ts]: DoraX.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__Class = ____lualib.__TS__Class -- 1
 local __TS__Spread = ____lualib.__TS__Spread -- 1
@@ -9,7 +9,7 @@ local __TS__New = ____lualib.__TS__New -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local ____exports = {} -- 1
 local Warn, visitNode, actionMap, elementMap -- 1
-local dora = require("dora") -- 10
+local dora = require("Dora") -- 10
 function Warn(msg) -- 12
     print("[Dora Warning] " .. msg) -- 13
 end -- 13
@@ -44,7 +44,7 @@ function ____exports.toNode(enode) -- 1343
     if #nodeStack == 1 then -- 1345
         return nodeStack[1] -- 1347
     elseif #nodeStack > 1 then -- 1347
-        local node = dora.Node() -- 1349
+        local node = Dora.Node() -- 1349
         for i = 1, #nodeStack do -- 1349
             node:addChild(nodeStack[i]) -- 1351
         end -- 1351
@@ -171,7 +171,7 @@ do -- 1343
     end -- 60
 end -- 60
 local function getNode(enode, cnode, attribHandler) -- 122
-    cnode = cnode or dora.Node() -- 123
+    cnode = cnode or Dora.Node() -- 123
     local jnode = enode.props -- 124
     local anchor = nil -- 125
     local color3 = nil -- 126
@@ -185,17 +185,17 @@ local function getNode(enode, cnode, attribHandler) -- 122
             end -- 129
             ____cond31 = ____cond31 or ____switch31 == "anchorX" -- 129
             if ____cond31 then -- 129
-                anchor = dora.Vec2(v, (anchor or cnode.anchor).y) -- 130
+                anchor = Dora.Vec2(v, (anchor or cnode.anchor).y) -- 130
                 break -- 130
             end -- 130
             ____cond31 = ____cond31 or ____switch31 == "anchorY" -- 130
             if ____cond31 then -- 130
-                anchor = dora.Vec2((anchor or cnode.anchor).x, v) -- 131
+                anchor = Dora.Vec2((anchor or cnode.anchor).x, v) -- 131
                 break -- 131
             end -- 131
             ____cond31 = ____cond31 or ____switch31 == "color3" -- 131
             if ____cond31 then -- 131
-                color3 = dora.Color3(v) -- 132
+                color3 = Dora.Color3(v) -- 132
                 break -- 132
             end -- 132
             ____cond31 = ____cond31 or ____switch31 == "transformTarget" -- 132
@@ -363,7 +363,7 @@ do -- 201
     getClipNode = function(enode) -- 214
         return getNode( -- 215
             enode, -- 215
-            dora.ClipNode(), -- 215
+            Dora.ClipNode(), -- 215
             handleClipNodeAttribute -- 215
         ) -- 215
     end -- 214
@@ -401,7 +401,7 @@ do -- 222
         if attribHandler == nil then -- 233
             attribHandler = handlePlayableAttribute -- 234
         end -- 234
-        cnode = cnode or dora.Playable(enode.props.file) or nil -- 235
+        cnode = cnode or Dora.Playable(enode.props.file) or nil -- 235
         if cnode ~= nil then -- 235
             return getNode(enode, cnode, attribHandler) -- 237
         end -- 237
@@ -419,7 +419,7 @@ do -- 222
         return handlePlayableAttribute(cnode, enode, k, v) -- 246
     end -- 242
     getDragonBone = function(enode) -- 248
-        local node = dora.DragonBone(enode.props.file) -- 249
+        local node = Dora.DragonBone(enode.props.file) -- 249
         if node ~= nil then -- 249
             local cnode = getPlayable(enode, node, handleDragonBoneAttribute) -- 251
             return cnode -- 252
@@ -438,7 +438,7 @@ do -- 222
         return handlePlayableAttribute(cnode, enode, k, v) -- 261
     end -- 257
     getSpine = function(enode) -- 263
-        local node = dora.Spine(enode.props.file) -- 264
+        local node = Dora.Spine(enode.props.file) -- 264
         if node ~= nil then -- 264
             local cnode = getPlayable(enode, node, handleSpineAttribute) -- 266
             return cnode -- 267
@@ -457,7 +457,7 @@ do -- 222
         return handlePlayableAttribute(cnode, enode, k, v) -- 276
     end -- 272
     getModel = function(enode) -- 278
-        local node = dora.Model(enode.props.file) -- 279
+        local node = Dora.Model(enode.props.file) -- 279
         if node ~= nil then -- 279
             local cnode = getPlayable(enode, node, handleModelAttribute) -- 281
             return cnode -- 282
@@ -484,7 +484,7 @@ do -- 288
         return false -- 295
     end -- 290
     getDrawNode = function(enode) -- 297
-        local node = dora.DrawNode() -- 298
+        local node = Dora.DrawNode() -- 298
         local cnode = getNode(enode, node, handleDrawNodeAttribute) -- 299
         local ____enode_7 = enode -- 300
         local children = ____enode_7.children -- 300
@@ -501,9 +501,9 @@ do -- 288
                         do -- 304
                             local dot = child.props -- 308
                             node:drawDot( -- 309
-                                dora.Vec2(dot.x or 0, dot.y or 0), -- 310
+                                Dora.Vec2(dot.x or 0, dot.y or 0), -- 310
                                 dot.radius, -- 311
-                                dora.Color(dot.color or 4294967295) -- 312
+                                Dora.Color(dot.color or 4294967295) -- 312
                             ) -- 312
                             break -- 314
                         end -- 314
@@ -513,10 +513,10 @@ do -- 288
                         do -- 314
                             local segment = child.props -- 317
                             node:drawSegment( -- 318
-                                dora.Vec2(segment.startX, segment.startY), -- 319
-                                dora.Vec2(segment.stopX, segment.stopY), -- 320
+                                Dora.Vec2(segment.startX, segment.startY), -- 319
+                                Dora.Vec2(segment.stopX, segment.stopY), -- 320
                                 segment.radius, -- 321
-                                dora.Color(segment.color or 4294967295) -- 322
+                                Dora.Color(segment.color or 4294967295) -- 322
                             ) -- 322
                             break -- 324
                         end -- 324
@@ -531,14 +531,14 @@ do -- 288
                             local hh = rect.height / 2 -- 331
                             node:drawPolygon( -- 332
                                 { -- 333
-                                    dora.Vec2(centerX - hw, centerY + hh), -- 334
-                                    dora.Vec2(centerX + hw, centerY + hh), -- 335
-                                    dora.Vec2(centerX + hw, centerY - hh), -- 336
-                                    dora.Vec2(centerX - hw, centerY - hh) -- 337
+                                    Dora.Vec2(centerX - hw, centerY + hh), -- 334
+                                    Dora.Vec2(centerX + hw, centerY + hh), -- 335
+                                    Dora.Vec2(centerX + hw, centerY - hh), -- 336
+                                    Dora.Vec2(centerX - hw, centerY - hh) -- 337
                                 }, -- 337
-                                dora.Color(rect.fillColor or 4294967295), -- 339
+                                Dora.Color(rect.fillColor or 4294967295), -- 339
                                 rect.borderWidth or 0, -- 340
-                                dora.Color(rect.borderColor or 4294967295) -- 341
+                                Dora.Color(rect.borderColor or 4294967295) -- 341
                             ) -- 341
                             break -- 343
                         end -- 343
@@ -549,9 +549,9 @@ do -- 288
                             local poly = child.props -- 346
                             node:drawPolygon( -- 347
                                 poly.verts, -- 348
-                                dora.Color(poly.fillColor or 4294967295), -- 349
+                                Dora.Color(poly.fillColor or 4294967295), -- 349
                                 poly.borderWidth or 0, -- 350
-                                dora.Color(poly.borderColor or 4294967295) -- 351
+                                Dora.Color(poly.borderColor or 4294967295) -- 351
                             ) -- 351
                             break -- 353
                         end -- 353
@@ -569,7 +569,7 @@ do -- 288
                                     color = ____bindingPattern0[2] -- 357
                                     return { -- 357
                                         vert, -- 357
-                                        dora.Color(color) -- 357
+                                        Dora.Color(color) -- 357
                                     } -- 357
                                 end -- 357
                             )) -- 357
@@ -617,7 +617,7 @@ do -- 366
     end -- 368
     getGrid = function(enode) -- 378
         local grid = enode.props -- 379
-        local node = dora.Grid(grid.file, grid.gridX, grid.gridY) -- 380
+        local node = Dora.Grid(grid.file, grid.gridX, grid.gridY) -- 380
         local cnode = getNode(enode, node, handleGridAttribute) -- 381
         return cnode -- 382
     end -- 378
@@ -676,7 +676,7 @@ do -- 386
     end -- 388
     getSprite = function(enode) -- 402
         local sp = enode.props -- 403
-        local node = dora.Sprite(sp.file) -- 404
+        local node = Dora.Sprite(sp.file) -- 404
         if node ~= nil then -- 404
             local cnode = getNode(enode, node, handleSpriteAttribute) -- 406
             return cnode -- 407
@@ -743,7 +743,7 @@ do -- 413
     end -- 415
     getLabel = function(enode) -- 430
         local label = enode.props -- 431
-        local node = dora.Label(label.fontName, label.fontSize) -- 432
+        local node = Dora.Label(label.fontName, label.fontSize) -- 432
         if node ~= nil then -- 432
             local cnode = getNode(enode, node, handleLabelAttribute) -- 434
             local ____enode_8 = enode -- 435
@@ -771,7 +771,7 @@ do -- 450
             if ____cond94 then -- 453
                 cnode:set( -- 455
                     v, -- 455
-                    dora.Color(line.lineColor or 4294967295) -- 455
+                    Dora.Color(line.lineColor or 4294967295) -- 455
                 ) -- 455
                 return true -- 455
             end -- 455
@@ -789,7 +789,7 @@ do -- 450
         return false -- 459
     end -- 452
     getLine = function(enode) -- 461
-        local node = dora.Line() -- 462
+        local node = Dora.Line() -- 462
         local cnode = getNode(enode, node, handleLineAttribute) -- 463
         return cnode -- 464
     end -- 461
@@ -820,7 +820,7 @@ do -- 468
     end -- 470
     getParticle = function(enode) -- 478
         local particle = enode.props -- 479
-        local node = dora.Particle(particle.file) -- 480
+        local node = Dora.Particle(particle.file) -- 480
         if node ~= nil then -- 480
             local cnode = getNode(enode, node, handleParticleAttribute) -- 482
             return cnode -- 483
@@ -842,13 +842,13 @@ do -- 489
         return false -- 495
     end -- 491
     getMenu = function(enode) -- 497
-        local node = dora.Menu() -- 498
+        local node = Dora.Menu() -- 498
         local cnode = getNode(enode, node, handleMenuAttribute) -- 499
         return cnode -- 500
     end -- 497
 end -- 497
 local function getPhysicsWorld(enode) -- 504
-    local node = dora.PhysicsWorld() -- 505
+    local node = Dora.PhysicsWorld() -- 505
     local cnode = getNode(enode, node) -- 506
     return cnode -- 507
 end -- 504
@@ -931,7 +931,7 @@ do -- 510
     end -- 512
     getBody = function(enode, world) -- 536
         local def = enode.props -- 537
-        local bodyDef = dora.BodyDef() -- 538
+        local bodyDef = Dora.BodyDef() -- 538
         bodyDef.type = def.type -- 539
         if def.angle ~= nil then -- 539
             bodyDef.angle = def.angle -- 540
@@ -945,11 +945,11 @@ do -- 510
         if def.fixedRotation ~= nil then -- 542
             bodyDef.fixedRotation = def.fixedRotation -- 543
         end -- 543
-        bodyDef.linearAcceleration = def.linearAcceleration or dora.Vec2(0, -9.8) -- 544
+        bodyDef.linearAcceleration = def.linearAcceleration or Dora.Vec2(0, -9.8) -- 544
         if def.linearDamping ~= nil then -- 544
             bodyDef.linearDamping = def.linearDamping -- 545
         end -- 545
-        bodyDef.position = dora.Vec2(def.x or 0, def.y or 0) -- 546
+        bodyDef.position = Dora.Vec2(def.x or 0, def.y or 0) -- 546
         local extraSensors = nil -- 547
         for i = 1, #enode.children do -- 547
             do -- 547
@@ -966,14 +966,14 @@ do -- 510
                             if shape.sensorTag ~= nil then -- 555
                                 bodyDef:attachPolygonSensor( -- 557
                                     shape.sensorTag, -- 558
-                                    dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 559
+                                    Dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 559
                                     shape.width, -- 560
                                     shape.height, -- 560
                                     shape.angle or 0 -- 561
                                 ) -- 561
                             else -- 561
                                 bodyDef:attachPolygon( -- 564
-                                    dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 565
+                                    Dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 565
                                     shape.width, -- 566
                                     shape.height, -- 566
                                     shape.angle or 0, -- 567
@@ -1007,7 +1007,7 @@ do -- 510
                                 end -- 595
                                 extraSensors[#extraSensors + 1] = { -- 596
                                     shape.sensorTag, -- 596
-                                    dora.BodyDef:multi(shape.verts) -- 596
+                                    Dora.BodyDef:multi(shape.verts) -- 596
                                 } -- 596
                             else -- 596
                                 bodyDef:attachMulti(shape.verts, shape.density or 1, shape.friction or 0.4, shape.restitution or 0) -- 598
@@ -1022,12 +1022,12 @@ do -- 510
                             if shape.sensorTag ~= nil then -- 608
                                 bodyDef:attachDiskSensor( -- 610
                                     shape.sensorTag, -- 611
-                                    dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 612
+                                    Dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 612
                                     shape.radius -- 613
                                 ) -- 613
                             else -- 613
                                 bodyDef:attachDisk( -- 616
-                                    dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 617
+                                    Dora.Vec2(shape.centerX or 0, shape.centerY or 0), -- 617
                                     shape.radius, -- 618
                                     shape.density or 1, -- 619
                                     shape.friction or 0.4, -- 620
@@ -1047,7 +1047,7 @@ do -- 510
                                 end -- 629
                                 extraSensors[#extraSensors + 1] = { -- 630
                                     shape.sensorTag, -- 630
-                                    dora.BodyDef:chain(shape.verts) -- 630
+                                    Dora.BodyDef:chain(shape.verts) -- 630
                                 } -- 630
                             else -- 630
                                 bodyDef:attachChain(shape.verts, shape.friction or 0.4, shape.restitution or 0) -- 632
@@ -1059,7 +1059,7 @@ do -- 510
             end -- 638
             ::__continue116:: -- 638
         end -- 638
-        local body = dora.Body(bodyDef, world) -- 642
+        local body = Dora.Body(bodyDef, world) -- 642
         if extraSensors ~= nil then -- 642
             for i = 1, #extraSensors do -- 642
                 local tag, def = table.unpack(extraSensors[i]) -- 645
@@ -1117,7 +1117,7 @@ do -- 681
     end -- 683
     getAlignNode = function(enode) -- 691
         local alignNode = enode.props -- 692
-        local node = dora.AlignNode(alignNode.windowRoot) -- 693
+        local node = Dora.AlignNode(alignNode.windowRoot) -- 693
         if alignNode.style then -- 693
             local items = {} -- 695
             for k, v in pairs(alignNode.style) do -- 696
@@ -1162,7 +1162,7 @@ end -- 691
 local function getEffekNode(enode) -- 726
     return getNode( -- 727
         enode, -- 727
-        dora.EffekNode() -- 727
+        Dora.EffekNode() -- 727
     ) -- 727
 end -- 726
 local function addChild(nodeStack, cnode, enode) -- 730
@@ -1197,7 +1197,7 @@ local function visitAction(actionStack, enode) -- 755
         if ____cond163 then -- 759
             do -- 759
                 local item = enode.props -- 763
-                actionStack[#actionStack + 1] = dora.Delay(item.time) -- 764
+                actionStack[#actionStack + 1] = Dora.Delay(item.time) -- 764
                 break -- 765
             end -- 765
         end -- 765
@@ -1205,21 +1205,21 @@ local function visitAction(actionStack, enode) -- 755
         if ____cond163 then -- 765
             do -- 765
                 local item = enode.props -- 768
-                actionStack[#actionStack + 1] = dora.Event(item.name, item.param) -- 769
+                actionStack[#actionStack + 1] = Dora.Event(item.name, item.param) -- 769
                 break -- 770
             end -- 770
         end -- 770
         ____cond163 = ____cond163 or ____switch163 == "hide" -- 770
         if ____cond163 then -- 770
             do -- 770
-                actionStack[#actionStack + 1] = dora.Hide() -- 773
+                actionStack[#actionStack + 1] = Dora.Hide() -- 773
                 break -- 774
             end -- 774
         end -- 774
         ____cond163 = ____cond163 or ____switch163 == "show" -- 774
         if ____cond163 then -- 774
             do -- 774
-                actionStack[#actionStack + 1] = dora.Show() -- 777
+                actionStack[#actionStack + 1] = Dora.Show() -- 777
                 break -- 778
             end -- 778
         end -- 778
@@ -1227,10 +1227,10 @@ local function visitAction(actionStack, enode) -- 755
         if ____cond163 then -- 778
             do -- 778
                 local item = enode.props -- 781
-                actionStack[#actionStack + 1] = dora.Move( -- 782
+                actionStack[#actionStack + 1] = Dora.Move( -- 782
                     item.time, -- 782
-                    dora.Vec2(item.startX, item.startY), -- 782
-                    dora.Vec2(item.stopX, item.stopY), -- 782
+                    Dora.Vec2(item.startX, item.startY), -- 782
+                    Dora.Vec2(item.stopX, item.stopY), -- 782
                     item.easing -- 782
                 ) -- 782
                 break -- 783
@@ -1243,7 +1243,7 @@ local function visitAction(actionStack, enode) -- 755
                 for i = 1, #enode.children do -- 786
                     visitAction(spawnStack, enode.children[i]) -- 788
                 end -- 788
-                actionStack[#actionStack + 1] = dora.Spawn(table.unpack(spawnStack)) -- 790
+                actionStack[#actionStack + 1] = Dora.Spawn(table.unpack(spawnStack)) -- 790
                 break -- 791
             end -- 791
         end -- 791
@@ -1254,7 +1254,7 @@ local function visitAction(actionStack, enode) -- 755
                 for i = 1, #enode.children do -- 794
                     visitAction(sequenceStack, enode.children[i]) -- 796
                 end -- 796
-                actionStack[#actionStack + 1] = dora.Sequence(table.unpack(sequenceStack)) -- 798
+                actionStack[#actionStack + 1] = Dora.Sequence(table.unpack(sequenceStack)) -- 798
                 break -- 799
             end -- 799
         end -- 799
@@ -1300,23 +1300,23 @@ local function bodyCheck(_nodeStack, enode, parent) -- 831
     end -- 833
 end -- 831
 actionMap = { -- 837
-    ["anchor-x"] = dora.AnchorX, -- 840
-    ["anchor-y"] = dora.AnchorY, -- 841
-    angle = dora.Angle, -- 842
-    ["angle-x"] = dora.AngleX, -- 843
-    ["angle-y"] = dora.AngleY, -- 844
-    width = dora.Width, -- 845
-    height = dora.Height, -- 846
-    opacity = dora.Opacity, -- 847
-    roll = dora.Roll, -- 848
-    scale = dora.Scale, -- 849
-    ["scale-x"] = dora.ScaleX, -- 850
-    ["scale-y"] = dora.ScaleY, -- 851
-    ["skew-x"] = dora.SkewX, -- 852
-    ["skew-y"] = dora.SkewY, -- 853
-    ["move-x"] = dora.X, -- 854
-    ["move-y"] = dora.Y, -- 855
-    ["move-z"] = dora.Z -- 856
+    ["anchor-x"] = Dora.AnchorX, -- 840
+    ["anchor-y"] = Dora.AnchorY, -- 841
+    angle = Dora.Angle, -- 842
+    ["angle-x"] = Dora.AngleX, -- 843
+    ["angle-y"] = Dora.AngleY, -- 844
+    width = Dora.Width, -- 845
+    height = Dora.Height, -- 846
+    opacity = Dora.Opacity, -- 847
+    roll = Dora.Roll, -- 848
+    scale = Dora.Scale, -- 849
+    ["scale-x"] = Dora.ScaleX, -- 850
+    ["scale-y"] = Dora.ScaleY, -- 851
+    ["skew-x"] = Dora.SkewX, -- 852
+    ["skew-y"] = Dora.SkewY, -- 853
+    ["move-x"] = Dora.X, -- 854
+    ["move-y"] = Dora.Y, -- 855
+    ["move-z"] = Dora.Z -- 856
 } -- 856
 elementMap = { -- 859
     node = function(nodeStack, enode, parent) -- 860
@@ -1425,7 +1425,7 @@ elementMap = { -- 859
         if #actionStack == 1 then -- 937
             action.ref.current = actionStack[1] -- 940
         elseif #actionStack > 1 then -- 940
-            action.ref.current = dora.Sequence(table.unpack(actionStack)) -- 942
+            action.ref.current = Dora.Sequence(table.unpack(actionStack)) -- 942
         end -- 942
     end, -- 925
     ["anchor-x"] = actionCheck, -- 945
@@ -1465,12 +1465,12 @@ elementMap = { -- 859
                 local loop = enode.props -- 979
                 if loop.spawn then -- 979
                     node:runAction( -- 981
-                        dora.Spawn(table.unpack(actionStack)), -- 981
+                        Dora.Spawn(table.unpack(actionStack)), -- 981
                         true -- 981
                     ) -- 981
                 else -- 981
                     node:runAction( -- 983
-                        dora.Sequence(table.unpack(actionStack)), -- 983
+                        Dora.Sequence(table.unpack(actionStack)), -- 983
                         true -- 983
                     ) -- 983
                 end -- 983
@@ -1487,7 +1487,7 @@ elementMap = { -- 859
         ) -- 991
     end, -- 990
     contact = function(nodeStack, enode, _parent) -- 993
-        local world = dora.tolua.cast(nodeStack[#nodeStack], "PhysicsWorld") -- 994
+        local world = Dora.tolua.cast(nodeStack[#nodeStack], "PhysicsWorld") -- 994
         if world ~= nil then -- 994
             local contact = enode.props -- 996
             world:setShouldContact(contact.groupA, contact.groupB, contact.enabled) -- 997
@@ -1505,7 +1505,7 @@ elementMap = { -- 859
             ) -- 1005
             return -- 1006
         end -- 1006
-        local world = dora.tolua.cast(nodeStack[#nodeStack], "PhysicsWorld") -- 1008
+        local world = Dora.tolua.cast(nodeStack[#nodeStack], "PhysicsWorld") -- 1008
         if world ~= nil then -- 1008
             addChild( -- 1010
                 nodeStack, -- 1010
@@ -1536,7 +1536,7 @@ elementMap = { -- 859
             return -- 1032
         end -- 1032
         local ____joint_ref_13 = joint.ref -- 1034
-        local ____self_11 = dora.Joint -- 1034
+        local ____self_11 = Dora.Joint -- 1034
         local ____self_11_distance_12 = ____self_11.distance -- 1034
         local ____joint_canCollide_10 = joint.canCollide -- 1035
         if ____joint_canCollide_10 == nil then -- 1035
@@ -1547,8 +1547,8 @@ elementMap = { -- 859
             ____joint_canCollide_10, -- 1035
             joint.bodyA.current, -- 1036
             joint.bodyB.current, -- 1037
-            joint.anchorA or dora.Vec2.zero, -- 1038
-            joint.anchorB or dora.Vec2.zero, -- 1039
+            joint.anchorA or Dora.Vec2.zero, -- 1038
+            joint.anchorB or Dora.Vec2.zero, -- 1039
             joint.frequency or 0, -- 1040
             joint.damping or 0 -- 1041
         ) -- 1041
@@ -1568,7 +1568,7 @@ elementMap = { -- 859
             return -- 1055
         end -- 1055
         local ____joint_ref_17 = joint.ref -- 1057
-        local ____self_15 = dora.Joint -- 1057
+        local ____self_15 = Dora.Joint -- 1057
         local ____self_15_friction_16 = ____self_15.friction -- 1057
         local ____joint_canCollide_14 = joint.canCollide -- 1058
         if ____joint_canCollide_14 == nil then -- 1058
@@ -1599,7 +1599,7 @@ elementMap = { -- 859
             return -- 1078
         end -- 1078
         local ____joint_ref_21 = joint.ref -- 1080
-        local ____self_19 = dora.Joint -- 1080
+        local ____self_19 = Dora.Joint -- 1080
         local ____self_19_gear_20 = ____self_19.gear -- 1080
         local ____joint_canCollide_18 = joint.canCollide -- 1081
         if ____joint_canCollide_18 == nil then -- 1081
@@ -1628,7 +1628,7 @@ elementMap = { -- 859
             return -- 1099
         end -- 1099
         local ____joint_ref_25 = joint.ref -- 1101
-        local ____self_23 = dora.Joint -- 1101
+        local ____self_23 = Dora.Joint -- 1101
         local ____self_23_spring_24 = ____self_23.spring -- 1101
         local ____joint_canCollide_22 = joint.canCollide -- 1102
         if ____joint_canCollide_22 == nil then -- 1102
@@ -1657,7 +1657,7 @@ elementMap = { -- 859
             return -- 1120
         end -- 1120
         local ____joint_ref_29 = joint.ref -- 1122
-        local ____self_27 = dora.Joint -- 1122
+        local ____self_27 = Dora.Joint -- 1122
         local ____self_27_move_28 = ____self_27.move -- 1122
         local ____joint_canCollide_26 = joint.canCollide -- 1123
         if ____joint_canCollide_26 == nil then -- 1123
@@ -1688,7 +1688,7 @@ elementMap = { -- 859
             return -- 1143
         end -- 1143
         local ____joint_ref_33 = joint.ref -- 1145
-        local ____self_31 = dora.Joint -- 1145
+        local ____self_31 = Dora.Joint -- 1145
         local ____self_31_prismatic_32 = ____self_31.prismatic -- 1145
         local ____joint_canCollide_30 = joint.canCollide -- 1146
         if ____joint_canCollide_30 == nil then -- 1146
@@ -1722,7 +1722,7 @@ elementMap = { -- 859
             return -- 1169
         end -- 1169
         local ____joint_ref_37 = joint.ref -- 1171
-        local ____self_35 = dora.Joint -- 1171
+        local ____self_35 = Dora.Joint -- 1171
         local ____self_35_pulley_36 = ____self_35.pulley -- 1171
         local ____joint_canCollide_34 = joint.canCollide -- 1172
         if ____joint_canCollide_34 == nil then -- 1172
@@ -1733,8 +1733,8 @@ elementMap = { -- 859
             ____joint_canCollide_34, -- 1172
             joint.bodyA.current, -- 1173
             joint.bodyB.current, -- 1174
-            joint.anchorA or dora.Vec2.zero, -- 1175
-            joint.anchorB or dora.Vec2.zero, -- 1176
+            joint.anchorA or Dora.Vec2.zero, -- 1175
+            joint.anchorB or Dora.Vec2.zero, -- 1176
             joint.groundAnchorA, -- 1177
             joint.groundAnchorB, -- 1178
             joint.ratio or 1 -- 1179
@@ -1755,7 +1755,7 @@ elementMap = { -- 859
             return -- 1194
         end -- 1194
         local ____joint_ref_41 = joint.ref -- 1196
-        local ____self_39 = dora.Joint -- 1196
+        local ____self_39 = Dora.Joint -- 1196
         local ____self_39_revolute_40 = ____self_39.revolute -- 1196
         local ____joint_canCollide_38 = joint.canCollide -- 1197
         if ____joint_canCollide_38 == nil then -- 1197
@@ -1788,7 +1788,7 @@ elementMap = { -- 859
             return -- 1219
         end -- 1219
         local ____joint_ref_45 = joint.ref -- 1221
-        local ____self_43 = dora.Joint -- 1221
+        local ____self_43 = Dora.Joint -- 1221
         local ____self_43_rope_44 = ____self_43.rope -- 1221
         local ____joint_canCollide_42 = joint.canCollide -- 1222
         if ____joint_canCollide_42 == nil then -- 1222
@@ -1799,8 +1799,8 @@ elementMap = { -- 859
             ____joint_canCollide_42, -- 1222
             joint.bodyA.current, -- 1223
             joint.bodyB.current, -- 1224
-            joint.anchorA or dora.Vec2.zero, -- 1225
-            joint.anchorB or dora.Vec2.zero, -- 1226
+            joint.anchorA or Dora.Vec2.zero, -- 1225
+            joint.anchorB or Dora.Vec2.zero, -- 1226
             joint.maxLength or 0 -- 1227
         ) -- 1227
     end, -- 1207
@@ -1819,7 +1819,7 @@ elementMap = { -- 859
             return -- 1242
         end -- 1242
         local ____joint_ref_49 = joint.ref -- 1244
-        local ____self_47 = dora.Joint -- 1244
+        local ____self_47 = Dora.Joint -- 1244
         local ____self_47_weld_48 = ____self_47.weld -- 1244
         local ____joint_canCollide_46 = joint.canCollide -- 1245
         if ____joint_canCollide_46 == nil then -- 1245
@@ -1850,7 +1850,7 @@ elementMap = { -- 859
             return -- 1265
         end -- 1265
         local ____joint_ref_53 = joint.ref -- 1267
-        local ____self_51 = dora.Joint -- 1267
+        local ____self_51 = Dora.Joint -- 1267
         local ____self_51_wheel_52 = ____self_51.wheel -- 1267
         local ____joint_canCollide_50 = joint.canCollide -- 1268
         if ____joint_canCollide_50 == nil then -- 1268
@@ -1893,12 +1893,12 @@ elementMap = { -- 859
     end, -- 1289
     effek = function(nodeStack, enode, parent) -- 1292
         if #nodeStack > 0 then -- 1292
-            local node = dora.tolua.cast(nodeStack[#nodeStack], "EffekNode") -- 1294
+            local node = Dora.tolua.cast(nodeStack[#nodeStack], "EffekNode") -- 1294
             if node then -- 1294
                 local effek = enode.props -- 1296
                 local handle = node:play( -- 1297
                     effek.file, -- 1297
-                    dora.Vec2(effek.x or 0, effek.y or 0), -- 1297
+                    Dora.Vec2(effek.x or 0, effek.y or 0), -- 1297
                     effek.z or 0 -- 1297
                 ) -- 1297
                 if handle >= 0 then -- 1297
@@ -1989,6 +1989,6 @@ end -- 1362
 function ____exports.preloadAsync(enode, handler) -- 1405
     local preloadList = {} -- 1406
     getPreload(preloadList, enode) -- 1407
-    dora.Cache:loadAsync(preloadList, handler) -- 1408
+    Dora.Cache:loadAsync(preloadList, handler) -- 1408
 end -- 1405
 return ____exports -- 1405

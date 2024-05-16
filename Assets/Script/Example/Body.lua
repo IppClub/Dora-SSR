@@ -1,11 +1,11 @@
 -- [yue]: Script/Example/Body.yue
-local Vec2 = dora.Vec2 -- 1
-local BodyDef = dora.BodyDef -- 1
-local PhysicsWorld = dora.PhysicsWorld -- 1
-local Body = dora.Body -- 1
-local threadLoop = dora.threadLoop -- 1
-local App = dora.App -- 1
-local ImGui = dora.ImGui -- 1
+local Vec2 = Dora.Vec2 -- 1
+local BodyDef = Dora.BodyDef -- 1
+local PhysicsWorld = Dora.PhysicsWorld -- 1
+local Body = Dora.Body -- 1
+local threadLoop = Dora.threadLoop -- 1
+local App = Dora.App -- 1
+local ImGui = Dora.ImGui -- 1
 local gravity <const> = Vec2(0, -10) -- 3
 local groupZero <const> = 0 -- 5
 local groupOne <const> = 1 -- 6

@@ -1,12 +1,12 @@
 -- [ts]: SQLiteTS.ts
 local ____exports = {} -- 1
 local ImGui = require("ImGui") -- 3
-local ____dora = require("dora") -- 4
-local App = ____dora.App -- 4
-local DB = ____dora.DB -- 4
-local Vec2 = ____dora.Vec2 -- 4
-local thread = ____dora.thread -- 4
-local threadLoop = ____dora.threadLoop -- 4
+local ____Dora = require("Dora") -- 4
+local App = ____Dora.App -- 4
+local DB = ____Dora.DB -- 4
+local Vec2 = ____Dora.Vec2 -- 4
+local thread = ____Dora.thread -- 4
+local threadLoop = ____Dora.threadLoop -- 4
 local sqls = {"DROP TABLE IF EXISTS test", "CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)", {"INSERT INTO test VALUES(?, ?)", {{false, "hello"}, {false, "world"}, {false, "ok"}}}} -- 6
 local result = DB:transaction(sqls) -- 19
 print(result and "Success" or "Failure") -- 20

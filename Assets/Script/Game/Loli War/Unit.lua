@@ -1,12 +1,12 @@
 -- [yue]: Script/Game/Loli War/Unit.yue
-local _module_0 = dora.Platformer -- 1
+local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
-local Dictionary = dora.Dictionary -- 1
-local Vec2 = dora.Vec2 -- 1
-local Size = dora.Size -- 1
+local Dictionary = Dora.Dictionary -- 1
+local Vec2 = Dora.Vec2 -- 1
+local Size = Dora.Size -- 1
 local TargetAllow = _module_0.TargetAllow -- 1
-local Array = dora.Array -- 1
-local BodyDef = dora.BodyDef -- 1
+local Array = Dora.Array -- 1
+local BodyDef = Dora.BodyDef -- 1
 local Store = Data.store -- 11
 do -- 13
 	local _with_0 = Dictionary() -- 13

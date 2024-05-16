@@ -1,14 +1,14 @@
 -- [yue]: Script/Lib/BodyEx.yue
-local BodyDef = dora.BodyDef -- 1
-local JointDef = dora.JointDef -- 1
-local Dictionary = dora.Dictionary -- 1
-local Node = dora.Node -- 1
-local Vec2 = dora.Vec2 -- 1
-local tolua = dora.tolua -- 1
-local Body = dora.Body -- 1
-local Playable = dora.Playable -- 1
-local Sprite = dora.Sprite -- 1
-local Joint = dora.Joint -- 1
+local BodyDef = Dora.BodyDef -- 1
+local JointDef = Dora.JointDef -- 1
+local Dictionary = Dora.Dictionary -- 1
+local Node = Dora.Node -- 1
+local Vec2 = Dora.Vec2 -- 1
+local tolua = Dora.tolua -- 1
+local Body = Dora.Body -- 1
+local Playable = Dora.Playable -- 1
+local Sprite = Dora.Sprite -- 1
+local Joint = Dora.Joint -- 1
 local _module_0 = nil -- 1
 local Struct = require("Utils").Struct -- 10
 Struct.Array() -- 12

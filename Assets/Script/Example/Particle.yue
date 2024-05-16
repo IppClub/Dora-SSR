@@ -1,4 +1,4 @@
-_ENV = Dora dora.ImGui
+_ENV = Dora Dora.ImGui
 
 Data = {
 	Angle: ["B","float",90]

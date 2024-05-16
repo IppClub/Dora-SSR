@@ -1,8 +1,8 @@
 // @preview-file off
-import { React, toNode } from 'dora-x';
+import { React, toNode } from 'DoraX';
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from "ImGui";
-import { App, Vec2, threadLoop } from "dora"
+import { App, Vec2, threadLoop } from "Dora"
 
 function CircleVertices(this: void, radius: number, verts?: number): Vec2.Type[] {
 	const v = verts ?? 20;

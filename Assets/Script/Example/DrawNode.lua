@@ -1,13 +1,13 @@
 -- [yue]: Script/Example/DrawNode.yue
 local math = _G.math -- 1
-local Vec2 = dora.Vec2 -- 1
-local Node = dora.Node -- 1
-local DrawNode = dora.DrawNode -- 1
-local Color = dora.Color -- 1
-local App = dora.App -- 1
-local Line = dora.Line -- 1
-local threadLoop = dora.threadLoop -- 1
-local ImGui = dora.ImGui -- 1
+local Vec2 = Dora.Vec2 -- 1
+local Node = Dora.Node -- 1
+local DrawNode = Dora.DrawNode -- 1
+local Color = Dora.Color -- 1
+local App = Dora.App -- 1
+local Line = Dora.Line -- 1
+local threadLoop = Dora.threadLoop -- 1
+local ImGui = Dora.ImGui -- 1
 local CircleVertices -- 3
 CircleVertices = function(radius, verts) -- 3
 	if verts == nil then -- 3

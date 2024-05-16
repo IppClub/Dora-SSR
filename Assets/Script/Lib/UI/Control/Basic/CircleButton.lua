@@ -1,8 +1,8 @@
 -- [yue]: Script/Lib/UI/Control/Basic/CircleButton.yue
-local Class = dora.Class -- 1
-local once = dora.once -- 1
-local sleep = dora.sleep -- 1
-local property = dora.property -- 1
+local Class = Dora.Class -- 1
+local once = Dora.once -- 1
+local sleep = Dora.sleep -- 1
+local property = Dora.property -- 1
 local _module_0 = nil -- 1
 local CircleButton = require("UI.View.Control.Basic.CircleButton") -- 10
 _module_0 = Class(CircleButton, { -- 17

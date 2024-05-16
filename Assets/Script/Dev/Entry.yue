@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
 
-_ENV = Dora dora.ImGui
+_ENV = Dora Dora.ImGui
 
 App.idled = true
 
@@ -19,7 +19,7 @@ require = (path) ->
 		return oldRequire path
 	loaded
 _G.require = require
-dora.require = require
+Dora.require = require
 
 :searchPaths = Content
 
@@ -328,6 +328,7 @@ doCompile = (minify) ->
 			success, result = LintYueGlobals codes, globals
 			if success
 				codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
+				codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora[^%w_$][^\n\r]+[\n\r%s]*", "\n"
 				codes = codes\gsub "^\n*", ""
 				result ..= "\n" unless result == ""
 				"-- [yue]: #{file}\n#{result}#{codes}"
@@ -560,7 +561,7 @@ reloadDevEntry = -> thread ->
 	doClean!
 	allClear!
 	_G.require = oldRequire
-	dora.require = oldRequire
+	Dora.require = oldRequire
 	package.loaded["Script.Dev.Entry"] = nil
 	Director.systemScheduler\schedule ->
 		Routine\clear!

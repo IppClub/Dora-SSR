@@ -1,7 +1,7 @@
 // @preview-file off
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Component, Ease, Entity, Event, Group, Node, Observer, EntityEvent, Roll, Scale, Sequence, Slot, Sprite, TypeName, Vec2, tolua } from "dora";
+import { App, Component, Ease, Entity, Event, Group, Node, Observer, EntityEvent, Roll, Scale, Sequence, Slot, Sprite, TypeName, Vec2, tolua } from "Dora";
 
 const sceneGroup = Group(["scene"]);
 const positionGroup = Group(["position"]);

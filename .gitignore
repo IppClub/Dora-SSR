@@ -71,5 +71,5 @@ imgui.ini
 Assets/www/
 
 # Ignore Linux lib files
-Project/Linux/3rdParty/
+Projects/Linux/3rdParty/
 

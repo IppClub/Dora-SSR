@@ -1,12 +1,12 @@
 -- [yue]: Script/Game/Loli War/UI/Control/StartPanel.yue
-local Class = dora.Class -- 1
-local Audio = dora.Audio -- 1
-local emit = dora.emit -- 1
-local App = dora.App -- 1
-local nvg = dora.nvg -- 1
-local Vec2 = dora.Vec2 -- 1
+local Class = Dora.Class -- 1
+local Audio = Dora.Audio -- 1
+local emit = Dora.emit -- 1
+local App = Dora.App -- 1
+local nvg = Dora.nvg -- 1
+local Vec2 = Dora.Vec2 -- 1
 local ipairs = _G.ipairs -- 1
-local Rect = dora.Rect -- 1
+local Rect = Dora.Rect -- 1
 local _module_0 = nil -- 1
 local StartPanel = require("UI.View.StartPanel") -- 10
 local _anon_func_0 = function(button, self) -- 23

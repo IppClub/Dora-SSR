@@ -1,15 +1,15 @@
 -- [yue]: Script/Game/Zombie Escape/Scene.yue
-local _module_0 = dora.Platformer -- 1
+local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local PlatformWorld = _module_0.PlatformWorld -- 1
-local Vec2 = dora.Vec2 -- 1
-local View = dora.View -- 1
-local BodyDef = dora.BodyDef -- 1
-local Color = dora.Color -- 1
-local App = dora.App -- 1
-local Body = dora.Body -- 1
-local Entity = dora.Entity -- 1
-local Size = dora.Size -- 1
+local Vec2 = Dora.Vec2 -- 1
+local View = Dora.View -- 1
+local BodyDef = Dora.BodyDef -- 1
+local Color = Dora.Color -- 1
+local App = Dora.App -- 1
+local Body = Dora.Body -- 1
+local Entity = Dora.Entity -- 1
+local Size = Dora.Size -- 1
 local Rectangle = require("UI.View.Shape.Rectangle") -- 10
 local Store = Data.store -- 12
 local PlayerLayer, PlayerGroup, ZombieLayer, TerrainLayer = Store.PlayerLayer, Store.PlayerGroup, Store.ZombieLayer, Store.TerrainLayer -- 13

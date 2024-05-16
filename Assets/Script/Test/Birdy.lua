@@ -3,16 +3,16 @@ local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__ParseFloat = ____lualib.__TS__ParseFloat -- 1
 local ____exports = {} -- 1
-local ____dora_2Dx = require("dora-x") -- 2
-local React = ____dora_2Dx.React -- 2
-local toNode = ____dora_2Dx.toNode -- 2
-local useRef = ____dora_2Dx.useRef -- 2
-local ____dora = require("dora") -- 3
-local Ease = ____dora.Ease -- 3
-local Line = ____dora.Line -- 3
-local Scale = ____dora.Scale -- 3
-local Vec2 = ____dora.Vec2 -- 3
-local tolua = ____dora.tolua -- 3
+local ____DoraX = require("DoraX") -- 2
+local React = ____DoraX.React -- 2
+local toNode = ____DoraX.toNode -- 2
+local useRef = ____DoraX.useRef -- 2
+local ____Dora = require("Dora") -- 3
+local Ease = ____Dora.Ease -- 3
+local Line = ____Dora.Line -- 3
+local Scale = ____Dora.Scale -- 3
+local Vec2 = ____Dora.Vec2 -- 3
+local tolua = ____Dora.tolua -- 3
 toNode(React:createElement("sprite", {file = "Image/logo.png", scaleX = 0.2, scaleY = 0.2})) -- 5
 local function Box(____, props) -- 14
     local numText = tostring(props.num) -- 15
@@ -113,7 +113,10 @@ toNode(React:createElement( -- 36
                     score.current.text = tostring(sc) -- 75
                     local ____tolua_cast_2 = tolua.cast -- 76
                     local ____opt_0 = other.children -- 76
-                    local label = ____tolua_cast_2(____opt_0 and ____opt_0.last, "Label") -- 76
+                    if ____opt_0 ~= nil then -- 76
+                        ____opt_0 = ____opt_0.last -- 76
+                    end -- 76
+                    local label = ____tolua_cast_2(____opt_0, "Label") -- 76
                     if label then -- 76
                         label.text = "" -- 77
                     end -- 77

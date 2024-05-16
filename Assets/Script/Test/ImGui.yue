@@ -1,3 +1,3 @@
-_ENV = Dora!
+_ENV = Dora
 
 threadLoop ImGui.ShowDemoWindow

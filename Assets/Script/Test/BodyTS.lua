@@ -1,12 +1,12 @@
 -- [ts]: BodyTS.ts
 local ____exports = {} -- 1
-local ____dora = require("dora") -- 2
-local App = ____dora.App -- 2
-local Body = ____dora.Body -- 2
-local BodyDef = ____dora.BodyDef -- 2
-local PhysicsWorld = ____dora.PhysicsWorld -- 2
-local Vec2 = ____dora.Vec2 -- 2
-local threadLoop = ____dora.threadLoop -- 2
+local ____Dora = require("Dora") -- 2
+local App = ____Dora.App -- 2
+local Body = ____Dora.Body -- 2
+local BodyDef = ____Dora.BodyDef -- 2
+local PhysicsWorld = ____Dora.PhysicsWorld -- 2
+local Vec2 = ____Dora.Vec2 -- 2
+local threadLoop = ____Dora.threadLoop -- 2
 local ImGui = require("ImGui") -- 3
 local gravity = Vec2(0, -10) -- 6
 local groupZero = 0 -- 7

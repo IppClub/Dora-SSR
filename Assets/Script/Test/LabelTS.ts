@@ -1,7 +1,7 @@
 // @preview-file off
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Delay, Label, Node, Opacity, Scale, Sequence, Vec2, threadLoop } from "dora"
+import { App, Delay, Label, Node, Opacity, Scale, Sequence, Vec2, threadLoop } from "Dora"
 
 const node = Node();
 

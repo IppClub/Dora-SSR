@@ -3,11 +3,11 @@ local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
 local ____exports = {} -- 1
 local ImGui = require("ImGui") -- 3
-local ____dora = require("dora") -- 4
-local App = ____dora.App -- 4
-local Model = ____dora.Model -- 4
-local Vec2 = ____dora.Vec2 -- 4
-local threadLoop = ____dora.threadLoop -- 4
+local ____Dora = require("Dora") -- 4
+local App = ____Dora.App -- 4
+local Model = ____Dora.Model -- 4
+local Vec2 = ____Dora.Vec2 -- 4
+local threadLoop = ____Dora.threadLoop -- 4
 local modelFile = "Model/xiaoli.model" -- 6
 local looks = Model:getLooks(modelFile) -- 8
 if #looks == 0 then -- 8

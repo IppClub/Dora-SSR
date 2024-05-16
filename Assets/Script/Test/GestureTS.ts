@@ -1,7 +1,7 @@
 // @preview-file off
 import { SetCond, WindowFlag } from 'ImGui';
 import * as ImGui from 'ImGui';
-import { App, Node, Slot, Sprite, Vec2, View, threadLoop } from 'dora';
+import { App, Node, Slot, Sprite, Vec2, View, threadLoop } from 'Dora';
 import * as nvg from 'nvg';
 
 const texture = nvg.GetDoraSSR();

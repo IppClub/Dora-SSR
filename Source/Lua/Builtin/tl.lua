@@ -11228,8 +11228,8 @@ tl.dora_init = function()
 			env.modules["lua"] = nil
 			env.loaded = {}
 		end
-		if require_module("dora", false, env) == INVALID then
-			print(string.format("Error: could not predefine module 'dora'"))
+		if require_module("Dora", false, env) == INVALID then
+			print(string.format("Error: could not predefine module 'Dora'"))
 		end
 		local dora_loaded = {}
 		local dora_globals = {}
