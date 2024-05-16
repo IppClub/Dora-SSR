@@ -9,7 +9,7 @@ local __TS__New = ____lualib.__TS__New -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local ____exports = {} -- 1
 local Warn, visitNode, actionMap, elementMap -- 1
-local dora = require("Dora") -- 10
+local Dora = require("Dora") -- 10
 function Warn(msg) -- 12
     print("[Dora Warning] " .. msg) -- 13
 end -- 13

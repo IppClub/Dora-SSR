@@ -1,4 +1,4 @@
-import { React } from 'dora-x';
+import { React } from 'DoraX';
 import * as P from 'Platformer';
 
 export namespace BehaviorTree {
