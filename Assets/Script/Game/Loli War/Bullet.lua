@@ -1,8 +1,8 @@
 -- [yue]: Script/Game/Loli War/Bullet.yue
-local _module_0 = dora.Platformer -- 1
+local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local BulletDef = _module_0.BulletDef -- 1
-local Vec2 = dora.Vec2 -- 1
+local Vec2 = Dora.Vec2 -- 1
 local Face = _module_0.Face -- 1
 local Rectangle = require("UI.View.Shape.Rectangle") -- 10
 local Star = require("UI.View.Shape.Star") -- 11

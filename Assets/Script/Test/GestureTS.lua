@@ -1,13 +1,13 @@
 -- [ts]: GestureTS.ts
 local ____exports = {} -- 1
 local ImGui = require("ImGui") -- 3
-local ____dora = require("dora") -- 4
-local App = ____dora.App -- 4
-local Node = ____dora.Node -- 4
-local Sprite = ____dora.Sprite -- 4
-local Vec2 = ____dora.Vec2 -- 4
-local View = ____dora.View -- 4
-local threadLoop = ____dora.threadLoop -- 4
+local ____Dora = require("Dora") -- 4
+local App = ____Dora.App -- 4
+local Node = ____Dora.Node -- 4
+local Sprite = ____Dora.Sprite -- 4
+local Vec2 = ____Dora.Vec2 -- 4
+local View = ____Dora.View -- 4
+local threadLoop = ____Dora.threadLoop -- 4
 local nvg = require("nvg") -- 5
 local texture = nvg.GetDoraSSR() -- 7
 local sprite = Sprite(texture) -- 8

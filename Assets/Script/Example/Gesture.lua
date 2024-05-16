@@ -1,12 +1,12 @@
 -- [yue]: Script/Example/Gesture.yue
-local nvg = dora.nvg -- 1
-local Sprite = dora.Sprite -- 1
-local Vec2 = dora.Vec2 -- 1
-local View = dora.View -- 1
-local Node = dora.Node -- 1
-local threadLoop = dora.threadLoop -- 1
-local App = dora.App -- 1
-local ImGui = dora.ImGui -- 1
+local nvg = Dora.nvg -- 1
+local Sprite = Dora.Sprite -- 1
+local Vec2 = Dora.Vec2 -- 1
+local View = Dora.View -- 1
+local Node = Dora.Node -- 1
+local threadLoop = Dora.threadLoop -- 1
+local App = Dora.App -- 1
+local ImGui = Dora.ImGui -- 1
 local texture = nvg.GetDoraSSR() -- 3
 local sprite = Sprite(texture) -- 4
 local length = Vec2(View.size).length -- 5

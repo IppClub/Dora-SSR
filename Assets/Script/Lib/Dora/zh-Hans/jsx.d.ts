@@ -1,4 +1,4 @@
-import type * as dora from 'dora';
+import type * as Dora from 'Dora';
 
 declare global {
 namespace JSX {
@@ -7,7 +7,7 @@ interface Ref<T> {
 }
 
 class Node {
-	ref?: Ref<dora.Node.Type>;
+	ref?: Ref<Dora.Node.Type>;
 
 	/** 节点在父节点的子节点数组中的顺序。 */
 	order?: number;
@@ -79,7 +79,7 @@ class Node {
 	transformTarget?: Ref<Node>;
 
 	/** 用于调度更新和动作回调的调度器。 */
-	scheduler?: dora.Scheduler.Type;
+	scheduler?: Dora.Scheduler.Type;
 
 	/** 节点上是否启用触摸事件。 */
 	touchEnabled?: boolean;
@@ -107,7 +107,7 @@ class Node {
 	/**
 	 * 调用一个函数在每一帧运行，或是调度一个协程开始执行。返回true以停止要运行的函数。返回true或者调用`coroutine.yield(true)`停止运行的协程。
 	 */
-	onUpdate?: ((this: void, deltaTime: number) => boolean) | dora.Job;
+	onUpdate?: ((this: void, deltaTime: number) => boolean) | Dora.Job;
 
 	/**
 	 * ActionEnd事件会在节点执行完动作时触发。
@@ -115,49 +115,49 @@ class Node {
 	 * @param action 执行完成的动作。
 	 * @param target 执行完成动作的节点。
 	 */
-	onActionEnd?(this: void, action: dora.Action.Type, target: dora.Node.Type): void;
+	onActionEnd?(this: void, action: Dora.Action.Type, target: Dora.Node.Type): void;
 
 	/**
 	 * TapFilter事件在TapBegan插槽之前触发，可用于过滤某些点击事件。
 	 * 在设置`node.touchEnabled = true`之后才会触发。
 	 * @param touch 点击事件的消息对象。
 	*/
-	onTapFilter?(this: void, touch: dora.Touch.Type): void;
+	onTapFilter?(this: void, touch: Dora.Touch.Type): void;
 
 	/**
 	 * TapBegan事件在检测到点击时触发。
 	 * 在设置`node.touchEnabled = true`之后才会触发。
 	 * @param touch 点击事件的消息对象。
 	*/
-	onTapBegan?(this: void, touch: dora.Touch.Type): void;
+	onTapBegan?(this: void, touch: Dora.Touch.Type): void;
 
 	/**
 	 * TapEnded事件在点击结束时触发。
 	 * 在设置`node.touchEnabled = true`之后才会触发。
 	 * @param touch 点击事件的消息对象。
 	*/
-	onTapEnded?(this: void, touch: dora.Touch.Type): void;
+	onTapEnded?(this: void, touch: Dora.Touch.Type): void;
 
 	/**
 	 * Tapped事件在检测到并结束点击时触发。
 	 * 在设置`node.touchEnabled = true`之后才会触发。
 	 * @param touch 点击事件的消息对象。
 	*/
-	onTapped?(this: void, touch: dora.Touch.Type): void;
+	onTapped?(this: void, touch: Dora.Touch.Type): void;
 
 	/**
 	 * TapMoved事件在点击移动时触发。
 	 * 在设置`node.touchEnabled = true`之后才会触发。
 	 * @param touch 点击事件的消息对象。
 	*/
-	onTapMoved?(this: void, touch: dora.Touch.Type): void;
+	onTapMoved?(this: void, touch: Dora.Touch.Type): void;
 
 	/**
 	 * MouseWheel事件在滚动鼠标滚轮时触发。
 	 * 在设置`node.touchEnabled = true`之后才会触发。
 	 * @param delta 滚动的向量。
 	*/
-	onMouseWheel?(this: void, delta: dora.Vec2.Type): void;
+	onMouseWheel?(this: void, delta: Dora.Vec2.Type): void;
 
 	/**
 	 * Gesture事件在识别到多点手势时触发。
@@ -167,7 +167,7 @@ class Node {
 	 * @param deltaDist 手势移动的距离。
 	 * @param deltaAngle 手势的变动角度。
 	*/
-	onGesture?(this: void, center: dora.Vec2.Type, numFingers: number, deltaDist: number, deltaAngle: number): void;
+	onGesture?(this: void, center: Dora.Vec2.Type, numFingers: number, deltaDist: number, deltaAngle: number): void;
 
 	/**
 	 * 当节点被添加到场景树中时，触发Enter事件。
@@ -192,21 +192,21 @@ class Node {
 	 * 在设置`node.keyboardEnabled = true`后才会触发。
 	 * @param keyName 被按下的键的名称。
 	*/
-	onKeyDown?(this: void, keyName: dora.KeyName): void;
+	onKeyDown?(this: void, keyName: Dora.KeyName): void;
 
 	/**
 	 * 当释放某个键盘按键时，触发KeyUp事件。
 	 * 在设置`node.keyboardEnabled = true`后才会触发。
 	 * @param keyName 被释放的键的名称。
 	*/
-	onKeyUp?(this: void, keyName: dora.KeyName): void;
+	onKeyUp?(this: void, keyName: Dora.KeyName): void;
 
 	/**
 	 * 当持续按下某个键时，触发KeyPressed事件。
 	 * 在设置`node.keyboardEnabled = true`后才会触发。
 	 * @param keyName 被持续按下的键的名称。
 	*/
-	onKeyPressed?(this: void, keyName: dora.KeyName): void;
+	onKeyPressed?(this: void, keyName: Dora.KeyName): void;
 
 	/**
 	 * 当系统输入法（IME）开启到节点（调用`node: attachIME()`）时，会触发AttachIME事件。
@@ -239,7 +239,7 @@ class Node {
 	 * @param controllerId 控制器ID，当有多个控制器连接时从0开始递增。
 	 * @param buttonName 被按下的按钮名称。
 	*/
-	onButtonDown?(this: void, controllerId: number, buttonName: dora.ButtonName): void;
+	onButtonDown?(this: void, controllerId: number, buttonName: Dora.ButtonName): void;
 
 	/**
 	 * 当游戏控制器按钮被释放时触发ButtonUp事件。
@@ -247,7 +247,7 @@ class Node {
 	 * @param controllerId 控制器ID，当有多个控制器连接时从0开始递增。
 	 * @param buttonName 被释放的按钮名称。
 	*/
-	onButtonUp?(this: void, controllerId: number, buttonName: dora.ButtonName): void;
+	onButtonUp?(this: void, controllerId: number, buttonName: Dora.ButtonName): void;
 
 	/**
 	 * 当游戏控制器轴发生变化时触发Axis事件。
@@ -261,11 +261,11 @@ class Node {
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.Node.Type): void;
+	onMount?(this: void, self: Dora.Node.Type): void;
 }
 
 class ClipNode extends Node {
-	ref?: Ref<dora.ClipNode.Type>;
+	ref?: Ref<Dora.ClipNode.Type>;
 
 	/**
 	 * 定义剪切形状的蒙版节点。
@@ -286,11 +286,11 @@ class ClipNode extends Node {
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.ClipNode.Type): void;
+	onMount?(this: void, self: Dora.ClipNode.Type): void;
 }
 
 class Playable extends Node {
-	ref?: Ref<dora.Playable.Type>;
+	ref?: Ref<Dora.Playable.Type>;
 
 	/**
 	 * 动画的外观。
@@ -338,17 +338,17 @@ class Playable extends Node {
 	 * @param animationName 播放结束的动画名称。
 	 * @param target 播放该动画的动画模型实例。
 	*/
-	onAnimationEnd?(this: void, animationName: string, target: dora.Playable.Type): void;
+	onAnimationEnd?(this: void, animationName: string, target: Dora.Playable.Type): void;
 
 	/**
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.Playable.Type): void;
+	onMount?(this: void, self: Dora.Playable.Type): void;
 }
 
 class DragonBone extends Playable {
-	ref?: Ref<dora.DragonBone.Type>;
+	ref?: Ref<Dora.DragonBone.Type>;
 
 	/**
 	 * 用于创建新实例的`DragonBone`文件名字符串。
@@ -366,11 +366,11 @@ class DragonBone extends Playable {
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.DragonBone.Type): void;
+	onMount?(this: void, self: Dora.DragonBone.Type): void;
 }
 
 class Spine extends Playable {
-	ref?: Ref<dora.Spine.Type>;
+	ref?: Ref<Dora.Spine.Type>;
 
 	/**
 	 * 用于创建新实例的`Spine2D`文件名字符串。
@@ -385,11 +385,11 @@ class Spine extends Playable {
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.Spine.Type): void;
+	onMount?(this: void, self: Dora.Spine.Type): void;
 }
 
 class Model extends Playable {
-	ref?: Ref<dora.Model.Type>;
+	ref?: Ref<Dora.Model.Type>;
 
 	/**
 	 * 要加载的模型文件的文件名。
@@ -406,7 +406,7 @@ class Model extends Playable {
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.Model.Type): void;
+	onMount?(this: void, self: Dora.Model.Type): void;
 }
 
 class Dot {
@@ -467,7 +467,7 @@ class Polygon {
 	/**
 	 * 多边形的顶点。
 	 */
-	verts: dora.Vec2.Type[];
+	verts: Dora.Vec2.Type[];
 
 	/**
 	 * 多边形的填充颜色，格式为0xffffffff（ARGB），默认为白色。
@@ -526,11 +526,11 @@ class Verts {
 	/**
 	 * 包含要绘制的顶点及其颜色的列表，颜色格式为0xffffffff（ARGB）。
 	 */
-	verts: [vert: dora.Vec2.Type, color: number][];
+	verts: [vert: Dora.Vec2.Type, color: number][];
 }
 
 class DrawNode extends Node {
-	ref?: Ref<dora.DrawNode.Type>;
+	ref?: Ref<Dora.DrawNode.Type>;
 
 	/**
 	 * 绘制时是否写入深度缓冲区（默认为false）。
@@ -540,17 +540,17 @@ class DrawNode extends Node {
 	/**
 	 * 用于绘制形状的混合函数。
 	 */
-	blendFunc?: dora.BlendFunc.Type;
+	blendFunc?: Dora.BlendFunc.Type;
 
 	/**
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.DrawNode.Type): void;
+	onMount?(this: void, self: Dora.DrawNode.Type): void;
 }
 
 class Grid extends Node {
-	ref?: Ref<dora.Grid.Type>;
+	ref?: Ref<Dora.Grid.Type>;
 
 	/**
 	 * 用于网格的纹理文件名。
@@ -568,23 +568,23 @@ class Grid extends Node {
 	depthWrite?: boolean;
 
 	/** 用于网格的纹理内的矩形。 */
-	textureRect?: dora.Rect.Type;
+	textureRect?: Dora.Rect.Type;
 
 	/** 用于网格的混合函数。 */
-	blendFunc?: dora.BlendFunc.Type;
+	blendFunc?: Dora.BlendFunc.Type;
 
 	/** 应用于网格图元上的着色器特效。默认为 `SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")`。 */
-	effect?: dora.SpriteEffect.Type;
+	effect?: Dora.SpriteEffect.Type;
 
 	/**
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.Grid.Type): void;
+	onMount?(this: void, self: Dora.Grid.Type): void;
 }
 
 class Sprite extends Node {
-	ref?: Ref<dora.Sprite.Type>;
+	ref?: Ref<Dora.Sprite.Type>;
 
 	/**
 	 * 包含加载纹理文件格式的字符串。
@@ -606,42 +606,42 @@ class Sprite extends Node {
 	/**
 	 * 图元的纹理矩形。
 	 */
-	textureRect?: dora.Rect.Type;
+	textureRect?: Dora.Rect.Type;
 
 	/**
 	 * 图元的混合函数。
 	 */
-	blendFunc?: dora.BlendFunc.Type;
+	blendFunc?: Dora.BlendFunc.Type;
 
 	/**
 	 * 图元的着色器特效。
 	 */
-	effect?: dora.SpriteEffect.Type;
+	effect?: Dora.SpriteEffect.Type;
 
 	/**
 	 * U（水平）轴的纹理包裹模式。
 	 */
-	uwrap?: dora.TextureWrap;
+	uwrap?: Dora.TextureWrap;
 
 	/**
 	 * V（垂直）轴的纹理包裹模式。
 	 */
-	vwrap?: dora.TextureWrap;
+	vwrap?: Dora.TextureWrap;
 
 	/**
 	 * 图元的纹理过滤模式。
 	 */
-	filter?: dora.TextureFilter;
+	filter?: Dora.TextureFilter;
 
 	/**
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.Sprite.Type): void;
+	onMount?(this: void, self: Dora.Sprite.Type): void;
 }
 
 class Label extends Node {
-	ref?: Ref<dora.Label.Type>;
+	ref?: Ref<Dora.Label.Type>;
 
 	/**
 	 * 用于创建 Label 对象的字体名称。可以是带有或不带有文件扩展名的字体文件路径。
@@ -684,7 +684,7 @@ class Label extends Node {
 	/**
 	 * 用于渲染文本的混合函数。
 	 */
-	blendFunc?: dora.BlendFunc.Type;
+	blendFunc?: Dora.BlendFunc.Type;
 
 	/**
 	 * 是否启用深度写入。（默认为 false）
@@ -700,22 +700,22 @@ class Label extends Node {
 	/**
 	 * 用于渲染文本的图元着色器特效。
 	 */
-	effect?: dora.SpriteEffect.Type;
+	effect?: Dora.SpriteEffect.Type;
 
 	/**
 	 * 文本对齐设置，默认为 TextAlign.Center。
 	 */
-	alignment?: dora.TextAlign;
+	alignment?: Dora.TextAlign;
 
 	/**
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.Label.Type): void;
+	onMount?(this: void, self: Dora.Label.Type): void;
 }
 
 class Line extends Node {
-	ref?: Ref<dora.Line.Type>;
+	ref?: Ref<Dora.Line.Type>;
 
 	/**
 	 * 是否写入深度。（默认为 false）
@@ -725,12 +725,12 @@ class Line extends Node {
 	/**
 	 * 用于渲染线条的混合函数。
 	 */
-	blendFunc?: dora.BlendFunc.Type;
+	blendFunc?: Dora.BlendFunc.Type;
 
 	/**
 	 * 组成线条的顶点列表。
 	 */
-	verts: dora.Vec2.Type[];
+	verts: Dora.Vec2.Type[];
 
 	/**
 	 * 线条的颜色，格式为0xffffffff（ARGB），默认为白色。
@@ -741,11 +741,11 @@ class Line extends Node {
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.Line.Type): void;
+	onMount?(this: void, self: Dora.Line.Type): void;
 }
 
 class Particle extends Node {
-	ref?: Ref<dora.Particle.Type>;
+	ref?: Ref<Dora.Particle.Type>;
 
 	/**
 	 * 加载粒子系统定义文件的文件路径。
@@ -766,11 +766,11 @@ class Particle extends Node {
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.Particle.Type): void;
+	onMount?(this: void, self: Dora.Particle.Type): void;
 }
 
 class Menu extends Node {
-	ref?: Ref<dora.Menu.Type>;
+	ref?: Ref<Dora.Menu.Type>;
 
 	/**
 	 * 当前是否启用菜单节点。默认为 true。
@@ -781,7 +781,7 @@ class Menu extends Node {
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.Menu.Type): void;
+	onMount?(this: void, self: Dora.Menu.Type): void;
 }
 
 type StyleDirection = 'ltr' | 'rtl' | 'inherit';
@@ -843,7 +843,7 @@ interface AlignStyle {
 }
 
 class AlignNode extends Node {
-	ref?: Ref<dora.AlignNode.Type>;
+	ref?: Ref<Dora.AlignNode.Type>;
 
 	/** 是否为窗口根节点。窗口根节点会自动监听窗口大小变化事件自动更新布局。 */
 	windowRoot?: boolean;
@@ -862,17 +862,17 @@ class AlignNode extends Node {
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.AlignNode.Type): void;
+	onMount?(this: void, self: Dora.AlignNode.Type): void;
 }
 
 class EffekNode extends Node {
-	ref?: Ref<dora.EffekNode.Type>;
+	ref?: Ref<Dora.EffekNode.Type>;
 
 	/**
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.EffekNode.Type): void;
+	onMount?(this: void, self: Dora.EffekNode.Type): void;
 }
 
 class Effek {
@@ -905,7 +905,7 @@ class Effek {
 }
 
 class Action {
-	ref?: Ref<dora.ActionDef.Type>;
+	ref?: Ref<Dora.ActionDef.Type>;
 	children: any[] | any;
 }
 
@@ -917,7 +917,7 @@ class AnchorX {
 	/** 锚点的结束值。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class AnchorY {
@@ -928,7 +928,7 @@ class AnchorY {
 	/** 锚点的结束值。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Angle {
@@ -939,7 +939,7 @@ class Angle {
 	/** 角度的结束值（以度为单位）。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class AngleX {
@@ -950,7 +950,7 @@ class AngleX {
 	/** X轴旋转角度的结束值（以度为单位）。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class AngleY {
@@ -961,7 +961,7 @@ class AngleY {
 	/** Y轴旋转角度的结束值（以度为单位）。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Delay {
@@ -984,7 +984,7 @@ class Width {
 	/** 节点的结束宽度值。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Height {
@@ -995,7 +995,7 @@ class Height {
 	/** 节点的结束高度值。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Hide {}
@@ -1014,7 +1014,7 @@ class Move {
 	/** 节点的结束Y位置。 */
 	stopY: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Opacity {
@@ -1025,7 +1025,7 @@ class Opacity {
 	/** 节点的结束不透明度值（0-1.0）。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Roll {
@@ -1036,7 +1036,7 @@ class Roll {
 	/** 节点的结束滚动值（以度为单位）。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Scale {
@@ -1047,7 +1047,7 @@ class Scale {
 	/** X轴和Y轴缩放的结束值。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class ScaleX {
@@ -1058,7 +1058,7 @@ class ScaleX {
 	/** X轴缩放的结束值。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class ScaleY {
@@ -1069,7 +1069,7 @@ class ScaleY {
 	/** Y轴缩放的结束值。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class SkewX {
@@ -1080,7 +1080,7 @@ class SkewX {
 	/** 节点在x轴上的结束倾斜值（以度为单位）。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class SkewY {
@@ -1091,7 +1091,7 @@ class SkewY {
 	/** 节点在Y轴上的结束倾斜值（以度为单位）。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class MoveX {
@@ -1102,7 +1102,7 @@ class MoveX {
 	/** 节点的结束X坐标位置。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class MoveY {
@@ -1113,7 +1113,7 @@ class MoveY {
 	/** 节点的结束Y坐标位置。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class MoveZ {
@@ -1124,7 +1124,7 @@ class MoveZ {
 	/** 节点的结束Z坐标位置。 */
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Loop {
@@ -1150,7 +1150,7 @@ class PhysicsWorld extends Node {
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.PhysicsWorld.Type): void;
+	onMount?(this: void, self: Dora.PhysicsWorld.Type): void;
 }
 
 class Contact {
@@ -1174,12 +1174,12 @@ class Body extends Node {
 	/**
 	 * 物理体的不同移动类型的枚举。
 	 */
-	type: dora.BodyMoveType;
+	type: Dora.BodyMoveType;
 
 	/**
 	 * 用于创建物理体的 `PhysicsWorld` 实例。
 	 */
-	world?: dora.PhysicsWorldType;
+	world?: Dora.PhysicsWorldType;
 
 	/**
 	 * 在物理体上持续施加的线性加速度。
@@ -1187,7 +1187,7 @@ class Body extends Node {
 	 * @example
 	 * bodyDef.linearAcceleration = Vec2(0, -9.8);
 	 */
-	linearAcceleration?: dora.Vec2.Type;
+	linearAcceleration?: Dora.Vec2.Type;
 
 	/**
 	 * 物理体的旋转是否被固定。
@@ -1232,7 +1232,7 @@ class Body extends Node {
 	/**
 	 * 物理体的所有者的引用。
 	 */
-	owner?: dora.Object.Type;
+	owner?: Dora.Object.Type;
 
 	/**
 	 * 物理体是否正在接收碰撞事件。默认为 false。
@@ -1245,7 +1245,7 @@ class Body extends Node {
 	 * @param other 当前发生碰撞的物理体对象。
 	 * @param sensorTag 触发此碰撞事件的传感器的标签编号。
 	*/
-	onBodyEnter?(this: void, other: dora.Body.Type, sensorTag: number): void;
+	onBodyEnter?(this: void, other: Dora.Body.Type, sensorTag: number): void;
 
 	/**
 	 * 当物理体对象不再与传感器对象碰撞时触发。
@@ -1253,7 +1253,7 @@ class Body extends Node {
 	 * @param other 当前结束碰撞的物理体对象。
 	 * @param sensorTag 触发此碰撞事件的传感器的标签。
 	*/
-	onBodyLeave?(this: void, other: dora.Body.Type, sensorTag: number): void;
+	onBodyLeave?(this: void, other: Dora.Body.Type, sensorTag: number): void;
 
 	/**
 	 * 当物理体对象开始与另物理体碰撞时触发。
@@ -1262,7 +1262,7 @@ class Body extends Node {
 	 * @param point 世界坐标系中的碰撞点。
 	 * @param normal 世界坐标系中的接触表面法向量。
 	*/
-	onContactStart?(this: void, other: dora.Body.Type, point: dora.Vec2.Type, normal: dora.Vec2.Type): void;
+	onContactStart?(this: void, other: Dora.Body.Type, point: Dora.Vec2.Type, normal: Dora.Vec2.Type): void;
 
 	/**
 	 * 当一个物理体对象停止与另一个物理体碰撞时触发。
@@ -1271,7 +1271,7 @@ class Body extends Node {
 	 * @param point 世界坐标系中的碰撞点。
 	 * @param normal 世界坐标系中的接触表面法向量。
 	*/
-	onContactEnd?(this: void, other: dora.Body.Type, point: dora.Vec2.Type, normal: dora.Vec2.Type): void;
+	onContactEnd?(this: void, other: Dora.Body.Type, point: Dora.Vec2.Type, normal: Dora.Vec2.Type): void;
 
 	/**
 	 * 注册一个函数，该函数在物理体与其他物理体发生碰撞时被调用。
@@ -1279,13 +1279,13 @@ class Body extends Node {
 	 * @param other 当前发生碰撞的物理体对象。
 	 * @returns 返回false时，物理体将不会触发本次的碰撞事件。
 	 */
-	onContactFilter?(this: void, other: dora.Body.Type): boolean;
+	onContactFilter?(this: void, other: Dora.Body.Type): boolean;
 
 	/**
 	 * 当前节点被实例化时，会触发该回调函数。
 	 * @param self 当前节点的实例。
 	 */
-	onMount?(this: void, self: dora.Body.Type): void;
+	onMount?(this: void, self: Dora.Body.Type): void;
 }
 
 class RectangleShape {
@@ -1311,7 +1311,7 @@ class RectangleShape {
 
 class PolygonShape {
 	/** 多边形的顶点。 */
-	verts: dora.Vec2.Type[];
+	verts: Dora.Vec2.Type[];
 	/** 多边形的密度（默认为0.0）（可选）。 */
 	density?: number;
 	/** 多边形的摩擦系数（默认为0.4，应为0.0到1.0）（可选）。 */
@@ -1324,7 +1324,7 @@ class PolygonShape {
 
 class MultiShape {
 	/** 表示组成凹形状的每个凸形状的顶点的Vec2数组。 */
-	verts: dora.Vec2.Type[];
+	verts: Dora.Vec2.Type[];
 	/** 形状的密度（默认为0.0）。 */
 	density?: number;
 	/** 形状的摩擦系数（默认为0.4，应为0.0到1.0）。 */
@@ -1354,7 +1354,7 @@ class DiskShape {
 
 class ChainShape {
 	/** 链的顶点。 */
-	verts: dora.Vec2.Type[];
+	verts: Dora.Vec2.Type[];
 	/** 链的摩擦系数（默认为0.4）。 */
 	friction?: number;
 	/** 链的弹性系数（默认为0.0）。 */
@@ -1364,17 +1364,17 @@ class ChainShape {
 }
 
 class DistanceJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** 是否连接到关节的物理体会彼此碰撞。默认为 false。 */
 	canCollide?: boolean;
 	/** 要连接到关节的第一个物理体。 */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** 要连接到关节的第二个物理体。 */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** 关节在第一个物理体上的位置（默认值为 Vec2.zero）。 */
-	anchorA?: dora.Vec2.Type;
+	anchorA?: Dora.Vec2.Type;
 	/** 关节在第二个物理体上的位置（默认值为 Vec2.zero）。 */
-	anchorB?: dora.Vec2.Type;
+	anchorB?: Dora.Vec2.Type;
 	/** 关节的频率，单位为赫兹（默认值为 0.0）。 */
 	frequency?: number;
 	/** 关节的阻尼系数（默认值为 0.0）。 */
@@ -1382,15 +1382,15 @@ class DistanceJoint {
 }
 
 class FrictionJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** 是否连接到关节的物理体会彼此碰撞。默认为 false。 */
 	canCollide?: boolean;
 	/** 要连接到关节的第一个物理体。 */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** 要连接到关节的第二个物理体。 */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** 关节在物理世界中的位置。 */
-	worldPos: dora.Vec2.Type;
+	worldPos: Dora.Vec2.Type;
 	/** 可以施加到关节的最大力量。 */
 	maxForce: number;
 	/** 可以施加到关节的最大扭矩。 */
@@ -1398,27 +1398,27 @@ class FrictionJoint {
 }
 
 class GearJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** 是否连接到关节的物理体会彼此碰撞。默认为 false。 */
 	canCollide?: boolean;
 	/** 要连接到齿轮关节的第一个关节。 */
-	jointA: Ref<dora.Joint.Type>;
+	jointA: Ref<Dora.Joint.Type>;
 	/** 要连接到齿轮关节的第二个关节。 */
-	jointB: Ref<dora.Joint.Type>;
+	jointB: Ref<Dora.Joint.Type>;
 	/** 齿轮传动比率（默认值为 1.0）。 */
 	ratio?: number;
 }
 
 class SpringJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** 是否连接到关节的物理体会彼此碰撞。默认为 false。 */
 	canCollide?: boolean;
 	/** 连接到关节的第一个物理体。 */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** 连接到关节的第二个物理体。 */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** 在物理体A坐标系下，物理体B的位置减去物理体A的位置。 */
-	linearOffset: dora.Vec2.Type;
+	linearOffset: Dora.Vec2.Type;
 	/** 物理体B的角度减去物理体A的角度。 */
 	angularOffset: number;
 	/** 关节能够施加的最大力。 */
@@ -1430,13 +1430,13 @@ class SpringJoint {
 }
 
 class MoveJoint {
-	ref?: Ref<dora.MoveJoint.Type>;
+	ref?: Ref<Dora.MoveJoint.Type>;
 	/** 是否连接到关节的物理体会彼此碰撞。默认为 false。 */
 	canCollide?: boolean;
 	/** 关节连接的刚体。 */
-	body: Ref<dora.Body.Type>;
+	body: Ref<Dora.Body.Type>;
 	/** 刚体应该拖拽到的目标位置。 */
-	targetPos: dora.Vec2.Type;
+	targetPos: Dora.Vec2.Type;
 	/** 关节能够施加的最大力。 */
 	maxForce: number;
 	/** 可选的频率比率，默认为5.0。 */
@@ -1446,15 +1446,15 @@ class MoveJoint {
 }
 
 class PrismaticJoint {
-	ref?: Ref<dora.MotorJoint.Type>;
+	ref?: Ref<Dora.MotorJoint.Type>;
 	/** 是否连接到关节的物理体会彼此碰撞。默认为 false。 */
 	canCollide?: boolean;
 	/** 连接到关节的第一个刚体。 */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** 连接到关节的第二个刚体。 */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** 关节的世界坐标。 */
-	worldPos: dora.Vec2.Type;
+	worldPos: Dora.Vec2.Type;
 	/** 关节的轴角度。 */
 	axisAngle: number;
 	/** 可选的下限平移量，默认为0.0。 */
@@ -1468,35 +1468,35 @@ class PrismaticJoint {
 }
 
 class PulleyJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** 是否连接到关节的物理体会彼此碰撞。默认为 false。 */
 	canCollide?: boolean;
 	/** 要连接的第一个物理体。 */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** 要连接的第二个物理体。 */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** 第一个物体上的锚点的位置（默认值为 Vec2.zero）。 */
-	anchorA?: dora.Vec2.Type;
+	anchorA?: Dora.Vec2.Type;
 	/** 第二个物体上的锚点的位置（默认值为 Vec2.zero）。 */
-	anchorB?: dora.Vec2.Type;
+	anchorB?: Dora.Vec2.Type;
 	/** 第一个物体上的地面锚点在世界坐标系中的位置。 */
-	groundAnchorA: dora.Vec2.Type;
+	groundAnchorA: Dora.Vec2.Type;
 	/** 第二个物体上的地面锚点在世界坐标系中的位置。 */
-	groundAnchorB: dora.Vec2.Type;
+	groundAnchorB: Dora.Vec2.Type;
 	/** [可选] 滑轮比率（默认值为1.0）。 */
 	ratio?: number;
 }
 
 class RevoluteJoint {
-	ref?: Ref<dora.MotorJoint.Type>;
+	ref?: Ref<Dora.MotorJoint.Type>;
 	/** 是否连接到关节的物理体会彼此碰撞。默认为 false。 */
 	canCollide?: boolean;
 	/** 要连接的第一个物理体。 */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** 要连接的第二个物理体。 */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** 关节将被创建的世界坐标位置。 */
-	worldPos: dora.Vec2.Type;
+	worldPos: Dora.Vec2.Type;
 	/** [可选] 下限角度限制（弧度）（默认为0.0）。 */
 	lowerAngle?: number;
 	/** [可选] 上限角度限制（弧度）（默认为0.0）。 */
@@ -1508,31 +1508,31 @@ class RevoluteJoint {
 }
 
 class RopeJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** 是否连接到关节的物理体会彼此碰撞。默认为 false。 */
 	canCollide?: boolean;
 	/** 要连接的第一个物理体。 */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** 要连接的第二个物理体。 */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** 第一个物体上的锚点的位置（默认值为 Vec2.zero）。 */
-	anchorA?: dora.Vec2.Type;
+	anchorA?: Dora.Vec2.Type;
 	/** 第二个物体上的锚点的位置（默认值为 Vec2.zero）。 */
-	anchorB?: dora.Vec2.Type;
+	anchorB?: Dora.Vec2.Type;
 	/** [可选] 锚点之间的最大距离（默认为0.0）。 */
 	maxLength?: number;
 }
 
 class WeldJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** 是否连接到关节的物理体会彼此碰撞。默认为 false。 */
 	canCollide?: boolean;
 	/** 第一个将被连接的物体。 */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** 第二个将被连接的物体。 */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** 连接物体的世界位置。 */
-	worldPos: dora.Vec2.Type;
+	worldPos: Dora.Vec2.Type;
 	/** [可选] 关节的刚度频率，默认为 0.0。 */
 	frequency?: number;
 	/** [可选] 关节的阻尼比率，默认为 0.0。 */
@@ -1540,15 +1540,15 @@ class WeldJoint {
 }
 
 class WheelJoint {
-	ref?: Ref<dora.MotorJoint.Type>;
+	ref?: Ref<Dora.MotorJoint.Type>;
 	/** 是否连接到关节的物理体会彼此碰撞。默认为 false。 */
 	canCollide?: boolean;
 	/** 第一个将被连接的物体。 */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** 第二个将被连接的物体。 */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** 连接物体的世界位置。 */
-	worldPos: dora.Vec2.Type;
+	worldPos: Dora.Vec2.Type;
 	/** 关节轴的角度，以弧度为单位。 */
 	axisAngle: number;
 	/** [可选] 关节电机可以施加的最大力矩，默认为 0.0。 */
@@ -1566,7 +1566,7 @@ class CustomNode extends Node {
 	 * 用于创建自定义节点的回调函数。
 	 * @returns 返回自定义节点的实例。
 	 */
-	onCreate(this: void): dora.Node.Type | null;
+	onCreate(this: void): Dora.Node.Type | null;
 }
 
 class CustomElement {

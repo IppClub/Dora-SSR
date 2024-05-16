@@ -1,15 +1,15 @@
 -- [tsx]: Hello WorldTSX.tsx
 local ____exports = {} -- 1
-local ____dora_2Dx = require("dora-x") -- 2
-local React = ____dora_2Dx.React -- 2
-local toNode = ____dora_2Dx.toNode -- 2
+local ____DoraX = require("DoraX") -- 2
+local React = ____DoraX.React -- 2
+local toNode = ____DoraX.toNode -- 2
 local ImGui = require("ImGui") -- 4
-local ____dora = require("dora") -- 5
-local App = ____dora.App -- 5
-local Vec2 = ____dora.Vec2 -- 5
-local once = ____dora.once -- 5
-local sleep = ____dora.sleep -- 5
-local threadLoop = ____dora.threadLoop -- 5
+local ____Dora = require("Dora") -- 5
+local App = ____Dora.App -- 5
+local Vec2 = ____Dora.Vec2 -- 5
+local once = ____Dora.once -- 5
+local sleep = ____Dora.sleep -- 5
+local threadLoop = ____Dora.threadLoop -- 5
 toNode(React:createElement( -- 7
     "node", -- 7
     { -- 7

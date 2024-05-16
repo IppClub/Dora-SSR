@@ -1,4 +1,4 @@
-import { Vec2, NodeType as Node } from "dora";
+import { Vec2, NodeType as Node } from "Dora";
 type Vec2 = Vec2.Type;
 
 declare module 'AlignNode' {

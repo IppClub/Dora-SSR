@@ -1,7 +1,7 @@
 // @preview-file off
 import { WindowFlag, SetCond } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Model, Slot, Vec2, threadLoop } from "dora";
+import { App, Model, Slot, Vec2, threadLoop } from "Dora";
 
 const modelFile = "Model/xiaoli.model";
 

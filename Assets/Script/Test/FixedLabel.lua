@@ -1,7 +1,7 @@
 -- [yue]: Script/Test/FixedLabel.yue
-local once = dora.once -- 1
-local sleep = dora.sleep -- 1
-local Node = dora.Node -- 1
+local once = Dora.once -- 1
+local sleep = Dora.sleep -- 1
+local Node = Dora.Node -- 1
 local LineRect = require("UI.View.Shape.LineRect") -- 2
 local FixedLabel = require("UI.Control.Basic.FixedLabel") -- 3
 local utf8 = require("utf-8") -- 4

@@ -1,6 +1,6 @@
-declare module 'Platformer-x' {
+declare module 'PlatformerX' {
 
-import { React } from 'dora-x';
+import { React } from 'DoraX';
 import * as P from 'Platformer';
 
 export namespace BehaviorTree {
@@ -118,4 +118,4 @@ export namespace DecisionTree {
 
 export function toAI(this: void, node: DecisionTree.Leaf): P.Decision.Leaf | null;
 
-} // module "Platformer-x"
+} // module "PlatformerX"

@@ -1,4 +1,5 @@
-import {AlignNode} from 'dora';
+// @preview-file off
+import {AlignNode} from 'Dora';
 
 const root = AlignNode(true);
 root.showDebug = true;

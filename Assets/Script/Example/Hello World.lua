@@ -1,12 +1,12 @@
 -- [yue]: Script/Example/Hello World.yue
-local Node = dora.Node -- 1
+local Node = Dora.Node -- 1
 local print = _G.print -- 1
-local once = dora.once -- 1
-local sleep = dora.sleep -- 1
-local threadLoop = dora.threadLoop -- 1
-local App = dora.App -- 1
-local ImGui = dora.ImGui -- 1
-local Vec2 = dora.Vec2 -- 1
+local once = Dora.once -- 1
+local sleep = Dora.sleep -- 1
+local threadLoop = Dora.threadLoop -- 1
+local App = Dora.App -- 1
+local ImGui = Dora.ImGui -- 1
+local Vec2 = Dora.Vec2 -- 1
 do -- 3
 	local _with_0 = Node() -- 3
 	_with_0:slot("Enter", function() -- 4

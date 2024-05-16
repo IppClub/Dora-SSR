@@ -1,7 +1,7 @@
 // @preview-file off
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Body, BodyDef, BodyMoveType, Label, Line, PhysicsWorld, Slot, Vec2, threadLoop } from "dora";
+import { App, Body, BodyDef, BodyMoveType, Label, Line, PhysicsWorld, Slot, Vec2, threadLoop } from "Dora";
 
 const gravity = Vec2(0, -10);
 

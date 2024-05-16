@@ -1,13 +1,13 @@
 -- [yue]: Script/Example/Label.yue
-local Label = dora.Label -- 1
-local Sequence = dora.Sequence -- 1
-local Delay = dora.Delay -- 1
-local Scale = dora.Scale -- 1
-local App = dora.App -- 1
-local Vec2 = dora.Vec2 -- 1
-local Opacity = dora.Opacity -- 1
-local threadLoop = dora.threadLoop -- 1
-local ImGui = dora.ImGui -- 1
+local Label = Dora.Label -- 1
+local Sequence = Dora.Sequence -- 1
+local Delay = Dora.Delay -- 1
+local Scale = Dora.Scale -- 1
+local App = Dora.App -- 1
+local Vec2 = Dora.Vec2 -- 1
+local Opacity = Dora.Opacity -- 1
+local threadLoop = Dora.threadLoop -- 1
+local ImGui = Dora.ImGui -- 1
 do -- 3
 	local _with_0 = Label("sarasa-mono-sc-regular", 40) -- 3
 	_with_0.batched = false -- 4

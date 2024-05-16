@@ -1,8 +1,8 @@
 // @preview-file off
-import { React, toNode, useRef } from 'dora-x';
+import { React, toNode, useRef } from 'DoraX';
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Body, BodyMoveType, Label, Line, Vec2, threadLoop } from "dora";
+import { App, Body, BodyMoveType, Label, Line, Vec2, threadLoop } from "Dora";
 
 const gravity = Vec2(0, -10);
 const anchor = useRef<Line.Type>();

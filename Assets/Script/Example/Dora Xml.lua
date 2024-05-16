@@ -16,7 +16,7 @@ root:slot("Enter",function() -- 24
 root:perform(rotate) -- 24
 end) -- 24
 do -- 26
-	local _ENV = Dora() -- 28
+	local _ENV = Dora -- 28
 	local xmlCodes = Content:load(selfPath) -- 29
 	local luaCodes = xml.tolua(xmlCodes) -- 30
 	print("[Xml Codes]\n\n" .. tostring(xmlCodes) .. "\n[Compiled Lua Codes]\n\n" .. tostring(luaCodes)) -- 31

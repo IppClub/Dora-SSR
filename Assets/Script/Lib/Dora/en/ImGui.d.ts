@@ -1,4 +1,4 @@
-/// <reference path="dora.d.ts" />
+/// <reference path="Dora.d.ts" />
 
 declare module 'ImGui' {
 import {
@@ -6,7 +6,7 @@ import {
 	Buffer,
 	Color,
 	Color3
-} from "dora";
+} from "Dora";
 
 type Vec2 = Vec2.Type;
 type Buffer = Buffer.Type;

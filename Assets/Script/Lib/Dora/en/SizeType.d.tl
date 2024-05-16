@@ -27,7 +27,7 @@ local record Size
 	-- @param vec (Vec2) The vector to multiply by.
 	-- @return (Size) The result of multiplying the size by the vector.
 	-- @usage local halfSize = size * Vec2(0.5, 0.5)
-	mul: function(self: Size, vec: dora.Vec2.Type): Size
+	mul: function(self: Size, vec: Dora.Vec2.Type): Size
 
 	-- Check if two sizes are equal.
 	-- @param other (Size) The other size to compare to.
@@ -39,7 +39,7 @@ local record Size
 	-- @param vec (Vec2) The vector to multiply by.
 	-- @return (Size) The result of multiplying the size by the vector.
 	-- @usage local halfSize = size * Vec2(0.5, 0.5)
-	metamethod __mul: function(self: Size, vec: dora.Vec2.Type): Size
+	metamethod __mul: function(self: Size, vec: Dora.Vec2.Type): Size
 end
 
 return Size

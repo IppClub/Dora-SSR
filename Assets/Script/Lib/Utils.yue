@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
 
-_ENV = Dora!
+_ENV = Dora
 import insert, remove, concat, sort from table
 import floor, ceil from math
 import type, tostring, setmetatable, table, rawset, rawget from _G
@@ -292,7 +292,6 @@ export IsValidPath = (filename) -> not filename\match "[\\/|:*?<>\"]"
 
 allowedUseOfGlobals = Set
 	* "Dora"
-	* "dora"
 	* "require"
 	* "_G"
 
@@ -304,10 +303,11 @@ export LintYueGlobals = (luaCodes, globals, globalInLocal = true) ->
 	importItems = if importCodes
 		for item in importCodes\gmatch "%s*([^,\n\r]+)%s*"
 			getImport = load "return #{item}"
-			importItem = getImport?!
+			importItem = if success, result := try getImport! then result
 			continue if not importItem or "table" ~= type importItem
 			[importItem, item]
 	else []
+	importCodes ??= luaCodes\match "^%s*local%s*_ENV%s*=%s*Dora[^%w_$]"
 	importSet = {}
 	globalSet = {}
 	for globalVar in *globals
@@ -321,8 +321,8 @@ export LintYueGlobals = (luaCodes, globals, globalInLocal = true) ->
 			continue
 		findModule = false
 		if importCodes
-			if dora[name]
-				requireModules[] = "local #{name} = dora.#{name} -- 1"
+			if Dora[name]
+				requireModules[] = "local #{name} = Dora.#{name} -- 1"
 				findModule = true
 			else
 				for i, [mod, modName] in ipairs importItems

@@ -10,7 +10,7 @@ local table_insert <const> = table.insert
 local table_remove <const> = table.remove
 local type <const> = type
 local unpack <const> = table.unpack
-local dora <const> = dora
+local Dora <const> = Dora
 local package <const> = package
 local coroutine <const> = coroutine
 local assert <const> = assert
@@ -23,21 +23,21 @@ local pairs <const>, ipairs <const> = pairs, ipairs
 
 -- prepare singletons
 do
-	dora.App = dora.Application()
-	dora.Application = nil
-	package.cpath = dora.App.platform == "Windows" and "?.dll" or "?.so"
+	Dora.App = Dora.Application()
+	Dora.Application = nil
+	package.cpath = Dora.App.platform == "Windows" and "?.dll" or "?.so"
 
-	dora.Content = dora.Content()
-	dora.Director = dora.Director()
-	dora.View = dora.View()
-	dora.Audio = dora.Audio()
-	dora.Controller = dora.Controller()
-	dora.Keyboard = dora.Keyboard()
-	dora.DB = dora.DB()
-	dora.HttpServer = dora.HttpServer()
-	dora.HttpClient = dora.HttpClient()
-	dora.Platformer.Decision.AI = dora.Platformer.Decision.AI()
-	dora.Platformer.Data = dora.Platformer.Data()
+	Dora.Content = Dora.Content()
+	Dora.Director = Dora.Director()
+	Dora.View = Dora.View()
+	Dora.Audio = Dora.Audio()
+	Dora.Controller = Dora.Controller()
+	Dora.Keyboard = Dora.Keyboard()
+	Dora.DB = Dora.DB()
+	Dora.HttpServer = Dora.HttpServer()
+	Dora.HttpClient = Dora.HttpClient()
+	Dora.Platformer.Decision.AI = Dora.Platformer.Decision.AI()
+	Dora.Platformer.Data = Dora.Platformer.Data()
 end
 
 -- setup Yuescript loader
@@ -48,7 +48,7 @@ yue.insert_loader(3)
 
 debug.traceback = function(err, level)
 	-- add search path `Content.writablePath` since some source filenames are relative to it
-	package.path = "?.lua;" .. dora.Path(dora.Content.writablePath, "?.lua")
+	package.path = "?.lua;" .. Dora.Path(Dora.Content.writablePath, "?.lua")
 	local message = yue.traceback(err, (level or 1) + 1)
 	package.path = "?.lua"
 	return message
@@ -62,8 +62,8 @@ end
 
 -- setup loader profilers
 do
-	local App = dora.App
-	local Profiler = dora.Profiler
+	local App = Dora.App
+	local Profiler = Dora.Profiler
 	local EventName = Profiler.EventName
 	local loaders = package.loaders or package.searchers
 	for i = 1, #loaders do
@@ -76,7 +76,7 @@ do
 				__close = function()
 					if type(loaded) ~= "string" then
 						local deltaTime = App.elapsedTime - lastTime
-						dora.emit(EventName, "Loader", name .. " [Compile]", Profiler.level, deltaTime)
+						Dora.emit(EventName, "Loader", name .. " [Compile]", Profiler.level, deltaTime)
 					end
 					Profiler.level = Profiler.level - 1
 				end
@@ -104,7 +104,7 @@ do
 		local _ <close> = setmetatable({}, {
 			__close = function()
 				local deltaTime = App.elapsedTime - lastTime
-				dora.emit(EventName, "Loader", name, Profiler.level, deltaTime)
+				Dora.emit(EventName, "Loader", name, Profiler.level, deltaTime)
 				Profiler.level = Profiler.level - 1
 			end
 		})
@@ -119,7 +119,7 @@ do
 	local coroutine_resume = coroutine.resume
 	local coroutine_close = coroutine.close
 	local coroutine_status = coroutine.status
-	local App = dora.App
+	local App = Dora.App
 
 	local function wait(cond)
 		repeat
@@ -202,7 +202,7 @@ do
 		end
 	})
 
-	dora.Director.postScheduler:schedule(function()
+	Dora.Director.postScheduler:schedule(function()
 		local i, count = 1, #Routine
 		while i <= count do
 			local routine = Routine[i]
@@ -225,21 +225,21 @@ do
 		return false
 	end)
 
-	dora.Routine = Routine
-	dora.wait = wait
-	dora.once = once
-	dora.loop = loop
-	dora.cycle = cycle
+	Dora.Routine = Routine
+	Dora.wait = wait
+	Dora.once = once
+	Dora.loop = loop
+	Dora.cycle = cycle
 
-	dora.thread = function(routine)
+	Dora.thread = function(routine)
 		return Routine(once(routine))
 	end
 
-	dora.threadLoop = function(routine)
+	Dora.threadLoop = function(routine)
 		return Routine(loop(routine))
 	end
 
-	dora.sleep = function(duration)
+	Dora.sleep = function(duration)
 		if duration then
 			local time = 0
 			repeat
@@ -254,8 +254,8 @@ end
 
 -- async functions
 do
-	local Content = dora.Content
-	local wait = dora.wait
+	local Content = Dora.Content
+	local wait = Dora.wait
 	local Content_loadAsync = Content.loadAsync
 	Content.loadAsync = function(self, filename)
 		local _, mainThread = coroutine.running()
@@ -361,7 +361,7 @@ do
 		return result
 	end
 
-	local Cache = dora.Cache
+	local Cache = Dora.Cache
 	local Cache_loadAsync = Cache.loadAsync
 	Cache.loadAsync = function(self, target, handler)
 		local _, mainThread = coroutine.running()
@@ -389,7 +389,7 @@ do
 		end)
 	end
 
-	local RenderTarget = dora.RenderTarget
+	local RenderTarget = Dora.RenderTarget
 	local RenderTarget_saveAsync = RenderTarget.saveAsync
 	RenderTarget.saveAsync = function(self, filename)
 		local _, mainThread = coroutine.running()
@@ -406,7 +406,7 @@ do
 		return saved
 	end
 
-	local DB = dora.DB
+	local DB = Dora.DB
 	local DB_queryAsync = DB.queryAsync
 	DB.queryAsync = function(self, ...)
 		local _, mainThread = coroutine.running()
@@ -487,7 +487,7 @@ do
 		return result
 	end
 
-	local Wasm = dora.Wasm
+	local Wasm = Dora.Wasm
 	local Wasm_executeMainFileAsync = Wasm.executeMainFileAsync
 	Wasm.executeMainFileAsync = function(self, filename)
 		local _, mainThread = coroutine.running()
@@ -504,7 +504,7 @@ do
 		return result
 	end
 
-	local HttpServer = dora.HttpServer
+	local HttpServer = Dora.HttpServer
 	local HttpServer_postSchedule = HttpServer.postSchedule
 	HttpServer.postSchedule = function(self, pattern, scheduleFunc)
 		HttpServer_postSchedule(self, pattern, function(req)
@@ -514,7 +514,7 @@ do
 		end)
 	end
 
-	local HttpClient = dora.HttpClient
+	local HttpClient = Dora.HttpClient
 	local HttpClient_downloadAsync = HttpClient.downloadAsync
 	HttpClient.downloadAsync = function(self, url, filePath, progress)
 		local _, mainThread = coroutine.running()
@@ -553,7 +553,7 @@ do
 		return result, lcodes
 	end
 
-	local teal = dora.teal
+	local teal = Dora.teal
 	local teal_toluaAsync = teal.toluaAsync
 	teal.toluaAsync = function(codes, moduleName, searchPath)
 		local _, mainThread = coroutine.running()
@@ -637,8 +637,8 @@ end
 
 -- node actions
 do
-	local Action = dora.Action
-	local Node = dora.Node
+	local Action = Dora.Action
+	local Node = Dora.Node
 	local Node_runAction = Node.runAction
 	Node.runAction = function(self, action, loop)
 		if type(action) == "table" then
@@ -681,7 +681,7 @@ do
 		"Spawn",
 		"Sequence"
 	} do
-		dora[actionName] = function(...)
+		Dora[actionName] = function(...)
 			return {
 				actionName,
 				...
@@ -689,20 +689,20 @@ do
 		end
 	end
 
-	local Spawn = dora.Spawn
-	local X = dora.X
-	local Y = dora.Y
-	local ScaleX = dora.ScaleX
-	local ScaleY = dora.ScaleY
+	local Spawn = Dora.Spawn
+	local X = Dora.X
+	local Y = Dora.Y
+	local ScaleX = Dora.ScaleX
+	local ScaleY = Dora.ScaleY
 
-	dora.Move = function(duration, start, stop, ease)
+	Dora.Move = function(duration, start, stop, ease)
 		return Spawn(
 			X(duration, start.x, stop.x, ease),
 			Y(duration, start.y, stop.y, ease)
 		)
 	end
 
-	dora.Scale = function(duration, start, stop, ease)
+	Dora.Scale = function(duration, start, stop, ease)
 		return Spawn(
 			ScaleX(duration, start, stop, ease),
 			ScaleY(duration, start, stop, ease)
@@ -712,7 +712,7 @@ end
 
 -- fix array indicing
 do
-	local Array = dora.Array
+	local Array = Dora.Array
 	local Array_index = Array.__index
 	local Array_get = Array.get
 	Array.__index = function(self, key)
@@ -739,7 +739,7 @@ end
 
 -- mock dictionary as Lua table
 do
-	local Dictionary = dora.Dictionary
+	local Dictionary = Dora.Dictionary
 	local Dictionary_index = Dictionary.__index
 	local Dictionary_get = Dictionary.get
 	Dictionary.__index = function(self, key)
@@ -759,7 +759,7 @@ end
 
 -- entity cache and old value accessing sugar
 do
-	local Entity = dora.Entity
+	local Entity = Dora.Entity
 
 	local Entity_create = Entity[2]
 	local Entity_cache = {}
@@ -838,7 +838,7 @@ end
 
 -- unit action creation
 do
-	local UnitAction = dora.Platformer.UnitAction
+	local UnitAction = Dora.Platformer.UnitAction
 	local UnitAction_add = UnitAction.add
 	local function dummy() return true end
 	UnitAction.add = function(self, name, params)
@@ -857,7 +857,7 @@ end
 
 -- ImGui pair call wrappers
 do
-	local ImGui = dora.ImGui
+	local ImGui = Dora.ImGui
 
 	local closeVar = setmetatable({}, {
 		__close = function(self)
@@ -966,9 +966,9 @@ end
 
 -- ML
 do
-	local wait = dora.wait
-	local BuildDecisionTreeAsync = dora.ML.BuildDecisionTreeAsync
-	dora.ML.BuildDecisionTreeAsync = function(data, maxDepth, handler)
+	local wait = Dora.wait
+	local BuildDecisionTreeAsync = Dora.ML.BuildDecisionTreeAsync
+	Dora.ML.BuildDecisionTreeAsync = function(data, maxDepth, handler)
 		local accuracy, err
 		local done = false
 		BuildDecisionTreeAsync(data, maxDepth, function(...)
@@ -992,7 +992,7 @@ end
 
 -- blackboard accessing sugar
 do
-	local Blackboard = dora.Platformer.Behavior.Blackboard
+	local Blackboard = Dora.Platformer.Behavior.Blackboard
 	local Blackboard_index = Blackboard.__index
 	local Blackboard_get = Blackboard.get
 	Blackboard.__index = function(self, key)
@@ -1008,46 +1008,46 @@ end
 
 -- API for Typescript without operator overloading
 do
-	dora.Size.equals = function(self, var)
+	Dora.Size.equals = function(self, var)
 		return self == var
 	end
 
-	dora.Size.mul = function(self, var)
+	Dora.Size.mul = function(self, var)
 		return self * var
 	end
 
-	dora.Vec2.add = function(self, var)
+	Dora.Vec2.add = function(self, var)
 		return self + var
 	end
 
-	dora.Vec2.sub = function(self, var)
+	Dora.Vec2.sub = function(self, var)
 		return self - var
 	end
 
-	dora.Vec2.mul = function(self, var)
+	Dora.Vec2.mul = function(self, var)
 		return self * var
 	end
 
-	dora.Vec2.div = function(self, var)
+	Dora.Vec2.div = function(self, var)
 		return self / var
 	end
 
-	dora.Vec2.equals = function(self, var)
+	Dora.Vec2.equals = function(self, var)
 		return self == var
 	end
 
-	dora.Rect.equals = function(self, var)
+	Dora.Rect.equals = function(self, var)
 		return self == var
 	end
 end
 
 -- to string debugging helper
 do
-	dora.Vec2.__tostring = function(self)
+	Dora.Vec2.__tostring = function(self)
 		return "Vec2(" .. tostring(self.x) .. ", " .. tostring(self.y) .. ")"
 	end
 
-	dora.Rect.__tostring = function(self)
+	Dora.Rect.__tostring = function(self)
 		return "Rect("
 			.. tostring(self.x) .. ", "
 			.. tostring(self.y) .. ", "
@@ -1055,25 +1055,25 @@ do
 			.. tostring(self.height) .. ")"
 	end
 
-	dora.Size.__tostring = function(self)
+	Dora.Size.__tostring = function(self)
 		return "Size(" .. tostring(self.width) .. ", " .. tostring(self.height) .. ")"
 	end
 
-	dora.Color.__tostring = function(self)
+	Dora.Color.__tostring = function(self)
 		return "Color(" .. string.format("0x%x", self:toARGB()) .. ")"
 	end
 
-	dora.Color3.__tostring = function(self)
+	Dora.Color3.__tostring = function(self)
 		return "Color3(" .. string.format("0x%x", self:toRGB()) .. ")"
 	end
 end
 
--- dora helpers
+-- Dora helpers
 do
 	_G.p = yue.p
-	dora.p = yue.p
+	Dora.p = yue.p
 
-	local Path = dora.Path
+	local Path = Dora.Path
 
 	local loadfile = _G.loadfile
 	_G.loadfile = function(file, ...)
@@ -1105,9 +1105,9 @@ do
 		error("disallow creating global variable \"" .. name .. "\".")
 	end
 
-	local function Dora(...)
+	local function getDoraLib(_, ...)
 		if select("#", ...) == 0 then
-			return dora
+			return Dora
 		else
 			local envs
 			envs = {
@@ -1121,27 +1121,29 @@ do
 					return nil
 				end,
 				__newindex = disallowCreateGlobal,
-				dora,
+				Dora,
 				...
 			}
 			return setmetatable(envs, envs)
 		end
 	end
 	_G.Dora = Dora
-	dora.Dora = Dora
+	Dora.Dora = Dora
 
 	for k, v in pairs(_G) do
-		dora[k] = v
+		Dora[k] = v
 	end
-	setmetatable(package.loaded, { __index = dora })
+	setmetatable(package.loaded, {__index = Dora})
 
 	local globals = {} -- available global value storage
 	_G.globals = globals
-	dora.globals = globals
+	Dora.globals = globals
 
-	local doraMeta = { __newindex = disallowCreateGlobal }
-	setmetatable(_G, doraMeta)
-	setmetatable(dora, doraMeta)
+	setmetatable(_G, {__newindex = disallowCreateGlobal})
+	setmetatable(Dora, {
+		__newindex = disallowCreateGlobal,
+		__call = getDoraLib,
+	})
 end
 
 -- default GC setting

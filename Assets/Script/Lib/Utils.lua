@@ -1,7 +1,7 @@
 -- [yue]: Script/Lib/Utils.yue
 local table = _G.table -- 1
 local math = _G.math -- 1
-local thread = dora.thread -- 1
+local thread = Dora.thread -- 1
 local getmetatable = _G.getmetatable -- 1
 local error = _G.error -- 1
 local ipairs = _G.ipairs -- 1
@@ -9,7 +9,8 @@ local pairs = _G.pairs -- 1
 local select = _G.select -- 1
 local assert = _G.assert -- 1
 local load = _G.load -- 1
-local Vec2 = dora.Vec2 -- 1
+local Vec2 = Dora.Vec2 -- 1
+local pcall = _G.pcall -- 1
 local string = _G.string -- 1
 local _module_0 = { } -- 1
 local insert, remove, concat, sort = table.insert, table.remove, table.concat, table.sort -- 10
@@ -439,43 +440,48 @@ end -- 291
 _module_0["IsValidPath"] = IsValidPath -- 291
 local allowedUseOfGlobals = Set({ -- 294
 	"Dora", -- 294
-	"dora", -- 295
-	"require", -- 296
-	"_G" -- 297
+	"require", -- 295
+	"_G" -- 296
 }) -- 293
-local LintYueGlobals -- 299
-LintYueGlobals = function(luaCodes, globals, globalInLocal) -- 299
-	if globalInLocal == nil then -- 299
-		globalInLocal = true -- 299
-	end -- 299
-	local errors = { } -- 300
-	local requireModules = { } -- 301
-	luaCodes = luaCodes:gsub("^local _module_[^\r\n]*[^\r\n]+", "") -- 302
-	local importCodes = luaCodes:match("^%s*local%s*_ENV%s*=%s*Dora%(([^%)]-)%)") -- 303
-	local importItems -- 304
-	if importCodes then -- 304
-		local _accum_0 = { } -- 305
-		local _len_0 = 1 -- 305
-		for item in importCodes:gmatch("%s*([^,\n\r]+)%s*") do -- 305
-			local getImport = load("return " .. tostring(item)) -- 306
-			local importItem -- 307
-			if getImport ~= nil then -- 307
-				importItem = getImport() -- 307
+local LintYueGlobals -- 298
+LintYueGlobals = function(luaCodes, globals, globalInLocal) -- 298
+	if globalInLocal == nil then -- 298
+		globalInLocal = true -- 298
+	end -- 298
+	local errors = { } -- 299
+	local requireModules = { } -- 300
+	luaCodes = luaCodes:gsub("^local _module_[^\r\n]*[^\r\n]+", "") -- 301
+	local importCodes = luaCodes:match("^%s*local%s*_ENV%s*=%s*Dora%(([^%)]-)%)") -- 302
+	local importItems -- 303
+	if importCodes then -- 303
+		local _accum_0 = { } -- 304
+		local _len_0 = 1 -- 304
+		for item in importCodes:gmatch("%s*([^,\n\r]+)%s*") do -- 304
+			local getImport = load("return " .. tostring(item)) -- 305
+			local importItem -- 306
+			do -- 306
+				local success, result = pcall(getImport) -- 306
+				if success then -- 306
+					importItem = result -- 306
+				end -- 306
+			end -- 306
+			if not importItem or "table" ~= type(importItem) then -- 307
+				goto _continue_0 -- 307
 			end -- 307
-			if not importItem or "table" ~= type(importItem) then -- 308
-				goto _continue_0 -- 308
-			end -- 308
-			_accum_0[_len_0] = { -- 309
-				importItem, -- 309
-				item -- 309
-			} -- 309
-			_len_0 = _len_0 + 1 -- 309
-			::_continue_0:: -- 306
-		end -- 309
-		importItems = _accum_0 -- 305
-	else -- 310
-		importItems = { } -- 310
-	end -- 304
+			_accum_0[_len_0] = { -- 308
+				importItem, -- 308
+				item -- 308
+			} -- 308
+			_len_0 = _len_0 + 1 -- 308
+			::_continue_0:: -- 305
+		end -- 308
+		importItems = _accum_0 -- 304
+	else -- 309
+		importItems = { } -- 309
+	end -- 303
+	if importCodes == nil then -- 310
+		importCodes = luaCodes:match("^%s*local%s*_ENV%s*=%s*Dora[^%w_$]") -- 310
+	end -- 310
 	local importSet = { } -- 311
 	local globalSet = { } -- 312
 	for _index_0 = 1, #globals do -- 313
@@ -496,8 +502,8 @@ LintYueGlobals = function(luaCodes, globals, globalInLocal) -- 299
 		end -- 318
 		local findModule = false -- 322
 		if importCodes then -- 323
-			if dora[name] then -- 324
-				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = dora." .. tostring(name) .. " -- 1" -- 325
+			if Dora[name] then -- 324
+				requireModules[#requireModules + 1] = "local " .. tostring(name) .. " = Dora." .. tostring(name) .. " -- 1" -- 325
 				findModule = true -- 326
 			else -- 328
 				for i, _des_0 in ipairs(importItems) do -- 328
@@ -525,7 +531,7 @@ LintYueGlobals = function(luaCodes, globals, globalInLocal) -- 299
 	else -- 342
 		return true, table.concat(requireModules, "\n") -- 342
 	end -- 339
-end -- 299
+end -- 298
 _module_0["LintYueGlobals"] = LintYueGlobals -- 342
 local GSplit -- 344
 GSplit = function(text, pattern, plain) -- 344

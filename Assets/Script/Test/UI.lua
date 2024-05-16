@@ -1,12 +1,12 @@
 -- [yue]: Script/Test/UI.yue
-local App = dora.App -- 1
+local App = Dora.App -- 1
 local tostring = _G.tostring -- 1
 local math = _G.math -- 1
 local print = _G.print -- 1
-local Size = dora.Size -- 1
-local Vec2 = dora.Vec2 -- 1
-local Director = dora.Director -- 1
-local AlignNode = dora.AlignNode -- 1
+local Size = Dora.Size -- 1
+local Vec2 = Dora.Vec2 -- 1
+local Director = Dora.Director -- 1
+local AlignNode = Dora.AlignNode -- 1
 local Button = require("UI.Control.Basic.Button") -- 2
 local LineRect = require("UI.View.Shape.LineRect") -- 3
 local ScrollArea = require("UI.Control.Basic.ScrollArea") -- 4
@@ -22,7 +22,8 @@ Panel = function(width, height, viewWidth, viewHeight) -- 6
 		viewHeight = viewHeight -- 14
 	}) -- 8
 	_with_0.border = LineRect({ -- 16
-		width = width, -- 16
+		x = 1, -- 16
+		width = width - 2, -- 16
 		height = height, -- 16
 		color = 0xffffffff -- 16
 	}) -- 16
@@ -48,7 +49,8 @@ Panel = function(width, height, viewWidth, viewHeight) -- 6
 		self:adjustSizeWithAlign("Auto", 10 * scale, Size(w, h), Size(width * scale, h)) -- 30
 		self.area:removeChild(self.border) -- 31
 		self.border = LineRect({ -- 32
-			width = w, -- 32
+			x = 1, -- 32
+			width = w - 2, -- 32
 			height = h, -- 32
 			color = 0xffffffff -- 32
 		}) -- 32

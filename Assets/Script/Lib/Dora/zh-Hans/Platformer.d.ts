@@ -1,4 +1,4 @@
-/// <reference path="dora.d.ts" />
+/// <reference path="Dora.d.ts" />
 
 declare module "Platformer" {
 import {
@@ -16,7 +16,7 @@ import {
 	BodyDef,
 	Job,
 	Item
-} from 'dora';
+} from 'Dora';
 
 type Playable = Playable.Type;
 type Size = Size.Type;
@@ -1217,7 +1217,7 @@ export {bulletClass as Bullet};
 
 } // module "Platformer"
 
-declare module "dora" {
+declare module "Dora" {
 import {
 	Behavior,
 	Bullet,
@@ -1264,4 +1264,4 @@ export interface TypeMap {
 	[TypeName.DecisionLeaf]: Decision.Leaf;
 }
 
-} // module "dora"
+} // module "Dora"

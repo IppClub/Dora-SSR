@@ -1,6 +1,6 @@
 // @preview-file off
-import { React, toNode, useRef } from 'dora-x';
-import { Body, BodyMoveType, Ease, Label, Line, Scale, TypeName, Vec2, tolua } from 'dora';
+import { React, toNode, useRef } from 'DoraX';
+import { Body, BodyMoveType, Ease, Label, Line, Scale, TypeName, Vec2, tolua } from 'Dora';
 
 toNode(<sprite file='Image/logo.png' scaleX={0.2} scaleY={0.2}/>);
 

@@ -1,11 +1,11 @@
 -- [yue]: Script/Lib/UI/Control/Basic/FixedLabel.yue
-local Class = dora.Class -- 1
-local Node = dora.Node -- 1
-local Color = dora.Color -- 1
-local Vec2 = dora.Vec2 -- 1
-local Size = dora.Size -- 1
-local Label = dora.Label -- 1
-local property = dora.property -- 1
+local Class = Dora.Class -- 1
+local Node = Dora.Node -- 1
+local Color = Dora.Color -- 1
+local Vec2 = Dora.Vec2 -- 1
+local Size = Dora.Size -- 1
+local Label = Dora.Label -- 1
+local property = Dora.property -- 1
 local utf8 = require("utf-8") -- 10
 return Class(Node, { -- 13
 	__init = function(self, args) -- 13

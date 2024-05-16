@@ -1,6 +1,6 @@
 // @preview-file on
-import { React, toNode } from 'dora-x';
-import { App, Vec2, threadLoop, Node } from 'dora';
+import { React, toNode } from 'DoraX';
+import { App, Vec2, threadLoop, Node } from 'Dora';
 import { SetCond, WindowFlag } from 'ImGui';
 import * as ImGui from 'ImGui';
 

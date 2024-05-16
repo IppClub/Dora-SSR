@@ -1,6 +1,6 @@
 -- [yue]: Script/Game/Loli War/init.yue
-local Path = dora.Path -- 1
-local Content = dora.Content -- 1
+local Path = Dora.Path -- 1
+local Content = Dora.Content -- 1
 local scriptPath = Path:getScriptPath(...) -- 11
 if scriptPath then -- 11
 	Content:insertSearchPath(1, scriptPath) -- 12

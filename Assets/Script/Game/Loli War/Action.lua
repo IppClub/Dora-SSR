@@ -1,14 +1,14 @@
 -- [yue]: Script/Game/Loli War/Action.yue
-local _module_0 = dora.Platformer -- 1
+local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local UnitAction = _module_0.UnitAction -- 1
-local once = dora.once -- 1
-local sleep = dora.sleep -- 1
-local Audio = dora.Audio -- 1
-local Group = dora.Group -- 1
-local Entity = dora.Entity -- 1
-local Vec2 = dora.Vec2 -- 1
-local emit = dora.emit -- 1
+local once = Dora.once -- 1
+local sleep = Dora.sleep -- 1
+local Audio = Dora.Audio -- 1
+local Group = Dora.Group -- 1
+local Entity = Dora.Entity -- 1
+local Vec2 = Dora.Vec2 -- 1
+local emit = Dora.emit -- 1
 local Bullet = _module_0.Bullet -- 1
 local Store = Data.store -- 11
 local LayerBunny, LayerBlock, GroupPlayerPoke, GroupEnemyPoke, GroupPlayer, GroupEnemy, MaxBunnies = Store.LayerBunny, Store.LayerBlock, Store.GroupPlayerPoke, Store.GroupEnemyPoke, Store.GroupPlayer, Store.GroupEnemy, Store.MaxBunnies -- 12

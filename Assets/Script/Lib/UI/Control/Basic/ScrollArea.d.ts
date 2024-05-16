@@ -1,4 +1,4 @@
-import { Size, NodeType as Node, Menu } from "dora";
+import { Size, NodeType as Node, Menu } from "Dora";
 type Size = Size.Type;
 type Menu = Menu.Type;
 

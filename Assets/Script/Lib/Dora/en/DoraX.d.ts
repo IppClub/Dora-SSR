@@ -1,8 +1,8 @@
 /// <reference path="jsx.d.ts" />
 
-declare module "dora-x" {
+declare module "DoraX" {
 
-import type * as dora from 'dora';
+import type * as Dora from 'Dora';
 
 /**
  * Represents the React namespace.
@@ -32,7 +32,7 @@ export namespace React {
  * @param enode - The React element or array of React elements to convert.
  * @returns The converted Dora node.
  */
-export function toNode(this: void, enode: React.Element | React.Element[]): dora.Node.Type | null;
+export function toNode(this: void, enode: React.Element | React.Element[]): Dora.Node.Type | null;
 
 /**
  * Creates a ref object that can be used to reference a value.
@@ -48,4 +48,4 @@ export function useRef<T>(this: void, item?: T): JSX.Ref<T>;
  */
 export function preloadAsync(this: void, enode: React.Element | React.Element[], handler?: (this: void, progress: number) => void): void;
 
-} // module "dora-x"
+} // module "DoraX"

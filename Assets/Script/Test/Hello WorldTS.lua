@@ -1,13 +1,13 @@
 -- [ts]: Hello WorldTS.ts
 local ____exports = {} -- 1
 local ImGui = require("ImGui") -- 3
-local ____dora = require("dora") -- 4
-local App = ____dora.App -- 4
-local Node = ____dora.Node -- 4
-local Vec2 = ____dora.Vec2 -- 4
-local once = ____dora.once -- 4
-local sleep = ____dora.sleep -- 4
-local threadLoop = ____dora.threadLoop -- 4
+local ____Dora = require("Dora") -- 4
+local App = ____Dora.App -- 4
+local Node = ____Dora.Node -- 4
+local Vec2 = ____Dora.Vec2 -- 4
+local once = ____Dora.once -- 4
+local sleep = ____Dora.sleep -- 4
+local threadLoop = ____Dora.threadLoop -- 4
 local node = Node() -- 6
 node:slot( -- 7
     "Enter", -- 7

@@ -1,15 +1,15 @@
 -- [yue]: Script/Example/Camera.yue
-local Node = dora.Node -- 1
-local Model = dora.Model -- 1
-local Sprite = dora.Sprite -- 1
-local Vec2 = dora.Vec2 -- 1
-local once = dora.once -- 1
-local Director = dora.Director -- 1
-local cycle = dora.cycle -- 1
-local Ease = dora.Ease -- 1
-local threadLoop = dora.threadLoop -- 1
-local App = dora.App -- 1
-local ImGui = dora.ImGui -- 1
+local Node = Dora.Node -- 1
+local Model = Dora.Model -- 1
+local Sprite = Dora.Sprite -- 1
+local Vec2 = Dora.Vec2 -- 1
+local once = Dora.once -- 1
+local Director = Dora.Director -- 1
+local cycle = Dora.cycle -- 1
+local Ease = Dora.Ease -- 1
+local threadLoop = Dora.threadLoop -- 1
+local App = Dora.App -- 1
+local ImGui = Dora.ImGui -- 1
 do -- 3
 	local _with_0 = Node() -- 3
 	_with_0:addChild((function() -- 4

@@ -523,7 +523,7 @@ local record lua
 		-- @param s (string) The input string.
 		-- @param lax (boolean) [optional] If true, relaxes validation checks.
 		-- @return (function) Iterator function for UTF-8 characters.
-		codes: function(s: string, lax?: boolean): function(string, ? number): number, number
+		codes: function(s: string, lax?: boolean): function(string, ? number): number, integer
 
 		-- Returns the code points from all characters in a string that start between given byte positions.
 		-- @param s (string) The input string.

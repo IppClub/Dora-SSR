@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -- GGJ2023 by Bao Yicheng from https://github.com/thisisbadBao/TouchTheSky
 
-_ENV = Dora dora.ImGui
+_ENV = Dora Dora.ImGui
 
 scriptPath = Path\getScriptPath ...
 Content\insertSearchPath 1, scriptPath

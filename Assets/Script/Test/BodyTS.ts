@@ -1,5 +1,5 @@
 // @preview-file off
-import { App, Body, BodyDef, BodyMoveType, PhysicsWorld, Vec2, threadLoop } from "dora";
+import { App, Body, BodyDef, BodyMoveType, PhysicsWorld, Vec2, threadLoop } from "Dora";
 import * as ImGui from 'ImGui';
 import { WindowFlag, SetCond } from "ImGui";
 

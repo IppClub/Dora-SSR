@@ -1,18 +1,18 @@
 -- [yue]: Script/Example/MultiTasking.yue
-local thread = dora.thread -- 1
+local thread = Dora.thread -- 1
 local print = _G.print -- 1
-local Content = dora.Content -- 1
-local sleep = dora.sleep -- 1
+local Content = Dora.Content -- 1
+local sleep = Dora.sleep -- 1
 local tostring = _G.tostring -- 1
 local string = _G.string -- 1
-local App = dora.App -- 1
-local threadLoop = dora.threadLoop -- 1
+local App = Dora.App -- 1
+local threadLoop = Dora.threadLoop -- 1
 local math = _G.math -- 1
-local Node = dora.Node -- 1
-local once = dora.once -- 1
-local loop = dora.loop -- 1
-local ImGui = dora.ImGui -- 1
-local Vec2 = dora.Vec2 -- 1
+local Node = Dora.Node -- 1
+local once = Dora.once -- 1
+local loop = Dora.loop -- 1
+local ImGui = Dora.ImGui -- 1
+local Vec2 = Dora.Vec2 -- 1
 thread(function() -- 3
 	print("thread 1") -- 4
 	local yueCodes = Content:loadAsync("Script/Example/MultiTasking.yue") -- 5

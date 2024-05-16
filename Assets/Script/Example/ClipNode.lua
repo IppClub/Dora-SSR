@@ -1,17 +1,17 @@
 -- [yue]: Script/Example/ClipNode.yue
 local math = _G.math -- 1
-local Vec2 = dora.Vec2 -- 1
-local DrawNode = dora.DrawNode -- 1
-local Model = dora.Model -- 1
-local Sequence = dora.Sequence -- 1
-local X = dora.X -- 1
-local Event = dora.Event -- 1
-local ClipNode = dora.ClipNode -- 1
-local Line = dora.Line -- 1
-local App = dora.App -- 1
-local Node = dora.Node -- 1
-local threadLoop = dora.threadLoop -- 1
-local ImGui = dora.ImGui -- 1
+local Vec2 = Dora.Vec2 -- 1
+local DrawNode = Dora.DrawNode -- 1
+local Model = Dora.Model -- 1
+local Sequence = Dora.Sequence -- 1
+local X = Dora.X -- 1
+local Event = Dora.Event -- 1
+local ClipNode = Dora.ClipNode -- 1
+local Line = Dora.Line -- 1
+local App = Dora.App -- 1
+local Node = Dora.Node -- 1
+local threadLoop = Dora.threadLoop -- 1
+local ImGui = Dora.ImGui -- 1
 local StarVertices -- 3
 StarVertices = function(radius, line) -- 3
 	if line == nil then -- 3

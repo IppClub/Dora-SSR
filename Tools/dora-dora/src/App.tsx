@@ -331,9 +331,9 @@ export default function PersistentDrawerLeft() {
 				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "lua.d.ts");
 			}
 		});
-		Service.read({path: "dora.d.ts"}).then(res => {
+		Service.read({path: "Dora.d.ts"}).then(res => {
 			if (res.content !== undefined) {
-				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "dora.d.ts");
+				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "Dora.d.ts");
 			}
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1383,28 +1383,28 @@ export default function PersistentDrawerLeft() {
 				let position: monaco.IPosition | undefined = undefined;
 				switch (ext) {
 					case ".yue":
-						content = "_ENV = Dora!\n\n";
+						content = "_ENV = Dora\n\n";
 						position = {
 							lineNumber: 3,
 							column: 1
 						};
 						break;
 					case ".tsx":
-						content = "// @preview-file off\nimport { React, toNode, useRef } from 'dora-x';\nimport {} from 'dora';\n\n";
+						content = "// @preview-file on\nimport { React, toNode, useRef } from 'DoraX';\nimport {} from 'Dora';\n\n";
 						position = {
 							lineNumber: 5,
 							column: 1
 						};
 						break;
 					case ".ts":
-						content = "import {} from 'dora';\n\n";
+						content = "import {} from 'Dora';\n\n";
 						position = {
 							lineNumber: 3,
 							column: 1
 						};
 						break;
 					case ".xml":
-						content = "<!-- @preview-file off -->\n<Dora>\n\t\n</Dora>\n";
+						content = "<!-- @preview-file on -->\n<Dora>\n\t\n</Dora>\n";
 						position = {
 							lineNumber: 3,
 							column: 2

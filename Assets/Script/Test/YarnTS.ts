@@ -6,7 +6,7 @@ import * as ScrollArea from "UI/Control/Basic/ScrollArea";
 import { AlignMode } from "UI/Control/Basic/ScrollArea";
 import * as LineRect from 'UI/View/Shape/LineRect';
 import * as YarnRunner from "YarnRunner";
-import { App, Content, Label, Menu, Path, Size, Slot, TextAlign, TypeName, Vec2, View, thread, threadLoop, tolua } from "dora";
+import { App, Content, Label, Menu, Path, Size, Slot, TextAlign, TypeName, Vec2, View, thread, threadLoop, tolua } from "Dora";
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 

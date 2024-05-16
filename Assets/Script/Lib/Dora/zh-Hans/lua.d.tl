@@ -523,7 +523,7 @@ local record lua
 		-- @param s (string) 输入字符串。
 		-- @param lax (boolean) [可选] 如果为true，则放宽验证检查。
 		-- @return (function) UTF-8字符的迭代器函数。
-		codes: function(s: string, lax?: boolean): function(string, ? number): number, number
+		codes: function(s: string, lax?: boolean): function(string, ? number): number, integer
 
 		-- 返回从给定字节位置开始的字符串中所有字符的代码点。
 		-- @param s (string) 输入字符串。

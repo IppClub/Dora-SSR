@@ -1,4 +1,4 @@
-import type * as dora from 'dora';
+import type * as Dora from 'Dora';
 
 declare global {
 namespace JSX {
@@ -7,7 +7,7 @@ interface Ref<T> {
 }
 
 class Node {
-	ref?: Ref<dora.Node.Type>;
+	ref?: Ref<Dora.Node.Type>;
 
 	/** The order of the node in the parent's children array. */
 	order?: number;
@@ -79,7 +79,7 @@ class Node {
 	transformTarget?: Ref<Node>;
 
 	/** The scheduler used for scheduling update and action callbacks. */
-	scheduler?: dora.Scheduler.Type;
+	scheduler?: Dora.Scheduler.Type;
 
 	/** Whether touch events are enabled on the node. */
 	touchEnabled?: boolean;
@@ -107,7 +107,7 @@ class Node {
 	/**
 	 * Schedules a function to run every frame, or schedules a coroutine to start running. Return true to stop the running function or using 'coroutine.yield(true)' to stop the coroutine.
 	 */
-	onUpdate?: ((this: void, deltaTime: number) => boolean) | dora.Job;
+	onUpdate?: ((this: void, deltaTime: number) => boolean) | Dora.Job;
 
 	/**
 	 * The ActionEnd slot is triggered when an action is finished.
@@ -115,49 +115,49 @@ class Node {
 	 * @param action The finished action.
 	 * @param target The node that finished the action.
 	 */
-	onActionEnd?(this: void, action: dora.Action.Type, target: dora.Node.Type): void;
+	onActionEnd?(this: void, action: Dora.Action.Type, target: Dora.Node.Type): void;
 
 	/**
 	 * The TapFilter slot is triggered before the TapBegan slot and can be used to filter out certain taps.
 	 * Triggers after setting `node.touchEnabled = true`.
 	 * @param touch The touch that triggered the tap.
 	*/
-	onTapFilter?(this: void, touch: dora.Touch.Type): void;
+	onTapFilter?(this: void, touch: Dora.Touch.Type): void;
 
 	/**
 	 * The TapBegan slot is triggered when a tap is detected.
 	 * Triggers after setting `node.touchEnabled = true`.
 	 * @param touch The touch that triggered the tap.
 	*/
-	onTapBegan?(this: void, touch: dora.Touch.Type): void;
+	onTapBegan?(this: void, touch: Dora.Touch.Type): void;
 
 	/**
 	 * The TapEnded slot is triggered when a tap ends.
 	 * Triggers after setting `node.touchEnabled = true`.
 	 * @param touch The touch that triggered the tap.
 	*/
-	onTapEnded?(this: void, touch: dora.Touch.Type): void;
+	onTapEnded?(this: void, touch: Dora.Touch.Type): void;
 
 	/**
 	 * The Tapped slot is triggered when a tap is detected and has ended.
 	 * Triggers after setting `node.touchEnabled = true`.
 	 * @param touch The touch that triggered the tap.
 	*/
-	onTapped?(this: void, touch: dora.Touch.Type): void;
+	onTapped?(this: void, touch: Dora.Touch.Type): void;
 
 	/**
 	 * The TapMoved slot is triggered when a tap moves.
 	 * Triggers after setting `node.touchEnabled = true`.
 	 * @param touch The touch that triggered the tap.
 	*/
-	onTapMoved?(this: void, touch: dora.Touch.Type): void;
+	onTapMoved?(this: void, touch: Dora.Touch.Type): void;
 
 	/**
 	 * The MouseWheel slot is triggered when the mouse wheel is scrolled.
 	 * Triggers after setting `node.touchEnabled = true`.
 	 * @param delta The amount of scrolling that occurred.
 	*/
-	onMouseWheel?(this: void, delta: dora.Vec2.Type): void;
+	onMouseWheel?(this: void, delta: Dora.Vec2.Type): void;
 
 	/**
 	 * The Gesture slot is triggered when a gesture is recognized.
@@ -167,7 +167,7 @@ class Node {
 	 * @param deltaDist The distance the gesture has moved.
 	 * @param deltaAngle The angle of the gesture.
 	*/
-	onGesture?(this: void, center: dora.Vec2.Type, numFingers: number, deltaDist: number, deltaAngle: number): void;
+	onGesture?(this: void, center: Dora.Vec2.Type, numFingers: number, deltaDist: number, deltaAngle: number): void;
 
 	/**
 	 * The Enter slot is triggered when a node is added to the scene graph.
@@ -192,21 +192,21 @@ class Node {
 	 * Triggers after setting `node.keyboardEnabled = true`.
 	 * @param keyName The name of the key that was pressed.
 	*/
-	onKeyDown?(this: void, keyName: dora.KeyName): void;
+	onKeyDown?(this: void, keyName: Dora.KeyName): void;
 
 	/**
 	 * The KeyUp slot is triggered when a key is released.
 	 * Triggers after setting `node.keyboardEnabled = true`.
 	 * @param keyName The name of the key that was released.
 	*/
-	onKeyUp?(this: void, keyName: dora.KeyName): void;
+	onKeyUp?(this: void, keyName: Dora.KeyName): void;
 
 	/**
 	 * The KeyPressed slot is triggered when a key is pressed.
 	 * Triggers after setting `node.keyboardEnabled = true`.
 	 * @param keyName The name of the key that was pressed.
 	*/
-	onKeyPressed?(this: void, keyName: dora.KeyName): void;
+	onKeyPressed?(this: void, keyName: Dora.KeyName): void;
 
 	/**
 	 * The AttachIME slot is triggered when the input method editor (IME) is attached (calling `node.attachIME()`).
@@ -239,7 +239,7 @@ class Node {
 	 * @param controllerId The controller id, incrementing from 0 when multiple controllers connected.
 	 * @param buttonName The name of the button that was pressed.
 	*/
-	onButtonDown?(this: void, controllerId: number, buttonName: dora.ButtonName): void;
+	onButtonDown?(this: void, controllerId: number, buttonName: Dora.ButtonName): void;
 
 	/**
 	 * The ButtonUp slot is triggered when a game controller button is released.
@@ -247,7 +247,7 @@ class Node {
 	 * @param controllerId The controller id, incrementing from 0 when multiple controllers connected.
 	 * @param buttonName The name of the button that was released.
 	*/
-	onButtonUp?(this: void, controllerId: number, buttonName: dora.ButtonName): void;
+	onButtonUp?(this: void, controllerId: number, buttonName: Dora.ButtonName): void;
 
 	/**
 	 * The Axis slot is triggered when a game controller axis changed.
@@ -261,11 +261,11 @@ class Node {
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.Node.Type): void;
+	onMount?(this: void, self: Dora.Node.Type): void;
 }
 
 class ClipNode extends Node {
-	ref?: Ref<dora.ClipNode.Type>;
+	ref?: Ref<Dora.ClipNode.Type>;
 
 	/**
 	 * The stencil Node that defines the clipping shape.
@@ -286,11 +286,11 @@ class ClipNode extends Node {
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.ClipNode.Type): void;
+	onMount?(this: void, self: Dora.ClipNode.Type): void;
 }
 
 class Playable extends Node {
-	ref?: Ref<dora.Playable.Type>;
+	ref?: Ref<Dora.Playable.Type>;
 
 	/**
 	 * The look of the animation.
@@ -338,17 +338,17 @@ class Playable extends Node {
 	 * @param animationName The name of the animation that ended.
 	 * @param target The Playable instance that the animation was played on.
 	*/
-	onAnimationEnd?(this: void, animationName: string, target: dora.Playable.Type): void;
+	onAnimationEnd?(this: void, animationName: string, target: Dora.Playable.Type): void;
 
 	/**
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.Playable.Type): void;
+	onMount?(this: void, self: Dora.Playable.Type): void;
 }
 
 class DragonBone extends Playable {
-	ref?: Ref<dora.DragonBone.Type>;
+	ref?: Ref<Dora.DragonBone.Type>;
 
 	/**
 	 * The DragonBone file string for the new instance.
@@ -366,11 +366,11 @@ class DragonBone extends Playable {
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.DragonBone.Type): void;
+	onMount?(this: void, self: Dora.DragonBone.Type): void;
 }
 
 class Spine extends Playable {
-	ref?: Ref<dora.Spine.Type>;
+	ref?: Ref<Dora.Spine.Type>;
 
 	/**
 	 * The Spine file string for the new instance.
@@ -385,11 +385,11 @@ class Spine extends Playable {
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.Spine.Type): void;
+	onMount?(this: void, self: Dora.Spine.Type): void;
 }
 
 class Model extends Playable {
-	ref?: Ref<dora.Model.Type>;
+	ref?: Ref<Dora.Model.Type>;
 
 	/**
 	 * The filename of the model file to load.
@@ -406,7 +406,7 @@ class Model extends Playable {
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.Model.Type): void;
+	onMount?(this: void, self: Dora.Model.Type): void;
 }
 
 class Dot {
@@ -467,7 +467,7 @@ class Polygon {
 	/**
 	 * The vertices of the polygon.
 	 */
-	verts: dora.Vec2.Type[];
+	verts: Dora.Vec2.Type[];
 
 	/**
 	 * The fill color of the polygon in format 0xffffffff (ARGB, default is white).
@@ -526,11 +526,11 @@ class Verts {
 	/**
 	 * The list of vertices and their colors in format 0xffffffff (ARGB).
 	 */
-	verts: [vert: dora.Vec2.Type, color: number][];
+	verts: [vert: Dora.Vec2.Type, color: number][];
 }
 
 class DrawNode extends Node {
-	ref?: Ref<dora.DrawNode.Type>;
+	ref?: Ref<Dora.DrawNode.Type>;
 
 	/**
 	 * Whether to write to the depth buffer when drawing (default is false).
@@ -540,17 +540,17 @@ class DrawNode extends Node {
 	/**
 	 * The blend function used to draw the shape.
 	 */
-	blendFunc?: dora.BlendFunc.Type;
+	blendFunc?: Dora.BlendFunc.Type;
 
 	/**
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.DrawNode.Type): void;
+	onMount?(this: void, self: Dora.DrawNode.Type): void;
 }
 
 class Grid extends Node {
-	ref?: Ref<dora.Grid.Type>;
+	ref?: Ref<Dora.Grid.Type>;
 
 	/**
 	 * The filename of texture used for the grid.
@@ -568,23 +568,23 @@ class Grid extends Node {
 	depthWrite?: boolean;
 
 	/** The rectangle within the texture that is used for the grid. */
-	textureRect?: dora.Rect.Type;
+	textureRect?: Dora.Rect.Type;
 
 	/** The blending function used for the grid. */
-	blendFunc?: dora.BlendFunc.Type;
+	blendFunc?: Dora.BlendFunc.Type;
 
 	/** The sprite effect applied to the grid. Default is `SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")`. */
-	effect?: dora.SpriteEffect.Type;
+	effect?: Dora.SpriteEffect.Type;
 
 	/**
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.Grid.Type): void;
+	onMount?(this: void, self: Dora.Grid.Type): void;
 }
 
 class Sprite extends Node {
-	ref?: Ref<dora.Sprite.Type>;
+	ref?: Ref<Dora.Sprite.Type>;
 
 	/**
 	 * The string containing format for loading a texture file.
@@ -606,42 +606,42 @@ class Sprite extends Node {
 	/**
 	 * The texture rectangle for the sprite.
 	 */
-	textureRect?: dora.Rect.Type;
+	textureRect?: Dora.Rect.Type;
 
 	/**
 	 * The blend function for the sprite.
 	 */
-	blendFunc?: dora.BlendFunc.Type;
+	blendFunc?: Dora.BlendFunc.Type;
 
 	/**
 	 * The sprite shader effect.
 	 */
-	effect?: dora.SpriteEffect.Type;
+	effect?: Dora.SpriteEffect.Type;
 
 	/**
 	 * The texture wrapping mode for the U (horizontal) axis.
 	 */
-	uwrap?: dora.TextureWrap;
+	uwrap?: Dora.TextureWrap;
 
 	/**
 	 * The texture wrapping mode for the V (vertical) axis.
 	 */
-	vwrap?: dora.TextureWrap;
+	vwrap?: Dora.TextureWrap;
 
 	/**
 	 * The texture filtering mode for the sprite.
 	 */
-	filter?: dora.TextureFilter;
+	filter?: Dora.TextureFilter;
 
 	/**
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.Sprite.Type): void;
+	onMount?(this: void, self: Dora.Sprite.Type): void;
 }
 
 class Label extends Node {
-	ref?: Ref<dora.Label.Type>;
+	ref?: Ref<Dora.Label.Type>;
 
 	/**
 	 * The name of the font to use for the label. Can be a font file path with or without a file extension.
@@ -684,7 +684,7 @@ class Label extends Node {
 	/**
 	 * The blend function used to render the text.
 	 */
-	blendFunc?: dora.BlendFunc.Type;
+	blendFunc?: Dora.BlendFunc.Type;
 
 	/**
 	 * Whether depth writing is enabled. (Default is false)
@@ -700,22 +700,22 @@ class Label extends Node {
 	/**
 	 * The sprite effect used to render the text.
 	 */
-	effect?: dora.SpriteEffect.Type;
+	effect?: Dora.SpriteEffect.Type;
 
 	/**
 	 * The text alignment setting. (Default is `TextAlign.Center`)
 	 */
-	alignment?: dora.TextAlign;
+	alignment?: Dora.TextAlign;
 
 	/**
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.Label.Type): void;
+	onMount?(this: void, self: Dora.Label.Type): void;
 }
 
 class Line extends Node {
-	ref?: Ref<dora.Line.Type>;
+	ref?: Ref<Dora.Line.Type>;
 
 	/**
 	 * Whether the depth should be written. (Default is false)
@@ -725,12 +725,12 @@ class Line extends Node {
 	/**
 	 * Blend function used for rendering the line.
 	 */
-	blendFunc?: dora.BlendFunc.Type;
+	blendFunc?: Dora.BlendFunc.Type;
 
 	/**
 	 * List of vertices to set to the line.
 	 */
-	verts: dora.Vec2.Type[];
+	verts: Dora.Vec2.Type[];
 
 	/**
 	 * Color of the line in format 0xffffffff (ARGB, default is opaque white).
@@ -741,11 +741,11 @@ class Line extends Node {
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.Line.Type): void;
+	onMount?(this: void, self: Dora.Line.Type): void;
 }
 
 class Particle extends Node {
-	ref?: Ref<dora.Particle.Type>;
+	ref?: Ref<Dora.Particle.Type>;
 
 	/**
 	 * The file path of the particle system definition file.
@@ -766,11 +766,11 @@ class Particle extends Node {
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.Particle.Type): void;
+	onMount?(this: void, self: Dora.Particle.Type): void;
 }
 
 class Menu extends Node {
-	ref?: Ref<dora.Menu.Type>;
+	ref?: Ref<Dora.Menu.Type>;
 
 	/**
 	 * Whether the menu is currently enabled or disabled.
@@ -781,7 +781,7 @@ class Menu extends Node {
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.Menu.Type): void;
+	onMount?(this: void, self: Dora.Menu.Type): void;
 }
 
 type StyleDirection = 'ltr' | 'rtl' | 'inherit';
@@ -843,7 +843,7 @@ interface AlignStyle {
 }
 
 class AlignNode extends Node {
-	ref?: Ref<dora.AlignNode.Type>;
+	ref?: Ref<Dora.AlignNode.Type>;
 
 	/**
 	 * Whether the node is a window root node.
@@ -865,17 +865,17 @@ class AlignNode extends Node {
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.AlignNode.Type): void;
+	onMount?(this: void, self: Dora.AlignNode.Type): void;
 }
 
 class EffekNode extends Node {
-	ref?: Ref<dora.EffekNode.Type>;
+	ref?: Ref<Dora.EffekNode.Type>;
 
 	/**
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.EffekNode.Type): void;
+	onMount?(this: void, self: Dora.EffekNode.Type): void;
 }
 
 class Effek {
@@ -908,7 +908,7 @@ class Effek {
 }
 
 class Action {
-	ref?: Ref<dora.ActionDef.Type>;
+	ref?: Ref<Dora.ActionDef.Type>;
 	children: any[] | any;
 }
 
@@ -919,7 +919,7 @@ class AnchorX {
 	start: number;
 	/** The ending value of the anchor point. */
 	stop: number;
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class AnchorY {
@@ -929,7 +929,7 @@ class AnchorY {
 	start: number;
 	/** The ending value of the anchor point. */
 	stop: number;
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Angle {
@@ -940,7 +940,7 @@ class Angle {
 	/** The ending value of the angle in degrees. */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class AngleX {
@@ -951,7 +951,7 @@ class AngleX {
 	/** The ending value of the x-axis rotation angle in degrees. */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class AngleY {
@@ -962,7 +962,7 @@ class AngleY {
 	/** The ending value of the y-axis rotation angle in degrees. */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Delay {
@@ -985,7 +985,7 @@ class Width {
 	/** The ending width value of the Node. */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Height {
@@ -996,7 +996,7 @@ class Height {
 	/** The ending height value of the Node. */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Hide {}
@@ -1015,7 +1015,7 @@ class Move {
 	/** The ending y position of the Node. */
 	stopY: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Opacity {
@@ -1026,7 +1026,7 @@ class Opacity {
 	/** The ending opacity value of the Node (0 - 1.0). */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Roll {
@@ -1037,7 +1037,7 @@ class Roll {
 	/** The ending roll value of the Node (in degrees). */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Scale {
@@ -1048,7 +1048,7 @@ class Scale {
 	/** The ending value of the x-axis and y-axis scale. */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class ScaleX {
@@ -1059,7 +1059,7 @@ class ScaleX {
 	/** The ending value of the x-axis scale. */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class ScaleY {
@@ -1070,7 +1070,7 @@ class ScaleY {
 	/** The ending value of the y-axis scale. */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class SkewX {
@@ -1081,7 +1081,7 @@ class SkewX {
 	/** The ending skew value of the Node on the x-axis (in degrees). */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class SkewY {
@@ -1092,7 +1092,7 @@ class SkewY {
 	/** The ending skew value of the Node on the y-axis (in degrees). */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class MoveX {
@@ -1103,7 +1103,7 @@ class MoveX {
 	/** The ending x-position of the Node. */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class MoveY {
@@ -1114,7 +1114,7 @@ class MoveY {
 	/** The ending y-position of the Node. */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class MoveZ {
@@ -1125,7 +1125,7 @@ class MoveZ {
 	/** The ending z-position of the Node. */
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
-	easing?: dora.EaseFunc;
+	easing?: Dora.EaseFunc;
 }
 
 class Loop {
@@ -1151,7 +1151,7 @@ class PhysicsWorld extends Node {
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.PhysicsWorld.Type): void;
+	onMount?(this: void, self: Dora.PhysicsWorld.Type): void;
 }
 
 class Contact {
@@ -1175,12 +1175,12 @@ class Body extends Node {
 	/**
 	 * An enumeration for the different moving types of bodies.
 	 */
-	type: dora.BodyMoveType;
+	type: Dora.BodyMoveType;
 
 	/**
 	 * The `PhysicsWorld` instance for creating body node.
 	 */
-	world?: dora.PhysicsWorldType;
+	world?: Dora.PhysicsWorldType;
 
 	/**
 	 * A constant linear acceleration applied to the body.
@@ -1188,7 +1188,7 @@ class Body extends Node {
 	 * @example
 	 * bodyDef.linearAcceleration = Vec2(0, -9.8);
 	 */
-	linearAcceleration?: dora.Vec2.Type;
+	linearAcceleration?: Dora.Vec2.Type;
 
 	/**
 	 * Whether the body's rotation is fixed.
@@ -1233,7 +1233,7 @@ class Body extends Node {
 	/**
 	 * The reference for an owner of the body.
 	 */
-	owner?: dora.Object.Type;
+	owner?: Dora.Object.Type;
 
 	/**
 	 * Whether the body is currently receiving contact events or not.
@@ -1246,7 +1246,7 @@ class Body extends Node {
 	 * @param other The other Body object that the current Body is colliding with.
 	 * @param sensorTag The tag of the sensor that triggered this collision.
 	*/
-	onBodyEnter?(this: void, other: dora.Body.Type, sensorTag: number): void;
+	onBodyEnter?(this: void, other: Dora.Body.Type, sensorTag: number): void;
 
 	/**
 	 * Triggers when a `Body` object is no longer colliding with a sensor object.
@@ -1254,7 +1254,7 @@ class Body extends Node {
 	 * @param other The other `Body` object that the current `Body` is no longer colliding with.
 	 * @param sensorTag The tag of the sensor that triggered this collision.
 	*/
-	onBodyLeave?(this: void, other: dora.Body.Type, sensorTag: number): void;
+	onBodyLeave?(this: void, other: Dora.Body.Type, sensorTag: number): void;
 
 	/**
 	 * Triggers when a `Body` object starts to collide with another object.
@@ -1263,7 +1263,7 @@ class Body extends Node {
 	 * @param point The point of collision in world coordinates.
 	 * @param normal The normal vector of the contact surface in world coordinates.
 	*/
-	onContactStart?(this: void, other: dora.Body.Type, point: dora.Vec2.Type, normal: dora.Vec2.Type): void;
+	onContactStart?(this: void, other: Dora.Body.Type, point: Dora.Vec2.Type, normal: Dora.Vec2.Type): void;
 
 	/**
 	 * Triggers when a `Body` object stops colliding with another object.
@@ -1272,20 +1272,20 @@ class Body extends Node {
 	 * @param point The point of collision in world coordinates.
 	 * @param normal The normal vector of the contact surface in world coordinates.
 	*/
-	onContactEnd?(this: void, other: dora.Body.Type, point: dora.Vec2.Type, normal: dora.Vec2.Type): void;
+	onContactEnd?(this: void, other: Dora.Body.Type, point: Dora.Vec2.Type, normal: Dora.Vec2.Type): void;
 
 	/**
 	 * Register a function to be called when the body begins to receive contact events. Return false from this function to prevent colliding.
 	 * @param other The other `Body` object that the current `Body` is colliding with.
 	 * @returns Whether to allow the collision to happen.
 	 */
-	onContactFilter?(this: void, other: dora.Body.Type): boolean;
+	onContactFilter?(this: void, other: Dora.Body.Type): boolean;
 
 	/**
 	 * Triggers when this node element is instantialized.
 	 * @param self The node element that was instantialized.
 	 */
-	onMount?(this: void, self: dora.Body.Type): void;
+	onMount?(this: void, self: Dora.Body.Type): void;
 }
 
 class RectangleShape {
@@ -1311,7 +1311,7 @@ class RectangleShape {
 
 class PolygonShape {
 	/** The vertices of the polygon. */
-	verts: dora.Vec2.Type[];
+	verts: Dora.Vec2.Type[];
 	/** The density of the polygon (default is 0.0). */
 	density?: number;
 	/** The friction of the polygon (default is 0.4, should be 0 to 1.0). */
@@ -1324,7 +1324,7 @@ class PolygonShape {
 
 class MultiShape {
 	/** A table containing the vertices of each convex shape that makes up the concave shape. */
-	verts: dora.Vec2.Type[];
+	verts: Dora.Vec2.Type[];
 	/** The density of the concave shape (default is 0.0). */
 	density?: number;
 	/** The friction of the concave shape (default is 0.4, should be 0 to 1.0). */
@@ -1354,7 +1354,7 @@ class DiskShape {
 
 class ChainShape {
 	/** The vertices of the chain. */
-	verts: dora.Vec2.Type[];
+	verts: Dora.Vec2.Type[];
 	/** The friction of the chain (default is 0.4). */
 	friction?: number;
 	/** The restitution of the chain (default is 0.0). */
@@ -1364,17 +1364,17 @@ class ChainShape {
 }
 
 class DistanceJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** Whether the physical bodies connected to the joint can collide with each other. Default is false. */
 	canCollide?: boolean;
 	/** The first physical body to be connected to the joint. */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** The second physical body to be connected to the joint. */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** The position of the joint on the first physical body (default value is Vec2.zero). */
-	anchorA?: dora.Vec2.Type;
+	anchorA?: Dora.Vec2.Type;
 	/** The position of the joint on the second physical body (default value is Vec2.zero). */
-	anchorB?: dora.Vec2.Type;
+	anchorB?: Dora.Vec2.Type;
 	/** The frequency of the joint in Hertz (default value is 0.0). */
 	frequency?: number;
 	/** The damping coefficient of the joint (default value is 0.0). */
@@ -1382,15 +1382,15 @@ class DistanceJoint {
 }
 
 class FrictionJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** Whether the physical bodies connected to the joint can collide with each other. Default is false. */
 	canCollide?: boolean;
 	/** The first physical body to be connected to the joint. */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** The second physical body to be connected to the joint. */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** The position of the joint in the physical world. */
-	worldPos: dora.Vec2.Type;
+	worldPos: Dora.Vec2.Type;
 	/** The maximum force that can be applied to the joint. */
 	maxForce: number;
 	/** The maximum torque that can be applied to the joint. */
@@ -1398,27 +1398,27 @@ class FrictionJoint {
 }
 
 class GearJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** Whether the physical bodies connected to the joint can collide with each other. Default is false. */
 	canCollide?: boolean;
 	/** The first joint to be connected to the gear joint. */
-	jointA: Ref<dora.Joint.Type>;
+	jointA: Ref<Dora.Joint.Type>;
 	/** The second joint to be connected to the gear joint. */
-	jointB: Ref<dora.Joint.Type>;
+	jointB: Ref<Dora.Joint.Type>;
 	/** The gear transmission ratio (default value is 1.0). */
 	ratio?: number;
 }
 
 class SpringJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** Whether the physical bodies connected to the joint can collide with each other. Default is false. */
 	canCollide?: boolean;
 	/** The first physical body connected to the joint. */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** The second physical body connected to the joint. */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** In the coordinate system of body A, the position of body B minus the position of body A. */
-	linearOffset: dora.Vec2.Type;
+	linearOffset: Dora.Vec2.Type;
 	/** The angle of body B minus the angle of body A. */
 	angularOffset: number;
 	/** The maximum force the joint can apply. */
@@ -1430,13 +1430,13 @@ class SpringJoint {
 }
 
 class MoveJoint {
-	ref?: Ref<dora.MoveJoint.Type>;
+	ref?: Ref<Dora.MoveJoint.Type>;
 	/** Whether the physical bodies connected to the joint can collide with each other. Default is false. */
 	canCollide?: boolean;
 	/** The rigid body connected to the joint. */
-	body: Ref<dora.Body.Type>;
+	body: Ref<Dora.Body.Type>;
 	/** The target position to which the rigid body should be dragged. */
-	targetPos: dora.Vec2.Type;
+	targetPos: Dora.Vec2.Type;
 	/** The maximum force the joint can apply. */
 	maxForce: number;
 	/** Optional frequency ratio, default is 5.0. */
@@ -1446,15 +1446,15 @@ class MoveJoint {
 }
 
 class PrismaticJoint {
-	ref?: Ref<dora.MotorJoint.Type>;
+	ref?: Ref<Dora.MotorJoint.Type>;
 	/** Whether the physical bodies connected to the joint can collide with each other. Default is false. */
 	canCollide?: boolean;
 	/** The first rigid body connected to the joint. */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** The second rigid body connected to the joint. */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** The world coordinates of the joint. */
-	worldPos: dora.Vec2.Type;
+	worldPos: Dora.Vec2.Type;
 	/** The axial angle of the joint. */
 	axisAngle: number;
 	/** Optional lower translation limit, default is 0.0. */
@@ -1468,35 +1468,35 @@ class PrismaticJoint {
 }
 
 class PulleyJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** Whether the physical bodies connected to the joint can collide with each other. Default is false. */
 	canCollide?: boolean;
 	/** The first physical body to be connected. */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** The second physical body to be connected. */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** The position of the anchor point on the first body (default value is Vec2.zero). */
-	anchorA?: dora.Vec2.Type;
+	anchorA?: Dora.Vec2.Type;
 	/** The position of the anchor point on the second body (default value is Vec2.zero). */
-	anchorB?: dora.Vec2.Type;
+	anchorB?: Dora.Vec2.Type;
 	/** The position of the ground anchor on the first body in world coordinates. */
-	groundAnchorA: dora.Vec2.Type;
+	groundAnchorA: Dora.Vec2.Type;
 	/** The position of the ground anchor on the second body in world coordinates. */
-	groundAnchorB: dora.Vec2.Type;
+	groundAnchorB: Dora.Vec2.Type;
 	/** [Optional] The pulley ratio (default value is 1.0). */
 	ratio?: number;
 }
 
 class RevoluteJoint {
-	ref?: Ref<dora.MotorJoint.Type>;
+	ref?: Ref<Dora.MotorJoint.Type>;
 	/** Whether the physical bodies connected to the joint can collide with each other. Default is false. */
 	canCollide?: boolean;
 	/** The first physical body to be connected. */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** The second physical body to be connected. */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** The world coordinate position where the joint will be created. */
-	worldPos: dora.Vec2.Type;
+	worldPos: Dora.Vec2.Type;
 	/** [Optional] Lower angle limit (in radians) (default is 0.0). */
 	lowerAngle?: number;
 	/** [Optional] Upper angle limit (in radians) (default is 0.0). */
@@ -1508,31 +1508,31 @@ class RevoluteJoint {
 }
 
 class RopeJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** Whether the physical bodies connected to the joint can collide with each other. Default is false. */
 	canCollide?: boolean;
 	/** The first physical body to be connected. */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** The second physical body to be connected. */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** The position of the anchor point on the first body (default value is Vec2.zero). */
-	anchorA?: dora.Vec2.Type;
+	anchorA?: Dora.Vec2.Type;
 	/** The position of the anchor point on the second body (default value is Vec2.zero). */
-	anchorB?: dora.Vec2.Type;
+	anchorB?: Dora.Vec2.Type;
 	/** [Optional] The maximum distance between anchor points (default is 0.0). */
 	maxLength?: number;
 }
 
 class WeldJoint {
-	ref?: Ref<dora.Joint.Type>;
+	ref?: Ref<Dora.Joint.Type>;
 	/** Whether the physical bodies connected to the joint can collide with each other. Default is false. */
 	canCollide?: boolean;
 	/** The first body to be connected. */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** The second body to be connected. */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** The world position where the bodies are connected. */
-	worldPos: dora.Vec2.Type;
+	worldPos: Dora.Vec2.Type;
 	/** [Optional] The stiffness frequency of the joint, default is 0.0. */
 	frequency?: number;
 	/** [Optional] The damping ratio of the joint, default is 0.0. */
@@ -1540,15 +1540,15 @@ class WeldJoint {
 }
 
 class WheelJoint {
-	ref?: Ref<dora.MotorJoint.Type>;
+	ref?: Ref<Dora.MotorJoint.Type>;
 	/** Whether the physical bodies connected to the joint can collide with each other. Default is false. */
 	canCollide?: boolean;
 	/** The first body to be connected. */
-	bodyA: Ref<dora.Body.Type>;
+	bodyA: Ref<Dora.Body.Type>;
 	/** The second body to be connected. */
-	bodyB: Ref<dora.Body.Type>;
+	bodyB: Ref<Dora.Body.Type>;
 	/** The world position where the bodies are connected. */
-	worldPos: dora.Vec2.Type;
+	worldPos: Dora.Vec2.Type;
 	/** The angle of the joint axis, in radians. */
 	axisAngle: number;
 	/** [Optional] The maximum torque the joint motor can apply, default is 0.0. */
@@ -1566,7 +1566,7 @@ class CustomNode extends Node {
 	 * Function to create a custom node.
 	 * @returns The custom node element.
 	 */
-	onCreate(this: void): dora.Node.Type | null;
+	onCreate(this: void): Dora.Node.Type | null;
 }
 
 class CustomElement {

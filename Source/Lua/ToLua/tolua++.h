@@ -48,7 +48,7 @@ NS_DORA_BEGIN
 
 #define TOLUA_UBOX_START_SIZE 4096
 
-#define BUILTIN_ENV "dora"
+#define BUILTIN_ENV "Dora"
 
 typedef int lua_Object;
 

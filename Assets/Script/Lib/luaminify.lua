@@ -796,7 +796,8 @@ local function ParseLua(src)
 		--find the line
 		local lineNum = 0
 		if type(src) == 'string' then
-			for line in src:gmatch("[^\n]*\n?") do
+			for l in src:gmatch("[^\n]*\n?") do
+				line = l
 				if line:sub(-1,-1) == '\n' then line = line:sub(1,-2) end
 				lineNum = lineNum+1
 				if lineNum == tok:Peek().Line then
