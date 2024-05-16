@@ -32,7 +32,7 @@ NS_DORA_BEGIN
 
 DB::DB()
 	: _thread(SharedAsyncThread.newThread()) {
-	auto dbFile = Path::concat({SharedContent.getWritablePath(), "Dora.db"_slice});
+	auto dbFile = Path::concat({SharedContent.getWritablePath(), "dora.db"_slice});
 	try {
 		_database = New<SQLite::Database>(dbFile,
 			SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
