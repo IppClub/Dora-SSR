@@ -843,7 +843,7 @@ const sidebars = {
 					items: [
 						"api/Module/Platformer",
 						"api/Module/Log",
-						"api/Module/dora",
+						"api/Module/Dora",
 						"api/Module/Array",
 					]
 				},
