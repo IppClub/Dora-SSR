@@ -2,6 +2,7 @@
   <img src='Assets/Image/logo.png' alt='Dora SSR' width='300px'/>
 </p>
 
+
 # 多萝珍奇引擎（Dora SSR）
 
 #### [English](README.md)  | 中文
@@ -11,7 +12,7 @@
 
 &emsp;&emsp;Dora SSR是一个用于多种设备上快速开发2D游戏的游戏引擎。它内置易用的开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
 
-<img src='Doc/static/img/3.png' alt='Playground' width='600px'/>
+<img src='Docs/static/img/3.png' alt='Playground' width='650px'/>
 
 ## Dora SSR 项目现已加入开放原子开源基金会
 
@@ -20,6 +21,8 @@
 ### 关于开放原子开源基金会
 
 &emsp;&emsp;开放原子开源基金会（Open Atom Foundation）是一个非盈利组织，旨在支持和推广开源技术的发展。在该基金会的大家庭中，Dora SSR 会利用更广泛的资源和社区支持，以推动项目的发展和创新。更多信息请查看[基金会官网](https://openatom.org/)。
+
+<img src='Docs/static/img/cheer.png' alt='Cheer' width='600px'/>
 
 ## 主要特点
 
@@ -69,10 +72,35 @@
 
 - 提供可用于制作自己游戏的开放美术素材和游戏 IP —— [《灵数奇缘》](https://luv-sense-digital.readthedocs.io)。
 
-&emsp;&emsp;<img src='Assets/Image/LSD.jpg' alt='LSD' width='300px'/>
+<img src='Assets/Image/LSD.jpg' alt='LSD' width='400px'/>
 
 <br>
 
+## 示例项目
+
+- [示例项目 - Loli War](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Loli%20War)
+
+![Loli War](Assets/Image/LoliWar.gif)
+
+<br>
+
+- [示例项目 - Zombie Escape](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
+
+<img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/>
+
+<br>
+
+- [示例项目 - Dismentalism](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Dismantlism)
+
+<img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/>
+
+<br>
+
+- [示例项目 - Luv Sense Digital](https://e.coding.net/project-lsd/lsd/game.git)
+
+<img src='Assets/Image/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/>
+
+<br>
 ## 安装配置
 
 - 快速上手
@@ -284,32 +312,6 @@ fn main () {
 
 
 更详细的教程，请查看[官方文档](https://Dora-ssr.net/zh-Hans/docs/tutorial/quick-start)。
-
-<br>
-
-## 示例项目
-
-- [示例项目 - Loli War](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Loli%20War)
-
-![Loli War](Assets/Image/LoliWar.gif)
-
-<br>
-
-- [示例项目 - Zombie Escape](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
-
-<img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/>
-
-<br>
-
-- [示例项目 - Dismentalism](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Dismantlism)
-
-<img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/>
-
-<br>
-
-- [示例项目 - Luv Sense Digital](https://e.coding.net/project-lsd/lsd/game.git)
-
-<img src='Assets/Image/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/>
 
 <br>
 
