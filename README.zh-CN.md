@@ -10,9 +10,11 @@
 ![Static Badge](https://img.shields.io/badge/C%2B%2B20-Game_Engine-yellow?logo=c%2B%2B) ![Static Badge](https://img.shields.io/badge/ReactJS-Web_IDE-00d8ff?logo=react&logoColor=white) ![Static Badge](https://img.shields.io/badge/Rust-Scripting-e36f39?logo=rust) ![Static Badge](https://img.shields.io/badge/Lua-Scripting-blue?logo=lua) ![Static Badge](https://img.shields.io/badge/Teal-Scripting-blue) ![Static Badge](https://img.shields.io/badge/YueScript-Scripting-blue) ![Static Badge](https://img.shields.io/badge/TypeScript-Scripting-blue?logo=typescript&logoColor=white) ![Static Badge](https://img.shields.io/badge/TSX-Scripting-blue?logo=typescript&logoColor=white)
  ![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg) ![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg) ![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg) ![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg) ![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)
 
+----
+
 &emsp;&emsp;Dora SSR是一个用于多种设备上快速开发2D游戏的游戏引擎。它内置易用的开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
 
-<img src='Docs/static/img/3.png' alt='Playground' width='650px'/>
+<div align='center'><img src='Docs/static/img/3.png' alt='Playground' width='650px'/></div>
 
 ## Dora SSR 项目现已加入开放原子开源基金会
 
@@ -22,57 +24,36 @@
 
 &emsp;&emsp;开放原子开源基金会（Open Atom Foundation）是一个非盈利组织，旨在支持和推广开源技术的发展。在该基金会的大家庭中，Dora SSR 会利用更广泛的资源和社区支持，以推动项目的发展和创新。更多信息请查看[基金会官网](https://openatom.org/)。
 
-<img src='Docs/static/img/cheer.png' alt='Cheer' width='600px'/>
+<div align='center'><img src='Docs/static/img/cheer.png' alt='Cheer' width='600px'/></div>
 
 ## 主要特点
 
-- 基于树形结点结构管理游戏场景。
-
-- 基础的 2D 平台游戏功能，包括游戏逻辑和 AI 开发框架。
-
-- 易用的 ECS 模块，便于游戏实体管理。
-
-- 异步处理的文件读写、资源加载等操作。
-
-- 升级的 Lua 绑定，支持继承和扩展底层 C++ 对象。
-
-- 支持 Yuescript 语言，强表达力且简洁的 Lua 方言。
-
-- 支持 Teal 语言，编译到 Lua 的静态类型语言。
-
-- 支持 TypeScript 语言，一门静态类型的 JavaScript 语言的超集，添加了强大的类型检查功能。
-
-- 支持 TSX，允许在脚本中嵌入类似 XML/HTML 的文本，与 TypeScript 一起使用。
-
-- 支持 Rust 语言，运行在内置的 WASM 绑定和 VM 上。
-
-- 2D 骨骼动画和物理引擎支持。
-
-- 内置开箱即用的 Web IDE，提供文件管理，代码检查、补全、高亮和定义跳转。
-
-- 支持异步操作 SQLite，进行大量游戏配置数据的实时查询和写入。
-
-- 支持 Excel 表格数据读取，支持同步到SQLite库表。
-
-- 提供游戏场景通过 CSS 进行自适应的 Flex 布局的功能。
-
-- 支持 Effekseer 特效系统的功能。
-
-- 内置用于创新游戏玩法的机器学习算法框架。
-
-- 支持 Yarn Spinner 语言，便于编写复杂的游戏故事系统。
-
-- 提供矢量图形渲染 API，可直接渲染无 CSS 的 SVG 格式文件。
-
-- 内置 ImGui，便于创建调试工具和UI界面。
-
-- 支持 FLAC、OGG、MP3 和 WAV 多格式音频播放。
-
-- 支持 True Type 字体的渲染和基础排版。
-
-- 提供可用于制作自己游戏的开放美术素材和游戏 IP —— [《灵数奇缘》](https://luv-sense-digital.readthedocs.io)。
-
-<img src='Assets/Image/LSD.jpg' alt='LSD' width='400px'/>
+| 功能     | 描述                                                 |
+| -------- | ---------------------------------------------------- |
+| 树形节点 | 基于树形节点结构管理游戏场景。                       |
+| 2D 平台游戏 | 基础的 2D 平台游戏功能，包括游戏逻辑和 AI 开发框架。 |
+| ECS | 易用的 ECS 模块，便于游戏实体管理。                  |
+|异步处理|异步处理的文件读写、资源加载等操作。|
+|Lua|升级的 Lua 绑定，支持继承和扩展底层 C++ 对象。|
+|Yuescript|支持 Yuescript 语言，强表达力且简洁的 Lua 方言。|
+|Teal|支持 Teal 语言，编译到 Lua 的静态类型语言。|
+|TypeScript|支持 TypeScript 语言，一门静态类型的 JavaScript 语言的超集，添加了强大的类型检查功能。|
+|TSX|支持 TSX，允许在脚本中嵌入类似 XML/HTML 的文本，与 TypeScript 一起使用。|
+|Rust|支持 Rust 语言，运行在内置的 WASM 绑定和 VM 上。|
+|2D 骨骼动画|支持 2D 骨骼动画，包括：Spine2D、DragonBones以及内置系统。|
+|2D 物理引擎|支持 2D 物理引擎，使用：PlayRho。|
+|Web IDE|内置开箱即用的 Web IDE，提供文件管理，代码检查、补全、高亮和定义跳转。|
+|数据库|支持异步操作 SQLite，进行大量游戏配置数据的实时查询和写入。|
+|Excel|支持 Excel 表格数据读取，支持同步到SQLite库表。|
+|CSS 布局|提供游戏场景通过 CSS 进行自适应的 Flex 布局的功能。|
+|特效系统|支持 Effekseer 特效系统的功能。|
+|机器学习|内置用于创新游戏玩法的机器学习算法框架。|
+| Yarn Spinner | 支持 Yarn Spinner 语言，便于编写复杂的游戏故事系统。         |
+| 矢量图形 | 提供矢量图形渲染 API，可直接渲染无 CSS 的 SVG 格式文件。     |
+| ImGui | 内置 ImGui，便于创建调试工具和UI界面。                       |
+| 音频 | 支持 FLAC、OGG、MP3 和 WAV 多格式音频播放。                  |
+| True Type | 支持 True Type 字体的渲染和基础排版。                        |
+| L·S·D | 提供可用于制作自己游戏的开放美术素材和游戏 IP —— [《灵数奇缘》](https://luv-sense-digital.readthedocs.io)。 <br><br><div align='center'><img src='Assets/Image/LSD.jpg' alt='LSD' width='400px'/></div>|
 
 <br>
 
@@ -80,25 +61,25 @@
 
 - [示例项目 - Loli War](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Loli%20War)
 
-![Loli War](Assets/Image/LoliWar.gif)
+<div align='center'><img src='Assets/Image/LoliWar.gif' alt='Loli War' width='400px'/></div>
 
 <br>
 
 - [示例项目 - Zombie Escape](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
 
-<img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/>
+<div align='center'><img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/></div>
 
 <br>
 
 - [示例项目 - Dismentalism](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Dismantlism)
 
-<img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/>
+<div align='center'><img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/></div>
 
 <br>
 
 - [示例项目 - Luv Sense Digital](https://e.coding.net/project-lsd/lsd/game.git)
 
-<img src='Assets/Image/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/>
+<div align='center'><img src='Assets/Image/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/></div>
 
 <br>
 ## 安装配置
