@@ -42,7 +42,7 @@
 |Rust|支持 Rust 语言，运行在内置的 WASM 绑定和 VM 上。|
 |2D 骨骼动画|支持 2D 骨骼动画，包括：Spine2D、DragonBones以及内置系统。|
 |2D 物理引擎|支持 2D 物理引擎，使用：PlayRho。|
-|Web IDE|内置开箱即用的 Web IDE，提供文件管理，代码检查、补全、高亮和定义跳转。|
+|Web IDE|内置开箱即用的 Web IDE，提供文件管理，代码检查、补全、高亮和定义跳转。 <br><br><div align='center'><img src='Docs/static/img/dora-on-android.jpg' alt='LSD' width='500px'/></div>|
 |数据库|支持异步操作 SQLite，进行大量游戏配置数据的实时查询和写入。|
 |Excel|支持 Excel 表格数据读取，支持同步到SQLite库表。|
 |CSS 布局|提供游戏场景通过 CSS 进行自适应的 Flex 布局的功能。|
