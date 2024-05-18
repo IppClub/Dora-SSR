@@ -11,7 +11,7 @@
 
 Dora SSR is a game engine for rapid development of 2D games on various devices. It has a built-in easy-to-use development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
 
-<img src='Doc/static/img/3.png' alt='Playground' width='600px'/>
+<img src='Docs/static/img/3.png' alt='Playground' width='650px'/>
 
 ## Dora SSR Joins the Open Atom Foundation
 
@@ -20,6 +20,8 @@ We are delighted to announce that the Dora SSR project has officially become a d
 ### About the Open Atom Foundation
 
 The Open Atom Foundation is a non-profit organization dedicated to supporting and promoting the development of open-source technologies. Within this foundation's community, Dora SSR will utilize broader resources and community support to propel the project's development and innovation. For more information, please visit the [foundation's official website](https://openatom.org/).
+
+<img src='Docs/static/img/cheer.png' alt='Playground' width='600px'/>
 
 ## Key Features
 
@@ -69,7 +71,35 @@ The Open Atom Foundation is a non-profit organization dedicated to supporting an
 
 - Provides open art resources and game IPs that can be used to create your own games - ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io).
 
-&emsp;&emsp;<img src='Assets/Image/LSD.jpg' alt='LSD' width='300px'/>
+  
+
+<img src='Assets/Image/LSD.jpg' alt='LSD' width='400px'/>
+
+<br>
+
+## Example Projects
+
+- [Sample Project - Loli War](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Loli%20War)
+
+![Loli War](Assets/Image/LoliWar.gif)
+
+<br>
+
+- [Sample Project - Zombie Escape](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
+
+<img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/>
+
+<br>
+
+- [Example Project - Dismentalism](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Dismantlism)
+
+<img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/>
+
+<br>
+
+- [Example Project - Luv Sense Digital](https://e.coding.net/project-lsd/lsd/game.git)
+
+<img src='Assets/Image/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/>
 
 <br>
 
@@ -78,52 +108,57 @@ The Open Atom Foundation is a non-profit organization dedicated to supporting an
 - Quick start
 
   - Android
-     - 1. Download and install the [APK](https://github.com/ippclub/Dora-SSR/releases/latest) package on the running terminal for games.
 
-     - 2. Run the software, and access the server address displayed by the software through the browser of a PC (tablet or other development device) on the LAN.
+    - 1. Download and install the [APK](https://github.com/ippclub/Dora-SSR/releases/latest) package on the running terminal for games.
 
-     - 3. Start game development.
+    - 2. Run the software, and access the server address displayed by the software through the browser of a PC (tablet or other development device) on the LAN.
+
+    - 3. Start game development.
 
   - Windows, macOS
 
-     - 1. Download and run the [software](https://github.com/ippclub/Dora-SSR/releases/latest).
-          - Get software on macOS with Homebrew using
-          ```sh
-          brew tap ippclub/dora-ssr
-          brew install --cask dora-ssr
-          ```
+    - 1. Download and run the [software](https://github.com/ippclub/Dora-SSR/releases/latest).
 
-     - 2. Run the software and access the server address displayed by the software through a browser.
+         - Get software on macOS with Homebrew using
 
-     - 3. Start game development.
+         ```sh
+         brew tap ippclub/dora-ssr
+         brew install --cask dora-ssr
+         ```
+
+    - 2. Run the software and access the server address displayed by the software through a browser.
+
+    - 3. Start game development.
 
 
   - Linux
 
-     - 1. Installation.
-       
-       - Ubuntu Jammy
-         ```sh
-         sudo add-apt-repository ppa:ippclub/dora-ssr
-         sudo apt update
-         sudo apt install dora-ssr
-         ```
+    - 1. Installation.
 
-       - Debian Bookworm
-         ```sh
-         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
-         sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
-         sudo apt update
-         sudo apt install dora-ssr
-         ```
+      - Ubuntu Jammy
 
-     - 2. Run the software and access the server address displayed by the software through a browser.
+        ```sh
+        sudo add-apt-repository ppa:ippclub/dora-ssr
+        sudo apt update
+        sudo apt install dora-ssr
+        ```
 
-     - 3. Start game development.
+      - Debian Bookworm
+
+        ```sh
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
+        sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
+        sudo apt update
+        sudo apt install dora-ssr
+        ```
+
+    - 2. Run the software and access the server address displayed by the software through a browser.
+
+    - 3. Start game development.
 
 - Engine project development
 
-   For the installation and configuration of Dora SSR project development, see [Official Documents](https://Dora-ssr.net/docs/tutorial/dev-configuration) for details.
+  For the installation and configuration of Dora SSR project development, see [Official Documents](https://Dora-ssr.net/docs/tutorial/dev-configuration) for details.
 
 <br>
 
@@ -131,17 +166,18 @@ The Open Atom Foundation is a non-profit organization dedicated to supporting an
 
 1. Step 1: Create a new project
 
-    - In the browser, open the right-click menu of the game resource tree on the left side of the Dora Dora editor.
+   - In the browser, open the right-click menu of the game resource tree on the left side of the Dora Dora editor.
 
-    - Click on the menu item `New` and choose to create a new folder.
+   - Click on the menu item `New` and choose to create a new folder.
 
 2. Step 2: Write game code
 
-    - Create a new game entry code file of Lua (Yuescript, Teal, Typescript or TSX) under the project folder, named `init`.
+   - Create a new game entry code file of Lua (Yuescript, Teal, Typescript or TSX) under the project folder, named `init`.
 
-    - Write Hello World code:
+   - Write Hello World code:
 
 - **Lua**
+
 ```lua
 local _ENV = Dora
 
@@ -160,6 +196,7 @@ end))
 ```
 
 - **Teal**
+
 ```lua
 local sleep <const> = require("sleep")
 local Ease <const> = require("Ease")
@@ -183,7 +220,9 @@ if not sprite is nil then
   end))
 end
 ```
+
 - **Yuescript**
+
 ```moonscript
 _ENV = Dora
 
@@ -198,7 +237,9 @@ with Sprite "Image/logo.png"
        Scale 0.5, 0.5, 1, Ease. OutBack
      )
 ```
+
 - **Typescript**
+
 ```typescript
 import {Sprite, Ease, Scale, Sequence, once, sleep} from 'Dora';
 
@@ -217,7 +258,9 @@ if (sprite) {
   }));
 }
 ```
+
 - **TSX**
+
 ```tsx
 import {React, toNode, useRef} from 'DoraX';
 import {ActionDef, Ease, Sprite, once, sleep} from 'Dora';
@@ -251,7 +294,9 @@ toNode(
   </sprite>
 );
 ```
+
 - Or you can write code in **Rust**, build it into WASM file named `init.wasm`, upload it to engine to run.
+
 ```rust
 use dora_ssr::*;
 
@@ -277,42 +322,16 @@ fn main () {
 
 3. Step 3: Run the game
 
-    Click the `🎮` icon in the lower right corner of the editor, then click the menu item `Run`. Or press the key combination `Ctrl + r`.
+   Click the `🎮` icon in the lower right corner of the editor, then click the menu item `Run`. Or press the key combination `Ctrl + r`.
 
 4. Step 4: Publish the game
 
-    - Open the right-click menu of the project folder just created through the game resource tree on the left side of the editor and click the `Download` option.
+   - Open the right-click menu of the project folder just created through the game resource tree on the left side of the editor and click the `Download` option.
 
-    - Wait for the browser to pop up a download prompt for the packaged project file.
+   - Wait for the browser to pop up a download prompt for the packaged project file.
 
 
 For more detailed tutorials, please check [official documents](https://Dora-ssr.net/docs/tutorial/quick-start).
-
-<br>
-
-## Example Projects
-
-- [Sample Project - Loli War](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Loli%20War)
-
-![Loli War](Assets/Image/LoliWar.gif)
-
-<br>
-
-- [Sample Project - Zombie Escape](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
-
-<img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/>
-
-<br>
-
-- [Example Project - Dismentalism](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Dismantlism)
-
-<img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/>
-
-<br>
-
-- [Example Project - Luv Sense Digital](https://e.coding.net/project-lsd/lsd/game.git)
-
-<img src='Assets/Image/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/>
 
 <br>
 
