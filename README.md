@@ -9,9 +9,11 @@
 ![Static Badge](https://img.shields.io/badge/C%2B%2B20-Game_Engine-yellow?logo=c%2B%2B) ![Static Badge](https://img.shields.io/badge/ReactJS-Web_IDE-00d8ff?logo=react&logoColor=white) ![Static Badge](https://img.shields.io/badge/Rust-Scripting-e36f39?logo=rust) ![Static Badge](https://img.shields.io/badge/Lua-Scripting-blue?logo=lua) ![Static Badge](https://img.shields.io/badge/Teal-Scripting-blue) ![Static Badge](https://img.shields.io/badge/YueScript-Scripting-blue) ![Static Badge](https://img.shields.io/badge/TypeScript-Scripting-blue?logo=typescript&logoColor=white) ![Static Badge](https://img.shields.io/badge/TSX-Scripting-blue?logo=typescript&logoColor=white)
  ![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg) ![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg) ![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg) ![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg) ![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)
 
+----
+
 Dora SSR is a game engine for rapid development of 2D games on various devices. It has a built-in easy-to-use development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
 
-<img src='Docs/static/img/3.png' alt='Playground' width='650px'/>
+<div align='center'><img src='Docs/static/img/3.png' alt='Playground' width='650px'/></div>
 
 ## Dora SSR Joins the Open Atom Foundation
 
@@ -21,59 +23,35 @@ We are delighted to announce that the Dora SSR project has officially become a d
 
 The Open Atom Foundation is a non-profit organization dedicated to supporting and promoting the development of open-source technologies. Within this foundation's community, Dora SSR will utilize broader resources and community support to propel the project's development and innovation. For more information, please visit the [foundation's official website](https://openatom.org/).
 
-<img src='Docs/static/img/cheer.png' alt='Playground' width='600px'/>
+<div align='center'><img src='Docs/static/img/cheer.png' alt='Playground' width='600px'/></div>
 
 ## Key Features
 
-- Manages game scenes based on tree node structure.
-
-- Basic 2D platform game functions, including game logic and AI development framework.
-
-- Easy-to-use ECS module for game entity management.
-
-- Asynchronous processing of file read and write, resource loading and other operations.
-
-- Upgraded Lua binding with support for inheriting and extending low-level C++ objects.
-
-- Supports Yuescript language, strong expressive and concise Lua dialect.
-
-- Supports for the Teal language, a statically typed dialect for Lua.
-
-- Supports TypeScript, a statically typed superset of JavaScript that adds powerful type checking.
-
-- Supports TSX, allows embedding XML/HTML-like text within scripts, used with TypeScript.
-
-- Supports the Rust language, running on the built-in WASM runtime with Rust bindings.
-
-- 2D skeletal animation and physics engine support.
-
-- Built-in out-of-the-box Web IDE, providing file management, code inspection, completion, highlighting and definition jump.
-
-- Supports asynchronous operation of SQLite for real-time query and managing large game configuration data.
-
-- Supports reading Excel spreadsheet data and synchronizing it to SQLite tables.
-
-- Provides the function of adaptive Flex layout for game scenes through CSS.
-
-- Support the functions of Effekseer game effects system.
-
-- Supports the Yarn Spinner language, making it easy to write complex game story systems.
-
-- Built-in machine learning algorithm framework for innovative gameplay.
-
-- Provides vector graphics rendering API, which can directly render SVG format files without CSS.
-
-- Built-in ImGui, easy to create debugging tools and UI interface.
-
-- Supports FLAC, OGG, MP3 and WAV multi-format audio playback.
-
-- Supports True Type font rendering and basic typesetting.
-
-- Provides open art resources and game IPs that can be used to create your own games - ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io).
-
-  
-
-<img src='Assets/Image/LSD.jpg' alt='LSD' width='400px'/>
+| Feature        | Description                                                  |
+| -------------- | ------------------------------------------------------------ |
+| Node Based     | Manages game scenes based on tree node structure.            |
+| 2D Platformer  | Basic 2D platform game functions, including game logic and AI development framework. |
+| Multi-threaded | Asynchronous processing of file read and write, resource loading and other operations. |
+| Lua            | Upgraded Lua binding with support for inheriting and extending low-level C++ objects. |
+| Yuescript      | Supports Yuescript language, strong expressive and concise Lua dialect. |
+| Teal           | Supports for the Teal language, a statically typed dialect for Lua. |
+| TypeScript     | Supports TypeScript, a statically typed superset of JavaScript that adds powerful type checking. |
+|TSX|Supports TSX, allows embedding XML/HTML-like text within scripts, used with TypeScript.|
+|Rust|Supports the Rust language, running on the built-in WASM runtime with Rust bindings.|
+|2D Animation|2D skeletal animations support with Spine2D, DragonBones and builtin system.|
+|2D Physics|2D physics engine support with PlayRho.|
+|Web IDE|Built-in out-of-the-box Web IDE, providing file management, code inspection, completion, highlighting and definition jump.|
+|Database|Supports asynchronous operation of SQLite for real-time query and managing large game configuration data.|
+|Excel|Supports reading Excel spreadsheet data and synchronizing it to SQLite tables.|
+|CSS Layout|Provides the function of adaptive Flex layout for game scenes through CSS.|
+|Effect System|Support the functions of Effekseer game effects system.|
+|Yarn Spinner|Supports the Yarn Spinner language, making it easy to write complex game story systems.|
+|ML|Built-in machine learning algorithm framework for innovative gameplay.|
+|Vector Graphics|Provides vector graphics rendering API, which can directly render SVG format files without CSS.|
+|ImGui|Built-in ImGui, easy to create debugging tools and UI interface.|
+|Audio|Supports FLAC, OGG, MP3 and WAV multi-format audio playback.|
+|True Type|Supports True Type font rendering and basic typesetting.|
+|L·S·D|Provides open art resources and game IPs that can be used to create your own games - ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io).<br><br><div align='center'><img src='Assets/Image/LSD.jpg' alt='LSD' width='300px'/></div>|
 
 <br>
 
@@ -81,25 +59,25 @@ The Open Atom Foundation is a non-profit organization dedicated to supporting an
 
 - [Sample Project - Loli War](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Loli%20War)
 
-![Loli War](Assets/Image/LoliWar.gif)
+<div align='center'><img src='Assets/Image/LoliWar.gif' alt='Loli War' width='400px'/></div>
 
 <br>
 
 - [Sample Project - Zombie Escape](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
 
-<img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/>
+<div align='center'><img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/></div>
 
 <br>
 
 - [Example Project - Dismentalism](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Dismantlism)
 
-<img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/>
+<div align='center'><img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/></div>
 
 <br>
 
 - [Example Project - Luv Sense Digital](https://e.coding.net/project-lsd/lsd/game.git)
 
-<img src='Assets/Image/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/>
+<div align='center'><img src='Assets/Image/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/></div>
 
 <br>
 
