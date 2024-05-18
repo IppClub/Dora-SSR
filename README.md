@@ -40,7 +40,7 @@ The Open Atom Foundation is a non-profit organization dedicated to supporting an
 |Rust|Supports the Rust language, running on the built-in WASM runtime with Rust bindings.|
 |2D Animation|2D skeletal animations support with Spine2D, DragonBones and builtin system.|
 |2D Physics|2D physics engine support with PlayRho.|
-|Web IDE|Built-in out-of-the-box Web IDE, providing file management, code inspection, completion, highlighting and definition jump.|
+|Web IDE|Built-in out-of-the-box Web IDE, providing file management, code inspection, completion, highlighting and definition jump. <br><br><div align='center'><img src='Docs/static/img/dora-on-android.jpg' alt='LSD' width='500px'/></div>|
 |Database|Supports asynchronous operation of SQLite for real-time query and managing large game configuration data.|
 |Excel|Supports reading Excel spreadsheet data and synchronizing it to SQLite tables.|
 |CSS Layout|Provides the function of adaptive Flex layout for game scenes through CSS.|
