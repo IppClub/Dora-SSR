@@ -33,7 +33,7 @@ The Open Atom Foundation is a non-profit organization dedicated to supporting an
 | 2D Platformer  | Basic 2D platform game functions, including game logic and AI development framework. |
 | Multi-threaded | Asynchronous processing of file read and write, resource loading and other operations. |
 | Lua            | Upgraded Lua binding with support for inheriting and extending low-level C++ objects. |
-| Yuescript      | Supports Yuescript language, strong expressive and concise Lua dialect. |
+| YueScript     | Supports YueScript language, strong expressive and concise Lua dialect. |
 | Teal           | Supports for the Teal language, a statically typed dialect for Lua. |
 | TypeScript     | Supports TypeScript, a statically typed superset of JavaScript that adds powerful type checking. |
 |TSX|Supports TSX, allows embedding XML/HTML-like text within scripts, used with TypeScript.|
