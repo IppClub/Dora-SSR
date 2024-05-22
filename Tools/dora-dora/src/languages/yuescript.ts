@@ -307,10 +307,9 @@ export const language: languages.IMonarchLanguage = {
 		],
 
 		string: [
-			[/[^"'\#]+/, 'string'],
+			[/[^\\"'\#]+/, 'string'],
 			[/@escapes/, 'string.escape'],
-			[/\./, 'string.escape.invalid'],
-			[/\./, 'string.escape.invalid'],
+			[/\\./, 'string.escape.invalid'],
 
 			[
 				/#{/,

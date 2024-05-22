@@ -73,7 +73,7 @@ yueCheck = (file, content) ->
 			luaCodes = luaCodes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
 			lintResult ..= "\n" unless lintResult == ""
 			luaCodes = "-- [yue]: #{file}\n#{lintResult}" .. luaCodes
-		else for [name, line, col] in *lintResult
+		else for [_name, line, col] in *lintResult
 			info[] = ["syntax", file, line, col, "invalid global variable"]
 	luaCodes, info
 
@@ -123,7 +123,7 @@ luaCheckWithLineInfo = (file, luaCodes) ->
 	return true, info
 
 getCompiledYueLine = (content, line, row, file) ->
-	luaCodes, info = yueCheck file, content
+	luaCodes, _info = yueCheck file, content
 	return nil unless luaCodes
 	current = 1
 	lastLine = 1
@@ -283,7 +283,7 @@ HttpServer\postSchedule "/signature", (req): success: false ->
 				if signatures := getParamDocs signatures
 					return success: true, :signatures
 		when "yue"
-			luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine content, line, row, file
+			luaCodes, targetLine, targetRow, _lineMap = getCompiledYueLine content, line, row, file
 			return success: false unless luaCodes
 			if chainOp, chainCall := line\match "[^%w_]([%.\\])([^%.\\]+)$"
 				withVar = luaCodes\match "([%w_]+)%.___DUMMY_CALL___%(%)"
@@ -607,7 +607,7 @@ compileFileAsync = (inputFile, sourceCodes): nil ->
 	options: {extension: yueext} = yue
 	resultCodes = nil
 	switch Path\getExt inputFile when yueext
-		(success) <- yue.compile inputFile, outputFile, searchPath, (codes, err, globals) ->
+		(success) <- yue.compile inputFile, outputFile, searchPath, (codes, _err, globals) ->
 			return unless codes
 			success, result = LintYueGlobals codes, globals
 			return unless success
@@ -797,7 +797,7 @@ HttpServer\post "/exist", (req): success: false ->
 	switch req when {body: {:file}}
 		return success: Content\exist file
 
-status = url: nil
+status = {}
 export default status
 
 thread ->
