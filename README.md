@@ -201,6 +201,8 @@ end
 
 - **Yuescript**
 
+  The story of Yuescript, a niche language supported by Dora SSR, can be found [here](https://dora-ssr.net/blog/2024/4/17/a-moon-script-tale).
+
 ```moonscript
 _ENV = Dora
 
@@ -239,6 +241,8 @@ if (sprite) {
 
 - **TSX**
 
+  A much easier approach for building a game scene in Dora SSR. Take the tutorials [here](https://dora-ssr.net/blog/2024/4/25/tsx-dev-intro).
+
 ```tsx
 import {React, toNode, useRef} from 'DoraX';
 import {ActionDef, Ease, Sprite, once, sleep} from 'Dora';
@@ -273,7 +277,9 @@ toNode(
 );
 ```
 
-- Or you can write code in **Rust**, build it into WASM file named `init.wasm`, upload it to engine to run.
+- **Rust**
+
+  You can write code in Rust, build it into WASM file named `init.wasm`, upload it to engine to run. View details [here](https://dora-ssr.net/blog/2024/4/15/rusty-game-dev).
 
 ```rust
 use dora_ssr::*;
