@@ -509,7 +509,8 @@ export default function PersistentDrawerLeft() {
 					});
 				},
 			});
-			if (lang === "tl" || lang === "lua") {
+			const readOnly = editor.getOptions().get(monaco.editor.EditorOption.readOnly);
+			if (!readOnly && (lang === "tl" || lang === "lua")) {
 				editor.addAction({
 					id: "dora-action-require",
 					label: t("editor.require"),
