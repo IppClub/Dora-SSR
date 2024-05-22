@@ -130,7 +130,7 @@
 
 - 引擎项目开发
 
-  进行Dora SSR项目开发的安装配置，详见[官方文档](https://Dora-ssr.net/zh-Hans/docs/tutorial/dev-configuration)。
+  进行Dora SSR项目开发的安装配置，详见[官方文档](https://dora-ssr.net/zh-Hans/docs/tutorial/dev-configuration)。
 
 <br>
 
@@ -191,6 +191,8 @@ if not sprite is nil then
 end
 ```
 - **Yuescript**
+
+  有关 Dora SSR 所支持的 Yuescript 这门小众语言的故事在[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/17/a-moon-script-tale)。
 ```moonscript
 _ENV = Dora
 
@@ -225,6 +227,8 @@ if (sprite) {
 }
 ```
 - **TSX**
+
+  使用 TSX 语言来创建 Dora SSR 的游戏场景是一个比较容易上手的选择。新手教程可以参见[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/25/tsx-dev-intro)。
 ```tsx
 import {React, toNode, useRef} from 'DoraX';
 import {ActionDef, Ease, Sprite, once, sleep} from 'Dora';
@@ -258,7 +262,9 @@ toNode(
   </sprite>
 );
 ```
-- 也支持使用 **Rust** 来编写游戏代码，编译为 WASM 文件，命名为 `init.wasm` 再上传到引擎中加载运行。
+- **Rust**
+
+  也支持使用 Rust 语言来编写游戏代码，编译为 WASM 文件，命名为 `init.wasm` 再上传到引擎中加载运行。详情见[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/15/rusty-game-dev)。
 ```rust
 use dora_ssr::*;
 
@@ -293,14 +299,14 @@ fn main () {
    - 等待浏览器弹出已打包项目文件的下载提示。
 
 
-更详细的教程，请查看[官方文档](https://Dora-ssr.net/zh-Hans/docs/tutorial/quick-start)。
+更详细的教程，请查看[官方文档](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)。
 
 <br>
 
 ## 文档
 
-- [API参考](https://Dora-ssr.net/zh-Hans/docs/api/intro)
-- [教程](https://Dora-ssr.net/zh-Hans/docs/tutorial/quick-start)
+- [API参考](https://dora-ssr.net/zh-Hans/docs/api/intro)
+- [教程](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)
 
 <br>
 
