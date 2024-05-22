@@ -8,23 +8,27 @@ local record teal
 		"warning"
 		"crash"
 	end
-	checkAsync: function(codes: string, moduleName: string, lax: boolean, searchPath: string): --[[passed]] boolean, {
-		{
-			--[[type]] ErrorType,
-			--[[filename]] string,
-			--[[row]] integer,
-			--[[col]] integer,
-			--[[msg]] string
-		}
-	} | nil
+	type CheckResult = {
+		--[[type]] ErrorType,
+		--[[filename]] string,
+		--[[row]] integer,
+		--[[col]] integer,
+		--[[msg]] string
+	}
+	checkAsync: function(codes: string, moduleName: string, lax: boolean, searchPath: string): --[[passed]] boolean, {CheckResult} | nil
 	enum CompleteItemType
 		"variable"
 		"function"
 		"method"
 		"field"
+		"keyword"
 	end
-	type CompleteResult = {{--[[label]] string, --[[desc]] string, CompleteItemType}} | nil
-	completeAsync: function(codes: string, line: string, row: integer, searchPath: string): CompleteResult
+	type CompleteResult = {
+		--[[label]] string,
+		--[[desc]] string,
+		CompleteItemType
+	}
+	completeAsync: function(codes: string, line: string, row: integer, searchPath: string): {CompleteResult}
 	record InferResult
 		desc: string
 		file: string
@@ -32,7 +36,7 @@ local record teal
 		col: number
 		key: string | nil
 	end
-	inferAsync: function(codes: string, line: string, row: integer, searchPath: string): InferResult
+	inferAsync: function(codes: string, line: string, row: integer, searchPath: string): InferResult | nil
 	getSignatureAsync: function(codes: string, line: string, row: integer, searchPath: string): {InferResult}
 	clear: function(reset?: boolean --[[false]])
 end

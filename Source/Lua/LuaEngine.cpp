@@ -420,7 +420,7 @@ static int dora_teal_complete_async(lua_State* L) {
 	std::string codes(str, len);
 	str = luaL_checklstring(L, 2, &len);
 	std::string line(str, len);
-	int row = static_cast<int>(luaL_checknumber(L, 3));
+	int row = s_cast<int>(luaL_checknumber(L, 3));
 	str = luaL_checklstring(L, 4, &len);
 	std::string searchPath(str, len);
 	tolua_Error err;

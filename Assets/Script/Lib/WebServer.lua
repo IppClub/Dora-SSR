@@ -126,7 +126,7 @@ yueCheck = function(file, content) -- 60
 		else -- 76
 			for _index_0 = 1, #lintResult do -- 76
 				local _des_0 = lintResult[_index_0] -- 76
-				local name, line, col = _des_0[1], _des_0[2], _des_0[3] -- 76
+				local _name, line, col = _des_0[1], _des_0[2], _des_0[3] -- 76
 				info[#info + 1] = { -- 77
 					"syntax", -- 77
 					file, -- 77
@@ -229,7 +229,7 @@ luaCheckWithLineInfo = function(file, luaCodes) -- 105
 end -- 105
 local getCompiledYueLine -- 125
 getCompiledYueLine = function(content, line, row, file) -- 125
-	local luaCodes, info = yueCheck(file, content) -- 126
+	local luaCodes, _info = yueCheck(file, content) -- 126
 	if not luaCodes then -- 127
 		return nil -- 127
 	end -- 127
@@ -655,7 +655,7 @@ HttpServer:postSchedule("/signature", function(req) -- 278
 						end -- 283
 					end -- 282
 				elseif "yue" == lang then -- 285
-					local luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine(content, line, row, file) -- 286
+					local luaCodes, targetLine, targetRow, _lineMap = getCompiledYueLine(content, line, row, file) -- 286
 					if not luaCodes then -- 287
 						return { -- 287
 							success = false -- 287
@@ -1508,7 +1508,7 @@ compileFileAsync = function(inputFile, sourceCodes) -- 600
 	do -- 609
 		local _exp_0 = Path:getExt(inputFile) -- 609
 		if yueext == _exp_0 then -- 609
-			yue.compile(inputFile, outputFile, searchPath, function(codes, err, globals) -- 610
+			yue.compile(inputFile, outputFile, searchPath, function(codes, _err, globals) -- 610
 				if not codes then -- 611
 					return -- 611
 				end -- 611
@@ -2005,9 +2005,7 @@ HttpServer:post("/exist", function(req) -- 796
 		success = false -- 796
 	} -- 798
 end) -- 796
-local status = { -- 800
-	url = nil -- 800
-} -- 800
+local status = { } -- 800
 _module_0 = status -- 801
 thread(function() -- 803
 	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 804

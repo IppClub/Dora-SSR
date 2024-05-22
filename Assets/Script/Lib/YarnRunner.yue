@@ -24,7 +24,7 @@ rewriteError = (err, luaCode, title) ->
 	line = lineMap[line] or line
 	"#{title}:#{line}: #{msg}"
 
-export default class YarnRunner
+class YarnRunner
 	gotoStory: (title) =>
 		storyFunc = @funcs[title]
 		unless storyFunc
@@ -138,3 +138,5 @@ export default class YarnRunner
 				"Error", body
 			else
 				nil, "end of the story"
+
+export default YarnRunner
