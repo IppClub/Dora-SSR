@@ -106,7 +106,7 @@ struct ivec_data<Father, vec<1, T>> : Father
     };
     constexpr ivec_data(T xi) noexcept : x(xi) { }
     template<typename U, typename = std::enable_if_t<!std::is_same_v<U, T>>>
-    ivec_data(const vec<1, U>& v) : x(static_cast<T>(v.x)) { }
+    ivec_data(const vec<1, U>& v) noexcept : x(static_cast<T>(v.x)) { }
 };
 
 template<class Father, typename T>
@@ -122,7 +122,7 @@ struct ivec_data<Father, vec<2, T>> : Father
     constexpr ivec_data(T xi, T yi) noexcept : x(xi), y(yi) { }
     ivec_data(const vec<1, T>& v, T yi) noexcept : x(v.x), y(yi) { }
     template<typename U, typename = std::enable_if_t<!std::is_same_v<U, T>>>
-    ivec_data(const vec<2, U>& v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)) { }
+    ivec_data(const vec<2, U>& v) noexcept : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)) { }
 
     KTM_SWIZZLE_VEC2(x, y)
     KTM_SWIZZLE_VEC2(r, g)
@@ -139,9 +139,9 @@ struct ivec_data<Father, vec<3, T>> : Father
         typename detail::vec_data_implement::vec_storage<3, T>::type st;
     };
     constexpr ivec_data(T xi, T yi, T zi) noexcept : x(xi), y(yi), z(zi) { }
-    ivec_data(const vec<2, T>& v, T zi) : x(v.x), y(v.y), z(zi) { }
+    ivec_data(const vec<2, T>& v, T zi) noexcept : x(v.x), y(v.y), z(zi) { }
     template<typename U, typename = std::enable_if_t<!std::is_same_v<U, T>>>
-    ivec_data(const vec<3, U>& v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(static_cast<T>(v.z)) { }
+    ivec_data(const vec<3, U>& v) noexcept : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(static_cast<T>(v.z)) { }
 
     KTM_SWIZZLE_VEC3(x, y, z)
     KTM_SWIZZLE_VEC3(r, g, b) 
@@ -158,9 +158,9 @@ struct ivec_data<Father, vec<4, T>> : Father
         typename detail::vec_data_implement::vec_storage<4, T>::type st;
     };
     constexpr ivec_data(T xi, T yi, T zi, T wi) noexcept : x(xi), y(yi), z(zi), w(wi) { }
-    ivec_data(const vec<3, T>& v, T wi) : x(v.x), y(v.y), z(v.z), w(wi) { }
+    ivec_data(const vec<3, T>& v, T wi) noexcept : x(v.x), y(v.y), z(v.z), w(wi) { }
     template<typename U, typename = std::enable_if_t<!std::is_same_v<U, T>>>
-    ivec_data(const vec<4, U>& v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(static_cast<T>(v.z)), w(static_cast<T>(v.w)) { }
+    ivec_data(const vec<4, U>& v) noexcept : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(static_cast<T>(v.z)), w(static_cast<T>(v.w)) { }
 
     KTM_SWIZZLE_VEC4(x, y, z, w)
     KTM_SWIZZLE_VEC4(r, g, b, a)

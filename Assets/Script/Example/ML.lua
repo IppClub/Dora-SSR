@@ -793,23 +793,23 @@ local _anon_func_2 = function(effectFlags, effectNames) -- 298
 	end -- 298
 	return _accum_0 -- 298
 end -- 298
-local _anon_func_3 = function(records, table) -- 351
-	local _accum_0 = { } -- 351
-	local _len_0 = 1 -- 351
-	for _index_0 = 1, #records do -- 351
-		local r = records[_index_0] -- 351
-		_accum_0[_len_0] = table.concat(r, ",") -- 351
-		_len_0 = _len_0 + 1 -- 351
-	end -- 351
-	return _accum_0 -- 351
-end -- 351
-local _anon_func_4 = function(name, op, tostring, value) -- 355
-	if name ~= "" then -- 355
-		return "if " .. tostring(name) .. " " .. tostring(op) .. " " .. tostring(op == '==' and "\"" .. tostring(value) .. "\"" or value) -- 356
-	else -- 358
-		return tostring(op) .. " \"" .. tostring(value) .. "\"" -- 358
-	end -- 355
-end -- 355
+local _anon_func_3 = function(records, table) -- 350
+	local _accum_0 = { } -- 350
+	local _len_0 = 1 -- 350
+	for _index_0 = 1, #records do -- 350
+		local r = records[_index_0] -- 350
+		_accum_0[_len_0] = table.concat(r, ",") -- 350
+		_len_0 = _len_0 + 1 -- 350
+	end -- 350
+	return _accum_0 -- 350
+end -- 350
+local _anon_func_4 = function(name, op, tostring, value) -- 354
+	if name ~= "" then -- 354
+		return "if " .. tostring(name) .. " " .. tostring(op) .. " " .. tostring(op == '==' and "\"" .. tostring(value) .. "\"" or value) -- 355
+	else -- 357
+		return tostring(op) .. " \"" .. tostring(value) .. "\"" -- 357
+	end -- 354
+end -- 354
 return threadLoop(function() -- 248
 	local width, height -- 249
 	do -- 249
@@ -929,95 +929,94 @@ return threadLoop(function() -- 248
 			for i = 1, #unitTags do -- 317
 				hints[#hints + 1] = 2 -- 318
 			end -- 318
-			local values = { } -- 319
-			local l1 = #relationTags - 1 -- 320
-			local l2 = #bodyTypes -- 321
-			local l3 = #skills -- 322
-			for i1 = 0, l1 do -- 323
-				for i2 = 0, l2 do -- 323
-					for i3 = 0, l3 do -- 323
-						for i4 = 0, 1 do -- 324
-							for i5 = 0, 1 do -- 324
-								for i6 = 0, 1 do -- 324
-									for i7 = 0, 1 do -- 325
-										for i8 = 0, 1 do -- 325
-											for i9 = 0, 1 do -- 325
-												local tags = { } -- 326
-												tags[#tags + 1] = relationTags[i1 + 1] -- 327
-												local bodyTypeIndex = i2 -- 328
-												if bodyTypeIndex ~= 0 then -- 329
-													tags[#tags + 1] = bodyTypes[bodyTypeIndex] -- 330
-												end -- 329
-												local skillIndex = i3 -- 331
-												if skillIndex ~= 0 then -- 332
-													tags[#tags + 1] = skills[skillIndex] -- 333
-												end -- 332
-												if i4 ~= 0 then -- 334
-													tags[#tags + 1] = unitTags[1] -- 334
+			local l1 = #relationTags - 1 -- 319
+			local l2 = #bodyTypes -- 320
+			local l3 = #skills -- 321
+			for i1 = 0, l1 do -- 322
+				for i2 = 0, l2 do -- 322
+					for i3 = 0, l3 do -- 322
+						for i4 = 0, 1 do -- 323
+							for i5 = 0, 1 do -- 323
+								for i6 = 0, 1 do -- 323
+									for i7 = 0, 1 do -- 324
+										for i8 = 0, 1 do -- 324
+											for i9 = 0, 1 do -- 324
+												local tags = { } -- 325
+												tags[#tags + 1] = relationTags[i1 + 1] -- 326
+												local bodyTypeIndex = i2 -- 327
+												if bodyTypeIndex ~= 0 then -- 328
+													tags[#tags + 1] = bodyTypes[bodyTypeIndex] -- 329
+												end -- 328
+												local skillIndex = i3 -- 330
+												if skillIndex ~= 0 then -- 331
+													tags[#tags + 1] = skills[skillIndex] -- 332
+												end -- 331
+												if i4 ~= 0 then -- 333
+													tags[#tags + 1] = unitTags[1] -- 333
+												end -- 333
+												if i5 ~= 0 then -- 334
+													tags[#tags + 1] = unitTags[2] -- 334
 												end -- 334
-												if i5 ~= 0 then -- 335
-													tags[#tags + 1] = unitTags[2] -- 335
+												if i6 ~= 0 then -- 335
+													tags[#tags + 1] = unitTags[3] -- 335
 												end -- 335
-												if i6 ~= 0 then -- 336
-													tags[#tags + 1] = unitTags[3] -- 336
+												if i7 ~= 0 then -- 336
+													tags[#tags + 1] = unitTags[4] -- 336
 												end -- 336
-												if i7 ~= 0 then -- 337
-													tags[#tags + 1] = unitTags[4] -- 337
+												if i8 ~= 0 then -- 337
+													tags[#tags + 1] = unitTags[5] -- 337
 												end -- 337
-												if i8 ~= 0 then -- 338
-													tags[#tags + 1] = unitTags[5] -- 338
+												if i9 ~= 0 then -- 338
+													tags[#tags + 1] = unitTags[6] -- 338
 												end -- 338
-												if i9 ~= 0 then -- 339
-													tags[#tags + 1] = unitTags[6] -- 339
-												end -- 339
-												local state = ML.QLearner:pack(hints, { -- 340
-													i1, -- 340
-													i2, -- 340
-													i3, -- 340
-													i4, -- 340
-													i5, -- 340
-													i6, -- 340
-													i7, -- 340
-													i8, -- 340
-													i9 -- 340
-												}) -- 340
-												for action = 1, #actions do -- 341
-													local result = getEffect(tags, action) -- 342
-													local r = 0 -- 343
-													for _index_0 = 1, #result do -- 344
-														local _des_0 = result[_index_0] -- 344
-														local k, v = _des_0[1], _des_0[2] -- 344
-														if targetEffects[k] then -- 345
-															r = r + v -- 346
-														end -- 345
-													end -- 346
-													ql:update(state, action, r == 0 and -1 or r) -- 347
-												end -- 347
-											end -- 347
-										end -- 347
-									end -- 347
-								end -- 347
-							end -- 347
-						end -- 347
-					end -- 347
-				end -- 347
-			end -- 347
+												local state = ML.QLearner:pack(hints, { -- 339
+													i1, -- 339
+													i2, -- 339
+													i3, -- 339
+													i4, -- 339
+													i5, -- 339
+													i6, -- 339
+													i7, -- 339
+													i8, -- 339
+													i9 -- 339
+												}) -- 339
+												for action = 1, #actions do -- 340
+													local result = getEffect(tags, action) -- 341
+													local r = 0 -- 342
+													for _index_0 = 1, #result do -- 343
+														local _des_0 = result[_index_0] -- 343
+														local k, v = _des_0[1], _des_0[2] -- 343
+														if targetEffects[k] then -- 344
+															r = r + v -- 345
+														end -- 344
+													end -- 345
+													ql:update(state, action, r == 0 and -1 or r) -- 346
+												end -- 346
+											end -- 346
+										end -- 346
+									end -- 346
+								end -- 346
+							end -- 346
+						end -- 346
+					end -- 346
+				end -- 346
+			end -- 346
 		end -- 308
-		Separator() -- 348
-		TextWrapped("总结人工训练思维逻辑") -- 349
-		if Button("开始总结") and #records > 2 then -- 350
-			local dataStr = table.concat(_anon_func_3(records, table), "\n") -- 351
-			thread(function() -- 352
-				local lines = { } -- 353
-				ML.BuildDecisionTreeAsync(dataStr, 0, function(depth, name, op, value) -- 354
-					local line = string.rep("\t", depth) .. _anon_func_4(name, op, tostring, value) -- 355
-					lines[#lines + 1] = line -- 359
-				end) -- 354
-				decisionStr = table.concat(lines, "\n") -- 360
-			end) -- 352
-		end -- 350
-		if decisionStr then -- 361
-			return TextWrapped(decisionStr) -- 361
-		end -- 361
-	end) -- 361
-end) -- 361
+		Separator() -- 347
+		TextWrapped("总结人工训练思维逻辑") -- 348
+		if Button("开始总结") and #records > 2 then -- 349
+			local dataStr = table.concat(_anon_func_3(records, table), "\n") -- 350
+			thread(function() -- 351
+				local lines = { } -- 352
+				ML.BuildDecisionTreeAsync(dataStr, 0, function(depth, name, op, value) -- 353
+					local line = string.rep("\t", depth) .. _anon_func_4(name, op, tostring, value) -- 354
+					lines[#lines + 1] = line -- 358
+				end) -- 353
+				decisionStr = table.concat(lines, "\n") -- 359
+			end) -- 351
+		end -- 349
+		if decisionStr then -- 360
+			return TextWrapped(decisionStr) -- 360
+		end -- 360
+	end) -- 360
+end) -- 360
