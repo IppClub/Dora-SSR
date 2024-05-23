@@ -32,12 +32,6 @@ KTM_INLINE std::enable_if_t<is_complex_v<C>, C> inverse(const C& c) noexcept
 }
 
 template<class C>
-KTM_INLINE std::enable_if_t<is_complex_v<C>, C> negate(const C& c) noexcept
-{
-    return C(-c.vector);
-}
-
-template<class C>
 KTM_INLINE std::enable_if_t<is_complex_v<C>, C> lerp(const C& x, const C& y, comp_traits_base_t<C> t) noexcept
 {
     return C(lerp(x.vector, y.vector, t));

@@ -18,12 +18,15 @@ namespace detail
 
 namespace matrix_implement
 {
-    
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct trace;
 
 template<size_t Row, size_t Col, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
 struct transpose;
+
+template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+struct trace;
+
+template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+struct diagonal;
 
 template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
 struct determinant;

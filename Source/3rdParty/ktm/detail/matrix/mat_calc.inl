@@ -114,4 +114,22 @@ private:
     }
 };
 
+template<size_t Row, size_t Col, typename T, typename Void>
+struct ktm::detail::mat_opt_implement::opposite
+{
+	using M = mat<Row, Col, T>;
+    static KTM_INLINE M call(const M& m) noexcept
+    {
+        return call(m, std::make_index_sequence<Row>());
+    }
+private:
+    template<size_t ...Ns>
+    static KTM_INLINE M call(const M& m, std::index_sequence<Ns...>) noexcept
+    {
+        M ret;
+        (((ret[Ns] = -m[Ns])), ...);
+        return ret;
+    }
+};
+
 #endif

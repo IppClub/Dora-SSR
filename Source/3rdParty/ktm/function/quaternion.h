@@ -32,12 +32,6 @@ KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, Q> inverse(const Q& q) noexcept
 }
 
 template<class Q>
-KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, Q> negate(const Q& q) noexcept
-{
-    return Q(-q.vector);
-}
-
-template<class Q>
 KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, Q> lerp(const Q& x, const Q& y, quat_traits_base_t<Q> t) noexcept
 {
     return Q(lerp(x.vector, y.vector, t));
@@ -103,14 +97,14 @@ KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> slerp(const Q& x, const Q& 
 {
     if (dot(x, y) >= 0)
         return slerp_internal(x, y, t);
-    return slerp_internal(x, negate(y), t);
+    return slerp_internal(x, -y, t);
 }
 
 template<class Q>
 KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> slerp_longest(const Q& x, const Q& y, quat_traits_base_t<Q> t) noexcept
 {
     if (dot(x, y) >= 0)
-        return slerp_internal(x, negate(y), t);
+        return slerp_internal(x, -y, t);
     return slerp_internal(x, y, t);
 }
 

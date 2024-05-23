@@ -48,6 +48,11 @@ struct imat_calc<Father, mat<Row, Col, T>> : Father
     {
         return detail::mat_opt_implement::minus<Row, Col, T>::call(reinterpret_cast<const mat<Row, Col, T>&>(*this), m2); 
     }
+
+    KTM_INLINE mat<Row, Col, T> operator-() const noexcept
+    {
+        return detail::mat_opt_implement::opposite<Row, Col, T>::call(reinterpret_cast<const mat<Row, Col, T>&>(*this));  
+    }
 };
 }
 

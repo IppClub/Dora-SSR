@@ -316,7 +316,6 @@ threadLoop ->
 			]
 			for i = 1, #unitTags
 				hints[] = 2
-			values = []
 			l1 = #relationTags - 1
 			l2 = #bodyTypes
 			l3 = #skills

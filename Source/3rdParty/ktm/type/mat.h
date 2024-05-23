@@ -28,6 +28,7 @@ struct mat<Row, Col, T> : mat_father_type<mat<Row, Col, T>>
     using fater_type = mat_father_type<mat<Row, Col, T>>;
     using fater_type::fater_type;
 };
+
 }
 
 #include "../detail/matrix/mat_calc.inl"

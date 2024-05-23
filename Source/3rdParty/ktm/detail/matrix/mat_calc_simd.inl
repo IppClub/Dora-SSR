@@ -100,6 +100,25 @@ private:
     }
 };
 
+template<size_t Row, size_t Col>
+struct ktm::detail::mat_opt_implement::opposite<Row, Col, float, std::enable_if_t<Col == 3 || Col == 4>>
+{
+    using M = mat<Row, Col, float>;
+    using ColV = vec<Col, float>;
+    static KTM_INLINE M call(const M& m) noexcept
+    {
+        return call(m, std::make_index_sequence<Row>());
+    }
+private:
+   template<size_t ...Ns>
+    static KTM_INLINE M call(const M& m, std::index_sequence<Ns...>) noexcept
+    {
+        M ret;
+        ((ret[Ns].st = _neg128_f32(m[Ns].st)), ...);
+        return ret;
+    }
+};
+
 #endif // KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE | KTM_SIMD_WASM)
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE2 | KTM_SIMD_WASM)
@@ -138,6 +157,25 @@ private:
     {
         M ret;
         ((ret[Ns].st = _sub128_s32(m1[Ns].st, m2[Ns].st)), ...);
+        return ret;
+    }
+};
+
+template<size_t Row, size_t Col>
+struct ktm::detail::mat_opt_implement::opposite<Row, Col, int, std::enable_if_t<Col == 3 || Col == 4>>
+{
+    using M = mat<Row, Col, int>;
+    using ColV = vec<Col, int>;
+    static KTM_INLINE M call(const M& m) noexcept
+    {
+        return call(m, std::make_index_sequence<Row>());
+    }
+private:
+   template<size_t ...Ns>
+    static KTM_INLINE M call(const M& m, std::index_sequence<Ns...>) noexcept
+    {
+        M ret;
+        ((ret[Ns].st = _neg128_s32(m[Ns].st)), ...);
         return ret;
     }
 };
@@ -279,6 +317,25 @@ private:
 };
 
 template<size_t Row>
+struct ktm::detail::mat_opt_implement::opposite<Row, 2, float>
+{
+    using M = mat<Row, 2, float>;
+    using ColV = vec<2, float>;
+    static KTM_INLINE M call(const M& m) noexcept
+    {
+        return call(m, std::make_index_sequence<Row>());
+    }
+private:
+   template<size_t ...Ns>
+    static KTM_INLINE M call(const M& m, std::index_sequence<Ns...>) noexcept
+    {
+        M ret;
+        ((ret[Ns].st = _neg64_f32(m[Ns].st)), ...);
+        return ret;
+    }
+};
+
+template<size_t Row>
 struct ktm::detail::mat_opt_implement::mat_mul_vec<Row, 2, int>
 {
     using M = mat<Row, 2, int>;
@@ -353,6 +410,25 @@ private:
     {
         M ret;
         ((ret[Ns].st = _sub64_s32(m1[Ns].st, m2[Ns].st)), ...);
+        return ret;
+    }
+};
+
+template<size_t Row>
+struct ktm::detail::mat_opt_implement::opposite<Row, 2, int>
+{
+    using M = mat<Row, 2, int>;
+    using ColV = vec<2, int>;
+    static KTM_INLINE M call(const M& m) noexcept
+    {
+        return call(m, std::make_index_sequence<Row>());
+    }
+private:
+   template<size_t ...Ns>
+    static KTM_INLINE M call(const M& m, std::index_sequence<Ns...>) noexcept
+    {
+        M ret;
+        ((ret[Ns].st = _neg64_s32(m[Ns].st)), ...);
         return ret;
     }
 };

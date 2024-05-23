@@ -20,13 +20,9 @@ struct ktm::detail::geometric_implement::dot<N, float, std::enable_if_t<N == 3 |
     static KTM_INLINE float call(const V& x, const V& y) noexcept
     {
         if constexpr(N == 3)
-        {
             return _cast128to32_f32(skv::dot1_fv3(x.st, y.st));
-        }
         else 
-        {
             return _cast128to32_f32(skv::dot1_fv4(x.st, y.st));
-        }
     }
 };
 
@@ -77,13 +73,9 @@ struct ktm::detail::geometric_implement::length<N, float, std::enable_if_t<N == 
     {
         skv::fv4 len_sq;
         if constexpr(N == 3)
-        {
             len_sq = skv::dot1_fv3(x.st, x.st);
-        }
         else 
-        {
             len_sq = skv::dot1_fv4(x.st, x.st);
-        }
         return _cast128to32_f32(_sqrth128_f32(len_sq));
     }
 };
@@ -109,13 +101,9 @@ struct ktm::detail::geometric_implement::normalize<N, float, std::enable_if_t<N 
         V ret;
         skv::fv4 dot;
         if constexpr(N == 3)
-        {
             dot = skv::dot_fv3(x.st, x.st);
-        }
         else 
-        {
             dot = skv::dot_fv4(x.st, x.st);
-        }
         skv::fv4 rsq = _rsqrth128_f32(dot);
         ret.st = _mul128_f32(rsq, x.st);
         return ret;
@@ -131,13 +119,9 @@ struct ktm::detail::geometric_implement::reflect<N, float, std::enable_if_t<N ==
         V ret;
         skv::fv4 dot;
         if constexpr(N == 3)
-        {
             dot = skv::dot_fv3(x.st, n.st);
-        }
         else 
-        {
             dot = skv::dot_fv4(x.st, n.st);
-        }
         skv::fv4 mul_0 = _mul128_f32(n.st, dot);
         skv::fv4 mul_1 = _mul128_f32(mul_0, _dup128_f32(2.0f));
         ret.st = _sub128_f32(x.st, mul_1);
@@ -155,13 +139,9 @@ struct ktm::detail::geometric_implement::refract<N, float, std::enable_if_t<N ==
         skv::fv4 one = _dup128_f32(1.f);
         skv::fv4 dot;
         if constexpr(N == 3)
-        {
             dot = skv::dot_fv3(n.st, x.st);
-        }
         else 
-        {
             dot = skv::dot_fv4(n.st, x.st);
-        }
         skv::fv4 eta2 = _mul128_f32(t_eta, t_eta);
         skv::fv4 one_minus_cos2 = _sub128_f32(one, _mul128_f32(dot, dot));
         skv::fv4 k = _sub128_f32(one, _mul128_f32(eta2, one_minus_cos2));
@@ -207,13 +187,9 @@ struct ktm::detail::geometric_implement::fast_length<N, float, std::enable_if_t<
     {
         skv::fv4 len_sq;
         if constexpr(N == 3)
-        {
             len_sq = skv::dot1_fv3(x.st, x.st);
-        }
         else 
-        {
             len_sq = skv::dot1_fv4(x.st, x.st);
-        }
         return _cast128to32_f32(_sqrtl128_f32(len_sq));
     }
 };
@@ -239,13 +215,9 @@ struct ktm::detail::geometric_implement::fast_normalize<N, float, std::enable_if
         V ret;
         skv::fv4 dot;
         if constexpr(N == 3)
-        {
             dot = skv::dot_fv3(x.st, x.st);
-        }
         else 
-        {
             dot = skv::dot_fv4(x.st, x.st);
-        }
         skv::fv4 rsq = _rsqrtl128_f32(dot);
         ret.st = _mul128_f32(rsq, x.st);
         return ret;
