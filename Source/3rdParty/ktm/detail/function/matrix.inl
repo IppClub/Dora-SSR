@@ -15,22 +15,6 @@
 #include "../../type/vec_fwd.h"
 #include "../../type/mat_fwd.h"
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::matrix_implement::trace
-{
-    using M = mat<N, N, T>;
-    static KTM_INLINE T call(const M& m) noexcept
-    {
-        return call(m, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE T call(const M& m, std::index_sequence<Ns...>) noexcept
-    {
-        return ((m[Ns][Ns])+ ...);
-    }
-};
-
 template<size_t Row, size_t Col, typename T, typename Void>
 struct ktm::detail::matrix_implement::transpose
 {
@@ -48,6 +32,41 @@ private:
         RetM ret;
         size_t row_index;
         ((row_index = Rs, ret[Rs] = RowV(m[Cs][row_index]...)), ...);
+        return ret;
+    }
+};
+
+template<size_t N, typename T, typename Void>
+struct ktm::detail::matrix_implement::trace
+{
+    using M = mat<N, N, T>;
+    static KTM_INLINE T call(const M& m) noexcept
+    {
+        return call(m, std::make_index_sequence<N>());
+    }
+private:
+    template<size_t ...Ns>
+    static KTM_INLINE T call(const M& m, std::index_sequence<Ns...>) noexcept
+    {
+        return ((m[Ns][Ns])+ ...);
+    }
+};
+
+template<size_t N, typename T, typename Void>
+struct ktm::detail::matrix_implement::diagonal
+{
+    using M = mat<N, N, T>;
+    using ColV = vec<N, T>;
+    static KTM_INLINE ColV call(const M& m) noexcept
+    {
+        return call(m, std::make_index_sequence<N>());
+    }
+private:
+    template<size_t ...Ns>
+    static KTM_INLINE ColV call(const M& m, std::index_sequence<Ns...>) noexcept
+    {
+        ColV ret;
+        ((ret[Ns] = m[Ns][Ns]), ...);
         return ret;
     }
 };
@@ -105,8 +124,8 @@ struct ktm::detail::matrix_implement::inverse<2, T>
         T one_over_det = one<T> / determinant<2, T>::call(m);
         M ret;
         ret[0][0] = m[1][1] * one_over_det;
-        ret[0][1] = - m[1][0] * one_over_det; 
-        ret[1][0] = - m[0][1] * one_over_det; 
+        ret[0][1] = - m[0][1] * one_over_det; 
+        ret[1][0] = - m[1][0] * one_over_det; 
         ret[1][1] = m[0][0] * one_over_det;
         return ret;
     }

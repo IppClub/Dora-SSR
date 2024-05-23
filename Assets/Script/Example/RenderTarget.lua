@@ -36,25 +36,23 @@ do -- 18
 	_with_0:renderWithClear(Color(0xff8a8a8a)) -- 19
 	renderTarget = _with_0 -- 18
 end -- 18
-local surface -- 21
 do -- 21
-	local _with_0 = Sprite(renderTarget.texture) -- 21
-	_with_0.order = 1 -- 22
-	_with_0.z = 300 -- 23
-	_with_0.angleY = 25 -- 24
-	_with_0:addChild(Line({ -- 26
+	local surface = Sprite(renderTarget.texture) -- 21
+	surface.order = 1 -- 22
+	surface.z = 300 -- 23
+	surface.angleY = 25 -- 24
+	surface:addChild(Line({ -- 26
 		Vec2.zero, -- 26
 		Vec2(300, 0), -- 27
 		Vec2(300, 400), -- 28
 		Vec2(0, 400), -- 29
 		Vec2.zero -- 30
 	}, App.themeColor)) -- 25
-	_with_0:schedule(function() -- 32
+	surface:schedule(function() -- 32
 		node.y = 200 -- 33
 		renderTarget:renderWithClear(node, Color(0xff8a8a8a)) -- 34
 		node.y = 0 -- 35
 	end) -- 32
-	surface = _with_0 -- 21
 end -- 21
 local windowFlags = { -- 40
 	"NoDecoration", -- 40

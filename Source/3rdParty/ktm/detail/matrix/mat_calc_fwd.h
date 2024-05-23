@@ -33,6 +33,9 @@ struct add;
 template<size_t Row, size_t Col, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
 struct minus;
 
+template<size_t Row, size_t Col, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+struct opposite;
+
 }
 }
 }

@@ -45,11 +45,9 @@ do -- 12
 	_with_0:attachPolygon(Vec2(0, 80), 120, 30, 0, 1, 0, 1.0) -- 20
 	terrainDef = _with_0 -- 12
 end -- 12
-local terrain -- 22
 do -- 22
-	local _with_0 = Body(terrainDef, world) -- 22
-	_with_0:addTo(world) -- 23
-	terrain = _with_0 -- 22
+	local terrain = Body(terrainDef, world) -- 22
+	terrain:addTo(world) -- 23
 end -- 22
 local drawNode -- 25
 do -- 25

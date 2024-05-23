@@ -13,6 +13,7 @@
 #include "type_mat.h"
 #include "type_quat.h"
 #include "type_comp.h"
+#include "type_affine.h"
 
 #include "function/arithmetic.h"
 #include "function/trigonometric.h"
@@ -22,8 +23,8 @@
 #include "function/epsilon.h"
 #include "function/matrix.h"
 #include "function/matrix_equation.h"
-#include "function/matrix_transform_2d.h"
-#include "function/matrix_transform_3d.h"
+#include "function/matrix_transform2d.h"
+#include "function/matrix_transform3d.h"
 #include "function/quaternion.h"
 #include "function/complex.h"
 
