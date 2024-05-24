@@ -104,7 +104,7 @@ namespace ImGui
 	bool Binding::DragFloat2 @ DragFloat2(CString label, float* v1, float* v2, float v_speed, float v_min, float v_max, CString display_format, String flags[tolua_len]);
 	bool Binding::DragInt @ DragInt(CString label, int* v, float v_speed, int v_min, int v_max, CString display_format = "%d");
 	bool Binding::DragInt @ DragInt(CString label, int* v, float v_speed, int v_min, int v_max, CString display_format, String flags[tolua_len]);
-	bool Binding::DragInt2 @ DragInt2(CString label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, CString display_format = "%.0f");
+	bool Binding::DragInt2 @ DragInt2(CString label, int* v1, int* v2, float v_speed = 1.0f, int v_min = 0, int v_max = 0, CString display_format = "%d");
 	bool Binding::DragInt2 @ DragInt2(CString label, int* v1, int* v2, float v_speed, int v_min, int v_max, CString display_format, String flags[tolua_len]);
 	bool Binding::InputFloat @ InputFloat(CString label, float* v, float step = 0.0f, float step_fast = 0.0f, CString format = "%.3f");
 	bool Binding::InputFloat @ InputFloat(CString label, float* v, float step, float step_fast, CString format, String flags[tolua_len]);

@@ -335,7 +335,7 @@ Rect Model::getBoundingBox() {
 			Rect box = child->getBoundingBox();
 			if (box.size != Size::zero) {
 				for (Node* parent = child->getParent(); parent != this; parent = parent->getParent()) {
-					box = AffineTransform::applyRect(parent->getLocalTransform(), box);
+					box = parent->getLocalTransform().applyRect(box);
 				}
 				if (firstBox) {
 					firstBox = false;
@@ -352,7 +352,7 @@ Rect Model::getBoundingBox() {
 	});
 	_flags.set(Node::TraverseEnabled, traverseEnabled);
 	Rect rect(lower.x, lower.y, upper.x - lower.x, upper.y - lower.y);
-	return AffineTransform::applyRect(getLocalTransform(), rect);
+	return getLocalTransform().applyRect(rect);
 }
 
 Model* Model::dummy() {
