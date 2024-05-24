@@ -333,13 +333,13 @@ bool Rect::intersectsRect(const Rect& rect) const {
 AffineTransform AffineTransform::Indentity = {1.0, 0.0, 0.0, 1.0, 0.0, 0.0};
 
 Vec2 AffineTransform::applyPoint(const Vec2& point) const {
-	const ktm::faffine2d& ktm_affine = *r_cast<const ktm::faffine2d*>(r_cast<const void*>(this));
+	const ktm::faffine2d& ktm_affine = *r_cast<const ktm::faffine2d*>(this);
 	ktm::fvec2 ret = r_cast<const ktm::fmat2x2&>(ktm_affine.m) * r_cast<const ktm::fvec2&>(point) + ktm_affine.m[2];
 	return r_cast<Vec2&>(ret);
 }
 
 Size AffineTransform::applySize(const Size& size) const {
-	ktm::fvec2 ret = *r_cast<const ktm::fmat2x2*>(r_cast<const void*>(this)) * r_cast<const ktm::fvec2&>(size);
+	ktm::fvec2 ret = *r_cast<const ktm::fmat2x2*>(this) * r_cast<const ktm::fvec2&>(size);
 	return r_cast<Size&>(ret);
 }
 
@@ -363,27 +363,27 @@ Rect AffineTransform::applyRect(const Rect& rect) const {
 }
 
 AffineTransform& AffineTransform::translate(float tx, float ty) {
-	r_cast<ktm::faffine2d*>(r_cast<void*>(this))->translate(tx, ty);
+	r_cast<ktm::faffine2d*>(this)->translate(tx, ty);
 	return *this;
 }
 
 AffineTransform& AffineTransform::rotate(float angle) {
-	r_cast<ktm::faffine2d*>(r_cast<void*>(this))->rotate(angle);
+	r_cast<ktm::faffine2d*>(this)->rotate(angle);
 	return *this;
 }
 
 AffineTransform& AffineTransform::scale(float sx, float sy) {
-	r_cast<ktm::faffine2d*>(r_cast<void*>(this))->scale(sx, sy);
+	r_cast<ktm::faffine2d*>(this)->scale(sx, sy);
 	return *this;
 }
 
 AffineTransform& AffineTransform::concat(const AffineTransform& t2) {
-	r_cast<ktm::faffine2d*>(r_cast<void*>(this))->concat(r_cast<const ktm::faffine2d&>(t2));
+	r_cast<ktm::faffine2d*>(this)->concat(r_cast<const ktm::faffine2d&>(t2));
 	return *this;
 }
 
 AffineTransform& AffineTransform::invert() {
-	r_cast<ktm::faffine2d*>(r_cast<void*>(this))->invert();
+	r_cast<ktm::faffine2d*>(this)->invert();
 	return *this;
 }
 
@@ -392,8 +392,8 @@ void AffineTransform::toMatrix(float* m) const {
 	// | m[1] m[5] m[9]   m[13] |       | m12 m22 m32 m42 |       | b d 0 ty |
 	// | m[2] m[6] m[10]  m[14] | =>    | m13 m23 m33 m43 | =>    | 0 0 1  0 |
 	// | m[3] m[7] m[11]  m[15] |       | m14 m24 m34 m44 |       | 0 0 0  1 |
-	ktm::fmat4x4& mat = *r_cast<ktm::fmat4x4*>(r_cast<void*>(m));
-	*r_cast<const ktm::faffine2d*>(r_cast<const void*>(this)) >> mat;
+	ktm::fmat4x4& mat = *r_cast<ktm::fmat4x4*>(m);
+	*r_cast<const ktm::faffine2d*>(this) >> mat;
 }
 
 const Matrix Matrix::Indentity = {
@@ -403,16 +403,16 @@ const Matrix Matrix::Indentity = {
 	0, 0, 0, 1};
 
 void Matrix::mulVec4(float* result, const float* matrix, const float* vec4) {
-	const ktm::fmat4x4& mat = *r_cast<const ktm::fmat4x4*>(r_cast<const void*>(matrix));
-	const ktm::fvec4& v4 = *r_cast<const ktm::fvec4*>(r_cast<const void*>(vec4));
-	ktm::fvec4& output = *r_cast<ktm::fvec4*>(r_cast<void*>(result));
+	const ktm::fmat4x4& mat = *r_cast<const ktm::fmat4x4*>(matrix);
+	const ktm::fvec4& v4 = *r_cast<const ktm::fvec4*>(vec4);
+	ktm::fvec4& output = *r_cast<ktm::fvec4*>(result);
 	output = mat * v4;
 }
 
 void Matrix::mulMtx(float* result, const float* left, const float* right) {
-	const ktm::fmat4x4& lMat = *r_cast<const ktm::fmat4x4*>(r_cast<const void*>(left));
-	const ktm::fmat4x4& rMat = *r_cast<const ktm::fmat4x4*>(r_cast<const void*>(right));
-	ktm::fmat4x4& output = *r_cast<ktm::fmat4x4*>(r_cast<void*>(result));
+	const ktm::fmat4x4& lMat = *r_cast<const ktm::fmat4x4*>(left);
+	const ktm::fmat4x4& rMat = *r_cast<const ktm::fmat4x4*>(right);
+	ktm::fmat4x4& output = *r_cast<ktm::fmat4x4*>(result);
 	output = lMat * rMat;
 }
 
