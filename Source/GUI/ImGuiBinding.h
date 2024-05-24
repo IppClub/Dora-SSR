@@ -407,7 +407,7 @@ bool DragInt2(
 	float v_speed,
 	int v_min,
 	int v_max,
-	const char* display_format = "%.0f",
+	const char* display_format = "%d",
 	Slice* flags = nullptr,
 	int flagCount = 0);
 
@@ -417,7 +417,7 @@ bool DragInt2(
 	float v_speed,
 	int v_min,
 	int v_max,
-	const std::string& display_format = "%.0f"s,
+	const std::string& display_format = "%d"s,
 	uint32_t sliderFlags = 0); //
 
 bool InputFloat(

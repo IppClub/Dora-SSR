@@ -332,73 +332,68 @@ bool Rect::intersectsRect(const Rect& rect) const {
 // AffineTransform
 AffineTransform AffineTransform::Indentity = {1.0, 0.0, 0.0, 1.0, 0.0, 0.0};
 
-Vec2 AffineTransform::applyPoint(const AffineTransform& t, const Vec2& point) {
-    const ktm::faffine2d& ktm_affine = r_cast<const ktm::faffine2d&>(t);
-    ktm::fvec2 ret = r_cast<const ktm::fmat2x2&>(ktm_affine.m) * r_cast<const ktm::fvec2&>(point) + ktm_affine.m[2];
-    return r_cast<Vec2&>(ret);
+Vec2 AffineTransform::applyPoint(const Vec2& point) const {
+	const ktm::faffine2d& ktm_affine = *r_cast<const ktm::faffine2d*>(r_cast<const void*>(this));
+	ktm::fvec2 ret = r_cast<const ktm::fmat2x2&>(ktm_affine.m) * r_cast<const ktm::fvec2&>(point) + ktm_affine.m[2];
+	return r_cast<Vec2&>(ret);
 }
 
-Size AffineTransform::applySize(const AffineTransform& t, const Size& size) {
-    ktm::fvec2 ret = r_cast<const ktm::fmat2x2&>(t) * r_cast<const ktm::fvec2&>(size);
-    return r_cast<Size&>(ret);
+Size AffineTransform::applySize(const Size& size) const {
+	ktm::fvec2 ret = *r_cast<const ktm::fmat2x2*>(r_cast<const void*>(this)) * r_cast<const ktm::fvec2&>(size);
+	return r_cast<Size&>(ret);
 }
 
-Rect AffineTransform::applyRect(const AffineTransform& t, const Rect& rect) {
+Rect AffineTransform::applyRect(const Rect& rect) const {
 	float bottom = rect.getBottom();
 	float left = rect.getLeft();
 	float right = rect.getRight();
 	float top = rect.getTop();
 
-	Vec2 topLeft = applyPoint(t, Vec2{left, top});
-	Vec2 topRight = applyPoint(t, Vec2{right, top});
-	Vec2 bottomLeft = applyPoint(t, Vec2{left, bottom});
-	Vec2 bottomRight = applyPoint(t, Vec2{right, bottom});
+	Vec2 topLeft = applyPoint({left, top});
+	Vec2 topRight = applyPoint({right, top});
+	Vec2 bottomLeft = applyPoint({left, bottom});
+	Vec2 bottomRight = applyPoint({right, bottom});
 
-    float minX = ktm::reduce_min(ktm::fvec4{topLeft.x, topRight.x, bottomLeft.x, bottomRight.x});
-    float maxX = ktm::reduce_max(ktm::fvec4{topLeft.x, topRight.x, bottomLeft.x, bottomRight.x});
-    float minY = ktm::reduce_min(ktm::fvec4{topLeft.y, topRight.y, bottomLeft.y, bottomRight.y});
-    float maxY = ktm::reduce_max(ktm::fvec4{topLeft.y, topRight.y, bottomLeft.y, bottomRight.y});
+	float minX = ktm::reduce_min(ktm::fvec4{topLeft.x, topRight.x, bottomLeft.x, bottomRight.x});
+	float maxX = ktm::reduce_max(ktm::fvec4{topLeft.x, topRight.x, bottomLeft.x, bottomRight.x});
+	float minY = ktm::reduce_min(ktm::fvec4{topLeft.y, topRight.y, bottomLeft.y, bottomRight.y});
+	float maxY = ktm::reduce_max(ktm::fvec4{topLeft.y, topRight.y, bottomLeft.y, bottomRight.y});
 
 	return Rect(minX, minY, (maxX - minX), (maxY - minY));
 }
 
-AffineTransform AffineTransform::translate(const AffineTransform& t, float tx, float ty) {
-    AffineTransform affine = t;
-    r_cast<ktm::faffine2d&>(affine).translate(tx, ty);
-    return affine;
+AffineTransform& AffineTransform::translate(float tx, float ty) {
+	r_cast<ktm::faffine2d*>(r_cast<void*>(this))->translate(tx, ty);
+	return *this;
 }
 
-AffineTransform AffineTransform::rotate(const AffineTransform& t, float angle) {
-    AffineTransform affine = t;
-    r_cast<ktm::faffine2d&>(affine).rotate(angle);
-    return affine;
+AffineTransform& AffineTransform::rotate(float angle) {
+	r_cast<ktm::faffine2d*>(r_cast<void*>(this))->rotate(angle);
+	return *this;
 }
 
-AffineTransform AffineTransform::scale(const AffineTransform& t, float sx, float sy) {
-    AffineTransform affine = t;
-    r_cast<ktm::faffine2d&>(affine).scale(sx, sy);
-    return affine;
+AffineTransform& AffineTransform::scale(float sx, float sy) {
+	r_cast<ktm::faffine2d*>(r_cast<void*>(this))->scale(sx, sy);
+	return *this;
 }
 
-AffineTransform AffineTransform::concat(const AffineTransform& t1, const AffineTransform& t2) {
-    AffineTransform affine = t1;
-    r_cast<ktm::faffine2d&>(affine).concat(r_cast<const ktm::faffine2d&>(t2));
-    return affine;
+AffineTransform& AffineTransform::concat(const AffineTransform& t2) {
+	r_cast<ktm::faffine2d*>(r_cast<void*>(this))->concat(r_cast<const ktm::faffine2d&>(t2));
+	return *this;
 }
 
-AffineTransform AffineTransform::invert(const AffineTransform& t) {
-    AffineTransform affine = t;
-    r_cast<ktm::faffine2d&>(affine).invert();
-    return affine;
+AffineTransform& AffineTransform::invert() {
+	r_cast<ktm::faffine2d*>(r_cast<void*>(this))->invert();
+	return *this;
 }
 
-void AffineTransform::toMatrix(const AffineTransform& t, float* m) {
+void AffineTransform::toMatrix(float* m) const {
 	// | m[0] m[4] m[8]   m[12] |       | m11 m21 m31 m41 |       | a c 0 tx |
 	// | m[1] m[5] m[9]   m[13] |       | m12 m22 m32 m42 |       | b d 0 ty |
 	// | m[2] m[6] m[10]  m[14] | =>    | m13 m23 m33 m43 | =>    | 0 0 1  0 |
 	// | m[3] m[7] m[11]  m[15] |       | m14 m24 m34 m44 |       | 0 0 0  1 |
-    ktm::fmat4x4& mat = *r_cast<ktm::fmat4x4*>(r_cast<void*>(m));
-    r_cast<const ktm::faffine2d&>(t) >> mat;
+	ktm::fmat4x4& mat = *r_cast<ktm::fmat4x4*>(r_cast<void*>(m));
+	*r_cast<const ktm::faffine2d*>(r_cast<const void*>(this)) >> mat;
 }
 
 const Matrix Matrix::Indentity = {

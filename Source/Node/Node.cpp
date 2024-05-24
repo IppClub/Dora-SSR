@@ -351,7 +351,7 @@ Node* Node::getTargetParent() const {
 
 Rect Node::getBoundingBox() {
 	Rect rect(0, 0, _size.width, _size.height);
-	return AffineTransform::applyRect(getLocalTransform(), rect);
+	return getLocalTransform().applyRect(rect);
 }
 
 void Node::setRenderOrder(int var) {
@@ -899,34 +899,29 @@ const AffineTransform& Node::getLocalTransform() {
 		float c = 1, s = 0;
 		if (_angle) {
 			float radians = -bx::toRad(_angle);
-			c = std::cos(radians);
-			s = std::sin(radians);
+			c = bx::cos(radians);
+			s = bx::sin(radians);
 		}
+
 		if (_skewX || _skewY) {
-			/* translateXY, rotateZ, scaleXY */
-			_transform = {c * _scaleX, s * _scaleX, -s * _scaleY, c * _scaleY, _position.x, _position.y};
-
 			/* skewXY */
-			AffineTransform skewMatrix{
-				1.0f, std::tan(bx::toRad(_skewY)),
-				std::tan(bx::toRad(_skewX)), 1.0f,
+			_transform = {
+				1.0f, bx::tan(bx::toRad(_skewY)),
+				bx::tan(bx::toRad(_skewX)), 1.0f,
 				0.0f, 0.0f};
-			_transform = AffineTransform::concat(skewMatrix, _transform);
 
-			/* translateAnchorXY */
-			if (_anchorPoint != Vec2::zero) {
-				_transform = AffineTransform::translate(_transform, -_anchorPoint.x, -_anchorPoint.y);
-			}
+			/* scaleXY, rotateZ, translateXY */
+			_transform.concat({c * _scaleX, s * _scaleX, -s * _scaleY, c * _scaleY, _position.x, _position.y});
 		} else {
-			/* translateXY, scaleXY, rotateZ, translateAnchorXY */
-			float x = _position.x;
-			float y = _position.y;
-			if (_anchorPoint != Vec2::zero) {
-				x += c * -_anchorPoint.x * _scaleX + -s * -_anchorPoint.y * _scaleY;
-				y += s * -_anchorPoint.x * _scaleX + c * -_anchorPoint.y * _scaleY;
-			}
-			_transform = {c * _scaleX, s * _scaleX, -s * _scaleY, c * _scaleY, x, y};
+			/* scaleXY, rotateZ, translateXY */
+			_transform = {c * _scaleX, s * _scaleX, -s * _scaleY, c * _scaleY, _position.x, _position.y};
 		}
+
+		/* translateAnchorXY */
+		if (_anchorPoint != Vec2::zero) {
+			_transform.translate(-_anchorPoint.x, -_anchorPoint.y);
+		}
+
 		_flags.setOff(Node::TransformDirty);
 	}
 	return _transform;
@@ -934,14 +929,14 @@ const AffineTransform& Node::getLocalTransform() {
 
 void Node::getLocalWorld(Matrix& localWorld) {
 	if (_angleX || _angleY) {
-		AffineTransform transform = getLocalTransform();
 		/* translateXY, scaleXY, rotateZ, translateAnchorXY */
 		if (_anchorPoint != Vec2::zero) {
+			AffineTransform transform = getLocalTransform();
 			Matrix mtxRoted;
 			{
 				/* -translateAnchorXY */
 				Matrix mtxBase;
-				AffineTransform::toMatrix(AffineTransform::translate(transform, _anchorPoint.x, _anchorPoint.y), mtxBase);
+				transform.translate(_anchorPoint.x, _anchorPoint.y).toMatrix(mtxBase);
 
 				/* translateZ */
 				mtxBase.m[14] = _positionZ;
@@ -958,7 +953,7 @@ void Node::getLocalWorld(Matrix& localWorld) {
 			Matrix::mulMtx(localWorld, mtxRoted, mtxAnchor);
 		} else {
 			Matrix mtxBase;
-			AffineTransform::toMatrix(transform, mtxBase);
+			getLocalTransform().toMatrix(mtxBase);
 
 			/* translateZ */
 			mtxBase.m[14] = _positionZ;
@@ -970,8 +965,7 @@ void Node::getLocalWorld(Matrix& localWorld) {
 		}
 	} else {
 		/* translateXY, scaleXY, rotateZ, translateAnchorXY */
-		AffineTransform transform = getLocalTransform();
-		AffineTransform::toMatrix(transform, localWorld);
+		getLocalTransform().toMatrix(localWorld);
 
 		/* translateZ */
 		localWorld.m[14] = _positionZ;

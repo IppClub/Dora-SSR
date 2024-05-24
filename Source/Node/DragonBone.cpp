@@ -53,7 +53,7 @@ const Matrix& DBSlotNode::getWorld() {
 	if (_flags.isOn(DBSlotNode::TransformDirty) || _flags.isOn(Node::WorldDirty)) {
 		_flags.setOff(DBSlotNode::TransformDirty);
 		Matrix mat;
-		AffineTransform::toMatrix(_transform, mat);
+		_transform.toMatrix(mat);
 		Matrix::mulMtx(_matrix, Node::getWorld(), mat);
 	}
 	return _matrix;
@@ -548,7 +548,7 @@ void DragonBone::render() {
 						for (int i = 0; i < vertSize; i++) {
 							float x = verts[i * 2] * scale;
 							float y = verts[i * 2 + 1] * scale;
-							vertices[i] = AffineTransform::applyPoint(*transform, {x, y});
+							vertices[i] = transform->applyPoint({x, y});
 						}
 						vertices[vertSize] = vertices[0];
 						_debugLine->add(vertices, Color(0xff00ffff));

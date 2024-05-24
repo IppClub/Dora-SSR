@@ -97,15 +97,15 @@ struct Rect {
 struct AffineTransform {
 	float a, b, c, d;
 	float tx, ty;
-	static Vec2 applyPoint(const AffineTransform& t, const Vec2& point);
-	static Size applySize(const AffineTransform& t, const Size& size);
-	static Rect applyRect(const AffineTransform& t, const Rect& size);
-	static AffineTransform translate(const AffineTransform& t, float tx, float ty);
-	static AffineTransform rotate(const AffineTransform& t, float angle);
-	static AffineTransform scale(const AffineTransform& t, float sx, float sy);
-	static AffineTransform concat(const AffineTransform& t1, const AffineTransform& t2);
-	static AffineTransform invert(const AffineTransform& t);
-	static void toMatrix(const AffineTransform& t, float* matrix);
+	Vec2 applyPoint(const Vec2& point) const;
+	Size applySize(const Size& size) const;
+	Rect applyRect(const Rect& size) const;
+	AffineTransform& translate(float tx, float ty);
+	AffineTransform& rotate(float angle);
+	AffineTransform& scale(float sx, float sy);
+	AffineTransform& concat(const AffineTransform& t2);
+	AffineTransform& invert();
+	void toMatrix(float* matrix) const;
 	static AffineTransform Indentity;
 };
 
