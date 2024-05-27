@@ -2730,9 +2730,6 @@ class Node extends Object {
 	/** 节点的父节点，，可能为undefined。 */
 	readonly parent?: Node;
 
-	/** 节点的边界框，为Rect对象。 */
-	readonly boundingBox: Rect;
-
 	/** 节点当前是否在场景树中运行。 */
 	readonly running: boolean;
 
