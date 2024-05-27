@@ -122,7 +122,7 @@ float Application::getDevicePixelRatio() const {
 
 void Application::setThemeColor(Color var) {
 	_themeColor = var;
-	Event::send("AppTheme", _themeColor.toARGB());
+	Event::send("AppTheme"_slice, _themeColor.toARGB());
 }
 
 Color Application::getThemeColor() const {
