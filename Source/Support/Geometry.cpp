@@ -416,4 +416,115 @@ void Matrix::mulMtx(float* result, const float* left, const float* right) {
 	output = lMat * rMat;
 }
 
+void Matrix::mulAABB(AABB& result, const float* matrix, const AABB& right) {
+	const ktm::fmat4x4& mat = *r_cast<const ktm::fmat4x4*>(matrix);
+
+	ktm::fvec4 corners[8] = {
+		{right.min.x, right.min.y, right.min.z, 1.0f},
+		{right.min.x, right.min.y, right.max.z, 1.0f},
+		{right.min.x, right.max.y, right.min.z, 1.0f},
+		{right.min.x, right.max.y, right.max.z, 1.0f},
+		{right.max.x, right.min.y, right.min.z, 1.0f},
+		{right.max.x, right.min.y, right.max.z, 1.0f},
+		{right.max.x, right.max.y, right.min.z, 1.0f},
+		{right.max.x, right.max.y, right.max.z, 1.0f}};
+
+	auto corner = mat * corners[0];
+	result.min = result.max = *r_cast<Vec3*>(&corner);
+
+	for (int i = 1; i < 8; ++i) {
+		auto corner = mat * corners[i];
+		auto [minX, maxX] = std::minmax({result.min.x, result.max.x, corner.x});
+		auto [minY, maxY] = std::minmax({result.min.y, result.max.y, corner.y});
+		auto [minZ, maxZ] = std::minmax({result.min.z, result.max.z, corner.z});
+		result.min = {minX, minY, minZ};
+		result.max = {maxX, maxY, maxZ};
+	}
+}
+
+void Matrix::mulAABB(AABB& result, const float* matrix, float spriteWidth, float spriteHeight) {
+	const ktm::fmat4x4& mat = *r_cast<const ktm::fmat4x4*>(matrix);
+
+	ktm::fvec4 corners[4] = {
+		{0, 0, 0, 1.0f},
+		{0, spriteHeight, 0, 1.0f},
+		{spriteWidth, spriteHeight, 0, 1.0f},
+		{spriteWidth, 0, 0, 1.0f}};
+
+	auto corner = mat * corners[0];
+	result.min = result.max = *r_cast<Vec3*>(&corner);
+
+	for (int i = 1; i < 4; ++i) {
+		auto corner = mat * corners[i];
+		auto [minX, maxX] = std::minmax({result.min.x, result.max.x, corner.x});
+		auto [minY, maxY] = std::minmax({result.min.y, result.max.y, corner.y});
+		auto [minZ, maxZ] = std::minmax({result.min.z, result.max.z, corner.z});
+		result.min = {minX, minY, minZ};
+		result.max = {maxX, maxY, maxZ};
+	}
+}
+
+void Matrix::toFrustum(Frustum& result, const float* matrix) {
+	const ktm::fmat4x4& viewProjMatrix = *r_cast<const ktm::fmat4x4*>(matrix);
+
+	// Left plane
+	result.planes[0].normal.x = viewProjMatrix[0][3] + viewProjMatrix[0][0];
+	result.planes[0].normal.y = viewProjMatrix[1][3] + viewProjMatrix[1][0];
+	result.planes[0].normal.z = viewProjMatrix[2][3] + viewProjMatrix[2][0];
+	result.planes[0].distance = viewProjMatrix[3][3] + viewProjMatrix[3][0];
+
+	// Right plane
+	result.planes[1].normal.x = viewProjMatrix[0][3] - viewProjMatrix[0][0];
+	result.planes[1].normal.y = viewProjMatrix[1][3] - viewProjMatrix[1][0];
+	result.planes[1].normal.z = viewProjMatrix[2][3] - viewProjMatrix[2][0];
+	result.planes[1].distance = viewProjMatrix[3][3] - viewProjMatrix[3][0];
+
+	// Bottom plane
+	result.planes[2].normal.x = viewProjMatrix[0][3] + viewProjMatrix[0][1];
+	result.planes[2].normal.y = viewProjMatrix[1][3] + viewProjMatrix[1][1];
+	result.planes[2].normal.z = viewProjMatrix[2][3] + viewProjMatrix[2][1];
+	result.planes[2].distance = viewProjMatrix[3][3] + viewProjMatrix[3][1];
+
+	// Top plane
+	result.planes[3].normal.x = viewProjMatrix[0][3] - viewProjMatrix[0][1];
+	result.planes[3].normal.y = viewProjMatrix[1][3] - viewProjMatrix[1][1];
+	result.planes[3].normal.z = viewProjMatrix[2][3] - viewProjMatrix[2][1];
+	result.planes[3].distance = viewProjMatrix[3][3] - viewProjMatrix[3][1];
+
+	// Near plane
+	result.planes[4].normal.x = viewProjMatrix[0][3] + viewProjMatrix[0][2];
+	result.planes[4].normal.y = viewProjMatrix[1][3] + viewProjMatrix[1][2];
+	result.planes[4].normal.z = viewProjMatrix[2][3] + viewProjMatrix[2][2];
+	result.planes[4].distance = viewProjMatrix[3][3] + viewProjMatrix[3][2];
+
+	// Far plane
+	result.planes[5].normal.x = viewProjMatrix[0][3] - viewProjMatrix[0][2];
+	result.planes[5].normal.y = viewProjMatrix[1][3] - viewProjMatrix[1][2];
+	result.planes[5].normal.z = viewProjMatrix[2][3] - viewProjMatrix[2][2];
+	result.planes[5].distance = viewProjMatrix[3][3] - viewProjMatrix[3][2];
+
+	// Normalize the planes
+	for (auto& plane : result.planes) {
+		float length = ktm::length(*r_cast<ktm::fvec3*>(&plane.normal));
+		plane.normal.x /= length;
+		plane.normal.y /= length;
+		plane.normal.z /= length;
+		plane.distance /= length;
+	}
+}
+
+bool Frustum::intersect(const AABB& aabb) const {
+	for (const auto& plane : planes) {
+		auto p = aabb.min;
+		if (plane.normal.x >= 0) p.x = aabb.max.x;
+		if (plane.normal.y >= 0) p.y = aabb.max.y;
+		if (plane.normal.z >= 0) p.z = aabb.max.z;
+		auto result = ktm::dot(*r_cast<const ktm::fvec3*>(&plane.normal), *r_cast<const ktm::fvec3*>(&p));
+		if (result + plane.distance < 0) {
+			return false;
+		}
+	}
+	return true;
+}
+
 NS_DORA_END

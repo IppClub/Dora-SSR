@@ -45,6 +45,7 @@ Director::Director()
 	, _nvgDirty(false)
 	, _paused(false)
 	, _stoped(false)
+	, _frustumCulling(true)
 	, _nvgContext(nullptr) { }
 
 Director::~Director() {
@@ -167,7 +168,7 @@ Camera* Director::getCurrentCamera() {
 }
 
 const Matrix& Director::getViewProjection() const {
-	return *_viewProjs.top();
+	return _viewProjs.top()->matrix;
 }
 
 static void registerTouchHandler(Node* target) {
@@ -425,7 +426,10 @@ void Director::doRender() {
 }
 
 void Director::pushViewProjection(const Matrix& viewProj) {
-	_viewProjs.push(New<Matrix>(viewProj));
+	auto viewProject = New<ViewProject>();
+	viewProject->matrix = viewProj;
+	Matrix::toFrustum(viewProject->frustum, viewProj);
+	_viewProjs.push(std::move(viewProject));
 }
 
 void Director::popViewProjection() {
@@ -496,6 +500,19 @@ void Director::removeFromWaitingList(Node* node) {
 		return wref == node;
 	}),
 		_waitingList.end());
+}
+
+bool Director::isInFrustum(const AABB& aabb) const {
+	if (_viewProjs.empty()) return false;
+	return _viewProjs.top()->frustum.intersect(aabb);
+}
+
+bool Director::isFrustumCulling() const {
+	return _frustumCulling;
+}
+
+void Director::setFrustumCulling(bool var) {
+	_frustumCulling = var;
 }
 
 void Director::markDirty() {

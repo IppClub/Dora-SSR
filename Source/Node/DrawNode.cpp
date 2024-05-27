@@ -73,7 +73,27 @@ const Matrix& DrawNode::getWorld() {
 }
 
 void DrawNode::render() {
-	if (_vertices.empty()) return;
+	if (_vertices.empty()) {
+		Node::render();
+		return;
+	}
+
+	if (SharedDirector.isFrustumCulling()) {
+		auto [minX, maxX] = std::minmax_element(_posColors.begin(), _posColors.end(), [](const auto& a, const auto& b) {
+			return a.pos.x < b.pos.x;
+		});
+		auto [minY, maxY] = std::minmax_element(_posColors.begin(), _posColors.end(), [](const auto& a, const auto& b) {
+			return a.pos.y < b.pos.y;
+		});
+		AABB aabb;
+		Matrix::mulAABB(aabb, _world, {
+										  {minX->pos.x, minY->pos.y, 0},
+										  {maxX->pos.x, maxY->pos.y, 0},
+									  });
+		if (!SharedDirector.isInFrustum(aabb)) {
+			return;
+		}
+	}
 
 	if (_flags.isOn(DrawNode::VertexColorDirty)) {
 		_flags.setOff(DrawNode::VertexColorDirty);
@@ -105,6 +125,8 @@ void DrawNode::render() {
 
 	SharedRendererManager.setCurrent(SharedDrawRenderer.getTarget());
 	SharedDrawRenderer.push(this);
+
+	Node::render();
 }
 
 void DrawNode::pushVertex(const Vec2& pos, const Vec4& color, const Vec2& coord) {
@@ -502,7 +524,27 @@ const Matrix& Line::getWorld() {
 }
 
 void Line::render() {
-	if (_posColors.empty()) return;
+	if (_posColors.empty()) {
+		Node::render();
+		return;
+	}
+
+	if (SharedDirector.isFrustumCulling()) {
+		auto [minX, maxX] = std::minmax_element(_posColors.begin(), _posColors.end(), [](const auto& a, const auto& b) {
+			return a.pos.x < b.pos.x;
+		});
+		auto [minY, maxY] = std::minmax_element(_posColors.begin(), _posColors.end(), [](const auto& a, const auto& b) {
+			return a.pos.y < b.pos.y;
+		});
+		AABB aabb;
+		Matrix::mulAABB(aabb, _world, {
+										  {minX->pos.x, minY->pos.y, 0},
+										  {maxX->pos.x, maxY->pos.y, 0},
+									  });
+		if (!SharedDirector.isInFrustum(aabb)) {
+			return;
+		}
+	}
 
 	if (_vertices.size() != _posColors.size()) {
 		_vertices.resize(_posColors.size());
@@ -538,6 +580,8 @@ void Line::render() {
 
 	SharedRendererManager.setCurrent(SharedLineRenderer.getTarget());
 	SharedLineRenderer.push(this);
+
+	Node::render();
 }
 
 /* LineRenderer */

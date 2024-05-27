@@ -822,6 +822,8 @@ singleton class Director
 	readonly common Node* postNode;
 	/// the current active camera in Director's camera stack.
 	readonly common Camera* currentCamera;
+	/// whether or not to enable frustum culling.
+	boolean bool frustumCulling;
 	/// Gets the game scheduler which is used for scheduling tasks.
 	outside Scheduler* director_get_wasm_scheduler @ getScheduler();
 	/// Gets the scheduler used for processing post game logic.
@@ -1144,8 +1146,6 @@ interface object class Node
 	optional readonly common Array* children;
 	/// the parent of the node, could be None.
 	optional readonly common Node* parent;
-	/// the bounding box of the node as a Rect object.
-	readonly common Rect boundingBox;
 	/// whether the node is currently running in a scene tree.
 	readonly boolean bool running;
 	/// whether the node is currently scheduling a function for updates.

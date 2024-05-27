@@ -155,6 +155,21 @@ struct Vec4 {
 	}
 };
 
+struct AABB {
+	Vec3 min;
+	Vec3 max;
+};
+
+struct Plane {
+	Vec3 normal;
+	float distance;
+};
+
+struct Frustum {
+	Plane planes[6];
+	bool intersect(const AABB& aabb) const;
+};
+
 struct Matrix {
 	float m[16];
 	inline operator float*() {
@@ -165,6 +180,9 @@ struct Matrix {
 	}
 	static void mulVec4(float* result, const float* matrix, const float* vec4);
 	static void mulMtx(float* result, const float* left, const float* right);
+	static void mulAABB(AABB& result, const float* matrix, const AABB& right);
+	static void mulAABB(AABB& result, const float* matrix, float spriteWidth, float spriteHeight);
+	static void toFrustum(Frustum& result, const float* matrix);
 	static const Matrix Indentity;
 };
 

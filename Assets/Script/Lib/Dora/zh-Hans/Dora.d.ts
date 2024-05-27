@@ -3630,6 +3630,11 @@ class Director {
 	readonly currentCamera: Camera;
 
 	/**
+	 * 是否启用视锥体裁剪。
+	 */
+	frustumCulling: boolean;
+
+	/**
 	 * 向Director的摄像机堆栈添加新摄像机，并将其设置为当前摄像机。
 	 * @param camera 要添加的摄像机。
 	 */

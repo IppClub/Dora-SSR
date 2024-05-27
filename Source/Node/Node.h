@@ -102,8 +102,6 @@ public:
 
 	void moveToParent(Node* parent);
 
-	virtual Rect getBoundingBox();
-
 	virtual void onEnter();
 	virtual void onExit();
 	virtual void cleanup() override;
@@ -293,7 +291,6 @@ protected:
 	void resumeActionInList(Action* action);
 	void stopActionInList(Action* action);
 	void handleKeyboardAndController(Event* event);
-	void renderDebug();
 
 protected:
 	Flag _flags;

@@ -290,14 +290,6 @@ void Body::setAngle(float var) {
 	}
 }
 
-Rect Body::getBoundingBox() {
-	auto& world = _pWorld->getPrWorld();
-	pd::AABB aabb = pd::ComputeAABB(world, _prBody);
-	Vec2 lower = PhysicsWorld::Val(pr::detail::GetLowerBound(aabb));
-	Vec2 upper = PhysicsWorld::Val(pr::detail::GetUpperBound(aabb));
-	return Rect(lower.x, lower.y, upper.x - lower.x, upper.y - lower.y);
-}
-
 void Body::setReceivingContact(bool var) {
 	_flags.set(Body::ReceivingContact, var);
 }

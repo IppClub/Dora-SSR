@@ -920,7 +920,10 @@ const Matrix& Label::getWorld() {
 }
 
 void Label::render() {
-	if (_flags.isOff(Label::TextBatched)) return;
+	if (_flags.isOff(Label::TextBatched)) {
+		Node::render();
+		return;
+	}
 
 	if (_flags.isOn(Label::QuadDirty)) {
 		_flags.setOff(Label::QuadDirty);
@@ -933,6 +936,28 @@ void Label::render() {
 	if (_flags.isOn(Label::VertexColorDirty)) {
 		_flags.setOff(Label::VertexColorDirty);
 		updateVertColor();
+	}
+
+	if (SharedDirector.isFrustumCulling() && !_quadPos.empty()) {
+		float minX = _quadPos[0].lb.x;
+		float minY = _quadPos[0].lb.y;
+		float maxX = _quadPos[0].rt.x;
+		float maxY = _quadPos[0].rt.y;
+		for (size_t i = 1; i < _quadPos.size(); i++) {
+			const SpriteQuad::Position& quadPos = _quadPos[i];
+			minX = std::min(minX, quadPos.lb.x);
+			minY = std::min(minY, quadPos.lb.y);
+			maxX = std::max(maxX, quadPos.rt.x);
+			maxY = std::max(maxY, quadPos.rt.y);
+		}
+		AABB aabb;
+		Matrix::mulAABB(aabb, _world, {
+										  {minX, minY, 0},
+										  {maxX, maxY, 0},
+									  });
+		if (!SharedDirector.isInFrustum(aabb)) {
+			return;
+		}
 	}
 
 	if (_flags.isOn(Label::VertexPosDirty)) {
@@ -977,6 +1002,8 @@ void Label::render() {
 	if (count > 0) {
 		SharedSpriteRenderer.push(*(_quads.data() + start), count * 4, _effect, lastTexture, renderState);
 	}
+
+	Node::render();
 }
 
 NS_DORA_END

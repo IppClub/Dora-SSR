@@ -165,9 +165,6 @@ static int64_t node_get_children(int64_t self) {
 static int64_t node_get_parent(int64_t self) {
 	return from_object(r_cast<Node*>(self)->getParent());
 }
-static int64_t node_get_bounding_box(int64_t self) {
-	return r_cast<int64_t>(new Rect{r_cast<Node*>(self)->getBoundingBox()});
-}
 static int32_t node_is_running(int64_t self) {
 	return r_cast<Node*>(self)->isRunning() ? 1 : 0;
 }
@@ -471,7 +468,6 @@ static void linkNode(wasm3::module3& mod) {
 	mod.link_optional("*", "node_get_scheduler", node_get_scheduler);
 	mod.link_optional("*", "node_get_children", node_get_children);
 	mod.link_optional("*", "node_get_parent", node_get_parent);
-	mod.link_optional("*", "node_get_bounding_box", node_get_bounding_box);
 	mod.link_optional("*", "node_is_running", node_is_running);
 	mod.link_optional("*", "node_is_scheduled", node_is_scheduled);
 	mod.link_optional("*", "node_get_action_count", node_get_action_count);

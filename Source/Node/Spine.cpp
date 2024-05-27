@@ -397,34 +397,70 @@ void Spine::render() {
 				unsigned short triangles[6]{0, 1, 2, 2, 3, 0};
 				_clipper->clipTriangles(&vertices[0].x, triangles, 6, &vertices[0].u, sizeof(vertices[0]) / sizeof(float));
 				auto& verts = _clipper->getClippedVertices();
-				auto& uvs = _clipper->getClippedUVs();
 				auto vertSize = verts.size() / 2;
-				vertices.resize(vertSize);
-				for (size_t j = 0, l = 0; j < vertSize; j++, l += 2) {
-					Vec4 vec{verts[l], verts[l + 1], 0, 1};
-					SpriteVertex& vertex = vertices[j];
-					Matrix::mulVec4(&vertex.x, transform, vec);
-					vertex.abgr = abgr;
-					vertex.u = uvs[l];
-					vertex.v = uvs[l + 1];
+				bool isCulled = false;
+				if (SharedDirector.isFrustumCulling()) {
+					float minX = verts[0];
+					float minY = verts[1];
+					float maxX = verts[0];
+					float maxY = verts[1];
+					for (size_t j = 1, l = 2; j < vertSize; j++, l += 2) {
+						std::tie(minX, maxX) = std::minmax({minX, maxX, verts[l]});
+						std::tie(minY, maxY) = std::minmax({minY, maxY, verts[l + 1]});
+					}
+					AABB aabb;
+					Matrix::mulAABB(aabb, _world, {
+													  {minX, minY, 0},
+													  {maxX, maxY, 0},
+												  });
+					isCulled = !SharedDirector.isInFrustum(aabb);
 				}
-				auto& clippedIndices = _clipper->getClippedTriangles();
-				SharedSpriteRenderer.push(
-					vertices.data(), vertices.size(),
-					clippedIndices.buffer(), clippedIndices.size(),
-					_effect, texture, renderState);
+				if (!isCulled) {
+					auto& uvs = _clipper->getClippedUVs();
+					vertices.resize(vertSize);
+					for (size_t j = 0, l = 0; j < vertSize; j++, l += 2) {
+						Vec4 vec{verts[l], verts[l + 1], 0, 1};
+						SpriteVertex& vertex = vertices[j];
+						Matrix::mulVec4(&vertex.x, transform, vec);
+						vertex.abgr = abgr;
+						vertex.u = uvs[l];
+						vertex.v = uvs[l + 1];
+					}
+					auto& clippedIndices = _clipper->getClippedTriangles();
+					SharedSpriteRenderer.push(
+						vertices.data(), vertices.size(),
+						clippedIndices.buffer(), clippedIndices.size(),
+						_effect, texture, renderState);
+				}
 			} else {
-				for (size_t j = 0, l = 0; j < 4; j++, l += 2) {
-					SpriteVertex& vertex = vertices[j];
-					SpriteVertex oldVert = vertex;
-					Matrix::mulVec4(&vertex.x, transform, &oldVert.x);
-					vertex.abgr = abgr;
-					vertex.u = region->getUVs()[l];
-					vertex.v = region->getUVs()[l + 1];
+				bool isCulled = false;
+				if (SharedDirector.isFrustumCulling()) {
+					auto [minX, maxX] = std::minmax_element(vertices.begin(), vertices.end(), [](const auto& a, const auto& b) {
+						return a.x < b.x;
+					});
+					auto [minY, maxY] = std::minmax_element(vertices.begin(), vertices.end(), [](const auto& a, const auto& b) {
+						return a.y < b.y;
+					});
+					AABB aabb;
+					Matrix::mulAABB(aabb, _world, {
+													  {minX->x, minY->y, 0},
+													  {maxX->x, maxY->y, 0},
+												  });
+					isCulled = !SharedDirector.isInFrustum(aabb);
 				}
-				SharedSpriteRenderer.push(
-					vertices.data(), vertices.size(),
-					_effect, texture, renderState);
+				if (!isCulled) {
+					for (size_t j = 0, l = 0; j < 4; j++, l += 2) {
+						SpriteVertex& vertex = vertices[j];
+						SpriteVertex oldVert = vertex;
+						Matrix::mulVec4(&vertex.x, transform, &oldVert.x);
+						vertex.abgr = abgr;
+						vertex.u = region->getUVs()[l];
+						vertex.v = region->getUVs()[l + 1];
+					}
+					SharedSpriteRenderer.push(
+						vertices.data(), vertices.size(),
+						_effect, texture, renderState);
+				}
 			}
 			vertices.clear();
 		} else if (attachment->getRTTI().isExactly(spine::MeshAttachment::rtti)) {
@@ -443,36 +479,72 @@ void Spine::render() {
 				auto& meshIndices = mesh->getTriangles();
 				_clipper->clipTriangles(&vertices[0].x, meshIndices.buffer(), meshIndices.size(), &vertices[0].u, sizeof(vertices[0]) / sizeof(float));
 				auto& verts = _clipper->getClippedVertices();
-				auto& uvs = _clipper->getClippedUVs();
 				auto vertSize = _clipper->getClippedVertices().size() / 2;
-				vertices.resize(vertSize);
-				for (size_t j = 0, l = 0; j < vertSize; j++, l += 2) {
-					Vec4 vec{verts[l], verts[l + 1], 0, 1};
-					SpriteVertex& vertex = vertices[j];
-					Matrix::mulVec4(&vertex.x, transform, vec);
-					vertex.abgr = abgr;
-					vertex.u = uvs[l];
-					vertex.v = uvs[l + 1];
+				bool isCulled = false;
+				if (SharedDirector.isFrustumCulling()) {
+					float minX = verts[0];
+					float minY = verts[1];
+					float maxX = verts[0];
+					float maxY = verts[1];
+					for (size_t j = 1, l = 2; j < vertSize; j++, l += 2) {
+						std::tie(minX, maxX) = std::minmax({minX, maxX, verts[l]});
+						std::tie(minY, maxY) = std::minmax({minY, maxY, verts[l + 1]});
+					}
+					AABB aabb;
+					Matrix::mulAABB(aabb, _world, {
+													  {minX, minY, 0},
+													  {maxX, maxY, 0},
+												  });
+					isCulled = !SharedDirector.isInFrustum(aabb);
 				}
-				auto& clippedIndices = _clipper->getClippedTriangles();
-				SharedSpriteRenderer.push(
-					vertices.data(), vertices.size(),
-					clippedIndices.buffer(), clippedIndices.size(),
-					_effect, texture, renderState);
+				if (!isCulled) {
+					auto& uvs = _clipper->getClippedUVs();
+					vertices.resize(vertSize);
+					for (size_t j = 0, l = 0; j < vertSize; j++, l += 2) {
+						Vec4 vec{verts[l], verts[l + 1], 0, 1};
+						SpriteVertex& vertex = vertices[j];
+						Matrix::mulVec4(&vertex.x, transform, vec);
+						vertex.abgr = abgr;
+						vertex.u = uvs[l];
+						vertex.v = uvs[l + 1];
+					}
+					auto& clippedIndices = _clipper->getClippedTriangles();
+					SharedSpriteRenderer.push(
+						vertices.data(), vertices.size(),
+						clippedIndices.buffer(), clippedIndices.size(),
+						_effect, texture, renderState);
+				}
 			} else {
-				for (size_t j = 0, l = 0; j < numVertices; j++, l += 2) {
-					SpriteVertex& vertex = vertices[j];
-					SpriteVertex oldVert = vertex;
-					Matrix::mulVec4(&vertex.x, transform, &oldVert.x);
-					vertex.abgr = abgr;
-					vertex.u = mesh->getUVs()[l];
-					vertex.v = mesh->getUVs()[l + 1];
+				bool isCulled = false;
+				if (SharedDirector.isFrustumCulling()) {
+					auto [minX, maxX] = std::minmax_element(vertices.begin(), vertices.end(), [](const auto& a, const auto& b) {
+						return a.x < b.x;
+					});
+					auto [minY, maxY] = std::minmax_element(vertices.begin(), vertices.end(), [](const auto& a, const auto& b) {
+						return a.y < b.y;
+					});
+					AABB aabb;
+					Matrix::mulAABB(aabb, _world, {
+													  {minX->x, minY->y, 0},
+													  {maxX->x, maxY->y, 0},
+												  });
+					isCulled = !SharedDirector.isInFrustum(aabb);
 				}
-				auto& meshIndices = mesh->getTriangles();
-				SharedSpriteRenderer.push(
-					vertices.data(), vertices.size(),
-					meshIndices.buffer(), meshIndices.size(),
-					_effect, texture, renderState);
+				if (!isCulled) {
+					for (size_t j = 0, l = 0; j < numVertices; j++, l += 2) {
+						SpriteVertex& vertex = vertices[j];
+						SpriteVertex oldVert = vertex;
+						Matrix::mulVec4(&vertex.x, transform, &oldVert.x);
+						vertex.abgr = abgr;
+						vertex.u = mesh->getUVs()[l];
+						vertex.v = mesh->getUVs()[l + 1];
+					}
+					auto& meshIndices = mesh->getTriangles();
+					SharedSpriteRenderer.push(
+						vertices.data(), vertices.size(),
+						meshIndices.buffer(), meshIndices.size(),
+						_effect, texture, renderState);
+				}
 			}
 			vertices.clear();
 		} else if (attachment->getRTTI().isExactly(spine::BoundingBoxAttachment::rtti)) {
@@ -520,6 +592,8 @@ void Spine::render() {
 		}
 	}
 	_clipper->clipEnd();
+
+	Node::render();
 }
 
 void Spine::cleanup() {

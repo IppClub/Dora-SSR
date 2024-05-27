@@ -325,36 +325,6 @@ void Model::cleanup() {
 	}
 }
 
-Rect Model::getBoundingBox() {
-	bool firstBox = true;
-	Vec2 lower, upper;
-	bool traverseEnabled = _flags.isOn(Node::TraverseEnabled);
-	_flags.setOn(Node::TraverseEnabled);
-	traverse([&](Node* child) {
-		if (child != this && child->isVisible()) {
-			Rect box = child->getBoundingBox();
-			if (box.size != Size::zero) {
-				for (Node* parent = child->getParent(); parent != this; parent = parent->getParent()) {
-					box = parent->getLocalTransform().applyRect(box);
-				}
-				if (firstBox) {
-					firstBox = false;
-					lower = box.getLowerBound();
-					upper = box.getUpperBound();
-				}
-				lower.x = std::min(lower.x, box.getLeft());
-				lower.y = std::min(lower.y, box.getBottom());
-				upper.x = std::max(upper.x, box.getRight());
-				upper.y = std::max(upper.y, box.getTop());
-			}
-		}
-		return false;
-	});
-	_flags.set(Node::TraverseEnabled, traverseEnabled);
-	Rect rect(lower.x, lower.y, upper.x - lower.x, upper.y - lower.y);
-	return getLocalTransform().applyRect(rect);
-}
-
 Model* Model::dummy() {
 	return Model::create(ModelDef::create());
 }

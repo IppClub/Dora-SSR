@@ -538,7 +538,27 @@ bool ParticleNode::update(double deltaTime) {
 
 void ParticleNode::render() {
 	if (_quads.empty()) {
+		Node::render();
 		return;
+	}
+
+	if (SharedDirector.isFrustumCulling()) {
+		auto [minX, maxX] = std::minmax({_quads[0].lt.x, _quads[0].lb.x, _quads[0].rt.x, _quads[0].rb.x});
+		auto [minY, maxY] = std::minmax({_quads[0].lt.y, _quads[0].lb.y, _quads[0].rt.y, _quads[0].rb.y});
+		auto [minZ, maxZ] = std::minmax({_quads[0].lt.z, _quads[0].lb.z, _quads[0].rt.z, _quads[0].rb.z});
+		for (size_t i = 1; i < _quads.size(); i++) {
+			const auto& quad = _quads[i];
+			std::tie(minX, maxX) = std::minmax({minX, maxX, quad.lt.x, quad.lb.x, quad.rt.x, quad.rb.x});
+			std::tie(minY, maxY) = std::minmax({minY, maxY, quad.lt.y, quad.lb.y, quad.rt.y, quad.rb.y});
+			std::tie(minZ, maxZ) = std::minmax({minZ, maxZ, quad.lt.z, quad.lb.z, quad.rt.z, quad.rb.z});
+		}
+		AABB aabb{
+			{minX, minY, minZ},
+			{maxX, maxY, maxZ},
+		};
+		if (!SharedDirector.isInFrustum(aabb)) {
+			return;
+		}
 	}
 
 	BlendFunc blendFunc{_particleDef->blendFuncSource, _particleDef->blendFuncDestination};
@@ -548,6 +568,8 @@ void ParticleNode::render() {
 	}
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
 	SharedSpriteRenderer.push(_quads[0], _quads.size() * 4, _effect, _texture, _renderState);
+
+	Node::render();
 }
 
 NS_DORA_END

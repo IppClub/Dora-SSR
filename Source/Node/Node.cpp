@@ -349,11 +349,6 @@ Node* Node::getTargetParent() const {
 	return _transformTarget ? _transformTarget : _parent;
 }
 
-Rect Node::getBoundingBox() {
-	Rect rect(0, 0, _size.width, _size.height);
-	return getLocalTransform().applyRect(rect);
-}
-
 void Node::setRenderOrder(int var) {
 	_renderOrder = var;
 }
@@ -791,7 +786,66 @@ bool Node::update(double deltaTime) {
 	return result && !isUpdating();
 }
 
-void Node::renderDebug() {
+void Node::visitInner() {
+	if (_flags.isOff(Node::Visible)) {
+		return;
+	}
+
+	/* get world matrix */
+	getWorld();
+
+	auto& rendererManager = SharedRendererManager;
+	if (_children && !_children->isEmpty() && _flags.isOn(Node::ChildrenVisible)) {
+		sortAllChildren();
+
+		auto visitChildren = [&]() {
+			/* visit and render child whose order is less than 0 */
+			size_t index = 0;
+			auto& data = _children->data();
+			for (index = 0; index < data.size(); index++) {
+				Node* node = data[index]->to<Node>();
+				if (node->getOrder() >= 0) break;
+				node->visit();
+			}
+
+			/* render self */
+			if (_flags.isOn(Node::SelfVisible)) {
+				if (rendererManager.isGrouping() && _renderOrder != 0) {
+					rendererManager.pushGroupItem(this);
+				} else {
+					render();
+				}
+			}
+
+			/* visit and render child whose order is greater equal than 0 */
+			for (; index < data.size(); index++) {
+				Node* node = data[index]->to<Node>();
+				node->visit();
+			}
+		};
+
+		if (_flags.isOn(Node::RenderGrouped)) {
+			rendererManager.pushGroup(getNodeCount(), visitChildren);
+		} else
+			visitChildren();
+	} else if (_flags.isOn(Node::SelfVisible)) {
+		if (rendererManager.isGrouping() && _renderOrder != 0) {
+			rendererManager.pushGroupItem(this);
+		} else {
+			render();
+		}
+	}
+}
+
+void Node::visit() {
+	if (_grabber) {
+		_grabber->grab(this);
+		_grabber->visit();
+	} else
+		visitInner();
+}
+
+void Node::render() {
 	if (isShowDebug() && getSize() != Size::zero) {
 		Matrix transform;
 		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
@@ -829,69 +883,6 @@ void Node::renderDebug() {
 		SharedLineRenderer.pushSegment(verts + 6);
 	}
 }
-
-void Node::visitInner() {
-	if (_flags.isOff(Node::Visible)) {
-		return;
-	}
-
-	/* get world matrix */
-	getWorld();
-
-	auto& rendererManager = SharedRendererManager;
-	if (_children && !_children->isEmpty() && _flags.isOn(Node::ChildrenVisible)) {
-		sortAllChildren();
-
-		auto visitChildren = [&]() {
-			/* visit and render child whose order is less than 0 */
-			size_t index = 0;
-			auto& data = _children->data();
-			for (index = 0; index < data.size(); index++) {
-				Node* node = data[index]->to<Node>();
-				if (node->getOrder() >= 0) break;
-				node->visit();
-			}
-
-			/* render self */
-			if (_flags.isOn(Node::SelfVisible)) {
-				if (rendererManager.isGrouping() && _renderOrder != 0) {
-					rendererManager.pushGroupItem(this);
-				} else {
-					render();
-					renderDebug();
-				}
-			}
-
-			/* visit and render child whose order is greater equal than 0 */
-			for (; index < data.size(); index++) {
-				Node* node = data[index]->to<Node>();
-				node->visit();
-			}
-		};
-
-		if (_flags.isOn(Node::RenderGrouped)) {
-			rendererManager.pushGroup(getNodeCount(), visitChildren);
-		} else
-			visitChildren();
-	} else if (_flags.isOn(Node::SelfVisible)) {
-		if (rendererManager.isGrouping() && _renderOrder != 0) {
-			rendererManager.pushGroupItem(this);
-		} else {
-			render();
-			renderDebug();
-		}
-	}
-}
-
-void Node::visit() {
-	if (_grabber) {
-		_grabber->grab(this);
-		_grabber->visit();
-	} else
-		visitInner();
-}
-
-void Node::render() { }
 
 const AffineTransform& Node::getLocalTransform() {
 	if (_flags.isOn(Node::TransformDirty)) {
