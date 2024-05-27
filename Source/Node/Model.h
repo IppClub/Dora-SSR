@@ -131,7 +131,6 @@ public:
 	} handlers;
 	virtual bool init() override;
 	virtual void cleanup() override;
-	virtual Rect getBoundingBox() override;
 	static Model* dummy();
 	CREATE_FUNC(Model);
 

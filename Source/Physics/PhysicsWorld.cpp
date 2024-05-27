@@ -186,6 +186,7 @@ void PhysicsWorld::render() {
 	if (_debugDraw) {
 		_debugDraw->DrawWorld(this);
 	}
+	Node::render();
 }
 
 pd::World& PhysicsWorld::getPrWorld() {

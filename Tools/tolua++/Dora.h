@@ -272,6 +272,7 @@ class Director
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
 	tolua_readonly tolua_property__common Scheduler* postScheduler;
 	tolua_readonly tolua_property__common Camera* currentCamera;
+	tolua_property__bool bool frustumCulling;
 	void pushCamera(Camera* camera);
 	void popCamera();
 	bool removeCamera(Camera* camera);
@@ -346,7 +347,6 @@ class Node : public Object
 	tolua_readonly tolua_property__qt bool hasChildren;
 	tolua_readonly tolua_property__common Array* children;
 	tolua_readonly tolua_property__common Node* parent;
-	tolua_readonly tolua_property__common Rect boundingBox;
 	tolua_readonly tolua_property__bool bool running;
 	tolua_readonly tolua_property__bool bool scheduled;
 	tolua_readonly tolua_property__common int actionCount;

@@ -27,6 +27,12 @@ static int64_t director_get_post_node() {
 static int64_t director_get_current_camera() {
 	return from_object(SharedDirector.getCurrentCamera());
 }
+static void director_set_frustum_culling(int32_t var) {
+	SharedDirector.setFrustumCulling(var != 0);
+}
+static int32_t director_is_frustum_culling() {
+	return SharedDirector.isFrustumCulling() ? 1 : 0;
+}
 static int64_t director_get_scheduler() {
 	return from_object(director_get_wasm_scheduler());
 }
@@ -56,6 +62,8 @@ static void linkDirector(wasm3::module3& mod) {
 	mod.link_optional("*", "director_get_entry", director_get_entry);
 	mod.link_optional("*", "director_get_post_node", director_get_post_node);
 	mod.link_optional("*", "director_get_current_camera", director_get_current_camera);
+	mod.link_optional("*", "director_set_frustum_culling", director_set_frustum_culling);
+	mod.link_optional("*", "director_is_frustum_culling", director_is_frustum_culling);
 	mod.link_optional("*", "director_get_scheduler", director_get_scheduler);
 	mod.link_optional("*", "director_get_post_scheduler", director_get_post_scheduler);
 	mod.link_optional("*", "director_push_camera", director_push_camera);

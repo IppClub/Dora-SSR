@@ -39,6 +39,7 @@ public:
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(Scheduler*, PostScheduler);
 	PROPERTY_READONLY(const Matrix&, ViewProjection);
+	PROPERTY_BOOL(FrustumCulling);
 	bool init();
 	void doLogic();
 	void doRender();
@@ -61,6 +62,8 @@ public:
 		popViewProjection();
 	}
 
+	bool isInFrustum(const AABB& aabb) const;
+
 	void addUnManagedNode(Node* node);
 
 	void addToWaitingList(Node* node);
@@ -75,6 +78,7 @@ private:
 	bool _nvgDirty;
 	bool _paused;
 	bool _stoped;
+	bool _frustumCulling;
 	Color _clearColor;
 	Ref<Node> _ui;
 	Ref<Node> _ui3D;
@@ -90,7 +94,11 @@ private:
 	RefVector<Node> _unManagedNodes;
 	std::vector<WRef<Node>> _waitingList;
 	Own<UITouchHandler> _uiTouchHandler;
-	std::stack<Own<Matrix>> _viewProjs;
+	struct ViewProject {
+		Matrix matrix;
+		Frustum frustum;
+	};
+	std::stack<Own<ViewProject>> _viewProjs;
 	Matrix _defaultViewProj;
 	NVGcontext* _nvgContext;
 	SINGLETON_REF(Director, EffekManager, FontManager, LuaEngine, BGFXDora, Application);

@@ -3626,6 +3626,11 @@ class Director {
 	readonly currentCamera: Camera;
 
 	/**
+	 * Whether to enable frustum culling.
+	 */
+	frustumCulling: boolean;
+
+	/**
 	 * Adds a new camera to Director's camera stack and sets it to the current camera.
 	 * @param camera The camera to add.
 	 */

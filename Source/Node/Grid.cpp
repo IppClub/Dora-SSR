@@ -21,16 +21,16 @@ Grid::Grid(float width, float height, uint32_t gridX, uint32_t gridY)
 
 Grid::Grid(Texture2D* texture, uint32_t gridX, uint32_t gridY)
 	: Grid(
-		texture,
-		Size{s_cast<float>(texture->getWidth()), s_cast<float>(texture->getHeight())},
-		Rect(0, 0, s_cast<float>(texture->getWidth()), s_cast<float>(texture->getHeight())),
-		gridX, gridY) { }
+		  texture,
+		  Size{s_cast<float>(texture->getWidth()), s_cast<float>(texture->getHeight())},
+		  Rect(0, 0, s_cast<float>(texture->getWidth()), s_cast<float>(texture->getHeight())),
+		  gridX, gridY) { }
 
 Grid::Grid(Texture2D* texture, const Rect& textureRect, uint32_t gridX, uint32_t gridY)
 	: Grid(
-		texture,
-		Size{s_cast<float>(texture->getWidth()), s_cast<float>(texture->getHeight())},
-		textureRect, gridX, gridY) { }
+		  texture,
+		  Size{s_cast<float>(texture->getWidth()), s_cast<float>(texture->getHeight())},
+		  textureRect, gridX, gridY) { }
 
 Grid::Grid(Texture2D* texture, const Size& texSize, const Rect& textureRect, uint32_t gridX, uint32_t gridY)
 	: _gridX(gridX)
@@ -204,7 +204,27 @@ const Matrix& Grid::getWorld() {
 }
 
 void Grid::render() {
-	if (!_texture || !_effect || _vertices.empty()) return;
+	if (!_texture || !_effect || _vertices.empty()) {
+		Node::render();
+		return;
+	}
+
+	if (SharedDirector.isFrustumCulling()) {
+		auto [minX, maxX] = std::minmax_element(_points.begin(), _points.end(), [](const auto& a, const auto& b) {
+			return a.position.x < b.position.x;
+		});
+		auto [minY, maxY] = std::minmax_element(_points.begin(), _points.end(), [](const auto& a, const auto& b) {
+			return a.position.y < b.position.y;
+		});
+		AABB aabb;
+		Matrix::mulAABB(aabb, _world, {
+										  {minX->position.x, minY->position.y, 0},
+										  {maxX->position.x, maxY->position.y, 0},
+									  });
+		if (!SharedDirector.isInFrustum(aabb)) {
+			return;
+		}
+	}
 
 	if (_flags.isOn(Grid::VertexColorDirty)) {
 		_flags.setOff(Grid::VertexColorDirty);
@@ -239,6 +259,8 @@ void Grid::render() {
 		_vertices.data(), _vertices.size(),
 		_indices.data(), _indices.size(),
 		_effect, _texture, renderState);
+
+	Node::render();
 }
 
 void Grid::updateRealColor3() {

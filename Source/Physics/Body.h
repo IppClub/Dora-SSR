@@ -56,7 +56,6 @@ public:
 	void setVelocity(const Vec2& velocity);
 	virtual void setAngle(float var) override;
 	virtual void setPosition(const Vec2& var) override;
-	virtual Rect getBoundingBox() override;
 	Sensor* getSensorByTag(int tag);
 	bool removeSensorByTag(int tag);
 	bool removeSensor(Sensor* sensor);

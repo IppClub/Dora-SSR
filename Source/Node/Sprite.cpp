@@ -258,12 +258,23 @@ const Matrix& Sprite::getWorld() {
 }
 
 void Sprite::render() {
-	if (!_texture || !_effect || _textureRect.size == Size::zero) return;
+	if (!_texture || !_effect || _textureRect.size == Size::zero) {
+		Node::render();
+		return;
+	}
 
 	if (_size == Size::zero) {
 		return;
 	} else {
 		updateVertPosition();
+	}
+
+	if (SharedDirector.isFrustumCulling()) {
+		AABB aabb;
+		Matrix::mulAABB(aabb, _world, _size.width, _size.height);
+		if (!SharedDirector.isInFrustum(aabb)) {
+			return;
+		}
 	}
 
 	if (_flags.isOn(Sprite::VertexColorDirty)) {
@@ -288,6 +299,8 @@ void Sprite::render() {
 
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
 	SharedSpriteRenderer.push(this);
+
+	Node::render();
 }
 
 Sprite* Sprite::from(String clipStr) {

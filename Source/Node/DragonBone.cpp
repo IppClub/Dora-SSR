@@ -31,22 +31,47 @@ DBSlotNode::DBSlotNode()
 	, _transform(AffineTransform::Indentity) { }
 
 void DBSlotNode::render() {
-	if (!_texture || !_effect || _vertices.empty()) return;
+	if (!_texture || !_effect || _vertices.empty()) {
+		Node::render();
+		return;
+	}
+
+	if (SharedDirector.isFrustumCulling()) {
+		auto [minX, maxX] = std::minmax_element(_points.begin(), _points.end(), [](const auto& a, const auto& b) {
+			return a.x < b.x;
+		});
+		auto [minY, maxY] = std::minmax_element(_points.begin(), _points.end(), [](const auto& a, const auto& b) {
+			return a.y < b.y;
+		});
+		AABB aabb;
+		Matrix::mulAABB(aabb, _matrix, {
+										   {minX->x, minY->y, 0},
+										   {maxX->x, maxY->y, 0},
+									   });
+		if (!SharedDirector.isInFrustum(aabb)) {
+			return;
+		}
+	}
+
 	Matrix transform;
-	Matrix::mulMtx(transform, SharedDirector.getViewProjection(), getWorld());
+	Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _matrix);
+	for (size_t i = 0; i < _points.size(); i++) {
+		Matrix::mulVec4(&_vertices[i].x, transform, &_points[i].x);
+	}
+
 	auto parent = s_cast<DragonBone*>(getParent());
 	uint64_t renderState = (BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_MSAA | _blendFunc.toValue());
 	if (parent->isDepthWrite()) {
 		renderState |= (BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
 	}
-	for (size_t i = 0; i < _points.size(); i++) {
-		Matrix::mulVec4(&_vertices[i].x, transform, &_points[i].x);
-	}
+
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
 	SharedSpriteRenderer.push(
 		_vertices.data(), _vertices.size(),
 		_indices.data(), _indices.size(),
 		_effect, _texture, renderState);
+
+	Node::render();
 }
 
 const Matrix& DBSlotNode::getWorld() {
@@ -560,6 +585,7 @@ void DragonBone::render() {
 			}
 		}
 	}
+	Node::render();
 }
 
 void DragonBone::cleanup() {

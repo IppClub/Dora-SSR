@@ -146,7 +146,10 @@ bool EffekNode::update(double deltaTime) {
 }
 
 void EffekNode::render() {
-	if (_effeks.empty()) return;
+	if (_effeks.empty()) {
+		Node::render();
+		return;
+	}
 
 	SharedRendererManager.flush();
 
@@ -192,13 +195,17 @@ void EffekNode::render() {
 		auto handle = effek->handle;
 		if (manager->Exists(handle)) {
 			auto pos = effek->position;
-			manager->SetMatrix(handle, mat43);
-			manager->AddLocation(handle, {pos.x, pos.y, pos.z});
-			manager->DrawHandle(handle, drawParameter);
+			if (!SharedDirector.isFrustumCulling() || !manager->GetIsCulled(handle, drawParameter)) {
+				manager->SetMatrix(handle, mat43);
+				manager->AddLocation(handle, {pos.x, pos.y, pos.z});
+				manager->DrawHandle(handle, drawParameter);
+			}
 		}
 	}
 
 	renderer->EndRendering();
+
+	Node::render();
 }
 
 void EffekNode::cleanup() {

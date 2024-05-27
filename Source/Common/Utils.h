@@ -274,9 +274,9 @@ inline std::size_t constexpr operator"" _hash(const char* s, size_t) {
 /** @brief Helpers for number comparision */
 namespace Math {
 template <class T>
-inline T clamp(T value, T minVal, T maxVal) {
-	auto pair = std::minmax(minVal, maxVal);
-	return std::max(std::min(value, pair.second), pair.first);
+inline T clamp(T value, T boundA, T boundB) {
+	auto [minVal, maxVal] = std::minmax(boundA, boundB);
+	return std::max(std::min(value, maxVal), minVal);
 }
 
 float rand0to1();

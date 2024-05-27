@@ -60,7 +60,6 @@ extern "C" {
 	fn node_get_scheduler(slf: i64) -> i64;
 	fn node_get_children(slf: i64) -> i64;
 	fn node_get_parent(slf: i64) -> i64;
-	fn node_get_bounding_box(slf: i64) -> i64;
 	fn node_is_running(slf: i64) -> i32;
 	fn node_is_scheduled(slf: i64) -> i32;
 	fn node_get_action_count(slf: i64) -> i32;
@@ -338,10 +337,6 @@ pub trait INode: IObject {
 	/// Gets the parent of the node, could be None.
 	fn get_parent(&self) -> Option<crate::dora::Node> {
 		return unsafe { crate::dora::Node::from(node_get_parent(self.raw())) };
-	}
-	/// Gets the bounding box of the node as a Rect object.
-	fn get_bounding_box(&self) -> crate::dora::Rect {
-		return unsafe { crate::dora::Rect::from(node_get_bounding_box(self.raw())) };
 	}
 	/// Gets whether the node is currently running in a scene tree.
 	fn is_running(&self) -> bool {
