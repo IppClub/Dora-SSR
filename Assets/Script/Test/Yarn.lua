@@ -4,15 +4,16 @@ local Content = Dora.Content -- 1
 local View = Dora.View -- 1
 local math = _G.math -- 1
 local App = Dora.App -- 1
+local AlignNode = Dora.AlignNode -- 1
+local tostring = _G.tostring -- 1
 local Vec2 = Dora.Vec2 -- 1
 local Size = Dora.Size -- 1
 local Label = Dora.Label -- 1
+local Menu = Dora.Menu -- 1
 local setmetatable = _G.setmetatable -- 1
 local table = _G.table -- 1
 local select = _G.select -- 1
-local tostring = _G.tostring -- 1
 local coroutine = _G.coroutine -- 1
-local Menu = Dora.Menu -- 1
 local type = _G.type -- 1
 local ipairs = _G.ipairs -- 1
 local thread = Dora.thread -- 1
@@ -25,233 +26,229 @@ local Text = _module_0.Text -- 1
 local Separator = _module_0.Separator -- 1
 local Combo = _module_0.Combo -- 1
 local pairs = _G.pairs -- 1
-local CircleButton = require("UI.Control.Basic.CircleButton") -- 2
-local YarnRunner = require("YarnRunner") -- 3
-local LineRect = require("UI.View.Shape.LineRect") -- 4
+local YarnRunner = require("YarnRunner") -- 2
+local LineRect = require("UI.View.Shape.LineRect") -- 3
+local CircleButton = require("UI.Control.Basic.CircleButton") -- 4
 local ScrollArea = require("UI.Control.Basic.ScrollArea") -- 5
-local AlignNode = require("UI.Control.Basic.AlignNode") -- 6
-local path = Path:getScriptPath(...) -- 8
-Content:insertSearchPath(1, path) -- 9
-local viewWidth, viewHeight -- 11
-do -- 11
-	local _obj_0 = View.size -- 11
-	viewWidth, viewHeight = _obj_0.width, _obj_0.height -- 11
-end -- 11
-local width, height = viewWidth - 200, viewHeight - 20 -- 13
-local fontSize = math.floor(20 * App.devicePixelRatio) -- 15
-local texts = { } -- 17
-local root, label, scroll, control -- 19
-do -- 21
-	local _with_0 = AlignNode({ -- 21
-		isRoot = true, -- 21
-		inUI = false -- 21
-	}) -- 21
-	_with_0:addChild((function() -- 22
-		root = AlignNode({ -- 22
-			alignWidth = "w", -- 22
-			alignHeight = "h" -- 22
-		}) -- 22
-		root:addChild((function() -- 23
-			scroll = ScrollArea({ -- 24
-				width = width, -- 24
-				height = height, -- 25
-				paddingX = 0, -- 26
-				paddingY = 50, -- 27
-				viewWidth = height, -- 28
-				viewHeight = height -- 29
-			}) -- 23
-			scroll.border = LineRect({ -- 31
-				width = width, -- 31
-				height = height, -- 31
-				color = 0xffffffff -- 31
-			}) -- 31
-			scroll.area:addChild(scroll.border) -- 32
-			scroll:slot("AlignLayout", function(w, h) -- 33
-				scroll.position = Vec2(w / 2, h / 2) -- 34
-				w = w - 200 -- 35
-				h = h - 20 -- 36
-				scroll.view.children.first.textWidth = w - fontSize -- 37
-				scroll:adjustSizeWithAlign("Auto", 10, Size(w, h)) -- 38
-				scroll.area:removeChild(scroll.border) -- 39
-				scroll.border = LineRect({ -- 40
-					width = w, -- 40
-					height = h, -- 40
-					color = 0xffffffff -- 40
-				}) -- 40
-				return scroll.area:addChild(scroll.border) -- 41
-			end) -- 33
-			scroll.view:addChild((function() -- 42
-				label = Label("sarasa-mono-sc-regular", fontSize) -- 42
-				label.alignment = "Left" -- 43
-				label.textWidth = width - fontSize -- 44
-				label.text = "" -- 45
-				return label -- 42
-			end)()) -- 42
-			return scroll -- 23
-		end)()) -- 23
-		return root -- 22
-	end)()) -- 22
-	_with_0:addChild((function() -- 46
-		control = AlignNode({ -- 46
-			hAlign = "Center", -- 46
-			vAlign = "Bottom" -- 46
-		}) -- 46
-		control.alignOffset = Vec2(0, 200) -- 47
-		return control -- 46
-	end)()) -- 46
-	_with_0:alignLayout() -- 48
-end -- 21
-local _anon_func_0 = function(select, tostring, ...) -- 51
-	local _accum_0 = { } -- 51
-	local _len_0 = 1 -- 51
-	for i = 1, select('#', ...) do -- 51
-		_accum_0[_len_0] = tostring(select(i, ...)) -- 51
-		_len_0 = _len_0 + 1 -- 51
-	end -- 51
-	return _accum_0 -- 51
-end -- 51
-local commands = setmetatable({ }, { -- 50
-	__index = function(self, name) -- 50
-		return function(...) -- 50
-			local msg = "[command]: " .. name .. " " .. table.concat(_anon_func_0(select, tostring, ...), ", ") -- 51
-			return coroutine.yield("Command", msg) -- 52
-		end -- 52
-	end -- 50
-}) -- 50
-local runner = YarnRunner("tutorial.yarn", "Start", { }, commands, true) -- 54
-local menu -- 56
-do -- 56
-	local _with_0 = Menu() -- 56
-	_with_0:addTo(control) -- 57
-	menu = _with_0 -- 56
-end -- 56
-local advance -- 59
-local setButtons -- 61
-setButtons = function(options) -- 61
-	menu:removeAllChildren() -- 62
-	local buttons -- 63
-	if options ~= nil then -- 63
-		buttons = options -- 63
-	else -- 63
-		buttons = 1 -- 63
-	end -- 63
-	menu.size = Size(140 * buttons, 140) -- 65
-	for i = 1, buttons do -- 66
-		menu:addChild((function() -- 67
-			local _with_0 = CircleButton({ -- 68
-				text = options and tostring(i) or "Next", -- 68
-				radius = 60, -- 69
-				fontSize = 40 -- 70
-			}) -- 67
-			_with_0:slot("Tapped", function() -- 72
-				if options then -- 73
-					return advance(i) -- 74
-				else -- 76
-					return advance() -- 76
-				end -- 73
-			end) -- 72
-			return _with_0 -- 67
-		end)()) -- 67
-	end -- 76
-	menu:alignItems() -- 77
-	return menu -- 64
-end -- 61
-advance = function(option) -- 79
-	local action, result = runner:advance(option) -- 80
-	if "Text" == action then -- 81
-		local charName = "" -- 82
-		if result.marks then -- 83
-			local _list_0 = result.marks -- 84
-			for _index_0 = 1, #_list_0 do -- 84
-				local mark = _list_0[_index_0] -- 84
-				local _type_0 = type(mark) -- 85
-				local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 85
-				if _tab_0 then -- 85
-					local attr = mark.name -- 85
-					local name -- 85
-					do -- 85
-						local _obj_0 = mark.attrs -- 85
-						local _type_1 = type(_obj_0) -- 85
-						if "table" == _type_1 or "userdata" == _type_1 then -- 85
-							name = _obj_0.name -- 85
-						end -- 86
-					end -- 86
-					if attr ~= nil and name ~= nil then -- 85
-						if attr == "char" then -- 86
-							charName = tostring(name) .. ": " -- 86
-						end -- 86
-					end -- 85
-				end -- 86
-			end -- 86
-		end -- 83
-		texts[#texts + 1] = charName .. result.text -- 87
-		if result.optionsFollowed then -- 88
-			advance() -- 89
-		else -- 91
-			setButtons() -- 91
-		end -- 88
-	elseif "Option" == action then -- 92
-		for i, op in ipairs(result) do -- 93
-			texts[#texts + 1] = "[" .. tostring(i) .. "]: " .. tostring(op.text) -- 94
-		end -- 94
-		setButtons(#result) -- 95
-	elseif "Command" == action then -- 96
-		texts[#texts + 1] = result -- 97
-		setButtons() -- 98
-	else -- 100
-		menu:removeAllChildren() -- 100
-		texts[#texts + 1] = result -- 101
-	end -- 101
-	label.text = table.concat(texts, "\n") -- 102
-	root:alignLayout() -- 103
-	return thread(function() -- 104
-		return scroll:scrollToPosY(label.y - label.height / 2) -- 104
-	end) -- 104
-end -- 79
-advance() -- 106
-local testFiles = { -- 108
-	"tutorial.yarn" -- 108
-} -- 108
-local files = { -- 109
-	"tutorial.yarn" -- 109
-} -- 109
-local _list_0 = Content:getAllFiles(Content.writablePath) -- 110
-for _index_0 = 1, #_list_0 do -- 110
-	local file = _list_0[_index_0] -- 110
-	if "yarn" ~= Path:getExt(file) then -- 111
-		goto _continue_0 -- 111
-	end -- 111
-	testFiles[#testFiles + 1] = Path(Content.writablePath, file) -- 112
-	files[#files + 1] = Path:getFilename(file) -- 113
-	::_continue_0:: -- 111
-end -- 113
-local currentFile = 1 -- 115
-local windowFlags = { -- 117
-	"NoDecoration", -- 117
-	"NoSavedSettings", -- 118
-	"NoFocusOnAppearing", -- 119
-	"NoNav", -- 120
-	"NoMove" -- 121
-} -- 116
-return threadLoop(function() -- 122
-	local width -- 123
-	width = App.visualSize.width -- 123
-	SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 124
-	SetNextWindowSize(Vec2(200, 0), "Always") -- 125
-	return Begin("Yarn Test", windowFlags, function() -- 126
-		Text("Yarn Tester (Yuescript)") -- 127
-		Separator() -- 128
-		local changed -- 129
-		changed, currentFile = Combo("File", currentFile, files) -- 129
-		if changed then -- 130
-			runner = YarnRunner(testFiles[currentFile], "Start", { }, commands, true) -- 131
-			texts = { } -- 132
-			advance() -- 133
-		end -- 130
-		Text("Variables") -- 134
-		Separator() -- 135
-		for k, v in pairs(runner.state) do -- 136
-			Text(tostring(k) .. ": " .. tostring(v)) -- 137
-		end -- 137
-	end) -- 137
-end) -- 137
+local path = Path:getScriptPath(...) -- 7
+Content:insertSearchPath(1, path) -- 8
+local viewWidth, viewHeight -- 10
+do -- 10
+	local _obj_0 = View.size -- 10
+	viewWidth, viewHeight = _obj_0.width, _obj_0.height -- 10
+end -- 10
+local width, height = viewWidth - 200, viewHeight - 20 -- 12
+local fontSize = math.floor(20 * App.devicePixelRatio) -- 14
+local texts = { } -- 16
+local root, label, scroll, control, menu -- 18
+do -- 20
+	root = AlignNode() -- 20
+	do -- 21
+		local _obj_0 = View.size -- 21
+		width, height = _obj_0.width, _obj_0.height -- 21
+	end -- 21
+	root:css("width: " .. tostring(width) .. "; height: " .. tostring(height) .. "; flex-direction: column-reverse") -- 22
+	root:gslot("AppSizeChanged", function() -- 23
+		do -- 24
+			local _obj_0 = View.size -- 24
+			width, height = _obj_0.width, _obj_0.height -- 24
+		end -- 24
+		return root:css("width: " .. tostring(width) .. "; height: " .. tostring(height) .. "; flex-direction: column-reverse") -- 25
+	end) -- 23
+	root:addChild((function() -- 26
+		scroll = ScrollArea({ -- 27
+			width = width, -- 27
+			height = height, -- 28
+			paddingX = 0, -- 29
+			paddingY = 50, -- 30
+			viewWidth = height, -- 31
+			viewHeight = height -- 32
+		}) -- 26
+		scroll.border = LineRect({ -- 34
+			width = width, -- 34
+			height = height, -- 34
+			color = 0xffffffff -- 34
+		}) -- 34
+		scroll.area:addChild(scroll.border) -- 35
+		root:slot("AlignLayout", function(w, h) -- 36
+			scroll.position = Vec2(w / 2, h / 2) -- 37
+			w = w - 200 -- 38
+			h = h - 20 -- 39
+			scroll.view.children.first.textWidth = w - fontSize -- 40
+			scroll:adjustSizeWithAlign("Auto", 10, Size(w, h)) -- 41
+			scroll.area:removeChild(scroll.border) -- 42
+			scroll.border = LineRect({ -- 43
+				width = w, -- 43
+				height = h, -- 43
+				color = 0xffffffff -- 43
+			}) -- 43
+			return scroll.area:addChild(scroll.border) -- 44
+		end) -- 36
+		scroll.view:addChild((function() -- 45
+			label = Label("sarasa-mono-sc-regular", fontSize) -- 45
+			label.alignment = "Left" -- 46
+			label.textWidth = width - fontSize -- 47
+			label.text = "" -- 48
+			return label -- 45
+		end)()) -- 45
+		return scroll -- 26
+	end)()) -- 26
+	root:addChild((function() -- 49
+		control = AlignNode() -- 49
+		control:css("height: 140; margin-bottom: 40") -- 50
+		menu = Menu() -- 51
+		control:addChild(menu) -- 52
+		control:slot("AlignLayout", function(w, h) -- 53
+			menu.position = Vec2(w / 2, h / 2) -- 54
+		end) -- 53
+		return control -- 49
+	end)()) -- 49
+end -- 20
+local _anon_func_0 = function(select, tostring, ...) -- 57
+	local _accum_0 = { } -- 57
+	local _len_0 = 1 -- 57
+	for i = 1, select('#', ...) do -- 57
+		_accum_0[_len_0] = tostring(select(i, ...)) -- 57
+		_len_0 = _len_0 + 1 -- 57
+	end -- 57
+	return _accum_0 -- 57
+end -- 57
+local commands = setmetatable({ }, { -- 56
+	__index = function(self, name) -- 56
+		return function(...) -- 56
+			local msg = "[command]: " .. name .. " " .. table.concat(_anon_func_0(select, tostring, ...), ", ") -- 57
+			return coroutine.yield("Command", msg) -- 58
+		end -- 58
+	end -- 56
+}) -- 56
+local runner = YarnRunner("tutorial.yarn", "Start", { }, commands, true) -- 60
+local advance -- 62
+local setButtons -- 64
+setButtons = function(options) -- 64
+	menu:removeAllChildren() -- 65
+	local buttons -- 66
+	if options ~= nil then -- 66
+		buttons = options -- 66
+	else -- 66
+		buttons = 1 -- 66
+	end -- 66
+	menu.size = Size(140 * buttons, 140) -- 68
+	for i = 1, buttons do -- 69
+		menu:addChild((function() -- 70
+			local _with_0 = CircleButton({ -- 71
+				text = options and tostring(i) or "Next", -- 71
+				radius = 60, -- 72
+				fontSize = 40 -- 73
+			}) -- 70
+			_with_0:slot("Tapped", function() -- 75
+				if options then -- 76
+					return advance(i) -- 77
+				else -- 79
+					return advance() -- 79
+				end -- 76
+			end) -- 75
+			return _with_0 -- 70
+		end)()) -- 70
+	end -- 79
+	menu:alignItems() -- 80
+	return menu -- 67
+end -- 64
+advance = function(option) -- 82
+	local action, result = runner:advance(option) -- 83
+	if "Text" == action then -- 84
+		local charName = "" -- 85
+		if result.marks then -- 86
+			local _list_0 = result.marks -- 87
+			for _index_0 = 1, #_list_0 do -- 87
+				local mark = _list_0[_index_0] -- 87
+				local _type_0 = type(mark) -- 88
+				local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 88
+				if _tab_0 then -- 88
+					local attr = mark.name -- 88
+					local name -- 88
+					do -- 88
+						local _obj_0 = mark.attrs -- 88
+						local _type_1 = type(_obj_0) -- 88
+						if "table" == _type_1 or "userdata" == _type_1 then -- 88
+							name = _obj_0.name -- 88
+						end -- 89
+					end -- 89
+					if attr ~= nil and name ~= nil then -- 88
+						if attr == "char" then -- 89
+							charName = tostring(name) .. ": " -- 89
+						end -- 89
+					end -- 88
+				end -- 89
+			end -- 89
+		end -- 86
+		texts[#texts + 1] = charName .. result.text -- 90
+		if result.optionsFollowed then -- 91
+			advance() -- 92
+		else -- 94
+			setButtons() -- 94
+		end -- 91
+	elseif "Option" == action then -- 95
+		for i, op in ipairs(result) do -- 96
+			texts[#texts + 1] = "[" .. tostring(i) .. "]: " .. tostring(op.text) -- 97
+		end -- 97
+		setButtons(#result) -- 98
+	elseif "Command" == action then -- 99
+		texts[#texts + 1] = result -- 100
+		setButtons() -- 101
+	else -- 103
+		menu:removeAllChildren() -- 103
+		texts[#texts + 1] = result -- 104
+	end -- 104
+	label.text = table.concat(texts, "\n") -- 105
+	scroll:adjustSizeWithAlign("Auto", 10) -- 106
+	return thread(function() -- 107
+		return scroll:scrollToPosY(label.y - label.height / 2) -- 107
+	end) -- 107
+end -- 82
+advance() -- 109
+local testFiles = { -- 111
+	"tutorial.yarn" -- 111
+} -- 111
+local files = { -- 112
+	"tutorial.yarn" -- 112
+} -- 112
+local _list_0 = Content:getAllFiles(Content.writablePath) -- 113
+for _index_0 = 1, #_list_0 do -- 113
+	local file = _list_0[_index_0] -- 113
+	if "yarn" ~= Path:getExt(file) then -- 114
+		goto _continue_0 -- 114
+	end -- 114
+	testFiles[#testFiles + 1] = Path(Content.writablePath, file) -- 115
+	files[#files + 1] = Path:getFilename(file) -- 116
+	::_continue_0:: -- 114
+end -- 116
+local currentFile = 1 -- 118
+local windowFlags = { -- 120
+	"NoDecoration", -- 120
+	"NoSavedSettings", -- 121
+	"NoFocusOnAppearing", -- 122
+	"NoNav", -- 123
+	"NoMove" -- 124
+} -- 119
+return threadLoop(function() -- 125
+	local width -- 126
+	width = App.visualSize.width -- 126
+	SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 127
+	SetNextWindowSize(Vec2(200, 0), "Always") -- 128
+	return Begin("Yarn Test", windowFlags, function() -- 129
+		Text("Yarn Tester (Yuescript)") -- 130
+		Separator() -- 131
+		local changed -- 132
+		changed, currentFile = Combo("File", currentFile, files) -- 132
+		if changed then -- 133
+			runner = YarnRunner(testFiles[currentFile], "Start", { }, commands, true) -- 134
+			texts = { } -- 135
+			advance() -- 136
+		end -- 133
+		Text("Variables") -- 137
+		Separator() -- 138
+		for k, v in pairs(runner.state) do -- 139
+			Text(tostring(k) .. ": " .. tostring(v)) -- 140
+		end -- 140
+	end) -- 140
+end) -- 140
