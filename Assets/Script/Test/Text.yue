@@ -1,7 +1,6 @@
 _ENV = Dora
 import "UI.View.Shape.LineRect"
 import "UI.Control.Basic.ScrollArea"
-import "UI.Control.Basic.AlignNode"
 
 width: viewWidth, height: viewHeight = View.size
 
@@ -9,31 +8,35 @@ width, height = viewWidth - 200, viewHeight - 20
 
 fontSize = math.floor 20 * App.devicePixelRatio
 
-with AlignNode isRoot: true, inUI: false
-	\addChild with AlignNode alignWidth: "w", alignHeight: "h"
-		\addChild with ScrollArea {
-				width: width
-				height: height
-				paddingX: 0
-				paddingY: 50
-				viewWidth: height
-				viewHeight: height
-			}
-			.border = LineRect width: width, height: height, color: 0xffffffff
+with root = AlignNode!
+	:width, :height = View.size
+	\css "width: #{width}; height: #{height}"
+	\gslot "AppSizeChanged", ->
+		:width, :height = View.size
+		\css "width: #{width}; height: #{height}"
+	\addChild with ScrollArea {
+			width: width
+			height: height
+			paddingX: 0
+			paddingY: 50
+			viewWidth: height
+			viewHeight: height
+		}
+		.border = LineRect width: width, height: height, color: 0xffffffff
+		.area\addChild .border
+		root\slot "AlignLayout", (w, h) ->
+			.position = Vec2 w / 2, h / 2
+			w -= 200
+			h -= 20
+			.view.children.first.textWidth = w - fontSize
+			\adjustSizeWithAlign "Auto", 10, Size w, h
+			.area\removeChild .border
+			.border = LineRect width: w, height: h, color: 0xffffffff
 			.area\addChild .border
-			\slot "AlignLayout", (w, h) ->
-				.position = Vec2 w / 2, h / 2
-				w -= 200
-				h -= 20
-				.view.children.first.textWidth = w - fontSize
-				\adjustSizeWithAlign "Auto", 10, Size w, h
-				.area\removeChild .border
-				.border = LineRect width: w, height: h, color: 0xffffffff
-				.area\addChild .border
-			.view\addChild with Label "sarasa-mono-sc-regular", fontSize
-				.alignment = "Left"
-				.textWidth = width - fontSize
-				.text = [[# 贡献指南
+		.view\addChild with Label "sarasa-mono-sc-regular", fontSize
+			.alignment = "Left"
+			.textWidth = width - fontSize
+			.text = [[# 贡献指南
 
 &emsp;&emsp;非常感谢您对Dora SSR的兴趣和支持！我们欢迎任何人为这个项目做出贡献。以下是一些建议和指南，以帮助您开始参与项目的贡献。
 
@@ -111,4 +114,4 @@ with AlignNode isRoot: true, inUI: false
 ------
 
 &emsp;&emsp;希望这个贡献指南能帮助您开始参与Dora SSR项目。再次感谢您的支持，期待您的贡献！]]
-			\adjustSizeWithAlign!
+		\adjustSizeWithAlign!

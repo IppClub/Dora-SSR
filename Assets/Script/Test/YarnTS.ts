@@ -1,28 +1,29 @@
 // @preview-file off
 import * as CircleButton from "UI/Control/Basic/CircleButton";
-import * as AlignNode from "UI/Control/Basic/AlignNode";
-import { HAlignMode, VAlignMode } from "UI/Control/Basic/AlignNode";
 import * as ScrollArea from "UI/Control/Basic/ScrollArea";
 import { AlignMode } from "UI/Control/Basic/ScrollArea";
 import * as LineRect from 'UI/View/Shape/LineRect';
 import * as YarnRunner from "YarnRunner";
-import { App, Content, Label, Menu, Path, Size, Slot, TextAlign, TypeName, Vec2, View, thread, threadLoop, tolua } from "Dora";
+import { AlignNode, App, Content, GSlot, Label, Menu, Path, Size, Slot, TextAlign, TypeName, Vec2, View, thread, threadLoop, tolua } from "Dora";
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 
 const testFile = Path(Content.assetPath, "Script", "Test", "tutorial.yarn");
 
-const {width: viewWidth, height: viewHeight} = View.size;
-
-const width = viewWidth - 200;
-const height = viewHeight - 20;
-
 const fontSize = math.floor(20 * App.devicePixelRatio);
 
 let texts: string[] = [];
 
-const alignNode = AlignNode({isRoot: true, inUI: false});
-const root = AlignNode({alignWidth: "w", alignHeight: "h"}).addTo(alignNode);
+const root = AlignNode();
+const {width: viewWidth, height: viewHeight} = View.size;
+root.css(`width: ${viewWidth}; height: ${viewHeight}; flex-direction: column-reverse`);
+root.gslot(GSlot.AppSizeChanged, () => {
+	const {width, height} = View.size;
+	root.css(`width: ${width}; height: ${height}; flex-direction: column-reverse`)
+});
+
+const width = viewWidth - 200;
+const height = viewHeight - 20;
 const scroll = ScrollArea({
 	width,
 	height,
@@ -35,7 +36,7 @@ scroll.addTo(root);
 
 let border = LineRect({width, height, color: 0xffffffff});
 scroll.area.addChild(border);
-scroll.slot("AlignLayout", (w: number, h: number) => {
+root.slot(Slot.AlignLayout, (w: number, h: number) => {
 	scroll.position = Vec2(w / 2, h / 2);
 	w -= 200;
 	h -= 20;
@@ -55,11 +56,13 @@ if (label) {
 	label.text = "";
 }
 
-const control = AlignNode({
-	hAlign: HAlignMode.Center,
-	vAlign: VAlignMode.Bottom,
-	alignOffset: Vec2(0, 200)
-}).addTo(alignNode);
+const control = AlignNode().addTo(root);
+control.css("height: 140; margin-bottom: 40");
+
+const menu = Menu().addTo(control);
+control.slot(Slot.AlignLayout, (w, h) => {
+	menu.position = Vec2(w / 2, h / 2);
+});
 
 const commands = setmetatable({}, {
 	__index: (name: string) => (...args: any) => {
@@ -73,8 +76,6 @@ const commands = setmetatable({}, {
 });
 
 let runner = YarnRunner(testFile, "Start", {}, commands, true);
-
-const menu = Menu().addTo(control);
 
 const setButtons = (options?: number) => {
 	menu.removeAllChildren();
@@ -126,14 +127,13 @@ const advance = (option?: number) => {
 	}
 	if (!label) return;
 	label.text = table.concat(texts, "\n")
-	root.alignLayout();
+	scroll.adjustSizeWithAlign(AlignMode.Auto, 10);
 	thread(() => {
 		scroll.scrollToPosY(label.y - label.height / 2);
 		return true;
 	});
 };
 
-alignNode.alignLayout();
 advance();
 
 const testFiles = [testFile];
