@@ -109,9 +109,6 @@ local record Node
 	-- 节点的父节点。
 	const parent: Node
 
-	-- 节点的包围盒。
-	const boundingBox: Rect
-
 	-- 节点是否在场景树中挂载运行。
 	const running: boolean
 

@@ -109,9 +109,6 @@ local record Node
 	-- The parent node of the node.
 	const parent: Node
 
-	-- The bounding box of the node as a Rect object.
-	const boundingBox: Rect
-
 	-- Whether the node is currently running in a scene tree.
 	const running: boolean
 
