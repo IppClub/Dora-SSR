@@ -188,12 +188,14 @@ add_executable(dora-ssr
 	../../Source/3rdParty/spine/Log.cpp
 	../../Source/3rdParty/spine/VertexAttachment.cpp
 	../../Source/3rdParty/spine/TextureLoader.cpp
+	../../Source/3rdParty/spine/PhysicsConstraintData.cpp
 	../../Source/3rdParty/spine/SkeletonData.cpp
 	../../Source/3rdParty/spine/TransformConstraintTimeline.cpp
 	../../Source/3rdParty/spine/ConstraintData.cpp
 	../../Source/3rdParty/spine/IkConstraint.cpp
 	../../Source/3rdParty/spine/CurveTimeline.cpp
 	../../Source/3rdParty/spine/AnimationStateData.cpp
+	../../Source/3rdParty/spine/InheritTimeline.cpp
 	../../Source/3rdParty/spine/BoundingBoxAttachment.cpp
 	../../Source/3rdParty/spine/PathAttachment.cpp
 	../../Source/3rdParty/spine/MeshAttachment.cpp
@@ -201,6 +203,7 @@ add_executable(dora-ssr
 	../../Source/3rdParty/spine/Skin.cpp
 	../../Source/3rdParty/spine/RTTI.cpp
 	../../Source/3rdParty/spine/MathUtil.cpp
+	../../Source/3rdParty/spine/SequenceTimeline.cpp
 	../../Source/3rdParty/spine/IkConstraintData.cpp
 	../../Source/3rdParty/spine/Atlas.cpp
 	../../Source/3rdParty/spine/ClippingAttachment.cpp
@@ -208,14 +211,14 @@ add_executable(dora-ssr
 	../../Source/3rdParty/spine/Timeline.cpp
 	../../Source/3rdParty/spine/SkeletonBinary.cpp
 	../../Source/3rdParty/spine/ScaleTimeline.cpp
-	../../Source/3rdParty/spine/Sequence.cpp
-	../../Source/3rdParty/spine/SequenceTimeline.cpp	
 	../../Source/3rdParty/spine/LinkedMesh.cpp
 	../../Source/3rdParty/spine/PointAttachment.cpp
+	../../Source/3rdParty/spine/Sequence.cpp
 	../../Source/3rdParty/spine/RegionAttachment.cpp
 	../../Source/3rdParty/spine/DeformTimeline.cpp
 	../../Source/3rdParty/spine/Animation.cpp
 	../../Source/3rdParty/spine/AttachmentLoader.cpp
+	../../Source/3rdParty/spine/PhysicsConstraint.cpp
 	../../Source/3rdParty/spine/DrawOrderTimeline.cpp
 	../../Source/3rdParty/spine/AttachmentTimeline.cpp
 	../../Source/3rdParty/spine/EventData.cpp
@@ -233,6 +236,7 @@ add_executable(dora-ssr
 	../../Source/3rdParty/spine/RotateTimeline.cpp
 	../../Source/3rdParty/spine/PathConstraintMixTimeline.cpp
 	../../Source/3rdParty/spine/Triangulator.cpp
+	../../Source/3rdParty/spine/PhysicsConstraintTimeline.cpp
 	../../Source/3rdParty/spine/Json.cpp
 	../../Source/3rdParty/spine/SkeletonBounds.cpp
 	../../Source/3rdParty/spine/SlotData.cpp
