@@ -4185,6 +4185,18 @@
     <ClInclude Include="..\..\..\Source\3rdParty\spine\Vertices.h">
       <Filter>3rdParty\spine</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\args.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\base.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\std.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\xchar.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

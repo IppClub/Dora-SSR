@@ -1974,6 +1974,8 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\String.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorField.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorFieldLoader.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\args.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\base.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\chrono.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\color.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\compile.h" />
@@ -1985,6 +1987,8 @@
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\ostream.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\printf.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\ranges.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\std.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\xchar.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\font\font_manager.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imconfig.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui.h" />

@@ -29,6 +29,7 @@ using namespace std::string_literals;
 #include <string_view>
 using namespace std::string_view_literals;
 #include <concepts>
+#include <iterator>
 
 #include "bx/bx.h"
 
