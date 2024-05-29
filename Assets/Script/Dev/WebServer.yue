@@ -29,7 +29,7 @@ getProjectDirFromFile = (file) ->
 
 getSearchPath = (file): "" ->
 	if dir := getProjectDirFromFile file
-		return Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
+		return "#{Path dir, "Script", "?.lua"};#{Path dir, "?.lua"}"
 
 getSearchFolders = (file): [] ->
 	if dir := getProjectDirFromFile file
@@ -530,10 +530,14 @@ HttpServer\post "/list", (req): success: false ->
 			files = nil if #files == 0
 			return success: true, :files
 
-HttpServer\post "/info", -> return
-	platform: App.platform
-	locale: App.locale
-	version: App.version
+HttpServer\post "/info", ->
+	import "Script.Dev.Entry"
+	engineDev = Entry.getEngineDev!
+	return
+		platform: App.platform
+		locale: App.locale
+		version: App.version
+		:engineDev
 
 HttpServer\post "/new", (req): success: false ->
 	switch req when {body: {:path, :content}}
@@ -598,11 +602,15 @@ HttpServer\postSchedule "/read", (req): success: false ->
 				return :content, success: true
 
 compileFileAsync = (inputFile, sourceCodes): nil ->
-	file = Path\getFilename inputFile
+	file = inputFile
 	searchPath = if dir := getProjectDirFromFile inputFile
 		file = Path\getRelative inputFile, Path Content.writablePath, dir
 		Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
-	else ""
+	else
+		file = Path\getRelative inputFile, Path Content.writablePath
+		if file\sub(1, 2) == ".."
+			file = Path\getRelative inputFile, Path Content.assetPath
+		""
 	outputFile = Path\replaceExt inputFile, "lua"
 	options: {extension: yueext} = yue
 	resultCodes = nil
@@ -656,6 +664,8 @@ extentionLevels =
 	lua: 0
 
 HttpServer\post "/assets", ->
+	import "Script.Dev.Entry"
+	engineDev = Entry.getEngineDev!
 	visitAssets = (path, root) ->
 		children = nil
 		dirs = Content\getDirs path
@@ -728,6 +738,17 @@ HttpServer\post "/assets", ->
 					visitAssets Path Content.assetPath, "Image"
 					visitAssets Path Content.assetPath, "Spine"
 					visitAssets Path Content.assetPath, "Font"
+					with visitAssets Path Content.assetPath, "Script", "Lib"
+						if engineDev
+							for child in *.children
+								continue unless child.title == "Dora"
+								title = zh and "zh-Hans" or "en"
+								child.children = [c for c in *child.children when c.title ~= title]
+								break
+						else
+							.children = [child for child in *.children when child.title ~= "Dora"]
+					if engineDev
+						visitAssets Path Content.assetPath, "Script", "Dev"
 				]
 			}
 			...visitAssets Content.writablePath, true

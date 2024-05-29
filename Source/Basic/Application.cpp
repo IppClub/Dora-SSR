@@ -615,7 +615,11 @@ const Slice Application::getVersion() const {
 }
 
 bool Application::isDebugging() const {
-	return DORA_DEBUG ? true : false;
+#if DEBUG
+	return true;
+#else
+	return false;
+#endif
 }
 
 std::thread::id Application::getLogicThread() const {

@@ -397,19 +397,14 @@ local record lua
 		log: function(x: number, base?: number): number
 
 		-- 返回其参数中的最大值。
-		-- @param ... (number) 输入数字。
-		-- @return (number) 参数中的最大值。
-		max: function(...: number): number
-
-		-- 返回其参数中的最大值。
 		-- @param ... (integer) 输入整数。
 		-- @return (integer) 参数中的最大值。
 		max: function(...: integer): integer
 
 		-- 返回其参数中的最大值。
-		-- @param ... (number | integer) 输入数字或整数。
-		-- @return (number | integer) 参数中的最大值。
-		max: function(...: number | integer): number | integer
+		-- @param ... (number) 输入数字。
+		-- @return (number) 参数中的最大值。
+		max: function(...: number): number
 
 		-- 返回其参数中的最大值。
 		-- @param ... (any) 输入可比较的值。
@@ -420,19 +415,14 @@ local record lua
 		maxinteger: number
 
 		-- 返回其参数中的最小值。
-		-- @param ... (number) 输入数字。
-		-- @return (number) 参数中的最小值。
-		min: function(...: number): number
-
-		-- 返回其参数中的最小值。
 		-- @param ... (integer) 输入整数。
 		-- @return (integer) 参数中的最小值。
 		min: function(...: integer): integer
 
 		-- 返回其参数中的最小值。
-		-- @param ... (number | integer) 输入数字或整数。
-		-- @return (number | integer) 参数中的最小值。
-		min: function(...: number | integer): number | integer
+		-- @param ... (number) 输入数字。
+		-- @return (number) 参数中的最小值。
+		min: function(...: number): number
 
 		-- 返回其参数中的最小值。
 		-- @param ... (any) 输入可比较的值。

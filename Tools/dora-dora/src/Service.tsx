@@ -232,6 +232,7 @@ export interface InfoResponse {
 	platform: "Windows" | "macOS" | "iOS" | "Android" | "Linux";
 	locale: string;
 	version: string;
+	engineDev: boolean;
 }
 export const info = () => {
 	return post<InfoResponse>("/info");

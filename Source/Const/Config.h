@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define DORA_DEBUG 1
 #endif
 
-/** @brief Windows console flag. */
+/** @brief Flag to display a Windows command console. */
 #ifndef DORA_WIN_CONSOLE
 #define DORA_WIN_CONSOLE 0
 #endif

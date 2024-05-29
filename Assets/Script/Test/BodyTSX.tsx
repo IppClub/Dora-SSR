@@ -1,4 +1,4 @@
-// @preview-file off
+// @preview-file on
 import { React, toNode } from 'DoraX';
 import { App, BodyMoveType, Vec2, threadLoop } from "Dora";
 import * as ImGui from 'ImGui';
