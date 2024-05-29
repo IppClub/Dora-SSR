@@ -26,36 +26,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THE
  * SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
+#ifndef Spine_Physics_h
+#define Spine_Physics_h
 
-#ifndef Spine_LinkedMesh_h
-#define Spine_LinkedMesh_h
-
-#include "spine/SpineObject.h"
-#include "spine/SpineString.h"
-
+/** Determines how physics and other non-deterministic updates are applied. */
 namespace spine {
-	class MeshAttachment;
+    enum Physics {
+        /** Physics are not updated or applied. */
+        Physics_None,
 
-	class SP_API LinkedMesh : public SpineObject {
-		friend class SkeletonBinary;
+        /** Physics are reset to the current pose. */
+        Physics_Reset,
 
-		friend class SkeletonJson;
+        /** Physics are updated and the pose from physics is applied. */
+        Physics_Update,
 
-	public:
-		LinkedMesh(MeshAttachment *mesh, const int skinIndex, size_t slotIndex, const String &parent,
-				   bool inheritTimeline);
-
-        LinkedMesh(MeshAttachment *mesh, const String &skin, size_t slotIndex, const String &parent,
-                   bool inheritTimeline);
-
-	private:
-		MeshAttachment *_mesh;
-		int _skinIndex;
-        String _skin;
-		size_t _slotIndex;
-		String _parent;
-		bool _inheritTimeline;
-	};
+        /** Physics are not updated but the pose from physics is applied. */
+        Physics_Pose
+    };
 }
 
-#endif /* Spine_LinkedMesh_h */
+#endif
