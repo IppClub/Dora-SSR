@@ -344,14 +344,14 @@ Do = function(name) -- 196
 			end), -- 249
 			Seq({ -- 251
 				Act(name), -- 251
-				Con("action succeeded", function(self) -- 252
+				Con("action succeeded", function() -- 252
 					lastAction = name -- 253
 					lastActionFrame = App.frame -- 254
 					return true -- 255
 				end) -- 252
 			}) -- 250
 		}), -- 248
-		Con("Save data", function(self) -- 258
+		Con("Save data", function() -- 258
 			if row == nil then -- 259
 				return true -- 259
 			end -- 259
@@ -549,12 +549,12 @@ Store["AI_Learned"] = Sel({ -- 312
 				Act(function(self) -- 378
 					return self.entity.learnedAction -- 378
 				end), -- 378
-				Con("Succeeded prediction", function(self) -- 379
+				Con("Succeeded prediction", function() -- 379
 					emit("Prediction", true) -- 380
 					return true -- 381
 				end) -- 379
 			}), -- 377
-			Con("Failed prediction", function(self) -- 383
+			Con("Failed prediction", function() -- 383
 				emit("Prediction", false) -- 384
 				return false -- 385
 			end) -- 383
@@ -581,7 +581,7 @@ Store["AI_Learned"] = Sel({ -- 312
 	}), -- 396
 	Sel({ -- 402
 		Seq({ -- 403
-			Con("take a break", function(self) -- 403
+			Con("take a break", function() -- 403
 				return App.rand % 60 == 0 -- 403
 			end), -- 403
 			Act("idle") -- 404
@@ -631,19 +631,19 @@ Store["AI_Boss"] = Sel({ -- 422
 		end), -- 435
 		Sel({ -- 443
 			Seq({ -- 444
-				Con("melee attack", function(self) -- 444
+				Con("melee attack", function() -- 444
 					return App.rand % 250 == 0 -- 444
 				end), -- 444
 				Act("meleeAttack") -- 445
 			}), -- 443
 			Seq({ -- 448
-				Con("range attack", function(self) -- 448
+				Con("range attack", function() -- 448
 					return App.rand % 250 == 0 -- 448
 				end), -- 448
 				Act("multiArrow") -- 449
 			}), -- 447
 			Seq({ -- 452
-				Con("spear attack", function(self) -- 452
+				Con("spear attack", function() -- 452
 					return App.rand % 250 == 0 -- 452
 				end), -- 452
 				Act("spearAttack") -- 453
@@ -1458,7 +1458,7 @@ UnitAction:add("range", { -- 1033
 	reaction = 10, -- 1034
 	recovery = 0.1, -- 1035
 	queued = true, -- 1036
-	available = function(self) -- 1037
+	available = function() -- 1037
 		return true -- 1037
 	end, -- 1037
 	create = function(self) -- 1038
@@ -1525,7 +1525,7 @@ UnitAction:add("multiArrow", { -- 1083
 	reaction = 10, -- 1084
 	recovery = 0.1, -- 1085
 	queued = true, -- 1086
-	available = function(self) -- 1087
+	available = function() -- 1087
 		return true -- 1087
 	end, -- 1087
 	create = function(self) -- 1088
@@ -1593,7 +1593,7 @@ UnitAction:add("fallOff", { -- 1126
 		else -- 1136
 			self.data.fallDown = false -- 1136
 		end -- 1131
-		return function(self, action) -- 1137
+		return function(self) -- 1137
 			if self.onSurface then -- 1138
 				return true -- 1138
 			end -- 1138
@@ -1612,7 +1612,7 @@ UnitAction:add("evade", { -- 1147
 	reaction = 10, -- 1148
 	recovery = 0, -- 1149
 	queued = true, -- 1150
-	available = function(self) -- 1151
+	available = function() -- 1151
 		return true -- 1151
 	end, -- 1151
 	create = function(self) -- 1152
@@ -1651,7 +1651,7 @@ UnitAction:add("spearAttack", { -- 1173
 	reaction = 10, -- 1174
 	recovery = 0.1, -- 1175
 	queued = true, -- 1176
-	available = function(self) -- 1177
+	available = function() -- 1177
 		return true -- 1177
 	end, -- 1177
 	create = function(self) -- 1178
@@ -1671,6 +1671,7 @@ UnitAction:add("spearAttack", { -- 1173
 			sleep(50.0 / 60.0) -- 1190
 			local dir = self.faceRight and 0 or -900 -- 1191
 			local origin = self.position - Vec2(0, 205) + Vec2(dir, 0) -- 1192
+			local size -- 1193
 			size = Size(900, 40) -- 1193
 			world:query(Rect(origin, size), function(body) -- 1194
 				local entity = body.entity -- 1195

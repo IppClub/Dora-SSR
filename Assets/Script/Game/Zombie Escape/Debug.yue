@@ -35,7 +35,7 @@ world\schedule ->
 		TextWrapped "Zombie Killed: #{Store.zombieKilled}"
 		SameLine!
 		if Button "Army"
-			for i = 0,10
+			for _i = 0, 10
 				available = false
 				pos = Vec2.zero
 				while not available
@@ -172,7 +172,7 @@ world\schedule ->
 			Text table.concat decisions, "\n"
 
 with Observer "Add", {"group", "unit", "player", "stared"}
-	\watch (group, unit): false =>
+	\watch (_group, unit): false =>
 		unit\addChild Star {
 			y: 100
 			size: 18

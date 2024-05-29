@@ -90,7 +90,6 @@ local record ML
 	-- @return (number｜nil) 决策树在训练数据上的准确度。
 	-- @return (string) 如果在构建决策树期间发生错误，则返回此错误消息。
 	BuildDecisionTreeAsync: function(
-		self: ML,
 		csvData: string,
 		maxDepth: integer,
 		handler: function(depth: integer, name: string, op: Operator, value: string)

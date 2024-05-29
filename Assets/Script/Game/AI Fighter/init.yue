@@ -249,13 +249,13 @@ Do = (name) -> Seq [
 		Con "is doing", => @isDoing name
 		Seq [
 			Act name
-			Con "action succeeded", =>
+			Con "action succeeded", ->
 				lastAction = name
 				lastActionFrame = App.frame
 				true
 		]
 	]
-	Con "Save data", =>
+	Con "Save data", ->
 		return true if row == nil
 		data[] = row
 		true
@@ -292,8 +292,8 @@ with Node!
 		data = []
 		thread ->
 			lines = ["(_ENV) ->",]
-			accuracy = ML.BuildDecisionTreeAsync dataStr,0,(depth,name,op,value) ->
-				line = string.rep("\t",depth+1) .. if name ~= "" then
+			accuracy = ML.BuildDecisionTreeAsync dataStr, 0, (depth, name, op, value) ->
+				line = string.rep("\t", depth + 1) .. if name ~= "" then
 					"if #{name} #{op} #{op=='==' and "\"#{value}\"" or value}"
 				else
 					"#{op} \"#{value}\""
@@ -376,11 +376,11 @@ Store["AI_Learned"] = Sel [
 			Con "is doing", => @isDoing @entity.learnedAction
 			Seq [
 				Act => @entity.learnedAction
-				Con "Succeeded prediction", =>
+				Con "Succeeded prediction", ->
 					emit "Prediction",true
 					true
 			]
-			Con "Failed prediction", =>
+			Con "Failed prediction", ->
 				emit "Prediction",false
 				false
 		]
@@ -400,7 +400,7 @@ Store["AI_Learned"] = Sel [
 	]
 	Sel [
 		Seq [
-			Con "take a break", => App.rand % 60 == 0
+			Con "take a break", -> App.rand % 60 == 0
 			Act "idle"
 		]
 		Act "walk"
@@ -441,15 +441,15 @@ Store["AI_Boss"] = Sel [
 			false
 		Sel [
 			Seq [
-				Con "melee attack", => App.rand % 250 == 0
+				Con "melee attack", -> App.rand % 250 == 0
 				Act "meleeAttack"
 			]
 			Seq [
-				Con "range attack", => App.rand % 250 == 0
+				Con "range attack", -> App.rand % 250 == 0
 				Act "multiArrow"
 			]
 			Seq [
-				Con "spear attack", => App.rand % 250 == 0
+				Con "spear attack", -> App.rand % 250 == 0
 				Act "spearAttack"
 			]
 			Act "idle"
@@ -928,7 +928,7 @@ Director.ui\addChild with AlignNode isRoot:true
 			\gslot "ShowTraining", showItems
 			\slot "Tapped", ->
 				return if not .visible
-				for i = 1,#characters
+				for i = 1, #characters
 					char = characters[i]
 					Entity
 						unitDef: "fighter"
@@ -1034,7 +1034,7 @@ UnitAction\add "range",
 	reaction: 10
 	recovery: 0.1
 	queued: true
-	available: => true
+	available: -> true
 	create: =>
 		{
 			:attackSpeed, :targetAllow
@@ -1084,7 +1084,7 @@ UnitAction\add "multiArrow",
 	reaction: 10
 	recovery: 0.1
 	queued: true
-	available: => true
+	available: -> true
 	create: =>
 		{
 			:attackSpeed, :targetAllow
@@ -1134,7 +1134,7 @@ UnitAction\add "fallOff",
 				.speed = 2.5
 				\play "idle"
 		else @data.fallDown = false
-		(action) =>
+		=>
 			return true if @onSurface
 			if not @data.fallDown and @velocityY <= 0
 				@data.fallDown = true
@@ -1148,7 +1148,7 @@ UnitAction\add "evade",
 	reaction: 10
 	recovery: 0
 	queued: true
-	available: => true
+	available: -> true
 	create: =>
 		with @playable
 			.speed = 1.0
@@ -1174,7 +1174,7 @@ UnitAction\add "spearAttack",
 	reaction: 10
 	recovery: 0.1
 	queued: true
-	available: => true
+	available: -> true
 	create: =>
 		{
 			:attackSpeed, :attackPower
@@ -1187,13 +1187,13 @@ UnitAction\add "spearAttack",
 			\play "spear"
 			\slot "AnimationEnd", spearAttackEnd
 		once =>
-			sleep 50.0/60.0
+			sleep 50.0 / 60.0
 			dir = @faceRight and 0 or -900
-			origin = @position - Vec2(0,205) + Vec2(dir,0)
-			size = Size 900,40
-			world\query Rect(origin,size), (body) ->
+			origin = @position - Vec2(0, 205) + Vec2 dir, 0
+			local size = Size 900, 40
+			world\query Rect(origin, size), (body) ->
 				:entity = body
-				if entity and Data\isEnemy body,@
+				if entity and Data\isEnemy body, @
 					with body.data
 						.hitPoint = body.position
 						.hitPower = attackPower
