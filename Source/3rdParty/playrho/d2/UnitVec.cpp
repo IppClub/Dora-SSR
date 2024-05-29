@@ -26,7 +26,7 @@ namespace d2 {
 
 UnitVec UnitVec::Get(const Angle angle) noexcept
 {
-    return UnitVec{cos(angle), sin(angle)};
+    return UnitVec{cos(angle), sin(angle), {}};
 }
 
 } // namespace d2

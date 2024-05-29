@@ -59,7 +59,7 @@ walk = Sel [
 				]
 			]
 			Seq [
-				Con "has forward speed", => math.abs(@velocityX) > 0
+				Con "has forward speed", => math.abs(@velocityX) > 10
 				Act "jump"
 			]
 		]
@@ -68,7 +68,7 @@ walk = Sel [
 ]
 
 fightDecision = Seq [
-	Con "see enemy", => AI\getNearestUnit("Enemy")?
+	Con "see enemy", -> AI\getNearestUnit("Enemy")?
 	Sel [
 		Seq [
 			Con "need evade", =>
@@ -105,7 +105,7 @@ fightDecision = Seq [
 			Act "turn"
 		]
 		Seq [
-			Con "enemy in attack range", =>
+			Con "enemy in attack range", ->
 				enemy = AI\getNearestUnit "Enemy"
 				attackUnits = AI\getUnitsInAttackRange!
 				attackUnits and attackUnits\contains(enemy) or false
@@ -115,7 +115,7 @@ fightDecision = Seq [
 			]
 		]
 		Seq [
-			Con "wanna jump", => App.rand % 5 == 0
+			Con "wanna jump", -> App.rand % 5 == 0
 			Act "jump"
 		]
 		walk

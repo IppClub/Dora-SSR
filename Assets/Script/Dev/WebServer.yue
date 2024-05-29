@@ -733,6 +733,8 @@ HttpServer\post "/assets", ->
 						.title = zh and "接口文档" or "API Doc"
 					with visitAssets Path Content.assetPath, "Script", "Example"
 						.title = zh and "代码示例" or "Example"
+					with visitAssets Path Content.assetPath, "Script", "Game"
+						.title = zh and "游戏演示" or "Demo Game"
 					with visitAssets Path Content.assetPath, "Script", "Test"
 						.title = zh and "功能测试" or "Test"
 					visitAssets Path Content.assetPath, "Image"

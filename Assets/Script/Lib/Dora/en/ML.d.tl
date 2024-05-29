@@ -89,7 +89,6 @@ local record ML
 	-- @return (number｜nil) The accuracy of the decision tree on the training data.
 	-- @return (string) An error message if an error occurred during building of the decision tree.
 	BuildDecisionTreeAsync: function(
-		self: ML,
 		csvData: string,
 		maxDepth: integer,
 		handler: function(depth: integer, name: string, op: Operator, value: string)

@@ -75,7 +75,7 @@ local walk = Sel({ -- 41
 			}), -- 51
 			Seq({ -- 62
 				Con("has forward speed", function(self) -- 62
-					return math.abs(self.velocityX) > 0 -- 62
+					return math.abs(self.velocityX) > 10 -- 62
 				end), -- 62
 				Act("jump") -- 63
 			}) -- 61
@@ -84,7 +84,7 @@ local walk = Sel({ -- 41
 	Act("walk") -- 67
 }) -- 40
 local fightDecision = Seq({ -- 71
-	Con("see enemy", function(self) -- 71
+	Con("see enemy", function() -- 71
 		return (AI:getNearestUnit("Enemy") ~= nil) -- 71
 	end), -- 71
 	Sel({ -- 73
@@ -138,7 +138,7 @@ local fightDecision = Seq({ -- 71
 			Act("turn") -- 105
 		}), -- 101
 		Seq({ -- 108
-			Con("enemy in attack range", function(self) -- 108
+			Con("enemy in attack range", function() -- 108
 				local enemy = AI:getNearestUnit("Enemy") -- 109
 				local attackUnits = AI:getUnitsInAttackRange() -- 110
 				return attackUnits and attackUnits:contains(enemy) or false -- 111
@@ -149,7 +149,7 @@ local fightDecision = Seq({ -- 71
 			}) -- 112
 		}), -- 107
 		Seq({ -- 118
-			Con("wanna jump", function(self) -- 118
+			Con("wanna jump", function() -- 118
 				return App.rand % 5 == 0 -- 118
 			end), -- 118
 			Act("jump") -- 119

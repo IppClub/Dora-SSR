@@ -8,12 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 _ENV = Dora Dora.Platformer
 import "UI.Control.Basic.AlignNode"
-import "UI.View.Shape.Rectangle"
-import "UI.View.Shape.Circle"
-import "UI.View.Shape.Star"
 import "UI.Control.Basic.CircleButton"
 
-store:Store = Data
+store: Store = Data
 
 Store.controlPlayer = "KidW"
 playerGroup = Group ["player",]

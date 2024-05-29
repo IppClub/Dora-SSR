@@ -1164,6 +1164,7 @@
 		3C4B3BFD2C06CCA000D778FC /* ConstraintData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConstraintData.cpp; path = ../../../Source/3rdParty/spine/ConstraintData.cpp; sourceTree = "<group>"; };
 		3C4B3BFE2C06CCA000D778FC /* SkeletonJson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonJson.h; path = ../../../Source/3rdParty/spine/SkeletonJson.h; sourceTree = "<group>"; };
 		3C4B3BFF2C06CCA000D778FC /* Timeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Timeline.cpp; path = ../../../Source/3rdParty/spine/Timeline.cpp; sourceTree = "<group>"; };
+		3C4B3DDF2C0709E000D778FC /* UnitMagnitudeChecker.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = UnitMagnitudeChecker.hpp; sourceTree = "<group>"; };
 		3C5399E62994E97400E9125C /* HttpServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HttpServer.cpp; path = ../../../Source/Http/HttpServer.cpp; sourceTree = "<group>"; };
 		3C5399E72994E97400E9125C /* HttpServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HttpServer.h; path = ../../../Source/Http/HttpServer.h; sourceTree = "<group>"; };
 		3C5399EA2998BAF000E9125C /* ljson.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ljson.c; path = ../../../Source/3rdParty/colib/ljson.c; sourceTree = "<group>"; };
@@ -3546,6 +3547,7 @@
 		3CA77EBC2AE665C100B7BADA /* detail */ = {
 			isa = PBXGroup;
 			children = (
+				3C4B3DDF2C0709E000D778FC /* UnitMagnitudeChecker.hpp */,
 				3CA77EBD2AE665C100B7BADA /* RayCastInput.hpp */,
 				3CA77EBE2AE665C100B7BADA /* TypeInfo.hpp */,
 				3CA77EBF2AE665C100B7BADA /* IndexingNamedType.hpp */,

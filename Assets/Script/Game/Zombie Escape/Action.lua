@@ -49,7 +49,7 @@ return UnitAction:add("fallOff", { -- 35
 		else -- 45
 			self.data.fallDown = false -- 45
 		end -- 40
-		return function(self, action) -- 46
+		return function(self) -- 46
 			if self.onSurface then -- 47
 				return true -- 47
 			end -- 47

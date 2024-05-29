@@ -67,7 +67,7 @@ world:schedule(function() -- 30
 		TextWrapped("Zombie Killed: " .. tostring(Store.zombieKilled)) -- 35
 		SameLine() -- 36
 		if Button("Army") then -- 37
-			for i = 0, 10 do -- 38
+			for _i = 0, 10 do -- 38
 				local available = false -- 39
 				local pos = Vec2.zero -- 40
 				while not available do -- 41
@@ -280,7 +280,7 @@ do -- 174
 		"player", -- 174
 		"stared" -- 174
 	}) -- 174
-	_with_0:watch(function(self, group, unit) -- 175
+	_with_0:watch(function(self, _group, unit) -- 175
 		unit:addChild(Star({ -- 177
 			y = 100, -- 177
 			size = 18, -- 178
