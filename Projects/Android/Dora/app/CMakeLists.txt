@@ -196,12 +196,14 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/spine/Log.cpp
 	src/main/cpp/3rdParty/spine/VertexAttachment.cpp
 	src/main/cpp/3rdParty/spine/TextureLoader.cpp
+	src/main/cpp/3rdParty/spine/PhysicsConstraintData.cpp
 	src/main/cpp/3rdParty/spine/SkeletonData.cpp
 	src/main/cpp/3rdParty/spine/TransformConstraintTimeline.cpp
 	src/main/cpp/3rdParty/spine/ConstraintData.cpp
 	src/main/cpp/3rdParty/spine/IkConstraint.cpp
 	src/main/cpp/3rdParty/spine/CurveTimeline.cpp
 	src/main/cpp/3rdParty/spine/AnimationStateData.cpp
+	src/main/cpp/3rdParty/spine/InheritTimeline.cpp
 	src/main/cpp/3rdParty/spine/BoundingBoxAttachment.cpp
 	src/main/cpp/3rdParty/spine/PathAttachment.cpp
 	src/main/cpp/3rdParty/spine/MeshAttachment.cpp
@@ -209,6 +211,7 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/spine/Skin.cpp
 	src/main/cpp/3rdParty/spine/RTTI.cpp
 	src/main/cpp/3rdParty/spine/MathUtil.cpp
+	src/main/cpp/3rdParty/spine/SequenceTimeline.cpp
 	src/main/cpp/3rdParty/spine/IkConstraintData.cpp
 	src/main/cpp/3rdParty/spine/Atlas.cpp
 	src/main/cpp/3rdParty/spine/ClippingAttachment.cpp
@@ -216,14 +219,14 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/spine/Timeline.cpp
 	src/main/cpp/3rdParty/spine/SkeletonBinary.cpp
 	src/main/cpp/3rdParty/spine/ScaleTimeline.cpp
-	src/main/cpp/3rdParty/spine/Sequence.cpp
-	src/main/cpp/3rdParty/spine/SequenceTimeline.cpp
 	src/main/cpp/3rdParty/spine/LinkedMesh.cpp
 	src/main/cpp/3rdParty/spine/PointAttachment.cpp
+	src/main/cpp/3rdParty/spine/Sequence.cpp
 	src/main/cpp/3rdParty/spine/RegionAttachment.cpp
 	src/main/cpp/3rdParty/spine/DeformTimeline.cpp
 	src/main/cpp/3rdParty/spine/Animation.cpp
 	src/main/cpp/3rdParty/spine/AttachmentLoader.cpp
+	src/main/cpp/3rdParty/spine/PhysicsConstraint.cpp
 	src/main/cpp/3rdParty/spine/DrawOrderTimeline.cpp
 	src/main/cpp/3rdParty/spine/AttachmentTimeline.cpp
 	src/main/cpp/3rdParty/spine/EventData.cpp
@@ -241,6 +244,7 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/spine/RotateTimeline.cpp
 	src/main/cpp/3rdParty/spine/PathConstraintMixTimeline.cpp
 	src/main/cpp/3rdParty/spine/Triangulator.cpp
+	src/main/cpp/3rdParty/spine/PhysicsConstraintTimeline.cpp
 	src/main/cpp/3rdParty/spine/Json.cpp
 	src/main/cpp/3rdParty/spine/SkeletonBounds.cpp
 	src/main/cpp/3rdParty/spine/SlotData.cpp
