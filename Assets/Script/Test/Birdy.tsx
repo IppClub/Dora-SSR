@@ -1,4 +1,4 @@
-// @preview-file off
+// @preview-file on
 import { React, toNode, useRef } from 'DoraX';
 import { Body, BodyMoveType, Ease, Label, Line, Scale, TypeName, Vec2, tolua } from 'Dora';
 

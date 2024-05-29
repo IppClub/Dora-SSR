@@ -20,6 +20,7 @@ i18n
 					},
 					tree: {
 						assets: "Assets",
+						builtin: "Builtin",
 					},
 					alert: {
 						assetLoad: "failed to load assets",
@@ -145,6 +146,7 @@ i18n
 					},
 					tree: {
 						assets: "资源根目录",
+						builtin: "内置资源目录",
 					},
 					alert: {
 						assetLoad: "资源加载失败",

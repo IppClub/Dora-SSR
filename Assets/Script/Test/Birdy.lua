@@ -113,10 +113,7 @@ toNode(React:createElement( -- 36
                     score.current.text = tostring(sc) -- 75
                     local ____tolua_cast_2 = tolua.cast -- 76
                     local ____opt_0 = other.children -- 76
-                    if ____opt_0 ~= nil then -- 76
-                        ____opt_0 = ____opt_0.last -- 76
-                    end -- 76
-                    local label = ____tolua_cast_2(____opt_0, "Label") -- 76
+                    local label = ____tolua_cast_2(____opt_0 and ____opt_0.last, "Label") -- 76
                     if label then -- 76
                         label.text = "" -- 77
                     end -- 77

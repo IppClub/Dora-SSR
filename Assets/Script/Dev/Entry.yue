@@ -56,6 +56,7 @@ config = Config(
 	"showConsole"
 	"showFooter"
 	"filter"
+	"engineDev"
 )
 config\load!
 if config.fpsLimited?
@@ -135,7 +136,16 @@ if config.filter?
 else
 	config.filter = ""
 
+engineDev = false
+if config.engineDev?
+	engineDev = config.engineDev > 0
+else
+	config.engineDev = engineDev and 1 or 0
+
 export.getConfig = -> config
+export.getEngineDev = ->
+	return false unless App.debugging
+	config.engineDev > 0
 
 from "Utils" import Set, Struct, LintYueGlobals, GSplit
 options: {extension: yueext} = yue
@@ -516,7 +526,6 @@ export enterEntryAsync = (entry) ->
 		allClear!
 		print err
 		import "UI.Control.Basic.ScrollArea"
-		import "UI.View.Shape.LineRect"
 		width: viewWidth, height: viewHeight = View.size
 		width, height = viewWidth - 20, viewHeight - 20
 		fontSize = math.floor 20 * App.devicePixelRatio
@@ -526,7 +535,7 @@ export enterEntryAsync = (entry) ->
 			\gslot "AppSizeChanged", ->
 				:width, :height = App.bufferSize
 				\css "width: #{width}; height: #{height}"
-			\addChild with scroll = ScrollArea {
+			\addChild with ScrollArea {
 					:width
 					:height
 					paddingX: 0
@@ -604,6 +613,7 @@ extraOperations = ->
 					SameLine!
 					TreeNode "#{license}####{name}", -> TextWrapped text
 			)
+	return unless App.debugging
 	<- TreeNode zh and "开发操作" or "Development"
 	OpenPopup "build" if Button zh and "脚本编译测试" or "Script Build Test"
 	PushStyleVar "WindowPadding", Vec2(10, 10), -> BeginPopup "build", ->
@@ -619,6 +629,8 @@ extraOperations = ->
 			reloadDevEntry!
 	if changed, scaleContent := Checkbox string.format("%.1fx #{zh and '屏幕缩放' or 'Screen'}", screenScale), scaleContent
 		View.scale = scaleContent and screenScale or 1
+	if changed, engineDev := Checkbox zh and '引擎开发模式' or 'Engine Dev Mode', engineDev
+		config.engineDev = engineDev and 1 or 0
 
 transparant = Color 0x0
 windowFlags =
@@ -1011,4 +1023,4 @@ entryWindow = threadLoop ->
 			Dummy Vec2 100, 80
 			ScrollWhenDraggingOnVoid!
 
-webStatus = require "WebServer"
+webStatus = require "Script.Dev.WebServer"

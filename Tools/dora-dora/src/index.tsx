@@ -21,6 +21,7 @@ const App = React.lazy(() => Service.info().then((res) => {
 	Info.platform = res.platform;
 	Info.path = res.platform === "Windows" ? Path.win32 : Path.posix;
 	Info.version = res.version;
+	Info.engineDev = res.engineDev;
 
 	Path.setPath(Info.path);
 

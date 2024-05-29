@@ -250,38 +250,6 @@ export default function PersistentDrawerLeft() {
 			if (res !== null) {
 				setExpandedKeys([res.key]);
 			}
-		}).then(() => {
-			Service.editingInfo().then((res: {success: boolean, editingInfo?: string}) => {
-				if (res.success && res.editingInfo) {
-					const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
-					const targetIndex = editingInfo.index;
-					Promise.all(editingInfo.files.map((file, i) => {
-						return openFile(file.key, file.title).then((newFile) => {
-							newFile.position = file.position;
-							newFile.mdEditing = file.mdEditing;
-							newFile.readOnly = file.readOnly;
-							newFile.sortIndex = i;
-							return newFile;
-						});
-					})).then((files) => {
-						const result = files.sort((a, b) => {
-							const indexA = a.sortIndex ?? 0;
-							const indexB = b.sortIndex ?? 0;
-							if (indexA < indexB) {
-								return -1;
-							} else if (indexA > indexB) {
-								return 1;
-							} else {
-								return 0;
-							}
-						});
-						setFiles(result);
-						switchTab(targetIndex, result[targetIndex]);
-					}).catch(() => {
-						addAlert(t("alert.open"), "error");
-					});
-				}
-			});
 		});
 		document.addEventListener("keydown", (event: KeyboardEvent) => {
 			if (event.ctrlKey || event.altKey || event.metaKey) {
@@ -339,6 +307,44 @@ export default function PersistentDrawerLeft() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
+	const assetPath = treeData.at(0)?.key ?? "";
+
+	useEffect(() => {
+		if (assetPath === "") return;
+		Service.editingInfo().then((res: {success: boolean, editingInfo?: string}) => {
+			if (res.success && res.editingInfo) {
+				const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
+				const targetIndex = editingInfo.index;
+				Promise.all(editingInfo.files.map((file, i) => {
+					return openFile(file.key, file.title).then((newFile) => {
+						newFile.position = file.position;
+						newFile.mdEditing = file.mdEditing;
+						newFile.readOnly = file.readOnly;
+						newFile.sortIndex = i;
+						return newFile;
+					});
+				})).then((files) => {
+					const result = files.sort((a, b) => {
+						const indexA = a.sortIndex ?? 0;
+						const indexB = b.sortIndex ?? 0;
+						if (indexA < indexB) {
+							return -1;
+						} else if (indexA > indexB) {
+							return 1;
+						} else {
+							return 0;
+						}
+					});
+					setFiles(result);
+					switchTab(targetIndex, result[targetIndex]);
+				}).catch(() => {
+					addAlert(t("alert.open"), "error");
+				});
+			}
+		});
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [assetPath]);
+
 	if (modified !== null) {
 		setModified(null);
 		files.forEach(file => {
@@ -359,11 +365,12 @@ export default function PersistentDrawerLeft() {
 		setModified({key, content});
 	}, []);
 
-	const assetPath = treeData.at(0)?.key ?? "";
-
-	const checkFileReadonly = useCallback((key: string) => {
+	const checkFileReadonly = useCallback((key: string, withPrompt: boolean) => {
+		if (Info.engineDev) return false;
 		if (!key.startsWith(assetPath)) {
-			addAlert(t("alert.builtin"), "info");
+			if (withPrompt) {
+				addAlert(t("alert.builtin"), "info");
+			}
 			return true;
 		}
 		return false;
@@ -428,7 +435,9 @@ export default function PersistentDrawerLeft() {
 						fileToFocus.position = undefined;
 						setFiles(prev => [...prev]);
 					}
-					checkFile(fileToFocus, fileToFocus.contentModified ?? fileToFocus.content, model);
+					if (!checkFileReadonly(fileToFocus.key, false) && !fileToFocus.readOnly) {
+						checkFile(fileToFocus, fileToFocus.contentModified ?? fileToFocus.content, model);
+					}
 					const ext = path.extname(fileToFocus.key).toLowerCase();
 					if (ext === ".ts" || ext === ".tsx") {
 						import('./TranspileTS').then(({revalidateModel}) => {
@@ -440,7 +449,7 @@ export default function PersistentDrawerLeft() {
 				fileToFocus.yarnData?.warpToFocusedNode();
 			}, 100);
 		}
-	}, [expandedKeys]);
+	}, [expandedKeys, checkFileReadonly]);
 
 	const tabBarOnChange = useCallback((newValue: number) => {
 		switchTab(newValue, files[newValue]);
@@ -543,18 +552,20 @@ export default function PersistentDrawerLeft() {
 		const model = editor.getModel();
 		if (model) {
 			model.setValue(file.content);
-			model.onDidChangeContent((e) => {
-				lastEditorActionTime = Date.now();
-				const modified = model.getValue();
-				const lastChange = e.changes.at(-1);
-				new Promise((resolve) => {
-					setTimeout(resolve, 500);
-				}).then(() => {
-					if (Date.now() - lastEditorActionTime >= 500) {
-						checkFile(file, modified, model, lastChange);
-					}
+			if (!checkFileReadonly(file.key, false) && !file.readOnly) {
+				model.onDidChangeContent((e) => {
+					lastEditorActionTime = Date.now();
+					const modified = model.getValue();
+					const lastChange = e.changes.at(-1);
+					new Promise((resolve) => {
+						setTimeout(resolve, 500);
+					}).then(() => {
+						if (Date.now() - lastEditorActionTime >= 500) {
+							checkFile(file, modified, model, lastChange);
+						}
+					});
 				});
-			});
+			}
 		}
 		if (ext === "tsx" || ext === "ts") {
 			if (ext === "tsx") {
@@ -585,14 +596,14 @@ export default function PersistentDrawerLeft() {
 				}
 			});
 		}
-	}, [t]);
+	}, [t, checkFileReadonly]);
 
 	const openFile = useCallback((key: string, title: string) => {
 		return new Promise<EditingFile>((resolve, reject) => {
 			const ext = path.extname(title).toLowerCase();
 			switch (ext) {
 				case "": {
-					if (checkFileReadonly(key)) {
+					if (checkFileReadonly(key, true)) {
 						reject("file readonly");
 						break;
 					}
@@ -829,7 +840,7 @@ export default function PersistentDrawerLeft() {
 		return new Promise<EditingFile[]>((resolve, reject) => {
 			const saveFile = (extraFile?: EditingFile) => {
 				if (file.contentModified !== null) {
-					const readOnly = !file.key.startsWith(assetPath);
+					const readOnly = checkFileReadonly(file.key, true);
 					if (readOnly) {
 						addAlert(t("alert.builtin"), "warning");
 						resolve([file]);
@@ -975,7 +986,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-	},[t, assetPath, onPlayControlRun, files]);
+	},[t, onPlayControlRun, checkFileReadonly, files]);
 
 	const saveAllTabs = useCallback((): Promise<boolean> => {
 		const filesToSave = files.filter(file => file.contentModified !== null);
@@ -1144,7 +1155,7 @@ export default function PersistentDrawerLeft() {
 	const onTreeMenuClick = useCallback((event: TreeMenuEvent, data?: TreeDataType)=> {
 		if (event === "Cancel") return;
 		if (data === undefined) return;
-		if (checkFileReadonly(data.key)) return;
+		if (checkFileReadonly(data.key, true)) return;
 		switch (event) {
 			case "New": {
 				setOpenNewFile(data);
@@ -1553,8 +1564,8 @@ export default function PersistentDrawerLeft() {
 			addAlert(t("alert.movingNoSave"), "info");
 			return;
 		}
-		if (checkFileReadonly(self.key)) return;
-		if (checkFileReadonly(target.key)) return;
+		if (checkFileReadonly(self.key, true)) return;
+		if (checkFileReadonly(target.key, true)) return;
 		const rootNode = treeData.at(0);
 		if (rootNode === undefined) return;
 		let targetName = target.title;
@@ -1840,7 +1851,7 @@ export default function PersistentDrawerLeft() {
 					if (selectedNode === null) {
 						addAlert(t("alert.newNoTarget"), "info");
 						break;
-					} else if (checkFileReadonly(selectedNode.key)) {
+					} else if (checkFileReadonly(selectedNode.key, true)) {
 						break;
 					}
 					setOpenNewFile(selectedNode);
@@ -1851,7 +1862,7 @@ export default function PersistentDrawerLeft() {
 					if (selectedNode === null) {
 						addAlert(t("alert.deleteNoTarget"), "info");
 						break;
-					} else if (checkFileReadonly(selectedNode.key)) {
+					} else if (checkFileReadonly(selectedNode.key, true)) {
 						break;
 					}
 					deleteFile(selectedNode);
@@ -1961,8 +1972,9 @@ export default function PersistentDrawerLeft() {
 	}, [openLog, onStopRunning]);
 
 	const onValidate = useCallback((markers: monaco.editor.IMarker[], key: string) => {
+		if (checkFileReadonly(key, false)) return;
 		const file = files.find(f => f.key === key);
-		if (file === undefined) return files;
+		if (file === undefined) return;
 		let status: TabStatus = "normal";
 		let severity = 0;
 		for (const marker of markers) {
@@ -1998,7 +2010,7 @@ export default function PersistentDrawerLeft() {
 			file.status = status;
 			setFiles([...files]);
 		}
-	}, [files]);
+	}, [files, checkFileReadonly]);
 
 	const onFileFilterClose = useCallback((value: FilterOption | null) => {
 		setFilterOptions(null);
@@ -2226,9 +2238,9 @@ export default function PersistentDrawerLeft() {
 							case ".vs": visualScript = true; break;
 						}
 						const markdown = language === "markdown";
-						const readOnly = file.readOnly || !file.key.startsWith(treeData.at(0)?.key ?? "");
+						const readOnly = file.readOnly || checkFileReadonly(file.key, false);
 						let parentPath;
-						if (readOnly) {
+						if (!file.key.startsWith(treeData.at(0)?.key ?? "")) {
 							parentPath = treeData.at(0)?.children?.at(0)?.key ?? "";
 						} else {
 							parentPath = treeData.at(0)?.key ?? "";
@@ -2342,8 +2354,14 @@ export default function PersistentDrawerLeft() {
 								} else if (file.uploading) {
 									const rootNode = treeData.at(0);
 									if (rootNode === undefined) return null;
-									let target = path.relative(rootNode.key, file.key);
-									target = path.join(t("tree.assets"), target);
+									let target = path.relative(assetPath, file.key);
+									if (target.startsWith("..")) {
+										target = path.relative(parentPath, file.key);
+										target = path.join(t("tree.builtin"), target);
+									} else {
+										target = path.relative(parentPath, file.key);
+										target = path.join(t("tree.assets"), target);
+									}
 									return (
 										<MacScrollbar key={file.key} skin='dark' style={{height: winSize.height}}>
 											<DrawerHeader/>

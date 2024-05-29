@@ -12,6 +12,7 @@ interface BasicInfo {
 	path: Path;
 	locale: string;
 	platform: string;
+	engineDev: boolean;
 };
 
 export default {} as BasicInfo;

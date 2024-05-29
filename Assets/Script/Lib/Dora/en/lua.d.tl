@@ -397,19 +397,14 @@ local record lua
 		log: function(x: number, base?: number): number
 
 		-- Returns the maximum value among its arguments.
-		-- @param ... (number) The input numbers.
-		-- @return (number) The maximum value among the arguments.
-		max: function(...: number): number
-
-		-- Returns the maximum value among its arguments.
 		-- @param ... (integer) The input integers.
 		-- @return (integer) The maximum value among the arguments.
 		max: function(...: integer): integer
 
 		-- Returns the maximum value among its arguments.
-		-- @param ... (number | integer) The input numbers.
-		-- @return (number | integer) The maximum value among the arguments.
-		max: function(...: number | integer): number | integer
+		-- @param ... (number) The input numbers.
+		-- @return (number) The maximum value among the arguments.
+		max: function(...: number): number
 
 		-- Returns the maximum value among its arguments.
 		-- @param ... (any) The input comparables.
@@ -420,19 +415,14 @@ local record lua
 		maxinteger: number
 
 		-- Returns the minimum value among its arguments.
-		-- @param ... (number) The input numbers.
-		-- @return (number) The minimum value among the arguments.
-		min: function(...: number): number
-
-		-- Returns the minimum value among its arguments.
 		-- @param ... (integer) The input integers.
 		-- @return (integer) The minimum value among the arguments.
 		min: function(...: integer): integer
 
 		-- Returns the minimum value among its arguments.
-		-- @param ... (number | integer) The input numbers.
-		-- @return (number | integer) The minimum value among the arguments.
-		min: function(...: number | integer): number | integer
+		-- @param ... (number) The input numbers.
+		-- @return (number) The minimum value among the arguments.
+		min: function(...: number): number
 
 		-- Returns the minimum value among its arguments.
 		-- @param ... (any) The input comparables.
