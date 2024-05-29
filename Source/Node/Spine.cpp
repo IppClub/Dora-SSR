@@ -86,6 +86,7 @@ bool Spine::init() {
 	_animationStateData = New<spine::AnimationStateData>(_skeletonData->getSkel());
 	_animationState = New<spine::AnimationState>(_animationStateData.get());
 	_skeleton = New<spine::Skeleton>(_skeletonData->getSkel());
+	_skeleton->updateWorldTransform(spine::Physics_Reset);
 	_clipper = New<spine::SkeletonClipping>();
 	auto& slots = _skeleton->getSlots();
 	for (size_t i = 0; i < slots.size(); i++) {
@@ -244,13 +245,13 @@ float Spine::play(String name, bool loop) {
 		auto trackEntry = _animationState->addAnimation(0, animation, loop, FLT_EPSILON);
 		trackEntry->setListener(&_listener);
 		_animationState->apply(*_skeleton);
-		_skeleton->updateWorldTransform();
+		_skeleton->updateWorldTransform(spine::Physics_Pose);
 		return trackEntry->getAnimationEnd() / std::max(_animationState->getTimeScale(), FLT_EPSILON);
 	} else {
 		auto trackEntry = _animationState->setAnimation(0, animation, loop);
 		trackEntry->setListener(&_listener);
 		_animationState->apply(*_skeleton);
-		_skeleton->updateWorldTransform();
+		_skeleton->updateWorldTransform(spine::Physics_Pose);
 		return trackEntry->getAnimationEnd() / std::max(_animationState->getTimeScale(), FLT_EPSILON);
 	}
 }
@@ -323,7 +324,7 @@ bool Spine::update(double deltaTime) {
 	if (isUpdating()) {
 		_animationState->update(s_cast<float>(deltaTime));
 		_animationState->apply(*_skeleton);
-		_skeleton->updateWorldTransform();
+		_skeleton->updateWorldTransform(spine::Physics_Update);
 		if (_bounds && isHitTestEnabled()) {
 			_bounds->update(*_skeleton, true);
 		}
@@ -385,6 +386,7 @@ void Spine::render() {
 		Texture2D* texture = nullptr;
 		if (attachment->getRTTI().isExactly(spine::RegionAttachment::rtti)) {
 			spine::RegionAttachment* region = s_cast<spine::RegionAttachment*>(attachment);
+			if (!region->getRegion()) continue;
 			texture = r_cast<Texture2D*>(s_cast<spine::AtlasRegion*>(region->getRegion())->page->texture);
 			vertices.assign(4, {0, 0, 0, 1});
 			region->computeWorldVertices(*slot, &vertices[0].x, 0, sizeof(vertices[0]) / sizeof(float));

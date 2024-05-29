@@ -186,6 +186,72 @@
 		3C49FFE820EF609700E775D7 /* nanovg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFE120EF609600E775D7 /* nanovg.cpp */; };
 		3C49FFE920EF609700E775D7 /* nanovg_bgfx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFE720EF609700E775D7 /* nanovg_bgfx.cpp */; };
 		3C49FFEF20EF644900E775D7 /* stb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C49FFEE20EF644900E775D7 /* stb.cpp */; };
+		3C4B3C002C06CCA000D778FC /* AnimationStateData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B652C06CC9A00D778FC /* AnimationStateData.cpp */; };
+		3C4B3C012C06CCA000D778FC /* SkeletonJson.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B672C06CC9A00D778FC /* SkeletonJson.cpp */; };
+		3C4B3C022C06CCA000D778FC /* ScaleTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B682C06CC9A00D778FC /* ScaleTimeline.cpp */; };
+		3C4B3C032C06CCA000D778FC /* Skin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B6B2C06CC9A00D778FC /* Skin.cpp */; };
+		3C4B3C042C06CCA000D778FC /* PhysicsConstraint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B6C2C06CC9A00D778FC /* PhysicsConstraint.cpp */; };
+		3C4B3C052C06CCA000D778FC /* BoneData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B6E2C06CC9A00D778FC /* BoneData.cpp */; };
+		3C4B3C062C06CCA000D778FC /* PathConstraintSpacingTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B712C06CC9B00D778FC /* PathConstraintSpacingTimeline.cpp */; };
+		3C4B3C072C06CCA000D778FC /* Skeleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B722C06CC9B00D778FC /* Skeleton.cpp */; };
+		3C4B3C082C06CCA000D778FC /* TransformConstraintTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B742C06CC9B00D778FC /* TransformConstraintTimeline.cpp */; };
+		3C4B3C092C06CCA000D778FC /* TransformConstraint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B752C06CC9B00D778FC /* TransformConstraint.cpp */; };
+		3C4B3C0A2C06CCA000D778FC /* Sequence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B762C06CC9B00D778FC /* Sequence.cpp */; };
+		3C4B3C0B2C06CCA000D778FC /* Bone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B7A2C06CC9B00D778FC /* Bone.cpp */; };
+		3C4B3C0C2C06CCA000D778FC /* Updatable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B7B2C06CC9B00D778FC /* Updatable.cpp */; };
+		3C4B3C0D2C06CCA000D778FC /* SkeletonBounds.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B7F2C06CC9B00D778FC /* SkeletonBounds.cpp */; };
+		3C4B3C0E2C06CCA000D778FC /* PathConstraintData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B802C06CC9B00D778FC /* PathConstraintData.cpp */; };
+		3C4B3C0F2C06CCA000D778FC /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B852C06CC9B00D778FC /* Event.cpp */; };
+		3C4B3C102C06CCA000D778FC /* Animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B862C06CC9B00D778FC /* Animation.cpp */; };
+		3C4B3C112C06CCA000D778FC /* SlotData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B882C06CC9B00D778FC /* SlotData.cpp */; };
+		3C4B3C122C06CCA000D778FC /* ClippingAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B8D2C06CC9C00D778FC /* ClippingAttachment.cpp */; };
+		3C4B3C132C06CCA000D778FC /* IkConstraint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B8E2C06CC9C00D778FC /* IkConstraint.cpp */; };
+		3C4B3C142C06CCA000D778FC /* EventData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B902C06CC9C00D778FC /* EventData.cpp */; };
+		3C4B3C152C06CCA000D778FC /* SequenceTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B912C06CC9C00D778FC /* SequenceTimeline.cpp */; };
+		3C4B3C162C06CCA000D778FC /* MathUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B932C06CC9C00D778FC /* MathUtil.cpp */; };
+		3C4B3C172C06CCA000D778FC /* CurveTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B942C06CC9C00D778FC /* CurveTimeline.cpp */; };
+		3C4B3C182C06CCA000D778FC /* TextureLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B992C06CC9C00D778FC /* TextureLoader.cpp */; };
+		3C4B3C192C06CCA000D778FC /* SpineObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3B9F2C06CC9C00D778FC /* SpineObject.cpp */; };
+		3C4B3C1A2C06CCA000D778FC /* SkeletonClipping.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BA22C06CC9D00D778FC /* SkeletonClipping.cpp */; };
+		3C4B3C1B2C06CCA000D778FC /* RTTI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BA32C06CC9D00D778FC /* RTTI.cpp */; };
+		3C4B3C1C2C06CCA000D778FC /* InheritTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BA42C06CC9D00D778FC /* InheritTimeline.cpp */; };
+		3C4B3C1D2C06CCA000D778FC /* DeformTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BA62C06CC9D00D778FC /* DeformTimeline.cpp */; };
+		3C4B3C1E2C06CCA000D778FC /* Log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BA72C06CC9D00D778FC /* Log.cpp */; };
+		3C4B3C1F2C06CCA000D778FC /* PathConstraintPositionTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BAC2C06CC9D00D778FC /* PathConstraintPositionTimeline.cpp */; };
+		3C4B3C202C06CCA000D778FC /* EventTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BB02C06CC9D00D778FC /* EventTimeline.cpp */; };
+		3C4B3C212C06CCA000D778FC /* Extension.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BB22C06CC9D00D778FC /* Extension.cpp */; };
+		3C4B3C222C06CCA000D778FC /* PathConstraint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BB62C06CC9D00D778FC /* PathConstraint.cpp */; };
+		3C4B3C232C06CCA000D778FC /* LinkedMesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BB82C06CC9D00D778FC /* LinkedMesh.cpp */; };
+		3C4B3C242C06CCA000D778FC /* AtlasAttachmentLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BBC2C06CC9E00D778FC /* AtlasAttachmentLoader.cpp */; };
+		3C4B3C252C06CCA000D778FC /* AnimationState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BC22C06CC9E00D778FC /* AnimationState.cpp */; };
+		3C4B3C262C06CCA000D778FC /* VertexAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BC62C06CC9E00D778FC /* VertexAttachment.cpp */; };
+		3C4B3C272C06CCA000D778FC /* Slot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BC72C06CC9E00D778FC /* Slot.cpp */; };
+		3C4B3C282C06CCA000D778FC /* IkConstraintTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BCA2C06CC9E00D778FC /* IkConstraintTimeline.cpp */; };
+		3C4B3C292C06CCA000D778FC /* Triangulator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BCC2C06CC9E00D778FC /* Triangulator.cpp */; };
+		3C4B3C2A2C06CCA000D778FC /* Atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BD02C06CC9E00D778FC /* Atlas.cpp */; };
+		3C4B3C2B2C06CCA000D778FC /* AttachmentLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BD62C06CC9F00D778FC /* AttachmentLoader.cpp */; };
+		3C4B3C2C2C06CCA000D778FC /* AttachmentTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BD82C06CC9F00D778FC /* AttachmentTimeline.cpp */; };
+		3C4B3C2D2C06CCA000D778FC /* BoundingBoxAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BD92C06CC9F00D778FC /* BoundingBoxAttachment.cpp */; };
+		3C4B3C2E2C06CCA000D778FC /* SkeletonData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BDC2C06CC9F00D778FC /* SkeletonData.cpp */; };
+		3C4B3C2F2C06CCA000D778FC /* PhysicsConstraintData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BDE2C06CC9F00D778FC /* PhysicsConstraintData.cpp */; };
+		3C4B3C302C06CCA000D778FC /* Json.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BE02C06CC9F00D778FC /* Json.cpp */; };
+		3C4B3C312C06CCA000D778FC /* IkConstraintData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BE22C06CC9F00D778FC /* IkConstraintData.cpp */; };
+		3C4B3C322C06CCA000D778FC /* ColorTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BE32C06CC9F00D778FC /* ColorTimeline.cpp */; };
+		3C4B3C332C06CCA000D778FC /* TransformConstraintData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BE52C06CC9F00D778FC /* TransformConstraintData.cpp */; };
+		3C4B3C342C06CCA000D778FC /* TranslateTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BE72C06CC9F00D778FC /* TranslateTimeline.cpp */; };
+		3C4B3C352C06CCA000D778FC /* PhysicsConstraintTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BE82C06CC9F00D778FC /* PhysicsConstraintTimeline.cpp */; };
+		3C4B3C362C06CCA000D778FC /* MeshAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BEC2C06CC9F00D778FC /* MeshAttachment.cpp */; };
+		3C4B3C372C06CCA000D778FC /* RegionAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BEE2C06CCA000D778FC /* RegionAttachment.cpp */; };
+		3C4B3C382C06CCA000D778FC /* Attachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BF02C06CCA000D778FC /* Attachment.cpp */; };
+		3C4B3C392C06CCA000D778FC /* PathConstraintMixTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BF12C06CCA000D778FC /* PathConstraintMixTimeline.cpp */; };
+		3C4B3C3A2C06CCA000D778FC /* RotateTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BF22C06CCA000D778FC /* RotateTimeline.cpp */; };
+		3C4B3C3B2C06CCA000D778FC /* PointAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BF32C06CCA000D778FC /* PointAttachment.cpp */; };
+		3C4B3C3C2C06CCA000D778FC /* SkeletonBinary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BF42C06CCA000D778FC /* SkeletonBinary.cpp */; };
+		3C4B3C3D2C06CCA000D778FC /* PathAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BF72C06CCA000D778FC /* PathAttachment.cpp */; };
+		3C4B3C3E2C06CCA000D778FC /* DrawOrderTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BFB2C06CCA000D778FC /* DrawOrderTimeline.cpp */; };
+		3C4B3C3F2C06CCA000D778FC /* ShearTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BFC2C06CCA000D778FC /* ShearTimeline.cpp */; };
+		3C4B3C402C06CCA000D778FC /* ConstraintData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BFD2C06CCA000D778FC /* ConstraintData.cpp */; };
+		3C4B3C412C06CCA000D778FC /* Timeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4B3BFF2C06CCA000D778FC /* Timeline.cpp */; };
 		3C5399E82994E97400E9125C /* HttpServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399E62994E97400E9125C /* HttpServer.cpp */; };
 		3C5399EB2998BAF000E9125C /* ljson.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399EA2998BAF000E9125C /* ljson.c */; };
 		3C53E9372BE8CF1100039640 /* AbsoluteLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E8E62BE8CF1100039640 /* AbsoluteLayout.cpp */; };
@@ -452,68 +518,6 @@
 		3CEA71B41ECB8ECA00EFFD63 /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEA71B21ECB8ECA00EFFD63 /* Keyboard.cpp */; };
 		3CEDF77E1E839DE6008839A3 /* ParticleCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CEDF77C1E839DE6008839A3 /* ParticleCache.cpp */; };
 		3CF09EF71E581AAD009E8C6F /* Singleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF09EF51E581AAD009E8C6F /* Singleton.cpp */; };
-		3CF10EC62874AE7E00940268 /* CurveTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E342874AE7A00940268 /* CurveTimeline.cpp */; };
-		3CF10EC72874AE7E00940268 /* SequenceTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E392874AE7A00940268 /* SequenceTimeline.cpp */; };
-		3CF10EC82874AE7E00940268 /* Extension.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E3D2874AE7A00940268 /* Extension.cpp */; };
-		3CF10EC92874AE7E00940268 /* TextureLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E3E2874AE7A00940268 /* TextureLoader.cpp */; };
-		3CF10ECA2874AE7E00940268 /* TransformConstraint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E3F2874AE7A00940268 /* TransformConstraint.cpp */; };
-		3CF10ECB2874AE7E00940268 /* AnimationStateData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E402874AE7A00940268 /* AnimationStateData.cpp */; };
-		3CF10ECC2874AE7E00940268 /* Updatable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E412874AE7A00940268 /* Updatable.cpp */; };
-		3CF10ECD2874AE7E00940268 /* Json.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E432874AE7A00940268 /* Json.cpp */; };
-		3CF10ECE2874AE7E00940268 /* BoneData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E452874AE7B00940268 /* BoneData.cpp */; };
-		3CF10ECF2874AE7E00940268 /* ScaleTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E4A2874AE7B00940268 /* ScaleTimeline.cpp */; };
-		3CF10ED02874AE7E00940268 /* RTTI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E4C2874AE7B00940268 /* RTTI.cpp */; };
-		3CF10ED12874AE7E00940268 /* MeshAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E4E2874AE7B00940268 /* MeshAttachment.cpp */; };
-		3CF10ED22874AE7E00940268 /* Attachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E572874AE7B00940268 /* Attachment.cpp */; };
-		3CF10ED32874AE7E00940268 /* PathConstraintMixTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E592874AE7B00940268 /* PathConstraintMixTimeline.cpp */; };
-		3CF10ED42874AE7E00940268 /* DeformTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E5C2874AE7B00940268 /* DeformTimeline.cpp */; };
-		3CF10ED52874AE7E00940268 /* SpineObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E5D2874AE7B00940268 /* SpineObject.cpp */; };
-		3CF10ED62874AE7E00940268 /* Skeleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E5E2874AE7B00940268 /* Skeleton.cpp */; };
-		3CF10ED72874AE7E00940268 /* EventTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E622874AE7B00940268 /* EventTimeline.cpp */; };
-		3CF10ED82874AE7E00940268 /* PathConstraint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E632874AE7B00940268 /* PathConstraint.cpp */; };
-		3CF10ED92874AE7E00940268 /* PathAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E652874AE7B00940268 /* PathAttachment.cpp */; };
-		3CF10EDA2874AE7E00940268 /* SkeletonJson.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E662874AE7B00940268 /* SkeletonJson.cpp */; };
-		3CF10EDB2874AE7E00940268 /* DrawOrderTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E692874AE7C00940268 /* DrawOrderTimeline.cpp */; };
-		3CF10EDC2874AE7E00940268 /* MathUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E6A2874AE7C00940268 /* MathUtil.cpp */; };
-		3CF10EDD2874AE7E00940268 /* AttachmentLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E6C2874AE7C00940268 /* AttachmentLoader.cpp */; };
-		3CF10EDE2874AE7E00940268 /* ShearTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E6E2874AE7C00940268 /* ShearTimeline.cpp */; };
-		3CF10EDF2874AE7E00940268 /* Timeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E732874AE7C00940268 /* Timeline.cpp */; };
-		3CF10EE02874AE7E00940268 /* Sequence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E742874AE7C00940268 /* Sequence.cpp */; };
-		3CF10EE12874AE7E00940268 /* TransformConstraintData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E762874AE7C00940268 /* TransformConstraintData.cpp */; };
-		3CF10EE22874AE7E00940268 /* SkeletonBinary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E772874AE7C00940268 /* SkeletonBinary.cpp */; };
-		3CF10EE32874AE7E00940268 /* Skin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E782874AE7C00940268 /* Skin.cpp */; };
-		3CF10EE42874AE7E00940268 /* Bone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E792874AE7C00940268 /* Bone.cpp */; };
-		3CF10EE52874AE7E00940268 /* RegionAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E7B2874AE7C00940268 /* RegionAttachment.cpp */; };
-		3CF10EE62874AE7E00940268 /* Slot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E7C2874AE7C00940268 /* Slot.cpp */; };
-		3CF10EE72874AE7E00940268 /* TranslateTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E7D2874AE7C00940268 /* TranslateTimeline.cpp */; };
-		3CF10EE82874AE7E00940268 /* IkConstraintData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E802874AE7C00940268 /* IkConstraintData.cpp */; };
-		3CF10EE92874AE7E00940268 /* TransformConstraintTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E812874AE7C00940268 /* TransformConstraintTimeline.cpp */; };
-		3CF10EEA2874AE7E00940268 /* PathConstraintData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E822874AE7C00940268 /* PathConstraintData.cpp */; };
-		3CF10EEB2874AE7E00940268 /* IkConstraintTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E842874AE7C00940268 /* IkConstraintTimeline.cpp */; };
-		3CF10EEC2874AE7E00940268 /* Log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E852874AE7C00940268 /* Log.cpp */; };
-		3CF10EED2874AE7E00940268 /* Triangulator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E8E2874AE7C00940268 /* Triangulator.cpp */; };
-		3CF10EEE2874AE7E00940268 /* VertexAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E902874AE7D00940268 /* VertexAttachment.cpp */; };
-		3CF10EEF2874AE7E00940268 /* PathConstraintSpacingTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E912874AE7D00940268 /* PathConstraintSpacingTimeline.cpp */; };
-		3CF10EF02874AE7E00940268 /* RotateTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E922874AE7D00940268 /* RotateTimeline.cpp */; };
-		3CF10EF12874AE7E00940268 /* Atlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E932874AE7D00940268 /* Atlas.cpp */; };
-		3CF10EF22874AE7E00940268 /* SlotData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E952874AE7D00940268 /* SlotData.cpp */; };
-		3CF10EF32874AE7E00940268 /* ClippingAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E972874AE7D00940268 /* ClippingAttachment.cpp */; };
-		3CF10EF42874AE7E00940268 /* SkeletonBounds.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E992874AE7D00940268 /* SkeletonBounds.cpp */; };
-		3CF10EF52874AE7E00940268 /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E9A2874AE7D00940268 /* Event.cpp */; };
-		3CF10EF62874AE7E00940268 /* BoundingBoxAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E9C2874AE7D00940268 /* BoundingBoxAttachment.cpp */; };
-		3CF10EF72874AE7E00940268 /* SkeletonClipping.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10E9F2874AE7D00940268 /* SkeletonClipping.cpp */; };
-		3CF10EF82874AE7E00940268 /* LinkedMesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10EA02874AE7D00940268 /* LinkedMesh.cpp */; };
-		3CF10EF92874AE7E00940268 /* EventData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10EA32874AE7D00940268 /* EventData.cpp */; };
-		3CF10EFA2874AE7E00940268 /* SkeletonData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10EA42874AE7D00940268 /* SkeletonData.cpp */; };
-		3CF10EFB2874AE7E00940268 /* AtlasAttachmentLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10EA62874AE7D00940268 /* AtlasAttachmentLoader.cpp */; };
-		3CF10EFC2874AE7E00940268 /* PathConstraintPositionTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10EA72874AE7D00940268 /* PathConstraintPositionTimeline.cpp */; };
-		3CF10EFD2874AE7E00940268 /* ConstraintData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10EAA2874AE7D00940268 /* ConstraintData.cpp */; };
-		3CF10EFE2874AE7E00940268 /* Animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10EAC2874AE7D00940268 /* Animation.cpp */; };
-		3CF10EFF2874AE7E00940268 /* AnimationState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10EAE2874AE7D00940268 /* AnimationState.cpp */; };
-		3CF10F002874AE7E00940268 /* ColorTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10EB32874AE7E00940268 /* ColorTimeline.cpp */; };
-		3CF10F012874AE7E00940268 /* AttachmentTimeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10EB42874AE7E00940268 /* AttachmentTimeline.cpp */; };
-		3CF10F022874AE7E00940268 /* PointAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10EB72874AE7E00940268 /* PointAttachment.cpp */; };
-		3CF10F032874AE7E00940268 /* IkConstraint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CF10EC42874AE7E00940268 /* IkConstraint.cpp */; };
 		3CFEA11A285B857B002D106F /* m3_core.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA0F2285B857A002D106F /* m3_core.c */; };
 		3CFEA11B285B857B002D106F /* m3_api_wasi.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA0F6285B857A002D106F /* m3_api_wasi.c */; };
 		3CFEA11C285B857B002D106F /* m3_code.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFEA0F7285B857A002D106F /* m3_code.c */; };
@@ -1005,6 +1009,161 @@
 		3C49FFEC20EF63D000E775D7 /* stb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_truetype.h; path = ../../../Source/3rdParty/stb/stb_truetype.h; sourceTree = "<group>"; };
 		3C49FFED20EF63D000E775D7 /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stb_rect_pack.h; path = ../../../Source/3rdParty/stb/stb_rect_pack.h; sourceTree = "<group>"; };
 		3C49FFEE20EF644900E775D7 /* stb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = stb.cpp; path = ../../../Source/3rdParty/stb/stb.cpp; sourceTree = "<group>"; };
+		3C4B3B652C06CC9A00D778FC /* AnimationStateData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AnimationStateData.cpp; path = ../../../Source/3rdParty/spine/AnimationStateData.cpp; sourceTree = "<group>"; };
+		3C4B3B662C06CC9A00D778FC /* EventData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventData.h; path = ../../../Source/3rdParty/spine/EventData.h; sourceTree = "<group>"; };
+		3C4B3B672C06CC9A00D778FC /* SkeletonJson.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonJson.cpp; path = ../../../Source/3rdParty/spine/SkeletonJson.cpp; sourceTree = "<group>"; };
+		3C4B3B682C06CC9A00D778FC /* ScaleTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ScaleTimeline.cpp; path = ../../../Source/3rdParty/spine/ScaleTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3B692C06CC9A00D778FC /* PathConstraintMixTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PathConstraintMixTimeline.h; path = ../../../Source/3rdParty/spine/PathConstraintMixTimeline.h; sourceTree = "<group>"; };
+		3C4B3B6A2C06CC9A00D778FC /* TextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureLoader.h; path = ../../../Source/3rdParty/spine/TextureLoader.h; sourceTree = "<group>"; };
+		3C4B3B6B2C06CC9A00D778FC /* Skin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Skin.cpp; path = ../../../Source/3rdParty/spine/Skin.cpp; sourceTree = "<group>"; };
+		3C4B3B6C2C06CC9A00D778FC /* PhysicsConstraint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PhysicsConstraint.cpp; path = ../../../Source/3rdParty/spine/PhysicsConstraint.cpp; sourceTree = "<group>"; };
+		3C4B3B6D2C06CC9A00D778FC /* ContainerUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ContainerUtil.h; path = ../../../Source/3rdParty/spine/ContainerUtil.h; sourceTree = "<group>"; };
+		3C4B3B6E2C06CC9A00D778FC /* BoneData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BoneData.cpp; path = ../../../Source/3rdParty/spine/BoneData.cpp; sourceTree = "<group>"; };
+		3C4B3B6F2C06CC9A00D778FC /* Timeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Timeline.h; path = ../../../Source/3rdParty/spine/Timeline.h; sourceTree = "<group>"; };
+		3C4B3B702C06CC9A00D778FC /* PointAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PointAttachment.h; path = ../../../Source/3rdParty/spine/PointAttachment.h; sourceTree = "<group>"; };
+		3C4B3B712C06CC9B00D778FC /* PathConstraintSpacingTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PathConstraintSpacingTimeline.cpp; path = ../../../Source/3rdParty/spine/PathConstraintSpacingTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3B722C06CC9B00D778FC /* Skeleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Skeleton.cpp; path = ../../../Source/3rdParty/spine/Skeleton.cpp; sourceTree = "<group>"; };
+		3C4B3B732C06CC9B00D778FC /* PhysicsConstraintData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PhysicsConstraintData.h; path = ../../../Source/3rdParty/spine/PhysicsConstraintData.h; sourceTree = "<group>"; };
+		3C4B3B742C06CC9B00D778FC /* TransformConstraintTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformConstraintTimeline.cpp; path = ../../../Source/3rdParty/spine/TransformConstraintTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3B752C06CC9B00D778FC /* TransformConstraint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformConstraint.cpp; path = ../../../Source/3rdParty/spine/TransformConstraint.cpp; sourceTree = "<group>"; };
+		3C4B3B762C06CC9B00D778FC /* Sequence.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sequence.cpp; path = ../../../Source/3rdParty/spine/Sequence.cpp; sourceTree = "<group>"; };
+		3C4B3B772C06CC9B00D778FC /* Extension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Extension.h; path = ../../../Source/3rdParty/spine/Extension.h; sourceTree = "<group>"; };
+		3C4B3B782C06CC9B00D778FC /* Vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vector.h; path = ../../../Source/3rdParty/spine/Vector.h; sourceTree = "<group>"; };
+		3C4B3B792C06CC9B00D778FC /* PathConstraintData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PathConstraintData.h; path = ../../../Source/3rdParty/spine/PathConstraintData.h; sourceTree = "<group>"; };
+		3C4B3B7A2C06CC9B00D778FC /* Bone.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Bone.cpp; path = ../../../Source/3rdParty/spine/Bone.cpp; sourceTree = "<group>"; };
+		3C4B3B7B2C06CC9B00D778FC /* Updatable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Updatable.cpp; path = ../../../Source/3rdParty/spine/Updatable.cpp; sourceTree = "<group>"; };
+		3C4B3B7C2C06CC9B00D778FC /* RotateTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RotateTimeline.h; path = ../../../Source/3rdParty/spine/RotateTimeline.h; sourceTree = "<group>"; };
+		3C4B3B7D2C06CC9B00D778FC /* Color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Color.h; path = ../../../Source/3rdParty/spine/Color.h; sourceTree = "<group>"; };
+		3C4B3B7E2C06CC9B00D778FC /* PathConstraintPositionTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PathConstraintPositionTimeline.h; path = ../../../Source/3rdParty/spine/PathConstraintPositionTimeline.h; sourceTree = "<group>"; };
+		3C4B3B7F2C06CC9B00D778FC /* SkeletonBounds.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonBounds.cpp; path = ../../../Source/3rdParty/spine/SkeletonBounds.cpp; sourceTree = "<group>"; };
+		3C4B3B802C06CC9B00D778FC /* PathConstraintData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PathConstraintData.cpp; path = ../../../Source/3rdParty/spine/PathConstraintData.cpp; sourceTree = "<group>"; };
+		3C4B3B812C06CC9B00D778FC /* Log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Log.h; path = ../../../Source/3rdParty/spine/Log.h; sourceTree = "<group>"; };
+		3C4B3B822C06CC9B00D778FC /* Animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Animation.h; path = ../../../Source/3rdParty/spine/Animation.h; sourceTree = "<group>"; };
+		3C4B3B832C06CC9B00D778FC /* InheritTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = InheritTimeline.h; path = ../../../Source/3rdParty/spine/InheritTimeline.h; sourceTree = "<group>"; };
+		3C4B3B842C06CC9B00D778FC /* spine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = spine.h; path = ../../../Source/3rdParty/spine/spine.h; sourceTree = "<group>"; };
+		3C4B3B852C06CC9B00D778FC /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Event.cpp; path = ../../../Source/3rdParty/spine/Event.cpp; sourceTree = "<group>"; };
+		3C4B3B862C06CC9B00D778FC /* Animation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Animation.cpp; path = ../../../Source/3rdParty/spine/Animation.cpp; sourceTree = "<group>"; };
+		3C4B3B872C06CC9B00D778FC /* AttachmentTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AttachmentTimeline.h; path = ../../../Source/3rdParty/spine/AttachmentTimeline.h; sourceTree = "<group>"; };
+		3C4B3B882C06CC9B00D778FC /* SlotData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SlotData.cpp; path = ../../../Source/3rdParty/spine/SlotData.cpp; sourceTree = "<group>"; };
+		3C4B3B892C06CC9C00D778FC /* Version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Version.h; path = ../../../Source/3rdParty/spine/Version.h; sourceTree = "<group>"; };
+		3C4B3B8A2C06CC9C00D778FC /* dll.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = dll.h; path = ../../../Source/3rdParty/spine/dll.h; sourceTree = "<group>"; };
+		3C4B3B8B2C06CC9C00D778FC /* SkeletonData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonData.h; path = ../../../Source/3rdParty/spine/SkeletonData.h; sourceTree = "<group>"; };
+		3C4B3B8C2C06CC9C00D778FC /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = ../../../Source/3rdParty/spine/Event.h; sourceTree = "<group>"; };
+		3C4B3B8D2C06CC9C00D778FC /* ClippingAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ClippingAttachment.cpp; path = ../../../Source/3rdParty/spine/ClippingAttachment.cpp; sourceTree = "<group>"; };
+		3C4B3B8E2C06CC9C00D778FC /* IkConstraint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IkConstraint.cpp; path = ../../../Source/3rdParty/spine/IkConstraint.cpp; sourceTree = "<group>"; };
+		3C4B3B8F2C06CC9C00D778FC /* PathConstraint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PathConstraint.h; path = ../../../Source/3rdParty/spine/PathConstraint.h; sourceTree = "<group>"; };
+		3C4B3B902C06CC9C00D778FC /* EventData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventData.cpp; path = ../../../Source/3rdParty/spine/EventData.cpp; sourceTree = "<group>"; };
+		3C4B3B912C06CC9C00D778FC /* SequenceTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SequenceTimeline.cpp; path = ../../../Source/3rdParty/spine/SequenceTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3B922C06CC9C00D778FC /* SpineString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SpineString.h; path = ../../../Source/3rdParty/spine/SpineString.h; sourceTree = "<group>"; };
+		3C4B3B932C06CC9C00D778FC /* MathUtil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MathUtil.cpp; path = ../../../Source/3rdParty/spine/MathUtil.cpp; sourceTree = "<group>"; };
+		3C4B3B942C06CC9C00D778FC /* CurveTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CurveTimeline.cpp; path = ../../../Source/3rdParty/spine/CurveTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3B952C06CC9C00D778FC /* Bone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Bone.h; path = ../../../Source/3rdParty/spine/Bone.h; sourceTree = "<group>"; };
+		3C4B3B962C06CC9C00D778FC /* TransformConstraintData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TransformConstraintData.h; path = ../../../Source/3rdParty/spine/TransformConstraintData.h; sourceTree = "<group>"; };
+		3C4B3B972C06CC9C00D778FC /* ShearTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShearTimeline.h; path = ../../../Source/3rdParty/spine/ShearTimeline.h; sourceTree = "<group>"; };
+		3C4B3B982C06CC9C00D778FC /* Atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Atlas.h; path = ../../../Source/3rdParty/spine/Atlas.h; sourceTree = "<group>"; };
+		3C4B3B992C06CC9C00D778FC /* TextureLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureLoader.cpp; path = ../../../Source/3rdParty/spine/TextureLoader.cpp; sourceTree = "<group>"; };
+		3C4B3B9A2C06CC9C00D778FC /* IkConstraint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IkConstraint.h; path = ../../../Source/3rdParty/spine/IkConstraint.h; sourceTree = "<group>"; };
+		3C4B3B9B2C06CC9C00D778FC /* PhysicsConstraint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PhysicsConstraint.h; path = ../../../Source/3rdParty/spine/PhysicsConstraint.h; sourceTree = "<group>"; };
+		3C4B3B9C2C06CC9C00D778FC /* Sequence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sequence.h; path = ../../../Source/3rdParty/spine/Sequence.h; sourceTree = "<group>"; };
+		3C4B3B9D2C06CC9C00D778FC /* EventTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventTimeline.h; path = ../../../Source/3rdParty/spine/EventTimeline.h; sourceTree = "<group>"; };
+		3C4B3B9E2C06CC9C00D778FC /* HashMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HashMap.h; path = ../../../Source/3rdParty/spine/HashMap.h; sourceTree = "<group>"; };
+		3C4B3B9F2C06CC9C00D778FC /* SpineObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SpineObject.cpp; path = ../../../Source/3rdParty/spine/SpineObject.cpp; sourceTree = "<group>"; };
+		3C4B3BA02C06CC9C00D778FC /* IkConstraintTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IkConstraintTimeline.h; path = ../../../Source/3rdParty/spine/IkConstraintTimeline.h; sourceTree = "<group>"; };
+		3C4B3BA12C06CC9D00D778FC /* Json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Json.h; path = ../../../Source/3rdParty/spine/Json.h; sourceTree = "<group>"; };
+		3C4B3BA22C06CC9D00D778FC /* SkeletonClipping.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonClipping.cpp; path = ../../../Source/3rdParty/spine/SkeletonClipping.cpp; sourceTree = "<group>"; };
+		3C4B3BA32C06CC9D00D778FC /* RTTI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RTTI.cpp; path = ../../../Source/3rdParty/spine/RTTI.cpp; sourceTree = "<group>"; };
+		3C4B3BA42C06CC9D00D778FC /* InheritTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = InheritTimeline.cpp; path = ../../../Source/3rdParty/spine/InheritTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3BA52C06CC9D00D778FC /* BoundingBoxAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BoundingBoxAttachment.h; path = ../../../Source/3rdParty/spine/BoundingBoxAttachment.h; sourceTree = "<group>"; };
+		3C4B3BA62C06CC9D00D778FC /* DeformTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DeformTimeline.cpp; path = ../../../Source/3rdParty/spine/DeformTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3BA72C06CC9D00D778FC /* Log.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Log.cpp; path = ../../../Source/3rdParty/spine/Log.cpp; sourceTree = "<group>"; };
+		3C4B3BA82C06CC9D00D778FC /* BlendMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BlendMode.h; path = ../../../Source/3rdParty/spine/BlendMode.h; sourceTree = "<group>"; };
+		3C4B3BA92C06CC9D00D778FC /* AtlasAttachmentLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtlasAttachmentLoader.h; path = ../../../Source/3rdParty/spine/AtlasAttachmentLoader.h; sourceTree = "<group>"; };
+		3C4B3BAA2C06CC9D00D778FC /* SlotData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SlotData.h; path = ../../../Source/3rdParty/spine/SlotData.h; sourceTree = "<group>"; };
+		3C4B3BAB2C06CC9D00D778FC /* SkeletonClipping.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonClipping.h; path = ../../../Source/3rdParty/spine/SkeletonClipping.h; sourceTree = "<group>"; };
+		3C4B3BAC2C06CC9D00D778FC /* PathConstraintPositionTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PathConstraintPositionTimeline.cpp; path = ../../../Source/3rdParty/spine/PathConstraintPositionTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3BAD2C06CC9D00D778FC /* TranslateTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TranslateTimeline.h; path = ../../../Source/3rdParty/spine/TranslateTimeline.h; sourceTree = "<group>"; };
+		3C4B3BAE2C06CC9D00D778FC /* SkeletonBounds.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonBounds.h; path = ../../../Source/3rdParty/spine/SkeletonBounds.h; sourceTree = "<group>"; };
+		3C4B3BAF2C06CC9D00D778FC /* ClippingAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ClippingAttachment.h; path = ../../../Source/3rdParty/spine/ClippingAttachment.h; sourceTree = "<group>"; };
+		3C4B3BB02C06CC9D00D778FC /* EventTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventTimeline.cpp; path = ../../../Source/3rdParty/spine/EventTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3BB12C06CC9D00D778FC /* ScaleTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ScaleTimeline.h; path = ../../../Source/3rdParty/spine/ScaleTimeline.h; sourceTree = "<group>"; };
+		3C4B3BB22C06CC9D00D778FC /* Extension.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Extension.cpp; path = ../../../Source/3rdParty/spine/Extension.cpp; sourceTree = "<group>"; };
+		3C4B3BB32C06CC9D00D778FC /* Attachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Attachment.h; path = ../../../Source/3rdParty/spine/Attachment.h; sourceTree = "<group>"; };
+		3C4B3BB42C06CC9D00D778FC /* RTTI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RTTI.h; path = ../../../Source/3rdParty/spine/RTTI.h; sourceTree = "<group>"; };
+		3C4B3BB52C06CC9D00D778FC /* Slot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Slot.h; path = ../../../Source/3rdParty/spine/Slot.h; sourceTree = "<group>"; };
+		3C4B3BB62C06CC9D00D778FC /* PathConstraint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PathConstraint.cpp; path = ../../../Source/3rdParty/spine/PathConstraint.cpp; sourceTree = "<group>"; };
+		3C4B3BB72C06CC9D00D778FC /* SpacingMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SpacingMode.h; path = ../../../Source/3rdParty/spine/SpacingMode.h; sourceTree = "<group>"; };
+		3C4B3BB82C06CC9D00D778FC /* LinkedMesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LinkedMesh.cpp; path = ../../../Source/3rdParty/spine/LinkedMesh.cpp; sourceTree = "<group>"; };
+		3C4B3BB92C06CC9D00D778FC /* Pool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Pool.h; path = ../../../Source/3rdParty/spine/Pool.h; sourceTree = "<group>"; };
+		3C4B3BBA2C06CC9D00D778FC /* SequenceTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SequenceTimeline.h; path = ../../../Source/3rdParty/spine/SequenceTimeline.h; sourceTree = "<group>"; };
+		3C4B3BBB2C06CC9E00D778FC /* RegionAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RegionAttachment.h; path = ../../../Source/3rdParty/spine/RegionAttachment.h; sourceTree = "<group>"; };
+		3C4B3BBC2C06CC9E00D778FC /* AtlasAttachmentLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AtlasAttachmentLoader.cpp; path = ../../../Source/3rdParty/spine/AtlasAttachmentLoader.cpp; sourceTree = "<group>"; };
+		3C4B3BBD2C06CC9E00D778FC /* CurveTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CurveTimeline.h; path = ../../../Source/3rdParty/spine/CurveTimeline.h; sourceTree = "<group>"; };
+		3C4B3BBE2C06CC9E00D778FC /* DeformTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DeformTimeline.h; path = ../../../Source/3rdParty/spine/DeformTimeline.h; sourceTree = "<group>"; };
+		3C4B3BBF2C06CC9E00D778FC /* Debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Debug.h; path = ../../../Source/3rdParty/spine/Debug.h; sourceTree = "<group>"; };
+		3C4B3BC02C06CC9E00D778FC /* PathConstraintSpacingTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PathConstraintSpacingTimeline.h; path = ../../../Source/3rdParty/spine/PathConstraintSpacingTimeline.h; sourceTree = "<group>"; };
+		3C4B3BC12C06CC9E00D778FC /* LinkedMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LinkedMesh.h; path = ../../../Source/3rdParty/spine/LinkedMesh.h; sourceTree = "<group>"; };
+		3C4B3BC22C06CC9E00D778FC /* AnimationState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AnimationState.cpp; path = ../../../Source/3rdParty/spine/AnimationState.cpp; sourceTree = "<group>"; };
+		3C4B3BC32C06CC9E00D778FC /* TextureRegion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureRegion.h; path = ../../../Source/3rdParty/spine/TextureRegion.h; sourceTree = "<group>"; };
+		3C4B3BC42C06CC9E00D778FC /* Updatable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Updatable.h; path = ../../../Source/3rdParty/spine/Updatable.h; sourceTree = "<group>"; };
+		3C4B3BC52C06CC9E00D778FC /* ConstraintData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConstraintData.h; path = ../../../Source/3rdParty/spine/ConstraintData.h; sourceTree = "<group>"; };
+		3C4B3BC62C06CC9E00D778FC /* VertexAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VertexAttachment.cpp; path = ../../../Source/3rdParty/spine/VertexAttachment.cpp; sourceTree = "<group>"; };
+		3C4B3BC72C06CC9E00D778FC /* Slot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Slot.cpp; path = ../../../Source/3rdParty/spine/Slot.cpp; sourceTree = "<group>"; };
+		3C4B3BC82C06CC9E00D778FC /* Vertices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vertices.h; path = ../../../Source/3rdParty/spine/Vertices.h; sourceTree = "<group>"; };
+		3C4B3BC92C06CC9E00D778FC /* AttachmentLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AttachmentLoader.h; path = ../../../Source/3rdParty/spine/AttachmentLoader.h; sourceTree = "<group>"; };
+		3C4B3BCA2C06CC9E00D778FC /* IkConstraintTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IkConstraintTimeline.cpp; path = ../../../Source/3rdParty/spine/IkConstraintTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3BCB2C06CC9E00D778FC /* PositionMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PositionMode.h; path = ../../../Source/3rdParty/spine/PositionMode.h; sourceTree = "<group>"; };
+		3C4B3BCC2C06CC9E00D778FC /* Triangulator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Triangulator.cpp; path = ../../../Source/3rdParty/spine/Triangulator.cpp; sourceTree = "<group>"; };
+		3C4B3BCD2C06CC9E00D778FC /* AnimationStateData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnimationStateData.h; path = ../../../Source/3rdParty/spine/AnimationStateData.h; sourceTree = "<group>"; };
+		3C4B3BCE2C06CC9E00D778FC /* Physics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Physics.h; path = ../../../Source/3rdParty/spine/Physics.h; sourceTree = "<group>"; };
+		3C4B3BCF2C06CC9E00D778FC /* VertexAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VertexAttachment.h; path = ../../../Source/3rdParty/spine/VertexAttachment.h; sourceTree = "<group>"; };
+		3C4B3BD02C06CC9E00D778FC /* Atlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Atlas.cpp; path = ../../../Source/3rdParty/spine/Atlas.cpp; sourceTree = "<group>"; };
+		3C4B3BD12C06CC9E00D778FC /* PhysicsConstraintTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PhysicsConstraintTimeline.h; path = ../../../Source/3rdParty/spine/PhysicsConstraintTimeline.h; sourceTree = "<group>"; };
+		3C4B3BD22C06CC9E00D778FC /* HasRendererObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HasRendererObject.h; path = ../../../Source/3rdParty/spine/HasRendererObject.h; sourceTree = "<group>"; };
+		3C4B3BD32C06CC9E00D778FC /* ColorTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ColorTimeline.h; path = ../../../Source/3rdParty/spine/ColorTimeline.h; sourceTree = "<group>"; };
+		3C4B3BD42C06CC9F00D778FC /* Skin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Skin.h; path = ../../../Source/3rdParty/spine/Skin.h; sourceTree = "<group>"; };
+		3C4B3BD52C06CC9F00D778FC /* MixDirection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MixDirection.h; path = ../../../Source/3rdParty/spine/MixDirection.h; sourceTree = "<group>"; };
+		3C4B3BD62C06CC9F00D778FC /* AttachmentLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AttachmentLoader.cpp; path = ../../../Source/3rdParty/spine/AttachmentLoader.cpp; sourceTree = "<group>"; };
+		3C4B3BD72C06CC9F00D778FC /* PathAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PathAttachment.h; path = ../../../Source/3rdParty/spine/PathAttachment.h; sourceTree = "<group>"; };
+		3C4B3BD82C06CC9F00D778FC /* AttachmentTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AttachmentTimeline.cpp; path = ../../../Source/3rdParty/spine/AttachmentTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3BD92C06CC9F00D778FC /* BoundingBoxAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BoundingBoxAttachment.cpp; path = ../../../Source/3rdParty/spine/BoundingBoxAttachment.cpp; sourceTree = "<group>"; };
+		3C4B3BDA2C06CC9F00D778FC /* MathUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MathUtil.h; path = ../../../Source/3rdParty/spine/MathUtil.h; sourceTree = "<group>"; };
+		3C4B3BDB2C06CC9F00D778FC /* Skeleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Skeleton.h; path = ../../../Source/3rdParty/spine/Skeleton.h; sourceTree = "<group>"; };
+		3C4B3BDC2C06CC9F00D778FC /* SkeletonData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonData.cpp; path = ../../../Source/3rdParty/spine/SkeletonData.cpp; sourceTree = "<group>"; };
+		3C4B3BDD2C06CC9F00D778FC /* SpineObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SpineObject.h; path = ../../../Source/3rdParty/spine/SpineObject.h; sourceTree = "<group>"; };
+		3C4B3BDE2C06CC9F00D778FC /* PhysicsConstraintData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PhysicsConstraintData.cpp; path = ../../../Source/3rdParty/spine/PhysicsConstraintData.cpp; sourceTree = "<group>"; };
+		3C4B3BDF2C06CC9F00D778FC /* MixBlend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MixBlend.h; path = ../../../Source/3rdParty/spine/MixBlend.h; sourceTree = "<group>"; };
+		3C4B3BE02C06CC9F00D778FC /* Json.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Json.cpp; path = ../../../Source/3rdParty/spine/Json.cpp; sourceTree = "<group>"; };
+		3C4B3BE12C06CC9F00D778FC /* TransformConstraint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TransformConstraint.h; path = ../../../Source/3rdParty/spine/TransformConstraint.h; sourceTree = "<group>"; };
+		3C4B3BE22C06CC9F00D778FC /* IkConstraintData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IkConstraintData.cpp; path = ../../../Source/3rdParty/spine/IkConstraintData.cpp; sourceTree = "<group>"; };
+		3C4B3BE32C06CC9F00D778FC /* ColorTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ColorTimeline.cpp; path = ../../../Source/3rdParty/spine/ColorTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3BE42C06CC9F00D778FC /* DrawOrderTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrawOrderTimeline.h; path = ../../../Source/3rdParty/spine/DrawOrderTimeline.h; sourceTree = "<group>"; };
+		3C4B3BE52C06CC9F00D778FC /* TransformConstraintData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformConstraintData.cpp; path = ../../../Source/3rdParty/spine/TransformConstraintData.cpp; sourceTree = "<group>"; };
+		3C4B3BE62C06CC9F00D778FC /* TransformConstraintTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TransformConstraintTimeline.h; path = ../../../Source/3rdParty/spine/TransformConstraintTimeline.h; sourceTree = "<group>"; };
+		3C4B3BE72C06CC9F00D778FC /* TranslateTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TranslateTimeline.cpp; path = ../../../Source/3rdParty/spine/TranslateTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3BE82C06CC9F00D778FC /* PhysicsConstraintTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PhysicsConstraintTimeline.cpp; path = ../../../Source/3rdParty/spine/PhysicsConstraintTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3BE92C06CC9F00D778FC /* AttachmentType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AttachmentType.h; path = ../../../Source/3rdParty/spine/AttachmentType.h; sourceTree = "<group>"; };
+		3C4B3BEA2C06CC9F00D778FC /* Property.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Property.h; path = ../../../Source/3rdParty/spine/Property.h; sourceTree = "<group>"; };
+		3C4B3BEB2C06CC9F00D778FC /* AnimationState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnimationState.h; path = ../../../Source/3rdParty/spine/AnimationState.h; sourceTree = "<group>"; };
+		3C4B3BEC2C06CC9F00D778FC /* MeshAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MeshAttachment.cpp; path = ../../../Source/3rdParty/spine/MeshAttachment.cpp; sourceTree = "<group>"; };
+		3C4B3BED2C06CCA000D778FC /* MeshAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MeshAttachment.h; path = ../../../Source/3rdParty/spine/MeshAttachment.h; sourceTree = "<group>"; };
+		3C4B3BEE2C06CCA000D778FC /* RegionAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RegionAttachment.cpp; path = ../../../Source/3rdParty/spine/RegionAttachment.cpp; sourceTree = "<group>"; };
+		3C4B3BEF2C06CCA000D778FC /* BoneData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BoneData.h; path = ../../../Source/3rdParty/spine/BoneData.h; sourceTree = "<group>"; };
+		3C4B3BF02C06CCA000D778FC /* Attachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Attachment.cpp; path = ../../../Source/3rdParty/spine/Attachment.cpp; sourceTree = "<group>"; };
+		3C4B3BF12C06CCA000D778FC /* PathConstraintMixTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PathConstraintMixTimeline.cpp; path = ../../../Source/3rdParty/spine/PathConstraintMixTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3BF22C06CCA000D778FC /* RotateTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RotateTimeline.cpp; path = ../../../Source/3rdParty/spine/RotateTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3BF32C06CCA000D778FC /* PointAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PointAttachment.cpp; path = ../../../Source/3rdParty/spine/PointAttachment.cpp; sourceTree = "<group>"; };
+		3C4B3BF42C06CCA000D778FC /* SkeletonBinary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonBinary.cpp; path = ../../../Source/3rdParty/spine/SkeletonBinary.cpp; sourceTree = "<group>"; };
+		3C4B3BF52C06CCA000D778FC /* SkeletonBinary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonBinary.h; path = ../../../Source/3rdParty/spine/SkeletonBinary.h; sourceTree = "<group>"; };
+		3C4B3BF62C06CCA000D778FC /* Triangulator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Triangulator.h; path = ../../../Source/3rdParty/spine/Triangulator.h; sourceTree = "<group>"; };
+		3C4B3BF72C06CCA000D778FC /* PathAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PathAttachment.cpp; path = ../../../Source/3rdParty/spine/PathAttachment.cpp; sourceTree = "<group>"; };
+		3C4B3BF82C06CCA000D778FC /* IkConstraintData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IkConstraintData.h; path = ../../../Source/3rdParty/spine/IkConstraintData.h; sourceTree = "<group>"; };
+		3C4B3BF92C06CCA000D778FC /* RotateMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RotateMode.h; path = ../../../Source/3rdParty/spine/RotateMode.h; sourceTree = "<group>"; };
+		3C4B3BFA2C06CCA000D778FC /* Inherit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Inherit.h; path = ../../../Source/3rdParty/spine/Inherit.h; sourceTree = "<group>"; };
+		3C4B3BFB2C06CCA000D778FC /* DrawOrderTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DrawOrderTimeline.cpp; path = ../../../Source/3rdParty/spine/DrawOrderTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3BFC2C06CCA000D778FC /* ShearTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShearTimeline.cpp; path = ../../../Source/3rdParty/spine/ShearTimeline.cpp; sourceTree = "<group>"; };
+		3C4B3BFD2C06CCA000D778FC /* ConstraintData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConstraintData.cpp; path = ../../../Source/3rdParty/spine/ConstraintData.cpp; sourceTree = "<group>"; };
+		3C4B3BFE2C06CCA000D778FC /* SkeletonJson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonJson.h; path = ../../../Source/3rdParty/spine/SkeletonJson.h; sourceTree = "<group>"; };
+		3C4B3BFF2C06CCA000D778FC /* Timeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Timeline.cpp; path = ../../../Source/3rdParty/spine/Timeline.cpp; sourceTree = "<group>"; };
 		3C5399E62994E97400E9125C /* HttpServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = HttpServer.cpp; path = ../../../Source/Http/HttpServer.cpp; sourceTree = "<group>"; };
 		3C5399E72994E97400E9125C /* HttpServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HttpServer.h; path = ../../../Source/Http/HttpServer.h; sourceTree = "<group>"; };
 		3C5399EA2998BAF000E9125C /* ljson.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ljson.c; path = ../../../Source/3rdParty/colib/ljson.c; sourceTree = "<group>"; };
@@ -1632,152 +1791,6 @@
 		3CEDF77D1E839DE6008839A3 /* ParticleCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ParticleCache.h; path = ../../../Source/Cache/ParticleCache.h; sourceTree = "<group>"; };
 		3CF09EF51E581AAD009E8C6F /* Singleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Singleton.cpp; path = ../../../Source/Common/Singleton.cpp; sourceTree = "<group>"; };
 		3CF09EF61E581AAD009E8C6F /* Singleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Singleton.h; path = ../../../Source/Common/Singleton.h; sourceTree = "<group>"; };
-		3CF10E342874AE7A00940268 /* CurveTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CurveTimeline.cpp; path = ../../../Source/3rdParty/spine/CurveTimeline.cpp; sourceTree = "<group>"; };
-		3CF10E352874AE7A00940268 /* AnimationState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnimationState.h; path = ../../../Source/3rdParty/spine/AnimationState.h; sourceTree = "<group>"; };
-		3CF10E362874AE7A00940268 /* SkeletonBounds.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonBounds.h; path = ../../../Source/3rdParty/spine/SkeletonBounds.h; sourceTree = "<group>"; };
-		3CF10E372874AE7A00940268 /* SequenceTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SequenceTimeline.h; path = ../../../Source/3rdParty/spine/SequenceTimeline.h; sourceTree = "<group>"; };
-		3CF10E382874AE7A00940268 /* TransformConstraintData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TransformConstraintData.h; path = ../../../Source/3rdParty/spine/TransformConstraintData.h; sourceTree = "<group>"; };
-		3CF10E392874AE7A00940268 /* SequenceTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SequenceTimeline.cpp; path = ../../../Source/3rdParty/spine/SequenceTimeline.cpp; sourceTree = "<group>"; };
-		3CF10E3A2874AE7A00940268 /* spine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = spine.h; path = ../../../Source/3rdParty/spine/spine.h; sourceTree = "<group>"; };
-		3CF10E3B2874AE7A00940268 /* VertexAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VertexAttachment.h; path = ../../../Source/3rdParty/spine/VertexAttachment.h; sourceTree = "<group>"; };
-		3CF10E3C2874AE7A00940268 /* HashMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HashMap.h; path = ../../../Source/3rdParty/spine/HashMap.h; sourceTree = "<group>"; };
-		3CF10E3D2874AE7A00940268 /* Extension.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Extension.cpp; path = ../../../Source/3rdParty/spine/Extension.cpp; sourceTree = "<group>"; };
-		3CF10E3E2874AE7A00940268 /* TextureLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextureLoader.cpp; path = ../../../Source/3rdParty/spine/TextureLoader.cpp; sourceTree = "<group>"; };
-		3CF10E3F2874AE7A00940268 /* TransformConstraint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformConstraint.cpp; path = ../../../Source/3rdParty/spine/TransformConstraint.cpp; sourceTree = "<group>"; };
-		3CF10E402874AE7A00940268 /* AnimationStateData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AnimationStateData.cpp; path = ../../../Source/3rdParty/spine/AnimationStateData.cpp; sourceTree = "<group>"; };
-		3CF10E412874AE7A00940268 /* Updatable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Updatable.cpp; path = ../../../Source/3rdParty/spine/Updatable.cpp; sourceTree = "<group>"; };
-		3CF10E422874AE7A00940268 /* Updatable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Updatable.h; path = ../../../Source/3rdParty/spine/Updatable.h; sourceTree = "<group>"; };
-		3CF10E432874AE7A00940268 /* Json.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Json.cpp; path = ../../../Source/3rdParty/spine/Json.cpp; sourceTree = "<group>"; };
-		3CF10E442874AE7A00940268 /* AnimationStateData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnimationStateData.h; path = ../../../Source/3rdParty/spine/AnimationStateData.h; sourceTree = "<group>"; };
-		3CF10E452874AE7B00940268 /* BoneData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BoneData.cpp; path = ../../../Source/3rdParty/spine/BoneData.cpp; sourceTree = "<group>"; };
-		3CF10E462874AE7B00940268 /* Skeleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Skeleton.h; path = ../../../Source/3rdParty/spine/Skeleton.h; sourceTree = "<group>"; };
-		3CF10E472874AE7B00940268 /* TextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureLoader.h; path = ../../../Source/3rdParty/spine/TextureLoader.h; sourceTree = "<group>"; };
-		3CF10E482874AE7B00940268 /* EventTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventTimeline.h; path = ../../../Source/3rdParty/spine/EventTimeline.h; sourceTree = "<group>"; };
-		3CF10E492874AE7B00940268 /* ConstraintData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConstraintData.h; path = ../../../Source/3rdParty/spine/ConstraintData.h; sourceTree = "<group>"; };
-		3CF10E4A2874AE7B00940268 /* ScaleTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ScaleTimeline.cpp; path = ../../../Source/3rdParty/spine/ScaleTimeline.cpp; sourceTree = "<group>"; };
-		3CF10E4B2874AE7B00940268 /* Triangulator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Triangulator.h; path = ../../../Source/3rdParty/spine/Triangulator.h; sourceTree = "<group>"; };
-		3CF10E4C2874AE7B00940268 /* RTTI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RTTI.cpp; path = ../../../Source/3rdParty/spine/RTTI.cpp; sourceTree = "<group>"; };
-		3CF10E4D2874AE7B00940268 /* Atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Atlas.h; path = ../../../Source/3rdParty/spine/Atlas.h; sourceTree = "<group>"; };
-		3CF10E4E2874AE7B00940268 /* MeshAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MeshAttachment.cpp; path = ../../../Source/3rdParty/spine/MeshAttachment.cpp; sourceTree = "<group>"; };
-		3CF10E4F2874AE7B00940268 /* IkConstraintData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IkConstraintData.h; path = ../../../Source/3rdParty/spine/IkConstraintData.h; sourceTree = "<group>"; };
-		3CF10E502874AE7B00940268 /* Property.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Property.h; path = ../../../Source/3rdParty/spine/Property.h; sourceTree = "<group>"; };
-		3CF10E512874AE7B00940268 /* MixDirection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MixDirection.h; path = ../../../Source/3rdParty/spine/MixDirection.h; sourceTree = "<group>"; };
-		3CF10E522874AE7B00940268 /* RotateTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RotateTimeline.h; path = ../../../Source/3rdParty/spine/RotateTimeline.h; sourceTree = "<group>"; };
-		3CF10E532874AE7B00940268 /* RTTI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RTTI.h; path = ../../../Source/3rdParty/spine/RTTI.h; sourceTree = "<group>"; };
-		3CF10E542874AE7B00940268 /* CurveTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CurveTimeline.h; path = ../../../Source/3rdParty/spine/CurveTimeline.h; sourceTree = "<group>"; };
-		3CF10E552874AE7B00940268 /* Color.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Color.h; path = ../../../Source/3rdParty/spine/Color.h; sourceTree = "<group>"; };
-		3CF10E562874AE7B00940268 /* Skin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Skin.h; path = ../../../Source/3rdParty/spine/Skin.h; sourceTree = "<group>"; };
-		3CF10E572874AE7B00940268 /* Attachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Attachment.cpp; path = ../../../Source/3rdParty/spine/Attachment.cpp; sourceTree = "<group>"; };
-		3CF10E582874AE7B00940268 /* PathConstraintMixTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PathConstraintMixTimeline.h; path = ../../../Source/3rdParty/spine/PathConstraintMixTimeline.h; sourceTree = "<group>"; };
-		3CF10E592874AE7B00940268 /* PathConstraintMixTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PathConstraintMixTimeline.cpp; path = ../../../Source/3rdParty/spine/PathConstraintMixTimeline.cpp; sourceTree = "<group>"; };
-		3CF10E5A2874AE7B00940268 /* Animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Animation.h; path = ../../../Source/3rdParty/spine/Animation.h; sourceTree = "<group>"; };
-		3CF10E5B2874AE7B00940268 /* MixBlend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MixBlend.h; path = ../../../Source/3rdParty/spine/MixBlend.h; sourceTree = "<group>"; };
-		3CF10E5C2874AE7B00940268 /* DeformTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DeformTimeline.cpp; path = ../../../Source/3rdParty/spine/DeformTimeline.cpp; sourceTree = "<group>"; };
-		3CF10E5D2874AE7B00940268 /* SpineObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SpineObject.cpp; path = ../../../Source/3rdParty/spine/SpineObject.cpp; sourceTree = "<group>"; };
-		3CF10E5E2874AE7B00940268 /* Skeleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Skeleton.cpp; path = ../../../Source/3rdParty/spine/Skeleton.cpp; sourceTree = "<group>"; };
-		3CF10E5F2874AE7B00940268 /* TransformConstraintTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TransformConstraintTimeline.h; path = ../../../Source/3rdParty/spine/TransformConstraintTimeline.h; sourceTree = "<group>"; };
-		3CF10E602874AE7B00940268 /* Pool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Pool.h; path = ../../../Source/3rdParty/spine/Pool.h; sourceTree = "<group>"; };
-		3CF10E612874AE7B00940268 /* PathConstraintSpacingTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PathConstraintSpacingTimeline.h; path = ../../../Source/3rdParty/spine/PathConstraintSpacingTimeline.h; sourceTree = "<group>"; };
-		3CF10E622874AE7B00940268 /* EventTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventTimeline.cpp; path = ../../../Source/3rdParty/spine/EventTimeline.cpp; sourceTree = "<group>"; };
-		3CF10E632874AE7B00940268 /* PathConstraint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PathConstraint.cpp; path = ../../../Source/3rdParty/spine/PathConstraint.cpp; sourceTree = "<group>"; };
-		3CF10E642874AE7B00940268 /* Extension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Extension.h; path = ../../../Source/3rdParty/spine/Extension.h; sourceTree = "<group>"; };
-		3CF10E652874AE7B00940268 /* PathAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PathAttachment.cpp; path = ../../../Source/3rdParty/spine/PathAttachment.cpp; sourceTree = "<group>"; };
-		3CF10E662874AE7B00940268 /* SkeletonJson.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonJson.cpp; path = ../../../Source/3rdParty/spine/SkeletonJson.cpp; sourceTree = "<group>"; };
-		3CF10E672874AE7B00940268 /* BoneData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BoneData.h; path = ../../../Source/3rdParty/spine/BoneData.h; sourceTree = "<group>"; };
-		3CF10E682874AE7B00940268 /* Slot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Slot.h; path = ../../../Source/3rdParty/spine/Slot.h; sourceTree = "<group>"; };
-		3CF10E692874AE7C00940268 /* DrawOrderTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DrawOrderTimeline.cpp; path = ../../../Source/3rdParty/spine/DrawOrderTimeline.cpp; sourceTree = "<group>"; };
-		3CF10E6A2874AE7C00940268 /* MathUtil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MathUtil.cpp; path = ../../../Source/3rdParty/spine/MathUtil.cpp; sourceTree = "<group>"; };
-		3CF10E6B2874AE7C00940268 /* MathUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MathUtil.h; path = ../../../Source/3rdParty/spine/MathUtil.h; sourceTree = "<group>"; };
-		3CF10E6C2874AE7C00940268 /* AttachmentLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AttachmentLoader.cpp; path = ../../../Source/3rdParty/spine/AttachmentLoader.cpp; sourceTree = "<group>"; };
-		3CF10E6D2874AE7C00940268 /* Bone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Bone.h; path = ../../../Source/3rdParty/spine/Bone.h; sourceTree = "<group>"; };
-		3CF10E6E2874AE7C00940268 /* ShearTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ShearTimeline.cpp; path = ../../../Source/3rdParty/spine/ShearTimeline.cpp; sourceTree = "<group>"; };
-		3CF10E6F2874AE7C00940268 /* SkeletonData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonData.h; path = ../../../Source/3rdParty/spine/SkeletonData.h; sourceTree = "<group>"; };
-		3CF10E702874AE7C00940268 /* SpineObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SpineObject.h; path = ../../../Source/3rdParty/spine/SpineObject.h; sourceTree = "<group>"; };
-		3CF10E712874AE7C00940268 /* HasRendererObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = HasRendererObject.h; path = ../../../Source/3rdParty/spine/HasRendererObject.h; sourceTree = "<group>"; };
-		3CF10E722874AE7C00940268 /* SpacingMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SpacingMode.h; path = ../../../Source/3rdParty/spine/SpacingMode.h; sourceTree = "<group>"; };
-		3CF10E732874AE7C00940268 /* Timeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Timeline.cpp; path = ../../../Source/3rdParty/spine/Timeline.cpp; sourceTree = "<group>"; };
-		3CF10E742874AE7C00940268 /* Sequence.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Sequence.cpp; path = ../../../Source/3rdParty/spine/Sequence.cpp; sourceTree = "<group>"; };
-		3CF10E752874AE7C00940268 /* SlotData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SlotData.h; path = ../../../Source/3rdParty/spine/SlotData.h; sourceTree = "<group>"; };
-		3CF10E762874AE7C00940268 /* TransformConstraintData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformConstraintData.cpp; path = ../../../Source/3rdParty/spine/TransformConstraintData.cpp; sourceTree = "<group>"; };
-		3CF10E772874AE7C00940268 /* SkeletonBinary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonBinary.cpp; path = ../../../Source/3rdParty/spine/SkeletonBinary.cpp; sourceTree = "<group>"; };
-		3CF10E782874AE7C00940268 /* Skin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Skin.cpp; path = ../../../Source/3rdParty/spine/Skin.cpp; sourceTree = "<group>"; };
-		3CF10E792874AE7C00940268 /* Bone.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Bone.cpp; path = ../../../Source/3rdParty/spine/Bone.cpp; sourceTree = "<group>"; };
-		3CF10E7A2874AE7C00940268 /* Timeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Timeline.h; path = ../../../Source/3rdParty/spine/Timeline.h; sourceTree = "<group>"; };
-		3CF10E7B2874AE7C00940268 /* RegionAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RegionAttachment.cpp; path = ../../../Source/3rdParty/spine/RegionAttachment.cpp; sourceTree = "<group>"; };
-		3CF10E7C2874AE7C00940268 /* Slot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Slot.cpp; path = ../../../Source/3rdParty/spine/Slot.cpp; sourceTree = "<group>"; };
-		3CF10E7D2874AE7C00940268 /* TranslateTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TranslateTimeline.cpp; path = ../../../Source/3rdParty/spine/TranslateTimeline.cpp; sourceTree = "<group>"; };
-		3CF10E7E2874AE7C00940268 /* EventData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventData.h; path = ../../../Source/3rdParty/spine/EventData.h; sourceTree = "<group>"; };
-		3CF10E7F2874AE7C00940268 /* IkConstraintTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IkConstraintTimeline.h; path = ../../../Source/3rdParty/spine/IkConstraintTimeline.h; sourceTree = "<group>"; };
-		3CF10E802874AE7C00940268 /* IkConstraintData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IkConstraintData.cpp; path = ../../../Source/3rdParty/spine/IkConstraintData.cpp; sourceTree = "<group>"; };
-		3CF10E812874AE7C00940268 /* TransformConstraintTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TransformConstraintTimeline.cpp; path = ../../../Source/3rdParty/spine/TransformConstraintTimeline.cpp; sourceTree = "<group>"; };
-		3CF10E822874AE7C00940268 /* PathConstraintData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PathConstraintData.cpp; path = ../../../Source/3rdParty/spine/PathConstraintData.cpp; sourceTree = "<group>"; };
-		3CF10E832874AE7C00940268 /* PathConstraint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PathConstraint.h; path = ../../../Source/3rdParty/spine/PathConstraint.h; sourceTree = "<group>"; };
-		3CF10E842874AE7C00940268 /* IkConstraintTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IkConstraintTimeline.cpp; path = ../../../Source/3rdParty/spine/IkConstraintTimeline.cpp; sourceTree = "<group>"; };
-		3CF10E852874AE7C00940268 /* Log.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Log.cpp; path = ../../../Source/3rdParty/spine/Log.cpp; sourceTree = "<group>"; };
-		3CF10E862874AE7C00940268 /* ColorTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ColorTimeline.h; path = ../../../Source/3rdParty/spine/ColorTimeline.h; sourceTree = "<group>"; };
-		3CF10E872874AE7C00940268 /* SkeletonClipping.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonClipping.h; path = ../../../Source/3rdParty/spine/SkeletonClipping.h; sourceTree = "<group>"; };
-		3CF10E882874AE7C00940268 /* AttachmentType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AttachmentType.h; path = ../../../Source/3rdParty/spine/AttachmentType.h; sourceTree = "<group>"; };
-		3CF10E892874AE7C00940268 /* RotateMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RotateMode.h; path = ../../../Source/3rdParty/spine/RotateMode.h; sourceTree = "<group>"; };
-		3CF10E8A2874AE7C00940268 /* Event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Event.h; path = ../../../Source/3rdParty/spine/Event.h; sourceTree = "<group>"; };
-		3CF10E8B2874AE7C00940268 /* Log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Log.h; path = ../../../Source/3rdParty/spine/Log.h; sourceTree = "<group>"; };
-		3CF10E8C2874AE7C00940268 /* SpineString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SpineString.h; path = ../../../Source/3rdParty/spine/SpineString.h; sourceTree = "<group>"; };
-		3CF10E8D2874AE7C00940268 /* RegionAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RegionAttachment.h; path = ../../../Source/3rdParty/spine/RegionAttachment.h; sourceTree = "<group>"; };
-		3CF10E8E2874AE7C00940268 /* Triangulator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Triangulator.cpp; path = ../../../Source/3rdParty/spine/Triangulator.cpp; sourceTree = "<group>"; };
-		3CF10E8F2874AE7D00940268 /* BlendMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BlendMode.h; path = ../../../Source/3rdParty/spine/BlendMode.h; sourceTree = "<group>"; };
-		3CF10E902874AE7D00940268 /* VertexAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VertexAttachment.cpp; path = ../../../Source/3rdParty/spine/VertexAttachment.cpp; sourceTree = "<group>"; };
-		3CF10E912874AE7D00940268 /* PathConstraintSpacingTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PathConstraintSpacingTimeline.cpp; path = ../../../Source/3rdParty/spine/PathConstraintSpacingTimeline.cpp; sourceTree = "<group>"; };
-		3CF10E922874AE7D00940268 /* RotateTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RotateTimeline.cpp; path = ../../../Source/3rdParty/spine/RotateTimeline.cpp; sourceTree = "<group>"; };
-		3CF10E932874AE7D00940268 /* Atlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Atlas.cpp; path = ../../../Source/3rdParty/spine/Atlas.cpp; sourceTree = "<group>"; };
-		3CF10E942874AE7D00940268 /* DrawOrderTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DrawOrderTimeline.h; path = ../../../Source/3rdParty/spine/DrawOrderTimeline.h; sourceTree = "<group>"; };
-		3CF10E952874AE7D00940268 /* SlotData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SlotData.cpp; path = ../../../Source/3rdParty/spine/SlotData.cpp; sourceTree = "<group>"; };
-		3CF10E962874AE7D00940268 /* PathConstraintPositionTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PathConstraintPositionTimeline.h; path = ../../../Source/3rdParty/spine/PathConstraintPositionTimeline.h; sourceTree = "<group>"; };
-		3CF10E972874AE7D00940268 /* ClippingAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ClippingAttachment.cpp; path = ../../../Source/3rdParty/spine/ClippingAttachment.cpp; sourceTree = "<group>"; };
-		3CF10E982874AE7D00940268 /* TextureRegion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TextureRegion.h; path = ../../../Source/3rdParty/spine/TextureRegion.h; sourceTree = "<group>"; };
-		3CF10E992874AE7D00940268 /* SkeletonBounds.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonBounds.cpp; path = ../../../Source/3rdParty/spine/SkeletonBounds.cpp; sourceTree = "<group>"; };
-		3CF10E9A2874AE7D00940268 /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Event.cpp; path = ../../../Source/3rdParty/spine/Event.cpp; sourceTree = "<group>"; };
-		3CF10E9B2874AE7D00940268 /* dll.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = dll.h; path = ../../../Source/3rdParty/spine/dll.h; sourceTree = "<group>"; };
-		3CF10E9C2874AE7D00940268 /* BoundingBoxAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BoundingBoxAttachment.cpp; path = ../../../Source/3rdParty/spine/BoundingBoxAttachment.cpp; sourceTree = "<group>"; };
-		3CF10E9D2874AE7D00940268 /* ScaleTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ScaleTimeline.h; path = ../../../Source/3rdParty/spine/ScaleTimeline.h; sourceTree = "<group>"; };
-		3CF10E9E2874AE7D00940268 /* MeshAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MeshAttachment.h; path = ../../../Source/3rdParty/spine/MeshAttachment.h; sourceTree = "<group>"; };
-		3CF10E9F2874AE7D00940268 /* SkeletonClipping.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonClipping.cpp; path = ../../../Source/3rdParty/spine/SkeletonClipping.cpp; sourceTree = "<group>"; };
-		3CF10EA02874AE7D00940268 /* LinkedMesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LinkedMesh.cpp; path = ../../../Source/3rdParty/spine/LinkedMesh.cpp; sourceTree = "<group>"; };
-		3CF10EA12874AE7D00940268 /* AttachmentTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AttachmentTimeline.h; path = ../../../Source/3rdParty/spine/AttachmentTimeline.h; sourceTree = "<group>"; };
-		3CF10EA22874AE7D00940268 /* ClippingAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ClippingAttachment.h; path = ../../../Source/3rdParty/spine/ClippingAttachment.h; sourceTree = "<group>"; };
-		3CF10EA32874AE7D00940268 /* EventData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EventData.cpp; path = ../../../Source/3rdParty/spine/EventData.cpp; sourceTree = "<group>"; };
-		3CF10EA42874AE7D00940268 /* SkeletonData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonData.cpp; path = ../../../Source/3rdParty/spine/SkeletonData.cpp; sourceTree = "<group>"; };
-		3CF10EA52874AE7D00940268 /* TransformMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TransformMode.h; path = ../../../Source/3rdParty/spine/TransformMode.h; sourceTree = "<group>"; };
-		3CF10EA62874AE7D00940268 /* AtlasAttachmentLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AtlasAttachmentLoader.cpp; path = ../../../Source/3rdParty/spine/AtlasAttachmentLoader.cpp; sourceTree = "<group>"; };
-		3CF10EA72874AE7D00940268 /* PathConstraintPositionTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PathConstraintPositionTimeline.cpp; path = ../../../Source/3rdParty/spine/PathConstraintPositionTimeline.cpp; sourceTree = "<group>"; };
-		3CF10EA82874AE7D00940268 /* PathConstraintData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PathConstraintData.h; path = ../../../Source/3rdParty/spine/PathConstraintData.h; sourceTree = "<group>"; };
-		3CF10EA92874AE7D00940268 /* LinkedMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LinkedMesh.h; path = ../../../Source/3rdParty/spine/LinkedMesh.h; sourceTree = "<group>"; };
-		3CF10EAA2874AE7D00940268 /* ConstraintData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConstraintData.cpp; path = ../../../Source/3rdParty/spine/ConstraintData.cpp; sourceTree = "<group>"; };
-		3CF10EAB2874AE7D00940268 /* Vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vector.h; path = ../../../Source/3rdParty/spine/Vector.h; sourceTree = "<group>"; };
-		3CF10EAC2874AE7D00940268 /* Animation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Animation.cpp; path = ../../../Source/3rdParty/spine/Animation.cpp; sourceTree = "<group>"; };
-		3CF10EAD2874AE7D00940268 /* Version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Version.h; path = ../../../Source/3rdParty/spine/Version.h; sourceTree = "<group>"; };
-		3CF10EAE2874AE7D00940268 /* AnimationState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AnimationState.cpp; path = ../../../Source/3rdParty/spine/AnimationState.cpp; sourceTree = "<group>"; };
-		3CF10EAF2874AE7D00940268 /* SkeletonBinary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonBinary.h; path = ../../../Source/3rdParty/spine/SkeletonBinary.h; sourceTree = "<group>"; };
-		3CF10EB02874AE7D00940268 /* Debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Debug.h; path = ../../../Source/3rdParty/spine/Debug.h; sourceTree = "<group>"; };
-		3CF10EB12874AE7D00940268 /* PointAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PointAttachment.h; path = ../../../Source/3rdParty/spine/PointAttachment.h; sourceTree = "<group>"; };
-		3CF10EB22874AE7D00940268 /* PathAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PathAttachment.h; path = ../../../Source/3rdParty/spine/PathAttachment.h; sourceTree = "<group>"; };
-		3CF10EB32874AE7E00940268 /* ColorTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ColorTimeline.cpp; path = ../../../Source/3rdParty/spine/ColorTimeline.cpp; sourceTree = "<group>"; };
-		3CF10EB42874AE7E00940268 /* AttachmentTimeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AttachmentTimeline.cpp; path = ../../../Source/3rdParty/spine/AttachmentTimeline.cpp; sourceTree = "<group>"; };
-		3CF10EB52874AE7E00940268 /* Attachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Attachment.h; path = ../../../Source/3rdParty/spine/Attachment.h; sourceTree = "<group>"; };
-		3CF10EB62874AE7E00940268 /* AttachmentLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AttachmentLoader.h; path = ../../../Source/3rdParty/spine/AttachmentLoader.h; sourceTree = "<group>"; };
-		3CF10EB72874AE7E00940268 /* PointAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PointAttachment.cpp; path = ../../../Source/3rdParty/spine/PointAttachment.cpp; sourceTree = "<group>"; };
-		3CF10EB82874AE7E00940268 /* DeformTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DeformTimeline.h; path = ../../../Source/3rdParty/spine/DeformTimeline.h; sourceTree = "<group>"; };
-		3CF10EB92874AE7E00940268 /* IkConstraint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IkConstraint.h; path = ../../../Source/3rdParty/spine/IkConstraint.h; sourceTree = "<group>"; };
-		3CF10EBA2874AE7E00940268 /* TransformConstraint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TransformConstraint.h; path = ../../../Source/3rdParty/spine/TransformConstraint.h; sourceTree = "<group>"; };
-		3CF10EBB2874AE7E00940268 /* Vertices.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vertices.h; path = ../../../Source/3rdParty/spine/Vertices.h; sourceTree = "<group>"; };
-		3CF10EBC2874AE7E00940268 /* Sequence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Sequence.h; path = ../../../Source/3rdParty/spine/Sequence.h; sourceTree = "<group>"; };
-		3CF10EBD2874AE7E00940268 /* PositionMode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PositionMode.h; path = ../../../Source/3rdParty/spine/PositionMode.h; sourceTree = "<group>"; };
-		3CF10EBE2874AE7E00940268 /* Json.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Json.h; path = ../../../Source/3rdParty/spine/Json.h; sourceTree = "<group>"; };
-		3CF10EBF2874AE7E00940268 /* SkeletonJson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonJson.h; path = ../../../Source/3rdParty/spine/SkeletonJson.h; sourceTree = "<group>"; };
-		3CF10EC02874AE7E00940268 /* TranslateTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TranslateTimeline.h; path = ../../../Source/3rdParty/spine/TranslateTimeline.h; sourceTree = "<group>"; };
-		3CF10EC12874AE7E00940268 /* AtlasAttachmentLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtlasAttachmentLoader.h; path = ../../../Source/3rdParty/spine/AtlasAttachmentLoader.h; sourceTree = "<group>"; };
-		3CF10EC22874AE7E00940268 /* ShearTimeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ShearTimeline.h; path = ../../../Source/3rdParty/spine/ShearTimeline.h; sourceTree = "<group>"; };
-		3CF10EC32874AE7E00940268 /* ContainerUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ContainerUtil.h; path = ../../../Source/3rdParty/spine/ContainerUtil.h; sourceTree = "<group>"; };
-		3CF10EC42874AE7E00940268 /* IkConstraint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IkConstraint.cpp; path = ../../../Source/3rdParty/spine/IkConstraint.cpp; sourceTree = "<group>"; };
-		3CF10EC52874AE7E00940268 /* BoundingBoxAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BoundingBoxAttachment.h; path = ../../../Source/3rdParty/spine/BoundingBoxAttachment.h; sourceTree = "<group>"; };
 		3CF89B5624332C5000A195C7 /* concurrentqueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = concurrentqueue.h; path = ../../../Source/3rdParty/Other/concurrentqueue.h; sourceTree = "<group>"; };
 		3CFEA0F2285B857A002D106F /* m3_core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_core.c; path = ../../../Source/3rdParty/wasm3/m3_core.c; sourceTree = "<group>"; };
 		3CFEA0F3285B857A002D106F /* m3_math_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_math_utils.h; path = ../../../Source/3rdParty/wasm3/m3_math_utils.h; sourceTree = "<group>"; };
@@ -2001,152 +2014,161 @@
 		3C0D30482456662D009C592B /* spine */ = {
 			isa = PBXGroup;
 			children = (
-				3CF10EAC2874AE7D00940268 /* Animation.cpp */,
-				3CF10E5A2874AE7B00940268 /* Animation.h */,
-				3CF10EAE2874AE7D00940268 /* AnimationState.cpp */,
-				3CF10E352874AE7A00940268 /* AnimationState.h */,
-				3CF10E402874AE7A00940268 /* AnimationStateData.cpp */,
-				3CF10E442874AE7A00940268 /* AnimationStateData.h */,
-				3CF10E932874AE7D00940268 /* Atlas.cpp */,
-				3CF10E4D2874AE7B00940268 /* Atlas.h */,
-				3CF10EA62874AE7D00940268 /* AtlasAttachmentLoader.cpp */,
-				3CF10EC12874AE7E00940268 /* AtlasAttachmentLoader.h */,
-				3CF10E572874AE7B00940268 /* Attachment.cpp */,
-				3CF10EB52874AE7E00940268 /* Attachment.h */,
-				3CF10E6C2874AE7C00940268 /* AttachmentLoader.cpp */,
-				3CF10EB62874AE7E00940268 /* AttachmentLoader.h */,
-				3CF10EB42874AE7E00940268 /* AttachmentTimeline.cpp */,
-				3CF10EA12874AE7D00940268 /* AttachmentTimeline.h */,
-				3CF10E882874AE7C00940268 /* AttachmentType.h */,
-				3CF10E8F2874AE7D00940268 /* BlendMode.h */,
-				3CF10E792874AE7C00940268 /* Bone.cpp */,
-				3CF10E6D2874AE7C00940268 /* Bone.h */,
-				3CF10E452874AE7B00940268 /* BoneData.cpp */,
-				3CF10E672874AE7B00940268 /* BoneData.h */,
-				3CF10E9C2874AE7D00940268 /* BoundingBoxAttachment.cpp */,
-				3CF10EC52874AE7E00940268 /* BoundingBoxAttachment.h */,
-				3CF10E972874AE7D00940268 /* ClippingAttachment.cpp */,
-				3CF10EA22874AE7D00940268 /* ClippingAttachment.h */,
-				3CF10E552874AE7B00940268 /* Color.h */,
-				3CF10EB32874AE7E00940268 /* ColorTimeline.cpp */,
-				3CF10E862874AE7C00940268 /* ColorTimeline.h */,
-				3CF10EAA2874AE7D00940268 /* ConstraintData.cpp */,
-				3CF10E492874AE7B00940268 /* ConstraintData.h */,
-				3CF10EC32874AE7E00940268 /* ContainerUtil.h */,
-				3CF10E342874AE7A00940268 /* CurveTimeline.cpp */,
-				3CF10E542874AE7B00940268 /* CurveTimeline.h */,
-				3CF10EB02874AE7D00940268 /* Debug.h */,
-				3CF10E5C2874AE7B00940268 /* DeformTimeline.cpp */,
-				3CF10EB82874AE7E00940268 /* DeformTimeline.h */,
-				3CF10E9B2874AE7D00940268 /* dll.h */,
-				3CF10E692874AE7C00940268 /* DrawOrderTimeline.cpp */,
-				3CF10E942874AE7D00940268 /* DrawOrderTimeline.h */,
-				3CF10E9A2874AE7D00940268 /* Event.cpp */,
-				3CF10E8A2874AE7C00940268 /* Event.h */,
-				3CF10EA32874AE7D00940268 /* EventData.cpp */,
-				3CF10E7E2874AE7C00940268 /* EventData.h */,
-				3CF10E622874AE7B00940268 /* EventTimeline.cpp */,
-				3CF10E482874AE7B00940268 /* EventTimeline.h */,
-				3CF10E3D2874AE7A00940268 /* Extension.cpp */,
-				3CF10E642874AE7B00940268 /* Extension.h */,
-				3CF10E3C2874AE7A00940268 /* HashMap.h */,
-				3CF10E712874AE7C00940268 /* HasRendererObject.h */,
-				3CF10EC42874AE7E00940268 /* IkConstraint.cpp */,
-				3CF10EB92874AE7E00940268 /* IkConstraint.h */,
-				3CF10E802874AE7C00940268 /* IkConstraintData.cpp */,
-				3CF10E4F2874AE7B00940268 /* IkConstraintData.h */,
-				3CF10E842874AE7C00940268 /* IkConstraintTimeline.cpp */,
-				3CF10E7F2874AE7C00940268 /* IkConstraintTimeline.h */,
-				3CF10E432874AE7A00940268 /* Json.cpp */,
-				3CF10EBE2874AE7E00940268 /* Json.h */,
-				3CF10EA02874AE7D00940268 /* LinkedMesh.cpp */,
-				3CF10EA92874AE7D00940268 /* LinkedMesh.h */,
-				3CF10E852874AE7C00940268 /* Log.cpp */,
-				3CF10E8B2874AE7C00940268 /* Log.h */,
-				3CF10E6A2874AE7C00940268 /* MathUtil.cpp */,
-				3CF10E6B2874AE7C00940268 /* MathUtil.h */,
-				3CF10E4E2874AE7B00940268 /* MeshAttachment.cpp */,
-				3CF10E9E2874AE7D00940268 /* MeshAttachment.h */,
-				3CF10E5B2874AE7B00940268 /* MixBlend.h */,
-				3CF10E512874AE7B00940268 /* MixDirection.h */,
-				3CF10E652874AE7B00940268 /* PathAttachment.cpp */,
-				3CF10EB22874AE7D00940268 /* PathAttachment.h */,
-				3CF10E632874AE7B00940268 /* PathConstraint.cpp */,
-				3CF10E832874AE7C00940268 /* PathConstraint.h */,
-				3CF10E822874AE7C00940268 /* PathConstraintData.cpp */,
-				3CF10EA82874AE7D00940268 /* PathConstraintData.h */,
-				3CF10E592874AE7B00940268 /* PathConstraintMixTimeline.cpp */,
-				3CF10E582874AE7B00940268 /* PathConstraintMixTimeline.h */,
-				3CF10EA72874AE7D00940268 /* PathConstraintPositionTimeline.cpp */,
-				3CF10E962874AE7D00940268 /* PathConstraintPositionTimeline.h */,
-				3CF10E912874AE7D00940268 /* PathConstraintSpacingTimeline.cpp */,
-				3CF10E612874AE7B00940268 /* PathConstraintSpacingTimeline.h */,
-				3CF10EB72874AE7E00940268 /* PointAttachment.cpp */,
-				3CF10EB12874AE7D00940268 /* PointAttachment.h */,
-				3CF10E602874AE7B00940268 /* Pool.h */,
-				3CF10EBD2874AE7E00940268 /* PositionMode.h */,
-				3CF10E502874AE7B00940268 /* Property.h */,
-				3CF10E7B2874AE7C00940268 /* RegionAttachment.cpp */,
-				3CF10E8D2874AE7C00940268 /* RegionAttachment.h */,
-				3CF10E892874AE7C00940268 /* RotateMode.h */,
-				3CF10E922874AE7D00940268 /* RotateTimeline.cpp */,
-				3CF10E522874AE7B00940268 /* RotateTimeline.h */,
-				3CF10E4C2874AE7B00940268 /* RTTI.cpp */,
-				3CF10E532874AE7B00940268 /* RTTI.h */,
-				3CF10E4A2874AE7B00940268 /* ScaleTimeline.cpp */,
-				3CF10E9D2874AE7D00940268 /* ScaleTimeline.h */,
-				3CF10E742874AE7C00940268 /* Sequence.cpp */,
-				3CF10EBC2874AE7E00940268 /* Sequence.h */,
-				3CF10E392874AE7A00940268 /* SequenceTimeline.cpp */,
-				3CF10E372874AE7A00940268 /* SequenceTimeline.h */,
-				3CF10E6E2874AE7C00940268 /* ShearTimeline.cpp */,
-				3CF10EC22874AE7E00940268 /* ShearTimeline.h */,
-				3CF10E5E2874AE7B00940268 /* Skeleton.cpp */,
-				3CF10E462874AE7B00940268 /* Skeleton.h */,
-				3CF10E772874AE7C00940268 /* SkeletonBinary.cpp */,
-				3CF10EAF2874AE7D00940268 /* SkeletonBinary.h */,
-				3CF10E992874AE7D00940268 /* SkeletonBounds.cpp */,
-				3CF10E362874AE7A00940268 /* SkeletonBounds.h */,
-				3CF10E9F2874AE7D00940268 /* SkeletonClipping.cpp */,
-				3CF10E872874AE7C00940268 /* SkeletonClipping.h */,
-				3CF10EA42874AE7D00940268 /* SkeletonData.cpp */,
-				3CF10E6F2874AE7C00940268 /* SkeletonData.h */,
-				3CF10E662874AE7B00940268 /* SkeletonJson.cpp */,
-				3CF10EBF2874AE7E00940268 /* SkeletonJson.h */,
-				3CF10E782874AE7C00940268 /* Skin.cpp */,
-				3CF10E562874AE7B00940268 /* Skin.h */,
-				3CF10E7C2874AE7C00940268 /* Slot.cpp */,
-				3CF10E682874AE7B00940268 /* Slot.h */,
-				3CF10E952874AE7D00940268 /* SlotData.cpp */,
-				3CF10E752874AE7C00940268 /* SlotData.h */,
-				3CF10E722874AE7C00940268 /* SpacingMode.h */,
-				3CF10E3A2874AE7A00940268 /* spine.h */,
-				3CF10E5D2874AE7B00940268 /* SpineObject.cpp */,
-				3CF10E702874AE7C00940268 /* SpineObject.h */,
-				3CF10E8C2874AE7C00940268 /* SpineString.h */,
-				3CF10E3E2874AE7A00940268 /* TextureLoader.cpp */,
-				3CF10E472874AE7B00940268 /* TextureLoader.h */,
-				3CF10E982874AE7D00940268 /* TextureRegion.h */,
-				3CF10E732874AE7C00940268 /* Timeline.cpp */,
-				3CF10E7A2874AE7C00940268 /* Timeline.h */,
-				3CF10E3F2874AE7A00940268 /* TransformConstraint.cpp */,
-				3CF10EBA2874AE7E00940268 /* TransformConstraint.h */,
-				3CF10E762874AE7C00940268 /* TransformConstraintData.cpp */,
-				3CF10E382874AE7A00940268 /* TransformConstraintData.h */,
-				3CF10E812874AE7C00940268 /* TransformConstraintTimeline.cpp */,
-				3CF10E5F2874AE7B00940268 /* TransformConstraintTimeline.h */,
-				3CF10EA52874AE7D00940268 /* TransformMode.h */,
-				3CF10E7D2874AE7C00940268 /* TranslateTimeline.cpp */,
-				3CF10EC02874AE7E00940268 /* TranslateTimeline.h */,
-				3CF10E8E2874AE7C00940268 /* Triangulator.cpp */,
-				3CF10E4B2874AE7B00940268 /* Triangulator.h */,
-				3CF10E412874AE7A00940268 /* Updatable.cpp */,
-				3CF10E422874AE7A00940268 /* Updatable.h */,
-				3CF10EAB2874AE7D00940268 /* Vector.h */,
-				3CF10EAD2874AE7D00940268 /* Version.h */,
-				3CF10E902874AE7D00940268 /* VertexAttachment.cpp */,
-				3CF10E3B2874AE7A00940268 /* VertexAttachment.h */,
-				3CF10EBB2874AE7E00940268 /* Vertices.h */,
+				3C4B3B862C06CC9B00D778FC /* Animation.cpp */,
+				3C4B3B822C06CC9B00D778FC /* Animation.h */,
+				3C4B3BC22C06CC9E00D778FC /* AnimationState.cpp */,
+				3C4B3BEB2C06CC9F00D778FC /* AnimationState.h */,
+				3C4B3B652C06CC9A00D778FC /* AnimationStateData.cpp */,
+				3C4B3BCD2C06CC9E00D778FC /* AnimationStateData.h */,
+				3C4B3BD02C06CC9E00D778FC /* Atlas.cpp */,
+				3C4B3B982C06CC9C00D778FC /* Atlas.h */,
+				3C4B3BBC2C06CC9E00D778FC /* AtlasAttachmentLoader.cpp */,
+				3C4B3BA92C06CC9D00D778FC /* AtlasAttachmentLoader.h */,
+				3C4B3BF02C06CCA000D778FC /* Attachment.cpp */,
+				3C4B3BB32C06CC9D00D778FC /* Attachment.h */,
+				3C4B3BD62C06CC9F00D778FC /* AttachmentLoader.cpp */,
+				3C4B3BC92C06CC9E00D778FC /* AttachmentLoader.h */,
+				3C4B3BD82C06CC9F00D778FC /* AttachmentTimeline.cpp */,
+				3C4B3B872C06CC9B00D778FC /* AttachmentTimeline.h */,
+				3C4B3BE92C06CC9F00D778FC /* AttachmentType.h */,
+				3C4B3BA82C06CC9D00D778FC /* BlendMode.h */,
+				3C4B3B7A2C06CC9B00D778FC /* Bone.cpp */,
+				3C4B3B952C06CC9C00D778FC /* Bone.h */,
+				3C4B3B6E2C06CC9A00D778FC /* BoneData.cpp */,
+				3C4B3BEF2C06CCA000D778FC /* BoneData.h */,
+				3C4B3BD92C06CC9F00D778FC /* BoundingBoxAttachment.cpp */,
+				3C4B3BA52C06CC9D00D778FC /* BoundingBoxAttachment.h */,
+				3C4B3B8D2C06CC9C00D778FC /* ClippingAttachment.cpp */,
+				3C4B3BAF2C06CC9D00D778FC /* ClippingAttachment.h */,
+				3C4B3B7D2C06CC9B00D778FC /* Color.h */,
+				3C4B3BE32C06CC9F00D778FC /* ColorTimeline.cpp */,
+				3C4B3BD32C06CC9E00D778FC /* ColorTimeline.h */,
+				3C4B3BFD2C06CCA000D778FC /* ConstraintData.cpp */,
+				3C4B3BC52C06CC9E00D778FC /* ConstraintData.h */,
+				3C4B3B6D2C06CC9A00D778FC /* ContainerUtil.h */,
+				3C4B3B942C06CC9C00D778FC /* CurveTimeline.cpp */,
+				3C4B3BBD2C06CC9E00D778FC /* CurveTimeline.h */,
+				3C4B3BBF2C06CC9E00D778FC /* Debug.h */,
+				3C4B3BA62C06CC9D00D778FC /* DeformTimeline.cpp */,
+				3C4B3BBE2C06CC9E00D778FC /* DeformTimeline.h */,
+				3C4B3B8A2C06CC9C00D778FC /* dll.h */,
+				3C4B3BFB2C06CCA000D778FC /* DrawOrderTimeline.cpp */,
+				3C4B3BE42C06CC9F00D778FC /* DrawOrderTimeline.h */,
+				3C4B3B852C06CC9B00D778FC /* Event.cpp */,
+				3C4B3B8C2C06CC9C00D778FC /* Event.h */,
+				3C4B3B902C06CC9C00D778FC /* EventData.cpp */,
+				3C4B3B662C06CC9A00D778FC /* EventData.h */,
+				3C4B3BB02C06CC9D00D778FC /* EventTimeline.cpp */,
+				3C4B3B9D2C06CC9C00D778FC /* EventTimeline.h */,
+				3C4B3BB22C06CC9D00D778FC /* Extension.cpp */,
+				3C4B3B772C06CC9B00D778FC /* Extension.h */,
+				3C4B3B9E2C06CC9C00D778FC /* HashMap.h */,
+				3C4B3BD22C06CC9E00D778FC /* HasRendererObject.h */,
+				3C4B3B8E2C06CC9C00D778FC /* IkConstraint.cpp */,
+				3C4B3B9A2C06CC9C00D778FC /* IkConstraint.h */,
+				3C4B3BE22C06CC9F00D778FC /* IkConstraintData.cpp */,
+				3C4B3BF82C06CCA000D778FC /* IkConstraintData.h */,
+				3C4B3BCA2C06CC9E00D778FC /* IkConstraintTimeline.cpp */,
+				3C4B3BA02C06CC9C00D778FC /* IkConstraintTimeline.h */,
+				3C4B3BFA2C06CCA000D778FC /* Inherit.h */,
+				3C4B3BA42C06CC9D00D778FC /* InheritTimeline.cpp */,
+				3C4B3B832C06CC9B00D778FC /* InheritTimeline.h */,
+				3C4B3BE02C06CC9F00D778FC /* Json.cpp */,
+				3C4B3BA12C06CC9D00D778FC /* Json.h */,
+				3C4B3BB82C06CC9D00D778FC /* LinkedMesh.cpp */,
+				3C4B3BC12C06CC9E00D778FC /* LinkedMesh.h */,
+				3C4B3BA72C06CC9D00D778FC /* Log.cpp */,
+				3C4B3B812C06CC9B00D778FC /* Log.h */,
+				3C4B3B932C06CC9C00D778FC /* MathUtil.cpp */,
+				3C4B3BDA2C06CC9F00D778FC /* MathUtil.h */,
+				3C4B3BEC2C06CC9F00D778FC /* MeshAttachment.cpp */,
+				3C4B3BED2C06CCA000D778FC /* MeshAttachment.h */,
+				3C4B3BDF2C06CC9F00D778FC /* MixBlend.h */,
+				3C4B3BD52C06CC9F00D778FC /* MixDirection.h */,
+				3C4B3BF72C06CCA000D778FC /* PathAttachment.cpp */,
+				3C4B3BD72C06CC9F00D778FC /* PathAttachment.h */,
+				3C4B3BB62C06CC9D00D778FC /* PathConstraint.cpp */,
+				3C4B3B8F2C06CC9C00D778FC /* PathConstraint.h */,
+				3C4B3B802C06CC9B00D778FC /* PathConstraintData.cpp */,
+				3C4B3B792C06CC9B00D778FC /* PathConstraintData.h */,
+				3C4B3BF12C06CCA000D778FC /* PathConstraintMixTimeline.cpp */,
+				3C4B3B692C06CC9A00D778FC /* PathConstraintMixTimeline.h */,
+				3C4B3BAC2C06CC9D00D778FC /* PathConstraintPositionTimeline.cpp */,
+				3C4B3B7E2C06CC9B00D778FC /* PathConstraintPositionTimeline.h */,
+				3C4B3B712C06CC9B00D778FC /* PathConstraintSpacingTimeline.cpp */,
+				3C4B3BC02C06CC9E00D778FC /* PathConstraintSpacingTimeline.h */,
+				3C4B3BCE2C06CC9E00D778FC /* Physics.h */,
+				3C4B3B6C2C06CC9A00D778FC /* PhysicsConstraint.cpp */,
+				3C4B3B9B2C06CC9C00D778FC /* PhysicsConstraint.h */,
+				3C4B3BDE2C06CC9F00D778FC /* PhysicsConstraintData.cpp */,
+				3C4B3B732C06CC9B00D778FC /* PhysicsConstraintData.h */,
+				3C4B3BE82C06CC9F00D778FC /* PhysicsConstraintTimeline.cpp */,
+				3C4B3BD12C06CC9E00D778FC /* PhysicsConstraintTimeline.h */,
+				3C4B3BF32C06CCA000D778FC /* PointAttachment.cpp */,
+				3C4B3B702C06CC9A00D778FC /* PointAttachment.h */,
+				3C4B3BB92C06CC9D00D778FC /* Pool.h */,
+				3C4B3BCB2C06CC9E00D778FC /* PositionMode.h */,
+				3C4B3BEA2C06CC9F00D778FC /* Property.h */,
+				3C4B3BEE2C06CCA000D778FC /* RegionAttachment.cpp */,
+				3C4B3BBB2C06CC9E00D778FC /* RegionAttachment.h */,
+				3C4B3BF92C06CCA000D778FC /* RotateMode.h */,
+				3C4B3BF22C06CCA000D778FC /* RotateTimeline.cpp */,
+				3C4B3B7C2C06CC9B00D778FC /* RotateTimeline.h */,
+				3C4B3BA32C06CC9D00D778FC /* RTTI.cpp */,
+				3C4B3BB42C06CC9D00D778FC /* RTTI.h */,
+				3C4B3B682C06CC9A00D778FC /* ScaleTimeline.cpp */,
+				3C4B3BB12C06CC9D00D778FC /* ScaleTimeline.h */,
+				3C4B3B762C06CC9B00D778FC /* Sequence.cpp */,
+				3C4B3B9C2C06CC9C00D778FC /* Sequence.h */,
+				3C4B3B912C06CC9C00D778FC /* SequenceTimeline.cpp */,
+				3C4B3BBA2C06CC9D00D778FC /* SequenceTimeline.h */,
+				3C4B3BFC2C06CCA000D778FC /* ShearTimeline.cpp */,
+				3C4B3B972C06CC9C00D778FC /* ShearTimeline.h */,
+				3C4B3B722C06CC9B00D778FC /* Skeleton.cpp */,
+				3C4B3BDB2C06CC9F00D778FC /* Skeleton.h */,
+				3C4B3BF42C06CCA000D778FC /* SkeletonBinary.cpp */,
+				3C4B3BF52C06CCA000D778FC /* SkeletonBinary.h */,
+				3C4B3B7F2C06CC9B00D778FC /* SkeletonBounds.cpp */,
+				3C4B3BAE2C06CC9D00D778FC /* SkeletonBounds.h */,
+				3C4B3BA22C06CC9D00D778FC /* SkeletonClipping.cpp */,
+				3C4B3BAB2C06CC9D00D778FC /* SkeletonClipping.h */,
+				3C4B3BDC2C06CC9F00D778FC /* SkeletonData.cpp */,
+				3C4B3B8B2C06CC9C00D778FC /* SkeletonData.h */,
+				3C4B3B672C06CC9A00D778FC /* SkeletonJson.cpp */,
+				3C4B3BFE2C06CCA000D778FC /* SkeletonJson.h */,
+				3C4B3B6B2C06CC9A00D778FC /* Skin.cpp */,
+				3C4B3BD42C06CC9F00D778FC /* Skin.h */,
+				3C4B3BC72C06CC9E00D778FC /* Slot.cpp */,
+				3C4B3BB52C06CC9D00D778FC /* Slot.h */,
+				3C4B3B882C06CC9B00D778FC /* SlotData.cpp */,
+				3C4B3BAA2C06CC9D00D778FC /* SlotData.h */,
+				3C4B3BB72C06CC9D00D778FC /* SpacingMode.h */,
+				3C4B3B842C06CC9B00D778FC /* spine.h */,
+				3C4B3B9F2C06CC9C00D778FC /* SpineObject.cpp */,
+				3C4B3BDD2C06CC9F00D778FC /* SpineObject.h */,
+				3C4B3B922C06CC9C00D778FC /* SpineString.h */,
+				3C4B3B992C06CC9C00D778FC /* TextureLoader.cpp */,
+				3C4B3B6A2C06CC9A00D778FC /* TextureLoader.h */,
+				3C4B3BC32C06CC9E00D778FC /* TextureRegion.h */,
+				3C4B3BFF2C06CCA000D778FC /* Timeline.cpp */,
+				3C4B3B6F2C06CC9A00D778FC /* Timeline.h */,
+				3C4B3B752C06CC9B00D778FC /* TransformConstraint.cpp */,
+				3C4B3BE12C06CC9F00D778FC /* TransformConstraint.h */,
+				3C4B3BE52C06CC9F00D778FC /* TransformConstraintData.cpp */,
+				3C4B3B962C06CC9C00D778FC /* TransformConstraintData.h */,
+				3C4B3B742C06CC9B00D778FC /* TransformConstraintTimeline.cpp */,
+				3C4B3BE62C06CC9F00D778FC /* TransformConstraintTimeline.h */,
+				3C4B3BE72C06CC9F00D778FC /* TranslateTimeline.cpp */,
+				3C4B3BAD2C06CC9D00D778FC /* TranslateTimeline.h */,
+				3C4B3BCC2C06CC9E00D778FC /* Triangulator.cpp */,
+				3C4B3BF62C06CCA000D778FC /* Triangulator.h */,
+				3C4B3B7B2C06CC9B00D778FC /* Updatable.cpp */,
+				3C4B3BC42C06CC9E00D778FC /* Updatable.h */,
+				3C4B3B782C06CC9B00D778FC /* Vector.h */,
+				3C4B3B892C06CC9C00D778FC /* Version.h */,
+				3C4B3BC62C06CC9E00D778FC /* VertexAttachment.cpp */,
+				3C4B3BCF2C06CC9E00D778FC /* VertexAttachment.h */,
+				3C4B3BC82C06CC9E00D778FC /* Vertices.h */,
 			);
 			name = spine;
 			sourceTree = "<group>";
@@ -4254,7 +4276,8 @@
 				3C0FB5722BEEF20D0098E88D /* Effekseer.InstanceChunk.cpp in Sources */,
 				3C0FB5492BEEF20D0098E88D /* Effekseer.CompiledMaterial.cpp in Sources */,
 				3C0FB55B2BEEF20D0098E88D /* GpuParticlesParameter.cpp in Sources */,
-				3CF10F022874AE7E00940268 /* PointAttachment.cpp in Sources */,
+				3C4B3C2E2C06CCA000D778FC /* SkeletonData.cpp in Sources */,
+				3C4B3C132C06CCA000D778FC /* IkConstraint.cpp in Sources */,
 				3C0FB54C2BEEF20D0098E88D /* Model.cpp in Sources */,
 				3C6E7F2E272A30E700E9F115 /* sndbuffer.cpp in Sources */,
 				3C46E8582614227300DC9D4F /* Director.cpp in Sources */,
@@ -4262,13 +4285,14 @@
 				3CC05B641E71229A00F2BA1B /* DrawNode.cpp in Sources */,
 				3C1A3B00272A850F003A2829 /* lgc.c in Sources */,
 				3CC7945D2579F9B000042394 /* parser.cpp in Sources */,
+				3C4B3C022C06CCA000D778FC /* ScaleTimeline.cpp in Sources */,
 				3CA77F0C2AE665C100B7BADA /* WorldMisc.cpp in Sources */,
 				3CFEBD64268DA6D5006D9974 /* DeformVertices.cpp in Sources */,
 				3C28C09F2771D846007FC76E /* Grid.cpp in Sources */,
 				3C6DA20C1EAEF8EC006EEE32 /* LuaFromXml.cpp in Sources */,
 				3C1A3AFB272A850F003A2829 /* lopcodes.c in Sources */,
-				3CF10EDD2874AE7E00940268 /* AttachmentLoader.cpp in Sources */,
 				3CA77F182AE665C100B7BADA /* MemoryResource.cpp in Sources */,
+				3C4B3C322C06CCA000D778FC /* ColorTimeline.cpp in Sources */,
 				3C6E7F31272A30E700E9F115 /* sndrender.cpp in Sources */,
 				3C0FB5602BEEF20D0098E88D /* Utils.cpp in Sources */,
 				3C6E7F32272A30E700E9F115 /* soloud_sfxr.cpp in Sources */,
@@ -4284,7 +4308,6 @@
 				3C46E8612614227300DC9D4F /* Object.cpp in Sources */,
 				3C0FB55D2BEEF20D0098E88D /* Rotation.cpp in Sources */,
 				3C6E7F35272A30E700E9F115 /* resonator.cpp in Sources */,
-				3CF10EE62874AE7E00940268 /* Slot.cpp in Sources */,
 				3C5B33D52A496F0F0080049B /* yue_ast.cpp in Sources */,
 				3C6E7F0D272A30E700E9F115 /* soloud_lofifilter.cpp in Sources */,
 				3CFEBD77268DA6E4006D9974 /* Animation.cpp in Sources */,
@@ -4294,35 +4317,41 @@
 				3CEDF77E1E839DE6008839A3 /* ParticleCache.cpp in Sources */,
 				3CFEA11B285B857B002D106F /* m3_api_wasi.c in Sources */,
 				3CFEB860268DA65C006D9974 /* TextureAtlasData.cpp in Sources */,
+				3C4B3C352C06CCA000D778FC /* PhysicsConstraintTimeline.cpp in Sources */,
 				3C0FB57E2BEEF20D0098E88D /* Effekseer.ResourceManager.cpp in Sources */,
 				3C53E93B2BE8CF1100039640 /* FlexLine.cpp in Sources */,
 				3CFEBD65268DA6D5006D9974 /* Bone.cpp in Sources */,
+				3C4B3C122C06CCA000D778FC /* ClippingAttachment.cpp in Sources */,
+				3C4B3C1D2C06CCA000D778FC /* DeformTimeline.cpp in Sources */,
 				3C6E7F11272A30E700E9F115 /* soloud_waveshaperfilter.cpp in Sources */,
 				3C5399EB2998BAF000E9125C /* ljson.c in Sources */,
 				3CA3164A29923329007879C4 /* soloud_duckfilter.cpp in Sources */,
 				3C65B5B61EC010CA0039DA1D /* Menu.cpp in Sources */,
 				3C41D5F72148AD02003FDDFE /* imgui.cpp in Sources */,
-				3CF10EF12874AE7E00940268 /* Atlas.cpp in Sources */,
 				3CA77EEB2AE665C100B7BADA /* Sweep.cpp in Sources */,
 				3C6E7F2A272A30E700E9F115 /* dr_impl.cpp in Sources */,
 				3C53E9452BE8CF1100039640 /* YGNode.cpp in Sources */,
 				3CFEA11A285B857B002D106F /* m3_core.c in Sources */,
 				3C0D31192456C7F6009C592B /* AtlasCache.cpp in Sources */,
+				3C4B3C152C06CCA000D778FC /* SequenceTimeline.cpp in Sources */,
 				3C6E7F34272A30E700E9F115 /* tts.cpp in Sources */,
 				3C0FB5662BEEF20D0098E88D /* Effekseer.DefaultEffectLoader.cpp in Sources */,
+				3C4B3C112C06CCA000D778FC /* SlotData.cpp in Sources */,
 				3C9A7D731E5428A200205094 /* Label.cpp in Sources */,
+				3C4B3C2B2C06CCA000D778FC /* AttachmentLoader.cpp in Sources */,
 				3C1A3AFA272A850F003A2829 /* lauxlib.c in Sources */,
 				3C53E9492BE8CF1100039640 /* YGValue.cpp in Sources */,
+				3C4B3C392C06CCA000D778FC /* PathConstraintMixTimeline.cpp in Sources */,
 				3C0FB54D2BEEF20D0098E88D /* ModelLoader.cpp in Sources */,
 				3C6E7F19272A30E700E9F115 /* soloud_audiosource.cpp in Sources */,
 				3C0FB5852BEEFCF60098E88D /* EffekNode.cpp in Sources */,
 				3C1A3B0A272A850F003A2829 /* lmathlib.c in Sources */,
-				3CF10ECB2874AE7E00940268 /* AnimationStateData.cpp in Sources */,
 				3CA77EF92AE665C100B7BADA /* GearJointConf.cpp in Sources */,
 				3C53E93D2BE8CF1100039640 /* Config.cpp in Sources */,
 				3C0EBE361E2E1D840066450A /* ShaderCache.cpp in Sources */,
 				3CA77EFE2AE665C100B7BADA /* WorldShape.cpp in Sources */,
 				3C6E7F0E272A30E700E9F115 /* soloud_flangerfilter.cpp in Sources */,
+				3C4B3C3C2C06CCA000D778FC /* SkeletonBinary.cpp in Sources */,
 				3CE9D7F61E7FC2A6003AAECB /* Joint.cpp in Sources */,
 				3C3A5E1424D9BBBF00E59288 /* Constraint.cpp in Sources */,
 				3C0FB54A2BEEF20D0098E88D /* Effekseer.MaterialCompiler.cpp in Sources */,
@@ -4332,17 +4361,18 @@
 				3CB487181E16398700D51749 /* tolua_to.cpp in Sources */,
 				3C6E7F2C272A30E700E9F115 /* sndchip.cpp in Sources */,
 				3CE9D7F81E7FC2A6003AAECB /* Sensor.cpp in Sources */,
+				3C4B3C1F2C06CCA000D778FC /* PathConstraintPositionTimeline.cpp in Sources */,
+				3C4B3C1A2C06CCA000D778FC /* SkeletonClipping.cpp in Sources */,
 				3C1D40EC2702FC8A00202534 /* TealCompiler.cpp in Sources */,
 				3CE9D7F71E7FC2A6003AAECB /* JointDef.cpp in Sources */,
-				3CF10EEF2874AE7E00940268 /* PathConstraintSpacingTimeline.cpp in Sources */,
 				3CFEA120285B857B002D106F /* m3_bind.c in Sources */,
 				3C0FB5682BEEF20D0098E88D /* Effekseer.Effect.cpp in Sources */,
 				3C1A3B02272A850F003A2829 /* linit.c in Sources */,
 				3C6E7F48272A340C00E9F115 /* soloud_sdl2_static.cpp in Sources */,
 				3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */,
 				3C1984792100656800B6F370 /* PlatformCamera.cpp in Sources */,
-				3CF10EC92874AE7E00940268 /* TextureLoader.cpp in Sources */,
 				3C6DA2051EAEF19E006EEE32 /* Model.cpp in Sources */,
+				3C4B3C342C06CCA000D778FC /* TranslateTimeline.cpp in Sources */,
 				3C53E94C2BE9C77D00039640 /* AlignNode.cpp in Sources */,
 				3CE9D7F91E7FC2A6003AAECB /* PhysicsWorld.cpp in Sources */,
 				3C0D399D1E1BA603007FEFC3 /* Common.cpp in Sources */,
@@ -4351,15 +4381,18 @@
 				3C46E83226140A8F00DC9D4F /* Column.cpp in Sources */,
 				3CFEB83F268DA64B006D9974 /* BinaryDataParser.cpp in Sources */,
 				3CA77F1D2AE665C100B7BADA /* ToiOutput.cpp in Sources */,
+				3C4B3C332C06CCA000D778FC /* TransformConstraintData.cpp in Sources */,
 				3C6E7F3C272A30E700E9F115 /* sid.cpp in Sources */,
 				3C030CA424CAC02E0074786E /* Playable.cpp in Sources */,
-				3CF10EFB2874AE7E00940268 /* AtlasAttachmentLoader.cpp in Sources */,
 				3CB487151E16398700D51749 /* tolua_is.cpp in Sources */,
+				3C4B3C0C2C06CCA000D778FC /* Updatable.cpp in Sources */,
 				3C9CCD022689BDD00086757D /* os.cpp in Sources */,
 				3CCA844A263668AE00AA9B44 /* implot.cpp in Sources */,
 				3C0FB55A2BEEF20D0098E88D /* Effekseer.Parameters.cpp in Sources */,
 				3C57A3A31E0A05AD002141DF /* Listener.cpp in Sources */,
 				3C7FA3362B67AEE0005A8441 /* zutil.c in Sources */,
+				3C4B3C232C06CCA000D778FC /* LinkedMesh.cpp in Sources */,
+				3C4B3C182C06CCA000D778FC /* TextureLoader.cpp in Sources */,
 				3C0FB5632BEEF20D0098E88D /* VectorFieldLoader.cpp in Sources */,
 				3C49FFE820EF609700E775D7 /* nanovg.cpp in Sources */,
 				3C46E83326140A8F00DC9D4F /* Database.cpp in Sources */,
@@ -4369,23 +4402,18 @@
 				3C41D5FA2148AD02003FDDFE /* imgui_demo.cpp in Sources */,
 				3C7FA32F2B67AEE0005A8441 /* gzread.c in Sources */,
 				3C6E7F2B272A30E700E9F115 /* soloud_wav.cpp in Sources */,
-				3CF10EF32874AE7E00940268 /* ClippingAttachment.cpp in Sources */,
 				3C1A3AFD272A850F003A2829 /* liolib.c in Sources */,
-				3CF10EE42874AE7E00940268 /* Bone.cpp in Sources */,
+				3C4B3C012C06CCA000D778FC /* SkeletonJson.cpp in Sources */,
 				3CA77F0B2AE665C100B7BADA /* PrismaticJointConf.cpp in Sources */,
 				3C2F9C8E1E7B132600B98D39 /* ClipCache.cpp in Sources */,
-				3CF10ED02874AE7E00940268 /* RTTI.cpp in Sources */,
-				3CF10ED32874AE7E00940268 /* PathConstraintMixTimeline.cpp in Sources */,
 				3C3598321E1254D600E62C16 /* Async.cpp in Sources */,
 				3C49FFE920EF609700E775D7 /* nanovg_bgfx.cpp in Sources */,
 				3CFEB82D268DA599006D9974 /* DragonBone.cpp in Sources */,
 				3CA77EFF2AE665C100B7BADA /* ContactSolver.cpp in Sources */,
-				3CF10ECD2874AE7E00940268 /* Json.cpp in Sources */,
 				3C03CBF42A18966600383FAE /* DoraTag.cpp in Sources */,
 				3C6E7F23272A30E700E9F115 /* soloud_core_3d.cpp in Sources */,
 				3C6E7F3A272A30E700E9F115 /* ted.cpp in Sources */,
-				3CF10EED2874AE7E00940268 /* Triangulator.cpp in Sources */,
-				3CF10EFA2874AE7E00940268 /* SkeletonData.cpp in Sources */,
+				3C4B3C292C06CCA000D778FC /* Triangulator.cpp in Sources */,
 				3C6E7F2D272A30E700E9F115 /* chipplayer.cpp in Sources */,
 				3CA77EE72AE665C100B7BADA /* FrictionJointConf.cpp in Sources */,
 				3C6E7F1D272A30E700E9F115 /* soloud_filter.cpp in Sources */,
@@ -4397,24 +4425,25 @@
 				3C9CCD042689BDD00086757D /* format.cpp in Sources */,
 				3CD497FE1E7EF3DF00C06CA2 /* FrameCache.cpp in Sources */,
 				3C53E9412BE8CF1100039640 /* LayoutResults.cpp in Sources */,
+				3C4B3C252C06CCA000D778FC /* AnimationState.cpp in Sources */,
 				3CB487171E16398700D51749 /* tolua_push.cpp in Sources */,
 				3CA77ED72AE665C100B7BADA /* MovementConf.cpp in Sources */,
 				3CFEBD68268DA6D5006D9974 /* Armature.cpp in Sources */,
+				3C4B3C092C06CCA000D778FC /* TransformConstraint.cpp in Sources */,
+				3C4B3C062C06CCA000D778FC /* PathConstraintSpacingTimeline.cpp in Sources */,
 				3CA77F032AE665C100B7BADA /* WorldManifold.cpp in Sources */,
-				3CF10ED82874AE7E00940268 /* PathConstraint.cpp in Sources */,
 				3C0FB4712BEEF0DA0098E88D /* EffekseerRenderer.PngTextureLoader.cpp in Sources */,
 				3CB487161E16398700D51749 /* tolua_map.cpp in Sources */,
-				3CF10ED22874AE7E00940268 /* Attachment.cpp in Sources */,
 				3CB2115125C2984900CEA033 /* imgui_tables.cpp in Sources */,
 				3C41D5F92148AD02003FDDFE /* imgui_widgets.cpp in Sources */,
 				3C46E8572614227300DC9D4F /* Content.cpp in Sources */,
 				3CA77EED2AE665C100B7BADA /* UnitVec.cpp in Sources */,
 				3C0FB5572BEEF20D0098E88D /* CurlNoise.cpp in Sources */,
+				3C4B3C0E2C06CCA000D778FC /* PathConstraintData.cpp in Sources */,
 				3CA77EF42AE665C100B7BADA /* RopeJointConf.cpp in Sources */,
 				3C0FB56F2BEEF20D0098E88D /* Effekseer.EffectNodeTrack.cpp in Sources */,
 				3C6E7F27272A30E700E9F115 /* soloud_vic.cpp in Sources */,
 				3C0FB47A2BEEF0DA0098E88D /* GraphicsDeviceCPU.cpp in Sources */,
-				3CF10EF22874AE7E00940268 /* SlotData.cpp in Sources */,
 				3CB4871E1E16419800D51749 /* Geometry.cpp in Sources */,
 				3C0FB56A2BEEF20D0098E88D /* Effekseer.EffectNodeModel.cpp in Sources */,
 				3C6E7F13272A30E700E9F115 /* soloud_fft_lut.cpp in Sources */,
@@ -4424,88 +4453,92 @@
 				3CFEA122285B857B002D106F /* m3_info.c in Sources */,
 				3C0FB5642BEEF20D0098E88D /* Effekseer.Color.cpp in Sources */,
 				3CFEB857268DA65C006D9974 /* ArmatureData.cpp in Sources */,
-				3CF10EEB2874AE7E00940268 /* IkConstraintTimeline.cpp in Sources */,
 				3CFEB85D268DA65C006D9974 /* AnimationConfig.cpp in Sources */,
 				3C6E7F1F272A30E700E9F115 /* soloud_core_faderops.cpp in Sources */,
 				3CFEB869268DA670006D9974 /* Transform.cpp in Sources */,
 				3CFEBD78268DA6E4006D9974 /* TimelineState.cpp in Sources */,
 				3C0FB5822BEEF20D0098E88D /* Effekseer.WorkerThread.cpp in Sources */,
 				3C0FB5772BEEF20D0098E88D /* Effekseer.IntrusiveList.cpp in Sources */,
+				3C4B3C362C06CCA000D778FC /* MeshAttachment.cpp in Sources */,
 				3C1A3B08272A850F003A2829 /* ltablib.c in Sources */,
 				3CE9D7FC1E7FE99D003AAECB /* Dictionary.cpp in Sources */,
 				3C6E7F16272A30E700E9F115 /* soloud_fader.cpp in Sources */,
-				3CF10ECA2874AE7E00940268 /* TransformConstraint.cpp in Sources */,
 				3C53E93F2BE8CF1100039640 /* Log.cpp in Sources */,
 				3C1A3AF6272A850F003A2829 /* loslib.c in Sources */,
 				3C6E7F39272A30E700E9F115 /* soloud_speech.cpp in Sources */,
+				3C4B3C1C2C06CCA000D778FC /* InheritTimeline.cpp in Sources */,
 				3CE9D7F51E7FC2A6003AAECB /* BodyDef.cpp in Sources */,
 				3CA77F162AE665C100B7BADA /* PoolMemoryResource.cpp in Sources */,
 				3CA77F1F2AE665C100B7BADA /* Math.cpp in Sources */,
 				3C46E8592614227300DC9D4F /* Database.cpp in Sources */,
 				3C0FB4782BEEF0DA0098E88D /* EffekseerRenderer.TGATextureLoader.cpp in Sources */,
 				3CFEB876268DA6A3006D9974 /* BaseObject.cpp in Sources */,
+				3C4B3C002C06CCA000D778FC /* AnimationStateData.cpp in Sources */,
 				3CFEA128285B857B002D106F /* m3_module.c in Sources */,
+				3C4B3C2F2C06CCA000D778FC /* PhysicsConstraintData.cpp in Sources */,
 				3CA77F1A2AE665C100B7BADA /* Island.cpp in Sources */,
 				3CCEDD471E1D55BF00F32295 /* Utils.cpp in Sources */,
 				3C0FB57C2BEEF20D0098E88D /* Effekseer.RectF.cpp in Sources */,
-				3CF10EF62874AE7E00940268 /* BoundingBoxAttachment.cpp in Sources */,
 				3CA77EE52AE665C100B7BADA /* MultiShapeConf.cpp in Sources */,
 				3CE3555F1E1B3F7200268A19 /* LuaHandler.cpp in Sources */,
 				3C020DCC1E75476600307E4F /* Action.cpp in Sources */,
 				3CA77EE32AE665C100B7BADA /* Simplex.cpp in Sources */,
 				3C0FB5592BEEF20D0098E88D /* Easing.cpp in Sources */,
+				3C4B3C3F2C06CCA000D778FC /* ShearTimeline.cpp in Sources */,
 				3C6E7F09272A30E700E9F115 /* soloud_echofilter.cpp in Sources */,
+				3C4B3C0B2C06CCA000D778FC /* Bone.cpp in Sources */,
 				3C1A3B05272A850F003A2829 /* lapi.c in Sources */,
+				3C4B3C192C06CCA000D778FC /* SpineObject.cpp in Sources */,
 				3CB487131E16398700D51749 /* tolua_event.cpp in Sources */,
 				3C7FA3342B67AEE0005A8441 /* uncompr.c in Sources */,
 				3CE994622AFA32F70073A973 /* Controller.cpp in Sources */,
 				3C42B0A120FECB0A00186F9C /* Unit.cpp in Sources */,
-				3CF10EE52874AE7E00940268 /* RegionAttachment.cpp in Sources */,
 				3CFEB85B268DA65C006D9974 /* BoundingBoxData.cpp in Sources */,
 				3C883AF921E0896A00BFD758 /* VGNode.cpp in Sources */,
 				3C40555920FD95710057B0E4 /* BulletDef.cpp in Sources */,
+				3C4B3C312C06CCA000D778FC /* IkConstraintData.cpp in Sources */,
 				3C1A3B04272A850F003A2829 /* lstrlib.c in Sources */,
-				3CF10EF82874AE7E00940268 /* LinkedMesh.cpp in Sources */,
 				3C6E7F20272A30E700E9F115 /* soloud_core_basicops.cpp in Sources */,
-				3CF10ED52874AE7E00940268 /* SpineObject.cpp in Sources */,
 				3C0FB46E2BEEF0DA0098E88D /* EffekseerRenderer.DDSTextureLoader.cpp in Sources */,
 				3C0FB5552BEEF20D0098E88D /* Effekseer.Session.cpp in Sources */,
-				3CF10EF72874AE7E00940268 /* SkeletonClipping.cpp in Sources */,
+				3C4B3C262C06CCA000D778FC /* VertexAttachment.cpp in Sources */,
 				3C0FB57A2BEEF20D0098E88D /* Effekseer.Matrix44.cpp in Sources */,
 				3C6E7F07272A30E700E9F115 /* soloud_eqfilter.cpp in Sources */,
-				3CF10ED62874AE7E00940268 /* Skeleton.cpp in Sources */,
 				3C6E7F22272A30E700E9F115 /* soloud_core_getters.cpp in Sources */,
 				3C6E7F0B272A30E700E9F115 /* soloud_robotizefilter.cpp in Sources */,
-				3CF10ED72874AE7E00940268 /* EventTimeline.cpp in Sources */,
 				3C46E83726140A8F00DC9D4F /* Statement.cpp in Sources */,
-				3CF10EE72874AE7E00940268 /* TranslateTimeline.cpp in Sources */,
 				3CA77F1E2AE665C100B7BADA /* ConstraintSolverConf.cpp in Sources */,
+				3C4B3C082C06CCA000D778FC /* TransformConstraintTimeline.cpp in Sources */,
+				3C4B3C072C06CCA000D778FC /* Skeleton.cpp in Sources */,
 				3C46E85C2614227300DC9D4F /* AutoreleasePool.cpp in Sources */,
+				3C4B3C162C06CCA000D778FC /* MathUtil.cpp in Sources */,
+				3C4B3C042C06CCA000D778FC /* PhysicsConstraint.cpp in Sources */,
 				3C0FB56B2BEEF20D0098E88D /* Effekseer.EffectNodeRibbon.cpp in Sources */,
 				3CFEB85F268DA65C006D9974 /* DisplayData.cpp in Sources */,
-				3CF10EEE2874AE7E00940268 /* VertexAttachment.cpp in Sources */,
 				3CFEA123285B857B002D106F /* m3_compile.c in Sources */,
 				3CFEB859268DA65C006D9974 /* DragonBonesData.cpp in Sources */,
+				3C4B3C372C06CCA000D778FC /* RegionAttachment.cpp in Sources */,
+				3C4B3C0A2C06CCA000D778FC /* Sequence.cpp in Sources */,
 				3C6E7F0A272A30E700E9F115 /* soloud_fftfilter.cpp in Sources */,
 				3CE9509820F30A65002FFC18 /* Builtin.cpp in Sources */,
 				3C40555020FD92CC0057B0E4 /* Face.cpp in Sources */,
 				3C0FB5652BEEF20D0098E88D /* Effekseer.CurveLoader.cpp in Sources */,
 				3CDED03F1E52F55100B5E578 /* font_manager.cpp in Sources */,
-				3CF10F012874AE7E00940268 /* AttachmentTimeline.cpp in Sources */,
 				3C1A3AF7272A850F003A2829 /* llex.c in Sources */,
-				3CF10EDA2874AE7E00940268 /* SkeletonJson.cpp in Sources */,
 				3C0FB5782BEEF20D0098E88D /* Effekseer.Manager.cpp in Sources */,
 				3CC7945E2579F9B000042394 /* ast.cpp in Sources */,
+				3C4B3C052C06CCA000D778FC /* BoneData.cpp in Sources */,
 				3C46E85F2614227300DC9D4F /* Renderer.cpp in Sources */,
 				3C3A5E1A24DA4BB900E59288 /* World.cpp in Sources */,
 				3CFEB86A268DA670006D9974 /* Point.cpp in Sources */,
 				3C7FA32B2B67AEE0005A8441 /* compress.c in Sources */,
+				3C4B3C242C06CCA000D778FC /* AtlasAttachmentLoader.cpp in Sources */,
+				3C4B3C0F2C06CCA000D778FC /* Event.cpp in Sources */,
 				3C40555C20FDC0B00057B0E4 /* VisualCache.cpp in Sources */,
 				3CA77ED62AE665C100B7BADA /* DynamicMemory.cpp in Sources */,
 				3CFEB85A268DA65C006D9974 /* SkinData.cpp in Sources */,
 				3CF09EF71E581AAD009E8C6F /* Singleton.cpp in Sources */,
 				3C0FB5692BEEF20D0098E88D /* Effekseer.EffectNode.cpp in Sources */,
-				3CF10EE22874AE7E00940268 /* SkeletonBinary.cpp in Sources */,
 				3C0FB55F2BEEF20D0098E88D /* Mat44f.cpp in Sources */,
 				3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */,
 				3C6E7F3F272A30E700E9F115 /* soloud_monotone.cpp in Sources */,
@@ -4516,20 +4549,20 @@
 				3CA77EF12AE665C100B7BADA /* ContactImpulsesList.cpp in Sources */,
 				3C0D3116245681D2009C592B /* Spine.cpp in Sources */,
 				3CFEB86D268DA67F006D9974 /* BaseFactory.cpp in Sources */,
+				3C4B3C1E2C06CCA000D778FC /* Log.cpp in Sources */,
 				3C7FA3332B67AEE0005A8441 /* crc32.c in Sources */,
 				3CC794612579F9B000042394 /* yue_compiler.cpp in Sources */,
-				3CF10EF42874AE7E00940268 /* SkeletonBounds.cpp in Sources */,
 				3C3A5E1D24DA5E1700E59288 /* SoftNode.cpp in Sources */,
 				3C1984782100656800B6F370 /* PlatformWorld.cpp in Sources */,
 				3C0FB4792BEEF0DA0098E88D /* EffekseerRenderer.TrackRendererBase.cpp in Sources */,
 				3C6E7F1A272A30E700E9F115 /* soloud_fft.cpp in Sources */,
+				3C4B3C302C06CCA000D778FC /* Json.cpp in Sources */,
 				3CA77F042AE665C100B7BADA /* PositionSolverManifold.cpp in Sources */,
+				3C4B3C212C06CCA000D778FC /* Extension.cpp in Sources */,
 				3C0FB57B2BEEF20D0098E88D /* Effekseer.Random.cpp in Sources */,
 				3CFEA11F285B857B002D106F /* m3_env.c in Sources */,
 				3C1A3AEB272A850F003A2829 /* lundump.c in Sources */,
-				3CF10EDE2874AE7E00940268 /* ShearTimeline.cpp in Sources */,
 				3C53E9402BE8CF1100039640 /* event.cpp in Sources */,
-				3CF10EF52874AE7E00940268 /* Event.cpp in Sources */,
 				3C0FB57D2BEEF20D0098E88D /* Effekseer.Resource.cpp in Sources */,
 				3C6E7F18272A30E700E9F115 /* soloud.cpp in Sources */,
 				3C7FA32E2B67AEE0005A8441 /* gzlib.c in Sources */,
@@ -4544,38 +4577,33 @@
 				3CA77EEE2AE665C100B7BADA /* BodyConf.cpp in Sources */,
 				3C5AE08E1FFC737100CB95EB /* Entity.cpp in Sources */,
 				3C0FB5502BEEF20D0098E88D /* SplineGenerator.cpp in Sources */,
-				3CF10F002874AE7E00940268 /* ColorTimeline.cpp in Sources */,
 				3CFEA124285B857B002D106F /* m3_parse.c in Sources */,
-				3CF10EEC2874AE7E00940268 /* Log.cpp in Sources */,
 				3C1A3AEC272A850F003A2829 /* ltm.c in Sources */,
 				3C53E9442BE8CF1100039640 /* YGEnums.cpp in Sources */,
 				3C54F0DA2599CD65003D8F08 /* Value.cpp in Sources */,
 				3C53E93E2BE8CF1100039640 /* AssertFatal.cpp in Sources */,
 				3CA77EE22AE665C100B7BADA /* MotorJointConf.cpp in Sources */,
-				3CF10EFF2874AE7E00940268 /* AnimationState.cpp in Sources */,
 				3CA77F012AE665C100B7BADA /* PolygonShapeConf.cpp in Sources */,
 				3C0FB5542BEEF20D0098E88D /* Effekseer.Server.cpp in Sources */,
+				3C4B3C0D2C06CCA000D778FC /* SkeletonBounds.cpp in Sources */,
+				3C4B3C3D2C06CCA000D778FC /* PathAttachment.cpp in Sources */,
 				3CA77F002AE665C100B7BADA /* Shape.cpp in Sources */,
 				3C42B0A320FECB0A00186F9C /* AI.cpp in Sources */,
 				3C42B0A020FECB0A00186F9C /* Bullet.cpp in Sources */,
-				3CF10EFD2874AE7E00940268 /* ConstraintData.cpp in Sources */,
-				3CF10EFC2874AE7E00940268 /* PathConstraintPositionTimeline.cpp in Sources */,
 				3CFEBD67268DA6D5006D9974 /* TransformObject.cpp in Sources */,
 				3C1A3B01272A850F003A2829 /* lstring.c in Sources */,
-				3CF10ECE2874AE7E00940268 /* BoneData.cpp in Sources */,
 				3C6E7F10272A30E700E9F115 /* soloud_biquadresonantfilter.cpp in Sources */,
 				3C1A3B09272A850F003A2829 /* lmem.c in Sources */,
+				3C4B3C172C06CCA000D778FC /* CurveTimeline.cpp in Sources */,
 				3CA77EF72AE665C100B7BADA /* WorldBody.cpp in Sources */,
+				3C4B3C412C06CCA000D778FC /* Timeline.cpp in Sources */,
 				3C0FB5472BEEF20D0098E88D /* ForceFields.cpp in Sources */,
-				3CF10EE12874AE7E00940268 /* TransformConstraintData.cpp in Sources */,
 				3C1A3AF3272A850F003A2829 /* lcode.c in Sources */,
 				3C0FB5802BEEF20D0098E88D /* Effekseer.Vector2D.cpp in Sources */,
 				3C0FB47C2BEEF0DA0098E88D /* TextureLoader.cpp in Sources */,
 				3CA718A71FCCF11000B6AC80 /* lodepng.cpp in Sources */,
 				3C0FB4722BEEF0DA0098E88D /* EffekseerRenderer.Renderer_Impl.cpp in Sources */,
-				3CF10EF92874AE7E00940268 /* EventData.cpp in Sources */,
 				3CB2487F1E4DB41500B6BF26 /* utf8.cpp in Sources */,
-				3CF10F032874AE7E00940268 /* IkConstraint.cpp in Sources */,
 				3CA77EEA2AE665C100B7BADA /* JointConf.cpp in Sources */,
 				3C0C77132753343D0030BDCD /* ZipUtils.cpp in Sources */,
 				3CA77EE62AE665C100B7BADA /* WorldJoint.cpp in Sources */,
@@ -4587,6 +4615,7 @@
 				3C0FB54F2BEEF20D0098E88D /* ProceduralModelGenerator.cpp in Sources */,
 				3C0FB5612BEEF20D0098E88D /* Effekseer.CustomAllocator.cpp in Sources */,
 				3CA77EE12AE665C100B7BADA /* Manifold.cpp in Sources */,
+				3C4B3C222C06CCA000D778FC /* PathConstraint.cpp in Sources */,
 				3CA77EDD2AE665C100B7BADA /* Version.cpp in Sources */,
 				3C49FFEF20EF644900E775D7 /* stb.cpp in Sources */,
 				3C1A3AEA272A850F003A2829 /* lfunc.c in Sources */,
@@ -4594,21 +4623,24 @@
 				3CA77EF22AE665C100B7BADA /* DynamicTree.cpp in Sources */,
 				3C03CBF52A18966600383FAE /* XmlResolver.cpp in Sources */,
 				3C05BCA41E3594C500CC6986 /* TouchDispather.cpp in Sources */,
+				3C4B3C142C06CCA000D778FC /* EventData.cpp in Sources */,
 				3CFEA121285B857B002D106F /* m3_api_tracer.c in Sources */,
 				3C6E7F17272A30E700E9F115 /* soloud_file.cpp in Sources */,
 				3CC0986A1E262F85006F4B76 /* Sprite.cpp in Sources */,
-				3CF10ED92874AE7E00940268 /* PathAttachment.cpp in Sources */,
 				3CA77EF82AE665C100B7BADA /* TimeOfImpact.cpp in Sources */,
 				3CFEA127285B857B002D106F /* m3_function.c in Sources */,
 				3C1A3AF2272A850F003A2829 /* lzio.c in Sources */,
+				3C4B3C272C06CCA000D778FC /* Slot.cpp in Sources */,
 				3CA77F1B2AE665C100B7BADA /* ToiConf.cpp in Sources */,
 				3C46E83426140A8F00DC9D4F /* Savepoint.cpp in Sources */,
 				3C0FB5792BEEF20D0098E88D /* Effekseer.Matrix43.cpp in Sources */,
 				3C47CF1128A356B40011F3E1 /* Cache.cpp in Sources */,
 				3C6E7F15272A30E700E9F115 /* soloud_bus.cpp in Sources */,
 				3CFEBD66268DA6D5006D9974 /* Constraint.cpp in Sources */,
+				3C4B3C2D2C06CCA000D778FC /* BoundingBoxAttachment.cpp in Sources */,
 				3C53E93A2BE8CF1100039640 /* CalculateLayout.cpp in Sources */,
 				3CD497FB1E7EE52300C06CA2 /* ModelCache.cpp in Sources */,
+				3C4B3C202C06CCA000D778FC /* EventTimeline.cpp in Sources */,
 				3CFEB871268DA694006D9974 /* EventObject.cpp in Sources */,
 				3CA77F062AE665C100B7BADA /* Velocity.cpp in Sources */,
 				3C0FB5752BEEF20D0098E88D /* Effekseer.InstanceGroup.cpp in Sources */,
@@ -4616,30 +4648,26 @@
 				3C1A3AF1272A850F003A2829 /* ldblib.c in Sources */,
 				3C1A3AF0272A850F003A2829 /* lobject.c in Sources */,
 				3CA77F102AE665C100B7BADA /* DistanceJointConf.cpp in Sources */,
-				3CF10EEA2874AE7E00940268 /* PathConstraintData.cpp in Sources */,
 				3C0FB46D2BEEF0DA0098E88D /* EffekseerRenderer.CommonUtils.cpp in Sources */,
 				3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */,
 				3C8805771E5EDCE100B52D4B /* Debug.cpp in Sources */,
+				3C4B3C3B2C06CCA000D778FC /* PointAttachment.cpp in Sources */,
 				3C6929721E2C60BE0097AC49 /* Effect.cpp in Sources */,
-				3CF10EE02874AE7E00940268 /* Sequence.cpp in Sources */,
 				3CFEA11C285B857B002D106F /* m3_code.c in Sources */,
-				3CF10ECF2874AE7E00940268 /* ScaleTimeline.cpp in Sources */,
 				3C0FB5742BEEF20D0098E88D /* Effekseer.InstanceGlobal.cpp in Sources */,
 				3C3A5E1124D9A3D000E59288 /* Particle.cpp in Sources */,
 				3CA77EE92AE665C100B7BADA /* SeparationScenario.cpp in Sources */,
 				3CA77ED82AE665C100B7BADA /* StackAllocator.cpp in Sources */,
-				3CF10EF02874AE7E00940268 /* RotateTimeline.cpp in Sources */,
 				3C1A3AFF272A850F003A2829 /* loadlib.c in Sources */,
+				3C4B3C3A2C06CCA000D778FC /* RotateTimeline.cpp in Sources */,
 				3C42B09420FEC56C00186F9C /* Data.cpp in Sources */,
 				3C78C9401E0CB1A2004D0A3C /* EventQueue.cpp in Sources */,
 				3C6E7F28272A30E700E9F115 /* stb_vorbis.c in Sources */,
-				3CF10EDF2874AE7E00940268 /* Timeline.cpp in Sources */,
 				3C0FB56C2BEEF20D0098E88D /* Effekseer.EffectNodeRing.cpp in Sources */,
 				3C0D39A01E1BA8FB007FEFC3 /* Array.cpp in Sources */,
 				3CC7945F2579F9B000042394 /* yue_parser.cpp in Sources */,
 				3CA77EE02AE665C100B7BADA /* EdgeShapeConf.cpp in Sources */,
 				3C46E85D2614227300DC9D4F /* Camera.cpp in Sources */,
-				3CF10EC62874AE7E00940268 /* CurveTimeline.cpp in Sources */,
 				3CA77EDB2AE665C100B7BADA /* StepConf.cpp in Sources */,
 				3C53E9432BE8CF1100039640 /* YGConfig.cpp in Sources */,
 				3C7FA32C2B67AEE0005A8441 /* inffast.c in Sources */,
@@ -4648,7 +4676,6 @@
 				3CA77F082AE665C100B7BADA /* ChainShapeConf.cpp in Sources */,
 				3CA77F192AE665C100B7BADA /* LimitState.cpp in Sources */,
 				3CA77EEF2AE665C100B7BADA /* DiskShapeConf.cpp in Sources */,
-				3CF10EDB2874AE7E00940268 /* DrawOrderTimeline.cpp in Sources */,
 				3C46E85E2614227300DC9D4F /* View.cpp in Sources */,
 				3CA77EFB2AE665C100B7BADA /* Body.cpp in Sources */,
 				3C53E9472BE8CF1100039640 /* YGNodeStyle.cpp in Sources */,
@@ -4674,16 +4701,17 @@
 				3C77082E1E08C72900B38C2A /* LuaManual.cpp in Sources */,
 				3C49068F2A2EC5530084A5F4 /* YarnCompiler.cpp in Sources */,
 				3C0C774727535A520030BDCD /* miniz.c in Sources */,
-				3CF10EC82874AE7E00940268 /* Extension.cpp in Sources */,
 				3CA77F152AE665C100B7BADA /* PointStates.cpp in Sources */,
-				3CF10EDC2874AE7E00940268 /* MathUtil.cpp in Sources */,
 				3C1A3B07272A850F003A2829 /* ldebug.c in Sources */,
 				3C0044EB1E6682A000369672 /* Particle.cpp in Sources */,
 				3C1A3AFC272A850F003A2829 /* lstate.c in Sources */,
 				3C7FA3292B67AEE0005A8441 /* gzwrite.c in Sources */,
 				3C9A7D7A1E55957500205094 /* atlas.cpp in Sources */,
+				3C4B3C3E2C06CCA000D778FC /* DrawOrderTimeline.cpp in Sources */,
 				3C0FB5482BEEF20D0098E88D /* Effekseer.EfkEfcFactory.cpp in Sources */,
 				3C6DA2131EAF0726006EEE32 /* tinyxml2.cpp in Sources */,
+				3C4B3C102C06CCA000D778FC /* Animation.cpp in Sources */,
+				3C4B3C2C2C06CCA000D778FC /* AttachmentTimeline.cpp in Sources */,
 				3C46E85B2614227300DC9D4F /* Application.mm in Sources */,
 				3C7FA32D2B67AEE0005A8441 /* deflate.c in Sources */,
 				3C0FB4762BEEF0DA0098E88D /* EffekseerRenderer.RingRendererBase.cpp in Sources */,
@@ -4695,47 +4723,47 @@
 				3CA77F132AE665C100B7BADA /* ShapeSeparation.cpp in Sources */,
 				3CCA844B263668AE00AA9B44 /* implot_items.cpp in Sources */,
 				3C1A3B06272A850F003A2829 /* lutf8lib.c in Sources */,
-				3CF10ECC2874AE7E00940268 /* Updatable.cpp in Sources */,
 				3CA77EDE2AE665C100B7BADA /* BlockAllocator.cpp in Sources */,
 				3C0FB5582BEEF20D0098E88D /* Collisions.cpp in Sources */,
 				3CA77F052AE665C100B7BADA /* ConvexHull.cpp in Sources */,
-				3CF10EC72874AE7E00940268 /* SequenceTimeline.cpp in Sources */,
 				3C2DFE1B1E95C58A0077B67D /* Sound.cpp in Sources */,
 				3C6E7F36272A30E700E9F115 /* klatt.cpp in Sources */,
+				3C4B3C382C06CCA000D778FC /* Attachment.cpp in Sources */,
 				3CA77EFD2AE665C100B7BADA /* WeldJointConf.cpp in Sources */,
 				3CDA2E1324C20DDD009B0AA5 /* ML.cpp in Sources */,
 				3C0FB5622BEEF20D0098E88D /* VectorField.cpp in Sources */,
 				3CA77F0F2AE665C100B7BADA /* VelocityConstraint.cpp in Sources */,
-				3CF10ED42874AE7E00940268 /* DeformTimeline.cpp in Sources */,
 				3C2DFE141E95C4AF0077B67D /* SoundCache.cpp in Sources */,
 				3C6E7F14272A30E700E9F115 /* soloud_core_voicegroup.cpp in Sources */,
 				3CCA844C263668AE00AA9B44 /* implot_demo.cpp in Sources */,
 				3C6E7F21272A30E700E9F115 /* soloud_thread.cpp in Sources */,
 				3CE3456A20F7248A00D7F60C /* MemoryPool.cpp in Sources */,
 				3C0FB5712BEEF20D0098E88D /* Effekseer.Instance.cpp in Sources */,
+				3C4B3C402C06CCA000D778FC /* ConstraintData.cpp in Sources */,
 				3CD4634C1E27239B00BA9D30 /* TextureCache.cpp in Sources */,
 				3CE9D7F41E7FC2A6003AAECB /* Body.cpp in Sources */,
 				3C6E7F3E272A30E700E9F115 /* soloud_noise.cpp in Sources */,
 				3C46E85A2614227300DC9D4F /* Scheduler.cpp in Sources */,
+				3C4B3C282C06CCA000D778FC /* IkConstraintTimeline.cpp in Sources */,
 				3C0FB4752BEEF0DA0098E88D /* EffekseerRenderer.RibbonRendererBase.cpp in Sources */,
 				3CFEBD76268DA6E4006D9974 /* WorldClock.cpp in Sources */,
 				3C0D311C2456E23F009C592B /* SkeletonCache.cpp in Sources */,
 				3C2F9C8A1E7B114B00B98D39 /* ModelDef.cpp in Sources */,
-				3CF10EE82874AE7E00940268 /* IkConstraintData.cpp in Sources */,
 				3CFEBD75268DA6E4006D9974 /* AnimationState.cpp in Sources */,
 				3C0FB5762BEEF20D0098E88D /* Effekseer.InternalScript.cpp in Sources */,
 				3CA77EE82AE665C100B7BADA /* TargetJointConf.cpp in Sources */,
 				3C6E7F29272A30E700E9F115 /* soloud_wavstream.cpp in Sources */,
+				3C4B3C1B2C06CCA000D778FC /* RTTI.cpp in Sources */,
 				3C42B09720FEC57C00186F9C /* AINode.cpp in Sources */,
 				3CFEB877268DA6A3006D9974 /* DragonBones.cpp in Sources */,
 				3C6E7F24272A30E700E9F115 /* soloud_misc.cpp in Sources */,
 				3C53E9392BE8CF1100039640 /* Cache.cpp in Sources */,
-				3CF10EE32874AE7E00940268 /* Skin.cpp in Sources */,
 				3C0FB47B2BEEF0DA0098E88D /* ModelLoader.cpp in Sources */,
 				3CA77F172AE665C100B7BADA /* StatsResource.cpp in Sources */,
 				3CA77F0E2AE665C100B7BADA /* CodeDumper.cpp in Sources */,
 				3C53E9482BE8CF1100039640 /* YGPixelGrid.cpp in Sources */,
 				3C46E8602614227300DC9D4F /* Application.cpp in Sources */,
+				3C4B3C032C06CCA000D778FC /* Skin.cpp in Sources */,
 				3CFEBDA2268DB403006D9974 /* DragonBoneCache.cpp in Sources */,
 				3C0FB5672BEEF20D0098E88D /* Effekseer.DefaultFile.cpp in Sources */,
 				3CA77F022AE665C100B7BADA /* PulleyJointConf.cpp in Sources */,
@@ -4743,17 +4771,16 @@
 				3CA77EFC2AE665C100B7BADA /* WheelJointConf.cpp in Sources */,
 				3C53E9382BE8CF1100039640 /* Baseline.cpp in Sources */,
 				3C1A3B03272A850F003A2829 /* lcorolib.c in Sources */,
+				3C4B3C2A2C06CCA000D778FC /* Atlas.cpp in Sources */,
 				3C6E7F1B272A30E700E9F115 /* soloud_core_setters.cpp in Sources */,
 				3C53E9372BE8CF1100039640 /* AbsoluteLayout.cpp in Sources */,
 				3C0FB5562BEEF20D0098E88D /* Effekseer.Socket.cpp in Sources */,
-				3CF10EE92874AE7E00940268 /* TransformConstraintTimeline.cpp in Sources */,
 				3C0FB56D2BEEF20D0098E88D /* Effekseer.EffectNodeRoot.cpp in Sources */,
 				3C0FB55E2BEEF20D0098E88D /* Mat43f.cpp in Sources */,
 				3C6E7F4B272A389200E9F115 /* sqlite3.c in Sources */,
 				3C6E7F0F272A30E700E9F115 /* soloud_freeverbfilter.cpp in Sources */,
 				3C6DA2121EAF0726006EEE32 /* SAXParser.cpp in Sources */,
 				3C41D5F82148AD02003FDDFE /* imgui_draw.cpp in Sources */,
-				3CF10ED12874AE7E00940268 /* MeshAttachment.cpp in Sources */,
 				3C7FA3322B67AEE0005A8441 /* adler32.c in Sources */,
 				3CA77F072AE665C100B7BADA /* Distance.cpp in Sources */,
 				3CB487061E1635A500D51749 /* Node.cpp in Sources */,
@@ -4767,7 +4794,6 @@
 				3C0FB5732BEEF20D0098E88D /* Effekseer.InstanceContainer.cpp in Sources */,
 				3C6E7F08272A30E700E9F115 /* soloud_bassboostfilter.cpp in Sources */,
 				3C6E7F1C272A30E700E9F115 /* soloud_core_voiceops.cpp in Sources */,
-				3CF10EFE2874AE7E00940268 /* Animation.cpp in Sources */,
 				3C0FB54B2BEEF20D0098E88D /* Effekseer.MaterialFile.cpp in Sources */,
 				3C42B0A620FEFEA800186F9C /* UnitAction.cpp in Sources */,
 				3C6E7F40272A30E700E9F115 /* soloud_vizsn.cpp in Sources */,

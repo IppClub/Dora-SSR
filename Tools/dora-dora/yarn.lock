@@ -1672,24 +1672,24 @@
   resolved "https://registry.npmmirror.com/@eslint/js/-/js-8.57.0.tgz#a5417ae8427873f1dd08b70b3574b453e67b5f7f"
   integrity sha512-Ys+3g2TaW7gADOJzPt83SJtCDhMjndcDMFVQ/Tj9iA1BfJzFKD9mAUXT3OenpuPHbI6P/myECxRJrofUsDx/5g==
 
-"@esotericsoftware/spine-core@4.2.14":
-  version "4.2.14"
-  resolved "https://registry.npmmirror.com/@esotericsoftware/spine-core/-/spine-core-4.2.14.tgz#a144d2f62980e3c092cede4943d7efff13c3b142"
-  integrity sha512-FxIWLvh0bbB2K59+h6wK6wb4d1+ZbB5R37zB9KdDEMhWKdhQo2JTUgiPbzplWlIpd5erRx85600vEtzsbFGWbQ==
+"@esotericsoftware/spine-core@4.2.43":
+  version "4.2.43"
+  resolved "https://registry.npmmirror.com/@esotericsoftware/spine-core/-/spine-core-4.2.43.tgz#6dd1b8ff59fd8190a5fcc974f3b014eca11f75ca"
+  integrity sha512-FzpNkJllTwu7l1bHO6186r8D4/0UR3bkPWqMlLUZf57sh2ErV8iQFyPXiz3suZTXpfAjw4k5dVhAebPVUZMtXw==
 
-"@esotericsoftware/spine-player@4.2.14":
-  version "4.2.14"
-  resolved "https://registry.npmmirror.com/@esotericsoftware/spine-player/-/spine-player-4.2.14.tgz#011a9fc2ef535c01d60fcda0dfddba1188d94a93"
-  integrity sha512-ovXJLZ8tuo5G78gKDPdaj/5bnDTL3/maOdiWEJZh/wkRqQ+AukL9WxVmmspQbvJKSA4a/44aV8Dqi8rh5IJspA==
+"@esotericsoftware/spine-player@^4.2.43":
+  version "4.2.43"
+  resolved "https://registry.npmmirror.com/@esotericsoftware/spine-player/-/spine-player-4.2.43.tgz#e9f3db86f86cb4de8b6c219271e57aab92325bf2"
+  integrity sha512-nT1rrVHVKCQNUvq3w0fY68GVpfwEcHWBcEOAeM5WfdhIeuhJJUma1QA5bLfQKT+ToWEFi6sCrT6nCKOulhJa/A==
   dependencies:
-    "@esotericsoftware/spine-webgl" "4.2.14"
+    "@esotericsoftware/spine-webgl" "4.2.43"
 
-"@esotericsoftware/spine-webgl@4.2.14":
-  version "4.2.14"
-  resolved "https://registry.npmmirror.com/@esotericsoftware/spine-webgl/-/spine-webgl-4.2.14.tgz#c936e6451a178800f8f7ff853a95080f30b2e36f"
-  integrity sha512-z7ED7CtM8PrlCZ+TS9U2NU6KNJB5ygfxpwyBHDz69P/cc+bdvB5Z5nMJMqPjNDPt7PUC6we3kaMVNKiMvHtmoQ==
+"@esotericsoftware/spine-webgl@4.2.43":
+  version "4.2.43"
+  resolved "https://registry.npmmirror.com/@esotericsoftware/spine-webgl/-/spine-webgl-4.2.43.tgz#51a273752ef6475e98df25e6cacd35b8af58d593"
+  integrity sha512-ydffbWTd0b7Iw5BDHdnEgxEmf2xmQurx1ZVll9u50OfKPgk6QKvlo7vuY7UJIwtDRPALAhSql2sBJPVniYHixQ==
   dependencies:
-    "@esotericsoftware/spine-core" "4.2.14"
+    "@esotericsoftware/spine-core" "4.2.43"
 
 "@floating-ui/core@^1.0.0":
   version "1.6.1"
